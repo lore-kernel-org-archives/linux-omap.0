@@ -1,40 +1,66 @@
-From: "Mohammed, Afzal" <afzal@ti.com>
-Subject: RE: [PATCH] cpufreq: OMAP: specify range for voltage scaling
-Date: Fri, 2 Mar 2012 10:56:03 +0000
-Message-ID: <C8443D0743D26F4388EA172BF4E2A7A931788E1A@DBDE01.ent.ti.com>
-References: <1330004964-22831-1-git-send-email-afzal@ti.com>
-	<87fwdshyhk.fsf@ti.com> <87d38wf008.fsf@ti.com>
+From: R Sricharan <r.sricharan@ti.com>
+Subject: [PATCH] ARM: OMAP2+: Fix module build errors with CONFIG_OMAP4_ERRATA_I688
+Date: Fri, 2 Mar 2012 16:31:18 +0530
+Message-ID: <1330686078-9478-1-git-send-email-r.sricharan@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
+Content-Type: text/plain
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from devils.ext.ti.com ([198.47.26.153]:38859 "EHLO
-	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1757854Ab2CBK4H convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 2 Mar 2012 05:56:07 -0500
-Received: from dbdp20.itg.ti.com ([172.24.170.38])
-	by devils.ext.ti.com (8.13.7/8.13.7) with ESMTP id q22Au5wQ009895
-	for <linux-omap@vger.kernel.org>; Fri, 2 Mar 2012 04:56:06 -0600
-In-Reply-To: <87d38wf008.fsf@ti.com>
-Content-Language: en-US
+Received: from bear.ext.ti.com ([192.94.94.41]:39336 "EHLO bear.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S932070Ab2CBLB1 (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Fri, 2 Mar 2012 06:01:27 -0500
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "Hilman, Kevin" <khilman@ti.com>, "Kristo, Tero" <t-kristo@ti.com>
-Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "Nori, Sekhar" <nsekhar@ti.com>
+To: linux-omap@vger.kernel.org
+Cc: linux-arm-kernel@lists.infradead.org, tony@atomide.com, santosh.shilimkar@ti.com
 
-Hi Kevin,
+While building modules with randconfig the below errors are observed.
 
-On Fri, Mar 02, 2012 at 03:37:51, Hilman, Kevin wrote:
-> > Thanks, will queue this with the CPUfreq changes for MPU DVFS.
-> 
-> Actually, not quite yet...
-> 
-> After some testing with the SMPS regulators, this won't quite work with
-> the current SMPS regulators.  Does this actually work with the
-> regulators you're using?
+ERROR: "omap_bus_sync" [drivers/watchdog/sp805_wdt.ko] undefined!
+ERROR: "omap_bus_sync" [drivers/watchdog/dw_wdt.ko] undefined!
+ERROR: "omap_bus_sync" [drivers/virtio/virtio_ring.ko] undefined!
+ERROR: "omap_bus_sync" [drivers/video/sm501fb.ko] undefined!
+ERROR: "omap_bus_sync" [drivers/usb/mon/usbmon.ko] undefined!
+ERROR: "omap_bus_sync" [drivers/usb/host/sl811-hcd.ko] undefined!
+ERROR: "omap_bus_sync" [drivers/usb/host/ohci-hcd.ko] undefined!
+ERROR: "omap_bus_sync" [drivers/usb/host/isp1760.ko] undefined!
+ERROR: "omap_bus_sync" [drivers/usb/host/isp1362-hcd.ko] undefined!
+ERROR: "omap_bus_sync" [drivers/usb/host/isp116x-hcd.ko] undefined!
+ERROR: "omap_bus_sync" [drivers/usb/core/usbcore.ko] undefined!
+ERROR: "omap_bus_sync" [drivers/tty/serial/altera_uart.ko] undefined!
+ERROR: "omap_bus_sync" [drivers/tty/serial/altera_jtaguart.ko] undefined!
+ERROR: "omap_bus_sync" [drivers/tty/serial/8250/8250_dw.ko] undefined!
+ERROR: "omap_bus_sync" [drivers/ssb/ssb.ko] undefined!
+ERROR: "omap_bus_sync" [drivers/rtc/rtc-cmos.ko] undefined!
+ERROR: "omap_bus_sync" [drivers/rtc/rtc-bq4802.ko] undefined!
+ERROR: "omap_bus_sync" [drivers/mtd/nand/tmio_nand.ko] undefined!
+ERROR: "omap_bus_sync" [drivers/mtd/nand/omap2.ko] undefined!
 
-Yes, it works on AM335X (doesn't have VC/VP) using TPS65910, it always
-sets voltage to lowest step possible within minus OPP tolerance range.
+Signed-off-by: R Sricharan <r.sricharan@ti.com>
+---
+ arch/arm/mach-omap2/omap4-common.c |    2 ++
+ 1 files changed, 2 insertions(+), 0 deletions(-)
 
-Regards
-Afzal
+diff --git a/arch/arm/mach-omap2/omap4-common.c b/arch/arm/mach-omap2/omap4-common.c
+index ebc5950..70de277 100644
+--- a/arch/arm/mach-omap2/omap4-common.c
++++ b/arch/arm/mach-omap2/omap4-common.c
+@@ -31,6 +31,7 @@
+ 
+ #include "common.h"
+ #include "omap4-sar-layout.h"
++#include <linux/export.h>
+ 
+ #ifdef CONFIG_CACHE_L2X0
+ static void __iomem *l2cache_base;
+@@ -55,6 +56,7 @@ void omap_bus_sync(void)
+ 		isb();
+ 	}
+ }
++EXPORT_SYMBOL(omap_bus_sync);
+ 
+ /* Steal one page physical memory for barrier implementation */
+ int __init omap_barrier_reserve_memblock(void)
+-- 
+1.7.1
+
