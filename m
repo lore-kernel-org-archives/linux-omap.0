@@ -1,108 +1,76 @@
 From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH 1/4] gpiolib: Add gpiochip_find_by_name() and
- gpio_find_by_chip_name()
-Date: Fri, 2 Mar 2012 11:06:15 -0800
-Message-ID: <20120302190614.GO18901@atomide.com>
-References: <20120301185044.29210.44521.stgit@kaulin.local>
- <20120301185524.29210.60381.stgit@kaulin.local>
- <20120302075804.F28DB3E2DB4@localhost>
- <20120302170327.GF18901@atomide.com>
- <20120302180848.GM18901@atomide.com>
- <20120302184833.C296A3E1C63@localhost>
+Subject: Re: [PATCH 11/12] mfd: twl4030-irq: Return twl6030_mmc_card_detect
+ IRQ for board setup
+Date: Fri, 2 Mar 2012 11:20:58 -0800
+Message-ID: <20120302192058.GP18901@atomide.com>
+References: <1330707024-23730-1-git-send-email-b-cousson@ti.com>
+ <1330707024-23730-12-git-send-email-b-cousson@ti.com>
+ <20120302181522.GC13967@legolas.emea.dhcp.ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-mmc-owner@vger.kernel.org>
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from mho-01-ewr.mailhop.org ([204.13.248.71]:16149 "EHLO
+	mho-01-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756744Ab2CBTVD (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 2 Mar 2012 14:21:03 -0500
 Content-Disposition: inline
-In-Reply-To: <20120302184833.C296A3E1C63@localhost>
-Sender: linux-mmc-owner@vger.kernel.org
-To: Grant Likely <grant.likely@secretlab.ca>
-Cc: linux-kernel@vger.kernel.org, Linus Walleij <linus.walleij@stericsson.com>, Arnd Bergmann <arnd@arndb.de>, Rajendra Nayak <rnayak@ti.com>, linux-mmc@vger.kernel.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+In-Reply-To: <20120302181522.GC13967@legolas.emea.dhcp.ti.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Felipe Balbi <balbi@ti.com>
+Cc: Benoit Cousson <b-cousson@ti.com>, sameo@linux.intel.com, grant.likely@secretlab.ca, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Rajendra Nayak <rnayak@ti.com>
 
-* Grant Likely <grant.likely@secretlab.ca> [120302 10:16]:
-> On Fri, 2 Mar 2012 10:08:48 -0800, Tony Lindgren <tony@atomide.com> wrote:
-> > * Tony Lindgren <tony@atomide.com> [120302 08:31]:
-> > > * Grant Likely <grant.likely@secretlab.ca> [120302 01:00]:
-> > > > On Thu, 01 Mar 2012 10:55:24 -0800, Tony Lindgren <tony@atomide.com> wrote:
-> > > > > +
-> > > > > +/**
-> > > > > + * gpiochip_find_by_name() - iterator for locating a gpio_chip by name
-> > > > > + * @name: name of the gpio_chip
-> > > > > + *
-> > > > > + * Similar to bus_find_device_by_name. It returns a reference to the
-> > > > > + * first gpio_chip with matching name. It ignores NULL and empty names.
-> > > > > + * If you need to do something more complex, then use gpiochip_find.
-> > > > > + */
-> > > > > +struct gpio_chip *gpiochip_find_by_name(const char *name)
-> > > > > +{
-> > > > > +	if (!name || !strcmp(name, ""))
-> > > > > +		return NULL;
-> > > > > +
-> > > > > +	return gpiochip_find((void *)name, match_name);
-> > > > 
-> > > > Nasty cast.  Can the signature for gpiochip_find be changed to accept
-> > > > a (const void *)?
-> > > 
-> > > I think so, this too comes from the bus code.
-> > 
-> > Looks like it can't be const as of_node_to_gpiochip uses it with
-> > a struct device_node * that for of_get_named_gpio_flags comes from
-> > of_parse_phandle_with_args.
+* Felipe Balbi <balbi@ti.com> [120302 09:43]:
+> Hi,
 > 
-> Really? It sees to work fine here:
+> On Fri, Mar 02, 2012 at 05:50:23PM +0100, Benoit Cousson wrote:
+> > Card detect IRQ from the TWL6030 used to be provided to the MMC
+> > controller code using a statically allocated IRQ scheme:
+> > 
+> >   card_detect_irq = TWL6030_IRQ_BASE + MMCDETECT_INTR_OFFSET;
+> > 
+> > This is no longer valid in a SPARSE_IRQ context since there is no more
+> > pre-defined TWL6030_IRQ_BASE.
+> > 
+> > Return the proper card detect IRQ value in the twl6030_mmc_card_detect_config
+> > that will be called from the MMC controller.
+> > 
+> > Signed-off-by: Benoit Cousson <b-cousson@ti.com>
+> > Cc: Felipe Balbi <balbi@ti.com>
+> > Cc: Tony Lindgren <tony@atomide.com>
+> > Cc: Rajendra Nayak <rnayak@ti.com>
+> 
+> Reviewed-by: Felipe Balbi <balbi@ti.com>
+> 
+> > ---
+> >  drivers/mfd/twl6030-irq.c |    3 ++-
+> >  1 files changed, 2 insertions(+), 1 deletions(-)
+> > 
+> > diff --git a/drivers/mfd/twl6030-irq.c b/drivers/mfd/twl6030-irq.c
+> > index a1c7183..4a63de2 100644
+> > --- a/drivers/mfd/twl6030-irq.c
+> > +++ b/drivers/mfd/twl6030-irq.c
+> > @@ -308,7 +308,8 @@ int twl6030_mmc_card_detect_config(void)
+> >  									ret);
+> >  		return ret;
+> >  	}
+> > -	return 0;
+> > +
+> > +	return twl6030_irq_base + MMCDETECT_INTR_OFFSET;
+> >  }
+> >  EXPORT_SYMBOL(twl6030_mmc_card_detect_config);
+> 
+> At some point this twl6030_mmc_card_detect_config() needs to vanish in
+> favor of a better mechanism. Maybe passing the GPIO number an requiring
+> the driver to request the GPIO, set its direction and use it as IRQ
+> line.
+> 
+> the only problem would arise if we end up hooking the Card Detect pin to
+> a real IRQ line, but then we can use a flag to differentiate.
 
-Hmm right you are. I must have missed adding the const to
-of_gpiochip_is_match, that's good news :)
-
-Want to do that as a separate patch or want me to fold it in?
+I'm trying to leave out the need for this callback to pdata..
+See mmc: omap_hsmmc: Simplify init for twl6030 MMC card detect
+that does pretty much the same as Benoit's patch plus removes
+the need for the callback.
 
 Tony
- 
-> ---
-> 
-> diff --git a/drivers/gpio/gpiolib.c b/drivers/gpio/gpiolib.c
-> index d773540..e633a2a 100644
-> --- a/drivers/gpio/gpiolib.c
-> +++ b/drivers/gpio/gpiolib.c
-> @@ -1152,8 +1152,9 @@ EXPORT_SYMBOL_GPL(gpiochip_remove);
->   * non-zero, this function will return to the caller and not iterate over any
->   * more gpio_chips.
->   */
-> -struct gpio_chip *gpiochip_find(void *data,
-> -				int (*match)(struct gpio_chip *chip, void *data))
-> +struct gpio_chip *gpiochip_find(const void *data,
-> +				int (*match)(struct gpio_chip *chip,
-> +					     const void *data))
->  {
->  	struct gpio_chip *chip = NULL;
->  	unsigned long flags;
-> diff --git a/drivers/of/gpio.c b/drivers/of/gpio.c
-> index e034b38..bba8121 100644
-> --- a/drivers/of/gpio.c
-> +++ b/drivers/of/gpio.c
-> @@ -229,7 +229,7 @@ void of_gpiochip_remove(struct gpio_chip *chip)
->  }
->  
->  /* Private function for resolving node pointer to gpio_chip */
-> -static int of_gpiochip_is_match(struct gpio_chip *chip, void *data)
-> +static int of_gpiochip_is_match(struct gpio_chip *chip, const void *data)
->  {
->  	return chip->of_node == data;
->  }
-> diff --git a/include/asm-generic/gpio.h b/include/asm-generic/gpio.h
-> index 1ff4e22..5f52690 100644
-> --- a/include/asm-generic/gpio.h
-> +++ b/include/asm-generic/gpio.h
-> @@ -142,9 +142,9 @@ extern int __must_check gpiochip_reserve(int start, int ngpio);
->  /* add/remove chips */
->  extern int gpiochip_add(struct gpio_chip *chip);
->  extern int __must_check gpiochip_remove(struct gpio_chip *chip);
-> -extern struct gpio_chip *gpiochip_find(void *data,
-> +extern struct gpio_chip *gpiochip_find(const void *data,
->  					int (*match)(struct gpio_chip *chip,
-> -						     void *data));
-> +						     const void *data));
->  
->  
->  /* Always use the library code for GPIO management calls,
-> 
