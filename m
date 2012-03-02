@@ -1,79 +1,70 @@
-From: "S, Venkatraman" <svenkatr@ti.com>
-Subject: Re: [PATCH] ARM: OMAP: hsmmc: add max_freq field
-Date: Fri, 2 Mar 2012 14:44:00 +0530
-Message-ID: <CANfBPZ-aezGCxSc5rUdU8fHxhPMQ5qx1D6zAtmwGyoBDz3YKtA@mail.gmail.com>
-References: <1323868927-3738-1-git-send-email-zonque@gmail.com>
- <CANrkHUY3Zf4a2K5769Z=7Wng339zB6+z_Tgd4mOPChZ1RvZ=Kw@mail.gmail.com>
- <4EFC6992.4020501@gmail.com> <CACTFLAMCoKfQbTe2RLTvi1_CH0nKzAOthAwrifNe2+F2sf3uPA@mail.gmail.com>
- <20120302001121.GE18901@atomide.com> <CANfBPZ8Oypwqq2p3rcNpp5M8+XPHDmUxMRw2J5Jw5DdAKQj8cw@mail.gmail.com>
+From: Tero Kristo <t-kristo@ti.com>
+Subject: Re: [PATCHv3 4/6] ARM: OMAP3 PM: Enable IO Wake up
+Date: Fri, 2 Mar 2012 11:19:00 +0200
+Message-ID: <1330679940.2116.95.camel@sokoban>
+References: <1330525621-29836-1-git-send-email-t-kristo@ti.com>
+	 <1330525621-29836-5-git-send-email-t-kristo@ti.com>
+	 <4F4F1CBA.7040502@ti.com>  <87sjhsdk2y.fsf@ti.com>
+Reply-To: <t-kristo@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Return-path: <linux-mmc-owner@vger.kernel.org>
-In-Reply-To: <CANfBPZ8Oypwqq2p3rcNpp5M8+XPHDmUxMRw2J5Jw5DdAKQj8cw@mail.gmail.com>
-Sender: linux-mmc-owner@vger.kernel.org
-To: Tony Lindgren <tony@atomide.com>, Chris Ball <cjb@laptop.org>
-Cc: Daniel Mack <zonque@gmail.com>, Rajendra Nayak <rnayak@ti.com>, "T Krishnamoorthy, Balaji" <balajitk@ti.com>, linux-arm-kernel@lists.infradead.org, linux-mmc@vger.kernel.org, linux-omap@vger.kernel.org
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from comal.ext.ti.com ([198.47.26.152]:47522 "EHLO comal.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1757836Ab2CBJTG (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Fri, 2 Mar 2012 04:19:06 -0500
+In-Reply-To: <87sjhsdk2y.fsf@ti.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Kevin Hilman <khilman@ti.com>
+Cc: Rajendra Nayak <rnayak@ti.com>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Vishwanath BS <vishwanath.bs@ti.com>
 
-On Fri, Mar 2, 2012 at 12:41 PM, S, Venkatraman <svenkatr@ti.com> wrote=
-:
-> +Chris queues all MMC patches including omap_hsmmc.
-> Ping ?
->
-Just realized that it's already queued in mmc-next
-http://git.kernel.org/?p=3Dlinux/kernel/git/cjb/mmc.git;a=3Dcommitdiff;=
-h=3D25d6ba8171995230b3757c78c7470fa76a931b98
+On Thu, 2012-03-01 at 14:37 -0800, Kevin Hilman wrote:
+> Rajendra Nayak <rnayak@ti.com> writes:
+> 
+> > On Wednesday 29 February 2012 07:56 PM, Tero Kristo wrote:
+> >> From: Vishwanath BS<vishwanath.bs@ti.com>
+> >>
+> >> Enable IO Wake up for OMAP3 as part of PM Init. Currently this has been
+> >> managed in cpuidle path which is not the right place. Subsequent patch
+> >> will remove IO Daisy chain handling in cpuidle path once daisy chain is
+> >> handled as part of hwmod mux.
+> >>
+> >> Signed-off-by: Vishwanath BS<vishwanath.bs@ti.com>
+> >> Tested-by: Govindraj.R<govindraj.raja@ti.com>
+> >> Signed-off-by: Tero Kristo<t-kristo@ti.com>
+> >> ---
+> >>   arch/arm/mach-omap2/pm34xx.c |    4 ++++
+> >>   1 files changed, 4 insertions(+), 0 deletions(-)
+> >>
+> >> diff --git a/arch/arm/mach-omap2/pm34xx.c b/arch/arm/mach-omap2/pm34xx.c
+> >> index e97ec3f..e6c2d39 100644
+> >> --- a/arch/arm/mach-omap2/pm34xx.c
+> >> +++ b/arch/arm/mach-omap2/pm34xx.c
+> >> @@ -793,6 +793,10 @@ static int __init omap3_pm_init(void)
+> >>   		goto err1;
+> >>   	}
+> >>
+> >> +	if (omap3_has_io_wakeup())
+> >> +		omap2_prm_set_mod_reg_bits(OMAP3430_EN_IO_MASK, WKUP_MOD,
+> >> +					   PM_WKEN);
+> >
+> > On OMAP4 this GLOBAL IO chain enable happens as part of the trigger
+> > function itself, it might make sense to do that for OMAP3 too to avoid
+> > similar issues as seen on OMAP4 when the GLOBAL switch is enabled too
+> > late in boot. The best however would be to get rid of it in the trigger
+> > function and enable this early during PM init, but I am not sure whats
+> > a good place to do this 'early' enough.
+> 
+> What about the subsys_initcall() that's already in the prm*.c files?
+> 
+> IMO, the global one-time init doesn't belong in the trigger function
+> because there's no need to do the extra PRM read/write when it should be
+> a one-shot init.
 
+This sounds good to me at least, I can change the patches to work like
+this, Rajendra?
 
->
-> On Fri, Mar 2, 2012 at 5:41 AM, Tony Lindgren <tony@atomide.com> wrot=
-e:
->> Hi,
->>
->> * Daniel Mack <zonque@gmail.com> [120217 05:13]:
->>> ping? Could anyone care for queueing this please?
->>
->> I suggest Rajendra queue up omap_hsmmc.c patches as he's already
->> patching it.
->>
->> Regards,
->>
->> Tony
->>
->>
->>> On Thu, Dec 29, 2011 at 2:22 PM, Daniel Mack <zonque@gmail.com> wro=
-te:
->>> > On 12/23/2011 04:40 PM, T Krishnamoorthy, Balaji wrote:
->>> >> On Wed, Dec 14, 2011 at 6:52 PM, Daniel Mack <zonque@gmail.com> =
-wrote:
->>> >>> diff --git a/drivers/mmc/host/omap_hsmmc.c b/drivers/mmc/host/o=
-map_hsmmc.c
->>> >>> index 101cd31..8215ef9 100644
->>> >>> --- a/drivers/mmc/host/omap_hsmmc.c
->>> >>> +++ b/drivers/mmc/host/omap_hsmmc.c
->>> >>> @@ -1927,8 +1927,12 @@ static int __init omap_hsmmc_probe(struc=
-t platform_device *pdev)
->>> >>> =A0 =A0 =A0 =A0if (mmc_slot(host).vcc_aux_disable_is_sleep)
->>> >>> =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0mmc_slot(host).no_off =3D 1;
->>> >>>
->>> >>> - =A0 =A0 =A0 mmc->f_min =A0 =A0 =A0=3D OMAP_MMC_MIN_CLOCK;
->>> >>> - =A0 =A0 =A0 mmc->f_max =A0 =A0 =A0=3D OMAP_MMC_MAX_CLOCK;
->>> >>> + =A0 =A0 =A0 mmc->f_min =3D OMAP_MMC_MIN_CLOCK;
->>> >>
->>> >> Stray change for f_min ?
->>> >
->>> > No, this was intended. The indentation doesn't make sense anymore=
- when
->>> > not grouped with the f_max assignment.
->>> >
->>> > Other than that, what is necessary to get this picked? Tony? :)
->>> >
->>> >
->>> > Thanks,
->>> > Daniel
->> --
->> To unsubscribe from this list: send the line "unsubscribe linux-mmc"=
- in
->> the body of a message to majordomo@vger.kernel.org
->> More majordomo info at =A0http://vger.kernel.org/majordomo-info.html
+-Tero
+
