@@ -1,98 +1,19 @@
 From: Kevin Hilman <khilman@ti.com>
-Subject: Re: [PATCH] cpufreq: OMAP: specify range for voltage scaling
-Date: Fri, 02 Mar 2012 14:39:30 -0800
-Message-ID: <87vcmmpqzh.fsf@ti.com>
-References: <1330004964-22831-1-git-send-email-afzal@ti.com>
-	<87fwdshyhk.fsf@ti.com> <87d38wf008.fsf@ti.com>
-	<1330683576.2116.108.camel@sokoban>
+Subject: [PATCH] ARM: OMAP2+: voltage: ensure voltage used is exact voltage from OPP table
+Date: Fri,  2 Mar 2012 14:42:01 -0800
+Message-ID: <1330728121-26664-1-git-send-email-khilman@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aog116.obsmtp.com ([74.125.149.240]:46539 "EHLO
-	na3sys009aog116.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S965271Ab2CBWjd (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 2 Mar 2012 17:39:33 -0500
-Received: by mail-pw0-f46.google.com with SMTP id un15so585471pbc.19
-        for <linux-omap@vger.kernel.org>; Fri, 02 Mar 2012 14:39:32 -0800 (PST)
-In-Reply-To: <1330683576.2116.108.camel@sokoban> (Tero Kristo's message of
-	"Fri, 2 Mar 2012 12:19:36 +0200")
+Received: from na3sys009aog122.obsmtp.com ([74.125.149.147]:60152 "EHLO
+	na3sys009aog122.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S964821Ab2CBWl7 (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 2 Mar 2012 17:41:59 -0500
+Received: by mail-pz0-f47.google.com with SMTP id o14so2274105dad.20
+        for <linux-omap@vger.kernel.org>; Fri, 02 Mar 2012 14:41:58 -0800 (PST)
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: t-kristo@ti.com, nm@ti.com
-Cc: Afzal Mohammed <afzal@ti.com>, linux-omap@vger.kernel.org, Sekhar Nori <nsekhar@ti.com>
-
-+Nishanth
-
-Tero Kristo <t-kristo@ti.com> writes:
-
-> On Thu, 2012-03-01 at 14:07 -0800, Kevin Hilman wrote:
->> +Tero
->> 
->> Kevin Hilman <khilman@ti.com> writes:
->> 
->> > Afzal Mohammed <afzal@ti.com> writes:
->> >
->> >> Specify voltage in ranges for regulator. Range
->> >> used is tolerance specified for OPP.
->> >>
->> >> This helps to achieve DVFS with a wider range of
->> >> regulators.
->> >>
->> >> Cc: Kevin Hilman <khilman@ti.com>
->> >> Cc: Sekhar Nori <nsekhar@ti.com>
->> >> Signed-off-by: Afzal Mohammed <afzal@ti.com>
->> >
->> > Thanks, will queue this with the CPUfreq changes for MPU DVFS.
->> 
->> Actually, not quite yet...
->> 
->> After some testing with the SMPS regulators, this won't quite work with
->> the current SMPS regulators.  Does this actually work with the
->> regulators you're using?
->> 
->> For OMAPs using VC/VP for voltage scaling, the TWL regulator passes on
->> the voltage requested directly to the voltage layer.  When using voltage
->> - tolerance, this results in voltages that the voltage layer doesn't
->> know about because they do not match any of the voltages from the known
->> OPPs.
->> 
->> The problem that we have is that while the regulators can support a
->> broad range of voltages (from min to max with a some step), the on-chip
->> voltage domains cannot, which is why we have defined the OPPs which are
->> known to work.
->> 
->> Tero, for the SMPS regulators, would it be possible to configure the
->> regulators so that only a discrete set voltages are availble to pick
->> from?  These should be initialied from the OPP layer.
->
-> I guess this would be possible. Looking at this patch, I guess what we
-> want to do is that we just use the current API we have at the SMPS
-> regulator layer to pass the min_uV as target_uV for the regulator, and
-> just get the next opp voltage that is >= than the target_uV.
-
-Yeah, this should work.
-
-However, after discussing this on IRC with Nishanth, instead of enforcing
-this in the TWL glue layer, I think we need to enforce using OPP
-voltages in the voltage layer itself.  Patch below[1].
-
-I've now added that patch to my for_3.4/pm/smps-regulator branch (and
-will post to the list shortly.)
-
-I've also added $SUBJECT patch (back) to my for_3.4/cpufreq branch. 
-
-I'd appreciate some testing of these two branches together.  With those
-two, I've tested MPU DVFS on 3530/Overo, 3630/Zoom3 and 4430/Panda, but
-would appreciate any additional testing.
-
-Kevin
-
-
->From 212024af641266c3de8b55764f84d923f238315c Mon Sep 17 00:00:00 2001
-From: Kevin Hilman <khilman@ti.com>
-Date: Fri, 2 Mar 2012 14:08:57 -0800
-Subject: [PATCH] ARM: OMAP2+: voltage: ensure voltage used is exact voltage
- from OPP table
+To: linux-omap@vger.kernel.org
+Cc: linux-arm-kernel@lists.infradead.org, Tero Kristo <t-kristo@ti.com>, Nishanth Menon <nm@ti.com>
 
 When using the SMPS regulators to scale voltages, the regulator
 framework may pass a minimum voltage that is not an exact OPP voltage.
@@ -108,6 +29,11 @@ Cc: Tero Kristo <t-kristo@ti.com>
 Cc: Nishanth Menon <nm@ti.com>
 Signed-off-by: Kevin Hilman <khilman@ti.com>
 ---
+Unless there are any objections, this will be queued along with the
+rest of the SMPS regulator series from Tero.  Currently availble in
+my for_3.4/pm/smps-regulator branch at
+git://git.kernel.org/pub/scm/linux/kernel/git/khilman/linux-omap-pm.git
+
  arch/arm/mach-omap2/voltage.c |   21 ++++++++++++++++++---
  1 file changed, 18 insertions(+), 3 deletions(-)
 
