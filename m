@@ -1,75 +1,45 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH 4/4] mmc: omap_hsmmc: Simplify init for twl6030 MMC
- card detect
-Date: Fri, 2 Mar 2012 09:22:51 -0800
-Message-ID: <20120302172251.GJ18901@atomide.com>
-References: <20120301185044.29210.44521.stgit@kaulin.local>
- <20120301185535.29210.71546.stgit@kaulin.local>
- <4F50643B.9050500@ti.com>
+From: Janusz Krzysztofik <jkrzyszt@tis.icnet.pl>
+Subject: Re: [GIT PULL 3/5] First set of omap1 related changes
+Date: Fri, 02 Mar 2012 18:20:38 +0100
+Message-ID: <35028515.2H84FQMe6Y@acer>
+References: <0Mfo5g-1RocQt3wlY-00NttP@mx.kundenserver.de> <3378572.m1z82NvySs@acer> <20120301233101.GC18901@atomide.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-mmc-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <4F50643B.9050500@ti.com>
-Sender: linux-mmc-owner@vger.kernel.org
-To: Rajendra Nayak <rnayak@ti.com>
-Cc: linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, Samuel Ortiz <sameo@linux.intel.com>, linux-mmc@vger.kernel.org, Chris Ball <cjb@laptop.org>, linux-arm-kernel@lists.infradead.org
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 7Bit
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from d1.icnet.pl ([212.160.220.21]:51056 "EHLO d1.icnet.pl"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1756218Ab2CBR2R (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Fri, 2 Mar 2012 12:28:17 -0500
+In-Reply-To: <20120301233101.GC18901@atomide.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Tony Lindgren <tony@atomide.com>
+Cc: Arnd Bergmann <arnd@arndb.de>, Olof Johansson <olof@lixom.net>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 
-* Rajendra Nayak <rnayak@ti.com> [120301 21:38]:
-> On Friday 02 March 2012 12:25 AM, Tony Lindgren wrote:
-> >--- a/arch/arm/mach-omap2/board-omap4panda.c
-> >+++ b/arch/arm/mach-omap2/board-omap4panda.c
-> >@@ -153,8 +153,8 @@ static struct omap2_hsmmc_info mmc[] = {
-> >  	{
-> >  		.mmc		= 1,
-> >  		.caps		= MMC_CAP_4_BIT_DATA | MMC_CAP_8_BIT_DATA,
-> >-		.gpio_wp	= -EINVAL,
-> >  		.gpio_cd	= -EINVAL,
-> >+		.gpio_wp	= -EINVAL,
+On Thu, 1 Mar 2012 15:31:01 Tony Lindgren wrote:
 > 
-> stray change.
-
-Hmm I'd like to keep this change before this ordering gets copied
-to ten other board files that we may have in testing-board for a while..
-I'll add a comment to the patch description about that.
-
-> >--- a/drivers/mmc/host/omap_hsmmc.c
-> >+++ b/drivers/mmc/host/omap_hsmmc.c
-> >@@ -34,6 +34,7 @@
-> >  #include<linux/gpio.h>
-> >  #include<linux/regulator/consumer.h>
-> >  #include<linux/pm_runtime.h>
-> >+#include<linux/i2c/twl.h>
-> >  #include<plat/dma.h>
-> >  #include<mach/hardware.h>
-> >  #include<plat/board.h>
-> >@@ -578,6 +579,32 @@ static void omap_hsmmc_gpio_free(struct omap_hsmmc_host *host)
-> >  		gpio_free(host->gpio_cd);
-> >  }
-> >
-> >+#ifdef CONFIG_TWL4030_CORE
-> >+static int omap_hsmmc_init_twl6030(struct omap_hsmmc_host *host)
-> >+{
-> >+	struct omap_mmc_platform_data *pdata = host->pdata;
-> >+	struct omap_mmc_slot_data *slot =&pdata->slots[0];
-> >+	int irq;
-> >+
-> >+	if (gpio_is_valid(host->gpio_cd) || host->id)
+> I've pushed ams-delta branch that's based on -rc5 merged
+> with what Arnd pulled yesterday as -rc1 has i2c-omap.c
+> a compile bug for omap1. I've applied these two patches
+> there as the second one depends on what got pulled:
 > 
-> I have a series, which I am asking Chris to pull, which completely
-> gets rid of all host->id based hard-codings' in the driver.
-> Isn't there a better way to do this than rely on the device instance?
+> ARM: OMAP1: ams-delta: clean up init data section assignments
+> ARM: OMAP1: ams-delta: fix incorrect section tags
 
-Yes I was thinking about that too. I guess we need to pass some
-flag in pdata for twl6030 card detect. I was thinking about using
-the gpiochip_cd, but twl6030 is not gpio based card detect, so
-a separate flag is better.
+Thanks!
 
-BTW, with -rc5, looks like re-inserting omap_hsmmc on omap4 fails
-to detect any cards, and then fails to unload. This works on omap3
-just fine. Any ideas why that would be?
+> Looks like your patch "ARM: OMAP1: ams-delta: set up regulator
+> over modem reset GPIO pin" causes the following error with
+> CONFIG_DEBUG_SECTION_MISMATCH=y:
+> 
+> arch/arm/mach-omap1/board-ams-delta.c:273:36: error:
+> modem_nreset_config causes a section type conflict
+> 
+> So care to update and repost that (and possibly the following
+> two patches) with your missing fixes?
 
-Regards,
+OK, I will, in a couple of days.
 
-Tony
+Thanks,
+Janusz
