@@ -1,124 +1,397 @@
-From: Paul Walmsley <paul@pwsan.com>
-Subject: [PATCH] ARM: OMAP2+: omap_device: call all suspend, resume callbacks
- when OMAP_DEVICE_NO_IDLE_ON_SUSPEND is set
-Date: Sat, 3 Mar 2012 13:15:33 -0700 (MST)
-Message-ID: <alpine.DEB.2.00.1203031314050.10611@utopia.booyaka.com>
+From: Tony Lindgren <tony@atomide.com>
+Subject: Re: OMAP totally fucked?
+Date: Sat, 3 Mar 2012 12:28:10 -0800
+Message-ID: <20120303202810.GC10293@atomide.com>
+References: <20120303154650.GA16132@n2100.arm.linux.org.uk>
+ <20120303180428.GA10293@atomide.com>
+ <20120303183225.GA17710@n2100.arm.linux.org.uk>
+ <20120303190140.GB19248@atomide.com>
+ <20120303192839.GB17710@n2100.arm.linux.org.uk>
+ <20120303200123.GB10293@atomide.com>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from utopia.booyaka.com ([72.9.107.138]:35259 "EHLO
-	utopia.booyaka.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751089Ab2CCUPd (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Sat, 3 Mar 2012 15:15:33 -0500
+Received: from mho-02-ewr.mailhop.org ([204.13.248.72]:17093 "EHLO
+	mho-02-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751089Ab2CCU2Q (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Sat, 3 Mar 2012 15:28:16 -0500
+Content-Disposition: inline
+In-Reply-To: <20120303200123.GB10293@atomide.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
-Cc: khilman@ti.com, John Stultz <johnstul@us.ibm.com>, Andy Green <andy.green@linaro.org>
+To: Russell King - ARM Linux <linux@arm.linux.org.uk>
+Cc: Peter Ujfalusi <peter.ujfalusi@ti.com>, linux-omap@vger.kernel.org, Arnd Bergmann <arnd@arndb.de>, Olof Johansson <olof@lixom.net>
+
+* Tony Lindgren <tony@atomide.com> [120303 11:29]:
+> * Russell King - ARM Linux <linux@arm.linux.org.uk> [120303 10:57]:
+> > 
+> > Even with the full config, making oldconfig I get:
+> > 
+> > OMAP2420 support (SOC_OMAP2420) [Y/n] (NEW) 
+> > OMAP2430 support (SOC_OMAP2430) [Y/n] (NEW) 
+> > OMAP3430 support (SOC_OMAP3430) [Y/n] (NEW) 
+> > TI81XX support (SOC_OMAPTI81XX) [Y/n] (NEW) 
+> > AM33XX support (SOC_OMAPAM33XX) [Y/n] (NEW) 
+> > OMAP44XX support (SOC_OMAP44XX) [Y/n] (NEW) 
+> > 
+> > May I remind you of this mail from Linus:
+> > 
+> > 	https://lkml.org/lkml/2012/1/6/354
+> > 
+> > So really this is a rather horrid mess.
+> 
+> Hmm yes. Sounds like we need to remove the defaults and instead
+> add them to omap2plus_defconfig.
+> 
+> I'll do a patch to fix that.
+
+How about the following patch after we revert commit 72b026a4?
+
+That still leaves the randconfig not necessarily selecting
+any of ARCH_OMAP2/3/4 issue, but that can be dealt separately
+later on.
+
+Sorry for the breakage, I guess I'm too stuck on just doing
+make omap2plus_defconfig and don't even have other hardware
+specific .config files any longer.
+
+Regards,
+
+Tony
 
 
-During system suspend, when OMAP_DEVICE_NO_IDLE_ON_SUSPEND is set on
-an omap_device, call the corresponding driver's ->suspend() and
-->suspend_noirq() callbacks (if present).  Similarly, during resume,
-the driver's ->resume() and ->resume_noirq() callbacks must both be
-called, if present.  (The previous code only called ->suspend_noirq()
-and ->resume_noirq().)
+From: Tony Lindgren <tony@atomide.com>
+Date: Sat, 3 Mar 2012 12:10:29 -0800
+Subject: [PATCH] ARM: OMAP2+: Remove default y for mach-omap2/Kconfig
 
-If all of these callbacks aren't called, some important driver
-suspend/resume code may not get executed.
+This can make existing .config files too greedy when running
+make oldconfig. Further default y should not be set as pointed
+out by Russell King and explained by Linus Torvalds at:
 
-In current mainline, the bug fixed by this patch is only a problem
-under the following conditions:
+https://lkml.org/lkml/2012/1/6/354
 
-- the kernel is running on an OMAP4
+Instead, let's update omap2plus_defconfig with the existing
+boards as this defconfig is supposed to boot on all omap2plus
+boards.
 
-- an OMAP UART is used as a console
+Signed-off-by: Tony Lindgren <tony@atomide.com>
 
-- the kernel command line parameter 'no_console_suspend' is specified
-
-- and the system enters suspend ("echo mem > /sys/power/state").
-
-Under this combined circumstance, the system cannot be awakened via
-the serial port after commit be4b0281956c5cae4f63f31f11d07625a6988766c
-("tty: serial: OMAP: block idle while the UART is transferring data in
-PIO mode").  This is because the OMAP UART driver's ->suspend()
-callback is never called.  The ->suspend() callback would have called
-uart_suspend_port() which in turn would call enable_irq_wake().  Since
-enable_irq_wake() isn't called for the UART's IRQ, check_wakeup_irqs()
-would mask off the UART IRQ in the GIC.
-
-On v3.3 kernels prior to the above commit, serial resume from suspend
-presumably occurred via the PRCM interrupt.  The UART was in
-smart-idle mode, so it was able to send a PRCM wakeup which in turn
-would be converted into a PRCM interrupt to the GIC, waking up the
-kernel.  But after the above commit, when the system is suspended in
-the middle of a UART transmit, the UART IP block would be in no-idle
-mode.  In no-idle mode, the UART won't generate wakeups to the PRCM
-when incoming characters are received; only GIC interrupts.  But since
-the UART driver's ->suspend() callback is never called,
-uart_suspend_port() and enable_irq_wake() is never called; so the UART
-interrupt is masked by check_wakeup_irqs() and the UART can't wake up
-the MPU.
-
-The remaining mechanism that could have awakened the system would have
-been I/O chain wakeups.  These wouldn't be active because the console
-UART's clocks are never disabled when no_console_suspend is used,
-preventing the full chip from idling.  Also, current mainline doesn't
-yet support full chip idle states for OMAP4, so I/O chain wakeups are
-not enabled.
-
-This patch is the result of a collaboration.  John Stultz
-<johnstul@us.ibm.com> and Andy Green <andy.green@linaro.org> reported
-the serial wakeup problem that led to the discovery of this problem.
-Kevin Hilman <khilman@ti.com> narrowed the problem down to the use of
-no_console_suspend.
-
-Signed-off-by: Paul Walmsley <paul@pwsan.com>
-Cc: John Stultz <johnstul@us.ibm.com>
-Cc: Andy Green <andy.green@linaro.org>
-Cc: Kevin Hilman <khilman@ti.com>
----
-Targeted for 3.4.
-
- arch/arm/plat-omap/omap_device.c |   12 ++++--------
- 1 files changed, 4 insertions(+), 8 deletions(-)
-
-diff --git a/arch/arm/plat-omap/omap_device.c b/arch/arm/plat-omap/omap_device.c
-index e8d9869..4988a78 100644
---- a/arch/arm/plat-omap/omap_device.c
-+++ b/arch/arm/plat-omap/omap_device.c
-@@ -762,14 +762,12 @@ static int _od_suspend_noirq(struct device *dev)
- 	struct omap_device *od = to_omap_device(pdev);
- 	int ret;
+diff --git a/arch/arm/configs/omap2plus_defconfig b/arch/arm/configs/omap2plus_defconfig
+index d5f00d7..56084fb 100644
+--- a/arch/arm/configs/omap2plus_defconfig
++++ b/arch/arm/configs/omap2plus_defconfig
+@@ -23,6 +23,44 @@ CONFIG_MODULE_SRCVERSION_ALL=y
+ CONFIG_ARCH_OMAP=y
+ CONFIG_OMAP_RESET_CLOCKS=y
+ CONFIG_OMAP_MUX_DEBUG=y
++CONFIG_MACH_OMAP_GENERIC=y
++CONFIG_ARCH_OMAP2PLUS_TYPICAL=y
++CONFIG_ARCH_OMAP2=y
++CONFIG_ARCH_OMAP3=y
++CONFIG_ARCH_OMAP4=y
++CONFIG_SOC_OMAP2420=y
++CONFIG_SOC_OMAP2430=y
++CONFIG_SOC_OMAP3430=y
++CONFIG_SOC_OMAPTI81XX=y
++CONFIG_SOC_OMAPAM33XX=y
++CONFIG_MACH_OMAP_H4=y
++CONFIG_MACH_OMAP_APOLLON=y
++CONFIG_MACH_OMAP_2430SDP=y
++CONFIG_MACH_OMAP3_BEAGLE=y
++CONFIG_MACH_DEVKIT8000=y
++CONFIG_MACH_OMAP_LDP=y
++CONFIG_MACH_OMAP3530_LV_SOM=y
++CONFIG_MACH_OMAP3_TORPEDO=y
++CONFIG_MACH_OVERO=y
++CONFIG_MACH_OMAP3EVM=y
++CONFIG_MACH_OMAP3517EVM=y
++CONFIG_MACH_OMAP3_PANDORA=y
++CONFIG_MACH_OMAP3_TOUCHBOOK=y
++CONFIG_MACH_OMAP_3430SDP=y
++CONFIG_MACH_NOKIA_N8X0=y
++CONFIG_MACH_NOKIA_RM680=y
++CONFIG_MACH_NOKIA_RX51=y
++CONFIG_MACH_OMAP_ZOOM2=y
++CONFIG_MACH_OMAP_ZOOM3=y
++CONFIG_MACH_CM_T35=y
++CONFIG_MACH_CM_T3517=y
++CONFIG_MACH_IGEP0030=y
++CONFIG_MACH_SBC3530=y
++CONFIG_MACH_OMAP_3630SDP=y
++CONFIG_MACH_TI8168EVM=y
++CONFIG_MACH_TI8148EVM=y
++CONFIG_MACH_OMAP_4430SDP=y
++CONFIG_MACH_OMAP4_PANDA=y
+ CONFIG_ARM_THUMBEE=y
+ CONFIG_ARM_ERRATA_411920=y
+ CONFIG_NO_HZ=y
+diff --git a/arch/arm/mach-omap2/Kconfig b/arch/arm/mach-omap2/Kconfig
+index 337f98d..1749d03 100644
+--- a/arch/arm/mach-omap2/Kconfig
++++ b/arch/arm/mach-omap2/Kconfig
+@@ -4,7 +4,6 @@ menu "TI OMAP2/3/4 Specific Features"
  
--	if (od->flags & OMAP_DEVICE_NO_IDLE_ON_SUSPEND)
--		return pm_generic_suspend_noirq(dev);
--
- 	ret = pm_generic_suspend_noirq(dev);
+ config ARCH_OMAP2PLUS_TYPICAL
+ 	bool "Typical OMAP configuration"
+-	default y
+ 	select AEABI
+ 	select REGULATOR
+ 	select PM_RUNTIME
+@@ -23,14 +22,12 @@ config ARCH_OMAP2PLUS_TYPICAL
+ config ARCH_OMAP2
+ 	bool "TI OMAP2"
+ 	depends on ARCH_OMAP2PLUS
+-	default y
+ 	select CPU_V6
+ 	select MULTI_IRQ_HANDLER
  
- 	if (!ret && !pm_runtime_status_suspended(dev)) {
- 		if (pm_generic_runtime_suspend(dev) == 0) {
--			omap_device_idle(pdev);
-+			if (!(od->flags & OMAP_DEVICE_NO_IDLE_ON_SUSPEND))
-+				omap_device_idle(pdev);
- 			od->flags |= OMAP_DEVICE_SUSPENDED;
- 		}
- 	}
-@@ -782,13 +780,11 @@ static int _od_resume_noirq(struct device *dev)
- 	struct platform_device *pdev = to_platform_device(dev);
- 	struct omap_device *od = to_omap_device(pdev);
+ config ARCH_OMAP3
+ 	bool "TI OMAP3"
+ 	depends on ARCH_OMAP2PLUS
+-	default y
+ 	select CPU_V7
+ 	select USB_ARCH_HAS_EHCI if USB_SUPPORT
+ 	select ARCH_HAS_OPP
+@@ -40,7 +37,6 @@ config ARCH_OMAP3
  
--	if (od->flags & OMAP_DEVICE_NO_IDLE_ON_SUSPEND)
--		return pm_generic_resume_noirq(dev);
--
- 	if ((od->flags & OMAP_DEVICE_SUSPENDED) &&
- 	    !pm_runtime_status_suspended(dev)) {
- 		od->flags &= ~OMAP_DEVICE_SUSPENDED;
--		omap_device_enable(pdev);
-+		if (!(od->flags & OMAP_DEVICE_NO_IDLE_ON_SUSPEND))
-+			omap_device_enable(pdev);
- 		pm_generic_runtime_resume(dev);
- 	}
+ config ARCH_OMAP4
+ 	bool "TI OMAP4"
+-	default y
+ 	depends on ARCH_OMAP2PLUS
+ 	select CACHE_L2X0
+ 	select CPU_V7
+@@ -61,31 +57,26 @@ comment "OMAP Core Type"
+ config SOC_OMAP2420
+ 	bool "OMAP2420 support"
+ 	depends on ARCH_OMAP2
+-	default y
+ 	select OMAP_DM_TIMER
+ 	select ARCH_OMAP_OTG
  
--- 
-1.7.9.1
-
+ config SOC_OMAP2430
+ 	bool "OMAP2430 support"
+ 	depends on ARCH_OMAP2
+-	default y
+ 	select ARCH_OMAP_OTG
+ 
+ config SOC_OMAP3430
+ 	bool "OMAP3430 support"
+ 	depends on ARCH_OMAP3
+-	default y
+ 	select ARCH_OMAP_OTG
+ 
+ config SOC_OMAPTI81XX
+ 	bool "TI81XX support"
+ 	depends on ARCH_OMAP3
+-	default y
+ 
+ config SOC_OMAPAM33XX
+ 	bool "AM33XX support"
+ 	depends on ARCH_OMAP3
+-	default y
+ 
+ config OMAP_PACKAGE_ZAF
+        bool
+@@ -118,7 +109,6 @@ config MACH_OMAP_GENERIC
+ 	bool "Generic OMAP2+ board"
+ 	depends on ARCH_OMAP2PLUS
+ 	select USE_OF
+-	default y
+ 	help
+ 	  Support for generic TI OMAP2+ boards using Flattened Device Tree.
+ 	  More information at Documentation/devicetree
+@@ -131,45 +121,38 @@ config MACH_OMAP2_TUSB6010
+ config MACH_OMAP_H4
+ 	bool "OMAP 2420 H4 board"
+ 	depends on SOC_OMAP2420
+-	default y
+ 	select OMAP_PACKAGE_ZAF
+ 	select OMAP_DEBUG_DEVICES
+ 
+ config MACH_OMAP_APOLLON
+ 	bool "OMAP 2420 Apollon board"
+ 	depends on SOC_OMAP2420
+-	default y
+ 	select OMAP_PACKAGE_ZAC
+ 
+ config MACH_OMAP_2430SDP
+ 	bool "OMAP 2430 SDP board"
+ 	depends on SOC_OMAP2430
+-	default y
+ 	select OMAP_PACKAGE_ZAC
+ 
+ config MACH_OMAP3_BEAGLE
+ 	bool "OMAP3 BEAGLE board"
+ 	depends on ARCH_OMAP3
+-	default y
+ 	select OMAP_PACKAGE_CBB
+ 
+ config MACH_DEVKIT8000
+ 	bool "DEVKIT8000 board"
+ 	depends on ARCH_OMAP3
+-	default y
+ 	select OMAP_PACKAGE_CUS
+ 
+ config MACH_OMAP_LDP
+ 	bool "OMAP3 LDP board"
+ 	depends on ARCH_OMAP3
+-	default y
+ 	select OMAP_PACKAGE_CBB
+ 
+ config MACH_OMAP3530_LV_SOM
+ 	bool "OMAP3 Logic 3530 LV SOM board"
+ 	depends on ARCH_OMAP3
+ 	select OMAP_PACKAGE_CBB
+-	default y
+ 	help
+ 	 Support for the LogicPD OMAP3530 SOM Development kit
+ 	 for full description please see the products webpage at
+@@ -179,7 +162,6 @@ config MACH_OMAP3_TORPEDO
+ 	bool "OMAP3 Logic 35x Torpedo board"
+ 	depends on ARCH_OMAP3
+ 	select OMAP_PACKAGE_CBB
+-	default y
+ 	help
+ 	 Support for the LogicPD OMAP35x Torpedo Development kit
+ 	 for full description please see the products webpage at
+@@ -188,19 +170,16 @@ config MACH_OMAP3_TORPEDO
+ config MACH_OVERO
+ 	bool "Gumstix Overo board"
+ 	depends on ARCH_OMAP3
+-	default y
+ 	select OMAP_PACKAGE_CBB
+ 
+ config MACH_OMAP3EVM
+ 	bool "OMAP 3530 EVM board"
+ 	depends on ARCH_OMAP3
+-	default y
+ 	select OMAP_PACKAGE_CBB
+ 
+ config MACH_OMAP3517EVM
+ 	bool "OMAP3517/ AM3517 EVM board"
+ 	depends on ARCH_OMAP3
+-	default y
+ 	select OMAP_PACKAGE_CBB
+ 
+ config MACH_CRANEBOARD
+@@ -211,19 +190,16 @@ config MACH_CRANEBOARD
+ config MACH_OMAP3_PANDORA
+ 	bool "OMAP3 Pandora"
+ 	depends on ARCH_OMAP3
+-	default y
+ 	select OMAP_PACKAGE_CBB
+ 	select REGULATOR_FIXED_VOLTAGE if REGULATOR
+ 
+ config MACH_OMAP3_TOUCHBOOK
+ 	bool "OMAP3 Touch Book"
+ 	depends on ARCH_OMAP3
+-	default y
+ 
+ config MACH_OMAP_3430SDP
+ 	bool "OMAP 3430 SDP board"
+ 	depends on ARCH_OMAP3
+-	default y
+ 	select OMAP_PACKAGE_CBB
+ 
+ config MACH_NOKIA_N800
+@@ -238,7 +214,6 @@ config MACH_NOKIA_N810_WIMAX
+ config MACH_NOKIA_N8X0
+ 	bool "Nokia N800/N810"
+ 	depends on SOC_OMAP2420
+-	default y
+ 	select OMAP_PACKAGE_ZAC
+ 	select MACH_NOKIA_N800
+ 	select MACH_NOKIA_N810
+@@ -247,19 +222,16 @@ config MACH_NOKIA_N8X0
+ config MACH_NOKIA_RM680
+ 	bool "Nokia RM-680 board"
+ 	depends on ARCH_OMAP3
+-	default y
+ 	select OMAP_PACKAGE_CBB
+ 
+ config MACH_NOKIA_RX51
+ 	bool "Nokia RX-51 board"
+ 	depends on ARCH_OMAP3
+-	default y
+ 	select OMAP_PACKAGE_CBB
+ 
+ config MACH_OMAP_ZOOM2
+ 	bool "OMAP3 Zoom2 board"
+ 	depends on ARCH_OMAP3
+-	default y
+ 	select OMAP_PACKAGE_CBB
+ 	select SERIAL_8250
+ 	select SERIAL_CORE_CONSOLE
+@@ -269,7 +241,6 @@ config MACH_OMAP_ZOOM2
+ config MACH_OMAP_ZOOM3
+ 	bool "OMAP3630 Zoom3 board"
+ 	depends on ARCH_OMAP3
+-	default y
+ 	select OMAP_PACKAGE_CBP
+ 	select SERIAL_8250
+ 	select SERIAL_CORE_CONSOLE
+@@ -279,14 +250,12 @@ config MACH_OMAP_ZOOM3
+ config MACH_CM_T35
+ 	bool "CompuLab CM-T35/CM-T3730 modules"
+ 	depends on ARCH_OMAP3
+-	default y
+ 	select MACH_CM_T3730
+ 	select OMAP_PACKAGE_CUS
+ 
+ config MACH_CM_T3517
+ 	bool "CompuLab CM-T3517 module"
+ 	depends on ARCH_OMAP3
+-	default y
+ 	select OMAP_PACKAGE_CBB
+ 
+ config MACH_CM_T3730
+@@ -295,41 +264,34 @@ config MACH_CM_T3730
+ config MACH_IGEP0020
+ 	bool "IGEP v2 board"
+ 	depends on ARCH_OMAP3
+-	default y
+ 	select OMAP_PACKAGE_CBB
+ 
+ config MACH_IGEP0030
+ 	bool "IGEP OMAP3 module"
+ 	depends on ARCH_OMAP3
+-	default y
+ 	select OMAP_PACKAGE_CBB
+ 	select MACH_IGEP0020
+ 
+ config MACH_SBC3530
+ 	bool "OMAP3 SBC STALKER board"
+ 	depends on ARCH_OMAP3
+-	default y
+ 	select OMAP_PACKAGE_CUS
+ 
+ config MACH_OMAP_3630SDP
+ 	bool "OMAP3630 SDP board"
+ 	depends on ARCH_OMAP3
+-	default y
+ 	select OMAP_PACKAGE_CBP
+ 
+ config MACH_TI8168EVM
+ 	bool "TI8168 Evaluation Module"
+ 	depends on SOC_OMAPTI81XX
+-	default y
+ 
+ config MACH_TI8148EVM
+ 	bool "TI8148 Evaluation Module"
+ 	depends on SOC_OMAPTI81XX
+-	default y
+ 
+ config MACH_OMAP_4430SDP
+ 	bool "OMAP 4430 SDP board"
+-	default y
+ 	depends on ARCH_OMAP4
+ 	select OMAP_PACKAGE_CBL
+ 	select OMAP_PACKAGE_CBS
+@@ -337,7 +299,6 @@ config MACH_OMAP_4430SDP
+ 
+ config MACH_OMAP4_PANDA
+ 	bool "OMAP4 Panda Board"
+-	default y
+ 	depends on ARCH_OMAP4
+ 	select OMAP_PACKAGE_CBL
+ 	select OMAP_PACKAGE_CBS
