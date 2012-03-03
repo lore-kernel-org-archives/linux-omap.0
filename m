@@ -1,46 +1,49 @@
-From: Sergei Shtylyov <sshtylyov@ru.mvista.com>
-Subject: Re: [PATCH 11/12] mfd: twl4030-irq: Return twl6030_mmc_card_detect
- IRQ for board setup
-Date: Sat, 03 Mar 2012 19:09:13 +0400
-Message-ID: <4F523419.3080100@ru.mvista.com>
-References: <1330707024-23730-1-git-send-email-b-cousson@ti.com> <1330707024-23730-12-git-send-email-b-cousson@ti.com>
+From: Russell King - ARM Linux <linux@arm.linux.org.uk>
+Subject: OMAP totally fucked?
+Date: Sat, 3 Mar 2012 15:46:50 +0000
+Message-ID: <20120303154650.GA16132@n2100.arm.linux.org.uk>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail.dev.rtsoft.ru ([213.79.90.226]:33011 "HELO
-	mail.dev.rtsoft.ru" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with SMTP id S1752781Ab2CCPKd (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Sat, 3 Mar 2012 10:10:33 -0500
-In-Reply-To: <1330707024-23730-12-git-send-email-b-cousson@ti.com>
+Received: from caramon.arm.linux.org.uk ([78.32.30.218]:59223 "EHLO
+	caramon.arm.linux.org.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750942Ab2CCPq4 (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Sat, 3 Mar 2012 10:46:56 -0500
+Content-Disposition: inline
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Benoit Cousson <b-cousson@ti.com>
-Cc: sameo@linux.intel.com, tony@atomide.com, grant.likely@secretlab.ca, linux-omap@vger.kernel.org, Felipe Balbi <balbi@ti.com>, linux-arm-kernel@lists.infradead.org, Rajendra Nayak <rnayak@ti.com>
+To: linux-omap@vger.kernel.org
+Cc: Arnd Bergmann <arnd@arndb.de>, Olof Johansson <olof@lixom.net>
 
-Hello.
+There's not much more to say other than that in the subject over this
+level of build breakage:
 
-On 02-03-2012 20:50, Benoit Cousson wrote:
+http://www.arm.linux.org.uk/developer/build/result.php?type=build&idx=267
+http://www.arm.linux.org.uk/developer/build/result.php?type=build&idx=268
 
-> Card detect IRQ from the TWL6030 used to be provided to the MMC
+which is the result of building:
 
-> controller code using a statically allocated IRQ scheme:
->
->    card_detect_irq = TWL6030_IRQ_BASE + MMCDETECT_INTR_OFFSET;
->
-> This is no longer valid in a SPARSE_IRQ context since there is no more
-> pre-defined TWL6030_IRQ_BASE.
->
-> Return the proper card detect IRQ value in the twl6030_mmc_card_detect_config
-> that will be called from the MMC controller.
->
-> Signed-off-by: Benoit Cousson<b-cousson@ti.com>
-> Cc: Felipe Balbi<balbi@ti.com>
-> Cc: Tony Lindgren<tony@atomide.com>
-> Cc: Rajendra Nayak<rnayak@ti.com>
-> ---
->   drivers/mfd/twl6030-irq.c |    3 ++-
+commit 812108a6044b7b8978329ededb3171be89918a4f
+Merge: 8fe6b99 85631d2
+Author: Russell King <rmk+kernel@arm.linux.org.uk>
+Date:   Fri Mar 2 09:27:55 2012 +0000
 
-     Subject talks about twl4030-irq.
+    Merge remote-tracking branch 'arm-soc'
+    
+    Conflicts:
+        arch/arm/Kconfig
+        arch/arm/mach-vexpress/Kconfig
 
-WBR, Sergei
+commit 8fe6b99253c69412b08cb541155791ada1ba202a
+Merge: 8a27184 605ade3 492f076
+Author: Russell King <rmk+kernel@arm.linux.org.uk>
+Date:   Fri Mar 2 09:23:30 2012 +0000
+
+    Merge branches 'private-fixes' and 'sa11x0-asoc' into devel-3.3
+
+commit 85631d264c35ed7fc43fd92a9f0b0d48b6dbd839
+Merge: 92601fd 76374c6
+Author: Arnd Bergmann <arnd@arndb.de>
+Date:   Thu Mar 1 14:01:56 2012 +0000
+
+    Merge branch 'fixes' into for-next
