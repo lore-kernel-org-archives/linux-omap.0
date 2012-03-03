@@ -1,79 +1,124 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: Re: OMAP totally fucked?
-Date: Sat, 3 Mar 2012 12:01:24 -0800
-Message-ID: <20120303200123.GB10293@atomide.com>
-References: <20120303154650.GA16132@n2100.arm.linux.org.uk>
- <20120303180428.GA10293@atomide.com>
- <20120303183225.GA17710@n2100.arm.linux.org.uk>
- <20120303190140.GB19248@atomide.com>
- <20120303192839.GB17710@n2100.arm.linux.org.uk>
+From: Paul Walmsley <paul@pwsan.com>
+Subject: [PATCH] ARM: OMAP2+: omap_device: call all suspend, resume callbacks
+ when OMAP_DEVICE_NO_IDLE_ON_SUSPEND is set
+Date: Sat, 3 Mar 2012 13:15:33 -0700 (MST)
+Message-ID: <alpine.DEB.2.00.1203031314050.10611@utopia.booyaka.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-01-ewr.mailhop.org ([204.13.248.71]:12812 "EHLO
-	mho-01-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752992Ab2CCUB2 (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Sat, 3 Mar 2012 15:01:28 -0500
-Content-Disposition: inline
-In-Reply-To: <20120303192839.GB17710@n2100.arm.linux.org.uk>
+Received: from utopia.booyaka.com ([72.9.107.138]:35259 "EHLO
+	utopia.booyaka.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751089Ab2CCUPd (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Sat, 3 Mar 2012 15:15:33 -0500
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Russell King - ARM Linux <linux@arm.linux.org.uk>
-Cc: Peter Ujfalusi <peter.ujfalusi@ti.com>, linux-omap@vger.kernel.org, Arnd Bergmann <arnd@arndb.de>, Olof Johansson <olof@lixom.net>
+To: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+Cc: khilman@ti.com, John Stultz <johnstul@us.ibm.com>, Andy Green <andy.green@linaro.org>
 
-* Russell King - ARM Linux <linux@arm.linux.org.uk> [120303 10:57]:
-> On Sat, Mar 03, 2012 at 11:01:40AM -0800, Tony Lindgren wrote:
-> > * Russell King - ARM Linux <linux@arm.linux.org.uk> [120303 10:00]:
-> > > On Sat, Mar 03, 2012 at 10:04:29AM -0800, Tony Lindgren wrote:
-> > > > Well 85631d2 builds fine, looks like now some more includes of
-> > > > plat/hardware.h are now needed.Have not yet tracked down which
-> > > > commit triggers the build errors. Eventually those should become
-> > > > local headers too..
-> > > 
-> > > It looks like this has happened because you've made stuff far too reliant
-> > > on DT.  You rely on asm/irq.h in asm/prom.h.  I've got rid of that, so
-> > > because you're missing lots of required includes in your .c files,
-> > > things are failing.
-> > 
-> > OK, well that's easy to fix.
-> >  
-> > > And... it seems my config has started to enable all SoCs and boards for
-> > > some idiotic reason... I guess this is because you're trying to make
-> > > 'randconfig' just work without seeding it properly?
-> > 
-> > Hmm that sounds like a bug. A big chunk mach-omap2 randconfigs
-> > were failing because none of ARCH_OMAP2/3/4 were selected.
-> 
-> No, it's a result of those changes.  The result of adding those 'default y'
-> statements means that a previous config created by savedefconfig will
-> end up with those options enabled, as their default state has changed.
 
-Right..
+During system suspend, when OMAP_DEVICE_NO_IDLE_ON_SUSPEND is set on
+an omap_device, call the corresponding driver's ->suspend() and
+->suspend_noirq() callbacks (if present).  Similarly, during resume,
+the driver's ->resume() and ->resume_noirq() callbacks must both be
+called, if present.  (The previous code only called ->suspend_noirq()
+and ->resume_noirq().)
+
+If all of these callbacks aren't called, some important driver
+suspend/resume code may not get executed.
+
+In current mainline, the bug fixed by this patch is only a problem
+under the following conditions:
+
+- the kernel is running on an OMAP4
+
+- an OMAP UART is used as a console
+
+- the kernel command line parameter 'no_console_suspend' is specified
+
+- and the system enters suspend ("echo mem > /sys/power/state").
+
+Under this combined circumstance, the system cannot be awakened via
+the serial port after commit be4b0281956c5cae4f63f31f11d07625a6988766c
+("tty: serial: OMAP: block idle while the UART is transferring data in
+PIO mode").  This is because the OMAP UART driver's ->suspend()
+callback is never called.  The ->suspend() callback would have called
+uart_suspend_port() which in turn would call enable_irq_wake().  Since
+enable_irq_wake() isn't called for the UART's IRQ, check_wakeup_irqs()
+would mask off the UART IRQ in the GIC.
+
+On v3.3 kernels prior to the above commit, serial resume from suspend
+presumably occurred via the PRCM interrupt.  The UART was in
+smart-idle mode, so it was able to send a PRCM wakeup which in turn
+would be converted into a PRCM interrupt to the GIC, waking up the
+kernel.  But after the above commit, when the system is suspended in
+the middle of a UART transmit, the UART IP block would be in no-idle
+mode.  In no-idle mode, the UART won't generate wakeups to the PRCM
+when incoming characters are received; only GIC interrupts.  But since
+the UART driver's ->suspend() callback is never called,
+uart_suspend_port() and enable_irq_wake() is never called; so the UART
+interrupt is masked by check_wakeup_irqs() and the UART can't wake up
+the MPU.
+
+The remaining mechanism that could have awakened the system would have
+been I/O chain wakeups.  These wouldn't be active because the console
+UART's clocks are never disabled when no_console_suspend is used,
+preventing the full chip from idling.  Also, current mainline doesn't
+yet support full chip idle states for OMAP4, so I/O chain wakeups are
+not enabled.
+
+This patch is the result of a collaboration.  John Stultz
+<johnstul@us.ibm.com> and Andy Green <andy.green@linaro.org> reported
+the serial wakeup problem that led to the discovery of this problem.
+Kevin Hilman <khilman@ti.com> narrowed the problem down to the use of
+no_console_suspend.
+
+Signed-off-by: Paul Walmsley <paul@pwsan.com>
+Cc: John Stultz <johnstul@us.ibm.com>
+Cc: Andy Green <andy.green@linaro.org>
+Cc: Kevin Hilman <khilman@ti.com>
+---
+Targeted for 3.4.
+
+ arch/arm/plat-omap/omap_device.c |   12 ++++--------
+ 1 files changed, 4 insertions(+), 8 deletions(-)
+
+diff --git a/arch/arm/plat-omap/omap_device.c b/arch/arm/plat-omap/omap_device.c
+index e8d9869..4988a78 100644
+--- a/arch/arm/plat-omap/omap_device.c
++++ b/arch/arm/plat-omap/omap_device.c
+@@ -762,14 +762,12 @@ static int _od_suspend_noirq(struct device *dev)
+ 	struct omap_device *od = to_omap_device(pdev);
+ 	int ret;
  
-> And really, having no ARCH_OMAP2/3/4 selected by a plain randconfig is
-> not the problem - what is the root cause is that no board type is selected,
-> and that should be done via a seeded configuration.
-> 
-> Even with the full config, making oldconfig I get:
-> 
-> OMAP2420 support (SOC_OMAP2420) [Y/n] (NEW) 
-> OMAP2430 support (SOC_OMAP2430) [Y/n] (NEW) 
-> OMAP3430 support (SOC_OMAP3430) [Y/n] (NEW) 
-> TI81XX support (SOC_OMAPTI81XX) [Y/n] (NEW) 
-> AM33XX support (SOC_OMAPAM33XX) [Y/n] (NEW) 
-> OMAP44XX support (SOC_OMAP44XX) [Y/n] (NEW) 
-> 
-> May I remind you of this mail from Linus:
-> 
-> 	https://lkml.org/lkml/2012/1/6/354
-> 
-> So really this is a rather horrid mess.
+-	if (od->flags & OMAP_DEVICE_NO_IDLE_ON_SUSPEND)
+-		return pm_generic_suspend_noirq(dev);
+-
+ 	ret = pm_generic_suspend_noirq(dev);
+ 
+ 	if (!ret && !pm_runtime_status_suspended(dev)) {
+ 		if (pm_generic_runtime_suspend(dev) == 0) {
+-			omap_device_idle(pdev);
++			if (!(od->flags & OMAP_DEVICE_NO_IDLE_ON_SUSPEND))
++				omap_device_idle(pdev);
+ 			od->flags |= OMAP_DEVICE_SUSPENDED;
+ 		}
+ 	}
+@@ -782,13 +780,11 @@ static int _od_resume_noirq(struct device *dev)
+ 	struct platform_device *pdev = to_platform_device(dev);
+ 	struct omap_device *od = to_omap_device(pdev);
+ 
+-	if (od->flags & OMAP_DEVICE_NO_IDLE_ON_SUSPEND)
+-		return pm_generic_resume_noirq(dev);
+-
+ 	if ((od->flags & OMAP_DEVICE_SUSPENDED) &&
+ 	    !pm_runtime_status_suspended(dev)) {
+ 		od->flags &= ~OMAP_DEVICE_SUSPENDED;
+-		omap_device_enable(pdev);
++		if (!(od->flags & OMAP_DEVICE_NO_IDLE_ON_SUSPEND))
++			omap_device_enable(pdev);
+ 		pm_generic_runtime_resume(dev);
+ 	}
+ 
+-- 
+1.7.9.1
 
-Hmm yes. Sounds like we need to remove the defaults and instead
-add them to omap2plus_defconfig.
-
-I'll do a patch to fix that.
-
-Regards,
-
-Tony
