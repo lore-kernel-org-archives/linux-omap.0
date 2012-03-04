@@ -1,53 +1,67 @@
-From: Igor Grinberg <grinberg@compulab.co.il>
-Subject: Re: Ethernet problems on AM3517, possible regression?
-Date: Sun, 04 Mar 2012 11:41:31 +0200
-Message-ID: <4F5338CB.5000804@compulab.co.il>
-References: <1330488712.31452.YahooMailNeo@web125205.mail.ne1.yahoo.com> <1330536469.53752.YahooMailNeo@web125203.mail.ne1.yahoo.com> <1330621988.48456.YahooMailNeo@web125202.mail.ne1.yahoo.com> <1330643793.82609.YahooMailNeo@web125204.mail.ne1.yahoo.com>
+From: Ohad Ben-Cohen <ohad-Ix1uc/W3ht7QT0dZR+AlfA@public.gmane.org>
+Subject: [PATCH] ARM: OMAP: fix iommu, not mailbox
+Date: Sun,  4 Mar 2012 12:01:11 +0200
+Message-ID: <1330855271-28820-1-git-send-email-ohad@wizery.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
+Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from 50.23.254.54-static.reverse.softlayer.com ([50.23.254.54]:33820
-	"EHLO softlayer.compulab.co.il" rhost-flags-OK-OK-OK-FAIL)
-	by vger.kernel.org with ESMTP id S1751857Ab2CDJlp (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Sun, 4 Mar 2012 04:41:45 -0500
-In-Reply-To: <1330643793.82609.YahooMailNeo@web125204.mail.ne1.yahoo.com>
-Sender: linux-omap-owner@vger.kernel.org
+Return-path: <iommu-bounces-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org>
+List-Unsubscribe: <https://lists.linuxfoundation.org/mailman/options/iommu>,
+	<mailto:iommu-request-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org?subject=unsubscribe>
+List-Archive: <http://lists.linuxfoundation.org/pipermail/iommu/>
+List-Post: <mailto:iommu-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org>
+List-Help: <mailto:iommu-request-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org?subject=help>
+List-Subscribe: <https://lists.linuxfoundation.org/mailman/listinfo/iommu>,
+	<mailto:iommu-request-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org?subject=subscribe>
+Sender: iommu-bounces-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org
+Errors-To: iommu-bounces-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org
+To: iommu-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org
+Cc: Ohad Ben-Cohen <ohad-Ix1uc/W3ht7QT0dZR+AlfA@public.gmane.org>, Fernando Guzman Lugo <fernando.lugo-l0cyMroinI0@public.gmane.org>, Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>, Laurent Pinchart <laurent.pinchart-ryLnwIuWjnjg/C1BVhZhaw@public.gmane.org>, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org
 List-Id: linux-omap@vger.kernel.org
-To: CF Adad <cfadad@rocketmail.com>
-Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, Tony Lindgren <tony@atomide.com>
 
-Hi,
+For some weird (freudian?) reason, commit 435792d "ARM: OMAP: make
+iommu subsys_initcall to fix builtin omap3isp" unintentionally changed
+the mailbox's initcall instead of the iommu's.
 
-On 03/02/12 01:16, CF Adad wrote:
-> We have both a CompuLab CM-T3517 and a Technexion TAM-3517 at the shop.  Both boards provide dual Ethernet support in an identical fashion.  One port uses the onboard EMAC tied to an SMSC LAN87xx series PHY.  The other is the old trusty SMSC LAN911X hooked up to the GPMC.
-> 
-> Both boards support both interfaces when loaded with their respective TI PSP-based images.  These unfortunately date clear back to 2.6.37 or even 2.6.32 however.  When upgrading to the 3.x series linux-omap kernel, we noticed we could get one or the other of these to work, _but not both simultaneously_.  If both are enabled in code, neither work.
-> 
-> Even when we can get one or the other working, we seem to be having some problems with autonegotiation and MAC addressing.  MAC addresses on the SMSC are still random.  On the EMAC port, as you can see from our code below, we have put a patch in that is letting us establish a fixed MAC address.  However, I'm not sure this is a proper method to use at this point.
-> 
-> We suspect issues are known to exist with the Ethernet ports as the CM-T3517 has mainlined Linux support, and its latest board file does not show any configuration for either Ethernet interface.  Support from the previous kernel versions has apparently been removed, despite patches being applied to it as recently as mid-last year:  http://lists.infradead.org/pipermail/linux-arm-kernel/2011-May/050430.html
-> 
-> We also suspect this is being caused by an address conflict of some sort between the two ports.  We are using a linux-omap kernel, version 3.2.0-rc6 that is a month or two old now.  We've been monitoring this list, and have noted that some changes have been checked in for SMSC, but have not been able to update our kernel source as we were in the midst of a heavy debugging exercise that ended late last evening.  We plan to migrate to the latest HEAD soon.  Neverthelss, we've not seen any of these board files update.  So, we're assuming there are still known issues here.
-> 
-> I have attached the relevant sections of the board file we've created 
-> for the TAM-3517 (the one we've played with the most) below.  It is based off the 
-> older board files from the TI PSP and various configurations we have seen in similar hardware
->  board files (overo, am3517_evm, cm-t3517, etc.)  If you note the 
-> configurable defines at the top, we've tied various combinations of code
->  with no success to date.
-> 
-> 
-> Would you folks please take a look?  Any help would be appreciated.  Thanks!
+Fix that.
 
-The below two patches are needed to make the AM3517 EMAC work on CM-T3517:
+Reported-by: Fernando Guzman Lugo <fernando.lugo-l0cyMroinI0@public.gmane.org>
+Signed-off-by: Ohad Ben-Cohen <ohad-Ix1uc/W3ht7QT0dZR+AlfA@public.gmane.org>
+Cc: Laurent Pinchart <laurent.pinchart-ryLnwIuWjnjg/C1BVhZhaw@public.gmane.org>
+Cc: Joerg Roedel <Joerg.Roedel-5C7GfCeVMHo@public.gmane.org>
+Cc: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
+---
+ arch/arm/mach-omap2/mailbox.c    |    3 +--
+ arch/arm/mach-omap2/omap-iommu.c |    3 ++-
+ 2 files changed, 3 insertions(+), 3 deletions(-)
 
-http://www.spinics.net/lists/linux-omap/msg65642.html
-http://www.spinics.net/lists/linux-omap/msg65643.html
-
-Hopefully, Tony will be kind enough to apply those for 3.4
-
-
+diff --git a/arch/arm/mach-omap2/mailbox.c b/arch/arm/mach-omap2/mailbox.c
+index a6db1e4..609ea2d 100644
+--- a/arch/arm/mach-omap2/mailbox.c
++++ b/arch/arm/mach-omap2/mailbox.c
+@@ -412,8 +412,7 @@ static void __exit omap2_mbox_exit(void)
+ 	platform_driver_unregister(&omap2_mbox_driver);
+ }
+ 
+-/* must be ready before omap3isp is probed */
+-subsys_initcall(omap2_mbox_init);
++module_init(omap2_mbox_init);
+ module_exit(omap2_mbox_exit);
+ 
+ MODULE_LICENSE("GPL v2");
+diff --git a/arch/arm/mach-omap2/omap-iommu.c b/arch/arm/mach-omap2/omap-iommu.c
+index b882204..ac49384 100644
+--- a/arch/arm/mach-omap2/omap-iommu.c
++++ b/arch/arm/mach-omap2/omap-iommu.c
+@@ -150,7 +150,8 @@ err_out:
+ 		platform_device_put(omap_iommu_pdev[i]);
+ 	return err;
+ }
+-module_init(omap_iommu_init);
++/* must be ready before omap3isp is probed */
++subsys_initcall(omap_iommu_init);
+ 
+ static void __exit omap_iommu_exit(void)
+ {
 -- 
-Regards,
-Igor.
+1.7.5.4
