@@ -1,48 +1,62 @@
-From: Ohad Ben-Cohen <ohad@wizery.com>
-Subject: [PATCH] ARM: OMAP: don't build hwspinlock in vain
-Date: Sun,  4 Mar 2012 13:05:29 +0200
-Message-ID: <1330859129-354-1-git-send-email-ohad@wizery.com>
+From: Russell King - ARM Linux <linux@arm.linux.org.uk>
+Subject: Re: OMAP totally fucked?
+Date: Sun, 4 Mar 2012 15:59:09 +0000
+Message-ID: <20120304155909.GA14466@n2100.arm.linux.org.uk>
+References: <20120303154650.GA16132@n2100.arm.linux.org.uk> <20120303180428.GA10293@atomide.com> <201203031829.06992.arnd@arndb.de> <20120303210521.GE10293@atomide.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-we0-f174.google.com ([74.125.82.174]:60530 "EHLO
-	mail-we0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752839Ab2CDLGD (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Sun, 4 Mar 2012 06:06:03 -0500
-Received: by wejx9 with SMTP id x9so1824139wej.19
-        for <linux-omap@vger.kernel.org>; Sun, 04 Mar 2012 03:06:01 -0800 (PST)
+Received: from caramon.arm.linux.org.uk ([78.32.30.218]:48885 "EHLO
+	caramon.arm.linux.org.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754518Ab2CDP70 (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Sun, 4 Mar 2012 10:59:26 -0500
+Content-Disposition: inline
+In-Reply-To: <20120303210521.GE10293@atomide.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: linux-omap@vger.kernel.org
-Cc: linux-arm-kernel@lists.infradead.org, Tony Lindgren <tony@atomide.com>, Ohad Ben-Cohen <ohad@wizery.com>
+To: Tony Lindgren <tony@atomide.com>
+Cc: Arnd Bergmann <arnd@arndb.de>, Peter Ujfalusi <peter.ujfalusi@ti.com>, linux-omap@vger.kernel.org, Olof Johansson <olof@lixom.net>
 
-Cleanup: don't build mach-omap2/hwspinlock.c if the OMAP hwspinlock
-driver isn't configured.
+On Sat, Mar 03, 2012 at 01:05:21PM -0800, Tony Lindgren wrote:
+> * Arnd Bergmann <arnd@arndb.de> [120303 09:57]:
+> > On Saturday 03 March 2012, Tony Lindgren wrote:
+> > > Well 85631d2 builds fine, looks like now some more includes of
+> > > plat/hardware.h are now needed.Have not yet tracked down which
+> > > commit triggers the build errors. Eventually those should become
+> > > local headers too..
+> > 
+> > I've tried building arm-soc/for-next and rmk/for-next, they are both
+> > fine, just merging the two gives me the same build errors that Russell
+> > saw.
+> > 
+> > Adding plat/hardware.h in all files that break solves the problems,
+> > aside from the iommu dependency for rpmsg for which Ohad has provided
+> > a fix already that I should pull.
+> 
+> Here's a patch for you to the cleanup branch to fix the hardware.h
+> build errors.
 
-This will both shorten build time and avoid registering a device
-which isn't needed.
+Right, with this applied, things are better:
 
-Signed-off-by: Ohad Ben-Cohen <ohad@wizery.com>
----
-Tony, it's probably better if you take it, to minimize omap merge conflicts.
-Thanks!
+1. omap3430ldp allnoconfig is the first build without warnings, congrats.
+2. omap4430sdp allnoconfig has a bunch of new section mismatch warnings,
+   a couple of compiler warnings, and builds:
 
- arch/arm/mach-omap2/Makefile |    4 +++-
- 1 files changed, 3 insertions(+), 1 deletions(-)
+WARNING: arch/arm/mach-omap2/built-in.o(.text+0x183c): Section mismatch in reference from the function omap2_init_processor_devices() to the function .init.text:_init_omap_device()
+The function omap2_init_processor_devices() references
+the function __init _init_omap_device().
+This is often because omap2_init_processor_devices lacks a __init 
+annotation or the annotation of _init_omap_device is wrong.
 
-diff --git a/arch/arm/mach-omap2/Makefile b/arch/arm/mach-omap2/Makefile
-index 00d7025..5bce3bd 100644
---- a/arch/arm/mach-omap2/Makefile
-+++ b/arch/arm/mach-omap2/Makefile
-@@ -268,7 +268,9 @@ obj-y					+= $(smc91x-m) $(smc91x-y)
- 
- smsc911x-$(CONFIG_SMSC911X)		:= gpmc-smsc911x.o
- obj-y					+= $(smsc911x-m) $(smsc911x-y)
--obj-$(CONFIG_ARCH_OMAP4)		+= hwspinlock.o
-+ifneq ($(CONFIG_HWSPINLOCK_OMAP),)
-+obj-y					+= hwspinlock.o
-+endif
- 
- obj-y					+= common-board-devices.o twl-common.o
- 
--- 
-1.7.5.4
+arch/arm/mach-omap2/io.c:51: warning: 'omap24xx_io_desc' defined but not used
+arch/arm/mach-omap2/omap-wakeupgen.c:181: warning: 'wakeupgen_irqmask_all' defined but not used
 
+3. omap4430sdp randconfig built with these omap specific warnings (exluding
+   ones already mentioned):
+
+arch/arm/mach-omap2/board-n8x0.c:39: warning: 'slot1_cover_open' defined but not used
+arch/arm/mach-omap2/board-n8x0.c:40: warning: 'slot2_cover_open' defined but not used
+arch/arm/mach-omap2/board-n8x0.c:41: warning: 'mmc_device' defined but not used
+
+and, of course, this is with these configs building OMAP2..OMAP4 because of
+the config.
