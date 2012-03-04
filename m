@@ -1,62 +1,44 @@
-From: Russell King - ARM Linux <linux@arm.linux.org.uk>
-Subject: Re: OMAP totally fucked?
-Date: Sun, 4 Mar 2012 15:59:09 +0000
-Message-ID: <20120304155909.GA14466@n2100.arm.linux.org.uk>
-References: <20120303154650.GA16132@n2100.arm.linux.org.uk> <20120303180428.GA10293@atomide.com> <201203031829.06992.arnd@arndb.de> <20120303210521.GE10293@atomide.com>
+From: Dmitry Torokhov <dmitry.torokhov@gmail.com>
+Subject: Re: [PATCH v4 2/2] MFD: twl6040: Convert to i2c driver,
+ and separate it from twl core
+Date: Sun, 4 Mar 2012 11:05:34 -0800
+Message-ID: <20120304190534.GA22602@core.coreip.homeip.net>
+References: <1330418092-12314-1-git-send-email-peter.ujfalusi@ti.com>
+	<1330418092-12314-3-git-send-email-peter.ujfalusi@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from caramon.arm.linux.org.uk ([78.32.30.218]:48885 "EHLO
-	caramon.arm.linux.org.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754518Ab2CDP70 (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Sun, 4 Mar 2012 10:59:26 -0500
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <alsa-devel-bounces@alsa-project.org>
 Content-Disposition: inline
-In-Reply-To: <20120303210521.GE10293@atomide.com>
-Sender: linux-omap-owner@vger.kernel.org
+In-Reply-To: <1330418092-12314-3-git-send-email-peter.ujfalusi@ti.com>
+List-Unsubscribe: <http://mailman.alsa-project.org/mailman/listinfo/alsa-devel>,
+	<mailto:alsa-devel-request@alsa-project.org?subject=unsubscribe>
+List-Archive: <http://mailman.alsa-project.org/pipermail/alsa-devel>
+List-Post: <mailto:alsa-devel@alsa-project.org>
+List-Help: <mailto:alsa-devel-request@alsa-project.org?subject=help>
+List-Subscribe: <http://mailman.alsa-project.org/mailman/listinfo/alsa-devel>,
+	<mailto:alsa-devel-request@alsa-project.org?subject=subscribe>
+Sender: alsa-devel-bounces@alsa-project.org
+Errors-To: alsa-devel-bounces@alsa-project.org
+To: Peter Ujfalusi <peter.ujfalusi@ti.com>
+Cc: alsa-devel@alsa-project.org, Samuel Ortiz <sameo@linux.intel.com>, Tony Lindgren <tony@atomide.com>, Mark Brown <broonie@opensource.wolfsonmicro.com>, linux-kernel@vger.kernel.org, Santosh Shilimkar <santosh.shilimkar@ti.com>, Misael Lopez Cruz <misael.lopez@ti.com>, linux-omap@vger.kernel.org, Liam Girdwood <lrg@ti.com>
 List-Id: linux-omap@vger.kernel.org
-To: Tony Lindgren <tony@atomide.com>
-Cc: Arnd Bergmann <arnd@arndb.de>, Peter Ujfalusi <peter.ujfalusi@ti.com>, linux-omap@vger.kernel.org, Olof Johansson <olof@lixom.net>
 
-On Sat, Mar 03, 2012 at 01:05:21PM -0800, Tony Lindgren wrote:
-> * Arnd Bergmann <arnd@arndb.de> [120303 09:57]:
-> > On Saturday 03 March 2012, Tony Lindgren wrote:
-> > > Well 85631d2 builds fine, looks like now some more includes of
-> > > plat/hardware.h are now needed.Have not yet tracked down which
-> > > commit triggers the build errors. Eventually those should become
-> > > local headers too..
-> > 
-> > I've tried building arm-soc/for-next and rmk/for-next, they are both
-> > fine, just merging the two gives me the same build errors that Russell
-> > saw.
-> > 
-> > Adding plat/hardware.h in all files that break solves the problems,
-> > aside from the iommu dependency for rpmsg for which Ohad has provided
-> > a fix already that I should pull.
+On Tue, Feb 28, 2012 at 10:34:52AM +0200, Peter Ujfalusi wrote:
+> Complete the separation of the twl6040 from the twl core since
+> it is a separate chip, not part of the twl6030 PMIC.
 > 
-> Here's a patch for you to the cleanup branch to fix the hardware.h
-> build errors.
+> Make the needed Kconfig changes for the depending drivers at the same time to
+> avoid breaking the kernel build (vibra, ASoC components).
+> 
+> Signed-off-by: Peter Ujfalusi <peter.ujfalusi@ti.com>
+> Reviewed-by: Mark Brown <broonie@opensource.wolfsonicro.com>
+> Acked-by: Tony Lindgren <tony@atomide.com>
+> Acked-by: Samuel Ortiz <sameo@linux.intel.com>
 
-Right, with this applied, things are better:
+For input part:
 
-1. omap3430ldp allnoconfig is the first build without warnings, congrats.
-2. omap4430sdp allnoconfig has a bunch of new section mismatch warnings,
-   a couple of compiler warnings, and builds:
+Acked-by: Dmitry Torokhov <dtor@mail.ru>
 
-WARNING: arch/arm/mach-omap2/built-in.o(.text+0x183c): Section mismatch in reference from the function omap2_init_processor_devices() to the function .init.text:_init_omap_device()
-The function omap2_init_processor_devices() references
-the function __init _init_omap_device().
-This is often because omap2_init_processor_devices lacks a __init 
-annotation or the annotation of _init_omap_device is wrong.
-
-arch/arm/mach-omap2/io.c:51: warning: 'omap24xx_io_desc' defined but not used
-arch/arm/mach-omap2/omap-wakeupgen.c:181: warning: 'wakeupgen_irqmask_all' defined but not used
-
-3. omap4430sdp randconfig built with these omap specific warnings (exluding
-   ones already mentioned):
-
-arch/arm/mach-omap2/board-n8x0.c:39: warning: 'slot1_cover_open' defined but not used
-arch/arm/mach-omap2/board-n8x0.c:40: warning: 'slot2_cover_open' defined but not used
-arch/arm/mach-omap2/board-n8x0.c:41: warning: 'mmc_device' defined but not used
-
-and, of course, this is with these configs building OMAP2..OMAP4 because of
-the config.
+-- 
+Dmitry
