@@ -1,59 +1,53 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: Re: OMAP totally fucked?
-Date: Sat, 3 Mar 2012 13:57:02 -0800
-Message-ID: <20120303215702.GG10293@atomide.com>
-References: <20120303154650.GA16132@n2100.arm.linux.org.uk>
- <20120303180428.GA10293@atomide.com>
- <20120303183225.GA17710@n2100.arm.linux.org.uk>
- <20120303190140.GB19248@atomide.com>
- <20120303192839.GB17710@n2100.arm.linux.org.uk>
- <20120303200123.GB10293@atomide.com>
- <20120303202810.GC10293@atomide.com>
- <20120303203448.GD10293@atomide.com>
- <20120303205200.GC17710@n2100.arm.linux.org.uk>
- <20120303212101.GF10293@atomide.com>
+From: Igor Grinberg <grinberg@compulab.co.il>
+Subject: Re: Ethernet problems on AM3517, possible regression?
+Date: Sun, 04 Mar 2012 11:41:31 +0200
+Message-ID: <4F5338CB.5000804@compulab.co.il>
+References: <1330488712.31452.YahooMailNeo@web125205.mail.ne1.yahoo.com> <1330536469.53752.YahooMailNeo@web125203.mail.ne1.yahoo.com> <1330621988.48456.YahooMailNeo@web125202.mail.ne1.yahoo.com> <1330643793.82609.YahooMailNeo@web125204.mail.ne1.yahoo.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-01-ewr.mailhop.org ([204.13.248.71]:34819 "EHLO
-	mho-01-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751164Ab2CCV5I (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Sat, 3 Mar 2012 16:57:08 -0500
-Content-Disposition: inline
-In-Reply-To: <20120303212101.GF10293@atomide.com>
+Received: from 50.23.254.54-static.reverse.softlayer.com ([50.23.254.54]:33820
+	"EHLO softlayer.compulab.co.il" rhost-flags-OK-OK-OK-FAIL)
+	by vger.kernel.org with ESMTP id S1751857Ab2CDJlp (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Sun, 4 Mar 2012 04:41:45 -0500
+In-Reply-To: <1330643793.82609.YahooMailNeo@web125204.mail.ne1.yahoo.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Arnd Bergmann <arnd@arndb.de>
-Cc: Russell King - ARM Linux <linux@arm.linux.org.uk>, Peter Ujfalusi <peter.ujfalusi@ti.com>, linux-omap@vger.kernel.org, Olof Johansson <olof@lixom.net>
+To: CF Adad <cfadad@rocketmail.com>
+Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, Tony Lindgren <tony@atomide.com>
 
-Hi Arnd & Olof,
+Hi,
 
-* Tony Lindgren <tony@atomide.com> [120303 12:49]:
+On 03/02/12 01:16, CF Adad wrote:
+> We have both a CompuLab CM-T3517 and a Technexion TAM-3517 at the shop.  Both boards provide dual Ethernet support in an identical fashion.  One port uses the onboard EMAC tied to an SMSC LAN87xx series PHY.  The other is the old trusty SMSC LAN911X hooked up to the GPMC.
 > 
-> Anyways, we should revert commit 72b026a4 because of the
-> breakage it causes.
+> Both boards support both interfaces when loaded with their respective TI PSP-based images.  These unfortunately date clear back to 2.6.37 or even 2.6.32 however.  When upgrading to the 3.x series linux-omap kernel, we noticed we could get one or the other of these to work, _but not both simultaneously_.  If both are enabled in code, neither work.
+> 
+> Even when we can get one or the other working, we seem to be having some problems with autonegotiation and MAC addressing.  MAC addresses on the SMSC are still random.  On the EMAC port, as you can see from our code below, we have put a patch in that is letting us establish a fixed MAC address.  However, I'm not sure this is a proper method to use at this point.
+> 
+> We suspect issues are known to exist with the Ethernet ports as the CM-T3517 has mainlined Linux support, and its latest board file does not show any configuration for either Ethernet interface.  Support from the previous kernel versions has apparently been removed, despite patches being applied to it as recently as mid-last year:  http://lists.infradead.org/pipermail/linux-arm-kernel/2011-May/050430.html
+> 
+> We also suspect this is being caused by an address conflict of some sort between the two ports.  We are using a linux-omap kernel, version 3.2.0-rc6 that is a month or two old now.  We've been monitoring this list, and have noted that some changes have been checked in for SMSC, but have not been able to update our kernel source as we were in the midst of a heavy debugging exercise that ended late last evening.  We plan to migrate to the latest HEAD soon.  Neverthelss, we've not seen any of these board files update.  So, we're assuming there are still known issues here.
+> 
+> I have attached the relevant sections of the board file we've created 
+> for the TAM-3517 (the one we've played with the most) below.  It is based off the 
+> older board files from the TI PSP and various configurations we have seen in similar hardware
+>  board files (overo, am3517_evm, cm-t3517, etc.)  If you note the 
+> configurable defines at the top, we've tied various combinations of code
+>  with no success to date.
+> 
+> 
+> Would you folks please take a look?  Any help would be appreciated.  Thanks!
 
-Correction, we should revert commit c295fb63. The above commit
-is wrong and only exists on my machine.
+The below two patches are needed to make the AM3517 EMAC work on CM-T3517:
 
-Arnd & Olof, can you please revert commit c295fb63 (ARM: OMAP2+:
-Fix multiple randconfig errors with SOC_OMAP and SOC_OMAP_NOOP)
-in omap/fixes-non-critical?
+http://www.spinics.net/lists/linux-omap/msg65642.html
+http://www.spinics.net/lists/linux-omap/msg65643.html
 
-This commit by me generates bloated .config files with make
-oldconfig on existing .config files.
+Hopefully, Tony will be kind enough to apply those for 3.4
 
-Further mach-omap2/Kconfig changes can then wait until they're
-properly tested..
- 
-> Below is a second attempt for the Kconfig changes. Now the
-> CONFIG_MACH_ needs to be set in your seed .config.
 
-..as this patch needs at least one more change to add a submenu
-for MACH_OMAP_GENERIC to select the SoC type. Other boards
-should not need that, so it might be best to make it available
-only for MACH_OMAP_GENERIC.
-
+-- 
 Regards,
-
-Tony
+Igor.
