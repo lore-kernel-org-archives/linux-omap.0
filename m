@@ -1,15 +1,15 @@
 From: Rob Clark <rob.clark@linaro.org>
-Subject: [PATCH 04/10] staging: drm/omap: some minor fb cleanups
-Date: Mon,  5 Mar 2012 10:48:34 -0600
-Message-ID: <1330966120-28582-5-git-send-email-rob.clark@linaro.org>
+Subject: [PATCH 02/10] staging: drm/omap: add a workqueue
+Date: Mon,  5 Mar 2012 10:48:32 -0600
+Message-ID: <1330966120-28582-3-git-send-email-rob.clark@linaro.org>
 References: <1330966120-28582-1-git-send-email-rob.clark@linaro.org>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-yx0-f174.google.com ([209.85.213.174]:58192 "EHLO
-	mail-yx0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756476Ab2CEQtM (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 5 Mar 2012 11:49:12 -0500
-Received: by mail-yx0-f174.google.com with SMTP id l12so1739759yen.19
-        for <linux-omap@vger.kernel.org>; Mon, 05 Mar 2012 08:49:12 -0800 (PST)
+Received: from mail-yw0-f46.google.com ([209.85.213.46]:59920 "EHLO
+	mail-yw0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755877Ab2CEQtF (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 5 Mar 2012 11:49:05 -0500
+Received: by mail-yw0-f46.google.com with SMTP id m54so1741570yhm.19
+        for <linux-omap@vger.kernel.org>; Mon, 05 Mar 2012 08:49:05 -0800 (PST)
 In-Reply-To: <1330966120-28582-1-git-send-email-rob.clark@linaro.org>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
@@ -18,47 +18,64 @@ Cc: patches@linaro.org, Greg KH <greg@kroah.com>, Tomi Valkeinen <tomi.valkeinen
 
 From: Rob Clark <rob@ti.com>
 
-Now that 'struct drm_plane' has a pixel_format field, use that.  And
-fix a minor typo.
+Add a workqueue for omapdrm driver, which is needed for at least a
+couple things currently: (1) moving omap_gem_roll() to a non-atomic
+context, (2) synchronizing page flips w/ DSS scanout related irq's
+(in particular not unmapping previous buffer until DSS finishes
+scanout).
 
 Signed-off-by: Rob Clark <rob@ti.com>
 ---
- drivers/staging/omapdrm/omap_fb.c |    8 ++++----
- 1 files changed, 4 insertions(+), 4 deletions(-)
+ drivers/staging/omapdrm/omap_drv.c |    8 ++++++++
+ drivers/staging/omapdrm/omap_drv.h |    2 ++
+ 2 files changed, 10 insertions(+), 0 deletions(-)
 
-diff --git a/drivers/staging/omapdrm/omap_fb.c b/drivers/staging/omapdrm/omap_fb.c
-index 116a8ff..08e2e35 100644
---- a/drivers/staging/omapdrm/omap_fb.c
-+++ b/drivers/staging/omapdrm/omap_fb.c
-@@ -101,7 +101,7 @@ static int omap_framebuffer_create_handle(struct drm_framebuffer *fb,
- static void omap_framebuffer_destroy(struct drm_framebuffer *fb)
+diff --git a/drivers/staging/omapdrm/omap_drv.c b/drivers/staging/omapdrm/omap_drv.c
+index 3bbea9a..7417e1f 100644
+--- a/drivers/staging/omapdrm/omap_drv.c
++++ b/drivers/staging/omapdrm/omap_drv.c
+@@ -570,6 +570,9 @@ static int dev_load(struct drm_device *dev, unsigned long flags)
+ 
+ 	dev->dev_private = priv;
+ 
++	priv->wq = alloc_workqueue("omapdrm",
++			WQ_UNBOUND | WQ_NON_REENTRANT, 1);
++
+ 	omap_gem_init(dev);
+ 
+ 	ret = omap_modeset_init(dev);
+@@ -598,6 +601,8 @@ static int dev_load(struct drm_device *dev, unsigned long flags)
+ 
+ static int dev_unload(struct drm_device *dev)
  {
- 	struct omap_framebuffer *omap_fb = to_omap_framebuffer(fb);
--	int i, n = drm_format_num_planes(omap_fb->format->pixel_format);
-+	int i, n = drm_format_num_planes(fb->pixel_format);
++	struct omap_drm_private *priv = dev->dev_private;
++
+ 	DBG("unload: dev=%p", dev);
  
- 	DBG("destroy: FB ID: %d (%p)", fb->base.id, fb);
+ 	drm_vblank_cleanup(dev);
+@@ -607,6 +612,9 @@ static int dev_unload(struct drm_device *dev)
+ 	omap_modeset_free(dev);
+ 	omap_gem_deinit(dev);
  
-@@ -204,7 +204,7 @@ void omap_framebuffer_update_scanout(struct drm_framebuffer *fb, int x, int y,
- struct drm_gem_object *omap_framebuffer_bo(struct drm_framebuffer *fb, int p)
- {
- 	struct omap_framebuffer *omap_fb = to_omap_framebuffer(fb);
--	if (p >= drm_format_num_planes(omap_fb->format->pixel_format))
-+	if (p >= drm_format_num_planes(fb->pixel_format))
- 		return NULL;
- 	return omap_fb->planes[p].bo;
- }
-@@ -351,8 +351,8 @@ struct drm_framebuffer *omap_framebuffer_init(struct drm_device *dev,
++	flush_workqueue(priv->wq);
++	destroy_workqueue(priv->wq);
++
+ 	kfree(dev->dev_private);
+ 	dev->dev_private = NULL;
  
- 		plane->bo     = bos[i];
- 		plane->offset = mode_cmd->offsets[i];
--		plane->pitch  = mode_cmd->pitches[i];
--		plane->paddr  = pitch;
-+		plane->pitch  = pitch;
-+		plane->paddr  = 0;
- 	}
+diff --git a/drivers/staging/omapdrm/omap_drv.h b/drivers/staging/omapdrm/omap_drv.h
+index d924c95..a84547c 100644
+--- a/drivers/staging/omapdrm/omap_drv.h
++++ b/drivers/staging/omapdrm/omap_drv.h
+@@ -51,6 +51,8 @@ struct omap_drm_private {
  
- 	drm_helper_mode_fill_fb_struct(fb, mode_cmd);
+ 	struct drm_fb_helper *fbdev;
+ 
++	struct workqueue_struct *wq;
++
+ 	bool has_dmm;
+ };
+ 
 -- 
 1.7.5.4
 
