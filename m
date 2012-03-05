@@ -1,15 +1,15 @@
 From: Rob Clark <rob.clark@linaro.org>
-Subject: [PATCH 07/10] staging: drm/omap: Disable DMM debugfs for OMAP3
-Date: Mon,  5 Mar 2012 10:48:37 -0600
-Message-ID: <1330966120-28582-8-git-send-email-rob.clark@linaro.org>
+Subject: [PATCH 09/10] staging: drm/omap: Get DMM resources from hwmod
+Date: Mon,  5 Mar 2012 10:48:39 -0600
+Message-ID: <1330966120-28582-10-git-send-email-rob.clark@linaro.org>
 References: <1330966120-28582-1-git-send-email-rob.clark@linaro.org>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-yw0-f46.google.com ([209.85.213.46]:59920 "EHLO
-	mail-yw0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756326Ab2CEQtT (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 5 Mar 2012 11:49:19 -0500
-Received: by mail-yw0-f46.google.com with SMTP id m54so1741570yhm.19
-        for <linux-omap@vger.kernel.org>; Mon, 05 Mar 2012 08:49:19 -0800 (PST)
+Received: from mail-gy0-f174.google.com ([209.85.160.174]:58160 "EHLO
+	mail-gy0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756655Ab2CEQtZ (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 5 Mar 2012 11:49:25 -0500
+Received: by ghrr11 with SMTP id r11so1746756ghr.19
+        for <linux-omap@vger.kernel.org>; Mon, 05 Mar 2012 08:49:24 -0800 (PST)
 In-Reply-To: <1330966120-28582-1-git-send-email-rob.clark@linaro.org>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
@@ -18,73 +18,309 @@ Cc: patches@linaro.org, Greg KH <greg@kroah.com>, Tomi Valkeinen <tomi.valkeinen
 
 From: Andy Gross <andy.gross@ti.com>
 
-OMAP3 does not contain a DMM/Tiler block.  As such, we should not
-be exposing any DMM debugfs entries on OMAP3 platforms.
+This patch splits the DMM off into a separate sub-device, in order to
+utilize the platform device information that was created as part of
+the OMAP hwmod entry for the DMM.
 
-Added inline helper function to verify existence of DMM.
+The driver probe function queries the iomem resource and IRQ using
+standard platform_get functions.
+
+The OMAP DRM driver now calls the platform_driver_register() function
+for the subordinate DMM driver inside its probe function.  This
+guarantees the required order for the DMM and ensures the DMM resources
+are available for use by the DRM driver.
 
 Signed-off-by: Andy Gross <andy.gross@ti.com>
 Signed-off-by: Rob Clark <rob@ti.com>
 ---
- drivers/staging/omapdrm/omap_debugfs.c   |   15 +++++++--------
- drivers/staging/omapdrm/omap_dmm_tiler.h |    6 ++++++
- 2 files changed, 13 insertions(+), 8 deletions(-)
+ drivers/staging/omapdrm/omap_dmm_tiler.c |   79 +++++++++++++++++++++--------
+ drivers/staging/omapdrm/omap_dmm_tiler.h |   11 +---
+ drivers/staging/omapdrm/omap_drv.c       |    6 ++
+ drivers/staging/omapdrm/omap_gem.c       |    8 +--
+ 4 files changed, 68 insertions(+), 36 deletions(-)
 
-diff --git a/drivers/staging/omapdrm/omap_debugfs.c b/drivers/staging/omapdrm/omap_debugfs.c
-index e23f907..2f122e0 100644
---- a/drivers/staging/omapdrm/omap_debugfs.c
-+++ b/drivers/staging/omapdrm/omap_debugfs.c
-@@ -112,12 +112,10 @@ int omap_debugfs_init(struct drm_minor *minor)
- 		return ret;
- 	}
+diff --git a/drivers/staging/omapdrm/omap_dmm_tiler.c b/drivers/staging/omapdrm/omap_dmm_tiler.c
+index e4c7bb6..1ecb6a7 100644
+--- a/drivers/staging/omapdrm/omap_dmm_tiler.c
++++ b/drivers/staging/omapdrm/omap_dmm_tiler.c
+@@ -34,6 +34,8 @@
+ #include "omap_dmm_tiler.h"
+ #include "omap_dmm_priv.h"
  
--	/* TODO: only do this if has_dmm.. but this fxn gets called before
--	 * dev_load() so we don't know this yet..
--	 */
--	ret = drm_debugfs_create_files(omap_dmm_debugfs_list,
--			ARRAY_SIZE(omap_dmm_debugfs_list),
--			minor->debugfs_root, minor);
-+	if (dmm_is_available())
-+		ret = drm_debugfs_create_files(omap_dmm_debugfs_list,
-+				ARRAY_SIZE(omap_dmm_debugfs_list),
-+				minor->debugfs_root, minor);
- 
- 	if (ret) {
- 		dev_err(dev->dev, "could not install omap_dmm_debugfs_list\n");
-@@ -131,8 +129,9 @@ void omap_debugfs_cleanup(struct drm_minor *minor)
- {
- 	drm_debugfs_remove_files(omap_debugfs_list,
- 			ARRAY_SIZE(omap_debugfs_list), minor);
--	drm_debugfs_remove_files(omap_dmm_debugfs_list,
--			ARRAY_SIZE(omap_dmm_debugfs_list), minor);
-+	if (dmm_is_available())
-+		drm_debugfs_remove_files(omap_dmm_debugfs_list,
-+				ARRAY_SIZE(omap_dmm_debugfs_list), minor);
++#define DMM_DRIVER_NAME "dmm"
++
+ /* mappings for associating views to luts */
+ static struct tcm *containers[TILFMT_NFORMATS];
+ static struct dmm *omap_dmm;
+@@ -465,7 +467,12 @@ size_t tiler_vsize(enum tiler_fmt fmt, uint16_t w, uint16_t h)
+ 	return round_up(geom[fmt].cpp * w, PAGE_SIZE) * h;
  }
  
- #endif
-diff --git a/drivers/staging/omapdrm/omap_dmm_tiler.h b/drivers/staging/omapdrm/omap_dmm_tiler.h
-index f87cb65..55ab284 100644
---- a/drivers/staging/omapdrm/omap_dmm_tiler.h
-+++ b/drivers/staging/omapdrm/omap_dmm_tiler.h
-@@ -16,6 +16,7 @@
- #ifndef OMAP_DMM_TILER_H
- #define OMAP_DMM_TILER_H
- 
-+#include <plat/cpu.h>
- #include "omap_drv.h"
- #include "tcm.h"
- 
-@@ -132,4 +133,9 @@ struct omap_dmm_platform_data {
- 	int irq;
- };
- 
-+static inline int dmm_is_available(void)
+-int omap_dmm_remove(void)
++bool dmm_is_initialized(void)
 +{
-+	return cpu_is_omap44xx();
++	return omap_dmm ? true : false;
 +}
 +
++static int omap_dmm_remove(struct platform_device *dev)
+ {
+ 	struct tiler_block *block, *_block;
+ 	int i;
+@@ -499,40 +506,49 @@ int omap_dmm_remove(void)
+ 		if (omap_dmm->irq != -1)
+ 			free_irq(omap_dmm->irq, omap_dmm);
+ 
++		iounmap(omap_dmm->base);
+ 		kfree(omap_dmm);
++		omap_dmm = NULL;
+ 	}
+ 
+ 	return 0;
+ }
+ 
+-int omap_dmm_init(struct drm_device *dev)
++static int omap_dmm_probe(struct platform_device *dev)
+ {
+ 	int ret = -EFAULT, i;
+ 	struct tcm_area area = {0};
+ 	u32 hwinfo, pat_geom, lut_table_size;
+-	struct omap_drm_platform_data *pdata = dev->dev->platform_data;
+-
+-	if (!pdata || !pdata->dmm_pdata) {
+-		dev_err(dev->dev, "dmm platform data not present, skipping\n");
+-		return ret;
+-	}
++	struct resource *mem;
+ 
+ 	omap_dmm = kzalloc(sizeof(*omap_dmm), GFP_KERNEL);
+ 	if (!omap_dmm) {
+-		dev_err(dev->dev, "failed to allocate driver data section\n");
++		dev_err(&dev->dev, "failed to allocate driver data section\n");
+ 		goto fail;
+ 	}
+ 
+ 	/* lookup hwmod data - base address and irq */
+-	omap_dmm->base = pdata->dmm_pdata->base;
+-	omap_dmm->irq = pdata->dmm_pdata->irq;
+-	omap_dmm->dev = dev->dev;
++	mem = platform_get_resource(dev, IORESOURCE_MEM, 0);
++	if (!mem) {
++		dev_err(&dev->dev, "failed to get base address resource\n");
++		goto fail;
++	}
++
++	omap_dmm->base = ioremap(mem->start, SZ_2K);
+ 
+ 	if (!omap_dmm->base) {
+-		dev_err(dev->dev, "failed to get dmm base address\n");
++		dev_err(&dev->dev, "failed to get dmm base address\n");
+ 		goto fail;
+ 	}
+ 
++	omap_dmm->irq = platform_get_irq(dev, 0);
++	if (omap_dmm->irq < 0) {
++		dev_err(&dev->dev, "failed to get IRQ resource\n");
++		goto fail;
++	}
++
++	omap_dmm->dev = &dev->dev;
++
+ 	hwinfo = readl(omap_dmm->base + DMM_PAT_HWINFO);
+ 	omap_dmm->num_engines = (hwinfo >> 24) & 0x1F;
+ 	omap_dmm->num_lut = (hwinfo >> 16) & 0x1F;
+@@ -556,7 +572,7 @@ int omap_dmm_init(struct drm_device *dev)
+ 				"omap_dmm_irq_handler", omap_dmm);
+ 
+ 	if (ret) {
+-		dev_err(dev->dev, "couldn't register IRQ %d, error %d\n",
++		dev_err(&dev->dev, "couldn't register IRQ %d, error %d\n",
+ 			omap_dmm->irq, ret);
+ 		omap_dmm->irq = -1;
+ 		goto fail;
+@@ -575,25 +591,30 @@ int omap_dmm_init(struct drm_device *dev)
+ 
+ 	omap_dmm->lut = vmalloc(lut_table_size * sizeof(*omap_dmm->lut));
+ 	if (!omap_dmm->lut) {
+-		dev_err(dev->dev, "could not allocate lut table\n");
++		dev_err(&dev->dev, "could not allocate lut table\n");
+ 		ret = -ENOMEM;
+ 		goto fail;
+ 	}
+ 
+ 	omap_dmm->dummy_page = alloc_page(GFP_KERNEL | __GFP_DMA32);
+ 	if (!omap_dmm->dummy_page) {
+-		dev_err(dev->dev, "could not allocate dummy page\n");
++		dev_err(&dev->dev, "could not allocate dummy page\n");
+ 		ret = -ENOMEM;
+ 		goto fail;
+ 	}
++
++	/* set dma mask for device */
++	/* NOTE: this is a workaround for the hwmod not initializing properly */
++	dev->dev.coherent_dma_mask = DMA_BIT_MASK(32);
++
+ 	omap_dmm->dummy_pa = page_to_phys(omap_dmm->dummy_page);
+ 
+ 	/* alloc refill memory */
+-	omap_dmm->refill_va = dma_alloc_coherent(dev->dev,
++	omap_dmm->refill_va = dma_alloc_coherent(&dev->dev,
+ 				REFILL_BUFFER_SIZE * omap_dmm->num_engines,
+ 				&omap_dmm->refill_pa, GFP_KERNEL);
+ 	if (!omap_dmm->refill_va) {
+-		dev_err(dev->dev, "could not allocate refill memory\n");
++		dev_err(&dev->dev, "could not allocate refill memory\n");
+ 		goto fail;
+ 	}
+ 
+@@ -602,7 +623,7 @@ int omap_dmm_init(struct drm_device *dev)
+ 			omap_dmm->num_engines * sizeof(struct refill_engine),
+ 			GFP_KERNEL);
+ 	if (!omap_dmm->engines) {
+-		dev_err(dev->dev, "could not allocate engines\n");
++		dev_err(&dev->dev, "could not allocate engines\n");
+ 		ret = -ENOMEM;
+ 		goto fail;
+ 	}
+@@ -624,7 +645,7 @@ int omap_dmm_init(struct drm_device *dev)
+ 	omap_dmm->tcm = kzalloc(omap_dmm->num_lut * sizeof(*omap_dmm->tcm),
+ 				GFP_KERNEL);
+ 	if (!omap_dmm->tcm) {
+-		dev_err(dev->dev, "failed to allocate lut ptrs\n");
++		dev_err(&dev->dev, "failed to allocate lut ptrs\n");
+ 		ret = -ENOMEM;
+ 		goto fail;
+ 	}
+@@ -636,7 +657,7 @@ int omap_dmm_init(struct drm_device *dev)
+ 						NULL);
+ 
+ 		if (!omap_dmm->tcm[i]) {
+-			dev_err(dev->dev, "failed to allocate container\n");
++			dev_err(&dev->dev, "failed to allocate container\n");
+ 			ret = -ENOMEM;
+ 			goto fail;
+ 		}
+@@ -676,7 +697,7 @@ int omap_dmm_init(struct drm_device *dev)
+ 	return 0;
+ 
+ fail:
+-	omap_dmm_remove();
++	omap_dmm_remove(dev);
+ 	return ret;
+ }
+ 
+@@ -836,3 +857,17 @@ error:
+ 	return 0;
+ }
  #endif
++
++struct platform_driver omap_dmm_driver = {
++	.probe = omap_dmm_probe,
++	.remove = omap_dmm_remove,
++	.driver = {
++		.owner = THIS_MODULE,
++		.name = DMM_DRIVER_NAME,
++	},
++};
++
++MODULE_LICENSE("GPL v2");
++MODULE_AUTHOR("Andy Gross <andy.gross@ti.com>");
++MODULE_DESCRIPTION("OMAP DMM/Tiler Driver");
++MODULE_ALIAS("platform:" DMM_DRIVER_NAME);
+diff --git a/drivers/staging/omapdrm/omap_dmm_tiler.h b/drivers/staging/omapdrm/omap_dmm_tiler.h
+index 55ab284..7b1052a 100644
+--- a/drivers/staging/omapdrm/omap_dmm_tiler.h
++++ b/drivers/staging/omapdrm/omap_dmm_tiler.h
+@@ -73,10 +73,6 @@ struct tiler_block {
+ #define TIL_ADDR(x, orient, a)\
+ 	((u32) (x) | (orient) | ((a) << SHIFT_ACC_MODE))
+ 
+-/* externally accessible functions */
+-int omap_dmm_init(struct drm_device *dev);
+-int omap_dmm_remove(void);
+-
+ #ifdef CONFIG_DEBUG_FS
+ int tiler_map_show(struct seq_file *s, void *arg);
+ #endif
+@@ -98,7 +94,9 @@ uint32_t tiler_stride(enum tiler_fmt fmt);
+ size_t tiler_size(enum tiler_fmt fmt, uint16_t w, uint16_t h);
+ size_t tiler_vsize(enum tiler_fmt fmt, uint16_t w, uint16_t h);
+ void tiler_align(enum tiler_fmt fmt, uint16_t *w, uint16_t *h);
++bool dmm_is_initialized(void);
+ 
++extern struct platform_driver omap_dmm_driver;
+ 
+ /* GEM bo flags -> tiler fmt */
+ static inline enum tiler_fmt gem2fmt(uint32_t flags)
+@@ -128,11 +126,6 @@ static inline bool validfmt(enum tiler_fmt fmt)
+ 	}
+ }
+ 
+-struct omap_dmm_platform_data {
+-	void __iomem *base;
+-	int irq;
+-};
+-
+ static inline int dmm_is_available(void)
+ {
+ 	return cpu_is_omap44xx();
+diff --git a/drivers/staging/omapdrm/omap_drv.c b/drivers/staging/omapdrm/omap_drv.c
+index e2100bb..3df5b4c 100644
+--- a/drivers/staging/omapdrm/omap_drv.c
++++ b/drivers/staging/omapdrm/omap_drv.c
+@@ -21,6 +21,7 @@
+ 
+ #include "drm_crtc_helper.h"
+ #include "drm_fb_helper.h"
++#include "omap_dmm_tiler.h"
+ 
+ #define DRIVER_NAME		MODULE_NAME
+ #define DRIVER_DESC		"OMAP DRM"
+@@ -802,6 +803,9 @@ static void pdev_shutdown(struct platform_device *device)
+ static int pdev_probe(struct platform_device *device)
+ {
+ 	DBG("%s", device->name);
++	if (platform_driver_register(&omap_dmm_driver))
++		dev_err(&device->dev, "DMM registration failed\n");
++
+ 	return drm_platform_init(&omap_drm_driver, device);
+ }
+ 
+@@ -809,6 +813,8 @@ static int pdev_remove(struct platform_device *device)
+ {
+ 	DBG("");
+ 	drm_platform_exit(&omap_drm_driver, device);
++
++	platform_driver_unregister(&omap_dmm_driver);
+ 	return 0;
+ }
+ 
+diff --git a/drivers/staging/omapdrm/omap_gem.c b/drivers/staging/omapdrm/omap_gem.c
+index 1d734bc..5abd294 100644
+--- a/drivers/staging/omapdrm/omap_gem.c
++++ b/drivers/staging/omapdrm/omap_gem.c
+@@ -1238,12 +1238,11 @@ void omap_gem_init(struct drm_device *dev)
+ 	const enum tiler_fmt fmts[] = {
+ 			TILFMT_8BIT, TILFMT_16BIT, TILFMT_32BIT
+ 	};
+-	int i, j, ret;
++	int i, j;
+ 
+-	ret = omap_dmm_init(dev);
+-	if (ret) {
++	if (!dmm_is_initialized()) {
+ 		/* DMM only supported on OMAP4 and later, so this isn't fatal */
+-		dev_warn(dev->dev, "omap_dmm_init failed, disabling DMM\n");
++		dev_warn(dev->dev, "DMM not available, disable DMM support\n");
+ 		return;
+ 	}
+ 
+@@ -1293,6 +1292,5 @@ void omap_gem_deinit(struct drm_device *dev)
+ 	/* I believe we can rely on there being no more outstanding GEM
+ 	 * objects which could depend on usergart/dmm at this point.
+ 	 */
+-	omap_dmm_remove();
+ 	kfree(usergart);
+ }
 -- 
 1.7.5.4
 
