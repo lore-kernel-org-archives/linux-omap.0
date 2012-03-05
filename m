@@ -1,46 +1,75 @@
-From: Rajendra Nayak <rnayak@ti.com>
-Subject: Re: [PATCHv4 0/6] ARM: OMAP3+: IO daisychain support fixes
-Date: Mon, 05 Mar 2012 15:31:13 +0530
-Message-ID: <4F548EE9.6050805@ti.com>
-References: <1330701475-22576-1-git-send-email-t-kristo@ti.com>
+From: "T Krishnamoorthy, Balaji" <balajitk@ti.com>
+Subject: Re: [PATCH 4/4] mmc: omap_hsmmc: Simplify init for twl6030 MMC card detect
+Date: Mon, 5 Mar 2012 15:55:56 +0530
+Message-ID: <CANrkHUZysOnHKKUuLm0Vbo1KsNp0yUd=udjGvQ43=gTTXbWeCw@mail.gmail.com>
+References: <20120301185044.29210.44521.stgit@kaulin.local>
+	<20120301185535.29210.71546.stgit@kaulin.local>
+	<4F50643B.9050500@ti.com>
+	<20120302172251.GJ18901@atomide.com>
+	<4F548457.5050205@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aog103.obsmtp.com ([74.125.149.71]:56497 "EHLO
-	na3sys009aog103.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1756577Ab2CEKBW (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 5 Mar 2012 05:01:22 -0500
-Received: by mail-gy0-f173.google.com with SMTP id r14so1865796ghr.18
-        for <linux-omap@vger.kernel.org>; Mon, 05 Mar 2012 02:01:19 -0800 (PST)
-In-Reply-To: <1330701475-22576-1-git-send-email-t-kristo@ti.com>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Return-path: <linux-mmc-owner@vger.kernel.org>
+In-Reply-To: <4F548457.5050205@ti.com>
+Sender: linux-mmc-owner@vger.kernel.org
+To: Rajendra Nayak <rnayak@ti.com>
+Cc: Tony Lindgren <tony@atomide.com>, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, Samuel Ortiz <sameo@linux.intel.com>, linux-mmc@vger.kernel.org, Chris Ball <cjb@laptop.org>, linux-arm-kernel@lists.infradead.org, Venkatraman S <svenkatr@ti.com>
 List-Id: linux-omap@vger.kernel.org
-To: Tero Kristo <t-kristo@ti.com>
-Cc: linux-omap@vger.kernel.org, khilman@ti.com, paul@pwsan.com, linux-arm-kernel@lists.infradead.org
 
-On Friday 02 March 2012 08:47 PM, Tero Kristo wrote:
-> Hi,
+On Mon, Mar 5, 2012 at 2:46 PM, Rajendra Nayak <rnayak@ti.com> wrote:
+> On Friday 02 March 2012 10:52 PM, Tony Lindgren wrote:
+>>
+>> BTW, with -rc5, looks like re-inserting omap_hsmmc on omap4 fails
+>> to detect any cards, and then fails to unload. This works on omap3
+>> just fine. Any ideas why that would be?
 >
-> Changes compared to previous version:
 >
-> - patch2:
->   * changed timeout value to 100us (from 1000)
->   * added poll for the IO status == 0 at the end of trigger sequence
-> - patch4:
->   * omap3: global wakeup done in PRM init instead of OMAP3 PM init
->   * omap4: moved global wakeup enable from trigger func to PRM init
+> Yeah, looks like thats broken. I am not sure whats going wrong though=
+=2E
+> I just enabled CONFIG_MMC_DEBUG and saw these logs below.
 >
-> Tested on omap3beagle / omap4blaze, suspend / resume works with io chain.
+> Venkat/Balaji, care to look at this one?
+>
 
-for the full series,
-Reviewed-by: Rajendra Nayak <rnayak@ti.com>
+Let me check this
 
+> # insmod omap_hsmmc.ko
+> [ =A0 43.358398] omap_hsmmc omap_hsmmc.0: context was not lost
+> [ =A0 43.364105] omap_hsmmc omap_hsmmc.0: enabled
+> [ =A0 44.434661] mmc0: clock 0Hz busmode 1 powermode 0 cs 0 Vdd 0 wid=
+th 0
+> timing 0
+> [ =A0 44.442352] omap_hsmmc omap_hsmmc.0: Set clock to 0Hz
+> [ =A0 44.474365] omap_hsmmc omap_hsmmc.0: disabled
+> [ =A0 44.482208] omap_hsmmc omap_hsmmc.4: context was not lost
+> [ =A0 44.482208] omap_hsmmc omap_hsmmc.4: enabled
+> [ =A0 44.546600] omap_hsmmc omap_hsmmc.0: context was not lost
+> [ =A0 44.552276] omap_hsmmc omap_hsmmc.0: enabled
+> [ =A0 44.552276] mmc0: mmc_rescan_try_freq: trying to init card at 40=
+0000 Hz
+> [ =A0 44.563720] mmc0: clock 0Hz busmode 2 powermode 1 cs 0 Vdd 18 wi=
+dth 0
+> timing 0
+> [ =A0 44.572174] omap_hsmmc omap_hsmmc.0: Set clock to 0Hz
+> [ =A0 44.613800] mmc0: clock 400000Hz busmode 2 powermode 2 cs 0 Vdd =
+18 width
+> 0 timing 0
+> [ =A0 44.621887] omap_hsmmc omap_hsmmc.0: Set clock to 400000Hz
+> [ =A0 44.735290] mmc0: starting CMD52 arg 00000c00 flags 00000195
+> [ =A0 44.741271] omap_hsmmc omap_hsmmc.0: mmc0: CMD52, argument 0x000=
+00c00
+> [ =A0 45.560241] mmc1: clock 0Hz busmode 1 powermode 0 cs 0 Vdd 0 wid=
+th 0
+> timing 0
+> [ =A0 45.567871] omap_hsmmc omap_hsmmc.4: Set clock to 0Hz
+> [ =A0 45.591491] omap_hsmmc omap_hsmmc.4: disabled
+> #
+> #
+> # rmmod omap_hsmmc
+> [ =A0607.302307] omap_hsmmc omap_hsmmc.4: context was not lost
+> [ =A0607.308044] omap_hsmmc omap_hsmmc.4: enabled
+> [ =A0607.312591] omap_hsmmc omap_hsmmc.4: disabled
+> [ =A0607.317199] omap_hsmmc omap_hsmmc.4: context was not lost
+> [ =A0607.322875] omap_hsmmc omap_hsmmc.4: enabled
 >
-> -Tero
->
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-omap" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
-
