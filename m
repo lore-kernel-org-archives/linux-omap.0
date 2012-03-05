@@ -1,102 +1,89 @@
-From: Keshava Munegowda <keshava_mgowda@ti.com>
-Subject: [PATCH 2/5] ARM: OMAP: USB: Build the USB HOST TLL omap device
-Date: Mon, 5 Mar 2012 20:01:02 +0530
-Message-ID: <1330957865-30543-3-git-send-email-keshava_mgowda@ti.com>
+From: Keshava Munegowda <keshava_mgowda-l0cyMroinI0@public.gmane.org>
+Subject: [PATCH 4/5] ARM: OMAP: USB: Invoke the TLL driver from USB HS core driver
+Date: Mon, 5 Mar 2012 20:01:04 +0530
+Message-ID: <1330957865-30543-5-git-send-email-keshava_mgowda@ti.com>
 References: <1330957865-30543-1-git-send-email-keshava_mgowda@ti.com>
  <1330957865-30543-2-git-send-email-keshava_mgowda@ti.com>
+ <1330957865-30543-3-git-send-email-keshava_mgowda@ti.com>
+ <1330957865-30543-4-git-send-email-keshava_mgowda@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from arroyo.ext.ti.com ([192.94.94.40]:58975 "EHLO arroyo.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S932392Ab2CEOb2 (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Mon, 5 Mar 2012 09:31:28 -0500
-In-Reply-To: <1330957865-30543-2-git-send-email-keshava_mgowda@ti.com>
-Sender: linux-omap-owner@vger.kernel.org
+Return-path: <linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <1330957865-30543-4-git-send-email-keshava_mgowda-l0cyMroinI0@public.gmane.org>
+Sender: linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Cc: Keshava Munegowda <keshava_mgowda-l0cyMroinI0@public.gmane.org>, balbi-l0cyMroinI0@public.gmane.org, parthab-PpE0FKYn9XJWk0Htik3J/w@public.gmane.org, govindraj.raja-l0cyMroinI0@public.gmane.org, paul-DWxLp4Yu+b8AvxtiuMwx3w@public.gmane.org, b-cousson-l0cyMroinI0@public.gmane.org, Keshava Munegowda <Keshava_mgowda-l0cyMroinI0@public.gmane.org>
 List-Id: linux-omap@vger.kernel.org
-To: linux-omap@vger.kernel.org, linux-usb@vger.kernel.org
-Cc: Keshava Munegowda <keshava_mgowda@ti.com>, balbi@ti.com, parthab@india.ti.com, govindraj.raja@ti.com, paul@pwsan.com, b-cousson@ti.com, Keshava Munegowda <Keshava_mgowda@ti.com>
 
-From: Keshava Munegowda <Keshava_mgowda@ti.com>
+From: Keshava Munegowda <Keshava_mgowda-l0cyMroinI0@public.gmane.org>
 
-The hwmod of the usb tll is retrieved and omap device build is
-performed to created the platform device for the usb tll component.
+The usbhs driver invokes the enable/disable APIs of the
+usb tll driver in the runtime resume/suspend callbacks
+of the runtime get sync and put sync of the usbhs driver.
 
-Signed-off-by: Keshava Munegowda <keshava_mgowda@ti.com>
-Reviewed-by: Partha Basak <parthab@india.ti.com>
+Signed-off-by: Keshava Munegowda <keshava_mgowda-l0cyMroinI0@public.gmane.org>
+Reviewed-by: Partha Basak <parthab-PpE0FKYn9XJWk0Htik3J/w@public.gmane.org>
 ---
- arch/arm/mach-omap2/usb-host.c |   28 ++++++++++++++++++++--------
- 1 files changed, 20 insertions(+), 8 deletions(-)
+ arch/arm/plat-omap/include/plat/usb.h |    1 +
+ drivers/mfd/omap-usb-host.c           |    7 +++++--
+ 2 files changed, 6 insertions(+), 2 deletions(-)
 
-diff --git a/arch/arm/mach-omap2/usb-host.c b/arch/arm/mach-omap2/usb-host.c
-index f51348d..dc6769a 100644
---- a/arch/arm/mach-omap2/usb-host.c
-+++ b/arch/arm/mach-omap2/usb-host.c
-@@ -35,10 +35,12 @@
- #ifdef CONFIG_MFD_OMAP_USB_HOST
+diff --git a/arch/arm/plat-omap/include/plat/usb.h b/arch/arm/plat-omap/include/plat/usb.h
+index eb1e47d..3b8f139 100644
+--- a/arch/arm/plat-omap/include/plat/usb.h
++++ b/arch/arm/plat-omap/include/plat/usb.h
+@@ -3,6 +3,7 @@
+ #ifndef	__ASM_ARCH_OMAP_USB_H
+ #define	__ASM_ARCH_OMAP_USB_H
  
- #define OMAP_USBHS_DEVICE	"usbhs_omap"
-+#define OMAP_USBTLL_DEVICE	"usbhs_tll"
- #define	USBHS_UHH_HWMODNAME	"usb_host_hs"
- #define USBHS_TLL_HWMODNAME	"usb_tll_hs"
++#include <linux/platform_device.h>
+ #include <linux/usb/musb.h>
+ #include <plat/board.h>
  
- static struct usbhs_omap_platform_data		usbhs_data;
-+static struct usbtll_omap_platform_data		usbtll_data;
- static struct ehci_hcd_omap_platform_data	ehci_data;
- static struct ohci_hcd_omap_platform_data	ohci_data;
- 
-@@ -485,7 +487,7 @@ static void setup_4430ohci_io_mux(const enum usbhs_omap_port_mode *port_mode)
- 
- void __init usbhs_init(const struct usbhs_omap_board_data *pdata)
- {
--	struct omap_hwmod	*oh[2];
-+	struct omap_hwmod	*uhh_hwm, *tll_hwm;
- 	struct platform_device	*pdev;
- 	int			bus_id = -1;
- 	int			i;
-@@ -510,25 +512,35 @@ void __init usbhs_init(const struct usbhs_omap_board_data *pdata)
- 		setup_4430ohci_io_mux(pdata->port_mode);
+diff --git a/drivers/mfd/omap-usb-host.c b/drivers/mfd/omap-usb-host.c
+index 4de87c6..9d84339 100644
+--- a/drivers/mfd/omap-usb-host.c
++++ b/drivers/mfd/omap-usb-host.c
+@@ -21,7 +21,6 @@
+ #include <linux/types.h>
+ #include <linux/slab.h>
+ #include <linux/delay.h>
+-#include <linux/platform_device.h>
+ #include <linux/clk.h>
+ #include <linux/dma-mapping.h>
+ #include <linux/spinlock.h>
+@@ -285,6 +284,7 @@ static int usbhs_runtime_resume(struct device *dev)
+ 		return  -ENODEV;
  	}
  
--	oh[0] = omap_hwmod_lookup(USBHS_UHH_HWMODNAME);
--	if (!oh[0]) {
-+	uhh_hwm = omap_hwmod_lookup(USBHS_UHH_HWMODNAME);
-+	if (!uhh_hwm) {
- 		pr_err("Could not look up %s\n", USBHS_UHH_HWMODNAME);
- 		return;
- 	}
++	omap_tll_enable();
+ 	spin_lock_irqsave(&omap->lock, flags);
  
--	oh[1] = omap_hwmod_lookup(USBHS_TLL_HWMODNAME);
--	if (!oh[1]) {
-+	tll_hwm = omap_hwmod_lookup(USBHS_TLL_HWMODNAME);
-+	if (!tll_hwm) {
- 		pr_err("Could not look up %s\n", USBHS_TLL_HWMODNAME);
- 		return;
- 	}
+ 	if (omap->ehci_logic_fck && !IS_ERR(omap->ehci_logic_fck))
+@@ -330,6 +330,7 @@ static int usbhs_runtime_suspend(struct device *dev)
+ 		clk_disable(omap->ehci_logic_fck);
  
--	pdev = omap_device_build_ss(OMAP_USBHS_DEVICE, bus_id, oh, 2,
-+	pdev = omap_device_build(OMAP_USBTLL_DEVICE, bus_id, tll_hwm,
-+				(void *)&usbtll_data, sizeof(usbtll_data),
-+				omap_uhhtll_latency,
-+				ARRAY_SIZE(omap_uhhtll_latency), false);
-+	if (IS_ERR(pdev)) {
-+		pr_err("Could not build hwmod device %s\n",
-+			USBHS_TLL_HWMODNAME);
-+		return;
-+	}
-+
-+	pdev = omap_device_build(OMAP_USBHS_DEVICE, bus_id, uhh_hwm,
- 				(void *)&usbhs_data, sizeof(usbhs_data),
- 				omap_uhhtll_latency,
- 				ARRAY_SIZE(omap_uhhtll_latency), false);
- 	if (IS_ERR(pdev)) {
--		pr_err("Could not build hwmod devices %s,%s\n",
--			USBHS_UHH_HWMODNAME, USBHS_TLL_HWMODNAME);
-+		pr_err("Could not build hwmod devices %s\n",
-+			USBHS_UHH_HWMODNAME);
- 		return;
- 	}
+ 	spin_unlock_irqrestore(&omap->lock, flags);
++	omap_tll_disable();
+ 
+ 	return 0;
  }
+@@ -655,8 +656,10 @@ static int __init omap_usbhs_drvinit(void)
+  * init before ehci and ohci drivers;
+  * The usbhs core driver should be initialized much before
+  * the omap ehci and ohci probe functions are called.
++ * this usbhs core driver should be initialized after
++ * usb tll driver.
+  */
+-fs_initcall(omap_usbhs_drvinit);
++fs_initcall_sync(omap_usbhs_drvinit);
+ 
+ static void __exit omap_usbhs_drvexit(void)
+ {
 -- 
 1.6.0.4
 
+--
+To unsubscribe from this list: send the line "unsubscribe linux-usb" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
