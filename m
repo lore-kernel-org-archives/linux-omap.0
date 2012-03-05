@@ -1,31 +1,33 @@
 From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH] ARM: omap: pandora: fix usbhs platform data
-Date: Mon, 5 Mar 2012 11:42:15 -0800
-Message-ID: <20120305194215.GN12083@atomide.com>
-References: <1329604985-24740-1-git-send-email-notasas@gmail.com>
+Subject: Re: [PATCH] plat-omap: mcbsp: Configure wakeup in later phase
+Date: Mon, 5 Mar 2012 11:50:33 -0800
+Message-ID: <20120305195032.GO12083@atomide.com>
+References: <1323941697-7902-1-git-send-email-peter.ujfalusi@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-02-ewr.mailhop.org ([204.13.248.72]:56824 "EHLO
-	mho-02-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1757434Ab2CETmS (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 5 Mar 2012 14:42:18 -0500
+Received: from mho-01-ewr.mailhop.org ([204.13.248.71]:40497 "EHLO
+	mho-01-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756488Ab2CETui (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 5 Mar 2012 14:50:38 -0500
 Content-Disposition: inline
-In-Reply-To: <1329604985-24740-1-git-send-email-notasas@gmail.com>
+In-Reply-To: <1323941697-7902-1-git-send-email-peter.ujfalusi@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Grazvydas Ignotas <notasas@gmail.com>
-Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+To: Peter Ujfalusi <peter.ujfalusi@ti.com>
+Cc: Jarkko Nikula <jarkko.nikula@bitmer.com>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 
-* Grazvydas Ignotas <notasas@gmail.com> [120218 14:11]:
-> It turned out wrong OMAP HSUSB port was configured on pandora,
-> but still managed to work somehow. This was noticed after enabling
-> in-kernel mux, where USB muxing was causing other devices not to work,
-> because hsusb1 pins (instead of hsusb2) were wrongly remuxed, which
-> are used for other things on pandora.
+Peter,
 
-Thanks, adding this to fixes-non-critical-part2.
+* Peter Ujfalusi <peter.ujfalusi@ti.com> [111215 01:03]:
+> Configure the WAKEUPEN register at the same time we configure the rest of
+> the McBSP registers.
+> In case of OMAP3+, if the sysclock has been reconfigured we are going to
+> disable McBSP for the duration of the clock change, which will reset the
+> McBSP registers. The WAKEUPEN register need to be configured later, so
+> the changes will be effective during runtime.
 
-Regards,
+Just checking.. I assume this one is already taken care of with your
+other McBSP changes?
 
 Tony
