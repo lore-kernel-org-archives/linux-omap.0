@@ -1,47 +1,46 @@
-From: Peter Ujfalusi <peter.ujfalusi@ti.com>
-Subject: Re: help: BeagleBoard xM RevC ethernet port
-Date: Mon, 05 Mar 2012 11:52:45 +0200
-Message-ID: <4F548CED.4090406@ti.com>
-References: <4F3E0EB7.9060803@ti.com> <874nuizfyf.fsf@ti.com> <4F4613B7.8010601@kynesim.co.uk> <4F4B9405.9070702@ti.com> <CAAL8m4x=6--5irPBPdW4n0dtYuMm_UThqWEuCSyTtsm+cEx4jQ@mail.gmail.com>
+From: Rajendra Nayak <rnayak@ti.com>
+Subject: Re: [PATCHv4 0/6] ARM: OMAP3+: IO daisychain support fixes
+Date: Mon, 05 Mar 2012 15:31:13 +0530
+Message-ID: <4F548EE9.6050805@ti.com>
+References: <1330701475-22576-1-git-send-email-t-kristo@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aog108.obsmtp.com ([74.125.149.199]:45319 "EHLO
-	na3sys009aog108.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1756418Ab2CEJwm (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 5 Mar 2012 04:52:42 -0500
-Received: by lahe6 with SMTP id e6so5869640lah.32
-        for <linux-omap@vger.kernel.org>; Mon, 05 Mar 2012 01:52:39 -0800 (PST)
-In-Reply-To: <CAAL8m4x=6--5irPBPdW4n0dtYuMm_UThqWEuCSyTtsm+cEx4jQ@mail.gmail.com>
+Received: from na3sys009aog103.obsmtp.com ([74.125.149.71]:56497 "EHLO
+	na3sys009aog103.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1756577Ab2CEKBW (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 5 Mar 2012 05:01:22 -0500
+Received: by mail-gy0-f173.google.com with SMTP id r14so1865796ghr.18
+        for <linux-omap@vger.kernel.org>; Mon, 05 Mar 2012 02:01:19 -0800 (PST)
+In-Reply-To: <1330701475-22576-1-git-send-email-t-kristo@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Govindraj <govindraj.ti@gmail.com>
-Cc: Richard Watts <rrw@kynesim.co.uk>, Kevin Hilman <khilman@ti.com>, linux-omap <linux-omap@vger.kernel.org>, balbi@ti.com
+To: Tero Kristo <t-kristo@ti.com>
+Cc: linux-omap@vger.kernel.org, khilman@ti.com, paul@pwsan.com, linux-arm-kernel@lists.infradead.org
 
-On 02/28/2012 04:04 PM, Govindraj wrote:
-> The issue seems to a mux conflict issue, uart2_rx mux is been taken
-> by uart init and gpio_147 needed for usb phy init is not in mux mode4
-> as set by bootloader.
-> 
-> On beagle I see no other uarts being used other than uart3 as console_uart.
-> So I think it should be okay to init only uart3 from beagle board data.
-> Here is the patch [1] to do the same. (Tested on Beagle Xm Rev.C)
-> 
-> (Any other approach is welcome)
+On Friday 02 March 2012 08:47 PM, Tero Kristo wrote:
+> Hi,
+>
+> Changes compared to previous version:
+>
+> - patch2:
+>   * changed timeout value to 100us (from 1000)
+>   * added poll for the IO status == 0 at the end of trigger sequence
+> - patch4:
+>   * omap3: global wakeup done in PRM init instead of OMAP3 PM init
+>   * omap4: moved global wakeup enable from trigger func to PRM init
+>
+> Tested on omap3beagle / omap4blaze, suspend / resume works with io chain.
 
-Thank you, I have working ethernet port finally!!!
+for the full series,
+Reviewed-by: Rajendra Nayak <rnayak@ti.com>
 
-> From f1b43f983a2926c637e6bc6ab5d1e5044339ffd3 Mon Sep 17 00:00:00 2001
-> From: "Govindraj.R" <govindraj.raja@ti.com>
-> Date: Tue, 28 Feb 2012 19:16:33 +0530
-> Subject: [PATCH] omap3_beagle: Init only uart3 used for console
-> 
-> On beagle some of uart mux lines are used for other
-> purpose so init only uart3.
-> 
-> Uart2 rx line clashes with gpio_147 used for usb ehci
-> phy reset.
-
-Tested-by: Peter Ujfalusi <peter.ujfalusi@ti.com>
+>
+> -Tero
+>
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-omap" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
 
