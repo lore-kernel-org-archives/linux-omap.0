@@ -1,74 +1,69 @@
 From: Tony Lindgren <tony@atomide.com>
-Subject: Re: OMAP totally fucked?
-Date: Mon, 5 Mar 2012 11:07:59 -0800
-Message-ID: <20120305190759.GJ12083@atomide.com>
-References: <20120303154650.GA16132@n2100.arm.linux.org.uk>
- <20120303180428.GA10293@atomide.com>
- <201203031829.06992.arnd@arndb.de>
- <20120303210521.GE10293@atomide.com>
- <20120304155909.GA14466@n2100.arm.linux.org.uk>
+Subject: Re: [PATCH v3 1/3] ARM: OMAP1: ams-delta: set up
+ regulator over modem reset GPIO pin
+Date: Mon, 5 Mar 2012 11:27:43 -0800
+Message-ID: <20120305192742.GK12083@atomide.com>
+References: <1330963512-20413-1-git-send-email-jkrzyszt@tis.icnet.pl>
+	<1330963512-20413-2-git-send-email-jkrzyszt@tis.icnet.pl>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-01-ewr.mailhop.org ([204.13.248.71]:59722 "EHLO
-	mho-01-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1757429Ab2CETIF (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 5 Mar 2012 14:08:05 -0500
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <alsa-devel-bounces@alsa-project.org>
 Content-Disposition: inline
-In-Reply-To: <20120304155909.GA14466@n2100.arm.linux.org.uk>
-Sender: linux-omap-owner@vger.kernel.org
+In-Reply-To: <1330963512-20413-2-git-send-email-jkrzyszt@tis.icnet.pl>
+List-Unsubscribe: <http://mailman.alsa-project.org/mailman/listinfo/alsa-devel>,
+	<mailto:alsa-devel-request@alsa-project.org?subject=unsubscribe>
+List-Archive: <http://mailman.alsa-project.org/pipermail/alsa-devel>
+List-Post: <mailto:alsa-devel@alsa-project.org>
+List-Help: <mailto:alsa-devel-request@alsa-project.org?subject=help>
+List-Subscribe: <http://mailman.alsa-project.org/mailman/listinfo/alsa-devel>,
+	<mailto:alsa-devel-request@alsa-project.org?subject=subscribe>
+Sender: alsa-devel-bounces@alsa-project.org
+Errors-To: alsa-devel-bounces@alsa-project.org
+To: Janusz Krzysztofik <jkrzyszt@tis.icnet.pl>
+Cc: alsa-devel@alsa-project.org, Mark Brown <broonie@opensource.wolfsonmicro.com>, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, Liam Girdwood <lrg@ti.com>, linux-arm-kernel@lists.infradead.org
 List-Id: linux-omap@vger.kernel.org
-To: Russell King - ARM Linux <linux@arm.linux.org.uk>
-Cc: Arnd Bergmann <arnd@arndb.de>, Peter Ujfalusi <peter.ujfalusi@ti.com>, linux-omap@vger.kernel.org, Olof Johansson <olof@lixom.net>
 
-* Russell King - ARM Linux <linux@arm.linux.org.uk> [120304 07:27]:
-> On Sat, Mar 03, 2012 at 01:05:21PM -0800, Tony Lindgren wrote:
-> > * Arnd Bergmann <arnd@arndb.de> [120303 09:57]:
-> > > On Saturday 03 March 2012, Tony Lindgren wrote:
-> > > > Well 85631d2 builds fine, looks like now some more includes of
-> > > > plat/hardware.h are now needed.Have not yet tracked down which
-> > > > commit triggers the build errors. Eventually those should become
-> > > > local headers too..
-> > > 
-> > > I've tried building arm-soc/for-next and rmk/for-next, they are both
-> > > fine, just merging the two gives me the same build errors that Russell
-> > > saw.
-> > > 
-> > > Adding plat/hardware.h in all files that break solves the problems,
-> > > aside from the iommu dependency for rpmsg for which Ohad has provided
-> > > a fix already that I should pull.
-> > 
-> > Here's a patch for you to the cleanup branch to fix the hardware.h
-> > build errors.
+* Janusz Krzysztofik <jkrzyszt@tis.icnet.pl> [120305 07:35]:
+> The Amstrad Delta on-board latch2 bit named MODEM_NRESET, now available
+> as a GPIO pin AMS_DELTA_GPIO_PIN_NMODEM_RESET, is used to power up/down
+> (bring into/out of a reset state) two distinct on-board devices
+> simultaneously: the modem, and the voice codec. As a consequence, that
+> bit is, or can be, manipulated concurrently by two drivers, or their
+> platform provided hooks.
 > 
-> Right, with this applied, things are better:
+> Instead of updating those drivers to use the gpiolib API as a new method
+> of controlling the MODEM_NRESET pin state, like it was done to other
+> drivers accessing latch2 pins, and still being vulnerable to potential
+> concurrency conflicts, or trying to solve that sharing issue with a
+> custom piece of code, set up a fixed regulator device on top of that
+> GPIO pin, with the intention of updating both drivers to manipulate that
+> regulator, not the GPIO pin directly.
 > 
-> 1. omap3430ldp allnoconfig is the first build without warnings, congrats.
-> 2. omap4430sdp allnoconfig has a bunch of new section mismatch warnings,
->    a couple of compiler warnings, and builds:
+> Before the ASoC driver is updated and the modem platform data expanded
+> with a power management callback for switching its power, the
+> ams_delta_latch_write() function, which still provides the old API for
+> accessing latch2 functionality from not updated drivers, is modified to
+> toggle the regulator instead of the MODEM_NRESET GPIO pin.  A helper
+> function provided for balancing the regulator enable/disable operations,
+> together with the consumer data needed for tracking the regulator state,
+> will be removed once the drivers are updated.
 > 
-> WARNING: arch/arm/mach-omap2/built-in.o(.text+0x183c): Section mismatch in reference from the function omap2_init_processor_devices() to the function .init.text:_init_omap_device()
-> The function omap2_init_processor_devices() references
-> the function __init _init_omap_device().
-> This is often because omap2_init_processor_devices lacks a __init 
-> annotation or the annotation of _init_omap_device is wrong.
+> Depends on patch series "ARM: OMAP1: ams-delta: replace custom I/O with
+> GPIO".
 > 
-> arch/arm/mach-omap2/io.c:51: warning: 'omap24xx_io_desc' defined but not used
-> arch/arm/mach-omap2/omap-wakeupgen.c:181: warning: 'wakeupgen_irqmask_all' defined but not used
+> Signed-off-by: Janusz Krzysztofik <jkrzyszt@tis.icnet.pl>
+> ---
+> v2 -> v3 changes:
+> * fix section mismatch isue.
 > 
-> 3. omap4430sdp randconfig built with these omap specific warnings (exluding
->    ones already mentioned):
-> 
-> arch/arm/mach-omap2/board-n8x0.c:39: warning: 'slot1_cover_open' defined but not used
-> arch/arm/mach-omap2/board-n8x0.c:40: warning: 'slot2_cover_open' defined but not used
-> arch/arm/mach-omap2/board-n8x0.c:41: warning: 'mmc_device' defined but not used
+> Changes against initial version:
+> * rename consumer setup elements to match their final, modem only
+>   related purpose,
+> * initialize the regulator pointer and mutex before first use, then
+>   omit testing that pointer against NULL value
 
-I'll do some patches to fix these warnings.
- 
-> and, of course, this is with these configs building OMAP2..OMAP4 because of
-> the config.
-
-That should get fixed soon too with revert.
+Thanks, applying all three into ams-delta branch.
 
 Regards,
 
