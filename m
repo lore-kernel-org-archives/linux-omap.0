@@ -1,58 +1,96 @@
-From: Rajendra Nayak <rnayak@ti.com>
-Subject: Re: [PATCH 4/4] mmc: omap_hsmmc: Simplify init for twl6030 MMC card
- detect
-Date: Mon, 05 Mar 2012 14:46:07 +0530
-Message-ID: <4F548457.5050205@ti.com>
-References: <20120301185044.29210.44521.stgit@kaulin.local> <20120301185535.29210.71546.stgit@kaulin.local> <4F50643B.9050500@ti.com> <20120302172251.GJ18901@atomide.com>
+From: Tero Kristo <t-kristo@ti.com>
+Subject: Re: [PATCH] ARM: OMAP2+: voltage: ensure voltage used is exact
+ voltage from OPP table
+Date: Mon, 5 Mar 2012 11:41:27 +0200
+Message-ID: <1330940487.2116.119.camel@sokoban>
+References: <1330728121-26664-1-git-send-email-khilman@ti.com>
+Reply-To: <t-kristo@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Type: text/plain; charset="UTF-8"
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20120302172251.GJ18901@atomide.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Tony Lindgren <tony@atomide.com>
-Cc: linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, Samuel Ortiz <sameo@linux.intel.com>, linux-mmc@vger.kernel.org, Chris Ball <cjb@laptop.org>, linux-arm-kernel@lists.infradead.org, Venkatraman S <svenkatr@ti.com>, Balaji T K <balajitk@ti.com>
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from devils.ext.ti.com ([198.47.26.153]:56560 "EHLO
+	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756448Ab2CEJlf (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 5 Mar 2012 04:41:35 -0500
+In-Reply-To: <1330728121-26664-1-git-send-email-khilman@ti.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Kevin Hilman <khilman@ti.com>
+Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Nishanth Menon <nm@ti.com>
 
-On Friday 02 March 2012 10:52 PM, Tony Lindgren wrote:
-> BTW, with -rc5, looks like re-inserting omap_hsmmc on omap4 fails
-> to detect any cards, and then fails to unload. This works on omap3
-> just fine. Any ideas why that would be?
+On Fri, 2012-03-02 at 14:42 -0800, Kevin Hilman wrote:
+> When using the SMPS regulators to scale voltages, the regulator
+> framework may pass a minimum voltage that is not an exact OPP voltage.
+> For the VC/VP controlled voltage domains, we must ensure that the
+> voltage requested is the exact voltage from the OPP table.  This is
+> especially critical when using SR.
+> 
+> To fix, voltdm_scale() uses the target voltage passed to walk through
+> the OPP voltages until it finds a voltage that is >= one of the OPP
+> voltages.
 
-Yeah, looks like thats broken. I am not sure whats going wrong though.
-I just enabled CONFIG_MMC_DEBUG and saw these logs below.
+I have just one question to this, how about smartreflex class1p5? Do we
+have any plans for that one? The old implementation at least was using
+voltdm_scale, so if we modify this function, smartreflex class1p5
+doesn't work anymore.
 
-Venkat/Balaji, care to look at this one?
+Otherwise this patch looks good to me.
 
-# insmod omap_hsmmc.ko
-[   43.358398] omap_hsmmc omap_hsmmc.0: context was not lost
-[   43.364105] omap_hsmmc omap_hsmmc.0: enabled
-[   44.434661] mmc0: clock 0Hz busmode 1 powermode 0 cs 0 Vdd 0 width 0 
-timing 0
-[   44.442352] omap_hsmmc omap_hsmmc.0: Set clock to 0Hz
-[   44.474365] omap_hsmmc omap_hsmmc.0: disabled
-[   44.482208] omap_hsmmc omap_hsmmc.4: context was not lost
-[   44.482208] omap_hsmmc omap_hsmmc.4: enabled
-[   44.546600] omap_hsmmc omap_hsmmc.0: context was not lost
-[   44.552276] omap_hsmmc omap_hsmmc.0: enabled
-[   44.552276] mmc0: mmc_rescan_try_freq: trying to init card at 400000 Hz
-[   44.563720] mmc0: clock 0Hz busmode 2 powermode 1 cs 0 Vdd 18 width 0 
-timing 0
-[   44.572174] omap_hsmmc omap_hsmmc.0: Set clock to 0Hz
-[   44.613800] mmc0: clock 400000Hz busmode 2 powermode 2 cs 0 Vdd 18 
-width 0 timing 0
-[   44.621887] omap_hsmmc omap_hsmmc.0: Set clock to 400000Hz
-[   44.735290] mmc0: starting CMD52 arg 00000c00 flags 00000195
-[   44.741271] omap_hsmmc omap_hsmmc.0: mmc0: CMD52, argument 0x00000c00
-[   45.560241] mmc1: clock 0Hz busmode 1 powermode 0 cs 0 Vdd 0 width 0 
-timing 0
-[   45.567871] omap_hsmmc omap_hsmmc.4: Set clock to 0Hz
-[   45.591491] omap_hsmmc omap_hsmmc.4: disabled
-#
-#
-# rmmod omap_hsmmc
-[  607.302307] omap_hsmmc omap_hsmmc.4: context was not lost
-[  607.308044] omap_hsmmc omap_hsmmc.4: enabled
-[  607.312591] omap_hsmmc omap_hsmmc.4: disabled
-[  607.317199] omap_hsmmc omap_hsmmc.4: context was not lost
-[  607.322875] omap_hsmmc omap_hsmmc.4: enabled
+-Tero
+
+> 
+> Cc: Tero Kristo <t-kristo@ti.com>
+> Cc: Nishanth Menon <nm@ti.com>
+> Signed-off-by: Kevin Hilman <khilman@ti.com>
+> ---
+> Unless there are any objections, this will be queued along with the
+> rest of the SMPS regulator series from Tero.  Currently availble in
+> my for_3.4/pm/smps-regulator branch at
+> git://git.kernel.org/pub/scm/linux/kernel/git/khilman/linux-omap-pm.git
+> 
+>  arch/arm/mach-omap2/voltage.c |   21 ++++++++++++++++++---
+>  1 file changed, 18 insertions(+), 3 deletions(-)
+> 
+> diff --git a/arch/arm/mach-omap2/voltage.c b/arch/arm/mach-omap2/voltage.c
+> index 8a36342..4dc60e8 100644
+> --- a/arch/arm/mach-omap2/voltage.c
+> +++ b/arch/arm/mach-omap2/voltage.c
+> @@ -73,7 +73,8 @@ unsigned long voltdm_get_voltage(struct voltagedomain *voltdm)
+>  int voltdm_scale(struct voltagedomain *voltdm,
+>  		 unsigned long target_volt)
+>  {
+> -	int ret;
+> +	int ret, i;
+> +	unsigned long volt = 0;
+>  
+>  	if (!voltdm || IS_ERR(voltdm)) {
+>  		pr_warning("%s: VDD specified does not exist!\n", __func__);
+> @@ -86,9 +87,23 @@ int voltdm_scale(struct voltagedomain *voltdm,
+>  		return -ENODATA;
+>  	}
+>  
+> -	ret = voltdm->scale(voltdm, target_volt);
+> +	/* Adjust voltage to the exact voltage from the OPP table */
+> +	for (i = 0; voltdm->volt_data[i].volt_nominal != 0; i++) {
+> +		if (voltdm->volt_data[i].volt_nominal >= target_volt) {
+> +			volt = voltdm->volt_data[i].volt_nominal;
+> +			break;
+> +		}
+> +	}
+> +
+> +	if (!volt) {
+> +		pr_warning("%s: not scaling. OPP voltage for %lu, not found.\n",
+> +			   __func__, target_volt);
+> +		return -EINVAL;
+> +	}
+> +
+> +	ret = voltdm->scale(voltdm, volt);
+>  	if (!ret)
+> -		voltdm->nominal_volt = target_volt;
+> +		voltdm->nominal_volt = volt;
+>  
+>  	return ret;
+>  }
+
+
