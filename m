@@ -1,42 +1,58 @@
-From: Orjan Friberg <of@flatfrog.com>
-Subject: Re: Spurious ECC errors with mtd_subpagetest (OMAP3, NAND)
-Date: Mon, 5 Mar 2012 10:09:44 +0100
-Message-ID: <4F5482D8.4040901@flatfrog.com>
-References: <4F50F2AB.10209@flatfrog.com> <CANOLnOM6X=29r7_aMs=z4eiDtw0kvWZ-jSeds_NO0KdZ3E8Ouw@mail.gmail.com> <4F5475A8.3050600@flatfrog.com> <4F547FBE.4030805@parrot.com>
+From: Rajendra Nayak <rnayak@ti.com>
+Subject: Re: [PATCH 4/4] mmc: omap_hsmmc: Simplify init for twl6030 MMC card
+ detect
+Date: Mon, 05 Mar 2012 14:46:07 +0530
+Message-ID: <4F548457.5050205@ti.com>
+References: <20120301185044.29210.44521.stgit@kaulin.local> <20120301185535.29210.71546.stgit@kaulin.local> <4F50643B.9050500@ti.com> <20120302172251.GJ18901@atomide.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="ISO-8859-1"; format=flowed
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from hd5b91d02.k46641.sta.perspektivbredband.net ([213.185.29.2]:29942
-	"EHLO fg-dc1.flatfrog.local" rhost-flags-OK-OK-OK-FAIL)
-	by vger.kernel.org with ESMTP id S1751998Ab2CEJJr (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 5 Mar 2012 04:09:47 -0500
-In-Reply-To: <4F547FBE.4030805@parrot.com>
-Sender: linux-omap-owner@vger.kernel.org
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <20120302172251.GJ18901@atomide.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Tony Lindgren <tony@atomide.com>
+Cc: linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, Samuel Ortiz <sameo@linux.intel.com>, linux-mmc@vger.kernel.org, Chris Ball <cjb@laptop.org>, linux-arm-kernel@lists.infradead.org, Venkatraman S <svenkatr@ti.com>, Balaji T K <balajitk@ti.com>
 List-Id: linux-omap@vger.kernel.org
-To: Matthieu CASTET <matthieu.castet@parrot.com>
-Cc: Grazvydas Ignotas <notasas@gmail.com>, "linux-mtd@lists.infradead.org" <linux-mtd@lists.infradead.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
 
-On 03/05/2012 09:56 AM, Matthieu CASTET wrote:
-> Note that the omap driver is still broken :
-> http://article.gmane.org/gmane.linux.drivers.mtd/36079/match=
->
-> We detected this when stressing a board.
->
-> Because all of these bugs in omap driver, I wonder how many people really use
-> the mainline version.
+On Friday 02 March 2012 10:52 PM, Tony Lindgren wrote:
+> BTW, with -rc5, looks like re-inserting omap_hsmmc on omap4 fails
+> to detect any cards, and then fails to unload. This works on omap3
+> just fine. Any ideas why that would be?
 
-Do you know any repo where this is working correctly (linux-omap, or one 
-of the vendor trees etc)?
+Yeah, looks like thats broken. I am not sure whats going wrong though.
+I just enabled CONFIG_MMC_DEBUG and saw these logs below.
 
-> Also if you use a nand that need 4-bit ECC, you need a better ecc than hamming.
-> You can use the bch code (
-> http://article.gmane.org/gmane.linux.drivers.mtd/37864/match=omap )
+Venkat/Balaji, care to look at this one?
 
-Yes, I've been looking at the BCH 4-bit code (both generic 
-implementations and the OMAP GPMC-enabled one) in u-boot and linux.
-
-
--- 
-Orjan Friberg
-FlatFrog Laboratories AB
+# insmod omap_hsmmc.ko
+[   43.358398] omap_hsmmc omap_hsmmc.0: context was not lost
+[   43.364105] omap_hsmmc omap_hsmmc.0: enabled
+[   44.434661] mmc0: clock 0Hz busmode 1 powermode 0 cs 0 Vdd 0 width 0 
+timing 0
+[   44.442352] omap_hsmmc omap_hsmmc.0: Set clock to 0Hz
+[   44.474365] omap_hsmmc omap_hsmmc.0: disabled
+[   44.482208] omap_hsmmc omap_hsmmc.4: context was not lost
+[   44.482208] omap_hsmmc omap_hsmmc.4: enabled
+[   44.546600] omap_hsmmc omap_hsmmc.0: context was not lost
+[   44.552276] omap_hsmmc omap_hsmmc.0: enabled
+[   44.552276] mmc0: mmc_rescan_try_freq: trying to init card at 400000 Hz
+[   44.563720] mmc0: clock 0Hz busmode 2 powermode 1 cs 0 Vdd 18 width 0 
+timing 0
+[   44.572174] omap_hsmmc omap_hsmmc.0: Set clock to 0Hz
+[   44.613800] mmc0: clock 400000Hz busmode 2 powermode 2 cs 0 Vdd 18 
+width 0 timing 0
+[   44.621887] omap_hsmmc omap_hsmmc.0: Set clock to 400000Hz
+[   44.735290] mmc0: starting CMD52 arg 00000c00 flags 00000195
+[   44.741271] omap_hsmmc omap_hsmmc.0: mmc0: CMD52, argument 0x00000c00
+[   45.560241] mmc1: clock 0Hz busmode 1 powermode 0 cs 0 Vdd 0 width 0 
+timing 0
+[   45.567871] omap_hsmmc omap_hsmmc.4: Set clock to 0Hz
+[   45.591491] omap_hsmmc omap_hsmmc.4: disabled
+#
+#
+# rmmod omap_hsmmc
+[  607.302307] omap_hsmmc omap_hsmmc.4: context was not lost
+[  607.308044] omap_hsmmc omap_hsmmc.4: enabled
+[  607.312591] omap_hsmmc omap_hsmmc.4: disabled
+[  607.317199] omap_hsmmc omap_hsmmc.4: context was not lost
+[  607.322875] omap_hsmmc omap_hsmmc.4: enabled
