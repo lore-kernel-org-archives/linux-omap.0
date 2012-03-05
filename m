@@ -1,39 +1,64 @@
 From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH 1/3] arm: anticipate build breakages due in pending
- merge
-Date: Mon, 5 Mar 2012 14:45:35 -0800
-Message-ID: <20120305224534.GG12083@atomide.com>
+Subject: Re: [PATCH 2/3] arm: fix compile error in
+ mach-omap2/board-omap4panda.c
+Date: Mon, 5 Mar 2012 14:46:28 -0800
+Message-ID: <20120305224628.GH12083@atomide.com>
 References: <1330987310-8108-1-git-send-email-paul.gortmaker@windriver.com>
- <1330987310-8108-2-git-send-email-paul.gortmaker@windriver.com>
+ <1330987310-8108-3-git-send-email-paul.gortmaker@windriver.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-next-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <1330987310-8108-2-git-send-email-paul.gortmaker@windriver.com>
+In-Reply-To: <1330987310-8108-3-git-send-email-paul.gortmaker@windriver.com>
 Sender: linux-next-owner@vger.kernel.org
 To: Paul Gortmaker <paul.gortmaker@windriver.com>
-Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-next@vger.kernel.org
+Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-next@vger.kernel.org, Peter Ujfalusi <peter.ujfalusi@ti.com>, Santosh Shilimkar <santosh.shilimkar@ti.com>
 List-Id: linux-omap@vger.kernel.org
 
 * Paul Gortmaker <paul.gortmaker@windriver.com> [120305 14:10]:
-> Testing in linux-next has revealed that the omap2plus_defconfig
-> will fail upon the merge of "arm-soc/for-next" as follows:
+> The commit 3c90c98a1ebbb08d95700ce8a3b7bce6286607bd (linux-next)
 > 
-> arch/arm/mach-omap2/control.c:238: error: 'OMAP343X_CTRL_BASE' undeclared (first use in this function)
-> arch/arm/mach-omap2/common.c:48: error: 'OMAP2420_SDRC_BASE' undeclared here (not in a function)
-> arch/arm/mach-omap2/common.c:49: error: 'OMAP2420_SMS_BASE' undeclared here (not in a function)
-> arch/arm/mach-omap2/common.c:50: error: 'OMAP242X_CTRL_BASE' undeclared here (not in a function)
->  [...]
-> arch/arm/mach-omap2/common.c:167: error: 'OMAP4430_CM2_BASE' undeclared here (not in a function)
-> arch/arm/mach-omap2/sdrc2xxx.c:108: error: 'OMAP2420_PRM_BASE' undeclared (first use in this function)
-> arch/arm/mach-omap2/cm2xxx_3xxx.c:310: error: 'OMAP3430_CM_BASE' undeclared (first use in this function)
+>     "OMAP4: omap4panda: Enable audio support"
 > 
-> It appears that a once implicit path to <plat/hardware.h> has gone
-> away once two of the arm streams come together.
+> introduced population of a new struct, but chose the wrong (but
+> similarly named) struct that has none of the named fields.
+> 
+> Change it to the struct with those fields, to fix:
+> 
+> arch/arm/mach-omap2/board-omap4panda.c:284: error: unknown field 'hs_left_step' specified in initializer
+> arch/arm/mach-omap2/board-omap4panda.c:285: error: unknown field 'hs_right_step' specified in initializer
+> arch/arm/mach-omap2/board-omap4panda.c:286: error: unknown field 'hf_left_step' specified in initializer
+> arch/arm/mach-omap2/board-omap4panda.c:287: error: unknown field 'hf_right_step' specified in initializer
+> arch/arm/mach-omap2/board-omap4panda.c:287: warning: large integer implicitly truncated to unsigned type
 
-Thanks this one is already waiting to be applied to arm-soc
-tree.
+Thanks, this mis-merge is something Peter should take a look at
+as it seems there's few other parts that got left out.
 
 Regards,
 
 Tony
+ 
+> Signed-off-by: Paul Gortmaker <paul.gortmaker@windriver.com>
+> CC: Peter Ujfalusi <peter.ujfalusi@ti.com>
+> CC: Santosh Shilimkar <santosh.shilimkar@ti.com>
+> CC: Tony Lindgren <tony@atomide.com>
+> ---
+>  arch/arm/mach-omap2/board-omap4panda.c |    2 +-
+>  1 files changed, 1 insertions(+), 1 deletions(-)
+> 
+> diff --git a/arch/arm/mach-omap2/board-omap4panda.c b/arch/arm/mach-omap2/board-omap4panda.c
+> index c1a852d..e919153 100644
+> --- a/arch/arm/mach-omap2/board-omap4panda.c
+> +++ b/arch/arm/mach-omap2/board-omap4panda.c
+> @@ -279,7 +279,7 @@ static int __init omap4_twl6030_hsmmc_init(struct omap2_hsmmc_info *controllers)
+>  	return 0;
+>  }
+>  
+> -static struct twl4030_codec_data twl6040_codec = {
+> +static struct twl6040_codec_data twl6040_codec = {
+>  	/* single-step ramp for headset and handsfree */
+>  	.hs_left_step	= 0x0f,
+>  	.hs_right_step	= 0x0f,
+> -- 
+> 1.7.9.1
+> 
