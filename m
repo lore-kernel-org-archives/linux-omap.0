@@ -1,80 +1,60 @@
-From: "Munegowda, Keshava" <keshava_mgowda@ti.com>
-Subject: Re: [PATCH] ARM: OMAP: USB: fix the pointer type mismatch compilation warning
-Date: Mon, 5 Mar 2012 17:06:41 +0530
-Message-ID: <CAP05o4JVXwMLJ_q-XRdv7ijzgUpFrJZVVFy+WY=eoeWrq1cV9A@mail.gmail.com>
-References: <1330946376-17672-1-git-send-email-keshava_mgowda@ti.com>
-	<CAAL8m4x8mg5TDkEQAe-xK1XNUys8bN-AMKKgH=SmeFH3hEtsXg@mail.gmail.com>
+From: Igor Grinberg <grinberg@compulab.co.il>
+Subject: Re: Ethernet problems on AM3517, possible regression?
+Date: Mon, 05 Mar 2012 13:38:53 +0200
+Message-ID: <4F54A5CD.4070603@compulab.co.il>
+References: <1330488712.31452.YahooMailNeo@web125205.mail.ne1.yahoo.com> <1330536469.53752.YahooMailNeo@web125203.mail.ne1.yahoo.com> <1330621988.48456.YahooMailNeo@web125202.mail.ne1.yahoo.com> <1330643793.82609.YahooMailNeo@web125204.mail.ne1.yahoo.com> <4F5338CB.5000804@compulab.co.il>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aog119.obsmtp.com ([74.125.149.246]:33623 "EHLO
-	na3sys009aog119.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1756893Ab2CELgm convert rfc822-to-8bit
-	(ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Mon, 5 Mar 2012 06:36:42 -0500
-Received: by mail-tul01m020-f170.google.com with SMTP id wd1so10347395obb.1
-        for <linux-omap@vger.kernel.org>; Mon, 05 Mar 2012 03:36:41 -0800 (PST)
-In-Reply-To: <CAAL8m4x8mg5TDkEQAe-xK1XNUys8bN-AMKKgH=SmeFH3hEtsXg@mail.gmail.com>
+Received: from 50.23.254.54-static.reverse.softlayer.com ([50.23.254.54]:43518
+	"EHLO softlayer.compulab.co.il" rhost-flags-OK-OK-OK-FAIL)
+	by vger.kernel.org with ESMTP id S1756780Ab2CELjE (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 5 Mar 2012 06:39:04 -0500
+In-Reply-To: <4F5338CB.5000804@compulab.co.il>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Govindraj <govindraj.ti@gmail.com>
-Cc: linux-omap@vger.kernel.org, linux-usb@vger.kernel.org, balbi@ti.com, parthab@india.ti.com, govindraj.raja@ti.com, paul@pwsan.com, b-cousson@ti.com
+To: CF Adad <cfadad@rocketmail.com>
+Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, Tony Lindgren <tony@atomide.com>, Paul Walmsley <paul@pwsan.com>
 
-On Mon, Mar 5, 2012 at 4:53 PM, Govindraj <govindraj.ti@gmail.com> wrot=
-e:
-> On Mon, Mar 5, 2012 at 4:49 PM, Keshava Munegowda <keshava_mgowda@ti.=
-com> wrote:
->> From: Keshava Munegowda <Keshava_mgowda@ti.com>
+On 03/04/12 11:41, Igor Grinberg wrote:
+> Hi,
+> 
+> On 03/02/12 01:16, CF Adad wrote:
+>> We have both a CompuLab CM-T3517 and a Technexion TAM-3517 at the shop.  Both boards provide dual Ethernet support in an identical fashion.  One port uses the onboard EMAC tied to an SMSC LAN87xx series PHY.  The other is the old trusty SMSC LAN911X hooked up to the GPMC.
 >>
->> The compilation of usb-host.c file was resulting compilation warning
->> due to pointer type mismatch in assignment of return pointer type
->> of the function omap_device_build_ss to local pointer type.
->> This warning is fixed.
->
-> Its fixed already.
->
-> https://lkml.org/lkml/2012/2/14/73
+>> Both boards support both interfaces when loaded with their respective TI PSP-based images.  These unfortunately date clear back to 2.6.37 or even 2.6.32 however.  When upgrading to the 3.x series linux-omap kernel, we noticed we could get one or the other of these to work, _but not both simultaneously_.  If both are enabled in code, neither work.
+>>
+>> Even when we can get one or the other working, we seem to be having some problems with autonegotiation and MAC addressing.  MAC addresses on the SMSC are still random.  On the EMAC port, as you can see from our code below, we have put a patch in that is letting us establish a fixed MAC address.  However, I'm not sure this is a proper method to use at this point.
+>>
+>> We suspect issues are known to exist with the Ethernet ports as the CM-T3517 has mainlined Linux support, and its latest board file does not show any configuration for either Ethernet interface.  Support from the previous kernel versions has apparently been removed, despite patches being applied to it as recently as mid-last year:  http://lists.infradead.org/pipermail/linux-arm-kernel/2011-May/050430.html
+>>
+>> We also suspect this is being caused by an address conflict of some sort between the two ports.  We are using a linux-omap kernel, version 3.2.0-rc6 that is a month or two old now.  We've been monitoring this list, and have noted that some changes have been checked in for SMSC, but have not been able to update our kernel source as we were in the midst of a heavy debugging exercise that ended late last evening.  We plan to migrate to the latest HEAD soon.  Neverthelss, we've not seen any of these board files update.  So, we're assuming there are still known issues here.
+>>
+>> I have attached the relevant sections of the board file we've created 
+>> for the TAM-3517 (the one we've played with the most) below.  It is based off the 
+>> older board files from the TI PSP and various configurations we have seen in similar hardware
+>>  board files (overo, am3517_evm, cm-t3517, etc.)  If you note the 
+>> configurable defines at the top, we've tied various combinations of code
+>>  with no success to date.
+>>
+>>
+>> Would you folks please take a look?  Any help would be appreciated.  Thanks!
+> 
+> The below two patches are needed to make the AM3517 EMAC work on CM-T3517:
+> 
+> http://www.spinics.net/lists/linux-omap/msg65642.html
+> http://www.spinics.net/lists/linux-omap/msg65643.html
+> 
+> Hopefully, Tony will be kind enough to apply those for 3.4
 
-Thanks ;  it by Felipe :)
+Also, this one is needed for EMAC to function on any OMAP board:
+http://www.spinics.net/lists/linux-omap/msg62161.html
 
-regards
-keshava
+It looks from the thread, that it has been already taken by Paul,
+so hopefully, it will be in 3.4
 
 
->
->>
->> Signed-off-by: Keshava Munegowda <keshava_mgowda@ti.com>
->> ---
->> =A0arch/arm/mach-omap2/usb-host.c | =A0 =A02 +-
->> =A01 files changed, 1 insertions(+), 1 deletions(-)
->>
->> diff --git a/arch/arm/mach-omap2/usb-host.c b/arch/arm/mach-omap2/us=
-b-host.c
->> index 771dc78..88d4a19 100644
->> --- a/arch/arm/mach-omap2/usb-host.c
->> +++ b/arch/arm/mach-omap2/usb-host.c
->> @@ -486,7 +486,7 @@ static void setup_4430ohci_io_mux(const enum usb=
-hs_omap_port_mode *port_mode)
->> =A0void __init usbhs_init(const struct usbhs_omap_board_data *pdata)
->> =A0{
->> =A0 =A0 =A0 =A0struct omap_hwmod =A0 =A0 =A0 *oh[2];
->> - =A0 =A0 =A0 struct omap_device =A0 =A0 =A0*od;
->> + =A0 =A0 =A0 struct platform_device =A0*od;
->> =A0 =A0 =A0 =A0int =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 bus_id =3D=
- -1;
->> =A0 =A0 =A0 =A0int =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 i;
->>
->> --
->> 1.6.0.4
->>
->> --
->> To unsubscribe from this list: send the line "unsubscribe linux-omap=
-" in
->> the body of a message to majordomo@vger.kernel.org
->> More majordomo info at =A0http://vger.kernel.org/majordomo-info.html
---
-To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+-- 
+Regards,
+Igor.
