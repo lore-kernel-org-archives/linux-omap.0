@@ -1,44 +1,102 @@
-From: Keshava Munegowda <keshava_mgowda-l0cyMroinI0@public.gmane.org>
-Subject: [PATCH 0/5] ARM: OMAP: TLL driver implementation for USB host driver
-Date: Mon, 5 Mar 2012 20:01:00 +0530
-Message-ID: <1330957865-30543-1-git-send-email-keshava_mgowda@ti.com>
+From: Keshava Munegowda <keshava_mgowda@ti.com>
+Subject: [PATCH 2/5] ARM: OMAP: USB: Build the USB HOST TLL omap device
+Date: Mon, 5 Mar 2012 20:01:02 +0530
+Message-ID: <1330957865-30543-3-git-send-email-keshava_mgowda@ti.com>
+References: <1330957865-30543-1-git-send-email-keshava_mgowda@ti.com>
+ <1330957865-30543-2-git-send-email-keshava_mgowda@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
-Return-path: <linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Sender: linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-Cc: Keshava Munegowda <keshava_mgowda-l0cyMroinI0@public.gmane.org>, balbi-l0cyMroinI0@public.gmane.org, parthab-PpE0FKYn9XJWk0Htik3J/w@public.gmane.org, govindraj.raja-l0cyMroinI0@public.gmane.org, paul-DWxLp4Yu+b8AvxtiuMwx3w@public.gmane.org, b-cousson-l0cyMroinI0@public.gmane.org, Keshava Munegowda <Keshava_mgowda-l0cyMroinI0@public.gmane.org>
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from arroyo.ext.ti.com ([192.94.94.40]:58975 "EHLO arroyo.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S932392Ab2CEOb2 (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Mon, 5 Mar 2012 09:31:28 -0500
+In-Reply-To: <1330957865-30543-2-git-send-email-keshava_mgowda@ti.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: linux-omap@vger.kernel.org, linux-usb@vger.kernel.org
+Cc: Keshava Munegowda <keshava_mgowda@ti.com>, balbi@ti.com, parthab@india.ti.com, govindraj.raja@ti.com, paul@pwsan.com, b-cousson@ti.com, Keshava Munegowda <Keshava_mgowda@ti.com>
 
-From: Keshava Munegowda <Keshava_mgowda-l0cyMroinI0@public.gmane.org>
+From: Keshava Munegowda <Keshava_mgowda@ti.com>
 
-The TLL configuration is removed from the UHH driver and implemented as
-a seperate platform driver. Now, the UHH driver configures the TLL
-through API's exported by the TLL platform driver. The TLL is an 
-has independent hardware mod structure for in OMAP3 and later chips, 
-hence an dedicated platform driver is created.
+The hwmod of the usb tll is retrieved and omap device build is
+performed to created the platform device for the usb tll component.
 
-Signed-off-by: Keshava Munegowda <keshava_mgowda-l0cyMroinI0@public.gmane.org>
+Signed-off-by: Keshava Munegowda <keshava_mgowda@ti.com>
+Reviewed-by: Partha Basak <parthab@india.ti.com>
+---
+ arch/arm/mach-omap2/usb-host.c |   28 ++++++++++++++++++++--------
+ 1 files changed, 20 insertions(+), 8 deletions(-)
 
-Keshava Munegowda (5):
-  ARM: OMAP: USB: HOST TLL platform driver
-  ARM: OMAP: USB: Build the USB HOST TLL omap device
-  ARM: OMAP: USB: Remove TLL specific code
-  ARM: OMAP: USB: Invoke the TLL driver from USB HS core driver
-  ARM: OMAP: change the USB TLL clocks device name
+diff --git a/arch/arm/mach-omap2/usb-host.c b/arch/arm/mach-omap2/usb-host.c
+index f51348d..dc6769a 100644
+--- a/arch/arm/mach-omap2/usb-host.c
++++ b/arch/arm/mach-omap2/usb-host.c
+@@ -35,10 +35,12 @@
+ #ifdef CONFIG_MFD_OMAP_USB_HOST
+ 
+ #define OMAP_USBHS_DEVICE	"usbhs_omap"
++#define OMAP_USBTLL_DEVICE	"usbhs_tll"
+ #define	USBHS_UHH_HWMODNAME	"usb_host_hs"
+ #define USBHS_TLL_HWMODNAME	"usb_tll_hs"
+ 
+ static struct usbhs_omap_platform_data		usbhs_data;
++static struct usbtll_omap_platform_data		usbtll_data;
+ static struct ehci_hcd_omap_platform_data	ehci_data;
+ static struct ohci_hcd_omap_platform_data	ohci_data;
+ 
+@@ -485,7 +487,7 @@ static void setup_4430ohci_io_mux(const enum usbhs_omap_port_mode *port_mode)
+ 
+ void __init usbhs_init(const struct usbhs_omap_board_data *pdata)
+ {
+-	struct omap_hwmod	*oh[2];
++	struct omap_hwmod	*uhh_hwm, *tll_hwm;
+ 	struct platform_device	*pdev;
+ 	int			bus_id = -1;
+ 	int			i;
+@@ -510,25 +512,35 @@ void __init usbhs_init(const struct usbhs_omap_board_data *pdata)
+ 		setup_4430ohci_io_mux(pdata->port_mode);
+ 	}
+ 
+-	oh[0] = omap_hwmod_lookup(USBHS_UHH_HWMODNAME);
+-	if (!oh[0]) {
++	uhh_hwm = omap_hwmod_lookup(USBHS_UHH_HWMODNAME);
++	if (!uhh_hwm) {
+ 		pr_err("Could not look up %s\n", USBHS_UHH_HWMODNAME);
+ 		return;
+ 	}
+ 
+-	oh[1] = omap_hwmod_lookup(USBHS_TLL_HWMODNAME);
+-	if (!oh[1]) {
++	tll_hwm = omap_hwmod_lookup(USBHS_TLL_HWMODNAME);
++	if (!tll_hwm) {
+ 		pr_err("Could not look up %s\n", USBHS_TLL_HWMODNAME);
+ 		return;
+ 	}
+ 
+-	pdev = omap_device_build_ss(OMAP_USBHS_DEVICE, bus_id, oh, 2,
++	pdev = omap_device_build(OMAP_USBTLL_DEVICE, bus_id, tll_hwm,
++				(void *)&usbtll_data, sizeof(usbtll_data),
++				omap_uhhtll_latency,
++				ARRAY_SIZE(omap_uhhtll_latency), false);
++	if (IS_ERR(pdev)) {
++		pr_err("Could not build hwmod device %s\n",
++			USBHS_TLL_HWMODNAME);
++		return;
++	}
++
++	pdev = omap_device_build(OMAP_USBHS_DEVICE, bus_id, uhh_hwm,
+ 				(void *)&usbhs_data, sizeof(usbhs_data),
+ 				omap_uhhtll_latency,
+ 				ARRAY_SIZE(omap_uhhtll_latency), false);
+ 	if (IS_ERR(pdev)) {
+-		pr_err("Could not build hwmod devices %s,%s\n",
+-			USBHS_UHH_HWMODNAME, USBHS_TLL_HWMODNAME);
++		pr_err("Could not build hwmod devices %s\n",
++			USBHS_UHH_HWMODNAME);
+ 		return;
+ 	}
+ }
+-- 
+1.6.0.4
 
- arch/arm/mach-omap2/clock3xxx_data.c  |    8 +-
- arch/arm/mach-omap2/clock44xx_data.c  |    4 +-
- arch/arm/mach-omap2/usb-host.c        |   28 ++-
- arch/arm/plat-omap/include/plat/usb.h |    9 +
- drivers/mfd/Kconfig                   |    2 +-
- drivers/mfd/Makefile                  |    2 +-
- drivers/mfd/omap-usb-host.c           |  232 +----------------
- drivers/mfd/omap-usb-tll.c            |  463 +++++++++++++++++++++++++++++++++
- 8 files changed, 513 insertions(+), 235 deletions(-)
- create mode 100644 drivers/mfd/omap-usb-tll.c
-
---
-To unsubscribe from this list: send the line "unsubscribe linux-usb" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
