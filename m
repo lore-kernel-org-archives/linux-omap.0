@@ -1,69 +1,38 @@
 From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH] omap3_beagle: Init only uart3 used for console
-Date: Mon, 5 Mar 2012 12:51:49 -0800
-Message-ID: <20120305205149.GS12083@atomide.com>
-References: <1330945952-14714-1-git-send-email-govindraj.raja@ti.com>
- <87399mkecv.fsf@ti.com>
+Subject: Re: [PATCH] ARM: OMAP2+: omap_device: call all suspend, resume
+ callbacks when OMAP_DEVICE_NO_IDLE_ON_SUSPEND is set
+Date: Mon, 5 Mar 2012 12:52:33 -0800
+Message-ID: <20120305205233.GT12083@atomide.com>
+References: <alpine.DEB.2.00.1203031314050.10611@utopia.booyaka.com>
+ <877gyzoyyk.fsf@ti.com>
+ <alpine.DEB.2.00.1203051312390.1430@utopia.booyaka.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-02-ewr.mailhop.org ([204.13.248.72]:54828 "EHLO
-	mho-02-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1757455Ab2CEUvw (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 5 Mar 2012 15:51:52 -0500
+Received: from mho-01-ewr.mailhop.org ([204.13.248.71]:35676 "EHLO
+	mho-01-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1757700Ab2CEUwi (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 5 Mar 2012 15:52:38 -0500
 Content-Disposition: inline
-In-Reply-To: <87399mkecv.fsf@ti.com>
+In-Reply-To: <alpine.DEB.2.00.1203051312390.1430@utopia.booyaka.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Kevin Hilman <khilman@ti.com>
-Cc: "Govindraj.R" <govindraj.raja@ti.com>, linux-omap@vger.kernel.org, Peter Ujfalusi <peter.ujfalusi@ti.com>, Robert Nelson <robertcnelson@gmail.com>, linux-arm-kernel@lists.infradead.org
+To: Paul Walmsley <paul@pwsan.com>
+Cc: Kevin Hilman <khilman@ti.com>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, John Stultz <johnstul@us.ibm.com>, Andy Green <andy.green@linaro.org>
 
-* Kevin Hilman <khilman@ti.com> [120305 11:28]:
-> "Govindraj.R" <govindraj.raja@ti.com> writes:
+* Paul Walmsley <paul@pwsan.com> [120305 11:44]:
+> On Mon, 5 Mar 2012, Kevin Hilman wrote:
 > 
-> > From: "Govindraj.R" <govindraj.raja@ti.com>
-> >
-> > On beagle some of uart mux lines are used for other
-> > purpose so init only uart3.
+> > Tony, this fix is needed for v3.3.
 > 
-> OK, but you should also be clear that this patch is effectively
-> disabling all UARTS (except UART3) by defatul, which I'm not sure all
-> Beagle users will be happy about.
-> 
-> > Uart2 rx line clashes with gpio_147 used for usb ehci
-> > phy reset. Initializing uart2 pad_mux lines can break
-> > ehci module on beagle xm.
-> > (gpio_147 is available on uart2_rx in mode4 reference 
-> > mux34xx.c -> uart2_rx.gpio_147)
-> 
-> As Koen mentioned, this conflict only exists on certain boards, so
-> you should be clear that this is just an example.
+> Of course, I don't have any objection to this patch going into the v3.3-rc 
+> kernels.  But given that some maintainers seem to be pushing back against 
+> late -rc patches, this one could probably be delayed to 3.4 if required.  
+> no_console_suspend is a debugging-only option and bugs involving it are 
+> unlikely to affect most users.
 
-OK, thanks for the comments. Also it's a bit clear if
-this really is safe to do on all beagles.
- 
-> > Cc: Tony Lindgren <tony@atomide.com>
-> > Cc: Kevin Hilman <khilman@ti.com>
-> > Tested-by: Peter Ujfalusi <peter.ujfalusi@ti.com>
-> > Tested-by: Robert Nelson <robertcnelson@gmail.com>
-> > Signed-off-by: Govindraj.R <govindraj.raja@ti.com>
-> 
-> [...]
-> 
-> > +
-> > +static inline void board_serial_init(void)
-> 
-> Should be __init
-> 
-> [...]
-> 
-> > +static inline void board_serial_init(void)
-> 
-> here too.
-
-..so dropping the patch for now until these are fixed
-and we have some tested-bys for non-xm beagles too.
+I'm fine with your queueing it for v3.4 merge window.
 
 Regards,
 
-Tony
+Tomny
