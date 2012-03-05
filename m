@@ -1,40 +1,30 @@
 From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH v2] ARM: OMAP: dmtimer: fix missing content/correction
- in low-power mode support
-Date: Mon, 5 Mar 2012 11:36:35 -0800
-Message-ID: <20120305193635.GM12083@atomide.com>
-References: <1323237434-4919-1-git-send-email-tarun.kanti@ti.com>
+Subject: Re: [PATCH] ARM: omap: pandora: fix usbhs platform data
+Date: Mon, 5 Mar 2012 11:42:15 -0800
+Message-ID: <20120305194215.GN12083@atomide.com>
+References: <1329604985-24740-1-git-send-email-notasas@gmail.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-01-ewr.mailhop.org ([204.13.248.71]:29034 "EHLO
-	mho-01-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1757494Ab2CETgh (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 5 Mar 2012 14:36:37 -0500
+Received: from mho-02-ewr.mailhop.org ([204.13.248.72]:56824 "EHLO
+	mho-02-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1757434Ab2CETmS (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 5 Mar 2012 14:42:18 -0500
 Content-Disposition: inline
-In-Reply-To: <1323237434-4919-1-git-send-email-tarun.kanti@ti.com>
+In-Reply-To: <1329604985-24740-1-git-send-email-notasas@gmail.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Tarun Kanti DebBarma <tarun.kanti@ti.com>
-Cc: linux-omap@vger.kernel.org, khilman@ti.com, linux-arm-kernel@lists.infradead.org
+To: Grazvydas Ignotas <notasas@gmail.com>
+Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 
-* Tarun Kanti DebBarma <tarun.kanti@ti.com> [111206 21:25]:
-> Since omap_dm_timer_write_reg/__omap_dm_timer_write is now modified
-> to use timer->func_base OCP_CFG should not use this wrapper anymore.
-> Instead use __raw_writel() directly and use timer->io_base instead
-> to write to OCP_CFG.
-> 
-> The timer->sys_stat is valid only if timer->revision is 1. In the
-> context restore function make this correction.
-> 
-> Save the contexts and loss count when timer is stopped.
-> Also, disable the clock. Else, clock usecount would become imbalanced.
-> 
-> Signed-off-by: Tarun Kanti DebBarma <tarun.kanti@ti.com>
-> Tested-by: Omar Ramirez Luna <omar.ramirez@ti.com>
+* Grazvydas Ignotas <notasas@gmail.com> [120218 14:11]:
+> It turned out wrong OMAP HSUSB port was configured on pandora,
+> but still managed to work somehow. This was noticed after enabling
+> in-kernel mux, where USB muxing was causing other devices not to work,
+> because hsusb1 pins (instead of hsusb2) were wrongly remuxed, which
+> are used for other things on pandora.
 
-Thanks applying this to fixes-non-critical-part2. Sorry for the
-delays, looks like I'm a bit behind with patches..
+Thanks, adding this to fixes-non-critical-part2.
 
 Regards,
 
