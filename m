@@ -1,14 +1,16 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH] Linux OMAP: Add omap_reserve functionality
-Date: Mon, 5 Mar 2012 10:07:29 -0800
-Message-ID: <20120305180728.GA12083@atomide.com>
-References: <1323867028-8496-1-git-send-email-alexg@meprolight.com>
+From: Kevin Hilman <khilman@ti.com>
+Subject: Re: [PATCH] ARM: OMAP2+: voltage: ensure voltage used is exact
+ voltage from OPP table
+Date: Mon, 05 Mar 2012 10:12:15 -0800
+Message-ID: <877gyyor28.fsf@ti.com>
+References: <1330728121-26664-1-git-send-email-khilman@ti.com>
+ <1330940487.2116.119.camel@sokoban>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-Content-Disposition: inline
-In-Reply-To: <1323867028-8496-1-git-send-email-alexg@meprolight.com>
+In-Reply-To: <1330940487.2116.119.camel@sokoban> (Tero Kristo's message of
+ "Mon, 5 Mar 2012 11:41:27 +0200")
 List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
  <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
 List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
@@ -18,15 +20,33 @@ List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
  <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
 Sender: linux-arm-kernel-bounces@lists.infradead.org
 Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: Alex <alexg@meprolight.com>
-Cc: baruch@tkos.co.il, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+To: t-kristo@ti.com
+Cc: Nishanth Menon <nm@ti.com>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 List-Id: linux-omap@vger.kernel.org
 
-* Alex <alexg@meprolight.com> [111214 04:23]:
-> This patch adds omap_reserve functionality to board-omap3logic.c
+Tero Kristo <t-kristo@ti.com> writes:
 
-Thanks applying into board branch.
+> On Fri, 2012-03-02 at 14:42 -0800, Kevin Hilman wrote:
+>> When using the SMPS regulators to scale voltages, the regulator
+>> framework may pass a minimum voltage that is not an exact OPP voltage.
+>> For the VC/VP controlled voltage domains, we must ensure that the
+>> voltage requested is the exact voltage from the OPP table.  This is
+>> especially critical when using SR.
+>> 
+>> To fix, voltdm_scale() uses the target voltage passed to walk through
+>> the OPP voltages until it finds a voltage that is >= one of the OPP
+>> voltages.
+>
+> I have just one question to this, how about smartreflex class1p5? Do we
+> have any plans for that one? The old implementation at least was using
+> voltdm_scale, so if we modify this function, smartreflex class1p5
+> doesn't work anymore.
 
-Regards,
+Since it's not in mainline, that is not my concern at the moment.  We
+can worry about SR1.5 when I someone is motivated to push it upstream.
 
-Tony
+> Otherwise this patch looks good to me.
+
+Thanks for looking.
+
+Kevin
