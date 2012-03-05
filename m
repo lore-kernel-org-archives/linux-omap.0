@@ -1,56 +1,72 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: Re: help: BeagleBoard xM RevC ethernet port
-Date: Mon, 5 Mar 2012 10:28:58 -0800
-Message-ID: <20120305182858.GE12083@atomide.com>
-References: <4F3E0EB7.9060803@ti.com>
- <874nuizfyf.fsf@ti.com>
- <4F4613B7.8010601@kynesim.co.uk>
- <4F4B9405.9070702@ti.com>
- <CAAL8m4x=6--5irPBPdW4n0dtYuMm_UThqWEuCSyTtsm+cEx4jQ@mail.gmail.com>
- <4F548CED.4090406@ti.com>
+From: Stephen Warren <swarren@nvidia.com>
+Subject: RE: [RFC PATCH] of: DMA helpers: manage generic requests
+ specification
+Date: Mon, 5 Mar 2012 10:30:43 -0800
+Message-ID: <74CDBE0F657A3D45AFBB94109FB122FF17BE861C6E@HQMAIL01.nvidia.com>
+References: <4F22DEF2.5000807@ti.com>
+ <1330527248-4350-1-git-send-email-nicolas.ferre@atmel.com>
+ <74CDBE0F657A3D45AFBB94109FB122FF17BDDF217B@HQMAIL01.nvidia.com>
+ <4F54BC2E.3040702@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-02-ewr.mailhop.org ([204.13.248.72]:50263 "EHLO
-	mho-02-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1757374Ab2CES3D (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 5 Mar 2012 13:29:03 -0500
-Content-Disposition: inline
-In-Reply-To: <4F548CED.4090406@ti.com>
+Received: from hqemgate04.nvidia.com ([216.228.121.35]:8842 "EHLO
+	hqemgate04.nvidia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1757082Ab2CESbA convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 5 Mar 2012 13:31:00 -0500
+In-Reply-To: <4F54BC2E.3040702@ti.com>
+Content-Language: en-US
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Peter Ujfalusi <peter.ujfalusi@ti.com>
-Cc: Govindraj <govindraj.ti@gmail.com>, Richard Watts <rrw@kynesim.co.uk>, Kevin Hilman <khilman@ti.com>, linux-omap <linux-omap@vger.kernel.org>, balbi@ti.com
+To: "Cousson, Benoit" <b-cousson@ti.com>
+Cc: Nicolas Ferre <nicolas.ferre@atmel.com>, "grant.likely@secretlab.ca" <grant.likely@secretlab.ca>, "rob.herring@calxeda.com" <rob.herring@calxeda.com>, "devicetree-discuss@lists.ozlabs.org" <devicetree-discuss@lists.ozlabs.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, "plagnioj@jcrosoft.com" <plagnioj@jcrosoft.com>, Russell King <linux@arm.linux.org.uk>
 
-* Peter Ujfalusi <peter.ujfalusi@ti.com> [120305 01:21]:
-> On 02/28/2012 04:04 PM, Govindraj wrote:
-> > The issue seems to a mux conflict issue, uart2_rx mux is been taken
-> > by uart init and gpio_147 needed for usb phy init is not in mux mode4
-> > as set by bootloader.
-> > 
-> > On beagle I see no other uarts being used other than uart3 as console_uart.
-> > So I think it should be okay to init only uart3 from beagle board data.
-> > Here is the patch [1] to do the same. (Tested on Beagle Xm Rev.C)
-> > 
-> > (Any other approach is welcome)
+Cousson, Benoit wrote at Monday, March 05, 2012 6:14 AM:
+> On 2/29/2012 9:54 PM, Stephen Warren wrote:
+> > Nicolas Ferre wrote at Wednesday, February 29, 2012 7:54 AM:
+> >> By making DMA controllers register a generic translation
+> >> function, we allow the management of any type of DMA requests
+> >> specification.
+> >> The void * output of an of_dma_xlate() function that will be implemented
+> >> by the DMA controller can carry any type of "dma-request" argument.
+> >>
+> >> The DMA client will search its associated DMA controller in the list
+> >> and call the registered of_dam_xlate() function to retrieve the
+> >> request values.
+> >>
+> >> One simple xlate function is provided for the "single number" type
+> >> of request biding.
+> >>
+> >> This implementation is independent from dmaengine so it can also be
+> >> used by legacy drivers.
+> >
+> > At a high level this seems along the right lines.
+> >
+> > The big issue I see is the lack of type-safety in of_get_dma_request()'s
+> > out_data pointer: The DMA xlate function will assume it points at some
+> > particular type, and the client is responsible for allocating that
+> > correct type. However, it's "user"-supplied device tree data that hooks
+> > the two together, and there could easily be mismatches, thus causing
+> > the xlate function to trash memory.
+> >
+> > Could each DMA controller (or type of out_data) have some enum in the
+> > kernel that the client passes in, and the DMA engine validates matches
+> > its expectations, to prevent this kind of thing?
 > 
-> Thank you, I have working ethernet port finally!!!
-> 
-> > From f1b43f983a2926c637e6bc6ab5d1e5044339ffd3 Mon Sep 17 00:00:00 2001
-> > From: "Govindraj.R" <govindraj.raja@ti.com>
-> > Date: Tue, 28 Feb 2012 19:16:33 +0530
-> > Subject: [PATCH] omap3_beagle: Init only uart3 used for console
-> > 
-> > On beagle some of uart mux lines are used for other
-> > purpose so init only uart3.
-> > 
-> > Uart2 rx line clashes with gpio_147 used for usb ehci
-> > phy reset.
-> 
-> Tested-by: Peter Ujfalusi <peter.ujfalusi@ti.com>
+> Beside u32 and string, do we know what kind of parameters we can expect
+> to retrieve?
+> Because we can potentially reduce the scope to these two types only.
 
-Thanks applying into board branch.
+I wondered whether different drivers would return arbitrary driver-specific
+structs, so that the DT specific would encode not only the DMA request
+number, but perhaps some/all of the DMA parameters like transfer size,
+wrap, even DMA FIFO address, ...
 
-Regards,
+Still, there might not be much point in doing that, since drivers (at
+least on Tegra) are already manually passing this information to the DMA
+driver in the non-DT case, so we can just continue doing that same thing.
 
-Tony
+-- 
+nvpublic
+
