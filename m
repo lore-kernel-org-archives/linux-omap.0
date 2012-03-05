@@ -1,346 +1,57 @@
 From: Rob Clark <rob.clark@linaro.org>
-Subject: [PATCH 06/10] staging: drm/omap: debugfs for object and fb tracking
-Date: Mon,  5 Mar 2012 10:48:36 -0600
-Message-ID: <1330966120-28582-7-git-send-email-rob.clark@linaro.org>
+Subject: [PATCH 08/10] staging: drm/omap: Validate debugfs device
+Date: Mon,  5 Mar 2012 10:48:38 -0600
+Message-ID: <1330966120-28582-9-git-send-email-rob.clark@linaro.org>
 References: <1330966120-28582-1-git-send-email-rob.clark@linaro.org>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-yx0-f174.google.com ([209.85.213.174]:58192 "EHLO
-	mail-yx0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756476Ab2CEQtR (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 5 Mar 2012 11:49:17 -0500
-Received: by mail-yx0-f174.google.com with SMTP id l12so1739759yen.19
-        for <linux-omap@vger.kernel.org>; Mon, 05 Mar 2012 08:49:17 -0800 (PST)
+Received: from mail-gx0-f174.google.com ([209.85.161.174]:35311 "EHLO
+	mail-gx0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755961Ab2CEQtV (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 5 Mar 2012 11:49:21 -0500
+Received: by mail-gx0-f174.google.com with SMTP id e5so973465ggh.19
+        for <linux-omap@vger.kernel.org>; Mon, 05 Mar 2012 08:49:21 -0800 (PST)
 In-Reply-To: <1330966120-28582-1-git-send-email-rob.clark@linaro.org>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: dri-devel@lists.freedesktop.org, linux-omap@vger.kernel.org
 Cc: patches@linaro.org, Greg KH <greg@kroah.com>, Tomi Valkeinen <tomi.valkeinen@ti.com>, Andy Gross <andy.gross@ti.com>, Rob Clark <rob@ti.com>
 
-From: Rob Clark <rob@ti.com>
+From: Andy Gross <andy.gross@ti.com>
 
-Add some additional debugfs file to aid in tracking buffer usage.
+Added check for valid device information before dumping debugfs
+information.
 
+Signed-off-by: Andy Gross <andy.gross@ti.com>
 Signed-off-by: Rob Clark <rob@ti.com>
 ---
- drivers/staging/omapdrm/omap_debugfs.c |   98 +++++++++++++++++++++++++++++++-
- drivers/staging/omapdrm/omap_drv.c     |    2 +
- drivers/staging/omapdrm/omap_drv.h     |    8 +++
- drivers/staging/omapdrm/omap_fb.c      |   18 ++++++
- drivers/staging/omapdrm/omap_gem.c     |   64 ++++++++++++++++++++-
- 5 files changed, 188 insertions(+), 2 deletions(-)
+ drivers/staging/omapdrm/omap_dmm_tiler.c |   12 ++++++++++--
+ 1 files changed, 10 insertions(+), 2 deletions(-)
 
-diff --git a/drivers/staging/omapdrm/omap_debugfs.c b/drivers/staging/omapdrm/omap_debugfs.c
-index da920df..e23f907 100644
---- a/drivers/staging/omapdrm/omap_debugfs.c
-+++ b/drivers/staging/omapdrm/omap_debugfs.c
-@@ -20,23 +20,119 @@
- #include "omap_drv.h"
- #include "omap_dmm_tiler.h"
+diff --git a/drivers/staging/omapdrm/omap_dmm_tiler.c b/drivers/staging/omapdrm/omap_dmm_tiler.c
+index 852d944..e4c7bb6 100644
+--- a/drivers/staging/omapdrm/omap_dmm_tiler.c
++++ b/drivers/staging/omapdrm/omap_dmm_tiler.c
+@@ -766,10 +766,18 @@ int tiler_map_show(struct seq_file *s, void *arg)
+ 	const char *a2d = special;
+ 	const char *m2dp = m2d, *a2dp = a2d;
+ 	char nice[128];
+-	int h_adj = omap_dmm->lut_height / ydiv;
+-	int w_adj = omap_dmm->lut_width / xdiv;
++	int h_adj;
++	int w_adj;
+ 	unsigned long flags;
  
-+#include "drm_fb_helper.h"
-+
-+
- #ifdef CONFIG_DEBUG_FS
- 
-+static int gem_show(struct seq_file *m, void *arg)
-+{
-+	struct drm_info_node *node = (struct drm_info_node *) m->private;
-+	struct drm_device *dev = node->minor->dev;
-+	struct omap_drm_private *priv = dev->dev_private;
-+	int ret;
-+
-+	ret = mutex_lock_interruptible(&dev->struct_mutex);
-+	if (ret)
-+		return ret;
-+
-+	seq_printf(m, "All Objects:\n");
-+	omap_gem_describe_objects(&priv->obj_list, m);
-+
-+	mutex_unlock(&dev->struct_mutex);
-+
-+	return 0;
-+}
-+
-+static int mm_show(struct seq_file *m, void *arg)
-+{
-+	struct drm_info_node *node = (struct drm_info_node *) m->private;
-+	struct drm_device *dev = node->minor->dev;
-+	return drm_mm_dump_table(m, dev->mm_private);
-+}
-+
-+static int fb_show(struct seq_file *m, void *arg)
-+{
-+	struct drm_info_node *node = (struct drm_info_node *) m->private;
-+	struct drm_device *dev = node->minor->dev;
-+	struct omap_drm_private *priv = dev->dev_private;
-+	struct drm_framebuffer *fb;
-+	int ret;
-+
-+	ret = mutex_lock_interruptible(&dev->mode_config.mutex);
-+	if (ret)
-+		return ret;
-+
-+	ret = mutex_lock_interruptible(&dev->struct_mutex);
-+	if (ret) {
-+		mutex_unlock(&dev->mode_config.mutex);
-+		return ret;
++	if (!omap_dmm) {
++		/* early return if dmm/tiler device is not initialized */
++		return 0;
 +	}
 +
-+	seq_printf(m, "fbcon ");
-+	omap_framebuffer_describe(priv->fbdev->fb, m);
++	h_adj = omap_dmm->lut_height / ydiv;
++	w_adj = omap_dmm->lut_width / xdiv;
 +
-+	list_for_each_entry(fb, &dev->mode_config.fb_list, head) {
-+		if (fb == priv->fbdev->fb)
-+			continue;
-+
-+		seq_printf(m, "user ");
-+		omap_framebuffer_describe(fb, m);
-+	}
-+
-+	mutex_unlock(&dev->struct_mutex);
-+	mutex_unlock(&dev->mode_config.mutex);
-+
-+	return 0;
-+}
-+
-+/* list of debufs files that are applicable to all devices */
- static struct drm_info_list omap_debugfs_list[] = {
-+	{"gem", gem_show, 0},
-+	{"mm", mm_show, 0},
-+	{"fb", fb_show, 0},
-+};
-+
-+/* list of debugfs files that are specific to devices with dmm/tiler */
-+static struct drm_info_list omap_dmm_debugfs_list[] = {
- 	{"tiler_map", tiler_map_show, 0},
- };
+ 	map = kzalloc(h_adj * sizeof(*map), GFP_KERNEL);
+ 	global_map = kzalloc((w_adj + 1) * h_adj, GFP_KERNEL);
  
- int omap_debugfs_init(struct drm_minor *minor)
- {
--	return drm_debugfs_create_files(omap_debugfs_list,
-+	struct drm_device *dev = minor->dev;
-+	int ret;
-+
-+	ret = drm_debugfs_create_files(omap_debugfs_list,
- 			ARRAY_SIZE(omap_debugfs_list),
- 			minor->debugfs_root, minor);
-+
-+	if (ret) {
-+		dev_err(dev->dev, "could not install omap_debugfs_list\n");
-+		return ret;
-+	}
-+
-+	/* TODO: only do this if has_dmm.. but this fxn gets called before
-+	 * dev_load() so we don't know this yet..
-+	 */
-+	ret = drm_debugfs_create_files(omap_dmm_debugfs_list,
-+			ARRAY_SIZE(omap_dmm_debugfs_list),
-+			minor->debugfs_root, minor);
-+
-+	if (ret) {
-+		dev_err(dev->dev, "could not install omap_dmm_debugfs_list\n");
-+		return ret;
-+	}
-+
-+	return ret;
- }
- 
- void omap_debugfs_cleanup(struct drm_minor *minor)
- {
- 	drm_debugfs_remove_files(omap_debugfs_list,
- 			ARRAY_SIZE(omap_debugfs_list), minor);
-+	drm_debugfs_remove_files(omap_dmm_debugfs_list,
-+			ARRAY_SIZE(omap_dmm_debugfs_list), minor);
- }
- 
- #endif
-diff --git a/drivers/staging/omapdrm/omap_drv.c b/drivers/staging/omapdrm/omap_drv.c
-index 7417e1f..e2100bb 100644
---- a/drivers/staging/omapdrm/omap_drv.c
-+++ b/drivers/staging/omapdrm/omap_drv.c
-@@ -573,6 +573,8 @@ static int dev_load(struct drm_device *dev, unsigned long flags)
- 	priv->wq = alloc_workqueue("omapdrm",
- 			WQ_UNBOUND | WQ_NON_REENTRANT, 1);
- 
-+	INIT_LIST_HEAD(&priv->obj_list);
-+
- 	omap_gem_init(dev);
- 
- 	ret = omap_modeset_init(dev);
-diff --git a/drivers/staging/omapdrm/omap_drv.h b/drivers/staging/omapdrm/omap_drv.h
-index fe4766e..21e48cf 100644
---- a/drivers/staging/omapdrm/omap_drv.h
-+++ b/drivers/staging/omapdrm/omap_drv.h
-@@ -42,10 +42,13 @@
- struct omap_drm_private {
- 	unsigned int num_crtcs;
- 	struct drm_crtc *crtcs[8];
-+
- 	unsigned int num_planes;
- 	struct drm_plane *planes[8];
-+
- 	unsigned int num_encoders;
- 	struct drm_encoder *encoders[8];
-+
- 	unsigned int num_connectors;
- 	struct drm_connector *connectors[8];
- 
-@@ -53,12 +56,17 @@ struct omap_drm_private {
- 
- 	struct workqueue_struct *wq;
- 
-+	struct list_head obj_list;
-+
- 	bool has_dmm;
- };
- 
- #ifdef CONFIG_DEBUG_FS
- int omap_debugfs_init(struct drm_minor *minor);
- void omap_debugfs_cleanup(struct drm_minor *minor);
-+void omap_framebuffer_describe(struct drm_framebuffer *fb, struct seq_file *m);
-+void omap_gem_describe(struct drm_gem_object *obj, struct seq_file *m);
-+void omap_gem_describe_objects(struct list_head *list, struct seq_file *m);
- #endif
- 
- struct drm_fb_helper *omap_fbdev_init(struct drm_device *dev);
-diff --git a/drivers/staging/omapdrm/omap_fb.c b/drivers/staging/omapdrm/omap_fb.c
-index fcb248f..04b235b 100644
---- a/drivers/staging/omapdrm/omap_fb.c
-+++ b/drivers/staging/omapdrm/omap_fb.c
-@@ -277,6 +277,24 @@ void omap_framebuffer_flush(struct drm_framebuffer *fb,
- 	}
- }
- 
-+#ifdef CONFIG_DEBUG_FS
-+void omap_framebuffer_describe(struct drm_framebuffer *fb, struct seq_file *m)
-+{
-+	struct omap_framebuffer *omap_fb = to_omap_framebuffer(fb);
-+	int i, n = drm_format_num_planes(fb->pixel_format);
-+
-+	seq_printf(m, "fb: %dx%d@%4.4s\n", fb->width, fb->height,
-+			(char *)&fb->pixel_format);
-+
-+	for (i = 0; i < n; i++) {
-+		struct plane *plane = &omap_fb->planes[i];
-+		seq_printf(m, "   %d: offset=%d pitch=%d, obj: ",
-+				i, plane->offset, plane->pitch);
-+		omap_gem_describe(plane->bo, m);
-+	}
-+}
-+#endif
-+
- struct drm_framebuffer *omap_framebuffer_create(struct drm_device *dev,
- 		struct drm_file *file, struct drm_mode_fb_cmd2 *mode_cmd)
- {
-diff --git a/drivers/staging/omapdrm/omap_gem.c b/drivers/staging/omapdrm/omap_gem.c
-index bd35520..1d734bc 100644
---- a/drivers/staging/omapdrm/omap_gem.c
-+++ b/drivers/staging/omapdrm/omap_gem.c
-@@ -45,6 +45,8 @@ int _drm_gem_create_mmap_offset_size(struct drm_gem_object *obj, size_t size);
- struct omap_gem_object {
- 	struct drm_gem_object base;
- 
-+	struct list_head mm_list;
-+
- 	uint32_t flags;
- 
- 	/** width/height for tiled formats (rounded up to slot boundaries) */
-@@ -254,13 +256,17 @@ static void omap_gem_detach_pages(struct drm_gem_object *obj)
- /** get mmap offset */
- static uint64_t mmap_offset(struct drm_gem_object *obj)
- {
-+	struct drm_device *dev = obj->dev;
-+
-+	WARN_ON(!mutex_is_locked(&dev->struct_mutex));
-+
- 	if (!obj->map_list.map) {
- 		/* Make it mmapable */
- 		size_t size = omap_gem_mmap_size(obj);
- 		int ret = _drm_gem_create_mmap_offset_size(obj, size);
- 
- 		if (ret) {
--			dev_err(obj->dev->dev, "could not allocate mmap offset");
-+			dev_err(dev->dev, "could not allocate mmap offset\n");
- 			return 0;
- 		}
- 	}
-@@ -764,6 +770,56 @@ void *omap_gem_vaddr(struct drm_gem_object *obj)
- 	return omap_obj->vaddr;
- }
- 
-+#ifdef CONFIG_DEBUG_FS
-+void omap_gem_describe(struct drm_gem_object *obj, struct seq_file *m)
-+{
-+	struct drm_device *dev = obj->dev;
-+	struct omap_gem_object *omap_obj = to_omap_bo(obj);
-+	uint64_t off = 0;
-+
-+	WARN_ON(! mutex_is_locked(&dev->struct_mutex));
-+
-+	if (obj->map_list.map)
-+		off = (uint64_t)obj->map_list.hash.key;
-+
-+	seq_printf(m, "%08x: %2d (%2d) %08llx %08Zx (%2d) %p %4d",
-+			omap_obj->flags, obj->name, obj->refcount.refcount.counter,
-+			off, omap_obj->paddr, omap_obj->paddr_cnt,
-+			omap_obj->vaddr, omap_obj->roll);
-+
-+	if (omap_obj->flags & OMAP_BO_TILED) {
-+		seq_printf(m, " %dx%d", omap_obj->width, omap_obj->height);
-+		if (omap_obj->block) {
-+			struct tcm_area *area = &omap_obj->block->area;
-+			seq_printf(m, " (%dx%d, %dx%d)",
-+					area->p0.x, area->p0.y,
-+					area->p1.x, area->p1.y);
-+		}
-+	} else {
-+		seq_printf(m, " %d", obj->size);
-+	}
-+
-+	seq_printf(m, "\n");
-+}
-+
-+void omap_gem_describe_objects(struct list_head *list, struct seq_file *m)
-+{
-+	struct omap_gem_object *omap_obj;
-+	int count = 0;
-+	size_t size = 0;
-+
-+	list_for_each_entry(omap_obj, list, mm_list) {
-+		struct drm_gem_object *obj = &omap_obj->base;
-+		seq_printf(m, "   ");
-+		omap_gem_describe(obj, m);
-+		count++;
-+		size += obj->size;
-+	}
-+
-+	seq_printf(m, "Total %d objects, %zu bytes\n", count, size);
-+}
-+#endif
-+
- /* Buffer Synchronization:
-  */
- 
-@@ -1030,6 +1086,10 @@ void omap_gem_free_object(struct drm_gem_object *obj)
- 
- 	evict(obj);
- 
-+	WARN_ON(!mutex_is_locked(&dev->struct_mutex));
-+
-+	list_del(&omap_obj->mm_list);
-+
- 	if (obj->map_list.map) {
- 		drm_gem_free_mmap_offset(obj);
- 	}
-@@ -1130,6 +1190,8 @@ struct drm_gem_object *omap_gem_new(struct drm_device *dev,
- 		goto fail;
- 	}
- 
-+	list_add(&omap_obj->mm_list, &priv->obj_list);
-+
- 	obj = &omap_obj->base;
- 
- 	if ((flags & OMAP_BO_SCANOUT) && !priv->has_dmm) {
 -- 
 1.7.5.4
 
