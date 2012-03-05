@@ -1,232 +1,85 @@
-From: Rob Clark <rob.clark@linaro.org>
-Subject: [PATCH] omap2+: add drm device
-Date: Mon,  5 Mar 2012 10:54:24 -0600
-Message-ID: <1330966464-28662-1-git-send-email-rob.clark@linaro.org>
+From: Aaro Koskinen <aaro.koskinen@nokia.com>
+Subject: [PATCH] arm: omap: add minimal support for Nokia RM-696
+Date: Mon,  5 Mar 2012 19:08:57 +0200
+Message-ID: <1330967337-9634-1-git-send-email-aaro.koskinen@nokia.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-gx0-f174.google.com ([209.85.161.174]:38291 "EHLO
-	mail-gx0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756983Ab2CEQya (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 5 Mar 2012 11:54:30 -0500
-Received: by gghe5 with SMTP id e5so977901ggh.19
-        for <linux-omap@vger.kernel.org>; Mon, 05 Mar 2012 08:54:29 -0800 (PST)
+Received: from smtp.nokia.com ([147.243.128.26]:43286 "EHLO mgw-da02.nokia.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1753421Ab2CEQ5K (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Mon, 5 Mar 2012 11:57:10 -0500
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: dri-devel@lists.freedesktop.org, linux-omap@vger.kernel.org
-Cc: patches@linaro.org, Greg KH <greg@kroah.com>, Tomi Valkeinen <tomi.valkeinen@ti.com>, Andy Gross <andy.gross@ti.com>, Rob Clark <rob@ti.com>
+To: tony@atomide.com, linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org
 
-From: Andy Gross <andy.gross@ti.com>
+Add minimal support for Nokia RM-696 board.
 
-Register OMAP DRM/KMS platform device, and reserve a CMA region for
-the device to use for buffer allocation.  DMM is split into a
-separate device using hwmod.
-
-Signed-off-by: Andy Gross <andy.gross@ti.com>
-Signed-off-by: Rob Clark <rob@ti.com>
+Signed-off-by: Aaro Koskinen <aaro.koskinen@nokia.com>
 ---
- arch/arm/plat-omap/Makefile           |    2 +-
- arch/arm/plat-omap/common.c           |    3 +-
- arch/arm/plat-omap/drm.c              |   83 +++++++++++++++++++++++++++++++++
- arch/arm/plat-omap/include/plat/drm.h |   64 +++++++++++++++++++++++++
- 4 files changed, 150 insertions(+), 2 deletions(-)
- create mode 100644 arch/arm/plat-omap/drm.c
- create mode 100644 arch/arm/plat-omap/include/plat/drm.h
 
-diff --git a/arch/arm/plat-omap/Makefile b/arch/arm/plat-omap/Makefile
-index 9a58461..b86e6cb 100644
---- a/arch/arm/plat-omap/Makefile
-+++ b/arch/arm/plat-omap/Makefile
-@@ -4,7 +4,7 @@
+	The patch is based & boot-tested with 3.3-rc6.
+
+
+ arch/arm/mach-omap2/Kconfig                  |    3 ++-
+ arch/arm/mach-omap2/board-rm680.c            |   14 +++++++++++++-
+ arch/arm/plat-omap/include/plat/uncompress.h |    1 +
+ 3 files changed, 16 insertions(+), 2 deletions(-)
+
+diff --git a/arch/arm/mach-omap2/Kconfig b/arch/arm/mach-omap2/Kconfig
+index e20c8ab..b740c2e 100644
+--- a/arch/arm/mach-omap2/Kconfig
++++ b/arch/arm/mach-omap2/Kconfig
+@@ -245,10 +245,11 @@ config MACH_NOKIA_N8X0
+ 	select MACH_NOKIA_N810_WIMAX
  
- # Common support
- obj-y := common.o sram.o clock.o devices.o dma.o mux.o \
--	 usb.o fb.o counter_32k.o
-+	 usb.o fb.o counter_32k.o drm.o
- obj-m :=
- obj-n :=
- obj-  :=
-diff --git a/arch/arm/plat-omap/common.c b/arch/arm/plat-omap/common.c
-index 06383b5..0d87dab 100644
---- a/arch/arm/plat-omap/common.c
-+++ b/arch/arm/plat-omap/common.c
-@@ -21,10 +21,10 @@
- #include <plat/board.h>
- #include <plat/vram.h>
- #include <plat/dsp.h>
-+#include <plat/drm.h>
+ config MACH_NOKIA_RM680
+-	bool "Nokia RM-680 board"
++	bool "Nokia RM-680/696 board"
+ 	depends on ARCH_OMAP3
+ 	default y
+ 	select OMAP_PACKAGE_CBB
++	select MACH_NOKIA_RM696
  
- #include <plat/omap-secure.h>
- 
--
- #define NO_LENGTH_CHECK 0xffffffff
- 
- struct omap_board_config_kernel *omap_board_config __initdata;
-@@ -65,6 +65,7 @@ const void *__init omap_get_var_config(u16 tag, size_t *len)
- 
- void __init omap_reserve(void)
- {
-+	omapdrm_reserve_vram();
- 	omapfb_reserve_sdram_memblock();
- 	omap_vram_reserve_sdram_memblock();
- 	omap_dsp_reserve_sdram_memblock();
-diff --git a/arch/arm/plat-omap/drm.c b/arch/arm/plat-omap/drm.c
-new file mode 100644
-index 0000000..28279df
---- /dev/null
-+++ b/arch/arm/plat-omap/drm.c
-@@ -0,0 +1,83 @@
-+/*
-+ * DRM/KMS device registration for TI OMAP platforms
-+ *
-+ * Copyright (C) 2012 Texas Instruments
-+ * Author: Rob Clark <rob.clark@linaro.org>
-+ *
-+ * This program is free software; you can redistribute it and/or modify it
-+ * under the terms of the GNU General Public License version 2 as published by
-+ * the Free Software Foundation.
-+ *
-+ * This program is distributed in the hope that it will be useful, but WITHOUT
-+ * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
-+ * FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License for
-+ * more details.
-+ *
-+ * You should have received a copy of the GNU General Public License along with
-+ * this program.  If not, see <http://www.gnu.org/licenses/>.
-+ */
+ config MACH_NOKIA_RX51
+ 	bool "Nokia RX-51 board"
+diff --git a/arch/arm/mach-omap2/board-rm680.c b/arch/arm/mach-omap2/board-rm680.c
+index 8678b38..094473e 100644
+--- a/arch/arm/mach-omap2/board-rm680.c
++++ b/arch/arm/mach-omap2/board-rm680.c
+@@ -1,5 +1,5 @@
+ /*
+- * Board support file for Nokia RM-680.
++ * Board support file for Nokia RM-680/696.
+  *
+  * Copyright (C) 2010 Nokia
+  *
+@@ -154,3 +154,15 @@ MACHINE_START(NOKIA_RM680, "Nokia RM-680 board")
+ 	.timer		= &omap3_timer,
+ 	.restart	= omap_prcm_restart,
+ MACHINE_END
 +
-+#include <linux/module.h>
-+#include <linux/kernel.h>
-+#include <linux/mm.h>
-+#include <linux/init.h>
-+#include <linux/platform_device.h>
-+#include <linux/dma-mapping.h>
-+#ifdef CONFIG_CMA
-+#  include <linux/dma-contiguous.h>
-+#endif
-+
-+#include <plat/omap_device.h>
-+#include <plat/omap_hwmod.h>
-+
-+#include <plat/drm.h>
-+
-+#if defined(CONFIG_DRM_OMAP) || (CONFIG_DRM_OMAP_MODULE)
-+
-+static struct omap_drm_platform_data omapdrm_platdata;
-+
-+static struct platform_device omap_drm_device = {
-+		.dev = {
-+			.coherent_dma_mask = DMA_BIT_MASK(32),
-+			.platform_data = &omapdrm_platdata,
-+		},
-+		.name = "omapdrm",
-+		.id = 0,
-+};
-+
-+static int __init omap_init_gpu(void)
-+{
-+	struct omap_hwmod *oh = NULL;
-+	struct platform_device *pdev;
-+
-+	/* lookup and populate the DMM information, if present - OMAP4+ */
-+	oh = omap_hwmod_lookup("dmm");
-+
-+	if (oh) {
-+		pdev = omap_device_build(oh->name, -1, oh, NULL, 0, NULL, 0,
-+					false);
-+		WARN(IS_ERR(pdev), "Could not build omap_device for %s\n",
-+			oh->name);
-+	}
-+
-+	return platform_device_register(&omap_drm_device);
-+
-+}
-+
-+arch_initcall(omap_init_gpu);
-+
-+void omapdrm_reserve_vram(void)
-+{
-+#ifdef CONFIG_CMA
-+	/*
-+	 * Create private 32MiB contiguous memory area for omapdrm.0 device
-+	 * TODO revisit size.. if uc/wc buffers are allocated from CMA pages
-+	 * then the amount of memory we need goes up..
-+	 */
-+	dma_declare_contiguous(&omap_drm_device.dev, 32 * SZ_1M, 0, 0);
-+#else
-+#  warning "CMA is not enabled, there may be limitations about scanout buffer allocations on OMAP3 and earlier"
-+#endif
-+}
-+
-+#endif
-diff --git a/arch/arm/plat-omap/include/plat/drm.h b/arch/arm/plat-omap/include/plat/drm.h
-new file mode 100644
-index 0000000..df9bc41
---- /dev/null
-+++ b/arch/arm/plat-omap/include/plat/drm.h
-@@ -0,0 +1,64 @@
-+/*
-+ * DRM/KMS device registration for TI OMAP platforms
-+ *
-+ * Copyright (C) 2012 Texas Instruments
-+ * Author: Rob Clark <rob.clark@linaro.org>
-+ *
-+ * This program is free software; you can redistribute it and/or modify it
-+ * under the terms of the GNU General Public License version 2 as published by
-+ * the Free Software Foundation.
-+ *
-+ * This program is distributed in the hope that it will be useful, but WITHOUT
-+ * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
-+ * FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License for
-+ * more details.
-+ *
-+ * You should have received a copy of the GNU General Public License along with
-+ * this program.  If not, see <http://www.gnu.org/licenses/>.
-+ */
-+
-+#ifndef __PLAT_OMAP_DRM_H__
-+#define __PLAT_OMAP_DRM_H__
-+
-+/*
-+ * Optional platform data to configure the default configuration of which
-+ * pipes/overlays/CRTCs are used.. if this is not provided, then instead the
-+ * first CONFIG_DRM_OMAP_NUM_CRTCS are used, and they are each connected to
-+ * one manager, with priority given to managers that are connected to
-+ * detected devices.  Remaining overlays are used as video planes.  This
-+ * should be a good default behavior for most cases, but yet there still
-+ * might be times when you wish to do something different.
-+ */
-+struct omap_kms_platform_data {
-+	/* overlays to use as CRTCs: */
-+	int ovl_cnt;
-+	const int *ovl_ids;
-+
-+	/* overlays to use as video planes: */
-+	int pln_cnt;
-+	const int *pln_ids;
-+
-+	int mgr_cnt;
-+	const int *mgr_ids;
-+
-+	int dev_cnt;
-+	const char **dev_names;
-+};
-+
-+struct omap_drm_platform_data {
-+	struct omap_kms_platform_data *kms_pdata;
-+};
-+
-+#if defined(CONFIG_DRM_OMAP) || defined(CONFIG_DRM_OMAP_MODULE)
-+
-+void omapdrm_reserve_vram(void);
-+
-+#else
-+
-+static inline void omapdrm_reserve_vram(void)
-+{
-+}
-+
-+#endif
-+
-+#endif /* __PLAT_OMAP_DRM_H__ */
++MACHINE_START(NOKIA_RM696, "Nokia RM-696 board")
++	.atag_offset	= 0x100,
++	.reserve	= omap_reserve,
++	.map_io		= omap3_map_io,
++	.init_early	= omap3630_init_early,
++	.init_irq	= omap3_init_irq,
++	.handle_irq	= omap3_intc_handle_irq,
++	.init_machine	= rm680_init,
++	.timer		= &omap3_timer,
++	.restart	= omap_prcm_restart,
++MACHINE_END
+diff --git a/arch/arm/plat-omap/include/plat/uncompress.h b/arch/arm/plat-omap/include/plat/uncompress.h
+index 6ee9049..cc3f11b 100644
+--- a/arch/arm/plat-omap/include/plat/uncompress.h
++++ b/arch/arm/plat-omap/include/plat/uncompress.h
+@@ -160,6 +160,7 @@ static inline void __arch_decomp_setup(unsigned long arch_id)
+ 		DEBUG_LL_OMAP3(3, igep0020);
+ 		DEBUG_LL_OMAP3(3, igep0030);
+ 		DEBUG_LL_OMAP3(3, nokia_rm680);
++		DEBUG_LL_OMAP3(3, nokia_rm696);
+ 		DEBUG_LL_OMAP3(3, nokia_rx51);
+ 		DEBUG_LL_OMAP3(3, omap3517evm);
+ 		DEBUG_LL_OMAP3(3, omap3_beagle);
 -- 
-1.7.5.4
+1.7.2.5
 
