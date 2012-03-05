@@ -1,55 +1,41 @@
 From: Tony Lindgren <tony@atomide.com>
-Subject: Re: Incorrect Register Offsets in OMAP Mailbox
-Date: Mon, 5 Mar 2012 11:34:17 -0800
-Message-ID: <20120305193417.GL12083@atomide.com>
-References: <4F3165F0.2010306@gmail.com>
+Subject: Re: [PATCH v2] ARM: OMAP: dmtimer: fix missing content/correction
+ in low-power mode support
+Date: Mon, 5 Mar 2012 11:36:35 -0800
+Message-ID: <20120305193635.GM12083@atomide.com>
+References: <1323237434-4919-1-git-send-email-tarun.kanti@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-01-ewr.mailhop.org ([204.13.248.71]:27158 "EHLO
+Received: from mho-01-ewr.mailhop.org ([204.13.248.71]:29034 "EHLO
 	mho-01-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755510Ab2CETeT (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 5 Mar 2012 14:34:19 -0500
+	with ESMTP id S1757494Ab2CETgh (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 5 Mar 2012 14:36:37 -0500
 Content-Disposition: inline
-In-Reply-To: <4F3165F0.2010306@gmail.com>
+In-Reply-To: <1323237434-4919-1-git-send-email-tarun.kanti@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Henry Chan <enli.chan@gmail.com>
-Cc: linux-omap@vger.kernel.org
+To: Tarun Kanti DebBarma <tarun.kanti@ti.com>
+Cc: linux-omap@vger.kernel.org, khilman@ti.com, linux-arm-kernel@lists.infradead.org
 
-Hi Henry,
-
-* Henry Chan <enli.chan@gmail.com> [120207 09:25]:
-> Hi,
+* Tarun Kanti DebBarma <tarun.kanti@ti.com> [111206 21:25]:
+> Since omap_dm_timer_write_reg/__omap_dm_timer_write is now modified
+> to use timer->func_base OCP_CFG should not use this wrapper anymore.
+> Instead use __raw_writel() directly and use timer->io_base instead
+> to write to OCP_CFG.
 > 
-> Looks like the register offsets are incorrect in the OMAP mailbox code
-> (arch/arm/mach-omap2/mailbox.c) for the OMAP4_MAILBOX_IRQ* macros. The
-> discrepancy is with p.224 of TI document SPRUGX9 and p3891 of SWPU231K.
-> Patch attached.
+> The timer->sys_stat is valid only if timer->revision is 1. In the
+> context restore function make this correction.
 > 
-> My hardware hasn't come in yet, so I would appreciate it if anyone can
-> share their experience using this code.
+> Save the contexts and loss count when timer is stopped.
+> Also, disable the clock. Else, clock usecount would become imbalanced.
+> 
+> Signed-off-by: Tarun Kanti DebBarma <tarun.kanti@ti.com>
+> Tested-by: Omar Ramirez Luna <omar.ramirez@ti.com>
 
-Can you please reply with your Signed-off-by, it's missing from the
-patch.
+Thanks applying this to fixes-non-critical-part2. Sorry for the
+delays, looks like I'm a bit behind with patches..
 
-Thanks,
+Regards,
 
 Tony
-
-> --- a/arch/arm/mach-omap2/mailbox.c
-> +++ b/arch/arm/mach-omap2/mailbox.c
-> @@ -26,9 +26,9 @@
->  #define MAILBOX_IRQSTATUS(u)		(0x100 + 8 * (u))
->  #define MAILBOX_IRQENABLE(u)		(0x104 + 8 * (u))
->  
-> -#define OMAP4_MAILBOX_IRQSTATUS(u)	(0x104 + 10 * (u))
-> -#define OMAP4_MAILBOX_IRQENABLE(u)	(0x108 + 10 * (u))
-> -#define OMAP4_MAILBOX_IRQENABLE_CLR(u)	(0x10c + 10 * (u))
-> +#define OMAP4_MAILBOX_IRQSTATUS(u)	(0x104 + 0x10 * (u))
-> +#define OMAP4_MAILBOX_IRQENABLE(u)	(0x108 + 0x10 * (u))
-> +#define OMAP4_MAILBOX_IRQENABLE_CLR(u)	(0x10c + 0x10 * (u))
->  
->  #define MAILBOX_IRQ_NEWMSG(m)		(1 << (2 * (m)))
->  #define MAILBOX_IRQ_NOTFULL(m)		(1 << (2 * (m) + 1))
-> 
