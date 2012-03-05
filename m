@@ -1,110 +1,64 @@
-From: Kevin Hilman <khilman@ti.com>
-Subject: [PATCH] gpio/omap: fix wakeups on level-triggered GPIOs
-Date: Mon,  5 Mar 2012 15:10:04 -0800
-Message-ID: <1330989004-9855-1-git-send-email-khilman@ti.com>
+From: Tony Lindgren <tony@atomide.com>
+Subject: Re: [PATCH v2 2/2] ARM: OMAP: sram: Add am33xx SRAM support
+ (minimal)
+Date: Mon, 5 Mar 2012 15:14:13 -0800
+Message-ID: <20120305231413.GP12083@atomide.com>
+References: <1329113715-7634-1-git-send-email-afzal@ti.com>
+ <87fweeyfp6.fsf@macbook.be.48ers.dk>
+ <B5906170F1614E41A8A28DE3B8D121433179FC35@DBDE01.ent.ti.com>
 Mime-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aog127.obsmtp.com ([74.125.149.107]:35301 "EHLO
-	psmtp.com" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
-	id S1757410Ab2CEXJ7 (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Mon, 5 Mar 2012 18:09:59 -0500
-Received: by mail-pw0-f49.google.com with SMTP id un4so982224pbc.8
-        for <linux-omap@vger.kernel.org>; Mon, 05 Mar 2012 15:09:58 -0800 (PST)
+Received: from mho-01-ewr.mailhop.org ([204.13.248.71]:24434 "EHLO
+	mho-01-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1757410Ab2CEXOS (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 5 Mar 2012 18:14:18 -0500
+Content-Disposition: inline
+In-Reply-To: <B5906170F1614E41A8A28DE3B8D121433179FC35@DBDE01.ent.ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Grant Likely <grant.likely@secretlab.ca>
-Cc: Tony Lindgren <tony@atomide.com>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Tarun Kanti DebBarma <tarun.kanti@ti.com>
+To: "Bedia, Vaibhav" <vaibhav.bedia@ti.com>
+Cc: Peter Korsgaard <jacmet@sunsite.dk>, "Mohammed, Afzal" <afzal@ti.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, "Nori, Sekhar" <nsekhar@ti.com>, "Hiremath, Vaibhav" <hvaibhav@ti.com>
 
-While both level- and edge-triggered GPIOs are capable of generating
-interrupts, only edge-triggered GPIOs are capable of generating a
-module-level wakeup to the PRCM (c.f. 34xx NDA TRM section 25.5.3.2.)
+* Bedia, Vaibhav <vaibhav.bedia@ti.com> [120213 07:36]:
+> On Mon, Feb 13, 2012 at 19:54:05, Peter Korsgaard wrote:
+> > >>>>> "Afzal" == Afzal Mohammed <afzal@ti.com> writes:
+> > 
+> >  Afzal> From: Vaibhav Bedia <vaibhav.bedia@ti.com>
+> >  Afzal> Update SRAM start & size for am33xx SoC's.
+> > 
+> 
+> This is a really awkward quoting style :|
+> 
+> > 
+> > I don't particular know the omap sram stuff, but doesn't the 33xx have
+> > 2x 64K blocks of SRAM?
+> > 
+> 
+> Yes, but since the lower 64KB will not be available on non-GP device and
+> only A8 can access it, for now we make use of the higher 64KB which is referred
+> to as the OCMC RAM in the TRM. This will also enable SRAM usage by other drivers
+> like PRU and McASP.
+> 
+> >  
+> >  Afzal> +static inline int am33xx_sram_init(void)
+> >  Afzal> +{
+> >  Afzal> +	return 0;
+> > 
+> > 
+> > I know you mentioned it in the commit message, but it might be good with
+> > a comment here as well that this dummy function is needed to not get the 34xx
+> > init function called for 33xx, so it doesn't get removed when somebody
+> > decides to cleanup.
+> 
+> You are right in saying that the dummy function is needed to avoid 34xx SRAM init.
+> We'll have some PM related code coming in soon and hopefully the SRAM code won't change
+> Without us noticing ;)
 
-In order to ensure that devices using level-triggered GPIOs as
-interrupts can also cause wakeups (e.g. from idle), this patch enables
-edge-triggering for wakeup-enabled, level-triggered GPIOs when a GPIO
-bank is runtime-suspended (which also happens during idle.)
+OK, applying into fixes-non-critical-part2. Our sram.c should get turned
+into a device driver, there's been already similar sram driver posted
+to LAKML. So that should allow us to remove the cpu_is_xxxx checks.
 
-This fixes a problem found in GPMC-connected network cards with GPIO
-interrupts (e.g. smsc911x on Zoom3, Overo, ...) where network booting
-with NFSroot was very slow since the GPIO IRQs used by the NIC were
-not generating PRCM wakeups, and thus not waking the system from idle.
-NOTE: until v3.3, this boot-time problem was somewhat masked because
-the UART init prevented WFI during boot until the full serial driver
-was available.  Preventing WFI allowed regular GPIO interrupts to fire
-and this problem was not seen.  After the UART runtime PM cleanups, we
-no longer avoid WFI during boot, so GPIO IRQs that were not causing
-wakeups resulted in very slow IRQ response times.
+Regards,
 
-Tested on platforms using level-triggered GPIOs for network IRQs using
-the SMSC911x NIC: 3530/Overo and 3630/Zoom3.
-
-Reported-by: Tony Lindgren <tony@atomide.com>
-Tested-by: Tarun Kanti DebBarma <tarun.kanti@ti.com>
-Tested-by: Tony Lindgren <tony@atomide.com>
-Signed-off-by: Kevin Hilman <khilman@ti.com>
----
-Grant, here's another one for your gpio/next branch, and applies on
-top of the for_3.4/gpio/runtime-pm-cleanup branch you've already
-pulled from me.  While it's a fix, it's not a regressions since
-this problem has been around for awhile, so it can be for 3.4.
-
- drivers/gpio/gpio-omap.c |   34 ++++++++++++++++++++++++++++++++++
- 1 file changed, 34 insertions(+)
-
-diff --git a/drivers/gpio/gpio-omap.c b/drivers/gpio/gpio-omap.c
-index f49bd6f..752ae9b 100644
---- a/drivers/gpio/gpio-omap.c
-+++ b/drivers/gpio/gpio-omap.c
-@@ -1196,8 +1196,30 @@ static int omap_gpio_runtime_suspend(struct device *dev)
- 	struct gpio_bank *bank = platform_get_drvdata(pdev);
- 	u32 l1 = 0, l2 = 0;
- 	unsigned long flags;
-+	u32 wake_low, wake_hi;
- 
- 	spin_lock_irqsave(&bank->lock, flags);
-+
-+	/*
-+	 * Only edges can generate a wakeup event to the PRCM.
-+	 *
-+	 * Therefore, ensure any wake-up capable GPIOs have
-+	 * edge-detection enabled before going idle to ensure a wakeup
-+	 * to the PRCM is generated on a GPIO transition. (c.f. 34xx
-+	 * NDA TRM 25.5.3.1)
-+	 *
-+	 * The normal values will be restored upon ->runtime_resume()
-+	 * by writing back the values saved in bank->context.
-+	 */
-+	wake_low = bank->context.leveldetect0 & bank->context.wake_en;
-+	if (wake_low)
-+		__raw_writel(wake_low | bank->context.fallingdetect,
-+			     bank->base + bank->regs->fallingdetect);
-+	wake_hi = bank->context.leveldetect1 & bank->context.wake_en;
-+	if (wake_hi)
-+		__raw_writel(wake_hi | bank->context.risingdetect,
-+			     bank->base + bank->regs->risingdetect);
-+
- 	if (bank->power_mode != OFF_MODE) {
- 		bank->power_mode = 0;
- 		goto update_gpio_context_count;
-@@ -1246,6 +1268,18 @@ static int omap_gpio_runtime_resume(struct device *dev)
- 
- 	spin_lock_irqsave(&bank->lock, flags);
- 	_gpio_dbck_enable(bank);
-+
-+	/*
-+	 * In ->runtime_suspend(), level-triggered, wakeup-enabled
-+	 * GPIOs were set to edge trigger also in order to be able to
-+	 * generate a PRCM wakeup.  Here we restore the
-+	 * pre-runtime_suspend() values for edge triggering.
-+	 */
-+	__raw_writel(bank->context.fallingdetect,
-+		     bank->base + bank->regs->fallingdetect);
-+	__raw_writel(bank->context.risingdetect,
-+		     bank->base + bank->regs->risingdetect);
-+
- 	if (!bank->enabled_non_wakeup_gpios || !bank->workaround_enabled) {
- 		spin_unlock_irqrestore(&bank->lock, flags);
- 		return 0;
--- 
-1.7.9.2
-
+Tony
