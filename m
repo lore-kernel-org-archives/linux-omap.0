@@ -1,39 +1,24 @@
-From: Paul Walmsley <paul@pwsan.com>
-Subject: Re: [PATCH] ARM: OMAP2+: omap_device: call all suspend, resume
- callbacks when OMAP_DEVICE_NO_IDLE_ON_SUSPEND is set
-Date: Mon, 5 Mar 2012 14:15:01 -0700 (MST)
-Message-ID: <alpine.DEB.2.00.1203051414340.1430@utopia.booyaka.com>
-References: <alpine.DEB.2.00.1203031314050.10611@utopia.booyaka.com> <877gyzoyyk.fsf@ti.com> <alpine.DEB.2.00.1203051312390.1430@utopia.booyaka.com> <20120305205233.GT12083@atomide.com>
+From: Kevin Hilman <khilman@ti.com>
+Subject: Re: [PATCH v7 0/9] Consolidate cpuidle functionality
+Date: Mon, 05 Mar 2012 13:33:20 -0800
+Message-ID: <87y5reivhb.fsf@ti.com>
+References: <1330562578-3410-1-git-send-email-rob.lee@linaro.org>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from utopia.booyaka.com ([72.9.107.138]:48907 "EHLO
-	utopia.booyaka.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752574Ab2CEVPC (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 5 Mar 2012 16:15:02 -0500
-In-Reply-To: <20120305205233.GT12083@atomide.com>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-sh-owner@vger.kernel.org>
+In-Reply-To: <1330562578-3410-1-git-send-email-rob.lee@linaro.org> (Robert
+	Lee's message of "Wed, 29 Feb 2012 18:42:49 -0600")
+Sender: linux-sh-owner@vger.kernel.org
+To: Robert Lee <rob.lee@linaro.org>
+Cc: rjw@sisk.pl, len.brown@intel.com, nicolas.pitre@linaro.org, venki@google.com, linaro-dev@lists.linaro.org, linux-sh@vger.kernel.org, tony@atomide.com, nicolas.ferre@atmel.com, linux@arm.linux.org.uk, ccross@google.com, kernel@wantstofly.org, kgene.kim@samsung.com, mturquette@linaro.org, daniel.lezcano@linaro.org, magnus.damm@gmail.com, arnd.bergmann@linaro.org, jon-hunter@ti.com, patches@linaro.org, nsekhar@ti.com, jean.pihet@newoldbits.com, Baohua.Song@csr.com, vincent.guittot@linaro.org, linux-omap@vger.kernel.org, linux@maxim.org.za, linux-arm-kernel@lists.infradead.org, deepthi@linux.vnet.ibm.com, g.trinabh@gmail.com, linux-pm@vger.kernel.org, broonie@opensource.wolfsonmicro.com, amit.kucheria@linaro.org, lethal@linux-sh.org, amit.kachhap@linaro.org
 List-Id: linux-omap@vger.kernel.org
-To: Tony Lindgren <tony@atomide.com>
-Cc: Kevin Hilman <khilman@ti.com>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, John Stultz <johnstul@us.ibm.com>, Andy Green <andy.green@linaro.org>
 
-On Mon, 5 Mar 2012, Tony Lindgren wrote:
+Robert Lee <rob.lee@linaro.org> writes:
 
-> * Paul Walmsley <paul@pwsan.com> [120305 11:44]:
-> > On Mon, 5 Mar 2012, Kevin Hilman wrote:
-> > 
-> > > Tony, this fix is needed for v3.3.
-> > 
-> > Of course, I don't have any objection to this patch going into the v3.3-rc 
-> > kernels.  But given that some maintainers seem to be pushing back against 
-> > late -rc patches, this one could probably be delayed to 3.4 if required.  
-> > no_console_suspend is a debugging-only option and bugs involving it are 
-> > unlikely to affect most users.
-> 
-> I'm fine with your queueing it for v3.4 merge window.
+> This patch series moves various functionality duplicated in platform 
+> cpuidle drivers to the core cpuidle driver. Also, the platform irq
+> disabling was removed as it appears that all calls into 
+> cpuidle_call_idle will have already called local_irq_disable().
 
-Just chatted with Kevin, he's going to take this one for 3.4 with some 
-other omap_device patches he's got queued.
+Reviewed-by: Kevin Hilman <khilman@ti.com>
 
-
-- Paul
