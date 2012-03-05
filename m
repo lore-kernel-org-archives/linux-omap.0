@@ -1,64 +1,60 @@
 From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH V2] mt_ventoux: support for TeeJet Mt.Ventoux board
-Date: Mon, 5 Mar 2012 13:46:41 -0800
-Message-ID: <20120305214641.GV12083@atomide.com>
-References: <1324940912-18164-3-git-send-email-yanok@emcraft.com>
- <1325027377-13484-1-git-send-email-yanok@emcraft.com>
- <4F291924.50702@denx.de>
+Subject: Re: [PATCH] ARM: OMAP2+: GPMC: Export gpmc_enable_hwecc and
+ gpmc_calculate_ecc
+Date: Mon, 5 Mar 2012 13:58:54 -0800
+Message-ID: <20120305215853.GW12083@atomide.com>
+References: <1329489859-23929-1-git-send-email-walle@corscience.de>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-02-ewr.mailhop.org ([204.13.248.72]:24400 "EHLO
+Received: from mho-02-ewr.mailhop.org ([204.13.248.72]:41071 "EHLO
 	mho-02-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754348Ab2CEVqv (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 5 Mar 2012 16:46:51 -0500
+	with ESMTP id S1753887Ab2CEV65 (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 5 Mar 2012 16:58:57 -0500
 Content-Disposition: inline
-In-Reply-To: <4F291924.50702@denx.de>
+In-Reply-To: <1329489859-23929-1-git-send-email-walle@corscience.de>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Stefano Babic <sbabic@denx.de>
-Cc: Ilya Yanok <yanok@emcraft.com>, linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org, devicetree-discuss@lists.ozlabs.org, grinberg@compulab.co.il, sasha_d@emcraft.com, Detlev Zundel <dzu@denx.de>
+To: Bernhard Walle <walle@corscience.de>
+Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org
 
-* Stefano Babic <sbabic@denx.de> [120201 02:20]:
-> On 28/12/2011 00:09, Ilya Yanok wrote:
-> > This patch adds support for TeeJet Mt.Ventoux board based on TAM3517
-> > SOM. Supported devices:
-> >  - Serial
-> >  - Ethernet
-> >  - NAND
-> >  - USB host
-> >  - LCD
-> >  - Touchscreen
-> >  - CAN controller
-> >  - ADC128S converter
-> > 
-> > Signed-off-by: Ilya Yanok <yanok@emcraft.com>
-> > ---
-> > 
-> > Changes from V1:
-> > 
-> >  - Fixed indentation (use tabs not spaces)
-> >  - Fixed over 80 characters lines
-> >  - Added #if defined(CONFIG_SENSORS_ADCXX_MODULE) to allow adcxx to be a
-> >    module.
-> >  - Fixes for compilation with CONFIG_TOUCHSCREEN_ADS7846!=y
-> >   - Added defined(CONFIG_TOUCHSCREEN_ADS7846_MODULE)
-> >   - Moved call to omap_ads7846_init to separate small function
-> >   - Register fixed regulator used for touchscreen only if the driver is
-> >     enabled
-> >  - Changed board name (MT_VENTOUX -> Mt.Ventoux)
+* Bernhard Walle <walle@corscience.de> [120217 06:15]:
+> To be able to compile kernel/drivers/mtd/nand/omap2.ko as module, that
+> two symbols need to be exported. Otherwise, I get following error
+> message
 > 
-> Hi Tony,
+>     ERROR: "gpmc_calculate_ecc" [drivers/mtd/nand/omap2.ko] undefined!
+>     ERROR: "gpmc_enable_hwecc" [drivers/mtd/nand/omap2.ko] undefined!
 > 
-> can I ask you about the status of these patches ? I have not seen open
-> comments, do you think they can be merged in your tree ?
+> Signed-off-by: Bernhard Walle <walle@corscience.de>
 
-Yes I can carry some board-*.c files until device tree is
-usable for basic features. There's still some hsmmc changes
-pending that I'd like to get out of the way before adding
-new ones as then it means I have to keep updating those
-board files separately.
+Thanks applying into fixes-non-critical-part2.
 
 Regards,
 
 Tony
+
+> ---
+>  arch/arm/mach-omap2/gpmc.c |    2 ++
+>  1 files changed, 2 insertions(+), 0 deletions(-)
+> 
+> diff --git a/arch/arm/mach-omap2/gpmc.c b/arch/arm/mach-omap2/gpmc.c
+> index dfffbbf..00d5108 100644
+> --- a/arch/arm/mach-omap2/gpmc.c
+> +++ b/arch/arm/mach-omap2/gpmc.c
+> @@ -888,6 +888,7 @@ int gpmc_enable_hwecc(int cs, int mode, int dev_width, int ecc_size)
+>  	gpmc_write_reg(GPMC_ECC_CONFIG, val);
+>  	return 0;
+>  }
+> +EXPORT_SYMBOL_GPL(gpmc_enable_hwecc);
+>  
+>  /**
+>   * gpmc_calculate_ecc - generate non-inverted ecc bytes
+> @@ -918,3 +919,4 @@ int gpmc_calculate_ecc(int cs, const u_char *dat, u_char *ecc_code)
+>  	gpmc_ecc_used = -EINVAL;
+>  	return 0;
+>  }
+> +EXPORT_SYMBOL_GPL(gpmc_calculate_ecc);
+> -- 
+> 1.7.9.1
+> 
