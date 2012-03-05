@@ -1,64 +1,31 @@
-From: Kevin Hilman <khilman@ti.com>
-Subject: Re: [PATCH] omap3_beagle: Init only uart3 used for console
-Date: Mon, 05 Mar 2012 12:00:16 -0800
-Message-ID: <87399mkecv.fsf@ti.com>
-References: <1330945952-14714-1-git-send-email-govindraj.raja@ti.com>
+From: Paul Walmsley <paul@pwsan.com>
+Subject: Re: [PATCH] ARM: OMAP2+: omap_device: call all suspend, resume
+ callbacks when OMAP_DEVICE_NO_IDLE_ON_SUSPEND is set
+Date: Mon, 5 Mar 2012 13:16:23 -0700 (MST)
+Message-ID: <alpine.DEB.2.00.1203051312390.1430@utopia.booyaka.com>
+References: <alpine.DEB.2.00.1203031314050.10611@utopia.booyaka.com> <877gyzoyyk.fsf@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-In-Reply-To: <1330945952-14714-1-git-send-email-govindraj.raja@ti.com>
- (Govindraj R.'s message of "Mon, 5 Mar 2012 16:42:32 +0530")
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: linux-arm-kernel-bounces@lists.infradead.org
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: "Govindraj.R" <govindraj.raja@ti.com>
-Cc: Peter Ujfalusi <peter.ujfalusi@ti.com>, Tony Lindgren <tony@atomide.com>, linux-omap@vger.kernel.org, Robert Nelson <robertcnelson@gmail.com>, linux-arm-kernel@lists.infradead.org
+Content-Type: TEXT/PLAIN; charset=US-ASCII
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from utopia.booyaka.com ([72.9.107.138]:60192 "EHLO
+	utopia.booyaka.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1757563Ab2CEUQX (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 5 Mar 2012 15:16:23 -0500
+In-Reply-To: <877gyzoyyk.fsf@ti.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Kevin Hilman <khilman@ti.com>
+Cc: Tony Lindgren <tony@atomide.com>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, John Stultz <johnstul@us.ibm.com>, Andy Green <andy.green@linaro.org>
 
-"Govindraj.R" <govindraj.raja@ti.com> writes:
+On Mon, 5 Mar 2012, Kevin Hilman wrote:
 
-> From: "Govindraj.R" <govindraj.raja@ti.com>
->
-> On beagle some of uart mux lines are used for other
-> purpose so init only uart3.
+> Tony, this fix is needed for v3.3.
 
-OK, but you should also be clear that this patch is effectively
-disabling all UARTS (except UART3) by defatul, which I'm not sure all
-Beagle users will be happy about.
+Of course, I don't have any objection to this patch going into the v3.3-rc 
+kernels.  But given that some maintainers seem to be pushing back against 
+late -rc patches, this one could probably be delayed to 3.4 if required.  
+no_console_suspend is a debugging-only option and bugs involving it are 
+unlikely to affect most users.
 
-> Uart2 rx line clashes with gpio_147 used for usb ehci
-> phy reset. Initializing uart2 pad_mux lines can break
-> ehci module on beagle xm.
-> (gpio_147 is available on uart2_rx in mode4 reference 
-> mux34xx.c -> uart2_rx.gpio_147)
 
-As Koen mentioned, this conflict only exists on certain boards, so
-you should be clear that this is just an example.
-
-> Cc: Tony Lindgren <tony@atomide.com>
-> Cc: Kevin Hilman <khilman@ti.com>
-> Tested-by: Peter Ujfalusi <peter.ujfalusi@ti.com>
-> Tested-by: Robert Nelson <robertcnelson@gmail.com>
-> Signed-off-by: Govindraj.R <govindraj.raja@ti.com>
-
-[...]
-
-> +
-> +static inline void board_serial_init(void)
-
-Should be __init
-
-[...]
-
-> +static inline void board_serial_init(void)
-
-here too.
-
-Kevin
+- Paul
