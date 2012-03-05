@@ -1,99 +1,64 @@
 From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH V3 1/2] mcx: very basic support for HTKW mcx board
-Date: Mon, 5 Mar 2012 13:38:44 -0800
-Message-ID: <20120305213844.GU12083@atomide.com>
-References: <1324482822-24221-1-git-send-email-yanok@emcraft.com>
- <1324482822-24221-2-git-send-email-yanok@emcraft.com>
- <20120305195329.GP12083@atomide.com>
+Subject: Re: [PATCH V2] mt_ventoux: support for TeeJet Mt.Ventoux board
+Date: Mon, 5 Mar 2012 13:46:41 -0800
+Message-ID: <20120305214641.GV12083@atomide.com>
+References: <1324940912-18164-3-git-send-email-yanok@emcraft.com>
+ <1325027377-13484-1-git-send-email-yanok@emcraft.com>
+ <4F291924.50702@denx.de>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-01-ewr.mailhop.org ([204.13.248.71]:17155 "EHLO
-	mho-01-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751846Ab2CEVir (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 5 Mar 2012 16:38:47 -0500
+Received: from mho-02-ewr.mailhop.org ([204.13.248.72]:24400 "EHLO
+	mho-02-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754348Ab2CEVqv (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 5 Mar 2012 16:46:51 -0500
 Content-Disposition: inline
-In-Reply-To: <20120305195329.GP12083@atomide.com>
+In-Reply-To: <4F291924.50702@denx.de>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Grant Likely <grant.likely@secretlab.ca>, Ilya Yanok <yanok@emcraft.com>
-Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, devicetree-discuss@lists.ozlabs.org
+To: Stefano Babic <sbabic@denx.de>
+Cc: Ilya Yanok <yanok@emcraft.com>, linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org, devicetree-discuss@lists.ozlabs.org, grinberg@compulab.co.il, sasha_d@emcraft.com, Detlev Zundel <dzu@denx.de>
 
-* Tony Lindgren <tony@atomide.com> [120305 11:21]:
-> * Ilya Yanok <yanok@emcraft.com> [111221 07:22]:
-> > Very basic support for HTKW mcx board. Able to boot via board-generic
-> > and ramdisk/initramfs, however most of peripherals is unsupported.
-> > Produces tons of twl4030 related errors as this board doesn't have
-> > twl4030 installed.
+* Stefano Babic <sbabic@denx.de> [120201 02:20]:
+> On 28/12/2011 00:09, Ilya Yanok wrote:
+> > This patch adds support for TeeJet Mt.Ventoux board based on TAM3517
+> > SOM. Supported devices:
+> >  - Serial
+> >  - Ethernet
+> >  - NAND
+> >  - USB host
+> >  - LCD
+> >  - Touchscreen
+> >  - CAN controller
+> >  - ADC128S converter
 > > 
 > > Signed-off-by: Ilya Yanok <yanok@emcraft.com>
+> > ---
+> > 
+> > Changes from V1:
+> > 
+> >  - Fixed indentation (use tabs not spaces)
+> >  - Fixed over 80 characters lines
+> >  - Added #if defined(CONFIG_SENSORS_ADCXX_MODULE) to allow adcxx to be a
+> >    module.
+> >  - Fixes for compilation with CONFIG_TOUCHSCREEN_ADS7846!=y
+> >   - Added defined(CONFIG_TOUCHSCREEN_ADS7846_MODULE)
+> >   - Moved call to omap_ads7846_init to separate small function
+> >   - Register fixed regulator used for touchscreen only if the driver is
+> >     enabled
+> >  - Changed board name (MT_VENTOUX -> Mt.Ventoux)
 > 
-> Grant, care to ack this one?
+> Hi Tony,
+> 
+> can I ask you about the status of these patches ? I have not seen open
+> comments, do you think they can be merged in your tree ?
 
-Actually a version of this you already acked as
-"[PATCH 1/2] mt_ventoux: very basic support for TeeJet Mt.Ventoux board"
-so using that instead
+Yes I can carry some board-*.c files until device tree is
+usable for basic features. There's still some hsmmc changes
+pending that I'd like to get out of the way before adding
+new ones as then it means I have to keep updating those
+board files separately.
 
 Regards,
 
 Tony
-
-> > ---
-> > Changes from V2:
-> > 
-> >  - None
-> > 
-> > Changes from V1:
-> > 
-> >  - device tree move to the separate patch
-> >  - iva node is disabled instead of using custom includes
-> >  - removed bootargs entry
-> > 
-> >  arch/arm/boot/dts/mcx.dts |   27 +++++++++++++++++++++++++++
-> >  1 files changed, 27 insertions(+), 0 deletions(-)
-> >  create mode 100644 arch/arm/boot/dts/mcx.dts
-> > 
-> > diff --git a/arch/arm/boot/dts/mcx.dts b/arch/arm/boot/dts/mcx.dts
-> > new file mode 100644
-> > index 0000000..66b81bd
-> > --- /dev/null
-> > +++ b/arch/arm/boot/dts/mcx.dts
-> > @@ -0,0 +1,27 @@
-> > +/*
-> > + * Copyright (C) 2011 Ilya Yanok, EmCraft Systems
-> > + *
-> > + * This program is free software; you can redistribute it and/or modify
-> > + * it under the terms of the GNU General Public License version 2 as
-> > + * published by the Free Software Foundation.
-> > + */
-> > +/dts-v1/;
-> > +
-> > +/include/ "omap3.dtsi"
-> > +
-> > +/ {
-> > +	model = "HTKW mcx";
-> > +	compatible = "htkw,mcx", "ti,omap3";
-> > +
-> > +	memory {
-> > +		device_type = "memory";
-> > +		reg = <0x80000000 0x10000000>; /* 256 MB */
-> > +	};
-> > +
-> > +	/* AM35xx doesn't have IVA */
-> > +	soc {
-> > +		iva {
-> > +			status = "disabled";
-> > +		};
-> > +	};
-> > +};
-> > -- 
-> > 1.7.6.4
-> > 
-> > --
-> > To unsubscribe from this list: send the line "unsubscribe linux-omap" in
-> > the body of a message to majordomo@vger.kernel.org
-> > More majordomo info at  http://vger.kernel.org/majordomo-info.html
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-omap" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
