@@ -1,326 +1,173 @@
 From: Rob Clark <rob.clark@linaro.org>
-Subject: [PATCH 09/10] staging: drm/omap: Get DMM resources from hwmod
-Date: Mon,  5 Mar 2012 10:48:39 -0600
-Message-ID: <1330966120-28582-10-git-send-email-rob.clark@linaro.org>
+Subject: [PATCH 10/10] staging: drm/omap: mmap of tiled buffers with stride >4kb
+Date: Mon,  5 Mar 2012 10:48:40 -0600
+Message-ID: <1330966120-28582-11-git-send-email-rob.clark@linaro.org>
 References: <1330966120-28582-1-git-send-email-rob.clark@linaro.org>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-gy0-f174.google.com ([209.85.160.174]:58160 "EHLO
-	mail-gy0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756655Ab2CEQtZ (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 5 Mar 2012 11:49:25 -0500
-Received: by ghrr11 with SMTP id r11so1746756ghr.19
-        for <linux-omap@vger.kernel.org>; Mon, 05 Mar 2012 08:49:24 -0800 (PST)
+Received: from mail-gx0-f174.google.com ([209.85.161.174]:35311 "EHLO
+	mail-gx0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756674Ab2CEQt1 (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 5 Mar 2012 11:49:27 -0500
+Received: by mail-gx0-f174.google.com with SMTP id e5so973465ggh.19
+        for <linux-omap@vger.kernel.org>; Mon, 05 Mar 2012 08:49:27 -0800 (PST)
 In-Reply-To: <1330966120-28582-1-git-send-email-rob.clark@linaro.org>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: dri-devel@lists.freedesktop.org, linux-omap@vger.kernel.org
 Cc: patches@linaro.org, Greg KH <greg@kroah.com>, Tomi Valkeinen <tomi.valkeinen@ti.com>, Andy Gross <andy.gross@ti.com>, Rob Clark <rob@ti.com>
 
-From: Andy Gross <andy.gross@ti.com>
+From: Rob Clark <rob@ti.com>
 
-This patch splits the DMM off into a separate sub-device, in order to
-utilize the platform device information that was created as part of
-the OMAP hwmod entry for the DMM.
+Deal with the case of buffers with virtual stride larger than one
+page in fault_2d().
 
-The driver probe function queries the iomem resource and IRQ using
-standard platform_get functions.
-
-The OMAP DRM driver now calls the platform_driver_register() function
-for the subordinate DMM driver inside its probe function.  This
-guarantees the required order for the DMM and ensures the DMM resources
-are available for use by the DRM driver.
-
-Signed-off-by: Andy Gross <andy.gross@ti.com>
 Signed-off-by: Rob Clark <rob@ti.com>
 ---
- drivers/staging/omapdrm/omap_dmm_tiler.c |   79 +++++++++++++++++++++--------
- drivers/staging/omapdrm/omap_dmm_tiler.h |   11 +---
- drivers/staging/omapdrm/omap_drv.c       |    6 ++
- drivers/staging/omapdrm/omap_gem.c       |    8 +--
- 4 files changed, 68 insertions(+), 36 deletions(-)
+ drivers/staging/omapdrm/omap_gem.c |   86 ++++++++++++++++++++++++-----------
+ 1 files changed, 59 insertions(+), 27 deletions(-)
 
-diff --git a/drivers/staging/omapdrm/omap_dmm_tiler.c b/drivers/staging/omapdrm/omap_dmm_tiler.c
-index e4c7bb6..1ecb6a7 100644
---- a/drivers/staging/omapdrm/omap_dmm_tiler.c
-+++ b/drivers/staging/omapdrm/omap_dmm_tiler.c
-@@ -34,6 +34,8 @@
- #include "omap_dmm_tiler.h"
- #include "omap_dmm_priv.h"
- 
-+#define DMM_DRIVER_NAME "dmm"
-+
- /* mappings for associating views to luts */
- static struct tcm *containers[TILFMT_NFORMATS];
- static struct dmm *omap_dmm;
-@@ -465,7 +467,12 @@ size_t tiler_vsize(enum tiler_fmt fmt, uint16_t w, uint16_t h)
- 	return round_up(geom[fmt].cpp * w, PAGE_SIZE) * h;
- }
- 
--int omap_dmm_remove(void)
-+bool dmm_is_initialized(void)
-+{
-+	return omap_dmm ? true : false;
-+}
-+
-+static int omap_dmm_remove(struct platform_device *dev)
- {
- 	struct tiler_block *block, *_block;
- 	int i;
-@@ -499,40 +506,49 @@ int omap_dmm_remove(void)
- 		if (omap_dmm->irq != -1)
- 			free_irq(omap_dmm->irq, omap_dmm);
- 
-+		iounmap(omap_dmm->base);
- 		kfree(omap_dmm);
-+		omap_dmm = NULL;
- 	}
- 
- 	return 0;
- }
- 
--int omap_dmm_init(struct drm_device *dev)
-+static int omap_dmm_probe(struct platform_device *dev)
- {
- 	int ret = -EFAULT, i;
- 	struct tcm_area area = {0};
- 	u32 hwinfo, pat_geom, lut_table_size;
--	struct omap_drm_platform_data *pdata = dev->dev->platform_data;
--
--	if (!pdata || !pdata->dmm_pdata) {
--		dev_err(dev->dev, "dmm platform data not present, skipping\n");
--		return ret;
--	}
-+	struct resource *mem;
- 
- 	omap_dmm = kzalloc(sizeof(*omap_dmm), GFP_KERNEL);
- 	if (!omap_dmm) {
--		dev_err(dev->dev, "failed to allocate driver data section\n");
-+		dev_err(&dev->dev, "failed to allocate driver data section\n");
- 		goto fail;
- 	}
- 
- 	/* lookup hwmod data - base address and irq */
--	omap_dmm->base = pdata->dmm_pdata->base;
--	omap_dmm->irq = pdata->dmm_pdata->irq;
--	omap_dmm->dev = dev->dev;
-+	mem = platform_get_resource(dev, IORESOURCE_MEM, 0);
-+	if (!mem) {
-+		dev_err(&dev->dev, "failed to get base address resource\n");
-+		goto fail;
-+	}
-+
-+	omap_dmm->base = ioremap(mem->start, SZ_2K);
- 
- 	if (!omap_dmm->base) {
--		dev_err(dev->dev, "failed to get dmm base address\n");
-+		dev_err(&dev->dev, "failed to get dmm base address\n");
- 		goto fail;
- 	}
- 
-+	omap_dmm->irq = platform_get_irq(dev, 0);
-+	if (omap_dmm->irq < 0) {
-+		dev_err(&dev->dev, "failed to get IRQ resource\n");
-+		goto fail;
-+	}
-+
-+	omap_dmm->dev = &dev->dev;
-+
- 	hwinfo = readl(omap_dmm->base + DMM_PAT_HWINFO);
- 	omap_dmm->num_engines = (hwinfo >> 24) & 0x1F;
- 	omap_dmm->num_lut = (hwinfo >> 16) & 0x1F;
-@@ -556,7 +572,7 @@ int omap_dmm_init(struct drm_device *dev)
- 				"omap_dmm_irq_handler", omap_dmm);
- 
- 	if (ret) {
--		dev_err(dev->dev, "couldn't register IRQ %d, error %d\n",
-+		dev_err(&dev->dev, "couldn't register IRQ %d, error %d\n",
- 			omap_dmm->irq, ret);
- 		omap_dmm->irq = -1;
- 		goto fail;
-@@ -575,25 +591,30 @@ int omap_dmm_init(struct drm_device *dev)
- 
- 	omap_dmm->lut = vmalloc(lut_table_size * sizeof(*omap_dmm->lut));
- 	if (!omap_dmm->lut) {
--		dev_err(dev->dev, "could not allocate lut table\n");
-+		dev_err(&dev->dev, "could not allocate lut table\n");
- 		ret = -ENOMEM;
- 		goto fail;
- 	}
- 
- 	omap_dmm->dummy_page = alloc_page(GFP_KERNEL | __GFP_DMA32);
- 	if (!omap_dmm->dummy_page) {
--		dev_err(dev->dev, "could not allocate dummy page\n");
-+		dev_err(&dev->dev, "could not allocate dummy page\n");
- 		ret = -ENOMEM;
- 		goto fail;
- 	}
-+
-+	/* set dma mask for device */
-+	/* NOTE: this is a workaround for the hwmod not initializing properly */
-+	dev->dev.coherent_dma_mask = DMA_BIT_MASK(32);
-+
- 	omap_dmm->dummy_pa = page_to_phys(omap_dmm->dummy_page);
- 
- 	/* alloc refill memory */
--	omap_dmm->refill_va = dma_alloc_coherent(dev->dev,
-+	omap_dmm->refill_va = dma_alloc_coherent(&dev->dev,
- 				REFILL_BUFFER_SIZE * omap_dmm->num_engines,
- 				&omap_dmm->refill_pa, GFP_KERNEL);
- 	if (!omap_dmm->refill_va) {
--		dev_err(dev->dev, "could not allocate refill memory\n");
-+		dev_err(&dev->dev, "could not allocate refill memory\n");
- 		goto fail;
- 	}
- 
-@@ -602,7 +623,7 @@ int omap_dmm_init(struct drm_device *dev)
- 			omap_dmm->num_engines * sizeof(struct refill_engine),
- 			GFP_KERNEL);
- 	if (!omap_dmm->engines) {
--		dev_err(dev->dev, "could not allocate engines\n");
-+		dev_err(&dev->dev, "could not allocate engines\n");
- 		ret = -ENOMEM;
- 		goto fail;
- 	}
-@@ -624,7 +645,7 @@ int omap_dmm_init(struct drm_device *dev)
- 	omap_dmm->tcm = kzalloc(omap_dmm->num_lut * sizeof(*omap_dmm->tcm),
- 				GFP_KERNEL);
- 	if (!omap_dmm->tcm) {
--		dev_err(dev->dev, "failed to allocate lut ptrs\n");
-+		dev_err(&dev->dev, "failed to allocate lut ptrs\n");
- 		ret = -ENOMEM;
- 		goto fail;
- 	}
-@@ -636,7 +657,7 @@ int omap_dmm_init(struct drm_device *dev)
- 						NULL);
- 
- 		if (!omap_dmm->tcm[i]) {
--			dev_err(dev->dev, "failed to allocate container\n");
-+			dev_err(&dev->dev, "failed to allocate container\n");
- 			ret = -ENOMEM;
- 			goto fail;
- 		}
-@@ -676,7 +697,7 @@ int omap_dmm_init(struct drm_device *dev)
- 	return 0;
- 
- fail:
--	omap_dmm_remove();
-+	omap_dmm_remove(dev);
- 	return ret;
- }
- 
-@@ -836,3 +857,17 @@ error:
- 	return 0;
- }
- #endif
-+
-+struct platform_driver omap_dmm_driver = {
-+	.probe = omap_dmm_probe,
-+	.remove = omap_dmm_remove,
-+	.driver = {
-+		.owner = THIS_MODULE,
-+		.name = DMM_DRIVER_NAME,
-+	},
-+};
-+
-+MODULE_LICENSE("GPL v2");
-+MODULE_AUTHOR("Andy Gross <andy.gross@ti.com>");
-+MODULE_DESCRIPTION("OMAP DMM/Tiler Driver");
-+MODULE_ALIAS("platform:" DMM_DRIVER_NAME);
-diff --git a/drivers/staging/omapdrm/omap_dmm_tiler.h b/drivers/staging/omapdrm/omap_dmm_tiler.h
-index 55ab284..7b1052a 100644
---- a/drivers/staging/omapdrm/omap_dmm_tiler.h
-+++ b/drivers/staging/omapdrm/omap_dmm_tiler.h
-@@ -73,10 +73,6 @@ struct tiler_block {
- #define TIL_ADDR(x, orient, a)\
- 	((u32) (x) | (orient) | ((a) << SHIFT_ACC_MODE))
- 
--/* externally accessible functions */
--int omap_dmm_init(struct drm_device *dev);
--int omap_dmm_remove(void);
--
- #ifdef CONFIG_DEBUG_FS
- int tiler_map_show(struct seq_file *s, void *arg);
- #endif
-@@ -98,7 +94,9 @@ uint32_t tiler_stride(enum tiler_fmt fmt);
- size_t tiler_size(enum tiler_fmt fmt, uint16_t w, uint16_t h);
- size_t tiler_vsize(enum tiler_fmt fmt, uint16_t w, uint16_t h);
- void tiler_align(enum tiler_fmt fmt, uint16_t *w, uint16_t *h);
-+bool dmm_is_initialized(void);
- 
-+extern struct platform_driver omap_dmm_driver;
- 
- /* GEM bo flags -> tiler fmt */
- static inline enum tiler_fmt gem2fmt(uint32_t flags)
-@@ -128,11 +126,6 @@ static inline bool validfmt(enum tiler_fmt fmt)
- 	}
- }
- 
--struct omap_dmm_platform_data {
--	void __iomem *base;
--	int irq;
--};
--
- static inline int dmm_is_available(void)
- {
- 	return cpu_is_omap44xx();
-diff --git a/drivers/staging/omapdrm/omap_drv.c b/drivers/staging/omapdrm/omap_drv.c
-index e2100bb..3df5b4c 100644
---- a/drivers/staging/omapdrm/omap_drv.c
-+++ b/drivers/staging/omapdrm/omap_drv.c
-@@ -21,6 +21,7 @@
- 
- #include "drm_crtc_helper.h"
- #include "drm_fb_helper.h"
-+#include "omap_dmm_tiler.h"
- 
- #define DRIVER_NAME		MODULE_NAME
- #define DRIVER_DESC		"OMAP DRM"
-@@ -802,6 +803,9 @@ static void pdev_shutdown(struct platform_device *device)
- static int pdev_probe(struct platform_device *device)
- {
- 	DBG("%s", device->name);
-+	if (platform_driver_register(&omap_dmm_driver))
-+		dev_err(&device->dev, "DMM registration failed\n");
-+
- 	return drm_platform_init(&omap_drm_driver, device);
- }
- 
-@@ -809,6 +813,8 @@ static int pdev_remove(struct platform_device *device)
- {
- 	DBG("");
- 	drm_platform_exit(&omap_drm_driver, device);
-+
-+	platform_driver_unregister(&omap_dmm_driver);
- 	return 0;
- }
- 
 diff --git a/drivers/staging/omapdrm/omap_gem.c b/drivers/staging/omapdrm/omap_gem.c
-index 1d734bc..5abd294 100644
+index 5abd294..921f058 100644
 --- a/drivers/staging/omapdrm/omap_gem.c
 +++ b/drivers/staging/omapdrm/omap_gem.c
-@@ -1238,12 +1238,11 @@ void omap_gem_init(struct drm_device *dev)
- 	const enum tiler_fmt fmts[] = {
- 			TILFMT_8BIT, TILFMT_16BIT, TILFMT_32BIT
- 	};
--	int i, j, ret;
-+	int i, j;
- 
--	ret = omap_dmm_init(dev);
--	if (ret) {
-+	if (!dmm_is_initialized()) {
- 		/* DMM only supported on OMAP4 and later, so this isn't fatal */
--		dev_warn(dev->dev, "omap_dmm_init failed, disabling DMM\n");
-+		dev_warn(dev->dev, "DMM not available, disable DMM support\n");
- 		return;
+@@ -153,10 +153,23 @@ static void evict_entry(struct drm_gem_object *obj,
+ 		enum tiler_fmt fmt, struct usergart_entry *entry)
+ {
+ 	if (obj->dev->dev_mapping) {
+-		size_t size = PAGE_SIZE * usergart[fmt].height;
++		struct omap_gem_object *omap_obj = to_omap_bo(obj);
++		int n = usergart[fmt].height;
++		size_t size = PAGE_SIZE * n;
+ 		loff_t off = mmap_offset(obj) +
+ 				(entry->obj_pgoff << PAGE_SHIFT);
+-		unmap_mapping_range(obj->dev->dev_mapping, off, size, 1);
++		const int m = 1 + ((omap_obj->width << fmt) / PAGE_SIZE);
++		if (m > 1) {
++			int i;
++			/* if stride > than PAGE_SIZE then sparse mapping: */
++			for (i = n; i > 0; i--) {
++				unmap_mapping_range(obj->dev->dev_mapping,
++						off, PAGE_SIZE, 1);
++				off += PAGE_SIZE * m;
++			}
++		} else {
++			unmap_mapping_range(obj->dev->dev_mapping, off, size, 1);
++		}
  	}
  
-@@ -1293,6 +1292,5 @@ void omap_gem_deinit(struct drm_device *dev)
- 	/* I believe we can rely on there being no more outstanding GEM
- 	 * objects which could depend on usergart/dmm at this point.
+ 	entry->obj = NULL;
+@@ -342,26 +355,39 @@ static int fault_2d(struct drm_gem_object *obj,
+ 	void __user *vaddr;
+ 	int i, ret, slots;
+ 
+-	if (!usergart)
+-		return -EFAULT;
+-
+-	/* TODO: this fxn might need a bit tweaking to deal w/ tiled buffers
+-	 * that are wider than 4kb
++	/*
++	 * Note the height of the slot is also equal to the number of pages
++	 * that need to be mapped in to fill 4kb wide CPU page.  If the slot
++	 * height is 64, then 64 pages fill a 4kb wide by 64 row region.
++	 */
++	const int n = usergart[fmt].height;
++	const int n_shift = usergart[fmt].height_shift;
++
++	/*
++	 * If buffer width in bytes > PAGE_SIZE then the virtual stride is
++	 * rounded up to next multiple of PAGE_SIZE.. this need to be taken
++	 * into account in some of the math, so figure out virtual stride
++	 * in pages
  	 */
--	omap_dmm_remove();
- 	kfree(usergart);
- }
++	const int m = 1 + ((omap_obj->width << fmt) / PAGE_SIZE);
+ 
+ 	/* We don't use vmf->pgoff since that has the fake offset: */
+ 	pgoff = ((unsigned long)vmf->virtual_address -
+ 			vma->vm_start) >> PAGE_SHIFT;
+ 
+-	/* actual address we start mapping at is rounded down to previous slot
++	/*
++	 * Actual address we start mapping at is rounded down to previous slot
+ 	 * boundary in the y direction:
+ 	 */
+-	base_pgoff = round_down(pgoff, usergart[fmt].height);
+-	vaddr = vmf->virtual_address - ((pgoff - base_pgoff) << PAGE_SHIFT);
+-	entry = &usergart[fmt].entry[usergart[fmt].last];
++	base_pgoff = round_down(pgoff, m << n_shift);
+ 
++	/* figure out buffer width in slots */
+ 	slots = omap_obj->width >> usergart[fmt].slot_shift;
+ 
++	vaddr = vmf->virtual_address - ((pgoff - base_pgoff) << PAGE_SHIFT);
++
++	entry = &usergart[fmt].entry[usergart[fmt].last];
++
+ 	/* evict previous buffer using this usergart entry, if any: */
+ 	if (entry->obj)
+ 		evict_entry(entry->obj, fmt, entry);
+@@ -369,23 +395,30 @@ static int fault_2d(struct drm_gem_object *obj,
+ 	entry->obj = obj;
+ 	entry->obj_pgoff = base_pgoff;
+ 
+-	/* now convert base_pgoff to phys offset from virt offset:
+-	 */
+-	base_pgoff = (base_pgoff >> usergart[fmt].height_shift) * slots;
+-
+-	/* map in pages.  Note the height of the slot is also equal to the
+-	 * number of pages that need to be mapped in to fill 4kb wide CPU page.
+-	 * If the height is 64, then 64 pages fill a 4kb wide by 64 row region.
+-	 * Beyond the valid pixel part of the buffer, we set pages[i] to NULL to
+-	 * get a dummy page mapped in.. if someone reads/writes it they will get
+-	 * random/undefined content, but at least it won't be corrupting
+-	 * whatever other random page used to be mapped in, or other undefined
+-	 * behavior.
++	/* now convert base_pgoff to phys offset from virt offset: */
++	base_pgoff = (base_pgoff >> n_shift) * slots;
++
++	/* for wider-than 4k.. figure out which part of the slot-row we want: */
++	if (m > 1) {
++		int off = pgoff % m;
++		entry->obj_pgoff += off;
++		base_pgoff /= m;
++		slots = min(slots - (off << n_shift), n);
++		base_pgoff += off << n_shift;
++		vaddr += off << PAGE_SHIFT;
++	}
++
++	/*
++	 * Map in pages. Beyond the valid pixel part of the buffer, we set
++	 * pages[i] to NULL to get a dummy page mapped in.. if someone
++	 * reads/writes it they will get random/undefined content, but at
++	 * least it won't be corrupting whatever other random page used to
++	 * be mapped in, or other undefined behavior.
+ 	 */
+ 	memcpy(pages, &omap_obj->pages[base_pgoff],
+ 			sizeof(struct page *) * slots);
+ 	memset(pages + slots, 0,
+-			sizeof(struct page *) * (usergart[fmt].height - slots));
++			sizeof(struct page *) * (n - slots));
+ 
+ 	ret = tiler_pin(entry->block, pages, ARRAY_SIZE(pages), 0, true);
+ 	if (ret) {
+@@ -393,16 +426,15 @@ static int fault_2d(struct drm_gem_object *obj,
+ 		return ret;
+ 	}
+ 
+-	i = usergart[fmt].height;
+ 	pfn = entry->paddr >> PAGE_SHIFT;
+ 
+ 	VERB("Inserting %p pfn %lx, pa %lx", vmf->virtual_address,
+ 			pfn, pfn << PAGE_SHIFT);
+ 
+-	while (i--) {
++	for (i = n; i > 0; i--) {
+ 		vm_insert_mixed(vma, (unsigned long)vaddr, pfn);
+ 		pfn += usergart[fmt].stride_pfn;
+-		vaddr += PAGE_SIZE;
++		vaddr += PAGE_SIZE * m;
+ 	}
+ 
+ 	/* simple round-robin: */
 -- 
 1.7.5.4
 
