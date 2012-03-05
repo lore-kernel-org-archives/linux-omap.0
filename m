@@ -1,173 +1,232 @@
 From: Rob Clark <rob.clark@linaro.org>
-Subject: [PATCH 10/10] staging: drm/omap: mmap of tiled buffers with stride >4kb
-Date: Mon,  5 Mar 2012 10:48:40 -0600
-Message-ID: <1330966120-28582-11-git-send-email-rob.clark@linaro.org>
-References: <1330966120-28582-1-git-send-email-rob.clark@linaro.org>
+Subject: [PATCH] omap2+: add drm device
+Date: Mon,  5 Mar 2012 10:54:24 -0600
+Message-ID: <1330966464-28662-1-git-send-email-rob.clark@linaro.org>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-gx0-f174.google.com ([209.85.161.174]:35311 "EHLO
+Received: from mail-gx0-f174.google.com ([209.85.161.174]:38291 "EHLO
 	mail-gx0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756674Ab2CEQt1 (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 5 Mar 2012 11:49:27 -0500
-Received: by mail-gx0-f174.google.com with SMTP id e5so973465ggh.19
-        for <linux-omap@vger.kernel.org>; Mon, 05 Mar 2012 08:49:27 -0800 (PST)
-In-Reply-To: <1330966120-28582-1-git-send-email-rob.clark@linaro.org>
+	with ESMTP id S1756983Ab2CEQya (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 5 Mar 2012 11:54:30 -0500
+Received: by gghe5 with SMTP id e5so977901ggh.19
+        for <linux-omap@vger.kernel.org>; Mon, 05 Mar 2012 08:54:29 -0800 (PST)
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: dri-devel@lists.freedesktop.org, linux-omap@vger.kernel.org
 Cc: patches@linaro.org, Greg KH <greg@kroah.com>, Tomi Valkeinen <tomi.valkeinen@ti.com>, Andy Gross <andy.gross@ti.com>, Rob Clark <rob@ti.com>
 
-From: Rob Clark <rob@ti.com>
+From: Andy Gross <andy.gross@ti.com>
 
-Deal with the case of buffers with virtual stride larger than one
-page in fault_2d().
+Register OMAP DRM/KMS platform device, and reserve a CMA region for
+the device to use for buffer allocation.  DMM is split into a
+separate device using hwmod.
 
+Signed-off-by: Andy Gross <andy.gross@ti.com>
 Signed-off-by: Rob Clark <rob@ti.com>
 ---
- drivers/staging/omapdrm/omap_gem.c |   86 ++++++++++++++++++++++++-----------
- 1 files changed, 59 insertions(+), 27 deletions(-)
+ arch/arm/plat-omap/Makefile           |    2 +-
+ arch/arm/plat-omap/common.c           |    3 +-
+ arch/arm/plat-omap/drm.c              |   83 +++++++++++++++++++++++++++++++++
+ arch/arm/plat-omap/include/plat/drm.h |   64 +++++++++++++++++++++++++
+ 4 files changed, 150 insertions(+), 2 deletions(-)
+ create mode 100644 arch/arm/plat-omap/drm.c
+ create mode 100644 arch/arm/plat-omap/include/plat/drm.h
 
-diff --git a/drivers/staging/omapdrm/omap_gem.c b/drivers/staging/omapdrm/omap_gem.c
-index 5abd294..921f058 100644
---- a/drivers/staging/omapdrm/omap_gem.c
-+++ b/drivers/staging/omapdrm/omap_gem.c
-@@ -153,10 +153,23 @@ static void evict_entry(struct drm_gem_object *obj,
- 		enum tiler_fmt fmt, struct usergart_entry *entry)
+diff --git a/arch/arm/plat-omap/Makefile b/arch/arm/plat-omap/Makefile
+index 9a58461..b86e6cb 100644
+--- a/arch/arm/plat-omap/Makefile
++++ b/arch/arm/plat-omap/Makefile
+@@ -4,7 +4,7 @@
+ 
+ # Common support
+ obj-y := common.o sram.o clock.o devices.o dma.o mux.o \
+-	 usb.o fb.o counter_32k.o
++	 usb.o fb.o counter_32k.o drm.o
+ obj-m :=
+ obj-n :=
+ obj-  :=
+diff --git a/arch/arm/plat-omap/common.c b/arch/arm/plat-omap/common.c
+index 06383b5..0d87dab 100644
+--- a/arch/arm/plat-omap/common.c
++++ b/arch/arm/plat-omap/common.c
+@@ -21,10 +21,10 @@
+ #include <plat/board.h>
+ #include <plat/vram.h>
+ #include <plat/dsp.h>
++#include <plat/drm.h>
+ 
+ #include <plat/omap-secure.h>
+ 
+-
+ #define NO_LENGTH_CHECK 0xffffffff
+ 
+ struct omap_board_config_kernel *omap_board_config __initdata;
+@@ -65,6 +65,7 @@ const void *__init omap_get_var_config(u16 tag, size_t *len)
+ 
+ void __init omap_reserve(void)
  {
- 	if (obj->dev->dev_mapping) {
--		size_t size = PAGE_SIZE * usergart[fmt].height;
-+		struct omap_gem_object *omap_obj = to_omap_bo(obj);
-+		int n = usergart[fmt].height;
-+		size_t size = PAGE_SIZE * n;
- 		loff_t off = mmap_offset(obj) +
- 				(entry->obj_pgoff << PAGE_SHIFT);
--		unmap_mapping_range(obj->dev->dev_mapping, off, size, 1);
-+		const int m = 1 + ((omap_obj->width << fmt) / PAGE_SIZE);
-+		if (m > 1) {
-+			int i;
-+			/* if stride > than PAGE_SIZE then sparse mapping: */
-+			for (i = n; i > 0; i--) {
-+				unmap_mapping_range(obj->dev->dev_mapping,
-+						off, PAGE_SIZE, 1);
-+				off += PAGE_SIZE * m;
-+			}
-+		} else {
-+			unmap_mapping_range(obj->dev->dev_mapping, off, size, 1);
-+		}
- 	}
- 
- 	entry->obj = NULL;
-@@ -342,26 +355,39 @@ static int fault_2d(struct drm_gem_object *obj,
- 	void __user *vaddr;
- 	int i, ret, slots;
- 
--	if (!usergart)
--		return -EFAULT;
--
--	/* TODO: this fxn might need a bit tweaking to deal w/ tiled buffers
--	 * that are wider than 4kb
-+	/*
-+	 * Note the height of the slot is also equal to the number of pages
-+	 * that need to be mapped in to fill 4kb wide CPU page.  If the slot
-+	 * height is 64, then 64 pages fill a 4kb wide by 64 row region.
-+	 */
-+	const int n = usergart[fmt].height;
-+	const int n_shift = usergart[fmt].height_shift;
++	omapdrm_reserve_vram();
+ 	omapfb_reserve_sdram_memblock();
+ 	omap_vram_reserve_sdram_memblock();
+ 	omap_dsp_reserve_sdram_memblock();
+diff --git a/arch/arm/plat-omap/drm.c b/arch/arm/plat-omap/drm.c
+new file mode 100644
+index 0000000..28279df
+--- /dev/null
++++ b/arch/arm/plat-omap/drm.c
+@@ -0,0 +1,83 @@
++/*
++ * DRM/KMS device registration for TI OMAP platforms
++ *
++ * Copyright (C) 2012 Texas Instruments
++ * Author: Rob Clark <rob.clark@linaro.org>
++ *
++ * This program is free software; you can redistribute it and/or modify it
++ * under the terms of the GNU General Public License version 2 as published by
++ * the Free Software Foundation.
++ *
++ * This program is distributed in the hope that it will be useful, but WITHOUT
++ * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
++ * FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License for
++ * more details.
++ *
++ * You should have received a copy of the GNU General Public License along with
++ * this program.  If not, see <http://www.gnu.org/licenses/>.
++ */
 +
-+	/*
-+	 * If buffer width in bytes > PAGE_SIZE then the virtual stride is
-+	 * rounded up to next multiple of PAGE_SIZE.. this need to be taken
-+	 * into account in some of the math, so figure out virtual stride
-+	 * in pages
- 	 */
-+	const int m = 1 + ((omap_obj->width << fmt) / PAGE_SIZE);
- 
- 	/* We don't use vmf->pgoff since that has the fake offset: */
- 	pgoff = ((unsigned long)vmf->virtual_address -
- 			vma->vm_start) >> PAGE_SHIFT;
- 
--	/* actual address we start mapping at is rounded down to previous slot
-+	/*
-+	 * Actual address we start mapping at is rounded down to previous slot
- 	 * boundary in the y direction:
- 	 */
--	base_pgoff = round_down(pgoff, usergart[fmt].height);
--	vaddr = vmf->virtual_address - ((pgoff - base_pgoff) << PAGE_SHIFT);
--	entry = &usergart[fmt].entry[usergart[fmt].last];
-+	base_pgoff = round_down(pgoff, m << n_shift);
- 
-+	/* figure out buffer width in slots */
- 	slots = omap_obj->width >> usergart[fmt].slot_shift;
- 
-+	vaddr = vmf->virtual_address - ((pgoff - base_pgoff) << PAGE_SHIFT);
++#include <linux/module.h>
++#include <linux/kernel.h>
++#include <linux/mm.h>
++#include <linux/init.h>
++#include <linux/platform_device.h>
++#include <linux/dma-mapping.h>
++#ifdef CONFIG_CMA
++#  include <linux/dma-contiguous.h>
++#endif
 +
-+	entry = &usergart[fmt].entry[usergart[fmt].last];
++#include <plat/omap_device.h>
++#include <plat/omap_hwmod.h>
 +
- 	/* evict previous buffer using this usergart entry, if any: */
- 	if (entry->obj)
- 		evict_entry(entry->obj, fmt, entry);
-@@ -369,23 +395,30 @@ static int fault_2d(struct drm_gem_object *obj,
- 	entry->obj = obj;
- 	entry->obj_pgoff = base_pgoff;
- 
--	/* now convert base_pgoff to phys offset from virt offset:
--	 */
--	base_pgoff = (base_pgoff >> usergart[fmt].height_shift) * slots;
--
--	/* map in pages.  Note the height of the slot is also equal to the
--	 * number of pages that need to be mapped in to fill 4kb wide CPU page.
--	 * If the height is 64, then 64 pages fill a 4kb wide by 64 row region.
--	 * Beyond the valid pixel part of the buffer, we set pages[i] to NULL to
--	 * get a dummy page mapped in.. if someone reads/writes it they will get
--	 * random/undefined content, but at least it won't be corrupting
--	 * whatever other random page used to be mapped in, or other undefined
--	 * behavior.
-+	/* now convert base_pgoff to phys offset from virt offset: */
-+	base_pgoff = (base_pgoff >> n_shift) * slots;
++#include <plat/drm.h>
 +
-+	/* for wider-than 4k.. figure out which part of the slot-row we want: */
-+	if (m > 1) {
-+		int off = pgoff % m;
-+		entry->obj_pgoff += off;
-+		base_pgoff /= m;
-+		slots = min(slots - (off << n_shift), n);
-+		base_pgoff += off << n_shift;
-+		vaddr += off << PAGE_SHIFT;
++#if defined(CONFIG_DRM_OMAP) || (CONFIG_DRM_OMAP_MODULE)
++
++static struct omap_drm_platform_data omapdrm_platdata;
++
++static struct platform_device omap_drm_device = {
++		.dev = {
++			.coherent_dma_mask = DMA_BIT_MASK(32),
++			.platform_data = &omapdrm_platdata,
++		},
++		.name = "omapdrm",
++		.id = 0,
++};
++
++static int __init omap_init_gpu(void)
++{
++	struct omap_hwmod *oh = NULL;
++	struct platform_device *pdev;
++
++	/* lookup and populate the DMM information, if present - OMAP4+ */
++	oh = omap_hwmod_lookup("dmm");
++
++	if (oh) {
++		pdev = omap_device_build(oh->name, -1, oh, NULL, 0, NULL, 0,
++					false);
++		WARN(IS_ERR(pdev), "Could not build omap_device for %s\n",
++			oh->name);
 +	}
 +
++	return platform_device_register(&omap_drm_device);
++
++}
++
++arch_initcall(omap_init_gpu);
++
++void omapdrm_reserve_vram(void)
++{
++#ifdef CONFIG_CMA
 +	/*
-+	 * Map in pages. Beyond the valid pixel part of the buffer, we set
-+	 * pages[i] to NULL to get a dummy page mapped in.. if someone
-+	 * reads/writes it they will get random/undefined content, but at
-+	 * least it won't be corrupting whatever other random page used to
-+	 * be mapped in, or other undefined behavior.
- 	 */
- 	memcpy(pages, &omap_obj->pages[base_pgoff],
- 			sizeof(struct page *) * slots);
- 	memset(pages + slots, 0,
--			sizeof(struct page *) * (usergart[fmt].height - slots));
-+			sizeof(struct page *) * (n - slots));
- 
- 	ret = tiler_pin(entry->block, pages, ARRAY_SIZE(pages), 0, true);
- 	if (ret) {
-@@ -393,16 +426,15 @@ static int fault_2d(struct drm_gem_object *obj,
- 		return ret;
- 	}
- 
--	i = usergart[fmt].height;
- 	pfn = entry->paddr >> PAGE_SHIFT;
- 
- 	VERB("Inserting %p pfn %lx, pa %lx", vmf->virtual_address,
- 			pfn, pfn << PAGE_SHIFT);
- 
--	while (i--) {
-+	for (i = n; i > 0; i--) {
- 		vm_insert_mixed(vma, (unsigned long)vaddr, pfn);
- 		pfn += usergart[fmt].stride_pfn;
--		vaddr += PAGE_SIZE;
-+		vaddr += PAGE_SIZE * m;
- 	}
- 
- 	/* simple round-robin: */
++	 * Create private 32MiB contiguous memory area for omapdrm.0 device
++	 * TODO revisit size.. if uc/wc buffers are allocated from CMA pages
++	 * then the amount of memory we need goes up..
++	 */
++	dma_declare_contiguous(&omap_drm_device.dev, 32 * SZ_1M, 0, 0);
++#else
++#  warning "CMA is not enabled, there may be limitations about scanout buffer allocations on OMAP3 and earlier"
++#endif
++}
++
++#endif
+diff --git a/arch/arm/plat-omap/include/plat/drm.h b/arch/arm/plat-omap/include/plat/drm.h
+new file mode 100644
+index 0000000..df9bc41
+--- /dev/null
++++ b/arch/arm/plat-omap/include/plat/drm.h
+@@ -0,0 +1,64 @@
++/*
++ * DRM/KMS device registration for TI OMAP platforms
++ *
++ * Copyright (C) 2012 Texas Instruments
++ * Author: Rob Clark <rob.clark@linaro.org>
++ *
++ * This program is free software; you can redistribute it and/or modify it
++ * under the terms of the GNU General Public License version 2 as published by
++ * the Free Software Foundation.
++ *
++ * This program is distributed in the hope that it will be useful, but WITHOUT
++ * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
++ * FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License for
++ * more details.
++ *
++ * You should have received a copy of the GNU General Public License along with
++ * this program.  If not, see <http://www.gnu.org/licenses/>.
++ */
++
++#ifndef __PLAT_OMAP_DRM_H__
++#define __PLAT_OMAP_DRM_H__
++
++/*
++ * Optional platform data to configure the default configuration of which
++ * pipes/overlays/CRTCs are used.. if this is not provided, then instead the
++ * first CONFIG_DRM_OMAP_NUM_CRTCS are used, and they are each connected to
++ * one manager, with priority given to managers that are connected to
++ * detected devices.  Remaining overlays are used as video planes.  This
++ * should be a good default behavior for most cases, but yet there still
++ * might be times when you wish to do something different.
++ */
++struct omap_kms_platform_data {
++	/* overlays to use as CRTCs: */
++	int ovl_cnt;
++	const int *ovl_ids;
++
++	/* overlays to use as video planes: */
++	int pln_cnt;
++	const int *pln_ids;
++
++	int mgr_cnt;
++	const int *mgr_ids;
++
++	int dev_cnt;
++	const char **dev_names;
++};
++
++struct omap_drm_platform_data {
++	struct omap_kms_platform_data *kms_pdata;
++};
++
++#if defined(CONFIG_DRM_OMAP) || defined(CONFIG_DRM_OMAP_MODULE)
++
++void omapdrm_reserve_vram(void);
++
++#else
++
++static inline void omapdrm_reserve_vram(void)
++{
++}
++
++#endif
++
++#endif /* __PLAT_OMAP_DRM_H__ */
 -- 
 1.7.5.4
 
