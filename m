@@ -1,77 +1,64 @@
-From: "Cousson, Benoit" <b-cousson@ti.com>
-Subject: Re: [RFC PATCH] of: DMA helpers: manage generic requests specification
-Date: Mon, 5 Mar 2012 14:14:22 +0100
-Message-ID: <4F54BC2E.3040702@ti.com>
-References: <4F22DEF2.5000807@ti.com> <1330527248-4350-1-git-send-email-nicolas.ferre@atmel.com> <74CDBE0F657A3D45AFBB94109FB122FF17BDDF217B@HQMAIL01.nvidia.com>
+From: "Munegowda, Keshava" <keshava_mgowda-l0cyMroinI0@public.gmane.org>
+Subject: Re: [PATCH] ARM: OMAP: USB: fix the pointer type mismatch compilation warning
+Date: Mon, 5 Mar 2012 19:06:22 +0530
+Message-ID: <CAP05o4+ThGNVcPEzNZy2KowuAT2x7y9LfRyzonuroo2hsxZ_tA@mail.gmail.com>
+References: <1330946376-17672-1-git-send-email-keshava_mgowda@ti.com>
+	<4F54A6E6.6070409@mvista.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="ISO-8859-1"; format=flowed
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from arroyo.ext.ti.com ([192.94.94.40]:54173 "EHLO arroyo.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S932161Ab2CENOz (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Mon, 5 Mar 2012 08:14:55 -0500
-In-Reply-To: <74CDBE0F657A3D45AFBB94109FB122FF17BDDF217B@HQMAIL01.nvidia.com>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Return-path: <linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <4F54A6E6.6070409-Igf4POYTYCDQT0dZR+AlfA@public.gmane.org>
+Sender: linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Sergei Shtylyov <sshtylyov-Igf4POYTYCDQT0dZR+AlfA@public.gmane.org>
+Cc: linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, balbi-l0cyMroinI0@public.gmane.org, parthab-PpE0FKYn9XJWk0Htik3J/w@public.gmane.org, govindraj.raja-l0cyMroinI0@public.gmane.org, paul-DWxLp4Yu+b8AvxtiuMwx3w@public.gmane.org, b-cousson-l0cyMroinI0@public.gmane.org
 List-Id: linux-omap@vger.kernel.org
-To: Stephen Warren <swarren@nvidia.com>
-Cc: Nicolas Ferre <nicolas.ferre@atmel.com>, "grant.likely@secretlab.ca" <grant.likely@secretlab.ca>, "rob.herring@calxeda.com" <rob.herring@calxeda.com>, "devicetree-discuss@lists.ozlabs.org" <devicetree-discuss@lists.ozlabs.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, "plagnioj@jcrosoft.com" <plagnioj@jcrosoft.com>, Russell King <linux@arm.linux.org.uk>
 
-On 2/29/2012 9:54 PM, Stephen Warren wrote:
-> Nicolas Ferre wrote at Wednesday, February 29, 2012 7:54 AM:
->> By making DMA controllers register a generic translation
->> function, we allow the management of any type of DMA requests
->> specification.
->> The void * output of an of_dma_xlate() function that will be implemented
->> by the DMA controller can carry any type of "dma-request" argument.
->>
->> The DMA client will search its associated DMA controller in the list
->> and call the registered of_dam_xlate() function to retrieve the
->> request values.
->>
->> One simple xlate function is provided for the "single number" type
->> of request biding.
->>
->> This implementation is independent from dmaengine so it can also be
->> used by legacy drivers.
+On Mon, Mar 5, 2012 at 5:13 PM, Sergei Shtylyov <sshtylyov-Igf4POYTYCDQT0dZR+AlfA@public.gmane.org> =
+wrote:
+> Hello.
 >
-> At a high level this seems along the right lines.
 >
-> The big issue I see is the lack of type-safety in of_get_dma_request()'s
-> out_data pointer: The DMA xlate function will assume it points at some
-> particular type, and the client is responsible for allocating that
-> correct type. However, it's "user"-supplied device tree data that hooks
-> the two together, and there could easily be mismatches, thus causing
-> the xlate function to trash memory.
+> On 05-03-2012 15:19, Keshava Munegowda wrote:
 >
-> Could each DMA controller (or type of out_data) have some enum in the
-> kernel that the client passes in, and the DMA engine validates matches
-> its expectations, to prevent this kind of thing?
+>> From: Keshava Munegowda<Keshava_mgowda-l0cyMroinI0@public.gmane.org>
+>
+>
+>> The compilation of usb-host.c file was resulting compilation warning
+>> due to pointer type mismatch in assignment of return pointer type
+>> of the function omap_device_build_ss to local pointer type.
+>> This warning is fixed.
+>
+>
+>> Signed-off-by: Keshava Munegowda<keshava_mgowda-l0cyMroinI0@public.gmane.org>
+>> ---
+>> =A0arch/arm/mach-omap2/usb-host.c | =A0 =A02 +-
+>> =A01 files changed, 1 insertions(+), 1 deletions(-)
+>
+>
+>> diff --git a/arch/arm/mach-omap2/usb-host.c
+>> b/arch/arm/mach-omap2/usb-host.c
+>> index 771dc78..88d4a19 100644
+>> --- a/arch/arm/mach-omap2/usb-host.c
+>> +++ b/arch/arm/mach-omap2/usb-host.c
+>> @@ -486,7 +486,7 @@ static void setup_4430ohci_io_mux(const enum
+>> usbhs_omap_port_mode *port_mode)
+>> =A0void __init usbhs_init(const struct usbhs_omap_board_data *pdata)
+>> =A0{
+>> =A0 =A0 =A0 =A0struct omap_hwmod =A0 =A0 =A0 *oh[2];
+>> - =A0 =A0 =A0 struct omap_device =A0 =A0 =A0*od;
+>> + =A0 =A0 =A0 struct platform_device =A0*od;
+>
+>
+> =A0 Makes sense to rename variable to 'pd' then.
+>
+> WBR, Sergei
 
-Beside u32 and string, do we know what kind of parameters we can expect 
-to retrieve?
-Because we can potentially reduce the scope to these two types only.
+ya, and its already in mainline :)
 
-> enum DMA_PARAMS_TYPE {
->      FOO_DMA_PARAMS,
->      BAR_DMA_PARAMS,
->      ...
-> };
->
-> struct foo_dma_params { ... };
->
-> struct foo_dma_params params;
->
-> of_get_dma_request(np, 0,&params, FOO_DMA_PARAMS);
->
-> and inside xlate():
->
-> if (params_type != FOO_DMA_PARAMS)
->      return -EINVAL;
->
-> For the dmaengine case, I assume there'd be a single DMA_PARAMS_TYPE
-> value for the dmaengine specifier type, and the dmaengine core would
-> take care of making sure everything matched somehow.
-
-Regards,
-Benoit
+regards
+keshava
+--
+To unsubscribe from this list: send the line "unsubscribe linux-usb" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
