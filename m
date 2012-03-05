@@ -1,91 +1,50 @@
 From: Paul Gortmaker <paul.gortmaker@windriver.com>
-Subject: [PATCH 1/3] arm: anticipate build breakages due in pending merge
-Date: Mon,  5 Mar 2012 17:41:48 -0500
-Message-ID: <1330987310-8108-2-git-send-email-paul.gortmaker@windriver.com>
+Subject: [PATCH 2/3] arm: fix compile error in mach-omap2/board-omap4panda.c
+Date: Mon,  5 Mar 2012 17:41:49 -0500
+Message-ID: <1330987310-8108-3-git-send-email-paul.gortmaker@windriver.com>
 References: <1330987310-8108-1-git-send-email-paul.gortmaker@windriver.com>
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail.windriver.com ([147.11.1.11]:46141 "EHLO
-	mail.windriver.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1757175Ab2CEWmJ (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 5 Mar 2012 17:42:09 -0500
+Return-path: <linux-next-owner@vger.kernel.org>
 In-Reply-To: <1330987310-8108-1-git-send-email-paul.gortmaker@windriver.com>
-Sender: linux-omap-owner@vger.kernel.org
-List-Id: linux-omap@vger.kernel.org
+Sender: linux-next-owner@vger.kernel.org
 To: tony@atomide.com
-Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-next@vger.kernel.org, Paul Gortmaker <paul.gortmaker@windriver.com>
+Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-next@vger.kernel.org, Paul Gortmaker <paul.gortmaker@windriver.com>, Peter Ujfalusi <peter.ujfalusi@ti.com>, Santosh Shilimkar <santosh.shilimkar@ti.com>
+List-Id: linux-omap@vger.kernel.org
 
-Testing in linux-next has revealed that the omap2plus_defconfig
-will fail upon the merge of "arm-soc/for-next" as follows:
+The commit 3c90c98a1ebbb08d95700ce8a3b7bce6286607bd (linux-next)
 
-arch/arm/mach-omap2/control.c:238: error: 'OMAP343X_CTRL_BASE' undeclared (first use in this function)
-arch/arm/mach-omap2/common.c:48: error: 'OMAP2420_SDRC_BASE' undeclared here (not in a function)
-arch/arm/mach-omap2/common.c:49: error: 'OMAP2420_SMS_BASE' undeclared here (not in a function)
-arch/arm/mach-omap2/common.c:50: error: 'OMAP242X_CTRL_BASE' undeclared here (not in a function)
- [...]
-arch/arm/mach-omap2/common.c:167: error: 'OMAP4430_CM2_BASE' undeclared here (not in a function)
-arch/arm/mach-omap2/sdrc2xxx.c:108: error: 'OMAP2420_PRM_BASE' undeclared (first use in this function)
-arch/arm/mach-omap2/cm2xxx_3xxx.c:310: error: 'OMAP3430_CM_BASE' undeclared (first use in this function)
+    "OMAP4: omap4panda: Enable audio support"
 
-It appears that a once implicit path to <plat/hardware.h> has gone
-away once two of the arm streams come together.
+introduced population of a new struct, but chose the wrong (but
+similarly named) struct that has none of the named fields.
+
+Change it to the struct with those fields, to fix:
+
+arch/arm/mach-omap2/board-omap4panda.c:284: error: unknown field 'hs_left_step' specified in initializer
+arch/arm/mach-omap2/board-omap4panda.c:285: error: unknown field 'hs_right_step' specified in initializer
+arch/arm/mach-omap2/board-omap4panda.c:286: error: unknown field 'hf_left_step' specified in initializer
+arch/arm/mach-omap2/board-omap4panda.c:287: error: unknown field 'hf_right_step' specified in initializer
+arch/arm/mach-omap2/board-omap4panda.c:287: warning: large integer implicitly truncated to unsigned type
 
 Signed-off-by: Paul Gortmaker <paul.gortmaker@windriver.com>
+CC: Peter Ujfalusi <peter.ujfalusi@ti.com>
+CC: Santosh Shilimkar <santosh.shilimkar@ti.com>
+CC: Tony Lindgren <tony@atomide.com>
 ---
- arch/arm/mach-omap2/cm2xxx_3xxx.c |    2 ++
- arch/arm/mach-omap2/common.c      |    1 +
- arch/arm/mach-omap2/control.c     |    1 +
- arch/arm/mach-omap2/sdrc2xxx.c    |    1 +
- 4 files changed, 5 insertions(+), 0 deletions(-)
+ arch/arm/mach-omap2/board-omap4panda.c |    2 +-
+ 1 files changed, 1 insertions(+), 1 deletions(-)
 
-diff --git a/arch/arm/mach-omap2/cm2xxx_3xxx.c b/arch/arm/mach-omap2/cm2xxx_3xxx.c
-index c79ed63..389f9f8 100644
---- a/arch/arm/mach-omap2/cm2xxx_3xxx.c
-+++ b/arch/arm/mach-omap2/cm2xxx_3xxx.c
-@@ -18,6 +18,8 @@
- #include <linux/err.h>
- #include <linux/io.h>
+diff --git a/arch/arm/mach-omap2/board-omap4panda.c b/arch/arm/mach-omap2/board-omap4panda.c
+index c1a852d..e919153 100644
+--- a/arch/arm/mach-omap2/board-omap4panda.c
++++ b/arch/arm/mach-omap2/board-omap4panda.c
+@@ -279,7 +279,7 @@ static int __init omap4_twl6030_hsmmc_init(struct omap2_hsmmc_info *controllers)
+ 	return 0;
+ }
  
-+#include <plat/hardware.h>
-+
- #include "iomap.h"
- #include "common.h"
- #include "cm.h"
-diff --git a/arch/arm/mach-omap2/common.c b/arch/arm/mach-omap2/common.c
-index 93419de..d620362 100644
---- a/arch/arm/mach-omap2/common.c
-+++ b/arch/arm/mach-omap2/common.c
-@@ -20,6 +20,7 @@
- #include <plat/board.h>
- #include <plat/mux.h>
- #include <plat/clock.h>
-+#include <plat/hardware.h>
- 
- #include "iomap.h"
- #include "common.h"
-diff --git a/arch/arm/mach-omap2/control.c b/arch/arm/mach-omap2/control.c
-index 2fd5fd1..18ff359 100644
---- a/arch/arm/mach-omap2/control.c
-+++ b/arch/arm/mach-omap2/control.c
-@@ -16,6 +16,7 @@
- #include <linux/io.h>
- 
- #include <plat/sdrc.h>
-+#include <plat/hardware.h>
- 
- #include "iomap.h"
- #include "common.h"
-diff --git a/arch/arm/mach-omap2/sdrc2xxx.c b/arch/arm/mach-omap2/sdrc2xxx.c
-index 2c329a6..181b0c5 100644
---- a/arch/arm/mach-omap2/sdrc2xxx.c
-+++ b/arch/arm/mach-omap2/sdrc2xxx.c
-@@ -27,6 +27,7 @@
- #include <plat/clock.h>
- #include <plat/sram.h>
- #include <plat/sdrc.h>
-+#include <plat/hardware.h>
- 
- #include "iomap.h"
- #include "common.h"
+-static struct twl4030_codec_data twl6040_codec = {
++static struct twl6040_codec_data twl6040_codec = {
+ 	/* single-step ramp for headset and handsfree */
+ 	.hs_left_step	= 0x0f,
+ 	.hs_right_step	= 0x0f,
 -- 
 1.7.9.1
-
