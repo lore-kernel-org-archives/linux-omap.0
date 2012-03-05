@@ -1,15 +1,15 @@
 From: Rob Clark <rob.clark@linaro.org>
-Subject: [PATCH 05/10] staging: drm/omap: defer unpin until scanout completes
-Date: Mon,  5 Mar 2012 10:48:35 -0600
-Message-ID: <1330966120-28582-6-git-send-email-rob.clark@linaro.org>
+Subject: [PATCH 06/10] staging: drm/omap: debugfs for object and fb tracking
+Date: Mon,  5 Mar 2012 10:48:36 -0600
+Message-ID: <1330966120-28582-7-git-send-email-rob.clark@linaro.org>
 References: <1330966120-28582-1-git-send-email-rob.clark@linaro.org>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-gx0-f174.google.com ([209.85.161.174]:35311 "EHLO
-	mail-gx0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756245Ab2CEQtP (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 5 Mar 2012 11:49:15 -0500
-Received: by gghe5 with SMTP id e5so973465ggh.19
-        for <linux-omap@vger.kernel.org>; Mon, 05 Mar 2012 08:49:14 -0800 (PST)
+Received: from mail-yx0-f174.google.com ([209.85.213.174]:58192 "EHLO
+	mail-yx0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756476Ab2CEQtR (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 5 Mar 2012 11:49:17 -0500
+Received: by mail-yx0-f174.google.com with SMTP id l12so1739759yen.19
+        for <linux-omap@vger.kernel.org>; Mon, 05 Mar 2012 08:49:17 -0800 (PST)
 In-Reply-To: <1330966120-28582-1-git-send-email-rob.clark@linaro.org>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
@@ -18,359 +18,329 @@ Cc: patches@linaro.org, Greg KH <greg@kroah.com>, Tomi Valkeinen <tomi.valkeinen
 
 From: Rob Clark <rob@ti.com>
 
-When flipping, defer unpinning until scanout completes, as indicated
-by the appropriate END_WIN irq.
-
-This also re-organizes things a bit, in replacing omap_fb_{pin,unpin}
-with omap_fb_replace(), to make it easier to add support for scanout
-synchronized DMM refill mode (flipping by just reprogramming DMM
-synchronized with DSS scanout).
+Add some additional debugfs file to aid in tracking buffer usage.
 
 Signed-off-by: Rob Clark <rob@ti.com>
 ---
- drivers/staging/omapdrm/omap_drv.h   |    5 +-
- drivers/staging/omapdrm/omap_fb.c    |   84 ++++++++++++---------
- drivers/staging/omapdrm/omap_plane.c |  136 ++++++++++++++++++++++++++++++++--
- 3 files changed, 181 insertions(+), 44 deletions(-)
+ drivers/staging/omapdrm/omap_debugfs.c |   98 +++++++++++++++++++++++++++++++-
+ drivers/staging/omapdrm/omap_drv.c     |    2 +
+ drivers/staging/omapdrm/omap_drv.h     |    8 +++
+ drivers/staging/omapdrm/omap_fb.c      |   18 ++++++
+ drivers/staging/omapdrm/omap_gem.c     |   64 ++++++++++++++++++++-
+ 5 files changed, 188 insertions(+), 2 deletions(-)
 
-diff --git a/drivers/staging/omapdrm/omap_drv.h b/drivers/staging/omapdrm/omap_drv.h
-index a84547c..fe4766e 100644
---- a/drivers/staging/omapdrm/omap_drv.h
-+++ b/drivers/staging/omapdrm/omap_drv.h
-@@ -101,8 +101,9 @@ struct drm_framebuffer *omap_framebuffer_create(struct drm_device *dev,
- struct drm_framebuffer *omap_framebuffer_init(struct drm_device *dev,
- 		struct drm_mode_fb_cmd2 *mode_cmd, struct drm_gem_object **bos);
- struct drm_gem_object *omap_framebuffer_bo(struct drm_framebuffer *fb, int p);
--int omap_framebuffer_pin(struct drm_framebuffer *fb);
--void omap_framebuffer_unpin(struct drm_framebuffer *fb);
-+int omap_framebuffer_replace(struct drm_framebuffer *a,
-+		struct drm_framebuffer *b, void *arg,
-+		void (*unpin)(void *arg, struct drm_gem_object *bo));
- void omap_framebuffer_update_scanout(struct drm_framebuffer *fb, int x, int y,
- 		struct omap_overlay_info *info);
- struct drm_connector *omap_framebuffer_get_next_connector(
-diff --git a/drivers/staging/omapdrm/omap_fb.c b/drivers/staging/omapdrm/omap_fb.c
-index 08e2e35..fcb248f 100644
---- a/drivers/staging/omapdrm/omap_fb.c
-+++ b/drivers/staging/omapdrm/omap_fb.c
-@@ -137,41 +137,6 @@ static const struct drm_framebuffer_funcs omap_framebuffer_funcs = {
- 	.dirty = omap_framebuffer_dirty,
- };
+diff --git a/drivers/staging/omapdrm/omap_debugfs.c b/drivers/staging/omapdrm/omap_debugfs.c
+index da920df..e23f907 100644
+--- a/drivers/staging/omapdrm/omap_debugfs.c
++++ b/drivers/staging/omapdrm/omap_debugfs.c
+@@ -20,23 +20,119 @@
+ #include "omap_drv.h"
+ #include "omap_dmm_tiler.h"
  
--/* pins buffer in preparation for scanout */
--int omap_framebuffer_pin(struct drm_framebuffer *fb)
--{
--	struct omap_framebuffer *omap_fb = to_omap_framebuffer(fb);
--	int ret, i, n = drm_format_num_planes(omap_fb->format->pixel_format);
--
--	for (i = 0; i < n; i++) {
--		struct plane *plane = &omap_fb->planes[i];
--		ret = omap_gem_get_paddr(plane->bo, &plane->paddr, true);
--		if (ret)
--			goto fail;
--	}
--
--	return 0;
--
--fail:
--	while (--i > 0) {
--		struct plane *plane = &omap_fb->planes[i];
--		omap_gem_put_paddr(plane->bo);
--	}
--	return ret;
--}
--
--/* releases buffer when done with scanout */
--void omap_framebuffer_unpin(struct drm_framebuffer *fb)
--{
--	struct omap_framebuffer *omap_fb = to_omap_framebuffer(fb);
--	int i, n = drm_format_num_planes(omap_fb->format->pixel_format);
--
--	for (i = 0; i < n; i++) {
--		struct plane *plane = &omap_fb->planes[i];
--		omap_gem_put_paddr(plane->bo);
--	}
--}
--
- /* update ovl info for scanout, handles cases of multi-planar fb's, etc.
-  */
- void omap_framebuffer_update_scanout(struct drm_framebuffer *fb, int x, int y,
-@@ -201,6 +166,55 @@ void omap_framebuffer_update_scanout(struct drm_framebuffer *fb, int x, int y,
- 	}
- }
++#include "drm_fb_helper.h"
++
++
+ #ifdef CONFIG_DEBUG_FS
  
-+/* Call for unpin 'a' (if not NULL), and pin 'b' (if not NULL).  Although
-+ * buffers to unpin are just just pushed to the unpin fifo so that the
-+ * caller can defer unpin until vblank.
-+ *
-+ * Note if this fails (ie. something went very wrong!), all buffers are
-+ * unpinned, and the caller disables the overlay.  We could have tried
-+ * to revert back to the previous set of pinned buffers but if things are
-+ * hosed there is no guarantee that would succeed.
-+ */
-+int omap_framebuffer_replace(struct drm_framebuffer *a,
-+		struct drm_framebuffer *b, void *arg,
-+		void (*unpin)(void *arg, struct drm_gem_object *bo))
++static int gem_show(struct seq_file *m, void *arg)
 +{
-+	int ret = 0, i, na, nb;
-+	struct omap_framebuffer *ofba = to_omap_framebuffer(a);
-+	struct omap_framebuffer *ofbb = to_omap_framebuffer(b);
++	struct drm_info_node *node = (struct drm_info_node *) m->private;
++	struct drm_device *dev = node->minor->dev;
++	struct omap_drm_private *priv = dev->dev_private;
++	int ret;
 +
-+	na = a ? drm_format_num_planes(a->pixel_format) : 0;
-+	nb = b ? drm_format_num_planes(b->pixel_format) : 0;
++	ret = mutex_lock_interruptible(&dev->struct_mutex);
++	if (ret)
++		return ret;
 +
-+	for (i = 0; i < max(na, nb); i++) {
-+		struct plane *pa, *pb;
++	seq_printf(m, "All Objects:\n");
++	omap_gem_describe_objects(&priv->obj_list, m);
 +
-+		pa = (i < na) ? &ofba->planes[i] : NULL;
-+		pb = (i < nb) ? &ofbb->planes[i] : NULL;
++	mutex_unlock(&dev->struct_mutex);
 +
-+		if (pa) {
-+			unpin(arg, pa->bo);
-+			pa->paddr = 0;
-+		}
++	return 0;
++}
 +
-+		if (pb && !ret)
-+			ret = omap_gem_get_paddr(pb->bo, &pb->paddr, true);
++static int mm_show(struct seq_file *m, void *arg)
++{
++	struct drm_info_node *node = (struct drm_info_node *) m->private;
++	struct drm_device *dev = node->minor->dev;
++	return drm_mm_dump_table(m, dev->mm_private);
++}
++
++static int fb_show(struct seq_file *m, void *arg)
++{
++	struct drm_info_node *node = (struct drm_info_node *) m->private;
++	struct drm_device *dev = node->minor->dev;
++	struct omap_drm_private *priv = dev->dev_private;
++	struct drm_framebuffer *fb;
++	int ret;
++
++	ret = mutex_lock_interruptible(&dev->mode_config.mutex);
++	if (ret)
++		return ret;
++
++	ret = mutex_lock_interruptible(&dev->struct_mutex);
++	if (ret) {
++		mutex_unlock(&dev->mode_config.mutex);
++		return ret;
 +	}
 +
++	seq_printf(m, "fbcon ");
++	omap_framebuffer_describe(priv->fbdev->fb, m);
++
++	list_for_each_entry(fb, &dev->mode_config.fb_list, head) {
++		if (fb == priv->fbdev->fb)
++			continue;
++
++		seq_printf(m, "user ");
++		omap_framebuffer_describe(fb, m);
++	}
++
++	mutex_unlock(&dev->struct_mutex);
++	mutex_unlock(&dev->mode_config.mutex);
++
++	return 0;
++}
++
++/* list of debufs files that are applicable to all devices */
+ static struct drm_info_list omap_debugfs_list[] = {
++	{"gem", gem_show, 0},
++	{"mm", mm_show, 0},
++	{"fb", fb_show, 0},
++};
++
++/* list of debugfs files that are specific to devices with dmm/tiler */
++static struct drm_info_list omap_dmm_debugfs_list[] = {
+ 	{"tiler_map", tiler_map_show, 0},
+ };
+ 
+ int omap_debugfs_init(struct drm_minor *minor)
+ {
+-	return drm_debugfs_create_files(omap_debugfs_list,
++	struct drm_device *dev = minor->dev;
++	int ret;
++
++	ret = drm_debugfs_create_files(omap_debugfs_list,
+ 			ARRAY_SIZE(omap_debugfs_list),
+ 			minor->debugfs_root, minor);
++
 +	if (ret) {
-+		/* something went wrong.. unpin what has been pinned */
-+		for (i = 0; i < nb; i++) {
-+			struct plane *pb = &ofba->planes[i];
-+			if (pb->paddr) {
-+				unpin(arg, pb->bo);
-+				pb->paddr = 0;
-+			}
-+		}
++		dev_err(dev->dev, "could not install omap_debugfs_list\n");
++		return ret;
++	}
++
++	/* TODO: only do this if has_dmm.. but this fxn gets called before
++	 * dev_load() so we don't know this yet..
++	 */
++	ret = drm_debugfs_create_files(omap_dmm_debugfs_list,
++			ARRAY_SIZE(omap_dmm_debugfs_list),
++			minor->debugfs_root, minor);
++
++	if (ret) {
++		dev_err(dev->dev, "could not install omap_dmm_debugfs_list\n");
++		return ret;
 +	}
 +
 +	return ret;
-+}
-+
- struct drm_gem_object *omap_framebuffer_bo(struct drm_framebuffer *fb, int p)
+ }
+ 
+ void omap_debugfs_cleanup(struct drm_minor *minor)
  {
- 	struct omap_framebuffer *omap_fb = to_omap_framebuffer(fb);
-diff --git a/drivers/staging/omapdrm/omap_plane.c b/drivers/staging/omapdrm/omap_plane.c
-index c5625e3..55ddc58 100644
---- a/drivers/staging/omapdrm/omap_plane.c
-+++ b/drivers/staging/omapdrm/omap_plane.c
-@@ -17,6 +17,8 @@
-  * this program.  If not, see <http://www.gnu.org/licenses/>.
-  */
+ 	drm_debugfs_remove_files(omap_debugfs_list,
+ 			ARRAY_SIZE(omap_debugfs_list), minor);
++	drm_debugfs_remove_files(omap_dmm_debugfs_list,
++			ARRAY_SIZE(omap_dmm_debugfs_list), minor);
+ }
  
-+#include <linux/kfifo.h>
-+
- #include "omap_drv.h"
+ #endif
+diff --git a/drivers/staging/omapdrm/omap_drv.c b/drivers/staging/omapdrm/omap_drv.c
+index 7417e1f..e2100bb 100644
+--- a/drivers/staging/omapdrm/omap_drv.c
++++ b/drivers/staging/omapdrm/omap_drv.c
+@@ -573,6 +573,8 @@ static int dev_load(struct drm_device *dev, unsigned long flags)
+ 	priv->wq = alloc_workqueue("omapdrm",
+ 			WQ_UNBOUND | WQ_NON_REENTRANT, 1);
  
- /* some hackery because omapdss has an 'enum omap_plane' (which would be
-@@ -46,8 +48,57 @@ struct omap_plane {
++	INIT_LIST_HEAD(&priv->obj_list);
++
+ 	omap_gem_init(dev);
  
- 	uint32_t nformats;
- 	uint32_t formats[32];
+ 	ret = omap_modeset_init(dev);
+diff --git a/drivers/staging/omapdrm/omap_drv.h b/drivers/staging/omapdrm/omap_drv.h
+index fe4766e..21e48cf 100644
+--- a/drivers/staging/omapdrm/omap_drv.h
++++ b/drivers/staging/omapdrm/omap_drv.h
+@@ -42,10 +42,13 @@
+ struct omap_drm_private {
+ 	unsigned int num_crtcs;
+ 	struct drm_crtc *crtcs[8];
 +
-+	/* for synchronizing access to unpins fifo */
-+	struct mutex unpin_mutex;
+ 	unsigned int num_planes;
+ 	struct drm_plane *planes[8];
 +
-+	/* set of bo's pending unpin until next END_WIN irq */
-+	DECLARE_KFIFO_PTR(unpin_fifo, struct drm_gem_object *);
-+	int num_unpins, pending_num_unpins;
+ 	unsigned int num_encoders;
+ 	struct drm_encoder *encoders[8];
 +
-+	/* for deferred unpin when we need to wait for scanout complete irq */
-+	struct work_struct work;
-+};
+ 	unsigned int num_connectors;
+ 	struct drm_connector *connectors[8];
+ 
+@@ -53,12 +56,17 @@ struct omap_drm_private {
+ 
+ 	struct workqueue_struct *wq;
+ 
++	struct list_head obj_list;
 +
-+/* map from ovl->id to the irq we are interested in for scanout-done */
-+static const uint32_t id2irq[] = {
-+		[OMAP_DSS_GFX]    = DISPC_IRQ_GFX_END_WIN,
-+		[OMAP_DSS_VIDEO1] = DISPC_IRQ_VID1_END_WIN,
-+		[OMAP_DSS_VIDEO2] = DISPC_IRQ_VID2_END_WIN,
-+		[OMAP_DSS_VIDEO3] = DISPC_IRQ_VID3_END_WIN,
+ 	bool has_dmm;
  };
  
-+static void dispc_isr(void *arg, uint32_t mask)
-+{
-+	struct drm_plane *plane = arg;
-+	struct omap_plane *omap_plane = to_omap_plane(plane);
-+	struct omap_drm_private *priv = plane->dev->dev_private;
-+
-+	omap_dispc_unregister_isr(dispc_isr, plane,
-+			id2irq[omap_plane->ovl->id]);
-+
-+	queue_work(priv->wq, &omap_plane->work);
-+}
-+
-+static void unpin_worker(struct work_struct *work)
-+{
-+	struct omap_plane *omap_plane =
-+			container_of(work, struct omap_plane, work);
-+
-+	mutex_lock(&omap_plane->unpin_mutex);
-+	DBG("unpinning %d of %d", omap_plane->num_unpins,
-+			omap_plane->num_unpins + omap_plane->pending_num_unpins);
-+	while (omap_plane->num_unpins > 0) {
-+		struct drm_gem_object *bo = NULL;
-+		int ret = kfifo_get(&omap_plane->unpin_fifo, &bo);
-+		WARN_ON(!ret);
-+		omap_gem_put_paddr(bo);
-+		drm_gem_object_unreference_unlocked(bo);
-+		omap_plane->num_unpins--;
-+	}
-+	mutex_unlock(&omap_plane->unpin_mutex);
-+}
-+
- /* push changes down to dss2 */
- static int commit(struct drm_plane *plane)
- {
-@@ -73,6 +124,11 @@ static int commit(struct drm_plane *plane)
- 		return ret;
- 	}
+ #ifdef CONFIG_DEBUG_FS
+ int omap_debugfs_init(struct drm_minor *minor);
+ void omap_debugfs_cleanup(struct drm_minor *minor);
++void omap_framebuffer_describe(struct drm_framebuffer *fb, struct seq_file *m);
++void omap_gem_describe(struct drm_gem_object *obj, struct seq_file *m);
++void omap_gem_describe_objects(struct list_head *list, struct seq_file *m);
+ #endif
  
-+	mutex_lock(&omap_plane->unpin_mutex);
-+	omap_plane->num_unpins += omap_plane->pending_num_unpins;
-+	omap_plane->pending_num_unpins = 0;
-+	mutex_unlock(&omap_plane->unpin_mutex);
+ struct drm_fb_helper *omap_fbdev_init(struct drm_device *dev);
+diff --git a/drivers/staging/omapdrm/omap_fb.c b/drivers/staging/omapdrm/omap_fb.c
+index fcb248f..04b235b 100644
+--- a/drivers/staging/omapdrm/omap_fb.c
++++ b/drivers/staging/omapdrm/omap_fb.c
+@@ -277,6 +277,24 @@ void omap_framebuffer_flush(struct drm_framebuffer *fb,
+ 	}
+ }
+ 
++#ifdef CONFIG_DEBUG_FS
++void omap_framebuffer_describe(struct drm_framebuffer *fb, struct seq_file *m)
++{
++	struct omap_framebuffer *omap_fb = to_omap_framebuffer(fb);
++	int i, n = drm_format_num_planes(fb->pixel_format);
 +
- 	/* our encoder doesn't necessarily get a commit() after this, in
- 	 * particular in the dpms() and mode_set_base() cases, so force the
- 	 * manager to update:
-@@ -85,8 +141,29 @@ static int commit(struct drm_plane *plane)
- 			dev_err(dev->dev, "could not apply settings\n");
- 			return ret;
++	seq_printf(m, "fb: %dx%d@%4.4s\n", fb->width, fb->height,
++			(char *)&fb->pixel_format);
++
++	for (i = 0; i < n; i++) {
++		struct plane *plane = &omap_fb->planes[i];
++		seq_printf(m, "   %d: offset=%d pitch=%d, obj: ",
++				i, plane->offset, plane->pitch);
++		omap_gem_describe(plane->bo, m);
++	}
++}
++#endif
++
+ struct drm_framebuffer *omap_framebuffer_create(struct drm_device *dev,
+ 		struct drm_file *file, struct drm_mode_fb_cmd2 *mode_cmd)
+ {
+diff --git a/drivers/staging/omapdrm/omap_gem.c b/drivers/staging/omapdrm/omap_gem.c
+index bd35520..1d734bc 100644
+--- a/drivers/staging/omapdrm/omap_gem.c
++++ b/drivers/staging/omapdrm/omap_gem.c
+@@ -45,6 +45,8 @@ int _drm_gem_create_mmap_offset_size(struct drm_gem_object *obj, size_t size);
+ struct omap_gem_object {
+ 	struct drm_gem_object base;
+ 
++	struct list_head mm_list;
++
+ 	uint32_t flags;
+ 
+ 	/** width/height for tiled formats (rounded up to slot boundaries) */
+@@ -254,13 +256,17 @@ static void omap_gem_detach_pages(struct drm_gem_object *obj)
+ /** get mmap offset */
+ static uint64_t mmap_offset(struct drm_gem_object *obj)
+ {
++	struct drm_device *dev = obj->dev;
++
++	WARN_ON(!mutex_is_locked(&dev->struct_mutex));
++
+ 	if (!obj->map_list.map) {
+ 		/* Make it mmapable */
+ 		size_t size = omap_gem_mmap_size(obj);
+ 		int ret = _drm_gem_create_mmap_offset_size(obj, size);
+ 
+ 		if (ret) {
+-			dev_err(obj->dev->dev, "could not allocate mmap offset");
++			dev_err(dev->dev, "could not allocate mmap offset\n");
+ 			return 0;
  		}
-+
-+		/*
-+		 * NOTE: really this should be atomic w/ mgr->apply() but
-+		 * omapdss does not expose such an API
-+		 */
-+		if (omap_plane->num_unpins > 0) {
-+			ret = omap_dispc_register_isr(dispc_isr,
-+				plane, id2irq[ovl->id]);
-+		}
-+
-+		/*
-+		 * omapdss has upper limit on # of registered irq handlers,
-+		 * which we shouldn't hit.. but if we do the limit should
-+		 * be raised or bad things happen:
-+		 */
-+		WARN_ON(ret == -EBUSY);
-+
-+	} else {
-+		struct omap_drm_private *priv = dev->dev_private;
-+		queue_work(priv->wq, &omap_plane->work);
  	}
- 
-+
- 	if (ovl->is_enabled(ovl)) {
- 		omap_framebuffer_flush(plane->fb, info->pos_x, info->pos_y,
- 				info->out_width, info->out_height);
-@@ -139,21 +216,48 @@ static void update_manager(struct drm_plane *plane)
- 	}
+@@ -764,6 +770,56 @@ void *omap_gem_vaddr(struct drm_gem_object *obj)
+ 	return omap_obj->vaddr;
  }
  
-+static void unpin(void *arg, struct drm_gem_object *bo)
++#ifdef CONFIG_DEBUG_FS
++void omap_gem_describe(struct drm_gem_object *obj, struct seq_file *m)
 +{
-+	struct drm_plane *plane = arg;
-+	struct omap_plane *omap_plane = to_omap_plane(plane);
++	struct drm_device *dev = obj->dev;
++	struct omap_gem_object *omap_obj = to_omap_bo(obj);
++	uint64_t off = 0;
 +
-+	if (kfifo_put(&omap_plane->unpin_fifo,
-+			(const struct drm_gem_object **)&bo)) {
-+		omap_plane->pending_num_unpins++;
-+		/* also hold a ref so it isn't free'd while pinned */
-+		drm_gem_object_reference(bo);
++	WARN_ON(! mutex_is_locked(&dev->struct_mutex));
++
++	if (obj->map_list.map)
++		off = (uint64_t)obj->map_list.hash.key;
++
++	seq_printf(m, "%08x: %2d (%2d) %08llx %08Zx (%2d) %p %4d",
++			omap_obj->flags, obj->name, obj->refcount.refcount.counter,
++			off, omap_obj->paddr, omap_obj->paddr_cnt,
++			omap_obj->vaddr, omap_obj->roll);
++
++	if (omap_obj->flags & OMAP_BO_TILED) {
++		seq_printf(m, " %dx%d", omap_obj->width, omap_obj->height);
++		if (omap_obj->block) {
++			struct tcm_area *area = &omap_obj->block->area;
++			seq_printf(m, " (%dx%d, %dx%d)",
++					area->p0.x, area->p0.y,
++					area->p1.x, area->p1.y);
++		}
 +	} else {
-+		dev_err(plane->dev->dev, "unpin fifo full!\n");
-+		omap_gem_put_paddr(bo);
++		seq_printf(m, " %d", obj->size);
 +	}
++
++	seq_printf(m, "\n");
 +}
 +
- /* update which fb (if any) is pinned for scanout */
- static int update_pin(struct drm_plane *plane, struct drm_framebuffer *fb)
- {
- 	struct omap_plane *omap_plane = to_omap_plane(plane);
--	int ret = 0;
-+	struct drm_framebuffer *pinned_fb = omap_plane->pinned_fb;
++void omap_gem_describe_objects(struct list_head *list, struct seq_file *m)
++{
++	struct omap_gem_object *omap_obj;
++	int count = 0;
++	size_t size = 0;
 +
-+	if (pinned_fb != fb) {
-+		int ret;
++	list_for_each_entry(omap_obj, list, mm_list) {
++		struct drm_gem_object *obj = &omap_obj->base;
++		seq_printf(m, "   ");
++		omap_gem_describe(obj, m);
++		count++;
++		size += obj->size;
++	}
 +
-+		DBG("%p -> %p", pinned_fb, fb);
++	seq_printf(m, "Total %d objects, %zu bytes\n", count, size);
++}
++#endif
 +
-+		mutex_lock(&omap_plane->unpin_mutex);
-+		ret = omap_framebuffer_replace(pinned_fb, fb, plane, unpin);
-+		mutex_unlock(&omap_plane->unpin_mutex);
-+
-+		if (ret) {
-+			dev_err(plane->dev->dev, "could not swap %p -> %p\n",
-+					omap_plane->pinned_fb, fb);
-+			omap_plane->pinned_fb = NULL;
-+			return ret;
-+		}
+ /* Buffer Synchronization:
+  */
  
--	if (omap_plane->pinned_fb != fb) {
--		if (omap_plane->pinned_fb)
--			omap_framebuffer_unpin(omap_plane->pinned_fb);
- 		omap_plane->pinned_fb = fb;
--		if (fb)
--			ret = omap_framebuffer_pin(fb);
+@@ -1030,6 +1086,10 @@ void omap_gem_free_object(struct drm_gem_object *obj)
+ 
+ 	evict(obj);
+ 
++	WARN_ON(!mutex_is_locked(&dev->struct_mutex));
++
++	list_del(&omap_obj->mm_list);
++
+ 	if (obj->map_list.map) {
+ 		drm_gem_free_mmap_offset(obj);
  	}
- 
--	return ret;
-+	return 0;
- }
- 
- /* update parameters that are dependent on the framebuffer dimensions and
-@@ -243,6 +347,8 @@ static void omap_plane_destroy(struct drm_plane *plane)
- 	DBG("%s", omap_plane->ovl->name);
- 	omap_plane_disable(plane);
- 	drm_plane_cleanup(plane);
-+	WARN_ON(omap_plane->pending_num_unpins + omap_plane->num_unpins > 0);
-+	kfifo_free(&omap_plane->unpin_fifo);
- 	kfree(omap_plane);
- }
- 
-@@ -260,8 +366,10 @@ int omap_plane_dpms(struct drm_plane *plane, int mode)
- 		if (!r)
- 			r = ovl->enable(ovl);
- 	} else {
-+		struct omap_drm_private *priv = plane->dev->dev_private;
- 		r = ovl->disable(ovl);
- 		update_pin(plane, NULL);
-+		queue_work(priv->wq, &omap_plane->work);
- 	}
- 
- 	return r;
-@@ -280,16 +388,30 @@ struct drm_plane *omap_plane_init(struct drm_device *dev,
- {
- 	struct drm_plane *plane = NULL;
- 	struct omap_plane *omap_plane;
-+	int ret;
- 
- 	DBG("%s: possible_crtcs=%08x, priv=%d", ovl->name,
- 			possible_crtcs, priv);
- 
-+	/* friendly reminder to update table for future hw: */
-+	WARN_ON(ovl->id >= ARRAY_SIZE(id2irq));
-+
- 	omap_plane = kzalloc(sizeof(*omap_plane), GFP_KERNEL);
- 	if (!omap_plane) {
- 		dev_err(dev->dev, "could not allocate plane\n");
+@@ -1130,6 +1190,8 @@ struct drm_gem_object *omap_gem_new(struct drm_device *dev,
  		goto fail;
  	}
  
-+	mutex_init(&omap_plane->unpin_mutex);
++	list_add(&omap_obj->mm_list, &priv->obj_list);
 +
-+	ret = kfifo_alloc(&omap_plane->unpin_fifo, 16, GFP_KERNEL);
-+	if (ret) {
-+		dev_err(dev->dev, "could not allocate unpin FIFO\n");
-+		goto fail;
-+	}
-+
-+	INIT_WORK(&omap_plane->work, unpin_worker);
-+
- 	omap_plane->nformats = omap_framebuffer_get_formats(
- 			omap_plane->formats, ARRAY_SIZE(omap_plane->formats),
- 			ovl->supported_modes);
+ 	obj = &omap_obj->base;
+ 
+ 	if ((flags & OMAP_BO_SCANOUT) && !priv->has_dmm) {
 -- 
 1.7.5.4
 
