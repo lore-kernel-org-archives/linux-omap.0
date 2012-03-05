@@ -1,44 +1,74 @@
-From: Dmitry Torokhov <dmitry.torokhov@gmail.com>
-Subject: Re: [PATCH v4 2/2] MFD: twl6040: Convert to i2c driver,
- and separate it from twl core
-Date: Sun, 4 Mar 2012 11:05:34 -0800
-Message-ID: <20120304190534.GA22602@core.coreip.homeip.net>
-References: <1330418092-12314-1-git-send-email-peter.ujfalusi@ti.com>
-	<1330418092-12314-3-git-send-email-peter.ujfalusi@ti.com>
+From: Rajendra Nayak <rnayak@ti.com>
+Subject: Re: [PATCH v2 0/6] mmc: omap_hsmmc: Clean up use/abuse of pdev->id
+Date: Mon, 05 Mar 2012 13:24:54 +0530
+Message-ID: <4F54714E.6080805@ti.com>
+References: <1329996409-26861-1-git-send-email-rnayak@ti.com> <4F476228.7060607@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
 Content-Transfer-Encoding: 7bit
-Return-path: <alsa-devel-bounces@alsa-project.org>
-Content-Disposition: inline
-In-Reply-To: <1330418092-12314-3-git-send-email-peter.ujfalusi@ti.com>
-List-Unsubscribe: <http://mailman.alsa-project.org/mailman/listinfo/alsa-devel>,
-	<mailto:alsa-devel-request@alsa-project.org?subject=unsubscribe>
-List-Archive: <http://mailman.alsa-project.org/pipermail/alsa-devel>
-List-Post: <mailto:alsa-devel@alsa-project.org>
-List-Help: <mailto:alsa-devel-request@alsa-project.org?subject=help>
-List-Subscribe: <http://mailman.alsa-project.org/mailman/listinfo/alsa-devel>,
-	<mailto:alsa-devel-request@alsa-project.org?subject=subscribe>
-Sender: alsa-devel-bounces@alsa-project.org
-Errors-To: alsa-devel-bounces@alsa-project.org
-To: Peter Ujfalusi <peter.ujfalusi@ti.com>
-Cc: alsa-devel@alsa-project.org, Samuel Ortiz <sameo@linux.intel.com>, Tony Lindgren <tony@atomide.com>, Mark Brown <broonie@opensource.wolfsonmicro.com>, linux-kernel@vger.kernel.org, Santosh Shilimkar <santosh.shilimkar@ti.com>, Misael Lopez Cruz <misael.lopez@ti.com>, linux-omap@vger.kernel.org, Liam Girdwood <lrg@ti.com>
+Return-path: <linux-mmc-owner@vger.kernel.org>
+In-Reply-To: <4F476228.7060607@ti.com>
+Sender: linux-mmc-owner@vger.kernel.org
+To: Rajendra Nayak <rnayak@ti.com>
+Cc: linux-mmc@vger.kernel.org, cjb@laptop.org, linux-omap@vger.kernel.org, balajitk@ti.com, svenkatr@ti.com, linux-arm-kernel@lists.infradead.org, linaro-dev@lists.linaro.org, patches@linaro.org
 List-Id: linux-omap@vger.kernel.org
 
-On Tue, Feb 28, 2012 at 10:34:52AM +0200, Peter Ujfalusi wrote:
-> Complete the separation of the twl6040 from the twl core since
-> it is a separate chip, not part of the twl6030 PMIC.
-> 
-> Make the needed Kconfig changes for the depending drivers at the same time to
-> avoid breaking the kernel build (vibra, ASoC components).
-> 
-> Signed-off-by: Peter Ujfalusi <peter.ujfalusi@ti.com>
-> Reviewed-by: Mark Brown <broonie@opensource.wolfsonicro.com>
-> Acked-by: Tony Lindgren <tony@atomide.com>
-> Acked-by: Samuel Ortiz <sameo@linux.intel.com>
+On Friday 24 February 2012 03:40 PM, Rajendra Nayak wrote:
+> Chris,
+>
+> On Thursday 23 February 2012 04:56 PM, Rajendra Nayak wrote:
+>> Re-sending as these patches did not make it to the lists due to
+>> issues with my 'git send-email'
+>>
+>> This series mainly cleans up all instances of hardcoding's in
+>> the driver based on pdev->id. This is cleanup leading to the
+>> DT adaptation of omap_hsmmc driver.
+>>
+>> v2 mainly has some minor changes to get rid of a debug print
+>> which was still using host->id and getting rid of 'id' field
+>> entirely from omap_hsmmc_host struct.
+>>
+>> The series is tested on OMAP4SDP, OMAP4panda, OMAP3beagle and OMAP2430SDP
+>> boards.
+>
+> This series is reviewed/tested and acked by Balaji and Venkat.
+> Care to pull this in for 3.4?
+>
+> I have one other cleanup patch on top of this series to make all
+> remaining pr_* prints in the driver to dev_* [1].
+> It would be great if you could pick that up as well.
+>
+> These patches are cleanups leading to the DT conversion of omap_hsmmc
+> driver.
 
-For input part:
+Chris, Ping. I am basing my DT support patches on top of these cleanups.
+Would be great if you can have a look and pull them in.
 
-Acked-by: Dmitry Torokhov <dtor@mail.ru>
+>
+> regards,
+> Rajendra
+>
+> [1] http://marc.info/?l=linux-mmc&m=132999677405098&w=3
+>
+>>
+>> regards,
+>> Rajendra
+>>
+>> Balaji T K (3):
+>> mmc: omap_hsmmc: use platform_get_resource_byname for tx/rx DMA
+>> channels
+>> mmc: omap_hsmmc: remove unused .set_sleep function
+>> mmc: omap_hsmmc: Use OMAP_HSMMC_SUPPORTS_DUAL_VOLT flag to remove
+>> host->id based hardcoding
+>>
+>> Rajendra Nayak (3):
+>> mmc: omap_hsmmc: Get rid of omap_hsmmc_1_set_power function
+>> mmc: omap_hsmmc: Get rid of omap_hsmmc_4_set_power function
+>> mmc: omap_hsmmc: Don't expect MMC1 to always have vmmc supply
+>>
+>> arch/arm/plat-omap/include/plat/mmc.h | 2 -
+>> drivers/mmc/host/omap_hsmmc.c | 175 +++------------------------------
+>> 2 files changed, 16 insertions(+), 161 deletions(-)
+>>
+>
 
--- 
-Dmitry
