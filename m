@@ -1,82 +1,103 @@
 From: Rajendra Nayak <rnayak@ti.com>
-Subject: Re: [PATCHv4 1/6] ARM: OMAP3 PM: correct enable/disable of daisy
- io chain
-Date: Tue, 06 Mar 2012 10:02:56 +0530
-Message-ID: <4F559378.3010204@ti.com>
-References: <1330701475-22576-1-git-send-email-t-kristo@ti.com> <1330701475-22576-2-git-send-email-t-kristo@ti.com> <alpine.DEB.2.00.1203051953580.6649@utopia.booyaka.com> <4F558A42.1020503@ti.com> <alpine.DEB.2.00.1203052103440.6649@utopia.booyaka.com>
+Subject: Re: [PATCHv4 4/6] ARM: OMAP3+: PRM: Enable IO wake up
+Date: Tue, 06 Mar 2012 10:20:20 +0530
+Message-ID: <4F55978C.7030407@ti.com>
+References: <1330701475-22576-1-git-send-email-t-kristo@ti.com> <1330701475-22576-5-git-send-email-t-kristo@ti.com> <alpine.DEB.2.00.1203052001240.6649@utopia.booyaka.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=ISO-8859-15;
+	format=flowed
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aog113.obsmtp.com ([74.125.149.209]:51887 "EHLO
-	na3sys009aog113.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1758255Ab2CFEdG (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 5 Mar 2012 23:33:06 -0500
-Received: by ghrr18 with SMTP id r18so2435037ghr.0
-        for <linux-omap@vger.kernel.org>; Mon, 05 Mar 2012 20:33:03 -0800 (PST)
-In-Reply-To: <alpine.DEB.2.00.1203052103440.6649@utopia.booyaka.com>
+Received: from na3sys009aog131.obsmtp.com ([74.125.149.247]:53531 "EHLO
+	psmtp.com" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
+	id S1757943Ab2CFEu3 (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Mon, 5 Mar 2012 23:50:29 -0500
+Received: by mail-gx0-f173.google.com with SMTP id j2so2384905ggn.32
+        for <linux-omap@vger.kernel.org>; Mon, 05 Mar 2012 20:50:27 -0800 (PST)
+In-Reply-To: <alpine.DEB.2.00.1203052001240.6649@utopia.booyaka.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: Paul Walmsley <paul@pwsan.com>
-Cc: dnilesh@ti.com, Mohan V <mohanv@ti.com>, Vishwanath BS <vishwanath.bs@ti.com>, Tero Kristo <t-kristo@ti.com>, linux-omap@vger.kernel.org, khilman@ti.com, linux-arm-kernel@lists.infradead.org
+Cc: Tero Kristo <t-kristo@ti.com>, Mohan V <mohanv@ti.com>, Vishwanath BS <vishwanath.bs@ti.com>, dnilesh@ti.com, linux-omap@vger.kernel.org, khilman@ti.com, linux-arm-kernel@lists.infradead.org
 
-On Tuesday 06 March 2012 09:43 AM, Paul Walmsley wrote:
-> Hi Rajendra
+On Tuesday 06 March 2012 09:51 AM, Paul Walmsley wrote:
+> added Rajendra, Nilesh, Vishwa, Mohan
 >
-> (thanks for adding in Nilesh, added him again here)
+> Hi
 >
-> On Tue, 6 Mar 2012, Rajendra Nayak wrote:
+> On Fri, 2 Mar 2012, Tero Kristo wrote:
 >
->> Yes, thats my understanding too, again based on taking to people like
->> Nilesh, because the documentation just doesn't mention this clearly.
->> The 4430 TRM is a tad bit better like you said.
+>> Enable IO Wake up for OMAP3/4 as part of PRM Init. Currently this ha=
+s been
+>> managed in cpuidle path which is not the right place. Subsequent pat=
+ch
+>> will remove IO Daisy chain handling in cpuidle path once daisy chain=
+ is
+>> handled as part of hwmod mux. This patch also moves the OMAP4 IO wak=
+eup
+>> enable code from the trigger function to init time setup.
 >>
->> I guess your confusion of IO wakeups working with EN_IO_CHAIN set to '0'
->> is also probably coming from the fact that the bit itself is called
->> *EN_IO_CHAIN* which is a completely *wrong* name for the bit, as
->> compared to what it does.
->> That bit is actually used to send a WUCLK pulse through the chain, so
->> you set it to '1' and wait for it to propagate through the chain, then
->> you set it to '0' and again wait for it to propagate through.
+>> Signed-off-by: Tero Kristo<t-kristo@ti.com>
 >
-> Okay.  So to confirm: EN_IO_CHAIN doesn't enable a continuous clock, it
-> just controls the WUCLKIN line directly?
+> Should we keep the I/O wakeups enabled all the time?
+>
+> Seems like that could result in at least one spurious wake-up event -=
+- and
+> thus a PRCM interrupt -- for each I/O pad that has WAKEUPENABLE set.
+> Seems like these interrupts could recur every time the I/O chain is r=
+eset.
+> And that the I/O chain is now reset in every hwmod idle and enable
+> operation for an IP block that contains dynamic mux data?
+>
+> Thinking about the problem na=EFvely... maybe you all can think throu=
+gh this
+> with me:
+>
+> Consider an IP block 'A' that has a signal (like the UART rx_irrx sig=
+nal)
+> that's mux'ed to a pad with WAKEUPENABLE set.  (Some examples of 'A' =
+might
+> include a UART, a GPIO, or a McBSP.)
+>
+> Shouldn't we enable I/O wakeups (by setting EN_IO/GLOBAL_WUEN) only
+> immediately before the powerdomain containing IP block 'A' is going t=
+o
+> transition into RETENTION or OFF?
 
-Right.
+Hi Paul,
+
+I completely agree with your observations and we knew we would have
+additional wakeups with this design. Like I mentioned in the other
+thread, we went ahead with this approach knowing we need to optimize
+with some kind of powerdomain level usecounting in the future, because
+it didn't exist back then when we did it this way.
+But now that we already have it, maybe we can fix this and do
+it such that we completely avoid an additional wakeup interrupt.
 
 >
->> The control to enable/disable is at 2 levels, a global switch which is
->> 'EN_IO' in case of OMAP3 and the one at the individual pad level.
+> If we do that, then we can avoid needlessly resetting the I/O chain w=
+hen a
+> powerdomain is not going to go into a low-power state.
 >
-> Do you happen to know what EN_IO/GLOBAL_WUEN does?  For example, if it's
-> 0, will the I/O chain not latch in wakeup events occuring on the pads?
+> I haven't measured the time it takes for the I/O chain to be reset.
+> Maybe one of you have.  But that 100 microsecond timeout that was
+> specified in two of the other patches in this series has me a little
+> worried.
 
-Yes, it wouldn't. Figure 3-74 in OMAP4430_ES2.x Public TRM vO
-explains this better.
+I haven't profiled it myself but I am guessing the delay isn't much.
+The 100us comes from the fact that there is no documentation on the
+exact delay, so went around asking whats the *real worst case* delay,
+and we got an answer, 100us should be really big enough :)
 
-The WUEN signal to each pad (which can be used to enable IO-daisy
-for the given pad) is a AND of a signal from PRCM and
-one from SCM.
-The signal from PRCM can be enabled by writing into
-EN_IO/GLOBAL_WUEN bit.
-The signal from SCM can be enabled by writing to the individual
-pad registers in SCM
-CONTROL.CONTROL_PADCONF_<IOpad>[14] WAKEUPENABLE0
-CONTROL.CONTROL_PADCONF_<IOpad>[30] WAKEUPENABLE1.
+regards,
+Rajendra
 
-If either one of them is not enabled the IO wakeups on the pads won't
-be latched. So if EN_IO/GLOBAL_WUEN is disabled, none of the pads will
-be able to generate IO wakeups.
-
-> Or does it just cause the PRCM to ignore any PRCM wakeups coming from the
-> I/O chain?  (Or something else, heh)
->
->> You can also read this thread which has some more explanation based on
->> my understanding of how this works
->> http://www.spinics.net/lists/linux-serial/msg04480.html
->
-> I've been reading that post; it's been quite helpful.
 >
 >
 > - Paul
 
+--
+To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
