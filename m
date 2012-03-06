@@ -1,98 +1,87 @@
-From: Rajendra Nayak <rnayak@ti.com>
-Subject: Re: [PATCHv3 1/4] ARM: OMAP4: suspend: Program all domains to retention
-Date: Tue, 06 Mar 2012 14:13:05 +0530
-Message-ID: <4F55CE19.7000309@ti.com>
-References: <1330529106-10423-1-git-send-email-t-kristo@ti.com>	 <1330529106-10423-2-git-send-email-t-kristo@ti.com> <871up6in50.fsf@ti.com> <1331022713.2116.144.camel@sokoban>
+From: Tero Kristo <t-kristo@ti.com>
+Subject: Re: [PATCHv4 4/6] ARM: OMAP3+: PRM: Enable IO wake up
+Date: Tue, 6 Mar 2012 10:44:16 +0200
+Message-ID: <1331023456.2116.148.camel@sokoban>
+References: <1330701475-22576-1-git-send-email-t-kristo@ti.com>
+ <1330701475-22576-5-git-send-email-t-kristo@ti.com>
+ <alpine.DEB.2.00.1203052001240.6649@utopia.booyaka.com>
+ <4F55978C.7030407@ti.com>  <4F5598E3.4050506@ti.com>
+Reply-To: t-kristo@ti.com
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8; format=flowed
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aog127.obsmtp.com ([74.125.149.107]:33227 "EHLO
-	psmtp.com" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
-	id S1758420Ab2CFInM (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Tue, 6 Mar 2012 03:43:12 -0500
-Received: by mail-yx0-f180.google.com with SMTP id l4so2402824yen.11
-        for <linux-omap@vger.kernel.org>; Tue, 06 Mar 2012 00:43:11 -0800 (PST)
-In-Reply-To: <1331022713.2116.144.camel@sokoban>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
+In-Reply-To: <4F5598E3.4050506@ti.com>
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
+List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
+List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
+Sender: linux-arm-kernel-bounces@lists.infradead.org
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
+To: Rajendra Nayak <rnayak@ti.com>
+Cc: khilman@ti.com, Paul Walmsley <paul@pwsan.com>, dnilesh@ti.com, Mohan V <mohanv@ti.com>, Vishwanath BS <vishwanath.bs@ti.com>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 List-Id: linux-omap@vger.kernel.org
-To: t-kristo@ti.com
-Cc: Kevin Hilman <khilman@ti.com>, linux-omap@vger.kernel.org, paul@pwsan.com, linux-arm-kernel@lists.infradead.org
 
-On Tuesday 06 March 2012 02:01 PM, Tero Kristo wrote:
-> On Mon, 2012-03-05 at 16:33 -0800, Kevin Hilman wrote:
->> Tero Kristo<t-kristo@ti.com>  writes:
->>
->>> From: Rajendra Nayak<rnayak@ti.com>
->>>
->>> Remove the FIXME's in the suspend sequence since
->>> we now intend to support system level RET support.
->>>
->>> Signed-off-by: Rajendra Nayak<rnayak@ti.com>
->>> Signed-off-by: Tero Kristo<t-kristo@ti.com>
->>> Reviewed-by: Santosh Shilimkar<santosh.shilimkar@ti.com>
->>
->> So this is the only patch in this series that is still needed.  However...
->>
->> It doesn't seem like this all by itself is ready for mainline as we'll
->> suddenly start putting all powerdomains in retention without any
->> additional support.
->>
->> I guess at a minimum it needs working IO wakeup support from the IO
->> daisy chain series.  Are there other dependencies here?
->
-> Only IO chain is needed for wakeup capability. Actually even with the
-> current mainline kernel, I am unable to wake-up the device from MPU
-> retention, as there are no wakeup sources. So this patch doesn't really
-
-Why?, doesn't debug console wakeup work?
-
-> change the behavior to worse even without any additional patches. :) But
-> yea, good to wait until IO chain is in.
-
-IO chain, according to documentation :) should be needed only if you
-hit OSWR or OFF, async wakeups should be functional as long as you
-only hit CSWR.
-
->
-> The other dependencies are that the stuff handled by patches 2,3 and 4
-> have to be handled somehow:
->
-> -patch2: must be in (this patch is queued by Paul)
-> -patch3: will be taken care of by Paul's pwrdm fixes (I guess this is
-> queued by Paul himself already)
-> -patch4: OMAP interrupt count must be increased (this is handled by
-> Benoit's patch, which is queued by Tony)
->
-> -Tero
->
->>
->> If not, I can queue this when Paul is ready to merge the IO wakeup
->> stuff.
->>
->> Kevin
->>
->>> ---
->>>   arch/arm/mach-omap2/pm44xx.c |    6 ------
->>>   1 files changed, 0 insertions(+), 6 deletions(-)
->>>
->>> diff --git a/arch/arm/mach-omap2/pm44xx.c b/arch/arm/mach-omap2/pm44xx.c
->>> index c264ef7..1ab30a3 100644
->>> --- a/arch/arm/mach-omap2/pm44xx.c
->>> +++ b/arch/arm/mach-omap2/pm44xx.c
->>> @@ -151,12 +151,6 @@ static int __init pwrdms_setup(struct powerdomain *pwrdm, void *unused)
->>>   	if (!strncmp(pwrdm->name, "cpu", 3))
->>>   		return 0;
->>>
->>> -	/*
->>> -	 * FIXME: Remove this check when core retention is supported
->>> -	 * Only MPUSS power domain is added in the list.
->>> -	 */
->>> -	if (strcmp(pwrdm->name, "mpu_pwrdm"))
->>> -		return 0;
->>>
->>>   	pwrst = kmalloc(sizeof(struct power_state), GFP_ATOMIC);
->>>   	if (!pwrst)
->
->
-
+T24gVHVlLCAyMDEyLTAzLTA2IGF0IDEwOjI2ICswNTMwLCBSYWplbmRyYSBOYXlhayB3cm90ZToK
+PiBPbiBUdWVzZGF5IDA2IE1hcmNoIDIwMTIgMTA6MjAgQU0sIFJhamVuZHJhIE5heWFrIHdyb3Rl
+Ogo+ID4gT24gVHVlc2RheSAwNiBNYXJjaCAyMDEyIDA5OjUxIEFNLCBQYXVsIFdhbG1zbGV5IHdy
+b3RlOgo+ID4+IGFkZGVkIFJhamVuZHJhLCBOaWxlc2gsIFZpc2h3YSwgTW9oYW4KPiA+Pgo+ID4+
+IEhpCj4gPj4KPiA+PiBPbiBGcmksIDIgTWFyIDIwMTIsIFRlcm8gS3Jpc3RvIHdyb3RlOgo+ID4+
+Cj4gPj4+IEVuYWJsZSBJTyBXYWtlIHVwIGZvciBPTUFQMy80IGFzIHBhcnQgb2YgUFJNIEluaXQu
+IEN1cnJlbnRseSB0aGlzIGhhcwo+ID4+PiBiZWVuCj4gPj4+IG1hbmFnZWQgaW4gY3B1aWRsZSBw
+YXRoIHdoaWNoIGlzIG5vdCB0aGUgcmlnaHQgcGxhY2UuIFN1YnNlcXVlbnQgcGF0Y2gKPiA+Pj4g
+d2lsbCByZW1vdmUgSU8gRGFpc3kgY2hhaW4gaGFuZGxpbmcgaW4gY3B1aWRsZSBwYXRoIG9uY2Ug
+ZGFpc3kgY2hhaW4gaXMKPiA+Pj4gaGFuZGxlZCBhcyBwYXJ0IG9mIGh3bW9kIG11eC4gVGhpcyBw
+YXRjaCBhbHNvIG1vdmVzIHRoZSBPTUFQNCBJTyB3YWtldXAKPiA+Pj4gZW5hYmxlIGNvZGUgZnJv
+bSB0aGUgdHJpZ2dlciBmdW5jdGlvbiB0byBpbml0IHRpbWUgc2V0dXAuCj4gPj4+Cj4gPj4+IFNp
+Z25lZC1vZmYtYnk6IFRlcm8gS3Jpc3RvPHQta3Jpc3RvQHRpLmNvbT4KPiA+Pgo+ID4+IFNob3Vs
+ZCB3ZSBrZWVwIHRoZSBJL08gd2FrZXVwcyBlbmFibGVkIGFsbCB0aGUgdGltZT8KPiA+Pgo+ID4+
+IFNlZW1zIGxpa2UgdGhhdCBjb3VsZCByZXN1bHQgaW4gYXQgbGVhc3Qgb25lIHNwdXJpb3VzIHdh
+a2UtdXAgZXZlbnQgLS0KPiA+PiBhbmQKPiA+PiB0aHVzIGEgUFJDTSBpbnRlcnJ1cHQgLS0gZm9y
+IGVhY2ggSS9PIHBhZCB0aGF0IGhhcyBXQUtFVVBFTkFCTEUgc2V0Lgo+ID4+IFNlZW1zIGxpa2Ug
+dGhlc2UgaW50ZXJydXB0cyBjb3VsZCByZWN1ciBldmVyeSB0aW1lIHRoZSBJL08gY2hhaW4gaXMK
+PiA+PiByZXNldC4KPiA+PiBBbmQgdGhhdCB0aGUgSS9PIGNoYWluIGlzIG5vdyByZXNldCBpbiBl
+dmVyeSBod21vZCBpZGxlIGFuZCBlbmFibGUKPiA+PiBvcGVyYXRpb24gZm9yIGFuIElQIGJsb2Nr
+IHRoYXQgY29udGFpbnMgZHluYW1pYyBtdXggZGF0YT8KPiA+Pgo+ID4+IFRoaW5raW5nIGFib3V0
+IHRoZSBwcm9ibGVtIG5hw692ZWx5Li4uIG1heWJlIHlvdSBhbGwgY2FuIHRoaW5rIHRocm91Z2gK
+PiA+PiB0aGlzCj4gPj4gd2l0aCBtZToKPiA+Pgo+ID4+IENvbnNpZGVyIGFuIElQIGJsb2NrICdB
+JyB0aGF0IGhhcyBhIHNpZ25hbCAobGlrZSB0aGUgVUFSVCByeF9pcnJ4IHNpZ25hbCkKPiA+PiB0
+aGF0J3MgbXV4J2VkIHRvIGEgcGFkIHdpdGggV0FLRVVQRU5BQkxFIHNldC4gKFNvbWUgZXhhbXBs
+ZXMgb2YgJ0EnIG1pZ2h0Cj4gPj4gaW5jbHVkZSBhIFVBUlQsIGEgR1BJTywgb3IgYSBNY0JTUC4p
+Cj4gPj4KPiA+PiBTaG91bGRuJ3Qgd2UgZW5hYmxlIEkvTyB3YWtldXBzIChieSBzZXR0aW5nIEVO
+X0lPL0dMT0JBTF9XVUVOKSBvbmx5Cj4gPj4gaW1tZWRpYXRlbHkgYmVmb3JlIHRoZSBwb3dlcmRv
+bWFpbiBjb250YWluaW5nIElQIGJsb2NrICdBJyBpcyBnb2luZyB0bwo+ID4+IHRyYW5zaXRpb24g
+aW50byBSRVRFTlRJT04gb3IgT0ZGPwo+ID4KPiA+IEhpIFBhdWwsCj4gPgo+ID4gSSBjb21wbGV0
+ZWx5IGFncmVlIHdpdGggeW91ciBvYnNlcnZhdGlvbnMgYW5kIHdlIGtuZXcgd2Ugd291bGQgaGF2
+ZQo+ID4gYWRkaXRpb25hbCB3YWtldXBzIHdpdGggdGhpcyBkZXNpZ24uIExpa2UgSSBtZW50aW9u
+ZWQgaW4gdGhlIG90aGVyCj4gPiB0aHJlYWQsIHdlIHdlbnQgYWhlYWQgd2l0aCB0aGlzIGFwcHJv
+YWNoIGtub3dpbmcgd2UgbmVlZCB0byBvcHRpbWl6ZQo+ID4gd2l0aCBzb21lIGtpbmQgb2YgcG93
+ZXJkb21haW4gbGV2ZWwgdXNlY291bnRpbmcgaW4gdGhlIGZ1dHVyZSwgYmVjYXVzZQo+ID4gaXQg
+ZGlkbid0IGV4aXN0IGJhY2sgdGhlbiB3aGVuIHdlIGRpZCBpdCB0aGlzIHdheS4KPiA+IEJ1dCBu
+b3cgdGhhdCB3ZSBhbHJlYWR5IGhhdmUgaXQsIG1heWJlIHdlIGNhbiBmaXggdGhpcyBhbmQgZG8K
+PiA+IGl0IHN1Y2ggdGhhdCB3ZSBjb21wbGV0ZWx5IGF2b2lkIGFuIGFkZGl0aW9uYWwgd2FrZXVw
+IGludGVycnVwdC4KPiA+Cj4gPj4KPiA+PiBJZiB3ZSBkbyB0aGF0LCB0aGVuIHdlIGNhbiBhdm9p
+ZCBuZWVkbGVzc2x5IHJlc2V0dGluZyB0aGUgSS9PIGNoYWluCj4gPj4gd2hlbiBhCj4gPj4gcG93
+ZXJkb21haW4gaXMgbm90IGdvaW5nIHRvIGdvIGludG8gYSBsb3ctcG93ZXIgc3RhdGUuCj4gPj4K
+PiA+PiBJIGhhdmVuJ3QgbWVhc3VyZWQgdGhlIHRpbWUgaXQgdGFrZXMgZm9yIHRoZSBJL08gY2hh
+aW4gdG8gYmUgcmVzZXQuCj4gPj4gTWF5YmUgb25lIG9mIHlvdSBoYXZlLiBCdXQgdGhhdCAxMDAg
+bWljcm9zZWNvbmQgdGltZW91dCB0aGF0IHdhcwo+ID4+IHNwZWNpZmllZCBpbiB0d28gb2YgdGhl
+IG90aGVyIHBhdGNoZXMgaW4gdGhpcyBzZXJpZXMgaGFzIG1lIGEgbGl0dGxlCj4gPj4gd29ycmll
+ZC4KPiA+Cj4gPiBJIGhhdmVuJ3QgcHJvZmlsZWQgaXQgbXlzZWxmIGJ1dCBJIGFtIGd1ZXNzaW5n
+IHRoZSBkZWxheSBpc24ndCBtdWNoLgo+IAo+IEhhdmluZyBzYWlkIHRoYXQsIEkgZG8gYWdyZWUg
+d2l0aCB5b3UgdGhhdCwgaG93ZXZlciBzbWFsbCB0aGUgZGVsYXksCj4gd2UgZW5kIHVwIGRvaW5n
+IG5lZWRsZXNzIElPIHRyaWdnZXIgd2hlbiB0aGUgcG93ZXJkb21haW4gaXNuJ3QKPiByZWFsbHkg
+ZW50ZXJpbmcgYSBsb3cgcG93ZXIgc3RhdGUuCgpJIGRpZCBzb21lIG1lYXN1cmVtZW50cyBvbiB0
+aGlzIGEgd2hpbGUgYmFjayBhbmQgdGhlIGRlbGF5IHdhcyBhcm91bmQgYQpmZXcgbWljcm9zZWNv
+bmRzLiBJIGNhbiByZWRvIHRoaXMgd2hpbGUgZG9pbmcgdmVyc2lvbiA1LgoKLVRlcm8KCj4gCj4g
+PiBUaGUgMTAwdXMgY29tZXMgZnJvbSB0aGUgZmFjdCB0aGF0IHRoZXJlIGlzIG5vIGRvY3VtZW50
+YXRpb24gb24gdGhlCj4gPiBleGFjdCBkZWxheSwgc28gd2VudCBhcm91bmQgYXNraW5nIHdoYXRz
+IHRoZSAqcmVhbCB3b3JzdCBjYXNlKiBkZWxheSwKPiA+IGFuZCB3ZSBnb3QgYW4gYW5zd2VyLCAx
+MDB1cyBzaG91bGQgYmUgcmVhbGx5IGJpZyBlbm91Z2ggOikKPiA+Cj4gPiByZWdhcmRzLAo+ID4g
+UmFqZW5kcmEKPiA+Cj4gPj4KPiA+Pgo+ID4+IC0gUGF1bAo+ID4KPiAKCgoKX19fX19fX19fX19f
+X19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX18KbGludXgtYXJtLWtlcm5lbCBtYWls
+aW5nIGxpc3QKbGludXgtYXJtLWtlcm5lbEBsaXN0cy5pbmZyYWRlYWQub3JnCmh0dHA6Ly9saXN0
+cy5pbmZyYWRlYWQub3JnL21haWxtYW4vbGlzdGluZm8vbGludXgtYXJtLWtlcm5lbAo=
