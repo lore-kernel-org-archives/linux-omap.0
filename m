@@ -1,37 +1,46 @@
 From: Tony Lindgren <tony@atomide.com>
-Subject: [PATCH] ARM: OMAP2+: Fix omap24xx_io_desc warning if SoC subtypes
- are not selected
-Date: Tue, 6 Mar 2012 11:47:48 -0800
-Message-ID: <20120306194748.GU12083@atomide.com>
+Subject: Re: OMAP totally fucked?
+Date: Tue, 6 Mar 2012 11:55:29 -0800
+Message-ID: <20120306195529.GV12083@atomide.com>
+References: <20120303154650.GA16132@n2100.arm.linux.org.uk>
+ <20120303180428.GA10293@atomide.com>
+ <201203031829.06992.arnd@arndb.de>
+ <20120303210521.GE10293@atomide.com>
+ <20120304155909.GA14466@n2100.arm.linux.org.uk>
+ <87fwdlfr8n.fsf@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-01-ewr.mailhop.org ([204.13.248.71]:27596 "EHLO
-	mho-01-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S965176Ab2CFTrw (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 6 Mar 2012 14:47:52 -0500
+Received: from mho-02-ewr.mailhop.org ([204.13.248.72]:52132 "EHLO
+	mho-02-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S965199Ab2CFTzg (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 6 Mar 2012 14:55:36 -0500
 Content-Disposition: inline
+In-Reply-To: <87fwdlfr8n.fsf@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: linux-omap@vger.kernel.org
-Cc: linux-arm-kernel@lists.infradead.org
+To: Kevin Hilman <khilman@ti.com>
+Cc: Russell King - ARM Linux <linux@arm.linux.org.uk>, Arnd Bergmann <arnd@arndb.de>, Peter Ujfalusi <peter.ujfalusi@ti.com>, linux-omap@vger.kernel.org, Olof Johansson <olof@lixom.net>
 
-Otherwise we get the following warning:
+* Kevin Hilman <khilman@ti.com> [120306 11:13]:
+> Russell King - ARM Linux <linux@arm.linux.org.uk> writes:
+> >
+> > WARNING: arch/arm/mach-omap2/built-in.o(.text+0x183c): Section mismatch in reference from the function omap2_init_processor_devices() to the function .init.text:_init_omap_device()
+> > The function omap2_init_processor_devices() references
+> > the function __init _init_omap_device().
+> > This is often because omap2_init_processor_devices lacks a __init 
+> > annotation or the annotation of _init_omap_device is wrong.
+> 
+> Below is a fix for this one.
+> 
+> My compiler (gcc version 4.6.1 (Ubuntu/Linaro 4.6.1-9ubuntu3)) was
+> inlining these so I wasn't seeing this warning.  I had to make
+> omap2_init_processor_devices() static to make the warning appear.
+> 
+> Anyways, fix is trivial, patch below.
 
-arch/arm/mach-omap2/io.c:53:24: warning:
-'omap24xx_io_desc' defined but not used [-Wunused-variable]
+Thanks, I'll add that to fixes-non-critical-part2.
 
-Reported-by: Russell King <linux@arm.linux.org.uk>
-Signed-off-by: Tony Lindgren <tony@atomide.com>
+Regards,
 
---- a/arch/arm/mach-omap2/io.c
-+++ b/arch/arm/mach-omap2/io.c
-@@ -49,7 +49,7 @@
-  * default mapping provided here.
-  */
- 
--#ifdef CONFIG_ARCH_OMAP2
-+#if defined(CONFIG_SOC_OMAP2420) || defined(CONFIG_SOC_OMAP2430)
- static struct map_desc omap24xx_io_desc[] __initdata = {
- 	{
- 		.virtual	= L3_24XX_VIRT,
+Tony
