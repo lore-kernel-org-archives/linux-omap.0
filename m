@@ -1,61 +1,58 @@
-From: Rajendra Nayak <rnayak@ti.com>
-Subject: Re: [PATCHv4 2/6] ARM: OMAP3 PM: Move IO Daisychain function to omap3
- prm file
-Date: Tue, 06 Mar 2012 11:30:46 +0530
-Message-ID: <4F55A80E.3090606@ti.com>
-References: <1330701475-22576-1-git-send-email-t-kristo@ti.com> <1330701475-22576-3-git-send-email-t-kristo@ti.com> <20120306054443.GA5670@kobold>
+From: Nishanth Menon <nm@ti.com>
+Subject: Re: [PATCH] ARM: OMAP2+: voltage: ensure voltage used is exact
+ voltage from OPP table
+Date: Tue, 6 Mar 2012 00:12:35 -0600
+Message-ID: <20120306061233.GC5670@kobold>
+References: <1330728121-26664-1-git-send-email-khilman@ti.com>
+ <1330940487.2116.119.camel@sokoban> <877gyyor28.fsf@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aog122.obsmtp.com ([74.125.149.147]:51402 "EHLO
-	na3sys009aog122.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751672Ab2CFGAz (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 6 Mar 2012 01:00:55 -0500
-Received: by mail-gx0-f176.google.com with SMTP id s6so2580603ggc.35
-        for <linux-omap@vger.kernel.org>; Mon, 05 Mar 2012 22:00:52 -0800 (PST)
-In-Reply-To: <20120306054443.GA5670@kobold>
-Sender: linux-omap-owner@vger.kernel.org
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
+Content-Disposition: inline
+In-Reply-To: <877gyyor28.fsf@ti.com>
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
+List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
+List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
+Sender: linux-arm-kernel-bounces@lists.infradead.org
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
+To: Kevin Hilman <khilman@ti.com>
+Cc: t-kristo@ti.com, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 List-Id: linux-omap@vger.kernel.org
-To: Nishanth Menon <nm@ti.com>
-Cc: Tero Kristo <t-kristo@ti.com>, linux-omap@vger.kernel.org, khilman@ti.com, paul@pwsan.com, Vishwanath BS <vishwanath.bs@ti.com>, linux-arm-kernel@lists.infradead.org
 
-On Tuesday 06 March 2012 11:14 AM, Nishanth Menon wrote:
-> On 17:17-20120302, Tero Kristo wrote:
->> From: Vishwanath BS<vishwanath.bs@ti.com>
->>
->> Since IO Daisychain modifies only PRM registers, it makes sense to move
->> it to PRM File. Also changed the timeout value for IO chain enable to
->> 100us and added a wait for status disable at the end.
->>
-> [...]
->> +/*
->> + * Maximum time(us) it takes to output the signal WUCLKOUT of the last pad of
->> + * the I/O ring after asserting WUCLKIN high
->> + */
->> +#define MAX_IOPAD_LATCH_TIME 100
->> +
->> +/* OMAP3 Daisychain enable sequence */
->> +void omap3_trigger_io_chain(void)
->> +{
->> +	int i = 0;
->> +
->> +	omap2_prm_set_mod_reg_bits(OMAP3430_EN_IO_CHAIN_MASK, WKUP_MOD,
->> +				   PM_WKEN);
->> +	/* Do a readback to assure write has been done */
->> +	omap2_prm_read_mod_reg(WKUP_MOD, PM_WKEN);
->> +
->> +	omap_test_timeout(((omap2_prm_read_mod_reg(WKUP_MOD, PM_WKST)&
->> +			    OMAP3430_ST_IO_CHAIN_MASK) == 1),
-> umm
-> arch/arm/mach-omap2/prm-regbits-34xx.h:#define OMAP3430_ST_IO_CHAIN_MASK
-> (1<<  16)
-> (reg&  (1<<  16)) == 1
-> will ever be true?
+On 10:12-20120305, Kevin Hilman wrote:
+> Tero Kristo <t-kristo@ti.com> writes:
+> 
+> > On Fri, 2012-03-02 at 14:42 -0800, Kevin Hilman wrote:
+> >> When using the SMPS regulators to scale voltages, the regulator
+> >> framework may pass a minimum voltage that is not an exact OPP voltage.
+> >> For the VC/VP controlled voltage domains, we must ensure that the
+> >> voltage requested is the exact voltage from the OPP table.  This is
+> >> especially critical when using SR.
+> >> 
+> >> To fix, voltdm_scale() uses the target voltage passed to walk through
+> >> the OPP voltages until it finds a voltage that is >= one of the OPP
+> >> voltages.
+> >
+> > I have just one question to this, how about smartreflex class1p5? Do we
+> > have any plans for that one? The old implementation at least was using
+> > voltdm_scale, so if we modify this function, smartreflex class1p5
+> > doesn't work anymore.
+> 
+> Since it's not in mainline, that is not my concern at the moment.  We
+> can worry about SR1.5 when I someone is motivated to push it upstream.
+> 
+> > Otherwise this patch looks good to me.
 
-good catch. Its should actually be '((reg & (1 << 16)) >> 16) == 1'
-This is fixed in the omap4_trigger_io() function, looks like is missed
-here.
+Other than the minor misgiving of having to re-verify the voltage on
+every scale, I am OK with it as well.
 
->
+That said, I don't see why this should break class 1.5/3.5 support.
 
+-- 
+Regards,
+Nishanth Menon
