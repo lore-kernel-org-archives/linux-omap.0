@@ -1,95 +1,119 @@
-From: Peter Ujfalusi <peter.ujfalusi@ti.com>
-Subject: [PATCH 1/5] Revert "mfd/Input/ASoC: twl6040 kconfig fixes"
-Date: Tue,  6 Mar 2012 14:35:12 +0200
-Message-ID: <1331037316-7375-2-git-send-email-peter.ujfalusi@ti.com>
-References: <1331037316-7375-1-git-send-email-peter.ujfalusi@ti.com>
+From: "Maupin, Chase" <chase.maupin@ti.com>
+Subject: RE: [PATCH] mmc: omap_hsmmc: set dto to 14 for all devices
+Date: Tue, 6 Mar 2012 12:54:34 +0000
+Message-ID: <7D46E86EC0A8354091174257B2FED1012F050F72@DLEE12.ent.ti.com>
+References: <1330622780-1909-1-git-send-email-Chase.Maupin@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-In-Reply-To: <1331037316-7375-1-git-send-email-peter.ujfalusi@ti.com>
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: linux-arm-kernel-bounces@lists.infradead.org
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: Samuel Ortiz <sameo@linux.intel.com>
-Cc: Stephen Rothwell <sfr@canb.auug.org.au>, Tony Lindgren <tony@atomide.com>, linux-kernel@vger.kernel.org, paul.gortmaker@windriver.com, linux-next@vger.kernel.org, linux-omap@vger.kernel.org, Liam Girdwood <lrg@ti.com>, linux-arm-kernel@lists.infradead.org
+Content-Type: text/plain; charset="Windows-1252"
+Content-Transfer-Encoding: 8BIT
+Return-path: <linux-mmc-owner@vger.kernel.org>
+In-Reply-To: <1330622780-1909-1-git-send-email-Chase.Maupin@ti.com>
+Content-Language: en-US
+Sender: linux-mmc-owner@vger.kernel.org
+To: "Maupin, Chase" <chase.maupin@ti.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-mmc@vger.kernel.org" <linux-mmc@vger.kernel.org>
 List-Id: linux-omap@vger.kernel.org
 
-This reverts commit a0afdbc2665bbad5ebc81a43b820e97f56ea0582.
+Ping on this patch.  I have not seen any response on the list but if I have missed something please let me know.
 
-Reverting changes regarding to twl6040 in MFD tree since the patches will go
-via the audio tree.
+> -----Original Message-----
+> From: Maupin, Chase
+> Sent: Thursday, March 01, 2012 11:26 AM
+> To: linux-omap@vger.kernel.org; linux-mmc@vger.kernel.org
+> Cc: Maupin, Chase
+> Subject: [PATCH] mmc: omap_hsmmc: set dto to 14 for all devices
+> 
+> * With certain SD cards timeouts like the following have been seen
+>   due to an improper calculation of the dto value:
+>     mmcblk0: error -110 transferring data, sector 4126233, nr 8,
+>     card status 0xc00
+> * By removing the dto calculation and setting the timeout value
+>   to the maximum specified by the SD card specification part A2
+>   section 2.2.15 these timeouts can be avoided.
+> * This change has been used by beagleboard users as well as the
+>   Texas Instruments SDK without a negative impact.
+> * There are multiple discussion threads about this but the most
+>   relevant ones are:
+>     * http://talk.maemo.org/showthread.php?p=1000707#post1000707
+>     * http://www.mail-archive.com/linux-
+> omap@vger.kernel.org/msg42213.html
+> * Original proposal for this fix was done by Sukumar Ghoral of
+>   Texas Instruments
+> 
+> * Tested using a Texas Instruments AM335x EVM
+> 
+> Signed-off-by: Chase Maupin <Chase.Maupin@ti.com>
+> ---
+>  drivers/mmc/host/omap_hsmmc.c |   30 +++++------------------------
+> -
+>  1 files changed, 5 insertions(+), 25 deletions(-)
+> 
+> diff --git a/drivers/mmc/host/omap_hsmmc.c
+> b/drivers/mmc/host/omap_hsmmc.c
+> index fd0c661..afd7292 100644
+> --- a/drivers/mmc/host/omap_hsmmc.c
+> +++ b/drivers/mmc/host/omap_hsmmc.c
+> @@ -1481,11 +1481,8 @@ static int
+> omap_hsmmc_start_dma_transfer(struct omap_hsmmc_host *host,
+>  	return 0;
+>  }
+> 
+> -static void set_data_timeout(struct omap_hsmmc_host *host,
+> -			     unsigned int timeout_ns,
+> -			     unsigned int timeout_clks)
+> +static void set_data_timeout(struct omap_hsmmc_host *host)
+>  {
+> -	unsigned int timeout, cycle_ns;
+>  	uint32_t reg, clkd, dto = 0;
+> 
+>  	reg = OMAP_HSMMC_READ(host->base, SYSCTL);
+> @@ -1493,25 +1490,8 @@ static void set_data_timeout(struct
+> omap_hsmmc_host *host,
+>  	if (clkd == 0)
+>  		clkd = 1;
+> 
+> -	cycle_ns = 1000000000 / (clk_get_rate(host->fclk) / clkd);
+> -	timeout = timeout_ns / cycle_ns;
+> -	timeout += timeout_clks;
+> -	if (timeout) {
+> -		while ((timeout & 0x80000000) == 0) {
+> -			dto += 1;
+> -			timeout <<= 1;
+> -		}
+> -		dto = 31 - dto;
+> -		timeout <<= 1;
+> -		if (timeout && dto)
+> -			dto += 1;
+> -		if (dto >= 13)
+> -			dto -= 13;
+> -		else
+> -			dto = 0;
+> -		if (dto > 14)
+> -			dto = 14;
+> -	}
+> +    /* Use the maximum timeout value allowed in the standard of 14
+> or 0xE */
+> +	dto = 14;
+> 
+>  	reg &= ~DTO_MASK;
+>  	reg |= dto << DTO_SHIFT;
+> @@ -1534,13 +1514,13 @@ omap_hsmmc_prepare_data(struct
+> omap_hsmmc_host *host, struct mmc_request *req)
+>  		 * busy signal.
+>  		 */
+>  		if (req->cmd->flags & MMC_RSP_BUSY)
+> -			set_data_timeout(host, 100000000U, 0);
+> +			set_data_timeout(host);
+>  		return 0;
+>  	}
+> 
+>  	OMAP_HSMMC_WRITE(host->base, BLK, (req->data->blksz)
+>  					| (req->data->blocks << 16));
+> -	set_data_timeout(host, req->data->timeout_ns, req->data-
+> >timeout_clks);
+> +	set_data_timeout(host);
+> 
+>  	if (host->use_dma) {
+>  		ret = omap_hsmmc_start_dma_transfer(host, req);
+> --
+> 1.7.0.4
 
-Signed-off-by: Peter Ujfalusi <peter.ujfalusi@ti.com>
----
- drivers/input/misc/Kconfig |    2 +-
- drivers/mfd/Kconfig        |   11 ++---------
- sound/soc/codecs/Kconfig   |    3 ++-
- 3 files changed, 5 insertions(+), 11 deletions(-)
-
-diff --git a/drivers/input/misc/Kconfig b/drivers/input/misc/Kconfig
-index 9450d4c..6a9ee24 100644
---- a/drivers/input/misc/Kconfig
-+++ b/drivers/input/misc/Kconfig
-@@ -368,7 +368,7 @@ config INPUT_TWL4030_VIBRA
- 
- config INPUT_TWL6040_VIBRA
- 	tristate "Support for TWL6040 Vibrator"
--	depends on TWL6040_CORE
-+	select TWL6040_CORE
- 	select INPUT_FF_MEMLESS
- 	help
- 	  This option enables support for TWL6040 Vibrator Driver.
-diff --git a/drivers/mfd/Kconfig b/drivers/mfd/Kconfig
-index 14e1efa..880c69a 100644
---- a/drivers/mfd/Kconfig
-+++ b/drivers/mfd/Kconfig
-@@ -267,17 +267,10 @@ config TWL6030_PWM
- 	  This is used to control charging LED brightness.
- 
- config TWL6040_CORE
--	bool "Support for TWL6040 audio codec"
--	depends on I2C=y && GENERIC_HARDIRQS
-+	bool
-+	depends on I2C && GENERIC_HARDIRQS
- 	select MFD_CORE
--	select REGMAP_I2C
- 	default n
--	help
--	  Say yes here if you want support for Texas Instruments TWL6040 audio
--	  codec.
--	  This driver provides common support for accessing the device,
--	  additional drivers must be enabled in order to use the
--	  functionality of the device (audio, vibra).
- 
- config MFD_STMPE
- 	bool "Support STMicroelectronics STMPE"
-diff --git a/sound/soc/codecs/Kconfig b/sound/soc/codecs/Kconfig
-index 6b4d86a..f1a1197 100644
---- a/sound/soc/codecs/Kconfig
-+++ b/sound/soc/codecs/Kconfig
-@@ -56,7 +56,7 @@ config SND_SOC_ALL_CODECS
- 	select SND_SOC_TPA6130A2 if I2C
- 	select SND_SOC_TLV320DAC33 if I2C
- 	select SND_SOC_TWL4030 if TWL4030_CORE
--	select SND_SOC_TWL6040 if TWL6040_CORE
-+	select SND_SOC_TWL6040 if I2C
- 	select SND_SOC_UDA134X
- 	select SND_SOC_UDA1380 if I2C
- 	select SND_SOC_WL1273 if MFD_WL1273_CORE
-@@ -274,6 +274,7 @@ config SND_SOC_TWL4030
- 	tristate
- 
- config SND_SOC_TWL6040
-+	select TWL6040_CORE
- 	tristate
- 
- config SND_SOC_UDA134X
--- 
-1.7.8.5
