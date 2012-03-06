@@ -1,102 +1,117 @@
 From: Tero Kristo <t-kristo@ti.com>
-Subject: [PATCHv5 3/6] ARM: OMAP4 PM: Add IO Daisychain support
-Date: Tue, 6 Mar 2012 17:11:39 +0200
-Message-ID: <1331046702-2472-4-git-send-email-t-kristo@ti.com>
+Subject: [PATCHv5 6/6] ARM: OMAP3 PM: Remove IO Daisychain control from cpuidle
+Date: Tue, 6 Mar 2012 17:11:42 +0200
+Message-ID: <1331046702-2472-7-git-send-email-t-kristo@ti.com>
 References: <1331046702-2472-1-git-send-email-t-kristo@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from arroyo.ext.ti.com ([192.94.94.40]:58009 "EHLO arroyo.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1030854Ab2CFPMA (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Tue, 6 Mar 2012 10:12:00 -0500
+Received: from devils.ext.ti.com ([198.47.26.153]:48524 "EHLO
+	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1030905Ab2CFPMF (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 6 Mar 2012 10:12:05 -0500
 In-Reply-To: <1331046702-2472-1-git-send-email-t-kristo@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: linux-omap@vger.kernel.org, khilman@ti.com, paul@pwsan.com
-Cc: linux-arm-kernel@lists.infradead.org, Rajendra Nayak <rnayak@ti.com>, Vishwanath BS <vishwanath.bs@ti.com>
+Cc: linux-arm-kernel@lists.infradead.org, Vishwanath BS <vishwanath.bs@ti.com>
 
-From: Rajendra Nayak <rnayak@ti.com>
+From: Vishwanath BS <vishwanath.bs@ti.com>
 
-IO daisychain is a mechanism that allows individual IO pads to generate
-wakeup events on their own based on a switch of an input signal level.
-This allows the hardware module behind the pad to be powered down, but
-still have device level capability to detect IO events, and once this
-happens the module can be powered back up to resume IO. See section
-3.9.4 in OMAP4430 Public TRM for details.
+As IO Daisy chain sequence is triggered via hwmod mux, there is no need to
+control it from cpuidle path for OMAP3.
 
-Signed-off-by: Rajendra Nayak <rnayak@ti.com>
+Also as omap3_disable_io_chain is no longer being used, just remove the
+function.
+
 Signed-off-by: Vishwanath BS <vishwanath.bs@ti.com>
 Signed-off-by: Tero Kristo <t-kristo@ti.com>
+Reviewed-by: Rajendra Nayak <rnayak@ti.com>
 ---
- arch/arm/mach-omap2/prm44xx.c |   41 +++++++++++++++++++++++++++++++++++++++++
- arch/arm/mach-omap2/prm44xx.h |    1 +
- 2 files changed, 42 insertions(+), 0 deletions(-)
+ arch/arm/mach-omap2/pm34xx.c       |   17 -----------------
+ arch/arm/mach-omap2/prm2xxx_3xxx.c |    8 --------
+ arch/arm/mach-omap2/prm2xxx_3xxx.h |    7 -------
+ 3 files changed, 0 insertions(+), 32 deletions(-)
 
-diff --git a/arch/arm/mach-omap2/prm44xx.c b/arch/arm/mach-omap2/prm44xx.c
-index a37bfd4..caa5e0f 100644
---- a/arch/arm/mach-omap2/prm44xx.c
-+++ b/arch/arm/mach-omap2/prm44xx.c
-@@ -231,6 +231,47 @@ void omap44xx_prm_restore_irqen(u32 *saved_mask)
- 				 OMAP4_PRM_IRQENABLE_MPU_2_OFFSET);
+diff --git a/arch/arm/mach-omap2/pm34xx.c b/arch/arm/mach-omap2/pm34xx.c
+index e97ec3f..ed12bb4 100644
+--- a/arch/arm/mach-omap2/pm34xx.c
++++ b/arch/arm/mach-omap2/pm34xx.c
+@@ -291,13 +291,6 @@ void omap_sram_idle(void)
+ 	/* Enable IO-PAD and IO-CHAIN wakeups */
+ 	per_next_state = pwrdm_read_next_pwrst(per_pwrdm);
+ 	core_next_state = pwrdm_read_next_pwrst(core_pwrdm);
+-	if (omap3_has_io_wakeup() &&
+-	    (per_next_state < PWRDM_POWER_ON ||
+-	     core_next_state < PWRDM_POWER_ON)) {
+-		omap2_prm_set_mod_reg_bits(OMAP3430_EN_IO_MASK, WKUP_MOD, PM_WKEN);
+-		if (omap3_has_io_chain_ctrl())
+-			omap3_trigger_io_chain();
+-	}
+ 
+ 	pwrdm_pre_transition();
+ 
+@@ -376,16 +369,6 @@ void omap_sram_idle(void)
+ 			omap3_per_restore_context();
+ 	}
+ 
+-	/* Disable IO-PAD and IO-CHAIN wakeup */
+-	if (omap3_has_io_wakeup() &&
+-	    (per_next_state < PWRDM_POWER_ON ||
+-	     core_next_state < PWRDM_POWER_ON)) {
+-		omap2_prm_clear_mod_reg_bits(OMAP3430_EN_IO_MASK, WKUP_MOD,
+-					     PM_WKEN);
+-		if (omap3_has_io_chain_ctrl())
+-			omap3_disable_io_chain();
+-	}
+-
+ 	clkdm_allow_idle(mpu_pwrdm->pwrdm_clkdms[0]);
  }
  
-+/*
-+ * Maximum time(us) it takes to output the signal WUCLKOUT of the last pad of
-+ * the I/O ring after asserting WUCLKIN high
-+ */
-+#define MAX_IOPAD_LATCH_TIME 100
-+
-+/* OMAP4 IO Daisychain trigger sequence */
-+void omap4_trigger_io_chain(void)
-+{
-+	int i = 0;
-+
-+	/* Enable GLOBAL_WUEN */
-+	if (!(omap4_prm_read_inst_reg(OMAP4430_PRM_DEVICE_INST,
-+		OMAP4_PRM_IO_PMCTRL_OFFSET) & OMAP4430_GLOBAL_WUEN_MASK))
-+		omap4_prm_rmw_inst_reg_bits(OMAP4430_GLOBAL_WUEN_MASK,
-+			OMAP4430_GLOBAL_WUEN_MASK, OMAP4430_PRM_DEVICE_INST,
-+			OMAP4_PRM_IO_PMCTRL_OFFSET);
-+
-+	/* Trigger WUCLKIN enable */
-+	omap4_prm_rmw_inst_reg_bits(OMAP4430_WUCLK_CTRL_MASK,
-+			OMAP4430_WUCLK_CTRL_MASK, OMAP4430_PRM_DEVICE_INST,
-+			OMAP4_PRM_IO_PMCTRL_OFFSET);
-+	omap_test_timeout(
-+		(((omap4_prm_read_inst_reg(OMAP4430_PRM_DEVICE_INST,
-+			OMAP4_PRM_IO_PMCTRL_OFFSET) &
-+			OMAP4430_WUCLK_STATUS_MASK) >>
-+			OMAP4430_WUCLK_STATUS_SHIFT) == 1),
-+		MAX_IOPAD_LATCH_TIME, i);
-+
-+	/* Trigger WUCLKIN disable */
-+	omap4_prm_rmw_inst_reg_bits(OMAP4430_WUCLK_CTRL_MASK, 0x0,
-+			OMAP4430_PRM_DEVICE_INST, OMAP4_PRM_IO_PMCTRL_OFFSET);
-+	omap_test_timeout(
-+		(((omap4_prm_read_inst_reg(OMAP4430_PRM_DEVICE_INST,
-+			OMAP4_PRM_IO_PMCTRL_OFFSET) &
-+			OMAP4430_WUCLK_STATUS_MASK) >>
-+			OMAP4430_WUCLK_STATUS_SHIFT) == 0),
-+		MAX_IOPAD_LATCH_TIME, i);
-+	return;
-+}
-+
- static int __init omap4xxx_prcm_init(void)
- {
- 	if (cpu_is_omap44xx())
-diff --git a/arch/arm/mach-omap2/prm44xx.h b/arch/arm/mach-omap2/prm44xx.h
-index 7978092..54a057e 100644
---- a/arch/arm/mach-omap2/prm44xx.h
-+++ b/arch/arm/mach-omap2/prm44xx.h
-@@ -762,6 +762,7 @@ void omap4_prm_vp_clear_txdone(u8 vp_id);
- extern u32 omap4_prm_vcvp_read(u8 offset);
- extern void omap4_prm_vcvp_write(u32 val, u8 offset);
- extern u32 omap4_prm_vcvp_rmw(u32 mask, u32 bits, u8 offset);
-+extern void omap4_trigger_io_chain(void);
+diff --git a/arch/arm/mach-omap2/prm2xxx_3xxx.c b/arch/arm/mach-omap2/prm2xxx_3xxx.c
+index f0179f6..b8962fe 100644
+--- a/arch/arm/mach-omap2/prm2xxx_3xxx.c
++++ b/arch/arm/mach-omap2/prm2xxx_3xxx.c
+@@ -330,14 +330,6 @@ void omap3_trigger_io_chain(void)
+ 	omap2_prm_read_mod_reg(WKUP_MOD, PM_WKST);
+ }
  
- /* PRM interrupt-related functions */
- extern void omap44xx_prm_read_pending_irqs(unsigned long *events);
+-/* OMAP3 Daisychain disable sequence */
+-void omap3_disable_io_chain(void)
+-{
+-	if (omap_rev() >= OMAP3430_REV_ES3_1)
+-		omap2_prm_clear_mod_reg_bits(OMAP3430_EN_IO_CHAIN_MASK,
+-					     WKUP_MOD, PM_WKEN);
+-}
+-
+ static void __init omap3_enable_io_wakeup(void)
+ {
+ 	if (omap3_has_io_wakeup())
+diff --git a/arch/arm/mach-omap2/prm2xxx_3xxx.h b/arch/arm/mach-omap2/prm2xxx_3xxx.h
+index 15973aa..391b844 100644
+--- a/arch/arm/mach-omap2/prm2xxx_3xxx.h
++++ b/arch/arm/mach-omap2/prm2xxx_3xxx.h
+@@ -295,12 +295,6 @@ static inline void omap3_trigger_io_chain(void)
+ 		"not suppose to be used on omap4\n");
+ 	return 0;
+ }
+-static inline void omap3_disable_io_chain(void)
+-{
+-	WARN(1, "prm: omap2xxx/omap3xxx specific function and "
+-		"not suppose to be used on omap4\n");
+-	return 0;
+-}
+ #else
+ /* Power/reset management domain register get/set */
+ extern u32 omap2_prm_read_mod_reg(s16 module, u16 idx);
+@@ -315,7 +309,6 @@ extern int omap2_prm_is_hardreset_asserted(s16 prm_mod, u8 shift);
+ extern int omap2_prm_assert_hardreset(s16 prm_mod, u8 shift);
+ extern int omap2_prm_deassert_hardreset(s16 prm_mod, u8 rst_shift, u8 st_shift);
+ extern void omap3_trigger_io_chain(void);
+-extern void omap3_disable_io_chain(void);
+ 
+ /* OMAP3-specific VP functions */
+ u32 omap3_prm_vp_check_txdone(u8 vp_id);
 -- 
 1.7.4.1
 
