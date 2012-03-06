@@ -1,87 +1,121 @@
 From: Tero Kristo <t-kristo@ti.com>
-Subject: Re: [PATCHv4 4/6] ARM: OMAP3+: PRM: Enable IO wake up
-Date: Tue, 6 Mar 2012 10:44:16 +0200
-Message-ID: <1331023456.2116.148.camel@sokoban>
+Subject: Re: [PATCHv4 5/6] ARM: OMAP3PLUS PM: Add IO Daisychain support via
+ hwmod mux
+Date: Tue, 6 Mar 2012 10:51:50 +0200
+Message-ID: <1331023910.2116.155.camel@sokoban>
 References: <1330701475-22576-1-git-send-email-t-kristo@ti.com>
- <1330701475-22576-5-git-send-email-t-kristo@ti.com>
- <alpine.DEB.2.00.1203052001240.6649@utopia.booyaka.com>
- <4F55978C.7030407@ti.com>  <4F5598E3.4050506@ti.com>
-Reply-To: t-kristo@ti.com
+	 <1330701475-22576-6-git-send-email-t-kristo@ti.com>
+	 <alpine.DEB.2.00.1203052057050.6649@utopia.booyaka.com>
+	 <4F5590D6.8030707@ti.com>
+Reply-To: <t-kristo@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-In-Reply-To: <4F5598E3.4050506@ti.com>
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: linux-arm-kernel-bounces@lists.infradead.org
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: Rajendra Nayak <rnayak@ti.com>
-Cc: khilman@ti.com, Paul Walmsley <paul@pwsan.com>, dnilesh@ti.com, Mohan V <mohanv@ti.com>, Vishwanath BS <vishwanath.bs@ti.com>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from bear.ext.ti.com ([192.94.94.41]:53886 "EHLO bear.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1758506Ab2CFIv4 (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Tue, 6 Mar 2012 03:51:56 -0500
+In-Reply-To: <4F5590D6.8030707@ti.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Rajendra Nayak <rnayak@ti.com>
+Cc: Paul Walmsley <paul@pwsan.com>, linux-omap@vger.kernel.org, khilman@ti.com, linux-arm-kernel@lists.infradead.org, Vishwanath BS <vishwanath.bs@ti.com>
 
-T24gVHVlLCAyMDEyLTAzLTA2IGF0IDEwOjI2ICswNTMwLCBSYWplbmRyYSBOYXlhayB3cm90ZToK
-PiBPbiBUdWVzZGF5IDA2IE1hcmNoIDIwMTIgMTA6MjAgQU0sIFJhamVuZHJhIE5heWFrIHdyb3Rl
-Ogo+ID4gT24gVHVlc2RheSAwNiBNYXJjaCAyMDEyIDA5OjUxIEFNLCBQYXVsIFdhbG1zbGV5IHdy
-b3RlOgo+ID4+IGFkZGVkIFJhamVuZHJhLCBOaWxlc2gsIFZpc2h3YSwgTW9oYW4KPiA+Pgo+ID4+
-IEhpCj4gPj4KPiA+PiBPbiBGcmksIDIgTWFyIDIwMTIsIFRlcm8gS3Jpc3RvIHdyb3RlOgo+ID4+
-Cj4gPj4+IEVuYWJsZSBJTyBXYWtlIHVwIGZvciBPTUFQMy80IGFzIHBhcnQgb2YgUFJNIEluaXQu
-IEN1cnJlbnRseSB0aGlzIGhhcwo+ID4+PiBiZWVuCj4gPj4+IG1hbmFnZWQgaW4gY3B1aWRsZSBw
-YXRoIHdoaWNoIGlzIG5vdCB0aGUgcmlnaHQgcGxhY2UuIFN1YnNlcXVlbnQgcGF0Y2gKPiA+Pj4g
-d2lsbCByZW1vdmUgSU8gRGFpc3kgY2hhaW4gaGFuZGxpbmcgaW4gY3B1aWRsZSBwYXRoIG9uY2Ug
-ZGFpc3kgY2hhaW4gaXMKPiA+Pj4gaGFuZGxlZCBhcyBwYXJ0IG9mIGh3bW9kIG11eC4gVGhpcyBw
-YXRjaCBhbHNvIG1vdmVzIHRoZSBPTUFQNCBJTyB3YWtldXAKPiA+Pj4gZW5hYmxlIGNvZGUgZnJv
-bSB0aGUgdHJpZ2dlciBmdW5jdGlvbiB0byBpbml0IHRpbWUgc2V0dXAuCj4gPj4+Cj4gPj4+IFNp
-Z25lZC1vZmYtYnk6IFRlcm8gS3Jpc3RvPHQta3Jpc3RvQHRpLmNvbT4KPiA+Pgo+ID4+IFNob3Vs
-ZCB3ZSBrZWVwIHRoZSBJL08gd2FrZXVwcyBlbmFibGVkIGFsbCB0aGUgdGltZT8KPiA+Pgo+ID4+
-IFNlZW1zIGxpa2UgdGhhdCBjb3VsZCByZXN1bHQgaW4gYXQgbGVhc3Qgb25lIHNwdXJpb3VzIHdh
-a2UtdXAgZXZlbnQgLS0KPiA+PiBhbmQKPiA+PiB0aHVzIGEgUFJDTSBpbnRlcnJ1cHQgLS0gZm9y
-IGVhY2ggSS9PIHBhZCB0aGF0IGhhcyBXQUtFVVBFTkFCTEUgc2V0Lgo+ID4+IFNlZW1zIGxpa2Ug
-dGhlc2UgaW50ZXJydXB0cyBjb3VsZCByZWN1ciBldmVyeSB0aW1lIHRoZSBJL08gY2hhaW4gaXMK
-PiA+PiByZXNldC4KPiA+PiBBbmQgdGhhdCB0aGUgSS9PIGNoYWluIGlzIG5vdyByZXNldCBpbiBl
-dmVyeSBod21vZCBpZGxlIGFuZCBlbmFibGUKPiA+PiBvcGVyYXRpb24gZm9yIGFuIElQIGJsb2Nr
-IHRoYXQgY29udGFpbnMgZHluYW1pYyBtdXggZGF0YT8KPiA+Pgo+ID4+IFRoaW5raW5nIGFib3V0
-IHRoZSBwcm9ibGVtIG5hw692ZWx5Li4uIG1heWJlIHlvdSBhbGwgY2FuIHRoaW5rIHRocm91Z2gK
-PiA+PiB0aGlzCj4gPj4gd2l0aCBtZToKPiA+Pgo+ID4+IENvbnNpZGVyIGFuIElQIGJsb2NrICdB
-JyB0aGF0IGhhcyBhIHNpZ25hbCAobGlrZSB0aGUgVUFSVCByeF9pcnJ4IHNpZ25hbCkKPiA+PiB0
-aGF0J3MgbXV4J2VkIHRvIGEgcGFkIHdpdGggV0FLRVVQRU5BQkxFIHNldC4gKFNvbWUgZXhhbXBs
-ZXMgb2YgJ0EnIG1pZ2h0Cj4gPj4gaW5jbHVkZSBhIFVBUlQsIGEgR1BJTywgb3IgYSBNY0JTUC4p
-Cj4gPj4KPiA+PiBTaG91bGRuJ3Qgd2UgZW5hYmxlIEkvTyB3YWtldXBzIChieSBzZXR0aW5nIEVO
-X0lPL0dMT0JBTF9XVUVOKSBvbmx5Cj4gPj4gaW1tZWRpYXRlbHkgYmVmb3JlIHRoZSBwb3dlcmRv
-bWFpbiBjb250YWluaW5nIElQIGJsb2NrICdBJyBpcyBnb2luZyB0bwo+ID4+IHRyYW5zaXRpb24g
-aW50byBSRVRFTlRJT04gb3IgT0ZGPwo+ID4KPiA+IEhpIFBhdWwsCj4gPgo+ID4gSSBjb21wbGV0
-ZWx5IGFncmVlIHdpdGggeW91ciBvYnNlcnZhdGlvbnMgYW5kIHdlIGtuZXcgd2Ugd291bGQgaGF2
-ZQo+ID4gYWRkaXRpb25hbCB3YWtldXBzIHdpdGggdGhpcyBkZXNpZ24uIExpa2UgSSBtZW50aW9u
-ZWQgaW4gdGhlIG90aGVyCj4gPiB0aHJlYWQsIHdlIHdlbnQgYWhlYWQgd2l0aCB0aGlzIGFwcHJv
-YWNoIGtub3dpbmcgd2UgbmVlZCB0byBvcHRpbWl6ZQo+ID4gd2l0aCBzb21lIGtpbmQgb2YgcG93
-ZXJkb21haW4gbGV2ZWwgdXNlY291bnRpbmcgaW4gdGhlIGZ1dHVyZSwgYmVjYXVzZQo+ID4gaXQg
-ZGlkbid0IGV4aXN0IGJhY2sgdGhlbiB3aGVuIHdlIGRpZCBpdCB0aGlzIHdheS4KPiA+IEJ1dCBu
-b3cgdGhhdCB3ZSBhbHJlYWR5IGhhdmUgaXQsIG1heWJlIHdlIGNhbiBmaXggdGhpcyBhbmQgZG8K
-PiA+IGl0IHN1Y2ggdGhhdCB3ZSBjb21wbGV0ZWx5IGF2b2lkIGFuIGFkZGl0aW9uYWwgd2FrZXVw
-IGludGVycnVwdC4KPiA+Cj4gPj4KPiA+PiBJZiB3ZSBkbyB0aGF0LCB0aGVuIHdlIGNhbiBhdm9p
-ZCBuZWVkbGVzc2x5IHJlc2V0dGluZyB0aGUgSS9PIGNoYWluCj4gPj4gd2hlbiBhCj4gPj4gcG93
-ZXJkb21haW4gaXMgbm90IGdvaW5nIHRvIGdvIGludG8gYSBsb3ctcG93ZXIgc3RhdGUuCj4gPj4K
-PiA+PiBJIGhhdmVuJ3QgbWVhc3VyZWQgdGhlIHRpbWUgaXQgdGFrZXMgZm9yIHRoZSBJL08gY2hh
-aW4gdG8gYmUgcmVzZXQuCj4gPj4gTWF5YmUgb25lIG9mIHlvdSBoYXZlLiBCdXQgdGhhdCAxMDAg
-bWljcm9zZWNvbmQgdGltZW91dCB0aGF0IHdhcwo+ID4+IHNwZWNpZmllZCBpbiB0d28gb2YgdGhl
-IG90aGVyIHBhdGNoZXMgaW4gdGhpcyBzZXJpZXMgaGFzIG1lIGEgbGl0dGxlCj4gPj4gd29ycmll
-ZC4KPiA+Cj4gPiBJIGhhdmVuJ3QgcHJvZmlsZWQgaXQgbXlzZWxmIGJ1dCBJIGFtIGd1ZXNzaW5n
-IHRoZSBkZWxheSBpc24ndCBtdWNoLgo+IAo+IEhhdmluZyBzYWlkIHRoYXQsIEkgZG8gYWdyZWUg
-d2l0aCB5b3UgdGhhdCwgaG93ZXZlciBzbWFsbCB0aGUgZGVsYXksCj4gd2UgZW5kIHVwIGRvaW5n
-IG5lZWRsZXNzIElPIHRyaWdnZXIgd2hlbiB0aGUgcG93ZXJkb21haW4gaXNuJ3QKPiByZWFsbHkg
-ZW50ZXJpbmcgYSBsb3cgcG93ZXIgc3RhdGUuCgpJIGRpZCBzb21lIG1lYXN1cmVtZW50cyBvbiB0
-aGlzIGEgd2hpbGUgYmFjayBhbmQgdGhlIGRlbGF5IHdhcyBhcm91bmQgYQpmZXcgbWljcm9zZWNv
-bmRzLiBJIGNhbiByZWRvIHRoaXMgd2hpbGUgZG9pbmcgdmVyc2lvbiA1LgoKLVRlcm8KCj4gCj4g
-PiBUaGUgMTAwdXMgY29tZXMgZnJvbSB0aGUgZmFjdCB0aGF0IHRoZXJlIGlzIG5vIGRvY3VtZW50
-YXRpb24gb24gdGhlCj4gPiBleGFjdCBkZWxheSwgc28gd2VudCBhcm91bmQgYXNraW5nIHdoYXRz
-IHRoZSAqcmVhbCB3b3JzdCBjYXNlKiBkZWxheSwKPiA+IGFuZCB3ZSBnb3QgYW4gYW5zd2VyLCAx
-MDB1cyBzaG91bGQgYmUgcmVhbGx5IGJpZyBlbm91Z2ggOikKPiA+Cj4gPiByZWdhcmRzLAo+ID4g
-UmFqZW5kcmEKPiA+Cj4gPj4KPiA+Pgo+ID4+IC0gUGF1bAo+ID4KPiAKCgoKX19fX19fX19fX19f
-X19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX18KbGludXgtYXJtLWtlcm5lbCBtYWls
-aW5nIGxpc3QKbGludXgtYXJtLWtlcm5lbEBsaXN0cy5pbmZyYWRlYWQub3JnCmh0dHA6Ly9saXN0
-cy5pbmZyYWRlYWQub3JnL21haWxtYW4vbGlzdGluZm8vbGludXgtYXJtLWtlcm5lbAo=
+On Tue, 2012-03-06 at 09:51 +0530, Rajendra Nayak wrote:
+> Hi Paul,
+> 
+> On Tuesday 06 March 2012 09:32 AM, Paul Walmsley wrote:
+> > Hi
+> >
+> > a few comments:
+> >
+> > On Fri, 2 Mar 2012, Tero Kristo wrote:
+> >
+> >> From: Vishwanath BS<vishwanath.bs@ti.com>
+> >>
+> >> IO Daisychain feature has to be triggered whenever there is a change in
+> >> device's mux configuration (See section 3.9.4 in OMAP4 Public TRM vP).
+> >>
+> >> Now devices can idle independent of the powerdomain, there can be a
+> >> window where device is idled and corresponding powerdomain can be
+> >> ON/INACTIVE state. In such situations, since both module wake up is
+> >> enabled at padlevel as well as io daisychain sequence is triggered,
+> >> there will be 2 PRCM interrupts (Module async wake up via swakeup and
+> >> IO Pad interrupt). But as PRCM Interrupt handler clears the Module
+> >> Padlevel WKST bit in the first interrupt, module specific interrupt
+> >> handler will not triggered for the second time
+> >>
+> >> Also look at detailed explanation given by Rajendra at
+> >> http://www.spinics.net/lists/linux-serial/msg04480.html
+> >>
+> >> Signed-off-by: Vishwanath BS<vishwanath.bs@ti.com>
+> >> Signed-off-by: Tero Kristo<t-kristo@ti.com>
+> >> ---
+> >>   arch/arm/mach-omap2/omap_hwmod.c |    9 +++++++--
+> >>   arch/arm/mach-omap2/pm.c         |   15 +++++++++++++++
+> >>   arch/arm/mach-omap2/pm.h         |    1 +
+> >>   3 files changed, 23 insertions(+), 2 deletions(-)
+> >>
+> >> diff --git a/arch/arm/mach-omap2/omap_hwmod.c b/arch/arm/mach-omap2/omap_hwmod.c
+> >> index 5192cab..56adbfb 100644
+> >> --- a/arch/arm/mach-omap2/omap_hwmod.c
+> >> +++ b/arch/arm/mach-omap2/omap_hwmod.c
+> >
+> > ...
+> >
+> >> @@ -1535,8 +1536,10 @@ static int _enable(struct omap_hwmod *oh)
+> >>   	/* Mux pins for device runtime if populated */
+> >>   	if (oh->mux&&  (!oh->mux->enabled ||
+> >>   			((oh->_state == _HWMOD_STATE_IDLE)&&
+> >> -			 oh->mux->pads_dynamic)))
+> >> +			 oh->mux->pads_dynamic))) {
+> >>   		omap_hwmod_mux(oh->mux, _HWMOD_STATE_ENABLED);
+> >> +		omap_trigger_io_chain();
+> >
+> > Looks racy: if two hwmods with dynamic mux entries go idle at the same
+> > time, or one goes idle while another one is enabled, won't the calls to
+> > omap_trigger_io_chain() race?  Locking is per-hwmod and there's no locking
+> > in omap_trigger_io_chain() or the functions it calls.
+> 
+> I agree, this needs locking to avoid races.
+
+I'll add one for v5.
+
+> 
+> >
+> > Also, won't this result in needless resets of the I/O chain?  Seems like
+> > we'd only need to do this when the next power state of the enclosing
+> > powerdomain will enter either RETENTION or OFF.  And even then, it
+> > presumably should only happen when the last active device in that
+> > powerdomain is going idle?
+> 
+> Yes, the module async wakeups will work as long as the power domain
+> enclosing the module is not in OSWR or OFF, so ideally this trigger
+> should happen only when all modules in the given powerdomain are
+> disabled and we plan to program the Powerdomain down to OSWR or
+> OFF state. With what we are doing today we end up with periods when we
+> have multiple wakeups (a module wakeup as well as an IO wakeup).
+> The last we discussed this with Kevin, there wasn't a better place where
+> we could trigger this, with no usecounting at powerdomain level you
+> didn't know when the last active device in the powerdomain was going
+> idle.
+> But now with Tero's series which adds usecounting at power/voltage
+> domain level, maybe its possible, but I need to look more.
+> Do you already have an idea on where this would fit better, so we
+> avoid this multiple wakeup scenario?
+
+This should be easy, we can add a hook at the pwrdm_clkdm_enable /
+disable calls to check against idle / active states. However, seeing the
+acceptance status for the usecounting series, we probably have to just
+go ahead with the extra latency involved iochain series and make
+optimizations later once the usecounting can be accepted.
+
+Speaking of the usecounting series, Paul, did you have any time to look
+at it? Also, there are still some issues seen by Kevin on that series
+with omap3430 which I am unable to reproduce (I posted a couple of trial
+patches for taking care of that but don't know how they behave.)
+
+-Tero
+
+
