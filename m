@@ -1,80 +1,45 @@
 From: Peter Ujfalusi <peter.ujfalusi@ti.com>
-Subject: Re: [PATCH 3/3] arm: more fallout from i2c conversions in board-omap4panda.c
-Date: Tue, 06 Mar 2012 14:27:24 +0200
-Message-ID: <4F5602AC.3060107@ti.com>
-References: <1330987310-8108-1-git-send-email-paul.gortmaker@windriver.com> <1330987310-8108-4-git-send-email-paul.gortmaker@windriver.com>
+Subject: [PATCH 3/5] Revert "ASoC: Remove twl6040 dependency on twl4030 from Kconfig"
+Date: Tue,  6 Mar 2012 14:35:14 +0200
+Message-ID: <1331037316-7375-4-git-send-email-peter.ujfalusi@ti.com>
+References: <1331037316-7375-1-git-send-email-peter.ujfalusi@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Return-path: <linux-next-owner@vger.kernel.org>
-In-Reply-To: <1330987310-8108-4-git-send-email-paul.gortmaker@windriver.com>
-Sender: linux-next-owner@vger.kernel.org
-To: Paul Gortmaker <paul.gortmaker@windriver.com>
-Cc: tony@atomide.com, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-next@vger.kernel.org, Mark Brown <broonie@opensource.wolfsonicro.com>, Samuel Ortiz <sameo@linux.intel.com>
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from na3sys009aog102.obsmtp.com ([74.125.149.69]:35389 "EHLO
+	na3sys009aog102.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1030579Ab2CFMfh (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 6 Mar 2012 07:35:37 -0500
+Received: by mail-lpp01m010-f43.google.com with SMTP id r15so7354243lag.2
+        for <linux-omap@vger.kernel.org>; Tue, 06 Mar 2012 04:35:36 -0800 (PST)
+In-Reply-To: <1331037316-7375-1-git-send-email-peter.ujfalusi@ti.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Samuel Ortiz <sameo@linux.intel.com>
+Cc: Tony Lindgren <tony@atomide.com>, Liam Girdwood <lrg@ti.com>, Stephen Rothwell <sfr@canb.auug.org.au>, linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org, linux-next@vger.kernel.org, paul.gortmaker@windriver.com
 
-Hi,
+This reverts commit 36229729d92f903a7311f1c040b33d5bab0af60b.
 
-On 03/06/2012 12:41 AM, Paul Gortmaker wrote:
-> Commit ded0df8510778a03a2f182a0cbfe3c25788e8852 (linux-next)
->=20
->    "mfd: Convert twl6040 to an i2c driver, and separate it from twl c=
-ore"
->=20
-> appears to have done an incomplete conversion on the board-omap4panda=
-=2Ec
-> file, leaving it with more build failures.  Comparing the changes tha=
-t
-> were done for board-4430sdp.c it is possible for me to whack it with =
-a
-> stick until it stops twitching, but someone who really understands th=
-is
-> code needs to take a look at the conversion, and check it is done
-> completely and in a way that will actually work on hardware.
+Reverting changes regarding to twl6040 in MFD tree since the patches will go
+via the audio tree.
 
-This is true.
-I'm sending a revert series for the twl6040 patches causing this
-breakage for Samuel.
-The same feature will go via audio tree because the dependencies are
-queued in that feature tree.
+Signed-off-by: Peter Ujfalusi <peter.ujfalusi@ti.com>
+---
+ sound/soc/codecs/Kconfig |    2 +-
+ 1 files changed, 1 insertions(+), 1 deletions(-)
 
---=20
-P=E9ter
+diff --git a/sound/soc/codecs/Kconfig b/sound/soc/codecs/Kconfig
+index f1a1197..7c205e7 100644
+--- a/sound/soc/codecs/Kconfig
++++ b/sound/soc/codecs/Kconfig
+@@ -56,7 +56,7 @@ config SND_SOC_ALL_CODECS
+ 	select SND_SOC_TPA6130A2 if I2C
+ 	select SND_SOC_TLV320DAC33 if I2C
+ 	select SND_SOC_TWL4030 if TWL4030_CORE
+-	select SND_SOC_TWL6040 if I2C
++	select SND_SOC_TWL6040 if TWL4030_CORE
+ 	select SND_SOC_UDA134X
+ 	select SND_SOC_UDA1380 if I2C
+ 	select SND_SOC_WL1273 if MFD_WL1273_CORE
+-- 
+1.7.8.5
 
-PS: this might fix the compile breakage with omap2_defconfig, but the
-audio will not work if you enable the support for it on OMAP4.
-
->=20
-> Signed-off-by: Paul Gortmaker <paul.gortmaker@windriver.com>
-> CC: Peter Ujfalusi <peter.ujfalusi@ti.com>
-> CC: Mark Brown <broonie@opensource.wolfsonicro.com>
-> CC: Samuel Ortiz <sameo@linux.intel.com>
-> ---
->  arch/arm/mach-omap2/board-omap4panda.c |    5 ++---
->  1 files changed, 2 insertions(+), 3 deletions(-)
->=20
-> diff --git a/arch/arm/mach-omap2/board-omap4panda.c b/arch/arm/mach-o=
-map2/board-omap4panda.c
-> index e919153..16a1814 100644
-> --- a/arch/arm/mach-omap2/board-omap4panda.c
-> +++ b/arch/arm/mach-omap2/board-omap4panda.c
-> @@ -287,16 +287,15 @@ static struct twl6040_codec_data twl6040_codec =
-=3D {
->  	.hf_right_step	=3D 0x1d,
->  };
-> =20
-> -static struct twl4030_audio_data twl6040_audio =3D {
-> +static struct twl6040_platform_data twl6040_data =3D {
->  	.codec		=3D &twl6040_codec,
->  	.audpwron_gpio	=3D 127,
-> -	.naudint_irq	=3D OMAP44XX_IRQ_SYS_2N,
->  	.irq_base	=3D TWL6040_CODEC_IRQ_BASE,
->  };
-> =20
->  /* Panda board uses the common PMIC configuration */
->  static struct twl4030_platform_data omap4_panda_twldata =3D {
-> -	.audio		=3D &twl6040_audio,
-> +   /*	.audio		=3D &twl6040_audio,	*/
->  };
-> =20
->  /*
