@@ -1,77 +1,58 @@
-From: Mircea Gherzan <mgherzan@gmail.com>
-Subject: [PATCH v2] ARM: OMAP: WiLink platform data for the PandaBoard
-Date: Tue,  6 Mar 2012 23:55:04 +0100
-Message-ID: <1331074504-22683-1-git-send-email-mgherzan@gmail.com>
+From: Kevin Hilman <khilman@ti.com>
+Subject: Re: [PATCH] gpio/omap: Fix section warning for omap_mpuio_alloc_gc()
+Date: Tue, 06 Mar 2012 15:55:47 -0800
+Message-ID: <87pqcpb7y4.fsf@ti.com>
+References: <20120306212605.GY12083@atomide.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-ey0-f174.google.com ([209.85.215.174]:54647 "EHLO
-	mail-ey0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1031566Ab2CFWzM (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 6 Mar 2012 17:55:12 -0500
-Received: by eaaq12 with SMTP id q12so2016653eaa.19
-        for <linux-omap@vger.kernel.org>; Tue, 06 Mar 2012 14:55:11 -0800 (PST)
+Received: from na3sys009aob129.obsmtp.com ([74.125.149.136]:39360 "EHLO
+	na3sys009amx259.postini.com" rhost-flags-OK-OK-OK-FAIL)
+	by vger.kernel.org with ESMTP id S1751154Ab2CFXzx (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 6 Mar 2012 18:55:53 -0500
+Received: by mail-iy0-f179.google.com with SMTP id h37so8271074iak.38
+        for <linux-omap@vger.kernel.org>; Tue, 06 Mar 2012 15:55:48 -0800 (PST)
+In-Reply-To: <20120306212605.GY12083@atomide.com> (Tony Lindgren's message of
+	"Tue, 6 Mar 2012 13:26:06 -0800")
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: tony@atomide.com
-Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, mgherzan@gmail.com
+To: Tony Lindgren <tony@atomide.com>
+Cc: Grant Likely <grant.likely@secretlab.ca>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 
-The "uim" deamon requires sysfs entries that are filled in using
-this platform data.
+Tony Lindgren <tony@atomide.com> writes:
 
-Signed-off-by: Mircea Gherzan <mgherzan@gmail.com>
----
- arch/arm/mach-omap2/board-omap4panda.c |   14 ++++++++++++--
- include/linux/ti_wilink_st.h           |    2 ++
- 2 files changed, 14 insertions(+), 2 deletions(-)
+> From: Tony Lindgren <tony@atomide.com>
+> Date: Mon, 5 Mar 2012 15:32:38 -0800
+> Subject: [PATCH] gpio/omap: Fix section warning for omap_mpuio_alloc_gc()
+>
+> Make omap_mpuio_alloc_gc() __devinit as omap_gpio_chip_init()
+> is __devinit. Otherwise we get:
+>
+> WARNING: vmlinux.o(.devinit.text+0xa10): Section mismatch in reference
+> from the function omap_gpio_chip_init() to the function .init.text:omap_mpuio_alloc_gc()
+> The function __devinit omap_gpio_chip_init() references
+> a function __init omap_mpuio_alloc_gc().
+> If omap_mpuio_alloc_gc is only used by omap_gpio_chip_init then
+> annotate omap_mpuio_alloc_gc with a matching annotation.
+>
+> Signed-off-by: Tony Lindgren <tony@atomide.com>
 
-diff --git a/arch/arm/mach-omap2/board-omap4panda.c b/arch/arm/mach-omap2/board-omap4panda.c
-index b1d74d6..339e781 100644
---- a/arch/arm/mach-omap2/board-omap4panda.c
-+++ b/arch/arm/mach-omap2/board-omap4panda.c
-@@ -27,6 +27,7 @@
- #include <linux/i2c/twl.h>
- #include <linux/regulator/machine.h>
- #include <linux/regulator/fixed.h>
-+#include <linux/ti_wilink_st.h>
- #include <linux/wl12xx.h>
- 
- #include <mach/hardware.h>
-@@ -56,12 +57,21 @@
- #define HDMI_GPIO_HPD  63 /* Hotplug detect */
- 
- /* wl127x BT, FM, GPS connectivity chip */
--static int wl1271_gpios[] = {46, -1, -1};
-+static struct ti_st_plat_data wilink_platform_data = {
-+	.nshutdown_gpio	= 46,
-+	.dev_name	= "/dev/ttyO1",
-+	.flow_cntrl	= 1,
-+	.baud_rate	= 3000000,
-+	.chip_enable	= NULL,
-+	.suspend	= NULL,
-+	.resume		= NULL,
-+};
-+
- static struct platform_device wl1271_device = {
- 	.name	= "kim",
- 	.id	= -1,
- 	.dev	= {
--		.platform_data	= &wl1271_gpios,
-+		.platform_data	= &wilink_platform_data,
- 	},
- };
- 
-diff --git a/include/linux/ti_wilink_st.h b/include/linux/ti_wilink_st.h
-index 2ef4385..3ca0269 100644
---- a/include/linux/ti_wilink_st.h
-+++ b/include/linux/ti_wilink_st.h
-@@ -25,6 +25,8 @@
- #ifndef TI_WILINK_ST_H
- #define TI_WILINK_ST_H
- 
-+#include <linux/skbuff.h>
-+
- /**
-  * enum proto-type - The protocol on WiLink chips which share a
-  *	common physical interface like UART.
--- 
-1.7.9.1
+Acked-by: Kevin Hilman <khilman@ti.com>
 
+
+
+> --- a/drivers/gpio/gpio-omap.c
+> +++ b/drivers/gpio/gpio-omap.c
+> @@ -1081,7 +1081,7 @@ static void omap_gpio_mod_init(struct gpio_bank *bank, int id)
+>  	}
+>  }
+>  
+> -static __init void
+> +static __devinit void
+>  omap_mpuio_alloc_gc(struct gpio_bank *bank, unsigned int irq_start,
+>  		    unsigned int num)
+>  {
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-omap" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
