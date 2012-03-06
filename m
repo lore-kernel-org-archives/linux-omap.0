@@ -1,71 +1,57 @@
-From: Kevin Hilman <khilman@ti.com>
-Subject: Re: [PATCH] mmc: omap_hsmmc: Fix Unbalanced pm_runtime_enable warning
-Date: Mon, 05 Mar 2012 16:09:28 -0800
-Message-ID: <87obsaio93.fsf@ti.com>
-References: <20120305234240.GQ12083@atomide.com>
+From: Tony Lindgren <tony@atomide.com>
+Subject: Re: [PATCH] omap2+: add drm device
+Date: Mon, 5 Mar 2012 16:10:14 -0800
+Message-ID: <20120306001014.GR12083@atomide.com>
+References: <1330966464-28662-1-git-send-email-rob.clark@linaro.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-In-Reply-To: <20120305234240.GQ12083@atomide.com> (Tony Lindgren's message of
- "Mon, 5 Mar 2012 15:42:41 -0800")
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: linux-arm-kernel-bounces@lists.infradead.org
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: Tony Lindgren <tony@atomide.com>, Chris Ball <cjb@laptop.org>
-Cc: linux-omap@vger.kernel.org, linux-mmc@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from mho-01-ewr.mailhop.org ([204.13.248.71]:54029 "EHLO
+	mho-01-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1758021Ab2CFAKT (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 5 Mar 2012 19:10:19 -0500
+Content-Disposition: inline
+In-Reply-To: <1330966464-28662-1-git-send-email-rob.clark@linaro.org>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Rob Clark <rob.clark@linaro.org>
+Cc: dri-devel@lists.freedesktop.org, linux-omap@vger.kernel.org, patches@linaro.org, Greg KH <greg@kroah.com>, Tomi Valkeinen <tomi.valkeinen@ti.com>, Andy Gross <andy.gross@ti.com>, Rob Clark <rob@ti.com>
 
-Tony Lindgren <tony@atomide.com> writes:
+* Rob Clark <rob.clark@linaro.org> [120305 08:24]:
+> From: Andy Gross <andy.gross@ti.com>
+> 
+> Register OMAP DRM/KMS platform device, and reserve a CMA region for
+> the device to use for buffer allocation.  DMM is split into a
+> separate device using hwmod.
+> --- a/arch/arm/plat-omap/common.c
+> +++ b/arch/arm/plat-omap/common.c
+> @@ -21,10 +21,10 @@
+>  #include <plat/board.h>
+>  #include <plat/vram.h>
+>  #include <plat/dsp.h>
+> +#include <plat/drm.h>
+>  
+>  #include <plat/omap-secure.h>
+>  
+> -
+>  #define NO_LENGTH_CHECK 0xffffffff
+>  
+>  struct omap_board_config_kernel *omap_board_config __initdata;
+> @@ -65,6 +65,7 @@ const void *__init omap_get_var_config(u16 tag, size_t *len)
+>  
+>  void __init omap_reserve(void)
+>  {
+> +	omapdrm_reserve_vram();
+>  	omapfb_reserve_sdram_memblock();
+>  	omap_vram_reserve_sdram_memblock();
+>  	omap_dsp_reserve_sdram_memblock();
 
-> mmc: omap_hsmmc: Fix Unbalanced pm_runtime_enable warning
->
-> Otherwise we can get following warning when re-loading the
-> omap_hsmmc driver module when gpio_twl4030 module is not
-> loaded:
->
-> omap_hsmmc omap_hsmmc.0: Unbalanced pm_runtime_enable!
-> omap_hsmmc omap_hsmmc.0: Unable to grab MMC CD IRQ
-> omap_hsmmc: probe of omap_hsmmc.0 failed with error -22
->
-> Signed-off-by: Tony Lindgren <tony@atomide.com>
-> ---
->
-> Kevin, maybe take a look and see if this is correct and
-> fits into your PM branches?
+Tomi needs to look at the vram changes here.
 
-Looks right to me:
+> --- /dev/null
+> +++ b/arch/arm/plat-omap/drm.c
 
-Acked-by: Kevin Hilman <khilman@ti.com>
+This file would be better in mach-omap2/drm.c. I doubt that this will
+ever be usable for omap1. But other than that, up to Tomi.
 
-But this is a fix to the driver itself, so Chris should queue this in
-mmc-next.
-
-Chris, can you take this one?
-
-Kevin
-
-
->
-> Tony
->
-> --- a/drivers/mmc/host/omap_hsmmc.c
-> +++ b/drivers/mmc/host/omap_hsmmc.c
-> @@ -2146,6 +2146,7 @@ err_irq_cd_init:
->  err_irq:
->  	pm_runtime_mark_last_busy(host->dev);
->  	pm_runtime_put_autosuspend(host->dev);
-> +	pm_runtime_disable(host->dev);
->  	clk_put(host->fclk);
->  	if (host->got_dbclk) {
->  		clk_disable(host->dbclk);
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-omap" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Tony
