@@ -1,109 +1,73 @@
-From: Tero Kristo <t-kristo@ti.com>
-Subject: Re: [PATCHv3 1/4] ARM: OMAP4: suspend: Program all domains to
- retention
-Date: Tue, 6 Mar 2012 10:54:08 +0200
-Message-ID: <1331024048.2116.157.camel@sokoban>
-References: <1330529106-10423-1-git-send-email-t-kristo@ti.com>
-	 <1330529106-10423-2-git-send-email-t-kristo@ti.com> <871up6in50.fsf@ti.com>
-	 <1331022713.2116.144.camel@sokoban> <4F55CE19.7000309@ti.com>
-Reply-To: <t-kristo@ti.com>
+From: Peter Ujfalusi <peter.ujfalusi@ti.com>
+Subject: [PATCH] ARM: OMAP4: clock: Add aliases for McBSP fclk clocks
+Date: Tue,  6 Mar 2012 10:55:33 +0200
+Message-ID: <1331024133-18201-1-git-send-email-peter.ujfalusi@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
+Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from devils.ext.ti.com ([198.47.26.153]:54674 "EHLO
-	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1758649Ab2CFIyP (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 6 Mar 2012 03:54:15 -0500
-In-Reply-To: <4F55CE19.7000309@ti.com>
-Sender: linux-omap-owner@vger.kernel.org
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
+List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
+List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
+Sender: linux-arm-kernel-bounces@lists.infradead.org
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
+To: Tony Lindgren <tony@atomide.com>, Paul Walmsley <paul@pwsan.com>
+Cc: linux-omap@vger.kernel.org, Jarkko Nikula <jarkko.nikula@bitmer.com>, linux-arm-kernel@lists.infradead.org
 List-Id: linux-omap@vger.kernel.org
-To: Rajendra Nayak <rnayak@ti.com>
-Cc: Kevin Hilman <khilman@ti.com>, linux-omap@vger.kernel.org, paul@pwsan.com, linux-arm-kernel@lists.infradead.org
 
-On Tue, 2012-03-06 at 14:13 +0530, Rajendra Nayak wrote:
-> On Tuesday 06 March 2012 02:01 PM, Tero Kristo wrote:
-> > On Mon, 2012-03-05 at 16:33 -0800, Kevin Hilman wrote:
-> >> Tero Kristo<t-kristo@ti.com>  writes:
-> >>
-> >>> From: Rajendra Nayak<rnayak@ti.com>
-> >>>
-> >>> Remove the FIXME's in the suspend sequence since
-> >>> we now intend to support system level RET support.
-> >>>
-> >>> Signed-off-by: Rajendra Nayak<rnayak@ti.com>
-> >>> Signed-off-by: Tero Kristo<t-kristo@ti.com>
-> >>> Reviewed-by: Santosh Shilimkar<santosh.shilimkar@ti.com>
-> >>
-> >> So this is the only patch in this series that is still needed.  However...
-> >>
-> >> It doesn't seem like this all by itself is ready for mainline as we'll
-> >> suddenly start putting all powerdomains in retention without any
-> >> additional support.
-> >>
-> >> I guess at a minimum it needs working IO wakeup support from the IO
-> >> daisy chain series.  Are there other dependencies here?
-> >
-> > Only IO chain is needed for wakeup capability. Actually even with the
-> > current mainline kernel, I am unable to wake-up the device from MPU
-> > retention, as there are no wakeup sources. So this patch doesn't really
-> 
-> Why?, doesn't debug console wakeup work?
+CLKS signal for McBSP ports can be selected from internal (PRCM) or external
+(ABE_CLKS pin) source.
+To be able to use existing code we need to create clock aliases consistent
+among OMAP2/3/4.
 
-At least I couldn't get it to work. I tried with no_console_suspend
-kernel param to no avail. Don't know if I was missing something else.
+Signed-off-by: Peter Ujfalusi <peter.ujfalusi@ti.com>
+---
 
--Tero
+Hi,
 
-> 
-> > change the behavior to worse even without any additional patches. :) But
-> > yea, good to wait until IO chain is in.
-> 
-> IO chain, according to documentation :) should be needed only if you
-> hit OSWR or OFF, async wakeups should be functional as long as you
-> only hit CSWR.
-> 
-> >
-> > The other dependencies are that the stuff handled by patches 2,3 and 4
-> > have to be handled somehow:
-> >
-> > -patch2: must be in (this patch is queued by Paul)
-> > -patch3: will be taken care of by Paul's pwrdm fixes (I guess this is
-> > queued by Paul himself already)
-> > -patch4: OMAP interrupt count must be increased (this is handled by
-> > Benoit's patch, which is queued by Tony)
-> >
-> > -Tero
-> >
-> >>
-> >> If not, I can queue this when Paul is ready to merge the IO wakeup
-> >> stuff.
-> >>
-> >> Kevin
-> >>
-> >>> ---
-> >>>   arch/arm/mach-omap2/pm44xx.c |    6 ------
-> >>>   1 files changed, 0 insertions(+), 6 deletions(-)
-> >>>
-> >>> diff --git a/arch/arm/mach-omap2/pm44xx.c b/arch/arm/mach-omap2/pm44xx.c
-> >>> index c264ef7..1ab30a3 100644
-> >>> --- a/arch/arm/mach-omap2/pm44xx.c
-> >>> +++ b/arch/arm/mach-omap2/pm44xx.c
-> >>> @@ -151,12 +151,6 @@ static int __init pwrdms_setup(struct powerdomain *pwrdm, void *unused)
-> >>>   	if (!strncmp(pwrdm->name, "cpu", 3))
-> >>>   		return 0;
-> >>>
-> >>> -	/*
-> >>> -	 * FIXME: Remove this check when core retention is supported
-> >>> -	 * Only MPUSS power domain is added in the list.
-> >>> -	 */
-> >>> -	if (strcmp(pwrdm->name, "mpu_pwrdm"))
-> >>> -		return 0;
-> >>>
-> >>>   	pwrst = kmalloc(sizeof(struct power_state), GFP_ATOMIC);
-> >>>   	if (!pwrst)
-> >
-> >
-> 
+this patch should fix the clock reparenting on OMAP4 for McBSP ports.
 
+Regards,
+Peter
 
+ arch/arm/mach-omap2/clock44xx_data.c |    8 ++++++++
+ 1 files changed, 8 insertions(+), 0 deletions(-)
+
+diff --git a/arch/arm/mach-omap2/clock44xx_data.c b/arch/arm/mach-omap2/clock44xx_data.c
+index 08e86d7..7e76ac3 100644
+--- a/arch/arm/mach-omap2/clock44xx_data.c
++++ b/arch/arm/mach-omap2/clock44xx_data.c
+@@ -3120,6 +3120,10 @@ static struct clk auxclkreq5_ck = {
+ static struct omap_clk omap44xx_clks[] = {
+ 	CLK(NULL,	"extalt_clkin_ck",		&extalt_clkin_ck,	CK_443X),
+ 	CLK(NULL,	"pad_clks_ck",			&pad_clks_ck,	CK_443X),
++	CLK("omap-mcbsp.1",	"pad_fck",		&pad_clks_ck,	CK_443X),
++	CLK("omap-mcbsp.2",	"pad_fck",		&pad_clks_ck,	CK_443X),
++	CLK("omap-mcbsp.3",	"pad_fck",		&pad_clks_ck,	CK_443X),
++	CLK("omap-mcbsp.4",	"pad_fck",		&pad_clks_ck,	CK_443X),
+ 	CLK(NULL,	"pad_slimbus_core_clks_ck",	&pad_slimbus_core_clks_ck,	CK_443X),
+ 	CLK(NULL,	"secure_32k_clk_src_ck",	&secure_32k_clk_src_ck,	CK_443X),
+ 	CLK(NULL,	"slimbus_clk",			&slimbus_clk,	CK_443X),
+@@ -3254,12 +3258,16 @@ static struct omap_clk omap44xx_clks[] = {
+ 	CLK(NULL,	"mcasp_sync_mux_ck",		&mcasp_sync_mux_ck,	CK_443X),
+ 	CLK(NULL,	"mcasp_fck",			&mcasp_fck,	CK_443X),
+ 	CLK(NULL,	"mcbsp1_sync_mux_ck",		&mcbsp1_sync_mux_ck,	CK_443X),
++	CLK("omap-mcbsp.1",	"prcm_fck",		&mcbsp1_sync_mux_ck,	CK_443X),
+ 	CLK(NULL,	"mcbsp1_fck",			&mcbsp1_fck,	CK_443X),
+ 	CLK(NULL,	"mcbsp2_sync_mux_ck",		&mcbsp2_sync_mux_ck,	CK_443X),
++	CLK("omap-mcbsp.2",	"prcm_fck",		&mcbsp2_sync_mux_ck,	CK_443X),
+ 	CLK(NULL,	"mcbsp2_fck",			&mcbsp2_fck,	CK_443X),
+ 	CLK(NULL,	"mcbsp3_sync_mux_ck",		&mcbsp3_sync_mux_ck,	CK_443X),
++	CLK("omap-mcbsp.3",	"prcm_fck",		&mcbsp3_sync_mux_ck,	CK_443X),
+ 	CLK(NULL,	"mcbsp3_fck",			&mcbsp3_fck,	CK_443X),
+ 	CLK(NULL,	"mcbsp4_sync_mux_ck",		&mcbsp4_sync_mux_ck,	CK_443X),
++	CLK("omap-mcbsp.4",	"prcm_fck",		&mcbsp4_sync_mux_ck,	CK_443X),
+ 	CLK(NULL,	"mcbsp4_fck",			&mcbsp4_fck,	CK_443X),
+ 	CLK(NULL,	"mcpdm_fck",			&mcpdm_fck,	CK_443X),
+ 	CLK(NULL,	"mcspi1_fck",			&mcspi1_fck,	CK_443X),
+-- 
+1.7.8.5
