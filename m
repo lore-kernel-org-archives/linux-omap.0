@@ -1,161 +1,77 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH] omap3_beagle: init uart2 for beagle rev AX/BX only
-Date: Tue, 6 Mar 2012 13:38:59 -0800
-Message-ID: <20120306213859.GA12083@atomide.com>
-References: <1331024711-23578-1-git-send-email-govindraj.raja@ti.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+From: Mircea Gherzan <mgherzan@gmail.com>
+Subject: [PATCH v2] ARM: OMAP: WiLink platform data for the PandaBoard
+Date: Tue,  6 Mar 2012 23:55:04 +0100
+Message-ID: <1331074504-22683-1-git-send-email-mgherzan@gmail.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-01-ewr.mailhop.org ([204.13.248.71]:60380 "EHLO
-	mho-01-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1757913Ab2CFVjB (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 6 Mar 2012 16:39:01 -0500
-Content-Disposition: inline
-In-Reply-To: <1331024711-23578-1-git-send-email-govindraj.raja@ti.com>
+Received: from mail-ey0-f174.google.com ([209.85.215.174]:54647 "EHLO
+	mail-ey0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1031566Ab2CFWzM (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 6 Mar 2012 17:55:12 -0500
+Received: by eaaq12 with SMTP id q12so2016653eaa.19
+        for <linux-omap@vger.kernel.org>; Tue, 06 Mar 2012 14:55:11 -0800 (PST)
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "Govindraj.R" <govindraj.raja@ti.com>
-Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Peter Ujfalusi <peter.ujfalusi@ti.com>, Robert Nelson <robertcnelson@gmail.com>, Kevin Hilman <khilman@ti.com>, Koen Kooi <koen@dominion.thruhere.net>
+To: tony@atomide.com
+Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, mgherzan@gmail.com
 
-* Govindraj.R <govindraj.raja@ti.com> [120306 00:34]:
-> From: "Govindraj.R" <govindraj.raja@ti.com>
-> 
-> All beagle boards rev > AX/BX have external usb hubs connected to ehci
-> interface, external hub/peripheral uses a nreset sequence for which
-> uart2_rx.gpio_147 pin in mux mode4(USB2HS_nRST) is used on all beagle
-> boards expect rev Ax/BX.
-> (Reference to all beagle boards rev schematics:
-> http://beagleboard.org/hardware/design)
-> 
-> Initialising uart2 will lead to serial init taking over uart2_rx pin
-> so init uart2_rx pin mux only for Beagle AX/BX rev boards.
-> Dont init uart2 for all other boards allowing usb_ehci functionality.
-> 
-> To initialise individual uart port by id utilise and modify the existing
-> available func. omap_serial_board_init.
-> 
-> Cc: Tony Lindgren <tony@atomide.com>
-> Cc: Kevin Hilman <khilman@ti.com>
-> Cc: Koen Kooi <koen@dominion.thruhere.net>
-> Tested-by: Peter Ujfalusi <peter.ujfalusi@ti.com>
-> Tested-by: Robert Nelson <robertcnelson@gmail.com>
-> Signed-off-by: Govindraj.R <govindraj.raja@ti.com>
+The "uim" deamon requires sysfs entries that are filled in using
+this platform data.
 
-Can somebody please test this on non-xm beagle too and
-reply with a Tested-by?
+Signed-off-by: Mircea Gherzan <mgherzan@gmail.com>
+---
+ arch/arm/mach-omap2/board-omap4panda.c |   14 ++++++++++++--
+ include/linux/ti_wilink_st.h           |    2 ++
+ 2 files changed, 14 insertions(+), 2 deletions(-)
 
-Thanks,
+diff --git a/arch/arm/mach-omap2/board-omap4panda.c b/arch/arm/mach-omap2/board-omap4panda.c
+index b1d74d6..339e781 100644
+--- a/arch/arm/mach-omap2/board-omap4panda.c
++++ b/arch/arm/mach-omap2/board-omap4panda.c
+@@ -27,6 +27,7 @@
+ #include <linux/i2c/twl.h>
+ #include <linux/regulator/machine.h>
+ #include <linux/regulator/fixed.h>
++#include <linux/ti_wilink_st.h>
+ #include <linux/wl12xx.h>
+ 
+ #include <mach/hardware.h>
+@@ -56,12 +57,21 @@
+ #define HDMI_GPIO_HPD  63 /* Hotplug detect */
+ 
+ /* wl127x BT, FM, GPS connectivity chip */
+-static int wl1271_gpios[] = {46, -1, -1};
++static struct ti_st_plat_data wilink_platform_data = {
++	.nshutdown_gpio	= 46,
++	.dev_name	= "/dev/ttyO1",
++	.flow_cntrl	= 1,
++	.baud_rate	= 3000000,
++	.chip_enable	= NULL,
++	.suspend	= NULL,
++	.resume		= NULL,
++};
++
+ static struct platform_device wl1271_device = {
+ 	.name	= "kim",
+ 	.id	= -1,
+ 	.dev	= {
+-		.platform_data	= &wl1271_gpios,
++		.platform_data	= &wilink_platform_data,
+ 	},
+ };
+ 
+diff --git a/include/linux/ti_wilink_st.h b/include/linux/ti_wilink_st.h
+index 2ef4385..3ca0269 100644
+--- a/include/linux/ti_wilink_st.h
++++ b/include/linux/ti_wilink_st.h
+@@ -25,6 +25,8 @@
+ #ifndef TI_WILINK_ST_H
+ #define TI_WILINK_ST_H
+ 
++#include <linux/skbuff.h>
++
+ /**
+  * enum proto-type - The protocol on WiLink chips which share a
+  *	common physical interface like UART.
+-- 
+1.7.9.1
 
-Tony
-
-> ---
->  arch/arm/mach-omap2/board-omap3beagle.c  |    6 +++-
->  arch/arm/mach-omap2/serial.c             |   41 ++++++++++++++++-------------
->  arch/arm/plat-omap/include/plat/serial.h |    3 +-
->  3 files changed, 30 insertions(+), 20 deletions(-)
-> 
-> diff --git a/arch/arm/mach-omap2/board-omap3beagle.c b/arch/arm/mach-omap2/board-omap3beagle.c
-> index 7ffcd28..19d6fb5 100644
-> --- a/arch/arm/mach-omap2/board-omap3beagle.c
-> +++ b/arch/arm/mach-omap2/board-omap3beagle.c
-> @@ -126,6 +126,7 @@ static void __init omap3_beagle_init_rev(void)
->  		beagle_config.mmc1_gpio_wp = 29;
->  		beagle_config.reset_gpio = 170;
->  		beagle_config.usr_button_gpio = 7;
-> +		omap_serial_board_init(NULL, 1);
->  		break;
->  	case 6:
->  		printk(KERN_INFO "OMAP3 Beagle Rev: C1/C2/C3\n");
-> @@ -528,7 +529,10 @@ static void __init omap3_beagle_init(void)
->  	platform_add_devices(omap3_beagle_devices,
->  			ARRAY_SIZE(omap3_beagle_devices));
->  	omap_display_init(&beagle_dss_data);
-> -	omap_serial_init();
-> +	omap_serial_board_init(NULL, 0);
-> +	omap_serial_board_init(NULL, 2);
-> +	omap_serial_board_init(NULL, 3);
-> +
->  	omap_sdrc_init(mt46h32m32lf6_sdrc_params,
->  				  mt46h32m32lf6_sdrc_params);
->  
-> diff --git a/arch/arm/mach-omap2/serial.c b/arch/arm/mach-omap2/serial.c
-> index f590afc..e7c0462 100644
-> --- a/arch/arm/mach-omap2/serial.c
-> +++ b/arch/arm/mach-omap2/serial.c
-> @@ -393,30 +393,32 @@ void __init omap_serial_init_port(struct omap_board_data *bdata,
->  /**
->   * omap_serial_board_init() - initialize all supported serial ports
->   * @info: platform specific data pointer
-> + * @port_id: uart port number to be initialised
->   *
-> - * Initializes all available UARTs as serial ports. Platforms
-> + * Initializes individual UARTs as serial ports. Platforms
->   * can call this function when they want to have default behaviour
-> - * for serial ports (e.g initialize them all as serial ports).
-> + * for serial ports (e.g initialize individual serial ports based on port id).
->   */
-> -void __init omap_serial_board_init(struct omap_uart_port_info *info)
-> +void __init omap_serial_board_init(struct omap_uart_port_info *info, u8 port_id)
->  {
->  	struct omap_uart_state *uart;
->  	struct omap_board_data bdata;
->  
-> -	list_for_each_entry(uart, &uart_list, node) {
-> -		bdata.id = uart->num;
-> -		bdata.flags = 0;
-> -		bdata.pads = NULL;
-> -		bdata.pads_cnt = 0;
-> -
-> -		if (cpu_is_omap44xx() || cpu_is_omap34xx())
-> -			omap_serial_fill_default_pads(&bdata);
-> -
-> -		if (!info)
-> -			omap_serial_init_port(&bdata, NULL);
-> -		else
-> -			omap_serial_init_port(&bdata, &info[uart->num]);
-> -	}
-> +	list_for_each_entry(uart, &uart_list, node)
-> +		if (uart->num == port_id) {
-> +			bdata.id = uart->num;
-> +			bdata.flags = 0;
-> +			bdata.pads = NULL;
-> +			bdata.pads_cnt = 0;
-> +
-> +			if (!cpu_is_omap24xx())
-> +				omap_serial_fill_default_pads(&bdata);
-> +
-> +			if (!info)
-> +				omap_serial_init_port(&bdata, NULL);
-> +			else
-> +				omap_serial_init_port(&bdata, info);
-> +		}
->  }
->  
->  /**
-> @@ -428,5 +430,8 @@ void __init omap_serial_board_init(struct omap_uart_port_info *info)
->   */
->  void __init omap_serial_init(void)
->  {
-> -	omap_serial_board_init(NULL);
-> +	struct omap_uart_state *uart;
-> +
-> +	list_for_each_entry(uart, &uart_list, node)
-> +		omap_serial_board_init(NULL, uart->num);
->  }
-> diff --git a/arch/arm/plat-omap/include/plat/serial.h b/arch/arm/plat-omap/include/plat/serial.h
-> index 198d1e6..043b251 100644
-> --- a/arch/arm/plat-omap/include/plat/serial.h
-> +++ b/arch/arm/plat-omap/include/plat/serial.h
-> @@ -111,7 +111,8 @@ struct omap_uart_port_info;
->  
->  extern void omap_serial_init(void);
->  extern int omap_uart_can_sleep(void);
-> -extern void omap_serial_board_init(struct omap_uart_port_info *platform_data);
-> +extern void omap_serial_board_init(struct omap_uart_port_info *platform_data,
-> +		u8 port_id);
->  extern void omap_serial_init_port(struct omap_board_data *bdata,
->  		struct omap_uart_port_info *platform_data);
->  #endif
-> -- 
-> 1.7.5.4
-> 
