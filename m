@@ -1,114 +1,58 @@
-From: Rajendra Nayak <rnayak@ti.com>
-Subject: Re: [PATCHv4 4/6] ARM: OMAP3+: PRM: Enable IO wake up
-Date: Tue, 06 Mar 2012 10:26:03 +0530
-Message-ID: <4F5598E3.4050506@ti.com>
-References: <1330701475-22576-1-git-send-email-t-kristo@ti.com> <1330701475-22576-5-git-send-email-t-kristo@ti.com> <alpine.DEB.2.00.1203052001240.6649@utopia.booyaka.com> <4F55978C.7030407@ti.com>
+From: Nishanth Menon <nm@ti.com>
+Subject: Re: [PATCHv4 2/6] ARM: OMAP3 PM: Move IO Daisychain function to
+ omap3 prm file
+Date: Mon, 5 Mar 2012 23:44:44 -0600
+Message-ID: <20120306054443.GA5670@kobold>
+References: <1330701475-22576-1-git-send-email-t-kristo@ti.com>
+ <1330701475-22576-3-git-send-email-t-kristo@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-15;
-	format=flowed
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aog121.obsmtp.com ([74.125.149.145]:49041 "EHLO
-	na3sys009aog121.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1757943Ab2CFE4L (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 5 Mar 2012 23:56:11 -0500
-Received: by ghrr18 with SMTP id r18so2439444ghr.0
-        for <linux-omap@vger.kernel.org>; Mon, 05 Mar 2012 20:56:09 -0800 (PST)
-In-Reply-To: <4F55978C.7030407@ti.com>
+Received: from na3sys009aog118.obsmtp.com ([74.125.149.244]:45459 "EHLO
+	na3sys009aog118.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1751558Ab2CFFoo (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 6 Mar 2012 00:44:44 -0500
+Received: by mail-yw0-f49.google.com with SMTP id j52so2233542yhj.36
+        for <linux-omap@vger.kernel.org>; Mon, 05 Mar 2012 21:44:43 -0800 (PST)
+Content-Disposition: inline
+In-Reply-To: <1330701475-22576-3-git-send-email-t-kristo@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Paul Walmsley <paul@pwsan.com>
-Cc: Tero Kristo <t-kristo@ti.com>, Mohan V <mohanv@ti.com>, Vishwanath BS <vishwanath.bs@ti.com>, dnilesh@ti.com, linux-omap@vger.kernel.org, khilman@ti.com, linux-arm-kernel@lists.infradead.org
+To: Tero Kristo <t-kristo@ti.com>
+Cc: linux-omap@vger.kernel.org, khilman@ti.com, paul@pwsan.com, Vishwanath BS <vishwanath.bs@ti.com>, linux-arm-kernel@lists.infradead.org
 
-On Tuesday 06 March 2012 10:20 AM, Rajendra Nayak wrote:
-> On Tuesday 06 March 2012 09:51 AM, Paul Walmsley wrote:
->> added Rajendra, Nilesh, Vishwa, Mohan
->>
->> Hi
->>
->> On Fri, 2 Mar 2012, Tero Kristo wrote:
->>
->>> Enable IO Wake up for OMAP3/4 as part of PRM Init. Currently this h=
-as
->>> been
->>> managed in cpuidle path which is not the right place. Subsequent pa=
-tch
->>> will remove IO Daisy chain handling in cpuidle path once daisy chai=
-n is
->>> handled as part of hwmod mux. This patch also moves the OMAP4 IO wa=
-keup
->>> enable code from the trigger function to init time setup.
->>>
->>> Signed-off-by: Tero Kristo<t-kristo@ti.com>
->>
->> Should we keep the I/O wakeups enabled all the time?
->>
->> Seems like that could result in at least one spurious wake-up event =
---
->> and
->> thus a PRCM interrupt -- for each I/O pad that has WAKEUPENABLE set.
->> Seems like these interrupts could recur every time the I/O chain is
->> reset.
->> And that the I/O chain is now reset in every hwmod idle and enable
->> operation for an IP block that contains dynamic mux data?
->>
->> Thinking about the problem na=EFvely... maybe you all can think thro=
-ugh
->> this
->> with me:
->>
->> Consider an IP block 'A' that has a signal (like the UART rx_irrx si=
-gnal)
->> that's mux'ed to a pad with WAKEUPENABLE set. (Some examples of 'A' =
-might
->> include a UART, a GPIO, or a McBSP.)
->>
->> Shouldn't we enable I/O wakeups (by setting EN_IO/GLOBAL_WUEN) only
->> immediately before the powerdomain containing IP block 'A' is going =
-to
->> transition into RETENTION or OFF?
->
-> Hi Paul,
->
-> I completely agree with your observations and we knew we would have
-> additional wakeups with this design. Like I mentioned in the other
-> thread, we went ahead with this approach knowing we need to optimize
-> with some kind of powerdomain level usecounting in the future, becaus=
-e
-> it didn't exist back then when we did it this way.
-> But now that we already have it, maybe we can fix this and do
-> it such that we completely avoid an additional wakeup interrupt.
->
->>
->> If we do that, then we can avoid needlessly resetting the I/O chain
->> when a
->> powerdomain is not going to go into a low-power state.
->>
->> I haven't measured the time it takes for the I/O chain to be reset.
->> Maybe one of you have. But that 100 microsecond timeout that was
->> specified in two of the other patches in this series has me a little
->> worried.
->
-> I haven't profiled it myself but I am guessing the delay isn't much.
+On 17:17-20120302, Tero Kristo wrote:
+> From: Vishwanath BS <vishwanath.bs@ti.com>
+> 
+> Since IO Daisychain modifies only PRM registers, it makes sense to move
+> it to PRM File. Also changed the timeout value for IO chain enable to
+> 100us and added a wait for status disable at the end.
+> 
+[...]
+> +/*
+> + * Maximum time(us) it takes to output the signal WUCLKOUT of the last pad of
+> + * the I/O ring after asserting WUCLKIN high
+> + */
+> +#define MAX_IOPAD_LATCH_TIME 100
+> +
+> +/* OMAP3 Daisychain enable sequence */
+> +void omap3_trigger_io_chain(void)
+> +{
+> +	int i = 0;
+> +
+> +	omap2_prm_set_mod_reg_bits(OMAP3430_EN_IO_CHAIN_MASK, WKUP_MOD,
+> +				   PM_WKEN);
+> +	/* Do a readback to assure write has been done */
+> +	omap2_prm_read_mod_reg(WKUP_MOD, PM_WKEN);
+> +
+> +	omap_test_timeout(((omap2_prm_read_mod_reg(WKUP_MOD, PM_WKST) &
+> +			    OMAP3430_ST_IO_CHAIN_MASK) == 1),
+umm
+arch/arm/mach-omap2/prm-regbits-34xx.h:#define OMAP3430_ST_IO_CHAIN_MASK
+(1 << 16)
+(reg & (1 << 16)) == 1
+will ever be true?
 
-Having said that, I do agree with you that, however small the delay,
-we end up doing needless IO trigger when the powerdomain isn't
-really entering a low power state.
-
-> The 100us comes from the fact that there is no documentation on the
-> exact delay, so went around asking whats the *real worst case* delay,
-> and we got an answer, 100us should be really big enough :)
->
-> regards,
-> Rajendra
->
->>
->>
->> - Paul
->
-
---
-To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+-- 
+Regards,
+Nishanth Menon
