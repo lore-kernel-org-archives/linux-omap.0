@@ -1,57 +1,63 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH] omap2+: add drm device
-Date: Mon, 5 Mar 2012 16:10:14 -0800
-Message-ID: <20120306001014.GR12083@atomide.com>
-References: <1330966464-28662-1-git-send-email-rob.clark@linaro.org>
+From: Kevin Hilman <khilman@ti.com>
+Subject: Re: [PATCHv3 0/6] ARM: OMAP3PLUS: IO daisychain support fixes
+Date: Mon, 05 Mar 2012 16:32:21 -0800
+Message-ID: <877gyyin6y.fsf@ti.com>
+References: <1330525621-29836-1-git-send-email-t-kristo@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-01-ewr.mailhop.org ([204.13.248.71]:54029 "EHLO
-	mho-01-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1758021Ab2CFAKT (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 5 Mar 2012 19:10:19 -0500
-Content-Disposition: inline
-In-Reply-To: <1330966464-28662-1-git-send-email-rob.clark@linaro.org>
+Received: from na3sys009aog112.obsmtp.com ([74.125.149.207]:57911 "EHLO
+	na3sys009aog112.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S932091Ab2CFAcX (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 5 Mar 2012 19:32:23 -0500
+Received: by mail-pz0-f47.google.com with SMTP id o14so5066929dad.34
+        for <linux-omap@vger.kernel.org>; Mon, 05 Mar 2012 16:32:23 -0800 (PST)
+In-Reply-To: <1330525621-29836-1-git-send-email-t-kristo@ti.com> (Tero
+	Kristo's message of "Wed, 29 Feb 2012 16:26:55 +0200")
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Rob Clark <rob.clark@linaro.org>
-Cc: dri-devel@lists.freedesktop.org, linux-omap@vger.kernel.org, patches@linaro.org, Greg KH <greg@kroah.com>, Tomi Valkeinen <tomi.valkeinen@ti.com>, Andy Gross <andy.gross@ti.com>, Rob Clark <rob@ti.com>
+To: Tero Kristo <t-kristo@ti.com>
+Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 
-* Rob Clark <rob.clark@linaro.org> [120305 08:24]:
-> From: Andy Gross <andy.gross@ti.com>
-> 
-> Register OMAP DRM/KMS platform device, and reserve a CMA region for
-> the device to use for buffer allocation.  DMM is split into a
-> separate device using hwmod.
-> --- a/arch/arm/plat-omap/common.c
-> +++ b/arch/arm/plat-omap/common.c
-> @@ -21,10 +21,10 @@
->  #include <plat/board.h>
->  #include <plat/vram.h>
->  #include <plat/dsp.h>
-> +#include <plat/drm.h>
->  
->  #include <plat/omap-secure.h>
->  
-> -
->  #define NO_LENGTH_CHECK 0xffffffff
->  
->  struct omap_board_config_kernel *omap_board_config __initdata;
-> @@ -65,6 +65,7 @@ const void *__init omap_get_var_config(u16 tag, size_t *len)
->  
->  void __init omap_reserve(void)
->  {
-> +	omapdrm_reserve_vram();
->  	omapfb_reserve_sdram_memblock();
->  	omap_vram_reserve_sdram_memblock();
->  	omap_dsp_reserve_sdram_memblock();
+Tero Kristo <t-kristo@ti.com> writes:
 
-Tomi needs to look at the vram changes here.
+> Hi,
+>
+> The previous version of this set was sent by Vishwanath BS, but as he
+> is busy with other stuff, I am taking over.
+>
+> Some basic info about this set based on comments received on set v2.
+> IO chain is now enabled always, and a re-trigger for the chain is
+> done during hwmod enable / disable. This means that IO chain is always
+> armed according to the latest pad specific WAKE_ENABLE setting, and
+> if it is modified, the IO chain needs to be re-armed (thus the hooks
+> within omap_hwmod code.) Having IO chain armed all the time allows us
+> to receive IO event interrupts even during non-sleep states if the
+> corresponding hardware module is disabled, and is unable to detect any
+> IO activity itself.
+>
+> Version 3 contains the following changes:
+>
+> - global: renamed *_trigger_wuclk_ctrl funcs as *_trigger_io_chain
+> - patch 3: added trigger WUCLKIN disable at the end of omap4_trigger_io_chain
+>   (fix pulled from the omap4 core retention set)
+> - patch 5: added function pointer for using machine specific io_chain trigger
+>   function, initialized during boot
+> - patch 7 dropped as the support capability for omap3 is now handled as
+>   part of patch 5 init
+>
+> Tested on omap3 beagle + omap4 blaze boards. Suspend / resume works, and
+> hwmod_io interrupts are generated. Omap4 was tested with the core retention
+> support set.
 
-> --- /dev/null
-> +++ b/arch/arm/plat-omap/drm.c
+Reviewed-by: Kevin Hilman <khilman@ti.com>
 
-This file would be better in mach-omap2/drm.c. I doubt that this will
-ever be usable for omap1. But other than that, up to Tomi.
+I also tested this on 3430/n900 and verified IO wakeups are working as
+expected.
 
-Tony
+Tested-by: Kevin Hilman <khilman@ti.com>
+
+Paul, as discussed on IRC, when you're OK with it, this can go through
+your queue since it's mostly PRM core code.
+
+Kevin
