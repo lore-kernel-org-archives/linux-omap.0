@@ -1,68 +1,96 @@
-From: Kevin Hilman <khilman@ti.com>
-Subject: Re: [PATCHv3 1/4] ARM: OMAP4: suspend: Program all domains to retention
-Date: Mon, 05 Mar 2012 16:33:31 -0800
-Message-ID: <871up6in50.fsf@ti.com>
-References: <1330529106-10423-1-git-send-email-t-kristo@ti.com>
-	<1330529106-10423-2-git-send-email-t-kristo@ti.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+From: Mircea Gherzan <mgherzan@gmail.com>
+Subject: [PATCH] ARM: OMAP: WiLink platform data for the PandaBoard
+Date: Tue,  6 Mar 2012 01:46:37 +0100
+Message-ID: <1330994797-17298-1-git-send-email-mgherzan@gmail.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aog110.obsmtp.com ([74.125.149.203]:59115 "EHLO
-	na3sys009aog110.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S932091Ab2CFAdn (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 5 Mar 2012 19:33:43 -0500
-Received: by mail-pz0-f47.google.com with SMTP id o14so5061061dad.34
-        for <linux-omap@vger.kernel.org>; Mon, 05 Mar 2012 16:33:32 -0800 (PST)
-In-Reply-To: <1330529106-10423-2-git-send-email-t-kristo@ti.com> (Tero
-	Kristo's message of "Wed, 29 Feb 2012 17:25:03 +0200")
+Received: from mail-ey0-f174.google.com ([209.85.215.174]:42023 "EHLO
+	mail-ey0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S932433Ab2CFAqo (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 5 Mar 2012 19:46:44 -0500
+Received: by eaaq12 with SMTP id q12so1638344eaa.19
+        for <linux-omap@vger.kernel.org>; Mon, 05 Mar 2012 16:46:43 -0800 (PST)
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Tero Kristo <t-kristo@ti.com>
-Cc: linux-omap@vger.kernel.org, paul@pwsan.com, linux-arm-kernel@lists.infradead.org, Rajendra Nayak <rnayak@ti.com>
+To: tony@atomide.com
+Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, mgherzan@gmail.com
 
-Tero Kristo <t-kristo@ti.com> writes:
+The "uim" deamon requires sysfs entries that are filled in using
+this platform data.
 
-> From: Rajendra Nayak <rnayak@ti.com>
->
-> Remove the FIXME's in the suspend sequence since
-> we now intend to support system level RET support.
->
-> Signed-off-by: Rajendra Nayak <rnayak@ti.com>
-> Signed-off-by: Tero Kristo <t-kristo@ti.com>
-> Reviewed-by: Santosh Shilimkar <santosh.shilimkar@ti.com>
+Signed-off-by: Mircea Gherzan <mgherzan@gmail.com>
+---
+ arch/arm/mach-omap2/board-omap4panda.c |   23 +++++++++++++++++------
+ include/linux/ti_wilink_st.h           |    2 ++
+ 2 files changed, 19 insertions(+), 6 deletions(-)
 
-So this is the only patch in this series that is still needed.  However...
+diff --git a/arch/arm/mach-omap2/board-omap4panda.c b/arch/arm/mach-omap2/board-omap4panda.c
+index b1d74d6..37b437f 100644
+--- a/arch/arm/mach-omap2/board-omap4panda.c
++++ b/arch/arm/mach-omap2/board-omap4panda.c
+@@ -27,6 +27,7 @@
+ #include <linux/i2c/twl.h>
+ #include <linux/regulator/machine.h>
+ #include <linux/regulator/fixed.h>
++#include <linux/ti_wilink_st.h>
+ #include <linux/wl12xx.h>
+ 
+ #include <mach/hardware.h>
+@@ -56,15 +57,29 @@
+ #define HDMI_GPIO_HPD  63 /* Hotplug detect */
+ 
+ /* wl127x BT, FM, GPS connectivity chip */
+-static int wl1271_gpios[] = {46, -1, -1};
++static struct ti_st_plat_data wilink_platform_data = {
++        .nshutdown_gpio	= 46,
++        .dev_name	= "/dev/ttyO1",
++        .flow_cntrl	= 1,
++        .baud_rate	= 3000000,
++	.chip_enable	= NULL,
++        .suspend	= NULL,
++        .resume		= NULL,
++};
++
+ static struct platform_device wl1271_device = {
+ 	.name	= "kim",
+ 	.id	= -1,
+ 	.dev	= {
+-		.platform_data	= &wl1271_gpios,
++		.platform_data	= &wilink_platform_data,
+ 	},
+ };
+ 
++static struct platform_device btwilink_device = {
++	.name	= "btwilink",
++	.id	= -1,
++};
++
+ static struct gpio_led gpio_leds[] = {
+ 	{
+ 		.name			= "pandaboard::status1",
+@@ -91,10 +106,6 @@ static struct platform_device leds_gpio = {
+ 	},
+ };
+ 
+-static struct platform_device btwilink_device = {
+-	.name	= "btwilink",
+-	.id	= -1,
+-};
+ 
+ static struct platform_device *panda_devices[] __initdata = {
+ 	&leds_gpio,
+diff --git a/include/linux/ti_wilink_st.h b/include/linux/ti_wilink_st.h
+index 2ef4385..3ca0269 100644
+--- a/include/linux/ti_wilink_st.h
++++ b/include/linux/ti_wilink_st.h
+@@ -25,6 +25,8 @@
+ #ifndef TI_WILINK_ST_H
+ #define TI_WILINK_ST_H
+ 
++#include <linux/skbuff.h>
++
+ /**
+  * enum proto-type - The protocol on WiLink chips which share a
+  *	common physical interface like UART.
+-- 
+1.7.9.1
 
-It doesn't seem like this all by itself is ready for mainline as we'll
-suddenly start putting all powerdomains in retention without any
-additional support.
-
-I guess at a minimum it needs working IO wakeup support from the IO
-daisy chain series.  Are there other dependencies here?
-
-If not, I can queue this when Paul is ready to merge the IO wakeup
-stuff.
-
-Kevin
-
-> ---
->  arch/arm/mach-omap2/pm44xx.c |    6 ------
->  1 files changed, 0 insertions(+), 6 deletions(-)
->
-> diff --git a/arch/arm/mach-omap2/pm44xx.c b/arch/arm/mach-omap2/pm44xx.c
-> index c264ef7..1ab30a3 100644
-> --- a/arch/arm/mach-omap2/pm44xx.c
-> +++ b/arch/arm/mach-omap2/pm44xx.c
-> @@ -151,12 +151,6 @@ static int __init pwrdms_setup(struct powerdomain *pwrdm, void *unused)
->  	if (!strncmp(pwrdm->name, "cpu", 3))
->  		return 0;
->  
-> -	/*
-> -	 * FIXME: Remove this check when core retention is supported
-> -	 * Only MPUSS power domain is added in the list.
-> -	 */
-> -	if (strcmp(pwrdm->name, "mpu_pwrdm"))
-> -		return 0;
->  
->  	pwrst = kmalloc(sizeof(struct power_state), GFP_ATOMIC);
->  	if (!pwrst)
