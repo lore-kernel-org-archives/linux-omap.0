@@ -1,46 +1,47 @@
 From: Tony Lindgren <tony@atomide.com>
 Subject: Re: OMAP totally fucked?
-Date: Tue, 6 Mar 2012 11:55:29 -0800
-Message-ID: <20120306195529.GV12083@atomide.com>
+Date: Tue, 6 Mar 2012 12:14:13 -0800
+Message-ID: <20120306201413.GW12083@atomide.com>
 References: <20120303154650.GA16132@n2100.arm.linux.org.uk>
  <20120303180428.GA10293@atomide.com>
- <201203031829.06992.arnd@arndb.de>
- <20120303210521.GE10293@atomide.com>
- <20120304155909.GA14466@n2100.arm.linux.org.uk>
- <87fwdlfr8n.fsf@ti.com>
+ <4F562D51.3000607@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-02-ewr.mailhop.org ([204.13.248.72]:52132 "EHLO
-	mho-02-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S965199Ab2CFTzg (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 6 Mar 2012 14:55:36 -0500
+Received: from mho-01-ewr.mailhop.org ([204.13.248.71]:50174 "EHLO
+	mho-01-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1030933Ab2CFUOT (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 6 Mar 2012 15:14:19 -0500
 Content-Disposition: inline
-In-Reply-To: <87fwdlfr8n.fsf@ti.com>
+In-Reply-To: <4F562D51.3000607@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Kevin Hilman <khilman@ti.com>
-Cc: Russell King - ARM Linux <linux@arm.linux.org.uk>, Arnd Bergmann <arnd@arndb.de>, Peter Ujfalusi <peter.ujfalusi@ti.com>, linux-omap@vger.kernel.org, Olof Johansson <olof@lixom.net>
+To: Peter Ujfalusi <peter.ujfalusi@ti.com>
+Cc: Russell King - ARM Linux <linux@arm.linux.org.uk>, linux-omap@vger.kernel.org, Arnd Bergmann <arnd@arndb.de>, Olof Johansson <olof@lixom.net>
 
-* Kevin Hilman <khilman@ti.com> [120306 11:13]:
-> Russell King - ARM Linux <linux@arm.linux.org.uk> writes:
-> >
-> > WARNING: arch/arm/mach-omap2/built-in.o(.text+0x183c): Section mismatch in reference from the function omap2_init_processor_devices() to the function .init.text:_init_omap_device()
-> > The function omap2_init_processor_devices() references
-> > the function __init _init_omap_device().
-> > This is often because omap2_init_processor_devices lacks a __init 
-> > annotation or the annotation of _init_omap_device is wrong.
+* Peter Ujfalusi <peter.ujfalusi@ti.com> [120306 06:57]:
+> On 03/03/2012 08:04 PM, Tony Lindgren wrote:
+> > Then looks like there's a mismerge with ASoC. And ASoC patch
+> > "[PATCH v3 2/3] MFD: twl6040: Convert to i2c driver, and separate
+> > it from twl core" that produces another build error.
+> > 
+> > Looks like we also have a new section warning with ASoC changes:
+> > 
+> > WARNING: arch/arm/mach-omap2/built-in.o(.text+0x14504): Section mismatch in reference from the function omap4_pmic_init() to th
+> > The function omap4_pmic_init() references
+> > the (unknown reference) __initdata (unknown).
+> > This is often because omap4_pmic_init lacks a __initdata
+> > annotation or the annotation of (unknown) is wrong.
+> > 
+> > Peter, care to look if below is right resolve for the
+> > mismerge? Also can you please also fix the new section
+> > warning?
 > 
-> Below is a fix for this one.
-> 
-> My compiler (gcc version 4.6.1 (Ubuntu/Linaro 4.6.1-9ubuntu3)) was
-> inlining these so I wasn't seeing this warning.  I had to make
-> omap2_init_processor_devices() static to make the warning appear.
-> 
-> Anyways, fix is trivial, patch below.
+> I have sent a revert series (you were on the CC) to Samuel regarding to
+> this series going via the MFD tree.
+> I have the corrected series waiting for the event Samuel applies the
+> reverts on his for-next branch, so we can queue the fixed patches via ASoC.
 
-Thanks, I'll add that to fixes-non-critical-part2.
-
-Regards,
+OK thanks!
 
 Tony
