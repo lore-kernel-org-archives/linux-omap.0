@@ -1,107 +1,81 @@
 From: Rajendra Nayak <rnayak@ti.com>
-Subject: Re: [PATCHv4 5/6] ARM: OMAP3PLUS PM: Add IO Daisychain support via
- hwmod mux
-Date: Tue, 06 Mar 2012 09:51:42 +0530
-Message-ID: <4F5590D6.8030707@ti.com>
-References: <1330701475-22576-1-git-send-email-t-kristo@ti.com> <1330701475-22576-6-git-send-email-t-kristo@ti.com> <alpine.DEB.2.00.1203052057050.6649@utopia.booyaka.com>
+Subject: Re: [PATCHv4 1/6] ARM: OMAP3 PM: correct enable/disable of daisy
+ io chain
+Date: Tue, 06 Mar 2012 10:02:56 +0530
+Message-ID: <4F559378.3010204@ti.com>
+References: <1330701475-22576-1-git-send-email-t-kristo@ti.com> <1330701475-22576-2-git-send-email-t-kristo@ti.com> <alpine.DEB.2.00.1203051953580.6649@utopia.booyaka.com> <4F558A42.1020503@ti.com> <alpine.DEB.2.00.1203052103440.6649@utopia.booyaka.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=ISO-8859-1; format=flowed
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aog126.obsmtp.com ([74.125.149.155]:43213 "HELO
-	na3sys009aog126.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with SMTP id S1030282Ab2CFEVt (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 5 Mar 2012 23:21:49 -0500
-Received: by mail-yw0-f54.google.com with SMTP id m50so2663275yhg.41
-        for <linux-omap@vger.kernel.org>; Mon, 05 Mar 2012 20:21:48 -0800 (PST)
-In-Reply-To: <alpine.DEB.2.00.1203052057050.6649@utopia.booyaka.com>
+Received: from na3sys009aog113.obsmtp.com ([74.125.149.209]:51887 "EHLO
+	na3sys009aog113.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1758255Ab2CFEdG (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 5 Mar 2012 23:33:06 -0500
+Received: by ghrr18 with SMTP id r18so2435037ghr.0
+        for <linux-omap@vger.kernel.org>; Mon, 05 Mar 2012 20:33:03 -0800 (PST)
+In-Reply-To: <alpine.DEB.2.00.1203052103440.6649@utopia.booyaka.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: Paul Walmsley <paul@pwsan.com>
-Cc: Tero Kristo <t-kristo@ti.com>, linux-omap@vger.kernel.org, khilman@ti.com, linux-arm-kernel@lists.infradead.org, Vishwanath BS <vishwanath.bs@ti.com>
+Cc: dnilesh@ti.com, Mohan V <mohanv@ti.com>, Vishwanath BS <vishwanath.bs@ti.com>, Tero Kristo <t-kristo@ti.com>, linux-omap@vger.kernel.org, khilman@ti.com, linux-arm-kernel@lists.infradead.org
 
-Hi Paul,
+On Tuesday 06 March 2012 09:43 AM, Paul Walmsley wrote:
+> Hi Rajendra
+>
+> (thanks for adding in Nilesh, added him again here)
+>
+> On Tue, 6 Mar 2012, Rajendra Nayak wrote:
+>
+>> Yes, thats my understanding too, again based on taking to people like
+>> Nilesh, because the documentation just doesn't mention this clearly.
+>> The 4430 TRM is a tad bit better like you said.
+>>
+>> I guess your confusion of IO wakeups working with EN_IO_CHAIN set to '0'
+>> is also probably coming from the fact that the bit itself is called
+>> *EN_IO_CHAIN* which is a completely *wrong* name for the bit, as
+>> compared to what it does.
+>> That bit is actually used to send a WUCLK pulse through the chain, so
+>> you set it to '1' and wait for it to propagate through the chain, then
+>> you set it to '0' and again wait for it to propagate through.
+>
+> Okay.  So to confirm: EN_IO_CHAIN doesn't enable a continuous clock, it
+> just controls the WUCLKIN line directly?
 
-On Tuesday 06 March 2012 09:32 AM, Paul Walmsley wrote:
-> Hi
+Right.
+
 >
-> a few comments:
+>> The control to enable/disable is at 2 levels, a global switch which is
+>> 'EN_IO' in case of OMAP3 and the one at the individual pad level.
 >
-> On Fri, 2 Mar 2012, Tero Kristo wrote:
+> Do you happen to know what EN_IO/GLOBAL_WUEN does?  For example, if it's
+> 0, will the I/O chain not latch in wakeup events occuring on the pads?
+
+Yes, it wouldn't. Figure 3-74 in OMAP4430_ES2.x Public TRM vO
+explains this better.
+
+The WUEN signal to each pad (which can be used to enable IO-daisy
+for the given pad) is a AND of a signal from PRCM and
+one from SCM.
+The signal from PRCM can be enabled by writing into
+EN_IO/GLOBAL_WUEN bit.
+The signal from SCM can be enabled by writing to the individual
+pad registers in SCM
+CONTROL.CONTROL_PADCONF_<IOpad>[14] WAKEUPENABLE0
+CONTROL.CONTROL_PADCONF_<IOpad>[30] WAKEUPENABLE1.
+
+If either one of them is not enabled the IO wakeups on the pads won't
+be latched. So if EN_IO/GLOBAL_WUEN is disabled, none of the pads will
+be able to generate IO wakeups.
+
+> Or does it just cause the PRCM to ignore any PRCM wakeups coming from the
+> I/O chain?  (Or something else, heh)
 >
->> From: Vishwanath BS<vishwanath.bs@ti.com>
->>
->> IO Daisychain feature has to be triggered whenever there is a change in
->> device's mux configuration (See section 3.9.4 in OMAP4 Public TRM vP).
->>
->> Now devices can idle independent of the powerdomain, there can be a
->> window where device is idled and corresponding powerdomain can be
->> ON/INACTIVE state. In such situations, since both module wake up is
->> enabled at padlevel as well as io daisychain sequence is triggered,
->> there will be 2 PRCM interrupts (Module async wake up via swakeup and
->> IO Pad interrupt). But as PRCM Interrupt handler clears the Module
->> Padlevel WKST bit in the first interrupt, module specific interrupt
->> handler will not triggered for the second time
->>
->> Also look at detailed explanation given by Rajendra at
+>> You can also read this thread which has some more explanation based on
+>> my understanding of how this works
 >> http://www.spinics.net/lists/linux-serial/msg04480.html
->>
->> Signed-off-by: Vishwanath BS<vishwanath.bs@ti.com>
->> Signed-off-by: Tero Kristo<t-kristo@ti.com>
->> ---
->>   arch/arm/mach-omap2/omap_hwmod.c |    9 +++++++--
->>   arch/arm/mach-omap2/pm.c         |   15 +++++++++++++++
->>   arch/arm/mach-omap2/pm.h         |    1 +
->>   3 files changed, 23 insertions(+), 2 deletions(-)
->>
->> diff --git a/arch/arm/mach-omap2/omap_hwmod.c b/arch/arm/mach-omap2/omap_hwmod.c
->> index 5192cab..56adbfb 100644
->> --- a/arch/arm/mach-omap2/omap_hwmod.c
->> +++ b/arch/arm/mach-omap2/omap_hwmod.c
 >
-> ...
->
->> @@ -1535,8 +1536,10 @@ static int _enable(struct omap_hwmod *oh)
->>   	/* Mux pins for device runtime if populated */
->>   	if (oh->mux&&  (!oh->mux->enabled ||
->>   			((oh->_state == _HWMOD_STATE_IDLE)&&
->> -			 oh->mux->pads_dynamic)))
->> +			 oh->mux->pads_dynamic))) {
->>   		omap_hwmod_mux(oh->mux, _HWMOD_STATE_ENABLED);
->> +		omap_trigger_io_chain();
->
-> Looks racy: if two hwmods with dynamic mux entries go idle at the same
-> time, or one goes idle while another one is enabled, won't the calls to
-> omap_trigger_io_chain() race?  Locking is per-hwmod and there's no locking
-> in omap_trigger_io_chain() or the functions it calls.
-
-I agree, this needs locking to avoid races.
-
->
-> Also, won't this result in needless resets of the I/O chain?  Seems like
-> we'd only need to do this when the next power state of the enclosing
-> powerdomain will enter either RETENTION or OFF.  And even then, it
-> presumably should only happen when the last active device in that
-> powerdomain is going idle?
-
-Yes, the module async wakeups will work as long as the power domain
-enclosing the module is not in OSWR or OFF, so ideally this trigger
-should happen only when all modules in the given powerdomain are
-disabled and we plan to program the Powerdomain down to OSWR or
-OFF state. With what we are doing today we end up with periods when we
-have multiple wakeups (a module wakeup as well as an IO wakeup).
-The last we discussed this with Kevin, there wasn't a better place where
-we could trigger this, with no usecounting at powerdomain level you
-didn't know when the last active device in the powerdomain was going
-idle.
-But now with Tero's series which adds usecounting at power/voltage
-domain level, maybe its possible, but I need to look more.
-Do you already have an idea on where this would fit better, so we
-avoid this multiple wakeup scenario?
-
-regards,
-Rajendra
-
+> I've been reading that post; it's been quite helpful.
 >
 >
 > - Paul
