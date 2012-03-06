@@ -1,96 +1,69 @@
-From: Mircea Gherzan <mgherzan@gmail.com>
-Subject: [PATCH] ARM: OMAP: WiLink platform data for the PandaBoard
-Date: Tue,  6 Mar 2012 01:46:37 +0100
-Message-ID: <1330994797-17298-1-git-send-email-mgherzan@gmail.com>
+From: Kevin Hilman <khilman@ti.com>
+Subject: [GIT PULL] ARM: OMAP: PM cleanups for v3.4
+Date: Mon, 05 Mar 2012 16:53:29 -0800
+Message-ID: <87mx7uh7na.fsf@ti.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-ey0-f174.google.com ([209.85.215.174]:42023 "EHLO
-	mail-ey0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932433Ab2CFAqo (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 5 Mar 2012 19:46:44 -0500
-Received: by eaaq12 with SMTP id q12so1638344eaa.19
-        for <linux-omap@vger.kernel.org>; Mon, 05 Mar 2012 16:46:43 -0800 (PST)
+Received: from na3sys009aog130.obsmtp.com ([74.125.149.143]:39518 "EHLO
+	na3sys009amx259.postini.com" rhost-flags-OK-OK-OK-FAIL)
+	by vger.kernel.org with ESMTP id S932593Ab2CFAxb (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 5 Mar 2012 19:53:31 -0500
+Received: by mail-pw0-f50.google.com with SMTP id xa12so487143pbc.9
+        for <linux-omap@vger.kernel.org>; Mon, 05 Mar 2012 16:53:30 -0800 (PST)
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: tony@atomide.com
-Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, mgherzan@gmail.com
+To: Tony Lindgren <tony@atomide.com>
+Cc: Paul Walmsley <paul@pwsan.com>, linux-omap <linux-omap@vger.kernel.org>, linux-arm-kernel <linux-arm-kernel@lists.infradead.org>, Jean Pihet <jean.pihet@newoldbits.com>
 
-The "uim" deamon requires sysfs entries that are filled in using
-this platform data.
+Tony,
 
-Signed-off-by: Mircea Gherzan <mgherzan@gmail.com>
----
- arch/arm/mach-omap2/board-omap4panda.c |   23 +++++++++++++++++------
- include/linux/ti_wilink_st.h           |    2 ++
- 2 files changed, 19 insertions(+), 6 deletions(-)
+Please pull the following PM related cleanups for v3.4.
 
-diff --git a/arch/arm/mach-omap2/board-omap4panda.c b/arch/arm/mach-omap2/board-omap4panda.c
-index b1d74d6..37b437f 100644
---- a/arch/arm/mach-omap2/board-omap4panda.c
-+++ b/arch/arm/mach-omap2/board-omap4panda.c
-@@ -27,6 +27,7 @@
- #include <linux/i2c/twl.h>
- #include <linux/regulator/machine.h>
- #include <linux/regulator/fixed.h>
-+#include <linux/ti_wilink_st.h>
- #include <linux/wl12xx.h>
- 
- #include <mach/hardware.h>
-@@ -56,15 +57,29 @@
- #define HDMI_GPIO_HPD  63 /* Hotplug detect */
- 
- /* wl127x BT, FM, GPS connectivity chip */
--static int wl1271_gpios[] = {46, -1, -1};
-+static struct ti_st_plat_data wilink_platform_data = {
-+        .nshutdown_gpio	= 46,
-+        .dev_name	= "/dev/ttyO1",
-+        .flow_cntrl	= 1,
-+        .baud_rate	= 3000000,
-+	.chip_enable	= NULL,
-+        .suspend	= NULL,
-+        .resume		= NULL,
-+};
-+
- static struct platform_device wl1271_device = {
- 	.name	= "kim",
- 	.id	= -1,
- 	.dev	= {
--		.platform_data	= &wl1271_gpios,
-+		.platform_data	= &wilink_platform_data,
- 	},
- };
- 
-+static struct platform_device btwilink_device = {
-+	.name	= "btwilink",
-+	.id	= -1,
-+};
-+
- static struct gpio_led gpio_leds[] = {
- 	{
- 		.name			= "pandaboard::status1",
-@@ -91,10 +106,6 @@ static struct platform_device leds_gpio = {
- 	},
- };
- 
--static struct platform_device btwilink_device = {
--	.name	= "btwilink",
--	.id	= -1,
--};
- 
- static struct platform_device *panda_devices[] __initdata = {
- 	&leds_gpio,
-diff --git a/include/linux/ti_wilink_st.h b/include/linux/ti_wilink_st.h
-index 2ef4385..3ca0269 100644
---- a/include/linux/ti_wilink_st.h
-+++ b/include/linux/ti_wilink_st.h
-@@ -25,6 +25,8 @@
- #ifndef TI_WILINK_ST_H
- #define TI_WILINK_ST_H
- 
-+#include <linux/skbuff.h>
-+
- /**
-  * enum proto-type - The protocol on WiLink chips which share a
-  *	common physical interface like UART.
--- 
-1.7.9.1
+Note that due to conflicts with changes from both your cleanup branch
+and your hsmmc branch, I created a merge base by starting at 'cleanup'
+and merging hsmmc, and basing this series on top.
 
+Let me know if you want some other baseline for this series.
+
+Kevin
+
+
+The following changes since commit 015f1e4297ad32f83251f3f4cee2389ce5516e9e:
+
+  Merge remote-tracking branch 'omap/hsmmc' into for_3.4/cleanup/pm-base (2012-03-05 15:37:04 -0800)
+
+are available in the git repository at:
+
+
+  git://git.kernel.org/pub/scm/linux/kernel/git/khilman/linux-omap-pm.git for_3.4/cleanup/pm
+
+for you to fetch changes up to 1416408d31236dc2a80d269aa23ffa93aa01e833:
+
+  ARM: OMAP2+: PM: share some suspend-related functions across OMAP2, 3, 4 (2012-03-05 16:01:19 -0800)
+
+----------------------------------------------------------------
+Jean Pihet (1):
+      ARM: OMAP2+: PM debug: fix the use of debugfs_create_* API
+
+Kevin Hilman (1):
+      ARM: OMAP: omap_device: remove omap_device_parent
+
+Paul Walmsley (5):
+      ARM: OMAP3: PM: remove superfluous calls to pwrdm_clear_all_prev_pwrst()
+      ARM: OMAP2+: PM: clean up omap_set_pwrdm_state()
+      ARM: OMAP2+: PM: share clkdms_setup() across OMAP2, 3, 4
+      ARM: OMAP2+: omap_device: call all suspend, resume callbacks when OMAP_DEVICE_NO_IDLE_ON_SUSPEND is set
+      ARM: OMAP2+: PM: share some suspend-related functions across OMAP2, 3, 4
+
+ arch/arm/mach-omap2/omap-mpuss-lowpower.c     |    2 -
+ arch/arm/mach-omap2/pm-debug.c                |    6 +-
+ arch/arm/mach-omap2/pm.c                      |  113 ++++++++++++++++++++-----
+ arch/arm/mach-omap2/pm.h                      |    2 +
+ arch/arm/mach-omap2/pm24xx.c                  |   75 ++--------------
+ arch/arm/mach-omap2/pm34xx.c                  |   74 +---------------
+ arch/arm/mach-omap2/pm44xx.c                  |   57 +------------
+ arch/arm/plat-omap/include/plat/omap_device.h |    2 +-
+ arch/arm/plat-omap/omap-pm-noop.c             |    2 +-
+ arch/arm/plat-omap/omap_device.c              |   24 ++----
+ 10 files changed, 118 insertions(+), 239 deletions(-)
