@@ -1,15 +1,15 @@
 From: Tero Kristo <t-kristo@ti.com>
-Subject: [PATCHv5 6/6] ARM: OMAP3 PM: Remove IO Daisychain control from cpuidle
-Date: Tue, 6 Mar 2012 17:11:42 +0200
-Message-ID: <1331046702-2472-7-git-send-email-t-kristo@ti.com>
+Subject: [PATCHv5 5/6] ARM: OMAP3PLUS PM: Add IO Daisychain support via hwmod mux
+Date: Tue, 6 Mar 2012 17:11:41 +0200
+Message-ID: <1331046702-2472-6-git-send-email-t-kristo@ti.com>
 References: <1331046702-2472-1-git-send-email-t-kristo@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from devils.ext.ti.com ([198.47.26.153]:48524 "EHLO
-	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1030905Ab2CFPMF (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 6 Mar 2012 10:12:05 -0500
+Received: from comal.ext.ti.com ([198.47.26.152]:58476 "EHLO comal.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1030854Ab2CFPMG (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Tue, 6 Mar 2012 10:12:06 -0500
 In-Reply-To: <1331046702-2472-1-git-send-email-t-kristo@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
@@ -18,100 +18,125 @@ Cc: linux-arm-kernel@lists.infradead.org, Vishwanath BS <vishwanath.bs@ti.com>
 
 From: Vishwanath BS <vishwanath.bs@ti.com>
 
-As IO Daisy chain sequence is triggered via hwmod mux, there is no need to
-control it from cpuidle path for OMAP3.
+IO Daisychain feature has to be triggered whenever there is a change in
+device's mux configuration (See section 3.9.4 in OMAP4 Public TRM vP).
 
-Also as omap3_disable_io_chain is no longer being used, just remove the
-function.
+Now devices can idle independent of the powerdomain, there can be a
+window where device is idled and corresponding powerdomain can be
+ON/INACTIVE state. In such situations, since both module wake up is
+enabled at padlevel as well as io daisychain sequence is triggered,
+there will be 2 PRCM interrupts (Module async wake up via swakeup and
+IO Pad interrupt). But as PRCM Interrupt handler clears the Module
+Padlevel WKST bit in the first interrupt, module specific interrupt
+handler will not triggered for the second time
+
+Also look at detailed explanation given by Rajendra at
+http://www.spinics.net/lists/linux-serial/msg04480.html
 
 Signed-off-by: Vishwanath BS <vishwanath.bs@ti.com>
 Signed-off-by: Tero Kristo <t-kristo@ti.com>
-Reviewed-by: Rajendra Nayak <rnayak@ti.com>
 ---
- arch/arm/mach-omap2/pm34xx.c       |   17 -----------------
- arch/arm/mach-omap2/prm2xxx_3xxx.c |    8 --------
- arch/arm/mach-omap2/prm2xxx_3xxx.h |    7 -------
- 3 files changed, 0 insertions(+), 32 deletions(-)
+ arch/arm/mach-omap2/omap_hwmod.c |    9 +++++++--
+ arch/arm/mach-omap2/pm.c         |   21 +++++++++++++++++++++
+ arch/arm/mach-omap2/pm.h         |    1 +
+ 3 files changed, 29 insertions(+), 2 deletions(-)
 
-diff --git a/arch/arm/mach-omap2/pm34xx.c b/arch/arm/mach-omap2/pm34xx.c
-index e97ec3f..ed12bb4 100644
---- a/arch/arm/mach-omap2/pm34xx.c
-+++ b/arch/arm/mach-omap2/pm34xx.c
-@@ -291,13 +291,6 @@ void omap_sram_idle(void)
- 	/* Enable IO-PAD and IO-CHAIN wakeups */
- 	per_next_state = pwrdm_read_next_pwrst(per_pwrdm);
- 	core_next_state = pwrdm_read_next_pwrst(core_pwrdm);
--	if (omap3_has_io_wakeup() &&
--	    (per_next_state < PWRDM_POWER_ON ||
--	     core_next_state < PWRDM_POWER_ON)) {
--		omap2_prm_set_mod_reg_bits(OMAP3430_EN_IO_MASK, WKUP_MOD, PM_WKEN);
--		if (omap3_has_io_chain_ctrl())
--			omap3_trigger_io_chain();
--	}
+diff --git a/arch/arm/mach-omap2/omap_hwmod.c b/arch/arm/mach-omap2/omap_hwmod.c
+index 5192cab..56adbfb 100644
+--- a/arch/arm/mach-omap2/omap_hwmod.c
++++ b/arch/arm/mach-omap2/omap_hwmod.c
+@@ -152,6 +152,7 @@
+ #include "prm44xx.h"
+ #include "prminst44xx.h"
+ #include "mux.h"
++#include "pm.h"
  
- 	pwrdm_pre_transition();
+ /* Maximum microseconds to wait for OMAP module to softreset */
+ #define MAX_MODULE_SOFTRESET_WAIT	10000
+@@ -1535,8 +1536,10 @@ static int _enable(struct omap_hwmod *oh)
+ 	/* Mux pins for device runtime if populated */
+ 	if (oh->mux && (!oh->mux->enabled ||
+ 			((oh->_state == _HWMOD_STATE_IDLE) &&
+-			 oh->mux->pads_dynamic)))
++			 oh->mux->pads_dynamic))) {
+ 		omap_hwmod_mux(oh->mux, _HWMOD_STATE_ENABLED);
++		omap_trigger_io_chain();
++	}
  
-@@ -376,16 +369,6 @@ void omap_sram_idle(void)
- 			omap3_per_restore_context();
- 	}
+ 	_add_initiator_dep(oh, mpu_oh);
  
--	/* Disable IO-PAD and IO-CHAIN wakeup */
--	if (omap3_has_io_wakeup() &&
--	    (per_next_state < PWRDM_POWER_ON ||
--	     core_next_state < PWRDM_POWER_ON)) {
--		omap2_prm_clear_mod_reg_bits(OMAP3430_EN_IO_MASK, WKUP_MOD,
--					     PM_WKEN);
--		if (omap3_has_io_chain_ctrl())
--			omap3_disable_io_chain();
--	}
--
- 	clkdm_allow_idle(mpu_pwrdm->pwrdm_clkdms[0]);
- }
+@@ -1622,8 +1625,10 @@ static int _idle(struct omap_hwmod *oh)
+ 		clkdm_hwmod_disable(oh->clkdm, oh);
  
-diff --git a/arch/arm/mach-omap2/prm2xxx_3xxx.c b/arch/arm/mach-omap2/prm2xxx_3xxx.c
-index f0179f6..b8962fe 100644
---- a/arch/arm/mach-omap2/prm2xxx_3xxx.c
-+++ b/arch/arm/mach-omap2/prm2xxx_3xxx.c
-@@ -330,14 +330,6 @@ void omap3_trigger_io_chain(void)
- 	omap2_prm_read_mod_reg(WKUP_MOD, PM_WKST);
- }
+ 	/* Mux pins for device idle if populated */
+-	if (oh->mux && oh->mux->pads_dynamic)
++	if (oh->mux && oh->mux->pads_dynamic) {
+ 		omap_hwmod_mux(oh->mux, _HWMOD_STATE_IDLE);
++		omap_trigger_io_chain();
++	}
  
--/* OMAP3 Daisychain disable sequence */
--void omap3_disable_io_chain(void)
--{
--	if (omap_rev() >= OMAP3430_REV_ES3_1)
--		omap2_prm_clear_mod_reg_bits(OMAP3430_EN_IO_CHAIN_MASK,
--					     WKUP_MOD, PM_WKEN);
--}
--
- static void __init omap3_enable_io_wakeup(void)
+ 	oh->_state = _HWMOD_STATE_IDLE;
+ 
+diff --git a/arch/arm/mach-omap2/pm.c b/arch/arm/mach-omap2/pm.c
+index 1881fe9..b7ac0f4 100644
+--- a/arch/arm/mach-omap2/pm.c
++++ b/arch/arm/mach-omap2/pm.c
+@@ -25,8 +25,12 @@
+ #include "clockdomain.h"
+ #include "pm.h"
+ #include "twl-common.h"
++#include "prm2xxx_3xxx.h"
++#include "prm44xx.h"
+ 
+ static struct omap_device_pm_latency *pm_lats;
++static void (*io_chain_trigger_func) (void);
++static DEFINE_SPINLOCK(io_chain_lock);
+ 
+ static int _init_omap_device(char *name)
  {
- 	if (omap3_has_io_wakeup())
-diff --git a/arch/arm/mach-omap2/prm2xxx_3xxx.h b/arch/arm/mach-omap2/prm2xxx_3xxx.h
-index 15973aa..391b844 100644
---- a/arch/arm/mach-omap2/prm2xxx_3xxx.h
-+++ b/arch/arm/mach-omap2/prm2xxx_3xxx.h
-@@ -295,12 +295,6 @@ static inline void omap3_trigger_io_chain(void)
- 		"not suppose to be used on omap4\n");
+@@ -64,6 +68,17 @@ static void omap2_init_processor_devices(void)
+ 	}
+ }
+ 
++void omap_trigger_io_chain(void)
++{
++	unsigned long flags;
++
++	if (io_chain_trigger_func) {
++		spin_lock_irqsave(&io_chain_lock, flags);
++		io_chain_trigger_func();
++		spin_unlock_irqrestore(&io_chain_lock, flags);
++	}
++}
++
+ /* Types of sleep_switch used in omap_set_pwrdm_state */
+ #define FORCEWAKEUP_SWITCH	0
+ #define LOWPOWERSTATE_SWITCH	1
+@@ -221,6 +236,12 @@ static int __init omap2_common_pm_init(void)
+ 		omap2_init_processor_devices();
+ 	omap_pm_if_init();
+ 
++	if (cpu_is_omap34xx() && omap3_has_io_chain_ctrl())
++		io_chain_trigger_func = omap3_trigger_io_chain;
++
++	if (cpu_is_omap44xx())
++		io_chain_trigger_func = omap4_trigger_io_chain;
++
  	return 0;
  }
--static inline void omap3_disable_io_chain(void)
--{
--	WARN(1, "prm: omap2xxx/omap3xxx specific function and "
--		"not suppose to be used on omap4\n");
--	return 0;
--}
- #else
- /* Power/reset management domain register get/set */
- extern u32 omap2_prm_read_mod_reg(s16 module, u16 idx);
-@@ -315,7 +309,6 @@ extern int omap2_prm_is_hardreset_asserted(s16 prm_mod, u8 shift);
- extern int omap2_prm_assert_hardreset(s16 prm_mod, u8 shift);
- extern int omap2_prm_deassert_hardreset(s16 prm_mod, u8 rst_shift, u8 st_shift);
- extern void omap3_trigger_io_chain(void);
--extern void omap3_disable_io_chain(void);
+ postcore_initcall(omap2_common_pm_init);
+diff --git a/arch/arm/mach-omap2/pm.h b/arch/arm/mach-omap2/pm.h
+index b737b11..f9dac40 100644
+--- a/arch/arm/mach-omap2/pm.h
++++ b/arch/arm/mach-omap2/pm.h
+@@ -22,6 +22,7 @@ extern int omap3_can_sleep(void);
+ extern int omap_set_pwrdm_state(struct powerdomain *pwrdm, u32 state);
+ extern int omap3_idle_init(void);
+ extern int omap4_idle_init(void);
++extern void omap_trigger_io_chain(void);
  
- /* OMAP3-specific VP functions */
- u32 omap3_prm_vp_check_txdone(u8 vp_id);
+ #if defined(CONFIG_PM_OPP)
+ extern int omap3_opp_init(void);
 -- 
 1.7.4.1
 
