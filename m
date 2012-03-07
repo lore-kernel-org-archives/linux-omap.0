@@ -1,103 +1,55 @@
-From: "Hiremath, Vaibhav" <hvaibhav@ti.com>
-Subject: RE: [PATCH 1/3] ARM: OMAP2+: 32k-counter: Use hwmod lookup to check
- presence of 32k timer
-Date: Wed, 7 Mar 2012 09:48:06 +0000
-Message-ID: <79CD15C6BA57404B839C016229A409A83180A006@DBDE01.ent.ti.com>
-References: <1326983304-14619-1-git-send-email-hvaibhav@ti.com>
- <1326983304-14619-2-git-send-email-hvaibhav@ti.com>
- <20120305225530.GJ12083@atomide.com>
+From: Will Deacon <will.deacon@arm.com>
+Subject: Re: oprofile and ARM A9 hardware counter
+Date: Wed, 7 Mar 2012 09:48:50 +0000
+Message-ID: <20120307094850.GB20673@mudshark.cambridge.arm.com>
+References: <CAMsRxfKPm0dEaKDeSZQ=6jkpo4MeS=0XF6TsCj+BV54WbW_LtA@mail.gmail.com>
+ <CACVXFVMgk7ykSX3GjzCNvUU0zMzNvGGuZMBpxBf7NRVk9EM7ig@mail.gmail.com>
+ <CAMsRxfJWjwznJYujSvr0DfhNxtnJDVdfjXXpx34HUDBRtMvjqw@mail.gmail.com>
+ <20120127121311.GB2347@mudshark.cambridge.arm.com>
+ <yw1x1uqlnw1o.fsf@unicorn.mansr.com>
+ <20120127132826.GD2347@mudshark.cambridge.arm.com>
+ <CACVXFVPHpmPX9OdeYzzWjQ-qqs=9oYbL_og-_xJA2ypYNu0nRA@mail.gmail.com>
+ <CAMsRxfJOAh1V7sMWxqCXADDB_eSAuxop1iYAGqXvLC_74Pfz1A@mail.gmail.com>
+ <20120127155454.GH2347@mudshark.cambridge.arm.com>
+ <CACVXFVNExXcU473=m5QLZXAhpNsC3WZHrFa-=HzGdjMEy3seDg@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from arroyo.ext.ti.com ([192.94.94.40]:36794 "EHLO arroyo.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751450Ab2CGJsk convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 7 Mar 2012 04:48:40 -0500
-In-Reply-To: <20120305225530.GJ12083@atomide.com>
-Content-Language: en-US
+Received: from cam-admin0.cambridge.arm.com ([217.140.96.50]:52470 "EHLO
+	cam-admin0.cambridge.arm.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1752441Ab2CGJs6 (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 7 Mar 2012 04:48:58 -0500
+Content-Disposition: inline
+In-Reply-To: <CACVXFVNExXcU473=m5QLZXAhpNsC3WZHrFa-=HzGdjMEy3seDg@mail.gmail.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Tony Lindgren <tony@atomide.com>
-Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, "marc.zyngier@arm.com" <marc.zyngier@arm.com>, "johnstul@us.ibm.com" <johnstul@us.ibm.com>, "Balbi, Felipe" <balbi@ti.com>, "Cousson, Benoit" <b-cousson@ti.com>, Paul Walmsley <paul@pwsan.com>, "DebBarma, Tarun Kanti" <tarun.kanti@ti.com>
+To: Ming Lei <ming.lei@canonical.com>
+Cc: "eranian@gmail.com" <eranian@gmail.com>, =?iso-8859-1?Q?M=E5ns_Rullg=E5rd?= <mans@mansr.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>
 
-On Tue, Mar 06, 2012 at 04:25:30, Tony Lindgren wrote:
-> Hi,
-> 
-> * Vaibhav Hiremath <hvaibhav@ti.com> [120119 06:01]:
-> > OMAP device has 32k-sync timer which is currently used as a
-> > clocksource in the kernel (omap2plus_defconfig).
-> > The current implementation uses compile time selection between
-> > gp-timer and 32k-sync timer, which breaks multi-omap build for
-> > the devices like AM33xx, where 32k-sync timer is not available.
-> > 
-> > So use hwmod database lookup mechanism, through which at run-time
-> > we can identify availability of 32k-sync timer on the device,
-> > else fall back to gp-timer.
-> ...
-> 
-> > --- a/arch/arm/plat-omap/counter_32k.c
-> > +++ b/arch/arm/plat-omap/counter_32k.c
-> > @@ -69,52 +69,55 @@ void read_persistent_clock(struct timespec *ts)
-> >  
-> >  int __init omap_init_clocksource_32k(void)
-> >  {
-> > -	static char err[] __initdata = KERN_ERR
-> > -			"%s: can't register clocksource!\n";
-> > -
-> > -	if (cpu_is_omap16xx() || cpu_class_is_omap2()) {
-> > -		u32 pbase;
-> > -		unsigned long size = SZ_4K;
-> > -		void __iomem *base;
-> > -		struct clk *sync_32k_ick;
-> > -
-> > -		if (cpu_is_omap16xx()) {
-> > -			pbase = OMAP16XX_TIMER_32K_SYNCHRONIZED;
-> > -			size = SZ_1K;
-> > -		} else if (cpu_is_omap2420())
-> > -			pbase = OMAP2420_32KSYNCT_BASE + 0x10;
-> > -		else if (cpu_is_omap2430())
-> > -			pbase = OMAP2430_32KSYNCT_BASE + 0x10;
-> > -		else if (cpu_is_omap34xx())
-> > -			pbase = OMAP3430_32KSYNCT_BASE + 0x10;
-> > -		else if (cpu_is_omap44xx())
-> > -			pbase = OMAP4430_32KSYNCT_BASE + 0x10;
-> > -		else
-> > +	u32 pbase;
-> > +	unsigned long size = SZ_4K;
-> > +	void __iomem *base;
-> > +	struct clk *sync_32k_ick;
-> > +
-> > +	if (cpu_is_omap16xx()) {
-> > +		pbase = OMAP16XX_TIMER_32K_SYNCHRONIZED;
-> > +		size = SZ_1K;
-> > +	} else if (cpu_class_is_omap2()) {
-> > +		struct omap_hwmod *oh;
-> > +		const char *oh_name = "counter_32k";
-> > +
-> > +		oh = omap_hwmod_lookup(oh_name);
-> > +		if (!oh || oh->slaves_cnt == 0) {
-> > +			pr_err("Could not lookup %s hwmod\n", oh_name);
-> >  			return -ENODEV;
-> > +		}
-> > +		pbase = oh->slaves[0]->addr->pa_start + 0x10;
-> > +	} else {
-> > +		return -ENODEV;
-> > +	}
-> 
-> How about have separate omap1 and omap2+ init functions that
-> call a common function and passes the pbase as a parameter?
-> 
-> That way we can get rid of the cpu_is_omapxxxx tests here.
-> 
+On Wed, Mar 07, 2012 at 02:49:46AM +0000, Ming Lei wrote:
+> Hi Will,
 
-Ok, let me clean this code accordingly  and submit the next version.
+Hello,
 
-Thanks,
-Vaibhav
-
-> Regards,
+> On Fri, Jan 27, 2012 at 11:54 PM, Will Deacon <will.deacon@arm.com> wrote:
+> > Ok. Note that on ARM the PMU generates a standard IRQ (i.e. not an NMI) so
+> > you may miss samples if they occur during critical kernel sections (and if
+> > you look at a profile, spin_unlock_irqrestore will be quite high).
 > 
-> Tony 
+> Also looks no any irq handler functions can be observed at a profile even
+> though they may be run at a very high frequency.
 > 
+> So could we configure ARM PMU interrupt as FIQ to address the above issues?
 
+I thought about that in the past but the problem is finding hardware which
+allows this. It probably means that you need a second GIC which can route
+interrupts onto the FIQ line into the CPU. Given that FIQ is usually claimed
+for secure interrupts, there could also still be latency issues here.
+
+A better (read: highly invasive) way to fix this is using interrupt
+priorities at the distributor. You then have to hack the interrupt disabling
+code so that it disables interrupts below a certain priority if they occur
+during an IRQ-off section. The re-enabling code would then have to undo
+those decisions and allow the interrupts to be serviced. Pretty nasty stuff.
+
+Will
