@@ -1,261 +1,378 @@
 From: Tomi Valkeinen <tomi.valkeinen@ti.com>
-Subject: [PATCH 14/21] OMAPDSS: create DPI & SDI drivers
-Date: Wed,  7 Mar 2012 14:44:43 +0200
-Message-ID: <1331124290-6285-15-git-send-email-tomi.valkeinen@ti.com>
+Subject: [PATCH 15/21] OMAPDSS: remove uses of dss_runtime_get/put
+Date: Wed,  7 Mar 2012 14:44:44 +0200
+Message-ID: <1331124290-6285-16-git-send-email-tomi.valkeinen@ti.com>
 References: <1331124290-6285-1-git-send-email-tomi.valkeinen@ti.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aog109.obsmtp.com ([74.125.149.201]:57300 "EHLO
-	na3sys009aog109.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1758537Ab2CGMpk (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 7 Mar 2012 07:45:40 -0500
-Received: by mail-lpp01m010-f47.google.com with SMTP id w12so8121258lag.20
-        for <linux-omap@vger.kernel.org>; Wed, 07 Mar 2012 04:45:39 -0800 (PST)
+Received: from na3sys009aog115.obsmtp.com ([74.125.149.238]:56571 "EHLO
+	na3sys009aog115.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1758531Ab2CGMpt (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 7 Mar 2012 07:45:49 -0500
+Received: by bkcji17 with SMTP id ji17so5708098bkc.7
+        for <linux-omap@vger.kernel.org>; Wed, 07 Mar 2012 04:45:46 -0800 (PST)
 In-Reply-To: <1331124290-6285-1-git-send-email-tomi.valkeinen@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: linux-omap@vger.kernel.org, linux-fbdev@vger.kernel.org
 Cc: archit@ti.com, Tomi Valkeinen <tomi.valkeinen@ti.com>
 
-We currently have separate device/driver for each DSS HW module. The DPI
-and SDI outputs are more or less parts of the DSS or DISPC hardware
-modules, but in SW it makes sense to represent them as device/driver
-pairs similarly to all the other outputs. This also makes sense for
-device tree, as each node under dss will be a platform device, and
-handling DPI & SDI somehow differently than the rest would just make the
-code more complex.
-
-This patch modifies the dpi.c and sdi.c to create drivers for the
-platform devices.
+Now that the omapdss_core device is the parent for all other dss
+devices, we don't need to use the dss_runtime_get/put anymore. Instead,
+enabling omapdss_core will happen automatically when a child device is
+enabled.
 
 Signed-off-by: Tomi Valkeinen <tomi.valkeinen@ti.com>
 ---
- drivers/video/omap2/dss/core.c |   18 ++++++++++++++++++
- drivers/video/omap2/dss/dpi.c  |   23 +++++++++++++++++++++--
- drivers/video/omap2/dss/dss.c  |   20 +-------------------
- drivers/video/omap2/dss/dss.h  |   26 ++++++++------------------
- drivers/video/omap2/dss/sdi.c  |   25 +++++++++++++++++++++++--
- 5 files changed, 71 insertions(+), 41 deletions(-)
+ drivers/video/omap2/dss/dispc.c |    7 -------
+ drivers/video/omap2/dss/dpi.c   |   16 +---------------
+ drivers/video/omap2/dss/dsi.c   |   12 +-----------
+ drivers/video/omap2/dss/dss.c   |    7 +++++--
+ drivers/video/omap2/dss/dss.h   |    3 ---
+ drivers/video/omap2/dss/hdmi.c  |   34 ++--------------------------------
+ drivers/video/omap2/dss/rfbi.c  |   12 +-----------
+ drivers/video/omap2/dss/sdi.c   |    7 -------
+ drivers/video/omap2/dss/venc.c  |   12 +-----------
+ 9 files changed, 11 insertions(+), 99 deletions(-)
 
-diff --git a/drivers/video/omap2/dss/core.c b/drivers/video/omap2/dss/core.c
-index 95d312c..654962a 100644
---- a/drivers/video/omap2/dss/core.c
-+++ b/drivers/video/omap2/dss/core.c
-@@ -524,6 +524,18 @@ static int __init omap_dss_register_drivers(void)
- 		goto err_dispc;
- 	}
+diff --git a/drivers/video/omap2/dss/dispc.c b/drivers/video/omap2/dss/dispc.c
+index c71d4c5..1fbe480 100644
+--- a/drivers/video/omap2/dss/dispc.c
++++ b/drivers/video/omap2/dss/dispc.c
+@@ -3407,19 +3407,12 @@ static int omap_dispchw_remove(struct platform_device *pdev)
+ static int dispc_runtime_suspend(struct device *dev)
+ {
+ 	dispc_save_context();
+-	dss_runtime_put();
  
-+	r = dpi_init_platform_driver();
-+	if (r) {
-+		DSSERR("Failed to initialize dpi platform driver\n");
-+		goto err_dpi;
-+	}
-+
-+	r = sdi_init_platform_driver();
-+	if (r) {
-+		DSSERR("Failed to initialize sdi platform driver\n");
-+		goto err_sdi;
-+	}
-+
- 	r = rfbi_init_platform_driver();
- 	if (r) {
- 		DSSERR("Failed to initialize rfbi platform driver\n");
-@@ -557,6 +569,10 @@ err_dsi:
- err_venc:
- 	rfbi_uninit_platform_driver();
- err_rfbi:
-+	sdi_uninit_platform_driver();
-+err_sdi:
-+	dpi_uninit_platform_driver();
-+err_dpi:
- 	dispc_uninit_platform_driver();
- err_dispc:
- 	dss_uninit_platform_driver();
-@@ -572,6 +588,8 @@ static void __exit omap_dss_unregister_drivers(void)
- 	dsi_uninit_platform_driver();
- 	venc_uninit_platform_driver();
- 	rfbi_uninit_platform_driver();
-+	sdi_uninit_platform_driver();
-+	dpi_uninit_platform_driver();
- 	dispc_uninit_platform_driver();
- 	dss_uninit_platform_driver();
+ 	return 0;
+ }
  
+ static int dispc_runtime_resume(struct device *dev)
+ {
+-	int r;
+-
+-	r = dss_runtime_get();
+-	if (r < 0)
+-		return r;
+-
+ 	dispc_restore_context();
+ 
+ 	return 0;
 diff --git a/drivers/video/omap2/dss/dpi.c b/drivers/video/omap2/dss/dpi.c
-index faaf305..5b7bbab 100644
+index 5b7bbab..511df3c 100644
 --- a/drivers/video/omap2/dss/dpi.c
 +++ b/drivers/video/omap2/dss/dpi.c
-@@ -378,12 +378,31 @@ int dpi_init_display(struct omap_dss_device *dssdev)
+@@ -202,10 +202,6 @@ int omapdss_dpi_display_enable(struct omap_dss_device *dssdev)
+ 			goto err_reg_enable;
+ 	}
+ 
+-	r = dss_runtime_get();
+-	if (r)
+-		goto err_get_dss;
+-
+ 	r = dispc_runtime_get();
+ 	if (r)
+ 		goto err_get_dispc;
+@@ -244,8 +240,6 @@ err_dsi_pll_init:
+ err_get_dsi:
+ 	dispc_runtime_put();
+ err_get_dispc:
+-	dss_runtime_put();
+-err_get_dss:
+ 	if (cpu_is_omap34xx())
+ 		regulator_disable(dpi.vdds_dsi_reg);
+ err_reg_enable:
+@@ -266,7 +260,6 @@ void omapdss_dpi_display_disable(struct omap_dss_device *dssdev)
+ 	}
+ 
+ 	dispc_runtime_put();
+-	dss_runtime_put();
+ 
+ 	if (cpu_is_omap34xx())
+ 		regulator_disable(dpi.vdds_dsi_reg);
+@@ -283,21 +276,14 @@ void dpi_set_timings(struct omap_dss_device *dssdev,
+ 	DSSDBG("dpi_set_timings\n");
+ 	dssdev->panel.timings = *timings;
+ 	if (dssdev->state == OMAP_DSS_DISPLAY_ACTIVE) {
+-		r = dss_runtime_get();
+-		if (r)
+-			return;
+-
+ 		r = dispc_runtime_get();
+-		if (r) {
+-			dss_runtime_put();
++		if (r)
+ 			return;
+-		}
+ 
+ 		dpi_set_mode(dssdev);
+ 		dispc_mgr_go(dssdev->manager->id);
+ 
+ 		dispc_runtime_put();
+-		dss_runtime_put();
+ 	}
+ }
+ EXPORT_SYMBOL(dpi_set_timings);
+diff --git a/drivers/video/omap2/dss/dsi.c b/drivers/video/omap2/dss/dsi.c
+index cf59f40..4bee235 100644
+--- a/drivers/video/omap2/dss/dsi.c
++++ b/drivers/video/omap2/dss/dsi.c
+@@ -4802,7 +4802,6 @@ static int omap_dsihw_remove(struct platform_device *dsidev)
+ static int dsi_runtime_suspend(struct device *dev)
+ {
+ 	dispc_runtime_put();
+-	dss_runtime_put();
+ 
  	return 0;
  }
- 
--int dpi_init(void)
-+static int omap_dpi_probe(struct platform_device *pdev)
+@@ -4811,20 +4810,11 @@ static int dsi_runtime_resume(struct device *dev)
  {
+ 	int r;
+ 
+-	r = dss_runtime_get();
+-	if (r)
+-		goto err_get_dss;
+-
+ 	r = dispc_runtime_get();
+ 	if (r)
+-		goto err_get_dispc;
++		return r;
+ 
  	return 0;
+-
+-err_get_dispc:
+-	dss_runtime_put();
+-err_get_dss:
+-	return r;
  }
  
--void dpi_exit(void)
-+static int omap_dpi_remove(struct platform_device *pdev)
- {
-+	return 0;
- }
- 
-+static struct platform_driver omap_dpi_driver = {
-+	.probe		= omap_dpi_probe,
-+	.remove         = omap_dpi_remove,
-+	.driver         = {
-+		.name   = "omapdss_dpi",
-+		.owner  = THIS_MODULE,
-+	},
-+};
-+
-+int dpi_init_platform_driver(void)
-+{
-+	return platform_driver_register(&omap_dpi_driver);
-+}
-+
-+void dpi_uninit_platform_driver(void)
-+{
-+	platform_driver_unregister(&omap_dpi_driver);
-+}
+ static const struct dev_pm_ops dsi_pm_ops = {
 diff --git a/drivers/video/omap2/dss/dss.c b/drivers/video/omap2/dss/dss.c
-index 34cc84f..3156851 100644
+index 3156851..da528b7 100644
 --- a/drivers/video/omap2/dss/dss.c
 +++ b/drivers/video/omap2/dss/dss.c
-@@ -782,18 +782,6 @@ static int omap_dsshw_probe(struct platform_device *pdev)
- 	dss.lcd_clk_source[0] = OMAP_DSS_CLK_SRC_FCK;
- 	dss.lcd_clk_source[1] = OMAP_DSS_CLK_SRC_FCK;
+@@ -59,6 +59,9 @@ struct dss_reg {
+ #define REG_FLD_MOD(idx, val, start, end) \
+ 	dss_write_reg(idx, FLD_MOD(dss_read_reg(idx), val, start, end))
  
--	r = dpi_init();
--	if (r) {
--		DSSERR("Failed to initialize DPI\n");
--		goto err_dpi;
--	}
--
--	r = sdi_init();
--	if (r) {
--		DSSERR("Failed to initialize SDI\n");
--		goto err_sdi;
--	}
--
- 	rev = dss_read_reg(DSS_REVISION);
- 	printk(KERN_INFO "OMAP DSS rev %d.%d\n",
- 			FLD_GET(rev, 7, 4), FLD_GET(rev, 3, 0));
-@@ -801,10 +789,7 @@ static int omap_dsshw_probe(struct platform_device *pdev)
- 	dss_runtime_put();
- 
- 	return 0;
--err_sdi:
--	dpi_exit();
--err_dpi:
--	dss_runtime_put();
++static int dss_runtime_get(void);
++static void dss_runtime_put(void);
 +
- err_runtime_get:
- 	pm_runtime_disable(&pdev->dev);
- 	dss_put_clocks();
-@@ -813,9 +798,6 @@ err_runtime_get:
+ static struct {
+ 	struct platform_device *pdev;
+ 	void __iomem    *base;
+@@ -703,7 +706,7 @@ static void dss_put_clocks(void)
+ 	clk_put(dss.dss_clk);
+ }
  
- static int omap_dsshw_remove(struct platform_device *pdev)
+-int dss_runtime_get(void)
++static int dss_runtime_get(void)
  {
--	dpi_exit();
--	sdi_exit();
--
- 	pm_runtime_disable(&pdev->dev);
+ 	int r;
  
- 	dss_put_clocks();
+@@ -714,7 +717,7 @@ int dss_runtime_get(void)
+ 	return r < 0 ? r : 0;
+ }
+ 
+-void dss_runtime_put(void)
++static void dss_runtime_put(void)
+ {
+ 	int r;
+ 
 diff --git a/drivers/video/omap2/dss/dss.h b/drivers/video/omap2/dss/dss.h
-index d37ed80..1981626 100644
+index 1981626..24aadde 100644
 --- a/drivers/video/omap2/dss/dss.h
 +++ b/drivers/video/omap2/dss/dss.h
-@@ -269,17 +269,12 @@ int dss_calc_clock_div(bool is_tft, unsigned long req_pck,
+@@ -230,9 +230,6 @@ int dss_ovl_check(struct omap_overlay *ovl,
+ int dss_init_platform_driver(void);
+ void dss_uninit_platform_driver(void);
  
- /* SDI */
- #ifdef CONFIG_OMAP2_DSS_SDI
--int sdi_init(void);
--void sdi_exit(void);
-+int sdi_init_platform_driver(void);
-+void sdi_uninit_platform_driver(void);
- int sdi_init_display(struct omap_dss_device *display);
- #else
--static inline int sdi_init(void)
--{
--	return 0;
--}
--static inline void sdi_exit(void)
--{
--}
-+static inline int sdi_init_platform_driver(void) { return 0; }
-+static inline void sdi_uninit_platform_driver(void) { }
- #endif
+-int dss_runtime_get(void);
+-void dss_runtime_put(void);
+-
+ void dss_select_hdmi_venc_clk_source(enum dss_hdmi_venc_clk_source_select);
+ enum dss_hdmi_venc_clk_source_select dss_get_hdmi_venc_clk_source(void);
+ const char *dss_get_generic_clk_source_name(enum omap_dss_clk_source clk_src);
+diff --git a/drivers/video/omap2/dss/hdmi.c b/drivers/video/omap2/dss/hdmi.c
+index b4ad13b..08a316b 100644
+--- a/drivers/video/omap2/dss/hdmi.c
++++ b/drivers/video/omap2/dss/hdmi.c
+@@ -129,25 +129,12 @@ static int hdmi_runtime_get(void)
  
- /* DSI */
-@@ -381,17 +376,12 @@ static inline struct platform_device *dsi_get_dsidev_from_id(int module)
+ 	DSSDBG("hdmi_runtime_get\n");
  
- /* DPI */
- #ifdef CONFIG_OMAP2_DSS_DPI
--int dpi_init(void);
--void dpi_exit(void);
-+int dpi_init_platform_driver(void);
-+void dpi_uninit_platform_driver(void);
- int dpi_init_display(struct omap_dss_device *dssdev);
- #else
--static inline int dpi_init(void)
--{
--	return 0;
--}
--static inline void dpi_exit(void)
--{
--}
-+static inline int dpi_init_platform_driver(void) { return 0; }
-+static inline void dpi_uninit_platform_driver(void) { }
- #endif
+-	/*
+-	 * HACK: Add dss_runtime_get() to ensure DSS clock domain is enabled.
+-	 * This should be removed later.
+-	 */
+-	r = dss_runtime_get();
+-	if (r < 0)
+-		goto err_get_dss;
+-
+ 	r = pm_runtime_get_sync(&hdmi.pdev->dev);
+ 	WARN_ON(r < 0);
+ 	if (r < 0)
+-		goto err_get_hdmi;
++		return r;
  
- /* DISPC */
+ 	return 0;
+-
+-err_get_hdmi:
+-	dss_runtime_put();
+-err_get_dss:
+-	return r;
+ }
+ 
+ static void hdmi_runtime_put(void)
+@@ -158,12 +145,6 @@ static void hdmi_runtime_put(void)
+ 
+ 	r = pm_runtime_put_sync(&hdmi.pdev->dev);
+ 	WARN_ON(r < 0);
+-
+-	/*
+-	 * HACK: This is added to complement the dss_runtime_get() call in
+-	 * hdmi_runtime_get(). This should be removed later.
+-	 */
+-	dss_runtime_put();
+ }
+ 
+ int hdmi_init_display(struct omap_dss_device *dssdev)
+@@ -865,7 +846,6 @@ static int hdmi_runtime_suspend(struct device *dev)
+ 	clk_disable(hdmi.sys_clk);
+ 
+ 	dispc_runtime_put();
+-	dss_runtime_put();
+ 
+ 	return 0;
+ }
+@@ -874,23 +854,13 @@ static int hdmi_runtime_resume(struct device *dev)
+ {
+ 	int r;
+ 
+-	r = dss_runtime_get();
+-	if (r < 0)
+-		goto err_get_dss;
+-
+ 	r = dispc_runtime_get();
+ 	if (r < 0)
+-		goto err_get_dispc;
+-
++		return r;
+ 
+ 	clk_enable(hdmi.sys_clk);
+ 
+ 	return 0;
+-
+-err_get_dispc:
+-	dss_runtime_put();
+-err_get_dss:
+-	return r;
+ }
+ 
+ static const struct dev_pm_ops hdmi_pm_ops = {
+diff --git a/drivers/video/omap2/dss/rfbi.c b/drivers/video/omap2/dss/rfbi.c
+index dfd8ec5..b6990ba 100644
+--- a/drivers/video/omap2/dss/rfbi.c
++++ b/drivers/video/omap2/dss/rfbi.c
+@@ -972,7 +972,6 @@ static int omap_rfbihw_remove(struct platform_device *pdev)
+ static int rfbi_runtime_suspend(struct device *dev)
+ {
+ 	dispc_runtime_put();
+-	dss_runtime_put();
+ 
+ 	return 0;
+ }
+@@ -981,20 +980,11 @@ static int rfbi_runtime_resume(struct device *dev)
+ {
+ 	int r;
+ 
+-	r = dss_runtime_get();
+-	if (r < 0)
+-		goto err_get_dss;
+-
+ 	r = dispc_runtime_get();
+ 	if (r < 0)
+-		goto err_get_dispc;
++		return r;
+ 
+ 	return 0;
+-
+-err_get_dispc:
+-	dss_runtime_put();
+-err_get_dss:
+-	return r;
+ }
+ 
+ static const struct dev_pm_ops rfbi_pm_ops = {
 diff --git a/drivers/video/omap2/dss/sdi.c b/drivers/video/omap2/dss/sdi.c
-index 8266ca0..d886d93 100644
+index d886d93..684a4de 100644
 --- a/drivers/video/omap2/dss/sdi.c
 +++ b/drivers/video/omap2/dss/sdi.c
-@@ -24,6 +24,7 @@
- #include <linux/err.h>
- #include <linux/regulator/consumer.h>
- #include <linux/export.h>
-+#include <linux/platform_device.h>
+@@ -72,10 +72,6 @@ int omapdss_sdi_display_enable(struct omap_dss_device *dssdev)
+ 	if (r)
+ 		goto err_reg_enable;
  
- #include <video/omapdss.h>
- #include "dss.h"
-@@ -182,11 +183,31 @@ int sdi_init_display(struct omap_dss_device *dssdev)
+-	r = dss_runtime_get();
+-	if (r)
+-		goto err_get_dss;
+-
+ 	r = dispc_runtime_get();
+ 	if (r)
+ 		goto err_get_dispc;
+@@ -138,8 +134,6 @@ err_set_dss_clock_div:
+ err_calc_clock_div:
+ 	dispc_runtime_put();
+ err_get_dispc:
+-	dss_runtime_put();
+-err_get_dss:
+ 	regulator_disable(sdi.vdds_sdi_reg);
+ err_reg_enable:
+ 	omap_dss_stop_device(dssdev);
+@@ -155,7 +149,6 @@ void omapdss_sdi_display_disable(struct omap_dss_device *dssdev)
+ 	dss_sdi_disable();
+ 
+ 	dispc_runtime_put();
+-	dss_runtime_put();
+ 
+ 	regulator_disable(sdi.vdds_sdi_reg);
+ 
+diff --git a/drivers/video/omap2/dss/venc.c b/drivers/video/omap2/dss/venc.c
+index c933733..637abcb 100644
+--- a/drivers/video/omap2/dss/venc.c
++++ b/drivers/video/omap2/dss/venc.c
+@@ -853,7 +853,6 @@ static int venc_runtime_suspend(struct device *dev)
+ 		clk_disable(venc.tv_dac_clk);
+ 
+ 	dispc_runtime_put();
+-	dss_runtime_put();
+ 
  	return 0;
  }
- 
--int sdi_init(void)
-+static int omap_sdi_probe(struct platform_device *pdev)
+@@ -862,23 +861,14 @@ static int venc_runtime_resume(struct device *dev)
  {
+ 	int r;
+ 
+-	r = dss_runtime_get();
+-	if (r < 0)
+-		goto err_get_dss;
+-
+ 	r = dispc_runtime_get();
+ 	if (r < 0)
+-		goto err_get_dispc;
++		return r;
+ 
+ 	if (venc.tv_dac_clk)
+ 		clk_enable(venc.tv_dac_clk);
+ 
  	return 0;
+-
+-err_get_dispc:
+-	dss_runtime_put();
+-err_get_dss:
+-	return r;
  }
  
--void sdi_exit(void)
-+static int omap_sdi_remove(struct platform_device *pdev)
- {
-+	return 0;
-+}
-+
-+static struct platform_driver omap_sdi_driver = {
-+	.probe		= omap_sdi_probe,
-+	.remove         = omap_sdi_remove,
-+	.driver         = {
-+		.name   = "omapdss_sdi",
-+		.owner  = THIS_MODULE,
-+	},
-+};
-+
-+int sdi_init_platform_driver(void)
-+{
-+	return platform_driver_register(&omap_sdi_driver);
-+}
-+
-+void sdi_uninit_platform_driver(void)
-+{
-+	platform_driver_unregister(&omap_sdi_driver);
- }
+ static const struct dev_pm_ops venc_pm_ops = {
 -- 
 1.7.4.1
 
