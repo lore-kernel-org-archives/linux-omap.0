@@ -1,173 +1,111 @@
-From: Russ Dill <Russ.Dill@ti.com>
-Subject: Re: [PATCH v3] ARM: OMAP2+: gpmc-smsc911x: add required smsc911x regulators
-Date: Wed, 7 Mar 2012 10:00:08 -0600
-Message-ID: <CA+Bv8XaJqL1L8F-n6skY7dHn1XAdDLRKaRjw0deLeoQ5Ao0Fhg@mail.gmail.com>
-References: <1330006564-13290-1-git-send-email-mporter@ti.com>
-	<87wr74gis6.fsf@ti.com>
-	<20120301204553.GA21841@legolas.emea.dhcp.ti.com>
-	<87pqcqnc7u.fsf@ti.com>
+From: Tony Lindgren <tony@atomide.com>
+Subject: Re: Latest OMAP4 build errors
+Date: Wed, 7 Mar 2012 09:10:45 -0800
+Message-ID: <20120307171044.GE12083@atomide.com>
+References: <20120228090209.GC18045@n2100.arm.linux.org.uk>
+ <CAK=WgbZEDr_fYSonBQr3XNcTx5vefsH7LJfqycaxsqg-yechWQ@mail.gmail.com>
+ <20120306165545.GB15392@n2100.arm.linux.org.uk>
+ <201203061701.54141.arnd@arndb.de>
+ <20120307100615.GA17404@n2100.arm.linux.org.uk>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <87pqcqnc7u.fsf@ti.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Kevin Hilman <khilman@ti.com>
-Cc: balbi@ti.com, Matt Porter <mporter@ti.com>, Tony Lindgren <tony@atomide.com>, Russell King <linux@arm.linux.org.uk>, Linux OMAP List <linux-omap@vger.kernel.org>, Linux ARM Kernel List <linux-arm-kernel@lists.infradead.org>, linux-kernel@vger.kernel.org
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from mho-02-ewr.mailhop.org ([204.13.248.72]:22555 "EHLO
+	mho-02-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S932307Ab2CGRKx (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 7 Mar 2012 12:10:53 -0500
+Content-Disposition: inline
+In-Reply-To: <20120307100615.GA17404@n2100.arm.linux.org.uk>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Russell King - ARM Linux <linux@arm.linux.org.uk>, Arnd Bergmann <arnd@arndb.de>, Olof Johansson <olof@lixom.net>
+Cc: Ohad Ben-Cohen <ohad@wizery.com>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 
-On Mon, Mar 5, 2012 at 12:18 PM, Kevin Hilman <khilman@ti.com> wrote:
-> Felipe Balbi <balbi@ti.com> writes:
->
->> Hi,
->>
->> On Thu, Mar 01, 2012 at 12:36:57PM -0800, Kevin Hilman wrote:
->>> Matt Porter <mporter@ti.com> writes:
->>>
->>> > This fixes smsc911x support on platforms using gpmc_smsc911x_init=
-().
->>> >
->>> > Commit c7e963f6888816 (net/smsc911x: Add regulator support) added
->>> > the requirement that platforms provide vdd33a and vddvario suppli=
-es.
->>> >
->>> > Signed-off-by: Matt Porter <mporter@ti.com>
->>>
->>> [...]
->>>
->>> > =C2=A0/*
->>> > =C2=A0 * Initialize smsc911x device connected to the GPMC. Note t=
-hat we
->>> > =C2=A0 * assume that pin multiplexing is done in the board-*.c fi=
-le,
->>> > @@ -55,6 +101,12 @@ void __init gpmc_smsc911x_init(struct omap_sm=
-sc911x_platform_data *board_data)
->>> >
->>> > =C2=A0 =C2=A0gpmc_cfg =3D board_data;
->>> >
->>> > + =C2=A0ret =3D platform_device_register(&gpmc_smsc911x_regulator=
-);
->>> > + =C2=A0if (ret < 0) {
->>> > + =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0pr_err("Unable to register sm=
-sc911x regulators: %d\n", ret);
->>> > + =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0return;
->>> > + =C2=A0}
->>> > +
->>>
->>> Boards that have more than one instance of the smsc911x (OMAP3/Over=
-o)
->>> barf here because of trying to register the same device twice.
->>>
->>> We need something like the patch below to make Overo boot again.
->>>
->>> Kevin
->>>
->>>
->>>
->>> From 4114dea2fb897ab75d05eaa943d29454034fc025 Mon Sep 17 00:00:00 2=
-001
->>> From: Kevin Hilman <khilman@ti.com>
->>> Date: Thu, 1 Mar 2012 12:30:42 -0800
->>> Subject: [PATCH] ARM: OMAP2+: gpmc-smsc911x: only register regulato=
-rs once
->>>
->>> commit e4b0b2cbbb (ARM: OMAP2+: gpmc-smsc911x: add required smsc911=
-x
->>> regulators) added regulators which are registered during
->>> gpmc_smsc911x_init(). =C2=A0However, some platforms (OMAP3/Overo) h=
-ave more
->>> than one instance of the SMSC911x and result in attempting to regis=
-ter
->>> the same regulator more than once which causes a panic(). =C2=A0Fix=
- this by
->>> tracking the regulator registration ensuring only a single device i=
-s
->>> registered.
->>>
->>> Cc: Matt Porter <mporter@ti.com>
->>> Signed-off-by: Kevin Hilman <khilman@ti.com>
->>> ---
->>> =C2=A0arch/arm/mach-omap2/gpmc-smsc911x.c | =C2=A0 14 ++++++++++---=
--
->>> =C2=A01 file changed, 10 insertions(+), 4 deletions(-)
->>>
->>> diff --git a/arch/arm/mach-omap2/gpmc-smsc911x.c b/arch/arm/mach-om=
-ap2/gpmc-smsc911x.c
->>> index bbb870c..95e6c7d 100644
->>> --- a/arch/arm/mach-omap2/gpmc-smsc911x.c
->>> +++ b/arch/arm/mach-omap2/gpmc-smsc911x.c
->>> @@ -88,6 +88,8 @@ static struct platform_device gpmc_smsc911x_regul=
-ator =3D {
->>> =C2=A0 =C2=A0 =C2=A0},
->>> =C2=A0};
->>>
->>> +static bool regulator_registered;
->>> +
->>> =C2=A0/*
->>> =C2=A0 * Initialize smsc911x device connected to the GPMC. Note tha=
-t we
->>> =C2=A0 * assume that pin multiplexing is done in the board-*.c file=
-,
->>> @@ -101,10 +103,14 @@ void __init gpmc_smsc911x_init(struct omap_sm=
-sc911x_platform_data *board_data)
->>>
->>> =C2=A0 =C2=A0 =C2=A0gpmc_cfg =3D board_data;
->>>
->>> - =C2=A0 =C2=A0ret =3D platform_device_register(&gpmc_smsc911x_regu=
-lator);
->>> - =C2=A0 =C2=A0if (ret < 0) {
->>> - =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0pr_err("Unable to regist=
-er smsc911x regulators: %d\n", ret);
->>> - =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0return;
->>> + =C2=A0 =C2=A0if (!regulator_registered) {
->>> + =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0ret =3D platform_device_=
-register(&gpmc_smsc911x_regulator);
->>> + =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0if (ret < 0) {
->>> + =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=
-=A0pr_err("Unable to register smsc911x regulators: %d\n",
->>> + =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=
-=A0 =C2=A0 =C2=A0 =C2=A0 ret);
->>> + =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=
-=A0return;
->>> + =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0}
->>> + =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0regulator_registered =3D=
- true;
->>
->> Wow, this is quite a hack. Is the regulator part of the SMSC911x
->> device or is it outside ? If it's outside the SMSC91xx (which I
->> believe it is) there should be a regulator driver instead of this
->> hack. =C2=A0For boards which don't provide such a regulator (and tie=
- the
->> supply pin to some constant voltage source) there should be a consta=
-nt
->> regulator supplying the pin. But this patch is quite hacky.
->
-> Are you referring to my patch or to the original $SUBJECT patch? =C2=A0=
-It's
-> not terribly clear.
->
-> My patch doesn't add any regulators, it just fixes a bug when this in=
-it
-> function is called more than once.
->
-> The addition of the regulators was done in $SUBJECT patch, not my fix=
-=2E
->
-> In either case $SUBJECT patch is already in Tony's fixes queue, so if=
- it
-> is going be merged, then my fix above is needed also to not break
-> Overo and any other platform that has more than one smsc911x instance=
-=2E
->
-> Kevin
+Hi,
+
+Arnd & Olof, some urgent changes are needed, see below.
+
+* Russell King - ARM Linux <linux@arm.linux.org.uk> [120307 01:34]:
+> On Tue, Mar 06, 2012 at 05:01:53PM +0000, Arnd Bergmann wrote:
+> > On Tuesday 06 March 2012, Russell King - ARM Linux wrote:
+> > > On Tue, Feb 28, 2012 at 12:11:37PM +0200, Ohad Ben-Cohen wrote:
+> > > > On Tue, Feb 28, 2012 at 12:01 PM, Arnd Bergmann <arnd@arndb.de> wrote:
+> > > > > I think 'depends' would be better here, because selecting IOMMU_SUPPORT
+> > > > > has other side-effects that a user might not want. It's just as likely
+> > > > > that someone wants to disable IOMMU_SUPPORT and needs to find OMAP_REMOTEPROC
+> > > > > as wanting to enable OMAP_REMOTEPROC and having to find IOMMU_SUPPORT.
+> > > > >
+> > > > > In most cases, the defconfig should just set both.
+> > > > 
+> > > > Ok, 'depends on' it is.
+> > > 
+> > > We're a week on, which means I now have a full set of 7 builds on the
+> > > website for OMAP4430 all of which have failed in part due to this
+> > > as yet unresolved problem.
+> > > 
+> > > What's happening to get it fixed and those fixes into whatever tree is
+> > > necessary for them (presumably arm-soc)?
+> > 
+> > Ohad has sent a series of patches for review and there were no comments
+> > on those. The fix was part of it as far as I remember. I'm still waiting
+> > for a pull request from Ohad.
+> 
+> Given that we're coming to the end of what could be the _final_ week
+> before the merge window opens, this is not good news.  Read: maybe
+> three days before final.
+> 
+> The fact is that OMAP is - yet again - in a totally rotten state in terms
+> of what's queued up in the armsoc tree.  It is - yet again - completely
+> unbuildable for many configurations.  Just go and have a look at:
+> 
+> 	http://www.arm.linux.org.uk/developer/build/
+> 
+> to see what an utterly crappy state OMAP is in again.  Last nights build
+> was my tree plus latest arm-soc.  Some of those issues have patches (I
+> had been applying one patch manually to the build tree) but that's not
+> the point - they're not in arm-soc, so the OMAP code in arm-soc is not
+> yet ready for mainline.
+
+Yes looks like there's an issue with getting urgent patches applied into
+the arm-soc tree.. The patches to fix these issues are known and
+other issues and warnings should be all sorted out now except for some
+MMC changes that are still being discussed.
+ 
+> So, as OMAP is soo broken, and as promised after the last merge window -
+> I don't want any OMAP stuff going upstream from armsoc until we get error
+> free builds from the allno and old configs on the builder.
+
+What I got queued up in fixes-non-critical-part2 should fix all those
+errors and warnings.
+
+Arnd & Olof, I've posted one fix that should be applied to arm-soc tree
+at [1]. I've also posted a request to revert one commit in arm-soc tree
+at [2].
+
+As it seems that you did not apply those to arm-soc, please apply them,
+or repull the following two branches ASAP:
+
+Re-pull fixes-non-critical containing one revert:
+
+Revert "ARM: OMAP2+: Fix multiple randconfig errors with SOC_OMAP and SOC_OMAP_NOOP"
+
+git://git.kernel.org/pub/scm/linux/kernel/git/tmlind/linux-omap fixes-non-critical
+
+Re-pull cleanup again containing one fix:
+
+ARM: OMAP2+: Fix L4_EMU_34XX_BASE error after iomap changes
+
+git://git.kernel.org/pub/scm/linux/kernel/git/tmlind/linux-omap cleanup
+
+Note that the second one I just pushed, however the patch is known to
+work for the build errors after merging arm-soc with Russell's changes.
+
+Arnd & Olof, for future, how you want to handle urgent issues like this?
+
+Regards,
+
+Tony
 
 
-Have you tested this fix? The only regulator consumer supply would be:
-
-static struct regulator_consumer_supply gpmc_smsc911x_supply[] =3D {
-        REGULATOR_SUPPLY("vddvario", "smsc911x.0"),
-        REGULATOR_SUPPLY("vdd33a", "smsc911x.0"),
-};
-
-I don't think the second smsc911x on the Overo, "smsc911x.1", would
-find it due to the dev_id.
+[1] http://www.mail-archive.com/linux-omap@vger.kernel.org/msg64149.html
+[2] http://www.mail-archive.com/linux-omap@vger.kernel.org/msg64151.html
