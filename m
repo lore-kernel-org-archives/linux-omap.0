@@ -1,87 +1,34 @@
-From: "Govindraj.R" <govindraj.raja@ti.com>
-Subject: [PATCH] omap_hwmod: Allow io_ring wakeup configuration for all modules.
-Date: Wed, 7 Mar 2012 17:49:35 +0530
-Message-ID: <1331122775-761-1-git-send-email-govindraj.raja@ti.com>
+From: Peter Ujfalusi <peter.ujfalusi@ti.com>
+Subject: Re: [PATCH] plat-omap: mcbsp: Configure wakeup in later phase
+Date: Wed, 07 Mar 2012 14:21:37 +0200
+Message-ID: <4F5752D1.7030601@ti.com>
+References: <1323941697-7902-1-git-send-email-peter.ujfalusi@ti.com> <20120305195032.GO12083@atomide.com>
 Mime-Version: 1.0
-Content-Type: text/plain
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from arroyo.ext.ti.com ([192.94.94.40]:44305 "EHLO arroyo.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1755214Ab2CGMUG (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Wed, 7 Mar 2012 07:20:06 -0500
+Received: from na3sys009aob106.obsmtp.com ([74.125.149.76]:53535 "EHLO
+	na3sys009aog106.obsmtp.com" rhost-flags-OK-OK-OK-FAIL)
+	by vger.kernel.org with ESMTP id S1756105Ab2CGMVo (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 7 Mar 2012 07:21:44 -0500
+Received: by lahe6 with SMTP id e6so9531005lah.32
+        for <linux-omap@vger.kernel.org>; Wed, 07 Mar 2012 04:21:41 -0800 (PST)
+In-Reply-To: <20120305195032.GO12083@atomide.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: linux-omap@vger.kernel.org
-Cc: linux-arm-kernel@lists.infradead.org, "Govindraj.R" <govindraj.raja@ti.com>, Paul Walmsley <paul@pwsan.com>, Kevin Hilman <khilman@ti.com>, Rajendra Nayak <rnayak@ti.com>
+To: Tony Lindgren <tony@atomide.com>
+Cc: Jarkko Nikula <jarkko.nikula@bitmer.com>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 
-From: "Govindraj.R" <govindraj.raja@ti.com>
+On 03/05/2012 09:50 PM, Tony Lindgren wrote:
+> Just checking.. I assume this one is already taken care of with your
+> other McBSP changes?
 
-Some modules doesn't have SYSC_HAS_ENAWAKEUP bit available
-(ex: usb host uhh module) in absence of this flag
-omap_hwmod_enable/disable_wakeup avoids configuring
-pad mux wakeup capability.
+Yes it is. I just resent it against the moved McBSP driver for ASoC.
 
-Configure sysc if SYSC_HAS_ENAWAKEUP is available and for other cases
-try enabling/disabling wakeup from mux_pad pins.
-
-Cc: Paul Walmsley <paul@pwsan.com>
-Cc: Kevin Hilman <khilman@ti.com>
-Cc: Rajendra Nayak <rnayak@ti.com>
-Signed-off-by: Govindraj.R <govindraj.raja@ti.com>
----
- arch/arm/mach-omap2/omap_hwmod.c |   30 ++++++++++++++++--------------
- 1 files changed, 16 insertions(+), 14 deletions(-)
-
-diff --git a/arch/arm/mach-omap2/omap_hwmod.c b/arch/arm/mach-omap2/omap_hwmod.c
-index eba6cd3..89582df 100644
---- a/arch/arm/mach-omap2/omap_hwmod.c
-+++ b/arch/arm/mach-omap2/omap_hwmod.c
-@@ -2475,14 +2475,15 @@ int omap_hwmod_enable_wakeup(struct omap_hwmod *oh)
- 	unsigned long flags;
- 	u32 v;
- 
--	if (!oh->class->sysc ||
--	    !(oh->class->sysc->sysc_flags & SYSC_HAS_ENAWAKEUP))
--		return -EINVAL;
--
- 	spin_lock_irqsave(&oh->_lock, flags);
--	v = oh->_sysc_cache;
--	_enable_wakeup(oh, &v);
--	_write_sysconfig(v, oh);
-+
-+	if (oh->class->sysc &&
-+	    (oh->class->sysc->sysc_flags & SYSC_HAS_ENAWAKEUP)) {
-+		v = oh->_sysc_cache;
-+		_enable_wakeup(oh, &v);
-+		_write_sysconfig(v, oh);
-+	}
-+
- 	_set_idle_ioring_wakeup(oh, true);
- 	spin_unlock_irqrestore(&oh->_lock, flags);
- 
-@@ -2506,14 +2507,15 @@ int omap_hwmod_disable_wakeup(struct omap_hwmod *oh)
- 	unsigned long flags;
- 	u32 v;
- 
--	if (!oh->class->sysc ||
--	    !(oh->class->sysc->sysc_flags & SYSC_HAS_ENAWAKEUP))
--		return -EINVAL;
--
- 	spin_lock_irqsave(&oh->_lock, flags);
--	v = oh->_sysc_cache;
--	_disable_wakeup(oh, &v);
--	_write_sysconfig(v, oh);
-+
-+	if (oh->class->sysc ||
-+	    (oh->class->sysc->sysc_flags & SYSC_HAS_ENAWAKEUP)) {
-+		v = oh->_sysc_cache;
-+		_disable_wakeup(oh, &v);
-+		_write_sysconfig(v, oh);
-+	}
-+
- 	_set_idle_ioring_wakeup(oh, false);
- 	spin_unlock_irqrestore(&oh->_lock, flags);
- 
--- 
-1.7.5.4
-
+--=20
+P=E9ter
+--
+To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
