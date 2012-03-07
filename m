@@ -1,43 +1,90 @@
 From: Tarun Kanti DebBarma <tarun.kanti@ti.com>
-Subject: [PATCH v3 10/13] gpio/omap: fix missing dataout context save in _set_gpio_dataout_reg
-Date: Wed, 7 Mar 2012 16:46:00 +0530
-Message-ID: <1331118963-26364-11-git-send-email-tarun.kanti@ti.com>
+Subject: [PATCH v3 01/13] gpio/omap: remove saved_fallingdetect, saved_risingdetect fields
+Date: Wed, 7 Mar 2012 16:45:51 +0530
+Message-ID: <1331118963-26364-2-git-send-email-tarun.kanti@ti.com>
 References: <1331118963-26364-1-git-send-email-tarun.kanti@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from bear.ext.ti.com ([192.94.94.41]:33556 "EHLO bear.ext.ti.com"
+Received: from bear.ext.ti.com ([192.94.94.41]:33560 "EHLO bear.ext.ti.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1756152Ab2CGLQX (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Wed, 7 Mar 2012 06:16:23 -0500
+	id S1756152Ab2CGLQY (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Wed, 7 Mar 2012 06:16:24 -0500
 In-Reply-To: <1331118963-26364-1-git-send-email-tarun.kanti@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: linux-omap@vger.kernel.org
 Cc: khilman@ti.com, tony@atomide.com, linux-arm-kernel@lists.infradead.org, Tarun Kanti DebBarma <tarun.kanti@ti.com>
 
-There are two functions, _set_gpio_dataout_reg() and _set_gpio_dataout_mask()
-which writes to dataout register and the dataout context must be saved.
-It is missing in the first function, _set_gpio_dataout_reg(). Fix this.
+Since we already have context.fallingdetect and context.risingdetect
+there is no more need to have these additional fields. Also, getting
+rid of extra reads associated with them.
 
-Reported-by: Govindraj Raja <govindraj.raja@ti.com>
 Signed-off-by: Tarun Kanti DebBarma <tarun.kanti@ti.com>
+Reviewed-by: Santosh Shilimkar <santosh.shilimkar@ti.com>
+Acked-by: Felipe Balbi <balbi@ti.com>
 ---
- drivers/gpio/gpio-omap.c |    1 +
- 1 files changed, 1 insertions(+), 0 deletions(-)
+ drivers/gpio/gpio-omap.c |   19 ++++++++-----------
+ 1 files changed, 8 insertions(+), 11 deletions(-)
 
 diff --git a/drivers/gpio/gpio-omap.c b/drivers/gpio/gpio-omap.c
-index 8b4a7ba..04c2677 100644
+index 752ae9b..c9369d2 100644
 --- a/drivers/gpio/gpio-omap.c
 +++ b/drivers/gpio/gpio-omap.c
-@@ -115,6 +115,7 @@ static void _set_gpio_dataout_reg(struct gpio_bank *bank, int gpio, int enable)
- 		reg += bank->regs->clr_dataout;
+@@ -60,8 +60,6 @@ struct gpio_bank {
+ 	u32 enabled_non_wakeup_gpios;
+ 	struct gpio_regs context;
+ 	u32 saved_datain;
+-	u32 saved_fallingdetect;
+-	u32 saved_risingdetect;
+ 	u32 level_mask;
+ 	u32 toggle_mask;
+ 	spinlock_t lock;
+@@ -1234,11 +1232,9 @@ static int omap_gpio_runtime_suspend(struct device *dev)
  
- 	__raw_writel(l, reg);
-+	bank->context.dataout = l;
- }
+ 	bank->saved_datain = __raw_readl(bank->base +
+ 						bank->regs->datain);
+-	l1 = __raw_readl(bank->base + bank->regs->fallingdetect);
+-	l2 = __raw_readl(bank->base + bank->regs->risingdetect);
++	l1 = bank->context.fallingdetect;
++	l2 = bank->context.risingdetect;
  
- /* set data out value using mask register */
+-	bank->saved_fallingdetect = l1;
+-	bank->saved_risingdetect = l2;
+ 	l1 &= ~bank->enabled_non_wakeup_gpios;
+ 	l2 &= ~bank->enabled_non_wakeup_gpios;
+ 
+@@ -1297,9 +1293,9 @@ static int omap_gpio_runtime_resume(struct device *dev)
+ 		}
+ 	}
+ 
+-	__raw_writel(bank->saved_fallingdetect,
++	__raw_writel(bank->context.fallingdetect,
+ 			bank->base + bank->regs->fallingdetect);
+-	__raw_writel(bank->saved_risingdetect,
++	__raw_writel(bank->context.risingdetect,
+ 			bank->base + bank->regs->risingdetect);
+ 	l = __raw_readl(bank->base + bank->regs->datain);
+ 
+@@ -1316,14 +1312,15 @@ static int omap_gpio_runtime_resume(struct device *dev)
+ 	 * No need to generate IRQs for the rising edge for gpio IRQs
+ 	 * configured with falling edge only; and vice versa.
+ 	 */
+-	gen0 = l & bank->saved_fallingdetect;
++	gen0 = l & bank->context.fallingdetect;
+ 	gen0 &= bank->saved_datain;
+ 
+-	gen1 = l & bank->saved_risingdetect;
++	gen1 = l & bank->context.risingdetect;
+ 	gen1 &= ~(bank->saved_datain);
+ 
+ 	/* FIXME: Consider GPIO IRQs with level detections properly! */
+-	gen = l & (~(bank->saved_fallingdetect) & ~(bank->saved_risingdetect));
++	gen = l & (~(bank->context.fallingdetect) &
++					 ~(bank->context.risingdetect));
+ 	/* Consider all GPIO IRQs needed to be updated */
+ 	gen |= gen0 | gen1;
+ 
 -- 
 1.7.0.4
 
