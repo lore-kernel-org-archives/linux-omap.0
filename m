@@ -1,272 +1,352 @@
 From: Tomi Valkeinen <tomi.valkeinen@ti.com>
-Subject: [PATCH 16/21] OMAPDSS: handle output-driver reg/unreg more dynamically
-Date: Wed,  7 Mar 2012 14:44:45 +0200
-Message-ID: <1331124290-6285-17-git-send-email-tomi.valkeinen@ti.com>
+Subject: [PATCH 17/21] OMAPDSS: move the creation of debugfs files
+Date: Wed,  7 Mar 2012 14:44:46 +0200
+Message-ID: <1331124290-6285-18-git-send-email-tomi.valkeinen@ti.com>
 References: <1331124290-6285-1-git-send-email-tomi.valkeinen@ti.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aog121.obsmtp.com ([74.125.149.145]:42096 "EHLO
-	na3sys009aog121.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1758542Ab2CGMqG (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 7 Mar 2012 07:46:06 -0500
-Received: by mail-lpp01m010-f51.google.com with SMTP id p9so3625639laa.24
-        for <linux-omap@vger.kernel.org>; Wed, 07 Mar 2012 04:46:05 -0800 (PST)
+Received: from na3sys009aog119.obsmtp.com ([74.125.149.246]:44333 "EHLO
+	na3sys009aog119.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1758545Ab2CGMqN (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 7 Mar 2012 07:46:13 -0500
+Received: by bkwj10 with SMTP id j10so7035231bkw.24
+        for <linux-omap@vger.kernel.org>; Wed, 07 Mar 2012 04:46:10 -0800 (PST)
 In-Reply-To: <1331124290-6285-1-git-send-email-tomi.valkeinen@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: linux-omap@vger.kernel.org, linux-fbdev@vger.kernel.org
 Cc: archit@ti.com, Tomi Valkeinen <tomi.valkeinen@ti.com>
 
-Initialize and uninitialize the output drivers by using arrays of
-pointers to the init/uninit functions. This simplifies the code
-slightly.
+Instead of having an ugly #ifdef mess in the core.c for creating debugfs
+files, add a dss_debugfs_create_file() function that the dss drivers
+can use to create the debugfs files.
 
 Signed-off-by: Tomi Valkeinen <tomi.valkeinen@ti.com>
 ---
- drivers/video/omap2/dss/core.c |  111 +++++++++++++++++++++-------------------
- drivers/video/omap2/dss/dss.h  |   41 ---------------
- 2 files changed, 59 insertions(+), 93 deletions(-)
+ drivers/video/omap2/dss/core.c  |   46 +++++++++++++++-----------------------
+ drivers/video/omap2/dss/dispc.c |    7 +++++-
+ drivers/video/omap2/dss/dsi.c   |   42 +++++++++--------------------------
+ drivers/video/omap2/dss/dss.c   |    4 ++-
+ drivers/video/omap2/dss/dss.h   |   11 +--------
+ drivers/video/omap2/dss/hdmi.c  |    4 ++-
+ drivers/video/omap2/dss/rfbi.c  |    4 ++-
+ drivers/video/omap2/dss/venc.c  |    4 ++-
+ 8 files changed, 48 insertions(+), 74 deletions(-)
 
 diff --git a/drivers/video/omap2/dss/core.c b/drivers/video/omap2/dss/core.c
-index 654962a..ac4f2cb 100644
+index ac4f2cb..a744474 100644
 --- a/drivers/video/omap2/dss/core.c
 +++ b/drivers/video/omap2/dss/core.c
-@@ -503,10 +503,54 @@ static int omap_dss_bus_register(void)
+@@ -156,34 +156,6 @@ static int dss_initialize_debugfs(void)
+ 	debugfs_create_file("clk", S_IRUGO, dss_debugfs_dir,
+ 			&dss_debug_dump_clocks, &dss_debug_fops);
+ 
+-#ifdef CONFIG_OMAP2_DSS_COLLECT_IRQ_STATS
+-	debugfs_create_file("dispc_irq", S_IRUGO, dss_debugfs_dir,
+-			&dispc_dump_irqs, &dss_debug_fops);
+-#endif
+-
+-#if defined(CONFIG_OMAP2_DSS_DSI) && defined(CONFIG_OMAP2_DSS_COLLECT_IRQ_STATS)
+-	dsi_create_debugfs_files_irq(dss_debugfs_dir, &dss_debug_fops);
+-#endif
+-
+-	debugfs_create_file("dss", S_IRUGO, dss_debugfs_dir,
+-			&dss_dump_regs, &dss_debug_fops);
+-	debugfs_create_file("dispc", S_IRUGO, dss_debugfs_dir,
+-			&dispc_dump_regs, &dss_debug_fops);
+-#ifdef CONFIG_OMAP2_DSS_RFBI
+-	debugfs_create_file("rfbi", S_IRUGO, dss_debugfs_dir,
+-			&rfbi_dump_regs, &dss_debug_fops);
+-#endif
+-#ifdef CONFIG_OMAP2_DSS_DSI
+-	dsi_create_debugfs_files_reg(dss_debugfs_dir, &dss_debug_fops);
+-#endif
+-#ifdef CONFIG_OMAP2_DSS_VENC
+-	debugfs_create_file("venc", S_IRUGO, dss_debugfs_dir,
+-			&venc_dump_regs, &dss_debug_fops);
+-#endif
+-#ifdef CONFIG_OMAP4_DSS_HDMI
+-	debugfs_create_file("hdmi", S_IRUGO, dss_debugfs_dir,
+-			&hdmi_dump_regs, &dss_debug_fops);
+-#endif
+ 	return 0;
  }
  
- /* INIT */
-+static int (*dss_output_drv_reg_funcs[])(void) __initdata = {
-+#ifdef CONFIG_OMAP2_DSS_DPI
-+	dpi_init_platform_driver,
-+#endif
-+#ifdef CONFIG_OMAP2_DSS_SDI
-+	sdi_init_platform_driver,
-+#endif
-+#ifdef CONFIG_OMAP2_DSS_RFBI
-+	rfbi_init_platform_driver,
-+#endif
-+#ifdef CONFIG_OMAP2_DSS_VENC
-+	venc_init_platform_driver,
-+#endif
-+#ifdef CONFIG_OMAP2_DSS_DSI
-+	dsi_init_platform_driver,
-+#endif
-+#ifdef CONFIG_OMAP4_DSS_HDMI
-+	hdmi_init_platform_driver,
-+#endif
-+};
+@@ -192,6 +164,19 @@ static void dss_uninitialize_debugfs(void)
+ 	if (dss_debugfs_dir)
+ 		debugfs_remove_recursive(dss_debugfs_dir);
+ }
 +
-+static void (*dss_output_drv_unreg_funcs[])(void) __exitdata = {
-+#ifdef CONFIG_OMAP2_DSS_DPI
-+	dpi_uninit_platform_driver,
-+#endif
-+#ifdef CONFIG_OMAP2_DSS_SDI
-+	sdi_uninit_platform_driver,
-+#endif
-+#ifdef CONFIG_OMAP2_DSS_RFBI
-+	rfbi_uninit_platform_driver,
-+#endif
-+#ifdef CONFIG_OMAP2_DSS_VENC
-+	venc_uninit_platform_driver,
-+#endif
-+#ifdef CONFIG_OMAP2_DSS_DSI
-+	dsi_uninit_platform_driver,
-+#endif
-+#ifdef CONFIG_OMAP4_DSS_HDMI
-+	hdmi_uninit_platform_driver,
-+#endif
-+};
++int dss_debugfs_create_file(const char *name, void (*write)(struct seq_file *))
++{
++	struct dentry *d;
 +
-+static bool dss_output_drv_loaded[ARRAY_SIZE(dss_output_drv_reg_funcs)];
- 
- static int __init omap_dss_register_drivers(void)
++	d = debugfs_create_file(name, S_IRUGO, dss_debugfs_dir,
++			write, &dss_debug_fops);
++
++	if (IS_ERR(d))
++		return PTR_ERR(d);
++
++	return 0;
++}
+ #else /* CONFIG_DEBUG_FS && CONFIG_OMAP2_DSS_DEBUG_SUPPORT */
+ static inline int dss_initialize_debugfs(void)
  {
- 	int r;
-+	int i;
- 
- 	r = platform_driver_probe(&omap_dss_driver, omap_dss_probe);
- 	if (r)
-@@ -524,56 +568,18 @@ static int __init omap_dss_register_drivers(void)
- 		goto err_dispc;
- 	}
- 
--	r = dpi_init_platform_driver();
--	if (r) {
--		DSSERR("Failed to initialize dpi platform driver\n");
--		goto err_dpi;
--	}
--
--	r = sdi_init_platform_driver();
--	if (r) {
--		DSSERR("Failed to initialize sdi platform driver\n");
--		goto err_sdi;
--	}
--
--	r = rfbi_init_platform_driver();
--	if (r) {
--		DSSERR("Failed to initialize rfbi platform driver\n");
--		goto err_rfbi;
--	}
--
--	r = venc_init_platform_driver();
--	if (r) {
--		DSSERR("Failed to initialize venc platform driver\n");
--		goto err_venc;
--	}
--
--	r = dsi_init_platform_driver();
--	if (r) {
--		DSSERR("Failed to initialize DSI platform driver\n");
--		goto err_dsi;
--	}
--
--	r = hdmi_init_platform_driver();
--	if (r) {
--		DSSERR("Failed to initialize hdmi\n");
--		goto err_hdmi;
-+	/*
-+	 * It's ok if the output-driver register fails. It happens, for example,
-+	 * when there is no output-device (e.g. SDI for OMAP4).
-+	 */
-+	for (i = 0; i < ARRAY_SIZE(dss_output_drv_reg_funcs); ++i) {
-+		r = dss_output_drv_reg_funcs[i]();
-+		if (r == 0)
-+			dss_output_drv_loaded[i] = true;
- 	}
- 
- 	return 0;
- 
--err_hdmi:
--	dsi_uninit_platform_driver();
--err_dsi:
--	venc_uninit_platform_driver();
--err_venc:
--	rfbi_uninit_platform_driver();
--err_rfbi:
--	sdi_uninit_platform_driver();
--err_sdi:
--	dpi_uninit_platform_driver();
--err_dpi:
--	dispc_uninit_platform_driver();
- err_dispc:
- 	dss_uninit_platform_driver();
- err_dss:
-@@ -584,12 +590,13 @@ err_dss:
- 
- static void __exit omap_dss_unregister_drivers(void)
+@@ -200,6 +185,11 @@ static inline int dss_initialize_debugfs(void)
+ static inline void dss_uninitialize_debugfs(void)
  {
--	hdmi_uninit_platform_driver();
--	dsi_uninit_platform_driver();
--	venc_uninit_platform_driver();
--	rfbi_uninit_platform_driver();
--	sdi_uninit_platform_driver();
--	dpi_uninit_platform_driver();
-+	int i;
-+
-+	for (i = 0; i < ARRAY_SIZE(dss_output_drv_unreg_funcs); ++i) {
-+		if (dss_output_drv_loaded[i])
-+			dss_output_drv_unreg_funcs[i]();
-+	}
-+
- 	dispc_uninit_platform_driver();
- 	dss_uninit_platform_driver();
+ }
++static inline int dss_debugfs_create_file(const char *name,
++		void (*write)(struct seq_file *))
++{
++	return 0;
++}
+ #endif /* CONFIG_DEBUG_FS && CONFIG_OMAP2_DSS_DEBUG_SUPPORT */
  
-diff --git a/drivers/video/omap2/dss/dss.h b/drivers/video/omap2/dss/dss.h
-index 24aadde..af7bed1 100644
---- a/drivers/video/omap2/dss/dss.h
-+++ b/drivers/video/omap2/dss/dss.h
-@@ -265,14 +265,9 @@ int dss_calc_clock_div(bool is_tft, unsigned long req_pck,
- 		struct dispc_clock_info *dispc_cinfo);
- 
- /* SDI */
--#ifdef CONFIG_OMAP2_DSS_SDI
- int sdi_init_platform_driver(void);
- void sdi_uninit_platform_driver(void);
- int sdi_init_display(struct omap_dss_device *display);
--#else
--static inline int sdi_init_platform_driver(void) { return 0; }
--static inline void sdi_uninit_platform_driver(void) { }
--#endif
- 
- /* DSI */
- #ifdef CONFIG_OMAP2_DSS_DSI
-@@ -309,13 +304,6 @@ void dsi_wait_pll_hsdiv_dispc_active(struct platform_device *dsidev);
- void dsi_wait_pll_hsdiv_dsi_active(struct platform_device *dsidev);
- struct platform_device *dsi_get_dsidev_from_id(int module);
- #else
--static inline int dsi_init_platform_driver(void)
--{
--	return 0;
--}
--static inline void dsi_uninit_platform_driver(void)
--{
--}
- static inline int dsi_runtime_get(struct platform_device *dsidev)
- {
- 	return 0;
-@@ -372,14 +360,9 @@ static inline struct platform_device *dsi_get_dsidev_from_id(int module)
+ /* PLATFORM DEVICE */
+diff --git a/drivers/video/omap2/dss/dispc.c b/drivers/video/omap2/dss/dispc.c
+index 1fbe480..a555e32 100644
+--- a/drivers/video/omap2/dss/dispc.c
++++ b/drivers/video/omap2/dss/dispc.c
+@@ -2571,7 +2571,7 @@ void dispc_dump_irqs(struct seq_file *s)
+ }
  #endif
  
- /* DPI */
--#ifdef CONFIG_OMAP2_DSS_DPI
- int dpi_init_platform_driver(void);
- void dpi_uninit_platform_driver(void);
- int dpi_init_display(struct omap_dss_device *dssdev);
--#else
--static inline int dpi_init_platform_driver(void) { return 0; }
--static inline void dpi_uninit_platform_driver(void) { }
--#endif
+-void dispc_dump_regs(struct seq_file *s)
++static void dispc_dump_regs(struct seq_file *s)
+ {
+ 	int i, j;
+ 	const char *mgr_names[] = {
+@@ -3387,6 +3387,11 @@ static int omap_dispchw_probe(struct platform_device *pdev)
  
- /* DISPC */
+ 	dispc_runtime_put();
+ 
++	dss_debugfs_create_file("dispc", dispc_dump_regs);
++
++#ifdef CONFIG_OMAP2_DSS_COLLECT_IRQ_STATS
++	dss_debugfs_create_file("dispc_irq", dispc_dump_irqs);
++#endif
+ 	return 0;
+ 
+ err_runtime_get:
+diff --git a/drivers/video/omap2/dss/dsi.c b/drivers/video/omap2/dss/dsi.c
+index 4bee235..0a1c5e3 100644
+--- a/drivers/video/omap2/dss/dsi.c
++++ b/drivers/video/omap2/dss/dsi.c
+@@ -1883,22 +1883,6 @@ static void dsi2_dump_irqs(struct seq_file *s)
+ 
+ 	dsi_dump_dsidev_irqs(dsidev, s);
+ }
+-
+-void dsi_create_debugfs_files_irq(struct dentry *debugfs_dir,
+-		const struct file_operations *debug_fops)
+-{
+-	struct platform_device *dsidev;
+-
+-	dsidev = dsi_get_dsidev_from_id(0);
+-	if (dsidev)
+-		debugfs_create_file("dsi1_irqs", S_IRUGO, debugfs_dir,
+-			&dsi1_dump_irqs, debug_fops);
+-
+-	dsidev = dsi_get_dsidev_from_id(1);
+-	if (dsidev)
+-		debugfs_create_file("dsi2_irqs", S_IRUGO, debugfs_dir,
+-			&dsi2_dump_irqs, debug_fops);
+-}
+ #endif
+ 
+ static void dsi_dump_dsidev_regs(struct platform_device *dsidev,
+@@ -1999,21 +1983,6 @@ static void dsi2_dump_regs(struct seq_file *s)
+ 	dsi_dump_dsidev_regs(dsidev, s);
+ }
+ 
+-void dsi_create_debugfs_files_reg(struct dentry *debugfs_dir,
+-		const struct file_operations *debug_fops)
+-{
+-	struct platform_device *dsidev;
+-
+-	dsidev = dsi_get_dsidev_from_id(0);
+-	if (dsidev)
+-		debugfs_create_file("dsi1_regs", S_IRUGO, debugfs_dir,
+-			&dsi1_dump_regs, debug_fops);
+-
+-	dsidev = dsi_get_dsidev_from_id(1);
+-	if (dsidev)
+-		debugfs_create_file("dsi2_regs", S_IRUGO, debugfs_dir,
+-			&dsi2_dump_regs, debug_fops);
+-}
+ enum dsi_cio_power_state {
+ 	DSI_COMPLEXIO_POWER_OFF		= 0x0,
+ 	DSI_COMPLEXIO_POWER_ON		= 0x1,
+@@ -4768,6 +4737,17 @@ static int omap_dsihw_probe(struct platform_device *dsidev)
+ 
+ 	dsi_runtime_put(dsidev);
+ 
++	if (dsi_module == 0)
++		dss_debugfs_create_file("dsi1_regs", dsi1_dump_regs);
++	else if (dsi_module == 1)
++		dss_debugfs_create_file("dsi2_regs", dsi2_dump_regs);
++
++#ifdef CONFIG_OMAP2_DSS_COLLECT_IRQ_STATS
++	if (dsi_module == 0)
++		dss_debugfs_create_file("dsi1_irqs", dsi1_dump_irqs);
++	else if (dsi_module == 1)
++		dss_debugfs_create_file("dsi2_irqs", dsi2_dump_irqs);
++#endif
+ 	return 0;
+ 
+ err_runtime_get:
+diff --git a/drivers/video/omap2/dss/dss.c b/drivers/video/omap2/dss/dss.c
+index da528b7..47a4c2a 100644
+--- a/drivers/video/omap2/dss/dss.c
++++ b/drivers/video/omap2/dss/dss.c
+@@ -277,7 +277,7 @@ void dss_dump_clocks(struct seq_file *s)
+ 	dss_runtime_put();
+ }
+ 
+-void dss_dump_regs(struct seq_file *s)
++static void dss_dump_regs(struct seq_file *s)
+ {
+ #define DUMPREG(r) seq_printf(s, "%-35s %08x\n", #r, dss_read_reg(r))
+ 
+@@ -791,6 +791,8 @@ static int omap_dsshw_probe(struct platform_device *pdev)
+ 
+ 	dss_runtime_put();
+ 
++	dss_debugfs_create_file("dss", dss_dump_regs);
++
+ 	return 0;
+ 
+ err_runtime_get:
+diff --git a/drivers/video/omap2/dss/dss.h b/drivers/video/omap2/dss/dss.h
+index af7bed1..5746bed 100644
+--- a/drivers/video/omap2/dss/dss.h
++++ b/drivers/video/omap2/dss/dss.h
+@@ -165,6 +165,7 @@ struct regulator *dss_get_vdds_sdi(void);
+ int dss_get_ctx_loss_count(struct device *dev);
+ int dss_dsi_enable_pads(int dsi_id, unsigned lane_mask);
+ void dss_dsi_disable_pads(int dsi_id, unsigned lane_mask);
++int dss_debugfs_create_file(const char *name, void (*write)(struct seq_file *));
+ 
+ /* apply */
+ void dss_apply_init(void);
+@@ -235,7 +236,6 @@ enum dss_hdmi_venc_clk_source_select dss_get_hdmi_venc_clk_source(void);
+ const char *dss_get_generic_clk_source_name(enum omap_dss_clk_source clk_src);
+ void dss_dump_clocks(struct seq_file *s);
+ 
+-void dss_dump_regs(struct seq_file *s);
+ #if defined(CONFIG_DEBUG_FS) && defined(CONFIG_OMAP2_DSS_DEBUG_SUPPORT)
+ void dss_debug_dump_clocks(struct seq_file *s);
+ #endif
+@@ -282,10 +282,6 @@ int dsi_runtime_get(struct platform_device *dsidev);
+ void dsi_runtime_put(struct platform_device *dsidev);
+ 
+ void dsi_dump_clocks(struct seq_file *s);
+-void dsi_create_debugfs_files_irq(struct dentry *debugfs_dir,
+-		const struct file_operations *debug_fops);
+-void dsi_create_debugfs_files_reg(struct dentry *debugfs_dir,
+-		const struct file_operations *debug_fops);
+ 
+ int dsi_init_display(struct omap_dss_device *display);
+ void dsi_irq_handler(void);
+@@ -368,8 +364,6 @@ int dpi_init_display(struct omap_dss_device *dssdev);
  int dispc_init_platform_driver(void);
-@@ -456,13 +439,6 @@ void venc_dump_regs(struct seq_file *s);
+ void dispc_uninit_platform_driver(void);
+ void dispc_dump_clocks(struct seq_file *s);
+-void dispc_dump_irqs(struct seq_file *s);
+-void dispc_dump_regs(struct seq_file *s);
+ void dispc_irq_handler(void);
+ void dispc_fake_vsync_irq(void);
+ 
+@@ -435,7 +429,6 @@ void dispc_mgr_setup(enum omap_channel channel,
+ #ifdef CONFIG_OMAP2_DSS_VENC
+ int venc_init_platform_driver(void);
+ void venc_uninit_platform_driver(void);
+-void venc_dump_regs(struct seq_file *s);
  int venc_init_display(struct omap_dss_device *display);
  unsigned long venc_get_pixel_clock(void);
  #else
--static inline int venc_init_platform_driver(void)
--{
--	return 0;
--}
--static inline void venc_uninit_platform_driver(void)
--{
--}
- static inline unsigned long venc_get_pixel_clock(void)
+@@ -452,7 +445,6 @@ int hdmi_init_platform_driver(void);
+ void hdmi_uninit_platform_driver(void);
+ int hdmi_init_display(struct omap_dss_device *dssdev);
+ unsigned long hdmi_get_pixel_clock(void);
+-void hdmi_dump_regs(struct seq_file *s);
+ #else
+ static inline int hdmi_init_display(struct omap_dss_device *dssdev)
  {
- 	WARN("%s: VENC not compiled in, returning pclk as 0\n", __func__);
-@@ -482,13 +458,6 @@ static inline int hdmi_init_display(struct omap_dss_device *dssdev)
- {
- 	return 0;
- }
--static inline int hdmi_init_platform_driver(void)
--{
--	return 0;
--}
--static inline void hdmi_uninit_platform_driver(void)
--{
--}
- static inline unsigned long hdmi_get_pixel_clock(void)
- {
- 	WARN("%s: HDMI not compiled in, returning pclk as 0\n", __func__);
-@@ -506,20 +475,10 @@ int hdmi_panel_init(void);
- void hdmi_panel_exit(void);
- 
+@@ -477,7 +469,6 @@ void hdmi_panel_exit(void);
  /* RFBI */
--#ifdef CONFIG_OMAP2_DSS_RFBI
  int rfbi_init_platform_driver(void);
  void rfbi_uninit_platform_driver(void);
- void rfbi_dump_regs(struct seq_file *s);
+-void rfbi_dump_regs(struct seq_file *s);
  int rfbi_init_display(struct omap_dss_device *display);
--#else
--static inline int rfbi_init_platform_driver(void)
--{
--	return 0;
--}
--static inline void rfbi_uninit_platform_driver(void)
--{
--}
--#endif
  
  
- #ifdef CONFIG_OMAP2_DSS_COLLECT_IRQ_STATS
+diff --git a/drivers/video/omap2/dss/hdmi.c b/drivers/video/omap2/dss/hdmi.c
+index 08a316b..10295fc 100644
+--- a/drivers/video/omap2/dss/hdmi.c
++++ b/drivers/video/omap2/dss/hdmi.c
+@@ -419,7 +419,7 @@ void omapdss_hdmi_display_set_timing(struct omap_dss_device *dssdev)
+ 	}
+ }
+ 
+-void hdmi_dump_regs(struct seq_file *s)
++static void hdmi_dump_regs(struct seq_file *s)
+ {
+ 	mutex_lock(&hdmi.lock);
+ 
+@@ -809,6 +809,8 @@ static int omapdss_hdmihw_probe(struct platform_device *pdev)
+ 
+ 	hdmi_panel_init();
+ 
++	dss_debugfs_create_file("hdmi", hdmi_dump_regs);
++
+ #if defined(CONFIG_SND_OMAP_SOC_OMAP4_HDMI) || \
+ 	defined(CONFIG_SND_OMAP_SOC_OMAP4_HDMI_MODULE)
+ 
+diff --git a/drivers/video/omap2/dss/rfbi.c b/drivers/video/omap2/dss/rfbi.c
+index b6990ba..b07010b 100644
+--- a/drivers/video/omap2/dss/rfbi.c
++++ b/drivers/video/omap2/dss/rfbi.c
+@@ -799,7 +799,7 @@ int omap_rfbi_update(struct omap_dss_device *dssdev,
+ }
+ EXPORT_SYMBOL(omap_rfbi_update);
+ 
+-void rfbi_dump_regs(struct seq_file *s)
++static void rfbi_dump_regs(struct seq_file *s)
+ {
+ #define DUMPREG(r) seq_printf(s, "%-35s %08x\n", #r, rfbi_read_reg(r))
+ 
+@@ -956,6 +956,8 @@ static int omap_rfbihw_probe(struct platform_device *pdev)
+ 
+ 	rfbi_runtime_put();
+ 
++	dss_debugfs_create_file("rfbi", rfbi_dump_regs);
++
+ 	return 0;
+ 
+ err_runtime_get:
+diff --git a/drivers/video/omap2/dss/venc.c b/drivers/video/omap2/dss/venc.c
+index 637abcb..a9c7c7c 100644
+--- a/drivers/video/omap2/dss/venc.c
++++ b/drivers/video/omap2/dss/venc.c
+@@ -695,7 +695,7 @@ int venc_init_display(struct omap_dss_device *dssdev)
+ 	return 0;
+ }
+ 
+-void venc_dump_regs(struct seq_file *s)
++static void venc_dump_regs(struct seq_file *s)
+ {
+ #define DUMPREG(r) seq_printf(s, "%-35s %08x\n", #r, venc_read_reg(r))
+ 
+@@ -824,6 +824,8 @@ static int omap_venchw_probe(struct platform_device *pdev)
+ 	if (r)
+ 		goto err_reg_panel_driver;
+ 
++	dss_debugfs_create_file("venc", venc_dump_regs);
++
+ 	return 0;
+ 
+ err_reg_panel_driver:
 -- 
 1.7.4.1
 
