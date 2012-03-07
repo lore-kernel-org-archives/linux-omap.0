@@ -1,42 +1,38 @@
 From: Olof Johansson <olof@lixom.net>
-Subject: Re: [GIT PULL] Urgent pre-emptive fixes for next merge window
-Date: Wed, 7 Mar 2012 15:10:23 -0800
-Message-ID: <CAOesGMiHU81Y8yiD5rZT5v2SRR419LggUYBB8C_j1Vq2Ge_z6w@mail.gmail.com>
-References: <20120307225946.GK12083@atomide.com>
+Subject: Re: [GIT PULL] fixing and cleaning up rpmsg/remoteproc for 3.4
+Date: Wed, 7 Mar 2012 15:24:02 -0800
+Message-ID: <CAOesGMgtK76q0KYM0SVMd1GSayUZ6WMOedrh3HM-x+WsXYj6PQ@mail.gmail.com>
+References: <CAK=WgbYsZUzTos_sXd+ZayKfPc=sxL7v0Q_==bTMh-_4XiMWiw@mail.gmail.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-we0-f174.google.com ([74.125.82.174]:50461 "EHLO
-	mail-we0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752095Ab2CGXKY convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 7 Mar 2012 18:10:24 -0500
-Received: by wejx9 with SMTP id x9so4136686wej.19
-        for <linux-omap@vger.kernel.org>; Wed, 07 Mar 2012 15:10:23 -0800 (PST)
-In-Reply-To: <20120307225946.GK12083@atomide.com>
+Received: from mail-wi0-f174.google.com ([209.85.212.174]:41256 "EHLO
+	mail-wi0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750934Ab2CGXYE (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 7 Mar 2012 18:24:04 -0500
+Received: by wibhm2 with SMTP id hm2so3732671wib.19
+        for <linux-omap@vger.kernel.org>; Wed, 07 Mar 2012 15:24:02 -0800 (PST)
+In-Reply-To: <CAK=WgbYsZUzTos_sXd+ZayKfPc=sxL7v0Q_==bTMh-_4XiMWiw@mail.gmail.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Tony Lindgren <tony@atomide.com>
-Cc: Arnd Bergmann <arnd@arndb.de>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+To: Ohad Ben-Cohen <ohad@wizery.com>
+Cc: Arnd Bergmann <arnd@arndb.de>, linux-arm <linux-arm-kernel@lists.infradead.org>, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, Russell King <linux@arm.linux.org.uk>, Tony Lindgren <tony@atomide.com>, Rusty Russell <rusty@rustcorp.com.au>, Grant Likely <grant.likely@secretlab.ca>, Mark Asselstine <mark.asselstine@windriver.com>, Brian Swetland <swetland@google.com>, "Grosen, Mark" <mgrosen@ti.com>, Omar Ramirez Luna <omar.luna@linaro.org>, "Clark, Rob" <rob@ti.com>
 
-On Wed, Mar 7, 2012 at 2:59 PM, Tony Lindgren <tony@atomide.com> wrote:
-
-> The following changes since commit d82ba9954b6b2c4ac91ec6f6f42be8c521=
-5d0619:
-> =A0Peter Ujfalusi (1):
-> =A0 =A0 =A0 =A0OMAP4: dma: Correct CPU version check for dma_common_c=
-h_end
+On Tue, Mar 6, 2012 at 10:09 AM, Ohad Ben-Cohen <ohad@wizery.com> wrote:
+> Hi Arnd,
 >
-> are available in the git repository at:
+> Please pull:
 >
-> =A0git://git.kernel.org/pub/scm/linux/kernel/git/tmlind/linux-omap fi=
-xes-non-critical-part2
+> git://git.kernel.org/pub/scm/linux/kernel/git/ohad/remoteproc.git
+> rpmsg-fixes-and-more-for-3.4
+>
+> To get a few rpmsg/remoteproc fixes, cleanups and some generalization
+> work for 3.4.
+>
+> Again, I should have sent the Kconfig patch earlier in a separate pull
+> request. Sorry about that.
 
 Pulled, thanks.
 
+
 -Olof
---
-To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
