@@ -1,42 +1,58 @@
-From: Greg KH <gregkh@linuxfoundation.org>
-Subject: Re: [PATCH 7/7] OMAPDSS: HDMI: hot plug detect fix
-Date: Wed, 7 Mar 2012 12:01:46 -0800
-Message-ID: <20120307200146.GA26451@kroah.com>
-References: <1330604795-29156-1-git-send-email-tomi.valkeinen@ti.com>
- <1330604795-29156-8-git-send-email-tomi.valkeinen@ti.com>
+From: Kevin Hilman <khilman@ti.com>
+Subject: [GIT PULL] ARM: OMAP2+: PM: core support for SMPS regulators for v3.4
+Date: Wed, 07 Mar 2012 12:14:38 -0800
+Message-ID: <877gywjhht.fsf@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-gx0-f174.google.com ([209.85.161.174]:51252 "EHLO
-	mail-gx0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932142Ab2CGUBv (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 7 Mar 2012 15:01:51 -0500
-Received: by gghe5 with SMTP id e5so2407174ggh.19
-        for <linux-omap@vger.kernel.org>; Wed, 07 Mar 2012 12:01:50 -0800 (PST)
-Content-Disposition: inline
-In-Reply-To: <1330604795-29156-8-git-send-email-tomi.valkeinen@ti.com>
+Received: from na3sys009aog116.obsmtp.com ([74.125.149.240]:56048 "EHLO
+	na3sys009aog116.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1757048Ab2CGUOk (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 7 Mar 2012 15:14:40 -0500
+Received: by mail-iy0-f173.google.com with SMTP id j26so9771150iaf.4
+        for <linux-omap@vger.kernel.org>; Wed, 07 Mar 2012 12:14:39 -0800 (PST)
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Tomi Valkeinen <tomi.valkeinen@ti.com>
-Cc: stable@vger.kernel.org, linux-fbdev@vger.kernel.org, linux-omap@vger.kernel.org, Rob Clark <rob@ti.com>
+To: Tony Lindgren <tony@atomide.com>
+Cc: linux-omap <linux-omap@vger.kernel.org>, linux-arm-kernel <linux-arm-kernel@lists.infradead.org>
 
-On Thu, Mar 01, 2012 at 02:26:35PM +0200, Tomi Valkeinen wrote:
-> From: Rob Clark <rob@ti.com>
-> 
-> The "OMAPDSS: HDMI: PHY burnout fix" commit switched the HDMI driver
-> over to using a GPIO for plug detect.  Unfortunately the ->detect()
-> method was not also updated, causing HDMI to no longer work for the
-> omapdrm driver (because it would actually check if a connection was
-> detected before attempting to enable display).
-> 
-> Signed-off-by: Rob Clark <rob@ti.com>
-> Signed-off-by: Tomi Valkeinen <tomi.valkeinen@ti.com>
+Tony,
 
-You forgot to tell me what the git commit id is for this patch (it's
-ca888a7958b3d808e4efd08ceff88913f4212c69, right?)
+Please pull the following support for using regulators to control the
+on-chip VC/VP managed voltage domains.
 
-And why isn't this needed for the 3.0 kernel as well?
+The regulator driver support for this is already queued in the regulator
+tree, and this is the supporting core work.
 
-thanks,
+This combined with the CPUfreq changes to use the regulator framework
+will finally result in MPU DVFS working in mainline.
 
-greg k-h
+Kevin
+
+
+The following changes since commit b01543dfe67bb1d191998e90d20534dc354de059:
+
+  Linux 3.3-rc4 (2012-02-18 15:53:33 -0800)
+
+are available in the git repository at:
+
+  git://git.kernel.org/pub/scm/linux/kernel/git/khilman/linux-omap-pm.git for_3.4/pm/smps-regulator
+
+for you to fetch changes up to c15f1d84bb3ddd668593e9bca53221a2f82e9e99:
+
+  ARM: OMAP2+: voltage: ensure voltage used is exact voltage from OPP table (2012-03-06 17:37:14 -0800)
+
+----------------------------------------------------------------
+Kevin Hilman (1):
+      ARM: OMAP2+: voltage: ensure voltage used is exact voltage from OPP table
+
+Tero Kristo (4):
+      arm: omap3: voltage: fix channel configuration
+      arm: omap3: add common twl configurations for vdd1 and vdd2
+      arm: omap3: twl: add external controllers for core voltage regulators
+      arm: omap4: add common twl configurations for vdd1, vdd2 and vdd3
+
+ arch/arm/mach-omap2/twl-common.c  |  147 +++++++++++++++++++++++++++++++++++++
+ arch/arm/mach-omap2/vc3xxx_data.c |    1 +
+ arch/arm/mach-omap2/voltage.c     |   21 +++++-
+ 3 files changed, 166 insertions(+), 3 deletions(-)
