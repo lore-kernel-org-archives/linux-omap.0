@@ -1,53 +1,30 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [GIT PULL] Urgent pre-emptive fixes for next merge window
-Date: Wed, 7 Mar 2012 15:26:16 -0800
-Message-ID: <20120307232615.GL12083@atomide.com>
-References: <20120307225946.GK12083@atomide.com>
- <CAOesGMiHU81Y8yiD5rZT5v2SRR419LggUYBB8C_j1Vq2Ge_z6w@mail.gmail.com>
+From: Russell King - ARM Linux <linux@arm.linux.org.uk>
+Subject: Re: Latest OMAP4 build errors
+Date: Wed, 7 Mar 2012 23:43:08 +0000
+Message-ID: <20120307234308.GA20364@n2100.arm.linux.org.uk>
+References: <20120228090209.GC18045@n2100.arm.linux.org.uk> <CAK=WgbZEDr_fYSonBQr3XNcTx5vefsH7LJfqycaxsqg-yechWQ@mail.gmail.com> <20120306165545.GB15392@n2100.arm.linux.org.uk> <201203061701.54141.arnd@arndb.de> <20120307100615.GA17404@n2100.arm.linux.org.uk> <20120307171044.GE12083@atomide.com> <CAOesGMiNSyc9F+Wf5pXPG=hRAfnG6aMHtccLBwvekuB3HpyevQ@mail.gmail.com> <20120307224459.GJ12083@atomide.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-02-ewr.mailhop.org ([204.13.248.72]:20313 "EHLO
-	mho-02-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750934Ab2CGX0S (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 7 Mar 2012 18:26:18 -0500
+Received: from caramon.arm.linux.org.uk ([78.32.30.218]:48065 "EHLO
+	caramon.arm.linux.org.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755457Ab2CGXn1 (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 7 Mar 2012 18:43:27 -0500
 Content-Disposition: inline
-In-Reply-To: <CAOesGMiHU81Y8yiD5rZT5v2SRR419LggUYBB8C_j1Vq2Ge_z6w@mail.gmail.com>
+In-Reply-To: <20120307224459.GJ12083@atomide.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Olof Johansson <olof@lixom.net>
-Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Arnd Bergmann <arnd@arndb.de>
+To: Tony Lindgren <tony@atomide.com>
+Cc: Olof Johansson <olof@lixom.net>, Arnd Bergmann <arnd@arndb.de>, Ohad Ben-Cohen <ohad@wizery.com>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 
-* Olof Johansson <olof@lixom.net> [120307 14:41]:
-> On Wed, Mar 7, 2012 at 2:59 PM, Tony Lindgren <tony@atomide.com> wrot=
-e:
->=20
-> > The following changes since commit d82ba9954b6b2c4ac91ec6f6f42be8c5=
-215d0619:
-> > =C2=A0Peter Ujfalusi (1):
-> > =C2=A0 =C2=A0 =C2=A0 =C2=A0OMAP4: dma: Correct CPU version check fo=
-r dma_common_ch_end
-> >
-> > are available in the git repository at:
-> >
-> > =C2=A0git://git.kernel.org/pub/scm/linux/kernel/git/tmlind/linux-om=
-ap fixes-non-critical-part2
->=20
-> Pulled, thanks.
+On Wed, Mar 07, 2012 at 02:44:59PM -0800, Tony Lindgren wrote:
+> OK thanks, will do that next time if there's something urgent.
+> 
+> I'll send a pull request shortly for fixes-non-critical-part2 that
+> should sort out the remaining issues.
 
-Thanks. Once the remoteproc updates are there, things build
-even without IOMMU_SUPPORT selected.
+FYI, I've just updated the build tree with what's in arm-soc (as of
+a couple of minutes ago), which contained a bunch of OMAP updates, so
+I'm hopeful that tomorrows results should show an improvement.
 
-So that leaves the include "linux/bug.h" issue and the
-ASoC cpu_is_omap4430 issue. I'll let Peter know about the
-ASoC issue.
-
-Regards,
-
-Tony
---
-To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+It'll start its run in about 2h20.
