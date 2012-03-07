@@ -1,75 +1,91 @@
-From: "Hiremath, Vaibhav" <hvaibhav@ti.com>
-Subject: RE: [PATCH v2 2/2] ARM: OMAP: sram: Add am33xx SRAM support
- (minimal)
-Date: Wed, 7 Mar 2012 09:56:02 +0000
-Message-ID: <79CD15C6BA57404B839C016229A409A83180A06D@DBDE01.ent.ti.com>
-References: <1329113715-7634-1-git-send-email-afzal@ti.com>
- <87fweeyfp6.fsf@macbook.be.48ers.dk>
- <B5906170F1614E41A8A28DE3B8D121433179FC35@DBDE01.ent.ti.com>
- <20120305231413.GP12083@atomide.com>
+From: Rajendra Nayak <rnayak@ti.com>
+Subject: Re: [PATCH v2 0/6] mmc: omap_hsmmc: Clean up use/abuse of pdev->id
+Date: Wed, 07 Mar 2012 15:28:06 +0530
+Message-ID: <4F57312E.4080104@ti.com>
+References: <1329996409-26861-1-git-send-email-rnayak@ti.com> <4F476228.7060607@ti.com> <4F54714E.6080805@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from comal.ext.ti.com ([198.47.26.152]:39882 "EHLO comal.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751957Ab2CGJ4U convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 7 Mar 2012 04:56:20 -0500
-In-Reply-To: <20120305231413.GP12083@atomide.com>
-Content-Language: en-US
+Received: from na3sys009aog101.obsmtp.com ([74.125.149.67]:50016 "EHLO
+	na3sys009aog101.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1751204Ab2CGJ6O (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 7 Mar 2012 04:58:14 -0500
+Received: by yenl4 with SMTP id l4so2814535yen.25
+        for <linux-omap@vger.kernel.org>; Wed, 07 Mar 2012 01:58:13 -0800 (PST)
+In-Reply-To: <4F54714E.6080805@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Tony Lindgren <tony@atomide.com>, "Bedia, Vaibhav" <vaibhav.bedia@ti.com>
-Cc: Peter Korsgaard <jacmet@sunsite.dk>, "Mohammed, Afzal" <afzal@ti.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, "Nori, Sekhar" <nsekhar@ti.com>
+To: cjb@laptop.org
+Cc: Rajendra Nayak <rnayak@ti.com>, linux-mmc@vger.kernel.org, linux-omap@vger.kernel.org, balajitk@ti.com, svenkatr@ti.com, linux-arm-kernel@lists.infradead.org, linaro-dev@lists.linaro.org, patches@linaro.org
 
-On Tue, Mar 06, 2012 at 04:44:13, Tony Lindgren wrote:
-> * Bedia, Vaibhav <vaibhav.bedia@ti.com> [120213 07:36]:
-> > On Mon, Feb 13, 2012 at 19:54:05, Peter Korsgaard wrote:
-> > > >>>>> "Afzal" == Afzal Mohammed <afzal@ti.com> writes:
-> > > 
-> > >  Afzal> From: Vaibhav Bedia <vaibhav.bedia@ti.com>
-> > >  Afzal> Update SRAM start & size for am33xx SoC's.
-> > > 
-> > 
-> > This is a really awkward quoting style :|
-> > 
-> > > 
-> > > I don't particular know the omap sram stuff, but doesn't the 33xx have
-> > > 2x 64K blocks of SRAM?
-> > > 
-> > 
-> > Yes, but since the lower 64KB will not be available on non-GP device and
-> > only A8 can access it, for now we make use of the higher 64KB which is referred
-> > to as the OCMC RAM in the TRM. This will also enable SRAM usage by other drivers
-> > like PRU and McASP.
-> > 
-> > >  
-> > >  Afzal> +static inline int am33xx_sram_init(void)
-> > >  Afzal> +{
-> > >  Afzal> +	return 0;
-> > > 
-> > > 
-> > > I know you mentioned it in the commit message, but it might be good with
-> > > a comment here as well that this dummy function is needed to not get the 34xx
-> > > init function called for 33xx, so it doesn't get removed when somebody
-> > > decides to cleanup.
-> > 
-> > You are right in saying that the dummy function is needed to avoid 34xx SRAM init.
-> > We'll have some PM related code coming in soon and hopefully the SRAM code won't change
-> > Without us noticing ;)
-> 
-> OK, applying into fixes-non-critical-part2. Our sram.c should get turned
-> into a device driver, there's been already similar sram driver posted
-> to LAKML. So that should allow us to remove the cpu_is_xxxx checks.
-> 
+On Monday 05 March 2012 01:24 PM, Rajendra Nayak wrote:
+> On Friday 24 February 2012 03:40 PM, Rajendra Nayak wrote:
+>> Chris,
+>>
+>> On Thursday 23 February 2012 04:56 PM, Rajendra Nayak wrote:
+>>> Re-sending as these patches did not make it to the lists due to
+>>> issues with my 'git send-email'
+>>>
+>>> This series mainly cleans up all instances of hardcoding's in
+>>> the driver based on pdev->id. This is cleanup leading to the
+>>> DT adaptation of omap_hsmmc driver.
+>>>
+>>> v2 mainly has some minor changes to get rid of a debug print
+>>> which was still using host->id and getting rid of 'id' field
+>>> entirely from omap_hsmmc_host struct.
+>>>
+>>> The series is tested on OMAP4SDP, OMAP4panda, OMAP3beagle and
+>>> OMAP2430SDP
+>>> boards.
+>>
+>> This series is reviewed/tested and acked by Balaji and Venkat.
+>> Care to pull this in for 3.4?
+>>
+>> I have one other cleanup patch on top of this series to make all
+>> remaining pr_* prints in the driver to dev_* [1].
+>> It would be great if you could pick that up as well.
+>>
+>> These patches are cleanups leading to the DT conversion of omap_hsmmc
+>> driver.
+>
+> Chris, Ping. I am basing my DT support patches on top of these cleanups.
+> Would be great if you can have a look and pull them in.
 
-I think I missed this, let me check the post.
+Chris, just realized the last two requests from me to get this merged
+weren't addressed to you directly, but instead you were copied.
+Resending with you in 'To', hope this lands in your inbox :)
 
-Thanks,
-Vaibhav
+regards,
+Rajendra
 
-> Regards,
-> 
-> Tony
-> 
+>
+>>
+>> regards,
+>> Rajendra
+>>
+>> [1] http://marc.info/?l=linux-mmc&m=132999677405098&w=3
+>>
+>>>
+>>> regards,
+>>> Rajendra
+>>>
+>>> Balaji T K (3):
+>>> mmc: omap_hsmmc: use platform_get_resource_byname for tx/rx DMA
+>>> channels
+>>> mmc: omap_hsmmc: remove unused .set_sleep function
+>>> mmc: omap_hsmmc: Use OMAP_HSMMC_SUPPORTS_DUAL_VOLT flag to remove
+>>> host->id based hardcoding
+>>>
+>>> Rajendra Nayak (3):
+>>> mmc: omap_hsmmc: Get rid of omap_hsmmc_1_set_power function
+>>> mmc: omap_hsmmc: Get rid of omap_hsmmc_4_set_power function
+>>> mmc: omap_hsmmc: Don't expect MMC1 to always have vmmc supply
+>>>
+>>> arch/arm/plat-omap/include/plat/mmc.h | 2 -
+>>> drivers/mmc/host/omap_hsmmc.c | 175 +++------------------------------
+>>> 2 files changed, 16 insertions(+), 161 deletions(-)
+>>>
+>>
+>
 
