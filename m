@@ -1,23 +1,67 @@
-From: Dave Jones <davej@redhat.com>
-Subject: Re: [GIT PULL] cpufreq: OMAP updates for v3.4
-Date: Wed, 7 Mar 2012 15:30:31 -0500
-Message-ID: <20120307203031.GA7672@redhat.com>
-References: <87y5rci2na.fsf@ti.com>
+From: Brian Austin <brian.austin@cirrus.com>
+Subject: Re: help: BeagleBoard xM RevC ethernet port
+Date: Wed, 7 Mar 2012 14:48:23 -0600
+Message-ID: <alpine.DEB.2.02.1203071437480.3784@heelrod.ad.cirrus.com>
+References: <4F3E0EB7.9060803@ti.com> <874nuizfyf.fsf@ti.com> <4F4613B7.8010601@kynesim.co.uk> <4F4B9405.9070702@ti.com> <CAAL8m4x=6--5irPBPdW4n0dtYuMm_UThqWEuCSyTtsm+cEx4jQ@mail.gmail.com> <CAOCHtYjVhbmi1=S6TZLQTUAb=cf0e5xSzZWyt3sSd0=ANhh_LA@mail.gmail.com>
+ <alpine.DEB.2.02.1202291205270.18906@heelrod.ad.cirrus.com> <CAAL8m4yDQRdp5Ar+GoNHsD1_pmBGToF9qbapAhWAvHnOM0Dg9w@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <cpufreq-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <87y5rci2na.fsf@ti.com>
-Sender: cpufreq-owner@vger.kernel.org
-To: Kevin Hilman <khilman@ti.com>
-Cc: cpufreq@vger.kernel.org, linux-omap <linux-omap@vger.kernel.org>, linux-arm-kernel <linux-arm-kernel@lists.infradead.org>
+Content-Type: text/plain; charset="US-ASCII"; format=flowed
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from am1ehsobe003.messaging.microsoft.com ([213.199.154.206]:6105
+	"EHLO am1outboundpool.messaging.microsoft.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1755953Ab2CGUtP (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 7 Mar 2012 15:49:15 -0500
+In-Reply-To: <CAAL8m4yDQRdp5Ar+GoNHsD1_pmBGToF9qbapAhWAvHnOM0Dg9w@mail.gmail.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Govindraj <govindraj.ti@gmail.com>
+Cc: Brian Austin <brian.austin@cirrus.com>, Robert Nelson <robertcnelson@gmail.com>, Peter Ujfalusi <peter.ujfalusi@ti.com>, Richard Watts <rrw@kynesim.co.uk>, Kevin Hilman <khilman@ti.com>, linux-omap <linux-omap@vger.kernel.org>, balbi@ti.com
 
-On Wed, Mar 07, 2012 at 12:20:41PM -0800, Kevin Hilman wrote:
- > Dave,
- > 
- > Please pull the following OMAP CPUfreq driver changes for v3.4.
+On Thu, 1 Mar 2012, Govindraj wrote:
 
-pulled, thanks.
+> On Wed, Feb 29, 2012 at 11:36 PM, Brian Austin <brian.austin@cirrus.com> wrote:
+>> Applying this patch gives this on my beagleboard xM revC
+>>
+>> Linux debian 3.3.0-rc4
+>>
+>> Unable to set up timer: unexpected error
+>> Failed to bring up eth0.
+>
+> Works for me on 3.3-rc4 + sent patch on beagle xm revc
+>
+> here this the log [1]
+>
+> Ensure you have selected following for ehci
+> and usb Ethernet adapter support.
+>
+> CONFIG_USB_EHCI_HCD
+> CONFIG_USB_EHCI_HCD_OMAP
+> CONFIG_USB_NET_SMSC95XX
+>
+Thanks for the config.
 
-	Dave 
+Unfortunately this does nothing for Debian Unstable on the beagleboard 
+Xm RevC
+
+DHCPREQUEST on eth0 to 255.255.255.255 port 67
+Unable to set up timer: unexpected error
+Failed to bring up eth0.
+root@debian:~# [  310.470581] smsc95xx 1-2.1:1.0: eth0: link up, 100Mbps, 
+full-duplex, lpa 0x45E1
+
+Kernel log shows the device getting registered.
+
+[    4.768096] smsc95xx 1-2.1:1.0: eth0: register 'smsc95xx' at 
+usb-ehci-omap.0-2.1, smsc95xx USB 2.0 Ethernet, 76:22:51:1f:d9:b6
+
+
+I'm guessing this is a Debian problem.  The Debian kernel binary 
+3.2.7-x5 works fine.
+
+I'm building from 
+git://git.kernel.org/pub/scm/linux/kernel/git/tmlind/linux-omap.git
+with tag v3.3-rc4.
+
+Thanks,
+Brian
+
