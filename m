@@ -1,91 +1,62 @@
-From: Rajendra Nayak <rnayak@ti.com>
-Subject: Re: [PATCH v2 0/6] mmc: omap_hsmmc: Clean up use/abuse of pdev->id
-Date: Wed, 07 Mar 2012 15:28:06 +0530
-Message-ID: <4F57312E.4080104@ti.com>
-References: <1329996409-26861-1-git-send-email-rnayak@ti.com> <4F476228.7060607@ti.com> <4F54714E.6080805@ti.com>
+From: Russell King - ARM Linux <linux@arm.linux.org.uk>
+Subject: Re: Latest OMAP4 build errors
+Date: Wed, 7 Mar 2012 10:06:15 +0000
+Message-ID: <20120307100615.GA17404@n2100.arm.linux.org.uk>
+References: <20120228090209.GC18045@n2100.arm.linux.org.uk> <CAK=WgbZEDr_fYSonBQr3XNcTx5vefsH7LJfqycaxsqg-yechWQ@mail.gmail.com> <20120306165545.GB15392@n2100.arm.linux.org.uk> <201203061701.54141.arnd@arndb.de>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aog101.obsmtp.com ([74.125.149.67]:50016 "EHLO
-	na3sys009aog101.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751204Ab2CGJ6O (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 7 Mar 2012 04:58:14 -0500
-Received: by yenl4 with SMTP id l4so2814535yen.25
-        for <linux-omap@vger.kernel.org>; Wed, 07 Mar 2012 01:58:13 -0800 (PST)
-In-Reply-To: <4F54714E.6080805@ti.com>
+Received: from caramon.arm.linux.org.uk ([78.32.30.218]:39197 "EHLO
+	caramon.arm.linux.org.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751711Ab2CGKGa (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 7 Mar 2012 05:06:30 -0500
+Content-Disposition: inline
+In-Reply-To: <201203061701.54141.arnd@arndb.de>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: cjb@laptop.org
-Cc: Rajendra Nayak <rnayak@ti.com>, linux-mmc@vger.kernel.org, linux-omap@vger.kernel.org, balajitk@ti.com, svenkatr@ti.com, linux-arm-kernel@lists.infradead.org, linaro-dev@lists.linaro.org, patches@linaro.org
+To: Arnd Bergmann <arnd@arndb.de>
+Cc: Ohad Ben-Cohen <ohad@wizery.com>, linux-omap@vger.kernel.org, Olof Johansson <olof@lixom.net>
 
-On Monday 05 March 2012 01:24 PM, Rajendra Nayak wrote:
-> On Friday 24 February 2012 03:40 PM, Rajendra Nayak wrote:
->> Chris,
->>
->> On Thursday 23 February 2012 04:56 PM, Rajendra Nayak wrote:
->>> Re-sending as these patches did not make it to the lists due to
->>> issues with my 'git send-email'
->>>
->>> This series mainly cleans up all instances of hardcoding's in
->>> the driver based on pdev->id. This is cleanup leading to the
->>> DT adaptation of omap_hsmmc driver.
->>>
->>> v2 mainly has some minor changes to get rid of a debug print
->>> which was still using host->id and getting rid of 'id' field
->>> entirely from omap_hsmmc_host struct.
->>>
->>> The series is tested on OMAP4SDP, OMAP4panda, OMAP3beagle and
->>> OMAP2430SDP
->>> boards.
->>
->> This series is reviewed/tested and acked by Balaji and Venkat.
->> Care to pull this in for 3.4?
->>
->> I have one other cleanup patch on top of this series to make all
->> remaining pr_* prints in the driver to dev_* [1].
->> It would be great if you could pick that up as well.
->>
->> These patches are cleanups leading to the DT conversion of omap_hsmmc
->> driver.
->
-> Chris, Ping. I am basing my DT support patches on top of these cleanups.
-> Would be great if you can have a look and pull them in.
+On Tue, Mar 06, 2012 at 05:01:53PM +0000, Arnd Bergmann wrote:
+> On Tuesday 06 March 2012, Russell King - ARM Linux wrote:
+> > On Tue, Feb 28, 2012 at 12:11:37PM +0200, Ohad Ben-Cohen wrote:
+> > > On Tue, Feb 28, 2012 at 12:01 PM, Arnd Bergmann <arnd@arndb.de> wrote:
+> > > > I think 'depends' would be better here, because selecting IOMMU_SUPPORT
+> > > > has other side-effects that a user might not want. It's just as likely
+> > > > that someone wants to disable IOMMU_SUPPORT and needs to find OMAP_REMOTEPROC
+> > > > as wanting to enable OMAP_REMOTEPROC and having to find IOMMU_SUPPORT.
+> > > >
+> > > > In most cases, the defconfig should just set both.
+> > > 
+> > > Ok, 'depends on' it is.
+> > 
+> > We're a week on, which means I now have a full set of 7 builds on the
+> > website for OMAP4430 all of which have failed in part due to this
+> > as yet unresolved problem.
+> > 
+> > What's happening to get it fixed and those fixes into whatever tree is
+> > necessary for them (presumably arm-soc)?
+> 
+> Ohad has sent a series of patches for review and there were no comments
+> on those. The fix was part of it as far as I remember. I'm still waiting
+> for a pull request from Ohad.
 
-Chris, just realized the last two requests from me to get this merged
-weren't addressed to you directly, but instead you were copied.
-Resending with you in 'To', hope this lands in your inbox :)
+Given that we're coming to the end of what could be the _final_ week
+before the merge window opens, this is not good news.  Read: maybe
+three days before final.
 
-regards,
-Rajendra
+The fact is that OMAP is - yet again - in a totally rotten state in terms
+of what's queued up in the armsoc tree.  It is - yet again - completely
+unbuildable for many configurations.  Just go and have a look at:
 
->
->>
->> regards,
->> Rajendra
->>
->> [1] http://marc.info/?l=linux-mmc&m=132999677405098&w=3
->>
->>>
->>> regards,
->>> Rajendra
->>>
->>> Balaji T K (3):
->>> mmc: omap_hsmmc: use platform_get_resource_byname for tx/rx DMA
->>> channels
->>> mmc: omap_hsmmc: remove unused .set_sleep function
->>> mmc: omap_hsmmc: Use OMAP_HSMMC_SUPPORTS_DUAL_VOLT flag to remove
->>> host->id based hardcoding
->>>
->>> Rajendra Nayak (3):
->>> mmc: omap_hsmmc: Get rid of omap_hsmmc_1_set_power function
->>> mmc: omap_hsmmc: Get rid of omap_hsmmc_4_set_power function
->>> mmc: omap_hsmmc: Don't expect MMC1 to always have vmmc supply
->>>
->>> arch/arm/plat-omap/include/plat/mmc.h | 2 -
->>> drivers/mmc/host/omap_hsmmc.c | 175 +++------------------------------
->>> 2 files changed, 16 insertions(+), 161 deletions(-)
->>>
->>
->
+	http://www.arm.linux.org.uk/developer/build/
 
+to see what an utterly crappy state OMAP is in again.  Last nights build
+was my tree plus latest arm-soc.  Some of those issues have patches (I
+had been applying one patch manually to the build tree) but that's not
+the point - they're not in arm-soc, so the OMAP code in arm-soc is not
+yet ready for mainline.
+
+So, as OMAP is soo broken, and as promised after the last merge window -
+I don't want any OMAP stuff going upstream from armsoc until we get error
+free builds from the allno and old configs on the builder.
