@@ -1,205 +1,196 @@
 From: Tomi Valkeinen <tomi.valkeinen@ti.com>
-Subject: [PATCH 04/21] OMAPDSS: TFP410: rename dvi files to tfp410
-Date: Wed,  7 Mar 2012 14:44:33 +0200
-Message-ID: <1331124290-6285-5-git-send-email-tomi.valkeinen@ti.com>
+Subject: [PATCH 05/21] OMAPDSS: TFP410: pdata rewrite
+Date: Wed,  7 Mar 2012 14:44:34 +0200
+Message-ID: <1331124290-6285-6-git-send-email-tomi.valkeinen@ti.com>
 References: <1331124290-6285-1-git-send-email-tomi.valkeinen@ti.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aog121.obsmtp.com ([74.125.149.145]:39160 "EHLO
-	na3sys009aog121.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1758427Ab2CGMpT (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 7 Mar 2012 07:45:19 -0500
-Received: by mail-lpp01m010-f44.google.com with SMTP id j5so11579274lag.17
-        for <linux-omap@vger.kernel.org>; Wed, 07 Mar 2012 04:45:17 -0800 (PST)
+Received: from na3sys009aog132.obsmtp.com ([74.125.149.250]:45111 "EHLO
+	psmtp.com" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
+	id S1758426Ab2CGMpV (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Wed, 7 Mar 2012 07:45:21 -0500
+Received: by mail-lpp01m010-f44.google.com with SMTP id j5so7233956lag.3
+        for <linux-omap@vger.kernel.org>; Wed, 07 Mar 2012 04:45:20 -0800 (PST)
 In-Reply-To: <1331124290-6285-1-git-send-email-tomi.valkeinen@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: linux-omap@vger.kernel.org, linux-fbdev@vger.kernel.org
-Cc: archit@ti.com, Tomi Valkeinen <tomi.valkeinen@ti.com>, Tony Lindgren <tony@atomide.com>
+Cc: archit@ti.com, Tomi Valkeinen <tomi.valkeinen@ti.com>
 
-Now that the tfp410 driver has been renamed in the code, this patch
-finishes the renaming by renaming the files.
+To ease device tree adaptation in the future, rewrite TFP410 platform
+data handling to be done inside probe(), so that probe() is the only
+place where we need to handle the DT/pdata choice.
 
 Signed-off-by: Tomi Valkeinen <tomi.valkeinen@ti.com>
-Cc: Tony Lindgren <tony@atomide.com>
 ---
- arch/arm/mach-omap2/board-3430sdp.c                |    2 +-
- arch/arm/mach-omap2/board-am3517evm.c              |    2 +-
- arch/arm/mach-omap2/board-cm-t35.c                 |    2 +-
- arch/arm/mach-omap2/board-devkit8000.c             |    2 +-
- arch/arm/mach-omap2/board-igep0020.c               |    2 +-
- arch/arm/mach-omap2/board-omap3beagle.c            |    2 +-
- arch/arm/mach-omap2/board-omap3evm.c               |    2 +-
- arch/arm/mach-omap2/board-omap3stalker.c           |    2 +-
- arch/arm/mach-omap2/board-omap4panda.c             |    2 +-
- arch/arm/mach-omap2/board-overo.c                  |    2 +-
- drivers/video/omap2/displays/Makefile              |    2 +-
- .../omap2/displays/{panel-dvi.c => panel-tfp410.c} |    2 +-
- .../{omap-panel-dvi.h => omap-panel-tfp410.h}      |    0
- 13 files changed, 12 insertions(+), 12 deletions(-)
- rename drivers/video/omap2/displays/{panel-dvi.c => panel-tfp410.c} (99%)
- rename include/video/{omap-panel-dvi.h => omap-panel-tfp410.h} (100%)
+ drivers/video/omap2/displays/panel-tfp410.c |   72 ++++++++++++++-------------
+ 1 files changed, 38 insertions(+), 34 deletions(-)
 
-diff --git a/arch/arm/mach-omap2/board-3430sdp.c b/arch/arm/mach-omap2/board-3430sdp.c
-index 2c153bb..fdcbaaf 100644
---- a/arch/arm/mach-omap2/board-3430sdp.c
-+++ b/arch/arm/mach-omap2/board-3430sdp.c
-@@ -37,7 +37,7 @@
- #include <plat/dma.h>
- #include <plat/gpmc.h>
- #include <video/omapdss.h>
--#include <video/omap-panel-dvi.h>
-+#include <video/omap-panel-tfp410.h>
- 
- #include <plat/gpmc-smc91x.h>
- 
-diff --git a/arch/arm/mach-omap2/board-am3517evm.c b/arch/arm/mach-omap2/board-am3517evm.c
-index c38dac1..fadd25f 100644
---- a/arch/arm/mach-omap2/board-am3517evm.c
-+++ b/arch/arm/mach-omap2/board-am3517evm.c
-@@ -37,7 +37,7 @@
- #include <plat/usb.h>
- #include <video/omapdss.h>
- #include <video/omap-panel-generic-dpi.h>
--#include <video/omap-panel-dvi.h>
-+#include <video/omap-panel-tfp410.h>
- 
- #include "mux.h"
- #include "control.h"
-diff --git a/arch/arm/mach-omap2/board-cm-t35.c b/arch/arm/mach-omap2/board-cm-t35.c
-index 94d5167..54d8f0f 100644
---- a/arch/arm/mach-omap2/board-cm-t35.c
-+++ b/arch/arm/mach-omap2/board-cm-t35.c
-@@ -43,7 +43,7 @@
- #include <plat/usb.h>
- #include <video/omapdss.h>
- #include <video/omap-panel-generic-dpi.h>
--#include <video/omap-panel-dvi.h>
-+#include <video/omap-panel-tfp410.h>
- #include <plat/mcspi.h>
- 
- #include <mach/hardware.h>
-diff --git a/arch/arm/mach-omap2/board-devkit8000.c b/arch/arm/mach-omap2/board-devkit8000.c
-index d1bead0..677f16e 100644
---- a/arch/arm/mach-omap2/board-devkit8000.c
-+++ b/arch/arm/mach-omap2/board-devkit8000.c
-@@ -47,7 +47,7 @@
- #include <plat/usb.h>
- #include <video/omapdss.h>
- #include <video/omap-panel-generic-dpi.h>
--#include <video/omap-panel-dvi.h>
-+#include <video/omap-panel-tfp410.h>
- 
- #include <plat/mcspi.h>
- #include <linux/input/matrix_keypad.h>
-diff --git a/arch/arm/mach-omap2/board-igep0020.c b/arch/arm/mach-omap2/board-igep0020.c
-index ae1b157..6e56ccc 100644
---- a/arch/arm/mach-omap2/board-igep0020.c
-+++ b/arch/arm/mach-omap2/board-igep0020.c
-@@ -32,7 +32,7 @@
- #include <plat/gpmc.h>
- #include <plat/usb.h>
- #include <video/omapdss.h>
--#include <video/omap-panel-dvi.h>
-+#include <video/omap-panel-tfp410.h>
- #include <plat/onenand.h>
- 
- #include "mux.h"
-diff --git a/arch/arm/mach-omap2/board-omap3beagle.c b/arch/arm/mach-omap2/board-omap3beagle.c
-index 5f858e9..df6acae 100644
---- a/arch/arm/mach-omap2/board-omap3beagle.c
-+++ b/arch/arm/mach-omap2/board-omap3beagle.c
-@@ -42,7 +42,7 @@
- #include <plat/board.h>
- #include "common.h"
- #include <video/omapdss.h>
--#include <video/omap-panel-dvi.h>
-+#include <video/omap-panel-tfp410.h>
- #include <plat/gpmc.h>
- #include <plat/nand.h>
- #include <plat/usb.h>
-diff --git a/arch/arm/mach-omap2/board-omap3evm.c b/arch/arm/mach-omap2/board-omap3evm.c
-index 840fb99..1a34bee 100644
---- a/arch/arm/mach-omap2/board-omap3evm.c
-+++ b/arch/arm/mach-omap2/board-omap3evm.c
-@@ -46,7 +46,7 @@
- #include "common.h"
- #include <plat/mcspi.h>
- #include <video/omapdss.h>
--#include <video/omap-panel-dvi.h>
-+#include <video/omap-panel-tfp410.h>
- 
- #include "mux.h"
- #include "sdram-micron-mt46h32m32lf-6.h"
-diff --git a/arch/arm/mach-omap2/board-omap3stalker.c b/arch/arm/mach-omap2/board-omap3stalker.c
-index 8a292cc..d05e7a7 100644
---- a/arch/arm/mach-omap2/board-omap3stalker.c
-+++ b/arch/arm/mach-omap2/board-omap3stalker.c
-@@ -41,7 +41,7 @@
- #include <plat/usb.h>
- #include <video/omapdss.h>
- #include <video/omap-panel-generic-dpi.h>
--#include <video/omap-panel-dvi.h>
-+#include <video/omap-panel-tfp410.h>
- 
- #include <plat/mcspi.h>
- #include <linux/input/matrix_keypad.h>
-diff --git a/arch/arm/mach-omap2/board-omap4panda.c b/arch/arm/mach-omap2/board-omap4panda.c
-index 8196d6e..959b4ed 100644
---- a/arch/arm/mach-omap2/board-omap4panda.c
-+++ b/arch/arm/mach-omap2/board-omap4panda.c
-@@ -40,7 +40,7 @@
- #include "common.h"
- #include <plat/usb.h>
- #include <plat/mmc.h>
--#include <video/omap-panel-dvi.h>
-+#include <video/omap-panel-tfp410.h>
- 
- #include "hsmmc.h"
- #include "control.h"
-diff --git a/arch/arm/mach-omap2/board-overo.c b/arch/arm/mach-omap2/board-overo.c
-index 76e06e4..ceb7187 100644
---- a/arch/arm/mach-omap2/board-overo.c
-+++ b/arch/arm/mach-omap2/board-overo.c
-@@ -46,7 +46,7 @@
- #include "common.h"
- #include <video/omapdss.h>
- #include <video/omap-panel-generic-dpi.h>
--#include <video/omap-panel-dvi.h>
-+#include <video/omap-panel-tfp410.h>
- #include <plat/gpmc.h>
- #include <mach/hardware.h>
- #include <plat/nand.h>
-diff --git a/drivers/video/omap2/displays/Makefile b/drivers/video/omap2/displays/Makefile
-index 58905ef0..58a5176 100644
---- a/drivers/video/omap2/displays/Makefile
-+++ b/drivers/video/omap2/displays/Makefile
-@@ -1,5 +1,5 @@
- obj-$(CONFIG_PANEL_GENERIC_DPI) += panel-generic-dpi.o
--obj-$(CONFIG_PANEL_TFP410) += panel-dvi.o
-+obj-$(CONFIG_PANEL_TFP410) += panel-tfp410.o
- obj-$(CONFIG_PANEL_LGPHILIPS_LB035Q02) += panel-lgphilips-lb035q02.o
- obj-$(CONFIG_PANEL_SHARP_LS037V7DW01) += panel-sharp-ls037v7dw01.o
- obj-$(CONFIG_PANEL_NEC_NL8048HL11_01B) += panel-nec-nl8048hl11-01b.o
-diff --git a/drivers/video/omap2/displays/panel-dvi.c b/drivers/video/omap2/displays/panel-tfp410.c
-similarity index 99%
-rename from drivers/video/omap2/displays/panel-dvi.c
-rename to drivers/video/omap2/displays/panel-tfp410.c
-index 1ec996d..4b867bf 100644
---- a/drivers/video/omap2/displays/panel-dvi.c
+diff --git a/drivers/video/omap2/displays/panel-tfp410.c b/drivers/video/omap2/displays/panel-tfp410.c
+index 4b867bf..a369d2c 100644
+--- a/drivers/video/omap2/displays/panel-tfp410.c
 +++ b/drivers/video/omap2/displays/panel-tfp410.c
-@@ -24,7 +24,7 @@
- #include <linux/gpio.h>
- #include <drm/drm_edid.h>
+@@ -47,13 +47,9 @@ struct panel_drv_data {
+ 	struct mutex lock;
  
--#include <video/omap-panel-dvi.h>
-+#include <video/omap-panel-tfp410.h>
+ 	int pd_gpio;
+-};
  
- static const struct omap_video_timings tfp410_default_timings = {
- 	.x_res		= 640,
-diff --git a/include/video/omap-panel-dvi.h b/include/video/omap-panel-tfp410.h
-similarity index 100%
-rename from include/video/omap-panel-dvi.h
-rename to include/video/omap-panel-tfp410.h
+-static inline struct tfp410_platform_data
+-*get_pdata(const struct omap_dss_device *dssdev)
+-{
+-	return dssdev->data;
+-}
++	struct i2c_adapter *i2c_adapter;
++};
+ 
+ static int tfp410_power_on(struct omap_dss_device *dssdev)
+ {
+@@ -90,11 +86,11 @@ static void tfp410_power_off(struct omap_dss_device *dssdev)
+ 
+ static int tfp410_probe(struct omap_dss_device *dssdev)
+ {
+-	struct tfp410_platform_data *pdata = get_pdata(dssdev);
+ 	struct panel_drv_data *ddata;
+ 	int r;
++	int i2c_bus_num;
+ 
+-	ddata = kzalloc(sizeof(*ddata), GFP_KERNEL);
++	ddata = devm_kzalloc(&dssdev->dev, sizeof(*ddata), GFP_KERNEL);
+ 	if (!ddata)
+ 		return -ENOMEM;
+ 
+@@ -104,10 +100,15 @@ static int tfp410_probe(struct omap_dss_device *dssdev)
+ 	ddata->dssdev = dssdev;
+ 	mutex_init(&ddata->lock);
+ 
+-	if (pdata)
++	if (dssdev->data) {
++		struct tfp410_platform_data *pdata = dssdev->data;
++
+ 		ddata->pd_gpio = pdata->power_down_gpio;
+-	else
++		i2c_bus_num = pdata->i2c_bus_num;
++	} else {
+ 		ddata->pd_gpio = -1;
++		i2c_bus_num = -1;
++	}
+ 
+ 	if (gpio_is_valid(ddata->pd_gpio)) {
+ 		r = gpio_request_one(ddata->pd_gpio, GPIOF_OUT_INIT_LOW,
+@@ -115,13 +116,31 @@ static int tfp410_probe(struct omap_dss_device *dssdev)
+ 		if (r) {
+ 			dev_err(&dssdev->dev, "Failed to request PD GPIO %d\n",
+ 					ddata->pd_gpio);
+-			ddata->pd_gpio = -1;
++			return r;
+ 		}
+ 	}
+ 
++	if (i2c_bus_num != -1) {
++		struct i2c_adapter *adapter;
++
++		adapter = i2c_get_adapter(i2c_bus_num);
++		if (!adapter) {
++			dev_err(&dssdev->dev, "Failed to get I2C adapter, bus %d\n",
++					i2c_bus_num);
++			r = -EINVAL;
++			goto err_i2c;
++		}
++
++		ddata->i2c_adapter = adapter;
++	}
++
+ 	dev_set_drvdata(&dssdev->dev, ddata);
+ 
+ 	return 0;
++err_i2c:
++	if (gpio_is_valid(ddata->pd_gpio))
++		gpio_free(ddata->pd_gpio);
++	return r;
+ }
+ 
+ static void __exit tfp410_remove(struct omap_dss_device *dssdev)
+@@ -130,14 +149,15 @@ static void __exit tfp410_remove(struct omap_dss_device *dssdev)
+ 
+ 	mutex_lock(&ddata->lock);
+ 
++	if (ddata->i2c_adapter)
++		i2c_put_adapter(ddata->i2c_adapter);
++
+ 	if (gpio_is_valid(ddata->pd_gpio))
+ 		gpio_free(ddata->pd_gpio);
+ 
+ 	dev_set_drvdata(&dssdev->dev, NULL);
+ 
+ 	mutex_unlock(&ddata->lock);
+-
+-	kfree(ddata);
+ }
+ 
+ static int tfp410_enable(struct omap_dss_device *dssdev)
+@@ -269,27 +289,17 @@ static int tfp410_read_edid(struct omap_dss_device *dssdev,
+ 		u8 *edid, int len)
+ {
+ 	struct panel_drv_data *ddata = dev_get_drvdata(&dssdev->dev);
+-	struct tfp410_platform_data *pdata = get_pdata(dssdev);
+-	struct i2c_adapter *adapter;
+ 	int r, l, bytes_read;
+ 
+ 	mutex_lock(&ddata->lock);
+ 
+-	if (pdata->i2c_bus_num == 0) {
++	if (!ddata->i2c_adapter) {
+ 		r = -ENODEV;
+ 		goto err;
+ 	}
+ 
+-	adapter = i2c_get_adapter(pdata->i2c_bus_num);
+-	if (!adapter) {
+-		dev_err(&dssdev->dev, "Failed to get I2C adapter, bus %d\n",
+-				pdata->i2c_bus_num);
+-		r = -EINVAL;
+-		goto err;
+-	}
+-
+ 	l = min(EDID_LENGTH, len);
+-	r = tfp410_ddc_read(adapter, edid, l, 0);
++	r = tfp410_ddc_read(ddata->i2c_adapter, edid, l, 0);
+ 	if (r)
+ 		goto err;
+ 
+@@ -299,7 +309,7 @@ static int tfp410_read_edid(struct omap_dss_device *dssdev,
+ 	if (len > EDID_LENGTH && edid[0x7e] > 0) {
+ 		l = min(EDID_LENGTH, len - EDID_LENGTH);
+ 
+-		r = tfp410_ddc_read(adapter, edid + EDID_LENGTH,
++		r = tfp410_ddc_read(ddata->i2c_adapter, edid + EDID_LENGTH,
+ 				l, EDID_LENGTH);
+ 		if (r)
+ 			goto err;
+@@ -319,21 +329,15 @@ err:
+ static bool tfp410_detect(struct omap_dss_device *dssdev)
+ {
+ 	struct panel_drv_data *ddata = dev_get_drvdata(&dssdev->dev);
+-	struct tfp410_platform_data *pdata = get_pdata(dssdev);
+-	struct i2c_adapter *adapter;
+ 	unsigned char out;
+ 	int r;
+ 
+ 	mutex_lock(&ddata->lock);
+ 
+-	if (pdata->i2c_bus_num == 0)
+-		goto out;
+-
+-	adapter = i2c_get_adapter(pdata->i2c_bus_num);
+-	if (!adapter)
++	if (!ddata->i2c_adapter)
+ 		goto out;
+ 
+-	r = tfp410_ddc_read(adapter, &out, 1, 0);
++	r = tfp410_ddc_read(ddata->i2c_adapter, &out, 1, 0);
+ 
+ 	mutex_unlock(&ddata->lock);
+ 
 -- 
 1.7.4.1
 
