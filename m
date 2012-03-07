@@ -1,49 +1,46 @@
 From: Tarun Kanti DebBarma <tarun.kanti@ti.com>
-Subject: [PATCH v3 07/13] gpio/omap: fix _set_gpio_irqenable implementation
-Date: Wed, 7 Mar 2012 16:45:57 +0530
-Message-ID: <1331118963-26364-8-git-send-email-tarun.kanti@ti.com>
+Subject: [PATCH v3 02/13] gpio/omap: fix wakeup_en register update in _set_gpio_wakeup()
+Date: Wed, 7 Mar 2012 16:45:52 +0530
+Message-ID: <1331118963-26364-3-git-send-email-tarun.kanti@ti.com>
 References: <1331118963-26364-1-git-send-email-tarun.kanti@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from bear.ext.ti.com ([192.94.94.41]:33555 "EHLO bear.ext.ti.com"
+Received: from arroyo.ext.ti.com ([192.94.94.40]:41125 "EHLO arroyo.ext.ti.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1756152Ab2CGLQW (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Wed, 7 Mar 2012 06:16:22 -0500
+	id S1756152Ab2CGLQU (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Wed, 7 Mar 2012 06:16:20 -0500
 In-Reply-To: <1331118963-26364-1-git-send-email-tarun.kanti@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: linux-omap@vger.kernel.org
 Cc: khilman@ti.com, tony@atomide.com, linux-arm-kernel@lists.infradead.org, Tarun Kanti DebBarma <tarun.kanti@ti.com>
 
-This function should be capable of both enabling and disabling interrupts
-based upon the *enable* parameter. Right now the function only enables
-the interrupt and *enable* is not used at all. So add the interrupt
-disable capability also using the parameter.
+There are two ways through which wakeup_en register can be programmed
+using gpiolib APIs as shown below. It is seen that in the second case
+in _set_gpio_wakeup(), even though bank->suspend_wakeup is updated
+correctly, its value is not programmed in wakeup_en register. Fix this.
+
+chip.irq_set_type()->gpio_irq_type()->_set_gpio_triggering()->set_gpio_trigger()
+chip.irq_set_wake()->gpio_wake_enable()->_set_gpio_wakeup()
 
 Signed-off-by: Tarun Kanti DebBarma <tarun.kanti@ti.com>
-Reviewed-by: Santosh Shilimkar <santosh.shilimkar@ti.com>
-Acked-by: Felipe Balbi <balbi@ti.com>
 ---
- drivers/gpio/gpio-omap.c |    5 ++++-
- 1 files changed, 4 insertions(+), 1 deletions(-)
+ drivers/gpio/gpio-omap.c |    1 +
+ 1 files changed, 1 insertions(+), 0 deletions(-)
 
 diff --git a/drivers/gpio/gpio-omap.c b/drivers/gpio/gpio-omap.c
-index bb994db..19f8f44 100644
+index c9369d2..895df7f 100644
 --- a/drivers/gpio/gpio-omap.c
 +++ b/drivers/gpio/gpio-omap.c
-@@ -475,7 +475,10 @@ static void _disable_gpio_irqbank(struct gpio_bank *bank, int gpio_mask)
+@@ -504,6 +504,7 @@ static int _set_gpio_wakeup(struct gpio_bank *bank, int gpio, int enable)
+ 	else
+ 		bank->suspend_wakeup &= ~gpio_bit;
  
- static inline void _set_gpio_irqenable(struct gpio_bank *bank, int gpio, int enable)
- {
--	_enable_gpio_irqbank(bank, GPIO_BIT(bank, gpio));
-+	if (enable)
-+		_enable_gpio_irqbank(bank, GPIO_BIT(bank, gpio));
-+	else
-+		_disable_gpio_irqbank(bank, GPIO_BIT(bank, gpio));
- }
++	__raw_writel(bank->suspend_wakeup, bank->base + bank->regs->wkup_en);
+ 	spin_unlock_irqrestore(&bank->lock, flags);
  
- /*
+ 	return 0;
 -- 
 1.7.0.4
 
