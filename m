@@ -1,105 +1,95 @@
 From: Tomi Valkeinen <tomi.valkeinen@ti.com>
-Subject: [PATCH 07/21] OMAPDSS: Taal: move reset gpio handling to taal driver
-Date: Wed,  7 Mar 2012 14:44:36 +0200
-Message-ID: <1331124290-6285-8-git-send-email-tomi.valkeinen@ti.com>
+Subject: [PATCH 10/21] OMAPDSS: use platform_driver_probe for core/dispc/dss
+Date: Wed,  7 Mar 2012 14:44:39 +0200
+Message-ID: <1331124290-6285-11-git-send-email-tomi.valkeinen@ti.com>
 References: <1331124290-6285-1-git-send-email-tomi.valkeinen@ti.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aog122.obsmtp.com ([74.125.149.147]:34210 "EHLO
-	na3sys009aog122.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1758441Ab2CGMp1 (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 7 Mar 2012 07:45:27 -0500
-Received: by lagz14 with SMTP id z14so9201098lag.0
-        for <linux-omap@vger.kernel.org>; Wed, 07 Mar 2012 04:45:24 -0800 (PST)
+Received: from na3sys009aog108.obsmtp.com ([74.125.149.199]:58843 "EHLO
+	na3sys009aog108.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1758477Ab2CGMpc (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 7 Mar 2012 07:45:32 -0500
+Received: by mail-lpp01m010-f46.google.com with SMTP id j13so9186444lah.5
+        for <linux-omap@vger.kernel.org>; Wed, 07 Mar 2012 04:45:31 -0800 (PST)
 In-Reply-To: <1331124290-6285-1-git-send-email-tomi.valkeinen@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: linux-omap@vger.kernel.org, linux-fbdev@vger.kernel.org
 Cc: archit@ti.com, Tomi Valkeinen <tomi.valkeinen@ti.com>
 
-The reset GPIO for Taal panel driver is currently requested in the
-4430sdp board file. This patch moves the gpio request/free into the Taal
-driver, where it should be.
+The platform devices for omapdss, dss and dispc drivers are always
+present, so we can use platform_driver_probe instead of
+platform_driver_register.
 
 Signed-off-by: Tomi Valkeinen <tomi.valkeinen@ti.com>
 ---
- arch/arm/mach-omap2/board-4430sdp.c       |   16 ----------------
- drivers/video/omap2/displays/panel-taal.c |   15 +++++++++++++++
- 2 files changed, 15 insertions(+), 16 deletions(-)
+ drivers/video/omap2/dss/core.c  |    3 +--
+ drivers/video/omap2/dss/dispc.c |    3 +--
+ drivers/video/omap2/dss/dss.c   |    3 +--
+ 3 files changed, 3 insertions(+), 6 deletions(-)
 
-diff --git a/arch/arm/mach-omap2/board-4430sdp.c b/arch/arm/mach-omap2/board-4430sdp.c
-index 4e90715..3a05173 100644
---- a/arch/arm/mach-omap2/board-4430sdp.c
-+++ b/arch/arm/mach-omap2/board-4430sdp.c
-@@ -724,21 +724,6 @@ static struct omap_dss_device sdp4430_lcd2_device = {
- 	.channel		= OMAP_DSS_CHANNEL_LCD2,
- };
+diff --git a/drivers/video/omap2/dss/core.c b/drivers/video/omap2/dss/core.c
+index 3efd473..80fbfd7 100644
+--- a/drivers/video/omap2/dss/core.c
++++ b/drivers/video/omap2/dss/core.c
+@@ -341,7 +341,6 @@ static int omap_dss_resume(struct platform_device *pdev)
+ }
  
--static void sdp4430_lcd_init(void)
--{
--	int r;
--
--	r = gpio_request_one(dsi1_panel.reset_gpio, GPIOF_DIR_OUT,
--		"lcd1_reset_gpio");
--	if (r)
--		pr_err("%s: Could not get lcd1_reset_gpio\n", __func__);
--
--	r = gpio_request_one(dsi2_panel.reset_gpio, GPIOF_DIR_OUT,
--		"lcd2_reset_gpio");
--	if (r)
--		pr_err("%s: Could not get lcd2_reset_gpio\n", __func__);
--}
--
- static struct omap_dss_hdmi_data sdp4430_hdmi_data = {
- 	.hpd_gpio = HDMI_GPIO_HPD,
- };
-@@ -824,7 +809,6 @@ static void __init omap_4430sdp_display_init(void)
+ static struct platform_driver omap_dss_driver = {
+-	.probe          = omap_dss_probe,
+ 	.remove         = omap_dss_remove,
+ 	.shutdown	= omap_dss_shutdown,
+ 	.suspend	= omap_dss_suspend,
+@@ -576,7 +575,7 @@ static int __init omap_dss_init(void)
  	if (r)
- 		pr_err("%s: Could not get display_sel GPIO\n", __func__);
+ 		return r;
  
--	sdp4430_lcd_init();
- 	sdp4430_picodlp_init();
- 	omap_display_init(&sdp4430_dss_data);
- 	/*
-diff --git a/drivers/video/omap2/displays/panel-taal.c b/drivers/video/omap2/displays/panel-taal.c
-index 00c5c61..6e240fe 100644
---- a/drivers/video/omap2/displays/panel-taal.c
-+++ b/drivers/video/omap2/displays/panel-taal.c
-@@ -993,6 +993,15 @@ static int taal_probe(struct omap_dss_device *dssdev)
+-	r = platform_driver_register(&omap_dss_driver);
++	r = platform_driver_probe(&omap_dss_driver, omap_dss_probe);
+ 	if (r) {
+ 		omap_dss_bus_unregister();
+ 		return r;
+diff --git a/drivers/video/omap2/dss/dispc.c b/drivers/video/omap2/dss/dispc.c
+index 5985c3c..c71d4c5 100644
+--- a/drivers/video/omap2/dss/dispc.c
++++ b/drivers/video/omap2/dss/dispc.c
+@@ -3431,7 +3431,6 @@ static const struct dev_pm_ops dispc_pm_ops = {
+ };
  
- 	dev_set_drvdata(&dssdev->dev, td);
+ static struct platform_driver omap_dispchw_driver = {
+-	.probe          = omap_dispchw_probe,
+ 	.remove         = omap_dispchw_remove,
+ 	.driver         = {
+ 		.name   = "omapdss_dispc",
+@@ -3442,7 +3441,7 @@ static struct platform_driver omap_dispchw_driver = {
  
-+	if (gpio_is_valid(panel_data->reset_gpio)) {
-+		r = gpio_request_one(panel_data->reset_gpio, GPIOF_OUT_INIT_LOW,
-+				"taal rst");
-+		if (r) {
-+			dev_err(&dssdev->dev, "failed to request reset gpio\n");
-+			goto err_rst_gpio;
-+		}
-+	}
-+
- 	taal_hw_reset(dssdev);
+ int dispc_init_platform_driver(void)
+ {
+-	return platform_driver_register(&omap_dispchw_driver);
++	return platform_driver_probe(&omap_dispchw_driver, omap_dispchw_probe);
+ }
  
- 	if (panel_data->use_dsi_backlight) {
-@@ -1075,6 +1084,9 @@ err_gpio:
- 	if (bldev != NULL)
- 		backlight_device_unregister(bldev);
- err_bl:
-+	if (gpio_is_valid(panel_data->reset_gpio))
-+		gpio_free(panel_data->reset_gpio);
-+err_rst_gpio:
- 	destroy_workqueue(td->workqueue);
- err_wq:
- 	free_regulators(panel_config->regulators, panel_config->num_regulators);
-@@ -1115,6 +1127,9 @@ static void __exit taal_remove(struct omap_dss_device *dssdev)
- 	/* reset, to be sure that the panel is in a valid state */
- 	taal_hw_reset(dssdev);
+ void dispc_uninit_platform_driver(void)
+diff --git a/drivers/video/omap2/dss/dss.c b/drivers/video/omap2/dss/dss.c
+index 7d3facc..34cc84f 100644
+--- a/drivers/video/omap2/dss/dss.c
++++ b/drivers/video/omap2/dss/dss.c
+@@ -841,7 +841,6 @@ static const struct dev_pm_ops dss_pm_ops = {
+ };
  
-+	if (gpio_is_valid(panel_data->reset_gpio))
-+		gpio_free(panel_data->reset_gpio);
-+
- 	free_regulators(td->panel_config->regulators,
- 			td->panel_config->num_regulators);
+ static struct platform_driver omap_dsshw_driver = {
+-	.probe          = omap_dsshw_probe,
+ 	.remove         = omap_dsshw_remove,
+ 	.driver         = {
+ 		.name   = "omapdss_dss",
+@@ -852,7 +851,7 @@ static struct platform_driver omap_dsshw_driver = {
  
+ int dss_init_platform_driver(void)
+ {
+-	return platform_driver_register(&omap_dsshw_driver);
++	return platform_driver_probe(&omap_dsshw_driver, omap_dsshw_probe);
+ }
+ 
+ void dss_uninit_platform_driver(void)
 -- 
 1.7.4.1
 
