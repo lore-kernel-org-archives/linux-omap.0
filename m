@@ -1,41 +1,69 @@
-From: Artem Bityutskiy <artem.bityutskiy@linux.intel.com>
-Subject: Re: [GIT PULL] HSI framework
-Date: Wed, 07 Mar 2012 13:17:04 +0200
-Message-ID: <1331119024.29171.1.camel@sauron.fi.intel.com>
-References: <1326461140.32183.40.camel@groo>
-	 <1326975259.28477.57.camel@sauron.fi.intel.com>
-	 <20120307104923.GB18093@earth.universe>
-Reply-To: artem.bityutskiy@linux.intel.com
+From: Tarun Kanti DebBarma <tarun.kanti@ti.com>
+Subject: [PATCH v3 06/13] gpio/omap: fix trigger type to unsigned
+Date: Wed, 7 Mar 2012 16:45:56 +0530
+Message-ID: <1331118963-26364-7-git-send-email-tarun.kanti@ti.com>
+References: <1331118963-26364-1-git-send-email-tarun.kanti@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20120307104923.GB18093@earth.universe>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Sebastian Reichel <sre@debian.org>, Linus Torvalds <torvalds@linux-foundation.org>
-Cc: CarlosChinea <carlos.chinea@nokia.com>, linux-kernel@vger.kernel.org, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, ext Linus Walleij <linus.walleij@linaro.org>, "peter_henn@gmx.de" <peter_henn@gmx.de>, "sjur.brandeland@stericsson.com" <sjur.brandeland@stericsson.com>, "govindraj.ti@gmail.com" <govindraj.ti@gmail.com>, "pawel.szyszuk@stericsson.com" <pawel.szyszuk@stericsson.com>, Andras Domokos <andras.domokos@nokia.com>, ext Shubhrajyoti <shubhrajyoti@ti.com>, ext Shubhrajyoti Datta <omaplinuxkernel@gmail.com>, ext Alan Cox <alan@lxorguk.ukuu.org.uk>
+Content-Type: text/plain
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from arroyo.ext.ti.com ([192.94.94.40]:41119 "EHLO arroyo.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752010Ab2CGLQP (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Wed, 7 Mar 2012 06:16:15 -0500
+In-Reply-To: <1331118963-26364-1-git-send-email-tarun.kanti@ti.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: linux-omap@vger.kernel.org
+Cc: khilman@ti.com, tony@atomide.com, linux-arm-kernel@lists.infradead.org, Tarun Kanti DebBarma <tarun.kanti@ti.com>
 
-On Wed, 2012-03-07 at 11:49 +0100, Sebastian Reichel wrote:
-> > Hi Linus,
-> > 
-> > I've noticed that you have not pulled this (yet). I would like to
-> > confirm that we at Intel are also very interested to have HSI upstream.
-> > 
-> > I believe this code base is more than worth merging since it has many
-> > users and it has proven itself in real Nokia products. Would you please
-> > pull it?
-> 
-> Hi,
-> 
-> I think we never got a reply why the HSI framework has not been
-> pulled into 3.3. So what needs to be done to get it pulled into 3.4?
+The GPIO trigger parameter is of type unsigned.
+enum {
+        IRQ_TYPE_NONE           = 0x00000000,
+        IRQ_TYPE_EDGE_RISING    = 0x00000001,
+        IRQ_TYPE_EDGE_FALLING   = 0x00000002,
+        IRQ_TYPE_EDGE_BOTH      = (IRQ_TYPE_EDGE_FALLING | IRQ_TYPE_EDGE_RISING),
+        IRQ_TYPE_LEVEL_HIGH     = 0x00000004,
+        IRQ_TYPE_LEVEL_LOW      = 0x00000008,
+        IRQ_TYPE_LEVEL_MASK     = (IRQ_TYPE_LEVEL_LOW | IRQ_TYPE_LEVEL_HIGH),
+        IRQ_TYPE_SENSE_MASK     = 0x0000000f,
 
-Hi,
+        IRQ_TYPE_PROBE          = 0x00000010,
+...
+};
+Even though gpio_irq_type(struct irq_data *d, unsigned type) has the right type
+of parameter, the subsequent called functions set_gpio_triggering() and
+set_gpio_trigger() wrongly makes it signed integer. Fix this.
 
-Because this question is for Linus, he should be in "To:" instead of
-"Cc:" - correcting.
+Signed-off-by: Tarun Kanti DebBarma <tarun.kanti@ti.com>
+Reviewed-by: Santosh Shilimkar <santosh.shilimkar@ti.com>
+Acked-by: Felipe Balbi <balbi@ti.com>
+---
+ drivers/gpio/gpio-omap.c |    5 +++--
+ 1 files changed, 3 insertions(+), 2 deletions(-)
 
+diff --git a/drivers/gpio/gpio-omap.c b/drivers/gpio/gpio-omap.c
+index de5fe8f..bb994db 100644
+--- a/drivers/gpio/gpio-omap.c
++++ b/drivers/gpio/gpio-omap.c
+@@ -234,7 +234,7 @@ static void _set_gpio_debounce(struct gpio_bank *bank, unsigned gpio,
+ }
+ 
+ static inline void set_gpio_trigger(struct gpio_bank *bank, int gpio,
+-						int trigger)
++						unsigned trigger)
+ {
+ 	void __iomem *base = bank->base;
+ 	u32 gpio_bit = 1 << gpio;
+@@ -316,7 +316,8 @@ static void _toggle_gpio_edge_triggering(struct gpio_bank *bank, int gpio)
+ static void _toggle_gpio_edge_triggering(struct gpio_bank *bank, int gpio) {}
+ #endif
+ 
+-static int _set_gpio_triggering(struct gpio_bank *bank, int gpio, int trigger)
++static int _set_gpio_triggering(struct gpio_bank *bank, int gpio,
++							unsigned trigger)
+ {
+ 	void __iomem *reg = bank->base;
+ 	void __iomem *base = bank->base;
 -- 
-Best Regards,
-Artem Bityutskiy
+1.7.0.4
+
