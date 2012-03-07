@@ -1,52 +1,53 @@
 From: Santosh Shilimkar <santosh.shilimkar@ti.com>
-Subject: Re: [PATCH v3 12/13] gpio/omap: fix incorrect context restore logic
- in omap_gpio_runtime_resume
-Date: Wed, 07 Mar 2012 13:07:49 +0100
-Message-ID: <4F574F95.7090801@ti.com>
-References: <1331118963-26364-1-git-send-email-tarun.kanti@ti.com> <1331118963-26364-13-git-send-email-tarun.kanti@ti.com>
+Subject: Re: [PATCH v3 13/13] gpio/omap: fix incorrect update to context.irqenable1
+Date: Wed, 07 Mar 2012 13:09:04 +0100
+Message-ID: <4F574FE0.7080706@ti.com>
+References: <1331118963-26364-1-git-send-email-tarun.kanti@ti.com> <1331118963-26364-14-git-send-email-tarun.kanti@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aog103.obsmtp.com ([74.125.149.71]:50950 "EHLO
-	na3sys009aog103.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754931Ab2CGMHy (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 7 Mar 2012 07:07:54 -0500
-Received: by yenl12 with SMTP id l12so3518818yen.33
-        for <linux-omap@vger.kernel.org>; Wed, 07 Mar 2012 04:07:53 -0800 (PST)
-In-Reply-To: <1331118963-26364-13-git-send-email-tarun.kanti@ti.com>
+Received: from na3sys009aog114.obsmtp.com ([74.125.149.211]:49590 "EHLO
+	na3sys009aog114.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1755121Ab2CGMJJ (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 7 Mar 2012 07:09:09 -0500
+Received: by gghe5 with SMTP id e5so2599830ggh.33
+        for <linux-omap@vger.kernel.org>; Wed, 07 Mar 2012 04:09:07 -0800 (PST)
+In-Reply-To: <1331118963-26364-14-git-send-email-tarun.kanti@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: Tarun Kanti DebBarma <tarun.kanti@ti.com>
 Cc: linux-omap@vger.kernel.org, khilman@ti.com, tony@atomide.com, linux-arm-kernel@lists.infradead.org
 
 On Wednesday 07 March 2012 12:16 PM, Tarun Kanti DebBarma wrote:
-> In omap_gpio_runtime_resume() the context restore should be independent
-> of bank->enabled_non_wakeup_gpios. This was preventing context restore
-> of GPIO lines which are not wakeup enabled.
+> In _enable_gpio_irqbank() when bank->regs->set_irqenable is valid,
+> gpio_mask can be directly set by writing to set_irqenable register
+> without overwriting current value. In order to ensure the same is
+> stored in context.irqenable1, we must read from regs->irqenable
+> instead of overwriting it with gpio_mask.
+> The overwriting makes sense only in the second case where irqenable
+> is explicitly read and updated with new gpio_mask before writing it
+> back. However, for consistency reading regs->irqenable into the
+> bank->context.irqenable1 takes care of both the scenarios.
 > 
-> Reported-by: Govindraj Raja <govindraj.raja@ti.com>
+>         if (bank->regs->set_irqenable) {
+>                 reg += bank->regs->set_irqenable;
+>                 l = gpio_mask;
+>         } else {
+>                 reg += bank->regs->irqenable;
+>                 l = __raw_readl(reg);
+>                 if (bank->regs->irqenable_inv)
+>                         l &= ~gpio_mask;
+>                 else
+>                         l |= gpio_mask;
+>         }
+> 
+> Make the same change for _disable_gpio_irqbank().
+> 
 > Signed-off-by: Tarun Kanti DebBarma <tarun.kanti@ti.com>
 > ---
->  drivers/gpio/gpio-omap.c |    2 +-
->  1 files changed, 1 insertions(+), 1 deletions(-)
-> 
-> diff --git a/drivers/gpio/gpio-omap.c b/drivers/gpio/gpio-omap.c
-> index 2e8e476..ccfbae0 100644
-> --- a/drivers/gpio/gpio-omap.c
-> +++ b/drivers/gpio/gpio-omap.c
-> @@ -1227,7 +1227,7 @@ static int omap_gpio_runtime_resume(struct device *dev)
->  	__raw_writel(bank->context.risingdetect,
->  		     bank->base + bank->regs->risingdetect);
->  
-> -	if (!bank->enabled_non_wakeup_gpios || !bank->workaround_enabled) {
-> +	if (!bank->workaround_enabled) {
-This doesn't seem to be right.
-Don't you want to avoid GPIO restore for banks which are in
-always on domain. Infact the purpose of "enabled_non_wakeup_gpios"
-is exactly that ? Isn't it.
-
-What am I missing ?
+OK.
+Reviewed-by: Santosh Shilimkar <santosh.shilimkar@ti.com>
 
 Regards
 Santosh
