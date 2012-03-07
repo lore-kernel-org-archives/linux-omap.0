@@ -1,62 +1,41 @@
-From: Russell King - ARM Linux <linux@arm.linux.org.uk>
-Subject: Re: Latest OMAP4 build errors
-Date: Wed, 7 Mar 2012 10:06:15 +0000
-Message-ID: <20120307100615.GA17404@n2100.arm.linux.org.uk>
-References: <20120228090209.GC18045@n2100.arm.linux.org.uk> <CAK=WgbZEDr_fYSonBQr3XNcTx5vefsH7LJfqycaxsqg-yechWQ@mail.gmail.com> <20120306165545.GB15392@n2100.arm.linux.org.uk> <201203061701.54141.arnd@arndb.de>
+From: Artem Bityutskiy <artem.bityutskiy@linux.intel.com>
+Subject: Re: [GIT PULL] HSI framework
+Date: Wed, 07 Mar 2012 13:17:04 +0200
+Message-ID: <1331119024.29171.1.camel@sauron.fi.intel.com>
+References: <1326461140.32183.40.camel@groo>
+	 <1326975259.28477.57.camel@sauron.fi.intel.com>
+	 <20120307104923.GB18093@earth.universe>
+Reply-To: artem.bityutskiy@linux.intel.com
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from caramon.arm.linux.org.uk ([78.32.30.218]:39197 "EHLO
-	caramon.arm.linux.org.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751711Ab2CGKGa (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 7 Mar 2012 05:06:30 -0500
-Content-Disposition: inline
-In-Reply-To: <201203061701.54141.arnd@arndb.de>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <20120307104923.GB18093@earth.universe>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Sebastian Reichel <sre@debian.org>, Linus Torvalds <torvalds@linux-foundation.org>
+Cc: CarlosChinea <carlos.chinea@nokia.com>, linux-kernel@vger.kernel.org, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, ext Linus Walleij <linus.walleij@linaro.org>, "peter_henn@gmx.de" <peter_henn@gmx.de>, "sjur.brandeland@stericsson.com" <sjur.brandeland@stericsson.com>, "govindraj.ti@gmail.com" <govindraj.ti@gmail.com>, "pawel.szyszuk@stericsson.com" <pawel.szyszuk@stericsson.com>, Andras Domokos <andras.domokos@nokia.com>, ext Shubhrajyoti <shubhrajyoti@ti.com>, ext Shubhrajyoti Datta <omaplinuxkernel@gmail.com>, ext Alan Cox <alan@lxorguk.ukuu.org.uk>
 List-Id: linux-omap@vger.kernel.org
-To: Arnd Bergmann <arnd@arndb.de>
-Cc: Ohad Ben-Cohen <ohad@wizery.com>, linux-omap@vger.kernel.org, Olof Johansson <olof@lixom.net>
 
-On Tue, Mar 06, 2012 at 05:01:53PM +0000, Arnd Bergmann wrote:
-> On Tuesday 06 March 2012, Russell King - ARM Linux wrote:
-> > On Tue, Feb 28, 2012 at 12:11:37PM +0200, Ohad Ben-Cohen wrote:
-> > > On Tue, Feb 28, 2012 at 12:01 PM, Arnd Bergmann <arnd@arndb.de> wrote:
-> > > > I think 'depends' would be better here, because selecting IOMMU_SUPPORT
-> > > > has other side-effects that a user might not want. It's just as likely
-> > > > that someone wants to disable IOMMU_SUPPORT and needs to find OMAP_REMOTEPROC
-> > > > as wanting to enable OMAP_REMOTEPROC and having to find IOMMU_SUPPORT.
-> > > >
-> > > > In most cases, the defconfig should just set both.
-> > > 
-> > > Ok, 'depends on' it is.
+On Wed, 2012-03-07 at 11:49 +0100, Sebastian Reichel wrote:
+> > Hi Linus,
 > > 
-> > We're a week on, which means I now have a full set of 7 builds on the
-> > website for OMAP4430 all of which have failed in part due to this
-> > as yet unresolved problem.
+> > I've noticed that you have not pulled this (yet). I would like to
+> > confirm that we at Intel are also very interested to have HSI upstream.
 > > 
-> > What's happening to get it fixed and those fixes into whatever tree is
-> > necessary for them (presumably arm-soc)?
+> > I believe this code base is more than worth merging since it has many
+> > users and it has proven itself in real Nokia products. Would you please
+> > pull it?
 > 
-> Ohad has sent a series of patches for review and there were no comments
-> on those. The fix was part of it as far as I remember. I'm still waiting
-> for a pull request from Ohad.
+> Hi,
+> 
+> I think we never got a reply why the HSI framework has not been
+> pulled into 3.3. So what needs to be done to get it pulled into 3.4?
 
-Given that we're coming to the end of what could be the _final_ week
-before the merge window opens, this is not good news.  Read: maybe
-three days before final.
+Hi,
 
-The fact is that OMAP is - yet again - in a totally rotten state in terms
-of what's queued up in the armsoc tree.  It is - yet again - completely
-unbuildable for many configurations.  Just go and have a look at:
+Because this question is for Linus, he should be in "To:" instead of
+"Cc:" - correcting.
 
-	http://www.arm.linux.org.uk/developer/build/
-
-to see what an utterly crappy state OMAP is in again.  Last nights build
-was my tree plus latest arm-soc.  Some of those issues have patches (I
-had been applying one patch manually to the build tree) but that's not
-the point - they're not in arm-soc, so the OMAP code in arm-soc is not
-yet ready for mainline.
-
-So, as OMAP is soo broken, and as promised after the last merge window -
-I don't want any OMAP stuff going upstream from armsoc until we get error
-free builds from the allno and old configs on the builder.
+-- 
+Best Regards,
+Artem Bityutskiy
