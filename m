@@ -1,91 +1,148 @@
 From: Tomi Valkeinen <tomi.valkeinen@ti.com>
-Subject: [PATCH 00/21] OMAPDSS: DT preparation patches
-Date: Wed,  7 Mar 2012 14:44:29 +0200
-Message-ID: <1331124290-6285-1-git-send-email-tomi.valkeinen@ti.com>
+Subject: [PATCH 01/21] OMAPDSS: panel-dvi: add PD gpio handling
+Date: Wed,  7 Mar 2012 14:44:30 +0200
+Message-ID: <1331124290-6285-2-git-send-email-tomi.valkeinen@ti.com>
+References: <1331124290-6285-1-git-send-email-tomi.valkeinen@ti.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aog122.obsmtp.com ([74.125.149.147]:33432 "EHLO
-	na3sys009aog122.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752336Ab2CGMpI (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 7 Mar 2012 07:45:08 -0500
-Received: by mail-lpp01m010-f53.google.com with SMTP id c1so8038032lah.12
-        for <linux-omap@vger.kernel.org>; Wed, 07 Mar 2012 04:45:07 -0800 (PST)
+Received: from na3sys009aog101.obsmtp.com ([74.125.149.67]:33379 "EHLO
+	na3sys009aog101.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1752336Ab2CGMpL (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 7 Mar 2012 07:45:11 -0500
+Received: by mail-lpp01m010-f54.google.com with SMTP id v3so10221923lag.13
+        for <linux-omap@vger.kernel.org>; Wed, 07 Mar 2012 04:45:09 -0800 (PST)
+In-Reply-To: <1331124290-6285-1-git-send-email-tomi.valkeinen@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: linux-omap@vger.kernel.org, linux-fbdev@vger.kernel.org
 Cc: archit@ti.com, Tomi Valkeinen <tomi.valkeinen@ti.com>
 
-Hi,
+The driver for the DVI framer should handle the power-down signal of the
+framer, instead of the current way of handling it in the board files.
 
-I started cleaning up and restructuring omapdss for device tree, and here's the
-first set of patches from that ordeal. There's nothing DT specific in these
-patches, but they are mostly generic cleanups that make sense even without DT.
+This patch adds power_down_gpio into the device's platform data, and
+adds the necessary code in the driver to request and handle the GPIO.
 
-The custom pdev creation depends on the following patches posted on l-o:
+Signed-off-by: Tomi Valkeinen <tomi.valkeinen@ti.com>
+---
+ drivers/video/omap2/displays/panel-dvi.c |   31 ++++++++++++++++++++++++++++++
+ include/video/omap-panel-dvi.h           |    2 +
+ 2 files changed, 33 insertions(+), 0 deletions(-)
 
-ARM: OMAP: remove omap_device_parent
-ARM: OMAP: omap_device: Expose omap_device_{alloc, delete, register}
-
-This series can also be found from:
-git://gitorious.org/linux-omap-dss2/linux.git work/devtree-base
-
- Tomi
-
-Tomi Valkeinen (21):
-  OMAPDSS: panel-dvi: add PD gpio handling
-  OMAP: board-files: remove custom PD GPIO handling for DVI output
-  OMAPDSS: TFP410: rename dvi -> tfp410
-  OMAPDSS: TFP410: rename dvi files to tfp410
-  OMAPDSS: TFP410: pdata rewrite
-  OMAPDSS: DSI: use dsi_get_dsidev_id(dsidev) instead of dsidev->id
-  OMAPDSS: Taal: move reset gpio handling to taal driver
-  OMAPDSS: clean up the omapdss platform data mess
-  OMAPDSS: remove return from platform_driver_unreg
-  OMAPDSS: use platform_driver_probe for core/dispc/dss
-  OMAPDSS: register dss drivers in module init
-  OMAPDSS: create custom pdevs for DSS omap_devices
-  OMAPDSS: create DPI & SDI devices
-  OMAPDSS: create DPI & SDI drivers
-  OMAPDSS: remove uses of dss_runtime_get/put
-  OMAPDSS: handle output-driver reg/unreg more dynamically
-  OMAPDSS: move the creation of debugfs files
-  OMAPDSS: use platform_driver_probe for dsi/hdmi/rfbi/venc/dpi/sdi
-  OMAPDSS: add __init & __exit
-  OMAPFB: add __init & __exit
-  OMAPDSS: change default_device handling
-
- arch/arm/mach-omap2/board-3430sdp.c                |   38 +---
- arch/arm/mach-omap2/board-4430sdp.c                |   16 --
- arch/arm/mach-omap2/board-am3517evm.c              |   25 +--
- arch/arm/mach-omap2/board-cm-t35.c                 |   30 +--
- arch/arm/mach-omap2/board-devkit8000.c             |   30 +--
- arch/arm/mach-omap2/board-igep0020.c               |   32 +--
- arch/arm/mach-omap2/board-omap3beagle.c            |   37 +---
- arch/arm/mach-omap2/board-omap3evm.c               |   29 +--
- arch/arm/mach-omap2/board-omap3stalker.c           |   29 +--
- arch/arm/mach-omap2/board-omap4panda.c             |   39 +---
- arch/arm/mach-omap2/board-overo.c                  |   25 +--
- arch/arm/mach-omap2/display.c                      |  172 +++++++++++--
- drivers/video/omap2/displays/Kconfig               |    8 +-
- drivers/video/omap2/displays/Makefile              |    2 +-
- drivers/video/omap2/displays/panel-taal.c          |   15 ++
- .../omap2/displays/{panel-dvi.c => panel-tfp410.c} |  186 ++++++++------
- drivers/video/omap2/dss/core.c                     |  260 +++++++++++++-------
- drivers/video/omap2/dss/dispc.c                    |   50 ++---
- drivers/video/omap2/dss/dpi.c                      |   38 ++--
- drivers/video/omap2/dss/dsi.c                      |   86 ++-----
- drivers/video/omap2/dss/dss.c                      |   46 ++---
- drivers/video/omap2/dss/dss.h                      |   76 +-----
- drivers/video/omap2/dss/hdmi.c                     |   55 +----
- drivers/video/omap2/dss/rfbi.c                     |   31 +--
- drivers/video/omap2/dss/sdi.c                      |   31 ++-
- drivers/video/omap2/dss/venc.c                     |   31 +--
- drivers/video/omap2/omapfb/omapfb-main.c           |    9 +-
- .../{omap-panel-dvi.h => omap-panel-tfp410.h}      |   18 +-
- include/video/omapdss.h                            |    5 -
- 29 files changed, 628 insertions(+), 821 deletions(-)
- rename drivers/video/omap2/displays/{panel-dvi.c => panel-tfp410.c} (56%)
- rename include/video/{omap-panel-dvi.h => omap-panel-tfp410.h} (63%)
-
+diff --git a/drivers/video/omap2/displays/panel-dvi.c b/drivers/video/omap2/displays/panel-dvi.c
+index 03eb14a..876b798 100644
+--- a/drivers/video/omap2/displays/panel-dvi.c
++++ b/drivers/video/omap2/displays/panel-dvi.c
+@@ -21,6 +21,7 @@
+ #include <linux/slab.h>
+ #include <video/omapdss.h>
+ #include <linux/i2c.h>
++#include <linux/gpio.h>
+ #include <drm/drm_edid.h>
+ 
+ #include <video/omap-panel-dvi.h>
+@@ -44,6 +45,8 @@ struct panel_drv_data {
+ 	struct omap_dss_device *dssdev;
+ 
+ 	struct mutex lock;
++
++	int pd_gpio;
+ };
+ 
+ static inline struct panel_dvi_platform_data
+@@ -54,6 +57,7 @@ static inline struct panel_dvi_platform_data
+ 
+ static int panel_dvi_power_on(struct omap_dss_device *dssdev)
+ {
++	struct panel_drv_data *ddata = dev_get_drvdata(&dssdev->dev);
+ 	struct panel_dvi_platform_data *pdata = get_pdata(dssdev);
+ 	int r;
+ 
+@@ -70,6 +74,9 @@ static int panel_dvi_power_on(struct omap_dss_device *dssdev)
+ 			goto err1;
+ 	}
+ 
++	if (gpio_is_valid(ddata->pd_gpio))
++		gpio_set_value(ddata->pd_gpio, 1);
++
+ 	return 0;
+ err1:
+ 	omapdss_dpi_display_disable(dssdev);
+@@ -79,11 +86,15 @@ err0:
+ 
+ static void panel_dvi_power_off(struct omap_dss_device *dssdev)
+ {
++	struct panel_drv_data *ddata = dev_get_drvdata(&dssdev->dev);
+ 	struct panel_dvi_platform_data *pdata = get_pdata(dssdev);
+ 
+ 	if (dssdev->state != OMAP_DSS_DISPLAY_ACTIVE)
+ 		return;
+ 
++	if (gpio_is_valid(ddata->pd_gpio))
++		gpio_set_value(ddata->pd_gpio, 0);
++
+ 	if (pdata->platform_disable)
+ 		pdata->platform_disable(dssdev);
+ 
+@@ -92,7 +103,9 @@ static void panel_dvi_power_off(struct omap_dss_device *dssdev)
+ 
+ static int panel_dvi_probe(struct omap_dss_device *dssdev)
+ {
++	struct panel_dvi_platform_data *pdata = get_pdata(dssdev);
+ 	struct panel_drv_data *ddata;
++	int r;
+ 
+ 	ddata = kzalloc(sizeof(*ddata), GFP_KERNEL);
+ 	if (!ddata)
+@@ -104,6 +117,21 @@ static int panel_dvi_probe(struct omap_dss_device *dssdev)
+ 	ddata->dssdev = dssdev;
+ 	mutex_init(&ddata->lock);
+ 
++	if (pdata)
++		ddata->pd_gpio = pdata->power_down_gpio;
++	else
++		ddata->pd_gpio = -1;
++
++	if (gpio_is_valid(ddata->pd_gpio)) {
++		r = gpio_request_one(ddata->pd_gpio, GPIOF_OUT_INIT_LOW,
++				"tfp410 pd");
++		if (r) {
++			dev_err(&dssdev->dev, "Failed to request PD GPIO %d\n",
++					ddata->pd_gpio);
++			ddata->pd_gpio = -1;
++		}
++	}
++
+ 	dev_set_drvdata(&dssdev->dev, ddata);
+ 
+ 	return 0;
+@@ -115,6 +143,9 @@ static void __exit panel_dvi_remove(struct omap_dss_device *dssdev)
+ 
+ 	mutex_lock(&ddata->lock);
+ 
++	if (gpio_is_valid(ddata->pd_gpio))
++		gpio_free(ddata->pd_gpio);
++
+ 	dev_set_drvdata(&dssdev->dev, NULL);
+ 
+ 	mutex_unlock(&ddata->lock);
+diff --git a/include/video/omap-panel-dvi.h b/include/video/omap-panel-dvi.h
+index 87ad567b..4ad41fc 100644
+--- a/include/video/omap-panel-dvi.h
++++ b/include/video/omap-panel-dvi.h
+@@ -27,11 +27,13 @@ struct omap_dss_device;
+  * @platform_enable: platform specific panel enable function
+  * @platform_disable: platform specific panel disable function
+  * @i2c_bus_num: i2c bus id for the panel
++ * @power_down_gpio: gpio number for PD pin (or -1 if not available)
+  */
+ struct panel_dvi_platform_data {
+ 	int (*platform_enable)(struct omap_dss_device *dssdev);
+ 	void (*platform_disable)(struct omap_dss_device *dssdev);
+ 	u16 i2c_bus_num;
++	int power_down_gpio;
+ };
+ 
+ #endif /* __OMAP_PANEL_DVI_H */
 -- 
 1.7.4.1
 
