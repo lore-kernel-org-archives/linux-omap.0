@@ -1,74 +1,82 @@
-From: Tarun Kanti DebBarma <tarun.kanti@ti.com>
-Subject: [PATCH v3 13/13] gpio/omap: fix incorrect update to context.irqenable1
-Date: Wed, 7 Mar 2012 16:46:03 +0530
-Message-ID: <1331118963-26364-14-git-send-email-tarun.kanti@ti.com>
-References: <1331118963-26364-1-git-send-email-tarun.kanti@ti.com>
+From: Sebastian Reichel <sre@debian.org>
+Subject: Re: [GIT PULL] HSI framework
+Date: Wed, 7 Mar 2012 11:49:23 +0100
+Message-ID: <20120307104923.GB18093@earth.universe>
+References: <1326461140.32183.40.camel@groo>
+ <1326975259.28477.57.camel@sauron.fi.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain
+Content-Type: multipart/signed; micalg=pgp-sha256;
+	protocol="application/pgp-signature"; boundary="W/nzBZO5zC0uMSeA"
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from bear.ext.ti.com ([192.94.94.41]:33554 "EHLO bear.ext.ti.com"
+Received: from ring0.de ([91.143.88.219]:57363 "EHLO smtp.ring0.de"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1755499Ab2CGLQU (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Wed, 7 Mar 2012 06:16:20 -0500
-In-Reply-To: <1331118963-26364-1-git-send-email-tarun.kanti@ti.com>
+	id S1755176Ab2CGLV4 (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Wed, 7 Mar 2012 06:21:56 -0500
+Content-Disposition: inline
+In-Reply-To: <1326975259.28477.57.camel@sauron.fi.intel.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: linux-omap@vger.kernel.org
-Cc: khilman@ti.com, tony@atomide.com, linux-arm-kernel@lists.infradead.org, Tarun Kanti DebBarma <tarun.kanti@ti.com>
+To: Artem Bityutskiy <artem.bityutskiy@linux.intel.com>
+Cc: Linus Torvalds <torvalds@linux-foundation.org>, CarlosChinea <carlos.chinea@nokia.com>, linux-kernel@vger.kernel.org, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, ext Linus Walleij <linus.walleij@linaro.org>, "peter_henn@gmx.de" <peter_henn@gmx.de>, "sjur.brandeland@stericsson.com" <sjur.brandeland@stericsson.com>, "govindraj.ti@gmail.com" <govindraj.ti@gmail.com>, "pawel.szyszuk@stericsson.com" <pawel.szyszuk@stericsson.com>, Andras Domokos <andras.domokos@nokia.com>, ext Shubhrajyoti <shubhrajyoti@ti.com>, ext Shubhrajyoti Datta <omaplinuxkernel@gmail.com>, ext Alan Cox <alan@lxorguk.ukuu.org.uk>
 
-In _enable_gpio_irqbank() when bank->regs->set_irqenable is valid,
-gpio_mask can be directly set by writing to set_irqenable register
-without overwriting current value. In order to ensure the same is
-stored in context.irqenable1, we must read from regs->irqenable
-instead of overwriting it with gpio_mask.
-The overwriting makes sense only in the second case where irqenable
-is explicitly read and updated with new gpio_mask before writing it
-back. However, for consistency reading regs->irqenable into the
-bank->context.irqenable1 takes care of both the scenarios.
 
-        if (bank->regs->set_irqenable) {
-                reg += bank->regs->set_irqenable;
-                l = gpio_mask;
-        } else {
-                reg += bank->regs->irqenable;
-                l = __raw_readl(reg);
-                if (bank->regs->irqenable_inv)
-                        l &= ~gpio_mask;
-                else
-                        l |= gpio_mask;
-        }
+--W/nzBZO5zC0uMSeA
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
 
-Make the same change for _disable_gpio_irqbank().
+On Thu, Jan 19, 2012 at 02:14:19PM +0200, Artem Bityutskiy wrote:
+> On Fri, 2012-01-13 at 15:25 +0200, Carlos Chinea wrote:
+> > Hi Linus,
+> >=20
+> > I have been working in an HSI framework. The High Speed Synchronous
+> > Serial Interface (HSI) is a serial interface mainly used for
+> > connecting application engines (APE) with cellular modem engines (CMT)
+> > in cellular handsets.
+> >=20
+> > The framework is currently being used for some people and we would
+> > like to see it integrated into the kernel for 3.3. There is no HW
+> > controller drivers in this pull, but some people have already some of
+> > them pending which they would like to push as soon as this integrated.
+> > I am also working on the acceptance for an TI OMAP one, based on a
+> > compatible legacy version of the interface called SSI.
+>=20
+> Hi Linus,
+>=20
+> I've noticed that you have not pulled this (yet). I would like to
+> confirm that we at Intel are also very interested to have HSI upstream.
+>=20
+> I believe this code base is more than worth merging since it has many
+> users and it has proven itself in real Nokia products. Would you please
+> pull it?
 
-Signed-off-by: Tarun Kanti DebBarma <tarun.kanti@ti.com>
----
- drivers/gpio/gpio-omap.c |    6 ++++--
- 1 files changed, 4 insertions(+), 2 deletions(-)
+Hi,
 
-diff --git a/drivers/gpio/gpio-omap.c b/drivers/gpio/gpio-omap.c
-index ccfbae0..8b0d3ab 100644
---- a/drivers/gpio/gpio-omap.c
-+++ b/drivers/gpio/gpio-omap.c
-@@ -453,7 +453,8 @@ static void _enable_gpio_irqbank(struct gpio_bank *bank, int gpio_mask)
- 	}
- 
- 	__raw_writel(l, reg);
--	bank->context.irqenable1 = l;
-+	bank->context.irqenable1 =
-+			__raw_readl(bank->base + bank->regs->irqenable);
- }
- 
- static void _disable_gpio_irqbank(struct gpio_bank *bank, int gpio_mask)
-@@ -474,7 +475,8 @@ static void _disable_gpio_irqbank(struct gpio_bank *bank, int gpio_mask)
- 	}
- 
- 	__raw_writel(l, reg);
--	bank->context.irqenable1 = l;
-+	bank->context.irqenable1 =
-+			__raw_readl(bank->base + bank->regs->irqenable);
- }
- 
- static inline void _set_gpio_irqenable(struct gpio_bank *bank, int gpio, int enable)
--- 
-1.7.0.4
+I think we never got a reply why the HSI framework has not been
+pulled into 3.3. So what needs to be done to get it pulled into 3.4?
 
+-- Sebastian
+
+--W/nzBZO5zC0uMSeA
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: Digital signature
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.4.11 (GNU/Linux)
+
+iQIcBAEBCAAGBQJPVz0zAAoJENju1/PIO/qaN34P/RyWtEVnVMn+8/nwLSdMkjNs
+RFL00j2KMjI0O9hzyekkxhHZypntloR9xBuVcQryWA7iLACWi3EEQuL6u5peuJFE
+z5/En0JSonnvPJnC9bfTzuc5Rz5CvE9lts1d6mH1vqqe7V2V3gmb8ySkuQKlusYd
+PFkx9YbMLZyoOOaDdjApCi1tEhMXVy27p94zMAdWVhXGA76eQJzPA1WkFIursA8I
+uzIFpSOAqDYy1iFTjZMWNICfIq5hAUmkakV93WZEeiZZ5fXtsP4mrX9ErioObpZT
+rCFE9+HkuExStnySJ9yBatgoICv9mtSVeMQpOnxXSbchH73/rmBIvKCt0Mu5ho34
+6SEW8AZO9uoT8kTwoafmo/WfPY7cTCAOx0AHyWUuoMNTpuvJqGtAlRxurS5hPz5l
+k6I8CU8x6n86lvNxL1VWfDC6MB4Oy/MmFHMS62XeIEX2Zpp2wRbBo3wpcq0+1Q/V
+BsRIPchF7OaDf7jTAd/8l8/J6QSgeI8ZB0+b1iEQyYCyiwHaV6v/1DW7//XsTEn8
+SxBztOWTydNu3GVp1M7Uv42eSzh30K7Znggd5o2v6W1HCFoTRnHDz/F7PxyrJmbb
+Tl7/tIyNHf0aJo7gupc7ELO4FN02erTNGV9JnQTlsv1QEAC5n6wM9r9W8gkgd5jV
+zsxWf9udPBzqxyfg6HUR
+=OZZk
+-----END PGP SIGNATURE-----
+
+--W/nzBZO5zC0uMSeA--
