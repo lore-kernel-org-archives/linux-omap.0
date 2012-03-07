@@ -1,50 +1,159 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH 4/4] mmc: omap_hsmmc: Simplify init for twl6030 MMC
- card detect
-Date: Wed, 7 Mar 2012 09:31:52 -0800
-Message-ID: <20120307173152.GG12083@atomide.com>
-References: <20120301185044.29210.44521.stgit@kaulin.local>
- <20120301185535.29210.71546.stgit@kaulin.local>
- <4F50643B.9050500@ti.com>
- <20120302172251.GJ18901@atomide.com>
- <4F548457.5050205@ti.com>
- <CANrkHUZysOnHKKUuLm0Vbo1KsNp0yUd=udjGvQ43=gTTXbWeCw@mail.gmail.com>
- <CANrkHUaYDpv=p0p81oKWCoewyjheyZYkCqvZY7_ZQxWi_=8YFw@mail.gmail.com>
- <m2lincifj9.fsf@bob.laptop.org>
+From: Archit Taneja <a0393947@ti.com>
+Subject: Re: [PATCH 01/21] OMAPDSS: panel-dvi: add PD gpio handling
+Date: Wed, 7 Mar 2012 23:17:07 +0530
+Message-ID: <4F579F1B.7040503@ti.com>
+References: <1331124290-6285-1-git-send-email-tomi.valkeinen@ti.com> <1331124290-6285-2-git-send-email-tomi.valkeinen@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-mmc-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <m2lincifj9.fsf@bob.laptop.org>
-Sender: linux-mmc-owner@vger.kernel.org
-To: Chris Ball <cjb@laptop.org>
-Cc: "T Krishnamoorthy, Balaji" <balajitk@ti.com>, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, linux-mmc@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Samuel Ortiz <sameo@linux.intel.com>, Rajendra Nayak <rnayak@ti.com>
+Content-Type: text/plain; charset="ISO-8859-1"; format=flowed
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from comal.ext.ti.com ([198.47.26.152]:39860 "EHLO comal.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1757850Ab2CGRrY (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Wed, 7 Mar 2012 12:47:24 -0500
+In-Reply-To: <1331124290-6285-2-git-send-email-tomi.valkeinen@ti.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Tomi Valkeinen <tomi.valkeinen@ti.com>
+Cc: linux-omap@vger.kernel.org, linux-fbdev@vger.kernel.org
 
-* Chris Ball <cjb@laptop.org> [120307 07:11]:
-> Hi Balaji,
-> 
-> On Wed, Mar 07 2012, T Krishnamoorthy, Balaji wrote:
-> > OMAP4 and OMAP3 HSMMC IP registers differ by 0x100 offset.
-> > Addng the offset to platform_device resource structure
-> > increments the start address for every insmod operation.
-> > MMC command fails on re-insertion as module due incorrect register base.
-> > Fix this by updating the ioremap base address only.
-> >
-> > Signed-off-by: Balaji T K <balajitk@ti.com>
-> 
-> Is this a regression, or has it never worked in mainline?
+Hi,
 
-"Features that never worked originally" so this can wait for the
-merge window. It happens on re-inserting of the card.
- 
-> > Note:  eMMC detection is still failing on resertion due to card vcc
-> > power off on rmmod
-> 
-> And this?
+On Wednesday 07 March 2012 06:14 PM, Tomi Valkeinen wrote:
+> The driver for the DVI framer should handle the power-down signal of the
+> framer, instead of the current way of handling it in the board files.
 
-That sounds like a separate issue that needs to be fixed.
+What does framer mean?
 
-Regards,
+>
+> This patch adds power_down_gpio into the device's platform data, and
+> adds the necessary code in the driver to request and handle the GPIO.
+>
+> Signed-off-by: Tomi Valkeinen<tomi.valkeinen@ti.com>
+> ---
+>   drivers/video/omap2/displays/panel-dvi.c |   31 ++++++++++++++++++++++++++++++
+>   include/video/omap-panel-dvi.h           |    2 +
+>   2 files changed, 33 insertions(+), 0 deletions(-)
+>
+> diff --git a/drivers/video/omap2/displays/panel-dvi.c b/drivers/video/omap2/displays/panel-dvi.c
+> index 03eb14a..876b798 100644
+> --- a/drivers/video/omap2/displays/panel-dvi.c
+> +++ b/drivers/video/omap2/displays/panel-dvi.c
+> @@ -21,6 +21,7 @@
+>   #include<linux/slab.h>
+>   #include<video/omapdss.h>
+>   #include<linux/i2c.h>
+> +#include<linux/gpio.h>
+>   #include<drm/drm_edid.h>
+>
+>   #include<video/omap-panel-dvi.h>
+> @@ -44,6 +45,8 @@ struct panel_drv_data {
+>   	struct omap_dss_device *dssdev;
+>
+>   	struct mutex lock;
+> +
+> +	int pd_gpio;
+>   };
+>
+>   static inline struct panel_dvi_platform_data
+> @@ -54,6 +57,7 @@ static inline struct panel_dvi_platform_data
+>
+>   static int panel_dvi_power_on(struct omap_dss_device *dssdev)
+>   {
+> +	struct panel_drv_data *ddata = dev_get_drvdata(&dssdev->dev);
+>   	struct panel_dvi_platform_data *pdata = get_pdata(dssdev);
+>   	int r;
+>
+> @@ -70,6 +74,9 @@ static int panel_dvi_power_on(struct omap_dss_device *dssdev)
+>   			goto err1;
+>   	}
+>
+> +	if (gpio_is_valid(ddata->pd_gpio))
+> +		gpio_set_value(ddata->pd_gpio, 1);
+> +
+>   	return 0;
+>   err1:
+>   	omapdss_dpi_display_disable(dssdev);
+> @@ -79,11 +86,15 @@ err0:
+>
+>   static void panel_dvi_power_off(struct omap_dss_device *dssdev)
+>   {
+> +	struct panel_drv_data *ddata = dev_get_drvdata(&dssdev->dev);
+>   	struct panel_dvi_platform_data *pdata = get_pdata(dssdev);
+>
+>   	if (dssdev->state != OMAP_DSS_DISPLAY_ACTIVE)
+>   		return;
+>
+> +	if (gpio_is_valid(ddata->pd_gpio))
+> +		gpio_set_value(ddata->pd_gpio, 0);
+> +
+>   	if (pdata->platform_disable)
+>   		pdata->platform_disable(dssdev);
+>
+> @@ -92,7 +103,9 @@ static void panel_dvi_power_off(struct omap_dss_device *dssdev)
+>
+>   static int panel_dvi_probe(struct omap_dss_device *dssdev)
+>   {
+> +	struct panel_dvi_platform_data *pdata = get_pdata(dssdev);
+>   	struct panel_drv_data *ddata;
+> +	int r;
+>
+>   	ddata = kzalloc(sizeof(*ddata), GFP_KERNEL);
+>   	if (!ddata)
+> @@ -104,6 +117,21 @@ static int panel_dvi_probe(struct omap_dss_device *dssdev)
+>   	ddata->dssdev = dssdev;
+>   	mutex_init(&ddata->lock);
+>
+> +	if (pdata)
+> +		ddata->pd_gpio = pdata->power_down_gpio;
+> +	else
+> +		ddata->pd_gpio = -1;
+> +
+> +	if (gpio_is_valid(ddata->pd_gpio)) {
+> +		r = gpio_request_one(ddata->pd_gpio, GPIOF_OUT_INIT_LOW,
+> +				"tfp410 pd");
+> +		if (r) {
+> +			dev_err(&dssdev->dev, "Failed to request PD GPIO %d\n",
+> +					ddata->pd_gpio);
+> +			ddata->pd_gpio = -1;
 
-Tony
+Is the power down gpio not a necessary thing? If it is, we should quit 
+here itself, shouldn't we?
+
+Archit
+
+> +		}
+> +	}
+> +
+>   	dev_set_drvdata(&dssdev->dev, ddata);
+>
+>   	return 0;
+> @@ -115,6 +143,9 @@ static void __exit panel_dvi_remove(struct omap_dss_device *dssdev)
+>
+>   	mutex_lock(&ddata->lock);
+>
+> +	if (gpio_is_valid(ddata->pd_gpio))
+> +		gpio_free(ddata->pd_gpio);
+> +
+>   	dev_set_drvdata(&dssdev->dev, NULL);
+>
+>   	mutex_unlock(&ddata->lock);
+> diff --git a/include/video/omap-panel-dvi.h b/include/video/omap-panel-dvi.h
+> index 87ad567b..4ad41fc 100644
+> --- a/include/video/omap-panel-dvi.h
+> +++ b/include/video/omap-panel-dvi.h
+> @@ -27,11 +27,13 @@ struct omap_dss_device;
+>    * @platform_enable: platform specific panel enable function
+>    * @platform_disable: platform specific panel disable function
+>    * @i2c_bus_num: i2c bus id for the panel
+> + * @power_down_gpio: gpio number for PD pin (or -1 if not available)
+>    */
+>   struct panel_dvi_platform_data {
+>   	int (*platform_enable)(struct omap_dss_device *dssdev);
+>   	void (*platform_disable)(struct omap_dss_device *dssdev);
+>   	u16 i2c_bus_num;
+> +	int power_down_gpio;
+>   };
+>
+>   #endif /* __OMAP_PANEL_DVI_H */
+
