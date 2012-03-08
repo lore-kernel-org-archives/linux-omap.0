@@ -1,30 +1,85 @@
-From: Russell King - ARM Linux <linux@arm.linux.org.uk>
-Subject: Re: Latest OMAP4 build errors
-Date: Wed, 7 Mar 2012 23:43:08 +0000
-Message-ID: <20120307234308.GA20364@n2100.arm.linux.org.uk>
-References: <20120228090209.GC18045@n2100.arm.linux.org.uk> <CAK=WgbZEDr_fYSonBQr3XNcTx5vefsH7LJfqycaxsqg-yechWQ@mail.gmail.com> <20120306165545.GB15392@n2100.arm.linux.org.uk> <201203061701.54141.arnd@arndb.de> <20120307100615.GA17404@n2100.arm.linux.org.uk> <20120307171044.GE12083@atomide.com> <CAOesGMiNSyc9F+Wf5pXPG=hRAfnG6aMHtccLBwvekuB3HpyevQ@mail.gmail.com> <20120307224459.GJ12083@atomide.com>
+From: Tony Lindgren <tony@atomide.com>
+Subject: Re: [PATCH] ARM: OMAP2+: Fix build issues with missing include of
+ linux/bug.h
+Date: Wed, 7 Mar 2012 16:45:59 -0800
+Message-ID: <20120308004559.GN12083@atomide.com>
+References: <20120307213209.GI12083@atomide.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from caramon.arm.linux.org.uk ([78.32.30.218]:48065 "EHLO
-	caramon.arm.linux.org.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755457Ab2CGXn1 (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 7 Mar 2012 18:43:27 -0500
+Received: from mho-02-ewr.mailhop.org ([204.13.248.72]:41909 "EHLO
+	mho-02-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750822Ab2CHAqC (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 7 Mar 2012 19:46:02 -0500
 Content-Disposition: inline
-In-Reply-To: <20120307224459.GJ12083@atomide.com>
+In-Reply-To: <20120307213209.GI12083@atomide.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Tony Lindgren <tony@atomide.com>
-Cc: Olof Johansson <olof@lixom.net>, Arnd Bergmann <arnd@arndb.de>, Ohad Ben-Cohen <ohad@wizery.com>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+To: linux-omap@vger.kernel.org
+Cc: linux-arm-kernel@lists.infradead.org
 
-On Wed, Mar 07, 2012 at 02:44:59PM -0800, Tony Lindgren wrote:
-> OK thanks, will do that next time if there's something urgent.
+* Tony Lindgren <tony@atomide.com> [120307 13:04]:
 > 
-> I'll send a pull request shortly for fixes-non-critical-part2 that
-> should sort out the remaining issues.
+> Looks like this is needed for some .config files with
+> current for-next
 
-FYI, I've just updated the build tree with what's in arm-soc (as of
-a couple of minutes ago), which contained a bunch of OMAP updates, so
-I'm hopeful that tomorrows results should show an improvement.
+This is because of next/master commit 6c03438ed (kernel.h: doesn't
+explicitly use bug.h, so don't include it). Will update the commit
+message to say:
 
-It'll start its run in about 2h20.
+Otherwise we can get the following if bug.h is not included from kernel.h:
+
+> arch/arm/mach-omap2/powerdomain-common.c:
+> In function 'omap2_pwrdm_get_mem_bank_onstate_mask':
+> arch/arm/mach-omap2/powerdomain-common.c:64:3: error:
+> implicit declaration of function 'WARN_ON' [-Werror=implicit-function-declaration]
+> cc1: some warnings being treated as errors
+>
+> Signed-off-by: Tony Lindgren <tony@atomide.com>
+
+ 
+> --- a/arch/arm/mach-omap2/clkt_clksel.c
+> +++ b/arch/arm/mach-omap2/clkt_clksel.c
+> @@ -43,6 +43,7 @@
+>  #include <linux/errno.h>
+>  #include <linux/clk.h>
+>  #include <linux/io.h>
+> +#include <linux/bug.h>
+>  
+>  #include <plat/clock.h>
+>  
+> --- a/arch/arm/mach-omap2/powerdomain-common.c
+> +++ b/arch/arm/mach-omap2/powerdomain-common.c
+> @@ -13,6 +13,7 @@
+>  
+>  #include <linux/errno.h>
+>  #include <linux/kernel.h>
+> +#include <linux/bug.h>
+>  #include "pm.h"
+>  #include "cm.h"
+>  #include "cm-regbits-34xx.h"
+> --- a/arch/arm/mach-omap2/powerdomain2xxx_3xxx.c
+> +++ b/arch/arm/mach-omap2/powerdomain2xxx_3xxx.c
+> @@ -15,6 +15,7 @@
+>  #include <linux/io.h>
+>  #include <linux/errno.h>
+>  #include <linux/delay.h>
+> +#include <linux/bug.h>
+>  
+>  #include <plat/prcm.h>
+>  
+> --- a/arch/arm/mach-omap2/powerdomains3xxx_data.c
+> +++ b/arch/arm/mach-omap2/powerdomains3xxx_data.c
+> @@ -13,6 +13,7 @@
+>  
+>  #include <linux/kernel.h>
+>  #include <linux/init.h>
+> +#include <linux/bug.h>
+>  
+>  #include <plat/cpu.h>
+>  
+> 
+> _______________________________________________
+> linux-arm-kernel mailing list
+> linux-arm-kernel@lists.infradead.org
+> http://lists.infradead.org/mailman/listinfo/linux-arm-kernel
