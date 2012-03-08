@@ -1,165 +1,105 @@
 From: Peter Ujfalusi <peter.ujfalusi@ti.com>
-Subject: [PATCH v2 3/3] ASoC: omap-mcbsp: Single function CLKR/FSR source mux configuration
-Date: Thu,  8 Mar 2012 11:22:17 +0200
-Message-ID: <1331198537-13469-4-git-send-email-peter.ujfalusi@ti.com>
+Subject: [PATCH v2 1/3] ARM: OMAP2+: McBSP: Correct CLKR/FSR clock source mux configuration
+Date: Thu,  8 Mar 2012 11:22:15 +0200
+Message-ID: <1331198537-13469-2-git-send-email-peter.ujfalusi@ti.com>
 References: <1331198537-13469-1-git-send-email-peter.ujfalusi@ti.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aog104.obsmtp.com ([74.125.149.73]:47453 "EHLO
-	na3sys009aog104.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1756120Ab2CHJWe (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 8 Mar 2012 04:22:34 -0500
-Received: by mail-lpp01m010-f46.google.com with SMTP id j13so336501lah.5
-        for <linux-omap@vger.kernel.org>; Thu, 08 Mar 2012 01:22:32 -0800 (PST)
+Received: from na3sys009aog127.obsmtp.com ([74.125.149.107]:60459 "EHLO
+	psmtp.com" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
+	id S1756100Ab2CHJWb (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Thu, 8 Mar 2012 04:22:31 -0500
+Received: by lbbgg13 with SMTP id gg13so114227lbb.1
+        for <linux-omap@vger.kernel.org>; Thu, 08 Mar 2012 01:22:28 -0800 (PST)
 In-Reply-To: <1331198537-13469-1-git-send-email-peter.ujfalusi@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: Liam Girdwood <lrg@ti.com>, Mark Brown <broonie@opensource.wolfsonmicro.com>, Tony Lindgren <tony@atomide.com>
 Cc: Jarkko Nikula <jarkko.nikula@bitmer.com>, alsa-devel@alsa-project.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 
-Use single function for the CLKR/FSR mux configuration.
-OMAP2/3 has 6 pin configuration on McBSP1 instance, while on OMAP4
-McBSP4 instance have the 6 pin configuration so the omap2_mcbsp1_mux_* is
-not correct name for all support OMAP versions
+On OMAP2/3 McBSP1 port has 6 pin setup, while on OMAP4 the port is McBSP4.
+Implement the CLKR/FSR clock mux selection for OMAP4, and make sure that
+we add the correct callback for the correct port across supported OMAP
+versions.
 
 Signed-off-by: Peter Ujfalusi <peter.ujfalusi@ti.com>
 Acked-by: Jarkko Nikula <jarkko.nikula@bitmer.com>
 ---
- sound/soc/omap/mcbsp.c      |   48 +++++++++++++++++++-----------------------
- sound/soc/omap/mcbsp.h      |   15 +++++--------
- sound/soc/omap/omap-mcbsp.c |    8 +++---
- 3 files changed, 32 insertions(+), 39 deletions(-)
+ arch/arm/mach-omap2/mcbsp.c |   46 +++++++++++++++++++++++++++++++++++++++++-
+ 1 files changed, 44 insertions(+), 2 deletions(-)
 
-diff --git a/sound/soc/omap/mcbsp.c b/sound/soc/omap/mcbsp.c
-index c3e31de..95413a1 100644
---- a/sound/soc/omap/mcbsp.c
-+++ b/sound/soc/omap/mcbsp.c
-@@ -687,40 +687,36 @@ int omap2_mcbsp_set_clks_src(struct omap_mcbsp *mcbsp, u8 fck_src_id)
- 		return -EINVAL;
+diff --git a/arch/arm/mach-omap2/mcbsp.c b/arch/arm/mach-omap2/mcbsp.c
+index 49ff5b8..ecc039e 100644
+--- a/arch/arm/mach-omap2/mcbsp.c
++++ b/arch/arm/mach-omap2/mcbsp.c
+@@ -34,7 +34,7 @@
+ #include "cm2xxx_3xxx.h"
+ #include "cm-regbits-34xx.h"
+ 
+-/* McBSP internal signal muxing function */
++/* McBSP1 internal signal muxing function for OMAP2/3 */
+ static int omap2_mcbsp1_mux_rx_clk(struct device *dev, const char *signal,
+ 				   const char *src)
+ {
+@@ -65,6 +65,42 @@ static int omap2_mcbsp1_mux_rx_clk(struct device *dev, const char *signal,
+ 	return 0;
  }
  
--void omap2_mcbsp1_mux_clkr_src(struct omap_mcbsp *mcbsp, u8 mux)
-+int omap_mcbsp_6pin_src_mux(struct omap_mcbsp *mcbsp, u8 mux)
- {
--	const char *src;
--
--	if (mcbsp->id != 1)
--		return;
-+	const char *signal, *src;
-+	int ret = 0;
- 
--	if (mux == CLKR_SRC_CLKR)
-+	switch (mux) {
-+	case CLKR_SRC_CLKR:
-+		signal = "clkr";
- 		src = "clkr";
--	else if (mux == CLKR_SRC_CLKX)
-+		break;
-+	case CLKR_SRC_CLKX:
-+		signal = "clkr";
- 		src = "clkx";
--	else
--		return;
--
--	if (mcbsp->pdata->mux_signal)
--		mcbsp->pdata->mux_signal(mcbsp->dev, "clkr", src);
--}
--
--void omap2_mcbsp1_mux_fsr_src(struct omap_mcbsp *mcbsp, u8 mux)
--{
--	const char *src;
--
--	if (mcbsp->id != 1)
--		return;
--
--	if (mux == FSR_SRC_FSR)
-+		break;
-+	case FSR_SRC_FSR:
-+		signal = "fsr";
- 		src = "fsr";
--	else if (mux == FSR_SRC_FSX)
-+		break;
-+	case FSR_SRC_FSX:
-+		signal = "fsr";
- 		src = "fsx";
--	else
--		return;
-+		break;
-+	default:
++/* McBSP4 internal signal muxing function for OMAP4 */
++#define OMAP4_CONTROL_MCBSPLP_ALBCTRLRX_FSX	(1 << 31)
++#define OMAP4_CONTROL_MCBSPLP_ALBCTRLRX_CLKX	(1 << 30)
++static int omap4_mcbsp4_mux_rx_clk(struct device *dev, const char *signal,
++				   const char *src)
++{
++	u32 v;
++
++	/*
++	 * In CONTROL_MCBSPLP register only bit 30 (CLKR mux), and bit 31 (FSR
++	 * mux) is used */
++	v = omap4_ctrl_pad_readl(OMAP4_CTRL_MODULE_PAD_CORE_CONTROL_MCBSPLP);
++
++	if (!strcmp(signal, "clkr")) {
++		if (!strcmp(src, "clkr"))
++			v &= ~OMAP4_CONTROL_MCBSPLP_ALBCTRLRX_CLKX;
++		else if (!strcmp(src, "clkx"))
++			v |= OMAP4_CONTROL_MCBSPLP_ALBCTRLRX_CLKX;
++		else
++			return -EINVAL;
++	} else if (!strcmp(signal, "fsr")) {
++		if (!strcmp(src, "fsr"))
++			v &= ~OMAP4_CONTROL_MCBSPLP_ALBCTRLRX_FSX;
++		else if (!strcmp(src, "fsx"))
++			v |= OMAP4_CONTROL_MCBSPLP_ALBCTRLRX_FSX;
++		else
++			return -EINVAL;
++	} else {
 +		return -EINVAL;
 +	}
- 
- 	if (mcbsp->pdata->mux_signal)
--		mcbsp->pdata->mux_signal(mcbsp->dev, "fsr", src);
-+		ret = mcbsp->pdata->mux_signal(mcbsp->dev, signal, src);
 +
-+	return ret;
- }
++	omap4_ctrl_pad_writel(v, OMAP4_CTRL_MODULE_PAD_CORE_CONTROL_MCBSPLP);
++
++	return 0;
++}
++
+ /* McBSP CLKS source switching function */
+ static int omap2_mcbsp_set_clk_src(struct device *dev, struct clk *clk,
+ 				   const char *src)
+@@ -146,9 +182,15 @@ static int omap_init_mcbsp(struct omap_hwmod *oh, void *unused)
+ 		pdata->has_ccr = true;
+ 	}
+ 	pdata->set_clk_src = omap2_mcbsp_set_clk_src;
+-	if (id == 1)
++
++	/* On OMAP2/3 the McBSP1 port has 6 pin configuration */
++	if (id == 1 && oh->class->rev < MCBSP_CONFIG_TYPE4)
+ 		pdata->mux_signal = omap2_mcbsp1_mux_rx_clk;
  
- #define max_thres(m)			(mcbsp->pdata->buffer_size)
-diff --git a/sound/soc/omap/mcbsp.h b/sound/soc/omap/mcbsp.h
-index acc9470..a944fcc 100644
---- a/sound/soc/omap/mcbsp.h
-+++ b/sound/soc/omap/mcbsp.h
-@@ -230,13 +230,11 @@ enum {
- #define XRDYEN			BIT(10)
- #define XEMPTYEOFEN		BIT(14)
- 
--/* CLKR signal muxing options */
--#define CLKR_SRC_CLKR		0
--#define CLKR_SRC_CLKX		1
--
--/* FSR signal muxing options */
--#define FSR_SRC_FSR		0
--#define FSR_SRC_FSX		1
-+/* Clock signal muxing options */
-+#define CLKR_SRC_CLKR		0 /* CLKR signal is from the CLKR pin */
-+#define CLKR_SRC_CLKX		1 /* CLKR signal is from the CLKX pin */
-+#define FSR_SRC_FSR		2 /* FSR signal is from the FSR pin */
-+#define FSR_SRC_FSX		3 /* FSR signal is from the FSX pin */
- 
- /* McBSP functional clock sources */
- #define MCBSP_CLKS_PRCM_SRC	0
-@@ -333,8 +331,7 @@ void omap_mcbsp_stop(struct omap_mcbsp *mcbsp, int tx, int rx);
- int omap2_mcbsp_set_clks_src(struct omap_mcbsp *mcbsp, u8 fck_src_id);
- 
- /* McBSP signal muxing API */
--void omap2_mcbsp1_mux_clkr_src(struct omap_mcbsp *mcbsp, u8 mux);
--void omap2_mcbsp1_mux_fsr_src(struct omap_mcbsp *mcbsp, u8 mux);
-+int omap_mcbsp_6pin_src_mux(struct omap_mcbsp *mcbsp, u8 mux);
- 
- /* Sidetone specific API */
- int omap_st_set_chgain(struct omap_mcbsp *mcbsp, int channel, s16 chgain);
-diff --git a/sound/soc/omap/omap-mcbsp.c b/sound/soc/omap/omap-mcbsp.c
-index 10eb645..d8409b0 100644
---- a/sound/soc/omap/omap-mcbsp.c
-+++ b/sound/soc/omap/omap-mcbsp.c
-@@ -554,22 +554,22 @@ static int omap_mcbsp_dai_set_dai_sysclk(struct snd_soc_dai *cpu_dai,
- 	case OMAP_MCBSP_CLKR_SRC_CLKR:
- 		if (cpu_class_is_omap1())
- 			break;
--		omap2_mcbsp1_mux_clkr_src(mcbsp, CLKR_SRC_CLKR);
-+		err = omap_mcbsp_6pin_src_mux(mcbsp, CLKR_SRC_CLKR);
- 		break;
- 	case OMAP_MCBSP_CLKR_SRC_CLKX:
- 		if (cpu_class_is_omap1())
- 			break;
--		omap2_mcbsp1_mux_clkr_src(mcbsp, CLKR_SRC_CLKX);
-+		err = omap_mcbsp_6pin_src_mux(mcbsp, CLKR_SRC_CLKX);
- 		break;
- 	case OMAP_MCBSP_FSR_SRC_FSR:
- 		if (cpu_class_is_omap1())
- 			break;
--		omap2_mcbsp1_mux_fsr_src(mcbsp, FSR_SRC_FSR);
-+		err = omap_mcbsp_6pin_src_mux(mcbsp, FSR_SRC_FSR);
- 		break;
- 	case OMAP_MCBSP_FSR_SRC_FSX:
- 		if (cpu_class_is_omap1())
- 			break;
--		omap2_mcbsp1_mux_fsr_src(mcbsp, FSR_SRC_FSX);
-+		err = omap_mcbsp_6pin_src_mux(mcbsp, FSR_SRC_FSX);
- 		break;
- 	default:
- 		err = -ENODEV;
++	/* On OMAP4 the McBSP4 port has 6 pin configuration */
++	if (id == 4 && oh->class->rev == MCBSP_CONFIG_TYPE4)
++		pdata->mux_signal = omap4_mcbsp4_mux_rx_clk;
++
+ 	if (oh->class->rev == MCBSP_CONFIG_TYPE3) {
+ 		if (id == 2)
+ 			/* The FIFO has 1024 + 256 locations */
 -- 
 1.7.8.5
 
