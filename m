@@ -1,59 +1,49 @@
 From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH] ARM: OMAP2+: Fix compile error when FB_OMAP2 is not set
-Date: Thu, 8 Mar 2012 12:46:07 -0800
-Message-ID: <20120308204607.GX12083@atomide.com>
-References: <20120308204328.GW12083@atomide.com>
+Subject: [GIT PULL 1/7] non-critical fixes part3 for upcoming merge window
+Date: Thu, 8 Mar 2012 12:53:29 -0800
+Message-ID: <30429.0514592596$1331240023@news.gmane.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-01-ewr.mailhop.org ([204.13.248.71]:49802 "EHLO
+Received: from mho-01-ewr.mailhop.org ([204.13.248.71]:55362 "EHLO
 	mho-01-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751146Ab2CHUqJ (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 8 Mar 2012 15:46:09 -0500
+	with ESMTP id S1750978Ab2CHUxd (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 8 Mar 2012 15:53:33 -0500
 Content-Disposition: inline
-In-Reply-To: <20120308204328.GW12083@atomide.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Tomi Valkeinen <tomi.valkeinen@ti.com>
+To: Arnd Bergmann <arnd@arndb.de>, Olof Johansson <olof@lixom.net>
 Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 
-* Tony Lindgren <tony@atomide.com> [120308 12:11]:
-> Otherwise we will get:
->=20
-> arch/arm/plat-omap/fb.c:101: error: expected =E2=80=98)=E2=80=99 befo=
-re =E2=80=98*=E2=80=99 token
->=20
-> Signed-off-by: Tony Lindgren <tony@atomide.com>
->=20
-> ---
->=20
-> Tomi, you need something like this for what you have in for-next.
->=20
-> --- a/arch/arm/plat-omap/fb.c
-> +++ b/arch/arm/plat-omap/fb.c
-> @@ -98,6 +98,8 @@ arch_initcall(omap_init_fb);
-> =20
->  #else
-> =20
-> -void __init omapfb_set_lcd_config(omap_lcd_config *config) { }
-> +void __init omapfb_set_lcd_config(const struct omap_lcd_config *conf=
-ig)
-> +{
-> +}
-> =20
->  #endif
+Hi Olof,
 
-Also now seeing the following with what you have in for-next:
+Here are two more pre-emptive fixes for upcoming merge
+window to pull into arm-soc/next/fixes-non-critical.
 
-drivers/video/omap2/displays/panel-taal.c: In function =E2=80=98taal_nu=
-m_errors_show=E2=80=99:
-drivers/video/omap2/displays/panel-taal.c:605: warning: =E2=80=98errors=
-=E2=80=99 may be used uninitialized in this function
+Now with the fixes finallny out of the way after all
+the cleanup related changes, as a reply to this pull
+request I'm posting some more pull requests for cleanup
+and some minor board changes.
+
+Regards,
 
 Tony
---
-To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+
+
+The following changes since commit 9cf793f9b8b1ba9414e2a7591b2e911885f85a27:
+  Kevin Hilman (1):
+        ARM: OMAP: convert omap_device_build() and callers to __init
+
+are available in the git repository at:
+
+  git://git.kernel.org/pub/scm/linux/kernel/git/tmlind/linux-omap fixes-non-critical-part3
+
+Tony Lindgren (2):
+      ARM: OMAP2+: Fix section warnings for hsmmc_init_one
+      ARM: OMAP2+: Fix build for omap4 only builds with missing include of linux/bug.h
+
+ arch/arm/mach-omap2/hsmmc.c           |    2 +-
+ arch/arm/mach-omap2/powerdomain44xx.c |    1 +
+ arch/arm/mach-omap2/vc.c              |    1 +
+ 3 files changed, 3 insertions(+), 1 deletions(-)
