@@ -1,65 +1,96 @@
-From: Archit Taneja <a0393947@ti.com>
-Subject: Re: [PATCH 16/21] OMAPDSS: handle output-driver reg/unreg more dynamically
-Date: Thu, 8 Mar 2012 15:20:24 +0530
-Message-ID: <4F5880E0.3040507@ti.com>
-References: <1331124290-6285-1-git-send-email-tomi.valkeinen@ti.com>  <1331124290-6285-17-git-send-email-tomi.valkeinen@ti.com>  <4F586EFD.1020208@ti.com> <1331196364.2354.49.camel@deskari>  <4F587A62.3020202@ti.com> <1331199297.2354.62.camel@deskari>
+From: Paul Walmsley <paul@pwsan.com>
+Subject: [PATCH 00/15] ARM: OMAP4: hwmod data: add almost all remaining IP
+ blocks
+Date: Thu, 08 Mar 2012 03:51:23 -0700
+Message-ID: <20120308104918.14753.69281.stgit@dusk>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from arroyo.ext.ti.com ([192.94.94.40]:59131 "EHLO arroyo.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1755973Ab2CHJum (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Thu, 8 Mar 2012 04:50:42 -0500
-In-Reply-To: <1331199297.2354.62.camel@deskari>
+Received: from utopia.booyaka.com ([72.9.107.138]:47038 "EHLO
+	utopia.booyaka.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752575Ab2CHKxf (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 8 Mar 2012 05:53:35 -0500
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Tomi Valkeinen <tomi.valkeinen@ti.com>
-Cc: linux-omap@vger.kernel.org, linux-fbdev@vger.kernel.org
+To: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 
-On Thursday 08 March 2012 03:04 PM, Tomi Valkeinen wrote:
-> On Thu, 2012-03-08 at 14:52 +0530, Archit Taneja wrote:
->> On Thursday 08 March 2012 02:16 PM, Tomi Valkeinen wrote:
->>> On Thu, 2012-03-08 at 14:04 +0530, Archit Taneja wrote:
+Hi
 
-<snip>
+This series adds basic hwmods for all but one of the remaining
+OMAP4 IP blocks that can be meaningfully controlled by the
+kernel.  (The remaining IP block is the USIM - there's a clocking
+problem that requires further investigation to resolve.)
 
->> Oh okay. But the comment after the patch set still says "It's ok if the
->> output-driver register fails.", we could change it to "It's ok if the
->> output-driver probe fails."
->
-> Well, I guess this goes into nitpicking area, but if there are no
-> devices, probe is not called at all. So I think it's the driver register
-> that fails in that case. If there is a device, and it is probed, and
-> that fails, then it's probe which fails.
+There are a few new boot-time warnings added by this series:
 
-Yes, that's fair enough I guess.
+[    0.280548] omap_hwmod: trace_clk_div_ck: missing clockdomain for tr=
+ace_clk_div_ck.
+[    0.302429] omap_hwmod: ddrphy_ck: missing clockdomain for ddrphy_ck=
+=2E
+[    0.319519] omap_hwmod: sl2if: cannot be enabled for reset (3)
 
-<snip>
+These messages will be resolved by subsequent patches, and, while annoy=
+ing,
+should not affect the operation of the system.
 
->>
->> If we ensure that none of our probes return ENODEV(even though it may
->> make sense to return it if a func within probe fails), we could
->> differentiate between the 2 cases, right?
->
-> True, I thought about that. But we can never be sure that the functions
-> called by the probe (clk_get, or whatever) won't return ENODEV. Of
-> course, we could check what they return, and change the error to
-> something else, but I'm not sure if that's good either.
+These patches have been boot-tested and suspend-tested on a
+OMAP44xx PandaBoard.
 
-That's true.
+The series is intended to apply on the
+'hwmod_remove_link_arrays_cleanup_3.4' branch, posted previously.
 
-<snip>
+These patches are also available via git from git://git.pwsan.com/linux=
+-2.6
+in the branch "hwmod_enable_remaining_hwmods_devel_3.4".
 
-> Alternatively, if the platform driver code was changed to tell us
-> clearly if it was the probe that failed or if there just weren't any
-> devices, we could also use that.
 
-Yes, I wonder how that could be done.
+- Paul
 
-Archit
+---
 
->
->   Tomi
->
+hwmod_enable_remaining_hwmods_devel_3.4
+   text	   data	    bss	    dec	    hex	filename
+6590067	 677452	5593500	12861019	 c43e5b	vmlinux.omap2plus_defconfig.or=
+ig
+6594227	 684620	5593500	12872347	 c46a9b	vmlinux.omap2plus_defconfig
 
+Beno=C3=AEt Cousson (6):
+      ARM: OMAP4: hwmod data: add GPMC
+      ARM: OMAP4: hwmod data: add the Slimbus IP blocks
+      ARM: OMAP4: hwmod data: add McASP
+      ARM: OMAP4: hwmod data: add remaining USB-related IP blocks
+      ARM: OMAP4: hwmod data: add the OCP-WP IP block
+      ARM: OMAP4: hwmod data: add DEBUGSS skeleton
+
+Ming Lei (1):
+      ARM: OMAP4: hwmod data: introduce fdif(face detect module) hwmod
+
+Paul Walmsley (8):
+      ARM: OMAP2+: clockdomains: make {prm,cm}_clkdm common
+      ARM: OMAP4: hwmod data: add HDQ/1-wire
+      ARM: OMAP4: hwmod data: add EMIF1 and 2
+      ARM: OMAP4: hwmod data: add GPU
+      ARM: OMAP4: hwmod data: add some interconnect-related IP blocks
+      ARM: OMAP4: hwmod data: add OCM RAM IP block
+      ARM: OMAP4: hwmod data: add System Control Module
+      ARM: OMAP4: hwmod data: add PRCM and related IP blocks
+
+
+ arch/arm/mach-omap2/Makefile                     |    8=20
+ arch/arm/mach-omap2/clockdomain44xx.c            |    6=20
+ arch/arm/mach-omap2/clockdomains2xxx_3xxx_data.c |   10=20
+ arch/arm/mach-omap2/clockdomains44xx_data.c      |    2=20
+ arch/arm/mach-omap2/clockdomains_common_data.c   |   24=20
+ arch/arm/mach-omap2/omap_hwmod_44xx_data.c       | 1473 ++++++++++++++=
++++++++-
+ arch/arm/plat-omap/include/plat/omap_hwmod.h     |    1=20
+ 7 files changed, 1443 insertions(+), 81 deletions(-)
+ create mode 100644 arch/arm/mach-omap2/clockdomains_common_data.c
+
+
+--
+To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
