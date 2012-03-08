@@ -1,45 +1,45 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [GIT PULL] few more fixes for v3.3-rc6
-Date: Thu, 8 Mar 2012 10:13:46 -0800
-Message-ID: <20120308181345.GU12083@atomide.com>
-References: <20120308180441.GT12083@atomide.com>
+From: Paul Walmsley <paul@pwsan.com>
+Subject: Re: [PATCH 0/2] ARM: OMAP2+: PM: code consolidation for 3.4
+Date: Thu, 8 Mar 2012 11:18:38 -0700 (MST)
+Message-ID: <alpine.DEB.2.00.1203081115010.9551@utopia.booyaka.com>
+References: <20120202093600.12509.35052.stgit@dusk> <87ty39cc7s.fsf@ti.com> <alpine.DEB.2.00.1202021140060.586@utopia.booyaka.com> <alpine.DEB.2.00.1202021328450.586@utopia.booyaka.com> <CAKd1q9rq67gUyXn+rOL348YwaYQiqHR8UQCSd68fpxhZHHsYGA@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-01-ewr.mailhop.org ([204.13.248.71]:41633 "EHLO
-	mho-01-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752862Ab2CHSNu (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 8 Mar 2012 13:13:50 -0500
-Content-Disposition: inline
-In-Reply-To: <20120308180441.GT12083@atomide.com>
+Received: from utopia.booyaka.com ([72.9.107.138]:53270 "EHLO
+	utopia.booyaka.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753662Ab2CHSSj (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 8 Mar 2012 13:18:39 -0500
+In-Reply-To: <CAKd1q9rq67gUyXn+rOL348YwaYQiqHR8UQCSd68fpxhZHHsYGA@mail.gmail.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Arnd Bergmann <arnd@arndb.de>, Olof Johansson <olof@lixom.net>
-Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+To: "Coelho, Luciano" <coelho@ti.com>
+Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Kevin Hilman <khilman@ti.com>, santosh.shilimkar@ti.com, rnayak@ti.com
 
-Olof,
+Hi Luciano,
 
-* Tony Lindgren <tony@atomide.com> [120308 09:34]:
+On Thu, 8 Mar 2012, Coelho, Luciano wrote:
+
+> I can't get ttyO2 wakeup to work on my Blaze with 3.3-rc5.  It works
+> fine with 3.2.  I've been trying to bisect and everything, but it's
+> difficult.  To start with, during my bisect, many patches seem to be
+> in a state where the compilation fails (one example is
+> 'OMAP44XX_IRQ_PRCM' undeclared).
 > 
-> Vaibhav Hiremath (1):
->       ARM: OMAP: id: Add missing break statement in omap3xxx_check_revision
+> Anyway, what I found out is that after fcf6efa3 (ARM: OMAP4: PM: Add
+> WakeupGen module as OMAP gic_arch_extn) wakeup from the console
+> doesn't work anymore for me.  Then I tried to comment out the
+> omap_wakeupgen_init() call in  gic_init_irq() and that seems to
+> work... for a while.  At least until ff819da4 (ARM: OMAP3: CPUidle:
+> Make use of CPU PM notifiers) commenting out that line seems to work.
+> But it doesn't work if I comment out the line with v3.3-rc5.
 
-FYI, this one will cause a minor merge conflict with what's in
-arm-soc/for-next, here's how to resolve for reference:
+Maybe try this patch:
 
---- a/arch/arm/mach-omap2/id.c
-+++ b/arch/arm/mach-omap2/id.c
-@@@ -397,7 -342,8 +397,8 @@@ void __init omap3xxx_check_revision(voi
-  		break;
-  	case 0xb944:
-  		omap_revision = AM335X_REV_ES1_0;
- -		*cpu_rev = "1.0";
- +		cpu_rev = "1.0";
-+ 		break;
-  	case 0xb8f2:
-  		switch (rev) {
-  		case 0:
+http://www.spinics.net/lists/linux-omap/msg65786.html
 
-Regards,
+If that doesn't work, could you try to reproduce with omap2plus_defconfig 
+and a boring kernel command line?
 
-Tony
+
+- Paul
