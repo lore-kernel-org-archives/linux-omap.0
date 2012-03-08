@@ -1,85 +1,140 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [GIT PULL] ARM: OMAP2+: PM: core support for SMPS regulators
- for v3.4
-Date: Wed, 7 Mar 2012 18:18:43 -0800
-Message-ID: <20120308021843.GQ12083@atomide.com>
-References: <877gywjhht.fsf@ti.com>
+From: Paul Walmsley <paul@pwsan.com>
+Subject: [PATCH 12/12] ARM: OMAP2xxx: hwmod data: start to fix the IVA1,
+ IVA2 and DSP
+Date: Wed, 07 Mar 2012 19:38:41 -0700
+Message-ID: <20120308023840.8205.51532.stgit@dusk>
+References: <20120308023614.8205.78768.stgit@dusk>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-02-ewr.mailhop.org ([204.13.248.72]:60315 "EHLO
-	mho-02-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751555Ab2CHCSr (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 7 Mar 2012 21:18:47 -0500
-Content-Disposition: inline
-In-Reply-To: <877gywjhht.fsf@ti.com>
+Received: from utopia.booyaka.com ([72.9.107.138]:45812 "EHLO
+	utopia.booyaka.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753719Ab2CHCmL (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 7 Mar 2012 21:42:11 -0500
+In-Reply-To: <20120308023614.8205.78768.stgit@dusk>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Kevin Hilman <khilman@ti.com>
-Cc: linux-omap <linux-omap@vger.kernel.org>, linux-arm-kernel <linux-arm-kernel@lists.infradead.org>
+To: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 
-* Kevin Hilman <khilman@ti.com> [120307 11:42]:
-> Tony,
-> 
-> Please pull the following support for using regulators to control the
-> on-chip VC/VP managed voltage domains.
-> 
-> The regulator driver support for this is already queued in the regulator
-> tree, and this is the supporting core work.
-> 
-> This combined with the CPUfreq changes to use the regulator framework
-> will finally result in MPU DVFS working in mainline.
+N800 logs this message on boot:
 
-Nice.. However this one might be missing some header changes?
+[    0.182281] omap_hwmod: iva: cannot be enabled for reset (3)
 
-I'm getting the following:
+Fix by creating basic IVA1 and DSP hwmods for OMAP2420, and a basic IVA2
+hwmod for OMAP2430.  There is still more information to be added, but
+this should resolve the immediate issue.
 
-arch/arm/mach-omap2/twl-common.c:174:15: error: variable 'omap3_vdd1_drvdata' has initializer but incomplete type
-arch/arm/mach-omap2/twl-common.c:175:2: error: unknown field 'get_voltage' specified in initializer
-arch/arm/mach-omap2/twl-common.c:175:2: warning: excess elements in struct initializer [enabled by default]
-arch/arm/mach-omap2/twl-common.c:175:2: warning: (near initialization for 'omap3_vdd1_drvdata') [enabled by default]
-arch/arm/mach-omap2/twl-common.c:176:2: error: unknown field 'set_voltage' specified in initializer
-arch/arm/mach-omap2/twl-common.c:176:2: warning: excess elements in struct initializer [enabled by default]
-arch/arm/mach-omap2/twl-common.c:176:2: warning: (near initialization for 'omap3_vdd1_drvdata') [enabled by default]
-arch/arm/mach-omap2/twl-common.c:179:15: error: variable 'omap3_vdd2_drvdata' has initializer but incomplete type
-arch/arm/mach-omap2/twl-common.c:180:2: error: unknown field 'get_voltage' specified in initializer
-arch/arm/mach-omap2/twl-common.c:180:2: warning: excess elements in struct initializer [enabled by default]
-arch/arm/mach-omap2/twl-common.c:180:2: warning: (near initialization for 'omap3_vdd2_drvdata') [enabled by default]
-arch/arm/mach-omap2/twl-common.c:181:2: error: unknown field 'set_voltage' specified in initializer
-arch/arm/mach-omap2/twl-common.c:181:2: warning: excess elements in struct initializer [enabled by default]
-arch/arm/mach-omap2/twl-common.c:181:2: warning: (near initialization for 'omap3_vdd2_drvdata') [enabled by default]
-arch/arm/mach-omap2/twl-common.c: In function 'omap3_pmic_get_config':
-arch/arm/mach-omap2/twl-common.c:193:3: error: invalid use of undefined type 'struct twl_regulator_driver_data'
-arch/arm/mach-omap2/twl-common.c:198:3: error: invalid use of undefined type 'struct twl_regulator_driver_data'
-arch/arm/mach-omap2/twl-common.c: At top level:
-arch/arm/mach-omap2/twl-common.c:400:15: error: variable 'omap4_vdd1_drvdata' has initializer but incomplete type
-arch/arm/mach-omap2/twl-common.c:401:2: error: unknown field 'get_voltage' specified in initializer
-arch/arm/mach-omap2/twl-common.c:401:2: warning: excess elements in struct initializer [enabled by default]
-arch/arm/mach-omap2/twl-common.c:401:2: warning: (near initialization for 'omap4_vdd1_drvdata') [enabled by default]
-arch/arm/mach-omap2/twl-common.c:402:2: error: unknown field 'set_voltage' specified in initializer
-arch/arm/mach-omap2/twl-common.c:402:2: warning: excess elements in struct initializer [enabled by default]
-arch/arm/mach-omap2/twl-common.c:402:2: warning: (near initialization for 'omap4_vdd1_drvdata') [enabled by default]
-arch/arm/mach-omap2/twl-common.c:405:15: error: variable 'omap4_vdd2_drvdata' has initializer but incomplete type
-arch/arm/mach-omap2/twl-common.c:406:2: error: unknown field 'get_voltage' specified in initializer
-arch/arm/mach-omap2/twl-common.c:406:2: warning: excess elements in struct initializer [enabled by default]
-arch/arm/mach-omap2/twl-common.c:406:2: warning: (near initialization for 'omap4_vdd2_drvdata') [enabled by default]
-arch/arm/mach-omap2/twl-common.c:407:2: error: unknown field 'set_voltage' specified in initializer
-arch/arm/mach-omap2/twl-common.c:407:2: warning: excess elements in struct initializer [enabled by default]
-arch/arm/mach-omap2/twl-common.c:407:2: warning: (near initialization for 'omap4_vdd2_drvdata') [enabled by default]
-arch/arm/mach-omap2/twl-common.c:410:15: error: variable 'omap4_vdd3_drvdata' has initializer but incomplete type
-arch/arm/mach-omap2/twl-common.c:411:2: error: unknown field 'get_voltage' specified in initializer
-arch/arm/mach-omap2/twl-common.c:411:2: warning: excess elements in struct initializer [enabled by default]
-arch/arm/mach-omap2/twl-common.c:411:2: warning: (near initialization for 'omap4_vdd3_drvdata') [enabled by default]
-arch/arm/mach-omap2/twl-common.c:412:2: error: unknown field 'set_voltage' specified in initializer
-arch/arm/mach-omap2/twl-common.c:412:2: warning: excess elements in struct initializer [enabled by default]
-arch/arm/mach-omap2/twl-common.c:412:2: warning: (near initialization for 'omap4_vdd3_drvdata') [enabled by default]
-arch/arm/mach-omap2/twl-common.c: In function 'omap4_pmic_get_config':
-arch/arm/mach-omap2/twl-common.c:425:3: error: invalid use of undefined type 'struct twl_regulator_driver_data'
-arch/arm/mach-omap2/twl-common.c:431:3: error: invalid use of undefined type 'struct twl_regulator_driver_data'
-arch/arm/mach-omap2/twl-common.c:435:16: error: 'struct twl4030_platform_data' has no member named 'vdd3'
-arch/arm/mach-omap2/twl-common.c:437:3: error: invalid use of undefined type 'struct twl_regulator_driver_data'
-arch/arm/mach-omap2/twl-common.c:438:12: error: 'struct twl4030_platform_data' has no member named 'vdd3'
+Signed-off-by: Paul Walmsley <paul@pwsan.com>
+---
+ arch/arm/mach-omap2/omap_hwmod_2420_data.c |   46 ++++++++++++++++++++++++++--
+ arch/arm/mach-omap2/omap_hwmod_2430_data.c |   11 ++++++-
+ 2 files changed, 53 insertions(+), 4 deletions(-)
 
-Regards,
+diff --git a/arch/arm/mach-omap2/omap_hwmod_2420_data.c b/arch/arm/mach-omap2/omap_hwmod_2420_data.c
+index b01b66a..2c087ff 100644
+--- a/arch/arm/mach-omap2/omap_hwmod_2420_data.c
++++ b/arch/arm/mach-omap2/omap_hwmod_2420_data.c
+@@ -43,10 +43,41 @@
+  * IP blocks
+  */
+ 
+-/* IVA2 (IVA2) */
++/* IVA1 (IVA1) */
++static struct omap_hwmod_class iva1_hwmod_class = {
++	.name		= "iva1",
++};
++
++static struct omap_hwmod_rst_info omap2420_iva_resets[] = {
++	{ .name = "iva", .rst_shift = 8 },
++};
++
+ static struct omap_hwmod omap2420_iva_hwmod = {
+ 	.name		= "iva",
+-	.class		= &iva_hwmod_class,
++	.class		= &iva1_hwmod_class,
++	.clkdm_name	= "iva1_clkdm",
++	.rst_lines	= omap2420_iva_resets,
++	.rst_lines_cnt	= ARRAY_SIZE(omap2420_iva_resets),
++	.main_clk	= "iva1_ifck",
++};
++
++/* DSP */
++static struct omap_hwmod_class dsp_hwmod_class = {
++	.name		= "dsp",
++};
++
++static struct omap_hwmod_rst_info omap2420_dsp_resets[] = {
++	{ .name = "logic", .rst_shift = 0 },
++	{ .name = "mmu", .rst_shift = 1 },
++};
++
++static struct omap_hwmod omap2420_dsp_hwmod = {
++	.name		= "dsp",
++	.class		= &dsp_hwmod_class,
++	.clkdm_name	= "dsp_clkdm",
++	.rst_lines	= omap2420_dsp_resets,
++	.rst_lines_cnt	= ARRAY_SIZE(omap2420_dsp_resets),
++	.main_clk	= "dsp_fck",
+ };
+ 
+ /* I2C common */
+@@ -234,7 +265,15 @@ static struct omap_hwmod_ocp_if omap2420_l4_core__i2c2 = {
+ static struct omap_hwmod_ocp_if omap2420_l3__iva = {
+ 	.master		= &omap2xxx_l3_main_hwmod,
+ 	.slave		= &omap2420_iva_hwmod,
+-	.clk		= "iva1_ifck",
++	.clk		= "core_l3_ck",
++	.user		= OCP_USER_MPU | OCP_USER_SDMA,
++};
++
++/* DSP <- L3 interface */
++static struct omap_hwmod_ocp_if omap2420_l3__dsp = {
++	.master		= &omap2xxx_l3_main_hwmod,
++	.slave		= &omap2420_dsp_hwmod,
++	.clk		= "dsp_ick",
+ 	.user		= OCP_USER_MPU | OCP_USER_SDMA,
+ };
+ 
+@@ -402,6 +441,7 @@ static struct omap_hwmod_ocp_if *omap2420_hwmod_ocp_ifs[] __initdata = {
+ 	&omap2420_l4_core__i2c1,
+ 	&omap2420_l4_core__i2c2,
+ 	&omap2420_l3__iva,
++	&omap2420_l3__dsp,
+ 	&omap2420_l4_wkup__timer1,
+ 	&omap2xxx_l4_core__timer2,
+ 	&omap2xxx_l4_core__timer3,
+diff --git a/arch/arm/mach-omap2/omap_hwmod_2430_data.c b/arch/arm/mach-omap2/omap_hwmod_2430_data.c
+index 23ca551..b359bfb 100644
+--- a/arch/arm/mach-omap2/omap_hwmod_2430_data.c
++++ b/arch/arm/mach-omap2/omap_hwmod_2430_data.c
+@@ -45,9 +45,18 @@
+  */
+ 
+ /* IVA2 (IVA2) */
++static struct omap_hwmod_rst_info omap2430_iva_resets[] = {
++	{ .name = "logic", .rst_shift = 0 },
++	{ .name = "mmu", .rst_shift = 1 },
++};
++
+ static struct omap_hwmod omap2430_iva_hwmod = {
+ 	.name		= "iva",
+ 	.class		= &iva_hwmod_class,
++	.clkdm_name	= "dsp_clkdm",
++	.rst_lines	= omap2430_iva_resets,
++	.rst_lines_cnt	= ARRAY_SIZE(omap2430_iva_resets),
++	.main_clk	= "dsp_fck",
+ };
+ 
+ /* I2C common */
+@@ -599,7 +608,7 @@ static struct omap_hwmod_ocp_if omap2430_l4_core__mcspi3 = {
+ static struct omap_hwmod_ocp_if omap2430_l3__iva = {
+ 	.master		= &omap2xxx_l3_main_hwmod,
+ 	.slave		= &omap2430_iva_hwmod,
+-	.clk		= "dsp_fck",
++	.clk		= "core_l3_ick",
+ 	.user		= OCP_USER_MPU | OCP_USER_SDMA,
+ };
+ 
 
-Tony
+
