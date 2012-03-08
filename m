@@ -1,84 +1,56 @@
-From: "Munegowda, Keshava" <keshava_mgowda@ti.com>
-Subject: Re: [PATCH] ARM: OMAP3: USB: Fix the EHCI ULPI PHY reset issue
-Date: Thu, 8 Mar 2012 20:30:21 +0530
-Message-ID: <CAP05o4KDYqcU+TbMouQGsMaLUjZsJ7G+Anp9RcvUKuoFqQab3g@mail.gmail.com>
-References: <1330077975-31694-1-git-send-email-keshava_mgowda@ti.com>
-	<20120224101632.GL17178@legolas.emea.dhcp.ti.com>
-	<CAP05o4KRUp_W1yXn29TATMDOwMVbX_pWt6iKrrb=2jkOuWij+A@mail.gmail.com>
-	<CAP05o4J1BYN2WkJToswcp4ofagp2mOuPmwWeMfJRwrfS_xEe0Q@mail.gmail.com>
+From: Greg KH <gregkh@linuxfoundation.org>
+Subject: Re: [PATCH 7/7] OMAPDSS: HDMI: hot plug detect fix
+Date: Thu, 8 Mar 2012 07:29:49 -0800
+Message-ID: <20120308152949.GB5277@kroah.com>
+References: <1330604795-29156-1-git-send-email-tomi.valkeinen@ti.com>
+ <1330604795-29156-8-git-send-email-tomi.valkeinen@ti.com>
+ <20120307200146.GA26451@kroah.com>
+ <1331192113.2354.2.camel@deskari>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aog108.obsmtp.com ([74.125.149.199]:44563 "EHLO
-	na3sys009aog108.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753358Ab2CHPA1 convert rfc822-to-8bit
-	(ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Thu, 8 Mar 2012 10:00:27 -0500
-Received: by obqv19 with SMTP id v19so807337obq.20
-        for <linux-omap@vger.kernel.org>; Thu, 08 Mar 2012 07:00:21 -0800 (PST)
-In-Reply-To: <CAP05o4J1BYN2WkJToswcp4ofagp2mOuPmwWeMfJRwrfS_xEe0Q@mail.gmail.com>
+Received: from out5-smtp.messagingengine.com ([66.111.4.29]:51521 "EHLO
+	out5-smtp.messagingengine.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1756738Ab2CHP3v (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 8 Mar 2012 10:29:51 -0500
+Received: from compute2.internal (compute2.nyi.mail.srv.osa [10.202.2.42])
+	by gateway1.nyi.mail.srv.osa (Postfix) with ESMTP id 0E7B521011
+	for <linux-omap@vger.kernel.org>; Thu,  8 Mar 2012 10:29:51 -0500 (EST)
+Content-Disposition: inline
+In-Reply-To: <1331192113.2354.2.camel@deskari>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Samuel Ortiz <sameo@linux.intel.com>
-Cc: linux-omap@vger.kernel.org, linux-usb@vger.kernel.org, parthab@india.ti.com, govindraj.raja@ti.com, balbi@ti.com
+To: Tomi Valkeinen <tomi.valkeinen@ti.com>
+Cc: stable@vger.kernel.org, linux-fbdev@vger.kernel.org, linux-omap@vger.kernel.org, Rob Clark <rob@ti.com>
 
-On Fri, Mar 2, 2012 at 7:36 PM, Munegowda, Keshava
-<keshava_mgowda@ti.com> wrote:
-> On Fri, Feb 24, 2012 at 5:14 PM, Munegowda, Keshava
-> <keshava_mgowda@ti.com> wrote:
->> On Fri, Feb 24, 2012 at 3:46 PM, Felipe Balbi <balbi@ti.com> wrote:
->>> Hi,
->>>
->>> On Fri, Feb 24, 2012 at 03:36:15PM +0530, Keshava Munegowda wrote:
->>>> From: Keshava Munegowda <Keshava_mgowda@ti.com>
->>>>
->>>> It is observed that the echi ports of 3430 sdp board
->>>> are not working due to the random timing of programming
->>>> the associated GPIOs of the ULPI PHYs of the EHCI for reset.
->>>> If the PHYs are reset at during usbhs core driver, host ports will
->>>> not work because EHCI driver is loaded after the resetting PHYs.
->>>> The PHYs should be in reset state while initializing the EHCI
->>>> controller.
->>>> The code which does the GPIO pins associated with the PHYs
->>>> are programmed to reset is moved from the USB host core driver
->>>> to EHCI driver.
->>>>
->>>> Signed-off-by: Keshava Munegowda <keshava_mgowda@ti.com>
->>>> Reviewed-by: Partha Basak <parthab@india.ti.com>
->>>
->>> won't this cause issues with EHCI/OHCI interactions ? I mean, what =
-if
->>> you connect a FS/LS device and port is handed over to OHCI, does OH=
-CI
->>> have any needs to reset the PHY or something similar ?
->>
->> No, it will not cause any issues with EHCI-OHCI issues.
->> But its difficult to comment on this because we don't have port
->> handoff supported
->> in hardware.
->>
->> regards
->> keshava
->
-> Hi Samuel
-> =A0 =A0 =A0 =A0please let me know if you have any comments on this pa=
-tch.
-> This is required patch for omap3 ehci enumeration instabilities.
->
-> Regards
-> Keshava
+On Thu, Mar 08, 2012 at 09:35:13AM +0200, Tomi Valkeinen wrote:
+> On Wed, 2012-03-07 at 12:01 -0800, Greg KH wrote:
+> > On Thu, Mar 01, 2012 at 02:26:35PM +0200, Tomi Valkeinen wrote:
+> > > From: Rob Clark <rob@ti.com>
+> > > 
+> > > The "OMAPDSS: HDMI: PHY burnout fix" commit switched the HDMI driver
+> > > over to using a GPIO for plug detect.  Unfortunately the ->detect()
+> > > method was not also updated, causing HDMI to no longer work for the
+> > > omapdrm driver (because it would actually check if a connection was
+> > > detected before attempting to enable display).
+> > > 
+> > > Signed-off-by: Rob Clark <rob@ti.com>
+> > > Signed-off-by: Tomi Valkeinen <tomi.valkeinen@ti.com>
+> > 
+> > You forgot to tell me what the git commit id is for this patch (it's
+> > ca888a7958b3d808e4efd08ceff88913f4212c69, right?)
+> 
+> Yes, that's the one. It wasn't in Linus's tree yet, only in fbdev tree,
+> so I wasn't sure what the commit id is.
 
-Hi Samuel
-      do you have any comments on this patch?
-=46elipe has reviewed this patch and he is agreed for this patch.
-there are no comments from your side, requesting to push this change
-to mainline.
+Then you should not have sent it to me, as if I were to take it then, I
+could not have :(
 
-regards
-keshava
---
-To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> > And why isn't this needed for the 3.0 kernel as well?
+> 
+> The detect() function is not present in 3.0, so there was nothing to
+> break.
+
+Ok, so everything I've queued up is all that is needed, right?
+
+greg k-h
