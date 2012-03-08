@@ -1,120 +1,44 @@
 From: Rajendra Nayak <rnayak@ti.com>
-Subject: Re: [PATCH 00/15] ARM: OMAP4: hwmod data: add almost all remaining
- IP blocks
-Date: Thu, 08 Mar 2012 17:01:51 +0530
-Message-ID: <4F5898A7.5040005@ti.com>
-References: <20120308104918.14753.69281.stgit@dusk>
+Subject: Re: [PATCH v2 0/6] mmc: omap_hsmmc: Clean up use/abuse of pdev->id
+Date: Thu, 08 Mar 2012 17:18:36 +0530
+Message-ID: <4F589C94.9010601@ti.com>
+References: <1329996409-26861-1-git-send-email-rnayak@ti.com>	<4F476228.7060607@ti.com> <4F54714E.6080805@ti.com>	<4F57312E.4080104@ti.com> <m2pqcoihhu.fsf@bob.laptop.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8;
-	format=flowed
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aog105.obsmtp.com ([74.125.149.75]:55858 "EHLO
-	na3sys009aog105.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751502Ab2CHLb5 (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 8 Mar 2012 06:31:57 -0500
-Received: by mail-yw0-f54.google.com with SMTP id m50so120508yhg.13
-        for <linux-omap@vger.kernel.org>; Thu, 08 Mar 2012 03:31:56 -0800 (PST)
-In-Reply-To: <20120308104918.14753.69281.stgit@dusk>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-mmc-owner@vger.kernel.org>
+In-Reply-To: <m2pqcoihhu.fsf@bob.laptop.org>
+Sender: linux-mmc-owner@vger.kernel.org
+To: Chris Ball <cjb@laptop.org>
+Cc: linux-mmc@vger.kernel.org, linux-omap@vger.kernel.org, balajitk@ti.com, svenkatr@ti.com, linux-arm-kernel@lists.infradead.org, linaro-dev@lists.linaro.org, patches@linaro.org
 List-Id: linux-omap@vger.kernel.org
-To: Paul Walmsley <paul@pwsan.com>
-Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 
-Hi Paul,
+Hi Chris,
 
-On Thursday 08 March 2012 04:21 PM, Paul Walmsley wrote:
-> Hi
+On Wednesday 07 March 2012 08:29 PM, Chris Ball wrote:
+> Hi Rajendra,
 >
-> This series adds basic hwmods for all but one of the remaining
-> OMAP4 IP blocks that can be meaningfully controlled by the
-> kernel.  (The remaining IP block is the USIM - there's a clocking
-> problem that requires further investigation to resolve.)
+> On Wed, Mar 07 2012, Rajendra Nayak wrote:
+>>> Chris, Ping. I am basing my DT support patches on top of these cleanups.
+>>> Would be great if you can have a look and pull them in.
+>>
+>> Chris, just realized the last two requests from me to get this merged
+>> weren't addressed to you directly, but instead you were copied.
+>> Resending with you in 'To', hope this lands in your inbox :)
 >
-> There are a few new boot-time warnings added by this series:
->
-> [    0.280548] omap_hwmod: trace_clk_div_ck: missing clockdomain for =
-trace_clk_div_ck.
-> [    0.302429] omap_hwmod: ddrphy_ck: missing clockdomain for ddrphy_=
-ck.
-> [    0.319519] omap_hwmod: sl2if: cannot be enabled for reset (3)
->
-> These messages will be resolved by subsequent patches, and, while ann=
-oying,
-> should not affect the operation of the system.
->
-> These patches have been boot-tested and suspend-tested on a
-> OMAP44xx PandaBoard.
->
-> The series is intended to apply on the
-> 'hwmod_remove_link_arrays_cleanup_3.4' branch, posted previously.
->
-> These patches are also available via git from git://git.pwsan.com/lin=
-ux-2.6
-> in the branch "hwmod_enable_remaining_hwmods_devel_3.4".
+> Sorry for the delay, thanks for the ping; I've pushed these to mmc-next
+> for 3.4 now.
 
-Could not find this branch on your tree. Found a
-'enable_remaining_omap4_hwmods' instead, but that seems to
-be an old branch.
+There's just one other cleanup patch here [1] to convert all pr_* prints
+in the driver to dev_*. Would be great if you can pick that as well.
 
-regards,
+Thanks,
 Rajendra
->
->
-> - Paul
->
-> ---
->
-> hwmod_enable_remaining_hwmods_devel_3.4
->     text	   data	    bss	    dec	    hex	filename
-> 6590067	 677452	5593500	12861019	 c43e5b	vmlinux.omap2plus_defconfig.=
-orig
-> 6594227	 684620	5593500	12872347	 c46a9b	vmlinux.omap2plus_defconfig
->
-> Beno=C3=AEt Cousson (6):
->        ARM: OMAP4: hwmod data: add GPMC
->        ARM: OMAP4: hwmod data: add the Slimbus IP blocks
->        ARM: OMAP4: hwmod data: add McASP
->        ARM: OMAP4: hwmod data: add remaining USB-related IP blocks
->        ARM: OMAP4: hwmod data: add the OCP-WP IP block
->        ARM: OMAP4: hwmod data: add DEBUGSS skeleton
->
-> Ming Lei (1):
->        ARM: OMAP4: hwmod data: introduce fdif(face detect module) hwm=
-od
->
-> Paul Walmsley (8):
->        ARM: OMAP2+: clockdomains: make {prm,cm}_clkdm common
->        ARM: OMAP4: hwmod data: add HDQ/1-wire
->        ARM: OMAP4: hwmod data: add EMIF1 and 2
->        ARM: OMAP4: hwmod data: add GPU
->        ARM: OMAP4: hwmod data: add some interconnect-related IP block=
-s
->        ARM: OMAP4: hwmod data: add OCM RAM IP block
->        ARM: OMAP4: hwmod data: add System Control Module
->        ARM: OMAP4: hwmod data: add PRCM and related IP blocks
->
->
->   arch/arm/mach-omap2/Makefile                     |    8
->   arch/arm/mach-omap2/clockdomain44xx.c            |    6
->   arch/arm/mach-omap2/clockdomains2xxx_3xxx_data.c |   10
->   arch/arm/mach-omap2/clockdomains44xx_data.c      |    2
->   arch/arm/mach-omap2/clockdomains_common_data.c   |   24
->   arch/arm/mach-omap2/omap_hwmod_44xx_data.c       | 1473 +++++++++++=
-++++++++++-
->   arch/arm/plat-omap/include/plat/omap_hwmod.h     |    1
->   7 files changed, 1443 insertions(+), 81 deletions(-)
->   create mode 100644 arch/arm/mach-omap2/clockdomains_common_data.c
->
->
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-omap"=
- in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
 
---
-To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+[1] http://marc.info/?l=linux-mmc&m=132999677405098&w=3
+
+>
+> Thanks,
+>
+> - Chris.
+
