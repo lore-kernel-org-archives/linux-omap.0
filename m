@@ -1,107 +1,66 @@
-From: Yegor Yefremov <yegor_sub1@visionsystems.de>
-Subject: Re: [PATCH] GPMC: add ECC control definitions
-Date: Thu, 08 Mar 2012 12:10:31 +0100
-Message-ID: <4F5893A7.2070909@visionsystems.de>
-References: <4F1D4CB3.5080803@visionsystems.de> <20120305230334.GM12083@atomide.com>
-Reply-To: yegor_sub1@visionsystems.de
-Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
+From: Tomi Valkeinen <tomi.valkeinen@ti.com>
+Subject: [PATCH 1/2] OMAPDSS: add set_min_bus_tput pointer to omapdss's platform data
+Date: Thu,  8 Mar 2012 13:13:36 +0200
+Message-ID: <1331205217-19927-1-git-send-email-tomi.valkeinen@ti.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from hhlx01.vscom.de ([62.145.30.242]:48632 "EHLO
-	mail.visionsystems.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752132Ab2CHLMz (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 8 Mar 2012 06:12:55 -0500
-In-Reply-To: <20120305230334.GM12083@atomide.com>
+Received: from na3sys009aog109.obsmtp.com ([74.125.149.201]:60820 "EHLO
+	na3sys009aog109.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1752679Ab2CHLOO (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 8 Mar 2012 06:14:14 -0500
+Received: by laap9 with SMTP id p9so374046laa.38
+        for <linux-omap@vger.kernel.org>; Thu, 08 Mar 2012 03:14:11 -0800 (PST)
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Tony Lindgren <tony@atomide.com>
-Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, arm-linux <linux-arm-kernel@lists.infradead.org>
+To: linux-omap@vger.kernel.org
+Cc: archit@ti.com, Tomi Valkeinen <tomi.valkeinen@ti.com>, Paul Walmsley <paul@pwsan.com>, Kevin Hilman <khilman@ti.com>
 
-Am 06.03.2012 00:03, schrieb Tony Lindgren:
-> * Yegor Yefremov <yegor_sub1@visionsystems.de> [120123 03:33]:
->> Signed-off-by: Yegor Yefremov <yegorslists@googlemail.com>
->> ---
->>  arch/arm/mach-omap2/gpmc.c |   30 +++++++++++++++++++++++++-----
->>  1 file changed, 25 insertions(+), 5 deletions(-)
->>
->> Index: b/arch/arm/mach-omap2/gpmc.c
->> ===================================================================
->> --- a/arch/arm/mach-omap2/gpmc.c
->> +++ b/arch/arm/mach-omap2/gpmc.c
->> @@ -50,6 +50,19 @@
->>  #define GPMC_ECC_SIZE_CONFIG	0x1fc
->>  #define GPMC_ECC1_RESULT        0x200
->>  
->> +/* GPMC ECC control settings */
->> +#define GPMC_ECC_CTRL_ECCCLEAR		0x100
->> +#define GPMC_ECC_CTRL_ECCDISABLE	0x000
->> +#define GPMC_ECC_CTRL_ECCREG1		0x001
->> +#define GPMC_ECC_CTRL_ECCREG2		0x002
->> +#define GPMC_ECC_CTRL_ECCREG3		0x003
->> +#define GPMC_ECC_CTRL_ECCREG4		0x004
->> +#define GPMC_ECC_CTRL_ECCREG5		0x005
->> +#define GPMC_ECC_CTRL_ECCREG6		0x006
->> +#define GPMC_ECC_CTRL_ECCREG7		0x007
->> +#define GPMC_ECC_CTRL_ECCREG8		0x008
->> +#define GPMC_ECC_CTRL_ECCREG9		0x009
->> +
->>  #define GPMC_CS0_OFFSET		0x60
->>  #define GPMC_CS_SIZE		0x30
->>  
->> @@ -855,8 +868,9 @@
->>  	gpmc_ecc_used = cs;
->>  
->>  	/* clear ecc and enable bits */
->> -	val = ((0x00000001<<8) | 0x00000001);
->> -	gpmc_write_reg(GPMC_ECC_CONTROL, val);
->> +	gpmc_write_reg(GPMC_ECC_CONTROL,
->> +			GPMC_ECC_CTRL_ECCCLEAR |
->> +			GPMC_ECC_CTRL_ECCREG1);
->>  
->>  	/* program ecc and result sizes */
->>  	val = ((((ecc_size >> 1) - 1) << 22) | (0x0000000F));
->> @@ -864,13 +878,19 @@
->>  
->>  	switch (mode) {
->>  	case GPMC_ECC_READ:
->> -		gpmc_write_reg(GPMC_ECC_CONTROL, 0x101);
->> +		gpmc_write_reg(GPMC_ECC_CONTROL,
->> +				GPMC_ECC_CTRL_ECCCLEAR |
->> +				GPMC_ECC_CTRL_ECCREG1);
->>  		break;
->>  	case GPMC_ECC_READSYN:
->> -		 gpmc_write_reg(GPMC_ECC_CONTROL, 0x100);
->> +		gpmc_write_reg(GPMC_ECC_CONTROL,
->> +				GPMC_ECC_CTRL_ECCCLEAR |
->> +				GPMC_ECC_CTRL_ECCDISABLE);
->>  		break;
->>  	case GPMC_ECC_WRITE:
->> -		gpmc_write_reg(GPMC_ECC_CONTROL, 0x101);
->> +		gpmc_write_reg(GPMC_ECC_CONTROL,
->> +				GPMC_ECC_CTRL_ECCCLEAR |
->> +				GPMC_ECC_CTRL_ECCREG1);
->>  		break;
->>  	default:
->>  		printk(KERN_INFO "Error: Unrecognized Mode[%d]!\n", mode);
->>
-> No functional changes here, right?
->
-> Can GPMC_ECC_READ and GPMC_ECC_WRITE case be combined:
->
-> 	switch (mode) {
-> 	case GPMC_ECC_READ:
-> 	case GPMC_ECC_WRITE:
-> 		gpmc_write_reg(GPMC_ECC_CONTROL,
-> 			GPMC_ECC_CTRL_ECCCLEAR |
-> 			GPMC_ECC_CTRL_ECCREG1);
-> 	break;
-> 	...
+omapdss driver needs to use the omap_pm_set_min_bus_tput(), so add a new
+entry for that in omapdss's platform data, and set it.
 
-You are right. path v2 already sent.
+Signed-off-by: Tomi Valkeinen <tomi.valkeinen@ti.com>
+Cc: Paul Walmsley <paul@pwsan.com>
+Cc: Kevin Hilman <khilman@ti.com>
+---
+ arch/arm/mach-omap2/display.c |    6 ++++++
+ include/video/omapdss.h       |    1 +
+ 2 files changed, 7 insertions(+), 0 deletions(-)
 
-Thanks for review.
-
-Best regards,
-Yegor
+diff --git a/arch/arm/mach-omap2/display.c b/arch/arm/mach-omap2/display.c
+index 3677b1f..a675cab 100644
+--- a/arch/arm/mach-omap2/display.c
++++ b/arch/arm/mach-omap2/display.c
+@@ -179,6 +179,11 @@ static void omap_dsi_disable_pads(int dsi_id, unsigned lane_mask)
+ 		omap4_dsi_mux_pads(dsi_id, 0);
+ }
+ 
++static int omap_dss_set_min_bus_tput(struct device *dev, unsigned long tput)
++{
++	return omap_pm_set_min_bus_tput(dev, OCP_INITIATOR_AGENT, tput);
++}
++
+ int __init omap_display_init(struct omap_dss_board_info *board_data)
+ {
+ 	int r = 0;
+@@ -209,6 +214,7 @@ int __init omap_display_init(struct omap_dss_board_info *board_data)
+ 	pdata.board_data = board_data;
+ 	pdata.board_data->get_context_loss_count =
+ 		omap_pm_get_dev_context_loss_count;
++	pdata.board_data->set_min_bus_tput = omap_dss_set_min_bus_tput;
+ 
+ 	for (i = 0; i < oh_count; i++) {
+ 		oh = omap_hwmod_lookup(curr_dss_hwmod[i].oh_name);
+diff --git a/include/video/omapdss.h b/include/video/omapdss.h
+index 483f67c..7aecadb 100644
+--- a/include/video/omapdss.h
++++ b/include/video/omapdss.h
+@@ -309,6 +309,7 @@ struct omap_dss_board_info {
+ 	struct omap_dss_device *default_device;
+ 	int (*dsi_enable_pads)(int dsi_id, unsigned lane_mask);
+ 	void (*dsi_disable_pads)(int dsi_id, unsigned lane_mask);
++	int (*set_min_bus_tput)(struct device *dev, unsigned long r);
+ };
+ 
+ /* Init with the board info */
+-- 
+1.7.4.1
 
