@@ -1,45 +1,53 @@
-From: Paul Walmsley <paul@pwsan.com>
+From: Kevin Hilman <khilman@ti.com>
 Subject: Re: [PATCH 0/2] ARM: OMAP2+: PM: code consolidation for 3.4
-Date: Thu, 8 Mar 2012 11:18:38 -0700 (MST)
-Message-ID: <alpine.DEB.2.00.1203081115010.9551@utopia.booyaka.com>
-References: <20120202093600.12509.35052.stgit@dusk> <87ty39cc7s.fsf@ti.com> <alpine.DEB.2.00.1202021140060.586@utopia.booyaka.com> <alpine.DEB.2.00.1202021328450.586@utopia.booyaka.com> <CAKd1q9rq67gUyXn+rOL348YwaYQiqHR8UQCSd68fpxhZHHsYGA@mail.gmail.com>
+Date: Thu, 08 Mar 2012 10:27:17 -0800
+Message-ID: <87sjhjaqyi.fsf@ti.com>
+References: <20120202093600.12509.35052.stgit@dusk> <87ty39cc7s.fsf@ti.com>
+	<alpine.DEB.2.00.1202021140060.586@utopia.booyaka.com>
+	<alpine.DEB.2.00.1202021328450.586@utopia.booyaka.com>
+	<CAKd1q9rq67gUyXn+rOL348YwaYQiqHR8UQCSd68fpxhZHHsYGA@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from utopia.booyaka.com ([72.9.107.138]:53270 "EHLO
-	utopia.booyaka.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753662Ab2CHSSj (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 8 Mar 2012 13:18:39 -0500
+Received: from na3sys009aog124.obsmtp.com ([74.125.149.151]:58604 "EHLO
+	na3sys009aog124.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1754006Ab2CHS1R (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 8 Mar 2012 13:27:17 -0500
+Received: by mail-gx0-f181.google.com with SMTP id i4so599590ggn.26
+        for <linux-omap@vger.kernel.org>; Thu, 08 Mar 2012 10:27:16 -0800 (PST)
 In-Reply-To: <CAKd1q9rq67gUyXn+rOL348YwaYQiqHR8UQCSd68fpxhZHHsYGA@mail.gmail.com>
+	(Luciano Coelho's message of "Thu, 8 Mar 2012 14:21:43 +0200")
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: "Coelho, Luciano" <coelho@ti.com>
-Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Kevin Hilman <khilman@ti.com>, santosh.shilimkar@ti.com, rnayak@ti.com
+Cc: Paul Walmsley <paul@pwsan.com>, linux-omap@vger.kernel.org, santosh.shilimkar@ti.com, linux-arm-kernel@lists.infradead.org, rnayak@ti.com
 
-Hi Luciano,
+Hi Luca,
 
-On Thu, 8 Mar 2012, Coelho, Luciano wrote:
+"Coelho, Luciano" <coelho@ti.com> writes:
+
+[...]
 
 > I can't get ttyO2 wakeup to work on my Blaze with 3.3-rc5.  It works
-> fine with 3.2.  I've been trying to bisect and everything, but it's
-> difficult.  To start with, during my bisect, many patches seem to be
-> in a state where the compilation fails (one example is
-> 'OMAP44XX_IRQ_PRCM' undeclared).
-> 
-> Anyway, what I found out is that after fcf6efa3 (ARM: OMAP4: PM: Add
-> WakeupGen module as OMAP gic_arch_extn) wakeup from the console
-> doesn't work anymore for me.  Then I tried to comment out the
-> omap_wakeupgen_init() call in  gic_init_irq() and that seems to
-> work... for a while.  At least until ff819da4 (ARM: OMAP3: CPUidle:
-> Make use of CPU PM notifiers) commenting out that line seems to work.
-> But it doesn't work if I comment out the line with v3.3-rc5.
+> fine with 3.2.  
 
-Maybe try this patch:
+I assume you mean wakeup from system-wide suspend (echo mem > /sys/power/state)?
 
-http://www.spinics.net/lists/linux-omap/msg65786.html
+Are you enabling UART wakeups?
 
-If that doesn't work, could you try to reproduce with omap2plus_defconfig 
-and a boring kernel command line?
+They are disabled by default, so you need to:
 
+echo enabled > /sys/devices/platform/omap/omap_uart.2/tty/ttyO2/power/wakeup
 
-- Paul
+It may work in v3.2 due to the fact that the UART runtime PM had the
+unintended side-effect of essentially disabling MPU and CORE PM.  With
+that bug fixed and MPU & CORE actually hitting low power states, you'll
+need to ensure UART wakeups are enabled.
+
+If you're already enabling wakeups and this still isn't working, try
+adding 'no_console_suspend' to the kernel cmdline, try a suspend/resume
+and post the console output.
+
+Thanks,
+
+Kevin
