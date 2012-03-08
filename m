@@ -1,38 +1,65 @@
-From: Jarkko Nikula <jarkko.nikula@bitmer.com>
-Subject: Re: [PATCH v2 2/3] ARM/ASoC: OMAP McBSP: Move remainig defines from
- arch to ASoC header
-Date: Thu, 08 Mar 2012 11:37:31 +0200
-Message-ID: <4F587DDB.5080202@bitmer.com>
-References: <1331198537-13469-1-git-send-email-peter.ujfalusi@ti.com> <1331198537-13469-3-git-send-email-peter.ujfalusi@ti.com> <4F587C00.1090307@ti.com>
+From: Archit Taneja <a0393947@ti.com>
+Subject: Re: [PATCH 16/21] OMAPDSS: handle output-driver reg/unreg more dynamically
+Date: Thu, 8 Mar 2012 15:20:24 +0530
+Message-ID: <4F5880E0.3040507@ti.com>
+References: <1331124290-6285-1-git-send-email-tomi.valkeinen@ti.com>  <1331124290-6285-17-git-send-email-tomi.valkeinen@ti.com>  <4F586EFD.1020208@ti.com> <1331196364.2354.49.camel@deskari>  <4F587A62.3020202@ti.com> <1331199297.2354.62.camel@deskari>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
+Content-Type: text/plain; charset="UTF-8"; format=flowed
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from bitmer.com ([213.157.87.50]:33990 "EHLO bitmer.com"
+Received: from arroyo.ext.ti.com ([192.94.94.40]:59131 "EHLO arroyo.ext.ti.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1755961Ab2CHJhV (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Thu, 8 Mar 2012 04:37:21 -0500
-In-Reply-To: <4F587C00.1090307@ti.com>
+	id S1755973Ab2CHJum (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Thu, 8 Mar 2012 04:50:42 -0500
+In-Reply-To: <1331199297.2354.62.camel@deskari>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Peter Ujfalusi <peter.ujfalusi@ti.com>
-Cc: Liam Girdwood <lrg@ti.com>, Mark Brown <broonie@opensource.wolfsonmicro.com>, Tony Lindgren <tony@atomide.com>, alsa-devel@alsa-project.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+To: Tomi Valkeinen <tomi.valkeinen@ti.com>
+Cc: linux-omap@vger.kernel.org, linux-fbdev@vger.kernel.org
 
-On 03/08/2012 11:29 AM, Peter Ujfalusi wrote:
-> Hi Jarkko,
-> 
-> On 03/08/2012 11:22 AM, Peter Ujfalusi wrote:
->> Clock signal muxing, and functional clock related defines are only needed
->> in ASoC drivers.
+On Thursday 08 March 2012 03:04 PM, Tomi Valkeinen wrote:
+> On Thu, 2012-03-08 at 14:52 +0530, Archit Taneja wrote:
+>> On Thursday 08 March 2012 02:16 PM, Tomi Valkeinen wrote:
+>>> On Thu, 2012-03-08 at 14:04 +0530, Archit Taneja wrote:
+
+<snip>
+
+>> Oh okay. But the comment after the patch set still says "It's ok if the
+>> output-driver register fails.", we could change it to "It's ok if the
+>> output-driver probe fails."
+>
+> Well, I guess this goes into nitpicking area, but if there are no
+> devices, probe is not called at all. So I think it's the driver register
+> that fails in that case. If there is a device, and it is probed, and
+> that fails, then it's probe which fails.
+
+Yes, that's fair enough I guess.
+
+<snip>
+
 >>
->> Signed-off-by: Peter Ujfalusi <peter.ujfalusi@ti.com>
->> Acked-by: Jarkko Nikula <jarkko.nikula@bitmer.com>
-> 
-> I have added your ack to this patch by accident when I updated the
-> series. Sorry about that.
-> Please confirm if you are OK with this change.
-> 
-Go ahead :-)
+>> If we ensure that none of our probes return ENODEV(even though it may
+>> make sense to return it if a func within probe fails), we could
+>> differentiate between the 2 cases, right?
+>
+> True, I thought about that. But we can never be sure that the functions
+> called by the probe (clk_get, or whatever) won't return ENODEV. Of
+> course, we could check what they return, and change the error to
+> something else, but I'm not sure if that's good either.
 
--- 
-Jarkko
+That's true.
+
+<snip>
+
+> Alternatively, if the platform driver code was changed to tell us
+> clearly if it was the probe that failed or if there just weren't any
+> devices, we could also use that.
+
+Yes, I wonder how that could be done.
+
+Archit
+
+>
+>   Tomi
+>
+
