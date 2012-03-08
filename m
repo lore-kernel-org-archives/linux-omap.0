@@ -1,59 +1,46 @@
-From: Ricardo Neri <ricardo.neri@ti.com>
-Subject: Re: [BUG] Compile error with CONFIG_SND_OMAP_SOC_OMAP4_HDMI
-Date: Thu, 8 Mar 2012 12:49:39 -0600
-Message-ID: <1331232579.2035.6.camel@dexx0075479.dextra-mty.naucm.ext.ti.com>
-References: <8DA1E7C4-0402-4FFF-9896-397513C88329@suse.de>
+From: Paul Walmsley <paul@pwsan.com>
+Subject: Re: [PATCH 0/2] ARM: OMAP2+: PM: code consolidation for 3.4
+Date: Thu, 8 Mar 2012 11:55:26 -0700 (MST)
+Message-ID: <alpine.DEB.2.00.1203081153540.9551@utopia.booyaka.com>
+References: <20120202093600.12509.35052.stgit@dusk> <87ty39cc7s.fsf@ti.com>  <alpine.DEB.2.00.1202021140060.586@utopia.booyaka.com>  <alpine.DEB.2.00.1202021328450.586@utopia.booyaka.com>  <CAKd1q9rq67gUyXn+rOL348YwaYQiqHR8UQCSd68fpxhZHHsYGA@mail.gmail.com>
+  <87sjhjaqyi.fsf@ti.com> <1331232433.18015.69.camel@cumari>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: 7bit
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from comal.ext.ti.com ([198.47.26.152]:40529 "EHLO comal.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751230Ab2CHSub (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Thu, 8 Mar 2012 13:50:31 -0500
-In-Reply-To: <8DA1E7C4-0402-4FFF-9896-397513C88329@suse.de>
+Received: from utopia.booyaka.com ([72.9.107.138]:47153 "EHLO
+	utopia.booyaka.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1757401Ab2CHSz1 (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 8 Mar 2012 13:55:27 -0500
+In-Reply-To: <1331232433.18015.69.camel@cumari>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Alexander Graf <agraf@suse.de>
-Cc: linux-omap@vger.kernel.org, Takashi Iwai <tiwai@suse.de>
+To: Luciano Coelho <coelho@ti.com>
+Cc: Kevin Hilman <khilman@ti.com>, linux-omap@vger.kernel.org, santosh.shilimkar@ti.com, linux-arm-kernel@lists.infradead.org, rnayak@ti.com
 
-Hi Alex,
+On Thu, 8 Mar 2012, Luciano Coelho wrote:
 
-On Thu, 2012-03-08 at 15:08 +0100, Alexander Graf wrote:
-> Hi list,
+> On Thu, 2012-03-08 at 10:27 -0800, Kevin Hilman wrote: 
 > 
-> Trying to compile 3.3-rc6 with the following option combination fails:
+> > Are you enabling UART wakeups?
+> > 
+> > They are disabled by default, so you need to:
+> > 
+> > echo enabled > /sys/devices/platform/omap/omap_uart.2/tty/ttyO2/power/wakeup
 > 
-> CONFIG_SND_OMAP_SOC_OMAP4_HDMI=m
-> CONFIG_SND_OMAP_SOC_HDMI=m
-> CONFIG_OMAP2_DSS=y
-> 
-> drivers/built-in.o: In function `omapdss_hdmihw_remove':
-> /home/abuild/rpmbuild/BUILD/kernel-omap2plus-3.3.rc6/linux-3.3-rc6/drivers/video/omap2/dss/hdmi.c:879: undefined reference to `snd_soc_unregister_codec'
-> drivers/built-in.o: In function `omapdss_hdmihw_probe':
-> /home/abuild/rpmbuild/BUILD/kernel-omap2plus-3.3.rc6/linux-3.3-rc6/drivers/video/omap2/dss/hdmi.c:863: undefined reference to `snd_soc_register_codec'
-> 
-> However, we do want to have DSS compiled into the kernel to ensure that graphics are available, but since audio is not quite as crucial for debugging, that one should live as a module.
-> 
-> According to Takashi, it shouldn't be all that hard to split the HDMI audio code from dss/hdmi.c, but I'm currently lacking the time to do so. If anyone's interested in picking it up, I'd very much appreciate it!
+> No, I was actually not enabling the UART wakeups.  But I tried it now
+> but it still doesn't work. :(
 
-I have started working on moving the HDMI audio part to /sound
-(http://www.spinics.net/lists/linux-omap/msg64477.html) and the
-relocation discussion has lead to proposing an interface to provide
-funtionality in DSS for displays that support audio (DisplayPort and
-HDMI, atm, http://www.spinics.net/lists/linux-omap/msg64744.html).
+You definitely need that.
 
-I am about to send a set of patches to DSS for this and then have the
-audio driver use the proposed DSS functionality.
+> I have no_console_suspend in bootargs.  Without it, it didn't work with
+> 3.2 either.
 
-> 
-> Thanks a lot,
-> 
-> Alex
-> 
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-omap" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+If you want to use no_console_suspend -- which is not recommended -- then 
+you'll need 
+
+http://www.spinics.net/lists/linux-omap/msg65786.html
+
+but best simply not to use no_console_suspend.
 
 
+- Paul
