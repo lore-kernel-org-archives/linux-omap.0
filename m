@@ -1,38 +1,36 @@
-From: Aneesh V <aneesh@ti.com>
-Subject: Re: [PATCH 1/8] OMAP4: hwmod: add EMIF hw mod data
-Date: Thu, 08 Mar 2012 22:13:49 +0530
-Message-ID: <4F58E1C5.5090704@ti.com>
-References: <1331222065-3579-1-git-send-email-aneesh@ti.com> <1331222065-3579-2-git-send-email-aneesh@ti.com> <4F58E13C.8040906@ti.com>
+From: Paul Walmsley <paul@pwsan.com>
+Subject: Re: [PATCH 00/15] ARM: OMAP4: hwmod data: add almost all remaining
+ IP blocks
+Date: Thu, 8 Mar 2012 10:05:58 -0700 (MST)
+Message-ID: <alpine.DEB.2.00.1203081003100.27901@utopia.booyaka.com>
+References: <20120308104918.14753.69281.stgit@dusk> <4F5898A7.5040005@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aog120.obsmtp.com ([74.125.149.140]:34447 "EHLO
-	na3sys009aog120.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1757269Ab2CHQnz (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 8 Mar 2012 11:43:55 -0500
-Received: by mail-gx0-f170.google.com with SMTP id b2so586358ggm.1
-        for <linux-omap@vger.kernel.org>; Thu, 08 Mar 2012 08:43:54 -0800 (PST)
-In-Reply-To: <4F58E13C.8040906@ti.com>
+Received: from utopia.booyaka.com ([72.9.107.138]:46124 "EHLO
+	utopia.booyaka.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753712Ab2CHRF7 (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 8 Mar 2012 12:05:59 -0500
+In-Reply-To: <4F5898A7.5040005@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "Cousson, Benoit" <b-cousson@ti.com>
-Cc: linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org
+To: Rajendra Nayak <rnayak@ti.com>
+Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 
-On Thursday 08 March 2012 10:11 PM, Cousson, Benoit wrote:
-> Hi Aneesh
+Hi Rajendra,
+
+On Thu, 8 Mar 2012, Rajendra Nayak wrote:
+
+> On Thursday 08 March 2012 04:21 PM, Paul Walmsley wrote:
 >
-> On 3/8/2012 4:54 PM, Aneesh V wrote:
->> From: Benoit Cousson<b-cousson@ti.com>
->>
->> Add hwmod data for EMIF IP instances in OMAP4.
->
-> Paul has just posted an OMAP4 hwmod series (ARM: OMAP4: hwmod data: add
-> almost all remaining IP blocks) that does contain the EMIF hwmods, so
-> assuming that you are not adding some custom dev_attr here, it should
-> work for you.
+> > These patches are also available via git from git://git.pwsan.com/linux-2.6
+> > in the branch "hwmod_enable_remaining_hwmods_devel_3.4".
+> 
+> Could not find this branch on your tree. Found a
+> 'enable_remaining_omap4_hwmods' instead, but that seems to
+> be an old branch.
 
-Ok. I will test with that tomorrow and drop this patch.
+Sorry about that.  It should be pushed now.
 
-Thanks,
-Aneesh
+
+- Paul
