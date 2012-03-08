@@ -1,91 +1,44 @@
 From: Aneesh V <aneesh@ti.com>
-Subject: [PATCH 0/8] Add TI EMIF SDRAM controller driver
-Date: Thu,  8 Mar 2012 21:24:17 +0530
-Message-ID: <1331222065-3579-1-git-send-email-aneesh@ti.com>
+Subject: [PATCH 0/4] dt: device tree support for TI EMIF driver
+Date: Thu,  8 Mar 2012 22:03:53 +0530
+Message-ID: <1331224437-4808-1-git-send-email-aneesh@ti.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aog112.obsmtp.com ([74.125.149.207]:55370 "EHLO
-	na3sys009aog112.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1757639Ab2CHP7t (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 8 Mar 2012 10:59:49 -0500
-Received: by mail-gy0-f179.google.com with SMTP id g19so304892ghb.38
-        for <linux-omap@vger.kernel.org>; Thu, 08 Mar 2012 07:59:49 -0800 (PST)
+Received: from na3sys009aog120.obsmtp.com ([74.125.149.140]:37617 "HELO
+	na3sys009aog120.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with SMTP id S1753603Ab2CHQeH (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 8 Mar 2012 11:34:07 -0500
+Received: by mail-gy0-f177.google.com with SMTP id f11so419712ghb.22
+        for <linux-omap@vger.kernel.org>; Thu, 08 Mar 2012 08:34:05 -0800 (PST)
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: linux-kernel@vger.kernel.org
-Cc: linux-omap@vger.kernel.org, Aneesh V <aneesh@ti.com>, Greg KH <greg@kroah.com>
+To: linux-omap@vger.kernel.org
+Cc: devicetree-discuss@lists.ozlabs.org, linux-arm-kernel@lists.infradead.org, Aneesh V <aneesh@ti.com>
 
-Add a driver for the EMIF SDRAM controller used in TI SoCs
+This series adds device tree support for TI EMIF SDRAM controller
+driver. For this, a binding has been added for representing AC timing
+parameters and other details of LPDDR2 memories.
 
-EMIF is an SDRAM controller that supports, based on its revision,
-one or more of LPDDR2/DDR2/DDR3 protocols.This driver adds support
-for LPDDR2.
+This series depends my series for adding EMIF driver [1]
 
-The driver supports the following features:
-- Calculates the DDR AC timing parameters to be set in EMIF
-  registers using data from the device data-sheets and based
-  on the DDR frequency. If data from data-sheets is not available
-  default timing values from the JEDEC spec are used. These
-  will be safe, but not necessarily optimal
-- API for changing timings during DVFS or at boot-up
-- Temperature alert configuration and handling of temperature
-  alerts, if any for LPDDR2 devices
-  * temperature alert is based on periodic polling of MR4 mode
-    register in DDR devices automatically performed by hardware
-  * timings are de-rated and brought back to nominal when
-    temperature raises and falls respectively
-- Cache of calculated register values to avoid re-calculating
-  them
+[1] http://marc.info/?l=linux-omap&m=133122243430942&w=2
 
-The driver will need some minor updates when it is eventually
-integrated with Dynamic Voltage and Frequency Scaling (DVFS).
-This can not be done now as DVFS support is not available in
-the mainline yet.
+Aneesh V (4):
+  dt: device tree bindings for LPDDR2 memories
+  dt: emif: device tree bindings for TI's EMIF sdram controller
+  arm: dts: EMIF and LPDDR2 device tree data for OMAP4 boards
+  misc: emif: add device tree support to emif driver
 
-Discussions with Santosh Shilimkar <santosh.shilimkar@ti.com>
-were immensely helpful in shaping up the interfaces. Vibhore Vardhan
-<vvardhan@gmail.com> did the initial code snippet for thermal
-handling.
-
-Testing: 
-- The driver is tested on OMAP4430 SDP.
-- The driver in a slightly adapted form is also tested on OMAP5.
-- Since mainline kernel doesn't have DVFS support yet,
-  testing was done using a test module.
-- Temperature alert handling was tested with simulated interrupts
-  and faked temperature values as testing all cases in real-life
-  scenarios is difficult.
-- Tested the driver as a module
-
-Cc: Greg KH <greg@kroah.com>
-
-Aneesh V (7):
-  misc: ddr: add LPDDR2 data from JESD209-2
-  misc: emif: add register definitions for EMIF
-  misc: emif: add basic infrastructure for EMIF driver
-  misc: emif: handle frequency and voltage change events
-  misc: emif: add interrupt and temperature handling
-  misc: emif: add one-time settings
-  misc: emif: add debugfs entries for emif
-
-Benoit Cousson (1):
-  OMAP4: hwmod: add EMIF hw mod data
-
- Documentation/misc-devices/ti-emif.txt     |   58 +
- arch/arm/mach-omap2/omap_hwmod_44xx_data.c |  110 ++
- drivers/misc/Kconfig                       |   12 +
- drivers/misc/Makefile                      |    1 +
- drivers/misc/emif.c                        | 1669 ++++++++++++++++++++++++++++
- drivers/misc/emif.h                        |  589 ++++++++++
- include/linux/platform_data/emif_plat.h    |  128 +++
- include/misc/jedec_ddr.h                   |  177 +++
- lib/Kconfig                                |    8 +
- lib/Makefile                               |    3 +
- lib/jedec_ddr_data.c                       |  135 +++
- 11 files changed, 2890 insertions(+), 0 deletions(-)
- create mode 100644 Documentation/misc-devices/ti-emif.txt
- create mode 100644 drivers/misc/emif.c
- create mode 100644 drivers/misc/emif.h
- create mode 100644 include/linux/platform_data/emif_plat.h
- create mode 100644 include/misc/jedec_ddr.h
- create mode 100644 lib/jedec_ddr_data.c
+ .../devicetree/bindings/lpddr2/lpddr2-timings.txt  |   52 ++++
+ .../devicetree/bindings/lpddr2/lpddr2.txt          |  102 +++++++
+ .../bindings/memory-controllers/ti/emif.txt        |   55 ++++
+ arch/arm/boot/dts/elpida_ecb240abacn.dtsi          |   67 +++++
+ arch/arm/boot/dts/omap4-panda.dts                  |   13 +
+ arch/arm/boot/dts/omap4-sdp.dts                    |   13 +
+ arch/arm/boot/dts/omap4.dtsi                       |   18 ++
+ drivers/misc/emif.c                                |  289 +++++++++++++++++++-
+ 8 files changed, 608 insertions(+), 1 deletions(-)
+ create mode 100644 Documentation/devicetree/bindings/lpddr2/lpddr2-timings.txt
+ create mode 100644 Documentation/devicetree/bindings/lpddr2/lpddr2.txt
+ create mode 100644 Documentation/devicetree/bindings/memory-controllers/ti/emif.txt
+ create mode 100644 arch/arm/boot/dts/elpida_ecb240abacn.dtsi
 
