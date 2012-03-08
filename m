@@ -1,42 +1,43 @@
-From: Rajendra Nayak <rnayak@ti.com>
-Subject: Re: [PATCH v2 0/6] mmc: omap_hsmmc: Clean up use/abuse of pdev->id
-Date: Thu, 08 Mar 2012 08:41:13 +0530
-Message-ID: <4F582351.3080805@ti.com>
-References: <1329996409-26861-1-git-send-email-rnayak@ti.com>	<4F476228.7060607@ti.com> <4F54714E.6080805@ti.com>	<4F57312E.4080104@ti.com> <m2pqcoihhu.fsf@bob.laptop.org>
+From: "DebBarma, Tarun Kanti" <tarun.kanti@ti.com>
+Subject: Re: [PATCH v3 10/13] gpio/omap: fix missing dataout context save in _set_gpio_dataout_reg
+Date: Thu, 8 Mar 2012 09:04:27 +0530
+Message-ID: <CAC83ZvKuOfd3kxJSdsU2W_si92zzAOn+gpvLAcVOfPdsEH8+gA@mail.gmail.com>
+References: <1331118963-26364-1-git-send-email-tarun.kanti@ti.com>
+	<1331118963-26364-11-git-send-email-tarun.kanti@ti.com>
+	<4F574EA6.4000807@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=ISO-8859-1
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aog103.obsmtp.com ([74.125.149.71]:40010 "EHLO
-	na3sys009aog103.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751268Ab2CHDLW (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 7 Mar 2012 22:11:22 -0500
-Received: by mail-gx0-f172.google.com with SMTP id i1so22796ggm.17
-        for <linux-omap@vger.kernel.org>; Wed, 07 Mar 2012 19:11:22 -0800 (PST)
-In-Reply-To: <m2pqcoihhu.fsf@bob.laptop.org>
+Received: from na3sys009aog110.obsmtp.com ([74.125.149.203]:50365 "EHLO
+	na3sys009aog110.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1751302Ab2CHDe2 (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 7 Mar 2012 22:34:28 -0500
+Received: by mail-qy0-f173.google.com with SMTP id c20so46126qcs.32
+        for <linux-omap@vger.kernel.org>; Wed, 07 Mar 2012 19:34:27 -0800 (PST)
+In-Reply-To: <4F574EA6.4000807@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Chris Ball <cjb@laptop.org>
-Cc: linux-mmc@vger.kernel.org, linux-omap@vger.kernel.org, balajitk@ti.com, svenkatr@ti.com, linux-arm-kernel@lists.infradead.org, linaro-dev@lists.linaro.org, patches@linaro.org
+To: Santosh Shilimkar <santosh.shilimkar@ti.com>
+Cc: linux-omap@vger.kernel.org, khilman@ti.com, tony@atomide.com, linux-arm-kernel@lists.infradead.org
 
-On Wednesday 07 March 2012 08:29 PM, Chris Ball wrote:
-> Hi Rajendra,
->
-> On Wed, Mar 07 2012, Rajendra Nayak wrote:
->>> Chris, Ping. I am basing my DT support patches on top of these cleanups.
->>> Would be great if you can have a look and pull them in.
+On Wed, Mar 7, 2012 at 5:33 PM, Santosh Shilimkar
+<santosh.shilimkar@ti.com> wrote:
+> On Wednesday 07 March 2012 12:16 PM, Tarun Kanti DebBarma wrote:
+>> There are two functions, _set_gpio_dataout_reg() and _set_gpio_dataout_mask()
+>> which writes to dataout register and the dataout context must be saved.
+>> It is missing in the first function, _set_gpio_dataout_reg(). Fix this.
 >>
->> Chris, just realized the last two requests from me to get this merged
->> weren't addressed to you directly, but instead you were copied.
->> Resending with you in 'To', hope this lands in your inbox :)
+>> Reported-by: Govindraj Raja <govindraj.raja@ti.com>
+>> Signed-off-by: Tarun Kanti DebBarma <tarun.kanti@ti.com>
+>> ---
+> Good catch. Is the suspend/resume caught this issue?
+That's right.
+--
+Tarun
 >
-> Sorry for the delay, thanks for the ping; I've pushed these to mmc-next
-> for 3.4 now.
-
-Great, thanks Chris.
-
+> This can go as a fix as well.
 >
-> Thanks,
+> Reviewed-by: Santosh Shilimkar <santosh.shilimkar@ti.com>
 >
-> - Chris.
-
+> Regards
+> Santosh
