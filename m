@@ -1,92 +1,131 @@
 From: Paul Walmsley <paul@pwsan.com>
-Subject: [PATCH 00/15] ARM: OMAP4: hwmod data: add almost all remaining IP
- blocks
-Date: Thu, 08 Mar 2012 03:51:23 -0700
-Message-ID: <20120308104918.14753.69281.stgit@dusk>
+Subject: [PATCH 03/15] ARM: OMAP4: hwmod data: add HDQ/1-wire
+Date: Thu, 08 Mar 2012 03:51:29 -0700
+Message-ID: <20120308105127.14753.19376.stgit@dusk>
+References: <20120308104918.14753.69281.stgit@dusk>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=utf-8
 Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from utopia.booyaka.com ([72.9.107.138]:47038 "EHLO
+Received: from utopia.booyaka.com ([72.9.107.138]:47048 "EHLO
 	utopia.booyaka.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752575Ab2CHKxf (ORCPT
+	with ESMTP id S1752679Ab2CHKxf (ORCPT
 	<rfc822;linux-omap@vger.kernel.org>); Thu, 8 Mar 2012 05:53:35 -0500
+In-Reply-To: <20120308104918.14753.69281.stgit@dusk>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+Cc: =?utf-8?q?Beno=C3=AEt?= Cousson <b-cousson@ti.com>
 
-Hi
+Add the HDQ/1-wire hwmod and associated interconnect data.  The
+HDQ/1-wire IP block is a low-speed serial interconnect.
 
-This series adds basic hwmods for all but one of the remaining
-OMAP4 IP blocks that can be meaningfully controlled by the
-kernel.  (The remaining IP block is the USIM - there's a clocking
-problem that requires further investigation to resolve.)
-
-There are a few new boot-time warnings added by this series:
-
-[    0.280548] omap_hwmod: trace_clk_div_ck: missing clockdomain for tr=
-ace_clk_div_ck.
-[    0.302429] omap_hwmod: ddrphy_ck: missing clockdomain for ddrphy_ck=
-=2E
-[    0.319519] omap_hwmod: sl2if: cannot be enabled for reset (3)
-
-These messages will be resolved by subsequent patches, and, while annoy=
-ing,
-should not affect the operation of the system.
-
-These patches have been boot-tested and suspend-tested on a
-OMAP44xx PandaBoard.
-
-The series is intended to apply on the
-'hwmod_remove_link_arrays_cleanup_3.4' branch, posted previously.
-
-These patches are also available via git from git://git.pwsan.com/linux=
--2.6
-in the branch "hwmod_enable_remaining_hwmods_devel_3.4".
-
-
-- Paul
-
+Signed-off-by: Paul Walmsley <paul@pwsan.com>
+Signed-off-by: Beno=C3=AEt Cousson <b-cousson@ti.com>
 ---
+ arch/arm/mach-omap2/omap_hwmod_44xx_data.c |   61 ++++++++++++++++++++=
+++++++++
+ 1 files changed, 60 insertions(+), 1 deletions(-)
 
-hwmod_enable_remaining_hwmods_devel_3.4
-   text	   data	    bss	    dec	    hex	filename
-6590067	 677452	5593500	12861019	 c43e5b	vmlinux.omap2plus_defconfig.or=
-ig
-6594227	 684620	5593500	12872347	 c46a9b	vmlinux.omap2plus_defconfig
-
-Beno=C3=AEt Cousson (6):
-      ARM: OMAP4: hwmod data: add GPMC
-      ARM: OMAP4: hwmod data: add the Slimbus IP blocks
-      ARM: OMAP4: hwmod data: add McASP
-      ARM: OMAP4: hwmod data: add remaining USB-related IP blocks
-      ARM: OMAP4: hwmod data: add the OCP-WP IP block
-      ARM: OMAP4: hwmod data: add DEBUGSS skeleton
-
-Ming Lei (1):
-      ARM: OMAP4: hwmod data: introduce fdif(face detect module) hwmod
-
-Paul Walmsley (8):
-      ARM: OMAP2+: clockdomains: make {prm,cm}_clkdm common
-      ARM: OMAP4: hwmod data: add HDQ/1-wire
-      ARM: OMAP4: hwmod data: add EMIF1 and 2
-      ARM: OMAP4: hwmod data: add GPU
-      ARM: OMAP4: hwmod data: add some interconnect-related IP blocks
-      ARM: OMAP4: hwmod data: add OCM RAM IP block
-      ARM: OMAP4: hwmod data: add System Control Module
-      ARM: OMAP4: hwmod data: add PRCM and related IP blocks
-
-
- arch/arm/mach-omap2/Makefile                     |    8=20
- arch/arm/mach-omap2/clockdomain44xx.c            |    6=20
- arch/arm/mach-omap2/clockdomains2xxx_3xxx_data.c |   10=20
- arch/arm/mach-omap2/clockdomains44xx_data.c      |    2=20
- arch/arm/mach-omap2/clockdomains_common_data.c   |   24=20
- arch/arm/mach-omap2/omap_hwmod_44xx_data.c       | 1473 ++++++++++++++=
-+++++++-
- arch/arm/plat-omap/include/plat/omap_hwmod.h     |    1=20
- 7 files changed, 1443 insertions(+), 81 deletions(-)
- create mode 100644 arch/arm/mach-omap2/clockdomains_common_data.c
+diff --git a/arch/arm/mach-omap2/omap_hwmod_44xx_data.c b/arch/arm/mach=
+-omap2/omap_hwmod_44xx_data.c
+index 7f42431..ae87401 100644
+--- a/arch/arm/mach-omap2/omap_hwmod_44xx_data.c
++++ b/arch/arm/mach-omap2/omap_hwmod_44xx_data.c
+@@ -264,7 +264,6 @@ static struct omap_hwmod omap44xx_mpu_private_hwmod=
+ =3D {
+  *  emif2
+  *  gpmc
+  *  gpu
+- *  hdq1w
+  *  mcasp
+  *  mpu_c0
+  *  mpu_c1
+@@ -1057,6 +1056,47 @@ static struct omap_hwmod omap44xx_gpio6_hwmod =3D=
+ {
+ };
+=20
+ /*
++ * 'hdq1w' class
++ * hdq / 1-wire serial interface controller
++ */
++
++static struct omap_hwmod_class_sysconfig omap44xx_hdq1w_sysc =3D {
++	.rev_offs	=3D 0x0000,
++	.sysc_offs	=3D 0x0014,
++	.syss_offs	=3D 0x0018,
++	.sysc_flags	=3D (SYSC_HAS_AUTOIDLE | SYSC_HAS_SOFTRESET |
++			   SYSS_HAS_RESET_STATUS),
++	.sysc_fields	=3D &omap_hwmod_sysc_type1,
++};
++
++static struct omap_hwmod_class omap44xx_hdq1w_hwmod_class =3D {
++	.name	=3D "hdq1w",
++	.sysc	=3D &omap44xx_hdq1w_sysc,
++};
++
++/* hdq1w */
++static struct omap_hwmod_irq_info omap44xx_hdq1w_irqs[] =3D {
++	{ .irq =3D 58 + OMAP44XX_IRQ_GIC_START },
++	{ .irq =3D -1 }
++};
++
++static struct omap_hwmod omap44xx_hdq1w_hwmod =3D {
++	.name		=3D "hdq1w",
++	.class		=3D &omap44xx_hdq1w_hwmod_class,
++	.clkdm_name	=3D "l4_per_clkdm",
++	.flags		=3D HWMOD_INIT_NO_RESET, /* XXX temporary */
++	.mpu_irqs	=3D omap44xx_hdq1w_irqs,
++	.main_clk	=3D "hdq1w_fck",
++	.prcm =3D {
++		.omap4 =3D {
++			.clkctrl_offs =3D OMAP4_CM_L4PER_HDQ1W_CLKCTRL_OFFSET,
++			.context_offs =3D OMAP4_RM_L4PER_HDQ1W_CONTEXT_OFFSET,
++			.modulemode   =3D MODULEMODE_SWCTRL,
++		},
++	},
++};
++
++/*
+  * 'hsi' class
+  * mipi high-speed synchronous serial interface (multichannel and full=
+-duplex
+  * serial if)
+@@ -3672,6 +3712,24 @@ static struct omap_hwmod_ocp_if omap44xx_l4_per_=
+_gpio6 =3D {
+ 	.user		=3D OCP_USER_MPU | OCP_USER_SDMA,
+ };
+=20
++static struct omap_hwmod_addr_space omap44xx_hdq1w_addrs[] =3D {
++	{
++		.pa_start	=3D 0x480b2000,
++		.pa_end		=3D 0x480b201f,
++		.flags		=3D ADDR_TYPE_RT
++	},
++	{ }
++};
++
++/* l4_per -> hdq1w */
++static struct omap_hwmod_ocp_if omap44xx_l4_per__hdq1w =3D {
++	.master		=3D &omap44xx_l4_per_hwmod,
++	.slave		=3D &omap44xx_hdq1w_hwmod,
++	.clk		=3D "l4_div_ck",
++	.addr		=3D omap44xx_hdq1w_addrs,
++	.user		=3D OCP_USER_MPU | OCP_USER_SDMA,
++};
++
+ static struct omap_hwmod_addr_space omap44xx_hsi_addrs[] =3D {
+ 	{
+ 		.pa_start	=3D 0x4a058000,
+@@ -4770,6 +4828,7 @@ static struct omap_hwmod_ocp_if *omap44xx_hwmod_o=
+cp_ifs[] __initdata =3D {
+ 	&omap44xx_l4_per__gpio4,
+ 	&omap44xx_l4_per__gpio5,
+ 	&omap44xx_l4_per__gpio6,
++	&omap44xx_l4_per__hdq1w,
+ 	&omap44xx_l4_cfg__hsi,
+ 	&omap44xx_l4_per__i2c1,
+ 	&omap44xx_l4_per__i2c2,
 
 
 --
