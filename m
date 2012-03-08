@@ -1,88 +1,174 @@
-From: "Hiremath, Vaibhav" <hvaibhav@ti.com>
-Subject: RE: [PATCH-V2 2/2] arm:omap:am33xx: Add power domain data
-Date: Thu, 8 Mar 2012 16:39:57 +0000
-Message-ID: <79CD15C6BA57404B839C016229A409A83180D786@DBDE01.ent.ti.com>
-References: <1324803628-16790-1-git-send-email-hvaibhav@ti.com>
- <1324803628-16790-3-git-send-email-hvaibhav@ti.com>
- <alpine.DEB.2.00.1202291839130.12752@utopia.booyaka.com>
- <79CD15C6BA57404B839C016229A409A8317E515D@DBDE01.ent.ti.com>
- <alpine.DEB.2.00.1203012330490.22980@utopia.booyaka.com>
- <79CD15C6BA57404B839C016229A409A8317E6763@DBDE01.ent.ti.com>
- <alpine.DEB.2.00.1203020337330.15424@utopia.booyaka.com>
+From: "Cousson, Benoit" <b-cousson@ti.com>
+Subject: Re: [PATCH 1/8] OMAP4: hwmod: add EMIF hw mod data
+Date: Thu, 8 Mar 2012 17:41:32 +0100
+Message-ID: <4F58E13C.8040906@ti.com>
+References: <1331222065-3579-1-git-send-email-aneesh@ti.com> <1331222065-3579-2-git-send-email-aneesh@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
+Content-Type: text/plain; charset="ISO-8859-1"; format=flowed
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from comal.ext.ti.com ([198.47.26.152]:60326 "EHLO comal.ext.ti.com"
+Received: from comal.ext.ti.com ([198.47.26.152]:60453 "EHLO comal.ext.ti.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1757269Ab2CHQkG convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 8 Mar 2012 11:40:06 -0500
-In-Reply-To: <alpine.DEB.2.00.1203020337330.15424@utopia.booyaka.com>
-Content-Language: en-US
+	id S1757269Ab2CHQle (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Thu, 8 Mar 2012 11:41:34 -0500
+In-Reply-To: <1331222065-3579-2-git-send-email-aneesh@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Paul Walmsley <paul@pwsan.com>
-Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "Hilman, Kevin" <khilman@ti.com>, "tony@atomide.com" <tony@atomide.com>, "Nayak, Rajendra" <rnayak@ti.com>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, "Mohammed, Afzal" <afzal@ti.com>
+To: Aneesh V <aneesh@ti.com>
+Cc: linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org
 
-On Fri, Mar 02, 2012 at 16:16:47, Paul Walmsley wrote:
-> Hi
-> 
-> On Fri, 2 Mar 2012, Hiremath, Vaibhav wrote:
-> 
-> > Paul,
-> > Thanks for your review comments, can we also align on the approach, 
-> > Whether to merge am33xx powerdomain with omap4 (same direction we are now)
-> > OR
-> > Have separate implementation (my original approach).
-> 
-> Could you please take a look at the "am335x_prcm_devel_3.4" branch on 
-> git://git.pwsan.com/linux-2.6 and let me know what you think?
-> 
-> It is still rough, incomplete, and compile-tested only; and the patch 
-> commit messages have to be updated and revised; but I think it is a 
-> slightly better approach.
-> 
+Hi Aneesh
 
-Paul,
+On 3/8/2012 4:54 PM, Aneesh V wrote:
+> From: Benoit Cousson<b-cousson@ti.com>
+>
+> Add hwmod data for EMIF IP instances in OMAP4.
 
-Sorry for delayed response, was bit stuck with some baseport thing.
+Paul has just posted an OMAP4 hwmod series (ARM: OMAP4: hwmod data: add 
+almost all remaining IP blocks) that does contain the EMIF hwmods, so 
+assuming that you are not adding some custom dev_attr here, it should 
+work for you.
+
+Regards,
+Benoit
 
 
-I have reviewed the changes from your above branch. And as I mentioned 
-before, it looks closer to my earlier approach + some good and important 
-changes/cleanups.
 
-> A significant change is that the prminst code changes have been removed.  
-> That is only needed when PRM registers are spread across multiple PRCM IP 
-> blocks.  
-
-Make sense actually...I don't know, why didn't thought about this before...
-
-> This does not appear to be the case with AM33xx?  So the 
-> implementation has been modified to create a prm33xx.c file instead.  
-> This avoids an extra, unnecessary layer of indirection for PRM accesses.
-> 
-> This, along with the other differences between OMAP4 and this chip, means 
-> that a separate powerdomain33xx.c file had to be created.
-> 
-> The powerdomains33xx_data.c file is still missing the bitmask position 
-> data, but the structure members are there.
-> 
-
-Yeah, I understand, I think without this it won't be usefule. I will also get this done in next (aligned) changes.
-
-> Feel free to combine, rework, or merge this series with what you are 
-> working on if you feel that it is a good approach.  Otherwise, let's 
-> discuss.
-> 
-
-Thanks, Thanks a lot for your time/support/review, as always its helpful.
-
-
-Thanks,
-Vaibhav
-
-> 
-> - Paul
-> 
+>
+> Signed-off-by: Benoit Cousson<b-cousson@ti.com>
+> ---
+> Changes since RFC:
+> - Improved commit log
+> ---
+>   arch/arm/mach-omap2/omap_hwmod_44xx_data.c |  110 ++++++++++++++++++++++++++++
+>   1 files changed, 110 insertions(+), 0 deletions(-)
+>
+> diff --git a/arch/arm/mach-omap2/omap_hwmod_44xx_data.c b/arch/arm/mach-omap2/omap_hwmod_44xx_data.c
+> index f9f1510..2b107c7 100644
+> --- a/arch/arm/mach-omap2/omap_hwmod_44xx_data.c
+> +++ b/arch/arm/mach-omap2/omap_hwmod_44xx_data.c
+> @@ -5480,6 +5480,111 @@ static struct omap_hwmod omap44xx_usb_tll_hs_hwmod = {
+>   	.slaves_cnt	= ARRAY_SIZE(omap44xx_usb_tll_hs_slaves),
+>   };
+>
+> +/*
+> + * 'emif' class
+> + * external memory interface no1
+> + */
+> +
+> +static struct omap_hwmod_class omap44xx_emif_hwmod_class = {
+> +	.name	= "emif",
+> +};
+> +
+> +/* emif1 */
+> +static struct omap_hwmod omap44xx_emif1_hwmod;
+> +static struct omap_hwmod_irq_info omap44xx_emif1_irqs[] = {
+> +	{ .irq = 110 + OMAP44XX_IRQ_GIC_START },
+> +	{ .irq = -1 }
+> +};
+> +
+> +static struct omap_hwmod_addr_space omap44xx_emif1_addrs[] = {
+> +	{
+> +		.pa_start	= 0x4c000000,
+> +		.pa_end		= 0x4c0000ff,
+> +		.flags		= ADDR_TYPE_RT
+> +	},
+> +	{ }
+> +};
+> +
+> +/* emif_fw ->  emif1 */
+> +static struct omap_hwmod_ocp_if omap44xx_emif_fw__emif1 = {
+> +	.master		=&omap44xx_emif_fw_hwmod,
+> +	.slave		=&omap44xx_emif1_hwmod,
+> +	.clk		= "l3_div_ck",
+> +	.addr		= omap44xx_emif1_addrs,
+> +	.user		= OCP_USER_MPU | OCP_USER_SDMA,
+> +};
+> +
+> +/* emif1 slave ports */
+> +static struct omap_hwmod_ocp_if *omap44xx_emif1_slaves[] = {
+> +	&omap44xx_emif_fw__emif1,
+> +};
+> +
+> +static struct omap_hwmod omap44xx_emif1_hwmod = {
+> +	.name		= "emif1",
+> +	.class		=&omap44xx_emif_hwmod_class,
+> +	.flags		= HWMOD_INIT_NO_IDLE | HWMOD_INIT_NO_RESET,
+> +	.mpu_irqs	= omap44xx_emif1_irqs,
+> +	.main_clk	= "emif1_fck",
+> +	.clkdm_name	= "l3_emif_clkdm",
+> +	.prcm		= {
+> +		.omap4 = {
+> +			.clkctrl_offs = OMAP4_CM_MEMIF_EMIF_1_CLKCTRL_OFFSET,
+> +			.context_offs = OMAP4_RM_MEMIF_EMIF_1_CONTEXT_OFFSET,
+> +			.modulemode   = MODULEMODE_HWCTRL,
+> +		},
+> +	},
+> +	.slaves		= omap44xx_emif1_slaves,
+> +	.slaves_cnt	= ARRAY_SIZE(omap44xx_emif1_slaves),
+> +};
+> +
+> +/* emif2 */
+> +static struct omap_hwmod omap44xx_emif2_hwmod;
+> +static struct omap_hwmod_irq_info omap44xx_emif2_irqs[] = {
+> +	{ .irq = 111 + OMAP44XX_IRQ_GIC_START },
+> +	{ .irq = -1 }
+> +};
+> +
+> +static struct omap_hwmod_addr_space omap44xx_emif2_addrs[] = {
+> +	{
+> +		.pa_start	= 0x4d000000,
+> +		.pa_end		= 0x4d0000ff,
+> +		.flags		= ADDR_TYPE_RT
+> +	},
+> +	{ }
+> +};
+> +
+> +/* emif_fw ->  emif2 */
+> +static struct omap_hwmod_ocp_if omap44xx_emif_fw__emif2 = {
+> +	.master		=&omap44xx_emif_fw_hwmod,
+> +	.slave		=&omap44xx_emif2_hwmod,
+> +	.clk		= "l3_div_ck",
+> +	.addr		= omap44xx_emif2_addrs,
+> +	.user		= OCP_USER_MPU | OCP_USER_SDMA,
+> +};
+> +
+> +/* emif2 slave ports */
+> +static struct omap_hwmod_ocp_if *omap44xx_emif2_slaves[] = {
+> +	&omap44xx_emif_fw__emif2,
+> +};
+> +
+> +static struct omap_hwmod omap44xx_emif2_hwmod = {
+> +	.name		= "emif2",
+> +	.class		=&omap44xx_emif_hwmod_class,
+> +	.flags		= HWMOD_INIT_NO_IDLE | HWMOD_INIT_NO_RESET,
+> +	.mpu_irqs	= omap44xx_emif2_irqs,
+> +	.main_clk	= "emif2_fck",
+> +	.clkdm_name	= "l3_emif_clkdm",
+> +	.prcm		= {
+> +		.omap4 = {
+> +			.clkctrl_offs = OMAP4_CM_MEMIF_EMIF_1_CLKCTRL_OFFSET,
+> +			.context_offs = OMAP4_RM_MEMIF_EMIF_1_CONTEXT_OFFSET,
+> +			.modulemode   = MODULEMODE_HWCTRL,
+> +		}
+> +	},
+> +	.slaves		= omap44xx_emif2_slaves,
+> +	.slaves_cnt	= ARRAY_SIZE(omap44xx_emif2_slaves),
+> +};
+> +
+>   static __initdata struct omap_hwmod *omap44xx_hwmods[] = {
+>
+>   	/* dmm class */
+> @@ -5629,6 +5734,11 @@ static __initdata struct omap_hwmod *omap44xx_hwmods[] = {
+>   	/* wd_timer class */
+>   	&omap44xx_wd_timer2_hwmod,
+>   	&omap44xx_wd_timer3_hwmod,
+> +
+> +	/* emif class */
+> +	&omap44xx_emif1_hwmod,
+> +	&omap44xx_emif2_hwmod,
+> +
+>   	NULL,
+>   };
+>
 
