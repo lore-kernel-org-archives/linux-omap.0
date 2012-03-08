@@ -1,194 +1,91 @@
-From: Rob Herring <robherring2@gmail.com>
-Subject: Re: [PATCH v2 1/4] mmc: omap_hsmmc: Convert hsmmc driver to use device
- tree
-Date: Thu, 08 Mar 2012 09:58:13 -0600
-Message-ID: <4F58D715.5080708@gmail.com>
-References: <1329998490-27555-1-git-send-email-rnayak@ti.com> <1329998490-27555-2-git-send-email-rnayak@ti.com> <4F582B79.60001@ti.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-mmc-owner@vger.kernel.org>
-In-Reply-To: <4F582B79.60001@ti.com>
-Sender: linux-mmc-owner@vger.kernel.org
-To: Rajendra Nayak <rnayak@ti.com>
-Cc: Grant Likely <grant.likely@secretlab.ca>, linux-mmc@vger.kernel.org, cjb@laptop.org, devicetree-discuss@lists.ozlabs.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, balajitk@ti.com, svenkatr@ti.com, linaro-dev@lists.linaro.org
+From: Aneesh V <aneesh@ti.com>
+Subject: [PATCH 0/8] Add TI EMIF SDRAM controller driver
+Date: Thu,  8 Mar 2012 21:24:17 +0530
+Message-ID: <1331222065-3579-1-git-send-email-aneesh@ti.com>
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from na3sys009aog112.obsmtp.com ([74.125.149.207]:55370 "EHLO
+	na3sys009aog112.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1757639Ab2CHP7t (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 8 Mar 2012 10:59:49 -0500
+Received: by mail-gy0-f179.google.com with SMTP id g19so304892ghb.38
+        for <linux-omap@vger.kernel.org>; Thu, 08 Mar 2012 07:59:49 -0800 (PST)
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: linux-kernel@vger.kernel.org
+Cc: linux-omap@vger.kernel.org, Aneesh V <aneesh@ti.com>, Greg KH <greg@kroah.com>
 
-On 03/07/2012 09:46 PM, Rajendra Nayak wrote:
-> Hi Rob/Grant,
-> 
-> On Thursday 23 February 2012 05:31 PM, Rajendra Nayak wrote:
->> Define dt bindings for the ti-omap-hsmmc, and adapt
->> the driver to extract data (which was earlier passed as
->> platform_data) from device tree.
-> 
-> Any comments on these bindings for omap hsmmc? All the dependent
-> patches/series on which this series was based have now made it to
-> the respective -next of Mark and Chris.
-> 
+Add a driver for the EMIF SDRAM controller used in TI SoCs
 
-Acked-by: Rob Herring <rob.herring@calxeda.com>
+EMIF is an SDRAM controller that supports, based on its revision,
+one or more of LPDDR2/DDR2/DDR3 protocols.This driver adds support
+for LPDDR2.
 
-> 
->>
->> Signed-off-by: Rajendra Nayak<rnayak@ti.com>
->> ---
->>   .../devicetree/bindings/mmc/ti-omap-hsmmc.txt      |   31 +++++++++
->>   drivers/mmc/host/omap_hsmmc.c                      |   68
->> ++++++++++++++++++++
->>   2 files changed, 99 insertions(+), 0 deletions(-)
->>   create mode 100644
->> Documentation/devicetree/bindings/mmc/ti-omap-hsmmc.txt
->>
->> diff --git a/Documentation/devicetree/bindings/mmc/ti-omap-hsmmc.txt
->> b/Documentation/devicetree/bindings/mmc/ti-omap-hsmmc.txt
->> new file mode 100644
->> index 0000000..e4fa8f0
->> --- /dev/null
->> +++ b/Documentation/devicetree/bindings/mmc/ti-omap-hsmmc.txt
->> @@ -0,0 +1,31 @@
->> +* TI Highspeed MMC host controller for OMAP
->> +
->> +The Highspeed MMC Host Controller on TI OMAP family
->> +provides an interface for MMC, SD, and SDIO types of memory cards.
->> +
->> +Required properties:
->> +- compatible:
->> + Should be "ti,omap2-hsmmc", for OMAP2/3 controllers
->> + Should be "ti,omap4-hsmmc", for OMAP4 controllers
->> +- ti,hwmods: Must be "mmc<n>", n is controller instance starting 1
->> +- reg : should contain hsmmc registers location and length
->> +
->> +Optional properties:
->> +ti,dual-volt: boolean, supports dual voltage cards
->> +<supply-name>-supply: phandle to the regulator device tree node
->> +"supply-name" examples are "vmmc", "vmmc_aux" etc
->> +ti,bus-width: Number of data lines, default assumed is 1 if the
->> property is missing.
->> +cd-gpios: GPIOs for card detection
->> +wp-gpios: GPIOs for write protection
->> +ti,non-removable: non-removable slot (like eMMC)
->> +
->> +Example:
->> +    mmc1: mmc@0x4809c000 {
->> +        compatible = "ti,omap4-hsmmc";
->> +        reg =<0x4809c000 0x400>;
->> +        ti,hwmods = "mmc1";
->> +        ti,dual-volt;
->> +        ti,bus-width =<4>;
->> +        vmmc-supply =<&vmmc>; /* phandle to regulator node */
->> +        ti,non-removable;
->> +    };
->> diff --git a/drivers/mmc/host/omap_hsmmc.c
->> b/drivers/mmc/host/omap_hsmmc.c
->> index 35f6dc1..0c93d58 100644
->> --- a/drivers/mmc/host/omap_hsmmc.c
->> +++ b/drivers/mmc/host/omap_hsmmc.c
->> @@ -26,6 +26,9 @@
->>   #include<linux/platform_device.h>
->>   #include<linux/timer.h>
->>   #include<linux/clk.h>
->> +#include<linux/of.h>
->> +#include<linux/of_gpio.h>
->> +#include<linux/of_device.h>
->>   #include<linux/mmc/host.h>
->>   #include<linux/mmc/core.h>
->>   #include<linux/mmc/mmc.h>
->> @@ -1718,6 +1721,46 @@ static void omap_hsmmc_debugfs(struct mmc_host
->> *mmc)
->>
->>   #endif
->>
->> +#ifdef CONFIG_OF
->> +static struct omap_mmc_platform_data *of_get_hsmmc_pdata(struct
->> device *dev)
->> +{
->> +    struct omap_mmc_platform_data *pdata;
->> +    struct device_node *np = dev->of_node;
->> +    u32 bus_width;
->> +
->> +    pdata = devm_kzalloc(dev, sizeof(*pdata), GFP_KERNEL);
->> +    if (!pdata)
->> +        return NULL; /* out of memory */
->> +
->> +    if (of_find_property(np, "ti,dual-volt", NULL))
->> +        pdata->controller_flags |= OMAP_HSMMC_SUPPORTS_DUAL_VOLT;
->> +
->> +    /* This driver only supports 1 slot */
->> +    pdata->nr_slots = 1;
->> +    pdata->slots[0].switch_pin = of_get_named_gpio(np, "cd-gpios", 0);
->> +    pdata->slots[0].gpio_wp = of_get_named_gpio(np, "wp-gpios", 0);
->> +
->> +    if (of_find_property(np, "ti,non-removable", NULL)) {
->> +        pdata->slots[0].nonremovable = true;
->> +        pdata->slots[0].no_regulator_off_init = true;
->> +    }
->> +    of_property_read_u32(np, "ti,bus-width",&bus_width);
->> +    if (bus_width == 4)
->> +        pdata->slots[0].caps |= MMC_CAP_4_BIT_DATA;
->> +    else if (bus_width == 8)
->> +        pdata->slots[0].caps |= MMC_CAP_8_BIT_DATA;
->> +    return pdata;
->> +}
->> +#else
->> +static inline struct omap_mmc_platform_data
->> +            *of_get_hsmmc_pdata(struct device *dev)
->> +{
->> +    return NULL;
->> +}
->> +#endif
->> +
->> +static const struct of_device_id omap_mmc_of_match[];
->> +
->>   static int __init omap_hsmmc_probe(struct platform_device *pdev)
->>   {
->>       struct omap_mmc_platform_data *pdata = pdev->dev.platform_data;
->> @@ -1725,6 +1768,14 @@ static int __init omap_hsmmc_probe(struct
->> platform_device *pdev)
->>       struct omap_hsmmc_host *host = NULL;
->>       struct resource *res;
->>       int ret, irq;
->> +    const struct of_device_id *match;
->> +
->> +    match = of_match_device(omap_mmc_of_match,&pdev->dev);
->> +    if (match) {
->> +        pdata = of_get_hsmmc_pdata(&pdev->dev);
->> +        if (match->data)
->> +            pdata->reg_offset = *(u16 *)match->data;
->> +    }
->>
->>       if (pdata == NULL) {
->>           dev_err(&pdev->dev, "Platform Data is missing\n");
->> @@ -2120,12 +2171,29 @@ static struct dev_pm_ops omap_hsmmc_dev_pm_ops
->> = {
->>       .runtime_resume = omap_hsmmc_runtime_resume,
->>   };
->>
->> +#if defined(CONFIG_OF)
->> +static u16 omap4_reg_offset = 0x100;
->> +
->> +static const struct of_device_id omap_mmc_of_match[] = {
->> +    {
->> +        .compatible = "ti,omap2-hsmmc",
->> +    },
->> +    {
->> +        .compatible = "ti,omap4-hsmmc",
->> +        .data =&omap4_reg_offset,
->> +    },
->> +    {},
->> +}
->> +MODULE_DEVICE_TABLE(of, omap_mmc_of_match);
->> +#endif
->> +
->>   static struct platform_driver omap_hsmmc_driver = {
->>       .remove        = omap_hsmmc_remove,
->>       .driver        = {
->>           .name = DRIVER_NAME,
->>           .owner = THIS_MODULE,
->>           .pm =&omap_hsmmc_dev_pm_ops,
->> +        .of_match_table = of_match_ptr(omap_mmc_of_match),
->>       },
->>   };
->>
-> 
+The driver supports the following features:
+- Calculates the DDR AC timing parameters to be set in EMIF
+  registers using data from the device data-sheets and based
+  on the DDR frequency. If data from data-sheets is not available
+  default timing values from the JEDEC spec are used. These
+  will be safe, but not necessarily optimal
+- API for changing timings during DVFS or at boot-up
+- Temperature alert configuration and handling of temperature
+  alerts, if any for LPDDR2 devices
+  * temperature alert is based on periodic polling of MR4 mode
+    register in DDR devices automatically performed by hardware
+  * timings are de-rated and brought back to nominal when
+    temperature raises and falls respectively
+- Cache of calculated register values to avoid re-calculating
+  them
+
+The driver will need some minor updates when it is eventually
+integrated with Dynamic Voltage and Frequency Scaling (DVFS).
+This can not be done now as DVFS support is not available in
+the mainline yet.
+
+Discussions with Santosh Shilimkar <santosh.shilimkar@ti.com>
+were immensely helpful in shaping up the interfaces. Vibhore Vardhan
+<vvardhan@gmail.com> did the initial code snippet for thermal
+handling.
+
+Testing: 
+- The driver is tested on OMAP4430 SDP.
+- The driver in a slightly adapted form is also tested on OMAP5.
+- Since mainline kernel doesn't have DVFS support yet,
+  testing was done using a test module.
+- Temperature alert handling was tested with simulated interrupts
+  and faked temperature values as testing all cases in real-life
+  scenarios is difficult.
+- Tested the driver as a module
+
+Cc: Greg KH <greg@kroah.com>
+
+Aneesh V (7):
+  misc: ddr: add LPDDR2 data from JESD209-2
+  misc: emif: add register definitions for EMIF
+  misc: emif: add basic infrastructure for EMIF driver
+  misc: emif: handle frequency and voltage change events
+  misc: emif: add interrupt and temperature handling
+  misc: emif: add one-time settings
+  misc: emif: add debugfs entries for emif
+
+Benoit Cousson (1):
+  OMAP4: hwmod: add EMIF hw mod data
+
+ Documentation/misc-devices/ti-emif.txt     |   58 +
+ arch/arm/mach-omap2/omap_hwmod_44xx_data.c |  110 ++
+ drivers/misc/Kconfig                       |   12 +
+ drivers/misc/Makefile                      |    1 +
+ drivers/misc/emif.c                        | 1669 ++++++++++++++++++++++++++++
+ drivers/misc/emif.h                        |  589 ++++++++++
+ include/linux/platform_data/emif_plat.h    |  128 +++
+ include/misc/jedec_ddr.h                   |  177 +++
+ lib/Kconfig                                |    8 +
+ lib/Makefile                               |    3 +
+ lib/jedec_ddr_data.c                       |  135 +++
+ 11 files changed, 2890 insertions(+), 0 deletions(-)
+ create mode 100644 Documentation/misc-devices/ti-emif.txt
+ create mode 100644 drivers/misc/emif.c
+ create mode 100644 drivers/misc/emif.h
+ create mode 100644 include/linux/platform_data/emif_plat.h
+ create mode 100644 include/misc/jedec_ddr.h
+ create mode 100644 lib/jedec_ddr_data.c
 
