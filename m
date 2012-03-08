@@ -1,98 +1,96 @@
-From: Archit Taneja <a0393947@ti.com>
-Subject: Re: [PATCH 16/21] OMAPDSS: handle output-driver reg/unreg more dynamically
-Date: Thu, 8 Mar 2012 14:52:42 +0530
-Message-ID: <4F587A62.3020202@ti.com>
-References: <1331124290-6285-1-git-send-email-tomi.valkeinen@ti.com>  <1331124290-6285-17-git-send-email-tomi.valkeinen@ti.com>  <4F586EFD.1020208@ti.com> <1331196364.2354.49.camel@deskari>
+From: Peter Ujfalusi <peter.ujfalusi@ti.com>
+Subject: Re: [PATCH v2 2/3] ARM/ASoC: OMAP McBSP: Move remainig defines from
+ arch to ASoC header
+Date: Thu, 08 Mar 2012 11:29:36 +0200
+Message-ID: <4F587C00.1090307@ti.com>
+References: <1331198537-13469-1-git-send-email-peter.ujfalusi@ti.com> <1331198537-13469-3-git-send-email-peter.ujfalusi@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from devils.ext.ti.com ([198.47.26.153]:49878 "EHLO
-	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755877Ab2CHJW7 (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 8 Mar 2012 04:22:59 -0500
-In-Reply-To: <1331196364.2354.49.camel@deskari>
+Received: from na3sys009aog103.obsmtp.com ([74.125.149.71]:43961 "EHLO
+	na3sys009aog103.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1755252Ab2CHJ3l (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 8 Mar 2012 04:29:41 -0500
+Received: by mail-lpp01m010-f46.google.com with SMTP id j13so344698lah.5
+        for <linux-omap@vger.kernel.org>; Thu, 08 Mar 2012 01:29:40 -0800 (PST)
+In-Reply-To: <1331198537-13469-3-git-send-email-peter.ujfalusi@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Tomi Valkeinen <tomi.valkeinen@ti.com>
-Cc: linux-omap@vger.kernel.org, linux-fbdev@vger.kernel.org
+To: Liam Girdwood <lrg@ti.com>, Mark Brown <broonie@opensource.wolfsonmicro.com>, Tony Lindgren <tony@atomide.com>, Jarkko Nikula <jarkko.nikula@bitmer.com>
+Cc: alsa-devel@alsa-project.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 
-On Thursday 08 March 2012 02:16 PM, Tomi Valkeinen wrote:
-> On Thu, 2012-03-08 at 14:04 +0530, Archit Taneja wrote:
->> On Wednesday 07 March 2012 06:14 PM, Tomi Valkeinen wrote:
->
->>> -	r = hdmi_init_platform_driver();
->>> -	if (r) {
->>> -		DSSERR("Failed to initialize hdmi\n");
->>> -		goto err_hdmi;
->>> +	/*
->>> +	 * It's ok if the output-driver register fails. It happens, for example,
->>> +	 * when there is no output-device (e.g. SDI for OMAP4).
->>> +	 */
->>
->> Suppose we do a omap2plus_defconfig, CONFIG_OMAP2_DSS_SDI would be
->> selected, and sdi.c would be built, if we boot on OMAP4, why would a sdi
->> driver register cause a failure? Wouldn't the sdi driver just get
->> registered, and wait till eternity for the corresponding sdi platform
->> device to get registered?
->
-> No. Well, yes.
->
-> Currently we use platform_driver_register() to register the drivers, and
-> it does just what you described. But a few patches later I change
-> platform_driver_register() to platform_driver_probe(), which will return
-> ENODEV if there are no matching devices for the driver.
->
-> I originally had the platform_driver_probe() patch before this patch,
-> and thus the comment above made sense. Now the patch is after this
-> patch, so the comment is not exactly right until the probe patch is also
-> applied.
+Hi Jarkko,
 
-Oh okay. But the comment after the patch set still says "It's ok if the 
-output-driver register fails.", we could change it to "It's ok if the 
-output-driver probe fails."
+On 03/08/2012 11:22 AM, Peter Ujfalusi wrote:
+> Clock signal muxing, and functional clock related defines are only ne=
+eded
+> in ASoC drivers.
+>=20
+> Signed-off-by: Peter Ujfalusi <peter.ujfalusi@ti.com>
+> Acked-by: Jarkko Nikula <jarkko.nikula@bitmer.com>
 
->
-> The point with platform_driver_probe() is that it can be used with
-> non-removable devices which are created at boot time, like the DSS
-> components. With platform_driver_probe() the probe function is called
-> only at that one time, and never afterwards. So probe can be in __init
-> section, and thrown away after init.
+I have added your ack to this patch by accident when I updated the
+series. Sorry about that.
+Please confirm if you are OK with this change.
 
-So platform_driver_probe() is like a driver_register() + probe().
+Sorry again,
+P=E9ter
 
-Okay, in our case, all the devices are created at boot time, and if 
-omapdss were a module, the probes would have been thrown away after 
-module_init(), right?
-
->
-> One side effect of using platform_driver_probe() is that it returns
-> ENODEV is there are no devices. In a simple module, the error can be
-> then returned from module_init, thus causing the whole module to be
-> unloaded. Our case is a bit more complex as we have multiple drivers in
-> the same module.
->
-> A downside with that is that we don't really know if the ENODEV error
-> happened because there were no devices (which is ok), or if it came from
-> probe function (which is not so ok). However, I thought that it doesn't
-> matter if an output driver has failed. We can still continue with the
-> other output drivers just fine.
-
-If we ensure that none of our probes return ENODEV(even though it may 
-make sense to return it if a func within probe fails), we could 
-differentiate between the 2 cases, right?
-
->
-> Actually, there is a small problem. If, for example, DSI driver fails to
-> load, and DPI driver tries to use DSI PLL...
-
-If we could differentiate between an error occuring because the device 
-doesn't exist and an error occuring because the probe failed, we could 
-bail out if any of the probes fail, right?
-
-Archit
-
->
->   Tomi
->
-
+> ---
+>  arch/arm/plat-omap/include/plat/mcbsp.h |   12 ------------
+>  sound/soc/omap/mcbsp.h                  |   12 ++++++++++++
+>  2 files changed, 12 insertions(+), 12 deletions(-)
+>=20
+> diff --git a/arch/arm/plat-omap/include/plat/mcbsp.h b/arch/arm/plat-=
+omap/include/plat/mcbsp.h
+> index 8eb9b0e..1881412 100644
+> --- a/arch/arm/plat-omap/include/plat/mcbsp.h
+> +++ b/arch/arm/plat-omap/include/plat/mcbsp.h
+> @@ -31,18 +31,6 @@
+>  #define MCBSP_CONFIG_TYPE3	0x3
+>  #define MCBSP_CONFIG_TYPE4	0x4
+> =20
+> -/* CLKR signal muxing options */
+> -#define CLKR_SRC_CLKR		0
+> -#define CLKR_SRC_CLKX		1
+> -
+> -/* FSR signal muxing options */
+> -#define FSR_SRC_FSR		0
+> -#define FSR_SRC_FSX		1
+> -
+> -/* McBSP functional clock sources */
+> -#define MCBSP_CLKS_PRCM_SRC	0
+> -#define MCBSP_CLKS_PAD_SRC	1
+> -
+>  /* Platform specific configuration */
+>  struct omap_mcbsp_ops {
+>  	void (*request)(unsigned int);
+> diff --git a/sound/soc/omap/mcbsp.h b/sound/soc/omap/mcbsp.h
+> index a5518d7..acc9470 100644
+> --- a/sound/soc/omap/mcbsp.h
+> +++ b/sound/soc/omap/mcbsp.h
+> @@ -230,6 +230,18 @@ enum {
+>  #define XRDYEN			BIT(10)
+>  #define XEMPTYEOFEN		BIT(14)
+> =20
+> +/* CLKR signal muxing options */
+> +#define CLKR_SRC_CLKR		0
+> +#define CLKR_SRC_CLKX		1
+> +
+> +/* FSR signal muxing options */
+> +#define FSR_SRC_FSR		0
+> +#define FSR_SRC_FSX		1
+> +
+> +/* McBSP functional clock sources */
+> +#define MCBSP_CLKS_PRCM_SRC	0
+> +#define MCBSP_CLKS_PAD_SRC	1
+> +
+>  /* we don't do multichannel for now */
+>  struct omap_mcbsp_reg_cfg {
+>  	u16 spcr2;
+--
+To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
