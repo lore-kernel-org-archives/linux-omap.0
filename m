@@ -1,36 +1,57 @@
-From: Paul Walmsley <paul@pwsan.com>
-Subject: Re: [PATCH 00/15] ARM: OMAP4: hwmod data: add almost all remaining
- IP blocks
-Date: Thu, 8 Mar 2012 10:05:58 -0700 (MST)
-Message-ID: <alpine.DEB.2.00.1203081003100.27901@utopia.booyaka.com>
-References: <20120308104918.14753.69281.stgit@dusk> <4F5898A7.5040005@ti.com>
+From: Tony Lindgren <tony@atomide.com>
+Subject: [GIT PULL] few more fixes for v3.3-rc6
+Date: Thu, 8 Mar 2012 10:04:41 -0800
+Message-ID: <20120308180441.GT12083@atomide.com>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from utopia.booyaka.com ([72.9.107.138]:46124 "EHLO
-	utopia.booyaka.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753712Ab2CHRF7 (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 8 Mar 2012 12:05:59 -0500
-In-Reply-To: <4F5898A7.5040005@ti.com>
-Sender: linux-omap-owner@vger.kernel.org
-List-Id: linux-omap@vger.kernel.org
-To: Rajendra Nayak <rnayak@ti.com>
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
+Content-Disposition: inline
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
+List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
+List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
+Sender: linux-arm-kernel-bounces@lists.infradead.org
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
+To: Arnd Bergmann <arnd@arndb.de>, Olof Johansson <olof@lixom.net>
 Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+List-Id: linux-omap@vger.kernel.org
 
-Hi Rajendra,
+Hi Arnd & Olof,
 
-On Thu, 8 Mar 2012, Rajendra Nayak wrote:
+Here are few more fixes for the current -rc cycle if there's
+still enough time to get them in.
 
-> On Thursday 08 March 2012 04:21 PM, Paul Walmsley wrote:
->
-> > These patches are also available via git from git://git.pwsan.com/linux-2.6
-> > in the branch "hwmod_enable_remaining_hwmods_devel_3.4".
-> 
-> Could not find this branch on your tree. Found a
-> 'enable_remaining_omap4_hwmods' instead, but that seems to
-> be an old branch.
+Regards,
 
-Sorry about that.  It should be pushed now.
+Tony
 
 
-- Paul
+The following changes since commit 192cfd58774b4d17b2fe8bdc77d89c2ef4e0591d:
+  Linus Torvalds (1):
+        Linux 3.3-rc6
+
+are available in the git repository at:
+
+  git://git.kernel.org/pub/scm/linux/kernel/git/tmlind/linux-omap fixes
+
+Cousson, Benoit (1):
+      ARM: OMAP: irqs: Fix NR_IRQS value to handle PRCM interrupts
+
+R Sricharan (1):
+      ARM: OMAP2+: Fix module build errors with CONFIG_OMAP4_ERRATA_I688
+
+Rajendra Nayak (1):
+      ARM: OMAP2+: Remove apply_uV constraints for fixed regulator
+
+Vaibhav Hiremath (1):
+      ARM: OMAP: id: Add missing break statement in omap3xxx_check_revision
+
+ arch/arm/mach-omap2/id.c               |    1 +
+ arch/arm/mach-omap2/omap4-common.c     |    2 ++
+ arch/arm/mach-omap2/twl-common.c       |    1 -
+ arch/arm/plat-omap/include/plat/irqs.h |   10 +++++++++-
+ 4 files changed, 12 insertions(+), 2 deletions(-)
