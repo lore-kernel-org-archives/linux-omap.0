@@ -1,49 +1,45 @@
 From: Tony Lindgren <tony@atomide.com>
-Subject: Re: Latest OMAP4 build errors
-Date: Wed, 7 Mar 2012 19:34:40 -0800
-Message-ID: <20120308033439.GR12083@atomide.com>
-References: <20120228090209.GC18045@n2100.arm.linux.org.uk>
- <CAK=WgbZEDr_fYSonBQr3XNcTx5vefsH7LJfqycaxsqg-yechWQ@mail.gmail.com>
- <20120306165545.GB15392@n2100.arm.linux.org.uk>
- <201203061701.54141.arnd@arndb.de>
- <20120307100615.GA17404@n2100.arm.linux.org.uk>
- <20120307171044.GE12083@atomide.com>
- <CAOesGMiNSyc9F+Wf5pXPG=hRAfnG6aMHtccLBwvekuB3HpyevQ@mail.gmail.com>
- <20120307224459.GJ12083@atomide.com>
- <20120307234308.GA20364@n2100.arm.linux.org.uk>
+Subject: [PATCH] ARM: OMAP2+: Fix section warnings for hsmmc_init_one
+Date: Wed, 7 Mar 2012 19:37:04 -0800
+Message-ID: <20120308033703.GS12083@atomide.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-01-ewr.mailhop.org ([204.13.248.71]:14755 "EHLO
+Received: from mho-01-ewr.mailhop.org ([204.13.248.71]:26386 "EHLO
 	mho-01-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752271Ab2CHDeq (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 7 Mar 2012 22:34:46 -0500
+	with ESMTP id S1754212Ab2CHDhF (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 7 Mar 2012 22:37:05 -0500
 Content-Disposition: inline
-In-Reply-To: <20120307234308.GA20364@n2100.arm.linux.org.uk>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Russell King - ARM Linux <linux@arm.linux.org.uk>
-Cc: Olof Johansson <olof@lixom.net>, Arnd Bergmann <arnd@arndb.de>, Ohad Ben-Cohen <ohad@wizery.com>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+To: linux-omap@vger.kernel.org
+Cc: linux-arm-kernel@lists.infradead.org
 
-* Russell King - ARM Linux <linux@arm.linux.org.uk> [120307 15:11]:
-> On Wed, Mar 07, 2012 at 02:44:59PM -0800, Tony Lindgren wrote:
-> > OK thanks, will do that next time if there's something urgent.
-> > 
-> > I'll send a pull request shortly for fixes-non-critical-part2 that
-> > should sort out the remaining issues.
-> 
-> FYI, I've just updated the build tree with what's in arm-soc (as of
-> a couple of minutes ago), which contained a bunch of OMAP updates, so
-> I'm hopeful that tomorrows results should show an improvement.
-> 
-> It'll start its run in about 2h20.
+From: Tony Lindgren <tony@atomide.com>
+Date: Wed, 7 Mar 2012 18:54:24 -0800
+Subject: [PATCH] ARM: OMAP2+: Fix section warnings for hsmmc_init_one
 
-Looks like there one new section warning with omap_hsmmc_init_one
-depending on the compiler. I'll post a fix for that.
+Otherwise we can get the following error depending on
+the compiler:
 
-Not seeing that with codesourcery/linaro compilers, but seeing
-with the emdebian gcc 4.3.5.
+WARNING: arch/arm/mach-omap2/built-in.o(.text+0xafe0):
+Section mismatch in reference from the function omap_hsmmc_init_one()
+to the function .init.text:omap_hsmmc_pdata_init()
+The function omap_hsmmc_init_one() references
+the function __init omap_hsmmc_pdata_init().
+This is often because omap_hsmmc_init_one lacks a __init
+annotation or the annotation of omap_hsmmc_pdata_init is wrong.
 
-Regards,
+Signed-off-by: Tony Lindgren <tony@atomide.com>
 
-Tony
+--- a/arch/arm/mach-omap2/hsmmc.c
++++ b/arch/arm/mach-omap2/hsmmc.c
+@@ -466,7 +466,7 @@ void omap_hsmmc_late_init(struct omap2_hsmmc_info *c)
+ 
+ #define MAX_OMAP_MMC_HWMOD_NAME_LEN		16
+ 
+-static void omap_hsmmc_init_one(struct omap2_hsmmc_info *hsmmcinfo,
++static void __init omap_hsmmc_init_one(struct omap2_hsmmc_info *hsmmcinfo,
+ 					int ctrl_nr)
+ {
+ 	struct omap_hwmod *oh;
