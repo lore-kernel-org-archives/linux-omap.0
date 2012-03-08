@@ -1,78 +1,90 @@
-From: Govindraj <govindraj.ti@gmail.com>
-Subject: Re: help: BeagleBoard xM RevC ethernet port
-Date: Thu, 8 Mar 2012 11:43:47 +0530
-Message-ID: <CAAL8m4zH3EntrAd83g1Dn_SQdpu7XcCQZvaB7=qzxmBReFMaaA@mail.gmail.com>
-References: <4F3E0EB7.9060803@ti.com> <874nuizfyf.fsf@ti.com>
- <4F4613B7.8010601@kynesim.co.uk> <4F4B9405.9070702@ti.com>
- <CAAL8m4x=6--5irPBPdW4n0dtYuMm_UThqWEuCSyTtsm+cEx4jQ@mail.gmail.com>
- <CAOCHtYjVhbmi1=S6TZLQTUAb=cf0e5xSzZWyt3sSd0=ANhh_LA@mail.gmail.com>
- <alpine.DEB.2.02.1202291205270.18906@heelrod.ad.cirrus.com>
- <CAAL8m4yDQRdp5Ar+GoNHsD1_pmBGToF9qbapAhWAvHnOM0Dg9w@mail.gmail.com>
- <alpine.DEB.2.02.1203071437480.3784@heelrod.ad.cirrus.com> <alpine.DEB.2.02.1203071456040.3784@heelrod.ad.cirrus.com>
+From: "Shilimkar, Santosh" <santosh.shilimkar@ti.com>
+Subject: Re: [PATCH v3 12/13] gpio/omap: fix incorrect context restore logic
+ in omap_gpio_runtime_resume
+Date: Thu, 8 Mar 2012 08:19:15 +0100
+Message-ID: <CAMQu2gzgM=Hc4fis5AsgL50e2KLttTR79iroOtExGecU7F50yw@mail.gmail.com>
+References: <1331118963-26364-1-git-send-email-tarun.kanti@ti.com>
+ <1331118963-26364-13-git-send-email-tarun.kanti@ti.com> <4F574F95.7090801@ti.com>
+ <CAC83ZvLFoSppTiPw-_a=z_Mnpmk6nHeaadTShdJP8RpDWh9TLg@mail.gmail.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-lpp01m010-f46.google.com ([209.85.215.46]:35992 "EHLO
-	mail-lpp01m010-f46.google.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751976Ab2CHGOI convert rfc822-to-8bit
+Received: from na3sys009aog118.obsmtp.com ([74.125.149.244]:57761 "EHLO
+	na3sys009aog118.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1751282Ab2CHHTq convert rfc822-to-8bit
 	(ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Thu, 8 Mar 2012 01:14:08 -0500
-Received: by lahj13 with SMTP id j13so146792lah.19
-        for <linux-omap@vger.kernel.org>; Wed, 07 Mar 2012 22:14:07 -0800 (PST)
-In-Reply-To: <alpine.DEB.2.02.1203071456040.3784@heelrod.ad.cirrus.com>
+	Thu, 8 Mar 2012 02:19:46 -0500
+Received: by qcsu28 with SMTP id u28so151930qcs.8
+        for <linux-omap@vger.kernel.org>; Wed, 07 Mar 2012 23:19:35 -0800 (PST)
+In-Reply-To: <CAC83ZvLFoSppTiPw-_a=z_Mnpmk6nHeaadTShdJP8RpDWh9TLg@mail.gmail.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Brian Austin <brian.austin@cirrus.com>
-Cc: Robert Nelson <robertcnelson@gmail.com>, Peter Ujfalusi <peter.ujfalusi@ti.com>, Richard Watts <rrw@kynesim.co.uk>, Kevin Hilman <khilman@ti.com>, linux-omap <linux-omap@vger.kernel.org>, balbi@ti.com
+To: "DebBarma, Tarun Kanti" <tarun.kanti@ti.com>
+Cc: linux-omap@vger.kernel.org, khilman@ti.com, tony@atomide.com, linux-arm-kernel@lists.infradead.org
 
-On Thu, Mar 8, 2012 at 2:26 AM, Brian Austin <brian.austin@cirrus.com> =
-wrote:
-> On Wed, 7 Mar 2012, Brian Austin wrote:
->
->> On Thu, 1 Mar 2012, Govindraj wrote:
+On Thu, Mar 8, 2012 at 4:58 AM, DebBarma, Tarun Kanti
+<tarun.kanti@ti.com> wrote:
+> On Wed, Mar 7, 2012 at 5:37 PM, Santosh Shilimkar
+> <santosh.shilimkar@ti.com> wrote:
+>> On Wednesday 07 March 2012 12:16 PM, Tarun Kanti DebBarma wrote:
+>>> In omap_gpio_runtime_resume() the context restore should be indepen=
+dent
+>>> of bank->enabled_non_wakeup_gpios. This was preventing context rest=
+ore
+>>> of GPIO lines which are not wakeup enabled.
+>>>
+>>> Reported-by: Govindraj Raja <govindraj.raja@ti.com>
+>>> Signed-off-by: Tarun Kanti DebBarma <tarun.kanti@ti.com>
+>>> ---
+>>> =A0drivers/gpio/gpio-omap.c | =A0 =A02 +-
+>>> =A01 files changed, 1 insertions(+), 1 deletions(-)
+>>>
+>>> diff --git a/drivers/gpio/gpio-omap.c b/drivers/gpio/gpio-omap.c
+>>> index 2e8e476..ccfbae0 100644
+>>> --- a/drivers/gpio/gpio-omap.c
+>>> +++ b/drivers/gpio/gpio-omap.c
+>>> @@ -1227,7 +1227,7 @@ static int omap_gpio_runtime_resume(struct de=
+vice *dev)
+>>> =A0 =A0 =A0 __raw_writel(bank->context.risingdetect,
+>>> =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0bank->base + bank->regs->ris=
+ingdetect);
+>>>
+>>> - =A0 =A0 if (!bank->enabled_non_wakeup_gpios || !bank->workaround_=
+enabled) {
+>>> + =A0 =A0 if (!bank->workaround_enabled) {
+>> This doesn't seem to be right.
+>> Don't you want to avoid GPIO restore for banks which are in
+>> always on domain. Infact the purpose of "enabled_non_wakeup_gpios"
+>> is exactly that ? Isn't it.
 >>
->>> On Wed, Feb 29, 2012 at 11:36 PM, Brian Austin <brian.austin@cirrus=
-=2Ecom>
->>> wrote:
->>>>
->>>> Applying this patch gives this on my beagleboard xM revC
->>>>
->>>> Linux debian 3.3.0-rc4
->>>>
->>>> Unable to set up timer: unexpected error
->>>> Failed to bring up eth0.
->>>
->>>
->>> Works for me on 3.3-rc4 + sent patch on beagle xm revc
->>>
->>> here this the log [1]
->>>
->>> Ensure you have selected following for ehci
->>> and usb Ethernet adapter support.
->>>
->>> CONFIG_USB_EHCI_HCD
->>> CONFIG_USB_EHCI_HCD_OMAP
->>> CONFIG_USB_NET_SMSC95XX
->>>
->> Thanks for the config.
->>
->> Unfortunately this does nothing for Debian Unstable on the beagleboa=
-rd Xm
->> RevC
+>> What am I missing ?
+> The bank->enabled_non_wakeup_gpios is set whenever a gpio line is pro=
+grammed
+> as edge trigger as shown below.
+> (This is not meant to distinguish between gpios in WKUP domain vs
+> those in PER domain).
+> The context restore should happen irrespective of whether the trigger
+> type is edge or level.
+> In fact context restore was not happening for a gpio line because of
+> this condition while
+> testing suspend/resume.
 >
->
-> I should rephrase this. =A0It does actually show up in the kernel log=
- so the
-> kernel sees the device. =A0My bad. =A0It just wont grab an IP from De=
-bian.
+> [...]
+> =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0if (trigger & IRQ_TYPE_EDGE_BOTH)
+> =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0bank->enabled_non_wake=
+up_gpios |=3D gpio_bit;
+> =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0else
+> =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0bank->enabled_non_wake=
+up_gpios &=3D ~gpio_bit;
+> [...]
 
+Make sense now. Thanks for clarification Tarun.
+You can add mine..
+Reviewed-by: Santosh Shilimkar <santosh.shilimkar@ti.com>
 
-Thanks for the clarification.
-
---
-Thanks,
-Govindraj.R
+Regards
+Santosh
 --
 To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
 n
