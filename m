@@ -1,7 +1,7 @@
 From: Tony Lindgren <tony@atomide.com>
-Subject: [GIT PULL 2/7] omap1 ams-delta clean-up
+Subject: [GIT PULL 3/7] PM clean-up for the upcoming merge window
 Date: Thu, 8 Mar 2012 12:53:29 -0800
-Message-ID: <E1S5kLP-0000mK-Qe@merlin.infradead.org>
+Message-ID: <E1S5kLc-0000pm-QM@merlin.infradead.org>
 References: <pull-1331240009-558004>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
@@ -22,37 +22,47 @@ To: Arnd Bergmann <arnd@arndb.de>, Olof Johansson <olof@lixom.net>
 Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 List-Id: linux-omap@vger.kernel.org
 
-This one contains the recently discussed omap1 ams-delta
-clean-up to pull into the board branch. This removes the
-last remaining section warnings for omap1, at least when
-using omap1_defconfig.
+This contains PM clean-up for the upcoming merge window.
 
-As this depends on already merged omap1 branch 967809b
-in arm-soc boards branch, and for a later than -rc1 to
-compile on omap1, this one is based on a merge of omap1
-and -rc5. So the suggested pull location is boards branch.
+As this was conflicting with both already queued cleanup
+and hsmmc in fixes-non-critical branches, Kevin based the
+series on a merge of the two. Suggest pulling this into
+cleanup, this makes cleanup depend on fixes-non-critical,
+which I believe already the case.
 
 
-The following changes since commit 42392762149cba0a74c1c5b1b1bb868d86e62383:
-  Tony Lindgren (1):
-        Merge branch 'omap1' into ams-delta
+The following changes since commit 015f1e4297ad32f83251f3f4cee2389ce5516e9e:
+  Kevin Hilman (1):
+        Merge remote-tracking branch 'omap/hsmmc' into for_3.4/cleanup/pm-base
 
 are available in the git repository at:
 
-  git://git.kernel.org/pub/scm/linux/kernel/git/tmlind/linux-omap ams-delta
+  git://git.kernel.org/pub/scm/linux/kernel/git/tmlind/linux-omap cleanup-pm
 
-Janusz Krzysztofik (5):
-      ARM: OMAP1: ams-delta: fix incorrect section tags
-      ARM: OMAP1: ams-delta: clean up init data section assignments
-      ARM: OMAP1: ams-delta: set up regulator over modem reset GPIO pin
-      ARM: OMAP1: ams-delta: update the modem to use regulator API
-      ASoC: OMAP: ams-delta: drop .set_bias_level callback
+Jean Pihet (1):
+      ARM: OMAP2+: PM debug: fix the use of debugfs_create_* API
 
- arch/arm/mach-omap1/Kconfig                       |    2 +
- arch/arm/mach-omap1/board-ams-delta.c             |  116 +++++++++++++++++----
- arch/arm/plat-omap/include/plat/board-ams-delta.h |    1 -
- drivers/input/serio/ams_delta_serio.c             |    2 +-
- drivers/mtd/nand/ams-delta.c                      |    2 +-
- drivers/video/omap/lcd_ams_delta.c                |    2 +-
- sound/soc/omap/ams-delta.c                        |   32 ------
- 7 files changed, 101 insertions(+), 56 deletions(-)
+Kevin Hilman (1):
+      ARM: OMAP: omap_device: remove omap_device_parent
+
+Paul Walmsley (5):
+      ARM: OMAP3: PM: remove superfluous calls to pwrdm_clear_all_prev_pwrst()
+      ARM: OMAP2+: PM: clean up omap_set_pwrdm_state()
+      ARM: OMAP2+: PM: share clkdms_setup() across OMAP2, 3, 4
+      ARM: OMAP2+: omap_device: call all suspend, resume callbacks when OMAP_DEVICE_NO_IDLE_ON_SUSPEND is set
+      ARM: OMAP2+: PM: share some suspend-related functions across OMAP2, 3, 4
+
+Tony Lindgren (1):
+      Merge branch 'for_3.4/cleanup/pm' of git://git.kernel.org/.../khilman/linux-omap-pm into cleanup-pm
+
+ arch/arm/mach-omap2/omap-mpuss-lowpower.c     |    2 -
+ arch/arm/mach-omap2/pm-debug.c                |    6 +-
+ arch/arm/mach-omap2/pm.c                      |  113 ++++++++++++++++++++-----
+ arch/arm/mach-omap2/pm.h                      |    2 +
+ arch/arm/mach-omap2/pm24xx.c                  |   75 ++---------------
+ arch/arm/mach-omap2/pm34xx.c                  |   74 +----------------
+ arch/arm/mach-omap2/pm44xx.c                  |   57 +------------
+ arch/arm/plat-omap/include/plat/omap_device.h |    2 +-
+ arch/arm/plat-omap/omap-pm-noop.c             |    2 +-
+ arch/arm/plat-omap/omap_device.c              |   24 ++----
+ 10 files changed, 118 insertions(+), 239 deletions(-)
