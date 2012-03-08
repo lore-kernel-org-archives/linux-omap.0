@@ -1,7 +1,7 @@
 From: Tony Lindgren <tony@atomide.com>
-Subject: [GIT PULL 3/7] PM clean-up for the upcoming merge window
+Subject: [GIT PULL 4/7] tiny uart clean-up for upcoming merge window
 Date: Thu, 8 Mar 2012 12:53:29 -0800
-Message-ID: <E1S5kLc-0000pm-QM@merlin.infradead.org>
+Message-ID: <E1S5kLq-0000tS-2E@merlin.infradead.org>
 References: <pull-1331240009-558004>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
@@ -22,47 +22,26 @@ To: Arnd Bergmann <arnd@arndb.de>, Olof Johansson <olof@lixom.net>
 Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 List-Id: linux-omap@vger.kernel.org
 
-This contains PM clean-up for the upcoming merge window.
-
-As this was conflicting with both already queued cleanup
-and hsmmc in fixes-non-critical branches, Kevin based the
-series on a merge of the two. Suggest pulling this into
-cleanup, this makes cleanup depend on fixes-non-critical,
-which I believe already the case.
+This one contains removal of some now unneded code.
+Also suggested to pull into cleanup branch.
 
 
-The following changes since commit 015f1e4297ad32f83251f3f4cee2389ce5516e9e:
-  Kevin Hilman (1):
-        Merge remote-tracking branch 'omap/hsmmc' into for_3.4/cleanup/pm-base
+The following changes since commit b01543dfe67bb1d191998e90d20534dc354de059:
+  Linus Torvalds (1):
+        Linux 3.3-rc4
 
 are available in the git repository at:
 
-  git://git.kernel.org/pub/scm/linux/kernel/git/tmlind/linux-omap cleanup-pm
+  git://git.kernel.org/pub/scm/linux/kernel/git/tmlind/linux-omap uart
 
-Jean Pihet (1):
-      ARM: OMAP2+: PM debug: fix the use of debugfs_create_* API
-
-Kevin Hilman (1):
-      ARM: OMAP: omap_device: remove omap_device_parent
-
-Paul Walmsley (5):
-      ARM: OMAP3: PM: remove superfluous calls to pwrdm_clear_all_prev_pwrst()
-      ARM: OMAP2+: PM: clean up omap_set_pwrdm_state()
-      ARM: OMAP2+: PM: share clkdms_setup() across OMAP2, 3, 4
-      ARM: OMAP2+: omap_device: call all suspend, resume callbacks when OMAP_DEVICE_NO_IDLE_ON_SUSPEND is set
-      ARM: OMAP2+: PM: share some suspend-related functions across OMAP2, 3, 4
+NeilBrown (2):
+      ARM: OMAP2+: UART: remove unused fields in omap_uart_state.
+      ARM: OMAP2+: remove some orphan function declarations.
 
 Tony Lindgren (1):
-      Merge branch 'for_3.4/cleanup/pm' of git://git.kernel.org/.../khilman/linux-omap-pm into cleanup-pm
+      Merge branch 'for_3.4/cleanup/uart' of git://git.kernel.org/.../khilman/linux-omap-pm into uart
 
- arch/arm/mach-omap2/omap-mpuss-lowpower.c     |    2 -
- arch/arm/mach-omap2/pm-debug.c                |    6 +-
- arch/arm/mach-omap2/pm.c                      |  113 ++++++++++++++++++++-----
- arch/arm/mach-omap2/pm.h                      |    2 +
- arch/arm/mach-omap2/pm24xx.c                  |   75 ++---------------
- arch/arm/mach-omap2/pm34xx.c                  |   74 +----------------
- arch/arm/mach-omap2/pm44xx.c                  |   57 +------------
- arch/arm/plat-omap/include/plat/omap_device.h |    2 +-
- arch/arm/plat-omap/omap-pm-noop.c             |    2 +-
- arch/arm/plat-omap/omap_device.c              |   24 ++----
- 10 files changed, 118 insertions(+), 239 deletions(-)
+ arch/arm/mach-omap2/pm.h                 |    1 -
+ arch/arm/mach-omap2/serial.c             |    4 ----
+ arch/arm/plat-omap/include/plat/serial.h |    1 -
+ 3 files changed, 0 insertions(+), 6 deletions(-)
