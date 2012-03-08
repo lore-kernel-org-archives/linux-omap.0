@@ -1,53 +1,134 @@
-From: "Coelho, Luciano" <coelho@ti.com>
-Subject: Re: [PATCH 0/2] ARM: OMAP2+: PM: code consolidation for 3.4
-Date: Thu, 8 Mar 2012 14:21:43 +0200
-Message-ID: <CAKd1q9rq67gUyXn+rOL348YwaYQiqHR8UQCSd68fpxhZHHsYGA@mail.gmail.com>
-References: <20120202093600.12509.35052.stgit@dusk> <87ty39cc7s.fsf@ti.com>
- <alpine.DEB.2.00.1202021140060.586@utopia.booyaka.com>
- <alpine.DEB.2.00.1202021328450.586@utopia.booyaka.com>
+From: Shubhrajyoti D <shubhrajyoti-l0cyMroinI0@public.gmane.org>
+Subject: [PATCHv2 01/13] I2C : OMAP : make omap_i2c_unidle/idle functions depend on CONFIG_PM_RUNTIME
+Date: Thu, 8 Mar 2012 18:47:53 +0530
+Message-ID: <1331212685-6524-2-git-send-email-shubhrajyoti@ti.com>
+References: <1331212685-6524-1-git-send-email-shubhrajyoti@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-In-Reply-To: <alpine.DEB.2.00.1202021328450.586@utopia.booyaka.com>
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: linux-arm-kernel-bounces@lists.infradead.org
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: Paul Walmsley <paul@pwsan.com>
-Cc: Kevin Hilman <khilman@ti.com>, linux-omap@vger.kernel.org, santosh.shilimkar@ti.com, linux-arm-kernel@lists.infradead.org, rnayak@ti.com
+Content-Type: text/plain
+Return-path: <linux-i2c-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <1331212685-6524-1-git-send-email-shubhrajyoti-l0cyMroinI0@public.gmane.org>
+Sender: linux-i2c-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Cc: linux-i2c-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, ben-linux-elnMNo+KYs3YtjvyW6yDsg@public.gmane.org, rnayak-l0cyMroinI0@public.gmane.org, Shubhrajyoti D <shubhrajyoti-l0cyMroinI0@public.gmane.org>
 List-Id: linux-omap@vger.kernel.org
 
-SGksCgpPbiBUaHUsIEZlYiAyLCAyMDEyIGF0IDEwOjI5IFBNLCBQYXVsIFdhbG1zbGV5IDxwYXVs
-QHB3c2FuLmNvbT4gd3JvdGU6Cj4gT24gVGh1LCAyIEZlYiAyMDEyLCBQYXVsIFdhbG1zbGV5IHdy
-b3RlOgo+Cj4+IEdyZWF0LiDCoERvIHlvdSBrbm93IHdoYXQgdGhlIGRlYWwgaXMgd2l0aCBzdXNw
-ZW5kIG9uIDM0eHg/IMKgSSBlbmFibGVkCj4+IHR0eU8yIHdha2V1cCBhbmQgZW50ZXJlZCBzdXNw
-ZW5kLCBidXQgc2VyaWFsIHRyYWZmaWMgZG9lc24ndCBicmluZyBpdCBvdXQ/Cj4KPiBKdXN0IGEg
-cXVpY2sgZm9sbG93dXA7IEtldmluIHRyYWNrZWQgdGhpcyBkb3duLiDCoHYzLjMtcmMgbmVlZHMg
-dGhlIE1URAo+IHN1c3BlbmQgcGF0Y2ggdGhhdCBBcnRlbSBwb3N0ZWQgcmVjZW50bHkgdG8gc3Vz
-cGVuZCBjb3JyZWN0bHkgb24gT01BUDM1eHgKPiBCZWFnbGVCb2FyZCB3aXRoIG9tYXAycGx1c19k
-ZWZjb25maWcuIMKgVGhhbmtzIEtldmluLgoKSSBjYW4ndCBnZXQgdHR5TzIgd2FrZXVwIHRvIHdv
-cmsgb24gbXkgQmxhemUgd2l0aCAzLjMtcmM1LiAgSXQgd29ya3MKZmluZSB3aXRoIDMuMi4gIEkn
-dmUgYmVlbiB0cnlpbmcgdG8gYmlzZWN0IGFuZCBldmVyeXRoaW5nLCBidXQgaXQncwpkaWZmaWN1
-bHQuICBUbyBzdGFydCB3aXRoLCBkdXJpbmcgbXkgYmlzZWN0LCBtYW55IHBhdGNoZXMgc2VlbSB0
-byBiZQppbiBhIHN0YXRlIHdoZXJlIHRoZSBjb21waWxhdGlvbiBmYWlscyAob25lIGV4YW1wbGUg
-aXMKJ09NQVA0NFhYX0lSUV9QUkNNJyB1bmRlY2xhcmVkKS4KCkFueXdheSwgd2hhdCBJIGZvdW5k
-IG91dCBpcyB0aGF0IGFmdGVyIGZjZjZlZmEzIChBUk06IE9NQVA0OiBQTTogQWRkCldha2V1cEdl
-biBtb2R1bGUgYXMgT01BUCBnaWNfYXJjaF9leHRuKSB3YWtldXAgZnJvbSB0aGUgY29uc29sZQpk
-b2Vzbid0IHdvcmsgYW55bW9yZSBmb3IgbWUuICBUaGVuIEkgdHJpZWQgdG8gY29tbWVudCBvdXQg
-dGhlCm9tYXBfd2FrZXVwZ2VuX2luaXQoKSBjYWxsIGluICBnaWNfaW5pdF9pcnEoKSBhbmQgdGhh
-dCBzZWVtcyB0bwp3b3JrLi4uIGZvciBhIHdoaWxlLiAgQXQgbGVhc3QgdW50aWwgZmY4MTlkYTQg
-KEFSTTogT01BUDM6IENQVWlkbGU6Ck1ha2UgdXNlIG9mIENQVSBQTSBub3RpZmllcnMpIGNvbW1l
-bnRpbmcgb3V0IHRoYXQgbGluZSBzZWVtcyB0byB3b3JrLgpCdXQgaXQgZG9lc24ndCB3b3JrIGlm
-IEkgY29tbWVudCBvdXQgdGhlIGxpbmUgd2l0aCB2My4zLXJjNS4KCkFuZCB0aGF0J3Mgd2hlbiBJ
-IHJlY2tvbmVkIEkndmUgYmVlbiB1c2luZyB0b28gbXVjaCB0aW1lIHRyeWluZyB0bwpmaWd1cmUg
-dGhpcyBvbmUgb3V0LiA6KQoKRG9lcyBhbnlvbmUga25vdyBob3cgdG8gc29sdmUgdGhpcz8KCi0t
-IApDaGVlcnMsCkx1Y2EuCgpfX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19f
-X19fX19fXwpsaW51eC1hcm0ta2VybmVsIG1haWxpbmcgbGlzdApsaW51eC1hcm0ta2VybmVsQGxp
-c3RzLmluZnJhZGVhZC5vcmcKaHR0cDovL2xpc3RzLmluZnJhZGVhZC5vcmcvbWFpbG1hbi9saXN0
-aW5mby9saW51eC1hcm0ta2VybmVsCg==
+The functions omap_i2c_unidle/idle are called from omap_i2c_runtime_resume
+and omap_i2c_runtime_suspend which is compiled for CONFIG_PM_RUNTIME.
+This patch removes the omap_i2c_unidle/idle functions and folds them
+into the runtime callbacks.
+
+This fixes the below warn when CONFIG_PM_RUNTIME is not defined
+
+ CC      arch/arm/mach-omap2/board-ti8168evm.o
+drivers/i2c/busses/i2c-omap.c:272: warning: 'omap_i2c_unidle' defined but not used
+drivers/i2c/busses/i2c-omap.c:293: warning: 'omap_i2c_idle' defined but not used
+  CC      net/ipv4/ip_forward.o
+
+Signed-off-by: Shubhrajyoti D <shubhrajyoti-l0cyMroinI0@public.gmane.org>
+---
+ drivers/i2c/busses/i2c-omap.c |   75 +++++++++++++++++-----------------------
+ 1 files changed, 32 insertions(+), 43 deletions(-)
+
+diff --git a/drivers/i2c/busses/i2c-omap.c b/drivers/i2c/busses/i2c-omap.c
+index 801df60..4f4188d 100644
+--- a/drivers/i2c/busses/i2c-omap.c
++++ b/drivers/i2c/busses/i2c-omap.c
+@@ -269,47 +269,6 @@ static inline u16 omap_i2c_read_reg(struct omap_i2c_dev *i2c_dev, int reg)
+ 				(i2c_dev->regs[reg] << i2c_dev->reg_shift));
+ }
+ 
+-static void omap_i2c_unidle(struct omap_i2c_dev *dev)
+-{
+-	if (dev->flags & OMAP_I2C_FLAG_RESET_REGS_POSTIDLE) {
+-		omap_i2c_write_reg(dev, OMAP_I2C_CON_REG, 0);
+-		omap_i2c_write_reg(dev, OMAP_I2C_PSC_REG, dev->pscstate);
+-		omap_i2c_write_reg(dev, OMAP_I2C_SCLL_REG, dev->scllstate);
+-		omap_i2c_write_reg(dev, OMAP_I2C_SCLH_REG, dev->sclhstate);
+-		omap_i2c_write_reg(dev, OMAP_I2C_BUF_REG, dev->bufstate);
+-		omap_i2c_write_reg(dev, OMAP_I2C_SYSC_REG, dev->syscstate);
+-		omap_i2c_write_reg(dev, OMAP_I2C_WE_REG, dev->westate);
+-		omap_i2c_write_reg(dev, OMAP_I2C_CON_REG, OMAP_I2C_CON_EN);
+-	}
+-
+-	/*
+-	 * Don't write to this register if the IE state is 0 as it can
+-	 * cause deadlock.
+-	 */
+-	if (dev->iestate)
+-		omap_i2c_write_reg(dev, OMAP_I2C_IE_REG, dev->iestate);
+-}
+-
+-static void omap_i2c_idle(struct omap_i2c_dev *dev)
+-{
+-	u16 iv;
+-
+-	dev->iestate = omap_i2c_read_reg(dev, OMAP_I2C_IE_REG);
+-	if (dev->dtrev == OMAP_I2C_IP_VERSION_2)
+-		omap_i2c_write_reg(dev, OMAP_I2C_IP_V2_IRQENABLE_CLR, 1);
+-	else
+-		omap_i2c_write_reg(dev, OMAP_I2C_IE_REG, 0);
+-
+-	if (dev->rev < OMAP_I2C_OMAP1_REV_2) {
+-		iv = omap_i2c_read_reg(dev, OMAP_I2C_IV_REG); /* Read clears */
+-	} else {
+-		omap_i2c_write_reg(dev, OMAP_I2C_STAT_REG, dev->iestate);
+-
+-		/* Flush posted write */
+-		omap_i2c_read_reg(dev, OMAP_I2C_STAT_REG);
+-	}
+-}
+-
+ static int omap_i2c_init(struct omap_i2c_dev *dev)
+ {
+ 	u16 psc = 0, scll = 0, sclh = 0, buf = 0;
+@@ -1163,8 +1122,22 @@ static int omap_i2c_runtime_suspend(struct device *dev)
+ {
+ 	struct platform_device *pdev = to_platform_device(dev);
+ 	struct omap_i2c_dev *_dev = platform_get_drvdata(pdev);
++	u16 iv;
++
++	_dev->iestate = omap_i2c_read_reg(_dev, OMAP_I2C_IE_REG);
++	if (_dev->dtrev == OMAP_I2C_IP_VERSION_2)
++		omap_i2c_write_reg(_dev, OMAP_I2C_IP_V2_IRQENABLE_CLR, 1);
++	else
++		omap_i2c_write_reg(_dev, OMAP_I2C_IE_REG, 0);
++
++	if (_dev->rev < OMAP_I2C_OMAP1_REV_2) {
++		iv = omap_i2c_read_reg(_dev, OMAP_I2C_IV_REG); /* Read clears */
++	} else {
++		omap_i2c_write_reg(_dev, OMAP_I2C_STAT_REG, _dev->iestate);
+ 
+-	omap_i2c_idle(_dev);
++		/* Flush posted write */
++		omap_i2c_read_reg(_dev, OMAP_I2C_STAT_REG);
++	}
+ 
+ 	return 0;
+ }
+@@ -1174,7 +1147,23 @@ static int omap_i2c_runtime_resume(struct device *dev)
+ 	struct platform_device *pdev = to_platform_device(dev);
+ 	struct omap_i2c_dev *_dev = platform_get_drvdata(pdev);
+ 
+-	omap_i2c_unidle(_dev);
++	if (_dev->flags & OMAP_I2C_FLAG_RESET_REGS_POSTIDLE) {
++		omap_i2c_write_reg(_dev, OMAP_I2C_CON_REG, 0);
++		omap_i2c_write_reg(_dev, OMAP_I2C_PSC_REG, _dev->pscstate);
++		omap_i2c_write_reg(_dev, OMAP_I2C_SCLL_REG, _dev->scllstate);
++		omap_i2c_write_reg(_dev, OMAP_I2C_SCLH_REG, _dev->sclhstate);
++		omap_i2c_write_reg(_dev, OMAP_I2C_BUF_REG, _dev->bufstate);
++		omap_i2c_write_reg(_dev, OMAP_I2C_SYSC_REG, _dev->syscstate);
++		omap_i2c_write_reg(_dev, OMAP_I2C_WE_REG, _dev->westate);
++		omap_i2c_write_reg(_dev, OMAP_I2C_CON_REG, OMAP_I2C_CON_EN);
++	}
++
++	/*
++	 * Don't write to this register if the IE state is 0 as it can
++	 * cause deadlock.
++	 */
++	if (_dev->iestate)
++		omap_i2c_write_reg(_dev, OMAP_I2C_IE_REG, _dev->iestate);
+ 
+ 	return 0;
+ }
+-- 
+1.7.1
