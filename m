@@ -1,47 +1,45 @@
-From: Kevin Hilman <khilman@ti.com>
-Subject: Re: [GIT PULL] ARM: OMAP2+: PM: core support for SMPS regulators for v3.4
-Date: Thu, 08 Mar 2012 10:09:32 -0800
-Message-ID: <87399jc6cj.fsf@ti.com>
-References: <877gywjhht.fsf@ti.com> <20120308021843.GQ12083@atomide.com>
+From: Tony Lindgren <tony@atomide.com>
+Subject: Re: [GIT PULL] few more fixes for v3.3-rc6
+Date: Thu, 8 Mar 2012 10:13:46 -0800
+Message-ID: <20120308181345.GU12083@atomide.com>
+References: <20120308180441.GT12083@atomide.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aog110.obsmtp.com ([74.125.149.203]:39461 "EHLO
-	na3sys009aog110.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751273Ab2CHSJc (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 8 Mar 2012 13:09:32 -0500
-Received: by mail-iy0-f172.google.com with SMTP id z13so1149388iaz.31
-        for <linux-omap@vger.kernel.org>; Thu, 08 Mar 2012 10:09:31 -0800 (PST)
-In-Reply-To: <20120308021843.GQ12083@atomide.com> (Tony Lindgren's message of
-	"Wed, 7 Mar 2012 18:18:43 -0800")
+Received: from mho-01-ewr.mailhop.org ([204.13.248.71]:41633 "EHLO
+	mho-01-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752862Ab2CHSNu (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 8 Mar 2012 13:13:50 -0500
+Content-Disposition: inline
+In-Reply-To: <20120308180441.GT12083@atomide.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Tony Lindgren <tony@atomide.com>
-Cc: linux-omap <linux-omap@vger.kernel.org>, linux-arm-kernel <linux-arm-kernel@lists.infradead.org>
+To: Arnd Bergmann <arnd@arndb.de>, Olof Johansson <olof@lixom.net>
+Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 
-Tony Lindgren <tony@atomide.com> writes:
+Olof,
 
-> * Kevin Hilman <khilman@ti.com> [120307 11:42]:
->> Tony,
->> 
->> Please pull the following support for using regulators to control the
->> on-chip VC/VP managed voltage domains.
->> 
->> The regulator driver support for this is already queued in the regulator
->> tree, and this is the supporting core work.
->> 
->> This combined with the CPUfreq changes to use the regulator framework
->> will finally result in MPU DVFS working in mainline.
->
-> Nice.. However this one might be missing some header changes?
+* Tony Lindgren <tony@atomide.com> [120308 09:34]:
+> 
+> Vaibhav Hiremath (1):
+>       ARM: OMAP: id: Add missing break statement in omap3xxx_check_revision
 
-Oh, that's because it depends on the regulator core changes that are in
-Mark's regulator tree.  You need the for-next branch of :
+FYI, this one will cause a minor merge conflict with what's in
+arm-soc/for-next, here's how to resolve for reference:
 
-git://git.kernel.org/pub/scm/linux/kernel/git/broonie/regulator.git 
+--- a/arch/arm/mach-omap2/id.c
++++ b/arch/arm/mach-omap2/id.c
+@@@ -397,7 -342,8 +397,8 @@@ void __init omap3xxx_check_revision(voi
+  		break;
+  	case 0xb944:
+  		omap_revision = AM335X_REV_ES1_0;
+ -		*cpu_rev = "1.0";
+ +		cpu_rev = "1.0";
++ 		break;
+  	case 0xb8f2:
+  		switch (rev) {
+  		case 0:
 
-For this to compile correctly.
+Regards,
 
-Sorry, I should've been more clear above about the build dependency.
-
-Kevin
+Tony
