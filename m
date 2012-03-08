@@ -1,108 +1,120 @@
-From: Tomi Valkeinen <tomi.valkeinen@ti.com>
-Subject: [PATCH 2/2] OMAPDSS: Ensure OPP100 when DSS is operational
-Date: Thu,  8 Mar 2012 13:13:37 +0200
-Message-ID: <1331205217-19927-2-git-send-email-tomi.valkeinen@ti.com>
-References: <1331205217-19927-1-git-send-email-tomi.valkeinen@ti.com>
+From: Rajendra Nayak <rnayak@ti.com>
+Subject: Re: [PATCH 00/15] ARM: OMAP4: hwmod data: add almost all remaining
+ IP blocks
+Date: Thu, 08 Mar 2012 17:01:51 +0530
+Message-ID: <4F5898A7.5040005@ti.com>
+References: <20120308104918.14753.69281.stgit@dusk>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=UTF-8;
+	format=flowed
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aog136.obsmtp.com ([74.125.149.85]:49008 "EHLO
-	psmtp.com" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
-	id S1755945Ab2CHLOO (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Thu, 8 Mar 2012 06:14:14 -0500
-Received: by mail-lpp01m010-f47.google.com with SMTP id w12so454938lag.34
-        for <linux-omap@vger.kernel.org>; Thu, 08 Mar 2012 03:14:12 -0800 (PST)
-In-Reply-To: <1331205217-19927-1-git-send-email-tomi.valkeinen@ti.com>
+Received: from na3sys009aog105.obsmtp.com ([74.125.149.75]:55858 "EHLO
+	na3sys009aog105.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1751502Ab2CHLb5 (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 8 Mar 2012 06:31:57 -0500
+Received: by mail-yw0-f54.google.com with SMTP id m50so120508yhg.13
+        for <linux-omap@vger.kernel.org>; Thu, 08 Mar 2012 03:31:56 -0800 (PST)
+In-Reply-To: <20120308104918.14753.69281.stgit@dusk>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: linux-omap@vger.kernel.org
-Cc: archit@ti.com, Tomi Valkeinen <tomi.valkeinen@ti.com>, Paul Walmsley <paul@pwsan.com>, Kevin Hilman <khilman@ti.com>
+To: Paul Walmsley <paul@pwsan.com>
+Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 
-Most of the DSS clocks have restrictions on their frequency based on the
-OPP in use. For example, maximum frequency for a clock may be 180MHz in
-OPP100, but 90MHz in OPP50. This means that when a high enough pixel
-clock or function clock is required, we need to use OPP100.
+Hi Paul,
 
-However, there's currently no way in the PM framework to make that kind
-of request. The closest we get is to ask for very high bus throughput
-from the PM framework, which should effectively force OPP100.
+On Thursday 08 March 2012 04:21 PM, Paul Walmsley wrote:
+> Hi
+>
+> This series adds basic hwmods for all but one of the remaining
+> OMAP4 IP blocks that can be meaningfully controlled by the
+> kernel.  (The remaining IP block is the USIM - there's a clocking
+> problem that requires further investigation to resolve.)
+>
+> There are a few new boot-time warnings added by this series:
+>
+> [    0.280548] omap_hwmod: trace_clk_div_ck: missing clockdomain for =
+trace_clk_div_ck.
+> [    0.302429] omap_hwmod: ddrphy_ck: missing clockdomain for ddrphy_=
+ck.
+> [    0.319519] omap_hwmod: sl2if: cannot be enabled for reset (3)
+>
+> These messages will be resolved by subsequent patches, and, while ann=
+oying,
+> should not affect the operation of the system.
+>
+> These patches have been boot-tested and suspend-tested on a
+> OMAP44xx PandaBoard.
+>
+> The series is intended to apply on the
+> 'hwmod_remove_link_arrays_cleanup_3.4' branch, posted previously.
+>
+> These patches are also available via git from git://git.pwsan.com/lin=
+ux-2.6
+> in the branch "hwmod_enable_remaining_hwmods_devel_3.4".
 
-This patch is a simple version for handling the problem. Instead of
-asking for OPP100 only when needed, this patch asks for OPP100 whenever
-DSS is active. This obviously is not an optimal solution for cases with
-small displays where OPP50 would work just fine. However, a proper
-solution is a complex one, and this patch is a short term solution for
-the problem.
+Could not find this branch on your tree. Found a
+'enable_remaining_omap4_hwmods' instead, but that seems to
+be an old branch.
 
-Signed-off-by: Tomi Valkeinen <tomi.valkeinen@ti.com>
-Cc: Paul Walmsley <paul@pwsan.com>
-Cc: Kevin Hilman <khilman@ti.com>
----
- drivers/video/omap2/dss/core.c |   10 ++++++++++
- drivers/video/omap2/dss/dss.c  |   13 +++++++++++++
- drivers/video/omap2/dss/dss.h  |    1 +
- 3 files changed, 24 insertions(+), 0 deletions(-)
+regards,
+Rajendra
+>
+>
+> - Paul
+>
+> ---
+>
+> hwmod_enable_remaining_hwmods_devel_3.4
+>     text	   data	    bss	    dec	    hex	filename
+> 6590067	 677452	5593500	12861019	 c43e5b	vmlinux.omap2plus_defconfig.=
+orig
+> 6594227	 684620	5593500	12872347	 c46a9b	vmlinux.omap2plus_defconfig
+>
+> Beno=C3=AEt Cousson (6):
+>        ARM: OMAP4: hwmod data: add GPMC
+>        ARM: OMAP4: hwmod data: add the Slimbus IP blocks
+>        ARM: OMAP4: hwmod data: add McASP
+>        ARM: OMAP4: hwmod data: add remaining USB-related IP blocks
+>        ARM: OMAP4: hwmod data: add the OCP-WP IP block
+>        ARM: OMAP4: hwmod data: add DEBUGSS skeleton
+>
+> Ming Lei (1):
+>        ARM: OMAP4: hwmod data: introduce fdif(face detect module) hwm=
+od
+>
+> Paul Walmsley (8):
+>        ARM: OMAP2+: clockdomains: make {prm,cm}_clkdm common
+>        ARM: OMAP4: hwmod data: add HDQ/1-wire
+>        ARM: OMAP4: hwmod data: add EMIF1 and 2
+>        ARM: OMAP4: hwmod data: add GPU
+>        ARM: OMAP4: hwmod data: add some interconnect-related IP block=
+s
+>        ARM: OMAP4: hwmod data: add OCM RAM IP block
+>        ARM: OMAP4: hwmod data: add System Control Module
+>        ARM: OMAP4: hwmod data: add PRCM and related IP blocks
+>
+>
+>   arch/arm/mach-omap2/Makefile                     |    8
+>   arch/arm/mach-omap2/clockdomain44xx.c            |    6
+>   arch/arm/mach-omap2/clockdomains2xxx_3xxx_data.c |   10
+>   arch/arm/mach-omap2/clockdomains44xx_data.c      |    2
+>   arch/arm/mach-omap2/clockdomains_common_data.c   |   24
+>   arch/arm/mach-omap2/omap_hwmod_44xx_data.c       | 1473 +++++++++++=
+++++++++++-
+>   arch/arm/plat-omap/include/plat/omap_hwmod.h     |    1
+>   7 files changed, 1443 insertions(+), 81 deletions(-)
+>   create mode 100644 arch/arm/mach-omap2/clockdomains_common_data.c
+>
+>
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-omap"=
+ in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
 
-diff --git a/drivers/video/omap2/dss/core.c b/drivers/video/omap2/dss/core.c
-index 8613f86..999bcbc 100644
---- a/drivers/video/omap2/dss/core.c
-+++ b/drivers/video/omap2/dss/core.c
-@@ -87,6 +87,16 @@ struct regulator *dss_get_vdds_sdi(void)
- 	return reg;
- }
- 
-+int dss_set_min_bus_tput(struct device *dev, unsigned long tput)
-+{
-+	struct omap_dss_board_info *pdata = core.pdev->dev.platform_data;
-+
-+	if (pdata->set_min_bus_tput)
-+		return pdata->set_min_bus_tput(dev, tput);
-+	else
-+		return 0;
-+}
-+
- #if defined(CONFIG_DEBUG_FS) && defined(CONFIG_OMAP2_DSS_DEBUG_SUPPORT)
- static int dss_debug_show(struct seq_file *s, void *unused)
- {
-diff --git a/drivers/video/omap2/dss/dss.c b/drivers/video/omap2/dss/dss.c
-index 4a6b5ee..4a3eb22 100644
---- a/drivers/video/omap2/dss/dss.c
-+++ b/drivers/video/omap2/dss/dss.c
-@@ -826,11 +826,24 @@ static int omap_dsshw_remove(struct platform_device *pdev)
- static int dss_runtime_suspend(struct device *dev)
- {
- 	dss_save_context();
-+	dss_set_min_bus_tput(dev, 0);
- 	return 0;
- }
- 
- static int dss_runtime_resume(struct device *dev)
- {
-+	int r;
-+	/*
-+	 * Set an arbitrarily high tput request to ensure OPP100.
-+	 * What we should really do is to make a request to stay in OPP100,
-+	 * without any tput requirements, but that is not currently possible
-+	 * via the PM layer.
-+	 */
-+
-+	r = dss_set_min_bus_tput(dev, 1000000000);
-+	if (r)
-+		return r;
-+
- 	dss_restore_context();
- 	return 0;
- }
-diff --git a/drivers/video/omap2/dss/dss.h b/drivers/video/omap2/dss/dss.h
-index d4b3dff..42f8f62 100644
---- a/drivers/video/omap2/dss/dss.h
-+++ b/drivers/video/omap2/dss/dss.h
-@@ -162,6 +162,7 @@ struct platform_device;
- struct bus_type *dss_get_bus(void);
- struct regulator *dss_get_vdds_dsi(void);
- struct regulator *dss_get_vdds_sdi(void);
-+int dss_set_min_bus_tput(struct device *dev, unsigned long tput);
- 
- /* apply */
- void dss_apply_init(void);
--- 
-1.7.4.1
-
+--
+To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
