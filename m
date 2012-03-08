@@ -1,70 +1,161 @@
-From: "T Krishnamoorthy, Balaji" <balajitk@ti.com>
-Subject: Re: [PATCH 4/4] mmc: omap_hsmmc: Simplify init for twl6030 MMC card detect
-Date: Thu, 8 Mar 2012 21:23:10 +0530
-Message-ID: <CANrkHUbsiTz9+cRM83845=nYp82BSyje+ikV_sg3BT+64uD2XA@mail.gmail.com>
-References: <20120301185044.29210.44521.stgit@kaulin.local>
-	<20120301185535.29210.71546.stgit@kaulin.local>
-	<4F50643B.9050500@ti.com>
-	<20120302172251.GJ18901@atomide.com>
-	<4F548457.5050205@ti.com>
-	<CANrkHUZysOnHKKUuLm0Vbo1KsNp0yUd=udjGvQ43=gTTXbWeCw@mail.gmail.com>
-	<CANrkHUaYDpv=p0p81oKWCoewyjheyZYkCqvZY7_ZQxWi_=8YFw@mail.gmail.com>
-	<m2lincifj9.fsf@bob.laptop.org>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+From: Aneesh V <aneesh@ti.com>
+Subject: [PATCH 1/8] OMAP4: hwmod: add EMIF hw mod data
+Date: Thu,  8 Mar 2012 21:24:18 +0530
+Message-ID: <1331222065-3579-2-git-send-email-aneesh@ti.com>
+References: <1331222065-3579-1-git-send-email-aneesh@ti.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aog121.obsmtp.com ([74.125.149.145]:51635 "EHLO
-	na3sys009aog121.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1757395Ab2CHPxN convert rfc822-to-8bit
-	(ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Thu, 8 Mar 2012 10:53:13 -0500
-Received: by mail-ee0-f45.google.com with SMTP id t10so196411eei.32
-        for <linux-omap@vger.kernel.org>; Thu, 08 Mar 2012 07:53:11 -0800 (PST)
-In-Reply-To: <m2lincifj9.fsf@bob.laptop.org>
+Received: from na3sys009aog120.obsmtp.com ([74.125.149.140]:46387 "EHLO
+	na3sys009aog120.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1757400Ab2CHPyn (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 8 Mar 2012 10:54:43 -0500
+Received: by ghbg19 with SMTP id g19so277771ghb.10
+        for <linux-omap@vger.kernel.org>; Thu, 08 Mar 2012 07:54:41 -0800 (PST)
+In-Reply-To: <1331222065-3579-1-git-send-email-aneesh@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Chris Ball <cjb@laptop.org>
-Cc: linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, linux-mmc@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Tony Lindgren <tony@atomide.com>, Samuel Ortiz <sameo@linux.intel.com>, Rajendra Nayak <rnayak@ti.com>
+To: linux-kernel@vger.kernel.org
+Cc: linux-omap@vger.kernel.org, Benoit Cousson <b-cousson@ti.com>
 
-On Wed, Mar 7, 2012 at 9:12 PM, Chris Ball <cjb@laptop.org> wrote:
-> Hi Balaji,
->
-> On Wed, Mar 07 2012, T Krishnamoorthy, Balaji wrote:
->> OMAP4 and OMAP3 HSMMC IP registers differ by 0x100 offset.
->> Addng the offset to platform_device resource structure
->> increments the start address for every insmod operation.
->> MMC command fails on re-insertion as module due incorrect register b=
-ase.
->> Fix this by updating the ioremap base address only.
->>
->> Signed-off-by: Balaji T K <balajitk@ti.com>
->
-> Is this a regression, or has it never worked in mainline?
+From: Benoit Cousson <b-cousson@ti.com>
 
-Not a regression introduced in current merge window.
-It happens on re-insertion of module.
-will post a patch with $SUBJECT
+Add hwmod data for EMIF IP instances in OMAP4.
 
->
->> Note: =A0eMMC detection is still failing on resertion due to card vc=
-c
->> power off on rmmod
->
-> And this?
+Signed-off-by: Benoit Cousson <b-cousson@ti.com>
+---
+Changes since RFC:
+- Improved commit log
+---
+ arch/arm/mach-omap2/omap_hwmod_44xx_data.c |  110 ++++++++++++++++++++++++++++
+ 1 files changed, 110 insertions(+), 0 deletions(-)
 
-This issue was hidden and uncovered after this fix.
-This problem is Vcc being powered off without sleep command.
+diff --git a/arch/arm/mach-omap2/omap_hwmod_44xx_data.c b/arch/arm/mach-omap2/omap_hwmod_44xx_data.c
+index f9f1510..2b107c7 100644
+--- a/arch/arm/mach-omap2/omap_hwmod_44xx_data.c
++++ b/arch/arm/mach-omap2/omap_hwmod_44xx_data.c
+@@ -5480,6 +5480,111 @@ static struct omap_hwmod omap44xx_usb_tll_hs_hwmod = {
+ 	.slaves_cnt	= ARRAY_SIZE(omap44xx_usb_tll_hs_slaves),
+ };
+ 
++/*
++ * 'emif' class
++ * external memory interface no1
++ */
++
++static struct omap_hwmod_class omap44xx_emif_hwmod_class = {
++	.name	= "emif",
++};
++
++/* emif1 */
++static struct omap_hwmod omap44xx_emif1_hwmod;
++static struct omap_hwmod_irq_info omap44xx_emif1_irqs[] = {
++	{ .irq = 110 + OMAP44XX_IRQ_GIC_START },
++	{ .irq = -1 }
++};
++
++static struct omap_hwmod_addr_space omap44xx_emif1_addrs[] = {
++	{
++		.pa_start	= 0x4c000000,
++		.pa_end		= 0x4c0000ff,
++		.flags		= ADDR_TYPE_RT
++	},
++	{ }
++};
++
++/* emif_fw -> emif1 */
++static struct omap_hwmod_ocp_if omap44xx_emif_fw__emif1 = {
++	.master		= &omap44xx_emif_fw_hwmod,
++	.slave		= &omap44xx_emif1_hwmod,
++	.clk		= "l3_div_ck",
++	.addr		= omap44xx_emif1_addrs,
++	.user		= OCP_USER_MPU | OCP_USER_SDMA,
++};
++
++/* emif1 slave ports */
++static struct omap_hwmod_ocp_if *omap44xx_emif1_slaves[] = {
++	&omap44xx_emif_fw__emif1,
++};
++
++static struct omap_hwmod omap44xx_emif1_hwmod = {
++	.name		= "emif1",
++	.class		= &omap44xx_emif_hwmod_class,
++	.flags		= HWMOD_INIT_NO_IDLE | HWMOD_INIT_NO_RESET,
++	.mpu_irqs	= omap44xx_emif1_irqs,
++	.main_clk	= "emif1_fck",
++	.clkdm_name	= "l3_emif_clkdm",
++	.prcm		= {
++		.omap4 = {
++			.clkctrl_offs = OMAP4_CM_MEMIF_EMIF_1_CLKCTRL_OFFSET,
++			.context_offs = OMAP4_RM_MEMIF_EMIF_1_CONTEXT_OFFSET,
++			.modulemode   = MODULEMODE_HWCTRL,
++		},
++	},
++	.slaves		= omap44xx_emif1_slaves,
++	.slaves_cnt	= ARRAY_SIZE(omap44xx_emif1_slaves),
++};
++
++/* emif2 */
++static struct omap_hwmod omap44xx_emif2_hwmod;
++static struct omap_hwmod_irq_info omap44xx_emif2_irqs[] = {
++	{ .irq = 111 + OMAP44XX_IRQ_GIC_START },
++	{ .irq = -1 }
++};
++
++static struct omap_hwmod_addr_space omap44xx_emif2_addrs[] = {
++	{
++		.pa_start	= 0x4d000000,
++		.pa_end		= 0x4d0000ff,
++		.flags		= ADDR_TYPE_RT
++	},
++	{ }
++};
++
++/* emif_fw -> emif2 */
++static struct omap_hwmod_ocp_if omap44xx_emif_fw__emif2 = {
++	.master		= &omap44xx_emif_fw_hwmod,
++	.slave		= &omap44xx_emif2_hwmod,
++	.clk		= "l3_div_ck",
++	.addr		= omap44xx_emif2_addrs,
++	.user		= OCP_USER_MPU | OCP_USER_SDMA,
++};
++
++/* emif2 slave ports */
++static struct omap_hwmod_ocp_if *omap44xx_emif2_slaves[] = {
++	&omap44xx_emif_fw__emif2,
++};
++
++static struct omap_hwmod omap44xx_emif2_hwmod = {
++	.name		= "emif2",
++	.class		= &omap44xx_emif_hwmod_class,
++	.flags		= HWMOD_INIT_NO_IDLE | HWMOD_INIT_NO_RESET,
++	.mpu_irqs	= omap44xx_emif2_irqs,
++	.main_clk	= "emif2_fck",
++	.clkdm_name	= "l3_emif_clkdm",
++	.prcm		= {
++		.omap4 = {
++			.clkctrl_offs = OMAP4_CM_MEMIF_EMIF_1_CLKCTRL_OFFSET,
++			.context_offs = OMAP4_RM_MEMIF_EMIF_1_CONTEXT_OFFSET,
++			.modulemode   = MODULEMODE_HWCTRL,
++		}
++	},
++	.slaves		= omap44xx_emif2_slaves,
++	.slaves_cnt	= ARRAY_SIZE(omap44xx_emif2_slaves),
++};
++
+ static __initdata struct omap_hwmod *omap44xx_hwmods[] = {
+ 
+ 	/* dmm class */
+@@ -5629,6 +5734,11 @@ static __initdata struct omap_hwmod *omap44xx_hwmods[] = {
+ 	/* wd_timer class */
+ 	&omap44xx_wd_timer2_hwmod,
+ 	&omap44xx_wd_timer3_hwmod,
++
++	/* emif class */
++	&omap44xx_emif1_hwmod,
++	&omap44xx_emif2_hwmod,
++
+ 	NULL,
+ };
+ 
+-- 
+1.7.1
 
->
-> Thanks,
->
-> - Chris.
-> --
-> Chris Ball =A0 <cjb@laptop.org> =A0 <http://printf.net/>
-> One Laptop Per Child
---
-To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
