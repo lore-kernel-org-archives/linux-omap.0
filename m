@@ -1,57 +1,47 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: [GIT PULL] few more fixes for v3.3-rc6
-Date: Thu, 8 Mar 2012 10:04:41 -0800
-Message-ID: <20120308180441.GT12083@atomide.com>
+From: Kevin Hilman <khilman@ti.com>
+Subject: Re: [GIT PULL] ARM: OMAP2+: PM: core support for SMPS regulators for v3.4
+Date: Thu, 08 Mar 2012 10:09:32 -0800
+Message-ID: <87399jc6cj.fsf@ti.com>
+References: <877gywjhht.fsf@ti.com> <20120308021843.GQ12083@atomide.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-Content-Disposition: inline
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: linux-arm-kernel-bounces@lists.infradead.org
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: Arnd Bergmann <arnd@arndb.de>, Olof Johansson <olof@lixom.net>
-Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from na3sys009aog110.obsmtp.com ([74.125.149.203]:39461 "EHLO
+	na3sys009aog110.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1751273Ab2CHSJc (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 8 Mar 2012 13:09:32 -0500
+Received: by mail-iy0-f172.google.com with SMTP id z13so1149388iaz.31
+        for <linux-omap@vger.kernel.org>; Thu, 08 Mar 2012 10:09:31 -0800 (PST)
+In-Reply-To: <20120308021843.GQ12083@atomide.com> (Tony Lindgren's message of
+	"Wed, 7 Mar 2012 18:18:43 -0800")
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Tony Lindgren <tony@atomide.com>
+Cc: linux-omap <linux-omap@vger.kernel.org>, linux-arm-kernel <linux-arm-kernel@lists.infradead.org>
 
-Hi Arnd & Olof,
+Tony Lindgren <tony@atomide.com> writes:
 
-Here are few more fixes for the current -rc cycle if there's
-still enough time to get them in.
+> * Kevin Hilman <khilman@ti.com> [120307 11:42]:
+>> Tony,
+>> 
+>> Please pull the following support for using regulators to control the
+>> on-chip VC/VP managed voltage domains.
+>> 
+>> The regulator driver support for this is already queued in the regulator
+>> tree, and this is the supporting core work.
+>> 
+>> This combined with the CPUfreq changes to use the regulator framework
+>> will finally result in MPU DVFS working in mainline.
+>
+> Nice.. However this one might be missing some header changes?
 
-Regards,
+Oh, that's because it depends on the regulator core changes that are in
+Mark's regulator tree.  You need the for-next branch of :
 
-Tony
+git://git.kernel.org/pub/scm/linux/kernel/git/broonie/regulator.git 
 
+For this to compile correctly.
 
-The following changes since commit 192cfd58774b4d17b2fe8bdc77d89c2ef4e0591d:
-  Linus Torvalds (1):
-        Linux 3.3-rc6
+Sorry, I should've been more clear above about the build dependency.
 
-are available in the git repository at:
-
-  git://git.kernel.org/pub/scm/linux/kernel/git/tmlind/linux-omap fixes
-
-Cousson, Benoit (1):
-      ARM: OMAP: irqs: Fix NR_IRQS value to handle PRCM interrupts
-
-R Sricharan (1):
-      ARM: OMAP2+: Fix module build errors with CONFIG_OMAP4_ERRATA_I688
-
-Rajendra Nayak (1):
-      ARM: OMAP2+: Remove apply_uV constraints for fixed regulator
-
-Vaibhav Hiremath (1):
-      ARM: OMAP: id: Add missing break statement in omap3xxx_check_revision
-
- arch/arm/mach-omap2/id.c               |    1 +
- arch/arm/mach-omap2/omap4-common.c     |    2 ++
- arch/arm/mach-omap2/twl-common.c       |    1 -
- arch/arm/plat-omap/include/plat/irqs.h |   10 +++++++++-
- 4 files changed, 12 insertions(+), 2 deletions(-)
+Kevin
