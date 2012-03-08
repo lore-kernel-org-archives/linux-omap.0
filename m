@@ -1,7 +1,8 @@
 From: Tony Lindgren <tony@atomide.com>
-Subject: [GIT PULL 5/7] more DT changes for upcoming merge window
+Subject: [GIT PULL 6/7] smartreflex fixes and clean-up for upcoming merge
+ window
 Date: Thu, 8 Mar 2012 12:53:29 -0800
-Message-ID: <E1S5kLz-0000yc-FQ@merlin.infradead.org>
+Message-ID: <E1S5kMB-00014z-Fj@merlin.infradead.org>
 References: <pull-1331240009-558004>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
@@ -22,42 +23,54 @@ To: Arnd Bergmann <arnd@arndb.de>, Olof Johansson <olof@lixom.net>
 Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 List-Id: linux-omap@vger.kernel.org
 
-Here are some more changes to the DT branch.
+This one contains clean-up and fixes for the smartreflex
+so it can be eventually moved to live under drivers.
+After this series, the next series will move this to
+drivers.
 
-As these depend both on the earlier omap dt patches pulled in, and
-irqdomain patches queued by Grant, Benoit based on a merge
-of the two. Looks like arm-soc/next/dt already has Grant's
-commit 280ad7fd, so this should not add any new dependencies.
+As this depends on earlier fixes-non-critical merged
+into arm-soc, this one is based on commit 149f1d5c
+there. This would be probably best merged into driver
+branch that would then depend on fixes-non-critical.
 
 
-
-The following changes since commit 1f52299ec000e2161635b263d81ab92ea7f1f0a7:
-  Benoit Cousson (1):
-        Merge branch 'irqdomain/next' of git://git.secretlab.ca/git/linux-2.6 into for_3.4/dt_irq_domain2
+The following changes since commit 149f1d5c8d2fd6879cdf93ca70f1cb745e698a1e:
+  Tony Lindgren (1):
+        ARM: OMAP2+: Fix devexit for smartreflex when CONFIG_HOTPLUG is not set
 
 are available in the git repository at:
 
-  git://git.kernel.org/pub/scm/linux/kernel/git/tmlind/linux-omap dt-part2
+  git://git.kernel.org/pub/scm/linux/kernel/git/tmlind/linux-omap sr
 
-Benoit Cousson (3):
-      ARM: OMAP2/3: intc: Add DT support for TI interrupt controller
-      arm/dts: OMAP3: Add interrupt-controller bindings for INTC
-      ARM: OMAP2+: board-generic: Use of_irq_init API
+Felipe Balbi (4):
+      ARM: OMAP3+: SmartReflex: add missing platform_set_drvdata()
+      ARM: OMAP3+: SmartReflex: move late_initcall() closer to its argument
+      ARM: OMAP3+: SmartReflex: misc cleanups
+      ARM: OMAP3+: SmartReflex: micro-optimization for sanity check
 
-Ilya Yanok (1):
-      arm/dts: mt_ventoux: very basic support for TeeJet Mt.Ventoux board
+Jean Pihet (2):
+      ARM: OMAP3+: SmartReflex: fix the use of debugfs_create_* API
+      ARM: OMAP3+: SmartReflex: fix error handling
 
-Tony Lindgren (3):
-      Merge branch 'for_3.4/dt_irq_domain' of git://git.kernel.org/.../bcousson/linux-omap-dt into dt-part2
-      ARM: OMAP2+: Fix build error when only ARCH_OMAP2/3 or 4 is selected
-      ARM: OMAP2+: Remove extra ifdefs for board-generic
+Nishanth Menon (6):
+      ARM: OMAP3+: SmartReflex: fix err interrupt disable sequence
+      ARM: OMAP3+: SmartReflex Class3: disable errorgen before disable VP
+      ARM: OMAP3+: SmartReflex: Add a shutdown hook
+      ARM: OMAP3+: SmartReflex: Fix status masking in ERRCONFIG register
+      ARM: OMAP3+: SmartReflex: clear ERRCONFIG_VPBOUNDINTST only on a need
+      ARM: OMAP3+: hwmod: add SmartReflex IRQs
 
- .../devicetree/bindings/arm/omap/intc.txt          |   27 ++++++
- arch/arm/boot/dts/am3517_mt_ventoux.dts            |   27 ++++++
- arch/arm/boot/dts/omap3.dtsi                       |    6 +-
- arch/arm/mach-omap2/board-generic.c                |   99 ++++++++++----------
- arch/arm/mach-omap2/common.h                       |   12 +++
- arch/arm/mach-omap2/irq.c                          |   60 ++++++++++--
- 6 files changed, 168 insertions(+), 63 deletions(-)
- create mode 100644 Documentation/devicetree/bindings/arm/omap/intc.txt
- create mode 100644 arch/arm/boot/dts/am3517_mt_ventoux.dts
+Shweta Gulati (1):
+      ARM: OMAP3+: SmartReflex: use voltage domain name in device attributes
+
+Tony Lindgren (1):
+      Merge branch 'for_3.4/cleanup/sr' of git://git.kernel.org/.../khilman/linux-omap-pm into sr
+
+ arch/arm/mach-omap2/omap_hwmod_3xxx_data.c   |   31 +++-
+ arch/arm/mach-omap2/omap_hwmod_44xx_data.c   |   19 ++-
+ arch/arm/mach-omap2/smartreflex-class3.c     |    1 +
+ arch/arm/mach-omap2/smartreflex.c            |  227 +++++++++++++++++++-------
+ arch/arm/mach-omap2/smartreflex.h            |   10 +
+ arch/arm/mach-omap2/sr_device.c              |   11 +-
+ arch/arm/plat-omap/include/plat/omap_hwmod.h |    2 -
+ 7 files changed, 229 insertions(+), 72 deletions(-)
