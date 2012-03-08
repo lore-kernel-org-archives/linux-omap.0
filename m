@@ -1,79 +1,52 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: [GIT PULL 7/7] minimal omap board updates for upcoming merge window
-Date: Thu, 8 Mar 2012 12:53:29 -0800
-Message-ID: <E1S5kMR-0001GD-Jj@merlin.infradead.org>
-References: <pull-1331240009-558004>
+From: Greg KH <greg@kroah.com>
+Subject: Re: [PATCH 0/8] Add TI EMIF SDRAM controller driver
+Date: Thu, 8 Mar 2012 12:59:44 -0800
+Message-ID: <20120308205944.GB16644@kroah.com>
+References: <1331222065-3579-1-git-send-email-aneesh@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-kernel-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <pull-1331240009-558004>
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: linux-arm-kernel-bounces@lists.infradead.org
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: Arnd Bergmann <arnd@arndb.de>, Olof Johansson <olof@lixom.net>
-Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+In-Reply-To: <1331222065-3579-1-git-send-email-aneesh@ti.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Aneesh V <aneesh@ti.com>
+Cc: linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-This one contains minimal updates to existing board
-files so people can use the mainline kernel easier.
+On Thu, Mar 08, 2012 at 09:24:17PM +0530, Aneesh V wrote:
+> Add a driver for the EMIF SDRAM controller used in TI SoCs
+> 
+> EMIF is an SDRAM controller that supports, based on its revision,
+> one or more of LPDDR2/DDR2/DDR3 protocols.This driver adds support
+> for LPDDR2.
+> 
+> The driver supports the following features:
+> - Calculates the DDR AC timing parameters to be set in EMIF
+>   registers using data from the device data-sheets and based
+>   on the DDR frequency. If data from data-sheets is not available
+>   default timing values from the JEDEC spec are used. These
+>   will be safe, but not necessarily optimal
+> - API for changing timings during DVFS or at boot-up
+> - Temperature alert configuration and handling of temperature
+>   alerts, if any for LPDDR2 devices
+>   * temperature alert is based on periodic polling of MR4 mode
+>     register in DDR devices automatically performed by hardware
+>   * timings are de-rated and brought back to nominal when
+>     temperature raises and falls respectively
+> - Cache of calculated register values to avoid re-calculating
+>   them
+> 
+> The driver will need some minor updates when it is eventually
+> integrated with Dynamic Voltage and Frequency Scaling (DVFS).
+> This can not be done now as DVFS support is not available in
+> the mainline yet.
 
-Note that the board-omap4panda.c changes have a minor merge
-conflict in the ASoC tree in next/master.
+What will need to be updated in it?  The userspace interface or
+something else?
 
+Why not wait until that code is accepted, it should be going into 3.4,
+right?
 
-The following changes since commit 192cfd58774b4d17b2fe8bdc77d89c2ef4e0591d:
-  Linus Torvalds (1):
-        Linux 3.3-rc6
+thanks,
 
-are available in the git repository at:
-
-  git://git.kernel.org/pub/scm/linux/kernel/git/tmlind/linux-omap board
-
-Aaro Koskinen (1):
-      ARM: OMAP: add minimal support for Nokia RM-696
-
-Alex (1):
-      ARM: OMAP: Add omap_reserve functionality
-
-Grazvydas Ignotas (1):
-      ARM: OMAP: pandora: add support for backlight and poweroff
-
-Igor Grinberg (1):
-      ARM: OMAP3: cm-t3517: add EMAC support
-
-Ilya Yanok (1):
-      ARM: OMAP: move generic EMAC init to separate file
-
-Mircea Gherzan (1):
-      ARM: OMAP: enable Bluetooth on the PandaBoard
-
-Uwe Kleine-Knig (1):
-      ARM: OMAP4: board-4430sdp: don't initialize value that is never used
-
-Vladimir Zapolskiy (1):
-      ARM: OMAP3: RX-51: add explicit mux configuration of tsc2005 control gpios
-
- arch/arm/mach-omap2/Kconfig                  |    3 +-
- arch/arm/mach-omap2/Makefile                 |    3 +
- arch/arm/mach-omap2/am35xx-emac.c            |  117 ++++++++++++++++++++++++++
- arch/arm/mach-omap2/am35xx-emac.h            |   15 ++++
- arch/arm/mach-omap2/board-4430sdp.c          |    5 +-
- arch/arm/mach-omap2/board-am3517evm.c        |  117 +-------------------------
- arch/arm/mach-omap2/board-cm-t3517.c         |    2 +
- arch/arm/mach-omap2/board-omap3logic.c       |    2 +
- arch/arm/mach-omap2/board-omap3pandora.c     |   11 +++
- arch/arm/mach-omap2/board-omap4panda.c       |    6 ++
- arch/arm/mach-omap2/board-rm680.c            |   14 +++-
- arch/arm/mach-omap2/board-rx51-peripherals.c |   25 +++---
- arch/arm/plat-omap/include/plat/uncompress.h |    1 +
- 13 files changed, 192 insertions(+), 129 deletions(-)
- create mode 100644 arch/arm/mach-omap2/am35xx-emac.c
- create mode 100644 arch/arm/mach-omap2/am35xx-emac.h
+greg k-h
