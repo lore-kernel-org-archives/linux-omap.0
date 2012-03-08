@@ -1,92 +1,78 @@
-From: "Shilimkar, Santosh" <santosh.shilimkar@ti.com>
-Subject: Re: [PATCH v3 12/13] gpio/omap: fix incorrect context restore logic
- in omap_gpio_runtime_resume
-Date: Thu, 8 Mar 2012 08:19:15 +0100
-Message-ID: <CAMQu2gzgM=Hc4fis5AsgL50e2KLttTR79iroOtExGecU7F50yw@mail.gmail.com>
-References: <1331118963-26364-1-git-send-email-tarun.kanti@ti.com>
- <1331118963-26364-13-git-send-email-tarun.kanti@ti.com> <4F574F95.7090801@ti.com>
- <CAC83ZvLFoSppTiPw-_a=z_Mnpmk6nHeaadTShdJP8RpDWh9TLg@mail.gmail.com>
+From: Tomi Valkeinen <tomi.valkeinen@ti.com>
+Subject: Re: [PATCH 7/7] OMAPDSS: HDMI: hot plug detect fix
+Date: Thu, 08 Mar 2012 09:35:13 +0200
+Message-ID: <1331192113.2354.2.camel@deskari>
+References: <1330604795-29156-1-git-send-email-tomi.valkeinen@ti.com>
+	 <1330604795-29156-8-git-send-email-tomi.valkeinen@ti.com>
+	 <20120307200146.GA26451@kroah.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: multipart/signed; micalg="pgp-sha1"; protocol="application/pgp-signature"; boundary="=-47GyESRNkLQyfoZ6aJKS"
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aog118.obsmtp.com ([74.125.149.244]:57761 "EHLO
-	na3sys009aog118.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751282Ab2CHHTq convert rfc822-to-8bit
-	(ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Thu, 8 Mar 2012 02:19:46 -0500
-Received: by qcsu28 with SMTP id u28so151930qcs.8
-        for <linux-omap@vger.kernel.org>; Wed, 07 Mar 2012 23:19:35 -0800 (PST)
-In-Reply-To: <CAC83ZvLFoSppTiPw-_a=z_Mnpmk6nHeaadTShdJP8RpDWh9TLg@mail.gmail.com>
+Received: from na3sys009aog121.obsmtp.com ([74.125.149.145]:57940 "EHLO
+	na3sys009aog121.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1752918Ab2CHHfS (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 8 Mar 2012 02:35:18 -0500
+Received: by mail-lb0-f182.google.com with SMTP id i15so34918lbo.41
+        for <linux-omap@vger.kernel.org>; Wed, 07 Mar 2012 23:35:16 -0800 (PST)
+In-Reply-To: <20120307200146.GA26451@kroah.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "DebBarma, Tarun Kanti" <tarun.kanti@ti.com>
-Cc: linux-omap@vger.kernel.org, khilman@ti.com, tony@atomide.com, linux-arm-kernel@lists.infradead.org
+To: Greg KH <gregkh@linuxfoundation.org>
+Cc: stable@vger.kernel.org, linux-fbdev@vger.kernel.org, linux-omap@vger.kernel.org, Rob Clark <rob@ti.com>
 
-On Thu, Mar 8, 2012 at 4:58 AM, DebBarma, Tarun Kanti
-<tarun.kanti@ti.com> wrote:
-> On Wed, Mar 7, 2012 at 5:37 PM, Santosh Shilimkar
-> <santosh.shilimkar@ti.com> wrote:
->> On Wednesday 07 March 2012 12:16 PM, Tarun Kanti DebBarma wrote:
->>> In omap_gpio_runtime_resume() the context restore should be indepen=
-dent
->>> of bank->enabled_non_wakeup_gpios. This was preventing context rest=
-ore
->>> of GPIO lines which are not wakeup enabled.
->>>
->>> Reported-by: Govindraj Raja <govindraj.raja@ti.com>
->>> Signed-off-by: Tarun Kanti DebBarma <tarun.kanti@ti.com>
->>> ---
->>> =A0drivers/gpio/gpio-omap.c | =A0 =A02 +-
->>> =A01 files changed, 1 insertions(+), 1 deletions(-)
->>>
->>> diff --git a/drivers/gpio/gpio-omap.c b/drivers/gpio/gpio-omap.c
->>> index 2e8e476..ccfbae0 100644
->>> --- a/drivers/gpio/gpio-omap.c
->>> +++ b/drivers/gpio/gpio-omap.c
->>> @@ -1227,7 +1227,7 @@ static int omap_gpio_runtime_resume(struct de=
-vice *dev)
->>> =A0 =A0 =A0 __raw_writel(bank->context.risingdetect,
->>> =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0bank->base + bank->regs->ris=
-ingdetect);
->>>
->>> - =A0 =A0 if (!bank->enabled_non_wakeup_gpios || !bank->workaround_=
-enabled) {
->>> + =A0 =A0 if (!bank->workaround_enabled) {
->> This doesn't seem to be right.
->> Don't you want to avoid GPIO restore for banks which are in
->> always on domain. Infact the purpose of "enabled_non_wakeup_gpios"
->> is exactly that ? Isn't it.
->>
->> What am I missing ?
-> The bank->enabled_non_wakeup_gpios is set whenever a gpio line is pro=
-grammed
-> as edge trigger as shown below.
-> (This is not meant to distinguish between gpios in WKUP domain vs
-> those in PER domain).
-> The context restore should happen irrespective of whether the trigger
-> type is edge or level.
-> In fact context restore was not happening for a gpio line because of
-> this condition while
-> testing suspend/resume.
->
-> [...]
-> =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0if (trigger & IRQ_TYPE_EDGE_BOTH)
-> =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0bank->enabled_non_wake=
-up_gpios |=3D gpio_bit;
-> =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0else
-> =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0bank->enabled_non_wake=
-up_gpios &=3D ~gpio_bit;
-> [...]
 
-Make sense now. Thanks for clarification Tarun.
-You can add mine..
-Reviewed-by: Santosh Shilimkar <santosh.shilimkar@ti.com>
+--=-47GyESRNkLQyfoZ6aJKS
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: quoted-printable
 
-Regards
-Santosh
---
-To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+On Wed, 2012-03-07 at 12:01 -0800, Greg KH wrote:
+> On Thu, Mar 01, 2012 at 02:26:35PM +0200, Tomi Valkeinen wrote:
+> > From: Rob Clark <rob@ti.com>
+> >=20
+> > The "OMAPDSS: HDMI: PHY burnout fix" commit switched the HDMI driver
+> > over to using a GPIO for plug detect.  Unfortunately the ->detect()
+> > method was not also updated, causing HDMI to no longer work for the
+> > omapdrm driver (because it would actually check if a connection was
+> > detected before attempting to enable display).
+> >=20
+> > Signed-off-by: Rob Clark <rob@ti.com>
+> > Signed-off-by: Tomi Valkeinen <tomi.valkeinen@ti.com>
+>=20
+> You forgot to tell me what the git commit id is for this patch (it's
+> ca888a7958b3d808e4efd08ceff88913f4212c69, right?)
+
+Yes, that's the one. It wasn't in Linus's tree yet, only in fbdev tree,
+so I wasn't sure what the commit id is.
+
+> And why isn't this needed for the 3.0 kernel as well?
+
+The detect() function is not present in 3.0, so there was nothing to
+break.
+
+ Tomi
+
+
+--=-47GyESRNkLQyfoZ6aJKS
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: This is a digitally signed message part
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.4.11 (GNU/Linux)
+
+iQIcBAABAgAGBQJPWGEsAAoJEPo9qoy8lh713f0P/j28phkOXxhI6rd2+wozIyn1
+mgttyIcfb5QLlEbPVowk7ycOOhJowW597wBxxPq1jCsb/Y9WssFIGRG2AKdtX4sy
+RpDBHjeNjEUsWWOOn0rCYO9X/nbGpZAu5KCyFb05VkdQEQ/cAVXBrowIpRMawynr
+tWJjlE8yugxdMD29uvKqXTx43YXEM9dqEoC2yGaN/dnEhV26sY82Dfec9c2Tdd5T
+ZEDyBSe+GPGsIjQXjC8Yc6SGtKHMIHd5OcsUjOQ7iqQ4SXjLw+fT/2gsCzp+34HN
+e1pU9QA2sk2wqYMnA96kzgp8rebkjbBC4C53G6iVj1YQYDNGDYPTs7+4mdh0yTX0
+eJo9PTirTFVjRcS/ivakKyEQNOPvdjBeJvsC8hCswbovSmcp3SaGwPc+2nwfPrkV
+kbJbpNwJtf0SwCZJF2RllzGg+YW6XEFuBmDvGVqcVqJEa30E4rOuK1lXh/4B0nYM
+5ypygoMGUm9XUsQ1yBqFAtdWLDKonimW6nY7sTaVlspQ5QiSqqxCLzLbS3F/7BPY
+YAO93eRdF2I8gSXHJKToeetP0zv/ctcvFskji00oTPGGMfcdzgUQmFaGe7O0Waa3
+jtDdU6DS2XPemDZTCGqAMShGdgxc1zSSvFFv4JDph83HJdDG4oG3d2L0M2JLyNmg
+VcB6kXadaYan/46PyNcL
+=9M1F
+-----END PGP SIGNATURE-----
+
+--=-47GyESRNkLQyfoZ6aJKS--
+
