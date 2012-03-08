@@ -1,219 +1,48 @@
-From: Aneesh V <aneesh@ti.com>
-Subject: [PATCH 8/8] misc: emif: add debugfs entries for emif
-Date: Thu,  8 Mar 2012 21:24:25 +0530
-Message-ID: <1331222065-3579-9-git-send-email-aneesh@ti.com>
-References: <1331222065-3579-1-git-send-email-aneesh@ti.com>
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <1331222065-3579-1-git-send-email-aneesh@ti.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: linux-kernel@vger.kernel.org
-Cc: linux-omap@vger.kernel.org, Aneesh V <aneesh@ti.com>, Greg KH <greg@kroah.com>
+From: Balaji T K <balajitk@ti.com>
+Subject: [PATCH] mmc: omap4: hsmmc: fix module re-insertion
+Date: Thu, 8 Mar 2012 21:28:40 +0530
+Message-ID: <1331222320-31370-1-git-send-email-balajitk@ti.com>
+Mime-Version: 1.0
+Content-Type: text/plain
+Return-path: <linux-mmc-owner@vger.kernel.org>
+Sender: linux-mmc-owner@vger.kernel.org
+To: linux-mmc@vger.kernel.org, cjb@laptop.org
+Cc: linux-omap@vger.kernel.org, Balaji T K <balajitk@ti.com>
 List-Id: linux-omap@vger.kernel.org
 
-Add debug entries for:
-	1. calculated registers per frequency
-	2. last polled value of MR4(temperature level
-	   of LPDDR2 memory)
+OMAP4 and OMAP3 HSMMC IP registers differ by 0x100 offset.
+Addng the offset to platform_device resource structure
+increments the start address for every insmod operation.
+MMC command fails on re-insertion as module due to incorrect register base.
+Fix this by updating the ioremap base address only.
 
-Cc: Greg KH <greg@kroah.com>
-Signed-off-by: Aneesh V <aneesh@ti.com>
+Signed-off-by: Balaji T K <balajitk@ti.com>
 ---
-Changes since RFC:
-- None
----
- drivers/misc/emif.c |  138 +++++++++++++++++++++++++++++++++++++++++++++++++++
- 1 files changed, 138 insertions(+), 0 deletions(-)
+ drivers/mmc/host/omap_hsmmc.c |    4 +---
+ 1 files changed, 1 insertions(+), 3 deletions(-)
 
-diff --git a/drivers/misc/emif.c b/drivers/misc/emif.c
-index da79dd6..79fb161 100644
---- a/drivers/misc/emif.c
-+++ b/drivers/misc/emif.c
-@@ -18,6 +18,7 @@
- #include <linux/platform_device.h>
- #include <linux/interrupt.h>
- #include <linux/slab.h>
-+#include <linux/debugfs.h>
- #include <linux/seq_file.h>
- #include <linux/module.h>
- #include <linux/list.h>
-@@ -47,6 +48,7 @@
-  *				frequency change (i.e. corresponding to the
-  *				frequency in effect at the moment)
-  * @plat_data:			Pointer to saved platform data.
-+ * @debugfs_root:		dentry to the root folder for EMIF in debugfs
-  */
- struct emif_data {
- 	u8				duplicate;
-@@ -60,6 +62,7 @@ struct emif_data {
- 	struct emif_regs		*regs_cache[EMIF_MAX_NUM_FREQUENCIES];
- 	struct emif_regs		*curr_regs;
- 	struct emif_platform_data	*plat_data;
-+	struct dentry			*debugfs_root;
- };
+diff --git a/drivers/mmc/host/omap_hsmmc.c b/drivers/mmc/host/omap_hsmmc.c
+index e550170..102425c 100644
+--- a/drivers/mmc/host/omap_hsmmc.c
++++ b/drivers/mmc/host/omap_hsmmc.c
+@@ -1741,8 +1741,6 @@ static int __init omap_hsmmc_probe(struct platform_device *pdev)
+ 	if (res == NULL || irq < 0)
+ 		return -ENXIO;
  
- static struct emif_data *emif1;
-@@ -68,6 +71,130 @@ static unsigned long	irq_state;
- static u32		t_ck; /* DDR clock period in ps */
- static LIST_HEAD(device_list);
- 
-+static void do_emif_regdump_show(struct seq_file *s, struct emif_data *emif,
-+	struct emif_regs *regs)
-+{
-+	u32 type = emif->plat_data->device_info->type;
-+	u32 ip_rev = emif->plat_data->ip_rev;
-+
-+	seq_printf(s, "EMIF register cache dump for %dMHz\n",
-+		regs->freq/100000);
-+
-+	seq_printf(s, "ref_ctrl_shdw\t: 0x%08x\n", regs->ref_ctrl_shdw);
-+	seq_printf(s, "sdram_tim1_shdw\t: 0x%08x\n", regs->sdram_tim1_shdw);
-+	seq_printf(s, "sdram_tim2_shdw\t: 0x%08x\n", regs->sdram_tim2_shdw);
-+	seq_printf(s, "sdram_tim3_shdw\t: 0x%08x\n", regs->sdram_tim3_shdw);
-+
-+	if (ip_rev == EMIF_4D) {
-+		seq_printf(s, "read_idle_ctrl_shdw_normal\t: 0x%08x\n",
-+			regs->read_idle_ctrl_shdw_normal);
-+		seq_printf(s, "read_idle_ctrl_shdw_volt_ramp\t: 0x%08x\n",
-+			regs->read_idle_ctrl_shdw_volt_ramp);
-+	} else if (ip_rev == EMIF_4D5) {
-+		seq_printf(s, "dll_calib_ctrl_shdw_normal\t: 0x%08x\n",
-+			regs->dll_calib_ctrl_shdw_normal);
-+		seq_printf(s, "dll_calib_ctrl_shdw_volt_ramp\t: 0x%08x\n",
-+			regs->dll_calib_ctrl_shdw_volt_ramp);
-+	}
-+
-+	if (type == DDR_TYPE_LPDDR2_S2 || type == DDR_TYPE_LPDDR2_S4) {
-+		seq_printf(s, "ref_ctrl_shdw_derated\t: 0x%08x\n",
-+			regs->ref_ctrl_shdw_derated);
-+		seq_printf(s, "sdram_tim1_shdw_derated\t: 0x%08x\n",
-+			regs->sdram_tim1_shdw_derated);
-+		seq_printf(s, "sdram_tim3_shdw_derated\t: 0x%08x\n",
-+			regs->sdram_tim3_shdw_derated);
-+	}
-+}
-+
-+static int emif_regdump_show(struct seq_file *s, void *unused)
-+{
-+	struct emif_data	*emif	= s->private;
-+	struct emif_regs	**regs_cache;
-+	int			i;
-+
-+	if (emif->duplicate)
-+		regs_cache = emif1->regs_cache;
-+	else
-+		regs_cache = emif->regs_cache;
-+
-+	for (i = 0; i < EMIF_MAX_NUM_FREQUENCIES && regs_cache[i]; i++) {
-+		do_emif_regdump_show(s, emif, regs_cache[i]);
-+		seq_printf(s, "\n");
-+	}
-+
-+	return 0;
-+}
-+
-+static int emif_regdump_open(struct inode *inode, struct file *file)
-+{
-+	return single_open(file, emif_regdump_show, inode->i_private);
-+}
-+
-+static const struct file_operations emif_regdump_fops = {
-+	.open			= emif_regdump_open,
-+	.read			= seq_read,
-+	.release		= single_release,
-+};
-+
-+static int emif_mr4_show(struct seq_file *s, void *unused)
-+{
-+	struct emif_data *emif = s->private;
-+
-+	seq_printf(s, "MR4=%d\n", emif->temperature_level);
-+	return 0;
-+}
-+
-+static int emif_mr4_open(struct inode *inode, struct file *file)
-+{
-+	return single_open(file, emif_mr4_show, inode->i_private);
-+}
-+
-+static const struct file_operations emif_mr4_fops = {
-+	.open			= emif_mr4_open,
-+	.read			= seq_read,
-+	.release		= single_release,
-+};
-+
-+static int __init emif_debugfs_init(struct emif_data *emif)
-+{
-+	struct dentry	*dentry;
-+	int		ret;
-+
-+	dentry = debugfs_create_dir(dev_name(emif->dev), NULL);
-+	if (IS_ERR(dentry)) {
-+		ret = PTR_ERR(dentry);
-+		goto err0;
-+	}
-+	emif->debugfs_root = dentry;
-+
-+	dentry = debugfs_create_file("regcache_dump", S_IRUGO,
-+			emif->debugfs_root, emif, &emif_regdump_fops);
-+	if (IS_ERR(dentry)) {
-+		ret = PTR_ERR(dentry);
-+		goto err1;
-+	}
-+
-+	dentry = debugfs_create_file("mr4", S_IRUGO,
-+			emif->debugfs_root, emif, &emif_mr4_fops);
-+	if (IS_ERR(dentry)) {
-+		ret = PTR_ERR(dentry);
-+		goto err1;
-+	}
-+
-+	return 0;
-+err1:
-+	debugfs_remove_recursive(emif->debugfs_root);
-+err0:
-+	return ret;
-+}
-+
-+static void __exit emif_debugfs_exit(struct emif_data *emif)
-+{
-+	debugfs_remove_recursive(emif->debugfs_root);
-+	emif->debugfs_root = NULL;
-+}
-+
- /*
-  * Calculate the period of DDR clock from frequency value
-  */
-@@ -1174,6 +1301,7 @@ static int __init emif_probe(struct platform_device *pdev)
- 	}
- 
- 	emif_onetime_settings(emif);
-+	emif_debugfs_init(emif);
- 	disable_and_clear_all_interrupts(emif);
- 	setup_interrupts(emif, irq);
- 
-@@ -1197,6 +1325,15 @@ error:
- 	return -ENODEV;
- }
- 
-+static int __exit emif_remove(struct platform_device *pdev)
-+{
-+	struct emif_data *emif = platform_get_drvdata(pdev);
-+
-+	emif_debugfs_exit(emif);
-+
-+	return 0;
-+}
-+
- static void emif_shutdown(struct platform_device *pdev)
- {
- 	struct emif_data	*emif = platform_get_drvdata(pdev);
-@@ -1507,6 +1644,7 @@ static void __attribute__((unused)) freq_post_notify_handling(void)
- }
- 
- static struct platform_driver emif_driver = {
-+	.remove		= __exit_p(emif_remove),
- 	.shutdown	= emif_shutdown,
- 	.driver = {
- 		.name = "emif",
+-	res->start += pdata->reg_offset;
+-	res->end += pdata->reg_offset;
+ 	res = request_mem_region(res->start, resource_size(res), pdev->name);
+ 	if (res == NULL)
+ 		return -EBUSY;
+@@ -1766,7 +1764,7 @@ static int __init omap_hsmmc_probe(struct platform_device *pdev)
+ 	host->dma_ch	= -1;
+ 	host->irq	= irq;
+ 	host->slot_id	= 0;
+-	host->mapbase	= res->start;
++	host->mapbase	= res->start + pdata->reg_offset;
+ 	host->base	= ioremap(host->mapbase, SZ_4K);
+ 	host->power_mode = MMC_POWER_OFF;
+ 	host->next_data.cookie = 1;
 -- 
-1.7.1
+1.7.0.4
+
