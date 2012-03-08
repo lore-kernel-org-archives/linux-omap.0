@@ -1,56 +1,70 @@
-From: Greg KH <gregkh@linuxfoundation.org>
-Subject: Re: [PATCH 7/7] OMAPDSS: HDMI: hot plug detect fix
-Date: Thu, 8 Mar 2012 07:29:49 -0800
-Message-ID: <20120308152949.GB5277@kroah.com>
-References: <1330604795-29156-1-git-send-email-tomi.valkeinen@ti.com>
- <1330604795-29156-8-git-send-email-tomi.valkeinen@ti.com>
- <20120307200146.GA26451@kroah.com>
- <1331192113.2354.2.camel@deskari>
+From: "T Krishnamoorthy, Balaji" <balajitk@ti.com>
+Subject: Re: [PATCH 4/4] mmc: omap_hsmmc: Simplify init for twl6030 MMC card detect
+Date: Thu, 8 Mar 2012 21:23:10 +0530
+Message-ID: <CANrkHUbsiTz9+cRM83845=nYp82BSyje+ikV_sg3BT+64uD2XA@mail.gmail.com>
+References: <20120301185044.29210.44521.stgit@kaulin.local>
+	<20120301185535.29210.71546.stgit@kaulin.local>
+	<4F50643B.9050500@ti.com>
+	<20120302172251.GJ18901@atomide.com>
+	<4F548457.5050205@ti.com>
+	<CANrkHUZysOnHKKUuLm0Vbo1KsNp0yUd=udjGvQ43=gTTXbWeCw@mail.gmail.com>
+	<CANrkHUaYDpv=p0p81oKWCoewyjheyZYkCqvZY7_ZQxWi_=8YFw@mail.gmail.com>
+	<m2lincifj9.fsf@bob.laptop.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from out5-smtp.messagingengine.com ([66.111.4.29]:51521 "EHLO
-	out5-smtp.messagingengine.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1756738Ab2CHP3v (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 8 Mar 2012 10:29:51 -0500
-Received: from compute2.internal (compute2.nyi.mail.srv.osa [10.202.2.42])
-	by gateway1.nyi.mail.srv.osa (Postfix) with ESMTP id 0E7B521011
-	for <linux-omap@vger.kernel.org>; Thu,  8 Mar 2012 10:29:51 -0500 (EST)
-Content-Disposition: inline
-In-Reply-To: <1331192113.2354.2.camel@deskari>
+Received: from na3sys009aog121.obsmtp.com ([74.125.149.145]:51635 "EHLO
+	na3sys009aog121.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1757395Ab2CHPxN convert rfc822-to-8bit
+	(ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Thu, 8 Mar 2012 10:53:13 -0500
+Received: by mail-ee0-f45.google.com with SMTP id t10so196411eei.32
+        for <linux-omap@vger.kernel.org>; Thu, 08 Mar 2012 07:53:11 -0800 (PST)
+In-Reply-To: <m2lincifj9.fsf@bob.laptop.org>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Tomi Valkeinen <tomi.valkeinen@ti.com>
-Cc: stable@vger.kernel.org, linux-fbdev@vger.kernel.org, linux-omap@vger.kernel.org, Rob Clark <rob@ti.com>
+To: Chris Ball <cjb@laptop.org>
+Cc: linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, linux-mmc@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Tony Lindgren <tony@atomide.com>, Samuel Ortiz <sameo@linux.intel.com>, Rajendra Nayak <rnayak@ti.com>
 
-On Thu, Mar 08, 2012 at 09:35:13AM +0200, Tomi Valkeinen wrote:
-> On Wed, 2012-03-07 at 12:01 -0800, Greg KH wrote:
-> > On Thu, Mar 01, 2012 at 02:26:35PM +0200, Tomi Valkeinen wrote:
-> > > From: Rob Clark <rob@ti.com>
-> > > 
-> > > The "OMAPDSS: HDMI: PHY burnout fix" commit switched the HDMI driver
-> > > over to using a GPIO for plug detect.  Unfortunately the ->detect()
-> > > method was not also updated, causing HDMI to no longer work for the
-> > > omapdrm driver (because it would actually check if a connection was
-> > > detected before attempting to enable display).
-> > > 
-> > > Signed-off-by: Rob Clark <rob@ti.com>
-> > > Signed-off-by: Tomi Valkeinen <tomi.valkeinen@ti.com>
-> > 
-> > You forgot to tell me what the git commit id is for this patch (it's
-> > ca888a7958b3d808e4efd08ceff88913f4212c69, right?)
-> 
-> Yes, that's the one. It wasn't in Linus's tree yet, only in fbdev tree,
-> so I wasn't sure what the commit id is.
+On Wed, Mar 7, 2012 at 9:12 PM, Chris Ball <cjb@laptop.org> wrote:
+> Hi Balaji,
+>
+> On Wed, Mar 07 2012, T Krishnamoorthy, Balaji wrote:
+>> OMAP4 and OMAP3 HSMMC IP registers differ by 0x100 offset.
+>> Addng the offset to platform_device resource structure
+>> increments the start address for every insmod operation.
+>> MMC command fails on re-insertion as module due incorrect register b=
+ase.
+>> Fix this by updating the ioremap base address only.
+>>
+>> Signed-off-by: Balaji T K <balajitk@ti.com>
+>
+> Is this a regression, or has it never worked in mainline?
 
-Then you should not have sent it to me, as if I were to take it then, I
-could not have :(
+Not a regression introduced in current merge window.
+It happens on re-insertion of module.
+will post a patch with $SUBJECT
 
-> > And why isn't this needed for the 3.0 kernel as well?
-> 
-> The detect() function is not present in 3.0, so there was nothing to
-> break.
+>
+>> Note: =A0eMMC detection is still failing on resertion due to card vc=
+c
+>> power off on rmmod
+>
+> And this?
 
-Ok, so everything I've queued up is all that is needed, right?
+This issue was hidden and uncovered after this fix.
+This problem is Vcc being powered off without sleep command.
 
-greg k-h
+>
+> Thanks,
+>
+> - Chris.
+> --
+> Chris Ball =A0 <cjb@laptop.org> =A0 <http://printf.net/>
+> One Laptop Per Child
+--
+To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
