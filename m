@@ -1,44 +1,53 @@
-From: Rajendra Nayak <rnayak@ti.com>
-Subject: Re: [PATCH v2 0/6] mmc: omap_hsmmc: Clean up use/abuse of pdev->id
-Date: Thu, 08 Mar 2012 17:18:36 +0530
-Message-ID: <4F589C94.9010601@ti.com>
-References: <1329996409-26861-1-git-send-email-rnayak@ti.com>	<4F476228.7060607@ti.com> <4F54714E.6080805@ti.com>	<4F57312E.4080104@ti.com> <m2pqcoihhu.fsf@bob.laptop.org>
+From: "Coelho, Luciano" <coelho@ti.com>
+Subject: Re: [PATCH 0/2] ARM: OMAP2+: PM: code consolidation for 3.4
+Date: Thu, 8 Mar 2012 14:21:43 +0200
+Message-ID: <CAKd1q9rq67gUyXn+rOL348YwaYQiqHR8UQCSd68fpxhZHHsYGA@mail.gmail.com>
+References: <20120202093600.12509.35052.stgit@dusk> <87ty39cc7s.fsf@ti.com>
+ <alpine.DEB.2.00.1202021140060.586@utopia.booyaka.com>
+ <alpine.DEB.2.00.1202021328450.586@utopia.booyaka.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-mmc-owner@vger.kernel.org>
-In-Reply-To: <m2pqcoihhu.fsf@bob.laptop.org>
-Sender: linux-mmc-owner@vger.kernel.org
-To: Chris Ball <cjb@laptop.org>
-Cc: linux-mmc@vger.kernel.org, linux-omap@vger.kernel.org, balajitk@ti.com, svenkatr@ti.com, linux-arm-kernel@lists.infradead.org, linaro-dev@lists.linaro.org, patches@linaro.org
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
+In-Reply-To: <alpine.DEB.2.00.1202021328450.586@utopia.booyaka.com>
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
+List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
+List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
+Sender: linux-arm-kernel-bounces@lists.infradead.org
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
+To: Paul Walmsley <paul@pwsan.com>
+Cc: Kevin Hilman <khilman@ti.com>, linux-omap@vger.kernel.org, santosh.shilimkar@ti.com, linux-arm-kernel@lists.infradead.org, rnayak@ti.com
 List-Id: linux-omap@vger.kernel.org
 
-Hi Chris,
-
-On Wednesday 07 March 2012 08:29 PM, Chris Ball wrote:
-> Hi Rajendra,
->
-> On Wed, Mar 07 2012, Rajendra Nayak wrote:
->>> Chris, Ping. I am basing my DT support patches on top of these cleanups.
->>> Would be great if you can have a look and pull them in.
->>
->> Chris, just realized the last two requests from me to get this merged
->> weren't addressed to you directly, but instead you were copied.
->> Resending with you in 'To', hope this lands in your inbox :)
->
-> Sorry for the delay, thanks for the ping; I've pushed these to mmc-next
-> for 3.4 now.
-
-There's just one other cleanup patch here [1] to convert all pr_* prints
-in the driver to dev_*. Would be great if you can pick that as well.
-
-Thanks,
-Rajendra
-
-[1] http://marc.info/?l=linux-mmc&m=132999677405098&w=3
-
->
-> Thanks,
->
-> - Chris.
-
+SGksCgpPbiBUaHUsIEZlYiAyLCAyMDEyIGF0IDEwOjI5IFBNLCBQYXVsIFdhbG1zbGV5IDxwYXVs
+QHB3c2FuLmNvbT4gd3JvdGU6Cj4gT24gVGh1LCAyIEZlYiAyMDEyLCBQYXVsIFdhbG1zbGV5IHdy
+b3RlOgo+Cj4+IEdyZWF0LiDCoERvIHlvdSBrbm93IHdoYXQgdGhlIGRlYWwgaXMgd2l0aCBzdXNw
+ZW5kIG9uIDM0eHg/IMKgSSBlbmFibGVkCj4+IHR0eU8yIHdha2V1cCBhbmQgZW50ZXJlZCBzdXNw
+ZW5kLCBidXQgc2VyaWFsIHRyYWZmaWMgZG9lc24ndCBicmluZyBpdCBvdXQ/Cj4KPiBKdXN0IGEg
+cXVpY2sgZm9sbG93dXA7IEtldmluIHRyYWNrZWQgdGhpcyBkb3duLiDCoHYzLjMtcmMgbmVlZHMg
+dGhlIE1URAo+IHN1c3BlbmQgcGF0Y2ggdGhhdCBBcnRlbSBwb3N0ZWQgcmVjZW50bHkgdG8gc3Vz
+cGVuZCBjb3JyZWN0bHkgb24gT01BUDM1eHgKPiBCZWFnbGVCb2FyZCB3aXRoIG9tYXAycGx1c19k
+ZWZjb25maWcuIMKgVGhhbmtzIEtldmluLgoKSSBjYW4ndCBnZXQgdHR5TzIgd2FrZXVwIHRvIHdv
+cmsgb24gbXkgQmxhemUgd2l0aCAzLjMtcmM1LiAgSXQgd29ya3MKZmluZSB3aXRoIDMuMi4gIEkn
+dmUgYmVlbiB0cnlpbmcgdG8gYmlzZWN0IGFuZCBldmVyeXRoaW5nLCBidXQgaXQncwpkaWZmaWN1
+bHQuICBUbyBzdGFydCB3aXRoLCBkdXJpbmcgbXkgYmlzZWN0LCBtYW55IHBhdGNoZXMgc2VlbSB0
+byBiZQppbiBhIHN0YXRlIHdoZXJlIHRoZSBjb21waWxhdGlvbiBmYWlscyAob25lIGV4YW1wbGUg
+aXMKJ09NQVA0NFhYX0lSUV9QUkNNJyB1bmRlY2xhcmVkKS4KCkFueXdheSwgd2hhdCBJIGZvdW5k
+IG91dCBpcyB0aGF0IGFmdGVyIGZjZjZlZmEzIChBUk06IE9NQVA0OiBQTTogQWRkCldha2V1cEdl
+biBtb2R1bGUgYXMgT01BUCBnaWNfYXJjaF9leHRuKSB3YWtldXAgZnJvbSB0aGUgY29uc29sZQpk
+b2Vzbid0IHdvcmsgYW55bW9yZSBmb3IgbWUuICBUaGVuIEkgdHJpZWQgdG8gY29tbWVudCBvdXQg
+dGhlCm9tYXBfd2FrZXVwZ2VuX2luaXQoKSBjYWxsIGluICBnaWNfaW5pdF9pcnEoKSBhbmQgdGhh
+dCBzZWVtcyB0bwp3b3JrLi4uIGZvciBhIHdoaWxlLiAgQXQgbGVhc3QgdW50aWwgZmY4MTlkYTQg
+KEFSTTogT01BUDM6IENQVWlkbGU6Ck1ha2UgdXNlIG9mIENQVSBQTSBub3RpZmllcnMpIGNvbW1l
+bnRpbmcgb3V0IHRoYXQgbGluZSBzZWVtcyB0byB3b3JrLgpCdXQgaXQgZG9lc24ndCB3b3JrIGlm
+IEkgY29tbWVudCBvdXQgdGhlIGxpbmUgd2l0aCB2My4zLXJjNS4KCkFuZCB0aGF0J3Mgd2hlbiBJ
+IHJlY2tvbmVkIEkndmUgYmVlbiB1c2luZyB0b28gbXVjaCB0aW1lIHRyeWluZyB0bwpmaWd1cmUg
+dGhpcyBvbmUgb3V0LiA6KQoKRG9lcyBhbnlvbmUga25vdyBob3cgdG8gc29sdmUgdGhpcz8KCi0t
+IApDaGVlcnMsCkx1Y2EuCgpfX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19f
+X19fX19fXwpsaW51eC1hcm0ta2VybmVsIG1haWxpbmcgbGlzdApsaW51eC1hcm0ta2VybmVsQGxp
+c3RzLmluZnJhZGVhZC5vcmcKaHR0cDovL2xpc3RzLmluZnJhZGVhZC5vcmcvbWFpbG1hbi9saXN0
+aW5mby9saW51eC1hcm0ta2VybmVsCg==
