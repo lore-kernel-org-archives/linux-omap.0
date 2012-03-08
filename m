@@ -1,8 +1,7 @@
 From: Tony Lindgren <tony@atomide.com>
-Subject: [GIT PULL 6/7] smartreflex fixes and clean-up for upcoming merge
- window
+Subject: [GIT PULL 7/7] minimal omap board updates for upcoming merge window
 Date: Thu, 8 Mar 2012 12:53:29 -0800
-Message-ID: <E1S5kMB-00014z-Fj@merlin.infradead.org>
+Message-ID: <E1S5kMR-0001GD-Jj@merlin.infradead.org>
 References: <pull-1331240009-558004>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
@@ -23,54 +22,58 @@ To: Arnd Bergmann <arnd@arndb.de>, Olof Johansson <olof@lixom.net>
 Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 List-Id: linux-omap@vger.kernel.org
 
-This one contains clean-up and fixes for the smartreflex
-so it can be eventually moved to live under drivers.
-After this series, the next series will move this to
-drivers.
+This one contains minimal updates to existing board
+files so people can use the mainline kernel easier.
 
-As this depends on earlier fixes-non-critical merged
-into arm-soc, this one is based on commit 149f1d5c
-there. This would be probably best merged into driver
-branch that would then depend on fixes-non-critical.
+Note that the board-omap4panda.c changes have a minor merge
+conflict in the ASoC tree in next/master.
 
 
-The following changes since commit 149f1d5c8d2fd6879cdf93ca70f1cb745e698a1e:
-  Tony Lindgren (1):
-        ARM: OMAP2+: Fix devexit for smartreflex when CONFIG_HOTPLUG is not set
+The following changes since commit 192cfd58774b4d17b2fe8bdc77d89c2ef4e0591d:
+  Linus Torvalds (1):
+        Linux 3.3-rc6
 
 are available in the git repository at:
 
-  git://git.kernel.org/pub/scm/linux/kernel/git/tmlind/linux-omap sr
+  git://git.kernel.org/pub/scm/linux/kernel/git/tmlind/linux-omap board
 
-Felipe Balbi (4):
-      ARM: OMAP3+: SmartReflex: add missing platform_set_drvdata()
-      ARM: OMAP3+: SmartReflex: move late_initcall() closer to its argument
-      ARM: OMAP3+: SmartReflex: misc cleanups
-      ARM: OMAP3+: SmartReflex: micro-optimization for sanity check
+Aaro Koskinen (1):
+      ARM: OMAP: add minimal support for Nokia RM-696
 
-Jean Pihet (2):
-      ARM: OMAP3+: SmartReflex: fix the use of debugfs_create_* API
-      ARM: OMAP3+: SmartReflex: fix error handling
+Alex (1):
+      ARM: OMAP: Add omap_reserve functionality
 
-Nishanth Menon (6):
-      ARM: OMAP3+: SmartReflex: fix err interrupt disable sequence
-      ARM: OMAP3+: SmartReflex Class3: disable errorgen before disable VP
-      ARM: OMAP3+: SmartReflex: Add a shutdown hook
-      ARM: OMAP3+: SmartReflex: Fix status masking in ERRCONFIG register
-      ARM: OMAP3+: SmartReflex: clear ERRCONFIG_VPBOUNDINTST only on a need
-      ARM: OMAP3+: hwmod: add SmartReflex IRQs
+Grazvydas Ignotas (1):
+      ARM: OMAP: pandora: add support for backlight and poweroff
 
-Shweta Gulati (1):
-      ARM: OMAP3+: SmartReflex: use voltage domain name in device attributes
+Igor Grinberg (1):
+      ARM: OMAP3: cm-t3517: add EMAC support
 
-Tony Lindgren (1):
-      Merge branch 'for_3.4/cleanup/sr' of git://git.kernel.org/.../khilman/linux-omap-pm into sr
+Ilya Yanok (1):
+      ARM: OMAP: move generic EMAC init to separate file
 
- arch/arm/mach-omap2/omap_hwmod_3xxx_data.c   |   31 +++-
- arch/arm/mach-omap2/omap_hwmod_44xx_data.c   |   19 ++-
- arch/arm/mach-omap2/smartreflex-class3.c     |    1 +
- arch/arm/mach-omap2/smartreflex.c            |  227 +++++++++++++++++++-------
- arch/arm/mach-omap2/smartreflex.h            |   10 +
- arch/arm/mach-omap2/sr_device.c              |   11 +-
- arch/arm/plat-omap/include/plat/omap_hwmod.h |    2 -
- 7 files changed, 229 insertions(+), 72 deletions(-)
+Mircea Gherzan (1):
+      ARM: OMAP: enable Bluetooth on the PandaBoard
+
+Uwe Kleine-Knig (1):
+      ARM: OMAP4: board-4430sdp: don't initialize value that is never used
+
+Vladimir Zapolskiy (1):
+      ARM: OMAP3: RX-51: add explicit mux configuration of tsc2005 control gpios
+
+ arch/arm/mach-omap2/Kconfig                  |    3 +-
+ arch/arm/mach-omap2/Makefile                 |    3 +
+ arch/arm/mach-omap2/am35xx-emac.c            |  117 ++++++++++++++++++++++++++
+ arch/arm/mach-omap2/am35xx-emac.h            |   15 ++++
+ arch/arm/mach-omap2/board-4430sdp.c          |    5 +-
+ arch/arm/mach-omap2/board-am3517evm.c        |  117 +-------------------------
+ arch/arm/mach-omap2/board-cm-t3517.c         |    2 +
+ arch/arm/mach-omap2/board-omap3logic.c       |    2 +
+ arch/arm/mach-omap2/board-omap3pandora.c     |   11 +++
+ arch/arm/mach-omap2/board-omap4panda.c       |    6 ++
+ arch/arm/mach-omap2/board-rm680.c            |   14 +++-
+ arch/arm/mach-omap2/board-rx51-peripherals.c |   25 +++---
+ arch/arm/plat-omap/include/plat/uncompress.h |    1 +
+ 13 files changed, 192 insertions(+), 129 deletions(-)
+ create mode 100644 arch/arm/mach-omap2/am35xx-emac.c
+ create mode 100644 arch/arm/mach-omap2/am35xx-emac.h
