@@ -1,105 +1,98 @@
-From: Peter Ujfalusi <peter.ujfalusi@ti.com>
-Subject: [PATCH v2 1/3] ARM: OMAP2+: McBSP: Correct CLKR/FSR clock source mux configuration
-Date: Thu,  8 Mar 2012 11:22:15 +0200
-Message-ID: <1331198537-13469-2-git-send-email-peter.ujfalusi@ti.com>
-References: <1331198537-13469-1-git-send-email-peter.ujfalusi@ti.com>
+From: Archit Taneja <a0393947@ti.com>
+Subject: Re: [PATCH 16/21] OMAPDSS: handle output-driver reg/unreg more dynamically
+Date: Thu, 8 Mar 2012 14:52:42 +0530
+Message-ID: <4F587A62.3020202@ti.com>
+References: <1331124290-6285-1-git-send-email-tomi.valkeinen@ti.com>  <1331124290-6285-17-git-send-email-tomi.valkeinen@ti.com>  <4F586EFD.1020208@ti.com> <1331196364.2354.49.camel@deskari>
+Mime-Version: 1.0
+Content-Type: text/plain; charset="UTF-8"; format=flowed
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aog127.obsmtp.com ([74.125.149.107]:60459 "EHLO
-	psmtp.com" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
-	id S1756100Ab2CHJWb (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Thu, 8 Mar 2012 04:22:31 -0500
-Received: by lbbgg13 with SMTP id gg13so114227lbb.1
-        for <linux-omap@vger.kernel.org>; Thu, 08 Mar 2012 01:22:28 -0800 (PST)
-In-Reply-To: <1331198537-13469-1-git-send-email-peter.ujfalusi@ti.com>
+Received: from devils.ext.ti.com ([198.47.26.153]:49878 "EHLO
+	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755877Ab2CHJW7 (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 8 Mar 2012 04:22:59 -0500
+In-Reply-To: <1331196364.2354.49.camel@deskari>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Liam Girdwood <lrg@ti.com>, Mark Brown <broonie@opensource.wolfsonmicro.com>, Tony Lindgren <tony@atomide.com>
-Cc: Jarkko Nikula <jarkko.nikula@bitmer.com>, alsa-devel@alsa-project.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+To: Tomi Valkeinen <tomi.valkeinen@ti.com>
+Cc: linux-omap@vger.kernel.org, linux-fbdev@vger.kernel.org
 
-On OMAP2/3 McBSP1 port has 6 pin setup, while on OMAP4 the port is McBSP4.
-Implement the CLKR/FSR clock mux selection for OMAP4, and make sure that
-we add the correct callback for the correct port across supported OMAP
-versions.
+On Thursday 08 March 2012 02:16 PM, Tomi Valkeinen wrote:
+> On Thu, 2012-03-08 at 14:04 +0530, Archit Taneja wrote:
+>> On Wednesday 07 March 2012 06:14 PM, Tomi Valkeinen wrote:
+>
+>>> -	r = hdmi_init_platform_driver();
+>>> -	if (r) {
+>>> -		DSSERR("Failed to initialize hdmi\n");
+>>> -		goto err_hdmi;
+>>> +	/*
+>>> +	 * It's ok if the output-driver register fails. It happens, for example,
+>>> +	 * when there is no output-device (e.g. SDI for OMAP4).
+>>> +	 */
+>>
+>> Suppose we do a omap2plus_defconfig, CONFIG_OMAP2_DSS_SDI would be
+>> selected, and sdi.c would be built, if we boot on OMAP4, why would a sdi
+>> driver register cause a failure? Wouldn't the sdi driver just get
+>> registered, and wait till eternity for the corresponding sdi platform
+>> device to get registered?
+>
+> No. Well, yes.
+>
+> Currently we use platform_driver_register() to register the drivers, and
+> it does just what you described. But a few patches later I change
+> platform_driver_register() to platform_driver_probe(), which will return
+> ENODEV if there are no matching devices for the driver.
+>
+> I originally had the platform_driver_probe() patch before this patch,
+> and thus the comment above made sense. Now the patch is after this
+> patch, so the comment is not exactly right until the probe patch is also
+> applied.
 
-Signed-off-by: Peter Ujfalusi <peter.ujfalusi@ti.com>
-Acked-by: Jarkko Nikula <jarkko.nikula@bitmer.com>
----
- arch/arm/mach-omap2/mcbsp.c |   46 +++++++++++++++++++++++++++++++++++++++++-
- 1 files changed, 44 insertions(+), 2 deletions(-)
+Oh okay. But the comment after the patch set still says "It's ok if the 
+output-driver register fails.", we could change it to "It's ok if the 
+output-driver probe fails."
 
-diff --git a/arch/arm/mach-omap2/mcbsp.c b/arch/arm/mach-omap2/mcbsp.c
-index 49ff5b8..ecc039e 100644
---- a/arch/arm/mach-omap2/mcbsp.c
-+++ b/arch/arm/mach-omap2/mcbsp.c
-@@ -34,7 +34,7 @@
- #include "cm2xxx_3xxx.h"
- #include "cm-regbits-34xx.h"
- 
--/* McBSP internal signal muxing function */
-+/* McBSP1 internal signal muxing function for OMAP2/3 */
- static int omap2_mcbsp1_mux_rx_clk(struct device *dev, const char *signal,
- 				   const char *src)
- {
-@@ -65,6 +65,42 @@ static int omap2_mcbsp1_mux_rx_clk(struct device *dev, const char *signal,
- 	return 0;
- }
- 
-+/* McBSP4 internal signal muxing function for OMAP4 */
-+#define OMAP4_CONTROL_MCBSPLP_ALBCTRLRX_FSX	(1 << 31)
-+#define OMAP4_CONTROL_MCBSPLP_ALBCTRLRX_CLKX	(1 << 30)
-+static int omap4_mcbsp4_mux_rx_clk(struct device *dev, const char *signal,
-+				   const char *src)
-+{
-+	u32 v;
-+
-+	/*
-+	 * In CONTROL_MCBSPLP register only bit 30 (CLKR mux), and bit 31 (FSR
-+	 * mux) is used */
-+	v = omap4_ctrl_pad_readl(OMAP4_CTRL_MODULE_PAD_CORE_CONTROL_MCBSPLP);
-+
-+	if (!strcmp(signal, "clkr")) {
-+		if (!strcmp(src, "clkr"))
-+			v &= ~OMAP4_CONTROL_MCBSPLP_ALBCTRLRX_CLKX;
-+		else if (!strcmp(src, "clkx"))
-+			v |= OMAP4_CONTROL_MCBSPLP_ALBCTRLRX_CLKX;
-+		else
-+			return -EINVAL;
-+	} else if (!strcmp(signal, "fsr")) {
-+		if (!strcmp(src, "fsr"))
-+			v &= ~OMAP4_CONTROL_MCBSPLP_ALBCTRLRX_FSX;
-+		else if (!strcmp(src, "fsx"))
-+			v |= OMAP4_CONTROL_MCBSPLP_ALBCTRLRX_FSX;
-+		else
-+			return -EINVAL;
-+	} else {
-+		return -EINVAL;
-+	}
-+
-+	omap4_ctrl_pad_writel(v, OMAP4_CTRL_MODULE_PAD_CORE_CONTROL_MCBSPLP);
-+
-+	return 0;
-+}
-+
- /* McBSP CLKS source switching function */
- static int omap2_mcbsp_set_clk_src(struct device *dev, struct clk *clk,
- 				   const char *src)
-@@ -146,9 +182,15 @@ static int omap_init_mcbsp(struct omap_hwmod *oh, void *unused)
- 		pdata->has_ccr = true;
- 	}
- 	pdata->set_clk_src = omap2_mcbsp_set_clk_src;
--	if (id == 1)
-+
-+	/* On OMAP2/3 the McBSP1 port has 6 pin configuration */
-+	if (id == 1 && oh->class->rev < MCBSP_CONFIG_TYPE4)
- 		pdata->mux_signal = omap2_mcbsp1_mux_rx_clk;
- 
-+	/* On OMAP4 the McBSP4 port has 6 pin configuration */
-+	if (id == 4 && oh->class->rev == MCBSP_CONFIG_TYPE4)
-+		pdata->mux_signal = omap4_mcbsp4_mux_rx_clk;
-+
- 	if (oh->class->rev == MCBSP_CONFIG_TYPE3) {
- 		if (id == 2)
- 			/* The FIFO has 1024 + 256 locations */
--- 
-1.7.8.5
+>
+> The point with platform_driver_probe() is that it can be used with
+> non-removable devices which are created at boot time, like the DSS
+> components. With platform_driver_probe() the probe function is called
+> only at that one time, and never afterwards. So probe can be in __init
+> section, and thrown away after init.
+
+So platform_driver_probe() is like a driver_register() + probe().
+
+Okay, in our case, all the devices are created at boot time, and if 
+omapdss were a module, the probes would have been thrown away after 
+module_init(), right?
+
+>
+> One side effect of using platform_driver_probe() is that it returns
+> ENODEV is there are no devices. In a simple module, the error can be
+> then returned from module_init, thus causing the whole module to be
+> unloaded. Our case is a bit more complex as we have multiple drivers in
+> the same module.
+>
+> A downside with that is that we don't really know if the ENODEV error
+> happened because there were no devices (which is ok), or if it came from
+> probe function (which is not so ok). However, I thought that it doesn't
+> matter if an output driver has failed. We can still continue with the
+> other output drivers just fine.
+
+If we ensure that none of our probes return ENODEV(even though it may 
+make sense to return it if a func within probe fails), we could 
+differentiate between the 2 cases, right?
+
+>
+> Actually, there is a small problem. If, for example, DSI driver fails to
+> load, and DPI driver tries to use DSI PLL...
+
+If we could differentiate between an error occuring because the device 
+doesn't exist and an error occuring because the probe failed, we could 
+bail out if any of the probes fail, right?
+
+Archit
+
+>
+>   Tomi
+>
 
