@@ -1,137 +1,120 @@
 From: Grant Likely <grant.likely@secretlab.ca>
-Subject: Re: [PATCH 4/4] misc: emif: add device tree support to emif driver
-Date: Thu, 08 Mar 2012 22:37:04 -0700
-Message-ID: <20120309053704.E40433E0901@localhost>
-References: <1331224437-4808-1-git-send-email-aneesh@ti.com> <1331224437-4808-5-git-send-email-aneesh@ti.com>
+Subject: Re: [PATCH v2 1/4] mmc: omap_hsmmc: Convert hsmmc driver to use device tree
+Date: Thu, 08 Mar 2012 22:42:13 -0700
+Message-ID: <20120309054213.9E69C3E0901@localhost>
+References: <1329998490-27555-1-git-send-email-rnayak@ti.com> <1329998490-27555-2-git-send-email-rnayak@ti.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-iy0-f174.google.com ([209.85.210.174]:63750 "EHLO
-	mail-iy0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750707Ab2CIFhI (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 9 Mar 2012 00:37:08 -0500
-Received: by iagz16 with SMTP id z16so1755748iag.19
-        for <linux-omap@vger.kernel.org>; Thu, 08 Mar 2012 21:37:07 -0800 (PST)
-In-Reply-To: <1331224437-4808-5-git-send-email-aneesh@ti.com>
+Received: from mail-tul01m020-f174.google.com ([209.85.214.174]:37082 "EHLO
+	mail-tul01m020-f174.google.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1751003Ab2CIFmR (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 9 Mar 2012 00:42:17 -0500
+Received: by obbuo6 with SMTP id uo6so1684966obb.19
+        for <linux-omap@vger.kernel.org>; Thu, 08 Mar 2012 21:42:16 -0800 (PST)
+In-Reply-To: <1329998490-27555-2-git-send-email-rnayak@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: linux-omap@vger.kernel.org
-Cc: devicetree-discuss@lists.ozlabs.org, Aneesh V <aneesh@ti.com>, Benoit Cousson <b-cousson@ti.com>, linux-arm-kernel@lists.infradead.org, Rajendra Nayak <rnayak@ti.com>
+To: linux-mmc@vger.kernel.org, cjb@laptop.org, devicetree-discuss@lists.ozlabs.org
+Cc: linux-omap@vger.kernel.org, linaro-dev@lists.linaro.org, balajitk@ti.com, Rajendra Nayak <rnayak@ti.com>, linux-arm-kernel@lists.infradead.org
 
-On Thu,  8 Mar 2012 22:03:57 +0530, Aneesh V <aneesh@ti.com> wrote:
-> Cc: Rajendra Nayak <rnayak@ti.com>
-> Cc: Benoit Cousson <b-cousson@ti.com>
-> Signed-off-by: Aneesh V <aneesh@ti.com>
-> ---
-> Changes since RFC v4:
-> - Rebased to the latest version of EMIF series
-> - Replace kzalloc()/kfree() with devm_* variants
-> ---
->  drivers/misc/emif.c |  289 ++++++++++++++++++++++++++++++++++++++++++++++++++-
->  1 files changed, 288 insertions(+), 1 deletions(-)
+On Thu, 23 Feb 2012 17:31:27 +0530, Rajendra Nayak <rnayak@ti.com> wrote:
+> Define dt bindings for the ti-omap-hsmmc, and adapt
+> the driver to extract data (which was earlier passed as
+> platform_data) from device tree.
 > 
-> diff --git a/drivers/misc/emif.c b/drivers/misc/emif.c
-> index 79fb161..0aaa61e 100644
-> --- a/drivers/misc/emif.c
-> +++ b/drivers/misc/emif.c
-> @@ -18,6 +18,7 @@
->  #include <linux/platform_device.h>
->  #include <linux/interrupt.h>
->  #include <linux/slab.h>
-> +#include <linux/of.h>
->  #include <linux/debugfs.h>
->  #include <linux/seq_file.h>
->  #include <linux/module.h>
-> @@ -49,6 +50,7 @@
->   *				frequency in effect at the moment)
->   * @plat_data:			Pointer to saved platform data.
->   * @debugfs_root:		dentry to the root folder for EMIF in debugfs
-> + * @np_ddr:			Pointer to ddr device tree node
->   */
->  struct emif_data {
->  	u8				duplicate;
-> @@ -63,6 +65,9 @@ struct emif_data {
->  	struct emif_regs		*curr_regs;
->  	struct emif_platform_data	*plat_data;
->  	struct dentry			*debugfs_root;
-> +#if defined(CONFIG_OF)
-> +	struct device_node		*np_ddr;
-> +#endif
+> Signed-off-by: Rajendra Nayak <rnayak@ti.com>
+> ---
+>  .../devicetree/bindings/mmc/ti-omap-hsmmc.txt      |   31 +++++++++
+>  drivers/mmc/host/omap_hsmmc.c                      |   68 ++++++++++++++++++++
+>  2 files changed, 99 insertions(+), 0 deletions(-)
+>  create mode 100644 Documentation/devicetree/bindings/mmc/ti-omap-hsmmc.txt
+> 
+> diff --git a/Documentation/devicetree/bindings/mmc/ti-omap-hsmmc.txt b/Documentation/devicetree/bindings/mmc/ti-omap-hsmmc.txt
+> new file mode 100644
+> index 0000000..e4fa8f0
+> --- /dev/null
+> +++ b/Documentation/devicetree/bindings/mmc/ti-omap-hsmmc.txt
+> @@ -0,0 +1,31 @@
+> +* TI Highspeed MMC host controller for OMAP
+> +
+> +The Highspeed MMC Host Controller on TI OMAP family
+> +provides an interface for MMC, SD, and SDIO types of memory cards.
+> +
+> +Required properties:
+> +- compatible:
+> + Should be "ti,omap2-hsmmc", for OMAP2/3 controllers
+> + Should be "ti,omap4-hsmmc", for OMAP4 controllers
+> +- ti,hwmods: Must be "mmc<n>", n is controller instance starting 1
+> +- reg : should contain hsmmc registers location and length
+> +
+> +Optional properties:
+> +ti,dual-volt: boolean, supports dual voltage cards
+> +<supply-name>-supply: phandle to the regulator device tree node
+> +"supply-name" examples are "vmmc", "vmmc_aux" etc
+> +ti,bus-width: Number of data lines, default assumed is 1 if the property is missing.
+> +cd-gpios: GPIOs for card detection
+> +wp-gpios: GPIOs for write protection
+> +ti,non-removable: non-removable slot (like eMMC)
 
-Don't bother with the #if/#endif wrapper here.
-
->  };
->  
->  static struct emif_data *emif1;
-> @@ -1147,6 +1152,270 @@ static int is_custom_config_valid(struct emif_custom_configs *cust_cfgs,
->  	return valid;
->  }
->  
-> +#if defined(CONFIG_OF)
-> +static void __init of_get_custom_configs(struct device_node *np_emif,
-
-__devinit. Same through the rest of the file.
+Binding looks okay.  A couple comments below...
 
 [...]
-> +	return NULL;
-> +out:
-> +	return emif;
-> +}
-> +#endif
+> +static const struct of_device_id omap_mmc_of_match[];
+
+If you move the omap_mmc_of_match[] table up to here then there is no
+need for the forward declaration.
+
 > +
->  static struct emif_data * __init get_device_details(
-
-This function also must be __devinit
-
->  		struct platform_device *pdev)
+>  static int __init omap_hsmmc_probe(struct platform_device *pdev)
 >  {
-> @@ -1266,7 +1535,13 @@ static int __init emif_probe(struct platform_device *pdev)
->  	struct resource		*res;
->  	int			irq;
->  
-> -	emif = get_device_details(pdev);
-> +#if defined(CONFIG_OF)
-> +	if (pdev->dev.of_node)
-> +		emif = of_get_device_details(pdev->dev.of_node, &pdev->dev);
-> +	else
-> +#endif
-> +		emif = get_device_details(pdev);
+>  	struct omap_mmc_platform_data *pdata = pdev->dev.platform_data;
+> @@ -1725,6 +1768,14 @@ static int __init omap_hsmmc_probe(struct platform_device *pdev)
+>  	struct omap_hsmmc_host *host = NULL;
+>  	struct resource *res;
+>  	int ret, irq;
+> +	const struct of_device_id *match;
 > +
->  	if (!emif) {
->  		pr_err("%s: error getting device data\n", __func__);
->  		goto error;
-> @@ -1643,11 +1918,23 @@ static void __attribute__((unused)) freq_post_notify_handling(void)
->  	spin_unlock_irqrestore(&emif_lock, irq_state);
->  }
+> +	match = of_match_device(omap_mmc_of_match, &pdev->dev);
+> +	if (match) {
+> +		pdata = of_get_hsmmc_pdata(&pdev->dev);
+> +		if (match->data)
+> +			pdata->reg_offset = *(u16 *)match->data;
+
+Blech on the ugly cast.  It is slightly safer to do thusly:
+
+	u16 *offsetp = match->data;
+	pdata->reg_offset = *offsetp
+
+> +	}
+>  
+>  	if (pdata == NULL) {
+>  		dev_err(&pdev->dev, "Platform Data is missing\n");
+> @@ -2120,12 +2171,29 @@ static struct dev_pm_ops omap_hsmmc_dev_pm_ops = {
+>  	.runtime_resume = omap_hsmmc_runtime_resume,
+>  };
 >  
 > +#if defined(CONFIG_OF)
-> +static const struct of_device_id emif_of_match[] = {
-> +		{ .compatible = "ti,emif-4d" },
-> +		{ .compatible = "ti,emif-4d5" },
-> +		{},
-> +};
-> +MODULE_DEVICE_TABLE(of, emif_of_match);
+> +static u16 omap4_reg_offset = 0x100;
+> +
+> +static const struct of_device_id omap_mmc_of_match[] = {
+> +	{
+> +		.compatible = "ti,omap2-hsmmc",
+> +	},
+> +	{
+> +		.compatible = "ti,omap4-hsmmc",
+> +		.data = &omap4_reg_offset,
+> +	},
+> +	{},
+> +}
+> +MODULE_DEVICE_TABLE(of, omap_mmc_of_match);
 > +#endif
 > +
->  static struct platform_driver emif_driver = {
->  	.remove		= __exit_p(emif_remove),
-
-Not part of this patch I realize, but this is a bug.  .remove must
-be in the __devexit section and the __devexit_p() wrapper must
-be used.  Similarly, emif_probe must be in the __devinit section.
-
->  	.shutdown	= emif_shutdown,
->  	.driver = {
->  		.name = "emif",
-> +#if defined(CONFIG_OF)
-> +		.of_match_table = of_match_ptr(emif_of_match),
-> +#endif
-
-The of_match_ptr() macro makes the #if/#endif wrapper redundant.
-
-Otherwise, on brief review this patch looks right.
-
-g.
-
-
+>  static struct platform_driver omap_hsmmc_driver = {
+>  	.remove		= omap_hsmmc_remove,
+>  	.driver		= {
+>  		.name = DRIVER_NAME,
+>  		.owner = THIS_MODULE,
+>  		.pm = &omap_hsmmc_dev_pm_ops,
+> +		.of_match_table = of_match_ptr(omap_mmc_of_match),
 >  	},
 >  };
 >  
@@ -140,9 +123,9 @@ g.
 > 
 > 
 > _______________________________________________
-> linux-arm-kernel mailing list
-> linux-arm-kernel@lists.infradead.org
-> http://lists.infradead.org/mailman/listinfo/linux-arm-kernel
+> linaro-dev mailing list
+> linaro-dev@lists.linaro.org
+> http://lists.linaro.org/mailman/listinfo/linaro-dev
 
 -- 
 Grant Likely, B.Sc, P.Eng.
