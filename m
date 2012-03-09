@@ -1,93 +1,48 @@
-From: Tomi Valkeinen <tomi.valkeinen@ti.com>
-Subject: Re: [PATCH] ARM: OMAP2+: Fix compile error when FB_OMAP2 is not set
-Date: Fri, 09 Mar 2012 10:11:58 +0200
-Message-ID: <1331280718.1927.10.camel@deskari>
-References: <20120308204328.GW12083@atomide.com>
-	 <20120308204607.GX12083@atomide.com>
+From: Jean Pihet <jean.pihet@newoldbits.com>
+Subject: Re: [PATCH 5/9] ARM: OMAP36xx: hwmod data: fix SmartReflex interface data
+Date: Fri, 9 Mar 2012 09:20:07 +0100
+Message-ID: <CAORVsuV8YXNRF=UjBOd8hoYbJ+ksg6RT1dZYC=TuUTmLiuD+ow@mail.gmail.com>
+References: <20120228110943.808.73639.stgit@dusk>
+	<20120228111054.808.16941.stgit@dusk>
+	<alpine.DEB.2.00.1203082051150.26656@utopia.booyaka.com>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg="pgp-sha1"; protocol="application/pgp-signature"; boundary="=-7SBVTSyn0xF3OZJcOjAW"
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aog119.obsmtp.com ([74.125.149.246]:56496 "EHLO
-	na3sys009aog119.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752092Ab2CIIME (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 9 Mar 2012 03:12:04 -0500
-Received: by laap9 with SMTP id p9so1770044laa.24
-        for <linux-omap@vger.kernel.org>; Fri, 09 Mar 2012 00:12:01 -0800 (PST)
-In-Reply-To: <20120308204607.GX12083@atomide.com>
+Received: from mail-vx0-f174.google.com ([209.85.220.174]:50275 "EHLO
+	mail-vx0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752290Ab2CIIUI convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 9 Mar 2012 03:20:08 -0500
+Received: by vcqp1 with SMTP id p1so1161437vcq.19
+        for <linux-omap@vger.kernel.org>; Fri, 09 Mar 2012 00:20:07 -0800 (PST)
+In-Reply-To: <alpine.DEB.2.00.1203082051150.26656@utopia.booyaka.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Tony Lindgren <tony@atomide.com>
-Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+To: Paul Walmsley <paul@pwsan.com>
+Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Kevin Hilman <khilman@deeprootsystems.com>, Thara Gopinath <thara@ti.com>
 
+Hi Paul,
 
---=-7SBVTSyn0xF3OZJcOjAW
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: quoted-printable
+On Fri, Mar 9, 2012 at 4:51 AM, Paul Walmsley <paul@pwsan.com> wrote:
+>
+> Dropping this patch from this series due to conflicts with the SmartR=
+eflex
+> branch. =A0It will be moved to a subsequent series.
+I can take this change as part of the series I am preparing for the SR
+conversion to drivers/.
+What do you thin?
 
-On Thu, 2012-03-08 at 12:46 -0800, Tony Lindgren wrote:
-> * Tony Lindgren <tony@atomide.com> [120308 12:11]:
-> > Otherwise we will get:
-> >=20
-> > arch/arm/plat-omap/fb.c:101: error: expected =E2=80=98)=E2=80=99 before=
- =E2=80=98*=E2=80=99 token
-> >=20
-> > Signed-off-by: Tony Lindgren <tony@atomide.com>
-> >=20
-> > ---
-> >=20
-> > Tomi, you need something like this for what you have in for-next.
-> >=20
-> > --- a/arch/arm/plat-omap/fb.c
-> > +++ b/arch/arm/plat-omap/fb.c
-> > @@ -98,6 +98,8 @@ arch_initcall(omap_init_fb);
-> > =20
-> >  #else
-> > =20
-> > -void __init omapfb_set_lcd_config(omap_lcd_config *config) { }
-> > +void __init omapfb_set_lcd_config(const struct omap_lcd_config *config=
-)
-> > +{
-> > +}
-> > =20
-> >  #endif
->=20
-> Also now seeing the following with what you have in for-next:
->=20
-> drivers/video/omap2/displays/panel-taal.c: In function =E2=80=98taal_num_=
-errors_show=E2=80=99:
-> drivers/video/omap2/displays/panel-taal.c:605: warning: =E2=80=98errors=
-=E2=80=99 may be used uninitialized in this function
+> - Paul
 
-Hmm, my compiler doesn't complain (codesourcery 2010.09-50), so I didn't
-notice that. Which compiler version reports the warning?
+Jean
 
-I'm not 100% sure, but I think it's a false warning, the code path that
-uses "errors" should only be ran when "errors" has been set.
-
- Tomi
-
-
---=-7SBVTSyn0xF3OZJcOjAW
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: This is a digitally signed message part
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.4.11 (GNU/Linux)
-
-iQIcBAABAgAGBQJPWbtOAAoJEPo9qoy8lh71Am4P/2W7b8F+Rtno8yWA0Lze0G2r
-xFG9QjJcTIQTzeOqvQ+RacKm+XrLzMLHKCKs3jf0WD0b1BGpNn2NoJaJ4b1qGV48
-YB8pP06Rm3iCgLq+I85xZh/NETd5xvc9LGxas//LQ8dNo4Ya9m/DYZWqs5czvIAD
-FCbm2PdA49kcUb8MslEvIdJ+Htk6OQV/jQSdriPEj0KDH+N41uxwOSr+BSPP7Hws
-mF96LuKjtDG2RYc0Vn5mqOEfBcJU29KIeO4LwX23Qy15PNdjzRjOTDaAobOtUuYD
-TYGLT4AqXKD7UBWTSZJg7mg3vERFh1WrHr3WwLv5m7vBlsGutAQhzcCEZWKRHAPo
-4LPSz271pl5YlPQDuVcFgJZF2vijSTSJQYSuXs2v6UWLc3HiG9kNSCSazBXkX/W0
-W/GEvkH6kewz9aWuGifSYQN5ofwPWODWVwZ7mffkyMRcPo5A1mSNzKg8/G9jBufn
-5A5JldJB1hLXUHyvbf/wNRn8uqeByVwMtR8JEkhr689SS88r8VV4toVi2VitaGpH
-ZMN+YGTBMQoqBkgDllmW39h3DWwqpyyA1/ColjDlWDtlfEDp+wEk+w0xRO+OCmnJ
-s8NLabPrkjO+kkUP95xTgq3wKL8X85O91MovYyNp1QKIPINCdrnjCNf5L24aou/7
-7FgYKS1uPdTnwrLnLp0g
-=4lZM
------END PGP SIGNATURE-----
-
---=-7SBVTSyn0xF3OZJcOjAW--
-
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-omap"=
+ in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at =A0http://vger.kernel.org/majordomo-info.html
+--
+To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
