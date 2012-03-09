@@ -1,57 +1,50 @@
-From: Rajendra Nayak <rnayak@ti.com>
-Subject: Re: [PATCH v2 4/4] arm/dts: OMAP3: Add mmc controller nodes and board
- data
-Date: Fri, 09 Mar 2012 15:06:56 +0530
-Message-ID: <4F59CF38.6090706@ti.com>
-References: <1329998490-27555-1-git-send-email-rnayak@ti.com> <1329998490-27555-5-git-send-email-rnayak@ti.com> <20120223185718.GZ18185@atomide.com> <4F470B71.1020308@ti.com> <20120224184859.GN18185@atomide.com> <20120309054608.647473E0901@localhost> <alpine.DEB.2.00.1203082348200.26656@utopia.booyaka.com>
+From: Allen Pais <allen.lkml@gmail.com>
+Subject: mmc_delayed_work error
+Date: Fri, 9 Mar 2012 15:20:39 +0530
+Message-ID: <CAOMdWSKdT+hJ2btwwwVMFB7p7LjuYgZr34Q7RxT3Lex+xz2cWg@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=UTF-8
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aog108.obsmtp.com ([74.125.149.199]:52045 "EHLO
-	na3sys009aog108.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751420Ab2CIJhF (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 9 Mar 2012 04:37:05 -0500
-Received: by gglu1 with SMTP id u1so727010ggl.25
-        for <linux-omap@vger.kernel.org>; Fri, 09 Mar 2012 01:37:04 -0800 (PST)
-In-Reply-To: <alpine.DEB.2.00.1203082348200.26656@utopia.booyaka.com>
+Received: from mail-tul01m020-f174.google.com ([209.85.214.174]:59379 "EHLO
+	mail-tul01m020-f174.google.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1753474Ab2CIJuk (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 9 Mar 2012 04:50:40 -0500
+Received: by obbuo6 with SMTP id uo6so1914779obb.19
+        for <linux-omap@vger.kernel.org>; Fri, 09 Mar 2012 01:50:39 -0800 (PST)
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Paul Walmsley <paul@pwsan.com>
-Cc: Tony Lindgren <tony@atomide.com>, Grant Likely <grant.likely@secretlab.ca>, linux-omap@vger.kernel.org, linaro-dev@lists.linaro.org, balajitk@ti.com, devicetree-discuss@lists.ozlabs.org, linux-mmc@vger.kernel.org, cjb@laptop.org, linux-arm-kernel@lists.infradead.org, "Cousson, Benoit" <b-cousson@ti.com>
+To: linux-omap@vger.kernel.org
 
-Hi Paul,
+Hi,
 
-On Friday 09 March 2012 12:21 PM, Paul Walmsley wrote:
-> On Thu, 8 Mar 2012, Grant Likely wrote:
->
->> Yes, absolutely use separate compatible values.  It is always important
->> to be specific as to the silicon implementing the IP.
->
-> In that case, it is probably best to use the full chip name in the
-> compatible string, e.g., omap2420 or omap2430 rather than just "omap2".
+  When i suspend the system, i get
 
-Since omap2420 and omap2430 have different MMC controllers (and these
-bindings only cover the hsmmc controller used in 2430 and beyond, I
-haven't done the bindings for the legacy one yet), the idea was
-to differentiate between omap2420 and omap2430 by using
-compatible of "ti,omap2-hsmmc" for the High-Speed controller used in
-OMAP2 (2430) and "ti,omap2-mmc" for the legacy one used in OMAP2 (2420).
-Does that sound good to you?
+0 : OFF, 1 : RETENTION, 2 : ON-INACTIVE, 3 : ON-ACTIVE
+Powerdomain (core_pwrdm) entered state 1
+Powerdomain (gfx_pwrdm) is in state 0
+Powerdomain (abe_pwrdm) entered state 0
+Powerdomain (dss_pwrdm) is in state 0
+Powerdomain (tesla_pwrdm) entered state 0
+Powerdomain (wkup_pwrdm) is in state 0
+Powerdomain (cpu0_pwrdm) entered state 0
+Powerdomain (cpu1_pwrdm) entered state 0
+Powerdomain (emu_pwrdm) is in state 0
+Powerdomain (mpu_pwrdm) entered state 0
+Powerdomain (ivahd_pwrdm) entered state 0
+Powerdomain (cam_pwrdm) is in state 0
+Powerdomain (l3init_pwrdm) entered state 1
+Powerdomain (l4per_pwrdm) entered state 1
+Powerdomain (always_on_core_pwrdm) is in state 0
+Powerdomain (cefuse_pwrdm) is in state 0
+PM: early resume of devices complete after 0.854 msecs
+wakeup wake lock: mmc_delayed_work
+PM: resume of devices complete after 150.054 msecs
+Restarting tasks ...
 
-> Particularly in the case of "OMAP3," which is a largely meaningless group
-> these days with AM33xx, OMAP34xx, OMAP36xx, and AM3517, many of which are
-> quite different from each other...
 
-But these bindings are specific and limited to HSMMC module which is
-not quite different in the different SoC variants. There is a single
-driver to handle hsmmc module on all the SoCs which does not need to
-differentiate which SoC it is on.
+mmc_delayed_work keeps looping. Any idea on whats going wrong.
+Am using 2.6.35.
 
-regards,
-Rajendra
-
->
->
-> - Paul
-
+-- 
+Cheers!!
+Allen
