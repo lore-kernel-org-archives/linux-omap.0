@@ -1,40 +1,103 @@
-From: Peter Ujfalusi <peter.ujfalusi@ti.com>
-Subject: Re: [PATCH] ARM: OMAP4: clock: Add aliases for McBSP fclk clocks
-Date: Fri, 09 Mar 2012 17:45:19 +0200
-Message-ID: <4F5A258F.8050704@ti.com>
-References: <1331024133-18201-1-git-send-email-peter.ujfalusi@ti.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+From: Grant Likely <grant.likely@secretlab.ca>
+Subject: Re: [PATCH v2 3/4] arm/dts: OMAP4: Add mmc controller nodes and board data
+Date: Fri, 09 Mar 2012 08:49:11 -0700
+Message-ID: <20120309154911.8C23C3E08E2@localhost>
+References: <1329998490-27555-1-git-send-email-rnayak@ti.com> <1329998490-27555-4-git-send-email-rnayak@ti.com> <CANrkHUaP7cV_vSKQYZkeF-aS5CEi2CAp3_9aDJKCVOX-67oNPg@mail.gmail.com> <4F4765EC.1000102@ti.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aog125.obsmtp.com ([74.125.149.153]:54131 "EHLO
-	na3sys009aog125.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S932100Ab2CIPpa (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 9 Mar 2012 10:45:30 -0500
-Received: by mail-bk0-f42.google.com with SMTP id je9so3030236bkc.1
-        for <linux-omap@vger.kernel.org>; Fri, 09 Mar 2012 07:45:23 -0800 (PST)
-In-Reply-To: <1331024133-18201-1-git-send-email-peter.ujfalusi@ti.com>
+Received: from mail-tul01m020-f174.google.com ([209.85.214.174]:63541 "EHLO
+	mail-tul01m020-f174.google.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1754715Ab2CIPtP (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 9 Mar 2012 10:49:15 -0500
+Received: by obbuo6 with SMTP id uo6so2290145obb.19
+        for <linux-omap@vger.kernel.org>; Fri, 09 Mar 2012 07:49:14 -0800 (PST)
+In-Reply-To: <4F4765EC.1000102@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Tony Lindgren <tony@atomide.com>, Paul Walmsley <paul@pwsan.com>
-Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Jarkko Nikula <jarkko.nikula@bitmer.com>
+To: Rajendra Nayak <rnayak@ti.com>, "T Krishnamoorthy, Balaji" <balajitk@ti.com>
+Cc: cjb@laptop.org, linaro-dev@lists.linaro.org, devicetree-discuss@lists.ozlabs.org, linux-mmc@vger.kernel.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 
-Hi Paul, Tony,
+On Fri, 24 Feb 2012 15:56:52 +0530, Rajendra Nayak <rnayak@ti.com> wrote:
+> On Friday 24 February 2012 03:46 PM, T Krishnamoorthy, Balaji wrote:
+> >> diff --git a/arch/arm/boot/dts/omap4.dtsi b/arch/arm/boot/dts/omap4.dtsi
+> >> index 29f4589..9204f60 100644
+> >> --- a/arch/arm/boot/dts/omap4.dtsi
+> >> +++ b/arch/arm/boot/dts/omap4.dtsi
+> >> @@ -25,6 +25,11 @@
+> >>                 serial1 =&uart2;
+> >>                 serial2 =&uart3;
+> >>                 serial3 =&uart4;
+> >> +               mmc1 =&mmc1;
+> >> +               mmc2 =&mmc2;
+> >> +               mmc3 =&mmc3;
+> >> +               mmc4 =&mmc4;
+> >> +               mmc5 =&mmc5;
+> >>         };
+> >>
+> >>         cpus {
+> >> @@ -155,5 +160,31 @@
+> >>                         #size-cells =<0>;
+> >>                         ti,hwmods = "i2c4";
+> >>                 };
+> >> +
+> >> +               mmc1: mmc@1 {
+> >> +                       compatible = "ti,omap4-hsmmc";
+> >> +                       ti,hwmods = "mmc1";
+> >> +                       ti,dual-volt;
+> >> +               };
+> >> +
+> >> +               mmc2: mmc@2 {
+> >> +                       compatible = "ti,omap4-hsmmc";
+> >> +                       ti,hwmods = "mmc2";
+> >> +               };
+> >
+> > Hi Rajendra,
+> > Is there a way to control the device registration order,
+> > eMMC connected to mmc2 needs to be registered as /dev/mmcblk0p ...
+> > irrespective of whether SD card is mount or not on mmc1 card slot.
+> > So that bootargs would not have to be modified when filesystem is on eMMC.
+> 
+> I don't know if we can, but even if we could, we take care of the same
+> bootargs working on two boards (say sdp and panda) *if* on sdp I have my
+> filesystem on eMMC and on panda I have it on external card.
+> What happens if I want to use my filesystem on both boards on external
+> card?
 
-On 03/06/2012 10:55 AM, Peter Ujfalusi wrote:
-> CLKS signal for McBSP ports can be selected from internal (PRCM) or e=
-xternal
-> (ABE_CLKS pin) source.
-> To be able to use existing code we need to create clock aliases consi=
-stent
-> among OMAP2/3/4.
+of_alias_get_id() may be able to help you here.  It will extract the id
+numbering from the /aliases node.  That is the safe way to do global
+enumeration of devices in the device tree (instead of 'cell-index' which
+is strongly discouraged)
 
-Would you be able to take a look at this patch?
+g.
 
-Thanks,
-P=E9ter
---
-To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> 
+> >
+> >> +
+> >> +               mmc3: mmc@3 {
+> >> +                       compatible = "ti,omap4-hsmmc";
+> >> +                       ti,hwmods = "mmc3";
+> >> +               };
+> >> +
+> >> +               mmc4: mmc@4 {
+> >> +                       compatible = "ti,omap4-hsmmc";
+> >> +                       ti,hwmods = "mmc4";
+> >> +               };
+> >> +
+> >> +               mmc5: mmc@5 {
+> >> +                       compatible = "ti,omap4-hsmmc";
+> >> +                       ti,hwmods = "mmc5";
+> >> +               };
+> >>         };
+> >>   };
+> >> --
+> >> 1.7.1
+> >>
+> 
+> 
+> _______________________________________________
+> linux-arm-kernel mailing list
+> linux-arm-kernel@lists.infradead.org
+> http://lists.infradead.org/mailman/listinfo/linux-arm-kernel
+
+-- 
+Grant Likely, B.Sc, P.Eng.
+Secret Lab Technologies,Ltd.
