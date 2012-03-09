@@ -1,78 +1,75 @@
-From: =?UTF-8?q?V=C3=ADctor=20Manuel=20J=C3=A1quez=20Leal?=
-	<vjaquez@igalia.com>
-Subject: [PATCH 15/17] staging: tidspbridge: remove gh_init() and gh_exit()
-Date: Fri,  9 Mar 2012 01:03:50 +0100
-Message-ID: <42a10f510859985692dfbf0a42658acd91568ac1.1331250369.git.vjaquez@igalia.com>
-References: <cover.1331250368.git.vjaquez@igalia.com>
+From: Tony Lindgren <tony@atomide.com>
+Subject: Re: [PATCH v3] ARM: OMAP2+: gpmc-smsc911x: add required smsc911x
+ regulators
+Date: Thu, 8 Mar 2012 16:06:22 -0800
+Message-ID: <20120309000621.GA12083@atomide.com>
+References: <1330006564-13290-1-git-send-email-mporter@ti.com>
+ <87wr74gis6.fsf@ti.com>
+ <20120301204553.GA21841@legolas.emea.dhcp.ti.com>
+ <87pqcqnc7u.fsf@ti.com>
+ <CA+Bv8XaJqL1L8F-n6skY7dHn1XAdDLRKaRjw0deLeoQ5Ao0Fhg@mail.gmail.com>
+ <87sjhkjj8m.fsf@ti.com>
+ <20120308210825.GY12083@atomide.com>
+ <87y5raaiob.fsf@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
-Return-path: <devel-bounces@linuxdriverproject.org>
-In-Reply-To: <cover.1331250368.git.vjaquez@igalia.com>
-In-Reply-To: <cover.1331250368.git.vjaquez@igalia.com>
-References: <cover.1331250368.git.vjaquez@igalia.com>
-List-Unsubscribe: <http://driverdev.linuxdriverproject.org/mailman/options/devel>,
-	<mailto:devel-request@linuxdriverproject.org?subject=unsubscribe>
-List-Archive: <http://driverdev.linuxdriverproject.org/pipermail/devel>
-List-Post: <mailto:devel@linuxdriverproject.org>
-List-Help: <mailto:devel-request@linuxdriverproject.org?subject=help>
-List-Subscribe: <http://driverdev.linuxdriverproject.org/mailman/listinfo/devel>,
-	<mailto:devel-request@linuxdriverproject.org?subject=subscribe>
-Errors-To: devel-bounces@linuxdriverproject.org
-Sender: devel-bounces@linuxdriverproject.org
-To: Omar Ramirez Luna <omar.ramirez@ti.com>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>
-Cc: devel@driverdev.osuosl.org, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org, Felipe Contreras <felipe.contreras@nokia.com>
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from mho-02-ewr.mailhop.org ([204.13.248.72]:60006 "EHLO
+	mho-02-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752621Ab2CIAG2 (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 8 Mar 2012 19:06:28 -0500
+Content-Disposition: inline
+In-Reply-To: <87y5raaiob.fsf@ti.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Kevin Hilman <khilman@ti.com>
+Cc: Russ Dill <Russ.Dill@ti.com>, balbi@ti.com, Matt Porter <mporter@ti.com>, Russell King <linux@arm.linux.org.uk>, Linux OMAP List <linux-omap@vger.kernel.org>, Linux ARM Kernel List <linux-arm-kernel@lists.infradead.org>, linux-kernel@vger.kernel.org
 
-VGhlIGdoIG1vZHVsZSBoYXMgYSBnaF9pbml0KCkgYW5kIGEgZ2hfZXhpdCgpLCBidXQgdGhleSBk
-b24ndCBkbwphbnl0aGluZywgdGhleSBhcmUganVzdCBub29wcy4KClRoaXMgcGF0Y2ggcmVtb3Zl
-cyB0aGVzZSBmdW5jdGlvbnMuCgpUaGVyZSBpcyBubyBmdW5jdGlvbmFsIGNoYW5nZXMuCgpTaWdu
-ZWQtb2ZmLWJ5OiBWw61jdG9yIE1hbnVlbCBKw6FxdWV6IExlYWwgPHZqYXF1ZXpAaWdhbGlhLmNv
-bT4KLS0tCiBkcml2ZXJzL3N0YWdpbmcvdGlkc3BicmlkZ2UvZ2VuL2doLmMgICAgICAgICAgICAg
-ICB8ICAgMTggLS0tLS0tLS0tLS0tLS0tLS0tCiBkcml2ZXJzL3N0YWdpbmcvdGlkc3BicmlkZ2Uv
-aW5jbHVkZS9kc3BicmlkZ2UvZ2guaCB8ICAgIDIgLS0KIGRyaXZlcnMvc3RhZ2luZy90aWRzcGJy
-aWRnZS9wbWdyL2RibGwuYyAgICAgICAgICAgIHwgICAxMiArKy0tLS0tLS0tLS0KIDMgZmlsZXMg
-Y2hhbmdlZCwgMiBpbnNlcnRpb25zKCspLCAzMCBkZWxldGlvbnMoLSkKCmRpZmYgLS1naXQgYS9k
-cml2ZXJzL3N0YWdpbmcvdGlkc3BicmlkZ2UvZ2VuL2doLmMgYi9kcml2ZXJzL3N0YWdpbmcvdGlk
-c3BicmlkZ2UvZ2VuL2doLmMKaW5kZXggNjBhYTdiMC4uMjVlYWVmNyAxMDA2NDQKLS0tIGEvZHJp
-dmVycy9zdGFnaW5nL3RpZHNwYnJpZGdlL2dlbi9naC5jCisrKyBiL2RyaXZlcnMvc3RhZ2luZy90
-aWRzcGJyaWRnZS9nZW4vZ2guYwpAQCAtOTUsMTUgKzk1LDYgQEAgdm9pZCBnaF9kZWxldGUoc3Ry
-dWN0IGdoX3RfaGFzaF90YWIgKmhhc2hfdGFiKQogfQogCiAvKgotICogID09PT09PT09IGdoX2V4
-aXQgPT09PT09PT0KLSAqLwotCi12b2lkIGdoX2V4aXQodm9pZCkKLXsKLQkvKiBEbyBub3RoaW5n
-ICovCi19Ci0KLS8qCiAgKiAgPT09PT09PT0gZ2hfZmluZCA9PT09PT09PQogICovCiAKQEAgLTEy
-MiwxNSArMTEzLDYgQEAgdm9pZCAqZ2hfZmluZChzdHJ1Y3QgZ2hfdF9oYXNoX3RhYiAqaGFzaF90
-YWIsIHZvaWQgKmtleSkKIH0KIAogLyoKLSAqICA9PT09PT09PSBnaF9pbml0ID09PT09PT09Ci0g
-Ki8KLQotdm9pZCBnaF9pbml0KHZvaWQpCi17Ci0JLyogRG8gbm90aGluZyAqLwotfQotCi0vKgog
-ICogID09PT09PT09IGdoX2luc2VydCA9PT09PT09PQogICovCiAKZGlmZiAtLWdpdCBhL2RyaXZl
-cnMvc3RhZ2luZy90aWRzcGJyaWRnZS9pbmNsdWRlL2RzcGJyaWRnZS9naC5oIGIvZHJpdmVycy9z
-dGFnaW5nL3RpZHNwYnJpZGdlL2luY2x1ZGUvZHNwYnJpZGdlL2doLmgKaW5kZXggOWRlMjkxZC4u
-ZGE4NTA3OSAxMDA2NDQKLS0tIGEvZHJpdmVycy9zdGFnaW5nL3RpZHNwYnJpZGdlL2luY2x1ZGUv
-ZHNwYnJpZGdlL2doLmgKKysrIGIvZHJpdmVycy9zdGFnaW5nL3RpZHNwYnJpZGdlL2luY2x1ZGUv
-ZHNwYnJpZGdlL2doLmgKQEAgLTIzLDkgKzIzLDcgQEAgZXh0ZXJuIHN0cnVjdCBnaF90X2hhc2hf
-dGFiICpnaF9jcmVhdGUodTE2IG1heF9idWNrZXQsIHUxNiB2YWxfc2l6ZSwKIAkJCQkgICAgICAg
-Ym9vbCgqbWF0Y2gpICh2b2lkICosIHZvaWQgKiksCiAJCQkJICAgICAgIHZvaWQgKCpkZWxldGUp
-ICh2b2lkICopKTsKIGV4dGVybiB2b2lkIGdoX2RlbGV0ZShzdHJ1Y3QgZ2hfdF9oYXNoX3RhYiAq
-aGFzaF90YWIpOwotZXh0ZXJuIHZvaWQgZ2hfZXhpdCh2b2lkKTsKIGV4dGVybiB2b2lkICpnaF9m
-aW5kKHN0cnVjdCBnaF90X2hhc2hfdGFiICpoYXNoX3RhYiwgdm9pZCAqa2V5KTsKLWV4dGVybiB2
-b2lkIGdoX2luaXQodm9pZCk7CiBleHRlcm4gdm9pZCAqZ2hfaW5zZXJ0KHN0cnVjdCBnaF90X2hh
-c2hfdGFiICpoYXNoX3RhYiwgdm9pZCAqa2V5LCB2b2lkICp2YWx1ZSk7CiAjaWZkZWYgQ09ORklH
-X1RJRFNQQlJJREdFX0JBQ0tUUkFDRQogdm9pZCBnaF9pdGVyYXRlKHN0cnVjdCBnaF90X2hhc2hf
-dGFiICpoYXNoX3RhYiwKZGlmZiAtLWdpdCBhL2RyaXZlcnMvc3RhZ2luZy90aWRzcGJyaWRnZS9w
-bWdyL2RibGwuYyBiL2RyaXZlcnMvc3RhZ2luZy90aWRzcGJyaWRnZS9wbWdyL2RibGwuYwppbmRl
-eCAwNzFlZTg2Li45ZjA3MDM2IDEwMDY0NAotLS0gYS9kcml2ZXJzL3N0YWdpbmcvdGlkc3Bicmlk
-Z2UvcG1nci9kYmxsLmMKKysrIGIvZHJpdmVycy9zdGFnaW5nL3RpZHNwYnJpZGdlL3BtZ3IvZGJs
-bC5jCkBAIC0xODcsOCArMTg3LDYgQEAgc3RhdGljIHUxNiBuYW1lX2hhc2godm9pZCAqa2V5LCB1
-MTYgbWF4X2J1Y2tldCk7CiBzdGF0aWMgYm9vbCBuYW1lX21hdGNoKHZvaWQgKmtleSwgdm9pZCAq
-c3ApOwogc3RhdGljIHZvaWQgc3ltX2RlbGV0ZSh2b2lkICp2YWx1ZSk7CiAKLXN0YXRpYyB1MzIg
-cmVmczsJCS8qIG1vZHVsZSByZWZlcmVuY2UgY291bnQgKi8KLQogLyogU3ltYm9sIFJlZGVmaW5p
-dGlvbiAqLwogc3RhdGljIGludCByZWRlZmluZWRfc3ltYm9sOwogc3RhdGljIGludCBnYmxfc2Vh
-cmNoID0gMTsKQEAgLTI2OCwxMCArMjY2LDcgQEAgdm9pZCBkYmxsX2RlbGV0ZShzdHJ1Y3QgZGJs
-bF90YXJfb2JqICp0YXJnZXQpCiAgKi8KIHZvaWQgZGJsbF9leGl0KHZvaWQpCiB7Ci0JcmVmcy0t
-OwotCi0JaWYgKHJlZnMgPT0gMCkKLQkJZ2hfZXhpdCgpOworCS8qIGRvIG5vdGhpbmcgKi8KIH0K
-IAogLyoKQEAgLTM5NCwxMCArMzg5LDcgQEAgaW50IGRibGxfZ2V0X3NlY3Qoc3RydWN0IGRibGxf
-bGlicmFyeV9vYmogKmxpYiwgY2hhciAqbmFtZSwgdTMyICpwYWRkciwKICAqLwogYm9vbCBkYmxs
-X2luaXQodm9pZCkKIHsKLQlpZiAocmVmcyA9PSAwKQotCQlnaF9pbml0KCk7Ci0KLQlyZWZzKys7
-CisJLyogZG8gbm90aGluZyAqLwogCiAJcmV0dXJuIHRydWU7CiB9Ci0tIAoxLjcuOS4xCgpfX19f
-X19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fXwpkZXZlbCBtYWlsaW5n
-IGxpc3QKZGV2ZWxAbGludXhkcml2ZXJwcm9qZWN0Lm9yZwpodHRwOi8vZHJpdmVyZGV2LmxpbnV4
-ZHJpdmVycHJvamVjdC5vcmcvbWFpbG1hbi9saXN0aW5mby9kZXZlbAo=
+* Kevin Hilman <khilman@ti.com> [120308 12:54]:
+> Tony Lindgren <tony@atomide.com> writes:
+> 
+> > * Kevin Hilman <khilman@ti.com> [120307 11:05]:
+> >> >
+> >> > I don't think the second smsc911x on the Overo, "smsc911x.1", would
+> >> > find it due to the dev_id.
+> >> 
+> >> It's not about finding the second regulator.  As stated in the
+> >> changelog, it's about the duplicate attempt to register the exact same
+> >> platform_device.
+> >> 
+> >> Duplicate attempts to register the exact same platform_device cause
+> >> kobject to panic and give up[1].  So, any platform that calls
+> >> gpmc_smsc911x_init() twice (Overo and T35 in mainline) will panic on
+> >> boot.
+> >> 
+> >> This patch fixes those platforms so they can boot.
+> >
+> > Yeah but I guess the second smsc911x instance still would not work,
+> > or am I missing something?
+> 
+> I don't know since my Overo expansion boards don't have a 2nd NIC, but I
+> suspect you're right.
+> 
+> However, my fix isn't addressing that.  I am fixing a problem where
+> mainline today will panic on some boards due to duplicate registration.
+> 
+> If the 2nd interface doesn't work, then the original patch that added
+> the regulators needs a rethink.  My patch to prevent the panic() is
+> needed for mainline.
+
+With Kevin's second version of this patch applied we avoid the panic
+on boards with more than one smsc911x.
+
+After this patch, board-*.c files can add custom regulators for their
+other smsc911x instances.
+
+We should also add a regulator to the struct omap_smsc911x_platform_data,
+and then only initialize the fixed regulator automatically
+if (!board_data->regulator && !board_data->id).
+
+So I've pushed Kevin's second version of the fix to fix-smsc911x-regulator
+branch.
+
+Regards,
+
+Tony
