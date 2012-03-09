@@ -1,87 +1,74 @@
-From: Vaibhav Hiremath <hvaibhav@ti.com>
-Subject: [PATCH] omap_vout: Fix the build warning and section miss-match warning
-Date: Fri, 9 Mar 2012 17:44:03 +0530
-Message-ID: <1331295243-2191-1-git-send-email-hvaibhav@ti.com>
+From: Tomi Valkeinen <tomi.valkeinen@ti.com>
+Subject: Re: [PATCH v4 3/3] OMAPDSS: HDMI: Sysfs support to configure
+ quantization
+Date: Fri, 09 Mar 2012 14:26:52 +0200
+Message-ID: <1331296012.1927.60.camel@deskari>
+References: <1328682261-22493-1-git-send-email-mythripk@ti.com>
+	 <1328682261-22493-2-git-send-email-mythripk@ti.com>
+	 <1328682261-22493-3-git-send-email-mythripk@ti.com>
+	 <1329222123.1845.82.camel@deskari>
+	 <CAP5A+B8J_y4GOMJ1pX1koYSDzGNA15i6ebY2i5ZZ5ZMZsvPE3A@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain
+Content-Type: multipart/signed; micalg="pgp-sha1"; protocol="application/pgp-signature"; boundary="=-krtQFRyXXZtiAee8xDoP"
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from arroyo.ext.ti.com ([192.94.94.40]:54868 "EHLO arroyo.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753074Ab2CIMON (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Fri, 9 Mar 2012 07:14:13 -0500
+Received: from na3sys009aog132.obsmtp.com ([74.125.149.250]:47386 "EHLO
+	psmtp.com" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
+	id S1755042Ab2CIM04 (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Fri, 9 Mar 2012 07:26:56 -0500
+Received: by mail-lpp01m010-f42.google.com with SMTP id l5so1589140lah.15
+        for <linux-omap@vger.kernel.org>; Fri, 09 Mar 2012 04:26:55 -0800 (PST)
+In-Reply-To: <CAP5A+B8J_y4GOMJ1pX1koYSDzGNA15i6ebY2i5ZZ5ZMZsvPE3A@mail.gmail.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: linux-media@vger.kernel.org
-Cc: mchehab@infradead.org, archit@ti.com, laurent.pinchart@ideasonboard.com, linux-omap@vger.kernel.org, Vaibhav Hiremath <hvaibhav@ti.com>
+To: "K, Mythri P" <mythripk@ti.com>
+Cc: linux-omap@vger.kernel.org, Archit Taneja <archit@ti.com>
 
-Patch fixes below build warning and section miss-match warning 
-from omap_vout driver -
 
-Build warnings:
-=============
-drivers/media/video/omap/omap_vout.c: In function 'omapvid_setup_overlay':
-drivers/media/video/omap/omap_vout.c:381:17: warning: 'mode' may be used
-uninitialized in this function
+--=-krtQFRyXXZtiAee8xDoP
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: quoted-printable
 
-Section Mis-Match warnings:
-==========================
-WARNING: drivers/media/video/omap/omap-vout.o(.data+0x0): Section mismatch in
-reference from the variable
-omap_vout_driver to the function .init.text:omap_vout_probe()
-The variable omap_vout_driver references
-the function __init omap_vout_probe()
-If the reference is valid then annotate the
-variable with __init* or __refdata (see linux/init.h) or name the variable:
-*_template, *_timer, *_sht, *_ops, *_probe, *_probe_one, *_console
+On Fri, 2012-03-09 at 16:17 +0530, K, Mythri P wrote:
 
-Signed-off-by: Vaibhav Hiremath <hvaibhav@ti.com>
----
- drivers/media/video/omap/omap_vout.c |    9 +++++----
- 1 files changed, 5 insertions(+), 4 deletions(-)
+> > I also only now realized that we have full/limited range setting in
+> > video overlay's ATTRIBUTEs also. And it seems that we currently set it
+> > always to 0, i.e. limited range. I wonder if this causes color
+> > degradation in case the HDMI/DP output also sets limited range, and thu=
+s
+> > the color range gets scaled down twice...
+> >
+> yes there is a limited/full range bit in dispc for color conversion,
+> did a quick check using analyzer it doesn't impact the HDMI color
+> range, so can confirm there is no degradation.
 
-diff --git a/drivers/media/video/omap/omap_vout.c b/drivers/media/video/omap/omap_vout.c
-index dffcf66..0fb0437 100644
---- a/drivers/media/video/omap/omap_vout.c
-+++ b/drivers/media/video/omap/omap_vout.c
-@@ -328,7 +328,7 @@ static int video_mode_to_dss_mode(struct omap_vout_device *vout)
- 	struct omap_overlay *ovl;
- 	struct omapvideo_info *ovid;
- 	struct v4l2_pix_format *pix = &vout->pix;
--	enum omap_color_mode mode;
-+	enum omap_color_mode mode = -EINVAL;
+Did you try what happens if you set the range to full in DISPC? Because
+it should affect HDMI also, so I don't quite understand how there could
+be no degradation if both DISPC and HDMI do the range limiting.
 
- 	ovid = &vout->vid_info;
- 	ovl = ovid->overlays[0];
-@@ -2108,7 +2108,7 @@ static void omap_vout_cleanup_device(struct omap_vout_device *vout)
- 	kfree(vout);
- }
+ Tomi
 
--static int omap_vout_remove(struct platform_device *pdev)
-+static int __devexit omap_vout_remove(struct platform_device *pdev)
- {
- 	int k;
- 	struct v4l2_device *v4l2_dev = platform_get_drvdata(pdev);
-@@ -2129,7 +2129,7 @@ static int omap_vout_remove(struct platform_device *pdev)
- 	return 0;
- }
 
--static int __init omap_vout_probe(struct platform_device *pdev)
-+static int __devinit omap_vout_probe(struct platform_device *pdev)
- {
- 	int ret = 0, i;
- 	struct omap_overlay *ovl;
-@@ -2241,9 +2241,10 @@ probe_err0:
- static struct platform_driver omap_vout_driver = {
- 	.driver = {
- 		.name = VOUT_NAME,
-+		.owner = THIS_MODULE,
- 	},
- 	.probe = omap_vout_probe,
--	.remove = omap_vout_remove,
-+	.remove = __devexit_p(omap_vout_remove),
- };
+--=-krtQFRyXXZtiAee8xDoP
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: This is a digitally signed message part
 
- static int __init omap_vout_init(void)
---
-1.7.0.4
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.4.11 (GNU/Linux)
+
+iQIcBAABAgAGBQJPWfcMAAoJEPo9qoy8lh71HGMQAJ17rkYNGoyOpTlAaRa2w9DR
+BANsKDEUfL/+9Y7FHE3j37VMtCBvG/M26vrIDtuen75NdV10gVkHQ8fvGQl/dJbO
+he4ZvB4JFVVrNhNt53KhLvCHDE6MYq3v6/6iUeqsRV9o0pfcPIGTTuoZCM/Kzy3u
+dh+AjM8qHCRmXsQwr3YKkwnHzQNiF7QmBWn7s8oV6sdRrFW9MBcqkf5HbiFnnor2
+d8cW704Z3iA0d82IzPeeZi9LrhaDI9y3/3H7j6+04r0xGLIgm0NlxyK7i64kXP5m
+PvFRq40m0+ZPqrc2eokoHOdVkMqn8KntJcQtSHhcM/Dnm4nzqxJBOFAosxGAbfIx
+lkgiIzzXQHYJQ085BxsnDCbBrnQNJWAtFd2d5zB+XKZMcAR4cywZW8bcxtD9M1fN
+trOvFkoO9j4GvktrDX0ewn8QgsWxj3fUf37Z8boVF6rz2kEneK7jcN5h6rrbP6fz
+HZ5sUFSmcd3niAY4k78QDK7m1b9YbYri8yBoCiLzMcaOlIdkjNxQtImTNCvC3KPK
+ZWb6Fc4zl3/hjfYXmBcPkvWji0N7Eh1P1+6SPDI8Vg7TW+mr+GBSWYzfo55qzPil
+gZ0rvYMzEJ70s1X+LuD9PxNvtIaa9oALN6EW/NmRdXgQ1Akh3wNQosCL+t0kQ1NW
+QtiG6xW1i9N+ARgn73GC
+=qe+t
+-----END PGP SIGNATURE-----
+
+--=-krtQFRyXXZtiAee8xDoP--
 
