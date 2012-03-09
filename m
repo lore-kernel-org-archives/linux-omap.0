@@ -1,46 +1,27 @@
-From: Paul Walmsley <paul@pwsan.com>
-Subject: Re: [PATCH 5/9] ARM: OMAP36xx: hwmod data: fix SmartReflex interface
- data
-Date: Fri, 9 Mar 2012 09:55:18 -0700 (MST)
-Message-ID: <alpine.DEB.2.00.1203090949130.17504@utopia.booyaka.com>
-References: <20120228110943.808.73639.stgit@dusk> <20120228111054.808.16941.stgit@dusk> <alpine.DEB.2.00.1203082051150.26656@utopia.booyaka.com> <CAORVsuV8YXNRF=UjBOd8hoYbJ+ksg6RT1dZYC=TuUTmLiuD+ow@mail.gmail.com>
+From: "George C. Huntington, III" <george.huntingtoniii@gmail.com>
+Subject: AM3517evm
+Date: Fri, 9 Mar 2012 12:22:55 -0500
+Message-ID: <CAFu+nvFt8BcO1pDD6CXXM056WYG9AQDTv-boc7xF0C2JuHAyYw@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: MULTIPART/MIXED; BOUNDARY="155748971-462701669-1331311941=:17504"
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from utopia.booyaka.com ([72.9.107.138]:38082 "EHLO
-	utopia.booyaka.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753112Ab2CIQzT (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 9 Mar 2012 11:55:19 -0500
-In-Reply-To: <CAORVsuV8YXNRF=UjBOd8hoYbJ+ksg6RT1dZYC=TuUTmLiuD+ow@mail.gmail.com>
-Content-ID: <alpine.DEB.2.00.1203090954350.7039@utopia.booyaka.com>
+Received: from mail-vx0-f174.google.com ([209.85.220.174]:43675 "EHLO
+	mail-vx0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1758317Ab2CIRW4 convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 9 Mar 2012 12:22:56 -0500
+Received: by vcqp1 with SMTP id p1so1548523vcq.19
+        for <linux-omap@vger.kernel.org>; Fri, 09 Mar 2012 09:22:55 -0800 (PST)
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Jean Pihet <jean.pihet@newoldbits.com>
-Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Kevin Hilman <khilman@deeprootsystems.com>, Thara Gopinath <thara@ti.com>
+To: linux-omap@vger.kernel.org
 
-  This message is in MIME format.  The first part should be readable text,
-  while the remaining parts are likely unreadable without MIME-aware tools.
-
---155748971-462701669-1331311941=:17504
-Content-Type: TEXT/PLAIN; CHARSET=ISO-8859-15
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Content-ID: <alpine.DEB.2.00.1203090954351.7039@utopia.booyaka.com>
-
-Hi
-
-On Fri, 9 Mar 2012, Jean Pihet wrote:
-
-> On Fri, Mar 9, 2012 at 4:51 AM, Paul Walmsley <paul@pwsan.com> wrote:
-> >
-> > Dropping this patch from this series due to conflicts with the SmartRef=
-lex
-> > branch. =A0It will be moved to a subsequent series.
-> I can take this change as part of the series I am preparing for the SR
-> conversion to drivers/.
-> What do you thin?
-
-I've already included it as part of another pull request...
-
-
-- Paul
---155748971-462701669-1331311941=:17504--
+I would like to make the newer kernel (3.x) work with the AM3517EVM.
+I have a 2.6.32 and a 2.6.33 that run well on the board, but the
+recent kernels have kernel panics before even running init. =C2=A0where
+should I start? =C2=A0is there a better place to pursue this?
+--
+To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
