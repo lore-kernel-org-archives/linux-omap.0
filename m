@@ -1,82 +1,93 @@
-From: "Hiremath, Vaibhav" <hvaibhav@ti.com>
-Subject: RE: [PATCH] omap_vout: Set DSS overlay_info only if paddr is non
- zero
-Date: Fri, 9 Mar 2012 08:03:59 +0000
-Message-ID: <79CD15C6BA57404B839C016229A409A83180E941@DBDE01.ent.ti.com>
-References: <1331110876-11895-1-git-send-email-archit@ti.com>
- <1729342.AddG4HPA3i@avalon>
+From: Tomi Valkeinen <tomi.valkeinen@ti.com>
+Subject: Re: [PATCH] ARM: OMAP2+: Fix compile error when FB_OMAP2 is not set
+Date: Fri, 09 Mar 2012 10:11:58 +0200
+Message-ID: <1331280718.1927.10.camel@deskari>
+References: <20120308204328.GW12083@atomide.com>
+	 <20120308204607.GX12083@atomide.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
+Content-Type: multipart/signed; micalg="pgp-sha1"; protocol="application/pgp-signature"; boundary="=-7SBVTSyn0xF3OZJcOjAW"
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from comal.ext.ti.com ([198.47.26.152]:52616 "EHLO comal.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752051Ab2CIIEH convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 9 Mar 2012 03:04:07 -0500
-In-Reply-To: <1729342.AddG4HPA3i@avalon>
-Content-Language: en-US
+Received: from na3sys009aog119.obsmtp.com ([74.125.149.246]:56496 "EHLO
+	na3sys009aog119.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1752092Ab2CIIME (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 9 Mar 2012 03:12:04 -0500
+Received: by laap9 with SMTP id p9so1770044laa.24
+        for <linux-omap@vger.kernel.org>; Fri, 09 Mar 2012 00:12:01 -0800 (PST)
+In-Reply-To: <20120308204607.GX12083@atomide.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>, "Taneja, Archit" <archit@ti.com>
-Cc: "Valkeinen, Tomi" <tomi.valkeinen@ti.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
-
-On Fri, Mar 09, 2012 at 05:17:41, Laurent Pinchart wrote:
-> Hi Archit,
-> 
-> On Wednesday 07 March 2012 14:31:16 Archit Taneja wrote:
-> > The omap_vout driver tries to set the DSS overlay_info using
-> > set_overlay_info() when the physical address for the overlay is still not
-> > configured. This happens in omap_vout_probe() and vidioc_s_fmt_vid_out().
-> > 
-> > The calls to omapvid_init(which internally calls set_overlay_info()) are
-> > removed from these functions. They don't need to be called as the
-> > omap_vout_device struct anyway maintains the overlay related changes made.
-> > Also, remove the explicit call to set_overlay_info() in vidioc_streamon(),
-> > this was used to set the paddr, this isn't needed as omapvid_init() does
-> > the same thing later.
-> > 
-> > These changes are required as the DSS2 driver since 3.3 kernel doesn't let
-> > you set the overlay info with paddr as 0.
-> > 
-> > Signed-off-by: Archit Taneja <archit@ti.com>
-> 
-> Thanks for the patch. This seems to fix memory corruption that would result
-> in sysfs-related crashes such as
-> 
-> [   31.279541] ------------[ cut here ]------------
-> [   31.284423] WARNING: at fs/sysfs/file.c:343 sysfs_open_file+0x70/0x1f8()
-> [   31.291503] missing sysfs attribute operations for kobject: (null)
-> [   31.298004] Modules linked in: mt9p031 aptina_pll omap3_isp
-> [   31.303924] [<c0018260>] (unwind_backtrace+0x0/0xec) from [<c0034488>] (warn_slowpath_common+0x4c/0x64)
-> [   31.313812] [<c0034488>] (warn_slowpath_common+0x4c/0x64) from [<c0034520>] (warn_slowpath_fmt+0x2c/0x3c)
-> [   31.323913] [<c0034520>] (warn_slowpath_fmt+0x2c/0x3c) from [<c01219bc>] (sysfs_open_file+0x70/0x1f8)
-> [   31.333618] [<c01219bc>] (sysfs_open_file+0x70/0x1f8) from [<c00ccc94>] (__dentry_open+0x1f8/0x30c)
-> [   31.343139] [<c00ccc94>] (__dentry_open+0x1f8/0x30c) from [<c00cce58>] (nameidata_to_filp+0x50/0x5c)
-> [   31.352752] [<c00cce58>] (nameidata_to_filp+0x50/0x5c) from [<c00db4c0>] (do_last+0x55c/0x6a0)
-> [   31.361999] [<c00db4c0>] (do_last+0x55c/0x6a0) from [<c00db6bc>] (path_openat+0xb8/0x37c)
-> [   31.370605] [<c00db6bc>] (path_openat+0xb8/0x37c) from [<c00dba60>] (do_filp_open+0x30/0x7c)
-> [   31.379486] [<c00dba60>] (do_filp_open+0x30/0x7c) from [<c00cc904>] (do_sys_open+0xd8/0x170)
-> [   31.388366] [<c00cc904>] (do_sys_open+0xd8/0x170) from [<c0012760>] (ret_fast_syscall+0x0/0x3c)
-> [   31.397552] ---[ end trace 13639ab74f345d7e ]---
-> 
-> Tested-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-> 
-
-Thanks Laurent for testing this patch.
+To: Tony Lindgren <tony@atomide.com>
+Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 
 
-> Please push it to v3.3 :-)
-> 
+--=-7SBVTSyn0xF3OZJcOjAW
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: quoted-printable
 
-Will send a pull request today itself.
+On Thu, 2012-03-08 at 12:46 -0800, Tony Lindgren wrote:
+> * Tony Lindgren <tony@atomide.com> [120308 12:11]:
+> > Otherwise we will get:
+> >=20
+> > arch/arm/plat-omap/fb.c:101: error: expected =E2=80=98)=E2=80=99 before=
+ =E2=80=98*=E2=80=99 token
+> >=20
+> > Signed-off-by: Tony Lindgren <tony@atomide.com>
+> >=20
+> > ---
+> >=20
+> > Tomi, you need something like this for what you have in for-next.
+> >=20
+> > --- a/arch/arm/plat-omap/fb.c
+> > +++ b/arch/arm/plat-omap/fb.c
+> > @@ -98,6 +98,8 @@ arch_initcall(omap_init_fb);
+> > =20
+> >  #else
+> > =20
+> > -void __init omapfb_set_lcd_config(omap_lcd_config *config) { }
+> > +void __init omapfb_set_lcd_config(const struct omap_lcd_config *config=
+)
+> > +{
+> > +}
+> > =20
+> >  #endif
+>=20
+> Also now seeing the following with what you have in for-next:
+>=20
+> drivers/video/omap2/displays/panel-taal.c: In function =E2=80=98taal_num_=
+errors_show=E2=80=99:
+> drivers/video/omap2/displays/panel-taal.c:605: warning: =E2=80=98errors=
+=E2=80=99 may be used uninitialized in this function
 
-Thanks,
-Vaibhav
+Hmm, my compiler doesn't complain (codesourcery 2010.09-50), so I didn't
+notice that. Which compiler version reports the warning?
 
-> -- 
-> Regards,
-> 
-> Laurent Pinchart
-> 
-> 
+I'm not 100% sure, but I think it's a false warning, the code path that
+uses "errors" should only be ran when "errors" has been set.
+
+ Tomi
+
+
+--=-7SBVTSyn0xF3OZJcOjAW
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: This is a digitally signed message part
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.4.11 (GNU/Linux)
+
+iQIcBAABAgAGBQJPWbtOAAoJEPo9qoy8lh71Am4P/2W7b8F+Rtno8yWA0Lze0G2r
+xFG9QjJcTIQTzeOqvQ+RacKm+XrLzMLHKCKs3jf0WD0b1BGpNn2NoJaJ4b1qGV48
+YB8pP06Rm3iCgLq+I85xZh/NETd5xvc9LGxas//LQ8dNo4Ya9m/DYZWqs5czvIAD
+FCbm2PdA49kcUb8MslEvIdJ+Htk6OQV/jQSdriPEj0KDH+N41uxwOSr+BSPP7Hws
+mF96LuKjtDG2RYc0Vn5mqOEfBcJU29KIeO4LwX23Qy15PNdjzRjOTDaAobOtUuYD
+TYGLT4AqXKD7UBWTSZJg7mg3vERFh1WrHr3WwLv5m7vBlsGutAQhzcCEZWKRHAPo
+4LPSz271pl5YlPQDuVcFgJZF2vijSTSJQYSuXs2v6UWLc3HiG9kNSCSazBXkX/W0
+W/GEvkH6kewz9aWuGifSYQN5ofwPWODWVwZ7mffkyMRcPo5A1mSNzKg8/G9jBufn
+5A5JldJB1hLXUHyvbf/wNRn8uqeByVwMtR8JEkhr689SS88r8VV4toVi2VitaGpH
+ZMN+YGTBMQoqBkgDllmW39h3DWwqpyyA1/ColjDlWDtlfEDp+wEk+w0xRO+OCmnJ
+s8NLabPrkjO+kkUP95xTgq3wKL8X85O91MovYyNp1QKIPINCdrnjCNf5L24aou/7
+7FgYKS1uPdTnwrLnLp0g
+=4lZM
+-----END PGP SIGNATURE-----
+
+--=-7SBVTSyn0xF3OZJcOjAW--
 
