@@ -1,115 +1,46 @@
-From: "Cousson, Benoit" <b-cousson@ti.com>
-Subject: Re: [PATCH 08/12] gpio/twl: Allocate irq_desc dynamically for SPARSE_IRQ
- support
-Date: Fri, 9 Mar 2012 17:39:32 +0100
-Message-ID: <4F5A3244.3080109@ti.com>
-References: <1330707024-23730-1-git-send-email-b-cousson@ti.com> <1330707024-23730-9-git-send-email-b-cousson@ti.com> <4F575B21.30909@ti.com>
+From: Paul Walmsley <paul@pwsan.com>
+Subject: Re: [PATCH 5/9] ARM: OMAP36xx: hwmod data: fix SmartReflex interface
+ data
+Date: Fri, 9 Mar 2012 09:55:18 -0700 (MST)
+Message-ID: <alpine.DEB.2.00.1203090949130.17504@utopia.booyaka.com>
+References: <20120228110943.808.73639.stgit@dusk> <20120228111054.808.16941.stgit@dusk> <alpine.DEB.2.00.1203082051150.26656@utopia.booyaka.com> <CAORVsuV8YXNRF=UjBOd8hoYbJ+ksg6RT1dZYC=TuUTmLiuD+ow@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="ISO-8859-1"; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: MULTIPART/MIXED; BOUNDARY="155748971-462701669-1331311941=:17504"
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from bear.ext.ti.com ([192.94.94.41]:38739 "EHLO bear.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1758150Ab2CIQj7 (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Fri, 9 Mar 2012 11:39:59 -0500
-In-Reply-To: <4F575B21.30909@ti.com>
+Received: from utopia.booyaka.com ([72.9.107.138]:38082 "EHLO
+	utopia.booyaka.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753112Ab2CIQzT (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 9 Mar 2012 11:55:19 -0500
+In-Reply-To: <CAORVsuV8YXNRF=UjBOd8hoYbJ+ksg6RT1dZYC=TuUTmLiuD+ow@mail.gmail.com>
+Content-ID: <alpine.DEB.2.00.1203090954350.7039@utopia.booyaka.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: grant.likely@secretlab.ca
-Cc: sameo@linux.intel.com, tony@atomide.com, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+To: Jean Pihet <jean.pihet@newoldbits.com>
+Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Kevin Hilman <khilman@deeprootsystems.com>, Thara Gopinath <thara@ti.com>
 
-Hi Grant,
+  This message is in MIME format.  The first part should be readable text,
+  while the remaining parts are likely unreadable without MIME-aware tools.
 
-Gentle ping for these patches.
+--155748971-462701669-1331311941=:17504
+Content-Type: TEXT/PLAIN; CHARSET=ISO-8859-15
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-ID: <alpine.DEB.2.00.1203090954351.7039@utopia.booyaka.com>
 
-Thanks,
-Benoit
+Hi
+
+On Fri, 9 Mar 2012, Jean Pihet wrote:
+
+> On Fri, Mar 9, 2012 at 4:51 AM, Paul Walmsley <paul@pwsan.com> wrote:
+> >
+> > Dropping this patch from this series due to conflicts with the SmartRef=
+lex
+> > branch. =A0It will be moved to a subsequent series.
+> I can take this change as part of the series I am preparing for the SR
+> conversion to drivers/.
+> What do you thin?
+
+I've already included it as part of another pull request...
 
 
-On 3/7/2012 1:57 PM, Cousson, Benoit wrote:
-> Hi Grant,
->
-> That fix is tightly coupled with the previous twl4030-irq change, so it
-> will be good to pulled it with the twl series through MFD if you are OK
-> with that?
->
-> Care to ack this one and the next one?
->
-> Thanks,
-> Benoit
->
->
-> On 3/2/2012 5:50 PM, Benoit Cousson wrote:
->> Do not use the board pdata for irq_base, but allocate them dynamically
->> to allow a proper support of SPARSE_IRQ.
->>
->> Fix an unneeded line wrap.
->>
->> Signed-off-by: Benoit Cousson<b-cousson@ti.com>
->> Acked-by: Felipe Balbi<balbi@ti.com>
->> ---
->> drivers/gpio/gpio-twl4030.c | 33 +++++++++++++++++----------------
->> 1 files changed, 17 insertions(+), 16 deletions(-)
->>
->> diff --git a/drivers/gpio/gpio-twl4030.c b/drivers/gpio/gpio-twl4030.c
->> index 697396c..49e5c6e 100644
->> --- a/drivers/gpio/gpio-twl4030.c
->> +++ b/drivers/gpio/gpio-twl4030.c
->> @@ -395,23 +395,26 @@ static int gpio_twl4030_remove(struct
->> platform_device *pdev);
->> static int __devinit gpio_twl4030_probe(struct platform_device *pdev)
->> {
->> struct twl4030_gpio_platform_data *pdata = pdev->dev.platform_data;
->> - int ret;
->> + int ret, irq_base;
->>
->> /* maybe setup IRQs */
->> - if (pdata->irq_base) {
->> - if (is_module()) {
->> - dev_err(&pdev->dev,
->> - "can't dispatch IRQs from modules\n");
->> - goto no_irqs;
->> - }
->> - ret = twl4030_sih_setup(&pdev->dev, TWL4030_MODULE_GPIO,
->> - pdata->irq_base);
->> - if (ret< 0)
->> - return ret;
->> - WARN_ON(ret != pdata->irq_base);
->> - twl4030_gpio_irq_base = ret;
->> + if (is_module()) {
->> + dev_err(&pdev->dev, "can't dispatch IRQs from modules\n");
->> + goto no_irqs;
->> + }
->> +
->> + irq_base = irq_alloc_descs(-1, 0, TWL4030_GPIO_MAX, 0);
->> + if (irq_base< 0) {
->> + dev_err(&pdev->dev, "Failed to alloc irq_descs\n");
->> + return irq_base;
->> }
->>
->> + ret = twl4030_sih_setup(&pdev->dev, TWL4030_MODULE_GPIO, irq_base);
->> + if (ret< 0)
->> + return ret;
->> +
->> + twl4030_gpio_irq_base = irq_base;
->> +
->> no_irqs:
->> /*
->> * NOTE: boards may waste power if they don't set pullups
->> @@ -443,9 +446,7 @@ no_irqs:
->>
->> ret = gpiochip_add(&twl_gpiochip);
->> if (ret< 0) {
->> - dev_err(&pdev->dev,
->> - "could not register gpiochip, %d\n",
->> - ret);
->> + dev_err(&pdev->dev, "could not register gpiochip, %d\n", ret);
->> twl_gpiochip.ngpio = 0;
->> gpio_twl4030_remove(pdev);
->> } else if (pdata->setup) {
->
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-omap" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at http://vger.kernel.org/majordomo-info.html
-
+- Paul
+--155748971-462701669-1331311941=:17504--
