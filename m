@@ -1,63 +1,82 @@
-From: Tomi Valkeinen <tomi.valkeinen@ti.com>
-Subject: Re: [PATCH] ARM: OMAP2+: Fix compile error when FB_OMAP2 is not set
-Date: Fri, 09 Mar 2012 09:55:00 +0200
-Message-ID: <1331279700.1927.1.camel@deskari>
-References: <20120308204328.GW12083@atomide.com>
+From: "Hiremath, Vaibhav" <hvaibhav@ti.com>
+Subject: RE: [PATCH] omap_vout: Set DSS overlay_info only if paddr is non
+ zero
+Date: Fri, 9 Mar 2012 08:03:59 +0000
+Message-ID: <79CD15C6BA57404B839C016229A409A83180E941@DBDE01.ent.ti.com>
+References: <1331110876-11895-1-git-send-email-archit@ti.com>
+ <1729342.AddG4HPA3i@avalon>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg="pgp-sha1"; protocol="application/pgp-signature"; boundary="=-UCS4x/5XgcMjnsNvK57p"
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aog111.obsmtp.com ([74.125.149.205]:57396 "EHLO
-	na3sys009aog111.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753074Ab2CIHzG (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 9 Mar 2012 02:55:06 -0500
-Received: by lagw12 with SMTP id w12so1947998lag.34
-        for <linux-omap@vger.kernel.org>; Thu, 08 Mar 2012 23:55:03 -0800 (PST)
-In-Reply-To: <20120308204328.GW12083@atomide.com>
+Received: from comal.ext.ti.com ([198.47.26.152]:52616 "EHLO comal.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752051Ab2CIIEH convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 9 Mar 2012 03:04:07 -0500
+In-Reply-To: <1729342.AddG4HPA3i@avalon>
+Content-Language: en-US
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Tony Lindgren <tony@atomide.com>
-Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>, "Taneja, Archit" <archit@ti.com>
+Cc: "Valkeinen, Tomi" <tomi.valkeinen@ti.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
+
+On Fri, Mar 09, 2012 at 05:17:41, Laurent Pinchart wrote:
+> Hi Archit,
+> 
+> On Wednesday 07 March 2012 14:31:16 Archit Taneja wrote:
+> > The omap_vout driver tries to set the DSS overlay_info using
+> > set_overlay_info() when the physical address for the overlay is still not
+> > configured. This happens in omap_vout_probe() and vidioc_s_fmt_vid_out().
+> > 
+> > The calls to omapvid_init(which internally calls set_overlay_info()) are
+> > removed from these functions. They don't need to be called as the
+> > omap_vout_device struct anyway maintains the overlay related changes made.
+> > Also, remove the explicit call to set_overlay_info() in vidioc_streamon(),
+> > this was used to set the paddr, this isn't needed as omapvid_init() does
+> > the same thing later.
+> > 
+> > These changes are required as the DSS2 driver since 3.3 kernel doesn't let
+> > you set the overlay info with paddr as 0.
+> > 
+> > Signed-off-by: Archit Taneja <archit@ti.com>
+> 
+> Thanks for the patch. This seems to fix memory corruption that would result
+> in sysfs-related crashes such as
+> 
+> [   31.279541] ------------[ cut here ]------------
+> [   31.284423] WARNING: at fs/sysfs/file.c:343 sysfs_open_file+0x70/0x1f8()
+> [   31.291503] missing sysfs attribute operations for kobject: (null)
+> [   31.298004] Modules linked in: mt9p031 aptina_pll omap3_isp
+> [   31.303924] [<c0018260>] (unwind_backtrace+0x0/0xec) from [<c0034488>] (warn_slowpath_common+0x4c/0x64)
+> [   31.313812] [<c0034488>] (warn_slowpath_common+0x4c/0x64) from [<c0034520>] (warn_slowpath_fmt+0x2c/0x3c)
+> [   31.323913] [<c0034520>] (warn_slowpath_fmt+0x2c/0x3c) from [<c01219bc>] (sysfs_open_file+0x70/0x1f8)
+> [   31.333618] [<c01219bc>] (sysfs_open_file+0x70/0x1f8) from [<c00ccc94>] (__dentry_open+0x1f8/0x30c)
+> [   31.343139] [<c00ccc94>] (__dentry_open+0x1f8/0x30c) from [<c00cce58>] (nameidata_to_filp+0x50/0x5c)
+> [   31.352752] [<c00cce58>] (nameidata_to_filp+0x50/0x5c) from [<c00db4c0>] (do_last+0x55c/0x6a0)
+> [   31.361999] [<c00db4c0>] (do_last+0x55c/0x6a0) from [<c00db6bc>] (path_openat+0xb8/0x37c)
+> [   31.370605] [<c00db6bc>] (path_openat+0xb8/0x37c) from [<c00dba60>] (do_filp_open+0x30/0x7c)
+> [   31.379486] [<c00dba60>] (do_filp_open+0x30/0x7c) from [<c00cc904>] (do_sys_open+0xd8/0x170)
+> [   31.388366] [<c00cc904>] (do_sys_open+0xd8/0x170) from [<c0012760>] (ret_fast_syscall+0x0/0x3c)
+> [   31.397552] ---[ end trace 13639ab74f345d7e ]---
+> 
+> Tested-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+> 
+
+Thanks Laurent for testing this patch.
 
 
---=-UCS4x/5XgcMjnsNvK57p
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: quoted-printable
+> Please push it to v3.3 :-)
+> 
 
-On Thu, 2012-03-08 at 12:43 -0800, Tony Lindgren wrote:
-> Otherwise we will get:
->=20
-> arch/arm/plat-omap/fb.c:101: error: expected =E2=80=98)=E2=80=99 before =
-=E2=80=98*=E2=80=99 token
->=20
-> Signed-off-by: Tony Lindgren <tony@atomide.com>
+Will send a pull request today itself.
 
-Thanks. It seems I need to improve my testing practices to include
-non-FB builds also...
+Thanks,
+Vaibhav
 
- Tomi
-
-
---=-UCS4x/5XgcMjnsNvK57p
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: This is a digitally signed message part
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.4.11 (GNU/Linux)
-
-iQIcBAABAgAGBQJPWbdQAAoJEPo9qoy8lh71oQkQALJP42ctO3GIoHaVSntjra0M
-JUc++TrYLDiRfhZj2WP16Pk5xBVBujlrUbxc/GRjaaYX9ZGACgTRe5kQ5ehav3g4
-JxyM5i53sYdnkTWtbtIZARpD/S8Lw6THx7ygGF1m1g6pHY5664L8gHyXOJ03jiLr
-BBqMNNw56NaOD483K/g8xKNZhIKQH3JbNNvhOJ5GVGcs/6nwntQhfTxuBQRRhxg3
-s1uUrDiy6dT6C0l8mm09wxn6HNgeXTuFTajaoyyVrs3TsmS8Co3/uxBEUISuQrVC
-x5PpXhvWOh/y8lkZIkBczlbqc82bueSufwq4vndvNtrjK7oihF8iNNRVTzqyYdQ7
-u6lRXK4OLaggoh6ZUsV9y4cSgRzNvrMNW7xttXN4NgSoWibcQw7FgaCr4xcYFsI6
-NhyOJf0FiZqO6O7frk8C8JRE3nVzHvmra+ihDalfl7up5rMQOkr1lW78oaM9NCGV
-r6+climKfhDKQLehONjjipsO44SeByQG6Uc4hdrsxw4mXawyfBHUGUjzkII+8DQI
-SHAIAxv86wfUaJ9XzjJm4oOhOhue9LcyP9jdbFFux7bXqcdlD9jCWQcsW7nscolr
-CrmL6VJ/RBejLdRWnhZHl9r4ZTXllz7h5x4MEhZxZBY67cDt0Y1oIxyt5g5+7dkQ
-GnoEUjpD0D4oPvscxWTU
-=f4k9
------END PGP SIGNATURE-----
-
---=-UCS4x/5XgcMjnsNvK57p--
+> -- 
+> Regards,
+> 
+> Laurent Pinchart
+> 
+> 
 
