@@ -1,45 +1,68 @@
-From: Paul Walmsley <paul@pwsan.com>
-Subject: [GIT PULL] ARM: OMAP2+: hwmod: miscellaneous changes for 3.4
-Date: Thu, 8 Mar 2012 20:57:41 -0700 (MST)
-Message-ID: <alpine.DEB.2.00.1203082056230.26656@utopia.booyaka.com>
+From: Aneesh V <aneesh@ti.com>
+Subject: Re: [PATCH 0/8] Add TI EMIF SDRAM controller driver
+Date: Fri, 09 Mar 2012 09:29:36 +0530
+Message-ID: <4F598028.5020509@ti.com>
+References: <1331222065-3579-1-git-send-email-aneesh@ti.com> <20120308205944.GB16644@kroah.com>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from utopia.booyaka.com ([72.9.107.138]:54575 "EHLO
-	utopia.booyaka.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756375Ab2CID5m (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 8 Mar 2012 22:57:42 -0500
+Received: from na3sys009aog132.obsmtp.com ([74.125.149.250]:52135 "EHLO
+	psmtp.com" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
+	id S1756473Ab2CID7n (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Thu, 8 Mar 2012 22:59:43 -0500
+Received: by mail-iy0-f180.google.com with SMTP id e36so1645712iag.25
+        for <linux-omap@vger.kernel.org>; Thu, 08 Mar 2012 19:59:42 -0800 (PST)
+In-Reply-To: <20120308205944.GB16644@kroah.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: tony@atomide.com
-Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+To: Greg KH <greg@kroah.com>
+Cc: linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org
 
-Hi Tony
+On Friday 09 March 2012 02:29 AM, Greg KH wrote:
+> On Thu, Mar 08, 2012 at 09:24:17PM +0530, Aneesh V wrote:
+>> Add a driver for the EMIF SDRAM controller used in TI SoCs
+>>
+>> EMIF is an SDRAM controller that supports, based on its revision,
+>> one or more of LPDDR2/DDR2/DDR3 protocols.This driver adds support
+>> for LPDDR2.
+>>
+>> The driver supports the following features:
+>> - Calculates the DDR AC timing parameters to be set in EMIF
+>>    registers using data from the device data-sheets and based
+>>    on the DDR frequency. If data from data-sheets is not available
+>>    default timing values from the JEDEC spec are used. These
+>>    will be safe, but not necessarily optimal
+>> - API for changing timings during DVFS or at boot-up
+>> - Temperature alert configuration and handling of temperature
+>>    alerts, if any for LPDDR2 devices
+>>    * temperature alert is based on periodic polling of MR4 mode
+>>      register in DDR devices automatically performed by hardware
+>>    * timings are de-rated and brought back to nominal when
+>>      temperature raises and falls respectively
+>> - Cache of calculated register values to avoid re-calculating
+>>    them
+>>
+>> The driver will need some minor updates when it is eventually
+>> integrated with Dynamic Voltage and Frequency Scaling (DVFS).
+>> This can not be done now as DVFS support is not available in
+>> the mainline yet.
+>
+> What will need to be updated in it?  The userspace interface or
+> something else?
 
-The following changes since commit bb887688bccb48d94fa873f0f6cc7e7e3e4dc05e:
+The driver will need to register notifiers with regulator framework and
+clock framework respectively for voltage and frequency notifications.
+Also a hook will be needed for initiating the hardware sequence for
+updating the AC timings. This process is under the control of Power
+Reset and Clock Management(PRCM) module of OMAP.
 
-  Merge branch 'for_3.4/cleanup/sr' of git://git.kernel.org/pub/scm/linux/kernel/git/khilman/linux-omap-pm into sr (2012-03-05 14:25:35 -0800)
+>
+> Why not wait until that code is accepted, it should be going into 3.4,
+> right?
 
-are available in the git repository at:
+As Paul mentioned Core DVFS may take longer time. Besides, EMIF driver
+is a pre-requisite for correct functioning of Core DVFS.
 
-  git://git.pwsan.com/linux-2.6 hwmod_misc_devel_3.4
-
-for you to fetch changes up to 7ef827505cbc58660ee18e5c4080ed8072022162:
-
-  ARM: OMAP2+: hwmod: manage the wake-up latency constraints (2012-03-08 20:04:45 -0700)
-
-
-- Paul
-
-
-----------------------------------------------------------------
-Jean Pihet (1):
-      ARM: OMAP2+: hwmod: manage the wake-up latency constraints
-
-Paul Walmsley (1):
-      ARM: OMAP36xx: hwmod data: fix SmartReflex interface data
-
- arch/arm/mach-omap2/omap_hwmod.c             |   54 +++++++++++++++++++++++++-
- arch/arm/mach-omap2/omap_hwmod_3xxx_data.c   |   54 +++++++++++++++++++-------
- arch/arm/plat-omap/include/plat/omap_hwmod.h |    5 ++
- 3 files changed, 98 insertions(+), 15 deletions(-)
+thanks,
+Aneesh
