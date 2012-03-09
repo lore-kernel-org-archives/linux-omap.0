@@ -1,66 +1,73 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [GIT PULL] ARM: OMAP2+: PM: core support for SMPS regulators
- for v3.4
-Date: Thu, 8 Mar 2012 16:32:18 -0800
-Message-ID: <20120309003217.GB12083@atomide.com>
-References: <877gywjhht.fsf@ti.com>
- <20120308021843.GQ12083@atomide.com>
- <87399jc6cj.fsf@ti.com>
+From: Kevin Hilman <khilman@ti.com>
+Subject: DSS pwrdm usecount, disabling autodeps for DSS
+Date: Thu, 08 Mar 2012 16:42:03 -0800
+Message-ID: <87r4x27gh0.fsf@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-02-ewr.mailhop.org ([204.13.248.72]:33803 "EHLO
-	mho-02-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753895Ab2CIAcW (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 8 Mar 2012 19:32:22 -0500
-Content-Disposition: inline
-In-Reply-To: <87399jc6cj.fsf@ti.com>
+Received: from na3sys009aog104.obsmtp.com ([74.125.149.73]:33735 "EHLO
+	na3sys009aog104.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1754087Ab2CIAmC (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 8 Mar 2012 19:42:02 -0500
+Received: by iajr24 with SMTP id r24so1958849iaj.14
+        for <linux-omap@vger.kernel.org>; Thu, 08 Mar 2012 16:42:01 -0800 (PST)
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Kevin Hilman <khilman@ti.com>, Mark Brown <broonie@opensource.wolfsonmicro.com>
-Cc: linux-omap <linux-omap@vger.kernel.org>, linux-arm-kernel <linux-arm-kernel@lists.infradead.org>
+To: Tomi Valkeinen <tomi.valkeinen@ti.com>
+Cc: linux-omap <linux-omap@vger.kernel.org>, Paul Walmsley <paul@pwsan.com>
 
-* Kevin Hilman <khilman@ti.com> [120308 09:37]:
-> Tony Lindgren <tony@atomide.com> writes:
-> 
-> > * Kevin Hilman <khilman@ti.com> [120307 11:42]:
-> >> Tony,
-> >> 
-> >> Please pull the following support for using regulators to control the
-> >> on-chip VC/VP managed voltage domains.
-> >> 
-> >> The regulator driver support for this is already queued in the regulator
-> >> tree, and this is the supporting core work.
-> >> 
-> >> This combined with the CPUfreq changes to use the regulator framework
-> >> will finally result in MPU DVFS working in mainline.
-> >
-> > Nice.. However this one might be missing some header changes?
-> 
-> Oh, that's because it depends on the regulator core changes that are in
-> Mark's regulator tree.  You need the for-next branch of :
-> 
-> git://git.kernel.org/pub/scm/linux/kernel/git/broonie/regulator.git 
-> 
-> For this to compile correctly.
-> 
-> Sorry, I should've been more clear above about the build dependency.
+Hi Tomi,
 
-Hmm just checking.. Recently Mark replied to Peter:
+A while ago you were asking about why DSS pwrdm counts were so high on
+OMAP3, and why DSS was transitioning even though it was completely
+unused. Paul and I just spent some a little time debugging this, and
+narrowed it down to autodeps. (sorry it took so long, it finally
+bothered me enough to actually look into it.)
 
-* Mark Brown <broonie@opensource.wolfsonmicro.com> [120228 02:17]:
-> On Tue, Feb 28, 2012 at 09:40:10AM +0200, Peter Ujfalusi wrote:
->
-> > NOTE: this series has been generated agains Takashi's topic/asoc branch merged
-> > with Mark's for-next branch since this series depends on changes in Marks'
-> > branch, but not yet pulled by Takashi (snd_soc_add_dai_controls implementation
-> > from Liam).
->
-> Never base *anything* off my for-next branch, it gets rebuilt regularly.
+The patch below fixes the problem at least when DSS is not loaded (DSS
+just stays in retention), but I didn't try this with any active DSS
+usage, or loading/unloding the DSS drivers.
 
-So can you guys please confirm that if is indeed an immutable
-commit to use as a base to merge in something?
+Could you give the patch below a try on OMAP3 along with some active DSS
+usage as well as unloading the modules after using.  Could you also
+verify that suspend/resume continues to work for DSS?
 
-Regards,
+Thanks,
 
-Tony
+Kevin
+
+>From 42fc4f2acd9d6ba08992f8daa36297be384e76ef Mon Sep 17 00:00:00 2001
+From: Kevin Hilman <khilman@ti.com>
+Date: Thu, 8 Mar 2012 16:22:19 -0800
+Subject: [PATCH] ARM: OMAP3: clockdomain: disable autodeps for DSS
+
+Due to autodeps, the DSS powerdomain is transitioning with the MPU
+powerdomain even when DSS is inactive.
+
+autodeps are deprecated in favor of hwmod managing initiator
+dependencies directly, and we're hoping to eventually remove them.
+
+For starters, disable autodeps for DSS and see what happens...
+
+Cc: Paul Walmsley <paul@pwsan.com>
+Signed-off-by: Kevin Hilman <khilman@ti.com>
+---
+ arch/arm/mach-omap2/clockdomains3xxx_data.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/arch/arm/mach-omap2/clockdomains3xxx_data.c b/arch/arm/mach-omap2/clockdomains3xxx_data.c
+index b84e138..ba0285f 100644
+--- a/arch/arm/mach-omap2/clockdomains3xxx_data.c
++++ b/arch/arm/mach-omap2/clockdomains3xxx_data.c
+@@ -254,7 +254,7 @@ static struct clockdomain core_l4_3xxx_clkdm = {
+ static struct clockdomain dss_3xxx_clkdm = {
+ 	.name		= "dss_clkdm",
+ 	.pwrdm		= { .name = "dss_pwrdm" },
+-	.flags		= CLKDM_CAN_HWSUP_SWSUP,
++	.flags		= CLKDM_CAN_HWSUP_SWSUP | CLKDM_NO_AUTODEPS,
+ 	.dep_bit	= OMAP3430_PM_WKDEP_MPU_EN_DSS_SHIFT,
+ 	.wkdep_srcs	= dss_wkdeps,
+ 	.sleepdep_srcs	= dss_sleepdeps,
+-- 
+1.7.9.2
+
