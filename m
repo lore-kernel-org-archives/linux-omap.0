@@ -1,74 +1,56 @@
-From: Tomi Valkeinen <tomi.valkeinen@ti.com>
-Subject: Re: [PATCH v4 3/3] OMAPDSS: HDMI: Sysfs support to configure
- quantization
-Date: Fri, 09 Mar 2012 14:26:52 +0200
-Message-ID: <1331296012.1927.60.camel@deskari>
-References: <1328682261-22493-1-git-send-email-mythripk@ti.com>
-	 <1328682261-22493-2-git-send-email-mythripk@ti.com>
-	 <1328682261-22493-3-git-send-email-mythripk@ti.com>
-	 <1329222123.1845.82.camel@deskari>
-	 <CAP5A+B8J_y4GOMJ1pX1koYSDzGNA15i6ebY2i5ZZ5ZMZsvPE3A@mail.gmail.com>
+From: Mark Brown <broonie@opensource.wolfsonmicro.com>
+Subject: Re: [PATCH 2/2] ASoC: OMAP: Build config cleanup for McBSP
+Date: Fri, 9 Mar 2012 12:50:03 +0000
+Message-ID: <20120309125003.GY3273@opensource.wolfsonmicro.com>
+References: <1331283078-14846-1-git-send-email-peter.ujfalusi@ti.com>
+ <1331283078-14846-3-git-send-email-peter.ujfalusi@ti.com>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg="pgp-sha1"; protocol="application/pgp-signature"; boundary="=-krtQFRyXXZtiAee8xDoP"
+Content-Type: multipart/signed; micalg=pgp-sha1;
+	protocol="application/pgp-signature"; boundary="vavxEBoGuREFpPEl"
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aog132.obsmtp.com ([74.125.149.250]:47386 "EHLO
-	psmtp.com" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
-	id S1755042Ab2CIM04 (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Fri, 9 Mar 2012 07:26:56 -0500
-Received: by mail-lpp01m010-f42.google.com with SMTP id l5so1589140lah.15
-        for <linux-omap@vger.kernel.org>; Fri, 09 Mar 2012 04:26:55 -0800 (PST)
-In-Reply-To: <CAP5A+B8J_y4GOMJ1pX1koYSDzGNA15i6ebY2i5ZZ5ZMZsvPE3A@mail.gmail.com>
+Received: from opensource.wolfsonmicro.com ([80.75.67.52]:44152 "EHLO
+	opensource.wolfsonmicro.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1753711Ab2CIMuJ (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 9 Mar 2012 07:50:09 -0500
+Content-Disposition: inline
+In-Reply-To: <1331283078-14846-3-git-send-email-peter.ujfalusi@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "K, Mythri P" <mythripk@ti.com>
-Cc: linux-omap@vger.kernel.org, Archit Taneja <archit@ti.com>
+To: Peter Ujfalusi <peter.ujfalusi@ti.com>
+Cc: Liam Girdwood <lrg@ti.com>, Tony Lindgren <tony@atomide.com>, Jarkko Nikula <jarkko.nikula@bitmer.com>, alsa-devel@alsa-project.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Grazvydas Ignotas <notasas@gmail.com>
 
 
---=-krtQFRyXXZtiAee8xDoP
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: quoted-printable
+--vavxEBoGuREFpPEl
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
 
-On Fri, 2012-03-09 at 16:17 +0530, K, Mythri P wrote:
+On Fri, Mar 09, 2012 at 10:51:18AM +0200, Peter Ujfalusi wrote:
+> The McBSP driver stack has been moved, and rewritten resulting a single
+> driver - selected by CONFIG_SND_OMAP_SOC_MCBSP. There is no longer need to
+> have CONFIG_OMAP_MCBSP anymore.
 
-> > I also only now realized that we have full/limited range setting in
-> > video overlay's ATTRIBUTEs also. And it seems that we currently set it
-> > always to 0, i.e. limited range. I wonder if this causes color
-> > degradation in case the HDMI/DP output also sets limited range, and thu=
-s
-> > the color range gets scaled down twice...
-> >
-> yes there is a limited/full range bit in dispc for color conversion,
-> did a quick check using analyzer it doesn't impact the HDMI color
-> range, so can confirm there is no degradation.
+Acked-by: Mark Brown <broonie@opensource.wolfsonmicro.com>
 
-Did you try what happens if you set the range to full in DISPC? Because
-it should affect HDMI also, so I don't quite understand how there could
-be no degradation if both DISPC and HDMI do the range limiting.
-
- Tomi
-
-
---=-krtQFRyXXZtiAee8xDoP
+--vavxEBoGuREFpPEl
 Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: This is a digitally signed message part
+Content-Description: Digital signature
 
 -----BEGIN PGP SIGNATURE-----
 Version: GnuPG v1.4.11 (GNU/Linux)
 
-iQIcBAABAgAGBQJPWfcMAAoJEPo9qoy8lh71HGMQAJ17rkYNGoyOpTlAaRa2w9DR
-BANsKDEUfL/+9Y7FHE3j37VMtCBvG/M26vrIDtuen75NdV10gVkHQ8fvGQl/dJbO
-he4ZvB4JFVVrNhNt53KhLvCHDE6MYq3v6/6iUeqsRV9o0pfcPIGTTuoZCM/Kzy3u
-dh+AjM8qHCRmXsQwr3YKkwnHzQNiF7QmBWn7s8oV6sdRrFW9MBcqkf5HbiFnnor2
-d8cW704Z3iA0d82IzPeeZi9LrhaDI9y3/3H7j6+04r0xGLIgm0NlxyK7i64kXP5m
-PvFRq40m0+ZPqrc2eokoHOdVkMqn8KntJcQtSHhcM/Dnm4nzqxJBOFAosxGAbfIx
-lkgiIzzXQHYJQ085BxsnDCbBrnQNJWAtFd2d5zB+XKZMcAR4cywZW8bcxtD9M1fN
-trOvFkoO9j4GvktrDX0ewn8QgsWxj3fUf37Z8boVF6rz2kEneK7jcN5h6rrbP6fz
-HZ5sUFSmcd3niAY4k78QDK7m1b9YbYri8yBoCiLzMcaOlIdkjNxQtImTNCvC3KPK
-ZWb6Fc4zl3/hjfYXmBcPkvWji0N7Eh1P1+6SPDI8Vg7TW+mr+GBSWYzfo55qzPil
-gZ0rvYMzEJ70s1X+LuD9PxNvtIaa9oALN6EW/NmRdXgQ1Akh3wNQosCL+t0kQ1NW
-QtiG6xW1i9N+ARgn73GC
-=qe+t
+iQIcBAEBAgAGBQJPWfxzAAoJEBus8iNuMP3dbugP/AwMCc7TbmVDbhqjzSOiQ1T/
+s0vcVIjC8KBjse4DgKe+2V4RcNZQwywdsyg8HrrA9kiHGGl24+FMMsPE6crQdoDp
++hqqQfEB86S505aRxEjbWGTJ+kUTZE4OFAL4OQY3iKOFuR9E+wWoqyFmEaB06/Uo
+XdLqr226SEQ/M+CNaLVm76DuXhIhIXDHShr4apDE2MahVWE2YfZCP7KYwjLeXdv3
+j7gnim7255vV2dh2+Gki0COBVZ7OPuytq7lwR93IsYrMF9MznmZB4DBbLr7WWcM3
+9T+VB2NyN1+umYK1WQrpgePiLvR2EhCUajxnjPz+Oh70oHuIsxJqhnVOzAnNhREw
+UE5PI50c1xeZlSBZdc75NMogXH36nIvuRRAMlAHnS1g25BSCYoDrnLEXBA4W+ZGr
+iShgcKVuXaJrUloHAvnAD6gD+PgqL/uwfUSFBco3VlgkpCJyNliAki5YiDW0gWSK
+RFgRLAuYALO/Mosa/VJ0Vw2FwUI+LGvTYn1k0cmKUYoCK3fzUMmU8Q1F7aLjn5rF
+JQp0iCcQdj1gJL3SLsLWTTTFKSAsuvB8AlOTkiKGsooenH+AhejsNnhAve5KQ2+V
+5OW2XsDyxSNkCMLSzacL2CTJuWQnkxVUq1Nlco5395oMv4kgfJnmomz8yD+6YU7S
+bfMg6WrMksIUnqMaEwei
+=GFOJ
 -----END PGP SIGNATURE-----
 
---=-krtQFRyXXZtiAee8xDoP--
-
+--vavxEBoGuREFpPEl--
