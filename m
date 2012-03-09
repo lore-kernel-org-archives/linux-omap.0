@@ -1,105 +1,114 @@
-From: Grant Likely <grant.likely@secretlab.ca>
-Subject: Re: [PATCH 1/4] gpiolib: Add gpiochip_find_by_name() and gpio_find_by_chip_name()
-Date: Thu, 08 Mar 2012 18:05:55 -0700
-Message-ID: <20120309010555.8DE213E0901@localhost>
-References: <20120301185044.29210.44521.stgit@kaulin.local> <20120301185524.29210.60381.stgit@kaulin.local> <20120302075804.F28DB3E2DB4@localhost> <20120302170327.GF18901@atomide.com> <20120302180848.GM18901@atomide.com> <20120302184833.C296A3E1C63@localhost> <20120302190614.GO18901@atomide.com>
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20120302190614.GO18901@atomide.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Tony Lindgren <tony@atomide.com>
-Cc: linux-kernel@vger.kernel.org, Linus Walleij <linus.walleij@stericsson.com>, Arnd Bergmann <arnd@arndb.de>, Rajendra Nayak <rnayak@ti.com>, linux-mmc@vger.kernel.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+From: Tony Lindgren <tony@atomide.com>
+Subject: Re: [GIT PULL] ARM: OMAP2+: hwmod data: cleanup in preparation for
+ link array removal
+Date: Thu, 8 Mar 2012 17:40:16 -0800
+Message-ID: <20120309014016.GC12083@atomide.com>
+References: <alpine.DEB.2.00.1203072102150.21662@utopia.booyaka.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from mho-02-ewr.mailhop.org ([204.13.248.72]:44178 "EHLO
+	mho-02-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753473Ab2CIBkT (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 8 Mar 2012 20:40:19 -0500
+Content-Disposition: inline
+In-Reply-To: <alpine.DEB.2.00.1203072102150.21662@utopia.booyaka.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Paul Walmsley <paul@pwsan.com>
+Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 
-On Fri, 2 Mar 2012 11:06:15 -0800, Tony Lindgren <tony@atomide.com> wrote:
-> * Grant Likely <grant.likely@secretlab.ca> [120302 10:16]:
-> > On Fri, 2 Mar 2012 10:08:48 -0800, Tony Lindgren <tony@atomide.com> wrote:
-> > > * Tony Lindgren <tony@atomide.com> [120302 08:31]:
-> > > > * Grant Likely <grant.likely@secretlab.ca> [120302 01:00]:
-> > > > > On Thu, 01 Mar 2012 10:55:24 -0800, Tony Lindgren <tony@atomide.com> wrote:
-> > > > > > +
-> > > > > > +/**
-> > > > > > + * gpiochip_find_by_name() - iterator for locating a gpio_chip by name
-> > > > > > + * @name: name of the gpio_chip
-> > > > > > + *
-> > > > > > + * Similar to bus_find_device_by_name. It returns a reference to the
-> > > > > > + * first gpio_chip with matching name. It ignores NULL and empty names.
-> > > > > > + * If you need to do something more complex, then use gpiochip_find.
-> > > > > > + */
-> > > > > > +struct gpio_chip *gpiochip_find_by_name(const char *name)
-> > > > > > +{
-> > > > > > +	if (!name || !strcmp(name, ""))
-> > > > > > +		return NULL;
-> > > > > > +
-> > > > > > +	return gpiochip_find((void *)name, match_name);
-> > > > > 
-> > > > > Nasty cast.  Can the signature for gpiochip_find be changed to accept
-> > > > > a (const void *)?
-> > > > 
-> > > > I think so, this too comes from the bus code.
-> > > 
-> > > Looks like it can't be const as of_node_to_gpiochip uses it with
-> > > a struct device_node * that for of_get_named_gpio_flags comes from
-> > > of_parse_phandle_with_args.
-> > 
-> > Really? It sees to work fine here:
+Hi Paul,
+
+* Paul Walmsley <paul@pwsan.com> [120307 19:34]:
+> Hi Tony
 > 
-> Hmm right you are. I must have missed adding the const to
-> of_gpiochip_is_match, that's good news :)
+> The following changes since commit b8a633451951d149494076393698880453bf6bfe:
 > 
-> Want to do that as a separate patch or want me to fold it in?
+>   ARM: OMAP: hwmod: add softreset delay field and OMAP4 data (2012-02-28 03:46:31 -0700)
+> 
+> are available in the git repository at:
+> 
+>   git://git.pwsan.com/linux-2.6 hwmod_data_cleanup_3.4
+> 
+> for you to fetch changes up to a2d4b88dd32b02e8b5088e0d64b3c102c0852210:
+> 
+>   ARM: OMAP2+: hwmod: extend OCP_* register offsets from 16 to 32 bits (2012-02-28 03:49:34 -0700)
+> 
+> (This branch is based on the 'hwmod_code_cleanup_3.4' branch, pull req 
+> sent previously)
 
-I've got it as a separate commit in my gpio/next branch.
+Got these now merged into l-o master, but ran into a merge
+conflict with already queued sr branch. Resolved it by using
+your version except left out vdd_name. As the namings have
+changed for smartreflex, now I suspect it's broken for the
+interrupts..
 
-g.
+Care to take a look and see how we should deal with this?
+My merge resolution below for reference.
 
-> > ---
-> > 
-> > diff --git a/drivers/gpio/gpiolib.c b/drivers/gpio/gpiolib.c
-> > index d773540..e633a2a 100644
-> > --- a/drivers/gpio/gpiolib.c
-> > +++ b/drivers/gpio/gpiolib.c
-> > @@ -1152,8 +1152,9 @@ EXPORT_SYMBOL_GPL(gpiochip_remove);
-> >   * non-zero, this function will return to the caller and not iterate over any
-> >   * more gpio_chips.
-> >   */
-> > -struct gpio_chip *gpiochip_find(void *data,
-> > -				int (*match)(struct gpio_chip *chip, void *data))
-> > +struct gpio_chip *gpiochip_find(const void *data,
-> > +				int (*match)(struct gpio_chip *chip,
-> > +					     const void *data))
-> >  {
-> >  	struct gpio_chip *chip = NULL;
-> >  	unsigned long flags;
-> > diff --git a/drivers/of/gpio.c b/drivers/of/gpio.c
-> > index e034b38..bba8121 100644
-> > --- a/drivers/of/gpio.c
-> > +++ b/drivers/of/gpio.c
-> > @@ -229,7 +229,7 @@ void of_gpiochip_remove(struct gpio_chip *chip)
-> >  }
-> >  
-> >  /* Private function for resolving node pointer to gpio_chip */
-> > -static int of_gpiochip_is_match(struct gpio_chip *chip, void *data)
-> > +static int of_gpiochip_is_match(struct gpio_chip *chip, const void *data)
-> >  {
-> >  	return chip->of_node == data;
-> >  }
-> > diff --git a/include/asm-generic/gpio.h b/include/asm-generic/gpio.h
-> > index 1ff4e22..5f52690 100644
-> > --- a/include/asm-generic/gpio.h
-> > +++ b/include/asm-generic/gpio.h
-> > @@ -142,9 +142,9 @@ extern int __must_check gpiochip_reserve(int start, int ngpio);
-> >  /* add/remove chips */
-> >  extern int gpiochip_add(struct gpio_chip *chip);
-> >  extern int __must_check gpiochip_remove(struct gpio_chip *chip);
-> > -extern struct gpio_chip *gpiochip_find(void *data,
-> > +extern struct gpio_chip *gpiochip_find(const void *data,
-> >  					int (*match)(struct gpio_chip *chip,
-> > -						     void *data));
-> > +						     const void *data));
-> >  
-> >  
-> >  /* Always use the library code for GPIO management calls,
-> > 
+Regards,
 
--- 
-email sent from notmuch.vim plugin
+Tony
+
+
+--- a/arch/arm/mach-omap2/omap_hwmod_3xxx_data.c
++++ b/arch/arm/mach-omap2/omap_hwmod_3xxx_data.c
+@@@ -2684,9 -2736,10 +2736,9 @@@ static struct omap_hwmod_ocp_if *omap34
+  };
+  
+  static struct omap_hwmod omap34xx_sr1_hwmod = {
+- 	.name		= "sr1_hwmod",
++ 	.name		= "sr1",
+  	.class		= &omap34xx_smartreflex_hwmod_class,
+  	.main_clk	= "sr1_fck",
+ -	.vdd_name	= "mpu_iva",
+  	.prcm		= {
+  		.omap2 = {
+  			.prcm_reg_id = 1,
+@@@ -2703,10 -2754,15 +2753,14 @@@
+  	.flags		= HWMOD_SET_DEFAULT_CLOCKACT,
+  };
+  
++ static struct omap_hwmod_ocp_if *omap36xx_sr1_slaves[] = {
++ 	&omap36xx_l4_core__sr1,
++ };
++ 
+  static struct omap_hwmod omap36xx_sr1_hwmod = {
+- 	.name		= "sr1_hwmod",
++ 	.name		= "sr1",
+  	.class		= &omap36xx_smartreflex_hwmod_class,
+  	.main_clk	= "sr1_fck",
+ -	.vdd_name	= "mpu_iva",
+  	.prcm		= {
+  		.omap2 = {
+  			.prcm_reg_id = 1,
+@@@ -2732,9 -2782,10 +2780,9 @@@ static struct omap_hwmod_ocp_if *omap34
+  };
+  
+  static struct omap_hwmod omap34xx_sr2_hwmod = {
+- 	.name		= "sr2_hwmod",
++ 	.name		= "sr2",
+  	.class		= &omap34xx_smartreflex_hwmod_class,
+  	.main_clk	= "sr2_fck",
+ -	.vdd_name	= "core",
+  	.prcm		= {
+  		.omap2 = {
+  			.prcm_reg_id = 1,
+@@@ -2751,10 -2800,15 +2797,14 @@@
+  	.flags		= HWMOD_SET_DEFAULT_CLOCKACT,
+  };
+  
++ static struct omap_hwmod_ocp_if *omap36xx_sr2_slaves[] = {
++ 	&omap36xx_l4_core__sr2,
++ };
++ 
+  static struct omap_hwmod omap36xx_sr2_hwmod = {
+- 	.name		= "sr2_hwmod",
++ 	.name		= "sr2",
+  	.class		= &omap36xx_smartreflex_hwmod_class,
+  	.main_clk	= "sr2_fck",
+ -	.vdd_name	= "core",
+  	.prcm		= {
+  		.omap2 = {
+  			.prcm_reg_id = 1,
