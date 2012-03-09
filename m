@@ -1,8 +1,8 @@
 From: =?UTF-8?q?V=C3=ADctor=20Manuel=20J=C3=A1quez=20Leal?=
 	<vjaquez@igalia.com>
-Subject: [PATCH 17/17] staging: tidspbridge: remove nldr_init() and nldr_exit()
-Date: Fri,  9 Mar 2012 01:03:52 +0100
-Message-ID: <15501a475f483f6190aaa0d8bcb61ec4a7102b4e.1331250369.git.vjaquez@igalia.com>
+Subject: [PATCH 10/17] staging: tidspbridge: remove io_init() and io_exit()
+Date: Fri,  9 Mar 2012 01:03:45 +0100
+Message-ID: <059463ad3da393eb5dd45c6069095dfdef1a93b3.1331250369.git.vjaquez@igalia.com>
 References: <cover.1331250368.git.vjaquez@igalia.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=UTF-8
@@ -16,240 +16,156 @@ To: Omar Ramirez Luna <omar.ramirez@ti.com>, Greg Kroah-Hartman <gregkh@linuxfou
 Cc: devel@driverdev.osuosl.org, linux-kernel@vger.kernel.org, Felipe Contreras <felipe.contreras@nokia.com>, linux-omap@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-The dynamic loader was called by node.c with an interface. This interfa=
-ce was
-also modified to avoid the use of nldr_init() and nldr_exit().
+The io module has a io_init() and a io_exit() whose only purpose is to
+keep a reference counting which is not used at all.
 
-There is not functional changes.
+This patch removes these functions and the reference count variable.
+
+There is no functional changes.
 
 Signed-off-by: V=C3=ADctor Manuel J=C3=A1quez Leal <vjaquez@igalia.com>
 ---
- .../staging/tidspbridge/include/dspbridge/nldr.h   |    2 -
- .../tidspbridge/include/dspbridge/nldrdefs.h       |   34 ------------=
+ drivers/staging/tidspbridge/include/dspbridge/io.h |   29 ------------=
 --------
- drivers/staging/tidspbridge/rmgr/nldr.c            |   19 -----------
- drivers/staging/tidspbridge/rmgr/node.c            |    7 ----
- 4 files changed, 0 insertions(+), 62 deletions(-)
+ drivers/staging/tidspbridge/pmgr/dspapi.c          |   10 +-----
+ drivers/staging/tidspbridge/pmgr/io.c              |   28 ------------=
+-------
+ 3 files changed, 2 insertions(+), 65 deletions(-)
 
-diff --git a/drivers/staging/tidspbridge/include/dspbridge/nldr.h b/dri=
-vers/staging/tidspbridge/include/dspbridge/nldr.h
-index d9653ee..c5e48ca 100644
---- a/drivers/staging/tidspbridge/include/dspbridge/nldr.h
-+++ b/drivers/staging/tidspbridge/include/dspbridge/nldr.h
-@@ -36,7 +36,6 @@ extern int nldr_create(struct nldr_object **nldr,
- 			      const struct nldr_attrs *pattrs);
-=20
- extern void nldr_delete(struct nldr_object *nldr_obj);
--extern void nldr_exit(void);
-=20
- extern int nldr_get_fxn_addr(struct nldr_nodeobject *nldr_node_obj,
- 				    char *str_fxn, u32 * addr);
-@@ -44,7 +43,6 @@ extern int nldr_get_fxn_addr(struct nldr_nodeobject *=
-nldr_node_obj,
- extern int nldr_get_rmm_manager(struct nldr_object *nldr,
- 				       struct rmm_target_obj **rmm_mgr);
-=20
--extern bool nldr_init(void);
- extern int nldr_load(struct nldr_nodeobject *nldr_node_obj,
- 			    enum nldr_phase phase);
- extern int nldr_unload(struct nldr_nodeobject *nldr_node_obj,
-diff --git a/drivers/staging/tidspbridge/include/dspbridge/nldrdefs.h b=
-/drivers/staging/tidspbridge/include/dspbridge/nldrdefs.h
-index ee3a85f..7e3c7f5 100644
---- a/drivers/staging/tidspbridge/include/dspbridge/nldrdefs.h
-+++ b/drivers/staging/tidspbridge/include/dspbridge/nldrdefs.h
-@@ -119,7 +119,6 @@ enum nldr_phase {
-  *      0:        Success.
-  *      -ENOMEM:    Insufficient memory on GPP.
+diff --git a/drivers/staging/tidspbridge/include/dspbridge/io.h b/drive=
+rs/staging/tidspbridge/include/dspbridge/io.h
+index 500bbd7..7505718 100644
+--- a/drivers/staging/tidspbridge/include/dspbridge/io.h
++++ b/drivers/staging/tidspbridge/include/dspbridge/io.h
+@@ -55,7 +55,6 @@ struct io_attrs {
+  *      -EINVAL: Invalid DSP word size (must be > 0).
+  *               Invalid base address for DSP communications.
   *  Requires:
-- *      nldr_init(void) called.
-  *      Valid nldr_obj.
-  *      node_props !=3D NULL.
-  *      nldr_nodeobj !=3D NULL.
-@@ -148,7 +147,6 @@ typedef int(*nldr_allocatefxn) (struct nldr_object =
-*nldr_obj,
-  *      0:        Success;
-  *      -ENOMEM:    Insufficient memory for requested resources.
-  *  Requires:
-- *      nldr_init(void) called.
-  *      nldr !=3D NULL.
-  *      hdev_obj !=3D NULL.
-  *	pattrs !=3D NULL.
-@@ -168,7 +166,6 @@ typedef int(*nldr_createfxn) (struct nldr_object **=
-nldr,
-  *      nldr_obj:          Node manager object.
-  *  Returns:
-  *  Requires:
-- *      nldr_init(void) called.
-  *      Valid nldr_obj.
+- *      io_init(void) called.
+  *      io_man !=3D NULL.
+  *      mgr_attrts !=3D NULL.
   *  Ensures:
-  *	nldr_obj invalid
-@@ -176,20 +173,6 @@ typedef int(*nldr_createfxn) (struct nldr_object *=
-*nldr,
- typedef void (*nldr_deletefxn) (struct nldr_object *nldr_obj);
+@@ -74,36 +73,8 @@ extern int io_create(struct io_mgr **io_man,
+  *      0:        Success.
+  *      -EFAULT:    hio_mgr was invalid.
+  *  Requires:
+- *      io_init(void) called.
+  *  Ensures:
+  */
+ extern int io_destroy(struct io_mgr *hio_mgr);
 =20
- /*
-- *  =3D=3D=3D=3D=3D=3D=3D=3D nldr_exit =3D=3D=3D=3D=3D=3D=3D=3D
-- *  Discontinue usage of NLDR module.
-- *
+-/*
+- *  =3D=3D=3D=3D=3D=3D=3D=3D io_exit =3D=3D=3D=3D=3D=3D=3D=3D
+- *  Purpose:
+- *      Discontinue usage of the IO module.
 - *  Parameters:
 - *  Returns:
 - *  Requires:
-- *      nldr_init(void) successfully called before.
+- *      io_init(void) previously called.
 - *  Ensures:
-- *      Any resources acquired in nldr_init(void) will be freed when l=
-ast NLDR
-- *      client calls nldr_exit(void).
+- *      Resources, if any acquired in io_init(void), are freed when th=
+e last
+- *      client of IO calls io_exit(void).
 - */
--typedef void (*nldr_exitfxn) (void);
+-extern void io_exit(void);
 -
 -/*
-  *  =3D=3D=3D=3D=3D=3D=3D=3D NLDR_Free =3D=3D=3D=3D=3D=3D=3D=3D
-  *  Free resources allocated in nldr_allocate.
-  *
-@@ -197,7 +180,6 @@ typedef void (*nldr_exitfxn) (void);
-  *      nldr_node_obj:      Handle returned from nldr_allocate().
-  *  Returns:
-  *  Requires:
-- *      nldr_init(void) called.
-  *      Valid nldr_node_obj.
-  *  Ensures:
-  */
-@@ -216,7 +198,6 @@ typedef void (*nldr_freefxn) (struct nldr_nodeobjec=
-t *nldr_node_obj);
-  *      0:        Success.
-  *      -ESPIPE:    Address of function not found.
-  *  Requires:
-- *      nldr_init(void) called.
-  *      Valid nldr_node_obj.
-  *      addr !=3D NULL;
-  *      str_fxn !=3D NULL;
-@@ -227,17 +208,6 @@ typedef int(*nldr_getfxnaddrfxn) (struct nldr_node=
-object
- 					 char *str_fxn, u32 * addr);
-=20
- /*
-- *  =3D=3D=3D=3D=3D=3D=3D=3D nldr_init =3D=3D=3D=3D=3D=3D=3D=3D
-- *  Initialize the NLDR module.
-- *
+- *  =3D=3D=3D=3D=3D=3D=3D=3D io_init =3D=3D=3D=3D=3D=3D=3D=3D
+- *  Purpose:
+- *      Initialize the IO module's private state.
 - *  Parameters:
 - *  Returns:
-- *      TRUE if initialization succeeded, FALSE otherwise.
+- *      TRUE if initialized; FALSE if error occurred.
+- *  Requires:
 - *  Ensures:
+- *      A requirement for each of the other public CHNL functions.
 - */
--typedef bool(*nldr_initfxn) (void);
+-extern bool io_init(void);
 -
--/*
-  *  =3D=3D=3D=3D=3D=3D=3D=3D nldr_load =3D=3D=3D=3D=3D=3D=3D=3D
-  *  Load create, delete, or execute phase function of a node on the DS=
-P.
-  *
-@@ -251,7 +221,6 @@ typedef bool(*nldr_initfxn) (void);
-  *                              is already in use.
-  *      -EILSEQ:           Failure in dynamic loader library.
-  *  Requires:
-- *      nldr_init(void) called.
-  *      Valid nldr_node_obj.
-  *  Ensures:
-  */
-@@ -269,7 +238,6 @@ typedef int(*nldr_loadfxn) (struct nldr_nodeobject =
-*nldr_node_obj,
-  *      0:        Success.
-  *      -ENOMEM:    Insufficient memory on GPP.
-  *  Requires:
-- *      nldr_init(void) called.
-  *      Valid nldr_node_obj.
-  *  Ensures:
-  */
-@@ -283,9 +251,7 @@ struct node_ldr_fxns {
- 	nldr_allocatefxn allocate;
- 	nldr_createfxn create;
- 	nldr_deletefxn delete;
--	nldr_exitfxn exit;
- 	nldr_getfxnaddrfxn get_fxn_addr;
--	nldr_initfxn init;
- 	nldr_loadfxn load;
- 	nldr_unloadfxn unload;
- };
-diff --git a/drivers/staging/tidspbridge/rmgr/nldr.c b/drivers/staging/=
-tidspbridge/rmgr/nldr.c
-index 46086b5..30d5480 100644
---- a/drivers/staging/tidspbridge/rmgr/nldr.c
-+++ b/drivers/staging/tidspbridge/rmgr/nldr.c
-@@ -620,15 +620,6 @@ void nldr_delete(struct nldr_object *nldr_obj)
- }
-=20
- /*
-- *  =3D=3D=3D=3D=3D=3D=3D=3D nldr_exit =3D=3D=3D=3D=3D=3D=3D=3D
-- *  Discontinue usage of NLDR module.
-- */
--void nldr_exit(void)
--{
--	/* do nothing */
--}
--
--/*
-  *  =3D=3D=3D=3D=3D=3D=3D=3D nldr_get_fxn_addr =3D=3D=3D=3D=3D=3D=3D=3D
-  */
- int nldr_get_fxn_addr(struct nldr_nodeobject *nldr_node_obj,
-@@ -736,16 +727,6 @@ int nldr_get_rmm_manager(struct nldr_object *nldr,
- }
-=20
- /*
-- *  =3D=3D=3D=3D=3D=3D=3D=3D nldr_init =3D=3D=3D=3D=3D=3D=3D=3D
-- *  Initialize the NLDR module.
-- */
--bool nldr_init(void)
--{
--	/* do nothing */
--	return true;
--}
--
--/*
-  *  =3D=3D=3D=3D=3D=3D=3D=3D nldr_load =3D=3D=3D=3D=3D=3D=3D=3D
-  */
- int nldr_load(struct nldr_nodeobject *nldr_node_obj,
-diff --git a/drivers/staging/tidspbridge/rmgr/node.c b/drivers/staging/=
-tidspbridge/rmgr/node.c
-index 908cd1e..7fb426c 100644
---- a/drivers/staging/tidspbridge/rmgr/node.c
-+++ b/drivers/staging/tidspbridge/rmgr/node.c
-@@ -159,7 +159,6 @@ struct node_mgr {
- 	/* Loader properties */
- 	struct nldr_object *nldr_obj;	/* Handle to loader */
- 	struct node_ldr_fxns nldr_fxns;	/* Handle to loader functions */
--	bool loader_init;	/* Loader Init function succeeded? */
- };
-=20
- /*
-@@ -266,9 +265,7 @@ static struct node_ldr_fxns nldr_fxns =3D {
- 	nldr_allocate,
- 	nldr_create,
- 	nldr_delete,
--	nldr_exit,
- 	nldr_get_fxn_addr,
--	nldr_init,
- 	nldr_load,
- 	nldr_unload,
- };
-@@ -1337,7 +1334,6 @@ int node_create_mgr(struct node_mgr **node_man,
- 	nldr_attrs_obj.write =3D mem_write;
- 	nldr_attrs_obj.dsp_word_size =3D node_mgr_obj->dsp_word_size;
- 	nldr_attrs_obj.dsp_mau_size =3D node_mgr_obj->dsp_mau_size;
--	node_mgr_obj->loader_init =3D node_mgr_obj->nldr_fxns.init();
- 	status =3D node_mgr_obj->nldr_fxns.create(&node_mgr_obj->nldr_obj,
- 			hdev_obj,
- 			&nldr_attrs_obj);
-@@ -2507,9 +2503,6 @@ static void delete_node_mgr(struct node_mgr *hnod=
-e_mgr)
- 		if (hnode_mgr->nldr_obj)
- 			hnode_mgr->nldr_fxns.delete(hnode_mgr->nldr_obj);
-=20
--		if (hnode_mgr->loader_init)
--			hnode_mgr->nldr_fxns.exit();
--
- 		kfree(hnode_mgr);
+ #endif /* CHNL_ */
+diff --git a/drivers/staging/tidspbridge/pmgr/dspapi.c b/drivers/stagin=
+g/tidspbridge/pmgr/dspapi.c
+index 5201bed..b9ca24c 100644
+--- a/drivers/staging/tidspbridge/pmgr/dspapi.c
++++ b/drivers/staging/tidspbridge/pmgr/dspapi.c
+@@ -268,7 +268,6 @@ void api_exit(void)
+ 	if (api_c_refs =3D=3D 0) {
+ 		/* Release all modules initialized in api_init(). */
+ 		dev_exit();
+-		io_exit();
+ 		mgr_exit();
  	}
  }
+@@ -281,24 +280,19 @@ void api_exit(void)
+ bool api_init(void)
+ {
+ 	bool ret =3D true;
+-	bool fdev, fio;
++	bool fdev;
+ 	bool fmgr;
+=20
+ 	if (api_c_refs =3D=3D 0) {
+ 		/* initialize driver and other modules */
+ 		fmgr =3D mgr_init();
+-		fio =3D io_init();
+ 		fdev =3D dev_init();
+-		ret =3D fdev && fio;
+-		ret =3D ret && fmgr;
++		ret =3D fdev && fmgr;
+ 		if (!ret) {
+=20
+ 			if (fmgr)
+ 				mgr_exit();
+=20
+-			if (fio)
+-				io_exit();
+-
+ 			if (fdev)
+ 				dev_exit();
+ 		}
+diff --git a/drivers/staging/tidspbridge/pmgr/io.c b/drivers/staging/ti=
+dspbridge/pmgr/io.c
+index a56b085..4073c9c 100644
+--- a/drivers/staging/tidspbridge/pmgr/io.c
++++ b/drivers/staging/tidspbridge/pmgr/io.c
+@@ -30,9 +30,6 @@
+ #include <ioobj.h>
+ #include <dspbridge/io.h>
+=20
+-/*  ----------------------------------- Globals */
+-static u32 refs;
+-
+ /*
+  *  =3D=3D=3D=3D=3D=3D=3D=3D io_create =3D=3D=3D=3D=3D=3D=3D=3D
+  *  Purpose:
+@@ -94,28 +91,3 @@ int io_destroy(struct io_mgr *hio_mgr)
+=20
+ 	return status;
+ }
+-
+-/*
+- *  =3D=3D=3D=3D=3D=3D=3D=3D io_exit =3D=3D=3D=3D=3D=3D=3D=3D
+- *  Purpose:
+- *      Discontinue usage of the IO module.
+- */
+-void io_exit(void)
+-{
+-	refs--;
+-}
+-
+-/*
+- *  =3D=3D=3D=3D=3D=3D=3D=3D io_init =3D=3D=3D=3D=3D=3D=3D=3D
+- *  Purpose:
+- *      Initialize the IO module's private state.
+- */
+-bool io_init(void)
+-{
+-	bool ret =3D true;
+-
+-	if (ret)
+-		refs++;
+-
+-	return ret;
+-}
 --=20
 1.7.9.1
