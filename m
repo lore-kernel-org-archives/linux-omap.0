@@ -1,8 +1,8 @@
 From: =?UTF-8?q?V=C3=ADctor=20Manuel=20J=C3=A1quez=20Leal?=
 	<vjaquez@igalia.com>
-Subject: [PATCH 13/17] staging: tidspbridge: remove dev_init() and dev_exit()
-Date: Fri,  9 Mar 2012 01:03:48 +0100
-Message-ID: <3e2fd084f9cb97370f666142ddb88e869f26bf24.1331250369.git.vjaquez@igalia.com>
+Subject: [PATCH 11/17] staging: tidspbridge: remove cmm_init() and cmm_exit()
+Date: Fri,  9 Mar 2012 01:03:46 +0100
+Message-ID: <4bebbc21b35a37555e4883637233c78e5408ba19.1331250369.git.vjaquez@igalia.com>
 References: <cover.1331250368.git.vjaquez@igalia.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=UTF-8
@@ -16,7 +16,7 @@ To: Omar Ramirez Luna <omar.ramirez@ti.com>, Greg Kroah-Hartman <gregkh@linuxfou
 Cc: devel@driverdev.osuosl.org, linux-kernel@vger.kernel.org, Felipe Contreras <felipe.contreras@nokia.com>, linux-omap@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-The dev module has a dev_init() and a dev_exit() whose only purpose is
+The cmm module has a cmm_init() and a cmm_exit() whose only purpose is
 to keep a reference counting which is not used at all.
 
 This patch removes these functions and the reference count variable.
@@ -25,96 +25,135 @@ There is no functional changes.
 
 Signed-off-by: V=C3=ADctor Manuel J=C3=A1quez Leal <vjaquez@igalia.com>
 ---
- .../staging/tidspbridge/include/dspbridge/dev.h    |   27 ------------=
-------
- drivers/staging/tidspbridge/pmgr/dev.c             |   29 ------------=
+ .../staging/tidspbridge/include/dspbridge/cmm.h    |   30 ------------=
 --------
- drivers/staging/tidspbridge/pmgr/dspapi.c          |   22 ++----------=
----
- 3 files changed, 3 insertions(+), 75 deletions(-)
+ drivers/staging/tidspbridge/pmgr/cmm.c             |   29 ------------=
+-------
+ drivers/staging/tidspbridge/pmgr/dev.c             |   23 ++----------=
+--
+ 3 files changed, 4 insertions(+), 78 deletions(-)
 
-diff --git a/drivers/staging/tidspbridge/include/dspbridge/dev.h b/driv=
-ers/staging/tidspbridge/include/dspbridge/dev.h
-index f92b4be..fa2d79e 100644
---- a/drivers/staging/tidspbridge/include/dspbridge/dev.h
-+++ b/drivers/staging/tidspbridge/include/dspbridge/dev.h
-@@ -478,33 +478,6 @@ extern int dev_get_bridge_context(struct dev_objec=
-t *hdev_obj,
- 				      **phbridge_context);
+diff --git a/drivers/staging/tidspbridge/include/dspbridge/cmm.h b/driv=
+ers/staging/tidspbridge/include/dspbridge/cmm.h
+index aff2205..c66bcf7 100644
+--- a/drivers/staging/tidspbridge/include/dspbridge/cmm.h
++++ b/drivers/staging/tidspbridge/include/dspbridge/cmm.h
+@@ -79,7 +79,6 @@ extern void *cmm_calloc_buf(struct cmm_object *hcmm_m=
+gr,
+  *      -EPERM:      Failed to initialize critical sect sync object.
+  *
+  *  Requires:
+- *      cmm_init(void) called.
+  *      ph_cmm_mgr !=3D NULL.
+  *      mgr_attrts->min_block_size >=3D 4 bytes.
+  *  Ensures:
+@@ -111,20 +110,6 @@ extern int cmm_create(struct cmm_object **ph_cmm_m=
+gr,
+ extern int cmm_destroy(struct cmm_object *hcmm_mgr, bool force);
 =20
  /*
-- *  =3D=3D=3D=3D=3D=3D=3D=3D dev_exit =3D=3D=3D=3D=3D=3D=3D=3D
+- *  =3D=3D=3D=3D=3D=3D=3D=3D cmm_exit =3D=3D=3D=3D=3D=3D=3D=3D
 - *  Purpose:
-- *      Decrement reference count, and free resources when reference c=
-ount is
-- *      0.
+- *     Discontinue usage of module. Cleanup CMM module if CMM cRef rea=
+ches zero.
 - *  Parameters:
+- *     n/a
 - *  Returns:
+- *     n/a
 - *  Requires:
-- *      DEV is initialized.
+- *     CMM is initialized.
 - *  Ensures:
-- *      When reference count =3D=3D 0, DEV's private resources are fre=
-ed.
 - */
--extern void dev_exit(void);
+-extern void cmm_exit(void);
 -
 -/*
-- *  =3D=3D=3D=3D=3D=3D=3D=3D dev_init =3D=3D=3D=3D=3D=3D=3D=3D
+  *  =3D=3D=3D=3D=3D=3D=3D=3D cmm_free_buf =3D=3D=3D=3D=3D=3D=3D=3D
+  *  Purpose:
+  *      Free the given buffer.
+@@ -185,19 +170,6 @@ extern int cmm_get_info(struct cmm_object *hcmm_mg=
+r,
+ 			       struct cmm_info *cmm_info_obj);
+=20
+ /*
+- *  =3D=3D=3D=3D=3D=3D=3D=3D cmm_init =3D=3D=3D=3D=3D=3D=3D=3D
 - *  Purpose:
-- *      Initialize DEV's private state, keeping a reference count on e=
-ach call.
+- *      Initializes private state of CMM module.
 - *  Parameters:
 - *  Returns:
 - *      TRUE if initialized; FALSE if error occurred.
 - *  Requires:
 - *  Ensures:
-- *      TRUE: A requirement for the other public DEV functions.
+- *      CMM initialized.
 - */
--extern bool dev_init(void);
+-extern bool cmm_init(void);
 -
 -/*
-  *  =3D=3D=3D=3D=3D=3D=3D=3D dev_insert_proc_object =3D=3D=3D=3D=3D=3D=
+  *  =3D=3D=3D=3D=3D=3D=3D=3D cmm_register_gppsm_seg =3D=3D=3D=3D=3D=3D=
 =3D=3D
   *  Purpose:
-  *      Inserts the Processor Object into the List of PROC Objects
-diff --git a/drivers/staging/tidspbridge/pmgr/dev.c b/drivers/staging/t=
-idspbridge/pmgr/dev.c
-index c5e627c..6234ffb 100644
---- a/drivers/staging/tidspbridge/pmgr/dev.c
-+++ b/drivers/staging/tidspbridge/pmgr/dev.c
-@@ -81,9 +81,6 @@ struct drv_ext {
- 	char sz_string[MAXREGPATHLENGTH];
+  *      Register a block of SM with the CMM.
+@@ -333,7 +305,6 @@ extern int cmm_xlator_free_buf(struct cmm_xlatorobj=
+ect *xlator,
+  *      0:        Success.
+  *      -EFAULT:    Bad translator handle.
+  *  Requires:
+- *      (refs > 0)
+  *      (paddr !=3D NULL)
+  *      (ul_size > 0)
+  *  Ensures:
+@@ -355,7 +326,6 @@ extern int cmm_xlator_info(struct cmm_xlatorobject =
+*xlator,
+  *  Returns:
+  *     Valid address on success, else NULL.
+  *  Requires:
+- *      refs > 0
+  *      paddr !=3D NULL
+  *      xtype >=3D CMM_VA2PA) && (xtype <=3D CMM_DSPPA2PA)
+  *  Ensures:
+diff --git a/drivers/staging/tidspbridge/pmgr/cmm.c b/drivers/staging/t=
+idspbridge/pmgr/cmm.c
+index 3366e60..4a800da 100644
+--- a/drivers/staging/tidspbridge/pmgr/cmm.c
++++ b/drivers/staging/tidspbridge/pmgr/cmm.c
+@@ -131,9 +131,6 @@ struct cmm_mnode {
+ 	u32 client_proc;	/* Process that allocated this mem block */
  };
 =20
 -/*  ----------------------------------- Globals */
--static u32 refs;		/* Module reference count */
+-static u32 refs;		/* module reference count */
 -
  /*  ----------------------------------- Function Prototypes */
- static int fxn_not_implemented(int arg, ...);
- static int init_cod_mgr(struct dev_object *dev_obj);
-@@ -649,32 +646,6 @@ int dev_get_bridge_context(struct dev_object *hdev=
-_obj,
+ static void add_to_free_list(struct cmm_allocator *allocator,
+ 			     struct cmm_mnode *pnode);
+@@ -317,17 +314,6 @@ int cmm_destroy(struct cmm_object *hcmm_mgr, bool =
+force)
  }
 =20
  /*
-- *  =3D=3D=3D=3D=3D=3D=3D=3D dev_exit =3D=3D=3D=3D=3D=3D=3D=3D
+- *  =3D=3D=3D=3D=3D=3D=3D=3D cmm_exit =3D=3D=3D=3D=3D=3D=3D=3D
 - *  Purpose:
-- *      Decrement reference count, and free resources when reference c=
-ount is
-- *      0.
+- *      Discontinue usage of module; free resources when reference cou=
+nt
+- *      reaches 0.
 - */
--void dev_exit(void)
+-void cmm_exit(void)
 -{
 -	refs--;
 -}
 -
 -/*
-- *  =3D=3D=3D=3D=3D=3D=3D=3D dev_init =3D=3D=3D=3D=3D=3D=3D=3D
+  *  =3D=3D=3D=3D=3D=3D=3D=3D cmm_free_buf =3D=3D=3D=3D=3D=3D=3D=3D
+  *  Purpose:
+  *      Free the given buffer.
+@@ -446,21 +432,6 @@ int cmm_get_info(struct cmm_object *hcmm_mgr,
+ }
+=20
+ /*
+- *  =3D=3D=3D=3D=3D=3D=3D=3D cmm_init =3D=3D=3D=3D=3D=3D=3D=3D
 - *  Purpose:
-- *      Initialize DEV's private state, keeping a reference count on e=
-ach call.
+- *      Initializes private state of CMM module.
 - */
--bool dev_init(void)
+-bool cmm_init(void)
 -{
 -	bool ret =3D true;
 -
@@ -125,53 +164,54 @@ ach call.
 -}
 -
 -/*
-  *  =3D=3D=3D=3D=3D=3D=3D=3D dev_notify_clients =3D=3D=3D=3D=3D=3D=3D=3D
+  *  =3D=3D=3D=3D=3D=3D=3D=3D cmm_register_gppsm_seg =3D=3D=3D=3D=3D=3D=
+=3D=3D
   *  Purpose:
-  *      Notify all clients of this device of a change in device status=
-=2E
-diff --git a/drivers/staging/tidspbridge/pmgr/dspapi.c b/drivers/stagin=
-g/tidspbridge/pmgr/dspapi.c
-index b9ca24c..9ef1ad9 100644
---- a/drivers/staging/tidspbridge/pmgr/dspapi.c
-+++ b/drivers/staging/tidspbridge/pmgr/dspapi.c
-@@ -265,11 +265,8 @@ void api_exit(void)
+  *      Register a block of SM with the CMM to be used for later GPP S=
+M
+diff --git a/drivers/staging/tidspbridge/pmgr/dev.c b/drivers/staging/t=
+idspbridge/pmgr/dev.c
+index 883765e..734d47e 100644
+--- a/drivers/staging/tidspbridge/pmgr/dev.c
++++ b/drivers/staging/tidspbridge/pmgr/dev.c
+@@ -658,10 +658,8 @@ void dev_exit(void)
  {
- 	api_c_refs--;
+ 	refs--;
 =20
--	if (api_c_refs =3D=3D 0) {
--		/* Release all modules initialized in api_init(). */
--		dev_exit();
-+	if (api_c_refs =3D=3D 0)
- 		mgr_exit();
+-	if (refs =3D=3D 0) {
+-		cmm_exit();
++	if (refs =3D=3D 0)
+ 		dmm_exit();
 -	}
  }
 =20
  /*
-@@ -280,23 +277,10 @@ void api_exit(void)
- bool api_init(void)
+@@ -671,23 +669,10 @@ void dev_exit(void)
+  */
+ bool dev_init(void)
  {
- 	bool ret =3D true;
--	bool fdev;
--	bool fmgr;
+-	bool cmm_ret, dmm_ret, ret =3D true;
 -
--	if (api_c_refs =3D=3D 0) {
--		/* initialize driver and other modules */
--		fmgr =3D mgr_init();
--		fdev =3D dev_init();
--		ret =3D fdev && fmgr;
+-	if (refs =3D=3D 0) {
+-		cmm_ret =3D cmm_init();
+-		dmm_ret =3D dmm_init();
+-
+-		ret =3D cmm_ret && dmm_ret;
+-
 -		if (!ret) {
+-			if (cmm_ret)
+-				cmm_exit();
++	bool ret =3D true;
 =20
--			if (fmgr)
--				mgr_exit();
-+	if (api_c_refs =3D=3D 0)
-+		ret =3D mgr_init();
-=20
--			if (fdev)
--				dev_exit();
+-			if (dmm_ret)
+-				dmm_exit();
+-
 -		}
 -	}
- 	if (ret)
- 		api_c_refs++;
++	if (refs =3D=3D 0)
++		dmm_init();
 =20
+ 	if (ret)
+ 		refs++;
 --=20
 1.7.9.1
