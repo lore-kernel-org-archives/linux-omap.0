@@ -1,27 +1,44 @@
-From: "George C. Huntington, III" <george.huntingtoniii@gmail.com>
-Subject: AM3517evm
-Date: Fri, 9 Mar 2012 12:22:55 -0500
-Message-ID: <CAFu+nvFt8BcO1pDD6CXXM056WYG9AQDTv-boc7xF0C2JuHAyYw@mail.gmail.com>
+From: Kevin Hilman <khilman@ti.com>
+Subject: Re: [GIT PULL] ARM: OMAP: GPIO cleanup and device tree adaptation
+Date: Fri, 09 Mar 2012 09:30:05 -0800
+Message-ID: <8762ed4r8i.fsf@ti.com>
+References: <4F5A30DB.7060004@ti.com>
+	<CACxGe6uo774Vf=rgnxxT6htFYSu7xROhgT-=Ernfbr9Lp-WvYQ@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-vx0-f174.google.com ([209.85.220.174]:43675 "EHLO
-	mail-vx0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1758317Ab2CIRW4 convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 9 Mar 2012 12:22:56 -0500
-Received: by vcqp1 with SMTP id p1so1548523vcq.19
-        for <linux-omap@vger.kernel.org>; Fri, 09 Mar 2012 09:22:55 -0800 (PST)
+Received: from na3sys009aog101.obsmtp.com ([74.125.149.67]:58399 "EHLO
+	na3sys009aog101.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1758351Ab2CIRaD (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 9 Mar 2012 12:30:03 -0500
+Received: by mail-iy0-f176.google.com with SMTP id w33so3221063iag.21
+        for <linux-omap@vger.kernel.org>; Fri, 09 Mar 2012 09:30:02 -0800 (PST)
+In-Reply-To: <CACxGe6uo774Vf=rgnxxT6htFYSu7xROhgT-=Ernfbr9Lp-WvYQ@mail.gmail.com>
+	(Grant Likely's message of "Fri, 9 Mar 2012 09:38:12 -0700")
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: linux-omap@vger.kernel.org
+To: Grant Likely <grant.likely@secretlab.ca>
+Cc: "Cousson, Benoit" <b-cousson@ti.com>, linux-omap <linux-omap@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>
 
-I would like to make the newer kernel (3.x) work with the AM3517EVM.
-I have a 2.6.32 and a 2.6.33 that run well on the board, but the
-recent kernels have kernel panics before even running init. =C2=A0where
-should I start? =C2=A0is there a better place to pursue this?
---
-To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Hi Grant,
+
+Grant Likely <grant.likely@secretlab.ca> writes:
+
+> On Fri, Mar 9, 2012 at 9:33 AM, Cousson, Benoit <b-cousson@ti.com> wrote:
+>> Hi Grant,
+>>
+>> Please pull the patches for OMAP GPIO DT support.
+>> It is based on your current gpio/next branch.
+>>
+>> Thanks,
+>> Benoit
+>
+> Merged, thanks.
+
+Since you're queuing OMAP GPIO stuff, ping on this one:
+
+    http://marc.info/?l=linux-omap&m=133098903909156&w=2
+
+Thanks,
+
+Kevin
