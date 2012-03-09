@@ -1,8 +1,8 @@
 From: =?UTF-8?q?V=C3=ADctor=20Manuel=20J=C3=A1quez=20Leal?=
 	<vjaquez@igalia.com>
-Subject: [PATCH 07/17] staging: tidspbridge: remove rmm_init() and rmm_exit()
-Date: Fri,  9 Mar 2012 01:03:42 +0100
-Message-ID: <0f2a056bd2e36f74bcb51052b48d116e03866d9e.1331250369.git.vjaquez@igalia.com>
+Subject: [PATCH 03/17] staging: tidspbridge: remove proc_init() and proc_exit()
+Date: Fri,  9 Mar 2012 01:03:38 +0100
+Message-ID: <a7496c4b97282c041bdf9fe04cf4ed9441688179.1331250369.git.vjaquez@igalia.com>
 References: <cover.1331250368.git.vjaquez@igalia.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=UTF-8
@@ -10,8 +10,8 @@ Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-omap-owner@vger.kernel.org>
 Received: from smtp4.mundo-r.com ([212.51.32.151]:47122 "EHLO
 	smtp4.mundo-r.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1757380Ab2CIAEP (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 8 Mar 2012 19:04:15 -0500
+	with ESMTP id S1752935Ab2CIAEL (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 8 Mar 2012 19:04:11 -0500
 In-Reply-To: <cover.1331250368.git.vjaquez@igalia.com>
 In-Reply-To: <cover.1331250368.git.vjaquez@igalia.com>
 References: <cover.1331250368.git.vjaquez@igalia.com>
@@ -20,8 +20,8 @@ List-Id: linux-omap@vger.kernel.org
 To: Omar Ramirez Luna <omar.ramirez@ti.com>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>
 Cc: devel@driverdev.osuosl.org, linux-kernel@vger.kernel.org, Felipe Contreras <felipe.contreras@nokia.com>, linux-omap@vger.kernel.org
 
-The rmm module has a rmm_init() and a rmm_exit() whose only purpose is
-to keep a reference counting which is not used at all.
+The proc module has a proc_init() and a proc_exit() whose only purpose
+is to keep a reference counting which is not used at all.
 
 This patch removes these functions and the reference count variable.
 
@@ -29,180 +29,169 @@ There is no functional changes.
 
 Signed-off-by: V=C3=ADctor Manuel J=C3=A1quez Leal <vjaquez@igalia.com>
 ---
- .../staging/tidspbridge/include/dspbridge/rmm.h    |   25 ------------=
+ .../staging/tidspbridge/include/dspbridge/proc.h   |   28 ------------=
 --------
- drivers/staging/tidspbridge/pmgr/dspapi.c          |   10 +------
- drivers/staging/tidspbridge/rmgr/nldr.c            |    6 ----
- drivers/staging/tidspbridge/rmgr/rmm.c             |   20 ------------=
-----
- 4 files changed, 2 insertions(+), 59 deletions(-)
+ drivers/staging/tidspbridge/pmgr/dspapi.c          |    9 +-----
+ drivers/staging/tidspbridge/rmgr/proc.c            |   28 ------------=
+--------
+ 3 files changed, 2 insertions(+), 63 deletions(-)
 
-diff --git a/drivers/staging/tidspbridge/include/dspbridge/rmm.h b/driv=
-ers/staging/tidspbridge/include/dspbridge/rmm.h
-index baea536..f7a4dc8 100644
---- a/drivers/staging/tidspbridge/include/dspbridge/rmm.h
-+++ b/drivers/staging/tidspbridge/include/dspbridge/rmm.h
-@@ -115,18 +115,6 @@ extern int rmm_create(struct rmm_target_obj **targ=
-et_obj,
- extern void rmm_delete(struct rmm_target_obj *target);
+diff --git a/drivers/staging/tidspbridge/include/dspbridge/proc.h b/dri=
+vers/staging/tidspbridge/include/dspbridge/proc.h
+index f00dffd..a82380e 100644
+--- a/drivers/staging/tidspbridge/include/dspbridge/proc.h
++++ b/drivers/staging/tidspbridge/include/dspbridge/proc.h
+@@ -189,20 +189,6 @@ extern int proc_get_resource_info(void *hprocessor=
+,
+ 					 u32 resource_info_size);
 =20
  /*
-- *  =3D=3D=3D=3D=3D=3D=3D=3D rmm_exit =3D=3D=3D=3D=3D=3D=3D=3D
-- *  Exit the RMM module
-- *
+- *  =3D=3D=3D=3D=3D=3D=3D=3D proc_exit =3D=3D=3D=3D=3D=3D=3D=3D
+- *  Purpose:
+- *      Decrement reference count, and free resources when reference c=
+ount is
+- *      0.
 - *  Parameters:
 - *  Returns:
 - *  Requires:
-- *      rmm_init successfully called.
+- *      PROC is initialized.
 - *  Ensures:
+- *      When reference count =3D=3D 0, PROC's private resources are fr=
+eed.
 - */
--extern void rmm_exit(void);
+-extern void proc_exit(void);
 -
 -/*
-  *  =3D=3D=3D=3D=3D=3D=3D=3D rmm_free =3D=3D=3D=3D=3D=3D=3D=3D
-  *  Free or unreserve memory allocated through rmm_alloc().
-  *
-@@ -148,19 +136,6 @@ extern bool rmm_free(struct rmm_target_obj *target=
-, u32 segid, u32 dsp_addr,
- 		     u32 size, bool reserved);
+  * =3D=3D=3D=3D=3D=3D=3D=3D proc_get_dev_object =3D=3D=3D=3D=3D=3D=3D=3D=
+=3D
+  *  Purpose:
+  *      Returns the DEV Hanlde for a given Processor handle
+@@ -223,20 +209,6 @@ extern int proc_get_dev_object(void *hprocessor,
+ 				      struct dev_object **device_obj);
 =20
  /*
-- *  =3D=3D=3D=3D=3D=3D=3D=3D rmm_init =3D=3D=3D=3D=3D=3D=3D=3D
-- *  Initialize the RMM module
-- *
+- *  =3D=3D=3D=3D=3D=3D=3D=3D proc_init =3D=3D=3D=3D=3D=3D=3D=3D
+- *  Purpose:
+- *      Initialize PROC's private state, keeping a reference count on =
+each
+- *      call.
 - *  Parameters:
 - *  Returns:
-- *      TRUE:   Success.
-- *      FALSE:  Failure.
+- *      TRUE if initialized; FALSE if error occurred.
 - *  Requires:
 - *  Ensures:
+- *      TRUE: A requirement for the other public PROC functions.
 - */
--extern bool rmm_init(void);
+-extern bool proc_init(void);
 -
 -/*
-  *  =3D=3D=3D=3D=3D=3D=3D=3D rmm_stat =3D=3D=3D=3D=3D=3D=3D=3D
-  *  Obtain  memory segment status
-  *
+  *  =3D=3D=3D=3D=3D=3D=3D=3D proc_get_state =3D=3D=3D=3D=3D=3D=3D=3D
+  *  Purpose:
+  *      Report the state of the specified DSP processor.
 diff --git a/drivers/staging/tidspbridge/pmgr/dspapi.c b/drivers/stagin=
 g/tidspbridge/pmgr/dspapi.c
-index 06e3b24..0a55465 100644
+index 971e839..7c20a0f 100644
 --- a/drivers/staging/tidspbridge/pmgr/dspapi.c
 +++ b/drivers/staging/tidspbridge/pmgr/dspapi.c
-@@ -272,7 +272,6 @@ void api_exit(void)
- 		msg_exit();
- 		io_exit();
+@@ -274,7 +274,6 @@ void api_exit(void)
+ 		strm_exit();
+ 		disp_exit();
+ 		node_exit();
+-		proc_exit();
  		mgr_exit();
--		rmm_exit();
+ 		rmm_exit();
  	}
- }
-=20
-@@ -285,18 +284,17 @@ bool api_init(void)
+@@ -289,12 +288,11 @@ bool api_init(void)
  {
  	bool ret =3D true;
  	bool fdev, fchnl, fmsg, fio;
--	bool fmgr, frmm;
-+	bool fmgr;
+-	bool fmgr, fproc, fnode, fdisp, fstrm, frmm;
++	bool fmgr, fnode, fdisp, fstrm, frmm;
 =20
  	if (api_c_refs =3D=3D 0) {
  		/* initialize driver and other modules */
  		fmgr =3D mgr_init();
--		frmm =3D rmm_init();
- 		fchnl =3D chnl_init();
- 		fmsg =3D msg_mod_init();
+-		fproc =3D proc_init();
+ 		fnode =3D node_init();
+ 		fdisp =3D disp_init();
+ 		fstrm =3D strm_init();
+@@ -304,7 +302,7 @@ bool api_init(void)
  		fio =3D io_init();
  		fdev =3D dev_init();
  		ret =3D fdev && fchnl && fmsg && fio;
--		ret =3D ret && fmgr && frmm;
-+		ret =3D ret && fmgr;
+-		ret =3D ret && fmgr && fproc && frmm;
++		ret =3D ret && fmgr && frmm;
  		if (!ret) {
 =20
  			if (fmgr)
-@@ -313,10 +311,6 @@ bool api_init(void)
+@@ -313,9 +311,6 @@ bool api_init(void)
+ 			if (fstrm)
+ 				strm_exit();
 =20
- 			if (fdev)
- 				dev_exit();
+-			if (fproc)
+-				proc_exit();
 -
--			if (frmm)
--				rmm_exit();
--
- 		}
- 	}
- 	if (ret)
-diff --git a/drivers/staging/tidspbridge/rmgr/nldr.c b/drivers/staging/=
-tidspbridge/rmgr/nldr.c
-index 5cff46f..a9d7a32 100644
---- a/drivers/staging/tidspbridge/rmgr/nldr.c
-+++ b/drivers/staging/tidspbridge/rmgr/nldr.c
-@@ -628,9 +628,6 @@ void nldr_delete(struct nldr_object *nldr_obj)
- void nldr_exit(void)
- {
- 	refs--;
--
--	if (refs =3D=3D 0)
--		rmm_exit();
- }
+ 			if (fnode)
+ 				node_exit();
 =20
- /*
-@@ -746,9 +743,6 @@ int nldr_get_rmm_manager(struct nldr_object *nldr,
-  */
- bool nldr_init(void)
- {
--	if (refs =3D=3D 0)
--		rmm_init();
--
- 	refs++;
-=20
- 	return true;
-diff --git a/drivers/staging/tidspbridge/rmgr/rmm.c b/drivers/staging/t=
-idspbridge/rmgr/rmm.c
-index 55acfcd..52187bd 100644
---- a/drivers/staging/tidspbridge/rmgr/rmm.c
-+++ b/drivers/staging/tidspbridge/rmgr/rmm.c
-@@ -80,8 +80,6 @@ struct rmm_target_obj {
- 	struct list_head ovly_list;	/* List of overlay memory in use */
+diff --git a/drivers/staging/tidspbridge/rmgr/proc.c b/drivers/staging/=
+tidspbridge/rmgr/proc.c
+index b865d64..7e4f12f 100644
+--- a/drivers/staging/tidspbridge/rmgr/proc.c
++++ b/drivers/staging/tidspbridge/rmgr/proc.c
+@@ -98,8 +98,6 @@ struct proc_object {
+ 	struct list_head proc_list;
  };
 =20
--static u32 refs;		/* module reference count */
+-static u32 refs;
 -
- static bool alloc_block(struct rmm_target_obj *target, u32 segid, u32 =
-size,
- 			u32 align, u32 *dsp_address);
- static bool free_block(struct rmm_target_obj *target, u32 segid, u32 a=
-ddr,
-@@ -260,14 +258,6 @@ void rmm_delete(struct rmm_target_obj *target)
+ DEFINE_MUTEX(proc_lock);	/* For critical sections */
+=20
+ /*  ----------------------------------- Function Prototypes */
+@@ -909,17 +907,6 @@ func_end:
  }
 =20
  /*
-- *  =3D=3D=3D=3D=3D=3D=3D=3D rmm_exit =3D=3D=3D=3D=3D=3D=3D=3D
+- *  =3D=3D=3D=3D=3D=3D=3D=3D proc_exit =3D=3D=3D=3D=3D=3D=3D=3D
+- *  Purpose:
+- *      Decrement reference count, and free resources when reference c=
+ount is
+- *      0.
 - */
--void rmm_exit(void)
+-void proc_exit(void)
 -{
 -	refs--;
 -}
 -
 -/*
-  *  =3D=3D=3D=3D=3D=3D=3D=3D rmm_free =3D=3D=3D=3D=3D=3D=3D=3D
-  */
- bool rmm_free(struct rmm_target_obj *target, u32 segid, u32 dsp_addr, =
-u32 size,
-@@ -300,16 +290,6 @@ bool rmm_free(struct rmm_target_obj *target, u32 s=
-egid, u32 dsp_addr, u32 size,
+  *  =3D=3D=3D=3D=3D=3D=3D=3D proc_get_dev_object =3D=3D=3D=3D=3D=3D=3D=
+=3D
+  *  Purpose:
+  *      Return the Dev Object handle for a given Processor.
+@@ -1010,21 +997,6 @@ int proc_get_trace(void *hprocessor, u8 * pbuf, u=
+32 max_size)
  }
 =20
  /*
-- *  =3D=3D=3D=3D=3D=3D=3D=3D rmm_init =3D=3D=3D=3D=3D=3D=3D=3D
+- *  =3D=3D=3D=3D=3D=3D=3D=3D proc_init =3D=3D=3D=3D=3D=3D=3D=3D
+- *  Purpose:
+- *      Initialize PROC's private state, keeping a reference count on =
+each call
 - */
--bool rmm_init(void)
+-bool proc_init(void)
 -{
--	refs++;
+-	bool ret =3D true;
 -
--	return true;
+-	if (ret)
+-		refs++;
+-
+-	return ret;
 -}
 -
 -/*
-  *  =3D=3D=3D=3D=3D=3D=3D=3D rmm_stat =3D=3D=3D=3D=3D=3D=3D=3D
-  */
- bool rmm_stat(struct rmm_target_obj *target, enum dsp_memtype segid,
+  *  =3D=3D=3D=3D=3D=3D=3D=3D proc_load =3D=3D=3D=3D=3D=3D=3D=3D
+  *  Purpose:
+  *      Reset a processor and load a new base program image.
 --=20
 1.7.9.1
 
