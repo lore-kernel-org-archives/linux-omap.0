@@ -1,50 +1,83 @@
-From: Kevin Hilman <khilman@ti.com>
-Subject: Re: DSS pwrdm usecount, disabling autodeps for DSS
-Date: Fri, 09 Mar 2012 10:17:41 -0800
-Message-ID: <87obs53agq.fsf@ti.com>
-References: <87r4x27gh0.fsf@ti.com> <1331291641.1927.38.camel@deskari>
+From: Tony Lindgren <tony@atomide.com>
+Subject: Re: [PATCH] ARM: OMAP2+: Fix compile error when FB_OMAP2 is not set
+Date: Fri, 9 Mar 2012 10:26:10 -0800
+Message-ID: <20120309182609.GG12083@atomide.com>
+References: <20120308204328.GW12083@atomide.com>
+ <20120308204607.GX12083@atomide.com>
+ <1331280718.1927.10.camel@deskari>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aog119.obsmtp.com ([74.125.149.246]:60068 "EHLO
-	na3sys009aog119.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754553Ab2CISRj (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 9 Mar 2012 13:17:39 -0500
-Received: by iaag37 with SMTP id g37so2386340iaa.6
-        for <linux-omap@vger.kernel.org>; Fri, 09 Mar 2012 10:17:38 -0800 (PST)
-In-Reply-To: <1331291641.1927.38.camel@deskari> (Tomi Valkeinen's message of
-	"Fri, 09 Mar 2012 13:14:01 +0200")
+Received: from mho-02-ewr.mailhop.org ([204.13.248.72]:26073 "EHLO
+	mho-02-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752951Ab2CIS0M (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 9 Mar 2012 13:26:12 -0500
+Content-Disposition: inline
+In-Reply-To: <1331280718.1927.10.camel@deskari>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: Tomi Valkeinen <tomi.valkeinen@ti.com>
-Cc: linux-omap <linux-omap@vger.kernel.org>, Paul Walmsley <paul@pwsan.com>, Benoit Cousson <b-cousson@ti.com>
+Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 
-Tomi Valkeinen <tomi.valkeinen@ti.com> writes:
+* Tomi Valkeinen <tomi.valkeinen@ti.com> [120309 00:14]:
+> On Thu, 2012-03-08 at 12:46 -0800, Tony Lindgren wrote:
+> > * Tony Lindgren <tony@atomide.com> [120308 12:11]:
+> > > Otherwise we will get:
+> > >=20
+> > > arch/arm/plat-omap/fb.c:101: error: expected =E2=80=98)=E2=80=99 =
+before =E2=80=98*=E2=80=99 token
+> > >=20
+> > > Signed-off-by: Tony Lindgren <tony@atomide.com>
+> > >=20
+> > > ---
+> > >=20
+> > > Tomi, you need something like this for what you have in for-next.
+> > >=20
+> > > --- a/arch/arm/plat-omap/fb.c
+> > > +++ b/arch/arm/plat-omap/fb.c
+> > > @@ -98,6 +98,8 @@ arch_initcall(omap_init_fb);
+> > > =20
+> > >  #else
+> > > =20
+> > > -void __init omapfb_set_lcd_config(omap_lcd_config *config) { }
+> > > +void __init omapfb_set_lcd_config(const struct omap_lcd_config *=
+config)
+> > > +{
+> > > +}
+> > > =20
+> > >  #endif
+> >=20
+> > Also now seeing the following with what you have in for-next:
+> >=20
+> > drivers/video/omap2/displays/panel-taal.c: In function =E2=80=98taa=
+l_num_errors_show=E2=80=99:
+> > drivers/video/omap2/displays/panel-taal.c:605: warning: =E2=80=98er=
+rors=E2=80=99 may be used uninitialized in this function
+>=20
+> Hmm, my compiler doesn't complain (codesourcery 2010.09-50), so I did=
+n't
+> notice that. Which compiler version reports the warning?
+>=20
+> I'm not 100% sure, but I think it's a false warning, the code path th=
+at
+> uses "errors" should only be ran when "errors" has been set.
 
-> On Thu, 2012-03-08 at 16:42 -0800, Kevin Hilman wrote:
->> Hi Tomi,
->> 
->> A while ago you were asking about why DSS pwrdm counts were so high on
->> OMAP3, and why DSS was transitioning even though it was completely
->> unused. Paul and I just spent some a little time debugging this, and
->> narrowed it down to autodeps. (sorry it took so long, it finally
->> bothered me enough to actually look into it.)
->> 
->> The patch below fixes the problem at least when DSS is not loaded (DSS
->> just stays in retention), but I didn't try this with any active DSS
->> usage, or loading/unloding the DSS drivers.
->> 
->> Could you give the patch below a try on OMAP3 along with some active DSS
->> usage as well as unloading the modules after using.  Could you also
->> verify that suspend/resume continues to work for DSS?
->
-> I didn't get very far with the patch =(. Tested on omap3 overo, with
-> -rc6 based dss tree.
+This seems to depend on the .config options somehow. Not getting
+it with omap2plus_defconfig, but getting it at least with Russell's
+omap4430-sdp seed config from:
 
-Bummer, thanks for trying.  
+http://www.arm.linux.org.uk/developer/build/
 
-It seems we still have work to do in fixing the omap2/3 enable sequence.
+Using now emdebian 4.3.5-4 as there seems to be some issues
+showing all the section warnings with CodeSourcery and Linaro
+toolchains.
 
-At least we know the root cause of the DSS pwrdm usecount now.  
+Regards,
 
-Kevin
+Tony
+--
+To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
