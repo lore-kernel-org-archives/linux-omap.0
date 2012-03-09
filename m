@@ -1,60 +1,105 @@
-From: Grazvydas Ignotas <notasas@gmail.com>
-Subject: [PATCH] OMAPDSS: OMAPFB: check for matching memory size early
-Date: Fri,  9 Mar 2012 02:42:49 +0200
-Message-ID: <1331253769-9770-1-git-send-email-notasas@gmail.com>
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-we0-f174.google.com ([74.125.82.174]:33813 "EHLO
-	mail-we0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755635Ab2CIAmz (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 8 Mar 2012 19:42:55 -0500
-Sender: linux-omap-owner@vger.kernel.org
+From: Grant Likely <grant.likely@secretlab.ca>
+Subject: Re: [PATCH 1/4] gpiolib: Add gpiochip_find_by_name() and gpio_find_by_chip_name()
+Date: Thu, 08 Mar 2012 18:05:55 -0700
+Message-ID: <20120309010555.8DE213E0901@localhost>
+References: <20120301185044.29210.44521.stgit@kaulin.local> <20120301185524.29210.60381.stgit@kaulin.local> <20120302075804.F28DB3E2DB4@localhost> <20120302170327.GF18901@atomide.com> <20120302180848.GM18901@atomide.com> <20120302184833.C296A3E1C63@localhost> <20120302190614.GO18901@atomide.com>
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <20120302190614.GO18901@atomide.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Tony Lindgren <tony@atomide.com>
+Cc: linux-kernel@vger.kernel.org, Linus Walleij <linus.walleij@stericsson.com>, Arnd Bergmann <arnd@arndb.de>, Rajendra Nayak <rnayak@ti.com>, linux-mmc@vger.kernel.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 List-Id: linux-omap@vger.kernel.org
-To: linux-fbdev@vger.kernel.org
-Cc: linux-omap@vger.kernel.org, Tomi Valkeinen <tomi.valkeinen@ti.com>, Grazvydas Ignotas <notasas@gmail.com>
 
-If the size of memory region that is being set up is the same as before,
-we don't have to do memory and layer busy checks.
+On Fri, 2 Mar 2012 11:06:15 -0800, Tony Lindgren <tony@atomide.com> wrote:
+> * Grant Likely <grant.likely@secretlab.ca> [120302 10:16]:
+> > On Fri, 2 Mar 2012 10:08:48 -0800, Tony Lindgren <tony@atomide.com> wrote:
+> > > * Tony Lindgren <tony@atomide.com> [120302 08:31]:
+> > > > * Grant Likely <grant.likely@secretlab.ca> [120302 01:00]:
+> > > > > On Thu, 01 Mar 2012 10:55:24 -0800, Tony Lindgren <tony@atomide.com> wrote:
+> > > > > > +
+> > > > > > +/**
+> > > > > > + * gpiochip_find_by_name() - iterator for locating a gpio_chip by name
+> > > > > > + * @name: name of the gpio_chip
+> > > > > > + *
+> > > > > > + * Similar to bus_find_device_by_name. It returns a reference to the
+> > > > > > + * first gpio_chip with matching name. It ignores NULL and empty names.
+> > > > > > + * If you need to do something more complex, then use gpiochip_find.
+> > > > > > + */
+> > > > > > +struct gpio_chip *gpiochip_find_by_name(const char *name)
+> > > > > > +{
+> > > > > > +	if (!name || !strcmp(name, ""))
+> > > > > > +		return NULL;
+> > > > > > +
+> > > > > > +	return gpiochip_find((void *)name, match_name);
+> > > > > 
+> > > > > Nasty cast.  Can the signature for gpiochip_find be changed to accept
+> > > > > a (const void *)?
+> > > > 
+> > > > I think so, this too comes from the bus code.
+> > > 
+> > > Looks like it can't be const as of_node_to_gpiochip uses it with
+> > > a struct device_node * that for of_get_named_gpio_flags comes from
+> > > of_parse_phandle_with_args.
+> > 
+> > Really? It sees to work fine here:
+> 
+> Hmm right you are. I must have missed adding the const to
+> of_gpiochip_is_match, that's good news :)
+> 
+> Want to do that as a separate patch or want me to fold it in?
 
-Signed-off-by: Grazvydas Ignotas <notasas@gmail.com>
----
-I'm not sure if this is semantically correct, but this helps to get
-some old programs working, that rely on old DSS version which didn't
-check for mmap lock, but incidentally they are using same size too..
+I've got it as a separate commit in my gpio/next branch.
 
- drivers/video/omap2/omapfb/omapfb-ioctl.c |   13 +++++++------
- 1 files changed, 7 insertions(+), 6 deletions(-)
+g.
 
-diff --git a/drivers/video/omap2/omapfb/omapfb-ioctl.c b/drivers/video/omap2/omapfb/omapfb-ioctl.c
-index df7bcce..a0ac95c 100644
---- a/drivers/video/omap2/omapfb/omapfb-ioctl.c
-+++ b/drivers/video/omap2/omapfb/omapfb-ioctl.c
-@@ -225,6 +225,9 @@ static int omapfb_setup_mem(struct fb_info *fbi, struct omapfb_mem_info *mi)
- 	down_write_nested(&rg->lock, rg->id);
- 	atomic_inc(&rg->lock_count);
- 
-+	if (rg->size == size && rg->type == mi->type)
-+		goto out;
-+
- 	if (atomic_read(&rg->map_count)) {
- 		r = -EBUSY;
- 		goto out;
-@@ -245,12 +248,10 @@ static int omapfb_setup_mem(struct fb_info *fbi, struct omapfb_mem_info *mi)
- 		}
- 	}
- 
--	if (rg->size != size || rg->type != mi->type) {
--		r = omapfb_realloc_fbmem(fbi, size, mi->type);
--		if (r) {
--			dev_err(fbdev->dev, "realloc fbmem failed\n");
--			goto out;
--		}
-+	r = omapfb_realloc_fbmem(fbi, size, mi->type);
-+	if (r) {
-+		dev_err(fbdev->dev, "realloc fbmem failed\n");
-+		goto out;
- 	}
- 
-  out:
+> > ---
+> > 
+> > diff --git a/drivers/gpio/gpiolib.c b/drivers/gpio/gpiolib.c
+> > index d773540..e633a2a 100644
+> > --- a/drivers/gpio/gpiolib.c
+> > +++ b/drivers/gpio/gpiolib.c
+> > @@ -1152,8 +1152,9 @@ EXPORT_SYMBOL_GPL(gpiochip_remove);
+> >   * non-zero, this function will return to the caller and not iterate over any
+> >   * more gpio_chips.
+> >   */
+> > -struct gpio_chip *gpiochip_find(void *data,
+> > -				int (*match)(struct gpio_chip *chip, void *data))
+> > +struct gpio_chip *gpiochip_find(const void *data,
+> > +				int (*match)(struct gpio_chip *chip,
+> > +					     const void *data))
+> >  {
+> >  	struct gpio_chip *chip = NULL;
+> >  	unsigned long flags;
+> > diff --git a/drivers/of/gpio.c b/drivers/of/gpio.c
+> > index e034b38..bba8121 100644
+> > --- a/drivers/of/gpio.c
+> > +++ b/drivers/of/gpio.c
+> > @@ -229,7 +229,7 @@ void of_gpiochip_remove(struct gpio_chip *chip)
+> >  }
+> >  
+> >  /* Private function for resolving node pointer to gpio_chip */
+> > -static int of_gpiochip_is_match(struct gpio_chip *chip, void *data)
+> > +static int of_gpiochip_is_match(struct gpio_chip *chip, const void *data)
+> >  {
+> >  	return chip->of_node == data;
+> >  }
+> > diff --git a/include/asm-generic/gpio.h b/include/asm-generic/gpio.h
+> > index 1ff4e22..5f52690 100644
+> > --- a/include/asm-generic/gpio.h
+> > +++ b/include/asm-generic/gpio.h
+> > @@ -142,9 +142,9 @@ extern int __must_check gpiochip_reserve(int start, int ngpio);
+> >  /* add/remove chips */
+> >  extern int gpiochip_add(struct gpio_chip *chip);
+> >  extern int __must_check gpiochip_remove(struct gpio_chip *chip);
+> > -extern struct gpio_chip *gpiochip_find(void *data,
+> > +extern struct gpio_chip *gpiochip_find(const void *data,
+> >  					int (*match)(struct gpio_chip *chip,
+> > -						     void *data));
+> > +						     const void *data));
+> >  
+> >  
+> >  /* Always use the library code for GPIO management calls,
+> > 
+
 -- 
-1.7.0.4
-
+email sent from notmuch.vim plugin
