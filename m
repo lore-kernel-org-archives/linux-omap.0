@@ -1,46 +1,77 @@
-From: Jean Pihet <jean.pihet@newoldbits.com>
-Subject: Re: [PATCH 5/9] ARM: OMAP36xx: hwmod data: fix SmartReflex interface data
-Date: Fri, 9 Mar 2012 09:20:07 +0100
-Message-ID: <CAORVsuV8YXNRF=UjBOd8hoYbJ+ksg6RT1dZYC=TuUTmLiuD+ow@mail.gmail.com>
-References: <20120228110943.808.73639.stgit@dusk>
-	<20120228111054.808.16941.stgit@dusk>
-	<alpine.DEB.2.00.1203082051150.26656@utopia.booyaka.com>
+From: "DebBarma, Tarun Kanti" <tarun.kanti@ti.com>
+Subject: Re: [PATCH v3 05/13] gpio/omap: get rid of retrigger variable in gpio_irq_handler
+Date: Fri, 9 Mar 2012 14:16:52 +0530
+Message-ID: <CAC83ZvJXK-FsiqyQT6BQxggRewkiHZkRBi44CVH15gb4dUbsjw@mail.gmail.com>
+References: <1331118963-26364-1-git-send-email-tarun.kanti@ti.com>
+	<1331118963-26364-6-git-send-email-tarun.kanti@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-vx0-f174.google.com ([209.85.220.174]:50275 "EHLO
-	mail-vx0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752290Ab2CIIUI convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 9 Mar 2012 03:20:08 -0500
-Received: by vcqp1 with SMTP id p1so1161437vcq.19
-        for <linux-omap@vger.kernel.org>; Fri, 09 Mar 2012 00:20:07 -0800 (PST)
-In-Reply-To: <alpine.DEB.2.00.1203082051150.26656@utopia.booyaka.com>
+Received: from na3sys009aog104.obsmtp.com ([74.125.149.73]:47017 "EHLO
+	na3sys009aog104.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1753224Ab2CIIqy convert rfc822-to-8bit
+	(ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Fri, 9 Mar 2012 03:46:54 -0500
+Received: by mail-qy0-f169.google.com with SMTP id d16so1188364qcs.0
+        for <linux-omap@vger.kernel.org>; Fri, 09 Mar 2012 00:46:53 -0800 (PST)
+In-Reply-To: <1331118963-26364-6-git-send-email-tarun.kanti@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Paul Walmsley <paul@pwsan.com>
-Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Kevin Hilman <khilman@deeprootsystems.com>, Thara Gopinath <thara@ti.com>
+To: linux-omap@vger.kernel.org
+Cc: khilman@ti.com, tony@atomide.com, linux-arm-kernel@lists.infradead.org, Tarun Kanti DebBarma <tarun.kanti@ti.com>
 
-Hi Paul,
+On Wed, Mar 7, 2012 at 4:45 PM, Tarun Kanti DebBarma <tarun.kanti@ti.co=
+m> wrote:
+> This local variable is just assigned zero and then OR'ed
+> with isr. It does not appear to serve any purpose and so
+> removing it.
+Missed following comments from Kevin given in v2. Sorry about that.
+I have updated the change in:
+git://gitorious.org/~tarunkanti/omap-sw-develoment/tarunkantis-linux-om=
+ap-dev
+for_3.4/gpio_further_cleanup_fixes
 
-On Fri, Mar 9, 2012 at 4:51 AM, Paul Walmsley <paul@pwsan.com> wrote:
+"commit 672e302e3c (ARM: OMAP: use edge/level handlers from generic IRQ
+framework) removed retrigger support in favor of using generic IRQ
+framework.  This patch cleans up some unused remnants of that removal.
+--
+Tarun
 >
-> Dropping this patch from this series due to conflicts with the SmartR=
-eflex
-> branch. =A0It will be moved to a subsequent series.
-I can take this change as part of the series I am preparing for the SR
-conversion to drivers/.
-What do you thin?
-
-> - Paul
-
-Jean
-
+> Signed-off-by: Tarun Kanti DebBarma <tarun.kanti@ti.com>
+> Reviewed-by: Santosh Shilimkar <santosh.shilimkar@ti.com>
+> Acked-by: Felipe Balbi <balbi@ti.com>
+> ---
+> =A0drivers/gpio/gpio-omap.c | =A0 =A03 ---
+> =A01 files changed, 0 insertions(+), 3 deletions(-)
+>
+> diff --git a/drivers/gpio/gpio-omap.c b/drivers/gpio/gpio-omap.c
+> index 3765654..de5fe8f 100644
+> --- a/drivers/gpio/gpio-omap.c
+> +++ b/drivers/gpio/gpio-omap.c
+> @@ -626,7 +626,6 @@ static void gpio_irq_handler(unsigned int irq, st=
+ruct irq_desc *desc)
+> =A0 =A0 =A0 =A0u32 isr;
+> =A0 =A0 =A0 =A0unsigned int gpio_irq, gpio_index;
+> =A0 =A0 =A0 =A0struct gpio_bank *bank;
+> - =A0 =A0 =A0 u32 retrigger =3D 0;
+> =A0 =A0 =A0 =A0int unmasked =3D 0;
+> =A0 =A0 =A0 =A0struct irq_chip *chip =3D irq_desc_get_chip(desc);
+>
+> @@ -663,8 +662,6 @@ static void gpio_irq_handler(unsigned int irq, st=
+ruct irq_desc *desc)
+> =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0chained_irq_exit(chip,=
+ desc);
+> =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0}
+>
+> - =A0 =A0 =A0 =A0 =A0 =A0 =A0 isr |=3D retrigger;
+> - =A0 =A0 =A0 =A0 =A0 =A0 =A0 retrigger =3D 0;
+> =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0if (!isr)
+> =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0break;
+>
 > --
-> To unsubscribe from this list: send the line "unsubscribe linux-omap"=
- in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at =A0http://vger.kernel.org/majordomo-info.html
+> 1.7.0.4
+>
 --
 To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
 n
