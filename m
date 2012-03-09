@@ -1,61 +1,99 @@
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-Subject: Re: [PATCH] omap_vout: Set DSS overlay_info only if paddr is non zero
-Date: Fri, 09 Mar 2012 00:47:41 +0100
-Message-ID: <1729342.AddG4HPA3i@avalon>
-References: <1331110876-11895-1-git-send-email-archit@ti.com>
+From: =?UTF-8?q?V=C3=ADctor=20Manuel=20J=C3=A1quez=20Leal?=
+	<vjaquez@igalia.com>
+Subject: [PATCH 01/17] staging: tidspbridge: remove drv_init() and drv_exit()
+Date: Fri,  9 Mar 2012 01:03:36 +0100
+Message-ID: <00a2dae835cdd8257d5fa5f1d5900bd5f759df1b.1331250369.git.vjaquez@igalia.com>
+References: <cover.1331250368.git.vjaquez@igalia.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7Bit
-Return-path: <linux-media-owner@vger.kernel.org>
-In-Reply-To: <1331110876-11895-1-git-send-email-archit@ti.com>
-Sender: linux-media-owner@vger.kernel.org
-To: Archit Taneja <archit@ti.com>
-Cc: hvaibhav@ti.com, tomi.valkeinen@ti.com, linux-omap@vger.kernel.org, linux-media@vger.kernel.org
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
+Return-path: <devel-bounces@linuxdriverproject.org>
+In-Reply-To: <cover.1331250368.git.vjaquez@igalia.com>
+In-Reply-To: <cover.1331250368.git.vjaquez@igalia.com>
+References: <cover.1331250368.git.vjaquez@igalia.com>
+List-Unsubscribe: <http://driverdev.linuxdriverproject.org/mailman/options/devel>,
+	<mailto:devel-request@linuxdriverproject.org?subject=unsubscribe>
+List-Archive: <http://driverdev.linuxdriverproject.org/pipermail/devel>
+List-Post: <mailto:devel@linuxdriverproject.org>
+List-Help: <mailto:devel-request@linuxdriverproject.org?subject=help>
+List-Subscribe: <http://driverdev.linuxdriverproject.org/mailman/listinfo/devel>,
+	<mailto:devel-request@linuxdriverproject.org?subject=subscribe>
+Errors-To: devel-bounces@linuxdriverproject.org
+Sender: devel-bounces@linuxdriverproject.org
+To: Omar Ramirez Luna <omar.ramirez@ti.com>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>
+Cc: devel@driverdev.osuosl.org, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org, Felipe Contreras <felipe.contreras@nokia.com>
 List-Id: linux-omap@vger.kernel.org
 
-Hi Archit,
-
-On Wednesday 07 March 2012 14:31:16 Archit Taneja wrote:
-> The omap_vout driver tries to set the DSS overlay_info using
-> set_overlay_info() when the physical address for the overlay is still not
-> configured. This happens in omap_vout_probe() and vidioc_s_fmt_vid_out().
-> 
-> The calls to omapvid_init(which internally calls set_overlay_info()) are
-> removed from these functions. They don't need to be called as the
-> omap_vout_device struct anyway maintains the overlay related changes made.
-> Also, remove the explicit call to set_overlay_info() in vidioc_streamon(),
-> this was used to set the paddr, this isn't needed as omapvid_init() does
-> the same thing later.
-> 
-> These changes are required as the DSS2 driver since 3.3 kernel doesn't let
-> you set the overlay info with paddr as 0.
-> 
-> Signed-off-by: Archit Taneja <archit@ti.com>
-
-Thanks for the patch. This seems to fix memory corruption that would result
-in sysfs-related crashes such as
-
-[   31.279541] ------------[ cut here ]------------
-[   31.284423] WARNING: at fs/sysfs/file.c:343 sysfs_open_file+0x70/0x1f8()
-[   31.291503] missing sysfs attribute operations for kobject: (null)
-[   31.298004] Modules linked in: mt9p031 aptina_pll omap3_isp
-[   31.303924] [<c0018260>] (unwind_backtrace+0x0/0xec) from [<c0034488>] (warn_slowpath_common+0x4c/0x64)
-[   31.313812] [<c0034488>] (warn_slowpath_common+0x4c/0x64) from [<c0034520>] (warn_slowpath_fmt+0x2c/0x3c)
-[   31.323913] [<c0034520>] (warn_slowpath_fmt+0x2c/0x3c) from [<c01219bc>] (sysfs_open_file+0x70/0x1f8)
-[   31.333618] [<c01219bc>] (sysfs_open_file+0x70/0x1f8) from [<c00ccc94>] (__dentry_open+0x1f8/0x30c)
-[   31.343139] [<c00ccc94>] (__dentry_open+0x1f8/0x30c) from [<c00cce58>] (nameidata_to_filp+0x50/0x5c)
-[   31.352752] [<c00cce58>] (nameidata_to_filp+0x50/0x5c) from [<c00db4c0>] (do_last+0x55c/0x6a0)
-[   31.361999] [<c00db4c0>] (do_last+0x55c/0x6a0) from [<c00db6bc>] (path_openat+0xb8/0x37c)
-[   31.370605] [<c00db6bc>] (path_openat+0xb8/0x37c) from [<c00dba60>] (do_filp_open+0x30/0x7c)
-[   31.379486] [<c00dba60>] (do_filp_open+0x30/0x7c) from [<c00cc904>] (do_sys_open+0xd8/0x170)
-[   31.388366] [<c00cc904>] (do_sys_open+0xd8/0x170) from [<c0012760>] (ret_fast_syscall+0x0/0x3c)
-[   31.397552] ---[ end trace 13639ab74f345d7e ]---
-
-Tested-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-
-Please push it to v3.3 :-)
-
--- 
-Regards,
-
-Laurent Pinchart
+VGhlIGRydiBtb2R1bGUgaGFzIGEgZHJ2X2luaXQoKSBhbmQgYSBkcnZfZXhpdCgpIHdob3NlIG9u
+bHkgcHVycG9zZSBpcwp0byBrZWVwIGEgcmVmZXJlbmNlIGNvdW50aW5nIHdoaWNoIGlzIG5vdCB1
+c2VkIGF0IGFsbC4KClRoaXMgcGF0Y2ggcmVtb3ZlcyB0aGVzZSBmdW5jdGlvbnMgYW5kIHRoZSBy
+ZWZlcmVuY2UgY291bnQgdmFyaWFibGUuCgpUaGVyZSBpcyBubyBmdW5jdGlvbmFsIGNoYW5nZXMu
+CgpTaWduZWQtb2ZmLWJ5OiBWw61jdG9yIE1hbnVlbCBKw6FxdWV6IExlYWwgPHZqYXF1ZXpAaWdh
+bGlhLmNvbT4KLS0tCiAuLi4vc3RhZ2luZy90aWRzcGJyaWRnZS9pbmNsdWRlL2RzcGJyaWRnZS9k
+cnYuaCAgICB8ICAgMjMgLS0tLS0tLS0tLS0tLS0tLS0KIGRyaXZlcnMvc3RhZ2luZy90aWRzcGJy
+aWRnZS9wbWdyL2RzcGFwaS5jICAgICAgICAgIHwgICAgOCArLS0tLQogZHJpdmVycy9zdGFnaW5n
+L3RpZHNwYnJpZGdlL3JtZ3IvZHJ2LmMgICAgICAgICAgICAgfCAgIDI2IC0tLS0tLS0tLS0tLS0t
+LS0tLS0tCiAzIGZpbGVzIGNoYW5nZWQsIDIgaW5zZXJ0aW9ucygrKSwgNTUgZGVsZXRpb25zKC0p
+CgpkaWZmIC0tZ2l0IGEvZHJpdmVycy9zdGFnaW5nL3RpZHNwYnJpZGdlL2luY2x1ZGUvZHNwYnJp
+ZGdlL2Rydi5oIGIvZHJpdmVycy9zdGFnaW5nL3RpZHNwYnJpZGdlL2luY2x1ZGUvZHNwYnJpZGdl
+L2Rydi5oCmluZGV4IDljZGJkOTUuLmIwYzc3MDggMTAwNjQ0Ci0tLSBhL2RyaXZlcnMvc3RhZ2lu
+Zy90aWRzcGJyaWRnZS9pbmNsdWRlL2RzcGJyaWRnZS9kcnYuaAorKysgYi9kcml2ZXJzL3N0YWdp
+bmcvdGlkc3BicmlkZ2UvaW5jbHVkZS9kc3BicmlkZ2UvZHJ2LmgKQEAgLTE5OSwxNyArMTk5LDYg
+QEAgZXh0ZXJuIGludCBkcnZfY3JlYXRlKHN0cnVjdCBkcnZfb2JqZWN0ICoqZHJ2X29iaik7CiBl
+eHRlcm4gaW50IGRydl9kZXN0cm95KHN0cnVjdCBkcnZfb2JqZWN0ICpkcml2ZXJfb2JqKTsKIAog
+LyoKLSAqICA9PT09PT09PSBkcnZfZXhpdCA9PT09PT09PQotICogIFB1cnBvc2U6Ci0gKiAgICAg
+IEV4aXQgdGhlIERSViBtb2R1bGUsIGZyZWVpbmcgYW55IG1vZHVsZXMgaW5pdGlhbGl6ZWQgaW4g
+ZHJ2X2luaXQuCi0gKiAgUGFyYW1ldGVyczoKLSAqICBSZXR1cm5zOgotICogIFJlcXVpcmVzOgot
+ICogIEVuc3VyZXM6Ci0gKi8KLWV4dGVybiB2b2lkIGRydl9leGl0KHZvaWQpOwotCi0vKgogICog
+ID09PT09PT09IGRydl9nZXRfZmlyc3RfZGV2X29iamVjdCA9PT09PT09PQogICogIFB1cnBvc2U6
+CiAgKiAgICAgIFJldHVybnMgdGhlIFB0ciB0byB0aGUgRmlyc3REZXYgT2JqZWN0IGluIHRoZSBM
+aXN0CkBAIC0yOTQsMTggKzI4Myw2IEBAIGV4dGVybiB1MzIgZHJ2X2dldF9uZXh0X2Rldl9vYmpl
+Y3QodTMyIGhkZXZfb2JqKTsKIGV4dGVybiB1MzIgZHJ2X2dldF9uZXh0X2Rldl9leHRlbnNpb24o
+dTMyIGRldl9leHRlbnNpb24pOwogCiAvKgotICogID09PT09PT09IGRydl9pbml0ID09PT09PT09
+Ci0gKiAgUHVycG9zZToKLSAqICAgICAgSW5pdGlhbGl6ZSB0aGUgRFJWIG1vZHVsZS4KLSAqICBQ
+YXJhbWV0ZXJzOgotICogIFJldHVybnM6Ci0gKiAgICAgIFRSVUUgaWYgc3VjY2VzczsgRkFMU0Ug
+b3RoZXJ3aXNlLgotICogIFJlcXVpcmVzOgotICogIEVuc3VyZXM6Ci0gKi8KLWV4dGVybiBpbnQg
+ZHJ2X2luaXQodm9pZCk7Ci0KLS8qCiAgKiAgPT09PT09PT0gZHJ2X2luc2VydF9kZXZfb2JqZWN0
+ID09PT09PT09CiAgKiAgUHVycG9zZToKICAqICAgICAgSW5zZXJ0IGEgRGV2aWNlT2JqZWN0IGlu
+dG8gdGhlIGxpc3Qgb2YgRHJpdmVyIG9iamVjdC4KZGlmZiAtLWdpdCBhL2RyaXZlcnMvc3RhZ2lu
+Zy90aWRzcGJyaWRnZS9wbWdyL2RzcGFwaS5jIGIvZHJpdmVycy9zdGFnaW5nL3RpZHNwYnJpZGdl
+L3BtZ3IvZHNwYXBpLmMKaW5kZXggMjc4ODk0Ni4uZGNmMWRhYiAxMDA2NDQKLS0tIGEvZHJpdmVy
+cy9zdGFnaW5nL3RpZHNwYnJpZGdlL3BtZ3IvZHNwYXBpLmMKKysrIGIvZHJpdmVycy9zdGFnaW5n
+L3RpZHNwYnJpZGdlL3BtZ3IvZHNwYXBpLmMKQEAgLTI3OCw3ICsyNzgsNiBAQCB2b2lkIGFwaV9l
+eGl0KHZvaWQpCiAJCXByb2NfZXhpdCgpOwogCQltZ3JfZXhpdCgpOwogCQlybW1fZXhpdCgpOwot
+CQlkcnZfZXhpdCgpOwogCX0KIH0KIApAQCAtMjkwLDEyICsyODksMTEgQEAgdm9pZCBhcGlfZXhp
+dCh2b2lkKQogYm9vbCBhcGlfaW5pdCh2b2lkKQogewogCWJvb2wgcmV0ID0gdHJ1ZTsKLQlib29s
+IGZkcnYsIGZkZXYsIGZjb2QsIGZjaG5sLCBmbXNnLCBmaW87CisJYm9vbCBmZGV2LCBmY29kLCBm
+Y2hubCwgZm1zZywgZmlvOwogCWJvb2wgZm1nciwgZnByb2MsIGZub2RlLCBmZGlzcCwgZnN0cm0s
+IGZybW07CiAKIAlpZiAoYXBpX2NfcmVmcyA9PSAwKSB7CiAJCS8qIGluaXRpYWxpemUgZHJpdmVy
+IGFuZCBvdGhlciBtb2R1bGVzICovCi0JCWZkcnYgPSBkcnZfaW5pdCgpOwogCQlmbWdyID0gbWdy
+X2luaXQoKTsKIAkJZnByb2MgPSBwcm9jX2luaXQoKTsKIAkJZm5vZGUgPSBub2RlX2luaXQoKTsK
+QEAgLTMwNywxMSArMzA1LDkgQEAgYm9vbCBhcGlfaW5pdCh2b2lkKQogCQlmaW8gPSBpb19pbml0
+KCk7CiAJCWZkZXYgPSBkZXZfaW5pdCgpOwogCQlmY29kID0gY29kX2luaXQoKTsKLQkJcmV0ID0g
+ZmRydiAmJiBmZGV2ICYmIGZjaG5sICYmIGZjb2QgJiYgZm1zZyAmJiBmaW87CisJCXJldCA9IGZk
+ZXYgJiYgZmNobmwgJiYgZmNvZCAmJiBmbXNnICYmIGZpbzsKIAkJcmV0ID0gcmV0ICYmIGZtZ3Ig
+JiYgZnByb2MgJiYgZnJtbTsKIAkJaWYgKCFyZXQpIHsKLQkJCWlmIChmZHJ2KQotCQkJCWRydl9l
+eGl0KCk7CiAKIAkJCWlmIChmbWdyKQogCQkJCW1ncl9leGl0KCk7CmRpZmYgLS1naXQgYS9kcml2
+ZXJzL3N0YWdpbmcvdGlkc3BicmlkZ2Uvcm1nci9kcnYuYyBiL2RyaXZlcnMvc3RhZ2luZy90aWRz
+cGJyaWRnZS9ybWdyL2Rydi5jCmluZGV4IGIzNGRiYTcuLjY3OTUyMDUgMTAwNjQ0Ci0tLSBhL2Ry
+aXZlcnMvc3RhZ2luZy90aWRzcGJyaWRnZS9ybWdyL2Rydi5jCisrKyBiL2RyaXZlcnMvc3RhZ2lu
+Zy90aWRzcGJyaWRnZS9ybWdyL2Rydi5jCkBAIC01MSw3ICs1MSw2IEBAIHN0cnVjdCBkcnZfZXh0
+IHsKIH07CiAKIC8qICAtLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLSBHbG9iYWxz
+ICovCi1zdGF0aWMgczMyIHJlZnM7CiBzdGF0aWMgYm9vbCBleHRfcGh5c19tZW1fcG9vbF9lbmFi
+bGVkOwogc3RydWN0IGV4dF9waHlzX21lbV9wb29sIHsKIAl1MzIgcGh5c19tZW1fYmFzZTsKQEAg
+LTMzMiwxNiArMzMxLDYgQEAgaW50IGRydl9jcmVhdGUoc3RydWN0IGRydl9vYmplY3QgKipkcnZf
+b2JqKQogfQogCiAvKgotICogID09PT09PT09IGRydl9leGl0ID09PT09PT09Ci0gKiAgUHVycG9z
+ZToKLSAqICAgICAgRGlzY29udGludWUgdXNhZ2Ugb2YgdGhlIERSViBtb2R1bGUuCi0gKi8KLXZv
+aWQgZHJ2X2V4aXQodm9pZCkKLXsKLQlyZWZzLS07Ci19Ci0KLS8qCiAgKiAgPT09PT09PT0gPSBk
+cnZfZGVzdHJveSA9PT09PT09PSA9CiAgKiAgcHVycG9zZToKICAqICAgICAgSW52b2tlZCBkdXJp
+bmcgYnJpZGdlIGRlLWluaXRpYWxpemF0aW9uCkBAIC00OTksMjEgKzQ4OCw2IEBAIHUzMiBkcnZf
+Z2V0X25leHRfZGV2X2V4dGVuc2lvbih1MzIgZGV2X2V4dGVuc2lvbikKIH0KIAogLyoKLSAqICA9
+PT09PT09PSBkcnZfaW5pdCA9PT09PT09PQotICogIFB1cnBvc2U6Ci0gKiAgICAgIEluaXRpYWxp
+emUgRFJWIG1vZHVsZSBwcml2YXRlIHN0YXRlLgotICovCi1pbnQgZHJ2X2luaXQodm9pZCkKLXsK
+LQlzMzIgcmV0ID0gMTsJCS8qIGZ1bmN0aW9uIHJldHVybiB2YWx1ZSAqLwotCi0JaWYgKHJldCkK
+LQkJcmVmcysrOwotCi0JcmV0dXJuIHJldDsKLX0KLQotLyoKICAqICA9PT09PT09PSBkcnZfaW5z
+ZXJ0X2Rldl9vYmplY3QgPT09PT09PT0KICAqICBQdXJwb3NlOgogICogICAgICBJbnNlcnQgYSBE
+ZXZPYmplY3QgaW50byB0aGUgbGlzdCBvZiBNYW5hZ2VyIG9iamVjdC4KLS0gCjEuNy45LjEKCl9f
+X19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fCmRldmVsIG1haWxp
+bmcgbGlzdApkZXZlbEBsaW51eGRyaXZlcnByb2plY3Qub3JnCmh0dHA6Ly9kcml2ZXJkZXYubGlu
+dXhkcml2ZXJwcm9qZWN0Lm9yZy9tYWlsbWFuL2xpc3RpbmZvL2RldmVsCg==
