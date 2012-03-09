@@ -1,83 +1,71 @@
 From: Kevin Hilman <khilman@ti.com>
-Subject: Re: [PATCH 0/2] ARM: OMAP2+: PM: code consolidation for 3.4
-Date: Fri, 09 Mar 2012 07:23:16 -0800
-Message-ID: <87haxx6bob.fsf@ti.com>
-References: <20120202093600.12509.35052.stgit@dusk> <87ty39cc7s.fsf@ti.com>
-	<alpine.DEB.2.00.1202021140060.586@utopia.booyaka.com>
-	<alpine.DEB.2.00.1202021328450.586@utopia.booyaka.com>
-	<CAKd1q9rq67gUyXn+rOL348YwaYQiqHR8UQCSd68fpxhZHHsYGA@mail.gmail.com>
-	<87sjhjaqyi.fsf@ti.com> <1331232433.18015.69.camel@cumari>
-	<alpine.DEB.2.00.1203081153540.9551@utopia.booyaka.com>
-	<1331233547.18015.74.camel@cumari> <87d38mbxfu.fsf@ti.com>
-	<1331273702.18015.92.camel@cumari>
+Subject: Re: [GIT PULL] ARM: OMAP2+: PM: core support for SMPS regulators for v3.4
+Date: Fri, 09 Mar 2012 07:29:28 -0800
+Message-ID: <87zkbp4wtj.fsf@ti.com>
+References: <877gywjhht.fsf@ti.com> <20120308021843.GQ12083@atomide.com>
+	<87399jc6cj.fsf@ti.com> <20120309003217.GB12083@atomide.com>
+	<20120309114731.GA3273@opensource.wolfsonmicro.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aog110.obsmtp.com ([74.125.149.203]:50840 "EHLO
-	na3sys009aog110.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1757350Ab2CIPXP (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 9 Mar 2012 10:23:15 -0500
-Received: by mail-iy0-f172.google.com with SMTP id z13so2634380iaz.31
-        for <linux-omap@vger.kernel.org>; Fri, 09 Mar 2012 07:23:14 -0800 (PST)
-In-Reply-To: <1331273702.18015.92.camel@cumari> (Luciano Coelho's message of
-	"Fri, 09 Mar 2012 08:15:02 +0200")
+Received: from na3sys009aog114.obsmtp.com ([74.125.149.211]:44619 "EHLO
+	na3sys009aog114.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1757880Ab2CIP31 (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 9 Mar 2012 10:29:27 -0500
+Received: by iakh37 with SMTP id h37so2365774iak.10
+        for <linux-omap@vger.kernel.org>; Fri, 09 Mar 2012 07:29:26 -0800 (PST)
+In-Reply-To: <20120309114731.GA3273@opensource.wolfsonmicro.com> (Mark Brown's
+	message of "Fri, 9 Mar 2012 11:47:36 +0000")
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Luciano Coelho <coelho@ti.com>
-Cc: Paul Walmsley <paul@pwsan.com>, linux-omap@vger.kernel.org, santosh.shilimkar@ti.com, linux-arm-kernel@lists.infradead.org, rnayak@ti.com, ido@wizery.com
+To: Mark Brown <broonie@opensource.wolfsonmicro.com>
+Cc: Tony Lindgren <tony@atomide.com>, linux-omap <linux-omap@vger.kernel.org>, linux-arm-kernel <linux-arm-kernel@lists.infradead.org>
 
-Luciano Coelho <coelho@ti.com> writes:
+Mark Brown <broonie@opensource.wolfsonmicro.com> writes:
 
-> Hi Kevin,
+> On Thu, Mar 08, 2012 at 04:32:18PM -0800, Tony Lindgren wrote:
+>> * Kevin Hilman <khilman@ti.com> [120308 09:37]:
+>> > Tony Lindgren <tony@atomide.com> writes:
 >
-> On Thu, 2012-03-08 at 13:21 -0800, Kevin Hilman wrote: 
->> Luciano Coelho <coelho@ti.com> writes:
->> 
->> [...]
->> 
->> > Thanks, Paul! I was just chatting with Kevin about this on IRC.  With
->> > your patch and no_console_suspend, it works. :)
->> 
->> Just FYI... I've queued this patch from Paul and it's now queued by Tony
->> for v3.4 in his cleanup-pm branch.
+>> > Oh, that's because it depends on the regulator core changes that are in
+>> > Mark's regulator tree.  You need the for-next branch of :
 >
-> Great, thanks for the info!
+>> > git://git.kernel.org/pub/scm/linux/kernel/git/broonie/regulator.git 
 >
-> BTW, you and Paul said that it was not recommended to use
-> no_console_suspend, but Ido (on CC) said that it can be useful for us,
-> because we need to see if our own (wireless) stuff goes into suspend
-> correctly.
+>> > For this to compile correctly.
+>
+>> > Sorry, I should've been more clear above about the build dependency.
+>
+>> Hmm just checking.. Recently Mark replied to Peter:
+>
+> ...
+>
+>> So can you guys please confirm that if is indeed an immutable
+>> commit to use as a base to merge in something?
+>
+> Absolutely not, the for-next branch is rebuilt frequently especially
+> since it includes stuff sent to Linus and he complained about bugfixes
+> merged up into development code.  What is the actual dependency here?
 
-no_console_suspend should not be needed there.  It is really only
-intended as a *temporary* debug feature when suspend fails.
+The stuff is in your topic/drivers branch.  Specifically:
 
-Since the console is disabled during suspend, if suspend fails, you
-might not see the reason for failure.  So in this case, you enable
-no_console_suspend just to see the suspend output, and why it's failing.
+ed5da2a mfd: twl-core: regulator configuration for twl6030 V1V8, V2V1 SMPS
+77a3915 regulator: twl-regulator: Add fixed LDO for V1V8, V2V1 supply
+d64214b regulator: twl: adapt twl-regulator driver to dt
+3e1ff1f regulator: twl6030: add support for vdd1, vdd2 and vdd3 regulators
+1a4a805 regulator: twl4030: add support for external voltage get/set
 
-If suspend/resume succeed, you will see all the console output after
-resume because even though the console is disabled, the printks are
-buffered, so you will see them eventually.
+> The topic branches are more or less static, though some more than
+> others.
 
-So with a working suspend/resume, you will eventually see all the
-console output.
+Is topic/drivers something stable?  If not, these are a ways back in
+that branch, maybe you make a topic/drivers-stable for us?
 
-So basically, any usage of no_console_suspend should be temporary, until
-you figure out why suspend if failing. 
+> In general you should warn people if you've got a dependency on their
+> tree, it makes life easier.
 
-> Are there any real problems with no_console_suspend besides power
-> consumption? Is it safe for us to simply apply Paul's patch when we need
-> it?
-
-There are important side effects of leaving the console enabled.
-Namely, the console UART will stay clocked, and thus prevent it's
-surrounding powerdomain from reaching a low power state.  UARTs can be
-in either the PER or CORE powerdomains, so preventing them from reaching
-the low powerstate will affect other drivers in those powerdomains.
-
-For example, if your device is in the same powerdomain as the UART, it
-will not be clock gated (or power gated) so the context save/restore
-paths of those devices will not be exercised.
-
+Yeah, I should've raised this when the original series were posted.  The
+arch stuff and drivers/regulator stuff were posted all together, but you
+picked out the regulator stuff and I picked up the rest.  
 
 Kevin
