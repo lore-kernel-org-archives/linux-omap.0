@@ -1,50 +1,68 @@
-From: Allen Pais <allen.lkml@gmail.com>
-Subject: mmc_delayed_work error
-Date: Fri, 9 Mar 2012 15:20:39 +0530
-Message-ID: <CAOMdWSKdT+hJ2btwwwVMFB7p7LjuYgZr34Q7RxT3Lex+xz2cWg@mail.gmail.com>
+From: "K, Mythri P" <mythripk@ti.com>
+Subject: Re: [PATCH v4 3/3] OMAPDSS: HDMI: Sysfs support to configure quantization
+Date: Fri, 9 Mar 2012 16:17:36 +0530
+Message-ID: <CAP5A+B8J_y4GOMJ1pX1koYSDzGNA15i6ebY2i5ZZ5ZMZsvPE3A@mail.gmail.com>
+References: <1328682261-22493-1-git-send-email-mythripk@ti.com>
+ <1328682261-22493-2-git-send-email-mythripk@ti.com> <1328682261-22493-3-git-send-email-mythripk@ti.com>
+ <1329222123.1845.82.camel@deskari>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-tul01m020-f174.google.com ([209.85.214.174]:59379 "EHLO
-	mail-tul01m020-f174.google.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753474Ab2CIJuk (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 9 Mar 2012 04:50:40 -0500
-Received: by obbuo6 with SMTP id uo6so1914779obb.19
-        for <linux-omap@vger.kernel.org>; Fri, 09 Mar 2012 01:50:39 -0800 (PST)
+Received: from na3sys009aog120.obsmtp.com ([74.125.149.140]:35682 "EHLO
+	na3sys009aog120.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1751009Ab2CIKsJ convert rfc822-to-8bit
+	(ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Fri, 9 Mar 2012 05:48:09 -0500
+Received: by mail-iy0-f182.google.com with SMTP id k25so3225474iah.27
+        for <linux-omap@vger.kernel.org>; Fri, 09 Mar 2012 02:47:56 -0800 (PST)
+In-Reply-To: <1329222123.1845.82.camel@deskari>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: linux-omap@vger.kernel.org
+To: Tomi Valkeinen <tomi.valkeinen@ti.com>
+Cc: linux-omap@vger.kernel.org, Archit Taneja <archit@ti.com>
 
-Hi,
+Hi Tomi,
 
-  When i suspend the system, i get
+On Tue, Feb 14, 2012 at 5:52 PM, Tomi Valkeinen <tomi.valkeinen@ti.com>=
+ wrote:
+> Hi,
+>
 
-0 : OFF, 1 : RETENTION, 2 : ON-INACTIVE, 3 : ON-ACTIVE
-Powerdomain (core_pwrdm) entered state 1
-Powerdomain (gfx_pwrdm) is in state 0
-Powerdomain (abe_pwrdm) entered state 0
-Powerdomain (dss_pwrdm) is in state 0
-Powerdomain (tesla_pwrdm) entered state 0
-Powerdomain (wkup_pwrdm) is in state 0
-Powerdomain (cpu0_pwrdm) entered state 0
-Powerdomain (cpu1_pwrdm) entered state 0
-Powerdomain (emu_pwrdm) is in state 0
-Powerdomain (mpu_pwrdm) entered state 0
-Powerdomain (ivahd_pwrdm) entered state 0
-Powerdomain (cam_pwrdm) is in state 0
-Powerdomain (l3init_pwrdm) entered state 1
-Powerdomain (l4per_pwrdm) entered state 1
-Powerdomain (always_on_core_pwrdm) is in state 0
-Powerdomain (cefuse_pwrdm) is in state 0
-PM: early resume of devices complete after 0.854 msecs
-wakeup wake lock: mmc_delayed_work
-PM: resume of devices complete after 150.054 msecs
-Restarting tasks ...
+> The color range is something that desktops have to handle also, so
+> there's probably ways to handle it in DRM. DisplayPort also has the s=
+ame
+> range setting, so it's not specific to HDMI.
+>
+> So I propose to add a kernel API for this in the omap_dss_driver, so
+> that the users of omapdss may handle setting the range as they see be=
+st.
+>
+I see , it is fine i shall make it generic dss API.
+> Btw, the displayport spec speaks of VESA and CEA ranges. Does HDMI sp=
+ec
+> only speak about limited/full range?
+>
+Yes so is the case with HDMI it is full range for VGA and limited
+range for rest.
+> I also only now realized that we have full/limited range setting in
+> video overlay's ATTRIBUTEs also. And it seems that we currently set i=
+t
+> always to 0, i.e. limited range. I wonder if this causes color
+> degradation in case the HDMI/DP output also sets limited range, and t=
+hus
+> the color range gets scaled down twice...
+>
+yes there is a limited/full range bit in dispc for color conversion,
+did a quick check using analyzer it doesn't impact the HDMI color
+range, so can confirm there is no degradation.
 
-
-mmc_delayed_work keeps looping. Any idea on whats going wrong.
-Am using 2.6.35.
-
--- 
-Cheers!!
-Allen
+Thanks and regards,
+Mythri.
+> =A0Tomi
+>
+--
+To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
