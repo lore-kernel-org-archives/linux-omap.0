@@ -1,171 +1,78 @@
 From: =?UTF-8?q?V=C3=ADctor=20Manuel=20J=C3=A1quez=20Leal?=
 	<vjaquez@igalia.com>
-Subject: [PATCH 10/17] staging: tidspbridge: remove io_init() and io_exit()
-Date: Fri,  9 Mar 2012 01:03:45 +0100
-Message-ID: <059463ad3da393eb5dd45c6069095dfdef1a93b3.1331250369.git.vjaquez@igalia.com>
+Subject: [PATCH 15/17] staging: tidspbridge: remove gh_init() and gh_exit()
+Date: Fri,  9 Mar 2012 01:03:50 +0100
+Message-ID: <42a10f510859985692dfbf0a42658acd91568ac1.1331250369.git.vjaquez@igalia.com>
 References: <cover.1331250368.git.vjaquez@igalia.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Return-path: <linux-kernel-owner@vger.kernel.org>
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
+Return-path: <devel-bounces@linuxdriverproject.org>
 In-Reply-To: <cover.1331250368.git.vjaquez@igalia.com>
 In-Reply-To: <cover.1331250368.git.vjaquez@igalia.com>
 References: <cover.1331250368.git.vjaquez@igalia.com>
-Sender: linux-kernel-owner@vger.kernel.org
+List-Unsubscribe: <http://driverdev.linuxdriverproject.org/mailman/options/devel>,
+	<mailto:devel-request@linuxdriverproject.org?subject=unsubscribe>
+List-Archive: <http://driverdev.linuxdriverproject.org/pipermail/devel>
+List-Post: <mailto:devel@linuxdriverproject.org>
+List-Help: <mailto:devel-request@linuxdriverproject.org?subject=help>
+List-Subscribe: <http://driverdev.linuxdriverproject.org/mailman/listinfo/devel>,
+	<mailto:devel-request@linuxdriverproject.org?subject=subscribe>
+Errors-To: devel-bounces@linuxdriverproject.org
+Sender: devel-bounces@linuxdriverproject.org
 To: Omar Ramirez Luna <omar.ramirez@ti.com>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>
-Cc: devel@driverdev.osuosl.org, linux-kernel@vger.kernel.org, Felipe Contreras <felipe.contreras@nokia.com>, linux-omap@vger.kernel.org
+Cc: devel@driverdev.osuosl.org, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org, Felipe Contreras <felipe.contreras@nokia.com>
 List-Id: linux-omap@vger.kernel.org
 
-The io module has a io_init() and a io_exit() whose only purpose is to
-keep a reference counting which is not used at all.
-
-This patch removes these functions and the reference count variable.
-
-There is no functional changes.
-
-Signed-off-by: V=C3=ADctor Manuel J=C3=A1quez Leal <vjaquez@igalia.com>
----
- drivers/staging/tidspbridge/include/dspbridge/io.h |   29 ------------=
---------
- drivers/staging/tidspbridge/pmgr/dspapi.c          |   10 +-----
- drivers/staging/tidspbridge/pmgr/io.c              |   28 ------------=
--------
- 3 files changed, 2 insertions(+), 65 deletions(-)
-
-diff --git a/drivers/staging/tidspbridge/include/dspbridge/io.h b/drive=
-rs/staging/tidspbridge/include/dspbridge/io.h
-index 500bbd7..7505718 100644
---- a/drivers/staging/tidspbridge/include/dspbridge/io.h
-+++ b/drivers/staging/tidspbridge/include/dspbridge/io.h
-@@ -55,7 +55,6 @@ struct io_attrs {
-  *      -EINVAL: Invalid DSP word size (must be > 0).
-  *               Invalid base address for DSP communications.
-  *  Requires:
-- *      io_init(void) called.
-  *      io_man !=3D NULL.
-  *      mgr_attrts !=3D NULL.
-  *  Ensures:
-@@ -74,36 +73,8 @@ extern int io_create(struct io_mgr **io_man,
-  *      0:        Success.
-  *      -EFAULT:    hio_mgr was invalid.
-  *  Requires:
-- *      io_init(void) called.
-  *  Ensures:
-  */
- extern int io_destroy(struct io_mgr *hio_mgr);
-=20
--/*
-- *  =3D=3D=3D=3D=3D=3D=3D=3D io_exit =3D=3D=3D=3D=3D=3D=3D=3D
-- *  Purpose:
-- *      Discontinue usage of the IO module.
-- *  Parameters:
-- *  Returns:
-- *  Requires:
-- *      io_init(void) previously called.
-- *  Ensures:
-- *      Resources, if any acquired in io_init(void), are freed when th=
-e last
-- *      client of IO calls io_exit(void).
-- */
--extern void io_exit(void);
--
--/*
-- *  =3D=3D=3D=3D=3D=3D=3D=3D io_init =3D=3D=3D=3D=3D=3D=3D=3D
-- *  Purpose:
-- *      Initialize the IO module's private state.
-- *  Parameters:
-- *  Returns:
-- *      TRUE if initialized; FALSE if error occurred.
-- *  Requires:
-- *  Ensures:
-- *      A requirement for each of the other public CHNL functions.
-- */
--extern bool io_init(void);
--
- #endif /* CHNL_ */
-diff --git a/drivers/staging/tidspbridge/pmgr/dspapi.c b/drivers/stagin=
-g/tidspbridge/pmgr/dspapi.c
-index 5201bed..b9ca24c 100644
---- a/drivers/staging/tidspbridge/pmgr/dspapi.c
-+++ b/drivers/staging/tidspbridge/pmgr/dspapi.c
-@@ -268,7 +268,6 @@ void api_exit(void)
- 	if (api_c_refs =3D=3D 0) {
- 		/* Release all modules initialized in api_init(). */
- 		dev_exit();
--		io_exit();
- 		mgr_exit();
- 	}
- }
-@@ -281,24 +280,19 @@ void api_exit(void)
- bool api_init(void)
- {
- 	bool ret =3D true;
--	bool fdev, fio;
-+	bool fdev;
- 	bool fmgr;
-=20
- 	if (api_c_refs =3D=3D 0) {
- 		/* initialize driver and other modules */
- 		fmgr =3D mgr_init();
--		fio =3D io_init();
- 		fdev =3D dev_init();
--		ret =3D fdev && fio;
--		ret =3D ret && fmgr;
-+		ret =3D fdev && fmgr;
- 		if (!ret) {
-=20
- 			if (fmgr)
- 				mgr_exit();
-=20
--			if (fio)
--				io_exit();
--
- 			if (fdev)
- 				dev_exit();
- 		}
-diff --git a/drivers/staging/tidspbridge/pmgr/io.c b/drivers/staging/ti=
-dspbridge/pmgr/io.c
-index a56b085..4073c9c 100644
---- a/drivers/staging/tidspbridge/pmgr/io.c
-+++ b/drivers/staging/tidspbridge/pmgr/io.c
-@@ -30,9 +30,6 @@
- #include <ioobj.h>
- #include <dspbridge/io.h>
-=20
--/*  ----------------------------------- Globals */
--static u32 refs;
--
- /*
-  *  =3D=3D=3D=3D=3D=3D=3D=3D io_create =3D=3D=3D=3D=3D=3D=3D=3D
-  *  Purpose:
-@@ -94,28 +91,3 @@ int io_destroy(struct io_mgr *hio_mgr)
-=20
- 	return status;
- }
--
--/*
-- *  =3D=3D=3D=3D=3D=3D=3D=3D io_exit =3D=3D=3D=3D=3D=3D=3D=3D
-- *  Purpose:
-- *      Discontinue usage of the IO module.
-- */
--void io_exit(void)
--{
--	refs--;
--}
--
--/*
-- *  =3D=3D=3D=3D=3D=3D=3D=3D io_init =3D=3D=3D=3D=3D=3D=3D=3D
-- *  Purpose:
-- *      Initialize the IO module's private state.
-- */
--bool io_init(void)
--{
--	bool ret =3D true;
--
--	if (ret)
--		refs++;
--
--	return ret;
--}
---=20
-1.7.9.1
+VGhlIGdoIG1vZHVsZSBoYXMgYSBnaF9pbml0KCkgYW5kIGEgZ2hfZXhpdCgpLCBidXQgdGhleSBk
+b24ndCBkbwphbnl0aGluZywgdGhleSBhcmUganVzdCBub29wcy4KClRoaXMgcGF0Y2ggcmVtb3Zl
+cyB0aGVzZSBmdW5jdGlvbnMuCgpUaGVyZSBpcyBubyBmdW5jdGlvbmFsIGNoYW5nZXMuCgpTaWdu
+ZWQtb2ZmLWJ5OiBWw61jdG9yIE1hbnVlbCBKw6FxdWV6IExlYWwgPHZqYXF1ZXpAaWdhbGlhLmNv
+bT4KLS0tCiBkcml2ZXJzL3N0YWdpbmcvdGlkc3BicmlkZ2UvZ2VuL2doLmMgICAgICAgICAgICAg
+ICB8ICAgMTggLS0tLS0tLS0tLS0tLS0tLS0tCiBkcml2ZXJzL3N0YWdpbmcvdGlkc3BicmlkZ2Uv
+aW5jbHVkZS9kc3BicmlkZ2UvZ2guaCB8ICAgIDIgLS0KIGRyaXZlcnMvc3RhZ2luZy90aWRzcGJy
+aWRnZS9wbWdyL2RibGwuYyAgICAgICAgICAgIHwgICAxMiArKy0tLS0tLS0tLS0KIDMgZmlsZXMg
+Y2hhbmdlZCwgMiBpbnNlcnRpb25zKCspLCAzMCBkZWxldGlvbnMoLSkKCmRpZmYgLS1naXQgYS9k
+cml2ZXJzL3N0YWdpbmcvdGlkc3BicmlkZ2UvZ2VuL2doLmMgYi9kcml2ZXJzL3N0YWdpbmcvdGlk
+c3BicmlkZ2UvZ2VuL2doLmMKaW5kZXggNjBhYTdiMC4uMjVlYWVmNyAxMDA2NDQKLS0tIGEvZHJp
+dmVycy9zdGFnaW5nL3RpZHNwYnJpZGdlL2dlbi9naC5jCisrKyBiL2RyaXZlcnMvc3RhZ2luZy90
+aWRzcGJyaWRnZS9nZW4vZ2guYwpAQCAtOTUsMTUgKzk1LDYgQEAgdm9pZCBnaF9kZWxldGUoc3Ry
+dWN0IGdoX3RfaGFzaF90YWIgKmhhc2hfdGFiKQogfQogCiAvKgotICogID09PT09PT09IGdoX2V4
+aXQgPT09PT09PT0KLSAqLwotCi12b2lkIGdoX2V4aXQodm9pZCkKLXsKLQkvKiBEbyBub3RoaW5n
+ICovCi19Ci0KLS8qCiAgKiAgPT09PT09PT0gZ2hfZmluZCA9PT09PT09PQogICovCiAKQEAgLTEy
+MiwxNSArMTEzLDYgQEAgdm9pZCAqZ2hfZmluZChzdHJ1Y3QgZ2hfdF9oYXNoX3RhYiAqaGFzaF90
+YWIsIHZvaWQgKmtleSkKIH0KIAogLyoKLSAqICA9PT09PT09PSBnaF9pbml0ID09PT09PT09Ci0g
+Ki8KLQotdm9pZCBnaF9pbml0KHZvaWQpCi17Ci0JLyogRG8gbm90aGluZyAqLwotfQotCi0vKgog
+ICogID09PT09PT09IGdoX2luc2VydCA9PT09PT09PQogICovCiAKZGlmZiAtLWdpdCBhL2RyaXZl
+cnMvc3RhZ2luZy90aWRzcGJyaWRnZS9pbmNsdWRlL2RzcGJyaWRnZS9naC5oIGIvZHJpdmVycy9z
+dGFnaW5nL3RpZHNwYnJpZGdlL2luY2x1ZGUvZHNwYnJpZGdlL2doLmgKaW5kZXggOWRlMjkxZC4u
+ZGE4NTA3OSAxMDA2NDQKLS0tIGEvZHJpdmVycy9zdGFnaW5nL3RpZHNwYnJpZGdlL2luY2x1ZGUv
+ZHNwYnJpZGdlL2doLmgKKysrIGIvZHJpdmVycy9zdGFnaW5nL3RpZHNwYnJpZGdlL2luY2x1ZGUv
+ZHNwYnJpZGdlL2doLmgKQEAgLTIzLDkgKzIzLDcgQEAgZXh0ZXJuIHN0cnVjdCBnaF90X2hhc2hf
+dGFiICpnaF9jcmVhdGUodTE2IG1heF9idWNrZXQsIHUxNiB2YWxfc2l6ZSwKIAkJCQkgICAgICAg
+Ym9vbCgqbWF0Y2gpICh2b2lkICosIHZvaWQgKiksCiAJCQkJICAgICAgIHZvaWQgKCpkZWxldGUp
+ICh2b2lkICopKTsKIGV4dGVybiB2b2lkIGdoX2RlbGV0ZShzdHJ1Y3QgZ2hfdF9oYXNoX3RhYiAq
+aGFzaF90YWIpOwotZXh0ZXJuIHZvaWQgZ2hfZXhpdCh2b2lkKTsKIGV4dGVybiB2b2lkICpnaF9m
+aW5kKHN0cnVjdCBnaF90X2hhc2hfdGFiICpoYXNoX3RhYiwgdm9pZCAqa2V5KTsKLWV4dGVybiB2
+b2lkIGdoX2luaXQodm9pZCk7CiBleHRlcm4gdm9pZCAqZ2hfaW5zZXJ0KHN0cnVjdCBnaF90X2hh
+c2hfdGFiICpoYXNoX3RhYiwgdm9pZCAqa2V5LCB2b2lkICp2YWx1ZSk7CiAjaWZkZWYgQ09ORklH
+X1RJRFNQQlJJREdFX0JBQ0tUUkFDRQogdm9pZCBnaF9pdGVyYXRlKHN0cnVjdCBnaF90X2hhc2hf
+dGFiICpoYXNoX3RhYiwKZGlmZiAtLWdpdCBhL2RyaXZlcnMvc3RhZ2luZy90aWRzcGJyaWRnZS9w
+bWdyL2RibGwuYyBiL2RyaXZlcnMvc3RhZ2luZy90aWRzcGJyaWRnZS9wbWdyL2RibGwuYwppbmRl
+eCAwNzFlZTg2Li45ZjA3MDM2IDEwMDY0NAotLS0gYS9kcml2ZXJzL3N0YWdpbmcvdGlkc3Bicmlk
+Z2UvcG1nci9kYmxsLmMKKysrIGIvZHJpdmVycy9zdGFnaW5nL3RpZHNwYnJpZGdlL3BtZ3IvZGJs
+bC5jCkBAIC0xODcsOCArMTg3LDYgQEAgc3RhdGljIHUxNiBuYW1lX2hhc2godm9pZCAqa2V5LCB1
+MTYgbWF4X2J1Y2tldCk7CiBzdGF0aWMgYm9vbCBuYW1lX21hdGNoKHZvaWQgKmtleSwgdm9pZCAq
+c3ApOwogc3RhdGljIHZvaWQgc3ltX2RlbGV0ZSh2b2lkICp2YWx1ZSk7CiAKLXN0YXRpYyB1MzIg
+cmVmczsJCS8qIG1vZHVsZSByZWZlcmVuY2UgY291bnQgKi8KLQogLyogU3ltYm9sIFJlZGVmaW5p
+dGlvbiAqLwogc3RhdGljIGludCByZWRlZmluZWRfc3ltYm9sOwogc3RhdGljIGludCBnYmxfc2Vh
+cmNoID0gMTsKQEAgLTI2OCwxMCArMjY2LDcgQEAgdm9pZCBkYmxsX2RlbGV0ZShzdHJ1Y3QgZGJs
+bF90YXJfb2JqICp0YXJnZXQpCiAgKi8KIHZvaWQgZGJsbF9leGl0KHZvaWQpCiB7Ci0JcmVmcy0t
+OwotCi0JaWYgKHJlZnMgPT0gMCkKLQkJZ2hfZXhpdCgpOworCS8qIGRvIG5vdGhpbmcgKi8KIH0K
+IAogLyoKQEAgLTM5NCwxMCArMzg5LDcgQEAgaW50IGRibGxfZ2V0X3NlY3Qoc3RydWN0IGRibGxf
+bGlicmFyeV9vYmogKmxpYiwgY2hhciAqbmFtZSwgdTMyICpwYWRkciwKICAqLwogYm9vbCBkYmxs
+X2luaXQodm9pZCkKIHsKLQlpZiAocmVmcyA9PSAwKQotCQlnaF9pbml0KCk7Ci0KLQlyZWZzKys7
+CisJLyogZG8gbm90aGluZyAqLwogCiAJcmV0dXJuIHRydWU7CiB9Ci0tIAoxLjcuOS4xCgpfX19f
+X19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fXwpkZXZlbCBtYWlsaW5n
+IGxpc3QKZGV2ZWxAbGludXhkcml2ZXJwcm9qZWN0Lm9yZwpodHRwOi8vZHJpdmVyZGV2LmxpbnV4
+ZHJpdmVycHJvamVjdC5vcmcvbWFpbG1hbi9saXN0aW5mby9kZXZlbAo=
