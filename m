@@ -1,77 +1,109 @@
-From: "Raja, Govindraj" <govindraj.raja@ti.com>
-Subject: Re: [RFC PATCH] OMAP: UART: Enable tx wakeup bit in wer
-Date: Fri, 9 Mar 2012 11:49:51 +0530
-Message-ID: <CAMrsUdL6jPguVLDnEkg-T9fyvv+XY5tkNiooZOXszUYrdrUwPw@mail.gmail.com>
-References: <1327412249-31575-1-git-send-email-govindraj.raja@ti.com>
- <alpine.DEB.2.00.1201251217120.5324@utopia.booyaka.com> <alpine.DEB.2.00.1203051321580.1430@utopia.booyaka.com>
- <CAMrsUdJqmJ75=X_Qg3vQCr7zezs0jOK8L1ri8p5K=+6ZKsRFcg@mail.gmail.com> <alpine.DEB.2.00.1203062251270.23214@utopia.booyaka.com>
+From: Stephen Rothwell <sfr@canb.auug.org.au>
+Subject: Re: [git pull] Consolidate cpuidle functionality
+Date: Fri, 9 Mar 2012 17:40:17 +1100
+Message-ID: <20120309174017.081154936f57039b37c50435@canb.auug.org.au>
+References: <1330562578-3410-1-git-send-email-rob.lee@linaro.org>
+	<87y5reivhb.fsf@ti.com>
+	<CAMXH7KEwQM37R++8moXB8Q41_fBXOnVY2hXJGFQmTQ20oeFPEQ@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aob106.obsmtp.com ([74.125.149.76]:50330 "EHLO
-	na3sys009aog106.obsmtp.com" rhost-flags-OK-OK-OK-FAIL)
-	by vger.kernel.org with ESMTP id S1751537Ab2CIGUN convert rfc822-to-8bit
-	(ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Fri, 9 Mar 2012 01:20:13 -0500
-Received: by obceq6 with SMTP id eq6so1883620obc.26
-        for <linux-omap@vger.kernel.org>; Thu, 08 Mar 2012 22:20:12 -0800 (PST)
-In-Reply-To: <alpine.DEB.2.00.1203062251270.23214@utopia.booyaka.com>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: multipart/signed; protocol="application/pgp-signature";
+ micalg="PGP-SHA256";
+ boundary="Signature=_Fri__9_Mar_2012_17_40_17_+1100_s.1cezz0iw7EXb7M"
+Return-path: <linux-sh-owner@vger.kernel.org>
+In-Reply-To: <CAMXH7KEwQM37R++8moXB8Q41_fBXOnVY2hXJGFQmTQ20oeFPEQ@mail.gmail.com>
+Sender: linux-sh-owner@vger.kernel.org
+To: Rob Lee <rob.lee@linaro.org>
+Cc: rjw@sisk.pl, len.brown@intel.com, nicolas.pitre@linaro.org, venki@google.com, linaro-dev@lists.linaro.org, linux-sh@vger.kernel.org, tony@atomide.com, nicolas.ferre@atmel.com, linux@arm.linux.org.uk, ccross@google.com, kernel@wantstofly.org, kgene.kim@samsung.com, mturquette@linaro.org, daniel.lezcano@linaro.org, magnus.damm@gmail.com, arnd.bergmann@linaro.org, jon-hunter@ti.com, patches@linaro.org, nsekhar@ti.com, jean.pihet@newoldbits.com, Baohua.Song@csr.com, vincent.guittot@linaro.org, linux-omap@vger.kernel.org, linux@maxim.org.za, linux-arm-kernel@lists.infradead.org, deepthi@linux.vnet.ibm.com, g.trinabh@gmail.com, linux-pm@vger.kernel.org, broonie@opensource.wolfsonmicro.com, amit.kucheria@linaro.org, lethal@linux-sh.org, amit.kachhap@linaro.org, Kevin Hilman <khilman@ti.com>, Andrew Morton <akpm@linux-foundation.org>
 List-Id: linux-omap@vger.kernel.org
-To: Paul Walmsley <paul@pwsan.com>
-Cc: linux-omap@vger.kernel.org, linux-serial@vger.kernel.org, Kevin Hilman <khilman@ti.com>, Partha Basak <p-basak2@ti.com>, linux-arm-kernel@lists.infradead.org
 
-On Wed, Mar 7, 2012 at 11:27 AM, Paul Walmsley <paul@pwsan.com> wrote:
-> Hi
->
-> On Tue, 6 Mar 2012, Raja, Govindraj wrote:
->
->> I see two ways of adding this tx wake-up flag.
->>
->> 1.) passing a feature flag from pdata and populating the feature val=
-ue to wer.
->>
->> 2.) Duplicating the uart1/2/3 hwmod for omap3430 without dev attrib
->> and uart1/2/3/4
->> =A0 =A0 =A0hwmod for omap3630 with dev attribs.
->>
->> Approach-2 adds unnecessary code duplication in hwmod file with and =
-without
->> dev_attribs, So right now here is the patch to follow approach [1],
->>
->> If its strongly recommended to use approach-2 will add it.
->> (My concern is the diffstat it might produce with approach-2)
->
-> Both 1 and 2 are needed.
->
-> The current way that errata are handled in arch/arm/mach-omap2/serial=
-=2Ec
-> needs to be changed. =A0Those should be flags that are passed from hw=
-mod
-> dev_attr data. =A0The presence of the TX wakeup bit should simply be =
-another
-> dev_attr flag. =A0These flags should be passed to the driver via the
-> omap_up.errata field for the time being.
+--Signature=_Fri__9_Mar_2012_17_40_17_+1100_s.1cezz0iw7EXb7M
+Content-Type: text/plain; charset=US-ASCII
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
 
-okay.
+Hi Rob,
 
+On Thu, 8 Mar 2012 19:58:23 -0600 Rob Lee <rob.lee@linaro.org> wrote:
 >
-> The exception to this is if the IP block's revision register was chan=
-ged
-> when TX wakeups became possible. =A0If that's the case, then that mec=
-hanism
-> can be used in lieu of dev_attr and platform_data in this situation.
+>   git://git.linaro.org/people/rob_lee/linux.git cpuidle_consol_pull
+>=20
+> These changes move various functionality duplicated in platform
+> cpuidle drivers to the core cpuidle driver and common arch arm code. Also,
+> the irq disabling in the platform code was removed as all calls into
+> cpuidle_call_idle() will have already called local_irq_disable().
+>=20
+> This patchset is bisect safe.  Also, the core cpuidle and arch changes of=
+ the
+> first commit do not require any changes to the arch and platform cpuidle
+> drivers, though those arch and platform change should be made to take
+> advantage of the new consolidation function.
+>=20
+> Stephen, this patch has been reviewed, tested, and ACK'd per the list abo=
+ve but
+> cpuidle maintainer Len Brown has been out on vacation for a couple of wee=
+ks so
+> I am sending you this pull request as time is running out to get this into
+> v3.4.  I've had a brief communication with Andrew Morton about
+> this as well so he is aware of this situation.  I am fairly new to the
+> community so please let me know if you see anything that needs my attenti=
+on or
+> anything I should be doing differently.
 
-I will check on the MVR reg available for uart-rev on different omap so=
-cs,
-and will get back by end on next of week with a possible patch.
+I will add this tree from today.  Lets see if anyone screams.
 
---
-Thanks,
-Govindraj.R
---
-To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Thanks for adding your subsystem tree as a participant of linux-next.  As
+you may know, this is not a judgment of your code.  The purpose of
+linux-next is for integration testing and to lower the impact of
+conflicts between subsystems in the next merge window.=20
+
+You will need to ensure that the patches/commits in your tree/series have
+been:
+     * submitted under GPL v2 (or later) and include the Contributor's
+	Signed-off-by,
+     * posted to the relevant mailing list,
+     * reviewed by you (or another maintainer of your subsystem tree),
+     * successfully unit tested, and=20
+     * destined for the current or next Linux merge window.
+
+Basically, this should be just what you would send to Linus (or ask him
+to fetch).  It is allowed to be rebased if you deem it necessary.
+
+--=20
+Cheers,
+Stephen Rothwell=20
+sfr@canb.auug.org.au
+
+Legal Stuff:
+By participating in linux-next, your subsystem tree contributions are
+public and will be included in the linux-next trees.  You may be sent
+e-mail messages indicating errors or other issues when the
+patches/commits from your subsystem tree are merged and tested in
+linux-next.  These messages may also be cross-posted to the linux-next
+mailing list, the linux-kernel mailing list, etc.  The linux-next tree
+project and IBM (my employer) make no warranties regarding the linux-next
+project, the testing procedures, the results, the e-mails, etc.  If you
+don't agree to these ground rules, let me know and I'll remove your tree
+from participation in linux-next.
+
+--Signature=_Fri__9_Mar_2012_17_40_17_+1100_s.1cezz0iw7EXb7M
+Content-Type: application/pgp-signature
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.4.12 (GNU/Linux)
+
+iQIcBAEBCAAGBQJPWaXRAAoJEECxmPOUX5FEG8wP/3yuuKTi0q50yYdS5P5YTniy
+kcqPNEPr6BFSSwn/Xl2jPl84y4TwnSon4vb1jTnSL6fLvynGih9gpQiHq+HqA16C
+VuxoqO/j73IDppj5Iwo1x7mBt7A9wpD5hKyktkAvhgdcebgPvWIKFMGzwN4nSgzz
+NJM4I/D1oLfi98Z9dYiku3Ke4CFX62MjEBp5GM2BYeOsiSbJS5pEnY2xPOxfQ+Tl
+75OhNj1QAQpX5rFQmLcrQtkq65B7XBwmNln34o1QQR3XUm1aC4z5TWTKnyA0jg0n
+1LgDZitrmRcHfyTdo/VAHwPHL0O0WLRpurz8CXgZ1CI0WTbWnDvzqN2PBaKWe8vm
+gN97Sb+KLpx7BS/j5e/erE+qL9IsGtck738u1RCnm8BLqOIUUpr4zbaBR2hNHWzD
+kjU6fvbF/BXy0LM6E33ijmV1lUGTPGu4NrGRw0v9RQXZCKQQcbyE4a8edVp81FHP
+opMra2iEPVczhBZpHWB/RcuczA2RK426uI+QMcCBCWinWkzduLPw96+FxeSsmB3z
+uOkExrqAvhQtdwsPKiq4nJgwdiCzYfNPBqhTJxBZruYMenRbmoHFjCCCMd5w4Ihr
+GUZThNtZ/qsBBEIKteFMCYQsLfQRw/z9KQkWA1D0o1Bztg81iU6rYW7RLzeXmz1Q
+UUWG9shxJzD3auGISdWm
+=cCwu
+-----END PGP SIGNATURE-----
+
+--Signature=_Fri__9_Mar_2012_17_40_17_+1100_s.1cezz0iw7EXb7M--
