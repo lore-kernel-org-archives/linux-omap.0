@@ -1,52 +1,60 @@
 From: =?UTF-8?q?V=C3=ADctor=20Manuel=20J=C3=A1quez=20Leal?=
 	<vjaquez@igalia.com>
-Subject: [PATCH 16/17] staging: tidspbridge: remove ref counting in nldr.c
-Date: Fri,  9 Mar 2012 01:03:51 +0100
-Message-ID: <8aa8c3bd7d5450a3d73c63af6eebfd3fd642ce59.1331250369.git.vjaquez@igalia.com>
+Subject: [PATCH 14/17] staging: tidspbridge: simplify mgr_init()
+Date: Fri,  9 Mar 2012 01:03:49 +0100
+Message-ID: <c49d8da7fa01003a08ea3f19a05d7cdaa2b1a99c.1331250369.git.vjaquez@igalia.com>
 References: <cover.1331250368.git.vjaquez@igalia.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
-Return-path: <devel-bounces@linuxdriverproject.org>
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from smtp4.mundo-r.com ([212.51.32.151]:31437 "EHLO
+	smtp4.mundo-r.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1757984Ab2CIAEU (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 8 Mar 2012 19:04:20 -0500
 In-Reply-To: <cover.1331250368.git.vjaquez@igalia.com>
 In-Reply-To: <cover.1331250368.git.vjaquez@igalia.com>
 References: <cover.1331250368.git.vjaquez@igalia.com>
-List-Unsubscribe: <http://driverdev.linuxdriverproject.org/mailman/options/devel>,
-	<mailto:devel-request@linuxdriverproject.org?subject=unsubscribe>
-List-Archive: <http://driverdev.linuxdriverproject.org/pipermail/devel>
-List-Post: <mailto:devel@linuxdriverproject.org>
-List-Help: <mailto:devel-request@linuxdriverproject.org?subject=help>
-List-Subscribe: <http://driverdev.linuxdriverproject.org/mailman/listinfo/devel>,
-	<mailto:devel-request@linuxdriverproject.org?subject=subscribe>
-Errors-To: devel-bounces@linuxdriverproject.org
-Sender: devel-bounces@linuxdriverproject.org
-To: Omar Ramirez Luna <omar.ramirez@ti.com>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>
-Cc: devel@driverdev.osuosl.org, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org, Felipe Contreras <felipe.contreras@nokia.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Omar Ramirez Luna <omar.ramirez@ti.com>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>
+Cc: devel@driverdev.osuosl.org, linux-kernel@vger.kernel.org, Felipe Contreras <felipe.contreras@nokia.com>, linux-omap@vger.kernel.org
 
-VGhlIG5sZHIgbW9kdWxlIGhhcyBhIG5sZHJfaW5pdCgpIGFuZCBhIG5sZHJfZXhpdCgpIHdob3Nl
-IG9ubHkgcHVycG9zZQppcyB0byBrZWVwIGEgcmVmZXJlbmNlIGNvdW50aW5nIHdoaWNoIGlzIG5v
-dCB1c2VkIGF0IGFsbC4KClRoaXMgcGF0Y2ggb25seSByZW1vdmVzIHRoZSByZWZlcmVuY2UgY291
-bnQgdmFyaWFibGUsIGJ1dCBub3QgdGhlCmZ1bmN0aW9ucywgYmVjYXVzZSB0aGV5IGFyZSB1c2Vk
-IHRocm91Z2ggYW4gaW50ZXJmYWNlLgoKVGhlcmUgaXMgbm8gZnVuY3Rpb25hbCBjaGFuZ2VzLgoK
-U2lnbmVkLW9mZi1ieTogVsOtY3RvciBNYW51ZWwgSsOhcXVleiBMZWFsIDx2amFxdWV6QGlnYWxp
-YS5jb20+Ci0tLQogZHJpdmVycy9zdGFnaW5nL3RpZHNwYnJpZGdlL3JtZ3Ivbmxkci5jIHwgICAg
-NyArKy0tLS0tCiAxIGZpbGVzIGNoYW5nZWQsIDIgaW5zZXJ0aW9ucygrKSwgNSBkZWxldGlvbnMo
-LSkKCmRpZmYgLS1naXQgYS9kcml2ZXJzL3N0YWdpbmcvdGlkc3BicmlkZ2Uvcm1nci9ubGRyLmMg
-Yi9kcml2ZXJzL3N0YWdpbmcvdGlkc3BicmlkZ2Uvcm1nci9ubGRyLmMKaW5kZXggYTlkN2EzMi4u
-NDYwODZiNSAxMDA2NDQKLS0tIGEvZHJpdmVycy9zdGFnaW5nL3RpZHNwYnJpZGdlL3JtZ3Ivbmxk
-ci5jCisrKyBiL2RyaXZlcnMvc3RhZ2luZy90aWRzcGJyaWRnZS9ybWdyL25sZHIuYwpAQCAtMjYz
-LDggKzI2Myw2IEBAIHN0YXRpYyBzdHJ1Y3QgZGJsbF9meG5zIGxkcl9meG5zID0gewogCShkYmxs
-X3VubG9hZF9meG4pIGRibGxfdW5sb2FkLAogfTsKIAotc3RhdGljIHUzMiByZWZzOwkJLyogbW9k
-dWxlIHJlZmVyZW5jZSBjb3VudCAqLwotCiBzdGF0aWMgaW50IGFkZF9vdmx5X2luZm8odm9pZCAq
-aGFuZGxlLCBzdHJ1Y3QgZGJsbF9zZWN0X2luZm8gKnNlY3RfaW5mbywKIAkJCQl1MzIgYWRkciwg
-dTMyIGJ5dGVzKTsKIHN0YXRpYyBpbnQgYWRkX292bHlfbm9kZShzdHJ1Y3QgZHNwX3V1aWQgKnV1
-aWRfb2JqLApAQCAtNjI3LDcgKzYyNSw3IEBAIHZvaWQgbmxkcl9kZWxldGUoc3RydWN0IG5sZHJf
-b2JqZWN0ICpubGRyX29iaikKICAqLwogdm9pZCBubGRyX2V4aXQodm9pZCkKIHsKLQlyZWZzLS07
-CisJLyogZG8gbm90aGluZyAqLwogfQogCiAvKgpAQCAtNzQzLDggKzc0MSw3IEBAIGludCBubGRy
-X2dldF9ybW1fbWFuYWdlcihzdHJ1Y3Qgbmxkcl9vYmplY3QgKm5sZHIsCiAgKi8KIGJvb2wgbmxk
-cl9pbml0KHZvaWQpCiB7Ci0JcmVmcysrOwotCisJLyogZG8gbm90aGluZyAqLwogCXJldHVybiB0
-cnVlOwogfQogCi0tIAoxLjcuOS4xCgpfX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19f
-X19fX19fX19fX19fXwpkZXZlbCBtYWlsaW5nIGxpc3QKZGV2ZWxAbGludXhkcml2ZXJwcm9qZWN0
-Lm9yZwpodHRwOi8vZHJpdmVyZGV2LmxpbnV4ZHJpdmVycHJvamVjdC5vcmcvbWFpbG1hbi9saXN0
-aW5mby9kZXZlbAo=
+No functional changes.
+
+Signed-off-by: V=C3=ADctor Manuel J=C3=A1quez Leal <vjaquez@igalia.com>
+---
+ drivers/staging/tidspbridge/rmgr/mgr.c |    9 ++-------
+ 1 files changed, 2 insertions(+), 7 deletions(-)
+
+diff --git a/drivers/staging/tidspbridge/rmgr/mgr.c b/drivers/staging/t=
+idspbridge/rmgr/mgr.c
+index 938eea5..8a1e928 100644
+--- a/drivers/staging/tidspbridge/rmgr/mgr.c
++++ b/drivers/staging/tidspbridge/rmgr/mgr.c
+@@ -319,14 +319,9 @@ int mgr_get_dcd_handle(struct mgr_object *mgr_hand=
+le,
+ bool mgr_init(void)
+ {
+ 	bool ret =3D true;
+-	bool init_dcd =3D false;
+=20
+-	if (refs =3D=3D 0) {
+-		init_dcd =3D dcd_init();	/*  DCD Module */
+-
+-		if (!init_dcd)
+-			ret =3D false;
+-	}
++	if (refs =3D=3D 0)
++		ret =3D dcd_init();	/*  DCD Module */
+=20
+ 	if (ret)
+ 		refs++;
+--=20
+1.7.9.1
+
+--
+To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
