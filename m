@@ -1,94 +1,50 @@
 From: Paul Walmsley <paul@pwsan.com>
-Subject: Re: [PATCHv5 6/6] ARM: OMAP3 PM: Remove IO Daisychain control from
- cpuidle
-Date: Fri, 9 Mar 2012 21:02:41 -0700 (MST)
-Message-ID: <alpine.DEB.2.00.1203092102030.30879@utopia.booyaka.com>
-References: <1331046702-2472-1-git-send-email-t-kristo@ti.com> <1331046702-2472-7-git-send-email-t-kristo@ti.com>
+Subject: Re: [PATCHv5 0/6] ARM: OMAP3+: IO daisy chain support fixes
+Date: Fri, 9 Mar 2012 21:05:45 -0700 (MST)
+Message-ID: <alpine.DEB.2.00.1203092102450.30879@utopia.booyaka.com>
+References: <1331046702-2472-1-git-send-email-t-kristo@ti.com>
 Mime-Version: 1.0
 Content-Type: TEXT/PLAIN; charset=US-ASCII
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from utopia.booyaka.com ([72.9.107.138]:34115 "EHLO
+Received: from utopia.booyaka.com ([72.9.107.138]:48591 "EHLO
 	utopia.booyaka.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1757235Ab2CJECm (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 9 Mar 2012 23:02:42 -0500
-In-Reply-To: <1331046702-2472-7-git-send-email-t-kristo@ti.com>
+	with ESMTP id S1754585Ab2CJEFq (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 9 Mar 2012 23:05:46 -0500
+In-Reply-To: <1331046702-2472-1-git-send-email-t-kristo@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Tero Kristo <t-kristo@ti.com>
-Cc: linux-omap@vger.kernel.org, khilman@ti.com, linux-arm-kernel@lists.infradead.org, Vishwanath BS <vishwanath.bs@ti.com>
+To: Tero Kristo <t-kristo@ti.com>, rnayak@ti.com
+Cc: linux-omap@vger.kernel.org, khilman@ti.com, linux-arm-kernel@lists.infradead.org
+
+Hi
 
 On Tue, 6 Mar 2012, Tero Kristo wrote:
 
-> From: Vishwanath BS <vishwanath.bs@ti.com>
+> Changes compared to previous version:
 > 
-> As IO Daisy chain sequence is triggered via hwmod mux, there is no need to
-> control it from cpuidle path for OMAP3.
+> - patch2:
+>   * fixed the timeout for waiting for ST_IO_CHAIN == 1
+>   * added clear for ST_IO_CHAIN bit (as per spec + implementation in patch 1)
+>   * replaced the timeout at the end of function with a simple register
+>     readback (timing out on a register value that we are clearing does
+>     not make that much sense, the bit is cleared the very first time CPU
+>     manages to read it)
+> - patch5:
+>   * added spinlock for protecting io_chain_trigger operation
 > 
-> Also as omap3_disable_io_chain is no longer being used, just remove the
-> function.
+> Tested on omap3 beagle + omap4 blaze. Also did measurements for the
+> cost of IO chain trigger operation with ARM performance counters:
 > 
-> Signed-off-by: Vishwanath BS <vishwanath.bs@ti.com>
-> Signed-off-by: Tero Kristo <t-kristo@ti.com>
-> Reviewed-by: Rajendra Nayak <rnayak@ti.com>
+> - omap3 approx 7...8us
+> - omap4 approx 2...4us
 
-And here's a modified version of this one that takes into account the 
-earlier changes.
+Thanks for the changes.  So as you probably already saw, a few changes 
+have been made.  The updated series is in the branch 
+'io_chain_devel_3.4' on git://git.pwsan.com/linux-2.6.
+
+The main outstanding question is whether the OMAP4 WUCLKOUT poll should be 
+removed to match the v5 changes to the OMAP3 function.  Please let me 
+know.   Any other testing or comments are of course welcome.
 
 
 - Paul
-
->From ad04159c4ec89eef4026fa2e2aeefc3795d98b89 Mon Sep 17 00:00:00 2001
-From: Vishwanath BS <vishwanath.bs@ti.com>
-Date: Fri, 2 Mar 2012 17:17:55 +0200
-Subject: [PATCH 6/6] ARM: OMAP3: PM: Remove IO Daisychain control from
- cpuidle
-
-As IO Daisy chain sequence is triggered via hwmod mux, there is no need to
-control it from cpuidle path for OMAP3.
-
-Also as omap3_disable_io_chain is no longer being used, just remove the
-function.
-
-Signed-off-by: Vishwanath BS <vishwanath.bs@ti.com>
-Signed-off-by: Tero Kristo <t-kristo@ti.com>
-Reviewed-by: Rajendra Nayak <rnayak@ti.com>
-Signed-off-by: Paul Walmsley <paul@pwsan.com>
----
- arch/arm/mach-omap2/pm34xx.c |   14 --------------
- 1 files changed, 0 insertions(+), 14 deletions(-)
-
-diff --git a/arch/arm/mach-omap2/pm34xx.c b/arch/arm/mach-omap2/pm34xx.c
-index 378a0de..ed12bb4 100644
---- a/arch/arm/mach-omap2/pm34xx.c
-+++ b/arch/arm/mach-omap2/pm34xx.c
-@@ -291,13 +291,6 @@ void omap_sram_idle(void)
- 	/* Enable IO-PAD and IO-CHAIN wakeups */
- 	per_next_state = pwrdm_read_next_pwrst(per_pwrdm);
- 	core_next_state = pwrdm_read_next_pwrst(core_pwrdm);
--	if (omap3_has_io_wakeup() &&
--	    (per_next_state < PWRDM_POWER_ON ||
--	     core_next_state < PWRDM_POWER_ON)) {
--		omap2_prm_set_mod_reg_bits(OMAP3430_EN_IO_MASK, WKUP_MOD, PM_WKEN);
--		if (omap3_has_io_chain_ctrl())
--			omap3_reconfigure_io_chain();
--	}
- 
- 	pwrdm_pre_transition();
- 
-@@ -376,13 +369,6 @@ void omap_sram_idle(void)
- 			omap3_per_restore_context();
- 	}
- 
--	/* Disable IO-PAD and IO-CHAIN wakeup */
--	if (omap3_has_io_wakeup() &&
--	    (per_next_state < PWRDM_POWER_ON ||
--	     core_next_state < PWRDM_POWER_ON))
--		omap2_prm_clear_mod_reg_bits(OMAP3430_EN_IO_MASK, WKUP_MOD,
--					     PM_WKEN);
--
- 	clkdm_allow_idle(mpu_pwrdm->pwrdm_clkdms[0]);
- }
- 
--- 
-1.7.9.1
-
