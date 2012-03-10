@@ -1,38 +1,44 @@
-From: Olof Johansson <olof@lixom.net>
-Subject: Re: [GIT PULL 1/7] non-critical fixes part3 for upcoming merge window
-Date: Sat, 10 Mar 2012 10:24:25 -0800
-Message-ID: <20120310182425.GA698@quad.lixom.net>
-References: <4f591c4d.e471340a.1f3f.3a69SMTPIN_ADDED@mx.google.com>
+From: Ohad Ben-Cohen <ohad@wizery.com>
+Subject: Re: REGRESSION: omap3 fails to boot
+Date: Sat, 10 Mar 2012 20:31:50 +0200
+Message-ID: <CAK=WgbaAaUNr8uFU1bTcOMS1nbi_uN=Mw0=mm5rsQv2at8TUpg@mail.gmail.com>
+References: <20120310180822.GA22875@n2100.arm.linux.org.uk>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=ISO-8859-1
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-iy0-f174.google.com ([209.85.210.174]:52694 "EHLO
-	mail-iy0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751075Ab2CJSY0 (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Sat, 10 Mar 2012 13:24:26 -0500
-Received: by iagz16 with SMTP id z16so4136488iag.19
-        for <linux-omap@vger.kernel.org>; Sat, 10 Mar 2012 10:24:26 -0800 (PST)
-Content-Disposition: inline
-In-Reply-To: <4f591c4d.e471340a.1f3f.3a69SMTPIN_ADDED@mx.google.com>
+Received: from mail-gx0-f174.google.com ([209.85.161.174]:34569 "EHLO
+	mail-gx0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751108Ab2CJScL (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Sat, 10 Mar 2012 13:32:11 -0500
+Received: by gghe5 with SMTP id e5so1630707ggh.19
+        for <linux-omap@vger.kernel.org>; Sat, 10 Mar 2012 10:32:10 -0800 (PST)
+In-Reply-To: <20120310180822.GA22875@n2100.arm.linux.org.uk>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Tony Lindgren <tony@atomide.com>
-Cc: Arnd Bergmann <arnd@arndb.de>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+To: Russell King - ARM Linux <linux@arm.linux.org.uk>
+Cc: linux-omap@vger.kernel.org, Tony Lindgren <tony@atomide.com>, stable@vger.kernel.org, arm@kernel.org
 
-On Thu, Mar 08, 2012 at 12:53:29PM -0800, Tony Lindgren wrote:
-> Hi Olof,
-> 
-> Here are two more pre-emptive fixes for upcoming merge
-> window to pull into arm-soc/next/fixes-non-critical.
-> 
-> Now with the fixes finallny out of the way after all
-> the cleanup related changes, as a reply to this pull
-> request I'm posting some more pull requests for cleanup
-> and some minor board changes.
+On Sat, Mar 10, 2012 at 8:08 PM, Russell King - ARM Linux
+<linux@arm.linux.org.uk> wrote:
+> Seems to be that the OMAP mailbox stuff is buggered:
 
-Pulled request 1-7.
+Can you please recheck with the following commit (already in mainline):
 
+commit 134d12fae0bb8f3d60dc7440a9e1950bb5427167
+Author: Ohad Ben-Cohen <ohad@wizery.com>
+Date:   Sun Mar 4 12:01:11 2012 +0200
 
-Thanks,
+    ARM: OMAP: fix iommu, not mailbox
 
--Olof
+    For some weird (freudian?) reason, commit 435792d "ARM: OMAP: make
+    iommu subsys_initcall to fix builtin omap3isp" unintentionally changed
+    the mailbox's initcall instead of the iommu's.
+
+    Fix that.
+
+    Reported-by: Fernando Guzman Lugo <fernando.lugo@ti.com>
+    Signed-off-by: Ohad Ben-Cohen <ohad@wizery.com>
+    Cc: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+    Cc: Joerg Roedel <Joerg.Roedel@amd.com>
+    Cc: Tony Lindgren <tony@atomide.com>
+    Signed-off-by: Joerg Roedel <joerg.roedel@amd.com>
