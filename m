@@ -1,140 +1,137 @@
 From: Paul Walmsley <paul@pwsan.com>
-Subject: Re: [PATCHv5 3/6] ARM: OMAP4 PM: Add IO Daisychain support
-Date: Fri, 9 Mar 2012 20:59:25 -0700 (MST)
-Message-ID: <alpine.DEB.2.00.1203092051140.30879@utopia.booyaka.com>
-References: <1331046702-2472-1-git-send-email-t-kristo@ti.com> <1331046702-2472-4-git-send-email-t-kristo@ti.com>
+Subject: Re: [PATCHv5 4/6] ARM: OMAP3+: PRM: Enable IO wake up
+Date: Fri, 9 Mar 2012 21:00:35 -0700 (MST)
+Message-ID: <alpine.DEB.2.00.1203092100060.30879@utopia.booyaka.com>
+References: <1331046702-2472-1-git-send-email-t-kristo@ti.com> <1331046702-2472-5-git-send-email-t-kristo@ti.com>
 Mime-Version: 1.0
 Content-Type: TEXT/PLAIN; charset=US-ASCII
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from utopia.booyaka.com ([72.9.107.138]:34088 "EHLO
+Received: from utopia.booyaka.com ([72.9.107.138]:34099 "EHLO
 	utopia.booyaka.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754585Ab2CJD70 (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 9 Mar 2012 22:59:26 -0500
-In-Reply-To: <1331046702-2472-4-git-send-email-t-kristo@ti.com>
+	with ESMTP id S1753960Ab2CJEAg (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 9 Mar 2012 23:00:36 -0500
+In-Reply-To: <1331046702-2472-5-git-send-email-t-kristo@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Tero Kristo <t-kristo@ti.com>, Rajendra Nayak <rnayak@ti.com>
-Cc: linux-omap@vger.kernel.org, khilman@ti.com, linux-arm-kernel@lists.infradead.org, Vishwanath BS <vishwanath.bs@ti.com>
-
-Hi
+To: Tero Kristo <t-kristo@ti.com>
+Cc: linux-omap@vger.kernel.org, khilman@ti.com, linux-arm-kernel@lists.infradead.org
 
 On Tue, 6 Mar 2012, Tero Kristo wrote:
 
-> From: Rajendra Nayak <rnayak@ti.com>
+> Enable IO Wake up for OMAP3/4 as part of PRM Init. Currently this has been
+> managed in cpuidle path which is not the right place. Subsequent patch
+> will remove IO Daisy chain handling in cpuidle path once daisy chain is
+> handled as part of hwmod mux. This patch also moves the OMAP4 IO wakeup
+> enable code from the trigger function to init time setup.
 > 
-> IO daisychain is a mechanism that allows individual IO pads to generate
-> wakeup events on their own based on a switch of an input signal level.
-> This allows the hardware module behind the pad to be powered down, but
-> still have device level capability to detect IO events, and once this
-> happens the module can be powered back up to resume IO. See section
-> 3.9.4 in OMAP4430 Public TRM for details.
-> 
-> Signed-off-by: Rajendra Nayak <rnayak@ti.com>
-> Signed-off-by: Vishwanath BS <vishwanath.bs@ti.com>
 > Signed-off-by: Tero Kristo <t-kristo@ti.com>
+> Reviewed-by: Rajendra Nayak <rnayak@ti.com>
 
-Here's an updated version of this patch.  Please let me know if you think 
-we should remove the poll on the WUCLKOUT line to conform with the change 
-that Tero made to the OMAP3 version.
-
+Here's an updated version of this patch.  Please let me know if you have 
+any comments.
 
 - Paul
 
-From: Rajendra Nayak <rnayak@ti.com>
-Date: Fri, 2 Mar 2012 17:17:52 +0200
-Subject: [PATCH 3/6] ARM: OMAP4: PRM: Add IO Daisychain support
+From: Tero Kristo <t-kristo@ti.com>
+Date: Fri, 2 Mar 2012 17:17:53 +0200
+Subject: [PATCH 4/6] ARM: OMAP3+: PRM: Enable IO wake up
 
-IO daisychain is a mechanism that allows individual IO pads to generate
-wakeup events on their own based on a switch of an input signal level.
-This allows the hardware module behind the pad to be powered down, but
-still have device level capability to detect IO events, and once this
-happens the module can be powered back up to resume IO. See section
-3.9.4 in OMAP4430 Public TRM for details.
+Enable IO Wake up for OMAP3/4 as part of PRM Init. Currently this has been
+managed in cpuidle path which is not the right place. Subsequent patch
+will remove IO Daisy chain handling in cpuidle path once daisy chain is
+handled as part of hwmod mux. This patch also moves the OMAP4 IO wakeup
+enable code from the trigger function to init time setup.
 
-Signed-off-by: Rajendra Nayak <rnayak@ti.com>
-Signed-off-by: Vishwanath BS <vishwanath.bs@ti.com>
 Signed-off-by: Tero Kristo <t-kristo@ti.com>
-[paul@pwsan.com: removed MAX_IOPAD_LATCH_TIME declaration; renamed
- omap4_trigger_io_chain() to conform to other PRM function names;
- added kerneldoc]
+[paul@pwsan.com: harmonize function names with other PRM functions; add
+ kerneldoc]
 Signed-off-by: Paul Walmsley <paul@pwsan.com>
 ---
- arch/arm/mach-omap2/prm44xx.c |   48 +++++++++++++++++++++++++++++++++++++++++
- arch/arm/mach-omap2/prm44xx.h |    2 +
- 2 files changed, 50 insertions(+), 0 deletions(-)
+ arch/arm/mach-omap2/prm2xxx_3xxx.c |   20 +++++++++++++++++++-
+ arch/arm/mach-omap2/prm44xx.c      |   26 ++++++++++++++++++--------
+ 2 files changed, 37 insertions(+), 9 deletions(-)
 
-diff --git a/arch/arm/mach-omap2/prm44xx.c b/arch/arm/mach-omap2/prm44xx.c
-index a1d6154..5868a12 100644
---- a/arch/arm/mach-omap2/prm44xx.c
-+++ b/arch/arm/mach-omap2/prm44xx.c
-@@ -231,6 +231,54 @@ void omap44xx_prm_restore_irqen(u32 *saved_mask)
- 				 OMAP4_PRM_IRQENABLE_MPU_2_OFFSET);
+diff --git a/arch/arm/mach-omap2/prm2xxx_3xxx.c b/arch/arm/mach-omap2/prm2xxx_3xxx.c
+index 7d62bd6..1471a33 100644
+--- a/arch/arm/mach-omap2/prm2xxx_3xxx.c
++++ b/arch/arm/mach-omap2/prm2xxx_3xxx.c
+@@ -332,10 +332,28 @@ void omap3xxx_prm_reconfigure_io_chain(void)
+ 	omap2_prm_read_mod_reg(WKUP_MOD, PM_WKST);
  }
  
 +/**
-+ * omap44xx_prm_reconfigure_io_chain - clear latches and reconfigure I/O chain
++ * omap3xxx_prm_enable_io_wakeup - enable wakeup events from I/O wakeup latches
 + *
-+ * Clear any previously-latched I/O wakeup events and ensure that the
-+ * I/O wakeup gates are aligned with the current mux settings.  Works
-+ * by asserting WUCLKIN, waiting for WUCLKOUT to be asserted, and then
-+ * deasserting WUCLKIN and waiting for WUCLKOUT to be deasserted.
-+ * No return value. XXX Are the final two steps necessary?
++ * Activates the I/O wakeup event latches and allows events logged by
++ * those latches to signal a wakeup event to the PRCM.  For I/O
++ * wakeups to occur, WAKEUPENABLE bits must be set in the pad mux
++ * registers, and omap3xxx_prm_reconfigure_io_chain() must be called.
++ * No return value.
 + */
-+void omap44xx_prm_reconfigure_io_chain(void)
++static void __init omap3xxx_prm_enable_io_wakeup(void)
 +{
-+	int i = 0;
++	if (omap3_has_io_wakeup())
++		omap2_prm_set_mod_reg_bits(OMAP3430_EN_IO_MASK, WKUP_MOD,
++					   PM_WKEN);
++}
 +
-+	/* Enable GLOBAL_WUEN */
-+	if (!(omap4_prm_read_inst_reg(OMAP4430_PRM_DEVICE_INST,
-+		OMAP4_PRM_IO_PMCTRL_OFFSET) & OMAP4430_GLOBAL_WUEN_MASK))
-+		omap4_prm_rmw_inst_reg_bits(OMAP4430_GLOBAL_WUEN_MASK,
+ static int __init omap3xxx_prcm_init(void)
+ {
+-	if (cpu_is_omap34xx())
++	if (cpu_is_omap34xx()) {
++		omap3xxx_prm_enable_io_wakeup();
+ 		return omap_prcm_register_chain_handler(&omap3_prcm_irq_setup);
++	}
+ 	return 0;
+ }
+ subsys_initcall(omap3xxx_prcm_init);
+diff --git a/arch/arm/mach-omap2/prm44xx.c b/arch/arm/mach-omap2/prm44xx.c
+index 5868a12..af251c7 100644
+--- a/arch/arm/mach-omap2/prm44xx.c
++++ b/arch/arm/mach-omap2/prm44xx.c
+@@ -244,13 +244,6 @@ void omap44xx_prm_reconfigure_io_chain(void)
+ {
+ 	int i = 0;
+ 
+-	/* Enable GLOBAL_WUEN */
+-	if (!(omap4_prm_read_inst_reg(OMAP4430_PRM_DEVICE_INST,
+-		OMAP4_PRM_IO_PMCTRL_OFFSET) & OMAP4430_GLOBAL_WUEN_MASK))
+-		omap4_prm_rmw_inst_reg_bits(OMAP4430_GLOBAL_WUEN_MASK,
+-			OMAP4430_GLOBAL_WUEN_MASK, OMAP4430_PRM_DEVICE_INST,
+-			OMAP4_PRM_IO_PMCTRL_OFFSET);
+-
+ 	/* Trigger WUCLKIN enable */
+ 	omap4_prm_rmw_inst_reg_bits(OMAP4430_WUCLK_CTRL_MASK,
+ 			OMAP4430_WUCLK_CTRL_MASK, OMAP4430_PRM_DEVICE_INST,
+@@ -279,10 +272,27 @@ void omap44xx_prm_reconfigure_io_chain(void)
+ 	return;
+ }
+ 
++/**
++ * omap44xx_prm_enable_io_wakeup - enable wakeup events from I/O wakeup latches
++ *
++ * Activates the I/O wakeup event latches and allows events logged by
++ * those latches to signal a wakeup event to the PRCM.  For I/O wakeups
++ * to occur, WAKEUPENABLE bits must be set in the pad mux registers, and
++ * omap44xx_prm_reconfigure_io_chain() must be called.  No return value.
++ */
++static void __init omap44xx_prm_enable_io_wakeup(void)
++{
++	omap4_prm_rmw_inst_reg_bits(OMAP4430_GLOBAL_WUEN_MASK,
 +			OMAP4430_GLOBAL_WUEN_MASK, OMAP4430_PRM_DEVICE_INST,
 +			OMAP4_PRM_IO_PMCTRL_OFFSET);
-+
-+	/* Trigger WUCLKIN enable */
-+	omap4_prm_rmw_inst_reg_bits(OMAP4430_WUCLK_CTRL_MASK,
-+			OMAP4430_WUCLK_CTRL_MASK, OMAP4430_PRM_DEVICE_INST,
-+			OMAP4_PRM_IO_PMCTRL_OFFSET);
-+	omap_test_timeout(
-+		(((omap4_prm_read_inst_reg(OMAP4430_PRM_DEVICE_INST,
-+			OMAP4_PRM_IO_PMCTRL_OFFSET) &
-+			OMAP4430_WUCLK_STATUS_MASK) >>
-+			OMAP4430_WUCLK_STATUS_SHIFT) == 1),
-+		MAX_IOPAD_LATCH_TIME, i);
-+	if (i == MAX_IOPAD_LATCH_TIME)
-+		pr_warn("PRM: I/O chain clock line assertion timed out\n");
-+
-+	/* Trigger WUCLKIN disable */
-+	omap4_prm_rmw_inst_reg_bits(OMAP4430_WUCLK_CTRL_MASK, 0x0,
-+			OMAP4430_PRM_DEVICE_INST, OMAP4_PRM_IO_PMCTRL_OFFSET);
-+	omap_test_timeout(
-+		(((omap4_prm_read_inst_reg(OMAP4430_PRM_DEVICE_INST,
-+			OMAP4_PRM_IO_PMCTRL_OFFSET) &
-+			OMAP4430_WUCLK_STATUS_MASK) >>
-+			OMAP4430_WUCLK_STATUS_SHIFT) == 0),
-+		MAX_IOPAD_LATCH_TIME, i);
-+	if (i == MAX_IOPAD_LATCH_TIME)
-+		pr_warn("PRM: I/O chain clock line deassertion timed out\n");
-+
-+	return;
 +}
 +
  static int __init omap4xxx_prcm_init(void)
  {
- 	if (cpu_is_omap44xx())
-diff --git a/arch/arm/mach-omap2/prm44xx.h b/arch/arm/mach-omap2/prm44xx.h
-index 7978092..ee72ae6 100644
---- a/arch/arm/mach-omap2/prm44xx.h
-+++ b/arch/arm/mach-omap2/prm44xx.h
-@@ -763,6 +763,8 @@ extern u32 omap4_prm_vcvp_read(u8 offset);
- extern void omap4_prm_vcvp_write(u32 val, u8 offset);
- extern u32 omap4_prm_vcvp_rmw(u32 mask, u32 bits, u8 offset);
- 
-+extern void omap44xx_prm_reconfigure_io_chain(void);
-+
- /* PRM interrupt-related functions */
- extern void omap44xx_prm_read_pending_irqs(unsigned long *events);
- extern void omap44xx_prm_ocp_barrier(void);
+-	if (cpu_is_omap44xx())
++	if (cpu_is_omap44xx()) {
++		omap44xx_prm_enable_io_wakeup();
+ 		return omap_prcm_register_chain_handler(&omap4_prcm_irq_setup);
++	}
+ 	return 0;
+ }
+ subsys_initcall(omap4xxx_prcm_init);
 -- 
 1.7.9.1
 
