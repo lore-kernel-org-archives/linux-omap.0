@@ -1,53 +1,62 @@
-From: Marc Butler <marc@plastictigers.com>
-Subject: Re: [RFC PATCH] slimbus message encoding/decoding
-Date: Fri, 9 Mar 2012 17:39:52 -0500
-Message-ID: <20120309223952.GA5669@plastictigers.com>
-References: <20120309002106.GA605@plastictigers.com>
- <4F5A5F00.70508@codeaurora.org>
-Reply-To: marc@plastictigers.com
+From: Paul Walmsley <paul@pwsan.com>
+Subject: Re: [PATCHv5 2/6] ARM: OMAP3 PM: Move IO Daisychain function to
+ omap3 prm file
+Date: Fri, 9 Mar 2012 17:40:18 -0700 (MST)
+Message-ID: <alpine.DEB.2.00.1203091737390.30879@utopia.booyaka.com>
+References: <1331046702-2472-1-git-send-email-t-kristo@ti.com> <1331046702-2472-3-git-send-email-t-kristo@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from li158-162.members.linode.com ([173.230.148.162]:35987 "EHLO
-	plastictigers.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1030299Ab2CIWjx (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 9 Mar 2012 17:39:53 -0500
-Content-Disposition: inline
-In-Reply-To: <4F5A5F00.70508@codeaurora.org>
+Received: from utopia.booyaka.com ([72.9.107.138]:37170 "EHLO
+	utopia.booyaka.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756028Ab2CJAkU (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 9 Mar 2012 19:40:20 -0500
+In-Reply-To: <1331046702-2472-3-git-send-email-t-kristo@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Sagar Dharia <sdharia@codeaurora.org>
-Cc: kheitke@codeaurora.org, gclemson@audience.com, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+To: Tero Kristo <t-kristo@ti.com>
+Cc: linux-omap@vger.kernel.org, khilman@ti.com, linux-arm-kernel@lists.infradead.org, rnayak@ti.com, Vishwanath BS <vishwanath.bs@ti.com>
 
-On Fri, Mar 09, 2012 at 12:50:24PM -0700, Sagar Dharia wrote:
-> On 03/08/2012 05:21 PM, Marc Butler wrote:
-> 
-> Thanks for providing this patch. My understanding is that this patch
-> provides helper functions for h/w controllers which rely on s/w to
-> provide the exact message to be sent out on the bus.
+cc Rajendra
 
-Yes. The ti omap4430 expects the messages, to be complete except for
-the PI, MR, and MI fields which are encoded by the h/w.
+Hi Tero,
 
-> Just like CRC, some other fields may be populated by HW. e.g.
-> Qualcomm chip also populates Arbitration priority, Arbitration
-> Extension fields. So it expects SW to only program a few fields,
-> a.k.a logical/elemental address, MT,MC, DT etc.(that too, SW
-> programs this based on software interface manual). The hardware will
-> convert this information to actual slimbus-compliant message and
-> send it on the bus.
+a few comments:
 
-Understood. The functions are not incompatible with construction
-partial messages, but as it will not likely work when inserting the
-header field, as it goes about trying to compute the remaining length,
-based on the current (icomplete) message including the arbitration
-header.
+On Tue, 6 Mar 2012, Tero Kristo wrote:
 
-> Being said that, I am not aware of how majority of h/w controllers
-> work and will be open to have this patch if other hardwares rely on
-> s/w to provide the exact message as well.
+...
 
-The ti omap4430 requires this support.
+> +/* OMAP3 Daisychain enable sequence */
+> +void omap3_trigger_io_chain(void)
+> +{
+> +	int i = 0;
+> +
+> +	omap2_prm_set_mod_reg_bits(OMAP3430_EN_IO_CHAIN_MASK, WKUP_MOD,
+> +				   PM_WKEN);
+> +	/* Do a readback to assure write has been done */
+> +	omap2_prm_read_mod_reg(WKUP_MOD, PM_WKEN);
 
-Regards,
--m
+Looks like this barrier shouldn't be needed?  The write is immediately 
+followed by another read from the same IP block.
+
+> +
+> +	omap_test_timeout(omap2_prm_read_mod_reg(WKUP_MOD, PM_WKST) &
+> +			  OMAP3430_ST_IO_CHAIN_MASK,
+> +			  MAX_IOPAD_LATCH_TIME, i);
+> +
+> +	omap2_prm_clear_mod_reg_bits(OMAP3430_EN_IO_CHAIN_MASK, WKUP_MOD,
+> +				     PM_WKEN);
+> +
+> +	omap2_prm_set_mod_reg_bits(OMAP3430_ST_IO_CHAIN_MASK, WKUP_MOD,
+> +				     PM_WKST);
+> +
+> +	omap2_prm_read_mod_reg(WKUP_MOD, PM_WKST);
+> +}
+
+I see that you removed the second timeout test from this code, but not 
+from the OMAP4 version.  Any reason why?  Seems like if the second timeout 
+can be removed from one, then it can also be removed from the other?
+
+
+- Paul
