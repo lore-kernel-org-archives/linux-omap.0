@@ -1,153 +1,69 @@
-From: Paul Walmsley <paul@pwsan.com>
-Subject: Re: [PATCH] ARM: OMAP4: clock: Add aliases for McBSP fclk clocks
-Date: Sat, 10 Mar 2012 00:08:40 -0700 (MST)
-Message-ID: <alpine.DEB.2.00.1203092355280.27395@utopia.booyaka.com>
-References: <1331024133-18201-1-git-send-email-peter.ujfalusi@ti.com> <4F5A258F.8050704@ti.com> <20120309180027.GF12083@atomide.com> <alpine.DEB.2.00.1203091101400.7039@utopia.booyaka.com> <alpine.DEB.2.00.1203091103450.7039@utopia.booyaka.com>
+From: Tomi Valkeinen <tomi.valkeinen@ti.com>
+Subject: Re: [PATCH 7/7] OMAPDSS: HDMI: hot plug detect fix
+Date: Sat, 10 Mar 2012 09:29:24 +0200
+Message-ID: <1331364564.1623.3.camel@lappy>
+References: <1330604795-29156-1-git-send-email-tomi.valkeinen@ti.com>
+	 <1330604795-29156-8-git-send-email-tomi.valkeinen@ti.com>
+	 <20120307200146.GA26451@kroah.com> <1331192113.2354.2.camel@deskari>
+	 <20120308152949.GB5277@kroah.com>
 Mime-Version: 1.0
-Content-Type: MULTIPART/MIXED; BOUNDARY="155748971-1122969132-1331362595=:27395"
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from utopia.booyaka.com ([72.9.107.138]:47862 "EHLO
-	utopia.booyaka.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932067Ab2CJHIl (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Sat, 10 Mar 2012 02:08:41 -0500
-In-Reply-To: <alpine.DEB.2.00.1203091103450.7039@utopia.booyaka.com>
-Content-ID: <alpine.DEB.2.00.1203100005410.27395@utopia.booyaka.com>
+Received: from na3sys009aog113.obsmtp.com ([74.125.149.209]:55783 "EHLO
+	na3sys009aog113.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1752424Ab2CJH3b (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>);
+	Sat, 10 Mar 2012 02:29:31 -0500
+Received: by lbbgg13 with SMTP id gg13so1199922lbb.1
+        for <linux-omap@vger.kernel.org>; Fri, 09 Mar 2012 23:29:28 -0800 (PST)
+In-Reply-To: <20120308152949.GB5277@kroah.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Peter Ujfalusi <peter.ujfalusi@ti.com>
-Cc: Tony Lindgren <tony@atomide.com>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Jarkko Nikula <jarkko.nikula@bitmer.com>
+To: Greg KH <gregkh@linuxfoundation.org>
+Cc: stable@vger.kernel.org, linux-fbdev@vger.kernel.org, linux-omap@vger.kernel.org, Rob Clark <rob@ti.com>
 
-  This message is in MIME format.  The first part should be readable text,
-  while the remaining parts are likely unreadable without MIME-aware tools.
+On Thu, 2012-03-08 at 07:29 -0800, Greg KH wrote:
+> On Thu, Mar 08, 2012 at 09:35:13AM +0200, Tomi Valkeinen wrote:
+> > On Wed, 2012-03-07 at 12:01 -0800, Greg KH wrote:
+> > > On Thu, Mar 01, 2012 at 02:26:35PM +0200, Tomi Valkeinen wrote:
+> > > > From: Rob Clark <rob@ti.com>
+> > > > 
+> > > > The "OMAPDSS: HDMI: PHY burnout fix" commit switched the HDMI driver
+> > > > over to using a GPIO for plug detect.  Unfortunately the ->detect()
+> > > > method was not also updated, causing HDMI to no longer work for the
+> > > > omapdrm driver (because it would actually check if a connection was
+> > > > detected before attempting to enable display).
+> > > > 
+> > > > Signed-off-by: Rob Clark <rob@ti.com>
+> > > > Signed-off-by: Tomi Valkeinen <tomi.valkeinen@ti.com>
+> > > 
+> > > You forgot to tell me what the git commit id is for this patch (it's
+> > > ca888a7958b3d808e4efd08ceff88913f4212c69, right?)
+> > 
+> > Yes, that's the one. It wasn't in Linus's tree yet, only in fbdev tree,
+> > so I wasn't sure what the commit id is.
+> 
+> Then you should not have sent it to me, as if I were to take it then, I
+> could not have :(
 
---155748971-1122969132-1331362595=:27395
-Content-Type: TEXT/PLAIN; CHARSET=ISO-8859-15
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Content-ID: <alpine.DEB.2.00.1203100005411.27395@utopia.booyaka.com>
+Oh, ok. I thought the "patch-must-be-in-mainline"-rule was not a totally
+strict one, so I decided to include it in this case as the patch was a
+rather trivial one and already in the fbdev tree (I mentioned it in the
+intro mail).
+
+I guess I got lucky and the patch got into mainline before you took the
+patches.
+
+> > > And why isn't this needed for the 3.0 kernel as well?
+> > 
+> > The detect() function is not present in 3.0, so there was nothing to
+> > break.
+> 
+> Ok, so everything I've queued up is all that is needed, right?
+
+Yes, looks correct. Thanks!
+
+ Tomi
 
 
-Hello P=E9ter
-
-could you please try this patch instead of the clkdev change?
-
-It is based on my 'hwmod_enable_remaining_hwmods_devel_3.4' branch, but=20
-the basic idea should work on v3.3-rc6 as well.
-
-If it works for you, please let us know and we can queue this up along=20
-with the hwmod data changes.  Probably we should replace the changelog=20
-also with the one from your patch, it might be a little more useful? =20
-Suggestions welcome.
-
-
-- Paul
-
-From: Paul Walmsley <paul@pwsan.com>
-Date: Fri, 9 Mar 2012 23:28:28 -0700
-Subject: [PATCH] ARM: OMAP4: hwmod data: add McBSP parent clock aliases
-
-Add optional parent clocks for the OMAP4 McBSP modules so the driver
-can switch between parent clocks.
-
-Based on a patch from P=E9ter Ujfalusi <peter.ujfalusi@ti.com>.
----
- arch/arm/mach-omap2/omap_hwmod_44xx_data.c |   28 ++++++++++++++++++++++++=
-++++
- 1 files changed, 28 insertions(+), 0 deletions(-)
-
-diff --git a/arch/arm/mach-omap2/omap_hwmod_44xx_data.c b/arch/arm/mach-oma=
-p2/omap_hwmod_44xx_data.c
-index e029992..b4a061d 100644
---- a/arch/arm/mach-omap2/omap_hwmod_44xx_data.c
-+++ b/arch/arm/mach-omap2/omap_hwmod_44xx_data.c
-@@ -1921,6 +1921,11 @@ static struct omap_hwmod_dma_info omap44xx_mcbsp1_sd=
-ma_reqs[] =3D {
- =09{ .dma_req =3D -1 }
- };
-=20
-+static struct omap_hwmod_opt_clk mcbsp1_opt_clks[] =3D {
-+=09{ .role =3D "pad_fck", .clk =3D "pad_clks_ck" },
-+=09{ .role =3D "prcm_clk", .clk =3D "mcbsp1_sync_mux_ck" },
-+};
-+
- static struct omap_hwmod omap44xx_mcbsp1_hwmod =3D {
- =09.name=09=09=3D "mcbsp1",
- =09.class=09=09=3D &omap44xx_mcbsp_hwmod_class,
-@@ -1935,6 +1940,8 @@ static struct omap_hwmod omap44xx_mcbsp1_hwmod =3D {
- =09=09=09.modulemode   =3D MODULEMODE_SWCTRL,
- =09=09},
- =09},
-+=09.opt_clks=09=3D mcbsp1_opt_clks,
-+=09.opt_clks_cnt=09=3D ARRAY_SIZE(mcbsp1_opt_clks),
- };
-=20
- /* mcbsp2 */
-@@ -1949,6 +1956,11 @@ static struct omap_hwmod_dma_info omap44xx_mcbsp2_sd=
-ma_reqs[] =3D {
- =09{ .dma_req =3D -1 }
- };
-=20
-+static struct omap_hwmod_opt_clk mcbsp2_opt_clks[] =3D {
-+=09{ .role =3D "pad_fck", .clk =3D "pad_clks_ck" },
-+=09{ .role =3D "prcm_clk", .clk =3D "mcbsp2_sync_mux_ck" },
-+};
-+
- static struct omap_hwmod omap44xx_mcbsp2_hwmod =3D {
- =09.name=09=09=3D "mcbsp2",
- =09.class=09=09=3D &omap44xx_mcbsp_hwmod_class,
-@@ -1963,6 +1975,8 @@ static struct omap_hwmod omap44xx_mcbsp2_hwmod =3D {
- =09=09=09.modulemode   =3D MODULEMODE_SWCTRL,
- =09=09},
- =09},
-+=09.opt_clks=09=3D mcbsp2_opt_clks,
-+=09.opt_clks_cnt=09=3D ARRAY_SIZE(mcbsp2_opt_clks),
- };
-=20
- /* mcbsp3 */
-@@ -1977,6 +1991,11 @@ static struct omap_hwmod_dma_info omap44xx_mcbsp3_sd=
-ma_reqs[] =3D {
- =09{ .dma_req =3D -1 }
- };
-=20
-+static struct omap_hwmod_opt_clk mcbsp3_opt_clks[] =3D {
-+=09{ .role =3D "pad_fck", .clk =3D "pad_clks_ck" },
-+=09{ .role =3D "prcm_clk", .clk =3D "mcbsp3_sync_mux_ck" },
-+};
-+
- static struct omap_hwmod omap44xx_mcbsp3_hwmod =3D {
- =09.name=09=09=3D "mcbsp3",
- =09.class=09=09=3D &omap44xx_mcbsp_hwmod_class,
-@@ -1991,6 +2010,8 @@ static struct omap_hwmod omap44xx_mcbsp3_hwmod =3D {
- =09=09=09.modulemode   =3D MODULEMODE_SWCTRL,
- =09=09},
- =09},
-+=09.opt_clks=09=3D mcbsp3_opt_clks,
-+=09.opt_clks_cnt=09=3D ARRAY_SIZE(mcbsp3_opt_clks),
- };
-=20
- /* mcbsp4 */
-@@ -2005,6 +2026,11 @@ static struct omap_hwmod_dma_info omap44xx_mcbsp4_sd=
-ma_reqs[] =3D {
- =09{ .dma_req =3D -1 }
- };
-=20
-+static struct omap_hwmod_opt_clk mcbsp4_opt_clks[] =3D {
-+=09{ .role =3D "pad_fck", .clk =3D "pad_clks_ck" },
-+=09{ .role =3D "prcm_clk", .clk =3D "mcbsp4_sync_mux_ck" },
-+};
-+
- static struct omap_hwmod omap44xx_mcbsp4_hwmod =3D {
- =09.name=09=09=3D "mcbsp4",
- =09.class=09=09=3D &omap44xx_mcbsp_hwmod_class,
-@@ -2019,6 +2045,8 @@ static struct omap_hwmod omap44xx_mcbsp4_hwmod =3D {
- =09=09=09.modulemode   =3D MODULEMODE_SWCTRL,
- =09=09},
- =09},
-+=09.opt_clks=09=3D mcbsp4_opt_clks,
-+=09.opt_clks_cnt=09=3D ARRAY_SIZE(mcbsp4_opt_clks),
- };
-=20
- /*
---=20
-1.7.9.1
-
---155748971-1122969132-1331362595=:27395--
