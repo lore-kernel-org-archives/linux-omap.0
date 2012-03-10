@@ -1,69 +1,61 @@
-From: Tomi Valkeinen <tomi.valkeinen@ti.com>
-Subject: Re: [PATCH 7/7] OMAPDSS: HDMI: hot plug detect fix
-Date: Sat, 10 Mar 2012 09:29:24 +0200
-Message-ID: <1331364564.1623.3.camel@lappy>
-References: <1330604795-29156-1-git-send-email-tomi.valkeinen@ti.com>
-	 <1330604795-29156-8-git-send-email-tomi.valkeinen@ti.com>
-	 <20120307200146.GA26451@kroah.com> <1331192113.2354.2.camel@deskari>
-	 <20120308152949.GB5277@kroah.com>
+From: yang gqyang <hustgqyang@gmail.com>
+Subject: Re: implementing "suspend to ram" on cortex A8 based on linux 3.0.8
+Date: Sat, 10 Mar 2012 22:37:09 +0800
+Message-ID: <CAFawwkVuCTijwLr6UWVRh9XNGCt-8brr2f4aDrpM_YwkWSGP+A@mail.gmail.com>
+References: <CAFawwkXQhyj+c8LEDnD7q4mXDJV2jYCAHV0tBrqxrEaNGk+_0w@mail.gmail.com>
+	<CACNz9cVbULxVSGvo60V+JLL=15BDEaYwgd5k9ZMNu09Kfwz4WQ@mail.gmail.com>
+	<CAFawwkWQd=y=kVm97UjSs37=-MRmJiy9f7sy8ChYzCHZ9Y-gyA@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=GB2312
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aog113.obsmtp.com ([74.125.149.209]:55783 "EHLO
-	na3sys009aog113.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752424Ab2CJH3b (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>);
-	Sat, 10 Mar 2012 02:29:31 -0500
-Received: by lbbgg13 with SMTP id gg13so1199922lbb.1
-        for <linux-omap@vger.kernel.org>; Fri, 09 Mar 2012 23:29:28 -0800 (PST)
-In-Reply-To: <20120308152949.GB5277@kroah.com>
+Received: from mail-gx0-f174.google.com ([209.85.161.174]:40633 "EHLO
+	mail-gx0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754371Ab2CJOhK convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Sat, 10 Mar 2012 09:37:10 -0500
+In-Reply-To: <CAFawwkWQd=y=kVm97UjSs37=-MRmJiy9f7sy8ChYzCHZ9Y-gyA@mail.gmail.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Greg KH <gregkh@linuxfoundation.org>
-Cc: stable@vger.kernel.org, linux-fbdev@vger.kernel.org, linux-omap@vger.kernel.org, Rob Clark <rob@ti.com>
+To: Chenglie He <chengjie.he@linaro.org>
+Cc: Robert Lee <rob.lee@linaro.org>, nicolas.pitre@linaro.org, venki@google.com, linaro-dev@lists.linaro.org, linux-sh@vger.kernel.org, tony@atomide.com, linux@arm.linux.org.uk, ccross@google.com, kernel@wantstofly.org, khilman@ti.com, kgene.kim@samsung.com, magnus.damm@gmail.com, arnd.bergmann@linaro.org, jon-hunter@ti.com, len.brown@intel.com, patches@linaro.org, nsekhar@ti.com, rjw@sisk.pl, Baohua.Song@csr.com, linux-omap@vger.kernel.org, linux@maxim.org.za, linux-arm-kernel@lists.infradead.org, deepthi@linux.vnet.ibm.com, g.trinabh@gmail.com, linux-pm@vger.kernel.org, broonie@opensource.wolfsonmicro.com, linux-kernel@vger.kernel.org, lethal@linux-sh.org
 
-On Thu, 2012-03-08 at 07:29 -0800, Greg KH wrote:
-> On Thu, Mar 08, 2012 at 09:35:13AM +0200, Tomi Valkeinen wrote:
-> > On Wed, 2012-03-07 at 12:01 -0800, Greg KH wrote:
-> > > On Thu, Mar 01, 2012 at 02:26:35PM +0200, Tomi Valkeinen wrote:
-> > > > From: Rob Clark <rob@ti.com>
-> > > > 
-> > > > The "OMAPDSS: HDMI: PHY burnout fix" commit switched the HDMI driver
-> > > > over to using a GPIO for plug detect.  Unfortunately the ->detect()
-> > > > method was not also updated, causing HDMI to no longer work for the
-> > > > omapdrm driver (because it would actually check if a connection was
-> > > > detected before attempting to enable display).
-> > > > 
-> > > > Signed-off-by: Rob Clark <rob@ti.com>
-> > > > Signed-off-by: Tomi Valkeinen <tomi.valkeinen@ti.com>
-> > > 
-> > > You forgot to tell me what the git commit id is for this patch (it's
-> > > ca888a7958b3d808e4efd08ceff88913f4212c69, right?)
-> > 
-> > Yes, that's the one. It wasn't in Linus's tree yet, only in fbdev tree,
-> > so I wasn't sure what the commit id is.
-> 
-> Then you should not have sent it to me, as if I were to take it then, I
-> could not have :(
+ Thanks for your comment.
+ Finally, i find out that i made a mistake.  The uart(8250) have not be=
+en
+ restore after resume, instead, it use the configuration got from boot.=
+ The
+ uart have not been restored correctly, so that "ls" can not output res=
+ult
+ correctly resulting in it seems that the busybox can not work correctl=
+y.
+ Now, i still have a question about the uart: why the "printk" can work
+ correctly, but the "printf" not?
 
-Oh, ok. I thought the "patch-must-be-in-mainline"-rule was not a totally
-strict one, so I decided to include it in this case as the patch was a
-rather trivial one and already in the fbdev tree (I mentioned it in the
-intro mail).
-
-I guess I got lucky and the patch got into mainline before you took the
-patches.
-
-> > > And why isn't this needed for the 3.0 kernel as well?
-> > 
-> > The detect() function is not present in 3.0, so there was nothing to
-> > break.
-> 
-> Ok, so everything I've queued up is all that is needed, right?
-
-Yes, looks correct. Thanks!
-
- Tomi
+ Before this, i believe that the "printk" work correctly, then the uart
+ work ok. but now, i  need more reconsidaration about
+ the relation between the "printk", "printf" and "uart".
+ Can anyone give me some suggestion? Any comment is welcome, thanks a
+ lot.
 
 
+> =D4=DA 2012=C4=EA3=D4=C29=C8=D5 =CF=C2=CE=E710:08=A3=ACChenglie He <c=
+hengjie.he@linaro.org>=D0=B4=B5=C0=A3=BA
+>
+>> Hi,
+>>
+>> I am doing this on A9, echo mem >/sys/power/state is right, will tri=
+gger
+>> kernel to sleep.
+>>
+>> -jack
+
+>
+some recipient promote:
+"The message contains HTML subpart, therefore we consider it SPAM or
+Outlook Virus"
+so i resend the email, hope it not disturb u. thanks a lot.
+--
+To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
