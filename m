@@ -1,147 +1,128 @@
-From: Mark Brown <broonie@opensource.wolfsonmicro.com>
-Subject: Re: [GIT PULL] ARM: OMAP2+: PM: core support for SMPS regulators for
- v3.4
-Date: Sun, 11 Mar 2012 20:42:33 +0000
-Message-ID: <20120311204232.GC3171@opensource.wolfsonmicro.com>
-References: <877gywjhht.fsf@ti.com>
- <20120308021843.GQ12083@atomide.com>
- <87399jc6cj.fsf@ti.com>
- <20120309003217.GB12083@atomide.com>
- <20120309114731.GA3273@opensource.wolfsonmicro.com>
- <87zkbp4wtj.fsf@ti.com>
+From: Mircea Gherzan <mgherzan-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+Subject: Re: [PATCH v2] ARM: OMAP: WiLink platform data for the PandaBoard
+Date: Sun, 11 Mar 2012 23:30:54 +0100
+Message-ID: <4F5D279E.9010800@gmail.com>
+References: <1331074504-22683-1-git-send-email-mgherzan@gmail.com> <20120309183150.GH12083@atomide.com> <4F5D057A.3080601@gmail.com> <CAHd==dp1GNov4gqMzPLkJzX1A205HUMhTPtg28399FcPQFZH0A@mail.gmail.com>
+Reply-To: pandaboard-/JYPxA39Uh5TLH3MbocFFw@public.gmane.org
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="WfZ7S8PLGjBY9Voh"
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from opensource.wolfsonmicro.com ([80.75.67.52]:41097 "EHLO
-	opensource.wolfsonmicro.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751557Ab2CKUmg (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>);
-	Sun, 11 Mar 2012 16:42:36 -0400
-Content-Disposition: inline
-In-Reply-To: <87zkbp4wtj.fsf@ti.com>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 7bit
+Return-path: <pandaboard+bncCLTEjYjyBRCjz_T6BBoEPv-Lvw-/JYPxA39Uh5TLH3MbocFFw@public.gmane.org>
+In-Reply-To: <CAHd==dp1GNov4gqMzPLkJzX1A205HUMhTPtg28399FcPQFZH0A-JsoAwUIsXosN+BqQ9rBEUg@public.gmane.org>
+List-Post: <http://groups.google.com/group/pandaboard/post?hl=en_US>, <mailto:pandaboard-/JYPxA39Uh5TLH3MbocFFw@public.gmane.org>
+List-Help: <http://groups.google.com/support/?hl=en_US>, <mailto:pandaboard+help-/JYPxA39Uh5TLH3MbocFFw@public.gmane.org>
+List-Archive: <http://groups.google.com/group/pandaboard?hl=en_US>
+Sender: pandaboard-/JYPxA39Uh5TLH3MbocFFw@public.gmane.org
+List-Subscribe: <http://groups.google.com/group/pandaboard/subscribe?hl=en_US>,
+ <mailto:pandaboard+subscribe-/JYPxA39Uh5TLH3MbocFFw@public.gmane.org>
+List-Unsubscribe: <http://groups.google.com/group/pandaboard/subscribe?hl=en_US>,
+ <mailto:googlegroups-manage+575825281776+unsubscribe-/JYPxA39Uh5TLH3MbocFFw@public.gmane.org>
+To: Pavan Savoy <pavan.savoy-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+Cc: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>, Luciano Coelho <coelho-l0cyMroinI0@public.gmane.org>, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, pandaboard-/JYPxA39Uh5TLH3MbocFFw@public.gmane.org
 List-Id: linux-omap@vger.kernel.org
-To: Kevin Hilman <khilman@ti.com>
-Cc: Tony Lindgren <tony@atomide.com>, linux-omap <linux-omap@vger.kernel.org>, linux-arm-kernel <linux-arm-kernel@lists.infradead.org>
 
+Am 11.03.2012 21:13, schrieb Pavan Savoy:
+> On Sun, Mar 11, 2012 at 2:05 PM, Mircea Gherzan <mgherzan-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org> wrote:
+>> Am 09.03.2012 19:31, schrieb Tony Lindgren:
+>>> Hi Luca,
+>>>
+>>> * Mircea Gherzan <mgherzan-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org> [120306 14:23]:
+>>>> The "uim" deamon requires sysfs entries that are filled in using
+>>>> this platform data.
+>>>>
+>>>> Signed-off-by: Mircea Gherzan <mgherzan-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+>>>> ---
+>>>>  arch/arm/mach-omap2/board-omap4panda.c |   14 ++++++++++++--
+>>>>  include/linux/ti_wilink_st.h           |    2 ++
+>>>>  2 files changed, 14 insertions(+), 2 deletions(-)
+>>>>
+>>>> diff --git a/arch/arm/mach-omap2/board-omap4panda.c b/arch/arm/mach-omap2/board-omap4panda.c
+>>>> index b1d74d6..339e781 100644
+>>>> --- a/arch/arm/mach-omap2/board-omap4panda.c
+>>>> +++ b/arch/arm/mach-omap2/board-omap4panda.c
+>>>> @@ -27,6 +27,7 @@
+>>>>  #include <linux/i2c/twl.h>
+>>>>  #include <linux/regulator/machine.h>
+>>>>  #include <linux/regulator/fixed.h>
+>>>> +#include <linux/ti_wilink_st.h>
+>>>>  #include <linux/wl12xx.h>
+>>>>
+>>>>  #include <mach/hardware.h>
+>>>> @@ -56,12 +57,21 @@
+>>>>  #define HDMI_GPIO_HPD  63 /* Hotplug detect */
+>>>>
+>>>>  /* wl127x BT, FM, GPS connectivity chip */
+>>>> -static int wl1271_gpios[] = {46, -1, -1};
+>>>> +static struct ti_st_plat_data wilink_platform_data = {
+>>>> +    .nshutdown_gpio = 46,
+>>>> +    .dev_name       = "/dev/ttyO1",
+>>>> +    .flow_cntrl     = 1,
+>>>> +    .baud_rate      = 3000000,
+>>>> +    .chip_enable    = NULL,
+>>>> +    .suspend        = NULL,
+>>>> +    .resume         = NULL,
+>>>> +};
+>>>> +
+>>>>  static struct platform_device wl1271_device = {
+>>>>      .name   = "kim",
+>>>>      .id     = -1,
+>>>>      .dev    = {
+>>>> -            .platform_data  = &wl1271_gpios,
+>>>> +            .platform_data  = &wilink_platform_data,
+>>>>      },
+>>>>  };
+>>>>
+>>>> diff --git a/include/linux/ti_wilink_st.h b/include/linux/ti_wilink_st.h
+>>>> index 2ef4385..3ca0269 100644
+>>>> --- a/include/linux/ti_wilink_st.h
+>>>> +++ b/include/linux/ti_wilink_st.h
+>>>> @@ -25,6 +25,8 @@
+>>>>  #ifndef TI_WILINK_ST_H
+>>>>  #define TI_WILINK_ST_H
+>>>>
+>>>> +#include <linux/skbuff.h>
+>>>> +
+>>>>  /**
+>>>>   * enum proto-type - The protocol on WiLink chips which share a
+>>>>   *  common physical interface like UART.
+>>>> --
+>>>
+>>> Just checking.. Can you please take a look at this patch
+>>> and confirm that this is how things are supposed to be done?
+>>>
+>>> To me passing some third driver's dev_name in pdata seems
+>>> pretty weird.. But then again maybe I just don't know how
+>>> this is supposed to work.
+>>
+>> This is what the ti_st driver expects in the platform data structure.
+>> More precisely, in kim_probe():
+>>
+>>        /* copying platform data */
+>>        strncpy(kim_gdata->dev_name, pdata->dev_name,UART_DEV_NAME_LEN);
+>>        kim_gdata->flow_cntrl = pdata->flow_cntrl;
+>>        kim_gdata->baud_rate = pdata->baud_rate;
+>>        pr_info("sysfs entries created\n");
+>>
+>> So IMHO the patch is a valid fix. However, one more patch [1] is still
+>> required to get BT and WLAN working on the PandaBoard.
+> 
+> The patch looks alright to me.
+> Yes, the UART to which BT chip is connected (along with other
+> technologies for which shared transport is required), the baud rate
+> which the UART supports & also a flag so as to check whether it
+> supports flow control - ideally is supposed to come from boot-loader,
+> device tree sort of configuration - if not can be hard-coded in the
+> relevant platform specific files like in this case.
+> 
+> This is picked up from ST as platform data as is read from the
+> user-space daemon, because unfortunately none of these configurations
+> can be done in kernel (the right way for TTY).
+> 
+> 1 more patch or an addition to this patch to add the wl1271_device &
+> the btwilink device is also required to get ST probe & BT probe.
+> The btwilink driver is a platform device because UART devices don't
+> have a probe mechanism unlike say usb, i2c..
 
---WfZ7S8PLGjBY9Voh
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
+This issue has been addressed in a previous patch [1].
 
-On Fri, Mar 09, 2012 at 07:29:28AM -0800, Kevin Hilman wrote:
-> Mark Brown <broonie@opensource.wolfsonmicro.com> writes:
-
-> > Absolutely not, the for-next branch is rebuilt frequently especially
-> > since it includes stuff sent to Linus and he complained about bugfixes
-> > merged up into development code.  What is the actual dependency here?
-
-> The stuff is in your topic/drivers branch.  Specifically:
-
-> ed5da2a mfd: twl-core: regulator configuration for twl6030 V1V8, V2V1 SMPS
-> 77a3915 regulator: twl-regulator: Add fixed LDO for V1V8, V2V1 supply
-> d64214b regulator: twl: adapt twl-regulator driver to dt
-> 3e1ff1f regulator: twl6030: add support for vdd1, vdd2 and vdd3 regulators
-> 1a4a805 regulator: twl4030: add support for external voltage get/set
-
-Oh, ick.  That really is quite buried and probably depends on some of
-the earlier changes too.
-
-> > The topic branches are more or less static, though some more than
-> > others.
-
-> Is topic/drivers something stable?  If not, these are a ways back in
-> that branch, maybe you make a topic/drivers-stable for us?
-
-The branch itself is essentially stable but I'm not enthused about the
-idea of merging the whole thing via the OMAP tree.  However, as Linus
-has released an -rc7 I should pull some stuff out of there and send
-fixes to him so I've created a topic/twl so let's just rebase.
-
-> > In general you should warn people if you've got a dependency on their
-> > tree, it makes life easier.
-
-> Yeah, I should've raised this when the original series were posted.  The
-> arch stuff and drivers/regulator stuff were posted all together, but you
-> picked out the regulator stuff and I picked up the rest. =20
-
-Actually IIRC by the time I applied this the ARM changes had been
-totally deteched from the regulator stuff - Tero was sending just the
-regulator patch by itself and I actually applied the patch it was part
-of a twl regulator series Rajendra put together after I got fed up with
-the number of people sending me incompatible changes without talking to
-each other.  I'd completely forgotten about any arch/arm stuff.
-
-This sort of issue is becoming far too common with the OMAP stuff, there
-needs to be a much greater awareness of the need to coordinate both
-between trees and with multiple people working on the same code.
-
-The following changes since commit dcd6c92267155e70a94b3927bce681ce74b80d1f:
-
-  Linux 3.3-rc1 (2012-01-19 15:04:48 -0800)
-
-are available in the git repository at:
-
-  git://git.kernel.org/pub/scm/linux/kernel/git/broonie/regulator.git tags/=
-topic/twl
-
-for you to fetch changes up to 46eda3e96a65b378041c79c51ff2e02009f7e2d0:
-
-  mfd: twl-core: regulator configuration for twl6030 V1V8, V2V1 SMPS (2012-=
-03-11 20:09:26 +0000)
-
-----------------------------------------------------------------
-TWL specific changes, cross-merged with OMAP due to arch/arm wanting to
-use the new ability to override the voltage set and get operations to
-support the in-CPU voltage management.  The other changes are minor
-fixes, the addition of a few new regulators and device tree support.
-
-----------------------------------------------------------------
-Laxman Dewangan (1):
-      regulator: twl6030: Fix voltage selection logic
-
-Peter Ujfalusi (2):
-      regulator: twl-regulator: Add fixed LDO for V1V8, V2V1 supply
-      mfd: twl-core: regulator configuration for twl6030 V1V8, V2V1 SMPS
-
-Rajendra Nayak (1):
-      regulator: twl: adapt twl-regulator driver to dt
-
-Tero Kristo (2):
-      regulator: twl4030: add support for external voltage get/set
-      regulator: twl6030: add support for vdd1, vdd2 and vdd3 regulators
-
- .../bindings/regulator/twl-regulator.txt           |   68 ++++
- drivers/mfd/twl-core.c                             |   41 +++-
- drivers/regulator/twl-regulator.c                  |  327 +++++++++++++++-=
-----
- include/linux/i2c/twl.h                            |   14 +-
- 4 files changed, 366 insertions(+), 84 deletions(-)
- create mode 100644 Documentation/devicetree/bindings/regulator/twl-regulat=
-or.txt
-
---WfZ7S8PLGjBY9Voh
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: Digital signature
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.4.11 (GNU/Linux)
-
-iQIcBAEBAgAGBQJPXQ4gAAoJEBus8iNuMP3dCZ8P/3p0AFZYkGlsBTu7zVYepYQD
-Tx4jqFTCCxC0yKOGjHqsedWDhZtScP/Dga5XwpKxJfmbjRXeF+IFC2fBz6ZC8Rxl
-w1DM0MhoLbkml7wyb1lNyo9kKdosU/E9ichkzQaV5IyqRSGDciz94S+maCkrd4Ab
-AxVwmeXeHwbmqtNmRNise/qIxWjtkiDYKw6yz5EYnJ0z4xaU9IHp0qtMpGnWQI9r
-ZYmer4pxCUr0SgGwYwhgo+FoDcqnyaeP/cN3EJojAcmAs8UausSAmkGKMpbcIYKh
-5mxdngxOKrhtn1QWFnkDfF7MP7HHADmTPQyH7FL1HIu0QYYFCJnJCA7thPg37bqy
-9/HOpDYCIQMCfhZYQ7YeirxG8ZQaxbIGuqR8ulS5IbLJQNg0DDXCe3DFnBgAZaxM
-WO0D5G97EA2tdzKtRsTKJ8Xkr8XhVLFwOq1Trrbqotriu1IcxMD2ZJiBOBVqN7WK
-H8uAta5pbLTsOQt3Mh/zhiZz4FmR26y72Vbbk9MQz1jbjDNzOZcszhNFb8rmBYGs
-6CFqX5IctEBJAymSYFpydWoQ2iWyj7imt9ad2WSpgV77pGW23atyjL82AfVI/yWx
-AGlUJ8SHb4AnJMPRw45vFTQ5/M1lX1da/Bz/2dYnhrU335Wg5nuOGKxBRxBigThR
-ckvCamfkpL9tDLDGsb4s
-=vXaq
------END PGP SIGNATURE-----
-
---WfZ7S8PLGjBY9Voh--
+[1] http://www.spinics.net/lists/linux-omap/msg65181.html
