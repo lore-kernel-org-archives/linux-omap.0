@@ -1,54 +1,100 @@
 From: Kevin Hilman <khilman@ti.com>
-Subject: Re: DSS pwrdm usecount, disabling autodeps for DSS
-Date: Mon, 12 Mar 2012 09:24:16 -0700
-Message-ID: <87aa3l23f3.fsf@ti.com>
-References: <87r4x27gh0.fsf@ti.com> <1331291641.1927.38.camel@deskari>
-	<alpine.DEB.2.00.1203091055150.7039@utopia.booyaka.com>
-	<1331542847.2097.4.camel@deskari>
+Subject: Re: [PATCH] ARM: OMAP4: Workaround the OCP synchronisation issue with 32K synctimer.
+Date: Mon, 12 Mar 2012 09:51:40 -0700
+Message-ID: <87399d225f.fsf@ti.com>
+References: <1331566388-2397-1-git-send-email-santosh.shilimkar@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aog124.obsmtp.com ([74.125.149.151]:53798 "EHLO
-	na3sys009aog124.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753081Ab2CLQYJ (ORCPT
+Received: from na3sys009aog103.obsmtp.com ([74.125.149.71]:56158 "EHLO
+	na3sys009aog103.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1753144Ab2CLQve (ORCPT
 	<rfc822;linux-omap@vger.kernel.org>);
-	Mon, 12 Mar 2012 12:24:09 -0400
-Received: by mail-ey0-f175.google.com with SMTP id e1so1147289eaa.20
-        for <linux-omap@vger.kernel.org>; Mon, 12 Mar 2012 09:24:08 -0700 (PDT)
-In-Reply-To: <1331542847.2097.4.camel@deskari> (Tomi Valkeinen's message of
-	"Mon, 12 Mar 2012 11:00:47 +0200")
+	Mon, 12 Mar 2012 12:51:34 -0400
+Received: by mail-iy0-f179.google.com with SMTP id h37so9072500iak.24
+        for <linux-omap@vger.kernel.org>; Mon, 12 Mar 2012 09:51:33 -0700 (PDT)
+In-Reply-To: <1331566388-2397-1-git-send-email-santosh.shilimkar@ti.com>
+	(Santosh Shilimkar's message of "Mon, 12 Mar 2012 21:03:08 +0530")
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Tomi Valkeinen <tomi.valkeinen@ti.com>
-Cc: Paul Walmsley <paul@pwsan.com>, linux-omap <linux-omap@vger.kernel.org>
+To: Santosh Shilimkar <santosh.shilimkar@ti.com>
+Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, dave.long@linaro.org
 
-Tomi Valkeinen <tomi.valkeinen@ti.com> writes:
+Santosh Shilimkar <santosh.shilimkar@ti.com> writes:
 
-> On Fri, 2012-03-09 at 10:57 -0700, Paul Walmsley wrote:
->> On Fri, 9 Mar 2012, Tomi Valkeinen wrote:
->> 
->> > I didn't get very far with the patch =(. Tested on omap3 overo, with
->> > -rc6 based dss tree.
->> 
->> Thanks for testing and the .config.  Probably the best thing to do in the 
->> medium term is to fix the hwmod iclk handling; I think that will also fix 
->> the DSS autodeps problem.
+> On OMAP4, recently a synchronisation bug is discovered by hardware
+> team, which leads to incorrect timer value read from 32K sync timer
+> IP when the IP is comming out of idle.
 >
-> Btw, I don't know if it affects omap2/3, but I'm making a change with
-> the dss hwmod devices so that the dss_core will be a parent device to
-> all the other dss hwmod devices. This solves the mess on omap4, the
-> modulemode bit, and the sequence in which the dss clocks need to be
-> enabled, as dss_core will always be enabled first.
+> The issue is due to the synchronization methodology used in the SYNCTIMER IP.
+> The value of the counter register in 32kHz domain is synchronized to the OCP
+> domain register only at count up event, and if the OCP clock is switched off,
+> the OCP register gets out of synch until the first count up event after the
+> clock is switched back -at the next falling edge of the 32kHz clock.
 >
-> This requires two patches for omap_device, "ARM: OMAP: remove
-> omap_device_parent", "ARM: OMAP: omap_device: Expose omap_device_{alloc,
-> delete, register}" which I hope are going in in the next merge window.
+> Further investigation revealed that it applies to gptimer1 and watchdog timer2
+> as well which may run on 32KHz. This patch fixes the issue for all the
+> applicable modules.
 
-Yes, both are queued for 3.4.
+The changelog describes the problem ver well, but doesn't actually
+describe the fix (enable static dep.)  Can you update the changelog do
+describe the fix, and why it fixes the problem.
+
+Thanks,
 
 Kevin
 
+
+> The BUG has not made it yet to the OMAP errata list and it is applicable to
+> OMAP1/2/3/4/5. OMAP1/2/3 it is taken care indirectly by autodeps.
 >
-> So, it may not affect omap2/3 in any way, but just thought to mention.
+> Reported-Tested-by: dave.long@linaro.org
+> [dave.long@linaro.org: Reported the oprofile time stamp issue with synctimer
+> and helped to test this patch]
+> Signed-off-by: Santosh Shilimkar <santosh.shilimkar@ti.com>
+> ---
+>  arch/arm/mach-omap2/pm44xx.c |   10 ++++++++--
+>  1 files changed, 8 insertions(+), 2 deletions(-)
 >
->  Tomi
+> diff --git a/arch/arm/mach-omap2/pm44xx.c b/arch/arm/mach-omap2/pm44xx.c
+> index c264ef7..974f7ea 100644
+> --- a/arch/arm/mach-omap2/pm44xx.c
+> +++ b/arch/arm/mach-omap2/pm44xx.c
+> @@ -196,7 +196,7 @@ static void omap_default_idle(void)
+>  static int __init omap4_pm_init(void)
+>  {
+>  	int ret;
+> -	struct clockdomain *emif_clkdm, *mpuss_clkdm, *l3_1_clkdm;
+> +	struct clockdomain *emif_clkdm, *mpuss_clkdm, *l3_1_clkdm, *l4wkup;
+>  	struct clockdomain *ducati_clkdm, *l3_2_clkdm, *l4_per_clkdm;
+>  
+>  	if (!cpu_is_omap44xx())
+> @@ -220,14 +220,19 @@ static int __init omap4_pm_init(void)
+>  	 * MPUSS -> L4_PER/L3_* and DUCATI -> L3_* doesn't work as
+>  	 * expected. The hardware recommendation is to enable static
+>  	 * dependencies for these to avoid system lock ups or random crashes.
+> +	 * The L4 wakeup depedency is added to workaround the OCP sync hardware
+> +	 * BUG with 32K synctimer which lead to incorrect timer value read
+> +	 * from the 32K counter. The BUG applies for GPTIMER1 and WDT2 which
+> +	 * are part of L4 wakeup clockdomain.
+>  	 */
+>  	mpuss_clkdm = clkdm_lookup("mpuss_clkdm");
+>  	emif_clkdm = clkdm_lookup("l3_emif_clkdm");
+>  	l3_1_clkdm = clkdm_lookup("l3_1_clkdm");
+>  	l3_2_clkdm = clkdm_lookup("l3_2_clkdm");
+>  	l4_per_clkdm = clkdm_lookup("l4_per_clkdm");
+> +	l4wkup = clkdm_lookup("l4_wkup_clkdm");
+>  	ducati_clkdm = clkdm_lookup("ducati_clkdm");
+> -	if ((!mpuss_clkdm) || (!emif_clkdm) || (!l3_1_clkdm) ||
+> +	if ((!mpuss_clkdm) || (!emif_clkdm) || (!l3_1_clkdm) || (!l4wkup) ||
+>  		(!l3_2_clkdm) || (!ducati_clkdm) || (!l4_per_clkdm))
+>  		goto err2;
+>  
+> @@ -235,6 +240,7 @@ static int __init omap4_pm_init(void)
+>  	ret |= clkdm_add_wkdep(mpuss_clkdm, l3_1_clkdm);
+>  	ret |= clkdm_add_wkdep(mpuss_clkdm, l3_2_clkdm);
+>  	ret |= clkdm_add_wkdep(mpuss_clkdm, l4_per_clkdm);
+> +	ret |= clkdm_add_wkdep(mpuss_clkdm, l4wkup);
+>  	ret |= clkdm_add_wkdep(ducati_clkdm, l3_1_clkdm);
+>  	ret |= clkdm_add_wkdep(ducati_clkdm, l3_2_clkdm);
+>  	if (ret) {
