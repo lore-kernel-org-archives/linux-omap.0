@@ -1,131 +1,57 @@
-From: "Hiremath, Vaibhav" <hvaibhav@ti.com>
-Subject: RE: [PATCH] omap_vout: Set DSS overlay_info only if paddr is non
- zero
-Date: Mon, 12 Mar 2012 10:04:03 +0000
-Message-ID: <79CD15C6BA57404B839C016229A409A831810EAA@DBDE01.ent.ti.com>
-References: <1331110876-11895-1-git-send-email-archit@ti.com>
+From: Paul Walmsley <paul@pwsan.com>
+Subject: [GIT PULL] ARM: OMAP: clock: clock patches for 3.4
+Date: Mon, 12 Mar 2012 04:09:10 -0600 (MDT)
+Message-ID: <alpine.DEB.2.00.1203120407460.11332@utopia.booyaka.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from arroyo.ext.ti.com ([192.94.94.40]:58698 "EHLO arroyo.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751389Ab2CLKEJ convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 12 Mar 2012 06:04:09 -0400
-In-Reply-To: <1331110876-11895-1-git-send-email-archit@ti.com>
-Content-Language: en-US
+Received: from utopia.booyaka.com ([72.9.107.138]:37506 "EHLO
+	utopia.booyaka.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751212Ab2CLKJL (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 12 Mar 2012 06:09:11 -0400
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "Taneja, Archit" <archit@ti.com>
-Cc: "Valkeinen, Tomi" <tomi.valkeinen@ti.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
+To: tony@atomide.com
+Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 
-On Wed, Mar 07, 2012 at 14:31:16, Taneja, Archit wrote:
-> The omap_vout driver tries to set the DSS overlay_info using set_overlay_info()
-> when the physical address for the overlay is still not configured. This happens
-> in omap_vout_probe() and vidioc_s_fmt_vid_out().
-> 
-> The calls to omapvid_init(which internally calls set_overlay_info()) are removed
-> from these functions. They don't need to be called as the omap_vout_device
-> struct anyway maintains the overlay related changes made. Also, remove the
-> explicit call to set_overlay_info() in vidioc_streamon(), this was used to set
-> the paddr, this isn't needed as omapvid_init() does the same thing later.
-> 
-> These changes are required as the DSS2 driver since 3.3 kernel doesn't let you
-> set the overlay info with paddr as 0.
-> 
-> Signed-off-by: Archit Taneja <archit@ti.com>
-> ---
->  drivers/media/video/omap/omap_vout.c |   36 ++++-----------------------------
->  1 files changed, 5 insertions(+), 31 deletions(-)
-> 
-> diff --git a/drivers/media/video/omap/omap_vout.c b/drivers/media/video/omap/omap_vout.c
-> index 1fb7d5b..dffcf66 100644
-> --- a/drivers/media/video/omap/omap_vout.c
-> +++ b/drivers/media/video/omap/omap_vout.c
-> @@ -1157,13 +1157,6 @@ static int vidioc_s_fmt_vid_out(struct file *file, void *fh,
->  	/* set default crop and win */
->  	omap_vout_new_format(&vout->pix, &vout->fbuf, &vout->crop, &vout->win);
->  
-> -	/* Save the changes in the overlay strcuture */
-> -	ret = omapvid_init(vout, 0);
-> -	if (ret) {
-> -		v4l2_err(&vout->vid_dev->v4l2_dev, "failed to change mode\n");
-> -		goto s_fmt_vid_out_exit;
-> -	}
-> -
->  	ret = 0;
->  
->  s_fmt_vid_out_exit:
-> @@ -1664,20 +1657,6 @@ static int vidioc_streamon(struct file *file, void *fh, enum v4l2_buf_type i)
->  
->  	omap_dispc_register_isr(omap_vout_isr, vout, mask);
->  
-> -	for (j = 0; j < ovid->num_overlays; j++) {
-> -		struct omap_overlay *ovl = ovid->overlays[j];
-> -
-> -		if (ovl->manager && ovl->manager->device) {
-> -			struct omap_overlay_info info;
-> -			ovl->get_overlay_info(ovl, &info);
-> -			info.paddr = addr;
-> -			if (ovl->set_overlay_info(ovl, &info)) {
-> -				ret = -EINVAL;
-> -				goto streamon_err1;
-> -			}
-> -		}
-> -	}
-> -
+Hi Tony
 
-Have you checked for build warnings? I am getting build warnings 
+The following changes since commit fde7d9049e55ab85a390be7f415d74c9f62dd0f9:
 
-  CC      drivers/media/video/omap/omap_vout.o
-  CC      drivers/media/video/omap/omap_voutlib.o
-  CC      drivers/media/video/omap/omap_vout_vrfb.o
-drivers/media/video/omap/omap_vout.c: In function 'vidioc_streamon':
-drivers/media/video/omap/omap_vout.c:1619:25: warning: unused variable 'ovid'
-drivers/media/video/omap/omap_vout.c:1615:15: warning: unused variable 'j'
-  LD      drivers/media/video/omap/omap-vout.o
-  LD      drivers/media/video/omap/built-in.o
+  Linux 3.3-rc7 (2012-03-10 13:49:52 -0800)
 
-Can you fix this and submit the next version?
+are available in the git repository at:
 
-Thanks,
-Vaibhav
+  git://git.pwsan.com/linux-2.6 clock_devel_3.4
 
->  	/* First save the configuration in ovelray structure */
->  	ret = omapvid_init(vout, addr);
->  	if (ret)
-> @@ -2071,11 +2050,12 @@ static int __init omap_vout_create_video_devices(struct platform_device *pdev)
->  		}
->  		video_set_drvdata(vfd, vout);
->  
-> -		/* Configure the overlay structure */
-> -		ret = omapvid_init(vid_dev->vouts[k], 0);
-> -		if (!ret)
-> -			goto success;
-> +		dev_info(&pdev->dev, ": registered and initialized"
-> +				" video device %d\n", vfd->minor);
-> +		if (k == (pdev->num_resources - 1))
-> +			return 0;
->  
-> +		continue;
->  error2:
->  		if (vout->vid_info.rotation_type == VOUT_ROT_VRFB)
->  			omap_vout_release_vrfb(vout);
-> @@ -2085,12 +2065,6 @@ error1:
->  error:
->  		kfree(vout);
->  		return ret;
-> -
-> -success:
-> -		dev_info(&pdev->dev, ": registered and initialized"
-> -				" video device %d\n", vfd->minor);
-> -		if (k == (pdev->num_resources - 1))
-> -			return 0;
->  	}
->  
->  	return -ENODEV;
-> -- 
-> 1.7.5.4
-> 
-> 
+for you to fetch changes up to ae6f0a61f6a30f387ff0ce883b4ca8ff23424b11:
 
+  ARM: OMAP: clock: cleanup CPUfreq leftovers (2012-03-12 03:24:45 -0600)
+
+
+- Paul
+
+----------------------------------------------------------------
+Ameya Palande (1):
+      ARM: OMAP4: clock data: fix mult and div mask for USB_DPLL
+
+Ilya Yanok (1):
+      ARM: OMAP3: clock3xxx_data: change EMAC clocks aliases
+
+Kevin Hilman (1):
+      ARM: OMAP: clock: cleanup CPUfreq leftovers
+
+Paul Walmsley (1):
+      ARM: OMAP3: clock data: fill in some missing clockdomains
+
+Rajendra Nayak (1):
+      ARM: OMAP4: clock data: Force a DPLL clkdm/pwrdm ON before a relock
+
+ arch/arm/mach-omap2/clkt2xxx_virt_prcm_set.c |   80 --------------------------
+ arch/arm/mach-omap2/clock.c                  |    5 --
+ arch/arm/mach-omap2/clock.h                  |    8 ---
+ arch/arm/mach-omap2/clock3xxx_data.c         |   10 +++-
+ arch/arm/mach-omap2/clock44xx_data.c         |    5 +-
+ arch/arm/plat-omap/clock.c                   |   26 --------
+ arch/arm/plat-omap/include/plat/clock.h      |   10 ---
+ 7 files changed, 11 insertions(+), 133 deletions(-)
