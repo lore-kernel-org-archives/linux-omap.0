@@ -1,103 +1,121 @@
-From: Grant Likely <grant.likely@secretlab.ca>
-Subject: Re: [PATCH 0/6] gpio/omap: Some more driver cleanup and fixes
-Date: Mon, 12 Mar 2012 12:43:36 -0600
-Message-ID: <CACxGe6tH5_GsJ1Wa9zSF711qwFgXR9=yp5AsUMKDn5+egwmavg@mail.gmail.com>
-References: <1329999031-6914-1-git-send-email-tarun.kanti@ti.com>
- <CAMQu2gzdfxJms8cc3VhsVzhGq4f8x1QeY6LU6X+2eFZ4_Yv_bw@mail.gmail.com>
- <20120312173425.A6B893E07B0@localhost> <87wr6py82t.fsf@ti.com>
+From: Rob Lee <rob.lee@linaro.org>
+Subject: Re: [git pull] Consolidate cpuidle functionality
+Date: Mon, 12 Mar 2012 13:45:15 -0500
+Message-ID: <CAMXH7KFrMVzn1tVxWzm1yOVuiaVJoo7x_NHm6XPo3rPDtuM=tQ@mail.gmail.com>
+References: <1330562578-3410-1-git-send-email-rob.lee@linaro.org>
+	<87y5reivhb.fsf@ti.com>
+	<CAMXH7KEwQM37R++8moXB8Q41_fBXOnVY2hXJGFQmTQ20oeFPEQ@mail.gmail.com>
+	<20120309174017.081154936f57039b37c50435@canb.auug.org.au>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: QUOTED-PRINTABLE
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-gy0-f174.google.com ([209.85.160.174]:50538 "EHLO
-	mail-gy0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756242Ab2CLSn7 convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 12 Mar 2012 14:43:59 -0400
-Received: by ghrr11 with SMTP id r11so2894720ghr.19
-        for <linux-omap@vger.kernel.org>; Mon, 12 Mar 2012 11:43:59 -0700 (PDT)
-In-Reply-To: <87wr6py82t.fsf@ti.com>
-Sender: linux-omap-owner@vger.kernel.org
+Return-path: <linux-sh-owner@vger.kernel.org>
+In-Reply-To: <20120309174017.081154936f57039b37c50435@canb.auug.org.au>
+Sender: linux-sh-owner@vger.kernel.org
+To: Len Brown <len.brown@intel.com>, Andrew Morton <akpm@linux-foundation.org>
+Cc: rjw@sisk.pl, nicolas.pitre@linaro.org, venki@google.com, linaro-dev@lists.linaro.org, linux-sh@vger.kernel.org, tony@atomide.com, nicolas.ferre@atmel.com, linux@arm.linux.org.uk, ccross@google.com, kernel@wantstofly.org, kgene.kim@samsung.com, mturquette@linaro.org, daniel.lezcano@linaro.org, magnus.damm@gmail.com, arnd.bergmann@linaro.org, jon-hunter@ti.com, patches@linaro.org, nsekhar@ti.com, jean.pihet@newoldbits.com, Baohua.Song@csr.com, vincent.guittot@linaro.org, linux-omap@vger.kernel.org, linux@maxim.org.za, linux-arm-kernel@lists.infradead.org, deepthi@linux.vnet.ibm.com, g.trinabh@gmail.com, linux-pm@vger.kernel.org, broonie@opensource.wolfsonmicro.com, amit.kucheria@linaro.org, lethal@linux-sh.org, amit.kachhap@linaro.org, Kevin Hilman <khilman@ti.com>
 List-Id: linux-omap@vger.kernel.org
-To: Kevin Hilman <khilman@ti.com>
-Cc: "Shilimkar, Santosh" <santosh.shilimkar@ti.com>, Tarun Kanti DebBarma <tarun.kanti@ti.com>, linux-omap@vger.kernel.org, tony@atomide.com, linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 
-On Mon, Mar 12, 2012 at 12:42 PM, Kevin Hilman <khilman@ti.com> wrote:
-> Grant Likely <grant.likely@secretlab.ca> writes:
+Len and Andrew,
+
+Please consider this an official merge request of this cpuidle
+patchset for v3.4.
+
+There were two small conflicts Stephen Rothwell found when merging to
+linux-next.  The first conflict is with patch 1/9 in the
+drivers/cpuidle/cpuidle.c file which is trivially to resolve.  I'm
+told this fixup is trivially enough to not require anyone to carry it.
+
+The second is with patch 2/9 in mach-at91/cpuidle.c due to some minor
+cleanup changes.  The fix is also pretty simple but I'm waiting to
+hear back about who will carry it.
+
+Please let me know if you need any other action or information on my pa=
+rt.
+
+Thanks,
+Rob
+
+
+On Fri, Mar 9, 2012 at 12:40 AM, Stephen Rothwell <sfr@canb.auug.org.au=
+> wrote:
+> Hi Rob,
 >
->> On Thu, 23 Feb 2012 17:56:33 +0530, "Shilimkar, Santosh" <santosh.sh=
-ilimkar@ti.com> wrote:
->>> On Thu, Feb 23, 2012 at 5:40 PM, Tarun Kanti DebBarma
->>> <tarun.kanti@ti.com> wrote:
->>> > The cleanup is mostly getting rid of redundant fields in struct g=
-pio_bank{}
->>> > as we already have them as part of bank->context now. Also, remov=
-e un-used
->>> > variable from gpio_irq_handler.
->>> >
->>> > The fix include correction of _set_gpio_irqenable() implementatio=
-n and fix
->>> > type mismatch of gpio trigger parameter.
->>> >
->>> > It is baselined on top of Kevin's following series:
->>> > gpio/omap: cleanup and runtime PM conversion for v3.4
->>> > git://git.kernel.org/pub/scm/linux/kernel/git/khilman/linux-omap-=
-pm.git for_3.4/gpio/runtime-pm-cleanup
->>> >
->>> > I have applied Benoit's GPIO patches in following series on top o=
-f Kevin's
->>> > before applying my changes.
->>> > gpio/omap: Cleanup and adaptation to Device Tree
->>> > git://git.kernel.org/pub/scm/linux/kernel/git/bcousson/linux-omap=
--dt.git for_3.4/dt_gpio
->>> >
->>> > Series is available here for reference:
->>> > git://gitorious.org/~tarunkanti/omap-sw-develoment/tarunkantis-li=
-nux-omap-dev for_3.4/gpio_further_cleanup_fixes
->>> >
->>> > Power Test: Off-mode and Retention on OMAP3430 (Suspend and Idle =
-paths).
->>> > Functional Test: OMAP2430, OMAP3430SDP, ZOOM3, OMAP4430, OMAP4-BL=
-AZE
->>> >
->>> > Tarun Kanti DebBarma (6):
->>> > =A0gpio/omap: remove saved_fallingdetect, saved_risingdetect fiel=
-ds
->>> > =A0gpio/omap: remove saved_wakeup field from struct gpio_bank
->>> > =A0gpio/omap: remove suspend_wakeup field from struct gpio_bank
->>> > =A0gpio/omap: get rid of retrigger variable in gpio_irq_handler
->>> > =A0gpio/omap: fix trigger type to unsigned
->>> > =A0gpio/omap: fix _set_gpio_irqenable implementation
->>> >
->>> > =A0drivers/gpio/gpio-omap.c | =A0 56 +++++++++++++++++++---------=
------------------
->>> > =A01 files changed, 24 insertions(+), 32 deletions(-)
->>> >
->>> Nice clean-up series. I have gone through this series one more time
->>> Thanks for updating change-logs. I noticed you dropped the edge tri=
-ggered
->>> irq wakeup fix....I see on the list now.... Kevin has fixed that al=
-ready.
->>>
->>> Series looks good to me. You can add:
->>> Reviewed-by: Santosh Shilimkar <santosh.shilimkar@ti.com>
+> On Thu, 8 Mar 2012 19:58:23 -0600 Rob Lee <rob.lee@linaro.org> wrote:
 >>
->> What's the status of this series? =A0Should I be expecting a v2? =A0=
-Or am I supposed
->> to pick up this one? (a pull req would make things easier for me)
+>> =A0 git://git.linaro.org/people/rob_lee/linux.git cpuidle_consol_pul=
+l
+>>
+>> These changes move various functionality duplicated in platform
+>> cpuidle drivers to the core cpuidle driver and common arch arm code.=
+ Also,
+>> the irq disabling in the platform code was removed as all calls into
+>> cpuidle_call_idle() will have already called local_irq_disable().
+>>
+>> This patchset is bisect safe. =A0Also, the core cpuidle and arch cha=
+nges of the
+>> first commit do not require any changes to the arch and platform cpu=
+idle
+>> drivers, though those arch and platform change should be made to tak=
+e
+>> advantage of the new consolidation function.
+>>
+>> Stephen, this patch has been reviewed, tested, and ACK'd per the lis=
+t above but
+>> cpuidle maintainer Len Brown has been out on vacation for a couple o=
+f weeks so
+>> I am sending you this pull request as time is running out to get thi=
+s into
+>> v3.4. =A0I've had a brief communication with Andrew Morton about
+>> this as well so he is aware of this situation. =A0I am fairly new to=
+ the
+>> community so please let me know if you see anything that needs my at=
+tention or
+>> anything I should be doing differently.
 >
-> I haven't been through this one yet.
+> I will add this tree from today. =A0Lets see if anyone screams.
 >
-> You can expect a pull req from me when ready.
-
-Perfect, thx.
-
-g.
-
---=20
-Grant Likely, B.Sc., P.Eng.
-Secret Lab Technologies Ltd.
---
-To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> Thanks for adding your subsystem tree as a participant of linux-next.=
+ =A0As
+> you may know, this is not a judgment of your code. =A0The purpose of
+> linux-next is for integration testing and to lower the impact of
+> conflicts between subsystems in the next merge window.
+>
+> You will need to ensure that the patches/commits in your tree/series =
+have
+> been:
+> =A0 =A0 * submitted under GPL v2 (or later) and include the Contribut=
+or's
+> =A0 =A0 =A0 =A0Signed-off-by,
+> =A0 =A0 * posted to the relevant mailing list,
+> =A0 =A0 * reviewed by you (or another maintainer of your subsystem tr=
+ee),
+> =A0 =A0 * successfully unit tested, and
+> =A0 =A0 * destined for the current or next Linux merge window.
+>
+> Basically, this should be just what you would send to Linus (or ask h=
+im
+> to fetch). =A0It is allowed to be rebased if you deem it necessary.
+>
+> --
+> Cheers,
+> Stephen Rothwell
+> sfr@canb.auug.org.au
+>
+> Legal Stuff:
+> By participating in linux-next, your subsystem tree contributions are
+> public and will be included in the linux-next trees. =A0You may be se=
+nt
+> e-mail messages indicating errors or other issues when the
+> patches/commits from your subsystem tree are merged and tested in
+> linux-next. =A0These messages may also be cross-posted to the linux-n=
+ext
+> mailing list, the linux-kernel mailing list, etc. =A0The linux-next t=
+ree
+> project and IBM (my employer) make no warranties regarding the linux-=
+next
+> project, the testing procedures, the results, the e-mails, etc. =A0If=
+ you
+> don't agree to these ground rules, let me know and I'll remove your t=
+ree
+> from participation in linux-next.
