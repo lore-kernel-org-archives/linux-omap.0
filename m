@@ -1,55 +1,66 @@
-From: Kevin Hilman <khilman@ti.com>
-Subject: Re: [PATCH v3 00/13] gpio/omap: Some more driver cleanup and fixes
-Date: Mon, 12 Mar 2012 15:28:42 -0700
-Message-ID: <87vcm9v4h1.fsf@ti.com>
-References: <1331118963-26364-1-git-send-email-tarun.kanti@ti.com>
-	<878vj5y7iv.fsf@ti.com>
-	<CAC83Zv+8AjCHBOJbtvSQS-URvCE5Xm9oPk9_X7h4Kz7FZ_7Otw@mail.gmail.com>
-	<CAC83ZvJKS34Py6vVtk_Si9q3A-9CVN6v4ixNM+HJ37AATcGNPA@mail.gmail.com>
-	<CAC83ZvJDfDBcRU1isYaxRe-fWN8F2+QW6W5EeWWuTRcFBGpYNg@mail.gmail.com>
+From: Paul Walmsley <paul@pwsan.com>
+Subject: [PATCH 0/5] ARM: OMAP2+: resolve some warnings from sparse, cppcheck
+Date: Mon, 12 Mar 2012 16:42:51 -0600
+Message-ID: <20120312224006.4103.29464.stgit@dusk>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aog122.obsmtp.com ([74.125.149.147]:51125 "EHLO
-	na3sys009aog122.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1757583Ab2CLW2g (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>);
-	Mon, 12 Mar 2012 18:28:36 -0400
-Received: by mail-gx0-f172.google.com with SMTP id i1so3069490ggm.3
-        for <linux-omap@vger.kernel.org>; Mon, 12 Mar 2012 15:28:35 -0700 (PDT)
-In-Reply-To: <CAC83ZvJDfDBcRU1isYaxRe-fWN8F2+QW6W5EeWWuTRcFBGpYNg@mail.gmail.com>
-	(Tarun Kanti DebBarma's message of "Tue, 13 Mar 2012 01:57:03 +0530")
+Received: from utopia.booyaka.com ([72.9.107.138]:37679 "EHLO
+	utopia.booyaka.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1757385Ab2CLWnk (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 12 Mar 2012 18:43:40 -0400
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "DebBarma, Tarun Kanti" <tarun.kanti@ti.com>
-Cc: linux-omap@vger.kernel.org, tony@atomide.com, linux-arm-kernel@lists.infradead.org, Grant Likely <grant.likely@secretlab.ca>
+To: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 
-"DebBarma, Tarun Kanti" <tarun.kanti@ti.com> writes:
+Hello
 
-[...]
+This series resolves all of the current sparse warnings and many of
+the meaningful cppcheck warnings in arch/arm/mach-omap2.
 
->>> Oops... I am sorry.
->>> I was in the process of updating the branch with latest comments after
->>> base-lining on Grant's:
->>> git://git.secretlab.ca/git/linux-2.6.git
->>> Branch: gpio/next
->>> Because this has all the gpio changes including Benoit's latest gpio
->>> devicetree changes.
->>> Should I go ahead?
->> Anyways, for the time being I am updating on top of your changes as before.
->> You should be able to see the branch shortly.
-> Please note that the branch has your following patch:
-> gpio/omap: fix wakeups on level-triggered GPIOs
+This series is also available from git://git.pwsan.com/linux-2.6 in the
+branch 'sparse_cppcheck_fixes_3.4'.
 
-Please be sure to Cc the GPIO maintainer (added now.)
 
-Grant can we consider your gpio/next a stable baseline for further
-GPIO fixes?
+- Paul
 
-If so, Tarun, please base your branch there.  Otherwise, continue to use
-my for_3.4/gpio/runtime-pm-cleanup, but please test it by merging with
-the gpio/next branch.
+---
 
-Thanks,
+sparse_cppcheck_fixes_3.4
+   text	   data	    bss	    dec	    hex	filename
+6588152	 692980	5594140	12875272	 c47608	vmlinux.omap2plus_defconfig.orig
+6588028	 692956	5594140	12875124	 c47574	vmlinux.omap2plus_defconfig
 
-Kevin
+Paul Walmsley (5):
+      ARM: OMAP2+: declare file-local functions as static
+      ARM: OMAP2+: add includes for missing prototypes
+      ARM: OMAP2+: GPMC: resolve type-conversion warning from sparse
+      ARM: OMAP2+: fix 'using plain integer as NULL pointer' sparse warnings
+      ARM: OMAP2+: clean up some cppcheck warnings
+
+
+ arch/arm/mach-omap2/board-am3517evm.c        |    6 +-----
+ arch/arm/mach-omap2/board-omap3evm.c         |    8 ++++----
+ arch/arm/mach-omap2/board-omap4panda.c       |    8 ++++----
+ arch/arm/mach-omap2/board-rx51-peripherals.c |    4 ++--
+ arch/arm/mach-omap2/board-zoom-display.c     |    1 +
+ arch/arm/mach-omap2/devices.c                |    3 +--
+ arch/arm/mach-omap2/gpio.c                   |    4 ++--
+ arch/arm/mach-omap2/gpmc-onenand.c           |    3 +--
+ arch/arm/mach-omap2/gpmc.c                   |    3 +--
+ arch/arm/mach-omap2/hsmmc.c                  |    2 +-
+ arch/arm/mach-omap2/hwspinlock.c             |    2 +-
+ arch/arm/mach-omap2/irq.c                    |    3 ++-
+ arch/arm/mach-omap2/mcbsp.c                  |    2 +-
+ arch/arm/mach-omap2/mux.c                    |    2 +-
+ arch/arm/mach-omap2/omap-secure.c            |    1 +
+ arch/arm/mach-omap2/omap-wakeupgen.c         |    2 +-
+ arch/arm/mach-omap2/pm24xx.c                 |    3 ---
+ arch/arm/mach-omap2/pm34xx.c                 |    4 +---
+ arch/arm/mach-omap2/prm_common.c             |    4 +++-
+ arch/arm/mach-omap2/serial.c                 |    2 +-
+ arch/arm/mach-omap2/usb-tusb6010.c           |    2 +-
+ arch/arm/plat-omap/include/plat/dmtimer.h    |    4 ++--
+ 22 files changed, 33 insertions(+), 40 deletions(-)
+
