@@ -1,135 +1,150 @@
-From: Tero Kristo <t-kristo@ti.com>
-Subject: Re: [PATCHv5 2/6] ARM: OMAP3 PM: Move IO Daisychain function to
- omap3 prm file
-Date: Mon, 12 Mar 2012 11:19:08 +0200
-Message-ID: <1331543948.2116.259.camel@sokoban>
-References: <1331046702-2472-1-git-send-email-t-kristo@ti.com>
-	 <1331046702-2472-3-git-send-email-t-kristo@ti.com>
-	 <alpine.DEB.2.00.1203091737390.30879@utopia.booyaka.com>
-	 <4F5D8EBA.3060602@ti.com>
-Reply-To: <t-kristo@ti.com>
+From: Felipe Balbi <balbi@ti.com>
+Subject: Re: [PATCH 1/3] ARM: OMAP2+: 32k-counter: Use hwmod lookup to check
+ presence of 32k timer
+Date: Mon, 12 Mar 2012 11:39:24 +0200
+Message-ID: <20120312093921.GA5375@legolas.emea.dhcp.ti.com>
+References: <1326983304-14619-1-git-send-email-hvaibhav@ti.com>
+ <1326983304-14619-2-git-send-email-hvaibhav@ti.com>
+ <20120305225530.GJ12083@atomide.com>
+ <79CD15C6BA57404B839C016229A409A83180F73D@DBDE01.ent.ti.com>
+Reply-To: balbi@ti.com
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: 7bit
+Content-Type: multipart/signed; micalg=pgp-sha1;
+	protocol="application/pgp-signature"; boundary="17pEHd4RhPHOinZp"
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from bear.ext.ti.com ([192.94.94.41]:34319 "EHLO bear.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753107Ab2CLJTT (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Mon, 12 Mar 2012 05:19:19 -0400
-In-Reply-To: <4F5D8EBA.3060602@ti.com>
+Received: from na3sys009aog111.obsmtp.com ([74.125.149.205]:51461 "EHLO
+	na3sys009aog111.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1755054Ab2CLJj2 (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>);
+	Mon, 12 Mar 2012 05:39:28 -0400
+Received: by mail-lb0-f174.google.com with SMTP id gm6so1308618lbb.33
+        for <linux-omap@vger.kernel.org>; Mon, 12 Mar 2012 02:39:27 -0700 (PDT)
+Content-Disposition: inline
+In-Reply-To: <79CD15C6BA57404B839C016229A409A83180F73D@DBDE01.ent.ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Rajendra Nayak <rnayak@ti.com>
-Cc: Paul Walmsley <paul@pwsan.com>, linux-omap@vger.kernel.org, khilman@ti.com, linux-arm-kernel@lists.infradead.org, Vishwanath BS <vishwanath.bs@ti.com>
+To: "Hiremath, Vaibhav" <hvaibhav@ti.com>
+Cc: Tony Lindgren <tony@atomide.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, "marc.zyngier@arm.com" <marc.zyngier@arm.com>, "johnstul@us.ibm.com" <johnstul@us.ibm.com>, "Balbi, Felipe" <balbi@ti.com>, "Cousson, Benoit" <b-cousson@ti.com>, Paul Walmsley <paul@pwsan.com>, "DebBarma, Tarun Kanti" <tarun.kanti@ti.com>
 
-On Mon, 2012-03-12 at 11:20 +0530, Rajendra Nayak wrote:
-> On Saturday 10 March 2012 06:10 AM, Paul Walmsley wrote:
-> > cc Rajendra
-> >
-> > Hi Tero,
-> >
-> > a few comments:
-> >
-> > On Tue, 6 Mar 2012, Tero Kristo wrote:
-> >
+
+--17pEHd4RhPHOinZp
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
+
+On Fri, Mar 09, 2012 at 05:58:00PM +0000, Hiremath, Vaibhav wrote:
+> On Tue, Mar 06, 2012 at 04:25:30, Tony Lindgren wrote:
+> > Hi,
+> >=20
+> > * Vaibhav Hiremath <hvaibhav@ti.com> [120119 06:01]:
+> > > OMAP device has 32k-sync timer which is currently used as a
+> > > clocksource in the kernel (omap2plus_defconfig).
+> > > The current implementation uses compile time selection between
+> > > gp-timer and 32k-sync timer, which breaks multi-omap build for
+> > > the devices like AM33xx, where 32k-sync timer is not available.
+> > >=20
+> > > So use hwmod database lookup mechanism, through which at run-time
+> > > we can identify availability of 32k-sync timer on the device,
+> > > else fall back to gp-timer.
 > > ...
-> >
-> >> +/* OMAP3 Daisychain enable sequence */
-> >> +void omap3_trigger_io_chain(void)
-> >> +{
-> >> +	int i = 0;
-> >> +
-> >> +	omap2_prm_set_mod_reg_bits(OMAP3430_EN_IO_CHAIN_MASK, WKUP_MOD,
-> >> +				   PM_WKEN);
-> >> +	/* Do a readback to assure write has been done */
-> >> +	omap2_prm_read_mod_reg(WKUP_MOD, PM_WKEN);
-> >
-> > Looks like this barrier shouldn't be needed?  The write is immediately
-> > followed by another read from the same IP block.
+> >=20
+> > > --- a/arch/arm/plat-omap/counter_32k.c
+> > > +++ b/arch/arm/plat-omap/counter_32k.c
+> > > @@ -69,52 +69,55 @@ void read_persistent_clock(struct timespec *ts)
+> > > =20
+> > >  int __init omap_init_clocksource_32k(void)
+> > >  {
+> > > -	static char err[] __initdata =3D KERN_ERR
+> > > -			"%s: can't register clocksource!\n";
+> > > -
+> > > -	if (cpu_is_omap16xx() || cpu_class_is_omap2()) {
+> > > -		u32 pbase;
+> > > -		unsigned long size =3D SZ_4K;
+> > > -		void __iomem *base;
+> > > -		struct clk *sync_32k_ick;
+> > > -
+> > > -		if (cpu_is_omap16xx()) {
+> > > -			pbase =3D OMAP16XX_TIMER_32K_SYNCHRONIZED;
+> > > -			size =3D SZ_1K;
+> > > -		} else if (cpu_is_omap2420())
+> > > -			pbase =3D OMAP2420_32KSYNCT_BASE + 0x10;
+> > > -		else if (cpu_is_omap2430())
+> > > -			pbase =3D OMAP2430_32KSYNCT_BASE + 0x10;
+> > > -		else if (cpu_is_omap34xx())
+> > > -			pbase =3D OMAP3430_32KSYNCT_BASE + 0x10;
+> > > -		else if (cpu_is_omap44xx())
+> > > -			pbase =3D OMAP4430_32KSYNCT_BASE + 0x10;
+> > > -		else
+> > > +	u32 pbase;
+> > > +	unsigned long size =3D SZ_4K;
+> > > +	void __iomem *base;
+> > > +	struct clk *sync_32k_ick;
+> > > +
+> > > +	if (cpu_is_omap16xx()) {
+> > > +		pbase =3D OMAP16XX_TIMER_32K_SYNCHRONIZED;
+> > > +		size =3D SZ_1K;
+> > > +	} else if (cpu_class_is_omap2()) {
+> > > +		struct omap_hwmod *oh;
+> > > +		const char *oh_name =3D "counter_32k";
+> > > +
+> > > +		oh =3D omap_hwmod_lookup(oh_name);
+> > > +		if (!oh || oh->slaves_cnt =3D=3D 0) {
+> > > +			pr_err("Could not lookup %s hwmod\n", oh_name);
+> > >  			return -ENODEV;
+> > > +		}
+> > > +		pbase =3D oh->slaves[0]->addr->pa_start + 0x10;
+> > > +	} else {
+> > > +		return -ENODEV;
+> > > +	}
+> >=20
+> > How about have separate omap1 and omap2+ init functions that
+> > call a common function and passes the pbase as a parameter?
+> >=20
+> > That way we can get rid of the cpu_is_omapxxxx tests here.
+> >=20
+>=20
+> Tony,
+>=20
+> In the morning, I replied very soon, without much thinking...
+>=20
+> Just now I started working on the patch, I was just reviewing the code,=
+=20
+> and I felt that, it is unnecessary to split the code between omap1 and=20
+> omap2+.
+>=20
+> The reason is,
+>=20
+> Currently Only OMAP16xx base-address is hardcoded with
+> cpu_is_omap16xx() macro, For all other omap family of devices the
+> complete information is fetched from HWDMO api's/data.
 
-I think you are right here, this can be dropped.
+In that case, why don't you create the platform_device by hand on
+arch/arm/mach-omap1/devices.c and move the omap2+ (which is based on
+hwmod) to arch/arm/mach-omap2/devices.c ?
 
-> >
-> >> +
-> >> +	omap_test_timeout(omap2_prm_read_mod_reg(WKUP_MOD, PM_WKST)&
-> >> +			  OMAP3430_ST_IO_CHAIN_MASK,
-> >> +			  MAX_IOPAD_LATCH_TIME, i);
-> >> +
-> >> +	omap2_prm_clear_mod_reg_bits(OMAP3430_EN_IO_CHAIN_MASK, WKUP_MOD,
-> >> +				     PM_WKEN);
-> >> +
-> >> +	omap2_prm_set_mod_reg_bits(OMAP3430_ST_IO_CHAIN_MASK, WKUP_MOD,
-> >> +				     PM_WKST);
-> >> +
-> >> +	omap2_prm_read_mod_reg(WKUP_MOD, PM_WKST);
-> >> +}
-> >
-> > I see that you removed the second timeout test from this code, but not
-> > from the OMAP4 version.  Any reason why?  Seems like if the second timeout
-> > can be removed from one, then it can also be removed from the other?
-> 
-> Actually FWIK, its nteeded in both OMAP3 and OMAP4. The OMAP3
-> documentation does no mention about it. but that is just bad
-> documentation.
+--=20
+balbi
 
-Both documentation and actual functionality appears to be different for
-OMAP3 / OMAP4. The status bit on OMAP3 is read / write, and writing 1 to
-it clears it. On OMAP4, it is read only and both values 0 / 1 indicate
-something has happened. On OMAP3 the bit must be cleared by writing 1 to
-it, otherwise it remains high indefinitely and will break all the
-subsequent trigger calls. Also, clearing EN_IO_CHAIN on OMAP3 does not
-appear to trigger any activity that would change the status of
-ST_IO_CHAIN, so there is nothing to poll at the end.
+--17pEHd4RhPHOinZp
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: Digital signature
 
-Here is a sample trace I just generated for the trigger on OMAP3:
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.4.11 (GNU/Linux)
 
-[    7.707824] omap3_trigger_io_chain(1): PM_WKST=00000000
-[    7.707855] omap3_trigger_io_chain(2): PM_WKST=00000000
-[    7.707855] omap3_trigger_io_chain(3): PM_WKST=00010000
-[    7.707885] omap3_trigger_io_chain(4): PM_WKST=00000000
-[    7.707977] omap3_trigger_io_chain(5): PM_WKST=00000000
+iQIcBAEBAgAGBQJPXcRJAAoJEIaOsuA1yqREAIsP/ipPGeFVSABfuWcrqvEBF2GY
+5Bimae6IsdeO/MRVNkrv2GbhNzLpNUOWD51B3QPKgaOUgKLqxOomkWPD7mhJy0vK
+sIOuA6yHpy6eLPZfqmSr9GFUQNYKGyt4kcnnO6qch6X/c18qNJq9QK1e+RkqQlG+
+vXVUyc9UhDlSubUtgmWma0hbB2iTHB01eW4XcXFaocF0MrDENDB8XXKWW87bGNTo
+XcKQuWAsOoqcWCUuM5RdyNJrOCp4XOo8edfxZLzg2RafqoxAQR3ZmF6qwnrKahf/
+ORMxO25a37ly9+Fc015Z+6Qczgt1ZgqRDStPvkAd0nAhKZCe0DJHNpSXMuEBFa73
+QHbnSe4IegyMobcZkf2NxfLV8cTP26McFqBpP6Ducf2UkkkohyleH/d6bK/74wl+
+APaIG0xL0FuUg7VZL3m3RcI0hR9PpJ9OyquywzVHtaSHkU9xe2JWp0TKmyaDYI3Y
+ElgO5vU/e7EVYmJ+VHjJGk9ilLkUI1Q9N2tC3P8dzhYCF/y2Y+re7edCDbapC/Ao
+rFaq0zZHwc5s7G/YBrGbV15U+cH+PErclDF/1m5KODBlmL9jFK1rY5g8BHphftUo
+7waV0voK27u67vYPK4vErARZ2cm4CG+z1vDydBoOliXQWfe8Q7yxh8IjI/u+zUVI
+ZupJX+IPY3ln4Oa4MT6r
+=fOiq
+-----END PGP SIGNATURE-----
 
-1 = enter trigger function
-2 = just after enabling io chain
-3 = just after first poll loop
-4 = just after clear of io status and disabling of io chain
-5 = after udelay(100) from last event (you can see the status bit never
-raises)
-
-So, you can see that there is no change in the status bit between 4...5,
-so there is no point for polling anything there. I even tried changing
-the clear of IO status and disabling of IO chain to see if it had any
-impact on this result but no. The main point is that we must clear the
-status bit at #4, and thus polling for it to change at #5 makes no
-sense. We just need to force the register writes to PRCM by doing some
-access to the IP block.
-
-
-Looking at similar trace on omap4:
-
-[    8.097503] omap4_trigger_io_chain(1): IO=00010020
-[    8.097503] omap4_trigger_io_chain(2): IO=00010320
-[    8.097534] omap4_trigger_io_chain(3): IO=00010320
-[    8.097534] omap4_trigger_io_chain(4): IO=00010020
-[    8.097534] omap4_trigger_io_chain(5): IO=00010020
-
-1 = enter function
-2 = just after enabling WUCLK_CTRL
-3 = just after poll
-4 = just after disabling WUCLK_CTRL
-5 = just after poll
-
-Well, the status bit follows the state of the WUCLK_CTRL, but there is
-no time to actually poll the registers it seems, their state has already
-changed when the value from first read arrives back as the register
-access itself is so slow. But... we are not manually clearing the status
-bit, thus polling kind of makes sense (and it might make more sense if
-some future version of PRCM would allow faster register access.)
-
-I also did both of these tests by caching the register values to memory
-(no immediate printks to avoid delays) but the results are still the
-same.
-
--Tero
-
-
+--17pEHd4RhPHOinZp--
