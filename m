@@ -1,15 +1,15 @@
 From: Rob Clark <rob.clark@linaro.org>
-Subject: [PATCH 3/3] staging: drm/omap: use current time for page-flip event
-Date: Sun, 11 Mar 2012 21:11:22 -0500
-Message-ID: <1331518282-6870-3-git-send-email-rob.clark@linaro.org>
+Subject: [PATCH 2/3] staging: drm/omap: send page-flip event after endwin
+Date: Sun, 11 Mar 2012 21:11:21 -0500
+Message-ID: <1331518282-6870-2-git-send-email-rob.clark@linaro.org>
 References: <1331518282-6870-1-git-send-email-rob.clark@linaro.org>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-yw0-f46.google.com ([209.85.213.46]:46788 "EHLO
-	mail-yw0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754660Ab2CLCLQ (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Sun, 11 Mar 2012 22:11:16 -0400
-Received: by yhmm54 with SMTP id m54so2087016yhm.19
-        for <linux-omap@vger.kernel.org>; Sun, 11 Mar 2012 19:11:16 -0700 (PDT)
+Received: from mail-gy0-f174.google.com ([209.85.160.174]:63484 "EHLO
+	mail-gy0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754650Ab2CLCLP (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Sun, 11 Mar 2012 22:11:15 -0400
+Received: by ghrr11 with SMTP id r11so2095473ghr.19
+        for <linux-omap@vger.kernel.org>; Sun, 11 Mar 2012 19:11:14 -0700 (PDT)
 In-Reply-To: <1331518282-6870-1-git-send-email-rob.clark@linaro.org>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
@@ -18,41 +18,190 @@ Cc: patches@linaro.org, Greg KH <greg@kroah.com>, Tomi Valkeinen <tomi.valkeinen
 
 From: Rob Clark <rob@ti.com>
 
-Because we don't have vblank hooked up via drm_irq (which is a bit
-awkward due to separation between omapdss (which knows the irq #)
-and omapdrm, for now use gettimeofday to have a semi-sane timestamp
-in the page-flip event.  Otherwise apps like weston drm compositor,
-which use the timestamp in it's animations, get highly confused.
+The endwin irq indicates that DSS has finished scanning out a buffer.
+Use this to trigger page-flip event to userspace, so this happens
+only *after* the previous buffer is finished.
 
 Signed-off-by: Rob Clark <rob@ti.com>
 ---
- drivers/staging/omapdrm/omap_crtc.c |   10 ++++++++++
- 1 files changed, 10 insertions(+), 0 deletions(-)
+ drivers/staging/omapdrm/omap_crtc.c  |   27 ++++++++++++----
+ drivers/staging/omapdrm/omap_drv.h   |    2 +
+ drivers/staging/omapdrm/omap_plane.c |   56 +++++++++++++++++++++++++++-------
+ 3 files changed, 67 insertions(+), 18 deletions(-)
 
 diff --git a/drivers/staging/omapdrm/omap_crtc.c b/drivers/staging/omapdrm/omap_crtc.c
-index 13e3c7f..490a7f1 100644
+index 17ca163..13e3c7f 100644
 --- a/drivers/staging/omapdrm/omap_crtc.c
 +++ b/drivers/staging/omapdrm/omap_crtc.c
-@@ -134,9 +134,19 @@ static void vblank_cb(void *arg)
+@@ -118,25 +118,21 @@ static void omap_crtc_load_lut(struct drm_crtc *crtc)
+ {
+ }
+ 
+-static void page_flip_cb(void *arg)
++static void vblank_cb(void *arg)
+ {
++	static uint32_t sequence = 0;
+ 	struct drm_crtc *crtc = arg;
+ 	struct drm_device *dev = crtc->dev;
+ 	struct omap_crtc *omap_crtc = to_omap_crtc(crtc);
+ 	struct drm_pending_vblank_event *event = omap_crtc->event;
+-	struct drm_framebuffer *old_fb = omap_crtc->old_fb;
+-	struct timeval now;
+ 	unsigned long flags;
++	struct timeval now;
+ 
+ 	WARN_ON(!event);
+ 
+ 	omap_crtc->event = NULL;
+-	omap_crtc->old_fb = NULL;
+-
+-	omap_crtc_mode_set_base(crtc, crtc->x, crtc->y, old_fb);
  
  	/* wakeup userspace */
+-	/* TODO: this should happen *after* flip in vsync IRQ handler */
  	if (event) {
-+		do_gettimeofday(&now);
-+
  		spin_lock_irqsave(&dev->event_lock, flags);
-+		/* TODO: we can't yet use the vblank time accounting,
-+		 * because omapdss lower layer is the one that knows
-+		 * the irq # and registers the handler, which more or
-+		 * less defeats how drm_irq works.. for now just fake
-+		 * the sequence number and use gettimeofday..
-+		 *
  		event->event.sequence = drm_vblank_count_and_time(
- 				dev, omap_crtc->id, &now);
-+		 */
-+		event->event.sequence = sequence++;
- 		event->event.tv_sec = now.tv_sec;
- 		event->event.tv_usec = now.tv_usec;
- 		list_add_tail(&event->base.link,
+@@ -150,6 +146,23 @@ static void page_flip_cb(void *arg)
+ 	}
+ }
+ 
++static void page_flip_cb(void *arg)
++{
++	struct drm_crtc *crtc = arg;
++	struct omap_crtc *omap_crtc = to_omap_crtc(crtc);
++	struct drm_framebuffer *old_fb = omap_crtc->old_fb;
++
++	omap_crtc->old_fb = NULL;
++
++	omap_crtc_mode_set_base(crtc, crtc->x, crtc->y, old_fb);
++
++	/* really we'd like to setup the callback atomically w/ setting the
++	 * new scanout buffer to avoid getting stuck waiting an extra vblank
++	 * cycle.. for now go for correctness and later figure out speed..
++	 */
++	omap_plane_on_endwin(omap_crtc->plane, vblank_cb, crtc);
++}
++
+ static int omap_crtc_page_flip_locked(struct drm_crtc *crtc,
+ 		 struct drm_framebuffer *fb,
+ 		 struct drm_pending_vblank_event *event)
+diff --git a/drivers/staging/omapdrm/omap_drv.h b/drivers/staging/omapdrm/omap_drv.h
+index 21e48cf..b7e0f07 100644
+--- a/drivers/staging/omapdrm/omap_drv.h
++++ b/drivers/staging/omapdrm/omap_drv.h
+@@ -85,6 +85,8 @@ int omap_plane_mode_set(struct drm_plane *plane,
+ 		unsigned int crtc_w, unsigned int crtc_h,
+ 		uint32_t src_x, uint32_t src_y,
+ 		uint32_t src_w, uint32_t src_h);
++void omap_plane_on_endwin(struct drm_plane *plane,
++		void (*fxn)(void *), void *arg);
+ 
+ struct drm_encoder *omap_encoder_init(struct drm_device *dev,
+ 		struct omap_overlay_manager *mgr);
+diff --git a/drivers/staging/omapdrm/omap_plane.c b/drivers/staging/omapdrm/omap_plane.c
+index 9b3bfa0..7997be7 100644
+--- a/drivers/staging/omapdrm/omap_plane.c
++++ b/drivers/staging/omapdrm/omap_plane.c
+@@ -31,6 +31,11 @@
+  * plane funcs
+  */
+ 
++struct callback {
++	void (*fxn)(void *);
++	void *arg;
++};
++
+ #define to_omap_plane(x) container_of(x, struct omap_plane, base)
+ 
+ struct omap_plane {
+@@ -58,6 +63,9 @@ struct omap_plane {
+ 
+ 	/* for deferred unpin when we need to wait for scanout complete irq */
+ 	struct work_struct work;
++
++	/* callback on next endwin irq */
++	struct callback endwin;
+ };
+ 
+ /* map from ovl->id to the irq we are interested in for scanout-done */
+@@ -84,6 +92,7 @@ static void unpin_worker(struct work_struct *work)
+ {
+ 	struct omap_plane *omap_plane =
+ 			container_of(work, struct omap_plane, work);
++	struct callback endwin;
+ 
+ 	mutex_lock(&omap_plane->unpin_mutex);
+ 	DBG("unpinning %d of %d", omap_plane->num_unpins,
+@@ -96,7 +105,28 @@ static void unpin_worker(struct work_struct *work)
+ 		drm_gem_object_unreference_unlocked(bo);
+ 		omap_plane->num_unpins--;
+ 	}
++	endwin = omap_plane->endwin;
++	omap_plane->endwin.fxn = NULL;
+ 	mutex_unlock(&omap_plane->unpin_mutex);
++
++	if (endwin.fxn)
++		endwin.fxn(endwin.arg);
++}
++
++static void install_irq(struct drm_plane *plane)
++{
++	struct omap_plane *omap_plane = to_omap_plane(plane);
++	struct omap_overlay *ovl = omap_plane->ovl;
++	int ret;
++
++	ret = omap_dispc_register_isr(dispc_isr, plane, id2irq[ovl->id]);
++
++	/*
++	 * omapdss has upper limit on # of registered irq handlers,
++	 * which we shouldn't hit.. but if we do the limit should
++	 * be raised or bad things happen:
++	 */
++	WARN_ON(ret == -EBUSY);
+ }
+ 
+ /* push changes down to dss2 */
+@@ -146,17 +176,8 @@ static int commit(struct drm_plane *plane)
+ 		 * NOTE: really this should be atomic w/ mgr->apply() but
+ 		 * omapdss does not expose such an API
+ 		 */
+-		if (omap_plane->num_unpins > 0) {
+-			ret = omap_dispc_register_isr(dispc_isr,
+-				plane, id2irq[ovl->id]);
+-		}
+-
+-		/*
+-		 * omapdss has upper limit on # of registered irq handlers,
+-		 * which we shouldn't hit.. but if we do the limit should
+-		 * be raised or bad things happen:
+-		 */
+-		WARN_ON(ret == -EBUSY);
++		if (omap_plane->num_unpins > 0)
++			install_irq(plane);
+ 
+ 	} else {
+ 		struct omap_drm_private *priv = dev->dev_private;
+@@ -375,6 +396,19 @@ int omap_plane_dpms(struct drm_plane *plane, int mode)
+ 	return r;
+ }
+ 
++void omap_plane_on_endwin(struct drm_plane *plane,
++		void (*fxn)(void *), void *arg)
++{
++	struct omap_plane *omap_plane = to_omap_plane(plane);
++
++	mutex_lock(&omap_plane->unpin_mutex);
++	omap_plane->endwin.fxn = fxn;
++	omap_plane->endwin.arg = arg;
++	mutex_unlock(&omap_plane->unpin_mutex);
++
++	install_irq(plane);
++}
++
+ static const struct drm_plane_funcs omap_plane_funcs = {
+ 		.update_plane = omap_plane_update,
+ 		.disable_plane = omap_plane_disable,
 -- 
 1.7.5.4
 
