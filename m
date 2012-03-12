@@ -1,99 +1,217 @@
-From: "Gupta, Ajay Kumar" <ajay.gupta@ti.com>
-Subject: RE: [PATCH 2/3 v5] arm: omap: am335x: enable phy controls
-Date: Mon, 12 Mar 2012 12:52:14 +0000
-Message-ID: <47CEF8C4B26E8C44B22B028A650E0EA93186A329@DBDE01.ent.ti.com>
-References: <1328686872-22924-1-git-send-email-ajay.gupta@ti.com>
- <1328686872-22924-2-git-send-email-ajay.gupta@ti.com>
- <20120305225042.GI12083@atomide.com>
+From: Tomi Valkeinen <tomi.valkeinen@ti.com>
+Subject: OMAP DSS device tree design problems
+Date: Mon, 12 Mar 2012 15:45:30 +0200
+Message-ID: <1331559930.2097.100.camel@deskari>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
+Content-Type: multipart/signed; micalg="pgp-sha1"; protocol="application/pgp-signature"; boundary="=-JeQqltkxHosH/ZWcEd1T"
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from arroyo.ext.ti.com ([192.94.94.40]:38156 "EHLO arroyo.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754978Ab2CLMwT convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 12 Mar 2012 08:52:19 -0400
-In-Reply-To: <20120305225042.GI12083@atomide.com>
-Content-Language: en-US
+Received: from na3sys009aog111.obsmtp.com ([74.125.149.205]:56896 "EHLO
+	na3sys009aog111.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1752604Ab2CLNpf (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>);
+	Mon, 12 Mar 2012 09:45:35 -0400
+Received: by lbon10 with SMTP id n10so1781465lbo.39
+        for <linux-omap@vger.kernel.org>; Mon, 12 Mar 2012 06:45:33 -0700 (PDT)
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Tony Lindgren <tony@atomide.com>
-Cc: "linux-usb@vger.kernel.org" <linux-usb@vger.kernel.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "Balbi, Felipe" <balbi@ti.com>
-
-Hi Tony,
-> * Ajay Kumar Gupta <ajay.gupta@ti.com> [120207 23:10]:
-> > Switch on the phy for am335x.
-> >
-> > Signed-off-by: Ajay Kumar Gupta <ajay.gupta@ti.com>
-> > ---
-> >  arch/arm/mach-omap2/omap_phy_internal.c |   21 ++++++++++++++-------
-> >  1 files changed, 14 insertions(+), 7 deletions(-)
-> >
-> > diff --git a/arch/arm/mach-omap2/omap_phy_internal.c b/arch/arm/mach-
-> omap2/omap_phy_internal.c
-> > index 4c90477..7129408 100644
-> > --- a/arch/arm/mach-omap2/omap_phy_internal.c
-> > +++ b/arch/arm/mach-omap2/omap_phy_internal.c
-> > @@ -266,7 +266,11 @@ void ti81xx_musb_phy_power(u8 on)
-> >  	void __iomem *scm_base = NULL;
-> >  	u32 usbphycfg;
-> >
-> > -	scm_base = ioremap(TI81XX_SCM_BASE, SZ_2K);
-> > +	if (cpu_is_ti81xx())
-> > +		scm_base = ioremap(TI81XX_SCM_BASE, SZ_2K);
-> > +	else if (cpu_is_am33xx())
-> > +		scm_base = ioremap(AM33XX_SCM_BASE, SZ_2K);
-> > +
-> >  	if (!scm_base) {
-> >  		pr_err("system control module ioremap failed\n");
-> >  		return;
-> > @@ -278,16 +282,19 @@ void ti81xx_musb_phy_power(u8 on)
-> >  		if (cpu_is_ti816x()) {
-> >  			usbphycfg |= TI816X_USBPHY0_NORMAL_MODE;
-> >  			usbphycfg &= ~TI816X_USBPHY_REFCLK_OSC;
-> > -		} else if (cpu_is_ti814x()) {
-> > -			usbphycfg &= ~(USBPHY_CM_PWRDN | USBPHY_OTG_PWRDN
-> > -				| USBPHY_DPINPUT | USBPHY_DMINPUT);
-> > -			usbphycfg |= (USBPHY_OTGVDET_EN | USBPHY_OTGSESSEND_EN
-> > -				| USBPHY_DPOPBUFCTL | USBPHY_DMOPBUFCTL);
-> > +		} else if (cpu_is_ti814x() || cpu_is_am33xx()) {
-> > +			usbphycfg &= ~(USBPHY_CM_PWRDN | USBPHY_OTG_PWRDN);
-> > +			usbphycfg |= USBPHY_OTGVDET_EN | USBPHY_OTGSESSEND_EN;
-> > +			if (cpu_is_ti814x()) {
-> > +				usbphycfg &= ~(USBPHY_DPINPUT |
-> USBPHY_DMINPUT);
-> > +				usbphycfg |= USBPHY_DPOPBUFCTL
-> > +					| USBPHY_DMOPBUFCTL;
-> > +			}
-> >  		}
-> >  	} else {
-> >  		if (cpu_is_ti816x())
-> >  			usbphycfg &= ~TI816X_USBPHY0_NORMAL_MODE;
-> > -		else if (cpu_is_ti814x())
-> > +		else if (cpu_is_ti814x() || cpu_is_am33xx())
-> >  			usbphycfg |= USBPHY_CM_PWRDN | USBPHY_OTG_PWRDN;
-> >
-> >  	}
-> 
-> Hmm I think I might have commented on this earlier..
-
-Yes, you have already provided this comment and I need to post
-the updated patches.
-
-> But anyways,
-> please change the code so cpu_is_xxxx tests are done only once
-> during the init, not every time phy_power gets called.
-> 
-> So initialize something in phy_init so things get set for the
-> board that's booted.
-
-I will send the updated patches soon.
-
-Thanks,
-Ajay
+To: linux-arm-kernel <linux-arm-kernel@lists.infradead.org>, linux-omap <linux-omap@vger.kernel.org>, Archit Taneja <archit@ti.com>, Benoit Cousson <b-cousson@ti.com>
+Cc: Tony Lindgren <tony@atomide.com>
 
 
-> 
-> Regards,
-> 
-> Tony
+--=-JeQqltkxHosH/ZWcEd1T
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: quoted-printable
+
+Hi,
+
+I'm struggling with the design of the DT data for OMAP display subsystem
+driver, and any thoughts and ideas are welcome. This mail is a rather
+long one, where I'm trying to show the different approaches I've
+thought.
+
+So the .dts format would be something like this, taking 4430SDP as an
+example. It's just an outline, missing dispc, hwmods,
+compatible-properties etc, which are not so relevant here.
+
+ocp {
+	dss {
+		dsi1 {
+			taal {
+
+			};
+		};
+	};
+};
+
+So there we have a Taal panel, connected to DSI1 output interface, which
+is part of the OMAP display subsystem.
+
+One thing to note here is that although there's only one panel under
+dsi1 in this case, the current SW supports having multiple panels under
+one output interface. And while the output can support only one active
+panel at a time, we do have boards where two panels are connected to one
+output, and there's some kind of HW switch used to select which panel is
+enabled.
+
+The first problem here is that I don't know how to manage the switch
+part. With current SW we have had the switch handling in the board
+files, in functions called when a display is enabled/disabled. I guess
+one option is to have the switch related code in their own drivers,
+totally apart from the dss code, perhaps offering a sysfs interface or
+such. And then, if the switch happens to be in the wrong position, the
+panel will fail in some way.
+
+The second problem is about the DT properties. With multiple panels it's
+not possible to do this:
+
+dsi1 {
+	dsi-ddr-clk =3D <250000000>;
+
+	taal {
+	};
+
+	some-other-panel {
+	};
+};
+
+because the panels could require different dsi clock rates. So we need
+something like this:
+
+dsi1 {
+	taal {
+		dsi-ddr-clk =3D <250000000>;
+	};
+
+	some-other-panel {
+		dsi-ddr-clk =3D <350000000>;
+	};
+};
+
+However, here the problem is that while ultimately we're interested in
+the ddr-clk rate, calculation of the rate is non-trivial and may need
+customizations at times. So instead of the clock rate we actually need
+to define a bunch of dividers/multipliers.
+
+But these dividers are OMAP specific things, and do not belong to Taal
+driver. So this bring the question: is the general rule about DT node
+properties such that only the driver handling the particular node should
+read the properties in that node? So, in the example above, should the
+dsi driver only read props in the dsi1 and dsi2 nodes, and never look at
+props in the taal nodes?
+
+So basically, can we do this:
+
+dsi1 {
+	taal {
+		omap-specific-clk-divs =3D <1 2 3 4 5 6 7>;
+	};
+
+	some-other-panel {
+		omap-specific-clk-divs =3D <7 6 5 4 3 2 1>;
+	};
+};
+
+and the Taal driver would ignore those, but dsi driver would use them?
+This looks like quite easy solution to this, but also doesn't feel
+right. So my current idea is to have clk-div tables in the dsi node,
+something like this:
+
+dsi1 {
+	omap-specific-clk-divs =3D <
+		250 1 2 3 4 5 6 7 /* divs that produce 250MHz clk */
+		350 7 6 5 4 3 2 1 /* divs that produce 350MHz clk */
+	>;
+
+	taal {
+		dsi-ddr-clk =3D <250000000>;
+	};
+
+	some-other-panel {
+		dsi-ddr-clk =3D <350000000>;
+	};
+};
+
+Here the panel drivers would ask the DSI driver to configure DSI DDR clk
+of 250/350MHz, and the DSI driver would then use the lookup table to
+find the dividers. If the lookup fails, the DSI driver could fail or try
+to calculate the dividers itself. Other platforms could handle the DDR
+clk configuration however they see best.
+
+---
+
+Another thing related to DSI command mode panels is the DSI lane
+configuration, and I can't make my mind if they belong to the panel
+driver in some way or not.
+
+So, again taking SDP board and Taal as an example, we have 6 pads on
+OMAP which are used for communicating with Taal. The pads need to be
+muxed to DSI mode like any other OMAP pads. Currently the pad muxing is
+not touched by the driver, but I think it's doable in the DSI driver (as
+long as the DSI driver knows the required pad config).
+
+However, that's not enough.
+
+DSI uses differential pairs for communication (a "lane" consists of two
+wires), and we have always one clock lane, and a number of data lanes.
+In Taal's case we have a clock lane and two data lanes, which means 6
+pads/wires.
+
+We need to configure which of the OMAPs pads is used for which function,
+so, for example, pad x and x+1 are used for clock lane, and x is the
+negative pair and x+1 is the positive pair. And this configuration has
+to match the wiring going to the panel, so that clk+ from OMAP goes to
+clk+ in the panel.
+
+So it dts data we need something, perhaps, like below. Here we define
+the pad numbers and polarities in an array, where the first cell-pair is
+for clk, then data1, then data2 and so on (if there are more than two
+data lanes).
+
+lanes =3D <
+	/* pad-pair number, polarity */
+	1 0	/* DSI pad pair 1 is used for clk, pol +/-  */
+	2 1	/* DSI pad pair 2 is used for data1, pol -/+ */
+	0 0	/* DSI pad pair 0 is used for data2, pol +/- */
+>;
+
+Now, I don't quite know where this data should be. If it's in the
+dsi-node, it doesn't work with multiple panels. But then, it's quite
+OMAP specific thing. While other platforms probably need some kind of
+pad configuration also, it may be something totally different. And so it
+doesn't feel right in the taal-node either.
+
+And a look-up table like in the clock case doesn't make much sense
+either, as we don't have a key here, as we had in the clock case (the
+dsi-ddr-clk).
+
+So basically the only option I've come up with is to define the lane
+configuration in the panel's data, and let the dsi driver peek there and
+configure the HW. And this doesn't feel right.
+
+ Tomi
+
+
+--=-JeQqltkxHosH/ZWcEd1T
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: This is a digitally signed message part
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.4.11 (GNU/Linux)
+
+iQIcBAABAgAGBQJPXf36AAoJEPo9qoy8lh71qR4QAJbhwkImXs8b6Zi0hkuZTtDQ
+yHmuMfMgvSiZW9fx1u7IEd7srb9c2Dmf5b7SA9z6e3y8pnYqbI+5jWKQPJ6Xd99t
+LeoPKyANpZLu1S6Rg2ohdXOCPMw/XBKmNyVlEWnChU6Jef902TUIKL6DX5QPXmUt
+WGLRlU3Qsu1+B5Y1KGpdoLKQfx3A+35h2YI/+PNvHMAph81XUQ+kBpxL5DMkZYq3
+j/flnlkiDJc8eg+rbO17cuJwAxUjOSIR96dzIJoFlu2Lag/CbL0xUfRoc3kAfGRH
+hGkO8vturBkHRacMqQYjfEg/hzaQOzUxXkU3lOzY8jSWFIQF1mLFMnh3nApKvJmt
+m3anpL3O33gIMUZTquUPcg/SUbA0Tyhqp8HE3eocbZI3qDPjMIyEfbCcIUZK/MiR
+ZtBogTr4evqYjzBwj8lN9M1dFssz8l9EYLQP5h6GL27FjlPpKYRjPWHjm04Ld2+x
+tELM3Njx/mfK4xwzHJ8PIZ5x06psbBGB9AKT2xd6Lqo+yPkp3ygbiSYOsxwZ5EO3
+5NxFNS2lg6lysSC8rLETx7gCvIt416CJB0TQ/2CyByqjRE1UAk8tuUz8YG+VMEfJ
+WmzbTzgIcA0LYwybDDN32GUVmmYdof2e+DjPrKd8ybSKtzXfVMUc4yikxDomPrTQ
+UzEyNSfc1SphqQzwCyjx
+=fpk3
+-----END PGP SIGNATURE-----
+
+--=-JeQqltkxHosH/ZWcEd1T--
+
