@@ -1,84 +1,121 @@
-From: Santosh Shilimkar <santosh.shilimkar@ti.com>
-Subject: Re: [PATCH 0/8] Add TI EMIF SDRAM controller driver
-Date: Mon, 12 Mar 2012 21:28:26 +0530
-Message-ID: <4F5E1D22.5000003@ti.com>
-References: <1331222065-3579-1-git-send-email-aneesh@ti.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
+From: Grant Likely <grant.likely@secretlab.ca>
+Subject: Re: [PATCH] gpio/omap: fix wakeups on level-triggered GPIOs
+Date: Mon, 12 Mar 2012 10:16:17 -0600
+Message-ID: <20120312161618.3EBD33E07B0@localhost>
+References: <1330989004-9855-1-git-send-email-khilman@ti.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aog124.obsmtp.com ([74.125.149.151]:52853 "EHLO
-	na3sys009aog124.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751642Ab2CLP6f (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>);
-	Mon, 12 Mar 2012 11:58:35 -0400
-Received: by yhjj56 with SMTP id j56so3220781yhj.34
-        for <linux-omap@vger.kernel.org>; Mon, 12 Mar 2012 08:58:32 -0700 (PDT)
-In-Reply-To: <1331222065-3579-1-git-send-email-aneesh@ti.com>
+Received: from mail-iy0-f174.google.com ([209.85.210.174]:32772 "EHLO
+	mail-iy0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751417Ab2CLQQV (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 12 Mar 2012 12:16:21 -0400
+Received: by iagz16 with SMTP id z16so7051532iag.19
+        for <linux-omap@vger.kernel.org>; Mon, 12 Mar 2012 09:16:21 -0700 (PDT)
+In-Reply-To: <1330989004-9855-1-git-send-email-khilman@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Aneesh V <aneesh@ti.com>
-Cc: linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, Greg KH <greg@kroah.com>
+To: Kevin Hilman <khilman@ti.com>
+Cc: Tony Lindgren <tony@atomide.com>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Tarun Kanti DebBarma <tarun.kanti@ti.com>
 
-On Thursday 08 March 2012 09:24 PM, Aneesh V wrote:
-> Add a driver for the EMIF SDRAM controller used in TI SoCs
+On Mon,  5 Mar 2012 15:10:04 -0800, Kevin Hilman <khilman@ti.com> wrote:
+> While both level- and edge-triggered GPIOs are capable of generating
+> interrupts, only edge-triggered GPIOs are capable of generating a
+> module-level wakeup to the PRCM (c.f. 34xx NDA TRM section 25.5.3.2.)
 > 
-> EMIF is an SDRAM controller that supports, based on its revision,
-> one or more of LPDDR2/DDR2/DDR3 protocols.This driver adds support
-> for LPDDR2.
+> In order to ensure that devices using level-triggered GPIOs as
+> interrupts can also cause wakeups (e.g. from idle), this patch enables
+> edge-triggering for wakeup-enabled, level-triggered GPIOs when a GPIO
+> bank is runtime-suspended (which also happens during idle.)
 > 
-> The driver supports the following features:
-> - Calculates the DDR AC timing parameters to be set in EMIF
->   registers using data from the device data-sheets and based
->   on the DDR frequency. If data from data-sheets is not available
->   default timing values from the JEDEC spec are used. These
->   will be safe, but not necessarily optimal
-> - API for changing timings during DVFS or at boot-up
-> - Temperature alert configuration and handling of temperature
->   alerts, if any for LPDDR2 devices
->   * temperature alert is based on periodic polling of MR4 mode
->     register in DDR devices automatically performed by hardware
->   * timings are de-rated and brought back to nominal when
->     temperature raises and falls respectively
-> - Cache of calculated register values to avoid re-calculating
->   them
+> This fixes a problem found in GPMC-connected network cards with GPIO
+> interrupts (e.g. smsc911x on Zoom3, Overo, ...) where network booting
+> with NFSroot was very slow since the GPIO IRQs used by the NIC were
+> not generating PRCM wakeups, and thus not waking the system from idle.
+> NOTE: until v3.3, this boot-time problem was somewhat masked because
+> the UART init prevented WFI during boot until the full serial driver
+> was available.  Preventing WFI allowed regular GPIO interrupts to fire
+> and this problem was not seen.  After the UART runtime PM cleanups, we
+> no longer avoid WFI during boot, so GPIO IRQs that were not causing
+> wakeups resulted in very slow IRQ response times.
 > 
-> The driver will need some minor updates when it is eventually
-> integrated with Dynamic Voltage and Frequency Scaling (DVFS).
-> This can not be done now as DVFS support is not available in
-> the mainline yet.
+> Tested on platforms using level-triggered GPIOs for network IRQs using
+> the SMSC911x NIC: 3530/Overo and 3630/Zoom3.
 > 
-> Discussions with Santosh Shilimkar <santosh.shilimkar@ti.com>
-> were immensely helpful in shaping up the interfaces. Vibhore Vardhan
-> <vvardhan@gmail.com> did the initial code snippet for thermal
-> handling.
-> 
-> Testing: 
-> - The driver is tested on OMAP4430 SDP.
-> - The driver in a slightly adapted form is also tested on OMAP5.
-> - Since mainline kernel doesn't have DVFS support yet,
->   testing was done using a test module.
-> - Temperature alert handling was tested with simulated interrupts
->   and faked temperature values as testing all cases in real-life
->   scenarios is difficult.
-> - Tested the driver as a module
-> 
-> Cc: Greg KH <greg@kroah.com>
-> 
-> Aneesh V (7):
->   misc: ddr: add LPDDR2 data from JESD209-2
->   misc: emif: add register definitions for EMIF
->   misc: emif: add basic infrastructure for EMIF driver
->   misc: emif: handle frequency and voltage change events
->   misc: emif: add interrupt and temperature handling
->   misc: emif: add one-time settings
->   misc: emif: add debugfs entries for emif
-> 
-I have scanned all the patches again. Thanks a
-lot for taking forward this work. Feel free to
-add mine SOB for entire EMIF driver series.
+> Reported-by: Tony Lindgren <tony@atomide.com>
+> Tested-by: Tarun Kanti DebBarma <tarun.kanti@ti.com>
+> Tested-by: Tony Lindgren <tony@atomide.com>
+> Signed-off-by: Kevin Hilman <khilman@ti.com>
 
-Signed-off-by: Santosh Shilimkar <santosh.shilimkar@ti.com>
+Applied, thx.
 
-Regards
-Santosh
+g.
+
+> ---
+> Grant, here's another one for your gpio/next branch, and applies on
+> top of the for_3.4/gpio/runtime-pm-cleanup branch you've already
+> pulled from me.  While it's a fix, it's not a regressions since
+> this problem has been around for awhile, so it can be for 3.4.
+> 
+>  drivers/gpio/gpio-omap.c |   34 ++++++++++++++++++++++++++++++++++
+>  1 file changed, 34 insertions(+)
+> 
+> diff --git a/drivers/gpio/gpio-omap.c b/drivers/gpio/gpio-omap.c
+> index f49bd6f..752ae9b 100644
+> --- a/drivers/gpio/gpio-omap.c
+> +++ b/drivers/gpio/gpio-omap.c
+> @@ -1196,8 +1196,30 @@ static int omap_gpio_runtime_suspend(struct device *dev)
+>  	struct gpio_bank *bank = platform_get_drvdata(pdev);
+>  	u32 l1 = 0, l2 = 0;
+>  	unsigned long flags;
+> +	u32 wake_low, wake_hi;
+>  
+>  	spin_lock_irqsave(&bank->lock, flags);
+> +
+> +	/*
+> +	 * Only edges can generate a wakeup event to the PRCM.
+> +	 *
+> +	 * Therefore, ensure any wake-up capable GPIOs have
+> +	 * edge-detection enabled before going idle to ensure a wakeup
+> +	 * to the PRCM is generated on a GPIO transition. (c.f. 34xx
+> +	 * NDA TRM 25.5.3.1)
+> +	 *
+> +	 * The normal values will be restored upon ->runtime_resume()
+> +	 * by writing back the values saved in bank->context.
+> +	 */
+> +	wake_low = bank->context.leveldetect0 & bank->context.wake_en;
+> +	if (wake_low)
+> +		__raw_writel(wake_low | bank->context.fallingdetect,
+> +			     bank->base + bank->regs->fallingdetect);
+> +	wake_hi = bank->context.leveldetect1 & bank->context.wake_en;
+> +	if (wake_hi)
+> +		__raw_writel(wake_hi | bank->context.risingdetect,
+> +			     bank->base + bank->regs->risingdetect);
+> +
+>  	if (bank->power_mode != OFF_MODE) {
+>  		bank->power_mode = 0;
+>  		goto update_gpio_context_count;
+> @@ -1246,6 +1268,18 @@ static int omap_gpio_runtime_resume(struct device *dev)
+>  
+>  	spin_lock_irqsave(&bank->lock, flags);
+>  	_gpio_dbck_enable(bank);
+> +
+> +	/*
+> +	 * In ->runtime_suspend(), level-triggered, wakeup-enabled
+> +	 * GPIOs were set to edge trigger also in order to be able to
+> +	 * generate a PRCM wakeup.  Here we restore the
+> +	 * pre-runtime_suspend() values for edge triggering.
+> +	 */
+> +	__raw_writel(bank->context.fallingdetect,
+> +		     bank->base + bank->regs->fallingdetect);
+> +	__raw_writel(bank->context.risingdetect,
+> +		     bank->base + bank->regs->risingdetect);
+> +
+>  	if (!bank->enabled_non_wakeup_gpios || !bank->workaround_enabled) {
+>  		spin_unlock_irqrestore(&bank->lock, flags);
+>  		return 0;
+> -- 
+> 1.7.9.2
+> 
+
+-- 
+Grant Likely, B.Sc, P.Eng.
+Secret Lab Technologies,Ltd.
