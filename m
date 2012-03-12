@@ -1,79 +1,77 @@
-From: Mark Brown <broonie@opensource.wolfsonmicro.com>
-Subject: Re: [GIT PULL] ARM: OMAP2+: PM: core support for SMPS regulators for
- v3.4
-Date: Mon, 12 Mar 2012 17:32:16 +0000
-Message-ID: <20120312173215.GL3110@opensource.wolfsonmicro.com>
-References: <877gywjhht.fsf@ti.com>
- <20120308021843.GQ12083@atomide.com>
- <87399jc6cj.fsf@ti.com>
- <20120309003217.GB12083@atomide.com>
- <20120309114731.GA3273@opensource.wolfsonmicro.com>
- <87zkbp4wtj.fsf@ti.com>
- <20120311204232.GC3171@opensource.wolfsonmicro.com>
- <87399dzq5e.fsf@ti.com>
+From: Grant Likely <grant.likely@secretlab.ca>
+Subject: Re: [PATCH 0/6] gpio/omap: Some more driver cleanup and fixes
+Date: Mon, 12 Mar 2012 11:34:25 -0600
+Message-ID: <20120312173425.A6B893E07B0@localhost>
+References: <1329999031-6914-1-git-send-email-tarun.kanti@ti.com> <CAMQu2gzdfxJms8cc3VhsVzhGq4f8x1QeY6LU6X+2eFZ4_Yv_bw@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="KSn4sQg3MnruwCB4"
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from opensource.wolfsonmicro.com ([80.75.67.52]:42900 "EHLO
-	opensource.wolfsonmicro.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755737Ab2CLRcS (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>);
-	Mon, 12 Mar 2012 13:32:18 -0400
-Content-Disposition: inline
-In-Reply-To: <87399dzq5e.fsf@ti.com>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: TEXT/PLAIN; charset=ISO-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <CAMQu2gzdfxJms8cc3VhsVzhGq4f8x1QeY6LU6X+2eFZ4_Yv_bw@mail.gmail.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: "Shilimkar, Santosh" <santosh.shilimkar@ti.com>, Tarun Kanti DebBarma <tarun.kanti@ti.com>
+Cc: linux-omap@vger.kernel.org, khilman@ti.com, tony@atomide.com, linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 List-Id: linux-omap@vger.kernel.org
-To: Kevin Hilman <khilman@ti.com>
-Cc: Tony Lindgren <tony@atomide.com>, linux-omap <linux-omap@vger.kernel.org>, linux-arm-kernel <linux-arm-kernel@lists.infradead.org>
 
+On Thu, 23 Feb 2012 17:56:33 +0530, "Shilimkar, Santosh" <santosh.shili=
+mkar@ti.com> wrote:
+> On Thu, Feb 23, 2012 at 5:40 PM, Tarun Kanti DebBarma
+> <tarun.kanti@ti.com> wrote:
+> > The cleanup is mostly getting rid of redundant fields in struct gpi=
+o_bank{}
+> > as we already have them as part of bank->context now. Also, remove =
+un-used
+> > variable from gpio_irq_handler.
+> >
+> > The fix include correction of _set_gpio_irqenable() implementation =
+and fix
+> > type mismatch of gpio trigger parameter.
+> >
+> > It is baselined on top of Kevin's following series:
+> > gpio/omap: cleanup and runtime PM conversion for v3.4
+> > git://git.kernel.org/pub/scm/linux/kernel/git/khilman/linux-omap-pm=
+=2Egit for_3.4/gpio/runtime-pm-cleanup
+> >
+> > I have applied Benoit's GPIO patches in following series on top of =
+Kevin's
+> > before applying my changes.
+> > gpio/omap: Cleanup and adaptation to Device Tree
+> > git://git.kernel.org/pub/scm/linux/kernel/git/bcousson/linux-omap-d=
+t.git for_3.4/dt_gpio
+> >
+> > Series is available here for reference:
+> > git://gitorious.org/~tarunkanti/omap-sw-develoment/tarunkantis-linu=
+x-omap-dev for_3.4/gpio_further_cleanup_fixes
+> >
+> > Power Test: Off-mode and Retention on OMAP3430 (Suspend and Idle pa=
+ths).
+> > Functional Test: OMAP2430, OMAP3430SDP, ZOOM3, OMAP4430, OMAP4-BLAZ=
+E
+> >
+> > Tarun Kanti DebBarma (6):
+> > =C2=A0gpio/omap: remove saved_fallingdetect, saved_risingdetect fie=
+lds
+> > =C2=A0gpio/omap: remove saved_wakeup field from struct gpio_bank
+> > =C2=A0gpio/omap: remove suspend_wakeup field from struct gpio_bank
+> > =C2=A0gpio/omap: get rid of retrigger variable in gpio_irq_handler
+> > =C2=A0gpio/omap: fix trigger type to unsigned
+> > =C2=A0gpio/omap: fix _set_gpio_irqenable implementation
+> >
+> > =C2=A0drivers/gpio/gpio-omap.c | =C2=A0 56 +++++++++++++++++++-----=
+---------------------
+> > =C2=A01 files changed, 24 insertions(+), 32 deletions(-)
+> >
+> Nice clean-up series. I have gone through this series one more time
+> Thanks for updating change-logs. I noticed you dropped the edge trigg=
+ered
+> irq wakeup fix....I see on the list now.... Kevin has fixed that alre=
+ady.
+>=20
+> Series looks good to me. You can add:
+> Reviewed-by: Santosh Shilimkar <santosh.shilimkar@ti.com>
 
---KSn4sQg3MnruwCB4
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
+What's the status of this series?  Should I be expecting a v2?  Or am I=
+ supposed
+to pick up this one? (a pull req would make things easier for me)
 
-On Mon, Mar 12, 2012 at 10:26:53AM -0700, Kevin Hilman wrote:
-> Mark Brown <broonie@opensource.wolfsonmicro.com> writes:
-
-> > The branch itself is essentially stable but I'm not enthused about the
-> > idea of merging the whole thing via the OMAP tree. =20
-
-> Right, I wasn't suggesting we merge it via OMAP tree.   I was just
-> looking for a stable point we could use as s dependency when merging
-> everything together for the arm-soc tree.
-
-Well, if you don't base the OMAP changes that depend on it off the
-regulator changes then you'll break bisection as you'll have a bunch of
-commits which won't have all their dependencies present on a branch
-(since they're not present in the branch point and aren't otherwise
-merged in), if bisect goes down that branch it'll be miserable.  That
-seems bad and while I've not run into it with OMAP in particular it's
-rather painful when it does happen.
-
-It's much better if the branch has the required changes merged into it
-prior to their being used.
-
---KSn4sQg3MnruwCB4
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: Digital signature
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.4.11 (GNU/Linux)
-
-iQIcBAEBAgAGBQJPXjMFAAoJEBus8iNuMP3dOIUQAJXdN5VzowQeZgFFsS2qYFYB
-wVkfLq76CtauofgULmvRhCfq1YQ6zmx3A2R37eUzk4MKL3SiSzFpUze2VuEKQ7Q7
-wUVWewIFg1nO+9lZC6lSDlPGee9hpNgP8ujKoA4DTOpoFfRtG+/VKrb7Fqr+K0DK
-EibLULGr0syredI55fdrjgR/T2D+dbgM4DZ5lv1EcARP+Axns2brMjnm38FYOnw7
-dgQxE1n7v1Km0/2kzYTmDmTFOKpN90VQmmpBKZWv+WDXgp8SGP4Pb6Yx+VEUmxLm
-A5kwhl0j5b57YyYE6m/g7IqfRLDCWS213I2vsrjDslEZI3Id0RnyGfWhx8VK9kS+
-iADapAE9afXY5pT4K8x8LdjHiIhqm61E5ynwPzsUku7xGopRwZ3Ehlx/lBCTXMtE
-bAw7tpqZjGVKK+bDCo30/6R3JPvF1GXz5K7yZKptbrNHV22O7hrUyqIhKHYmsli6
-J4zvEDyv+AQ1JPrjF7axj35lxNoFK7S8RmZzTpxLwz723EEgB9d5m9X4PLbdzc9A
-8v0IFDiagSuuiE9Ploq3a7m9nEtP1LwGEP/I9sTM4orEZDkTyTfKyeuzKXasSBV3
-v4vBUdrJBCnLtjf+hPHAOHOn6EERa/hqU4itj3GrDgQZkSog6sPHOc/iBHQuTy/S
-Tp8wbEGnqJqUzwmZ3Cag
-=MfHW
------END PGP SIGNATURE-----
-
---KSn4sQg3MnruwCB4--
+g.
