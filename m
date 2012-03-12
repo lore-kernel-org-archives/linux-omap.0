@@ -1,63 +1,62 @@
-From: Peter Ujfalusi <peter.ujfalusi@ti.com>
-Subject: Re: [PATCH] ARM: OMAP4: clock: Add aliases for McBSP fclk clocks
-Date: Mon, 12 Mar 2012 11:53:15 +0200
-Message-ID: <4F5DC78B.2060203@ti.com>
-References: <1331024133-18201-1-git-send-email-peter.ujfalusi@ti.com> <4F5A258F.8050704@ti.com> <20120309180027.GF12083@atomide.com> <alpine.DEB.2.00.1203091101400.7039@utopia.booyaka.com> <alpine.DEB.2.00.1203091103450.7039@utopia.booyaka.com> <alpine.DEB.2.00.1203092355280.27395@utopia.booyaka.com>
+From: Tero Kristo <t-kristo@ti.com>
+Subject: Re: [PATCHv5 0/6] ARM: OMAP3+: IO daisy chain support fixes
+Date: Mon, 12 Mar 2012 12:00:27 +0200
+Message-ID: <1331546427.2116.264.camel@sokoban>
+References: <1331046702-2472-1-git-send-email-t-kristo@ti.com>
+	 <alpine.DEB.2.00.1203092102450.30879@utopia.booyaka.com>
+Reply-To: <t-kristo@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aog107.obsmtp.com ([74.125.149.197]:57453 "EHLO
-	na3sys009aog107.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1750781Ab2CLJxW (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>);
-	Mon, 12 Mar 2012 05:53:22 -0400
-Received: by lahj13 with SMTP id j13so3409924lah.19
-        for <linux-omap@vger.kernel.org>; Mon, 12 Mar 2012 02:53:18 -0700 (PDT)
-In-Reply-To: <alpine.DEB.2.00.1203092355280.27395@utopia.booyaka.com>
+Received: from arroyo.ext.ti.com ([192.94.94.40]:58490 "EHLO arroyo.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751389Ab2CLKAm (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Mon, 12 Mar 2012 06:00:42 -0400
+In-Reply-To: <alpine.DEB.2.00.1203092102450.30879@utopia.booyaka.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: Paul Walmsley <paul@pwsan.com>
-Cc: Tony Lindgren <tony@atomide.com>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Jarkko Nikula <jarkko.nikula@bitmer.com>
+Cc: rnayak@ti.com, linux-omap@vger.kernel.org, khilman@ti.com, linux-arm-kernel@lists.infradead.org
 
-Hello Paul,
+On Fri, 2012-03-09 at 21:05 -0700, Paul Walmsley wrote:
+> Hi
+> 
+> On Tue, 6 Mar 2012, Tero Kristo wrote:
+> 
+> > Changes compared to previous version:
+> > 
+> > - patch2:
+> >   * fixed the timeout for waiting for ST_IO_CHAIN == 1
+> >   * added clear for ST_IO_CHAIN bit (as per spec + implementation in patch 1)
+> >   * replaced the timeout at the end of function with a simple register
+> >     readback (timing out on a register value that we are clearing does
+> >     not make that much sense, the bit is cleared the very first time CPU
+> >     manages to read it)
+> > - patch5:
+> >   * added spinlock for protecting io_chain_trigger operation
+> > 
+> > Tested on omap3 beagle + omap4 blaze. Also did measurements for the
+> > cost of IO chain trigger operation with ARM performance counters:
+> > 
+> > - omap3 approx 7...8us
+> > - omap4 approx 2...4us
+> 
+> Thanks for the changes.  So as you probably already saw, a few changes 
+> have been made.  The updated series is in the branch 
+> 'io_chain_devel_3.4' on git://git.pwsan.com/linux-2.6.
+> 
+> The main outstanding question is whether the OMAP4 WUCLKOUT poll should be 
+> removed to match the v5 changes to the OMAP3 function.  Please let me 
+> know.   Any other testing or comments are of course welcome.
 
-On 03/10/2012 09:08 AM, Paul Walmsley wrote:
->=20
-> Hello P=E9ter
->=20
-> could you please try this patch instead of the clkdev change?
->=20
-> It is based on my 'hwmod_enable_remaining_hwmods_devel_3.4' branch, b=
-ut=20
-> the basic idea should work on v3.3-rc6 as well.
->=20
-> If it works for you, please let us know and we can queue this up alon=
-g=20
-> with the hwmod data changes.  Probably we should replace the changelo=
-g=20
-> also with the one from your patch, it might be a little more useful? =
-=20
-> Suggestions welcome.
+Just tested your branch with omap3 beagle + omap4 blaze (with my omap4
+cswr set on top), and it works on both.
 
-Unfortunately I can not test the McBSP on OMAP4 at the moment. The patc=
-h
-looks good, and as far as I can see it will be perfect for OMAP4.
-Thank you.
-In case you need:
+For the WUCLK poll bit I added detailed comments on patch 2 thread, but
+my current understanding is that the implementation now on omap3 / omap4
+is what they should be due to IP differences (except maybe the small
+optimization for omap3 part you commented about.)
 
-> From: Paul Walmsley <paul@pwsan.com>
-> Date: Fri, 9 Mar 2012 23:28:28 -0700
-> Subject: [PATCH] ARM: OMAP4: hwmod data: add McBSP parent clock alias=
-es
->=20
-> Add optional parent clocks for the OMAP4 McBSP modules so the driver
-> can switch between parent clocks.
+-Tero
 
-Acked-by: Peter Ujfalusi <peter.ujfalusi@ti.com>
-
---
-To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
