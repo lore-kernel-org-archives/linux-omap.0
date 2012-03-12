@@ -1,140 +1,42 @@
 From: Paul Walmsley <paul@pwsan.com>
-Subject: Re: [PATCH] mmc: omap_hsmmc: set dto to 14 for all devices
-Date: Mon, 12 Mar 2012 04:58:00 -0600 (MDT)
-Message-ID: <alpine.DEB.2.00.1203120435200.11332@utopia.booyaka.com>
-References: <1330622780-1909-1-git-send-email-Chase.Maupin@ti.com> <m2399iqtgf.fsf@bob.laptop.org>
+Subject: [GIT PULL] ARM: OMAP2+: hwmod/PRM: miscellaneous patches for 3.4
+Date: Mon, 12 Mar 2012 05:01:48 -0600 (MDT)
+Message-ID: <alpine.DEB.2.00.1203120500260.11332@utopia.booyaka.com>
 Mime-Version: 1.0
 Content-Type: TEXT/PLAIN; charset=US-ASCII
-Return-path: <linux-mmc-owner@vger.kernel.org>
-In-Reply-To: <m2399iqtgf.fsf@bob.laptop.org>
-Sender: linux-mmc-owner@vger.kernel.org
-To: Chris Ball <cjb@laptop.org>
-Cc: Chase Maupin <Chase.Maupin@ti.com>, linux-omap@vger.kernel.org, linux-mmc@vger.kernel.org, sakoman@gmail.com
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from utopia.booyaka.com ([72.9.107.138]:49195 "EHLO
+	utopia.booyaka.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751692Ab2CLLBt (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 12 Mar 2012 07:01:49 -0400
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: tony@atomide.com
+Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 
-+ Steve Sakoman
+Hi Tony
 
-Hi Chris, Chase,
+The following changes since commit fde7d9049e55ab85a390be7f415d74c9f62dd0f9:
 
-Sorry for the late comment on this; I just noticed this thread.
+  Linux 3.3-rc7 (2012-03-10 13:49:52 -0800)
 
-On Thu, 8 Mar 2012, Chris Ball wrote:
+are available in the git repository at:
 
-> On Thu, Mar 01 2012, Chase Maupin wrote:
-> > * With certain SD cards timeouts like the following have been seen
-> >   due to an improper calculation of the dto value:
-> >     mmcblk0: error -110 transferring data, sector 4126233, nr 8,
-> >     card status 0xc00
-> > * By removing the dto calculation and setting the timeout value
-> >   to the maximum specified by the SD card specification part A2
-> >   section 2.2.15 these timeouts can be avoided.
-> > * This change has been used by beagleboard users as well as the
-> >   Texas Instruments SDK without a negative impact.
-> > * There are multiple discussion threads about this but the most
-> >   relevant ones are:
-> >     * http://talk.maemo.org/showthread.php?p=1000707#post1000707
-> >     * http://www.mail-archive.com/linux-omap@vger.kernel.org/msg42213.html
-> > * Original proposal for this fix was done by Sukumar Ghoral of
-> >   Texas Instruments
-> >
-> > * Tested using a Texas Instruments AM335x EVM
-> >
-> > Signed-off-by: Chase Maupin <Chase.Maupin@ti.com>
-> 
-> Thanks, I've pushed this to mmc-next for 3.4.  (With a trivial
-> indentation fix, below.)
-> 
-> diff --git a/drivers/mmc/host/omap_hsmmc.c b/drivers/mmc/host/omap_hsmmc.c
-> index 82b400793..9d4ce1c 100644
-> --- a/drivers/mmc/host/omap_hsmmc.c
-> +++ b/drivers/mmc/host/omap_hsmmc.c
-> @@ -1360,7 +1360,7 @@ static void set_data_timeout(struct omap_hsmmc_host *host)
->  	if (clkd == 0)
->  		clkd = 1;
->  
-> -    /* Use the maximum timeout value allowed in the standard of 14 or 0xE */
-> +	/* Use the maximum timeout value allowed in the standard of 14 or 0xE */
->  	dto = 14;
->  
->  	reg &= ~DTO_MASK;
+  git://git.pwsan.com/linux-2.6 misc_devel_3.4
 
-I don't think this is the right fix.  Steve Sakoman and I discussed this a 
-few months ago -- we did some debugging and Steve observed the timeouts on 
-multiple block writes (0x19):
+for you to fetch changes up to 553e322282655f213d131903ce7019aa25880273:
 
-hsmmc: command 00000019
-hsmmc: orig_rate = 96000000, div = 2, dto = 11
-hsmmc: using 300000000 ns DTO
-hsmmc: command 0000000d
-mmcblk0: error -110 transferring data, sector 15257840, nr 96, card status 0xc00
-
-So dto = 11 @ 48MHz is a 350ms timeout ((2^(11+13)) / 48000000).
-
-I don't have an SD bus analyzer, but it looks to me think there are some 
-SD cards that are not completing the write within the allotted time 
-window.  It should be 250ms according to this SD spec:
-
-https://www.sdcard.org/developers/tech/pls/simplified_specs/Part_1_Physical_Layer_Simplified_Specification_Ver_3.01_Final_100518.pdf
-
-The spec also says "It is strongly recommended for hosts to implement more 
-than 500ms timeout value even if the card indicates the 250ms maximum busy 
-length."
-
-So to me, this should probably be solved in the generic Linux MMC layer.  
-mmc_set_data_timeout() should presumably be using a huge timeout on 
-writes.  Don't know what it should be but the current 300ms goal is 
-arbitrary anyway - see commit 493890e75d98810a3470b4aae23be628ee5e9667 
-("mmc: increase SD write timeout for crappy cards").
-
-Otherwise, if we just change the OMAP host controller driver, we could run 
-into the same problem on other controllers.  While this issue could be an 
-OMAP specific problem, at the moment I don't see any obvious evidence of 
-that.
-
-So perhaps something like the following patch instead?  Unfortunately, I 
-don't have one of these crappy SD cards as far as I know, so I can't 
-really test it.
+  ARM: OMAP4: prm: fix interrupt register offsets (2012-03-12 04:30:02 -0600)
 
 
 - Paul
+----------------------------------------------------------------
+Rajendra Nayak (1):
+      ARM: OMAP: hwmod: Use sysc_fields->srst_shift and get rid of hardcoded SYSC_TYPE2_SOFTRESET_MASK
 
-From: Paul Walmsley <paul@pwsan.com>
-Date: Mon, 12 Mar 2012 04:46:29 -0600
-Subject: [PATCH] mmc: use really long write timeout to deal with crappy cards
+Tero Kristo (1):
+      ARM: OMAP4: prm: fix interrupt register offsets
 
-Several people have noticed that crappy SD cards take much longer to
-complete multiple block writes than the 300ms that Linux specifies.
-Try to work around this by using a three second write timeout instead.
-
-<insert Chase's patch description here>
-
-Not-yet-signed-off-by: Paul Walmsley <paul@pwsan.com>
----
- drivers/mmc/core/core.c |   10 +++++++---
- 1 files changed, 7 insertions(+), 3 deletions(-)
-
-diff --git a/drivers/mmc/core/core.c b/drivers/mmc/core/core.c
-index 690255c..0f2caca 100644
---- a/drivers/mmc/core/core.c
-+++ b/drivers/mmc/core/core.c
-@@ -526,10 +526,14 @@ void mmc_set_data_timeout(struct mmc_data *data, const struct mmc_card *card)
- 
- 		if (data->flags & MMC_DATA_WRITE)
- 			/*
--			 * The limit is really 250 ms, but that is
--			 * insufficient for some crappy cards.
-+			 * The MMC spec "It is strongly recommended
-+			 * for hosts to implement more than 500ms
-+			 * timeout value even if the card indicates
-+			 * the 250ms maximum busy length."  Even the
-+			 * previous value of 300ms is known to be
-+			 * insufficient for some cards.
- 			 */
--			limit_us = 300000;
-+			limit_us = 3000000;
- 		else
- 			limit_us = 100000;
- 
--- 
-1.7.9.1
-
+ arch/arm/mach-omap2/omap_hwmod.c |    8 +++++---
+ arch/arm/mach-omap2/prm44xx.c    |   21 +++++++++++----------
+ 2 files changed, 16 insertions(+), 13 deletions(-)
