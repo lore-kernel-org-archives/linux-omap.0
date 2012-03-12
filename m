@@ -1,85 +1,79 @@
-From: Grant Likely <grant.likely@secretlab.ca>
-Subject: Re: [PATCH 4/8] ARM: OMAP1: Move 16xx GPIO system clock to platform init code
-Date: Mon, 12 Mar 2012 11:30:05 -0600
-Message-ID: <20120312173005.A11093E07B0@localhost>
-References: <20120221233619.18709.87982.stgit@kaulin.local> <20120221234042.18709.57610.stgit@kaulin.local>
+From: Mark Brown <broonie@opensource.wolfsonmicro.com>
+Subject: Re: [GIT PULL] ARM: OMAP2+: PM: core support for SMPS regulators for
+ v3.4
+Date: Mon, 12 Mar 2012 17:32:16 +0000
+Message-ID: <20120312173215.GL3110@opensource.wolfsonmicro.com>
+References: <877gywjhht.fsf@ti.com>
+ <20120308021843.GQ12083@atomide.com>
+ <87399jc6cj.fsf@ti.com>
+ <20120309003217.GB12083@atomide.com>
+ <20120309114731.GA3273@opensource.wolfsonmicro.com>
+ <87zkbp4wtj.fsf@ti.com>
+ <20120311204232.GC3171@opensource.wolfsonmicro.com>
+ <87399dzq5e.fsf@ti.com>
+Mime-Version: 1.0
+Content-Type: multipart/signed; micalg=pgp-sha1;
+	protocol="application/pgp-signature"; boundary="KSn4sQg3MnruwCB4"
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-iy0-f174.google.com ([209.85.210.174]:64854 "EHLO
-	mail-iy0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753309Ab2CLRaI (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 12 Mar 2012 13:30:08 -0400
-Received: by iagz16 with SMTP id z16so7134688iag.19
-        for <linux-omap@vger.kernel.org>; Mon, 12 Mar 2012 10:30:08 -0700 (PDT)
-In-Reply-To: <20120221234042.18709.57610.stgit@kaulin.local>
+Received: from opensource.wolfsonmicro.com ([80.75.67.52]:42900 "EHLO
+	opensource.wolfsonmicro.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1755737Ab2CLRcS (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>);
+	Mon, 12 Mar 2012 13:32:18 -0400
+Content-Disposition: inline
+In-Reply-To: <87399dzq5e.fsf@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Tony Lindgren <tony@atomide.com>, linux-arm-kernel@lists.infradead.org
-Cc: linux-omap@vger.kernel.org
+To: Kevin Hilman <khilman@ti.com>
+Cc: Tony Lindgren <tony@atomide.com>, linux-omap <linux-omap@vger.kernel.org>, linux-arm-kernel <linux-arm-kernel@lists.infradead.org>
 
-On Tue, 21 Feb 2012 15:40:42 -0800, Tony Lindgren <tony@atomide.com> wrote:
-> This way we can remove omap_read/write call from the GPIO driver
-> and remove include to linux/io.h.
-> 
-> Cc: Grant Likely <grant.likely@secretlab.ca>
-> Signed-off-by: Tony Lindgren <tony@atomide.com>
 
-Acked-by: Grant Likely <grant.likely@secretlab.ca>
+--KSn4sQg3MnruwCB4
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
 
-Who will be picking up this series?  How intertwined is it with your tree Tony?
+On Mon, Mar 12, 2012 at 10:26:53AM -0700, Kevin Hilman wrote:
+> Mark Brown <broonie@opensource.wolfsonmicro.com> writes:
 
-g.
+> > The branch itself is essentially stable but I'm not enthused about the
+> > idea of merging the whole thing via the OMAP tree. =20
 
-> ---
->  arch/arm/mach-omap1/gpio16xx.c |    7 +++++++
->  drivers/gpio/gpio-omap.c       |    8 --------
->  2 files changed, 7 insertions(+), 8 deletions(-)
-> 
-> diff --git a/arch/arm/mach-omap1/gpio16xx.c b/arch/arm/mach-omap1/gpio16xx.c
-> index 0f399bd..99cabc4 100644
-> --- a/arch/arm/mach-omap1/gpio16xx.c
-> +++ b/arch/arm/mach-omap1/gpio16xx.c
-> @@ -218,6 +218,13 @@ static int __init omap16xx_gpio_init(void)
->  	if (!cpu_is_omap16xx())
->  		return -EINVAL;
->  
-> +	/*
-> +	 * Enable system clock for GPIO module.
-> +	 * The CAM_CLK_CTRL *is* really the right place.
-> +	 */
-> +	omap_writel(omap_readl(ULPD_CAM_CLK_CTRL) | 0x04,
-> +					ULPD_CAM_CLK_CTRL);
-> +
->  	for (i = 0; i < ARRAY_SIZE(omap16xx_gpio_dev); i++)
->  		platform_device_register(omap16xx_gpio_dev[i]);
->  
-> diff --git a/drivers/gpio/gpio-omap.c b/drivers/gpio/gpio-omap.c
-> index 0b05629..1078a14 100644
-> --- a/drivers/gpio/gpio-omap.c
-> +++ b/drivers/gpio/gpio-omap.c
-> @@ -18,7 +18,6 @@
->  #include <linux/syscore_ops.h>
->  #include <linux/err.h>
->  #include <linux/clk.h>
-> -#include <linux/io.h>
->  #include <linux/slab.h>
->  #include <linux/pm_runtime.h>
->  
-> @@ -1064,13 +1063,6 @@ static void omap_gpio_mod_init(struct gpio_bank *bank, int id)
->  						+ OMAP1610_GPIO_IRQSTATUS1);
->  			__raw_writew(0x0014, bank->base
->  						+ OMAP1610_GPIO_SYSCONFIG);
-> -
-> -			/*
-> -			 * Enable system clock for GPIO module.
-> -			 * The CAM_CLK_CTRL *is* really the right place.
-> -			 */
-> -			omap_writel(omap_readl(ULPD_CAM_CLK_CTRL) | 0x04,
-> -						ULPD_CAM_CLK_CTRL);
->  		}
->  		if (cpu_is_omap7xx() && bank->method == METHOD_GPIO_7XX) {
->  			__raw_writel(0xffffffff, bank->base
-> 
+> Right, I wasn't suggesting we merge it via OMAP tree.   I was just
+> looking for a stable point we could use as s dependency when merging
+> everything together for the arm-soc tree.
 
--- 
-Grant Likely, B.Sc, P.Eng.
-Secret Lab Technologies,Ltd.
+Well, if you don't base the OMAP changes that depend on it off the
+regulator changes then you'll break bisection as you'll have a bunch of
+commits which won't have all their dependencies present on a branch
+(since they're not present in the branch point and aren't otherwise
+merged in), if bisect goes down that branch it'll be miserable.  That
+seems bad and while I've not run into it with OMAP in particular it's
+rather painful when it does happen.
+
+It's much better if the branch has the required changes merged into it
+prior to their being used.
+
+--KSn4sQg3MnruwCB4
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: Digital signature
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.4.11 (GNU/Linux)
+
+iQIcBAEBAgAGBQJPXjMFAAoJEBus8iNuMP3dOIUQAJXdN5VzowQeZgFFsS2qYFYB
+wVkfLq76CtauofgULmvRhCfq1YQ6zmx3A2R37eUzk4MKL3SiSzFpUze2VuEKQ7Q7
+wUVWewIFg1nO+9lZC6lSDlPGee9hpNgP8ujKoA4DTOpoFfRtG+/VKrb7Fqr+K0DK
+EibLULGr0syredI55fdrjgR/T2D+dbgM4DZ5lv1EcARP+Axns2brMjnm38FYOnw7
+dgQxE1n7v1Km0/2kzYTmDmTFOKpN90VQmmpBKZWv+WDXgp8SGP4Pb6Yx+VEUmxLm
+A5kwhl0j5b57YyYE6m/g7IqfRLDCWS213I2vsrjDslEZI3Id0RnyGfWhx8VK9kS+
+iADapAE9afXY5pT4K8x8LdjHiIhqm61E5ynwPzsUku7xGopRwZ3Ehlx/lBCTXMtE
+bAw7tpqZjGVKK+bDCo30/6R3JPvF1GXz5K7yZKptbrNHV22O7hrUyqIhKHYmsli6
+J4zvEDyv+AQ1JPrjF7axj35lxNoFK7S8RmZzTpxLwz723EEgB9d5m9X4PLbdzc9A
+8v0IFDiagSuuiE9Ploq3a7m9nEtP1LwGEP/I9sTM4orEZDkTyTfKyeuzKXasSBV3
+v4vBUdrJBCnLtjf+hPHAOHOn6EERa/hqU4itj3GrDgQZkSog6sPHOc/iBHQuTy/S
+Tp8wbEGnqJqUzwmZ3Cag
+=MfHW
+-----END PGP SIGNATURE-----
+
+--KSn4sQg3MnruwCB4--
