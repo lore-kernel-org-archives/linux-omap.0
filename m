@@ -1,100 +1,110 @@
 From: Kevin Hilman <khilman@ti.com>
-Subject: Re: [PATCH] ARM: OMAP4: Workaround the OCP synchronisation issue with 32K synctimer.
-Date: Mon, 12 Mar 2012 09:51:40 -0700
-Message-ID: <87399d225f.fsf@ti.com>
-References: <1331566388-2397-1-git-send-email-santosh.shilimkar@ti.com>
+Subject: Re: [GIT PULL] ARM: OMAP2+: PM: core support for SMPS regulators for v3.4
+Date: Mon, 12 Mar 2012 10:26:53 -0700
+Message-ID: <87399dzq5e.fsf@ti.com>
+References: <877gywjhht.fsf@ti.com> <20120308021843.GQ12083@atomide.com>
+	<87399jc6cj.fsf@ti.com> <20120309003217.GB12083@atomide.com>
+	<20120309114731.GA3273@opensource.wolfsonmicro.com>
+	<87zkbp4wtj.fsf@ti.com>
+	<20120311204232.GC3171@opensource.wolfsonmicro.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aog103.obsmtp.com ([74.125.149.71]:56158 "EHLO
-	na3sys009aog103.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753144Ab2CLQve (ORCPT
+Received: from na3sys009aog108.obsmtp.com ([74.125.149.199]:35208 "EHLO
+	na3sys009aog108.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1753309Ab2CLR0q (ORCPT
 	<rfc822;linux-omap@vger.kernel.org>);
-	Mon, 12 Mar 2012 12:51:34 -0400
-Received: by mail-iy0-f179.google.com with SMTP id h37so9072500iak.24
-        for <linux-omap@vger.kernel.org>; Mon, 12 Mar 2012 09:51:33 -0700 (PDT)
-In-Reply-To: <1331566388-2397-1-git-send-email-santosh.shilimkar@ti.com>
-	(Santosh Shilimkar's message of "Mon, 12 Mar 2012 21:03:08 +0530")
+	Mon, 12 Mar 2012 13:26:46 -0400
+Received: by mail-iy0-f177.google.com with SMTP id y10so9836626iak.22
+        for <linux-omap@vger.kernel.org>; Mon, 12 Mar 2012 10:26:45 -0700 (PDT)
+In-Reply-To: <20120311204232.GC3171@opensource.wolfsonmicro.com> (Mark Brown's
+	message of "Sun, 11 Mar 2012 20:42:33 +0000")
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Santosh Shilimkar <santosh.shilimkar@ti.com>
-Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, dave.long@linaro.org
+To: Mark Brown <broonie@opensource.wolfsonmicro.com>
+Cc: Tony Lindgren <tony@atomide.com>, linux-omap <linux-omap@vger.kernel.org>, linux-arm-kernel <linux-arm-kernel@lists.infradead.org>
 
-Santosh Shilimkar <santosh.shilimkar@ti.com> writes:
+Mark Brown <broonie@opensource.wolfsonmicro.com> writes:
 
-> On OMAP4, recently a synchronisation bug is discovered by hardware
-> team, which leads to incorrect timer value read from 32K sync timer
-> IP when the IP is comming out of idle.
+> The branch itself is essentially stable but I'm not enthused about the
+> idea of merging the whole thing via the OMAP tree.  
+
+Right, I wasn't suggesting we merge it via OMAP tree.   I was just
+looking for a stable point we could use as s dependency when merging
+everything together for the arm-soc tree.
+
+> However, as Linus has released an -rc7 I should pull some stuff out of
+> there and send fixes to him so I've created a topic/twl so let's just
+> rebase.
+
+OK.
+
+>> > In general you should warn people if you've got a dependency on their
+>> > tree, it makes life easier.
 >
-> The issue is due to the synchronization methodology used in the SYNCTIMER IP.
-> The value of the counter register in 32kHz domain is synchronized to the OCP
-> domain register only at count up event, and if the OCP clock is switched off,
-> the OCP register gets out of synch until the first count up event after the
-> clock is switched back -at the next falling edge of the 32kHz clock.
+>> Yeah, I should've raised this when the original series were posted.  The
+>> arch stuff and drivers/regulator stuff were posted all together, but you
+>> picked out the regulator stuff and I picked up the rest.  
 >
-> Further investigation revealed that it applies to gptimer1 and watchdog timer2
-> as well which may run on 32KHz. This patch fixes the issue for all the
-> applicable modules.
+> Actually IIRC by the time I applied this the ARM changes had been
+> totally deteched from the regulator stuff - Tero was sending just the
+> regulator patch by itself and I actually applied the patch it was part
+> of a twl regulator series Rajendra put together after I got fed up with
+> the number of people sending me incompatible changes without talking to
+> each other.  I'd completely forgotten about any arch/arm stuff.
+>
+> This sort of issue is becoming far too common with the OMAP stuff, there
+> needs to be a much greater awareness of the need to coordinate both
+> between trees and with multiple people working on the same code.
 
-The changelog describes the problem ver well, but doesn't actually
-describe the fix (enable static dep.)  Can you update the changelog do
-describe the fix, and why it fixes the problem.
+Completely agree, hence this email trying to work this out before the
+merge window.
+
+Thanks for this topic branch.  We'll ask for it to be included as a
+branch in arm-soc/depends/* so that OMAP voltage core changes will build
+there as well as in linux-next.
 
 Thanks,
 
 Kevin
 
 
-> The BUG has not made it yet to the OMAP errata list and it is applicable to
-> OMAP1/2/3/4/5. OMAP1/2/3 it is taken care indirectly by autodeps.
+> The following changes since commit dcd6c92267155e70a94b3927bce681ce74b80d1f:
 >
-> Reported-Tested-by: dave.long@linaro.org
-> [dave.long@linaro.org: Reported the oprofile time stamp issue with synctimer
-> and helped to test this patch]
-> Signed-off-by: Santosh Shilimkar <santosh.shilimkar@ti.com>
-> ---
->  arch/arm/mach-omap2/pm44xx.c |   10 ++++++++--
->  1 files changed, 8 insertions(+), 2 deletions(-)
+>   Linux 3.3-rc1 (2012-01-19 15:04:48 -0800)
 >
-> diff --git a/arch/arm/mach-omap2/pm44xx.c b/arch/arm/mach-omap2/pm44xx.c
-> index c264ef7..974f7ea 100644
-> --- a/arch/arm/mach-omap2/pm44xx.c
-> +++ b/arch/arm/mach-omap2/pm44xx.c
-> @@ -196,7 +196,7 @@ static void omap_default_idle(void)
->  static int __init omap4_pm_init(void)
->  {
->  	int ret;
-> -	struct clockdomain *emif_clkdm, *mpuss_clkdm, *l3_1_clkdm;
-> +	struct clockdomain *emif_clkdm, *mpuss_clkdm, *l3_1_clkdm, *l4wkup;
->  	struct clockdomain *ducati_clkdm, *l3_2_clkdm, *l4_per_clkdm;
->  
->  	if (!cpu_is_omap44xx())
-> @@ -220,14 +220,19 @@ static int __init omap4_pm_init(void)
->  	 * MPUSS -> L4_PER/L3_* and DUCATI -> L3_* doesn't work as
->  	 * expected. The hardware recommendation is to enable static
->  	 * dependencies for these to avoid system lock ups or random crashes.
-> +	 * The L4 wakeup depedency is added to workaround the OCP sync hardware
-> +	 * BUG with 32K synctimer which lead to incorrect timer value read
-> +	 * from the 32K counter. The BUG applies for GPTIMER1 and WDT2 which
-> +	 * are part of L4 wakeup clockdomain.
->  	 */
->  	mpuss_clkdm = clkdm_lookup("mpuss_clkdm");
->  	emif_clkdm = clkdm_lookup("l3_emif_clkdm");
->  	l3_1_clkdm = clkdm_lookup("l3_1_clkdm");
->  	l3_2_clkdm = clkdm_lookup("l3_2_clkdm");
->  	l4_per_clkdm = clkdm_lookup("l4_per_clkdm");
-> +	l4wkup = clkdm_lookup("l4_wkup_clkdm");
->  	ducati_clkdm = clkdm_lookup("ducati_clkdm");
-> -	if ((!mpuss_clkdm) || (!emif_clkdm) || (!l3_1_clkdm) ||
-> +	if ((!mpuss_clkdm) || (!emif_clkdm) || (!l3_1_clkdm) || (!l4wkup) ||
->  		(!l3_2_clkdm) || (!ducati_clkdm) || (!l4_per_clkdm))
->  		goto err2;
->  
-> @@ -235,6 +240,7 @@ static int __init omap4_pm_init(void)
->  	ret |= clkdm_add_wkdep(mpuss_clkdm, l3_1_clkdm);
->  	ret |= clkdm_add_wkdep(mpuss_clkdm, l3_2_clkdm);
->  	ret |= clkdm_add_wkdep(mpuss_clkdm, l4_per_clkdm);
-> +	ret |= clkdm_add_wkdep(mpuss_clkdm, l4wkup);
->  	ret |= clkdm_add_wkdep(ducati_clkdm, l3_1_clkdm);
->  	ret |= clkdm_add_wkdep(ducati_clkdm, l3_2_clkdm);
->  	if (ret) {
+> are available in the git repository at:
+>
+>   git://git.kernel.org/pub/scm/linux/kernel/git/broonie/regulator.git tags/topic/twl
+>
+> for you to fetch changes up to 46eda3e96a65b378041c79c51ff2e02009f7e2d0:
+>
+>   mfd: twl-core: regulator configuration for twl6030 V1V8, V2V1 SMPS (2012-03-11 20:09:26 +0000)
+>
+> ----------------------------------------------------------------
+> TWL specific changes, cross-merged with OMAP due to arch/arm wanting to
+> use the new ability to override the voltage set and get operations to
+> support the in-CPU voltage management.  The other changes are minor
+> fixes, the addition of a few new regulators and device tree support.
+>
+> ----------------------------------------------------------------
+> Laxman Dewangan (1):
+>       regulator: twl6030: Fix voltage selection logic
+>
+> Peter Ujfalusi (2):
+>       regulator: twl-regulator: Add fixed LDO for V1V8, V2V1 supply
+>       mfd: twl-core: regulator configuration for twl6030 V1V8, V2V1 SMPS
+>
+> Rajendra Nayak (1):
+>       regulator: twl: adapt twl-regulator driver to dt
+>
+> Tero Kristo (2):
+>       regulator: twl4030: add support for external voltage get/set
+>       regulator: twl6030: add support for vdd1, vdd2 and vdd3 regulators
+>
+>  .../bindings/regulator/twl-regulator.txt           |   68 ++++
+>  drivers/mfd/twl-core.c                             |   41 +++-
+>  drivers/regulator/twl-regulator.c                  |  327 +++++++++++++++-----
+>  include/linux/i2c/twl.h                            |   14 +-
+>  4 files changed, 366 insertions(+), 84 deletions(-)
+>  create mode 100644 Documentation/devicetree/bindings/regulator/twl-regulator.txt
