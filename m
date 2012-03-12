@@ -1,38 +1,53 @@
-From: Yegor Yefremov <yegor_sub1@visionsystems.de>
-Subject: Re: AM3517evm
-Date: Mon, 12 Mar 2012 14:55:02 +0100
-Message-ID: <4F5E0036.105@visionsystems.de>
-References: <CAFu+nvFt8BcO1pDD6CXXM056WYG9AQDTv-boc7xF0C2JuHAyYw@mail.gmail.com>
-Reply-To: yegor_sub1@visionsystems.de
+From: Santosh Shilimkar <santosh.shilimkar@ti.com>
+Subject: [PATCH 1/2] ARM: OMAP: powerdomain: Wait for powerdomain transition in pwrdm_state_switch()
+Date: Mon, 12 Mar 2012 20:04:32 +0530
+Message-ID: <1331562873-29535-2-git-send-email-santosh.shilimkar@ti.com>
+References: <1331562873-29535-1-git-send-email-santosh.shilimkar@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from ns.visionsystems.de ([62.145.30.242]:48309 "EHLO
-	mail.visionsystems.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751065Ab2CLNzO (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 12 Mar 2012 09:55:14 -0400
-In-Reply-To: <CAFu+nvFt8BcO1pDD6CXXM056WYG9AQDTv-boc7xF0C2JuHAyYw@mail.gmail.com>
+Received: from devils.ext.ti.com ([198.47.26.153]:53976 "EHLO
+	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755518Ab2CLOew (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 12 Mar 2012 10:34:52 -0400
+In-Reply-To: <1331562873-29535-1-git-send-email-santosh.shilimkar@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "George C. Huntington, III" <george.huntingtoniii@gmail.com>
-Cc: linux-omap@vger.kernel.org, mporter@ti.com
+To: paul@pwsan.com
+Cc: linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org, Santosh Shilimkar <santosh.shilimkar@ti.com>, Rajendra Nayak <rnayak@ti.com>
 
-Am 09.03.2012 18:22, schrieb George C. Huntington, III:
-> I would like to make the newer kernel (3.x) work with the AM3517EVM.
-> I have a 2.6.32 and a 2.6.33 that run well on the board, but the
-> recent kernels have kernel panics before even running init.  where
-> should I start?  is there a better place to pursue this?
+Commit b1cbdb00d{OMAP: clockdomain: Wait for powerdomain to be ON
+when using clockdomain force wakeup} was assuming that pwrdm_state_switch()
+does wait for the powerdomain transition which is not the case.
 
-Have you tried this one? http://git.kernel.org/?p=linux/kernel/git/tmlind/linux-omap.git;a=summary
+Fix this API by adding the pwrdm_wait_transition().
 
-I have this one booting one month ago, but I checked out the kernel today and it hangs somewhere:
+Signed-off-by: Santosh Shilimkar <santosh.shilimkar@ti.com>
+CC: Rajendra Nayak <rnayak@ti.com>
+CC: Paul Walmsley <paul@pwsan.com>
+---
+ arch/arm/mach-omap2/powerdomain.c |    8 +++++++-
+ 1 files changed, 7 insertions(+), 1 deletions(-)
 
-Starting kernel ...
+diff --git a/arch/arm/mach-omap2/powerdomain.c b/arch/arm/mach-omap2/powerdomain.c
+index 8a18d1b..96ad3dbe 100644
+--- a/arch/arm/mach-omap2/powerdomain.c
++++ b/arch/arm/mach-omap2/powerdomain.c
+@@ -972,7 +972,13 @@ int pwrdm_wait_transition(struct powerdomain *pwrdm)
+ 
+ int pwrdm_state_switch(struct powerdomain *pwrdm)
+ {
+-	return _pwrdm_state_switch(pwrdm, PWRDM_STATE_NOW);
++	int ret;
++
++	ret = pwrdm_wait_transition(pwrdm);
++	if (!ret)
++		ret = _pwrdm_state_switch(pwrdm, PWRDM_STATE_NOW);
++
++	return ret;
+ }
+ 
+ int pwrdm_clkdm_state_switch(struct clockdomain *clkdm)
+-- 
+1.7.4.1
 
-Uncompressing Linux... done, booting the kernel.
-                       
-Or have you tried the one from kernel.org directly?
-                         
-Best regards,
-Yegor
