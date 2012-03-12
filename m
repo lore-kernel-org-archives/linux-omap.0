@@ -1,55 +1,57 @@
-From: "Hiremath, Vaibhav" <hvaibhav@ti.com>
-Subject: RE: [PATCH] ARM: OMAP2+: hwmod: Add new sysc_type3 into omap_hwmod
- required for am33xx
-Date: Mon, 12 Mar 2012 10:13:45 +0000
-Message-ID: <79CD15C6BA57404B839C016229A409A831810F02@DBDE01.ent.ti.com>
-References: <1329481488-27771-1-git-send-email-hvaibhav@ti.com>
- <4F3E545F.8070802@ti.com>
- <B5906170F1614E41A8A28DE3B8D12143317A918A@DBDE01.ent.ti.com>
+From: Paul Walmsley <paul@pwsan.com>
+Subject: [GIT PULL] ARM: OMAP3+: PRM/hwmod: fix and improve I/O chain wakeup
+ support
+Date: Mon, 12 Mar 2012 04:15:08 -0600 (MDT)
+Message-ID: <alpine.DEB.2.00.1203120413530.11332@utopia.booyaka.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from bear.ext.ti.com ([192.94.94.41]:37309 "EHLO bear.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1750855Ab2CLKNz convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 12 Mar 2012 06:13:55 -0400
-In-Reply-To: <B5906170F1614E41A8A28DE3B8D12143317A918A@DBDE01.ent.ti.com>
-Content-Language: en-US
+Received: from utopia.booyaka.com ([72.9.107.138]:53590 "EHLO
+	utopia.booyaka.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752331Ab2CLKPJ (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 12 Mar 2012 06:15:09 -0400
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "Bedia, Vaibhav" <vaibhav.bedia@ti.com>, "Cousson, Benoit" <b-cousson@ti.com>
-Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, "Hilman, Kevin" <khilman@ti.com>, "tony@atomide.com" <tony@atomide.com>, "paul@pwsan.com" <paul@pwsan.com>
+To: tony@atomide.com
+Cc: linux-omap@vger.kernel.org, rnayak@ti.com, t-kristo@ti.com, linux-arm-kernel@lists.infradead.org
 
-On Tue, Feb 21, 2012 at 10:49:47, Bedia, Vaibhav wrote:
-> Hi Benoit,
-> 
-> On Fri, Feb 17, 2012 at 18:51:35, Cousson, Benoit wrote:
-> > Hi Vaibhav,
-> > 
-> > On 2/17/2012 1:24 PM, Vaibhav Hiremath wrote:
-> > > In case of AM33xx family of devices (like cpsw) have different sysc
-> > > bit field offsets defined,
-> > 
-> > It is really used by several IPs, or it is just an unique exception?
-> > 
-> > For an exception, you can just define the omap_hwmod_sysc_fields for 
-> > that IP.
-> > This is what SmartReflex is using for example.
-> > 
-> 
-> I haven't really check TI81xx code but we might need to share these SYSC types
-> with a few IPs in that family also. How can the sharing of the sysc data be handled?
-> 
+Hi Tony
 
-Benoit,
+The following changes since commit fde7d9049e55ab85a390be7f415d74c9f62dd0f9:
 
-Any comments on this patch? 
+  Linux 3.3-rc7 (2012-03-10 13:49:52 -0800)
 
-Thanks,
-Vaibhav
+are available in the git repository at:
 
-> Regards,
-> Vaibhav B.
-> 
+  git://git.pwsan.com/linux-2.6 io_chain_devel_3.4
 
+for you to fetch changes up to efd360a8902101148f4fc6325097b94ae1fbb451:
+
+  ARM: OMAP3: PM: Remove IO Daisychain control from cpuidle (2012-03-12 04:11:48 -0600)
+
+
+- Paul
+
+----------------------------------------------------------------
+Mohan V (1):
+      ARM: OMAP3: PM: correct enable/disable of daisy io chain
+
+Rajendra Nayak (1):
+      ARM: OMAP4: PRM: Add IO Daisychain support
+
+Tero Kristo (1):
+      ARM: OMAP3+: PRM: Enable IO wake up
+
+Vishwanath BS (3):
+      ARM: OMAP3: PM: Move IO Daisychain function to omap3 prm file
+      ARM: OMAP3PLUS: hwmod: reconfigure IO Daisychain during hwmod mux
+      ARM: OMAP3: PM: Remove IO Daisychain control from cpuidle
+
+ arch/arm/mach-omap2/omap_hwmod.c   |   37 +++++++++++++++++++++-
+ arch/arm/mach-omap2/pm34xx.c       |   44 --------------------------
+ arch/arm/mach-omap2/prcm-common.h  |    8 +++++
+ arch/arm/mach-omap2/prm2xxx_3xxx.c |   51 ++++++++++++++++++++++++++++++-
+ arch/arm/mach-omap2/prm2xxx_3xxx.h |    2 +
+ arch/arm/mach-omap2/prm44xx.c      |   60 +++++++++++++++++++++++++++++++++++-
+ arch/arm/mach-omap2/prm44xx.h      |    2 +
+ 7 files changed, 156 insertions(+), 48 deletions(-)
