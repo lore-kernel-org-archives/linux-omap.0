@@ -1,61 +1,85 @@
-From: Barry Song <21cnbao@gmail.com>
-Subject: Re: implementing "suspend to ram" on cortex A8 based on linux 3.0.8
-Date: Tue, 13 Mar 2012 22:34:18 +0800
-Message-ID: <CAGsJ_4yDjDLSPwXubcecmCzpeJTwvGz30-awSAZfC+YtTwB_-w@mail.gmail.com>
-References: <CAFawwkXQhyj+c8LEDnD7q4mXDJV2jYCAHV0tBrqxrEaNGk+_0w@mail.gmail.com>
- <CACNz9cVbULxVSGvo60V+JLL=15BDEaYwgd5k9ZMNu09Kfwz4WQ@mail.gmail.com>
- <CAFawwkWQd=y=kVm97UjSs37=-MRmJiy9f7sy8ChYzCHZ9Y-gyA@mail.gmail.com> <CAFawwkVuCTijwLr6UWVRh9XNGCt-8brr2f4aDrpM_YwkWSGP+A@mail.gmail.com>
+From: "T Krishnamoorthy, Balaji" <balajitk-l0cyMroinI0@public.gmane.org>
+Subject: Re: [PATCH v2 0/4] omap hsmmc device tree support
+Date: Tue, 13 Mar 2012 21:13:30 +0530
+Message-ID: <CANrkHUb3Aypm7H44-6efiEoka_WO20hW1vMy-wBV1RzkRPt_UQ@mail.gmail.com>
+References: <1331564560-23276-1-git-send-email-rnayak@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-gx0-f174.google.com ([209.85.161.174]:37330 "EHLO
-	mail-gx0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755442Ab2CMOei convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 13 Mar 2012 10:34:38 -0400
-In-Reply-To: <CAFawwkVuCTijwLr6UWVRh9XNGCt-8brr2f4aDrpM_YwkWSGP+A@mail.gmail.com>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset="iso-8859-1"
+Content-Transfer-Encoding: quoted-printable
+Return-path: <linaro-dev-bounces-cunTk1MwBs8s++Sfvej+rw@public.gmane.org>
+In-Reply-To: <1331564560-23276-1-git-send-email-rnayak-l0cyMroinI0@public.gmane.org>
+List-Unsubscribe: <http://lists.linaro.org/mailman/options/linaro-dev>,
+	<mailto:linaro-dev-request-cunTk1MwBs8s++Sfvej+rw@public.gmane.org?subject=unsubscribe>
+List-Archive: <http://lists.linaro.org/pipermail/linaro-dev>
+List-Post: <mailto:linaro-dev-cunTk1MwBs8s++Sfvej+rw@public.gmane.org>
+List-Help: <mailto:linaro-dev-request-cunTk1MwBs8s++Sfvej+rw@public.gmane.org?subject=help>
+List-Subscribe: <http://lists.linaro.org/mailman/listinfo/linaro-dev>,
+	<mailto:linaro-dev-request-cunTk1MwBs8s++Sfvej+rw@public.gmane.org?subject=subscribe>
+Sender: linaro-dev-bounces-cunTk1MwBs8s++Sfvej+rw@public.gmane.org
+Errors-To: linaro-dev-bounces-cunTk1MwBs8s++Sfvej+rw@public.gmane.org
+To: Rajendra Nayak <rnayak-l0cyMroinI0@public.gmane.org>, Chris Ball <cjb-2X9k7bc8m7Mdnm+yROfE0A@public.gmane.org>, linux-mmc-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
+Cc: linaro-dev-cunTk1MwBs8s++Sfvej+rw@public.gmane.org, devicetree-discuss-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org
 List-Id: linux-omap@vger.kernel.org
-To: yang gqyang <hustgqyang@gmail.com>
-Cc: Chenglie He <chengjie.he@linaro.org>, Robert Lee <rob.lee@linaro.org>, nicolas.pitre@linaro.org, venki@google.com, linaro-dev@lists.linaro.org, linux-sh@vger.kernel.org, tony@atomide.com, linux@arm.linux.org.uk, ccross@google.com, kernel@wantstofly.org, khilman@ti.com, kgene.kim@samsung.com, magnus.damm@gmail.com, arnd.bergmann@linaro.org, jon-hunter@ti.com, len.brown@intel.com, patches@linaro.org, nsekhar@ti.com, rjw@sisk.pl, Baohua.Song@csr.com, linux-omap@vger.kernel.org, linux@maxim.org.za, linux-arm-kernel@lists.infradead.org, deepthi@linux.vnet.ibm.com, g.trinabh@gmail.com, linux-pm@vger.kernel.org, broonie@opensource.wolfsonmicro.com, linux-kernel@vger.kernel.org, lethal@linux-sh.org
 
-hi yang,
-
-=E5=9C=A8 2012=E5=B9=B43=E6=9C=8810=E6=97=A5 =E4=B8=8B=E5=8D=8810:37=EF=
-=BC=8Cyang gqyang <hustgqyang@gmail.com> =E5=86=99=E9=81=93=EF=BC=9A
-> =C2=A0Thanks for your comment.
-> =C2=A0Finally, i find out that i made a mistake. =C2=A0The uart(8250)=
- have not been
-> =C2=A0restore after resume, instead, it use the configuration got fro=
-m boot. The
-> =C2=A0uart have not been restored correctly, so that "ls" can not out=
-put result
-> =C2=A0correctly resulting in it seems that the busybox can not work c=
-orrectly.
-> =C2=A0Now, i still have a question about the uart: why the "printk" c=
-an work
-> =C2=A0correctly, but the "printf" not?
+On Mon, Mar 12, 2012 at 8:32 PM, Rajendra Nayak <rnayak-l0cyMroinI0@public.gmane.org> wrote:
+> The series adds device tree support for OMAP hsmmc
+> driver.
 >
-> =C2=A0Before this, i believe that the "printk" work correctly, then t=
-he uart
-> =C2=A0work ok. but now, i =C2=A0need more reconsidaration about
-> =C2=A0the relation between the "printk", "printf" and "uart".
-> =C2=A0Can anyone give me some suggestion? Any comment is welcome, tha=
-nks a
-> =C2=A0lot.
+> Changes in V2:
+> -1- Minor fixes based on comments from Grant.
+> -2- Added a seperate compatible for omap3.
+> -3- Added a new binding "ti,needs-special-reset"
+> to handle some mmc modules which need special
+> softreset sequence.
+> -4- Updated board dts files with "status =3D disable;"
+> for unused mmc modules.
+>
+> Rob,
+> I retained your ack on patch 1 despite the additional
+> binding that I added to handle the special softreset
+> sequence. Let me know if you have any issues with it.
+>
+> Chris.
+> Patch 1 and Patch 2 apply cleanly on mmc-next and can
+> be taken in from the mmc tree after relevent acks from
+> DT folks.
+> Patch 3 and Patch 4 which update dts files, I plan to
+> push via linux-omap/Tony's tree.
+Hi Rajendra,
 
-printk use "struct console" driver, it doesn't depend on a device node
-for userspace.
-printf actaully depends on uart_driver and a /dev/ttySx device node,
-stdout and stderr are redirected to /dev/ttySx
-uart is just a hardware which can be a tty or kernel console output.
-
+Tested this series on omap4sdp, so feel free to add
+Tested-by: Balaji T K <balajitk-l0cyMroinI0@public.gmane.org>
 
 >
+> The series is tested on omap4sdp (both external and emmc),
+> omap4panda amd omap3beagle boards.
 >
--barry
---
-To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> Things to do:
+> -1- Card detect isn't functional and needs twl4030 gpio
+> to be DT converted.
+> -2- pbias cell programming is missing and needs an OMAP
+> control module driver.
+>
+> Rajendra Nayak (4):
+> =A0mmc: omap_hsmmc: Convert hsmmc driver to use device tree
+> =A0mmc: omap_hsmmc: Avoid a regulator voltage change with dt
+> =A0arm/dts: OMAP4: Add mmc controller nodes and board data
+> =A0arm/dts: OMAP3: Add mmc controller nodes and board data
+>
+> =A0.../devicetree/bindings/mmc/ti-omap-hsmmc.txt =A0 =A0 =A0| =A0 33 ++++=
++++
+> =A0arch/arm/boot/dts/omap3-beagle.dts =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 | =
+=A0 14 +++
+> =A0arch/arm/boot/dts/omap3.dtsi =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =
+=A0 | =A0 16 ++++
+> =A0arch/arm/boot/dts/omap4-panda.dts =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0|=
+ =A0 22 +++++
+> =A0arch/arm/boot/dts/omap4-sdp.dts =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =
+=A0| =A0 24 ++++++
+> =A0arch/arm/boot/dts/omap4.dtsi =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =
+=A0 | =A0 31 +++++++
+> =A0drivers/mmc/host/omap_hsmmc.c =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =
+=A0| =A0 88 +++++++++++++++++++-
+> =A07 files changed, 227 insertions(+), 1 deletions(-)
+> =A0create mode 100644 Documentation/devicetree/bindings/mmc/ti-omap-hsmmc=
+.txt
