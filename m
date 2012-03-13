@@ -1,85 +1,127 @@
-From: "T Krishnamoorthy, Balaji" <balajitk-l0cyMroinI0@public.gmane.org>
-Subject: Re: [PATCH v2 0/4] omap hsmmc device tree support
-Date: Tue, 13 Mar 2012 21:13:30 +0530
-Message-ID: <CANrkHUb3Aypm7H44-6efiEoka_WO20hW1vMy-wBV1RzkRPt_UQ@mail.gmail.com>
-References: <1331564560-23276-1-git-send-email-rnayak@ti.com>
+From: Kevin Hilman <khilman@ti.com>
+Subject: Re: [PATCH v3 11/13] gpio/omap: fix dataout register overwrite in _set_gpio_dataout_*
+Date: Tue, 13 Mar 2012 09:27:21 -0700
+Message-ID: <8762e8v53q.fsf@ti.com>
+References: <1331118963-26364-1-git-send-email-tarun.kanti@ti.com>
+	<1331118963-26364-12-git-send-email-tarun.kanti@ti.com>
+	<87y5r5wkmu.fsf@ti.com>
+	<CAC83ZvJ5rjNJoSZW=j=DXQWKWGgr_Wqu8ukOubxKd7xuEQ4pzQ@mail.gmail.com>
+	<CAC83Zv+CZOGnSpOJgfCgEv-eyWXZzV+_mmd37CBMKM6iMtEksQ@mail.gmail.com>
+	<CAC83ZvLmaLOr4_eZZzKyP2=KvkG+LjHjeOwvxdQHhuiB8+2L0w@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="iso-8859-1"
-Content-Transfer-Encoding: quoted-printable
-Return-path: <linaro-dev-bounces-cunTk1MwBs8s++Sfvej+rw@public.gmane.org>
-In-Reply-To: <1331564560-23276-1-git-send-email-rnayak-l0cyMroinI0@public.gmane.org>
-List-Unsubscribe: <http://lists.linaro.org/mailman/options/linaro-dev>,
-	<mailto:linaro-dev-request-cunTk1MwBs8s++Sfvej+rw@public.gmane.org?subject=unsubscribe>
-List-Archive: <http://lists.linaro.org/pipermail/linaro-dev>
-List-Post: <mailto:linaro-dev-cunTk1MwBs8s++Sfvej+rw@public.gmane.org>
-List-Help: <mailto:linaro-dev-request-cunTk1MwBs8s++Sfvej+rw@public.gmane.org?subject=help>
-List-Subscribe: <http://lists.linaro.org/mailman/listinfo/linaro-dev>,
-	<mailto:linaro-dev-request-cunTk1MwBs8s++Sfvej+rw@public.gmane.org?subject=subscribe>
-Sender: linaro-dev-bounces-cunTk1MwBs8s++Sfvej+rw@public.gmane.org
-Errors-To: linaro-dev-bounces-cunTk1MwBs8s++Sfvej+rw@public.gmane.org
-To: Rajendra Nayak <rnayak-l0cyMroinI0@public.gmane.org>, Chris Ball <cjb-2X9k7bc8m7Mdnm+yROfE0A@public.gmane.org>, linux-mmc-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
-Cc: linaro-dev-cunTk1MwBs8s++Sfvej+rw@public.gmane.org, devicetree-discuss-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from na3sys009aog128.obsmtp.com ([74.125.149.141]:41201 "EHLO
+	na3sys009amx257.postini.com" rhost-flags-OK-OK-OK-FAIL)
+	by vger.kernel.org with ESMTP id S1754764Ab2CMQ1k convert rfc822-to-8bit
+	(ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Tue, 13 Mar 2012 12:27:40 -0400
+Received: by mail-ey0-f175.google.com with SMTP id e1so385051eaa.20
+        for <linux-omap@vger.kernel.org>; Tue, 13 Mar 2012 09:27:12 -0700 (PDT)
+In-Reply-To: <CAC83ZvLmaLOr4_eZZzKyP2=KvkG+LjHjeOwvxdQHhuiB8+2L0w@mail.gmail.com>
+	(Tarun Kanti DebBarma's message of "Tue, 13 Mar 2012 12:22:28 +0530")
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: "DebBarma, Tarun Kanti" <tarun.kanti@ti.com>
+Cc: linux-omap@vger.kernel.org, tony@atomide.com, linux-arm-kernel@lists.infradead.org
 
-On Mon, Mar 12, 2012 at 8:32 PM, Rajendra Nayak <rnayak-l0cyMroinI0@public.gmane.org> wrote:
-> The series adds device tree support for OMAP hsmmc
-> driver.
->
-> Changes in V2:
-> -1- Minor fixes based on comments from Grant.
-> -2- Added a seperate compatible for omap3.
-> -3- Added a new binding "ti,needs-special-reset"
-> to handle some mmc modules which need special
-> softreset sequence.
-> -4- Updated board dts files with "status =3D disable;"
-> for unused mmc modules.
->
-> Rob,
-> I retained your ack on patch 1 despite the additional
-> binding that I added to handle the special softreset
-> sequence. Let me know if you have any issues with it.
->
-> Chris.
-> Patch 1 and Patch 2 apply cleanly on mmc-next and can
-> be taken in from the mmc tree after relevent acks from
-> DT folks.
-> Patch 3 and Patch 4 which update dts files, I plan to
-> push via linux-omap/Tony's tree.
-Hi Rajendra,
+"DebBarma, Tarun Kanti" <tarun.kanti@ti.com> writes:
 
-Tested this series on omap4sdp, so feel free to add
-Tested-by: Balaji T K <balajitk-l0cyMroinI0@public.gmane.org>
+> On Tue, Mar 13, 2012 at 12:03 PM, DebBarma, Tarun Kanti
+> <tarun.kanti@ti.com> wrote:
+>> On Tue, Mar 13, 2012 at 11:33 AM, DebBarma, Tarun Kanti
+>> <tarun.kanti@ti.com> wrote:
+>>> On Tue, Mar 13, 2012 at 3:24 AM, Kevin Hilman <khilman@ti.com> wrot=
+e:
+>>>> Tarun Kanti DebBarma <tarun.kanti@ti.com> writes:
+>>>>
+>>>>> In the existing _set_gpio_dataout_*() implementation, the dataout
+>>>>> register is overwritten every time the function is called. This i=
+s
+>>>>> not intended behavior because that would end up one user of a GPI=
+O
+>>>>> line overwriting what is written by another. Fix this so that pre=
+vious
+>>>>> value is always preserved until explicitly changed by respective
+>>>>> user/driver of the GPIO line.
+>>>>>
+>>>>> Signed-off-by: Tarun Kanti DebBarma <tarun.kanti@ti.com>
+>>>>> ---
+>>>>> =C2=A0drivers/gpio/gpio-omap.c | =C2=A0 =C2=A03 +++
+>>>>> =C2=A01 files changed, 3 insertions(+), 0 deletions(-)
+>>>>>
+>>>>> diff --git a/drivers/gpio/gpio-omap.c b/drivers/gpio/gpio-omap.c
+>>>>> index 04c2677..2e8e476 100644
+>>>>> --- a/drivers/gpio/gpio-omap.c
+>>>>> +++ b/drivers/gpio/gpio-omap.c
+>>>>> @@ -114,6 +114,7 @@ static void _set_gpio_dataout_reg(struct gpio=
+_bank *bank, int gpio, int enable)
+>>>>> =C2=A0 =C2=A0 =C2=A0 else
+>>>>> =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 reg +=3D bank->r=
+egs->clr_dataout;
+>>>>>
+>>>>> + =C2=A0 =C2=A0 l |=3D __raw_readl(bank->base + bank->regs->set_d=
+ataout);
+>>>>
+>>>> minor: IMO, it's more reader-friendly if this looks like
+>>>>
+>>>> =C2=A0 =C2=A0 =C2=A0 l =3D __raw_read(...)
+>>>> =C2=A0 =C2=A0 =C2=A0 l |=3D GPIO_BIT(...)
+>>>> =C2=A0 =C2=A0 =C2=A0 __raw_write(...)
+>>> Agreed. I will make the change.
+>> Also, the read should be: __raw_readl(bank->base + bank->regs->datao=
+ut);
+>> instead of bank->regs->set_dataout.
+> I see a problem with this implementation. It is not correct to write =
+l
+> |=3D GPIO_BIT(...).
+> For example if we write to clr_dataout register we would end up
+> clearing bits which
+> we are not supposed to. We should just be operating on current GPIO_B=
+IT(...).
+> The l |=3D GPIO_BIT(...) is needed just to make sure that we have the
+> right context
+> stored. So the overall sequence should be something like this:
+>
+>         void __iomem *reg =3D bank->base;
+>         u32 l =3D GPIO_BIT(bank, gpio);
+>
+>         if (enable)
+>                 reg +=3D bank->regs->set_dataout;
+>         else
+>                 reg +=3D bank->regs->clr_dataout;
+>
+>         __raw_writel(l, reg);
+>         l |=3D __raw_readl(bank->base + bank->regs->dataout);
+>         bank->context.dataout =3D l;
 
->
-> The series is tested on omap4sdp (both external and emmc),
-> omap4panda amd omap3beagle boards.
->
-> Things to do:
-> -1- Card detect isn't functional and needs twl4030 gpio
-> to be DT converted.
-> -2- pbias cell programming is missing and needs an OMAP
-> control module driver.
->
-> Rajendra Nayak (4):
-> =A0mmc: omap_hsmmc: Convert hsmmc driver to use device tree
-> =A0mmc: omap_hsmmc: Avoid a regulator voltage change with dt
-> =A0arm/dts: OMAP4: Add mmc controller nodes and board data
-> =A0arm/dts: OMAP3: Add mmc controller nodes and board data
->
-> =A0.../devicetree/bindings/mmc/ti-omap-hsmmc.txt =A0 =A0 =A0| =A0 33 ++++=
-+++
-> =A0arch/arm/boot/dts/omap3-beagle.dts =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 | =
-=A0 14 +++
-> =A0arch/arm/boot/dts/omap3.dtsi =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =
-=A0 | =A0 16 ++++
-> =A0arch/arm/boot/dts/omap4-panda.dts =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0|=
- =A0 22 +++++
-> =A0arch/arm/boot/dts/omap4-sdp.dts =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =
-=A0| =A0 24 ++++++
-> =A0arch/arm/boot/dts/omap4.dtsi =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =
-=A0 | =A0 31 +++++++
-> =A0drivers/mmc/host/omap_hsmmc.c =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =
-=A0| =A0 88 +++++++++++++++++++-
-> =A07 files changed, 227 insertions(+), 1 deletions(-)
-> =A0create mode 100644 Documentation/devicetree/bindings/mmc/ti-omap-hsmmc=
-.txt
+Again, you don't need the extra read-back here.  Just set/clear the bit
+in the context.  Untested patch below.
+
+Kevin
+
+
+diff --git a/drivers/gpio/gpio-omap.c b/drivers/gpio/gpio-omap.c
+index 0b05629..db905c0 100644
+--- a/drivers/gpio/gpio-omap.c
++++ b/drivers/gpio/gpio-omap.c
+@@ -111,10 +111,13 @@ static void _set_gpio_dataout_reg(struct gpio_ban=
+k *bank, int gpio, int enable)
+ 	void __iomem *reg =3D bank->base;
+ 	u32 l =3D GPIO_BIT(bank, gpio);
+=20
+-	if (enable)
++	if (enable) {
+ 		reg +=3D bank->regs->set_dataout;
+-	else
++		bank->context.dataout |=3D l;
++	} else {
+ 		reg +=3D bank->regs->clr_dataout;
++		bank->context.dataout &=3D ~l;
++	}
+--
+To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
