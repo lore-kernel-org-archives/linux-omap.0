@@ -1,51 +1,234 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: [GIT PULL] one kernel panic fix for v3.3-rc7
-Date: Tue, 13 Mar 2012 11:33:52 -0700
-Message-ID: <20120313183352.GN12083@atomide.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+From: Rob Clark <rob.clark@linaro.org>
+Subject: [PATCH] omap2+: add drm device
+Date: Tue, 13 Mar 2012 15:34:38 -0500
+Message-ID: <1331670878-12951-1-git-send-email-rob.clark@linaro.org>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-01-ewr.mailhop.org ([204.13.248.71]:15793 "EHLO
-	mho-01-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753941Ab2CMSd4 (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 13 Mar 2012 14:33:56 -0400
-Content-Disposition: inline
+Received: from mail-gx0-f174.google.com ([209.85.161.174]:46510 "EHLO
+	mail-gx0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753826Ab2CMUen (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 13 Mar 2012 16:34:43 -0400
+Received: by gghe5 with SMTP id e5so1014628ggh.19
+        for <linux-omap@vger.kernel.org>; Tue, 13 Mar 2012 13:34:42 -0700 (PDT)
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Olof Johansson <olof@lixom.net>, Arnd Bergmann <arnd@arndb.de>
-Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+To: dri-devel@lists.freedesktop.org, linux-omap@vger.kernel.org
+Cc: patches@linaro.org, Greg KH <greg@kroah.com>, Tomi Valkeinen <tomi.valkeinen@ti.com>, Andy Gross <andy.gross@ti.com>, Rob Clark <rob@ti.com>
 
-Hi Olof,
+From: Andy Gross <andy.gross@ti.com>
 
-Here's one more kernel panic fix that I dropped from last weeks
-fixes as it was still being discussed.
+Register OMAP DRM/KMS platform device, and reserve a CMA region for
+the device to use for buffer allocation.  DMM is split into a
+separate device using hwmod.
 
-This is a fix for the regression caused by fixing an earlier
-regression for smsc911x fixed regulators :(
+Signed-off-by: Andy Gross <andy.gross@ti.com>
+Signed-off-by: Rob Clark <rob@ti.com>
+---
+ arch/arm/mach-omap2/Makefile          |    4 ++
+ arch/arm/mach-omap2/drm.c             |   83 +++++++++++++++++++++++++++++++++
+ arch/arm/plat-omap/common.c           |    3 +-
+ arch/arm/plat-omap/include/plat/drm.h |   64 +++++++++++++++++++++++++
+ 4 files changed, 153 insertions(+), 1 deletions(-)
+ create mode 100644 arch/arm/mach-omap2/drm.c
+ create mode 100644 arch/arm/plat-omap/include/plat/drm.h
 
-Turns out that we have more than one smsc911x on some boards,
-and the earlier fix causes a kernel panic for board trying to
-register second smsc911x instance, even if the second smsc911x
-is on an add-on board that is not connected.
+diff --git a/arch/arm/mach-omap2/Makefile b/arch/arm/mach-omap2/Makefile
+index bd76394..9e6065b 100644
+--- a/arch/arm/mach-omap2/Makefile
++++ b/arch/arm/mach-omap2/Makefile
+@@ -189,6 +189,10 @@ ifneq ($(CONFIG_TIDSPBRIDGE),)
+ obj-y					+= dsp.o
+ endif
+ 
++ifneq ($(CONFIG_DRM_OMAP),)
++obj-y					+= drm.o
++endif
++
+ # Specific board support
+ obj-$(CONFIG_MACH_OMAP_GENERIC)		+= board-generic.o
+ obj-$(CONFIG_MACH_OMAP_H4)		+= board-h4.o
+diff --git a/arch/arm/mach-omap2/drm.c b/arch/arm/mach-omap2/drm.c
+new file mode 100644
+index 0000000..779ae02
+--- /dev/null
++++ b/arch/arm/mach-omap2/drm.c
+@@ -0,0 +1,83 @@
++/*
++ * DRM/KMS device registration for TI OMAP platforms
++ *
++ * Copyright (C) 2012 Texas Instruments
++ * Author: Rob Clark <rob.clark@linaro.org>
++ *
++ * This program is free software; you can redistribute it and/or modify it
++ * under the terms of the GNU General Public License version 2 as published by
++ * the Free Software Foundation.
++ *
++ * This program is distributed in the hope that it will be useful, but WITHOUT
++ * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
++ * FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License for
++ * more details.
++ *
++ * You should have received a copy of the GNU General Public License along with
++ * this program.  If not, see <http://www.gnu.org/licenses/>.
++ */
++
++#include <linux/module.h>
++#include <linux/kernel.h>
++#include <linux/mm.h>
++#include <linux/init.h>
++#include <linux/platform_device.h>
++#include <linux/dma-mapping.h>
++#ifdef CONFIG_CMA
++#  include <linux/dma-contiguous.h>
++#endif
++
++#include <plat/omap_device.h>
++#include <plat/omap_hwmod.h>
++
++#include <plat/drm.h>
++
++#if defined(CONFIG_DRM_OMAP) || (CONFIG_DRM_OMAP_MODULE)
++
++static struct omap_drm_platform_data omapdrm_platdata;
++
++static struct platform_device omap_drm_device = {
++		.dev = {
++			.coherent_dma_mask = DMA_BIT_MASK(32),
++			.platform_data = &omapdrm_platdata,
++		},
++		.name = "omapdrm",
++		.id = 0,
++};
++
++static int __init omap_init_drm(void)
++{
++	struct omap_hwmod *oh = NULL;
++	struct platform_device *pdev;
++
++	/* lookup and populate the DMM information, if present - OMAP4+ */
++	oh = omap_hwmod_lookup("dmm");
++
++	if (oh) {
++		pdev = omap_device_build(oh->name, -1, oh, NULL, 0, NULL, 0,
++					false);
++		WARN(IS_ERR(pdev), "Could not build omap_device for %s\n",
++			oh->name);
++	}
++
++	return platform_device_register(&omap_drm_device);
++
++}
++
++arch_initcall(omap_init_drm);
++
++void omapdrm_reserve_vram(void)
++{
++#ifdef CONFIG_CMA
++	/*
++	 * Create private 32MiB contiguous memory area for omapdrm.0 device
++	 * TODO revisit size.. if uc/wc buffers are allocated from CMA pages
++	 * then the amount of memory we need goes up..
++	 */
++	dma_declare_contiguous(&omap_drm_device.dev, 32 * SZ_1M, 0, 0);
++#else
++#  warning "CMA is not enabled, there may be limitations about scanout buffer allocations on OMAP3 and earlier"
++#endif
++}
++
++#endif
+diff --git a/arch/arm/plat-omap/common.c b/arch/arm/plat-omap/common.c
+index 4de7d1e..e027cc7 100644
+--- a/arch/arm/plat-omap/common.c
++++ b/arch/arm/plat-omap/common.c
+@@ -21,10 +21,10 @@
+ #include <plat/board.h>
+ #include <plat/vram.h>
+ #include <plat/dsp.h>
++#include <plat/drm.h>
+ 
+ #include <plat/omap-secure.h>
+ 
+-
+ #define NO_LENGTH_CHECK 0xffffffff
+ 
+ struct omap_board_config_kernel *omap_board_config __initdata;
+@@ -65,6 +65,7 @@ const void *__init omap_get_var_config(u16 tag, size_t *len)
+ 
+ void __init omap_reserve(void)
+ {
++	omapdrm_reserve_vram();
+ 	omapfb_reserve_sdram_memblock();
+ 	omap_vram_reserve_sdram_memblock();
+ 	omap_dsp_reserve_sdram_memblock();
+diff --git a/arch/arm/plat-omap/include/plat/drm.h b/arch/arm/plat-omap/include/plat/drm.h
+new file mode 100644
+index 0000000..df9bc41
+--- /dev/null
++++ b/arch/arm/plat-omap/include/plat/drm.h
+@@ -0,0 +1,64 @@
++/*
++ * DRM/KMS device registration for TI OMAP platforms
++ *
++ * Copyright (C) 2012 Texas Instruments
++ * Author: Rob Clark <rob.clark@linaro.org>
++ *
++ * This program is free software; you can redistribute it and/or modify it
++ * under the terms of the GNU General Public License version 2 as published by
++ * the Free Software Foundation.
++ *
++ * This program is distributed in the hope that it will be useful, but WITHOUT
++ * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
++ * FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License for
++ * more details.
++ *
++ * You should have received a copy of the GNU General Public License along with
++ * this program.  If not, see <http://www.gnu.org/licenses/>.
++ */
++
++#ifndef __PLAT_OMAP_DRM_H__
++#define __PLAT_OMAP_DRM_H__
++
++/*
++ * Optional platform data to configure the default configuration of which
++ * pipes/overlays/CRTCs are used.. if this is not provided, then instead the
++ * first CONFIG_DRM_OMAP_NUM_CRTCS are used, and they are each connected to
++ * one manager, with priority given to managers that are connected to
++ * detected devices.  Remaining overlays are used as video planes.  This
++ * should be a good default behavior for most cases, but yet there still
++ * might be times when you wish to do something different.
++ */
++struct omap_kms_platform_data {
++	/* overlays to use as CRTCs: */
++	int ovl_cnt;
++	const int *ovl_ids;
++
++	/* overlays to use as video planes: */
++	int pln_cnt;
++	const int *pln_ids;
++
++	int mgr_cnt;
++	const int *mgr_ids;
++
++	int dev_cnt;
++	const char **dev_names;
++};
++
++struct omap_drm_platform_data {
++	struct omap_kms_platform_data *kms_pdata;
++};
++
++#if defined(CONFIG_DRM_OMAP) || defined(CONFIG_DRM_OMAP_MODULE)
++
++void omapdrm_reserve_vram(void);
++
++#else
++
++static inline void omapdrm_reserve_vram(void)
++{
++}
++
++#endif
++
++#endif /* __PLAT_OMAP_DRM_H__ */
+-- 
+1.7.5.4
 
-Note that the boards with second smsc911x will also need to be
-patched later on to provide their own regulators.
-
-Regards,
-
-Tony
-
-
-The following changes since commit fde7d9049e55ab85a390be7f415d74c9f62dd0f9:
-  Linus Torvalds (1):
-        Linux 3.3-rc7
-
-are available in the git repository at:
-
-  git://git.kernel.org/pub/scm/linux/kernel/git/tmlind/linux-omap fix-smsc911x-regulator
-
-Kevin Hilman (1):
-      ARM: OMAP2+: gpmc-smsc911x: only register regulator for first instance
-
- arch/arm/mach-omap2/gpmc-smsc911x.c |   11 +++++++----
- 1 files changed, 7 insertions(+), 4 deletions(-)
