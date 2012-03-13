@@ -1,65 +1,47 @@
-From: "Shilimkar, Santosh" <santosh.shilimkar@ti.com>
-Subject: Re: [PATCH 2/5] ARM: OMAP2+: add includes for missing prototypes
-Date: Tue, 13 Mar 2012 12:23:14 +0530
-Message-ID: <CAMQu2gytxATib1HzKNL65jgaNvQ_vf-isKL_RiKDO7ef75u-hA@mail.gmail.com>
-References: <20120312224006.4103.29464.stgit@dusk>
- <20120312224252.4103.75837.stgit@dusk>
+From: Jarkko Nikula <jarkko.nikula@bitmer.com>
+Subject: Re: [PATCH 5/5] ARM: OMAP2+: clean up some cppcheck warnings
+Date: Tue, 13 Mar 2012 09:10:02 +0200
+Message-ID: <4F5EF2CA.70703@bitmer.com>
+References: <20120312224006.4103.29464.stgit@dusk> <20120312224257.4103.11096.stgit@dusk>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="iso-8859-1"
-Content-Transfer-Encoding: quoted-printable
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-In-Reply-To: <20120312224252.4103.75837.stgit@dusk>
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: linux-arm-kernel-bounces@lists.infradead.org
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: Paul Walmsley <paul@pwsan.com>
-Cc: linux-omap@vger.kernel.org, Senthilvadivu Guruswamy <svadivu@ti.com>, linux-arm-kernel@lists.infradead.org
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from bitmer.com ([213.157.87.50]:59315 "EHLO bitmer.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1756683Ab2CMHJv (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Tue, 13 Mar 2012 03:09:51 -0400
+In-Reply-To: <20120312224257.4103.11096.stgit@dusk>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Paul Walmsley <paul@pwsan.com>
+Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Kevin Hilman <khilman@ti.com>, Tony Lindgren <tony@atomide.com>, Felipe Balbi <balbi@ti.com>, Peter Ujfalusi <peter.ujfalusi@ti.com>, Charulatha Varadarajan <charu@ti.com>
 
-On Tue, Mar 13, 2012 at 4:12 AM, Paul Walmsley <paul@pwsan.com> wrote:
->
-> Several C files in arch/arm/mach-omap2 declare functions that are used
-> by other files, but don't include the header file where the prototype is
-> declared. =A0This results in the following warnings from sparse:
->
-> =A0 =A0arch/arm/mach-omap2/irq.c:114:5: warning: symbol 'omap_irq_pending=
-' was not declared. Should it be static?
-> =A0 =A0arch/arm/mach-omap2/irq.c:186:13: warning: symbol 'omap2_init_irq'=
- was not declared. Should it be static?
-> =A0 =A0arch/arm/mach-omap2/irq.c:191:13: warning: symbol 'omap3_init_irq'=
- was not declared. Should it be static?
-> =A0 =A0arch/arm/mach-omap2/irq.c:196:13: warning: symbol 'ti81xx_init_irq=
-' was not declared. Should it be static?
-> =A0 =A0arch/arm/mach-omap2/irq.c:233:39: warning: symbol 'omap2_intc_hand=
-le_irq' was not declared. Should it be static?
-> =A0 =A0arch/arm/mach-omap2/irq.c:242:6: warning: symbol 'omap_intc_save_c=
-ontext' was not declared. Should it be static?
-> =A0 =A0arch/arm/mach-omap2/irq.c:265:6: warning: symbol 'omap_intc_restor=
-e_context' was not declared. Should it be static?
-> =A0 =A0arch/arm/mach-omap2/irq.c:291:6: warning: symbol 'omap3_intc_suspe=
-nd' was not declared. Should it be static?
-> =A0 =A0arch/arm/mach-omap2/irq.c:297:6: warning: symbol 'omap3_intc_prepa=
-re_idle' was not declared. Should it be static?
-> =A0 =A0arch/arm/mach-omap2/irq.c:306:6: warning: symbol 'omap3_intc_resum=
-e_idle' was not declared. Should it be static?
-> =A0 =A0arch/arm/mach-omap2/irq.c:312:39: warning: symbol 'omap3_intc_hand=
-le_irq' was not declared. Should it be static?
-> =A0 =A0arch/arm/mach-omap2/omap-secure.c:59:12: warning: symbol 'omap_sec=
-ure_ram_reserve_memblock' was not declared. Should it be static?
-> =A0 =A0arch/arm/mach-omap2/board-zoom-display.c:133:13: warning: symbol '=
-zoom_display_init' was not declared. Should it be static?
->
-> Fix by including the appropriate header files.
->
-> Signed-off-by: Paul Walmsley <paul@pwsan.com>
-> Cc: Santosh Shilimkar <santosh.shilimkar@ti.com>
-> Cc: Senthilvadivu Guruswamy <svadivu@ti.com>
-> ---
-Thanks Paul for the fix.
-Acked-by: Santosh Shilimkar <santosh.shilimkar@ti.com>
+On 03/13/2012 12:43 AM, Paul Walmsley wrote:
+> Resolve some warnings identified by cppcheck in arch/arm/mach-omap2:
+...
+>     [arch/arm/mach-omap2/mcbsp.c:133]: (warning) scanf without field width limits can crash with huge input data
+...
+> diff --git a/arch/arm/mach-omap2/mcbsp.c b/arch/arm/mach-omap2/mcbsp.c
+> index fb4bcf8..efe59c7 100644
+
+> --- a/arch/arm/mach-omap2/mcbsp.c
+> +++ b/arch/arm/mach-omap2/mcbsp.c
+> @@ -130,7 +130,7 @@ static int omap_init_mcbsp(struct omap_hwmod *oh, void *unused)
+>  	struct omap_mcbsp_platform_data *pdata = NULL;
+>  	struct platform_device *pdev;
+>  
+> -	sscanf(oh->name, "mcbsp%d", &id);
+> +	sscanf(oh->name, "mcbsp%1d", &id);
+>  
+Correct if I'm wrong but is this a false alarm? Can %d scan more than
+sizeof(int)?
+
+Anyway this shouldn't be fatal issue since name comes from kernel
+omap_hwmod data, i.e. only developer can hit it.
+
+Peter: worth to check and possible add this Paul's fix to your mcbsp
+change set.
+
+-- 
+Jarkko
