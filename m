@@ -1,67 +1,59 @@
-From: "Cousson, Benoit" <b-cousson@ti.com>
-Subject: [GIT PULL] ARM: OMAP: i2c, gpio, spi and regulator DTS updates
-Date: Tue, 13 Mar 2012 00:41:40 +0100
-Message-ID: <4F5E89B4.4010505@ti.com>
+From: Grant Likely <grant.likely@secretlab.ca>
+Subject: Re: [PATCH v3 00/13] gpio/omap: Some more driver cleanup and fixes
+Date: Mon, 12 Mar 2012 21:57:28 -0600
+Message-ID: <20120313035728.B56993E0FAA@localhost>
+References: <1331118963-26364-1-git-send-email-tarun.kanti@ti.com>
+ <878vj5y7iv.fsf@ti.com>
+ <CAC83Zv+8AjCHBOJbtvSQS-URvCE5Xm9oPk9_X7h4Kz7FZ_7Otw@mail.gmail.com>
+ <CAC83ZvJKS34Py6vVtk_Si9q3A-9CVN6v4ixNM+HJ37AATcGNPA@mail.gmail.com>
+ <CAC83ZvJDfDBcRU1isYaxRe-fWN8F2+QW6W5EeWWuTRcFBGpYNg@mail.gmail.com>
+ <87vcm9v4h1.fsf@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="ISO-8859-1"
+Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from devils.ext.ti.com ([198.47.26.153]:60894 "EHLO
-	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S964965Ab2CLXlq (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 12 Mar 2012 19:41:46 -0400
-Sender: linux-omap-owner@vger.kernel.org
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
+In-Reply-To: <87vcm9v4h1.fsf@ti.com>
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
+List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
+List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
+Sender: linux-arm-kernel-bounces@lists.infradead.org
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
+To: Kevin Hilman <khilman@ti.com>, "DebBarma, Tarun Kanti" <tarun.kanti@ti.com>
+Cc: tony@atomide.com, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 List-Id: linux-omap@vger.kernel.org
-To: tony Lindgren <tony@atomide.com>
-Cc: linux-omap <linux-omap@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>
 
-Hi Tony,
+On Mon, 12 Mar 2012 15:28:42 -0700, Kevin Hilman <khilman@ti.com> wrote:
+> "DebBarma, Tarun Kanti" <tarun.kanti@ti.com> writes:
+> 
+> [...]
+> 
+> >>> Oops... I am sorry.
+> >>> I was in the process of updating the branch with latest comments after
+> >>> base-lining on Grant's:
+> >>> git://git.secretlab.ca/git/linux-2.6.git
+> >>> Branch: gpio/next
+> >>> Because this has all the gpio changes including Benoit's latest gpio
+> >>> devicetree changes.
+> >>> Should I go ahead?
+> >> Anyways, for the time being I am updating on top of your changes as before.
+> >> You should be able to see the branch shortly.
+> > Please note that the branch has your following patch:
+> > gpio/omap: fix wakeups on level-triggered GPIOs
+> 
+> Please be sure to Cc the GPIO maintainer (added now.)
+> 
+> Grant can we consider your gpio/next a stable baseline for further
+> GPIO fixes?
+> 
+> If so, Tarun, please base your branch there.  Otherwise, continue to use
+> my for_3.4/gpio/runtime-pm-cleanup, but please test it by merging with
+> the gpio/next branch.
 
-Here are the remaining DTS patches for 3.4.
+I'm not going to rebase gpio/next before the merge window; you can base on it with
+confidence.
 
-Ideally all the driver DT adaptation should have been merged before that one.
-
-This series is based on your lo/dt-part2 branch.
-
-Thanks,
-Benoit
-
-
-The following changes since commit 328ae2cb50af2f96b6061eb462aa92966a462bbc:
-  Ilya Yanok (1):
-        arm/dts: mt_ventoux: very basic support for TeeJet Mt.Ventoux board
-
-are available in the git repository at:
-
-  git://git.kernel.org/pub/scm/linux/kernel/git/bcousson/linux-omap-dt.git for_3.4/dts/all
-
-Benoit Cousson (11):
-      arm/dts: twl6030: Add DTS file for twl6030 PMIC
-      arm/dts: twl4030: Add DTS file for twl4030 PM + Audio IC
-      arm/dts: omap4-panda: Add twl6030 and i2c EEPROM
-      arm/dts: omap4-sdp: Add twl6030, i2c3 and i2c4 devices
-      arm/dts: omap3-beagle: Add twl4030 and i2c EEPROM
-      ARM: OMAP2+: board-generic: Remove i2c static init
-      arm/dts: OMAP4: Add gpio nodes
-      arm/dts: OMAP3: Add gpio nodes
-      arm/dts: OMAP4: Add SPI controller nodes
-      arm/dts: OMAP3: Add SPI controller nodes
-      arm/dts: omap4-sdp: Add ks8851 ethernet SPI device
-
-Rajendra Nayak (1):
-      arm/dts: twl: Pass regulator data from dt
-
- arch/arm/boot/dts/omap3-beagle.dts  |   35 ++++++++++++++
- arch/arm/boot/dts/omap3.dtsi        |   86 +++++++++++++++++++++++++++++++++++
- arch/arm/boot/dts/omap4-panda.dts   |   34 ++++++++++++++
- arch/arm/boot/dts/omap4-sdp.dts     |   73 +++++++++++++++++++++++++++++
- arch/arm/boot/dts/omap4.dtsi        |   86 +++++++++++++++++++++++++++++++++++
- arch/arm/boot/dts/twl4030.dtsi      |   39 ++++++++++++++++
- arch/arm/boot/dts/twl6030.dtsi      |   86 +++++++++++++++++++++++++++++++++++
- arch/arm/mach-omap2/board-generic.c |   37 +--------------
- arch/arm/mach-omap2/devices.c       |    4 +-
- arch/arm/mach-omap2/gpio.c          |    8 +++-
- 10 files changed, 450 insertions(+), 38 deletions(-)
- create mode 100644 arch/arm/boot/dts/twl4030.dtsi
- create mode 100644 arch/arm/boot/dts/twl6030.dtsi
-
+g.
