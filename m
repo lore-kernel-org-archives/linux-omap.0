@@ -1,67 +1,32 @@
-From: Olof Johansson <olof@lixom.net>
-Subject: Re: [GIT PULL] one kernel panic fix for v3.3-rc7
-Date: Tue, 13 Mar 2012 15:49:54 -0700
-Message-ID: <CAOesGMi+ySz9QZNZAZYRBD8J8i5TzmfVd+fBrpvSFsHOOQ3_aA@mail.gmail.com>
-References: <20120313183352.GN12083@atomide.com>
+From: Anton Vorontsov <cbouatmailru@gmail.com>
+Subject: Re: [PATCH] power: isp1704: fix probe error path
+Date: Wed, 14 Mar 2012 03:29:36 +0400
+Message-ID: <20120313232936.GB24552@oksana.dev.rtsoft.ru>
+References: <1328058229-29014-1-git-send-email-felipe.contreras@gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: text/plain; charset=utf-8
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-yw0-f46.google.com ([209.85.213.46]:35645 "EHLO
-	mail-yw0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753227Ab2CMWtz convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 13 Mar 2012 18:49:55 -0400
-Received: by yhmm54 with SMTP id m54so1139610yhm.19
-        for <linux-omap@vger.kernel.org>; Tue, 13 Mar 2012 15:49:54 -0700 (PDT)
-In-Reply-To: <20120313183352.GN12083@atomide.com>
+Received: from mail-bk0-f46.google.com ([209.85.214.46]:49618 "EHLO
+	mail-bk0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751605Ab2CMX3m (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 13 Mar 2012 19:29:42 -0400
+Received: by bkcik5 with SMTP id ik5so842307bkc.19
+        for <linux-omap@vger.kernel.org>; Tue, 13 Mar 2012 16:29:40 -0700 (PDT)
+Content-Disposition: inline
+In-Reply-To: <1328058229-29014-1-git-send-email-felipe.contreras@gmail.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Tony Lindgren <tony@atomide.com>
-Cc: Arnd Bergmann <arnd@arndb.de>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+To: Felipe Contreras <felipe.contreras@gmail.com>
+Cc: linux-omap@vger.kernel.org, Kalle Jokiniemi <kalle.jokiniemi@nokia.com>, Clifton Barnes <cabarnes@indesign-llc.com>, Axel Lin <axel.lin@gmail.com>
 
-On Tue, Mar 13, 2012 at 11:33 AM, Tony Lindgren <tony@atomide.com> wrot=
-e:
-> Hi Olof,
->
-> Here's one more kernel panic fix that I dropped from last weeks
-> fixes as it was still being discussed.
->
-> This is a fix for the regression caused by fixing an earlier
-> regression for smsc911x fixed regulators :(
->
-> Turns out that we have more than one smsc911x on some boards,
-> and the earlier fix causes a kernel panic for board trying to
-> register second smsc911x instance, even if the second smsc911x
-> is on an add-on board that is not connected.
->
-> Note that the boards with second smsc911x will also need to be
-> patched later on to provide their own regulators.
->
-> Regards,
->
-> Tony
->
->
-> The following changes since commit fde7d9049e55ab85a390be7f415d74c9f6=
-2dd0f9:
-> =A0Linus Torvalds (1):
-> =A0 =A0 =A0 =A0Linux 3.3-rc7
->
-> are available in the git repository at:
->
-> =A0git://git.kernel.org/pub/scm/linux/kernel/git/tmlind/linux-omap fi=
-x-smsc911x-regulator
->
-> Kevin Hilman (1):
-> =A0 =A0 =A0ARM: OMAP2+: gpmc-smsc911x: only register regulator for fi=
-rst instance
+On Wed, Feb 01, 2012 at 03:03:47AM +0200, Felipe Contreras wrote:
+> We enable power, but don't disable it in case of an error.
+> 
+> Signed-off-by: Felipe Contreras <felipe.contreras@gmail.com>
+> ---
 
-Thanks, pulled.
+Applied, thanks!
 
-
--Olof
---
-To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+-- 
+Anton Vorontsov
+Email: cbouatmailru@gmail.com
