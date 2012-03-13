@@ -1,249 +1,111 @@
-From: Paul Walmsley <paul@pwsan.com>
-Subject: [PATCH v2 5/5] ARM: OMAP2+: clean up some cppcheck warnings
-Date: Tue, 13 Mar 2012 02:12:05 -0600 (MDT)
-Message-ID: <alpine.DEB.2.00.1203130211300.22211@utopia.booyaka.com>
-References: <20120312224006.4103.29464.stgit@dusk> <20120312224257.4103.11096.stgit@dusk>
+From: "Varadarajan, Charulatha" <charu@ti.com>
+Subject: Re: [PATCH v2 5/5] ARM: OMAP2+: clean up some cppcheck warnings
+Date: Tue, 13 Mar 2012 13:51:41 +0530
+Message-ID: <CA+HSevoVd-pU968DxMsYtHw58gUid9pAyY8gp1u1NdOc3orTzA@mail.gmail.com>
+References: <20120312224006.4103.29464.stgit@dusk>
+ <20120312224257.4103.11096.stgit@dusk>
+ <alpine.DEB.2.00.1203130211300.22211@utopia.booyaka.com>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from utopia.booyaka.com ([72.9.107.138]:34909 "EHLO
-	utopia.booyaka.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1757752Ab2CMIMG (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 13 Mar 2012 04:12:06 -0400
-In-Reply-To: <20120312224257.4103.11096.stgit@dusk>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset="iso-8859-1"
+Content-Transfer-Encoding: quoted-printable
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
+In-Reply-To: <alpine.DEB.2.00.1203130211300.22211@utopia.booyaka.com>
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
+List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
+List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
+Sender: linux-arm-kernel-bounces@lists.infradead.org
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
+To: Paul Walmsley <paul@pwsan.com>
+Cc: Kevin Hilman <khilman@ti.com>, Tony Lindgren <tony@atomide.com>, Felipe Balbi <balbi@ti.com>, Peter Ujfalusi <peter.ujfalusi@ti.com>, Jarkko Nikula <jarkko.nikula@bitmer.com>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 List-Id: linux-omap@vger.kernel.org
-To: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
-Cc: Kevin Hilman <khilman@ti.com>, Tony Lindgren <tony@atomide.com>, Felipe Balbi <balbi@ti.com>, Peter Ujfalusi <peter.ujfalusi@ti.com>, Jarkko Nikula <jarkko.nikula@bitmer.com>, Charulatha Varadarajan <charu@ti.com>
 
+On Tue, Mar 13, 2012 at 13:42, Paul Walmsley <paul@pwsan.com> wrote:
+>
+>
+> Resolve some warnings identified by cppcheck in arch/arm/mach-omap2:
+>
+> =A0 =A0[arch/arm/mach-omap2/usb-tusb6010.c:129]: (style) Checking if unsi=
+gned
+> variable 'tmp' is less than zero.
+> =A0 =A0[arch/arm/mach-omap2/prm_common.c:241]: (error) Possible null poin=
+ter
+> dereference: irq_setup - otherwise it is redundant to check if irq_setup =
+is
+> null at line 247
+> =A0 =A0[arch/arm/mach-omap2/pm34xx.c:790]: (style) Variable 'per_clkdm' is
+> assigned a value that is never used
+> =A0 =A0[arch/arm/mach-omap2/pm34xx.c:790]: (style) Variable 'core_clkdm' =
+is
+> assigned a value that is never used
+> =A0 =A0[arch/arm/mach-omap2/pm24xx.c:185]: (style) Variable 'only_idle' is
+> assigned a value that is never used
+> =A0 =A0[arch/arm/mach-omap2/mux.c:254]: (error) Possible null pointer
+> dereference: mux
+> =A0 =A0[arch/arm/mach-omap2/mux.c:258]: (error) Possible null pointer
+> dereference: mux
+> =A0 =A0[arch/arm/mach-omap2/gpmc-onenand.c:178]: (style) Variable 'tick_n=
+s' is
+> assigned a value that is never used
+> =A0 =A0[arch/arm/mach-omap2/gpio.c:56]: (error) Possible null pointer
+> dereference: pdata - otherwise it is redundant to check if pdata is null =
+at
+> line 57
+> =A0 =A0[arch/arm/mach-omap2/devices.c:45]: (style) Variable 'l' is assign=
+ed a
+> value that is never used
+> =A0 =A0[arch/arm/mach-omap2/board-am3517evm.c:134]: (style) Variable 'reg=
+val'
+> is assigned a value that is never used
+>
+> Some of them are pretty good catches, such the gpio.c:56 and
+> usb-tusb6010.c:129.
+>
+> Thanks to Jarkko Nikula for some comments on the sscanf() warnings.
+> It seems that the kernel sscanf() ignores the field width anyway for the
+> %d format, so those changes have been dropped from this second version.
+>
+> Signed-off-by: Paul Walmsley <paul@pwsan.com>
+> Cc: Felipe Balbi <balbi@ti.com>
+> Cc: Tony Lindgren <tony@atomide.com>
+> Cc: Kevin Hilman <khilman@ti.com>
+> Cc: Peter Ujfalusi <peter.ujfalusi@ti.com>
+> Cc: Jarkko Nikula <jarkko.nikula@bitmer.com>
+> Cc: Charulatha Varadarajan <charu@ti.com>
+> ---
+> =A0arch/arm/mach-omap2/board-am3517evm.c | =A0 =A06 +-----
+> =A0arch/arm/mach-omap2/board-omap3evm.c =A0| =A0 =A08 ++++----
+> =A0arch/arm/mach-omap2/devices.c =A0 =A0 =A0 =A0 | =A0 =A03 +--
+> =A0arch/arm/mach-omap2/gpio.c =A0 =A0 =A0 =A0 =A0 =A0| =A0 =A02 +-
+> =A0arch/arm/mach-omap2/gpmc-onenand.c =A0 =A0| =A0 =A03 +--
+> =A0arch/arm/mach-omap2/mux.c =A0 =A0 =A0 =A0 =A0 =A0 | =A0 =A02 +-
+> =A0arch/arm/mach-omap2/pm24xx.c =A0 =A0 =A0 =A0 =A0| =A0 =A03 ---
+> =A0arch/arm/mach-omap2/pm34xx.c =A0 =A0 =A0 =A0 =A0| =A0 =A04 +---
+> =A0arch/arm/mach-omap2/prm_common.c =A0 =A0 =A0| =A0 =A04 +++-
+> =A0arch/arm/mach-omap2/usb-tusb6010.c =A0 =A0| =A0 =A02 +-
+> =A010 files changed, 14 insertions(+), 23 deletions(-)
+>
 
-Resolve some warnings identified by cppcheck in arch/arm/mach-omap2:
+[snip]
 
-    [arch/arm/mach-omap2/usb-tusb6010.c:129]: (style) Checking if unsigned variable 'tmp' is less than zero.
-    [arch/arm/mach-omap2/prm_common.c:241]: (error) Possible null pointer dereference: irq_setup - otherwise it is redundant to check if irq_setup is null at line 247
-    [arch/arm/mach-omap2/pm34xx.c:790]: (style) Variable 'per_clkdm' is assigned a value that is never used
-    [arch/arm/mach-omap2/pm34xx.c:790]: (style) Variable 'core_clkdm' is assigned a value that is never used
-    [arch/arm/mach-omap2/pm24xx.c:185]: (style) Variable 'only_idle' is assigned a value that is never used
-    [arch/arm/mach-omap2/mux.c:254]: (error) Possible null pointer dereference: mux
-    [arch/arm/mach-omap2/mux.c:258]: (error) Possible null pointer dereference: mux
-    [arch/arm/mach-omap2/gpmc-onenand.c:178]: (style) Variable 'tick_ns' is assigned a value that is never used
-    [arch/arm/mach-omap2/gpio.c:56]: (error) Possible null pointer dereference: pdata - otherwise it is redundant to check if pdata is null at line 57
-    [arch/arm/mach-omap2/devices.c:45]: (style) Variable 'l' is assigned a value that is never used
-    [arch/arm/mach-omap2/board-am3517evm.c:134]: (style) Variable 'regval' is assigned a value that is never used
+> diff --git a/arch/arm/mach-omap2/gpio.c b/arch/arm/mach-omap2/gpio.c
+> index 8cbfbc2..2803ff8 100644
+> --- a/arch/arm/mach-omap2/gpio.c
+> +++ b/arch/arm/mach-omap2/gpio.c
+> @@ -54,7 +54,7 @@ static int omap2_gpio_dev_init(struct omap_hwmod *oh,
+> void *unused)
+> =A0 =A0 =A0 =A0pdata->virtual_irq_start =3D IH_GPIO_BASE + 32 * (id - 1);
+>
+> =A0 =A0 =A0 =A0pdata->regs =3D kzalloc(sizeof(struct omap_gpio_reg_offs),
+> GFP_KERNEL);
+> - =A0 =A0 =A0 if (!pdata) {
+> + =A0 =A0 =A0 if (!pdata->regs) {
+> =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0pr_err("gpio%d: Memory allocation failed\n=
+", id);
+> =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0return -ENOMEM;
+> =A0 =A0 =A0 =A0}
 
-Some of them are pretty good catches, such the gpio.c:56 and
-usb-tusb6010.c:129.
-
-Thanks to Jarkko Nikula for some comments on the sscanf() warnings.
-It seems that the kernel sscanf() ignores the field width anyway for the
-%d format, so those changes have been dropped from this second version.
-
-Signed-off-by: Paul Walmsley <paul@pwsan.com>
-Cc: Felipe Balbi <balbi@ti.com>
-Cc: Tony Lindgren <tony@atomide.com>
-Cc: Kevin Hilman <khilman@ti.com>
-Cc: Peter Ujfalusi <peter.ujfalusi@ti.com>
-Cc: Jarkko Nikula <jarkko.nikula@bitmer.com>
-Cc: Charulatha Varadarajan <charu@ti.com>
----
- arch/arm/mach-omap2/board-am3517evm.c |    6 +-----
- arch/arm/mach-omap2/board-omap3evm.c  |    8 ++++----
- arch/arm/mach-omap2/devices.c         |    3 +--
- arch/arm/mach-omap2/gpio.c            |    2 +-
- arch/arm/mach-omap2/gpmc-onenand.c    |    3 +--
- arch/arm/mach-omap2/mux.c             |    2 +-
- arch/arm/mach-omap2/pm24xx.c          |    3 ---
- arch/arm/mach-omap2/pm34xx.c          |    4 +---
- arch/arm/mach-omap2/prm_common.c      |    4 +++-
- arch/arm/mach-omap2/usb-tusb6010.c    |    2 +-
- 10 files changed, 14 insertions(+), 23 deletions(-)
-
-diff --git a/arch/arm/mach-omap2/board-am3517evm.c b/arch/arm/mach-omap2/board-am3517evm.c
-index 4b1cfe3..24b1f9a 100644
---- a/arch/arm/mach-omap2/board-am3517evm.c
-+++ b/arch/arm/mach-omap2/board-am3517evm.c
-@@ -150,13 +150,9 @@ static void am3517_evm_ethernet_init(struct emac_platform_data *pdata)
- 	regval = omap_ctrl_readl(AM35XX_CONTROL_IP_SW_RESET);
- 	regval = regval & (~(AM35XX_CPGMACSS_SW_RST));
- 	omap_ctrl_writel(regval, AM35XX_CONTROL_IP_SW_RESET);
--	regval = omap_ctrl_readl(AM35XX_CONTROL_IP_SW_RESET);
--
--	return ;
-+	omap_ctrl_readl(AM35XX_CONTROL_IP_SW_RESET);
- }
- 
--
--
- #define LCD_PANEL_PWR		176
- #define LCD_PANEL_BKLIGHT_PWR	182
- #define LCD_PANEL_PWM		181
-diff --git a/arch/arm/mach-omap2/board-omap3evm.c b/arch/arm/mach-omap2/board-omap3evm.c
-index c877236..becf41d 100644
---- a/arch/arm/mach-omap2/board-omap3evm.c
-+++ b/arch/arm/mach-omap2/board-omap3evm.c
-@@ -634,12 +634,12 @@ static void __init omap3_evm_wl12xx_init(void)
- 
- static void __init omap3_evm_init(void)
- {
-+	static struct omap_board_mux *obm;
-+
- 	omap3_evm_get_revision();
- 
--	if (cpu_is_omap3630())
--		omap3_mux_init(omap36x_board_mux, OMAP_PACKAGE_CBB);
--	else
--		omap3_mux_init(omap35x_board_mux, OMAP_PACKAGE_CBB);
-+	obm = (cpu_is_omap3630()) ? omap36x_board_mux : omap35x_board_mux;
-+	omap3_mux_init(obm, OMAP_PACKAGE_CBB);
- 
- 	omap_board_config = omap3_evm_config;
- 	omap_board_config_size = ARRAY_SIZE(omap3_evm_config);
-diff --git a/arch/arm/mach-omap2/devices.c b/arch/arm/mach-omap2/devices.c
-index 283d11e..b52cd16 100644
---- a/arch/arm/mach-omap2/devices.c
-+++ b/arch/arm/mach-omap2/devices.c
-@@ -42,7 +42,6 @@
- 
- static int __init omap3_l3_init(void)
- {
--	int l;
- 	struct omap_hwmod *oh;
- 	struct platform_device *pdev;
- 	char oh_name[L3_MODULES_MAX_LEN];
-@@ -54,7 +53,7 @@ static int __init omap3_l3_init(void)
- 	if (!(cpu_is_omap34xx()))
- 		return -ENODEV;
- 
--	l = snprintf(oh_name, L3_MODULES_MAX_LEN, "l3_main");
-+	snprintf(oh_name, L3_MODULES_MAX_LEN, "l3_main");
- 
- 	oh = omap_hwmod_lookup(oh_name);
- 
-diff --git a/arch/arm/mach-omap2/gpio.c b/arch/arm/mach-omap2/gpio.c
-index 8cbfbc2..2803ff8 100644
---- a/arch/arm/mach-omap2/gpio.c
-+++ b/arch/arm/mach-omap2/gpio.c
-@@ -54,7 +54,7 @@ static int omap2_gpio_dev_init(struct omap_hwmod *oh, void *unused)
- 	pdata->virtual_irq_start = IH_GPIO_BASE + 32 * (id - 1);
- 
- 	pdata->regs = kzalloc(sizeof(struct omap_gpio_reg_offs), GFP_KERNEL);
--	if (!pdata) {
-+	if (!pdata->regs) {
- 		pr_err("gpio%d: Memory allocation failed\n", id);
- 		return -ENOMEM;
- 	}
-diff --git a/arch/arm/mach-omap2/gpmc-onenand.c b/arch/arm/mach-omap2/gpmc-onenand.c
-index 5cdce10..6ab726f 100644
---- a/arch/arm/mach-omap2/gpmc-onenand.c
-+++ b/arch/arm/mach-omap2/gpmc-onenand.c
-@@ -175,7 +175,7 @@ static int omap2_onenand_set_sync_mode(struct omap_onenand_platform_data *cfg,
- 	const int t_wpl  = 40;
- 	const int t_wph  = 30;
- 	int min_gpmc_clk_period, t_ces, t_avds, t_avdh, t_ach, t_aavdh, t_rdyo;
--	int tick_ns, div, fclk_offset_ns, fclk_offset, gpmc_clk_ns, latency;
-+	int div, fclk_offset_ns, fclk_offset, gpmc_clk_ns, latency;
- 	int first_time = 0, hf = 0, vhf = 0, sync_read = 0, sync_write = 0;
- 	int err, ticks_cez;
- 	int cs = cfg->cs, freq = *freq_ptr;
-@@ -239,7 +239,6 @@ static int omap2_onenand_set_sync_mode(struct omap_onenand_platform_data *cfg,
- 		break;
- 	}
- 
--	tick_ns = gpmc_ticks_to_ns(1);
- 	div = gpmc_cs_calc_divider(cs, min_gpmc_clk_period);
- 	gpmc_clk_ns = gpmc_ticks_to_ns(div);
- 	if (gpmc_clk_ns < 15) /* >66Mhz */
-diff --git a/arch/arm/mach-omap2/mux.c b/arch/arm/mach-omap2/mux.c
-index 611a0e3..552225a 100644
---- a/arch/arm/mach-omap2/mux.c
-+++ b/arch/arm/mach-omap2/mux.c
-@@ -248,7 +248,7 @@ int omap_mux_init_signal(const char *muxname, int val)
- 	int mux_mode;
- 
- 	mux_mode = omap_mux_get_by_name(muxname, &partition, &mux);
--	if (mux_mode < 0)
-+	if (mux_mode < 0 || !mux)
- 		return mux_mode;
- 
- 	old_mode = omap_mux_read(partition, mux->reg_offset);
-diff --git a/arch/arm/mach-omap2/pm24xx.c b/arch/arm/mach-omap2/pm24xx.c
-index 23de98d..b3a4765 100644
---- a/arch/arm/mach-omap2/pm24xx.c
-+++ b/arch/arm/mach-omap2/pm24xx.c
-@@ -182,8 +182,6 @@ static int omap2_allow_mpu_retention(void)
- 
- static void omap2_enter_mpu_retention(void)
- {
--	int only_idle = 0;
--
- 	/* Putting MPU into the WFI state while a transfer is active
- 	 * seems to cause the I2C block to timeout. Why? Good question. */
- 	if (omap2_i2c_active())
-@@ -206,7 +204,6 @@ static void omap2_enter_mpu_retention(void)
- 
- 		omap2_prm_write_mod_reg(OMAP_LOGICRETSTATE_MASK, MPU_MOD,
- 						 OMAP2_PM_PWSTCTRL);
--		only_idle = 1;
- 	}
- 
- 	omap2_sram_idle();
-diff --git a/arch/arm/mach-omap2/pm34xx.c b/arch/arm/mach-omap2/pm34xx.c
-index fc69875..0b65785 100644
---- a/arch/arm/mach-omap2/pm34xx.c
-+++ b/arch/arm/mach-omap2/pm34xx.c
-@@ -787,7 +787,7 @@ static void __init pm_errata_configure(void)
- static int __init omap3_pm_init(void)
- {
- 	struct power_state *pwrst, *tmp;
--	struct clockdomain *neon_clkdm, *per_clkdm, *mpu_clkdm, *core_clkdm;
-+	struct clockdomain *neon_clkdm, *mpu_clkdm;
- 	int ret;
- 
- 	if (!cpu_is_omap34xx())
-@@ -841,8 +841,6 @@ static int __init omap3_pm_init(void)
- 
- 	neon_clkdm = clkdm_lookup("neon_clkdm");
- 	mpu_clkdm = clkdm_lookup("mpu_clkdm");
--	per_clkdm = clkdm_lookup("per_clkdm");
--	core_clkdm = clkdm_lookup("core_clkdm");
- 
- #ifdef CONFIG_SUSPEND
- 	suspend_set_ops(&omap_pm_ops);
-diff --git a/arch/arm/mach-omap2/prm_common.c b/arch/arm/mach-omap2/prm_common.c
-index 860118a..c7c7373 100644
---- a/arch/arm/mach-omap2/prm_common.c
-+++ b/arch/arm/mach-omap2/prm_common.c
-@@ -238,7 +238,7 @@ void omap_prcm_irq_complete(void)
-  */
- int omap_prcm_register_chain_handler(struct omap_prcm_irq_setup *irq_setup)
- {
--	int nr_regs = irq_setup->nr_regs;
-+	int nr_regs;
- 	u32 mask[OMAP_PRCM_MAX_NR_PENDING_REG];
- 	int offset, i;
- 	struct irq_chip_generic *gc;
-@@ -247,6 +247,8 @@ int omap_prcm_register_chain_handler(struct omap_prcm_irq_setup *irq_setup)
- 	if (!irq_setup)
- 		return -EINVAL;
- 
-+	nr_regs = irq_setup->nr_regs;
-+
- 	if (prcm_irq_setup) {
- 		pr_err("PRCM: already initialized; won't reinitialize\n");
- 		return -EINVAL;
-diff --git a/arch/arm/mach-omap2/usb-tusb6010.c b/arch/arm/mach-omap2/usb-tusb6010.c
-index 994d8f5..db84a46 100644
---- a/arch/arm/mach-omap2/usb-tusb6010.c
-+++ b/arch/arm/mach-omap2/usb-tusb6010.c
-@@ -126,7 +126,7 @@ static int tusb_set_sync_mode(unsigned sysclk_ps, unsigned fclk_ps)
- 	tmp = (t.sync_clk + fclk_ps - 1) / fclk_ps;
- 	if (tmp > 4)
- 		return -ERANGE;
--	if (tmp <= 0)
-+	if (tmp == 0)
- 		tmp = 1;
- 	t.page_burst_access = (fclk_ps * tmp) / 1000;
- 
--- 
-1.7.9.1
-
+Reviewed-by: Charulatha Varadarajan <charu@ti.com>
