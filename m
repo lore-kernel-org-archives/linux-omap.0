@@ -1,15 +1,15 @@
 From: jean.pihet@newoldbits.com
-Subject: [PATCH 2/6] ARM: OMAP3+: SmartReflex: introduce notifiers flags
-Date: Tue, 13 Mar 2012 11:26:17 +0100
-Message-ID: <1331634381-31436-3-git-send-email-j-pihet@ti.com>
+Subject: [PATCH 1/6] ARM: OMAP3+: SmartReflex: introduce class init, deinit and priv data
+Date: Tue, 13 Mar 2012 11:26:16 +0100
+Message-ID: <1331634381-31436-2-git-send-email-j-pihet@ti.com>
 References: <1331634381-31436-1-git-send-email-j-pihet@ti.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
 Received: from mail-we0-f174.google.com ([74.125.82.174]:59492 "EHLO
 	mail-we0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1030367Ab2CMK0u (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 13 Mar 2012 06:26:50 -0400
-Received: by mail-we0-f174.google.com with SMTP id x9so335358wej.19
-        for <linux-omap@vger.kernel.org>; Tue, 13 Mar 2012 03:26:49 -0700 (PDT)
+	with ESMTP id S1030335Ab2CMK0t (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 13 Mar 2012 06:26:49 -0400
+Received: by wejx9 with SMTP id x9so335358wej.19
+        for <linux-omap@vger.kernel.org>; Tue, 13 Mar 2012 03:26:47 -0700 (PDT)
 In-Reply-To: <1331634381-31436-1-git-send-email-j-pihet@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
@@ -18,159 +18,91 @@ Cc: Nishanth Menon <nm@ti.com>, Jean Pihet <j-pihet@ti.com>
 
 From: Nishanth Menon <nm@ti.com>
 
-SmartReflex IP V1 and V2 have different registers and offsets.
-Currently, we pass the status as is to the class driver. However,
-since we don't pass the version of the underlying SR hardware
-to the Class driver, it will not be unable to make consistent
-sense of the status bits coming over to it.
-
-A class driver should be able to function without dependency
-on the exact IP version it is actually running on. We hence
-introduce our own translation in software level for a generic
-notification flag.
-
-As part of this change, we will now call the notifier if we get
-a match with the notifier flags that the class driver requested.
+Certain class drivers such as class 1.5 drivers, will need specific
+notification that they have to be inited up or deinited independent
+of smart reflex operation. They also may need private data to be
+used for operations of their own, provide the same.
+This allows the class driver to initialize it's internal data structures
+on a need basis in preparation for the specific domain's autocomp usage.
+The resultant operation is as follows:
+when autocomp is set to 1 -> class drivers' init is called
+The existing enable/disable is still used as before by the SmartReflex
+core driver to enable disable the class operation.
+When autocomp is set to 0 -> class drivers' deinit is called, signaling
+the end of usage for that domain.
 
 Signed-off-by: Nishanth Menon <nm@ti.com>
 Signed-off-by: Jean Pihet <j-pihet@ti.com>
 ---
- arch/arm/mach-omap2/smartreflex.c |   79 ++++++++++++++++++++++++++++++++++++-
- arch/arm/mach-omap2/smartreflex.h |    6 +++
- 2 files changed, 83 insertions(+), 2 deletions(-)
+ arch/arm/mach-omap2/smartreflex.c |   15 +++++++++++++++
+ arch/arm/mach-omap2/smartreflex.h |    6 ++++++
+ 2 files changed, 21 insertions(+), 0 deletions(-)
 
 diff --git a/arch/arm/mach-omap2/smartreflex.c b/arch/arm/mach-omap2/smartreflex.c
-index 058255a..7977018 100644
+index 008fbd7..058255a 100644
 --- a/arch/arm/mach-omap2/smartreflex.c
 +++ b/arch/arm/mach-omap2/smartreflex.c
-@@ -121,25 +121,100 @@ static struct omap_sr *_sr_lookup(struct voltagedomain *voltdm)
- 	return ERR_PTR(-ENODATA);
- }
- 
-+static inline u32 notifier_to_irqen_v1(u8 notify_flags)
-+{
-+	u32 val;
-+
-+	val = (notify_flags & SR_NOTIFY_MCUACCUM) ?
-+		ERRCONFIG_MCUACCUMINTEN : 0;
-+	val |= (notify_flags & SR_NOTIFY_MCUVALID) ?
-+		ERRCONFIG_MCUVALIDINTEN : 0;
-+	val |= (notify_flags & SR_NOTIFY_MCUBOUND) ?
-+		ERRCONFIG_MCUBOUNDINTEN : 0;
-+	val |= (notify_flags & SR_NOTIFY_MCUDISACK) ?
-+		ERRCONFIG_MCUDISACKINTEN : 0;
-+
-+	return val;
-+}
-+
-+static inline u32 notifier_to_irqen_v2(u8 notify_flags)
-+{
-+	u32 val;
-+
-+	val = (notify_flags & SR_NOTIFY_MCUACCUM) ?
-+		IRQENABLE_MCUACCUMINT : 0;
-+	val |= (notify_flags & SR_NOTIFY_MCUVALID) ?
-+		IRQENABLE_MCUVALIDINT : 0;
-+	val |= (notify_flags & SR_NOTIFY_MCUBOUND) ?
-+		IRQENABLE_MCUBOUNDSINT : 0;
-+	val |= (notify_flags & SR_NOTIFY_MCUDISACK) ?
-+		IRQENABLE_MCUDISABLEACKINT : 0;
-+
-+	return val;
-+}
-+
-+static inline u8 irqstat_to_notifier_v1(u32 status)
-+{
-+	u8 val;
-+
-+	val = (status & ERRCONFIG_MCUACCUMINTST) ?
-+		SR_NOTIFY_MCUACCUM : 0;
-+	val |= (status & ERRCONFIG_MCUVALIDINTEN) ?
-+		SR_NOTIFY_MCUVALID : 0;
-+	val |= (status & ERRCONFIG_MCUBOUNDINTEN) ?
-+		SR_NOTIFY_MCUBOUND : 0;
-+	val |= (status & ERRCONFIG_MCUDISACKINTEN) ?
-+		SR_NOTIFY_MCUDISACK : 0;
-+
-+	return val;
-+}
-+
-+static inline u8 irqstat_to_notifier_v2(u32 status)
-+{
-+	u8 val;
-+
-+	val = (status & IRQENABLE_MCUACCUMINT) ?
-+		SR_NOTIFY_MCUACCUM : 0;
-+	val |= (status & IRQENABLE_MCUVALIDINT) ?
-+		SR_NOTIFY_MCUVALID : 0;
-+	val |= (status & IRQENABLE_MCUBOUNDSINT) ?
-+		SR_NOTIFY_MCUBOUND : 0;
-+	val |= (status & IRQENABLE_MCUDISABLEACKINT) ?
-+		SR_NOTIFY_MCUDISACK : 0;
-+
-+	return val;
-+}
-+
-+
- static irqreturn_t sr_interrupt(int irq, void *data)
- {
- 	struct omap_sr *sr_info = data;
- 	u32 status = 0;
-+	u32 value = 0;
- 
- 	switch (sr_info->ip_type) {
- 	case SR_TYPE_V1:
-+		/* Status bits are one bit before enable bits in v1 */
-+		value = notifier_to_irqen_v1(sr_class->notify_flags) >> 1;
-+
- 		/* Read the status bits */
- 		status = sr_read_reg(sr_info, ERRCONFIG_V1);
-+		status &= value;
- 
- 		/* Clear them by writing back */
--		sr_write_reg(sr_info, ERRCONFIG_V1, status);
-+		sr_modify_reg(sr_info, ERRCONFIG_V1, value, status);
-+
-+		value = irqstat_to_notifier_v1(status);
- 		break;
- 	case SR_TYPE_V2:
-+		value = notifier_to_irqen_v2(sr_class->notify_flags);
- 		/* Read the status bits */
- 		status = sr_read_reg(sr_info, IRQSTATUS);
-+		status &= value;
- 
- 		/* Clear them by writing back */
- 		sr_write_reg(sr_info, IRQSTATUS, status);
-+		value = irqstat_to_notifier_v2(status);
- 		break;
- 	default:
- 		dev_err(&sr_info->pdev->dev, "UNKNOWN IP type %d\n",
-@@ -148,7 +223,7 @@ static irqreturn_t sr_interrupt(int irq, void *data)
+@@ -226,6 +226,13 @@ static void sr_start_vddautocomp(struct omap_sr *sr)
+ 		return;
  	}
  
- 	if (sr_class->notify)
--		sr_class->notify(sr_info->voltdm, status);
-+		sr_class->notify(sr_info->voltdm, value);
++	if (sr_class->init &&
++	    sr_class->init(sr->voltdm, sr_class->class_priv_data)) {
++		dev_err(&sr->pdev->dev,
++			"%s: SRClass initialization failed\n", __func__);
++		return;
++	}
++
+ 	if (!sr_class->enable(sr->voltdm))
+ 		sr->autocomp_active = true;
+ }
+@@ -241,6 +248,14 @@ static void sr_stop_vddautocomp(struct omap_sr *sr)
  
- 	return IRQ_HANDLED;
+ 	if (sr->autocomp_active) {
+ 		sr_class->disable(sr->voltdm, 1);
++		if (sr_class->deinit &&
++		    sr_class->deinit(sr->voltdm,
++			    sr_class->class_priv_data)) {
++			dev_err(&sr->pdev->dev,
++				"%s: SR[%d]Class deinitialization failed\n",
++				__func__, sr->srid);
++		}
++
+ 		sr->autocomp_active = false;
+ 	}
  }
 diff --git a/arch/arm/mach-omap2/smartreflex.h b/arch/arm/mach-omap2/smartreflex.h
-index dd5b21e..da00f8c 100644
+index 5809141..dd5b21e 100644
 --- a/arch/arm/mach-omap2/smartreflex.h
 +++ b/arch/arm/mach-omap2/smartreflex.h
-@@ -142,6 +142,12 @@
- #define OMAP3430_SR_ERRWEIGHT		0x04
- #define OMAP3430_SR_ERRMAXLIMIT		0x02
+@@ -177,6 +177,8 @@ struct omap_smartreflex_dev_attr {
+  *
+  * @enable:		API to enable a particular class smaartreflex.
+  * @disable:		API to disable a particular class smartreflex.
++ * @init:		API to do class specific initialization (optional)
++ * @deinit:		API to do class specific deinitialization (optional)
+  * @configure:		API to configure a particular class smartreflex.
+  * @notify:		API to notify the class driver about an event in SR.
+  *			Not needed for class3.
+@@ -184,14 +186,18 @@ struct omap_smartreflex_dev_attr {
+  * @class_type:		specify which smartreflex class.
+  *			Can be used by the SR driver to take any class
+  *			based decisions.
++ * @class_priv_data:	Class specific private data (optional)
+  */
+ struct omap_sr_class_data {
+ 	int (*enable)(struct voltagedomain *voltdm);
+ 	int (*disable)(struct voltagedomain *voltdm, int is_volt_reset);
++	int (*init)(struct voltagedomain *voltdm, void *class_priv_data);
++	int (*deinit)(struct voltagedomain *voltdm, void *class_priv_data);
+ 	int (*configure)(struct voltagedomain *voltdm);
+ 	int (*notify)(struct voltagedomain *voltdm, u32 status);
+ 	u8 notify_flags;
+ 	u8 class_type;
++	void *class_priv_data;
+ };
  
-+/* Smart reflex notifiers for class drivers to use */
-+#define SR_NOTIFY_MCUDISACK		BIT(3)
-+#define SR_NOTIFY_MCUBOUND		BIT(2)
-+#define SR_NOTIFY_MCUVALID		BIT(1)
-+#define SR_NOTIFY_MCUACCUM		BIT(0)
-+
  /**
-  * struct omap_sr_pmic_data - Strucutre to be populated by pmic code to pass
-  *				pmic specific info to smartreflex driver
 -- 
 1.7.5.4
 
