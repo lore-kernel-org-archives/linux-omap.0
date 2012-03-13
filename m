@@ -1,263 +1,156 @@
-From: Archit Taneja <a0393947@ti.com>
-Subject: Re: [PATCH v2] OMAPDSS: provide default timings functions for panels
-Date: Tue, 13 Mar 2012 17:43:15 +0530
-Message-ID: <4F5F39DB.4010808@ti.com>
-References: <1331551631-11420-1-git-send-email-notasas@gmail.com>
+From: Tomi Valkeinen <tomi.valkeinen@ti.com>
+Subject: Re: [PATCH 2/2] OMAPDSS: Ensure OPP100 when DSS is operational
+Date: Tue, 13 Mar 2012 15:45:53 +0200
+Message-ID: <1331646353.2856.354.camel@deskari>
+References: <1331205217-19927-1-git-send-email-tomi.valkeinen@ti.com>
+	 <1331205217-19927-2-git-send-email-tomi.valkeinen@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="ISO-8859-1"; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: multipart/signed; micalg="pgp-sha1"; protocol="application/pgp-signature"; boundary="=-eanzQgdhRZlF5wJcJhrM"
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from comal.ext.ti.com ([198.47.26.152]:58718 "EHLO comal.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752935Ab2CMMNf (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Tue, 13 Mar 2012 08:13:35 -0400
-In-Reply-To: <1331551631-11420-1-git-send-email-notasas@gmail.com>
+Received: from na3sys009aog109.obsmtp.com ([74.125.149.201]:53982 "EHLO
+	na3sys009aog109.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1753151Ab2CMNp5 (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>);
+	Tue, 13 Mar 2012 09:45:57 -0400
+Received: by mail-lpp01m010-f50.google.com with SMTP id m13so647485lah.37
+        for <linux-omap@vger.kernel.org>; Tue, 13 Mar 2012 06:45:55 -0700 (PDT)
+In-Reply-To: <1331205217-19927-2-git-send-email-tomi.valkeinen@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Grazvydas Ignotas <notasas@gmail.com>, Tomi Valkeinen <tomi.valkeinen@ti.com>
-Cc: linux-fbdev@vger.kernel.org, linux-omap@vger.kernel.org
+To: linux-omap@vger.kernel.org, Kevin Hilman <khilman@ti.com>, Paul Walmsley <paul@pwsan.com>
+Cc: archit@ti.com
 
-On Monday 12 March 2012 04:57 PM, Grazvydas Ignotas wrote:
-> With this we can eliminate some duplicate code in panel drivers.
-> Also lgphilips-lb035q02, nec-nl8048hl11-01b, picodlp and
-> tpo-td043mtea1 gain support of timings control over sysfs.
->
-> Signed-off-by: Grazvydas Ignotas<notasas@gmail.com>
+
+--=-eanzQgdhRZlF5wJcJhrM
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: quoted-printable
+
+Hi Kevin, Paul,
+
+I know you're busy, but I'd appreciate a comment/ack on these two small
+patches, so I could get them in to next merge window. Otherwise using
+any other OPP than OPP100 will most likely break the DSS.
+
+This looks quite straightforward fix for me, but I'm not sure if there
+could be any side effects.
+
+ Tomi
+
+On Thu, 2012-03-08 at 13:13 +0200, Tomi Valkeinen wrote:
+> Most of the DSS clocks have restrictions on their frequency based on the
+> OPP in use. For example, maximum frequency for a clock may be 180MHz in
+> OPP100, but 90MHz in OPP50. This means that when a high enough pixel
+> clock or function clock is required, we need to use OPP100.
+>=20
+> However, there's currently no way in the PM framework to make that kind
+> of request. The closest we get is to ask for very high bus throughput
+> from the PM framework, which should effectively force OPP100.
+>=20
+> This patch is a simple version for handling the problem. Instead of
+> asking for OPP100 only when needed, this patch asks for OPP100 whenever
+> DSS is active. This obviously is not an optimal solution for cases with
+> small displays where OPP50 would work just fine. However, a proper
+> solution is a complex one, and this patch is a short term solution for
+> the problem.
+>=20
+> Signed-off-by: Tomi Valkeinen <tomi.valkeinen@ti.com>
+> Cc: Paul Walmsley <paul@pwsan.com>
+> Cc: Kevin Hilman <khilman@ti.com>
 > ---
->   drivers/video/omap2/displays/panel-acx565akm.c   |   15 -------------
->   drivers/video/omap2/displays/panel-generic-dpi.c |   22 -------------------
->   drivers/video/omap2/displays/panel-n8x0.c        |    8 -------
->   drivers/video/omap2/displays/panel-taal.c        |    8 -------
->   drivers/video/omap2/dss/core.c                   |    6 +++++
->   drivers/video/omap2/dss/display.c                |   25 ++++++++++++++++++++++
->   drivers/video/omap2/dss/venc.c                   |    7 ------
->   include/video/omapdss.h                          |    6 +++++
->   8 files changed, 37 insertions(+), 60 deletions(-)
->
-> diff --git a/drivers/video/omap2/displays/panel-acx565akm.c b/drivers/video/omap2/displays/panel-acx565akm.c
-> index dbd59b8..be83eed 100644
-> --- a/drivers/video/omap2/displays/panel-acx565akm.c
-> +++ b/drivers/video/omap2/displays/panel-acx565akm.c
-> @@ -738,19 +738,6 @@ static void acx_panel_set_timings(struct omap_dss_device *dssdev,
->   	}
->   }
->
-> -static void acx_panel_get_timings(struct omap_dss_device *dssdev,
-> -		struct omap_video_timings *timings)
-> -{
-> -	*timings = dssdev->panel.timings;
-> -}
-> -
-> -static int acx_panel_check_timings(struct omap_dss_device *dssdev,
-> -		struct omap_video_timings *timings)
-> -{
-> -	return 0;
-> -}
-> -
-> -
->   static struct omap_dss_driver acx_panel_driver = {
->   	.probe		= acx_panel_probe,
->   	.remove		= acx_panel_remove,
-> @@ -761,8 +748,6 @@ static struct omap_dss_driver acx_panel_driver = {
->   	.resume		= acx_panel_resume,
->
->   	.set_timings	= acx_panel_set_timings,
-> -	.get_timings	= acx_panel_get_timings,
-> -	.check_timings	= acx_panel_check_timings,
->
->   	.get_recommended_bpp = acx_get_recommended_bpp,
->
-> diff --git a/drivers/video/omap2/displays/panel-generic-dpi.c b/drivers/video/omap2/displays/panel-generic-dpi.c
-> index 519c47d..45a46af 100644
-> --- a/drivers/video/omap2/displays/panel-generic-dpi.c
-> +++ b/drivers/video/omap2/displays/panel-generic-dpi.c
-> @@ -454,24 +454,6 @@ static int generic_dpi_panel_resume(struct omap_dss_device *dssdev)
->   	return 0;
->   }
->
-> -static void generic_dpi_panel_set_timings(struct omap_dss_device *dssdev,
-> -		struct omap_video_timings *timings)
-> -{
-> -	dpi_set_timings(dssdev, timings);
-> -}
-> -
-> -static void generic_dpi_panel_get_timings(struct omap_dss_device *dssdev,
-> -		struct omap_video_timings *timings)
-> -{
-> -	*timings = dssdev->panel.timings;
-> -}
-> -
-> -static int generic_dpi_panel_check_timings(struct omap_dss_device *dssdev,
-> -		struct omap_video_timings *timings)
-> -{
-> -	return dpi_check_timings(dssdev, timings);
-> -}
-> -
->   static struct omap_dss_driver dpi_driver = {
->   	.probe		= generic_dpi_panel_probe,
->   	.remove		= __exit_p(generic_dpi_panel_remove),
-> @@ -481,10 +463,6 @@ static struct omap_dss_driver dpi_driver = {
->   	.suspend	= generic_dpi_panel_suspend,
->   	.resume		= generic_dpi_panel_resume,
->
-> -	.set_timings	= generic_dpi_panel_set_timings,
-> -	.get_timings	= generic_dpi_panel_get_timings,
-> -	.check_timings	= generic_dpi_panel_check_timings,
-> -
->   	.driver         = {
->   		.name   = "generic_dpi_panel",
->   		.owner  = THIS_MODULE,
-> diff --git a/drivers/video/omap2/displays/panel-n8x0.c b/drivers/video/omap2/displays/panel-n8x0.c
-> index 150e8ba..eba98a0 100644
-> --- a/drivers/video/omap2/displays/panel-n8x0.c
-> +++ b/drivers/video/omap2/displays/panel-n8x0.c
-> @@ -610,12 +610,6 @@ static int n8x0_panel_resume(struct omap_dss_device *dssdev)
->   	return 0;
->   }
->
-> -static void n8x0_panel_get_timings(struct omap_dss_device *dssdev,
-> -		struct omap_video_timings *timings)
-> -{
-> -	*timings = dssdev->panel.timings;
-> -}
-> -
->   static void n8x0_panel_get_resolution(struct omap_dss_device *dssdev,
->   		u16 *xres, u16 *yres)
->   {
-> @@ -678,8 +672,6 @@ static struct omap_dss_driver n8x0_panel_driver = {
->   	.get_resolution	= n8x0_panel_get_resolution,
->   	.get_recommended_bpp = omapdss_default_get_recommended_bpp,
->
-> -	.get_timings	= n8x0_panel_get_timings,
-> -
->   	.driver         = {
->   		.name   = "n8x0_panel",
->   		.owner  = THIS_MODULE,
-> diff --git a/drivers/video/omap2/displays/panel-taal.c b/drivers/video/omap2/displays/panel-taal.c
-> index 80c3f6a..174c004 100644
-> --- a/drivers/video/omap2/displays/panel-taal.c
-> +++ b/drivers/video/omap2/displays/panel-taal.c
-> @@ -583,12 +583,6 @@ static const struct backlight_ops taal_bl_ops = {
->   	.update_status  = taal_bl_update_status,
->   };
->
-> -static void taal_get_timings(struct omap_dss_device *dssdev,
-> -			struct omap_video_timings *timings)
-> -{
-> -	*timings = dssdev->panel.timings;
-> -}
-> -
->   static void taal_get_resolution(struct omap_dss_device *dssdev,
->   		u16 *xres, u16 *yres)
->   {
-> @@ -1899,8 +1893,6 @@ static struct omap_dss_driver taal_driver = {
->   	.run_test	= taal_run_test,
->   	.memory_read	= taal_memory_read,
->
-> -	.get_timings	= taal_get_timings,
-> -
->   	.driver         = {
->   		.name   = "taal",
->   		.owner  = THIS_MODULE,
-> diff --git a/drivers/video/omap2/dss/core.c b/drivers/video/omap2/dss/core.c
-> index 86ec12e..9dc0c10 100644
+>  drivers/video/omap2/dss/core.c |   10 ++++++++++
+>  drivers/video/omap2/dss/dss.c  |   13 +++++++++++++
+>  drivers/video/omap2/dss/dss.h  |    1 +
+>  3 files changed, 24 insertions(+), 0 deletions(-)
+>=20
+> diff --git a/drivers/video/omap2/dss/core.c b/drivers/video/omap2/dss/cor=
+e.c
+> index 8613f86..999bcbc 100644
 > --- a/drivers/video/omap2/dss/core.c
 > +++ b/drivers/video/omap2/dss/core.c
-> @@ -434,6 +434,12 @@ int omap_dss_register_driver(struct omap_dss_driver *dssdriver)
->   	if (dssdriver->get_recommended_bpp == NULL)
->   		dssdriver->get_recommended_bpp =
->   			omapdss_default_get_recommended_bpp;
-> +	if (dssdriver->set_timings == NULL)
-> +		dssdriver->set_timings = omapdss_default_set_timings;
-> +	if (dssdriver->get_timings == NULL)
-> +		dssdriver->get_timings = omapdss_default_get_timings;
-> +	if (dssdriver->check_timings == NULL)
-> +		dssdriver->check_timings = omapdss_default_check_timings;
->
->   	return driver_register(&dssdriver->driver);
->   }
-> diff --git a/drivers/video/omap2/dss/display.c b/drivers/video/omap2/dss/display.c
-> index be331dc..0d724a4 100644
-> --- a/drivers/video/omap2/dss/display.c
-> +++ b/drivers/video/omap2/dss/display.c
-> @@ -318,6 +318,31 @@ int omapdss_default_get_recommended_bpp(struct omap_dss_device *dssdev)
->   }
->   EXPORT_SYMBOL(omapdss_default_get_recommended_bpp);
->
-> +void omapdss_default_set_timings(struct omap_dss_device *dssdev,
-> +		struct omap_video_timings *timings)
+> @@ -87,6 +87,16 @@ struct regulator *dss_get_vdds_sdi(void)
+>  	return reg;
+>  }
+> =20
+> +int dss_set_min_bus_tput(struct device *dev, unsigned long tput)
 > +{
-> +	if (dssdev->type == OMAP_DISPLAY_TYPE_DPI)
-> +		dpi_set_timings(dssdev, timings);
+> +	struct omap_dss_board_info *pdata =3D core.pdev->dev.platform_data;
+> +
+> +	if (pdata->set_min_bus_tput)
+> +		return pdata->set_min_bus_tput(dev, tput);
+> +	else
+> +		return 0;
 > +}
-> +EXPORT_SYMBOL(omapdss_default_set_timings);
 > +
-> +void omapdss_default_get_timings(struct omap_dss_device *dssdev,
-> +		struct omap_video_timings *timings)
-> +{
-> +	*timings = dssdev->panel.timings;
-> +}
-> +EXPORT_SYMBOL(omapdss_default_get_timings);
+>  #if defined(CONFIG_DEBUG_FS) && defined(CONFIG_OMAP2_DSS_DEBUG_SUPPORT)
+>  static int dss_debug_show(struct seq_file *s, void *unused)
+>  {
+> diff --git a/drivers/video/omap2/dss/dss.c b/drivers/video/omap2/dss/dss.=
+c
+> index 4a6b5ee..4a3eb22 100644
+> --- a/drivers/video/omap2/dss/dss.c
+> +++ b/drivers/video/omap2/dss/dss.c
+> @@ -826,11 +826,24 @@ static int omap_dsshw_remove(struct platform_device=
+ *pdev)
+>  static int dss_runtime_suspend(struct device *dev)
+>  {
+>  	dss_save_context();
+> +	dss_set_min_bus_tput(dev, 0);
+>  	return 0;
+>  }
+> =20
+>  static int dss_runtime_resume(struct device *dev)
+>  {
+> +	int r;
+> +	/*
+> +	 * Set an arbitrarily high tput request to ensure OPP100.
+> +	 * What we should really do is to make a request to stay in OPP100,
+> +	 * without any tput requirements, but that is not currently possible
+> +	 * via the PM layer.
+> +	 */
 > +
-> +int omapdss_default_check_timings(struct omap_dss_device *dssdev,
-> +		struct omap_video_timings *timings)
-> +{
-> +	if (dssdev->type == OMAP_DISPLAY_TYPE_DPI)
-> +		return dpi_check_timings(dssdev, timings);
+> +	r =3D dss_set_min_bus_tput(dev, 1000000000);
+> +	if (r)
+> +		return r;
 > +
-> +	return 0;
-> +}
-> +EXPORT_SYMBOL(omapdss_default_check_timings);
+>  	dss_restore_context();
+>  	return 0;
+>  }
+> diff --git a/drivers/video/omap2/dss/dss.h b/drivers/video/omap2/dss/dss.=
+h
+> index d4b3dff..42f8f62 100644
+> --- a/drivers/video/omap2/dss/dss.h
+> +++ b/drivers/video/omap2/dss/dss.h
+> @@ -162,6 +162,7 @@ struct platform_device;
+>  struct bus_type *dss_get_bus(void);
+>  struct regulator *dss_get_vdds_dsi(void);
+>  struct regulator *dss_get_vdds_sdi(void);
+> +int dss_set_min_bus_tput(struct device *dev, unsigned long tput);
+> =20
+>  /* apply */
+>  void dss_apply_init(void);
 
-This looks fine to me. We could add check/set timings for other 
-interfaces, if needed. Ack from me. Tomi needs to have a look at it.
 
-Archit
+--=-eanzQgdhRZlF5wJcJhrM
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: This is a digitally signed message part
 
-> +
->   /* Checks if replication logic should be used. Only use for active matrix,
->    * when overlay is in RGB12U or RGB16 mode, and LCD interface is
->    * 18bpp or 24bpp */
-> diff --git a/drivers/video/omap2/dss/venc.c b/drivers/video/omap2/dss/venc.c
-> index 7bb6219..dee2ec4 100644
-> --- a/drivers/video/omap2/dss/venc.c
-> +++ b/drivers/video/omap2/dss/venc.c
-> @@ -557,12 +557,6 @@ static int venc_panel_resume(struct omap_dss_device *dssdev)
->   	return venc_panel_enable(dssdev);
->   }
->
-> -static void venc_get_timings(struct omap_dss_device *dssdev,
-> -			struct omap_video_timings *timings)
-> -{
-> -	*timings = dssdev->panel.timings;
-> -}
-> -
->   static void venc_set_timings(struct omap_dss_device *dssdev,
->   			struct omap_video_timings *timings)
->   {
-> @@ -641,7 +635,6 @@ static struct omap_dss_driver venc_driver = {
->   	.get_resolution	= omapdss_default_get_resolution,
->   	.get_recommended_bpp = omapdss_default_get_recommended_bpp,
->
-> -	.get_timings	= venc_get_timings,
->   	.set_timings	= venc_set_timings,
->   	.check_timings	= venc_check_timings,
->
-> diff --git a/include/video/omapdss.h b/include/video/omapdss.h
-> index 378c7ed..ff1dacd 100644
-> --- a/include/video/omapdss.h
-> +++ b/include/video/omapdss.h
-> @@ -646,6 +646,12 @@ struct omap_overlay *omap_dss_get_overlay(int num);
->   void omapdss_default_get_resolution(struct omap_dss_device *dssdev,
->   		u16 *xres, u16 *yres);
->   int omapdss_default_get_recommended_bpp(struct omap_dss_device *dssdev);
-> +void omapdss_default_set_timings(struct omap_dss_device *dssdev,
-> +		struct omap_video_timings *timings);
-> +void omapdss_default_get_timings(struct omap_dss_device *dssdev,
-> +		struct omap_video_timings *timings);
-> +int omapdss_default_check_timings(struct omap_dss_device *dssdev,
-> +		struct omap_video_timings *timings);
->
->   typedef void (*omap_dispc_isr_t) (void *arg, u32 mask);
->   int omap_dispc_register_isr(omap_dispc_isr_t isr, void *arg, u32 mask);
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.4.11 (GNU/Linux)
+
+iQIcBAABAgAGBQJPX0+RAAoJEPo9qoy8lh71zEUP/2rs2BBrUEcweRABQS4XxBoe
+xPN99ix6Uvr5DFMfL1fcFvGQl+QqQlbhDdixhVXTXVlZvODCvAwCl9J+hoYMHO+V
+U1vmm2hClAQCxssyZBU/AV+m2p1lVhWlts1quhCD9K7FzAsHs6ur1Ahnzp5psixC
+f22SYdW9dyNJUvBEqlucEKO7wCM1PFvD4BS3L3Cm6kf2HEkuZqpQBRts9QAaGpWD
+pl3Je1ao3UTVPBlec71UTsno2l52h7UdENJuqvlo5LyXf9NFkOZDmD1ZmfWLT44P
+6VYd6/WWekEE146CNcGGgn8RUmHrt2M1R+tGfXwk4mkxJQ8e20gzYvXCOX2Oxltr
+2gOQ7xxYidV3w2F6PoGP7d6TTvOsc2uBlXSlSIIpCmYoJXrLrnLo4qm8WNrAeVk1
+wrnVAEJkppqmSelLrrYSLFOaKgKYktfkA/rcNEO6OBjcnk6UATWDF4Gd/I9pxyuI
+yLVVyUIVU+zG2Jzzox6dgfz+8GoVwBpkkGiqvuEibnV6OMChSzhslM/L6NoeFOCI
+XH+pLgJg80J3HWjNPb8MsxOmFD1mbELpE/zbdlpFbh21HAKLJhG7fBGM/91UeubI
+4jcjgujVOK66eDz57sCZe0BNb/MIR8XLNjsh1t0cIuDQLxT9gV5hrotzocZPsUk0
+KooM2egCTEBhiSmcfn0g
+=m5fq
+-----END PGP SIGNATURE-----
+
+--=-eanzQgdhRZlF5wJcJhrM--
 
