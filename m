@@ -1,82 +1,73 @@
-From: Paul Walmsley <paul@pwsan.com>
-Subject: [GIT PULL] ARM: OMAP4: hwmod data: add almost all remaining IP
- blocks
-Date: Wed, 14 Mar 2012 02:45:03 -0600 (MDT)
-Message-ID: <alpine.DEB.2.00.1203140241070.7269@utopia.booyaka.com>
+From: Tomi Valkeinen <tomi.valkeinen@ti.com>
+Subject: Re: [PATCH v2] OMAPDSS: provide default timings functions for
+ panels
+Date: Wed, 14 Mar 2012 13:22:22 +0200
+Message-ID: <1331724142.2386.25.camel@deskari>
+References: <1331551631-11420-1-git-send-email-notasas@gmail.com>
 Mime-Version: 1.0
-Content-Type: MULTIPART/MIXED; BOUNDARY="155748971-1528478852-1331714560=:7269"
+Content-Type: multipart/signed; micalg="pgp-sha1"; protocol="application/pgp-signature"; boundary="=-3R+BePFlaWfC8URC68nz"
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from utopia.booyaka.com ([72.9.107.138]:37943 "EHLO
-	utopia.booyaka.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1759381Ab2CNIpE (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 14 Mar 2012 04:45:04 -0400
-Content-ID: <alpine.DEB.2.00.1203140243160.7269@utopia.booyaka.com>
+Received: from na3sys009aog125.obsmtp.com ([74.125.149.153]:43940 "EHLO
+	na3sys009aog125.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1752328Ab2CNLW1 (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>);
+	Wed, 14 Mar 2012 07:22:27 -0400
+Received: by mail-lpp01m010-f47.google.com with SMTP id w12so1870483lag.34
+        for <linux-omap@vger.kernel.org>; Wed, 14 Mar 2012 04:22:26 -0700 (PDT)
+In-Reply-To: <1331551631-11420-1-git-send-email-notasas@gmail.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: tony@atomide.com
-Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
-
-  This message is in MIME format.  The first part should be readable text,
-  while the remaining parts are likely unreadable without MIME-aware tools.
-
---155748971-1528478852-1331714560=:7269
-Content-Type: TEXT/PLAIN; CHARSET=ISO-8859-15
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Content-ID: <alpine.DEB.2.00.1203140243161.7269@utopia.booyaka.com>
-
-Hi Tony
-
-The following changes since commit afce19b152eedea0402561087dd939b23b53f3cb=
-:
-
-  ARM: OMAP2xxx: hwmod data: start to fix the IVA1, IVA2 and DSP (2012-03-0=
-8 21:04:50 -0700)
-
-are available in the git repository at:
-
-  git://git.pwsan.com/linux-2.6 hwmod_enable_remaining_hwmods_devel_3.4
-
-for you to fetch changes up to de028b2eb97649d82ebb1ca1f6fabc932ca98354:
-
-  ARM: OMAP4: hwmod data: add DEBUGSS skeleton (2012-03-08 21:29:05 -0700)
-
-This series has a dependency on the 'hwmod_remove_link_arrays_cleanup_3.4'=
-=20
-branch.
+To: Grazvydas Ignotas <notasas@gmail.com>
+Cc: linux-fbdev@vger.kernel.org, linux-omap@vger.kernel.org, Archit Taneja <archit@ti.com>
 
 
-- Paul
+--=-3R+BePFlaWfC8URC68nz
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: quoted-printable
 
-----------------------------------------------------------------
-Beno=EEt Cousson (6):
-      ARM: OMAP4: hwmod data: add GPMC
-      ARM: OMAP4: hwmod data: add the Slimbus IP blocks
-      ARM: OMAP4: hwmod data: add McASP
-      ARM: OMAP4: hwmod data: add remaining USB-related IP blocks
-      ARM: OMAP4: hwmod data: add the OCP-WP IP block
-      ARM: OMAP4: hwmod data: add DEBUGSS skeleton
+Hi,
 
-Ming Lei (1):
-      ARM: OMAP4: hwmod data: introduce fdif(face detect module) hwmod
+On Mon, 2012-03-12 at 13:27 +0200, Grazvydas Ignotas wrote:
+> With this we can eliminate some duplicate code in panel drivers.
+> Also lgphilips-lb035q02, nec-nl8048hl11-01b, picodlp and
+> tpo-td043mtea1 gain support of timings control over sysfs.
 
-Paul Walmsley (8):
-      ARM: OMAP2+: clockdomains: make {prm,cm}_clkdm common
-      ARM: OMAP4: hwmod data: add HDQ/1-wire
-      ARM: OMAP4: hwmod data: add EMIF1 and 2
-      ARM: OMAP4: hwmod data: add GPU
-      ARM: OMAP4: hwmod data: add some interconnect-related IP blocks
-      ARM: OMAP4: hwmod data: add OCM RAM IP block
-      ARM: OMAP4: hwmod data: add System Control Module
-      ARM: OMAP4: hwmod data: add PRCM and related IP blocks
+I don't like this patch.
 
- arch/arm/mach-omap2/Makefile                     |    8 +-
- arch/arm/mach-omap2/clockdomain44xx.c            |    6 +
- arch/arm/mach-omap2/clockdomains2xxx_3xxx_data.c |   10 -
- arch/arm/mach-omap2/clockdomains44xx_data.c      |    2 +
- arch/arm/mach-omap2/clockdomains_common_data.c   |   24 +
- arch/arm/mach-omap2/omap_hwmod_44xx_data.c       | 1473 ++++++++++++++++++=
-+++-
- arch/arm/plat-omap/include/plat/omap_hwmod.h     |    1 +
- 7 files changed, 1443 insertions(+), 81 deletions(-)
- create mode 100644 arch/arm/mach-omap2/clockdomains_common_data.c
---155748971-1528478852-1331714560=:7269--
+Panels usually have a single, fixed timing configuration that should be
+used, like the ones you mention above. There's no need to alter the
+timings.
+
+But it's true that there's some duplicate code currently in the panel
+drivers. However, adding just simple funcs like you did in this patch
+doesn't work quite properly. There should be locking (for example to
+prevent disabling the panel while timings are being set), and currently
+the locking is panel driver specific.
+
+ Tomi
+
+
+--=-3R+BePFlaWfC8URC68nz
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: This is a digitally signed message part
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.4.11 (GNU/Linux)
+
+iQIcBAABAgAGBQJPYH9uAAoJEPo9qoy8lh71loUQAJeByMrF0+HgfMMIZn7XV73a
+nEtSVh/9d3gYFuX+bE+jEce5HKdfq6spWDY11I26KuvcVX2rFBlfVii46byXpsls
+1XGEAu+AuG5eTtoQ5nPb/Cx04PFq7NGz+epBJTND7UaahAhP3rUb0dUKQ4LNRyiz
+lDVDDQIowCUWh25ButZ8wMw24pb6dGZut0fRVaTKGOApfoFS+7aq6+iOu1oXzZ9Y
+epr7iJh0U1gMpgEIdqSBmjJPZVhzN6OIbFCDQRJfUHIXl519laIEeCur5hW45fl5
+0V9kcKXbDO4kcPn4l3D33W5AhXOhdNImq5fOmVvh1dqrrvMHlAOYWcgJB6H7GHHU
+bAaMBoIq5DujVsCS97GpRpFn6p7n5h/Ly9zGzD8zixbObqtNdjVhhE2ckQXh2ilV
+XX+YehNAZQAarDOE5nlZrTxr86kl6pgKh10ORCmvZWakG0ofy7GOcwnj6wq0MZBK
+UWJU9kfhhYNES4PnrGfc3t6HJEnaWn8YPCJi/UWUutuhTp1vYKeZyzksWne9FHgg
+9J1lK2UH4dvUIjbXJqO6bSY/raJ0hvsjHMUagDKflQQPNmGbrwcbDJR3S9S/PG3n
+JDtXLkNlI+cTCQqLjkXY0nBSmItZ908LaOWkhxGlfWI8oszUMj7eYGzWSNP3Y8C+
+MUaj+dlUTLdDfYUoPw59
+=S6EJ
+-----END PGP SIGNATURE-----
+
+--=-3R+BePFlaWfC8URC68nz--
+
