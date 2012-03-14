@@ -1,46 +1,36 @@
-From: Albert Herranz <albert_herranz-mRCrAkd8dF0@public.gmane.org>
-Subject: Re: [PATCH] usbnet: fix spinlock recursion
-Date: Wed, 14 Mar 2012 19:04:43 +0100
-Message-ID: <4F60DDBB.2080704@yahoo.es>
-References: <1331732727-16665-1-git-send-email-mvs@tigris.de> <20120314154211.GA6101@kroah.com>
+From: Stephen Warren <swarren@wwwdotorg.org>
+Subject: Re: [RFC PATCH] of: DMA helpers: manage generic requests specification
+Date: Wed, 14 Mar 2012 12:16:16 -0600
+Message-ID: <4F60E070.8040003@wwwdotorg.org>
+References: <4F22DEF2.5000807@ti.com> <1330527248-4350-1-git-send-email-nicolas.ferre@atmel.com> <20120305153648.GG27229@ponder.secretlab.ca> <4F60D9BB.9060709@atmel.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20120314154211.GA6101-U8xfFu+wG4EAvxtiuMwx3w@public.gmane.org>
-Sender: linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Greg KH <gregkh-hQyY1W1yCW8ekmWlsbkhG0B+6BGkLq7r@public.gmane.org>
-Cc: Maximilian Schwerin <mvs-Uf0zVKHSUsGzQB+pC5nmwQ@public.gmane.org>, linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, netdev-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Oliver Neukum <oneukum-l3A5Bk7waGM@public.gmane.org>
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from avon.wwwdotorg.org ([70.85.31.133]:37619 "EHLO
+	avon.wwwdotorg.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1031017Ab2CNSQT (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 14 Mar 2012 14:16:19 -0400
+In-Reply-To: <4F60D9BB.9060709@atmel.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Nicolas Ferre <nicolas.ferre@atmel.com>
+Cc: Grant Likely <grant.likely@secretlab.ca>, swarren@nvidia.com, Russell King <linux@arm.linux.org.uk>, devicetree-discuss@lists.ozlabs.org, rob.herring@calxeda.com, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 
-On 03/14/2012 04:42 PM, Greg KH wrote:
-> On Wed, Mar 14, 2012 at 02:45:27PM +0100, Maximilian Schwerin wrote:
->> From: Albert Herranz <albert_herranz-mRCrAkd8dF0@public.gmane.org>
->>
->> This patch fixes the following spinlock recursion bug seen when bringing down
->> the ethernet interface.
->>
-[...]
-> Hint, use scripts/get_maintainer.pl to find the right person to send
-> this patch to (you missed a list, and because of that, the patch will
-> never get applied...)
+On 03/14/2012 11:47 AM, Nicolas Ferre wrote:
+...
+> I do have the will to avoid the treats of memory corruption in case of
+> malformed DT data, as Stephen was saying. But, on the other hand I do
+> not know really if this can happen: if the .xlate() function which is
+> provided by the DMA controller is well written, it should check for
+> proper args_count or maximum string size. I do not have the feeling that
+> adding an enum will enforce the security here.
 > 
-> thanks,
-> 
-> greg k-h
-> 
+> Do you know a way to enforce security of this "void *" parameter or the
+> check of number of cells + the due diligence of .xlate() function
+> writers will be enough?
 
-Hi,
-
-I think that David Miller already picked up a similar patch recently (with a different approach).
-
-http://marc.info/?l=linux-netdev&m=133115161606222&w=2
-
-Cheers,
-Albert
-
-
---
-To unsubscribe from this list: send the line "unsubscribe linux-usb" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+I guess if the only source of the data is a driver's of_xlate function,
+and it's only being passed back to that same driver and never
+interpreted elsewhere, then its probably reasonable to assume that's
+enough for safety.
