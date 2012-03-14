@@ -1,146 +1,116 @@
-From: Kevin Hilman <khilman@ti.com>
-Subject: Re: [PATCH 01/12] mfd: twl-core: don't depend on pdata->irq_base/end
-Date: Wed, 14 Mar 2012 13:59:51 -0700
-Message-ID: <87pqcegapk.fsf@ti.com>
-References: <1330707024-23730-1-git-send-email-b-cousson@ti.com>
-	<1330707024-23730-2-git-send-email-b-cousson@ti.com>
+From: "Cousson, Benoit" <b-cousson@ti.com>
+Subject: Re: [PATCH 00/12] mfd: twl: Fix for irqdomain/next + SPARSE_IRQ +
+ MMC card detect
+Date: Wed, 14 Mar 2012 22:01:31 +0100
+Message-ID: <4F61072B.9030606@ti.com>
+References: <1330707024-23730-1-git-send-email-b-cousson@ti.com> <87399ahppf.fsf@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset="ISO-8859-1"; format=flowed
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aog114.obsmtp.com ([74.125.149.211]:34570 "EHLO
-	na3sys009aog114.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S964831Ab2CNU7k (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>);
-	Wed, 14 Mar 2012 16:59:40 -0400
-Received: by mail-pz0-f54.google.com with SMTP id d2so3416633dal.13
-        for <linux-omap@vger.kernel.org>; Wed, 14 Mar 2012 13:59:40 -0700 (PDT)
-In-Reply-To: <1330707024-23730-2-git-send-email-b-cousson@ti.com> (Benoit
-	Cousson's message of "Fri, 2 Mar 2012 17:50:13 +0100")
+Received: from bear.ext.ti.com ([192.94.94.41]:50640 "EHLO bear.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1758877Ab2CNVBh (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Wed, 14 Mar 2012 17:01:37 -0400
+In-Reply-To: <87399ahppf.fsf@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Benoit Cousson <b-cousson@ti.com>
-Cc: sameo@linux.intel.com, tony@atomide.com, grant.likely@secretlab.ca, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Felipe Balbi <balbi@ti.com>
+To: Kevin Hilman <khilman@ti.com>
+Cc: Tony Lindgren <tony@atomide.com>, sameo@linux.intel.com, grant.likely@secretlab.ca, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 
-Benoit Cousson <b-cousson@ti.com> writes:
+Hi Kevin,
 
-> From: Felipe Balbi <balbi@ti.com>
+On 3/14/2012 9:50 PM, Kevin Hilman wrote:
+> Hi Benoit,
 >
-> With sparse IRQs the driver shouldn't depend at all on
-> any IRQ values coming from board-file.
+> Benoit Cousson<b-cousson@ti.com>  writes:
 >
-> Remove every occurences of pdata->irq_base/end.
+> [...]
+>
+>> This is not for pull-request, becasue it is based on irqdomain + OMAP
+>> IRQ DT series + OMAP twl DT series yet to be pushed.
+>
+> What's the status of this series?
 
-Well, not quite *every*. :)
+I sent earlier today the pull request to Samuel.
 
-If the driver isn't going to use those fields anymore, they should also
-be removed from the pdata struct too[1].  Also, the remaining board/init
-code that is initializing those fields should be removed as well[2], since
-it obviously has no effect.
+Here is the branch for information: for_3.4/twl_irq_gpio_mmc_fix
 
-The first patch below should probably be folded into this one, and then
-the 2nd patch removes all the users.
+> At least 'gpio/twl: Allocate irq_desc dynamically for SPARSE_IRQ
+> support' is needed in mainline (linux-next) now since without it, non-DT
+> boots will dump a big fat warning trace[2].
 
-Kevin
+Yeah, I know :-(
 
-[1]
->From 70a1833ca20142ef5b6b96dbc92a63c7f8ef9a04 Mon Sep 17 00:00:00 2001
-From: Kevin Hilman <khilman@ti.com>
-Date: Wed, 14 Mar 2012 13:55:31 -0700
-Subject: [PATCH 1/2] mfd: twl-core: remove pdata->irq_base/end
+> Also FYI, I needed the patch below[1] in order to build this series.
 
-Signed-off-by: Kevin Hilman <khilman@ti.com>
----
- include/linux/i2c/twl.h |    1 -
- 1 file changed, 1 deletion(-)
+That's weird, this include was added by the following commit 
+a7cbb9b15d55dff0488b1a6d93929c2386d8632b at 3.2 time frame.
 
-diff --git a/include/linux/i2c/twl.h b/include/linux/i2c/twl.h
-index 2463b61..fa76006 100644
---- a/include/linux/i2c/twl.h
-+++ b/include/linux/i2c/twl.h
-@@ -697,7 +697,6 @@ struct twl4030_audio_data {
- };
- 
- struct twl4030_platform_data {
--	unsigned				irq_base, irq_end;
- 	struct twl4030_clock_init_data		*clock;
- 	struct twl4030_bci_platform_data	*bci;
- 	struct twl4030_gpio_platform_data	*gpio;
--- 
-1.7.9.2
+What branch are you using?
 
+Regards,
+Benoit
 
-[2]
->From d2b7b518b4c66beb99fccfcb898001c11a2f6dc9 Mon Sep 17 00:00:00 2001
-From: Kevin Hilman <khilman@ti.com>
-Date: Wed, 14 Mar 2012 13:56:01 -0700
-Subject: [PATCH 2/2] ARM: OMAP2+: TWL: remove usage of pdata->irq_base/_end
-
-The driver has been converted to use SPARSE_IRQ and no longer needs to
-be passed IRQ base/end.  The driver no longer uses these fields, so
-remove them from the reamaining users.
-
-Signed-off-by: Kevin Hilman <khilman@ti.com>
----
- arch/arm/mach-omap2/board-2430sdp.c    |    3 ---
- arch/arm/mach-omap2/board-omap3logic.c |    3 ---
- arch/arm/mach-omap2/twl-common.c       |    9 ---------
- 3 files changed, 15 deletions(-)
-
-diff --git a/arch/arm/mach-omap2/board-2430sdp.c b/arch/arm/mach-omap2/board-2430sdp.c
-index c8bda62..b8b3700 100644
---- a/arch/arm/mach-omap2/board-2430sdp.c
-+++ b/arch/arm/mach-omap2/board-2430sdp.c
-@@ -218,9 +218,6 @@ static struct twl4030_gpio_platform_data sdp2430_gpio_data = {
- };
- 
- static struct twl4030_platform_data sdp2430_twldata = {
--	.irq_base	= TWL4030_IRQ_BASE,
--	.irq_end	= TWL4030_IRQ_END,
--
- 	/* platform_data for children goes here */
- 	.gpio		= &sdp2430_gpio_data,
- 	.vmmc1		= &sdp2430_vmmc1,
-diff --git a/arch/arm/mach-omap2/board-omap3logic.c b/arch/arm/mach-omap2/board-omap3logic.c
-index 4a7d8c8..f145935 100644
---- a/arch/arm/mach-omap2/board-omap3logic.c
-+++ b/arch/arm/mach-omap2/board-omap3logic.c
-@@ -85,9 +85,6 @@ static struct twl4030_gpio_platform_data omap3logic_gpio_data = {
- };
- 
- static struct twl4030_platform_data omap3logic_twldata = {
--	.irq_base	= TWL4030_IRQ_BASE,
--	.irq_end	= TWL4030_IRQ_END,
--
- 	/* platform_data for children goes here */
- 	.gpio		= &omap3logic_gpio_data,
- 	.vmmc1		= &omap3logic_vmmc1,
-diff --git a/arch/arm/mach-omap2/twl-common.c b/arch/arm/mach-omap2/twl-common.c
-index 1cddcb2..5c9aa3f 100644
---- a/arch/arm/mach-omap2/twl-common.c
-+++ b/arch/arm/mach-omap2/twl-common.c
-@@ -184,10 +184,6 @@ static struct twl_regulator_driver_data omap3_vdd2_drvdata = {
- void __init omap3_pmic_get_config(struct twl4030_platform_data *pmic_data,
- 				  u32 pdata_flags, u32 regulators_flags)
- {
--	if (!pmic_data->irq_base)
--		pmic_data->irq_base = TWL4030_IRQ_BASE;
--	if (!pmic_data->irq_end)
--		pmic_data->irq_end = TWL4030_IRQ_END;
- 	if (!pmic_data->vdd1) {
- 		omap3_vdd1.driver_data = &omap3_vdd1_drvdata;
- 		omap3_vdd1_drvdata.data = voltdm_lookup("mpu_iva");
-@@ -415,11 +411,6 @@ static struct twl_regulator_driver_data omap4_vdd3_drvdata = {
- void __init omap4_pmic_get_config(struct twl4030_platform_data *pmic_data,
- 				  u32 pdata_flags, u32 regulators_flags)
- {
--	if (!pmic_data->irq_base)
--		pmic_data->irq_base = TWL6030_IRQ_BASE;
--	if (!pmic_data->irq_end)
--		pmic_data->irq_end = TWL6030_IRQ_END;
--
- 	if (!pmic_data->vdd1) {
- 		omap4_vdd1.driver_data = &omap4_vdd1_drvdata;
- 		omap4_vdd1_drvdata.data = voltdm_lookup("mpu");
--- 
-1.7.9.2
+>
+> Kevin
+>
+> [1]
+> diff --git a/arch/arm/mach-omap2/board-generic.c b/arch/arm/mach-omap2/board-generic.c
+> index b8c74c7..8db1d64 100644
+> --- a/arch/arm/mach-omap2/board-generic.c
+> +++ b/arch/arm/mach-omap2/board-generic.c
+> @@ -15,6 +15,7 @@
+>   #include<linux/of_irq.h>
+>   #include<linux/of_platform.h>
+>   #include<linux/irqdomain.h>
+> +#include<linux/i2c/twl.h>
+>
+>   #include<mach/hardware.h>
+>   #include<asm/hardware/gic.h>
+>
+>
+> [2]
+> [    0.495117] twl4030: PIH (irq 7) chaining IRQs 368..401
+> [    0.501190] twl4030: power (irq 373) chaining IRQs 402..409
+> [    0.509429] twl4030: gpio (irq 368) chaining IRQs 410..427
+> [    0.515319] ------------[ cut here ]------------
+> [    0.520202] WARNING: at /work/kernel/omap/pm/drivers/gpio/gpio-twl4030.c:410 gpio_twl4030_probe+0x44/0x214()
+> [    0.530395] Modules linked in:
+> [    0.533691] [<c0014248>] (unwind_backtrace+0x0/0xf0) from [<c0039054>] (warn_slowpath_common+0x4c/0x64)
+> [    0.543640] [<c0039054>] (warn_slowpath_common+0x4c/0x64) from [<c0039088>] (warn_slowpath_null+0x1c/0x24)
+> [    0.553680] [<c0039088>] (warn_slowpath_null+0x1c/0x24) from [<c04196f4>] (gpio_twl4030_probe+0x44/0x214)
+> [    0.563629] [<c04196f4>] (gpio_twl4030_probe+0x44/0x214) from [<c028832c>] (platform_drv_probe+0x18/0x1c)
+> [    0.573577] [<c028832c>] (platform_drv_probe+0x18/0x1c) from [<c0286fd4>] (really_probe+0x60/0x15c)
+> [    0.583007] [<c0286fd4>] (really_probe+0x60/0x15c) from [<c0287214>] (driver_probe_device+0x48/0x60)
+> [    0.592498] [<c0287214>] (driver_probe_device+0x48/0x60) from [<c0285af8>] (bus_for_each_drv+0x5c/0x88)
+> [    0.602264] [<c0285af8>] (bus_for_each_drv+0x5c/0x88) from [<c028718c>] (device_attach+0x98/0xbc)
+> [    0.611480] [<c028718c>] (device_attach+0x98/0xbc) from [<c0286844>] (bus_probe_device+0x88/0xac)
+> [    0.620727] [<c0286844>] (bus_probe_device+0x88/0xac) from [<c0285160>] (device_add+0x278/0x358)
+> [    0.629882] [<c0285160>] (device_add+0x278/0x358) from [<c02887a8>] (platform_device_add+0xf8/0x1a4)
+> [    0.639373] [<c02887a8>] (platform_device_add+0xf8/0x1a4) from [<c042e4a0>] (add_numbered_child.constprop.0+0xb8/0xfc)
+> [    0.650451] [<c042e4a0>] (add_numbered_child.constprop.0+0xb8/0xfc) from [<c042e5a4>] (add_children+0x44/0x6d0)
+> [    0.660949] [<c042e5a4>] (add_children+0x44/0x6d0) from [<c041a8b8>] (twl_probe+0x354/0x3bc)
+> [    0.669738] [<c041a8b8>] (twl_probe+0x354/0x3bc) from [<c0326cb0>] (i2c_device_probe+0xc0/0x100)
+> [    0.678863] [<c0326cb0>] (i2c_device_probe+0xc0/0x100) from [<c0286fd4>] (really_probe+0x60/0x15c)
+> [    0.688171] [<c0286fd4>] (really_probe+0x60/0x15c) from [<c0287214>] (driver_probe_device+0x48/0x60)
+> [    0.697692] [<c0287214>] (driver_probe_device+0x48/0x60) from [<c0285af8>] (bus_for_each_drv+0x5c/0x88)
+> [    0.707458] [<c0285af8>] (bus_for_each_drv+0x5c/0x88) from [<c028718c>] (device_attach+0x98/0xbc)
+> [    0.716674] [<c028718c>] (device_attach+0x98/0xbc) from [<c0286844>] (bus_probe_device+0x88/0xac)
+> [    0.725921] [<c0286844>] (bus_probe_device+0x88/0xac) from [<c0285160>] (device_add+0x278/0x358)
+> [    0.735076] [<c0285160>] (device_add+0x278/0x358) from [<c0327410>] (i2c_new_device+0xec/0x160)
+> [    0.744354] [<c0327410>] (i2c_new_device+0xec/0x160) from [<c032781c>] (i2c_register_adapter+0x168/0x220)
+> [    0.754302] [<c032781c>] (i2c_register_adapter+0x168/0x220) from [<c0327a40>] (i2c_add_numbered_adapter+0xd4/0xf0)
+> [    0.765045] [<c0327a40>] (i2c_add_numbered_adapter+0xd4/0xf0) from [<c041f4c8>] (omap_i2c_probe+0x334/0x424)
+> [    0.775268] [<c041f4c8>] (omap_i2c_probe+0x334/0x424) from [<c028832c>] (platform_drv_probe+0x18/0x1c)
+> [    0.784942] [<c028832c>] (platform_drv_probe+0x18/0x1c) from [<c0286fd4>] (really_probe+0x60/0x15c)
+> [    0.794342] [<c0286fd4>] (really_probe+0x60/0x15c) from [<c0287214>] (driver_probe_device+0x48/0x60)
+> [    0.803863] [<c0287214>] (driver_probe_device+0x48/0x60) from [<c02872c0>] (__driver_attach+0x94/0x98)
+> [    0.813537] [<c02872c0>] (__driver_attach+0x94/0x98) from [<c0285b74>] (bus_for_each_dev+0x50/0x7c)
+> [    0.822937] [<c0285b74>] (bus_for_each_dev+0x50/0x7c) from [<c0286ad4>] (bus_add_driver+0x184/0x248)
+> [    0.832427] [<c0286ad4>] (bus_add_driver+0x184/0x248) from [<c0287798>] (driver_register+0x78/0x12c)
+> [    0.841949] [<c0287798>] (driver_register+0x78/0x12c) from [<c0008800>] (do_one_initcall+0x34/0x178)
+> [    0.851440] [<c0008800>] (do_one_initcall+0x34/0x178) from [<c06068ac>] (kernel_init+0x8c/0x130)
+> [    0.860565] [<c06068ac>] (kernel_init+0x8c/0x130) from [<c000e850>] (kernel_thread_exit+0x0/0x8)
+> [    0.870117] ---[ end trace 1b75b31a2719ed1c ]---
 
