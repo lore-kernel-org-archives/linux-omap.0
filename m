@@ -1,64 +1,43 @@
-From: Grazvydas Ignotas <notasas@gmail.com>
-Subject: Re: [GIT PULL] cpufreq: OMAP updates for v3.4
-Date: Wed, 14 Mar 2012 19:38:38 +0200
-Message-ID: <CANOLnON+hHtnjo9samAqvXp_nVJMjQ7CnxMCe7ggO4UwYaz4rw@mail.gmail.com>
-References: <87y5rci2na.fsf@ti.com>
-	<CANOLnON91vXWb2L-FXjz3sqq-9j5SaEodtpt_yvFiN33D4Q3Ow@mail.gmail.com>
-	<87wr6ngkrl.fsf@ti.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+From: Maximilian Schwerin <mvs@tigris.de>
+Subject: [PATCH] OMAP3: OPP: Test for IVA subsystem before attempting to add IVA OPP
+Date: Wed, 14 Mar 2012 18:38:15 +0100
+Message-ID: <1331746695-24372-1-git-send-email-mvs@tigris.de>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-ee0-f46.google.com ([74.125.83.46]:40428 "EHLO
-	mail-ee0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1757002Ab2CNRik convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 14 Mar 2012 13:38:40 -0400
-In-Reply-To: <87wr6ngkrl.fsf@ti.com>
+Received: from www45.your-server.de ([213.133.104.45]:43198 "EHLO
+	www45.your-server.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1757002Ab2CNRjF (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 14 Mar 2012 13:39:05 -0400
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Kevin Hilman <khilman@ti.com>
-Cc: Dave Jones <davej@redhat.com>, cpufreq@vger.kernel.org, linux-omap <linux-omap@vger.kernel.org>, linux-arm-kernel <linux-arm-kernel@lists.infradead.org>
+To: linux-omap@vger.kernel.org
+Cc: linux-arm-kernel@lists.infradead.org, Kevin Hilman <khilman@ti.com>, Steve Sakoman <steve@sakoman.com>, Maximilian Schwerin <mvs@tigris.de>
 
-On Wed, Mar 14, 2012 at 7:22 PM, Kevin Hilman <khilman@ti.com> wrote:
-> Grazvydas Ignotas <notasas@gmail.com> writes:
->
-> [...]
->
->>> Russell King (1):
->>> =C2=A0 =C2=A0 =C2=A0cpufreq: OMAP driver depends CPUfreq tables
->>
->> It seems this one got messed up, it says "default ARCH_OMAP2PLUS"
->> instead of depends.
->
-> That was intentional. =C2=A0What do you think is messed up about it?
->
-> It's the same as saying:
->
-> =C2=A0 =C2=A0 depends on ARCH_OMAP2PLUS
-> =C2=A0 =C2=A0 default y
+From: Steve Sakoman <steve@sakoman.com>
 
-Hm, somehow I've never encountered this syntax, but it more looks like
-it means "default y if ARCH_OMAP2PLUS" instead of that.
+Don't try to add IVA OPPs for OMAP3 versions not containing an IVA
+subsystem, as this would make omap_init_opp_table fail.
 
-Checked this with menuconfig now:
-  default ARCH_OMAP2PLUS
-resolves to:
-  ARCH_HAS_CPUFREQ [=3Dy] && CPU_FREQ [=3Dy] && ARM [=3Dy]
+Signed-off-by: Steve Sakoman <steve@sakoman.com>
+Signed-off-by: Maximilian Schwerin <mvs@tigris.de>
+---
+ arch/arm/mach-omap2/opp.c |    4 ++++
+ 1 files changed, 4 insertions(+), 0 deletions(-)
 
-=2E.which might cause build break when OMAP is not selected, and
+diff --git a/arch/arm/mach-omap2/opp.c b/arch/arm/mach-omap2/opp.c
+index 9262a6b..414f2ec 100644
+--- a/arch/arm/mach-omap2/opp.c
++++ b/arch/arm/mach-omap2/opp.c
+@@ -62,6 +62,10 @@ int __init omap_init_opp_table(struct omap_opp_def *opp_def,
+ 				__func__, i);
+ 			return -EINVAL;
+ 		}
++
++		if ((strcmp(opp_def->hwmod_name,"iva") == 0) && !omap3_has_iva())
++			continue;
++
+ 		oh = omap_hwmod_lookup(opp_def->hwmod_name);
+ 		if (!oh || !oh->od) {
+ 			pr_warn("%s: no hwmod or odev for %s, [%d] "
+-- 
+1.7.0.4
 
-  depends on ARCH_OMAP2PLUS
-  default y
-resolves to:
-  ARCH_HAS_CPUFREQ [=3Dy] && CPU_FREQ [=3Dy] && ARM [=3Dy] && ARCH_OMAP=
-2PLUS [=3Dy]
-
-=2E.which should be randconfig friendly.
-
---=20
-Gra=C5=BEvydas
---
-To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
