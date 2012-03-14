@@ -1,98 +1,83 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH 01/12] mfd: twl-core: don't depend on
- pdata->irq_base/end
-Date: Wed, 14 Mar 2012 15:14:54 -0700
-Message-ID: <20120314221454.GS12083@atomide.com>
-References: <1330707024-23730-1-git-send-email-b-cousson@ti.com>
- <1330707024-23730-2-git-send-email-b-cousson@ti.com>
- <87pqcegapk.fsf@ti.com>
+From: "Cousson, Benoit" <b-cousson@ti.com>
+Subject: Re: [GIT PULL] ARM: OMAP: i2c, gpio, spi and regulator DTS updates
+Date: Wed, 14 Mar 2012 23:50:13 +0100
+Message-ID: <4F6120A5.6050407@ti.com>
+References: <4F5E89B4.4010505@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset="ISO-8859-1"; format=flowed
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-02-ewr.mailhop.org ([204.13.248.72]:11344 "EHLO
-	mho-02-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1761510Ab2CNWPA (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 14 Mar 2012 18:15:00 -0400
-Content-Disposition: inline
-In-Reply-To: <87pqcegapk.fsf@ti.com>
+Received: from arroyo.ext.ti.com ([192.94.94.40]:33900 "EHLO arroyo.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1753992Ab2CNWuT (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Wed, 14 Mar 2012 18:50:19 -0400
+In-Reply-To: <4F5E89B4.4010505@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Kevin Hilman <khilman@ti.com>
-Cc: Benoit Cousson <b-cousson@ti.com>, sameo@linux.intel.com, grant.likely@secretlab.ca, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Felipe Balbi <balbi@ti.com>
+To: tony Lindgren <tony@atomide.com>
+Cc: linux-omap <linux-omap@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, "Nayak, Rajendra" <rnayak@ti.com>
 
-* Kevin Hilman <khilman@ti.com> [120314 14:02]:
-> From: Kevin Hilman <khilman@ti.com>
-> Date: Wed, 14 Mar 2012 13:56:01 -0700
-> Subject: [PATCH 2/2] ARM: OMAP2+: TWL: remove usage of pdata->irq_base/_end
-> 
-> The driver has been converted to use SPARSE_IRQ and no longer needs to
-> be passed IRQ base/end.  The driver no longer uses these fields, so
-> remove them from the reamaining users.
-> 
-> Signed-off-by: Kevin Hilman <khilman@ti.com>
-> ---
->  arch/arm/mach-omap2/board-2430sdp.c    |    3 ---
->  arch/arm/mach-omap2/board-omap3logic.c |    3 ---
->  arch/arm/mach-omap2/twl-common.c       |    9 ---------
->  3 files changed, 15 deletions(-)
-> 
-> diff --git a/arch/arm/mach-omap2/board-2430sdp.c b/arch/arm/mach-omap2/board-2430sdp.c
-> index c8bda62..b8b3700 100644
-> --- a/arch/arm/mach-omap2/board-2430sdp.c
-> +++ b/arch/arm/mach-omap2/board-2430sdp.c
-> @@ -218,9 +218,6 @@ static struct twl4030_gpio_platform_data sdp2430_gpio_data = {
->  };
->  
->  static struct twl4030_platform_data sdp2430_twldata = {
-> -	.irq_base	= TWL4030_IRQ_BASE,
-> -	.irq_end	= TWL4030_IRQ_END,
-> -
->  	/* platform_data for children goes here */
->  	.gpio		= &sdp2430_gpio_data,
->  	.vmmc1		= &sdp2430_vmmc1,
-> diff --git a/arch/arm/mach-omap2/board-omap3logic.c b/arch/arm/mach-omap2/board-omap3logic.c
-> index 4a7d8c8..f145935 100644
-> --- a/arch/arm/mach-omap2/board-omap3logic.c
-> +++ b/arch/arm/mach-omap2/board-omap3logic.c
-> @@ -85,9 +85,6 @@ static struct twl4030_gpio_platform_data omap3logic_gpio_data = {
->  };
->  
->  static struct twl4030_platform_data omap3logic_twldata = {
-> -	.irq_base	= TWL4030_IRQ_BASE,
-> -	.irq_end	= TWL4030_IRQ_END,
-> -
->  	/* platform_data for children goes here */
->  	.gpio		= &omap3logic_gpio_data,
->  	.vmmc1		= &omap3logic_vmmc1,
-> diff --git a/arch/arm/mach-omap2/twl-common.c b/arch/arm/mach-omap2/twl-common.c
-> index 1cddcb2..5c9aa3f 100644
-> --- a/arch/arm/mach-omap2/twl-common.c
-> +++ b/arch/arm/mach-omap2/twl-common.c
-> @@ -184,10 +184,6 @@ static struct twl_regulator_driver_data omap3_vdd2_drvdata = {
->  void __init omap3_pmic_get_config(struct twl4030_platform_data *pmic_data,
->  				  u32 pdata_flags, u32 regulators_flags)
->  {
-> -	if (!pmic_data->irq_base)
-> -		pmic_data->irq_base = TWL4030_IRQ_BASE;
-> -	if (!pmic_data->irq_end)
-> -		pmic_data->irq_end = TWL4030_IRQ_END;
->  	if (!pmic_data->vdd1) {
->  		omap3_vdd1.driver_data = &omap3_vdd1_drvdata;
->  		omap3_vdd1_drvdata.data = voltdm_lookup("mpu_iva");
-> @@ -415,11 +411,6 @@ static struct twl_regulator_driver_data omap4_vdd3_drvdata = {
->  void __init omap4_pmic_get_config(struct twl4030_platform_data *pmic_data,
->  				  u32 pdata_flags, u32 regulators_flags)
->  {
-> -	if (!pmic_data->irq_base)
-> -		pmic_data->irq_base = TWL6030_IRQ_BASE;
-> -	if (!pmic_data->irq_end)
-> -		pmic_data->irq_end = TWL6030_IRQ_END;
-> -
->  	if (!pmic_data->vdd1) {
->  		omap4_vdd1.driver_data = &omap4_vdd1_drvdata;
->  		omap4_vdd1_drvdata.data = voltdm_lookup("mpu");
-> -- 
+Hi Tony,
 
-Looks right to me:
+It looks like Chris Ball just queued  the HSMMC DT stuff from Rajendra, 
+so I can add as well the MMC DTS for OMAP3 and OMAP4 as well.
 
-Acked-by: Tony Lindgren <tony@atomide.com>
+It is fine for an update?
+
+Than I can add as Kevin's patch for twl irq_base removal.
+
+Thanks,
+Benoit
+
+On 3/13/2012 12:41 AM, Cousson, Benoit wrote:
+> Hi Tony,
+>
+> Here are the remaining DTS patches for 3.4.
+>
+> Ideally all the driver DT adaptation should have been merged before that one.
+>
+> This series is based on your lo/dt-part2 branch.
+>
+> Thanks,
+> Benoit
+>
+>
+> The following changes since commit 328ae2cb50af2f96b6061eb462aa92966a462bbc:
+>    Ilya Yanok (1):
+>          arm/dts: mt_ventoux: very basic support for TeeJet Mt.Ventoux board
+>
+> are available in the git repository at:
+>
+>    git://git.kernel.org/pub/scm/linux/kernel/git/bcousson/linux-omap-dt.git for_3.4/dts/all
+>
+> Benoit Cousson (11):
+>        arm/dts: twl6030: Add DTS file for twl6030 PMIC
+>        arm/dts: twl4030: Add DTS file for twl4030 PM + Audio IC
+>        arm/dts: omap4-panda: Add twl6030 and i2c EEPROM
+>        arm/dts: omap4-sdp: Add twl6030, i2c3 and i2c4 devices
+>        arm/dts: omap3-beagle: Add twl4030 and i2c EEPROM
+>        ARM: OMAP2+: board-generic: Remove i2c static init
+>        arm/dts: OMAP4: Add gpio nodes
+>        arm/dts: OMAP3: Add gpio nodes
+>        arm/dts: OMAP4: Add SPI controller nodes
+>        arm/dts: OMAP3: Add SPI controller nodes
+>        arm/dts: omap4-sdp: Add ks8851 ethernet SPI device
+>
+> Rajendra Nayak (1):
+>        arm/dts: twl: Pass regulator data from dt
+>
+>   arch/arm/boot/dts/omap3-beagle.dts  |   35 ++++++++++++++
+>   arch/arm/boot/dts/omap3.dtsi        |   86 +++++++++++++++++++++++++++++++++++
+>   arch/arm/boot/dts/omap4-panda.dts   |   34 ++++++++++++++
+>   arch/arm/boot/dts/omap4-sdp.dts     |   73 +++++++++++++++++++++++++++++
+>   arch/arm/boot/dts/omap4.dtsi        |   86 +++++++++++++++++++++++++++++++++++
+>   arch/arm/boot/dts/twl4030.dtsi      |   39 ++++++++++++++++
+>   arch/arm/boot/dts/twl6030.dtsi      |   86 +++++++++++++++++++++++++++++++++++
+>   arch/arm/mach-omap2/board-generic.c |   37 +--------------
+>   arch/arm/mach-omap2/devices.c       |    4 +-
+>   arch/arm/mach-omap2/gpio.c          |    8 +++-
+>   10 files changed, 450 insertions(+), 38 deletions(-)
+>   create mode 100644 arch/arm/boot/dts/twl4030.dtsi
+>   create mode 100644 arch/arm/boot/dts/twl6030.dtsi
+>
+
