@@ -1,68 +1,74 @@
-From: Colin Cross <ccross@android.com>
-Subject: Re: [PATCH 0/3] coupled cpuidle state support
-Date: Tue, 13 Mar 2012 19:21:33 -0700
-Message-ID: <CAMbhsRSrS-gwu20Ba5=n_LNUwDh3p+5bQPOymGJ9x5O2Fn28kA@mail.gmail.com>
-References: <1324426147-16735-1-git-send-email-ccross@android.com>
-	<4F1929E9.7070707@linaro.org> <8762e8kqi6.fsf@ti.com>
-	<4F5FFCC1.2030702@linux.intel.com>
+From: Tomi Valkeinen <tomi.valkeinen@ti.com>
+Subject: Re: [PATCH 2/2] OMAPDSS: Ensure OPP100 when DSS is operational
+Date: Wed, 14 Mar 2012 08:38:51 +0200
+Message-ID: <1331707131.1618.7.camel@lappy>
+References: <1331205217-19927-1-git-send-email-tomi.valkeinen@ti.com>
+	 <1331205217-19927-2-git-send-email-tomi.valkeinen@ti.com>
+	 <1331646353.2856.354.camel@deskari>  <87zkbkmjo1.fsf@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
+Content-Type: text/plain; charset="UTF-8"
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-pm-bounces@lists.linux-foundation.org>
-In-Reply-To: <4F5FFCC1.2030702@linux.intel.com>
-List-Unsubscribe: <https://lists.linuxfoundation.org/mailman/options/linux-pm>,
-	<mailto:linux-pm-request@lists.linux-foundation.org?subject=unsubscribe>
-List-Archive: <http://lists.linuxfoundation.org/pipermail/linux-pm/>
-List-Post: <mailto:linux-pm@lists.linux-foundation.org>
-List-Help: <mailto:linux-pm-request@lists.linux-foundation.org?subject=help>
-List-Subscribe: <https://lists.linuxfoundation.org/mailman/listinfo/linux-pm>,
-	<mailto:linux-pm-request@lists.linux-foundation.org?subject=subscribe>
-Sender: linux-pm-bounces@lists.linux-foundation.org
-Errors-To: linux-pm-bounces@lists.linux-foundation.org
-To: Arjan van de Ven <arjan@linux.intel.com>
-Cc: Kevin Hilman <khilman@ti.com>, Len Brown <len.brown@intel.com>, linux-kernel@vger.kernel.org, Amit Kucheria <amit.kucheria@linaro.org>, linux-tegra@vger.kernel.org, linux-pm@lists.linux-foundation.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from na3sys009aog114.obsmtp.com ([74.125.149.211]:47059 "EHLO
+	na3sys009aog114.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1751785Ab2CNGi6 (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>);
+	Wed, 14 Mar 2012 02:38:58 -0400
+Received: by lahc1 with SMTP id c1so1334144lah.40
+        for <linux-omap@vger.kernel.org>; Tue, 13 Mar 2012 23:38:55 -0700 (PDT)
+In-Reply-To: <87zkbkmjo1.fsf@ti.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Kevin Hilman <khilman@ti.com>
+Cc: linux-omap@vger.kernel.org, Paul Walmsley <paul@pwsan.com>, archit@ti.com
 
-On Tue, Mar 13, 2012 at 7:04 PM, Arjan van de Ven <arjan@linux.intel.com> wrote:
-> On 3/13/2012 4:52 PM, Kevin Hilman wrote:
->> Checking the ready_count seemed like an easy way to do this, but did you
->> have any other mechanisms in mind for CPUs to communicate that they've
->> exited/aborted?
->
-> this indeed is the tricky part (which I warned about earlier);
-> I've spent quite a lot of time (weeks) to get this provably working for
-> an Intel system with similar requirements... and it's extremely unfunny,
-> and needed firmware support to close some of the race conditions.
+On Tue, 2012-03-13 at 11:37 -0700, Kevin Hilman wrote:
+> Hi Tomi,
+> 
+> Tomi Valkeinen <tomi.valkeinen@ti.com> writes:
+> 
+> > Hi Kevin, Paul,
+> >
+> > I know you're busy, but I'd appreciate a comment/ack on these two small
+> > patches, so I could get them in to next merge window. Otherwise using
+> > any other OPP than OPP100 will most likely break the DSS.
+> >
+> > This looks quite straightforward fix for me, but I'm not sure if there
+> > could be any side effects.
+> 
+> How does it affect OMAP3?  OPP50/OPP100 names are specific to OMAP4.
 
-As long as you can tell from cpu0 that cpu1 has succesfully entered
-the low power state, this should be easy, and the
-coupled_cpuidle_parallel_barrier helper should make it even easier.
-This series just allows the exact same sequence of transitions used by
-hotplug cpufreq governors to happen from the idle thread:
+They are? At least 3630 TRM speaks of them in the DSS chapter.
 
-1. cpu0 forces cpu1 offline.  From a wakeup perspective, this is
-exactly like hotplug removing cpu1.  Unlike hotplug, the state of cpu1
-has to be saved, and the scheduler is not told that the cpu is gone.
-Instead of using the IPI signalling that hotplug uses, we call the
-same function on both cpus, and one cpu runs the equivalent of
-platform_cpu_kill, and the other the equivalent of platform_cpu_die.
-Wakeup events that are only targeted at cpu1 will need to be
-temporarily migrated to cpu0.
-2. If the hotplug is successful, cpu0 goes to a low power state, the
-same way it would when the hotplug cpufreq governor had removed cpu1.
-3. cpu0 wakes up, because all wakeup events are pointed at it.
-4. After restoring its own state, cpu0 brings cpu1 back online,
-exactly like hotplug online would, except that the boot vector has to
-point to a cpu_resume handler instead of secondary start.
+> Also, Can you help us understand the exact nature of the constraint?
 
-> I sure hope that hardware with these requirements is on the way out...
-> it's not very OS friendly.
+The TRM lists maximum clock rates for the DSS clocks. You should be able
+to find them by searching "OPP100" in the DSS chapter. In my TRMs there
+are:
 
-Even hardware that was designed not not have these requirements
-sometimes has bugs that require this kind of sequencing.  OMAP4430
-should theoretically support idle without sequencing, but OMAP4460
-introduced a ROM code bug that requires sequencing again (turning on
-cpu1 corrupts the interrupt controller, so cpu0 has to be waiting with
-interrupts off to run a workaround whenever cpu1 turns on).
+OMAP3630: Table 7-19. Display Subsystem Clocks
+OMAP4430: Table 10-4. DSS Clock Frequencies
 
-Out of curiosity, what Intel hardware needs this?
+> It sounds to me like it acutally is a throughput constraint on CORE.  If
+> so, wouldn't it be clearer to set a throughput constraint that is
+> calculated based on the pixel clock and resulting bitrate that would
+> have the same effect?
+
+I don't see that these limits would have anything to do with CORE. I'm
+guessing that the DSS HW just can't function properly with high clocks
+and low voltage.
+
+Making a constraint for the throughput is another matter, which should
+be also fixed at some point. So in the future I hope we'll have PM
+constraints coming from two sources: 1) a calculation based on the
+memory throughput needs 2) the minimum clock rates.
+
+But both of those are non-trivial to code, so this patch aims to keep
+DSS working until those are implemented. Also, in practice, it's quite
+rare that the DSS clocks would all be below the limits in the tables.
+That could only happen with a fixed, known configuration with rather
+small displays.
+
+ Tomi
+
+
