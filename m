@@ -1,56 +1,106 @@
-From: Kevin Hilman <khilman-l0cyMroinI0@public.gmane.org>
-Subject: Re: [linux-pm] [PATCH 0/3] coupled cpuidle state support
-Date: Wed, 14 Mar 2012 07:23:59 -0700
-Message-ID: <87mx7jjm68.fsf@ti.com>
-References: <1324426147-16735-1-git-send-email-ccross@android.com>
-	<4F1929E9.7070707@linaro.org> <8762e8kqi6.fsf@ti.com>
-	<CAMbhsRRZ+xt179RN32-+eBWngbRow=MpKV1XcLvG-sHGF6VOJA@mail.gmail.com>
-	<CAMbhsRRD2bdkcUZvScb-cF05e=R3h69bNVaTPFX4jBKBBOjuMg@mail.gmail.com>
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Subject: Re: [PATCH] omap_vout: Fix the build warning and section miss-match warning
+Date: Wed, 14 Mar 2012 15:52:37 +0100
+Message-ID: <1981335.62NlLPnzP3@avalon>
+References: <1331295243-2191-1-git-send-email-hvaibhav@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Return-path: <linux-tegra-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <CAMbhsRRD2bdkcUZvScb-cF05e=R3h69bNVaTPFX4jBKBBOjuMg-JsoAwUIsXosN+BqQ9rBEUg@public.gmane.org>
-	(Colin Cross's message of "Tue, 13 Mar 2012 17:47:20 -0700")
-Sender: linux-tegra-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Colin Cross <ccross-z5hGa2qSFaRBDgjK7y7TUQ@public.gmane.org>
-Cc: Len Brown <len.brown-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Amit Kucheria <amit.kucheria-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>, linux-tegra-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-pm-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Arjan van de Ven <arjan-VuQAYsv1563Yd54FQh9/CA@public.gmane.org>, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7Bit
+Return-path: <linux-media-owner@vger.kernel.org>
+In-Reply-To: <1331295243-2191-1-git-send-email-hvaibhav@ti.com>
+Sender: linux-media-owner@vger.kernel.org
+To: Vaibhav Hiremath <hvaibhav@ti.com>
+Cc: linux-media@vger.kernel.org, mchehab@infradead.org, archit@ti.com, linux-omap@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-Colin Cross <ccross-z5hGa2qSFaRBDgjK7y7TUQ@public.gmane.org> writes:
+Hi Vaibhav,
 
-> On Tue, Mar 13, 2012 at 5:28 PM, Colin Cross <ccross-z5hGa2qSFaRBDgjK7y7TUQ@public.gmane.org> wro=
-te:
->> On Tue, Mar 13, 2012 at 4:52 PM, Kevin Hilman <khilman-l0cyMroinI0@public.gmane.org> wrote=
-:
+Thanks for the patch.
 
-[...]
+On Friday 09 March 2012 17:44:03 Vaibhav Hiremath wrote:
+> Patch fixes below build warning and section miss-match warning
+> from omap_vout driver -
 
->>>
->>> Checking the ready_count seemed like an easy way to do this, but di=
-d you
->>> have any other mechanisms in mind for CPUs to communicate that they=
-'ve
->>> exited/aborted?
->>
->> Why not set a flag from CPU1 when it exits the low power state, and
->> have CPU0 spin on the powerdomain register or the flag? =C2=A0You ca=
-n then
->> use the parallel barrier function to ensure both cpus have seen the
->> flag and reset it to 0 before returning.
+You should probably not refer to "patch below" in a commit message, as there 
+this won't be a patch anymore after it gets applied (and "below" is 
+meaningless in a git log).
+
+> Build warnings:
+> =============
+> drivers/media/video/omap/omap_vout.c: In function 'omapvid_setup_overlay':
+> drivers/media/video/omap/omap_vout.c:381:17: warning: 'mode' may be used
+> uninitialized in this function
+> 
+> Section Mis-Match warnings:
+> ==========================
+> WARNING: drivers/media/video/omap/omap-vout.o(.data+0x0): Section mismatch
+> in reference from the variable
+> omap_vout_driver to the function .init.text:omap_vout_probe()
+> The variable omap_vout_driver references
+> the function __init omap_vout_probe()
+> If the reference is valid then annotate the
+> variable with __init* or __refdata (see linux/init.h) or name the variable:
+> *_template, *_timer, *_sht, *_ops, *_probe, *_probe_one, *_console
+
+There are 3 fixes in this patch: compilation warning, section mismatch 
+warning, and addition of .owner = THIS_MODULE. I would have split the patch in 
+3.
+
+> Signed-off-by: Vaibhav Hiremath <hvaibhav@ti.com>
 >
-> I realized the parallel barrier helper was not included in the patch
-> set I posted, it will be in the next patch set. =20
+> ---
+>  drivers/media/video/omap/omap_vout.c |    9 +++++----
+>  1 files changed, 5 insertions(+), 4 deletions(-)
+> 
+> diff --git a/drivers/media/video/omap/omap_vout.c
+> b/drivers/media/video/omap/omap_vout.c index dffcf66..0fb0437 100644
+> --- a/drivers/media/video/omap/omap_vout.c
+> +++ b/drivers/media/video/omap/omap_vout.c
+> @@ -328,7 +328,7 @@ static int video_mode_to_dss_mode(struct
+> omap_vout_device *vout) struct omap_overlay *ovl;
+>  	struct omapvideo_info *ovid;
+>  	struct v4l2_pix_format *pix = &vout->pix;
+> -	enum omap_color_mode mode;
+> +	enum omap_color_mode mode = -EINVAL;
 
-Do you have an ETA for the next patchset?  I'll be glad to give it a
-spin on OMAP4.
+What about removing "case 0" below ? The default case would then set mode to -
+EINVAL.
 
-> Short version, no caller to cpuidle_coupled_parallel_barrier will
-> return before all cpus in the coupled set have called it.  It allows
-> you to resynchronize the cpus after an abort to ensure they have all
-> seen the abort flag before clearing it and returning, leaving
-> everything in the correct state for the next idle attempt.
+> 
+>  	ovid = &vout->vid_info;
+>  	ovl = ovid->overlays[0];
+> @@ -2108,7 +2108,7 @@ static void omap_vout_cleanup_device(struct
+> omap_vout_device *vout) kfree(vout);
+>  }
+> 
+> -static int omap_vout_remove(struct platform_device *pdev)
+> +static int __devexit omap_vout_remove(struct platform_device *pdev)
+>  {
+>  	int k;
+>  	struct v4l2_device *v4l2_dev = platform_get_drvdata(pdev);
+> @@ -2129,7 +2129,7 @@ static int omap_vout_remove(struct platform_device
+> *pdev) return 0;
+>  }
+> 
+> -static int __init omap_vout_probe(struct platform_device *pdev)
+> +static int __devinit omap_vout_probe(struct platform_device *pdev)
+>  {
+>  	int ret = 0, i;
+>  	struct omap_overlay *ovl;
+> @@ -2241,9 +2241,10 @@ probe_err0:
+>  static struct platform_driver omap_vout_driver = {
+>  	.driver = {
+>  		.name = VOUT_NAME,
+> +		.owner = THIS_MODULE,
+>  	},
+>  	.probe = omap_vout_probe,
+> -	.remove = omap_vout_remove,
+> +	.remove = __devexit_p(omap_vout_remove),
+>  };
+> 
+>  static int __init omap_vout_init(void)
 
-OK, this sounds like it will work well for what I need.
+-- 
+Regards,
 
-Kevin
+Laurent Pinchart
