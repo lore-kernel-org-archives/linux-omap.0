@@ -1,71 +1,124 @@
-From: "Cousson, Benoit" <b-cousson@ti.com>
-Subject: [GIT PULL] mfd: twl: Fix for irqdomain/next + SPARSE_IRQ + MMC card
- detect
-Date: Wed, 14 Mar 2012 14:36:57 +0100
-Message-ID: <4F609EF9.7040602@ti.com>
+From: Tomi Valkeinen <tomi.valkeinen@ti.com>
+Subject: Re: [PATCH] omap2+: add drm device
+Date: Wed, 14 Mar 2012 15:43:44 +0200
+Message-ID: <1331732624.1542.32.camel@lappy>
+References: <1331670878-12951-1-git-send-email-rob.clark@linaro.org>
+	 <1331728737.2386.76.camel@deskari>
+	 <CAF6AEGvBB3AVrfXnpZwZCZGy48Re5sxm-jgLxSpH=nLzLKe0iA@mail.gmail.com>
+	 <1331730465.1542.8.camel@lappy>
+	 <CAF6AEGtTKf6w7TrgV8sKoSg=XEuqkfdgMj=vL2oksOMdB2Tbyg@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="ISO-8859-1"
+Content-Type: text/plain; charset="UTF-8"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from comal.ext.ti.com ([198.47.26.152]:37065 "EHLO comal.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S932496Ab2CNNhD (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Wed, 14 Mar 2012 09:37:03 -0400
+Received: from na3sys009aog121.obsmtp.com ([74.125.149.145]:50781 "EHLO
+	na3sys009aog121.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1756854Ab2CNNnt (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>);
+	Wed, 14 Mar 2012 09:43:49 -0400
+Received: by mail-lb0-f182.google.com with SMTP id i15so1525199lbo.27
+        for <linux-omap@vger.kernel.org>; Wed, 14 Mar 2012 06:43:48 -0700 (PDT)
+In-Reply-To: <CAF6AEGtTKf6w7TrgV8sKoSg=XEuqkfdgMj=vL2oksOMdB2Tbyg@mail.gmail.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: sameo@linux.intel.com
-Cc: Tero Kristo <t-kristo@ti.com>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, "Ujfalusi, Peter" <peter.ujfalusi@ti.com>, tony Lindgren <tony@atomide.com>
+To: Rob Clark <rob.clark@linaro.org>
+Cc: Greg KH <greg@kroah.com>, linux-omap@vger.kernel.org, dri-devel@lists.freedesktop.org, patches@linaro.org
 
-Hi Samuel,
+On Wed, 2012-03-14 at 08:16 -0500, Rob Clark wrote:
+> On Wed, Mar 14, 2012 at 8:07 AM, Tomi Valkeinen <tomi.valkeinen@ti.com> wrote:
+> > On Wed, 2012-03-14 at 07:55 -0500, Rob Clark wrote:
+> >> On Wed, Mar 14, 2012 at 7:38 AM, Tomi Valkeinen <tomi.valkeinen@ti.com> wrote:
+> >> > Hi,
+> >> >
+> >> > On Tue, 2012-03-13 at 15:34 -0500, Rob Clark wrote:
+> >> >> From: Andy Gross <andy.gross@ti.com>
+> >> >>
+> >> >> Register OMAP DRM/KMS platform device, and reserve a CMA region for
+> >> >> the device to use for buffer allocation.  DMM is split into a
+> >> >> separate device using hwmod.
+> >> >
+> >> > What's the diff with this and the previous one?
+> >>
+> >> Moving drm.c to mach-omap2 (header could not move because
+> >> omap_reserve() is in plat-omap.. but this seems to be the same as what
+> >> is done for dspbridge).
+> >>
+> >> > I see you still have the platform data there. You didn't comment on
+> >> > that. Where is it used after the board files are gone when we use DT?
+> >>
+> >> I was kind-of thinking that there would be some DT<->data-structure
+> >> glue somewhere.. not sure if this goes in mach-omap2 or in the driver
+> >> itself, but presumably it is needed somewhere.
+> >>
+> >> It is only really special cases where some board specific device-tree
+> >> data is needed, so it seems like this is ok to handle later.
+> >
+> > Afaik DT data should only contain information about the hardware. This
+> > is SW configuration, so I think DT people won't accept things like that.
+> 
+> hmm, then where *does* it go.. it is a bit too much for bootargs..
 
-Here is a fix + cleanup + SPARSE_IRQ series for TWL4030 and TWL6030.
+I have no idea =). And I may be wrong, but my understanding is the the
+only thing DT data should have is information about the HW
+configuration.
 
-I added the patch from Peter as well.
+But is that kind of configuration needed at boot time? Why cannot the
+userspace do the config? What configs are actually needed at boot time,
+before userspace takes control? The only thing coming to my mind is to
+define the display used for the console.
 
-Please note that this series does depend on the irqdomain/next series
-from Grant.
+> >> > And how about the size of the contiguous memory area, it was left a bit
+> >> > unclear to me why it cannot be dynamic.
+> >>
+> >> I don't think there is anything preventing adding a bootarg, but I
+> >> think it is not essential so ok to add later
+> >
+> > Well, maybe not essential to you =). But you are reserving 32MB memory,
+> > which is quite a big amount. Even if the reserved memory can be used for
+> > some other purposes, it's still a big chunk of "special" memory being
+> > reserved even if the user doesn't use or have a display at all.
+> 
+> If you didn't have display, and were tight on memory, wouldn't you
+> just disable the display device in your kernel config?
 
-It is based on your current for-next branch + Grant's series merged on top.
+Sure, if you want to modify your kernel. But you could as well use the
+same kernel binary, and just say vram=0M which disables the vram
+allocation. For DRM you would _have_ to modify your kernel.
 
-Regards,
-Benoit
+Actually, I just realized vram=0M doesn't work, as the code checks for !
+= 0, and just skips the vram argument when it's 0 =). So my code sucks
+also...
 
+> > Well, it's not an issue for me either, but I just feel that doing things
+> > like that without allowing the user to avoid it is a bit bad thing.
+> >
+> > Btw, do you know why the dma_declare_contiguous() takes a dev pointer as
+> > an argument, if the memory is not private to that device? (at least I
+> > understood from you that the memory can be used for other purposes).
+> 
+> contiguous use of the memory is private to the device.  There is also
+> a global CMA pool, from which all dma_alloc_xyz() which is not
+> associated w/ a per-device pool comes from.. but the advantage of a
+> per-device-pool is it puts an upper limit on how much dma memory that
+> device can allocate so that it cannot starve other devices.
 
-The following changes since commit 81d14f4516578ca71d7f97612cb2b9cd4db0e7dd:
-  Benoit Cousson (1):
-        Merge remote branch 'grant/irqdomain/next' into HEAD
+Ah, I see. So the 32MB you reserve there is not visible as contiguous
+memory to anyone else than omapdrm, but userspace can still use the 32MB
+area for pages that can be moved out as needed.
 
-are available in the git repository at:
+But then, if it's private, it's also rather bad. If I have a kernel with
+omapfb and omapdrm enabled as modules, but I never use omapdrm, the 32MB
+is still always reserver and away from other contiguous memory use.
 
-  git://git.kernel.org/pub/scm/linux/kernel/git/bcousson/linux-omap-dt.git for_3.4/twl_irq_gpio_mmc_fix
+Also, I just realized that besides the memory reservation being fixed,
+it's also hidden. If I enable omapdrm in the kernel config, I get no
+indication that 32MB of mem is being reserved. Perhaps a Kconfig option
+for it, like with OMAP VRAM, and then a boot arg which will override the
+Kconfig value.
 
-Benoit Cousson (8):
-      mfd: twl6030-irq: Return twl6030_mmc_card_detect IRQ for board setup
-      ARM: OMAP2+: board-omap4-*: Do not use anymore TWL6030_IRQ_BASE in board files
-      mfd: twl-core: Remove references already defined in header file
-      mfd: twl-core: Move IRQ allocation into twl[4030|6030]-irq files
-      mfd: twl4030-irq: Make SIH SPARSE_IRQ capable
-      mfd: twl-*: Replace pr_ macros by the dev_ equivalent and do various cleanups
-      gpio/twl: Allocate irq_desc dynamically for SPARSE_IRQ support
-      gpio/twl: Add DT support to gpio-twl4030 driver
+Well, as I said, it's not an issue for me and from my side it can be
+improved later.
 
-Felipe Balbi (3):
-      mfd: twl-core: don't depend on pdata->irq_base/end
-      mfd: twl-core: remove unneeded header
-      mfd: twl4030-irq: micro-optimization on IRQ handler
+ Tomi
 
-Peter Ujfalusi (1):
-      mfd: twl-core: Detach twl6040 from the pmic mfd driver
-
- .../devicetree/bindings/gpio/gpio-twl4030.txt      |   23 +++
- arch/arm/mach-omap2/board-4430sdp.c                |   13 +-
- arch/arm/mach-omap2/board-omap4panda.c             |   15 +-
- drivers/gpio/gpio-twl4030.c                        |  111 +++++++++------
- drivers/mfd/twl-core.c                             |  154 +++++++++-----------
- drivers/mfd/twl-core.h                             |    4 +-
- drivers/mfd/twl4030-irq.c                          |   83 ++++++-----
- drivers/mfd/twl6030-irq.c                          |   71 ++++++----
- include/linux/i2c/twl.h                            |    2 +-
- 9 files changed, 267 insertions(+), 209 deletions(-)
- create mode 100644 Documentation/devicetree/bindings/gpio/gpio-twl4030.txt
 
