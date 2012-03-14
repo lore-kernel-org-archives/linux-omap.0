@@ -1,74 +1,62 @@
-From: Tomi Valkeinen <tomi.valkeinen@ti.com>
-Subject: Re: [PATCH 2/2] OMAPDSS: Ensure OPP100 when DSS is operational
-Date: Wed, 14 Mar 2012 08:38:51 +0200
-Message-ID: <1331707131.1618.7.camel@lappy>
-References: <1331205217-19927-1-git-send-email-tomi.valkeinen@ti.com>
-	 <1331205217-19927-2-git-send-email-tomi.valkeinen@ti.com>
-	 <1331646353.2856.354.camel@deskari>  <87zkbkmjo1.fsf@ti.com>
+From: Paul Walmsley <paul@pwsan.com>
+Subject: [GIT PULL] ARM: OMAP2+: hwmod: remove link arrays
+Date: Wed, 14 Mar 2012 02:38:09 -0600 (MDT)
+Message-ID: <alpine.DEB.2.00.1203140231150.7269@utopia.booyaka.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: 7bit
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aog114.obsmtp.com ([74.125.149.211]:47059 "EHLO
-	na3sys009aog114.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751785Ab2CNGi6 (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>);
-	Wed, 14 Mar 2012 02:38:58 -0400
-Received: by lahc1 with SMTP id c1so1334144lah.40
-        for <linux-omap@vger.kernel.org>; Tue, 13 Mar 2012 23:38:55 -0700 (PDT)
-In-Reply-To: <87zkbkmjo1.fsf@ti.com>
+Received: from utopia.booyaka.com ([72.9.107.138]:49993 "EHLO
+	utopia.booyaka.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751907Ab2CNIiK (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 14 Mar 2012 04:38:10 -0400
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Kevin Hilman <khilman@ti.com>
-Cc: linux-omap@vger.kernel.org, Paul Walmsley <paul@pwsan.com>, archit@ti.com
+To: tony@atomide.com
+Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 
-On Tue, 2012-03-13 at 11:37 -0700, Kevin Hilman wrote:
-> Hi Tomi,
-> 
-> Tomi Valkeinen <tomi.valkeinen@ti.com> writes:
-> 
-> > Hi Kevin, Paul,
-> >
-> > I know you're busy, but I'd appreciate a comment/ack on these two small
-> > patches, so I could get them in to next merge window. Otherwise using
-> > any other OPP than OPP100 will most likely break the DSS.
-> >
-> > This looks quite straightforward fix for me, but I'm not sure if there
-> > could be any side effects.
-> 
-> How does it affect OMAP3?  OPP50/OPP100 names are specific to OMAP4.
+Hi Tony
 
-They are? At least 3630 TRM speaks of them in the DSS chapter.
+The following changes since commit 5f43ef65748c19b954756485ddaef657ac71b649:
 
-> Also, Can you help us understand the exact nature of the constraint?
+  Merge branch 'hwmod_misc_devel_3.4' into MERGE_sr_and_hwmod_data (2012-03-08 21:03:17 -0700)
 
-The TRM lists maximum clock rates for the DSS clocks. You should be able
-to find them by searching "OPP100" in the DSS chapter. In my TRMs there
-are:
+are available in the git repository at:
 
-OMAP3630: Table 7-19. Display Subsystem Clocks
-OMAP4430: Table 10-4. DSS Clock Frequencies
+  git://git.pwsan.com/linux-2.6 hwmod_remove_link_arrays_cleanup_3.4
 
-> It sounds to me like it acutally is a throughput constraint on CORE.  If
-> so, wouldn't it be clearer to set a throughput constraint that is
-> calculated based on the pixel clock and resulting bitrate that would
-> have the same effect?
+for you to fetch changes up to afce19b152eedea0402561087dd939b23b53f3cb:
 
-I don't see that these limits would have anything to do with CORE. I'm
-guessing that the DSS HW just can't function properly with high clocks
-and low voltage.
+  ARM: OMAP2xxx: hwmod data: start to fix the IVA1, IVA2 and DSP (2012-03-08 21:04:50 -0700)
 
-Making a constraint for the throughput is another matter, which should
-be also fixed at some point. So in the future I hope we'll have PM
-constraints coming from two sources: 1) a calculation based on the
-memory throughput needs 2) the minimum clock rates.
-
-But both of those are non-trivial to code, so this patch aims to keep
-DSS working until those are implemented. Also, in practice, it's quite
-rare that the DSS clocks would all be below the limits in the tables.
-That could only happen with a fixed, known configuration with rather
-small displays.
-
- Tomi
+The base commit for this pull request is a merge of your SR branch with 
+the 'hwmod_misc_devel_3.4' branch, since this series has dependencies on 
+both of those.
 
 
+- Paul
+
+----------------------------------------------------------------
+Paul Walmsley (12):
+      ARM: OMAP2+: hwmod: add _find_mpu_rt_port()
+      ARM: OMAP2+: hwmod: add function to iterate over struct omap_hwmod_ocp_if
+      ARM: OMAP2+: hwmod: consolidate finding the MPU port index and storing it
+      ARM: OMAP2+: hwmod: add support for link registration
+      ARM: OMAP2+: hwmod data: convert to link registration
+      ARM: OMAP: hwmod: remove code support for direct hwmod registration
+      ARM: OMAP2+: hwmod data: remove forward declarations, reorganize
+      ARM: OMAP2xxx: hwmod data: share common hwmods between OMAP2420 and OMAP2430
+      ARM: OMAP2xxx: hwmod data: share common interface data
+      ARM: OMAP3: hwmod data: fix IVA interface clock
+      ARM: OMAP3: hwmod data: add IVA hard reset lines, main clock, clockdomain
+      ARM: OMAP2xxx: hwmod data: start to fix the IVA1, IVA2 and DSP
+
+ arch/arm/mach-omap2/omap_hwmod.c                   |  410 ++-
+ arch/arm/mach-omap2/omap_hwmod_2420_data.c         | 1563 +-----
+ arch/arm/mach-omap2/omap_hwmod_2430_data.c         | 2316 +++-------
+ .../mach-omap2/omap_hwmod_2xxx_interconnect_data.c |  266 +-
+ arch/arm/mach-omap2/omap_hwmod_2xxx_ipblock_data.c |  562 +++
+ arch/arm/mach-omap2/omap_hwmod_3xxx_data.c         | 5081 +++++++++-----------
+ arch/arm/mach-omap2/omap_hwmod_44xx_data.c         | 4882 ++++++++-----------
+ arch/arm/mach-omap2/omap_hwmod_common_data.h       |   71 +-
+ arch/arm/plat-omap/include/plat/omap_hwmod.h       |   31 +-
+ 9 files changed, 6341 insertions(+), 8841 deletions(-)
