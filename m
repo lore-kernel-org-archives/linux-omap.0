@@ -1,124 +1,78 @@
-From: Tomi Valkeinen <tomi.valkeinen@ti.com>
-Subject: Re: [PATCH] omap2+: add drm device
-Date: Wed, 14 Mar 2012 15:43:44 +0200
-Message-ID: <1331732624.1542.32.camel@lappy>
-References: <1331670878-12951-1-git-send-email-rob.clark@linaro.org>
-	 <1331728737.2386.76.camel@deskari>
-	 <CAF6AEGvBB3AVrfXnpZwZCZGy48Re5sxm-jgLxSpH=nLzLKe0iA@mail.gmail.com>
-	 <1331730465.1542.8.camel@lappy>
-	 <CAF6AEGtTKf6w7TrgV8sKoSg=XEuqkfdgMj=vL2oksOMdB2Tbyg@mail.gmail.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: 7bit
+From: Maximilian Schwerin <mvs@tigris.de>
+Subject: [PATCH] usbnet: fix spinlock recursion
+Date: Wed, 14 Mar 2012 14:45:27 +0100
+Message-ID: <1331732727-16665-1-git-send-email-mvs@tigris.de>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aog121.obsmtp.com ([74.125.149.145]:50781 "EHLO
-	na3sys009aog121.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1756854Ab2CNNnt (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>);
-	Wed, 14 Mar 2012 09:43:49 -0400
-Received: by mail-lb0-f182.google.com with SMTP id i15so1525199lbo.27
-        for <linux-omap@vger.kernel.org>; Wed, 14 Mar 2012 06:43:48 -0700 (PDT)
-In-Reply-To: <CAF6AEGtTKf6w7TrgV8sKoSg=XEuqkfdgMj=vL2oksOMdB2Tbyg@mail.gmail.com>
+Received: from www45.your-server.de ([213.133.104.45]:55540 "EHLO
+	www45.your-server.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754626Ab2CNOJ2 (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 14 Mar 2012 10:09:28 -0400
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Rob Clark <rob.clark@linaro.org>
-Cc: Greg KH <greg@kroah.com>, linux-omap@vger.kernel.org, dri-devel@lists.freedesktop.org, patches@linaro.org
+To: linux-usb@vger.kernel.org
+Cc: linux-omap@vger.kernel.org, Albert Herranz <albert_herranz@yahoo.es>, Maximilian Schwerin <mvs@tigris.de>
 
-On Wed, 2012-03-14 at 08:16 -0500, Rob Clark wrote:
-> On Wed, Mar 14, 2012 at 8:07 AM, Tomi Valkeinen <tomi.valkeinen@ti.com> wrote:
-> > On Wed, 2012-03-14 at 07:55 -0500, Rob Clark wrote:
-> >> On Wed, Mar 14, 2012 at 7:38 AM, Tomi Valkeinen <tomi.valkeinen@ti.com> wrote:
-> >> > Hi,
-> >> >
-> >> > On Tue, 2012-03-13 at 15:34 -0500, Rob Clark wrote:
-> >> >> From: Andy Gross <andy.gross@ti.com>
-> >> >>
-> >> >> Register OMAP DRM/KMS platform device, and reserve a CMA region for
-> >> >> the device to use for buffer allocation.  DMM is split into a
-> >> >> separate device using hwmod.
-> >> >
-> >> > What's the diff with this and the previous one?
-> >>
-> >> Moving drm.c to mach-omap2 (header could not move because
-> >> omap_reserve() is in plat-omap.. but this seems to be the same as what
-> >> is done for dspbridge).
-> >>
-> >> > I see you still have the platform data there. You didn't comment on
-> >> > that. Where is it used after the board files are gone when we use DT?
-> >>
-> >> I was kind-of thinking that there would be some DT<->data-structure
-> >> glue somewhere.. not sure if this goes in mach-omap2 or in the driver
-> >> itself, but presumably it is needed somewhere.
-> >>
-> >> It is only really special cases where some board specific device-tree
-> >> data is needed, so it seems like this is ok to handle later.
-> >
-> > Afaik DT data should only contain information about the hardware. This
-> > is SW configuration, so I think DT people won't accept things like that.
-> 
-> hmm, then where *does* it go.. it is a bit too much for bootargs..
+From: Albert Herranz <albert_herranz@yahoo.es>
 
-I have no idea =). And I may be wrong, but my understanding is the the
-only thing DT data should have is information about the HW
-configuration.
+This patch fixes the following spinlock recursion bug seen when bringing down
+the ethernet interface.
 
-But is that kind of configuration needed at boot time? Why cannot the
-userspace do the config? What configs are actually needed at boot time,
-before userspace takes control? The only thing coming to my mind is to
-define the display used for the console.
+[   87.354683] BUG: spinlock recursion on CPU#0, ifconfig/1722
+[   87.360899]  lock: d2e01cd0, .magic: dead4ead, .owner: ifconfig/1722, .owner_cpu: 0
+[   87.373410] Call Trace:
+[   87.379546] [d2f13c30] [c0008394] show_stack+0x3c/0x160 (unreliable)
+[   87.386227] [d2f13c60] [c0169dd8] spin_bug+0x8c/0xd0
+[   87.392858] [d2f13c80] [c016a0e4] _raw_spin_lock+0xb4/0xb8
+[   87.399570] [d2f13c90] [c02c855c] _spin_lock_irqsave+0x30/0x48
+[   87.406258] [d2f13cb0] [c01aa5d4] defer_bh+0x28/0xfc
+[   87.412726] [d2f13cd0] [c01c32e8] usb_hcd_giveback_urb+0x5c/0xdc
+[   87.419209] [d2f13ce0] [c01d2cec] sthcd_giveback_urb+0x30/0x50
+[   87.425762] [d2f13d00] [c01d488c] sthcd_urb_dequeue+0x7c/0xac
+[   87.432318] [d2f13d30] [c01c3478] unlink1+0x3c/0x4c
+[   87.438960] [d2f13d40] [c01c45c8] usb_hcd_unlink_urb+0x88/0xa4
+[   87.445629] [d2f13d60] [c01c49ac] usb_unlink_urb+0x54/0x5c
+[   87.452210] [d2f13d70] [c01aa170] unlink_urbs+0x40/0xb0
+[   87.458762] [d2f13d90] [c01ab470] usbnet_stop+0xdc/0x1a0
+[   87.465320] [d2f13df0] [c023bf18] dev_close+0xa0/0xdc
+[   87.471639] [d2f13e00] [c023bc98] dev_change_flags+0x84/0x1b4
+[   87.477908] [d2f13e20] [c0283f50] devinet_ioctl+0x5ec/0x6b8
+[   87.484222] [d2f13e90] [c0284cbc] inet_ioctl+0x98/0xbc
+[   87.490450] [d2f13ea0] [c022a300] sock_ioctl+0x60/0x284
+[   87.496566] [d2f13ec0] [c00a2714] vfs_ioctl+0x44/0xa8
+[   87.502657] [d2f13ee0] [c00a2d24] do_vfs_ioctl+0x88/0x24c
+[   87.508707] [d2f13f10] [c00a2f28] sys_ioctl+0x40/0x74
+[   87.514728] [d2f13f40] [c0011bbc] ret_from_syscall+0x0/0x38
+[   87.520780] --- Exception: c01 at 0xff59878
+[   87.520783]     LR = 0xff597dc
 
-> >> > And how about the size of the contiguous memory area, it was left a bit
-> >> > unclear to me why it cannot be dynamic.
-> >>
-> >> I don't think there is anything preventing adding a bootarg, but I
-> >> think it is not essential so ok to add later
-> >
-> > Well, maybe not essential to you =). But you are reserving 32MB memory,
-> > which is quite a big amount. Even if the reserved memory can be used for
-> > some other purposes, it's still a big chunk of "special" memory being
-> > reserved even if the user doesn't use or have a display at all.
-> 
-> If you didn't have display, and were tight on memory, wouldn't you
-> just disable the display device in your kernel config?
+unlink_urbs() takes the sk_buff queue lock &q->lock before removing the
+queued URBs via usb_unlink_urb().
+The issue here is that the completion handler of a queued TX URB will
+get called when the URB is unlinked, then tx_complete() will call defer_bh()
+which will try to take the queue lock again and fail.
 
-Sure, if you want to modify your kernel. But you could as well use the
-same kernel binary, and just say vram=0M which disables the vram
-allocation. For DRM you would _have_ to modify your kernel.
+The fix here is to release the list lock before unlinking a URB.
 
-Actually, I just realized vram=0M doesn't work, as the code checks for !
-= 0, and just skips the vram argument when it's 0 =). So my code sucks
-also...
+Signed-off-by: Albert Herranz <albert_herranz@yahoo.es>
+Signed-off-by: Maximilian Schwerin <mvs@tigris.de>
+---
+ drivers/net/usb/usbnet.c |    2 ++
+ 1 files changed, 2 insertions(+), 0 deletions(-)
 
-> > Well, it's not an issue for me either, but I just feel that doing things
-> > like that without allowing the user to avoid it is a bit bad thing.
-> >
-> > Btw, do you know why the dma_declare_contiguous() takes a dev pointer as
-> > an argument, if the memory is not private to that device? (at least I
-> > understood from you that the memory can be used for other purposes).
-> 
-> contiguous use of the memory is private to the device.  There is also
-> a global CMA pool, from which all dma_alloc_xyz() which is not
-> associated w/ a per-device pool comes from.. but the advantage of a
-> per-device-pool is it puts an upper limit on how much dma memory that
-> device can allocate so that it cannot starve other devices.
-
-Ah, I see. So the 32MB you reserve there is not visible as contiguous
-memory to anyone else than omapdrm, but userspace can still use the 32MB
-area for pages that can be moved out as needed.
-
-But then, if it's private, it's also rather bad. If I have a kernel with
-omapfb and omapdrm enabled as modules, but I never use omapdrm, the 32MB
-is still always reserver and away from other contiguous memory use.
-
-Also, I just realized that besides the memory reservation being fixed,
-it's also hidden. If I enable omapdrm in the kernel config, I get no
-indication that 32MB of mem is being reserved. Perhaps a Kconfig option
-for it, like with OMAP VRAM, and then a boot arg which will override the
-Kconfig value.
-
-Well, as I said, it's not an issue for me and from my side it can be
-improved later.
-
- Tomi
-
+diff --git a/drivers/net/usb/usbnet.c b/drivers/net/usb/usbnet.c
+index fae0fbd..b06bfd8 100644
+--- a/drivers/net/usb/usbnet.c
++++ b/drivers/net/usb/usbnet.c
+@@ -591,7 +591,9 @@ static int unlink_urbs (struct usbnet *dev, struct sk_buff_head *q)
+ 
+ 		// during some PM-driven resume scenarios,
+ 		// these (async) unlinks complete immediately
++		spin_unlock(&q->lock);
+ 		retval = usb_unlink_urb (urb);
++		spin_lock(&q->lock);
+ 		if (retval != -EINPROGRESS && retval != 0)
+ 			netdev_dbg(dev->net, "unlink urb err, %d\n", retval);
+ 		else
+-- 
+1.7.0.4
 
