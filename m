@@ -1,62 +1,36 @@
-From: Paul Walmsley <paul@pwsan.com>
-Subject: [GIT PULL] ARM: OMAP2+: hwmod: remove link arrays
-Date: Wed, 14 Mar 2012 02:38:09 -0600 (MDT)
-Message-ID: <alpine.DEB.2.00.1203140231150.7269@utopia.booyaka.com>
+From: Webmail Admin <14224.nancy.heim@corett.gob.mx>
+Subject: E-Mail-Quota-Warnung
+Date: Tue, 13 Mar 2012 18:52:02 -0600 (CST)
+Message-ID: <1076126968.62307.1331686322818.JavaMail.root__32026.7962212258$1331714491$gmane$org@mail>
+Reply-To: Webmail Admin <webmail@kimo.com>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from utopia.booyaka.com ([72.9.107.138]:49993 "EHLO
-	utopia.booyaka.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751907Ab2CNIiK (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 14 Mar 2012 04:38:10 -0400
+Received: from customer-200-79-36-4.uninet-ide.com.mx ([200.79.36.4]:35010
+	"EHLO barracuda.corett.gob.mx" rhost-flags-OK-OK-OK-FAIL)
+	by vger.kernel.org with ESMTP id S1759634Ab2CNIlS convert rfc822-to-8bit
+	(ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Wed, 14 Mar 2012 04:41:18 -0400
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: tony@atomide.com
-Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
-
-Hi Tony
-
-The following changes since commit 5f43ef65748c19b954756485ddaef657ac71b649:
-
-  Merge branch 'hwmod_misc_devel_3.4' into MERGE_sr_and_hwmod_data (2012-03-08 21:03:17 -0700)
-
-are available in the git repository at:
-
-  git://git.pwsan.com/linux-2.6 hwmod_remove_link_arrays_cleanup_3.4
-
-for you to fetch changes up to afce19b152eedea0402561087dd939b23b53f3cb:
-
-  ARM: OMAP2xxx: hwmod data: start to fix the IVA1, IVA2 and DSP (2012-03-08 21:04:50 -0700)
-
-The base commit for this pull request is a merge of your SR branch with 
-the 'hwmod_misc_devel_3.4' branch, since this series has dependencies on 
-both of those.
 
 
-- Paul
+Webmail Kontoinhaber,
 
-----------------------------------------------------------------
-Paul Walmsley (12):
-      ARM: OMAP2+: hwmod: add _find_mpu_rt_port()
-      ARM: OMAP2+: hwmod: add function to iterate over struct omap_hwmod_ocp_if
-      ARM: OMAP2+: hwmod: consolidate finding the MPU port index and storing it
-      ARM: OMAP2+: hwmod: add support for link registration
-      ARM: OMAP2+: hwmod data: convert to link registration
-      ARM: OMAP: hwmod: remove code support for direct hwmod registration
-      ARM: OMAP2+: hwmod data: remove forward declarations, reorganize
-      ARM: OMAP2xxx: hwmod data: share common hwmods between OMAP2420 and OMAP2430
-      ARM: OMAP2xxx: hwmod data: share common interface data
-      ARM: OMAP3: hwmod data: fix IVA interface clock
-      ARM: OMAP3: hwmod data: add IVA hard reset lines, main clock, clockdomain
-      ARM: OMAP2xxx: hwmod data: start to fix the IVA1, IVA2 and DSP
+ Hiermit m=C3=B6chten wir Sie informieren, dass Sie Ihre E-Mail-Konting=
+ent von 325MB =C3=BCberschritten und Sie m=C3=BCssen Ihre E-Quote oder =
+der Lagerung Limit zu erh=C3=B6hen, denn in weniger als 24 Stunden Ihre=
+ E-Mail deaktivieren sein wird. Steigern Sie Ihre E-Mail-Kontingent und=
+ weiterhin mit Ihrem Webmail-Konto.
 
- arch/arm/mach-omap2/omap_hwmod.c                   |  410 ++-
- arch/arm/mach-omap2/omap_hwmod_2420_data.c         | 1563 +-----
- arch/arm/mach-omap2/omap_hwmod_2430_data.c         | 2316 +++-------
- .../mach-omap2/omap_hwmod_2xxx_interconnect_data.c |  266 +-
- arch/arm/mach-omap2/omap_hwmod_2xxx_ipblock_data.c |  562 +++
- arch/arm/mach-omap2/omap_hwmod_3xxx_data.c         | 5081 +++++++++-----------
- arch/arm/mach-omap2/omap_hwmod_44xx_data.c         | 4882 ++++++++-----------
- arch/arm/mach-omap2/omap_hwmod_common_data.h       |   71 +-
- arch/arm/plat-omap/include/plat/omap_hwmod.h       |   31 +-
- 9 files changed, 6341 insertions(+), 8841 deletions(-)
+ Klicken Sie auf diesen Link, um Ihr Konto zu aktualisieren: http://osa=
+su123.phpforms.net/view_forms/view/14e2847162
+
+ System-Administrator
+ Admin Webmail Help Desk
+--
+To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
