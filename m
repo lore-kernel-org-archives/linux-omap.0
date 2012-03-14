@@ -1,45 +1,56 @@
-From: Arnd Bergmann <arnd@arndb.de>
-Subject: Re: [GIT PULL 1/7] non-critical fixes part3 for upcoming merge window
-Date: Wed, 14 Mar 2012 16:58:07 +0000
-Message-ID: <201203141658.08234.arnd@arndb.de>
-References: <4f591c4d.e471340a.1f3f.3a69SMTPIN_ADDED@mx.google.com> <20120310182425.GA698@quad.lixom.net> <20120314163547.GO12083@atomide.com>
+From: Kevin Hilman <khilman@ti.com>
+Subject: Re: [PATCH] omap: opp: test for iva before attempting to set iva opp
+Date: Wed, 14 Mar 2012 10:09:16 -0700
+Message-ID: <87k42nhzyb.fsf@ti.com>
+References: <1331732912-16771-1-git-send-email-mvs@tigris.de>
 Mime-Version: 1.0
-Content-Type: Text/Plain;
-  charset="iso-8859-1"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from moutng.kundenserver.de ([212.227.126.171]:61927 "EHLO
-	moutng.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756688Ab2CNQ6N (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 14 Mar 2012 12:58:13 -0400
-In-Reply-To: <20120314163547.GO12083@atomide.com>
+Received: from na3sys009aog125.obsmtp.com ([74.125.149.153]:60498 "EHLO
+	na3sys009aog125.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1760744Ab2CNRJJ (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>);
+	Wed, 14 Mar 2012 13:09:09 -0400
+Received: by iadj38 with SMTP id j38so4408094iad.16
+        for <linux-omap@vger.kernel.org>; Wed, 14 Mar 2012 10:09:05 -0700 (PDT)
+In-Reply-To: <1331732912-16771-1-git-send-email-mvs@tigris.de> (Maximilian
+	Schwerin's message of "Wed, 14 Mar 2012 14:48:32 +0100")
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Tony Lindgren <tony@atomide.com>
-Cc: Olof Johansson <olof@lixom.net>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+To: Maximilian Schwerin <mvs@tigris.de>
+Cc: linux-omap@vger.kernel.org, Steve Sakoman <steve@sakoman.com>
 
-On Wednesday 14 March 2012, Tony Lindgren wrote:
-> * Olof Johansson <olof@lixom.net> [120310 10:26]:
-> > On Thu, Mar 08, 2012 at 12:53:29PM -0800, Tony Lindgren wrote:
-> > > Hi Olof,
-> > > 
-> > > Here are two more pre-emptive fixes for upcoming merge
-> > > window to pull into arm-soc/next/fixes-non-critical.
-> > > 
-> > > Now with the fixes finallny out of the way after all
-> > > the cleanup related changes, as a reply to this pull
-> > > request I'm posting some more pull requests for cleanup
-> > > and some minor board changes.
-> > 
-> > Pulled request 1-7.
-> 
-> Now with another -rc, can you please pull in also
-> 2 - 7 in this series?
+Maximilian Schwerin <mvs@tigris.de> writes:
 
-Hi Tony,
+> From: Steve Sakoman <steve@sakoman.com>
 
-I'm pretty sure that Olof pulled all the branches the first time
-around, i.e. 1-7, not just 1/7. Please check the for-next
-branch and tell us if there is anything still missing.
+Thanks for the patch.
 
-	Arnd
+Please add a descriptive changelog here.
+
+Also, please Cc linux-arm-kernel@lists.infradead.org for all
+upstream-bound patches.
+
+Kevin
+
+> Signed-off-by: Steve Sakoman <steve@sakoman.com>
+> Signed-off-by: Maximilian Schwerin <mvs@tigris.de>
+> ---
+>  arch/arm/mach-omap2/opp.c |    4 ++++
+>  1 files changed, 4 insertions(+), 0 deletions(-)
+>
+> diff --git a/arch/arm/mach-omap2/opp.c b/arch/arm/mach-omap2/opp.c
+> index 9262a6b..414f2ec 100644
+> --- a/arch/arm/mach-omap2/opp.c
+> +++ b/arch/arm/mach-omap2/opp.c
+> @@ -62,6 +62,10 @@ int __init omap_init_opp_table(struct omap_opp_def *opp_def,
+>  				__func__, i);
+>  			return -EINVAL;
+>  		}
+> +
+> +		if ((strcmp(opp_def->hwmod_name,"iva") == 0) && !omap3_has_iva())
+> +			continue;
+> +
+>  		oh = omap_hwmod_lookup(opp_def->hwmod_name);
+>  		if (!oh || !oh->od) {
+>  			pr_warn("%s: no hwmod or odev for %s, [%d] "
