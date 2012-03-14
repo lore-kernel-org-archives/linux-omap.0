@@ -1,83 +1,40 @@
-From: "Cousson, Benoit" <b-cousson@ti.com>
+From: Tony Lindgren <tony@atomide.com>
 Subject: Re: [GIT PULL] ARM: OMAP: i2c, gpio, spi and regulator DTS updates
-Date: Wed, 14 Mar 2012 23:50:13 +0100
-Message-ID: <4F6120A5.6050407@ti.com>
+Date: Wed, 14 Mar 2012 15:57:43 -0700
+Message-ID: <20120314225743.GT12083@atomide.com>
 References: <4F5E89B4.4010505@ti.com>
+ <4F6120A5.6050407@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="ISO-8859-1"; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from arroyo.ext.ti.com ([192.94.94.40]:33900 "EHLO arroyo.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753992Ab2CNWuT (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Wed, 14 Mar 2012 18:50:19 -0400
-In-Reply-To: <4F5E89B4.4010505@ti.com>
+Received: from mho-02-ewr.mailhop.org ([204.13.248.72]:56881 "EHLO
+	mho-02-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754248Ab2CNW5q (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 14 Mar 2012 18:57:46 -0400
+Content-Disposition: inline
+In-Reply-To: <4F6120A5.6050407@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: tony Lindgren <tony@atomide.com>
+To: "Cousson, Benoit" <b-cousson@ti.com>
 Cc: linux-omap <linux-omap@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, "Nayak, Rajendra" <rnayak@ti.com>
 
-Hi Tony,
-
-It looks like Chris Ball just queued  the HSMMC DT stuff from Rajendra, 
-so I can add as well the MMC DTS for OMAP3 and OMAP4 as well.
-
-It is fine for an update?
-
-Than I can add as Kevin's patch for twl irq_base removal.
-
-Thanks,
-Benoit
-
-On 3/13/2012 12:41 AM, Cousson, Benoit wrote:
+* Cousson, Benoit <b-cousson@ti.com> [120314 15:52]:
 > Hi Tony,
->
-> Here are the remaining DTS patches for 3.4.
->
-> Ideally all the driver DT adaptation should have been merged before that one.
->
-> This series is based on your lo/dt-part2 branch.
->
-> Thanks,
-> Benoit
->
->
-> The following changes since commit 328ae2cb50af2f96b6061eb462aa92966a462bbc:
->    Ilya Yanok (1):
->          arm/dts: mt_ventoux: very basic support for TeeJet Mt.Ventoux board
->
-> are available in the git repository at:
->
->    git://git.kernel.org/pub/scm/linux/kernel/git/bcousson/linux-omap-dt.git for_3.4/dts/all
->
-> Benoit Cousson (11):
->        arm/dts: twl6030: Add DTS file for twl6030 PMIC
->        arm/dts: twl4030: Add DTS file for twl4030 PM + Audio IC
->        arm/dts: omap4-panda: Add twl6030 and i2c EEPROM
->        arm/dts: omap4-sdp: Add twl6030, i2c3 and i2c4 devices
->        arm/dts: omap3-beagle: Add twl4030 and i2c EEPROM
->        ARM: OMAP2+: board-generic: Remove i2c static init
->        arm/dts: OMAP4: Add gpio nodes
->        arm/dts: OMAP3: Add gpio nodes
->        arm/dts: OMAP4: Add SPI controller nodes
->        arm/dts: OMAP3: Add SPI controller nodes
->        arm/dts: omap4-sdp: Add ks8851 ethernet SPI device
->
-> Rajendra Nayak (1):
->        arm/dts: twl: Pass regulator data from dt
->
->   arch/arm/boot/dts/omap3-beagle.dts  |   35 ++++++++++++++
->   arch/arm/boot/dts/omap3.dtsi        |   86 +++++++++++++++++++++++++++++++++++
->   arch/arm/boot/dts/omap4-panda.dts   |   34 ++++++++++++++
->   arch/arm/boot/dts/omap4-sdp.dts     |   73 +++++++++++++++++++++++++++++
->   arch/arm/boot/dts/omap4.dtsi        |   86 +++++++++++++++++++++++++++++++++++
->   arch/arm/boot/dts/twl4030.dtsi      |   39 ++++++++++++++++
->   arch/arm/boot/dts/twl6030.dtsi      |   86 +++++++++++++++++++++++++++++++++++
->   arch/arm/mach-omap2/board-generic.c |   37 +--------------
->   arch/arm/mach-omap2/devices.c       |    4 +-
->   arch/arm/mach-omap2/gpio.c          |    8 +++-
->   10 files changed, 450 insertions(+), 38 deletions(-)
->   create mode 100644 arch/arm/boot/dts/twl4030.dtsi
->   create mode 100644 arch/arm/boot/dts/twl6030.dtsi
->
+> 
+> It looks like Chris Ball just queued  the HSMMC DT stuff from
+> Rajendra, so I can add as well the MMC DTS for OMAP3 and OMAP4 as
+> well.
+> 
+> It is fine for an update?
 
+Sure, I'm not planning to pull this until after the merge
+window.
+ 
+> Than I can add as Kevin's patch for twl irq_base removal.
+
+Hmm I don't follow. That's needed first as a fix for the
+merge window?
+
+Regards,
+
+Tony 
