@@ -1,76 +1,58 @@
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-Subject: Re: [PATCH] omap_vout: Fix "DMA transaction error" issue when rotation is enabled
-Date: Wed, 14 Mar 2012 16:30:25 +0100
-Message-ID: <2410737.F7OP3MWonz@avalon>
-References: <1331295117-489-1-git-send-email-hvaibhav@ti.com>
+From: Chris Ball <cjb-2X9k7bc8m7Mdnm+yROfE0A@public.gmane.org>
+Subject: Re: [PATCH v2 0/4] omap hsmmc device tree support
+Date: Wed, 14 Mar 2012 11:37:24 -0400
+Message-ID: <87pqcfdwi3.fsf@laptop.org>
+References: <1331564560-23276-1-git-send-email-rnayak@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7Bit
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from perceval.ideasonboard.com ([95.142.166.194]:35359 "EHLO
-	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752535Ab2CNP37 (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 14 Mar 2012 11:29:59 -0400
-In-Reply-To: <1331295117-489-1-git-send-email-hvaibhav@ti.com>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Transfer-Encoding: 7bit
+Return-path: <linaro-dev-bounces-cunTk1MwBs8s++Sfvej+rw@public.gmane.org>
+In-Reply-To: <1331564560-23276-1-git-send-email-rnayak-l0cyMroinI0@public.gmane.org> (Rajendra
+	Nayak's message of "Mon, 12 Mar 2012 20:32:36 +0530")
+List-Unsubscribe: <http://lists.linaro.org/mailman/options/linaro-dev>,
+	<mailto:linaro-dev-request-cunTk1MwBs8s++Sfvej+rw@public.gmane.org?subject=unsubscribe>
+List-Archive: <http://lists.linaro.org/pipermail/linaro-dev>
+List-Post: <mailto:linaro-dev-cunTk1MwBs8s++Sfvej+rw@public.gmane.org>
+List-Help: <mailto:linaro-dev-request-cunTk1MwBs8s++Sfvej+rw@public.gmane.org?subject=help>
+List-Subscribe: <http://lists.linaro.org/mailman/listinfo/linaro-dev>,
+	<mailto:linaro-dev-request-cunTk1MwBs8s++Sfvej+rw@public.gmane.org?subject=subscribe>
+Sender: linaro-dev-bounces-cunTk1MwBs8s++Sfvej+rw@public.gmane.org
+Errors-To: linaro-dev-bounces-cunTk1MwBs8s++Sfvej+rw@public.gmane.org
+To: Rajendra Nayak <rnayak-l0cyMroinI0@public.gmane.org>
+Cc: linaro-dev-cunTk1MwBs8s++Sfvej+rw@public.gmane.org, balajitk-l0cyMroinI0@public.gmane.org, devicetree-discuss-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org, linux-mmc-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org
 List-Id: linux-omap@vger.kernel.org
-To: Vaibhav Hiremath <hvaibhav@ti.com>
-Cc: linux-media@vger.kernel.org, mchehab@infradead.org, archit@ti.com, linux-omap@vger.kernel.org
 
-Hi Vaibhav,
+Hi,
 
-On Friday 09 March 2012 17:41:57 Vaibhav Hiremath wrote:
-> When rotation is enabled and driver is configured in USERPTR
-> buffer exchange mechanism, in specific use-case driver reports
-> an error,
->    "DMA transaction error with device 0".
-> 
-> In driver _buffer_prepare funtion, we were using
-> "vout->buf_phy_addr[vb->i]" for buffer physical address to
-> configure SDMA channel, but this variable does get updated
-> only during init.
-> And the issue will occur when driver allocates less number
-> of buffers during init and application requests more buffers
-> through REQBUF ioctl; this variable will lead to invalid
-> configuration of SDMA channel leading to DMA transaction error.
-> 
-> Signed-off-by: Vaibhav Hiremath <hvaibhav@ti.com>
-> ---
-> Archit/Laurent,
-> Can you help me to validate this patch on your platform/usecase?
+On Mon, Mar 12 2012, Rajendra Nayak wrote:
+> The series adds device tree support for OMAP hsmmc
+> driver.
+>
+> Changes in V2:
+> -1- Minor fixes based on comments from Grant.
+> -2- Added a seperate compatible for omap3.
+> -3- Added a new binding "ti,needs-special-reset"
+> to handle some mmc modules which need special
+> softreset sequence.
+> -4- Updated board dts files with "status = disable;"
+> for unused mmc modules.
+>
+> Rob,
+> I retained your ack on patch 1 despite the additional
+> binding that I added to handle the special softreset
+> sequence. Let me know if you have any issues with it.
+>
+> Chris.
+> Patch 1 and Patch 2 apply cleanly on mmc-next and can
+> be taken in from the mmc tree after relevent acks from
+> DT folks.
+> Patch 3 and Patch 4 which update dts files, I plan to
+> push via linux-omap/Tony's tree.
 
-I've tested the patch by rotating the omap_vout overlay by 90 degrees and 
-starting a video stream with 4 buffers. There's no crash, but the kernel 
-prints
+Thanks, I've pushed patches 1 and 2 to mmc-next for 3.4, with Balaji's
+Tested-by.
 
-[77.877807] omapdss DISPC error: FIFO UNDERFLOW on gfx, disabling the overlay
-[77.928344] omapdss DISPC error: FIFO UNDERFLOW on vid1, disabling the overlay
-
-The same problem occurs with 3 buffers, which is what the omap_vout driver 
-allocates by default.
-
-Without your patch applied I get the same behaviour. Is my test procedure 
-wrong ?
-
->  drivers/media/video/omap/omap_vout_vrfb.c |    2 +-
->  1 files changed, 1 insertions(+), 1 deletions(-)
-> 
-> diff --git a/drivers/media/video/omap/omap_vout_vrfb.c
-> b/drivers/media/video/omap/omap_vout_vrfb.c index 4be26ab..240d36d 100644
-> --- a/drivers/media/video/omap/omap_vout_vrfb.c
-> +++ b/drivers/media/video/omap/omap_vout_vrfb.c
-> @@ -225,7 +225,7 @@ int omap_vout_prepare_vrfb(struct omap_vout_device
-> *vout, if (!is_rotation_enabled(vout))
->  		return 0;
-> 
-> -	dmabuf = vout->buf_phy_addr[vb->i];
-> +	dmabuf = (dma_addr_t) vout->queued_buf_addr[vb->i];
->  	/* If rotation is enabled, copy input buffer into VRFB
->  	 * memory space using DMA. We are copying input buffer
->  	 * into VRFB memory space of desired angle and DSS will
-
+- Chris.
 -- 
-Regards,
-
-Laurent Pinchart
-
+Chris Ball   <cjb-2X9k7bc8m7Mdnm+yROfE0A@public.gmane.org>   <http://printf.net/>
+One Laptop Per Child
