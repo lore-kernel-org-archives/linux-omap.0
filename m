@@ -1,51 +1,64 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [GIT PULL 1/7] non-critical fixes part3 for upcoming merge
- window
-Date: Wed, 14 Mar 2012 10:26:01 -0700
-Message-ID: <20120314172600.GP12083@atomide.com>
-References: <4f591c4d.e471340a.1f3f.3a69SMTPIN_ADDED@mx.google.com>
- <20120310182425.GA698@quad.lixom.net>
- <20120314163547.GO12083@atomide.com>
- <201203141658.08234.arnd@arndb.de>
+From: Grazvydas Ignotas <notasas@gmail.com>
+Subject: Re: [GIT PULL] cpufreq: OMAP updates for v3.4
+Date: Wed, 14 Mar 2012 19:38:38 +0200
+Message-ID: <CANOLnON+hHtnjo9samAqvXp_nVJMjQ7CnxMCe7ggO4UwYaz4rw@mail.gmail.com>
+References: <87y5rci2na.fsf@ti.com>
+	<CANOLnON91vXWb2L-FXjz3sqq-9j5SaEodtpt_yvFiN33D4Q3Ow@mail.gmail.com>
+	<87wr6ngkrl.fsf@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-02-ewr.mailhop.org ([204.13.248.72]:12278 "EHLO
-	mho-02-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1760744Ab2CNR0F (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 14 Mar 2012 13:26:05 -0400
-Content-Disposition: inline
-In-Reply-To: <201203141658.08234.arnd@arndb.de>
+Received: from mail-ee0-f46.google.com ([74.125.83.46]:40428 "EHLO
+	mail-ee0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1757002Ab2CNRik convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 14 Mar 2012 13:38:40 -0400
+In-Reply-To: <87wr6ngkrl.fsf@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Arnd Bergmann <arnd@arndb.de>
-Cc: Olof Johansson <olof@lixom.net>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+To: Kevin Hilman <khilman@ti.com>
+Cc: Dave Jones <davej@redhat.com>, cpufreq@vger.kernel.org, linux-omap <linux-omap@vger.kernel.org>, linux-arm-kernel <linux-arm-kernel@lists.infradead.org>
 
-* Arnd Bergmann <arnd@arndb.de> [120314 10:00]:
-> On Wednesday 14 March 2012, Tony Lindgren wrote:
-> > * Olof Johansson <olof@lixom.net> [120310 10:26]:
-> > > On Thu, Mar 08, 2012 at 12:53:29PM -0800, Tony Lindgren wrote:
-> > > > Hi Olof,
-> > > > 
-> > > > Here are two more pre-emptive fixes for upcoming merge
-> > > > window to pull into arm-soc/next/fixes-non-critical.
-> > > > 
-> > > > Now with the fixes finallny out of the way after all
-> > > > the cleanup related changes, as a reply to this pull
-> > > > request I'm posting some more pull requests for cleanup
-> > > > and some minor board changes.
-> > > 
-> > > Pulled request 1-7.
-> > 
-> > Now with another -rc, can you please pull in also
-> > 2 - 7 in this series?
-> 
-> Hi Tony,
-> 
-> I'm pretty sure that Olof pulled all the branches the first time
-> around, i.e. 1-7, not just 1/7. Please check the for-next
-> branch and tell us if there is anything still missing.
+On Wed, Mar 14, 2012 at 7:22 PM, Kevin Hilman <khilman@ti.com> wrote:
+> Grazvydas Ignotas <notasas@gmail.com> writes:
+>
+> [...]
+>
+>>> Russell King (1):
+>>> =C2=A0 =C2=A0 =C2=A0cpufreq: OMAP driver depends CPUfreq tables
+>>
+>> It seems this one got messed up, it says "default ARCH_OMAP2PLUS"
+>> instead of depends.
+>
+> That was intentional. =C2=A0What do you think is messed up about it?
+>
+> It's the same as saying:
+>
+> =C2=A0 =C2=A0 depends on ARCH_OMAP2PLUS
+> =C2=A0 =C2=A0 default y
 
-Indeed, all seven are there! Thanks,
+Hm, somehow I've never encountered this syntax, but it more looks like
+it means "default y if ARCH_OMAP2PLUS" instead of that.
 
-Tony
+Checked this with menuconfig now:
+  default ARCH_OMAP2PLUS
+resolves to:
+  ARCH_HAS_CPUFREQ [=3Dy] && CPU_FREQ [=3Dy] && ARM [=3Dy]
+
+=2E.which might cause build break when OMAP is not selected, and
+
+  depends on ARCH_OMAP2PLUS
+  default y
+resolves to:
+  ARCH_HAS_CPUFREQ [=3Dy] && CPU_FREQ [=3Dy] && ARM [=3Dy] && ARCH_OMAP=
+2PLUS [=3Dy]
+
+=2E.which should be randconfig friendly.
+
+--=20
+Gra=C5=BEvydas
+--
+To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
