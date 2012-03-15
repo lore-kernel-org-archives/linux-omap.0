@@ -1,36 +1,73 @@
-From: Samuel Ortiz <sameo@linux.intel.com>
-Subject: Re: Lost fixes?
-Date: Thu, 15 Mar 2012 11:44:50 +0100
-Message-ID: <20120315104450.GA20705@sortiz-mobl>
+From: Jean Pihet <jean.pihet@newoldbits.com>
+Subject: Re: [PATCH 4/6] ARM: OMAP: fix missing __devexit_p() annotations
+Date: Thu, 15 Mar 2012 12:06:44 +0100
+Message-ID: <CAORVsuUVC4hpotK=eybA=Eqtfg0+PivjwRUENjCwcLG2dp1Ucg@mail.gmail.com>
 References: <20120315102845.GB16389@n2100.arm.linux.org.uk>
+	<E1S87wp-0000Mz-V8@rmk-PC.arm.linux.org.uk>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mga09.intel.com ([134.134.136.24]:27960 "EHLO mga09.intel.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751287Ab2COKhz (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Thu, 15 Mar 2012 06:37:55 -0400
-Content-Disposition: inline
-In-Reply-To: <20120315102845.GB16389@n2100.arm.linux.org.uk>
+Received: from mail-vx0-f174.google.com ([209.85.220.174]:43490 "EHLO
+	mail-vx0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755758Ab2COLGp convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 15 Mar 2012 07:06:45 -0400
+Received: by vcqp1 with SMTP id p1so2999088vcq.19
+        for <linux-omap@vger.kernel.org>; Thu, 15 Mar 2012 04:06:44 -0700 (PDT)
+In-Reply-To: <E1S87wp-0000Mz-V8@rmk-PC.arm.linux.org.uk>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Russell King - ARM Linux <linux@arm.linux.org.uk>
-Cc: cpufreq@vger.kernel.org, Dave Jones <davej@redhat.com>, Grant Likely <grant.likely@secretlab.ca>, Kukjin Kim <kgene.kim@samsung.com>, linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org, Paul Walmsley <paul@pwsan.com>, Thomas Gleixner <tglx@linutronix.de>, Tony Lindgren <tony@atomide.com>
+To: Russell King <rmk+kernel@arm.linux.org.uk>
+Cc: Tony Lindgren <tony@atomide.com>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 
-On Thu, Mar 15, 2012 at 10:28:45AM +0000, Russell King - ARM Linux wrote:
-> These fixes are a collection from other people which resolve various
-> issues found with the new kautobuilder.  They're now a month old, and
-> as far as I can see, have not been merged into Linus' tree.
-> 
-> What's the status of them, and when are they going to be merged?
-For the drivers/mfd/da9052-spi.c part: A patch from Axel Lin has been living
-in my for-next branch for a while now. It's a section mismatch warning fix, so
-not something I consider worth sending to Linus after the merge window is
-closed. So it's queued for the next one.
+Russell,
 
-Cheers,
-Samuel.
+On Thu, Mar 15, 2012 at 11:30 AM, Russell King
+<rmk+kernel@arm.linux.org.uk> wrote:
+> Missing __devexit_p() annotations in driver structures for remove fun=
+ctions
+> marked with __devexit is waiting for build errors to happen, such as:
+>
+> `omap_system_dma_remove' referenced in section `.data' of arch/arm/pl=
+at-omap/bui
+> lt-in.o: defined in discarded section `.devexit.text' of arch/arm/pla=
+t-omap/buil
+> t-in.o
+>
+> Add the necessary annotation, and as a result of audit, fix others wh=
+ich
+> are also missing in arch/arm/*omap*.
+>
+> Signed-off-by: Russell King <rmk+kernel@arm.linux.org.uk>
+> Acked-by: Tony Lindgren <tony@atomide.com>
+> ---
+> =A0arch/arm/mach-omap2/smartreflex.c | =A0 =A02 +-
+> =A0arch/arm/plat-omap/dma.c =A0 =A0 =A0 =A0 =A0| =A0 =A02 +-
+> =A02 files changed, 2 insertions(+), 2 deletions(-)
+>
+> diff --git a/arch/arm/mach-omap2/smartreflex.c b/arch/arm/mach-omap2/=
+smartreflex.c
+> index 7e755bb..47c77a1 100644
+> --- a/arch/arm/mach-omap2/smartreflex.c
+> +++ b/arch/arm/mach-omap2/smartreflex.c
+> @@ -1012,7 +1012,7 @@ static int __devexit omap_sr_remove(struct plat=
+form_device *pdev)
+> =A0}
+>
+> =A0static struct platform_driver smartreflex_driver =3D {
+> - =A0 =A0 =A0 .remove =A0 =A0 =A0 =A0 =3D omap_sr_remove,
+> + =A0 =A0 =A0 .remove =A0 =A0 =A0 =A0 =3D __devexit_p(omap_sr_remove)=
+,
+> =A0 =A0 =A0 =A0.driver =A0 =A0 =A0 =A0 =3D {
+> =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0.name =A0 =3D "smartreflex",
+> =A0 =A0 =A0 =A0},
+Tony already has this change in his master branch, commit
+149f1d5c8d2fd6879cdf93ca70f1cb745e698a1e ('ARM: OMAP2+: Fix devexit
+for smartreflex when CONFIG_HOTPLUG is not set').
 
--- 
-Intel Open Source Technology Centre
-http://oss.intel.com/
+Jean
+--
+To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
