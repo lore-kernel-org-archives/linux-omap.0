@@ -1,44 +1,39 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH 02/10] ARM: OMAP2+: SmartReflex: move the platform
- specific macros in plat-omap
-Date: Thu, 15 Mar 2012 10:14:00 -0700
-Message-ID: <20120315171359.GA7276@atomide.com>
-References: <1331829845-9526-1-git-send-email-j-pihet@ti.com>
- <1331829845-9526-3-git-send-email-j-pihet@ti.com>
+From: Kevin Hilman <khilman@ti.com>
+Subject: Re: arm: omap3: pm34xx.c: Some minor fixups
+Date: Thu, 15 Mar 2012 10:27:57 -0700
+Message-ID: <87pqcdbwpu.fsf@ti.com>
+References: <1331828441-1406-1-git-send-email-mgreer@animalcreek.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-Content-Disposition: inline
-In-Reply-To: <1331829845-9526-3-git-send-email-j-pihet@ti.com>
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: linux-arm-kernel-bounces@lists.infradead.org
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: jean.pihet@newoldbits.com
-Cc: Kevin Hilman <khilman@ti.com>, LKML <linux-kernel@vger.kernel.org>, "Rafael J. Wysocki" <rjw@sisk.pl>, linux-omap@vger.kernel.org, Jean Pihet <j-pihet@ti.com>, linux-arm-kernel@lists.infradead.org
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from na3sys009aog131.obsmtp.com ([74.125.149.247]:55197 "EHLO
+	psmtp.com" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
+	id S932396Ab2COR1p (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Thu, 15 Mar 2012 13:27:45 -0400
+Received: by dakl33 with SMTP id l33so5135208dak.17
+        for <linux-omap@vger.kernel.org>; Thu, 15 Mar 2012 10:27:44 -0700 (PDT)
+In-Reply-To: <1331828441-1406-1-git-send-email-mgreer@animalcreek.com> (Mark
+	A. Greer's message of "Thu, 15 Mar 2012 09:20:39 -0700")
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: "Mark A. Greer" <mgreeraz@gmail.com>
+Cc: linux-omap@vger.kernel.org
 
-* jean.pihet@newoldbits.com <jean.pihet@newoldbits.com> [120315 09:47]:
-> From: Jean Pihet <j-pihet@ti.com>
-> 
-> Move the platform specific macros from the smartreflex header file
-> (arch/arm/mach-omap2/smartreflex.h) in a new header file in plat-omap
-> (arch/arm/plat-omap/include/plat/smartreflex.h).
-> 
-> This change makes the SmartReflex implementation ready for the move
-> to drivers/.
+Hi Mark,
 
-Glad to see this happening!
+"Mark A. Greer" <mgreeraz@gmail.com> writes:
 
-This would be better located in linux/power/smartreflex.h rather than
-plat/smartreflex.h.
+> found a some minor issues when looking through pm34xx.c recently
+> so these patches try to address them.  My apologies if they are already
+> fixed in another branch somewhere.  Based on latest k.o. master branch.
 
-Regards,
+Thanks for the fixes, they look right.
 
-Tony
+Minor nit: can you resend with linux-arm-kernel in Cc?  Any
+upstream-bound patches need to be Cc'd there so the maintainers don't
+have to resend them there before submitting a pull request.
+
+Thanks,
+
+Kevin
+
