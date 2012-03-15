@@ -1,82 +1,88 @@
-From: "Ramirez Luna, Omar" <omar.ramirez@ti.com>
-Subject: Re: [PATCH v2 5/8] ARM: OMAP2+: hwmod: ensure that SYSCONFIG bits are
- reprogrammed after a reset
-Date: Wed, 14 Mar 2012 19:31:19 -0500
-Message-ID: <CAB-zwWhAa3PprwDLzWLkBFUHPeJO3HN3M9mAZF=ohGTvP43jYA@mail.gmail.com>
-References: <20120228053524.16278.59430.stgit@dusk>
- <20120228053657.16278.76132.stgit@dusk>
+From: Tony Lindgren <tony@atomide.com>
+Subject: Re: [GIT PULL] ARM: OMAP: i2c, gpio, spi, regulator and mmc DTS
+ updates
+Date: Wed, 14 Mar 2012 17:46:38 -0700
+Message-ID: <20120315004638.GW12083@atomide.com>
+References: <4F612C29.40608@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="iso-8859-1"
-Content-Transfer-Encoding: quoted-printable
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-In-Reply-To: <20120228053657.16278.76132.stgit@dusk>
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: linux-arm-kernel-bounces@lists.infradead.org
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: Paul Walmsley <paul@pwsan.com>
-Cc: linux-omap@vger.kernel.org, =?ISO-8859-1?Q?Beno=EEt_Cousson?= <b-cousson@ti.com>, linux-arm-kernel@lists.infradead.org
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from mho-02-ewr.mailhop.org ([204.13.248.72]:47450 "EHLO
+	mho-02-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1031266Ab2COAqm (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 14 Mar 2012 20:46:42 -0400
+Content-Disposition: inline
+In-Reply-To: <4F612C29.40608@ti.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: "Cousson, Benoit" <b-cousson@ti.com>
+Cc: linux-omap <linux-omap@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, Olof Johansson <olof@lixom.net>, Arnd Bergmann <arnd@arndb.de>
 
-Hi Paul,
+Hi,
 
-2012/2/27 Paul Walmsley <paul@pwsan.com>:
-> diff --git a/arch/arm/mach-omap2/omap_hwmod.c b/arch/arm/mach-omap2/omap_=
-hwmod.c
-> index db4ad41..aeb6f4c 100644
-> --- a/arch/arm/mach-omap2/omap_hwmod.c
-> +++ b/arch/arm/mach-omap2/omap_hwmod.c
-> @@ -1490,13 +1490,22 @@ static int _reset(struct omap_hwmod *oh)
-> =A0 =A0 =A0 =A0pr_debug("omap_hwmod: %s: resetting\n", oh->name);
->
-> =A0 =A0 =A0 =A0if (oh->class->reset)
-> - =A0 =A0 =A0 =A0 =A0 =A0 =A0 return oh->class->reset(oh);
-> -
-> - =A0 =A0 =A0 if (!oh->rst_lines_cnt)
-> - =A0 =A0 =A0 =A0 =A0 =A0 =A0 return _ocp_softreset(oh);
-> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 oh->class->reset(oh);
-> + =A0 =A0 =A0 else if (!oh->rst_lines_cnt)
-> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 _ocp_softreset(oh);
-> + =A0 =A0 =A0 else
-> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 for (i =3D 0; i < oh->rst_lines_cnt; i++)
-> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 _assert_hardreset(oh, oh->r=
-st_lines[i].name);
+* Cousson, Benoit <b-cousson@ti.com> [120314 16:41]:
+> Hi Tony,
+> 
+> Here are the remaining DTS patches for 3.4.
+> 
+> On top of the previous pull request, I just added the MMC DTS since the driver adaptation just got queued.
+> 
+> It will be still be good to have that for 3.4 if possible, otherwise we will have a bunch of drivers DT adapted but no DTS file to use them :-(
 
-If we reached here the reset lines will be asserted, and then the code
-below touches sysc registers on a module under reset.
+This might be doable as a follow-up patch series at the end
+of the merge window or at -rc1 when the related driver changes
+have been merged.
 
-This would crash on _setup->_setup_reset->_reset.
+Arnd and Olof, what do you guys think?
 
-Adding a 'return 0' I believe fixes the behavior, boots the board and
-leaves the hwmod under reset.
+Regards,
 
--	else
-+	} else {
- 		for (i =3D 0; i < oh->rst_lines_cnt; i++)
- 			_assert_hardreset(oh, oh->rst_lines[i].name);
-+		return 0;
-+	}
+Tony
 
->
-> - =A0 =A0 =A0 for (i =3D 0; i < oh->rst_lines_cnt; i++)
-> - =A0 =A0 =A0 =A0 =A0 =A0 =A0 _assert_hardreset(oh, oh->rst_lines[i].name=
-);
-> + =A0 =A0 =A0 /*
-> + =A0 =A0 =A0 =A0* OCP_SYSCONFIG bits need to be reprogrammed after a
-> + =A0 =A0 =A0 =A0* softreset. =A0The _enable() function should be split t=
-o avoid
-> + =A0 =A0 =A0 =A0* the rewrite of the OCP_SYSCONFIG register.
-> + =A0 =A0 =A0 =A0*/
-> + =A0 =A0 =A0 if (oh->class->sysc) {
-> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 _update_sysc_cache(oh);
-> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 _enable_sysc(oh);
-> + =A0 =A0 =A0 }
-
-Best Regards,
-
-Omar
+ 
+> This series is based on your lo/dt-part2 branch.
+> 
+> Thanks,
+> Benoit
+> 
+> 
+> The following changes since commit 328ae2cb50af2f96b6061eb462aa92966a462bbc:
+>   Ilya Yanok (1):
+>         arm/dts: mt_ventoux: very basic support for TeeJet Mt.Ventoux board
+> 
+> are available in the git repository at:
+> 
+>   git://git.kernel.org/pub/scm/linux/kernel/git/bcousson/linux-omap-dt.git for_3.4/dts/all
+> 
+> Benoit Cousson (11):
+>       arm/dts: twl6030: Add DTS file for twl6030 PMIC
+>       arm/dts: twl4030: Add DTS file for twl4030 PM + Audio IC
+>       arm/dts: omap4-panda: Add twl6030 and i2c EEPROM
+>       arm/dts: omap4-sdp: Add twl6030, i2c3 and i2c4 devices
+>       arm/dts: omap3-beagle: Add twl4030 and i2c EEPROM
+>       ARM: OMAP2+: board-generic: Remove i2c static init
+>       arm/dts: OMAP4: Add gpio nodes
+>       arm/dts: OMAP3: Add gpio nodes
+>       arm/dts: OMAP4: Add SPI controller nodes
+>       arm/dts: OMAP3: Add SPI controller nodes
+>       arm/dts: omap4-sdp: Add ks8851 ethernet SPI device
+> 
+> Rajendra Nayak (3):
+>       arm/dts: twl: Pass regulator data from dt
+>       arm/dts: OMAP4: Add mmc controller nodes and board data
+>       arm/dts: OMAP3: Add mmc controller nodes and board data
+> 
+>  arch/arm/boot/dts/omap3-beagle.dts  |   49 +++++++++++++++
+>  arch/arm/boot/dts/omap3.dtsi        |  102 ++++++++++++++++++++++++++++++
+>  arch/arm/boot/dts/omap4-panda.dts   |   56 +++++++++++++++++
+>  arch/arm/boot/dts/omap4-sdp.dts     |   97 +++++++++++++++++++++++++++++
+>  arch/arm/boot/dts/omap4.dtsi        |  117 +++++++++++++++++++++++++++++++++++
+>  arch/arm/boot/dts/twl4030.dtsi      |   39 ++++++++++++
+>  arch/arm/boot/dts/twl6030.dtsi      |   86 +++++++++++++++++++++++++
+>  arch/arm/mach-omap2/board-generic.c |   37 +----------
+>  arch/arm/mach-omap2/devices.c       |    4 +-
+>  arch/arm/mach-omap2/gpio.c          |    8 ++-
+>  10 files changed, 557 insertions(+), 38 deletions(-)
+>  create mode 100644 arch/arm/boot/dts/twl4030.dtsi
+>  create mode 100644 arch/arm/boot/dts/twl6030.dtsi
+> 
