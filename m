@@ -1,101 +1,63 @@
-From: Felipe Balbi <balbi@ti.com>
-Subject: Re: [PATCH RESEND 8/8] mmc: omap4: hsmmc: fix module re-insertion
-Date: Thu, 15 Mar 2012 17:04:28 +0200
-Message-ID: <20120315150426.GT28447@arwen.pp.htv.fi>
-References: <y>
- <1331822022-26714-1-git-send-email-svenkatr@ti.com>
- <1331822022-26714-9-git-send-email-svenkatr@ti.com>
-Reply-To: balbi@ti.com
+From: Shubhrajyoti <shubhrajyoti@ti.com>
+Subject: Re: [PATCH RESEND 4/8] mmc: omap: context save after enabling runtime
+ pm
+Date: Thu, 15 Mar 2012 20:42:42 +0530
+Message-ID: <4F6206EA.9060104@ti.com>
+References: <y> <1331822022-26714-1-git-send-email-svenkatr@ti.com> <1331822022-26714-5-git-send-email-svenkatr@ti.com>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="80Ds8Z/hZmemMosa"
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aob106.obsmtp.com ([74.125.149.76]:50675 "HELO
-	na3sys009aog106.obsmtp.com" rhost-flags-OK-OK-OK-FAIL)
-	by vger.kernel.org with SMTP id S1030551Ab2COPEl (ORCPT
+Received: from na3sys009aog125.obsmtp.com ([74.125.149.153]:56589 "EHLO
+	na3sys009aog125.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S965275Ab2COPMu (ORCPT
 	<rfc822;linux-omap@vger.kernel.org>);
-	Thu, 15 Mar 2012 11:04:41 -0400
-Received: by mail-lpp01m010-f53.google.com with SMTP id c1so2647551lah.26
-        for <linux-omap@vger.kernel.org>; Thu, 15 Mar 2012 08:04:40 -0700 (PDT)
-Content-Disposition: inline
-In-Reply-To: <1331822022-26714-9-git-send-email-svenkatr@ti.com>
+	Thu, 15 Mar 2012 11:12:50 -0400
+Received: by mail-ob0-f178.google.com with SMTP id uo19so73371obb.9
+        for <linux-omap@vger.kernel.org>; Thu, 15 Mar 2012 08:12:48 -0700 (PDT)
+In-Reply-To: <1331822022-26714-5-git-send-email-svenkatr@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: Venkatraman S <svenkatr@ti.com>
 Cc: linux-mmc@vger.kernel.org, linux-omap@vger.kernel.org, cjb@laptop.org, balajitk@ti.com, balbi@ti.com
 
-
---80Ds8Z/hZmemMosa
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
-
-Hi,
-
-On Thu, Mar 15, 2012 at 08:03:42PM +0530, Venkatraman S wrote:
+On Thursday 15 March 2012 08:03 PM, Venkatraman S wrote:
 > From: Balaji T K <balajitk@ti.com>
->=20
-> OMAP4 and OMAP3 HSMMC IP registers differ by 0x100 offset.
-> Addng the offset to platform_device resource structure
-> increments the start address for every insmod operation.
-> MMC command fails on re-insertion as module due to incorrect register bas=
-e.
-> Fix this by updating the ioremap base address only.
->=20
+>
+> call context save api after enabling runtime pm
+> to make sure register access in context save api
+If I am not mistaken  the api  would
+store the number of power state changes and accesses no registers.
+
+Am I missing something?
+
+>  happens with clk enabled.
+>
 > Signed-off-by: Balaji T K <balajitk@ti.com>
 > ---
->  drivers/mmc/host/omap_hsmmc.c |    4 +---
->  1 file changed, 1 insertion(+), 3 deletions(-)
->=20
+>  drivers/mmc/host/omap_hsmmc.c |    4 ++--
+>  1 file changed, 2 insertions(+), 2 deletions(-)
+>
 > diff --git a/drivers/mmc/host/omap_hsmmc.c b/drivers/mmc/host/omap_hsmmc.c
-> index 4476b26..f324cf4 100644
+> index 0f8d34b..9fa2f39 100644
 > --- a/drivers/mmc/host/omap_hsmmc.c
 > +++ b/drivers/mmc/host/omap_hsmmc.c
-> @@ -1813,8 +1813,6 @@ static int __devinit omap_hsmmc_probe(struct platfo=
-rm_device *pdev)
->  	if (res =3D=3D NULL || irq < 0)
->  		return -ENXIO;
-> =20
-> -	res->start +=3D pdata->reg_offset;
-> -	res->end +=3D pdata->reg_offset;
->  	res =3D request_mem_region(res->start, resource_size(res), pdev->name);
->  	if (res =3D=3D NULL)
->  		return -EBUSY;
-> @@ -1838,7 +1836,7 @@ static int __devinit omap_hsmmc_probe(struct platfo=
-rm_device *pdev)
->  	host->dma_ch	=3D -1;
->  	host->irq	=3D irq;
->  	host->slot_id	=3D 0;
-> -	host->mapbase	=3D res->start;
-> +	host->mapbase	=3D res->start + pdata->reg_offset;
+> @@ -1871,8 +1871,6 @@ static int __init omap_hsmmc_probe(struct platform_device *pdev)
+>  		goto err1;
+>  	}
+>  
+> -	omap_hsmmc_context_save(host);
+> -
+>  	if (host->pdata->controller_flags & OMAP_HSMMC_BROKEN_MULTIBLOCK_READ) {
+>  		dev_info(&pdev->dev, "multiblock reads disabled due to 35xx erratum 2.1.1.128; MMC read performance may suffer\n");
+>  		mmc->caps2 |= MMC_CAP2_NO_MULTI_READ;
+> @@ -1883,6 +1881,8 @@ static int __init omap_hsmmc_probe(struct platform_device *pdev)
+>  	pm_runtime_set_autosuspend_delay(host->dev, MMC_AUTOSUSPEND_DELAY);
+>  	pm_runtime_use_autosuspend(host->dev);
+>  
+> +	omap_hsmmc_context_save(host);
+> +
+>  	if (cpu_is_omap2430()) {
+>  		host->dbclk = clk_get(&pdev->dev, "mmchsdb_fck");
+>  		/*
 
-could this be done with a revision check at some point so we drop the
-pdata requirement ? Not part of $SUBJECT though, because you're just
-moving the increment.
-
---=20
-balbi
-
---80Ds8Z/hZmemMosa
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: Digital signature
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.4.11 (GNU/Linux)
-
-iQIcBAEBAgAGBQJPYgT6AAoJEIaOsuA1yqREq+cP/1z078gnRX+M+EYz+tfbZjuE
-rKSVWyS3ulcIa03SL83bWNgB5rf/Vo9U5lfAEBBJZuNNg5kUR5GtYctEMeYAMWtq
-ICI0Db4/5BbYyhvPs8K6Hbgj4ne1I/M+kSmk2qgBrh0j6Ak52NfBg0XTZlNa4j2e
-ny3oVIPZGjGVkVmptMDInJstK9nngoiXvnyMVRP7aW+f38OY3bmXHyztNs7DVPui
-uPyWgMXGNEntGMOU3oJaqDmvYy6KIdwk7MYNhmEXhKniz/w2i6xS5uH22LWnLoCa
-ZZjcIL+JFx67RxXObFA/1mIb/2c92wg0BtLJ5x4MFGUsY83tgsaXfHEvlHi4XYSP
-9+T9FyEo5+/oQyJfJ25eIbjqxZVlBmfIe4B6oGARQg+5Weq3P7HwzE5qV/pZKJn/
-IQ6SDk6vtjBPuRb1cyhghFgAl1gODECZQ3tGc1tXeuYurbd9HYCuhSRG0Y7+7QN3
-yt8SDXR5gMsr2d8U2P2gyQ3Bj7pp2AV7HADBV+YdNAqScx6x16n9Qa4MeZ7j2JIt
-b2NKQS2ElcWycyfGxrttqQpibRxMejc/dg1oNtAcr4MrHR7GkGFtPJjMTPhsXY86
-GJur0fcfdpbjeS1obRugLYmDDNIQEZWbprdnRQM0WSLx1dqXEROFCKkxdQyHcR7S
-k8VKhnANnO5FcDPX/kdV
-=h5Mu
------END PGP SIGNATURE-----
-
---80Ds8Z/hZmemMosa--
