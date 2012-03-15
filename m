@@ -1,110 +1,54 @@
-From: "T Krishnamoorthy, Balaji" <balajitk@ti.com>
-Subject: Re: [PATCH 1/6] mmc: host: omap_hsmmc: trivial cleanups
-Date: Thu, 15 Mar 2012 19:56:10 +0530
-Message-ID: <CANrkHUabAEQf4fkuxhY4UkckT1A5gXU2qOpeb5bqmw8YR10eRw@mail.gmail.com>
-References: <1331716714-31912-1-git-send-email-balbi@ti.com>
-	<CANrkHUYGDYiCrXp56fwgoXvOin_YPAnyQPhDiFWizZ2X0WM-Sw@mail.gmail.com>
-	<20120315140048.GO28447@arwen.pp.htv.fi>
+From: Venkatraman S <svenkatr@ti.com>
+Subject: [PATCH 0/8][git pull] mmc: omap: Assorted fixes for 3.4 merge window
+Date: Thu, 15 Mar 2012 20:03:34 +0530
+Message-ID: <1331822022-26714-1-git-send-email-svenkatr@ti.com>
+References: <y>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: text/plain
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aob129.obsmtp.com ([74.125.149.136]:53573 "EHLO
-	na3sys009amx259.postini.com" rhost-flags-OK-OK-OK-FAIL)
-	by vger.kernel.org with ESMTP id S1753958Ab2COO0L convert rfc822-to-8bit
-	(ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Thu, 15 Mar 2012 10:26:11 -0400
-Received: by mail-lpp01m010-f42.google.com with SMTP id l5so5757905lah.1
-        for <linux-omap@vger.kernel.org>; Thu, 15 Mar 2012 07:26:10 -0700 (PDT)
-In-Reply-To: <20120315140048.GO28447@arwen.pp.htv.fi>
+Received: from comal.ext.ti.com ([198.47.26.152]:41730 "EHLO comal.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752039Ab2COOeP (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Thu, 15 Mar 2012 10:34:15 -0400
+In-Reply-To: <y>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: balbi@ti.com
-Cc: Linux OMAP Mailing List <linux-omap@vger.kernel.org>, Tony Lindgren <tony@atomide.com>, "Jean Delvare (PC drivers, core)" <khali@linux-fr.org>, "Ben Dooks (embedded platforms)" <ben-linux@fluff.org>, "Wolfram Sang (embedded platforms)" <w.sang@pengutronix.de>, cjb@laptop.org
+To: linux-mmc@vger.kernel.org, linux-omap@vger.kernel.org
+Cc: cjb@laptop.org, balajitk@ti.com, balbi@ti.com, Venkatraman S <svenkatr@ti.com>
 
-On Thu, Mar 15, 2012 at 7:30 PM, Felipe Balbi <balbi@ti.com> wrote:
-> Hi,
->
-> On Thu, Mar 15, 2012 at 07:20:22PM +0530, T Krishnamoorthy, Balaji wr=
-ote:
->> On Wed, Mar 14, 2012 at 2:48 PM, Felipe Balbi <balbi@ti.com> wrote:
->> > a bunch of non-functional cleanups to the omap_hsmmc
->> > driver.
->> >
->> > It basically decreases indentation level, drop unneded
->> > dereferences and drop unneded accesses to the platform_device
->> > structure.
->> >
->> > Signed-off-by: Felipe Balbi <balbi@ti.com>
->> > ---
->> > =A0drivers/mmc/host/omap_hsmmc.c | =A0147 ++++++++++++++++++++----=
------------------
->> > =A01 file changed, 70 insertions(+), 77 deletions(-)
->> >
->> > diff --git a/drivers/mmc/host/omap_hsmmc.c b/drivers/mmc/host/omap=
-_hsmmc.c
->> > index fd0c661..11fef49 100644
->> > --- a/drivers/mmc/host/omap_hsmmc.c
->> > +++ b/drivers/mmc/host/omap_hsmmc.c
->> > @@ -2104,30 +2104,28 @@ static int omap_hsmmc_remove(struct platfo=
-rm_device *pdev)
->> > =A0 =A0 =A0 =A0struct omap_hsmmc_host *host =3D platform_get_drvda=
-ta(pdev);
->> > =A0 =A0 =A0 =A0struct resource *res;
->> >
->> > - =A0 =A0 =A0 if (host) {
->> > - =A0 =A0 =A0 =A0 =A0 =A0 =A0 pm_runtime_get_sync(host->dev);
->> > - =A0 =A0 =A0 =A0 =A0 =A0 =A0 mmc_remove_host(host->mmc);
->> > - =A0 =A0 =A0 =A0 =A0 =A0 =A0 if (host->use_reg)
->> > - =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 omap_hsmmc_reg_put(h=
-ost);
->> > - =A0 =A0 =A0 =A0 =A0 =A0 =A0 if (host->pdata->cleanup)
->> > - =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 host->pdata->cleanup=
-(&pdev->dev);
->> > - =A0 =A0 =A0 =A0 =A0 =A0 =A0 free_irq(host->irq, host);
->> > - =A0 =A0 =A0 =A0 =A0 =A0 =A0 if (mmc_slot(host).card_detect_irq)
->> > - =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 free_irq(mmc_slot(ho=
-st).card_detect_irq, host);
->> > -
->> > - =A0 =A0 =A0 =A0 =A0 =A0 =A0 pm_runtime_put_sync(host->dev);
->> > - =A0 =A0 =A0 =A0 =A0 =A0 =A0 pm_runtime_disable(host->dev);
->> > - =A0 =A0 =A0 =A0 =A0 =A0 =A0 clk_put(host->fclk);
->> > - =A0 =A0 =A0 =A0 =A0 =A0 =A0 if (host->got_dbclk) {
->> > - =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 clk_disable(host->db=
-clk);
->> > - =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 clk_put(host->dbclk)=
-;
->> > - =A0 =A0 =A0 =A0 =A0 =A0 =A0 }
->> Hi,
->>
->> Checking for host NULL is added in suspend/resume, however it is mis=
-sing in
->> .remove, is it intentional ?
->
-> you mean:
->
-> if (!host)
-> =A0 =A0 =A0 =A0return 0;
->
-> ???
->
-> That's intentional. We know platform_set_drvdata() is called on probe=
-,
-> and we can only reach .remove if .probe was called first. So we can m=
-ake
-> the assumption that dev->p->driver_data will always be valid on .remo=
-ve.
-> If it isn't, it's a bug on driver core which we want to catch ASAP, s=
-o
-> it deserves to oops.
->
+Chris,
+   Here are a group of fixes posted by Felipe and Balaji for the
+OMAP hsmmc driver in the past few days. 
+   I've rebased them to the lastest mmc-next and posted them
+here again. These have also been tested on OMAP4 development platform.
 
-Agreed.
+Please feel to apply directly or pull if that's convenient.
 
-> --
-> balbi
---
-To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+The following changes since commit 5f0390f10c0e9c9c504cdbf4af802252628a2490:
+
+  mmc: omap_hsmmc: Avoid a regulator voltage change with dt (2012-03-14 11:33:20 -0400)
+
+are available in the git repository at:
+
+  git://github.com/svenkatr/linux.git omap-mmc-pending-for-3.4
+
+for you to fetch changes up to a6caaa13374ab72e37f9cb2e4cebfe3d266fbaf3:
+
+  mmc: omap4: hsmmc: fix module re-insertion (2012-03-15 19:45:49 +0530)
+
+----------------------------------------------------------------
+Balaji T K (5):
+      mmc: omap: Enable Auto CMD12
+      mmc: omap: add DDR support to omap_hsmmc
+      mmc: omap: use runtime put sync in probe error patch
+      mmc: omap: context save after enabling runtime pm
+      mmc: omap4: hsmmc: fix module re-insertion
+
+Felipe Balbi (3):
+      mmc: host: omap_hsmmc: trivial cleanups
+      mmc: host: omap_hsmmc: make it behave well as a module
+      mmc: host: omap_hsmmc: convert to module_platform_driver
+
+ drivers/mmc/host/omap_hsmmc.c |  203 ++++++++++++++++++++++-----------------------
+ 1 file changed, 98 insertions(+), 105 deletions(-)
+
