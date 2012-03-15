@@ -1,39 +1,38 @@
-From: Kevin Hilman <khilman@ti.com>
-Subject: Re: arm: omap3: pm34xx.c: Some minor fixups
-Date: Thu, 15 Mar 2012 10:27:57 -0700
-Message-ID: <87pqcdbwpu.fsf@ti.com>
-References: <1331828441-1406-1-git-send-email-mgreer@animalcreek.com>
+From: Paul Walmsley <paul@pwsan.com>
+Subject: Re: [PATCH 1/2] ARM: OMAP: powerdomain: Wait for powerdomain transition
+ in pwrdm_state_switch()
+Date: Thu, 15 Mar 2012 11:32:30 -0600 (MDT)
+Message-ID: <alpine.DEB.2.00.1203151129160.26218@utopia.booyaka.com>
+References: <1331562873-29535-1-git-send-email-santosh.shilimkar@ti.com> <1331562873-29535-2-git-send-email-santosh.shilimkar@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aog131.obsmtp.com ([74.125.149.247]:55197 "EHLO
-	psmtp.com" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
-	id S932396Ab2COR1p (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Thu, 15 Mar 2012 13:27:45 -0400
-Received: by dakl33 with SMTP id l33so5135208dak.17
-        for <linux-omap@vger.kernel.org>; Thu, 15 Mar 2012 10:27:44 -0700 (PDT)
-In-Reply-To: <1331828441-1406-1-git-send-email-mgreer@animalcreek.com> (Mark
-	A. Greer's message of "Thu, 15 Mar 2012 09:20:39 -0700")
+Received: from utopia.booyaka.com ([72.9.107.138]:35417 "EHLO
+	utopia.booyaka.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1032008Ab2CORcc (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 15 Mar 2012 13:32:32 -0400
+In-Reply-To: <1331562873-29535-2-git-send-email-santosh.shilimkar@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "Mark A. Greer" <mgreeraz@gmail.com>
-Cc: linux-omap@vger.kernel.org
+To: Santosh Shilimkar <santosh.shilimkar@ti.com>
+Cc: linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org, Rajendra Nayak <rnayak@ti.com>, tony@atomide.com
 
-Hi Mark,
+On Mon, 12 Mar 2012, Santosh Shilimkar wrote:
 
-"Mark A. Greer" <mgreeraz@gmail.com> writes:
+> Commit b1cbdb00d{OMAP: clockdomain: Wait for powerdomain to be ON
+> when using clockdomain force wakeup} was assuming that pwrdm_state_switch()
+> does wait for the powerdomain transition which is not the case.
+> 
+> Fix this API by adding the pwrdm_wait_transition().
+> 
+> Signed-off-by: Santosh Shilimkar <santosh.shilimkar@ti.com>
+> CC: Rajendra Nayak <rnayak@ti.com>
+> CC: Paul Walmsley <paul@pwsan.com>
 
-> found a some minor issues when looking through pm34xx.c recently
-> so these patches try to address them.  My apologies if they are already
-> fixed in another branch somewhere.  Based on latest k.o. master branch.
+Acked-by: Paul Walmsley <paul@pwsan.com>
 
-Thanks for the fixes, they look right.
+Sounds like this fixes a major kernel oops bug for Tony so this should go 
+in ASAP to v3.3-rc series.
 
-Minor nit: can you resend with linux-arm-kernel in Cc?  Any
-upstream-bound patches need to be Cc'd there so the maintainers don't
-have to resend them there before submitting a pull request.
 
-Thanks,
-
-Kevin
-
+- Paul
