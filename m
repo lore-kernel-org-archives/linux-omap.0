@@ -1,229 +1,222 @@
 From: Aneesh V <aneesh@ti.com>
-Subject: [PATCH v2 7/7] misc: emif: add debugfs entries for emif
-Date: Thu, 15 Mar 2012 23:47:37 +0530
-Message-ID: <1331835457-5390-8-git-send-email-aneesh@ti.com>
+Subject: [PATCH v2 6/7] misc: emif: add one-time settings
+Date: Thu, 15 Mar 2012 23:47:36 +0530
+Message-ID: <1331835457-5390-7-git-send-email-aneesh@ti.com>
 References: <1331835457-5390-1-git-send-email-aneesh@ti.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aog104.obsmtp.com ([74.125.149.73]:38822 "EHLO
-	na3sys009aog104.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1760507Ab2COSSx (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>);
-	Thu, 15 Mar 2012 14:18:53 -0400
-Received: by mail-gy0-f181.google.com with SMTP id z13so5097736ghb.26
-        for <linux-omap@vger.kernel.org>; Thu, 15 Mar 2012 11:18:51 -0700 (PDT)
+Received: from na3sys009aog134.obsmtp.com ([74.125.149.83]:51967 "EHLO
+	psmtp.com" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
+	id S1761338Ab2COSSq (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Thu, 15 Mar 2012 14:18:46 -0400
+Received: by mail-gy0-f173.google.com with SMTP id r14so3849588ghr.4
+        for <linux-omap@vger.kernel.org>; Thu, 15 Mar 2012 11:18:45 -0700 (PDT)
 In-Reply-To: <1331835457-5390-1-git-send-email-aneesh@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: linux-kernel@vger.kernel.org
 Cc: linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org, Aneesh V <aneesh@ti.com>, Greg KH <greg@kroah.com>
 
-Add debug entries for:
-	1. calculated registers per frequency
-	2. last polled value of MR4(temperature level
-	   of LPDDR2 memory)
+Add settings that are not dependent on frequency
+or any other transient parameters. This includes
+- power managment control init
+- impedence calibration control
+- frequency independent phy configuration registers
+- initialization of temperature polling
 
 Cc: Greg KH <greg@kroah.com>
 Signed-off-by: Aneesh V <aneesh@ti.com>
 ---
 v2:
-- Corrected the frequency value shown in
-  register cache dump
 - replaced __init with __init_or_module
+- fixed bug in the implementation of i728 errata workaround
+
+v1:
+- Improved commit log
+- Changes for errata i728 workaround
 ---
- drivers/misc/emif.c |  138 +++++++++++++++++++++++++++++++++++++++++++++++++++
- 1 files changed, 138 insertions(+), 0 deletions(-)
+ drivers/misc/emif.c |  148 +++++++++++++++++++++++++++++++++++++++++++++++++++
+ 1 files changed, 148 insertions(+), 0 deletions(-)
 
 diff --git a/drivers/misc/emif.c b/drivers/misc/emif.c
-index 270a0e4..6d2f776 100644
+index 52048f4..270a0e4 100644
 --- a/drivers/misc/emif.c
 +++ b/drivers/misc/emif.c
-@@ -18,6 +18,7 @@
- #include <linux/platform_device.h>
- #include <linux/interrupt.h>
- #include <linux/slab.h>
-+#include <linux/debugfs.h>
- #include <linux/seq_file.h>
- #include <linux/module.h>
- #include <linux/list.h>
-@@ -47,6 +48,7 @@
-  *				frequency change (i.e. corresponding to the
-  *				frequency in effect at the moment)
-  * @plat_data:			Pointer to saved platform data.
-+ * @debugfs_root:		dentry to the root folder for EMIF in debugfs
-  */
- struct emif_data {
- 	u8				duplicate;
-@@ -60,6 +62,7 @@ struct emif_data {
- 	struct emif_regs		*regs_cache[EMIF_MAX_NUM_FREQUENCIES];
- 	struct emif_regs		*curr_regs;
- 	struct emif_platform_data	*plat_data;
-+	struct dentry			*debugfs_root;
- };
+@@ -78,6 +78,24 @@ static void set_ddr_clk_period(u32 freq)
+ }
  
- static struct emif_data *emif1;
-@@ -68,6 +71,130 @@ static unsigned long	irq_state;
- static u32		t_ck; /* DDR clock period in ps */
- static LIST_HEAD(device_list);
- 
-+static void do_emif_regdump_show(struct seq_file *s, struct emif_data *emif,
-+	struct emif_regs *regs)
-+{
-+	u32 type = emif->plat_data->device_info->type;
-+	u32 ip_rev = emif->plat_data->ip_rev;
-+
-+	seq_printf(s, "EMIF register cache dump for %dMHz\n",
-+		regs->freq/1000000);
-+
-+	seq_printf(s, "ref_ctrl_shdw\t: 0x%08x\n", regs->ref_ctrl_shdw);
-+	seq_printf(s, "sdram_tim1_shdw\t: 0x%08x\n", regs->sdram_tim1_shdw);
-+	seq_printf(s, "sdram_tim2_shdw\t: 0x%08x\n", regs->sdram_tim2_shdw);
-+	seq_printf(s, "sdram_tim3_shdw\t: 0x%08x\n", regs->sdram_tim3_shdw);
-+
-+	if (ip_rev == EMIF_4D) {
-+		seq_printf(s, "read_idle_ctrl_shdw_normal\t: 0x%08x\n",
-+			regs->read_idle_ctrl_shdw_normal);
-+		seq_printf(s, "read_idle_ctrl_shdw_volt_ramp\t: 0x%08x\n",
-+			regs->read_idle_ctrl_shdw_volt_ramp);
-+	} else if (ip_rev == EMIF_4D5) {
-+		seq_printf(s, "dll_calib_ctrl_shdw_normal\t: 0x%08x\n",
-+			regs->dll_calib_ctrl_shdw_normal);
-+		seq_printf(s, "dll_calib_ctrl_shdw_volt_ramp\t: 0x%08x\n",
-+			regs->dll_calib_ctrl_shdw_volt_ramp);
-+	}
-+
-+	if (type == DDR_TYPE_LPDDR2_S2 || type == DDR_TYPE_LPDDR2_S4) {
-+		seq_printf(s, "ref_ctrl_shdw_derated\t: 0x%08x\n",
-+			regs->ref_ctrl_shdw_derated);
-+		seq_printf(s, "sdram_tim1_shdw_derated\t: 0x%08x\n",
-+			regs->sdram_tim1_shdw_derated);
-+		seq_printf(s, "sdram_tim3_shdw_derated\t: 0x%08x\n",
-+			regs->sdram_tim3_shdw_derated);
-+	}
-+}
-+
-+static int emif_regdump_show(struct seq_file *s, void *unused)
-+{
-+	struct emif_data	*emif	= s->private;
-+	struct emif_regs	**regs_cache;
-+	int			i;
-+
-+	if (emif->duplicate)
-+		regs_cache = emif1->regs_cache;
-+	else
-+		regs_cache = emif->regs_cache;
-+
-+	for (i = 0; i < EMIF_MAX_NUM_FREQUENCIES && regs_cache[i]; i++) {
-+		do_emif_regdump_show(s, emif, regs_cache[i]);
-+		seq_printf(s, "\n");
-+	}
-+
-+	return 0;
-+}
-+
-+static int emif_regdump_open(struct inode *inode, struct file *file)
-+{
-+	return single_open(file, emif_regdump_show, inode->i_private);
-+}
-+
-+static const struct file_operations emif_regdump_fops = {
-+	.open			= emif_regdump_open,
-+	.read			= seq_read,
-+	.release		= single_release,
-+};
-+
-+static int emif_mr4_show(struct seq_file *s, void *unused)
-+{
-+	struct emif_data *emif = s->private;
-+
-+	seq_printf(s, "MR4=%d\n", emif->temperature_level);
-+	return 0;
-+}
-+
-+static int emif_mr4_open(struct inode *inode, struct file *file)
-+{
-+	return single_open(file, emif_mr4_show, inode->i_private);
-+}
-+
-+static const struct file_operations emif_mr4_fops = {
-+	.open			= emif_mr4_open,
-+	.read			= seq_read,
-+	.release		= single_release,
-+};
-+
-+static int __init_or_module emif_debugfs_init(struct emif_data *emif)
-+{
-+	struct dentry	*dentry;
-+	int		ret;
-+
-+	dentry = debugfs_create_dir(dev_name(emif->dev), NULL);
-+	if (IS_ERR(dentry)) {
-+		ret = PTR_ERR(dentry);
-+		goto err0;
-+	}
-+	emif->debugfs_root = dentry;
-+
-+	dentry = debugfs_create_file("regcache_dump", S_IRUGO,
-+			emif->debugfs_root, emif, &emif_regdump_fops);
-+	if (IS_ERR(dentry)) {
-+		ret = PTR_ERR(dentry);
-+		goto err1;
-+	}
-+
-+	dentry = debugfs_create_file("mr4", S_IRUGO,
-+			emif->debugfs_root, emif, &emif_mr4_fops);
-+	if (IS_ERR(dentry)) {
-+		ret = PTR_ERR(dentry);
-+		goto err1;
-+	}
-+
-+	return 0;
-+err1:
-+	debugfs_remove_recursive(emif->debugfs_root);
-+err0:
-+	return ret;
-+}
-+
-+static void __exit emif_debugfs_exit(struct emif_data *emif)
-+{
-+	debugfs_remove_recursive(emif->debugfs_root);
-+	emif->debugfs_root = NULL;
-+}
-+
  /*
-  * Calculate the period of DDR clock from frequency value
++ * Get bus width used by EMIF. Note that this may be different from the
++ * bus width of the DDR devices used. For instance two 16-bit DDR devices
++ * may be connected to a given CS of EMIF. In this case bus width as far
++ * as EMIF is concerned is 32, where as the DDR bus width is 16 bits.
++ */
++static u32 get_emif_bus_width(struct emif_data *emif)
++{
++	u32		width;
++	void __iomem	*base = emif->base;
++
++	width = (readl(base + EMIF_SDRAM_CONFIG) & NARROW_MODE_MASK)
++			>> NARROW_MODE_SHIFT;
++	width = width == 0 ? 32 : 16;
++
++	return width;
++}
++
++/*
+  * Get the CL from SDRAM_CONFIG register
   */
-@@ -1175,6 +1302,7 @@ static int __init_or_module emif_probe(struct platform_device *pdev)
+ static u32 get_cl(struct emif_data *emif)
+@@ -372,6 +390,70 @@ static u32 get_sdram_tim_3_shdw(const struct lpddr2_timings *timings,
+ 	return tim3;
+ }
+ 
++static u32 get_zq_config_reg(const struct lpddr2_addressing *addressing,
++		bool cs1_used, bool cal_resistors_per_cs)
++{
++	u32 zq = 0, val = 0;
++
++	val = EMIF_ZQCS_INTERVAL_US * 1000 / addressing->tREFI_ns;
++	zq |= val << ZQ_REFINTERVAL_SHIFT;
++
++	val = DIV_ROUND_UP(T_ZQCL_DEFAULT_NS, T_ZQCS_DEFAULT_NS) - 1;
++	zq |= val << ZQ_ZQCL_MULT_SHIFT;
++
++	val = DIV_ROUND_UP(T_ZQINIT_DEFAULT_NS, T_ZQCL_DEFAULT_NS) - 1;
++	zq |= val << ZQ_ZQINIT_MULT_SHIFT;
++
++	zq |= ZQ_SFEXITEN_ENABLE << ZQ_SFEXITEN_SHIFT;
++
++	if (cal_resistors_per_cs)
++		zq |= ZQ_DUALCALEN_ENABLE << ZQ_DUALCALEN_SHIFT;
++	else
++		zq |= ZQ_DUALCALEN_DISABLE << ZQ_DUALCALEN_SHIFT;
++
++	zq |= ZQ_CS0EN_MASK; /* CS0 is used for sure */
++
++	val = cs1_used ? 1 : 0;
++	zq |= val << ZQ_CS1EN_SHIFT;
++
++	return zq;
++}
++
++static u32 get_temp_alert_config(const struct lpddr2_addressing *addressing,
++		const struct emif_custom_configs *custom_configs, bool cs1_used,
++		u32 sdram_io_width, u32 emif_bus_width)
++{
++	u32 alert = 0, interval, devcnt;
++
++	if (custom_configs && (custom_configs->mask &
++				EMIF_CUSTOM_CONFIG_TEMP_ALERT_POLL_INTERVAL))
++		interval = custom_configs->temp_alert_poll_interval_ms;
++	else
++		interval = TEMP_ALERT_POLL_INTERVAL_DEFAULT_MS;
++
++	interval *= 1000000;			/* Convert to ns */
++	interval /= addressing->tREFI_ns;	/* Convert to refresh cycles */
++	alert |= (interval << TA_REFINTERVAL_SHIFT);
++
++	/*
++	 * sdram_io_width is in 'log2(x) - 1' form. Convert emif_bus_width
++	 * also to this form and subtract to get TA_DEVCNT, which is
++	 * in log2(x) form.
++	 */
++	emif_bus_width = __fls(emif_bus_width) - 1;
++	devcnt = emif_bus_width - sdram_io_width;
++	alert |= devcnt << TA_DEVCNT_SHIFT;
++
++	/* DEVWDT is in 'log2(x) - 3' form */
++	alert |= (sdram_io_width - 2) << TA_DEVWDT_SHIFT;
++
++	alert |= 1 << TA_SFEXITEN_SHIFT;
++	alert |= 1 << TA_CS0EN_SHIFT;
++	alert |= (cs1_used ? 1 : 0) << TA_CS1EN_SHIFT;
++
++	return alert;
++}
++
+ static u32 get_read_idle_ctrl_shdw(u8 volt_ramp)
+ {
+ 	u32 idle = 0, val = 0;
+@@ -815,6 +897,71 @@ static int __init_or_module setup_interrupts(struct emif_data *emif, u32 irq)
+ 
+ }
+ 
++static void __init_or_module emif_onetime_settings(struct emif_data *emif)
++{
++	u32				pwr_mgmt_ctrl, zq, temp_alert_cfg;
++	void __iomem			*base = emif->base;
++	const struct lpddr2_addressing	*addressing;
++	const struct ddr_device_info	*device_info;
++
++	device_info = emif->plat_data->device_info;
++	addressing = get_addressing_table(device_info);
++
++	/*
++	 * Init power management settings
++	 * We don't know the frequency yet. Use a high frequency
++	 * value for a conservative timeout setting
++	 */
++	pwr_mgmt_ctrl = get_pwr_mgmt_ctrl(1000000000, emif,
++			emif->plat_data->ip_rev);
++	emif->lpmode = (pwr_mgmt_ctrl & LP_MODE_MASK) >> LP_MODE_SHIFT;
++	writel(pwr_mgmt_ctrl, base + EMIF_POWER_MANAGEMENT_CONTROL);
++
++	/* Init ZQ calibration settings */
++	zq = get_zq_config_reg(addressing, device_info->cs1_used,
++		device_info->cal_resistors_per_cs);
++	writel(zq, base + EMIF_SDRAM_OUTPUT_IMPEDANCE_CALIBRATION_CONFIG);
++
++	/* Check temperature level temperature level*/
++	get_temperature_level(emif);
++	if (emif->temperature_level == SDRAM_TEMP_VERY_HIGH_SHUTDOWN)
++		dev_emerg(emif->dev, "SDRAM temperature exceeds operating limit.. Needs shut down!!!\n");
++
++	/* Init temperature polling */
++	temp_alert_cfg = get_temp_alert_config(addressing,
++		emif->plat_data->custom_configs, device_info->cs1_used,
++		device_info->io_width, get_emif_bus_width(emif));
++	writel(temp_alert_cfg, base + EMIF_TEMPERATURE_ALERT_CONFIG);
++
++	/*
++	 * Program external PHY control registers that are not frequency
++	 * dependent
++	 */
++	if (emif->plat_data->phy_type != EMIF_PHY_TYPE_INTELLIPHY)
++		return;
++	writel(EMIF_EXT_PHY_CTRL_1_VAL, base + EMIF_EXT_PHY_CTRL_1_SHDW);
++	writel(EMIF_EXT_PHY_CTRL_5_VAL, base + EMIF_EXT_PHY_CTRL_5_SHDW);
++	writel(EMIF_EXT_PHY_CTRL_6_VAL, base + EMIF_EXT_PHY_CTRL_6_SHDW);
++	writel(EMIF_EXT_PHY_CTRL_7_VAL, base + EMIF_EXT_PHY_CTRL_7_SHDW);
++	writel(EMIF_EXT_PHY_CTRL_8_VAL, base + EMIF_EXT_PHY_CTRL_8_SHDW);
++	writel(EMIF_EXT_PHY_CTRL_9_VAL, base + EMIF_EXT_PHY_CTRL_9_SHDW);
++	writel(EMIF_EXT_PHY_CTRL_10_VAL, base + EMIF_EXT_PHY_CTRL_10_SHDW);
++	writel(EMIF_EXT_PHY_CTRL_11_VAL, base + EMIF_EXT_PHY_CTRL_11_SHDW);
++	writel(EMIF_EXT_PHY_CTRL_12_VAL, base + EMIF_EXT_PHY_CTRL_12_SHDW);
++	writel(EMIF_EXT_PHY_CTRL_13_VAL, base + EMIF_EXT_PHY_CTRL_13_SHDW);
++	writel(EMIF_EXT_PHY_CTRL_14_VAL, base + EMIF_EXT_PHY_CTRL_14_SHDW);
++	writel(EMIF_EXT_PHY_CTRL_15_VAL, base + EMIF_EXT_PHY_CTRL_15_SHDW);
++	writel(EMIF_EXT_PHY_CTRL_16_VAL, base + EMIF_EXT_PHY_CTRL_16_SHDW);
++	writel(EMIF_EXT_PHY_CTRL_17_VAL, base + EMIF_EXT_PHY_CTRL_17_SHDW);
++	writel(EMIF_EXT_PHY_CTRL_18_VAL, base + EMIF_EXT_PHY_CTRL_18_SHDW);
++	writel(EMIF_EXT_PHY_CTRL_19_VAL, base + EMIF_EXT_PHY_CTRL_19_SHDW);
++	writel(EMIF_EXT_PHY_CTRL_20_VAL, base + EMIF_EXT_PHY_CTRL_20_SHDW);
++	writel(EMIF_EXT_PHY_CTRL_21_VAL, base + EMIF_EXT_PHY_CTRL_21_SHDW);
++	writel(EMIF_EXT_PHY_CTRL_22_VAL, base + EMIF_EXT_PHY_CTRL_22_SHDW);
++	writel(EMIF_EXT_PHY_CTRL_23_VAL, base + EMIF_EXT_PHY_CTRL_23_SHDW);
++	writel(EMIF_EXT_PHY_CTRL_24_VAL, base + EMIF_EXT_PHY_CTRL_24_SHDW);
++}
++
+ static void get_default_timings(struct emif_data *emif)
+ {
+ 	struct emif_platform_data *pd = emif->plat_data;
+@@ -1027,6 +1174,7 @@ static int __init_or_module emif_probe(struct platform_device *pdev)
+ 		goto error;
  	}
  
- 	emif_onetime_settings(emif);
-+	emif_debugfs_init(emif);
++	emif_onetime_settings(emif);
  	disable_and_clear_all_interrupts(emif);
  	setup_interrupts(emif, irq);
  
-@@ -1198,6 +1326,15 @@ error:
- 	return -ENODEV;
- }
- 
-+static int __exit emif_remove(struct platform_device *pdev)
-+{
-+	struct emif_data *emif = platform_get_drvdata(pdev);
-+
-+	emif_debugfs_exit(emif);
-+
-+	return 0;
-+}
-+
- static void emif_shutdown(struct platform_device *pdev)
- {
- 	struct emif_data	*emif = platform_get_drvdata(pdev);
-@@ -1508,6 +1645,7 @@ static void __attribute__((unused)) freq_post_notify_handling(void)
- }
- 
- static struct platform_driver emif_driver = {
-+	.remove		= __exit_p(emif_remove),
- 	.shutdown	= emif_shutdown,
- 	.driver = {
- 		.name = "emif",
 -- 
 1.7.1
 
