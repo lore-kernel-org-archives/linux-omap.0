@@ -1,111 +1,55 @@
-From: jean.pihet@newoldbits.com
-Subject: [PATCH 07/10] ARM: OMAP2+: SmartReflex: introduce a busy loop
- condition test macro
-Date: Thu, 15 Mar 2012 17:44:02 +0100
-Message-ID: <1331829845-9526-8-git-send-email-j-pihet@ti.com>
-References: <1331829845-9526-1-git-send-email-j-pihet@ti.com>
+From: "Mark A. Greer" <mgreer@animalcreek.com>
+Subject: Re: AM3517evm
+Date: Thu, 15 Mar 2012 09:52:45 -0700
+Message-ID: <20120315165245.GC29645@animalcreek.com>
+References: <CAFu+nvFt8BcO1pDD6CXXM056WYG9AQDTv-boc7xF0C2JuHAyYw@mail.gmail.com>
+ <4F5E0036.105@visionsystems.de>
+ <20120315154335.GA29645@animalcreek.com>
+ <4F621048.2090003@visionsystems.de>
+ <20120315164221.GB29645@animalcreek.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-In-Reply-To: <1331829845-9526-1-git-send-email-j-pihet@ti.com>
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: linux-arm-kernel-bounces@lists.infradead.org
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Kevin Hilman <khilman@ti.com>, "Rafael J. Wysocki" <rjw@sisk.pl>, LKML <linux-kernel@vger.kernel.org>
-Cc: Jean Pihet <j-pihet@ti.com>
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from mail20.dotsterhost.com ([66.11.232.73]:60520 "EHLO
+	mail20.dotsterhost.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1031783Ab2COQwq (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 15 Mar 2012 12:52:46 -0400
+Content-Disposition: inline
+In-Reply-To: <20120315164221.GB29645@animalcreek.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Yegor Yefremov <yegor_sub1@visionsystems.de>
+Cc: "George C. Huntington, III" <george.huntingtoniii@gmail.com>, linux-omap@vger.kernel.org, mporter@ti.com
 
-From: Jean Pihet <j-pihet@ti.com>
+On Thu, Mar 15, 2012 at 09:42:21AM -0700, Mark A. Greer wrote:
+> On Thu, Mar 15, 2012 at 04:52:40PM +0100, Yegor Yefremov wrote:
+> > Am 15.03.2012 16:43, schrieb Mark A. Greer:
+> > > On Mon, Mar 12, 2012 at 02:55:02PM +0100, Yegor Yefremov wrote:
+> > >> Am 09.03.2012 18:22, schrieb George C. Huntington, III:
+> > >>> I would like to make the newer kernel (3.x) work with the AM3517EVM.
+> > >>> I have a 2.6.32 and a 2.6.33 that run well on the board, but the
+> > >>> recent kernels have kernel panics before even running init.  where
+> > >>> should I start?  is there a better place to pursue this?
+> > >> Have you tried this one? http://git.kernel.org/?p=linux/kernel/git/tmlind/linux-omap.git;a=summary
+> > >>
+> > >> I have this one booting one month ago, but I checked out the kernel today and it hangs somewhere:
+> > >>
+> > >> Starting kernel ...
+> > >>
+> > >> Uncompressing Linux... done, booting the kernel.
+> > > This looks like you have your console device set to ttyS2 instead of ttyO2.
+> > >
+> > > Which branch of that repository did you use?
+> > 
+> > My kernel params: CONFIG_CMDLINE="root=/dev/mmcblk0p2 rootwait console=ttyO2,115200" and I force them, so bootloader has nothing to say.
+> > 
+> > I'm using master branch.
+> 
+> I just booted the latest master branch (b8fe178) with the hack below.
+> (Kernel command line: console=ttyO2,115200n8 root=/dev/mmcblk0p2 rw
+> rootfstype=ext3 rootwait)
 
-Now that omap_test_timeout is only accessible from mach-omap2/,
-introduce a similar function for SR.
+I meant to add that I booted an am3517evm.
 
-This change makes the SmartReflex implementation ready for the move
-to drivers/.
-
-Signed-off-by: Jean Pihet <j-pihet@ti.com>
----
- arch/arm/mach-omap2/smartreflex.c |   12 ++++++------
- arch/arm/mach-omap2/smartreflex.h |   23 +++++++++++++++++++++++
- 2 files changed, 29 insertions(+), 6 deletions(-)
-
-diff --git a/arch/arm/mach-omap2/smartreflex.c b/arch/arm/mach-omap2/smartreflex.c
-index dd80fde..ceb50b5 100644
---- a/arch/arm/mach-omap2/smartreflex.c
-+++ b/arch/arm/mach-omap2/smartreflex.c
-@@ -290,9 +290,9 @@ static void sr_v1_disable(struct omap_sr *sr)
- 	 * Wait for SR to be disabled.
- 	 * wait until ERRCONFIG.MCUDISACKINTST = 1. Typical latency is 1us.
- 	 */
--	omap_test_timeout((sr_read_reg(sr, ERRCONFIG_V1) &
--			ERRCONFIG_MCUDISACKINTST), SR_DISABLE_TIMEOUT,
--			timeout);
-+	sr_test_cond_timeout((sr_read_reg(sr, ERRCONFIG_V1) &
-+			     ERRCONFIG_MCUDISACKINTST), SR_DISABLE_TIMEOUT,
-+			     timeout);
- 
- 	if (timeout >= SR_DISABLE_TIMEOUT)
- 		dev_warn(&sr->pdev->dev, "%s: Smartreflex disable timedout\n",
-@@ -335,9 +335,9 @@ static void sr_v2_disable(struct omap_sr *sr)
- 	 * Wait for SR to be disabled.
- 	 * wait until IRQSTATUS.MCUDISACKINTST = 1. Typical latency is 1us.
- 	 */
--	omap_test_timeout((sr_read_reg(sr, IRQSTATUS) &
--			IRQSTATUS_MCUDISABLEACKINT), SR_DISABLE_TIMEOUT,
--			timeout);
-+	sr_test_cond_timeout((sr_read_reg(sr, IRQSTATUS) &
-+			     IRQSTATUS_MCUDISABLEACKINT), SR_DISABLE_TIMEOUT,
-+			     timeout);
- 
- 	if (timeout >= SR_DISABLE_TIMEOUT)
- 		dev_warn(&sr->pdev->dev, "%s: Smartreflex disable timedout\n",
-diff --git a/arch/arm/mach-omap2/smartreflex.h b/arch/arm/mach-omap2/smartreflex.h
-index 8d3e3c2..3bd4fee 100644
---- a/arch/arm/mach-omap2/smartreflex.h
-+++ b/arch/arm/mach-omap2/smartreflex.h
-@@ -21,6 +21,7 @@
- #define __ASM_ARM_OMAP_SMARTREFLEX_H
- 
- #include <linux/platform_device.h>
-+#include <linux/delay.h>
- 
- #include <plat/smartreflex.h>
- #include <plat/voltage.h>
-@@ -144,6 +145,28 @@
- #define OMAP3430_SR_ERRMAXLIMIT		0x02
- 
- /**
-+ * test_cond_timeout - busy-loop, testing a condition
-+ * @cond: condition to test until it evaluates to true
-+ * @timeout: maximum number of microseconds in the timeout
-+ * @index: loop index (integer)
-+ *
-+ * Loop waiting for @cond to become true or until at least @timeout
-+ * microseconds have passed.  To use, define some integer @index in the
-+ * calling code.  After running, if @index == @timeout, then the loop has
-+ * timed out.
-+ *
-+ * Copied from omap_test_timeout
-+ */
-+#define sr_test_cond_timeout(cond, timeout, index)		\
-+({								\
-+	for (index = 0; index < timeout; index++) {		\
-+		if (cond)					\
-+			break;					\
-+		udelay(1);					\
-+	}							\
-+})
-+
-+/**
-  * struct omap_sr_pmic_data - Strucutre to be populated by pmic code to pass
-  *				pmic specific info to smartreflex driver
-  *
--- 
-1.7.5.4
+Mark
+--
