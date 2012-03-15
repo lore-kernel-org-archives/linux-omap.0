@@ -1,64 +1,41 @@
-From: "Ramirez Luna, Omar" <omar.ramirez@ti.com>
-Subject: Re: [PATCH v2 5/8] ARM: OMAP2+: hwmod: ensure that SYSCONFIG bits are
- reprogrammed after a reset
-Date: Thu, 15 Mar 2012 10:21:29 -0500
-Message-ID: <CAB-zwWh3tcz5xUkzthH_AAsmeXfMieUW-SCQnAaXyfSg8khqvg@mail.gmail.com>
-References: <20120228053524.16278.59430.stgit@dusk>
-	<20120228053657.16278.76132.stgit@dusk>
-	<CAB-zwWhAa3PprwDLzWLkBFUHPeJO3HN3M9mAZF=ohGTvP43jYA@mail.gmail.com>
-	<alpine.DEB.2.00.1203150024260.7269@utopia.booyaka.com>
+From: "Mark A. Greer" <mgreer@animalcreek.com>
+Subject: Re: AM3517evm
+Date: Thu, 15 Mar 2012 08:43:35 -0700
+Message-ID: <20120315154335.GA29645@animalcreek.com>
+References: <CAFu+nvFt8BcO1pDD6CXXM056WYG9AQDTv-boc7xF0C2JuHAyYw@mail.gmail.com>
+ <4F5E0036.105@visionsystems.de>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aog133.obsmtp.com ([74.125.149.82]:46509 "EHLO
-	psmtp.com" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
-	id S932409Ab2COPVa convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 15 Mar 2012 11:21:30 -0400
-Received: by mail-lb0-f179.google.com with SMTP id gn12so1482641lbb.10
-        for <linux-omap@vger.kernel.org>; Thu, 15 Mar 2012 08:21:29 -0700 (PDT)
-In-Reply-To: <alpine.DEB.2.00.1203150024260.7269@utopia.booyaka.com>
+Received: from mail20.dotsterhost.com ([66.11.232.73]:39256 "EHLO
+	mail20.dotsterhost.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1030550Ab2COPuQ (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 15 Mar 2012 11:50:16 -0400
+Content-Disposition: inline
+In-Reply-To: <4F5E0036.105@visionsystems.de>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Paul Walmsley <paul@pwsan.com>
-Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, =?ISO-8859-1?Q?Beno=EEt_Cousson?= <b-cousson@ti.com>
+To: Yegor Yefremov <yegor_sub1@visionsystems.de>
+Cc: "George C. Huntington, III" <george.huntingtoniii@gmail.com>, linux-omap@vger.kernel.org, mporter@ti.com
 
-On Thu, Mar 15, 2012 at 1:25 AM, Paul Walmsley <paul@pwsan.com> wrote:
-> Hola Omar,
+On Mon, Mar 12, 2012 at 02:55:02PM +0100, Yegor Yefremov wrote:
+> Am 09.03.2012 18:22, schrieb George C. Huntington, III:
+> > I would like to make the newer kernel (3.x) work with the AM3517EVM.
+> > I have a 2.6.32 and a 2.6.33 that run well on the board, but the
+> > recent kernels have kernel panics before even running init.  where
+> > should I start?  is there a better place to pursue this?
+> 
+> Have you tried this one? http://git.kernel.org/?p=linux/kernel/git/tmlind/linux-omap.git;a=summary
+> 
+> I have this one booting one month ago, but I checked out the kernel today and it hangs somewhere:
+> 
+> Starting kernel ...
+> 
+> Uncompressing Linux... done, booting the kernel.
 
-Hola :)
+This looks like you have your console device set to ttyS2 instead of ttyO2.
 
-> On Wed, 14 Mar 2012, Ramirez Luna, Omar wrote:
->
->> If we reached here the reset lines will be asserted, and then the co=
-de
->> below touches sysc registers on a module under reset.
->
-> Do you know of any case where this would be a problem? =A0Seems like =
-it
-> would only affect IP blocks that have both hard reset lines and SYSCO=
-NFIG
-> registers, and as far as I know, we don't have any of those defined?
+Which branch of that repository did you use?
 
-MMU (not yet mainlined) has both, a reset line and a sysconfig.
-
-I have been holding the hwmod for some time, but now that
-rpmsg/remoteproc is going to mainline it could make use of it along
-with omap3isp, however now I need to define functions to handle the
-reset lines (although I was fine with hwmod handling it).
-
-AFAIKnew, hwmod handling the reset line was fine (IMHO), the only 2 thi=
-ngs were:
-- For the drivers to somehow make use of shutdown/enable if they
-needed they hwmod under reset and out.
-- The annoying: hwmod XX failed to hardreset because of the wrong
-reset sequence but causing no functional issues.
-
-Regards,
-
-Omar
+Mark
 --
-To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
