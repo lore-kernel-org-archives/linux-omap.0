@@ -1,73 +1,91 @@
-From: Tomi Valkeinen <tomi.valkeinen@ti.com>
-Subject: Re: [PATCH] omap2+: add drm device
-Date: Thu, 15 Mar 2012 10:46:17 +0200
-Message-ID: <1331801177.2768.8.camel@deskari>
-References: <1331670878-12951-1-git-send-email-rob.clark@linaro.org>
-	 <1331728737.2386.76.camel@deskari>
-	 <CAF6AEGvBB3AVrfXnpZwZCZGy48Re5sxm-jgLxSpH=nLzLKe0iA@mail.gmail.com>
-	 <1331730465.1542.8.camel@lappy>
-	 <CAF6AEGtTKf6w7TrgV8sKoSg=XEuqkfdgMj=vL2oksOMdB2Tbyg@mail.gmail.com>
-	 <1331732624.1542.32.camel@lappy>
-	 <CAF6AEGsCpz4zXCSXhP5qA7hL4Xac9+c03rS1PZejhUog_+SHkg@mail.gmail.com>
+From: Arnd Bergmann <arnd@arndb.de>
+Subject: Re: [PATCH] of: Add generic device tree DMA helpers
+Date: Thu, 15 Mar 2012 09:22:06 +0000
+Message-ID: <201203150922.06379.arnd@arndb.de>
+References: <4F22DEF2.5000807@ti.com> <1331800690-21518-1-git-send-email-nicolas.ferre@atmel.com>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg="pgp-sha1"; protocol="application/pgp-signature"; boundary="=-O1t2ngEjpfh9WxpmzJVC"
+Content-Type: Text/Plain;
+  charset="iso-8859-1"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aog122.obsmtp.com ([74.125.149.147]:52680 "EHLO
-	na3sys009aog122.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1760273Ab2COIqV (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>);
-	Thu, 15 Mar 2012 04:46:21 -0400
-Received: by mail-lpp01m010-f43.google.com with SMTP id r15so2592149lag.30
-        for <linux-omap@vger.kernel.org>; Thu, 15 Mar 2012 01:46:20 -0700 (PDT)
-In-Reply-To: <CAF6AEGsCpz4zXCSXhP5qA7hL4Xac9+c03rS1PZejhUog_+SHkg@mail.gmail.com>
+Received: from moutng.kundenserver.de ([212.227.17.9]:58383 "EHLO
+	moutng.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1759429Ab2COJWe (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 15 Mar 2012 05:22:34 -0400
+In-Reply-To: <1331800690-21518-1-git-send-email-nicolas.ferre@atmel.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Rob Clark <rob.clark@linaro.org>
-Cc: Greg KH <greg@kroah.com>, linux-omap@vger.kernel.org, dri-devel@lists.freedesktop.org, patches@linaro.org
+To: linux-arm-kernel@lists.infradead.org
+Cc: Nicolas Ferre <nicolas.ferre@atmel.com>, grant.likely@secretlab.ca, rob.herring@calxeda.com, devicetree-discuss@lists.ozlabs.org, Stephen Warren <swarren@nvidia.com>, linux-omap@vger.kernel.org, Benoit Cousson <b-cousson@ti.com>, Russell King <linux@arm.linux.org.uk>, Thierry Reding <thierry.reding@avionic-design.de>
 
+On Thursday 15 March 2012, Nicolas Ferre wrote:
+> Add some basic helpers to retrieve a DMA controller device_node and the
+> DMA request specifications. By making DMA controllers register a generic
+> translation function, we allow the management of any type of DMA requests
+> specification.
+> The void * output of an of_dma_xlate() function that will be implemented
+> by the DMA controller can carry any type of "dma-request" argument.
+> 
+> The DMA client will search its associated DMA controller in the list and
+> call the registered of_dam_xlate() function to retrieve the request values.
+> 
+> One simple xlate function is provided for the "single number" type of
+> request binding.
+> 
+> This implementation is independent from dmaengine so it can also be used
+> by legacy drivers.
+> 
+> For legacy reason another API will export the DMA request number into a
+> Linux resource of type IORESOURCE_DMA.
 
---=-O1t2ngEjpfh9WxpmzJVC
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: quoted-printable
+This looks very good. I missed the first version of this patch, but was
+thinking of very similar bindings.
 
-On Wed, 2012-03-14 at 10:06 -0500, Rob Clark wrote:
+> +Client drivers should specify the DMA request property using a phandle to
+> +the controller. If needed, the DMA request identity on that controller is then
+> +added followed by optional request specifications.
+> +
+> +Required property:
+> +    - dma-request: List of phandle + dma-request + request specifications,
+> +      one group per request "line".
+> +Optional property:
+> +    - dma-request-names: list of strings in the same order as the dma-request
+> +      in the dma-request property.
+> +
+> +
+> +Example:
+> +
+> +	i2c1: i2c@1 {
+> +		...
+> +		dma-request = <&sdma 2 &sdma 3>;
+> +		dma-request-names = "tx", "rx";
+> +		...
+> +	};
 
-> > Well, as I said, it's not an issue for me and from my side it can be
-> > improved later.
->=20
-> yeah, when CMA is actually merged, there are a few other things I'd
-> like to do to, incl converting omapfb over to use CMA and remove
-> omap_vram.. but I guess those will be other patches.
+This is slightly different from how the proposed pwm binding works that
+Thierry is working on, which uses an arbitrary property name instead of
+requiring the use of a specific property but then allowing to give names
+in another property.
 
-Right, I just realized CMA is not in the kernel, nor does it seem to be
-in the linux-next. Is there a reason why you want it already merged?
-Wouldn't it be easier to get it in only when it can actually be used.
-Especially if there's room for improvement.
+I don't care much which way it's done, but please try to agree on one
+approach that is used for both.
 
- Tomi
+The one you have here is already used by reg and irq, while the other
+one is used in gpio.
 
+> +/**
+> + * of_get_dma_request() - Get the associated DMA request data
+> + * @np:		device node to get DMA request from
+> + * @index:	index of the DMA request
+> + * @out_data:	a output that can be filled in by the of_dma_xlate() function
+> + *
+> + * Returns return value of of_dma_xlate() and fills out_data (if provided).
+> + * On error returns the appropriate errno value.
+> + */
 
---=-O1t2ngEjpfh9WxpmzJVC
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: This is a digitally signed message part
+I would suggest provinding a helper function around this one that directly
+calls __dma_request_channel(). AFAICT, you should be able to let the dma
+controller provide a generic filter function in struct of_dma that the
+driver can use by default.
 
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.4.11 (GNU/Linux)
-
-iQIcBAABAgAGBQJPYaxZAAoJEPo9qoy8lh71uxUQALHOBsdBVBLABg3qSrO5jpDZ
-Jn2ZLPglFZ7p9ZUIPSSSEqzOEVj+eYNvvk+QH3XvpVEdACKKUazvllNsAse+JbMg
-TnBnj/uu4qs4tIQBjG8mYg++e5qp6CCM6ZEprp5fwvSac/4sjXoYTQX9Ew77SyBE
-6wzLBst7u2diUJ+FznRtH6tMkL2CY6W+cdyHK+yyLeKa05FTGQ0AE7JewcDmoUsZ
-FHX2cFRDnd9Vt/f0i5dyOHswOW9YBCeMmdwoF81x37gPDv+C+I55vwSZWtF9PSa1
-5gKFyk8XU3JZbiku4zgH0w+Rrv8qZd6sN3fNziI1rxI+cVkxraQ+4bjH8larRDvz
-BoBSeGxwNFn4aPnzuV8kDU6uFGdhywv1vMA/qWhAnxzYm8Ir2UCVWvS1UubkTq8v
-BjqCtKgey4IJytuZ6EDNZQwxOsEaTVD9L80ZT32ZmhY8xlIZI9j09bbWtzxDpqNt
-Xgb1cAWrv5nzKBUBnRkR9v0ja6i1Ko5dV/kCr35HgErMvSUSo61whSCkXZpCcIyp
-F9+mUGF8JSV4VCB02Fw82OgH+tp+brOrIs0V61EiaUj0I1co0e7Cnc+6GmTyT1p3
-zeZcyB4xunEKLpumevlNuM0mejh3FtwpVlj4E07p3LUzzm6CeGhdp3VmDGhrXVWC
-AYAX/lNsbqCrZPWFCRgl
-=X8f/
------END PGP SIGNATURE-----
-
---=-O1t2ngEjpfh9WxpmzJVC--
-
+	Arnd
