@@ -1,28 +1,107 @@
-From: "Ming Yang" <mgchi@rocketmail.com>
-Subject: We Can Work Together..
-Date: Thu, 15 Mar 2012 15:15:35 -0000
-Message-ID: <20120315151641.0BD3910677CB__28495.6222436906$1331837754$gmane$org@mail.rvhyd.net>
-Reply-To: <ming.yang97@yahoo.com.hk>
+From: Greg KH <greg@kroah.com>
+Subject: Re: [PATCH v2 1/7] misc: ddr: add LPDDR2 data from JESD209-2
+Date: Thu, 15 Mar 2012 12:02:38 -0700
+Message-ID: <20120315190238.GD11142@kroah.com>
+References: <1331835457-5390-1-git-send-email-aneesh@ti.com>
+ <1331835457-5390-2-git-send-email-aneesh@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain;
-	charset="Windows-1251"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from 121.247.115.37.static-hyderabad.vsnl.net.in ([121.247.115.37]:34931
-	"EHLO mail.rvhyd.net" rhost-flags-OK-FAIL-OK-FAIL) by vger.kernel.org
-	with ESMTP id S1754919Ab2COSz0 (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 15 Mar 2012 14:55:26 -0400
+Received: from out1-smtp.messagingengine.com ([66.111.4.25]:58070 "EHLO
+	out1-smtp.messagingengine.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1760860Ab2COTCk (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>);
+	Thu, 15 Mar 2012 15:02:40 -0400
+Received: from compute5.internal (compute5.nyi.mail.srv.osa [10.202.2.45])
+	by gateway1.nyi.mail.srv.osa (Postfix) with ESMTP id E095F211AF
+	for <linux-omap@vger.kernel.org>; Thu, 15 Mar 2012 15:02:39 -0400 (EDT)
+Content-Disposition: inline
+In-Reply-To: <1331835457-5390-2-git-send-email-aneesh@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Aneesh V <aneesh@ti.com>
+Cc: linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org
 
-Hello,
+On Thu, Mar 15, 2012 at 11:47:31PM +0530, Aneesh V wrote:
+> add LPDDR2 data from the JEDEC spec JESD209-2. The data
+> includes:
+> 
+> 1. Addressing information for LPDDR2 memories of different
+>    densities and types(S2/S4)
+> 2. AC timing data.
+> 
+> This data will useful for memory controller device drivers
 
-I am Mr. Ming Yang, Director of Operations of the Hang Seng Bank Ltd, Sai Wan Ho Branch, Hong Kong, I am 
-seeking your assistance in helping me receive a large amount of money and in giving a clear research and 
-feasibility study on areas I could invest on.
+Right now, only one driver, right?
 
-Kindly indicate your interest by replying this message via email on ming.yang97@yahoo.com.hk
+> +#ifndef __ASSEMBLY__
 
-Regards.
+Why is this needed?
 
-Ming Yang
+> +/* Structure for DDR addressing info from the JEDEC spec */
+> +struct lpddr2_addressing {
+> +	u32 num_banks;
+> +	u32 tREFI_ns;
+> +	u32 tRFCab_ps;
+> +};
+
+Do these structures cross the user/kernel boundry somehow?  If so,
+please use the proper kernel types for this.
+
+> --- a/lib/Makefile
+> +++ b/lib/Makefile
+> @@ -123,6 +123,9 @@ obj-$(CONFIG_SIGNATURE) += digsig.o
+>  
+>  obj-$(CONFIG_CLZ_TAB) += clz_tab.o
+>  
+> +obj-$(CONFIG_DDR) += jedec_ddr_data.o
+> +
+> +
+
+Why the extra line?
+
+>  hostprogs-y	:= gen_crc32table
+>  clean-files	:= crc32table.h
+>  
+> diff --git a/lib/jedec_ddr_data.c b/lib/jedec_ddr_data.c
+> new file mode 100644
+> index 0000000..fc223d6
+> --- /dev/null
+> +++ b/lib/jedec_ddr_data.c
+> @@ -0,0 +1,135 @@
+> +/*
+> + * DDR addressing details and AC timing parameters from JEDEC specs
+> + *
+> + * Copyright (C) 2012 Texas Instruments, Inc.
+> + *
+> + * Aneesh V <aneesh@ti.com>
+> + *
+> + * This program is free software; you can redistribute it and/or modify
+> + * it under the terms of the GNU General Public License version 2 as
+> + * published by the Free Software Foundation.
+> + */
+> +
+> +#include <misc/jedec_ddr.h>
+> +#include <linux/module.h>
+> +
+> +/* LPDDR2 addressing details from JESD209-2 section 2.4 */
+> +const struct lpddr2_addressing
+> +	lpddr2_jedec_addressing_table[NUM_DDR_ADDR_TABLE_ENTRIES] = {
+> +	{B4, T_REFI_15_6, T_RFC_90}, /* 64M */
+> +	{B4, T_REFI_15_6, T_RFC_90}, /* 128M */
+> +	{B4, T_REFI_7_8,  T_RFC_90}, /* 256M */
+> +	{B4, T_REFI_7_8,  T_RFC_90}, /* 512M */
+> +	{B8, T_REFI_7_8, T_RFC_130}, /* 1GS4 */
+> +	{B8, T_REFI_3_9, T_RFC_130}, /* 2GS4 */
+> +	{B8, T_REFI_3_9, T_RFC_130}, /* 4G */
+> +	{B8, T_REFI_3_9, T_RFC_210}, /* 8G */
+> +	{B4, T_REFI_7_8, T_RFC_130}, /* 1GS2 */
+> +	{B4, T_REFI_3_9, T_RFC_130}, /* 2GS2 */
+> +};
+> +EXPORT_SYMBOL(lpddr2_jedec_addressing_table);
+
+EXPORT_SYMBOL_GPL for these and the others?
+
+thanks,
+
+greg k-h
