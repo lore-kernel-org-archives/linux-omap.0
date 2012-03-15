@@ -1,121 +1,48 @@
-From: Aneesh V <aneesh@ti.com>
-Subject: Re: [PATCH v2 1/7] misc: ddr: add LPDDR2 data from JESD209-2
-Date: Fri, 16 Mar 2012 01:26:47 +0530
-Message-ID: <4F62497F.1020907@ti.com>
-References: <1331835457-5390-1-git-send-email-aneesh@ti.com> <1331835457-5390-2-git-send-email-aneesh@ti.com> <20120315190238.GD11142@kroah.com>
+From: Russell King - ARM Linux <linux@arm.linux.org.uk>
+Subject: Re: [PATCH] of: Add generic device tree DMA helpers
+Date: Thu, 15 Mar 2012 19:57:53 +0000
+Message-ID: <20120315195753.GA2842@n2100.arm.linux.org.uk>
+References: <4F22DEF2.5000807@ti.com> <1331800690-21518-1-git-send-email-nicolas.ferre@atmel.com> <201203150922.06379.arnd@arndb.de> <4F621939.9040906@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aog123.obsmtp.com ([74.125.149.149]:50049 "EHLO
-	na3sys009aog123.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1032197Ab2COT4z (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>);
-	Thu, 15 Mar 2012 15:56:55 -0400
-Received: by mail-pz0-f53.google.com with SMTP id y25so4531070dad.12
-        for <linux-omap@vger.kernel.org>; Thu, 15 Mar 2012 12:56:54 -0700 (PDT)
-In-Reply-To: <20120315190238.GD11142@kroah.com>
+Received: from caramon.arm.linux.org.uk ([78.32.30.218]:56045 "EHLO
+	caramon.arm.linux.org.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1031929Ab2COT6c (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 15 Mar 2012 15:58:32 -0400
+Content-Disposition: inline
+In-Reply-To: <4F621939.9040906@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Greg KH <greg@kroah.com>
-Cc: linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org
+To: "Cousson, Benoit" <b-cousson@ti.com>
+Cc: Arnd Bergmann <arnd@arndb.de>, linux-arm-kernel@lists.infradead.org, Nicolas Ferre <nicolas.ferre@atmel.com>, grant.likely@secretlab.ca, rob.herring@calxeda.com, devicetree-discuss@lists.ozlabs.org, Stephen Warren <swarren@nvidia.com>, linux-omap@vger.kernel.org, Thierry Reding <thierry.reding@avionic-design.de>
 
-On Friday 16 March 2012 12:32 AM, Greg KH wrote:
-> On Thu, Mar 15, 2012 at 11:47:31PM +0530, Aneesh V wrote:
->> add LPDDR2 data from the JEDEC spec JESD209-2. The data
->> includes:
->>
->> 1. Addressing information for LPDDR2 memories of different
->>     densities and types(S2/S4)
->> 2. AC timing data.
->>
->> This data will useful for memory controller device drivers
->
-> Right now, only one driver, right?
+On Thu, Mar 15, 2012 at 05:30:49PM +0100, Cousson, Benoit wrote:
+> This was done like IRQ on purpose, because an Interrupt ReQuest line and  
+> a DMA Request line are really similar for the HW point of view at IP 
+> level.
 
-Yes, should that be documented?
+I'm not sure about that at all levels.  Sure, at hardware level they're
+the same, but I think the flat numeric namespace for IRQs has been
+proven to be a problem when there's multiple IRQ controllers in the
+system.
 
->
->> +#ifndef __ASSEMBLY__
->
-> Why is this needed?
+> I'm not sure what Thierry have done for pwm, but I thing that having the  
+> same scheme for reg, irq and dma was what we agreed with Grant during  
+> Plumbers.
 
-IIRC, this header file was getting included in an omap specific header
-file that was in turn included from an assembly file. I will check if
-this is still the case. If not, I will remove it.
+I really don't like these behind-the-scenes discussions which never then
+get followed up in public, and people then start quoting what was "agreed"
+as that's the way things must be done.
 
->
->> +/* Structure for DDR addressing info from the JEDEC spec */
->> +struct lpddr2_addressing {
->> +	u32 num_banks;
->> +	u32 tREFI_ns;
->> +	u32 tRFCab_ps;
->> +};
->
-> Do these structures cross the user/kernel boundry somehow?  If so,
-> please use the proper kernel types for this.
+It's a bit like folk at the recent Linaro Connect apparantly discussing
+my machine registry and deciding that it should be shut down.  No one
+has yet talked to me about that or even done the curtesy of asking me
+what my view is.
 
-No. These structures are meant for use by device drivers.
-
->
->> --- a/lib/Makefile
->> +++ b/lib/Makefile
->> @@ -123,6 +123,9 @@ obj-$(CONFIG_SIGNATURE) += digsig.o
->>
->>   obj-$(CONFIG_CLZ_TAB) += clz_tab.o
->>
->> +obj-$(CONFIG_DDR) += jedec_ddr_data.o
->> +
->> +
->
-> Why the extra line?
-
-Un-intentional. Will remove.
-
->
->>   hostprogs-y	:= gen_crc32table
->>   clean-files	:= crc32table.h
->>
->> diff --git a/lib/jedec_ddr_data.c b/lib/jedec_ddr_data.c
->> new file mode 100644
->> index 0000000..fc223d6
->> --- /dev/null
->> +++ b/lib/jedec_ddr_data.c
->> @@ -0,0 +1,135 @@
->> +/*
->> + * DDR addressing details and AC timing parameters from JEDEC specs
->> + *
->> + * Copyright (C) 2012 Texas Instruments, Inc.
->> + *
->> + * Aneesh V<aneesh@ti.com>
->> + *
->> + * This program is free software; you can redistribute it and/or modify
->> + * it under the terms of the GNU General Public License version 2 as
->> + * published by the Free Software Foundation.
->> + */
->> +
->> +#include<misc/jedec_ddr.h>
->> +#include<linux/module.h>
->> +
->> +/* LPDDR2 addressing details from JESD209-2 section 2.4 */
->> +const struct lpddr2_addressing
->> +	lpddr2_jedec_addressing_table[NUM_DDR_ADDR_TABLE_ENTRIES] = {
->> +	{B4, T_REFI_15_6, T_RFC_90}, /* 64M */
->> +	{B4, T_REFI_15_6, T_RFC_90}, /* 128M */
->> +	{B4, T_REFI_7_8,  T_RFC_90}, /* 256M */
->> +	{B4, T_REFI_7_8,  T_RFC_90}, /* 512M */
->> +	{B8, T_REFI_7_8, T_RFC_130}, /* 1GS4 */
->> +	{B8, T_REFI_3_9, T_RFC_130}, /* 2GS4 */
->> +	{B8, T_REFI_3_9, T_RFC_130}, /* 4G */
->> +	{B8, T_REFI_3_9, T_RFC_210}, /* 8G */
->> +	{B4, T_REFI_7_8, T_RFC_130}, /* 1GS2 */
->> +	{B4, T_REFI_3_9, T_RFC_130}, /* 2GS2 */
->> +};
->> +EXPORT_SYMBOL(lpddr2_jedec_addressing_table);
->
-> EXPORT_SYMBOL_GPL for these and the others?
-
-Will fix all.
-
-Thanks,
-Aneesh
+As far as I'm concerned for DMA stuff, there is currently no real solution
+for a DT representation; TI have asked me to take over the conversion of
+OMAP DMA support to the DMA engine API, and I'm not yet convinced that
+the existing numbering system is the right solution - especially as
+there's several overlapping numberspaces for OMAP DMA numbers which
+are SoC specific.
