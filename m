@@ -1,60 +1,98 @@
-From: Grazvydas Ignotas <notasas@gmail.com>
-Subject: [PATCH 2/2] OMAPDSS: TPO-TD03MTEA1: add set/check timing functions
-Date: Thu, 15 Mar 2012 20:00:24 +0200
-Message-ID: <1331834424-485-2-git-send-email-notasas@gmail.com>
-References: <1331834424-485-1-git-send-email-notasas@gmail.com>
+From: Aneesh V <aneesh@ti.com>
+Subject: [PATCH v2 0/7] Add TI EMIF SDRAM controller driver
+Date: Thu, 15 Mar 2012 23:47:30 +0530
+Message-ID: <1331835457-5390-1-git-send-email-aneesh@ti.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-we0-f174.google.com ([74.125.82.174]:40606 "EHLO
-	mail-we0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754900Ab2COSAc (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 15 Mar 2012 14:00:32 -0400
-In-Reply-To: <1331834424-485-1-git-send-email-notasas@gmail.com>
+Received: from na3sys009aog117.obsmtp.com ([74.125.149.242]:35174 "HELO
+	na3sys009aog117.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with SMTP id S1752022Ab2COSSD (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>);
+	Thu, 15 Mar 2012 14:18:03 -0400
+Received: by mail-yw0-f45.google.com with SMTP id o21so4182177yho.32
+        for <linux-omap@vger.kernel.org>; Thu, 15 Mar 2012 11:18:01 -0700 (PDT)
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: linux-fbdev@vger.kernel.org
-Cc: linux-omap@vger.kernel.org, Tomi Valkeinen <tomi.valkeinen@ti.com>, Grazvydas Ignotas <notasas@gmail.com>
+To: linux-kernel@vger.kernel.org
+Cc: linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org, Aneesh V <aneesh@ti.com>, Greg KH <greg@kroah.com>
 
-On pandora we use .set_timings to alter refresh rate,
-so add .check_timings/.set_timings functions.
+Add a driver for the EMIF SDRAM controller used in TI SoCs
 
-Signed-off-by: Grazvydas Ignotas <notasas@gmail.com>
----
- .../video/omap2/displays/panel-tpo-td043mtea1.c    |   15 +++++++++++++++
- 1 files changed, 15 insertions(+), 0 deletions(-)
+EMIF is an SDRAM controller that supports, based on its revision,
+one or more of LPDDR2/DDR2/DDR3 protocols.This driver adds support
+for LPDDR2.
 
-diff --git a/drivers/video/omap2/displays/panel-tpo-td043mtea1.c b/drivers/video/omap2/displays/panel-tpo-td043mtea1.c
-index bb3da0b..be89801 100644
---- a/drivers/video/omap2/displays/panel-tpo-td043mtea1.c
-+++ b/drivers/video/omap2/displays/panel-tpo-td043mtea1.c
-@@ -477,6 +477,18 @@ static void tpo_td043_remove(struct omap_dss_device *dssdev)
- 		gpio_free(nreset_gpio);
- }
- 
-+static void tpo_td043_set_timings(struct omap_dss_device *dssdev,
-+		struct omap_video_timings *timings)
-+{
-+	dpi_set_timings(dssdev, timings);
-+}
-+
-+static int tpo_td043_check_timings(struct omap_dss_device *dssdev,
-+		struct omap_video_timings *timings)
-+{
-+	return dpi_check_timings(dssdev, timings);
-+}
-+
- static struct omap_dss_driver tpo_td043_driver = {
- 	.probe		= tpo_td043_probe,
- 	.remove		= tpo_td043_remove,
-@@ -488,6 +500,9 @@ static struct omap_dss_driver tpo_td043_driver = {
- 	.set_mirror	= tpo_td043_set_hmirror,
- 	.get_mirror	= tpo_td043_get_hmirror,
- 
-+	.set_timings	= tpo_td043_set_timings,
-+	.check_timings	= tpo_td043_check_timings,
-+
- 	.driver         = {
- 		.name	= "tpo_td043mtea1_panel",
- 		.owner  = THIS_MODULE,
--- 
-1.7.0.4
+The driver supports the following features:
+- Calculates the DDR AC timing parameters to be set in EMIF
+  registers using data from the device data-sheets and based
+  on the DDR frequency. If data from data-sheets is not available
+  default timing values from the JEDEC spec are used. These
+  will be safe, but not necessarily optimal
+- API for changing timings during DVFS or at boot-up
+- Temperature alert configuration and handling of temperature
+  alerts, if any for LPDDR2 devices
+  * temperature alert is based on periodic polling of MR4 mode
+    register in DDR devices automatically performed by hardware
+  * timings are de-rated and brought back to nominal when
+    temperature raises and falls respectively
+- Cache of calculated register values to avoid re-calculating
+  them
+
+The driver will need some minor updates when it is eventually
+integrated with Dynamic Voltage and Frequency Scaling (DVFS).
+This can not be done now as DVFS support is not available in
+the mainline yet.
+
+Discussions with Santosh Shilimkar <santosh.shilimkar@ti.com>
+were immensely helpful in shaping up the interfaces. Vibhore Vardhan
+<vvardhan@gmail.com> did the initial code snippet for thermal
+handling.
+
+Testing: 
+- The driver is tested on OMAP4430 SDP.
+- The driver in a slightly adapted form is also tested on OMAP5.
+- Since mainline kernel doesn't have DVFS support yet,
+  testing was done using a test module.
+- Temperature alert handling was tested with simulated interrupts
+  and faked temperature values as testing all cases in real-life
+  scenarios is difficult.
+- Tested the driver as a module
+
+Cc: Greg KH <greg@kroah.com>
+
+v2:
+- Fixed a bug found in the implementation of errata i728
+  workaround
+- Fixed the value of frequency printed in debugfs
+- Dropped the hwmod patch as Paul has already posted a
+  a hwmod series [1] that adds hwmod for EMIF
+- Converted instances of __init to __init_or_module
+
+[1] http://thread.gmane.org/gmane.linux.ports.arm.omap/72855
+
+Aneesh V (7):
+  misc: ddr: add LPDDR2 data from JESD209-2
+  misc: emif: add register definitions for EMIF
+  misc: emif: add basic infrastructure for EMIF driver
+  misc: emif: handle frequency and voltage change events
+  misc: emif: add interrupt and temperature handling
+  misc: emif: add one-time settings
+  misc: emif: add debugfs entries for emif
+
+ Documentation/misc-devices/ti-emif.txt  |   58 ++
+ drivers/misc/Kconfig                    |   12 +
+ drivers/misc/Makefile                   |    1 +
+ drivers/misc/emif.c                     | 1670 +++++++++++++++++++++++++++++++
+ drivers/misc/emif.h                     |  589 +++++++++++
+ include/linux/platform_data/emif_plat.h |  128 +++
+ include/misc/jedec_ddr.h                |  177 ++++
+ lib/Kconfig                             |    8 +
+ lib/Makefile                            |    3 +
+ lib/jedec_ddr_data.c                    |  135 +++
+ 10 files changed, 2781 insertions(+), 0 deletions(-)
+ create mode 100644 Documentation/misc-devices/ti-emif.txt
+ create mode 100644 drivers/misc/emif.c
+ create mode 100644 drivers/misc/emif.h
+ create mode 100644 include/linux/platform_data/emif_plat.h
+ create mode 100644 include/misc/jedec_ddr.h
+ create mode 100644 lib/jedec_ddr_data.c
 
