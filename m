@@ -1,51 +1,100 @@
-From: Arnd Bergmann <arnd-r2nGTMty4D4@public.gmane.org>
-Subject: Re: [PATCH] of: Add generic device tree DMA helpers
-Date: Thu, 15 Mar 2012 20:41:53 +0000
-Message-ID: <201203152041.53754.arnd@arndb.de>
-References: <4F22DEF2.5000807@ti.com> <4F621939.9040906@ti.com>
- <20120315195753.GA2842@n2100.arm.linux.org.uk>
+From: "Rafael J. Wysocki" <rjw@sisk.pl>
+Subject: Re: [PATCH 10/10] ARM: OMAP: SmartReflex: Move smartreflex driver to drivers/
+Date: Thu, 15 Mar 2012 22:19:22 +0100
+Message-ID: <201203152219.22985.rjw@sisk.pl>
+References: <1331829845-9526-1-git-send-email-j-pihet@ti.com> <1331829845-9526-11-git-send-email-j-pihet@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
+Content-Type: Text/Plain;
+  charset="iso-8859-2"
 Content-Transfer-Encoding: 7bit
-Return-path: <devicetree-discuss-bounces+gldd-devicetree-discuss=m.gmane.org-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org>
-In-Reply-To: <20120315195753.GA2842-l+eeeJia6m9vn6HldHNs0ANdhmdF6hFW@public.gmane.org>
-List-Unsubscribe: <https://lists.ozlabs.org/options/devicetree-discuss>,
- <mailto:devicetree-discuss-request-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org?subject=unsubscribe>
-List-Archive: <http://lists.ozlabs.org/pipermail/devicetree-discuss>
-List-Post: <mailto:devicetree-discuss-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org>
-List-Help: <mailto:devicetree-discuss-request-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org?subject=help>
-List-Subscribe: <https://lists.ozlabs.org/listinfo/devicetree-discuss>,
- <mailto:devicetree-discuss-request-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org?subject=subscribe>
-Errors-To: devicetree-discuss-bounces+gldd-devicetree-discuss=m.gmane.org-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org
-Sender: devicetree-discuss-bounces+gldd-devicetree-discuss=m.gmane.org-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org
-To: Russell King - ARM Linux <linux-lFZ/pmaqli7XmaaqVzeoHQ@public.gmane.org>
-Cc: Stephen Warren <swarren-DDmLM1+adcrQT0dZR+AlfA@public.gmane.org>, devicetree-discuss-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org, rob.herring-bsGFqQB8/DxBDgjK7y7TUQ@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <1331829845-9526-11-git-send-email-j-pihet@ti.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: jean.pihet@newoldbits.com
+Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Kevin Hilman <khilman@ti.com>, LKML <linux-kernel@vger.kernel.org>, Jean Pihet <j-pihet@ti.com>
 List-Id: linux-omap@vger.kernel.org
 
-On Thursday 15 March 2012, Russell King - ARM Linux wrote:
-> On Thu, Mar 15, 2012 at 05:30:49PM +0100, Cousson, Benoit wrote:
-> > This was done like IRQ on purpose, because an Interrupt ReQuest line and  
-> > a DMA Request line are really similar for the HW point of view at IP 
-> > level.
+On Thursday, March 15, 2012, jean.pihet@newoldbits.com wrote:
+> From: Jean Pihet <j-pihet@ti.com>
 > 
-> I'm not sure about that at all levels.  Sure, at hardware level they're
-> the same, but I think the flat numeric namespace for IRQs has been
-> proven to be a problem when there's multiple IRQ controllers in the
-> system.
+> After a clean-up of the interfaces the OMAP IP driver and class
+> support code is now a generic driver.
+> Move it to drivers/power/avs/.
+> 
+> The build is controlled by the following Kconfig options:
+>  . CONFIG_POWER_AVS: general knob for Adaptive Voltage Scaling support,
+>  . CONFIG_POWER_AVS_OMAP: AVS support on OMAP containing the version 1
+>     or version 2 of the SmartReflex IP,
+>  . CONFIG_POWER_AVS_OMAP_CLASS3: Class 3 implementation of Smartreflex.
+> 
+> Signed-off-by: Jean Pihet <j-pihet@ti.com>
+> ---
+[...]
+> diff --git a/drivers/power/Makefile b/drivers/power/Makefile
+> index e429008..e4a8fd2 100644
+> --- a/drivers/power/Makefile
+> +++ b/drivers/power/Makefile
+> @@ -41,3 +41,5 @@ obj-$(CONFIG_CHARGER_GPIO)	+= gpio-charger.o
+>  obj-$(CONFIG_CHARGER_MANAGER)	+= charger-manager.o
+>  obj-$(CONFIG_CHARGER_MAX8997)	+= max8997_charger.o
+>  obj-$(CONFIG_CHARGER_MAX8998)	+= max8998_charger.o
+> +
+> +obj-$(CONFIG_POWER_AVS)		+= avs/
+> diff --git a/drivers/power/avs/Kconfig b/drivers/power/avs/Kconfig
+> new file mode 100644
+> index 0000000..35b21c4
+> --- /dev/null
+> +++ b/drivers/power/avs/Kconfig
+> @@ -0,0 +1,45 @@
+> +menuconfig POWER_AVS
+> +	tristate "Adaptive Voltage Scaling class support"
+> +	help
+> +	  AVS is a power management technique which finely controls the
+> +	  operating voltage of a device in order to optimize (i.e. reduce)
+> +	  its power consumption.
+> +	  At a given operating point the voltage is adapted depending on
+> +	  static factors (chip manufacturing process) and dynamic factors
+> +	  (temperature depending performance).
+> +	  AVS is also called SmartReflex on OMAP devices.
+> +
+> +	  Say Y here to enable Adaptive Voltage Scaling class support.
+> +
+> +if POWER_AVS
+> +
+> +config POWER_AVS_OMAP
 
-In the DT bindings, both IRQ and the suggested DMA are not flat number
-spaces, but instead can be of arbitrarly length defined by the controller.
+I think it would be better to keep this and the next one in the OMAP
+arch Kconfig.
 
-> As far as I'm concerned for DMA stuff, there is currently no real solution
-> for a DT representation; TI have asked me to take over the conversion of
-> OMAP DMA support to the DMA engine API, and I'm not yet convinced that
-> the existing numbering system is the right solution - especially as
-> there's several overlapping numberspaces for OMAP DMA numbers which
-> are SoC specific.
+> +	bool "AVS support for the OMAP IP versions 1&2"
+> +	depends on (ARCH_OMAP3 || ARCH_OMAP4) && PM
+> +	help
+> +	  Say Y to enable AVS support on OMAP containing the version 1 or
+> +	  version 2 of the SmartReflex IP.
+> +	  V1 is the 65nm version used in OMAP3430.
+> +	  V2 is the update for the 45nm version of the IP used in OMAP3630
+> +	  and OMAP4430
+> +
+> +	  Please note, that by default SmartReflex is only
+> +	  initialized and not enabled. To enable the automatic voltage
+> +	  compensation for vdd mpu and vdd core from user space,
+> +	  user must write 1 to
+> +		/debug/smartreflex/sr_<X>/autocomp,
+> +	  where X is mpu_iva or core for OMAP3.
+> +	  Optionally autocompensation can be enabled in the kernel
+> +	  by default during system init via the enable_on_init flag
+> +	  which an be passed as platform data to the smartreflex driver.
+> +
+> +config POWER_AVS_OMAP_CLASS3
+> +	bool "Class 3 mode of Smartreflex Implementation"
+> +	depends on POWER_AVS_OMAP && TWL4030_CORE
+> +	help
+> +	  Say Y to enable Class 3 implementation of Smartreflex
+> +
+> +	  Class 3 implementation of Smartreflex employs continuous hardware
+> +	  voltage calibration.
+> +
+> +endif # POWER_AVS
 
-The numbers definitely need to become local to each of the controllers, but
-that is the case pretty much automatically using the proposed binding,
-because each dma request identifier starts with the phandle of the
-controller.
-
-	Arnd
+Thanks,
+Rafael
