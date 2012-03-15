@@ -1,200 +1,57 @@
-From: Aneesh V <aneesh@ti.com>
-Subject: [PATCH v2 3/4] arm: dts: EMIF and LPDDR2 device tree data for OMAP4 boards
-Date: Fri, 16 Mar 2012 00:04:06 +0530
-Message-ID: <1331836447-7584-4-git-send-email-aneesh@ti.com>
-References: <1331836447-7584-1-git-send-email-aneesh@ti.com>
+From: Paul Walmsley <paul@pwsan.com>
+Subject: Re: [PATCH] OMAP: clock: fix race in disable all clocks
+Date: Thu, 15 Mar 2012 12:39:08 -0600 (MDT)
+Message-ID: <alpine.DEB.2.00.1203151236560.7108@utopia.booyaka.com>
+References: <1331835871-13328-1-git-send-email-nm@ti.com>
+Mime-Version: 1.0
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aog130.obsmtp.com ([74.125.149.143]:49365 "EHLO
-	na3sys009amx259.postini.com" rhost-flags-OK-OK-OK-FAIL)
-	by vger.kernel.org with ESMTP id S1762046Ab2COSff (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>);
-	Thu, 15 Mar 2012 14:35:35 -0400
-Received: by mail-gx0-f176.google.com with SMTP id s6so3623815ggc.7
-        for <linux-omap@vger.kernel.org>; Thu, 15 Mar 2012 11:35:34 -0700 (PDT)
-In-Reply-To: <1331836447-7584-1-git-send-email-aneesh@ti.com>
+Received: from utopia.booyaka.com ([72.9.107.138]:37929 "EHLO
+	utopia.booyaka.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1031532Ab2COSjJ (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 15 Mar 2012 14:39:09 -0400
+In-Reply-To: <1331835871-13328-1-git-send-email-nm@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: devicetree-discuss@lists.ozlabs.org
-Cc: linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Aneesh V <aneesh@ti.com>, Rajendra Nayak <rnayak@ti.com>, Benoit Cousson <b-cousson@ti.com>, Grant Likely <grant.likely@secretlab.ca>
+To: Nishanth Menon <nm@ti.com>
+Cc: linux-omap <linux-omap@vger.kernel.org>, linux-arm <linux-arm-kernel@lists.infradead.org>, Todd Poynor <toddpoynor@google.com>, Tony Lindgren <tony@atomide.com>
 
-Device tree data for the EMIF sdram controllers in OMAP4
-and LPDDR2 memory devices attached to OMAP4 boards.
+Hi
 
-Cc: Rajendra Nayak <rnayak@ti.com>
-Cc: Benoit Cousson <b-cousson@ti.com>
-Cc: Grant Likely <grant.likely@secretlab.ca>
-Signed-off-by: Aneesh V <aneesh@ti.com>
----
-v1:
-- Removed DDR3 only parameters from
-  elpida_ecb240abacn.dtsi
----
- arch/arm/boot/dts/elpida_ecb240abacn.dtsi |   67 +++++++++++++++++++++++++++++
- arch/arm/boot/dts/omap4-panda.dts         |   13 ++++++
- arch/arm/boot/dts/omap4-sdp.dts           |   13 ++++++
- arch/arm/boot/dts/omap4.dtsi              |   18 ++++++++
- 4 files changed, 111 insertions(+), 0 deletions(-)
- create mode 100644 arch/arm/boot/dts/elpida_ecb240abacn.dtsi
+adding Todd to cc
 
-diff --git a/arch/arm/boot/dts/elpida_ecb240abacn.dtsi b/arch/arm/boot/dts/elpida_ecb240abacn.dtsi
-new file mode 100644
-index 0000000..34b9f72
---- /dev/null
-+++ b/arch/arm/boot/dts/elpida_ecb240abacn.dtsi
-@@ -0,0 +1,67 @@
-+/*
-+ * Common devices used in different OMAP boards
-+ */
-+
-+/ {
-+	elpida_ECB240ABACN: lpddr2 {
-+		compatible 	= "Elpida,ECB240ABACN","jedec,lpddr2-s4";
-+		density		= <2048>;
-+		io-width	= <32>;
-+
-+		tRPab-min-tck	= <3>;
-+		tRCD-min-tck	= <3>;
-+		tWR-min-tck	= <3>;
-+		tRASmin-min-tck	= <3>;
-+		tRRD-min-tck	= <2>;
-+		tWTR-min-tck	= <2>;
-+		tXP-min-tck	= <2>;
-+		tRTP-min-tck	= <2>;
-+		tCKE-min-tck	= <3>;
-+		tCKESR-min-tck	= <3>;
-+		tFAW-min-tck	= <8>;
-+
-+		timings_elpida_ECB240ABACN_400mhz: lpddr2-timings@0 {
-+			compatible	= "jedec,lpddr2-timings";
-+			min-freq	= <10000000>;
-+			max-freq	= <400000000>;
-+			tRPab		= <21000>;
-+			tRCD		= <18000>;
-+			tWR		= <15000>;
-+			tRAS-min	= <42000>;
-+			tRRD		= <10000>;
-+			tWTR		= <7500>;
-+			tXP		= <7500>;
-+			tRTP		= <7500>;
-+			tCKESR		= <15000>;
-+			tDQSCK-max 	= <5500>;
-+			tFAW		= <50000>;
-+			tZQCS		= <90000>;
-+			tZQCL		= <360000>;
-+			tZQinit		= <1000000>;
-+			tRAS-max-ns	= <70000>;
-+			tDQSCK-max-derated = <6000>;
-+		};
-+
-+		timings_elpida_ECB240ABACN_200mhz: lpddr2-timings@1 {
-+			compatible	= "jedec,lpddr2-timings";
-+			min-freq	= <10000000>;
-+			max-freq	= <200000000>;
-+			tRPab		= <21000>;
-+			tRCD		= <18000>;
-+			tWR		= <15000>;
-+			tRAS-min	= <42000>;
-+			tRRD		= <10000>;
-+			tWTR		= <10000>;
-+			tXP		= <7500>;
-+			tRTP		= <7500>;
-+			tCKESR		= <15000>;
-+			tDQSCK-max 	= <5500>;
-+			tFAW		= <50000>;
-+			tZQCS		= <90000>;
-+			tZQCL		= <360000>;
-+			tZQinit		= <1000000>;
-+			tRAS-max-ns	= <70000>;
-+			tDQSCK-max-derated = <6000>;
-+		};
-+	};
-+};
-diff --git a/arch/arm/boot/dts/omap4-panda.dts b/arch/arm/boot/dts/omap4-panda.dts
-index 9755ad5..f548523 100644
---- a/arch/arm/boot/dts/omap4-panda.dts
-+++ b/arch/arm/boot/dts/omap4-panda.dts
-@@ -8,6 +8,7 @@
- /dts-v1/;
- 
- /include/ "omap4.dtsi"
-+/include/ "elpida_ecb240abacn.dtsi"
- 
- / {
- 	model = "TI OMAP4 PandaBoard";
-@@ -17,4 +18,16 @@
- 		device_type = "memory";
- 		reg = <0x80000000 0x40000000>; /* 1 GB */
- 	};
-+
-+	ocp {
-+		emif1: emif@0x4c000000 {
-+			cs1-used;
-+			device-handle = <&elpida_ECB240ABACN>;
-+		};
-+
-+		emif2: emif@0x4d000000 {
-+			cs1-used;
-+			device-handle = <&elpida_ECB240ABACN>;
-+		};
-+	};
- };
-diff --git a/arch/arm/boot/dts/omap4-sdp.dts b/arch/arm/boot/dts/omap4-sdp.dts
-index 63c6b2b..6dc08bc 100644
---- a/arch/arm/boot/dts/omap4-sdp.dts
-+++ b/arch/arm/boot/dts/omap4-sdp.dts
-@@ -8,6 +8,7 @@
- /dts-v1/;
- 
- /include/ "omap4.dtsi"
-+/include/ "elpida_ecb240abacn.dtsi"
- 
- / {
- 	model = "TI OMAP4 SDP board";
-@@ -17,4 +18,16 @@
- 		device_type = "memory";
- 		reg = <0x80000000 0x40000000>; /* 1 GB */
- 	};
-+
-+	ocp {
-+		emif1: emif@0x4c000000 {
-+			cs1-used;
-+			device-handle = <&elpida_ECB240ABACN>;
-+		};
-+
-+		emif2: emif@0x4d000000 {
-+			cs1-used;
-+			device-handle = <&elpida_ECB240ABACN>;
-+		};
-+	};
- };
-diff --git a/arch/arm/boot/dts/omap4.dtsi b/arch/arm/boot/dts/omap4.dtsi
-index 70a44f6..fe3664a 100644
---- a/arch/arm/boot/dts/omap4.dtsi
-+++ b/arch/arm/boot/dts/omap4.dtsi
-@@ -127,5 +127,23 @@
- 			ti,hwmods = "uart4";
- 			clock-frequency = <48000000>;
- 		};
-+
-+		emif1: emif@0x4c000000 {
-+			compatible	= "ti,emif-4d";
-+			ti,hwmods	= "emif1";
-+			phy-type	= <1>;
-+			hw-caps-read-idle-ctrl;
-+			hw-caps-ll-interface;
-+			hw-caps-temp-alert;
-+		};
-+
-+		emif2: emif@0x4d000000 {
-+			compatible	= "ti,emif-4d";
-+			ti,hwmods	= "emif2";
-+			phy-type	= <1>;
-+			hw-caps-read-idle-ctrl;
-+			hw-caps-ll-interface;
-+			hw-caps-temp-alert;
-+		};
- 	};
- };
--- 
-1.7.1
+On Thu, 15 Mar 2012, Nishanth Menon wrote:
 
+> clk_disable_unused is invoked when CONFIG_OMAP_RESET_CLOCKS=y.
+> Since clk_disable_unused is called as lateinitcall, there can
+> be more than a few workqueues executing off secondary CPU(s).
+> The current code does the following:
+> a) checks if clk is unused
+> b) holds lock
+> c) disables clk
+> d) unlocks
+> 
+> Between (a) and (b) being executed on CPU0, It is possible to
+> have a driver executing on CPU1 which could do a get_sync->clk_get
+> (and increase the use_count) of the clock which was just about
+> to be disabled by clk_disable_unused.
+> 
+> We ensure instead that the entire list traversal is protected by
+> the lock allowing for parent child clock traversal which could be
+> potentially be done by runtime operations to be safe as well.
+> 
+> Reported-by: Todd Poynor <toddpoynor@google.com>
+> Signed-off-by: Nishanth Menon <nm@ti.com>
+
+Thanks, I'll queue this for v3.4-rc1.
+
+In the medium term, we should get rid of CONFIG_OMAP_RESET_CLOCKS, at 
+least for the OMAP2+ chips, and just do this by default.  But this will 
+need to wait until all of the OMAP2+ devices and drivers have been 
+converted to use hwmod.  Patches to that end are also gladly accepted :-)
+In 3.5 we should be in pretty good shape for OMAP4, but OMAP2/3 will still 
+need some work.
+
+
+
+- Paul
