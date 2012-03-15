@@ -1,84 +1,101 @@
 From: "Mark A. Greer" <mgreeraz@gmail.com>
-Subject: [PATCH 1/2] arm: omap3: pm34xx.c: Fix :omap3_pm_init() error out paths
-Date: Thu, 15 Mar 2012 09:20:40 -0700
-Message-ID: <1331828441-1406-2-git-send-email-mgreer@animalcreek.com>
+Subject: [PATCH 2/2] arm: omap3: pm34xx.c: Replace printk() with appropriate pr_*()
+Date: Thu, 15 Mar 2012 09:20:41 -0700
+Message-ID: <1331828441-1406-3-git-send-email-mgreer@animalcreek.com>
 References: <1331828441-1406-1-git-send-email-mgreer@animalcreek.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
 Received: from mail-pz0-f52.google.com ([209.85.210.52]:63798 "EHLO
 	mail-pz0-f52.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1031547Ab2COQUu (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 15 Mar 2012 12:20:50 -0400
+	with ESMTP id S1031547Ab2COQUw (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 15 Mar 2012 12:20:52 -0400
 Received: by mail-pz0-f52.google.com with SMTP id p12so5099551dad.11
-        for <linux-omap@vger.kernel.org>; Thu, 15 Mar 2012 09:20:50 -0700 (PDT)
+        for <linux-omap@vger.kernel.org>; Thu, 15 Mar 2012 09:20:52 -0700 (PDT)
 In-Reply-To: <1331828441-1406-1-git-send-email-mgreer@animalcreek.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: linux-omap@vger.kernel.org
-Cc: "Mark A. Greer" <mgreer@animalcreek.com>, Tero Kristo <t-kristo@ti.com>
+Cc: "Mark A. Greer" <mgreer@animalcreek.com>
 
-It appears that the error paths were overlooked when the
-omap3_pm_init() routine had the prcm chain handler code
-added.  Fix this by adding a goto target and reordering
-the error handling code.  Also fix how the irq argument
-for free_irq() is determined.
+Currently, pm34xx.c has a mix of printk() and pr_*() statements
+so replace the printk() statements with the equivalent pr_*()
+statements.
 
-CC: Tero Kristo <t-kristo@ti.com>
 Signed-off-by: Mark A. Greer <mgreer@animalcreek.com>
 ---
- arch/arm/mach-omap2/pm34xx.c |   16 ++++++++++------
- 1 files changed, 10 insertions(+), 6 deletions(-)
+ arch/arm/mach-omap2/pm34xx.c |   17 ++++++++---------
+ 1 files changed, 8 insertions(+), 9 deletions(-)
 
 diff --git a/arch/arm/mach-omap2/pm34xx.c b/arch/arm/mach-omap2/pm34xx.c
-index 27fc7a2..af8d741 100644
+index af8d741..495e509 100644
 --- a/arch/arm/mach-omap2/pm34xx.c
 +++ b/arch/arm/mach-omap2/pm34xx.c
-@@ -817,13 +817,13 @@ static int __init omap3_pm_init(void)
- 
- 	if (ret) {
- 		pr_err("pm: Failed to request pm_io irq\n");
--		goto err1;
-+		goto err2;
+@@ -166,8 +166,7 @@ static void omap3_save_secure_ram_context(void)
+ 		pwrdm_set_next_pwrst(mpu_pwrdm, mpu_next_state);
+ 		/* Following is for error tracking, it should not happen */
+ 		if (ret) {
+-			printk(KERN_ERR "save_secure_sram() returns %08x\n",
+-				ret);
++			pr_err("save_secure_sram() returns %08x\n", ret);
+ 			while (1)
+ 				;
+ 		}
+@@ -307,7 +306,7 @@ void omap_sram_idle(void)
+ 		break;
+ 	default:
+ 		/* Invalid state */
+-		printk(KERN_ERR "Invalid mpu state in sram_idle\n");
++		pr_err("Invalid mpu state in sram_idle\n");
+ 		return;
  	}
+ 
+@@ -463,7 +462,7 @@ restore:
+ 	list_for_each_entry(pwrst, &pwrst_list, node) {
+ 		state = pwrdm_read_prev_pwrst(pwrst->pwrdm);
+ 		if (state > pwrst->next_state) {
+-			printk(KERN_INFO "Powerdomain (%s) didn't enter "
++			pr_info("Powerdomain (%s) didn't enter "
+ 			       "target state %d\n",
+ 			       pwrst->pwrdm->name, pwrst->next_state);
+ 			ret = -1;
+@@ -471,9 +470,9 @@ restore:
+ 		omap_set_pwrdm_state(pwrst->pwrdm, pwrst->saved_state);
+ 	}
+ 	if (ret)
+-		printk(KERN_ERR "Could not enter target state in pm_suspend\n");
++		pr_err("Could not enter target state in pm_suspend\n");
+ 	else
+-		printk(KERN_INFO "Successfully put all powerdomains "
++		pr_info("Successfully put all powerdomains "
+ 		       "to target state\n");
+ 
+ 	return ret;
+@@ -822,7 +821,7 @@ static int __init omap3_pm_init(void)
  
  	ret = pwrdm_for_each(pwrdms_setup, NULL);
  	if (ret) {
- 		printk(KERN_ERR "Failed to setup powerdomains\n");
--		goto err2;
-+		goto err3;
+-		printk(KERN_ERR "Failed to setup powerdomains\n");
++		pr_err("Failed to setup powerdomains\n");
+ 		goto err3;
  	}
  
- 	(void) clkdm_for_each(clkdms_setup, NULL);
-@@ -831,7 +831,8 @@ static int __init omap3_pm_init(void)
+@@ -830,7 +829,7 @@ static int __init omap3_pm_init(void)
+ 
  	mpu_pwrdm = pwrdm_lookup("mpu_pwrdm");
  	if (mpu_pwrdm == NULL) {
- 		printk(KERN_ERR "Failed to get mpu_pwrdm\n");
--		goto err2;
-+		ret = -EINVAL;
-+		goto err3;
+-		printk(KERN_ERR "Failed to get mpu_pwrdm\n");
++		pr_err("Failed to get mpu_pwrdm\n");
+ 		ret = -EINVAL;
+ 		goto err3;
  	}
+@@ -865,7 +864,7 @@ static int __init omap3_pm_init(void)
+ 		omap3_secure_ram_storage =
+ 			kmalloc(0x803F, GFP_KERNEL);
+ 		if (!omap3_secure_ram_storage)
+-			printk(KERN_ERR "Memory allocation failed when"
++			pr_err("Memory allocation failed when"
+ 					"allocating for secure sram context\n");
  
- 	neon_pwrdm = pwrdm_lookup("neon_pwrdm");
-@@ -879,14 +880,17 @@ static int __init omap3_pm_init(void)
- 	}
- 
- 	omap3_save_scratchpad_contents();
--err1:
- 	return ret;
--err2:
--	free_irq(INT_34XX_PRCM_MPU_IRQ, NULL);
-+
-+err3:
- 	list_for_each_entry_safe(pwrst, tmp, &pwrst_list, node) {
- 		list_del(&pwrst->node);
- 		kfree(pwrst);
- 	}
-+	free_irq(omap_prcm_event_to_irq("io"), omap3_pm_init);
-+err2:
-+	free_irq(omap_prcm_event_to_irq("wkup"), NULL);
-+err1:
- 	return ret;
- }
- 
+ 		local_irq_disable();
 -- 
 1.7.0.4
 
