@@ -1,96 +1,34 @@
-From: Thierry Reding <thierry.reding@avionic-design.de>
-Subject: Re: [PATCH] of: Add generic device tree DMA helpers
-Date: Thu, 15 Mar 2012 11:27:36 +0100
-Message-ID: <20120315102736.GA25371@avionic-0098.adnet.avionic-design.de>
-References: <4F22DEF2.5000807@ti.com>
- <1331800690-21518-1-git-send-email-nicolas.ferre@atmel.com>
- <201203150922.06379.arnd@arndb.de>
+From: Russell King - ARM Linux <linux@arm.linux.org.uk>
+Subject: Lost fixes?
+Date: Thu, 15 Mar 2012 10:28:45 +0000
+Message-ID: <20120315102845.GB16389@n2100.arm.linux.org.uk>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="Nq2Wo0NMKNjxTN9z"
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from moutng.kundenserver.de ([212.227.17.8]:56229 "EHLO
-	moutng.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751468Ab2COK1q (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 15 Mar 2012 06:27:46 -0400
-Content-Disposition: inline
-In-Reply-To: <201203150922.06379.arnd@arndb.de>
-Sender: linux-omap-owner@vger.kernel.org
-List-Id: linux-omap@vger.kernel.org
-To: Arnd Bergmann <arnd@arndb.de>
-Cc: linux-arm-kernel@lists.infradead.org, Nicolas Ferre <nicolas.ferre@atmel.com>, grant.likely@secretlab.ca, rob.herring@calxeda.com, devicetree-discuss@lists.ozlabs.org, Stephen Warren <swarren@nvidia.com>, linux-omap@vger.kernel.org, Benoit Cousson <b-cousson@ti.com>, Russell King <linux@arm.linux.org.uk>
-
-
---Nq2Wo0NMKNjxTN9z
 Content-Type: text/plain; charset=us-ascii
+Return-path: <cpufreq-owner@vger.kernel.org>
 Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
+Sender: cpufreq-owner@vger.kernel.org
+To: cpufreq@vger.kernel.org, Dave Jones <davej@redhat.com>, Grant Likely <grant.likely@secretlab.ca>, Kukjin Kim <kgene.kim@samsung.com>, linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org, Paul Walmsley <paul@pwsan.com>, Samuel Ortiz <sameo@linux.intel.com>, Thomas Gleixner <tglx@linutronix.de>, Tony Lindgren <tony@atomide.com>
+List-Id: linux-omap@vger.kernel.org
 
-* Arnd Bergmann wrote:
-> On Thursday 15 March 2012, Nicolas Ferre wrote:
-[...]
-> > +	i2c1: i2c@1 {
-> > +		...
-> > +		dma-request =3D <&sdma 2 &sdma 3>;
-> > +		dma-request-names =3D "tx", "rx";
-> > +		...
-> > +	};
->=20
-> This is slightly different from how the proposed pwm binding works that
-> Thierry is working on, which uses an arbitrary property name instead of
-> requiring the use of a specific property but then allowing to give names
-> in another property.
->=20
-> I don't care much which way it's done, but please try to agree on one
-> approach that is used for both.
->=20
-> The one you have here is already used by reg and irq, while the other
-> one is used in gpio.
+These fixes are a collection from other people which resolve various
+issues found with the new kautobuilder.  They're now a month old, and
+as far as I can see, have not been merged into Linus' tree.
 
-I think we can just use pwm as the fixed property name. Or alternatively do
-something along the lines of the regulator bindings, where we use "-pwm" as
-the suffix for specifying PWM devices. For instance if a named PWM is
-requested, the OF support code would look for a <name>-pwm property, while
-requesting an unnamed PWM would simply look at the pwm property.
+What's the status of them, and when are they going to be merged?
 
-When it comes to the labelling of PWM devices, I don't think both variants
-are exclusive. Currently the PWM framework uses name of the user OF device
-node for the PWM label. That is, if I have the following in the DTS:
+Thanks.
 
-	pwm {
-		...
-	};
+ arch/arm/mach-omap2/Makefile                 |    5 +----
+ arch/arm/mach-omap2/clkt2xxx_virt_prcm_set.c |    2 +-
+ arch/arm/mach-omap2/clock.c                  |    2 +-
+ arch/arm/mach-omap2/clock.h                  |    2 +-
+ arch/arm/mach-omap2/smartreflex.c            |    2 +-
+ arch/arm/plat-omap/clock.c                   |    2 +-
+ arch/arm/plat-omap/dma.c                     |    2 +-
+ arch/arm/plat-omap/include/plat/clock.h      |    4 ++--
+ drivers/cpufreq/Kconfig.arm                  |    6 ++++++
+ drivers/cpufreq/Makefile                     |    2 +-
+ drivers/mfd/da9052-spi.c                     |    4 ++--
+ kernel/irq/chip.c                            |    3 +--
+ 12 files changed, 19 insertions(+), 17 deletions(-)
 
-	backlight {
-		compatible =3D "pwm-backlight";
-		pwm =3D <&pwm 0 5000000>;
-		...
-	};
-
-Then the PWM will be labelled "backlight":
-
-	$ cat cat /sys/kernel/debug/pwm
-	platform/tegra-pwm, 4 PWM devices
-	pwm-0   (backlight           ): requested enabled
-	pwm-1   ((null)              ):
-	pwm-2   ((null)              ):
-	pwm-3   ((null)              ):
-
-So if we decide to explicitly allow specifying names, then we can always add
-a pwm-names property (or <name>-pwm-names respectively) to use as label and
-fallback to the user OF device node name if that property is not present.
-
-Thierry
-
---Nq2Wo0NMKNjxTN9z
-Content-Type: application/pgp-signature
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.4.12 (GNU/Linux)
-
-iEYEARECAAYFAk9hxBgACgkQZ+BJyKLjJp+cfgCeNPt89SdKIe6UAhmqp5mI0Oqh
-Jc0An3FhxpkeYt/UchwC1OVoVvz7Waj7
-=SNUB
------END PGP SIGNATURE-----
-
---Nq2Wo0NMKNjxTN9z--
