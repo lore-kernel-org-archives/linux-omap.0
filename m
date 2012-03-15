@@ -1,78 +1,76 @@
 From: jean.pihet@newoldbits.com
-Subject: [PATCH 05/10] ARM: OMAP3: hwmod: rename the smartreflex entries
-Date: Thu, 15 Mar 2012 17:44:00 +0100
-Message-ID: <1331829845-9526-6-git-send-email-j-pihet@ti.com>
+Subject: [PATCH 01/10] ARM: OMAP3+: voltage: export functions to plat/voltage.h
+Date: Thu, 15 Mar 2012 17:43:56 +0100
+Message-ID: <1331829845-9526-2-git-send-email-j-pihet@ti.com>
 References: <1331829845-9526-1-git-send-email-j-pihet@ti.com>
-Return-path: <linux-kernel-owner@vger.kernel.org>
+Mime-Version: 1.0
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
 In-Reply-To: <1331829845-9526-1-git-send-email-j-pihet@ti.com>
-Sender: linux-kernel-owner@vger.kernel.org
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
+List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
+List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
+Sender: linux-arm-kernel-bounces@lists.infradead.org
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
 To: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Kevin Hilman <khilman@ti.com>, "Rafael J. Wysocki" <rjw@sisk.pl>, LKML <linux-kernel@vger.kernel.org>
 Cc: Jean Pihet <j-pihet@ti.com>
 List-Id: linux-omap@vger.kernel.org
 
 From: Jean Pihet <j-pihet@ti.com>
 
-Change the name field value to better reflect the smartreflex
-integration in the system
+Move some functions from mach-omap2/ dir to the plat/ dir.
+The SmartReflex class driver is a user of the basic voltage domains
+functions (enable, disable, reset).
 
 Signed-off-by: Jean Pihet <j-pihet@ti.com>
+Cc: Kevin Hilman <khilman@ti.com>
 ---
- arch/arm/mach-omap2/omap_hwmod_3xxx_data.c |    8 ++++----
- arch/arm/mach-omap2/smartreflex.c          |    2 +-
- 2 files changed, 5 insertions(+), 5 deletions(-)
+ arch/arm/mach-omap2/voltage.h             |    1 -
+ arch/arm/mach-omap2/vp.h                  |    2 --
+ arch/arm/plat-omap/include/plat/voltage.h |    3 +++
+ 3 files changed, 3 insertions(+), 3 deletions(-)
 
-diff --git a/arch/arm/mach-omap2/omap_hwmod_3xxx_data.c b/arch/arm/mach-omap2/omap_hwmod_3xxx_data.c
-index 1f681e8..728740d 100644
---- a/arch/arm/mach-omap2/omap_hwmod_3xxx_data.c
-+++ b/arch/arm/mach-omap2/omap_hwmod_3xxx_data.c
-@@ -2750,7 +2750,7 @@ static struct omap_hwmod_ocp_if *omap34xx_sr1_slaves[] = {
- };
+diff --git a/arch/arm/mach-omap2/voltage.h b/arch/arm/mach-omap2/voltage.h
+index 16a1b09..a81dea8 100644
+--- a/arch/arm/mach-omap2/voltage.h
++++ b/arch/arm/mach-omap2/voltage.h
+@@ -167,6 +167,5 @@ int voltdm_for_each_pwrdm(struct voltagedomain *voltdm,
+ 			  int (*fn)(struct voltagedomain *voltdm,
+ 				    struct powerdomain *pwrdm));
+ int voltdm_scale(struct voltagedomain *voltdm, unsigned long target_volt);
+-void voltdm_reset(struct voltagedomain *voltdm);
+ unsigned long voltdm_get_voltage(struct voltagedomain *voltdm);
+ #endif
+diff --git a/arch/arm/mach-omap2/vp.h b/arch/arm/mach-omap2/vp.h
+index 7c155d2..837cb8d 100644
+--- a/arch/arm/mach-omap2/vp.h
++++ b/arch/arm/mach-omap2/vp.h
+@@ -118,8 +118,6 @@ extern struct omap_vp_instance omap4_vp_iva;
+ extern struct omap_vp_instance omap4_vp_core;
  
- static struct omap_hwmod omap34xx_sr1_hwmod = {
--	.name		= "sr1",
-+	.name		= "mpu_iva",
- 	.class		= &omap34xx_smartreflex_hwmod_class,
- 	.main_clk	= "sr1_fck",
- 	.prcm		= {
-@@ -2774,7 +2774,7 @@ static struct omap_hwmod_ocp_if *omap36xx_sr1_slaves[] = {
- };
+ void omap_vp_init(struct voltagedomain *voltdm);
+-void omap_vp_enable(struct voltagedomain *voltdm);
+-void omap_vp_disable(struct voltagedomain *voltdm);
+ int omap_vp_forceupdate_scale(struct voltagedomain *voltdm,
+ 			      unsigned long target_volt);
+ int omap_vp_update_errorgain(struct voltagedomain *voltdm,
+diff --git a/arch/arm/plat-omap/include/plat/voltage.h b/arch/arm/plat-omap/include/plat/voltage.h
+index 0a6a482..1842709 100644
+--- a/arch/arm/plat-omap/include/plat/voltage.h
++++ b/arch/arm/plat-omap/include/plat/voltage.h
+@@ -16,5 +16,8 @@ struct voltagedomain;
+ struct voltagedomain *voltdm_lookup(const char *name);
+ int voltdm_scale(struct voltagedomain *voltdm, unsigned long target_volt);
+ unsigned long voltdm_get_voltage(struct voltagedomain *voltdm);
++void voltdm_reset(struct voltagedomain *voltdm);
  
- static struct omap_hwmod omap36xx_sr1_hwmod = {
--	.name		= "sr1",
-+	.name		= "mpu_iva",
- 	.class		= &omap36xx_smartreflex_hwmod_class,
- 	.main_clk	= "sr1_fck",
- 	.prcm		= {
-@@ -2802,7 +2802,7 @@ static struct omap_hwmod_ocp_if *omap34xx_sr2_slaves[] = {
- };
- 
- static struct omap_hwmod omap34xx_sr2_hwmod = {
--	.name		= "sr2",
-+	.name		= "core",
- 	.class		= &omap34xx_smartreflex_hwmod_class,
- 	.main_clk	= "sr2_fck",
- 	.prcm		= {
-@@ -2826,7 +2826,7 @@ static struct omap_hwmod_ocp_if *omap36xx_sr2_slaves[] = {
- };
- 
- static struct omap_hwmod omap36xx_sr2_hwmod = {
--	.name		= "sr2",
-+	.name		= "core",
- 	.class		= &omap36xx_smartreflex_hwmod_class,
- 	.main_clk	= "sr2_fck",
- 	.prcm		= {
-diff --git a/arch/arm/mach-omap2/smartreflex.c b/arch/arm/mach-omap2/smartreflex.c
-index 8e3ef66..dd80fde 100644
---- a/arch/arm/mach-omap2/smartreflex.c
-+++ b/arch/arm/mach-omap2/smartreflex.c
-@@ -184,7 +184,7 @@ static void sr_set_regfields(struct omap_sr *sr)
- 		sr->err_weight = OMAP3430_SR_ERRWEIGHT;
- 		sr->err_maxlimit = OMAP3430_SR_ERRMAXLIMIT;
- 		sr->accum_data = OMAP3430_SR_ACCUMDATA;
--		if (!(strcmp(sr->name, "sr1"))) {
-+		if (!(strcmp(sr->name, "sr_mpu_iva"))) {
- 			sr->senn_avgweight = OMAP3430_SR1_SENNAVGWEIGHT;
- 			sr->senp_avgweight = OMAP3430_SR1_SENPAVGWEIGHT;
- 		} else {
++void omap_vp_enable(struct voltagedomain *voltdm);
++void omap_vp_disable(struct voltagedomain *voltdm);
+ #endif
 -- 
 1.7.5.4
