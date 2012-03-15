@@ -1,222 +1,80 @@
-From: Aneesh V <aneesh@ti.com>
-Subject: [PATCH v2 6/7] misc: emif: add one-time settings
-Date: Thu, 15 Mar 2012 23:47:36 +0530
-Message-ID: <1331835457-5390-7-git-send-email-aneesh@ti.com>
-References: <1331835457-5390-1-git-send-email-aneesh@ti.com>
+From: Nishanth Menon <nm@ti.com>
+Subject: [PATCH] OMAP: clock: fix race in disable all clocks
+Date: Thu, 15 Mar 2012 13:24:31 -0500
+Message-ID: <1331835871-13328-1-git-send-email-nm@ti.com>
+Mime-Version: 1.0
+Content-Type: text/plain
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aog134.obsmtp.com ([74.125.149.83]:51967 "EHLO
-	psmtp.com" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
-	id S1761338Ab2COSSq (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Thu, 15 Mar 2012 14:18:46 -0400
-Received: by mail-gy0-f173.google.com with SMTP id r14so3849588ghr.4
-        for <linux-omap@vger.kernel.org>; Thu, 15 Mar 2012 11:18:45 -0700 (PDT)
-In-Reply-To: <1331835457-5390-1-git-send-email-aneesh@ti.com>
+Received: from bear.ext.ti.com ([192.94.94.41]:41302 "EHLO bear.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1760507Ab2COSYg (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Thu, 15 Mar 2012 14:24:36 -0400
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: linux-kernel@vger.kernel.org
-Cc: linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org, Aneesh V <aneesh@ti.com>, Greg KH <greg@kroah.com>
+To: linux-omap <linux-omap@vger.kernel.org>
+Cc: linux-arm <linux-arm-kernel@lists.infradead.org>, Paul Walmsley <paul@pwsan.com>, Tony Lindgren <tony@atomide.com>, Nishanth Menon <nm@ti.com>
 
-Add settings that are not dependent on frequency
-or any other transient parameters. This includes
-- power managment control init
-- impedence calibration control
-- frequency independent phy configuration registers
-- initialization of temperature polling
+clk_disable_unused is invoked when CONFIG_OMAP_RESET_CLOCKS=y.
+Since clk_disable_unused is called as lateinitcall, there can
+be more than a few workqueues executing off secondary CPU(s).
+The current code does the following:
+a) checks if clk is unused
+b) holds lock
+c) disables clk
+d) unlocks
 
-Cc: Greg KH <greg@kroah.com>
-Signed-off-by: Aneesh V <aneesh@ti.com>
+Between (a) and (b) being executed on CPU0, It is possible to
+have a driver executing on CPU1 which could do a get_sync->clk_get
+(and increase the use_count) of the clock which was just about
+to be disabled by clk_disable_unused.
+
+We ensure instead that the entire list traversal is protected by
+the lock allowing for parent child clock traversal which could be
+potentially be done by runtime operations to be safe as well.
+
+Reported-by: Todd Poynor <toddpoynor@google.com>
+Signed-off-by: Nishanth Menon <nm@ti.com>
 ---
-v2:
-- replaced __init with __init_or_module
-- fixed bug in the implementation of i728 errata workaround
+To confirm this in reality happens, I setup a trap as follows:
+  @@ -450,6 +450,8 @@ static int __init clk_disable_unused(void)
+  			continue;
+  
+  		spin_lock_irqsave(&clockfw_lock, flags);
+ +		WARN(ck->usecount, "XXXX->RACECONDITION FOR CLOCK %s\n",
+ +			ck->name);
+  		arch_clock->clk_disable_unused(ck);
+  		spin_unlock_irqrestore(&clockfw_lock, flags);
+  	}
+Resultant log: http://pastebin.pandaboard.org/index.php/view/66400792
 
-v1:
-- Improved commit log
-- Changes for errata i728 workaround
----
- drivers/misc/emif.c |  148 +++++++++++++++++++++++++++++++++++++++++++++++++++
- 1 files changed, 148 insertions(+), 0 deletions(-)
+ arch/arm/plat-omap/clock.c |    5 +++--
+ 1 files changed, 3 insertions(+), 2 deletions(-)
 
-diff --git a/drivers/misc/emif.c b/drivers/misc/emif.c
-index 52048f4..270a0e4 100644
---- a/drivers/misc/emif.c
-+++ b/drivers/misc/emif.c
-@@ -78,6 +78,24 @@ static void set_ddr_clk_period(u32 freq)
- }
+diff --git a/arch/arm/plat-omap/clock.c b/arch/arm/plat-omap/clock.c
+index 567e4b5..8030cc1 100644
+--- a/arch/arm/plat-omap/clock.c
++++ b/arch/arm/plat-omap/clock.c
+@@ -442,6 +442,8 @@ static int __init clk_disable_unused(void)
+ 		return 0;
  
- /*
-+ * Get bus width used by EMIF. Note that this may be different from the
-+ * bus width of the DDR devices used. For instance two 16-bit DDR devices
-+ * may be connected to a given CS of EMIF. In this case bus width as far
-+ * as EMIF is concerned is 32, where as the DDR bus width is 16 bits.
-+ */
-+static u32 get_emif_bus_width(struct emif_data *emif)
-+{
-+	u32		width;
-+	void __iomem	*base = emif->base;
+ 	pr_info("clock: disabling unused clocks to save power\n");
 +
-+	width = (readl(base + EMIF_SDRAM_CONFIG) & NARROW_MODE_MASK)
-+			>> NARROW_MODE_SHIFT;
-+	width = width == 0 ? 32 : 16;
-+
-+	return width;
-+}
-+
-+/*
-  * Get the CL from SDRAM_CONFIG register
-  */
- static u32 get_cl(struct emif_data *emif)
-@@ -372,6 +390,70 @@ static u32 get_sdram_tim_3_shdw(const struct lpddr2_timings *timings,
- 	return tim3;
- }
++	spin_lock_irqsave(&clockfw_lock, flags);
+ 	list_for_each_entry(ck, &clocks, node) {
+ 		if (ck->ops == &clkops_null)
+ 			continue;
+@@ -449,10 +451,9 @@ static int __init clk_disable_unused(void)
+ 		if (ck->usecount > 0 || !ck->enable_reg)
+ 			continue;
  
-+static u32 get_zq_config_reg(const struct lpddr2_addressing *addressing,
-+		bool cs1_used, bool cal_resistors_per_cs)
-+{
-+	u32 zq = 0, val = 0;
-+
-+	val = EMIF_ZQCS_INTERVAL_US * 1000 / addressing->tREFI_ns;
-+	zq |= val << ZQ_REFINTERVAL_SHIFT;
-+
-+	val = DIV_ROUND_UP(T_ZQCL_DEFAULT_NS, T_ZQCS_DEFAULT_NS) - 1;
-+	zq |= val << ZQ_ZQCL_MULT_SHIFT;
-+
-+	val = DIV_ROUND_UP(T_ZQINIT_DEFAULT_NS, T_ZQCL_DEFAULT_NS) - 1;
-+	zq |= val << ZQ_ZQINIT_MULT_SHIFT;
-+
-+	zq |= ZQ_SFEXITEN_ENABLE << ZQ_SFEXITEN_SHIFT;
-+
-+	if (cal_resistors_per_cs)
-+		zq |= ZQ_DUALCALEN_ENABLE << ZQ_DUALCALEN_SHIFT;
-+	else
-+		zq |= ZQ_DUALCALEN_DISABLE << ZQ_DUALCALEN_SHIFT;
-+
-+	zq |= ZQ_CS0EN_MASK; /* CS0 is used for sure */
-+
-+	val = cs1_used ? 1 : 0;
-+	zq |= val << ZQ_CS1EN_SHIFT;
-+
-+	return zq;
-+}
-+
-+static u32 get_temp_alert_config(const struct lpddr2_addressing *addressing,
-+		const struct emif_custom_configs *custom_configs, bool cs1_used,
-+		u32 sdram_io_width, u32 emif_bus_width)
-+{
-+	u32 alert = 0, interval, devcnt;
-+
-+	if (custom_configs && (custom_configs->mask &
-+				EMIF_CUSTOM_CONFIG_TEMP_ALERT_POLL_INTERVAL))
-+		interval = custom_configs->temp_alert_poll_interval_ms;
-+	else
-+		interval = TEMP_ALERT_POLL_INTERVAL_DEFAULT_MS;
-+
-+	interval *= 1000000;			/* Convert to ns */
-+	interval /= addressing->tREFI_ns;	/* Convert to refresh cycles */
-+	alert |= (interval << TA_REFINTERVAL_SHIFT);
-+
-+	/*
-+	 * sdram_io_width is in 'log2(x) - 1' form. Convert emif_bus_width
-+	 * also to this form and subtract to get TA_DEVCNT, which is
-+	 * in log2(x) form.
-+	 */
-+	emif_bus_width = __fls(emif_bus_width) - 1;
-+	devcnt = emif_bus_width - sdram_io_width;
-+	alert |= devcnt << TA_DEVCNT_SHIFT;
-+
-+	/* DEVWDT is in 'log2(x) - 3' form */
-+	alert |= (sdram_io_width - 2) << TA_DEVWDT_SHIFT;
-+
-+	alert |= 1 << TA_SFEXITEN_SHIFT;
-+	alert |= 1 << TA_CS0EN_SHIFT;
-+	alert |= (cs1_used ? 1 : 0) << TA_CS1EN_SHIFT;
-+
-+	return alert;
-+}
-+
- static u32 get_read_idle_ctrl_shdw(u8 volt_ramp)
- {
- 	u32 idle = 0, val = 0;
-@@ -815,6 +897,71 @@ static int __init_or_module setup_interrupts(struct emif_data *emif, u32 irq)
- 
- }
- 
-+static void __init_or_module emif_onetime_settings(struct emif_data *emif)
-+{
-+	u32				pwr_mgmt_ctrl, zq, temp_alert_cfg;
-+	void __iomem			*base = emif->base;
-+	const struct lpddr2_addressing	*addressing;
-+	const struct ddr_device_info	*device_info;
-+
-+	device_info = emif->plat_data->device_info;
-+	addressing = get_addressing_table(device_info);
-+
-+	/*
-+	 * Init power management settings
-+	 * We don't know the frequency yet. Use a high frequency
-+	 * value for a conservative timeout setting
-+	 */
-+	pwr_mgmt_ctrl = get_pwr_mgmt_ctrl(1000000000, emif,
-+			emif->plat_data->ip_rev);
-+	emif->lpmode = (pwr_mgmt_ctrl & LP_MODE_MASK) >> LP_MODE_SHIFT;
-+	writel(pwr_mgmt_ctrl, base + EMIF_POWER_MANAGEMENT_CONTROL);
-+
-+	/* Init ZQ calibration settings */
-+	zq = get_zq_config_reg(addressing, device_info->cs1_used,
-+		device_info->cal_resistors_per_cs);
-+	writel(zq, base + EMIF_SDRAM_OUTPUT_IMPEDANCE_CALIBRATION_CONFIG);
-+
-+	/* Check temperature level temperature level*/
-+	get_temperature_level(emif);
-+	if (emif->temperature_level == SDRAM_TEMP_VERY_HIGH_SHUTDOWN)
-+		dev_emerg(emif->dev, "SDRAM temperature exceeds operating limit.. Needs shut down!!!\n");
-+
-+	/* Init temperature polling */
-+	temp_alert_cfg = get_temp_alert_config(addressing,
-+		emif->plat_data->custom_configs, device_info->cs1_used,
-+		device_info->io_width, get_emif_bus_width(emif));
-+	writel(temp_alert_cfg, base + EMIF_TEMPERATURE_ALERT_CONFIG);
-+
-+	/*
-+	 * Program external PHY control registers that are not frequency
-+	 * dependent
-+	 */
-+	if (emif->plat_data->phy_type != EMIF_PHY_TYPE_INTELLIPHY)
-+		return;
-+	writel(EMIF_EXT_PHY_CTRL_1_VAL, base + EMIF_EXT_PHY_CTRL_1_SHDW);
-+	writel(EMIF_EXT_PHY_CTRL_5_VAL, base + EMIF_EXT_PHY_CTRL_5_SHDW);
-+	writel(EMIF_EXT_PHY_CTRL_6_VAL, base + EMIF_EXT_PHY_CTRL_6_SHDW);
-+	writel(EMIF_EXT_PHY_CTRL_7_VAL, base + EMIF_EXT_PHY_CTRL_7_SHDW);
-+	writel(EMIF_EXT_PHY_CTRL_8_VAL, base + EMIF_EXT_PHY_CTRL_8_SHDW);
-+	writel(EMIF_EXT_PHY_CTRL_9_VAL, base + EMIF_EXT_PHY_CTRL_9_SHDW);
-+	writel(EMIF_EXT_PHY_CTRL_10_VAL, base + EMIF_EXT_PHY_CTRL_10_SHDW);
-+	writel(EMIF_EXT_PHY_CTRL_11_VAL, base + EMIF_EXT_PHY_CTRL_11_SHDW);
-+	writel(EMIF_EXT_PHY_CTRL_12_VAL, base + EMIF_EXT_PHY_CTRL_12_SHDW);
-+	writel(EMIF_EXT_PHY_CTRL_13_VAL, base + EMIF_EXT_PHY_CTRL_13_SHDW);
-+	writel(EMIF_EXT_PHY_CTRL_14_VAL, base + EMIF_EXT_PHY_CTRL_14_SHDW);
-+	writel(EMIF_EXT_PHY_CTRL_15_VAL, base + EMIF_EXT_PHY_CTRL_15_SHDW);
-+	writel(EMIF_EXT_PHY_CTRL_16_VAL, base + EMIF_EXT_PHY_CTRL_16_SHDW);
-+	writel(EMIF_EXT_PHY_CTRL_17_VAL, base + EMIF_EXT_PHY_CTRL_17_SHDW);
-+	writel(EMIF_EXT_PHY_CTRL_18_VAL, base + EMIF_EXT_PHY_CTRL_18_SHDW);
-+	writel(EMIF_EXT_PHY_CTRL_19_VAL, base + EMIF_EXT_PHY_CTRL_19_SHDW);
-+	writel(EMIF_EXT_PHY_CTRL_20_VAL, base + EMIF_EXT_PHY_CTRL_20_SHDW);
-+	writel(EMIF_EXT_PHY_CTRL_21_VAL, base + EMIF_EXT_PHY_CTRL_21_SHDW);
-+	writel(EMIF_EXT_PHY_CTRL_22_VAL, base + EMIF_EXT_PHY_CTRL_22_SHDW);
-+	writel(EMIF_EXT_PHY_CTRL_23_VAL, base + EMIF_EXT_PHY_CTRL_23_SHDW);
-+	writel(EMIF_EXT_PHY_CTRL_24_VAL, base + EMIF_EXT_PHY_CTRL_24_SHDW);
-+}
-+
- static void get_default_timings(struct emif_data *emif)
- {
- 	struct emif_platform_data *pd = emif->plat_data;
-@@ -1027,6 +1174,7 @@ static int __init_or_module emif_probe(struct platform_device *pdev)
- 		goto error;
+-		spin_lock_irqsave(&clockfw_lock, flags);
+ 		arch_clock->clk_disable_unused(ck);
+-		spin_unlock_irqrestore(&clockfw_lock, flags);
  	}
++	spin_unlock_irqrestore(&clockfw_lock, flags);
  
-+	emif_onetime_settings(emif);
- 	disable_and_clear_all_interrupts(emif);
- 	setup_interrupts(emif, irq);
- 
+ 	return 0;
+ }
 -- 
-1.7.1
+1.7.0.4
 
