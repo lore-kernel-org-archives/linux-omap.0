@@ -1,73 +1,96 @@
-From: "Mark A. Greer" <mgreer@animalcreek.com>
-Subject: Re: AM3517evm
-Date: Thu, 15 Mar 2012 09:42:21 -0700
-Message-ID: <20120315164221.GB29645@animalcreek.com>
-References: <CAFu+nvFt8BcO1pDD6CXXM056WYG9AQDTv-boc7xF0C2JuHAyYw@mail.gmail.com>
- <4F5E0036.105@visionsystems.de>
- <20120315154335.GA29645@animalcreek.com>
- <4F621048.2090003@visionsystems.de>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+From: jean.pihet@newoldbits.com
+Subject: [PATCH 00/10] PM: Create the AVS class of drivers
+Date: Thu, 15 Mar 2012 17:43:55 +0100
+Message-ID: <1331829845-9526-1-git-send-email-j-pihet@ti.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail20.dotsterhost.com ([66.11.232.73]:44088 "EHLO
-	mail20.dotsterhost.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1031620Ab2COQmW (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 15 Mar 2012 12:42:22 -0400
-Content-Disposition: inline
-In-Reply-To: <4F621048.2090003@visionsystems.de>
+Received: from mail-wi0-f178.google.com ([209.85.212.178]:56867 "EHLO
+	mail-wi0-f178.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1031761Ab2COQoX (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 15 Mar 2012 12:44:23 -0400
+Received: by wibhq7 with SMTP id hq7so4652215wib.1
+        for <linux-omap@vger.kernel.org>; Thu, 15 Mar 2012 09:44:22 -0700 (PDT)
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Yegor Yefremov <yegor_sub1@visionsystems.de>
-Cc: "George C. Huntington, III" <george.huntingtoniii@gmail.com>, linux-omap@vger.kernel.org, mporter@ti.com
+To: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Kevin Hilman <khilman@ti.com>, "Rafael J. Wysocki" <rjw@sisk.pl>, LKML <linux-kernel@vger.kernel.org>
+Cc: Jean Pihet <j-pihet@ti.com>
 
-On Thu, Mar 15, 2012 at 04:52:40PM +0100, Yegor Yefremov wrote:
-> Am 15.03.2012 16:43, schrieb Mark A. Greer:
-> > On Mon, Mar 12, 2012 at 02:55:02PM +0100, Yegor Yefremov wrote:
-> >> Am 09.03.2012 18:22, schrieb George C. Huntington, III:
-> >>> I would like to make the newer kernel (3.x) work with the AM3517EVM.
-> >>> I have a 2.6.32 and a 2.6.33 that run well on the board, but the
-> >>> recent kernels have kernel panics before even running init.  where
-> >>> should I start?  is there a better place to pursue this?
-> >> Have you tried this one? http://git.kernel.org/?p=linux/kernel/git/tmlind/linux-omap.git;a=summary
-> >>
-> >> I have this one booting one month ago, but I checked out the kernel today and it hangs somewhere:
-> >>
-> >> Starting kernel ...
-> >>
-> >> Uncompressing Linux... done, booting the kernel.
-> > This looks like you have your console device set to ttyS2 instead of ttyO2.
-> >
-> > Which branch of that repository did you use?
-> 
-> My kernel params: CONFIG_CMDLINE="root=/dev/mmcblk0p2 rootwait console=ttyO2,115200" and I force them, so bootloader has nothing to say.
-> 
-> I'm using master branch.
+From: Jean Pihet <j-pihet@ti.com>
 
-I just booted the latest master branch (b8fe178) with the hack below.
-(Kernel command line: console=ttyO2,115200n8 root=/dev/mmcblk0p2 rw
-rootfstype=ext3 rootwait)
+AVS is a power management technique which controls the operating
+voltage of a device in order to optimize (i.e. reduce) its power
+consumption. The voltage is adapted depending on static factors
+(chip manufacturing process) and dynamic factors (temperature
+depending performance).
+AVS is also called SmartReflex on OMAP devices.
 
-Note that it is a ***HACK*** and should only be used temporarily.
+To that end, create the AVS framework in drivers/power/avs and
+move the OMAP SmartReflex code to the new directory.
 
-Also note that I've been working on fixing up some of the am35x issues
-including PM related ones that I'm in the middle of right now.  If all goes
-to plan, the am35x code will work better in the community in the
-not-too-distant future.
+In preparation to the move of the OMAP code the following changes have been
+made:
+- split the include files into generic and platform specific code,
+- fill in platform data from the device initialization code and pass
+  it to the driver,
+- create CONFIG_AVS* config options accordingly.
 
-Mark
---
+The platform integration data for SmartReflex is passed from hwmod
+and the voltage layer to the driver using pdata.
 
-diff --git a/arch/arm/mach-omap2/pm34xx.c b/arch/arm/mach-omap2/pm34xx.c
-index 027a537..5d1952b 100644
---- a/arch/arm/mach-omap2/pm34xx.c
-+++ b/arch/arm/mach-omap2/pm34xx.c
-@@ -397,7 +397,7 @@ static void omap3_pm_idle(void)
- {
-        local_fiq_disable();
- 
--       if (omap_irq_pending())
-+       if (omap_irq_pending() || !omap3_has_io_wakeup())
-                goto out;
- 
-        trace_power_start(POWER_CSTATE, 1, smp_processor_id());
+
+Tested on OMAP3 Beagleboard using omap2plus_defconfig with the
+CONFIG_POWER_AVS* options set.
+Based on master branch of the l-o git tree (3.3.0-rc6) [1], commit
+85244e0edd240da2004bb2ab7cbcbc67a336f20d.
+
+[1] git://git.kernel.org/pub/scm/linux/kernel/git/tmlind/linux-omap.git
+
+
+Jean Pihet (10):
+  ARM: OMAP3+: voltage: export functions to plat/voltage.h
+  ARM: OMAP2+: SmartReflex: move the platform specific macros in
+    plat-omap
+  ARM: OMAP3+: SmartReflex: class drivers should use struct omap_sr *
+  ARM: OMAP2+: smartreflex: Use the names from hwmod data instead of
+    voltage domains.
+  ARM: OMAP3: hwmod: rename the smartreflex entries
+  ARM: OMAP2+: SmartReflex: use the platform header file for voltage
+    functions
+  ARM: OMAP2+: SmartReflex: introduce a busy loop condition test macro
+  ARM: OMAP2+: SmartReflex: Use per-OPP data structure
+  ARM: OMAP2+: SmartReflex: add POWER_AVS Kconfig options
+  ARM: OMAP: SmartReflex: Move smartreflex driver to drivers/
+
+ arch/arm/mach-omap2/Makefile                  |    4 +-
+ arch/arm/mach-omap2/omap_hwmod_3xxx_data.c    |   11 +-
+ arch/arm/mach-omap2/omap_hwmod_44xx_data.c    |    3 +-
+ arch/arm/mach-omap2/pm.h                      |    2 +-
+ arch/arm/mach-omap2/smartreflex-class3.c      |   60 --
+ arch/arm/mach-omap2/smartreflex.c             | 1165 -------------------------
+ arch/arm/mach-omap2/smartreflex.h             |  256 ------
+ arch/arm/mach-omap2/sr_device.c               |   38 +-
+ arch/arm/mach-omap2/voltage.h                 |    1 -
+ arch/arm/mach-omap2/vp.h                      |    2 -
+ arch/arm/plat-omap/Kconfig                    |   31 -
+ arch/arm/plat-omap/include/plat/smartreflex.h |   95 ++
+ arch/arm/plat-omap/include/plat/voltage.h     |    3 +
+ drivers/power/Kconfig                         |    2 +
+ drivers/power/Makefile                        |    2 +
+ drivers/power/avs/Kconfig                     |   45 +
+ drivers/power/avs/Makefile                    |    2 +
+ drivers/power/avs/smartreflex-class3.c        |   60 ++
+ drivers/power/avs/smartreflex.c               | 1117 ++++++++++++++++++++++++
+ drivers/power/avs/smartreflex.h               |  238 +++++
+ 20 files changed, 1604 insertions(+), 1533 deletions(-)
+ delete mode 100644 arch/arm/mach-omap2/smartreflex-class3.c
+ delete mode 100644 arch/arm/mach-omap2/smartreflex.c
+ delete mode 100644 arch/arm/mach-omap2/smartreflex.h
+ create mode 100644 arch/arm/plat-omap/include/plat/smartreflex.h
+ create mode 100644 drivers/power/avs/Kconfig
+ create mode 100644 drivers/power/avs/Makefile
+ create mode 100644 drivers/power/avs/smartreflex-class3.c
+ create mode 100644 drivers/power/avs/smartreflex.c
+ create mode 100644 drivers/power/avs/smartreflex.h
+
+-- 
+1.7.5.4
 
