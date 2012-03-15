@@ -1,63 +1,64 @@
-From: Shubhrajyoti <shubhrajyoti@ti.com>
-Subject: Re: [PATCH RESEND 4/8] mmc: omap: context save after enabling runtime
- pm
-Date: Thu, 15 Mar 2012 20:42:42 +0530
-Message-ID: <4F6206EA.9060104@ti.com>
-References: <y> <1331822022-26714-1-git-send-email-svenkatr@ti.com> <1331822022-26714-5-git-send-email-svenkatr@ti.com>
+From: "Ramirez Luna, Omar" <omar.ramirez@ti.com>
+Subject: Re: [PATCH v2 5/8] ARM: OMAP2+: hwmod: ensure that SYSCONFIG bits are
+ reprogrammed after a reset
+Date: Thu, 15 Mar 2012 10:21:29 -0500
+Message-ID: <CAB-zwWh3tcz5xUkzthH_AAsmeXfMieUW-SCQnAaXyfSg8khqvg@mail.gmail.com>
+References: <20120228053524.16278.59430.stgit@dusk>
+	<20120228053657.16278.76132.stgit@dusk>
+	<CAB-zwWhAa3PprwDLzWLkBFUHPeJO3HN3M9mAZF=ohGTvP43jYA@mail.gmail.com>
+	<alpine.DEB.2.00.1203150024260.7269@utopia.booyaka.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aog125.obsmtp.com ([74.125.149.153]:56589 "EHLO
-	na3sys009aog125.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S965275Ab2COPMu (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>);
-	Thu, 15 Mar 2012 11:12:50 -0400
-Received: by mail-ob0-f178.google.com with SMTP id uo19so73371obb.9
-        for <linux-omap@vger.kernel.org>; Thu, 15 Mar 2012 08:12:48 -0700 (PDT)
-In-Reply-To: <1331822022-26714-5-git-send-email-svenkatr@ti.com>
+Received: from na3sys009aog133.obsmtp.com ([74.125.149.82]:46509 "EHLO
+	psmtp.com" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
+	id S932409Ab2COPVa convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 15 Mar 2012 11:21:30 -0400
+Received: by mail-lb0-f179.google.com with SMTP id gn12so1482641lbb.10
+        for <linux-omap@vger.kernel.org>; Thu, 15 Mar 2012 08:21:29 -0700 (PDT)
+In-Reply-To: <alpine.DEB.2.00.1203150024260.7269@utopia.booyaka.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Venkatraman S <svenkatr@ti.com>
-Cc: linux-mmc@vger.kernel.org, linux-omap@vger.kernel.org, cjb@laptop.org, balajitk@ti.com, balbi@ti.com
+To: Paul Walmsley <paul@pwsan.com>
+Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, =?ISO-8859-1?Q?Beno=EEt_Cousson?= <b-cousson@ti.com>
 
-On Thursday 15 March 2012 08:03 PM, Venkatraman S wrote:
-> From: Balaji T K <balajitk@ti.com>
+On Thu, Mar 15, 2012 at 1:25 AM, Paul Walmsley <paul@pwsan.com> wrote:
+> Hola Omar,
+
+Hola :)
+
+> On Wed, 14 Mar 2012, Ramirez Luna, Omar wrote:
 >
-> call context save api after enabling runtime pm
-> to make sure register access in context save api
-If I am not mistaken  the api  would
-store the number of power state changes and accesses no registers.
-
-Am I missing something?
-
->  happens with clk enabled.
+>> If we reached here the reset lines will be asserted, and then the co=
+de
+>> below touches sysc registers on a module under reset.
 >
-> Signed-off-by: Balaji T K <balajitk@ti.com>
-> ---
->  drivers/mmc/host/omap_hsmmc.c |    4 ++--
->  1 file changed, 2 insertions(+), 2 deletions(-)
->
-> diff --git a/drivers/mmc/host/omap_hsmmc.c b/drivers/mmc/host/omap_hsmmc.c
-> index 0f8d34b..9fa2f39 100644
-> --- a/drivers/mmc/host/omap_hsmmc.c
-> +++ b/drivers/mmc/host/omap_hsmmc.c
-> @@ -1871,8 +1871,6 @@ static int __init omap_hsmmc_probe(struct platform_device *pdev)
->  		goto err1;
->  	}
->  
-> -	omap_hsmmc_context_save(host);
-> -
->  	if (host->pdata->controller_flags & OMAP_HSMMC_BROKEN_MULTIBLOCK_READ) {
->  		dev_info(&pdev->dev, "multiblock reads disabled due to 35xx erratum 2.1.1.128; MMC read performance may suffer\n");
->  		mmc->caps2 |= MMC_CAP2_NO_MULTI_READ;
-> @@ -1883,6 +1881,8 @@ static int __init omap_hsmmc_probe(struct platform_device *pdev)
->  	pm_runtime_set_autosuspend_delay(host->dev, MMC_AUTOSUSPEND_DELAY);
->  	pm_runtime_use_autosuspend(host->dev);
->  
-> +	omap_hsmmc_context_save(host);
-> +
->  	if (cpu_is_omap2430()) {
->  		host->dbclk = clk_get(&pdev->dev, "mmchsdb_fck");
->  		/*
+> Do you know of any case where this would be a problem? =A0Seems like =
+it
+> would only affect IP blocks that have both hard reset lines and SYSCO=
+NFIG
+> registers, and as far as I know, we don't have any of those defined?
 
+MMU (not yet mainlined) has both, a reset line and a sysconfig.
+
+I have been holding the hwmod for some time, but now that
+rpmsg/remoteproc is going to mainline it could make use of it along
+with omap3isp, however now I need to define functions to handle the
+reset lines (although I was fine with hwmod handling it).
+
+AFAIKnew, hwmod handling the reset line was fine (IMHO), the only 2 thi=
+ngs were:
+- For the drivers to somehow make use of shutdown/enable if they
+needed they hwmod under reset and out.
+- The annoying: hwmod XX failed to hardreset because of the wrong
+reset sequence but causing no functional issues.
+
+Regards,
+
+Omar
+--
+To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
