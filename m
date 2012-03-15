@@ -1,21 +1,84 @@
 From: "Mark A. Greer" <mgreeraz@gmail.com>
-Subject: arm: omap3: pm34xx.c: Some minor fixups
-Date: Thu, 15 Mar 2012 09:20:39 -0700
-Message-ID: <1331828441-1406-1-git-send-email-mgreer@animalcreek.com>
+Subject: [PATCH 1/2] arm: omap3: pm34xx.c: Fix :omap3_pm_init() error out paths
+Date: Thu, 15 Mar 2012 09:20:40 -0700
+Message-ID: <1331828441-1406-2-git-send-email-mgreer@animalcreek.com>
+References: <1331828441-1406-1-git-send-email-mgreer@animalcreek.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
 Received: from mail-pz0-f52.google.com ([209.85.210.52]:63798 "EHLO
 	mail-pz0-f52.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1031547Ab2COQUs (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 15 Mar 2012 12:20:48 -0400
+	with ESMTP id S1031547Ab2COQUu (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 15 Mar 2012 12:20:50 -0400
 Received: by mail-pz0-f52.google.com with SMTP id p12so5099551dad.11
-        for <linux-omap@vger.kernel.org>; Thu, 15 Mar 2012 09:20:48 -0700 (PDT)
+        for <linux-omap@vger.kernel.org>; Thu, 15 Mar 2012 09:20:50 -0700 (PDT)
+In-Reply-To: <1331828441-1406-1-git-send-email-mgreer@animalcreek.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: linux-omap@vger.kernel.org
+Cc: "Mark A. Greer" <mgreer@animalcreek.com>, Tero Kristo <t-kristo@ti.com>
 
-I found a some minor issues when looking through pm34xx.c recently
-so these patches try to address them.  My apologies if they are already
-fixed in another branch somewhere.  Based on latest k.o. master branch.
+It appears that the error paths were overlooked when the
+omap3_pm_init() routine had the prcm chain handler code
+added.  Fix this by adding a goto target and reordering
+the error handling code.  Also fix how the irq argument
+for free_irq() is determined.
 
-Mark
---
+CC: Tero Kristo <t-kristo@ti.com>
+Signed-off-by: Mark A. Greer <mgreer@animalcreek.com>
+---
+ arch/arm/mach-omap2/pm34xx.c |   16 ++++++++++------
+ 1 files changed, 10 insertions(+), 6 deletions(-)
+
+diff --git a/arch/arm/mach-omap2/pm34xx.c b/arch/arm/mach-omap2/pm34xx.c
+index 27fc7a2..af8d741 100644
+--- a/arch/arm/mach-omap2/pm34xx.c
++++ b/arch/arm/mach-omap2/pm34xx.c
+@@ -817,13 +817,13 @@ static int __init omap3_pm_init(void)
+ 
+ 	if (ret) {
+ 		pr_err("pm: Failed to request pm_io irq\n");
+-		goto err1;
++		goto err2;
+ 	}
+ 
+ 	ret = pwrdm_for_each(pwrdms_setup, NULL);
+ 	if (ret) {
+ 		printk(KERN_ERR "Failed to setup powerdomains\n");
+-		goto err2;
++		goto err3;
+ 	}
+ 
+ 	(void) clkdm_for_each(clkdms_setup, NULL);
+@@ -831,7 +831,8 @@ static int __init omap3_pm_init(void)
+ 	mpu_pwrdm = pwrdm_lookup("mpu_pwrdm");
+ 	if (mpu_pwrdm == NULL) {
+ 		printk(KERN_ERR "Failed to get mpu_pwrdm\n");
+-		goto err2;
++		ret = -EINVAL;
++		goto err3;
+ 	}
+ 
+ 	neon_pwrdm = pwrdm_lookup("neon_pwrdm");
+@@ -879,14 +880,17 @@ static int __init omap3_pm_init(void)
+ 	}
+ 
+ 	omap3_save_scratchpad_contents();
+-err1:
+ 	return ret;
+-err2:
+-	free_irq(INT_34XX_PRCM_MPU_IRQ, NULL);
++
++err3:
+ 	list_for_each_entry_safe(pwrst, tmp, &pwrst_list, node) {
+ 		list_del(&pwrst->node);
+ 		kfree(pwrst);
+ 	}
++	free_irq(omap_prcm_event_to_irq("io"), omap3_pm_init);
++err2:
++	free_irq(omap_prcm_event_to_irq("wkup"), NULL);
++err1:
+ 	return ret;
+ }
+ 
+-- 
+1.7.0.4
+
