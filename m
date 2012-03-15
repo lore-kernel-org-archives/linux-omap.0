@@ -1,101 +1,86 @@
-From: "Mark A. Greer" <mgreeraz@gmail.com>
-Subject: [PATCH 2/2] arm: omap3: pm34xx.c: Replace printk() with appropriate pr_*()
-Date: Thu, 15 Mar 2012 09:20:41 -0700
-Message-ID: <1331828441-1406-3-git-send-email-mgreer@animalcreek.com>
-References: <1331828441-1406-1-git-send-email-mgreer@animalcreek.com>
+From: "Cousson, Benoit" <b-cousson@ti.com>
+Subject: Re: [PATCH] of: Add generic device tree DMA helpers
+Date: Thu, 15 Mar 2012 17:30:49 +0100
+Message-ID: <4F621939.9040906@ti.com>
+References: <4F22DEF2.5000807@ti.com> <1331800690-21518-1-git-send-email-nicolas.ferre@atmel.com> <201203150922.06379.arnd@arndb.de>
+Mime-Version: 1.0
+Content-Type: text/plain; charset="ISO-8859-1"; format=flowed
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-pz0-f52.google.com ([209.85.210.52]:63798 "EHLO
-	mail-pz0-f52.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1031547Ab2COQUw (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 15 Mar 2012 12:20:52 -0400
-Received: by mail-pz0-f52.google.com with SMTP id p12so5099551dad.11
-        for <linux-omap@vger.kernel.org>; Thu, 15 Mar 2012 09:20:52 -0700 (PDT)
-In-Reply-To: <1331828441-1406-1-git-send-email-mgreer@animalcreek.com>
+Received: from devils.ext.ti.com ([198.47.26.153]:33851 "EHLO
+	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1030656Ab2COQbS (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 15 Mar 2012 12:31:18 -0400
+In-Reply-To: <201203150922.06379.arnd@arndb.de>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: linux-omap@vger.kernel.org
-Cc: "Mark A. Greer" <mgreer@animalcreek.com>
+To: Arnd Bergmann <arnd@arndb.de>
+Cc: linux-arm-kernel@lists.infradead.org, Nicolas Ferre <nicolas.ferre@atmel.com>, grant.likely@secretlab.ca, rob.herring@calxeda.com, devicetree-discuss@lists.ozlabs.org, Stephen Warren <swarren@nvidia.com>, linux-omap@vger.kernel.org, Russell King <linux@arm.linux.org.uk>, Thierry Reding <thierry.reding@avionic-design.de>
 
-Currently, pm34xx.c has a mix of printk() and pr_*() statements
-so replace the printk() statements with the equivalent pr_*()
-statements.
+On 3/15/2012 10:22 AM, Arnd Bergmann wrote:
+> On Thursday 15 March 2012, Nicolas Ferre wrote:
+>> Add some basic helpers to retrieve a DMA controller device_node and the
+>> DMA request specifications. By making DMA controllers register a generic
+>> translation function, we allow the management of any type of DMA requests
+>> specification.
+>> The void * output of an of_dma_xlate() function that will be implemented
+>> by the DMA controller can carry any type of "dma-request" argument.
+>>
+>> The DMA client will search its associated DMA controller in the list and
+>> call the registered of_dam_xlate() function to retrieve the request values.
+>>
+>> One simple xlate function is provided for the "single number" type of
+>> request binding.
+>>
+>> This implementation is independent from dmaengine so it can also be used
+>> by legacy drivers.
+>>
+>> For legacy reason another API will export the DMA request number into a
+>> Linux resource of type IORESOURCE_DMA.
+>
+> This looks very good. I missed the first version of this patch, but was
+> thinking of very similar bindings.
+>
+>> +Client drivers should specify the DMA request property using a phandle to
+>> +the controller. If needed, the DMA request identity on that controller is then
+>> +added followed by optional request specifications.
+>> +
+>> +Required property:
+>> +    - dma-request: List of phandle + dma-request + request specifications,
+>> +      one group per request "line".
+>> +Optional property:
+>> +    - dma-request-names: list of strings in the same order as the dma-request
+>> +      in the dma-request property.
+>> +
+>> +
+>> +Example:
+>> +
+>> +	i2c1: i2c@1 {
+>> +		...
+>> +		dma-request =<&sdma 2&sdma 3>;
+>> +		dma-request-names = "tx", "rx";
+>> +		...
+>> +	};
+>
+> This is slightly different from how the proposed pwm binding works that
+> Thierry is working on, which uses an arbitrary property name instead of
+> requiring the use of a specific property but then allowing to give names
+> in another property.
+>
+> I don't care much which way it's done, but please try to agree on one
+> approach that is used for both.
+>
+> The one you have here is already used by reg and irq, while the other
+> one is used in gpio.
 
-Signed-off-by: Mark A. Greer <mgreer@animalcreek.com>
----
- arch/arm/mach-omap2/pm34xx.c |   17 ++++++++---------
- 1 files changed, 8 insertions(+), 9 deletions(-)
+This was done like IRQ on purpose, because an Interrupt ReQuest line and 
+a DMA Request line are really similar for the HW point of view at IP level.
+I'm not sure what Thierry have done for pwm, but I thing that having the 
+same scheme for reg, irq and dma was what we agreed with Grant during 
+Plumbers.
 
-diff --git a/arch/arm/mach-omap2/pm34xx.c b/arch/arm/mach-omap2/pm34xx.c
-index af8d741..495e509 100644
---- a/arch/arm/mach-omap2/pm34xx.c
-+++ b/arch/arm/mach-omap2/pm34xx.c
-@@ -166,8 +166,7 @@ static void omap3_save_secure_ram_context(void)
- 		pwrdm_set_next_pwrst(mpu_pwrdm, mpu_next_state);
- 		/* Following is for error tracking, it should not happen */
- 		if (ret) {
--			printk(KERN_ERR "save_secure_sram() returns %08x\n",
--				ret);
-+			pr_err("save_secure_sram() returns %08x\n", ret);
- 			while (1)
- 				;
- 		}
-@@ -307,7 +306,7 @@ void omap_sram_idle(void)
- 		break;
- 	default:
- 		/* Invalid state */
--		printk(KERN_ERR "Invalid mpu state in sram_idle\n");
-+		pr_err("Invalid mpu state in sram_idle\n");
- 		return;
- 	}
- 
-@@ -463,7 +462,7 @@ restore:
- 	list_for_each_entry(pwrst, &pwrst_list, node) {
- 		state = pwrdm_read_prev_pwrst(pwrst->pwrdm);
- 		if (state > pwrst->next_state) {
--			printk(KERN_INFO "Powerdomain (%s) didn't enter "
-+			pr_info("Powerdomain (%s) didn't enter "
- 			       "target state %d\n",
- 			       pwrst->pwrdm->name, pwrst->next_state);
- 			ret = -1;
-@@ -471,9 +470,9 @@ restore:
- 		omap_set_pwrdm_state(pwrst->pwrdm, pwrst->saved_state);
- 	}
- 	if (ret)
--		printk(KERN_ERR "Could not enter target state in pm_suspend\n");
-+		pr_err("Could not enter target state in pm_suspend\n");
- 	else
--		printk(KERN_INFO "Successfully put all powerdomains "
-+		pr_info("Successfully put all powerdomains "
- 		       "to target state\n");
- 
- 	return ret;
-@@ -822,7 +821,7 @@ static int __init omap3_pm_init(void)
- 
- 	ret = pwrdm_for_each(pwrdms_setup, NULL);
- 	if (ret) {
--		printk(KERN_ERR "Failed to setup powerdomains\n");
-+		pr_err("Failed to setup powerdomains\n");
- 		goto err3;
- 	}
- 
-@@ -830,7 +829,7 @@ static int __init omap3_pm_init(void)
- 
- 	mpu_pwrdm = pwrdm_lookup("mpu_pwrdm");
- 	if (mpu_pwrdm == NULL) {
--		printk(KERN_ERR "Failed to get mpu_pwrdm\n");
-+		pr_err("Failed to get mpu_pwrdm\n");
- 		ret = -EINVAL;
- 		goto err3;
- 	}
-@@ -865,7 +864,7 @@ static int __init omap3_pm_init(void)
- 		omap3_secure_ram_storage =
- 			kmalloc(0x803F, GFP_KERNEL);
- 		if (!omap3_secure_ram_storage)
--			printk(KERN_ERR "Memory allocation failed when"
-+			pr_err("Memory allocation failed when"
- 					"allocating for secure sram context\n");
- 
- 		local_irq_disable();
--- 
-1.7.0.4
+GPIO scheme will be probably good enough as well, but the idea was to be 
+consistent in the binding for similar information.
 
+Regards,
+Benoit
