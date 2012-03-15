@@ -1,86 +1,65 @@
-From: Russell King - ARM Linux <linux@arm.linux.org.uk>
-Subject: Re: [PATCH] of: Add generic device tree DMA helpers
-Date: Thu, 15 Mar 2012 21:55:37 +0000
-Message-ID: <20120315215537.GB2842@n2100.arm.linux.org.uk>
-References: <4F22DEF2.5000807@ti.com> <4F621939.9040906@ti.com> <20120315195753.GA2842@n2100.arm.linux.org.uk> <201203152041.53754.arnd@arndb.de> <4F626180.2010902@ti.com>
+From: Ville =?iso-8859-1?Q?Syrj=E4l=E4?= <syrjala@sci.fi>
+Subject: Re: [PATCH 1/2] OMAPDSS: DISPC: Enable predecimation
+Date: Fri, 16 Mar 2012 00:28:11 +0200
+Message-ID: <20120315222811.GN17132@sci.fi>
+References: <1331812108-9776-1-git-send-email-cmahapatra@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=iso-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from caramon.arm.linux.org.uk ([78.32.30.218]:55759 "EHLO
-	caramon.arm.linux.org.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753709Ab2COV4S (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 15 Mar 2012 17:56:18 -0400
+Received: from filtteri1.pp.htv.fi ([213.243.153.184]:38041 "EHLO
+	filtteri1.pp.htv.fi" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S964997Ab2COW2Q (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 15 Mar 2012 18:28:16 -0400
 Content-Disposition: inline
-In-Reply-To: <4F626180.2010902@ti.com>
+In-Reply-To: <1331812108-9776-1-git-send-email-cmahapatra@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "Cousson, Benoit" <b-cousson@ti.com>
-Cc: Arnd Bergmann <arnd@arndb.de>, linux-arm-kernel@lists.infradead.org, Nicolas Ferre <nicolas.ferre@atmel.com>, grant.likely@secretlab.ca, rob.herring@calxeda.com, devicetree-discuss@lists.ozlabs.org, Stephen Warren <swarren@nvidia.com>, linux-omap@vger.kernel.org, Thierry Reding <thierry.reding@avionic-design.de>
+To: Chandrabhanu Mahapatra <cmahapatra@ti.com>
+Cc: tomi.valkeinen@ti.com, linux-omap@vger.kernel.org, linux-fbdev@vger.kernel.org
 
-On Thu, Mar 15, 2012 at 10:39:12PM +0100, Cousson, Benoit wrote:
-> On 3/15/2012 9:41 PM, Arnd Bergmann wrote:
->> On Thursday 15 March 2012, Russell King - ARM Linux wrote:
->>> On Thu, Mar 15, 2012 at 05:30:49PM +0100, Cousson, Benoit wrote:
->>>> This was done like IRQ on purpose, because an Interrupt ReQuest line and
->>>> a DMA Request line are really similar for the HW point of view at IP
->>>> level.
->>>
->>> I'm not sure about that at all levels.  Sure, at hardware level they're
->>> the same, but I think the flat numeric namespace for IRQs has been
->>> proven to be a problem when there's multiple IRQ controllers in the
->>> system.
->>
->> In the DT bindings, both IRQ and the suggested DMA are not flat number
->> spaces, but instead can be of arbitrarly length defined by the controller.
->>
->>> As far as I'm concerned for DMA stuff, there is currently no real solution
->>> for a DT representation; TI have asked me to take over the conversion of
->>> OMAP DMA support to the DMA engine API, and I'm not yet convinced that
->>> the existing numbering system is the right solution - especially as
->>> there's several overlapping numberspaces for OMAP DMA numbers which
->>> are SoC specific.
->>
->> The numbers definitely need to become local to each of the controllers, but
->> that is the case pretty much automatically using the proposed binding,
->> because each dma request identifier starts with the phandle of the
->> controller.
->
-> Indeed, and in the case of the OMAP SDMA controller, it can handle up to  
-> 127 DMA request lines numbered from 0 to 126... So a local number seems  
-> to be a good representation... especially for a number. I'm not sure to  
-> understand the issue with this binding.
->
-> And AFAIK, there is the only one general purpose DMA controller in OMAP  
-> so far. The other ones are private to some IPs like MMC or USB, so they  
-> do not need necessarily need any DT representation.
-> But anyway, since the controller phandle is mandatory, it will be able  
-> to handle even several instances of this DMA controller without any 
-> issue.
+On Thu, Mar 15, 2012 at 05:18:28PM +0530, Chandrabhanu Mahapatra wrote:
+> In OMAP3 and OMAP4, the DISPC Scaler can downscale an image up to 4 t=
+imes, and
+> up to 2 times in OMAP2. However, with predecimation, the image can be=
+ reduced
+> to 16 times by fetching only the necessary pixels in memory. Then thi=
+s
+> predecimated image can be downscaled further by the DISPC scaler.
 
-Thank you both for missing my point.
+Now, where does that number 16 come from? IIRC the hardware can skip
+basically any number of pixels/rows. I certainly didn't add any such
+limit to the code in the harmattan kernel, and distinctly remember
+being able to downscale the N9/N950 UI even down to 1 pixel size :)
 
-#define OMAP24XX_DMA_SHA1MD5_RX         13      /* S_DMA_12 */
-#define OMAP34XX_DMA_SHA2MD5_RX         13      /* S_DMA_12 */
+> Based on the downscaling required, a prior calculation of predecimati=
+on values
+> for width and height of an image is done. Since, Predecimation reduce=
+s quality
+> of an image higher priorty is given to DISPC Scaler for downscaling.
+>=20
+> This code was successfully tested on OMAP2, OMAP3 and OMAP4. Horizont=
+al and
+> vertical predecimation worked fine except for some synclost errors du=
+e to
+> undocumented errata in OMAP3 which are fixed later and skewed images =
+were seen
+> on OMAP2 and OMAP3 during horizontal predecimation which will be addr=
+essed in
+> the future patches.
 
-#define OMAP242X_DMA_EXT_DMAREQ2        14      /* S_DMA_13 */
-#define OMAP243X_DMA_EXT_DMAREQ3        14      /* S_DMA_13 */
+All the rotation offset calculations still look suspiciously different
+to what is in the harmattan kernel. I remember that the original code
+was quite broken, and I fixed a lot of things when I was implementing
+pre-decimation and some rotation stuff for the N9/N950. Too bad I never
+managed to push that stuff upstream...
 
-#define OMAP242X_DMA_EXT_DMAREQ3        15      /* S_DMA_14 */
-#define OMAP24XX_DMA_SPI3_TX0           15      /* S_DMA_14 */
-
-#define OMAP242X_DMA_EXT_DMAREQ4        16      /* S_DMA_15 */
-#define OMAP24XX_DMA_SPI3_RX0           16      /* S_DMA_15 */
-
-#define OMAP242X_DMA_EAC_BT_DL_RD       25      /* S_DMA_24 */
-#define OMAP243X_DMA_EXT_DMAREQ4        25      /* S_DMA_24 */
-#define OMAP34XX_DMA_I2C3_TX            25      /* S_DMA_24 */
-
-Notice the overlap between the different SoCs for the same number on the
-same DMA controller.
-
-This shouldn't cause problems when all users are within the SoC specific
-file, but those EXT ones would probably be platform specific, and so you
-immediately have a dependence between the platform and the SoC there.
-
-That dependence can be completely eliminated by other matching schemes
-which are supportable via the DMA engine API.
+--=20
+Ville Syrj=E4l=E4
+syrjala@sci.fi
+http://www.sci.fi/~syrjala/
+--
+To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
