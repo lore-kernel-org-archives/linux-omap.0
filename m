@@ -1,73 +1,93 @@
-From: Jean Pihet <jean.pihet@newoldbits.com>
-Subject: Re: [PATCH 4/6] ARM: OMAP: fix missing __devexit_p() annotations
-Date: Thu, 15 Mar 2012 12:06:44 +0100
-Message-ID: <CAORVsuUVC4hpotK=eybA=Eqtfg0+PivjwRUENjCwcLG2dp1Ucg@mail.gmail.com>
-References: <20120315102845.GB16389@n2100.arm.linux.org.uk>
-	<E1S87wp-0000Mz-V8@rmk-PC.arm.linux.org.uk>
+From: Vaibhav Hiremath <hvaibhav@ti.com>
+Subject: [PATCH-V3 2/3] ARM: OMAP2+: powerdomain: Add offset & mask fields to struct powerdomain
+Date: Thu, 15 Mar 2012 16:36:25 +0530
+Message-ID: <1331809586-24652-3-git-send-email-hvaibhav@ti.com>
+References: <1331809586-24652-1-git-send-email-hvaibhav@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: text/plain
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-vx0-f174.google.com ([209.85.220.174]:43490 "EHLO
-	mail-vx0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755758Ab2COLGp convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 15 Mar 2012 07:06:45 -0400
-Received: by vcqp1 with SMTP id p1so2999088vcq.19
-        for <linux-omap@vger.kernel.org>; Thu, 15 Mar 2012 04:06:44 -0700 (PDT)
-In-Reply-To: <E1S87wp-0000Mz-V8@rmk-PC.arm.linux.org.uk>
+Received: from devils.ext.ti.com ([198.47.26.153]:42332 "EHLO
+	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751434Ab2COLVl (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 15 Mar 2012 07:21:41 -0400
+In-Reply-To: <1331809586-24652-1-git-send-email-hvaibhav@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Russell King <rmk+kernel@arm.linux.org.uk>
-Cc: Tony Lindgren <tony@atomide.com>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+To: linux-omap@vger.kernel.org
+Cc: linux-arm-kernel@lists.infradead.org, b-cousson@ti.com, tony@atomide.com, khilman@ti.com, paul@pwsan.com, rnayak@ti.com, Vaibhav Hiremath <hvaibhav@ti.com>
 
-Russell,
+In case of AM33xx device, there is no consistency between
+PWRSTCTRL & PWRSTST register offsets in PRM space, for example -
 
-On Thu, Mar 15, 2012 at 11:30 AM, Russell King
-<rmk+kernel@arm.linux.org.uk> wrote:
-> Missing __devexit_p() annotations in driver structures for remove fun=
-ctions
-> marked with __devexit is waiting for build errors to happen, such as:
->
-> `omap_system_dma_remove' referenced in section `.data' of arch/arm/pl=
-at-omap/bui
-> lt-in.o: defined in discarded section `.devexit.text' of arch/arm/pla=
-t-omap/buil
-> t-in.o
->
-> Add the necessary annotation, and as a result of audit, fix others wh=
-ich
-> are also missing in arch/arm/*omap*.
->
-> Signed-off-by: Russell King <rmk+kernel@arm.linux.org.uk>
-> Acked-by: Tony Lindgren <tony@atomide.com>
-> ---
-> =A0arch/arm/mach-omap2/smartreflex.c | =A0 =A02 +-
-> =A0arch/arm/plat-omap/dma.c =A0 =A0 =A0 =A0 =A0| =A0 =A02 +-
-> =A02 files changed, 2 insertions(+), 2 deletions(-)
->
-> diff --git a/arch/arm/mach-omap2/smartreflex.c b/arch/arm/mach-omap2/=
-smartreflex.c
-> index 7e755bb..47c77a1 100644
-> --- a/arch/arm/mach-omap2/smartreflex.c
-> +++ b/arch/arm/mach-omap2/smartreflex.c
-> @@ -1012,7 +1012,7 @@ static int __devexit omap_sr_remove(struct plat=
-form_device *pdev)
-> =A0}
->
-> =A0static struct platform_driver smartreflex_driver =3D {
-> - =A0 =A0 =A0 .remove =A0 =A0 =A0 =A0 =3D omap_sr_remove,
-> + =A0 =A0 =A0 .remove =A0 =A0 =A0 =A0 =3D __devexit_p(omap_sr_remove)=
-,
-> =A0 =A0 =A0 =A0.driver =A0 =A0 =A0 =A0 =3D {
-> =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0.name =A0 =3D "smartreflex",
-> =A0 =A0 =A0 =A0},
-Tony already has this change in his master branch, commit
-149f1d5c8d2fd6879cdf93ca70f1cb745e698a1e ('ARM: OMAP2+: Fix devexit
-for smartreflex when CONFIG_HOTPLUG is not set').
+PRM_XXX           PWRSTCTRL     PWRSTST
+=======================================
+PRM_PER_MOD:      0x0C,         0x08
+PRM_WKUP_MOD:     0x04,         0x08
+PRM_MPU_MOD:      0x00,         0x04
+PRM_DEVICE_MOD:   NA,           NA
 
-Jean
+And also, there is no consistency between bit-offsets inside
+PWRSTCTRL & PWRSTST register, for example -
+
+PRM_XXX           LOGICRET  MEMON  MEMRET
+=========================================
+GFX_PWRCTRL:      2,        17,    6
+PER_PWRCTRL:      3,        25,    29
+MPU_PWRCTRL:      2,        18,    22
+WKUP_PWRCTRL:     3,        NA,    NA
+
+This means, we need to maintain and pass on all this information
+through powerdomain handle; so adding fields for,
+   - PWRSTCTRL/ST register offset
+   - Logic retention state mask
+   - mem_on/ret/pwrst/retst mask
+
+Currently, this fields is only applicable and used for AM33XX devices.
+
+Signed-off-by: Vaibhav Hiremath <hvaibhav@ti.com>
+Cc: Paul Walmsley <paul@pwsan.com>
+Cc: Benoit Cousson <b-cousson@ti.com>
+Cc: Kevin Hilman <khilman@ti.com>
+Cc: Tony Lindgren <tony@atomide.com>
+---
+ arch/arm/mach-omap2/powerdomain.h |   17 +++++++++++++++++
+ 1 files changed, 17 insertions(+), 0 deletions(-)
+
+diff --git a/arch/arm/mach-omap2/powerdomain.h b/arch/arm/mach-omap2/powerdomain.h
+index 0d72a8a..8fc50b2 100644
+--- a/arch/arm/mach-omap2/powerdomain.h
++++ b/arch/arm/mach-omap2/powerdomain.h
+@@ -92,6 +92,15 @@ struct powerdomain;
+  * @pwrdm_clkdms: Clockdomains in this powerdomain
+  * @node: list_head linking all powerdomains
+  * @voltdm_node: list_head linking all powerdomains in a voltagedomain
++ * @pwrstctrl_offs: (AM33XX only) XXX_PWRSTCTRL reg offset from prcm_offs
++ * @pwrstst_offs: (AM33XX only) XXX_PWRSTST reg offset from prcm_offs
++ * @logicretstate_mask: (AM33XX only) mask for logic retention bitfield
++ *	in @pwrstctrl_offs
++ * @mem_on_mask: (AM33XX only) mask for mem on bitfield in @pwrstctrl_offs
++ * @mem_ret_mask: (AM33XX only) mask for mem retention bitfield in @pwrstctrl_offs
++ * @mem_pwrst_mask: (AM33XX only) mask for mem state bitfield in @pwrstst_offs
++ * @mem_retst_mask: (AM33XX only) mask for mem retention state bitfield
++ *	in @pwrstctrl_offs
+  * @state:
+  * @state_counter:
+  * @timer:
+@@ -121,6 +130,14 @@ struct powerdomain {
+ 	unsigned ret_logic_off_counter;
+ 	unsigned ret_mem_off_counter[PWRDM_MAX_MEM_BANKS];
+
++	const u8 pwrstctrl_offs;
++	const u8 pwrstst_offs;
++	const u32 logicretstate_mask;
++	const u32 mem_on_mask[PWRDM_MAX_MEM_BANKS];
++	const u32 mem_ret_mask[PWRDM_MAX_MEM_BANKS];
++	const u32 mem_pwrst_mask[PWRDM_MAX_MEM_BANKS];
++	const u32 mem_retst_mask[PWRDM_MAX_MEM_BANKS];
++
+ #ifdef CONFIG_PM_DEBUG
+ 	s64 timer;
+ 	s64 state_timer[PWRDM_MAX_PWRSTS];
 --
-To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+1.7.0.4
+
