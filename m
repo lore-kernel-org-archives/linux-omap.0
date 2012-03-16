@@ -1,7 +1,7 @@
 From: Venkatraman S <svenkatr@ti.com>
-Subject: [PATCH v2 3/8] mmc: omap: use runtime put sync in probe error patch
-Date: Fri, 16 Mar 2012 19:08:59 +0530
-Message-ID: <1331905144-31655-4-git-send-email-svenkatr@ti.com>
+Subject: [PATCH v2 4/8] mmc: omap: context save after enabling runtime pm
+Date: Fri, 16 Mar 2012 19:09:00 +0530
+Message-ID: <1331905144-31655-5-git-send-email-svenkatr@ti.com>
 References: <y>
  <1331905144-31655-1-git-send-email-svenkatr@ti.com>
 Mime-Version: 1.0
@@ -15,31 +15,38 @@ List-Id: linux-omap@vger.kernel.org
 
 From: Balaji T K <balajitk@ti.com>
 
-pm_runtime_put_sync instead of autosuspend pm runtime API
-because iounmap(host->base) follows immediately.
+call context save api after enabling runtime pm
+to make sure register access in context save api happens with clk enabled.
 
-Reported-by: Rajendra Nayak <rnayak@ti.com>
 Signed-off-by: Balaji T K <balajitk@ti.com>
 Signed-off-by: Venkatraman S <svenkatr@ti.com>
 Cc: stable <stable@vger.kernel.org>
 ---
- drivers/mmc/host/omap_hsmmc.c |    3 +--
- 1 file changed, 1 insertion(+), 2 deletions(-)
+ drivers/mmc/host/omap_hsmmc.c |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
 diff --git a/drivers/mmc/host/omap_hsmmc.c b/drivers/mmc/host/omap_hsmmc.c
-index d682c5e..baa06f9 100644
+index baa06f9..2822442 100644
 --- a/drivers/mmc/host/omap_hsmmc.c
 +++ b/drivers/mmc/host/omap_hsmmc.c
-@@ -2013,8 +2013,7 @@ err_reg:
- err_irq_cd_init:
- 	free_irq(host->irq, host);
- err_irq:
--	pm_runtime_mark_last_busy(host->dev);
--	pm_runtime_put_autosuspend(host->dev);
-+	pm_runtime_put_sync(host->dev);
- 	pm_runtime_disable(host->dev);
- 	clk_put(host->fclk);
- 	if (host->got_dbclk) {
+@@ -1870,8 +1870,6 @@ static int __init omap_hsmmc_probe(struct platform_device *pdev)
+ 		goto err1;
+ 	}
+ 
+-	omap_hsmmc_context_save(host);
+-
+ 	if (host->pdata->controller_flags & OMAP_HSMMC_BROKEN_MULTIBLOCK_READ) {
+ 		dev_info(&pdev->dev, "multiblock reads disabled due to 35xx erratum 2.1.1.128; MMC read performance may suffer\n");
+ 		mmc->caps2 |= MMC_CAP2_NO_MULTI_READ;
+@@ -1882,6 +1880,8 @@ static int __init omap_hsmmc_probe(struct platform_device *pdev)
+ 	pm_runtime_set_autosuspend_delay(host->dev, MMC_AUTOSUSPEND_DELAY);
+ 	pm_runtime_use_autosuspend(host->dev);
+ 
++	omap_hsmmc_context_save(host);
++
+ 	if (cpu_is_omap2430()) {
+ 		host->dbclk = clk_get(&pdev->dev, "mmchsdb_fck");
+ 		/*
 -- 
 1.7.10.rc0.41.gfa678
 
