@@ -1,55 +1,81 @@
-From: Nishanth Menon <nm@ti.com>
-Subject: [PATCH] OMAP2+: OPP: allow OPP enumeration to continue if device is not present
-Date: Fri, 16 Mar 2012 11:19:09 -0500
-Message-ID: <1331914749-23171-1-git-send-email-nm@ti.com>
+From: Samuel Ortiz <sameo@linux.intel.com>
+Subject: Re: [PATCH 0/5] ARM: OMAP: TLL driver implementation for USB host
+ driver
+Date: Fri, 16 Mar 2012 17:43:00 +0100
+Message-ID: <20120316164300.GC20524@sortiz-mobl>
+References: <1330957865-30543-1-git-send-email-keshava_mgowda@ti.com>
+ <CAP05o4LKEHtXFzZ0ysV+gNVu-_dh9BrAZb+M5UgaVy6dssMNbA@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain
+Content-Type: text/plain; charset=iso-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from comal.ext.ti.com ([198.47.26.152]:47833 "EHLO comal.ext.ti.com"
+Received: from mga02.intel.com ([134.134.136.20]:5599 "EHLO mga02.intel.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S965185Ab2CPQTU (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Fri, 16 Mar 2012 12:19:20 -0400
+	id S1753685Ab2CPQfH (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Fri, 16 Mar 2012 12:35:07 -0400
+Content-Disposition: inline
+In-Reply-To: <CAP05o4LKEHtXFzZ0ysV+gNVu-_dh9BrAZb+M5UgaVy6dssMNbA@mail.gmail.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: l-o <linux-omap@vger.kernel.org>
-Cc: l-a <linux-arm-kernel@lists.infradead.org>, Kevin <khilman@ti.com>, Tony <tony@atomide.com>, Steve Sakoman <steve@sakoman.com>, Maximilian Schwerin <mvs@tigris.de>, Nishanth Menon <nm@ti.com>
+To: "Munegowda, Keshava" <keshava_mgowda@ti.com>
+Cc: linux-omap@vger.kernel.org, linux-usb@vger.kernel.org, balbi@ti.com, parthab@india.ti.com, govindraj.raja@ti.com, paul@pwsan.com, b-cousson@ti.com
 
-On platforms such as OMAP3, certain variants may not have IVA, SGX
-or some specific component. We currently have a check to aid fixing
-wrong population of OPP entries for issues such as typos. This however
-causes a conflict with valid requirement where the SoC variant does
-not actually have the module present.
+Hi Keshava,
 
-So, reduce the severity of the print to a debug statement and skip
-registering that specific OPP, but continue down the list.
+On Mon, Mar 05, 2012 at 08:13:45PM +0530, Munegowda, Keshava wrote:
+> On Mon, Mar 5, 2012 at 8:01 PM, Keshava Munegowda <keshava_mgowda@ti.=
+com> wrote:
+> > From: Keshava Munegowda <Keshava_mgowda@ti.com>
+> >
+> > The TLL configuration is removed from the UHH driver and implemente=
+d as
+> > a seperate platform driver. Now, the UHH driver configures the TLL
+> > through API's exported by the TLL platform driver. The TLL is an
+> > has independent hardware mod structure for in OMAP3 and later chips=
+,
+> > hence an dedicated platform driver is created.
+> >
+> > Signed-off-by: Keshava Munegowda <keshava_mgowda@ti.com>
+> >
+> > Keshava Munegowda (5):
+> > =A0ARM: OMAP: USB: HOST TLL platform driver
+> > =A0ARM: OMAP: USB: Build the USB HOST TLL omap device
+> > =A0ARM: OMAP: USB: Remove TLL specific code
+> > =A0ARM: OMAP: USB: Invoke the TLL driver from USB HS core driver
+> > =A0ARM: OMAP: change the USB TLL clocks device name
+> >
+> > =A0arch/arm/mach-omap2/clock3xxx_data.c =A0| =A0 =A08 +-
+> > =A0arch/arm/mach-omap2/clock44xx_data.c =A0| =A0 =A04 +-
+> > =A0arch/arm/mach-omap2/usb-host.c =A0 =A0 =A0 =A0| =A0 28 ++-
+> > =A0arch/arm/plat-omap/include/plat/usb.h | =A0 =A09 +
+> > =A0drivers/mfd/Kconfig =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 | =A0 =A0=
+2 +-
+> > =A0drivers/mfd/Makefile =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0| =A0 =A0=
+2 +-
+> > =A0drivers/mfd/omap-usb-host.c =A0 =A0 =A0 =A0 =A0 | =A0232 +------=
+----------
+> > =A0drivers/mfd/omap-usb-tll.c =A0 =A0 =A0 =A0 =A0 =A0| =A0463 +++++=
+++++++++++++++++++++++++++++
+> > =A08 files changed, 513 insertions(+), 235 deletions(-)
+> > =A0create mode 100644 drivers/mfd/omap-usb-tll.c
+> >
+>=20
+> Hi Samuel
+>         just to get your attention; I have added your mail id in the
+> "to" list.
+> please let me know  your comments on this patch series;
+Here as well, I don't think I was cc'ed on the original submission. Wit=
+hout
+getting the actual patch, I'll have hard time reviewing it.
 
-Reported-by: Steve Sakoman <steve@sakoman.com>
-Reported-by: Maximilian Schwerin <mvs@tigris.de>
-Acked-by: Steve Sakoman <steve@sakoman.com>
-Tested-by: Maximilian Schwerin <mvs@tigris.de>
-Signed-off-by: Nishanth Menon <nm@ti.com>
----
-Discussion: http://marc.info/?t=133174689300002&r=1&w=2
- arch/arm/mach-omap2/opp.c |    4 ++--
- 1 files changed, 2 insertions(+), 2 deletions(-)
+Cheers,
+Samuel.
 
-diff --git a/arch/arm/mach-omap2/opp.c b/arch/arm/mach-omap2/opp.c
-index 9262a6b..de6d464 100644
---- a/arch/arm/mach-omap2/opp.c
-+++ b/arch/arm/mach-omap2/opp.c
-@@ -64,10 +64,10 @@ int __init omap_init_opp_table(struct omap_opp_def *opp_def,
- 		}
- 		oh = omap_hwmod_lookup(opp_def->hwmod_name);
- 		if (!oh || !oh->od) {
--			pr_warn("%s: no hwmod or odev for %s, [%d] "
-+			pr_debug("%s: no hwmod or odev for %s, [%d] "
- 				"cannot add OPPs.\n", __func__,
- 				opp_def->hwmod_name, i);
--			return -EINVAL;
-+			continue;
- 		}
- 		dev = &oh->od->pdev->dev;
- 
--- 
-1.7.0.4
-
+--=20
+Intel Open Source Technology Centre
+http://oss.intel.com/
+--
+To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
