@@ -1,227 +1,179 @@
-From: Sourav Poddar <sourav.poddar@ti.com>
-Subject: [PATCH 2/2] Input: omap-keypad: dynamically handle register offsets
-Date: Fri, 16 Mar 2012 19:56:29 +0530
-Message-ID: <1331907989-11891-3-git-send-email-sourav.poddar@ti.com>
-References: <1331907989-11891-1-git-send-email-sourav.poddar@ti.com>
+From: "S, Venkatraman" <svenkatr@ti.com>
+Subject: Re: [PATCH v2 1/8] mmc: omap: Enable Auto CMD12
+Date: Fri, 16 Mar 2012 19:56:58 +0530
+Message-ID: <CANfBPZ_XHj0G8KbFzWJZGsRLnNHawAreQUmwwskMB4xpMxGmnQ@mail.gmail.com>
+References: <1331905144-31655-1-git-send-email-svenkatr@ti.com>
+ <1331905144-31655-2-git-send-email-svenkatr@ti.com> <20120316135113.GM24651@arwen.pp.htv.fi>
 Mime-Version: 1.0
-Content-Type: text/plain
-Return-path: <linux-input-owner@vger.kernel.org>
-In-Reply-To: <1331907989-11891-1-git-send-email-sourav.poddar@ti.com>
-Sender: linux-input-owner@vger.kernel.org
-To: dmitry.torokhov@gmail.com, sourav.poddar@ti.com, linux-input@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org
-Cc: balbi@ti.com
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Return-path: <linux-mmc-owner@vger.kernel.org>
+In-Reply-To: <20120316135113.GM24651@arwen.pp.htv.fi>
+Sender: linux-mmc-owner@vger.kernel.org
+To: balbi@ti.com
+Cc: linux-mmc@vger.kernel.org, linux-omap@vger.kernel.org, cjb@laptop.org, balajitk@ti.com
 List-Id: linux-omap@vger.kernel.org
 
-From: G, Manjunath Kondaiah <manjugk@ti.com>
+On Fri, Mar 16, 2012 at 7:21 PM, Felipe Balbi <balbi@ti.com> wrote:
+> On Fri, Mar 16, 2012 at 07:08:57PM +0530, Venkatraman S wrote:
+>> From: Balaji T K <balajitk@ti.com>
+>>
+>> Enable Auto-CMD12 for multi block read/write on HSMMC
+>> Tested on OMAP4430, OMAP3430 and OMAP2430 SDP
+>>
+>> Signed-off-by: Balaji T K <balajitk@ti.com>
+>> Signed-off-by: Venkatraman S <svenkatr@ti.com>
+>> ---
+>> =A0drivers/mmc/host/omap_hsmmc.c | =A0 16 +++++++++++++---
+>> =A01 file changed, 13 insertions(+), 3 deletions(-)
+>>
+>> diff --git a/drivers/mmc/host/omap_hsmmc.c b/drivers/mmc/host/omap_h=
+smmc.c
+>> index f29e1a2..a9ffd70 100644
+>> --- a/drivers/mmc/host/omap_hsmmc.c
+>> +++ b/drivers/mmc/host/omap_hsmmc.c
+>> @@ -85,6 +85,7 @@
+>> =A0#define BRR_ENABLE =A0 =A0 =A0 =A0 =A0 (1 << 5)
+>> =A0#define DTO_ENABLE =A0 =A0 =A0 =A0 =A0 (1 << 20)
+>> =A0#define INIT_STREAM =A0 =A0 =A0 =A0 =A0(1 << 1)
+>> +#define ACEN_ACMD12 =A0 =A0 =A0 =A0 =A0(1 << 2)
+>> =A0#define DP_SELECT =A0 =A0 =A0 =A0 =A0 =A0(1 << 21)
+>> =A0#define DDIR =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 (1 << 4)
+>> =A0#define DMA_EN =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 0x1
+>> @@ -115,6 +116,7 @@
+>> =A0#define OMAP_MMC_MAX_CLOCK =A0 52000000
+>> =A0#define DRIVER_NAME =A0 =A0 =A0 =A0 =A0"omap_hsmmc"
+>>
+>> +#define AUTO_CMD12 =A0 =A0 =A0 =A0 =A0 (1 << 0) =A0 =A0 =A0 =A0/* A=
+uto CMD12 support */
+>> =A0/*
+>> =A0 * One controller can have multiple slots, like on some omap boar=
+ds using
+>> =A0 * omap.c controller driver. Luckily this is not currently done o=
+n any known
+>> @@ -175,6 +177,7 @@ struct omap_hsmmc_host {
+>> =A0 =A0 =A0 int =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 reqs_blocked=
+;
+>> =A0 =A0 =A0 int =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 use_reg;
+>> =A0 =A0 =A0 int =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 req_in_progr=
+ess;
+>> + =A0 =A0 unsigned int =A0 =A0 =A0 =A0 =A0 =A0flags;
+>> =A0 =A0 =A0 struct omap_hsmmc_next =A0next_data;
+>>
+>> =A0 =A0 =A0 struct =A0omap_mmc_platform_data =A0*pdata;
+>> @@ -766,6 +769,8 @@ omap_hsmmc_start_command(struct omap_hsmmc_host =
+*host, struct mmc_command *cmd,
+>> =A0 =A0 =A0 =A0 =A0 =A0 =A0 cmdtype =3D 0x3;
+>>
+>> =A0 =A0 =A0 cmdreg =3D (cmd->opcode << 24) | (resptype << 16) | (cmd=
+type << 22);
+>> + =A0 =A0 if ((host->flags & AUTO_CMD12) && mmc_op_multi(cmd->opcode=
+))
+>> + =A0 =A0 =A0 =A0 =A0 =A0 cmdreg |=3D ACEN_ACMD12;
+>>
+>> =A0 =A0 =A0 if (data) {
+>> =A0 =A0 =A0 =A0 =A0 =A0 =A0 cmdreg |=3D DP_SELECT | MSBS | BCE;
+>> @@ -837,11 +842,15 @@ omap_hsmmc_xfer_done(struct omap_hsmmc_host *h=
+ost, struct mmc_data *data)
+>> =A0 =A0 =A0 else
+>> =A0 =A0 =A0 =A0 =A0 =A0 =A0 data->bytes_xfered =3D 0;
+>>
+>> - =A0 =A0 if (!data->stop) {
+>> + =A0 =A0 if (data->stop && ((!(host->flags & AUTO_CMD12)) || data->=
+error)) {
+>> + =A0 =A0 =A0 =A0 =A0 =A0 omap_hsmmc_start_command(host, data->stop,=
+ NULL);
+>> + =A0 =A0 }
+>> + =A0 =A0 else {
+>
+> while adding the braces, you broke the coding style. Please fix.
+>
 
-Keypad controller register offsets are different for omap4
-and omap5. Handle these offsets through static mapping and
-assign these mappings during run time.
+Oops - now fixed (and pushed out).
 
-Signed-off-by: Felipe Balbi <balbi@ti.com>
-Signed-off-by: G, Manjunath Kondaiah <manjugk@ti.com>
-Signed-off-by: Sourav Poddar <sourav.poddar@ti.com>
+=46rom 00ae42358249e879698029201e3cbb9ea155305e Mon Sep 17 00:00:00 200=
+1
+=46rom: Balaji T K <balajitk@ti.com>
+Date: Fri, 24 Feb 2012 21:14:31 +0530
+Subject: [PATCH] mmc: omap: Enable Auto CMD12
+
+Enable Auto-CMD12 for multi block read/write on HSMMC
+Tested on OMAP4430, OMAP3430 and OMAP2430 SDP
+
+Signed-off-by: Balaji T K <balajitk@ti.com>
+Signed-off-by: Venkatraman S <svenkatr@ti.com>
 ---
- drivers/input/keyboard/Kconfig        |    6 +-
- drivers/input/keyboard/omap4-keypad.c |  122 ++++++++++++++++++++++++++------
- 2 files changed, 102 insertions(+), 26 deletions(-)
+ drivers/mmc/host/omap_hsmmc.c |   15 ++++++++++++---
+ 1 file changed, 12 insertions(+), 3 deletions(-)
 
-diff --git a/drivers/input/keyboard/Kconfig b/drivers/input/keyboard/Kconfig
-index 1379daa..09d7d0b 100644
---- a/drivers/input/keyboard/Kconfig
-+++ b/drivers/input/keyboard/Kconfig
-@@ -510,10 +510,10 @@ config KEYBOARD_OMAP
- 	  To compile this driver as a module, choose M here: the
- 	  module will be called omap-keypad.
- 
--config KEYBOARD_OMAP4
--	tristate "TI OMAP4 keypad support"
-+config KEYBOARD_OMAP4+
-+	tristate "TI OMAP4+ keypad support"
- 	help
--	  Say Y here if you want to use the OMAP4 keypad.
-+	  Say Y here if you want to use the OMAP4+ keypad.
- 
- 	  To compile this driver as a module, choose M here: the
- 	  module will be called omap4-keypad.
-diff --git a/drivers/input/keyboard/omap4-keypad.c b/drivers/input/keyboard/omap4-keypad.c
-index e809ac0..6872495 100644
---- a/drivers/input/keyboard/omap4-keypad.c
-+++ b/drivers/input/keyboard/omap4-keypad.c
-@@ -68,6 +68,11 @@
- 
- #define OMAP4_MASK_IRQSTATUSDISABLE	0xFFFF
- 
-+enum {
-+	KBD_REVISION_OMAP4 = 0,
-+	KBD_REVISION_OMAP5,
-+};
-+
- struct omap4_keypad {
- 	struct input_dev *input;
- 
-@@ -76,11 +81,79 @@ struct omap4_keypad {
- 
- 	unsigned int rows;
- 	unsigned int cols;
-+	unsigned int revision;
- 	unsigned int row_shift;
- 	unsigned char key_state[8];
- 	unsigned short keymap[];
- };
- 
-+static int kbd_read_irqstatus(struct omap4_keypad *keypad_data, u32 offset)
-+{
-+	if (keypad_data->revision == KBD_REVISION_OMAP4)
-+		return __raw_readl(keypad_data->base + offset);
-+	else if (keypad_data->revision == KBD_REVISION_OMAP5)
-+		return __raw_readl(keypad_data->base + offset + 0x0c);
-+
-+	return -ENODEV;
-+}
-+
-+static int kbd_write_irqstatus(struct omap4_keypad *keypad_data,
-+						u32 offset, u32 value)
-+{
-+	if (keypad_data->revision == KBD_REVISION_OMAP4)
-+		return __raw_writel(value, keypad_data->base + offset);
-+	else if (keypad_data->revision == KBD_REVISION_OMAP5)
-+		return __raw_writel(value, keypad_data->base + offset + 0x0c);
-+
-+	return -ENODEV;
-+}
-+
-+static int kbd_write_irqenable(struct omap4_keypad *keypad_data,
-+						u32 offset, u32 value)
-+{
-+	if (keypad_data->revision == KBD_REVISION_OMAP4)
-+		return __raw_writel(value, keypad_data->base + offset);
-+	else if (keypad_data->revision == KBD_REVISION_OMAP5)
-+		return __raw_writel(value, keypad_data->base + offset + 0x0c);
-+
-+	return -ENODEV;
-+}
-+
-+static int kbd_readl(struct omap4_keypad *keypad_data, u32 offset)
-+{
-+	if (keypad_data->revision == KBD_REVISION_OMAP4)
-+		return __raw_readl(keypad_data->base + offset);
-+	else if (keypad_data->revision == KBD_REVISION_OMAP5)
-+		return __raw_readl(keypad_data->base + offset + 0x10);
-+
-+	return -ENODEV;
-+}
-+
-+static void kbd_writel(struct omap4_keypad *keypad_data, u32 offset, u32 value)
-+{
-+	if (keypad_data->revision == KBD_REVISION_OMAP4)
-+		__raw_writel(value, keypad_data->base + offset);
-+	else if (keypad_data->revision == KBD_REVISION_OMAP5)
-+		__raw_writel(value, keypad_data->base + offset + 0x10);
-+}
-+
-+static int kbd_read_revision(struct omap4_keypad *keypad_data, u32 offset)
-+{
-+	int reg;
-+	reg = __raw_readl(keypad_data->base + offset);
-+	reg &= 0x03 << 30;
-+	reg >>= 30;
-+
-+	switch (reg) {
-+	case 1:
-+		return KBD_REVISION_OMAP5;
-+	case 0:
-+		return KBD_REVISION_OMAP4;
-+	default:
-+		return -ENODEV;
-+	}
-+}
-+
- /* Interrupt handler */
- static irqreturn_t omap4_keypad_interrupt(int irq, void *dev_id)
- {
-@@ -91,12 +164,11 @@ static irqreturn_t omap4_keypad_interrupt(int irq, void *dev_id)
- 	u32 *new_state = (u32 *) key_state;
- 
- 	/* Disable interrupts */
--	__raw_writel(OMAP4_VAL_IRQDISABLE,
--		     keypad_data->base + OMAP4_KBD_IRQENABLE);
-+	kbd_write_irqenable(keypad_data, OMAP4_KBD_IRQENABLE,
-+						OMAP4_VAL_IRQDISABLE);
- 
--	*new_state = __raw_readl(keypad_data->base + OMAP4_KBD_FULLCODE31_0);
--	*(new_state + 1) = __raw_readl(keypad_data->base
--						+ OMAP4_KBD_FULLCODE63_32);
-+	*new_state = kbd_readl(keypad_data, OMAP4_KBD_FULLCODE31_0);
-+	*(new_state + 1) = kbd_readl(keypad_data, OMAP4_KBD_FULLCODE63_32);
- 
- 	for (row = 0; row < keypad_data->rows; row++) {
- 		changed = key_state[row] ^ keypad_data->key_state[row];
-@@ -121,12 +193,13 @@ static irqreturn_t omap4_keypad_interrupt(int irq, void *dev_id)
- 		sizeof(keypad_data->key_state));
- 
- 	/* clear pending interrupts */
--	__raw_writel(__raw_readl(keypad_data->base + OMAP4_KBD_IRQSTATUS),
--			keypad_data->base + OMAP4_KBD_IRQSTATUS);
-+	kbd_write_irqstatus(keypad_data, OMAP4_KBD_IRQSTATUS,
-+			kbd_read_irqstatus(keypad_data, OMAP4_KBD_IRQSTATUS));
- 
- 	/* enable interrupts */
--	__raw_writel(OMAP4_DEF_IRQENABLE_EVENTEN | OMAP4_DEF_IRQENABLE_LONGKEY,
--			keypad_data->base + OMAP4_KBD_IRQENABLE);
-+	kbd_write_irqenable(keypad_data, OMAP4_KBD_IRQENABLE,
-+			OMAP4_DEF_IRQENABLE_EVENTEN |
-+				OMAP4_DEF_IRQENABLE_LONGKEY);
- 
- 	return IRQ_HANDLED;
+diff --git a/drivers/mmc/host/omap_hsmmc.c b/drivers/mmc/host/omap_hsmm=
+c.c
+index f29e1a2..729ac72 100644
+--- a/drivers/mmc/host/omap_hsmmc.c
++++ b/drivers/mmc/host/omap_hsmmc.c
+@@ -85,6 +85,7 @@
+ #define BRR_ENABLE		(1 << 5)
+ #define DTO_ENABLE		(1 << 20)
+ #define INIT_STREAM		(1 << 1)
++#define ACEN_ACMD12		(1 << 2)
+ #define DP_SELECT		(1 << 21)
+ #define DDIR			(1 << 4)
+ #define DMA_EN			0x1
+@@ -115,6 +116,7 @@
+ #define OMAP_MMC_MAX_CLOCK	52000000
+ #define DRIVER_NAME		"omap_hsmmc"
+
++#define AUTO_CMD12		(1 << 0)	/* Auto CMD12 support */
+ /*
+  * One controller can have multiple slots, like on some omap boards us=
+ing
+  * omap.c controller driver. Luckily this is not currently done on any=
+ known
+@@ -175,6 +177,7 @@ struct omap_hsmmc_host {
+ 	int			reqs_blocked;
+ 	int			use_reg;
+ 	int			req_in_progress;
++	unsigned int		flags;
+ 	struct omap_hsmmc_next	next_data;
+
+ 	struct	omap_mmc_platform_data	*pdata;
+@@ -766,6 +769,8 @@ omap_hsmmc_start_command(struct omap_hsmmc_host
+*host, struct mmc_command *cmd,
+ 		cmdtype =3D 0x3;
+
+ 	cmdreg =3D (cmd->opcode << 24) | (resptype << 16) | (cmdtype << 22);
++	if ((host->flags & AUTO_CMD12) && mmc_op_multi(cmd->opcode))
++		cmdreg |=3D ACEN_ACMD12;
+
+ 	if (data) {
+ 		cmdreg |=3D DP_SELECT | MSBS | BCE;
+@@ -837,11 +842,14 @@ omap_hsmmc_xfer_done(struct omap_hsmmc_host
+*host, struct mmc_data *data)
+ 	else
+ 		data->bytes_xfered =3D 0;
+
+-	if (!data->stop) {
++	if (data->stop && ((!(host->flags & AUTO_CMD12)) || data->error)) {
++		omap_hsmmc_start_command(host, data->stop, NULL);
++	} else {
++		if (data->stop)
++			data->stop->resp[0] =3D OMAP_HSMMC_READ(host->base,
++							RSP76);
+ 		omap_hsmmc_request_done(host, data->mrq);
+-		return;
+ 	}
+-	omap_hsmmc_start_command(host, data->stop, NULL);
  }
-@@ -139,16 +212,19 @@ static int omap4_keypad_open(struct input_dev *input)
- 
- 	disable_irq(keypad_data->irq);
- 
--	__raw_writel(OMAP4_VAL_FUNCTIONALCFG,
--			keypad_data->base + OMAP4_KBD_CTRL);
--	__raw_writel(OMAP4_VAL_DEBOUNCINGTIME,
--			keypad_data->base + OMAP4_KBD_DEBOUNCINGTIME);
--	__raw_writel(OMAP4_VAL_IRQDISABLE,
--			keypad_data->base + OMAP4_KBD_IRQSTATUS);
--	__raw_writel(OMAP4_DEF_IRQENABLE_EVENTEN | OMAP4_DEF_IRQENABLE_LONGKEY,
--			keypad_data->base + OMAP4_KBD_IRQENABLE);
--	__raw_writel(OMAP4_DEF_WUP_EVENT_ENA | OMAP4_DEF_WUP_LONG_KEY_ENA,
--			keypad_data->base + OMAP4_KBD_WAKEUPENABLE);
-+	keypad_data->revision = kbd_read_revision(keypad_data,
-+			OMAP4_KBD_REVISION);
-+	kbd_writel(keypad_data, OMAP4_KBD_CTRL,
-+			OMAP4_VAL_FUNCTIONALCFG);
-+	kbd_writel(keypad_data, OMAP4_KBD_DEBOUNCINGTIME,
-+			OMAP4_VAL_DEBOUNCINGTIME);
-+	kbd_write_irqstatus(keypad_data, OMAP4_KBD_IRQSTATUS,
-+			OMAP4_VAL_IRQDISABLE);
-+	kbd_write_irqenable(keypad_data, OMAP4_KBD_IRQENABLE,
-+			OMAP4_DEF_IRQENABLE_EVENTEN |
-+				OMAP4_DEF_IRQENABLE_LONGKEY);
-+	kbd_writel(keypad_data, OMAP4_KBD_WAKEUPENABLE,
-+			OMAP4_DEF_WUP_EVENT_ENA | OMAP4_DEF_WUP_LONG_KEY_ENA);
- 
- 	enable_irq(keypad_data->irq);
- 
-@@ -162,12 +238,12 @@ static void omap4_keypad_close(struct input_dev *input)
- 	disable_irq(keypad_data->irq);
- 
- 	/* Disable interrupts */
--	__raw_writel(OMAP4_VAL_IRQDISABLE,
--		     keypad_data->base + OMAP4_KBD_IRQENABLE);
-+	kbd_write_irqenable(keypad_data, OMAP4_KBD_IRQENABLE,
-+			OMAP4_VAL_IRQDISABLE);
- 
- 	/* clear pending interrupts */
--	__raw_writel(__raw_readl(keypad_data->base + OMAP4_KBD_IRQSTATUS),
--			keypad_data->base + OMAP4_KBD_IRQSTATUS);
-+	kbd_write_irqstatus(keypad_data, OMAP4_KBD_IRQSTATUS,
-+			kbd_read_irqstatus(keypad_data, OMAP4_KBD_IRQSTATUS));
- 
- 	enable_irq(keypad_data->irq);
- 
--- 
-1.7.1
 
+ /*
+@@ -1826,6 +1834,7 @@ static int __init omap_hsmmc_probe(struct
+platform_device *pdev)
+ 	host->mapbase	=3D res->start;
+ 	host->base	=3D ioremap(host->mapbase, SZ_4K);
+ 	host->power_mode =3D MMC_POWER_OFF;
++	host->flags	=3D AUTO_CMD12;
+ 	host->next_data.cookie =3D 1;
+
+ 	platform_set_drvdata(pdev, host);
+--=20
+1.7.10.rc0.41.gfa678
