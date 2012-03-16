@@ -1,138 +1,91 @@
-From: Archit Taneja <a0393947@ti.com>
-Subject: Re: [PATCH] omap_vout: Set DSS overlay_info only if paddr is non
- zero
-Date: Fri, 16 Mar 2012 15:46:04 +0530
-Message-ID: <4F6312E4.5000404@ti.com>
-References: <1331110876-11895-1-git-send-email-archit@ti.com> <79CD15C6BA57404B839C016229A409A831810EAA@DBDE01.ent.ti.com>
+From: Tomi Valkeinen <tomi.valkeinen@ti.com>
+Subject: Re: [PATCH 2/2] OMAPDSS: DISPC: Handle synclost errors in OMAP3
+Date: Fri, 16 Mar 2012 12:23:31 +0200
+Message-ID: <1331893411.1653.5.camel@lappy>
+References: <1331812132-9814-1-git-send-email-cmahapatra@ti.com>
+	 <20120315230446.GO17132@sci.fi>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="ISO-8859-1"; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from bear.ext.ti.com ([192.94.94.41]:36752 "EHLO bear.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1760996Ab2CPKQ0 (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Fri, 16 Mar 2012 06:16:26 -0400
-In-Reply-To: <79CD15C6BA57404B839C016229A409A831810EAA@DBDE01.ent.ti.com>
+Received: from na3sys009aog136.obsmtp.com ([74.125.149.85]:58509 "EHLO
+	psmtp.com" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
+	id S1760906Ab2CPKXj (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Fri, 16 Mar 2012 06:23:39 -0400
+Received: by lahc1 with SMTP id c1so3368800lah.26
+        for <linux-omap@vger.kernel.org>; Fri, 16 Mar 2012 03:23:36 -0700 (PDT)
+In-Reply-To: <20120315230446.GO17132@sci.fi>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "Hiremath, Vaibhav" <hvaibhav@ti.com>
-Cc: "Taneja, Archit" <archit@ti.com>, "Valkeinen, Tomi" <tomi.valkeinen@ti.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
+To: Ville =?ISO-8859-1?Q?Syrj=E4l=E4?= <syrjala@sci.fi>, Chandrabhanu Mahapatra <cmahapatra@ti.com>
+Cc: linux-omap@vger.kernel.org, linux-fbdev@vger.kernel.org
 
-On Monday 12 March 2012 03:34 PM, Hiremath, Vaibhav wrote:
-> On Wed, Mar 07, 2012 at 14:31:16, Taneja, Archit wrote:
->> The omap_vout driver tries to set the DSS overlay_info using set_overlay_info()
->> when the physical address for the overlay is still not configured. This happens
->> in omap_vout_probe() and vidioc_s_fmt_vid_out().
->>
->> The calls to omapvid_init(which internally calls set_overlay_info()) are removed
->> from these functions. They don't need to be called as the omap_vout_device
->> struct anyway maintains the overlay related changes made. Also, remove the
->> explicit call to set_overlay_info() in vidioc_streamon(), this was used to set
->> the paddr, this isn't needed as omapvid_init() does the same thing later.
->>
->> These changes are required as the DSS2 driver since 3.3 kernel doesn't let you
->> set the overlay info with paddr as 0.
->>
->> Signed-off-by: Archit Taneja<archit@ti.com>
->> ---
->>   drivers/media/video/omap/omap_vout.c |   36 ++++-----------------------------
->>   1 files changed, 5 insertions(+), 31 deletions(-)
->>
->> diff --git a/drivers/media/video/omap/omap_vout.c b/drivers/media/video/omap/omap_vout.c
->> index 1fb7d5b..dffcf66 100644
->> --- a/drivers/media/video/omap/omap_vout.c
->> +++ b/drivers/media/video/omap/omap_vout.c
->> @@ -1157,13 +1157,6 @@ static int vidioc_s_fmt_vid_out(struct file *file, void *fh,
->>   	/* set default crop and win */
->>   	omap_vout_new_format(&vout->pix,&vout->fbuf,&vout->crop,&vout->win);
->>
->> -	/* Save the changes in the overlay strcuture */
->> -	ret = omapvid_init(vout, 0);
->> -	if (ret) {
->> -		v4l2_err(&vout->vid_dev->v4l2_dev, "failed to change mode\n");
->> -		goto s_fmt_vid_out_exit;
->> -	}
->> -
->>   	ret = 0;
->>
->>   s_fmt_vid_out_exit:
->> @@ -1664,20 +1657,6 @@ static int vidioc_streamon(struct file *file, void *fh, enum v4l2_buf_type i)
->>
->>   	omap_dispc_register_isr(omap_vout_isr, vout, mask);
->>
->> -	for (j = 0; j<  ovid->num_overlays; j++) {
->> -		struct omap_overlay *ovl = ovid->overlays[j];
->> -
->> -		if (ovl->manager&&  ovl->manager->device) {
->> -			struct omap_overlay_info info;
->> -			ovl->get_overlay_info(ovl,&info);
->> -			info.paddr = addr;
->> -			if (ovl->set_overlay_info(ovl,&info)) {
->> -				ret = -EINVAL;
->> -				goto streamon_err1;
->> -			}
->> -		}
->> -	}
->> -
->
-> Have you checked for build warnings? I am getting build warnings
->
->    CC      drivers/media/video/omap/omap_vout.o
->    CC      drivers/media/video/omap/omap_voutlib.o
->    CC      drivers/media/video/omap/omap_vout_vrfb.o
-> drivers/media/video/omap/omap_vout.c: In function 'vidioc_streamon':
-> drivers/media/video/omap/omap_vout.c:1619:25: warning: unused variable 'ovid'
-> drivers/media/video/omap/omap_vout.c:1615:15: warning: unused variable 'j'
->    LD      drivers/media/video/omap/omap-vout.o
->    LD      drivers/media/video/omap/built-in.o
->
-> Can you fix this and submit the next version?
+On Fri, 2012-03-16 at 01:04 +0200, Ville Syrj=C3=A4l=C3=A4 wrote:
+> On Thu, Mar 15, 2012 at 05:18:52PM +0530, Chandrabhanu Mahapatra wrot=
+e:
+> > In OMAP3 DISPC video overlays suffer from some undocumented horizon=
+tal position
+> > and timing related limitations leading to SYNCLOST errors. Whenever=
+ the image
+> > window is moved towards the right of the screen SYNCLOST errors bec=
+ome
+> > frequent. Checks have been implemented to see that DISPC driver rej=
+ects
+> > configuration exceeding above limitations.
+> >=20
+> > This code was successfully tested on OMAP3. This code is written ba=
+sed on code
+> > written by Ville Syrj=C3=A4l=C3=A4 <ville.syrjala@nokia.com> in Lin=
+ux OMAP kernel. Ville
+> > Syrj=C3=A4l=C3=A4 <ville.syrjala@nokia.com> had added checks for vi=
+deo overlay horizontal
+> > timing and DISPC horizontal blanking length limitations.
+> >=20
+> > Signed-off-by: Chandrabhanu Mahapatra <cmahapatra@ti.com>
+> > ---
+> >  drivers/video/omap2/dss/dispc.c |   67 +++++++++++++++++++++++++++=
+++++++++++--
+> >  1 files changed, 64 insertions(+), 3 deletions(-)
+> >=20
+> > diff --git a/drivers/video/omap2/dss/dispc.c b/drivers/video/omap2/=
+dss/dispc.c
+> > index 5a1963e..ebfa613 100644
+> > --- a/drivers/video/omap2/dss/dispc.c
+> > +++ b/drivers/video/omap2/dss/dispc.c
+> > @@ -1622,6 +1622,58 @@ static void calc_dma_rotation_offset(u8 rota=
+tion, bool mirror,
+> >  	}
+> >  }
+> > =20
+> > +static int check_horiz_timing(enum omap_channel channel, u16 pos_x=
+,
+> > +		u16 width, u16 height, u16 out_width, u16 out_height)
+> > +{
+> > +	int DS =3D DIV_ROUND_UP(height, out_height);
+> > +	struct omap_dss_device *dssdev =3D dispc_mgr_get_device(channel);
+> > +	struct omap_video_timings t =3D dssdev->panel.timings;
+> > +	int pcd =3D REG_GET(DISPC_DIVISORo(channel), 7, 0);
+>=20
+> pcd doesn't exist for TV out, which is the reason why you see
+> 'lclk/pclk' ratio used instead in the harmattan kernel.
 
-Will fix this and submit.
+I'm surprised you still remember these things =3D). And even more
+surprised that you actually bothered to review it, thanks for that.
 
-Archit
+Chandrabhanu, do you have an omap3 board with composite/svideo tv-out?
+It'd be good to test on that also, as, like Ville points out, the above
+code can't work for tv-out. Hmm, then again, it shouldn't work for HDMI
+on OMAP4 either. Did you test with HDMI?
 
->
-> Thanks,
-> Vaibhav
->
->>   	/* First save the configuration in ovelray structure */
->>   	ret = omapvid_init(vout, addr);
->>   	if (ret)
->> @@ -2071,11 +2050,12 @@ static int __init omap_vout_create_video_devices(struct platform_device *pdev)
->>   		}
->>   		video_set_drvdata(vfd, vout);
->>
->> -		/* Configure the overlay structure */
->> -		ret = omapvid_init(vid_dev->vouts[k], 0);
->> -		if (!ret)
->> -			goto success;
->> +		dev_info(&pdev->dev, ": registered and initialized"
->> +				" video device %d\n", vfd->minor);
->> +		if (k == (pdev->num_resources - 1))
->> +			return 0;
->>
->> +		continue;
->>   error2:
->>   		if (vout->vid_info.rotation_type == VOUT_ROT_VRFB)
->>   			omap_vout_release_vrfb(vout);
->> @@ -2085,12 +2065,6 @@ error1:
->>   error:
->>   		kfree(vout);
->>   		return ret;
->> -
->> -success:
->> -		dev_info(&pdev->dev, ": registered and initialized"
->> -				" video device %d\n", vfd->minor);
->> -		if (k == (pdev->num_resources - 1))
->> -			return 0;
->>   	}
->>
->>   	return -ENODEV;
->> --
->> 1.7.5.4
->>
->>
->
->
+Or is the above code called for TV-manager at all? If not, perhaps it
+could be named *_lcd or something. Or perhaps have a BUG_ON(channel !=3D
+lcd1 or lcd2);
 
+ Tomi
+
+
+--
+To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
