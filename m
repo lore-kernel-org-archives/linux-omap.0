@@ -1,69 +1,95 @@
 From: Tarun Kanti DebBarma <tarun.kanti@ti.com>
-Subject: [PATCH v4 06/12] gpio/omap: fix trigger type to unsigned
-Date: Fri, 16 Mar 2012 19:35:54 +0530
-Message-ID: <1331906760-5259-7-git-send-email-tarun.kanti@ti.com>
+Subject: [PATCH v4 12/12] gpio/omap: fix incorrect update to context.irqenable1
+Date: Fri, 16 Mar 2012 19:36:00 +0530
+Message-ID: <1331906760-5259-13-git-send-email-tarun.kanti@ti.com>
 References: <1331906760-5259-1-git-send-email-tarun.kanti@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from bear.ext.ti.com ([192.94.94.41]:49839 "EHLO bear.ext.ti.com"
+Received: from comal.ext.ti.com ([198.47.26.152]:39163 "EHLO comal.ext.ti.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S964942Ab2CPOGX (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Fri, 16 Mar 2012 10:06:23 -0400
+	id S1761755Ab2CPOGS (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Fri, 16 Mar 2012 10:06:18 -0400
 In-Reply-To: <1331906760-5259-1-git-send-email-tarun.kanti@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: linux-omap@vger.kernel.org
 Cc: khilman@ti.com, tony@atomide.com, b-cousson@ti.com, grant.likely@secretlab.ca, linux-arm-kernel@lists.infradead.org, Tarun Kanti DebBarma <tarun.kanti@ti.com>
 
-The GPIO trigger parameter is of type unsigned.
-enum {
-        IRQ_TYPE_NONE           = 0x00000000,
-        IRQ_TYPE_EDGE_RISING    = 0x00000001,
-        IRQ_TYPE_EDGE_FALLING   = 0x00000002,
-        IRQ_TYPE_EDGE_BOTH      = (IRQ_TYPE_EDGE_FALLING | IRQ_TYPE_EDGE_RISING),
-        IRQ_TYPE_LEVEL_HIGH     = 0x00000004,
-        IRQ_TYPE_LEVEL_LOW      = 0x00000008,
-        IRQ_TYPE_LEVEL_MASK     = (IRQ_TYPE_LEVEL_LOW | IRQ_TYPE_LEVEL_HIGH),
-        IRQ_TYPE_SENSE_MASK     = 0x0000000f,
+In _enable_gpio_irqbank() when bank->regs->set_irqenable is valid,
+gpio_mask can be directly set by writing to set_irqenable register
+without overwriting current value. In order to ensure the same is
+stored in context.irqenable1, we must read from regs->irqenable
+instead of overwriting it with gpio_mask.
+The overwriting makes sense only in the second case where irqenable
+is explicitly read and updated with new gpio_mask before writing it
+back. However, for consistency reading regs->irqenable into the
+bank->context.irqenable1 takes care of both the scenarios.
 
-        IRQ_TYPE_PROBE          = 0x00000010,
-...
-};
-Even though gpio_irq_type(struct irq_data *d, unsigned type) has the right type
-of parameter, the subsequent called functions set_gpio_triggering() and
-set_gpio_trigger() wrongly makes it signed integer. Fix this.
+        if (bank->regs->set_irqenable) {
+                reg += bank->regs->set_irqenable;
+                l = gpio_mask;
+        } else {
+                reg += bank->regs->irqenable;
+                l = __raw_readl(reg);
+                if (bank->regs->irqenable_inv)
+                        l &= ~gpio_mask;
+                else
+                        l |= gpio_mask;
+        }
+
+Make the same change for _disable_gpio_irqbank().
 
 Signed-off-by: Tarun Kanti DebBarma <tarun.kanti@ti.com>
 Reviewed-by: Santosh Shilimkar <santosh.shilimkar@ti.com>
-Acked-by: Felipe Balbi <balbi@ti.com>
 ---
- drivers/gpio/gpio-omap.c |    5 +++--
- 1 files changed, 3 insertions(+), 2 deletions(-)
+ drivers/gpio/gpio-omap.c |    6 ++++--
+ 1 files changed, 4 insertions(+), 2 deletions(-)
 
 diff --git a/drivers/gpio/gpio-omap.c b/drivers/gpio/gpio-omap.c
-index 47143b7..4d23da1 100644
+index c5aff7c..ae62c62 100644
 --- a/drivers/gpio/gpio-omap.c
 +++ b/drivers/gpio/gpio-omap.c
-@@ -241,7 +241,7 @@ static void _set_gpio_debounce(struct gpio_bank *bank, unsigned gpio,
+@@ -447,6 +447,7 @@ static void _enable_gpio_irqbank(struct gpio_bank *bank, int gpio_mask)
+ 	if (bank->regs->set_irqenable) {
+ 		reg += bank->regs->set_irqenable;
+ 		l = gpio_mask;
++		bank->context.irqenable1 |= gpio_mask;
+ 	} else {
+ 		reg += bank->regs->irqenable;
+ 		l = __raw_readl(reg);
+@@ -454,10 +455,10 @@ static void _enable_gpio_irqbank(struct gpio_bank *bank, int gpio_mask)
+ 			l &= ~gpio_mask;
+ 		else
+ 			l |= gpio_mask;
++		bank->context.irqenable1 = l;
+ 	}
+ 
+ 	__raw_writel(l, reg);
+-	bank->context.irqenable1 = l;
  }
  
- static inline void set_gpio_trigger(struct gpio_bank *bank, int gpio,
--						int trigger)
-+						unsigned trigger)
- {
- 	void __iomem *base = bank->base;
- 	u32 gpio_bit = 1 << gpio;
-@@ -323,7 +323,8 @@ static void _toggle_gpio_edge_triggering(struct gpio_bank *bank, int gpio)
- static void _toggle_gpio_edge_triggering(struct gpio_bank *bank, int gpio) {}
- #endif
+ static void _disable_gpio_irqbank(struct gpio_bank *bank, int gpio_mask)
+@@ -468,6 +469,7 @@ static void _disable_gpio_irqbank(struct gpio_bank *bank, int gpio_mask)
+ 	if (bank->regs->clr_irqenable) {
+ 		reg += bank->regs->clr_irqenable;
+ 		l = gpio_mask;
++		bank->context.irqenable1 &= ~gpio_mask;
+ 	} else {
+ 		reg += bank->regs->irqenable;
+ 		l = __raw_readl(reg);
+@@ -475,10 +477,10 @@ static void _disable_gpio_irqbank(struct gpio_bank *bank, int gpio_mask)
+ 			l |= gpio_mask;
+ 		else
+ 			l &= ~gpio_mask;
++		bank->context.irqenable1 = l;
+ 	}
  
--static int _set_gpio_triggering(struct gpio_bank *bank, int gpio, int trigger)
-+static int _set_gpio_triggering(struct gpio_bank *bank, int gpio,
-+							unsigned trigger)
- {
- 	void __iomem *reg = bank->base;
- 	void __iomem *base = bank->base;
+ 	__raw_writel(l, reg);
+-	bank->context.irqenable1 = l;
+ }
+ 
+ static inline void _set_gpio_irqenable(struct gpio_bank *bank, int gpio, int enable)
 -- 
 1.7.0.4
 
