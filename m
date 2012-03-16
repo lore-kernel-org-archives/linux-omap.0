@@ -1,95 +1,111 @@
 From: Tarun Kanti DebBarma <tarun.kanti@ti.com>
-Subject: [PATCH v4 12/12] gpio/omap: fix incorrect update to context.irqenable1
-Date: Fri, 16 Mar 2012 19:36:00 +0530
-Message-ID: <1331906760-5259-13-git-send-email-tarun.kanti@ti.com>
+Subject: [PATCH v4 09/12] gpio/omap: remove suspend/resume callbacks
+Date: Fri, 16 Mar 2012 19:35:57 +0530
+Message-ID: <1331906760-5259-10-git-send-email-tarun.kanti@ti.com>
 References: <1331906760-5259-1-git-send-email-tarun.kanti@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from comal.ext.ti.com ([198.47.26.152]:39163 "EHLO comal.ext.ti.com"
+Received: from bear.ext.ti.com ([192.94.94.41]:49842 "EHLO bear.ext.ti.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1761755Ab2CPOGS (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Fri, 16 Mar 2012 10:06:18 -0400
+	id S965257Ab2CPOGY (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Fri, 16 Mar 2012 10:06:24 -0400
 In-Reply-To: <1331906760-5259-1-git-send-email-tarun.kanti@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: linux-omap@vger.kernel.org
 Cc: khilman@ti.com, tony@atomide.com, b-cousson@ti.com, grant.likely@secretlab.ca, linux-arm-kernel@lists.infradead.org, Tarun Kanti DebBarma <tarun.kanti@ti.com>
 
-In _enable_gpio_irqbank() when bank->regs->set_irqenable is valid,
-gpio_mask can be directly set by writing to set_irqenable register
-without overwriting current value. In order to ensure the same is
-stored in context.irqenable1, we must read from regs->irqenable
-instead of overwriting it with gpio_mask.
-The overwriting makes sense only in the second case where irqenable
-is explicitly read and updated with new gpio_mask before writing it
-back. However, for consistency reading regs->irqenable into the
-bank->context.irqenable1 takes care of both the scenarios.
+Both omap_gpio_suspend() and omap_gpio_resume() does programming
+of wakeup_en register.
+_gpio_rmw(base, bank->regs->wkup_en, 0xffffffff, 0);
+_gpio_rmw(base, bank->regs->wkup_en, bank->context.wake_en, 1);
 
-        if (bank->regs->set_irqenable) {
-                reg += bank->regs->set_irqenable;
-                l = gpio_mask;
-        } else {
-                reg += bank->regs->irqenable;
-                l = __raw_readl(reg);
-                if (bank->regs->irqenable_inv)
-                        l &= ~gpio_mask;
-                else
-                        l |= gpio_mask;
-        }
+This is redundant in omap_gpio_suspend() because wakeup_en
+register automatically gets initialized in _set_gpio_wakeup()
+and set_gpio_trigger() while being called either from
+chip.irq_set_wake() or chip.irq_set_type().
 
-Make the same change for _disable_gpio_irqbank().
+This is also redundant in omap_gpio_resume() because wakeup_en
+register is programmed in omap_gpio_restore_context() called
+which is called from runtime resume callback.
 
 Signed-off-by: Tarun Kanti DebBarma <tarun.kanti@ti.com>
 Reviewed-by: Santosh Shilimkar <santosh.shilimkar@ti.com>
 ---
- drivers/gpio/gpio-omap.c |    6 ++++--
- 1 files changed, 4 insertions(+), 2 deletions(-)
+ drivers/gpio/gpio-omap.c |   47 ----------------------------------------------
+ 1 files changed, 0 insertions(+), 47 deletions(-)
 
 diff --git a/drivers/gpio/gpio-omap.c b/drivers/gpio/gpio-omap.c
-index c5aff7c..ae62c62 100644
+index cce2c73..dba69b8 100644
 --- a/drivers/gpio/gpio-omap.c
 +++ b/drivers/gpio/gpio-omap.c
-@@ -447,6 +447,7 @@ static void _enable_gpio_irqbank(struct gpio_bank *bank, int gpio_mask)
- 	if (bank->regs->set_irqenable) {
- 		reg += bank->regs->set_irqenable;
- 		l = gpio_mask;
-+		bank->context.irqenable1 |= gpio_mask;
- 	} else {
- 		reg += bank->regs->irqenable;
- 		l = __raw_readl(reg);
-@@ -454,10 +455,10 @@ static void _enable_gpio_irqbank(struct gpio_bank *bank, int gpio_mask)
- 			l &= ~gpio_mask;
- 		else
- 			l |= gpio_mask;
-+		bank->context.irqenable1 = l;
- 	}
+@@ -1142,50 +1142,6 @@ static int __devinit omap_gpio_probe(struct platform_device *pdev)
  
- 	__raw_writel(l, reg);
--	bank->context.irqenable1 = l;
+ #ifdef CONFIG_ARCH_OMAP2PLUS
+ 
+-#if defined(CONFIG_PM_SLEEP)
+-static int omap_gpio_suspend(struct device *dev)
+-{
+-	struct platform_device *pdev = to_platform_device(dev);
+-	struct gpio_bank *bank = platform_get_drvdata(pdev);
+-	void __iomem *base = bank->base;
+-	unsigned long flags;
+-
+-	if (!bank->mod_usage || !bank->loses_context)
+-		return 0;
+-
+-	if (!bank->regs->wkup_en || !bank->context.wake_en)
+-		return 0;
+-
+-	spin_lock_irqsave(&bank->lock, flags);
+-	_gpio_rmw(base, bank->regs->wkup_en, 0xffffffff, 0);
+-	_gpio_rmw(base, bank->regs->wkup_en, bank->context.wake_en, 1);
+-	spin_unlock_irqrestore(&bank->lock, flags);
+-
+-	return 0;
+-}
+-
+-static int omap_gpio_resume(struct device *dev)
+-{
+-	struct platform_device *pdev = to_platform_device(dev);
+-	struct gpio_bank *bank = platform_get_drvdata(pdev);
+-	void __iomem *base = bank->base;
+-	unsigned long flags;
+-
+-	if (!bank->mod_usage || !bank->loses_context)
+-		return 0;
+-
+-	if (!bank->regs->wkup_en || !bank->context.wake_en)
+-		return 0;
+-
+-	spin_lock_irqsave(&bank->lock, flags);
+-	_gpio_rmw(base, bank->regs->wkup_en, 0xffffffff, 0);
+-	_gpio_rmw(base, bank->regs->wkup_en, bank->context.wake_en, 1);
+-	spin_unlock_irqrestore(&bank->lock, flags);
+-
+-	return 0;
+-}
+-#endif /* CONFIG_PM_SLEEP */
+-
+ #if defined(CONFIG_PM_RUNTIME)
+ static void omap_gpio_restore_context(struct gpio_bank *bank);
+ 
+@@ -1417,14 +1373,11 @@ static void omap_gpio_restore_context(struct gpio_bank *bank)
  }
+ #endif /* CONFIG_PM_RUNTIME */
+ #else
+-#define omap_gpio_suspend NULL
+-#define omap_gpio_resume NULL
+ #define omap_gpio_runtime_suspend NULL
+ #define omap_gpio_runtime_resume NULL
+ #endif
  
- static void _disable_gpio_irqbank(struct gpio_bank *bank, int gpio_mask)
-@@ -468,6 +469,7 @@ static void _disable_gpio_irqbank(struct gpio_bank *bank, int gpio_mask)
- 	if (bank->regs->clr_irqenable) {
- 		reg += bank->regs->clr_irqenable;
- 		l = gpio_mask;
-+		bank->context.irqenable1 &= ~gpio_mask;
- 	} else {
- 		reg += bank->regs->irqenable;
- 		l = __raw_readl(reg);
-@@ -475,10 +477,10 @@ static void _disable_gpio_irqbank(struct gpio_bank *bank, int gpio_mask)
- 			l |= gpio_mask;
- 		else
- 			l &= ~gpio_mask;
-+		bank->context.irqenable1 = l;
- 	}
- 
- 	__raw_writel(l, reg);
--	bank->context.irqenable1 = l;
- }
- 
- static inline void _set_gpio_irqenable(struct gpio_bank *bank, int gpio, int enable)
+ static const struct dev_pm_ops gpio_pm_ops = {
+-	SET_SYSTEM_SLEEP_PM_OPS(omap_gpio_suspend, omap_gpio_resume)
+ 	SET_RUNTIME_PM_OPS(omap_gpio_runtime_suspend, omap_gpio_runtime_resume,
+ 									NULL)
+ };
 -- 
 1.7.0.4
 
