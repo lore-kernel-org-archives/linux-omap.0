@@ -1,41 +1,108 @@
-From: Aneesh V <aneesh@ti.com>
-Subject: Re: [PATCH v2 1/7] misc: ddr: add LPDDR2 data from JESD209-2
-Date: Sat, 17 Mar 2012 03:23:50 +0530
-Message-ID: <4F63B66E.3000200@ti.com>
-References: <1331835457-5390-1-git-send-email-aneesh@ti.com> <1331835457-5390-2-git-send-email-aneesh@ti.com> <20120315190238.GD11142@kroah.com> <4F63A987.3@ti.com> <20120316213316.GC24556@kroah.com>
+From: Paul Walmsley <paul@pwsan.com>
+Subject: Re: [PATCH v7 1/3] Documentation: common clk API
+Date: Fri, 16 Mar 2012 16:21:17 -0600 (MDT)
+Message-ID: <alpine.DEB.2.00.1203161509470.4395@utopia.booyaka.com>
+References: <1331878280-2758-1-git-send-email-mturquette@linaro.org> <CAP245DXV5oE+-y+PQCcSM016h-J+UgTi1efmdrcyeQge4k1Cfw@mail.gmail.com> <201203161218.05125.arnd.bergmann@linaro.org> <201203162057.58706.arnd@arndb.de>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aog120.obsmtp.com ([74.125.149.140]:60532 "EHLO
-	na3sys009aog120.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1161898Ab2CPVxz (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>);
-	Fri, 16 Mar 2012 17:53:55 -0400
-Received: by mail-yx0-f178.google.com with SMTP id m14so5809586yen.23
-        for <linux-omap@vger.kernel.org>; Fri, 16 Mar 2012 14:53:55 -0700 (PDT)
-In-Reply-To: <20120316213316.GC24556@kroah.com>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: TEXT/PLAIN; charset=US-ASCII
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <201203162057.58706.arnd@arndb.de>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Arnd Bergmann <arnd@arndb.de>
+Cc: linux-arm-kernel@lists.infradead.org, Amit Kucheria <amit.kucheria@linaro.org>, Nicolas Pitre <nicolas.pitre@linaro.org>, linaro-dev@lists.linaro.org, Linus Walleij <linus.walleij@linaro.org>, Grant Likely <grant.likely@secretlab.ca>, Saravana Kannan <skannan@codeaurora.org>, Jeremy Kerr <jeremy.kerr@canonical.com>, Mike Turquette <mturquette@ti.com>, Mike Turquette <mturquette@linaro.org>, Magnus Damm <magnus.damm@gmail.com>, Deepak Saxena <dsaxena@linaro.org>, patches@linaro.org, Sascha Hauer <s.hauer@pengutronix.de>, Rob Herring <rob.herring@calxeda.com>, Russell King <linux@arm.linux.org.uk>, Thomas Gleixner <tglx@linutronix.de>, Richard Zhao <richard.zhao@linaro.org>, Shawn Guo <shawn.guo@freescale.com>, Linus Walleij <linus.walleij@stericsson.com>, Mark Brown <broonie@opensource.wolfsonmicro.com>, Stephen Boyd <sboyd@codeaurora.org>, linux-omap@vger.kernel.
 List-Id: linux-omap@vger.kernel.org
-To: Greg KH <greg@kroah.com>
-Cc: linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org
 
-On Saturday 17 March 2012 03:03 AM, Greg KH wrote:
-> On Sat, Mar 17, 2012 at 02:28:47AM +0530, Aneesh V wrote:
->> Hi Greg,
+Hi
 
-[...]
+On Fri, 16 Mar 2012, Arnd Bergmann wrote:
 
->> I have fixed these comments and pushed my latest patches at:
->> git://github.com/aneeshv/linux.git
->> branch: emif-upstream-v4
->
-> Sorry, but I don't take git pulls for stuff like this, please send all
-> of the patches in email so it can be reviewed properly.
->
+> On Friday 16 March 2012, Arnd Bergmann wrote:
+> > > 
+> > > Can we shoe-horn this thing into 3.4 (it is a bit late, i know) so
+> > > that platform ports can gather speed? Several people are waiting for a
+> > > somewhat stable version before starting their ports.
+> > > 
+> > > And what is the path into mainline - will Russell carry it or Arnd
+> > > (with Russell's blessing)?
+> > 
+> > I would suggest putting it into a late/* branch of arm-soc so it finally
+> > gets some linux-next exposure, and then sending it in the second week of the
+> > merge window.
+> > 
+> > Russell, please let me know if you want to carry it instead or if you
+> > have found any last-minute show stoppers in the code.
+> 
+> FWIW, it's in arm-soc now [...]
 
-I had sent the updated version of the affected patch. Anyway, I will
-send the whole series again.
+If the common clock code is to go upstream now, it should be marked as 
+experimental.  This is because we know the API is not well-defined, and 
+that both the API and the underlying mechanics will almost certainly need 
+to change for non-trivial uses of the rate changing code (e.g., DVFS with 
+external I/O devices).
 
-thanks,
-Aneesh
+While I understand and accept the motivation to get the common clk code 
+upstream now, if platforms start to use it, they need to be aware that the 
+behavior of the code can change significantly.  These platforms may need 
+to revalidate their implementations or change the way that many of their 
+drivers use the clock functions.
+
+It also seems important to recognize that significant changes are still 
+coming into the common clk code (e.g., the clk_set_rate() changes that 
+came in just a few days ago).
+
+So, the following is a patch to mark it as experimental.  It applies on 
+the current head of arm-soc/next/clk 
+(9d9f78ed9af0e465d2fd15550471956e7f559b9f).  This should be a good 
+compromise: it allows simple platforms or platforms with maintainers with 
+lots of time to start converting over to the common clk code, while still 
+clearly indicating that the API and underlying code is likely to change in 
+significant ways.
+
+Once at least two major SoC ports have DVFS with external I/O devices 
+safely up and running on their mainline kernels with the common clk code, 
+I'd suggest removing the experimental designation.
+
+...
+
+None of this is meant to reflect on Mike, by the way, who is doing a good 
+job in a difficult situation.
+
+ 
+- Paul
+
+From: Paul Walmsley <paul@pwsan.com>
+Date: Fri, 16 Mar 2012 16:06:30 -0600
+Subject: [PATCH] clk: mark the common clk code as EXPERIMENTAL for now
+
+Mark the common clk code as depending on CONFIG_EXPERIMENTAL.  The API
+is not well-defined and both it and the underlying mechanics are likely
+to need significant changes to support non-trivial uses of the rate
+changing code, such as DVFS with external I/O devices.  So any platforms
+that switch their implementation over to this may need to revise much
+of their driver code and revalidate their implementations until the
+behavior of the code is better-defined.
+
+A good time for removing this EXPERIMENTAL designation would be after at
+least two platforms that do DVFS on groups of external I/O devices have
+ported their clock implementations over to the common clk code.
+
+Signed-off-by: Paul Walmsley <paul@pwsan.com>
+Cc: Mike Turquette <mturquette@ti.com>
+---
+ drivers/clk/Kconfig |    1 +
+ 1 files changed, 1 insertions(+), 0 deletions(-)
+
+diff --git a/drivers/clk/Kconfig b/drivers/clk/Kconfig
+index 2eaf17e..a0a83de 100644
+--- a/drivers/clk/Kconfig
++++ b/drivers/clk/Kconfig
+@@ -12,6 +12,7 @@ config HAVE_MACH_CLKDEV
+ menuconfig COMMON_CLK
+ 	bool "Common Clock Framework"
+ 	select HAVE_CLK_PREPARE
++	depends on EXPERIMENTAL
+ 	---help---
+ 	  The common clock framework is a single definition of struct
+ 	  clk, useful across many platforms, as well as an
+-- 
+1.7.9.1
