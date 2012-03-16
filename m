@@ -1,49 +1,138 @@
-From: Arnd Bergmann <arnd@arndb.de>
-Subject: Re: [PATCH] of: Add generic device tree DMA helpers
-Date: Fri, 16 Mar 2012 10:03:01 +0000
-Message-ID: <201203161003.02163.arnd@arndb.de>
-References: <4F22DEF2.5000807@ti.com> <1331800690-21518-1-git-send-email-nicolas.ferre@atmel.com>
+From: Archit Taneja <a0393947@ti.com>
+Subject: Re: [PATCH] omap_vout: Set DSS overlay_info only if paddr is non
+ zero
+Date: Fri, 16 Mar 2012 15:46:04 +0530
+Message-ID: <4F6312E4.5000404@ti.com>
+References: <1331110876-11895-1-git-send-email-archit@ti.com> <79CD15C6BA57404B839C016229A409A831810EAA@DBDE01.ent.ti.com>
 Mime-Version: 1.0
-Content-Type: Text/Plain;
-  charset="iso-8859-1"
+Content-Type: text/plain; charset="ISO-8859-1"; format=flowed
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from moutng.kundenserver.de ([212.227.126.171]:55911 "EHLO
-	moutng.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932492Ab2CPKDK (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 16 Mar 2012 06:03:10 -0400
-In-Reply-To: <1331800690-21518-1-git-send-email-nicolas.ferre@atmel.com>
+Received: from bear.ext.ti.com ([192.94.94.41]:36752 "EHLO bear.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1760996Ab2CPKQ0 (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Fri, 16 Mar 2012 06:16:26 -0400
+In-Reply-To: <79CD15C6BA57404B839C016229A409A831810EAA@DBDE01.ent.ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: linux-arm-kernel@lists.infradead.org
-Cc: Nicolas Ferre <nicolas.ferre@atmel.com>, grant.likely@secretlab.ca, rob.herring@calxeda.com, devicetree-discuss@lists.ozlabs.org, Stephen Warren <swarren@nvidia.com>, linux-omap@vger.kernel.org, Benoit Cousson <b-cousson@ti.com>, Russell King <linux@arm.linux.org.uk>
+To: "Hiremath, Vaibhav" <hvaibhav@ti.com>
+Cc: "Taneja, Archit" <archit@ti.com>, "Valkeinen, Tomi" <tomi.valkeinen@ti.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
 
-On Thursday 15 March 2012, Nicolas Ferre wrote:
-> For legacy reason another API will export the DMA request number into a
-> Linux resource of type IORESOURCE_DMA.
+On Monday 12 March 2012 03:34 PM, Hiremath, Vaibhav wrote:
+> On Wed, Mar 07, 2012 at 14:31:16, Taneja, Archit wrote:
+>> The omap_vout driver tries to set the DSS overlay_info using set_overlay_info()
+>> when the physical address for the overlay is still not configured. This happens
+>> in omap_vout_probe() and vidioc_s_fmt_vid_out().
+>>
+>> The calls to omapvid_init(which internally calls set_overlay_info()) are removed
+>> from these functions. They don't need to be called as the omap_vout_device
+>> struct anyway maintains the overlay related changes made. Also, remove the
+>> explicit call to set_overlay_info() in vidioc_streamon(), this was used to set
+>> the paddr, this isn't needed as omapvid_init() does the same thing later.
+>>
+>> These changes are required as the DSS2 driver since 3.3 kernel doesn't let you
+>> set the overlay info with paddr as 0.
+>>
+>> Signed-off-by: Archit Taneja<archit@ti.com>
+>> ---
+>>   drivers/media/video/omap/omap_vout.c |   36 ++++-----------------------------
+>>   1 files changed, 5 insertions(+), 31 deletions(-)
+>>
+>> diff --git a/drivers/media/video/omap/omap_vout.c b/drivers/media/video/omap/omap_vout.c
+>> index 1fb7d5b..dffcf66 100644
+>> --- a/drivers/media/video/omap/omap_vout.c
+>> +++ b/drivers/media/video/omap/omap_vout.c
+>> @@ -1157,13 +1157,6 @@ static int vidioc_s_fmt_vid_out(struct file *file, void *fh,
+>>   	/* set default crop and win */
+>>   	omap_vout_new_format(&vout->pix,&vout->fbuf,&vout->crop,&vout->win);
+>>
+>> -	/* Save the changes in the overlay strcuture */
+>> -	ret = omapvid_init(vout, 0);
+>> -	if (ret) {
+>> -		v4l2_err(&vout->vid_dev->v4l2_dev, "failed to change mode\n");
+>> -		goto s_fmt_vid_out_exit;
+>> -	}
+>> -
+>>   	ret = 0;
+>>
+>>   s_fmt_vid_out_exit:
+>> @@ -1664,20 +1657,6 @@ static int vidioc_streamon(struct file *file, void *fh, enum v4l2_buf_type i)
+>>
+>>   	omap_dispc_register_isr(omap_vout_isr, vout, mask);
+>>
+>> -	for (j = 0; j<  ovid->num_overlays; j++) {
+>> -		struct omap_overlay *ovl = ovid->overlays[j];
+>> -
+>> -		if (ovl->manager&&  ovl->manager->device) {
+>> -			struct omap_overlay_info info;
+>> -			ovl->get_overlay_info(ovl,&info);
+>> -			info.paddr = addr;
+>> -			if (ovl->set_overlay_info(ovl,&info)) {
+>> -				ret = -EINVAL;
+>> -				goto streamon_err1;
+>> -			}
+>> -		}
+>> -	}
+>> -
+>
+> Have you checked for build warnings? I am getting build warnings
+>
+>    CC      drivers/media/video/omap/omap_vout.o
+>    CC      drivers/media/video/omap/omap_voutlib.o
+>    CC      drivers/media/video/omap/omap_vout_vrfb.o
+> drivers/media/video/omap/omap_vout.c: In function 'vidioc_streamon':
+> drivers/media/video/omap/omap_vout.c:1619:25: warning: unused variable 'ovid'
+> drivers/media/video/omap/omap_vout.c:1615:15: warning: unused variable 'j'
+>    LD      drivers/media/video/omap/omap-vout.o
+>    LD      drivers/media/video/omap/built-in.o
+>
+> Can you fix this and submit the next version?
 
-Can you explain which legacy scenarios you think this is going to help with?
+Will fix this and submit.
 
-> +/**
-> + * of_dma_to_resource - Decode a node's DMA and return it as a resource
-> + * @dev: pointer to device tree node
-> + * @index: zero-based index of the DMA request
-> + * @r: pointer to resource structure to return result into.
-> + *
-> + * Using a resource to export a DMA request number to a driver should
-> + * be used only for legacy purpose and on system when only one DMA controller
-> + * is present.
-> + * The proper and only scalable way is to use the native of_get_dma_request API
-> + * in order retrieve both the DMA controller device node and the DMA request
-> + * line for that controller.
-> + */
-> +int of_dma_to_resource(struct device_node *dev, int index, struct resource *r)
-> +{
+Archit
 
-I think a better way to discourage the use of IORESOURCE_DMA is to not provide
-this function at all, especially given that it's not really well-defined what
-it will do when you have more than one cell for the dma channel identifier or
-when you have multiple DMA engines, so any driver relying on it is inherently
-nonportable.
+>
+> Thanks,
+> Vaibhav
+>
+>>   	/* First save the configuration in ovelray structure */
+>>   	ret = omapvid_init(vout, addr);
+>>   	if (ret)
+>> @@ -2071,11 +2050,12 @@ static int __init omap_vout_create_video_devices(struct platform_device *pdev)
+>>   		}
+>>   		video_set_drvdata(vfd, vout);
+>>
+>> -		/* Configure the overlay structure */
+>> -		ret = omapvid_init(vid_dev->vouts[k], 0);
+>> -		if (!ret)
+>> -			goto success;
+>> +		dev_info(&pdev->dev, ": registered and initialized"
+>> +				" video device %d\n", vfd->minor);
+>> +		if (k == (pdev->num_resources - 1))
+>> +			return 0;
+>>
+>> +		continue;
+>>   error2:
+>>   		if (vout->vid_info.rotation_type == VOUT_ROT_VRFB)
+>>   			omap_vout_release_vrfb(vout);
+>> @@ -2085,12 +2065,6 @@ error1:
+>>   error:
+>>   		kfree(vout);
+>>   		return ret;
+>> -
+>> -success:
+>> -		dev_info(&pdev->dev, ": registered and initialized"
+>> -				" video device %d\n", vfd->minor);
+>> -		if (k == (pdev->num_resources - 1))
+>> -			return 0;
+>>   	}
+>>
+>>   	return -ENODEV;
+>> --
+>> 1.7.5.4
+>>
+>>
+>
+>
 
-	Arnd
