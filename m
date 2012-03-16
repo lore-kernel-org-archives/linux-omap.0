@@ -1,55 +1,29 @@
-From: Chris Ball <cjb@laptop.org>
-Subject: Re: [PATCH] mmc: omap_hsmmc: set dto to 14 for all devices
-Date: Thu, 15 Mar 2012 23:22:26 -0400
-Message-ID: <87bonxcjrh.fsf@laptop.org>
-References: <1330622780-1909-1-git-send-email-Chase.Maupin@ti.com>
-	<m2399iqtgf.fsf@bob.laptop.org>
-	<alpine.DEB.2.00.1203120435200.11332@utopia.booyaka.com>
+From: "S, Venkatraman" <svenkatr@ti.com>
+Subject: Re: [PATCH RESEND 1/8] mmc: omap: Enable Auto CMD12
+Date: Fri, 16 Mar 2012 10:55:00 +0530
+Message-ID: <CANfBPZ-_WGEx2OmCdJmE2AP_CmYSUiqRqsamwUXRm=+rExyQpA@mail.gmail.com>
+References: <1331822022-26714-1-git-send-email-svenkatr@ti.com>
+ <1331822022-26714-2-git-send-email-svenkatr@ti.com> <20120315145750.GQ28447@arwen.pp.htv.fi>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from void.printf.net ([89.145.121.20]:50104 "EHLO void.printf.net"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S965324Ab2CPDWz (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Thu, 15 Mar 2012 23:22:55 -0400
-In-Reply-To: <alpine.DEB.2.00.1203120435200.11332@utopia.booyaka.com> (Paul
-	Walmsley's message of "Mon, 12 Mar 2012 04:58:00 -0600 (MDT)")
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset=ISO-8859-1
+Return-path: <linux-mmc-owner@vger.kernel.org>
+In-Reply-To: <20120315145750.GQ28447@arwen.pp.htv.fi>
+Sender: linux-mmc-owner@vger.kernel.org
+To: balbi@ti.com
+Cc: linux-mmc@vger.kernel.org, linux-omap@vger.kernel.org, cjb@laptop.org, balajitk@ti.com
 List-Id: linux-omap@vger.kernel.org
-To: Paul Walmsley <paul@pwsan.com>
-Cc: Chase Maupin <Chase.Maupin@ti.com>, linux-omap@vger.kernel.org, linux-mmc@vger.kernel.org, sakoman@gmail.com
 
-Hi Paul,
+On Thu, Mar 15, 2012 at 8:27 PM, Felipe Balbi <balbi@ti.com> wrote:
+> On Thu, Mar 15, 2012 at 08:03:35PM +0530, Venkatraman S wrote:
+>> From: Balaji T K <balajitk@ti.com>
+>>
+>> Enable Auto-CMD12 for multi block read/write on HSMMC
+>> Tested on OMAP4430, OMAP3430 and OMAP2430 SDP
+>>
+>> Signed-off-by: Balaji T K <balajitk@ti.com>
+>
+> BTW, since patches are flowing through you now, they should have your
+> SoB line.
+>
 
-On Mon, Mar 12 2012, Paul Walmsley wrote:
-> I don't think this is the right fix.  Steve Sakoman and I discussed this a 
-> few months ago -- we did some debugging and Steve observed the timeouts on 
-> multiple block writes (0x19):
-> [...]
-> So perhaps something like the following patch instead?  Unfortunately, I 
-> don't have one of these crappy SD cards as far as I know, so I can't 
-> really test it.
->
->
-> - Paul
->
-> From: Paul Walmsley <paul@pwsan.com>
-> Date: Mon, 12 Mar 2012 04:46:29 -0600
-> Subject: [PATCH] mmc: use really long write timeout to deal with crappy cards
->
-> Several people have noticed that crappy SD cards take much longer to
-> complete multiple block writes than the 300ms that Linux specifies.
-> Try to work around this by using a three second write timeout instead.
->
-> <insert Chase's patch description here>
->
-> Not-yet-signed-off-by: Paul Walmsley <paul@pwsan.com>
-
-Sounds like a good idea -- want to send a signed-off patch for this?
-
-Thanks,
-
-- Chris.
--- 
-Chris Ball   <cjb@laptop.org>   <http://printf.net/>
-One Laptop Per Child
+Sure. I'll edit and send again.
