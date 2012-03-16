@@ -1,72 +1,30 @@
-From: "Turquette, Mike" <mturquette@ti.com>
-Subject: Re: [PATCH v7 1/3] Documentation: common clk API
-Date: Fri, 16 Mar 2012 15:33:04 -0700
-Message-ID: <CAJOA=zPmy7Dwzw8EOCW_+cvy2Dv=w0TPUq7Zg_s=Y0rs+v+u2w@mail.gmail.com>
-References: <1331878280-2758-1-git-send-email-mturquette@linaro.org>
- <CAP245DXV5oE+-y+PQCcSM016h-J+UgTi1efmdrcyeQge4k1Cfw@mail.gmail.com>
- <201203161218.05125.arnd.bergmann@linaro.org> <201203162057.58706.arnd@arndb.de>
- <alpine.DEB.2.00.1203161509470.4395@utopia.booyaka.com>
+From: Russell King - ARM Linux <linux@arm.linux.org.uk>
+Subject: arm-soc + rmk's tree boot failure on OMAP4430SDP
+Date: Fri, 16 Mar 2012 23:11:58 +0000
+Message-ID: <20120316231158.GA9970@n2100.arm.linux.org.uk>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <alpine.DEB.2.00.1203161509470.4395@utopia.booyaka.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Paul Walmsley <paul@pwsan.com>
-Cc: Arnd Bergmann <arnd@arndb.de>, linux-arm-kernel@lists.infradead.org, Amit Kucheria <amit.kucheria@linaro.org>, Nicolas Pitre <nicolas.pitre@linaro.org>, linaro-dev@lists.linaro.org, Linus Walleij <linus.walleij@linaro.org>, Grant Likely <grant.likely@secretlab.ca>, Saravana Kannan <skannan@codeaurora.org>, Jeremy Kerr <jeremy.kerr@canonical.com>, Magnus Damm <magnus.damm@gmail.com>, Deepak Saxena <dsaxena@linaro.org>, patches@linaro.org, Sascha Hauer <s.hauer@pengutronix.de>, Rob Herring <rob.herring@calxeda.com>, Russell King <linux@arm.linux.org.uk>, Thomas Gleixner <tglx@linutronix.de>, Richard Zhao <richard.zhao@linaro.org>, Shawn Guo <shawn.guo@freescale.com>, Linus Walleij <linus.walleij@stericsson.com>, Mark Brown <broonie@opensource.wolfsonmicro.com>, Stephen Boyd <sboyd@codeaurora.org>, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from caramon.arm.linux.org.uk ([78.32.30.218]:56677 "EHLO
+	caramon.arm.linux.org.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1031499Ab2CPXMG (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 16 Mar 2012 19:12:06 -0400
+Content-Disposition: inline
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: linux-omap@vger.kernel.org, Tony Lindgren <tony@atomide.com>, Arnd Bergmann <arnd@arndb.de>
 
-On Fri, Mar 16, 2012 at 3:21 PM, Paul Walmsley <paul@pwsan.com> wrote:
-> From: Paul Walmsley <paul@pwsan.com>
-> Date: Fri, 16 Mar 2012 16:06:30 -0600
-> Subject: [PATCH] clk: mark the common clk code as EXPERIMENTAL for no=
-w
->
-> Mark the common clk code as depending on CONFIG_EXPERIMENTAL. =A0The =
-API
-> is not well-defined and both it and the underlying mechanics are like=
-ly
-> to need significant changes to support non-trivial uses of the rate
-> changing code, such as DVFS with external I/O devices. =A0So any plat=
-forms
-> that switch their implementation over to this may need to revise much
-> of their driver code and revalidate their implementations until the
-> behavior of the code is better-defined.
->
-> A good time for removing this EXPERIMENTAL designation would be after=
- at
-> least two platforms that do DVFS on groups of external I/O devices ha=
-ve
-> ported their clock implementations over to the common clk code.
->
-> Signed-off-by: Paul Walmsley <paul@pwsan.com>
-> Cc: Mike Turquette <mturquette@ti.com>
+Sometime during the last week, the OMAP4430SDP stopped booting - it now
+stops with no kernel messages output:
 
-ACK.  This will set some reasonable expectations while things are in fl=
-ux.
+http://www.arm.linux.org.uk/developer/build/result.php?type=boot&idx=69
 
-Arnd are you willing to take this in?
+The previously booted version:
 
-Thanks,
-Mike
+http://www.arm.linux.org.uk/developer/build/result.php?type=boot&idx=57
 
-> ---
-> =A0drivers/clk/Kconfig | =A0 =A01 +
-> =A01 files changed, 1 insertions(+), 0 deletions(-)
->
-> diff --git a/drivers/clk/Kconfig b/drivers/clk/Kconfig
-> index 2eaf17e..a0a83de 100644
-> --- a/drivers/clk/Kconfig
-> +++ b/drivers/clk/Kconfig
-> @@ -12,6 +12,7 @@ config HAVE_MACH_CLKDEV
-> =A0menuconfig COMMON_CLK
-> =A0 =A0 =A0 =A0bool "Common Clock Framework"
-> =A0 =A0 =A0 =A0select HAVE_CLK_PREPARE
-> + =A0 =A0 =A0 depends on EXPERIMENTAL
-> =A0 =A0 =A0 =A0---help---
-> =A0 =A0 =A0 =A0 =A0The common clock framework is a single definition =
-of struct
-> =A0 =A0 =A0 =A0 =A0clk, useful across many platforms, as well as an
-> --
-> 1.7.9.1
->
+worked fine - though this log will only be available for about 3 hours.
+
+I've re-checked my tree, and the OMAP4430SDP boots fine, so it's either
+breakage coming from arm-soc or a result of merging the two trees
+together.
