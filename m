@@ -1,109 +1,167 @@
-From: Tomi Valkeinen <tomi.valkeinen@ti.com>
-Subject: Re: [PATCH] omap2+: add drm device
-Date: Fri, 16 Mar 2012 13:03:45 +0200
-Message-ID: <1331895825.1653.15.camel@lappy>
-References: <1331670878-12951-1-git-send-email-rob.clark@linaro.org>
-	<1331728737.2386.76.camel@deskari>
-	<CAF6AEGvBB3AVrfXnpZwZCZGy48Re5sxm-jgLxSpH=nLzLKe0iA@mail.gmail.com>
-	<1331730465.1542.8.camel@lappy>
-	<CAF6AEGtTKf6w7TrgV8sKoSg=XEuqkfdgMj=vL2oksOMdB2Tbyg@mail.gmail.com>
-	<1331732624.1542.32.camel@lappy>
-	<CAF6AEGsCpz4zXCSXhP5qA7hL4Xac9+c03rS1PZejhUog_+SHkg@mail.gmail.com>
-	<1331801177.2768.8.camel@deskari>
-	<CAF6AEGtC9BA-8WZGNOs_rMFrzt88XPNjVRUooG7-Nxe7yDKjpA@mail.gmail.com>
+From: Archit Taneja <a0393947@ti.com>
+Subject: Re: [PATCH] omap_vout: Set DSS overlay_info only if paddr is non
+ zero
+Date: Fri, 16 Mar 2012 16:41:27 +0530
+Message-ID: <4F631FDF.8070308@ti.com>
+References: <1331110876-11895-1-git-send-email-archit@ti.com> <79CD15C6BA57404B839C016229A409A831810EAA@DBDE01.ent.ti.com> <4F6312E4.5000404@ti.com>
 Mime-Version: 1.0
-Content-Type: multipart/mixed; boundary="===============0820337180=="
-Return-path: <dri-devel-bounces+sf-dri-devel=m.gmane.org@lists.freedesktop.org>
-In-Reply-To: <CAF6AEGtC9BA-8WZGNOs_rMFrzt88XPNjVRUooG7-Nxe7yDKjpA@mail.gmail.com>
-List-Unsubscribe: <http://lists.freedesktop.org/mailman/options/dri-devel>,
-	<mailto:dri-devel-request@lists.freedesktop.org?subject=unsubscribe>
-List-Archive: <http://lists.freedesktop.org/archives/dri-devel>
-List-Post: <mailto:dri-devel@lists.freedesktop.org>
-List-Help: <mailto:dri-devel-request@lists.freedesktop.org?subject=help>
-List-Subscribe: <http://lists.freedesktop.org/mailman/listinfo/dri-devel>,
-	<mailto:dri-devel-request@lists.freedesktop.org?subject=subscribe>
-Sender: dri-devel-bounces+sf-dri-devel=m.gmane.org@lists.freedesktop.org
-Errors-To: dri-devel-bounces+sf-dri-devel=m.gmane.org@lists.freedesktop.org
-To: Rob Clark <rob.clark@linaro.org>
-Cc: Greg KH <greg@kroah.com>, linux-omap@vger.kernel.org, dri-devel@lists.freedesktop.org, patches@linaro.org
-List-Id: linux-omap@vger.kernel.org
-
-
---===============0820337180==
-Content-Type: multipart/signed; micalg="pgp-sha1"; protocol="application/pgp-signature"; boundary="=-Maqtc/dw+meYZgxGKgUk"
-
-
---=-Maqtc/dw+meYZgxGKgUk
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: quoted-printable
-
-On Thu, 2012-03-15 at 07:32 -0500, Rob Clark wrote:
-> On Thu, Mar 15, 2012 at 3:46 AM, Tomi Valkeinen <tomi.valkeinen@ti.com> w=
-rote:
-> > On Wed, 2012-03-14 at 10:06 -0500, Rob Clark wrote:
-> >
-> >> > Well, as I said, it's not an issue for me and from my side it can be
-> >> > improved later.
-> >>
-> >> yeah, when CMA is actually merged, there are a few other things I'd
-> >> like to do to, incl converting omapfb over to use CMA and remove
-> >> omap_vram.. but I guess those will be other patches.
-> >
-> > Right, I just realized CMA is not in the kernel, nor does it seem to be
-> > in the linux-next. Is there a reason why you want it already merged?
-> > Wouldn't it be easier to get it in only when it can actually be used.
-> > Especially if there's room for improvement.
->=20
-> Some folks are already pulling CMA into product kernels for various
-> reasons.. keeping this w/ #ifdef CONFIG_CMA guards seemed like it
-> would make their life a bit easier.
->=20
-> But if people feel strongly about it, I can strip that out.
-
-Well, I wouldn't say "feel strongly", but... I think the mainline kernel
-should have code only for the mainline kernel, not for some custom
-kernels. And the code is not testable in any way, not even compilable. I
-think all code going in should be tested and compiled. Also, if the CMA
-code is not in, who says it won't change. Perhaps the CMA function won't
-even exist in the version going into mainline.
-
- Tomi
-
-
---=-Maqtc/dw+meYZgxGKgUk
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: This is a digitally signed message part
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.4.11 (GNU/Linux)
-
-iQIcBAABAgAGBQJPYx4RAAoJEPo9qoy8lh71GZ0QAKOqSKG/8fe0rHr8Ol2HKdWB
-XYwdNsSnSIpfmjYY00LE4aYKpcT4G147h1uy7pi3OXK0fsI+EMH2FOoulohjDrFV
-BCif4Dno87EL9TpqqMgpuuS3tFo45Xhejdt2wB9h8c1O6Wn9k2u5uFEDwdv9QSm+
-+m3MdkkkZ+JWqSKbG1jmw9UJ8QK3JfeKiUIk7CkoLnl/MYrR90yEXSKA1sYNEPdX
-99o6PxtTaRg938GDx/6ZZTSHVkHyIY2Xzp69g2Fw56dke13nhmdyYL1GrUegNtEy
-g3J+fZe993sWrGjrVRFr85p2JvsifTAuB3vZBOqWu5LPVeOLY8UqpJ9as92mG97P
-EopvNIziqZffENFhEe40BUabGyc7UCbiIY3o3mU1RX7fSfp9MXYwtJa2XLPwwC7/
-uBKzZeM8pxydC8nrDUPt9sD3Wh/rDDZCPuqEI+HNDJtMz1/zxutqN6mgjJ5fW9/V
-pq+3PFDMSRLEt1Dmdu6MrarsrJ4a47ZZBURB4iO3AswYs7kU1pRIqjt9mocXGT9F
-vquVr8dj0jjZ/SitX0NLp74VAr8totiAPRCdGi90ckerRTyC7PAI3x8oqBE+GfrU
-5vapSRZvII3gzjhIcx1GM9kidmjkLgA0ejKl4O5godVQXqMVjEGKnBIbClP3tN3s
-6Q9QbCaRqJ8kxamYX2A3
-=Ml5x
------END PGP SIGNATURE-----
-
---=-Maqtc/dw+meYZgxGKgUk--
-
-
---===============0820337180==
-Content-Type: text/plain; charset="us-ascii"
-MIME-Version: 1.0
+Content-Type: text/plain; charset="ISO-8859-1"; format=flowed
 Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from devils.ext.ti.com ([198.47.26.153]:38630 "EHLO
+	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752606Ab2CPLLr (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 16 Mar 2012 07:11:47 -0400
+In-Reply-To: <4F6312E4.5000404@ti.com>
+Sender: linux-omap-owner@vger.kernel.org
+List-Id: linux-omap@vger.kernel.org
+Cc: "Hiremath, Vaibhav" <hvaibhav@ti.com>, "Valkeinen, Tomi" <tomi.valkeinen@ti.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
 
-_______________________________________________
-dri-devel mailing list
-dri-devel@lists.freedesktop.org
-http://lists.freedesktop.org/mailman/listinfo/dri-devel
+Hi,
 
---===============0820337180==--
+On Friday 16 March 2012 03:46 PM, Archit Taneja wrote:
+> On Monday 12 March 2012 03:34 PM, Hiremath, Vaibhav wrote:
+>> On Wed, Mar 07, 2012 at 14:31:16, Taneja, Archit wrote:
+>>> The omap_vout driver tries to set the DSS overlay_info using
+>>> set_overlay_info()
+>>> when the physical address for the overlay is still not configured.
+>>> This happens
+>>> in omap_vout_probe() and vidioc_s_fmt_vid_out().
+>>>
+>>> The calls to omapvid_init(which internally calls set_overlay_info())
+>>> are removed
+>>> from these functions. They don't need to be called as the
+>>> omap_vout_device
+>>> struct anyway maintains the overlay related changes made. Also,
+>>> remove the
+>>> explicit call to set_overlay_info() in vidioc_streamon(), this was
+>>> used to set
+>>> the paddr, this isn't needed as omapvid_init() does the same thing
+>>> later.
+>>>
+>>> These changes are required as the DSS2 driver since 3.3 kernel
+>>> doesn't let you
+>>> set the overlay info with paddr as 0.
+>>>
+>>> Signed-off-by: Archit Taneja<archit@ti.com>
+>>> ---
+>>> drivers/media/video/omap/omap_vout.c | 36
+>>> ++++-----------------------------
+>>> 1 files changed, 5 insertions(+), 31 deletions(-)
+>>>
+>>> diff --git a/drivers/media/video/omap/omap_vout.c
+>>> b/drivers/media/video/omap/omap_vout.c
+>>> index 1fb7d5b..dffcf66 100644
+>>> --- a/drivers/media/video/omap/omap_vout.c
+>>> +++ b/drivers/media/video/omap/omap_vout.c
+>>> @@ -1157,13 +1157,6 @@ static int vidioc_s_fmt_vid_out(struct file
+>>> *file, void *fh,
+>>> /* set default crop and win */
+>>> omap_vout_new_format(&vout->pix,&vout->fbuf,&vout->crop,&vout->win);
+>>>
+>>> - /* Save the changes in the overlay strcuture */
+>>> - ret = omapvid_init(vout, 0);
+>>> - if (ret) {
+>>> - v4l2_err(&vout->vid_dev->v4l2_dev, "failed to change mode\n");
+>>> - goto s_fmt_vid_out_exit;
+>>> - }
+>>> -
+>>> ret = 0;
+>>>
+>>> s_fmt_vid_out_exit:
+>>> @@ -1664,20 +1657,6 @@ static int vidioc_streamon(struct file *file,
+>>> void *fh, enum v4l2_buf_type i)
+>>>
+>>> omap_dispc_register_isr(omap_vout_isr, vout, mask);
+>>>
+>>> - for (j = 0; j< ovid->num_overlays; j++) {
+>>> - struct omap_overlay *ovl = ovid->overlays[j];
+>>> -
+>>> - if (ovl->manager&& ovl->manager->device) {
+>>> - struct omap_overlay_info info;
+>>> - ovl->get_overlay_info(ovl,&info);
+>>> - info.paddr = addr;
+>>> - if (ovl->set_overlay_info(ovl,&info)) {
+>>> - ret = -EINVAL;
+>>> - goto streamon_err1;
+>>> - }
+>>> - }
+>>> - }
+>>> -
+>>
+>> Have you checked for build warnings? I am getting build warnings
+>>
+>> CC drivers/media/video/omap/omap_vout.o
+>> CC drivers/media/video/omap/omap_voutlib.o
+>> CC drivers/media/video/omap/omap_vout_vrfb.o
+>> drivers/media/video/omap/omap_vout.c: In function 'vidioc_streamon':
+>> drivers/media/video/omap/omap_vout.c:1619:25: warning: unused variable
+>> 'ovid'
+>> drivers/media/video/omap/omap_vout.c:1615:15: warning: unused variable
+>> 'j'
+>> LD drivers/media/video/omap/omap-vout.o
+>> LD drivers/media/video/omap/built-in.o
+>>
+>> Can you fix this and submit the next version?
+
+I applied the patch on the current mainline kernel, it doesn't give any 
+build warnings. Even after applying the patch, 'j and ovid' are still 
+used in vidioc_streamon().
+
+Can you check if it was applied correctly?
+
+Regards,
+Archit
+
+>
+> Will fix this and submit.
+>
+> Archit
+>
+>>
+>> Thanks,
+>> Vaibhav
+>>
+>>> /* First save the configuration in ovelray structure */
+>>> ret = omapvid_init(vout, addr);
+>>> if (ret)
+>>> @@ -2071,11 +2050,12 @@ static int __init
+>>> omap_vout_create_video_devices(struct platform_device *pdev)
+>>> }
+>>> video_set_drvdata(vfd, vout);
+>>>
+>>> - /* Configure the overlay structure */
+>>> - ret = omapvid_init(vid_dev->vouts[k], 0);
+>>> - if (!ret)
+>>> - goto success;
+>>> + dev_info(&pdev->dev, ": registered and initialized"
+>>> + " video device %d\n", vfd->minor);
+>>> + if (k == (pdev->num_resources - 1))
+>>> + return 0;
+>>>
+>>> + continue;
+>>> error2:
+>>> if (vout->vid_info.rotation_type == VOUT_ROT_VRFB)
+>>> omap_vout_release_vrfb(vout);
+>>> @@ -2085,12 +2065,6 @@ error1:
+>>> error:
+>>> kfree(vout);
+>>> return ret;
+>>> -
+>>> -success:
+>>> - dev_info(&pdev->dev, ": registered and initialized"
+>>> - " video device %d\n", vfd->minor);
+>>> - if (k == (pdev->num_resources - 1))
+>>> - return 0;
+>>> }
+>>>
+>>> return -ENODEV;
+>>> --
+>>> 1.7.5.4
+>>>
+>>>
+>>
+>>
+>
+>
+
