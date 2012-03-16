@@ -1,86 +1,136 @@
-From: "Hiremath, Vaibhav" <hvaibhav@ti.com>
-Subject: RE: [PATCH] omap_vout: Fix "DMA transaction error" issue when
- rotation is enabled
-Date: Fri, 16 Mar 2012 09:26:45 +0000
-Message-ID: <79CD15C6BA57404B839C016229A409A83181B886@DBDE01.ent.ti.com>
-References: <1331295117-489-1-git-send-email-hvaibhav@ti.com>
- <2410737.F7OP3MWonz@avalon>
+From: "Maximilian Schwerin" <Maximilian.Schwerin@tigris.de>
+Subject: AW: [PATCH] OMAP3: OPP: Test for IVA subsystem before attempting to
+ add IVA OPP
+Date: Fri, 16 Mar 2012 10:26:49 +0100
+Message-ID: <5448984682E7954C9BFF27F747A9C6CA56D6A8@dolphin.TIGRIS.local>
+References: <8762e6et1u.fsf@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
-Return-path: <linux-media-owner@vger.kernel.org>
-In-Reply-To: <2410737.F7OP3MWonz@avalon>
-Content-Language: en-US
-Sender: linux-media-owner@vger.kernel.org
-To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-Cc: "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>, "mchehab@infradead.org" <mchehab@infradead.org>, "Taneja, Archit" <archit@ti.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
+Content-Type: multipart/mixed; boundary="===============3145147046303034951=="
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
+In-Reply-To: <8762e6et1u.fsf@ti.com>
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
+List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
+List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
+Sender: linux-arm-kernel-bounces@lists.infradead.org
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
+To: Kevin Hilman <khilman@ti.com>, "Menon, Nishanth" <nm@ti.com>
+Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Steve Sakoman <steve@sakoman.com>
 List-Id: linux-omap@vger.kernel.org
 
-On Wed, Mar 14, 2012 at 21:00:25, Laurent Pinchart wrote:
-> Hi Vaibhav,
-> 
-> On Friday 09 March 2012 17:41:57 Vaibhav Hiremath wrote:
-> > When rotation is enabled and driver is configured in USERPTR
-> > buffer exchange mechanism, in specific use-case driver reports
-> > an error,
-> >    "DMA transaction error with device 0".
-> > 
-> > In driver _buffer_prepare funtion, we were using
-> > "vout->buf_phy_addr[vb->i]" for buffer physical address to
-> > configure SDMA channel, but this variable does get updated
-> > only during init.
-> > And the issue will occur when driver allocates less number
-> > of buffers during init and application requests more buffers
-> > through REQBUF ioctl; this variable will lead to invalid
-> > configuration of SDMA channel leading to DMA transaction error.
-> > 
-> > Signed-off-by: Vaibhav Hiremath <hvaibhav@ti.com>
-> > ---
-> > Archit/Laurent,
-> > Can you help me to validate this patch on your platform/usecase?
-> 
-> I've tested the patch by rotating the omap_vout overlay by 90 degrees and 
-> starting a video stream with 4 buffers. There's no crash, but the kernel 
-> prints
-> 
-> [77.877807] omapdss DISPC error: FIFO UNDERFLOW on gfx, disabling the overlay
-> [77.928344] omapdss DISPC error: FIFO UNDERFLOW on vid1, disabling the overlay
-> 
-> The same problem occurs with 3 buffers, which is what the omap_vout driver 
-> allocates by default.
-> 
-> Without your patch applied I get the same behaviour. Is my test procedure 
-> wrong ?
-> 
+--===============3145147046303034951==
+Content-Type: multipart/signed; micalg=pgp-sha1;
+	protocol="application/pgp-signature"; boundary="=-0LlHK+2qETHwrXXD5vNL"
 
-Laurent,
+--=-0LlHK+2qETHwrXXD5vNL
+Content-class: urn:content-classes:message
+Content-Type: text/plain;
+	charset="iso-8859-1"
+Content-Transfer-Encoding: quoted-printable
 
-Thanks for testing, the procedure looks ok to me. I need to look into this issue (need to debug).
+> Von: Kevin Hilman [mailto:khilman@ti.com]=20
+>=20
+> "Menon, Nishanth" <nm@ti.com> writes:
+>=20
+> > On Wed, Mar 14, 2012 at 16:15, Kevin Hilman <khilman@ti.com> wrote:
+> >> Maximilian Schwerin <mvs@tigris.de> writes:
+> >>
+> >>> From: Steve Sakoman <steve@sakoman.com>
+> >>>
+> >>> Don't try to add IVA OPPs for OMAP3 versions not containing an IVA
+> >>> subsystem, as this would make omap_init_opp_table fail.
+> >>>
+> >>> Signed-off-by: Steve Sakoman <steve@sakoman.com>
+> >>> Signed-off-by: Maximilian Schwerin <mvs@tigris.de>
+> >>
+> >> Minor: patch subjects for arch/arm/* core code need to=20
+> have the ARM:
+> >> prefix also.
+> >>
+> >> Also, please run scripts/checkpatch.pl on your patch and fix the
+> >> warnings.
+> >>
+> >>> ---
+> >>> =A0arch/arm/mach-omap2/opp.c | =A0 =A04 ++++
+> >>> =A01 files changed, 4 insertions(+), 0 deletions(-)
+> >>>
+> >>> diff --git a/arch/arm/mach-omap2/opp.c b/arch/arm/mach-omap2/opp.c
+> >>> index 9262a6b..414f2ec 100644
+> >>> --- a/arch/arm/mach-omap2/opp.c
+> >>> +++ b/arch/arm/mach-omap2/opp.c
+> >>> @@ -62,6 +62,10 @@ int __init omap_init_opp_table(struct=20
+> omap_opp_def *opp_def,
+> >>> =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =
+__func__, i);
+> >>> =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 return -EINVAL;
+> >>> =A0 =A0 =A0 =A0 =A0 =A0 =A0 }
+> >>> +
+> >>> + =A0 =A0 =A0 =A0 =A0 =A0 if ((strcmp(opp_def->hwmod_name,"iva") =
+=3D=3D=20
+> 0) && !omap3_has_iva())
+> >>> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 continue;
+> >>> +
+> >>> =A0 =A0 =A0 =A0 =A0 =A0 =A0 oh =3D =
+omap_hwmod_lookup(opp_def->hwmod_name);
+> >>> =A0 =A0 =A0 =A0 =A0 =A0 =A0 if (!oh || !oh->od) {
+> >>> =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 pr_warn("%s: no hwmod =
+or odev for %s, [%d] "
+> >>
+> >> Wouldn't the one-liner below do the same thing?
+> >>
+> >> Actually, your patch makes it less noisy at boot time, avoiding the
+> >> pr_warn(), so is probably better.
+> >
+> > The only issue i have with current patch is that it=20
+> focusses to solve
+> > a specific device IVA.
+> > we could have similar variances if we had SGX/AESS device etc
+> > registered in the common
+> > table. a generic solution might be preferable - could we reduce the
+> > severity of pr_warn to pr_debug and do a continue instead?
+>=20
+> I agree, that would be a better generic solution.
+>=20
+> Kevin
+>
 
-Thanks,
-Vaibhav
+This is a pragmatic and simple solution for a well understood problem =
+with no side effects. Why not fix the problem now and do the generic =
+solution later on?=20
+
+I'm not a fulltime kernel dev. I have about two weeks to get my new =
+board out to my customer... Every time I set up a new board, I have to =
+fix problems using known patches that are sometimes years old. Every =
+patch I have to find costs me hours of time I really don't have.=20
+
+Just my two cents (euro cents of course :-), Maximilian
+
+--=-0LlHK+2qETHwrXXD5vNL
+Content-Type: application/pgp-signature
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v2.0.9 (GNU/Linux)
+
+iEYEABECAAYFAk9jB2QACgkQ6nqkzTWctv4OMwCcC/g2m7jcopL6P5XxxJRqjWUE
+xscAn3bx9yAJQU0FVmJfMaKkOwWP/zln
+=nuBR
+-----END PGP SIGNATURE-----
+
+--=-0LlHK+2qETHwrXXD5vNL--
 
 
-> >  drivers/media/video/omap/omap_vout_vrfb.c |    2 +-
-> >  1 files changed, 1 insertions(+), 1 deletions(-)
-> > 
-> > diff --git a/drivers/media/video/omap/omap_vout_vrfb.c
-> > b/drivers/media/video/omap/omap_vout_vrfb.c index 4be26ab..240d36d 100644
-> > --- a/drivers/media/video/omap/omap_vout_vrfb.c
-> > +++ b/drivers/media/video/omap/omap_vout_vrfb.c
-> > @@ -225,7 +225,7 @@ int omap_vout_prepare_vrfb(struct omap_vout_device
-> > *vout, if (!is_rotation_enabled(vout))
-> >  		return 0;
-> > 
-> > -	dmabuf = vout->buf_phy_addr[vb->i];
-> > +	dmabuf = (dma_addr_t) vout->queued_buf_addr[vb->i];
-> >  	/* If rotation is enabled, copy input buffer into VRFB
-> >  	 * memory space using DMA. We are copying input buffer
-> >  	 * into VRFB memory space of desired angle and DSS will
-> 
-> -- 
-> Regards,
-> 
-> Laurent Pinchart
-> 
-> 
+--===============3145147046303034951==
+Content-Type: text/plain; charset="us-ascii"
+MIME-Version: 1.0
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
+
+_______________________________________________
+linux-arm-kernel mailing list
+linux-arm-kernel@lists.infradead.org
+http://lists.infradead.org/mailman/listinfo/linux-arm-kernel
+
+--===============3145147046303034951==--
