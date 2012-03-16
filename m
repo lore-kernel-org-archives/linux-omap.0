@@ -1,54 +1,77 @@
-From: Venkatraman S <svenkatr@ti.com>
-Subject: [PATCH v2 8/8] mmc: omap4: hsmmc: fix module re-insertion
-Date: Fri, 16 Mar 2012 19:09:04 +0530
-Message-ID: <1331905144-31655-9-git-send-email-svenkatr@ti.com>
-References: <y>
- <1331905144-31655-1-git-send-email-svenkatr@ti.com>
+From: "Cousson, Benoit" <b-cousson@ti.com>
+Subject: Re: [PATCH 0/2] omap: board file changes to support dynamic irq alloc
+Date: Fri, 16 Mar 2012 14:46:28 +0100
+Message-ID: <4F634434.3080707@ti.com>
+References: <1331900647-3508-1-git-send-email-tarun.kanti@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain
-Return-path: <linux-mmc-owner@vger.kernel.org>
-In-Reply-To: <1331905144-31655-1-git-send-email-svenkatr@ti.com>
-Sender: linux-mmc-owner@vger.kernel.org
-To: linux-mmc@vger.kernel.org, linux-omap@vger.kernel.org
-Cc: cjb@laptop.org, balajitk@ti.com, balbi@ti.com, Venkatraman S <svenkatr@ti.com>
+Content-Type: text/plain; charset="ISO-8859-1"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from devils.ext.ti.com ([198.47.26.153]:47474 "EHLO
+	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1758435Ab2CPNqd (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 16 Mar 2012 09:46:33 -0400
+In-Reply-To: <1331900647-3508-1-git-send-email-tarun.kanti@ti.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Tarun Kanti DebBarma <tarun.kanti@ti.com>
+Cc: linux-omap@vger.kernel.org, khilman@ti.com, tony@atomide.com, grant.likely@secretlab.ca, linux-arm-kernel@lists.infradead.org
 
-From: Balaji T K <balajitk@ti.com>
+Hi Tarun,
 
-OMAP4 and OMAP3 HSMMC IP registers differ by 0x100 offset.
-Addng the offset to platform_device resource structure
-increments the start address for every insmod operation.
-MMC command fails on re-insertion as module due to incorrect register base.
-Fix this by updating the ioremap base address only.
+On 3/16/2012 1:24 PM, Tarun Kanti DebBarma wrote:
+> These two patches incorporate changes to OMAP1 and OMAP2 platforms
+> board files whereby older references to OMAP_GPIO_IRQ macro are
+> now replaced with gpio_to_irq(), thereby getting rid of static
+> irq references.
 
-Signed-off-by: Balaji T K <balajitk@ti.com>
-Signed-off-by: Venkatraman S <svenkatr@ti.com>
----
- drivers/mmc/host/omap_hsmmc.c |    4 +---
- 1 file changed, 1 insertion(+), 3 deletions(-)
+Thanks for the board fix / cleanup.
 
-diff --git a/drivers/mmc/host/omap_hsmmc.c b/drivers/mmc/host/omap_hsmmc.c
-index 6411f9a..6bef2a8 100644
---- a/drivers/mmc/host/omap_hsmmc.c
-+++ b/drivers/mmc/host/omap_hsmmc.c
-@@ -1812,8 +1812,6 @@ static int __devinit omap_hsmmc_probe(struct platform_device *pdev)
- 	if (res == NULL || irq < 0)
- 		return -ENXIO;
+...
+
+>   arch/arm/mach-omap1/board-h2.c               |    8 ++++----
+>   arch/arm/mach-omap1/board-h3.c               |    8 ++++----
+>   arch/arm/mach-omap1/board-htcherald.c        |    6 +++---
+>   arch/arm/mach-omap1/board-innovator.c        |    4 ++--
+>   arch/arm/mach-omap1/board-nokia770.c         |    1 +
+>   arch/arm/mach-omap1/board-osk.c              |   12 ++++++------
+>   arch/arm/mach-omap1/board-palmte.c           |    2 +-
+>   arch/arm/mach-omap1/board-palmtt.c           |    2 +-
+>   arch/arm/mach-omap1/board-palmz71.c          |    2 +-
+>   arch/arm/mach-omap1/board-voiceblue.c        |   16 +++++++---------
+>   arch/arm/mach-omap2/board-2430sdp.c          |    2 +-
+>   arch/arm/mach-omap2/board-4430sdp.c          |    2 +-
+>   arch/arm/mach-omap2/board-apollon.c          |    6 ++++--
+>   arch/arm/mach-omap2/board-devkit8000.c       |    3 ++-
+>   arch/arm/mach-omap2/board-h4.c               |    2 +-
+>   arch/arm/mach-omap2/board-omap3evm.c         |    2 +-
+>   arch/arm/mach-omap2/board-omap4panda.c       |    2 +-
+>   arch/arm/mach-omap2/board-rx51-peripherals.c |    3 ++-
+>   arch/arm/mach-omap2/board-zoom-debugboard.c  |    3 ++-
+>   arch/arm/mach-omap2/board-zoom-peripherals.c |    6 ++++--
+>   arch/arm/mach-omap2/common-board-devices.c   |    2 +-
+
+I guess, you should be able to remove even the MACRO definition? 
+
+diff --git a/arch/arm/plat-omap/include/plat/gpio.h b/arch/arm/plat-omap/include/plat/gpio.h
+index 9e86ee0..d4df414 100644
+--- a/arch/arm/plat-omap/include/plat/gpio.h
++++ b/arch/arm/plat-omap/include/plat/gpio.h
+@@ -158,10 +158,6 @@
+ #define OMAP_MPUIO(nr)         (OMAP_MAX_GPIO_LINES + (nr))
+ #define OMAP_GPIO_IS_MPUIO(nr) ((nr) >= OMAP_MAX_GPIO_LINES)
  
--	res->start += pdata->reg_offset;
--	res->end += pdata->reg_offset;
- 	res = request_mem_region(res->start, resource_size(res), pdev->name);
- 	if (res == NULL)
- 		return -EBUSY;
-@@ -1837,7 +1835,7 @@ static int __devinit omap_hsmmc_probe(struct platform_device *pdev)
- 	host->dma_ch	= -1;
- 	host->irq	= irq;
- 	host->slot_id	= 0;
--	host->mapbase	= res->start;
-+	host->mapbase	= res->start + pdata->reg_offset;
- 	host->base	= ioremap(host->mapbase, SZ_4K);
- 	host->power_mode = MMC_POWER_OFF;
- 	host->flags	= AUTO_CMD12;
--- 
-1.7.10.rc0.41.gfa678
+-#define OMAP_GPIO_IRQ(nr)      (OMAP_GPIO_IS_MPUIO(nr) ? \
+-                                IH_MPUIO_BASE + ((nr) & 0x0f) : \
+-                                IH_GPIO_BASE + (nr))
+-
+ #define METHOD_MPUIO           0
+ #define METHOD_GPIO_1510       1
+ #define METHOD_GPIO_1610       2
+
+
+It will avoid that people use it going forward.
+
+Regards,
+Benoit
 
