@@ -1,10 +1,10 @@
 From: Aneesh V <aneesh@ti.com>
-Subject: [PATCH v3] misc: ddr: add LPDDR2 data from JESD209-2
-Date: Sat, 17 Mar 2012 01:49:37 +0530
-Message-ID: <1331929177-11694-1-git-send-email-aneesh@ti.com>
-References: <20120315190238.GD11142@kroah.com>
+Subject: [PATCH v4] misc: ddr: add LPDDR2 data from JESD209-2
+Date: Sat, 17 Mar 2012 02:20:07 +0530
+Message-ID: <1331931007-584-1-git-send-email-aneesh@ti.com>
+References: <1331929177-11694-1-git-send-email-aneesh@ti.com>
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20120315190238.GD11142@kroah.com>
+In-Reply-To: <1331929177-11694-1-git-send-email-aneesh@ti.com>
 Sender: linux-kernel-owner@vger.kernel.org
 To: linux-kernel@vger.kernel.org
 Cc: linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org, Aneesh V <aneesh@ti.com>, Greg KH <greg@kroah.com>
@@ -17,11 +17,18 @@ includes:
    densities and types(S2/S4)
 2. AC timing data.
 
-This data will useful for memory controller device drivers
+This data will useful for memory controller device drivers.
+Right now this is used by the TI EMIF SDRAM controller
+driver.
 
 Cc: Greg KH <greg@kroah.com>
 Signed-off-by: Aneesh V <aneesh@ti.com>
 ---
+v4:
+- Removed 'ifndef __ASSEMBLY__' from jedec_ddr.h
+- Updated commit log to be more specific on where
+  this patch is used currently
+
 v3:
 - Converted EXPORT_SYMBOL to EXPORT_SYMBOL_GPL
 - Removed un-necessary newline
@@ -30,20 +37,20 @@ v1:
 - Moved to /lib from /drivers/misc
 - Corrected Copyright year
 ---
- include/misc/jedec_ddr.h |  177 ++++++++++++++++++++++++++++++++++++++++++++++
+ include/misc/jedec_ddr.h |  175 ++++++++++++++++++++++++++++++++++++++++++++++
  lib/Kconfig              |    8 ++
  lib/Makefile             |    2 +
  lib/jedec_ddr_data.c     |  135 +++++++++++++++++++++++++++++++++++
- 4 files changed, 322 insertions(+), 0 deletions(-)
+ 4 files changed, 320 insertions(+), 0 deletions(-)
  create mode 100644 include/misc/jedec_ddr.h
  create mode 100644 lib/jedec_ddr_data.c
 
 diff --git a/include/misc/jedec_ddr.h b/include/misc/jedec_ddr.h
 new file mode 100644
-index 0000000..93ffd4a
+index 0000000..ddad0f8
 --- /dev/null
 +++ b/include/misc/jedec_ddr.h
-@@ -0,0 +1,177 @@
+@@ -0,0 +1,175 @@
 +/*
 + * Definitions for DDR memories based on JEDEC specs
 + *
@@ -58,7 +65,6 @@ index 0000000..93ffd4a
 +#ifndef __LINUX_JEDEC_DDR_H
 +#define __LINUX_JEDEC_DDR_H
 +
-+#ifndef __ASSEMBLY__
 +#include <linux/types.h>
 +
 +/* DDR Densities */
@@ -218,7 +224,6 @@ index 0000000..93ffd4a
 +extern const struct lpddr2_timings
 +	lpddr2_jedec_timings[NUM_DDR_TIMING_TABLE_ENTRIES];
 +extern const struct lpddr2_min_tck lpddr2_jedec_min_tck;
-+#endif /* __ASSEMBLY__ */
 +
 +#endif /* __LINUX_JEDEC_DDR_H */
 diff --git a/lib/Kconfig b/lib/Kconfig
