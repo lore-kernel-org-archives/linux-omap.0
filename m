@@ -1,95 +1,90 @@
 From: Tarun Kanti DebBarma <tarun.kanti@ti.com>
-Subject: [PATCH v4 04/12] gpio/omap: remove saved_wakeup field from struct gpio_bank
-Date: Fri, 16 Mar 2012 19:35:52 +0530
-Message-ID: <1331906760-5259-5-git-send-email-tarun.kanti@ti.com>
+Subject: [PATCH v4 01/12] gpio/omap: remove saved_fallingdetect, saved_risingdetect fields
+Date: Fri, 16 Mar 2012 19:35:49 +0530
+Message-ID: <1331906760-5259-2-git-send-email-tarun.kanti@ti.com>
 References: <1331906760-5259-1-git-send-email-tarun.kanti@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from bear.ext.ti.com ([192.94.94.41]:49823 "EHLO bear.ext.ti.com"
+Received: from comal.ext.ti.com ([198.47.26.152]:39153 "EHLO comal.ext.ti.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1755349Ab2CPOGN (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Fri, 16 Mar 2012 10:06:13 -0400
+	id S964942Ab2CPOGR (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Fri, 16 Mar 2012 10:06:17 -0400
 In-Reply-To: <1331906760-5259-1-git-send-email-tarun.kanti@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: linux-omap@vger.kernel.org
 Cc: khilman@ti.com, tony@atomide.com, b-cousson@ti.com, grant.likely@secretlab.ca, linux-arm-kernel@lists.infradead.org, Tarun Kanti DebBarma <tarun.kanti@ti.com>
 
-There is no more need to have saved_wakeup because bank->context.wake_en
-already holds that value. So getting rid of read/write operation associated
-with this field.
+Since we already have context.fallingdetect and context.risingdetect
+there is no more need to have these additional fields. Also, getting
+rid of extra reads associated with them.
 
 Signed-off-by: Tarun Kanti DebBarma <tarun.kanti@ti.com>
 Reviewed-by: Santosh Shilimkar <santosh.shilimkar@ti.com>
 Acked-by: Felipe Balbi <balbi@ti.com>
 ---
- drivers/gpio/gpio-omap.c |   12 +++---------
- 1 files changed, 3 insertions(+), 9 deletions(-)
+ drivers/gpio/gpio-omap.c |   19 ++++++++-----------
+ 1 files changed, 8 insertions(+), 11 deletions(-)
 
 diff --git a/drivers/gpio/gpio-omap.c b/drivers/gpio/gpio-omap.c
-index 3a4f151..3b91ade 100644
+index 7cbad85..0c1c529 100644
 --- a/drivers/gpio/gpio-omap.c
 +++ b/drivers/gpio/gpio-omap.c
-@@ -57,7 +57,6 @@ struct gpio_bank {
- 	u16 irq;
- 	int irq_base;
- 	struct irq_domain *domain;
--	u32 saved_wakeup;
- 	u32 non_wakeup_gpios;
+@@ -63,8 +63,6 @@ struct gpio_bank {
  	u32 enabled_non_wakeup_gpios;
  	struct gpio_regs context;
-@@ -777,7 +776,6 @@ static int omap_mpuio_suspend_noirq(struct device *dev)
- 	unsigned long		flags;
+ 	u32 saved_datain;
+-	u32 saved_fallingdetect;
+-	u32 saved_risingdetect;
+ 	u32 level_mask;
+ 	u32 toggle_mask;
+ 	spinlock_t lock;
+@@ -1244,11 +1242,9 @@ static int omap_gpio_runtime_suspend(struct device *dev)
  
- 	spin_lock_irqsave(&bank->lock, flags);
--	bank->saved_wakeup = __raw_readl(mask_reg);
- 	__raw_writel(0xffff & ~bank->context.wake_en, mask_reg);
- 	spin_unlock_irqrestore(&bank->lock, flags);
+ 	bank->saved_datain = __raw_readl(bank->base +
+ 						bank->regs->datain);
+-	l1 = __raw_readl(bank->base + bank->regs->fallingdetect);
+-	l2 = __raw_readl(bank->base + bank->regs->risingdetect);
++	l1 = bank->context.fallingdetect;
++	l2 = bank->context.risingdetect;
  
-@@ -793,7 +791,7 @@ static int omap_mpuio_resume_noirq(struct device *dev)
- 	unsigned long		flags;
+-	bank->saved_fallingdetect = l1;
+-	bank->saved_risingdetect = l2;
+ 	l1 &= ~bank->enabled_non_wakeup_gpios;
+ 	l2 &= ~bank->enabled_non_wakeup_gpios;
  
- 	spin_lock_irqsave(&bank->lock, flags);
--	__raw_writel(bank->saved_wakeup, mask_reg);
-+	__raw_writel(bank->context.wake_en, mask_reg);
- 	spin_unlock_irqrestore(&bank->lock, flags);
+@@ -1307,9 +1303,9 @@ static int omap_gpio_runtime_resume(struct device *dev)
+ 		}
+ 	}
  
- 	return 0;
-@@ -1153,7 +1151,6 @@ static int omap_gpio_suspend(struct device *dev)
- 	struct platform_device *pdev = to_platform_device(dev);
- 	struct gpio_bank *bank = platform_get_drvdata(pdev);
- 	void __iomem *base = bank->base;
--	void __iomem *wakeup_enable;
- 	unsigned long flags;
+-	__raw_writel(bank->saved_fallingdetect,
++	__raw_writel(bank->context.fallingdetect,
+ 			bank->base + bank->regs->fallingdetect);
+-	__raw_writel(bank->saved_risingdetect,
++	__raw_writel(bank->context.risingdetect,
+ 			bank->base + bank->regs->risingdetect);
+ 	l = __raw_readl(bank->base + bank->regs->datain);
  
- 	if (!bank->mod_usage || !bank->loses_context)
-@@ -1162,10 +1159,7 @@ static int omap_gpio_suspend(struct device *dev)
- 	if (!bank->regs->wkup_en || !bank->context.wake_en)
- 		return 0;
+@@ -1326,14 +1322,15 @@ static int omap_gpio_runtime_resume(struct device *dev)
+ 	 * No need to generate IRQs for the rising edge for gpio IRQs
+ 	 * configured with falling edge only; and vice versa.
+ 	 */
+-	gen0 = l & bank->saved_fallingdetect;
++	gen0 = l & bank->context.fallingdetect;
+ 	gen0 &= bank->saved_datain;
  
--	wakeup_enable = bank->base + bank->regs->wkup_en;
--
- 	spin_lock_irqsave(&bank->lock, flags);
--	bank->saved_wakeup = __raw_readl(wakeup_enable);
- 	_gpio_rmw(base, bank->regs->wkup_en, 0xffffffff, 0);
- 	_gpio_rmw(base, bank->regs->wkup_en, bank->context.wake_en, 1);
- 	spin_unlock_irqrestore(&bank->lock, flags);
-@@ -1183,12 +1177,12 @@ static int omap_gpio_resume(struct device *dev)
- 	if (!bank->mod_usage || !bank->loses_context)
- 		return 0;
+-	gen1 = l & bank->saved_risingdetect;
++	gen1 = l & bank->context.risingdetect;
+ 	gen1 &= ~(bank->saved_datain);
  
--	if (!bank->regs->wkup_en || !bank->saved_wakeup)
-+	if (!bank->regs->wkup_en || !bank->context.wake_en)
- 		return 0;
+ 	/* FIXME: Consider GPIO IRQs with level detections properly! */
+-	gen = l & (~(bank->saved_fallingdetect) & ~(bank->saved_risingdetect));
++	gen = l & (~(bank->context.fallingdetect) &
++					 ~(bank->context.risingdetect));
+ 	/* Consider all GPIO IRQs needed to be updated */
+ 	gen |= gen0 | gen1;
  
- 	spin_lock_irqsave(&bank->lock, flags);
- 	_gpio_rmw(base, bank->regs->wkup_en, 0xffffffff, 0);
--	_gpio_rmw(base, bank->regs->wkup_en, bank->saved_wakeup, 1);
-+	_gpio_rmw(base, bank->regs->wkup_en, bank->context.wake_en, 1);
- 	spin_unlock_irqrestore(&bank->lock, flags);
- 
- 	return 0;
 -- 
 1.7.0.4
 
