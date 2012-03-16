@@ -1,47 +1,55 @@
-From: Nicolas Pitre <nico@fluxnic.net>
-Subject: Re: [PATCH] of: Add generic device tree DMA helpers
-Date: Thu, 15 Mar 2012 19:45:09 -0400 (EDT)
-Message-ID: <alpine.LFD.2.02.1203151934560.24151@xanadu.home>
-References: <4F22DEF2.5000807@ti.com>
- <1331800690-21518-1-git-send-email-nicolas.ferre@atmel.com>
- <201203150922.06379.arnd@arndb.de> <4F621939.9040906@ti.com>
- <20120315195753.GA2842@n2100.arm.linux.org.uk>
+From: Chris Ball <cjb@laptop.org>
+Subject: Re: [PATCH] mmc: omap_hsmmc: set dto to 14 for all devices
+Date: Thu, 15 Mar 2012 23:22:26 -0400
+Message-ID: <87bonxcjrh.fsf@laptop.org>
+References: <1330622780-1909-1-git-send-email-Chase.Maupin@ti.com>
+	<m2399iqtgf.fsf@bob.laptop.org>
+	<alpine.DEB.2.00.1203120435200.11332@utopia.booyaka.com>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; CHARSET=US-ASCII
-Content-Transfer-Encoding: 7BIT
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from relais.videotron.ca ([24.201.245.36]:17767 "EHLO
-	relais.videotron.ca" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752427Ab2COXpK (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 15 Mar 2012 19:45:10 -0400
-Received: from xanadu.home ([66.130.28.92]) by VL-VM-MR006.ip.videotron.ca
- (Oracle Communications Messaging Exchange Server 7u4-22.01 64bit (built Apr 21
- 2011)) with ESMTP id <0M0Y00LR39Z90BA0@VL-VM-MR006.ip.videotron.ca> for
- linux-omap@vger.kernel.org; Thu, 15 Mar 2012 19:45:09 -0400 (EDT)
-In-reply-to: <20120315195753.GA2842@n2100.arm.linux.org.uk>
+Received: from void.printf.net ([89.145.121.20]:50104 "EHLO void.printf.net"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S965324Ab2CPDWz (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Thu, 15 Mar 2012 23:22:55 -0400
+In-Reply-To: <alpine.DEB.2.00.1203120435200.11332@utopia.booyaka.com> (Paul
+	Walmsley's message of "Mon, 12 Mar 2012 04:58:00 -0600 (MDT)")
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Russell King - ARM Linux <linux@arm.linux.org.uk>
-Cc: "Cousson, Benoit" <b-cousson@ti.com>, Stephen Warren <swarren@nvidia.com>, devicetree-discuss@lists.ozlabs.org, rob.herring@calxeda.com, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+To: Paul Walmsley <paul@pwsan.com>
+Cc: Chase Maupin <Chase.Maupin@ti.com>, linux-omap@vger.kernel.org, linux-mmc@vger.kernel.org, sakoman@gmail.com
 
-On Thu, 15 Mar 2012, Russell King - ARM Linux wrote:
+Hi Paul,
 
-> I really don't like these behind-the-scenes discussions which never then
-> get followed up in public, and people then start quoting what was "agreed"
-> as that's the way things must be done.
-> 
-> It's a bit like folk at the recent Linaro Connect apparantly discussing
-> my machine registry and deciding that it should be shut down.  No one
-> has yet talked to me about that or even done the curtesy of asking me
-> what my view is.
+On Mon, Mar 12 2012, Paul Walmsley wrote:
+> I don't think this is the right fix.  Steve Sakoman and I discussed this a 
+> few months ago -- we did some debugging and Steve observed the timeouts on 
+> multiple block writes (0x19):
+> [...]
+> So perhaps something like the following patch instead?  Unfortunately, I 
+> don't have one of these crappy SD cards as far as I know, so I can't 
+> really test it.
+>
+>
+> - Paul
+>
+> From: Paul Walmsley <paul@pwsan.com>
+> Date: Mon, 12 Mar 2012 04:46:29 -0600
+> Subject: [PATCH] mmc: use really long write timeout to deal with crappy cards
+>
+> Several people have noticed that crappy SD cards take much longer to
+> complete multiple block writes than the 300ms that Linux specifies.
+> Try to work around this by using a three second write timeout instead.
+>
+> <insert Chase's patch description here>
+>
+> Not-yet-signed-off-by: Paul Walmsley <paul@pwsan.com>
 
-Let me catch the ball in flight here as the responsible folk was me.
+Sounds like a good idea -- want to send a signed-off patch for this?
 
-For the transition to DT to be effective for new boards on ARM, I 
-suggested that the machine registry would need to be closed at this 
-point i.e. no new additions to it.  As far as I remember, Vincent 
-volunteered to talk to you about it, which he apparently did within the 
-same hour.  That's all there was to it.
+Thanks,
 
-
-Nicolas
+- Chris.
+-- 
+Chris Ball   <cjb@laptop.org>   <http://printf.net/>
+One Laptop Per Child
