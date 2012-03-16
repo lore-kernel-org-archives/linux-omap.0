@@ -1,114 +1,83 @@
-From: "Cousson, Benoit" <b-cousson@ti.com>
-Subject: Re: [PATCH] of: Add generic device tree DMA helpers
-Date: Fri, 16 Mar 2012 14:28:32 +0100
-Message-ID: <4F634000.8010408@ti.com>
-References: <4F22DEF2.5000807@ti.com> <201203161003.02163.arnd@arndb.de> <4F6321DB.50600@ti.com> <201203161204.19800.arnd@arndb.de>
+From: "T Krishnamoorthy, Balaji" <balajitk@ti.com>
+Subject: Re: [PATCH RESEND 4/8] mmc: omap: context save after enabling runtime pm
+Date: Fri, 16 Mar 2012 19:02:38 +0530
+Message-ID: <CANrkHUaNXE0ZK_pDzJTk8yUJHSqm4xzGAvmQs1GX2y9WEU+wpQ@mail.gmail.com>
+References: <1331822022-26714-1-git-send-email-svenkatr@ti.com>
+	<1331822022-26714-5-git-send-email-svenkatr@ti.com>
+	<4F6206EA.9060104@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="ISO-8859-1"; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from devils.ext.ti.com ([198.47.26.153]:46392 "EHLO
-	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752517Ab2CPN26 (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 16 Mar 2012 09:28:58 -0400
-In-Reply-To: <201203161204.19800.arnd@arndb.de>
+Received: from na3sys009aog128.obsmtp.com ([74.125.149.141]:40605 "EHLO
+	na3sys009amx257.postini.com" rhost-flags-OK-OK-OK-FAIL)
+	by vger.kernel.org with ESMTP id S1755669Ab2CPNcl convert rfc822-to-8bit
+	(ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Fri, 16 Mar 2012 09:32:41 -0400
+Received: by lbon10 with SMTP id n10so1904889lbo.25
+        for <linux-omap@vger.kernel.org>; Fri, 16 Mar 2012 06:32:38 -0700 (PDT)
+In-Reply-To: <4F6206EA.9060104@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Arnd Bergmann <arnd@arndb.de>, Nicolas Ferre <nicolas.ferre@atmel.com>
-Cc: linux-arm-kernel@lists.infradead.org, grant.likely@secretlab.ca, rob.herring@calxeda.com, devicetree-discuss@lists.ozlabs.org, Stephen Warren <swarren@nvidia.com>, linux-omap@vger.kernel.org, Russell King <linux@arm.linux.org.uk>
+To: Shubhrajyoti <shubhrajyoti@ti.com>
+Cc: Venkatraman S <svenkatr@ti.com>, linux-mmc@vger.kernel.org, linux-omap@vger.kernel.org, cjb@laptop.org, balbi@ti.com
 
-On 3/16/2012 1:04 PM, Arnd Bergmann wrote:
-> On Friday 16 March 2012, Cousson, Benoit wrote:
->> And it seems that other ARM SoCs are using it for the same purpose.
->> There are at least 230+ IORESOURCE_DMA instances in the kernel today.
->
-> These tend to be the ones that don't use dmaengine but either the
-> ISA dma api or a platform specific variant of that, right?
->
-> Also, I think that most of those definitions are for the same few
-> devices. The number that I see is much lower:
->
-> $ git grep -l IORESOURCE_DMA drivers/ sound/ | wc -l
->       51
-
-Gosh, good point... I've just done a dumb grep, but most of them are in 
-the device creation inside arch code:-(
-
-Assuming OMAP driver does contains omap in the name, the result is 
-indeed way smaller.
-
-git grep -l IORESOURCE_DMA drivers/ sound/ | grep omap
-
-drivers/crypto/omap-aes.c
-drivers/crypto/omap-sham.c
-drivers/spi/spi-omap2-mcspi.c
-drivers/tty/serial/omap-serial.c
-sound/soc/omap/omap-dmic.c
-sound/soc/omap/omap-hdmi.c
-
-We do have 127 DMA requests and only 6 drivers are using them, that's a 
-pity...
-
-> Out of those, a quite number are mips or blackfin or xtensa based, or are
-> for legacy ISA devices, which leaves 29 drivers for ARM.
->
->> For the moment it is still used in a lot of places, and without any
->> other better API yet, it is still useful. As written it is there only
->> for simple single DMA controller case.
+On Thu, Mar 15, 2012 at 8:42 PM, Shubhrajyoti <shubhrajyoti@ti.com> wro=
+te:
+> On Thursday 15 March 2012 08:03 PM, Venkatraman S wrote:
+>> From: Balaji T K <balajitk@ti.com>
 >>
->> By maintaining that IORESOURCE_DMA for the moment we can adapt some
->> driver to DT without having to change the way they are retrieving
->> information. By using IORESOURCE_IRQ and IORESOURCE_MEM, we had the same
->> advantage.
+>> call context save api after enabling runtime pm
+>> to make sure register access in context save api
+> If I am not mistaken =A0the api =A0would
+> store the number of power state changes and accesses no registers.
 >
-> The main difference to IORESOURCE_IRQ and IORESOURCE_MEM that I see
-> is that those are going to start for any forseeable time and are actually
-> helpful in a lot of ways. We are not going to remove the single number
-> space for interrupts in the next few years. For DMA, the dmaengine API
-> has already moved away from the flat number space of the ISA API.
+> Am I missing something?
+
+Yes, as of now no registers are accessed in context store. However
+this patch is needed if registers are accessed in context save api.
+
 >
->> Otherwise how are we supposed to get the DMA channel for non-DT boot
->> until we have migrated everything to DT? A bunch of ARM SoC are using
->> IORESOURCE_DMA for the same purpose.
+>> =A0happens with clk enabled.
 >>
->> The goal here is really to maintain that during the transition phase
->> only. As soon as the full DT support is there, we can switch to the of_ API.
+>> Signed-off-by: Balaji T K <balajitk@ti.com>
+>> ---
+>> =A0drivers/mmc/host/omap_hsmmc.c | =A0 =A04 ++--
+>> =A01 file changed, 2 insertions(+), 2 deletions(-)
 >>
->> Ideally, we should define and use a generic API non dependent of DT.
->> AFAIK, that does not exist so far.
->> And since most drivers are not using dmaengine, we do not even have a
->> common DMA fmwk to define an API on top.
+>> diff --git a/drivers/mmc/host/omap_hsmmc.c b/drivers/mmc/host/omap_h=
+smmc.c
+>> index 0f8d34b..9fa2f39 100644
+>> --- a/drivers/mmc/host/omap_hsmmc.c
+>> +++ b/drivers/mmc/host/omap_hsmmc.c
+>> @@ -1871,8 +1871,6 @@ static int __init omap_hsmmc_probe(struct plat=
+form_device *pdev)
+>> =A0 =A0 =A0 =A0 =A0 =A0 =A0 goto err1;
+>> =A0 =A0 =A0 }
 >>
->> I fully agree that this IORESOURCE_DMA is not scalable for multiple
->> controller, ugly, and must be avoided like the plague.
->> But what other options do we have during the transition?
+>> - =A0 =A0 omap_hsmmc_context_save(host);
+>> -
+>> =A0 =A0 =A0 if (host->pdata->controller_flags & OMAP_HSMMC_BROKEN_MU=
+LTIBLOCK_READ) {
+>> =A0 =A0 =A0 =A0 =A0 =A0 =A0 dev_info(&pdev->dev, "multiblock reads d=
+isabled due to 35xx erratum 2.1.1.128; MMC read performance may suffer\=
+n");
+>> =A0 =A0 =A0 =A0 =A0 =A0 =A0 mmc->caps2 |=3D MMC_CAP2_NO_MULTI_READ;
+>> @@ -1883,6 +1881,8 @@ static int __init omap_hsmmc_probe(struct plat=
+form_device *pdev)
+>> =A0 =A0 =A0 pm_runtime_set_autosuspend_delay(host->dev, MMC_AUTOSUSP=
+END_DELAY);
+>> =A0 =A0 =A0 pm_runtime_use_autosuspend(host->dev);
+>>
+>> + =A0 =A0 omap_hsmmc_context_save(host);
+>> +
+>> =A0 =A0 =A0 if (cpu_is_omap2430()) {
+>> =A0 =A0 =A0 =A0 =A0 =A0 =A0 host->dbclk =3D clk_get(&pdev->dev, "mmc=
+hsdb_fck");
+>> =A0 =A0 =A0 =A0 =A0 =A0 =A0 /*
 >
-> We could use the same binding for the nonstandard controllers, but
-> keep the dma channel number lookup separate for those, and let them
-> call of_get_dma_request directly.
->
-> Since there are not too many drivers using those controllers with
-> dma resources today, it's fairly easy to go through those as we write
-> the driver bindings and just do
->
-> 	err = of_get_dma_request(pdev->dev.of_node, 0,&dma);
-> 	if (err) {
-> 		struct resource *r = platform_get_resource(pdev, IORESOURCE_DMA, 0);
-> 		if (r)
-> 			dma = r->start;
-> 	}
->
-> For the drivers that we convert to DT before we convert them to dmaengine,
-> and not do anything if we convert them to dmaengine first.
-
-Considering the small amount of OMAP drivers really using 
-IORESOURCE_DMA, I guess this is fair enough.
-
-Bottom-line, I do not have any more issue removing this of_dma_to_resource.
-
-
-Nico,
-Is that OK for you to repost the patch without this function?
-
-Thanks,
-Benoit
+--
+To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
