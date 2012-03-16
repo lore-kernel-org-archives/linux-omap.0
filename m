@@ -1,124 +1,82 @@
 From: "Hiremath, Vaibhav" <hvaibhav@ti.com>
-Subject: RE: [PATCH] omap_vout: Fix the build warning and section miss-match
- warning
-Date: Fri, 16 Mar 2012 09:19:59 +0000
-Message-ID: <79CD15C6BA57404B839C016229A409A83181B844@DBDE01.ent.ti.com>
-References: <1331295243-2191-1-git-send-email-hvaibhav@ti.com>
- <1981335.62NlLPnzP3@avalon>
+Subject: RE: [PATCH] omap_vout: Fix "DMA transaction error" issue when
+ rotation is enabled
+Date: Fri, 16 Mar 2012 09:26:45 +0000
+Message-ID: <79CD15C6BA57404B839C016229A409A83181B886@DBDE01.ent.ti.com>
+References: <1331295117-489-1-git-send-email-hvaibhav@ti.com>
+ <2410737.F7OP3MWonz@avalon>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 8BIT
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from devils.ext.ti.com ([198.47.26.153]:32807 "EHLO
-	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1161311Ab2CPJUP convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 16 Mar 2012 05:20:15 -0400
-In-Reply-To: <1981335.62NlLPnzP3@avalon>
+Return-path: <linux-media-owner@vger.kernel.org>
+In-Reply-To: <2410737.F7OP3MWonz@avalon>
 Content-Language: en-US
-Sender: linux-omap-owner@vger.kernel.org
-List-Id: linux-omap@vger.kernel.org
+Sender: linux-media-owner@vger.kernel.org
 To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
 Cc: "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>, "mchehab@infradead.org" <mchehab@infradead.org>, "Taneja, Archit" <archit@ti.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
+List-Id: linux-omap@vger.kernel.org
 
-On Wed, Mar 14, 2012 at 20:22:37, Laurent Pinchart wrote:
+On Wed, Mar 14, 2012 at 21:00:25, Laurent Pinchart wrote:
 > Hi Vaibhav,
 > 
-> Thanks for the patch.
-> 
-> On Friday 09 March 2012 17:44:03 Vaibhav Hiremath wrote:
-> > Patch fixes below build warning and section miss-match warning
-> > from omap_vout driver -
-> 
-> You should probably not refer to "patch below" in a commit message, as there 
-> this won't be a patch anymore after it gets applied (and "below" is 
-> meaningless in a git log).
-> 
-
-Ok. 
-
-> > Build warnings:
-> > =============
-> > drivers/media/video/omap/omap_vout.c: In function 'omapvid_setup_overlay':
-> > drivers/media/video/omap/omap_vout.c:381:17: warning: 'mode' may be used
-> > uninitialized in this function
+> On Friday 09 March 2012 17:41:57 Vaibhav Hiremath wrote:
+> > When rotation is enabled and driver is configured in USERPTR
+> > buffer exchange mechanism, in specific use-case driver reports
+> > an error,
+> >    "DMA transaction error with device 0".
 > > 
-> > Section Mis-Match warnings:
-> > ==========================
-> > WARNING: drivers/media/video/omap/omap-vout.o(.data+0x0): Section mismatch
-> > in reference from the variable
-> > omap_vout_driver to the function .init.text:omap_vout_probe()
-> > The variable omap_vout_driver references
-> > the function __init omap_vout_probe()
-> > If the reference is valid then annotate the
-> > variable with __init* or __refdata (see linux/init.h) or name the variable:
-> > *_template, *_timer, *_sht, *_ops, *_probe, *_probe_one, *_console
-> 
-> There are 3 fixes in this patch: compilation warning, section mismatch 
-> warning, and addition of .owner = THIS_MODULE. I would have split the patch in 
-> 3.
-> 
-
-Ok. Will separate them into 3.
-
+> > In driver _buffer_prepare funtion, we were using
+> > "vout->buf_phy_addr[vb->i]" for buffer physical address to
+> > configure SDMA channel, but this variable does get updated
+> > only during init.
+> > And the issue will occur when driver allocates less number
+> > of buffers during init and application requests more buffers
+> > through REQBUF ioctl; this variable will lead to invalid
+> > configuration of SDMA channel leading to DMA transaction error.
+> > 
 > > Signed-off-by: Vaibhav Hiremath <hvaibhav@ti.com>
-> >
 > > ---
-> >  drivers/media/video/omap/omap_vout.c |    9 +++++----
-> >  1 files changed, 5 insertions(+), 4 deletions(-)
-> > 
-> > diff --git a/drivers/media/video/omap/omap_vout.c
-> > b/drivers/media/video/omap/omap_vout.c index dffcf66..0fb0437 100644
-> > --- a/drivers/media/video/omap/omap_vout.c
-> > +++ b/drivers/media/video/omap/omap_vout.c
-> > @@ -328,7 +328,7 @@ static int video_mode_to_dss_mode(struct
-> > omap_vout_device *vout) struct omap_overlay *ovl;
-> >  	struct omapvideo_info *ovid;
-> >  	struct v4l2_pix_format *pix = &vout->pix;
-> > -	enum omap_color_mode mode;
-> > +	enum omap_color_mode mode = -EINVAL;
+> > Archit/Laurent,
+> > Can you help me to validate this patch on your platform/usecase?
 > 
-> What about removing "case 0" below ? The default case would then set mode to -
-> EINVAL.
+> I've tested the patch by rotating the omap_vout overlay by 90 degrees and 
+> starting a video stream with 4 buffers. There's no crash, but the kernel 
+> prints
+> 
+> [77.877807] omapdss DISPC error: FIFO UNDERFLOW on gfx, disabling the overlay
+> [77.928344] omapdss DISPC error: FIFO UNDERFLOW on vid1, disabling the overlay
+> 
+> The same problem occurs with 3 buffers, which is what the omap_vout driver 
+> allocates by default.
+> 
+> Without your patch applied I get the same behaviour. Is my test procedure 
+> wrong ?
 > 
 
-Yeup... thanks for pointing this. Will fix it in next version.
+Laurent,
+
+Thanks for testing, the procedure looks ok to me. I need to look into this issue (need to debug).
 
 Thanks,
 Vaibhav
 
+
+> >  drivers/media/video/omap/omap_vout_vrfb.c |    2 +-
+> >  1 files changed, 1 insertions(+), 1 deletions(-)
 > > 
-> >  	ovid = &vout->vid_info;
-> >  	ovl = ovid->overlays[0];
-> > @@ -2108,7 +2108,7 @@ static void omap_vout_cleanup_device(struct
-> > omap_vout_device *vout) kfree(vout);
-> >  }
+> > diff --git a/drivers/media/video/omap/omap_vout_vrfb.c
+> > b/drivers/media/video/omap/omap_vout_vrfb.c index 4be26ab..240d36d 100644
+> > --- a/drivers/media/video/omap/omap_vout_vrfb.c
+> > +++ b/drivers/media/video/omap/omap_vout_vrfb.c
+> > @@ -225,7 +225,7 @@ int omap_vout_prepare_vrfb(struct omap_vout_device
+> > *vout, if (!is_rotation_enabled(vout))
+> >  		return 0;
 > > 
-> > -static int omap_vout_remove(struct platform_device *pdev)
-> > +static int __devexit omap_vout_remove(struct platform_device *pdev)
-> >  {
-> >  	int k;
-> >  	struct v4l2_device *v4l2_dev = platform_get_drvdata(pdev);
-> > @@ -2129,7 +2129,7 @@ static int omap_vout_remove(struct platform_device
-> > *pdev) return 0;
-> >  }
-> > 
-> > -static int __init omap_vout_probe(struct platform_device *pdev)
-> > +static int __devinit omap_vout_probe(struct platform_device *pdev)
-> >  {
-> >  	int ret = 0, i;
-> >  	struct omap_overlay *ovl;
-> > @@ -2241,9 +2241,10 @@ probe_err0:
-> >  static struct platform_driver omap_vout_driver = {
-> >  	.driver = {
-> >  		.name = VOUT_NAME,
-> > +		.owner = THIS_MODULE,
-> >  	},
-> >  	.probe = omap_vout_probe,
-> > -	.remove = omap_vout_remove,
-> > +	.remove = __devexit_p(omap_vout_remove),
-> >  };
-> > 
-> >  static int __init omap_vout_init(void)
+> > -	dmabuf = vout->buf_phy_addr[vb->i];
+> > +	dmabuf = (dma_addr_t) vout->queued_buf_addr[vb->i];
+> >  	/* If rotation is enabled, copy input buffer into VRFB
+> >  	 * memory space using DMA. We are copying input buffer
+> >  	 * into VRFB memory space of desired angle and DSS will
 > 
 > -- 
 > Regards,
@@ -126,4 +84,3 @@ Vaibhav
 > Laurent Pinchart
 > 
 > 
-
