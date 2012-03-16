@@ -1,82 +1,49 @@
 From: Tarun Kanti DebBarma <tarun.kanti@ti.com>
-Subject: [PATCH v4 00/12] gpio/omap: Some more driver cleanup and fixes
-Date: Fri, 16 Mar 2012 19:35:48 +0530
-Message-ID: <1331906760-5259-1-git-send-email-tarun.kanti@ti.com>
+Subject: [PATCH v4 07/12] gpio/omap: fix _set_gpio_irqenable implementation
+Date: Fri, 16 Mar 2012 19:35:55 +0530
+Message-ID: <1331906760-5259-8-git-send-email-tarun.kanti@ti.com>
+References: <1331906760-5259-1-git-send-email-tarun.kanti@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from comal.ext.ti.com ([198.47.26.152]:39139 "EHLO comal.ext.ti.com"
+Received: from comal.ext.ti.com ([198.47.26.152]:39143 "EHLO comal.ext.ti.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1756528Ab2CPOGN (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Fri, 16 Mar 2012 10:06:13 -0400
+	id S1761727Ab2CPOGO (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Fri, 16 Mar 2012 10:06:14 -0400
+In-Reply-To: <1331906760-5259-1-git-send-email-tarun.kanti@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: linux-omap@vger.kernel.org
 Cc: khilman@ti.com, tony@atomide.com, b-cousson@ti.com, grant.likely@secretlab.ca, linux-arm-kernel@lists.infradead.org, Tarun Kanti DebBarma <tarun.kanti@ti.com>
 
-The cleanup is mostly getting rid of redundant fields in struct gpio_bank{}
-as we already have them as part of bank->context now. Also, remove un-used
-variable from gpio_irq_handler. Also, the suspend/resume callbacks are
-removed bacause they are not needed any more.
+This function should be capable of both enabling and disabling interrupts
+based upon the *enable* parameter. Right now the function only enables
+the interrupt and *enable* is not used at all. So add the interrupt
+disable capability also using the parameter.
 
-The fixes include correction of _set_gpio_irqenable() implementation,
-missing wakeup_en register update in set_gpio_wakeup(), type mismatch
-of gpio trigger parameter in set_gpio_trigger(), incorrect dataout
-register update in set_gpio_dataout_() and few corrections in context
-save logic.
+Signed-off-by: Tarun Kanti DebBarma <tarun.kanti@ti.com>
+Reviewed-by: Santosh Shilimkar <santosh.shilimkar@ti.com>
+Acked-by: Felipe Balbi <balbi@ti.com>
+---
+ drivers/gpio/gpio-omap.c |    5 ++++-
+ 1 files changed, 4 insertions(+), 1 deletions(-)
 
-It is baselined on top of:
-git://git.secretlab.ca/git/linux-2.6.git gpio/next
-Commit: 81b279d80a63628e580c71a31d30a8c3b3047ad4
-
-Series is available here for reference:
-git://gitorious.org/~tarunkanti/omap-sw-develoment/tarunkantis-linux-omap-dev for_3.4/gpio_more_cleanup_fixes
-
-Power Test: 
-Off-mode and Retention on OMAP3430 (Suspend and Idle paths).
-Also confirmed that dataout register content preserved over
-off-mode.
-            
-Functional Test:
-OMAP2430, OMAP3430SDP, ZOOM3, OMAP4430, OMAP4-BLAZE, PANDA 
-
-v4:
-a) Implemented all comments on v3 which are mostly related to
-avoiding unnecessary register read while updating the context.
-
-b) Folded:
-gpio/omap: fix dataout register overwrite in _set_gpio_dataout
-into:
-gpio/omap: fix missing dataout context save in _set_gpio_dataout_reg
-
-v3:
-- Added 4 more additional patches to the previous series
- which are all bug fixes.
-
-v2:
-- Added a new patch to update wakeup_en register in _set_gpio_wakeup()
- in addition to updating bank->context.wake_en.
-
-- Added a new patch to remove redundant decoding of gpio offset in
- gpio_get(), _get_gpio_datain() and _get_gpio_dataout().
-
-- Added a new patch to remove suspend/resume callbacks because the
- operations performed with the callbacks are redundant.
-
-Tarun Kanti DebBarma (12):
-  gpio/omap: remove saved_fallingdetect, saved_risingdetect fields
-  gpio/omap: fix wakeup_en register update in _set_gpio_wakeup()
-  gpio/omap: remove suspend_wakeup field from struct gpio_bank
-  gpio/omap: remove saved_wakeup field from struct gpio_bank
-  gpio/omap: get rid of retrigger variable in gpio_irq_handler
-  gpio/omap: fix trigger type to unsigned
-  gpio/omap: fix _set_gpio_irqenable implementation
-  gpio/omap: remove redundant decoding of gpio offset
-  gpio/omap: remove suspend/resume callbacks
-  gpio/omap: fix missing dataout context save in _set_gpio_dataout_reg
-  gpio/omap: fix incorrect context restore logic in omap_gpio_runtime_*
-  gpio/omap: fix incorrect update to context.irqenable1
-
- drivers/gpio/gpio-omap.c |  131 +++++++++++++---------------------------------
- 1 files changed, 37 insertions(+), 94 deletions(-)
+diff --git a/drivers/gpio/gpio-omap.c b/drivers/gpio/gpio-omap.c
+index 4d23da1..8b453dd 100644
+--- a/drivers/gpio/gpio-omap.c
++++ b/drivers/gpio/gpio-omap.c
+@@ -480,7 +480,10 @@ static void _disable_gpio_irqbank(struct gpio_bank *bank, int gpio_mask)
+ 
+ static inline void _set_gpio_irqenable(struct gpio_bank *bank, int gpio, int enable)
+ {
+-	_enable_gpio_irqbank(bank, GPIO_BIT(bank, gpio));
++	if (enable)
++		_enable_gpio_irqbank(bank, GPIO_BIT(bank, gpio));
++	else
++		_disable_gpio_irqbank(bank, GPIO_BIT(bank, gpio));
+ }
+ 
+ /*
+-- 
+1.7.0.4
 
