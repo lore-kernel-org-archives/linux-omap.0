@@ -1,136 +1,132 @@
-From: "Maximilian Schwerin" <Maximilian.Schwerin@tigris.de>
-Subject: AW: [PATCH] OMAP3: OPP: Test for IVA subsystem before attempting to
- add IVA OPP
-Date: Fri, 16 Mar 2012 10:26:49 +0100
-Message-ID: <5448984682E7954C9BFF27F747A9C6CA56D6A8@dolphin.TIGRIS.local>
-References: <8762e6et1u.fsf@ti.com>
+From: Arnd Bergmann <arnd@arndb.de>
+Subject: Re: [PATCH] of: Add generic device tree DMA helpers
+Date: Fri, 16 Mar 2012 09:56:59 +0000
+Message-ID: <201203160956.59674.arnd@arndb.de>
+References: <4F22DEF2.5000807@ti.com> <4F626180.2010902@ti.com> <20120315215537.GB2842@n2100.arm.linux.org.uk>
 Mime-Version: 1.0
-Content-Type: multipart/mixed; boundary="===============3145147046303034951=="
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-In-Reply-To: <8762e6et1u.fsf@ti.com>
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: linux-arm-kernel-bounces@lists.infradead.org
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: Kevin Hilman <khilman@ti.com>, "Menon, Nishanth" <nm@ti.com>
-Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Steve Sakoman <steve@sakoman.com>
-List-Id: linux-omap@vger.kernel.org
-
---===============3145147046303034951==
-Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="=-0LlHK+2qETHwrXXD5vNL"
-
---=-0LlHK+2qETHwrXXD5vNL
-Content-class: urn:content-classes:message
-Content-Type: text/plain;
-	charset="iso-8859-1"
-Content-Transfer-Encoding: quoted-printable
-
-> Von: Kevin Hilman [mailto:khilman@ti.com]=20
->=20
-> "Menon, Nishanth" <nm@ti.com> writes:
->=20
-> > On Wed, Mar 14, 2012 at 16:15, Kevin Hilman <khilman@ti.com> wrote:
-> >> Maximilian Schwerin <mvs@tigris.de> writes:
-> >>
-> >>> From: Steve Sakoman <steve@sakoman.com>
-> >>>
-> >>> Don't try to add IVA OPPs for OMAP3 versions not containing an IVA
-> >>> subsystem, as this would make omap_init_opp_table fail.
-> >>>
-> >>> Signed-off-by: Steve Sakoman <steve@sakoman.com>
-> >>> Signed-off-by: Maximilian Schwerin <mvs@tigris.de>
-> >>
-> >> Minor: patch subjects for arch/arm/* core code need to=20
-> have the ARM:
-> >> prefix also.
-> >>
-> >> Also, please run scripts/checkpatch.pl on your patch and fix the
-> >> warnings.
-> >>
-> >>> ---
-> >>> =A0arch/arm/mach-omap2/opp.c | =A0 =A04 ++++
-> >>> =A01 files changed, 4 insertions(+), 0 deletions(-)
-> >>>
-> >>> diff --git a/arch/arm/mach-omap2/opp.c b/arch/arm/mach-omap2/opp.c
-> >>> index 9262a6b..414f2ec 100644
-> >>> --- a/arch/arm/mach-omap2/opp.c
-> >>> +++ b/arch/arm/mach-omap2/opp.c
-> >>> @@ -62,6 +62,10 @@ int __init omap_init_opp_table(struct=20
-> omap_opp_def *opp_def,
-> >>> =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =
-__func__, i);
-> >>> =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 return -EINVAL;
-> >>> =A0 =A0 =A0 =A0 =A0 =A0 =A0 }
-> >>> +
-> >>> + =A0 =A0 =A0 =A0 =A0 =A0 if ((strcmp(opp_def->hwmod_name,"iva") =
-=3D=3D=20
-> 0) && !omap3_has_iva())
-> >>> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 continue;
-> >>> +
-> >>> =A0 =A0 =A0 =A0 =A0 =A0 =A0 oh =3D =
-omap_hwmod_lookup(opp_def->hwmod_name);
-> >>> =A0 =A0 =A0 =A0 =A0 =A0 =A0 if (!oh || !oh->od) {
-> >>> =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 pr_warn("%s: no hwmod =
-or odev for %s, [%d] "
-> >>
-> >> Wouldn't the one-liner below do the same thing?
-> >>
-> >> Actually, your patch makes it less noisy at boot time, avoiding the
-> >> pr_warn(), so is probably better.
-> >
-> > The only issue i have with current patch is that it=20
-> focusses to solve
-> > a specific device IVA.
-> > we could have similar variances if we had SGX/AESS device etc
-> > registered in the common
-> > table. a generic solution might be preferable - could we reduce the
-> > severity of pr_warn to pr_debug and do a continue instead?
->=20
-> I agree, that would be a better generic solution.
->=20
-> Kevin
->
-
-This is a pragmatic and simple solution for a well understood problem =
-with no side effects. Why not fix the problem now and do the generic =
-solution later on?=20
-
-I'm not a fulltime kernel dev. I have about two weeks to get my new =
-board out to my customer... Every time I set up a new board, I have to =
-fix problems using known patches that are sometimes years old. Every =
-patch I have to find costs me hours of time I really don't have.=20
-
-Just my two cents (euro cents of course :-), Maximilian
-
---=-0LlHK+2qETHwrXXD5vNL
-Content-Type: application/pgp-signature
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v2.0.9 (GNU/Linux)
-
-iEYEABECAAYFAk9jB2QACgkQ6nqkzTWctv4OMwCcC/g2m7jcopL6P5XxxJRqjWUE
-xscAn3bx9yAJQU0FVmJfMaKkOwWP/zln
-=nuBR
------END PGP SIGNATURE-----
-
---=-0LlHK+2qETHwrXXD5vNL--
-
-
---===============3145147046303034951==
-Content-Type: text/plain; charset="us-ascii"
-MIME-Version: 1.0
+Content-Type: Text/Plain;
+  charset="iso-8859-1"
 Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from moutng.kundenserver.de ([212.227.17.10]:62563 "EHLO
+	moutng.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1030799Ab2CPJ5T (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 16 Mar 2012 05:57:19 -0400
+In-Reply-To: <20120315215537.GB2842@n2100.arm.linux.org.uk>
+Sender: linux-omap-owner@vger.kernel.org
+List-Id: linux-omap@vger.kernel.org
+To: Russell King - ARM Linux <linux@arm.linux.org.uk>
+Cc: "Cousson, Benoit" <b-cousson@ti.com>, linux-arm-kernel@lists.infradead.org, Nicolas Ferre <nicolas.ferre@atmel.com>, grant.likely@secretlab.ca, rob.herring@calxeda.com, devicetree-discuss@lists.ozlabs.org, Stephen Warren <swarren@nvidia.com>, linux-omap@vger.kernel.org, Thierry Reding <thierry.reding@avionic-design.de>
 
-_______________________________________________
-linux-arm-kernel mailing list
-linux-arm-kernel@lists.infradead.org
-http://lists.infradead.org/mailman/listinfo/linux-arm-kernel
+On Thursday 15 March 2012, Russell King - ARM Linux wrote:
+> Thank you both for missing my point.
+> 
+> #define OMAP24XX_DMA_SHA1MD5_RX         13      /* S_DMA_12 */
+> #define OMAP34XX_DMA_SHA2MD5_RX         13      /* S_DMA_12 */
+> 
+> #define OMAP242X_DMA_EXT_DMAREQ2        14      /* S_DMA_13 */
+> #define OMAP243X_DMA_EXT_DMAREQ3        14      /* S_DMA_13 */
+> 
+> #define OMAP242X_DMA_EXT_DMAREQ3        15      /* S_DMA_14 */
+> #define OMAP24XX_DMA_SPI3_TX0           15      /* S_DMA_14 */
+> 
+> #define OMAP242X_DMA_EXT_DMAREQ4        16      /* S_DMA_15 */
+> #define OMAP24XX_DMA_SPI3_RX0           16      /* S_DMA_15 */
+> 
+> #define OMAP242X_DMA_EAC_BT_DL_RD       25      /* S_DMA_24 */
+> #define OMAP243X_DMA_EXT_DMAREQ4        25      /* S_DMA_24 */
+> #define OMAP34XX_DMA_I2C3_TX            25      /* S_DMA_24 */
+> 
+> Notice the overlap between the different SoCs for the same number on the
+> same DMA controller.
+> 
+> This shouldn't cause problems when all users are within the SoC specific
+> file, but those EXT ones would probably be platform specific, and so you
+> immediately have a dependence between the platform and the SoC there.
+> 
+> That dependence can be completely eliminated by other matching schemes
+> which are supportable via the DMA engine API.
 
---===============3145147046303034951==--
+Ok, so I guess you are worried about the case where you have one .dtsi
+include file for the soc and another .dtsi file for the platform, and
+you want to generically encode e.g. DMA_EXT_DMAREQ3 in the platform file
+so you don't need to write a new .dts file for each combination of that
+platform wiht a different soc. Does that describe where you see the
+issue?
+
+If so, I would recommend not using a flat numbering scheme for omap,
+but have something slightly more complex like a lot of the other
+dmagenine drivers do. This binding does not make any assumption about
+the meaning of the values, so you can do e.g. three cells for
+each channel with a definition like this:
+
+Cell 1: channel class
+ Possible values are:
+ 0 -- raw channel number
+ 1 -- external channel
+ 2 -- spi
+ 3 -- i2c
+ 4 -- mmc
+ to be extended when necessary
+
+Cell 2: instance of this channel
+ When Cell 1 is zero, this is just the channel number local to the controller,
+ for other values it defines the instance, e.g. ext0, ext1, ext2, ...
+
+Cell 3: DMA direction
+ The following values are defined:
+ 0 -- invalid
+ 1 -- read
+ 2 -- write
+ 3 -- read/write
+
+This specific binding for the omap dma would let you put either a simple channel
+into the device tree, or have a high-level description in there. On an OMAP243X,
+these two would have the same meaning and a user could put either one in there:
+
+	dma-request = <&dmaengine 0 14 1     /* physical channels 14 (read) */
+			&dmaengine 0 15 2>;  /*   and 15 (write)  */
+
+	dma-request = <&dmaengine 1 3 1	     /* external DMA 3 (read) and 4 (write) */
+			&dmaengine 1 4 2>;
+
+
+The cell layout above is just a made-up example, you can basically put everything 
+in there that you would put into the arguments to the dma match function. I believe
+this is not limited to numbers but can also include phandles and strings. The mapping
+from dma classes to physical channels could either be hardcoded in the source for
+the dmaengine driver, or get passed in properties of the dmaengine's device_node.
+
+A completely different way to get around the same problem is to define a tree
+of virtual dmaengine device nodes, still within the same binding:
+
+
+	dmaengine-phys: dmaengine {
+		compatible = "ti,omap2430-dmaengine", "ti,omap2-dmaengine";
+		reg = <0x4a056000 0x1000>;
+		#address-cells = <1>; /* physical dma channel number space */		
+		#size-cells = <0>;
+		#dma-cells = 1;
+
+		dmaengine-ext: dmaengine@2 {
+			ranges = <0 2>, <1 3>, <2 7>, <3 14>, <4 25>,
+				<5 25> <6 64>;
+			#dma-cells = 1;
+		};
+	};
+
+This way, a device driver could either refer to the physical dmaengine device
+and pass
+a physical number like
+
+	dma-requests = <&dmaengine-phys 14>;
+
+or to the same effect refer to a child of node of that engine passing a
+local number like
+
+	dma-requests = <&dmaengine-ext 3>;
+
+The dmaengine driver in this case can simply use of_translate_address() to
+get from channel 3 to 14 using the ranges in the child dmaengine device node.
+
+	Arnd
