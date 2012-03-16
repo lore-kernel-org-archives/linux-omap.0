@@ -1,167 +1,81 @@
-From: Archit Taneja <a0393947@ti.com>
-Subject: Re: [PATCH] omap_vout: Set DSS overlay_info only if paddr is non
- zero
-Date: Fri, 16 Mar 2012 16:41:27 +0530
-Message-ID: <4F631FDF.8070308@ti.com>
-References: <1331110876-11895-1-git-send-email-archit@ti.com> <79CD15C6BA57404B839C016229A409A831810EAA@DBDE01.ent.ti.com> <4F6312E4.5000404@ti.com>
+From: "Cousson, Benoit" <b-cousson@ti.com>
+Subject: Re: [PATCH] of: Add generic device tree DMA helpers
+Date: Fri, 16 Mar 2012 12:19:55 +0100
+Message-ID: <4F6321DB.50600@ti.com>
+References: <4F22DEF2.5000807@ti.com> <1331800690-21518-1-git-send-email-nicolas.ferre@atmel.com> <201203161003.02163.arnd@arndb.de>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="ISO-8859-1"; format=flowed
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from devils.ext.ti.com ([198.47.26.153]:38630 "EHLO
-	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752606Ab2CPLLr (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 16 Mar 2012 07:11:47 -0400
-In-Reply-To: <4F6312E4.5000404@ti.com>
+Received: from comal.ext.ti.com ([198.47.26.152]:57054 "EHLO comal.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1422683Ab2CPLUV (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Fri, 16 Mar 2012 07:20:21 -0400
+In-Reply-To: <201203161003.02163.arnd@arndb.de>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-Cc: "Hiremath, Vaibhav" <hvaibhav@ti.com>, "Valkeinen, Tomi" <tomi.valkeinen@ti.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
+To: Arnd Bergmann <arnd@arndb.de>
+Cc: linux-arm-kernel@lists.infradead.org, Nicolas Ferre <nicolas.ferre@atmel.com>, grant.likely@secretlab.ca, rob.herring@calxeda.com, devicetree-discuss@lists.ozlabs.org, Stephen Warren <swarren@nvidia.com>, linux-omap@vger.kernel.org, Russell King <linux@arm.linux.org.uk>
 
-Hi,
+On 3/16/2012 11:03 AM, Arnd Bergmann wrote:
+> On Thursday 15 March 2012, Nicolas Ferre wrote:
+>> For legacy reason another API will export the DMA request number into a
+>> Linux resource of type IORESOURCE_DMA.
+>
+> Can you explain which legacy scenarios you think this is going to help with?
 
-On Friday 16 March 2012 03:46 PM, Archit Taneja wrote:
-> On Monday 12 March 2012 03:34 PM, Hiremath, Vaibhav wrote:
->> On Wed, Mar 07, 2012 at 14:31:16, Taneja, Archit wrote:
->>> The omap_vout driver tries to set the DSS overlay_info using
->>> set_overlay_info()
->>> when the physical address for the overlay is still not configured.
->>> This happens
->>> in omap_vout_probe() and vidioc_s_fmt_vid_out().
->>>
->>> The calls to omapvid_init(which internally calls set_overlay_info())
->>> are removed
->>> from these functions. They don't need to be called as the
->>> omap_vout_device
->>> struct anyway maintains the overlay related changes made. Also,
->>> remove the
->>> explicit call to set_overlay_info() in vidioc_streamon(), this was
->>> used to set
->>> the paddr, this isn't needed as omapvid_init() does the same thing
->>> later.
->>>
->>> These changes are required as the DSS2 driver since 3.3 kernel
->>> doesn't let you
->>> set the overlay info with paddr as 0.
->>>
->>> Signed-off-by: Archit Taneja<archit@ti.com>
->>> ---
->>> drivers/media/video/omap/omap_vout.c | 36
->>> ++++-----------------------------
->>> 1 files changed, 5 insertions(+), 31 deletions(-)
->>>
->>> diff --git a/drivers/media/video/omap/omap_vout.c
->>> b/drivers/media/video/omap/omap_vout.c
->>> index 1fb7d5b..dffcf66 100644
->>> --- a/drivers/media/video/omap/omap_vout.c
->>> +++ b/drivers/media/video/omap/omap_vout.c
->>> @@ -1157,13 +1157,6 @@ static int vidioc_s_fmt_vid_out(struct file
->>> *file, void *fh,
->>> /* set default crop and win */
->>> omap_vout_new_format(&vout->pix,&vout->fbuf,&vout->crop,&vout->win);
->>>
->>> - /* Save the changes in the overlay strcuture */
->>> - ret = omapvid_init(vout, 0);
->>> - if (ret) {
->>> - v4l2_err(&vout->vid_dev->v4l2_dev, "failed to change mode\n");
->>> - goto s_fmt_vid_out_exit;
->>> - }
->>> -
->>> ret = 0;
->>>
->>> s_fmt_vid_out_exit:
->>> @@ -1664,20 +1657,6 @@ static int vidioc_streamon(struct file *file,
->>> void *fh, enum v4l2_buf_type i)
->>>
->>> omap_dispc_register_isr(omap_vout_isr, vout, mask);
->>>
->>> - for (j = 0; j< ovid->num_overlays; j++) {
->>> - struct omap_overlay *ovl = ovid->overlays[j];
->>> -
->>> - if (ovl->manager&& ovl->manager->device) {
->>> - struct omap_overlay_info info;
->>> - ovl->get_overlay_info(ovl,&info);
->>> - info.paddr = addr;
->>> - if (ovl->set_overlay_info(ovl,&info)) {
->>> - ret = -EINVAL;
->>> - goto streamon_err1;
->>> - }
->>> - }
->>> - }
->>> -
->>
->> Have you checked for build warnings? I am getting build warnings
->>
->> CC drivers/media/video/omap/omap_vout.o
->> CC drivers/media/video/omap/omap_voutlib.o
->> CC drivers/media/video/omap/omap_vout_vrfb.o
->> drivers/media/video/omap/omap_vout.c: In function 'vidioc_streamon':
->> drivers/media/video/omap/omap_vout.c:1619:25: warning: unused variable
->> 'ovid'
->> drivers/media/video/omap/omap_vout.c:1615:15: warning: unused variable
->> 'j'
->> LD drivers/media/video/omap/omap-vout.o
->> LD drivers/media/video/omap/built-in.o
->>
->> Can you fix this and submit the next version?
+We do have a bunch of drivers that are using IORESOURCE_DMA today to 
+retrieve the DMA request. Since we do have an unique DMA controller it 
+was easy and convenient.
+And it seems that other ARM SoCs are using it for the same purpose. 
+There are at least 230+ IORESOURCE_DMA instances in the kernel today.
 
-I applied the patch on the current mainline kernel, it doesn't give any 
-build warnings. Even after applying the patch, 'j and ovid' are still 
-used in vidioc_streamon().
+>> +/**
+>> + * of_dma_to_resource - Decode a node's DMA and return it as a resource
+>> + * @dev: pointer to device tree node
+>> + * @index: zero-based index of the DMA request
+>> + * @r: pointer to resource structure to return result into.
+>> + *
+>> + * Using a resource to export a DMA request number to a driver should
+>> + * be used only for legacy purpose and on system when only one DMA controller
+>> + * is present.
+>> + * The proper and only scalable way is to use the native of_get_dma_request API
+>> + * in order retrieve both the DMA controller device node and the DMA request
+>> + * line for that controller.
+>> + */
+>> +int of_dma_to_resource(struct device_node *dev, int index, struct resource *r)
+>> +{
+>
+> I think a better way to discourage the use of IORESOURCE_DMA is to not provide
+> this function at all, especially given that it's not really well-defined what
+> it will do when you have more than one cell for the dma channel identifier or
+> when you have multiple DMA engines, so any driver relying on it is inherently
+> nonportable.
 
-Can you check if it was applied correctly?
+For the moment it is still used in a lot of places, and without any 
+other better API yet, it is still useful. As written it is there only 
+for simple single DMA controller case.
+
+By maintaining that IORESOURCE_DMA for the moment we can adapt some 
+driver to DT without having to change the way they are retrieving 
+information. By using IORESOURCE_IRQ and IORESOURCE_MEM, we had the same 
+advantage.
+
+Otherwise how are we supposed to get the DMA channel for non-DT boot 
+until we have migrated everything to DT? A bunch of ARM SoC are using 
+IORESOURCE_DMA for the same purpose.
+
+The goal here is really to maintain that during the transition phase 
+only. As soon as the full DT support is there, we can switch to the of_ API.
+
+Ideally, we should define and use a generic API non dependent of DT. 
+AFAIK, that does not exist so far.
+And since most drivers are not using dmaengine, we do not even have a 
+common DMA fmwk to define an API on top.
+
+I fully agree that this IORESOURCE_DMA is not scalable for multiple 
+controller, ugly, and must be avoided like the plague.
+But what other options do we have during the transition?
 
 Regards,
-Archit
-
->
-> Will fix this and submit.
->
-> Archit
->
->>
->> Thanks,
->> Vaibhav
->>
->>> /* First save the configuration in ovelray structure */
->>> ret = omapvid_init(vout, addr);
->>> if (ret)
->>> @@ -2071,11 +2050,12 @@ static int __init
->>> omap_vout_create_video_devices(struct platform_device *pdev)
->>> }
->>> video_set_drvdata(vfd, vout);
->>>
->>> - /* Configure the overlay structure */
->>> - ret = omapvid_init(vid_dev->vouts[k], 0);
->>> - if (!ret)
->>> - goto success;
->>> + dev_info(&pdev->dev, ": registered and initialized"
->>> + " video device %d\n", vfd->minor);
->>> + if (k == (pdev->num_resources - 1))
->>> + return 0;
->>>
->>> + continue;
->>> error2:
->>> if (vout->vid_info.rotation_type == VOUT_ROT_VRFB)
->>> omap_vout_release_vrfb(vout);
->>> @@ -2085,12 +2065,6 @@ error1:
->>> error:
->>> kfree(vout);
->>> return ret;
->>> -
->>> -success:
->>> - dev_info(&pdev->dev, ": registered and initialized"
->>> - " video device %d\n", vfd->minor);
->>> - if (k == (pdev->num_resources - 1))
->>> - return 0;
->>> }
->>>
->>> return -ENODEV;
->>> --
->>> 1.7.5.4
->>>
->>>
->>
->>
->
->
-
+Benoit
