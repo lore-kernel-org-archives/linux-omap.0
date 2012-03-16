@@ -1,42 +1,43 @@
-From: Dmitry Torokhov <dmitry.torokhov@gmail.com>
-Subject: Re: [PATCH 1/2] input: keypad: move platform_data to <linux/platform_data>
-Date: Fri, 16 Mar 2012 09:36:19 -0700
-Message-ID: <1357514.ox9yZWgqO9@dtor-d630.eng.vmware.com>
-References: <1331907989-11891-1-git-send-email-sourav.poddar@ti.com> <1331907989-11891-2-git-send-email-sourav.poddar@ti.com>
+From: "Mark A. Greer" <mgreer@animalcreek.com>
+Subject: Re: [PATCH 2/2] arm: omap3: pm34xx.c: Replace printk() with
+ appropriate pr_*()
+Date: Fri, 16 Mar 2012 11:02:28 -0700
+Message-ID: <20120316180228.GA1894@animalcreek.com>
+References: <1331852833-4357-1-git-send-email-mgreer@animalcreek.com>
+ <1331852833-4357-3-git-send-email-mgreer@animalcreek.com>
+ <4F633528.1040305@ru.mvista.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7Bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-pz0-f46.google.com ([209.85.210.46]:57317 "EHLO
-	mail-pz0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1031294Ab2CPQg1 (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 16 Mar 2012 12:36:27 -0400
-In-Reply-To: <1331907989-11891-2-git-send-email-sourav.poddar@ti.com>
+Received: from mail20.dotsterhost.com ([66.11.232.73]:54893 "EHLO
+	mail20.dotsterhost.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751400Ab2CPSCa (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 16 Mar 2012 14:02:30 -0400
+Content-Disposition: inline
+In-Reply-To: <4F633528.1040305@ru.mvista.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Sourav Poddar <sourav.poddar@ti.com>
-Cc: linux-input@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org, balbi@ti.com
+To: Sergei Shtylyov <sshtylyov@ru.mvista.com>
+Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 
-On Friday, March 16, 2012 07:56:28 PM Sourav Poddar wrote:
-> From: Felipe Balbi <balbi@ti.com>
+On Fri, Mar 16, 2012 at 04:42:16PM +0400, Sergei Shtylyov wrote:
+> Hello.
 > 
-> This patch allows us to drop the OMAP depencendy
-> from the OMAP4 keypad driver.
+> On 16-03-2012 3:07, Mark A. Greer wrote:
 > 
-> Signed-off-by: Felipe Balbi <balbi@ti.com>
-> Signed-off-by: Sourav Poddar <sourav.poddar@ti.com>
-> ---
->  arch/arm/mach-omap2/board-4430sdp.c            |    1 +
->  arch/arm/mach-omap2/devices.c                  |    1 +
->  arch/arm/plat-omap/include/plat/omap4-keypad.h |    9 ---------
->  drivers/input/keyboard/Kconfig                 |    1 -
->  drivers/input/keyboard/omap4-keypad.c          |    2 +-
->  include/linux/platform_data/omap4-keypad.h     |   13 +++++++++++++
+> >From: "Mark A. Greer" <mgreer@animalcreek.com>
 
-Instead of creating platform_data directory why not move to
-include/linux/input/omap4-keypad.h?
+> >@@ -463,7 +462,7 @@ restore:
+> >  	list_for_each_entry(pwrst,&pwrst_list, node) {
+> >  		state = pwrdm_read_prev_pwrst(pwrst->pwrdm);
+> >  		if (state>  pwrst->next_state) {
+> >-			printk(KERN_INFO "Powerdomain (%s) didn't enter "
+> >+			pr_info("Powerdomain (%s) didn't enter "
+> >  			       "target state %d\n",
+> 
+>    Last line should have been realigned I think.
 
-Thanks.
+Okay, I'll fix this and the others in a bit.
 
--- 
-Dmitry
+Mark
+--
