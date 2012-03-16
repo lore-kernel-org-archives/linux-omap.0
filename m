@@ -1,89 +1,75 @@
-From: Tomi Valkeinen <tomi.valkeinen@ti.com>
-Subject: Re: [PATCH 2/2] OMAPDSS: DISPC: Handle synclost errors in OMAP3
-Date: Fri, 16 Mar 2012 12:23:31 +0200
-Message-ID: <1331893411.1653.5.camel@lappy>
-References: <1331812132-9814-1-git-send-email-cmahapatra@ti.com>
-	 <20120315230446.GO17132@sci.fi>
+From: "S, Venkatraman" <svenkatr@ti.com>
+Subject: Re: [PATCH RESEND 8/8] mmc: omap4: hsmmc: fix module re-insertion
+Date: Fri, 16 Mar 2012 16:02:16 +0530
+Message-ID: <CANfBPZ-TRRoMrRsE-4twQuq8Q9Htce3BJH2r8hf8OVUou=p4Fg@mail.gmail.com>
+References: <1331822022-26714-1-git-send-email-svenkatr@ti.com>
+ <1331822022-26714-9-git-send-email-svenkatr@ti.com> <20120315150426.GT28447@arwen.pp.htv.fi>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
+Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aog136.obsmtp.com ([74.125.149.85]:58509 "EHLO
-	psmtp.com" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
-	id S1760906Ab2CPKXj (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Fri, 16 Mar 2012 06:23:39 -0400
-Received: by lahc1 with SMTP id c1so3368800lah.26
-        for <linux-omap@vger.kernel.org>; Fri, 16 Mar 2012 03:23:36 -0700 (PDT)
-In-Reply-To: <20120315230446.GO17132@sci.fi>
+Received: from na3sys009aog107.obsmtp.com ([74.125.149.197]:41894 "EHLO
+	na3sys009aog107.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1031019Ab2CPKci convert rfc822-to-8bit
+	(ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Fri, 16 Mar 2012 06:32:38 -0400
+Received: by mail-bk0-f44.google.com with SMTP id w5so2727036bku.3
+        for <linux-omap@vger.kernel.org>; Fri, 16 Mar 2012 03:32:37 -0700 (PDT)
+In-Reply-To: <20120315150426.GT28447@arwen.pp.htv.fi>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Ville =?ISO-8859-1?Q?Syrj=E4l=E4?= <syrjala@sci.fi>, Chandrabhanu Mahapatra <cmahapatra@ti.com>
-Cc: linux-omap@vger.kernel.org, linux-fbdev@vger.kernel.org
+To: balbi@ti.com
+Cc: linux-mmc@vger.kernel.org, linux-omap@vger.kernel.org, cjb@laptop.org, balajitk@ti.com
 
-On Fri, 2012-03-16 at 01:04 +0200, Ville Syrj=C3=A4l=C3=A4 wrote:
-> On Thu, Mar 15, 2012 at 05:18:52PM +0530, Chandrabhanu Mahapatra wrot=
-e:
-> > In OMAP3 DISPC video overlays suffer from some undocumented horizon=
-tal position
-> > and timing related limitations leading to SYNCLOST errors. Whenever=
- the image
-> > window is moved towards the right of the screen SYNCLOST errors bec=
-ome
-> > frequent. Checks have been implemented to see that DISPC driver rej=
-ects
-> > configuration exceeding above limitations.
-> >=20
-> > This code was successfully tested on OMAP3. This code is written ba=
-sed on code
-> > written by Ville Syrj=C3=A4l=C3=A4 <ville.syrjala@nokia.com> in Lin=
-ux OMAP kernel. Ville
-> > Syrj=C3=A4l=C3=A4 <ville.syrjala@nokia.com> had added checks for vi=
-deo overlay horizontal
-> > timing and DISPC horizontal blanking length limitations.
-> >=20
-> > Signed-off-by: Chandrabhanu Mahapatra <cmahapatra@ti.com>
-> > ---
-> >  drivers/video/omap2/dss/dispc.c |   67 +++++++++++++++++++++++++++=
-++++++++++--
-> >  1 files changed, 64 insertions(+), 3 deletions(-)
-> >=20
-> > diff --git a/drivers/video/omap2/dss/dispc.c b/drivers/video/omap2/=
-dss/dispc.c
-> > index 5a1963e..ebfa613 100644
-> > --- a/drivers/video/omap2/dss/dispc.c
-> > +++ b/drivers/video/omap2/dss/dispc.c
-> > @@ -1622,6 +1622,58 @@ static void calc_dma_rotation_offset(u8 rota=
-tion, bool mirror,
-> >  	}
-> >  }
-> > =20
-> > +static int check_horiz_timing(enum omap_channel channel, u16 pos_x=
-,
-> > +		u16 width, u16 height, u16 out_width, u16 out_height)
-> > +{
-> > +	int DS =3D DIV_ROUND_UP(height, out_height);
-> > +	struct omap_dss_device *dssdev =3D dispc_mgr_get_device(channel);
-> > +	struct omap_video_timings t =3D dssdev->panel.timings;
-> > +	int pcd =3D REG_GET(DISPC_DIVISORo(channel), 7, 0);
->=20
-> pcd doesn't exist for TV out, which is the reason why you see
-> 'lclk/pclk' ratio used instead in the harmattan kernel.
-
-I'm surprised you still remember these things =3D). And even more
-surprised that you actually bothered to review it, thanks for that.
-
-Chandrabhanu, do you have an omap3 board with composite/svideo tv-out?
-It'd be good to test on that also, as, like Ville points out, the above
-code can't work for tv-out. Hmm, then again, it shouldn't work for HDMI
-on OMAP4 either. Did you test with HDMI?
-
-Or is the above code called for TV-manager at all? If not, perhaps it
-could be named *_lcd or something. Or perhaps have a BUG_ON(channel !=3D
-lcd1 or lcd2);
-
- Tomi
-
-
+On Thu, Mar 15, 2012 at 8:34 PM, Felipe Balbi <balbi@ti.com> wrote:
+> Hi,
+>
+> On Thu, Mar 15, 2012 at 08:03:42PM +0530, Venkatraman S wrote:
+>> From: Balaji T K <balajitk@ti.com>
+>>
+>> OMAP4 and OMAP3 HSMMC IP registers differ by 0x100 offset.
+>> Addng the offset to platform_device resource structure
+>> increments the start address for every insmod operation.
+>> MMC command fails on re-insertion as module due to incorrect registe=
+r base.
+>> Fix this by updating the ioremap base address only.
+>>
+>> Signed-off-by: Balaji T K <balajitk@ti.com>
+>> ---
+>> =A0drivers/mmc/host/omap_hsmmc.c | =A0 =A04 +---
+>> =A01 file changed, 1 insertion(+), 3 deletions(-)
+>>
+>> diff --git a/drivers/mmc/host/omap_hsmmc.c b/drivers/mmc/host/omap_h=
+smmc.c
+>> index 4476b26..f324cf4 100644
+>> --- a/drivers/mmc/host/omap_hsmmc.c
+>> +++ b/drivers/mmc/host/omap_hsmmc.c
+>> @@ -1813,8 +1813,6 @@ static int __devinit omap_hsmmc_probe(struct p=
+latform_device *pdev)
+>> =A0 =A0 =A0 if (res =3D=3D NULL || irq < 0)
+>> =A0 =A0 =A0 =A0 =A0 =A0 =A0 return -ENXIO;
+>>
+>> - =A0 =A0 res->start +=3D pdata->reg_offset;
+>> - =A0 =A0 res->end +=3D pdata->reg_offset;
+>> =A0 =A0 =A0 res =3D request_mem_region(res->start, resource_size(res=
+), pdev->name);
+>> =A0 =A0 =A0 if (res =3D=3D NULL)
+>> =A0 =A0 =A0 =A0 =A0 =A0 =A0 return -EBUSY;
+>> @@ -1838,7 +1836,7 @@ static int __devinit omap_hsmmc_probe(struct p=
+latform_device *pdev)
+>> =A0 =A0 =A0 host->dma_ch =A0 =A0=3D -1;
+>> =A0 =A0 =A0 host->irq =A0 =A0 =A0 =3D irq;
+>> =A0 =A0 =A0 host->slot_id =A0 =3D 0;
+>> - =A0 =A0 host->mapbase =A0 =3D res->start;
+>> + =A0 =A0 host->mapbase =A0 =3D res->start + pdata->reg_offset;
+>
+> could this be done with a revision check at some point so we drop the
+> pdata requirement ? Not part of $SUBJECT though, because you're just
+> moving the increment.
+>
+That's a good idea. Will post that patch as part of another clean up se=
+ries in
+the pipeline.
 --
 To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
 n
