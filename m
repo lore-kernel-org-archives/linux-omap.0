@@ -1,99 +1,55 @@
-From: Samuel Ortiz <sameo@linux.intel.com>
-Subject: Re: [PATCH] ARM: OMAP3: USB: Fix the EHCI ULPI PHY reset issue
-Date: Fri, 16 Mar 2012 17:20:22 +0100
-Message-ID: <20120316162022.GA20524@sortiz-mobl>
-References: <1330077975-31694-1-git-send-email-keshava_mgowda@ti.com>
- <20120224101632.GL17178@legolas.emea.dhcp.ti.com>
- <CAP05o4KRUp_W1yXn29TATMDOwMVbX_pWt6iKrrb=2jkOuWij+A@mail.gmail.com>
- <CAP05o4J1BYN2WkJToswcp4ofagp2mOuPmwWeMfJRwrfS_xEe0Q@mail.gmail.com>
- <CAP05o4KDYqcU+TbMouQGsMaLUjZsJ7G+Anp9RcvUKuoFqQab3g@mail.gmail.com>
+From: Nishanth Menon <nm@ti.com>
+Subject: [PATCH] OMAP2+: OPP: allow OPP enumeration to continue if device is not present
+Date: Fri, 16 Mar 2012 11:19:09 -0500
+Message-ID: <1331914749-23171-1-git-send-email-nm@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: text/plain
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mga03.intel.com ([143.182.124.21]:21588 "EHLO mga03.intel.com"
+Received: from comal.ext.ti.com ([198.47.26.152]:47833 "EHLO comal.ext.ti.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1030239Ab2CPQM2 (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Fri, 16 Mar 2012 12:12:28 -0400
-Content-Disposition: inline
-In-Reply-To: <CAP05o4KDYqcU+TbMouQGsMaLUjZsJ7G+Anp9RcvUKuoFqQab3g@mail.gmail.com>
+	id S965185Ab2CPQTU (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Fri, 16 Mar 2012 12:19:20 -0400
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "Munegowda, Keshava" <keshava_mgowda@ti.com>
-Cc: linux-omap@vger.kernel.org, linux-usb@vger.kernel.org, parthab@india.ti.com, govindraj.raja@ti.com, balbi@ti.com
+To: l-o <linux-omap@vger.kernel.org>
+Cc: l-a <linux-arm-kernel@lists.infradead.org>, Kevin <khilman@ti.com>, Tony <tony@atomide.com>, Steve Sakoman <steve@sakoman.com>, Maximilian Schwerin <mvs@tigris.de>, Nishanth Menon <nm@ti.com>
 
-Hi Keshava,
+On platforms such as OMAP3, certain variants may not have IVA, SGX
+or some specific component. We currently have a check to aid fixing
+wrong population of OPP entries for issues such as typos. This however
+causes a conflict with valid requirement where the SoC variant does
+not actually have the module present.
 
-On Thu, Mar 08, 2012 at 08:30:21PM +0530, Munegowda, Keshava wrote:
-> On Fri, Mar 2, 2012 at 7:36 PM, Munegowda, Keshava
-> <keshava_mgowda@ti.com> wrote:
-> > On Fri, Feb 24, 2012 at 5:14 PM, Munegowda, Keshava
-> > <keshava_mgowda@ti.com> wrote:
-> >> On Fri, Feb 24, 2012 at 3:46 PM, Felipe Balbi <balbi@ti.com> wrote=
-:
-> >>> Hi,
-> >>>
-> >>> On Fri, Feb 24, 2012 at 03:36:15PM +0530, Keshava Munegowda wrote=
-:
-> >>>> From: Keshava Munegowda <Keshava_mgowda@ti.com>
-> >>>>
-> >>>> It is observed that the echi ports of 3430 sdp board
-> >>>> are not working due to the random timing of programming
-> >>>> the associated GPIOs of the ULPI PHYs of the EHCI for reset.
-> >>>> If the PHYs are reset at during usbhs core driver, host ports wi=
-ll
-> >>>> not work because EHCI driver is loaded after the resetting PHYs.
-> >>>> The PHYs should be in reset state while initializing the EHCI
-> >>>> controller.
-> >>>> The code which does the GPIO pins associated with the PHYs
-> >>>> are programmed to reset is moved from the USB host core driver
-> >>>> to EHCI driver.
-> >>>>
-> >>>> Signed-off-by: Keshava Munegowda <keshava_mgowda@ti.com>
-> >>>> Reviewed-by: Partha Basak <parthab@india.ti.com>
-> >>>
-> >>> won't this cause issues with EHCI/OHCI interactions ? I mean, wha=
-t if
-> >>> you connect a FS/LS device and port is handed over to OHCI, does =
-OHCI
-> >>> have any needs to reset the PHY or something similar ?
-> >>
-> >> No, it will not cause any issues with EHCI-OHCI issues.
-> >> But its difficult to comment on this because we don't have port
-> >> handoff supported
-> >> in hardware.
-> >>
-> >> regards
-> >> keshava
-> >
-> > Hi Samuel
-> > =A0 =A0 =A0 =A0please let me know if you have any comments on this =
-patch.
-> > This is required patch for omap3 ehci enumeration instabilities.
-> >
-> > Regards
-> > Keshava
->=20
-> Hi Samuel
->       do you have any comments on this patch?
-I actually never received the actual patch, I think.
+So, reduce the severity of the print to a debug statement and skip
+registering that specific OPP, but continue down the list.
 
+Reported-by: Steve Sakoman <steve@sakoman.com>
+Reported-by: Maximilian Schwerin <mvs@tigris.de>
+Acked-by: Steve Sakoman <steve@sakoman.com>
+Tested-by: Maximilian Schwerin <mvs@tigris.de>
+Signed-off-by: Nishanth Menon <nm@ti.com>
+---
+Discussion: http://marc.info/?t=133174689300002&r=1&w=2
+ arch/arm/mach-omap2/opp.c |    4 ++--
+ 1 files changed, 2 insertions(+), 2 deletions(-)
 
-> Felipe has reviewed this patch and he is agreed for this patch.
-> there are no comments from your side, requesting to push this change
-> to mainline.
-I looked at it on gmame, and it seems fine to me. If you want me to pus=
-h this
-patch, then please (re-)send it to me, even privately.
+diff --git a/arch/arm/mach-omap2/opp.c b/arch/arm/mach-omap2/opp.c
+index 9262a6b..de6d464 100644
+--- a/arch/arm/mach-omap2/opp.c
++++ b/arch/arm/mach-omap2/opp.c
+@@ -64,10 +64,10 @@ int __init omap_init_opp_table(struct omap_opp_def *opp_def,
+ 		}
+ 		oh = omap_hwmod_lookup(opp_def->hwmod_name);
+ 		if (!oh || !oh->od) {
+-			pr_warn("%s: no hwmod or odev for %s, [%d] "
++			pr_debug("%s: no hwmod or odev for %s, [%d] "
+ 				"cannot add OPPs.\n", __func__,
+ 				opp_def->hwmod_name, i);
+-			return -EINVAL;
++			continue;
+ 		}
+ 		dev = &oh->od->pdev->dev;
+ 
+-- 
+1.7.0.4
 
-Cheers,
-Samuel.
-
---=20
-Intel Open Source Technology Centre
-http://oss.intel.com/
---
-To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
