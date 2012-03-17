@@ -1,51 +1,76 @@
-From: Ohad Ben-Cohen <ohad@wizery.com>
-Subject: Re: [PATCH 1/7] remoteproc: resource table overhaul
-Date: Sat, 17 Mar 2012 08:39:08 +0200
-Message-ID: <CAK=Wgbbbi4GnuHedSh6cR1LhkZr8c9q6i=_TLSL252LpPB8Xsw@mail.gmail.com>
-References: <1330589497-4139-1-git-send-email-ohad@wizery.com>
- <1330589497-4139-2-git-send-email-ohad@wizery.com> <4F6354E4.8030704@monstr.eu>
+From: Arnd Bergmann <arnd-r2nGTMty4D4@public.gmane.org>
+Subject: Re: [PATCH v7 1/3] Documentation: common clk API
+Date: Sat, 17 Mar 2012 09:05:32 +0000
+Message-ID: <201203170905.33191.arnd@arndb.de>
+References: <1331878280-2758-1-git-send-email-mturquette@linaro.org>
+	<alpine.DEB.2.00.1203161509470.4395@utopia.booyaka.com>
+	<CAJOA=zPmy7Dwzw8EOCW_+cvy2Dv=w0TPUq7Zg_s=Y0rs+v+u2w@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <4F6354E4.8030704@monstr.eu>
-Sender: linux-kernel-owner@vger.kernel.org
-To: monstr@monstr.eu
-Cc: linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Brian Swetland <swetland@google.com>, Iliyan Malchev <malchev@google.com>, Arnd Bergmann <arnd@arndb.de>, Grant Likely <grant.likely@secretlab.ca>, Rusty Russell <rusty@rustcorp.com.au>, Mark Grosen <mgrosen@ti.com>, John Williams <john.williams@petalogix.com>, Loic PALLARDY <loic.pallardy@stericsson.com>, Ludovic BARRE <ludovic.barre@stericsson.com>, Omar Ramirez Luna <omar.luna@linaro.org>, Guzman Lugo Fernando <fernando.lugo@ti.com>, Anna Suman <s-anna@ti.com>, Clark Rob <rob@ti.com>, Stephen Boyd <sboyd@codeaurora.org>, Saravana Kannan <skannan@codeaurora.org>, David Brown <davidb@codeaurora.org>, Kieran Bingham <kieranbingham@gmail.com>, Tony Lindgren <tony@atomide.com>
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <linaro-dev-bounces-cunTk1MwBs8s++Sfvej+rw@public.gmane.org>
+In-Reply-To: <CAJOA=zPmy7Dwzw8EOCW_+cvy2Dv=w0TPUq7Zg_s=Y0rs+v+u2w-JsoAwUIsXosN+BqQ9rBEUg@public.gmane.org>
+List-Unsubscribe: <http://lists.linaro.org/mailman/options/linaro-dev>,
+	<mailto:linaro-dev-request-cunTk1MwBs8s++Sfvej+rw@public.gmane.org?subject=unsubscribe>
+List-Archive: <http://lists.linaro.org/pipermail/linaro-dev>
+List-Post: <mailto:linaro-dev-cunTk1MwBs8s++Sfvej+rw@public.gmane.org>
+List-Help: <mailto:linaro-dev-request-cunTk1MwBs8s++Sfvej+rw@public.gmane.org?subject=help>
+List-Subscribe: <http://lists.linaro.org/mailman/listinfo/linaro-dev>,
+	<mailto:linaro-dev-request-cunTk1MwBs8s++Sfvej+rw@public.gmane.org?subject=subscribe>
+Sender: linaro-dev-bounces-cunTk1MwBs8s++Sfvej+rw@public.gmane.org
+Errors-To: linaro-dev-bounces-cunTk1MwBs8s++Sfvej+rw@public.gmane.org
+To: "Turquette, Mike" <mturquette-l0cyMroinI0@public.gmane.org>
+Cc: Nicolas Pitre <nicolas.pitre-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>, linaro-dev-cunTk1MwBs8s++Sfvej+rw@public.gmane.org, Saravana Kannan <skannan-sgV2jX0FEOL9JmXXK+q4OQ@public.gmane.org>, Jeremy Kerr <jeremy.kerr-Z7WLFzj8eWMS+FvcfC7Uqw@public.gmane.org>, Russell King <linux-lFZ/pmaqli7XmaaqVzeoHQ@public.gmane.org>, Magnus Damm <magnus.damm-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, patches-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org, Sascha Hauer <s.hauer-bIcnvbaLZ9MEGnE8C9+IrQ@public.gmane.org>, Rob Herring <rob.herring-bsGFqQB8/DxBDgjK7y7TUQ@public.gmane.org>, Thomas Gleixner <tglx-hfZtesqFncYOwBW4kG4KsQ@public.gmane.org>, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Paul Walmsley <paul-DWxLp4Yu+b8AvxtiuMwx3w@public.gmane.org>, Linus Walleij <linus.walleij-0IS4wlFg1OjSUeElwK9/Pw@public.gmane.org>, Mark Brown <broonie-yzvPICuk2AATkU/dhu1WVueM+bqZidxxQQ4Iyu8u01E@public.gmane.org>, Stephen Boyd <sboyd-sgV2jX0FEOL9JmXXK+q4OQ@public.gmane.org>, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-omap@vger.kernel.org
 
-Hi Michal,
+On Friday 16 March 2012, Turquette, Mike wrote:
+> On Fri, Mar 16, 2012 at 3:21 PM, Paul Walmsley <paul-DWxLp4Yu+b8AvxtiuMwx3w@public.gmane.org> wrote:
+> > From: Paul Walmsley <paul-DWxLp4Yu+b8AvxtiuMwx3w@public.gmane.org>
+> > Date: Fri, 16 Mar 2012 16:06:30 -0600
+> > Subject: [PATCH] clk: mark the common clk code as EXPERIMENTAL for now
+> >
+> > Mark the common clk code as depending on CONFIG_EXPERIMENTAL.  The API
+> > is not well-defined and both it and the underlying mechanics are likely
+> > to need significant changes to support non-trivial uses of the rate
+> > changing code, such as DVFS with external I/O devices.  So any platforms
+> > that switch their implementation over to this may need to revise much
+> > of their driver code and revalidate their implementations until the
+> > behavior of the code is better-defined.
+> >
+> > A good time for removing this EXPERIMENTAL designation would be after at
+> > least two platforms that do DVFS on groups of external I/O devices have
+> > ported their clock implementations over to the common clk code.
+> >
+> > Signed-off-by: Paul Walmsley <paul-DWxLp4Yu+b8AvxtiuMwx3w@public.gmane.org>
+> > Cc: Mike Turquette <mturquette-l0cyMroinI0@public.gmane.org>
+> 
+> ACK.  This will set some reasonable expectations while things are in flux.
+> 
+> Arnd are you willing to take this in?
 
-On Fri, Mar 16, 2012 at 4:57 PM, Michal Simek <monstr@monstr.eu> wrote:
-> In previous version I had carverout first which means that code was copyied
-> to physical address 0x0 and then vrigns were allocated. Current code
-> allocate vring first and then RTOS is not able to run from zero address.
+I think it's rather pointless, because the option is not going to
+be user selectable but will get selected by the platform unless I'm
+mistaken. The platform maintainers that care already know the state
+of the framework. Also, there are no user space interfaces that we
+have to warn users about not being stable, because the framework
+is internal to the kernel.
 
-In general, depending on specific allocation ordering is error prone
-and you shouldn't do it.
+However, I wonder whether we need the patch below to prevent
+users from accidentally enabling COMMON_CLK on platforms that
+already provide their own implementation.
 
-For a given device, we treat memory allocated with
-dma_alloc_coherent() as homogeneous. We care about its utilization and
-alignments of allocations rather than their specific location in the
-total region.
+	Arnd
 
-If that's not the case, and there's special memory you want assigned
-with a specific purpose, than it's recommended to let the code make
-sure it happens explicitly, and not rely on implicit order of
-allocation.
+diff --git a/drivers/clk/Kconfig b/drivers/clk/Kconfig
+index 2eaf17e..a0a83de 100644
+--- a/drivers/clk/Kconfig
++++ b/drivers/clk/Kconfig
+@@ -12,7 +12,7 @@ config HAVE_MACH_CLKDEV
 
-Today there's no way to assign several memory regions with a specific
-device, but a reasonable workaround that's being used is creating
-several sub-devices with the special memory, and then looking them up
-with stuff like device_for_each_child() or device_find_child().
-
-About your specific issue: the current allocation scheme was chosen
-for simplicity, but I do plan to change it back by postponing the
-vring dma allocation until a remote processor is really powered on.
-It's not a lot of memory, but this way we'd only allocate it when
-really needed (so if it's CMA, others could use it).
-
-IOW: you can probably just wait a bit until this patch is ready and
-take it into your tree. It will most likely bring back the behavior you
-need :)
-
-Ohad.
+ menuconfig COMMON_CLK
+-       bool "Common Clock Framework"
++	bool
+        select HAVE_CLK_PREPARE
+        ---help---
+          The common clock framework is a single definition of struct
+          clk, useful across many platforms, as well as an
