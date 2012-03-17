@@ -1,251 +1,126 @@
-From: Dmitry Torokhov <dmitry.torokhov@gmail.com>
-Subject: Re: [PATCH 2/2] Input: omap-keypad: dynamically handle register
- offsets
-Date: Fri, 16 Mar 2012 22:47:15 -0700
-Message-ID: <20120317054715.GB20049@core.coreip.homeip.net>
-References: <1331907989-11891-1-git-send-email-sourav.poddar@ti.com>
- <1331907989-11891-3-git-send-email-sourav.poddar@ti.com>
+From: Kyungmin Park <kmpark@infradead.org>
+Subject: Re: [PATCH v4 0/7] Add TI EMIF SDRAM controller driver
+Date: Sat, 17 Mar 2012 15:10:58 +0900
+Message-ID: <CAH9JG2XB86id0qTMUV9j6x6hJVaP=iJaEOtM_7c05QTovr4sig@mail.gmail.com>
+References: <1331934707-29487-1-git-send-email-aneesh@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-input-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <1331907989-11891-3-git-send-email-sourav.poddar@ti.com>
-Sender: linux-input-owner@vger.kernel.org
-To: Sourav Poddar <sourav.poddar@ti.com>
-Cc: linux-input@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org, balbi@ti.com
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
+In-Reply-To: <1331934707-29487-1-git-send-email-aneesh@ti.com>
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
+List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
+List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
+Sender: linux-arm-kernel-bounces@lists.infradead.org
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
+To: Aneesh V <aneesh@ti.com>
+Cc: Greg KH <greg@kroah.com>, =?UTF-8?B?7ZWo66qF7KO8?= <myungjoo.ham@samsung.com>, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 List-Id: linux-omap@vger.kernel.org
 
-Hi Sourav,
+Hi,
 
-On Fri, Mar 16, 2012 at 07:56:29PM +0530, Sourav Poddar wrote:
-> From: G, Manjunath Kondaiah <manjugk@ti.com>
-> 
-> Keypad controller register offsets are different for omap4
-> and omap5. Handle these offsets through static mapping and
-> assign these mappings during run time.
-> 
-> Signed-off-by: Felipe Balbi <balbi@ti.com>
-> Signed-off-by: G, Manjunath Kondaiah <manjugk@ti.com>
-> Signed-off-by: Sourav Poddar <sourav.poddar@ti.com>
-> ---
->  drivers/input/keyboard/Kconfig        |    6 +-
->  drivers/input/keyboard/omap4-keypad.c |  122 ++++++++++++++++++++++++++------
->  2 files changed, 102 insertions(+), 26 deletions(-)
-> 
-> diff --git a/drivers/input/keyboard/Kconfig b/drivers/input/keyboard/Kconfig
-> index 1379daa..09d7d0b 100644
-> --- a/drivers/input/keyboard/Kconfig
-> +++ b/drivers/input/keyboard/Kconfig
-> @@ -510,10 +510,10 @@ config KEYBOARD_OMAP
->  	  To compile this driver as a module, choose M here: the
->  	  module will be called omap-keypad.
->  
-> -config KEYBOARD_OMAP4
-> -	tristate "TI OMAP4 keypad support"
-> +config KEYBOARD_OMAP4+
-> +	tristate "TI OMAP4+ keypad support"
->  	help
-> -	  Say Y here if you want to use the OMAP4 keypad.
-> +	  Say Y here if you want to use the OMAP4+ keypad.
->  
->  	  To compile this driver as a module, choose M here: the
->  	  module will be called omap4-keypad.
-> diff --git a/drivers/input/keyboard/omap4-keypad.c b/drivers/input/keyboard/omap4-keypad.c
-> index e809ac0..6872495 100644
-> --- a/drivers/input/keyboard/omap4-keypad.c
-> +++ b/drivers/input/keyboard/omap4-keypad.c
-> @@ -68,6 +68,11 @@
->  
->  #define OMAP4_MASK_IRQSTATUSDISABLE	0xFFFF
->  
-> +enum {
-> +	KBD_REVISION_OMAP4 = 0,
-> +	KBD_REVISION_OMAP5,
-> +};
-> +
->  struct omap4_keypad {
->  	struct input_dev *input;
->  
-> @@ -76,11 +81,79 @@ struct omap4_keypad {
->  
->  	unsigned int rows;
->  	unsigned int cols;
-> +	unsigned int revision;
->  	unsigned int row_shift;
->  	unsigned char key_state[8];
->  	unsigned short keymap[];
->  };
->  
-> +static int kbd_read_irqstatus(struct omap4_keypad *keypad_data, u32 offset)
-> +{
-> +	if (keypad_data->revision == KBD_REVISION_OMAP4)
-> +		return __raw_readl(keypad_data->base + offset);
-> +	else if (keypad_data->revision == KBD_REVISION_OMAP5)
-> +		return __raw_readl(keypad_data->base + offset + 0x0c);
-> +
+On 3/17/12, Aneesh V <aneesh@ti.com> wrote:
+> Add a driver for the EMIF SDRAM controller used in TI SoCs
+>
+> EMIF is an SDRAM controller that supports, based on its revision,
+> one or more of LPDDR2/DDR2/DDR3 protocols.This driver adds support
+> for LPDDR2.
+>
+> The driver supports the following features:
+> - Calculates the DDR AC timing parameters to be set in EMIF
+>   registers using data from the device data-sheets and based
+>   on the DDR frequency. If data from data-sheets is not available
+>   default timing values from the JEDEC spec are used. These
+>   will be safe, but not necessarily optimal
+> - API for changing timings during DVFS or at boot-up
+> - Temperature alert configuration and handling of temperature
+>   alerts, if any for LPDDR2 devices
+>   * temperature alert is based on periodic polling of MR4 mode
+>     register in DDR devices automatically performed by hardware
+>   * timings are de-rated and brought back to nominal when
+>     temperature raises and falls respectively
+> - Cache of calculated register values to avoid re-calculating
+>   them
+>
+> The driver will need some minor updates when it is eventually
+> integrated with Dynamic Voltage and Frequency Scaling (DVFS).
+> This can not be done now as DVFS support is not available in
+> the mainline yet.
+Do you see the devfreq? it's designed for non-cpu device frequency.
+It's role is similar with cpufreq.
 
-This is called from ISR and doing comparisons seems quite wasteful. Why
-don't you stuff register numbers for IRQ manipulations into struct
-omap4_keypad at probe time and your function would just do:
+Now samsung exynos uses devfreq for DRAM bus frequency.
 
-	return __raw_readl(keypad_data->base + keypad_data->irqstatus_reg);
-
-And do the same for irqstatus. FOr the rest of the register store the
-common offset (seems to be 0x10).
-
-> +	return -ENODEV;
-> +}
-> +
-> +static int kbd_write_irqstatus(struct omap4_keypad *keypad_data,
-> +						u32 offset, u32 value)
-> +{
-> +	if (keypad_data->revision == KBD_REVISION_OMAP4)
-> +		return __raw_writel(value, keypad_data->base + offset);
-> +	else if (keypad_data->revision == KBD_REVISION_OMAP5)
-> +		return __raw_writel(value, keypad_data->base + offset + 0x0c);
-> +
-> +	return -ENODEV;
-> +}
-> +
-> +static int kbd_write_irqenable(struct omap4_keypad *keypad_data,
-> +						u32 offset, u32 value)
-> +{
-> +	if (keypad_data->revision == KBD_REVISION_OMAP4)
-> +		return __raw_writel(value, keypad_data->base + offset);
-> +	else if (keypad_data->revision == KBD_REVISION_OMAP5)
-> +		return __raw_writel(value, keypad_data->base + offset + 0x0c);
-> +
-> +	return -ENODEV;
-> +}
-> +
-> +static int kbd_readl(struct omap4_keypad *keypad_data, u32 offset)
-> +{
-> +	if (keypad_data->revision == KBD_REVISION_OMAP4)
-> +		return __raw_readl(keypad_data->base + offset);
-> +	else if (keypad_data->revision == KBD_REVISION_OMAP5)
-> +		return __raw_readl(keypad_data->base + offset + 0x10);
-> +
-> +	return -ENODEV;
-> +}
-> +
-> +static void kbd_writel(struct omap4_keypad *keypad_data, u32 offset, u32 value)
-> +{
-> +	if (keypad_data->revision == KBD_REVISION_OMAP4)
-> +		__raw_writel(value, keypad_data->base + offset);
-> +	else if (keypad_data->revision == KBD_REVISION_OMAP5)
-> +		__raw_writel(value, keypad_data->base + offset + 0x10);
-> +}
-> +
-> +static int kbd_read_revision(struct omap4_keypad *keypad_data, u32 offset)
-> +{
-> +	int reg;
-> +	reg = __raw_readl(keypad_data->base + offset);
-> +	reg &= 0x03 << 30;
-> +	reg >>= 30;
-> +
-> +	switch (reg) {
-> +	case 1:
-> +		return KBD_REVISION_OMAP5;
-> +	case 0:
-> +		return KBD_REVISION_OMAP4;
-> +	default:
-> +		return -ENODEV;
-> +	}
-> +}
-> +
->  /* Interrupt handler */
->  static irqreturn_t omap4_keypad_interrupt(int irq, void *dev_id)
->  {
-> @@ -91,12 +164,11 @@ static irqreturn_t omap4_keypad_interrupt(int irq, void *dev_id)
->  	u32 *new_state = (u32 *) key_state;
->  
->  	/* Disable interrupts */
-> -	__raw_writel(OMAP4_VAL_IRQDISABLE,
-> -		     keypad_data->base + OMAP4_KBD_IRQENABLE);
-> +	kbd_write_irqenable(keypad_data, OMAP4_KBD_IRQENABLE,
-> +						OMAP4_VAL_IRQDISABLE);
->  
-> -	*new_state = __raw_readl(keypad_data->base + OMAP4_KBD_FULLCODE31_0);
-> -	*(new_state + 1) = __raw_readl(keypad_data->base
-> -						+ OMAP4_KBD_FULLCODE63_32);
-> +	*new_state = kbd_readl(keypad_data, OMAP4_KBD_FULLCODE31_0);
-> +	*(new_state + 1) = kbd_readl(keypad_data, OMAP4_KBD_FULLCODE63_32);
->  
->  	for (row = 0; row < keypad_data->rows; row++) {
->  		changed = key_state[row] ^ keypad_data->key_state[row];
-> @@ -121,12 +193,13 @@ static irqreturn_t omap4_keypad_interrupt(int irq, void *dev_id)
->  		sizeof(keypad_data->key_state));
->  
->  	/* clear pending interrupts */
-> -	__raw_writel(__raw_readl(keypad_data->base + OMAP4_KBD_IRQSTATUS),
-> -			keypad_data->base + OMAP4_KBD_IRQSTATUS);
-> +	kbd_write_irqstatus(keypad_data, OMAP4_KBD_IRQSTATUS,
-> +			kbd_read_irqstatus(keypad_data, OMAP4_KBD_IRQSTATUS));
->  
->  	/* enable interrupts */
-> -	__raw_writel(OMAP4_DEF_IRQENABLE_EVENTEN | OMAP4_DEF_IRQENABLE_LONGKEY,
-> -			keypad_data->base + OMAP4_KBD_IRQENABLE);
-> +	kbd_write_irqenable(keypad_data, OMAP4_KBD_IRQENABLE,
-> +			OMAP4_DEF_IRQENABLE_EVENTEN |
-> +				OMAP4_DEF_IRQENABLE_LONGKEY);
->  
->  	return IRQ_HANDLED;
->  }
-> @@ -139,16 +212,19 @@ static int omap4_keypad_open(struct input_dev *input)
->  
->  	disable_irq(keypad_data->irq);
->  
-> -	__raw_writel(OMAP4_VAL_FUNCTIONALCFG,
-> -			keypad_data->base + OMAP4_KBD_CTRL);
-> -	__raw_writel(OMAP4_VAL_DEBOUNCINGTIME,
-> -			keypad_data->base + OMAP4_KBD_DEBOUNCINGTIME);
-> -	__raw_writel(OMAP4_VAL_IRQDISABLE,
-> -			keypad_data->base + OMAP4_KBD_IRQSTATUS);
-> -	__raw_writel(OMAP4_DEF_IRQENABLE_EVENTEN | OMAP4_DEF_IRQENABLE_LONGKEY,
-> -			keypad_data->base + OMAP4_KBD_IRQENABLE);
-> -	__raw_writel(OMAP4_DEF_WUP_EVENT_ENA | OMAP4_DEF_WUP_LONG_KEY_ENA,
-> -			keypad_data->base + OMAP4_KBD_WAKEUPENABLE);
-> +	keypad_data->revision = kbd_read_revision(keypad_data,
-> +			OMAP4_KBD_REVISION);
-
-You want to bail out of kbd_read_revision() returns error here.
-
-> +	kbd_writel(keypad_data, OMAP4_KBD_CTRL,
-> +			OMAP4_VAL_FUNCTIONALCFG);
-> +	kbd_writel(keypad_data, OMAP4_KBD_DEBOUNCINGTIME,
-> +			OMAP4_VAL_DEBOUNCINGTIME);
-> +	kbd_write_irqstatus(keypad_data, OMAP4_KBD_IRQSTATUS,
-> +			OMAP4_VAL_IRQDISABLE);
-> +	kbd_write_irqenable(keypad_data, OMAP4_KBD_IRQENABLE,
-> +			OMAP4_DEF_IRQENABLE_EVENTEN |
-> +				OMAP4_DEF_IRQENABLE_LONGKEY);
-> +	kbd_writel(keypad_data, OMAP4_KBD_WAKEUPENABLE,
-> +			OMAP4_DEF_WUP_EVENT_ENA | OMAP4_DEF_WUP_LONG_KEY_ENA);
->  
->  	enable_irq(keypad_data->irq);
->  
-> @@ -162,12 +238,12 @@ static void omap4_keypad_close(struct input_dev *input)
->  	disable_irq(keypad_data->irq);
->  
->  	/* Disable interrupts */
-> -	__raw_writel(OMAP4_VAL_IRQDISABLE,
-> -		     keypad_data->base + OMAP4_KBD_IRQENABLE);
-> +	kbd_write_irqenable(keypad_data, OMAP4_KBD_IRQENABLE,
-> +			OMAP4_VAL_IRQDISABLE);
->  
->  	/* clear pending interrupts */
-> -	__raw_writel(__raw_readl(keypad_data->base + OMAP4_KBD_IRQSTATUS),
-> -			keypad_data->base + OMAP4_KBD_IRQSTATUS);
-> +	kbd_write_irqstatus(keypad_data, OMAP4_KBD_IRQSTATUS,
-> +			kbd_read_irqstatus(keypad_data, OMAP4_KBD_IRQSTATUS));
->  
->  	enable_irq(keypad_data->irq);
->  
-> -- 
-> 1.7.1
-> 
-
-Thanks.
-
--- 
-Dmitry
+Thank you,
+Kyungmin Park
+>
+> Discussions with Santosh Shilimkar <santosh.shilimkar@ti.com>
+> were immensely helpful in shaping up the interfaces. Vibhore Vardhan
+> <vvardhan@gmail.com> did the initial code snippet for thermal
+> handling.
+>
+> Testing:
+> - The driver is tested on OMAP4430 SDP.
+> - The driver in a slightly adapted form is also tested on OMAP5.
+> - Since mainline kernel doesn't have DVFS support yet,
+>   testing was done using a test module.
+> - Temperature alert handling was tested with simulated interrupts
+>   and faked temperature values as testing all cases in real-life
+>   scenarios is difficult.
+> - Tested the driver as a module
+>
+> Cc: Greg KH <greg@kroah.com>
+>
+> v4:
+> - Converted instances of EXPORT_SYMBOL to EXPORT_SYMBOL_GPL
+> - Removed un-necessary "#ifndef __ASSEMBLY__'
+> - Minor formatting fix
+>
+> v2:
+> - Fixed a bug found in the implementation of errata i728
+>   workaround
+> - Fixed the value of frequency printed in debugfs
+> - Dropped the hwmod patch as Paul has already posted a
+>   a hwmod series [1] that adds hwmod for EMIF
+> - Converted instances of __init to __init_or_module
+>
+> [1] http://thread.gmane.org/gmane.linux.ports.arm.omap/72855
+>
+> Aneesh V (7):
+>   misc: ddr: add LPDDR2 data from JESD209-2
+>   misc: emif: add register definitions for EMIF
+>   misc: emif: add basic infrastructure for EMIF driver
+>   misc: emif: handle frequency and voltage change events
+>   misc: emif: add interrupt and temperature handling
+>   misc: emif: add one-time settings
+>   misc: emif: add debugfs entries for emif
+>
+>  Documentation/misc-devices/ti-emif.txt  |   58 ++
+>  drivers/misc/Kconfig                    |   12 +
+>  drivers/misc/Makefile                   |    1 +
+>  drivers/misc/emif.c                     | 1670
+> +++++++++++++++++++++++++++++++
+>  drivers/misc/emif.h                     |  589 +++++++++++
+>  include/linux/platform_data/emif_plat.h |  128 +++
+>  include/misc/jedec_ddr.h                |  175 ++++
+>  lib/Kconfig                             |    8 +
+>  lib/Makefile                            |    2 +
+>  lib/jedec_ddr_data.c                    |  135 +++
+>  10 files changed, 2778 insertions(+), 0 deletions(-)
+>  create mode 100644 Documentation/misc-devices/ti-emif.txt
+>  create mode 100644 drivers/misc/emif.c
+>  create mode 100644 drivers/misc/emif.h
+>  create mode 100644 include/linux/platform_data/emif_plat.h
+>  create mode 100644 include/misc/jedec_ddr.h
+>  create mode 100644 lib/jedec_ddr_data.c
+>
+>
+> _______________________________________________
+> linux-arm-kernel mailing list
+> linux-arm-kernel@lists.infradead.org
+> http://lists.infradead.org/mailman/listinfo/linux-arm-kernel
+>
