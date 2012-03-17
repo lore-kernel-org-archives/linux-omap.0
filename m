@@ -1,69 +1,52 @@
-From: Sascha Hauer <s.hauer-bIcnvbaLZ9MEGnE8C9+IrQ@public.gmane.org>
-Subject: Re: [PATCH v7 1/3] Documentation: common clk API
-Date: Sat, 17 Mar 2012 00:47:06 +0100
-Message-ID: <20120316234706.GJ3852@pengutronix.de>
-References: <1331878280-2758-1-git-send-email-mturquette@linaro.org>
-	<CAP245DXV5oE+-y+PQCcSM016h-J+UgTi1efmdrcyeQge4k1Cfw@mail.gmail.com>
-	<201203161218.05125.arnd.bergmann@linaro.org>
-	<201203162057.58706.arnd@arndb.de>
-	<alpine.DEB.2.00.1203161509470.4395@utopia.booyaka.com>
+From: Tony Lindgren <tony@atomide.com>
+Subject: Re: arm-soc + rmk's tree boot failure on OMAP4430SDP
+Date: Fri, 16 Mar 2012 17:47:06 -0700
+Message-ID: <20120317004706.GF7276@atomide.com>
+References: <20120316231158.GA9970@n2100.arm.linux.org.uk>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <linaro-dev-bounces-cunTk1MwBs8s++Sfvej+rw@public.gmane.org>
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from mho-01-ewr.mailhop.org ([204.13.248.71]:15609 "EHLO
+	mho-01-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1946007Ab2CQArK (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 16 Mar 2012 20:47:10 -0400
 Content-Disposition: inline
-In-Reply-To: <alpine.DEB.2.00.1203161509470.4395-rwI8Ez+7Ko+d5PgPZx9QOdBPR1lH4CV8@public.gmane.org>
-List-Unsubscribe: <http://lists.linaro.org/mailman/options/linaro-dev>,
-	<mailto:linaro-dev-request-cunTk1MwBs8s++Sfvej+rw@public.gmane.org?subject=unsubscribe>
-List-Archive: <http://lists.linaro.org/pipermail/linaro-dev>
-List-Post: <mailto:linaro-dev-cunTk1MwBs8s++Sfvej+rw@public.gmane.org>
-List-Help: <mailto:linaro-dev-request-cunTk1MwBs8s++Sfvej+rw@public.gmane.org?subject=help>
-List-Subscribe: <http://lists.linaro.org/mailman/listinfo/linaro-dev>,
-	<mailto:linaro-dev-request-cunTk1MwBs8s++Sfvej+rw@public.gmane.org?subject=subscribe>
-Sender: linaro-dev-bounces-cunTk1MwBs8s++Sfvej+rw@public.gmane.org
-Errors-To: linaro-dev-bounces-cunTk1MwBs8s++Sfvej+rw@public.gmane.org
-To: Paul Walmsley <paul-DWxLp4Yu+b8AvxtiuMwx3w@public.gmane.org>
-Cc: Nicolas Pitre <nicolas.pitre-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>, linaro-dev-cunTk1MwBs8s++Sfvej+rw@public.gmane.org, Saravana Kannan <skannan-sgV2jX0FEOL9JmXXK+q4OQ@public.gmane.org>, Jeremy Kerr <jeremy.kerr-Z7WLFzj8eWMS+FvcfC7Uqw@public.gmane.org>, Russell King <linux-lFZ/pmaqli7XmaaqVzeoHQ@public.gmane.org>, Magnus Damm <magnus.damm-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, Arnd Bergmann <arnd-r2nGTMty4D4@public.gmane.org>, patches-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org, Rob Herring <rob.herring-bsGFqQB8/DxBDgjK7y7TUQ@public.gmane.org>, Thomas Gleixner <tglx-hfZtesqFncYOwBW4kG4KsQ@public.gmane.org>, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Linus Walleij <linus.walleij-0IS4wlFg1OjSUeElwK9/Pw@public.gmane.org>, Mark Brown <broonie-yzvPICuk2AATkU/dhu1WVueM+bqZidxxQQ4Iyu8u01E@public.gmane.org>, Stephen Boyd <sboyd-sgV2jX0FEOL9JmXXK+q4OQ@public.gmane.org>, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+In-Reply-To: <20120316231158.GA9970@n2100.arm.linux.org.uk>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Tomi Valkeinen <tomi.valkeinen@ti.com>
+Cc: linux-omap@vger.kernel.org, Arnd Bergmann <arnd@arndb.de>, Russell King - ARM Linux <linux@arm.linux.org.uk>
 
-Hi Paul,
+Hi,
 
-On Fri, Mar 16, 2012 at 04:21:17PM -0600, Paul Walmsley wrote:
-> Hi
+Adding Tomi to this thread.
+
+* Russell King - ARM Linux <linux@arm.linux.org.uk> [120316 16:14]:
+> Sometime during the last week, the OMAP4430SDP stopped booting - it now
+> stops with no kernel messages output:
 > 
-> On Fri, 16 Mar 2012, Arnd Bergmann wrote:
+> http://www.arm.linux.org.uk/developer/build/result.php?type=boot&idx=69
 > 
+> The previously booted version:
 > 
-> If the common clock code is to go upstream now, it should be marked as 
-> experimental.
+> http://www.arm.linux.org.uk/developer/build/result.php?type=boot&idx=57
+> 
+> worked fine - though this log will only be available for about 3 hours.
+> 
+> I've re-checked my tree, and the OMAP4430SDP boots fine, so it's either
+> breakage coming from arm-soc or a result of merging the two trees
+> together.
 
-No, please don't do this. This effectively marks the architectures using
-the generic clock framework experimental. We can mark drivers as 'you
-have been warned', but marking an architecture as experimental is the
-wrong sign for both its users and people willing to adopt the framework.
-Also we get this:
+Based on initcall_debug with current linux-next, it seems to hang at
+omap_dss_init2. And leaving out CONFIG_OMAP2_DSS makes devices boot
+again.
 
-warning: (ARCH_MX1 && MACH_MX21 && ARCH_MX25 && MACH_MX27) selects COMMON_CLK which has unmet direct dependencies (EXPERIMENTAL)
+Tomi, can you please investigate?
 
-(and no, I don't want to support to clock frameworks in parallel)
+To reproduce this problem, just set CONFIG_OMAP2_DSS=y in
+omap2plus_defconfig, and try to boot. It hangs at least on
+blaze and zoom3.
 
-> This is because we know the API is not well-defined, and 
-> that both the API and the underlying mechanics will almost certainly need 
-> to change for non-trivial uses of the rate changing code (e.g., DVFS with 
-> external I/O devices).
+Regards,
 
-Please leave DVFS out of the game. DVFS will use the clock framework for
-the F part and the regulator framework for the V part, but the clock
-framework should not get extended with DVFS features. The notifiers we
-currently have in the clock framework should give enough information
-for DVFS implementations. Even if they don't and we have to change
-something here this will have no influence on the architectures
-implementing their clock tree with the common clock framework.
-
-Sascha
-
--- 
-Pengutronix e.K.                           |                             |
-Industrial Linux Solutions                 | http://www.pengutronix.de/  |
-Peiner Str. 6-8, 31137 Hildesheim, Germany | Phone: +49-5121-206917-0    |
-Amtsgericht Hildesheim, HRA 2686           | Fax:   +49-5121-206917-5555 |
+Tony
