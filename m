@@ -1,47 +1,22 @@
-From: Arnd Bergmann <arnd@arndb.de>
-Subject: Re: [PATCH] of: Add generic device tree DMA helpers
-Date: Sun, 18 Mar 2012 22:12:00 +0000
-Message-ID: <201203182212.00769.arnd@arndb.de>
-References: <4F22DEF2.5000807@ti.com> <20120318204421.759F23E07BF@localhost> <201203182158.10957.arnd@arndb.de>
+From: "C'C Company" <info@cc.org>
+Subject: (unknown)
+Date: Mon, 19 Mar 2012 00:32:44 +0530
+Message-ID: <20120318190305.DDAE22866.nskntotgx03p.mx.bigpond.com@User>
+Reply-To: <cc.lt01@msn.com>
 Mime-Version: 1.0
-Content-Type: Text/Plain;
-  charset="iso-8859-1"
+Content-Type: text/plain;
+	charset="utf-7"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from moutng.kundenserver.de ([212.227.17.10]:64452 "EHLO
-	moutng.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754615Ab2CRWMO (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Sun, 18 Mar 2012 18:12:14 -0400
-In-Reply-To: <201203182158.10957.arnd@arndb.de>
+Received: from nskntqsrv03p.mx.bigpond.com ([61.9.168.237]:50952 "EHLO
+	nskntqsrv03p.mx.bigpond.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1756649Ab2CRXUl (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>);
+	Sun, 18 Mar 2012 19:20:41 -0400
+Subject: 
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: linux-arm-kernel@lists.infradead.org
-Cc: Grant Likely <grant.likely@secretlab.ca>, Stephen Warren <swarren@nvidia.com>, Benoit Cousson <b-cousson@ti.com>, devicetree-discuss@lists.ozlabs.org, Nicolas Ferre <nicolas.ferre@atmel.com>, rob.herring@calxeda.com, Russell King <linux@arm.linux.org.uk>, linux-omap@vger.kernel.org
 
-On Sunday 18 March 2012, Arnd Bergmann wrote:
-> > 
-> > Is dma_find_device() a new function?  How does it look up the dma
-> > device?
-> 
-> Yes, it would be similar to the proposed function in Benoit's patch
-> 
+Click on the link below for claims from Coco'Cola Company
+https://docs.google.com/spreadsheet/viewform?formkey=dDJCMi1lVE44XzZVVkhSNS11MFFUbFE6MQ
 
-Well, actually we would not even need a new list with all the devices,
-it can simply become
-
-/* must be called with dma_list_mutex held */
-static struct dma_device *dma_find_device(struct of_node *node)
-{
-	struct dma_device *device;
-	
-	list_for_each_entry(device, &dma_device_list, global_node) {
-		if (device->dev.of_node == node)
-			break;
-	}
-	return device;
-}
-
-Given that dma_device_list is most likely be a very short list, this will
-be a fast operation.
-
-	Arnd
