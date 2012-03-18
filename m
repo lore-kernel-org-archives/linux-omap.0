@@ -1,158 +1,64 @@
-From: Javier Martinez Canillas <javier@dowhile0.org>
-Subject: [PATCH v2 2/2] OMAP3: igep0020: Add support for Micron NAND Flash storage memory
-Date: Sun, 18 Mar 2012 04:30:29 +0100
-Message-ID: <1332041429-23978-1-git-send-email-javier@dowhile0.org>
+From: Grant Likely <grant.likely@secretlab.ca>
+Subject: Re: [PATCH] of: Add generic device tree DMA helpers
+Date: Sun, 18 Mar 2012 09:08:41 +0000
+Message-ID: <20120318090841.DC4973E060A@localhost>
+References: <4F22DEF2.5000807@ti.com> <20120315092652.GA16389@n2100.arm.linux.org.uk> <20120317094217.6BA143E0908@localhost> <201203171603.02230.arnd@arndb.de>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-we0-f174.google.com ([74.125.82.174]:37711 "EHLO
-	mail-we0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752750Ab2CRD3g (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Sat, 17 Mar 2012 23:29:36 -0400
-Received: by wejx9 with SMTP id x9so4977901wej.19
-        for <linux-omap@vger.kernel.org>; Sat, 17 Mar 2012 20:29:34 -0700 (PDT)
+Received: from mail-wi0-f172.google.com ([209.85.212.172]:57493 "EHLO
+	mail-wi0-f172.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753666Ab2CRJIr (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Sun, 18 Mar 2012 05:08:47 -0400
+Received: by wibhj6 with SMTP id hj6so2598860wib.1
+        for <linux-omap@vger.kernel.org>; Sun, 18 Mar 2012 02:08:46 -0700 (PDT)
+In-Reply-To: <201203171603.02230.arnd@arndb.de>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Tony Lindgren <tony@atomide.com>
-Cc: =?UTF-8?q?Enric=20Balletb=C3=B2=20i=20Serra?= <eballetbo@gmail.com>, Russell King <linux@arm.linux.org.uk>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+To: Arnd Bergmann <arnd@arndb.de>
+Cc: Russell King - ARM Linux <linux@arm.linux.org.uk>, Stephen Warren <swarren@nvidia.com>, Benoit Cousson <b-cousson@ti.com>, devicetree-discuss@lists.ozlabs.org, Thierry Reding <thierry.reding@avionic-design.de>, Nicolas Ferre <nicolas.ferre@atmel.com>, rob.herring@calxeda.com, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 
-IGEP-based boards can have two different flash memories, a OneNAND or
-a NAND device. The boot configuration pins (sys_boot) are used to
-specify which memory is available.
+On Sat, 17 Mar 2012 16:03:02 +0000, Arnd Bergmann <arnd@arndb.de> wrote:
+> On Saturday 17 March 2012, Grant Likely wrote:
+> > On Thu, 15 Mar 2012 09:26:52 +0000, Russell King - ARM Linux <linux@arm.linux.org.uk> wrote:
+> > > On Thu, Mar 15, 2012 at 09:22:06AM +0000, Arnd Bergmann wrote:
+> > > > On Thursday 15 March 2012, Nicolas Ferre wrote:
+> > > > > Add some basic helpers to retrieve a DMA controller device_node and the
+> > > > > DMA request specifications. By making DMA controllers register a generic
+> > > > > translation function, we allow the management of any type of DMA requests
+> > > > > specification.
+> > > > > The void * output of an of_dma_xlate() function that will be implemented
+> > > > > by the DMA controller can carry any type of "dma-request" argument.
+> > > > > 
+> > > > > The DMA client will search its associated DMA controller in the list and
+> > > > > call the registered of_dam_xlate() function to retrieve the request values.
+> > > > > 
+> > > > > One simple xlate function is provided for the "single number" type of
+> > > > > request binding.
+> > > > > 
+> > > > > This implementation is independent from dmaengine so it can also be used
+> > > > > by legacy drivers.
+> > > > > 
+> > > > > For legacy reason another API will export the DMA request number into a
+> > > > > Linux resource of type IORESOURCE_DMA.
+> > > > 
+> > > > This looks very good. I missed the first version of this patch, but was
+> > > > thinking of very similar bindings.
+> > > 
+> > > There's one issue which is concerning me - when we switch OMAP to use
+> > > DMA engine, it won't use numeric stuff anymore but the DMA engine way
+> > > of requesting a channel (match function + data).
+> > > 
+> > > How does that fit into this scheme?
+> > 
+> > Not well as the current patch set stands.  The xlate function doesn't return
+> > any context for the dma channel number that it returns, so the driver cannot
+> > figure out which DMA controller to use if there are multiple.
+> 
+> Shouldn't that be part of the data returned by xlate? I was under the impression
+> that this would be the data that you would pass into dma_request_channel, together
+> with a filter function that find the instance from the data.
 
-Also, this patch removes unnecesary code for registering the OneNAND.
+Yes, that's my point.  The patch as it is currently written doesn't do
+what it needs to.
 
-Signed-off-by: Javier Martinez Canillas <javier@dowhile0.org>
----
-
-v2: It's not necessary to guard board_nand_init() and board_onenand_init()
-    with #ifdef since they are defined as empty functions in board-flash.c
-
- arch/arm/mach-omap2/board-igep0020.c |   75 ++++++++++++++--------------------
- 1 files changed, 31 insertions(+), 44 deletions(-)
-
-diff --git a/arch/arm/mach-omap2/board-igep0020.c b/arch/arm/mach-omap2/board-igep0020.c
-index e558800..dbd13b2 100644
---- a/arch/arm/mach-omap2/board-igep0020.c
-+++ b/arch/arm/mach-omap2/board-igep0020.c
-@@ -24,6 +24,8 @@
- #include <linux/i2c/twl.h>
- #include <linux/mmc/host.h>
- 
-+#include <linux/mtd/nand.h>
-+
- #include <asm/mach-types.h>
- #include <asm/mach/arch.h>
- 
-@@ -39,6 +41,8 @@
- #include "hsmmc.h"
- #include "sdram-numonyx-m65kxxxxam.h"
- #include "common-board-devices.h"
-+#include "board-flash.h"
-+#include "control.h"
- 
- #define IGEP2_SMSC911X_CS       5
- #define IGEP2_SMSC911X_GPIO     176
-@@ -60,6 +64,10 @@
- #define IGEP3_GPIO_LED1_RED	16
- #define IGEP3_GPIO_USBH_NRESET  183
- 
-+#define IGEP_SYSBOOT_MASK           0x1f
-+#define IGEP_SYSBOOT_NAND           0x0f
-+#define IGEP_SYSBOOT_ONENAND        0x10
-+
- /*
-  * IGEP2 Hardware Revision Table
-  *
-@@ -110,8 +118,10 @@ static void __init igep2_get_revision(void)
- 	gpio_free(IGEP2_GPIO_LED1_RED);
- }
- 
--#if defined(CONFIG_MTD_ONENAND_OMAP2) || \
--	defined(CONFIG_MTD_ONENAND_OMAP2_MODULE)
-+#if defined(CONFIG_MTD_ONENAND_OMAP2) ||		\
-+	defined(CONFIG_MTD_ONENAND_OMAP2_MODULE) ||	\
-+	defined(CONFIG_MTD_NAND_OMAP2) ||		\
-+	defined(CONFIG_MTD_NAND_OMAP2_MODULE)
- 
- #define ONENAND_MAP             0x20000000
- 
-@@ -123,7 +133,7 @@ static void __init igep2_get_revision(void)
-  * So MTD regards it as 4KiB page size and 256KiB block size 64*(2*2048)
-  */
- 
--static struct mtd_partition igep_onenand_partitions[] = {
-+static struct mtd_partition igep_flash_partitions[] = {
- 	{
- 		.name           = "X-Loader",
- 		.offset         = 0,
-@@ -151,50 +161,27 @@ static struct mtd_partition igep_onenand_partitions[] = {
- 	},
- };
- 
--static struct omap_onenand_platform_data igep_onenand_data = {
--	.parts = igep_onenand_partitions,
--	.nr_parts = ARRAY_SIZE(igep_onenand_partitions),
--	.dma_channel	= -1,	/* disable DMA in OMAP OneNAND driver */
--};
--
--static struct platform_device igep_onenand_device = {
--	.name		= "omap2-onenand",
--	.id		= -1,
--	.dev = {
--		.platform_data = &igep_onenand_data,
--	},
--};
-+static inline u32 igep_get_sysboot_value(void)
-+{
-+	return omap_ctrl_readl(OMAP343X_CONTROL_STATUS) & IGEP_SYSBOOT_MASK;
-+}
- 
- static void __init igep_flash_init(void)
- {
--	u8 cs = 0;
--	u8 onenandcs = GPMC_CS_NUM + 1;
--
--	for (cs = 0; cs < GPMC_CS_NUM; cs++) {
--		u32 ret;
--		ret = gpmc_cs_read_reg(cs, GPMC_CS_CONFIG1);
--
--		/* Check if NAND/oneNAND is configured */
--		if ((ret & 0xC00) == 0x800)
--			/* NAND found */
--			pr_err("IGEP: Unsupported NAND found\n");
--		else {
--			ret = gpmc_cs_read_reg(cs, GPMC_CS_CONFIG7);
--			if ((ret & 0x3F) == (ONENAND_MAP >> 24))
--				/* ONENAND found */
--				onenandcs = cs;
--		}
--	}
--
--	if (onenandcs > GPMC_CS_NUM) {
--		pr_err("IGEP: Unable to find configuration in GPMC\n");
--		return;
--	}
--
--	igep_onenand_data.cs = onenandcs;
--
--	if (platform_device_register(&igep_onenand_device) < 0)
--		pr_err("IGEP: Unable to register OneNAND device\n");
-+	u32 mux;
-+	mux = igep_get_sysboot_value();
-+
-+	if (mux == IGEP_SYSBOOT_NAND) {
-+		pr_info("IGEP: initializing NAND memory device\n");
-+		board_nand_init(igep_flash_partitions,
-+				ARRAY_SIZE(igep_flash_partitions),
-+				0, NAND_BUSWIDTH_16);
-+	} else if (mux == IGEP_SYSBOOT_ONENAND) {
-+		pr_info("IGEP: initializing OneNAND memory device\n");
-+		board_onenand_init(igep_flash_partitions,
-+				   ARRAY_SIZE(igep_flash_partitions), 0);
-+	} else
-+		pr_err("IGEP: Flash: unsupported sysboot sequence found\n");
- }
- 
- #else
--- 
-1.7.7.6
+g.
 
