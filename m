@@ -1,7 +1,8 @@
 From: jean.pihet@newoldbits.com
-Subject: [PATCH 1/9] ARM: OMAP3+: voltage: export functions to plat/voltage.h
-Date: Mon, 19 Mar 2012 17:12:50 +0100
-Message-ID: <1332173578-27422-2-git-send-email-j-pihet@ti.com>
+Subject: [PATCH 2/9] ARM: OMAP2+: SmartReflex: move the driver specific macros
+ in include/linux/power
+Date: Mon, 19 Mar 2012 17:12:51 +0100
+Message-ID: <1332173578-27422-3-git-send-email-j-pihet@ti.com>
 References: <1332173578-27422-1-git-send-email-j-pihet@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
@@ -23,81 +24,234 @@ List-Id: linux-omap@vger.kernel.org
 
 From: Jean Pihet <j-pihet@ti.com>
 
-Move some functions from mach-omap2/ dir to the plat/ dir.
-The SmartReflex class driver is a user of the basic voltage domains
-functions (enable, disable, reset).
+Move the driver specific macros from the smartreflex header file
+(arch/arm/mach-omap2/smartreflex.h) in a new header file
+include/linux/power/smartreflex.h.
+
+This change makes the SmartReflex implementation ready for the move
+to drivers/.
 
 Signed-off-by: Jean Pihet <j-pihet@ti.com>
-Cc: Kevin Hilman <khilman@ti.com>
 ---
- arch/arm/mach-omap2/smartreflex-class3.c  |    1 +
- arch/arm/mach-omap2/smartreflex.h         |    2 +-
- arch/arm/mach-omap2/voltage.h             |    1 -
- arch/arm/mach-omap2/vp.h                  |    2 --
- arch/arm/plat-omap/include/plat/voltage.h |    3 +++
- 5 files changed, 5 insertions(+), 4 deletions(-)
+ arch/arm/mach-omap2/omap_hwmod_3xxx_data.c |    4 +-
+ arch/arm/mach-omap2/omap_hwmod_44xx_data.c |    3 +-
+ arch/arm/mach-omap2/smartreflex.c          |    2 +-
+ arch/arm/mach-omap2/smartreflex.h          |   42 -----------------
+ arch/arm/mach-omap2/sr_device.c            |    2 +-
+ include/linux/power/smartreflex.h          |   67 ++++++++++++++++++++++++++++
+ 6 files changed, 72 insertions(+), 48 deletions(-)
+ create mode 100644 include/linux/power/smartreflex.h
 
-diff --git a/arch/arm/mach-omap2/smartreflex-class3.c b/arch/arm/mach-omap2/smartreflex-class3.c
-index 955566e..e12c51e 100644
---- a/arch/arm/mach-omap2/smartreflex-class3.c
-+++ b/arch/arm/mach-omap2/smartreflex-class3.c
-@@ -12,6 +12,7 @@
+diff --git a/arch/arm/mach-omap2/omap_hwmod_3xxx_data.c b/arch/arm/mach-omap2/omap_hwmod_3xxx_data.c
+index 0cc6a40..d7d4c70 100644
+--- a/arch/arm/mach-omap2/omap_hwmod_3xxx_data.c
++++ b/arch/arm/mach-omap2/omap_hwmod_3xxx_data.c
+@@ -13,6 +13,8 @@
+  *
+  * XXX these should be marked initdata for multi-OMAP kernels
+  */
++#include <linux/power/smartreflex.h>
++
+ #include <plat/omap_hwmod.h>
+ #include <mach/irqs.h>
+ #include <plat/cpu.h>
+@@ -28,8 +30,6 @@
+ #include <plat/dmtimer.h>
+ 
+ #include "omap_hwmod_common_data.h"
+-
+-#include "smartreflex.h"
+ #include "prm-regbits-34xx.h"
+ #include "cm-regbits-34xx.h"
+ #include "wd_timer.h"
+diff --git a/arch/arm/mach-omap2/omap_hwmod_44xx_data.c b/arch/arm/mach-omap2/omap_hwmod_44xx_data.c
+index 48e5834..31e7b87 100644
+--- a/arch/arm/mach-omap2/omap_hwmod_44xx_data.c
++++ b/arch/arm/mach-omap2/omap_hwmod_44xx_data.c
+@@ -19,6 +19,7 @@
   */
  
- #include "smartreflex.h"
-+#include "voltage.h"
+ #include <linux/io.h>
++#include <linux/power/smartreflex.h>
  
- static int sr_class3_enable(struct voltagedomain *voltdm)
- {
+ #include <plat/omap_hwmod.h>
+ #include <plat/cpu.h>
+@@ -32,8 +33,6 @@
+ #include <plat/common.h>
+ 
+ #include "omap_hwmod_common_data.h"
+-
+-#include "smartreflex.h"
+ #include "cm1_44xx.h"
+ #include "cm2_44xx.h"
+ #include "prm44xx.h"
+diff --git a/arch/arm/mach-omap2/smartreflex.c b/arch/arm/mach-omap2/smartreflex.c
+index 008fbd7..33e2825 100644
+--- a/arch/arm/mach-omap2/smartreflex.c
++++ b/arch/arm/mach-omap2/smartreflex.c
+@@ -25,9 +25,9 @@
+ #include <linux/delay.h>
+ #include <linux/slab.h>
+ #include <linux/pm_runtime.h>
++#include <linux/power/smartreflex.h>
+ 
+ #include "common.h"
+-
+ #include "pm.h"
+ #include "smartreflex.h"
+ 
 diff --git a/arch/arm/mach-omap2/smartreflex.h b/arch/arm/mach-omap2/smartreflex.h
-index 5809141..c4e8530 100644
+index c4e8530..8835422 100644
 --- a/arch/arm/mach-omap2/smartreflex.h
 +++ b/arch/arm/mach-omap2/smartreflex.h
-@@ -22,7 +22,7 @@
+@@ -152,14 +152,6 @@ struct omap_sr_pmic_data {
+ 	void (*sr_pmic_init) (void);
+ };
  
- #include <linux/platform_device.h>
+-/**
+- * struct omap_smartreflex_dev_attr - Smartreflex Device attribute.
+- *
+- * @sensor_voltdm_name:       Name of voltdomain of SR instance
+- */
+-struct omap_smartreflex_dev_attr {
+-	const char      *sensor_voltdm_name;
+-};
  
--#include "voltage.h"
-+#include <plat/voltage.h>
- 
+ #ifdef CONFIG_OMAP_SMARTREFLEX
  /*
-  * Different Smartreflex IPs version. The v1 is the 65nm version used in
-diff --git a/arch/arm/mach-omap2/voltage.h b/arch/arm/mach-omap2/voltage.h
-index 16a1b09..a81dea8 100644
---- a/arch/arm/mach-omap2/voltage.h
-+++ b/arch/arm/mach-omap2/voltage.h
-@@ -167,6 +167,5 @@ int voltdm_for_each_pwrdm(struct voltagedomain *voltdm,
- 			  int (*fn)(struct voltagedomain *voltdm,
- 				    struct powerdomain *pwrdm));
- int voltdm_scale(struct voltagedomain *voltdm, unsigned long target_volt);
--void voltdm_reset(struct voltagedomain *voltdm);
- unsigned long voltdm_get_voltage(struct voltagedomain *voltdm);
- #endif
-diff --git a/arch/arm/mach-omap2/vp.h b/arch/arm/mach-omap2/vp.h
-index 7c155d2..837cb8d 100644
---- a/arch/arm/mach-omap2/vp.h
-+++ b/arch/arm/mach-omap2/vp.h
-@@ -118,8 +118,6 @@ extern struct omap_vp_instance omap4_vp_iva;
- extern struct omap_vp_instance omap4_vp_core;
+@@ -194,40 +186,6 @@ struct omap_sr_class_data {
+ 	u8 class_type;
+ };
  
- void omap_vp_init(struct voltagedomain *voltdm);
--void omap_vp_enable(struct voltagedomain *voltdm);
--void omap_vp_disable(struct voltagedomain *voltdm);
- int omap_vp_forceupdate_scale(struct voltagedomain *voltdm,
- 			      unsigned long target_volt);
- int omap_vp_update_errorgain(struct voltagedomain *voltdm,
-diff --git a/arch/arm/plat-omap/include/plat/voltage.h b/arch/arm/plat-omap/include/plat/voltage.h
-index 0a6a482..1842709 100644
---- a/arch/arm/plat-omap/include/plat/voltage.h
-+++ b/arch/arm/plat-omap/include/plat/voltage.h
-@@ -16,5 +16,8 @@ struct voltagedomain;
- struct voltagedomain *voltdm_lookup(const char *name);
- int voltdm_scale(struct voltagedomain *voltdm, unsigned long target_volt);
- unsigned long voltdm_get_voltage(struct voltagedomain *voltdm);
-+void voltdm_reset(struct voltagedomain *voltdm);
+-/**
+- * struct omap_sr_nvalue_table	- Smartreflex n-target value info
+- *
+- * @efuse_offs:	The offset of the efuse where n-target values are stored.
+- * @nvalue:	The n-target value.
+- */
+-struct omap_sr_nvalue_table {
+-	u32 efuse_offs;
+-	u32 nvalue;
+-};
+-
+-/**
+- * struct omap_sr_data - Smartreflex platform data.
+- *
+- * @ip_type:		Smartreflex IP type.
+- * @senp_mod:		SENPENABLE value for the sr
+- * @senn_mod:		SENNENABLE value for sr
+- * @nvalue_count:	Number of distinct nvalues in the nvalue table
+- * @enable_on_init:	whether this sr module needs to enabled at
+- *			boot up or not.
+- * @nvalue_table:	table containing the  efuse offsets and nvalues
+- *			corresponding to them.
+- * @voltdm:		Pointer to the voltage domain associated with the SR
+- */
+-struct omap_sr_data {
+-	int				ip_type;
+-	u32				senp_mod;
+-	u32				senn_mod;
+-	int				nvalue_count;
+-	bool				enable_on_init;
+-	struct omap_sr_nvalue_table	*nvalue_table;
+-	struct voltagedomain		*voltdm;
+-};
+-
+ /* Smartreflex module enable/disable interface */
+ void omap_sr_enable(struct voltagedomain *voltdm);
+ void omap_sr_disable(struct voltagedomain *voltdm);
+diff --git a/arch/arm/mach-omap2/sr_device.c b/arch/arm/mach-omap2/sr_device.c
+index a503e1e..86e438e 100644
+--- a/arch/arm/mach-omap2/sr_device.c
++++ b/arch/arm/mach-omap2/sr_device.c
+@@ -17,6 +17,7 @@
+  * it under the terms of the GNU General Public License version 2 as
+  * published by the Free Software Foundation.
+  */
++#include <linux/power/smartreflex.h>
  
-+void omap_vp_enable(struct voltagedomain *voltdm);
-+void omap_vp_disable(struct voltagedomain *voltdm);
- #endif
+ #include <linux/err.h>
+ #include <linux/slab.h>
+@@ -24,7 +25,6 @@
+ 
+ #include <plat/omap_device.h>
+ 
+-#include "smartreflex.h"
+ #include "voltage.h"
+ #include "control.h"
+ #include "pm.h"
+diff --git a/include/linux/power/smartreflex.h b/include/linux/power/smartreflex.h
+new file mode 100644
+index 0000000..4a15640
+--- /dev/null
++++ b/include/linux/power/smartreflex.h
+@@ -0,0 +1,67 @@
++/*
++ * OMAP Smartreflex Defines and Routines
++ *
++ * Copyright (C) 2012 Texas Instruments, Inc.
++ * Jean Pihet <j-pihet@ti.com>
++ *
++ * Copyright (C) 2008 Nokia Corporation
++ * Kalle Jokiniemi
++ *
++ * Copyright (C) 2007 Texas Instruments, Inc.
++ * Lesly A M <x0080970@ti.com>
++ *
++ * This program is free software; you can redistribute it and/or modify
++ * it under the terms of the GNU General Public License version 2 as
++ * published by the Free Software Foundation.
++ */
++#ifndef __POWER_SMARTREFLEX_H
++#define __POWER_SMARTREFLEX_H
++
++#include <linux/types.h>
++
++#include <plat/voltage.h>
++
++/**
++ * struct omap_sr_nvalue_table	- Smartreflex n-target value info
++ *
++ * @efuse_offs:	The offset of the efuse where n-target values are stored.
++ * @nvalue:	The n-target value.
++ */
++struct omap_sr_nvalue_table {
++	u32 efuse_offs;
++	u32 nvalue;
++};
++
++/**
++ * struct omap_sr_data - Smartreflex platform data.
++ *
++ * @ip_type:		Smartreflex IP type.
++ * @senp_mod:		SENPENABLE value for the sr
++ * @senn_mod:		SENNENABLE value for sr
++ * @nvalue_count:	Number of distinct nvalues in the nvalue table
++ * @enable_on_init:	whether this sr module needs to enabled at
++ *			boot up or not.
++ * @nvalue_table:	table containing the  efuse offsets and nvalues
++ *			corresponding to them.
++ * @voltdm:		Pointer to the voltage domain associated with the SR
++ */
++struct omap_sr_data {
++	int				ip_type;
++	u32				senp_mod;
++	u32				senn_mod;
++	int				nvalue_count;
++	bool				enable_on_init;
++	struct omap_sr_nvalue_table	*nvalue_table;
++	struct voltagedomain		*voltdm;
++};
++
++/**
++ * struct omap_smartreflex_dev_attr - Smartreflex Device attribute.
++ *
++ * @sensor_voltdm_name:       Name of voltdomain of SR instance
++ */
++struct omap_smartreflex_dev_attr {
++	const char      *sensor_voltdm_name;
++};
++
++#endif
 -- 
 1.7.5.4
