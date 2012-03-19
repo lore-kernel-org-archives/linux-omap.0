@@ -1,24 +1,197 @@
-From: "Mr. Richard Tang" <tagnrichard@yahoo.com.hk>
-Subject: MAIL 18.03.2012
-Date: Mon, 19 Mar 2012 07:13:19 +0100
-Message-ID: <201203190613.q2J6DS0m028721__44118.3736701079$1332138081$gmane$org@mail.ucla.edu>
-Reply-To: tangricad@yahoo.co.jp
+From: Keshava Munegowda <keshava_mgowda-l0cyMroinI0@public.gmane.org>
+Subject: [PATCH RESEND] ARM: OMAP3: USB: Fix the EHCI ULPI PHY reset issue
+Date: Mon, 19 Mar 2012 12:12:47 +0530
+Message-ID: <1332139367-1302-1-git-send-email-keshava_mgowda@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7BIT
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from out-23.smtp.ucla.edu ([169.232.47.174]:40328 "EHLO
-	out-23.smtp.ucla.edu" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932147Ab2CSGVR convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 19 Mar 2012 02:21:17 -0400
-Content-Description: Mail message body
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain
+Return-path: <linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Sender: linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Cc: Keshava Munegowda <keshava_mgowda-l0cyMroinI0@public.gmane.org>, balbi-l0cyMroinI0@public.gmane.org, sameo-VuQAYsv1563Yd54FQh9/CA@public.gmane.org, parthab-PpE0FKYn9XJWk0Htik3J/w@public.gmane.org, govindraj.raja-l0cyMroinI0@public.gmane.org, Keshava Munegowda <Keshava_mgowda-l0cyMroinI0@public.gmane.org>
 List-Id: linux-omap@vger.kernel.org
-To: Recipients <tagnrichard@yahoo.com.hk>
 
-Mail From Tang.
+From: Keshava Munegowda <Keshava_mgowda-l0cyMroinI0@public.gmane.org>
 
-I work with the hang seng Bank Hong Kong.I have a business proposition for you involving a trade in my bank which I know we will be of mutual benefit to both of us, If interested mail me at:tangricad@yahoo.co.jp
+It is observed that the echi ports of 3430 sdp board
+are not working due to the random timing of programming
+the associated GPIOs of the ULPI PHYs of the EHCI for reset.
+If the PHYs are reset at during usbhs core driver, host ports will
+not work because EHCI driver is loaded after the resetting PHYs.
+The PHYs should be in reset state while initializing the EHCI
+controller.
+The code which does the GPIO pins associated with the PHYs
+are programmed to reset is moved from the USB host core driver
+to EHCI driver.
 
-Regards,
-Richard Tang.
+Signed-off-by: Keshava Munegowda <keshava_mgowda-l0cyMroinI0@public.gmane.org>
+Reviewed-by: Partha Basak <parthab-PpE0FKYn9XJWk0Htik3J/w@public.gmane.org>
+---
+ drivers/mfd/omap-usb-host.c  |   44 ------------------------------------------
+ drivers/usb/host/ehci-omap.c |   39 +++++++++++++++++++++++++++++++++++-
+ 2 files changed, 37 insertions(+), 46 deletions(-)
+
+diff --git a/drivers/mfd/omap-usb-host.c b/drivers/mfd/omap-usb-host.c
+index 68ac2c5..9927129 100644
+--- a/drivers/mfd/omap-usb-host.c
++++ b/drivers/mfd/omap-usb-host.c
+@@ -25,7 +25,6 @@
+ #include <linux/clk.h>
+ #include <linux/dma-mapping.h>
+ #include <linux/spinlock.h>
+-#include <linux/gpio.h>
+ #include <plat/usb.h>
+ #include <linux/pm_runtime.h>
+ 
+@@ -502,19 +501,6 @@ static void omap_usbhs_init(struct device *dev)
+ 	pm_runtime_get_sync(dev);
+ 	spin_lock_irqsave(&omap->lock, flags);
+ 
+-	if (pdata->ehci_data->phy_reset) {
+-		if (gpio_is_valid(pdata->ehci_data->reset_gpio_port[0]))
+-			gpio_request_one(pdata->ehci_data->reset_gpio_port[0],
+-					 GPIOF_OUT_INIT_LOW, "USB1 PHY reset");
+-
+-		if (gpio_is_valid(pdata->ehci_data->reset_gpio_port[1]))
+-			gpio_request_one(pdata->ehci_data->reset_gpio_port[1],
+-					 GPIOF_OUT_INIT_LOW, "USB2 PHY reset");
+-
+-		/* Hold the PHY in RESET for enough time till DIR is high */
+-		udelay(10);
+-	}
+-
+ 	omap->usbhs_rev = usbhs_read(omap->uhh_base, OMAP_UHH_REVISION);
+ 	dev_dbg(dev, "OMAP UHH_REVISION 0x%x\n", omap->usbhs_rev);
+ 
+@@ -593,39 +579,10 @@ static void omap_usbhs_init(struct device *dev)
+ 			usbhs_omap_tll_init(dev, OMAP_TLL_CHANNEL_COUNT);
+ 	}
+ 
+-	if (pdata->ehci_data->phy_reset) {
+-		/* Hold the PHY in RESET for enough time till
+-		 * PHY is settled and ready
+-		 */
+-		udelay(10);
+-
+-		if (gpio_is_valid(pdata->ehci_data->reset_gpio_port[0]))
+-			gpio_set_value
+-				(pdata->ehci_data->reset_gpio_port[0], 1);
+-
+-		if (gpio_is_valid(pdata->ehci_data->reset_gpio_port[1]))
+-			gpio_set_value
+-				(pdata->ehci_data->reset_gpio_port[1], 1);
+-	}
+-
+ 	spin_unlock_irqrestore(&omap->lock, flags);
+ 	pm_runtime_put_sync(dev);
+ }
+ 
+-static void omap_usbhs_deinit(struct device *dev)
+-{
+-	struct usbhs_hcd_omap		*omap = dev_get_drvdata(dev);
+-	struct usbhs_omap_platform_data	*pdata = &omap->platdata;
+-
+-	if (pdata->ehci_data->phy_reset) {
+-		if (gpio_is_valid(pdata->ehci_data->reset_gpio_port[0]))
+-			gpio_free(pdata->ehci_data->reset_gpio_port[0]);
+-
+-		if (gpio_is_valid(pdata->ehci_data->reset_gpio_port[1]))
+-			gpio_free(pdata->ehci_data->reset_gpio_port[1]);
+-	}
+-}
+-
+ 
+ /**
+  * usbhs_omap_probe - initialize TI-based HCDs
+@@ -861,7 +818,6 @@ static int __devexit usbhs_omap_remove(struct platform_device *pdev)
+ {
+ 	struct usbhs_hcd_omap *omap = platform_get_drvdata(pdev);
+ 
+-	omap_usbhs_deinit(&pdev->dev);
+ 	iounmap(omap->tll_base);
+ 	iounmap(omap->uhh_base);
+ 	clk_put(omap->init_60m_fclk);
+diff --git a/drivers/usb/host/ehci-omap.c b/drivers/usb/host/ehci-omap.c
+index bba9850..5c78f9e 100644
+--- a/drivers/usb/host/ehci-omap.c
++++ b/drivers/usb/host/ehci-omap.c
+@@ -42,6 +42,7 @@
+ #include <plat/usb.h>
+ #include <linux/regulator/consumer.h>
+ #include <linux/pm_runtime.h>
++#include <linux/gpio.h>
+ 
+ /* EHCI Register Set */
+ #define EHCI_INSNREG04					(0xA0)
+@@ -191,6 +192,19 @@ static int ehci_hcd_omap_probe(struct platform_device *pdev)
+ 		}
+ 	}
+ 
++	if (pdata->phy_reset) {
++		if (gpio_is_valid(pdata->reset_gpio_port[0]))
++			gpio_request_one(pdata->reset_gpio_port[0],
++					 GPIOF_OUT_INIT_LOW, "USB1 PHY reset");
++
++		if (gpio_is_valid(pdata->reset_gpio_port[1]))
++			gpio_request_one(pdata->reset_gpio_port[1],
++					 GPIOF_OUT_INIT_LOW, "USB2 PHY reset");
++
++		/* Hold the PHY in RESET for enough time till DIR is high */
++		udelay(10);
++	}
++
+ 	pm_runtime_enable(dev);
+ 	pm_runtime_get_sync(dev);
+ 
+@@ -237,6 +251,19 @@ static int ehci_hcd_omap_probe(struct platform_device *pdev)
+ 	/* root ports should always stay powered */
+ 	ehci_port_power(omap_ehci, 1);
+ 
++	if (pdata->phy_reset) {
++		/* Hold the PHY in RESET for enough time till
++		 * PHY is settled and ready
++		 */
++		udelay(10);
++
++		if (gpio_is_valid(pdata->reset_gpio_port[0]))
++			gpio_set_value(pdata->reset_gpio_port[0], 1);
++
++		if (gpio_is_valid(pdata->reset_gpio_port[1]))
++			gpio_set_value(pdata->reset_gpio_port[1], 1);
++	}
++
+ 	return 0;
+ 
+ err_add_hcd:
+@@ -259,8 +286,9 @@ err_io:
+  */
+ static int ehci_hcd_omap_remove(struct platform_device *pdev)
+ {
+-	struct device *dev	= &pdev->dev;
+-	struct usb_hcd *hcd	= dev_get_drvdata(dev);
++	struct device *dev				= &pdev->dev;
++	struct usb_hcd *hcd				= dev_get_drvdata(dev);
++	struct ehci_hcd_omap_platform_data *pdata	= dev->platform_data;
+ 
+ 	usb_remove_hcd(hcd);
+ 	disable_put_regulator(dev->platform_data);
+@@ -269,6 +297,13 @@ static int ehci_hcd_omap_remove(struct platform_device *pdev)
+ 	pm_runtime_put_sync(dev);
+ 	pm_runtime_disable(dev);
+ 
++	if (pdata->phy_reset) {
++		if (gpio_is_valid(pdata->reset_gpio_port[0]))
++			gpio_free(pdata->reset_gpio_port[0]);
++
++		if (gpio_is_valid(pdata->reset_gpio_port[1]))
++			gpio_free(pdata->reset_gpio_port[1]);
++	}
+ 	return 0;
+ }
+ 
+-- 
+1.6.0.4
+
+--
+To unsubscribe from this list: send the line "unsubscribe linux-usb" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
