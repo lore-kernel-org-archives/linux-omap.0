@@ -1,144 +1,265 @@
-From: Tomi Valkeinen <tomi.valkeinen@ti.com>
-Subject: Re: [PATCH v2 7/7] ARM: OMAP2+: Mark omap_hsmmc_init and omap_mux
- related functions as __init
-Date: Mon, 19 Mar 2012 12:20:42 +0200
-Message-ID: <1332152442.2144.27.camel@deskari>
-References: <1329997247-27342-1-git-send-email-rnayak@ti.com>
-	 <1329997247-27342-8-git-send-email-rnayak@ti.com>
-	 <1332148116.2144.1.camel@deskari>
+From: "S, Venkatraman" <svenkatr@ti.com>
+Subject: Re: [PATCH v2 5/8] mmc: host: omap_hsmmc: trivial cleanups
+Date: Mon, 19 Mar 2012 15:55:13 +0530
+Message-ID: <CANfBPZ9tiWtjePX5V9jQX=AYPAVe7ek6GfROXzcWcui-kNYZzQ@mail.gmail.com>
+References: <1331905144-31655-1-git-send-email-svenkatr@ti.com>
+ <1331905144-31655-6-git-send-email-svenkatr@ti.com> <1BAFE6F6C881BF42822005164F1491C3317F5456@DBDE01.ent.ti.com>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg="pgp-sha1"; protocol="application/pgp-signature"; boundary="=-3qN3AVG+xpfCg9mgKwJR"
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aog125.obsmtp.com ([74.125.149.153]:54732 "EHLO
-	na3sys009aog125.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754912Ab2CSKUw (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>);
-	Mon, 19 Mar 2012 06:20:52 -0400
-Received: by lagr15 with SMTP id r15so5600176lag.2
-        for <linux-omap@vger.kernel.org>; Mon, 19 Mar 2012 03:20:49 -0700 (PDT)
-In-Reply-To: <1332148116.2144.1.camel@deskari>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset=ISO-8859-1
+Return-path: <linux-mmc-owner@vger.kernel.org>
+In-Reply-To: <1BAFE6F6C881BF42822005164F1491C3317F5456@DBDE01.ent.ti.com>
+Sender: linux-mmc-owner@vger.kernel.org
+To: "Hebbar, Gururaja" <gururaja.hebbar@ti.com>
+Cc: "linux-mmc@vger.kernel.org" <linux-mmc@vger.kernel.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "cjb@laptop.org" <cjb@laptop.org>, "Krishnamoorthy, Balaji T" <balajitk@ti.com>, "Balbi, Felipe" <balbi@ti.com>
 List-Id: linux-omap@vger.kernel.org
-To: Rajendra Nayak <rnayak@ti.com>, tony@atomide.com
-Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Russell King <rmk+kernel@arm.linux.org.uk>
 
+On Mon, Mar 19, 2012 at 11:27 AM, Hebbar, Gururaja
+<gururaja.hebbar@ti.com> wrote:
+> On Fri, Mar 16, 2012 at 19:09:01, S, Venkatraman wrote:
+>> From: Felipe Balbi <balbi@ti.com>
+>>
+>> a bunch of non-functional cleanups to the omap_hsmmc
+>> driver.
+>>
+>> It basically decreases indentation level, drop unneeded
+>
+> s/unneeded/unneeded. Better to use unnecessary
+>
+>> dereferences and drop unneded accesses to the platform_device
+>
+> Same as above
+>
+Thanks. Now updated as below (and pushed out to the same branch)..
 
---=-3qN3AVG+xpfCg9mgKwJR
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: quoted-printable
+>From 7174f9a831a8fcd224bf6dc1c2895e40fa252e84 Mon Sep 17 00:00:00 2001
+From: Felipe Balbi <balbi@ti.com>
+Date: Wed, 14 Mar 2012 11:18:27 +0200
+Subject: [PATCH] mmc: host: omap_hsmmc: trivial cleanups
 
-On Mon, 2012-03-19 at 11:08 +0200, Tomi Valkeinen wrote:
-> Hi,
->=20
-> On Thu, 2012-02-23 at 17:10 +0530, Rajendra Nayak wrote:
-> > From: Tony Lindgren <tony@atomide.com>
-> >=20
-> > Now that omap hsmmc init is split into two functions, it's safe
-> > to mark omap_hsmmc_init and omap_mux related functions to __init.
-> >=20
-> > This basically reverts the following fixes for the case where
-> > TWL was compiled as a module:
-> >=20
-> > a98f77b (ARM: omap: fix section mismatch warning for sdp3430_twl_gpio_s=
-etup())
-> > 8930b4e (ARM: omap: fix section mismatch warnings in mux.c caused by hs=
-mmc.c)
-> >=20
-> > Additionally it fixes up the remaining section warnings for
-> > all callers of omap_mux functions.
->=20
-> I only now noticed this patch. This breaks DSI, as the DSI muxing
-> functions are used during runtime and cannot be marked as __init.
->=20
-> Shall I make a new patch for dss tree that fixes this?
+a bunch of non-functional cleanups to the omap_hsmmc
+driver.
 
-(too little coffee)
+It basically decreases indentation level, drop unneeded
+dereferences and drop unnecessary accesses to the platform_device
+structure.
 
-Obviously I can't make a fix in my tree for that, as the problematic
-patch is not present there... So here's a patch to fix it, based on
-arm-soc/for-next
-
-
-
-=46rom b00c2464de51ba6f297371b08bb7745c528fde59 Mon Sep 17 00:00:00 2001
-From: Tomi Valkeinen <tomi.valkeinen@ti.com>
-Date: Mon, 19 Mar 2012 11:08:54 +0200
-Subject: [PATCH] ARM: OMAP2+: Remove __init from DSI mux functions
-
-Commit d1589f0912533e6cb2ac8fd6f1feb3d5989fe8cb (ARM: OMAP2+: Mark
-omap_hsmmc_init and omap_mux related functions as __init) changed DSI
-muxing functions to __init. This doesn't work, as the muxing functions
-are used every time a DSI display is enabled or disabled.
-
-This patch removes the __inits from DSI mux functions.
-
-Signed-off-by: Tomi Valkeinen <tomi.valkeinen@ti.com>
+Signed-off-by: Felipe Balbi <balbi@ti.com>
+Signed-off-by: Venkatraman S <svenkatr@ti.com>
 ---
- arch/arm/mach-omap2/display.c |    6 +++---
- 1 files changed, 3 insertions(+), 3 deletions(-)
+ drivers/mmc/host/omap_hsmmc.c |  147 ++++++++++++++++++++---------------------
+ 1 file changed, 70 insertions(+), 77 deletions(-)
 
-diff --git a/arch/arm/mach-omap2/display.c
-b/arch/arm/mach-omap2/display.c
-index 9706c64..400fa37 100644
---- a/arch/arm/mach-omap2/display.c
-+++ b/arch/arm/mach-omap2/display.c
-@@ -125,7 +125,7 @@ static void omap4_hdmi_mux_pads(enum omap_hdmi_flags
-flags)
+diff --git a/drivers/mmc/host/omap_hsmmc.c b/drivers/mmc/host/omap_hsmmc.c
+index 925d2be..cafd879 100644
+--- a/drivers/mmc/host/omap_hsmmc.c
++++ b/drivers/mmc/host/omap_hsmmc.c
+@@ -2055,30 +2055,28 @@ static int omap_hsmmc_remove(struct
+platform_device *pdev)
+ 	struct omap_hsmmc_host *host = platform_get_drvdata(pdev);
+ 	struct resource *res;
+
+-	if (host) {
+-		pm_runtime_get_sync(host->dev);
+-		mmc_remove_host(host->mmc);
+-		if (host->use_reg)
+-			omap_hsmmc_reg_put(host);
+-		if (host->pdata->cleanup)
+-			host->pdata->cleanup(&pdev->dev);
+-		free_irq(host->irq, host);
+-		if (mmc_slot(host).card_detect_irq)
+-			free_irq(mmc_slot(host).card_detect_irq, host);
+-
+-		pm_runtime_put_sync(host->dev);
+-		pm_runtime_disable(host->dev);
+-		clk_put(host->fclk);
+-		if (host->got_dbclk) {
+-			clk_disable(host->dbclk);
+-			clk_put(host->dbclk);
+-		}
++	pm_runtime_get_sync(host->dev);
++	mmc_remove_host(host->mmc);
++	if (host->use_reg)
++		omap_hsmmc_reg_put(host);
++	if (host->pdata->cleanup)
++		host->pdata->cleanup(&pdev->dev);
++	free_irq(host->irq, host);
++	if (mmc_slot(host).card_detect_irq)
++		free_irq(mmc_slot(host).card_detect_irq, host);
+
+-		mmc_free_host(host->mmc);
+-		iounmap(host->base);
+-		omap_hsmmc_gpio_free(pdev->dev.platform_data);
++	pm_runtime_put_sync(host->dev);
++	pm_runtime_disable(host->dev);
++	clk_put(host->fclk);
++	if (host->got_dbclk) {
++		clk_disable(host->dbclk);
++		clk_put(host->dbclk);
  	}
- }
-=20
--static int __init omap4_dsi_mux_pads(int dsi_id, unsigned lanes)
-+static int omap4_dsi_mux_pads(int dsi_id, unsigned lanes)
+
++	mmc_free_host(host->mmc);
++	iounmap(host->base);
++	omap_hsmmc_gpio_free(pdev->dev.platform_data);
++
+ 	res = platform_get_resource(pdev, IORESOURCE_MEM, 0);
+ 	if (res)
+ 		release_mem_region(res->start, resource_size(res));
+@@ -2091,49 +2089,45 @@ static int omap_hsmmc_remove(struct
+platform_device *pdev)
+ static int omap_hsmmc_suspend(struct device *dev)
  {
- 	u32 enable_mask, enable_shift;
- 	u32 pipd_mask, pipd_shift;
-@@ -166,7 +166,7 @@ int __init omap_hdmi_init(enum omap_hdmi_flags
-flags)
+ 	int ret = 0;
+-	struct platform_device *pdev = to_platform_device(dev);
+-	struct omap_hsmmc_host *host = platform_get_drvdata(pdev);
++	struct omap_hsmmc_host *host = dev_get_drvdata(dev);
+
+-	if (host && host->suspended)
++	if (!host)
+ 		return 0;
+
+-	if (host) {
+-		pm_runtime_get_sync(host->dev);
+-		host->suspended = 1;
+-		if (host->pdata->suspend) {
+-			ret = host->pdata->suspend(&pdev->dev,
+-							host->slot_id);
+-			if (ret) {
+-				dev_dbg(mmc_dev(host->mmc),
+-					"Unable to handle MMC board"
+-					" level suspend\n");
+-				host->suspended = 0;
+-				return ret;
+-			}
+-		}
+-		ret = mmc_suspend_host(host->mmc);
++	if (host && host->suspended)
++		return 0;
+
++	pm_runtime_get_sync(host->dev);
++	host->suspended = 1;
++	if (host->pdata->suspend) {
++		ret = host->pdata->suspend(dev, host->slot_id);
+ 		if (ret) {
++			dev_dbg(dev, "Unable to handle MMC board"
++					" level suspend\n");
+ 			host->suspended = 0;
+-			if (host->pdata->resume) {
+-				ret = host->pdata->resume(&pdev->dev,
+-							  host->slot_id);
+-				if (ret)
+-					dev_dbg(mmc_dev(host->mmc),
+-						"Unmask interrupt failed\n");
+-			}
+-			goto err;
++			return ret;
+ 		}
++	}
++	ret = mmc_suspend_host(host->mmc);
+
+-		if (!(host->mmc->pm_flags & MMC_PM_KEEP_POWER)) {
+-			omap_hsmmc_disable_irq(host);
+-			OMAP_HSMMC_WRITE(host->base, HCTL,
+-				OMAP_HSMMC_READ(host->base, HCTL) & ~SDBP);
++	if (ret) {
++		host->suspended = 0;
++		if (host->pdata->resume) {
++			ret = host->pdata->resume(dev, host->slot_id);
++			if (ret)
++				dev_dbg(dev, "Unmask interrupt failed\n");
+ 		}
+-		if (host->got_dbclk)
+-			clk_disable(host->dbclk);
++		goto err;
++	}
+
++	if (!(host->mmc->pm_flags & MMC_PM_KEEP_POWER)) {
++		omap_hsmmc_disable_irq(host);
++		OMAP_HSMMC_WRITE(host->base, HCTL,
++				OMAP_HSMMC_READ(host->base, HCTL) & ~SDBP);
+ 	}
++
++	if (host->got_dbclk)
++		clk_disable(host->dbclk);
+ err:
+ 	pm_runtime_put_sync(host->dev);
+ 	return ret;
+@@ -2143,38 +2137,37 @@ err:
+ static int omap_hsmmc_resume(struct device *dev)
+ {
+ 	int ret = 0;
+-	struct platform_device *pdev = to_platform_device(dev);
+-	struct omap_hsmmc_host *host = platform_get_drvdata(pdev);
++	struct omap_hsmmc_host *host = dev_get_drvdata(dev);
++
++	if (!host)
++		return 0;
+
+ 	if (host && !host->suspended)
+ 		return 0;
+
+-	if (host) {
+-		pm_runtime_get_sync(host->dev);
++	pm_runtime_get_sync(host->dev);
+
+-		if (host->got_dbclk)
+-			clk_enable(host->dbclk);
++	if (host->got_dbclk)
++		clk_enable(host->dbclk);
+
+-		if (!(host->mmc->pm_flags & MMC_PM_KEEP_POWER))
+-			omap_hsmmc_conf_bus_power(host);
++	if (!(host->mmc->pm_flags & MMC_PM_KEEP_POWER))
++		omap_hsmmc_conf_bus_power(host);
+
+-		if (host->pdata->resume) {
+-			ret = host->pdata->resume(&pdev->dev, host->slot_id);
+-			if (ret)
+-				dev_dbg(mmc_dev(host->mmc),
+-					"Unmask interrupt failed\n");
+-		}
++	if (host->pdata->resume) {
++		ret = host->pdata->resume(dev, host->slot_id);
++		if (ret)
++			dev_dbg(dev, "Unmask interrupt failed\n");
++	}
+
+-		omap_hsmmc_protect_card(host);
++	omap_hsmmc_protect_card(host);
+
+-		/* Notify the core to resume the host */
+-		ret = mmc_resume_host(host->mmc);
+-		if (ret == 0)
+-			host->suspended = 0;
++	/* Notify the core to resume the host */
++	ret = mmc_resume_host(host->mmc);
++	if (ret == 0)
++		host->suspended = 0;
+
+-		pm_runtime_mark_last_busy(host->dev);
+-		pm_runtime_put_autosuspend(host->dev);
+-	}
++	pm_runtime_mark_last_busy(host->dev);
++	pm_runtime_put_autosuspend(host->dev);
+
+ 	return ret;
+
+@@ -2191,7 +2184,7 @@ static int omap_hsmmc_runtime_suspend(struct device *dev)
+
+ 	host = platform_get_drvdata(to_platform_device(dev));
+ 	omap_hsmmc_context_save(host);
+-	dev_dbg(mmc_dev(host->mmc), "disabled\n");
++	dev_dbg(dev, "disabled\n");
+
  	return 0;
  }
-=20
--static int __init omap_dsi_enable_pads(int dsi_id, unsigned lane_mask)
-+static int omap_dsi_enable_pads(int dsi_id, unsigned lane_mask)
- {
- 	if (cpu_is_omap44xx())
- 		return omap4_dsi_mux_pads(dsi_id, lane_mask);
-@@ -174,7 +174,7 @@ static int __init omap_dsi_enable_pads(int dsi_id,
-unsigned lane_mask)
+@@ -2202,7 +2195,7 @@ static int omap_hsmmc_runtime_resume(struct device *dev)
+
+ 	host = platform_get_drvdata(to_platform_device(dev));
+ 	omap_hsmmc_context_restore(host);
+-	dev_dbg(mmc_dev(host->mmc), "enabled\n");
++	dev_dbg(dev, "enabled\n");
+
  	return 0;
  }
-=20
--static void __init omap_dsi_disable_pads(int dsi_id, unsigned
-lane_mask)
-+static void omap_dsi_disable_pads(int dsi_id, unsigned lane_mask)
- {
- 	if (cpu_is_omap44xx())
- 		omap4_dsi_mux_pads(dsi_id, 0);
---=20
-1.7.4.1
-
-
-
---=-3qN3AVG+xpfCg9mgKwJR
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: This is a digitally signed message part
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.4.11 (GNU/Linux)
-
-iQIcBAABAgAGBQJPZwh6AAoJEPo9qoy8lh71N/YP/Alqo2mp0ywNElPpoaeGHbsS
-frg3hgJRV5IdCmgvvnvcTt1OZyAYkPjDjDoXHY1XnSEkiOaMsTjG7b47a7Jg8Bve
-ujoIs7UeZWTovaXpqkeZf7pa+3L7dDj6lNk9jNA6BgXiBa3/hHEnP8jdlYubr+pO
-OQAtZ2MgmNv6qZhC0tqEVaou1vHsIrIr07poeeNFsFzcOn/BtU+uHF3wO61wyhRG
-Rf9LMVbVeHhGVtUFKsQgryYa1W6bIjyOhkXBBwJPweMB6Xv33I8IhdkwHVAUpNwL
-you6UCfpw/r7kiunSXUORQ6IaOGPIz8rtLGMZ90bEIM2GgX/DKiEtu433ECw9Fej
-QHRnUEnEsPZoZj8v5Q/0430dzyqR5pNEGhwatrk5JdyJkEePxu1R8SRJAYz5vE1k
-8bpI+m5nbjnpKGZ2nb2oNRJ8e265fWCP7aKr3oGW8kzxm6/46MmkaVdBtSyxfUDK
-t4reKQejG99sgSFhqZ/8ho49vDey7P2S3qv31gmdMei5d0voHN37hzYA82d1K65/
-/olfEBkGWMz4Ao69BgXJU9qn9O3mZC+vVbOuVkijydP8iGOhaRxozTT4SiNkU2Vy
-hVe2DhkWufJYXSodDqklk0Z6WNAwnNeeD1BE8IoQ+oRLPZWEmdqvFoEbG3kR0QPS
-9cdAzYjQP3OwF5RyZivG
-=COjQ
------END PGP SIGNATURE-----
-
---=-3qN3AVG+xpfCg9mgKwJR--
-
+-- 
+1.7.10.rc0.41.gfa678
