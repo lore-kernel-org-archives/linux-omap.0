@@ -1,34 +1,26 @@
-From: "USB3.0 drives" <greatusb_irene@21cn.com>
-Subject: Food shaped and fruit shaped USB drives
-Date: Wed, 21 Mar 2012 16:24:25 +0800
-Message-ID: <A4A628232E8A4B12BD42EF2F88D7A5C1@PC201010041834>
-Reply-To: <John@greatusb.cn>
+From: "Cheung Leung" <info@hangseng.com>
+Subject: URGENT RESPONSE
+Date: Mon, 19 Mar 2012 01:30:01 -0300 (BRT)
+Message-ID: <49911.216.172.135.175.1332131401.squirrel__49554.7179984444$1332319074$gmane$org@www.alegrete.rs.gov.br>
+Reply-To: hangsengbnk@alternativefuse.com
 Mime-Version: 1.0
-Content-Type: text/plain;
-	charset="gb2312"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7BIT
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from smtpfree.forptr.21cn.com ([59.36.102.64]:20448 "EHLO 21cn.com"
-	rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
-	id S1753782Ab2CUIYi (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Wed, 21 Mar 2012 04:24:38 -0400
-Received: from PC201010041834 (unknown [10.27.102.232])
-	by 21cn.com (HERMES) with ESMTP id 3DB046CC10A
-	for <linux-omap@vger.kernel.org>; Wed, 21 Mar 2012 16:24:26 +0800 (CST)
-Received: from PC201010041834 ([220.112.10.125])
-	by 21CN(Yuwen filter gate 10.27.102.232) with ESMTP id 1332318264.22996 for linux-omap@vger.kernel.org
-	;
-	Wed Mar 21 16:24:34 2012
-Content-Class: urn:content-classes:message
+Received: from [189.30.18.26] ([189.30.18.26]:42351 "EHLO
+	servidor.alegrete.rs.gov.br" rhost-flags-FAIL-FAIL-OK-OK)
+	by vger.kernel.org with ESMTP id S1754159Ab2CUIhm (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>);
+	Wed, 21 Mar 2012 04:37:42 -0400
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: linux-omap@vger.kernel.org
 
-Hello,
-we are factory in China.
-we offer USB flash drives USB2.0 and USB3.0
-LOGO printed for free.
-Hope can help you
 
-Thanks
-John
+DEAR SIR,
+   Your funds are ready to be transferred to you, please which account should
+we use to transfer the funds, reply me Immediately so that we can start
+the transfer process immediately.Thank you.
+ Best regards
+ CHEUNG LEUNG
+
+
