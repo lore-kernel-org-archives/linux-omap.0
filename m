@@ -1,84 +1,226 @@
-From: "Shilimkar, Santosh" <santosh.shilimkar@ti.com>
-Subject: Re: Re: [PATCH v4 0/7] Add TI EMIF SDRAM controller driver
-Date: Mon, 19 Mar 2012 12:37:41 +0530
-Message-ID: <CAMQu2gy6yzawMAnkK+qmijDNo-5618b5SR7Cr+puMLSRM2znUA@mail.gmail.com>
-References: <16771402.10791332119314036.JavaMail.weblogic@epv6ml07>
+From: Sourav Poddar <sourav.poddar@ti.com>
+Subject: [PATCHv2 2/2] Input: omap-keypad: dynamically handle register offsets
+Date: Mon, 19 Mar 2012 13:42:46 +0530
+Message-ID: <1332144766-30798-1-git-send-email-sourav.poddar@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aog134.obsmtp.com ([74.125.149.83]:52517 "EHLO
-	psmtp.com" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
-	id S1755028Ab2CSHID convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 19 Mar 2012 03:08:03 -0400
-Received: by mail-qa0-f43.google.com with SMTP id b15so836277qad.16
-        for <linux-omap@vger.kernel.org>; Mon, 19 Mar 2012 00:08:02 -0700 (PDT)
-In-Reply-To: <16771402.10791332119314036.JavaMail.weblogic@epv6ml07>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain
+Return-path: <linux-input-owner@vger.kernel.org>
+Sender: linux-input-owner@vger.kernel.org
+To: dmitry.torokhov@gmail.com, linux-input@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org
+Cc: balbi@ti.com
 List-Id: linux-omap@vger.kernel.org
-To: myungjoo.ham@samsung.com
-Cc: Kyungmin Park <kmpark@infradead.org>, Aneesh V <aneesh@ti.com>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, Greg KH <greg@kroah.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>
 
-2012/3/19 =ED=95=A8=EB=AA=85=EC=A3=BC <myungjoo.ham@samsung.com>:
->
-> Kyungmin Park<kmpark@infradead.org> 2012-03-17 15:10 (GMT+09:00)
->> Hi,
->> On 3/17/12, Aneesh V wrote:
->> > Add a driver for the EMIF SDRAM controller used in TI SoCs
->> >
->> > EMIF is an SDRAM controller that supports, based on its revision,
->> > one or more of LPDDR2/DDR2/DDR3 protocols.This driver adds support
->> > for LPDDR2.
->> >
->> > The driver supports the following features:
->> > - Calculates the DDR AC timing parameters to be set in EMIF
->> >   registers using data from the device data-sheets and based
->> >   on the DDR frequency. If data from data-sheets is not available
->> >   default timing values from the JEDEC spec are used. These
->> >   will be safe, but not necessarily optimal
->> > - API for changing timings during DVFS or at boot-up
->
-> This means that you alreeady have callbacks to create a devfreq devic=
-e driver that supports DVFS on the device. This doesn't need to be a mi=
-sc device driver then.
->
-Nope. The callbacks mentioned above are mainly coming from the clock
-framework. Ofcourse the clock node trigger
-with voltage ramps would be triggered by some upper laver
-governor/framework like CPUFreq/DEVFREQ but as
-such this is not necessary. This is an indepdent driver and just like
-CPUFREQ notifies it's users for the frequency
-change, this driver will be notified to take any action on pre and
-post notification. Note that, the driver will
-be notified by regulator framework for the voltage ramp up/down cases
-too with notifiers.
+From: G, Manjunath Kondaiah <manjugk@ti.com>
 
->> > - Temperature alert configuration and handling of temperature
->> >   alerts, if any for LPDDR2 devices
->> >   * temperature alert is based on periodic polling of MR4 mode
->> >     register in DDR devices automatically performed by hardware
->> >   * timings are de-rated and brought back to nominal when
->> >     temperature raises and falls respectively
->
-> This can be a feature overriding "max_freq" inside the Omap EMIF devf=
-req device driver though it maybe (or not.. I just don't sure) be bette=
-r to use thermal framework as well.
->
-That's absolute abuse and there is no need to link the temperature
-handling with DVFS. Reducing frequency can be one
-of the cooling techniques but that's not related to the temperature
-alert handling. Temperature handling in the EMIF
-driver is strictly as per the JDEC specs and that is to de-rate the
-timings when temperature threshold is crossed.
+Keypad controller register offsets are different for omap4
+and omap5. Handle these offsets through static mapping and
+assign these mappings during run time.
 
-The idea is drivers should be independent of all the global policy
-governors. Hope this is clear to
-you.
+Signed-off-by: Felipe Balbi <balbi@ti.com>
+Signed-off-by: G, Manjunath Kondaiah <manjugk@ti.com>
+Signed-off-by: Sourav Poddar <sourav.poddar@ti.com>
+---
+Changes since v1:
+Fix Dmitry's comment:
+- Configured IRQ manupulation registers at probe time
+ drivers/input/keyboard/Kconfig        |    6 +-
+ drivers/input/keyboard/omap4-keypad.c |  120 ++++++++++++++++++++++++++------
+ 2 files changed, 100 insertions(+), 26 deletions(-)
 
-Regards
-Santosh
---
-To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+diff --git a/drivers/input/keyboard/Kconfig b/drivers/input/keyboard/Kconfig
+index 1379daa..09d7d0b 100644
+--- a/drivers/input/keyboard/Kconfig
++++ b/drivers/input/keyboard/Kconfig
+@@ -510,10 +510,10 @@ config KEYBOARD_OMAP
+ 	  To compile this driver as a module, choose M here: the
+ 	  module will be called omap-keypad.
+ 
+-config KEYBOARD_OMAP4
+-	tristate "TI OMAP4 keypad support"
++config KEYBOARD_OMAP4+
++	tristate "TI OMAP4+ keypad support"
+ 	help
+-	  Say Y here if you want to use the OMAP4 keypad.
++	  Say Y here if you want to use the OMAP4+ keypad.
+ 
+ 	  To compile this driver as a module, choose M here: the
+ 	  module will be called omap4-keypad.
+diff --git a/drivers/input/keyboard/omap4-keypad.c b/drivers/input/keyboard/omap4-keypad.c
+index e809ac0..a8b0700 100644
+--- a/drivers/input/keyboard/omap4-keypad.c
++++ b/drivers/input/keyboard/omap4-keypad.c
+@@ -68,6 +68,11 @@
+ 
+ #define OMAP4_MASK_IRQSTATUSDISABLE	0xFFFF
+ 
++enum {
++	KBD_REVISION_OMAP4 = 0,
++	KBD_REVISION_OMAP5,
++};
++
+ struct omap4_keypad {
+ 	struct input_dev *input;
+ 
+@@ -76,11 +81,66 @@ struct omap4_keypad {
+ 
+ 	unsigned int rows;
+ 	unsigned int cols;
++	unsigned int revision;
++	u32 irqstatus;
++	u32 irqenable;
+ 	unsigned int row_shift;
+ 	unsigned char key_state[8];
+ 	unsigned short keymap[];
+ };
+ 
++static int kbd_read_irqstatus(struct omap4_keypad *keypad_data, u32 offset)
++{
++	return __raw_readl(keypad_data->base + offset);
++}
++
++static int kbd_write_irqstatus(struct omap4_keypad *keypad_data,
++						u32 offset, u32 value)
++{
++	return __raw_writel(value, keypad_data->base + offset);
++}
++
++static int kbd_write_irqenable(struct omap4_keypad *keypad_data,
++						u32 offset, u32 value)
++{
++	return __raw_writel(value, keypad_data->base + offset);
++}
++
++static int kbd_readl(struct omap4_keypad *keypad_data, u32 offset)
++{
++	if (keypad_data->revision == KBD_REVISION_OMAP4)
++		return __raw_readl(keypad_data->base + offset);
++	else if (keypad_data->revision == KBD_REVISION_OMAP5)
++		return __raw_readl(keypad_data->base + offset + 0x10);
++
++	return -ENODEV;
++}
++
++static void kbd_writel(struct omap4_keypad *keypad_data, u32 offset, u32 value)
++{
++	if (keypad_data->revision == KBD_REVISION_OMAP4)
++		__raw_writel(value, keypad_data->base + offset);
++	else if (keypad_data->revision == KBD_REVISION_OMAP5)
++		__raw_writel(value, keypad_data->base + offset + 0x10);
++}
++
++static int kbd_read_revision(struct omap4_keypad *keypad_data, u32 offset)
++{
++	int reg;
++	reg = __raw_readl(keypad_data->base + offset);
++	reg &= 0x03 << 30;
++	reg >>= 30;
++
++	switch (reg) {
++	case 1:
++		return KBD_REVISION_OMAP5;
++	case 0:
++		return KBD_REVISION_OMAP4;
++	default:
++		return -ENODEV;
++	}
++}
++
+ /* Interrupt handler */
+ static irqreturn_t omap4_keypad_interrupt(int irq, void *dev_id)
+ {
+@@ -91,12 +151,11 @@ static irqreturn_t omap4_keypad_interrupt(int irq, void *dev_id)
+ 	u32 *new_state = (u32 *) key_state;
+ 
+ 	/* Disable interrupts */
+-	__raw_writel(OMAP4_VAL_IRQDISABLE,
+-		     keypad_data->base + OMAP4_KBD_IRQENABLE);
++	kbd_write_irqenable(keypad_data, keypad_data->irqenable,
++						OMAP4_VAL_IRQDISABLE);
+ 
+-	*new_state = __raw_readl(keypad_data->base + OMAP4_KBD_FULLCODE31_0);
+-	*(new_state + 1) = __raw_readl(keypad_data->base
+-						+ OMAP4_KBD_FULLCODE63_32);
++	*new_state = kbd_readl(keypad_data, OMAP4_KBD_FULLCODE31_0);
++	*(new_state + 1) = kbd_readl(keypad_data, OMAP4_KBD_FULLCODE63_32);
+ 
+ 	for (row = 0; row < keypad_data->rows; row++) {
+ 		changed = key_state[row] ^ keypad_data->key_state[row];
+@@ -121,12 +180,13 @@ static irqreturn_t omap4_keypad_interrupt(int irq, void *dev_id)
+ 		sizeof(keypad_data->key_state));
+ 
+ 	/* clear pending interrupts */
+-	__raw_writel(__raw_readl(keypad_data->base + OMAP4_KBD_IRQSTATUS),
+-			keypad_data->base + OMAP4_KBD_IRQSTATUS);
++	kbd_write_irqstatus(keypad_data, keypad_data->irqstatus,
++		kbd_read_irqstatus(keypad_data, keypad_data->irqstatus));
+ 
+ 	/* enable interrupts */
+-	__raw_writel(OMAP4_DEF_IRQENABLE_EVENTEN | OMAP4_DEF_IRQENABLE_LONGKEY,
+-			keypad_data->base + OMAP4_KBD_IRQENABLE);
++	kbd_write_irqenable(keypad_data, keypad_data->irqenable,
++		OMAP4_DEF_IRQENABLE_EVENTEN |
++			OMAP4_DEF_IRQENABLE_LONGKEY);
+ 
+ 	return IRQ_HANDLED;
+ }
+@@ -139,16 +199,30 @@ static int omap4_keypad_open(struct input_dev *input)
+ 
+ 	disable_irq(keypad_data->irq);
+ 
+-	__raw_writel(OMAP4_VAL_FUNCTIONALCFG,
+-			keypad_data->base + OMAP4_KBD_CTRL);
+-	__raw_writel(OMAP4_VAL_DEBOUNCINGTIME,
+-			keypad_data->base + OMAP4_KBD_DEBOUNCINGTIME);
+-	__raw_writel(OMAP4_VAL_IRQDISABLE,
+-			keypad_data->base + OMAP4_KBD_IRQSTATUS);
+-	__raw_writel(OMAP4_DEF_IRQENABLE_EVENTEN | OMAP4_DEF_IRQENABLE_LONGKEY,
+-			keypad_data->base + OMAP4_KBD_IRQENABLE);
+-	__raw_writel(OMAP4_DEF_WUP_EVENT_ENA | OMAP4_DEF_WUP_LONG_KEY_ENA,
+-			keypad_data->base + OMAP4_KBD_WAKEUPENABLE);
++	keypad_data->revision = kbd_read_revision(keypad_data,
++			OMAP4_KBD_REVISION);
++	if (keypad_data->revision == KBD_REVISION_OMAP4) {
++		keypad_data->irqstatus = OMAP4_KBD_IRQSTATUS;
++		keypad_data->irqenable = OMAP4_KBD_IRQENABLE;
++	} else if (keypad_data->revision == KBD_REVISION_OMAP5) {
++		keypad_data->irqstatus = OMAP4_KBD_IRQSTATUS + 0x0c;
++		keypad_data->irqenable = OMAP4_KBD_IRQENABLE + 0x0c;
++	} else {
++		pr_err("Omap keypad not found\n");
++		return -ENODEV;
++	}
++
++	kbd_writel(keypad_data, OMAP4_KBD_CTRL,
++			OMAP4_VAL_FUNCTIONALCFG);
++	kbd_writel(keypad_data, OMAP4_KBD_DEBOUNCINGTIME,
++			OMAP4_VAL_DEBOUNCINGTIME);
++	kbd_write_irqstatus(keypad_data, keypad_data->irqstatus,
++			OMAP4_VAL_IRQDISABLE);
++	kbd_write_irqenable(keypad_data, keypad_data->irqenable,
++			OMAP4_DEF_IRQENABLE_EVENTEN |
++				OMAP4_DEF_IRQENABLE_LONGKEY);
++	kbd_writel(keypad_data, OMAP4_KBD_WAKEUPENABLE,
++			OMAP4_DEF_WUP_EVENT_ENA | OMAP4_DEF_WUP_LONG_KEY_ENA);
+ 
+ 	enable_irq(keypad_data->irq);
+ 
+@@ -162,12 +236,12 @@ static void omap4_keypad_close(struct input_dev *input)
+ 	disable_irq(keypad_data->irq);
+ 
+ 	/* Disable interrupts */
+-	__raw_writel(OMAP4_VAL_IRQDISABLE,
+-		     keypad_data->base + OMAP4_KBD_IRQENABLE);
++	kbd_write_irqenable(keypad_data, keypad_data->irqenable,
++			OMAP4_VAL_IRQDISABLE);
+ 
+ 	/* clear pending interrupts */
+-	__raw_writel(__raw_readl(keypad_data->base + OMAP4_KBD_IRQSTATUS),
+-			keypad_data->base + OMAP4_KBD_IRQSTATUS);
++	kbd_write_irqstatus(keypad_data, keypad_data->irqstatus,
++		kbd_read_irqstatus(keypad_data, keypad_data->irqstatus));
+ 
+ 	enable_irq(keypad_data->irq);
+ 
+-- 
+1.7.1
+
