@@ -1,50 +1,42 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: Re: arm-soc + rmk's tree boot failure on OMAP4430SDP
-Date: Mon, 19 Mar 2012 12:21:09 -0700
-Message-ID: <20120319192108.GC9859@atomide.com>
-References: <20120316231158.GA9970@n2100.arm.linux.org.uk>
- <20120317004706.GF7276@atomide.com>
- <20120317211505.GA4720@n2100.arm.linux.org.uk>
- <1332149601.2144.15.camel@deskari>
- <20120319123006.GC16389@n2100.arm.linux.org.uk>
- <1332160864.2144.66.camel@deskari>
- <1332162163.2144.77.camel@deskari>
- <1332165550.2144.85.camel@deskari>
+From: Arnd Bergmann <arnd@arndb.de>
+Subject: Re: [PATCH] ARM: OMAP2+: gpmc-smsc911x: only register regulator for first instance
+Date: Mon, 19 Mar 2012 21:18:09 +0000
+Message-ID: <201203192118.09286.arnd@arndb.de>
+References: <1331080771-30687-1-git-send-email-khilman@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: Text/Plain;
+  charset="iso-8859-1"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-02-ewr.mailhop.org ([204.13.248.72]:25524 "EHLO
-	mho-02-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756065Ab2CSTVN (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 19 Mar 2012 15:21:13 -0400
-Content-Disposition: inline
-In-Reply-To: <1332165550.2144.85.camel@deskari>
+Received: from moutng.kundenserver.de ([212.227.126.171]:64021 "EHLO
+	moutng.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755136Ab2CSVSP (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 19 Mar 2012 17:18:15 -0400
+In-Reply-To: <1331080771-30687-1-git-send-email-khilman@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Tomi Valkeinen <tomi.valkeinen@ti.com>
-Cc: Russell King - ARM Linux <linux@arm.linux.org.uk>, linux-omap@vger.kernel.org, Arnd Bergmann <arnd@arndb.de>, Olof Johansson <olof@lixom.net>
+To: linux-arm-kernel@lists.infradead.org
+Cc: Kevin Hilman <khilman@ti.com>, linux-omap@vger.kernel.org, Matt Porter <mporter@ti.com>, Tony Lindgren <tony@atomide.com>, Olof Johansson <olof@lixom.net>
 
-* Tomi Valkeinen <tomi.valkeinen@ti.com> [120319 07:01]:
-> On Mon, 2012-03-19 at 15:02 +0200, Tomi Valkeinen wrote:
+On Wednesday 07 March 2012, Kevin Hilman wrote:
+> commit e4b0b2cbbb (ARM: OMAP2+: gpmc-smsc911x: add required smsc911x
+> regulators) added regulators which are registered during
+> gpmc_smsc911x_init().  However, some platforms (OMAP3/Overo) have more
+> than one instance of the SMSC911x and result in attempting to register
+> the same regulator more than once which causes a panic().
 > 
-> > I'll see if I can make a single patch that fixes the issue. The patch
-> > series I mentioned earlier does lots of things, but I think just moving
-> > the driver registration out of the probe function should be enough to
-> > avoid the problem.
+> Fix this by only registering the regulator when the platform_data id
+> field is zero, indicating its the first instance.
 > 
-> Here's a patch that fixes the issue for me. Tested on OMAP4 Blaze with
-> omapdss both as module and built-in. I'll queue this up after testing it
-> a bit more.
+> Cc: Matt Porter <mporter@ti.com>
+> Signed-off-by: Kevin Hilman <khilman@ti.com>
 
-OK works for me too.
- 
-> This still leaves the issue of initialization order, but I think that's
-> not a big issue at the moment. It doesn't happen in practice, as the
-> current driver framework will probe the devices at driver registration
-> time. I'll fix this for the next merge window.
+It seems that both Olof and I forgot to forward this one to Linus.
 
-Yes that's something that needs fixing.
+If it's ok for you, I'll add it to the fixes branch for v3.4 now
+and mark it for backporting to v3.3-stable.
 
-Regards,
+Sorry for the inconvenience.
 
-Tony
+
+	Arnd
