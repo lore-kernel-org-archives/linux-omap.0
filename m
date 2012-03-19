@@ -1,135 +1,294 @@
-From: Nicolas Ferre <nicolas.ferre@atmel.com>
-Subject: Re: [PATCH] of: Add generic device tree DMA helpers
-Date: Mon, 19 Mar 2012 14:37:56 +0100
-Message-ID: <4F6736B4.4090509@atmel.com>
-References: <4F22DEF2.5000807@ti.com> <1331800690-21518-1-git-send-email-nicolas.ferre@atmel.com> <20120317094059.7C2333E08E2@localhost> <201203182013.22790.arnd@arndb.de>
+From: Tomi Valkeinen <tomi.valkeinen@ti.com>
+Subject: Re: arm-soc + rmk's tree boot failure on OMAP4430SDP
+Date: Mon, 19 Mar 2012 15:59:10 +0200
+Message-ID: <1332165550.2144.85.camel@deskari>
+References: <20120316231158.GA9970@n2100.arm.linux.org.uk>
+	 <20120317004706.GF7276@atomide.com>
+	 <20120317211505.GA4720@n2100.arm.linux.org.uk>
+	 <1332149601.2144.15.camel@deskari>
+	 <20120319123006.GC16389@n2100.arm.linux.org.uk>
+	 <1332160864.2144.66.camel@deskari>  <1332162163.2144.77.camel@deskari>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
+Content-Type: multipart/signed; micalg="pgp-sha1"; protocol="application/pgp-signature"; boundary="=-En6vUvCL6T/ttrbEgCOZ"
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from newsmtp5.atmel.com ([204.2.163.5]:33085 "EHLO
-	sjogate2.atmel.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1757840Ab2CSNiQ (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 19 Mar 2012 09:38:16 -0400
-In-Reply-To: <201203182013.22790.arnd@arndb.de>
+Received: from na3sys009aog107.obsmtp.com ([74.125.149.197]:45000 "EHLO
+	na3sys009aog107.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1030222Ab2CSOFk (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>);
+	Mon, 19 Mar 2012 10:05:40 -0400
+Received: by mail-lpp01m010-f51.google.com with SMTP id p9so6150183laa.24
+        for <linux-omap@vger.kernel.org>; Mon, 19 Mar 2012 07:05:37 -0700 (PDT)
+In-Reply-To: <1332162163.2144.77.camel@deskari>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Arnd Bergmann <arnd@arndb.de>
-Cc: linux-arm-kernel@lists.infradead.org, Grant Likely <grant.likely@secretlab.ca>, rob.herring@calxeda.com, devicetree-discuss@lists.ozlabs.org, linux-omap@vger.kernel.org, Stephen Warren <swarren@nvidia.com>, Benoit Cousson <b-cousson@ti.com>, Russell King <linux@arm.linux.org.uk>
-
-On 03/18/2012 09:13 PM, Arnd Bergmann :
-> On Saturday 17 March 2012, Grant Likely wrote:
->>> +static LIST_HEAD(of_dma_list);
->>> +
->>> +struct of_dma {
->>> +     struct list_head of_dma_controllers;
->>> +     struct device_node *of_node;
->>> +     int of_dma_n_cells;
->>> +     int (*of_dma_xlate)(struct of_phandle_args *dma_spec, void *data);
->>> +};
->>
->> This _xlate is nearly useless as a generic API.  It solves the problem for
->> the specific case where the driver is hard-coded to know which DMA engine
->> to talk to, but since the returned data doesn't provide any context, it
->> isn't useful if there are multiple DMA controllers to choose from.
->>
->> The void *data pointer must be replaced with a typed structure so that
->> context can be returned.
-> 
-> I've read up a bit more on how the existing drivers use the filter
-> functions, it seems there are multiple classes of them, the classes
-> that I've encountered are:
-> 
-> 1. matches on chan->device pointer and/or chan_id
-
-I have the impression that we are now talking about *channel* selection.
-It is not the purpose of those helper functions. It is just to retrieve
-a *request line* for a particular slave interface. The
-selection/filtering of a channel is a different topic (that we can
-address in the future).
-Maybe some DMA controllers are able to handle several "request lines"
-among several DMA controller instances. But I suspect that this case
-should be handled in another place, before calling this API.
-
->    (8 drivers)
-> 2. will match anything
->    (6 drivers)
-> 3. requires specific dma engine driver, then behaves like 1 or 2
->    (8 drivers, almost all freescale)
-> 4. one of a kind, matches resource name string or device->dev_id
->    (two drivers)
-> 5. filter function and data both provided by platform code,
->    platform picks dmaengine driver.
->    (4 amba pl* drivers, used on ARM, ux500, ...)
-> 
-> The last category is interesting because here, the dmaengine
-> driver (pl330, coh901318, sirf-dma, ste_dma40) provides the filter
-> function while in the other cases that is provided by the device
-> driver! Out of these, the ste_dma40 is special because it's the
-> only one where the data is a complex data structure describing the
-> constraints on the driver, while all others just find the right
-> channel.
-> 
-> Some drivers also pass assign driver specific data to chan->private.
-> 
-> I would hope that we can all make them use something like
->      struct dma_channel *of_dma_request_channel(struct of_node*,
-> 					int index, void *driver_data);
-> with an appropriate common definition behind it. In the cases
-> where the driver can just match anything, I'd assume that all
-> channels are equal, so #dma-cells would be 0. For the ste_dma40,
-> #dma-cells needs to cover all of stedma40_chan_cfg. In most
-> other cases, #dma-cells can be 1 and just enumerate the channels,
-> unless we want to simplify the cases that Russell mentioned where
-> we want to keep a two stage mapping channel identifiers and physical
-> channel numbers.
-> 
-> How about an implementation like this:?
-> 
-> typedef bool dma_filter_simple(struct dma_chan *chan, void *filter_param)
-> {
-> 	/* zero #dma-cells, accept anything */
-> 	return true;
-> }
-> 
-> struct dma_channel *of_dma_request_channel(struct of_node*, int index,
-> 					dma_cap_mask_t *mask,
-> 					void *driver_data)
-> {
-> 	struct of_phandle_args dma_spec;
-> 	struct dma_device *device;
-> 	struct dma_chan *chan = NULL;
-> 	dma_filter_fn *filter;
-> 
-> 	ret = of_parse_phandle_with_args(np, "dma-request", "#dma-cells",
-> 					 index, &dma_spec);
-
-Well, this property handles "request lines" not "channels". So if we
-move the selection/filtering of channels in DT, we may need to create a
-new property of this purpose...
+To: Russell King - ARM Linux <linux@arm.linux.org.uk>
+Cc: Tony Lindgren <tony@atomide.com>, linux-omap@vger.kernel.org, Arnd Bergmann <arnd@arndb.de>, Olof Johansson <olof@lixom.net>
 
 
-> 
-> 	device = dma_find_device(dma_spec->np);
-> 	if (!device)
-> 		goto out;
-> 
-> 	if (dma_spec->args_count == 0)
-> 		filter = dma_filter_simple;
-> 	else
-> 		filter = device->dma_dt_filter; /* new member */
-> 
-> 	chan = private_candidate(mask, device, filter, dma_spec->args);
-> 
-> 	if (chan && !chan->private)
-> 		chan->private = driver_data;
-> out:
-> 	return chan;
-> }
-> 
-> 	Arnd
-> 
+--=-En6vUvCL6T/ttrbEgCOZ
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: quoted-printable
+
+On Mon, 2012-03-19 at 15:02 +0200, Tomi Valkeinen wrote:
+
+> I'll see if I can make a single patch that fixes the issue. The patch
+> series I mentioned earlier does lots of things, but I think just moving
+> the driver registration out of the probe function should be enough to
+> avoid the problem.
+
+Here's a patch that fixes the issue for me. Tested on OMAP4 Blaze with
+omapdss both as module and built-in. I'll queue this up after testing it
+a bit more.
+
+This still leaves the issue of initialization order, but I think that's
+not a big issue at the moment. It doesn't happen in practice, as the
+current driver framework will probe the devices at driver registration
+time. I'll fix this for the next merge window.
+
+ Tomi
 
 
--- 
-Nicolas Ferre
+=46rom 39ff2ded6c79d40d09597a56ddcf584470c6e699 Mon Sep 17 00:00:00 2001
+From: Tomi Valkeinen <tomi.valkeinen@ti.com>
+Date: Mon, 19 Mar 2012 15:05:02 +0200
+Subject: [PATCH] OMAPDSS: register dss drivers in module init
+
+We do the dss driver registration in a rather strange way: we have the
+higher level omapdss driver, and we use that driver's probe function to
+register the drivers for the rest of the dss devices.
+
+There doesn't seem to be any reason for that, and additionally the
+soon-to-be-merged patch "ARM: OMAP: omap_device: remove
+omap_device_parent" will break omapdss initialization with the current
+registration model.
+
+This patch changes the registration for all drivers to happen at the
+same place, in the init of the module.
+
+Signed-off-by: Tomi Valkeinen <tomi.valkeinen@ti.com>
+---
+ drivers/video/omap2/dss/core.c |  135 +++++++++++++++++++++++-------------=
+----
+ 1 files changed, 77 insertions(+), 58 deletions(-)
+
+diff --git a/drivers/video/omap2/dss/core.c b/drivers/video/omap2/dss/core.=
+c
+index 8613f86..e8a1207 100644
+--- a/drivers/video/omap2/dss/core.c
++++ b/drivers/video/omap2/dss/core.c
+@@ -183,42 +183,6 @@ static int omap_dss_probe(struct platform_device *pdev=
+)
+ 	dss_init_overlay_managers(pdev);
+ 	dss_init_overlays(pdev);
+=20
+-	r =3D dss_init_platform_driver();
+-	if (r) {
+-		DSSERR("Failed to initialize DSS platform driver\n");
+-		goto err_dss;
+-	}
+-
+-	r =3D dispc_init_platform_driver();
+-	if (r) {
+-		DSSERR("Failed to initialize dispc platform driver\n");
+-		goto err_dispc;
+-	}
+-
+-	r =3D rfbi_init_platform_driver();
+-	if (r) {
+-		DSSERR("Failed to initialize rfbi platform driver\n");
+-		goto err_rfbi;
+-	}
+-
+-	r =3D venc_init_platform_driver();
+-	if (r) {
+-		DSSERR("Failed to initialize venc platform driver\n");
+-		goto err_venc;
+-	}
+-
+-	r =3D dsi_init_platform_driver();
+-	if (r) {
+-		DSSERR("Failed to initialize DSI platform driver\n");
+-		goto err_dsi;
+-	}
+-
+-	r =3D hdmi_init_platform_driver();
+-	if (r) {
+-		DSSERR("Failed to initialize hdmi\n");
+-		goto err_hdmi;
+-	}
+-
+ 	r =3D dss_initialize_debugfs();
+ 	if (r)
+ 		goto err_debugfs;
+@@ -246,18 +210,6 @@ static int omap_dss_probe(struct platform_device *pdev=
+)
+ err_register:
+ 	dss_uninitialize_debugfs();
+ err_debugfs:
+-	hdmi_uninit_platform_driver();
+-err_hdmi:
+-	dsi_uninit_platform_driver();
+-err_dsi:
+-	venc_uninit_platform_driver();
+-err_venc:
+-	dispc_uninit_platform_driver();
+-err_dispc:
+-	rfbi_uninit_platform_driver();
+-err_rfbi:
+-	dss_uninit_platform_driver();
+-err_dss:
+=20
+ 	return r;
+ }
+@@ -269,13 +221,6 @@ static int omap_dss_remove(struct platform_device *pde=
+v)
+=20
+ 	dss_uninitialize_debugfs();
+=20
+-	hdmi_uninit_platform_driver();
+-	dsi_uninit_platform_driver();
+-	venc_uninit_platform_driver();
+-	rfbi_uninit_platform_driver();
+-	dispc_uninit_platform_driver();
+-	dss_uninit_platform_driver();
+-
+ 	dss_uninit_overlays(pdev);
+ 	dss_uninit_overlay_managers(pdev);
+=20
+@@ -525,6 +470,80 @@ static int omap_dss_bus_register(void)
+=20
+ /* INIT */
+=20
++static int __init omap_dss_register_drivers(void)
++{
++	int r;
++
++	r =3D platform_driver_register(&omap_dss_driver);
++	if (r)
++		return r;
++
++	r =3D dss_init_platform_driver();
++	if (r) {
++		DSSERR("Failed to initialize DSS platform driver\n");
++		goto err_dss;
++	}
++
++	r =3D dispc_init_platform_driver();
++	if (r) {
++		DSSERR("Failed to initialize dispc platform driver\n");
++		goto err_dispc;
++	}
++
++	r =3D rfbi_init_platform_driver();
++	if (r) {
++		DSSERR("Failed to initialize rfbi platform driver\n");
++		goto err_rfbi;
++	}
++
++	r =3D venc_init_platform_driver();
++	if (r) {
++		DSSERR("Failed to initialize venc platform driver\n");
++		goto err_venc;
++	}
++
++	r =3D dsi_init_platform_driver();
++	if (r) {
++		DSSERR("Failed to initialize DSI platform driver\n");
++		goto err_dsi;
++	}
++
++	r =3D hdmi_init_platform_driver();
++	if (r) {
++		DSSERR("Failed to initialize hdmi\n");
++		goto err_hdmi;
++	}
++
++	return 0;
++
++err_hdmi:
++	dsi_uninit_platform_driver();
++err_dsi:
++	venc_uninit_platform_driver();
++err_venc:
++	rfbi_uninit_platform_driver();
++err_rfbi:
++	dispc_uninit_platform_driver();
++err_dispc:
++	dss_uninit_platform_driver();
++err_dss:
++	platform_driver_unregister(&omap_dss_driver);
++
++	return r;
++}
++
++static void __exit omap_dss_unregister_drivers(void)
++{
++	hdmi_uninit_platform_driver();
++	dsi_uninit_platform_driver();
++	venc_uninit_platform_driver();
++	rfbi_uninit_platform_driver();
++	dispc_uninit_platform_driver();
++	dss_uninit_platform_driver();
++
++	platform_driver_unregister(&omap_dss_driver);
++}
++
+ #ifdef CONFIG_OMAP2_DSS_MODULE
+ static void omap_dss_bus_unregister(void)
+ {
+@@ -541,7 +560,7 @@ static int __init omap_dss_init(void)
+ 	if (r)
+ 		return r;
+=20
+-	r =3D platform_driver_register(&omap_dss_driver);
++	r =3D omap_dss_register_drivers();
+ 	if (r) {
+ 		omap_dss_bus_unregister();
+ 		return r;
+@@ -562,7 +581,7 @@ static void __exit omap_dss_exit(void)
+ 		core.vdds_sdi_reg =3D NULL;
+ 	}
+=20
+-	platform_driver_unregister(&omap_dss_driver);
++	omap_dss_unregister_drivers();
+=20
+ 	omap_dss_bus_unregister();
+ }
+@@ -577,7 +596,7 @@ static int __init omap_dss_init(void)
+=20
+ static int __init omap_dss_init2(void)
+ {
+-	return platform_driver_register(&omap_dss_driver);
++	return omap_dss_register_drivers();
+ }
+=20
+ core_initcall(omap_dss_init);
+--=20
+1.7.4.1
+
+
+
+--=-En6vUvCL6T/ttrbEgCOZ
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: This is a digitally signed message part
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.4.11 (GNU/Linux)
+
+iQIcBAABAgAGBQJPZzuuAAoJEPo9qoy8lh713YIQAItOGJidOKoE4tijeSnHnJ0K
+7UlVSDtY9TJQHgoYoAgMlM3Xz4N2yClsBJEBOAy5DY4eSemsoxv4l9qn4z2eGSvM
+rseLN69xuiRZTT2I6exzv9IIT+6wDx7gudt1sPRuHJuIWMuhGkzP1wYAr+oIER8r
+Q846nkPPQTQAoBlJBxUXCYWX4KphfKboLt/UTgFE4aEVUqD+7o0XvavgeOazyXWt
+cNNokSMGEjxTHi+pAPhtkYfxR4rGcQ4ayzm9PJAujFGiiUC9AQiXDx511J5ub3pe
+ZzN9L46B19dlInOtEVQN+/OwxmDnCsAvdQMy2NDo+G7gosfDqSJjJF5hMdWQMrzh
+NB/O87NB2iyXoeNm2Wh9Qzk0x1F2im0mk8fB25QvfDtMrrztWFiu4vtitqgdBJwT
+MZ6WiqyykT7+y50FPMSOWKktQ5+ozqyjJ20D90eQhF5zA/wJtAo5dvAk4gMolZx6
+6lkWu2bXW6OsvWUr9UdcvmOSQ/4va2n9HF50KljALusyOQFZ3hNa5Jaunxm0v7hf
+CN1UufWqTpsXpnTJbhQ909AC97RilRCJLP8LNDs/NeOopJ/0fhkIFi9v5SHb+6oO
+b6EGyaq6uZX1YYpc222RljBjGDABh6yu8IdFD5IDZF2k50vabb852yRUELsKAbtw
+lykIUAVJfhImDCQx0oKC
+=sTep
+-----END PGP SIGNATURE-----
+
+--=-En6vUvCL6T/ttrbEgCOZ--
+
