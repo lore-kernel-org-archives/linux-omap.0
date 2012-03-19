@@ -1,92 +1,96 @@
-From: Arnd Bergmann <arnd@arndb.de>
-Subject: Re: [PATCH] of: Add generic device tree DMA helpers
-Date: Mon, 19 Mar 2012 16:11:58 +0000
-Message-ID: <201203191611.59064.arnd@arndb.de>
-References: <4F22DEF2.5000807@ti.com> <201203191406.35064.arnd@arndb.de> <20120319153334.GF16389@n2100.arm.linux.org.uk>
-Mime-Version: 1.0
-Content-Type: Text/Plain;
-  charset="iso-8859-1"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from moutng.kundenserver.de ([212.227.126.187]:64968 "EHLO
-	moutng.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1758123Ab2CSQMY (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 19 Mar 2012 12:12:24 -0400
-In-Reply-To: <20120319153334.GF16389@n2100.arm.linux.org.uk>
-Sender: linux-omap-owner@vger.kernel.org
+From: jean.pihet@newoldbits.com
+Subject: [PATCH v2 0/9] PM: Create the AVS class of drivers
+Date: Mon, 19 Mar 2012 17:12:49 +0100
+Message-ID: <1332173578-27422-1-git-send-email-j-pihet@ti.com>
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Sender: linux-kernel-owner@vger.kernel.org
+To: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Kevin Hilman <khilman@ti.com>, "Rafael J. Wysocki" <rjw@sisk.pl>, LKML <linux-kernel@vger.kernel.org>
+Cc: Jean Pihet <j-pihet@ti.com>
 List-Id: linux-omap@vger.kernel.org
-To: Russell King - ARM Linux <linux@arm.linux.org.uk>
-Cc: Nicolas Ferre <nicolas.ferre@atmel.com>, Grant Likely <grant.likely@secretlab.ca>, Benoit Cousson <b-cousson@ti.com>, rob.herring@calxeda.com, devicetree-discuss@lists.ozlabs.org, linux-arm-kernel@lists.infradead.org, Stephen Warren <swarren@nvidia.com>, linux-omap@vger.kernel.org, Vinod Koul <vinod.koul@intel.com>, Dan Williams <dan.j.williams@intel.com>, Thomas Abraham <thomas.abraham@linaro.org>
 
-On Monday 19 March 2012, Russell King - ARM Linux wrote:
-> Firstly, define what you mean by "the DMA parameters".  Things like burst
-> size, register width, register address?  That should all be known by the
-> peripheral driver and not be encoded into DT in any way - and this
-> information should be passed to the DMA engine driver for the well defined
-> API for that purpose.
+From: Jean Pihet <j-pihet@ti.com>
 
-This seems to be different for each controller, I tried to use
-a generic term here. In case of stedma40 (which is probably the most
-complex one today), it would be this structure:
+AVS is a power management technique which controls the operating
+voltage of a device in order to optimize (i.e. reduce) its power
+consumption. The voltage is adapted depending on static factors
+(chip manufacturing process) and dynamic factors (temperature
+depending performance).
+AVS is also called SmartReflex on OMAP devices.
 
-struct stedma40_chan_cfg {
-        enum stedma40_xfer_dir                   dir;
-        bool                                     high_priority;
-        bool                                     realtime;
-        enum stedma40_mode                       mode;
-        enum stedma40_mode_opt                   mode_opt;
-        int                                      src_dev_type;
-        int                                      dst_dev_type;
-        struct stedma40_half_channel_info        src_info;
-        struct stedma40_half_channel_info        dst_info;
+To that end, create the AVS framework in drivers/power/avs and
+move the OMAP SmartReflex code to the new directory.
 
-        bool                                     use_fixed_channel; 
-        int                                      phy_channel;
-};
+In preparation to the move of the OMAP code the following changes have been
+made:
+- split the include files into generic and platform specific code,
+- fill in platform data from the device initialization code and pass
+  it to the driver,
+- create CONFIG_AVS* config options accordingly.
 
-All these fields are set up by the platform code today, not by
-the device driver, so it would be logical to have them represented
-in the device tree, though some of the fields might turn out to
-be in the wrong place already.
+The platform integration data for SmartReflex is passed from hwmod
+and the voltage layer to the driver using pdata.
 
-> Secondly, there are platforms (Samsung) where peripherals are connected
-> to more than one DMA controller, and either DMA controller can be used -
-> I'm told by Jassi that there's reasons why you'd want to select one or
-> other as the target at runtime.
 
-How common is that? If there are only a few drivers that have this
-requirement, we could have this represented in the driver binding, by
-listing multiple channels and giving the device the choice.
+Tested on OMAP3 Beagleboard using omap2plus_defconfig with the
+CONFIG_POWER_AVS* options set.
+Based on master branch of the l-o git tree (3.3.0-rc6) [1], commit
+85244e0edd240da2004bb2ab7cbcbc67a336f20d.
 
-A possible way to deal with this is to list all the alternatives
-in the device tree and using the dma-names property to name them,
-giving the same name to those that we need to pick one of.
+[1] git://git.kernel.org/pub/scm/linux/kernel/git/tmlind/linux-omap.git
 
-> I think instead, rather than trying to fix this now, we persist with what
-> we have, but organize an effort to clean up and restructure the DMA engine
-> code so that:
-> 
-> (a) things like the Samsung, and ARM board oddities can be easily dealt
->  with in a driver independent manner.
-> (b) get rid of all the duplicated functionality between each different
->  DMA engine implementation, separating this out into core code, and
->  simplifying the drivers.
 
-At that point, we definitely need to involve the dmaenigne maintainers
-who have unfortunately not been on Cc for the whole discussion so
-far.
+History:
+v2: rework after the comments on MLs
+ . Keep the OMAP Kconfig options in the arch dir (Rafael),
+ . Move the shared header file from plat-omap to
+    include/linux/power/ (Tony)
 
-I actually hope that a lot of the issues go away if we come up with
-good device tree bindings that can cover the existing corner cases
-while providing a simple interface for device drivers to use.
+v1: initial revision
+ 
 
-> The big problem I see is that if we try to represent the existing
-> solution in DT, we're going to get locked into that way of doing things
-> and then any major restructuring of the DMA engine stuff will become an
-> impossibility - especially if we start specifying things by DMA request
-> signal numbers on DMA engines.
+Jean Pihet (9):
+  ARM: OMAP3+: voltage: export functions to plat/voltage.h
+  ARM: OMAP2+: SmartReflex: move the driver specific macros in
+    include/linux/power
+  ARM: OMAP3+: SmartReflex: class drivers should use struct omap_sr *
+  ARM: OMAP2+: smartreflex: Use the names from hwmod data instead of
+    voltage domains.
+  ARM: OMAP3: hwmod: rename the smartreflex entries
+  ARM: OMAP2+: SmartReflex: introduce a busy loop condition test macro
+  ARM: OMAP2+: SmartReflex: Use per-OPP data structure
+  ARM: OMAP2+: SmartReflex: add POWER_AVS Kconfig options
+  ARM: OMAP: SmartReflex: Move smartreflex driver to drivers/
 
-Note that Thomas Abraham has already introduced a DT support for
-pl330, which is sadly seems to be anything but generic.
+ arch/arm/mach-omap2/Makefile               |    4 +-
+ arch/arm/mach-omap2/omap_hwmod_3xxx_data.c |   12 +-
+ arch/arm/mach-omap2/omap_hwmod_44xx_data.c |    3 +-
+ arch/arm/mach-omap2/pm.h                   |    2 +-
+ arch/arm/mach-omap2/smartreflex-class3.c   |   60 --
+ arch/arm/mach-omap2/smartreflex.c          | 1165 ----------------------------
+ arch/arm/mach-omap2/smartreflex.h          |  256 ------
+ arch/arm/mach-omap2/sr_device.c            |   38 +-
+ arch/arm/mach-omap2/voltage.h              |    1 -
+ arch/arm/mach-omap2/vp.h                   |    2 -
+ arch/arm/plat-omap/Kconfig                 |   30 +-
+ arch/arm/plat-omap/include/plat/voltage.h  |    3 +
+ drivers/power/Kconfig                      |    2 +
+ drivers/power/Makefile                     |    2 +
+ drivers/power/avs/Kconfig                  |   12 +
+ drivers/power/avs/Makefile                 |    2 +
+ drivers/power/avs/smartreflex-class3.c     |   61 ++
+ drivers/power/avs/smartreflex.c            | 1118 ++++++++++++++++++++++++++
+ drivers/power/avs/smartreflex.h            |  238 ++++++
+ include/linux/power/smartreflex.h          |   97 +++
+ 20 files changed, 1590 insertions(+), 1518 deletions(-)
+ delete mode 100644 arch/arm/mach-omap2/smartreflex-class3.c
+ delete mode 100644 arch/arm/mach-omap2/smartreflex.c
+ delete mode 100644 arch/arm/mach-omap2/smartreflex.h
+ create mode 100644 drivers/power/avs/Kconfig
+ create mode 100644 drivers/power/avs/Makefile
+ create mode 100644 drivers/power/avs/smartreflex-class3.c
+ create mode 100644 drivers/power/avs/smartreflex.c
+ create mode 100644 drivers/power/avs/smartreflex.h
+ create mode 100644 include/linux/power/smartreflex.h
 
-	Arnd
+-- 
+1.7.5.4
