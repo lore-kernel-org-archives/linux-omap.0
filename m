@@ -1,211 +1,78 @@
-From: "Hiremath, Vaibhav" <hvaibhav@ti.com>
-Subject: RE: [PATCH] omap_vout: Set DSS overlay_info only if paddr is non
- zero
-Date: Mon, 19 Mar 2012 08:45:20 +0000
-Message-ID: <79CD15C6BA57404B839C016229A409A83181EB1F@DBDE01.ent.ti.com>
-References: <1331110876-11895-1-git-send-email-archit@ti.com>
- <79CD15C6BA57404B839C016229A409A831810EAA@DBDE01.ent.ti.com>
- <4F6312E4.5000404@ti.com> <4F631FDF.8070308@ti.com>
+From: Tomi Valkeinen <tomi.valkeinen@ti.com>
+Subject: Re: [PATCH v2 7/7] ARM: OMAP2+: Mark omap_hsmmc_init and omap_mux
+ related functions as __init
+Date: Mon, 19 Mar 2012 11:08:36 +0200
+Message-ID: <1332148116.2144.1.camel@deskari>
+References: <1329997247-27342-1-git-send-email-rnayak@ti.com>
+	 <1329997247-27342-8-git-send-email-rnayak@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
+Content-Type: multipart/signed; micalg="pgp-sha1"; protocol="application/pgp-signature"; boundary="=-JZDFNNkHk1vse4rI4R9/"
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from arroyo.ext.ti.com ([192.94.94.40]:49671 "EHLO arroyo.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1757713Ab2CSIpZ convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 19 Mar 2012 04:45:25 -0400
-In-Reply-To: <4F631FDF.8070308@ti.com>
-Content-Language: en-US
+Received: from na3sys009aog131.obsmtp.com ([74.125.149.247]:53837 "EHLO
+	psmtp.com" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
+	id S1754726Ab2CSJIq (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Mon, 19 Mar 2012 05:08:46 -0400
+Received: by mail-lpp01m010-f54.google.com with SMTP id v3so6342225lag.13
+        for <linux-omap@vger.kernel.org>; Mon, 19 Mar 2012 02:08:40 -0700 (PDT)
+In-Reply-To: <1329997247-27342-8-git-send-email-rnayak@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "Taneja, Archit" <archit@ti.com>
-Cc: "Valkeinen, Tomi" <tomi.valkeinen@ti.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
-
-On Fri, Mar 16, 2012 at 16:41:27, Taneja, Archit wrote:
-> Hi,
-> 
-> On Friday 16 March 2012 03:46 PM, Archit Taneja wrote:
-> > On Monday 12 March 2012 03:34 PM, Hiremath, Vaibhav wrote:
-> >> On Wed, Mar 07, 2012 at 14:31:16, Taneja, Archit wrote:
-> >>> The omap_vout driver tries to set the DSS overlay_info using
-> >>> set_overlay_info()
-> >>> when the physical address for the overlay is still not configured.
-> >>> This happens
-> >>> in omap_vout_probe() and vidioc_s_fmt_vid_out().
-> >>>
-> >>> The calls to omapvid_init(which internally calls set_overlay_info())
-> >>> are removed
-> >>> from these functions. They don't need to be called as the
-> >>> omap_vout_device
-> >>> struct anyway maintains the overlay related changes made. Also,
-> >>> remove the
-> >>> explicit call to set_overlay_info() in vidioc_streamon(), this was
-> >>> used to set
-> >>> the paddr, this isn't needed as omapvid_init() does the same thing
-> >>> later.
-> >>>
-> >>> These changes are required as the DSS2 driver since 3.3 kernel
-> >>> doesn't let you
-> >>> set the overlay info with paddr as 0.
-> >>>
-> >>> Signed-off-by: Archit Taneja<archit@ti.com>
-> >>> ---
-> >>> drivers/media/video/omap/omap_vout.c | 36
-> >>> ++++-----------------------------
-> >>> 1 files changed, 5 insertions(+), 31 deletions(-)
-> >>>
-> >>> diff --git a/drivers/media/video/omap/omap_vout.c
-> >>> b/drivers/media/video/omap/omap_vout.c
-> >>> index 1fb7d5b..dffcf66 100644
-> >>> --- a/drivers/media/video/omap/omap_vout.c
-> >>> +++ b/drivers/media/video/omap/omap_vout.c
-> >>> @@ -1157,13 +1157,6 @@ static int vidioc_s_fmt_vid_out(struct file
-> >>> *file, void *fh,
-> >>> /* set default crop and win */
-> >>> omap_vout_new_format(&vout->pix,&vout->fbuf,&vout->crop,&vout->win);
-> >>>
-> >>> - /* Save the changes in the overlay strcuture */
-> >>> - ret = omapvid_init(vout, 0);
-> >>> - if (ret) {
-> >>> - v4l2_err(&vout->vid_dev->v4l2_dev, "failed to change mode\n");
-> >>> - goto s_fmt_vid_out_exit;
-> >>> - }
-> >>> -
-> >>> ret = 0;
-> >>>
-> >>> s_fmt_vid_out_exit:
-> >>> @@ -1664,20 +1657,6 @@ static int vidioc_streamon(struct file *file,
-> >>> void *fh, enum v4l2_buf_type i)
-> >>>
-> >>> omap_dispc_register_isr(omap_vout_isr, vout, mask);
-> >>>
-> >>> - for (j = 0; j< ovid->num_overlays; j++) {
-> >>> - struct omap_overlay *ovl = ovid->overlays[j];
-> >>> -
-> >>> - if (ovl->manager&& ovl->manager->device) {
-> >>> - struct omap_overlay_info info;
-> >>> - ovl->get_overlay_info(ovl,&info);
-> >>> - info.paddr = addr;
-> >>> - if (ovl->set_overlay_info(ovl,&info)) {
-> >>> - ret = -EINVAL;
-> >>> - goto streamon_err1;
-> >>> - }
-> >>> - }
-> >>> - }
-> >>> -
-> >>
-> >> Have you checked for build warnings? I am getting build warnings
-> >>
-> >> CC drivers/media/video/omap/omap_vout.o
-> >> CC drivers/media/video/omap/omap_voutlib.o
-> >> CC drivers/media/video/omap/omap_vout_vrfb.o
-> >> drivers/media/video/omap/omap_vout.c: In function 'vidioc_streamon':
-> >> drivers/media/video/omap/omap_vout.c:1619:25: warning: unused variable
-> >> 'ovid'
-> >> drivers/media/video/omap/omap_vout.c:1615:15: warning: unused variable
-> >> 'j'
-> >> LD drivers/media/video/omap/omap-vout.o
-> >> LD drivers/media/video/omap/built-in.o
-> >>
-> >> Can you fix this and submit the next version?
-> 
-> I applied the patch on the current mainline kernel, it doesn't give any 
-> build warnings. Even after applying the patch, 'j and ovid' are still 
-> used in vidioc_streamon().
-> 
-> Can you check if it was applied correctly?
-> 
-
-Archit,
-
-I could able to trace what's going on here,
-
-I am using "v4l_for_linus" branch, which has one missing patch,
-
-commit aaa874a985158383c4b394c687c716ef26288741
-Author: Tomi Valkeinen <tomi.valkeinen@ti.com>
-Date:   Tue Nov 15 16:37:53 2011 +0200
-
-    OMAPDSS: APPLY: rewrite overlay enable/disable
+To: Rajendra Nayak <rnayak@ti.com>, tony@atomide.com
+Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Russell King <rmk+kernel@arm.linux.org.uk>
 
 
-So, I do not have below changes,
+--=-JZDFNNkHk1vse4rI4R9/
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: quoted-printable
 
-@@ -1686,6 +1681,16 @@ static int vidioc_streamon(struct file *file, void *fh, enum v4l2_buf_type i)
-        if (ret)
-                v4l2_err(&vout->vid_dev->v4l2_dev, "failed to change mode\n");
+Hi,
 
-+       for (j = 0; j < ovid->num_overlays; j++) {
-+               struct omap_overlay *ovl = ovid->overlays[j];
-+
-+               if (ovl->manager && ovl->manager->device) {
-+                       ret = ovl->enable(ovl);
-+                       if (ret)
-+                               goto streamon_err1;
-+               }
-+       }
-+
+On Thu, 2012-02-23 at 17:10 +0530, Rajendra Nayak wrote:
+> From: Tony Lindgren <tony@atomide.com>
+>=20
+> Now that omap hsmmc init is split into two functions, it's safe
+> to mark omap_hsmmc_init and omap_mux related functions to __init.
+>=20
+> This basically reverts the following fixes for the case where
+> TWL was compiled as a module:
+>=20
+> a98f77b (ARM: omap: fix section mismatch warning for sdp3430_twl_gpio_set=
+up())
+> 8930b4e (ARM: omap: fix section mismatch warnings in mux.c caused by hsmm=
+c.c)
+>=20
+> Additionally it fixes up the remaining section warnings for
+> all callers of omap_mux functions.
 
-This explains why I am seeing these warnings. Let me give pull request based on master branch.
+I only now noticed this patch. This breaks DSI, as the DSI muxing
+functions are used during runtime and cannot be marked as __init.
+
+Shall I make a new patch for dss tree that fixes this?
+
+ Tomi
 
 
-Thanks,
-Vaibhav
+--=-JZDFNNkHk1vse4rI4R9/
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: This is a digitally signed message part
 
-> Regards,
-> Archit
-> 
-> >
-> > Will fix this and submit.
-> >
-> > Archit
-> >
-> >>
-> >> Thanks,
-> >> Vaibhav
-> >>
-> >>> /* First save the configuration in ovelray structure */
-> >>> ret = omapvid_init(vout, addr);
-> >>> if (ret)
-> >>> @@ -2071,11 +2050,12 @@ static int __init
-> >>> omap_vout_create_video_devices(struct platform_device *pdev)
-> >>> }
-> >>> video_set_drvdata(vfd, vout);
-> >>>
-> >>> - /* Configure the overlay structure */
-> >>> - ret = omapvid_init(vid_dev->vouts[k], 0);
-> >>> - if (!ret)
-> >>> - goto success;
-> >>> + dev_info(&pdev->dev, ": registered and initialized"
-> >>> + " video device %d\n", vfd->minor);
-> >>> + if (k == (pdev->num_resources - 1))
-> >>> + return 0;
-> >>>
-> >>> + continue;
-> >>> error2:
-> >>> if (vout->vid_info.rotation_type == VOUT_ROT_VRFB)
-> >>> omap_vout_release_vrfb(vout);
-> >>> @@ -2085,12 +2065,6 @@ error1:
-> >>> error:
-> >>> kfree(vout);
-> >>> return ret;
-> >>> -
-> >>> -success:
-> >>> - dev_info(&pdev->dev, ": registered and initialized"
-> >>> - " video device %d\n", vfd->minor);
-> >>> - if (k == (pdev->num_resources - 1))
-> >>> - return 0;
-> >>> }
-> >>>
-> >>> return -ENODEV;
-> >>> --
-> >>> 1.7.5.4
-> >>>
-> >>>
-> >>
-> >>
-> >
-> >
-> 
-> 
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.4.11 (GNU/Linux)
+
+iQIcBAABAgAGBQJPZveQAAoJEPo9qoy8lh71rVQP/RRTzwiaqplMpTFZdvLtHcnl
+r5/5gyN0a9C+yIO6CEwO0oleXwNJt643tJX4d8L0biioO1+/UcvjEqvP1rvwoWdI
+bRxbIR1S+WaUqecOvqMViU8l6/TYVghxq5b+lSUplDwWf6Vh/P+fYLo2v7rIIrYD
+JYhhwinQKZ5iu98om6tbGI3F6dQLtg0fThjBwVATw1lOidi+MWz3GqVPBV9JNDv4
+ORnwIm4WshJpSu8YAbpvsXN7X307qdQTpvy50qcbSpUuhRs+2bDhjUJ/NS6Qsfec
+r8dSulhYD0RfrEjrSh1gbStOZjhGs4zd+8hoVK7r5BZnVjX9AWYuMzQ8FW153Zr4
+sFY11Q3kw9Rl9YhVxXtySurGwK+cWt21boQscWN8ud7mYyqZB80f3DLrOupQ90XC
+ZxKRmelhmL92rPRwmXegRytEP5ljqmsvlDWAS5Ds9ExgmT1oCt9DTWp4pbdg/ED2
++EZV+QpM3g49meSk3Nk3dkOK0UiW/76RVzXIlzS+9rDxKIGYTgnQ++LSCeqSQYRi
+yJ1LPQBypgO1hW2Reip27PgWXlgoz/U1Etr9CUj6u61Rr7CplqZ18a9kL4f+PLfX
+3mt1pfxSpJ+waYv1qS05riAmq0+y9vgxtJqrSJfzEfhKtz8aVMdzi9kHlFD1JtLS
+ZiHvMjSLyuz8yCtp2nlF
+=OrhA
+-----END PGP SIGNATURE-----
+
+--=-JZDFNNkHk1vse4rI4R9/--
 
