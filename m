@@ -1,122 +1,84 @@
-From: Michal Simek <monstr@monstr.eu>
-Subject: Re: [PATCH 1/7] remoteproc: resource table overhaul
-Date: Mon, 19 Mar 2012 08:07:41 +0100
-Message-ID: <4F66DB3D.4010407@monstr.eu>
-References: <1330589497-4139-1-git-send-email-ohad@wizery.com> <1330589497-4139-2-git-send-email-ohad@wizery.com> <4F6354E4.8030704@monstr.eu> <CAK=Wgbbbi4GnuHedSh6cR1LhkZr8c9q6i=_TLSL252LpPB8Xsw@mail.gmail.com>
-Reply-To: monstr@monstr.eu
+From: "Shilimkar, Santosh" <santosh.shilimkar@ti.com>
+Subject: Re: Re: [PATCH v4 0/7] Add TI EMIF SDRAM controller driver
+Date: Mon, 19 Mar 2012 12:37:41 +0530
+Message-ID: <CAMQu2gy6yzawMAnkK+qmijDNo-5618b5SR7Cr+puMLSRM2znUA@mail.gmail.com>
+References: <16771402.10791332119314036.JavaMail.weblogic@epv6ml07>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-we0-f174.google.com ([74.125.82.174]:64106 "EHLO
-	mail-we0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753893Ab2CSHHq (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 19 Mar 2012 03:07:46 -0400
-Received: by wejx9 with SMTP id x9so5562887wej.19
-        for <linux-omap@vger.kernel.org>; Mon, 19 Mar 2012 00:07:45 -0700 (PDT)
-In-Reply-To: <CAK=Wgbbbi4GnuHedSh6cR1LhkZr8c9q6i=_TLSL252LpPB8Xsw@mail.gmail.com>
+Received: from na3sys009aog134.obsmtp.com ([74.125.149.83]:52517 "EHLO
+	psmtp.com" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
+	id S1755028Ab2CSHID convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 19 Mar 2012 03:08:03 -0400
+Received: by mail-qa0-f43.google.com with SMTP id b15so836277qad.16
+        for <linux-omap@vger.kernel.org>; Mon, 19 Mar 2012 00:08:02 -0700 (PDT)
+In-Reply-To: <16771402.10791332119314036.JavaMail.weblogic@epv6ml07>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Ohad Ben-Cohen <ohad@wizery.com>
-Cc: linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Brian Swetland <swetland@google.com>, Iliyan Malchev <malchev@google.com>, Arnd Bergmann <arnd@arndb.de>, Grant Likely <grant.likely@secretlab.ca>, Rusty Russell <rusty@rustcorp.com.au>, Mark Grosen <mgrosen@ti.com>, John Williams <john.williams@petalogix.com>, Loic PALLARDY <loic.pallardy@stericsson.com>, Ludovic BARRE <ludovic.barre@stericsson.com>, Omar Ramirez Luna <omar.luna@linaro.org>, Guzman Lugo Fernando <fernando.lugo@ti.com>, Anna Suman <s-anna@ti.com>, Clark Rob <rob@ti.com>, Stephen Boyd <sboyd@codeaurora.org>, Saravana Kannan <skannan@codeaurora.org>, David Brown <davidb@codeaurora.org>, Kieran Bingham <kieranbingham@gmail.com>, Tony Lindgren <tony@atomide.com>
+To: myungjoo.ham@samsung.com
+Cc: Kyungmin Park <kmpark@infradead.org>, Aneesh V <aneesh@ti.com>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, Greg KH <greg@kroah.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>
 
-Hi Ohad,
+2012/3/19 =ED=95=A8=EB=AA=85=EC=A3=BC <myungjoo.ham@samsung.com>:
+>
+> Kyungmin Park<kmpark@infradead.org> 2012-03-17 15:10 (GMT+09:00)
+>> Hi,
+>> On 3/17/12, Aneesh V wrote:
+>> > Add a driver for the EMIF SDRAM controller used in TI SoCs
+>> >
+>> > EMIF is an SDRAM controller that supports, based on its revision,
+>> > one or more of LPDDR2/DDR2/DDR3 protocols.This driver adds support
+>> > for LPDDR2.
+>> >
+>> > The driver supports the following features:
+>> > - Calculates the DDR AC timing parameters to be set in EMIF
+>> >   registers using data from the device data-sheets and based
+>> >   on the DDR frequency. If data from data-sheets is not available
+>> >   default timing values from the JEDEC spec are used. These
+>> >   will be safe, but not necessarily optimal
+>> > - API for changing timings during DVFS or at boot-up
+>
+> This means that you alreeady have callbacks to create a devfreq devic=
+e driver that supports DVFS on the device. This doesn't need to be a mi=
+sc device driver then.
+>
+Nope. The callbacks mentioned above are mainly coming from the clock
+framework. Ofcourse the clock node trigger
+with voltage ramps would be triggered by some upper laver
+governor/framework like CPUFreq/DEVFREQ but as
+such this is not necessary. This is an indepdent driver and just like
+CPUFREQ notifies it's users for the frequency
+change, this driver will be notified to take any action on pre and
+post notification. Note that, the driver will
+be notified by regulator framework for the voltage ramp up/down cases
+too with notifiers.
 
-> On Fri, Mar 16, 2012 at 4:57 PM, Michal Simek <monstr@monstr.eu> wrote:
->> In previous version I had carverout first which means that code was copyied
->> to physical address 0x0 and then vrigns were allocated. Current code
->> allocate vring first and then RTOS is not able to run from zero address.
-> 
-> In general, depending on specific allocation ordering is error prone
-> and you shouldn't do it.
+>> > - Temperature alert configuration and handling of temperature
+>> >   alerts, if any for LPDDR2 devices
+>> >   * temperature alert is based on periodic polling of MR4 mode
+>> >     register in DDR devices automatically performed by hardware
+>> >   * timings are de-rated and brought back to nominal when
+>> >     temperature raises and falls respectively
+>
+> This can be a feature overriding "max_freq" inside the Omap EMIF devf=
+req device driver though it maybe (or not.. I just don't sure) be bette=
+r to use thermal framework as well.
+>
+That's absolute abuse and there is no need to link the temperature
+handling with DVFS. Reducing frequency can be one
+of the cooling techniques but that's not related to the temperature
+alert handling. Temperature handling in the EMIF
+driver is strictly as per the JDEC specs and that is to de-rate the
+timings when temperature threshold is crossed.
 
-Yes, I agree with you. It was in v1.
+The idea is drivers should be independent of all the global policy
+governors. Hope this is clear to
+you.
 
-
-> For a given device, we treat memory allocated with
-> dma_alloc_coherent() as homogeneous. We care about its utilization and
-> alignments of allocations rather than their specific location in the
-> total region.
-
-For zynq platform is very important to use addresses from 0 for rtos.
-The main reason why it is so important is ARM reset vectors.
-
-
-> If that's not the case, and there's special memory you want assigned
-> with a specific purpose, than it's recommended to let the code make
-> sure it happens explicitly, and not rely on implicit order of
-> allocation.
-
-Sure.
-
-
-> Today there's no way to assign several memory regions with a specific
-> device, but a reasonable workaround that's being used is creating
-> several sub-devices with the special memory, and then looking them up
-> with stuff like device_for_each_child() or device_find_child().
-> 
-> About your specific issue: the current allocation scheme was chosen
-> for simplicity, but I do plan to change it back by postponing the
-> vring dma allocation until a remote processor is really powered on.
-> It's not a lot of memory, but this way we'd only allocate it when
-> really needed (so if it's CMA, others could use it).
-> 
-> IOW: you can probably just wait a bit until this patch is ready and
-> take it into your tree. It will most likely bring back the behavior you
-> need :)
-
-OK. I will use v1 where allocation is based on order in resource table.
-It is not ideal but it is working.
-
- From my point of view will be the best to call dma_alloc_coherent only once
-which will allocate the whole chunk of memory which is required for "RTOS".
-
-My resource table is easy:
-#define TEXT_BASE 0
-struct resource_table __resource resources = {
-	1, /* we're the first version that implements this */
-	3, /* number of entries in the table */
-	0, 0, /* reserved, must be zero */
-	/* offsets to entries */
-	{
-			offsetof(struct resource_table, text_cout),
-			offsetof(struct resource_table, rpmsg_vdev),
-			offsetof(struct resource_table, trace),
-	},
-	{
-		TYPE_CARVEOUT, 0, 0, SZ_1M, 0, 0, "MEM_DATA",
-	},
-	{
-		TYPE_VDEV, VIRTIO_ID_RPMSG, 0,
-		RPMSG_IPU_C0_FEATURES, 0, 0, 0, 2, { 0, 0 },
-		/* no config data */
-	},
-
-	/* the two vrings */
-	{ TEXT_BASE + SZ_1M, 4096, 256, 1, 0 },
-	{ TEXT_BASE + SZ_1M + 0x4000, 4096, 256, 2, 0 },
-
-	{
-		TYPE_TRACE, TEXT_BASE + 0x40000, 0x8000, 0, "trace",
-	},
-
-};
-
-But as you see I need to keep that offset structure which is
-that text/data starts at address 0, vrings0 on 0x100000, vrigns1 on 0x104000
-and trace buffer 0x140000.
-
-If dma_alloc_coherent is called just once with size taken from resource table.
-(For my case for example 2MB=0x200000) and offset are driven by remoteproc then
-it should just work.
-
-
-Thanks,
-Michal
-
-
--- 
-Michal Simek, Ing. (M.Eng)
-w: www.monstr.eu p: +42-0-721842854
-Maintainer of Linux kernel 2.6 Microblaze Linux - http://www.monstr.eu/fdt/
-Microblaze U-BOOT custodian
+Regards
+Santosh
+--
+To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
