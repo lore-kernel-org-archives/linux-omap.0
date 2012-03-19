@@ -1,197 +1,102 @@
-From: Keshava Munegowda <keshava_mgowda-l0cyMroinI0@public.gmane.org>
-Subject: [PATCH RESEND] ARM: OMAP3: USB: Fix the EHCI ULPI PHY reset issue
-Date: Mon, 19 Mar 2012 12:12:47 +0530
-Message-ID: <1332139367-1302-1-git-send-email-keshava_mgowda@ti.com>
+From: Keshava Munegowda <keshava_mgowda@ti.com>
+Subject: [PATCH 2/5 RESEND] ARM: OMAP: USB: Build the USB HOST TLL omap device
+Date: Mon, 19 Mar 2012 12:18:32 +0530
+Message-ID: <1332139715-1495-3-git-send-email-keshava_mgowda@ti.com>
+References: <1332139715-1495-1-git-send-email-keshava_mgowda@ti.com>
+ <1332139715-1495-2-git-send-email-keshava_mgowda@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
-Return-path: <linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Sender: linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-Cc: Keshava Munegowda <keshava_mgowda-l0cyMroinI0@public.gmane.org>, balbi-l0cyMroinI0@public.gmane.org, sameo-VuQAYsv1563Yd54FQh9/CA@public.gmane.org, parthab-PpE0FKYn9XJWk0Htik3J/w@public.gmane.org, govindraj.raja-l0cyMroinI0@public.gmane.org, Keshava Munegowda <Keshava_mgowda-l0cyMroinI0@public.gmane.org>
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from comal.ext.ti.com ([198.47.26.152]:56354 "EHLO comal.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1757022Ab2CSGtZ (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Mon, 19 Mar 2012 02:49:25 -0400
+In-Reply-To: <1332139715-1495-2-git-send-email-keshava_mgowda@ti.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: linux-omap@vger.kernel.org, linux-usb@vger.kernel.org
+Cc: Keshava Munegowda <keshava_mgowda@ti.com>, balbi@ti.com, sameo@linux.intel.com, parthab@india.ti.com, govindraj.raja@ti.com, paul@pwsan.com, b-cousson@ti.com, Keshava Munegowda <Keshava_mgowda@ti.com>
 
-From: Keshava Munegowda <Keshava_mgowda-l0cyMroinI0@public.gmane.org>
+From: Keshava Munegowda <Keshava_mgowda@ti.com>
 
-It is observed that the echi ports of 3430 sdp board
-are not working due to the random timing of programming
-the associated GPIOs of the ULPI PHYs of the EHCI for reset.
-If the PHYs are reset at during usbhs core driver, host ports will
-not work because EHCI driver is loaded after the resetting PHYs.
-The PHYs should be in reset state while initializing the EHCI
-controller.
-The code which does the GPIO pins associated with the PHYs
-are programmed to reset is moved from the USB host core driver
-to EHCI driver.
+The hwmod of the usb tll is retrieved and omap device build is
+performed to created the platform device for the usb tll component.
 
-Signed-off-by: Keshava Munegowda <keshava_mgowda-l0cyMroinI0@public.gmane.org>
-Reviewed-by: Partha Basak <parthab-PpE0FKYn9XJWk0Htik3J/w@public.gmane.org>
+Signed-off-by: Keshava Munegowda <keshava_mgowda@ti.com>
+Reviewed-by: Partha Basak <parthab@india.ti.com>
 ---
- drivers/mfd/omap-usb-host.c  |   44 ------------------------------------------
- drivers/usb/host/ehci-omap.c |   39 +++++++++++++++++++++++++++++++++++-
- 2 files changed, 37 insertions(+), 46 deletions(-)
+ arch/arm/mach-omap2/usb-host.c |   28 ++++++++++++++++++++--------
+ 1 files changed, 20 insertions(+), 8 deletions(-)
 
-diff --git a/drivers/mfd/omap-usb-host.c b/drivers/mfd/omap-usb-host.c
-index 68ac2c5..9927129 100644
---- a/drivers/mfd/omap-usb-host.c
-+++ b/drivers/mfd/omap-usb-host.c
-@@ -25,7 +25,6 @@
- #include <linux/clk.h>
- #include <linux/dma-mapping.h>
- #include <linux/spinlock.h>
--#include <linux/gpio.h>
- #include <plat/usb.h>
- #include <linux/pm_runtime.h>
+diff --git a/arch/arm/mach-omap2/usb-host.c b/arch/arm/mach-omap2/usb-host.c
+index f51348d..dc6769a 100644
+--- a/arch/arm/mach-omap2/usb-host.c
++++ b/arch/arm/mach-omap2/usb-host.c
+@@ -35,10 +35,12 @@
+ #ifdef CONFIG_MFD_OMAP_USB_HOST
  
-@@ -502,19 +501,6 @@ static void omap_usbhs_init(struct device *dev)
- 	pm_runtime_get_sync(dev);
- 	spin_lock_irqsave(&omap->lock, flags);
+ #define OMAP_USBHS_DEVICE	"usbhs_omap"
++#define OMAP_USBTLL_DEVICE	"usbhs_tll"
+ #define	USBHS_UHH_HWMODNAME	"usb_host_hs"
+ #define USBHS_TLL_HWMODNAME	"usb_tll_hs"
  
--	if (pdata->ehci_data->phy_reset) {
--		if (gpio_is_valid(pdata->ehci_data->reset_gpio_port[0]))
--			gpio_request_one(pdata->ehci_data->reset_gpio_port[0],
--					 GPIOF_OUT_INIT_LOW, "USB1 PHY reset");
--
--		if (gpio_is_valid(pdata->ehci_data->reset_gpio_port[1]))
--			gpio_request_one(pdata->ehci_data->reset_gpio_port[1],
--					 GPIOF_OUT_INIT_LOW, "USB2 PHY reset");
--
--		/* Hold the PHY in RESET for enough time till DIR is high */
--		udelay(10);
--	}
--
- 	omap->usbhs_rev = usbhs_read(omap->uhh_base, OMAP_UHH_REVISION);
- 	dev_dbg(dev, "OMAP UHH_REVISION 0x%x\n", omap->usbhs_rev);
+ static struct usbhs_omap_platform_data		usbhs_data;
++static struct usbtll_omap_platform_data		usbtll_data;
+ static struct ehci_hcd_omap_platform_data	ehci_data;
+ static struct ohci_hcd_omap_platform_data	ohci_data;
  
-@@ -593,39 +579,10 @@ static void omap_usbhs_init(struct device *dev)
- 			usbhs_omap_tll_init(dev, OMAP_TLL_CHANNEL_COUNT);
+@@ -485,7 +487,7 @@ static void setup_4430ohci_io_mux(const enum usbhs_omap_port_mode *port_mode)
+ 
+ void __init usbhs_init(const struct usbhs_omap_board_data *pdata)
+ {
+-	struct omap_hwmod	*oh[2];
++	struct omap_hwmod	*uhh_hwm, *tll_hwm;
+ 	struct platform_device	*pdev;
+ 	int			bus_id = -1;
+ 	int			i;
+@@ -510,25 +512,35 @@ void __init usbhs_init(const struct usbhs_omap_board_data *pdata)
+ 		setup_4430ohci_io_mux(pdata->port_mode);
  	}
  
--	if (pdata->ehci_data->phy_reset) {
--		/* Hold the PHY in RESET for enough time till
--		 * PHY is settled and ready
--		 */
--		udelay(10);
--
--		if (gpio_is_valid(pdata->ehci_data->reset_gpio_port[0]))
--			gpio_set_value
--				(pdata->ehci_data->reset_gpio_port[0], 1);
--
--		if (gpio_is_valid(pdata->ehci_data->reset_gpio_port[1]))
--			gpio_set_value
--				(pdata->ehci_data->reset_gpio_port[1], 1);
--	}
--
- 	spin_unlock_irqrestore(&omap->lock, flags);
- 	pm_runtime_put_sync(dev);
- }
- 
--static void omap_usbhs_deinit(struct device *dev)
--{
--	struct usbhs_hcd_omap		*omap = dev_get_drvdata(dev);
--	struct usbhs_omap_platform_data	*pdata = &omap->platdata;
--
--	if (pdata->ehci_data->phy_reset) {
--		if (gpio_is_valid(pdata->ehci_data->reset_gpio_port[0]))
--			gpio_free(pdata->ehci_data->reset_gpio_port[0]);
--
--		if (gpio_is_valid(pdata->ehci_data->reset_gpio_port[1]))
--			gpio_free(pdata->ehci_data->reset_gpio_port[1]);
--	}
--}
--
- 
- /**
-  * usbhs_omap_probe - initialize TI-based HCDs
-@@ -861,7 +818,6 @@ static int __devexit usbhs_omap_remove(struct platform_device *pdev)
- {
- 	struct usbhs_hcd_omap *omap = platform_get_drvdata(pdev);
- 
--	omap_usbhs_deinit(&pdev->dev);
- 	iounmap(omap->tll_base);
- 	iounmap(omap->uhh_base);
- 	clk_put(omap->init_60m_fclk);
-diff --git a/drivers/usb/host/ehci-omap.c b/drivers/usb/host/ehci-omap.c
-index bba9850..5c78f9e 100644
---- a/drivers/usb/host/ehci-omap.c
-+++ b/drivers/usb/host/ehci-omap.c
-@@ -42,6 +42,7 @@
- #include <plat/usb.h>
- #include <linux/regulator/consumer.h>
- #include <linux/pm_runtime.h>
-+#include <linux/gpio.h>
- 
- /* EHCI Register Set */
- #define EHCI_INSNREG04					(0xA0)
-@@ -191,6 +192,19 @@ static int ehci_hcd_omap_probe(struct platform_device *pdev)
- 		}
+-	oh[0] = omap_hwmod_lookup(USBHS_UHH_HWMODNAME);
+-	if (!oh[0]) {
++	uhh_hwm = omap_hwmod_lookup(USBHS_UHH_HWMODNAME);
++	if (!uhh_hwm) {
+ 		pr_err("Could not look up %s\n", USBHS_UHH_HWMODNAME);
+ 		return;
  	}
  
-+	if (pdata->phy_reset) {
-+		if (gpio_is_valid(pdata->reset_gpio_port[0]))
-+			gpio_request_one(pdata->reset_gpio_port[0],
-+					 GPIOF_OUT_INIT_LOW, "USB1 PHY reset");
-+
-+		if (gpio_is_valid(pdata->reset_gpio_port[1]))
-+			gpio_request_one(pdata->reset_gpio_port[1],
-+					 GPIOF_OUT_INIT_LOW, "USB2 PHY reset");
-+
-+		/* Hold the PHY in RESET for enough time till DIR is high */
-+		udelay(10);
+-	oh[1] = omap_hwmod_lookup(USBHS_TLL_HWMODNAME);
+-	if (!oh[1]) {
++	tll_hwm = omap_hwmod_lookup(USBHS_TLL_HWMODNAME);
++	if (!tll_hwm) {
+ 		pr_err("Could not look up %s\n", USBHS_TLL_HWMODNAME);
+ 		return;
+ 	}
+ 
+-	pdev = omap_device_build_ss(OMAP_USBHS_DEVICE, bus_id, oh, 2,
++	pdev = omap_device_build(OMAP_USBTLL_DEVICE, bus_id, tll_hwm,
++				(void *)&usbtll_data, sizeof(usbtll_data),
++				omap_uhhtll_latency,
++				ARRAY_SIZE(omap_uhhtll_latency), false);
++	if (IS_ERR(pdev)) {
++		pr_err("Could not build hwmod device %s\n",
++			USBHS_TLL_HWMODNAME);
++		return;
 +	}
 +
- 	pm_runtime_enable(dev);
- 	pm_runtime_get_sync(dev);
- 
-@@ -237,6 +251,19 @@ static int ehci_hcd_omap_probe(struct platform_device *pdev)
- 	/* root ports should always stay powered */
- 	ehci_port_power(omap_ehci, 1);
- 
-+	if (pdata->phy_reset) {
-+		/* Hold the PHY in RESET for enough time till
-+		 * PHY is settled and ready
-+		 */
-+		udelay(10);
-+
-+		if (gpio_is_valid(pdata->reset_gpio_port[0]))
-+			gpio_set_value(pdata->reset_gpio_port[0], 1);
-+
-+		if (gpio_is_valid(pdata->reset_gpio_port[1]))
-+			gpio_set_value(pdata->reset_gpio_port[1], 1);
-+	}
-+
- 	return 0;
- 
- err_add_hcd:
-@@ -259,8 +286,9 @@ err_io:
-  */
- static int ehci_hcd_omap_remove(struct platform_device *pdev)
- {
--	struct device *dev	= &pdev->dev;
--	struct usb_hcd *hcd	= dev_get_drvdata(dev);
-+	struct device *dev				= &pdev->dev;
-+	struct usb_hcd *hcd				= dev_get_drvdata(dev);
-+	struct ehci_hcd_omap_platform_data *pdata	= dev->platform_data;
- 
- 	usb_remove_hcd(hcd);
- 	disable_put_regulator(dev->platform_data);
-@@ -269,6 +297,13 @@ static int ehci_hcd_omap_remove(struct platform_device *pdev)
- 	pm_runtime_put_sync(dev);
- 	pm_runtime_disable(dev);
- 
-+	if (pdata->phy_reset) {
-+		if (gpio_is_valid(pdata->reset_gpio_port[0]))
-+			gpio_free(pdata->reset_gpio_port[0]);
-+
-+		if (gpio_is_valid(pdata->reset_gpio_port[1]))
-+			gpio_free(pdata->reset_gpio_port[1]);
-+	}
- 	return 0;
++	pdev = omap_device_build(OMAP_USBHS_DEVICE, bus_id, uhh_hwm,
+ 				(void *)&usbhs_data, sizeof(usbhs_data),
+ 				omap_uhhtll_latency,
+ 				ARRAY_SIZE(omap_uhhtll_latency), false);
+ 	if (IS_ERR(pdev)) {
+-		pr_err("Could not build hwmod devices %s,%s\n",
+-			USBHS_UHH_HWMODNAME, USBHS_TLL_HWMODNAME);
++		pr_err("Could not build hwmod devices %s\n",
++			USBHS_UHH_HWMODNAME);
+ 		return;
+ 	}
  }
- 
 -- 
 1.6.0.4
 
---
-To unsubscribe from this list: send the line "unsubscribe linux-usb" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
