@@ -1,280 +1,103 @@
 From: jean.pihet@newoldbits.com
-Subject: [PATCH 7/9] ARM: OMAP2+: SmartReflex: Use per-OPP data structure
-Date: Mon, 19 Mar 2012 17:12:56 +0100
-Message-ID: <1332173578-27422-8-git-send-email-j-pihet@ti.com>
+Subject: [PATCH 1/9] ARM: OMAP3+: voltage: export functions to plat/voltage.h
+Date: Mon, 19 Mar 2012 17:12:50 +0100
+Message-ID: <1332173578-27422-2-git-send-email-j-pihet@ti.com>
 References: <1332173578-27422-1-git-send-email-j-pihet@ti.com>
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-wi0-f178.google.com ([209.85.212.178]:60361 "EHLO
-	mail-wi0-f178.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1161566Ab2CSQNb (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 19 Mar 2012 12:13:31 -0400
-Received: by mail-wi0-f178.google.com with SMTP id hq7so4075457wib.1
-        for <linux-omap@vger.kernel.org>; Mon, 19 Mar 2012 09:13:30 -0700 (PDT)
+Mime-Version: 1.0
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
 In-Reply-To: <1332173578-27422-1-git-send-email-j-pihet@ti.com>
-Sender: linux-omap-owner@vger.kernel.org
-List-Id: linux-omap@vger.kernel.org
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
+List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
+List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
+Sender: linux-arm-kernel-bounces@lists.infradead.org
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
 To: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Kevin Hilman <khilman@ti.com>, "Rafael J. Wysocki" <rjw@sisk.pl>, LKML <linux-kernel@vger.kernel.org>
-Cc: Jean Pihet <j-pihet@ti.com>, Paul Walmsley <paul@pwsan.com>, Thara Gopinath <thara@ti.com>, Nishanth Menon <nm@ti.com>
+Cc: Jean Pihet <j-pihet@ti.com>
+List-Id: linux-omap@vger.kernel.org
 
 From: Jean Pihet <j-pihet@ti.com>
 
-The SmartReflex driver incorrectly treats some per-OPP data as data
-common to all OPPs (e.g., ERRMINLIMIT).  Move this data into a per-OPP
-data structure.
-The SmartReflex driver should not be dependent on whether the host SoC
-uses eFuses to store SmartReflex parameters or not.  (Even SoCs that
-do store SR data in eFuses often need to override that data with
-software-defined values.)  So, convert sr_retrieve_nvalue() to look up
-per-OPP data by the OPP's nominal voltage, rather than by the eFuse
-offset.
-
-While at it:
- . tidy up the code wrt default values in the data tables,
- . remove the global errminlimit debugfs entry and create per-voltage
-   entries from the data tables.
-
-Furthermore, in order to make the SmartReflex implementation ready for
-the move to drivers/, remove the dependency from the SR driver code
-to the voltage layer by querying the data tables only from the SR device
-init code.
-
-Based on Paul's original code for the SmartReflex driver conversion.
+Move some functions from mach-omap2/ dir to the plat/ dir.
+The SmartReflex class driver is a user of the basic voltage domains
+functions (enable, disable, reset).
 
 Signed-off-by: Jean Pihet <j-pihet@ti.com>
-Cc: Paul Walmsley <paul@pwsan.com>
-Cc: Thara Gopinath <thara@ti.com>
-Cc: Nishanth Menon <nm@ti.com>
 Cc: Kevin Hilman <khilman@ti.com>
 ---
- arch/arm/mach-omap2/smartreflex.c |   57 +++++++++++++++---------------------
- arch/arm/mach-omap2/sr_device.c   |   35 +++++++++++++++++++----
- include/linux/power/smartreflex.h |    8 ++++-
- 3 files changed, 59 insertions(+), 41 deletions(-)
+ arch/arm/mach-omap2/smartreflex-class3.c  |    1 +
+ arch/arm/mach-omap2/smartreflex.h         |    2 +-
+ arch/arm/mach-omap2/voltage.h             |    1 -
+ arch/arm/mach-omap2/vp.h                  |    2 --
+ arch/arm/plat-omap/include/plat/voltage.h |    3 +++
+ 5 files changed, 5 insertions(+), 4 deletions(-)
 
-diff --git a/arch/arm/mach-omap2/smartreflex.c b/arch/arm/mach-omap2/smartreflex.c
-index 5f3faf3..71f70ca 100644
---- a/arch/arm/mach-omap2/smartreflex.c
-+++ b/arch/arm/mach-omap2/smartreflex.c
-@@ -348,22 +348,24 @@ static void sr_v2_disable(struct omap_sr *sr)
- 	sr_write_reg(sr, IRQSTATUS, IRQSTATUS_MCUDISABLEACKINT);
- }
- 
--static u32 sr_retrieve_nvalue(struct omap_sr *sr, u32 efuse_offs)
-+static struct omap_sr_nvalue_table *sr_retrieve_nvalue_row(
-+				struct omap_sr *sr,
-+				unsigned long volt_nominal)
- {
- 	int i;
- 
- 	if (!sr->nvalue_table) {
- 		dev_warn(&sr->pdev->dev, "%s: Missing ntarget value table\n",
- 			__func__);
--		return 0;
-+		return NULL;
- 	}
- 
- 	for (i = 0; i < sr->nvalue_count; i++) {
--		if (sr->nvalue_table[i].efuse_offs == efuse_offs)
--			return sr->nvalue_table[i].nvalue;
-+		if (sr->nvalue_table[i].volt_nominal == volt_nominal)
-+			return &sr->nvalue_table[i];
- 	}
- 
--	return 0;
-+	return NULL;
- }
- 
- /* Public Functions */
-@@ -585,9 +587,8 @@ int sr_configure_minmax(struct voltagedomain *voltdm)
+diff --git a/arch/arm/mach-omap2/smartreflex-class3.c b/arch/arm/mach-omap2/smartreflex-class3.c
+index 955566e..e12c51e 100644
+--- a/arch/arm/mach-omap2/smartreflex-class3.c
++++ b/arch/arm/mach-omap2/smartreflex-class3.c
+@@ -12,6 +12,7 @@
   */
- int sr_enable(struct voltagedomain *voltdm, unsigned long volt)
+ 
+ #include "smartreflex.h"
++#include "voltage.h"
+ 
+ static int sr_class3_enable(struct voltagedomain *voltdm)
  {
--	struct omap_volt_data *volt_data;
- 	struct omap_sr *sr = _sr_lookup(voltdm);
--	u32 nvalue_reciprocal;
-+	struct omap_sr_nvalue_table *nvalue_row;
- 	int ret;
+diff --git a/arch/arm/mach-omap2/smartreflex.h b/arch/arm/mach-omap2/smartreflex.h
+index 5809141..c4e8530 100644
+--- a/arch/arm/mach-omap2/smartreflex.h
++++ b/arch/arm/mach-omap2/smartreflex.h
+@@ -22,7 +22,7 @@
  
- 	if (IS_ERR(sr)) {
-@@ -595,24 +596,16 @@ int sr_enable(struct voltagedomain *voltdm, unsigned long volt)
- 		return PTR_ERR(sr);
- 	}
+ #include <linux/platform_device.h>
  
--	volt_data = omap_voltage_get_voltdata(sr->voltdm, volt);
--
--	if (IS_ERR(volt_data)) {
--		dev_warn(&sr->pdev->dev, "%s: Unable to get voltage table"
--			"for nominal voltage %ld\n", __func__, volt);
--		return PTR_ERR(volt_data);
--	}
--
--	nvalue_reciprocal = sr_retrieve_nvalue(sr, volt_data->sr_efuse_offs);
--
--	if (!nvalue_reciprocal) {
--		dev_warn(&sr->pdev->dev, "%s: NVALUE = 0 at voltage %ld\n",
--			__func__, volt);
-+	nvalue_row = sr_retrieve_nvalue_row(sr, volt);
-+	if (!nvalue_row) {
-+		dev_warn(&sr->pdev->dev, "%s: failure getting SR data for this voltage %ld\n",
-+			 __func__, volt);
- 		return -ENODATA;
- 	}
+-#include "voltage.h"
++#include <plat/voltage.h>
  
-+
- 	/* errminlimit is opp dependent and hence linked to voltage */
--	sr->err_minlimit = volt_data->sr_errminlimit;
-+	sr->err_minlimit = nvalue_row->errminlimit;
+ /*
+  * Different Smartreflex IPs version. The v1 is the 65nm version used in
+diff --git a/arch/arm/mach-omap2/voltage.h b/arch/arm/mach-omap2/voltage.h
+index 16a1b09..a81dea8 100644
+--- a/arch/arm/mach-omap2/voltage.h
++++ b/arch/arm/mach-omap2/voltage.h
+@@ -167,6 +167,5 @@ int voltdm_for_each_pwrdm(struct voltagedomain *voltdm,
+ 			  int (*fn)(struct voltagedomain *voltdm,
+ 				    struct powerdomain *pwrdm));
+ int voltdm_scale(struct voltagedomain *voltdm, unsigned long target_volt);
+-void voltdm_reset(struct voltagedomain *voltdm);
+ unsigned long voltdm_get_voltage(struct voltagedomain *voltdm);
+ #endif
+diff --git a/arch/arm/mach-omap2/vp.h b/arch/arm/mach-omap2/vp.h
+index 7c155d2..837cb8d 100644
+--- a/arch/arm/mach-omap2/vp.h
++++ b/arch/arm/mach-omap2/vp.h
+@@ -118,8 +118,6 @@ extern struct omap_vp_instance omap4_vp_iva;
+ extern struct omap_vp_instance omap4_vp_core;
  
- 	pm_runtime_get_sync(&sr->pdev->dev);
+ void omap_vp_init(struct voltagedomain *voltdm);
+-void omap_vp_enable(struct voltagedomain *voltdm);
+-void omap_vp_disable(struct voltagedomain *voltdm);
+ int omap_vp_forceupdate_scale(struct voltagedomain *voltdm,
+ 			      unsigned long target_volt);
+ int omap_vp_update_errorgain(struct voltagedomain *voltdm,
+diff --git a/arch/arm/plat-omap/include/plat/voltage.h b/arch/arm/plat-omap/include/plat/voltage.h
+index 0a6a482..1842709 100644
+--- a/arch/arm/plat-omap/include/plat/voltage.h
++++ b/arch/arm/plat-omap/include/plat/voltage.h
+@@ -16,5 +16,8 @@ struct voltagedomain;
+ struct voltagedomain *voltdm_lookup(const char *name);
+ int voltdm_scale(struct voltagedomain *voltdm, unsigned long target_volt);
+ unsigned long voltdm_get_voltage(struct voltagedomain *voltdm);
++void voltdm_reset(struct voltagedomain *voltdm);
  
-@@ -625,7 +618,7 @@ int sr_enable(struct voltagedomain *voltdm, unsigned long volt)
- 	if (ret)
- 		return ret;
- 
--	sr_write_reg(sr, NVALUERECIPROCAL, nvalue_reciprocal);
-+	sr_write_reg(sr, NVALUERECIPROCAL, nvalue_row->nvalue);
- 
- 	/* SRCONFIG - enable SR */
- 	sr_modify_reg(sr, SRCONFIG, SRCONFIG_SRENABLE, SRCONFIG_SRENABLE);
-@@ -873,7 +866,6 @@ static int __init omap_sr_probe(struct platform_device *pdev)
- 	struct omap_sr_data *pdata = pdev->dev.platform_data;
- 	struct resource *mem, *irq;
- 	struct dentry *nvalue_dir;
--	struct omap_volt_data *volt_data;
- 	int i, ret = 0;
- 
- 	sr_info = kzalloc(sizeof(struct omap_sr), GFP_KERNEL);
-@@ -980,8 +972,6 @@ static int __init omap_sr_probe(struct platform_device *pdev)
- 			&sr_info->err_weight);
- 	(void) debugfs_create_x32("errmaxlimit", S_IRUGO, sr_info->dbg_dir,
- 			&sr_info->err_maxlimit);
--	(void) debugfs_create_x32("errminlimit", S_IRUGO, sr_info->dbg_dir,
--			&sr_info->err_minlimit);
- 
- 	nvalue_dir = debugfs_create_dir("nvalue", sr_info->dbg_dir);
- 	if (IS_ERR_OR_NULL(nvalue_dir)) {
-@@ -991,12 +981,9 @@ static int __init omap_sr_probe(struct platform_device *pdev)
- 		goto err_debugfs;
- 	}
- 
--	omap_voltage_get_volttable(sr_info->voltdm, &volt_data);
--	if (!volt_data) {
--		dev_warn(&pdev->dev, "%s: %s: No Voltage table for the"
--			" corresponding vdd. Cannot create debugfs"
--			"entries for n-values\n",
--			__func__, sr_info->name);
-+	if (sr_info->nvalue_count == 0 || !sr_info->nvalue_table) {
-+		dev_warn(&pdev->dev, "%s: %s: No Voltage table for the corresponding vdd. Cannot create debugfs entries for n-values\n",
-+			 __func__, sr_info->name);
- 		ret = -ENODATA;
- 		goto err_debugfs;
- 	}
-@@ -1004,10 +991,14 @@ static int __init omap_sr_probe(struct platform_device *pdev)
- 	for (i = 0; i < sr_info->nvalue_count; i++) {
- 		char name[NVALUE_NAME_LEN + 1];
- 
--		snprintf(name, sizeof(name), "volt_%d",
--			 volt_data[i].volt_nominal);
-+		snprintf(name, sizeof(name), "volt_%lu",
-+			 sr_info->nvalue_table[i].volt_nominal);
- 		(void) debugfs_create_x32(name, S_IRUGO | S_IWUSR, nvalue_dir,
- 				&(sr_info->nvalue_table[i].nvalue));
-+		snprintf(name, sizeof(name), "errminlimit_%lu",
-+			 sr_info->nvalue_table[i].volt_nominal);
-+		(void) debugfs_create_x32(name, S_IRUGO | S_IWUSR, nvalue_dir,
-+				&(sr_info->nvalue_table[i].errminlimit));
- 	}
- 
- 	return ret;
-diff --git a/arch/arm/mach-omap2/sr_device.c b/arch/arm/mach-omap2/sr_device.c
-index e081174..67d967e 100644
---- a/arch/arm/mach-omap2/sr_device.c
-+++ b/arch/arm/mach-omap2/sr_device.c
-@@ -36,7 +36,10 @@ static void __init sr_set_nvalues(struct omap_volt_data *volt_data,
- 				struct omap_sr_data *sr_data)
- {
- 	struct omap_sr_nvalue_table *nvalue_table;
--	int i, count = 0;
-+	int i, j, count = 0;
-+
-+	sr_data->nvalue_count = 0;
-+	sr_data->nvalue_table = NULL;
- 
- 	while (volt_data[count].volt_nominal)
- 		count++;
-@@ -44,8 +47,14 @@ static void __init sr_set_nvalues(struct omap_volt_data *volt_data,
- 	nvalue_table = kzalloc(sizeof(struct omap_sr_nvalue_table)*count,
- 			GFP_KERNEL);
- 
--	for (i = 0; i < count; i++) {
-+	if (!nvalue_table) {
-+		pr_err("OMAP: SmartReflex: cannot allocate memory for n-value table\n");
-+		return;
-+	}
-+
-+	for (i = 0, j = 0; i < count; i++) {
- 		u32 v;
-+
- 		/*
- 		 * In OMAP4 the efuse registers are 24 bit aligned.
- 		 * A __raw_readl will fail for non-32 bit aligned address
-@@ -58,15 +67,29 @@ static void __init sr_set_nvalues(struct omap_volt_data *volt_data,
- 				omap_ctrl_readb(offset + 1) << 8 |
- 				omap_ctrl_readb(offset + 2) << 16;
- 		} else {
--			 v = omap_ctrl_readl(volt_data[i].sr_efuse_offs);
-+			v = omap_ctrl_readl(volt_data[i].sr_efuse_offs);
- 		}
- 
--		nvalue_table[i].efuse_offs = volt_data[i].sr_efuse_offs;
--		nvalue_table[i].nvalue = v;
-+		/*
-+		 * Many OMAP SoCs don't have the eFuse values set.
-+		 * For example, pretty much all OMAP3xxx before
-+		 * ES3.something.
-+		 *
-+		 * XXX There needs to be some way for board files or
-+		 * userspace to add these in.
-+		 */
-+		if (v == 0)
-+			continue;
-+
-+		nvalue_table[j].nvalue = v;
-+		nvalue_table[j].errminlimit = volt_data[i].sr_errminlimit;
-+		nvalue_table[j].volt_nominal = volt_data[i].volt_nominal;
-+
-+		j++;
- 	}
- 
- 	sr_data->nvalue_table = nvalue_table;
--	sr_data->nvalue_count = count;
-+	sr_data->nvalue_count = j;
- }
- 
- static int __init sr_dev_init(struct omap_hwmod *oh, void *user)
-diff --git a/include/linux/power/smartreflex.h b/include/linux/power/smartreflex.h
-index e7dff08..0f7c81b 100644
---- a/include/linux/power/smartreflex.h
-+++ b/include/linux/power/smartreflex.h
-@@ -48,12 +48,16 @@ struct omap_sr {
- /**
-  * struct omap_sr_nvalue_table	- Smartreflex n-target value info
-  *
-- * @efuse_offs:	The offset of the efuse where n-target values are stored.
-- * @nvalue:	The n-target value.
-+ * @efuse_offs:	  The offset of the efuse where n-target values are stored.
-+ * @nvalue:	  The n-target value.
-+ * @errminlimit:  The value of the ERRMINLIMIT bitfield for this n-target
-+ * @volt_nominal: microvolts DC that the VDD is initially programmed to
-  */
- struct omap_sr_nvalue_table {
- 	u32 efuse_offs;
- 	u32 nvalue;
-+	u32 errminlimit;
-+	unsigned long volt_nominal;
- };
- 
- /**
++void omap_vp_enable(struct voltagedomain *voltdm);
++void omap_vp_disable(struct voltagedomain *voltdm);
+ #endif
 -- 
 1.7.5.4
-
