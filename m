@@ -1,8 +1,7 @@
 From: jean.pihet@newoldbits.com
-Subject: [PATCH 6/9] ARM: OMAP2+: SmartReflex: introduce a busy loop condition
- test macro
-Date: Mon, 19 Mar 2012 17:12:55 +0100
-Message-ID: <1332173578-27422-7-git-send-email-j-pihet@ti.com>
+Subject: [PATCH 8/9] ARM: OMAP2+: SmartReflex: add POWER_AVS Kconfig options
+Date: Mon, 19 Mar 2012 17:12:57 +0100
+Message-ID: <1332173578-27422-9-git-send-email-j-pihet@ti.com>
 References: <1332173578-27422-1-git-send-email-j-pihet@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
@@ -24,88 +23,146 @@ List-Id: linux-omap@vger.kernel.org
 
 From: Jean Pihet <j-pihet@ti.com>
 
-Now that omap_test_timeout is only accessible from mach-omap2/,
-introduce a similar function for SR.
+Add a Kconfig menu (POWER_AVS) and rename the Kconfig options
+for the OMAP SmartReflex implementation:
+ CONFIG_OMAP_SMARTREFLEX renames to CONFIG_POWER_AVS_OMAP
+ CONFIG_OMAP_SMARTREFLEX_CLASS3 renames to CONFIG_POWER_AVS_OMAP_CLASS3
 
 This change makes the SmartReflex implementation ready for the move
 to drivers/.
 
 Signed-off-by: Jean Pihet <j-pihet@ti.com>
 ---
- arch/arm/mach-omap2/smartreflex.c |   12 ++++++------
- arch/arm/mach-omap2/smartreflex.h |   23 +++++++++++++++++++++++
- 2 files changed, 29 insertions(+), 6 deletions(-)
+ arch/arm/mach-omap2/Makefile      |    5 ++-
+ arch/arm/mach-omap2/pm.h          |    2 +-
+ arch/arm/mach-omap2/smartreflex.h |    6 ++--
+ arch/arm/plat-omap/Kconfig        |   45 ++++++++++++++++++++++++------------
+ 4 files changed, 37 insertions(+), 21 deletions(-)
 
-diff --git a/arch/arm/mach-omap2/smartreflex.c b/arch/arm/mach-omap2/smartreflex.c
-index b2728a5..5f3faf3 100644
---- a/arch/arm/mach-omap2/smartreflex.c
-+++ b/arch/arm/mach-omap2/smartreflex.c
-@@ -290,9 +290,9 @@ static void sr_v1_disable(struct omap_sr *sr)
- 	 * Wait for SR to be disabled.
- 	 * wait until ERRCONFIG.MCUDISACKINTST = 1. Typical latency is 1us.
- 	 */
--	omap_test_timeout((sr_read_reg(sr, ERRCONFIG_V1) &
--			ERRCONFIG_MCUDISACKINTST), SR_DISABLE_TIMEOUT,
--			timeout);
-+	sr_test_cond_timeout((sr_read_reg(sr, ERRCONFIG_V1) &
-+			     ERRCONFIG_MCUDISACKINTST), SR_DISABLE_TIMEOUT,
-+			     timeout);
+diff --git a/arch/arm/mach-omap2/Makefile b/arch/arm/mach-omap2/Makefile
+index 9746529..30666fd 100644
+--- a/arch/arm/mach-omap2/Makefile
++++ b/arch/arm/mach-omap2/Makefile
+@@ -68,8 +68,9 @@ obj-$(CONFIG_ARCH_OMAP3)		+= pm34xx.o sleep34xx.o \
+ obj-$(CONFIG_ARCH_OMAP4)		+= pm44xx.o omap-mpuss-lowpower.o \
+ 					   cpuidle44xx.o
+ obj-$(CONFIG_PM_DEBUG)			+= pm-debug.o
+-obj-$(CONFIG_OMAP_SMARTREFLEX)          += sr_device.o smartreflex.o
+-obj-$(CONFIG_OMAP_SMARTREFLEX_CLASS3)	+= smartreflex-class3.o
++
++obj-$(CONFIG_POWER_AVS_OMAP)		+= sr_device.o smartreflex.o
++obj-$(CONFIG_POWER_AVS_OMAP_CLASS3)	+= smartreflex-class3.o
  
- 	if (timeout >= SR_DISABLE_TIMEOUT)
- 		dev_warn(&sr->pdev->dev, "%s: Smartreflex disable timedout\n",
-@@ -335,9 +335,9 @@ static void sr_v2_disable(struct omap_sr *sr)
- 	 * Wait for SR to be disabled.
- 	 * wait until IRQSTATUS.MCUDISACKINTST = 1. Typical latency is 1us.
- 	 */
--	omap_test_timeout((sr_read_reg(sr, IRQSTATUS) &
--			IRQSTATUS_MCUDISABLEACKINT), SR_DISABLE_TIMEOUT,
--			timeout);
-+	sr_test_cond_timeout((sr_read_reg(sr, IRQSTATUS) &
-+			     IRQSTATUS_MCUDISABLEACKINT), SR_DISABLE_TIMEOUT,
-+			     timeout);
+ AFLAGS_sleep24xx.o			:=-Wa,-march=armv6
+ AFLAGS_sleep34xx.o			:=-Wa,-march=armv7-a$(plus_sec)
+diff --git a/arch/arm/mach-omap2/pm.h b/arch/arm/mach-omap2/pm.h
+index a051431..1a2d483 100644
+--- a/arch/arm/mach-omap2/pm.h
++++ b/arch/arm/mach-omap2/pm.h
+@@ -110,7 +110,7 @@ extern void enable_omap3630_toggle_l2_on_restore(void);
+ static inline void enable_omap3630_toggle_l2_on_restore(void) { }
+ #endif		/* defined(CONFIG_PM) && defined(CONFIG_ARCH_OMAP3) */
  
- 	if (timeout >= SR_DISABLE_TIMEOUT)
- 		dev_warn(&sr->pdev->dev, "%s: Smartreflex disable timedout\n",
+-#ifdef CONFIG_OMAP_SMARTREFLEX
++#ifdef CONFIG_POWER_AVS_OMAP
+ extern int omap_devinit_smartreflex(void);
+ extern void omap_enable_smartreflex_on_init(void);
+ #else
 diff --git a/arch/arm/mach-omap2/smartreflex.h b/arch/arm/mach-omap2/smartreflex.h
-index 6f9b677..a87bac1 100644
+index a87bac1..754f6aa 100644
 --- a/arch/arm/mach-omap2/smartreflex.h
 +++ b/arch/arm/mach-omap2/smartreflex.h
-@@ -21,6 +21,7 @@
- #define __ASM_ARM_OMAP_SMARTREFLEX_H
+@@ -17,8 +17,8 @@
+  * published by the Free Software Foundation.
+  */
+ 
+-#ifndef __ASM_ARM_OMAP_SMARTREFLEX_H
+-#define __ASM_ARM_OMAP_SMARTREFLEX_H
++#ifndef __DRIVERS_POWER_AVS_SMARTREFLEX_H
++#define __DRIVERS_POWER_AVS_SMARTREFLEX_H
  
  #include <linux/platform_device.h>
-+#include <linux/delay.h>
- #include <linux/power/smartreflex.h>
+ #include <linux/delay.h>
+@@ -177,7 +177,7 @@ struct omap_sr_pmic_data {
+ };
  
- #include <plat/voltage.h>
-@@ -144,6 +145,28 @@
- #define OMAP3430_SR_ERRMAXLIMIT		0x02
  
- /**
-+ * test_cond_timeout - busy-loop, testing a condition
-+ * @cond: condition to test until it evaluates to true
-+ * @timeout: maximum number of microseconds in the timeout
-+ * @index: loop index (integer)
-+ *
-+ * Loop waiting for @cond to become true or until at least @timeout
-+ * microseconds have passed.  To use, define some integer @index in the
-+ * calling code.  After running, if @index == @timeout, then the loop has
-+ * timed out.
-+ *
-+ * Copied from omap_test_timeout
-+ */
-+#define sr_test_cond_timeout(cond, timeout, index)		\
-+({								\
-+	for (index = 0; index < timeout; index++) {		\
-+		if (cond)					\
-+			break;					\
-+		udelay(1);					\
-+	}							\
-+})
+-#ifdef CONFIG_OMAP_SMARTREFLEX
++#ifdef CONFIG_POWER_AVS_OMAP
+ /*
+  * The smart reflex driver supports CLASS1 CLASS2 and CLASS3 SR.
+  * The smartreflex class driver should pass the class type.
+diff --git a/arch/arm/plat-omap/Kconfig b/arch/arm/plat-omap/Kconfig
+index f419a08..6ec9237 100644
+--- a/arch/arm/plat-omap/Kconfig
++++ b/arch/arm/plat-omap/Kconfig
+@@ -44,37 +44,52 @@ config OMAP_DEBUG_LEDS
+ 	depends on OMAP_DEBUG_DEVICES
+ 	default y if LEDS_CLASS
+ 
+-config OMAP_SMARTREFLEX
+-	bool "SmartReflex support"
+-	depends on (ARCH_OMAP3 || ARCH_OMAP4) && PM
++menuconfig POWER_AVS
++	tristate "Adaptive Voltage Scaling class support"
+ 	help
+-	  Say Y if you want to enable SmartReflex.
++	  AVS is a power management technique which finely controls the
++	  operating voltage of a device in order to optimize (i.e. reduce)
++	  its power consumption.
++	  At a given operating point the voltage is adapted depending on
++	  static factors (chip manufacturing process) and dynamic factors
++	  (temperature depending performance).
++	  AVS is also called SmartReflex on OMAP devices.
 +
-+/**
-  * struct omap_sr_pmic_data - Strucutre to be populated by pmic code to pass
-  *				pmic specific info to smartreflex driver
-  *
++	  Say Y here to enable Adaptive Voltage Scaling class support.
++
++if POWER_AVS
+ 
+-	  SmartReflex can perform continuous dynamic voltage
+-	  scaling around the nominal operating point voltage
+-	  according to silicon characteristics and operating
+-	  conditions. Enabling SmartReflex reduces power
+-	  consumption.
++config POWER_AVS_OMAP
++	bool "AVS support for the OMAP IP versions 1&2"
++	depends on (ARCH_OMAP3 || ARCH_OMAP4) && PM
++	help
++	  Say Y to enable AVS support on OMAP containing the version 1 or
++	  version 2 of the SmartReflex IP.
++	  V1 is the 65nm version used in OMAP3430.
++	  V2 is the update for the 45nm version of the IP used in OMAP3630
++	  and OMAP4430
+ 
+ 	  Please note, that by default SmartReflex is only
+-	  initialized. To enable the automatic voltage
+-	  compensation for vdd mpu  and vdd core from user space,
++	  initialized and not enabled. To enable the automatic voltage
++	  compensation for vdd mpu and vdd core from user space,
+ 	  user must write 1 to
+-		/debug/voltage/vdd_<X>/smartreflex/autocomp,
+-	  where X is mpu or core for OMAP3.
++		/debug/smartreflex/sr_<X>/autocomp,
++	  where X is mpu_iva or core for OMAP3.
+ 	  Optionally autocompensation can be enabled in the kernel
+ 	  by default during system init via the enable_on_init flag
+ 	  which an be passed as platform data to the smartreflex driver.
+ 
+-config OMAP_SMARTREFLEX_CLASS3
++config POWER_AVS_OMAP_CLASS3
+ 	bool "Class 3 mode of Smartreflex Implementation"
+-	depends on OMAP_SMARTREFLEX && TWL4030_CORE
++	depends on POWER_AVS_OMAP && TWL4030_CORE
+ 	help
+ 	  Say Y to enable Class 3 implementation of Smartreflex
+ 
+ 	  Class 3 implementation of Smartreflex employs continuous hardware
+ 	  voltage calibration.
+ 
++endif # POWER_AVS
++
+ config OMAP_RESET_CLOCKS
+ 	bool "Reset unused clocks during boot"
+ 	depends on ARCH_OMAP
 -- 
 1.7.5.4
