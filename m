@@ -1,128 +1,144 @@
-From: Felipe Balbi <balbi@ti.com>
-Subject: Re: [PATCH 1/5 RESEND] ARM: OMAP: USB: HOST TLL platform driver
-Date: Mon, 19 Mar 2012 12:06:04 +0200
-Message-ID: <20120319100603.GB20279@arwen.pp.htv.fi>
-References: <1332139715-1495-1-git-send-email-keshava_mgowda@ti.com>
- <1332139715-1495-2-git-send-email-keshava_mgowda@ti.com>
-Reply-To: balbi@ti.com
+From: Tomi Valkeinen <tomi.valkeinen@ti.com>
+Subject: Re: [PATCH v2 7/7] ARM: OMAP2+: Mark omap_hsmmc_init and omap_mux
+ related functions as __init
+Date: Mon, 19 Mar 2012 12:20:42 +0200
+Message-ID: <1332152442.2144.27.camel@deskari>
+References: <1329997247-27342-1-git-send-email-rnayak@ti.com>
+	 <1329997247-27342-8-git-send-email-rnayak@ti.com>
+	 <1332148116.2144.1.camel@deskari>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="cmJC7u66zC7hs+87"
+Content-Type: multipart/signed; micalg="pgp-sha1"; protocol="application/pgp-signature"; boundary="=-3qN3AVG+xpfCg9mgKwJR"
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aog126.obsmtp.com ([74.125.149.155]:37401 "EHLO
-	na3sys009aog126.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751015Ab2CSKGU (ORCPT
+Received: from na3sys009aog125.obsmtp.com ([74.125.149.153]:54732 "EHLO
+	na3sys009aog125.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1754912Ab2CSKUw (ORCPT
 	<rfc822;linux-omap@vger.kernel.org>);
-	Mon, 19 Mar 2012 06:06:20 -0400
-Received: by mail-lpp01m010-f54.google.com with SMTP id v3so6384077lag.13
-        for <linux-omap@vger.kernel.org>; Mon, 19 Mar 2012 03:06:18 -0700 (PDT)
-Content-Disposition: inline
-In-Reply-To: <1332139715-1495-2-git-send-email-keshava_mgowda@ti.com>
+	Mon, 19 Mar 2012 06:20:52 -0400
+Received: by lagr15 with SMTP id r15so5600176lag.2
+        for <linux-omap@vger.kernel.org>; Mon, 19 Mar 2012 03:20:49 -0700 (PDT)
+In-Reply-To: <1332148116.2144.1.camel@deskari>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Keshava Munegowda <keshava_mgowda@ti.com>
-Cc: linux-omap@vger.kernel.org, linux-usb@vger.kernel.org, balbi@ti.com, sameo@linux.intel.com, parthab@india.ti.com, govindraj.raja@ti.com, paul@pwsan.com, b-cousson@ti.com
+To: Rajendra Nayak <rnayak@ti.com>, tony@atomide.com
+Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Russell King <rmk+kernel@arm.linux.org.uk>
 
 
---cmJC7u66zC7hs+87
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
+--=-3qN3AVG+xpfCg9mgKwJR
+Content-Type: text/plain; charset="UTF-8"
 Content-Transfer-Encoding: quoted-printable
 
-Hi,
+On Mon, 2012-03-19 at 11:08 +0200, Tomi Valkeinen wrote:
+> Hi,
+>=20
+> On Thu, 2012-02-23 at 17:10 +0530, Rajendra Nayak wrote:
+> > From: Tony Lindgren <tony@atomide.com>
+> >=20
+> > Now that omap hsmmc init is split into two functions, it's safe
+> > to mark omap_hsmmc_init and omap_mux related functions to __init.
+> >=20
+> > This basically reverts the following fixes for the case where
+> > TWL was compiled as a module:
+> >=20
+> > a98f77b (ARM: omap: fix section mismatch warning for sdp3430_twl_gpio_s=
+etup())
+> > 8930b4e (ARM: omap: fix section mismatch warnings in mux.c caused by hs=
+mmc.c)
+> >=20
+> > Additionally it fixes up the remaining section warnings for
+> > all callers of omap_mux functions.
+>=20
+> I only now noticed this patch. This breaks DSI, as the DSI muxing
+> functions are used during runtime and cannot be marked as __init.
+>=20
+> Shall I make a new patch for dss tree that fixes this?
 
-On Mon, Mar 19, 2012 at 12:18:31PM +0530, Keshava Munegowda wrote:
-> +	ver =3D  usbtll_read(base, OMAP_USBTLL_REVISION);
-> +	if (ver =3D=3D OMAP_USBTLL_REV1)
-> +		count =3D OMAP_TLL_CHANNEL_COUNT;
-> +	else if (ver =3D=3D OMAP_USBTLL_REV2)
-> +		count =3D OMAP_REV2_TLL_CHANNEL_COUNT;
-> +	else {
-> +		dev_err(dev, "TLL version failed\n");
-> +		ret =3D -ENODEV;
-> +		goto err_ioremap;
-> +	}
+(too little coffee)
 
-wrong coding style.
+Obviously I can't make a fix in my tree for that, as the problematic
+patch is not present there... So here's a patch to fix it, based on
+arm-soc/for-next
 
-> +static const struct dev_pm_ops usbtllomap_dev_pm_ops =3D {
-> +	.runtime_suspend	=3D usbtll_runtime_suspend,
-> +	.runtime_resume		=3D usbtll_runtime_resume,
 
-use SET_RUNTIME_PM_OPS()
 
-> +static struct platform_driver usbtll_omap_driver =3D {
-> +	.driver =3D {
-> +		.name		=3D (char *)usbtll_driver_name,
-> +		.owner		=3D THIS_MODULE,
-> +		.pm		=3D &usbtllomap_dev_pm_ops,
-> +	},
-> +	.remove		=3D __exit_p(usbtll_omap_remove),
+=46rom b00c2464de51ba6f297371b08bb7745c528fde59 Mon Sep 17 00:00:00 2001
+From: Tomi Valkeinen <tomi.valkeinen@ti.com>
+Date: Mon, 19 Mar 2012 11:08:54 +0200
+Subject: [PATCH] ARM: OMAP2+: Remove __init from DSI mux functions
 
-__devexit_p()
+Commit d1589f0912533e6cb2ac8fd6f1feb3d5989fe8cb (ARM: OMAP2+: Mark
+omap_hsmmc_init and omap_mux related functions as __init) changed DSI
+muxing functions to __init. This doesn't work, as the muxing functions
+are used every time a DSI display is enabled or disabled.
 
-> +};
-> +
-> +int omap_tll_enable(void)
-> +{
-> +	if (!tll_pdev) {
-> +		dev_dbg(&tll_pdev->dev, "missing platform_data\n");
-> +		return  -ENODEV;
-> +	}
-> +	return pm_runtime_get_sync(&tll_pdev->dev);
-> +}
-> +EXPORT_SYMBOL_GPL(omap_tll_enable);
+This patch removes the __inits from DSI mux functions.
 
-why ?
+Signed-off-by: Tomi Valkeinen <tomi.valkeinen@ti.com>
+---
+ arch/arm/mach-omap2/display.c |    6 +++---
+ 1 files changed, 3 insertions(+), 3 deletions(-)
 
-> +
-> +int omap_tll_disable(void)
-> +{
-> +	if (!tll_pdev) {
-> +		dev_dbg(&tll_pdev->dev, "missing platform_data\n");
-> +		return  -ENODEV;
-> +	}
-> +	return pm_runtime_put_sync(&tll_pdev->dev);
-> +}
-> +EXPORT_SYMBOL_GPL(omap_tll_disable);
-
-why ?
-
-> +MODULE_AUTHOR("Keshava Munegowda <keshava_mgowda@ti.com>");
-> +MODULE_ALIAS("platform:" USBHS_DRIVER_NAME);
-> +MODULE_LICENSE("GPL v2");
-> +MODULE_DESCRIPTION("usb tll driver for TI OMAP EHCI and OHCI controllers=
-");
-> +
-> +static int __init omap_usbtll_drvinit(void)
-> +{
-> +	return platform_driver_probe(&usbtll_omap_driver, usbtll_omap_probe);
-
-please don't. Make sure you use platform_driver_register, instead.
-
+diff --git a/arch/arm/mach-omap2/display.c
+b/arch/arm/mach-omap2/display.c
+index 9706c64..400fa37 100644
+--- a/arch/arm/mach-omap2/display.c
++++ b/arch/arm/mach-omap2/display.c
+@@ -125,7 +125,7 @@ static void omap4_hdmi_mux_pads(enum omap_hdmi_flags
+flags)
+ 	}
+ }
+=20
+-static int __init omap4_dsi_mux_pads(int dsi_id, unsigned lanes)
++static int omap4_dsi_mux_pads(int dsi_id, unsigned lanes)
+ {
+ 	u32 enable_mask, enable_shift;
+ 	u32 pipd_mask, pipd_shift;
+@@ -166,7 +166,7 @@ int __init omap_hdmi_init(enum omap_hdmi_flags
+flags)
+ 	return 0;
+ }
+=20
+-static int __init omap_dsi_enable_pads(int dsi_id, unsigned lane_mask)
++static int omap_dsi_enable_pads(int dsi_id, unsigned lane_mask)
+ {
+ 	if (cpu_is_omap44xx())
+ 		return omap4_dsi_mux_pads(dsi_id, lane_mask);
+@@ -174,7 +174,7 @@ static int __init omap_dsi_enable_pads(int dsi_id,
+unsigned lane_mask)
+ 	return 0;
+ }
+=20
+-static void __init omap_dsi_disable_pads(int dsi_id, unsigned
+lane_mask)
++static void omap_dsi_disable_pads(int dsi_id, unsigned lane_mask)
+ {
+ 	if (cpu_is_omap44xx())
+ 		omap4_dsi_mux_pads(dsi_id, 0);
 --=20
-balbi
+1.7.4.1
 
---cmJC7u66zC7hs+87
+
+
+--=-3qN3AVG+xpfCg9mgKwJR
 Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: Digital signature
+Content-Description: This is a digitally signed message part
 
 -----BEGIN PGP SIGNATURE-----
 Version: GnuPG v1.4.11 (GNU/Linux)
 
-iQIcBAEBAgAGBQJPZwULAAoJEIaOsuA1yqREQ3AP/2JooLfybuswGt9R2CduAfxx
-dQ3VNQRscINp6tZgYEeXT4BbtMQC84Q1P617OjXFA5PI6Rey+Knt8oyLjigg7D+T
-LI40HhyDutYLmYt5lBpArN+K5kgWqugTzk5dse9qA/r9pP9GJSERg3PBXJ3ZDUfq
-Qk1bCN3KJxjXcuhocoXHTPoZDRaORZg/NMx8hQ+n1ocW24FXpGCo2V7lu7C4ipJg
-p4hgE6Jvx27llEQyjqgn+GF5BRAmzgNYhp3mbeLEXFssT0rBNKHPM0duMsPlJoHw
-r6mxpmye0EOlu/yPBUNLIRQcRZ3SNZHCIDW8Mq57pL/56RMYfX8S/JpwKSgVVGI0
-XE7cQPF4A4ov67ujbjHathrDd/jo1dDJ95WcsfEvTjXCDFMXk1PiAg/llJgs/XGG
-2lKfp19aLm/OuvRk7h3Vfq+l2Yul5Buyeif/0RpuDtCxfR6Os691IQSAPTeoFZV/
-aETteCaTmEqM45DAFRN9rbVIjM4haaTAJbcrBfFNj2Hjak6OF0eF5pdU5tm0XEfF
-pRUk/5tUJdxrqYdw14y8vbfqfFvALPt7Af1eIT4lYgO0YjyOgRzDkgOOncB5auIW
-nuumatvBmjCfzvnzvdJHfscMYlfYRTMngc8i18vNiKEwtTtBSSf4s8dMqwoISU/D
-ZHdZduOOY0/cJlDvWD1W
-=BQ2i
+iQIcBAABAgAGBQJPZwh6AAoJEPo9qoy8lh71N/YP/Alqo2mp0ywNElPpoaeGHbsS
+frg3hgJRV5IdCmgvvnvcTt1OZyAYkPjDjDoXHY1XnSEkiOaMsTjG7b47a7Jg8Bve
+ujoIs7UeZWTovaXpqkeZf7pa+3L7dDj6lNk9jNA6BgXiBa3/hHEnP8jdlYubr+pO
+OQAtZ2MgmNv6qZhC0tqEVaou1vHsIrIr07poeeNFsFzcOn/BtU+uHF3wO61wyhRG
+Rf9LMVbVeHhGVtUFKsQgryYa1W6bIjyOhkXBBwJPweMB6Xv33I8IhdkwHVAUpNwL
+you6UCfpw/r7kiunSXUORQ6IaOGPIz8rtLGMZ90bEIM2GgX/DKiEtu433ECw9Fej
+QHRnUEnEsPZoZj8v5Q/0430dzyqR5pNEGhwatrk5JdyJkEePxu1R8SRJAYz5vE1k
+8bpI+m5nbjnpKGZ2nb2oNRJ8e265fWCP7aKr3oGW8kzxm6/46MmkaVdBtSyxfUDK
+t4reKQejG99sgSFhqZ/8ho49vDey7P2S3qv31gmdMei5d0voHN37hzYA82d1K65/
+/olfEBkGWMz4Ao69BgXJU9qn9O3mZC+vVbOuVkijydP8iGOhaRxozTT4SiNkU2Vy
+hVe2DhkWufJYXSodDqklk0Z6WNAwnNeeD1BE8IoQ+oRLPZWEmdqvFoEbG3kR0QPS
+9cdAzYjQP3OwF5RyZivG
+=COjQ
 -----END PGP SIGNATURE-----
 
---cmJC7u66zC7hs+87--
+--=-3qN3AVG+xpfCg9mgKwJR--
+
