@@ -1,135 +1,45 @@
-From: "Cousson, Benoit" <b-cousson@ti.com>
+From: Jassi Brar <jassisinghbrar@gmail.com>
 Subject: Re: [PATCH] of: Add generic device tree DMA helpers
-Date: Mon, 19 Mar 2012 18:49:18 +0100
-Message-ID: <4F67719E.7040403@ti.com>
-References: <4F22DEF2.5000807@ti.com> <20120317094059.7C2333E08E2@localhost> <4F6734DD.3020203@atmel.com> <201203191406.35064.arnd@arndb.de> <20120319153334.GF16389@n2100.arm.linux.org.uk> <4F675F64.6070306@atmel.com>
+Date: Mon, 19 Mar 2012 23:36:31 +0530
+Message-ID: <CABb+yY3cJZO_A+Z5vtOkyt5XEX7exhPk5ZG8Mm35n3DFryBk5w@mail.gmail.com>
+References: <4F22DEF2.5000807@ti.com>
+	<201203191406.35064.arnd@arndb.de>
+	<20120319153334.GF16389@n2100.arm.linux.org.uk>
+	<201203191611.59064.arnd@arndb.de>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="ISO-8859-1"; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=UTF-8
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from arroyo.ext.ti.com ([192.94.94.40]:56831 "EHLO arroyo.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752105Ab2CSRtp (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Mon, 19 Mar 2012 13:49:45 -0400
-In-Reply-To: <4F675F64.6070306@atmel.com>
+Received: from mail-bk0-f46.google.com ([209.85.214.46]:39001 "EHLO
+	mail-bk0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755761Ab2CSSGc (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 19 Mar 2012 14:06:32 -0400
+Received: by bkcik5 with SMTP id ik5so4511161bkc.19
+        for <linux-omap@vger.kernel.org>; Mon, 19 Mar 2012 11:06:31 -0700 (PDT)
+In-Reply-To: <201203191611.59064.arnd@arndb.de>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Nicolas Ferre <nicolas.ferre@atmel.com>
-Cc: Russell King - ARM Linux <linux@arm.linux.org.uk>, Arnd Bergmann <arnd@arndb.de>, Grant Likely <grant.likely@secretlab.ca>, rob.herring@calxeda.com, devicetree-discuss@lists.ozlabs.org, linux-arm-kernel@lists.infradead.org, Stephen Warren <swarren@nvidia.com>, linux-omap@vger.kernel.org
+To: Arnd Bergmann <arnd@arndb.de>
+Cc: Russell King - ARM Linux <linux@arm.linux.org.uk>, Stephen Warren <swarren@nvidia.com>, Benoit Cousson <b-cousson@ti.com>, Vinod Koul <vinod.koul@intel.com>, devicetree-discuss@lists.ozlabs.org, Nicolas Ferre <nicolas.ferre@atmel.com>, rob.herring@calxeda.com, Grant Likely <grant.likely@secretlab.ca>, Thomas Abraham <thomas.abraham@linaro.org>, Dan Williams <dan.j.williams@intel.com>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 
-Hi Nico,
-
-On 3/19/2012 5:31 PM, Nicolas Ferre wrote:
-> On 03/19/2012 04:33 PM, Russell King - ARM Linux :
->> On Mon, Mar 19, 2012 at 02:06:34PM +0000, Arnd Bergmann wrote:
->>> ==== mmci ====
->>> /* in drivers/dma/ste_dma40.c, others in pl330.c, coh901318.c, ... */
->>> bool stedma40_filter(struct dma_chan *chan, void *data)
->>> {
->>>          struct stedma40_chan_cfg *info = data;
->>>          struct d40_chan *d40c = container_of(chan, struct d40_chan, chan);
->>>          int err;
->>>
->>>          err = d40_validate_conf(d40c, info);
->>>          if (!err)
->>>                  d40c->dma_cfg = *info;
->>>          d40c->configured = true;
->>>
->>>          return err == 0;
->>> }
->>> EXPORT_SYMBOL(stedma40_filter);
->>>
->>> /* in mmci.h */
->>> struct mmci_platform_data {
->>> 	...
->>>          bool (*dma_filter)(struct dma_chan *chan, void *filter_param);
->>>          void *dma_rx_param;
->>>          void *dma_tx_param;
->>> };
->>>
->>> /* in mmci.c */
->>> static void __devinit mmci_dma_setup(struct mmci_host *host)
->>> {
->>> 	...
->>>          host->dma_rx_channel = dma_request_channel(mask, plat->dma_filter, plat->dma_rx_param);
->>> 	...
->>> }
->>>
->>> ====
->>>
->>> Whatever we come up with obviously needs to work with both drivers.
->>> I think we will end up with something closer to the second one, except
->>> that the dma parameters do not come from platform_data but from the
->>> #dma-request property, which also identifies the controller and channel.
->>
->> Firstly, define what you mean by "the DMA parameters".  Things like burst
->> size, register width, register address?  That should all be known by the
->> peripheral driver and _not_ be encoded into DT in any way - and this
->> information should be passed to the DMA engine driver for the well defined
->> API for that purpose.
->>
+On Mon, Mar 19, 2012 at 9:41 PM, Arnd Bergmann <arnd@arndb.de> wrote:
+>
 >> Secondly, there are platforms (Samsung) where peripherals are connected
 >> to more than one DMA controller, and either DMA controller can be used -
 >> I'm told by Jassi that there's reasons why you'd want to select one or
 >> other as the target at runtime.
->>
->> Whether it's appropriate for DT to know that or not, I'm not certain at
->> the moment - I suspect the _right_ solution would be a radical DMA engine
->> redesign which moves _all_ slave DMA to a virtual channel representation,
->> and for the virtual channels to be scheduled onto a set of physical DMA
->> channels over a range of DMA devices.  Obviously, there's restrictions on
->> which virtual channels could be scheduled onto which physical channels of
->> which DMA devices.
 >
-> OMG! the dmaengine drivers are already not so obvious to understand. I
-> fear that trying to mimic some special behaviors within relatively
-> simple dmaengine drivers will bring confusion and prevent people to
-> read/contribute and fix those simple ones...
+> How common is that? If there are only a few drivers that have this
+> requirement, we could have this represented in the driver binding, by
+> listing multiple channels and giving the device the choice.
 >
->> It seems to me, therefore, that any attempt to come up with some kind of
->> DT based representation of the current scheme is doomed to fail, and will
->> at some point become obsolete.
->>
->> I think instead, rather than trying to fix this now, we persist with what
->> we have, but organize an effort to clean up and restructure the DMA engine
->> code so that:
->>
->> (a) things like the Samsung, and ARM board oddities can be easily dealt
->>   with in a driver independent manner.
->> (b) get rid of all the duplicated functionality between each different
->>   DMA engine implementation, separating this out into core code, and
->>   simplifying the drivers.
->>
->> The _big_ problem I see is that if we try to represent the existing
->> solution in DT, we're going to get locked into that way of doing things
->> and then any major restructuring of the DMA engine stuff will become an
->> impossibility - especially if we start specifying things by DMA request
->> signal numbers on DMA engines.
->
-> Even if I understand your point, I wonder what is the solution for us
-> that have a pretty simple representation of *hardware* to code into DT:
-> should we wait for a big rework? Should we go for a private DMA binding
-> for each of us that have just the need for a quite simple representation?
->
-> I must say that I am puzzled by recent discussion on the topic (mix of
-> "channel" and "request" notions, plan for a complete rework of dmaengine
-> that can delay DT representation of DMA slave-controller relationship,
-> even my own doubts on the "void *" output parameter, etc.). It seems
-> that I am not familiar with all those cases and that I cannot go further
-> with a generic DT representation...
+All Samsung SoCs (last ~4yrs) with PL330 have some peripherals
+that could be served by more than one PL330 instance.
+The requirement is not from any driver and it is nothing Samsung specific.
+Any platform with 1:n client:dmac might want to do stuff like serving
+a new channel request from an already active DMAC, rather than
+invoking otherwise fully idle one.
+Similarly for Mem->Mem, the PL330 distributes its cycles between
+active channels, so a platform might want channel allocation uniformly
+across PL330 instances.
 
-I do agree that it appears that some DMA controllers are way more 
-complex that the one we were trying to support.
-On OMAP, the DMA channels and the DMA requests are completely 
-orthogonal, and thus I do not have to provide any information about the 
-channel in the DT binding since the SW can affect any request to any 
-channel.
-Reading the various points from Russell and Arnd, it seems that this is 
-not always the case :-(
-I guess this is probably the main cause of confusion in this discussion.
-
-So I do not know either how we can progress further on that without a 
-clear understanding of what all these DMA controllers are capable of.
-
-Regards,
-Benoit
+-jassi
