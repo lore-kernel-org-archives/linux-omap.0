@@ -1,20 +1,20 @@
 From: Sergei Shtylyov <sshtylyov@mvista.com>
-Subject: Re: [PATCH 2/5 RESEND] ARM: OMAP: USB: Build the USB HOST TLL omap
- device
-Date: Mon, 19 Mar 2012 14:53:14 +0400
-Message-ID: <4F67101A.6050304@mvista.com>
-References: <1332139715-1495-1-git-send-email-keshava_mgowda@ti.com> <1332139715-1495-2-git-send-email-keshava_mgowda@ti.com> <1332139715-1495-3-git-send-email-keshava_mgowda@ti.com>
+Subject: Re: [PATCH 4/5 RESEND] ARM: OMAP: USB: Invoke the TLL driver from
+ USB HS core driver
+Date: Mon, 19 Mar 2012 14:59:32 +0400
+Message-ID: <4F671194.6050209@mvista.com>
+References: <1332139715-1495-1-git-send-email-keshava_mgowda@ti.com> <1332139715-1495-2-git-send-email-keshava_mgowda@ti.com> <1332139715-1495-3-git-send-email-keshava_mgowda@ti.com> <1332139715-1495-4-git-send-email-keshava_mgowda@ti.com> <1332139715-1495-5-git-send-email-keshava_mgowda@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=ISO-8859-1; format=flowed
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-bk0-f46.google.com ([209.85.214.46]:65354 "EHLO
+Received: from mail-bk0-f46.google.com ([209.85.214.46]:36599 "EHLO
 	mail-bk0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756175Ab2CSKyk (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 19 Mar 2012 06:54:40 -0400
-Received: by bkcik5 with SMTP id ik5so4150029bkc.19
-        for <linux-omap@vger.kernel.org>; Mon, 19 Mar 2012 03:54:39 -0700 (PDT)
-In-Reply-To: <1332139715-1495-3-git-send-email-keshava_mgowda@ti.com>
+	with ESMTP id S1756654Ab2CSLA6 (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 19 Mar 2012 07:00:58 -0400
+Received: by bkcik5 with SMTP id ik5so4155158bkc.19
+        for <linux-omap@vger.kernel.org>; Mon, 19 Mar 2012 04:00:57 -0700 (PDT)
+In-Reply-To: <1332139715-1495-5-git-send-email-keshava_mgowda@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: Keshava Munegowda <keshava_mgowda@ti.com>
@@ -26,39 +26,30 @@ On 19-03-2012 10:48, Keshava Munegowda wrote:
 
 > From: Keshava Munegowda<Keshava_mgowda@ti.com>
 
-> The hwmod of the usb tll is retrieved and omap device build is
-> performed to created the platform device for the usb tll component.
+> The usbhs driver invokes the enable/disable APIs of the
+> usb tll driver in the runtime resume/suspend callbacks
+> of the runtime get sync and put sync of the usbhs driver.
 
 > Signed-off-by: Keshava Munegowda<keshava_mgowda@ti.com>
 > Reviewed-by: Partha Basak<parthab@india.ti.com>
 > ---
->   arch/arm/mach-omap2/usb-host.c |   28 ++++++++++++++++++++--------
->   1 files changed, 20 insertions(+), 8 deletions(-)
+>   arch/arm/plat-omap/include/plat/usb.h |    1 +
+>   drivers/mfd/omap-usb-host.c           |    7 +++++--
+>   2 files changed, 6 insertions(+), 2 deletions(-)
 
-> diff --git a/arch/arm/mach-omap2/usb-host.c b/arch/arm/mach-omap2/usb-host.c
-> index f51348d..dc6769a 100644
-> --- a/arch/arm/mach-omap2/usb-host.c
-> +++ b/arch/arm/mach-omap2/usb-host.c
+> diff --git a/drivers/mfd/omap-usb-host.c b/drivers/mfd/omap-usb-host.c
+> index 4de87c6..9d84339 100644
+> --- a/drivers/mfd/omap-usb-host.c
+> +++ b/drivers/mfd/omap-usb-host.c
 [...]
-> @@ -510,25 +512,35 @@ void __init usbhs_init(const struct usbhs_omap_board_data *pdata)
-[...]
-> -	pdev = omap_device_build_ss(OMAP_USBHS_DEVICE, bus_id, oh, 2,
-> +	pdev = omap_device_build(OMAP_USBTLL_DEVICE, bus_id, tll_hwm,
-> +				(void *)&usbtll_data, sizeof(usbtll_data),
+> @@ -655,8 +656,10 @@ static int __init omap_usbhs_drvinit(void)
+>   * init before ehci and ohci drivers;
+>   * The usbhs core driver should be initialized much before
+>   * the omap ehci and ohci probe functions are called.
+> + * this usbhs core driver should be initialized after
 
-    There's no need to explicitly cast to 'void *'. The cast is automatic.
+    s/this/This/
 
-> +				omap_uhhtll_latency,
-> +				ARRAY_SIZE(omap_uhhtll_latency), false);
-> +	if (IS_ERR(pdev)) {
-> +		pr_err("Could not build hwmod device %s\n",
-> +			USBHS_TLL_HWMODNAME);
-> +		return;
-> +	}
-> +
-> +	pdev = omap_device_build(OMAP_USBHS_DEVICE, bus_id, uhh_hwm,
->   				(void *)&usbhs_data, sizeof(usbhs_data),
-
-    Same here.
+> + * usb tll driver.
 
 WBR, Sergei
