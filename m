@@ -1,285 +1,280 @@
 From: jean.pihet@newoldbits.com
-Subject: [PATCH 4/9] ARM: OMAP2+: smartreflex: Use the names from hwmod data instead of voltage domains.
-Date: Mon, 19 Mar 2012 17:12:53 +0100
-Message-ID: <1332173578-27422-5-git-send-email-j-pihet@ti.com>
+Subject: [PATCH 7/9] ARM: OMAP2+: SmartReflex: Use per-OPP data structure
+Date: Mon, 19 Mar 2012 17:12:56 +0100
+Message-ID: <1332173578-27422-8-git-send-email-j-pihet@ti.com>
 References: <1332173578-27422-1-git-send-email-j-pihet@ti.com>
-Return-path: <linux-kernel-owner@vger.kernel.org>
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from mail-wi0-f178.google.com ([209.85.212.178]:60361 "EHLO
+	mail-wi0-f178.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1161566Ab2CSQNb (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 19 Mar 2012 12:13:31 -0400
+Received: by mail-wi0-f178.google.com with SMTP id hq7so4075457wib.1
+        for <linux-omap@vger.kernel.org>; Mon, 19 Mar 2012 09:13:30 -0700 (PDT)
 In-Reply-To: <1332173578-27422-1-git-send-email-j-pihet@ti.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Kevin Hilman <khilman@ti.com>, "Rafael J. Wysocki" <rjw@sisk.pl>, LKML <linux-kernel@vger.kernel.org>
-Cc: Jean Pihet <j-pihet@ti.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Kevin Hilman <khilman@ti.com>, "Rafael J. Wysocki" <rjw@sisk.pl>, LKML <linux-kernel@vger.kernel.org>
+Cc: Jean Pihet <j-pihet@ti.com>, Paul Walmsley <paul@pwsan.com>, Thara Gopinath <thara@ti.com>, Nishanth Menon <nm@ti.com>
 
 From: Jean Pihet <j-pihet@ti.com>
 
-Associate a name with each SmartReflex instance from the hwmod data,
-rather than attempting to reuse the name of a voltage domain. The name
-from hwmod better reflects the smartreflex integration in the system.
+The SmartReflex driver incorrectly treats some per-OPP data as data
+common to all OPPs (e.g., ERRMINLIMIT).  Move this data into a per-OPP
+data structure.
+The SmartReflex driver should not be dependent on whether the host SoC
+uses eFuses to store SmartReflex parameters or not.  (Even SoCs that
+do store SR data in eFuses often need to override that data with
+software-defined values.)  So, convert sr_retrieve_nvalue() to look up
+per-OPP data by the OPP's nominal voltage, rather than by the eFuse
+offset.
 
-Also have the name passed to the drivers using pdata, which helps to remove
-any dependencies on SoC-specific structures.
+While at it:
+ . tidy up the code wrt default values in the data tables,
+ . remove the global errminlimit debugfs entry and create per-voltage
+   entries from the data tables.
+
+Furthermore, in order to make the SmartReflex implementation ready for
+the move to drivers/, remove the dependency from the SR driver code
+to the voltage layer by querying the data tables only from the SR device
+init code.
+
+Based on Paul's original code for the SmartReflex driver conversion.
 
 Signed-off-by: Jean Pihet <j-pihet@ti.com>
+Cc: Paul Walmsley <paul@pwsan.com>
+Cc: Thara Gopinath <thara@ti.com>
+Cc: Nishanth Menon <nm@ti.com>
+Cc: Kevin Hilman <khilman@ti.com>
 ---
- arch/arm/mach-omap2/smartreflex-class3.c |    4 +-
- arch/arm/mach-omap2/smartreflex.c        |   65 ++++++++++++------------------
- arch/arm/mach-omap2/sr_device.c          |    1 +
- include/linux/power/smartreflex.h        |    3 +
- 4 files changed, 32 insertions(+), 41 deletions(-)
+ arch/arm/mach-omap2/smartreflex.c |   57 +++++++++++++++---------------------
+ arch/arm/mach-omap2/sr_device.c   |   35 +++++++++++++++++++----
+ include/linux/power/smartreflex.h |    8 ++++-
+ 3 files changed, 59 insertions(+), 41 deletions(-)
 
-diff --git a/arch/arm/mach-omap2/smartreflex-class3.c b/arch/arm/mach-omap2/smartreflex-class3.c
-index 54ba048..f63c950 100644
---- a/arch/arm/mach-omap2/smartreflex-class3.c
-+++ b/arch/arm/mach-omap2/smartreflex-class3.c
-@@ -19,8 +19,8 @@ static int sr_class3_enable(struct omap_sr *sr)
- 	unsigned long volt = voltdm_get_voltage(sr->voltdm);
- 
- 	if (!volt) {
--		pr_warning("%s: Curr voltage unknown. Cannot enable sr_%s\n",
--				__func__, sr->voltdm->name);
-+		pr_warning("%s: Curr voltage unknown. Cannot enable %s\n",
-+				__func__, sr->name);
- 		return -ENODATA;
- 	}
- 
 diff --git a/arch/arm/mach-omap2/smartreflex.c b/arch/arm/mach-omap2/smartreflex.c
-index dbb6a0c..c18d47d 100644
+index 5f3faf3..71f70ca 100644
 --- a/arch/arm/mach-omap2/smartreflex.c
 +++ b/arch/arm/mach-omap2/smartreflex.c
-@@ -184,7 +184,7 @@ static void sr_set_regfields(struct omap_sr *sr)
- 		sr->err_weight = OMAP3430_SR_ERRWEIGHT;
- 		sr->err_maxlimit = OMAP3430_SR_ERRMAXLIMIT;
- 		sr->accum_data = OMAP3430_SR_ACCUMDATA;
--		if (!(strcmp(sr->voltdm->name, "mpu"))) {
-+		if (!(strcmp(sr->name, "sr1"))) {
- 			sr->senn_avgweight = OMAP3430_SR1_SENNAVGWEIGHT;
- 			sr->senp_avgweight = OMAP3430_SR1_SENPAVGWEIGHT;
- 		} else {
-@@ -235,19 +235,13 @@ static void sr_stop_vddautocomp(struct omap_sr *sr)
-  */
- static int sr_late_init(struct omap_sr *sr_info)
+@@ -348,22 +348,24 @@ static void sr_v2_disable(struct omap_sr *sr)
+ 	sr_write_reg(sr, IRQSTATUS, IRQSTATUS_MCUDISABLEACKINT);
+ }
+ 
+-static u32 sr_retrieve_nvalue(struct omap_sr *sr, u32 efuse_offs)
++static struct omap_sr_nvalue_table *sr_retrieve_nvalue_row(
++				struct omap_sr *sr,
++				unsigned long volt_nominal)
  {
--	char *name;
- 	struct omap_sr_data *pdata = sr_info->pdev->dev.platform_data;
- 	struct resource *mem;
- 	int ret = 0;
+ 	int i;
  
- 	if (sr_class->notify && sr_class->notify_flags && sr_info->irq) {
--		name = kasprintf(GFP_KERNEL, "sr_%s", sr_info->voltdm->name);
--		if (name == NULL) {
--			ret = -ENOMEM;
--			goto error;
--		}
- 		ret = request_irq(sr_info->irq, sr_interrupt,
--				0, name, sr_info);
-+				  0, sr_info->name, sr_info);
- 		if (ret)
- 			goto error;
- 		disable_irq(sr_info->irq);
-@@ -266,7 +260,6 @@ error:
- 	dev_err(&sr_info->pdev->dev, "%s: ERROR in registering"
- 		"interrupt handler. Smartreflex will"
- 		"not function as desired\n", __func__);
--	kfree(name);
- 	kfree(sr_info);
- 
- 	return ret;
-@@ -396,8 +389,7 @@ int sr_configure_errgen(struct voltagedomain *voltdm)
- 	struct omap_sr *sr = _sr_lookup(voltdm);
- 
- 	if (IS_ERR(sr)) {
--		pr_warning("%s: omap_sr struct for sr_%s not found\n",
--			__func__, voltdm->name);
-+		pr_warning("%s: omap_sr struct for voltdm not found\n",	__func__);
- 		return PTR_ERR(sr);
+ 	if (!sr->nvalue_table) {
+ 		dev_warn(&sr->pdev->dev, "%s: Missing ntarget value table\n",
+ 			__func__);
+-		return 0;
++		return NULL;
  	}
  
-@@ -464,8 +456,7 @@ int sr_disable_errgen(struct voltagedomain *voltdm)
- 	struct omap_sr *sr = _sr_lookup(voltdm);
- 
- 	if (IS_ERR(sr)) {
--		pr_warning("%s: omap_sr struct for sr_%s not found\n",
--			__func__, voltdm->name);
-+		pr_warning("%s: omap_sr struct for voltdm not found\n",	__func__);
- 		return PTR_ERR(sr);
+ 	for (i = 0; i < sr->nvalue_count; i++) {
+-		if (sr->nvalue_table[i].efuse_offs == efuse_offs)
+-			return sr->nvalue_table[i].nvalue;
++		if (sr->nvalue_table[i].volt_nominal == volt_nominal)
++			return &sr->nvalue_table[i];
  	}
  
-@@ -515,8 +506,7 @@ int sr_configure_minmax(struct voltagedomain *voltdm)
+-	return 0;
++	return NULL;
+ }
+ 
+ /* Public Functions */
+@@ -585,9 +587,8 @@ int sr_configure_minmax(struct voltagedomain *voltdm)
+  */
+ int sr_enable(struct voltagedomain *voltdm, unsigned long volt)
+ {
+-	struct omap_volt_data *volt_data;
  	struct omap_sr *sr = _sr_lookup(voltdm);
- 
- 	if (IS_ERR(sr)) {
--		pr_warning("%s: omap_sr struct for sr_%s not found\n",
--			__func__, voltdm->name);
-+		pr_warning("%s: omap_sr struct for voltdm not found\n",	__func__);
- 		return PTR_ERR(sr);
- 	}
- 
-@@ -601,8 +591,7 @@ int sr_enable(struct voltagedomain *voltdm, unsigned long volt)
+-	u32 nvalue_reciprocal;
++	struct omap_sr_nvalue_table *nvalue_row;
  	int ret;
  
  	if (IS_ERR(sr)) {
--		pr_warning("%s: omap_sr struct for sr_%s not found\n",
--			__func__, voltdm->name);
-+		pr_warning("%s: omap_sr struct for voltdm not found\n",	__func__);
+@@ -595,24 +596,16 @@ int sr_enable(struct voltagedomain *voltdm, unsigned long volt)
  		return PTR_ERR(sr);
  	}
  
-@@ -655,8 +644,7 @@ void sr_disable(struct voltagedomain *voltdm)
- 	struct omap_sr *sr = _sr_lookup(voltdm);
- 
- 	if (IS_ERR(sr)) {
--		pr_warning("%s: omap_sr struct for sr_%s not found\n",
--			__func__, voltdm->name);
-+		pr_warning("%s: omap_sr struct for voltdm not found\n",	__func__);
- 		return;
+-	volt_data = omap_voltage_get_voltdata(sr->voltdm, volt);
+-
+-	if (IS_ERR(volt_data)) {
+-		dev_warn(&sr->pdev->dev, "%s: Unable to get voltage table"
+-			"for nominal voltage %ld\n", __func__, volt);
+-		return PTR_ERR(volt_data);
+-	}
+-
+-	nvalue_reciprocal = sr_retrieve_nvalue(sr, volt_data->sr_efuse_offs);
+-
+-	if (!nvalue_reciprocal) {
+-		dev_warn(&sr->pdev->dev, "%s: NVALUE = 0 at voltage %ld\n",
+-			__func__, volt);
++	nvalue_row = sr_retrieve_nvalue_row(sr, volt);
++	if (!nvalue_row) {
++		dev_warn(&sr->pdev->dev, "%s: failure getting SR data for this voltage %ld\n",
++			 __func__, volt);
+ 		return -ENODATA;
  	}
  
-@@ -736,8 +724,7 @@ void omap_sr_enable(struct voltagedomain *voltdm)
- 	struct omap_sr *sr = _sr_lookup(voltdm);
++
+ 	/* errminlimit is opp dependent and hence linked to voltage */
+-	sr->err_minlimit = volt_data->sr_errminlimit;
++	sr->err_minlimit = nvalue_row->errminlimit;
  
- 	if (IS_ERR(sr)) {
--		pr_warning("%s: omap_sr struct for sr_%s not found\n",
--			__func__, voltdm->name);
-+		pr_warning("%s: omap_sr struct for voltdm not found\n",	__func__);
- 		return;
- 	}
+ 	pm_runtime_get_sync(&sr->pdev->dev);
  
-@@ -769,8 +756,7 @@ void omap_sr_disable(struct voltagedomain *voltdm)
- 	struct omap_sr *sr = _sr_lookup(voltdm);
+@@ -625,7 +618,7 @@ int sr_enable(struct voltagedomain *voltdm, unsigned long volt)
+ 	if (ret)
+ 		return ret;
  
- 	if (IS_ERR(sr)) {
--		pr_warning("%s: omap_sr struct for sr_%s not found\n",
--			__func__, voltdm->name);
-+		pr_warning("%s: omap_sr struct for voltdm not found\n",	__func__);
- 		return;
- 	}
+-	sr_write_reg(sr, NVALUERECIPROCAL, nvalue_reciprocal);
++	sr_write_reg(sr, NVALUERECIPROCAL, nvalue_row->nvalue);
  
-@@ -802,8 +788,7 @@ void omap_sr_disable_reset_volt(struct voltagedomain *voltdm)
- 	struct omap_sr *sr = _sr_lookup(voltdm);
- 
- 	if (IS_ERR(sr)) {
--		pr_warning("%s: omap_sr struct for sr_%s not found\n",
--			__func__, voltdm->name);
-+		pr_warning("%s: omap_sr struct for voltdm not found\n",	__func__);
- 		return;
- 	}
- 
-@@ -890,7 +875,6 @@ static int __init omap_sr_probe(struct platform_device *pdev)
+ 	/* SRCONFIG - enable SR */
+ 	sr_modify_reg(sr, SRCONFIG, SRCONFIG_SRENABLE, SRCONFIG_SRENABLE);
+@@ -873,7 +866,6 @@ static int __init omap_sr_probe(struct platform_device *pdev)
+ 	struct omap_sr_data *pdata = pdev->dev.platform_data;
+ 	struct resource *mem, *irq;
  	struct dentry *nvalue_dir;
- 	struct omap_volt_data *volt_data;
+-	struct omap_volt_data *volt_data;
  	int i, ret = 0;
--	char *name;
  
  	sr_info = kzalloc(sizeof(struct omap_sr), GFP_KERNEL);
- 	if (!sr_info) {
-@@ -927,6 +911,14 @@ static int __init omap_sr_probe(struct platform_device *pdev)
- 	pm_runtime_enable(&pdev->dev);
- 	pm_runtime_irq_safe(&pdev->dev);
+@@ -980,8 +972,6 @@ static int __init omap_sr_probe(struct platform_device *pdev)
+ 			&sr_info->err_weight);
+ 	(void) debugfs_create_x32("errmaxlimit", S_IRUGO, sr_info->dbg_dir,
+ 			&sr_info->err_maxlimit);
+-	(void) debugfs_create_x32("errminlimit", S_IRUGO, sr_info->dbg_dir,
+-			&sr_info->err_minlimit);
  
-+	sr_info->name = kasprintf(GFP_KERNEL, "sr_%s", pdata->name);
-+	if (!sr_info->name) {
-+		dev_err(&pdev->dev, "%s: Unable to alloc SR instance name\n",
-+			__func__);
-+		ret = -ENOMEM;
-+		goto err_release_region;
-+	}
-+
- 	sr_info->pdev = pdev;
- 	sr_info->srid = pdev->id;
- 	sr_info->voltdm = pdata->voltdm;
-@@ -974,20 +966,12 @@ static int __init omap_sr_probe(struct platform_device *pdev)
- 		}
+ 	nvalue_dir = debugfs_create_dir("nvalue", sr_info->dbg_dir);
+ 	if (IS_ERR_OR_NULL(nvalue_dir)) {
+@@ -991,12 +981,9 @@ static int __init omap_sr_probe(struct platform_device *pdev)
+ 		goto err_debugfs;
  	}
  
--	name = kasprintf(GFP_KERNEL, "sr_%s", sr_info->voltdm->name);
--	if (!name) {
--		dev_err(&pdev->dev, "%s: Unable to alloc debugfs name\n",
--			__func__);
--		ret = -ENOMEM;
--		goto err_iounmap;
--	}
--	sr_info->dbg_dir = debugfs_create_dir(name, sr_dbg_dir);
--	kfree(name);
-+	sr_info->dbg_dir = debugfs_create_dir(sr_info->name, sr_dbg_dir);
- 	if (IS_ERR_OR_NULL(sr_info->dbg_dir)) {
- 		dev_err(&pdev->dev, "%s: Unable to create debugfs directory\n",
- 			__func__);
- 		ret = PTR_ERR(sr_info->dbg_dir);
--		goto err_iounmap;
-+		goto err_free_name;
- 	}
- 
- 	(void) debugfs_create_file("autocomp", S_IRUGO | S_IWUSR,
-@@ -1009,10 +993,10 @@ static int __init omap_sr_probe(struct platform_device *pdev)
- 
- 	omap_voltage_get_volttable(sr_info->voltdm, &volt_data);
- 	if (!volt_data) {
--		dev_warn(&pdev->dev, "%s: No Voltage table for the"
--			" corresponding vdd vdd_%s. Cannot create debugfs"
-+		dev_warn(&pdev->dev, "%s: %s: No Voltage table for the"
-+			" corresponding vdd. Cannot create debugfs"
- 			"entries for n-values\n",
--			__func__, sr_info->voltdm->name);
-+			__func__, sr_info->name);
+-	omap_voltage_get_volttable(sr_info->voltdm, &volt_data);
+-	if (!volt_data) {
+-		dev_warn(&pdev->dev, "%s: %s: No Voltage table for the"
+-			" corresponding vdd. Cannot create debugfs"
+-			"entries for n-values\n",
+-			__func__, sr_info->name);
++	if (sr_info->nvalue_count == 0 || !sr_info->nvalue_table) {
++		dev_warn(&pdev->dev, "%s: %s: No Voltage table for the corresponding vdd. Cannot create debugfs entries for n-values\n",
++			 __func__, sr_info->name);
  		ret = -ENODATA;
  		goto err_debugfs;
  	}
-@@ -1030,6 +1014,8 @@ static int __init omap_sr_probe(struct platform_device *pdev)
+@@ -1004,10 +991,14 @@ static int __init omap_sr_probe(struct platform_device *pdev)
+ 	for (i = 0; i < sr_info->nvalue_count; i++) {
+ 		char name[NVALUE_NAME_LEN + 1];
  
- err_debugfs:
- 	debugfs_remove_recursive(sr_info->dbg_dir);
-+err_free_name:
-+	kfree(sr_info->name);
- err_iounmap:
- 	list_del(&sr_info->node);
- 	iounmap(sr_info->base);
-@@ -1066,6 +1052,7 @@ static int __devexit omap_sr_remove(struct platform_device *pdev)
- 
- 	list_del(&sr_info->node);
- 	iounmap(sr_info->base);
-+	kfree(sr_info->name);
- 	kfree(sr_info);
- 	mem = platform_get_resource(pdev, IORESOURCE_MEM, 0);
- 	release_mem_region(mem->start, resource_size(mem));
-diff --git a/arch/arm/mach-omap2/sr_device.c b/arch/arm/mach-omap2/sr_device.c
-index 86e438e..e081174 100644
---- a/arch/arm/mach-omap2/sr_device.c
-+++ b/arch/arm/mach-omap2/sr_device.c
-@@ -93,6 +93,7 @@ static int __init sr_dev_init(struct omap_hwmod *oh, void *user)
- 		goto exit;
+-		snprintf(name, sizeof(name), "volt_%d",
+-			 volt_data[i].volt_nominal);
++		snprintf(name, sizeof(name), "volt_%lu",
++			 sr_info->nvalue_table[i].volt_nominal);
+ 		(void) debugfs_create_x32(name, S_IRUGO | S_IWUSR, nvalue_dir,
+ 				&(sr_info->nvalue_table[i].nvalue));
++		snprintf(name, sizeof(name), "errminlimit_%lu",
++			 sr_info->nvalue_table[i].volt_nominal);
++		(void) debugfs_create_x32(name, S_IRUGO | S_IWUSR, nvalue_dir,
++				&(sr_info->nvalue_table[i].errminlimit));
  	}
  
-+	sr_data->name = oh->name;
- 	sr_data->ip_type = oh->class->rev;
- 	sr_data->senn_mod = 0x1;
- 	sr_data->senp_mod = 0x1;
+ 	return ret;
+diff --git a/arch/arm/mach-omap2/sr_device.c b/arch/arm/mach-omap2/sr_device.c
+index e081174..67d967e 100644
+--- a/arch/arm/mach-omap2/sr_device.c
++++ b/arch/arm/mach-omap2/sr_device.c
+@@ -36,7 +36,10 @@ static void __init sr_set_nvalues(struct omap_volt_data *volt_data,
+ 				struct omap_sr_data *sr_data)
+ {
+ 	struct omap_sr_nvalue_table *nvalue_table;
+-	int i, count = 0;
++	int i, j, count = 0;
++
++	sr_data->nvalue_count = 0;
++	sr_data->nvalue_table = NULL;
+ 
+ 	while (volt_data[count].volt_nominal)
+ 		count++;
+@@ -44,8 +47,14 @@ static void __init sr_set_nvalues(struct omap_volt_data *volt_data,
+ 	nvalue_table = kzalloc(sizeof(struct omap_sr_nvalue_table)*count,
+ 			GFP_KERNEL);
+ 
+-	for (i = 0; i < count; i++) {
++	if (!nvalue_table) {
++		pr_err("OMAP: SmartReflex: cannot allocate memory for n-value table\n");
++		return;
++	}
++
++	for (i = 0, j = 0; i < count; i++) {
+ 		u32 v;
++
+ 		/*
+ 		 * In OMAP4 the efuse registers are 24 bit aligned.
+ 		 * A __raw_readl will fail for non-32 bit aligned address
+@@ -58,15 +67,29 @@ static void __init sr_set_nvalues(struct omap_volt_data *volt_data,
+ 				omap_ctrl_readb(offset + 1) << 8 |
+ 				omap_ctrl_readb(offset + 2) << 16;
+ 		} else {
+-			 v = omap_ctrl_readl(volt_data[i].sr_efuse_offs);
++			v = omap_ctrl_readl(volt_data[i].sr_efuse_offs);
+ 		}
+ 
+-		nvalue_table[i].efuse_offs = volt_data[i].sr_efuse_offs;
+-		nvalue_table[i].nvalue = v;
++		/*
++		 * Many OMAP SoCs don't have the eFuse values set.
++		 * For example, pretty much all OMAP3xxx before
++		 * ES3.something.
++		 *
++		 * XXX There needs to be some way for board files or
++		 * userspace to add these in.
++		 */
++		if (v == 0)
++			continue;
++
++		nvalue_table[j].nvalue = v;
++		nvalue_table[j].errminlimit = volt_data[i].sr_errminlimit;
++		nvalue_table[j].volt_nominal = volt_data[i].volt_nominal;
++
++		j++;
+ 	}
+ 
+ 	sr_data->nvalue_table = nvalue_table;
+-	sr_data->nvalue_count = count;
++	sr_data->nvalue_count = j;
+ }
+ 
+ static int __init sr_dev_init(struct omap_hwmod *oh, void *user)
 diff --git a/include/linux/power/smartreflex.h b/include/linux/power/smartreflex.h
-index cf292ac..e7dff08 100644
+index e7dff08..0f7c81b 100644
 --- a/include/linux/power/smartreflex.h
 +++ b/include/linux/power/smartreflex.h
-@@ -22,6 +22,7 @@
- #include <plat/voltage.h>
- 
- struct omap_sr {
-+	char				*name;
- 	struct list_head		node;
- 	struct platform_device		*pdev;
- 	struct omap_sr_nvalue_table	*nvalue_table;
-@@ -58,6 +59,7 @@ struct omap_sr_nvalue_table {
+@@ -48,12 +48,16 @@ struct omap_sr {
  /**
-  * struct omap_sr_data - Smartreflex platform data.
+  * struct omap_sr_nvalue_table	- Smartreflex n-target value info
   *
-+ * @name:		instance name
-  * @ip_type:		Smartreflex IP type.
-  * @senp_mod:		SENPENABLE value for the sr
-  * @senn_mod:		SENNENABLE value for sr
-@@ -69,6 +71,7 @@ struct omap_sr_nvalue_table {
-  * @voltdm:		Pointer to the voltage domain associated with the SR
+- * @efuse_offs:	The offset of the efuse where n-target values are stored.
+- * @nvalue:	The n-target value.
++ * @efuse_offs:	  The offset of the efuse where n-target values are stored.
++ * @nvalue:	  The n-target value.
++ * @errminlimit:  The value of the ERRMINLIMIT bitfield for this n-target
++ * @volt_nominal: microvolts DC that the VDD is initially programmed to
   */
- struct omap_sr_data {
-+	const char			*name;
- 	int				ip_type;
- 	u32				senp_mod;
- 	u32				senn_mod;
+ struct omap_sr_nvalue_table {
+ 	u32 efuse_offs;
+ 	u32 nvalue;
++	u32 errminlimit;
++	unsigned long volt_nominal;
+ };
+ 
+ /**
 -- 
 1.7.5.4
+
