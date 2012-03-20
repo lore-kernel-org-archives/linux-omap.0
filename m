@@ -1,36 +1,71 @@
-From: Shubhrajyoti <shubhrajyoti-l0cyMroinI0@public.gmane.org>
-Subject: Re: [PATCH 1/5 RESEND] ARM: OMAP: USB: HOST TLL platform driver
-Date: Tue, 20 Mar 2012 14:22:12 +0530
-Message-ID: <4F68453C.9040605@ti.com>
-References: <1332139715-1495-1-git-send-email-keshava_mgowda@ti.com>	<1332139715-1495-2-git-send-email-keshava_mgowda@ti.com>	<4F66FF47.7000800@ti.com> <CAP05o4+A7AZ0SmMLgCfbBHs+zhsN-c2zM8caYe8M3-OC3YmZzg@mail.gmail.com>
+From: jean-philippe francois <jp.francois@cynove.com>
+Subject: Troubleshooting DSPLINK example
+Date: Tue, 20 Mar 2012 09:55:50 +0100
+Message-ID: <CAGGh5h2Yh=fsi9vG2cF_AjqaR=8CVbPEdMfggZPRcxg1wKADjA@mail.gmail.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <CAP05o4+A7AZ0SmMLgCfbBHs+zhsN-c2zM8caYe8M3-OC3YmZzg-JsoAwUIsXosN+BqQ9rBEUg@public.gmane.org>
-Sender: linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: "Munegowda, Keshava" <keshava_mgowda-l0cyMroinI0@public.gmane.org>
-Cc: linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, balbi-l0cyMroinI0@public.gmane.org, sameo-VuQAYsv1563Yd54FQh9/CA@public.gmane.org, parthab-PpE0FKYn9XJWk0Htik3J/w@public.gmane.org, govindraj.raja-l0cyMroinI0@public.gmane.org, paul-DWxLp4Yu+b8AvxtiuMwx3w@public.gmane.org, b-cousson-l0cyMroinI0@public.gmane.org
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from mail-iy0-f174.google.com ([209.85.210.174]:60264 "EHLO
+	mail-iy0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S965094Ab2CTIzv convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 20 Mar 2012 04:55:51 -0400
+Received: by iagz16 with SMTP id z16so10712918iag.19
+        for <linux-omap@vger.kernel.org>; Tue, 20 Mar 2012 01:55:50 -0700 (PDT)
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: linux-omap@vger.kernel.org
 
-Hi Keshava,
+Hi,
 
-On Tuesday 20 March 2012 12:58 PM, Munegowda, Keshava wrote:<Snip>
->>> +}
->>> +
->>> +static const struct dev_pm_ops usbtllomap_dev_pm_ops = {
->>> +     .runtime_suspend        = usbtll_runtime_suspend,
->>> +     .runtime_resume         = usbtll_runtime_resume,
->>> +};
->>> +
->> Also how about using runtime_pm_ops ?
-> Sorry I din't get this? what exact alternative are you suggesting here?
+I am trying to have a working dsplink on a DM3730 based board.
+DVSDK is 4.03
+Kernel is the kernel provided by the DVSDK
 
-SET_RUNTIME_PM_OPS(usbtll_runtime_suspend,
-                                usbtll_runtime_resume, NULL)
+What happens is the __second__ test I run, if different from
+the first, fails with a MMU fault. The faulting adress vary, and is
+never a "valid" address, where valid means somewhere in the
+DSPLINK memory map. I checked the DSPLink Troubleshooting
+page [1], and everything seems ok to me. I did not change
+the memory map, but checked the tci file mentioned in [2], and
+my mem command line arg is mem=3D=3D55M which should be ok.
 
-I should have been clearer.
+What is strange is the first app run fine. For example in the following
+test runs (dsp is powered off between each run) :
+
+-- test # 1 --
+=2E/loopgpp ./loop.out 100 1000
+=2E/messagegpp ./message.out 2000 <-- faulting app
+
+-- test #2 --
+=2E/messagegpp ./message.out 2000
+=2E/loopgpp ./loop.out 100 1000 <-- faulting app
+
+-- test #3 --
+=2E/messagegpp ./message.out 2000
+=2E/messagegpp ./message.out 4000
+=2E/loopgpp ./loop.out 100 1000 <-- faulting app
+DSP MMU Error Fault!  MMU_IRQSTATUS =3D [0x1]. Virtual DSP addr
+reference that generated the interrupt =3D [0xbebebeb8].
+
+I think what leads to the MMU fault is the DSP is executing
+garbage with something like this going on :
+- DSP does not stop running, and when new code is loaded, at some point
+old and new code is mixed, leading to fault
+
+- Code loading works Ok, but there is a cache  or cache flush problem, =
+leading
+to old and new code being mixed.
+
+Thank you for reading this, any hint on what to test next is welcome.
+
+Jean-Philippe Fran=E7ois
+
+[1] http://processors.wiki.ti.com/index.php/Troubleshooting_DSPLink_con=
+figuration_issues
+[2] http://processors.wiki.ti.com/index.php/Changing_DSPLink_Memory_Map
 --
-To unsubscribe from this list: send the line "unsubscribe linux-usb" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
+n
+the body of a message to majordomo@vger.kernel.org
 More majordomo info at  http://vger.kernel.org/majordomo-info.html
