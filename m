@@ -1,46 +1,69 @@
 From: Tarun Kanti DebBarma <tarun.kanti@ti.com>
-Subject: [PATCH v4 RESEND 1/7] gpio/omap: fix wakeup_en register update in _set_gpio_wakeup()
-Date: Tue, 20 Mar 2012 16:23:13 +0530
-Message-ID: <1332240799-6748-2-git-send-email-tarun.kanti@ti.com>
+Subject: [PATCH v4 RESEND 2/7] gpio/omap: fix trigger type to unsigned
+Date: Tue, 20 Mar 2012 16:23:14 +0530
+Message-ID: <1332240799-6748-3-git-send-email-tarun.kanti@ti.com>
 References: <1332240799-6748-1-git-send-email-tarun.kanti@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from bear.ext.ti.com ([192.94.94.41]:52144 "EHLO bear.ext.ti.com"
+Received: from bear.ext.ti.com ([192.94.94.41]:52151 "EHLO bear.ext.ti.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1759668Ab2CTKxf (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Tue, 20 Mar 2012 06:53:35 -0400
+	id S1759682Ab2CTKxi (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Tue, 20 Mar 2012 06:53:38 -0400
 In-Reply-To: <1332240799-6748-1-git-send-email-tarun.kanti@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: linux-omap@vger.kernel.org
 Cc: khilman@ti.com, tony@atomide.com, b-cousson@ti.com, grant.likely@secretlab.ca, linux-arm-kernel@lists.infradead.org, Tarun Kanti DebBarma <tarun.kanti@ti.com>
 
-There are two ways through which wakeup_en register can be programmed
-using gpiolib APIs as shown below. It is seen that in the second case
-in _set_gpio_wakeup(), even though bank->suspend_wakeup is updated
-correctly, its value is not programmed in wakeup_en register. Fix this.
+The GPIO trigger parameter is of type unsigned.
+enum {
+        IRQ_TYPE_NONE           = 0x00000000,
+        IRQ_TYPE_EDGE_RISING    = 0x00000001,
+        IRQ_TYPE_EDGE_FALLING   = 0x00000002,
+        IRQ_TYPE_EDGE_BOTH      = (IRQ_TYPE_EDGE_FALLING | IRQ_TYPE_EDGE_RISING),
+        IRQ_TYPE_LEVEL_HIGH     = 0x00000004,
+        IRQ_TYPE_LEVEL_LOW      = 0x00000008,
+        IRQ_TYPE_LEVEL_MASK     = (IRQ_TYPE_LEVEL_LOW | IRQ_TYPE_LEVEL_HIGH),
+        IRQ_TYPE_SENSE_MASK     = 0x0000000f,
 
-irq_set_type()->gpio_irq_type()->_set_gpio_triggering()->set_gpio_trigger()
-irq_set_wake()->gpio_wake_enable()->_set_gpio_wakeup()
+        IRQ_TYPE_PROBE          = 0x00000010,
+...
+};
+Even though gpio_irq_type(struct irq_data *d, unsigned type) has the right type
+of parameter, the subsequent called functions set_gpio_triggering() and
+set_gpio_trigger() wrongly makes it signed integer. Fix this.
 
 Signed-off-by: Tarun Kanti DebBarma <tarun.kanti@ti.com>
+Reviewed-by: Santosh Shilimkar <santosh.shilimkar@ti.com>
+Acked-by: Felipe Balbi <balbi@ti.com>
 ---
- drivers/gpio/gpio-omap.c |    1 +
- 1 files changed, 1 insertions(+), 0 deletions(-)
+ drivers/gpio/gpio-omap.c |    5 +++--
+ 1 files changed, 3 insertions(+), 2 deletions(-)
 
 diff --git a/drivers/gpio/gpio-omap.c b/drivers/gpio/gpio-omap.c
-index 7cbad85..1a144ac 100644
+index 1a144ac..2042857 100644
 --- a/drivers/gpio/gpio-omap.c
 +++ b/drivers/gpio/gpio-omap.c
-@@ -511,6 +511,7 @@ static int _set_gpio_wakeup(struct gpio_bank *bank, int gpio, int enable)
- 	else
- 		bank->suspend_wakeup &= ~gpio_bit;
+@@ -245,7 +245,7 @@ static void _set_gpio_debounce(struct gpio_bank *bank, unsigned gpio,
+ }
  
-+	__raw_writel(bank->suspend_wakeup, bank->base + bank->regs->wkup_en);
- 	spin_unlock_irqrestore(&bank->lock, flags);
+ static inline void set_gpio_trigger(struct gpio_bank *bank, int gpio,
+-						int trigger)
++						unsigned trigger)
+ {
+ 	void __iomem *base = bank->base;
+ 	u32 gpio_bit = 1 << gpio;
+@@ -327,7 +327,8 @@ static void _toggle_gpio_edge_triggering(struct gpio_bank *bank, int gpio)
+ static void _toggle_gpio_edge_triggering(struct gpio_bank *bank, int gpio) {}
+ #endif
  
- 	return 0;
+-static int _set_gpio_triggering(struct gpio_bank *bank, int gpio, int trigger)
++static int _set_gpio_triggering(struct gpio_bank *bank, int gpio,
++							unsigned trigger)
+ {
+ 	void __iomem *reg = bank->base;
+ 	void __iomem *base = bank->base;
 -- 
 1.7.0.4
 
