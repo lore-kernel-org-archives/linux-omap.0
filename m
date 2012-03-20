@@ -1,87 +1,88 @@
-From: Grant Likely <grant.likely@secretlab.ca>
-Subject: Re: [PATCH v4 RESEND 0/7] gpio/omap: Some more driver fixes
-Date: Tue, 20 Mar 2012 14:35:44 +0000
-Message-ID: <20120320143544.AA6E93E2834@localhost>
-References: <1332240799-6748-1-git-send-email-tarun.kanti@ti.com>
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-we0-f174.google.com ([74.125.82.174]:54850 "EHLO
-	mail-we0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754896Ab2CTOft (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 20 Mar 2012 10:35:49 -0400
-Received: by wejx9 with SMTP id x9so91730wej.19
-        for <linux-omap@vger.kernel.org>; Tue, 20 Mar 2012 07:35:48 -0700 (PDT)
-In-Reply-To: <1332240799-6748-1-git-send-email-tarun.kanti@ti.com>
-Sender: linux-omap-owner@vger.kernel.org
+From: melwyn lobo <linux.melwyn@gmail.com>
+Subject: Re: [PATCH] CPUIdle: Reevaluate C-states under CPU load to favor
+ deeper C-states
+Date: Tue, 20 Mar 2012 20:19:02 +0530
+Message-ID: <CAHSGOuuexpCDNoP1G1Gyge2DCep0rsPmUwrVyZFDQ1_tH+Du7Q@mail.gmail.com>
+References: <1316475315-5905-1-git-send-email-khilman@ti.com>
+	<87d3d75zo6.fsf@ti.com>
+	<4EBA6046.2060305@linux.vnet.ibm.com>
+	<37CAE120BAE10B42A790DD1418C8021D0136C7@DNCE02.ent.ti.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <37CAE120BAE10B42A790DD1418C8021D0136C7@DNCE02.ent.ti.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: "Chalhoub, Nicole" <n-chalhoub@ti.com>, "Hilman, Kevin" <khilman@ti.com>
+Cc: Deepthi Dharwar <deepthi@linux.vnet.ibm.com>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, Arjan van de Ven <arjan@infradead.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-pm@lists.linux-foundation.org" <linux-pm@lists.linux-foundation.org>
 List-Id: linux-omap@vger.kernel.org
-To: linux-omap@vger.kernel.org
-Cc: khilman@ti.com, tony@atomide.com, b-cousson@ti.com, linux-arm-kernel@lists.infradead.org, Tarun Kanti DebBarma <tarun.kanti@ti.com>
 
-On Tue, 20 Mar 2012 16:23:12 +0530, Tarun Kanti DebBarma <tarun.kanti@ti.com> wrote:
-> This series excludes the cleanup patches as suggested by Kevin from
-> the previously posted series.
-> 
-> The fixes include correction of _set_gpio_irqenable() implementation,
-> missing wakeup_en register update in set_gpio_wakeup(), type mismatch
-> of gpio trigger parameter in set_gpio_trigger(), incorrect dataout
-> register update in set_gpio_dataout_() and few corrections in context
-> save logic.
-> 
-> It is baselined on top of:
-> git://git.secretlab.ca/git/linux-2.6.git gpio/next
-> Commit: 81b279d80a63628e580c71a31d30a8c3b3047ad4
-> 
-> Series is available here for reference:
-> git://gitorious.org/~tarunkanti/omap-sw-develoment/tarunkantis-linux-omap-dev for_3.4/gpio_more_fixes
+Hey Kevin,
+I would like to try out this patch in my platform see the benefits
+that you are reporting. But there is one issue in this patch. You have
+not initialized "hrtimer_timeout" variable.
+This will always be 0 right ?.
+Thanks,
+-M
 
-Merged; thanks
-
-g.
-
-> 
-> Power Test:
-> Off-mode and Retention on OMAP3430 (Suspend and Idle paths).
-> Also confirmed that dataout register content preserved over
-> off-mode.
-> 
-> Functional Test:
-> OMAP2430, OMAP3430SDP, ZOOM3, OMAP4430, OMAP4-BLAZE
-> 
-> v4:
-> a) Implemented all comments on v3 which are mostly related to
-> avoiding unnecessary register read while updating the context.
-> 
-> b) Folded:
-> gpio/omap: fix dataout register overwrite in _set_gpio_dataout
-> into:
-> gpio/omap: fix missing dataout context save in _set_gpio_dataout_reg
-> 
-> v3:
-> - Added 4 more additional patches to the previous series
->  which are all bug fixes.
-> 
-> v2:
-> - Added a new patch to update wakeup_en register in _set_gpio_wakeup()
->  in addition to updating bank->context.wake_en.
-> 
-> - Added a new patch to remove redundant decoding of gpio offset in
->  gpio_get(), _get_gpio_datain() and _get_gpio_dataout().
-> 
-> - Added a new patch to remove suspend/resume callbacks because the
->  operations performed with the callbacks are redundant.
-> 
-> Tarun Kanti DebBarma (7):
->   gpio/omap: fix wakeup_en register update in _set_gpio_wakeup()
->   gpio/omap: fix trigger type to unsigned
->   gpio/omap: fix _set_gpio_irqenable implementation
->   gpio/omap: fix missing dataout context save in _set_gpio_dataout_reg
->   gpio/omap: fix incorrect context restore logic in omap_gpio_runtime_*
->   gpio/omap: fix incorrect update to context.irqenable1
->   gpio/omap: fix redundant decoding of gpio offset
-> 
->  drivers/gpio/gpio-omap.c |   47 ++++++++++++++++++++++++---------------------
->  1 files changed, 25 insertions(+), 22 deletions(-)
-> 
-
--- 
-Grant Likely, B.Sc, P.Eng.
-Secret Lab Technologies,Ltd.
+On Wed, Nov 9, 2011 at 11:36 PM, Chalhoub, Nicole <n-chalhoub@ti.com> w=
+rote:
+> Hi Deepthi,
+>
+>>
+> Texas Instruments France SA, 821 Avenue Jack Kilby, 06270 Villeneuve =
+Loubet. 036 420 040 R.C.S Antibes. Capital de EUR 753.920
+>
+> -----Original Message-----
+>> From: Deepthi Dharwar [mailto:deepthi@linux.vnet.ibm.com]
+>> Sent: Wednesday, November 09, 2011 12:13 PM
+>> To: Hilman, Kevin
+>> Cc: linux-kernel@vger.kernel.org; Arjan van de Ven; linux-arm-
+>> kernel@lists.infradead.org; linux-omap@vger.kernel.org; linux-
+>> pm@lists.linux-foundation.org; Chalhoub, Nicole
+>> Subject: Re: [PATCH] CPUIdle: Reevaluate C-states under CPU load to =
+favor
+>> deeper C-states
+>
+> [...]
+>> By setting timers when we enter non-deepest C-state possible, such t=
+hat
+>> when it fires we
+>> can re-evaluate and try moving into deeper and deeper C-states enhan=
+cing
+>> the
+>> power savings is a good feature to have.
+>>
+>> Looking at the current implementation, is it possible to have it as
+>> configurable option
+>> where one can enable/disable this functionality through the backhand
+>> driver ?
+>
+> The timeout values of the c state timers are set in the backhand driv=
+er.
+> By setting the timeout to 0 the timers will not fire so you'll not ha=
+ve this functionality enabled
+>
+>> Also I am thinking, instead of having them in governor
+>> wouldnt it be a good idea to have it implemented in
+>> the backhand driver itself ?
+>> --Deepthi
+>
+>
+> In fact each C-state had its own configurable timer, so it is a param=
+eter characterizing a C-state as it is for the exit_latency and target_=
+residency parameters.
+> And we wanted the timer to fire only when we do not go in deep Cstate=
+ due to a high load. This decision is made in the CPU idle governor. So=
+ the functionality should be seen from the governor..
+>
+> Thanks and Regards
+> Nicole
+>
+>
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-kerne=
+l" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at =A0http://vger.kernel.org/majordomo-info.html
+> Please read the FAQ at =A0http://www.tux.org/lkml/
