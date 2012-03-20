@@ -1,34 +1,49 @@
-From: Arnd Bergmann <arnd@arndb.de>
-Subject: Re: [PATCH] mfd: Add TWL4030 PWM driver
-Date: Tue, 20 Mar 2012 22:02:11 +0000
-Message-ID: <201203202202.12060.arnd@arndb.de>
-References: <1332262083-9375-1-git-send-email-walle@corscience.de>
+From: Tony Lindgren <tony@atomide.com>
+Subject: Re: [PATCH v2 7/7] ARM: OMAP2+: Mark omap_hsmmc_init and omap_mux
+ related functions as __init
+Date: Tue, 20 Mar 2012 15:17:02 -0700
+Message-ID: <20120320221701.GI9859@atomide.com>
+References: <1329997247-27342-1-git-send-email-rnayak@ti.com>
+ <1329997247-27342-8-git-send-email-rnayak@ti.com>
+ <1332148116.2144.1.camel@deskari>
+ <1332152442.2144.27.camel@deskari>
+ <20120319180928.GA9859@atomide.com>
+ <1332228651.2409.5.camel@lappy>
 Mime-Version: 1.0
-Content-Type: Text/Plain;
-  charset="iso-8859-15"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <1332262083-9375-1-git-send-email-walle@corscience.de>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Bernhard Walle <walle@corscience.de>
-Cc: sameo@linux.intel.com, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from mho-02-ewr.mailhop.org ([204.13.248.72]:21403 "EHLO
+	mho-02-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755969Ab2CTWRH (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 20 Mar 2012 18:17:07 -0400
+Content-Disposition: inline
+In-Reply-To: <1332228651.2409.5.camel@lappy>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Tomi Valkeinen <tomi.valkeinen@ti.com>
+Cc: Rajendra Nayak <rnayak@ti.com>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Russell King <rmk+kernel@arm.linux.org.uk>
 
-On Tuesday 20 March 2012, Bernhard Walle wrote:
+* Tomi Valkeinen <tomi.valkeinen@ti.com> [120320 00:41]:
+> On Mon, 2012-03-19 at 11:09 -0700, Tony Lindgren wrote:
 > 
-> This PWM driver uses the PWM of the TWL4030. The driver for the TWL6030
-> PWM has been used as mode, but the PWM registers are different.
+> > I've updated your patch a bit for the comments a bit and marked
+> > omap4_hdmi_mux_pads as __init, will apply to fixes. Updated patch
+> > below.
 > 
-> The driver can be used and has been tested in conjunction with
-> pwm-backlight to control a backlight LED of a LCD touch screen.
+> Hmm, is there something funny with these init changes now...
 > 
-> Signed-off-by: Bernhard Walle <walle@corscience.de>
+> Initially the situation was that there were no __inits in display.c's
+> mux functions. Then "Mark omap_hsmmc_init..." patch added __inits to all
+> of them. My patch removed the __inits from dsi functions, but left them
+> to hdmi functions.
+> 
+> But now you modified my patch to add the __inits to hdmi functions.
+> Which should already have them from the "Mark omap_hsmmc_init..." patch.
 
-Since it's too late for v3.4 now and we will get a new pwm
-subsystem in v3.5, I suggest you change the driver to work
-register with that subsystem instead of just using the old
-header file. Note that drivers/mfd is not really the right
-place anyway, because this is not a multifunction driver but
-just one device driver that happens to be a slave of an mfd.
+Looks like the original patch missed making omap4_hdmi_mux_pads __init
+though. I'm just changing omap4_hdmi_mux_pads to make it __init like
+it should be.
 
-	Arnd
+Regards,
+
+Tony
