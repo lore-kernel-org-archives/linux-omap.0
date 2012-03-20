@@ -1,41 +1,34 @@
-From: Arnd Bergmann <arnd.bergmann@linaro.org>
-Subject: Re: [PATCH v8 0/8] Consolidate cpuidle functionality
-Date: Tue, 20 Mar 2012 21:58:07 +0000
-Message-ID: <201203202158.08042.arnd.bergmann@linaro.org>
-References: <1332274969-15782-1-git-send-email-rob.lee@linaro.org>
+From: Arnd Bergmann <arnd@arndb.de>
+Subject: Re: [PATCH] mfd: Add TWL4030 PWM driver
+Date: Tue, 20 Mar 2012 22:02:11 +0000
+Message-ID: <201203202202.12060.arnd@arndb.de>
+References: <1332262083-9375-1-git-send-email-walle@corscience.de>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
+Content-Type: Text/Plain;
+  charset="iso-8859-15"
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-In-Reply-To: <1332274969-15782-1-git-send-email-rob.lee@linaro.org>
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: linux-arm-kernel-bounces@lists.infradead.org
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: Robert Lee <rob.lee@linaro.org>
-Cc: nicolas.pitre@linaro.org, venki@google.com, linaro-dev@lists.linaro.org, linux-sh@vger.kernel.org, tony@atomide.com, nicolas.ferre@atmel.com, linux@arm.linux.org.uk, ccross@google.com, kernel@wantstofly.org, khilman@ti.com, kgene.kim@samsung.com, mturquette@linaro.org, daniel.lezcano@linaro.org, magnus.damm@gmail.com, jon-hunter@ti.com, len.brown@intel.com, patches@linaro.org, nsekhar@ti.com, jean.pihet@newoldbits.com, rjw@sisk.pl, Baohua.Song@csr.com, vincent.guittot@linaro.org, linux-omap@vger.kernel.org, linux@maxim.org.za, linux-arm-kernel@lists.infradead.org, deepthi@linux.vnet.ibm.com, g.trinabh@gmail.com, linux-pm@vger.kernel.org, broonie@opensource.wolfsonmicro.com, linux-kernel@vger.kernel.org, amit.kucheria@linaro.org, lethal@linux-sh.org, amit.kachhap@linaro.org, akpm@linux-foundation.org
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <1332262083-9375-1-git-send-email-walle@corscience.de>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Bernhard Walle <walle@corscience.de>
+Cc: sameo@linux.intel.com, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-On Tuesday 20 March 2012, Robert Lee wrote:
-> This patch series moves various functionality duplicated in platform 
-> cpuidle drivers to the core cpuidle driver. Also, the platform irq
-> disabling was removed as it appears that all calls into 
-> cpuidle_call_idle will have already called local_irq_disable().
+On Tuesday 20 March 2012, Bernhard Walle wrote:
 > 
-> These changes have been pulled into linux-next.
+> This PWM driver uses the PWM of the TWL4030. The driver for the TWL6030
+> PWM has been used as mode, but the PWM registers are different.
 > 
-> Len, Andrew, can a request be made for Linus to pull these changes?
+> The driver can be used and has been tested in conjunction with
+> pwm-backlight to control a backlight LED of a LCD touch screen.
+> 
+> Signed-off-by: Bernhard Walle <walle@corscience.de>
 
-FWIW, Len seems to be rather inactive on the kernel mailing list right
-now and generally not very interested in anything outside of x86 and
-acpi. If he doesn't reply in the next few days and Andrew also isn't
-interested in handling these patches, I'd suggest you just send the pull
-request to Linus, with Len on Cc and explain that you tried to send
-them through him but gave up in the end.
+Since it's too late for v3.4 now and we will get a new pwm
+subsystem in v3.5, I suggest you change the driver to work
+register with that subsystem instead of just using the old
+header file. Note that drivers/mfd is not really the right
+place anyway, because this is not a multifunction driver but
+just one device driver that happens to be a slave of an mfd.
 
 	Arnd
