@@ -1,46 +1,55 @@
-From: Dmitry Torokhov <dmitry.torokhov@gmail.com>
-Subject: Re: [PATCH v2 3/4] drivers: input: Fix OMAP_GPIO_IRQ with
- gpio_to_irq() in ams_delta_serio_exit()
-Date: Tue, 20 Mar 2012 10:36:41 -0700
-Message-ID: <20120320173641.GA6464@core.coreip.homeip.net>
-References: <1332158817-26311-1-git-send-email-tarun.kanti@ti.com>
- <1332158817-26311-4-git-send-email-tarun.kanti@ti.com>
- <20120320165246.GH9859@atomide.com>
+From: Kevin Hilman <khilman@ti.com>
+Subject: Re: [PATCH v4 RESEND 0/7] gpio/omap: Some more driver fixes
+Date: Tue, 20 Mar 2012 10:46:57 -0700
+Message-ID: <87haxj17xq.fsf@ti.com>
+References: <1332240799-6748-1-git-send-email-tarun.kanti@ti.com>
+	<20120320143544.AA6E93E2834@localhost>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-pz0-f46.google.com ([209.85.210.46]:63897 "EHLO
-	mail-pz0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750806Ab2CTRgt (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 20 Mar 2012 13:36:49 -0400
-Received: by dajr28 with SMTP id r28so292925daj.19
-        for <linux-omap@vger.kernel.org>; Tue, 20 Mar 2012 10:36:49 -0700 (PDT)
-Content-Disposition: inline
-In-Reply-To: <20120320165246.GH9859@atomide.com>
+Received: from na3sys009aog132.obsmtp.com ([74.125.149.250]:35346 "EHLO
+	psmtp.com" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
+	id S1753333Ab2CTRq7 (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Tue, 20 Mar 2012 13:46:59 -0400
+Received: by mail-pb0-f49.google.com with SMTP id un4so260843pbc.22
+        for <linux-omap@vger.kernel.org>; Tue, 20 Mar 2012 10:46:58 -0700 (PDT)
+In-Reply-To: <20120320143544.AA6E93E2834@localhost> (Grant Likely's message of
+	"Tue, 20 Mar 2012 14:35:44 +0000")
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Tony Lindgren <tony@atomide.com>
-Cc: linux-omap@vger.kernel.org, khilman@ti.com, b-cousson@ti.com, grant.likely@secretlab.ca, linux-arm-kernel@lists.infradead.org, Tarun Kanti DebBarma <tarun.kanti@ti.com>
+To: Grant Likely <grant.likely@secretlab.ca>
+Cc: Tarun Kanti DebBarma <tarun.kanti@ti.com>, linux-omap@vger.kernel.org, tony@atomide.com, b-cousson@ti.com, linux-arm-kernel@lists.infradead.org
 
-On Tue, Mar 20, 2012 at 09:52:46AM -0700, Tony Lindgren wrote:
-> Hi Dmitry,
-> 
-> * Tarun Kanti DebBarma <tarun.kanti@ti.com> [120319 05:09]:
-> > Even though ams-delta-serio input driver uses gpio_to_irq() in all
-> > relevent places to get irq number, the ams_delta_serio_exit() still
-> > uses OMAP_GPIO_IRQ macro. Fix this.
-> > 
-> > Signed-off-by: Tarun Kanti DebBarma <tarun.kanti@ti.com>
-> 
-> Care to ack this one? I'd like to apply all four as fixes
-> at the end of the merge window so we can drop the old and
-> now broken OMAP_GPIO_IRQ macro.
+Hi Grant,
 
-Sure.
+Grant Likely <grant.likely@secretlab.ca> writes:
 
-Acked-by: Dmitry Torokhov <dtor@mail.ru>
+> On Tue, 20 Mar 2012 16:23:12 +0530, Tarun Kanti DebBarma <tarun.kanti@ti.com> wrote:
+>> This series excludes the cleanup patches as suggested by Kevin from
+>> the previously posted series.
+>> 
+>> The fixes include correction of _set_gpio_irqenable() implementation,
+>> missing wakeup_en register update in set_gpio_wakeup(), type mismatch
+>> of gpio trigger parameter in set_gpio_trigger(), incorrect dataout
+>> register update in set_gpio_dataout_() and few corrections in context
+>> save logic.
+>> 
+>> It is baselined on top of:
+>> git://git.secretlab.ca/git/linux-2.6.git gpio/next
+>> Commit: 81b279d80a63628e580c71a31d30a8c3b3047ad4
+>> 
+>> Series is available here for reference:
+>> git://gitorious.org/~tarunkanti/omap-sw-develoment/tarunkantis-linux-omap-dev for_3.4/gpio_more_fixes
+>
+> Merged; thanks
 
-Thanks.
+Can you hold off slightly before merging this.
 
--- 
-Dmitry
+I haven't been through v4 yet or tested the fixes alone now that they're
+separated from the other cleanups.
+
+Expect a pull request from me when ready.
+
+Thanks,
+
+Kevin
