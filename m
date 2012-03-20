@@ -1,31 +1,36 @@
-From: Arnd Bergmann <arnd@arndb.de>
-Subject: Re: [PATCH] ARM: OMAP2+: gpmc-smsc911x: only register regulator for first instance
-Date: Tue, 20 Mar 2012 08:20:08 +0000
-Message-ID: <201203200820.08471.arnd@arndb.de>
-References: <1331080771-30687-1-git-send-email-khilman@ti.com> <201203192209.43906.arnd@arndb.de> <20120319224858.GD9859@atomide.com>
+From: Shubhrajyoti <shubhrajyoti-l0cyMroinI0@public.gmane.org>
+Subject: Re: [PATCH 1/5 RESEND] ARM: OMAP: USB: HOST TLL platform driver
+Date: Tue, 20 Mar 2012 14:22:12 +0530
+Message-ID: <4F68453C.9040605@ti.com>
+References: <1332139715-1495-1-git-send-email-keshava_mgowda@ti.com>	<1332139715-1495-2-git-send-email-keshava_mgowda@ti.com>	<4F66FF47.7000800@ti.com> <CAP05o4+A7AZ0SmMLgCfbBHs+zhsN-c2zM8caYe8M3-OC3YmZzg@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: Text/Plain;
-  charset="iso-8859-1"
+Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from moutng.kundenserver.de ([212.227.126.186]:50271 "EHLO
-	moutng.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1757330Ab2CTIUL (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 20 Mar 2012 04:20:11 -0400
-In-Reply-To: <20120319224858.GD9859@atomide.com>
-Sender: linux-omap-owner@vger.kernel.org
+Return-path: <linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <CAP05o4+A7AZ0SmMLgCfbBHs+zhsN-c2zM8caYe8M3-OC3YmZzg-JsoAwUIsXosN+BqQ9rBEUg@public.gmane.org>
+Sender: linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: "Munegowda, Keshava" <keshava_mgowda-l0cyMroinI0@public.gmane.org>
+Cc: linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, balbi-l0cyMroinI0@public.gmane.org, sameo-VuQAYsv1563Yd54FQh9/CA@public.gmane.org, parthab-PpE0FKYn9XJWk0Htik3J/w@public.gmane.org, govindraj.raja-l0cyMroinI0@public.gmane.org, paul-DWxLp4Yu+b8AvxtiuMwx3w@public.gmane.org, b-cousson-l0cyMroinI0@public.gmane.org
 List-Id: linux-omap@vger.kernel.org
-To: Tony Lindgren <tony@atomide.com>
-Cc: Kevin Hilman <khilman@ti.com>, linux-arm-kernel@lists.infradead.org, Matt Porter <mporter@ti.com>, linux-omap@vger.kernel.org, Olof Johansson <olof@lixom.net>
 
-On Monday 19 March 2012, Tony Lindgren wrote:
-> Let's just keep bb60424af. There are more patches needed to make
-> multiple smsc91x instances work, but we need to hear from people
-> with such boards first. Then those can be tagged for stable.
-> 
+Hi Keshava,
 
-Ok, I'm just putting that into the fixes branch for 3.4 then.
+On Tuesday 20 March 2012 12:58 PM, Munegowda, Keshava wrote:<Snip>
+>>> +}
+>>> +
+>>> +static const struct dev_pm_ops usbtllomap_dev_pm_ops = {
+>>> +     .runtime_suspend        = usbtll_runtime_suspend,
+>>> +     .runtime_resume         = usbtll_runtime_resume,
+>>> +};
+>>> +
+>> Also how about using runtime_pm_ops ?
+> Sorry I din't get this? what exact alternative are you suggesting here?
 
-Thanks,
+SET_RUNTIME_PM_OPS(usbtll_runtime_suspend,
+                                usbtll_runtime_resume, NULL)
 
-	Arnd
+I should have been clearer.
+--
+To unsubscribe from this list: send the line "unsubscribe linux-usb" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
