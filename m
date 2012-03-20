@@ -1,231 +1,148 @@
-From: Grant Likely <grant.likely@secretlab.ca>
-Subject: Re: [PATCH 2/2] of: selftest/dma: Add selftest for new DT DMA request helpers
-Date: Tue, 20 Mar 2012 14:16:54 +0000
-Message-ID: <20120320141654.15D943E0A04@localhost>
-References: <1331800690-21518-1-git-send-email-nicolas.ferre@atmel.com> <6b5dc1fadfd03a48093338b6981c0a7ae7662212.1332237596.git.nicolas.ferre@atmel.com> <066e4deaddca8ac368c2c355c3a77daa9e9057cf.1332237596.git.nicolas.ferre@atmel.com>
+From: Thomas Klute <thomas2.klute@uni-dortmund.de>
+Subject: Re: smsc911x on Gumstix Overo/Tobi doesn't work
+Date: Tue, 20 Mar 2012 15:27:18 +0100
+Message-ID: <4F6893C6.60701@uni-dortmund.de>
+References: <4F6324D5.9010106@uni-dortmund.de> <20120316193337.GE7276@atomide.com> <4F675D9D.2040102@uni-dortmund.de> <20120319225131.GE9859@atomide.com>
+Mime-Version: 1.0
+Content-Type: multipart/mixed;
+ boundary="------------000802050607050707000709"
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-we0-f174.google.com ([74.125.82.174]:33836 "EHLO
-	mail-we0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1760045Ab2CTOQ7 (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 20 Mar 2012 10:16:59 -0400
-Received: by wejx9 with SMTP id x9so71117wej.19
-        for <linux-omap@vger.kernel.org>; Tue, 20 Mar 2012 07:16:58 -0700 (PDT)
-In-Reply-To: <066e4deaddca8ac368c2c355c3a77daa9e9057cf.1332237596.git.nicolas.ferre@atmel.com>
+Received: from mx1.HRZ.Uni-Dortmund.DE ([129.217.128.51]:53264 "EHLO
+	unimail.uni-dortmund.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756344Ab2CTO1q (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 20 Mar 2012 10:27:46 -0400
+In-Reply-To: <20120319225131.GE9859@atomide.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: b-cousson@ti.com, devicetree-discuss@lists.ozlabs.org
-Cc: vinod.koul@linux.intel.com, Stephen Warren <swarren@nvidia.com>, Arnd Bergmann <arnd@arndb.de>, Nicolas Ferre <nicolas.ferre@atmel.com>, Rob Herring <rob.herring@calxeda.com>, Russell King <linux@arm.linux.org.uk>, linux-omap@vger.kernel.org, plagnioj@jcrosoft.com, linux-arm-kernel@lists.infradead.org
+To: Tony Lindgren <tony@atomide.com>
+Cc: linux-omap@vger.kernel.org
 
-On Tue, 20 Mar 2012 11:13:32 +0100, Nicolas Ferre <nicolas.ferre@atmel.com> wrote:
-> Those selftests are covering the new DT DMA helpers. They will test both
-> error and normal cases.
-> A custom .xlate() function is also provided to show the use of this API in case
-> of a different need than the single cell argument.
+This is a multi-part message in MIME format.
+--------------000802050607050707000709
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 7bit
 
-I'm very happy to see test case code.  Thanks.
-
-However, since we both understand that this series doesn't address my
-major concerns, I'm not spending any time reviewing this version.
-
-g.
-
+Am 19.03.2012 23:51, schrieb Tony Lindgren:
+> * Thomas Klute <thomas2.klute@uni-dortmund.de> [120319 09:26]:
+>> Am 16.03.2012 20:33, schrieb Tony Lindgren:
+>>> Hi,
+>>>
+>>> * Thomas Klute <thomas2.klute@uni-dortmund.de> [120316 05:08]:
+>>>> Hi,
+>>>>
+>>>> I have trouble getting the Ethernet port on a Gumstix Overo with Tobi
+>>>> expansion board to work with current kernel versions. With the latest
+>>>> commit from linux-omap git (b8fe1781ec8bed5e086691a827a6ee11facec2aa),
+>>>> the output from loading the smsc911x driver is as follows:
+>>>>
+>>>> du14:~# modprobe smsc911x
+>>>> [  254.843811] smsc911x: Driver version 2008-10-21
+>>>> [  254.854553] smsc911x: Driver version 2008-10-21
+>>>> [  254.859588] _regulator_get: smsc911x.1 supply vdd33a not found, using
+>>>> dummy regulator
+>>>> [  254.868377] _regulator_get: smsc911x.1 supply vddvario not found,
+>>>> using dummy regulator
+>>>>
+>>>> "ip link show" does not show any available Ethernet port.
+>>>
+>>> The first instance one should work the same way as earlier using
+>>> fixed regulator in gpmc-smsc911x.c. Is it not working for you
+>>> somehow? At least it works for me on zoom3.
+>>
+>> The Tobi board has only one Ethernet port.
+>>
+>>>> I know there has been some trouble with changes around smsc911x
+>>>> regulator support and Gumstix Overo in particular. Am I just missing the
+>>>> right regulator in my kernel config or is this a bug? I can test patches
+>>>> in the latter case.
+>>>
+>>> The second smsc911x now needs a regulator. For multiple smsc911x instances,
+>>> we should change things around so no regulator is created if one
+>>> is passed.
+>>>
+>>> Care to test the following patch by passing a fixed regulator
+>>> from board-overo.c?
+>>
+>> After applying the patch the Ethernet port works consistently once I had
+>> done a cold boot (reboot from the unpatched kernel did not work).
+>> Thank you!
 > 
-> Signed-off-by: Nicolas Ferre <nicolas.ferre@atmel.com>
-> Cc: Benoit Cousson <b-cousson@ti.com>
-> Cc: Stephen Warren <swarren@nvidia.com>
-> Cc: Grant Likely <grant.likely@secretlab.ca>
-> Cc: Russell King <linux@arm.linux.org.uk>
-> Cc: Rob Herring <rob.herring@calxeda.com>
-> Cc: Arnd Bergmann <arnd@arndb.de>
-> ---
->  arch/arm/boot/dts/at91sam9m10g45ek.dts     |    2 +
->  arch/arm/boot/dts/testcases/tests-dma.dtsi |   24 +++++++
->  arch/arm/boot/dts/testcases/tests.dtsi     |    1 +
->  drivers/of/selftest.c                      |  100 ++++++++++++++++++++++++++++
->  4 files changed, 127 insertions(+), 0 deletions(-)
->  create mode 100644 arch/arm/boot/dts/testcases/tests-dma.dtsi
-> 
-> diff --git a/arch/arm/boot/dts/at91sam9m10g45ek.dts b/arch/arm/boot/dts/at91sam9m10g45ek.dts
-> index a387e77..18a8f3c 100644
-> --- a/arch/arm/boot/dts/at91sam9m10g45ek.dts
-> +++ b/arch/arm/boot/dts/at91sam9m10g45ek.dts
-> @@ -38,3 +38,5 @@
->  		};
->  	};
->  };
-> +
-> +/include/ "testcases/tests.dtsi"
-> diff --git a/arch/arm/boot/dts/testcases/tests-dma.dtsi b/arch/arm/boot/dts/testcases/tests-dma.dtsi
-> new file mode 100644
-> index 0000000..5f0ba93
-> --- /dev/null
-> +++ b/arch/arm/boot/dts/testcases/tests-dma.dtsi
-> @@ -0,0 +1,24 @@
-> +
-> +/ {
-> +	testcase-data {
-> +		dma-tests {
-> +			testdmac0: test-dma-controller0 {
-> +				#dma-cells = <1>;
-> +			};
-> +
-> +			testdmac1: test-dma-controller1 {
-> +				#dma-cells = <2>;
-> +			};
-> +
-> +			dma-slave-a {
-> +				dma-request = <&testdmac0 42>;
-> +			};
-> +			dma-slave-b {
-> +				dma-request = <&testdmac1 24>; /* wrong number of values */
-> +			};
-> +			dma-slave-c {
-> +				dma-request = <&testdmac1 24 25>;
-> +			};
-> +		};
-> +	};
-> +};
-> diff --git a/arch/arm/boot/dts/testcases/tests.dtsi b/arch/arm/boot/dts/testcases/tests.dtsi
-> index a7c5067..e3afb2b 100644
-> --- a/arch/arm/boot/dts/testcases/tests.dtsi
-> +++ b/arch/arm/boot/dts/testcases/tests.dtsi
-> @@ -1 +1,2 @@
->  /include/ "tests-phandle.dtsi"
-> +/include/ "tests-dma.dtsi"
-> diff --git a/drivers/of/selftest.c b/drivers/of/selftest.c
-> index f24ffd7..3281bfd 100644
-> --- a/drivers/of/selftest.c
-> +++ b/drivers/of/selftest.c
-> @@ -9,6 +9,7 @@
->  #include <linux/errno.h>
->  #include <linux/module.h>
->  #include <linux/of.h>
-> +#include <linux/of_dma.h>
->  #include <linux/list.h>
->  #include <linux/mutex.h>
->  #include <linux/slab.h>
-> @@ -148,6 +149,104 @@ static void __init of_selftest_property_match_string(void)
->  	selftest(rc == -EILSEQ, "unterminated string; rc=%i", rc);
->  }
->  
-> +struct two_cells {
-> +	int cell1;
-> +	int cell2;
-> +};
-> +
-> +static int of_dma_xlate_twonumbercell(struct of_phandle_args *dma_spec, void *cells)
-> +{
-> +	struct two_cells *tc;
-> +
-> +	if (!dma_spec)
-> +		return -EINVAL;
-> +	if (!cells)
-> +		return -ENOBUFS;
-> +	if (WARN_ON(dma_spec->args_count != 2))
-> +		return -EINVAL;
-> +
-> +	tc = (struct two_cells *)cells;
-> +
-> +	tc->cell1 = dma_spec->args[0];
-> +	tc->cell2 = dma_spec->args[1];
-> +	return 0;
-> +}
-> +
-> +static void __init of_selftest_dma(void)
-> +{
-> +	struct device_node *dma_controller0_np;
-> +	struct device_node *dma_controller1_np;
-> +	struct device_node *dma_slave_np;
-> +	int rc;
-> +	int dma_req;
-> +	struct two_cells tc;
-> +
-> +	pr_info("start\n");
-> +	dma_controller0_np = of_find_node_by_path("/testcase-data/dma-tests/test-dma-controller0");
-> +	dma_slave_np = of_find_node_by_path("/testcase-data/dma-tests/dma-slave-a");
-> +	if (!dma_controller0_np || !dma_slave_np) {
-> +		pr_err("No testcase data in device tree\n");
-> +		return;
-> +	}
-> +
-> +	/* wrong usage: DMA controller not registered yet! */
-> +	rc = of_get_dma_request(dma_slave_np, 0, &dma_req);
-> +	selftest(rc == -ENODEV, "selftest DMA slave request expected:-ENODEV got:%i\n", rc);
-> +
-> +	/* test DMA controller registration */
-> +	rc = of_dma_controller_register(dma_controller0_np, of_dma_xlate_onenumbercell);
-> +	selftest(rc == 0, "selftest DMA controller not found: got:%i\n", rc);
-> +
-> +	/* wrong usage and error code tests */
-> +	rc = of_get_dma_request(dma_slave_np, 1, &dma_req);
-> +	selftest(rc == -EINVAL, "selftest DMA slave request expected:-EINVAL got:%i\n", rc);
-> +
-> +	rc = of_get_dma_request(dma_slave_np, 0, NULL);
-> +	selftest(rc == -ENOBUFS, "selftest DMA slave request expected:-ENOBUFS got:%i\n", rc);
-> +
-> +	/* proper use of the API */
-> +	rc = of_get_dma_request(dma_slave_np, 0, &dma_req);
-> +	selftest(rc == 0, "selftest DMA slave request error: got:%i\n", rc);
-> +	selftest(dma_req == 42, "selftest DMA slave request line expected:42 got:%i\n", dma_req);
-> +
-> +	of_dma_controller_free(dma_controller0_np);
-> +
-> +	/* wrong usage: DMA controller not registered anymore! */
-> +	rc = of_get_dma_request(dma_slave_np, 0, &dma_req);
-> +	selftest(rc == -ENODEV, "selftest DMA slave request expected:-ENODEV got:%i\n", rc);
-> +
-> +	/* use with a two values DMA request specification */
-> +	dma_controller1_np = of_find_node_by_path("/testcase-data/dma-tests/test-dma-controller1");
-> +	dma_slave_np = of_find_node_by_path("/testcase-data/dma-tests/dma-slave-b");
-> +	if (!dma_controller1_np || !dma_slave_np) {
-> +		pr_err("No testcase data in device tree\n");
-> +		return;
-> +	}
-> +
-> +	/* DMA controller registration with custom .xlate() function */
-> +	rc = of_dma_controller_register(dma_controller1_np, of_dma_xlate_twonumbercell);
-> +	selftest(rc == 0, "selftest DMA controller not found: got:%i\n", rc);
-> +
-> +	/* wrong number of cells */
-> +	rc = of_get_dma_request(dma_slave_np, 0, &tc);
-> +	selftest(rc == -EINVAL, "selftest DMA slave request expected:-EINVAL got:%i\n", rc);
-> +
-> +	dma_slave_np = of_find_node_by_path("/testcase-data/dma-tests/dma-slave-c");
-> +	if (!dma_slave_np) {
-> +		pr_err("No dma-slave-c data in device tree\n");
-> +		return;
-> +	}
-> +
-> +	/* proper use of the API */
-> +	rc = of_get_dma_request(dma_slave_np, 0, &tc);
-> +	selftest(rc == 0, "selftest DMA slave request error: got:%i\n", rc);
-> +	selftest(tc.cell1 == 24, "selftest DMA slave request line expected:24 got:%i\n", tc.cell1);
-> +	selftest(tc.cell2 == 25, "selftest DMA slave request line expected:25 got:%i\n", tc.cell2);
-> +
-> +	of_dma_controller_free(dma_controller1_np);
-> +	pr_info("end - %s\n", selftest_passed ? "PASS" : "FAIL");
-> +}
-> +
->  static int __init of_selftest(void)
->  {
->  	struct device_node *np;
-> @@ -162,6 +261,7 @@ static int __init of_selftest(void)
->  	pr_info("start of selftest - you will see error messages\n");
->  	of_selftest_parse_phandle_with_args();
->  	of_selftest_property_match_string();
-> +	of_selftest_dma();
->  	pr_info("end of selftest - %s\n", selftest_passed ? "PASS" : "FAIL");
->  	return 0;
->  }
-> -- 
-> 1.7.9
-> 
-> 
-> _______________________________________________
-> linux-arm-kernel mailing list
-> linux-arm-kernel@lists.infradead.org
-> http://lists.infradead.org/mailman/listinfo/linux-arm-kernel
+> Hmm but this patch should not change the behaviour for the first smsc911x
+> instance unless you specify a custom regulator.. Did you patch in a
+> custom regulator, or do we have a bug somewhere? Or do you just need to
+> do a cold reset without the patch I posted?
 
--- 
-Grant Likely, B.Sc, P.Eng.
-Secret Lab Technologies,Ltd.
+You're right, during further tests I found that the problem lies
+elsewhere: If the Ethernet cable is attached on modprobe, the device
+works as expected, if not, it's not found (with or without the patch).
+This means if I boot with the cable disconnected, the device won't show
+up, but after
+
+# modprobe -r smsc911x
+[attach cable]
+# modprobe smsc911x
+
+it will work. I'd still consider this a bug, but it doesn't seem to be a
+regulator problem.
+
+>> However, I noticed another problem while testing the patch (not sure if
+>> it occurs with the previous version, I can check if that helps): A NULL
+>> pointer dereference occurs when unloading the module, see attached log.
+> 
+> Yes please do check, that needs to be fixed.
+
+The NULL pointer dereference occurs with the unpatched kernel as well.
+I've attached the log, although I don't see a major difference to the
+one from the patched kernel. Note that this only happens when the driver
+works properly (that is, eth0 is usable). I can unload the driver
+without problems if it is not working as described above.
+
+Regards,
+Thomas
+
+--------------000802050607050707000709
+Content-Type: text/x-log;
+ name="smsc911x-unload-error-unpatched.log"
+Content-Transfer-Encoding: 7bit
+Content-Disposition: attachment;
+ filename="smsc911x-unload-error-unpatched.log"
+
+[  286.276245] Unable to handle kernel NULL pointer dereference at virtual address 0000073c
+[  286.285308] pgd = ce744000
+[  286.288818] [0000073c] *pgd=00000000
+[  286.293151] Internal error: Oops: 5 [#1]
+[  286.297271] Modules linked in: ipt_MASQUERADE xt_tcpudp iptable_nat nf_nat nf_conntrack_ipv4 nf_conntrack nf_defrag_ipv4 ip_tables x_tables snd_soc_twl4030 ath9k_htc ath9k_common ath9k_hw carl9170 ath ohci_hcd smsc libertas_sdio libertas snd_soc_core regmap_spi regmap_i2c snd_pcm snd_timer smsc911x(-) ehci_hcd snd soundcore snd_page_alloc twl4030_usb
+[  286.330047] CPU: 0    Tainted: G        W     (3.3.0-rc7-11899-gb8fe178 #102)
+[  286.337554] PC is at regulator_bulk_disable+0x18/0x90
+[  286.342895] LR is at smsc911x_drv_remove+0xd4/0xf4 [smsc911x]
+[  286.348907] pc : [<c02395fc>]    lr : [<bf03c9cc>]    psr: 80000013
+[  286.348907] sp : ce6c7ed8  ip : 00000002  fp : becdfdb4
+[  286.360961] r10: 00000738  r9 : ce6c6000  r8 : 00000002
+[  286.366424] r7 : cec85408  r6 : 00000738  r5 : cec85400  r4 : 00000000
+[  286.373260] r3 : ce628bc0  r2 : 00000000  r1 : 00000738  r0 : 00000002
+[  286.380096] Flags: Nzcv  IRQs on  FIQs on  Mode SVC_32  ISA ARM  Segment user
+[  286.387603] Control: 10c5387d  Table: 8e744019  DAC: 00000015
+[  286.393615] Process modprobe (pid: 2393, stack limit = 0xce6c62f0)
+[  286.400085] Stack: (0xce6c7ed8 to 0xce6c8000)
+[  286.404663] 7ec0:                                                       ce628bc0 ce615800
+[  286.413238] 7ee0: cec85400 00000000 cec85408 c000d484 00000000 bf03c9cc bf03c8f8 cec85408
+[  286.421813] 7f00: bf03e6dc cec8543c 00000081 c02618d0 c02618bc c026041c cec85408 bf03e6dc
+[  286.430389] 7f20: cec8543c c02609f0 bf03e6dc 00000000 c0664b08 c02602f8 bf03e718 00000000
+[  286.438995] 7f40: b6f581b0 c0064db0 ce484488 63736d73 78313139 c00a3b00 ce628bc0 00000001
+[  286.447570] 7f60: 00000000 ce628bc0 00000001 c000d3d4 00000081 60000010 b6f58208 becdfdc0
+[  286.456146] 7f80: becdfdb4 0005e8c8 b6f58180 b6f58180 b6f581b0 00000000 b6f58180 b6f58180
+[  286.464721] 7fa0: b6f581b0 c000d2c0 b6f58180 b6f58180 b6f581b0 00000000 b6f57000 00000000
+[  286.473297] 7fc0: b6f58180 b6f58180 b6f581b0 00000081 00000000 b6f58208 becdfdc0 becdfdb4
+[  286.481872] 7fe0: 00000000 becde990 b6f40988 b6e6eb5c 60000010 b6f581b0 8f2fe821 8f2fec21
+[  286.490478] [<c02395fc>] (regulator_bulk_disable+0x18/0x90) from [<bf03c9cc>] (smsc911x_drv_remove+0xd4/0xf4 [smsc911x])
+[  286.501922] [<bf03c9cc>] (smsc911x_drv_remove+0xd4/0xf4 [smsc911x]) from [<c02618d0>] (platform_drv_remove+0x14/0x18)
+[  286.513061] [<c02618d0>] (platform_drv_remove+0x14/0x18) from [<c026041c>] (__device_release_driver+0x7c/0xbc)
+[  286.523590] [<c026041c>] (__device_release_driver+0x7c/0xbc) from [<c02609f0>] (driver_detach+0x8c/0xb4)
+[  286.533538] [<c02609f0>] (driver_detach+0x8c/0xb4) from [<c02602f8>] (bus_remove_driver+0x8c/0xb4)
+[  286.542938] [<c02602f8>] (bus_remove_driver+0x8c/0xb4) from [<c0064db0>] (sys_delete_module+0x1ec/0x280)
+[  286.552917] [<c0064db0>] (sys_delete_module+0x1ec/0x280) from [<c000d2c0>] (ret_fast_syscall+0x0/0x3c)
+[  286.562683] Code: e1a06001 e1a0a001 e3a04000 ea000006 (e59a0004) 
+[  286.571838] ---[ end trace f0a226828d962479 ]---
+Speicherzugriffsfehler
+
+--------------000802050607050707000709--
