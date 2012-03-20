@@ -1,117 +1,95 @@
-From: "DebBarma, Tarun Kanti" <tarun.kanti@ti.com>
-Subject: Re: [PATCH v2 0/4] ARM: OMAP: boards: changes to support dynamic irq alloc
-Date: Tue, 20 Mar 2012 16:29:39 +0530
-Message-ID: <CAC83ZvLf=fkuvf6VN1gwauFirO2cQsNib3ANWnJrujWGNYS24Q@mail.gmail.com>
-References: <1332158817-26311-1-git-send-email-tarun.kanti@ti.com>
-	<20120319191743.GB9859@atomide.com>
-	<4F67B9F9.1030906@ti.com>
-	<20120319233910.GF9859@atomide.com>
-	<4F68471A.4010502@ti.com>
+From: Felipe Balbi <balbi@ti.com>
+Subject: Re: [PATCH 1/5 RESEND] ARM: OMAP: USB: HOST TLL platform driver
+Date: Tue, 20 Mar 2012 13:01:36 +0200
+Message-ID: <20120320110135.GR9157@arwen.pp.htv.fi>
+References: <1332139715-1495-1-git-send-email-keshava_mgowda@ti.com>
+ <1332139715-1495-2-git-send-email-keshava_mgowda@ti.com>
+ <20120319100603.GB20279@arwen.pp.htv.fi>
+ <CAP05o4LkWpANqibBXsY-FbCTOsioUq4qPdA8k=Ct4HHGYfL4Ng@mail.gmail.com>
+ <20120320095914.GE9157@arwen.pp.htv.fi>
+ <CAP05o4+tjD__yr-vgq29QpUUCAxgqSJiGW0ibVn2CFQU_3y+bw@mail.gmail.com>
+Reply-To: balbi@ti.com
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: multipart/signed; micalg=pgp-sha1;
+	protocol="application/pgp-signature"; boundary="8N5nZmKALFZnI1Hj"
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aog104.obsmtp.com ([74.125.149.73]:44364 "EHLO
-	na3sys009aog104.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753746Ab2CTK7k convert rfc822-to-8bit
-	(ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Tue, 20 Mar 2012 06:59:40 -0400
-Received: by qabg27 with SMTP id g27so27597qab.2
-        for <linux-omap@vger.kernel.org>; Tue, 20 Mar 2012 03:59:39 -0700 (PDT)
-In-Reply-To: <4F68471A.4010502@ti.com>
+Received: from na3sys009aog113.obsmtp.com ([74.125.149.209]:43266 "EHLO
+	na3sys009aog113.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1753638Ab2CTLBy (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>);
+	Tue, 20 Mar 2012 07:01:54 -0400
+Received: by mail-lpp01m010-f52.google.com with SMTP id i5so9560761lah.39
+        for <linux-omap@vger.kernel.org>; Tue, 20 Mar 2012 04:01:53 -0700 (PDT)
+Content-Disposition: inline
+In-Reply-To: <CAP05o4+tjD__yr-vgq29QpUUCAxgqSJiGW0ibVn2CFQU_3y+bw@mail.gmail.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "Cousson, Benoit" <b-cousson@ti.com>
-Cc: Tony Lindgren <tony@atomide.com>, linux-omap@vger.kernel.org, khilman@ti.com, grant.likely@secretlab.ca, dmitry.torokhov@gmail.com, linux-arm-kernel@lists.infradead.org
+To: "Munegowda, Keshava" <keshava_mgowda@ti.com>
+Cc: balbi@ti.com, linux-omap@vger.kernel.org, linux-usb@vger.kernel.org, sameo@linux.intel.com, parthab@india.ti.com, govindraj.raja@ti.com, paul@pwsan.com, b-cousson@ti.com
 
-On Tue, Mar 20, 2012 at 2:30 PM, Cousson, Benoit <b-cousson@ti.com> wro=
-te:
-> On 3/20/2012 12:39 AM, Tony Lindgren wrote:
->>
->> * Cousson, Benoit<b-cousson@ti.com> =A0[120319 16:00]:
->>>
->>> Hi Tony,
->>>
->>> On 3/19/2012 8:17 PM, Tony Lindgren wrote:
->>>>
->>>> * Tarun Kanti DebBarma<tarun.kanti@ti.com> =A0 [120319 05:09]:
->>>>>
->>>>> These two patches incorporate changes to OMAP1 and OMAP2 platform=
-s
->>>>> board files whereby older references to OMAP_GPIO_IRQ macro are
->>>>> now replaced with gpio_to_irq(), thereby getting rid of static
->>>>> irq references.
->>>>>
->>>>> Reference:
->>>>> git://git.kernel.org/pub/scm/linux/kernel/git/arm/arm-soc.git oma=
-p/dt
->>>>> Commit: 9a0cee711448335ec43eae83272495e9334c0098
->>>>
->>>>
->>>> Can you please tell the exact two commits causing this
->>>> breakage?
->>>
->>>
->>> Well, this is the GPIO DT + SPARSE_IRQ series I have done. It
->>> appears that the boards I have were already using properly
->>> gpio_to_irq() and thus were working fine with this series.
->>>
->>> But this is unfortunately not the case of most OMAP2 and 3 legacy
->>> boards that were still using an old OMAP way of converting GPIO to
->>> IRQ and were never modified to take advantage of the gpiolib stuff.
->>>
->>> So if these patches are apply before the GPIO DT + SPARSE_IRQ
->>> series, there will be no breakage at all.
->>>
->>> All the cleanup we have never done before will hurt us at some poin=
-t
->>> when we will start using more extensively newer fmwk (DT,
->>> sparse_irq, dmaengine...). It was not done on purpose, but this GPI=
-O
->>> series highlighted this remaining static broken mapping inside OMAP
->>> boards.
->>
->>
->> Yes I understand. But still, which patch(s) cause the issue
->> so we can put that in the changelog for the fixes?
->
->
-> OK, here they are:
-> 25db711 gpio/omap: Fix IRQ handling for SPARSE_IRQ
-> 384ebe1 gpio/omap: Add DT support to GPIO driver
->
-> Tarun,
->
-> You should indeed add the references in your cover letter.
-Yes, I will specify them in the cover letter.
---
-Tarun
->
->
->>>> I'm baffled how despite all the effort for previnting
->>>> issues like this this still happen. These all seem valid
->>>> fixes and clean up things, but how come this was not seen
->>>> earlier?
->>>
->>>
->>> Maybe because there are much more boards inside mach-omap2 director=
-y
->>> than inside my cubicle... :-(
->>
->>
->> Well somehow we need to make sure that patches get properly
->> tested on a reasonable selection of boards. This pretty much
->> breaks things for 21 boards out of the 51 board-*.c files :(
->
->
-> What is too bad is that one broken board was enough to figured out th=
-e issue
-> and fix all the other ones. I just did not have that one :-(
->
-> Regards,
-> Benoit
---
-To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+
+--8N5nZmKALFZnI1Hj
+Content-Type: text/plain; charset=iso-8859-1
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
+
+On Tue, Mar 20, 2012 at 04:21:18PM +0530, Munegowda, Keshava wrote:
+> On Tue, Mar 20, 2012 at 3:29 PM, Felipe Balbi <balbi@ti.com> wrote:
+> > Hi,
+> >
+> > On Tue, Mar 20, 2012 at 03:00:50PM +0530, Munegowda, Keshava wrote:
+> >> >> +MODULE_AUTHOR("Keshava Munegowda <keshava_mgowda@ti.com>");
+> >> >> +MODULE_ALIAS("platform:" USBHS_DRIVER_NAME);
+> >> >> +MODULE_LICENSE("GPL v2");
+> >> >> +MODULE_DESCRIPTION("usb tll driver for TI OMAP EHCI and OHCI contr=
+ollers");
+> >> >> +
+> >> >> +static int __init omap_usbtll_drvinit(void)
+> >> >> +{
+> >> >> + =A0 =A0 return platform_driver_probe(&usbtll_omap_driver, usbtll_=
+omap_probe);
+> >> >
+> >> > please don't. Make sure you use platform_driver_register, instead.
+> >>
+> >>
+> >> Here , omap_usbtll_drvinit is registered through fs_initcall call;
+> >> this is required because, the TLL driver is required to initialized
+> >> before the UHH ( usb host core) driver.
+> >
+> > no issues with fs_initcall. The issue is with platform_driver_probe()
+> > only.
+> >
+> > --
+> > balbi
+>=20
+> Thanks , I got it.
+> I will take the same comment make the same change in usbhs driver too;
+
+cool, thanks
+
+--=20
+balbi
+
+--8N5nZmKALFZnI1Hj
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: Digital signature
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.4.11 (GNU/Linux)
+
+iQIcBAEBAgAGBQJPaGOPAAoJEIaOsuA1yqREvjAP/1cmMq/Pwkt9YGyhtlLe0LAZ
+oG9ecPRni23tb+BH7CmNqWvx5YqAxHnBLbtY7CMY1YTD5smteQvCj+Zdb9B9zaTQ
+uUmKUUjxUJR64CYaTXO7Sz4B8SG6R73JJjMheHvkVBP2afBRvwig5rAkyRvaCclJ
+qRMKTAOfdaWwCiFp+5FUkyZRp0iyOGDDfdkSx5jOYN1ihIk5zOLM59qbDhk0NhlN
+y5QHEFUyaeG4A9iDQ+SKoTzWRqa8bvhoeskEa1QdWQj16cxfhgV9+s2WIGbExqT3
+BHu0AMs0QJMif/FQqmXvGEMUSctUPwsDvt9wW4993uo3NWT2Ta36WRgALCktxXpz
++CY/T9D3fxKsg6WFkXRpEa/WK/jvA4taUGZfHNc3QAdPPPd8bEqX+CaCPqB5LwVu
+dquIRUytoiWv0yz77XcdtKChts486bS6jA1fZoNXN3KSgg35mat8hIk/zca5B+rF
+aYG4i2UmOqJGHMZlbJ/j9IaYz9QZtx4ZAbVYclmpemveVQd3DEw/5tuJwnI6Bv67
+/TCFyrQS6s/ebXOgZJ4VYFl9eeNq2+a3OlZOpTU7eSbRp1CXd8esGTbgThPkfNM8
+YndSXZaIc76Oug1TBj6bxHO6KIZoNRq67MhBnYZMEVRpPGzEFGolcppbmDp36ZZL
+gZOGQA8XulO2md7d9/mV
+=ESQk
+-----END PGP SIGNATURE-----
+
+--8N5nZmKALFZnI1Hj--
