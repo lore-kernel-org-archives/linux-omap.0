@@ -1,7 +1,7 @@
 From: Robert Lee <rob.lee@linaro.org>
-Subject: [PATCH v8 3/8] ARM: kirkwood: Consolidate time keeping and irq enable
-Date: Tue, 20 Mar 2012 15:22:44 -0500
-Message-ID: <1332274969-15782-4-git-send-email-rob.lee@linaro.org>
+Subject: [PATCH v8 7/8] ARM: shmobile: Consolidate time keeping and irq enable
+Date: Tue, 20 Mar 2012 15:22:48 -0500
+Message-ID: <1332274969-15782-8-git-send-email-rob.lee@linaro.org>
 References: <1332274969-15782-1-git-send-email-rob.lee@linaro.org>
 Return-path: <linux-kernel-owner@vger.kernel.org>
 In-Reply-To: <1332274969-15782-1-git-send-email-rob.lee@linaro.org>
@@ -18,111 +18,64 @@ Reviewed-by: Kevin Hilman <khilman@ti.com>
 Reviewed-by: Daniel Lezcano <daniel.lezcano@linaro.org>
 Acked-by: Jean Pihet<j-pihet@ti.com>
 ---
- arch/arm/mach-kirkwood/cpuidle.c |   72 +++++++++++---------------------------
- 1 file changed, 21 insertions(+), 51 deletions(-)
+ arch/arm/mach-shmobile/cpuidle.c |   31 +++++++------------------------
+ 1 file changed, 7 insertions(+), 24 deletions(-)
 
-diff --git a/arch/arm/mach-kirkwood/cpuidle.c b/arch/arm/mach-kirkwood/cpuidle.c
-index 7088180..0f17109 100644
---- a/arch/arm/mach-kirkwood/cpuidle.c
-+++ b/arch/arm/mach-kirkwood/cpuidle.c
-@@ -20,77 +20,47 @@
- #include <linux/io.h>
- #include <linux/export.h>
- #include <asm/proc-fns.h>
+diff --git a/arch/arm/mach-shmobile/cpuidle.c b/arch/arm/mach-shmobile/cpuidle.c
+index 1b23342..ca23b20 100644
+--- a/arch/arm/mach-shmobile/cpuidle.c
++++ b/arch/arm/mach-shmobile/cpuidle.c
+@@ -14,6 +14,7 @@
+ #include <linux/module.h>
+ #include <linux/err.h>
+ #include <asm/system.h>
 +#include <asm/cpuidle.h>
- #include <mach/kirkwood.h>
+ #include <asm/io.h>
  
- #define KIRKWOOD_MAX_STATES	2
- 
--static struct cpuidle_driver kirkwood_idle_driver = {
--	.name =         "kirkwood_idle",
--	.owner =        THIS_MODULE,
--};
--
--static DEFINE_PER_CPU(struct cpuidle_device, kirkwood_cpuidle_device);
--
- /* Actual code that puts the SoC in different idle states */
- static int kirkwood_enter_idle(struct cpuidle_device *dev,
- 				struct cpuidle_driver *drv,
- 			       int index)
+ static void shmobile_enter_wfi(void)
+@@ -29,37 +30,19 @@ static int shmobile_cpuidle_enter(struct cpuidle_device *dev,
+ 				  struct cpuidle_driver *drv,
+ 				  int index)
  {
--	struct timeval before, after;
--	int idle_time;
+-	ktime_t before, after;
+-
+-	before = ktime_get();
 -
 -	local_irq_disable();
--	do_gettimeofday(&before);
--	if (index == 0)
--		/* Wait for interrupt state */
--		cpu_do_idle();
--	else if (index == 1) {
--		/*
--		 * Following write will put DDR in self refresh.
--		 * Note that we have 256 cycles before DDR puts it
--		 * self in self-refresh, so the wait-for-interrupt
--		 * call afterwards won't get the DDR from self refresh
--		 * mode.
--		 */
--		writel(0x7, DDR_OPERATION_BASE);
--		cpu_do_idle();
--	}
--	do_gettimeofday(&after);
--	local_irq_enable();
--	idle_time = (after.tv_sec - before.tv_sec) * USEC_PER_SEC +
--			(after.tv_usec - before.tv_usec);
+-	local_fiq_disable();
 -
--	/* Update last residency */
--	dev->last_residency = idle_time;
-+	writel(0x7, DDR_OPERATION_BASE);
-+	cpu_do_idle();
+ 	shmobile_cpuidle_modes[index]();
  
+-	local_irq_enable();
+-	local_fiq_enable();
+-
+-	after = ktime_get();
+-	dev->last_residency = ktime_to_ns(ktime_sub(after, before)) >> 10;
+-
  	return index;
  }
  
-+static struct cpuidle_driver kirkwood_idle_driver = {
-+	.name			= "kirkwood_idle",
+ static struct cpuidle_device shmobile_cpuidle_dev;
+ static struct cpuidle_driver shmobile_cpuidle_driver = {
+-	.name =		"shmobile_cpuidle",
+-	.owner =	THIS_MODULE,
+-	.states[0] = {
+-		.name = "C1",
+-		.desc = "WFI",
+-		.exit_latency = 1,
+-		.target_residency = 1 * 2,
+-		.flags = CPUIDLE_FLAG_TIME_VALID,
+-	},
+-	.safe_state_index = 0, /* C1 */
+-	.state_count = 1,
++	.name			= "shmobile_cpuidle",
 +	.owner			= THIS_MODULE,
 +	.en_core_tk_irqen	= 1,
 +	.states[0]		= ARM_CPUIDLE_WFI_STATE,
-+	.states[1]		= {
-+		.enter			= kirkwood_enter_idle,
-+		.exit_latency		= 10,
-+		.target_residency	= 100000,
-+		.flags			= CPUIDLE_FLAG_TIME_VALID,
-+		.name			= "DDR SR",
-+		.desc			= "WFI and DDR Self Refresh",
-+	},
-+	.state_count = KIRKWOOD_MAX_STATES,
-+};
-+
-+static DEFINE_PER_CPU(struct cpuidle_device, kirkwood_cpuidle_device);
-+
- /* Initialize CPU idle by registering the idle states */
- static int kirkwood_init_cpuidle(void)
- {
- 	struct cpuidle_device *device;
--	struct cpuidle_driver *driver = &kirkwood_idle_driver;
++	.safe_state_index	= 0, /* C1 */
++	.state_count		= 1,
+ };
  
- 	device = &per_cpu(kirkwood_cpuidle_device, smp_processor_id());
- 	device->state_count = KIRKWOOD_MAX_STATES;
--	driver->state_count = KIRKWOOD_MAX_STATES;
--
--	/* Wait for interrupt state */
--	driver->states[0].enter = kirkwood_enter_idle;
--	driver->states[0].exit_latency = 1;
--	driver->states[0].target_residency = 10000;
--	driver->states[0].flags = CPUIDLE_FLAG_TIME_VALID;
--	strcpy(driver->states[0].name, "WFI");
--	strcpy(driver->states[0].desc, "Wait for interrupt");
--
--	/* Wait for interrupt and DDR self refresh state */
--	driver->states[1].enter = kirkwood_enter_idle;
--	driver->states[1].exit_latency = 10;
--	driver->states[1].target_residency = 10000;
--	driver->states[1].flags = CPUIDLE_FLAG_TIME_VALID;
--	strcpy(driver->states[1].name, "DDR SR");
--	strcpy(driver->states[1].desc, "WFI and DDR Self Refresh");
- 
- 	cpuidle_register_driver(&kirkwood_idle_driver);
- 	if (cpuidle_register_device(device)) {
+ void (*shmobile_cpuidle_setup)(struct cpuidle_driver *drv);
 -- 
 1.7.9.4
