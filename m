@@ -1,45 +1,53 @@
-From: Matt Porter <mporter@ti.com>
-Subject: Re: [PATCH] of: Add generic device tree DMA helpers
-Date: Tue, 20 Mar 2012 10:02:13 -0400
-Message-ID: <20120320140213.GG14084@beef>
-References: <4F22DEF2.5000807@ti.com>
- <4F621939.9040906@ti.com>
- <20120315195753.GA2842@n2100.arm.linux.org.uk>
- <201203152041.53754.arnd@arndb.de>
- <4F626180.2010902@ti.com>
+From: Kevin Hilman <khilman@ti.com>
+Subject: Re: [PATCH v3 1/2] arm: omap3: pm34xx.c: Fix omap3_pm_init() error out paths
+Date: Tue, 20 Mar 2012 07:02:40 -0700
+Message-ID: <87sjh32wvz.fsf@ti.com>
+References: <1332033768-21986-1-git-send-email-mgreer@animalcreek.com>
+	<1332033768-21986-2-git-send-email-mgreer@animalcreek.com>
+	<1332150525.2116.334.camel@sokoban>
+	<alpine.DEB.2.00.1203200316300.22974@utopia.booyaka.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-iy0-f174.google.com ([209.85.210.174]:62018 "EHLO
-	mail-iy0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1760033Ab2CTOBz (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 20 Mar 2012 10:01:55 -0400
-Received: by mail-iy0-f174.google.com with SMTP id z16so65781iag.19
-        for <linux-omap@vger.kernel.org>; Tue, 20 Mar 2012 07:01:55 -0700 (PDT)
-Content-Disposition: inline
-In-Reply-To: <4F626180.2010902@ti.com>
+Received: from na3sys009aog117.obsmtp.com ([74.125.149.242]:60738 "EHLO
+	na3sys009aog117.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1759083Ab2CTOCm (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>);
+	Tue, 20 Mar 2012 10:02:42 -0400
+Received: by mail-pb0-f43.google.com with SMTP id wz12so126662pbc.30
+        for <linux-omap@vger.kernel.org>; Tue, 20 Mar 2012 07:02:41 -0700 (PDT)
+In-Reply-To: <alpine.DEB.2.00.1203200316300.22974@utopia.booyaka.com> (Paul
+	Walmsley's message of "Tue, 20 Mar 2012 03:17:16 -0600 (MDT)")
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "Cousson, Benoit" <b-cousson@ti.com>
-Cc: Arnd Bergmann <arnd@arndb.de>, Russell King - ARM Linux <linux@arm.linux.org.uk>, linux-arm-kernel@lists.infradead.org, Nicolas Ferre <nicolas.ferre@atmel.com>, grant.likely@secretlab.ca, rob.herring@calxeda.com, devicetree-discuss@lists.ozlabs.org, Stephen Warren <swarren@nvidia.com>, linux-omap@vger.kernel.org, Thierry Reding <thierry.reding@avionic-design.de>
+To: Paul Walmsley <paul@pwsan.com>
+Cc: Tero Kristo <t-kristo@ti.com>, "Mark A. Greer" <mgreer@animalcreek.com>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 
-On Thu, Mar 15, 2012 at 10:39:12PM +0100, Cousson, Benoit wrote:
-> On 3/15/2012 9:41 PM, Arnd Bergmann wrote:
-> >The numbers definitely need to become local to each of the controllers, but
-> >that is the case pretty much automatically using the proposed binding,
-> >because each dma request identifier starts with the phandle of the
-> >controller.
-> 
-> Indeed, and in the case of the OMAP SDMA controller, it can handle
-> up to 127 DMA request lines numbered from 0 to 126... So a local
-> number seems to be a good representation... especially for a number.
-> I'm not sure to understand the issue with this binding.
-> 
-> And AFAIK, there is the only one general purpose DMA controller in
-> OMAP so far. The other ones are private to some IPs like MMC or USB,
-> so they do not need necessarily need any DT representation.
+Paul Walmsley <paul@pwsan.com> writes:
 
-AM335x has an EDMA controller instead of SDMA. This is the same EDMA
-found on mach-davinci/ parts.
+> + Kevin
+>
+> On Mon, 19 Mar 2012, Tero Kristo wrote:
+>
+>> On Sat, 2012-03-17 at 18:22 -0700, Mark A. Greer wrote:
+>> > From: "Mark A. Greer" <mgreer@animalcreek.com>
+>> > 
+>> > It appears that the error paths were overlooked when the
+>> > omap3_pm_init() routine had the prcm chain handler code
+>> > added.  Fix this by adding a goto target and reordering
+>> > the error handling code.  Also fix how the irq argument
+>> > for free_irq() is determined.
+>> 
+>> You are right, it looks like the error handling part was accidentally
+>> dropped from version 7 of the prcm patch set.
+>> 
+>> Acked-by: Tero Kristo <t-kristo@ti.com>
+>> 
+>> Paul, you going to grab this?
+>
+> Kevin is the pm34xx.c maintainer, so unless he wants me to queue it, it's 
+> probably best for him to take it.
 
--Matt
+Yeah, I've already queued these for v3.4.  (branch: for_3.4/fixes/pm)
+
+Kevin
