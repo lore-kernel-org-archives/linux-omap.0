@@ -1,146 +1,295 @@
-From: Javier Martinez Canillas <martinez.javier@gmail.com>
-Subject: Re: smsc911x on Gumstix Overo/Tobi doesn't work
-Date: Tue, 20 Mar 2012 20:47:41 +0100
-Message-ID: <CAAwP0s3Qo7vtt=BY7Pvejg4Gc9X0O0n=yWg0JVGZHrmUJScMXw@mail.gmail.com>
-References: <4F6324D5.9010106@uni-dortmund.de> <20120316193337.GE7276@atomide.com>
- <4F675D9D.2040102@uni-dortmund.de> <20120319225131.GE9859@atomide.com> <4F6893C6.60701@uni-dortmund.de>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+From: Robert Lee <rob.lee@linaro.org>
+Subject: [PATCH v8 1/8] cpuidle: Add common time keeping and irq enabling
+Date: Tue, 20 Mar 2012 15:22:42 -0500
+Message-ID: <1332274969-15782-2-git-send-email-rob.lee@linaro.org>
+References: <1332274969-15782-1-git-send-email-rob.lee@linaro.org>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-gy0-f174.google.com ([209.85.160.174]:53022 "EHLO
-	mail-gy0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756691Ab2CTTsC convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 20 Mar 2012 15:48:02 -0400
-Received: by ghrr11 with SMTP id r11so445532ghr.19
-        for <linux-omap@vger.kernel.org>; Tue, 20 Mar 2012 12:48:01 -0700 (PDT)
-In-Reply-To: <4F6893C6.60701@uni-dortmund.de>
+Received: from mail-qc0-f174.google.com ([209.85.216.174]:33899 "EHLO
+	mail-qc0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1757845Ab2CTUXD (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 20 Mar 2012 16:23:03 -0400
+Received: by mail-qc0-f174.google.com with SMTP id w6so219451qcq.19
+        for <linux-omap@vger.kernel.org>; Tue, 20 Mar 2012 13:23:03 -0700 (PDT)
+In-Reply-To: <1332274969-15782-1-git-send-email-rob.lee@linaro.org>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Thomas Klute <thomas2.klute@uni-dortmund.de>
-Cc: Tony Lindgren <tony@atomide.com>, linux-omap@vger.kernel.org
+To: len.brown@intel.com
+Cc: akpm@linux-foundation.org, rjw@sisk.pl, khilman@ti.com, robherring2@gmail.com, Baohua.Song@csr.com, amit.kucheria@linaro.org, nicolas.ferre@atmel.com, linux@maxim.org.za, kgene.kim@samsung.com, amit.kachhap@linaro.org, magnus.damm@gmail.com, nsekhar@ti.com, daniel.lezcano@linaro.org, mturquette@linaro.org, vincent.guittot@linaro.org, arnd.bergmann@linaro.org, linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linaro-dev@lists.linaro.org, patches@linaro.org, deepthi@linux.vnet.ibm.com, broonie@opensource.wolfsonmicro.com, nicolas.pitre@linaro.org, linux@arm.linux.org.uk, jean.pihet@newoldbits.com, venki@google.com, ccross@google.com, g.trinabh@gmail.com, kernel@wantstofly.org, lethal@linux-sh.org, jon-hunter@ti.com, tony@atomide.com, linux-omap@vger.kernel.org, linux-sh@vger.kernel.org, linux-pm@vger.kernel.org
 
-On Tue, Mar 20, 2012 at 3:27 PM, Thomas Klute
-<thomas2.klute@uni-dortmund.de> wrote:
-> Am 19.03.2012 23:51, schrieb Tony Lindgren:
->> * Thomas Klute <thomas2.klute@uni-dortmund.de> [120319 09:26]:
->>> Am 16.03.2012 20:33, schrieb Tony Lindgren:
->>>> Hi,
->>>>
->>>> * Thomas Klute <thomas2.klute@uni-dortmund.de> [120316 05:08]:
->>>>> Hi,
->>>>>
->>>>> I have trouble getting the Ethernet port on a Gumstix Overo with =
-Tobi
->>>>> expansion board to work with current kernel versions. With the la=
-test
->>>>> commit from linux-omap git (b8fe1781ec8bed5e086691a827a6ee11facec=
-2aa),
->>>>> the output from loading the smsc911x driver is as follows:
->>>>>
->>>>> du14:~# modprobe smsc911x
->>>>> [ =C2=A0254.843811] smsc911x: Driver version 2008-10-21
->>>>> [ =C2=A0254.854553] smsc911x: Driver version 2008-10-21
->>>>> [ =C2=A0254.859588] _regulator_get: smsc911x.1 supply vdd33a not =
-found, using
->>>>> dummy regulator
->>>>> [ =C2=A0254.868377] _regulator_get: smsc911x.1 supply vddvario no=
-t found,
->>>>> using dummy regulator
->>>>>
->>>>> "ip link show" does not show any available Ethernet port.
->>>>
->>>> The first instance one should work the same way as earlier using
->>>> fixed regulator in gpmc-smsc911x.c. Is it not working for you
->>>> somehow? At least it works for me on zoom3.
->>>
->>> The Tobi board has only one Ethernet port.
->>>
->>>>> I know there has been some trouble with changes around smsc911x
->>>>> regulator support and Gumstix Overo in particular. Am I just miss=
-ing the
->>>>> right regulator in my kernel config or is this a bug? I can test =
-patches
->>>>> in the latter case.
->>>>
->>>> The second smsc911x now needs a regulator. For multiple smsc911x i=
-nstances,
->>>> we should change things around so no regulator is created if one
->>>> is passed.
->>>>
->>>> Care to test the following patch by passing a fixed regulator
->>>> from board-overo.c?
->>>
->>> After applying the patch the Ethernet port works consistently once =
-I had
->>> done a cold boot (reboot from the unpatched kernel did not work).
->>> Thank you!
->>
->> Hmm but this patch should not change the behaviour for the first sms=
-c911x
->> instance unless you specify a custom regulator.. Did you patch in a
->> custom regulator, or do we have a bug somewhere? Or do you just need=
- to
->> do a cold reset without the patch I posted?
->
-> You're right, during further tests I found that the problem lies
-> elsewhere: If the Ethernet cable is attached on modprobe, the device
-> works as expected, if not, it's not found (with or without the patch)=
-=2E
-> This means if I boot with the cable disconnected, the device won't sh=
-ow
-> up, but after
->
-> # modprobe -r smsc911x
-> [attach cable]
-> # modprobe smsc911x
->
-> it will work. I'd still consider this a bug, but it doesn't seem to b=
-e a
-> regulator problem.
->
+Make necessary changes to implement time keeping and irq enabling
+in the core cpuidle code.  This will allow the removal of these
+functionalities from various platform cpuidle implementations whose
+timekeeping and irq enabling follows the form in this common code.
 
-Hi Thomas,
+Signed-off-by: Robert Lee <rob.lee@linaro.org>
+Tested-by: Jean Pihet<j-pihet@ti.com>
+Tested-by: Amit Daniel<amit.kachhap@linaro.org>
+Tested-by: Robert Lee<rob.lee@linaro.org>
+Reviewed-by: Kevin Hilman <khilman@ti.com>
+Reviewed-by: Daniel Lezcano <daniel.lezcano@linaro.org>
+Reviewed-by: Deepthi Dharwar<deepthi@linux.vnet.ibm.com>
+Acked-by: Jean Pihet<j-pihet@ti.com>
+---
+ arch/arm/include/asm/cpuidle.h |   30 ++++++++++++++++++
+ arch/arm/kernel/Makefile       |    2 +-
+ arch/arm/kernel/cpuidle.c      |   21 +++++++++++++
+ drivers/cpuidle/cpuidle.c      |   66 +++++++++++++++++++++++++++++++++++-----
+ include/linux/cpuidle.h        |   13 +++++++-
+ 5 files changed, 123 insertions(+), 9 deletions(-)
+ create mode 100644 arch/arm/include/asm/cpuidle.h
+ create mode 100644 arch/arm/kernel/cpuidle.c
 
-I had the same behavior with the smsc911x chip but on an IGEPv2 board.
-The problem was when CONFIG_SMSC_PHY=3Dy since the driver for the chip
-internal PHY enables an energy detect power-down mode.
+diff --git a/arch/arm/include/asm/cpuidle.h b/arch/arm/include/asm/cpuidle.h
+new file mode 100644
+index 0000000..9322f444
+--- /dev/null
++++ b/arch/arm/include/asm/cpuidle.h
+@@ -0,0 +1,30 @@
++#ifndef __ASM_ARM_CPUIDLE_H
++#define __ASM_ARM_CPUIDLE_H
++
++#ifdef CONFIG_CPU_IDLE
++extern int arm_cpuidle_simple_enter(struct cpuidle_device *dev,
++		struct cpuidle_driver *drv, int index);
++#else
++static inline int arm_cpuidle_simple_enter(struct cpuidle_device *dev,
++		struct cpuidle_driver *drv, int index) { return -ENODEV; }
++#endif
++
++/* Common ARM WFI state */
++#define ARM_CPUIDLE_WFI_STATE_PWR(p) {\
++	.enter                  = arm_cpuidle_simple_enter,\
++	.exit_latency           = 1,\
++	.target_residency       = 1,\
++	.power_usage		= p,\
++	.flags                  = CPUIDLE_FLAG_TIME_VALID,\
++	.name                   = "WFI",\
++	.desc                   = "ARM WFI",\
++}
++
++/*
++ * in case power_specified == 1, give a default WFI power value needed
++ * by some governors
++ */
++#define ARM_CPUIDLE_WFI_STATE ARM_CPUIDLE_WFI_STATE_PWR(UINT_MAX)
++
++#endif
++
+diff --git a/arch/arm/kernel/Makefile b/arch/arm/kernel/Makefile
+index 43b740d..940c27f 100644
+--- a/arch/arm/kernel/Makefile
++++ b/arch/arm/kernel/Makefile
+@@ -21,7 +21,7 @@ obj-$(CONFIG_DEPRECATED_PARAM_STRUCT) += compat.o
+ 
+ obj-$(CONFIG_LEDS)		+= leds.o
+ obj-$(CONFIG_OC_ETM)		+= etm.o
+-
++obj-$(CONFIG_CPU_IDLE)		+= cpuidle.o
+ obj-$(CONFIG_ISA_DMA_API)	+= dma.o
+ obj-$(CONFIG_ARCH_ACORN)	+= ecard.o 
+ obj-$(CONFIG_FIQ)		+= fiq.o fiqasm.o
+diff --git a/arch/arm/kernel/cpuidle.c b/arch/arm/kernel/cpuidle.c
+new file mode 100644
+index 0000000..89545f6
+--- /dev/null
++++ b/arch/arm/kernel/cpuidle.c
+@@ -0,0 +1,21 @@
++/*
++ * Copyright 2012 Linaro Ltd.
++ *
++ * The code contained herein is licensed under the GNU General Public
++ * License. You may obtain a copy of the GNU General Public License
++ * Version 2 or later at the following locations:
++ *
++ * http://www.opensource.org/licenses/gpl-license.html
++ * http://www.gnu.org/copyleft/gpl.html
++ */
++
++#include <linux/cpuidle.h>
++#include <asm/proc-fns.h>
++
++int arm_cpuidle_simple_enter(struct cpuidle_device *dev,
++		struct cpuidle_driver *drv, int index)
++{
++	cpu_do_idle();
++
++	return index;
++}
+diff --git a/drivers/cpuidle/cpuidle.c b/drivers/cpuidle/cpuidle.c
+index 59f4261..4869b55 100644
+--- a/drivers/cpuidle/cpuidle.c
++++ b/drivers/cpuidle/cpuidle.c
+@@ -53,6 +53,24 @@ static void cpuidle_kick_cpus(void) {}
+ 
+ static int __cpuidle_register_device(struct cpuidle_device *dev);
+ 
++static inline int cpuidle_enter(struct cpuidle_device *dev,
++				struct cpuidle_driver *drv, int index)
++{
++	struct cpuidle_state *target_state = &drv->states[index];
++	return target_state->enter(dev, drv, index);
++}
++
++static inline int cpuidle_enter_tk(struct cpuidle_device *dev,
++			       struct cpuidle_driver *drv, int index)
++{
++	return cpuidle_wrap_enter(dev, drv, index, cpuidle_enter);
++}
++
++typedef int (*cpuidle_enter_t)(struct cpuidle_device *dev,
++			       struct cpuidle_driver *drv, int index);
++
++static cpuidle_enter_t cpuidle_enter_ops;
++
+ /**
+  * cpuidle_idle_call - the main idle loop
+  *
+@@ -63,7 +81,6 @@ int cpuidle_idle_call(void)
+ {
+ 	struct cpuidle_device *dev = __this_cpu_read(cpuidle_devices);
+ 	struct cpuidle_driver *drv = cpuidle_get_driver();
+-	struct cpuidle_state *target_state;
+ 	int next_state, entered_state;
+ 
+ 	if (off)
+@@ -92,12 +109,10 @@ int cpuidle_idle_call(void)
+ 		return 0;
+ 	}
+ 
+-	target_state = &drv->states[next_state];
+-
+ 	trace_power_start(POWER_CSTATE, next_state, dev->cpu);
+ 	trace_cpu_idle(next_state, dev->cpu);
+ 
+-	entered_state = target_state->enter(dev, drv, next_state);
++	entered_state = cpuidle_enter_ops(dev, drv, next_state);
+ 
+ 	trace_power_end(dev->cpu);
+ 	trace_cpu_idle(PWR_EVENT_EXIT, dev->cpu);
+@@ -110,6 +125,8 @@ int cpuidle_idle_call(void)
+ 		dev->states_usage[entered_state].time +=
+ 				(unsigned long long)dev->last_residency;
+ 		dev->states_usage[entered_state].usage++;
++	} else {
++		dev->last_residency = 0;
+ 	}
+ 
+ 	/* give the governor an opportunity to reflect on the outcome */
+@@ -164,6 +181,37 @@ void cpuidle_resume_and_unlock(void)
+ 
+ EXPORT_SYMBOL_GPL(cpuidle_resume_and_unlock);
+ 
++/**
++ * cpuidle_wrap_enter - performs timekeeping and irqen around enter function
++ * @dev: pointer to a valid cpuidle_device object
++ * @drv: pointer to a valid cpuidle_driver object
++ * @index: index of the target cpuidle state.
++ */
++int cpuidle_wrap_enter(struct cpuidle_device *dev,
++				struct cpuidle_driver *drv, int index,
++				int (*enter)(struct cpuidle_device *dev,
++					struct cpuidle_driver *drv, int index))
++{
++	ktime_t time_start, time_end;
++	s64 diff;
++
++	time_start = ktime_get();
++
++	index = enter(dev, drv, index);
++
++	time_end = ktime_get();
++
++	local_irq_enable();
++
++	diff = ktime_to_us(ktime_sub(time_end, time_start));
++	if (diff > INT_MAX)
++		diff = INT_MAX;
++
++	dev->last_residency = (int) diff;
++
++	return index;
++}
++
+ #ifdef CONFIG_ARCH_HAS_CPU_RELAX
+ static int poll_idle(struct cpuidle_device *dev,
+ 		struct cpuidle_driver *drv, int index)
+@@ -212,10 +260,11 @@ static void poll_idle_init(struct cpuidle_driver *drv) {}
+ int cpuidle_enable_device(struct cpuidle_device *dev)
+ {
+ 	int ret, i;
++	struct cpuidle_driver *drv = cpuidle_get_driver();
+ 
+ 	if (dev->enabled)
+ 		return 0;
+-	if (!cpuidle_get_driver() || !cpuidle_curr_governor)
++	if (!drv || !cpuidle_curr_governor)
+ 		return -EIO;
+ 	if (!dev->state_count)
+ 		return -EINVAL;
+@@ -226,13 +275,16 @@ int cpuidle_enable_device(struct cpuidle_device *dev)
+ 			return ret;
+ 	}
+ 
+-	poll_idle_init(cpuidle_get_driver());
++	cpuidle_enter_ops = drv->en_core_tk_irqen ?
++		cpuidle_enter_tk : cpuidle_enter;
++
++	poll_idle_init(drv);
+ 
+ 	if ((ret = cpuidle_add_state_sysfs(dev)))
+ 		return ret;
+ 
+ 	if (cpuidle_curr_governor->enable &&
+-	    (ret = cpuidle_curr_governor->enable(cpuidle_get_driver(), dev)))
++	    (ret = cpuidle_curr_governor->enable(drv, dev)))
+ 		goto fail_sysfs;
+ 
+ 	for (i = 0; i < dev->state_count; i++) {
+diff --git a/include/linux/cpuidle.h b/include/linux/cpuidle.h
+index 712abcc..927db28 100644
+--- a/include/linux/cpuidle.h
++++ b/include/linux/cpuidle.h
+@@ -15,6 +15,7 @@
+ #include <linux/list.h>
+ #include <linux/kobject.h>
+ #include <linux/completion.h>
++#include <linux/hrtimer.h>
+ 
+ #define CPUIDLE_STATE_MAX	8
+ #define CPUIDLE_NAME_LEN	16
+@@ -122,6 +123,8 @@ struct cpuidle_driver {
+ 	struct module 		*owner;
+ 
+ 	unsigned int		power_specified:1;
++	/* set to 1 to use the core cpuidle time keeping (for all states). */
++	unsigned int		en_core_tk_irqen:1;
+ 	struct cpuidle_state	states[CPUIDLE_STATE_MAX];
+ 	int			state_count;
+ 	int			safe_state_index;
+@@ -140,7 +143,10 @@ extern void cpuidle_pause_and_lock(void);
+ extern void cpuidle_resume_and_unlock(void);
+ extern int cpuidle_enable_device(struct cpuidle_device *dev);
+ extern void cpuidle_disable_device(struct cpuidle_device *dev);
+-
++extern int cpuidle_wrap_enter(struct cpuidle_device *dev,
++				struct cpuidle_driver *drv, int index,
++				int (*enter)(struct cpuidle_device *dev,
++					struct cpuidle_driver *drv, int index));
+ #else
+ static inline void disable_cpuidle(void) { }
+ static inline int cpuidle_idle_call(void) { return -ENODEV; }
+@@ -157,6 +163,11 @@ static inline void cpuidle_resume_and_unlock(void) { }
+ static inline int cpuidle_enable_device(struct cpuidle_device *dev)
+ {return -ENODEV; }
+ static inline void cpuidle_disable_device(struct cpuidle_device *dev) { }
++static inline int cpuidle_wrap_enter(struct cpuidle_device *dev,
++				struct cpuidle_driver *drv, int index,
++				int (*enter)(struct cpuidle_device *dev,
++					struct cpuidle_driver *drv, int index))
++{ return -ENODEV; }
+ 
+ #endif
+ 
+-- 
+1.7.9.4
 
-The smsc911x driver probe function tries to software reset the chip
-but if the cable is unplugged the energy detect puts the chip in a low
-power mode. Since the chip is not in an operational state the reset
-fails and hence the driver probe function. If the cable is plugged
-then then energy is detected, the chip is in an operational state and
-the reset is successful.
-
-I sent a patch a few months ago to fix this issue. The patch disables
-the energy detect power-down mode before reseting the chip and then it
-enables again after reset.
-
-The commit is:
-
-commit 6386994e03ebbe60338ded3d586308a41e81c0dc
-Author: Javier Martinez Canillas <javier@dowhile0.org>
-Date:   Tue Jan 3 13:36:19 2012 +0000
-
-    net/smsc911x: Check if PHY is in operational mode before software r=
-eset
-
-When I fix the issue I only guarded against generation 4 chips (i.e:
-pdata->generation =3D=3D 4), but maybe this problem also exists in othe=
-r
-SMSC chips (I didn't know since I only had access to specific
-data-sheets).
-
-Also you can try enabling debug in the driver by setting USE_DEBUG to
-1 in drivers/net/ethernet/smsc/smsc911x.h and also trying disabling
-CONFIG_SMSC_PHY, this will use a generic PHY driver that doesn't put
-the chip in auto power mode.
-
-Hope it helps,
-Javier
---
-To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
