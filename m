@@ -1,124 +1,80 @@
-From: "Munegowda, Keshava" <keshava_mgowda@ti.com>
+From: Felipe Balbi <balbi-l0cyMroinI0@public.gmane.org>
 Subject: Re: [PATCH 1/5 RESEND] ARM: OMAP: USB: HOST TLL platform driver
-Date: Tue, 20 Mar 2012 15:00:50 +0530
-Message-ID: <CAP05o4LkWpANqibBXsY-FbCTOsioUq4qPdA8k=Ct4HHGYfL4Ng@mail.gmail.com>
+Date: Tue, 20 Mar 2012 11:59:16 +0200
+Message-ID: <20120320095914.GE9157@arwen.pp.htv.fi>
 References: <1332139715-1495-1-git-send-email-keshava_mgowda@ti.com>
-	<1332139715-1495-2-git-send-email-keshava_mgowda@ti.com>
-	<20120319100603.GB20279@arwen.pp.htv.fi>
+ <1332139715-1495-2-git-send-email-keshava_mgowda@ti.com>
+ <20120319100603.GB20279@arwen.pp.htv.fi>
+ <CAP05o4LkWpANqibBXsY-FbCTOsioUq4qPdA8k=Ct4HHGYfL4Ng@mail.gmail.com>
+Reply-To: balbi-l0cyMroinI0@public.gmane.org
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aob129.obsmtp.com ([74.125.149.136]:56090 "EHLO
-	na3sys009amx259.postini.com" rhost-flags-OK-OK-OK-FAIL)
-	by vger.kernel.org with ESMTP id S1753631Ab2CTJaw convert rfc822-to-8bit
-	(ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Tue, 20 Mar 2012 05:30:52 -0400
-Received: by obbef5 with SMTP id ef5so2329773obb.35
-        for <linux-omap@vger.kernel.org>; Tue, 20 Mar 2012 02:30:50 -0700 (PDT)
-In-Reply-To: <20120319100603.GB20279@arwen.pp.htv.fi>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: multipart/signed; micalg=pgp-sha1;
+	protocol="application/pgp-signature"; boundary="mR8QP4gmHujQHb1c"
+Return-path: <linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Content-Disposition: inline
+In-Reply-To: <CAP05o4LkWpANqibBXsY-FbCTOsioUq4qPdA8k=Ct4HHGYfL4Ng-JsoAwUIsXosN+BqQ9rBEUg@public.gmane.org>
+Sender: linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: "Munegowda, Keshava" <keshava_mgowda-l0cyMroinI0@public.gmane.org>
+Cc: balbi-l0cyMroinI0@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, sameo-VuQAYsv1563Yd54FQh9/CA@public.gmane.org, parthab-PpE0FKYn9XJWk0Htik3J/w@public.gmane.org, govindraj.raja-l0cyMroinI0@public.gmane.org, paul-DWxLp4Yu+b8AvxtiuMwx3w@public.gmane.org, b-cousson-l0cyMroinI0@public.gmane.org
 List-Id: linux-omap@vger.kernel.org
-To: balbi@ti.com
-Cc: linux-omap@vger.kernel.org, linux-usb@vger.kernel.org, sameo@linux.intel.com, parthab@india.ti.com, govindraj.raja@ti.com, paul@pwsan.com, b-cousson@ti.com
-
-On Mon, Mar 19, 2012 at 3:36 PM, Felipe Balbi <balbi@ti.com> wrote:
-> Hi,
->
-> On Mon, Mar 19, 2012 at 12:18:31PM +0530, Keshava Munegowda wrote:
->> + =A0 =A0 ver =3D =A0usbtll_read(base, OMAP_USBTLL_REVISION);
->> + =A0 =A0 if (ver =3D=3D OMAP_USBTLL_REV1)
->> + =A0 =A0 =A0 =A0 =A0 =A0 count =3D OMAP_TLL_CHANNEL_COUNT;
->> + =A0 =A0 else if (ver =3D=3D OMAP_USBTLL_REV2)
->> + =A0 =A0 =A0 =A0 =A0 =A0 count =3D OMAP_REV2_TLL_CHANNEL_COUNT;
->> + =A0 =A0 else {
->> + =A0 =A0 =A0 =A0 =A0 =A0 dev_err(dev, "TLL version failed\n");
->> + =A0 =A0 =A0 =A0 =A0 =A0 ret =3D -ENODEV;
->> + =A0 =A0 =A0 =A0 =A0 =A0 goto err_ioremap;
->> + =A0 =A0 }
->
-> wrong coding style.
->
->> +static const struct dev_pm_ops usbtllomap_dev_pm_ops =3D {
->> + =A0 =A0 .runtime_suspend =A0 =A0 =A0 =A0=3D usbtll_runtime_suspend=
-,
->> + =A0 =A0 .runtime_resume =A0 =A0 =A0 =A0 =3D usbtll_runtime_resume,
->
-> use SET_RUNTIME_PM_OPS()
->
->> +static struct platform_driver usbtll_omap_driver =3D {
->> + =A0 =A0 .driver =3D {
->> + =A0 =A0 =A0 =A0 =A0 =A0 .name =A0 =A0 =A0 =A0 =A0 =3D (char *)usbt=
-ll_driver_name,
->> + =A0 =A0 =A0 =A0 =A0 =A0 .owner =A0 =A0 =A0 =A0 =A0=3D THIS_MODULE,
->> + =A0 =A0 =A0 =A0 =A0 =A0 .pm =A0 =A0 =A0 =A0 =A0 =A0 =3D &usbtlloma=
-p_dev_pm_ops,
->> + =A0 =A0 },
->> + =A0 =A0 .remove =A0 =A0 =A0 =A0 =3D __exit_p(usbtll_omap_remove),
->
-> __devexit_p()
->
->> +};
->> +
->> +int omap_tll_enable(void)
->> +{
->> + =A0 =A0 if (!tll_pdev) {
->> + =A0 =A0 =A0 =A0 =A0 =A0 dev_dbg(&tll_pdev->dev, "missing platform_=
-data\n");
->> + =A0 =A0 =A0 =A0 =A0 =A0 return =A0-ENODEV;
->> + =A0 =A0 }
->> + =A0 =A0 return pm_runtime_get_sync(&tll_pdev->dev);
->> +}
->> +EXPORT_SYMBOL_GPL(omap_tll_enable);
->
-> why ?
-
-the usb hs core driver uses omap_tll_enable and omap_tll_disable
-apis based on the port selection in ./drivers/mfd/omap-usb-host.c file.
 
 
->> +
->> +int omap_tll_disable(void)
->> +{
->> + =A0 =A0 if (!tll_pdev) {
->> + =A0 =A0 =A0 =A0 =A0 =A0 dev_dbg(&tll_pdev->dev, "missing platform_=
-data\n");
->> + =A0 =A0 =A0 =A0 =A0 =A0 return =A0-ENODEV;
->> + =A0 =A0 }
->> + =A0 =A0 return pm_runtime_put_sync(&tll_pdev->dev);
->> +}
->> +EXPORT_SYMBOL_GPL(omap_tll_disable);
->
-> why ?
->
->> +MODULE_AUTHOR("Keshava Munegowda <keshava_mgowda@ti.com>");
->> +MODULE_ALIAS("platform:" USBHS_DRIVER_NAME);
->> +MODULE_LICENSE("GPL v2");
->> +MODULE_DESCRIPTION("usb tll driver for TI OMAP EHCI and OHCI contro=
-llers");
->> +
->> +static int __init omap_usbtll_drvinit(void)
->> +{
->> + =A0 =A0 return platform_driver_probe(&usbtll_omap_driver, usbtll_o=
-map_probe);
->
-> please don't. Make sure you use platform_driver_register, instead.
+--mR8QP4gmHujQHb1c
+Content-Type: text/plain; charset=iso-8859-1
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
 
+Hi,
 
-Here , omap_usbtll_drvinit is registered through fs_initcall call;
-this is required because, the TLL driver is required to initialized
-before the UHH ( usb host core) driver.
+On Tue, Mar 20, 2012 at 03:00:50PM +0530, Munegowda, Keshava wrote:
+> >> +MODULE_AUTHOR("Keshava Munegowda <keshava_mgowda-l0cyMroinI0@public.gmane.org>");
+> >> +MODULE_ALIAS("platform:" USBHS_DRIVER_NAME);
+> >> +MODULE_LICENSE("GPL v2");
+> >> +MODULE_DESCRIPTION("usb tll driver for TI OMAP EHCI and OHCI controll=
+ers");
+> >> +
+> >> +static int __init omap_usbtll_drvinit(void)
+> >> +{
+> >> + =A0 =A0 return platform_driver_probe(&usbtll_omap_driver, usbtll_oma=
+p_probe);
+> >
+> > please don't. Make sure you use platform_driver_register, instead.
+>=20
+>=20
+> Here , omap_usbtll_drvinit is registered through fs_initcall call;
+> this is required because, the TLL driver is required to initialized
+> before the UHH ( usb host core) driver.
 
-regards
-keshava
+no issues with fs_initcall. The issue is with platform_driver_probe()
+only.
 
+--=20
+balbi
 
+--mR8QP4gmHujQHb1c
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: Digital signature
 
->
-> --
-> balbi
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.4.11 (GNU/Linux)
+
+iQIcBAEBAgAGBQJPaFTyAAoJEIaOsuA1yqRECd4P/RQPhxbQchieX7pAWfdOBO5x
+Zr7TlDOMkXeATzA21Xmeu9MfjZ65QRiL/5Fo4dH7QSqfG7hl7DgRgmuMzPcdZ9pk
+Jg5DGWuGF3pjZzS663ZXZ4pZdQO2LmVLh+oNZrU8W0ncC62uxg834J7UmIt/OV1j
+Rw5kfYhuqgpaT3o/cUHsZ2IRKLy1c/rAQtalxpIbvD9ONjDQX/RSx/Iuwp1RnnhA
+Up+ljal/xI0CzPx043XfHcf9oYMFGirYRTgLgMo20YC8+RSQAlBEsCnv9+6/HSLm
+SVsfAP9W4qbCI0PGUPN2Y839xGSgmpiY7BZOWKxljxTH3WDGdKKUXgkeLMUCpR/g
+M8mKKxT4j0ZioF0PXobQpwDYA4KFd4ItpGNZ8ncIZkMO8WloW6IRn8FzAi4Ozr7Z
+KaZ3yVxT4jw+g86SDWPerNdUcbpfiGDD2WnIjc4dBGbFEcsENE7cP/gBKA5bXtJ9
+JMQvspFKVyyiORxM2v6+hmyeeZ0nHoxDiPwa2dcTrBl7/7WEJXVh/wYpgxg4iOg1
+YyylgaE/9d737EOInQF1cXSflyr6xVhrDPFIVStsV7DbROkWVt+gTnDYcoIxJOc5
+fMqHUjp3tA/T9m3uARoGHY0jerkAZmjGZO/AdeuEbYeOKTkhwMVDaw1OR3ArQ0Ue
+RWnvnNlm4ymYru4FYUuv
+=YI3O
+-----END PGP SIGNATURE-----
+
+--mR8QP4gmHujQHb1c--
 --
-To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
-n
-the body of a message to majordomo@vger.kernel.org
+To unsubscribe from this list: send the line "unsubscribe linux-usb" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 More majordomo info at  http://vger.kernel.org/majordomo-info.html
