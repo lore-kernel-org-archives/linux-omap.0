@@ -1,47 +1,44 @@
-From: Shubhrajyoti <shubhrajyoti@ti.com>
-Subject: Re: [PATCH 0/3] SPI updates
-Date: Tue, 20 Mar 2012 22:12:46 +0530
-Message-ID: <4F68B386.9050307@ti.com>
-References: <1332239389-1897-1-git-send-email-shubhrajyoti@ti.com> <20120320162019.33AC83E2834@localhost>
+From: Tony Lindgren <tony@atomide.com>
+Subject: Re: [PATCH v2 0/4] ARM: OMAP: boards: changes to support dynamic
+ irq alloc
+Date: Tue, 20 Mar 2012 09:51:10 -0700
+Message-ID: <20120320165109.GG9859@atomide.com>
+References: <1332158817-26311-1-git-send-email-tarun.kanti@ti.com>
+ <20120319191743.GB9859@atomide.com>
+ <4F67B9F9.1030906@ti.com>
+ <20120319233910.GF9859@atomide.com>
+ <4F68471A.4010502@ti.com>
+ <CAC83ZvLf=fkuvf6VN1gwauFirO2cQsNib3ANWnJrujWGNYS24Q@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aog135.obsmtp.com ([74.125.149.84]:49278 "EHLO
-	psmtp.com" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
-	id S1750953Ab2CTQm6 (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Tue, 20 Mar 2012 12:42:58 -0400
-Received: by mail-pz0-f45.google.com with SMTP id p14so286064dad.4
-        for <linux-omap@vger.kernel.org>; Tue, 20 Mar 2012 09:42:57 -0700 (PDT)
-In-Reply-To: <20120320162019.33AC83E2834@localhost>
+Received: from mho-01-ewr.mailhop.org ([204.13.248.71]:60734 "EHLO
+	mho-01-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753952Ab2CTQvO (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 20 Mar 2012 12:51:14 -0400
+Content-Disposition: inline
+In-Reply-To: <CAC83ZvLf=fkuvf6VN1gwauFirO2cQsNib3ANWnJrujWGNYS24Q@mail.gmail.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Grant Likely <grant.likely@secretlab.ca>
-Cc: spi-devel-general@lists.sourceforge.net, Shubhrajyoti@ponder.secretlab.ca, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org
+To: "DebBarma, Tarun Kanti" <tarun.kanti@ti.com>
+Cc: "Cousson, Benoit" <b-cousson@ti.com>, linux-omap@vger.kernel.org, khilman@ti.com, grant.likely@secretlab.ca, dmitry.torokhov@gmail.com, linux-arm-kernel@lists.infradead.org
 
-On Tuesday 20 March 2012 09:50 PM, Grant Likely wrote:
-> On Tue, 20 Mar 2012 15:59:46 +0530, Shubhrajyoti D <shubhrajyoti@ti.com> wrote:
->> The patch series does the following cleanups
->> - Converts the spi to module_platform_driver
->> - Use the devm functions so that the freeing need not 
->>   be done in the driver.
->>
->> This is also available through
->> git     : git://gitorious.org/linus-tree/linus-tree.git
->> branch  : spi
->>
->>
->> Felipe Balbi (2):
->>   spi: omap2-mcspi: make it behave as a module
->>   spi: omap2-mcspi: convert to module_platform_driver
->>
->> Shubhrajyoti D (1):
->>   spi: omap2-mcspi: use devm_* functions
->>
->>  drivers/spi/spi-omap2-mcspi.c |   46 ++++++++---------------------------------
->>  1 files changed, 9 insertions(+), 37 deletions(-)
-> Merged for v3.5 (it's too late for v3.4)
->
-> g.
-Thanks Grant.
+* DebBarma, Tarun Kanti <tarun.kanti@ti.com> [120320 04:02]:
+> On Tue, Mar 20, 2012 at 2:30 PM, Cousson, Benoit <b-cousson@ti.com> wrote:
+> > On 3/20/2012 12:39 AM, Tony Lindgren wrote:
+> >>
+> >> Yes I understand. But still, which patch(s) cause the issue
+> >> so we can put that in the changelog for the fixes?
+> >
+> > OK, here they are:
+> > 25db711 gpio/omap: Fix IRQ handling for SPARSE_IRQ
+> > 384ebe1 gpio/omap: Add DT support to GPIO driver
 
+Thanks, I'll update the comments for the first two patches
+for this and apply them.
+
+If I get an ack from Dmitry for patch 3/4, I'll apply them too.
+
+Regards,
+
+Tony
