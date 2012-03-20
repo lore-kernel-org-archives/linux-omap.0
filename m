@@ -1,59 +1,45 @@
-From: Nicolas Ferre <nicolas.ferre@atmel.com>
-Subject: [PATCH] of: dma/fixup
-Date: Tue, 20 Mar 2012 11:17:36 +0100
-Message-ID: <1332238657-12668-1-git-send-email-nicolas.ferre@atmel.com>
-References: <6b5dc1fadfd03a48093338b6981c0a7ae7662212.1332237596.git.nicolas.ferre@atmel.com>
+From: Shubhrajyoti D <shubhrajyoti-l0cyMroinI0@public.gmane.org>
+Subject: [PATCH 0/3] SPI updates
+Date: Tue, 20 Mar 2012 15:59:46 +0530
+Message-ID: <1332239389-1897-1-git-send-email-shubhrajyoti@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-In-Reply-To: <6b5dc1fadfd03a48093338b6981c0a7ae7662212.1332237596.git.nicolas.ferre@atmel.com>
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: linux-arm-kernel-bounces@lists.infradead.org
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: b-cousson@ti.com, grant.likely@secretlab.ca, devicetree-discuss@lists.ozlabs.org
-Cc: vinod.koul@linux.intel.com, swarren@nvidia.com, arnd@arndb.de, Nicolas Ferre <nicolas.ferre@atmel.com>, linux-omap@vger.kernel.org, plagnioj@jcrosoft.com, linux-arm-kernel@lists.infradead.org
+Return-path: <spi-devel-general-bounces-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/spi-devel-general>,
+	<mailto:spi-devel-general-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=unsubscribe>
+List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum_name=spi-devel-general>
+List-Post: <mailto:spi-devel-general-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+List-Help: <mailto:spi-devel-general-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=help>
+List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/spi-devel-general>,
+	<mailto:spi-devel-general-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
+Errors-To: spi-devel-general-bounces-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+To: spi-devel-general-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+Cc: Shubhrajyoti, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, D <shubhrajyoti-l0cyMroinI0@public.gmane.org>
 List-Id: linux-omap@vger.kernel.org
 
----
- include/linux/of_dma.h |    6 +++---
- 1 files changed, 3 insertions(+), 3 deletions(-)
+The patch series does the following cleanups
+- Converts the spi to module_platform_driver
+- Use the devm functions so that the freeing need not 
+  be done in the driver.
 
-diff --git a/include/linux/of_dma.h b/include/linux/of_dma.h
-index 2865480..da95e37 100644
---- a/include/linux/of_dma.h
-+++ b/include/linux/of_dma.h
-@@ -18,7 +18,7 @@
- 
- struct device_node;
- 
--#ifdef CONFIG_OF_DMA
-+#ifdef CONFIG_OF
- 
- extern int of_dma_controller_register(struct device_node *np,
- 			int (*of_dma_xlate)(struct of_phandle_args *, void *));
-@@ -29,7 +29,7 @@ extern unsigned int of_dma_count(struct device_node *np);
- 
- extern int of_dma_xlate_onenumbercell(struct of_phandle_args *dma_spec,
- 				      void *dma_req);
--#else /* CONFIG_OF_DMA */
-+#else /* CONFIG_OF */
- 
- static int of_dma_controller_register(struct device_node *np,
- 			int (*of_dma_xlate)(struct of_phandle_args *, void *))
-@@ -55,6 +55,6 @@ static int of_dma_xlate_onenumbercell(struct of_phandle_args *dma_spec,
- {
- 	return -ENOSYS;
- }
--#endif /* CONFIG_OF_DMA */
-+#endif /* CONFIG_OF */
- 
- #endif /* __LINUX_OF_DMA_H */
--- 
-1.7.9
+This is also available through
+git     : git://gitorious.org/linus-tree/linus-tree.git
+branch  : spi
+
+
+Felipe Balbi (2):
+  spi: omap2-mcspi: make it behave as a module
+  spi: omap2-mcspi: convert to module_platform_driver
+
+Shubhrajyoti D (1):
+  spi: omap2-mcspi: use devm_* functions
+
+ drivers/spi/spi-omap2-mcspi.c |   46 ++++++++---------------------------------
+ 1 files changed, 9 insertions(+), 37 deletions(-)
+
+
+------------------------------------------------------------------------------
+This SF email is sponsosred by:
+Try Windows Azure free for 90 days Click Here 
+http://p.sf.net/sfu/sfd2d-msazure
