@@ -1,75 +1,117 @@
-From: Tarun Kanti DebBarma <tarun.kanti@ti.com>
-Subject: [PATCH v4 RESEND 0/7] gpio/omap: Some more driver fixes
-Date: Tue, 20 Mar 2012 16:23:12 +0530
-Message-ID: <1332240799-6748-1-git-send-email-tarun.kanti@ti.com>
+From: "DebBarma, Tarun Kanti" <tarun.kanti@ti.com>
+Subject: Re: [PATCH v2 0/4] ARM: OMAP: boards: changes to support dynamic irq alloc
+Date: Tue, 20 Mar 2012 16:29:39 +0530
+Message-ID: <CAC83ZvLf=fkuvf6VN1gwauFirO2cQsNib3ANWnJrujWGNYS24Q@mail.gmail.com>
+References: <1332158817-26311-1-git-send-email-tarun.kanti@ti.com>
+	<20120319191743.GB9859@atomide.com>
+	<4F67B9F9.1030906@ti.com>
+	<20120319233910.GF9859@atomide.com>
+	<4F68471A.4010502@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from bear.ext.ti.com ([192.94.94.41]:52146 "EHLO bear.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1759671Ab2CTKxg (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Tue, 20 Mar 2012 06:53:36 -0400
+Received: from na3sys009aog104.obsmtp.com ([74.125.149.73]:44364 "EHLO
+	na3sys009aog104.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1753746Ab2CTK7k convert rfc822-to-8bit
+	(ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Tue, 20 Mar 2012 06:59:40 -0400
+Received: by qabg27 with SMTP id g27so27597qab.2
+        for <linux-omap@vger.kernel.org>; Tue, 20 Mar 2012 03:59:39 -0700 (PDT)
+In-Reply-To: <4F68471A.4010502@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: linux-omap@vger.kernel.org
-Cc: khilman@ti.com, tony@atomide.com, b-cousson@ti.com, grant.likely@secretlab.ca, linux-arm-kernel@lists.infradead.org, Tarun Kanti DebBarma <tarun.kanti@ti.com>
+To: "Cousson, Benoit" <b-cousson@ti.com>
+Cc: Tony Lindgren <tony@atomide.com>, linux-omap@vger.kernel.org, khilman@ti.com, grant.likely@secretlab.ca, dmitry.torokhov@gmail.com, linux-arm-kernel@lists.infradead.org
 
-This series excludes the cleanup patches as suggested by Kevin from
-the previously posted series.
-
-The fixes include correction of _set_gpio_irqenable() implementation,
-missing wakeup_en register update in set_gpio_wakeup(), type mismatch
-of gpio trigger parameter in set_gpio_trigger(), incorrect dataout
-register update in set_gpio_dataout_() and few corrections in context
-save logic.
-
-It is baselined on top of:
-git://git.secretlab.ca/git/linux-2.6.git gpio/next
-Commit: 81b279d80a63628e580c71a31d30a8c3b3047ad4
-
-Series is available here for reference:
-git://gitorious.org/~tarunkanti/omap-sw-develoment/tarunkantis-linux-omap-dev for_3.4/gpio_more_fixes
-
-Power Test:
-Off-mode and Retention on OMAP3430 (Suspend and Idle paths).
-Also confirmed that dataout register content preserved over
-off-mode.
-
-Functional Test:
-OMAP2430, OMAP3430SDP, ZOOM3, OMAP4430, OMAP4-BLAZE
-
-v4:
-a) Implemented all comments on v3 which are mostly related to
-avoiding unnecessary register read while updating the context.
-
-b) Folded:
-gpio/omap: fix dataout register overwrite in _set_gpio_dataout
-into:
-gpio/omap: fix missing dataout context save in _set_gpio_dataout_reg
-
-v3:
-- Added 4 more additional patches to the previous series
- which are all bug fixes.
-
-v2:
-- Added a new patch to update wakeup_en register in _set_gpio_wakeup()
- in addition to updating bank->context.wake_en.
-
-- Added a new patch to remove redundant decoding of gpio offset in
- gpio_get(), _get_gpio_datain() and _get_gpio_dataout().
-
-- Added a new patch to remove suspend/resume callbacks because the
- operations performed with the callbacks are redundant.
-
-Tarun Kanti DebBarma (7):
-  gpio/omap: fix wakeup_en register update in _set_gpio_wakeup()
-  gpio/omap: fix trigger type to unsigned
-  gpio/omap: fix _set_gpio_irqenable implementation
-  gpio/omap: fix missing dataout context save in _set_gpio_dataout_reg
-  gpio/omap: fix incorrect context restore logic in omap_gpio_runtime_*
-  gpio/omap: fix incorrect update to context.irqenable1
-  gpio/omap: fix redundant decoding of gpio offset
-
- drivers/gpio/gpio-omap.c |   47 ++++++++++++++++++++++++---------------------
- 1 files changed, 25 insertions(+), 22 deletions(-)
-
+On Tue, Mar 20, 2012 at 2:30 PM, Cousson, Benoit <b-cousson@ti.com> wro=
+te:
+> On 3/20/2012 12:39 AM, Tony Lindgren wrote:
+>>
+>> * Cousson, Benoit<b-cousson@ti.com> =A0[120319 16:00]:
+>>>
+>>> Hi Tony,
+>>>
+>>> On 3/19/2012 8:17 PM, Tony Lindgren wrote:
+>>>>
+>>>> * Tarun Kanti DebBarma<tarun.kanti@ti.com> =A0 [120319 05:09]:
+>>>>>
+>>>>> These two patches incorporate changes to OMAP1 and OMAP2 platform=
+s
+>>>>> board files whereby older references to OMAP_GPIO_IRQ macro are
+>>>>> now replaced with gpio_to_irq(), thereby getting rid of static
+>>>>> irq references.
+>>>>>
+>>>>> Reference:
+>>>>> git://git.kernel.org/pub/scm/linux/kernel/git/arm/arm-soc.git oma=
+p/dt
+>>>>> Commit: 9a0cee711448335ec43eae83272495e9334c0098
+>>>>
+>>>>
+>>>> Can you please tell the exact two commits causing this
+>>>> breakage?
+>>>
+>>>
+>>> Well, this is the GPIO DT + SPARSE_IRQ series I have done. It
+>>> appears that the boards I have were already using properly
+>>> gpio_to_irq() and thus were working fine with this series.
+>>>
+>>> But this is unfortunately not the case of most OMAP2 and 3 legacy
+>>> boards that were still using an old OMAP way of converting GPIO to
+>>> IRQ and were never modified to take advantage of the gpiolib stuff.
+>>>
+>>> So if these patches are apply before the GPIO DT + SPARSE_IRQ
+>>> series, there will be no breakage at all.
+>>>
+>>> All the cleanup we have never done before will hurt us at some poin=
+t
+>>> when we will start using more extensively newer fmwk (DT,
+>>> sparse_irq, dmaengine...). It was not done on purpose, but this GPI=
+O
+>>> series highlighted this remaining static broken mapping inside OMAP
+>>> boards.
+>>
+>>
+>> Yes I understand. But still, which patch(s) cause the issue
+>> so we can put that in the changelog for the fixes?
+>
+>
+> OK, here they are:
+> 25db711 gpio/omap: Fix IRQ handling for SPARSE_IRQ
+> 384ebe1 gpio/omap: Add DT support to GPIO driver
+>
+> Tarun,
+>
+> You should indeed add the references in your cover letter.
+Yes, I will specify them in the cover letter.
+--
+Tarun
+>
+>
+>>>> I'm baffled how despite all the effort for previnting
+>>>> issues like this this still happen. These all seem valid
+>>>> fixes and clean up things, but how come this was not seen
+>>>> earlier?
+>>>
+>>>
+>>> Maybe because there are much more boards inside mach-omap2 director=
+y
+>>> than inside my cubicle... :-(
+>>
+>>
+>> Well somehow we need to make sure that patches get properly
+>> tested on a reasonable selection of boards. This pretty much
+>> breaks things for 21 boards out of the 51 board-*.c files :(
+>
+>
+> What is too bad is that one broken board was enough to figured out th=
+e issue
+> and fix all the other ones. I just did not have that one :-(
+>
+> Regards,
+> Benoit
+--
+To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
