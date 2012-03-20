@@ -1,48 +1,36 @@
-From: Arnd Bergmann <arnd-r2nGTMty4D4@public.gmane.org>
-Subject: Re: [PATCH v2 1/2] of: Add generic device tree DMA helpers
-Date: Tue, 20 Mar 2012 13:03:10 +0000
-Message-ID: <201203201303.11175.arnd@arndb.de>
-References: <1331800690-21518-1-git-send-email-nicolas.ferre@atmel.com>
- <6b5dc1fadfd03a48093338b6981c0a7ae7662212.1332237596.git.nicolas.ferre@atmel.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <devicetree-discuss-bounces+gldd-devicetree-discuss=m.gmane.org-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org>
-In-Reply-To: <6b5dc1fadfd03a48093338b6981c0a7ae7662212.1332237596.git.nicolas.ferre-AIFe0yeh4nAAvxtiuMwx3w@public.gmane.org>
-List-Unsubscribe: <https://lists.ozlabs.org/options/devicetree-discuss>,
- <mailto:devicetree-discuss-request-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org?subject=unsubscribe>
-List-Archive: <http://lists.ozlabs.org/pipermail/devicetree-discuss>
-List-Post: <mailto:devicetree-discuss-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org>
-List-Help: <mailto:devicetree-discuss-request-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org?subject=help>
-List-Subscribe: <https://lists.ozlabs.org/listinfo/devicetree-discuss>,
- <mailto:devicetree-discuss-request-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org?subject=subscribe>
-Errors-To: devicetree-discuss-bounces+gldd-devicetree-discuss=m.gmane.org-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org
-Sender: devicetree-discuss-bounces+gldd-devicetree-discuss=m.gmane.org-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org
-To: Nicolas Ferre <nicolas.ferre-AIFe0yeh4nAAvxtiuMwx3w@public.gmane.org>
-Cc: vinod.koul-VuQAYsv1563Yd54FQh9/CA@public.gmane.org, Stephen Warren <swarren-DDmLM1+adcrQT0dZR+AlfA@public.gmane.org>, devicetree-discuss-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org, Rob Herring <rob.herring-bsGFqQB8/DxBDgjK7y7TUQ@public.gmane.org>, Russell King <linux-lFZ/pmaqli7XmaaqVzeoHQ@public.gmane.org>, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org
+From: Grant Likely <grant.likely@secretlab.ca>
+Subject: Re: [PATCH 0/3] SPI updates
+Date: Tue, 20 Mar 2012 16:20:18 +0000
+Message-ID: <20120320162019.33AC83E2834@localhost>
+References: <1332239389-1897-1-git-send-email-shubhrajyoti@ti.com>
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <1332239389-1897-1-git-send-email-shubhrajyoti@ti.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: spi-devel-general@lists.sourceforge.net
+Cc: Shubhrajyoti@ponder.secretlab.ca, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org, D <shubhrajyoti@ti.com>
 List-Id: linux-omap@vger.kernel.org
 
-On Tuesday 20 March 2012, Nicolas Ferre wrote:
+On Tue, 20 Mar 2012 15:59:46 +0530, Shubhrajyoti D <shubhrajyoti@ti.com> wrote:
+> The patch series does the following cleanups
+> - Converts the spi to module_platform_driver
+> - Use the devm functions so that the freeing need not 
+>   be done in the driver.
 > 
-> Add some basic helpers to retrieve a DMA controller device_node and the
-> DMA request specifications. By making DMA controllers register a generic
-> translation function, we allow the management of any type of DMA requests
-> specification.
-> The void * output of an of_dma_xlate() function that will be implemented
-> by the DMA controller can carry any type of "dma-request" argument.
+> This is also available through
+> git     : git://gitorious.org/linus-tree/linus-tree.git
+> branch  : spi
 > 
-> The DMA client will search its associated DMA controller in the list and
-> call the registered of_dam_xlate() function to retrieve the request values.
 > 
-> One simple xlate function is provided for the "single number" type of
-> request binding.
+> Felipe Balbi (2):
+>   spi: omap2-mcspi: make it behave as a module
+>   spi: omap2-mcspi: convert to module_platform_driver
 > 
-> This implementation is independent from dmaengine so it can also be used
-> by legacy drivers.
+> Shubhrajyoti D (1):
+>   spi: omap2-mcspi: use devm_* functions
+> 
+>  drivers/spi/spi-omap2-mcspi.c |   46 ++++++++---------------------------------
+>  1 files changed, 9 insertions(+), 37 deletions(-)
 
-Thanks a lot of posting this updated version, I think it will be very
-useful as we proceed. I still hope that in the end we find that the
-differences are not all that big and we can do it all with bindings
-very much like what you have here.
+Merged for v3.5 (it's too late for v3.4)
 
-	Arnd
+g.
