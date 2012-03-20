@@ -1,71 +1,82 @@
-From: jean-philippe francois <jp.francois@cynove.com>
-Subject: Troubleshooting DSPLINK example
-Date: Tue, 20 Mar 2012 09:55:50 +0100
-Message-ID: <CAGGh5h2Yh=fsi9vG2cF_AjqaR=8CVbPEdMfggZPRcxg1wKADjA@mail.gmail.com>
+From: "Cousson, Benoit" <b-cousson@ti.com>
+Subject: Re: [PATCH v2 0/4] ARM: OMAP: boards: changes to support dynamic
+ irq alloc
+Date: Tue, 20 Mar 2012 10:00:10 +0100
+Message-ID: <4F68471A.4010502@ti.com>
+References: <1332158817-26311-1-git-send-email-tarun.kanti@ti.com> <20120319191743.GB9859@atomide.com> <4F67B9F9.1030906@ti.com> <20120319233910.GF9859@atomide.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: text/plain; charset="ISO-8859-1"; format=flowed
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-iy0-f174.google.com ([209.85.210.174]:60264 "EHLO
-	mail-iy0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S965094Ab2CTIzv convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 20 Mar 2012 04:55:51 -0400
-Received: by iagz16 with SMTP id z16so10712918iag.19
-        for <linux-omap@vger.kernel.org>; Tue, 20 Mar 2012 01:55:50 -0700 (PDT)
+Received: from devils.ext.ti.com ([198.47.26.153]:34933 "EHLO
+	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S965000Ab2CTJAR (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 20 Mar 2012 05:00:17 -0400
+In-Reply-To: <20120319233910.GF9859@atomide.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: linux-omap@vger.kernel.org
+To: Tony Lindgren <tony@atomide.com>, Tarun Kanti DebBarma <tarun.kanti@ti.com>
+Cc: linux-omap@vger.kernel.org, khilman@ti.com, grant.likely@secretlab.ca, dmitry.torokhov@gmail.com, linux-arm-kernel@lists.infradead.org
 
-Hi,
+On 3/20/2012 12:39 AM, Tony Lindgren wrote:
+> * Cousson, Benoit<b-cousson@ti.com>  [120319 16:00]:
+>> Hi Tony,
+>>
+>> On 3/19/2012 8:17 PM, Tony Lindgren wrote:
+>>> * Tarun Kanti DebBarma<tarun.kanti@ti.com>   [120319 05:09]:
+>>>> These two patches incorporate changes to OMAP1 and OMAP2 platforms
+>>>> board files whereby older references to OMAP_GPIO_IRQ macro are
+>>>> now replaced with gpio_to_irq(), thereby getting rid of static
+>>>> irq references.
+>>>>
+>>>> Reference: git://git.kernel.org/pub/scm/linux/kernel/git/arm/arm-soc.git omap/dt
+>>>> Commit: 9a0cee711448335ec43eae83272495e9334c0098
+>>>
+>>> Can you please tell the exact two commits causing this
+>>> breakage?
+>>
+>> Well, this is the GPIO DT + SPARSE_IRQ series I have done. It
+>> appears that the boards I have were already using properly
+>> gpio_to_irq() and thus were working fine with this series.
+>>
+>> But this is unfortunately not the case of most OMAP2 and 3 legacy
+>> boards that were still using an old OMAP way of converting GPIO to
+>> IRQ and were never modified to take advantage of the gpiolib stuff.
+>>
+>> So if these patches are apply before the GPIO DT + SPARSE_IRQ
+>> series, there will be no breakage at all.
+>>
+>> All the cleanup we have never done before will hurt us at some point
+>> when we will start using more extensively newer fmwk (DT,
+>> sparse_irq, dmaengine...). It was not done on purpose, but this GPIO
+>> series highlighted this remaining static broken mapping inside OMAP
+>> boards.
+>
+> Yes I understand. But still, which patch(s) cause the issue
+> so we can put that in the changelog for the fixes?
 
-I am trying to have a working dsplink on a DM3730 based board.
-DVSDK is 4.03
-Kernel is the kernel provided by the DVSDK
+OK, here they are:
+25db711 gpio/omap: Fix IRQ handling for SPARSE_IRQ
+384ebe1 gpio/omap: Add DT support to GPIO driver
 
-What happens is the __second__ test I run, if different from
-the first, fails with a MMU fault. The faulting adress vary, and is
-never a "valid" address, where valid means somewhere in the
-DSPLINK memory map. I checked the DSPLink Troubleshooting
-page [1], and everything seems ok to me. I did not change
-the memory map, but checked the tci file mentioned in [2], and
-my mem command line arg is mem=3D=3D55M which should be ok.
+Tarun,
 
-What is strange is the first app run fine. For example in the following
-test runs (dsp is powered off between each run) :
+You should indeed add the references in your cover letter.
 
--- test # 1 --
-=2E/loopgpp ./loop.out 100 1000
-=2E/messagegpp ./message.out 2000 <-- faulting app
+>>> I'm baffled how despite all the effort for previnting
+>>> issues like this this still happen. These all seem valid
+>>> fixes and clean up things, but how come this was not seen
+>>> earlier?
+>>
+>> Maybe because there are much more boards inside mach-omap2 directory
+>> than inside my cubicle... :-(
+>
+> Well somehow we need to make sure that patches get properly
+> tested on a reasonable selection of boards. This pretty much
+> breaks things for 21 boards out of the 51 board-*.c files :(
 
--- test #2 --
-=2E/messagegpp ./message.out 2000
-=2E/loopgpp ./loop.out 100 1000 <-- faulting app
+What is too bad is that one broken board was enough to figured out the 
+issue and fix all the other ones. I just did not have that one :-(
 
--- test #3 --
-=2E/messagegpp ./message.out 2000
-=2E/messagegpp ./message.out 4000
-=2E/loopgpp ./loop.out 100 1000 <-- faulting app
-DSP MMU Error Fault!  MMU_IRQSTATUS =3D [0x1]. Virtual DSP addr
-reference that generated the interrupt =3D [0xbebebeb8].
-
-I think what leads to the MMU fault is the DSP is executing
-garbage with something like this going on :
-- DSP does not stop running, and when new code is loaded, at some point
-old and new code is mixed, leading to fault
-
-- Code loading works Ok, but there is a cache  or cache flush problem, =
-leading
-to old and new code being mixed.
-
-Thank you for reading this, any hint on what to test next is welcome.
-
-Jean-Philippe Fran=E7ois
-
-[1] http://processors.wiki.ti.com/index.php/Troubleshooting_DSPLink_con=
-figuration_issues
-[2] http://processors.wiki.ti.com/index.php/Changing_DSPLink_Memory_Map
---
-To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Regards,
+Benoit
