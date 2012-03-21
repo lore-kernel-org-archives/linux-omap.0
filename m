@@ -1,86 +1,91 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: [GIT PULL] omap fixes for merge window
-Date: Wed, 21 Mar 2012 11:05:37 -0700
-Message-ID: <20120321180536.GK9859@atomide.com>
+From: Mark Brown <broonie@opensource.wolfsonmicro.com>
+Subject: Re: [PATCH] [RFC] Correct registration of multiple gpmc smsc911x
+ devices.
+Date: Wed, 21 Mar 2012 18:13:00 +0000
+Message-ID: <20120321181259.GJ3226@opensource.wolfsonmicro.com>
+References: <4F6324D5.9010106@uni-dortmund.de>
+ <1332352554-6417-1-git-send-email-Russ.Dill@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: multipart/signed; micalg=pgp-sha1;
+	protocol="application/pgp-signature"; boundary="utPK4TBebyzZxMrE"
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-01-ewr.mailhop.org ([204.13.248.71]:53677 "EHLO
-	mho-01-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754033Ab2CUSFn (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 21 Mar 2012 14:05:43 -0400
+Received: from opensource.wolfsonmicro.com ([80.75.67.52]:42467 "EHLO
+	opensource.wolfsonmicro.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1759820Ab2CUSNC (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>);
+	Wed, 21 Mar 2012 14:13:02 -0400
 Content-Disposition: inline
+In-Reply-To: <1332352554-6417-1-git-send-email-Russ.Dill@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Arnd Bergmann <arnd@arndb.de>, Olof Johansson <olof@lixom.net>
-Cc: linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org, Grant Likely <grant.likely@secretlab.ca>
-
-Hi Arnd & Olof,
-
-Here's a set of fixes that would be nice to get merged during
-the merge window before the GPIO changes get merged to avoid
-boot issues on many omap boards.
-
-The changes queued in the GPIO tree require getting rid of
-OMAP_GPIO_IRQ and use gpio_to_irq() instead. This is needed for
-dynamically allocated GPIO interrupt ranges.
-
-Ideally these changes would have been done way earlier of course.
-Unfortunately this issue was not discovered until last week while
-testing linux-next.
-
-Also included is one fix for the wrong __init changes for display.c.
-
-This branch is based on the previously merged fixes-non-critical-part3
-as that's pretty much the earliest point where these apply.
-
-Note that these might add on a bit to the existing trivial
-merge conflicts with drivers/video related board file clean-up
-queued by Tomi.
-
-Regards,
-
-Tony
+To: Russ Dill <Russ.Dill@ti.com>
+Cc: linux-omap@vger.kernel.org, mporter@ti.com, tony@atomide.com, robert.marklund@stericsson.com, linus.walleij@linaro.org
 
 
-The following changes since commit 4647ca5761f5534470e98d06494403a2fd0d7b32:
-  Tony Lindgren (1):
-        ARM: OMAP2+: Fix build for omap4 only builds with missing include of linux/bug.h
+--utPK4TBebyzZxMrE
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
 
-are available in the git repository at:
+On Wed, Mar 21, 2012 at 10:55:54AM -0700, Russ Dill wrote:
 
-  git://git.kernel.org/pub/scm/linux/kernel/git/tmlind/linux-omap cleanup-fixes
+> unwieldy this would become if it were done for every device. Either the
+> functionality needs to be moved to Snowball board init code, or a generic
+> framework needs to be made for attaching regulators to arbitrary devices.
 
-Tarun Kanti DebBarma (3):
-      ARM: OMAP: boards: Fix OMAP_GPIO_IRQ usage with gpio_to_irq()
-      drivers: input: Fix OMAP_GPIO_IRQ with gpio_to_irq() in ams_delta_serio_exit()
-      ARM: OMAP: Remove OMAP_GPIO_IRQ macro definition
+Hrm?  Adding regulator supply mappings anywhere other than the
+initialisation for a specific board would be extremely unusual and
+rather suspicious.
 
-Tomi Valkeinen (1):
-      ARM: OMAP2+: Remove __init from DSI mux functions
+> +	supplies = kcalloc(ARRAY_SIZE(smsc911x_refs) * num,
+> +			sizeof(struct regulator_consumer_supply), GFP_KERNEL);
+> +	if (!supplies) {
+> +		pr_err("Failed to allocate memory\n");
+> +		return;
+> +	}
+> +
+> +	for (i = 0; i < ARRAY_SIZE(smsc911x_refs) * num; i++) {
+> +		int id;
+> +		char *name;
+> +
+> +		id = board_data[i / num].id;
+> +		if (id != -1)
+> +			name = kasprintf(GFP_KERNEL, "smsc911x.%d", id);
+> +		else
+> +			name = kstrdup("smsc911x", GFP_KERNEL);
 
- arch/arm/mach-omap1/board-h2.c               |    8 ++++----
- arch/arm/mach-omap1/board-h3.c               |    9 ++++-----
- arch/arm/mach-omap1/board-htcherald.c        |    6 +++---
- arch/arm/mach-omap1/board-innovator.c        |    4 ++--
- arch/arm/mach-omap1/board-nokia770.c         |    2 +-
- arch/arm/mach-omap1/board-osk.c              |   12 ++++++------
- arch/arm/mach-omap1/board-palmte.c           |    2 +-
- arch/arm/mach-omap1/board-palmtt.c           |    2 +-
- arch/arm/mach-omap1/board-palmz71.c          |    2 +-
- arch/arm/mach-omap1/board-voiceblue.c        |   16 +++++++---------
- arch/arm/mach-omap2/board-2430sdp.c          |    2 +-
- arch/arm/mach-omap2/board-4430sdp.c          |    2 +-
- arch/arm/mach-omap2/board-apollon.c          |    6 ++++--
- arch/arm/mach-omap2/board-devkit8000.c       |    3 ++-
- arch/arm/mach-omap2/board-h4.c               |    2 +-
- arch/arm/mach-omap2/board-omap3evm.c         |    2 +-
- arch/arm/mach-omap2/board-omap4panda.c       |    2 +-
- arch/arm/mach-omap2/board-rx51-peripherals.c |    3 ++-
- arch/arm/mach-omap2/board-zoom-debugboard.c  |    3 ++-
- arch/arm/mach-omap2/board-zoom-peripherals.c |    6 ++++--
- arch/arm/mach-omap2/common-board-devices.c   |    2 +-
- arch/arm/mach-omap2/display.c                |    8 ++++----
- arch/arm/plat-omap/include/plat/gpio.h       |    4 ----
- drivers/input/serio/ams_delta_serio.c        |    2 +-
- 24 files changed, 55 insertions(+), 55 deletions(-)
+This seems pretty much insane, it's costing a lot more to faff around
+like this than it's worth.  Just do the setup in the individual boards,
+if you really have no idea what's supplying the device (which seems a
+bit unusual, more boards like this have things coming off the PMIC than
+don't) there's now regulator_register_fixed() which cuts down on the
+boilerplate a little.
+
+I'd have complained about the original code if I'd noticed it wasn't a
+patch for a particular board as the breakage you've found is obvious.
+The regulation constraints it adds are bogus too, it's setting
+REGULATOR_CHANGE_MODE on a regulator that doesn't support modes and
+REGULATOR_CHANGE_STATUS without supplying the enable GPIO.
+
+--utPK4TBebyzZxMrE
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: Digital signature
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.4.11 (GNU/Linux)
+
+iQIcBAEBAgAGBQJPahokAAoJEBus8iNuMP3d0OYP/jLkmOvRvagU7VoVnvxsGEYB
+WPzfkbgnhmtxMnH6QBtzJZaNWj6eUGmXmtmUAWRNf3yyZNB/ZyRtKAn5t495Xi0R
+r5kSNrxd+AZH2ArQU928g5ia1qpaIfVT6k499Zo6z3lQyWq/tEuIZ8XLyZM76emY
+65VDh2exonnTJdBKUNhUlqa7tpcZArgwqxEpYAF3ZAhDdnKkUmdeIzPS9jf6Ya+r
+YkGSQKWqaq/YtIlzIJ/BagtJQeBJ8XbhD0e2/c5U64WGODw7/TyFMqQnuE8l2hOp
+yd2pnM2Vd26x58yF+avek/+1540uRfRWa41UJ6ZXXOL5ce/Gruv+yNjmNRztDHVd
+VFrvfu2wlmLmWtzMd3Kcf0AwV6Ag4h7+cVF+5fZVSaxEOvrQZh3j/3+z63DaVJ/3
+YIoC+vDr7Kx+Y8UA6xstoc2fVgk8JbAxynwPxqqJkNHINPdc/jNa/csH4zy1KrZc
+gWM16x73XmgqYBfFeXw0QW4RJWT3KP8B8awJA3X7Qn+6l7uTYxdc9BrbpaKgs53g
+gUqrkO/628l/7VmxBEwTZWrUd66d9BN1NixK1fpnx80tewtdGrKPvXGZtSdF3QaU
+vfkPG0Dw4A72kQRVjITrAEtPvNVt4lpdlQgupAQbzfPWLTbcdUI6eDCcde490Xnj
+28WdFrkLMiGicrOtxtCT
+=dCkG
+-----END PGP SIGNATURE-----
+
+--utPK4TBebyzZxMrE--
