@@ -1,90 +1,67 @@
 From: Mark Brown <broonie@opensource.wolfsonmicro.com>
-Subject: Re: [PATCH] [RFC] Correct registration of multiple gpmc smsc911x
- devices.
-Date: Wed, 21 Mar 2012 19:00:28 +0000
-Message-ID: <20120321190028.GK3226@opensource.wolfsonmicro.com>
-References: <4F6324D5.9010106@uni-dortmund.de>
- <1332352554-6417-1-git-send-email-Russ.Dill@ti.com>
- <20120321181259.GJ3226@opensource.wolfsonmicro.com>
- <A9E31EDE-A279-41FB-9EBE-3370A587ADA7@ti.com>
- <20120321183957.GM9859@atomide.com>
+Subject: Re: [PATCH v7 1/3] Documentation: common clk API
+Date: Wed, 21 Mar 2012 19:07:42 +0000
+Message-ID: <20120321190741.GL3226@opensource.wolfsonmicro.com>
+References: <4F6A2042.9030302@codeaurora.org>
 Mime-Version: 1.0
 Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="enGqbSaueFq5omEL"
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from opensource.wolfsonmicro.com ([80.75.67.52]:52186 "EHLO
-	opensource.wolfsonmicro.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1760005Ab2CUTAb (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>);
-	Wed, 21 Mar 2012 15:00:31 -0400
+	protocol="application/pgp-signature"; boundary="qo7zVO9a9OQ5oQtr"
+Return-path: <linux-kernel-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <20120321183957.GM9859@atomide.com>
-Sender: linux-omap-owner@vger.kernel.org
+In-Reply-To: <4F6A2042.9030302@codeaurora.org>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Saravana Kannan <skannan@codeaurora.org>
+Cc: Paul Walmsley <paul@pwsan.com>, Nicolas Pitre <nicolas.pitre@linaro.org>, Sascha Hauer <s.hauer@pengutronix.de>, Arnd Bergmann <arnd@arndb.de>, linux-arm-kernel@lists.infradead.org, Amit Kucheria <amit.kucheria@linaro.org>, linaro-dev@lists.linaro.org, Linus Walleij <linus.walleij@linaro.org>, Grant Likely <grant.likely@secretlab.ca>, Jeremy Kerr <jeremy.kerr@canonical.com>, Mike Turquette <mturquette@ti.com>, Mike Turquette <mturquette@linaro.org>, Magnus Damm <magnus.damm@gmail.com>, Deepak Saxena <dsaxena@linaro.org>, patches@linaro.org, Rob Herring <rob.herring@calxeda.com>, Russell King <linux@arm.linux.org.uk>, Thomas Gleixner <tglx@linutronix.de>, Richard Zhao <richard.zhao@linaro.org>, Shawn Guo <shawn.guo@freescale.com>, Linus Walleij <linus.walleij@stericsson.com>, Stephen Boyd <sboyd@codeaurora.org>, linux-omap@vger.kernel.org, linux-kernel@vger.kernel
 List-Id: linux-omap@vger.kernel.org
-To: Tony Lindgren <tony@atomide.com>
-Cc: "Porter, Matt" <mporter@ti.com>, "Dill, Russ" <russ.dill@ti.com>, "<linux-omap@vger.kernel.org>" <linux-omap@vger.kernel.org>, "<robert.marklund@stericsson.com>" <robert.marklund@stericsson.com>, "<linus.walleij@linaro.org>" <linus.walleij@linaro.org>
 
 
---enGqbSaueFq5omEL
+--qo7zVO9a9OQ5oQtr
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
 
-On Wed, Mar 21, 2012 at 11:39:57AM -0700, Tony Lindgren wrote:
-> * Porter, Matt <mporter@ti.com> [120321 11:27]:
+On Wed, Mar 21, 2012 at 11:38:58AM -0700, Saravana Kannan wrote:
 
-> > > Hrm?  Adding regulator supply mappings anywhere other than the
-> > > initialisation for a specific board would be extremely unusual and
-> > > rather suspicious.
+> >So it would be interesting to know more about why you (or anyone else)
+> >perceive that the Kconfig changes would be harmful.
 
-> The issue here is that we don't want to copy paste the dummy fixed
-> regulator all over the board-*.c files, and we don't know how the
-> real regulator is wired up.
+> But the enthusiasm of the clock driver developers doesn't
+> necessarily translate to users of the clock APIs (other driver
+> devs). My worry with marking it as experimental in Kconfig and to a
+> certain extent in the documentation is that it will discourage the
+> driver devs from switching to the new APIs. If no one is using the
+> new APIs, then platforms can't switch to the common clock framework
 
-Well, I don't think it's too unreasonable especially now we've got
-the fixed helper stuff which slims it right down - it makes it clear
-there's a missing thing that might need to get filled in and makes it
-easier to use the same regulator for other devices.
+These aren't new APIs, the clock API has been around since forever.
+For driver authors working on anything that isn't platform specific the
+issue has been that it's not implemented at all on the overwhelming
+majority of architectures and those that do all have their own random
+implementations with their own random quirks and with no ability for
+anything except the platform to even try to do incredibly basic stuff
+like register a new clock.
 
-> > Just to be clear, here is the thread on the board-specific approach:
-> > https://lkml.org/lkml/2012/2/8/415
+Simply having something, anything, in place even if it's going to churn
+is a massive step forward here for people working with clocks.
 
-> We should use the real regulator if passed from board file.
-
-> And if no real regulator is passed, just use the dummy fixed regulator
-> in gpmc-smsc911x.c.
-
-Yes, it should definitely be conditional.
-
-> This patch I posted should fix the situation and allow adding the
-> real regulators to board-*.c files when they become known:
-
-> http://www.spinics.net/lists/linux-omap/msg66714.html
-
-That should be changed to pass in a boolean flag rather than a pointer
-to platform device - the board may not have direct access to the
-relevant regulator (eg, if it's part of a MFD) or the regulator may be
-on another bus like I2C (for simpler regulator only devices).
-
---enGqbSaueFq5omEL
+--qo7zVO9a9OQ5oQtr
 Content-Type: application/pgp-signature; name="signature.asc"
 Content-Description: Digital signature
 
 -----BEGIN PGP SIGNATURE-----
 Version: GnuPG v1.4.11 (GNU/Linux)
 
-iQIcBAEBAgAGBQJPaiVEAAoJEBus8iNuMP3dhwYP/2vS7VttDBXEqu4av60J/6AZ
-9FN4d+ucUbOGLIFSYQ8xbr99ekENxo9PoY3Lg3DZRFkJBf4cxr1J5JTJYTRG4QZY
-Jir1rBq23NFrRq4XG3vVwyIxIlSXVzmfZ45nKMa57UswxiK8b63Bw70ccghrLQFo
-lTalOzretDL/VJMF0U3XymxqTB96Vx28wOCiS5WiFdeR+kRmbHD3/dwOSTiASpfp
-HZwd9DRQxKsXZ5AYSj3/LAY8mpDQoC+cWm0K9XSaJ2DcIJ0kuw3mheQGl8LnzJu+
-JpxIS3K/RHTh5IkrIvfOAnG0qvM37aYCC2qQFVQhkxr4N0Nt7x3cZFrmo7wpz9GT
-FFgb/PmpdjpURkVt0czifqBlcUHxyfr2kILDRAldZgHp55rPuF2CBM96XvHb73RT
-ZTDuTf1GchKUaL3EdywcM2/lF/qn8UHrLyeQ5mo+XN7+WUUlt5zGeHs+Y8JX2lNy
-rtTGYo1mFaYjjXSIe9QhrWehQAJ2zUW3jfF5nAUd9mNOIQL72eAfbgIoLTSSMH0e
-0Z6ZZCoRfpaEZByVrc3xIMUd3LqX32d9ruB0p+eBUJqxsWvbuAJD+he0pq6ezCG9
-/V9+NIbjR6ZEhzLKjx9aoHQuViNYmOwgpgaiPQkTeeMzIguvBvwFTw7M8lmhVa19
-AM2uKRViOvSi2O4OPWi8
-=mXVY
+iQIcBAEBAgAGBQJPaibGAAoJEBus8iNuMP3dIVMP/36TADmR0rj2A+LkfBqA+QE2
+K/+IO+gX8K1Hl0j2DxasF7kDVici6nsgtD7fVpBDnuJQyNd9JHM/a/nA8HW9TX14
+wQ1OPB4jOlx0/8SI/4a4fz+FDG/MjLiZTMHej8p8uP1ElC+OSdbwZ3lg86MZoLTJ
+8Ld6hr3+rIWj7+/a/R0gcBL7DndIHX66xQ8qOSIi0UhE/JI04v0WduIUZkgRxJAN
+mlARobneDCNQAwLlaPXrWxuKs1uiVwqRzbizC+YbaW/NsE6v6beUCvkeWThN8T/g
+piEu4dYg7S1R0qhebnVZujln4bG1WkqMIRv28rsC64YxoNas8qCjBwHUyUDq3cP1
+h+06e8yJUS7b8x/9l/1QzAO8NK2M6vT1BW1WNgbTeUjCh3uIyG74ftHKmV10YawW
+fv6t+L+d/3EayZch9o0no/jWt4kTVWHKujRK7vFiqlCYtxQm1VicGkzY4TqmlvMT
+wCUitBglQoAhXU3GH3mKfilrw2M2esd68S6a2bQMrM5U+GFKcrEEL7tAC1bbRSUo
+zaWswHf6b6UTeAz/7o4Xya4TmdYv23ZlQcb4rTf9XQB81msml8kc8g+nDnfrcbPX
+bN35B9WLH/+fhHzsERbvBll8dvyLGOZuTOukMEC5pdZcbHERmHCdJDCxcxBjmu3D
+D3m1SLPZX/aKztHTyU+2
+=C+lG
 -----END PGP SIGNATURE-----
 
---enGqbSaueFq5omEL--
+--qo7zVO9a9OQ5oQtr--
