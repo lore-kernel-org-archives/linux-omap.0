@@ -1,81 +1,68 @@
-From: Felipe Balbi <balbi@ti.com>
-Subject: Re: [PATCH 1/2] usb: musb: fix some runtime_pm issues
-Date: Wed, 21 Mar 2012 12:10:15 +0200
-Message-ID: <20120321101014.GN3092@arwen.pp.htv.fi>
+From: Felipe Balbi <balbi-l0cyMroinI0@public.gmane.org>
+Subject: Re: [PATCH 2/2] usb: musb: wake the device before ulpi transfers
+Date: Wed, 21 Mar 2012 12:10:31 +0200
+Message-ID: <20120321101030.GO3092@arwen.pp.htv.fi>
 References: <1328377432-13563-1-git-send-email-notasas@gmail.com>
- <1328377432-13563-2-git-send-email-notasas@gmail.com>
-Reply-To: balbi@ti.com
+ <1328377432-13563-3-git-send-email-notasas@gmail.com>
+Reply-To: balbi-l0cyMroinI0@public.gmane.org
 Mime-Version: 1.0
 Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="WYfJCIN5rqlfy3K0"
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aog118.obsmtp.com ([74.125.149.244]:56699 "EHLO
-	na3sys009aog118.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751278Ab2CUKKf (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>);
-	Wed, 21 Mar 2012 06:10:35 -0400
-Received: by mail-lb0-f179.google.com with SMTP id gn12so702707lbb.10
-        for <linux-omap@vger.kernel.org>; Wed, 21 Mar 2012 03:10:34 -0700 (PDT)
+	protocol="application/pgp-signature"; boundary="xiprIVX1FSGBv8kC"
+Return-path: <linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 Content-Disposition: inline
-In-Reply-To: <1328377432-13563-2-git-send-email-notasas@gmail.com>
-Sender: linux-omap-owner@vger.kernel.org
+In-Reply-To: <1328377432-13563-3-git-send-email-notasas-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+Sender: linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Grazvydas Ignotas <notasas-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+Cc: linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Felipe Balbi <balbi-l0cyMroinI0@public.gmane.org>, Felipe Contreras <felipe.contreras-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
 List-Id: linux-omap@vger.kernel.org
-To: Grazvydas Ignotas <notasas@gmail.com>
-Cc: linux-usb@vger.kernel.org, linux-omap@vger.kernel.org, Felipe Balbi <balbi@ti.com>, Felipe Contreras <felipe.contreras@gmail.com>
 
 
---WYfJCIN5rqlfy3K0
+--xiprIVX1FSGBv8kC
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
 Content-Transfer-Encoding: quoted-printable
 
-On Sat, Feb 04, 2012 at 07:43:51PM +0200, Grazvydas Ignotas wrote:
-> When runtime_pm was originally added, it was done in rather confusing
-> way: omap2430_musb_init() (called from musb_init_controller) would do
-> runtime_pm_get_sync() and musb_init_controller() itself would do
-> runtime_pm_put to balance it out. This is not only confusing but also
-> wrong if non-omap2430 glue layer is used.
+On Sat, Feb 04, 2012 at 07:43:52PM +0200, Grazvydas Ignotas wrote:
+> musb can be suspended at the time some other driver wants to do ulpi
+> transfers using otg_io_* functions, and that can cause data abort,
+> as it happened with isp1704_charger:
+> http://article.gmane.org/gmane.linux.kernel/1226122
 >=20
-> This confusion resulted in commit 772aed45b604 "usb: musb: fix
-> pm_runtime mismatch", that removed runtime_pm_put() from
-> musb_init_controller as that looked unbalanced, and also happened to
-> fix unrelated isp1704_charger crash. However this broke runtime PM
-> functionality (musb is now always powered, even without gadget active).
+> Add pm_runtime to ulpi functions to rectify this. This also adds io_dev
+> to otg_transceiver so that pm_runtime can be used.
 >=20
-> Avoid these confusing runtime pm dependences by making
-> musb_init_controller() and omap2430_musb_init() do their own runtime
-> get/put pairs; also cover error paths. Remove unneeded runtime_pm_put
-> in omap2430_remove too. isp1704_charger crash that motivated
-> 772aed45b604 will be fixed by following patch.
->=20
-> Cc: Felipe Contreras <felipe.contreras@gmail.com>
-> Signed-off-by: Grazvydas Ignotas <notasas@gmail.com>
+> Cc: Felipe Contreras <felipe.contreras-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+> Signed-off-by: Grazvydas Ignotas <notasas-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
 
-applied, thanks
+doesn't apply, please refresh.
 
 --=20
 balbi
 
---WYfJCIN5rqlfy3K0
+--xiprIVX1FSGBv8kC
 Content-Type: application/pgp-signature; name="signature.asc"
 Content-Description: Digital signature
 
 -----BEGIN PGP SIGNATURE-----
 Version: GnuPG v1.4.11 (GNU/Linux)
 
-iQIcBAEBAgAGBQJPaakFAAoJEIaOsuA1yqREW/MQAKPQO5pAlIhULmbF0H09KMeR
-kYNbitij7hcvJ6ap/YWpDFfDMpIj3KJa67K4+QiI8F0HJiUheun9hY91IMaZOonN
-3JRP0NCBTeOACkmMH97iq3UkjdwxRXhv4SZBs2YEJBTRJ/HMvXzJoSRaJrlF004i
-cerIo1euhWFL2BnsGvg6H/AG29SubikBlcpsuofB1dJSlOn7wYJQCUWB3nr+wUqa
-Wyw9mAW+uWHWVyik6UQGceR/wT9kcoLaiBjIGLN6nT8LoPwsrW1rXGTIJ570NQER
-ISO8KsBgjN4NJmBDnGY26NwevaF0DfJpQBkFDACkd/UuJhKbWkUe1bUJcwr8hlbs
-hnleEXNvvxQQTUkf8wAgb++p5p79Hu38+Hl1+71v6N4+Y5y3NkBwaml+XH1yYPiR
-T/z9vpT1mv2V4xAShcMKt4Dq4BEwkHWRHjVS8RL9vsoKxWq9KpWVu9+lBhFldQrJ
-GFEPReCq6lHc6INBp83MXMxUb3OGoM81yDqubSFgfkz9FUM/C3g4IHycxxku0R1d
-+ZdxPGSfsOmGi6VbZLUyy2/xB9kfhB1fkJRzdxhQWZTAGvGVk4mSVMicyxMXtpa4
-ZuGJIRKuahDMncfgw7wedO9uoVoSp18kU5zHb18v+Tt35DtmB2EEqlZmDnyU5AXe
-7TOTlYvUqkNHMzI9HLyU
-=kHwe
+iQIcBAEBAgAGBQJPaakVAAoJEIaOsuA1yqREhQ4P+gNqyuxakVfCfHbKenzjv5QB
+C1m0SUBM9p7qKct7wYELqeLus5YYV5uPzwrpoPz5ZgXvOfrLkiWuemu/Z9RwxUin
+07qGusL5pk56sL8wbFbVZvswA0wXOhkUrRVIVqq7vo9e5k7KSMQAHxX+2rf4Q1Ym
+VK5qZkHqETqrk8ZE9Unh5r/KtuOaOcbHqT/QlcNS/DzxrD961VKHmYVExR1BFxVR
+ftIiEo4NnMTzC1lO/gCdhT8eEcIUnMWmbqL6Qhf5b3HhSGXeVotOIlKT+bsiH+4B
+CHs9aGeRgbeu4+F4jd/Eg48Lv9IFXRBZE5lRFUwVYHCpH1IEMCo0HPyAj/4/FQ7H
+azMCS7wEXh66JINrgzgp+MLngR+z2xe6l1pfXPsXmDy0iXzRcBbR4tZrT6Y4Dc9+
+65rwHW7eiRiPmO4EQIM+jG+Z6snw+ciIJIKX4QZrm7qV+hJTWi88RHs1r6Tes3FW
+4xhwIFlywoFrwnzxGTLyi5K7rIaei2TeUzCZ0CaJSbhzK6RyfEn/mj2SphWjrSj5
+b4p8NoygbOReFOk77X+6H8IgC2lFyKNLwQei8gcl+o/EB7dqpr703NfUv+gM55s8
+ZnYFFVHqcQSEwke7lYfV/u2sIvxrKvgPa7S69P13aXAZH9hEF26NAKZIOSt0kaw2
+jXS6AFWrdV0D/iFbmK4Q
+=1hxj
 -----END PGP SIGNATURE-----
 
---WYfJCIN5rqlfy3K0--
+--xiprIVX1FSGBv8kC--
+--
+To unsubscribe from this list: send the line "unsubscribe linux-usb" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
