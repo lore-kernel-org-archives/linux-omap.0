@@ -1,78 +1,69 @@
-From: Paul Walmsley <paul@pwsan.com>
-Subject: Re: [PATCH v7 1/3] Documentation: common clk API
-Date: Tue, 20 Mar 2012 17:40:02 -0600 (MDT)
-Message-ID: <alpine.DEB.2.00.1203201731550.22974@utopia.booyaka.com>
-References: <1331878280-2758-1-git-send-email-mturquette@linaro.org> <alpine.DEB.2.00.1203161509470.4395@utopia.booyaka.com> <CAJOA=zPmy7Dwzw8EOCW_+cvy2Dv=w0TPUq7Zg_s=Y0rs+v+u2w@mail.gmail.com> <201203170905.33191.arnd@arndb.de>
+From: "Rafael J. Wysocki" <rjw@sisk.pl>
+Subject: Re: [PATCH v8 0/8] Consolidate cpuidle functionality
+Date: Wed, 21 Mar 2012 01:01:07 +0100
+Message-ID: <201203210101.08361.rjw@sisk.pl>
+References: <1332274969-15782-1-git-send-email-rob.lee@linaro.org> <873992zy5u.fsf@ti.com> <CAP245DXwhCMOJaspW8SY7jtqsA3d5SK4Ctr+JvS+cw4yHfL-mw@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <201203170905.33191.arnd@arndb.de>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Arnd Bergmann <arnd@arndb.de>
-Cc: "Turquette, Mike" <mturquette@ti.com>, linux-arm-kernel@lists.infradead.org, Amit Kucheria <amit.kucheria@linaro.org>, Nicolas Pitre <nicolas.pitre@linaro.org>, linaro-dev@lists.linaro.org, Linus Walleij <linus.walleij@linaro.org>, Grant Likely <grant.likely@secretlab.ca>, Saravana Kannan <skannan@codeaurora.org>, Jeremy Kerr <jeremy.kerr@canonical.com>, Magnus Damm <magnus.damm@gmail.com>, Deepak Saxena <dsaxena@linaro.org>, patches@linaro.org, Sascha Hauer <s.hauer@pengutronix.de>, Rob Herring <rob.herring@calxeda.com>, Russell King <linux@arm.linux.org.uk>, Thomas Gleixner <tglx@linutronix.de>, Richard Zhao <richard.zhao@linaro.org>, Shawn Guo <shawn.guo@freescale.com>, Linus Walleij <linus.walleij@stericsson.com>, Mark Brown <broonie@opensource.wolfsonmicro.com>, Stephen Boyd <sboyd@codeaurora.org>, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org
+Content-Type: Text/Plain;
+  charset="iso-8859-1"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from ogre.sisk.pl ([217.79.144.158]:55699 "EHLO ogre.sisk.pl"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1750923Ab2CTX4z (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Tue, 20 Mar 2012 19:56:55 -0400
+In-Reply-To: <CAP245DXwhCMOJaspW8SY7jtqsA3d5SK4Ctr+JvS+cw4yHfL-mw@mail.gmail.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Amit Kucheria <amit.kucheria@linaro.org>
+Cc: Kevin Hilman <khilman@ti.com>, Arnd Bergmann <arnd.bergmann@linaro.org>, Robert Lee <rob.lee@linaro.org>, len.brown@intel.com, akpm@linux-foundation.org, robherring2@gmail.com, Baohua.Song@csr.com, nicolas.ferre@atmel.com, linux@maxim.org.za, kgene.kim@samsung.com, amit.kachhap@linaro.org, magnus.damm@gmail.com, nsekhar@ti.com, daniel.lezcano@linaro.org, mturquette@linaro.org, vincent.guittot@linaro.org, linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linaro-dev@lists.linaro.org, patches@linaro.org, deepthi@linux.vnet.ibm.com, broonie@opensource.wolfsonmicro.com, nicolas.pitre@linaro.org, linux@arm.linux.org.uk, jean.pihet@newoldbits.com, venki@google.com, ccross@google.com, g.trinabh@gmail.com, kernel@wantstofly.org, lethal@linux-sh.org, jon-hunter@ti.com, tony@atomide.com, linux-omap@vger.kernel.org, linux-sh@vger.kernel.org, linux-pm@vger.kernel.
 
-Hello Arnd,
+On Wednesday, March 21, 2012, Amit Kucheria wrote:
+> On Wed, Mar 21, 2012 at 12:48 AM, Kevin Hilman <khilman@ti.com> wrote:
+> > Arnd Bergmann <arnd.bergmann@linaro.org> writes:
+> >
+> >> On Tuesday 20 March 2012, Robert Lee wrote:
+> >>> This patch series moves various functionality duplicated in platform
+> >>> cpuidle drivers to the core cpuidle driver. Also, the platform irq
+> >>> disabling was removed as it appears that all calls into
+> >>> cpuidle_call_idle will have already called local_irq_disable().
+> >>>
+> >>> These changes have been pulled into linux-next.
+> >>>
+> >>> Len, Andrew, can a request be made for Linus to pull these changes?
+> >>
+> >> FWIW, Len seems to be rather inactive on the kernel mailing list right
+> >> now and generally not very interested in anything outside of x86 and
+> >> acpi. If he doesn't reply in the next few days and Andrew also isn't
+> >> interested in handling these patches, I'd suggest you just send the pull
+> >> request to Linus, with Len on Cc and explain that you tried to send
+> >> them through him but gave up in the end.
+> >
+> > FWIW, I have not had good luck getting response for proposed core
+> > CPUidle changes either:
+> >
+> >        http://lkml.org/lkml/2011/9/19/374
+> >
+> > Maybe it's time that drivers/cpuidle gets a maintainer.  With lots of
+> > discussions of scheduler changes that affect load estimation, I suspect
+> > we're all going to have a bit of CPUidle work to do in the
+> > not-so-distant future.
+> >
+> 
+> I don't mean to be piling on to Len here, but Daniel Lezcano too has a
+> bunch of clean ups that didn't get any maintainer review for over two
+> months. He has now refreshed them for 3.3 and is getting ready to send
+> them out again. We (Linaro) expect to be spending a lot of time on
+> cpuidle in the future and would be glad to help review, test and
+> collect patches into a tree for Linus/Andrew to pull while we wait for
+> Len to respond or another maintainer to emerge.
 
-On Sat, 17 Mar 2012, Arnd Bergmann wrote:
+Well, I discussed that before with Arjan and he said he would maintain
+CPUidle if Len didn't have the time, but it seems he didn't expect that
+there would be a lot of work on it in the near future.
 
-> I think it's rather pointless, because the option is not going to
-> be user selectable but will get selected by the platform unless I'm
-> mistaken. The platform maintainers that care already know the state
-> of the framework.
+So, I suggest that if neither Len nor Arjan reappear shortly, people can
+send CPUidle patches to me.
 
-This is where we have differing views, I think.  Clearly, Sascha, 
-Saravana, Rob, and I have at least slightly different opinions on the 
-durability of the existing API and code.  So it seems reasonable to assume 
-that others who have not followed the development of the common clock code 
-might mistake the implementation or API as being stable and well-defined.
-
-It sounds like the primary objection is to the use of CONFIG_EXPERIMENTAL.  
-So here is a patch to simply note the status of this code in its Kconfig 
-text.
-
-
-- Paul
-
-From: Paul Walmsley <paul@pwsan.com>
-Date: Tue, 20 Mar 2012 17:19:06 -0600
-Subject: [PATCH] clk: note that the common clk code is still subject to
- significant change
-
-Indicate that the common clk code and API is still likely to require
-significant change.  The API is not well-defined and both it and the
-underlying mechanics are likely to need significant changes to support
-non-trivial uses of the rate changing code, such as DVFS with external
-I/O devices.  So any platforms that switch their implementation over
-to this may need to revise much of their driver code and revalidate
-their implementations until the behavior of the code is
-better-defined.
-
-A good time for removing this help text would be after at least two
-platforms that do DVFS on groups of external I/O devices have ported
-their clock implementations over to the common clk code.
-
-Signed-off-by: Paul Walmsley <paul@pwsan.com>
-Cc: Mike Turquette <mturquette@ti.com>
----
- drivers/clk/Kconfig |    5 +++++
- 1 files changed, 5 insertions(+), 0 deletions(-)
-
-diff --git a/drivers/clk/Kconfig b/drivers/clk/Kconfig
-index 2eaf17e..dd2d528 100644
---- a/drivers/clk/Kconfig
-+++ b/drivers/clk/Kconfig
-@@ -21,6 +21,11 @@ menuconfig COMMON_CLK
- 	  this option for loadable modules requiring the common clock
- 	  framework.
- 
-+	  The API and implementation enabled by this option is still
-+	  incomplete.  The API and implementation is expected to be
-+	  fluid and subject to change at any time, potentially
-+	  breaking existing users.
-+
- 	  If in doubt, say "N".
- 
- if COMMON_CLK
--- 
-1.7.9.1
+Thanks,
+Rafael
