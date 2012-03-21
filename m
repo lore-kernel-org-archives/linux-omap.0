@@ -1,83 +1,127 @@
-From: Sascha Hauer <s.hauer-bIcnvbaLZ9MEGnE8C9+IrQ@public.gmane.org>
-Subject: Re: [PATCH v7 1/3] Documentation: common clk API
-Date: Wed, 21 Mar 2012 10:10:37 +0100
-Message-ID: <20120321091037.GQ3852@pengutronix.de>
-References: <1331878280-2758-1-git-send-email-mturquette@linaro.org>
-	<CAP245DXV5oE+-y+PQCcSM016h-J+UgTi1efmdrcyeQge4k1Cfw@mail.gmail.com>
-	<201203161218.05125.arnd.bergmann@linaro.org>
-	<201203162057.58706.arnd@arndb.de>
-	<alpine.DEB.2.00.1203161509470.4395@utopia.booyaka.com>
-	<20120316234706.GJ3852@pengutronix.de>
-	<alpine.DEB.2.00.1203201611330.22974@utopia.booyaka.com>
-	<alpine.LFD.2.02.1203202233340.24151@xanadu.home>
-	<4F694A6A.4050706@codeaurora.org>
-	<alpine.DEB.2.00.1203210130520.30543@utopia.booyaka.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <linaro-dev-bounces-cunTk1MwBs8s++Sfvej+rw@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <alpine.DEB.2.00.1203210130520.30543-rwI8Ez+7Ko+d5PgPZx9QOdBPR1lH4CV8@public.gmane.org>
-List-Unsubscribe: <http://lists.linaro.org/mailman/options/linaro-dev>,
-	<mailto:linaro-dev-request-cunTk1MwBs8s++Sfvej+rw@public.gmane.org?subject=unsubscribe>
-List-Archive: <http://lists.linaro.org/pipermail/linaro-dev>
-List-Post: <mailto:linaro-dev-cunTk1MwBs8s++Sfvej+rw@public.gmane.org>
-List-Help: <mailto:linaro-dev-request-cunTk1MwBs8s++Sfvej+rw@public.gmane.org?subject=help>
-List-Subscribe: <http://lists.linaro.org/mailman/listinfo/linaro-dev>,
-	<mailto:linaro-dev-request-cunTk1MwBs8s++Sfvej+rw@public.gmane.org?subject=subscribe>
-Sender: linaro-dev-bounces-cunTk1MwBs8s++Sfvej+rw@public.gmane.org
-Errors-To: linaro-dev-bounces-cunTk1MwBs8s++Sfvej+rw@public.gmane.org
-To: Paul Walmsley <paul-DWxLp4Yu+b8AvxtiuMwx3w@public.gmane.org>
-Cc: Nicolas Pitre <nicolas.pitre-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>, linaro-dev-cunTk1MwBs8s++Sfvej+rw@public.gmane.org, Saravana Kannan <skannan-sgV2jX0FEOL9JmXXK+q4OQ@public.gmane.org>, Jeremy Kerr <jeremy.kerr-Z7WLFzj8eWMS+FvcfC7Uqw@public.gmane.org>, Russell King <linux-lFZ/pmaqli7XmaaqVzeoHQ@public.gmane.org>, Magnus Damm <magnus.damm-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, Arnd Bergmann <arnd-r2nGTMty4D4@public.gmane.org>, patches-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org, Rob Herring <rob.herring-bsGFqQB8/DxBDgjK7y7TUQ@public.gmane.org>, Thomas Gleixner <tglx-hfZtesqFncYOwBW4kG4KsQ@public.gmane.org>, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Linus Walleij <linus.walleij-0IS4wlFg1OjSUeElwK9/Pw@public.gmane.org>, Mark Brown <broonie-yzvPICuk2AATkU/dhu1WVueM+bqZidxxQQ4Iyu8u01E@public.gmane.org>, Stephen Boyd <sboyd-sgV2jX0FEOL9JmXXK+q4OQ@public.gmane.org>, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+From: Daniel Lezcano <daniel.lezcano@linaro.org>
+Subject: [RFC][PATCH 2/7] ARM: OMAP4: cpuidle - Declare the states with the driver declaration
+Date: Wed, 21 Mar 2012 10:27:45 +0100
+Message-ID: <1332322070-24577-3-git-send-email-daniel.lezcano@linaro.org>
+References: <1332322070-24577-1-git-send-email-daniel.lezcano@linaro.org>
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from mail-we0-f174.google.com ([74.125.82.174]:45372 "EHLO
+	mail-we0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755457Ab2CUJ1z (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 21 Mar 2012 05:27:55 -0400
+Received: by wejx9 with SMTP id x9so755242wej.19
+        for <linux-omap@vger.kernel.org>; Wed, 21 Mar 2012 02:27:54 -0700 (PDT)
+In-Reply-To: <1332322070-24577-1-git-send-email-daniel.lezcano@linaro.org>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: linux-omap@vger.kernel.org
+Cc: linux-arm-kernel@lists.infradead.org, linaro-dev@lists.linaro.org
 
-On Wed, Mar 21, 2012 at 01:44:01AM -0600, Paul Walmsley wrote:
-> Hello Saravana,
-> 
-> Certainly a Kconfig help text change seems trivial enough.  But even the 
-> resistance to CONFIG_EXPERIMENTAL has been quite surprising to me, given 
-> that every single defconfig in arch/arm/defconfig sets it:
-> 
-> $ find arch/arm/configs -type f  | wc -l
-> 122
-> $ fgrep -r CONFIG_EXPERIMENTAL=y arch/arm/configs | wc -l
-> 122
-> $
-> 
-> (that includes iMX, by the way...)
-> 
-> Certainly, neither Kconfig change is going to prevent us on OMAP from 
-> figuring out what else is needed to convert our platform to the common 
-> clock code.  And given the level of enthusiasm on the lists, I don't think 
-> it's going to prevent many of the other ARM platforms from experimenting 
-> with the conversion, either.
-> 
-> So it would be interesting to know more about why you (or anyone else) 
-> perceive that the Kconfig changes would be harmful.
+The cpuidle API allows to declare statically the states in the driver
+structure. Let's use it.
+We do no longer need the fill_cstate function called at runtime and
+by the way adding more instructions at boot time.
 
-Mainly because COMMON_CLK is an invisible option which has to be
-selected by architectures. So with the Kconfig change we either have to:
+Signed-off-by: Daniel Lezcano <daniel.lezcano@linaro.org>
+---
+ arch/arm/mach-omap2/cpuidle44xx.c |   56 +++++++++++++++++++++----------------
+ 1 files changed, 32 insertions(+), 24 deletions(-)
 
-config ARCH_MXC
-	depends on EXPERIMENTAL
-
-or:
-
-config ARCH_MXC
-	select EXPERIMENTAL
-	select COMMON_CLK
-
-Neither of both seems very appealing to me.
-
-You can add a warning to the Kconfig help text if you like, I
-have no problem with that. As you said it will prevent noone
-from using it anyway.
-
-Sascha
-
-
+diff --git a/arch/arm/mach-omap2/cpuidle44xx.c b/arch/arm/mach-omap2/cpuidle44xx.c
+index 1210229..cd6bee7 100644
+--- a/arch/arm/mach-omap2/cpuidle44xx.c
++++ b/arch/arm/mach-omap2/cpuidle44xx.c
+@@ -148,21 +148,38 @@ DEFINE_PER_CPU(struct cpuidle_device, omap4_idle_dev);
+ struct cpuidle_driver omap4_idle_driver = {
+ 	.name =		"omap4_idle",
+ 	.owner =	THIS_MODULE,
++	.states = {
++		{
++			/* C1 - CPU0 ON + CPU1 ON + MPU ON */
++			.exit_latency = 2 + 2,
++			.target_residency = 5,
++			.flags = CPUIDLE_FLAG_TIME_VALID,
++			.enter = omap4_enter_idle,
++			.name = "C1",
++			.desc = "MPUSS ON"
++		},
++		{
++                        /* C2 - CPU0 OFF + CPU1 OFF + MPU CSWR */
++			.exit_latency = 328 + 440,
++			.target_residency = 960,
++			.flags = CPUIDLE_FLAG_TIME_VALID,
++			.enter = omap4_enter_idle,
++			.name = "C2",
++			.desc = "MPUSS CSWR",
++		},
++		{
++			/* C3 - CPU0 OFF + CPU1 OFF + MPU OSWR */
++			.exit_latency = 460 + 518,
++			.target_residency = 1100,
++			.flags = CPUIDLE_FLAG_TIME_VALID,
++			.enter = omap4_enter_idle,
++			.name = "C3",
++			.desc = "MPUSS OSWR",
++		},
++	},
++	.state_count = OMAP4_NUM_STATES,
+ };
+ 
+-static inline void _fill_cstate(struct cpuidle_driver *drv,
+-					int idx, const char *descr)
+-{
+-	struct cpuidle_state *state = &drv->states[idx];
+-
+-	state->exit_latency	= cpuidle_params_table[idx].exit_latency;
+-	state->target_residency	= cpuidle_params_table[idx].target_residency;
+-	state->flags		= CPUIDLE_FLAG_TIME_VALID;
+-	state->enter		= omap4_enter_idle;
+-	sprintf(state->name, "C%d", idx + 1);
+-	strncpy(state->desc, descr, CPUIDLE_DESC_LEN);
+-}
+-
+ static inline struct omap4_idle_statedata *_fill_cstate_usage(
+ 					struct cpuidle_device *dev,
+ 					int idx)
+@@ -196,37 +213,28 @@ int __init omap4_idle_init(void)
+ 	if ((!mpu_pd) || (!cpu0_pd) || (!cpu1_pd))
+ 		return -ENODEV;
+ 
+-
+-	drv->safe_state_index = -1;
+ 	dev = &per_cpu(omap4_idle_dev, cpu_id);
+ 	dev->cpu = cpu_id;
+ 
+-	/* C1 - CPU0 ON + CPU1 ON + MPU ON */
+-	_fill_cstate(drv, 0, "MPUSS ON");
+-	drv->safe_state_index = 0;
+ 	cx = _fill_cstate_usage(dev, 0);
+ 	cx->cpu_state = PWRDM_POWER_ON;
+ 	cx->mpu_state = PWRDM_POWER_ON;
+ 	cx->mpu_logic_state = PWRDM_POWER_RET;
+ 
+-	/* C2 - CPU0 OFF + CPU1 OFF + MPU CSWR */
+-	_fill_cstate(drv, 1, "MPUSS CSWR");
+ 	cx = _fill_cstate_usage(dev, 1);
+ 	cx->cpu_state = PWRDM_POWER_OFF;
+ 	cx->mpu_state = PWRDM_POWER_RET;
+ 	cx->mpu_logic_state = PWRDM_POWER_RET;
+ 
+-	/* C3 - CPU0 OFF + CPU1 OFF + MPU OSWR */
+-	_fill_cstate(drv, 2, "MPUSS OSWR");
+ 	cx = _fill_cstate_usage(dev, 2);
+ 	cx->cpu_state = PWRDM_POWER_OFF;
+ 	cx->mpu_state = PWRDM_POWER_RET;
+ 	cx->mpu_logic_state = PWRDM_POWER_OFF;
+ 
+-	drv->state_count = OMAP4_NUM_STATES;
+ 	cpuidle_register_driver(&omap4_idle_driver);
+ 
+-	dev->state_count = OMAP4_NUM_STATES;
++	dev->state_count = drv->state_count;
++
+ 	if (cpuidle_register_device(dev)) {
+ 		pr_err("%s: CPUidle register device failed\n", __func__);
+ 			return -EIO;
 -- 
-Pengutronix e.K.                           |                             |
-Industrial Linux Solutions                 | http://www.pengutronix.de/  |
-Peiner Str. 6-8, 31137 Hildesheim, Germany | Phone: +49-5121-206917-0    |
-Amtsgericht Hildesheim, HRA 2686           | Fax:   +49-5121-206917-5555 |
+1.7.5.4
+
