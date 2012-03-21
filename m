@@ -1,7 +1,7 @@
-From: Rob Lee <rob.lee@linaro.org>
+From: Amit Kucheria <amit.kucheria@linaro.org>
 Subject: Re: [PATCH v8 4/8] ARM: davinci: Consolidate time keeping and irq enable
-Date: Wed, 21 Mar 2012 09:36:20 -0500
-Message-ID: <CAMXH7KGCTP0=YGfSgEVYYJoFK22GOLt-KfShpa6CuDi=PQ1-Pw@mail.gmail.com>
+Date: Wed, 21 Mar 2012 16:36:29 +0200
+Message-ID: <CAP245DW9SdTYNc8XXwiuHzo5Y-aZrLc2qP0MekKkyAT2TosjbQ@mail.gmail.com>
 References: <1332274969-15782-1-git-send-email-rob.lee@linaro.org>
 	<1332274969-15782-5-git-send-email-rob.lee@linaro.org>
 	<CAMXH7KH5kS=wPFdC8QrtnhE6_sZqmsJ8h=6Gs3kfHOTbeHjacA@mail.gmail.com>
@@ -9,19 +9,22 @@ Mime-Version: 1.0
 Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-yw0-f46.google.com ([209.85.213.46]:62273 "EHLO
-	mail-yw0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1031239Ab2CUOgX convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 21 Mar 2012 10:36:23 -0400
-Received: by yhmm54 with SMTP id m54so959784yhm.19
-        for <linux-omap@vger.kernel.org>; Wed, 21 Mar 2012 07:36:23 -0700 (PDT)
+Received: from mail-we0-f174.google.com ([74.125.82.174]:47087 "EHLO
+	mail-we0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1030891Ab2CUOgd convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 21 Mar 2012 10:36:33 -0400
+Received: by mail-we0-f174.google.com with SMTP id x9so992416wej.19
+        for <linux-omap@vger.kernel.org>; Wed, 21 Mar 2012 07:36:32 -0700 (PDT)
 In-Reply-To: <CAMXH7KH5kS=wPFdC8QrtnhE6_sZqmsJ8h=6Gs3kfHOTbeHjacA@mail.gmail.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: len.brown@intel.com, "Nori, Sekhar" <nsekhar@ti.com>, Kevin Hilman <khilman@ti.com>
-Cc: akpm@linux-foundation.org, rjw@sisk.pl, robherring2@gmail.com, Baohua.Song@csr.com, amit.kucheria@linaro.org, nicolas.ferre@atmel.com, linux@maxim.org.za, kgene.kim@samsung.com, amit.kachhap@linaro.org, magnus.damm@gmail.com, daniel.lezcano@linaro.org, mturquette@linaro.org, vincent.guittot@linaro.org, arnd.bergmann@linaro.org, linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linaro-dev@lists.linaro.org, patches@linaro.org, deepthi@linux.vnet.ibm.com, broonie@opensource.wolfsonmicro.com, nicolas.pitre@linaro.org, linux@arm.linux.org.uk, jean.pihet@newoldbits.com, venki@google.com, ccross@google.com, g.trinabh@gmail.com, kernel@wantstofly.org, lethal@linux-sh.org, jon-hunter@ti.com, tony@atomide.com, linux-omap@vger.kernel.org, linux-sh@vger.kernel.org, linux-pm@vger.kernel.org
+To: Rob Lee <rob.lee@linaro.org>
+Cc: len.brown@intel.com, "Nori, Sekhar" <nsekhar@ti.com>, Kevin Hilman <khilman@ti.com>, akpm@linux-foundation.org, rjw@sisk.pl, robherring2@gmail.com, Baohua.Song@csr.com, nicolas.ferre@atmel.com, linux@maxim.org.za, kgene.kim@samsung.com, amit.kachhap@linaro.org, magnus.damm@gmail.com, daniel.lezcano@linaro.org, mturquette@linaro.org, vincent.guittot@linaro.org, arnd.bergmann@linaro.org, linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linaro-dev@lists.linaro.org, patches@linaro.org, deepthi@linux.vnet.ibm.com, broonie@opensource.wolfsonmicro.com, nicolas.pitre@linaro.org, linux@arm.linux.org.uk, jean.pihet@newoldbits.com, venki@google.com, ccross@google.com, g.trinabh@gmail.com, kernel@wantstofly.org, lethal@linux-sh.org, jon-hunter@ti.com, tony@atomide.com, linux-omap@vger.kernel.org, linux-sh@vger.kernel.org, linux-pm@vger.kernel.org
 
-On Wed, Mar 21, 2012 at 9:28 AM, Rob Lee <rob.lee@linaro.org> wrote:
+Rob, you should start a new '3.4-fixes' branch containing such
+bugfixes that can be pushed to Len after -rc1.
+
+On Wed, Mar 21, 2012 at 4:28 PM, Rob Lee <rob.lee@linaro.org> wrote:
 > Sekhar tested this patch on Davinci last night and found a problem. =A0=
 I
 > looked at the code again and found a mindless omission on my part (se=
@@ -31,10 +34,6 @@ irmed
 > this problem does not exist for those. =A0Will resend a v9 of the
 > patchset shortly.
 >
-
-Kevin just informed me that Len already has v8 patchset queued so I'll
-just send this fix out as a separate patch.
-
 > On Tue, Mar 20, 2012 at 3:22 PM, Robert Lee <rob.lee@linaro.org> wrot=
 e:
 >> Enable core cpuidle timekeeping and irq enabling and remove that
