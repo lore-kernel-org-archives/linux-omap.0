@@ -1,42 +1,130 @@
-From: "Nori, Sekhar" <nsekhar@ti.com>
-Subject: RE: [PATCH v8 4/8] ARM: davinci: Consolidate time keeping and irq
- enable
-Date: Wed, 21 Mar 2012 15:37:57 +0000
-Message-ID: <DF0F476B391FA8409C78302C7BA518B631800A29@DBDE01.ent.ti.com>
-References: <1332274969-15782-1-git-send-email-rob.lee@linaro.org>
- <1332274969-15782-5-git-send-email-rob.lee@linaro.org>
- <CAMXH7KH5kS=wPFdC8QrtnhE6_sZqmsJ8h=6Gs3kfHOTbeHjacA@mail.gmail.com>
- <CAP245DW9SdTYNc8XXwiuHzo5Y-aZrLc2qP0MekKkyAT2TosjbQ@mail.gmail.com>
+From: Thomas Klute <thomas2.klute@uni-dortmund.de>
+Subject: Re: smsc911x on Gumstix Overo/Tobi doesn't work
+Date: Wed, 21 Mar 2012 17:29:48 +0100
+Message-ID: <4F6A01FC.3080804@uni-dortmund.de>
+References: <4F6324D5.9010106@uni-dortmund.de> <20120316193337.GE7276@atomide.com> <4F675D9D.2040102@uni-dortmund.de> <20120319225131.GE9859@atomide.com> <4F6893C6.60701@uni-dortmund.de> <CAAwP0s3Qo7vtt=BY7Pvejg4Gc9X0O0n=yWg0JVGZHrmUJScMXw@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
+Content-Type: text/plain; charset=UTF-8
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-In-Reply-To: <CAP245DW9SdTYNc8XXwiuHzo5Y-aZrLc2qP0MekKkyAT2TosjbQ@mail.gmail.com>
-Content-Language: en-US
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: linux-arm-kernel-bounces@lists.infradead.org
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: Amit Kucheria <amit.kucheria@linaro.org>, Rob Lee <rob.lee@linaro.org>
-Cc: "nicolas.pitre@linaro.org" <nicolas.pitre@linaro.org>, "venki@google.com" <venki@google.com>, "linaro-dev@lists.linaro.org" <linaro-dev@lists.linaro.org>, "linux-sh@vger.kernel.org" <linux-sh@vger.kernel.org>, "tony@atomide.com" <tony@atomide.com>, "nicolas.ferre@atmel.com" <nicolas.ferre@atmel.com>, "linux@arm.linux.org.uk" <linux@arm.linux.org.uk>, "kernel@wantstofly.org" <kernel@wantstofly.org>, "Hilman,
- Kevin" <khilman@ti.com>, "kgene.kim@samsung.com" <kgene.kim@samsung.com>, "mturquette@linaro.org" <mturquette@linaro.org>, "daniel.lezcano@linaro.org" <daniel.lezcano@linaro.org>, "magnus.damm@gmail.com" <magnus.damm@gmail.com>, "arnd.bergmann@linaro.org" <arnd.bergmann@linaro.org>, "Hunter,
- Jon" <jon-hunter@ti.com>, "len.brown@intel.com" <len.brown@intel.com>, "patches@linaro.org" <patches@linaro.org>, "jean.pihet@newoldbits.com" <jean.pihet@newoldbits.com>, rjw@
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from mx1.HRZ.Uni-Dortmund.DE ([129.217.128.51]:36520 "EHLO
+	unimail.uni-dortmund.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754180Ab2CUQ3w (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 21 Mar 2012 12:29:52 -0400
+In-Reply-To: <CAAwP0s3Qo7vtt=BY7Pvejg4Gc9X0O0n=yWg0JVGZHrmUJScMXw@mail.gmail.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Javier Martinez Canillas <martinez.javier@gmail.com>
+Cc: Tony Lindgren <tony@atomide.com>, linux-omap@vger.kernel.org
 
-Hi Amit,
 
-On Wed, Mar 21, 2012 at 20:06:29, Amit Kucheria wrote:
-> Rob, you should start a new '3.4-fixes' branch containing such
-> bugfixes that can be pushed to Len after -rc1.
 
-I think it is OK to send the fixes to Len right away so
-he can queue the fixes during merge window if he gets the
-chance. That way we may get a non-broken -rc1.
+Am 20.03.2012 20:47, schrieb Javier Martinez Canillas:
+> On Tue, Mar 20, 2012 at 3:27 PM, Thomas Klute
+> <thomas2.klute@uni-dortmund.de> wrote:
+>> Am 19.03.2012 23:51, schrieb Tony Lindgren:
+>>> * Thomas Klute <thomas2.klute@uni-dortmund.de> [120319 09:26]:
+>>>> Am 16.03.2012 20:33, schrieb Tony Lindgren:
+>>>>> Hi,
+>>>>>
+>>>>> * Thomas Klute <thomas2.klute@uni-dortmund.de> [120316 05:08]:
+>>>>>> Hi,
+>>>>>>
+>>>>>> I have trouble getting the Ethernet port on a Gumstix Overo with Tobi
+>>>>>> expansion board to work with current kernel versions. With the latest
+>>>>>> commit from linux-omap git (b8fe1781ec8bed5e086691a827a6ee11facec2aa),
+>>>>>> the output from loading the smsc911x driver is as follows:
+>>>>>>
+>>>>>> du14:~# modprobe smsc911x
+>>>>>> [  254.843811] smsc911x: Driver version 2008-10-21
+>>>>>> [  254.854553] smsc911x: Driver version 2008-10-21
+>>>>>> [  254.859588] _regulator_get: smsc911x.1 supply vdd33a not found, using
+>>>>>> dummy regulator
+>>>>>> [  254.868377] _regulator_get: smsc911x.1 supply vddvario not found,
+>>>>>> using dummy regulator
+>>>>>>
+>>>>>> "ip link show" does not show any available Ethernet port.
+>>>>>
+>>>>> The first instance one should work the same way as earlier using
+>>>>> fixed regulator in gpmc-smsc911x.c. Is it not working for you
+>>>>> somehow? At least it works for me on zoom3.
+>>>>
+>>>> The Tobi board has only one Ethernet port.
+>>>>
+>>>>>> I know there has been some trouble with changes around smsc911x
+>>>>>> regulator support and Gumstix Overo in particular. Am I just missing the
+>>>>>> right regulator in my kernel config or is this a bug? I can test patches
+>>>>>> in the latter case.
+>>>>>
+>>>>> The second smsc911x now needs a regulator. For multiple smsc911x instances,
+>>>>> we should change things around so no regulator is created if one
+>>>>> is passed.
+>>>>>
+>>>>> Care to test the following patch by passing a fixed regulator
+>>>>> from board-overo.c?
+>>>>
+>>>> After applying the patch the Ethernet port works consistently once I had
+>>>> done a cold boot (reboot from the unpatched kernel did not work).
+>>>> Thank you!
+>>>
+>>> Hmm but this patch should not change the behaviour for the first smsc911x
+>>> instance unless you specify a custom regulator.. Did you patch in a
+>>> custom regulator, or do we have a bug somewhere? Or do you just need to
+>>> do a cold reset without the patch I posted?
+>>
+>> You're right, during further tests I found that the problem lies
+>> elsewhere: If the Ethernet cable is attached on modprobe, the device
+>> works as expected, if not, it's not found (with or without the patch).
+>> This means if I boot with the cable disconnected, the device won't show
+>> up, but after
+>>
+>> # modprobe -r smsc911x
+>> [attach cable]
+>> # modprobe smsc911x
+>>
+>> it will work. I'd still consider this a bug, but it doesn't seem to be a
+>> regulator problem.
+>>
+> 
+> Hi Thomas,
+> 
+> I had the same behavior with the smsc911x chip but on an IGEPv2 board.
+> The problem was when CONFIG_SMSC_PHY=y since the driver for the chip
+> internal PHY enables an energy detect power-down mode.
+> 
+> The smsc911x driver probe function tries to software reset the chip
+> but if the cable is unplugged the energy detect puts the chip in a low
+> power mode. Since the chip is not in an operational state the reset
+> fails and hence the driver probe function. If the cable is plugged
+> then then energy is detected, the chip is in an operational state and
+> the reset is successful.
+> 
+> I sent a patch a few months ago to fix this issue. The patch disables
+> the energy detect power-down mode before reseting the chip and then it
+> enables again after reset.
+> 
+> The commit is:
+> 
+> commit 6386994e03ebbe60338ded3d586308a41e81c0dc
+> Author: Javier Martinez Canillas <javier@dowhile0.org>
+> Date:   Tue Jan 3 13:36:19 2012 +0000
+> 
+>     net/smsc911x: Check if PHY is in operational mode before software reset
+> 
+> When I fix the issue I only guarded against generation 4 chips (i.e:
+> pdata->generation == 4), but maybe this problem also exists in other
+> SMSC chips (I didn't know since I only had access to specific
+> data-sheets).
+> 
+> Also you can try enabling debug in the driver by setting USE_DEBUG to
+> 1 in drivers/net/ethernet/smsc/smsc911x.h and also trying disabling
+> CONFIG_SMSC_PHY, this will use a generic PHY driver that doesn't put
+> the chip in auto power mode.
 
-Thanks,
-Sekhar
+Hi Javier,
+
+thanks for the hint. Deactivating CONFIG_SMSC_PHY didn't help, but I'll
+look into activating USE_DEBUG later.
+
+Regards,
+Thomas
