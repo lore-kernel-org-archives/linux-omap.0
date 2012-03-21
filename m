@@ -1,37 +1,57 @@
-From: Bernhard Walle <bernhard@bwalle.de>
-Subject: Re: [PATCH] mfd: Add TWL4030 PWM driver
-Date: Wed, 21 Mar 2012 07:15:29 +0100
-Message-ID: <4F697201.1090206@bwalle.de>
-References: <1332262083-9375-1-git-send-email-walle@corscience.de> <201203202202.12060.arnd@arndb.de>
+From: "Munegowda, Keshava" <keshava_mgowda@ti.com>
+Subject: Re: [PATCH RESEND] ARM: OMAP3: USB: Fix the EHCI ULPI PHY reset issue
+Date: Wed, 21 Mar 2012 12:04:01 +0530
+Message-ID: <CAP05o4LNVxU4iggPwP8r6rj9bg2u=U+3OKZ=L0sxtEJq0M1YRQ@mail.gmail.com>
+References: <1332139367-1302-1-git-send-email-keshava_mgowda@ti.com>
+	<20120320155353.GE17818@sortiz-mobl>
+	<20120320155541.GF32693@arwen.pp.htv.fi>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-15
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <201203202202.12060.arnd@arndb.de>
-Sender: linux-kernel-owner@vger.kernel.org
-To: linux-kernel@vger.kernel.org
-Cc: linux-omap@vger.kernel.org
+Content-Type: text/plain; charset=ISO-8859-1
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from na3sys009aog101.obsmtp.com ([74.125.149.67]:52963 "EHLO
+	na3sys009aog101.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1751127Ab2CUGeD (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>);
+	Wed, 21 Mar 2012 02:34:03 -0400
+Received: by mail-ob0-f176.google.com with SMTP id ef5so538842obb.7
+        for <linux-omap@vger.kernel.org>; Tue, 20 Mar 2012 23:34:01 -0700 (PDT)
+In-Reply-To: <20120320155541.GF32693@arwen.pp.htv.fi>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: balbi@ti.com
+Cc: Samuel Ortiz <sameo@linux.intel.com>, linux-omap@vger.kernel.org, linux-usb@vger.kernel.org, parthab@india.ti.com, govindraj.raja@ti.com
 
-Am 20.03.12 23:02, schrieb Arnd Bergmann:
-> On Tuesday 20 March 2012, Bernhard Walle wrote:
+On Tue, Mar 20, 2012 at 9:25 PM, Felipe Balbi <balbi@ti.com> wrote:
+> On Tue, Mar 20, 2012 at 04:53:53PM +0100, Samuel Ortiz wrote:
+>> Hi Keshava,
 >>
->> This PWM driver uses the PWM of the TWL4030. The driver for the TWL6030
->> PWM has been used as mode, but the PWM registers are different.
->>
->> The driver can be used and has been tested in conjunction with
->> pwm-backlight to control a backlight LED of a LCD touch screen.
->>
->> Signed-off-by: Bernhard Walle <walle@corscience.de>
-> 
-> Since it's too late for v3.4 now and we will get a new pwm
-> subsystem in v3.5, I suggest you change the driver to work
-> register with that subsystem instead of just using the old
-> header file. Note that drivers/mfd is not really the right
-> place anyway, because this is not a multifunction driver but
-> just one device driver that happens to be a slave of an mfd.
+>> On Mon, Mar 19, 2012 at 12:12:47PM +0530, Keshava Munegowda wrote:
+>> > From: Keshava Munegowda <Keshava_mgowda@ti.com>
+>> >
+>> > It is observed that the echi ports of 3430 sdp board
+>> > are not working due to the random timing of programming
+>> > the associated GPIOs of the ULPI PHYs of the EHCI for reset.
+>> > If the PHYs are reset at during usbhs core driver, host ports will
+>> > not work because EHCI driver is loaded after the resetting PHYs.
+>> > The PHYs should be in reset state while initializing the EHCI
+>> > controller.
+>> > The code which does the GPIO pins associated with the PHYs
+>> > are programmed to reset is moved from the USB host core driver
+>> > to EHCI driver.
+>> >
+>> > Signed-off-by: Keshava Munegowda <keshava_mgowda@ti.com>
+>> > Reviewed-by: Partha Basak <parthab@india.ti.com>
+>> Felipe, are you ok with that patch ?
+>> I'll most likely queue it after this merge window is closed though.
+>
+> my bad, here's my Ack:
+>
+> Acked-by: Felipe Balbi <balbi@ti.com>
+>
+> --
+> balbi
 
-Does that new subsystem already exist in some tree?
+thanks , Felipe
 
-Regards,
-Bernhard
+regards
+keshava
