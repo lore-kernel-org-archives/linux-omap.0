@@ -1,57 +1,56 @@
-From: "Munegowda, Keshava" <keshava_mgowda@ti.com>
-Subject: Re: [PATCH RESEND] ARM: OMAP3: USB: Fix the EHCI ULPI PHY reset issue
-Date: Wed, 21 Mar 2012 12:04:01 +0530
-Message-ID: <CAP05o4LNVxU4iggPwP8r6rj9bg2u=U+3OKZ=L0sxtEJq0M1YRQ@mail.gmail.com>
-References: <1332139367-1302-1-git-send-email-keshava_mgowda@ti.com>
-	<20120320155353.GE17818@sortiz-mobl>
-	<20120320155541.GF32693@arwen.pp.htv.fi>
+From: Shubhrajyoti D <shubhrajyoti@ti.com>
+Subject: [PATCH v2] MFD: OMAP: USB: Make the runtime functions depend on CONFIG_PM_RUNTIME
+Date: Wed, 21 Mar 2012 12:29:34 +0530
+Message-ID: <1332313174-5374-1-git-send-email-shubhrajyoti@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aog101.obsmtp.com ([74.125.149.67]:52963 "EHLO
-	na3sys009aog101.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751127Ab2CUGeD (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>);
-	Wed, 21 Mar 2012 02:34:03 -0400
-Received: by mail-ob0-f176.google.com with SMTP id ef5so538842obb.7
-        for <linux-omap@vger.kernel.org>; Tue, 20 Mar 2012 23:34:01 -0700 (PDT)
-In-Reply-To: <20120320155541.GF32693@arwen.pp.htv.fi>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Sender: linux-kernel-owner@vger.kernel.org
+To: linux-omap@vger.kernel.org
+Cc: linux-usb@vger.kernel.org, linux-kernel@vger.kernel.org, sameo@linux.intel.com, Shubhrajyoti D <shubhrajyoti@ti.com>
 List-Id: linux-omap@vger.kernel.org
-To: balbi@ti.com
-Cc: Samuel Ortiz <sameo@linux.intel.com>, linux-omap@vger.kernel.org, linux-usb@vger.kernel.org, parthab@india.ti.com, govindraj.raja@ti.com
 
-On Tue, Mar 20, 2012 at 9:25 PM, Felipe Balbi <balbi@ti.com> wrote:
-> On Tue, Mar 20, 2012 at 04:53:53PM +0100, Samuel Ortiz wrote:
->> Hi Keshava,
->>
->> On Mon, Mar 19, 2012 at 12:12:47PM +0530, Keshava Munegowda wrote:
->> > From: Keshava Munegowda <Keshava_mgowda@ti.com>
->> >
->> > It is observed that the echi ports of 3430 sdp board
->> > are not working due to the random timing of programming
->> > the associated GPIOs of the ULPI PHYs of the EHCI for reset.
->> > If the PHYs are reset at during usbhs core driver, host ports will
->> > not work because EHCI driver is loaded after the resetting PHYs.
->> > The PHYs should be in reset state while initializing the EHCI
->> > controller.
->> > The code which does the GPIO pins associated with the PHYs
->> > are programmed to reset is moved from the USB host core driver
->> > to EHCI driver.
->> >
->> > Signed-off-by: Keshava Munegowda <keshava_mgowda@ti.com>
->> > Reviewed-by: Partha Basak <parthab@india.ti.com>
->> Felipe, are you ok with that patch ?
->> I'll most likely queue it after this merge window is closed though.
->
-> my bad, here's my Ack:
->
-> Acked-by: Felipe Balbi <balbi@ti.com>
->
-> --
-> balbi
+Currently the runtime functions are compiled regardless
+of CONFIG_PM_RUNTIME flag. This patch intends to fix the same by
+using SET_RUNTIME_PM_OPS.
 
-thanks , Felipe
+Reviewed-by: Kevin Hilman <khilman@ti.com>
+Cc : Keshava Munegowda <keshava_mgowda@ti.com>
+Signed-off-by: Shubhrajyoti D <shubhrajyoti@ti.com>
+---
+ drivers/mfd/omap-usb-host.c |    6 ++++--
+ 1 files changed, 4 insertions(+), 2 deletions(-)
 
-regards
-keshava
+diff --git a/drivers/mfd/omap-usb-host.c b/drivers/mfd/omap-usb-host.c
+index 68ac2c5..f8fdd5f 100644
+--- a/drivers/mfd/omap-usb-host.c
++++ b/drivers/mfd/omap-usb-host.c
+@@ -422,6 +422,7 @@ static void usbhs_omap_tll_init(struct device *dev, u8 tll_channel_count)
+ 	}
+ }
+ 
++#ifdef CONFIG_PM_RUNTIME
+ static int usbhs_runtime_resume(struct device *dev)
+ {
+ 	struct usbhs_hcd_omap		*omap = dev_get_drvdata(dev);
+@@ -489,6 +490,7 @@ static int usbhs_runtime_suspend(struct device *dev)
+ 
+ 	return 0;
+ }
++#endif
+ 
+ static void omap_usbhs_init(struct device *dev)
+ {
+@@ -881,8 +883,8 @@ static int __devexit usbhs_omap_remove(struct platform_device *pdev)
+ }
+ 
+ static const struct dev_pm_ops usbhsomap_dev_pm_ops = {
+-	.runtime_suspend	= usbhs_runtime_suspend,
+-	.runtime_resume		= usbhs_runtime_resume,
++	SET_RUNTIME_PM_OPS(usbhs_runtime_suspend,
++				usbhs_runtime_resume, NULL)
+ };
+ 
+ static struct platform_driver usbhs_omap_driver = {
+-- 
+1.7.1
