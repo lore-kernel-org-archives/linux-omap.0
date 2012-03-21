@@ -1,73 +1,63 @@
-From: Jean Pihet <jean.pihet@newoldbits.com>
-Subject: Re: [RFC][PATCH 0/7] OMAP4 cpuidle cleanup
-Date: Wed, 21 Mar 2012 14:19:05 +0100
-Message-ID: <CAORVsuUL3Z_vw+n26eWaa8eAJ0yhXB=VRNmuCeSZjStG527Gag@mail.gmail.com>
-References: <1332322070-24577-1-git-send-email-daniel.lezcano@linaro.org>
-	<4F69A872.50203@ti.com>
+From: Tomi Valkeinen <tomi.valkeinen@ti.com>
+Subject: Re: [PATCH 1/2] OMAP2: DSS: Add Mitsubishi AA084SB01 display
+ support
+Date: Wed, 21 Mar 2012 15:21:00 +0200
+Message-ID: <1332336060.2236.22.camel@deskari>
+References: <1329482519-12722-1-git-send-email-weber@corscience.de>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: multipart/signed; micalg="pgp-sha1"; protocol="application/pgp-signature"; boundary="=-BBPy+d90kY49kCIfMJNb"
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-vx0-f174.google.com ([209.85.220.174]:57775 "EHLO
-	mail-vx0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1757588Ab2CUNTH convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 21 Mar 2012 09:19:07 -0400
-Received: by vcqp1 with SMTP id p1so994086vcq.19
-        for <linux-omap@vger.kernel.org>; Wed, 21 Mar 2012 06:19:05 -0700 (PDT)
-In-Reply-To: <4F69A872.50203@ti.com>
+Received: from na3sys009aog128.obsmtp.com ([74.125.149.141]:33426 "HELO
+	na3sys009amx257.postini.com" rhost-flags-OK-OK-OK-FAIL)
+	by vger.kernel.org with SMTP id S1758782Ab2CUNVF (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>);
+	Wed, 21 Mar 2012 09:21:05 -0400
+Received: by mail-lb0-f180.google.com with SMTP id n10so731000lbo.25
+        for <linux-omap@vger.kernel.org>; Wed, 21 Mar 2012 06:21:03 -0700 (PDT)
+In-Reply-To: <1329482519-12722-1-git-send-email-weber@corscience.de>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Santosh Shilimkar <santosh.shilimkar@ti.com>, Daniel Lezcano <daniel.lezcano@linaro.org>
-Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Linaro Dev <linaro-dev@lists.linaro.org>
+To: Thomas Weber <weber@corscience.de>
+Cc: linux-omap@vger.kernel.org
 
-Hi Santosh, Daniel,
 
-On Wed, Mar 21, 2012 at 11:07 AM, Santosh Shilimkar
-<santosh.shilimkar@ti.com> wrote:
-> Daniel,
->
-> On Wednesday 21 March 2012 02:57 PM, Daniel Lezcano wrote:
->> This patchset is a proposition to improve a bit the code.
->> The changes are code cleanup and does not change the behavior of the
->> driver itself.
->>
->> A couple a things call my intention. Why the cpuidle device is set f=
-or cpu0 only
->> and why the WFI is not used ?
->>
->> Daniel Lezcano (7):
->> =A0 ARM: OMAP4: cpuidle - Remove unused valid field
->> =A0 ARM: OMAP4: cpuidle - Declare the states with the driver declara=
-tion
->> =A0 ARM: OMAP4: cpuidle - Remove the cpuidle_params_table table
->> =A0 ARM: OMAP4: cpuidle - fix static omap4_idle_data declaration
->> =A0 ARM: OMAP4: cpuidle - Initialize omap4_idle_data at compile time
->> =A0 ARM: OMAP4: cpuidle - use the omap4_idle_data variable directly
->> =A0 ARM: OMAP4: cpuidle - remove omap4_idle_data initialization at b=
-oot
->> =A0 =A0 time
->>
-> The series looks fine to me in general. This clean-up is applicable
-> for OMAP3 cpuidle code as well.
->
-> I want Jean to look at this series because some of his earlier
-> clean up has introduced those custom functions which
-> are getting removed in this series.
-I am OK with the patch set, I only have minor remarks to the individual=
- patches.
+--=-BBPy+d90kY49kCIfMJNb
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: quoted-printable
 
-Reviewed-by: Jean Pihet <j-pihet@ti.com>
+On Fri, 2012-02-17 at 13:41 +0100, Thomas Weber wrote:
+> This patch adds support for the Mitsubishi display
+> AA084SB01. This is a 7 inch LVDS display. It is tested with
+> an OMAP3 board.
+>=20
+> Signed-off-by: Thomas Weber <weber@corscience.de>
 
->
-> Regards
-> santosh
->
->
+Thanks, I'll add these two panels to omapdss tree.
 
-Thanks!
-Jean
---
-To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+ Tomi
+
+
+--=-BBPy+d90kY49kCIfMJNb
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: This is a digitally signed message part
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.4.11 (GNU/Linux)
+
+iQIcBAABAgAGBQJPadW7AAoJEPo9qoy8lh71/gAP/0sqHdqyruc/ikKJrX1z2ALx
+4UPKj/iQBJdUKsneDzQ6Np/BrEpp0Tx/YcbT41ZNdWMY/rVD8NZ22/p51sMAqCLw
+tDDn+v+FzNmwLyY32wJTfvB4/Rspjg0vdbU9k3ECyiQvW0bMx5MrLRSMFAWJR8mj
+tdznyBUNJUwJ8gLvVmDKvXglKmOhvnSsx+jBe4ebxR++SEb0GuMHhDecTdlZHCN9
+wC8rlRHb9zNcCaOVpEVHMqYjZaGDtlCZHmNrgnJ4i7RNa4ZFzvLcCrUc8STBMme4
+FXUBNsRqwutqEC784xhlJ2FqDoKkhN499ubi2iyTBhAap4zENCTBBfKbN4GAid9S
+YyZRVaZhX2HR4pA31FV8IMZtN34mq1V7G2ZyyMlOJENAYB8/23RHi+XgVuxnoJCe
+4rsOQIvBx8VhdHijbeIHcSmSt/1LplFi3NT+SqSjzVZXTfZSshzCqMkjULZrZLiq
+B3/ymEV/Kb7AJwODy+z+rN9DbMsFOuCNTZok+xif39nnrN+AS5XSwmiIHU8esmf4
+Qn02KTlBRMhC03jQrqe5rPFktUuz8mgRmKwFy2GaXnEy190kM7IpibxvxWxERKj0
+KdeKpvwtlczmSUAUceoicHoRLRHpjqNjkwhO29IRrSITuNOnwCjQHKOTUmgrDsmt
+bEt8P1eQJ17HA+Mlnnbf
+=wgBU
+-----END PGP SIGNATURE-----
+
+--=-BBPy+d90kY49kCIfMJNb--
+
