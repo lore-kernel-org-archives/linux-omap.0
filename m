@@ -1,73 +1,73 @@
-From: Tomi Valkeinen <tomi.valkeinen@ti.com>
-Subject: Re: [PATCH 1/2] OMAPDSS: provide default get_timings function for
- panels
-Date: Wed, 21 Mar 2012 15:11:59 +0200
-Message-ID: <1332335519.2236.19.camel@deskari>
-References: <1331834424-485-1-git-send-email-notasas@gmail.com>
+From: Jean Pihet <jean.pihet@newoldbits.com>
+Subject: Re: [RFC][PATCH 0/7] OMAP4 cpuidle cleanup
+Date: Wed, 21 Mar 2012 14:19:05 +0100
+Message-ID: <CAORVsuUL3Z_vw+n26eWaa8eAJ0yhXB=VRNmuCeSZjStG527Gag@mail.gmail.com>
+References: <1332322070-24577-1-git-send-email-daniel.lezcano@linaro.org>
+	<4F69A872.50203@ti.com>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg="pgp-sha1"; protocol="application/pgp-signature"; boundary="=-2a+ZuUqCmfQEdx6vq5pM"
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aog123.obsmtp.com ([74.125.149.149]:52295 "EHLO
-	na3sys009aog123.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S932111Ab2CUNMF (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>);
-	Wed, 21 Mar 2012 09:12:05 -0400
-Received: by mail-lb0-f173.google.com with SMTP id n3so1037276lbo.18
-        for <linux-omap@vger.kernel.org>; Wed, 21 Mar 2012 06:12:02 -0700 (PDT)
-In-Reply-To: <1331834424-485-1-git-send-email-notasas@gmail.com>
+Received: from mail-vx0-f174.google.com ([209.85.220.174]:57775 "EHLO
+	mail-vx0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1757588Ab2CUNTH convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 21 Mar 2012 09:19:07 -0400
+Received: by vcqp1 with SMTP id p1so994086vcq.19
+        for <linux-omap@vger.kernel.org>; Wed, 21 Mar 2012 06:19:05 -0700 (PDT)
+In-Reply-To: <4F69A872.50203@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Grazvydas Ignotas <notasas@gmail.com>
-Cc: linux-fbdev@vger.kernel.org, linux-omap@vger.kernel.org
+To: Santosh Shilimkar <santosh.shilimkar@ti.com>, Daniel Lezcano <daniel.lezcano@linaro.org>
+Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Linaro Dev <linaro-dev@lists.linaro.org>
 
+Hi Santosh, Daniel,
 
---=-2a+ZuUqCmfQEdx6vq5pM
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: quoted-printable
+On Wed, Mar 21, 2012 at 11:07 AM, Santosh Shilimkar
+<santosh.shilimkar@ti.com> wrote:
+> Daniel,
+>
+> On Wednesday 21 March 2012 02:57 PM, Daniel Lezcano wrote:
+>> This patchset is a proposition to improve a bit the code.
+>> The changes are code cleanup and does not change the behavior of the
+>> driver itself.
+>>
+>> A couple a things call my intention. Why the cpuidle device is set f=
+or cpu0 only
+>> and why the WFI is not used ?
+>>
+>> Daniel Lezcano (7):
+>> =A0 ARM: OMAP4: cpuidle - Remove unused valid field
+>> =A0 ARM: OMAP4: cpuidle - Declare the states with the driver declara=
+tion
+>> =A0 ARM: OMAP4: cpuidle - Remove the cpuidle_params_table table
+>> =A0 ARM: OMAP4: cpuidle - fix static omap4_idle_data declaration
+>> =A0 ARM: OMAP4: cpuidle - Initialize omap4_idle_data at compile time
+>> =A0 ARM: OMAP4: cpuidle - use the omap4_idle_data variable directly
+>> =A0 ARM: OMAP4: cpuidle - remove omap4_idle_data initialization at b=
+oot
+>> =A0 =A0 time
+>>
+> The series looks fine to me in general. This clean-up is applicable
+> for OMAP3 cpuidle code as well.
+>
+> I want Jean to look at this series because some of his earlier
+> clean up has introduced those custom functions which
+> are getting removed in this series.
+I am OK with the patch set, I only have minor remarks to the individual=
+ patches.
 
-On Thu, 2012-03-15 at 20:00 +0200, Grazvydas Ignotas wrote:
-> With this we can eliminate some duplicate code in panel drivers.
-> Also lgphilips-lb035q02, nec-nl8048hl11-01b, picodlp and
-> tpo-td043mtea1 gain support of reading timings over sysfs.
->=20
-> Signed-off-by: Grazvydas Ignotas <notasas@gmail.com>
-> ---
->  drivers/video/omap2/displays/panel-acx565akm.c   |    7 -------
->  drivers/video/omap2/displays/panel-generic-dpi.c |    7 -------
->  drivers/video/omap2/displays/panel-n8x0.c        |    8 --------
->  drivers/video/omap2/displays/panel-taal.c        |    8 --------
->  drivers/video/omap2/dss/core.c                   |    2 ++
->  drivers/video/omap2/dss/display.c                |    7 +++++++
->  drivers/video/omap2/dss/venc.c                   |    7 -------
->  include/video/omapdss.h                          |    2 ++
->  8 files changed, 11 insertions(+), 37 deletions(-)
+Reviewed-by: Jean Pihet <j-pihet@ti.com>
 
-These two patches look fine to me, I'll apply to omapdss tree. Thanks!
+>
+> Regards
+> santosh
+>
+>
 
- Tomi
-
-
---=-2a+ZuUqCmfQEdx6vq5pM
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: This is a digitally signed message part
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.4.11 (GNU/Linux)
-
-iQIcBAABAgAGBQJPadOfAAoJEPo9qoy8lh71Kr4P/1x0kyB8fv1hO+xRl1jehqwF
-OeYg2e+gi6Y0R/KmtFptSEh3uq4X0pggVdtZtjj7luPXl2aWYisc6iumB2WGTG15
-i6VR+ps2JfFN8INFEDzDmn4Sj4vgqU/7qjdXM0acTTj3Ks9jdhAaCtg3dtB3Y+zR
-EQjxXNJVSlCXyj4rIY7HgXBwCqkWVUMogijrWI3UjC5NgXmR5AqzmlCSH0GleQHQ
-ea2a6ruDNdzj2bKJ5ys4vRi/jUZhkq+HicgBw9Ss4fuGUM9mHiz2cituiEo+k5DC
-G8slBRhlnNc9nP2NBY7Ja6UIXtnccqH1NzJde5hqb0Q3Bw04P4aktSN6wA5GELXL
-v5ZzYn4l0U0wgfOybTrGv384bkLNSo29FSox9jXnFS0rsHNLPdlVB+pynCEnfRSZ
-QsxNeXsuD9yCXjzXR1FvOaBuGznQJewChJw+8gN58Gfz56pVuAoZQI1CZetbfZfQ
-B/xaqxZVmTfw/hd28mzM/ajzPQF35SWEFh111bhGHVQSmc/XvzH+wmGakniZBHEU
-UllDJpf4neWpbG853HAwlmeBcw90vJhMmaVMtGGjey08+fZm7daSB4xDzTosiGTy
-s9txNhyjwttv456JSvTw51qxdwu34VgasXfTff7CCbY/6FPuNedhkBQ6aEd353H3
-ioMAx8aLeT6cQmz0A9TB
-=HzVT
------END PGP SIGNATURE-----
-
---=-2a+ZuUqCmfQEdx6vq5pM--
-
+Thanks!
+Jean
+--
+To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
