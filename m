@@ -1,70 +1,57 @@
-From: Felipe Balbi <balbi@ti.com>
-Subject: Re: [PATCH v2] usb: musb: wake the device before ulpi transfers
-Date: Wed, 21 Mar 2012 17:07:50 +0200
-Message-ID: <20120321150748.GP3092@arwen.pp.htv.fi>
-References: <1332340552-9270-1-git-send-email-notasas@gmail.com>
-Reply-To: balbi@ti.com
+From: "Nori, Sekhar" <nsekhar@ti.com>
+Subject: RE: [PATCH v8 4/8] ARM: davinci: Consolidate time keeping and irq
+ enable
+Date: Wed, 21 Mar 2012 15:33:33 +0000
+Message-ID: <DF0F476B391FA8409C78302C7BA518B631800A07@DBDE01.ent.ti.com>
+References: <1332274969-15782-1-git-send-email-rob.lee@linaro.org>
+ <1332274969-15782-5-git-send-email-rob.lee@linaro.org>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="2fV3mxwFPWhsKHyX"
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aog104.obsmtp.com ([74.125.149.73]:43755 "EHLO
-	na3sys009aog104.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755064Ab2CUPIK (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>);
-	Wed, 21 Mar 2012 11:08:10 -0400
-Received: by mail-lb0-f181.google.com with SMTP id k6so977940lbo.40
-        for <linux-omap@vger.kernel.org>; Wed, 21 Mar 2012 08:08:08 -0700 (PDT)
-Content-Disposition: inline
-In-Reply-To: <1332340552-9270-1-git-send-email-notasas@gmail.com>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
+In-Reply-To: <1332274969-15782-5-git-send-email-rob.lee@linaro.org>
+Content-Language: en-US
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
+List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
+List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
+Sender: linux-arm-kernel-bounces@lists.infradead.org
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
+To: Robert Lee <rob.lee@linaro.org>, "len.brown@intel.com" <len.brown@intel.com>
+Cc: "nicolas.pitre@linaro.org" <nicolas.pitre@linaro.org>, "venki@google.com" <venki@google.com>, "linaro-dev@lists.linaro.org" <linaro-dev@lists.linaro.org>, "linux-sh@vger.kernel.org" <linux-sh@vger.kernel.org>, "tony@atomide.com" <tony@atomide.com>, "nicolas.ferre@atmel.com" <nicolas.ferre@atmel.com>, "linux@arm.linux.org.uk" <linux@arm.linux.org.uk>, "ccross@google.com" <ccross@google.com>, "kernel@wantstofly.org" <kernel@wantstofly.org>, "Hilman,
+ Kevin" <khilman@ti.com>, "kgene.kim@samsung.com" <kgene.kim@samsung.com>, "mturquette@linaro.org" <mturquette@linaro.org>, "daniel.lezcano@linaro.org" <daniel.lezcano@linaro.org>, "magnus.damm@gmail.com" <magnus.damm@gmail.com>, "arnd.bergmann@linaro.org" <arnd.bergmann@linaro.org>, "Hunter,
+ Jon" <jon-hunter@ti.com>, "patches@linaro.org" <patches@linaro.org>, "jean.pihet@newoldbits.com" <jean.pihet@newoldbits.com>, rjw@sisk
 List-Id: linux-omap@vger.kernel.org
-To: Grazvydas Ignotas <notasas@gmail.com>
-Cc: linux-usb@vger.kernel.org, linux-omap@vger.kernel.org, Felipe Balbi <balbi@ti.com>, Felipe Contreras <felipe.contreras@gmail.com>
 
+Hi Rob,
 
---2fV3mxwFPWhsKHyX
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
+On Wed, Mar 21, 2012 at 01:52:45, Robert Lee wrote:
+> Enable core cpuidle timekeeping and irq enabling and remove that
+> handling from this code.
+> 
+> Signed-off-by: Robert Lee <rob.lee@linaro.org>
+> Reviewed-by: Kevin Hilman <khilman@ti.com>
+> Reviewed-by: Daniel Lezcano <daniel.lezcano@linaro.org>
+> Acked-by: Jean Pihet<j-pihet@ti.com>
 
-On Wed, Mar 21, 2012 at 04:35:52PM +0200, Grazvydas Ignotas wrote:
-> musb can be suspended at the time some other driver wants to do ulpi
-> transfers using usb_phy_io_* functions, and that can cause data abort,
-> as it happened with isp1704_charger:
-> http://article.gmane.org/gmane.linux.kernel/1226122
->=20
-> Add pm_runtime to ulpi functions to rectify this. This also adds io_dev
-> to usb_phy so that pm_runtime_* functions can be used.
->=20
-> Cc: Felipe Contreras <felipe.contreras@gmail.com>
-> Signed-off-by: Grazvydas Ignotas <notasas@gmail.com>
+>  static struct cpuidle_driver davinci_idle_driver = {
+> -	.name	= "cpuidle-davinci",
+> -	.owner	= THIS_MODULE,
+> +	.name		= "cpuidle-davinci",
+> +	.owner		= THIS_MODULE,
+> +	.states[0]	= ARM_CPUIDLE_WFI_STATE,
+> +	.states[1]	= {
+> +		.enter			= davinci_enter_idle,
+> +		.exit_latency		= 10,
+> +		.target_residency	= 100000,
 
-applied, thanks
+Apart from your other fix patch, can you also update the
+target residency of this state to 10000 as is the case
+with current code? With the new value the board is entering
+this state really infrequently.
 
---=20
-balbi
-
---2fV3mxwFPWhsKHyX
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: Digital signature
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.4.11 (GNU/Linux)
-
-iQIcBAEBAgAGBQJPae7EAAoJEIaOsuA1yqREgIAQAJbY+Imz0FnsTzzT9FZyB3Qb
-y1lKyfF+mhU4spGrqb9+I06sETSIlqR95utCq7SPVrKhzJYUY/WrMQ2yJbXYOdgO
-iDe3O2PPNXjZXOChZOCCWqksJT6Nj3tOeNkv8XMCsq+Mt1zVb5c6KAlonkyx333c
-dA+5cI1V531+SkZ4YgThk/KgApDkW+b2RhLdvnvVzV/g5hIJKLLzESrlpHobkOK1
-jyQ13FDbbl3UwEl6IMwJfFSSXY/cffckYG8JaPGzf2asvCzr0i8ZKJSt6udnDo7X
-IzVzwk6EcQZHrDh5whX4e5PjaXb/83jsoQ9dEZa1KYIv7zhz3nrgfnNVQEuEpIYV
-WlsRaqPTx41Jlsqtu+xONmhakB9mBuUSL8CpQHNo7ksfbeS+a7Tb/Us57HsXaqaa
-uRUqqxbi3d4AYU9rFXL81twDPMFvOP9ihXX9rPN8uz41vE7Z/MBvJeU7obqkjxid
-wEuYj6RlLi+eaP00TPpE31t3Iv76sWmBOMDXBXUWpP+qAR+eHMOrq+kehpVO+Wnt
-QhzGpL9JG0ONjDSkOhlbYCFXqPoXgTvlhGBwxZhAG5kdFnZLDvwtuJUB4DdB/wXk
-fx81XOmg2/lcYkE7NrgEAgA6jyqwwKfK/PMIEeW4xDs7iKz4+bra4vYtMoNu5/+4
-So21KB+n8uHNiQ88t/0m
-=nVOm
------END PGP SIGNATURE-----
-
---2fV3mxwFPWhsKHyX--
+Thanks,
+Sekhar
