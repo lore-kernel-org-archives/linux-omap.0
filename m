@@ -1,55 +1,103 @@
-From: "DebBarma, Tarun Kanti" <tarun.kanti@ti.com>
-Subject: Re: [PATCH v4 RESEND 6/7] gpio/omap: fix incorrect update to context.irqenable1
-Date: Wed, 21 Mar 2012 10:31:48 +0530
-Message-ID: <CAC83ZvLgPWO2C6cpRBEsoqFdac1rMyo4OvTXB2_y_mCzaFzJXA@mail.gmail.com>
-References: <1332240799-6748-1-git-send-email-tarun.kanti@ti.com>
-	<1332240799-6748-7-git-send-email-tarun.kanti@ti.com>
-	<87zkbbywwz.fsf@ti.com>
-	<CAC83ZvKRbvVU5Qa1jwud0E6WT-DBU1Z1XEweiXay9x+eLcn0hg@mail.gmail.com>
+From: Shubhrajyoti D <shubhrajyoti-l0cyMroinI0@public.gmane.org>
+Subject: [PATCH] spi: omap2_mcspi: Make the runtime functions depend on
+	CONFIG_PM_RUNTIME
+Date: Wed, 21 Mar 2012 11:33:15 +0530
+Message-ID: <1332309795-5075-1-git-send-email-shubhrajyoti@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aog105.obsmtp.com ([74.125.149.75]:39650 "EHLO
-	na3sys009aog105.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752028Ab2CUFBv (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>);
-	Wed, 21 Mar 2012 01:01:51 -0400
-Received: by mail-qc0-f169.google.com with SMTP id d16so478357qcs.0
-        for <linux-omap@vger.kernel.org>; Tue, 20 Mar 2012 22:01:49 -0700 (PDT)
-In-Reply-To: <CAC83ZvKRbvVU5Qa1jwud0E6WT-DBU1Z1XEweiXay9x+eLcn0hg@mail.gmail.com>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <spi-devel-general-bounces-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/spi-devel-general>,
+	<mailto:spi-devel-general-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=unsubscribe>
+List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum_name=spi-devel-general>
+List-Post: <mailto:spi-devel-general-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+List-Help: <mailto:spi-devel-general-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=help>
+List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/spi-devel-general>,
+	<mailto:spi-devel-general-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
+Errors-To: spi-devel-general-bounces-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+To: spi-devel-general-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+Cc: Shubhrajyoti, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Felipe Balbi <balbi-l0cyMroinI0@public.gmane.org>, D <shubhrajyoti-l0cyMroinI0@public.gmane.org>
 List-Id: linux-omap@vger.kernel.org
-To: Kevin Hilman <khilman@ti.com>
-Cc: linux-omap@vger.kernel.org, tony@atomide.com, b-cousson@ti.com, grant.likely@secretlab.ca, linux-arm-kernel@lists.infradead.org
 
-On Wed, Mar 21, 2012 at 8:10 AM, DebBarma, Tarun Kanti
-<tarun.kanti@ti.com> wrote:
-> On Tue, Mar 20, 2012 at 11:31 PM, Kevin Hilman <khilman@ti.com> wrote:
->> Tarun Kanti DebBarma <tarun.kanti@ti.com> writes:
->>
->>> In _enable_gpio_irqbank() when bank->regs->set_irqenable is valid,
->>> gpio_mask can be directly set by writing to set_irqenable register
->>> without overwriting current value. In order to ensure the same is
->>> stored in context.irqenable1, we must read from regs->irqenable
->>> instead of overwriting it with gpio_mask.
->>
->>> The overwriting makes sense only in the second case where irqenable
->>> is explicitly read and updated with new gpio_mask before writing it
->>> back. However, for consistency reading regs->irqenable into the
->>> bank->context.irqenable1 takes care of both the scenarios.
->>
->> ...except that the code doesn't do this anymore.
-> Yes.
->>
->> I like the newer version (I hope so, since I suggested it :), but please
->> update the changlog to describe what the code is actually doing.
-> Sure.
-I have updated the change log here:
-git://gitorious.org/~tarunkanti/omap-sw-develoment/tarunkantis-linux-omap-dev
-for_3.4/gpio_more_fixes
---
-Tarun
->>
->> Thanks,
->>
->> Kevin
+Makes the function omap_mcspi_runtime_resume depend on CONFIG_PM_RUNTIME.
+
+Signed-off-by: Felipe Balbi <balbi-l0cyMroinI0@public.gmane.org>
+Signed-off-by: Shubhrajyoti D <shubhrajyoti-l0cyMroinI0@public.gmane.org>
+---
+ drivers/spi/spi-omap2-mcspi.c |   41 +++++++++++++++++++++++------------------
+ 1 files changed, 23 insertions(+), 18 deletions(-)
+
+diff --git a/drivers/spi/spi-omap2-mcspi.c b/drivers/spi/spi-omap2-mcspi.c
+index cb2c0e3..f9d694d 100644
+--- a/drivers/spi/spi-omap2-mcspi.c
++++ b/drivers/spi/spi-omap2-mcspi.c
+@@ -248,23 +248,6 @@ static void omap2_mcspi_set_master_mode(struct spi_master *master)
+ 	omap2_mcspi_ctx[master->bus_num - 1].modulctrl = l;
+ }
+ 
+-static void omap2_mcspi_restore_ctx(struct omap2_mcspi *mcspi)
+-{
+-	struct spi_master *spi_cntrl;
+-	struct omap2_mcspi_cs *cs;
+-	spi_cntrl = mcspi->master;
+-
+-	/* McSPI: context restore */
+-	mcspi_write_reg(spi_cntrl, OMAP2_MCSPI_MODULCTRL,
+-			omap2_mcspi_ctx[spi_cntrl->bus_num - 1].modulctrl);
+-
+-	mcspi_write_reg(spi_cntrl, OMAP2_MCSPI_WAKEUPENABLE,
+-			omap2_mcspi_ctx[spi_cntrl->bus_num - 1].wakeupenable);
+-
+-	list_for_each_entry(cs, &omap2_mcspi_ctx[spi_cntrl->bus_num - 1].cs,
+-			node)
+-		__raw_writel(cs->chconf0, cs->base + OMAP2_MCSPI_CHCONF0);
+-}
+ static void omap2_mcspi_disable_clocks(struct omap2_mcspi *mcspi)
+ {
+ 	pm_runtime_put_sync(mcspi->dev);
+@@ -1066,6 +1049,26 @@ static int __init omap2_mcspi_master_setup(struct omap2_mcspi *mcspi)
+ 	return 0;
+ }
+ 
++#ifdef CONFIG_PM_RUNTIME
++static void omap2_mcspi_restore_ctx(struct omap2_mcspi *mcspi)
++{
++	struct spi_master *spi_cntrl;
++	struct omap2_mcspi_cs *cs;
++
++	spi_cntrl = mcspi->master;
++
++	/* McSPI: context restore */
++	mcspi_write_reg(spi_cntrl, OMAP2_MCSPI_MODULCTRL,
++			omap2_mcspi_ctx[spi_cntrl->bus_num - 1].modulctrl);
++
++	mcspi_write_reg(spi_cntrl, OMAP2_MCSPI_WAKEUPENABLE,
++			omap2_mcspi_ctx[spi_cntrl->bus_num - 1].wakeupenable);
++
++	list_for_each_entry(cs, &omap2_mcspi_ctx[spi_cntrl->bus_num - 1].cs,
++			node)
++		__raw_writel(cs->chconf0, cs->base + OMAP2_MCSPI_CHCONF0);
++}
++
+ static int omap_mcspi_runtime_resume(struct device *dev)
+ {
+ 	struct omap2_mcspi	*mcspi;
+@@ -1077,7 +1080,9 @@ static int omap_mcspi_runtime_resume(struct device *dev)
+ 
+ 	return 0;
+ }
+-
++#else
++#define	omap_mcspi_runtime_resume	NULL
++#endif
+ 
+ static int __devinit omap2_mcspi_probe(struct platform_device *pdev)
+ {
+-- 
+1.7.1
+
+
+------------------------------------------------------------------------------
+This SF email is sponsosred by:
+Try Windows Azure free for 90 days Click Here 
+http://p.sf.net/sfu/sfd2d-msazure
