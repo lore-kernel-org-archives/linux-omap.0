@@ -1,76 +1,101 @@
-From: Daniel Lezcano <daniel.lezcano@linaro.org>
+From: "Shilimkar, Santosh" <santosh.shilimkar@ti.com>
 Subject: Re: [RFC][PATCH 0/7] OMAP4 cpuidle cleanup
-Date: Wed, 21 Mar 2012 11:49:01 +0100
-Message-ID: <4F69B21D.4050302@linaro.org>
-References: <1332322070-24577-1-git-send-email-daniel.lezcano@linaro.org> <4F69A872.50203@ti.com>
+Date: Wed, 21 Mar 2012 16:19:22 +0530
+Message-ID: <CAMQu2gwDtHBV=iPtxaOyyUHUVwPBTE2woY22U0SSdqruBNuo3Q@mail.gmail.com>
+References: <1332322070-24577-1-git-send-email-daniel.lezcano@linaro.org>
+ <CAMQu2gxit11dSbruPLCGx37TRwo9mwNCN9JXn0fZLDTVGu2GcA@mail.gmail.com>
+ <4F69A4A5.5020208@linaro.org> <4F69A5BA.1080804@ti.com> <4F69B0D1.6020608@linaro.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8;
-	format=flowed
+Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-bk0-f46.google.com ([209.85.214.46]:39187 "EHLO
-	mail-bk0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1758406Ab2CUKtF (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 21 Mar 2012 06:49:05 -0400
-Received: by bkcik5 with SMTP id ik5so770338bkc.19
-        for <linux-omap@vger.kernel.org>; Wed, 21 Mar 2012 03:49:04 -0700 (PDT)
-In-Reply-To: <4F69A872.50203@ti.com>
+Received: from na3sys009aog133.obsmtp.com ([74.125.149.82]:60806 "EHLO
+	psmtp.com" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
+	id S1754127Ab2CUKtn convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 21 Mar 2012 06:49:43 -0400
+Received: by mail-qc0-f174.google.com with SMTP id w6so694850qcq.33
+        for <linux-omap@vger.kernel.org>; Wed, 21 Mar 2012 03:49:42 -0700 (PDT)
+In-Reply-To: <4F69B0D1.6020608@linaro.org>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Santosh Shilimkar <santosh.shilimkar@ti.com>
-Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Linaro Dev <linaro-dev@lists.linaro.org>, Jean Pihet <jean.pihet@newoldbits.com>
+To: Daniel Lezcano <daniel.lezcano@linaro.org>
+Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linaro-dev@lists.linaro.org
 
-On 03/21/2012 11:07 AM, Santosh Shilimkar wrote:
-> Daniel,
->
-> On Wednesday 21 March 2012 02:57 PM, Daniel Lezcano wrote:
->> This patchset is a proposition to improve a bit the code.
->> The changes are code cleanup and does not change the behavior of the
->> driver itself.
+On Wed, Mar 21, 2012 at 4:13 PM, Daniel Lezcano
+<daniel.lezcano@linaro.org> wrote:
+> On 03/21/2012 10:56 AM, Santosh Shilimkar wrote:
 >>
->> A couple a things call my intention. Why the cpuidle device is set f=
-or cpu0 only
->> and why the WFI is not used ?
->>
->> Daniel Lezcano (7):
->>    ARM: OMAP4: cpuidle - Remove unused valid field
->>    ARM: OMAP4: cpuidle - Declare the states with the driver declarat=
-ion
->>    ARM: OMAP4: cpuidle - Remove the cpuidle_params_table table
->>    ARM: OMAP4: cpuidle - fix static omap4_idle_data declaration
->>    ARM: OMAP4: cpuidle - Initialize omap4_idle_data at compile time
->>    ARM: OMAP4: cpuidle - use the omap4_idle_data variable directly
->>    ARM: OMAP4: cpuidle - remove omap4_idle_data initialization at bo=
-ot
->>      time
->>
-> The series looks fine to me in general. This clean-up is applicable
-> for OMAP3 cpuidle code as well.
-
-Yes, I am planning to do the same for omap3.
-
-Thanks for reviewing.
-
-   -- Daniel
-
-> I want Jean to look at this series because some of his earlier
-> clean up has introduced those custom functions which
-> are getting removed in this series.
+>> On Wednesday 21 March 2012 03:21 PM, Daniel Lezcano wrote:
+>>>
+>>> On 03/21/2012 10:36 AM, Shilimkar, Santosh wrote:
+>>>>
+>>>> On Wed, Mar 21, 2012 at 2:57 PM, Daniel Lezcano
+>>>> <daniel.lezcano@linaro.org> =A0 wrote:
+>>>>>
+>>>>> This patchset is a proposition to improve a bit the code.
+>>>>> The changes are code cleanup and does not change the behavior of =
+the
+>>>>> driver itself.
+>>>>>
+>>>> Thanks. Will have a look at your series.
+>>>
+>>>
+>>> Cool, thanks.
+>>>
+>>>>> A couple a things call my intention. Why the cpuidle device is se=
+t
+>>>>> for cpu0 only
+>>>>
+>>>> Because the mainline code CPUIDLE is supported along with CPUhotpl=
+ug.
+>>>> This is going to change though with Couple CPUIDLE and correspondi=
+ng
+>>>> OMAP updates.
+>>>
+>>>
+>>> Ok, thanks for the information. I will look deeper. What happens to=
+ cpu1
+>>> when it is online and has nothing to do ?
+>>>
+>>>>> and why the WFI is not used ?
+>>>>>
+>>>> I didn't get this question. Do you mean the generic WFI?
+>>>
+>>>
+>> I execute default idle loop.
 >
-> Regards
-> santosh
+>
+> So is it not possible to add a cpuidle device for cpu1 and define onl=
+y one
+> state for the 'wfi-for-omap' ?
+>
+That's how my post was handling it. But after the review Kevin suggeste=
+d
+me to drop the CPU1 shallow state since it was same as default idle.
+
+>
+>>> yes.
+>>>
+>>>> If yes, then, it's mainly because OMAP need additional
+>>>> custom barriers.
+>>>
+>>>
+>>> Ah, ok. I am not sure if it is possible but that may be cool if we =
+can
+>>> call cpu_do_idle instead with additional barrier.
+>>>
+>> There is no need. Since code around WFI is customised, it make no se=
+nse
+>> to call cpu_do_idle(0 ofr only that instruction sake.
 >
 >
-
-
---=20
-  <http://www.linaro.org/> Linaro.org =E2=94=82 Open source software fo=
-r ARM SoCs
-
-=46ollow Linaro:  <http://www.facebook.com/pages/Linaro> Facebook |
-<http://twitter.com/#!/linaroorg> Twitter |
-<http://www.linaro.org/linaro-blog/> Blog
-
+> For my personal information, why the WFI is customised for omap4 ?
+>
+OMAP4 silicon has couple of hardware issues around interconnect
+and needs to drain the axi buffers with strongly order writes to
+ensure that data reaches to peripherals and not get stuck. That
+lead to have custom function. Note that, the wfi instruction
+itself is same.
 --
 To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
 n
