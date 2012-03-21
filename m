@@ -1,239 +1,90 @@
-From: Florian Tobias Schandinat <FlorianSchandinat@gmx.de>
-Subject: Re: [GIT PULL] OMAP DSS for v3.4
-Date: Wed, 21 Mar 2012 18:48:54 +0000
-Message-ID: <4F6A2296.10400@gmx.de>
-References: <1332154865.2144.57.camel@deskari> <1332333553.2236.8.camel@deskari>
+From: Mark Brown <broonie@opensource.wolfsonmicro.com>
+Subject: Re: [PATCH] [RFC] Correct registration of multiple gpmc smsc911x
+ devices.
+Date: Wed, 21 Mar 2012 19:00:28 +0000
+Message-ID: <20120321190028.GK3226@opensource.wolfsonmicro.com>
+References: <4F6324D5.9010106@uni-dortmund.de>
+ <1332352554-6417-1-git-send-email-Russ.Dill@ti.com>
+ <20120321181259.GJ3226@opensource.wolfsonmicro.com>
+ <A9E31EDE-A279-41FB-9EBE-3370A587ADA7@ti.com>
+ <20120321183957.GM9859@atomide.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 7bit
+Content-Type: multipart/signed; micalg=pgp-sha1;
+	protocol="application/pgp-signature"; boundary="enGqbSaueFq5omEL"
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mailout-de.gmx.net ([213.165.64.23]:39373 "HELO
-	mailout-de.gmx.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with SMTP id S1751849Ab2CUStU (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 21 Mar 2012 14:49:20 -0400
-In-Reply-To: <1332333553.2236.8.camel@deskari>
+Received: from opensource.wolfsonmicro.com ([80.75.67.52]:52186 "EHLO
+	opensource.wolfsonmicro.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1760005Ab2CUTAb (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>);
+	Wed, 21 Mar 2012 15:00:31 -0400
+Content-Disposition: inline
+In-Reply-To: <20120321183957.GM9859@atomide.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Tomi Valkeinen <tomi.valkeinen@ti.com>
-Cc: Arnd Bergmann <arnd@arndb.de>, linux-omap@vger.kernel.org, linux-fbdev <linux-fbdev@vger.kernel.org>
-
-On 03/21/2012 12:39 PM, Tomi Valkeinen wrote:
-> From 849c07b1fd3d9f23e8ed94436b6221f8652462c0 Mon Sep 17 00:00:00 2001
-> From: Tomi Valkeinen <tomi.valkeinen@ti.com>
-> Date: Mon, 19 Mar 2012 15:05:02 +0200
-> Subject: [PATCH] OMAPDSS: register dss drivers in module init
-> 
-> We do the dss driver registration in a rather strange way: we have the
-> higher level omapdss driver, and we use that driver's probe function to
-> register the drivers for the rest of the dss devices.
-> 
-> There doesn't seem to be any reason for that, and additionally the
-> soon-to-be-merged patch "ARM: OMAP: omap_device: remove
-> omap_device_parent" will break omapdss initialization with the current
-> registration model.
-> 
-> This patch changes the registration for all drivers to happen at the
-> same place, in the init of the module.
-> 
-> Signed-off-by: Tomi Valkeinen <tomi.valkeinen@ti.com>
-
-Applied.
+To: Tony Lindgren <tony@atomide.com>
+Cc: "Porter, Matt" <mporter@ti.com>, "Dill, Russ" <russ.dill@ti.com>, "<linux-omap@vger.kernel.org>" <linux-omap@vger.kernel.org>, "<robert.marklund@stericsson.com>" <robert.marklund@stericsson.com>, "<linus.walleij@linaro.org>" <linus.walleij@linaro.org>
 
 
-Thanks,
+--enGqbSaueFq5omEL
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
 
-Florian Tobias Schandinat
+On Wed, Mar 21, 2012 at 11:39:57AM -0700, Tony Lindgren wrote:
+> * Porter, Matt <mporter@ti.com> [120321 11:27]:
 
-> ---
->  drivers/video/omap2/dss/core.c |  135 +++++++++++++++++++++++-----------------
->  1 files changed, 77 insertions(+), 58 deletions(-)
-> 
-> diff --git a/drivers/video/omap2/dss/core.c b/drivers/video/omap2/dss/core.c
-> index 8613f86..e8a1207 100644
-> --- a/drivers/video/omap2/dss/core.c
-> +++ b/drivers/video/omap2/dss/core.c
-> @@ -183,42 +183,6 @@ static int omap_dss_probe(struct platform_device *pdev)
->  	dss_init_overlay_managers(pdev);
->  	dss_init_overlays(pdev);
->  
-> -	r = dss_init_platform_driver();
-> -	if (r) {
-> -		DSSERR("Failed to initialize DSS platform driver\n");
-> -		goto err_dss;
-> -	}
-> -
-> -	r = dispc_init_platform_driver();
-> -	if (r) {
-> -		DSSERR("Failed to initialize dispc platform driver\n");
-> -		goto err_dispc;
-> -	}
-> -
-> -	r = rfbi_init_platform_driver();
-> -	if (r) {
-> -		DSSERR("Failed to initialize rfbi platform driver\n");
-> -		goto err_rfbi;
-> -	}
-> -
-> -	r = venc_init_platform_driver();
-> -	if (r) {
-> -		DSSERR("Failed to initialize venc platform driver\n");
-> -		goto err_venc;
-> -	}
-> -
-> -	r = dsi_init_platform_driver();
-> -	if (r) {
-> -		DSSERR("Failed to initialize DSI platform driver\n");
-> -		goto err_dsi;
-> -	}
-> -
-> -	r = hdmi_init_platform_driver();
-> -	if (r) {
-> -		DSSERR("Failed to initialize hdmi\n");
-> -		goto err_hdmi;
-> -	}
-> -
->  	r = dss_initialize_debugfs();
->  	if (r)
->  		goto err_debugfs;
-> @@ -246,18 +210,6 @@ static int omap_dss_probe(struct platform_device *pdev)
->  err_register:
->  	dss_uninitialize_debugfs();
->  err_debugfs:
-> -	hdmi_uninit_platform_driver();
-> -err_hdmi:
-> -	dsi_uninit_platform_driver();
-> -err_dsi:
-> -	venc_uninit_platform_driver();
-> -err_venc:
-> -	dispc_uninit_platform_driver();
-> -err_dispc:
-> -	rfbi_uninit_platform_driver();
-> -err_rfbi:
-> -	dss_uninit_platform_driver();
-> -err_dss:
->  
->  	return r;
->  }
-> @@ -269,13 +221,6 @@ static int omap_dss_remove(struct platform_device *pdev)
->  
->  	dss_uninitialize_debugfs();
->  
-> -	hdmi_uninit_platform_driver();
-> -	dsi_uninit_platform_driver();
-> -	venc_uninit_platform_driver();
-> -	rfbi_uninit_platform_driver();
-> -	dispc_uninit_platform_driver();
-> -	dss_uninit_platform_driver();
-> -
->  	dss_uninit_overlays(pdev);
->  	dss_uninit_overlay_managers(pdev);
->  
-> @@ -525,6 +470,80 @@ static int omap_dss_bus_register(void)
->  
->  /* INIT */
->  
-> +static int __init omap_dss_register_drivers(void)
-> +{
-> +	int r;
-> +
-> +	r = platform_driver_register(&omap_dss_driver);
-> +	if (r)
-> +		return r;
-> +
-> +	r = dss_init_platform_driver();
-> +	if (r) {
-> +		DSSERR("Failed to initialize DSS platform driver\n");
-> +		goto err_dss;
-> +	}
-> +
-> +	r = dispc_init_platform_driver();
-> +	if (r) {
-> +		DSSERR("Failed to initialize dispc platform driver\n");
-> +		goto err_dispc;
-> +	}
-> +
-> +	r = rfbi_init_platform_driver();
-> +	if (r) {
-> +		DSSERR("Failed to initialize rfbi platform driver\n");
-> +		goto err_rfbi;
-> +	}
-> +
-> +	r = venc_init_platform_driver();
-> +	if (r) {
-> +		DSSERR("Failed to initialize venc platform driver\n");
-> +		goto err_venc;
-> +	}
-> +
-> +	r = dsi_init_platform_driver();
-> +	if (r) {
-> +		DSSERR("Failed to initialize DSI platform driver\n");
-> +		goto err_dsi;
-> +	}
-> +
-> +	r = hdmi_init_platform_driver();
-> +	if (r) {
-> +		DSSERR("Failed to initialize hdmi\n");
-> +		goto err_hdmi;
-> +	}
-> +
-> +	return 0;
-> +
-> +err_hdmi:
-> +	dsi_uninit_platform_driver();
-> +err_dsi:
-> +	venc_uninit_platform_driver();
-> +err_venc:
-> +	rfbi_uninit_platform_driver();
-> +err_rfbi:
-> +	dispc_uninit_platform_driver();
-> +err_dispc:
-> +	dss_uninit_platform_driver();
-> +err_dss:
-> +	platform_driver_unregister(&omap_dss_driver);
-> +
-> +	return r;
-> +}
-> +
-> +static void __exit omap_dss_unregister_drivers(void)
-> +{
-> +	hdmi_uninit_platform_driver();
-> +	dsi_uninit_platform_driver();
-> +	venc_uninit_platform_driver();
-> +	rfbi_uninit_platform_driver();
-> +	dispc_uninit_platform_driver();
-> +	dss_uninit_platform_driver();
-> +
-> +	platform_driver_unregister(&omap_dss_driver);
-> +}
-> +
->  #ifdef CONFIG_OMAP2_DSS_MODULE
->  static void omap_dss_bus_unregister(void)
->  {
-> @@ -541,7 +560,7 @@ static int __init omap_dss_init(void)
->  	if (r)
->  		return r;
->  
-> -	r = platform_driver_register(&omap_dss_driver);
-> +	r = omap_dss_register_drivers();
->  	if (r) {
->  		omap_dss_bus_unregister();
->  		return r;
-> @@ -562,7 +581,7 @@ static void __exit omap_dss_exit(void)
->  		core.vdds_sdi_reg = NULL;
->  	}
->  
-> -	platform_driver_unregister(&omap_dss_driver);
-> +	omap_dss_unregister_drivers();
->  
->  	omap_dss_bus_unregister();
->  }
-> @@ -577,7 +596,7 @@ static int __init omap_dss_init(void)
->  
->  static int __init omap_dss_init2(void)
->  {
-> -	return platform_driver_register(&omap_dss_driver);
-> +	return omap_dss_register_drivers();
->  }
->  
->  core_initcall(omap_dss_init);
+> > > Hrm?  Adding regulator supply mappings anywhere other than the
+> > > initialisation for a specific board would be extremely unusual and
+> > > rather suspicious.
 
+> The issue here is that we don't want to copy paste the dummy fixed
+> regulator all over the board-*.c files, and we don't know how the
+> real regulator is wired up.
+
+Well, I don't think it's too unreasonable especially now we've got
+the fixed helper stuff which slims it right down - it makes it clear
+there's a missing thing that might need to get filled in and makes it
+easier to use the same regulator for other devices.
+
+> > Just to be clear, here is the thread on the board-specific approach:
+> > https://lkml.org/lkml/2012/2/8/415
+
+> We should use the real regulator if passed from board file.
+
+> And if no real regulator is passed, just use the dummy fixed regulator
+> in gpmc-smsc911x.c.
+
+Yes, it should definitely be conditional.
+
+> This patch I posted should fix the situation and allow adding the
+> real regulators to board-*.c files when they become known:
+
+> http://www.spinics.net/lists/linux-omap/msg66714.html
+
+That should be changed to pass in a boolean flag rather than a pointer
+to platform device - the board may not have direct access to the
+relevant regulator (eg, if it's part of a MFD) or the regulator may be
+on another bus like I2C (for simpler regulator only devices).
+
+--enGqbSaueFq5omEL
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: Digital signature
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.4.11 (GNU/Linux)
+
+iQIcBAEBAgAGBQJPaiVEAAoJEBus8iNuMP3dhwYP/2vS7VttDBXEqu4av60J/6AZ
+9FN4d+ucUbOGLIFSYQ8xbr99ekENxo9PoY3Lg3DZRFkJBf4cxr1J5JTJYTRG4QZY
+Jir1rBq23NFrRq4XG3vVwyIxIlSXVzmfZ45nKMa57UswxiK8b63Bw70ccghrLQFo
+lTalOzretDL/VJMF0U3XymxqTB96Vx28wOCiS5WiFdeR+kRmbHD3/dwOSTiASpfp
+HZwd9DRQxKsXZ5AYSj3/LAY8mpDQoC+cWm0K9XSaJ2DcIJ0kuw3mheQGl8LnzJu+
+JpxIS3K/RHTh5IkrIvfOAnG0qvM37aYCC2qQFVQhkxr4N0Nt7x3cZFrmo7wpz9GT
+FFgb/PmpdjpURkVt0czifqBlcUHxyfr2kILDRAldZgHp55rPuF2CBM96XvHb73RT
+ZTDuTf1GchKUaL3EdywcM2/lF/qn8UHrLyeQ5mo+XN7+WUUlt5zGeHs+Y8JX2lNy
+rtTGYo1mFaYjjXSIe9QhrWehQAJ2zUW3jfF5nAUd9mNOIQL72eAfbgIoLTSSMH0e
+0Z6ZZCoRfpaEZByVrc3xIMUd3LqX32d9ruB0p+eBUJqxsWvbuAJD+he0pq6ezCG9
+/V9+NIbjR6ZEhzLKjx9aoHQuViNYmOwgpgaiPQkTeeMzIguvBvwFTw7M8lmhVa19
+AM2uKRViOvSi2O4OPWi8
+=mXVY
+-----END PGP SIGNATURE-----
+
+--enGqbSaueFq5omEL--
