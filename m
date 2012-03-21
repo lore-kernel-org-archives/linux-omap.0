@@ -1,100 +1,104 @@
-From: Kevin Hilman <khilman@ti.com>
+From: Daniel Lezcano <daniel.lezcano-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>
 Subject: Re: [RFC][PATCH 0/7] OMAP4 cpuidle cleanup
-Date: Wed, 21 Mar 2012 14:54:23 -0700
-Message-ID: <873991d3hs.fsf@ti.com>
+Date: Wed, 21 Mar 2012 23:20:32 +0100
+Message-ID: <4F6A5430.2090501@linaro.org>
 References: <1332322070-24577-1-git-send-email-daniel.lezcano@linaro.org>
 	<4F69A872.50203@ti.com>
 	<CAORVsuUeE046O7YJ_fE49NbW1OjZHZX+GuNiDkF0AnzBnSMbxA@mail.gmail.com>
-	<4F6A04F3.6050306@linaro.org>
+	<4F6A04F3.6050306@linaro.org> <873991d3hs.fsf@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aog112.obsmtp.com ([74.125.149.207]:45875 "EHLO
-	na3sys009aog112.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1759169Ab2CUVy1 (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>);
-	Wed, 21 Mar 2012 17:54:27 -0400
-Received: by mail-pz0-f52.google.com with SMTP id p12so6816984dad.25
-        for <linux-omap@vger.kernel.org>; Wed, 21 Mar 2012 14:54:26 -0700 (PDT)
-In-Reply-To: <4F6A04F3.6050306@linaro.org> (Daniel Lezcano's message of "Wed,
-	21 Mar 2012 17:42:27 +0100")
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset="utf-8"; Format="flowed"
+Content-Transfer-Encoding: base64
+Return-path: <linaro-dev-bounces-cunTk1MwBs8s++Sfvej+rw@public.gmane.org>
+In-Reply-To: <873991d3hs.fsf-l0cyMroinI0@public.gmane.org>
+List-Unsubscribe: <http://lists.linaro.org/mailman/options/linaro-dev>,
+	<mailto:linaro-dev-request-cunTk1MwBs8s++Sfvej+rw@public.gmane.org?subject=unsubscribe>
+List-Archive: <http://lists.linaro.org/pipermail/linaro-dev>
+List-Post: <mailto:linaro-dev-cunTk1MwBs8s++Sfvej+rw@public.gmane.org>
+List-Help: <mailto:linaro-dev-request-cunTk1MwBs8s++Sfvej+rw@public.gmane.org?subject=help>
+List-Subscribe: <http://lists.linaro.org/mailman/listinfo/linaro-dev>,
+	<mailto:linaro-dev-request-cunTk1MwBs8s++Sfvej+rw@public.gmane.org?subject=subscribe>
+Sender: linaro-dev-bounces-cunTk1MwBs8s++Sfvej+rw@public.gmane.org
+Errors-To: linaro-dev-bounces-cunTk1MwBs8s++Sfvej+rw@public.gmane.org
+To: Kevin Hilman <khilman-l0cyMroinI0@public.gmane.org>
+Cc: Linaro Dev <linaro-dev-cunTk1MwBs8s++Sfvej+rw@public.gmane.org>, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org
 List-Id: linux-omap@vger.kernel.org
-To: Daniel Lezcano <daniel.lezcano@linaro.org>
-Cc: Jean Pihet <jean.pihet@newoldbits.com>, Santosh Shilimkar <santosh.shilimkar@ti.com>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Linaro Dev <linaro-dev@lists.linaro.org>
 
-Daniel Lezcano <daniel.lezcano@linaro.org> writes:
-
-> On 03/21/2012 02:43 PM, Jean Pihet wrote:
->> On Wed, Mar 21, 2012 at 11:07 AM, Santosh Shilimkar
->> <santosh.shilimkar@ti.com>  wrote:
->>> Daniel,
->>>
->>> On Wednesday 21 March 2012 02:57 PM, Daniel Lezcano wrote:
->>>> This patchset is a proposition to improve a bit the code.
->>>> The changes are code cleanup and does not change the behavior of the
->>>> driver itself.
->>>>
->>>> A couple a things call my intention. Why the cpuidle device is set for cpu0 only
->>>> and why the WFI is not used ?
->>>>
->>>> Daniel Lezcano (7):
->>>>    ARM: OMAP4: cpuidle - Remove unused valid field
->>>>    ARM: OMAP4: cpuidle - Declare the states with the driver declaration
->>>>    ARM: OMAP4: cpuidle - Remove the cpuidle_params_table table
->>>>    ARM: OMAP4: cpuidle - fix static omap4_idle_data declaration
->>>>    ARM: OMAP4: cpuidle - Initialize omap4_idle_data at compile time
->>>>    ARM: OMAP4: cpuidle - use the omap4_idle_data variable directly
->>>>    ARM: OMAP4: cpuidle - remove omap4_idle_data initialization at boot
->>>>      time
->>>>
->>> The series looks fine to me in general. This clean-up is applicable
->>> for OMAP3 cpuidle code as well.
->> Great!
->> However OMAP3 has a few specific things that cannot be removed as easily:
->> - the 'valid' flag is used because only certain combinations of power
->> domains states are possible,
->
-> When I look the board-rx51 code I see:
->
-> static struct cpuidle_params rx51_cpuidle_params[] = {
-> 	/* C1 */
-> 	{110 + 162, 5 , 1},
-> 	/* C2 */
-> 	{106 + 180, 309, 1},
-> 	/* C3 */
-> 	{107 + 410, 46057, 0},
-> 	/* C4 */
-> 	{121 + 3374, 46057, 0},
-> 	/* C5 */
-> 	{855 + 1146, 46057, 1},
-> 	/* C6 */
-> 	{7580 + 4134, 484329, 0},
-> 	/* C7 */
-> 	{7505 + 15274, 484329, 1},
-> };
->
-> If C3, C4, C6 are not valid, so AFAICS never used in the cpuidle code
-> why the values are 'exit_latency' and 'target_residency' specified ? I
-> mean why don't we have { 0, 0, 0 } ? Is it just for information ?
-
-Yes, because getting those numbers were based on some board-specific
-measurements, and we don't want those values to be lost.  Also, some
-usage patterns might want to (re)enable those states.
-
-> I understand the purpose of this code but it looks a bit tricky and
-> hard to factor out. Is it acceptable to create a new cpuidle driver
-> for rx51 then we factor out the code between omap3, omap4 and rx51
-> when all the code consistent ?
-
-I don't like that idea.  All the code is the same, the only thing we
-need is the ability to pass in board-specific latency numbers for the
-C-states.
-
-These latency numbers are obviously quite significant when it comes to
-the final power consumption, and these values often depend on
-board-specific settings.  Until there are generic frameworks for
-defining all the latencies involved, passing these values in from board
-files is absolutly needed.
-
-Kevin
+T24gMDMvMjEvMjAxMiAxMDo1NCBQTSwgS2V2aW4gSGlsbWFuIHdyb3RlOgo+IERhbmllbCBMZXpj
+YW5vPGRhbmllbC5sZXpjYW5vQGxpbmFyby5vcmc+ICB3cml0ZXM6Cj4KPj4gT24gMDMvMjEvMjAx
+MiAwMjo0MyBQTSwgSmVhbiBQaWhldCB3cm90ZToKPj4+IE9uIFdlZCwgTWFyIDIxLCAyMDEyIGF0
+IDExOjA3IEFNLCBTYW50b3NoIFNoaWxpbWthcgo+Pj4gPHNhbnRvc2guc2hpbGlta2FyQHRpLmNv
+bT4gICB3cm90ZToKPj4+PiBEYW5pZWwsCj4+Pj4KPj4+PiBPbiBXZWRuZXNkYXkgMjEgTWFyY2gg
+MjAxMiAwMjo1NyBQTSwgRGFuaWVsIExlemNhbm8gd3JvdGU6Cj4+Pj4+IFRoaXMgcGF0Y2hzZXQg
+aXMgYSBwcm9wb3NpdGlvbiB0byBpbXByb3ZlIGEgYml0IHRoZSBjb2RlLgo+Pj4+PiBUaGUgY2hh
+bmdlcyBhcmUgY29kZSBjbGVhbnVwIGFuZCBkb2VzIG5vdCBjaGFuZ2UgdGhlIGJlaGF2aW9yIG9m
+IHRoZQo+Pj4+PiBkcml2ZXIgaXRzZWxmLgo+Pj4+Pgo+Pj4+PiBBIGNvdXBsZSBhIHRoaW5ncyBj
+YWxsIG15IGludGVudGlvbi4gV2h5IHRoZSBjcHVpZGxlIGRldmljZSBpcyBzZXQgZm9yIGNwdTAg
+b25seQo+Pj4+PiBhbmQgd2h5IHRoZSBXRkkgaXMgbm90IHVzZWQgPwo+Pj4+Pgo+Pj4+PiBEYW5p
+ZWwgTGV6Y2FubyAoNyk6Cj4+Pj4+ICAgICBBUk06IE9NQVA0OiBjcHVpZGxlIC0gUmVtb3ZlIHVu
+dXNlZCB2YWxpZCBmaWVsZAo+Pj4+PiAgICAgQVJNOiBPTUFQNDogY3B1aWRsZSAtIERlY2xhcmUg
+dGhlIHN0YXRlcyB3aXRoIHRoZSBkcml2ZXIgZGVjbGFyYXRpb24KPj4+Pj4gICAgIEFSTTogT01B
+UDQ6IGNwdWlkbGUgLSBSZW1vdmUgdGhlIGNwdWlkbGVfcGFyYW1zX3RhYmxlIHRhYmxlCj4+Pj4+
+ICAgICBBUk06IE9NQVA0OiBjcHVpZGxlIC0gZml4IHN0YXRpYyBvbWFwNF9pZGxlX2RhdGEgZGVj
+bGFyYXRpb24KPj4+Pj4gICAgIEFSTTogT01BUDQ6IGNwdWlkbGUgLSBJbml0aWFsaXplIG9tYXA0
+X2lkbGVfZGF0YSBhdCBjb21waWxlIHRpbWUKPj4+Pj4gICAgIEFSTTogT01BUDQ6IGNwdWlkbGUg
+LSB1c2UgdGhlIG9tYXA0X2lkbGVfZGF0YSB2YXJpYWJsZSBkaXJlY3RseQo+Pj4+PiAgICAgQVJN
+OiBPTUFQNDogY3B1aWRsZSAtIHJlbW92ZSBvbWFwNF9pZGxlX2RhdGEgaW5pdGlhbGl6YXRpb24g
+YXQgYm9vdAo+Pj4+PiAgICAgICB0aW1lCj4+Pj4+Cj4+Pj4gVGhlIHNlcmllcyBsb29rcyBmaW5l
+IHRvIG1lIGluIGdlbmVyYWwuIFRoaXMgY2xlYW4tdXAgaXMgYXBwbGljYWJsZQo+Pj4+IGZvciBP
+TUFQMyBjcHVpZGxlIGNvZGUgYXMgd2VsbC4KPj4+IEdyZWF0IQo+Pj4gSG93ZXZlciBPTUFQMyBo
+YXMgYSBmZXcgc3BlY2lmaWMgdGhpbmdzIHRoYXQgY2Fubm90IGJlIHJlbW92ZWQgYXMgZWFzaWx5
+Ogo+Pj4gLSB0aGUgJ3ZhbGlkJyBmbGFnIGlzIHVzZWQgYmVjYXVzZSBvbmx5IGNlcnRhaW4gY29t
+YmluYXRpb25zIG9mIHBvd2VyCj4+PiBkb21haW5zIHN0YXRlcyBhcmUgcG9zc2libGUsCj4+Cj4+
+IFdoZW4gSSBsb29rIHRoZSBib2FyZC1yeDUxIGNvZGUgSSBzZWU6Cj4+Cj4+IHN0YXRpYyBzdHJ1
+Y3QgY3B1aWRsZV9wYXJhbXMgcng1MV9jcHVpZGxlX3BhcmFtc1tdID0gewo+PiAJLyogQzEgKi8K
+Pj4gCXsxMTAgKyAxNjIsIDUgLCAxfSwKPj4gCS8qIEMyICovCj4+IAl7MTA2ICsgMTgwLCAzMDks
+IDF9LAo+PiAJLyogQzMgKi8KPj4gCXsxMDcgKyA0MTAsIDQ2MDU3LCAwfSwKPj4gCS8qIEM0ICov
+Cj4+IAl7MTIxICsgMzM3NCwgNDYwNTcsIDB9LAo+PiAJLyogQzUgKi8KPj4gCXs4NTUgKyAxMTQ2
+LCA0NjA1NywgMX0sCj4+IAkvKiBDNiAqLwo+PiAJezc1ODAgKyA0MTM0LCA0ODQzMjksIDB9LAo+
+PiAJLyogQzcgKi8KPj4gCXs3NTA1ICsgMTUyNzQsIDQ4NDMyOSwgMX0sCj4+IH07Cj4+Cj4+IElm
+IEMzLCBDNCwgQzYgYXJlIG5vdCB2YWxpZCwgc28gQUZBSUNTIG5ldmVyIHVzZWQgaW4gdGhlIGNw
+dWlkbGUgY29kZQo+PiB3aHkgdGhlIHZhbHVlcyBhcmUgJ2V4aXRfbGF0ZW5jeScgYW5kICd0YXJn
+ZXRfcmVzaWRlbmN5JyBzcGVjaWZpZWQgPyBJCj4+IG1lYW4gd2h5IGRvbid0IHdlIGhhdmUgeyAw
+LCAwLCAwIH0gPyBJcyBpdCBqdXN0IGZvciBpbmZvcm1hdGlvbiA/Cj4KPiBZZXMsIGJlY2F1c2Ug
+Z2V0dGluZyB0aG9zZSBudW1iZXJzIHdlcmUgYmFzZWQgb24gc29tZSBib2FyZC1zcGVjaWZpYwo+
+IG1lYXN1cmVtZW50cywgYW5kIHdlIGRvbid0IHdhbnQgdGhvc2UgdmFsdWVzIHRvIGJlIGxvc3Qu
+ICBBbHNvLCBzb21lCj4gdXNhZ2UgcGF0dGVybnMgbWlnaHQgd2FudCB0byAocmUpZW5hYmxlIHRo
+b3NlIHN0YXRlcy4KCldoZW4geW91IHNheSByZS1lbmFibGUgeW91IG1lYW4gZm9yIGEgY3VzdG9t
+IGtlcm5lbCA/Cgo+PiBJIHVuZGVyc3RhbmQgdGhlIHB1cnBvc2Ugb2YgdGhpcyBjb2RlIGJ1dCBp
+dCBsb29rcyBhIGJpdCB0cmlja3kgYW5kCj4+IGhhcmQgdG8gZmFjdG9yIG91dC4gSXMgaXQgYWNj
+ZXB0YWJsZSB0byBjcmVhdGUgYSBuZXcgY3B1aWRsZSBkcml2ZXIKPj4gZm9yIHJ4NTEgdGhlbiB3
+ZSBmYWN0b3Igb3V0IHRoZSBjb2RlIGJldHdlZW4gb21hcDMsIG9tYXA0IGFuZCByeDUxCj4+IHdo
+ZW4gYWxsIHRoZSBjb2RlIGNvbnNpc3RlbnQgPwo+Cj4gSSBkb24ndCBsaWtlIHRoYXQgaWRlYS4g
+IEFsbCB0aGUgY29kZSBpcyB0aGUgc2FtZSwgdGhlIG9ubHkgdGhpbmcgd2UKPiBuZWVkIGlzIHRo
+ZSBhYmlsaXR5IHRvIHBhc3MgaW4gYm9hcmQtc3BlY2lmaWMgbGF0ZW5jeSBudW1iZXJzIGZvciB0
+aGUKPiBDLXN0YXRlcy4KClNvcnJ5IEkgd2FzIG5vdCBjbGVhciwgSSB3YXMgbm90IHNheWluZyBk
+dXBsaWNhdGluZyB0aGUgY29kZS4gV2hhdCBJIAptZWFudCBpcyB0byBjcmVhdGUgYSBkcml2ZXI6
+CgpzdHJ1Y3QgY3B1aWRsZV9kcml2ZXIgcng1MV9pZGxlX2RyaXZlciA9IHsKICAJLm5hbWUgPSAJ
+InJ4NTFfaWRsZSIsCgkub3duZXIgPSAJVEhJU19NT0RVTEUsCgkuc3RhdGVzID0gewoJCXsKCQkJ
+LyogV2hhdCBpcyBpbiByeDUxX2NwdWlkbGVfcGFyYW1zICovCgkJfQoJfTsKCldlIHB1dCBpbiB0
+aGVyZSBvbmx5IHRoZSB2YWxpZCBmaWVsZHMgYW5kIHdlIGtlZXAgaW4gYSBjb21tZW50IHRoZSB0
+YWJsZSAKd2l0aCB0aGUgbGF0ZW5jeSBudW1iZXJzLgoKQXNzdW1pbmcgdGhlIHZhbGlkIGZpZWxk
+IGlzIGZvciBoYW5kbGluZyB0aGUgdGFibGUgb3ZlcndyaXR0aW5nLCB3ZSBjYW4gCnRoZW4gcmVt
+b3ZlIGl0LiBCeSB0aGlzIHdheSwgd2Ugc2ltcGxpZnkgdGhlIG5leHRfdmFsaWRfc3RhdGUgZnVu
+Y3Rpb24uCgpEZXBlbmRpbmcgaWYgd2UgaGF2ZSByeDUxIG9yIG5vdCwgd2UgcmVnaXN0ZXIgdGhl
+IHJ4NTEgZHJpdmVyIG9yIHRoZSAKb21hcDMgZHJpdmVyIGluIHRoZSBpbml0IGZ1bmN0aW9uLiBU
+aGF0IGhhcyBhbHNvIHRoZSBiZW5lZml0IHRvIGdyb3VwIAp0aGUgY3B1aWRsZSBjb2RlIGluIHRo
+ZSBjcHVpZGxlMzR4eCBmaWxlLgoKCj4gVGhlc2UgbGF0ZW5jeSBudW1iZXJzIGFyZSBvYnZpb3Vz
+bHkgcXVpdGUgc2lnbmlmaWNhbnQgd2hlbiBpdCBjb21lcyB0bwo+IHRoZSBmaW5hbCBwb3dlciBj
+b25zdW1wdGlvbiwgYW5kIHRoZXNlIHZhbHVlcyBvZnRlbiBkZXBlbmQgb24KPiBib2FyZC1zcGVj
+aWZpYyBzZXR0aW5ncy4gIFVudGlsIHRoZXJlIGFyZSBnZW5lcmljIGZyYW1ld29ya3MgZm9yCj4g
+ZGVmaW5pbmcgYWxsIHRoZSBsYXRlbmNpZXMgaW52b2x2ZWQsIHBhc3NpbmcgdGhlc2UgdmFsdWVz
+IGluIGZyb20gYm9hcmQKPiBmaWxlcyBpcyBhYnNvbHV0bHkgbmVlZGVkLgoKWWVzIGJ1dCBiZWZv
+cmUgY3JlYXRpbmcgdGhlIGdlbmVyaWMgZnJhbWV3b3JrLCB3ZSBoYXZlIHRvIGRvIGEgCnRyYW5z
+dmVyc2FsIGNwdWlkbGUgY29uc29saWRhdGlvbiBhY3Jvc3MgdGhlIFNvQywgZmFjdG9yIG91dCB0
+aGUgY29kZSAKd2hlbiBwb3NzaWJsZSwgYW5kIGVuc3VyZSB0aGUgY29uc2lzdGVuY3kgYmV0d2Vl
+biB0aGUgZGlmZmVyZW50IHBsYXRmb3JtIAphbmQgc2VlIGEgY29tbW9uIHBhdHRlcm4gdG8gZW1l
+cmdlIGZyb20gdGhpcyB3b3JrLgoKLS0gCiAgPGh0dHA6Ly93d3cubGluYXJvLm9yZy8+IExpbmFy
+by5vcmcg4pSCIE9wZW4gc291cmNlIHNvZnR3YXJlIGZvciBBUk0gU29DcwoKRm9sbG93IExpbmFy
+bzogIDxodHRwOi8vd3d3LmZhY2Vib29rLmNvbS9wYWdlcy9MaW5hcm8+IEZhY2Vib29rIHwKPGh0
+dHA6Ly90d2l0dGVyLmNvbS8jIS9saW5hcm9vcmc+IFR3aXR0ZXIgfAo8aHR0cDovL3d3dy5saW5h
+cm8ub3JnL2xpbmFyby1ibG9nLz4gQmxvZwoKCl9fX19fX19fX19fX19fX19fX19fX19fX19fX19f
+X19fX19fX19fX19fX19fX19fCmxpbmFyby1kZXYgbWFpbGluZyBsaXN0CmxpbmFyby1kZXZAbGlz
+dHMubGluYXJvLm9yZwpodHRwOi8vbGlzdHMubGluYXJvLm9yZy9tYWlsbWFuL2xpc3RpbmZvL2xp
+bmFyby1kZXYK
