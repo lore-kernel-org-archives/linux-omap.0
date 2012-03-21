@@ -1,41 +1,96 @@
-From: "Porter, Matt" <mporter@ti.com>
-Subject: Re: [PATCH] [RFC] Correct registration of multiple gpmc smsc911x
- devices.
-Date: Wed, 21 Mar 2012 18:24:48 +0000
-Message-ID: <A9E31EDE-A279-41FB-9EBE-3370A587ADA7@ti.com>
-References: <4F6324D5.9010106@uni-dortmund.de>
- <1332352554-6417-1-git-send-email-Russ.Dill@ti.com>
- <20120321181259.GJ3226@opensource.wolfsonmicro.com>
+From: Saravana Kannan <skannan@codeaurora.org>
+Subject: Re: [PATCH v7 1/3] Documentation: common clk API
+Date: Wed, 21 Mar 2012 11:38:58 -0700
+Message-ID: <4F6A2042.9030302@codeaurora.org>
+References: <1331878280-2758-1-git-send-email-mturquette@linaro.org> <CAP245DXV5oE+-y+PQCcSM016h-J+UgTi1efmdrcyeQge4k1Cfw@mail.gmail.com> <201203161218.05125.arnd.bergmann@linaro.org> <201203162057.58706.arnd@arndb.de> <alpine.DEB.2.00.1203161509470.4395@utopia.booyaka.com> <20120316234706.GJ3852@pengutronix.de> <alpine.DEB.2.00.1203201611330.22974@utopia.booyaka.com> <alpine.LFD.2.02.1203202233340.24151@xanadu.home> <4F694A6A.4050706@codeaurora.org> <alpine.DEB.2.00.1203210130520.30543@utopia.booyaka.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from comal.ext.ti.com ([198.47.26.152]:50959 "EHLO comal.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753795Ab2CUSYy convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 21 Mar 2012 14:24:54 -0400
-In-Reply-To: <20120321181259.GJ3226@opensource.wolfsonmicro.com>
-Content-Language: en-US
-Content-ID: <F28E7DE18430EF4B9198FC37F454E894@owa.mail.ti.com>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <alpine.DEB.2.00.1203210130520.30543@utopia.booyaka.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Paul Walmsley <paul@pwsan.com>
+Cc: Nicolas Pitre <nicolas.pitre@linaro.org>, Sascha Hauer <s.hauer@pengutronix.de>, Arnd Bergmann <arnd@arndb.de>, linux-arm-kernel@lists.infradead.org, Amit Kucheria <amit.kucheria@linaro.org>, linaro-dev@lists.linaro.org, Linus Walleij <linus.walleij@linaro.org>, Grant Likely <grant.likely@secretlab.ca>, Jeremy Kerr <jeremy.kerr@canonical.com>, Mike Turquette <mturquette@ti.com>, Mike Turquette <mturquette@linaro.org>, Magnus Damm <magnus.damm@gmail.com>, Deepak Saxena <dsaxena@linaro.org>, patches@linaro.org, Rob Herring <rob.herring@calxeda.com>, Russell King <linux@arm.linux.org.uk>, Thomas Gleixner <tglx@linutronix.de>, Richard Zhao <richard.zhao@linaro.org>, Shawn Guo <shawn.guo@freescale.com>, Linus Walleij <linus.walleij@stericsson.com>, Mark Brown <broonie@opensource.wolfsonmicro.com>, Stephen Boyd <sboyd@codeaurora.org>, linux-omap@vger.kernel.orglinux-
 List-Id: linux-omap@vger.kernel.org
-To: Mark Brown <broonie@opensource.wolfsonmicro.com>
-Cc: "Dill, Russ" <russ.dill@ti.com>, "<linux-omap@vger.kernel.org>" <linux-omap@vger.kernel.org>, "<tony@atomide.com>" <tony@atomide.com>, "<robert.marklund@stericsson.com>" <robert.marklund@stericsson.com>, "<linus.walleij@linaro.org>" <linus.walleij@linaro.org>
 
+On 03/21/2012 12:44 AM, Paul Walmsley wrote:
+> Hello Saravana,
+>
+> On Tue, 20 Mar 2012, Saravana Kannan wrote:
+>
+>> To add a few more thoughts, while I agree with Paul that there is room for
+>> improvement in the APIs, I think the difference in opinion comes when we ask
+>> the question:
+>>
+>> "When we eventually refine the APIs in the future to be more expressive, do we
+>> think that the current APIs can or cannot be made as wrappers around the new
+>> more expressive APIs?"
+>>
+>> Absolutes are almost never right, so I can't give an absolute answer.
+>> But I'm strongly leaning towards "we can" as the answer to the question.
+>> That combined with the reasons Nicholas mentioned is why I think the
+>> APIs should not be marked as experimental in anyway.
+>
+> The resistance to documenting that the clock interface is not
+> well-defined, and that therefore it is likely to change, and that users
+> should not expect it to be stable, is perplexing to me.
+>
+> Certainly a Kconfig help text change seems trivial enough.  But even the
+> resistance to CONFIG_EXPERIMENTAL has been quite surprising to me, given
+> that every single defconfig in arch/arm/defconfig sets it:
+>
+> $ find arch/arm/configs -type f  | wc -l
+> 122
+> $ fgrep -r CONFIG_EXPERIMENTAL=y arch/arm/configs | wc -l
+> 122
+> $
+>
+> (that includes iMX, by the way...)
+>
+> Certainly, neither Kconfig change is going to prevent us on OMAP from
+> figuring out what else is needed to convert our platform to the common
+> clock code.  And given the level of enthusiasm on the lists,
 
-On Mar 21, 2012, at 2:13 PM, Mark Brown wrote:
+I think the enthusiasm we are seeing are from the clock driver 
+developers. And for good reasons. Everyone is tired of having to write 
+or rewrite their own implementation.
 
-> On Wed, Mar 21, 2012 at 10:55:54AM -0700, Russ Dill wrote:
-> 
->> unwieldy this would become if it were done for every device. Either the
->> functionality needs to be moved to Snowball board init code, or a generic
->> framework needs to be made for attaching regulators to arbitrary devices.
-> 
-> Hrm?  Adding regulator supply mappings anywhere other than the
-> initialisation for a specific board would be extremely unusual and
-> rather suspicious.
+> I don't think
+> it's going to prevent many of the other ARM platforms from experimenting
+> with the conversion, either.
+>
+> So it would be interesting to know more about why you (or anyone else)
+> perceive that the Kconfig changes would be harmful.
 
-Just to be clear, here is the thread on the board-specific approach:
-https://lkml.org/lkml/2012/2/8/415
+But the enthusiasm of the clock driver developers doesn't necessarily 
+translate to users of the clock APIs (other driver devs). My worry with 
+marking it as experimental in Kconfig and to a certain extent in the 
+documentation is that it will discourage the driver devs from switching 
+to the new APIs. If no one is using the new APIs, then platforms can't 
+switch to the common clock framework either. If a lot of platform don't 
+convert to the common clock framework, the effort to get it merged in 
+now is not also very meaningful.
 
--Matt
+Also, at the rate at which we come to an agreement on new APIs, I think 
+these new APIs should be considered quite stable :-) It's certainly 
+better than what we have today. We should encourage driver devs to move 
+to these new APIs and get the benefits while we go on another 2 yr cycle 
+to agree on the next set of APIs improvements.
+
+And as I said before, I think it's much less likely that we will break 
+backward source compatibility when we do the next improvement. We could 
+have mostly avoid this large scale change by calling the APIs 
+prepare/unprepare/gate/ungate (or whatever) and make clk_enable/disable 
+similar to clk_prepare_enable/clk_disable_unprepare(). That would have 
+avoid a lot of drivers from having to mess with their clock calls. But 
+we didn't think about that in the excitement for improved APIs. I think 
+this will still be seared in our minds enough to make sure we don't 
+repeat that in the future.
+
+That covers all I have to say on this topic.
+
+-Saravana
+
+-- 
+Sent by an employee of the Qualcomm Innovation Center, Inc.
+The Qualcomm Innovation Center, Inc. is a member of the Code Aurora Forum.
