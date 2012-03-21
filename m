@@ -1,85 +1,93 @@
-From: Kevin Hilman <khilman@ti.com>
-Subject: Re: [PATCH] ARM: OMAP3+: fix oops triggered in omap_prcm_register_chain_handler
-Date: Wed, 21 Mar 2012 07:13:56 -0700
-Message-ID: <87r4wmrqhn.fsf@ti.com>
-References: <1332305376-27038-1-git-send-email-tom.leiming@gmail.com>
+From: Daniel Lezcano <daniel.lezcano@linaro.org>
+Subject: Re: [RFC][PATCH 0/7] OMAP4 cpuidle cleanup
+Date: Wed, 21 Mar 2012 15:19:15 +0100
+Message-ID: <4F69E363.4020709@linaro.org>
+References: <1332322070-24577-1-git-send-email-daniel.lezcano@linaro.org> <4F69A872.50203@ti.com> <CAORVsuUeE046O7YJ_fE49NbW1OjZHZX+GuNiDkF0AnzBnSMbxA@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=UTF-8;
+	format=flowed
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aog119.obsmtp.com ([74.125.149.246]:55380 "EHLO
-	na3sys009aog119.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1030462Ab2CUON4 (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>);
-	Wed, 21 Mar 2012 10:13:56 -0400
-Received: by mail-pb0-f49.google.com with SMTP id un4so960706pbc.8
-        for <linux-omap@vger.kernel.org>; Wed, 21 Mar 2012 07:13:55 -0700 (PDT)
-In-Reply-To: <1332305376-27038-1-git-send-email-tom.leiming@gmail.com> (Ming
-	Lei's message of "Wed, 21 Mar 2012 12:49:36 +0800")
+Received: from mail-ee0-f46.google.com ([74.125.83.46]:47638 "EHLO
+	mail-ee0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1030828Ab2CUOTT (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 21 Mar 2012 10:19:19 -0400
+Received: by eekc41 with SMTP id c41so385267eek.19
+        for <linux-omap@vger.kernel.org>; Wed, 21 Mar 2012 07:19:17 -0700 (PDT)
+In-Reply-To: <CAORVsuUeE046O7YJ_fE49NbW1OjZHZX+GuNiDkF0AnzBnSMbxA@mail.gmail.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Ming Lei <tom.leiming@gmail.com>
-Cc: Tony Lindgren <tony@atomide.com>, Russell King <linux@arm.linux.org.uk>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Tero Kristo <t-kristo@ti.com>
+To: Jean Pihet <jean.pihet@newoldbits.com>
+Cc: Santosh Shilimkar <santosh.shilimkar@ti.com>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Linaro Dev <linaro-dev@lists.linaro.org>
 
-Ming Lei <tom.leiming@gmail.com> writes:
+On 03/21/2012 02:43 PM, Jean Pihet wrote:
+> On Wed, Mar 21, 2012 at 11:07 AM, Santosh Shilimkar
+> <santosh.shilimkar@ti.com>  wrote:
+>> Daniel,
+>>
+>> On Wednesday 21 March 2012 02:57 PM, Daniel Lezcano wrote:
+>>> This patchset is a proposition to improve a bit the code.
+>>> The changes are code cleanup and does not change the behavior of th=
+e
+>>> driver itself.
+>>>
+>>> A couple a things call my intention. Why the cpuidle device is set =
+for cpu0 only
+>>> and why the WFI is not used ?
+>>>
+>>> Daniel Lezcano (7):
+>>>    ARM: OMAP4: cpuidle - Remove unused valid field
+>>>    ARM: OMAP4: cpuidle - Declare the states with the driver declara=
+tion
+>>>    ARM: OMAP4: cpuidle - Remove the cpuidle_params_table table
+>>>    ARM: OMAP4: cpuidle - fix static omap4_idle_data declaration
+>>>    ARM: OMAP4: cpuidle - Initialize omap4_idle_data at compile time
+>>>    ARM: OMAP4: cpuidle - use the omap4_idle_data variable directly
+>>>    ARM: OMAP4: cpuidle - remove omap4_idle_data initialization at b=
+oot
+>>>      time
+>>>
+>> The series looks fine to me in general. This clean-up is applicable
+>> for OMAP3 cpuidle code as well.
+> Great!
+> However OMAP3 has a few specific things that cannot be removed as eas=
+ily:
+> - the 'valid' flag is used because only certain combinations of power
+> domains states are possible,
+> - the latency settings can be overriden by the board code, so the
+> cpuidle_params struct is needed.
 
-> This patch fixes the oos below:
+Right, I noticed that. I am looking for a way to have a similar cleanup=
+=20
+for omap3 but without breaking the rx51 board.
 
-As Tero mentioned, please add a bit more description to the changelog
-about why the iterator is wrong and repost.
+Thanks
+   -- Daniel
 
-Thanks for the patch.  After the above changes, I'll queue this up for v3.4-rc.
 
-Kevin
-
-> [    1.790242] Unable to handle kernel NULL pointer dereference at virtual
-> address 00000004
-> [    1.798632] pgd = c0004000
-> [    1.801638] [00000004] *pgd=00000000
-> [    1.805400] Internal error: Oops: 805 [#1] PREEMPT SMP THUMB2
-> [    1.811381] Modules linked in:
-> [    1.814601] CPU: 1    Not tainted  (3.3.0-next-20120320+ #733)
-> [    1.820683] PC is at irq_setup_generic_chip+0x6a/0x84
-> [    1.825951] LR is at irq_get_irq_data+0x7/0x8
-> [    1.830508] pc : [<c006465e>]    lr : [<c0063a03>]    psr: 20000133
-> [    1.830512] sp : ee04ff58  ip : 00000000  fp : 00000000
-> [    1.842461] r10: 00000000  r9 : 00000000  r8 : 00000800
-> [    1.847905] r7 : c064e260  r6 : 000001dc  r5 : 00000001  r4 : ee0accc0
-> [    1.854687] r3 : 00000002  r2 : 00000800  r1 : 000001dc  r0 : 00000000
-> [    1.861472] Flags: nzCv  IRQs on  FIQs on  Mode SVC_32  ISA Thumb  Segment kernel
-> [    1.869234] Control: 50c5387d  Table: 8000404a  DAC: 00000015
-> [    1.875215] Process swapper/0 (pid: 1, stack limit = 0xee04e2f8)
-> [    1.881463] Stack: (0xee04ff58 to 0xee050000)
-> [    1.886017] ff40: c061b668 00000008
-> [    1.894497] ff60: c0682090 ee0accc0 00000003 c001c637 00000000 00000000 00000201 00000000
-> [    1.902976] ff80: 00000004 c0473820 c0473800 c0459e8d c0680ac0 c000866d 00000004 00000004
-> [    1.911455] ffa0: ee04ffa8 00000004 c047381c 00000004 c0473820 c0473800 c0680ac0 00000082
-> [    1.919934] ffc0: c0489694 c045265f 00000004 00000004 c0452135 c000d105 00000033 00000000
-> [    1.928413] ffe0: c04525b5 c000d111 00000033 00000000 00000000 c000d111 aaaaaaaa aaaaaaaa
-> [    1.936912] [<c006465e>] (irq_setup_generic_chip+0x6a/0x84) from [<c001c637>] (omap_prcm_register_chain_handler+0x147/0x1a0)
-> [    1.948516] [<c001c637>] (omap_prcm_register_chain_handler+0x147/0x1a0) from [<c000866d>] (do_one_initcall+0x65/0xf4)
-> [    1.959500] [<c000866d>] (do_one_initcall+0x65/0xf4) from [<c045265f>] (kernel_init+0xab/0x138)
-> [    1.968529] [<c045265f>] (kernel_init+0xab/0x138) from [<c000d111>] (kernel_thread_exit+0x1/0x6)
-> [    1.977632] Code: f7ff f9d1 6b23 1af3 (6043) 086d
-> [    1.982684] ---[ end trace 1b75b31a2719ed1c ]---
-> [    1.987526] Kernel panic - not syncing: Attempted to kill init!
-> exitcode=0x0000000b
+>> I want Jean to look at this series because some of his earlier
+>> clean up has introduced those custom functions which
+>> are getting removed in this series.
+>>
+>> Regards
+>> santosh
+>>
+>>
 >
-> Cc: Tero Kristo <t-kristo@ti.com>
-> Signed-off-by: Ming Lei <tom.leiming@gmail.com>
-> ---
->  arch/arm/mach-omap2/prm_common.c |    2 +-
->  1 files changed, 1 insertions(+), 1 deletions(-)
->
-> diff --git a/arch/arm/mach-omap2/prm_common.c b/arch/arm/mach-omap2/prm_common.c
-> index 873b51d..d28f848 100644
-> --- a/arch/arm/mach-omap2/prm_common.c
-> +++ b/arch/arm/mach-omap2/prm_common.c
-> @@ -290,7 +290,7 @@ int omap_prcm_register_chain_handler(struct omap_prcm_irq_setup *irq_setup)
->  		goto err;
->  	}
->  
-> -	for (i = 0; i <= irq_setup->nr_regs; i++) {
-> +	for (i = 0; i < irq_setup->nr_regs; i++) {
->  		gc = irq_alloc_generic_chip("PRCM", 1,
->  			irq_setup->base_irq + i * 32, prm_base,
->  			handle_level_irq);
+> Thanks,
+> Jean
+
+
+--=20
+  <http://www.linaro.org/> Linaro.org =E2=94=82 Open source software fo=
+r ARM SoCs
+
+=46ollow Linaro:  <http://www.facebook.com/pages/Linaro> Facebook |
+<http://twitter.com/#!/linaroorg> Twitter |
+<http://www.linaro.org/linaro-blog/> Blog
+
+--
+To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
