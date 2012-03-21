@@ -1,57 +1,55 @@
-From: Santosh Shilimkar <santosh.shilimkar-l0cyMroinI0@public.gmane.org>
-Subject: Re: [RFC][PATCH 1/7] ARM: OMAP4: cpuidle - Remove unused valid field
-Date: Wed, 21 Mar 2012 15:33:14 +0530
-Message-ID: <4F69A762.5070006@ti.com>
-References: <1332322070-24577-1-git-send-email-daniel.lezcano@linaro.org>
-	<1332322070-24577-2-git-send-email-daniel.lezcano@linaro.org>
-	<CAMQu2gw+GGnpG_s6TCk2fH094Lfmj1zgAZqQ4zdQmpj3ZZhu3w@mail.gmail.com>
-	<4F69A37A.7020606@linaro.org>
+From: Arnd Bergmann <arnd@arndb.de>
+Subject: Re: [PATCH] mfd: Add TWL4030 PWM driver
+Date: Wed, 21 Mar 2012 10:03:27 +0000
+Message-ID: <201203211003.28019.arnd@arndb.de>
+References: <1332262083-9375-1-git-send-email-walle@corscience.de> <201203210839.06258.arnd@arndb.de> <20120321084856.GA17472@avionic-0098.mockup.avionic-design.de>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
+Content-Type: Text/Plain;
+  charset="iso-8859-15"
 Content-Transfer-Encoding: 7bit
-Return-path: <linaro-dev-bounces-cunTk1MwBs8s++Sfvej+rw@public.gmane.org>
-In-Reply-To: <4F69A37A.7020606-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>
-List-Unsubscribe: <http://lists.linaro.org/mailman/options/linaro-dev>,
-	<mailto:linaro-dev-request-cunTk1MwBs8s++Sfvej+rw@public.gmane.org?subject=unsubscribe>
-List-Archive: <http://lists.linaro.org/pipermail/linaro-dev>
-List-Post: <mailto:linaro-dev-cunTk1MwBs8s++Sfvej+rw@public.gmane.org>
-List-Help: <mailto:linaro-dev-request-cunTk1MwBs8s++Sfvej+rw@public.gmane.org?subject=help>
-List-Subscribe: <http://lists.linaro.org/mailman/listinfo/linaro-dev>,
-	<mailto:linaro-dev-request-cunTk1MwBs8s++Sfvej+rw@public.gmane.org?subject=subscribe>
-Sender: linaro-dev-bounces-cunTk1MwBs8s++Sfvej+rw@public.gmane.org
-Errors-To: linaro-dev-bounces-cunTk1MwBs8s++Sfvej+rw@public.gmane.org
-To: Daniel Lezcano <daniel.lezcano-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>
-Cc: linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linaro-dev-cunTk1MwBs8s++Sfvej+rw@public.gmane.org, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <20120321084856.GA17472@avionic-0098.mockup.avionic-design.de>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Thierry Reding <thierry.reding@avionic-design.de>
+Cc: Bernhard Walle <bernhard@bwalle.de>, Bernhard Walle <walle@corscience.de>, sameo@linux.intel.com, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-On Wednesday 21 March 2012 03:16 PM, Daniel Lezcano wrote:
-> On 03/21/2012 10:41 AM, Shilimkar, Santosh wrote:
->> On Wed, Mar 21, 2012 at 2:57 PM, Daniel Lezcano
->> <daniel.lezcano-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>  wrote:
->>> The 'valid' field is never used in the code, let's remove it.
->>>
->>> Signed-off-by: Daniel Lezcano<daniel.lezcano-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>
->>> ---
->> It is used during the registration. This field has been very useful for
->> debug when need to disable a C-state etc.
->> So unless and until there is a strong reason, i would like to retain it.
+On Wednesday 21 March 2012, Thierry Reding wrote:
+> * Arnd Bergmann wrote:
+> > On Wednesday 21 March 2012, Bernhard Walle wrote:
+> > > Am 20.03.12 23:02, schrieb Arnd Bergmann:
+> > > > On Tuesday 20 March 2012, Bernhard Walle wrote:
+> > > >>
+> > > >> This PWM driver uses the PWM of the TWL4030. The driver for the TWL6030
+> > > >> PWM has been used as mode, but the PWM registers are different.
+> > > >>
+> > > >> The driver can be used and has been tested in conjunction with
+> > > >> pwm-backlight to control a backlight LED of a LCD touch screen.
+> > > >>
+> > > >> Signed-off-by: Bernhard Walle <walle@corscience.de>
+> > > > 
+> > > > Since it's too late for v3.4 now and we will get a new pwm
+> > > > subsystem in v3.5, I suggest you change the driver to work
+> > > > register with that subsystem instead of just using the old
+> > > > header file. Note that drivers/mfd is not really the right
+> > > > place anyway, because this is not a multifunction driver but
+> > > > just one device driver that happens to be a slave of an mfd.
+> > > 
+> > > Does that new subsystem already exist in some tree?
+> >  
+> > Thierry Reding has been busily posting patches, so he probably has
+> > one that you can use, but I couldn't find it now.
 > 
-> IMO if it used for debug purpose, it should be moved to the debug code
-> and if the debug code is not upstream, then that 'valid' should not be
-> here but in the out-of-tree code.
->
-When I said debug, I mean CPUIDLE debug and not any special debug code.
+> I don't have a public tree anywhere. Does anyone have a recommendation where
+> I could set one up? github or gitorious are the first to come to my mind.
 
-> By the way, this may be a debate for nothing because a patchset is on
-> the way to disable C-states from sysfs.
-> 
-I see but sysfs won't solve that because you want to disable certain
-C-state so that CPUIDLE driver don't use that state.
+They both work fine and are easy to set up, at least as a temporary location.
 
-Let say if the C4 which is OSWR is broken. In such cases, just
-setting valid flag let you disable it.
+If you want to have something more official in the long run, you could
+either set up your own git server on your employer's domain or if that
+is impractical, get an account on kernel.org or linaro.org. Both of those
+try to limit the amount of accounts they hand out to external people, but
+since you are going to be a subsystem maintainer, I don't see it as a
+problem.
 
-Again I don't have strong objection to this change.
-
-Regards
-santosh
+	Arnd
