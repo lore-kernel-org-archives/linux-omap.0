@@ -1,81 +1,122 @@
 From: Jean Pihet <jean.pihet@newoldbits.com>
-Subject: Re: [RFC][PATCH 1/7] ARM: OMAP4: cpuidle - Remove unused valid field
-Date: Wed, 21 Mar 2012 14:28:52 +0100
-Message-ID: <CAORVsuUtQ3EYdrBMUkFm=nd-avz0q9D1BVmwKD-06qgaF3wDqA@mail.gmail.com>
+Subject: Re: [RFC][PATCH 2/7] ARM: OMAP4: cpuidle - Declare the states with
+ the driver declaration
+Date: Wed, 21 Mar 2012 14:31:46 +0100
+Message-ID: <CAORVsuV-0xQx6W0iKGO_UduESFwdD-44vsBAcVXD0Yy-VB_eGw@mail.gmail.com>
 References: <1332322070-24577-1-git-send-email-daniel.lezcano@linaro.org>
-	<1332322070-24577-2-git-send-email-daniel.lezcano@linaro.org>
-	<CAMQu2gw+GGnpG_s6TCk2fH094Lfmj1zgAZqQ4zdQmpj3ZZhu3w@mail.gmail.com>
-	<4F69A37A.7020606@linaro.org>
-	<4F69A762.5070006@ti.com>
+	<1332322070-24577-3-git-send-email-daniel.lezcano@linaro.org>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-vx0-f174.google.com ([209.85.220.174]:49622 "EHLO
+Received: from mail-vx0-f174.google.com ([209.85.220.174]:46677 "EHLO
 	mail-vx0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1758165Ab2CUN2x convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 21 Mar 2012 09:28:53 -0400
-Received: by vcqp1 with SMTP id p1so1003732vcq.19
-        for <linux-omap@vger.kernel.org>; Wed, 21 Mar 2012 06:28:52 -0700 (PDT)
-In-Reply-To: <4F69A762.5070006@ti.com>
+	with ESMTP id S1758248Ab2CUNbr convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 21 Mar 2012 09:31:47 -0400
+Received: by vcqp1 with SMTP id p1so1007075vcq.19
+        for <linux-omap@vger.kernel.org>; Wed, 21 Mar 2012 06:31:46 -0700 (PDT)
+In-Reply-To: <1332322070-24577-3-git-send-email-daniel.lezcano@linaro.org>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Santosh Shilimkar <santosh.shilimkar@ti.com>
-Cc: Daniel Lezcano <daniel.lezcano@linaro.org>, linux-omap@vger.kernel.org, linaro-dev@lists.linaro.org, linux-arm-kernel@lists.infradead.org
+To: Daniel Lezcano <daniel.lezcano@linaro.org>
+Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linaro-dev@lists.linaro.org
 
-On Wed, Mar 21, 2012 at 11:03 AM, Santosh Shilimkar
-<santosh.shilimkar@ti.com> wrote:
-> On Wednesday 21 March 2012 03:16 PM, Daniel Lezcano wrote:
->> On 03/21/2012 10:41 AM, Shilimkar, Santosh wrote:
->>> On Wed, Mar 21, 2012 at 2:57 PM, Daniel Lezcano
->>> <daniel.lezcano@linaro.org> =A0wrote:
->>>> The 'valid' field is never used in the code, let's remove it.
->>>>
->>>> Signed-off-by: Daniel Lezcano<daniel.lezcano@linaro.org>
->>>> ---
->>> It is used during the registration. This field has been very useful=
- for
->>> debug when need to disable a C-state etc.
->>> So unless and until there is a strong reason, i would like to retai=
-n it.
->>
->> IMO if it used for debug purpose, it should be moved to the debug co=
-de
->> and if the debug code is not upstream, then that 'valid' should not =
-be
->> here but in the out-of-tree code.
->>
-> When I said debug, I mean CPUIDLE debug and not any special debug cod=
-e.
+On Wed, Mar 21, 2012 at 10:27 AM, Daniel Lezcano
+<daniel.lezcano@linaro.org> wrote:
+> The cpuidle API allows to declare statically the states in the driver
+> structure. Let's use it.
+> We do no longer need the fill_cstate function called at runtime and
+> by the way adding more instructions at boot time.
 >
->> By the way, this may be a debate for nothing because a patchset is o=
-n
->> the way to disable C-states from sysfs.
->>
-> I see but sysfs won't solve that because you want to disable certain
-> C-state so that CPUIDLE driver don't use that state.
-This will solve the problem, the only difference is that you need the
-user space to switch the disable knob from sysfs.
-=46rom the kernel space, for debug, you can set the .disable value to 1
-in the cpuidle_driver->states struct.
+> Signed-off-by: Daniel Lezcano <daniel.lezcano@linaro.org>
+> ---
+> =A0arch/arm/mach-omap2/cpuidle44xx.c | =A0 56 +++++++++++++++++++++--=
+--------------
+> =A01 files changed, 32 insertions(+), 24 deletions(-)
+>
+> diff --git a/arch/arm/mach-omap2/cpuidle44xx.c b/arch/arm/mach-omap2/=
+cpuidle44xx.c
+> index 1210229..cd6bee7 100644
+> --- a/arch/arm/mach-omap2/cpuidle44xx.c
+> +++ b/arch/arm/mach-omap2/cpuidle44xx.c
+> @@ -148,21 +148,38 @@ DEFINE_PER_CPU(struct cpuidle_device, omap4_idl=
+e_dev);
+> =A0struct cpuidle_driver omap4_idle_driver =3D {
+> =A0 =A0 =A0 =A0.name =3D =A0 =A0 =A0 =A0 "omap4_idle",
+> =A0 =A0 =A0 =A0.owner =3D =A0 =A0 =A0 =A0THIS_MODULE,
+> + =A0 =A0 =A0 .states =3D {
+> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 {
+> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 /* C1 - CPU0 ON + CPU1 =
+ON + MPU ON */
+> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 .exit_latency =3D 2 + 2=
+,
+> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 .target_residency =3D 5=
+,
+> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 .flags =3D CPUIDLE_FLAG=
+_TIME_VALID,
+> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 .enter =3D omap4_enter_=
+idle,
+> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 .name =3D "C1",
+> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 .desc =3D "MPUSS ON"
+> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 },
+=2E..
+> + =A0 =A0 =A0 },
+> + =A0 =A0 =A0 .state_count =3D OMAP4_NUM_STATES,
+> =A0};
+>
+> -static inline void _fill_cstate(struct cpuidle_driver *drv,
+> - =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0=
+ =A0 =A0 int idx, const char *descr)
+> -{
+> - =A0 =A0 =A0 struct cpuidle_state *state =3D &drv->states[idx];
+> -
+> - =A0 =A0 =A0 state->exit_latency =A0 =A0 =3D cpuidle_params_table[id=
+x].exit_latency;
+> - =A0 =A0 =A0 state->target_residency =3D cpuidle_params_table[idx].t=
+arget_residency;
+> - =A0 =A0 =A0 state->flags =A0 =A0 =A0 =A0 =A0 =A0=3D CPUIDLE_FLAG_TI=
+ME_VALID;
+> - =A0 =A0 =A0 state->enter =A0 =A0 =A0 =A0 =A0 =A0=3D omap4_enter_idl=
+e;
+> - =A0 =A0 =A0 sprintf(state->name, "C%d", idx + 1);
+> - =A0 =A0 =A0 strncpy(state->desc, descr, CPUIDLE_DESC_LEN);
+> -}
+I am OK with this change, which makes the code more readable (and so
+maintainable).
 
+> -
+> =A0static inline struct omap4_idle_statedata *_fill_cstate_usage(
+> =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0=
+ =A0 =A0struct cpuidle_device *dev,
+> =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0=
+ =A0 =A0int idx)
+> @@ -196,37 +213,28 @@ int __init omap4_idle_init(void)
+> =A0 =A0 =A0 =A0if ((!mpu_pd) || (!cpu0_pd) || (!cpu1_pd))
+> =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0return -ENODEV;
 >
-> Let say if the C4 which is OSWR is broken. In such cases, just
-> setting valid flag let you disable it.
+> -
+> - =A0 =A0 =A0 drv->safe_state_index =3D -1;
+> =A0 =A0 =A0 =A0dev =3D &per_cpu(omap4_idle_dev, cpu_id);
+> =A0 =A0 =A0 =A0dev->cpu =3D cpu_id;
 >
-> Again I don't have strong objection to this change.
->
-> Regards
-> santosh
+> - =A0 =A0 =A0 /* C1 - CPU0 ON + CPU1 ON + MPU ON */
+> - =A0 =A0 =A0 _fill_cstate(drv, 0, "MPUSS ON");
+> - =A0 =A0 =A0 drv->safe_state_index =3D 0;
+I would keep this or add a clear comment that C1 is the safe state.
 
-Regards,
+=2E..
+
+Thanks,
 Jean
 
+> --
+> 1.7.5.4
 >
-> _______________________________________________
-> linaro-dev mailing list
-> linaro-dev@lists.linaro.org
-> http://lists.linaro.org/mailman/listinfo/linaro-dev
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-omap"=
+ in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at =A0http://vger.kernel.org/majordomo-info.html
 --
 To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
 n
