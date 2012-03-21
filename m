@@ -1,69 +1,42 @@
-From: Chandrabhanu Mahapatra <cmahapatra@ti.com>
-Subject: [PATCH V2 0/3] OMAPDSS: DISPC: Enable predecimation for DMA and VRFB
-Date: Wed, 21 Mar 2012 15:21:24 +0530
-Message-ID: <1332323484-8975-1-git-send-email-cmahapatra@ti.com>
+From: Santosh Shilimkar <santosh.shilimkar@ti.com>
+Subject: Re: [RFC][PATCH 4/7] ARM: OMAP4: cpuidle - fix static omap4_idle_data
+ declaration
+Date: Wed, 21 Mar 2012 15:21:50 +0530
+Message-ID: <4F69A4B6.7030305@ti.com>
+References: <1332322070-24577-1-git-send-email-daniel.lezcano@linaro.org> <1332322070-24577-5-git-send-email-daniel.lezcano@linaro.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from bear.ext.ti.com ([192.94.94.41]:48108 "EHLO bear.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1757624Ab2CUJvf (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Wed, 21 Mar 2012 05:51:35 -0400
+Received: from na3sys009aog134.obsmtp.com ([74.125.149.83]:42729 "EHLO
+	psmtp.com" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
+	id S1757764Ab2CUJv4 (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Wed, 21 Mar 2012 05:51:56 -0400
+Received: by yhjj56 with SMTP id j56so809095yhj.20
+        for <linux-omap@vger.kernel.org>; Wed, 21 Mar 2012 02:51:54 -0700 (PDT)
+In-Reply-To: <1332322070-24577-5-git-send-email-daniel.lezcano@linaro.org>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: tomi.valkeinen@ti.com
-Cc: linux-omap@vger.kernel.org, linux-fbdev@vger.kernel.org, Chandrabhanu Mahapatra <cmahapatra@ti.com>
+To: Daniel Lezcano <daniel.lezcano@linaro.org>
+Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linaro-dev@lists.linaro.org
 
-Hi everyone,
-the following patch set directs to enable predecimation for DMA and VRF=
-B
-which consists of two pacthes.
+On Wednesday 21 March 2012 02:57 PM, Daniel Lezcano wrote:
+> Signed-off-by: Daniel Lezcano <daniel.lezcano@linaro.org>
+> ---
+>  arch/arm/mach-omap2/cpuidle44xx.c |    2 +-
+>  1 files changed, 1 insertions(+), 1 deletions(-)
+> 
+> diff --git a/arch/arm/mach-omap2/cpuidle44xx.c b/arch/arm/mach-omap2/cpuidle44xx.c
+> index 0455858..254f97b 100644
+> --- a/arch/arm/mach-omap2/cpuidle44xx.c
+> +++ b/arch/arm/mach-omap2/cpuidle44xx.c
+> @@ -33,7 +33,7 @@ struct omap4_idle_statedata {
+>  
+>  #define OMAP4_NUM_STATES 3
+>  
+> -struct omap4_idle_statedata omap4_idle_data[OMAP4_NUM_STATES];
+> +static struct omap4_idle_statedata omap4_idle_data[OMAP4_NUM_STATES];
+OK
 
-The first patch is based on code written by Lajos Molnar <lajos@ti.com>=
- in
-Android Kernel, which updates the code with predecimation logic thereby
-increasing the downscaling ability of the DISPC module.
-In version 2 patch description has been modified include reason for max=
-imum
-predecimation limit of 16.
-
-The second patch is based on code written by Ville Syrj=C3=A4l=C3=A4
-<ville.syrjala@nokia.com> which aims to avoid synclost errors occurring
-in OMAP3 due to some undocumented horizontal position and timing relate=
-d
-limitations which I faced during testing of the previous patch.
-In version 2 the pcd factor has been replaced lclk / pclk to support HD=
-MI and
-tv output as pointed out by Ville Syrj=C3=A4l=C3=A4.
-
-The third patch corrects the usage of dispc fclk in scaling checks by
-replacing it with dispc_core_clk as per suggestions of Ville Syrj=C3=A4=
-l=C3=A4.
-
-I have tested these patches successfully on OMAP2, OMAP3 AND OMAP4 on t=
-he
-mainline kernel v3.3. Horizontal and vertical predecimation worked fine
-but skewed images were seen on OMAP2 and OMAP3 on HDMI tv during horizo=
-ntal
-predecimation which will be addressed in the future patches.
-
-All your comments and suggestions are welcome.
-
-Regards,
-Chandrabhanu
-
-Chandrabhanu Mahapatra (3):
-  OMAPDSS: DISPC: Enable predecimation
-  OMAPDSS: DISPC: Handle synclost errors in OMAP3
-  OMAPDSS: DISPC: Correct DISPC functional clock usage
-
- drivers/video/omap2/dss/dispc.c |  360 +++++++++++++++++++++++++++----=
---------
- 1 files changed, 254 insertions(+), 106 deletions(-)
-
---
-To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Regards
+santosh
