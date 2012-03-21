@@ -1,68 +1,164 @@
-From: Felipe Balbi <balbi-l0cyMroinI0@public.gmane.org>
-Subject: Re: [PATCH 2/2] usb: musb: wake the device before ulpi transfers
-Date: Wed, 21 Mar 2012 12:10:31 +0200
-Message-ID: <20120321101030.GO3092@arwen.pp.htv.fi>
-References: <1328377432-13563-1-git-send-email-notasas@gmail.com>
- <1328377432-13563-3-git-send-email-notasas@gmail.com>
-Reply-To: balbi-l0cyMroinI0@public.gmane.org
+From: "Govindraj.R" <govindraj.raja@ti.com>
+Subject: [PATCH 1/3] OMAP2+: UART: Remove cpu checks for populating errata flags
+Date: Wed, 21 Mar 2012 15:54:59 +0530
+Message-ID: <1332325501-10467-2-git-send-email-govindraj.raja@ti.com>
+References: <1332325501-10467-1-git-send-email-govindraj.raja@ti.com>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="xiprIVX1FSGBv8kC"
-Return-path: <linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <1328377432-13563-3-git-send-email-notasas-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
-Sender: linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Grazvydas Ignotas <notasas-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
-Cc: linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Felipe Balbi <balbi-l0cyMroinI0@public.gmane.org>, Felipe Contreras <felipe.contreras-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+Content-Type: text/plain
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from bear.ext.ti.com ([192.94.94.41]:50002 "EHLO bear.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1756824Ab2CUKZb (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Wed, 21 Mar 2012 06:25:31 -0400
+In-Reply-To: <1332325501-10467-1-git-send-email-govindraj.raja@ti.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: linux-omap@vger.kernel.org
+Cc: linux-serial@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Kevin Hilman <khilman@ti.com>, Paul Walmsley <paul@pwsan.com>, Felipe Balbi <balbi@ti.com>, "Govindraj.R" <govindraj.raja@ti.com>
 
+From: "Govindraj.R" <govindraj.raja@ti.com>
 
---xiprIVX1FSGBv8kC
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
+Currently the errata is populated based on cpu checks this can
+be removed and replaced with module version check of uart ip block.
+MVR reg is provided within the uart reg map use the same
+to populate the errata and thus now errata population and handling
+can be managed within the driver itself.
 
-On Sat, Feb 04, 2012 at 07:43:52PM +0200, Grazvydas Ignotas wrote:
-> musb can be suspended at the time some other driver wants to do ulpi
-> transfers using otg_io_* functions, and that can cause data abort,
-> as it happened with isp1704_charger:
-> http://article.gmane.org/gmane.linux.kernel/1226122
->=20
-> Add pm_runtime to ulpi functions to rectify this. This also adds io_dev
-> to otg_transceiver so that pm_runtime can be used.
->=20
-> Cc: Felipe Contreras <felipe.contreras-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
-> Signed-off-by: Grazvydas Ignotas <notasas-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+Cc: Paul Walmsley <paul@pwsan.com>
+Cc: Kevin Hilman <khilman@ti.com>
+Signed-off-by: Felipe Balbi <balbi@ti.com>
+Signed-off-by: Govindraj.R <govindraj.raja@ti.com>
+---
+ arch/arm/mach-omap2/serial.c                  |    8 ---
+ arch/arm/plat-omap/include/plat/omap-serial.h |    1 -
+ drivers/tty/serial/omap-serial.c              |   62 ++++++++++++++++++++++++-
+ 3 files changed, 61 insertions(+), 10 deletions(-)
 
-doesn't apply, please refresh.
+diff --git a/arch/arm/mach-omap2/serial.c b/arch/arm/mach-omap2/serial.c
+index f590afc..330ee04 100644
+--- a/arch/arm/mach-omap2/serial.c
++++ b/arch/arm/mach-omap2/serial.c
+@@ -357,14 +357,6 @@ void __init omap_serial_init_port(struct omap_board_data *bdata,
+ 	omap_up.dma_rx_poll_rate = info->dma_rx_poll_rate;
+ 	omap_up.autosuspend_timeout = info->autosuspend_timeout;
+ 
+-	/* Enable the MDR1 Errata i202 for OMAP2430/3xxx/44xx */
+-	if (!cpu_is_omap2420() && !cpu_is_ti816x())
+-		omap_up.errata |= UART_ERRATA_i202_MDR1_ACCESS;
+-
+-	/* Enable DMA Mode Force Idle Errata i291 for omap34xx/3630 */
+-	if (cpu_is_omap34xx() || cpu_is_omap3630())
+-		omap_up.errata |= UART_ERRATA_i291_DMA_FORCEIDLE;
+-
+ 	pdata = &omap_up;
+ 	pdata_size = sizeof(struct omap_uart_port_info);
+ 
+diff --git a/arch/arm/plat-omap/include/plat/omap-serial.h b/arch/arm/plat-omap/include/plat/omap-serial.h
+index 9ff4444..1a52725 100644
+--- a/arch/arm/plat-omap/include/plat/omap-serial.h
++++ b/arch/arm/plat-omap/include/plat/omap-serial.h
+@@ -65,7 +65,6 @@ struct omap_uart_port_info {
+ 	bool			dma_enabled;	/* To specify DMA Mode */
+ 	unsigned int		uartclk;	/* UART clock rate */
+ 	upf_t			flags;		/* UPF_* flags */
+-	u32			errata;
+ 	unsigned int		dma_rx_buf_size;
+ 	unsigned int		dma_rx_timeout;
+ 	unsigned int		autosuspend_timeout;
+diff --git a/drivers/tty/serial/omap-serial.c b/drivers/tty/serial/omap-serial.c
+index f809041..c7666d6 100644
+--- a/drivers/tty/serial/omap-serial.c
++++ b/drivers/tty/serial/omap-serial.c
+@@ -44,6 +44,13 @@
+ #include <plat/dmtimer.h>
+ #include <plat/omap-serial.h>
+ 
++#define UART_BUILD_REVISION(x, y)	(((x) << 8) | (y))
++
++#define OMAP_UART_REV_42 0x0402
++#define OMAP_UART_REV_46 0x0406
++#define OMAP_UART_REV_52 0x0502
++#define OMAP_UART_REV_63 0x0603
++
+ #define DEFAULT_CLK_SPEED 48000000 /* 48Mhz*/
+ 
+ /* SCR register bitmasks */
+@@ -1346,6 +1353,58 @@ static void uart_tx_dma_callback(int lch, u16 ch_status, void *data)
+ 	return;
+ }
+ 
++static void omap_serial_fill_features_erratas(struct uart_omap_port *up)
++{
++	u32 mvr, scheme;
++	u16 revision, major, minor;
++
++	mvr = serial_in(up, UART_OMAP_MVER);
++
++	/* Check revision register scheme */
++	scheme = mvr & (0x03 << 30);
++	scheme >>= 30;
++
++	switch (scheme) {
++	case 0: /* Legacy Scheme: OMAP2/3 */
++		/* MINOR_REV[0:4], MAJOR_REV[4:7] */
++		major = (mvr & 0xf0) >> 4;
++		minor = (mvr & 0x0f);
++		break;
++	case 1:
++		/* New Scheme: OMAP4+ */
++		/* MINOR_REV[0:5], MAJOR_REV[8:10] */
++		major = (mvr & 0x7 << 8) >> 8;
++		minor = (mvr & 0x3f);
++		break;
++	default:
++		dev_warn(&up->pdev->dev,
++			"Unknown %s revision, defaulting to highest\n",
++			up->name);
++		/* highest possible revision */
++		major = 0xff;
++		minor = 0xff;
++	}
++
++	/* normalize revision for the driver */
++	revision = UART_BUILD_REVISION(major, minor);
++
++	switch (revision) {
++	case OMAP_UART_REV_46:
++		up->errata |= (UART_ERRATA_i202_MDR1_ACCESS |
++				UART_ERRATA_i291_DMA_FORCEIDLE);
++		break;
++	case OMAP_UART_REV_52:
++		up->errata |= (UART_ERRATA_i202_MDR1_ACCESS |
++				UART_ERRATA_i291_DMA_FORCEIDLE);
++		break;
++	case OMAP_UART_REV_63:
++		up->errata |= UART_ERRATA_i202_MDR1_ACCESS;
++		break;
++	default:
++		break;
++	}
++}
++
+ static struct omap_uart_port_info *of_get_uart_port_info(struct device *dev)
+ {
+ 	struct omap_uart_port_info *omap_up_info;
+@@ -1443,7 +1502,6 @@ static int serial_omap_probe(struct platform_device *pdev)
+ 						"%d\n", DEFAULT_CLK_SPEED);
+ 	}
+ 	up->uart_dma.uart_base = mem->start;
+-	up->errata = omap_up_info->errata;
+ 
+ 	if (omap_up_info->dma_enabled) {
+ 		up->uart_dma.uart_dma_tx = dma_tx->start;
+@@ -1473,6 +1531,8 @@ static int serial_omap_probe(struct platform_device *pdev)
+ 	pm_runtime_enable(&pdev->dev);
+ 	pm_runtime_get_sync(&pdev->dev);
+ 
++	omap_serial_fill_features_erratas(up);
++
+ 	ui[up->port.line] = up;
+ 	serial_omap_add_console_port(up);
+ 
+-- 
+1.7.5.4
 
---=20
-balbi
-
---xiprIVX1FSGBv8kC
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: Digital signature
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.4.11 (GNU/Linux)
-
-iQIcBAEBAgAGBQJPaakVAAoJEIaOsuA1yqREhQ4P+gNqyuxakVfCfHbKenzjv5QB
-C1m0SUBM9p7qKct7wYELqeLus5YYV5uPzwrpoPz5ZgXvOfrLkiWuemu/Z9RwxUin
-07qGusL5pk56sL8wbFbVZvswA0wXOhkUrRVIVqq7vo9e5k7KSMQAHxX+2rf4Q1Ym
-VK5qZkHqETqrk8ZE9Unh5r/KtuOaOcbHqT/QlcNS/DzxrD961VKHmYVExR1BFxVR
-ftIiEo4NnMTzC1lO/gCdhT8eEcIUnMWmbqL6Qhf5b3HhSGXeVotOIlKT+bsiH+4B
-CHs9aGeRgbeu4+F4jd/Eg48Lv9IFXRBZE5lRFUwVYHCpH1IEMCo0HPyAj/4/FQ7H
-azMCS7wEXh66JINrgzgp+MLngR+z2xe6l1pfXPsXmDy0iXzRcBbR4tZrT6Y4Dc9+
-65rwHW7eiRiPmO4EQIM+jG+Z6snw+ciIJIKX4QZrm7qV+hJTWi88RHs1r6Tes3FW
-4xhwIFlywoFrwnzxGTLyi5K7rIaei2TeUzCZ0CaJSbhzK6RyfEn/mj2SphWjrSj5
-b4p8NoygbOReFOk77X+6H8IgC2lFyKNLwQei8gcl+o/EB7dqpr703NfUv+gM55s8
-ZnYFFVHqcQSEwke7lYfV/u2sIvxrKvgPa7S69P13aXAZH9hEF26NAKZIOSt0kaw2
-jXS6AFWrdV0D/iFbmK4Q
-=1hxj
------END PGP SIGNATURE-----
-
---xiprIVX1FSGBv8kC--
---
-To unsubscribe from this list: send the line "unsubscribe linux-usb" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
