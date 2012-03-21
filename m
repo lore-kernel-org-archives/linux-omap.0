@@ -1,130 +1,116 @@
-From: Thomas Klute <thomas2.klute@uni-dortmund.de>
-Subject: Re: smsc911x on Gumstix Overo/Tobi doesn't work
-Date: Wed, 21 Mar 2012 17:29:48 +0100
-Message-ID: <4F6A01FC.3080804@uni-dortmund.de>
-References: <4F6324D5.9010106@uni-dortmund.de> <20120316193337.GE7276@atomide.com> <4F675D9D.2040102@uni-dortmund.de> <20120319225131.GE9859@atomide.com> <4F6893C6.60701@uni-dortmund.de> <CAAwP0s3Qo7vtt=BY7Pvejg4Gc9X0O0n=yWg0JVGZHrmUJScMXw@mail.gmail.com>
+From: Daniel Lezcano <daniel.lezcano@linaro.org>
+Subject: Re: [RFC][PATCH 0/7] OMAP4 cpuidle cleanup
+Date: Wed, 21 Mar 2012 17:42:27 +0100
+Message-ID: <4F6A04F3.6050306@linaro.org>
+References: <1332322070-24577-1-git-send-email-daniel.lezcano@linaro.org> <4F69A872.50203@ti.com> <CAORVsuUeE046O7YJ_fE49NbW1OjZHZX+GuNiDkF0AnzBnSMbxA@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=UTF-8;
+	format=flowed
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mx1.HRZ.Uni-Dortmund.DE ([129.217.128.51]:36520 "EHLO
-	unimail.uni-dortmund.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754180Ab2CUQ3w (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 21 Mar 2012 12:29:52 -0400
-In-Reply-To: <CAAwP0s3Qo7vtt=BY7Pvejg4Gc9X0O0n=yWg0JVGZHrmUJScMXw@mail.gmail.com>
+Received: from mail-bk0-f46.google.com ([209.85.214.46]:44384 "EHLO
+	mail-bk0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752363Ab2CUQmb (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 21 Mar 2012 12:42:31 -0400
+Received: by bkcik5 with SMTP id ik5so1069827bkc.19
+        for <linux-omap@vger.kernel.org>; Wed, 21 Mar 2012 09:42:29 -0700 (PDT)
+In-Reply-To: <CAORVsuUeE046O7YJ_fE49NbW1OjZHZX+GuNiDkF0AnzBnSMbxA@mail.gmail.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Javier Martinez Canillas <martinez.javier@gmail.com>
-Cc: Tony Lindgren <tony@atomide.com>, linux-omap@vger.kernel.org
+To: Jean Pihet <jean.pihet@newoldbits.com>
+Cc: Santosh Shilimkar <santosh.shilimkar@ti.com>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Linaro Dev <linaro-dev@lists.linaro.org>
 
-
-
-Am 20.03.2012 20:47, schrieb Javier Martinez Canillas:
-> On Tue, Mar 20, 2012 at 3:27 PM, Thomas Klute
-> <thomas2.klute@uni-dortmund.de> wrote:
->> Am 19.03.2012 23:51, schrieb Tony Lindgren:
->>> * Thomas Klute <thomas2.klute@uni-dortmund.de> [120319 09:26]:
->>>> Am 16.03.2012 20:33, schrieb Tony Lindgren:
->>>>> Hi,
->>>>>
->>>>> * Thomas Klute <thomas2.klute@uni-dortmund.de> [120316 05:08]:
->>>>>> Hi,
->>>>>>
->>>>>> I have trouble getting the Ethernet port on a Gumstix Overo with Tobi
->>>>>> expansion board to work with current kernel versions. With the latest
->>>>>> commit from linux-omap git (b8fe1781ec8bed5e086691a827a6ee11facec2aa),
->>>>>> the output from loading the smsc911x driver is as follows:
->>>>>>
->>>>>> du14:~# modprobe smsc911x
->>>>>> [  254.843811] smsc911x: Driver version 2008-10-21
->>>>>> [  254.854553] smsc911x: Driver version 2008-10-21
->>>>>> [  254.859588] _regulator_get: smsc911x.1 supply vdd33a not found, using
->>>>>> dummy regulator
->>>>>> [  254.868377] _regulator_get: smsc911x.1 supply vddvario not found,
->>>>>> using dummy regulator
->>>>>>
->>>>>> "ip link show" does not show any available Ethernet port.
->>>>>
->>>>> The first instance one should work the same way as earlier using
->>>>> fixed regulator in gpmc-smsc911x.c. Is it not working for you
->>>>> somehow? At least it works for me on zoom3.
->>>>
->>>> The Tobi board has only one Ethernet port.
->>>>
->>>>>> I know there has been some trouble with changes around smsc911x
->>>>>> regulator support and Gumstix Overo in particular. Am I just missing the
->>>>>> right regulator in my kernel config or is this a bug? I can test patches
->>>>>> in the latter case.
->>>>>
->>>>> The second smsc911x now needs a regulator. For multiple smsc911x instances,
->>>>> we should change things around so no regulator is created if one
->>>>> is passed.
->>>>>
->>>>> Care to test the following patch by passing a fixed regulator
->>>>> from board-overo.c?
->>>>
->>>> After applying the patch the Ethernet port works consistently once I had
->>>> done a cold boot (reboot from the unpatched kernel did not work).
->>>> Thank you!
+On 03/21/2012 02:43 PM, Jean Pihet wrote:
+> On Wed, Mar 21, 2012 at 11:07 AM, Santosh Shilimkar
+> <santosh.shilimkar@ti.com>  wrote:
+>> Daniel,
+>>
+>> On Wednesday 21 March 2012 02:57 PM, Daniel Lezcano wrote:
+>>> This patchset is a proposition to improve a bit the code.
+>>> The changes are code cleanup and does not change the behavior of th=
+e
+>>> driver itself.
 >>>
->>> Hmm but this patch should not change the behaviour for the first smsc911x
->>> instance unless you specify a custom regulator.. Did you patch in a
->>> custom regulator, or do we have a bug somewhere? Or do you just need to
->>> do a cold reset without the patch I posted?
->>
->> You're right, during further tests I found that the problem lies
->> elsewhere: If the Ethernet cable is attached on modprobe, the device
->> works as expected, if not, it's not found (with or without the patch).
->> This means if I boot with the cable disconnected, the device won't show
->> up, but after
->>
->> # modprobe -r smsc911x
->> [attach cable]
->> # modprobe smsc911x
->>
->> it will work. I'd still consider this a bug, but it doesn't seem to be a
->> regulator problem.
->>
-> 
-> Hi Thomas,
-> 
-> I had the same behavior with the smsc911x chip but on an IGEPv2 board.
-> The problem was when CONFIG_SMSC_PHY=y since the driver for the chip
-> internal PHY enables an energy detect power-down mode.
-> 
-> The smsc911x driver probe function tries to software reset the chip
-> but if the cable is unplugged the energy detect puts the chip in a low
-> power mode. Since the chip is not in an operational state the reset
-> fails and hence the driver probe function. If the cable is plugged
-> then then energy is detected, the chip is in an operational state and
-> the reset is successful.
-> 
-> I sent a patch a few months ago to fix this issue. The patch disables
-> the energy detect power-down mode before reseting the chip and then it
-> enables again after reset.
-> 
-> The commit is:
-> 
-> commit 6386994e03ebbe60338ded3d586308a41e81c0dc
-> Author: Javier Martinez Canillas <javier@dowhile0.org>
-> Date:   Tue Jan 3 13:36:19 2012 +0000
-> 
->     net/smsc911x: Check if PHY is in operational mode before software reset
-> 
-> When I fix the issue I only guarded against generation 4 chips (i.e:
-> pdata->generation == 4), but maybe this problem also exists in other
-> SMSC chips (I didn't know since I only had access to specific
-> data-sheets).
-> 
-> Also you can try enabling debug in the driver by setting USE_DEBUG to
-> 1 in drivers/net/ethernet/smsc/smsc911x.h and also trying disabling
-> CONFIG_SMSC_PHY, this will use a generic PHY driver that doesn't put
-> the chip in auto power mode.
+>>> A couple a things call my intention. Why the cpuidle device is set =
+for cpu0 only
+>>> and why the WFI is not used ?
+>>>
+>>> Daniel Lezcano (7):
+>>>    ARM: OMAP4: cpuidle - Remove unused valid field
+>>>    ARM: OMAP4: cpuidle - Declare the states with the driver declara=
+tion
+>>>    ARM: OMAP4: cpuidle - Remove the cpuidle_params_table table
+>>>    ARM: OMAP4: cpuidle - fix static omap4_idle_data declaration
+>>>    ARM: OMAP4: cpuidle - Initialize omap4_idle_data at compile time
+>>>    ARM: OMAP4: cpuidle - use the omap4_idle_data variable directly
+>>>    ARM: OMAP4: cpuidle - remove omap4_idle_data initialization at b=
+oot
+>>>      time
+>>>
+>> The series looks fine to me in general. This clean-up is applicable
+>> for OMAP3 cpuidle code as well.
+> Great!
+> However OMAP3 has a few specific things that cannot be removed as eas=
+ily:
+> - the 'valid' flag is used because only certain combinations of power
+> domains states are possible,
 
-Hi Javier,
+When I look the board-rx51 code I see:
 
-thanks for the hint. Deactivating CONFIG_SMSC_PHY didn't help, but I'll
-look into activating USE_DEBUG later.
+static struct cpuidle_params rx51_cpuidle_params[] =3D {
+	/* C1 */
+	{110 + 162, 5 , 1},
+	/* C2 */
+	{106 + 180, 309, 1},
+	/* C3 */
+	{107 + 410, 46057, 0},
+	/* C4 */
+	{121 + 3374, 46057, 0},
+	/* C5 */
+	{855 + 1146, 46057, 1},
+	/* C6 */
+	{7580 + 4134, 484329, 0},
+	/* C7 */
+	{7505 + 15274, 484329, 1},
+};
 
-Regards,
-Thomas
+If C3, C4, C6 are not valid, so AFAICS never used in the cpuidle code
+why the values are 'exit_latency' and 'target_residency' specified ? I=20
+mean why don't we have { 0, 0, 0 } ? Is it just for information ?
+
+I understand the purpose of this code but it looks a bit tricky and har=
+d=20
+to factor out. Is it acceptable to create a new cpuidle driver for rx51=
+=20
+then we factor out the code between omap3, omap4 and rx51 when all the=20
+code consistent ?
+
+> - the latency settings can be overriden by the board code, so the
+> cpuidle_params struct is needed.
+>
+>> I want Jean to look at this series because some of his earlier
+>> clean up has introduced those custom functions which
+>> are getting removed in this series.
+>>
+>> Regards
+>> santosh
+>>
+>>
+>
+> Thanks,
+> Jean
+
+
+--=20
+  <http://www.linaro.org/> Linaro.org =E2=94=82 Open source software fo=
+r ARM SoCs
+
+=46ollow Linaro:  <http://www.facebook.com/pages/Linaro> Facebook |
+<http://twitter.com/#!/linaroorg> Twitter |
+<http://www.linaro.org/linaro-blog/> Blog
+
+--
+To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
