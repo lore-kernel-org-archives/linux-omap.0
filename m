@@ -1,38 +1,53 @@
-From: Santosh Shilimkar <santosh.shilimkar@ti.com>
-Subject: Re: [RFC][PATCH 2/7] ARM: OMAP4: cpuidle - Declare the states with
- the driver declaration
-Date: Wed, 21 Mar 2012 15:20:20 +0530
-Message-ID: <4F69A45C.5050802@ti.com>
-References: <1332322070-24577-1-git-send-email-daniel.lezcano@linaro.org> <1332322070-24577-3-git-send-email-daniel.lezcano@linaro.org>
+From: Daniel Lezcano <daniel.lezcano-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>
+Subject: Re: [RFC][PATCH 0/7] OMAP4 cpuidle cleanup
+Date: Wed, 21 Mar 2012 10:51:33 +0100
+Message-ID: <4F69A4A5.5020208@linaro.org>
+References: <1332322070-24577-1-git-send-email-daniel.lezcano@linaro.org>
+	<CAMQu2gxit11dSbruPLCGx37TRwo9mwNCN9JXn0fZLDTVGu2GcA@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aog133.obsmtp.com ([74.125.149.82]:46115 "EHLO
-	psmtp.com" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
-	id S1752892Ab2CUJu0 (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Wed, 21 Mar 2012 05:50:26 -0400
-Received: by obceq6 with SMTP id eq6so692969obc.40
-        for <linux-omap@vger.kernel.org>; Wed, 21 Mar 2012 02:50:24 -0700 (PDT)
-In-Reply-To: <1332322070-24577-3-git-send-email-daniel.lezcano@linaro.org>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset="utf-8"; Format="flowed"
+Content-Transfer-Encoding: base64
+Return-path: <linaro-dev-bounces-cunTk1MwBs8s++Sfvej+rw@public.gmane.org>
+In-Reply-To: <CAMQu2gxit11dSbruPLCGx37TRwo9mwNCN9JXn0fZLDTVGu2GcA-JsoAwUIsXosN+BqQ9rBEUg@public.gmane.org>
+List-Unsubscribe: <http://lists.linaro.org/mailman/options/linaro-dev>,
+	<mailto:linaro-dev-request-cunTk1MwBs8s++Sfvej+rw@public.gmane.org?subject=unsubscribe>
+List-Archive: <http://lists.linaro.org/pipermail/linaro-dev>
+List-Post: <mailto:linaro-dev-cunTk1MwBs8s++Sfvej+rw@public.gmane.org>
+List-Help: <mailto:linaro-dev-request-cunTk1MwBs8s++Sfvej+rw@public.gmane.org?subject=help>
+List-Subscribe: <http://lists.linaro.org/mailman/listinfo/linaro-dev>,
+	<mailto:linaro-dev-request-cunTk1MwBs8s++Sfvej+rw@public.gmane.org?subject=subscribe>
+Sender: linaro-dev-bounces-cunTk1MwBs8s++Sfvej+rw@public.gmane.org
+Errors-To: linaro-dev-bounces-cunTk1MwBs8s++Sfvej+rw@public.gmane.org
+To: "Shilimkar, Santosh" <santosh.shilimkar-l0cyMroinI0@public.gmane.org>
+Cc: linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linaro-dev-cunTk1MwBs8s++Sfvej+rw@public.gmane.org, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org
 List-Id: linux-omap@vger.kernel.org
-To: Daniel Lezcano <daniel.lezcano@linaro.org>
-Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linaro-dev@lists.linaro.org, Jean Pihet <jean.pihet@newoldbits.com>
 
-+ Jean,
-
-On Wednesday 21 March 2012 02:57 PM, Daniel Lezcano wrote:
-> The cpuidle API allows to declare statically the states in the driver
-> structure. Let's use it.
-> We do no longer need the fill_cstate function called at runtime and
-> by the way adding more instructions at boot time.
-> 
-> Signed-off-by: Daniel Lezcano <daniel.lezcano@linaro.org>
-> ---
-Jean added the fill_cstate() kind of helpers o.w in the old
-cpuidle code9OMAP30, static tables were used. Ofcourse those
-tables were not uinsg the cpuidle driver structure.
-
-Regards
-santosh
+T24gMDMvMjEvMjAxMiAxMDozNiBBTSwgU2hpbGlta2FyLCBTYW50b3NoIHdyb3RlOgo+IE9uIFdl
+ZCwgTWFyIDIxLCAyMDEyIGF0IDI6NTcgUE0sIERhbmllbCBMZXpjYW5vCj4gPGRhbmllbC5sZXpj
+YW5vQGxpbmFyby5vcmc+ICB3cm90ZToKPj4gVGhpcyBwYXRjaHNldCBpcyBhIHByb3Bvc2l0aW9u
+IHRvIGltcHJvdmUgYSBiaXQgdGhlIGNvZGUuCj4+IFRoZSBjaGFuZ2VzIGFyZSBjb2RlIGNsZWFu
+dXAgYW5kIGRvZXMgbm90IGNoYW5nZSB0aGUgYmVoYXZpb3Igb2YgdGhlCj4+IGRyaXZlciBpdHNl
+bGYuCj4+Cj4gVGhhbmtzLiBXaWxsIGhhdmUgYSBsb29rIGF0IHlvdXIgc2VyaWVzLgoKQ29vbCwg
+dGhhbmtzLgoKPj4gQSBjb3VwbGUgYSB0aGluZ3MgY2FsbCBteSBpbnRlbnRpb24uIFdoeSB0aGUg
+Y3B1aWRsZSBkZXZpY2UgaXMgc2V0IGZvciBjcHUwIG9ubHkKPiBCZWNhdXNlIHRoZSBtYWlubGlu
+ZSBjb2RlIENQVUlETEUgaXMgc3VwcG9ydGVkIGFsb25nIHdpdGggQ1BVaG90cGx1Zy4KPiBUaGlz
+IGlzIGdvaW5nIHRvIGNoYW5nZSB0aG91Z2ggd2l0aCBDb3VwbGUgQ1BVSURMRSBhbmQgY29ycmVz
+cG9uZGluZwo+IE9NQVAgdXBkYXRlcy4KCk9rLCB0aGFua3MgZm9yIHRoZSBpbmZvcm1hdGlvbi4g
+SSB3aWxsIGxvb2sgZGVlcGVyLiBXaGF0IGhhcHBlbnMgdG8gY3B1MSAKd2hlbiBpdCBpcyBvbmxp
+bmUgYW5kIGhhcyBub3RoaW5nIHRvIGRvID8KCj4+IGFuZCB3aHkgdGhlIFdGSSBpcyBub3QgdXNl
+ZCA/Cj4+Cj4gSSBkaWRuJ3QgZ2V0IHRoaXMgcXVlc3Rpb24uIERvIHlvdSBtZWFuIHRoZSBnZW5l
+cmljIFdGST8KCnllcy4KCj4gSWYgeWVzLCB0aGVuLCBpdCdzIG1haW5seSBiZWNhdXNlIE9NQVAg
+bmVlZCBhZGRpdGlvbmFsCj4gY3VzdG9tIGJhcnJpZXJzLgoKQWgsIG9rLiBJIGFtIG5vdCBzdXJl
+IGlmIGl0IGlzIHBvc3NpYmxlIGJ1dCB0aGF0IG1heSBiZSBjb29sIGlmIHdlIGNhbiAKY2FsbCBj
+cHVfZG9faWRsZSBpbnN0ZWFkIHdpdGggYWRkaXRpb25hbCBiYXJyaWVyLgoKCj4gLS0KPiBUbyB1
+bnN1YnNjcmliZSBmcm9tIHRoaXMgbGlzdDogc2VuZCB0aGUgbGluZSAidW5zdWJzY3JpYmUgbGlu
+dXgtb21hcCIgaW4KPiB0aGUgYm9keSBvZiBhIG1lc3NhZ2UgdG8gbWFqb3Jkb21vQHZnZXIua2Vy
+bmVsLm9yZwo+IE1vcmUgbWFqb3Jkb21vIGluZm8gYXQgIGh0dHA6Ly92Z2VyLmtlcm5lbC5vcmcv
+bWFqb3Jkb21vLWluZm8uaHRtbAoKCi0tIAogIDxodHRwOi8vd3d3LmxpbmFyby5vcmcvPiBMaW5h
+cm8ub3JnIOKUgiBPcGVuIHNvdXJjZSBzb2Z0d2FyZSBmb3IgQVJNIFNvQ3MKCkZvbGxvdyBMaW5h
+cm86ICA8aHR0cDovL3d3dy5mYWNlYm9vay5jb20vcGFnZXMvTGluYXJvPiBGYWNlYm9vayB8Cjxo
+dHRwOi8vdHdpdHRlci5jb20vIyEvbGluYXJvb3JnPiBUd2l0dGVyIHwKPGh0dHA6Ly93d3cubGlu
+YXJvLm9yZy9saW5hcm8tYmxvZy8+IEJsb2cKCgpfX19fX19fX19fX19fX19fX19fX19fX19fX19f
+X19fX19fX19fX19fX19fX19fXwpsaW5hcm8tZGV2IG1haWxpbmcgbGlzdApsaW5hcm8tZGV2QGxp
+c3RzLmxpbmFyby5vcmcKaHR0cDovL2xpc3RzLmxpbmFyby5vcmcvbWFpbG1hbi9saXN0aW5mby9s
+aW5hcm8tZGV2Cg==
