@@ -1,9 +1,8 @@
 From: Daniel Lezcano <daniel.lezcano@linaro.org>
-Subject: Re: [RFC][PATCH 2/7] ARM: OMAP4: cpuidle - Declare the states with
- the driver declaration
-Date: Wed, 21 Mar 2012 15:12:31 +0100
-Message-ID: <4F69E1CF.8030703@linaro.org>
-References: <1332322070-24577-1-git-send-email-daniel.lezcano@linaro.org> <1332322070-24577-3-git-send-email-daniel.lezcano@linaro.org> <CAORVsuV-0xQx6W0iKGO_UduESFwdD-44vsBAcVXD0Yy-VB_eGw@mail.gmail.com>
+Subject: Re: [RFC][PATCH 0/7] OMAP4 cpuidle cleanup
+Date: Wed, 21 Mar 2012 15:13:02 +0100
+Message-ID: <4F69E1EE.708@linaro.org>
+References: <1332322070-24577-1-git-send-email-daniel.lezcano@linaro.org> <4F69A872.50203@ti.com> <CAORVsuUL3Z_vw+n26eWaa8eAJ0yhXB=VRNmuCeSZjStG527Gag@mail.gmail.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=UTF-8;
 	format=flowed
@@ -11,110 +10,63 @@ Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-omap-owner@vger.kernel.org>
 Received: from mail-bk0-f46.google.com ([209.85.214.46]:58837 "EHLO
 	mail-bk0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1030462Ab2CUOMf (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 21 Mar 2012 10:12:35 -0400
-Received: by bkcik5 with SMTP id ik5so935918bkc.19
-        for <linux-omap@vger.kernel.org>; Wed, 21 Mar 2012 07:12:34 -0700 (PDT)
-In-Reply-To: <CAORVsuV-0xQx6W0iKGO_UduESFwdD-44vsBAcVXD0Yy-VB_eGw@mail.gmail.com>
+	with ESMTP id S1030538Ab2CUONF (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 21 Mar 2012 10:13:05 -0400
+Received: by mail-bk0-f46.google.com with SMTP id ik5so935918bkc.19
+        for <linux-omap@vger.kernel.org>; Wed, 21 Mar 2012 07:13:05 -0700 (PDT)
+In-Reply-To: <CAORVsuUL3Z_vw+n26eWaa8eAJ0yhXB=VRNmuCeSZjStG527Gag@mail.gmail.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: Jean Pihet <jean.pihet@newoldbits.com>
-Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linaro-dev@lists.linaro.org
+Cc: Santosh Shilimkar <santosh.shilimkar@ti.com>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Linaro Dev <linaro-dev@lists.linaro.org>
 
-On 03/21/2012 02:31 PM, Jean Pihet wrote:
-> On Wed, Mar 21, 2012 at 10:27 AM, Daniel Lezcano
-> <daniel.lezcano@linaro.org>  wrote:
->> The cpuidle API allows to declare statically the states in the drive=
-r
->> structure. Let's use it.
->> We do no longer need the fill_cstate function called at runtime and
->> by the way adding more instructions at boot time.
->>
->> Signed-off-by: Daniel Lezcano<daniel.lezcano@linaro.org>
->> ---
->>   arch/arm/mach-omap2/cpuidle44xx.c |   56 +++++++++++++++++++++----=
-------------
->>   1 files changed, 32 insertions(+), 24 deletions(-)
->>
->> diff --git a/arch/arm/mach-omap2/cpuidle44xx.c b/arch/arm/mach-omap2=
-/cpuidle44xx.c
->> index 1210229..cd6bee7 100644
->> --- a/arch/arm/mach-omap2/cpuidle44xx.c
->> +++ b/arch/arm/mach-omap2/cpuidle44xx.c
->> @@ -148,21 +148,38 @@ DEFINE_PER_CPU(struct cpuidle_device, omap4_id=
-le_dev);
->>   struct cpuidle_driver omap4_idle_driver =3D {
->>         .name =3D         "omap4_idle",
->>         .owner =3D        THIS_MODULE,
->> +       .states =3D {
->> +               {
->> +                       /* C1 - CPU0 ON + CPU1 ON + MPU ON */
->> +                       .exit_latency =3D 2 + 2,
->> +                       .target_residency =3D 5,
->> +                       .flags =3D CPUIDLE_FLAG_TIME_VALID,
->> +                       .enter =3D omap4_enter_idle,
->> +                       .name =3D "C1",
->> +                       .desc =3D "MPUSS ON"
->> +               },
-> ...
->> +       },
->> +       .state_count =3D OMAP4_NUM_STATES,
->>   };
->>
->> -static inline void _fill_cstate(struct cpuidle_driver *drv,
->> -                                       int idx, const char *descr)
->> -{
->> -       struct cpuidle_state *state =3D&drv->states[idx];
->> -
->> -       state->exit_latency     =3D cpuidle_params_table[idx].exit_l=
-atency;
->> -       state->target_residency =3D cpuidle_params_table[idx].target=
-_residency;
->> -       state->flags            =3D CPUIDLE_FLAG_TIME_VALID;
->> -       state->enter            =3D omap4_enter_idle;
->> -       sprintf(state->name, "C%d", idx + 1);
->> -       strncpy(state->desc, descr, CPUIDLE_DESC_LEN);
->> -}
-> I am OK with this change, which makes the code more readable (and so
-> maintainable).
+On 03/21/2012 02:19 PM, Jean Pihet wrote:
+> Hi Santosh, Daniel,
 >
->> -
->>   static inline struct omap4_idle_statedata *_fill_cstate_usage(
->>                                         struct cpuidle_device *dev,
->>                                         int idx)
->> @@ -196,37 +213,28 @@ int __init omap4_idle_init(void)
->>         if ((!mpu_pd) || (!cpu0_pd) || (!cpu1_pd))
->>                 return -ENODEV;
+> On Wed, Mar 21, 2012 at 11:07 AM, Santosh Shilimkar
+> <santosh.shilimkar@ti.com>  wrote:
+>> Daniel,
 >>
->> -
->> -       drv->safe_state_index =3D -1;
->>         dev =3D&per_cpu(omap4_idle_dev, cpu_id);
->>         dev->cpu =3D cpu_id;
+>> On Wednesday 21 March 2012 02:57 PM, Daniel Lezcano wrote:
+>>> This patchset is a proposition to improve a bit the code.
+>>> The changes are code cleanup and does not change the behavior of th=
+e
+>>> driver itself.
+>>>
+>>> A couple a things call my intention. Why the cpuidle device is set =
+for cpu0 only
+>>> and why the WFI is not used ?
+>>>
+>>> Daniel Lezcano (7):
+>>>    ARM: OMAP4: cpuidle - Remove unused valid field
+>>>    ARM: OMAP4: cpuidle - Declare the states with the driver declara=
+tion
+>>>    ARM: OMAP4: cpuidle - Remove the cpuidle_params_table table
+>>>    ARM: OMAP4: cpuidle - fix static omap4_idle_data declaration
+>>>    ARM: OMAP4: cpuidle - Initialize omap4_idle_data at compile time
+>>>    ARM: OMAP4: cpuidle - use the omap4_idle_data variable directly
+>>>    ARM: OMAP4: cpuidle - remove omap4_idle_data initialization at b=
+oot
+>>>      time
+>>>
+>> The series looks fine to me in general. This clean-up is applicable
+>> for OMAP3 cpuidle code as well.
 >>
->> -       /* C1 - CPU0 ON + CPU1 ON + MPU ON */
->> -       _fill_cstate(drv, 0, "MPUSS ON");
->> -       drv->safe_state_index =3D 0;
-> I would keep this or add a clear comment that C1 is the safe state.
-
-Actually with the driver's states declaration, the safe_state_index is=20
-initialized to zero, which means the default safe_state is always 0 wit=
-h=20
-the new API. But I can add the initialization anyway in the structure=20
-declaration if you want.
-
-> ...
+>> I want Jean to look at this series because some of his earlier
+>> clean up has introduced those custom functions which
+>> are getting removed in this series.
+> I am OK with the patch set, I only have minor remarks to the individu=
+al patches.
 >
-> Thanks,
+> Reviewed-by: Jean Pihet<j-pihet@ti.com>
+
+Thanks for the review Jean.
+
+>>
+>>
+>
+> Thanks!
 > Jean
->
->> --
->> 1.7.5.4
->>
->> --
->> To unsubscribe from this list: send the line "unsubscribe linux-omap=
-" in
->> the body of a message to majordomo@vger.kernel.org
->> More majordomo info at  http://vger.kernel.org/majordomo-info.html
 
 
 --=20
