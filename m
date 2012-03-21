@@ -1,61 +1,57 @@
-From: Santosh Shilimkar <santosh.shilimkar@ti.com>
-Subject: Re: [RFC][PATCH 0/7] OMAP4 cpuidle cleanup
-Date: Wed, 21 Mar 2012 15:26:10 +0530
-Message-ID: <4F69A5BA.1080804@ti.com>
-References: <1332322070-24577-1-git-send-email-daniel.lezcano@linaro.org> <CAMQu2gxit11dSbruPLCGx37TRwo9mwNCN9JXn0fZLDTVGu2GcA@mail.gmail.com> <4F69A4A5.5020208@linaro.org>
+From: Santosh Shilimkar <santosh.shilimkar-l0cyMroinI0@public.gmane.org>
+Subject: Re: [RFC][PATCH 1/7] ARM: OMAP4: cpuidle - Remove unused valid field
+Date: Wed, 21 Mar 2012 15:33:14 +0530
+Message-ID: <4F69A762.5070006@ti.com>
+References: <1332322070-24577-1-git-send-email-daniel.lezcano@linaro.org>
+	<1332322070-24577-2-git-send-email-daniel.lezcano@linaro.org>
+	<CAMQu2gw+GGnpG_s6TCk2fH094Lfmj1zgAZqQ4zdQmpj3ZZhu3w@mail.gmail.com>
+	<4F69A37A.7020606@linaro.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
+Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aog136.obsmtp.com ([74.125.149.85]:60552 "EHLO
-	psmtp.com" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
-	id S1753002Ab2CUJ4Q (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Wed, 21 Mar 2012 05:56:16 -0400
-Received: by mail-gy0-f174.google.com with SMTP id r11so899756ghr.5
-        for <linux-omap@vger.kernel.org>; Wed, 21 Mar 2012 02:56:15 -0700 (PDT)
-In-Reply-To: <4F69A4A5.5020208@linaro.org>
-Sender: linux-omap-owner@vger.kernel.org
+Return-path: <linaro-dev-bounces-cunTk1MwBs8s++Sfvej+rw@public.gmane.org>
+In-Reply-To: <4F69A37A.7020606-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>
+List-Unsubscribe: <http://lists.linaro.org/mailman/options/linaro-dev>,
+	<mailto:linaro-dev-request-cunTk1MwBs8s++Sfvej+rw@public.gmane.org?subject=unsubscribe>
+List-Archive: <http://lists.linaro.org/pipermail/linaro-dev>
+List-Post: <mailto:linaro-dev-cunTk1MwBs8s++Sfvej+rw@public.gmane.org>
+List-Help: <mailto:linaro-dev-request-cunTk1MwBs8s++Sfvej+rw@public.gmane.org?subject=help>
+List-Subscribe: <http://lists.linaro.org/mailman/listinfo/linaro-dev>,
+	<mailto:linaro-dev-request-cunTk1MwBs8s++Sfvej+rw@public.gmane.org?subject=subscribe>
+Sender: linaro-dev-bounces-cunTk1MwBs8s++Sfvej+rw@public.gmane.org
+Errors-To: linaro-dev-bounces-cunTk1MwBs8s++Sfvej+rw@public.gmane.org
+To: Daniel Lezcano <daniel.lezcano-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>
+Cc: linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linaro-dev-cunTk1MwBs8s++Sfvej+rw@public.gmane.org, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org
 List-Id: linux-omap@vger.kernel.org
-To: Daniel Lezcano <daniel.lezcano@linaro.org>
-Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linaro-dev@lists.linaro.org
 
-On Wednesday 21 March 2012 03:21 PM, Daniel Lezcano wrote:
-> On 03/21/2012 10:36 AM, Shilimkar, Santosh wrote:
+On Wednesday 21 March 2012 03:16 PM, Daniel Lezcano wrote:
+> On 03/21/2012 10:41 AM, Shilimkar, Santosh wrote:
 >> On Wed, Mar 21, 2012 at 2:57 PM, Daniel Lezcano
->> <daniel.lezcano@linaro.org>  wrote:
->>> This patchset is a proposition to improve a bit the code.
->>> The changes are code cleanup and does not change the behavior of the
->>> driver itself.
+>> <daniel.lezcano-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>  wrote:
+>>> The 'valid' field is never used in the code, let's remove it.
 >>>
->> Thanks. Will have a look at your series.
+>>> Signed-off-by: Daniel Lezcano<daniel.lezcano-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>
+>>> ---
+>> It is used during the registration. This field has been very useful for
+>> debug when need to disable a C-state etc.
+>> So unless and until there is a strong reason, i would like to retain it.
 > 
-> Cool, thanks.
-> 
->>> A couple a things call my intention. Why the cpuidle device is set
->>> for cpu0 only
->> Because the mainline code CPUIDLE is supported along with CPUhotplug.
->> This is going to change though with Couple CPUIDLE and corresponding
->> OMAP updates.
-> 
-> Ok, thanks for the information. I will look deeper. What happens to cpu1
-> when it is online and has nothing to do ?
-> 
->>> and why the WFI is not used ?
->>>
->> I didn't get this question. Do you mean the generic WFI?
-> 
-I execute default idle loop.
-
-> yes.
-> 
->> If yes, then, it's mainly because OMAP need additional
->> custom barriers.
-> 
-> Ah, ok. I am not sure if it is possible but that may be cool if we can
-> call cpu_do_idle instead with additional barrier.
+> IMO if it used for debug purpose, it should be moved to the debug code
+> and if the debug code is not upstream, then that 'valid' should not be
+> here but in the out-of-tree code.
 >
-There is no need. Since code around WFI is customised, it make no sense
-to call cpu_do_idle(0 ofr only that instruction sake.
+When I said debug, I mean CPUIDLE debug and not any special debug code.
+
+> By the way, this may be a debate for nothing because a patchset is on
+> the way to disable C-states from sysfs.
+> 
+I see but sysfs won't solve that because you want to disable certain
+C-state so that CPUIDLE driver don't use that state.
+
+Let say if the C4 which is OSWR is broken. In such cases, just
+setting valid flag let you disable it.
+
+Again I don't have strong objection to this change.
 
 Regards
-Santosh
+santosh
