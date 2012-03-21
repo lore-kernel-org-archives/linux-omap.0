@@ -1,40 +1,106 @@
 From: "Govindraj.R" <govindraj.raja@ti.com>
-Subject: [PATCH 0/3] OMAP2+: UART: Enable tx wakeup + remove cpu checks
-Date: Wed, 21 Mar 2012 15:54:58 +0530
-Message-ID: <1332325501-10467-1-git-send-email-govindraj.raja@ti.com>
+Subject: [PATCH 2/3] OMAP2+: UART: enable tx wakeup bit for wer reg
+Date: Wed, 21 Mar 2012 15:55:00 +0530
+Message-ID: <1332325501-10467-3-git-send-email-govindraj.raja@ti.com>
+References: <1332325501-10467-1-git-send-email-govindraj.raja@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from devils.ext.ti.com ([198.47.26.153]:36635 "EHLO
-	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1757944Ab2CUKZZ (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 21 Mar 2012 06:25:25 -0400
-Sender: linux-omap-owner@vger.kernel.org
-List-Id: linux-omap@vger.kernel.org
+Return-path: <linux-serial-owner@vger.kernel.org>
+In-Reply-To: <1332325501-10467-1-git-send-email-govindraj.raja@ti.com>
+Sender: linux-serial-owner@vger.kernel.org
 To: linux-omap@vger.kernel.org
 Cc: linux-serial@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Kevin Hilman <khilman@ti.com>, Paul Walmsley <paul@pwsan.com>, Felipe Balbi <balbi@ti.com>, "Govindraj.R" <govindraj.raja@ti.com>
+List-Id: linux-omap@vger.kernel.org
 
 From: "Govindraj.R" <govindraj.raja@ti.com>
 
-Based on Linux-OMAP tree uart branch.
-(git://git.kernel.org/pub/scm/linux/kernel/git/tmlind/linux-omap.git
-remotes/origin/uart)
+>From omap36xx onwards the module wakeup enable reg
+wer has TX wakeup bit available enable the same
+by populating the necessary tx wakeup flag for the
+applicable module ip blocks and use the same
+while configuaring wer reg.
 
-* Removes the cpu checks wherever possible and use version reg
-  for populating features and errata's
-* enable tx wakeup available in wer reg for applicable
-  module revision's
+Also wer is not context restored, restore wer when
+context is lost.
 
-Govindraj.R (3):
-  OMAP2+: UART: Remove cpu checks for populating errata flags
-  OMAP2+: UART: enable tx wakeup bit for wer reg
-  OMAP2+: UART: replace omap34xx/omap4xx cpu checks with not omap24xx
+Cc: Paul Walmsley <paul@pwsan.com>
+Cc: Felipe Balbi <balbi@ti.com
+Cc: Kevin Hilman <khilman@ti.com>
+Signed-off-by: Govindraj.R <govindraj.raja@ti.com>
+---
+ arch/arm/plat-omap/include/plat/omap-serial.h |    7 +++++++
+ drivers/tty/serial/omap-serial.c              |    9 ++++++++-
+ 2 files changed, 15 insertions(+), 1 deletions(-)
 
- arch/arm/mach-omap2/serial.c                  |   13 +----
- arch/arm/plat-omap/include/plat/omap-serial.h |    8 +++-
- drivers/tty/serial/omap-serial.c              |   71 ++++++++++++++++++++++++-
- 3 files changed, 78 insertions(+), 14 deletions(-)
-
+diff --git a/arch/arm/plat-omap/include/plat/omap-serial.h b/arch/arm/plat-omap/include/plat/omap-serial.h
+index 1a52725..8a4ca5c 100644
+--- a/arch/arm/plat-omap/include/plat/omap-serial.h
++++ b/arch/arm/plat-omap/include/plat/omap-serial.h
+@@ -61,6 +61,11 @@
+ #define UART_ERRATA_i202_MDR1_ACCESS	BIT(0)
+ #define UART_ERRATA_i291_DMA_FORCEIDLE	BIT(1)
+ 
++#define OMAP_UART_TX_WAKEUP_EN	BIT(7)
++
++/* Feature flags */
++#define OMAP_UART_WER_HAS_TX_WAKEUP	BIT(0)
++
+ struct omap_uart_port_info {
+ 	bool			dma_enabled;	/* To specify DMA Mode */
+ 	unsigned int		uartclk;	/* UART clock rate */
+@@ -116,6 +121,7 @@ struct uart_omap_port {
+ 	unsigned char		dlh;
+ 	unsigned char		mdr1;
+ 	unsigned char		scr;
++	unsigned char		wer;
+ 
+ 	int			use_dma;
+ 	/*
+@@ -129,6 +135,7 @@ struct uart_omap_port {
+ 	unsigned long		port_activity;
+ 	u32			context_loss_cnt;
+ 	u32			errata;
++	u32			features;
+ 	u8			wakeups_enabled;
+ 
+ 	struct pm_qos_request	pm_qos_request;
+diff --git a/drivers/tty/serial/omap-serial.c b/drivers/tty/serial/omap-serial.c
+index c7666d6..20d568d 100644
+--- a/drivers/tty/serial/omap-serial.c
++++ b/drivers/tty/serial/omap-serial.c
+@@ -585,7 +585,11 @@ static int serial_omap_startup(struct uart_port *port)
+ 	serial_out(up, UART_IER, up->ier);
+ 
+ 	/* Enable module level wake up */
+-	serial_out(up, UART_OMAP_WER, OMAP_UART_WER_MOD_WKUP);
++	up->wer = OMAP_UART_WER_MOD_WKUP;
++	if (up->features & OMAP_UART_WER_HAS_TX_WAKEUP)
++		up->wer |= OMAP_UART_TX_WAKEUP_EN;
++
++	serial_out(up, UART_OMAP_WER, up->wer);
+ 
+ 	pm_runtime_mark_last_busy(&up->pdev->dev);
+ 	pm_runtime_put_autosuspend(&up->pdev->dev);
+@@ -1396,9 +1400,11 @@ static void omap_serial_fill_features_erratas(struct uart_omap_port *up)
+ 	case OMAP_UART_REV_52:
+ 		up->errata |= (UART_ERRATA_i202_MDR1_ACCESS |
+ 				UART_ERRATA_i291_DMA_FORCEIDLE);
++		up->features |= OMAP_UART_WER_HAS_TX_WAKEUP;
+ 		break;
+ 	case OMAP_UART_REV_63:
+ 		up->errata |= UART_ERRATA_i202_MDR1_ACCESS;
++		up->features |= OMAP_UART_WER_HAS_TX_WAKEUP;
+ 		break;
+ 	default:
+ 		break;
+@@ -1629,6 +1635,7 @@ static void serial_omap_restore_context(struct uart_omap_port *up)
+ 		serial_omap_mdr1_errataset(up, up->mdr1);
+ 	else
+ 		serial_out(up, UART_OMAP_MDR1, up->mdr1);
++	serial_out(up, UART_OMAP_WER, up->wer);
+ }
+ 
+ static int serial_omap_runtime_suspend(struct device *dev)
 -- 
 1.7.5.4
 
