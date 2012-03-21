@@ -1,66 +1,53 @@
-From: Felipe Balbi <balbi-l0cyMroinI0@public.gmane.org>
-Subject: Re: [PATCH RFC] usb: musb: omap: fix the error check for
- pm_runtime_get_sync
-Date: Thu, 22 Mar 2012 10:09:20 +0200
-Message-ID: <20120322080919.GF31160@arwen.pp.htv.fi>
-References: <1332400686-27674-1-git-send-email-shubhrajyoti@ti.com>
-Reply-To: balbi-l0cyMroinI0@public.gmane.org
-Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="SnV5plBeK2Ge1I9g"
-Return-path: <linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <1332400686-27674-1-git-send-email-shubhrajyoti-l0cyMroinI0@public.gmane.org>
-Sender: linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Shubhrajyoti D <shubhrajyoti-l0cyMroinI0@public.gmane.org>
-Cc: linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, balbi-l0cyMroinI0@public.gmane.org, Kishon Vijay Abraham I <kishon-l0cyMroinI0@public.gmane.org>
+From: Grant Likely <grant.likely@secretlab.ca>
+Subject: Re: [PATCH v4 RESEND 0/7] gpio/omap: Some more driver fixes
+Date: Wed, 21 Mar 2012 14:34:37 +0000
+Message-ID: <20120321143437.8AF563E0648@localhost>
+References: <1332240799-6748-1-git-send-email-tarun.kanti@ti.com> <20120320143544.AA6E93E2834@localhost> <87haxj17xq.fsf@ti.com>
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from mail-wi0-f172.google.com ([209.85.212.172]:48973 "EHLO
+	mail-wi0-f172.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S964786Ab2CVJLd (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 22 Mar 2012 05:11:33 -0400
+Received: by wibhj6 with SMTP id hj6so481996wib.1
+        for <linux-omap@vger.kernel.org>; Thu, 22 Mar 2012 02:11:32 -0700 (PDT)
+In-Reply-To: <87haxj17xq.fsf@ti.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Kevin Hilman <khilman@ti.com>
+Cc: Tarun Kanti DebBarma <tarun.kanti@ti.com>, linux-omap@vger.kernel.org, tony@atomide.com, b-cousson@ti.com, linux-arm-kernel@lists.infradead.org
 
+On Tue, 20 Mar 2012 10:46:57 -0700, Kevin Hilman <khilman@ti.com> wrote:
+> Hi Grant,
+> 
+> Grant Likely <grant.likely@secretlab.ca> writes:
+> 
+> > On Tue, 20 Mar 2012 16:23:12 +0530, Tarun Kanti DebBarma <tarun.kanti@ti.com> wrote:
+> >> This series excludes the cleanup patches as suggested by Kevin from
+> >> the previously posted series.
+> >> 
+> >> The fixes include correction of _set_gpio_irqenable() implementation,
+> >> missing wakeup_en register update in set_gpio_wakeup(), type mismatch
+> >> of gpio trigger parameter in set_gpio_trigger(), incorrect dataout
+> >> register update in set_gpio_dataout_() and few corrections in context
+> >> save logic.
+> >> 
+> >> It is baselined on top of:
+> >> git://git.secretlab.ca/git/linux-2.6.git gpio/next
+> >> Commit: 81b279d80a63628e580c71a31d30a8c3b3047ad4
+> >> 
+> >> Series is available here for reference:
+> >> git://gitorious.org/~tarunkanti/omap-sw-develoment/tarunkantis-linux-omap-dev for_3.4/gpio_more_fixes
+> >
+> > Merged; thanks
+> 
+> Can you hold off slightly before merging this.
+> 
+> I haven't been through v4 yet or tested the fixes alone now that they're
+> separated from the other cleanups.
+> 
+> Expect a pull request from me when ready.
 
---SnV5plBeK2Ge1I9g
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
+Okay.  It's in linux-next at the moment, but I'll pull it back out.
 
-On Thu, Mar 22, 2012 at 12:48:06PM +0530, Shubhrajyoti D wrote:
-> pm_runtime_get_sync returns a signed integer.In case of errors
-> it returns a negative value.This patch fixes the error check
-> by making it signed instead of unsigned thus preventing register
-> access if get_sync_fails. Also passes the error cause to the
-> debug message.
->=20
-> Cc:  Kishon Vijay Abraham I <kishon-l0cyMroinI0@public.gmane.org>
-> Signed-off-by: Shubhrajyoti D <shubhrajyoti-l0cyMroinI0@public.gmane.org>
+g.
 
-applied, thanks
-
---=20
-balbi
-
---SnV5plBeK2Ge1I9g
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: Digital signature
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.4.11 (GNU/Linux)
-
-iQIcBAEBAgAGBQJPat4vAAoJEIaOsuA1yqRELzkQAJ2QBevV8d/SmfAmlFbRyPmJ
-f8lJwsLzkglVVmGW0IjqANgilIo59O0qYe9hX1QvuZ4E7KWaPkaT8RDoq1C/U0z6
-NNeUDHP3eYadjq8KdumUHvI5c9NB1LeDUdZyuwaiBoJIaJ/37Xh4Bfm6BH6TnJJy
-BFyRrRhoCFGDzSvTQ5ztEXU1qZjgD8+wP26Ie4UNERmUcpYcc9HZchLg0z8L7IEE
-dSQKKoDrqsvcRGcjhRdUN5yU++XiOyykhpBrzjGEkw90SSLTBBwquuBtnVrXkIaT
-wPaDLTVWwVBslS3pJ+GFUc87sqi1Gt+tkO8TgMcLet9ue9O/BfPrQE/8jrWVU7UG
-jB3CiV49TpsLuQS2Dk4GB4pYBLqS0aDE2xatawZba8GuwQ1HqmFFD3Gm0nBQ5vOw
-f+HruH3UZ7nbnceplCegQvA7+SdiqGmwOgVelCL012F+syukXqg0LaocIZ8bwbTr
-FdmN/lTRSxamaWkmWQIsw8/j/aEWV8ML8sjEgkjVeBO8/LHQhrzRd49CJsosy1Ad
-VeZ8ryomA7YYlwAOwLklSGTdKfNFXrh8KFjRuVmUGEqiEqMCmvoJR8VIWb/56smu
-y/sREs9/DWeQxgG+w+LaW2nUOCfaBbTRrUCse2TRk6gWLI8uFSnmutCRoPWF3A1s
-IJLouSu6rZTn4ra4QXR0
-=2ALQ
------END PGP SIGNATURE-----
-
---SnV5plBeK2Ge1I9g--
---
-To unsubscribe from this list: send the line "unsubscribe linux-usb" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
