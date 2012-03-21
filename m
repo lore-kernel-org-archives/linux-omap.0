@@ -1,7 +1,7 @@
 From: "Govindraj.R" <govindraj.raja@ti.com>
-Subject: [PATCH 2/3] OMAP2+: UART: enable tx wakeup bit for wer reg
-Date: Wed, 21 Mar 2012 15:55:00 +0530
-Message-ID: <1332325501-10467-3-git-send-email-govindraj.raja@ti.com>
+Subject: [PATCH 3/3] OMAP2+: UART: replace omap34xx/omap4xx cpu checks with not omap24xx
+Date: Wed, 21 Mar 2012 15:55:01 +0530
+Message-ID: <1332325501-10467-4-git-send-email-govindraj.raja@ti.com>
 References: <1332325501-10467-1-git-send-email-govindraj.raja@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
@@ -14,93 +14,40 @@ List-Id: linux-omap@vger.kernel.org
 
 From: "Govindraj.R" <govindraj.raja@ti.com>
 
->From omap36xx onwards the module wakeup enable reg
-wer has TX wakeup bit available enable the same
-by populating the necessary tx wakeup flag for the
-applicable module ip blocks and use the same
-while configuaring wer reg.
-
-Also wer is not context restored, restore wer when
-context is lost.
+Minor cleanup, replace all omap34xx/omap44xx cpu checks with
+cpu is not omap24xx check.
 
 Cc: Paul Walmsley <paul@pwsan.com>
 Cc: Felipe Balbi <balbi@ti.com
 Cc: Kevin Hilman <khilman@ti.com>
 Signed-off-by: Govindraj.R <govindraj.raja@ti.com>
 ---
- arch/arm/plat-omap/include/plat/omap-serial.h |    7 +++++++
- drivers/tty/serial/omap-serial.c              |    9 ++++++++-
- 2 files changed, 15 insertions(+), 1 deletions(-)
+ arch/arm/mach-omap2/serial.c |    5 ++---
+ 1 files changed, 2 insertions(+), 3 deletions(-)
 
-diff --git a/arch/arm/plat-omap/include/plat/omap-serial.h b/arch/arm/plat-omap/include/plat/omap-serial.h
-index 1a52725..8a4ca5c 100644
---- a/arch/arm/plat-omap/include/plat/omap-serial.h
-+++ b/arch/arm/plat-omap/include/plat/omap-serial.h
-@@ -61,6 +61,11 @@
- #define UART_ERRATA_i202_MDR1_ACCESS	BIT(0)
- #define UART_ERRATA_i291_DMA_FORCEIDLE	BIT(1)
+diff --git a/arch/arm/mach-omap2/serial.c b/arch/arm/mach-omap2/serial.c
+index 330ee04..83ab5a2 100644
+--- a/arch/arm/mach-omap2/serial.c
++++ b/arch/arm/mach-omap2/serial.c
+@@ -377,8 +377,7 @@ void __init omap_serial_init_port(struct omap_board_data *bdata,
  
-+#define OMAP_UART_TX_WAKEUP_EN	BIT(7)
-+
-+/* Feature flags */
-+#define OMAP_UART_WER_HAS_TX_WAKEUP	BIT(0)
-+
- struct omap_uart_port_info {
- 	bool			dma_enabled;	/* To specify DMA Mode */
- 	unsigned int		uartclk;	/* UART clock rate */
-@@ -116,6 +121,7 @@ struct uart_omap_port {
- 	unsigned char		dlh;
- 	unsigned char		mdr1;
- 	unsigned char		scr;
-+	unsigned char		wer;
+ 	oh->dev_attr = uart;
  
- 	int			use_dma;
- 	/*
-@@ -129,6 +135,7 @@ struct uart_omap_port {
- 	unsigned long		port_activity;
- 	u32			context_loss_cnt;
- 	u32			errata;
-+	u32			features;
- 	u8			wakeups_enabled;
- 
- 	struct pm_qos_request	pm_qos_request;
-diff --git a/drivers/tty/serial/omap-serial.c b/drivers/tty/serial/omap-serial.c
-index c7666d6..20d568d 100644
---- a/drivers/tty/serial/omap-serial.c
-+++ b/drivers/tty/serial/omap-serial.c
-@@ -585,7 +585,11 @@ static int serial_omap_startup(struct uart_port *port)
- 	serial_out(up, UART_IER, up->ier);
- 
- 	/* Enable module level wake up */
--	serial_out(up, UART_OMAP_WER, OMAP_UART_WER_MOD_WKUP);
-+	up->wer = OMAP_UART_WER_MOD_WKUP;
-+	if (up->features & OMAP_UART_WER_HAS_TX_WAKEUP)
-+		up->wer |= OMAP_UART_TX_WAKEUP_EN;
-+
-+	serial_out(up, UART_OMAP_WER, up->wer);
- 
- 	pm_runtime_mark_last_busy(&up->pdev->dev);
- 	pm_runtime_put_autosuspend(&up->pdev->dev);
-@@ -1396,9 +1400,11 @@ static void omap_serial_fill_features_erratas(struct uart_omap_port *up)
- 	case OMAP_UART_REV_52:
- 		up->errata |= (UART_ERRATA_i202_MDR1_ACCESS |
- 				UART_ERRATA_i291_DMA_FORCEIDLE);
-+		up->features |= OMAP_UART_WER_HAS_TX_WAKEUP;
- 		break;
- 	case OMAP_UART_REV_63:
- 		up->errata |= UART_ERRATA_i202_MDR1_ACCESS;
-+		up->features |= OMAP_UART_WER_HAS_TX_WAKEUP;
- 		break;
- 	default:
- 		break;
-@@ -1629,6 +1635,7 @@ static void serial_omap_restore_context(struct uart_omap_port *up)
- 		serial_omap_mdr1_errataset(up, up->mdr1);
- 	else
- 		serial_out(up, UART_OMAP_MDR1, up->mdr1);
-+	serial_out(up, UART_OMAP_WER, up->wer);
+-	if (((cpu_is_omap34xx() || cpu_is_omap44xx()) && bdata->pads)
+-			&& !uart_debug)
++	if ((!cpu_is_omap24xx() && bdata->pads)	&& !uart_debug)
+ 		device_init_wakeup(&pdev->dev, true);
  }
  
- static int serial_omap_runtime_suspend(struct device *dev)
+@@ -401,7 +400,7 @@ void __init omap_serial_board_init(struct omap_uart_port_info *info)
+ 		bdata.pads = NULL;
+ 		bdata.pads_cnt = 0;
+ 
+-		if (cpu_is_omap44xx() || cpu_is_omap34xx())
++		if (!cpu_is_omap24xx())
+ 			omap_serial_fill_default_pads(&bdata);
+ 
+ 		if (!info)
 -- 
 1.7.5.4
 
