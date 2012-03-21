@@ -1,53 +1,69 @@
-From: Daniel Lezcano <daniel.lezcano-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>
-Subject: Re: [RFC][PATCH 0/7] OMAP4 cpuidle cleanup
-Date: Wed, 21 Mar 2012 10:51:33 +0100
-Message-ID: <4F69A4A5.5020208@linaro.org>
-References: <1332322070-24577-1-git-send-email-daniel.lezcano@linaro.org>
-	<CAMQu2gxit11dSbruPLCGx37TRwo9mwNCN9JXn0fZLDTVGu2GcA@mail.gmail.com>
+From: Chandrabhanu Mahapatra <cmahapatra@ti.com>
+Subject: [PATCH V2 0/3] OMAPDSS: DISPC: Enable predecimation for DMA and VRFB
+Date: Wed, 21 Mar 2012 15:21:24 +0530
+Message-ID: <1332323484-8975-1-git-send-email-cmahapatra@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"; Format="flowed"
-Content-Transfer-Encoding: base64
-Return-path: <linaro-dev-bounces-cunTk1MwBs8s++Sfvej+rw@public.gmane.org>
-In-Reply-To: <CAMQu2gxit11dSbruPLCGx37TRwo9mwNCN9JXn0fZLDTVGu2GcA-JsoAwUIsXosN+BqQ9rBEUg@public.gmane.org>
-List-Unsubscribe: <http://lists.linaro.org/mailman/options/linaro-dev>,
-	<mailto:linaro-dev-request-cunTk1MwBs8s++Sfvej+rw@public.gmane.org?subject=unsubscribe>
-List-Archive: <http://lists.linaro.org/pipermail/linaro-dev>
-List-Post: <mailto:linaro-dev-cunTk1MwBs8s++Sfvej+rw@public.gmane.org>
-List-Help: <mailto:linaro-dev-request-cunTk1MwBs8s++Sfvej+rw@public.gmane.org?subject=help>
-List-Subscribe: <http://lists.linaro.org/mailman/listinfo/linaro-dev>,
-	<mailto:linaro-dev-request-cunTk1MwBs8s++Sfvej+rw@public.gmane.org?subject=subscribe>
-Sender: linaro-dev-bounces-cunTk1MwBs8s++Sfvej+rw@public.gmane.org
-Errors-To: linaro-dev-bounces-cunTk1MwBs8s++Sfvej+rw@public.gmane.org
-To: "Shilimkar, Santosh" <santosh.shilimkar-l0cyMroinI0@public.gmane.org>
-Cc: linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linaro-dev-cunTk1MwBs8s++Sfvej+rw@public.gmane.org, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from bear.ext.ti.com ([192.94.94.41]:48108 "EHLO bear.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1757624Ab2CUJvf (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Wed, 21 Mar 2012 05:51:35 -0400
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: tomi.valkeinen@ti.com
+Cc: linux-omap@vger.kernel.org, linux-fbdev@vger.kernel.org, Chandrabhanu Mahapatra <cmahapatra@ti.com>
 
-T24gMDMvMjEvMjAxMiAxMDozNiBBTSwgU2hpbGlta2FyLCBTYW50b3NoIHdyb3RlOgo+IE9uIFdl
-ZCwgTWFyIDIxLCAyMDEyIGF0IDI6NTcgUE0sIERhbmllbCBMZXpjYW5vCj4gPGRhbmllbC5sZXpj
-YW5vQGxpbmFyby5vcmc+ICB3cm90ZToKPj4gVGhpcyBwYXRjaHNldCBpcyBhIHByb3Bvc2l0aW9u
-IHRvIGltcHJvdmUgYSBiaXQgdGhlIGNvZGUuCj4+IFRoZSBjaGFuZ2VzIGFyZSBjb2RlIGNsZWFu
-dXAgYW5kIGRvZXMgbm90IGNoYW5nZSB0aGUgYmVoYXZpb3Igb2YgdGhlCj4+IGRyaXZlciBpdHNl
-bGYuCj4+Cj4gVGhhbmtzLiBXaWxsIGhhdmUgYSBsb29rIGF0IHlvdXIgc2VyaWVzLgoKQ29vbCwg
-dGhhbmtzLgoKPj4gQSBjb3VwbGUgYSB0aGluZ3MgY2FsbCBteSBpbnRlbnRpb24uIFdoeSB0aGUg
-Y3B1aWRsZSBkZXZpY2UgaXMgc2V0IGZvciBjcHUwIG9ubHkKPiBCZWNhdXNlIHRoZSBtYWlubGlu
-ZSBjb2RlIENQVUlETEUgaXMgc3VwcG9ydGVkIGFsb25nIHdpdGggQ1BVaG90cGx1Zy4KPiBUaGlz
-IGlzIGdvaW5nIHRvIGNoYW5nZSB0aG91Z2ggd2l0aCBDb3VwbGUgQ1BVSURMRSBhbmQgY29ycmVz
-cG9uZGluZwo+IE9NQVAgdXBkYXRlcy4KCk9rLCB0aGFua3MgZm9yIHRoZSBpbmZvcm1hdGlvbi4g
-SSB3aWxsIGxvb2sgZGVlcGVyLiBXaGF0IGhhcHBlbnMgdG8gY3B1MSAKd2hlbiBpdCBpcyBvbmxp
-bmUgYW5kIGhhcyBub3RoaW5nIHRvIGRvID8KCj4+IGFuZCB3aHkgdGhlIFdGSSBpcyBub3QgdXNl
-ZCA/Cj4+Cj4gSSBkaWRuJ3QgZ2V0IHRoaXMgcXVlc3Rpb24uIERvIHlvdSBtZWFuIHRoZSBnZW5l
-cmljIFdGST8KCnllcy4KCj4gSWYgeWVzLCB0aGVuLCBpdCdzIG1haW5seSBiZWNhdXNlIE9NQVAg
-bmVlZCBhZGRpdGlvbmFsCj4gY3VzdG9tIGJhcnJpZXJzLgoKQWgsIG9rLiBJIGFtIG5vdCBzdXJl
-IGlmIGl0IGlzIHBvc3NpYmxlIGJ1dCB0aGF0IG1heSBiZSBjb29sIGlmIHdlIGNhbiAKY2FsbCBj
-cHVfZG9faWRsZSBpbnN0ZWFkIHdpdGggYWRkaXRpb25hbCBiYXJyaWVyLgoKCj4gLS0KPiBUbyB1
-bnN1YnNjcmliZSBmcm9tIHRoaXMgbGlzdDogc2VuZCB0aGUgbGluZSAidW5zdWJzY3JpYmUgbGlu
-dXgtb21hcCIgaW4KPiB0aGUgYm9keSBvZiBhIG1lc3NhZ2UgdG8gbWFqb3Jkb21vQHZnZXIua2Vy
-bmVsLm9yZwo+IE1vcmUgbWFqb3Jkb21vIGluZm8gYXQgIGh0dHA6Ly92Z2VyLmtlcm5lbC5vcmcv
-bWFqb3Jkb21vLWluZm8uaHRtbAoKCi0tIAogIDxodHRwOi8vd3d3LmxpbmFyby5vcmcvPiBMaW5h
-cm8ub3JnIOKUgiBPcGVuIHNvdXJjZSBzb2Z0d2FyZSBmb3IgQVJNIFNvQ3MKCkZvbGxvdyBMaW5h
-cm86ICA8aHR0cDovL3d3dy5mYWNlYm9vay5jb20vcGFnZXMvTGluYXJvPiBGYWNlYm9vayB8Cjxo
-dHRwOi8vdHdpdHRlci5jb20vIyEvbGluYXJvb3JnPiBUd2l0dGVyIHwKPGh0dHA6Ly93d3cubGlu
-YXJvLm9yZy9saW5hcm8tYmxvZy8+IEJsb2cKCgpfX19fX19fX19fX19fX19fX19fX19fX19fX19f
-X19fX19fX19fX19fX19fX19fXwpsaW5hcm8tZGV2IG1haWxpbmcgbGlzdApsaW5hcm8tZGV2QGxp
-c3RzLmxpbmFyby5vcmcKaHR0cDovL2xpc3RzLmxpbmFyby5vcmcvbWFpbG1hbi9saXN0aW5mby9s
-aW5hcm8tZGV2Cg==
+Hi everyone,
+the following patch set directs to enable predecimation for DMA and VRF=
+B
+which consists of two pacthes.
+
+The first patch is based on code written by Lajos Molnar <lajos@ti.com>=
+ in
+Android Kernel, which updates the code with predecimation logic thereby
+increasing the downscaling ability of the DISPC module.
+In version 2 patch description has been modified include reason for max=
+imum
+predecimation limit of 16.
+
+The second patch is based on code written by Ville Syrj=C3=A4l=C3=A4
+<ville.syrjala@nokia.com> which aims to avoid synclost errors occurring
+in OMAP3 due to some undocumented horizontal position and timing relate=
+d
+limitations which I faced during testing of the previous patch.
+In version 2 the pcd factor has been replaced lclk / pclk to support HD=
+MI and
+tv output as pointed out by Ville Syrj=C3=A4l=C3=A4.
+
+The third patch corrects the usage of dispc fclk in scaling checks by
+replacing it with dispc_core_clk as per suggestions of Ville Syrj=C3=A4=
+l=C3=A4.
+
+I have tested these patches successfully on OMAP2, OMAP3 AND OMAP4 on t=
+he
+mainline kernel v3.3. Horizontal and vertical predecimation worked fine
+but skewed images were seen on OMAP2 and OMAP3 on HDMI tv during horizo=
+ntal
+predecimation which will be addressed in the future patches.
+
+All your comments and suggestions are welcome.
+
+Regards,
+Chandrabhanu
+
+Chandrabhanu Mahapatra (3):
+  OMAPDSS: DISPC: Enable predecimation
+  OMAPDSS: DISPC: Handle synclost errors in OMAP3
+  OMAPDSS: DISPC: Correct DISPC functional clock usage
+
+ drivers/video/omap2/dss/dispc.c |  360 +++++++++++++++++++++++++++----=
+--------
+ 1 files changed, 254 insertions(+), 106 deletions(-)
+
+--
+To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
