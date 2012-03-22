@@ -1,84 +1,34 @@
 From: Ming Lei <tom.leiming@gmail.com>
-Subject: [PATCH] ARM: OMAP3+: fix oops triggered in omap_prcm_register_chain_handler(v1)
-Date: Thu, 22 Mar 2012 09:23:37 +0800
-Message-ID: <1332379417-7408-1-git-send-email-tom.leiming@gmail.com>
+Subject: Re: [PATCH] ARM: OMAP3+: fix oops triggered in omap_prcm_register_chain_handler
+Date: Thu, 22 Mar 2012 09:25:26 +0800
+Message-ID: <CACVXFVPAnXF2mxBoz_CrRv1o4NHbo5T2fT626m2V7Qe+YRjx3Q@mail.gmail.com>
+References: <1332305376-27038-1-git-send-email-tom.leiming@gmail.com>
+	<87r4wmrqhn.fsf@ti.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=ISO-8859-1
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-pb0-f46.google.com ([209.85.160.46]:57254 "EHLO
-	mail-pb0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754318Ab2CVBXt (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 21 Mar 2012 21:23:49 -0400
-Received: by pbcun15 with SMTP id un15so1180262pbc.19
-        for <linux-omap@vger.kernel.org>; Wed, 21 Mar 2012 18:23:48 -0700 (PDT)
+Received: from mail-pz0-f46.google.com ([209.85.210.46]:42786 "EHLO
+	mail-pz0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755372Ab2CVBZ1 (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 21 Mar 2012 21:25:27 -0400
+Received: by dajr28 with SMTP id r28so2355044daj.19
+        for <linux-omap@vger.kernel.org>; Wed, 21 Mar 2012 18:25:26 -0700 (PDT)
+In-Reply-To: <87r4wmrqhn.fsf@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Tony Lindgren <tony@atomide.com>, Russell King <linux@arm.linux.org.uk>
-Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Ming Lei <tom.leiming@gmail.com>, Kevin Hilman <khilman@ti.com>
+To: Kevin Hilman <khilman@ti.com>
+Cc: Tony Lindgren <tony@atomide.com>, Russell King <linux@arm.linux.org.uk>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Tero Kristo <t-kristo@ti.com>
 
-This patch fixes the oops below[1].
+On Wed, Mar 21, 2012 at 10:13 PM, Kevin Hilman <khilman@ti.com> wrote:
+> Ming Lei <tom.leiming@gmail.com> writes:
+>
+>> This patch fixes the oos below:
+>
+> As Tero mentioned, please add a bit more description to the changelog
+> about why the iterator is wrong and repost.
 
-Obviously, the count of "struct irq_chip_generic" instances to be
-allocated and setup should be irq_setup->nr_regs instead of
-irq_setup->nr_regs plus one, so just fix the iterator to avoid
-the oops. 
+The revised version has been sent out.
 
-[1], oops log.
-
-[    1.790242] Unable to handle kernel NULL pointer dereference at virtual address 00000004
-[    1.798632] pgd = c0004000
-[    1.801638] [00000004] *pgd=00000000
-[    1.805400] Internal error: Oops: 805 [#1] PREEMPT SMP THUMB2
-[    1.811381] Modules linked in:
-[    1.814601] CPU: 1    Not tainted  (3.3.0-next-20120320+ #733)
-[    1.820683] PC is at irq_setup_generic_chip+0x6a/0x84
-[    1.825951] LR is at irq_get_irq_data+0x7/0x8
-[    1.830508] pc : [<c006465e>]    lr : [<c0063a03>]    psr: 20000133
-[    1.830512] sp : ee04ff58  ip : 00000000  fp : 00000000
-[    1.842461] r10: 00000000  r9 : 00000000  r8 : 00000800
-[    1.847905] r7 : c064e260  r6 : 000001dc  r5 : 00000001  r4 : ee0accc0
-[    1.854687] r3 : 00000002  r2 : 00000800  r1 : 000001dc  r0 : 00000000
-[    1.861472] Flags: nzCv  IRQs on  FIQs on  Mode SVC_32  ISA Thumb  Segment kernel
-[    1.869234] Control: 50c5387d  Table: 8000404a  DAC: 00000015
-[    1.875215] Process swapper/0 (pid: 1, stack limit = 0xee04e2f8)
-[    1.881463] Stack: (0xee04ff58 to 0xee050000)
-[    1.886017] ff40: c061b668 00000008
-[    1.894497] ff60: c0682090 ee0accc0 00000003 c001c637 00000000 00000000 00000201 00000000
-[    1.902976] ff80: 00000004 c0473820 c0473800 c0459e8d c0680ac0 c000866d 00000004 00000004
-[    1.911455] ffa0: ee04ffa8 00000004 c047381c 00000004 c0473820 c0473800 c0680ac0 00000082
-[    1.919934] ffc0: c0489694 c045265f 00000004 00000004 c0452135 c000d105 00000033 00000000
-[    1.928413] ffe0: c04525b5 c000d111 00000033 00000000 00000000 c000d111 aaaaaaaa aaaaaaaa
-[    1.936912] [<c006465e>] (irq_setup_generic_chip+0x6a/0x84) from [<c001c637>] (omap_prcm_register_chain_handler+0x147/0x1a0)
-[    1.948516] [<c001c637>] (omap_prcm_register_chain_handler+0x147/0x1a0) from [<c000866d>] (do_one_initcall+0x65/0xf4)
-[    1.959500] [<c000866d>] (do_one_initcall+0x65/0xf4) from [<c045265f>] (kernel_init+0xab/0x138)
-[    1.968529] [<c045265f>] (kernel_init+0xab/0x138) from [<c000d111>] (kernel_thread_exit+0x1/0x6)
-[    1.977632] Code: f7ff f9d1 6b23 1af3 (6043) 086d
-[    1.982684] ---[ end trace 1b75b31a2719ed1c ]---
-[    1.987526] Kernel panic - not syncing: Attempted to kill init!
-exitcode=0x0000000b
-
-Cc: Kevin Hilman <khilman@ti.com>
-Acked-by: Tero Kristo <t-kristo@ti.com>
-Signed-off-by: Ming Lei <tom.leiming@gmail.com>
----
-v1:
-	-add a bit more description to the changelog as suggested by
-	Tero and Kevin.
-
- arch/arm/mach-omap2/prm_common.c |    2 +-
- 1 files changed, 1 insertions(+), 1 deletions(-)
-
-diff --git a/arch/arm/mach-omap2/prm_common.c b/arch/arm/mach-omap2/prm_common.c
-index 873b51d..d28f848 100644
---- a/arch/arm/mach-omap2/prm_common.c
-+++ b/arch/arm/mach-omap2/prm_common.c
-@@ -290,7 +290,7 @@ int omap_prcm_register_chain_handler(struct omap_prcm_irq_setup *irq_setup)
- 		goto err;
- 	}
- 
--	for (i = 0; i <= irq_setup->nr_regs; i++) {
-+	for (i = 0; i < irq_setup->nr_regs; i++) {
- 		gc = irq_alloc_generic_chip("PRCM", 1,
- 			irq_setup->base_irq + i * 32, prm_base,
- 			handle_level_irq);
+Thanks,
 -- 
-1.7.9.1
-
+Ming Lei
