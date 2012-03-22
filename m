@@ -1,65 +1,60 @@
-From: Kevin Hilman <khilman@ti.com>
-Subject: Re: [PATCH v4 RESEND 0/7] gpio/omap: Some more driver fixes
-Date: Thu, 22 Mar 2012 10:02:46 -0700
-Message-ID: <87limsbmbt.fsf@ti.com>
-References: <1332240799-6748-1-git-send-email-tarun.kanti@ti.com>
-	<20120320143544.AA6E93E2834@localhost> <87haxj17xq.fsf@ti.com>
-	<20120321143437.8AF563E0648@localhost>
+From: Stefano Babic <sbabic@denx.de>
+Subject: Re: [PATCH] ARM: OMAP: Add support for AM35xx UART4/ttyO3
+Date: Thu, 22 Mar 2012 18:11:59 +0100
+Message-ID: <4F6B5D5F.90206@denx.de>
+References: <1318963661-27755-1-git-send-email-kyle.manna@fuel7.com> <4F6B4D4A.2040103@denx.de> <4F6B5A90.6030808@fuel7.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aog134.obsmtp.com ([74.125.149.83]:54487 "EHLO
-	psmtp.com" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
-	id S1031000Ab2CVRCy (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Thu, 22 Mar 2012 13:02:54 -0400
-Received: by mail-pb0-f49.google.com with SMTP id un4so2109892pbc.22
-        for <linux-omap@vger.kernel.org>; Thu, 22 Mar 2012 10:02:47 -0700 (PDT)
-In-Reply-To: <20120321143437.8AF563E0648@localhost> (Grant Likely's message of
-	"Wed, 21 Mar 2012 14:34:37 +0000")
+Received: from smtpi4.ngi.it ([88.149.128.104]:48297 "EHLO smtpi4.ngi.it"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751157Ab2CVRMI (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Thu, 22 Mar 2012 13:12:08 -0400
+In-Reply-To: <4F6B5A90.6030808@fuel7.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Grant Likely <grant.likely@secretlab.ca>
-Cc: Tarun Kanti DebBarma <tarun.kanti@ti.com>, linux-omap@vger.kernel.org, tony@atomide.com, b-cousson@ti.com, linux-arm-kernel@lists.infradead.org
+To: Kyle Manna <kyle.manna@fuel7.com>
+Cc: Stefano Babic <sbabic@denx.de>, Tony Lindgren <tony@atomide.com>, linux-omap@vger.kernel.org, Paul Walmsley <paul@pwsan.com>, Kevin Hilman <khilman@ti.com>, Nicolas Pitre <nicolas.pitre@linaro.org>, Benoit Cousson <b-cousson@ti.com>, linux-kernel@vger.kernel.org, Peter Ujfalusi <peter.ujfalusi@ti.com>, Santosh Shilimkar <santosh.shilimkar@ti.com>, linux-arm-kernel@lists.infradead.org
 
-Grant Likely <grant.likely@secretlab.ca> writes:
+On 22/03/2012 18:00, Kyle Manna wrote:
 
-> On Tue, 20 Mar 2012 10:46:57 -0700, Kevin Hilman <khilman@ti.com> wrote:
->> Hi Grant,
->> 
->> Grant Likely <grant.likely@secretlab.ca> writes:
->> 
->> > On Tue, 20 Mar 2012 16:23:12 +0530, Tarun Kanti DebBarma <tarun.kanti@ti.com> wrote:
->> >> This series excludes the cleanup patches as suggested by Kevin from
->> >> the previously posted series.
->> >> 
->> >> The fixes include correction of _set_gpio_irqenable() implementation,
->> >> missing wakeup_en register update in set_gpio_wakeup(), type mismatch
->> >> of gpio trigger parameter in set_gpio_trigger(), incorrect dataout
->> >> register update in set_gpio_dataout_() and few corrections in context
->> >> save logic.
->> >> 
->> >> It is baselined on top of:
->> >> git://git.secretlab.ca/git/linux-2.6.git gpio/next
->> >> Commit: 81b279d80a63628e580c71a31d30a8c3b3047ad4
->> >> 
->> >> Series is available here for reference:
->> >> git://gitorious.org/~tarunkanti/omap-sw-develoment/tarunkantis-linux-omap-dev for_3.4/gpio_more_fixes
->> >
->> > Merged; thanks
->> 
->> Can you hold off slightly before merging this.
->> 
->> I haven't been through v4 yet or tested the fixes alone now that they're
->> separated from the other cleanups.
->> 
->> Expect a pull request from me when ready.
->
-> Okay.  It's in linux-next at the moment, but I'll pull it back out.
+> 
+> My pin mux is configured in u-boot and is as follows:
+> 
+>     /* CCDC_FIELD: gpio_95, uP-TXD4 */ \
+>     MUX_VAL(CP(CCDC_FIELD),     (IDIS | PTD | DIS | M2)) \
+>     /* CCDC_HD: gpio_96, uP-RTS4# */ \
+>     MUX_VAL(CP(CCDC_HD),        (IDIS | PTD | DIS | M2)) \
+>     /* CCDC_VD: gpio_97, uP-CTS4# */ \
+>     MUX_VAL(CP(CCDC_VD),        (IEN  | PTD | EN  | M2)) \
+>     /* CCDC_WEN: gpio_98, uP-RXD4 */ \
+>     MUX_VAL(CP(CCDC_WEN),       (IEN  | PTD | DIS | M2)) \
+> 
 
-Thanks.
+Well, we are using the same pins !
 
-I've been through this series now, pull request coming shortly.
-Hopefully it can still make it for v3.4 since this fixes some
-regressions introduced by the previous series. :(
+> I've just validated my AM3505 board does in fact toggle the TX line and
+> writes valid data.  The running kernel is based on a linux-omap-3.1 and
+> was the source for that patch.
+> 
+> Since it sounds like you have the same pinmux, perhaps something changed
+> elsewhere in the kernel?
 
-Kevin
+Maybe, but registers looks good - and tracing the serial driver I have
+not seen anything wrong.
+
+>  Have you tried validating that your hardware
+> can toggle the pin as a GPIO first to eliminate any possibility of shorts?
+
+I will do it now.
+
+Thanks,
+Stefano
+
+-- 
+=====================================================================
+DENX Software Engineering GmbH,     MD: Wolfgang Denk & Detlev Zundel
+HRB 165235 Munich, Office: Kirchenstr.5, D-82194 Groebenzell, Germany
+Phone: +49-8142-66989-53 Fax: +49-8142-66989-80 Email: sbabic@denx.de
+=====================================================================
