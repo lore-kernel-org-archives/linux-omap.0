@@ -1,46 +1,77 @@
-From: Russ Dill <Russ.Dill@ti.com>
-Subject: [PATCH 07/13] Add dummy smsc911x regulators to igep0020.
-Date: Wed, 21 Mar 2012 22:19:48 -0700
-Message-ID: <1332393594-23993-8-git-send-email-Russ.Dill@ti.com>
-References: <20120321194133.GP9859@atomide.com>
- <1332393594-23993-1-git-send-email-Russ.Dill@ti.com>
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-iy0-f174.google.com ([209.85.210.174]:35468 "EHLO
-	mail-iy0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754429Ab2CVFUc (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 22 Mar 2012 01:20:32 -0400
-Received: by mail-iy0-f174.google.com with SMTP id z16so2617327iag.19
-        for <linux-omap@vger.kernel.org>; Wed, 21 Mar 2012 22:20:32 -0700 (PDT)
-In-Reply-To: <1332393594-23993-1-git-send-email-Russ.Dill@ti.com>
-Sender: linux-omap-owner@vger.kernel.org
+From: "Raja, Govindraj" <govindraj.raja@ti.com>
+Subject: Re: [PATCH 0/3] OMAP2+: UART: Enable tx wakeup + remove cpu checks
+Date: Thu, 22 Mar 2012 12:29:56 +0530
+Message-ID: <CAMrsUdLtC0iVk2qDDDXj2tteAzP5UQJXNvsCoJLEC9Yty2QjvQ@mail.gmail.com>
+References: <1332325501-10467-1-git-send-email-govindraj.raja@ti.com> <87limurpsx.fsf@ti.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Return-path: <linux-serial-owner@vger.kernel.org>
+In-Reply-To: <87limurpsx.fsf@ti.com>
+Sender: linux-serial-owner@vger.kernel.org
+To: Kevin Hilman <khilman@ti.com>
+Cc: linux-omap@vger.kernel.org, linux-serial@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Paul Walmsley <paul@pwsan.com>, Felipe Balbi <balbi@ti.com>
 List-Id: linux-omap@vger.kernel.org
-To: linux-omap@vger.kernel.org
-Cc: Tony Lindgren <tony@atomide.com>, Mark Brown <broonie@opensource.wolfsonmicro.com>, Matt Porter <mporter@ti.com>, robert.marklund@stericsson.com, linus.walleij@linaro.org, Russ Dill <Russ.Dill@ti.com>, Russ Dill <russ.dill@ti.com>
 
-Signed-off-by: Russ Dill <russ.dill@ti.com>
----
- arch/arm/mach-omap2/board-igep0020.c |    6 ++++++
- 1 files changed, 6 insertions(+), 0 deletions(-)
+On Wed, Mar 21, 2012 at 7:58 PM, Kevin Hilman <khilman@ti.com> wrote:
+> "Govindraj.R" <govindraj.raja@ti.com> writes:
+>
+>> From: "Govindraj.R" <govindraj.raja@ti.com>
+>>
+>> Based on Linux-OMAP tree uart branch.
+>> (git://git.kernel.org/pub/scm/linux/kernel/git/tmlind/linux-omap.git
+>> remotes/origin/uart)
+>>
+>> * Removes the cpu checks wherever possible and use version reg
+>> =A0 for populating features and errata's
+>> * enable tx wakeup available in wer reg for applicable
+>> =A0 module revision's
+>
+> As this affects multiple SoCs, please report what SoCs it was tested =
+on
+> as well.
 
-diff --git a/arch/arm/mach-omap2/board-igep0020.c b/arch/arm/mach-omap2/board-igep0020.c
-index e558800..930c0d3 100644
---- a/arch/arm/mach-omap2/board-igep0020.c
-+++ b/arch/arm/mach-omap2/board-igep0020.c
-@@ -634,8 +634,14 @@ static void __init igep_wlan_bt_init(void)
- static inline void __init igep_wlan_bt_init(void) { }
- #endif
- 
-+static struct regulator_consumer_supply dummy_supplies[] = {
-+	REGULATOR_SUPPLY("vddvario", "smsc911x.0"),
-+	REGULATOR_SUPPLY("vdd33a", "smsc911x.0"),
-+};
-+
- static void __init igep_init(void)
- {
-+	regulator_register_fixed(0, dummy_supplies, ARRAY_SIZE(dummy_supplies));
- 	omap3_mux_init(board_mux, OMAP_PACKAGE_CBB);
- 
- 	/* Get IGEP2 hardware revision */
--- 
-1.7.9.1
+Sorry I for got to add that, here are details on what was tested.
 
+1.) OMAP2430 SDP : Boot tested with uart1 as console.
+
+2.) OMAP3430 SDP: Boot test, suspend/resume tests, retention off mode
+                               (checking retention and off mode count
+in cpu idle cases)
+
+3.) OMAP3630 - Beagle XM:  Boot test, suspend/resume tests, retention o=
+ff mode
+                                            (checking retention and
+off mode count in cpu idle cases)
+
+4.) OMAP4430 - PANDA: Boot test, suspend/resume tests
+
+5.) OMAP4460 - PANDA: Boot test.
+
+--
+Thanks,
+Govindraj.R
+
+
+>
+> Thanks,
+>
+> Kevin
+>
+>> Govindraj.R (3):
+>> =A0 OMAP2+: UART: Remove cpu checks for populating errata flags
+>> =A0 OMAP2+: UART: enable tx wakeup bit for wer reg
+>> =A0 OMAP2+: UART: replace omap34xx/omap4xx cpu checks with not omap2=
+4xx
+>>
+>> =A0arch/arm/mach-omap2/serial.c =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0|=
+ =A0 13 +----
+>> =A0arch/arm/plat-omap/include/plat/omap-serial.h | =A0 =A08 +++-
+>> =A0drivers/tty/serial/omap-serial.c =A0 =A0 =A0 =A0 =A0 =A0 =A0| =A0=
+ 71 ++++++++++++++++++++++++-
+>> =A03 files changed, 78 insertions(+), 14 deletions(-)
+--
+To unsubscribe from this list: send the line "unsubscribe linux-serial"=
+ in
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
