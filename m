@@ -1,85 +1,56 @@
-From: "Bedia, Vaibhav" <vaibhav.bedia@ti.com>
-Subject: RE: Occasional crashes in suspend-resume with MMC transactions
-Date: Thu, 22 Mar 2012 13:20:53 +0000
-Message-ID: <B5906170F1614E41A8A28DE3B8D12143317FF773@DBDE01.ent.ti.com>
-References: <B5906170F1614E41A8A28DE3B8D12143317FDFBB@DBDE01.ent.ti.com>
+From: Shubhrajyoti D <shubhrajyoti-l0cyMroinI0@public.gmane.org>
+Subject: [PATCH RFC v2] usb: musb: omap: fix the error check for pm_runtime_get_sync
+Date: Thu, 22 Mar 2012 18:58:45 +0530
+Message-ID: <1332422925-3212-1-git-send-email-shubhrajyoti@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from devils.ext.ti.com ([198.47.26.153]:45193 "EHLO
-	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755608Ab2CVNVN convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 22 Mar 2012 09:21:13 -0400
-In-Reply-To: <B5906170F1614E41A8A28DE3B8D12143317FDFBB@DBDE01.ent.ti.com>
-Content-Language: en-US
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain
+Return-path: <linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Sender: linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Cc: linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, balbi-l0cyMroinI0@public.gmane.org, Shubhrajyoti D <shubhrajyoti-l0cyMroinI0@public.gmane.org>
 List-Id: linux-omap@vger.kernel.org
-To: "Bedia, Vaibhav" <vaibhav.bedia@ti.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-mmc@vger.kernel.org" <linux-mmc@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>
-Cc: "cjb@laptop.org" <cjb@laptop.org>
 
-On Thu, Mar 22, 2012 at 09:53:23, Bedia, Vaibhav wrote:
-> Hi,
-> 
-> I am trying to do suspend-resume test with a file copy on MMC/SD going on
-> in the background. The test involves simply copying a 450MB file on an ext3
-> partition to the same partition under a different name.
-> 
-> This is on an AM335x board which uses the omap_hsmmc driver. 
-> The kernel is v3.2 and I have also applied the following patch 
-> 
+pm_runtime_get_sync returns a signed integer.In case of errors
+it returns a negative value.This patch fixes the error check
+by making it signed instead of unsigned thus preventing register
+access if get_sync_fails. Also passes the error cause to the
+debug message.
 
-[...]
-
-I found that whenever this issue crops up, mmc_host_suspend() is not able to claim the host
-And returns -EBUSY. omap_hsmmc driver does not pass on this error code to the PM core and
-hence the suspend process continues. When the driver is made to return -EBUSY, the suspend
-process gets aborted and the user can try suspending again. I am not sure whether this sort
-of suspend failure is acceptable or the driver is doing something wrong. The following
-workaround is what I came up with. Do this look a reasonable thing to do?
-
+Cc :  Kishon Vijay Abraham I <kishon-l0cyMroinI0@public.gmane.org>
+Signed-off-by: Shubhrajyoti D <shubhrajyoti-l0cyMroinI0@public.gmane.org>
 ---
+Compile tested only
 
->From a4040dd1869b351a5fa29dacd08facf6e24df609 Mon Sep 17 00:00:00 2001
-From: Vaibhav Bedia <vaibhav.bedia@ti.com>
-Date: Thu, 22 Mar 2012 17:14:49 +0530
-Subject: [PATCH 1/1] mmc: omap_hsmmc: Pass on the suspend failure to the PM core
+ drivers/usb/musb/omap2430.c |    5 +++--
+ 1 files changed, 3 insertions(+), 2 deletions(-)
 
-In some cases mmc_host_suspend() is not able to claim the
-host and proceed with the suspend process. The core returns
--EBUSY to the host controller driver. Unfortunately, the
-host controller driver does not pass on this information
-to the PM core and hence the system suspend process continues.
-
-In these cases the MMC core gets to an unexpected state
-during resume and multiple issues related to MMC crop up.
-1. Host controller driver starts accessing the device registers
-before the clocks are enabled which leads to a prefetch abort.
-2. A file copy thread which was launched before suspend gets
-stuck due to the host not being reclaimed during resume.
-
-To avoid such problems pass on the -EBUSY status to the PM core
-from the host controller driver. With this change, MMC core
-suspend might still fail but it does not end up making the
-system unusable. Suspend gets aborted and the user can try
-suspending the system again.
-
-Signed-off-by: Vaibhav Bedia <vaibhav.bedia@ti.com>
----
- drivers/mmc/host/omap_hsmmc.c |    1 +
- 1 files changed, 1 insertions(+), 0 deletions(-)
-
-diff --git a/drivers/mmc/host/omap_hsmmc.c b/drivers/mmc/host/omap_hsmmc.c
-index 3d8dbbb..1f938d9 100644
---- a/drivers/mmc/host/omap_hsmmc.c
-+++ b/drivers/mmc/host/omap_hsmmc.c
-@@ -2238,6 +2238,7 @@ static int omap_hsmmc_suspend(struct device *dev)
-                                        dev_dbg(mmc_dev(host->mmc),
-                                                "Unmask interrupt failed\n");
-                        }
-+                       ret = -EBUSY;
-                        goto err;
-                }
+diff --git a/drivers/usb/musb/omap2430.c b/drivers/usb/musb/omap2430.c
+index 2ae0bb3..e5dd18f 100644
+--- a/drivers/usb/musb/omap2430.c
++++ b/drivers/usb/musb/omap2430.c
+@@ -282,7 +282,8 @@ static void musb_otg_notifier_work(struct work_struct *data_notifier_work)
+ 
+ static int omap2430_musb_init(struct musb *musb)
+ {
+-	u32 l, status = 0;
++	u32 l;
++	int status = 0;
+ 	struct device *dev = musb->controller;
+ 	struct musb_hdrc_platform_data *plat = dev->platform_data;
+ 	struct omap_musb_board_data *data = plat->board_data;
+@@ -301,7 +302,7 @@ static int omap2430_musb_init(struct musb *musb)
+ 
+ 	status = pm_runtime_get_sync(dev);
+ 	if (status < 0) {
+-		dev_err(dev, "pm_runtime_get_sync FAILED");
++		dev_err(dev, "pm_runtime_get_sync FAILED %d\n", status);
+ 		goto err1;
+ 	}
+ 
+-- 
+1.7.1
 
 --
-1.7.0.4
+To unsubscribe from this list: send the line "unsubscribe linux-usb" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
