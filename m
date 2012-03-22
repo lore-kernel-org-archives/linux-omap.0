@@ -1,82 +1,57 @@
-From: "Joe Woodward" <jw@terrafix.co.uk>
-Subject: Suspend broken on 3.3?
-Date: Thu, 22 Mar 2012 11:09:46 +0000
-Message-ID: <WC20120322110946.6413AA@terrafix.co.uk>
+From: Sergei Shtylyov <sshtylyov@mvista.com>
+Subject: Re: [PATCH RFC] usb: musb: omap: fix the error check for pm_runtime_get_sync
+Date: Thu, 22 Mar 2012 16:42:21 +0400
+Message-ID: <4F6B1E2D.8020802@mvista.com>
+References: <1332400686-27674-1-git-send-email-shubhrajyoti@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from smtp1.keele.netcentral.co.uk ([212.57.235.197]:53925 "EHLO
-	smtp3.keele.netcentral.co.uk" rhost-flags-OK-FAIL-OK-OK)
-	by vger.kernel.org with ESMTP id S964788Ab2CVMOe (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>);
-	Thu, 22 Mar 2012 08:14:34 -0400
-Received: from terrafix.co.uk (reverse.keele.netcentral.co.uk [212.57.249.250] (may be forged))
-	by smtp3.keele.netcentral.co.uk (8.14.2/8.14.2) with ESMTP id q2MB9o40029355
-	for <linux-omap@vger.kernel.org>; Thu, 22 Mar 2012 11:09:56 GMT
-Received: from WorldClient by terrafix.co.uk (MDaemon PRO v12.5.3)
-	with ESMTP id md50002196489.msg
-	for <linux-omap@vger.kernel.org>; Thu, 22 Mar 2012 11:09:51 +0000
+Received: from mail-bk0-f46.google.com ([209.85.214.46]:41062 "EHLO
+	mail-bk0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752745Ab2CVMnr (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 22 Mar 2012 08:43:47 -0400
+Received: by bkcik5 with SMTP id ik5so1702873bkc.19
+        for <linux-omap@vger.kernel.org>; Thu, 22 Mar 2012 05:43:46 -0700 (PDT)
+In-Reply-To: <1332400686-27674-1-git-send-email-shubhrajyoti@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
+To: Shubhrajyoti D <shubhrajyoti@ti.com>
+Cc: linux-omap@vger.kernel.org, linux-usb@vger.kernel.org, balbi@ti.com, Kishon Vijay Abraham I <kishon@ti.com>
 
-Is system suspend broken on stock 3.3?
+Hello.
 
-I have a working stock 3.2 (with patches to fix runtime_pm for DSS2), and system suspend works just fine!
+On 22-03-2012 11:18, Shubhrajyoti D wrote:
 
-This is running on a variety of GUMSTIX boards (both OMAP3530 and AM3703-based).
+> pm_runtime_get_sync returns a signed integer.In case of errors
+> it returns a negative value.This patch fixes the error check
+> by making it signed instead of unsigned thus preventing register
+> access if get_sync_fails. Also passes the error cause to the
+> debug message.
 
-I've just updated to stock 3.3 and suspend returns immediately when entered:
+> Cc:  Kishon Vijay Abraham I<kishon@ti.com>
+> Signed-off-by: Shubhrajyoti D<shubhrajyoti@ti.com>
+> ---
+> Compile tested only
 
-# echo mem > /sys/power/state
-[   72.391693] PM: Syncing filesystems ... done.
-[   72.397003] Freezing user space processes ... (elapsed 0.02 seconds) done.
-[   72.425201] Freezing remaining freezable tasks ... (elapsed 0.02 seconds) done.
-[   72.456451] Suspending console(s) (use no_console_suspend to debug)
-[   72.581695] PM: suspend of devices complete after 115.977 msecs
-[   72.584594] PM: late suspend of devices complete after 2.868 msecs
-[   72.612060] Successfully put all powerdomains to target state
-[   72.613983] PM: early resume of devices complete after 1.770 msecs
-[   72.941894] PM: resume of devices complete after 326.630 msecs
-[   72.975677] Restarting tasks ... done.
+    You haven't run it thru scripts/checkpatch.pl either, I guess?
 
-I've looked in the debugfs and see:
-# cat suspend_stats
-success: 1
-fail: 0
-failed_freeze: 0
-failed_prepare: 0
-failed_suspend: 0
-failed_suspend_noirq: 0
-failed_resume: 0
-failed_resume_noirq: 0
-failures:
-  last_failed_dev:
+>   drivers/usb/musb/omap2430.c |    5 +++--
+>   1 files changed, 3 insertions(+), 2 deletions(-)
 
-  last_failed_errno:    0
-                        0
-  last_failed_step:
+> diff --git a/drivers/usb/musb/omap2430.c b/drivers/usb/musb/omap2430.c
+> index 2ae0bb3..e5dd18f 100644
+> --- a/drivers/usb/musb/omap2430.c
+> +++ b/drivers/usb/musb/omap2430.c
+[...]
+> @@ -301,7 +302,7 @@ static int omap2430_musb_init(struct musb *musb)
+>
+>   	status = pm_runtime_get_sync(dev);
+>   	if (status<  0) {
+> -		dev_err(dev, "pm_runtime_get_sync FAILED");
+> +		dev_err(dev, "pm_runtime_get_sync FAILED %d \n",status);
 
-# cat wakeup_sources
-name            active_count    event_count     hit_count       active_since    total_time      max_time        last_change
-gpio-keys       0               0               0               0               0               0               0
-(null)          0               0               0               0               0               0               0
-(null)          0               0               0               0               0               0               0
-1-0048          0               0               0               0               0               0               0
-omap_uart.3     0               0               0               0               0               0               0
-omap_uart.2     0               0               0               0               0               0               0
+    If I don't mistake, scripts/checkpatch.pl should warn about unneeded 
+spaces before '\n'. And also about missing spaces after commas.
 
-So have no idea what is causing the wakeup.
-
-How should I go about debugging this further?
-
-Has anyone else tried suspend on 3.3?
-
-I've tried this both with my custom defconfig and omap2plus_defconfig.
-
-I do have some modifications to the GUMSTIX overo board file (minor changes like defining some extra buttons, and setting the correct LCD parameters), but I'm fairly certain these shouldn't be causing any problems...
-
-Cheers,
-Joe
-
-
+WBR, Sergei
