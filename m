@@ -1,82 +1,61 @@
-From: Greg KH <gregkh@linuxfoundation.org>
-Subject: Re: [PATCH RESEND] usb: musb: omap: fix crash when musb glue (omap)
- gets initialized
-Date: Thu, 22 Mar 2012 15:34:11 -0700
-Message-ID: <20120322223411.GA32739@kroah.com>
-References: <1332412545-32396-1-git-send-email-kishon@ti.com>
- <20120322143351.GB19835@kroah.com>
- <CAAe_U6JwPbzgn2M+J20rZvoDdmOuS_YOxVitDWPM_wyJmdbcdg@mail.gmail.com>
- <20120322213918.GA11352@kroah.com>
- <CAAe_U6J8hpGWAZPnfYOWuM=mVxW84cs=ajhdedBKx+pLXOSyhw@mail.gmail.com>
+From: Kevin Hilman <khilman@ti.com>
+Subject: Re: [PATCH v4 RESEND 6/7] gpio/omap: fix incorrect update to context.irqenable1
+Date: Thu, 22 Mar 2012 16:09:07 -0700
+Message-ID: <87vclw44j0.fsf@ti.com>
+References: <1332393130-10636-1-git-send-email-tarun.kanti@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-pb0-f46.google.com ([209.85.160.46]:41334 "EHLO
-	mail-pb0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755900Ab2CVWeP (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 22 Mar 2012 18:34:15 -0400
-Received: by pbcun15 with SMTP id un15so1943699pbc.19
-        for <linux-omap@vger.kernel.org>; Thu, 22 Mar 2012 15:34:15 -0700 (PDT)
-Content-Disposition: inline
-In-Reply-To: <CAAe_U6J8hpGWAZPnfYOWuM=mVxW84cs=ajhdedBKx+pLXOSyhw@mail.gmail.com>
+Received: from na3sys009aog120.obsmtp.com ([74.125.149.140]:49381 "EHLO
+	na3sys009aog120.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1758440Ab2CVXJJ (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>);
+	Thu, 22 Mar 2012 19:09:09 -0400
+Received: by mail-pb0-f51.google.com with SMTP id wy12so2112829pbc.38
+        for <linux-omap@vger.kernel.org>; Thu, 22 Mar 2012 16:09:08 -0700 (PDT)
+In-Reply-To: <1332393130-10636-1-git-send-email-tarun.kanti@ti.com> (Tarun
+	Kanti DebBarma's message of "Thu, 22 Mar 2012 10:42:09 +0530")
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "ABRAHAM, KISHON VIJAY" <kishon@ti.com>
-Cc: balbi@ti.com, linux-usb@vger.kernel.org, stable@vger.kernel.org, linux-omap@vger.kernel.org
+To: Tarun Kanti DebBarma <tarun.kanti@ti.com>
+Cc: linux-omap@vger.kernel.org, tony@atomide.com, b-cousson@ti.com, grant.likely@secretlab.ca, linux-arm-kernel@lists.infradead.org
 
-On Fri, Mar 23, 2012 at 03:59:32AM +0530, ABRAHAM, KISHON VIJAY wrote:
-> Hi Greg,
->=20
-> On Fri, Mar 23, 2012 at 3:09 AM, Greg KH <gregkh@linuxfoundation.org>=
- wrote:
-> > On Fri, Mar 23, 2012 at 03:04:04AM +0530, ABRAHAM, KISHON VIJAY wro=
-te:
-> >> Hi Greg,
-> >>
-> >> On Thu, Mar 22, 2012 at 8:03 PM, Greg KH <gregkh@linuxfoundation.o=
-rg> wrote:
-> >> > On Thu, Mar 22, 2012 at 04:05:45PM +0530, Kishon Vijay Abraham I=
- wrote:
-> >> >> Upstream Commit: 7acc6197b76edd0b932a7cbcc6cfad0a8a87f026
-> >> >> Upstream Kernel Tag: v2.6.38-rc5-94-g7acc619
-> >> >
-> >> > <snip>
-> >> >
-> >> > <formletter>
-> >> >
-> >> > This is not the correct way to submit patches for inclusion in t=
-he
-> >> > stable kernel tree. =A0Please read Documentation/stable_kernel_r=
-ules.txt
-> >> > for how to do this properly.
-> >> >
-> >> > </formletter>
-> >>
-> >> I really couldn't get what I'm missing after reading the
-> >> Documentation/stable_kernel_rules.txt :-( Can you kindly let me kn=
-ow
-> >> what I'm missing here?
-> >
-> > Read the version of that file in the 3.3 kernel release, it should
-> > explain what you are forgetting (hint, do you really want it applie=
-d to
-> > the 2.4 kernel tree?)
->=20
-> I actually intended this patch to be back-ported to previous releases
-> which will have the issue. I'm not sure if it is right?
+Tarun Kanti DebBarma <tarun.kanti@ti.com> writes:
 
-And what releases are those?
+> In _enable_gpio_irqbank() when bank->regs->set_irqenable is TRUE,
+> gpio_mask can be directly set by writing to set_irqenable register
+> without overwriting current value. In order to ensure the same is
+> stored in context.irqenable1, we must avoid overwriting it with
+> gpio_mask at the end of the function. Instead, update irqenable1
+> appropriately by OR'ing with gpio_mask.
+> For the case where bank->regs->set_irqenable is FALSE, irqenable1
+> can be directly overwritten with 'l' which holds correct computed
+> value.
+>
+>         if (bank->regs->set_irqenable) {
+>                 reg += bank->regs->set_irqenable;
+>                 l = gpio_mask;
+>         } else {
+>                 reg += bank->regs->irqenable;
+>                 l = __raw_readl(reg);
+>                 if (bank->regs->irqenable_inv)
+>                         l &= ~gpio_mask;
+>                 else
+>                         l |= gpio_mask;
+>         }
+>
+> Make similar change for _disable_gpio_irqbank().
+>
+> Signed-off-by: Tarun Kanti DebBarma <tarun.kanti@ti.com>
+> Reviewed-by: Santosh Shilimkar <santosh.shilimkar@ti.com>
+> ---
+> Updated change log as per Kevin's suggestion.
 
-Hint, you need to tell us exactly what trees you want your patch applie=
-d
-to, otherwise we will just guess, and usually, incorrectly.
 
-Be specific.
+Thanks for the update.  I've queued the updated version of this series,
+and sent pull request to Grant.
 
-greg k-h
---
-To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Thanks Tarun,
+
+Kevin
+
