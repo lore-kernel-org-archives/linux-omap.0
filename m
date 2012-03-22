@@ -1,59 +1,82 @@
-From: Mark Brown <broonie@opensource.wolfsonmicro.com>
-Subject: Re: [PATCH 13/13] Add dummy smsc911x regulators to zoom-debugboard.
-Date: Thu, 22 Mar 2012 11:37:23 +0000
-Message-ID: <20120322113722.GF3091@opensource.wolfsonmicro.com>
-References: <20120321194133.GP9859@atomide.com>
- <1332393594-23993-1-git-send-email-Russ.Dill@ti.com>
- <1332393594-23993-14-git-send-email-Russ.Dill@ti.com>
+From: "Joe Woodward" <jw@terrafix.co.uk>
+Subject: Suspend broken on 3.3?
+Date: Thu, 22 Mar 2012 11:09:46 +0000
+Message-ID: <WC20120322110946.6413AA@terrafix.co.uk>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="5CUMAwwhRxlRszMD"
+Content-Type: text/plain; charset="us-ascii"
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from opensource.wolfsonmicro.com ([80.75.67.52]:48694 "EHLO
-	opensource.wolfsonmicro.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755781Ab2CVLhY (ORCPT
+Received: from smtp1.keele.netcentral.co.uk ([212.57.235.197]:53925 "EHLO
+	smtp3.keele.netcentral.co.uk" rhost-flags-OK-FAIL-OK-OK)
+	by vger.kernel.org with ESMTP id S964788Ab2CVMOe (ORCPT
 	<rfc822;linux-omap@vger.kernel.org>);
-	Thu, 22 Mar 2012 07:37:24 -0400
-Content-Disposition: inline
-In-Reply-To: <1332393594-23993-14-git-send-email-Russ.Dill@ti.com>
+	Thu, 22 Mar 2012 08:14:34 -0400
+Received: from terrafix.co.uk (reverse.keele.netcentral.co.uk [212.57.249.250] (may be forged))
+	by smtp3.keele.netcentral.co.uk (8.14.2/8.14.2) with ESMTP id q2MB9o40029355
+	for <linux-omap@vger.kernel.org>; Thu, 22 Mar 2012 11:09:56 GMT
+Received: from WorldClient by terrafix.co.uk (MDaemon PRO v12.5.3)
+	with ESMTP id md50002196489.msg
+	for <linux-omap@vger.kernel.org>; Thu, 22 Mar 2012 11:09:51 +0000
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Russ Dill <Russ.Dill@ti.com>
-Cc: linux-omap@vger.kernel.org, Tony Lindgren <tony@atomide.com>, Matt Porter <mporter@ti.com>, robert.marklund@stericsson.com, linus.walleij@linaro.org
+To: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
+
+Is system suspend broken on stock 3.3?
+
+I have a working stock 3.2 (with patches to fix runtime_pm for DSS2), and system suspend works just fine!
+
+This is running on a variety of GUMSTIX boards (both OMAP3530 and AM3703-based).
+
+I've just updated to stock 3.3 and suspend returns immediately when entered:
+
+# echo mem > /sys/power/state
+[   72.391693] PM: Syncing filesystems ... done.
+[   72.397003] Freezing user space processes ... (elapsed 0.02 seconds) done.
+[   72.425201] Freezing remaining freezable tasks ... (elapsed 0.02 seconds) done.
+[   72.456451] Suspending console(s) (use no_console_suspend to debug)
+[   72.581695] PM: suspend of devices complete after 115.977 msecs
+[   72.584594] PM: late suspend of devices complete after 2.868 msecs
+[   72.612060] Successfully put all powerdomains to target state
+[   72.613983] PM: early resume of devices complete after 1.770 msecs
+[   72.941894] PM: resume of devices complete after 326.630 msecs
+[   72.975677] Restarting tasks ... done.
+
+I've looked in the debugfs and see:
+# cat suspend_stats
+success: 1
+fail: 0
+failed_freeze: 0
+failed_prepare: 0
+failed_suspend: 0
+failed_suspend_noirq: 0
+failed_resume: 0
+failed_resume_noirq: 0
+failures:
+  last_failed_dev:
+
+  last_failed_errno:    0
+                        0
+  last_failed_step:
+
+# cat wakeup_sources
+name            active_count    event_count     hit_count       active_since    total_time      max_time        last_change
+gpio-keys       0               0               0               0               0               0               0
+(null)          0               0               0               0               0               0               0
+(null)          0               0               0               0               0               0               0
+1-0048          0               0               0               0               0               0               0
+omap_uart.3     0               0               0               0               0               0               0
+omap_uart.2     0               0               0               0               0               0               0
+
+So have no idea what is causing the wakeup.
+
+How should I go about debugging this further?
+
+Has anyone else tried suspend on 3.3?
+
+I've tried this both with my custom defconfig and omap2plus_defconfig.
+
+I do have some modifications to the GUMSTIX overo board file (minor changes like defining some extra buttons, and setting the correct LCD parameters), but I'm fairly certain these shouldn't be causing any problems...
+
+Cheers,
+Joe
 
 
---5CUMAwwhRxlRszMD
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-
-On Wed, Mar 21, 2012 at 10:19:54PM -0700, Russ Dill wrote:
-
-> +static struct regulator_consumer_supply dummy_supplies[] = {
-> +	REGULATOR_SUPPLY("vddvario", "smsc911x.0"),
-> +	REGULATOR_SUPPLY("vdd33a", "smsc911x.0"),
-
-Why do none of these boards use -1 as the ID for the device?
-
---5CUMAwwhRxlRszMD
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: Digital signature
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.4.11 (GNU/Linux)
-
-iQIcBAEBAgAGBQJPaw7rAAoJEBus8iNuMP3dKEQP/3h9ZuTlKBF/Unk7hL3g7Vrd
-71YQMEceI+nMtvZVd1Y2jf7/sTS7NHYySS6sRmExWsF6tNcHcp7Tyk7Xuf3NXmnQ
-GbzP0mlt0+ySDxfXAn+9DrFW+no4P8R5r5xsL2G55IUNA+fHHGV3nN4iWvLtIPQu
-tDyO/4raSS4eCHIgyTlYn1Ap4YhswzF/yt8ipsc46zvzuhVmNGfOK2uY+rQjqi7c
-O1jwkL5yt7M5IX3Uym1fwtl7HJhZBR+4zhp6warX2PA+11t3b9auxHFl1boAaNqX
-LPS75KZGu8iAlhepHpM3jmw1BM7PPSvjFDy1JF3pYyhlIjBIBRaKzDpnso3qHed4
-LHwrl2xOF3mxSZ2eV8hnTsDzly7fywRi4xY76vGyYsUxCk42+SuNtazwdtKN1TpY
-M+7FyNvGNatlHv8ZenXO8aypiVvwxzBwt/0ubCTzQkGbOrahRsCflM9NHMVgPEV4
-/TPQUmXiyEY0TpCmrJYXX/h9PqxNq/KOnsqYKeVETt5t8/yWqLc8LE0nNaxrtLqY
-df0w6mSvWmb9AUTebaJgjKl/2JsBBr8NxT99KZo8q9MOcM+3fOim/LBjvfz62sAQ
-qegCDGJdT2hJUTdX3TlIjxwbmxMXwbN66Ix1iRE4y4PEv4o9e1/cLjwpxs96sDCM
-I8vkggl0fSYbyXM3Mi1Q
-=pJWw
------END PGP SIGNATURE-----
-
---5CUMAwwhRxlRszMD--
