@@ -1,37 +1,46 @@
-From: Russell King - ARM Linux <linux-lFZ/pmaqli7XmaaqVzeoHQ@public.gmane.org>
-Subject: Re: [PATCH v7 1/3] Documentation: common clk API
-Date: Thu, 22 Mar 2012 00:42:58 +0000
-Message-ID: <20120322004258.GG16389@n2100.arm.linux.org.uk>
-References: <4F6A2042.9030302@codeaurora.org>
-	<20120321190741.GL3226@opensource.wolfsonmicro.com>
-	<20120321193304.GO9859@atomide.com>
-	<4F6A2EF5.3010008@codeaurora.org>
+From: Russ Dill <Russ.Dill@ti.com>
+Subject: Re: arm-soc + rmk's tree boot failure on OMAP4430SDP
+Date: Wed, 21 Mar 2012 18:15:27 -0700
+Message-ID: <CA+Bv8Xa7=0yLGH6Pfz4hi5ByQ-SCdX-tctMnRMYYthrjM5ZOog@mail.gmail.com>
+References: <20120316231158.GA9970@n2100.arm.linux.org.uk>
+	<20120317004706.GF7276@atomide.com>
+	<20120317211505.GA4720@n2100.arm.linux.org.uk>
+	<1332149601.2144.15.camel@deskari>
+	<20120319123006.GC16389@n2100.arm.linux.org.uk>
+	<1332160864.2144.66.camel@deskari>
+	<1332162163.2144.77.camel@deskari>
+	<1332165550.2144.85.camel@deskari>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <linaro-dev-bounces-cunTk1MwBs8s++Sfvej+rw@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <4F6A2EF5.3010008-sgV2jX0FEOL9JmXXK+q4OQ@public.gmane.org>
-List-Unsubscribe: <http://lists.linaro.org/mailman/options/linaro-dev>,
-	<mailto:linaro-dev-request-cunTk1MwBs8s++Sfvej+rw@public.gmane.org?subject=unsubscribe>
-List-Archive: <http://lists.linaro.org/pipermail/linaro-dev>
-List-Post: <mailto:linaro-dev-cunTk1MwBs8s++Sfvej+rw@public.gmane.org>
-List-Help: <mailto:linaro-dev-request-cunTk1MwBs8s++Sfvej+rw@public.gmane.org?subject=help>
-List-Subscribe: <http://lists.linaro.org/mailman/listinfo/linaro-dev>,
-	<mailto:linaro-dev-request-cunTk1MwBs8s++Sfvej+rw@public.gmane.org?subject=subscribe>
-Sender: linaro-dev-bounces-cunTk1MwBs8s++Sfvej+rw@public.gmane.org
-Errors-To: linaro-dev-bounces-cunTk1MwBs8s++Sfvej+rw@public.gmane.org
-To: Saravana Kannan <skannan-sgV2jX0FEOL9JmXXK+q4OQ@public.gmane.org>
-Cc: Nicolas Pitre <nicolas.pitre-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>, linaro-dev-cunTk1MwBs8s++Sfvej+rw@public.gmane.org, Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>, Jeremy Kerr <jeremy.kerr-Z7WLFzj8eWMS+FvcfC7Uqw@public.gmane.org>, Magnus Damm <magnus.damm-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, Arnd Bergmann <arnd-r2nGTMty4D4@public.gmane.org>, patches-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org, Sascha Hauer <s.hauer-bIcnvbaLZ9MEGnE8C9+IrQ@public.gmane.org>, Rob Herring <rob.herring-bsGFqQB8/DxBDgjK7y7TUQ@public.gmane.org>, Thomas Gleixner <tglx-hfZtesqFncYOwBW4kG4KsQ@public.gmane.org>, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Paul Walmsley <paul-DWxLp4Yu+b8AvxtiuMwx3w@public.gmane.org>, Linus Walleij <linus.walleij-0IS4wlFg1OjSUeElwK9/Pw@public.gmane.org>, Mark Brown <broonie-yzvPICuk2AATkU/dhu1WVueM+bqZidxxQQ4Iyu8u01E@public.gmane.org>, Stephen Boyd <sboyd-sgV2jX0FEOL9JmXXK+q4OQ@public.gmane.org>, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Content-Type: text/plain; charset=UTF-8
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from mail-pb0-f46.google.com ([209.85.160.46]:47517 "EHLO
+	mail-pb0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755988Ab2CVBP2 (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 21 Mar 2012 21:15:28 -0400
+Received: by pbcun15 with SMTP id un15so1175578pbc.19
+        for <linux-omap@vger.kernel.org>; Wed, 21 Mar 2012 18:15:28 -0700 (PDT)
+In-Reply-To: <1332165550.2144.85.camel@deskari>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Tomi Valkeinen <tomi.valkeinen@ti.com>
+Cc: Russell King - ARM Linux <linux@arm.linux.org.uk>, Tony Lindgren <tony@atomide.com>, linux-omap@vger.kernel.org, Arnd Bergmann <arnd@arndb.de>, Olof Johansson <olof@lixom.net>
 
-On Wed, Mar 21, 2012 at 12:41:41PM -0700, Saravana Kannan wrote:
-> The meaning of clk_enable/disable has been changed and they won't work  
-> without calling clk_prepare/unprepare. So, these are definitely new  
-> APIs. If it weren't new APIs, then none of the general drivers would  
-> need to change.
+On Mon, Mar 19, 2012 at 6:59 AM, Tomi Valkeinen <tomi.valkeinen@ti.com> wrote:
+> On Mon, 2012-03-19 at 15:02 +0200, Tomi Valkeinen wrote:
+>
+>> I'll see if I can make a single patch that fixes the issue. The patch
+>> series I mentioned earlier does lots of things, but I think just moving
+>> the driver registration out of the probe function should be enough to
+>> avoid the problem.
+>
+> Here's a patch that fixes the issue for me. Tested on OMAP4 Blaze with
+> omapdss both as module and built-in. I'll queue this up after testing it
+> a bit more.
+>
+> This still leaves the issue of initialization order, but I think that's
+> not a big issue at the moment. It doesn't happen in practice, as the
+> current driver framework will probe the devices at driver registration
+> time. I'll fix this for the next merge window.
 
-Yes and no.  I disagree that the meaning of clk_enable/disable() has
-changed.  It hasn't.  What has changed is the preconditions for calling
-those functions, and necessarily so in the interest of being able to
-unify the different implementations.
+I bisected a boot failure on an am37x-evm to 3ec2decb commit as well.
+This fixes it for me too.
