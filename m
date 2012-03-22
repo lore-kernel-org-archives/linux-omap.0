@@ -1,61 +1,43 @@
 From: Kevin Hilman <khilman@ti.com>
-Subject: Re: [PATCH v4 RESEND 6/7] gpio/omap: fix incorrect update to context.irqenable1
-Date: Thu, 22 Mar 2012 16:09:07 -0700
-Message-ID: <87vclw44j0.fsf@ti.com>
-References: <1332393130-10636-1-git-send-email-tarun.kanti@ti.com>
+Subject: Re: [PATCH] ARM: OMAP3+: fix oops triggered in omap_prcm_register_chain_handler(v1)
+Date: Thu, 22 Mar 2012 16:12:21 -0700
+Message-ID: <87mx7844dm.fsf@ti.com>
+References: <1332379417-7408-1-git-send-email-tom.leiming@gmail.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aog120.obsmtp.com ([74.125.149.140]:49381 "EHLO
-	na3sys009aog120.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1758440Ab2CVXJJ (ORCPT
+Received: from na3sys009aob106.obsmtp.com ([74.125.149.76]:48283 "EHLO
+	na3sys009aog106.obsmtp.com" rhost-flags-OK-OK-OK-FAIL)
+	by vger.kernel.org with ESMTP id S1757444Ab2CVXMX (ORCPT
 	<rfc822;linux-omap@vger.kernel.org>);
-	Thu, 22 Mar 2012 19:09:09 -0400
-Received: by mail-pb0-f51.google.com with SMTP id wy12so2112829pbc.38
-        for <linux-omap@vger.kernel.org>; Thu, 22 Mar 2012 16:09:08 -0700 (PDT)
-In-Reply-To: <1332393130-10636-1-git-send-email-tarun.kanti@ti.com> (Tarun
-	Kanti DebBarma's message of "Thu, 22 Mar 2012 10:42:09 +0530")
+	Thu, 22 Mar 2012 19:12:23 -0400
+Received: by mail-yw0-f46.google.com with SMTP id m54so2777752yhm.5
+        for <linux-omap@vger.kernel.org>; Thu, 22 Mar 2012 16:12:22 -0700 (PDT)
+In-Reply-To: <1332379417-7408-1-git-send-email-tom.leiming@gmail.com> (Ming
+	Lei's message of "Thu, 22 Mar 2012 09:23:37 +0800")
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Tarun Kanti DebBarma <tarun.kanti@ti.com>
-Cc: linux-omap@vger.kernel.org, tony@atomide.com, b-cousson@ti.com, grant.likely@secretlab.ca, linux-arm-kernel@lists.infradead.org
+To: Ming Lei <tom.leiming@gmail.com>
+Cc: Tony Lindgren <tony@atomide.com>, Russell King <linux@arm.linux.org.uk>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 
-Tarun Kanti DebBarma <tarun.kanti@ti.com> writes:
+Ming Lei <tom.leiming@gmail.com> writes:
 
-> In _enable_gpio_irqbank() when bank->regs->set_irqenable is TRUE,
-> gpio_mask can be directly set by writing to set_irqenable register
-> without overwriting current value. In order to ensure the same is
-> stored in context.irqenable1, we must avoid overwriting it with
-> gpio_mask at the end of the function. Instead, update irqenable1
-> appropriately by OR'ing with gpio_mask.
-> For the case where bank->regs->set_irqenable is FALSE, irqenable1
-> can be directly overwritten with 'l' which holds correct computed
-> value.
+> This patch fixes the oops below[1].
 >
->         if (bank->regs->set_irqenable) {
->                 reg += bank->regs->set_irqenable;
->                 l = gpio_mask;
->         } else {
->                 reg += bank->regs->irqenable;
->                 l = __raw_readl(reg);
->                 if (bank->regs->irqenable_inv)
->                         l &= ~gpio_mask;
->                 else
->                         l |= gpio_mask;
->         }
->
-> Make similar change for _disable_gpio_irqbank().
->
-> Signed-off-by: Tarun Kanti DebBarma <tarun.kanti@ti.com>
-> Reviewed-by: Santosh Shilimkar <santosh.shilimkar@ti.com>
+> Obviously, the count of "struct irq_chip_generic" instances to be
+> allocated and setup should be irq_setup->nr_regs instead of
+> irq_setup->nr_regs plus one, so just fix the iterator to avoid
+> the oops. 
+
+[...]
+
 > ---
-> Updated change log as per Kevin's suggestion.
+> v1:
+> 	-add a bit more description to the changelog as suggested by
+> 	Tero and Kevin.
 
+Thanks for the updated version.
 
-Thanks for the update.  I've queued the updated version of this series,
-and sent pull request to Grant.
-
-Thanks Tarun,
+Queuing as a fix for v3.4-rc (branch: for_3.4/fixes/pm)
 
 Kevin
-
