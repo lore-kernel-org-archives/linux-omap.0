@@ -1,16 +1,17 @@
-From: Daniel Lezcano <daniel.lezcano-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>
-Subject: Re: [RFC][PATCH 0/7] OMAP4 cpuidle cleanup
-Date: Wed, 21 Mar 2012 23:20:32 +0100
-Message-ID: <4F6A5430.2090501@linaro.org>
-References: <1332322070-24577-1-git-send-email-daniel.lezcano@linaro.org>
-	<4F69A872.50203@ti.com>
-	<CAORVsuUeE046O7YJ_fE49NbW1OjZHZX+GuNiDkF0AnzBnSMbxA@mail.gmail.com>
-	<4F6A04F3.6050306@linaro.org> <873991d3hs.fsf@ti.com>
+From: Russell King - ARM Linux <linux-lFZ/pmaqli7XmaaqVzeoHQ@public.gmane.org>
+Subject: Re: [PATCH v7 1/3] Documentation: common clk API
+Date: Thu, 22 Mar 2012 00:42:58 +0000
+Message-ID: <20120322004258.GG16389@n2100.arm.linux.org.uk>
+References: <4F6A2042.9030302@codeaurora.org>
+	<20120321190741.GL3226@opensource.wolfsonmicro.com>
+	<20120321193304.GO9859@atomide.com>
+	<4F6A2EF5.3010008@codeaurora.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"; Format="flowed"
-Content-Transfer-Encoding: base64
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 Return-path: <linaro-dev-bounces-cunTk1MwBs8s++Sfvej+rw@public.gmane.org>
-In-Reply-To: <873991d3hs.fsf-l0cyMroinI0@public.gmane.org>
+Content-Disposition: inline
+In-Reply-To: <4F6A2EF5.3010008-sgV2jX0FEOL9JmXXK+q4OQ@public.gmane.org>
 List-Unsubscribe: <http://lists.linaro.org/mailman/options/linaro-dev>,
 	<mailto:linaro-dev-request-cunTk1MwBs8s++Sfvej+rw@public.gmane.org?subject=unsubscribe>
 List-Archive: <http://lists.linaro.org/pipermail/linaro-dev>
@@ -20,85 +21,17 @@ List-Subscribe: <http://lists.linaro.org/mailman/listinfo/linaro-dev>,
 	<mailto:linaro-dev-request-cunTk1MwBs8s++Sfvej+rw@public.gmane.org?subject=subscribe>
 Sender: linaro-dev-bounces-cunTk1MwBs8s++Sfvej+rw@public.gmane.org
 Errors-To: linaro-dev-bounces-cunTk1MwBs8s++Sfvej+rw@public.gmane.org
-To: Kevin Hilman <khilman-l0cyMroinI0@public.gmane.org>
-Cc: Linaro Dev <linaro-dev-cunTk1MwBs8s++Sfvej+rw@public.gmane.org>, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org
+To: Saravana Kannan <skannan-sgV2jX0FEOL9JmXXK+q4OQ@public.gmane.org>
+Cc: Nicolas Pitre <nicolas.pitre-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>, linaro-dev-cunTk1MwBs8s++Sfvej+rw@public.gmane.org, Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>, Jeremy Kerr <jeremy.kerr-Z7WLFzj8eWMS+FvcfC7Uqw@public.gmane.org>, Magnus Damm <magnus.damm-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, Arnd Bergmann <arnd-r2nGTMty4D4@public.gmane.org>, patches-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org, Sascha Hauer <s.hauer-bIcnvbaLZ9MEGnE8C9+IrQ@public.gmane.org>, Rob Herring <rob.herring-bsGFqQB8/DxBDgjK7y7TUQ@public.gmane.org>, Thomas Gleixner <tglx-hfZtesqFncYOwBW4kG4KsQ@public.gmane.org>, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Paul Walmsley <paul-DWxLp4Yu+b8AvxtiuMwx3w@public.gmane.org>, Linus Walleij <linus.walleij-0IS4wlFg1OjSUeElwK9/Pw@public.gmane.org>, Mark Brown <broonie-yzvPICuk2AATkU/dhu1WVueM+bqZidxxQQ4Iyu8u01E@public.gmane.org>, Stephen Boyd <sboyd-sgV2jX0FEOL9JmXXK+q4OQ@public.gmane.org>, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-omap@vger.kernel.org
 
-T24gMDMvMjEvMjAxMiAxMDo1NCBQTSwgS2V2aW4gSGlsbWFuIHdyb3RlOgo+IERhbmllbCBMZXpj
-YW5vPGRhbmllbC5sZXpjYW5vQGxpbmFyby5vcmc+ICB3cml0ZXM6Cj4KPj4gT24gMDMvMjEvMjAx
-MiAwMjo0MyBQTSwgSmVhbiBQaWhldCB3cm90ZToKPj4+IE9uIFdlZCwgTWFyIDIxLCAyMDEyIGF0
-IDExOjA3IEFNLCBTYW50b3NoIFNoaWxpbWthcgo+Pj4gPHNhbnRvc2guc2hpbGlta2FyQHRpLmNv
-bT4gICB3cm90ZToKPj4+PiBEYW5pZWwsCj4+Pj4KPj4+PiBPbiBXZWRuZXNkYXkgMjEgTWFyY2gg
-MjAxMiAwMjo1NyBQTSwgRGFuaWVsIExlemNhbm8gd3JvdGU6Cj4+Pj4+IFRoaXMgcGF0Y2hzZXQg
-aXMgYSBwcm9wb3NpdGlvbiB0byBpbXByb3ZlIGEgYml0IHRoZSBjb2RlLgo+Pj4+PiBUaGUgY2hh
-bmdlcyBhcmUgY29kZSBjbGVhbnVwIGFuZCBkb2VzIG5vdCBjaGFuZ2UgdGhlIGJlaGF2aW9yIG9m
-IHRoZQo+Pj4+PiBkcml2ZXIgaXRzZWxmLgo+Pj4+Pgo+Pj4+PiBBIGNvdXBsZSBhIHRoaW5ncyBj
-YWxsIG15IGludGVudGlvbi4gV2h5IHRoZSBjcHVpZGxlIGRldmljZSBpcyBzZXQgZm9yIGNwdTAg
-b25seQo+Pj4+PiBhbmQgd2h5IHRoZSBXRkkgaXMgbm90IHVzZWQgPwo+Pj4+Pgo+Pj4+PiBEYW5p
-ZWwgTGV6Y2FubyAoNyk6Cj4+Pj4+ICAgICBBUk06IE9NQVA0OiBjcHVpZGxlIC0gUmVtb3ZlIHVu
-dXNlZCB2YWxpZCBmaWVsZAo+Pj4+PiAgICAgQVJNOiBPTUFQNDogY3B1aWRsZSAtIERlY2xhcmUg
-dGhlIHN0YXRlcyB3aXRoIHRoZSBkcml2ZXIgZGVjbGFyYXRpb24KPj4+Pj4gICAgIEFSTTogT01B
-UDQ6IGNwdWlkbGUgLSBSZW1vdmUgdGhlIGNwdWlkbGVfcGFyYW1zX3RhYmxlIHRhYmxlCj4+Pj4+
-ICAgICBBUk06IE9NQVA0OiBjcHVpZGxlIC0gZml4IHN0YXRpYyBvbWFwNF9pZGxlX2RhdGEgZGVj
-bGFyYXRpb24KPj4+Pj4gICAgIEFSTTogT01BUDQ6IGNwdWlkbGUgLSBJbml0aWFsaXplIG9tYXA0
-X2lkbGVfZGF0YSBhdCBjb21waWxlIHRpbWUKPj4+Pj4gICAgIEFSTTogT01BUDQ6IGNwdWlkbGUg
-LSB1c2UgdGhlIG9tYXA0X2lkbGVfZGF0YSB2YXJpYWJsZSBkaXJlY3RseQo+Pj4+PiAgICAgQVJN
-OiBPTUFQNDogY3B1aWRsZSAtIHJlbW92ZSBvbWFwNF9pZGxlX2RhdGEgaW5pdGlhbGl6YXRpb24g
-YXQgYm9vdAo+Pj4+PiAgICAgICB0aW1lCj4+Pj4+Cj4+Pj4gVGhlIHNlcmllcyBsb29rcyBmaW5l
-IHRvIG1lIGluIGdlbmVyYWwuIFRoaXMgY2xlYW4tdXAgaXMgYXBwbGljYWJsZQo+Pj4+IGZvciBP
-TUFQMyBjcHVpZGxlIGNvZGUgYXMgd2VsbC4KPj4+IEdyZWF0IQo+Pj4gSG93ZXZlciBPTUFQMyBo
-YXMgYSBmZXcgc3BlY2lmaWMgdGhpbmdzIHRoYXQgY2Fubm90IGJlIHJlbW92ZWQgYXMgZWFzaWx5
-Ogo+Pj4gLSB0aGUgJ3ZhbGlkJyBmbGFnIGlzIHVzZWQgYmVjYXVzZSBvbmx5IGNlcnRhaW4gY29t
-YmluYXRpb25zIG9mIHBvd2VyCj4+PiBkb21haW5zIHN0YXRlcyBhcmUgcG9zc2libGUsCj4+Cj4+
-IFdoZW4gSSBsb29rIHRoZSBib2FyZC1yeDUxIGNvZGUgSSBzZWU6Cj4+Cj4+IHN0YXRpYyBzdHJ1
-Y3QgY3B1aWRsZV9wYXJhbXMgcng1MV9jcHVpZGxlX3BhcmFtc1tdID0gewo+PiAJLyogQzEgKi8K
-Pj4gCXsxMTAgKyAxNjIsIDUgLCAxfSwKPj4gCS8qIEMyICovCj4+IAl7MTA2ICsgMTgwLCAzMDks
-IDF9LAo+PiAJLyogQzMgKi8KPj4gCXsxMDcgKyA0MTAsIDQ2MDU3LCAwfSwKPj4gCS8qIEM0ICov
-Cj4+IAl7MTIxICsgMzM3NCwgNDYwNTcsIDB9LAo+PiAJLyogQzUgKi8KPj4gCXs4NTUgKyAxMTQ2
-LCA0NjA1NywgMX0sCj4+IAkvKiBDNiAqLwo+PiAJezc1ODAgKyA0MTM0LCA0ODQzMjksIDB9LAo+
-PiAJLyogQzcgKi8KPj4gCXs3NTA1ICsgMTUyNzQsIDQ4NDMyOSwgMX0sCj4+IH07Cj4+Cj4+IElm
-IEMzLCBDNCwgQzYgYXJlIG5vdCB2YWxpZCwgc28gQUZBSUNTIG5ldmVyIHVzZWQgaW4gdGhlIGNw
-dWlkbGUgY29kZQo+PiB3aHkgdGhlIHZhbHVlcyBhcmUgJ2V4aXRfbGF0ZW5jeScgYW5kICd0YXJn
-ZXRfcmVzaWRlbmN5JyBzcGVjaWZpZWQgPyBJCj4+IG1lYW4gd2h5IGRvbid0IHdlIGhhdmUgeyAw
-LCAwLCAwIH0gPyBJcyBpdCBqdXN0IGZvciBpbmZvcm1hdGlvbiA/Cj4KPiBZZXMsIGJlY2F1c2Ug
-Z2V0dGluZyB0aG9zZSBudW1iZXJzIHdlcmUgYmFzZWQgb24gc29tZSBib2FyZC1zcGVjaWZpYwo+
-IG1lYXN1cmVtZW50cywgYW5kIHdlIGRvbid0IHdhbnQgdGhvc2UgdmFsdWVzIHRvIGJlIGxvc3Qu
-ICBBbHNvLCBzb21lCj4gdXNhZ2UgcGF0dGVybnMgbWlnaHQgd2FudCB0byAocmUpZW5hYmxlIHRo
-b3NlIHN0YXRlcy4KCldoZW4geW91IHNheSByZS1lbmFibGUgeW91IG1lYW4gZm9yIGEgY3VzdG9t
-IGtlcm5lbCA/Cgo+PiBJIHVuZGVyc3RhbmQgdGhlIHB1cnBvc2Ugb2YgdGhpcyBjb2RlIGJ1dCBp
-dCBsb29rcyBhIGJpdCB0cmlja3kgYW5kCj4+IGhhcmQgdG8gZmFjdG9yIG91dC4gSXMgaXQgYWNj
-ZXB0YWJsZSB0byBjcmVhdGUgYSBuZXcgY3B1aWRsZSBkcml2ZXIKPj4gZm9yIHJ4NTEgdGhlbiB3
-ZSBmYWN0b3Igb3V0IHRoZSBjb2RlIGJldHdlZW4gb21hcDMsIG9tYXA0IGFuZCByeDUxCj4+IHdo
-ZW4gYWxsIHRoZSBjb2RlIGNvbnNpc3RlbnQgPwo+Cj4gSSBkb24ndCBsaWtlIHRoYXQgaWRlYS4g
-IEFsbCB0aGUgY29kZSBpcyB0aGUgc2FtZSwgdGhlIG9ubHkgdGhpbmcgd2UKPiBuZWVkIGlzIHRo
-ZSBhYmlsaXR5IHRvIHBhc3MgaW4gYm9hcmQtc3BlY2lmaWMgbGF0ZW5jeSBudW1iZXJzIGZvciB0
-aGUKPiBDLXN0YXRlcy4KClNvcnJ5IEkgd2FzIG5vdCBjbGVhciwgSSB3YXMgbm90IHNheWluZyBk
-dXBsaWNhdGluZyB0aGUgY29kZS4gV2hhdCBJIAptZWFudCBpcyB0byBjcmVhdGUgYSBkcml2ZXI6
-CgpzdHJ1Y3QgY3B1aWRsZV9kcml2ZXIgcng1MV9pZGxlX2RyaXZlciA9IHsKICAJLm5hbWUgPSAJ
-InJ4NTFfaWRsZSIsCgkub3duZXIgPSAJVEhJU19NT0RVTEUsCgkuc3RhdGVzID0gewoJCXsKCQkJ
-LyogV2hhdCBpcyBpbiByeDUxX2NwdWlkbGVfcGFyYW1zICovCgkJfQoJfTsKCldlIHB1dCBpbiB0
-aGVyZSBvbmx5IHRoZSB2YWxpZCBmaWVsZHMgYW5kIHdlIGtlZXAgaW4gYSBjb21tZW50IHRoZSB0
-YWJsZSAKd2l0aCB0aGUgbGF0ZW5jeSBudW1iZXJzLgoKQXNzdW1pbmcgdGhlIHZhbGlkIGZpZWxk
-IGlzIGZvciBoYW5kbGluZyB0aGUgdGFibGUgb3ZlcndyaXR0aW5nLCB3ZSBjYW4gCnRoZW4gcmVt
-b3ZlIGl0LiBCeSB0aGlzIHdheSwgd2Ugc2ltcGxpZnkgdGhlIG5leHRfdmFsaWRfc3RhdGUgZnVu
-Y3Rpb24uCgpEZXBlbmRpbmcgaWYgd2UgaGF2ZSByeDUxIG9yIG5vdCwgd2UgcmVnaXN0ZXIgdGhl
-IHJ4NTEgZHJpdmVyIG9yIHRoZSAKb21hcDMgZHJpdmVyIGluIHRoZSBpbml0IGZ1bmN0aW9uLiBU
-aGF0IGhhcyBhbHNvIHRoZSBiZW5lZml0IHRvIGdyb3VwIAp0aGUgY3B1aWRsZSBjb2RlIGluIHRo
-ZSBjcHVpZGxlMzR4eCBmaWxlLgoKCj4gVGhlc2UgbGF0ZW5jeSBudW1iZXJzIGFyZSBvYnZpb3Vz
-bHkgcXVpdGUgc2lnbmlmaWNhbnQgd2hlbiBpdCBjb21lcyB0bwo+IHRoZSBmaW5hbCBwb3dlciBj
-b25zdW1wdGlvbiwgYW5kIHRoZXNlIHZhbHVlcyBvZnRlbiBkZXBlbmQgb24KPiBib2FyZC1zcGVj
-aWZpYyBzZXR0aW5ncy4gIFVudGlsIHRoZXJlIGFyZSBnZW5lcmljIGZyYW1ld29ya3MgZm9yCj4g
-ZGVmaW5pbmcgYWxsIHRoZSBsYXRlbmNpZXMgaW52b2x2ZWQsIHBhc3NpbmcgdGhlc2UgdmFsdWVz
-IGluIGZyb20gYm9hcmQKPiBmaWxlcyBpcyBhYnNvbHV0bHkgbmVlZGVkLgoKWWVzIGJ1dCBiZWZv
-cmUgY3JlYXRpbmcgdGhlIGdlbmVyaWMgZnJhbWV3b3JrLCB3ZSBoYXZlIHRvIGRvIGEgCnRyYW5z
-dmVyc2FsIGNwdWlkbGUgY29uc29saWRhdGlvbiBhY3Jvc3MgdGhlIFNvQywgZmFjdG9yIG91dCB0
-aGUgY29kZSAKd2hlbiBwb3NzaWJsZSwgYW5kIGVuc3VyZSB0aGUgY29uc2lzdGVuY3kgYmV0d2Vl
-biB0aGUgZGlmZmVyZW50IHBsYXRmb3JtIAphbmQgc2VlIGEgY29tbW9uIHBhdHRlcm4gdG8gZW1l
-cmdlIGZyb20gdGhpcyB3b3JrLgoKLS0gCiAgPGh0dHA6Ly93d3cubGluYXJvLm9yZy8+IExpbmFy
-by5vcmcg4pSCIE9wZW4gc291cmNlIHNvZnR3YXJlIGZvciBBUk0gU29DcwoKRm9sbG93IExpbmFy
-bzogIDxodHRwOi8vd3d3LmZhY2Vib29rLmNvbS9wYWdlcy9MaW5hcm8+IEZhY2Vib29rIHwKPGh0
-dHA6Ly90d2l0dGVyLmNvbS8jIS9saW5hcm9vcmc+IFR3aXR0ZXIgfAo8aHR0cDovL3d3dy5saW5h
-cm8ub3JnL2xpbmFyby1ibG9nLz4gQmxvZwoKCl9fX19fX19fX19fX19fX19fX19fX19fX19fX19f
-X19fX19fX19fX19fX19fX19fCmxpbmFyby1kZXYgbWFpbGluZyBsaXN0CmxpbmFyby1kZXZAbGlz
-dHMubGluYXJvLm9yZwpodHRwOi8vbGlzdHMubGluYXJvLm9yZy9tYWlsbWFuL2xpc3RpbmZvL2xp
-bmFyby1kZXYK
+On Wed, Mar 21, 2012 at 12:41:41PM -0700, Saravana Kannan wrote:
+> The meaning of clk_enable/disable has been changed and they won't work  
+> without calling clk_prepare/unprepare. So, these are definitely new  
+> APIs. If it weren't new APIs, then none of the general drivers would  
+> need to change.
+
+Yes and no.  I disagree that the meaning of clk_enable/disable() has
+changed.  It hasn't.  What has changed is the preconditions for calling
+those functions, and necessarily so in the interest of being able to
+unify the different implementations.
