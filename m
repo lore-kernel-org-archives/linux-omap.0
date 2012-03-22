@@ -1,48 +1,111 @@
-From: Shubhrajyoti <shubhrajyoti@ti.com>
-Subject: Re: [PATCH RFC] usb: musb: omap: fix the error check for pm_runtime_get_sync
-Date: Thu, 22 Mar 2012 19:06:11 +0530
-Message-ID: <4F6B2ACB.60302@ti.com>
-References: <1332400686-27674-1-git-send-email-shubhrajyoti@ti.com> <4F6B1E2D.8020802@mvista.com> <20120322125550.GG32368@arwen.pp.htv.fi>
+From: "S, Venkatraman" <svenkatr@ti.com>
+Subject: Re: Occasional crashes in suspend-resume with MMC transactions
+Date: Thu, 22 Mar 2012 19:57:16 +0530
+Message-ID: <CANfBPZ9b=6dLbY2D3oAg=Gz_vwAOJ+KC_Bo5ugVJEwumeej_Bw@mail.gmail.com>
+References: <B5906170F1614E41A8A28DE3B8D12143317FDFBB@DBDE01.ent.ti.com> <B5906170F1614E41A8A28DE3B8D12143317FF773@DBDE01.ent.ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aog104.obsmtp.com ([74.125.149.73]:38866 "EHLO
-	na3sys009aog104.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753875Ab2CVNgY (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>);
-	Thu, 22 Mar 2012 09:36:24 -0400
-Received: by mail-gy0-f182.google.com with SMTP id r20so2156008ghr.41
-        for <linux-omap@vger.kernel.org>; Thu, 22 Mar 2012 06:36:23 -0700 (PDT)
-In-Reply-To: <20120322125550.GG32368@arwen.pp.htv.fi>
+Received: from na3sys009aog131.obsmtp.com ([74.125.149.247]:56071 "EHLO
+	psmtp.com" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
+	id S1030518Ab2CVO1i convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 22 Mar 2012 10:27:38 -0400
+Received: by mail-bk0-f53.google.com with SMTP id j4so2018927bkw.40
+        for <linux-omap@vger.kernel.org>; Thu, 22 Mar 2012 07:27:37 -0700 (PDT)
+In-Reply-To: <B5906170F1614E41A8A28DE3B8D12143317FF773@DBDE01.ent.ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: balbi@ti.com
-Cc: Sergei Shtylyov <sshtylyov@mvista.com>, linux-omap@vger.kernel.org, linux-usb@vger.kernel.org, Kishon Vijay Abraham I <kishon@ti.com>
+To: "Bedia, Vaibhav" <vaibhav.bedia@ti.com>
+Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-mmc@vger.kernel.org" <linux-mmc@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, "cjb@laptop.org" <cjb@laptop.org>
 
-
->>    You haven't run it thru scripts/checkpatch.pl either, I guess?
+On Thu, Mar 22, 2012 at 6:50 PM, Bedia, Vaibhav <vaibhav.bedia@ti.com> =
+wrote:
+> On Thu, Mar 22, 2012 at 09:53:23, Bedia, Vaibhav wrote:
+>> Hi,
 >>
-
-Actually modified the patch a little afterwards.
->>>  drivers/usb/musb/omap2430.c |    5 +++--
->>>  1 files changed, 3 insertions(+), 2 deletions(-)
->>> diff --git a/drivers/usb/musb/omap2430.c b/drivers/usb/musb/omap2430.c
->>> index 2ae0bb3..e5dd18f 100644
->>> --- a/drivers/usb/musb/omap2430.c
->>> +++ b/drivers/usb/musb/omap2430.c
->> [...]
->>> @@ -301,7 +302,7 @@ static int omap2430_musb_init(struct musb *musb)
->>>
->>>  	status = pm_runtime_get_sync(dev);
->>>  	if (status<  0) {
->>> -		dev_err(dev, "pm_runtime_get_sync FAILED");
->>> +		dev_err(dev, "pm_runtime_get_sync FAILED %d \n",status);
->>    If I don't mistake, scripts/checkpatch.pl should warn about
->> unneeded spaces before '\n'. And also about missing spaces after
->> commas.
-> I fixed in my branch, thanks
+>> I am trying to do suspend-resume test with a file copy on MMC/SD goi=
+ng on
+>> in the background. The test involves simply copying a 450MB file on =
+an ext3
+>> partition to the same partition under a different name.
+>>
+>> This is on an AM335x board which uses the omap_hsmmc driver.
+>> The kernel is v3.2 and I have also applied the following patch
+>>
 >
-Thanks Felipe,
-Anyways resent the patch.
+> [...]
+>
+> I found that whenever this issue crops up, mmc_host_suspend() is not =
+able to claim the host
+> And returns -EBUSY. omap_hsmmc driver does not pass on this error cod=
+e to the PM core and
+> hence the suspend process continues. When the driver is made to retur=
+n -EBUSY, the suspend
+> process gets aborted and the user can try suspending again. I am not =
+sure whether this sort
+> of suspend failure is acceptable or the driver is doing something wro=
+ng. The following
+> workaround is what I came up with. Do this look a reasonable thing to=
+ do?
+>
+> ---
+>
+> From a4040dd1869b351a5fa29dacd08facf6e24df609 Mon Sep 17 00:00:00 200=
+1
+> From: Vaibhav Bedia <vaibhav.bedia@ti.com>
+> Date: Thu, 22 Mar 2012 17:14:49 +0530
+> Subject: [PATCH 1/1] mmc: omap_hsmmc: Pass on the suspend failure to =
+the PM core
+>
+> In some cases mmc_host_suspend() is not able to claim the
+> host and proceed with the suspend process. The core returns
+> -EBUSY to the host controller driver. Unfortunately, the
+> host controller driver does not pass on this information
+> to the PM core and hence the system suspend process continues.
+>
+> In these cases the MMC core gets to an unexpected state
+> during resume and multiple issues related to MMC crop up.
+> 1. Host controller driver starts accessing the device registers
+> before the clocks are enabled which leads to a prefetch abort.
+> 2. A file copy thread which was launched before suspend gets
+> stuck due to the host not being reclaimed during resume.
+>
+> To avoid such problems pass on the -EBUSY status to the PM core
+> from the host controller driver. With this change, MMC core
+> suspend might still fail but it does not end up making the
+> system unusable. Suspend gets aborted and the user can try
+> suspending the system again.
+>
+> Signed-off-by: Vaibhav Bedia <vaibhav.bedia@ti.com>
+> ---
+> =A0drivers/mmc/host/omap_hsmmc.c | =A0 =A01 +
+> =A01 files changed, 1 insertions(+), 0 deletions(-)
+>
+> diff --git a/drivers/mmc/host/omap_hsmmc.c b/drivers/mmc/host/omap_hs=
+mmc.c
+> index 3d8dbbb..1f938d9 100644
+> --- a/drivers/mmc/host/omap_hsmmc.c
+> +++ b/drivers/mmc/host/omap_hsmmc.c
+> @@ -2238,6 +2238,7 @@ static int omap_hsmmc_suspend(struct device *de=
+v)
+> =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0=
+ =A0 =A0dev_dbg(mmc_dev(host->mmc),
+> =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0=
+ =A0 =A0 =A0 =A0 =A0 =A0"Unmask interrupt failed\n");
+> =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0}
+> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 ret =3D -EBUSY;
+> =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0goto err;
+> =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0}
+>
+> --
+> 1.7.0.4
 
+I see (in 3.3) that the host controller driver does a "return ret" and
+that means the errors is propagated.
+Where is the return code lost /overridden ?
+--
+To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
