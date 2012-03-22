@@ -1,60 +1,55 @@
-From: Kevin Hilman <khilman@ti.com>
-Subject: [GIT PULL] gpio/omap: more fixes for v3.4
-Date: Thu, 22 Mar 2012 13:49:35 -0700
-Message-ID: <871uok5pk0.fsf@ti.com>
+From: "ABRAHAM, KISHON VIJAY" <kishon@ti.com>
+Subject: Re: [PATCH RESEND] usb: musb: omap: fix crash when musb glue (omap)
+ gets initialized
+Date: Fri, 23 Mar 2012 03:04:04 +0530
+Message-ID: <CAAe_U6JwPbzgn2M+J20rZvoDdmOuS_YOxVitDWPM_wyJmdbcdg@mail.gmail.com>
+References: <1332412545-32396-1-git-send-email-kishon@ti.com>
+	<20120322143351.GB19835@kroah.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aog122.obsmtp.com ([74.125.149.147]:57067 "EHLO
-	na3sys009aog122.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1756343Ab2CVUti (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>);
-	Thu, 22 Mar 2012 16:49:38 -0400
-Received: by mail-yw0-f49.google.com with SMTP id j52so2643201yhj.8
-        for <linux-omap@vger.kernel.org>; Thu, 22 Mar 2012 13:49:35 -0700 (PDT)
+Received: from na3sys009aog105.obsmtp.com ([74.125.149.75]:41063 "EHLO
+	na3sys009aog105.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1756343Ab2CVVeG convert rfc822-to-8bit
+	(ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Thu, 22 Mar 2012 17:34:06 -0400
+Received: by mail-gx0-f180.google.com with SMTP id u1so2797257ggl.11
+        for <linux-omap@vger.kernel.org>; Thu, 22 Mar 2012 14:34:05 -0700 (PDT)
+In-Reply-To: <20120322143351.GB19835@kroah.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Grant Likely <grant.likely@secretlab.ca>
-Cc: linux-omap <linux-omap@vger.kernel.org>, linux-arm-kernel <linux-arm-kernel@lists.infradead.org>, tarun.kanti@ti.com, Santosh Shilimkar <santosh.shilimkar@ti.com>
+To: Greg KH <gregkh@linuxfoundation.org>
+Cc: balbi@ti.com, linux-usb@vger.kernel.org, stable@vger.kernel.org, linux-omap@vger.kernel.org
 
-Hi Grant,
+Hi Greg,
 
-Please pull these OMAP GPIO fixes for v3.4.  These fix some rather
-serious regressions introduced by the cleanup and runtime PM conversion
-series which is also queued for v3.4.  This branch is based on your
-gpio/next branch.
+On Thu, Mar 22, 2012 at 8:03 PM, Greg KH <gregkh@linuxfoundation.org> w=
+rote:
+> On Thu, Mar 22, 2012 at 04:05:45PM +0530, Kishon Vijay Abraham I wrot=
+e:
+>> Upstream Commit: 7acc6197b76edd0b932a7cbcc6cfad0a8a87f026
+>> Upstream Kernel Tag: v2.6.38-rc5-94-g7acc619
+>
+> <snip>
+>
+> <formletter>
+>
+> This is not the correct way to submit patches for inclusion in the
+> stable kernel tree. =A0Please read Documentation/stable_kernel_rules.=
+txt
+> for how to do this properly.
+>
+> </formletter>
 
-This version is functionally the same as the version you previously
-merged (and I asked you to back it out), but this version has some
-better changlogs, and I added reviewed-by and s-o-b from me as well.
+I really couldn't get what I'm missing after reading the
+Documentation/stable_kernel_rules.txt :-( Can you kindly let me know
+what I'm missing here?
 
-Thanks,
-
-Kevin
-
-
-
-The following changes since commit 81b279d80a63628e580c71a31d30a8c3b3047ad4:
-
-  gpio/davinci: fix enabling unbanked GPIO IRQs (2012-03-12 11:53:33 -0600)
-
-are available in the git repository at:
-
-  git://git.kernel.org/pub/scm/linux/kernel/git/khilman/linux-omap-pm.git for_3.4/fixes/gpio-2
-
-for you to fetch changes up to 7fcca715de3438b8fc3c8a144702f3a95c8ff63c:
-
-  gpio/omap: fix redundant decoding of gpio offset (2012-03-21 10:21:24 +0530)
-
-----------------------------------------------------------------
-Tarun Kanti DebBarma (7):
-      gpio/omap: fix wakeup_en register update in _set_gpio_wakeup()
-      gpio/omap: fix trigger type to unsigned
-      gpio/omap: fix _set_gpio_irqenable implementation
-      gpio/omap: fix missing dataout context save in _set_gpio_dataout_reg
-      gpio/omap: fix incorrect context restore logic in omap_gpio_runtime_*
-      gpio/omap: fix incorrect update to context.irqenable1
-      gpio/omap: fix redundant decoding of gpio offset
-
- drivers/gpio/gpio-omap.c |   47 ++++++++++++++++++++++++----------------------
- 1 file changed, 25 insertions(+), 22 deletions(-)
+Thanks
+Kishon
+--
+To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
