@@ -1,94 +1,85 @@
-From: Felipe Balbi <balbi-l0cyMroinI0@public.gmane.org>
-Subject: Re: [PATCH RFC] usb: musb: omap: fix the error check for
- pm_runtime_get_sync
-Date: Thu, 22 Mar 2012 14:55:51 +0200
-Message-ID: <20120322125550.GG32368@arwen.pp.htv.fi>
-References: <1332400686-27674-1-git-send-email-shubhrajyoti@ti.com>
- <4F6B1E2D.8020802@mvista.com>
-Reply-To: balbi-l0cyMroinI0@public.gmane.org
+From: "Bedia, Vaibhav" <vaibhav.bedia@ti.com>
+Subject: RE: Occasional crashes in suspend-resume with MMC transactions
+Date: Thu, 22 Mar 2012 13:20:53 +0000
+Message-ID: <B5906170F1614E41A8A28DE3B8D12143317FF773@DBDE01.ent.ti.com>
+References: <B5906170F1614E41A8A28DE3B8D12143317FDFBB@DBDE01.ent.ti.com>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="JKvC8Wn6JllzUPdT"
-Return-path: <linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <4F6B1E2D.8020802-Igf4POYTYCDQT0dZR+AlfA@public.gmane.org>
-Sender: linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Sergei Shtylyov <sshtylyov-Igf4POYTYCDQT0dZR+AlfA@public.gmane.org>
-Cc: Shubhrajyoti D <shubhrajyoti-l0cyMroinI0@public.gmane.org>, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, balbi-l0cyMroinI0@public.gmane.org, Kishon Vijay Abraham I <kishon-l0cyMroinI0@public.gmane.org>
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from devils.ext.ti.com ([198.47.26.153]:45193 "EHLO
+	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755608Ab2CVNVN convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 22 Mar 2012 09:21:13 -0400
+In-Reply-To: <B5906170F1614E41A8A28DE3B8D12143317FDFBB@DBDE01.ent.ti.com>
+Content-Language: en-US
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: "Bedia, Vaibhav" <vaibhav.bedia@ti.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-mmc@vger.kernel.org" <linux-mmc@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>
+Cc: "cjb@laptop.org" <cjb@laptop.org>
 
+On Thu, Mar 22, 2012 at 09:53:23, Bedia, Vaibhav wrote:
+> Hi,
+> 
+> I am trying to do suspend-resume test with a file copy on MMC/SD going on
+> in the background. The test involves simply copying a 450MB file on an ext3
+> partition to the same partition under a different name.
+> 
+> This is on an AM335x board which uses the omap_hsmmc driver. 
+> The kernel is v3.2 and I have also applied the following patch 
+> 
 
---JKvC8Wn6JllzUPdT
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
+[...]
 
-On Thu, Mar 22, 2012 at 04:42:21PM +0400, Sergei Shtylyov wrote:
-> Hello.
->=20
-> On 22-03-2012 11:18, Shubhrajyoti D wrote:
->=20
-> >pm_runtime_get_sync returns a signed integer.In case of errors
-> >it returns a negative value.This patch fixes the error check
-> >by making it signed instead of unsigned thus preventing register
-> >access if get_sync_fails. Also passes the error cause to the
-> >debug message.
->=20
-> >Cc:  Kishon Vijay Abraham I<kishon-l0cyMroinI0@public.gmane.org>
-> >Signed-off-by: Shubhrajyoti D<shubhrajyoti-l0cyMroinI0@public.gmane.org>
-> >---
-> >Compile tested only
->=20
->    You haven't run it thru scripts/checkpatch.pl either, I guess?
->=20
-> >  drivers/usb/musb/omap2430.c |    5 +++--
-> >  1 files changed, 3 insertions(+), 2 deletions(-)
->=20
-> >diff --git a/drivers/usb/musb/omap2430.c b/drivers/usb/musb/omap2430.c
-> >index 2ae0bb3..e5dd18f 100644
-> >--- a/drivers/usb/musb/omap2430.c
-> >+++ b/drivers/usb/musb/omap2430.c
-> [...]
-> >@@ -301,7 +302,7 @@ static int omap2430_musb_init(struct musb *musb)
-> >
-> >  	status =3D pm_runtime_get_sync(dev);
-> >  	if (status<  0) {
-> >-		dev_err(dev, "pm_runtime_get_sync FAILED");
-> >+		dev_err(dev, "pm_runtime_get_sync FAILED %d \n",status);
->=20
->    If I don't mistake, scripts/checkpatch.pl should warn about
-> unneeded spaces before '\n'. And also about missing spaces after
-> commas.
+I found that whenever this issue crops up, mmc_host_suspend() is not able to claim the host
+And returns -EBUSY. omap_hsmmc driver does not pass on this error code to the PM core and
+hence the suspend process continues. When the driver is made to return -EBUSY, the suspend
+process gets aborted and the user can try suspending again. I am not sure whether this sort
+of suspend failure is acceptable or the driver is doing something wrong. The following
+workaround is what I came up with. Do this look a reasonable thing to do?
 
-I fixed in my branch, thanks
+---
 
---=20
-balbi
+>From a4040dd1869b351a5fa29dacd08facf6e24df609 Mon Sep 17 00:00:00 2001
+From: Vaibhav Bedia <vaibhav.bedia@ti.com>
+Date: Thu, 22 Mar 2012 17:14:49 +0530
+Subject: [PATCH 1/1] mmc: omap_hsmmc: Pass on the suspend failure to the PM core
 
---JKvC8Wn6JllzUPdT
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: Digital signature
+In some cases mmc_host_suspend() is not able to claim the
+host and proceed with the suspend process. The core returns
+-EBUSY to the host controller driver. Unfortunately, the
+host controller driver does not pass on this information
+to the PM core and hence the system suspend process continues.
 
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.4.11 (GNU/Linux)
+In these cases the MMC core gets to an unexpected state
+during resume and multiple issues related to MMC crop up.
+1. Host controller driver starts accessing the device registers
+before the clocks are enabled which leads to a prefetch abort.
+2. A file copy thread which was launched before suspend gets
+stuck due to the host not being reclaimed during resume.
 
-iQIcBAEBAgAGBQJPayFWAAoJEIaOsuA1yqREWTMP/1hUHD6RnDJmV5sOWUo1m0mE
-1O0PLYKUx0OWhQPRrcruVwyADttvO8iez5UoAOvDMNId+yoN4haWy1jon/4IWcoE
-9b3h5HXpa24LYkDs3rHdwygVwnLXLlgQ35zeOY3M2so7mFC9PmeawQNRlYPUXChK
-Xn4d67qT0eGQkEkOR9hZHUDU8wwxpq7kWLhBlNHv06u4vC8WF+liOaOSFm+x8UWH
-0aAXPfmYTCXTJnk8E+rZa2xXRctLxBl1XnNC3nsXgmCbkKxuE8IJsHffxMYUfIK5
-Dlnjpvkvu916rmNCimcs7gdMce6VI+a/FTtdYpK9NXjl4JlJnVd+ONZOFvtwnK+F
-f4Wt3/trYJ7aI1fovdMfLFmwG+77ZiQc0CiJYfVmqHNkY0Tf5/nGe5FcXlIgu0lv
-oonHQSljKZFR21hmi0BzIW/u7SF8pV09S///rwNDjHZkzS75uQyyhKuOoztP/Wz4
-Q9QSDBwHpB974MuWNSHLEATYytcRo62jxZn1CS3UiNyV8OS32khWfNpPXRBCTADz
-Zx/+v7IhrOeLukWSASSjWRqfWEzFY1KLUf/VyKrq4sVNJAtjFZuSWZ/SFh4KKP28
-Bzy9XBk4MSD/0m1kZg5KASlxY4WxgBQuGeuPPNBAfcftz47d8QOYDJtJjw6/gJXn
-68fPpydmtLowfLUYDljC
-=+yW7
------END PGP SIGNATURE-----
+To avoid such problems pass on the -EBUSY status to the PM core
+from the host controller driver. With this change, MMC core
+suspend might still fail but it does not end up making the
+system unusable. Suspend gets aborted and the user can try
+suspending the system again.
 
---JKvC8Wn6JllzUPdT--
+Signed-off-by: Vaibhav Bedia <vaibhav.bedia@ti.com>
+---
+ drivers/mmc/host/omap_hsmmc.c |    1 +
+ 1 files changed, 1 insertions(+), 0 deletions(-)
+
+diff --git a/drivers/mmc/host/omap_hsmmc.c b/drivers/mmc/host/omap_hsmmc.c
+index 3d8dbbb..1f938d9 100644
+--- a/drivers/mmc/host/omap_hsmmc.c
++++ b/drivers/mmc/host/omap_hsmmc.c
+@@ -2238,6 +2238,7 @@ static int omap_hsmmc_suspend(struct device *dev)
+                                        dev_dbg(mmc_dev(host->mmc),
+                                                "Unmask interrupt failed\n");
+                        }
++                       ret = -EBUSY;
+                        goto err;
+                }
+
 --
-To unsubscribe from this list: send the line "unsubscribe linux-usb" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+1.7.0.4
