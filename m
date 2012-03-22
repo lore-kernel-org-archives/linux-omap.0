@@ -1,54 +1,68 @@
 From: Kevin Hilman <khilman@ti.com>
-Subject: Re: Suspend broken on 3.3?
-Date: Thu, 22 Mar 2012 10:33:56 -0700
-Message-ID: <87r4wka6bf.fsf@ti.com>
-References: <WC20120322110946.6413AA@terrafix.co.uk>
+Subject: Re: [PATCH RFC v2] usb: musb: omap: fix the error check for pm_runtime_get_sync
+Date: Thu, 22 Mar 2012 10:36:19 -0700
+Message-ID: <87k42ca67g.fsf@ti.com>
+References: <1332422925-3212-1-git-send-email-shubhrajyoti@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aog108.obsmtp.com ([74.125.149.199]:55980 "EHLO
-	na3sys009aog108.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753578Ab2CVRd6 (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>);
-	Thu, 22 Mar 2012 13:33:58 -0400
-Received: by mail-yw0-f53.google.com with SMTP id j72so2325359yhj.40
-        for <linux-omap@vger.kernel.org>; Thu, 22 Mar 2012 10:33:57 -0700 (PDT)
-In-Reply-To: <WC20120322110946.6413AA@terrafix.co.uk> (Joe Woodward's message
-	of "Thu, 22 Mar 2012 11:09:46 +0000")
+Received: from na3sys009aog136.obsmtp.com ([74.125.149.85]:33546 "EHLO
+	psmtp.com" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
+	id S1754504Ab2CVRgV (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Thu, 22 Mar 2012 13:36:21 -0400
+Received: by ghrr11 with SMTP id r11so1986121ghr.19
+        for <linux-omap@vger.kernel.org>; Thu, 22 Mar 2012 10:36:19 -0700 (PDT)
+In-Reply-To: <1332422925-3212-1-git-send-email-shubhrajyoti@ti.com>
+	(Shubhrajyoti D.'s message of "Thu, 22 Mar 2012 18:58:45 +0530")
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Joe Woodward <jw@terrafix.co.uk>
-Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
+To: Shubhrajyoti D <shubhrajyoti@ti.com>
+Cc: linux-omap@vger.kernel.org, linux-usb@vger.kernel.org, balbi@ti.com
 
-"Joe Woodward" <jw@terrafix.co.uk> writes:
+Shubhrajyoti D <shubhrajyoti@ti.com> writes:
 
-> Is system suspend broken on stock 3.3?
-
-I hope not. :)
-
-It *should* work, I'm using it regularily here, and "it works for me"
-(I'm sure that's just what you want to hear.)  :)
-
-> I have a working stock 3.2 (with patches to fix runtime_pm for DSS2), and system suspend works just fine!
+> pm_runtime_get_sync returns a signed integer.In case of errors
+> it returns a negative value.This patch fixes the error check
+> by making it signed instead of unsigned thus preventing register
+> access if get_sync_fails. Also passes the error cause to the
+> debug message.
 >
-> This is running on a variety of GUMSTIX boards (both OMAP3530 and AM3703-based).
+> Cc :  Kishon Vijay Abraham I <kishon@ti.com>
+> Signed-off-by: Shubhrajyoti D <shubhrajyoti@ti.com>
+> ---
+> Compile tested only
+>
+>  drivers/usb/musb/omap2430.c |    5 +++--
+>  1 files changed, 3 insertions(+), 2 deletions(-)
+>
+> diff --git a/drivers/usb/musb/omap2430.c b/drivers/usb/musb/omap2430.c
+> index 2ae0bb3..e5dd18f 100644
+> --- a/drivers/usb/musb/omap2430.c
+> +++ b/drivers/usb/musb/omap2430.c
+> @@ -282,7 +282,8 @@ static void musb_otg_notifier_work(struct work_struct *data_notifier_work)
+>  
+>  static int omap2430_musb_init(struct musb *musb)
+>  {
+> -	u32 l, status = 0;
+> +	u32 l;
+> +	int status = 0;
 
-I currently only have a 3530-based Gumstix Overo (although a
-AM3xxx-based one is on the way, thanks Gumstix!), but it's working fine
-for me on my Overo.
+nit: you might as well drop the '= 0' assignment since it's not needed.
 
-Stock v3.3 won't boot on Overo because of the smsc911x regulator issues
-recently discusssed, so if you're using Overo, you also need the patch
-in Tony's fix-smsc911x-regulator branch.
+Otherwise, looks right to me.
 
-After that, suspend/resume is working fine for me using
-omap2plus_defconfig.  I tried both with initramfs and with MMC rootfs.
-
-Can you try without your board file changes, using vanilla v3.3 +
-smsc911x fix above and using omap2plus_defconfig?
-
-Also, please share the kernel command-line you're using.
-
-Thanks,
+Acked-by: Kevin Hilman <khilman@ti.com>
 
 Kevin
+
+>  	struct device *dev = musb->controller;
+>  	struct musb_hdrc_platform_data *plat = dev->platform_data;
+>  	struct omap_musb_board_data *data = plat->board_data;
+> @@ -301,7 +302,7 @@ static int omap2430_musb_init(struct musb *musb)
+>  
+>  	status = pm_runtime_get_sync(dev);
+>  	if (status < 0) {
+> -		dev_err(dev, "pm_runtime_get_sync FAILED");
+> +		dev_err(dev, "pm_runtime_get_sync FAILED %d\n", status);
+>  		goto err1;
+>  	}
