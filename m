@@ -1,89 +1,73 @@
-From: Grant Likely <grant.likely@secretlab.ca>
-Subject: Re: [GIT PULL] gpio/omap: more fixes for v3.4
-Date: Fri, 23 Mar 2012 08:49:18 +0000
-Message-ID: <CACxGe6vvDLVyirAxFw6JxaZYNzWSr1Z6cVgfnJS4+Sna1EZ+1g@mail.gmail.com>
-References: <871uok5pk0.fsf@ti.com>
+From: "Cousson, Benoit" <b-cousson@ti.com>
+Subject: Re: [RFC][PATCH 0/5] Convert GPMC to driver
+Date: Fri, 23 Mar 2012 10:10:35 +0100
+Message-ID: <4F6C3E0B.9090004@ti.com>
+References: <1332484567-21710-1-git-send-email-afzal@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: text/plain; charset="ISO-8859-1"; format=flowed
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-ob0-f174.google.com ([209.85.214.174]:35946 "EHLO
-	mail-ob0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1757089Ab2CWItj convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 23 Mar 2012 04:49:39 -0400
-Received: by obbeh20 with SMTP id eh20so2228188obb.19
-        for <linux-omap@vger.kernel.org>; Fri, 23 Mar 2012 01:49:38 -0700 (PDT)
-In-Reply-To: <871uok5pk0.fsf@ti.com>
+Received: from comal.ext.ti.com ([198.47.26.152]:43189 "EHLO comal.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1757886Ab2CWJKk (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Fri, 23 Mar 2012 05:10:40 -0400
+In-Reply-To: <1332484567-21710-1-git-send-email-afzal@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Kevin Hilman <khilman@ti.com>
-Cc: linux-omap <linux-omap@vger.kernel.org>, linux-arm-kernel <linux-arm-kernel@lists.infradead.org>, tarun.kanti@ti.com, Santosh Shilimkar <santosh.shilimkar@ti.com>
+To: Afzal Mohammed <afzal@ti.com>
+Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 
-On Thu, Mar 22, 2012 at 8:49 PM, Kevin Hilman <khilman@ti.com> wrote:
-> Hi Grant,
->
-> Please pull these OMAP GPIO fixes for v3.4. =A0These fix some rather
-> serious regressions introduced by the cleanup and runtime PM conversi=
-on
-> series which is also queued for v3.4. =A0This branch is based on your
-> gpio/next branch.
->
-> This version is functionally the same as the version you previously
-> merged (and I asked you to back it out), but this version has some
-> better changlogs, and I added reviewed-by and s-o-b from me as well.
->
-> Thanks,
->
-> Kevin
+Hi Mohammed,
 
-Merged, thanks.
+On 3/23/2012 7:36 AM, Afzal Mohammed wrote:
+> Hi,
+>
+> Convert GPCM code to be a driver. Existing GPMC
+> NAND platform handling has been modified to work
+> with the new GPMC driver (patches 2&  3). Patch 5
+> is to test the driver in OMAP3EVM.
 
-g.
+Hehe, cool, thanks for that series,
+Benoit
 
 >
+> Once all the users has been converted to use this
+> driver, would be converted to MFD type.
 >
+> TODO:
+> 1. Let OMAP NAND driver deal with GPMC NAND block
+> 2. Remove struct gpmc * stored as static
+> 3. Convert all peripherals to use GPMC driver
+> 4. Devise method to handle OneNAND cleanly
+> 5. Handle acquiring CS# cases
+> 6. Convert to MFD driver
 >
-> The following changes since commit 81b279d80a63628e580c71a31d30a8c3b3=
-047ad4:
+> Regards
+> Afzal
 >
-> =A0gpio/davinci: fix enabling unbanked GPIO IRQs (2012-03-12 11:53:33=
- -0600)
+> Afzal Mohammed (5):
+>    ARM: OMAP2+: gpmc: driver conversion
+>    ARM: OMAP2+: nand: create platform data structure
+>    ARM: OMAP2+: gpmc-nand: populate gpmc configs
+>    mtd: nand: omap2: obtain memory from resource
+>    OMAP3EVM: Test gpmc-nand
 >
-> are available in the git repository at:
+>   arch/arm/mach-omap2/board-devkit8000.c     |    6 +-
+>   arch/arm/mach-omap2/board-flash.c          |   63 +-
+>   arch/arm/mach-omap2/board-flash.h          |   13 +-
+>   arch/arm/mach-omap2/board-ldp.c            |    4 +-
+>   arch/arm/mach-omap2/board-omap3beagle.c    |    6 +-
+>   arch/arm/mach-omap2/board-omap3evm.c       |   82 +++
+>   arch/arm/mach-omap2/board-omap3touchbook.c |    6 +-
+>   arch/arm/mach-omap2/board-overo.c          |    5 +-
+>   arch/arm/mach-omap2/board-zoom.c           |    5 +-
+>   arch/arm/mach-omap2/common-board-devices.c |   46 --
+>   arch/arm/mach-omap2/common-board-devices.h |    1 -
+>   arch/arm/mach-omap2/gpmc-nand.c            |   88 +--
+>   arch/arm/mach-omap2/gpmc.c                 | 1083 ++++++++++++++++------------
+>   arch/arm/plat-omap/include/plat/gpmc.h     |   34 +-
+>   arch/arm/plat-omap/include/plat/nand.h     |    9 +-
+>   drivers/mtd/nand/omap2.c                   |   19 +-
+>   16 files changed, 869 insertions(+), 601 deletions(-)
 >
-> =A0git://git.kernel.org/pub/scm/linux/kernel/git/khilman/linux-omap-p=
-m.git for_3.4/fixes/gpio-2
->
-> for you to fetch changes up to 7fcca715de3438b8fc3c8a144702f3a95c8ff6=
-3c:
->
-> =A0gpio/omap: fix redundant decoding of gpio offset (2012-03-21 10:21=
-:24 +0530)
->
-> ----------------------------------------------------------------
-> Tarun Kanti DebBarma (7):
-> =A0 =A0 =A0gpio/omap: fix wakeup_en register update in _set_gpio_wake=
-up()
-> =A0 =A0 =A0gpio/omap: fix trigger type to unsigned
-> =A0 =A0 =A0gpio/omap: fix _set_gpio_irqenable implementation
-> =A0 =A0 =A0gpio/omap: fix missing dataout context save in _set_gpio_d=
-ataout_reg
-> =A0 =A0 =A0gpio/omap: fix incorrect context restore logic in omap_gpi=
-o_runtime_*
-> =A0 =A0 =A0gpio/omap: fix incorrect update to context.irqenable1
-> =A0 =A0 =A0gpio/omap: fix redundant decoding of gpio offset
->
-> =A0drivers/gpio/gpio-omap.c | =A0 47 ++++++++++++++++++++++++--------=
---------------
-> =A01 file changed, 25 insertions(+), 22 deletions(-)
 
-
-
---=20
-Grant Likely, B.Sc., P.Eng.
-Secret Lab Technologies Ltd.
---
-To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
