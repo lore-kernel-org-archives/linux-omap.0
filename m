@@ -1,58 +1,140 @@
-From: Russ Dill <Russ.Dill@ti.com>
-Subject: [PATCH 12/12] Add dummy smsc911x regulators to zoom-debugboard.
-Date: Fri, 23 Mar 2012 02:21:44 -0700
-Message-ID: <1332494504-10251-13-git-send-email-Russ.Dill@ti.com>
-References: <1332494504-10251-1-git-send-email-Russ.Dill@ti.com>
+From: Daniel Lezcano <daniel.lezcano@linaro.org>
+Subject: [RFC][PATCH 1/9] ARM: OMAP3: cpuidle - remove rx51 cpuidle parameters table
+Date: Fri, 23 Mar 2012 10:26:26 +0100
+Message-ID: <1332494794-7810-1-git-send-email-daniel.lezcano@linaro.org>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-yx0-f174.google.com ([209.85.213.174]:63290 "EHLO
-	mail-yx0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756620Ab2CWJWW (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 23 Mar 2012 05:22:22 -0400
-Received: by mail-yx0-f174.google.com with SMTP id l12so2541715yen.19
-        for <linux-omap@vger.kernel.org>; Fri, 23 Mar 2012 02:22:22 -0700 (PDT)
-In-Reply-To: <1332494504-10251-1-git-send-email-Russ.Dill@ti.com>
+Received: from mail-wi0-f178.google.com ([209.85.212.178]:55187 "EHLO
+	mail-wi0-f178.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1757333Ab2CWJ0g (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 23 Mar 2012 05:26:36 -0400
+Received: by wibhq7 with SMTP id hq7so1792606wib.1
+        for <linux-omap@vger.kernel.org>; Fri, 23 Mar 2012 02:26:34 -0700 (PDT)
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: linux-omap@vger.kernel.org
-Cc: Tony Lindgren <tony@atomide.com>, Mark Brown <broonie@opensource.wolfsonmicro.com>, Matt Porter <mporter@ti.com>, robert.marklund@stericsson.com, linus.walleij@linaro.org, Russ Dill <Russ.Dill@ti.com>, Russ Dill <russ.dill@ti.com>
+To: santosh.shilimkar@ti.com, jean.pihet@newoldbits.com, khilman@ti.com
+Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linaro-dev@lists.linaro.org
 
-Signed-off-by: Russ Dill <russ.dill@ti.com>
+As suggested, this table is an optimized version for rx51 and we
+remove it in order to consolidate the cpuidle code between omap3
+and omap4, we remove this specific data definition which is used
+to override the default omap3 latencies but at the cost of extra
+code and complexity.
+
+In order to not lose the values which probably took time to be
+measured, the table is converted into a comment with an array
+description.
+
+Signed-off-by: Daniel Lezcano <daniel.lezcano@linaro.org>
 ---
- arch/arm/mach-omap2/board-zoom-debugboard.c |    9 +++++++++
- 1 files changed, 9 insertions(+), 0 deletions(-)
+ arch/arm/mach-omap2/board-rx51.c  |   38 +++++++++++++++++-------------------
+ arch/arm/mach-omap2/cpuidle34xx.c |   17 ----------------
+ arch/arm/mach-omap2/pm.h          |    9 --------
+ 3 files changed, 18 insertions(+), 46 deletions(-)
 
-diff --git a/arch/arm/mach-omap2/board-zoom-debugboard.c b/arch/arm/mach-omap2/board-zoom-debugboard.c
-index 369c2eb..f68b616 100644
---- a/arch/arm/mach-omap2/board-zoom-debugboard.c
-+++ b/arch/arm/mach-omap2/board-zoom-debugboard.c
-@@ -14,6 +14,9 @@
- #include <linux/smsc911x.h>
- #include <linux/interrupt.h>
- 
-+#include <linux/regulator/fixed.h>
-+#include <linux/regulator/machine.h>
-+
- #include <plat/gpmc.h>
- #include <plat/gpmc-smsc911x.h>
- 
-@@ -116,11 +119,17 @@ static struct platform_device *zoom_devices[] __initdata = {
- 	&zoom_debugboard_serial_device,
+diff --git a/arch/arm/mach-omap2/board-rx51.c b/arch/arm/mach-omap2/board-rx51.c
+index 27f01f0..2da92a6 100644
+--- a/arch/arm/mach-omap2/board-rx51.c
++++ b/arch/arm/mach-omap2/board-rx51.c
+@@ -59,25 +59,24 @@ static struct platform_device leds_gpio = {
  };
  
-+static struct regulator_consumer_supply dummy_supplies[] = {
-+	REGULATOR_SUPPLY("vddvario", "smsc911x.0"),
-+	REGULATOR_SUPPLY("vdd33a", "smsc911x.0"),
-+};
+ /*
+- * cpuidle C-states definition override from the default values.
+- * The 'exit_latency' field is the sum of sleep and wake-up latencies.
+- */
+-static struct cpuidle_params rx51_cpuidle_params[] = {
+-	/* C1 */
+-	{110 + 162, 5 , 1},
+-	/* C2 */
+-	{106 + 180, 309, 1},
+-	/* C3 */
+-	{107 + 410, 46057, 0},
+-	/* C4 */
+-	{121 + 3374, 46057, 0},
+-	/* C5 */
+-	{855 + 1146, 46057, 1},
+-	/* C6 */
+-	{7580 + 4134, 484329, 0},
+-	/* C7 */
+-	{7505 + 15274, 484329, 1},
+-};
++ * cpuidle C-states definition for rx51.
++ *
++ * The 'exit_latency' field is the sum of sleep
++ * and wake-up latencies.
 +
- int __init zoom_debugboard_init(void)
- {
- 	if (!omap_zoom_debugboard_detect())
- 		return 0;
++    ---------------------------------------------
++   | state |  exit_latency  |  target_residency  |
++    ---------------------------------------------
++   |  C1   |    110 + 162   |            5       |
++   |  C2   |    106 + 180   |          309       |
++   |  C3   |    107 + 410   |        46057       |
++   |  C4   |    121 + 3374  |        46057       |
++   |  C5   |    855 + 1146  |        46057       |
++   |  C6   |   7580 + 4134  |       484329       |
++   |  C7   |   7505 + 15274 |       484329       |
++    ---------------------------------------------
++
++*/
  
-+	regulator_register_fixed(0, dummy_supplies, ARRAY_SIZE(dummy_supplies));
- 	zoom_init_smsc911x();
- 	zoom_init_quaduart();
- 	return platform_add_devices(zoom_devices, ARRAY_SIZE(zoom_devices));
+ extern void __init rx51_peripherals_init(void);
+ 
+@@ -98,7 +97,6 @@ static void __init rx51_init(void)
+ 	struct omap_sdrc_params *sdrc_params;
+ 
+ 	omap3_mux_init(board_mux, OMAP_PACKAGE_CBB);
+-	omap3_pm_init_cpuidle(rx51_cpuidle_params);
+ 	omap_serial_init();
+ 
+ 	sdrc_params = nokia_get_sdram_timings();
+diff --git a/arch/arm/mach-omap2/cpuidle34xx.c b/arch/arm/mach-omap2/cpuidle34xx.c
+index 464cffd..d67431a 100644
+--- a/arch/arm/mach-omap2/cpuidle34xx.c
++++ b/arch/arm/mach-omap2/cpuidle34xx.c
+@@ -306,23 +306,6 @@ select_state:
+ 
+ DEFINE_PER_CPU(struct cpuidle_device, omap3_idle_dev);
+ 
+-void omap3_pm_init_cpuidle(struct cpuidle_params *cpuidle_board_params)
+-{
+-	int i;
+-
+-	if (!cpuidle_board_params)
+-		return;
+-
+-	for (i = 0; i < OMAP3_NUM_STATES; i++) {
+-		cpuidle_params_table[i].valid =	cpuidle_board_params[i].valid;
+-		cpuidle_params_table[i].exit_latency =
+-			cpuidle_board_params[i].exit_latency;
+-		cpuidle_params_table[i].target_residency =
+-			cpuidle_board_params[i].target_residency;
+-	}
+-	return;
+-}
+-
+ struct cpuidle_driver omap3_idle_driver = {
+ 	.name = 	"omap3_idle",
+ 	.owner = 	THIS_MODULE,
+diff --git a/arch/arm/mach-omap2/pm.h b/arch/arm/mach-omap2/pm.h
+index a051431..af73a86 100644
+--- a/arch/arm/mach-omap2/pm.h
++++ b/arch/arm/mach-omap2/pm.h
+@@ -51,15 +51,6 @@ struct cpuidle_params {
+ 	u8 valid;		/* validates the C-state */
+ };
+ 
+-#if defined(CONFIG_PM) && defined(CONFIG_CPU_IDLE)
+-extern void omap3_pm_init_cpuidle(struct cpuidle_params *cpuidle_board_params);
+-#else
+-static
+-inline void omap3_pm_init_cpuidle(struct cpuidle_params *cpuidle_board_params)
+-{
+-}
+-#endif
+-
+ extern int omap3_pm_get_suspend_state(struct powerdomain *pwrdm);
+ extern int omap3_pm_set_suspend_state(struct powerdomain *pwrdm, int state);
+ 
 -- 
-1.7.9.1
+1.7.5.4
 
