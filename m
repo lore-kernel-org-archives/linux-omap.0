@@ -1,52 +1,70 @@
 From: Russ Dill <Russ.Dill@ti.com>
-Subject: [PATCH 02/12] Fix possible stale smsc911x flags.
-Date: Fri, 23 Mar 2012 02:21:34 -0700
-Message-ID: <1332494504-10251-3-git-send-email-Russ.Dill@ti.com>
+Subject: [PATCH 03/12] Remove unused rate calculation.
+Date: Fri, 23 Mar 2012 02:21:35 -0700
+Message-ID: <1332494504-10251-4-git-send-email-Russ.Dill@ti.com>
 References: <1332494504-10251-1-git-send-email-Russ.Dill@ti.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-ob0-f174.google.com ([209.85.214.174]:33277 "EHLO
-	mail-ob0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752416Ab2CWJVz (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 23 Mar 2012 05:21:55 -0400
-Received: by mail-ob0-f174.google.com with SMTP id eh20so2248046obb.19
-        for <linux-omap@vger.kernel.org>; Fri, 23 Mar 2012 02:21:55 -0700 (PDT)
+Received: from mail-yw0-f46.google.com ([209.85.213.46]:59655 "EHLO
+	mail-yw0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753949Ab2CWJV6 (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 23 Mar 2012 05:21:58 -0400
+Received: by yhmm54 with SMTP id m54so2529907yhm.19
+        for <linux-omap@vger.kernel.org>; Fri, 23 Mar 2012 02:21:58 -0700 (PDT)
 In-Reply-To: <1332494504-10251-1-git-send-email-Russ.Dill@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: linux-omap@vger.kernel.org
 Cc: Tony Lindgren <tony@atomide.com>, Mark Brown <broonie@opensource.wolfsonmicro.com>, Matt Porter <mporter@ti.com>, robert.marklund@stericsson.com, linus.walleij@linaro.org, Russ Dill <Russ.Dill@ti.com>, Russ Dill <russ.dill@ti.com>
 
-If this function is called the first time with flags set, and the
-second time without flags set then the leftover flags from the first
-called will be used rather than the desired default flags.
+Looking back into git history, this code was never used and was
+probably left over from a copy/paste.
 
 Signed-off-by: Russ Dill <russ.dill@ti.com>
 ---
- arch/arm/mach-omap2/gpmc-smsc911x.c |    4 +---
- 1 files changed, 1 insertions(+), 3 deletions(-)
+ arch/arm/mach-omap2/board-omap3evm.c     |    9 ---------
+ arch/arm/mach-omap2/board-omap3stalker.c |    9 ---------
+ 2 files changed, 0 insertions(+), 18 deletions(-)
 
-diff --git a/arch/arm/mach-omap2/gpmc-smsc911x.c b/arch/arm/mach-omap2/gpmc-smsc911x.c
-index aa0c296..f9446ea 100644
---- a/arch/arm/mach-omap2/gpmc-smsc911x.c
-+++ b/arch/arm/mach-omap2/gpmc-smsc911x.c
-@@ -39,7 +39,6 @@ static struct smsc911x_platform_config gpmc_smsc911x_config = {
- 	.phy_interface	= PHY_INTERFACE_MODE_MII,
- 	.irq_polarity	= SMSC911X_IRQ_POLARITY_ACTIVE_LOW,
- 	.irq_type	= SMSC911X_IRQ_TYPE_OPEN_DRAIN,
--	.flags		= SMSC911X_USE_16BIT,
- };
+diff --git a/arch/arm/mach-omap2/board-omap3evm.c b/arch/arm/mach-omap2/board-omap3evm.c
+index a659e19..548e1ef 100644
+--- a/arch/arm/mach-omap2/board-omap3evm.c
++++ b/arch/arm/mach-omap2/board-omap3evm.c
+@@ -114,15 +114,6 @@ static struct omap_smsc911x_platform_data smsc911x_cfg = {
  
- static struct regulator_consumer_supply gpmc_smsc911x_supply[] = {
-@@ -135,8 +134,7 @@ void __init gpmc_smsc911x_init(struct omap_smsc911x_platform_data *gpmc_cfg)
- 		gpio_set_value(gpmc_cfg->gpio_reset, 1);
- 	}
+ static inline void __init omap3evm_init_smsc911x(void)
+ {
+-	struct clk *l3ck;
+-	unsigned int rate;
+-
+-	l3ck = clk_get(NULL, "l3_ck");
+-	if (IS_ERR(l3ck))
+-		rate = 100000000;
+-	else
+-		rate = clk_get_rate(l3ck);
+-
+ 	/* Configure ethernet controller reset gpio */
+ 	if (cpu_is_omap3430()) {
+ 		if (get_omap3_evm_rev() == OMAP3EVM_BOARD_GEN_1)
+diff --git a/arch/arm/mach-omap2/board-omap3stalker.c b/arch/arm/mach-omap2/board-omap3stalker.c
+index 6410043..de95352 100644
+--- a/arch/arm/mach-omap2/board-omap3stalker.c
++++ b/arch/arm/mach-omap2/board-omap3stalker.c
+@@ -72,15 +72,6 @@ static struct omap_smsc911x_platform_data smsc911x_cfg = {
  
--	if (gpmc_cfg->flags)
--		gpmc_smsc911x_config.flags = gpmc_cfg->flags;
-+	gpmc_smsc911x_config.flags = gpmc_cfg->flags ? : SMSC911X_USE_16BIT;
- 
- 	pdev = platform_device_register_resndata(NULL, "smsc911x", gpmc_cfg->id,
- 		 gpmc_smsc911x_resources, ARRAY_SIZE(gpmc_smsc911x_resources),
+ static inline void __init omap3stalker_init_eth(void)
+ {
+-	struct clk *l3ck;
+-	unsigned int rate;
+-
+-	l3ck = clk_get(NULL, "l3_ck");
+-	if (IS_ERR(l3ck))
+-		rate = 100000000;
+-	else
+-		rate = clk_get_rate(l3ck);
+-
+ 	omap_mux_init_gpio(19, OMAP_PIN_INPUT_PULLUP);
+ 	gpmc_smsc911x_init(&smsc911x_cfg);
+ }
 -- 
 1.7.9.1
 
