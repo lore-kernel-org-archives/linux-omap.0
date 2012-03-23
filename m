@@ -1,51 +1,63 @@
 From: mathieu.poirier@linaro.org
-Subject: [PATCH 5/9] tty/serial/omap: console can only be built-in
-Date: Fri, 23 Mar 2012 11:13:52 -0600
-Message-ID: <1332522836-29517-6-git-send-email-mathieu.poirier@linaro.org>
+Subject: [PATCH 6/9] omap2: select twl4030 support on boards that need it
+Date: Fri, 23 Mar 2012 11:13:53 -0600
+Message-ID: <1332522836-29517-7-git-send-email-mathieu.poirier@linaro.org>
 References: <1332522836-29517-1-git-send-email-mathieu.poirier@linaro.org>
-Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
+Return-path: <linux-kernel-owner@vger.kernel.org>
 In-Reply-To: <1332522836-29517-1-git-send-email-mathieu.poirier@linaro.org>
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: linux-arm-kernel-bounces@lists.infradead.org
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
+Sender: linux-kernel-owner@vger.kernel.org
 To: tony@atomide.com
-Cc: linux-omap@vger.kernel.org, arnd@arndb.de, linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org, arnd@arndb.de
 List-Id: linux-omap@vger.kernel.org
 
 From: Arnd Bergmann <arnd@arndb.de>
 
-When the omap serial driver is built as a module, we must
-not allow the console driver to be selected, because consoles
-can not be loadable modules.
+These three boards unconditionally use the twl4030 driver
+from the board-zoom-display.c file. Make sure that the driver
+is always there.
+We also need to select the I2C core so we are able to build
+that driver.
 
 Signed-off-by: Arnd Bergmann <arnd@arndb.de>
 Signed-off-by: Mathieu Poirier <mathieu.poirier@linaro.org>
-Acked-by: Govindraj.R <govindraj.raja@ti.com>
+Acked-by: Tony Lindgren <tony@atomide.com>
 ---
- drivers/tty/serial/Kconfig |    2 +-
- 1 files changed, 1 insertions(+), 1 deletions(-)
+ arch/arm/mach-omap2/Kconfig |    9 +++++++++
+ 1 files changed, 9 insertions(+), 0 deletions(-)
 
-diff --git a/drivers/tty/serial/Kconfig b/drivers/tty/serial/Kconfig
-index 2de9924..bcf7e24 100644
---- a/drivers/tty/serial/Kconfig
-+++ b/drivers/tty/serial/Kconfig
-@@ -1041,7 +1041,7 @@ config SERIAL_OMAP
- 
- config SERIAL_OMAP_CONSOLE
- 	bool "Console on OMAP serial port"
--	depends on SERIAL_OMAP
-+	depends on SERIAL_OMAP=y
+diff --git a/arch/arm/mach-omap2/Kconfig b/arch/arm/mach-omap2/Kconfig
+index e20c8ab..0279e9e 100644
+--- a/arch/arm/mach-omap2/Kconfig
++++ b/arch/arm/mach-omap2/Kconfig
+@@ -265,6 +265,9 @@ config MACH_OMAP_ZOOM2
  	select SERIAL_CORE_CONSOLE
- 	help
- 	  Select this option if you would like to use omap serial port as
+ 	select SERIAL_8250_CONSOLE
+ 	select REGULATOR_FIXED_VOLTAGE if REGULATOR
++	select TWL4030_CORE
++	select MFD_SUPPORT
++	select I2C
+ 
+ config MACH_OMAP_ZOOM3
+ 	bool "OMAP3630 Zoom3 board"
+@@ -275,6 +278,9 @@ config MACH_OMAP_ZOOM3
+ 	select SERIAL_CORE_CONSOLE
+ 	select SERIAL_8250_CONSOLE
+ 	select REGULATOR_FIXED_VOLTAGE if REGULATOR
++	select TWL4030_CORE
++	select MFD_SUPPORT
++	select I2C
+ 
+ config MACH_CM_T35
+ 	bool "CompuLab CM-T35/CM-T3730 modules"
+@@ -316,6 +322,9 @@ config MACH_OMAP_3630SDP
+ 	depends on ARCH_OMAP3
+ 	default y
+ 	select OMAP_PACKAGE_CBP
++	select TWL4030_CORE
++	select MFD_SUPPORT
++	select I2C
+ 
+ config MACH_TI8168EVM
+ 	bool "TI8168 Evaluation Module"
 -- 
 1.7.5.4
