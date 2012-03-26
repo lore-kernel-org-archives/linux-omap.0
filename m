@@ -1,81 +1,74 @@
-From: Shubhrajyoti D <shubhrajyoti-l0cyMroinI0@public.gmane.org>
-Subject: [PATCH v2  2/5] spi: omap2-mcspi: make it behave as a module
-Date: Mon, 26 Mar 2012 19:14:37 +0530
-Message-ID: <1332769480-28069-3-git-send-email-shubhrajyoti@ti.com>
-References: <1332769480-28069-1-git-send-email-shubhrajyoti@ti.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <spi-devel-general-bounces-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-In-Reply-To: <1332769480-28069-1-git-send-email-shubhrajyoti-l0cyMroinI0@public.gmane.org>
-List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/spi-devel-general>,
-	<mailto:spi-devel-general-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=unsubscribe>
-List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum_name=spi-devel-general>
-List-Post: <mailto:spi-devel-general-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-List-Help: <mailto:spi-devel-general-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=help>
-List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/spi-devel-general>,
-	<mailto:spi-devel-general-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
-Errors-To: spi-devel-general-bounces-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-To: spi-devel-general-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Cc: linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Felipe Balbi <balbi-l0cyMroinI0@public.gmane.org>, Shubhrajyoti D <shubhrajyoti-l0cyMroinI0@public.gmane.org>
+From: Igor Grinberg <grinberg-UTxiZqZC01RS1MOuV/RT9w@public.gmane.org>
+Subject: [PATCH] ARM: OMAP: fix section mismatches in usb-host.c
+Date: Mon, 26 Mar 2012 16:51:10 +0200
+Message-ID: <1332773470-22800-1-git-send-email-grinberg@compulab.co.il>
+Return-path: <linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Sender: linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
+Cc: Felipe Balbi <balbi-l0cyMroinI0@public.gmane.org>, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, Igor Grinberg <grinberg-UTxiZqZC01RS1MOuV/RT9w@public.gmane.org>
 List-Id: linux-omap@vger.kernel.org
 
-From: Felipe Balbi <balbi-l0cyMroinI0@public.gmane.org>
+Fix the below section mismatch warning and alike:
 
-move probe away from __init section and use
-platform_driver_register() instead of
-platform_driver_probe().
+WARNING: vmlinux.o(.text+0x281d4): Section mismatch in reference from
+the function setup_ehci_io_mux() to the function
+.init.text:omap_mux_init_signal()
+The function setup_ehci_io_mux() references
+the function __init omap_mux_init_signal().
+This is often because setup_ehci_io_mux lacks a __init
+annotation or the annotation of omap_mux_init_signal is wrong.
 
-Signed-off-by: Felipe Balbi <balbi-l0cyMroinI0@public.gmane.org>
-Signed-off-by: Shubhrajyoti D <shubhrajyoti-l0cyMroinI0@public.gmane.org>
+Signed-off-by: Igor Grinberg <grinberg-UTxiZqZC01RS1MOuV/RT9w@public.gmane.org>
 ---
- drivers/spi/spi-omap2-mcspi.c |    9 +++++----
- 1 files changed, 5 insertions(+), 4 deletions(-)
+ arch/arm/mach-omap2/usb-host.c |   10 ++++++----
+ 1 files changed, 6 insertions(+), 4 deletions(-)
 
-diff --git a/drivers/spi/spi-omap2-mcspi.c b/drivers/spi/spi-omap2-mcspi.c
-index 7785091..26dd79f 100644
---- a/drivers/spi/spi-omap2-mcspi.c
-+++ b/drivers/spi/spi-omap2-mcspi.c
-@@ -1098,7 +1098,7 @@ static const struct of_device_id omap_mcspi_of_match[] = {
- };
- MODULE_DEVICE_TABLE(of, omap_mcspi_of_match);
- 
--static int __init omap2_mcspi_probe(struct platform_device *pdev)
-+static int __devinit omap2_mcspi_probe(struct platform_device *pdev)
+diff --git a/arch/arm/mach-omap2/usb-host.c b/arch/arm/mach-omap2/usb-host.c
+index f51348d..dde8a11 100644
+--- a/arch/arm/mach-omap2/usb-host.c
++++ b/arch/arm/mach-omap2/usb-host.c
+@@ -54,7 +54,7 @@ static struct omap_device_pm_latency omap_uhhtll_latency[] = {
+ /*
+  * setup_ehci_io_mux - initialize IO pad mux for USBHOST
+  */
+-static void setup_ehci_io_mux(const enum usbhs_omap_port_mode *port_mode)
++static void __init setup_ehci_io_mux(const enum usbhs_omap_port_mode *port_mode)
  {
- 	struct spi_master	*master;
- 	struct omap2_mcspi_platform_config *pdata;
-@@ -1245,7 +1245,7 @@ free_master:
- 	return status;
+ 	switch (port_mode[0]) {
+ 	case OMAP_EHCI_PORT_MODE_PHY:
+@@ -197,7 +197,8 @@ static void setup_ehci_io_mux(const enum usbhs_omap_port_mode *port_mode)
+ 	return;
  }
  
--static int __exit omap2_mcspi_remove(struct platform_device *pdev)
-+static int __devexit omap2_mcspi_remove(struct platform_device *pdev)
+-static void setup_4430ehci_io_mux(const enum usbhs_omap_port_mode *port_mode)
++static
++void __init setup_4430ehci_io_mux(const enum usbhs_omap_port_mode *port_mode)
  {
- 	struct spi_master	*master;
- 	struct omap2_mcspi	*mcspi;
-@@ -1320,13 +1320,14 @@ static struct platform_driver omap2_mcspi_driver = {
- 		.pm =		&omap2_mcspi_pm_ops,
- 		.of_match_table = omap_mcspi_of_match,
- 	},
--	.remove =	__exit_p(omap2_mcspi_remove),
-+	.probe =	omap2_mcspi_probe,
-+	.remove =	__devexit_p(omap2_mcspi_remove),
- };
- 
- 
- static int __init omap2_mcspi_init(void)
- {
--	return platform_driver_probe(&omap2_mcspi_driver, omap2_mcspi_probe);
-+	return platform_driver_register(&omap2_mcspi_driver);
+ 	switch (port_mode[0]) {
+ 	case OMAP_EHCI_PORT_MODE_PHY:
+@@ -315,7 +316,7 @@ static void setup_4430ehci_io_mux(const enum usbhs_omap_port_mode *port_mode)
+ 	}
  }
- subsys_initcall(omap2_mcspi_init);
  
+-static void setup_ohci_io_mux(const enum usbhs_omap_port_mode *port_mode)
++static void __init setup_ohci_io_mux(const enum usbhs_omap_port_mode *port_mode)
+ {
+ 	switch (port_mode[0]) {
+ 	case OMAP_OHCI_PORT_MODE_PHY_6PIN_DATSE0:
+@@ -412,7 +413,8 @@ static void setup_ohci_io_mux(const enum usbhs_omap_port_mode *port_mode)
+ 	}
+ }
+ 
+-static void setup_4430ohci_io_mux(const enum usbhs_omap_port_mode *port_mode)
++static
++void __init setup_4430ohci_io_mux(const enum usbhs_omap_port_mode *port_mode)
+ {
+ 	switch (port_mode[0]) {
+ 	case OMAP_OHCI_PORT_MODE_PHY_6PIN_DATSE0:
 -- 
-1.7.1
+1.7.3.4
 
-
-------------------------------------------------------------------------------
-This SF email is sponsosred by:
-Try Windows Azure free for 90 days Click Here 
-http://p.sf.net/sfu/sfd2d-msazure
+--
+To unsubscribe from this list: send the line "unsubscribe linux-usb" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
