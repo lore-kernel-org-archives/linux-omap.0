@@ -1,89 +1,65 @@
-From: "Joe Woodward" <jw@terrafix.co.uk>
-Subject: Re: Suspend broken on 3.3?
-Date: Mon, 26 Mar 2012 14:41:15 +0100
-Message-ID: <WC20120326134115.9815DF@terrafix.co.uk>
-References: <WC20120322110946.6413AA@terrafix.co.uk> <87r4wka6bf.fsf@ti.com>
+From: Shubhrajyoti D <shubhrajyoti-l0cyMroinI0@public.gmane.org>
+Subject: [PATCH v2 3/5] spi: omap2-mcspi: convert to module_platform_driver
+Date: Mon, 26 Mar 2012 19:14:38 +0530
+Message-ID: <1332769480-28069-4-git-send-email-shubhrajyoti@ti.com>
+References: <1332769480-28069-1-git-send-email-shubhrajyoti@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from smtp3.keele.netcentral.co.uk ([212.57.235.197]:60939 "EHLO
-	smtp3.keele.netcentral.co.uk" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S932444Ab2CZNld (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>);
-	Mon, 26 Mar 2012 09:41:33 -0400
-In-Reply-To: <87r4wka6bf.fsf@ti.com>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Transfer-Encoding: 7bit
+Return-path: <spi-devel-general-bounces-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+In-Reply-To: <1332769480-28069-1-git-send-email-shubhrajyoti-l0cyMroinI0@public.gmane.org>
+List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/spi-devel-general>,
+	<mailto:spi-devel-general-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=unsubscribe>
+List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum_name=spi-devel-general>
+List-Post: <mailto:spi-devel-general-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+List-Help: <mailto:spi-devel-general-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=help>
+List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/spi-devel-general>,
+	<mailto:spi-devel-general-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
+Errors-To: spi-devel-general-bounces-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+To: spi-devel-general-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+Cc: linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Felipe Balbi <balbi-l0cyMroinI0@public.gmane.org>, Shubhrajyoti D <shubhrajyoti-l0cyMroinI0@public.gmane.org>
 List-Id: linux-omap@vger.kernel.org
-To: Kevin Hilman <khilman@ti.com>
-Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
 
------Original Message-----
-From: Kevin Hilman <khilman@ti.com>
-To: "Joe Woodward" <jw@terrafix.co.uk>
-Cc: "linux-omap\@vger.kernel.org" <linux-omap@vger.kernel.org>
-Date: Thu, 22 Mar 2012 10:33:56 -0700
-Subject: Re: Suspend broken on 3.3?
+From: Felipe Balbi <balbi-l0cyMroinI0@public.gmane.org>
 
-> "Joe Woodward" <jw@terrafix.co.uk> writes:
-> 
-> > Is system suspend broken on stock 3.3?
-> 
-> I hope not. :)
-> 
-> It *should* work, I'm using it regularily here, and "it works for me"
-> (I'm sure that's just what you want to hear.)  :)
-> 
-> > I have a working stock 3.2 (with patches to fix runtime_pm for DSS2),
-> and system suspend works just fine!
-> >
-> > This is running on a variety of GUMSTIX boards (both OMAP3530 and
-> AM3703-based).
-> 
-> I currently only have a 3530-based Gumstix Overo (although a
-> AM3xxx-based one is on the way, thanks Gumstix!), but it's working fine
-> for me on my Overo.
-> 
-> Stock v3.3 won't boot on Overo because of the smsc911x regulator issues
-> recently discusssed, so if you're using Overo, you also need the patch
-> in Tony's fix-smsc911x-regulator branch.
-> 
-> After that, suspend/resume is working fine for me using
-> omap2plus_defconfig.  I tried both with initramfs and with MMC rootfs.
-> 
-> Can you try without your board file changes, using vanilla v3.3 +
-> smsc911x fix above and using omap2plus_defconfig?
-> 
-> Also, please share the kernel command-line you're using.
+this will delete a few lines of code, no functional
+changes.
 
-Right, I've stepped back a bit and dug out a GUSMTIX Palo43 carrier board on which to test the Overo OMAP3530 COM and I've found:
- - Running a stock 3.3 (with absolutely no changes) does indeed suspend correctly.
- - Running the 3.3 kernel with my (minor) board modifications (basically defining some buttons) suspends correctly as well.
+Signed-off-by: Felipe Balbi <balbi-l0cyMroinI0@public.gmane.org>
+Signed-off-by: Shubhrajyoti D <shubhrajyoti-l0cyMroinI0@public.gmane.org>
+---
+ drivers/spi/spi-omap2-mcspi.c |   15 +--------------
+ 1 files changed, 1 insertions(+), 14 deletions(-)
 
-Then I went back to my original board and the 3.3 still wakes up from suspend immediately. So I had a think, and the only real differences 
-between my board the the GUMSTIX Palo43 board is that I am using multiple UARTs.
-
-Up to this point I've only wanted to wake on the console (ttyO2), and not any other UARTs so I've stopped them waking with:
-  echo disabled > /sys/devices/platform/omap/omap_uart.0/power/wakeup
-  echo disabled > /sys/devices/platform/omap/omap_uart.1/power/wakeup
-
-I wanted to check that this still worked, so tried disabling wakeup on the console (ttyO2):
-  echo disabled > /sys/devices/platform/omap/omap_uart.2/power/wakeup
-
-And if I do "echo mem > /sys/power/state" I was expecting to stay in suspend when I typed on my keyboard... However, the kernel still 
-woke from suspend, which leads me to believe that the UART wakeup hasn't been disabled?
-
-Could you test if this is also the case your end?
-
-Cheers,
-Joe
-
-> Thanks,
-> 
-> Kevin
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-omap"
-> in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+diff --git a/drivers/spi/spi-omap2-mcspi.c b/drivers/spi/spi-omap2-mcspi.c
+index 26dd79f..66cbf22 100644
+--- a/drivers/spi/spi-omap2-mcspi.c
++++ b/drivers/spi/spi-omap2-mcspi.c
+@@ -1324,18 +1324,5 @@ static struct platform_driver omap2_mcspi_driver = {
+ 	.remove =	__devexit_p(omap2_mcspi_remove),
+ };
+ 
+-
+-static int __init omap2_mcspi_init(void)
+-{
+-	return platform_driver_register(&omap2_mcspi_driver);
+-}
+-subsys_initcall(omap2_mcspi_init);
+-
+-static void __exit omap2_mcspi_exit(void)
+-{
+-	platform_driver_unregister(&omap2_mcspi_driver);
+-
+-}
+-module_exit(omap2_mcspi_exit);
+-
++module_platform_driver(omap2_mcspi_driver);
+ MODULE_LICENSE("GPL");
+-- 
+1.7.1
 
 
+------------------------------------------------------------------------------
+This SF email is sponsosred by:
+Try Windows Azure free for 90 days Click Here 
+http://p.sf.net/sfu/sfd2d-msazure
