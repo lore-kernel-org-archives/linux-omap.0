@@ -1,163 +1,60 @@
-From: Afzal Mohammed <afzal@ti.com>
-Subject: [TMP][PATCH v2 5/5] OMAP3EVM: Test gpmc-nand
-Date: Tue, 27 Mar 2012 09:56:22 +0530
-Message-ID: <f0ca413f6b09bc36b4bf2f1ea16720f6a5e3e71a.1332771189.git.afzal@ti.com>
-References: <cover.1332771189.git.afzal@ti.com>
+From: "Mohammed, Afzal" <afzal@ti.com>
+Subject: RE: [RFC][PATCH 1/5] ARM: OMAP2+: gpmc: driver conversion
+Date: Tue, 27 Mar 2012 05:12:07 +0000
+Message-ID: <C8443D0743D26F4388EA172BF4E2A7A9317BD6E2@DBDE01.ent.ti.com>
+References: <1332484600-21947-1-git-send-email-afzal@ti.com>
+ <4F6D0569.6080203@ti.com>
+ <C8443D0743D26F4388EA172BF4E2A7A9317BB895@DBDE01.ent.ti.com>
+ <4F70AA82.3000204@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from comal.ext.ti.com ([198.47.26.152]:43547 "EHLO comal.ext.ti.com"
+Received: from arroyo.ext.ti.com ([192.94.94.40]:52839 "EHLO arroyo.ext.ti.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753024Ab2C0EoL (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Tue, 27 Mar 2012 00:44:11 -0400
-In-Reply-To: <cover.1332771189.git.afzal@ti.com>
+	id S1753052Ab2C0FMN convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 27 Mar 2012 01:12:13 -0400
+In-Reply-To: <4F70AA82.3000204@ti.com>
+Content-Language: en-US
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
-Cc: Afzal Mohammed <afzal@ti.com>
+To: "Hunter, Jon" <jon-hunter@ti.com>
+Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, "Hiremath, Vaibhav" <hvaibhav@ti.com>
 
-Signed-off-by: Afzal Mohammed <afzal@ti.com>
----
- arch/arm/mach-omap2/board-omap3evm.c |   82 ++++++++++++++++++++++++++++++++++
- 1 file changed, 82 insertions(+)
+Hi Jon,
 
-diff --git a/arch/arm/mach-omap2/board-omap3evm.c b/arch/arm/mach-omap2/board-omap3evm.c
-index a659e19..2695663 100644
---- a/arch/arm/mach-omap2/board-omap3evm.c
-+++ b/arch/arm/mach-omap2/board-omap3evm.c
-@@ -23,6 +23,7 @@
- #include <linux/input/matrix_keypad.h>
- #include <linux/leds.h>
- #include <linux/interrupt.h>
-+#include <linux/mtd/nand.h>
- 
- #include <linux/spi/spi.h>
- #include <linux/spi/ads7846.h>
-@@ -41,6 +42,7 @@
- #include <asm/mach/arch.h>
- #include <asm/mach/map.h>
- 
-+#include <plat/nand.h>
- #include <plat/board.h>
- #include <plat/usb.h>
- #include "common.h"
-@@ -52,6 +54,7 @@
- #include "sdram-micron-mt46h32m32lf-6.h"
- #include "hsmmc.h"
- #include "common-board-devices.h"
-+#include "board-flash.h"
- 
- #define OMAP3_EVM_TS_GPIO	175
- #define OMAP3_EVM_EHCI_VBUS	22
-@@ -102,6 +105,9 @@ static void __init omap3_evm_get_revision(void)
- 	}
- }
- 
-+#undef CONFIG_SMSC911X
-+#undef CONFIG_SMSC911X_MODULE
-+
- #if defined(CONFIG_SMSC911X) || defined(CONFIG_SMSC911X_MODULE)
- #include <plat/gpmc-smsc911x.h>
- 
-@@ -533,6 +539,41 @@ static struct usbhs_omap_board_data usbhs_bdata __initdata = {
- 	.reset_gpio_port[2]  = -EINVAL
- };
- 
-+/*
-+ * NAND
-+ */
-+static struct mtd_partition omap3_evm_nand_partitions[] = {
-+	/* All the partition sizes are listed in terms of NAND block size */
-+	{
-+		.name		= "X-Loader-NAND",
-+		.offset		= 0,
-+		.size		= 4 * (64 * 2048),
-+		.mask_flags	= MTD_WRITEABLE,	/* force read-only */
-+	},
-+	{
-+		.name		= "U-Boot-NAND",
-+		.offset		= MTDPART_OFS_APPEND,	/* Offset = 0x80000 */
-+		.size		= 10 * (64 * 2048),
-+		.mask_flags	= MTD_WRITEABLE,	/* force read-only */
-+	},
-+	{
-+		.name		= "Boot Env-NAND",
-+
-+		.offset		= MTDPART_OFS_APPEND,	/* Offset = 0x1c0000 */
-+		.size		= 6 * (64 * 2048),
-+	},
-+	{
-+		.name		= "Kernel-NAND",
-+		.offset		= MTDPART_OFS_APPEND,	/* Offset = 0x280000 */
-+		.size		= 40 * (64 * 2048),
-+	},
-+	{
-+		.name		= "File System - NAND",
-+		.size		= MTDPART_SIZ_FULL,
-+		.offset		= MTDPART_OFS_APPEND,	/* Offset = 0x780000 */
-+	},
-+};
-+
- #ifdef CONFIG_OMAP_MUX
- static struct omap_board_mux omap35x_board_mux[] __initdata = {
- 	OMAP3_MUX(SYS_NIRQ, OMAP_MUX_MODE0 | OMAP_PIN_INPUT_PULLUP |
-@@ -632,8 +673,30 @@ static void __init omap3_evm_wl12xx_init(void)
- #endif
- }
- 
-+static struct gpmc_pdata gpmc_data;
-+
-+static struct resource gpmc_resources[] = {
-+	{
-+		.start = OMAP34XX_GPMC_BASE,
-+		.end   = OMAP34XX_GPMC_BASE + SZ_4K - 1,
-+		.flags = IORESOURCE_MEM,
-+	},
-+};
-+
-+static struct platform_device gpmc_device = {
-+	.name		= "omap-gpmc",
-+	.id		= -1,
-+	.num_resources	= ARRAY_SIZE(gpmc_resources),
-+	.resource	= gpmc_resources,
-+	.dev	= {
-+		.platform_data = &gpmc_data,
-+	}
-+};
-+
- static void __init omap3_evm_init(void)
- {
-+	struct omap_nand_platform_data *nand_data;
-+
- 	omap3_evm_get_revision();
- 
- 	if (cpu_is_omap3630())
-@@ -684,6 +747,25 @@ static void __init omap3_evm_init(void)
- 	omap3evm_init_smsc911x();
- 	omap3_evm_display_init();
- 	omap3_evm_wl12xx_init();
-+	/* NAND */
-+	nand_data = omap_nand_init(omap3_evm_nand_partitions,
-+			ARRAY_SIZE(omap3_evm_nand_partitions),
-+			0, NAND_BUSWIDTH_16, nand_default_timings);
-+	if (nand_data == NULL) {
-+		pr_err("omap_nand_init() failed\n");
-+		return;
-+	}
-+
-+	gpmc_data.device_pdata = gpmc_nand_init(nand_data);
-+	if (gpmc_data.device_pdata == NULL) {
-+		pr_err("gpmc_nand_init() failed\n");
-+		return;
-+	}
-+
-+	gpmc_data.num_device++;
-+	gpmc_data.fclk_period = gpmc_get_fclk_period();
-+
-+	platform_device_register(&gpmc_device);
- }
- 
- MACHINE_START(OMAP3EVM, "OMAP3 EVM")
--- 
-1.7.9.3
+On Mon, Mar 26, 2012 at 23:12:26, Hunter, Jon wrote:
+> Also, I don't see where the gpmc_child->res and gpmc_child->num_res are 
+> actually used. Are these needed?
 
+These are for the peripheral resources not in control of GPMC, like
+gpio irq. These are copied in gpmc_create_child.
+
+> > Gpmc_device_data is dedicated to each CS, gpmc_pdata is required
+> > at least to inform driver about clock rate.
+> 
+> Ok, understood! So the struct gpmc_device_pdata only has a single 
+> chip-select entry and so looking at the code you will have multiple 
+> instances of this structure of a gpmc device that uses more than one 
+> chip-select. Any reason you did it this way and not have a single pdata 
+> struct for each device defining all chip-selects it uses?
+
+When coding started, multiple CS for a peripheral was not taken into
+consideration, later handling multiple CS was incorporated making it
+this way. But your suggestion seems better to me, will see if code can
+modified accordingly in later patch series (v2 already sent)
+
+> 
+> > Generally, as the change involved moving a lot of code, seems more reviews
+> > are on those than the actual changes than what I intended to get reviewed,
+> > next patch series will be modified not to move existing code, hence some
+> > of your suggested changes may not be present in it, probably those to be
+> > done as another cleanup patch.
+> 
+> Yes I understand. However, it is a good opportunity to clean some of 
+> this up even if it is existing code :-)
+
+Ok
+
+Regards
+Afzal
