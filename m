@@ -1,52 +1,44 @@
-From: "Joe Woodward" <jw@terrafix.co.uk>
-Subject: Re: Suspend broken on 3.3?
-Date: Tue, 27 Mar 2012 15:39:12 +0100
-Message-ID: <WC20120327143912.161659@terrafix.co.uk>
-References: <WC20120322110946.6413AA@terrafix.co.uk> <87r4wka6bf.fsf@ti.com> <WC20120326134115.9815DF@terrafix.co.uk> <87haxaq3ua.fsf@ti.com>
+From: Igor Grinberg <grinberg-UTxiZqZC01RS1MOuV/RT9w@public.gmane.org>
+Subject: Re: [PATCH RESEND] ARM: OMAP3: USB: Fix the EHCI ULPI PHY reset issue
+Date: Tue, 27 Mar 2012 17:10:54 +0200
+Message-ID: <4F71D87E.70100@compulab.co.il>
+References: <1332139367-1302-1-git-send-email-keshava_mgowda@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from smtp3.keele.netcentral.co.uk ([212.57.235.197]:54228 "EHLO
-	smtp3.keele.netcentral.co.uk" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751275Ab2C0Oj3 (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>);
-	Tue, 27 Mar 2012 10:39:29 -0400
-In-Reply-To: <87haxaq3ua.fsf@ti.com>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <1332139367-1302-1-git-send-email-keshava_mgowda-l0cyMroinI0@public.gmane.org>
+Sender: linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Keshava Munegowda <keshava_mgowda-l0cyMroinI0@public.gmane.org>
+Cc: linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, balbi-l0cyMroinI0@public.gmane.org, sameo-VuQAYsv1563Yd54FQh9/CA@public.gmane.org, parthab-PpE0FKYn9XJWk0Htik3J/w@public.gmane.org, govindraj.raja-l0cyMroinI0@public.gmane.org
 List-Id: linux-omap@vger.kernel.org
-To: Kevin Hilman <khilman@ti.com>
-Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, govindraj.raja@ti.com, Felipe Balbi <balbi@ti.com>
 
-...snip...
-
-> Just to confirm: did the above work for you before v3.3?
+On 03/19/12 08:42, Keshava Munegowda wrote:
+> From: Keshava Munegowda <Keshava_mgowda-l0cyMroinI0@public.gmane.org>
 > 
-
-I've checked and v3.2 works correctly:
-
-echo "enabled" > /sys/devices/platform/omap/omap_uart.2/power/wakeup => device wakes from console presses
-echo "disabled" > /sys/devices/platform/omap/omap_uart.2/power/wakeup => device does not wake from console presses
-
-Thanks for looking in to this!
-
-Cheers,
-Joe 
-
-> > Could you test if this is also the case your end?
+> It is observed that the echi ports of 3430 sdp board
+> are not working due to the random timing of programming
+> the associated GPIOs of the ULPI PHYs of the EHCI for reset.
+> If the PHYs are reset at during usbhs core driver, host ports will
+> not work because EHCI driver is loaded after the resetting PHYs.
+> The PHYs should be in reset state while initializing the EHCI
+> controller.
+> The code which does the GPIO pins associated with the PHYs
+> are programmed to reset is moved from the USB host core driver
+> to EHCI driver.
 > 
-> Yes, I get the same behavior, which is indeed broken.
-> 
-> Govindraj, can you look into this?
-> 
-> A quick glance suggests that disabling wakeups via the sysfs file is
-> only disabling runtime PM, but not actually disabling wakups at the
-> module-level or at the IO ring.
-> 
-> Kevin
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-omap"
-> in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> Signed-off-by: Keshava Munegowda <keshava_mgowda-l0cyMroinI0@public.gmane.org>
+> Reviewed-by: Partha Basak <parthab-PpE0FKYn9XJWk0Htik3J/w@public.gmane.org>
 
+Both EHCI ports worked on cm-t3730 previously and
+no regression is seen with this patch.
 
+Tested-by: Igor Grinberg <grinberg-UTxiZqZC01RS1MOuV/RT9w@public.gmane.org>
+
+-- 
+Regards,
+Igor.
+--
+To unsubscribe from this list: send the line "unsubscribe linux-usb" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
