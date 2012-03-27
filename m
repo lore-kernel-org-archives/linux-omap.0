@@ -1,68 +1,52 @@
-From: Samuel Ortiz <sameo@linux.intel.com>
-Subject: Re: [PATCH RESEND] ARM: OMAP3: USB: Fix the EHCI ULPI PHY reset issue
-Date: Tue, 27 Mar 2012 16:43:49 +0200
-Message-ID: <20120327144349.GH17616@sortiz-mobl>
-References: <1332139367-1302-1-git-send-email-keshava_mgowda@ti.com>
- <20120320155353.GE17818@sortiz-mobl>
- <20120320155541.GF32693@arwen.pp.htv.fi>
- <4F71CC49.4080903@compulab.co.il>
+From: "Joe Woodward" <jw@terrafix.co.uk>
+Subject: Re: Suspend broken on 3.3?
+Date: Tue, 27 Mar 2012 15:39:12 +0100
+Message-ID: <WC20120327143912.161659@terrafix.co.uk>
+References: <WC20120322110946.6413AA@terrafix.co.uk> <87r4wka6bf.fsf@ti.com> <WC20120326134115.9815DF@terrafix.co.uk> <87haxaq3ua.fsf@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset="us-ascii"
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mga03.intel.com ([143.182.124.21]:16503 "EHLO mga03.intel.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754196Ab2C0Ofe (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Tue, 27 Mar 2012 10:35:34 -0400
-Content-Disposition: inline
-In-Reply-To: <4F71CC49.4080903@compulab.co.il>
+Received: from smtp3.keele.netcentral.co.uk ([212.57.235.197]:54228 "EHLO
+	smtp3.keele.netcentral.co.uk" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1751275Ab2C0Oj3 (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>);
+	Tue, 27 Mar 2012 10:39:29 -0400
+In-Reply-To: <87haxaq3ua.fsf@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Igor Grinberg <grinberg@compulab.co.il>
-Cc: balbi@ti.com, Keshava Munegowda <keshava_mgowda@ti.com>, linux-omap@vger.kernel.org, linux-usb@vger.kernel.org, parthab@india.ti.com, govindraj.raja@ti.com
+To: Kevin Hilman <khilman@ti.com>
+Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, govindraj.raja@ti.com, Felipe Balbi <balbi@ti.com>
 
-Hi Igor,
+...snip...
 
-On Tue, Mar 27, 2012 at 04:18:49PM +0200, Igor Grinberg wrote:
-> -----BEGIN PGP SIGNED MESSAGE-----
-> Hash: SHA1
+> Just to confirm: did the above work for you before v3.3?
 > 
-> Hi Felipe, Samuel,
-> 
-> On 03/20/12 17:55, Felipe Balbi wrote:
-> > On Tue, Mar 20, 2012 at 04:53:53PM +0100, Samuel Ortiz wrote:
-> >> Hi Keshava,
-> >>
-> >> On Mon, Mar 19, 2012 at 12:12:47PM +0530, Keshava Munegowda wrote:
-> >>> From: Keshava Munegowda <Keshava_mgowda@ti.com>
-> >>>
-> >>> It is observed that the echi ports of 3430 sdp board
-> >>> are not working due to the random timing of programming
-> >>> the associated GPIOs of the ULPI PHYs of the EHCI for reset.
-> >>> If the PHYs are reset at during usbhs core driver, host ports will
-> >>> not work because EHCI driver is loaded after the resetting PHYs.
-> >>> The PHYs should be in reset state while initializing the EHCI
-> >>> controller.
-> >>> The code which does the GPIO pins associated with the PHYs
-> >>> are programmed to reset is moved from the USB host core driver
-> >>> to EHCI driver.
-> >>>
-> >>> Signed-off-by: Keshava Munegowda <keshava_mgowda@ti.com>
-> >>> Reviewed-by: Partha Basak <parthab@india.ti.com>
-> >> Felipe, are you ok with that patch ?
-> >> I'll most likely queue it after this merge window is closed though.
-> 
-> I've just sent a patch that depends on this one (ehci-omap.c part),
-> though it needs a review, but Samuel, you still haven't applied/pushed
-> the patch to your git.kernel.org, so can this one go through Felipe's
-> tree to minimize the dependencies/conflicts?
-Once (and if) Linus pulls from my for-next branch, I'll start taking patches
-again. It's a matter of days, so you can either wait for me to apply this
-patch or have Felipe taking both.
-I'm fine either ways.
+
+I've checked and v3.2 works correctly:
+
+echo "enabled" > /sys/devices/platform/omap/omap_uart.2/power/wakeup => device wakes from console presses
+echo "disabled" > /sys/devices/platform/omap/omap_uart.2/power/wakeup => device does not wake from console presses
+
+Thanks for looking in to this!
 
 Cheers,
-Samuel.
+Joe 
 
--- 
-Intel Open Source Technology Centre
-http://oss.intel.com/
+> > Could you test if this is also the case your end?
+> 
+> Yes, I get the same behavior, which is indeed broken.
+> 
+> Govindraj, can you look into this?
+> 
+> A quick glance suggests that disabling wakeups via the sysfs file is
+> only disabling runtime PM, but not actually disabling wakups at the
+> module-level or at the IO ring.
+> 
+> Kevin
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-omap"
+> in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+
+
