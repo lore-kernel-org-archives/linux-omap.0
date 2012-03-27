@@ -1,66 +1,126 @@
 From: Jon Hunter <jon-hunter@ti.com>
-Subject: Re: [PATCH] ARM: OMAP: hwmod: Fix error handling in functions used
- OMAP4 onwards
-Date: Tue, 27 Mar 2012 14:52:49 -0500
-Message-ID: <4F721A91.7000102@ti.com>
-References: <1332842311-12308-1-git-send-email-rnayak@ti.com>
+Subject: Re: [PATCH 1/3] OMAP2+: UART: Remove cpu checks for populating errata
+ flags
+Date: Tue, 27 Mar 2012 16:08:51 -0500
+Message-ID: <4F722C63.9080900@ti.com>
+References: <1332325501-10467-1-git-send-email-govindraj.raja@ti.com> <1332325501-10467-2-git-send-email-govindraj.raja@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="ISO-8859-1"; format=flowed
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from bear.ext.ti.com ([192.94.94.41]:60119 "EHLO bear.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754400Ab2C0Twz (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Tue, 27 Mar 2012 15:52:55 -0400
-In-Reply-To: <1332842311-12308-1-git-send-email-rnayak@ti.com>
-Sender: linux-omap-owner@vger.kernel.org
+Return-path: <linux-serial-owner@vger.kernel.org>
+In-Reply-To: <1332325501-10467-2-git-send-email-govindraj.raja@ti.com>
+Sender: linux-serial-owner@vger.kernel.org
+To: "Govindraj.R" <govindraj.raja@ti.com>
+Cc: linux-omap@vger.kernel.org, Kevin Hilman <khilman@ti.com>, Paul Walmsley <paul@pwsan.com>, Felipe Balbi <balbi@ti.com>, linux-serial@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 List-Id: linux-omap@vger.kernel.org
-To: Rajendra Nayak <rnayak@ti.com>
-Cc: b-cousson@ti.com, paul@pwsan.com, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 
-Hi Rajendra,
+Hi Govindraj,
 
-On 3/27/2012 4:58, Rajendra Nayak wrote:
-> Some functions like _omap4_disable_module() and _omap4_wait_target_disable()
-> are (will be) used on all OMAPs OMAP4 and beyond which support module level
-> control. Fix the error checks in these functions to return if called on
-> any platform pre OMAP4 (i.e OMAP2 and OMAP3) instead of checking for
-> !cpu_is_omap44xx(). This avoids having to update the error check with a
-> '&&  !cpu_is_omap54xx()' when OMAP5 is introduced and possibly similar updates
-> when further OMAP generations are added.
+On 3/21/2012 5:24, Govindraj.R wrote:
+> From: "Govindraj.R"<govindraj.raja@ti.com>
 >
-> Signed-off-by: Rajendra Nayak<rnayak@ti.com>
+> Currently the errata is populated based on cpu checks this can
+> be removed and replaced with module version check of uart ip block.
+> MVR reg is provided within the uart reg map use the same
+> to populate the errata and thus now errata population and handling
+> can be managed within the driver itself.
+>
+> Cc: Paul Walmsley<paul@pwsan.com>
+> Cc: Kevin Hilman<khilman@ti.com>
+> Signed-off-by: Felipe Balbi<balbi@ti.com>
+> Signed-off-by: Govindraj.R<govindraj.raja@ti.com>
 > ---
->   arch/arm/mach-omap2/omap_hwmod.c |    4 ++--
->   1 files changed, 2 insertions(+), 2 deletions(-)
+>   arch/arm/mach-omap2/serial.c                  |    8 ---
+>   arch/arm/plat-omap/include/plat/omap-serial.h |    1 -
+>   drivers/tty/serial/omap-serial.c              |   62 ++++++++++++++++++++++++-
+>   3 files changed, 61 insertions(+), 10 deletions(-)
 >
-> diff --git a/arch/arm/mach-omap2/omap_hwmod.c b/arch/arm/mach-omap2/omap_hwmod.c
-> index 8ac26f2..f2a9afa 100644
-> --- a/arch/arm/mach-omap2/omap_hwmod.c
-> +++ b/arch/arm/mach-omap2/omap_hwmod.c
-> @@ -808,7 +808,7 @@ static void _enable_module(struct omap_hwmod *oh)
->    */
->   static int _omap4_wait_target_disable(struct omap_hwmod *oh)
->   {
-> -	if (!cpu_is_omap44xx())
-> +	if (cpu_is_omap24xx() || cpu_is_omap34xx())
->   		return 0;
-
-What about omap36xx?
-
->   	if (!oh)
-> @@ -838,7 +838,7 @@ static int _omap4_disable_module(struct omap_hwmod *oh)
->   	int v;
+> diff --git a/arch/arm/mach-omap2/serial.c b/arch/arm/mach-omap2/serial.c
+> index f590afc..330ee04 100644
+> --- a/arch/arm/mach-omap2/serial.c
+> +++ b/arch/arm/mach-omap2/serial.c
+> @@ -357,14 +357,6 @@ void __init omap_serial_init_port(struct omap_board_data *bdata,
+>   	omap_up.dma_rx_poll_rate = info->dma_rx_poll_rate;
+>   	omap_up.autosuspend_timeout = info->autosuspend_timeout;
 >
->   	/* The module mode does not exist prior OMAP4 */
-> -	if (!cpu_is_omap44xx())
-> +	if (cpu_is_omap24xx() || cpu_is_omap34xx())
->   		return -EINVAL;
-
-Same here.
-
+> -	/* Enable the MDR1 Errata i202 for OMAP2430/3xxx/44xx */
+> -	if (!cpu_is_omap2420()&&  !cpu_is_ti816x())
+> -		omap_up.errata |= UART_ERRATA_i202_MDR1_ACCESS;
+> -
+> -	/* Enable DMA Mode Force Idle Errata i291 for omap34xx/3630 */
+> -	if (cpu_is_omap34xx() || cpu_is_omap3630())
+> -		omap_up.errata |= UART_ERRATA_i291_DMA_FORCEIDLE;
+> -
+>   	pdata =&omap_up;
+>   	pdata_size = sizeof(struct omap_uart_port_info);
 >
->   	if (!oh->clkdm || !oh->prcm.omap4.modulemode)
+> diff --git a/arch/arm/plat-omap/include/plat/omap-serial.h b/arch/arm/plat-omap/include/plat/omap-serial.h
+> index 9ff4444..1a52725 100644
+> --- a/arch/arm/plat-omap/include/plat/omap-serial.h
+> +++ b/arch/arm/plat-omap/include/plat/omap-serial.h
+> @@ -65,7 +65,6 @@ struct omap_uart_port_info {
+>   	bool			dma_enabled;	/* To specify DMA Mode */
+>   	unsigned int		uartclk;	/* UART clock rate */
+>   	upf_t			flags;		/* UPF_* flags */
+> -	u32			errata;
+>   	unsigned int		dma_rx_buf_size;
+>   	unsigned int		dma_rx_timeout;
+>   	unsigned int		autosuspend_timeout;
+> diff --git a/drivers/tty/serial/omap-serial.c b/drivers/tty/serial/omap-serial.c
+> index f809041..c7666d6 100644
+> --- a/drivers/tty/serial/omap-serial.c
+> +++ b/drivers/tty/serial/omap-serial.c
+> @@ -44,6 +44,13 @@
+>   #include<plat/dmtimer.h>
+>   #include<plat/omap-serial.h>
+>
+> +#define UART_BUILD_REVISION(x, y)	(((x)<<  8) | (y))
+> +
+> +#define OMAP_UART_REV_42 0x0402
+> +#define OMAP_UART_REV_46 0x0406
+> +#define OMAP_UART_REV_52 0x0502
+> +#define OMAP_UART_REV_63 0x0603
+> +
+>   #define DEFAULT_CLK_SPEED 48000000 /* 48Mhz*/
+>
+>   /* SCR register bitmasks */
+> @@ -1346,6 +1353,58 @@ static void uart_tx_dma_callback(int lch, u16 ch_status, void *data)
+>   	return;
+>   }
+>
+> +static void omap_serial_fill_features_erratas(struct uart_omap_port *up)
+> +{
+> +	u32 mvr, scheme;
+> +	u16 revision, major, minor;
+> +
+> +	mvr = serial_in(up, UART_OMAP_MVER);
+> +
+> +	/* Check revision register scheme */
+> +	scheme = mvr&  (0x03<<  30);
+> +	scheme>>= 30;
+
+Minor nit-pick, why not ...
+
+	scheme = mvr >> 30;
+
+> +	switch (scheme) {
+> +	case 0: /* Legacy Scheme: OMAP2/3 */
+> +		/* MINOR_REV[0:4], MAJOR_REV[4:7] */
+
+This scheme is also true from OMAP1 devices. Maybe we could include in 
+the comment.
+
+> +		major = (mvr&  0xf0)>>  4;
+> +		minor = (mvr&  0x0f);
+> +		break;
+> +	case 1:
+> +		/* New Scheme: OMAP4+ */
+> +		/* MINOR_REV[0:5], MAJOR_REV[8:10] */
+> +		major = (mvr&  0x7<<  8)>>  8;
+
+Nit-pick ...
+
+	major = (mvr >> 8) & 0x7;
 
 Cheers
 Jon
