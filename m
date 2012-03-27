@@ -1,120 +1,122 @@
-From: Tomi Valkeinen <tomi.valkeinen@ti.com>
-Subject: Re: [PATCH V2 3/3] OMAPDSS: DISPC: Correct DISPC functional clock
- usage
-Date: Tue, 27 Mar 2012 14:26:30 +0300
-Message-ID: <1332847590.1867.149.camel@deskari>
-References: <1332323530-9088-1-git-send-email-cmahapatra@ti.com>
-	 <1332846215.1867.130.camel@deskari>
-	 <CAF0AtAuxR6pa0y_kTgh454=joFoy_kG4XCnHAS94qkPk0+kLFw@mail.gmail.com>
+From: "Mahapatra, Chandrabhanu" <cmahapatra@ti.com>
+Subject: Re: [PATCH V2 2/3] OMAPDSS: DISPC: Handle synclost errors in OMAP3
+Date: Tue, 27 Mar 2012 17:03:50 +0530
+Message-ID: <CAF0AtAvKY2=8sVfKoKEvV0aCRK9ABLR-6RND-BzBW0CD5oYUig@mail.gmail.com>
+References: <1332323516-9050-1-git-send-email-cmahapatra@ti.com>
+	<1332845843.1867.126.camel@deskari>
+	<CAF0AtAtOSw73YuKyTxc6=RwN75oQaFxRCBW3_=PTmUoxgAFyew@mail.gmail.com>
+	<1332847059.1867.140.camel@deskari>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg="pgp-sha1"; protocol="application/pgp-signature"; boundary="=-ZZJrm/LNVgdAI5Dd2c/D"
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aog118.obsmtp.com ([74.125.149.244]:34822 "EHLO
-	na3sys009aog118.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754235Ab2C0L0f (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>);
-	Tue, 27 Mar 2012 07:26:35 -0400
-Received: by lahi5 with SMTP id i5so7999428lah.39
-        for <linux-omap@vger.kernel.org>; Tue, 27 Mar 2012 04:26:33 -0700 (PDT)
-In-Reply-To: <CAF0AtAuxR6pa0y_kTgh454=joFoy_kG4XCnHAS94qkPk0+kLFw@mail.gmail.com>
+Received: from na3sys009aog119.obsmtp.com ([74.125.149.246]:45667 "EHLO
+	na3sys009aog119.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1751114Ab2C0Ldw convert rfc822-to-8bit
+	(ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Tue, 27 Mar 2012 07:33:52 -0400
+Received: by mail-lb0-f176.google.com with SMTP id l5so52319lbo.21
+        for <linux-omap@vger.kernel.org>; Tue, 27 Mar 2012 04:33:51 -0700 (PDT)
+In-Reply-To: <1332847059.1867.140.camel@deskari>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "Mahapatra, Chandrabhanu" <cmahapatra@ti.com>, Archit Taneja <archit@ti.com>
+To: Tomi Valkeinen <tomi.valkeinen@ti.com>
 Cc: linux-omap <linux-omap@vger.kernel.org>, linux-fbdev@vger.kernel.org
 
+On Tue, Mar 27, 2012 at 4:47 PM, Tomi Valkeinen <tomi.valkeinen@ti.com>=
+ wrote:
+> On Tue, 2012-03-27 at 16:37 +0530, Mahapatra, Chandrabhanu wrote:
+>> On Tue, Mar 27, 2012 at 4:27 PM, Tomi Valkeinen <tomi.valkeinen@ti.c=
+om> wrote:
+>> > On Wed, 2012-03-21 at 15:21 +0530, Chandrabhanu Mahapatra wrote:
+>> >> In OMAP3 DISPC video overlays suffer from some undocumented horiz=
+ontal position
+>> >> and timing related limitations leading to SYNCLOST errors. Whenev=
+er the image
+>> >> window is moved towards the right of the screen SYNCLOST errors b=
+ecome
+>> >> frequent. Checks have been implemented to see that DISPC driver r=
+ejects
+>> >> configuration exceeding above limitations.
+>> >>
+>> >> This code was successfully tested on OMAP3. This code is written =
+based on code
+>> >> written by Ville Syrj=E4l=E4 <ville.syrjala@nokia.com> in Linux O=
+MAP kernel. Ville
+>> >> Syrj=E4l=E4 <ville.syrjala@nokia.com> had added checks for video =
+overlay horizontal
+>> >> timing and DISPC horizontal blanking length limitations.
+>> >>
+>> >> Signed-off-by: Chandrabhanu Mahapatra <cmahapatra@ti.com>
+>> >> ---
+>> >> =A0drivers/video/omap2/dss/dispc.c | =A0 97 +++++++++++++++++++++=
+++++++++----------
+>> >> =A01 files changed, 72 insertions(+), 25 deletions(-)
+>> >>
+>> >> diff --git a/drivers/video/omap2/dss/dispc.c b/drivers/video/omap=
+2/dss/dispc.c
+>> >> index 5a1963e..d8a1672 100644
+>> >> --- a/drivers/video/omap2/dss/dispc.c
+>> >> +++ b/drivers/video/omap2/dss/dispc.c
+>> >> @@ -1622,6 +1622,57 @@ static void calc_dma_rotation_offset(u8 ro=
+tation, bool mirror,
+>> >> =A0 =A0 =A0 }
+>> >> =A0}
+>> >>
+>> >> +static int check_horiz_timing(enum omap_channel channel, u16 pos=
+_x,
+>> >> + =A0 =A0 =A0 =A0 =A0 =A0 u16 width, u16 height, u16 out_width, u=
+16 out_height)
+>> >
+>> > I think the function could be named check_horiz_timing_omap3 or
+>> > something. It's kinda hard to realize that this is an omap3 work-a=
+round.
+>> > Perhaps a short comment above the function would be in order.
+>> >
+>>
+>> Yes, you are right! Do you mean to include some comments within the
+>> code definition itself? The patch description includes all that this
+>> function does.
+>
+> I mean just a short comment above the function that mentions that thi=
+s
+> function is used to avoid the synclosts on omap3, because yadda yadda=
+,
+> so that the reader will immediately realize that this is doing some
+> special handling.
+>
 
---=-ZZJrm/LNVgdAI5Dd2c/D
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: quoted-printable
+Ok.
 
-On Tue, 2012-03-27 at 16:44 +0530, Mahapatra, Chandrabhanu wrote:
-> On Tue, Mar 27, 2012 at 4:33 PM, Tomi Valkeinen <tomi.valkeinen@ti.com> w=
-rote:
-> > On Wed, 2012-03-21 at 15:22 +0530, Chandrabhanu Mahapatra wrote:
-> >> DISPC_FCLK is incorrectly used as functional clock of DISPC in scaling
-> >> calculations. So, DISPC_CORE_CLK replaces as functional clock of DISPC=
-.
-> >> DISPC_CORE_CLK is derived from DISPC_FCLK divided by an independent DI=
-SPC
-> >> divisor LCD.
-> >>
-> >> Signed-off-by: Chandrabhanu Mahapatra <cmahapatra@ti.com>
-> >> ---
-> >>  drivers/video/omap2/dss/dispc.c |   13 +++++++------
-> >>  1 files changed, 7 insertions(+), 6 deletions(-)
-> >>
-> >> diff --git a/drivers/video/omap2/dss/dispc.c b/drivers/video/omap2/dss=
-/dispc.c
-> >> index d8a1672..1fdac73 100644
-> >> --- a/drivers/video/omap2/dss/dispc.c
-> >> +++ b/drivers/video/omap2/dss/dispc.c
-> >> @@ -1761,6 +1761,7 @@ static int dispc_ovl_calc_scaling(enum omap_plan=
-e plane,
-> >>                               dss_feat_get_param_max(FEAT_PARAM_LINEWI=
-DTH);
-> >>       const int max_decim_limit =3D 16;
-> >>       unsigned long fclk =3D 0;
-> >> +     unsigned long dispc_core_clk =3D dispc_mgr_lclk_rate(channel);
-> >
-> > Hmm, I don't think this is correct. dispc_mgr_lclk_rate() returns the
-> > logic clock for the LCD output path. It's not DISPC core clock.
-> >
-> >  Tomi
-> >
->=20
-> As per the OMAP4 TRM DISPC_CORE_CLK is DISPC_FCLK / LCD factor and
+>> > I don't the change to dispc_mgr_lclk_rate has anything to do with =
+this
+>> > patch (fixing omap3 sync lost error). Shouldn't it be a separate f=
+ix?
+>> >
+>> > =A0Tomi
+>> >
+>> I am thinking to to move this fix to the third patch in the series
+>> "OMAPDSS: DISPC: Correct DISPC functional clock usage" and make it
+>> separate patch from the series and if possible move it ahead of the
+>> predecimation patch series. What do you say?
+>
+> This patch is using dispc_mgr_lclk_rate. Does it depend on the change=
+?
+> If so, it needs to be fixed before this patch. But yes, separating it
+> sounds fine.
+>
+> =A0Tomi
+>
+To a certain extent it does. Moving it to the third patch will
+introduce certain code changes as
+if (dispc_mgr_is_lcd(channel)) while initialising dispc_core_clk.
+Anyways that can be cleaned up in the third patch.
 
-Hmm? No it isn't. DISPC_CORE_CLK is DISPC_FCLK / LCD, where LCD is
-defined in DISPC_DIVISOR register.
-
-dispc_mgr_lclk_rate() returns the logic clock of an output, which is
-LCD1_CLK / LCD1 or LCD2_CLK / LCD2. And LCD1 and LCD2 are defined in
-DISPC_DIVISORo(n) register.
-
-(Very confusing to have LCD mean a liquid-crystal-display and also
-logic-clock-divisor =3D) I think we should rename them. Perhaps LCKD and
-PCKD).
-
-So the clocks for DISPC and for LCD outputs are totally separate ones,
-on OMAP4. For OMAP2/3 they are the same.
-
-That said, I have no idea which of the clock is used for what regarding
-scaling calculations, and even less do I know how it's managed for
-TV-out...
-
-> dispc_mgr_lclk_rate() exactly does the same. Should we rename the
-> function or have a separate fucntion for dispc_core_clk to avoid
-> confusion?
-
-I think we definitely should have a separate function, as it's a
-separate clock. And I guess the places where FCKs and LCKs are used
-should be verified so that they use the correct one. If somebody knows
-what is the correct one (the TRM is a bit vague at times =3D).
-
- Tomi
-
-
---=-ZZJrm/LNVgdAI5Dd2c/D
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: This is a digitally signed message part
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.4.11 (GNU/Linux)
-
-iQIcBAABAgAGBQJPcaPmAAoJEPo9qoy8lh71eoYP/3LUt6uVj3yeWNoGEx8fgLsR
-VRdKtuAFUzxmr+8v1jHbC47jVHu+BwH/bxAyGUj7e2j9ChUSlwvpT8BWz7d2RCLK
-70JbL+2H/trosyVsT3rViwMxwMcWFgR6UCilm0ifdnXk/dikysoqoIwyG/CkiIIK
-GAeyCvrJ1r+zneQwm6G63pszJQ+v+UivhTrhDTirys1mIwF800Wem9CVqYEknWSn
-xbnYPq2nlsWqzRB787welpMDadznS5a65obGV40uHw3GOul2NQgcujiGKs4GFHjn
-4jsSXU5sRvwIomqXq0Dr2lkMXHIW30X0tS6bCGdTudd1WHclLnq2412WV3lE/vv+
-8z/smUbEHsQTfTBZT62TDf42lEMXaBSBeDYi0Ra6LtQoAFE5wZlZ4ymQAnrI5daK
-DFLEvYGxz6AGukMt75FCcWG+huSgU2s8X9hnIMdUM6+Uxr7BOubJi5R9bCntPNJ7
-LD0DpS0I+mYczvXtm1PS0GQrLC+5hL3va5K5qcLfLGRgki1qpedOxLo9mWPU0FTu
-WFV79ivGtyn/mysIx/Td01L8WIyGPDzdtsAIO7Z7hgMqQtu4zBxkLtVk/HPG3/Os
-AiORrd6ag1+HnTcnko9TWEtnW6XpesrdLcv33G2LPgaKDdUlxOvS1kpvdFTRtVG1
-TYvvl3jXZEzUTenJIYbZ
-=77Je
------END PGP SIGNATURE-----
-
---=-ZZJrm/LNVgdAI5Dd2c/D--
-
+--=20
+Chandrabhanu Mahapatra
+Texas Instruments India Pvt. Ltd.
+--
+To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
