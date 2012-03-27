@@ -1,69 +1,54 @@
 From: Kevin Hilman <khilman@ti.com>
-Subject: arm-soc/next/boards: mis-merge breaks build on OMAP4/Panda
-Date: Mon, 26 Mar 2012 17:05:17 -0700
-Message-ID: <877gy6rjr6.fsf@ti.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Subject: [PATCH] cpufreq: OMAP: fix build errors: depends on ARCH_OMAP2PLUS
+Date: Mon, 26 Mar 2012 17:19:28 -0700
+Message-ID: <1332807568-638-1-git-send-email-khilman@ti.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aog132.obsmtp.com ([74.125.149.250]:55002 "EHLO
-	psmtp.com" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
-	id S1751431Ab2C0AFV (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Mon, 26 Mar 2012 20:05:21 -0400
-Received: by mail-gx0-f175.google.com with SMTP id y3so4263557ggc.6
-        for <linux-omap@vger.kernel.org>; Mon, 26 Mar 2012 17:05:20 -0700 (PDT)
+Received: from na3sys009aog128.obsmtp.com ([74.125.149.141]:48304 "EHLO
+	na3sys009amx257.postini.com" rhost-flags-OK-OK-OK-FAIL)
+	by vger.kernel.org with ESMTP id S1757866Ab2C0ATU (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>);
+	Mon, 26 Mar 2012 20:19:20 -0400
+Received: by ghrr20 with SMTP id r20so5241133ghr.13
+        for <linux-omap@vger.kernel.org>; Mon, 26 Mar 2012 17:19:19 -0700 (PDT)
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Arnd Bergmann <arnd@arndb.de>, Olof Johansson <olof@lixom.net>
-Cc: linux-arm-kernel <linux-arm-kernel@lists.infradead.org>, linux-omap <linux-omap@vger.kernel.org>
+To: Dave Jones <davej@redhat.com>, cpufreq@vger.kernel.org, Russell King <rmk+kernel@arm.linux.org.uk>
+Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Grazvydas Ignotas <notasas@gmail.com>
 
-Hi Arnd,
+The OMAP driver needs a 'depends on ARCH_OMAP2PLUS' since it only
+builds for OMAP2+ platforms.
 
-Looks like a conflict resolution in next/boards is causing a build
-failure for OMAP4/Panda in arm-soc/for-next.
+This 'depends on' was in the original patch from Russell King, but was
+erroneously removed by me when making this option user-selectable in
+commit b09db45c (cpufreq: OMAP driver depends CPUfreq tables.)  This
+patch remedies that.
 
-This merge:
+Apologies to Russell King for breaking his originally working patch.
 
-  Merge tag 'asoc-3.4' of git://git.kernel.org/pub/scm/linux/kernel/git/broonie/sound into next/boards
+Also, thanks to Grazvydas Ignotas for reporting the same problem.
 
-broke the build on OMAP4/Panda due to a missing ';' at the end of the
-newly added panda_abe_audio platform_device.
-
-Since you already sent the pull request to Linus, here's a patch on top
-of next/boards to fix it.
-
-Kevin
-
->From 3180f1d289b80dbe63f38931edd1245f10b619a0 Mon Sep 17 00:00:00 2001
-From: Kevin Hilman <khilman@ti.com>
-Date: Mon, 26 Mar 2012 16:57:40 -0700
-Subject: [PATCH] ARM: OMAP4: Panda: fix mis-merge build error
-
-Merging some board changes from the ASoC tree with some board fixes
-from the OMAP tree resulted in a minor mis-merge causing build failure
-on OMAP4/Panda.  Fix it.
-
+Cc: Russell King <rmk+kernel@arm.linux.org.uk>
+Cc: Grazvydas Ignotas <notasas@gmail.com>
 Signed-off-by: Kevin Hilman <khilman@ti.com>
 ---
- arch/arm/mach-omap2/board-omap4panda.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+Dave, this applies on top of your current fixes branch, and fixes a 
+problem introduced there by me.  Please merge for v3.4-rc.  Thanks.
 
-diff --git a/arch/arm/mach-omap2/board-omap4panda.c b/arch/arm/mach-omap2/board-omap4panda.c
-index 7459844..7866749 100644
---- a/arch/arm/mach-omap2/board-omap4panda.c
-+++ b/arch/arm/mach-omap2/board-omap4panda.c
-@@ -114,7 +114,7 @@ static struct platform_device panda_abe_audio = {
- 	.dev = {
- 		.platform_data = &panda_abe_audio_data,
- 	},
--}
-+};
+ drivers/cpufreq/Kconfig.arm |    1 +
+ 1 file changed, 1 insertion(+)
+
+diff --git a/drivers/cpufreq/Kconfig.arm b/drivers/cpufreq/Kconfig.arm
+index 82f1aa9..555a57b 100644
+--- a/drivers/cpufreq/Kconfig.arm
++++ b/drivers/cpufreq/Kconfig.arm
+@@ -4,6 +4,7 @@
  
- static struct platform_device btwilink_device = {
- 	.name	= "btwilink",
+ config ARM_OMAP2PLUS_CPUFREQ
+ 	bool "TI OMAP2+"
++	depends on ARCH_OMAP2PLUS
+ 	default ARCH_OMAP2PLUS
+ 	select CPU_FREQ_TABLE
+ 
 -- 
 1.7.9.2
-
-
-
-
 
