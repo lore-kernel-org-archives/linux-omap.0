@@ -1,43 +1,41 @@
-From: Paul Walmsley <paul@pwsan.com>
-Subject: Re: [PATCH] ARM: OMAP: hwmod: Fix error handling in functions used
- OMAP4 onwards
-Date: Tue, 27 Mar 2012 20:39:34 -0600 (MDT)
-Message-ID: <alpine.DEB.2.00.1203272039010.22961@utopia.booyaka.com>
-References: <1332842311-12308-1-git-send-email-rnayak@ti.com> <4F721A91.7000102@ti.com>
-Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+From: Grant Likely <grant.likely@secretlab.ca>
+Subject: Re: [PATCH 0/5] spi: omap2-mcspi: driver updates
+Date: Tue, 27 Mar 2012 15:58:38 -0600
+Message-ID: <20120327215838.AB7C33E13A0@localhost>
+References: <1332769480-28069-1-git-send-email-shubhrajyoti@ti.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from utopia.booyaka.com ([72.9.107.138]:52868 "EHLO
-	utopia.booyaka.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1757475Ab2C1Cjg (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 27 Mar 2012 22:39:36 -0400
-In-Reply-To: <4F721A91.7000102@ti.com>
+Received: from mail-pb0-f46.google.com ([209.85.160.46]:62090 "EHLO
+	mail-pb0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751281Ab2C1En1 (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 28 Mar 2012 00:43:27 -0400
+Received: by mail-pb0-f46.google.com with SMTP id un15so1206036pbc.19
+        for <linux-omap@vger.kernel.org>; Tue, 27 Mar 2012 21:43:26 -0700 (PDT)
+In-Reply-To: <1332769480-28069-1-git-send-email-shubhrajyoti@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Jon Hunter <jon-hunter@ti.com>
-Cc: Rajendra Nayak <rnayak@ti.com>, b-cousson@ti.com, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+To: spi-devel-general@lists.sourceforge.net
+Cc: Shubhrajyoti@ponder.secretlab.ca, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org, D <shubhrajyoti@ti.com>
 
-Hi Jon,
-
-On Tue, 27 Mar 2012, Jon Hunter wrote:
-
-> On 3/27/2012 4:58, Rajendra Nayak wrote:
->
-> > diff --git a/arch/arm/mach-omap2/omap_hwmod.c
-> > b/arch/arm/mach-omap2/omap_hwmod.c
-> > index 8ac26f2..f2a9afa 100644
-> > --- a/arch/arm/mach-omap2/omap_hwmod.c
-> > +++ b/arch/arm/mach-omap2/omap_hwmod.c
-> > @@ -808,7 +808,7 @@ static void _enable_module(struct omap_hwmod *oh)
-> >    */
-> >   static int _omap4_wait_target_disable(struct omap_hwmod *oh)
-> >   {
-> > -	if (!cpu_is_omap44xx())
-> > +	if (cpu_is_omap24xx() || cpu_is_omap34xx())
-> >   		return 0;
+On Mon, 26 Mar 2012 19:14:35 +0530, Shubhrajyoti D <shubhrajyoti@ti.com> wrote:
+> The patch series does the following cleanups
+> - Converts the spi to module_platform_driver
+> - Use the devm functions so that the freeing need not 
+>   be done in the driver.
+> - Makes the driver use autosuspend
+> - Folds Benoit's bus_num removal patch in the series
 > 
-> What about omap36xx?
+> Changes from the previous version
+> - Makes the driver use autosuspend
+> - Folds Benoit's bus_num removal patch in the series
+> 
+> 
+> This is also available through
+> git     : git://gitorious.org/linus-tree/linus-tree.git
+> branch  : spi
 
-Unfortunately, cpu_is_omap34xx() also covers OMAP36xx :-(
+Hi Shubhrajyoti,
 
-- Paul
+I'll queue these ones up for v3.5 unless you make the argument that
+they are bug fixes that must go into v3.4.
+
+g.
