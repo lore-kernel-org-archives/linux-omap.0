@@ -1,64 +1,67 @@
-From: Kevin Hilman <khilman@ti.com>
-Subject: Re: Suspend broken on 3.3?
-Date: Mon, 26 Mar 2012 17:34:21 -0700
-Message-ID: <87haxaq3ua.fsf@ti.com>
-References: <WC20120322110946.6413AA@terrafix.co.uk> <87r4wka6bf.fsf@ti.com>
-	<WC20120326134115.9815DF@terrafix.co.uk>
+From: Afzal Mohammed <afzal@ti.com>
+Subject: [RFC][PATCH v2 0/5] Convert GPMC to driver
+Date: Tue, 27 Mar 2012 09:54:49 +0530
+Message-ID: <cover.1332771189.git.afzal@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aog133.obsmtp.com ([74.125.149.82]:33566 "EHLO
-	psmtp.com" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
-	id S1751236Ab2C0AeY (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Mon, 26 Mar 2012 20:34:24 -0400
-Received: by mail-gx0-f177.google.com with SMTP id k1so5184582ggn.8
-        for <linux-omap@vger.kernel.org>; Mon, 26 Mar 2012 17:34:23 -0700 (PDT)
-In-Reply-To: <WC20120326134115.9815DF@terrafix.co.uk> (Joe Woodward's message
-	of "Mon, 26 Mar 2012 14:41:15 +0100")
+Received: from devils.ext.ti.com ([198.47.26.153]:40917 "EHLO
+	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752092Ab2C0EnA (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 27 Mar 2012 00:43:00 -0400
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Joe Woodward <jw@terrafix.co.uk>
-Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, govindraj.raja@ti.com, Felipe Balbi <balbi@ti.com>
+To: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+Cc: Afzal Mohammed <afzal@ti.com>
 
-+Govindraj,
 
-"Joe Woodward" <jw@terrafix.co.uk> writes:
+Hi,
 
-> Right, I've stepped back a bit and dug out a GUSMTIX Palo43 carrier
-> board on which to test the Overo OMAP3530 COM and I've found:
->  - Running a stock 3.3 (with absolutely no changes) does indeed suspend correctly.
->  - Running the 3.3 kernel with my (minor) board modifications
->  (basically defining some buttons) suspends correctly as well.
->
-> Then I went back to my original board and the 3.3 still wakes up from
-> suspend immediately. So I had a think, and the only real differences
-> between my board the the GUMSTIX Palo43 board is that I am using
-> multiple UARTs.
->
-> Up to this point I've only wanted to wake on the console (ttyO2), and
-> not any other UARTs so I've stopped them waking with:
->   echo disabled > /sys/devices/platform/omap/omap_uart.0/power/wakeup
->   echo disabled > /sys/devices/platform/omap/omap_uart.1/power/wakeup
->
-> I wanted to check that this still worked, so tried disabling wakeup on
-> the console (ttyO2):
->   echo disabled > /sys/devices/platform/omap/omap_uart.2/power/wakeup
->
-> And if I do "echo mem > /sys/power/state" I was expecting to stay in
-> suspend when I typed on my keyboard... However, the kernel still woke
-> from suspend, which leads me to believe that the UART wakeup hasn't
-> been disabled?
+Convert GPCM code to be a driver. Existing GPMC
+NAND platform handling has been modified to work
+with the new GPMC driver (patches 2 & 3). Patch 5
+is to test the driver in OMAP3EVM.
 
-Just to confirm: did the above work for you before v3.3?
+TODO
+1. Let NAND driver deal with GPMC NAND block
+2. Remove struct gpmc * stored as static
+3. Convert all peripherals to use GPMC driver
+4. Devise method to handle OneNAND cleanly
+5. Handle acquiring CS# cases
+6. Decide on where GPMC driver should live
+7. Adapt to HWMOD, use RPM
+8. GPMC driver cleanup
 
-> Could you test if this is also the case your end?
+Regards
+Afzal
 
-Yes, I get the same behavior, which is indeed broken.
+Afzal Mohammed (5):
+  ARM: OMAP2+: gpmc: driver conversion
+  ARM: OMAP2+: nand: create platform data structure
+  ARM: OMAP2+: gpmc-nand: populate gpmc configs
+  mtd: nand: omap2: obtain memory from resource
+  OMAP3EVM: Test gpmc-nand
 
-Govindraj, can you look into this?
+v2: Avoid code movement that kept similar code together (for easy review)
 
-A quick glance suggests that disabling wakeups via the sysfs file is
-only disabling runtime PM, but not actually disabling wakups at the
-module-level or at the IO ring.
+ arch/arm/mach-omap2/board-devkit8000.c     |    6 +-
+ arch/arm/mach-omap2/board-flash.c          |   63 ++---
+ arch/arm/mach-omap2/board-flash.h          |   13 +-
+ arch/arm/mach-omap2/board-ldp.c            |    4 +-
+ arch/arm/mach-omap2/board-omap3beagle.c    |    6 +-
+ arch/arm/mach-omap2/board-omap3evm.c       |   82 +++++++
+ arch/arm/mach-omap2/board-omap3touchbook.c |    6 +-
+ arch/arm/mach-omap2/board-overo.c          |    5 +-
+ arch/arm/mach-omap2/board-zoom.c           |    5 +-
+ arch/arm/mach-omap2/common-board-devices.c |   46 ----
+ arch/arm/mach-omap2/common-board-devices.h |    1 -
+ arch/arm/mach-omap2/gpmc-nand.c            |   88 +++----
+ arch/arm/mach-omap2/gpmc.c                 |  366 +++++++++++++++++++++-------
+ arch/arm/plat-omap/include/plat/gpmc.h     |   34 ++-
+ arch/arm/plat-omap/include/plat/nand.h     |    9 +-
+ drivers/mtd/nand/omap2.c                   |   19 +-
+ 16 files changed, 502 insertions(+), 251 deletions(-)
 
-Kevin
+-- 
+1.7.9.3
+
