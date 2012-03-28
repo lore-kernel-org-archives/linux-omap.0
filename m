@@ -1,41 +1,56 @@
-From: Grant Likely <grant.likely@secretlab.ca>
-Subject: Re: [PATCH 0/5] spi: omap2-mcspi: driver updates
-Date: Tue, 27 Mar 2012 15:58:38 -0600
-Message-ID: <20120327215838.AB7C33E13A0@localhost>
-References: <1332769480-28069-1-git-send-email-shubhrajyoti@ti.com>
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-pb0-f46.google.com ([209.85.160.46]:62090 "EHLO
-	mail-pb0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751281Ab2C1En1 (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 28 Mar 2012 00:43:27 -0400
-Received: by mail-pb0-f46.google.com with SMTP id un15so1206036pbc.19
-        for <linux-omap@vger.kernel.org>; Tue, 27 Mar 2012 21:43:26 -0700 (PDT)
-In-Reply-To: <1332769480-28069-1-git-send-email-shubhrajyoti@ti.com>
-Sender: linux-omap-owner@vger.kernel.org
+From: "Mohammed, Afzal" <afzal@ti.com>
+Subject: RE: [RFC][PATCH 1/5] ARM: OMAP2+: gpmc: driver conversion
+Date: Wed, 28 Mar 2012 05:04:51 +0000
+Message-ID: <C8443D0743D26F4388EA172BF4E2A7A9317BFECE@DBDE01.ent.ti.com>
+References: <1332484600-21947-1-git-send-email-afzal@ti.com>
+ <4F6D0569.6080203@ti.com>
+ <C8443D0743D26F4388EA172BF4E2A7A9317BB895@DBDE01.ent.ti.com>
+ <4F70AA82.3000204@ti.com>
+ <C8443D0743D26F4388EA172BF4E2A7A9317BD6E2@DBDE01.ent.ti.com>
+ <4F71DD6C.5010305@ti.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
+In-Reply-To: <4F71DD6C.5010305@ti.com>
+Content-Language: en-US
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
+List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
+List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
+Sender: linux-arm-kernel-bounces@lists.infradead.org
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
+To: "Hunter, Jon" <jon-hunter@ti.com>
+Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "Hiremath,
+ Vaibhav" <hvaibhav@ti.com>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>
 List-Id: linux-omap@vger.kernel.org
-To: spi-devel-general@lists.sourceforge.net
-Cc: Shubhrajyoti@ponder.secretlab.ca, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org, D <shubhrajyoti@ti.com>
 
-On Mon, 26 Mar 2012 19:14:35 +0530, Shubhrajyoti D <shubhrajyoti@ti.com> wrote:
-> The patch series does the following cleanups
-> - Converts the spi to module_platform_driver
-> - Use the devm functions so that the freeing need not 
->   be done in the driver.
-> - Makes the driver use autosuspend
-> - Folds Benoit's bus_num removal patch in the series
+Hi Jon,
+
+On Tue, Mar 27, 2012 at 21:01:56, Hunter, Jon wrote:
+> > These are for the peripheral resources not in control of GPMC, like
+> > gpio irq. These are copied in gpmc_create_child.
 > 
-> Changes from the previous version
-> - Makes the driver use autosuspend
-> - Folds Benoit's bus_num removal patch in the series
-> 
-> 
-> This is also available through
-> git     : git://gitorious.org/linus-tree/linus-tree.git
-> branch  : spi
+> Right, I see they are copied during gpmc_create_child. However, I don't 
+> see where they are initialised before that. The function 
+> gpmc_setup_child is only initialising gpmc_res and gpmc_num_res and not 
+> res and num_res. So I still don't see who is initialising these before 
+> they are copied.
 
-Hi Shubhrajyoti,
+These are to be initialized by platform code, NAND have none so is
+not currently seen, but devices like ethernet have to.
 
-I'll queue these ones up for v3.5 unless you make the argument that
-they are bug fixes that must go into v3.4.
+ 
+> I see you did not incorporate any clean-up in v2. Do you want me to send 
+> you some patches to include?
 
-g.
+Thanks for offering to help.
+
+Cleanup is being deferred to be done once driver is finalized, I may
+need your help later.
+
+Regards
+Afzal
