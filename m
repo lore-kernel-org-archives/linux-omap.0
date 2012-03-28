@@ -1,90 +1,337 @@
-From: "Shilimkar, Santosh" <santosh.shilimkar@ti.com>
-Subject: Re: [PATCH 1/3] ARM: OMAP2+: 32k-counter: Use hwmod lookup to check
- presence of 32k timer
-Date: Wed, 28 Mar 2012 20:19:07 +0530
-Message-ID: <CAMQu2gzYULK+=6-WKQnnQDpzTYW7xKAOZo7obyu2q178jtNE-Q@mail.gmail.com>
-References: <1326983304-14619-1-git-send-email-hvaibhav@ti.com>
- <1326983304-14619-2-git-send-email-hvaibhav@ti.com> <87mx9ej8fp.fsf@ti.com>
- <CACVXFVOqmC0OhT-Dim8dL9pWnmGwO2-Awc4V2Jziyf7DHQdYcQ@mail.gmail.com>
- <79CD15C6BA57404B839C016229A409A83181EF3F@DBDE01.ent.ti.com>
- <CACVXFVP4J8N271Tww77Btm9fGNiP17MepjswBJ0V-8Z4sNt8Eg@mail.gmail.com>
- <4F672364.3020403@ti.com> <79CD15C6BA57404B839C016229A409A83182386C@DBDE01.ent.ti.com>
- <CAMQu2gyFNXgx87Fsq5is88DOkOx-nWK6ohwyFV-CY2uTkZCGMA@mail.gmail.com>
- <79CD15C6BA57404B839C016229A409A83183EA54@DBDE01.ent.ti.com>
- <CAMQu2gyF83HJOE9Rf-fZXXMt=p_WFjFf3DpAeW8L8+htR4E6-g@mail.gmail.com> <79CD15C6BA57404B839C016229A409A83183EB47@DBDE01.ent.ti.com>
+From: "Joe Woodward" <jw@terrafix.co.uk>
+Subject: Re: Suspend broken on 3.3?
+Date: Wed, 28 Mar 2012 16:38:55 +0100
+Message-ID: <WC20120328153855.621724@terrafix.co.uk>
+References: <WC20120322110946.6413AA@terrafix.co.uk> <87r4wka6bf.fsf@ti.com> <WC20120326134115.9815DF@terrafix.co.uk> <87haxaq3ua.fsf@ti.com> <CAMrsUd++maNjaK87bcRUqVHtz5zySujQXZK1YaMH9vnHVWCDag@mail.gmail.com> <878viln2t5.fsf@ti.com> <CAMrsUdKXZL4nT0MW=BcD53PsQFE+W1inij3XWe0e5+BjJF3odg@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
+Content-Type: text/plain; charset=iso-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aog130.obsmtp.com ([74.125.149.143]:36911 "EHLO
-	na3sys009amx259.postini.com" rhost-flags-OK-OK-OK-FAIL)
-	by vger.kernel.org with ESMTP id S1754071Ab2C1Ot3 (ORCPT
+Received: from smtp3.keele.netcentral.co.uk ([212.57.235.197]:41829 "EHLO
+	smtp3.keele.netcentral.co.uk" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1754734Ab2C1PjL (ORCPT
 	<rfc822;linux-omap@vger.kernel.org>);
-	Wed, 28 Mar 2012 10:49:29 -0400
-Received: by qcsd16 with SMTP id d16so725840qcs.28
-        for <linux-omap@vger.kernel.org>; Wed, 28 Mar 2012 07:49:27 -0700 (PDT)
-In-Reply-To: <79CD15C6BA57404B839C016229A409A83183EB47@DBDE01.ent.ti.com>
+	Wed, 28 Mar 2012 11:39:11 -0400
+In-Reply-To: <CAMrsUdKXZL4nT0MW=BcD53PsQFE+W1inij3XWe0e5+BjJF3odg@mail.gmail.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "Hiremath, Vaibhav" <hvaibhav@ti.com>
-Cc: Ming Lei <tom.leiming@gmail.com>, "Hilman, Kevin" <khilman@ti.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, "marc.zyngier@arm.com" <marc.zyngier@arm.com>, "johnstul@us.ibm.com" <johnstul@us.ibm.com>, "Balbi, Felipe" <balbi@ti.com>, "Cousson, Benoit" <b-cousson@ti.com>, Tony Lindgren <tony@atomide.com>, Paul Walmsley <paul@pwsan.com>, "DebBarma, Tarun Kanti" <tarun.kanti@ti.com>
+To: "Raja, Govindraj" <govindraj.raja@ti.com>, Kevin Hilman <khilman@ti.com>
+Cc: linux-omap@vger.kernel.org, Felipe Balbi <balbi@ti.com>
 
-On Wed, Mar 28, 2012 at 8:07 PM, Hiremath, Vaibhav <hvaibhav@ti.com> wrote:
-> On Wed, Mar 28, 2012 at 19:50:02, Shilimkar, Santosh wrote:
->> On Wed, Mar 28, 2012 at 7:46 PM, Hiremath, Vaibhav <hvaibhav@ti.com> wrote:
->> > On Wed, Mar 21, 2012 at 19:30:01, Shilimkar, Santosh wrote:
->> >> On Wed, Mar 21, 2012 at 5:12 PM, Hiremath, Vaibhav <hvaibhav@ti.com> wrote:
->> >> > On Mon, Mar 19, 2012 at 17:45:32, Shilimkar, Santosh wrote:
->> >> >> On Monday 19 March 2012 05:14 PM, Ming Lei wrote:
->> >> >> > On Mon, Mar 19, 2012 at 7:11 PM, Hiremath, Vaibhav <hvaibhav@ti.com> wrote:
->>
->> [...]
->>
->> >
->> >> Btw, if you need PM, how are you going to use GPTIMER
->> >> as a clocksource. Note sys-clock is generally stopped in
->> >> low power states. So that leaves you option with using
->> >> gptimer with 32K clock and in that case, GPTIMER
->> >> is not a better clock-source compare to 32K sync timer
->> >> and so shouldn't be the rating.
->> >>
->> >
->> > AM33xx has GPTIMER1 in wakeup domain, so that we are already using as a
->> > Clocksource, without any issues.
->> >
->> GPTIMER1 is in wakeup domain on OMAP too but that doesn't
->> solve the issue I am talking. Once the sysclock is stopped, GPTIMER
->> can't tick anymore even if it is in wakeup domain.
->>
->> The only way it will work is using always running 32KHz clock as
->> the clock input to GPT1. And then the end result is the accuracy
->> of GPTIMER = sync 32K timer. So they are of same rating.
->>
->
-> Ohh ok, sorry I should have clarified it in my last response itself.
->
-np.
+-----Original Message-----
+=46rom: "Raja, Govindraj" <govindraj.raja@ti.com>
+To: Kevin Hilman <khilman@ti.com>
+Cc: Joe Woodward <jw@terrafix.co.uk>, "linux-omap@vger.kernel.org" <lin=
+ux-omap@vger.kernel.org>, Felipe Balbi <balbi@ti.com>
+Date: Wed, 28 Mar 2012 16:29:53 +0530
+Subject: Re: Suspend broken on 3.3?
 
-> AM33xx architecture is bit different than OMAP family, and gmtimer1 is
-> sourced from RTC32K clock, which is in wakeup domain.
-> This means we have RTC32K clock always running across suspend/resume.
->
-> 0 - SEL1: Select CLK_M_OSC clock
-> 1 - SEL2: Select CLK_32KHZ clock
-> 2 - SEL3: Select TCLKIN clock
-> 3 - SEL4: Select CLK_RC32K clock
-> 4 - SEL5: Selects the CLK_32768 from 32KHz Crystal Osc
->
->
-> We use value "4" here, for RTC32K (always on clock).
-> I hope this clarifies what I am trying to say here.
->
-I thought so and now if you look at last part of my comment.
+> On Wed, Mar 28, 2012 at 3:07 AM, Kevin Hilman <khilman@ti.com> wrote:
+> > "Raja, Govindraj" <govindraj.raja@ti.com> writes:
+> >
+> >> Hi Kevin,
+> >>
+> >> On Tue, Mar 27, 2012 at 6:04 AM, Kevin Hilman <khilman@ti.com>
+> wrote:
+> >>> +Govindraj,
+> >>>
+> >>> "Joe Woodward" <jw@terrafix.co.uk> writes:
+> >>>
+> >>>> Right, I've stepped back a bit and dug out a GUSMTIX Palo43
+> carrier
+> >>>> board on which to test the Overo OMAP3530 COM and I've found:
+> >>>> =A0- Running a stock 3.3 (with absolutely no changes) does indee=
+d
+> suspend correctly.
+> >>>> =A0- Running the 3.3 kernel with my (minor) board modifications
+> >>>> =A0(basically defining some buttons) suspends correctly as well.
+> >>>>
+> >>>> Then I went back to my original board and the 3.3 still wakes up
+> from
+> >>>> suspend immediately. So I had a think, and the only real
+> differences
+> >>>> between my board the the GUMSTIX Palo43 board is that I am using
+> >>>> multiple UARTs.
+> >>>>
+> >>>> Up to this point I've only wanted to wake on the console (ttyO2)=
+,
+> and
+> >>>> not any other UARTs so I've stopped them waking with:
+> >>>> =A0 echo disabled >
+> /sys/devices/platform/omap/omap_uart.0/power/wakeup
+> >>>> =A0 echo disabled >
+> /sys/devices/platform/omap/omap_uart.1/power/wakeup
+> >>>>
+> >>>> I wanted to check that this still worked, so tried disabling
+> wakeup on
+> >>>> the console (ttyO2):
+> >>>> =A0 echo disabled >
+> /sys/devices/platform/omap/omap_uart.2/power/wakeup
+> >>>>
+> >>>> And if I do "echo mem > /sys/power/state" I was expecting to sta=
+y
+> in
+> >>>> suspend when I typed on my keyboard... However, the kernel still
+> woke
+> >>>> from suspend, which leads me to believe that the UART wakeup
+> hasn't
+> >>>> been disabled?
+> >>>
+> >>> Just to confirm: did the above work for you before v3.3?
+> >>>
+> >>>> Could you test if this is also the case your end?
+> >>>
+> >>> Yes, I get the same behavior, which is indeed broken.
+> >>>
+> >>> Govindraj, can you look into this?
+> >>>
+> >>> A quick glance suggests that disabling wakeups via the sysfs file
+> is
+> >>> only disabling runtime PM, but not actually disabling wakups at t=
+he
+> >>> module-level or at the IO ring.
+> >>>
+> >>
+> >> I have started looking into this, disabling and enabling of wake-u=
+ps
+> >> from .runtime_suspend needs some changes as in here[1] with that I
+> see pad
+> >> wakeup getting disabled and it doesn't wake up after enabling off
+> mode
+> >> and suspending.
+> >
+> > Thanks for looking into this.
+> >
+>=20
+> Looks like the module wakeup event handling left to default
+> value during runtime clean up is causing the wakeup to happen
+>=20
+> Here is the patch[1] to fix the same tested on 3430SDP.
+>=20
+> --
+> Thanks,
 
-Rating of 32K based synctimer and 32K based GPTIMER
-should be same because of the precision. That's the main
-point why I was saying that GPTIMER is not a better
-clock-source( with 32k clock src)  than sync timer when
-both are enabled together.
+Thanks,
 
-Regards
-Santosh
+This patch fixes the suspend problem for me, but there is another UART =
+issue...
+
+Basically I've got a fairly high speed data source (in UART terms, >900=
+KBaud) pumping data to the OMAP (such as GPS positions).
+
+I don't want this to wake me when suspended (which this patch fixes).
+
+However, it seems on 3.3 that I get a lot of corruption/lost characters=
+, which I'm assuming is because the UART is implementing runtime-PM.
+
+So my next question is: How do I disable runtime-PM/force-always-on for=
+ a given UART? Can this be done via the sysfs?
+
+Or where are the runtime-PM constraints set for the UART? I'm guessing =
+they'll work for 115200Baud, but my high speed UART fowls these?
+
+Cheers,
+Joe
+
+
+> Govindraj.R
+>=20
+> [1]:
+>=20
+>=20
+> From 5a5126750d527811547a45de9546c3e0f0fac77d Mon Sep 17 00:00:00 200=
+1
+> From: "Govindraj.R" <govindraj.raja@ti.com>
+> Date: Tue, 27 Mar 2012 18:55:00 +0530
+> Subject: [PATCH] OMAP2+: UART: Correct the module level wakeup
+> enable/disable
+>  mechanism
+>=20
+> The commit (62f3ec5  ARM: OMAP2+: UART: Add wakeup mechanism for
+> omap-uarts)
+> removed module level wakeup enable/disable mechanism and retained onl=
+y
+> the pad wakeup handling.
+>=20
+> On 24xx/34xx/36xx Module level wakeup events are enabled/disabled usi=
+ng
+> PM_WKEN1_CORE/PM_WKEN_PER regs. The module level wakeups are enabled =
+by
+> default from bootloader, however the wakeups can be enabled/disabled
+> using sysfs entry
+> echo disabled > /sys/devices/platform/omap/omap_uart.X/power/wakeup
+> [X=3D0,1,2,3]
+>=20
+> Since module level wakeups were left enabled from bootup and when
+> wakeups were disabled from sysfs uart module level wakeups were
+> still happening as they were not getting disabled.
+>=20
+> Adding the support to handle module level wakeups for omap2/3 socs.
+>=20
+> Signed-off-by: Govindraj.R <govindraj.raja@ti.com>
+> ---
+>  arch/arm/mach-omap2/serial.c |   95
+> +++++++++++++++++++++++++++++++++++++++++-
+>  1 files changed, 93 insertions(+), 2 deletions(-)
+>=20
+> diff --git a/arch/arm/mach-omap2/serial.c
+> b/arch/arm/mach-omap2/serial.c
+> index f590afc..92ff94c 100644
+> --- a/arch/arm/mach-omap2/serial.c
+> +++ b/arch/arm/mach-omap2/serial.c
+> @@ -56,6 +56,10 @@ struct omap_uart_state {
+>  	int num;
+>  	int can_sleep;
+>=20
+> +	void __iomem *wk_st;
+> +	void __iomem *wk_en;
+> +	u32 wk_mask;
+> +
+>  	struct list_head node;
+>  	struct omap_hwmod *oh;
+>  	struct platform_device *pdev;
+> @@ -82,17 +86,46 @@ static struct omap_uart_port_info
+> omap_serial_default_info[] __initdata =3D {
+>  };
+>=20
+>  #ifdef CONFIG_PM
+> +
+> +static void omap_uart_disable_module_wakeup(struct omap_uart_state
+> *uart)
+> +{
+> +	/* Clear wake-enable bit */
+> +	if (uart->wk_en && uart->wk_mask) {
+> +		u32 v =3D __raw_readl(uart->wk_en);
+> +		v &=3D ~uart->wk_mask;
+> +		__raw_writel(v, uart->wk_en);
+> +	}
+> +}
+> +
+> +static void omap_uart_enable_module_wakeup(struct omap_uart_state
+> *uart)
+> +{
+> +	/* Set wake-enable bit */
+> +	if (uart->wk_en && uart->wk_mask) {
+> +		u32 v =3D __raw_readl(uart->wk_en);
+> +		v |=3D uart->wk_mask;
+> +		__raw_writel(v, uart->wk_en);
+> +	}
+> +}
+> +
+>  static void omap_uart_enable_wakeup(struct platform_device *pdev, bo=
+ol
+> enable)
+>  {
+>  	struct omap_device *od =3D to_omap_device(pdev);
+> +	struct omap_uart_state *uart;
+>=20
+>  	if (!od)
+>  		return;
+>=20
+> -	if (enable)
+> +	list_for_each_entry(uart, &uart_list, node)
+> +		if (pdev->id =3D=3D uart->num)
+> +			break;
+> +
+> +	if (enable) {
+> +		omap_uart_enable_module_wakeup(uart);
+>  		omap_hwmod_enable_wakeup(od->hwmods[0]);
+> -	else
+> +	} else {
+> +		omap_uart_disable_module_wakeup(uart);
+>  		omap_hwmod_disable_wakeup(od->hwmods[0]);
+> +	}
+>  }
+>=20
+>  /*
+> @@ -114,7 +147,64 @@ static void omap_uart_set_smartidle(struct
+> platform_device *pdev)
+>  	omap_hwmod_set_slave_idlemode(od->hwmods[0], HWMOD_IDLEMODE_SMART);
+>  }
+>=20
+> +static void omap_uart_idle_init(struct omap_uart_state *uart)
+> +{
+> +	if (cpu_is_omap34xx() && !cpu_is_ti816x()) {
+> +		u32 mod =3D (uart->num =3D=3D 2) ? OMAP3430_PER_MOD : CORE_MOD;
+> +
+> +		uart->wk_en =3D OMAP34XX_PRM_REGADDR(mod, PM_WKEN1);
+> +		uart->wk_st =3D OMAP34XX_PRM_REGADDR(mod, PM_WKST1);
+> +		switch (uart->num) {
+> +		case 0:
+> +			uart->wk_mask =3D OMAP3430_ST_UART1_MASK;
+> +			break;
+> +		case 1:
+> +			uart->wk_mask =3D OMAP3430_ST_UART2_MASK;
+> +			break;
+> +		case 2:
+> +			uart->wk_mask =3D OMAP3430_ST_UART3_MASK;
+> +			break;
+> +		case 3:
+> +			uart->wk_mask =3D OMAP3630_ST_UART4_MASK;
+> +			break;
+> +		}
+> +	} else if (cpu_is_omap24xx()) {
+> +
+> +		if (cpu_is_omap2430()) {
+> +			uart->wk_en =3D OMAP2430_PRM_REGADDR(CORE_MOD, PM_WKEN1);
+> +			uart->wk_st =3D OMAP2430_PRM_REGADDR(CORE_MOD, PM_WKST1);
+> +		} else if (cpu_is_omap2420()) {
+> +			uart->wk_en =3D OMAP2420_PRM_REGADDR(CORE_MOD, PM_WKEN1);
+> +			uart->wk_st =3D OMAP2420_PRM_REGADDR(CORE_MOD, PM_WKST1);
+> +		}
+> +		switch (uart->num) {
+> +		case 0:
+> +			uart->wk_mask =3D OMAP24XX_ST_UART1_MASK;
+> +			break;
+> +		case 1:
+> +			uart->wk_mask =3D OMAP24XX_ST_UART2_MASK;
+> +			break;
+> +		case 2:
+> +			uart->wk_mask =3D OMAP24XX_ST_UART3_MASK;
+> +			break;
+> +		}
+> +	} else {
+> +		uart->wk_en =3D 0;
+> +		uart->wk_st =3D 0;
+> +		uart->wk_mask =3D 0;
+> +	}
+> +
+> +	/* Module level wakeups might be left enabled from
+> +	 * bootloader disable it. Module level wakeup/pad_wakeup
+> +	 * will be enabled if port is wakeup capaable after gating uart
+> +	 * port clocks from omap-serial driver.
+> +	 * Wakeup capability can be enabled or disbaled using sysfs entry.
+> +	 */
+> +	omap_uart_disable_module_wakeup(uart);
+> +}
+> +
+>  #else
+> +static void omap_uart_idle_init(struct omap_uart_state *uart) {}
+>  static void omap_uart_enable_wakeup(struct platform_device *pdev, bo=
+ol
+> enable)
+>  {}
+>  static void omap_uart_set_noidle(struct platform_device *pdev) {}
+> @@ -345,6 +435,7 @@ void __init omap_serial_init_port(struct
+> omap_board_data *bdata,
+>  	oh =3D uart->oh;
+>  	name =3D DRIVER_NAME;
+>=20
+> +	omap_uart_idle_init(uart);
+>  	omap_up.dma_enabled =3D info->dma_enabled;
+>  	omap_up.uartclk =3D OMAP24XX_BASE_BAUD * 16;
+>  	omap_up.flags =3D UPF_BOOT_AUTOCONF;
+> --=20
+> 1.7.5.4
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-omap"
+> in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+
+
+--
+To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
