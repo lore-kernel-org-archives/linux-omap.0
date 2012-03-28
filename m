@@ -1,123 +1,130 @@
-From: Nishanth Menon <nm@ti.com>
-Subject: [PATCH] RTC: twl6030: correct usage of static register while reading time
-Date: Wed, 28 Mar 2012 16:34:01 -0500
-Message-ID: <1332970441-3495-1-git-send-email-nm@ti.com>
+From: Ricardo Neri <ricardo.neri@ti.com>
+Subject: [PATCH] OMAPDSS: Provide interface for audio support in DSS
+Date: Wed, 28 Mar 2012 15:51:56 -0600
+Message-ID: <1332971516-4325-2-git-send-email-ricardo.neri@ti.com>
+References: <1332971516-4325-1-git-send-email-ricardo.neri@ti.com>
+Mime-Version: 1.0
+Content-Type: text/plain
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aog123.obsmtp.com ([74.125.149.149]:42974 "EHLO
-	na3sys009aog123.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S932249Ab2C1Vcd (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>);
-	Wed, 28 Mar 2012 17:32:33 -0400
-Received: by obhx4 with SMTP id x4so3373156obh.16
-        for <linux-omap@vger.kernel.org>; Wed, 28 Mar 2012 14:32:32 -0700 (PDT)
+Received: from bear.ext.ti.com ([192.94.94.41]:40111 "EHLO bear.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1755259Ab2C1Vxs (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Wed, 28 Mar 2012 17:53:48 -0400
+Received: from dlep26.itg.ti.com ([157.170.170.121])
+	by bear.ext.ti.com (8.13.7/8.13.7) with ESMTP id q2SLrlFr030009
+	for <linux-omap@vger.kernel.org>; Wed, 28 Mar 2012 16:53:47 -0500
+Received: from DLEE74.ent.ti.com (localhost [127.0.0.1])
+	by dlep26.itg.ti.com (8.13.8/8.13.8) with ESMTP id q2SLrlcD018249
+	for <linux-omap@vger.kernel.org>; Wed, 28 Mar 2012 16:53:47 -0500 (CDT)
+In-Reply-To: <1332971516-4325-1-git-send-email-ricardo.neri@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: rtc-linux <rtc-linux@googlegroups.com>
-Cc: Nishanth Menon <nm@ti.com>, Konstantin Shlyakhovoy <x0155534@ti.com>, Alessandro Zummo <a.zummo@towertech.it>, Benoit Cousson <b-cousson@ti.com>, linux-omap <linux-omap@vger.kernel.org>
+To: tomi.valkeinen@ti.com
+Cc: s-chereau@ti.com, x0055901@ti.com, s-guiriec@ti.com, lrg@ti.com, peter.ujfalusi@ti.com, linux-omap@vger.kernel.org, Ricardo Neri <ricardo.neri@ti.com>
 
-From: Konstantin Shlyakhovoy <x0155534@ti.com>
+There exist several display technologies and standards that support audio as
+well. Hence, it is relevant to update the DSS device driver to provide an audio
+interface that may be used by an audio or any other driver interested in the
+functionality.
 
-RTC stores time and date in several registers. Due to the fact that
-these registers can't be read instantaneously, there is a chance
-that reading from counting registers gives an error of one minute,
-one hour, one day, etc.
+The DSS audio functions are intended to be used as follows:
 
-To address this issue, the RTC has hardware support to copy the
-RTC counting registers to static shadowed registers.
-The current implementation does not use this feature, and in a
-stress test,  we can reproduce this error at a rate of around
-two times per 300000 readings.
+The audio_enable function is intended to prepare the relevant IP for playback
+(e.g., enabling an audio FIFO, taking out of reset some IP, etc).
 
-Fix the implementation to ensure that the right snapshot of time
-is captured.
+While the display may support audio, it is possible that for certain
+configurations audio is not supported (e.g., an HDMI display using a VESA video
+timing). The audio_detect function is intended to query whether the current
+configuration of the display supports audio.
 
-Cc: Alessandro Zummo <a.zummo@towertech.it>
-Cc: Benoit Cousson <b-cousson@ti.com>
-Cc: linux-omap <linux-omap@vger.kernel.org>
-Acked-by: Mykola Oleksiienko <x0174904@ti.com>
-Acked-by: Oleksandr Dmytryshyn <oleksandr.dmytryshyn@ti.com>
-Acked-by: Graeme Gregory <gg@slimlogic.co.uk>
-Acked-by: Nishanth Menon <nm@ti.com>
-Signed-off-by: Konstantin Shlyakhovoy <x0155534@ti.com>
+The audio_config function is intended to configure all the relevant audio
+parameters of the display. In order to make the function independent of any DSS
+device driver or IP, it takes an IEC-60958 channel status word struct as well
+as a CEA-861 audio infoframe struct. At the moment, this should be enough to
+support HDMI and DisplayPort, as both are based on CEA-861 and IEC-60958.
+
+The audio_start function is intended to effectively start/stop audio playback
+after the configuration has taken place.
+
+Please note that asound.h is #included only to pass the relevant data
+structures to the DSS device driver. The DSS device driver should
+not link to any ALSA function as DSS and ALSA are built in separate modules.
+
+Signed-off-by: Ricardo Neri <ricardo.neri@ti.com>
 ---
- drivers/rtc/rtc-twl.c |   43 ++++++++++++++++++++++++++++++++++++++-----
- 1 files changed, 38 insertions(+), 5 deletions(-)
+ Documentation/arm/OMAP/DSS |   28 ++++++++++++++++++++++++++++
+ include/video/omapdss.h    |   12 ++++++++++++
+ 2 files changed, 40 insertions(+), 0 deletions(-)
 
-diff --git a/drivers/rtc/rtc-twl.c b/drivers/rtc/rtc-twl.c
-index 4c2c6df..258abea 100644
---- a/drivers/rtc/rtc-twl.c
-+++ b/drivers/rtc/rtc-twl.c
-@@ -112,6 +112,7 @@ static const u8 twl6030_rtc_reg_map[] = {
- #define BIT_RTC_CTRL_REG_TEST_MODE_M             0x10
- #define BIT_RTC_CTRL_REG_SET_32_COUNTER_M        0x20
- #define BIT_RTC_CTRL_REG_GET_TIME_M              0x40
-+#define BIT_RTC_CTRL_REG_RTC_V_OPT               0x80
+diff --git a/Documentation/arm/OMAP/DSS b/Documentation/arm/OMAP/DSS
+index 888ae7b..b303a5c 100644
+--- a/Documentation/arm/OMAP/DSS
++++ b/Documentation/arm/OMAP/DSS
+@@ -47,6 +47,34 @@ flexible way to enable non-common multi-display configuration. In addition to
+ modelling the hardware overlays, omapdss supports virtual overlays and overlay
+ managers. These can be used when updating a display with CPU or system DMA.
  
- /* RTC_STATUS_REG bitfields */
- #define BIT_RTC_STATUS_REG_RUN_M                 0x02
-@@ -235,25 +236,57 @@ static int twl_rtc_read_time(struct device *dev, struct rtc_time *tm)
- 	unsigned char rtc_data[ALL_TIME_REGS + 1];
- 	int ret;
- 	u8 save_control;
-+	u8 rtc_control;
- 
- 	ret = twl_rtc_read_u8(&save_control, REG_RTC_CTRL_REG);
--	if (ret < 0)
-+	if (ret < 0) {
-+		dev_err(dev, "%s: reading CTRL_REG, error %d\n", __func__, ret);
- 		return ret;
-+	}
-+	/* for twl6030/32 make sure BIT_RTC_CTRL_REG_GET_TIME_M is clear */
-+	if (twl_class_is_6030()) {
-+		if (save_control & BIT_RTC_CTRL_REG_GET_TIME_M) {
-+			save_control &= ~BIT_RTC_CTRL_REG_GET_TIME_M;
-+			ret = twl_rtc_write_u8(save_control, REG_RTC_CTRL_REG);
-+			if (ret < 0) {
-+				dev_err(dev, "%s clr GET_TIME, error %d\n",
-+					__func__, ret);
-+				return ret;
-+			}
-+		}
-+	}
- 
--	save_control |= BIT_RTC_CTRL_REG_GET_TIME_M;
-+	/* Copy RTC counting registers to static registers or latches */
-+	rtc_control = save_control | BIT_RTC_CTRL_REG_GET_TIME_M;
- 
--	ret = twl_rtc_write_u8(save_control, REG_RTC_CTRL_REG);
--	if (ret < 0)
-+	/* for twl6030/32 enable read access to static shadowed registers */
-+	if (twl_class_is_6030())
-+		rtc_control |= BIT_RTC_CTRL_REG_RTC_V_OPT;
++omapdss driver support for audio
++--------------------------------
++There exist several display technologies and standards that support audio as
++well. Hence, it is relevant to update the DSS device driver to provide an audio
++interface that may be used by an audio or any other driver interested in the
++functionality.
 +
-+	ret = twl_rtc_write_u8(rtc_control, REG_RTC_CTRL_REG);
-+	if (ret < 0) {
-+		dev_err(dev, "%s: writing CTRL_REG, error %d\n", __func__, ret);
- 		return ret;
-+	}
- 
- 	ret = twl_i2c_read(TWL_MODULE_RTC, rtc_data,
- 			(rtc_reg_map[REG_SECONDS_REG]), ALL_TIME_REGS);
- 
- 	if (ret < 0) {
--		dev_err(dev, "rtc_read_time error %d\n", ret);
-+		dev_err(dev, "%s: reading data, error %d\n", __func__, ret);
- 		return ret;
- 	}
- 
-+	/* for twl6030 restore original state of rtc control register */
-+	if (twl_class_is_6030()) {
-+		ret = twl_rtc_write_u8(save_control, REG_RTC_CTRL_REG);
-+		if (ret < 0) {
-+			dev_err(dev, "%s: restore CTRL_REG, error %d\n",
-+				__func__, ret);
-+			return ret;
-+		}
-+	}
++The audio_enable function is intended to prepare the relevant IP for playback
++(e.g., enabling an audio FIFO, taking out of reset some IP, etc).
 +
- 	tm->tm_sec = bcd2bin(rtc_data[0]);
- 	tm->tm_min = bcd2bin(rtc_data[1]);
- 	tm->tm_hour = bcd2bin(rtc_data[2]);
++While the display may support audio, it is possible that for certain
++configurations audio is not supported (e.g., an HDMI display using a VESA video
++timing). The audio_detect function is intended to query whether the current
++configuration of the display supports audio.
++
++The audio_config function is intended to configure all the relevant audio
++parameters of the display. In order to make the function independent of DSS
++any device driver, it takes a IEC-60958 channel status word as well
++as a CEA-861 audio infoframe. At the moment, this should be enough to support
++HDMI and DisplayPort, as both are based on CEA-861 and IEC-60958.
++
++The audio_start function is intended to effectively start/stop audio playback
++after the configuration has taken place.
++
++Please note that asound.h is #included only to pass the relevant data
++structures to the DSS device driver. The DSS device driver should
++not link to any ALSA function as DSS and ALSA are built in separate modules.
++
+ Panel and controller drivers
+ ----------------------------
+ 
+diff --git a/include/video/omapdss.h b/include/video/omapdss.h
+index 483f67c..e35ae96 100644
+--- a/include/video/omapdss.h
++++ b/include/video/omapdss.h
+@@ -21,6 +21,7 @@
+ #include <linux/list.h>
+ #include <linux/kobject.h>
+ #include <linux/device.h>
++#include <sound/asound.h>
+ 
+ #define DISPC_IRQ_FRAMEDONE		(1 << 0)
+ #define DISPC_IRQ_VSYNC			(1 << 1)
+@@ -642,6 +643,17 @@ struct omap_dss_driver {
+ 
+ 	int (*read_edid)(struct omap_dss_device *dssdev, u8 *buf, int len);
+ 	bool (*detect)(struct omap_dss_device *dssdev);
++
++	/*
++	 * For display drivers that support audio. This encompasses
++	 * HDMI and DisplayPort at the moment.
++	 */
++	int (*audio_enable)(struct omap_dss_device *dssdev, bool enable);
++	int (*audio_start)(struct omap_dss_device *dssdev, bool start);
++	bool (*audio_detect)(struct omap_dss_device *dssdev);
++	int (*audio_config)(struct omap_dss_device *dssdev,
++		struct snd_aes_iec958 *iec, struct snd_cea_861_aud_if *aud_if);
++
+ };
+ 
+ int omap_dss_register_driver(struct omap_dss_driver *);
 -- 
-1.7.5.4
+1.7.0.4
 
