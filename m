@@ -1,86 +1,117 @@
-From: Ricardo Neri <ricardo.neri@ti.com>
-Subject: [PATCH 04/10] OMAPDSS: HDMI: OMAP4: Decouple wrapper enable and audio start
-Date: Wed, 28 Mar 2012 16:38:19 -0600
-Message-ID: <1332974305-4578-5-git-send-email-ricardo.neri@ti.com>
-References: <1332974305-4578-1-git-send-email-ricardo.neri@ti.com>
-Mime-Version: 1.0
-Content-Type: text/plain
+From: Grazvydas Ignotas <notasas@gmail.com>
+Subject: [PATCH] OMAPDSS: VENC: allow switching venc type at runtime
+Date: Thu, 29 Mar 2012 02:45:12 +0300
+Message-ID: <1332978312-11959-1-git-send-email-notasas@gmail.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from arroyo.ext.ti.com ([192.94.94.40]:59105 "EHLO arroyo.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S932250Ab2C1WlG (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Wed, 28 Mar 2012 18:41:06 -0400
-In-Reply-To: <1332974305-4578-1-git-send-email-ricardo.neri@ti.com>
+Received: from mail-wi0-f170.google.com ([209.85.212.170]:62327 "EHLO
+	mail-wi0-f170.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S933213Ab2C1XpT (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 28 Mar 2012 19:45:19 -0400
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: tomi.valkeinen@ti.com, mythripk@ti.com
-Cc: s-chereau@ti.com, x0055901@ti.com, vaibhav.bedia@ti.com, s-guiriec@ti.com, lrg@ti.com, peter.ujfalusi@ti.com, agraf@suse.de, research@ottomaneng.com, linux-omap@vger.kernel.org, Ricardo Neri <ricardo.neri@ti.com>
+To: linux-fbdev@vger.kernel.org
+Cc: Tomi Valkeinen <tomi.valkeinen@ti.com>, linux-omap@vger.kernel.org, Grazvydas Ignotas <notasas@gmail.com>
 
-Decouple the enablement of the HDMI audio wrapper from audio start.
-Otherwise, an audio FIFO underflow may occur. The audio wrapper
-enablement must be done after configuration and before audio playback
-is started.
+VENC type (composite/svideo) doesn't have to be fixed by board wiring,
+it is possible to provide both connectors, which is what pandora does.
+Having to recompile the kernel for users who have TV connector types
+that's don't match default board setting is very inconvenient, especially
+for users of a consumer device, so add support for switching VENC type
+at runtime over a new sysfs file venc_type.
 
-Signed-off-by: Ricardo Neri <ricardo.neri@ti.com>
+Signed-off-by: Grazvydas Ignotas <notasas@gmail.com>
 ---
- drivers/video/omap2/dss/dss_features.c    |    1 +
- drivers/video/omap2/dss/ti_hdmi.h         |    3 +++
- drivers/video/omap2/dss/ti_hdmi_4xxx_ip.c |    8 ++++++--
- 3 files changed, 10 insertions(+), 2 deletions(-)
+ Documentation/arm/OMAP/DSS     |    1 +
+ drivers/video/omap2/dss/venc.c |   55 +++++++++++++++++++++++++++++++++++++++-
+ 2 files changed, 55 insertions(+), 1 deletions(-)
 
-diff --git a/drivers/video/omap2/dss/dss_features.c b/drivers/video/omap2/dss/dss_features.c
-index 162c9a9..c1839e2 100644
---- a/drivers/video/omap2/dss/dss_features.c
-+++ b/drivers/video/omap2/dss/dss_features.c
-@@ -500,6 +500,7 @@ static const struct ti_hdmi_ip_ops omap4_hdmi_functions = {
- #if defined(CONFIG_SND_OMAP_SOC_OMAP4_HDMI) || \
- 	defined(CONFIG_SND_OMAP_SOC_OMAP4_HDMI_MODULE)
- 	.audio_enable		=       ti_hdmi_4xxx_wp_audio_enable,
-+	.audio_start		=       ti_hdmi_4xxx_audio_start,
- #endif
+diff --git a/Documentation/arm/OMAP/DSS b/Documentation/arm/OMAP/DSS
+index 888ae7b..18e2214 100644
+--- a/Documentation/arm/OMAP/DSS
++++ b/Documentation/arm/OMAP/DSS
+@@ -156,6 +156,7 @@ timings		Display timings (pixclock,xres/hfp/hbp/hsw,yres/vfp/vbp/vsw)
+ 		"pal" and "ntsc"
+ panel_name
+ tear_elim	Tearing elimination 0=off, 1=on
++venc_type	Output type (video encoder only): "composite" or "svideo"
  
- };
-diff --git a/drivers/video/omap2/dss/ti_hdmi.h b/drivers/video/omap2/dss/ti_hdmi.h
-index 50dadba..529e227 100644
---- a/drivers/video/omap2/dss/ti_hdmi.h
-+++ b/drivers/video/omap2/dss/ti_hdmi.h
-@@ -113,6 +113,8 @@ struct ti_hdmi_ip_ops {
- #if defined(CONFIG_SND_OMAP_SOC_OMAP4_HDMI) || \
- 	defined(CONFIG_SND_OMAP_SOC_OMAP4_HDMI_MODULE)
- 	void (*audio_enable)(struct hdmi_ip_data *ip_data, bool start);
+ There are also some debugfs files at <debugfs>/omapdss/ which show information
+ about clocks and registers.
+diff --git a/drivers/video/omap2/dss/venc.c b/drivers/video/omap2/dss/venc.c
+index 9c3daf7..aa2e74a 100644
+--- a/drivers/video/omap2/dss/venc.c
++++ b/drivers/video/omap2/dss/venc.c
+@@ -485,16 +485,69 @@ unsigned long venc_get_pixel_clock(void)
+ 	return 13500000;
+ }
+ 
++static ssize_t display_venc_type_show(struct device *dev,
++		struct device_attribute *attr, char *buf)
++{
++	struct omap_dss_device *dssdev = to_dss_device(dev);
++	const char *ret;
 +
-+	void (*audio_start)(struct hdmi_ip_data *ip_data, bool start);
- #endif
- 
- };
-@@ -146,5 +148,6 @@ void ti_hdmi_4xxx_phy_dump(struct hdmi_ip_data *ip_data, struct seq_file *s);
- #if defined(CONFIG_SND_OMAP_SOC_OMAP4_HDMI) || \
- 	defined(CONFIG_SND_OMAP_SOC_OMAP4_HDMI_MODULE)
- void ti_hdmi_4xxx_wp_audio_enable(struct hdmi_ip_data *ip_data, bool enable);
-+void ti_hdmi_4xxx_audio_start(struct hdmi_ip_data *ip_data, bool enable);
- #endif
- #endif
-diff --git a/drivers/video/omap2/dss/ti_hdmi_4xxx_ip.c b/drivers/video/omap2/dss/ti_hdmi_4xxx_ip.c
-index 4ab3b19..e6fa61d 100644
---- a/drivers/video/omap2/dss/ti_hdmi_4xxx_ip.c
-+++ b/drivers/video/omap2/dss/ti_hdmi_4xxx_ip.c
-@@ -1267,10 +1267,14 @@ int hdmi_config_audio_acr(struct hdmi_ip_data *ip_data,
- 
- void ti_hdmi_4xxx_wp_audio_enable(struct hdmi_ip_data *ip_data, bool enable)
- {
--	REG_FLD_MOD(hdmi_av_base(ip_data),
--				HDMI_CORE_AV_AUD_MODE, enable, 0, 0);
- 	REG_FLD_MOD(hdmi_wp_base(ip_data),
- 				HDMI_WP_AUDIO_CTRL, enable, 31, 31);
++	switch (dssdev->phy.venc.type) {
++	case OMAP_DSS_VENC_TYPE_COMPOSITE:
++		ret = "composite";
++		break;
++	case OMAP_DSS_VENC_TYPE_SVIDEO:
++		ret = "svideo";
++		break;
++	default:
++		ret = "unknown";
++		break;
++	}
++
++	return snprintf(buf, PAGE_SIZE, "%s\n", ret);
 +}
 +
-+void ti_hdmi_4xxx_audio_start(struct hdmi_ip_data *ip_data, bool enable)
++static ssize_t display_venc_type_store(struct device *dev,
++		struct device_attribute *attr, const char *buf, size_t size)
 +{
-+	REG_FLD_MOD(hdmi_av_base(ip_data),
-+				HDMI_CORE_AV_AUD_MODE, enable, 0, 0);
- 	REG_FLD_MOD(hdmi_wp_base(ip_data),
- 				HDMI_WP_AUDIO_CTRL, enable, 30, 30);
++	struct omap_dss_device *dssdev = to_dss_device(dev);
++	enum omap_dss_venc_type new_type;
++
++	if (strncmp("composite", buf, 9) == 0)
++		new_type = OMAP_DSS_VENC_TYPE_COMPOSITE;
++	else if (strncmp("svideo", buf, 6) == 0)
++		new_type = OMAP_DSS_VENC_TYPE_SVIDEO;
++	else
++		return -EINVAL;
++
++	mutex_lock(&venc.venc_lock);
++
++	if (dssdev->phy.venc.type != new_type) {
++		dssdev->phy.venc.type = new_type;
++		if (dssdev->state == OMAP_DSS_DISPLAY_ACTIVE) {
++			venc_power_off(dssdev);
++			venc_power_on(dssdev);
++		}
++	}
++
++	mutex_unlock(&venc.venc_lock);
++
++	return size;
++}
++
++static DEVICE_ATTR(venc_type, S_IRUGO | S_IWUSR,
++		display_venc_type_show, display_venc_type_store);
++
+ /* driver */
+ static int venc_panel_probe(struct omap_dss_device *dssdev)
+ {
+ 	dssdev->panel.timings = omap_dss_pal_timings;
+ 
+-	return 0;
++	return device_create_file(&dssdev->dev, &dev_attr_venc_type);
  }
+ 
+ static void venc_panel_remove(struct omap_dss_device *dssdev)
+ {
++	device_remove_file(&dssdev->dev, &dev_attr_venc_type);
+ }
+ 
+ static int venc_panel_enable(struct omap_dss_device *dssdev)
 -- 
 1.7.0.4
 
