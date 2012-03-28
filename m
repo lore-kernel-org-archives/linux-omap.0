@@ -1,77 +1,143 @@
 From: Ricardo Neri <ricardo.neri@ti.com>
-Subject: [PATCH 00/10] OMAPDSS: HDMI: Prepare for OMAP5 and DSS dev driver audio support
-Date: Wed, 28 Mar 2012 16:38:15 -0600
-Message-ID: <1332974305-4578-1-git-send-email-ricardo.neri@ti.com>
+Subject: [PATCH 06/10] OMAPDSS: HDMI: OMAP4: Expand configuration for IEC-60958 audio
+Date: Wed, 28 Mar 2012 16:38:21 -0600
+Message-ID: <1332974305-4578-7-git-send-email-ricardo.neri@ti.com>
+References: <1332974305-4578-1-git-send-email-ricardo.neri@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from bear.ext.ti.com ([192.94.94.41]:42403 "EHLO bear.ext.ti.com"
+Received: from bear.ext.ti.com ([192.94.94.41]:42404 "EHLO bear.ext.ti.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1758638Ab2C1Wk5 (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Wed, 28 Mar 2012 18:40:57 -0400
+	id S1758935Ab2C1Wk6 (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Wed, 28 Mar 2012 18:40:58 -0400
+In-Reply-To: <1332974305-4578-1-git-send-email-ricardo.neri@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: tomi.valkeinen@ti.com, mythripk@ti.com
 Cc: s-chereau@ti.com, x0055901@ti.com, vaibhav.bedia@ti.com, s-guiriec@ti.com, lrg@ti.com, peter.ujfalusi@ti.com, agraf@suse.de, research@ottomaneng.com, linux-omap@vger.kernel.org, Ricardo Neri <ricardo.neri@ti.com>
 
-Hi,
+Provide more configuration parameters for the IEC-60958 channel status word.
+For this, a new structure containing the relevant parameters is created. Some
+of the parameters previously located in the I2S structure are moved
+to the new IEC-60958 struct to improve the logical organization of the code.
 
-This set of patches is inteded to prepare the HDMI driver to implement the DSS
-device driver interface for audio proposed here:
-http://www.spinics.net/lists/linux-omap/msg67303.html
+Signed-off-by: Ricardo Neri <ricardo.neri@ti.com>
+---
+ drivers/video/omap2/dss/ti_hdmi_4xxx_ip.c |   39 +++++++++++++++++++++-------
+ drivers/video/omap2/dss/ti_hdmi_4xxx_ip.h |   23 ++++++++++++++---
+ 2 files changed, 48 insertions(+), 14 deletions(-)
 
-In preparation for that, it removes the current ASoC HDMI codec driver and
-decouples HDMI audio build configuration from ASoC. Instead, a config option
-may be selected by the parties interested in the HDMI audio functionality. The
-last patch effectively implements the DSS audio interface.
-
-Also, this set prepares the HDMI driver for the introduction of the OMAP5 HDMI
-audio functionality by further abstracting the portions of code that are
-generic to all HDMI implementations (e.g, N/CTS params calculation). Also, an
-IP-dependent audio configuration function is introduced as an HDMI IP operation;
-this function takes IP-independent parameters and is intended to be implemented
-for each individual IP.
-
-For the specific case of OMAP4, the configuration of the IEC-60958 channel
-status word is expanded to provide more flexibility. Also, some duplicated
-IEC-60958 definitions are removed to, instead, reuse the definitions provided
-in asound.h The CEA-861 definitions are not yet added to asound.h. I will
-send a patch for that to alsa-devel.
-
-The changes for OMAP4 configuration expand the current support to cover more
-audio sample rates: 32, 44.1, 48, 88.2, 176.4 and 192 kHz. Audio sample world
-length of 16 through 24 bits as well as up to 8 audio channels.
-
-These changes are based on the 3.3 Linux kernel plus the patches for the
-audio MCLK selection (http://www.spinics.net/lists/linux-omap/msg64302.html).
-
-Validation was performed using Onkyo TX-SR508 and Yamaha RX-V367 AV receivers.
-
-BR,
-
-Ricardo
-
-Ricardo Neri (10):
-  OMAPDSS: HDMI: Remove ASoC codec
-  OMAPDSS: HDMI: OMAP4: Remove CEA-861 audio infoframe and IEC-60958
-    enums
-  OMAPDSS: HDMI: OMAP4: Correcty typo in I2S definitions
-  OMAPDSS: HDMI: OMAP4: Decouple wrapper enable and audio start
-  OMAPDSS: HDMI: Decouple HDMI audio from ASoC
-  OMAPDSS: HDMI: OMAP4: Expand configuration for IEC-60958 audio
-  OMAPDSS: HDMI: Relocate N/CTS calculation
-  OMAPDSS: HDMI: Add support for more audio sample rates in N/CTS
-    calculation
-  OMAPDSS: HDMI: OMAP4: Add an audio configuration function
-  OMAPDSS: HDMI: Implement DSS driver interface for audio
-
- drivers/video/omap2/dss/Kconfig           |    4 +
- drivers/video/omap2/dss/dss.h             |    7 +
- drivers/video/omap2/dss/dss_features.c    |    5 +-
- drivers/video/omap2/dss/hdmi.c            |  339 ++++++++++-------------------
- drivers/video/omap2/dss/hdmi_panel.c      |   76 +++++++
- drivers/video/omap2/dss/ti_hdmi.h         |   17 +-
- drivers/video/omap2/dss/ti_hdmi_4xxx_ip.c |  304 +++++++++++++++++++++-----
- drivers/video/omap2/dss/ti_hdmi_4xxx_ip.h |  116 ++--------
- 8 files changed, 488 insertions(+), 380 deletions(-)
+diff --git a/drivers/video/omap2/dss/ti_hdmi_4xxx_ip.c b/drivers/video/omap2/dss/ti_hdmi_4xxx_ip.c
+index e06139a..da2806c 100644
+--- a/drivers/video/omap2/dss/ti_hdmi_4xxx_ip.c
++++ b/drivers/video/omap2/dss/ti_hdmi_4xxx_ip.c
+@@ -1119,12 +1119,37 @@ void hdmi_core_audio_config(struct hdmi_ip_data *ip_data,
+ 	REG_FLD_MOD(av_base, HDMI_CORE_AV_SPDIF_CTRL,
+ 						cfg->fs_override, 1, 1);
+ 
+-	/* I2S parameters */
+-	REG_FLD_MOD(av_base, HDMI_CORE_AV_I2S_CHST4,
+-						cfg->freq_sample, 3, 0);
++	/* I2S and IEC60958 parameters */
++
++	r = hdmi_read_reg(av_base, HDMI_CORE_AV_I2S_CHST0);
++	r = FLD_MOD(r, cfg->iec60958_cfg.professional, 0, 0);
++	r = FLD_MOD(r, cfg->iec60958_cfg.for_lpcm_aud, 1, 1);
++	r = FLD_MOD(r, cfg->iec60958_cfg.copyright, 2, 2);
++	r = FLD_MOD(r, cfg->iec60958_cfg.emphasis, 5, 3);
++	r = FLD_MOD(r, cfg->iec60958_cfg.mode, 7, 6);
++	hdmi_write_reg(av_base, HDMI_CORE_AV_I2S_CHST0, r);
++
++	hdmi_write_reg(av_base, HDMI_CORE_AV_I2S_CHST1,
++						cfg->iec60958_cfg.category);
++
++	r = hdmi_read_reg(av_base, HDMI_CORE_AV_I2S_CHST2);
++	r = FLD_MOD(r, cfg->iec60958_cfg.source_nr, 3, 0);
++	r = FLD_MOD(r, cfg->iec60958_cfg.channel_nr, 7, 4);
++	hdmi_write_reg(av_base, HDMI_CORE_AV_I2S_CHST2, r);
++
++	r = hdmi_read_reg(av_base, HDMI_CORE_AV_I2S_CHST4);
++	r = FLD_MOD(r, cfg->iec60958_cfg.freq_sample, 3, 0);
++	r = FLD_MOD(r, cfg->iec60958_cfg.clock_accuracy, 7, 4);
++	hdmi_write_reg(av_base, HDMI_CORE_AV_I2S_CHST4, r);
++
++	r = hdmi_read_reg(av_base, HDMI_CORE_AV_I2S_CHST5);
++	r = FLD_MOD(r, cfg->iec60958_cfg.freq_sample, 7, 4);
++	r = FLD_MOD(r, cfg->iec60958_cfg.word_length, 3, 1);
++	r = FLD_MOD(r, cfg->iec60958_cfg.word_max_length, 0, 0);
++	hdmi_write_reg(av_base, HDMI_CORE_AV_I2S_CHST5, r);
+ 
+ 	r = hdmi_read_reg(av_base, HDMI_CORE_AV_I2S_IN_CTRL);
+-	r = FLD_MOD(r, cfg->i2s_cfg.en_high_bitrate_aud, 7, 7);
++	r = FLD_MOD(r, cfg->en_high_bitrate_aud, 7, 7);
+ 	r = FLD_MOD(r, cfg->i2s_cfg.sck_edge_mode, 6, 6);
+ 	r = FLD_MOD(r, cfg->i2s_cfg.cbit_order, 5, 5);
+ 	r = FLD_MOD(r, cfg->i2s_cfg.vbit, 4, 4);
+@@ -1134,12 +1159,6 @@ void hdmi_core_audio_config(struct hdmi_ip_data *ip_data,
+ 	r = FLD_MOD(r, cfg->i2s_cfg.shift, 0, 0);
+ 	hdmi_write_reg(av_base, HDMI_CORE_AV_I2S_IN_CTRL, r);
+ 
+-	r = hdmi_read_reg(av_base, HDMI_CORE_AV_I2S_CHST5);
+-	r = FLD_MOD(r, cfg->freq_sample, 7, 4);
+-	r = FLD_MOD(r, cfg->i2s_cfg.word_length, 3, 1);
+-	r = FLD_MOD(r, cfg->i2s_cfg.word_max_length, 0, 0);
+-	hdmi_write_reg(av_base, HDMI_CORE_AV_I2S_CHST5, r);
+-
+ 	REG_FLD_MOD(av_base, HDMI_CORE_AV_I2S_IN_LEN,
+ 			cfg->i2s_cfg.in_length_bits, 3, 0);
+ 
+diff --git a/drivers/video/omap2/dss/ti_hdmi_4xxx_ip.h b/drivers/video/omap2/dss/ti_hdmi_4xxx_ip.h
+index 222cc16..4359001 100644
+--- a/drivers/video/omap2/dss/ti_hdmi_4xxx_ip.h
++++ b/drivers/video/omap2/dss/ti_hdmi_4xxx_ip.h
+@@ -469,11 +469,8 @@ struct hdmi_audio_dma {
+ };
+ 
+ struct hdmi_core_audio_i2s_config {
+-	u8 word_max_length;
+-	u8 word_length;
+ 	u8 in_length_bits;
+ 	u8 justification;
+-	u8 en_high_bitrate_aud;
+ 	u8 sck_edge_mode;
+ 	u8 cbit_order;
+ 	u8 vbit;
+@@ -483,9 +480,26 @@ struct hdmi_core_audio_i2s_config {
+ 	u8 active_sds;
+ };
+ 
++/* TODO: Consider if having this is better than parsing the audio word
++ * directly from the status word */
++struct hdmi_core_audio_iec60958_config {
++	bool professional;
++	bool for_lpcm_aud;
++	bool copyright;
++	u8 emphasis;
++	u8 mode;
++	u8 category;
++	u8 source_nr;
++	u8 channel_nr;
++	u8 freq_sample;
++	u8 clock_accuracy;
++	u8 word_max_length;
++	u8 word_length;
++};
++
+ struct hdmi_core_audio_config {
+ 	struct hdmi_core_audio_i2s_config	i2s_cfg;
+-	u32 freq_sample;
++	struct hdmi_core_audio_iec60958_config iec60958_cfg;
+ 	bool					fs_override;
+ 	u32					n;
+ 	u32					cts;
+@@ -498,6 +512,7 @@ struct hdmi_core_audio_config {
+ 	bool					en_dsd_audio;
+ 	bool					en_parallel_aud_input;
+ 	bool					en_spdif;
++	bool					en_high_bitrate_aud;
+ };
+ 
+ #if defined(CONFIG_OMAP4_DSS_HDMI_AUDIO)
+-- 
+1.7.0.4
 
