@@ -1,165 +1,103 @@
-From: Jon Hunter <jon-hunter@ti.com>
-Subject: Re: [PATCH 1/3] OMAP2+: UART: Remove cpu checks for populating errata
- flags
-Date: Wed, 28 Mar 2012 11:43:48 -0500
-Message-ID: <4F733FC4.9010506@ti.com>
-References: <1332325501-10467-1-git-send-email-govindraj.raja@ti.com> <1332325501-10467-2-git-send-email-govindraj.raja@ti.com> <4F722C63.9080900@ti.com> <CAMrsUdKfsoks4fB4GhrRcEur8niJsaWuYGE34+j5Bk6u2XiZQQ@mail.gmail.com>
+From: Tony Lindgren <tony@atomide.com>
+Subject: Re: [PATCH 05/12] Add dummy smsc911x regulators to cm-t35.
+Date: Wed, 28 Mar 2012 10:03:17 -0700
+Message-ID: <20120328170316.GR9859@atomide.com>
+References: <1332494504-10251-1-git-send-email-Russ.Dill@ti.com>
+ <1332494504-10251-6-git-send-email-Russ.Dill@ti.com>
+ <4F71E290.2050403@compulab.co.il>
+ <20120327172819.GQ9859@atomide.com>
+ <4F72B0D0.70703@compulab.co.il>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="ISO-8859-1"; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from comal.ext.ti.com ([198.47.26.152]:33148 "EHLO comal.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752960Ab2C1Qnw (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Wed, 28 Mar 2012 12:43:52 -0400
-In-Reply-To: <CAMrsUdKfsoks4fB4GhrRcEur8niJsaWuYGE34+j5Bk6u2XiZQQ@mail.gmail.com>
+Received: from mho-01-ewr.mailhop.org ([204.13.248.71]:52228 "EHLO
+	mho-01-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1758375Ab2C1RDY (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 28 Mar 2012 13:03:24 -0400
+Content-Disposition: inline
+In-Reply-To: <4F72B0D0.70703@compulab.co.il>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "Raja, Govindraj" <govindraj.raja@ti.com>
-Cc: linux-omap@vger.kernel.org, Kevin Hilman <khilman@ti.com>, Paul Walmsley <paul@pwsan.com>, Felipe Balbi <balbi@ti.com>, linux-serial@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+To: Igor Grinberg <grinberg@compulab.co.il>
+Cc: Russ Dill <Russ.Dill@ti.com>, linux-omap@vger.kernel.org, Mark Brown <broonie@opensource.wolfsonmicro.com>, Matt Porter <mporter@ti.com>, robert.marklund@stericsson.com, linus.walleij@linaro.org, linux-arm-kernel <linux-arm-kernel@lists.infradead.org>
 
-Hi Govindraj,
+* Igor Grinberg <grinberg@compulab.co.il> [120327 23:36]:
+> Hi Tony,
+> 
+> On 03/27/12 19:28, Tony Lindgren wrote:
+> > * Igor Grinberg <grinberg@compulab.co.il> [120327 08:56]:
+> >> Hi Russ,
+> >>
+> >> This patch works, but can we, please use the attached patch instead?
+> > 
+> > Hmm what's the difference here? Do you have some real controllable
+> > regulator for one of the smsc911x instances?
+> 
+> Well, the difference here is that those regulators will only be present
+> if the smsc911x controllers are present and their initialization is done
+> along with the controllers.
+> Also, I want to separate the cm-t35 from sb-t35 for future easier
+> refactoring of the sb-t35 code so it can be reused also on cm-t3517.
+> 
+> Only vddvario for smsc911x.0 is controllable - connected to VIO, but
+> VIO will never be disabled as it also controls many other devices
+> (DRAM is among them), so I prefer it to be dummy and keep it together
+> with vdd33a.
 
-On 3/28/2012 6:09, Raja, Govindraj wrote:
-> On Wed, Mar 28, 2012 at 2:38 AM, Jon Hunter<jon-hunter@ti.com>  wrote:
->> Hi Govindraj,
->>
->>
->> On 3/21/2012 5:24, Govindraj.R wrote:
->>>
->>> From: "Govindraj.R"<govindraj.raja@ti.com>
->>>
->>> Currently the errata is populated based on cpu checks this can
->>> be removed and replaced with module version check of uart ip block.
->>> MVR reg is provided within the uart reg map use the same
->>> to populate the errata and thus now errata population and handling
->>> can be managed within the driver itself.
->>>
->>> Cc: Paul Walmsley<paul@pwsan.com>
->>> Cc: Kevin Hilman<khilman@ti.com>
->>> Signed-off-by: Felipe Balbi<balbi@ti.com>
->>> Signed-off-by: Govindraj.R<govindraj.raja@ti.com>
->>> ---
->>>   arch/arm/mach-omap2/serial.c                  |    8 ---
->>>   arch/arm/plat-omap/include/plat/omap-serial.h |    1 -
->>>   drivers/tty/serial/omap-serial.c              |   62
->>> ++++++++++++++++++++++++-
->>>   3 files changed, 61 insertions(+), 10 deletions(-)
->>>
->>> diff --git a/arch/arm/mach-omap2/serial.c b/arch/arm/mach-omap2/serial.c
->>> index f590afc..330ee04 100644
->>> --- a/arch/arm/mach-omap2/serial.c
->>> +++ b/arch/arm/mach-omap2/serial.c
->>> @@ -357,14 +357,6 @@ void __init omap_serial_init_port(struct
->>> omap_board_data *bdata,
->>>         omap_up.dma_rx_poll_rate = info->dma_rx_poll_rate;
->>>         omap_up.autosuspend_timeout = info->autosuspend_timeout;
->>>
->>> -       /* Enable the MDR1 Errata i202 for OMAP2430/3xxx/44xx */
->>> -       if (!cpu_is_omap2420()&&    !cpu_is_ti816x())
->>>
->>> -               omap_up.errata |= UART_ERRATA_i202_MDR1_ACCESS;
->>> -
->>> -       /* Enable DMA Mode Force Idle Errata i291 for omap34xx/3630 */
->>> -       if (cpu_is_omap34xx() || cpu_is_omap3630())
->>> -               omap_up.errata |= UART_ERRATA_i291_DMA_FORCEIDLE;
->>> -
->>>         pdata =&omap_up;
->>>         pdata_size = sizeof(struct omap_uart_port_info);
->>>
->>> diff --git a/arch/arm/plat-omap/include/plat/omap-serial.h
->>> b/arch/arm/plat-omap/include/plat/omap-serial.h
->>> index 9ff4444..1a52725 100644
->>> --- a/arch/arm/plat-omap/include/plat/omap-serial.h
->>> +++ b/arch/arm/plat-omap/include/plat/omap-serial.h
->>> @@ -65,7 +65,6 @@ struct omap_uart_port_info {
->>>         bool                    dma_enabled;    /* To specify DMA Mode */
->>>         unsigned int            uartclk;        /* UART clock rate */
->>>         upf_t                   flags;          /* UPF_* flags */
->>> -       u32                     errata;
->>>         unsigned int            dma_rx_buf_size;
->>>         unsigned int            dma_rx_timeout;
->>>         unsigned int            autosuspend_timeout;
->>> diff --git a/drivers/tty/serial/omap-serial.c
->>> b/drivers/tty/serial/omap-serial.c
->>> index f809041..c7666d6 100644
->>> --- a/drivers/tty/serial/omap-serial.c
->>> +++ b/drivers/tty/serial/omap-serial.c
->>> @@ -44,6 +44,13 @@
->>>   #include<plat/dmtimer.h>
->>>   #include<plat/omap-serial.h>
->>>
->>> +#define UART_BUILD_REVISION(x, y)      (((x)<<    8) | (y))
->>> +
->>> +#define OMAP_UART_REV_42 0x0402
->>> +#define OMAP_UART_REV_46 0x0406
->>> +#define OMAP_UART_REV_52 0x0502
->>> +#define OMAP_UART_REV_63 0x0603
->>> +
->>>   #define DEFAULT_CLK_SPEED 48000000 /* 48Mhz*/
->>>
->>>   /* SCR register bitmasks */
->>> @@ -1346,6 +1353,58 @@ static void uart_tx_dma_callback(int lch, u16
->>> ch_status, void *data)
->>>         return;
->>>   }
->>>
->>> +static void omap_serial_fill_features_erratas(struct uart_omap_port *up)
->>> +{
->>> +       u32 mvr, scheme;
->>> +       u16 revision, major, minor;
->>> +
->>> +       mvr = serial_in(up, UART_OMAP_MVER);
->>> +
->>> +       /* Check revision register scheme */
->>> +       scheme = mvr&    (0x03<<    30);
->>> +       scheme>>= 30;
->>
->>
->> Minor nit-pick, why not ...
->>
->>         scheme = mvr>>  30;
->>
->
-> yes will correct it.
+OK thanks for the clarification. 
 
-Thinking some more, could be better to add some #defines for 
-OMAP_MVR_VERSION_MASK/SHIFT here.
+> > Anyways, I take it that you have tested that both smsc911x interfaces
+> > work now?
+> 
+> Yes, both regulators are registered and found by the smsc911x driver.
+> There is some kind of problem with the smsc911x.1, but it looks unrelated
+> to the patch:
 
->>
->>> +       switch (scheme) {
->>> +       case 0: /* Legacy Scheme: OMAP2/3 */
->>> +               /* MINOR_REV[0:4], MAJOR_REV[4:7] */
->>
->>
->> This scheme is also true from OMAP1 devices. Maybe we could include in the
->> comment.
->
-> No omap1 from $SUBJECT also reason,
->
-> mach-omap1/serial.c =>  8250.c
-> mach-omap2/serial.c =>  omap-serial.c
+OK good to hear. Regarding the following problem..
+ 
+> smsc911x: Driver version 2008-10-21
+> irq 323: nobody cared (try booting with the "irqpoll" option)
+> [<c001ae6c>] (unwind_backtrace+0x0/0xfc) from [<c0088960>] (__report_bad_irq+0x28/0xbc)
+> [<c0088960>] (__report_bad_irq+0x28/0xbc) from [<c0088bd4>] (note_interrupt+0x1e0/0x230)
+> [<c0088bd4>] (note_interrupt+0x1e0/0x230) from [<c0086e48>] (handle_irq_event_percpu+0xb0/0x1a0)
+> [<c0086e48>] (handle_irq_event_percpu+0xb0/0x1a0) from [<c0086f74>] (handle_irq_event+0x3c/0x5c)
+> [<c0086f74>] (handle_irq_event+0x3c/0x5c) from [<c00895a0>] (handle_level_irq+0x90/0xfc)
+> [<c00895a0>] (handle_level_irq+0x90/0xfc) from [<c008699c>] (generic_handle_irq+0x38/0x40)
+> [<c008699c>] (generic_handle_irq+0x38/0x40) from [<c02635a0>] (gpio_irq_handler+0x1b0/0x20c)
+> [<c02635a0>] (gpio_irq_handler+0x1b0/0x20c) from [<c008699c>] (generic_handle_irq+0x38/0x40)
+> [<c008699c>] (generic_handle_irq+0x38/0x40) from [<c0015404>] (handle_IRQ+0x38/0x84)
+> [<c0015404>] (handle_IRQ+0x38/0x84) from [<c000865c>] (omap3_intc_handle_irq+0x48/0x4c)
+> [<c000865c>] (omap3_intc_handle_irq+0x48/0x4c) from [<c00140c4>] (__irq_svc+0x44/0x78)
+> Exception stack(0xcf02de20 to 0xcf02de68)
+> de20: cf02c018 cf02c000 00000000 cf02de58 60000013 c06739fc 00000143 c06739fc
+> de40: 60000013 00000508 c06739dc 00000000 00022d69 cf02de68 cf02b3c0 c04890fc
+> de60: 20000013 ffffffff
+> [<c00140c4>] (__irq_svc+0x44/0x78) from [<c04890fc>] (_raw_spin_unlock_irqrestore+0x64/0x68)
+> [<c04890fc>] (_raw_spin_unlock_irqrestore+0x64/0x68) from [<c0087d50>] (__setup_irq+0x1b4/0x3d4)
+> [<c0087d50>] (__setup_irq+0x1b4/0x3d4) from [<c00881a0>] (request_threaded_irq+0xdc/0x148)
+> [<c00881a0>] (request_threaded_irq+0xdc/0x148) from [<c0482954>] (smsc911x_drv_probe+0x350/0x528)
+> [<c0482954>] (smsc911x_drv_probe+0x350/0x528) from [<c02d5a8c>] (platform_drv_probe+0x18/0x1c)
+> [<c02d5a8c>] (platform_drv_probe+0x18/0x1c) from [<c02d4580>] (really_probe+0x64/0x160)
+> [<c02d4580>] (really_probe+0x64/0x160) from [<c02d46c4>] (driver_probe_device+0x48/0x60)
+> [<c02d46c4>] (driver_probe_device+0x48/0x60) from [<c02d4770>] (__driver_attach+0x94/0x98)
+> [<c02d4770>] (__driver_attach+0x94/0x98) from [<c02d2ffc>] (bus_for_each_dev+0x54/0x80)
+> [<c02d2ffc>] (bus_for_each_dev+0x54/0x80) from [<c02d3730>] (bus_add_driver+0xa8/0x2a4)
+> [<c02d3730>] (bus_add_driver+0xa8/0x2a4) from [<c02d4d6c>] (driver_register+0x78/0x184)
+> [<c02d4d6c>] (driver_register+0x78/0x184) from [<c0008758>] (do_one_initcall+0x34/0x184)
+> [<c0008758>] (do_one_initcall+0x34/0x184) from [<c0613248>] (do_basic_setup+0x34/0x40)
+> [<c0613248>] (do_basic_setup+0x34/0x40) from [<c06132b8>] (kernel_init+0x64/0xec)
+> [<c06132b8>] (kernel_init+0x64/0xec) from [<c00154cc>] (kernel_thread_exit+0x0/0x8)
+> handlers:
+> [<c032ea98>] smsc911x_irqhandler
+> Disabling IRQ #323
+> 
+> I still haven't had a chance to look into this.
+> Does anyone have a clue?
 
-Got it! Thanks.
+..care to see if you have OMAP_GPIO_IRQ entry for your board? If so, we're
+still waiting for the cleanup-fixes branch to get merged that changes
+things to use gpio_to_irq() instead.
 
->>> +               major = (mvr&    0xf0)>>    4;
->>> +               minor = (mvr&    0x0f);
->>>
->>> +               break;
->>> +       case 1:
->>> +               /* New Scheme: OMAP4+ */
->>> +               /* MINOR_REV[0:5], MAJOR_REV[8:10] */
->>> +               major = (mvr&    0x7<<    8)>>    8;
->>
->>
->> Nit-pick ...
->>
->>         major = (mvr>>  8)&  0x7;
->
-> yes fine will correct this.
+Regards,
 
-May be we should add #defines here to for OMAP_UART_MVR1_MAJ_MASK/SHIFT, 
-OMAP_UART_MVR1_MIN_MASK/SHIFT, OMAP_UART_MVR2_MAJ_MASK/SHIFT and 
-OMAP_UART_MVR2_MIN_MASK/SHIFT.
-
-Jon
+Tony
