@@ -1,48 +1,87 @@
-From: Igor Grinberg <grinberg@compulab.co.il>
-Subject: [PATCH] ARM: OMAP3: cm-t35: add support for power off
-Date: Wed, 28 Mar 2012 11:51:18 +0200
-Message-ID: <1332928278-6582-1-git-send-email-grinberg@compulab.co.il>
+From: "Raja, Govindraj" <govindraj.raja@ti.com>
+Subject: Re: [PATCH] ARM: OMAP: USB: fix warning on EHCI PHY reset path
+Date: Wed, 28 Mar 2012 16:23:05 +0530
+Message-ID: <CAMrsUdJjwAN4haHOkrGfrpb9HnbsMLyUE4a5aLnCPKC2JdUt_A@mail.gmail.com>
+References: <1332857335-27911-1-git-send-email-grinberg@compulab.co.il> <20120328085231.GD18156@arwen.pp.htv.fi>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from 50.23.254.54-static.reverse.softlayer.com ([50.23.254.54]:44169
-	"EHLO softlayer.compulab.co.il" rhost-flags-OK-OK-OK-FAIL)
-	by vger.kernel.org with ESMTP id S1757954Ab2C1Jvd (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>);
-	Wed, 28 Mar 2012 05:51:33 -0400
+Received: from na3sys009aog125.obsmtp.com ([74.125.149.153]:45478 "EHLO
+	na3sys009aog125.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1758116Ab2C1Kx1 convert rfc822-to-8bit
+	(ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Wed, 28 Mar 2012 06:53:27 -0400
+Received: by mail-ob0-f171.google.com with SMTP id x4so1509411obh.2
+        for <linux-omap@vger.kernel.org>; Wed, 28 Mar 2012 03:53:26 -0700 (PDT)
+In-Reply-To: <20120328085231.GD18156@arwen.pp.htv.fi>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Tony Lindgren <tony@atomide.com>
-Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Igor Grinberg <grinberg@compulab.co.il>
+To: balbi@ti.com
+Cc: Igor Grinberg <grinberg@compulab.co.il>, Alan Stern <stern@rowland.harvard.edu>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, Keshava Munegowda <Keshava_mgowda@ti.com>, linux-usb@vger.kernel.org, linux-omap@vger.kernel.org
 
-Enable the power off feature of the TPS65930 on-board PMIC.
+On Wed, Mar 28, 2012 at 2:22 PM, Felipe Balbi <balbi@ti.com> wrote:
+> On Tue, Mar 27, 2012 at 04:08:55PM +0200, Igor Grinberg wrote:
+>> When PHY reset pin is connected to a GPIO on external GPIO chip
+>> (e.g. I2C), we should not call the gpio_set_value() function, but
+>> gpio_set_value_cansleep().
+>>
+>> Signed-off-by: Igor Grinberg <grinberg@compulab.co.il>
+>
+> Acked-by: Felipe Balbi <balbi@ti.com>
+>
+> Keshava, please give us your tested-by. Patch looks fine to me.
 
-Signed-off-by: Igor Grinberg <grinberg@compulab.co.il>
----
- arch/arm/mach-omap2/board-cm-t35.c |    5 +++++
- 1 files changed, 5 insertions(+), 0 deletions(-)
+Tried on beagle-xm where the smsc hub + smsc95xx ethernet controller
+relies gpio nreset sequence for initialization.
 
-diff --git a/arch/arm/mach-omap2/board-cm-t35.c b/arch/arm/mach-omap2/board-cm-t35.c
-index 8770be1..46275c6 100644
---- a/arch/arm/mach-omap2/board-cm-t35.c
-+++ b/arch/arm/mach-omap2/board-cm-t35.c
-@@ -499,6 +499,10 @@ static struct twl4030_gpio_platform_data cm_t35_gpio_data = {
- 	.setup          = cm_t35_twl_gpio_setup,
- };
- 
-+static struct twl4030_power_data cm_t35_power_data = {
-+	.use_poweroff	= true,
-+};
-+
- static struct twl4030_platform_data cm_t35_twldata = {
- 	/* platform_data for children goes here */
- 	.keypad		= &cm_t35_kp_data,
-@@ -506,6 +510,7 @@ static struct twl4030_platform_data cm_t35_twldata = {
- 	.vmmc1		= &cm_t35_vmmc1,
- 	.vsim		= &cm_t35_vsim,
- 	.vio		= &cm_t35_vio,
-+	.power		= &cm_t35_power_data,
- };
- 
- static void __init cm_t35_init_i2c(void)
--- 
-1.7.3.4
+Both hub + Ethernet controller get enumerated even after this patch.
 
+Tested-by: Govindraj.R <govindraj.raja@ti.com>
+
+>
+>> ---
+>> This patch depends on the patch from Keshava [1]:
+>> ARM: OMAP3: USB: Fix the EHCI ULPI PHY reset issue
+>>
+>> [1] http://www.spinics.net/lists/linux-omap/msg66774.html
+>>
+>> =A0drivers/usb/host/ehci-omap.c | =A0 =A04 ++--
+>> =A01 files changed, 2 insertions(+), 2 deletions(-)
+>>
+>> diff --git a/drivers/usb/host/ehci-omap.c b/drivers/usb/host/ehci-om=
+ap.c
+>> index 5c78f9e..26e9241 100644
+>> --- a/drivers/usb/host/ehci-omap.c
+>> +++ b/drivers/usb/host/ehci-omap.c
+>> @@ -258,10 +258,10 @@ static int ehci_hcd_omap_probe(struct platform=
+_device *pdev)
+>> =A0 =A0 =A0 =A0 =A0 =A0 =A0 udelay(10);
+>>
+>> =A0 =A0 =A0 =A0 =A0 =A0 =A0 if (gpio_is_valid(pdata->reset_gpio_port=
+[0]))
+>> - =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 gpio_set_value(pdata->rese=
+t_gpio_port[0], 1);
+>> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 gpio_set_value_cansleep(pd=
+ata->reset_gpio_port[0], 1);
+>>
+>> =A0 =A0 =A0 =A0 =A0 =A0 =A0 if (gpio_is_valid(pdata->reset_gpio_port=
+[1]))
+>> - =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 gpio_set_value(pdata->rese=
+t_gpio_port[1], 1);
+>> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 gpio_set_value_cansleep(pd=
+ata->reset_gpio_port[1], 1);
+>> =A0 =A0 =A0 }
+>>
+>> =A0 =A0 =A0 return 0;
+>> --
+>> 1.7.3.4
+>>
+>
+> --
+> balbi
+--
+To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
