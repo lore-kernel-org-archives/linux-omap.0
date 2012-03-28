@@ -1,20 +1,43 @@
-From: laurarey111@hotmail.com
-Subject: Hello
-Date: Tue, 27 Mar 2012 13:30:20 GMT
-Message-ID: <4f71c0ec.15c.1230.17328__19869.5035455332$1332902101$gmane$org@econetmobile.co.zw>
-Reply-To: laurarey111@hotmail.com
+From: Paul Walmsley <paul@pwsan.com>
+Subject: Re: [PATCH] ARM: OMAP: hwmod: Fix error handling in functions used
+ OMAP4 onwards
+Date: Tue, 27 Mar 2012 20:39:34 -0600 (MDT)
+Message-ID: <alpine.DEB.2.00.1203272039010.22961@utopia.booyaka.com>
+References: <1332842311-12308-1-git-send-email-rnayak@ti.com> <4F721A91.7000102@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="iso-8859-1"
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from comms.econetmobile.co.zw ([217.74.236.106]:55914 "EHLO
-	econetmobile.co.zw" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1757250Ab2C1Cef (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 27 Mar 2012 22:34:35 -0400
+Received: from utopia.booyaka.com ([72.9.107.138]:52868 "EHLO
+	utopia.booyaka.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1757475Ab2C1Cjg (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 27 Mar 2012 22:39:36 -0400
+In-Reply-To: <4F721A91.7000102@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Jon Hunter <jon-hunter@ti.com>
+Cc: Rajendra Nayak <rnayak@ti.com>, b-cousson@ti.com, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 
-Hello xxxxx,
- How are you doing over there? My name is Laura, Please let
-me know if i got the right address so we can open
-communication, here is my email address I am waiting for
-your confirmation with care Laura...
+Hi Jon,
+
+On Tue, 27 Mar 2012, Jon Hunter wrote:
+
+> On 3/27/2012 4:58, Rajendra Nayak wrote:
+>
+> > diff --git a/arch/arm/mach-omap2/omap_hwmod.c
+> > b/arch/arm/mach-omap2/omap_hwmod.c
+> > index 8ac26f2..f2a9afa 100644
+> > --- a/arch/arm/mach-omap2/omap_hwmod.c
+> > +++ b/arch/arm/mach-omap2/omap_hwmod.c
+> > @@ -808,7 +808,7 @@ static void _enable_module(struct omap_hwmod *oh)
+> >    */
+> >   static int _omap4_wait_target_disable(struct omap_hwmod *oh)
+> >   {
+> > -	if (!cpu_is_omap44xx())
+> > +	if (cpu_is_omap24xx() || cpu_is_omap34xx())
+> >   		return 0;
+> 
+> What about omap36xx?
+
+Unfortunately, cpu_is_omap34xx() also covers OMAP36xx :-(
+
+- Paul
