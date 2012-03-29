@@ -1,43 +1,53 @@
-From: "Hiremath, Vaibhav" <hvaibhav@ti.com>
-Subject: RE: [PATCH] ARM: OMAP: hwmod: Fix error handling in functions used
- OMAP4 onwards
-Date: Thu, 29 Mar 2012 09:14:19 +0000
-Message-ID: <79CD15C6BA57404B839C016229A409A83183FC32@DBDE01.ent.ti.com>
-References: <1332842311-12308-1-git-send-email-rnayak@ti.com>
- <79CD15C6BA57404B839C016229A409A83183E0CE@DBDE01.ent.ti.com>
- <4F73FD52.60209@ti.com>
- <79CD15C6BA57404B839C016229A409A83183FB9F@DBDE01.ent.ti.com>
- <4F74252A.7060809@ti.com>
+From: Shubhrajyoti Datta <omaplinuxkernel@gmail.com>
+Subject: Re: Suspend broken on 3.3?
+Date: Thu, 29 Mar 2012 14:44:32 +0530
+Message-ID: <CAM=Q2cvpUuy4kVynOrT+Rng1OgSqRmsS9e3uTTc=_fOwUgrD_g@mail.gmail.com>
+References: <WC20120322110946.6413AA@terrafix.co.uk>
+	<87r4wka6bf.fsf@ti.com>
+	<WC20120326134115.9815DF@terrafix.co.uk>
+	<87haxaq3ua.fsf@ti.com>
+	<CAMrsUd++maNjaK87bcRUqVHtz5zySujQXZK1YaMH9vnHVWCDag@mail.gmail.com>
+	<878viln2t5.fsf@ti.com>
+	<CAMrsUdKXZL4nT0MW=BcD53PsQFE+W1inij3XWe0e5+BjJF3odg@mail.gmail.com>
+	<WC20120328153855.621724@terrafix.co.uk>
+	<87vcloipow.fsf@ti.com>
+	<WC20120329083556.20174D@terrafix.co.uk>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
+Content-Type: text/plain; charset=ISO-8859-1
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from devils.ext.ti.com ([198.47.26.153]:54947 "EHLO
-	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750932Ab2C2JOa convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 29 Mar 2012 05:14:30 -0400
-In-Reply-To: <4F74252A.7060809@ti.com>
-Content-Language: en-US
+Received: from mail-iy0-f174.google.com ([209.85.210.174]:40385 "EHLO
+	mail-iy0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750932Ab2C2JOd (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 29 Mar 2012 05:14:33 -0400
+Received: by iagz16 with SMTP id z16so2768326iag.19
+        for <linux-omap@vger.kernel.org>; Thu, 29 Mar 2012 02:14:33 -0700 (PDT)
+In-Reply-To: <WC20120329083556.20174D@terrafix.co.uk>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "Nayak, Rajendra" <rnayak@ti.com>
-Cc: "Cousson, Benoit" <b-cousson@ti.com>, "paul@pwsan.com" <paul@pwsan.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>
+To: Joe Woodward <jw@terrafix.co.uk>
+Cc: Kevin Hilman <khilman@ti.com>, "Raja, Govindraj" <govindraj.raja@ti.com>, linux-omap@vger.kernel.org, Felipe Balbi <balbi@ti.com>, Paul Walmsley <paul@pwsan.com>, neilb@suse.de
 
-On Thu, Mar 29, 2012 at 14:32:34, Nayak, Rajendra wrote:
-> On Thursday 29 March 2012 02:26 PM, Hiremath, Vaibhav wrote:
-> > The point I was trying to make here was, cpu_is_xxx() check will become ugly,
-> > as more and more devices gets added to the list, am33xx being the first one
-> > in omap34xx family.
-> 
-> So are there more, other than AM33xx which are cortex A8 based but
-> share the OMAP4 PRCM IP block?
-> 
+Hi Joe,
 
-I would say, probably yes. 
+> After digging a bit further I found that the problem isn't lost characters or character corruption at all...
+>
+> The UART is actually at 430KBaud (not 900KBaud as I mentioned earlier).
+How did you verify that register read?
 
-But, things are so dynamic and you never know how things will shape up by 
-the time you freeze the design.
 
-Thanks,
-Vaibhav
+The data received is very bursty (i.e. sets of messages every second
+or so), containing a
+> sync sequence to indicate a start of packet.
+>
+> The received bytes should be: 0x01, 0x52, 0x41 ....rest of packet.
+>
+> This works 100% of the time on 3.2, but on 3.3 I sometimes (but not always) get: 0x01, 0x00, 0x52, 0x41.
+>
+> i.e. there is a NULL/0x00 inserted after the first character.
+>
+> All this is tested using a very simple userspace application thats reads data from ttyO1.
+>
+> Any ideas? Should I kick open a new thread as it's not really to do with suspend anymore?
+Is there any flow control you are using?
 
+>
