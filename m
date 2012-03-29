@@ -1,86 +1,116 @@
-From: Olof Johansson <olof@lixom.net>
-Subject: Re: [GIT PULL] ARM: OMAP: i2c, gpio, spi, regulator and mmc DTS updates
-Date: Thu, 29 Mar 2012 11:31:11 -0700
-Message-ID: <CAOesGMg+xLrVNxF0XwO8poAtuduwEcxrXLN9pXa+T+y7kKMy7Q@mail.gmail.com>
-References: <4F612C29.40608@ti.com>
-	<20120315004638.GW12083@atomide.com>
-	<201203150801.13183.arnd@arndb.de>
-	<4F746CC0.9050507@ti.com>
+From: Tony Lindgren <tony@atomide.com>
+Subject: Re: [GIT PULL] omap fixes for merge window
+Date: Thu, 29 Mar 2012 11:56:27 -0700
+Message-ID: <20120329185626.GY9859@atomide.com>
+References: <20120321180536.GK9859@atomide.com>
+ <CAOesGMiKc5Tc2e5X9=gSiFS87JtMWGmmtOLSStWJcO7ayoE6Rg@mail.gmail.com>
+ <20120329144151.GS9859@atomide.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-wg0-f44.google.com ([74.125.82.44]:50497 "EHLO
-	mail-wg0-f44.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S933681Ab2C2SbN convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 29 Mar 2012 14:31:13 -0400
-Received: by wgbdr13 with SMTP id dr13so1824628wgb.1
-        for <linux-omap@vger.kernel.org>; Thu, 29 Mar 2012 11:31:12 -0700 (PDT)
-In-Reply-To: <4F746CC0.9050507@ti.com>
+Received: from mho-02-ewr.mailhop.org ([204.13.248.72]:22874 "EHLO
+	mho-02-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S933710Ab2C2S4b (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 29 Mar 2012 14:56:31 -0400
+Content-Disposition: inline
+In-Reply-To: <20120329144151.GS9859@atomide.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "Cousson, Benoit" <b-cousson@ti.com>
-Cc: Arnd Bergmann <arnd@arndb.de>, linux-arm-kernel@lists.infradead.org, Tony Lindgren <tony@atomide.com>, linux-omap <linux-omap@vger.kernel.org>, arm@kernel.org
+To: Olof Johansson <olof@lixom.net>
+Cc: Arnd Bergmann <arnd@arndb.de>, linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org, Grant Likely <grant.likely@secretlab.ca>
 
-On Thu, Mar 29, 2012 at 7:08 AM, Cousson, Benoit <b-cousson@ti.com> wro=
-te:
-> Hi Arnd and Olof,
->
->
-> On 3/15/2012 9:01 AM, Arnd Bergmann wrote:
->>
->> On Thursday 15 March 2012, Tony Lindgren wrote:
->>>
->>> * Cousson, Benoit<b-cousson@ti.com> =A0[120314 16:41]:
->>>>
->>>> Hi Tony,
->>>>
->>>> Here are the remaining DTS patches for 3.4.
->>>>
->>>> On top of the previous pull request, I just added the MMC DTS sinc=
-e the
->>>> driver adaptation just got queued.
->>>>
->>>> It will be still be good to have that for 3.4 if possible, otherwi=
-se we
->>>> will
->>>> have a bunch of drivers DT adapted but no DTS file to use them :-(
->>>
->>>
->>> This might be doable as a follow-up patch series at the end
->>> of the merge window or at -rc1 when the related driver changes
->>> have been merged.
->>>
->>> Arnd and Olof, what do you guys think?
->>
->>
->> I'll have to look at the patches more closely, but from the diffstat=
- it
->> definitely
->> looks ok for a later merge once the driver is in. If you can rebase =
-the
->> branch on
->> top of the mmc tree (or the merge of that tree with whatever else is
->> needed), it
->> should give us a bisectable history and I can stick it into a late/*
->> branch right
->> away.
->
->
-> FYI, MMC DT adaptation just got merged, I2C, GPIO, SPI, regulator DT
-> adaptation were already merged before, so it means that this branch c=
-an be
-> merged to take advantage of all the DT adapted drivers.
+* Tony Lindgren <tony@atomide.com> [120329 07:44]:
+> * Olof Johansson <olof@lixom.net> [120328 22:04]:
+> > Hi Tony,
+> > 
+> > On Wed, Mar 21, 2012 at 11:05 AM, Tony Lindgren <tony@atomide.com> wrote:
+> > > Hi Arnd & Olof,
+> > >
+> > > Here's a set of fixes that would be nice to get merged during
+> > > the merge window before the GPIO changes get merged to avoid
+> > > boot issues on many omap boards.
+> > >
+> > > The changes queued in the GPIO tree require getting rid of
+> > > OMAP_GPIO_IRQ and use gpio_to_irq() instead. This is needed for
+> > > dynamically allocated GPIO interrupt ranges.
+> > 
+> > Sorry for the slow response on this, we've been focused on getting the
+> > main pulls going in. I'm about to start a fixes branch now and looked
+> > at this pull request.
+> > 
+> > I replied to one of the original patches in this branch, they need to
+> > be fixed before they can go in:
+> > 
+> > http://marc.info/?l=linux-omap&m=133299716528617&w=2
+> 
+> Thanks, that's a good catch.
+>  
+> > Also, that way we can get a clean branch based on current mainline
+> > without merge conflicts.
+> 
+> Yes will do.
 
-I've pulled this in as late/omap-dt, included in next/dt3 and
-for-next. I'll let it sit in linux-next for at least one day before
-it's sent in. Since it's just device tree additions, risk for
-regressions should be low.
+Olof, here's an updated pull request for your fixes staging branch.
+
+This contains the updated gpio_to_irq patches from Tarun, and a trivial
+build fix from Govindraj to #include <asm/system_misc.h> in pm.c.
+The DSI mux patch is the same.
+
+Note that the branch name is now just fixes as the necessary commits
+are now all in the mainline tree.
+
+Regards,
+
+Tony
 
 
--Olof
---
-To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+The following changes since commit 0195c00244dc2e9f522475868fa278c473ba7339:
+  Linus Torvalds (1):
+        Merge tag 'split-asm_system_h-for-linus-20120328' of git://git.kernel.org/.../dhowells/linux-asm_system
+
+are available in the git repository at:
+
+  git://git.kernel.org/pub/scm/linux/kernel/git/tmlind/linux-omap fixes
+
+Govindraj.R (1):
+      ARM: OMAP: pm: fix compilation break
+
+Tarun Kanti DebBarma (3):
+      ARM: OMAP: boards: Fix OMAP_GPIO_IRQ usage with gpio_to_irq()
+      drivers: input: Fix OMAP_GPIO_IRQ with gpio_to_irq() in ams_delta_serio_exit()
+      ARM: OMAP: Remove OMAP_GPIO_IRQ macro definition
+
+Tomi Valkeinen (1):
+      ARM: OMAP2+: Remove __init from DSI mux functions
+
+Tony Lindgren (2):
+      Merge branch 'fix-dss-mux' into fixes
+      Merge branch 'fixes-gpio-to-irq' into fixes
+
+ arch/arm/mach-omap1/board-h2.c               |    8 ++++----
+ arch/arm/mach-omap1/board-h3.c               |    9 ++++-----
+ arch/arm/mach-omap1/board-htcherald.c        |    6 +++---
+ arch/arm/mach-omap1/board-innovator.c        |    4 ++--
+ arch/arm/mach-omap1/board-nokia770.c         |    2 +-
+ arch/arm/mach-omap1/board-osk.c              |   12 ++++++------
+ arch/arm/mach-omap1/board-palmte.c           |    2 +-
+ arch/arm/mach-omap1/board-palmtt.c           |    2 +-
+ arch/arm/mach-omap1/board-palmz71.c          |    2 +-
+ arch/arm/mach-omap1/board-voiceblue.c        |   16 +++++++---------
+ arch/arm/mach-omap1/pm.c                     |    1 +
+ arch/arm/mach-omap2/board-2430sdp.c          |    2 +-
+ arch/arm/mach-omap2/board-4430sdp.c          |    2 +-
+ arch/arm/mach-omap2/board-apollon.c          |    4 ++--
+ arch/arm/mach-omap2/board-devkit8000.c       |    2 +-
+ arch/arm/mach-omap2/board-h4.c               |    2 +-
+ arch/arm/mach-omap2/board-omap3evm.c         |    2 +-
+ arch/arm/mach-omap2/board-omap4panda.c       |    2 +-
+ arch/arm/mach-omap2/board-rx51-peripherals.c |    3 ++-
+ arch/arm/mach-omap2/board-zoom-debugboard.c  |    3 ++-
+ arch/arm/mach-omap2/board-zoom-peripherals.c |    6 ++++--
+ arch/arm/mach-omap2/common-board-devices.c   |    2 +-
+ arch/arm/mach-omap2/display.c                |    8 ++++----
+ arch/arm/mach-omap2/pm.c                     |    2 ++
+ arch/arm/plat-omap/include/plat/gpio.h       |    4 ----
+ drivers/input/serio/ams_delta_serio.c        |    2 +-
+ 26 files changed, 55 insertions(+), 55 deletions(-)
