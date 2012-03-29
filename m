@@ -1,117 +1,99 @@
-From: Grazvydas Ignotas <notasas@gmail.com>
-Subject: [PATCH] OMAPDSS: VENC: allow switching venc type at runtime
-Date: Thu, 29 Mar 2012 02:45:12 +0300
-Message-ID: <1332978312-11959-1-git-send-email-notasas@gmail.com>
+From: Olof Johansson <olof@lixom.net>
+Subject: Re: [PATCH v2 1/4] ARM: OMAP1: boards: Fix OMAP_GPIO_IRQ usage with gpio_to_irq()
+Date: Wed, 28 Mar 2012 21:58:07 -0700
+Message-ID: <CAOesGMg0eZAGdnU4A6Ubbyrn-zZAK4xvBVqoPkhhVReoHTAfaQ@mail.gmail.com>
+References: <1332158817-26311-1-git-send-email-tarun.kanti@ti.com>
+	<1332158817-26311-2-git-send-email-tarun.kanti@ti.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-wi0-f170.google.com ([209.85.212.170]:62327 "EHLO
-	mail-wi0-f170.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S933213Ab2C1XpT (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 28 Mar 2012 19:45:19 -0400
+Received: from mail-gx0-f174.google.com ([209.85.161.174]:38638 "EHLO
+	mail-gx0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751506Ab2C2E6I convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 29 Mar 2012 00:58:08 -0400
+Received: by gghe5 with SMTP id e5so1248755ggh.19
+        for <linux-omap@vger.kernel.org>; Wed, 28 Mar 2012 21:58:07 -0700 (PDT)
+In-Reply-To: <1332158817-26311-2-git-send-email-tarun.kanti@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: linux-fbdev@vger.kernel.org
-Cc: Tomi Valkeinen <tomi.valkeinen@ti.com>, linux-omap@vger.kernel.org, Grazvydas Ignotas <notasas@gmail.com>
+To: Tarun Kanti DebBarma <tarun.kanti@ti.com>
+Cc: linux-omap@vger.kernel.org, khilman@ti.com, tony@atomide.com, b-cousson@ti.com, grant.likely@secretlab.ca, dmitry.torokhov@gmail.com, linux-arm-kernel@lists.infradead.org
 
-VENC type (composite/svideo) doesn't have to be fixed by board wiring,
-it is possible to provide both connectors, which is what pandora does.
-Having to recompile the kernel for users who have TV connector types
-that's don't match default board setting is very inconvenient, especially
-for users of a consumer device, so add support for switching VENC type
-at runtime over a new sysfs file venc_type.
+Hi,
 
-Signed-off-by: Grazvydas Ignotas <notasas@gmail.com>
----
- Documentation/arm/OMAP/DSS     |    1 +
- drivers/video/omap2/dss/venc.c |   55 +++++++++++++++++++++++++++++++++++++++-
- 2 files changed, 55 insertions(+), 1 deletions(-)
+Sorry for the slow reply, I noticed this when dealing with merge
+conflicts pulling in this patch and others from Tony.
 
-diff --git a/Documentation/arm/OMAP/DSS b/Documentation/arm/OMAP/DSS
-index 888ae7b..18e2214 100644
---- a/Documentation/arm/OMAP/DSS
-+++ b/Documentation/arm/OMAP/DSS
-@@ -156,6 +156,7 @@ timings		Display timings (pixclock,xres/hfp/hbp/hsw,yres/vfp/vbp/vsw)
- 		"pal" and "ntsc"
- panel_name
- tear_elim	Tearing elimination 0=off, 1=on
-+venc_type	Output type (video encoder only): "composite" or "svideo"
- 
- There are also some debugfs files at <debugfs>/omapdss/ which show information
- about clocks and registers.
-diff --git a/drivers/video/omap2/dss/venc.c b/drivers/video/omap2/dss/venc.c
-index 9c3daf7..aa2e74a 100644
---- a/drivers/video/omap2/dss/venc.c
-+++ b/drivers/video/omap2/dss/venc.c
-@@ -485,16 +485,69 @@ unsigned long venc_get_pixel_clock(void)
- 	return 13500000;
- }
- 
-+static ssize_t display_venc_type_show(struct device *dev,
-+		struct device_attribute *attr, char *buf)
-+{
-+	struct omap_dss_device *dssdev = to_dss_device(dev);
-+	const char *ret;
-+
-+	switch (dssdev->phy.venc.type) {
-+	case OMAP_DSS_VENC_TYPE_COMPOSITE:
-+		ret = "composite";
-+		break;
-+	case OMAP_DSS_VENC_TYPE_SVIDEO:
-+		ret = "svideo";
-+		break;
-+	default:
-+		ret = "unknown";
-+		break;
-+	}
-+
-+	return snprintf(buf, PAGE_SIZE, "%s\n", ret);
-+}
-+
-+static ssize_t display_venc_type_store(struct device *dev,
-+		struct device_attribute *attr, const char *buf, size_t size)
-+{
-+	struct omap_dss_device *dssdev = to_dss_device(dev);
-+	enum omap_dss_venc_type new_type;
-+
-+	if (strncmp("composite", buf, 9) == 0)
-+		new_type = OMAP_DSS_VENC_TYPE_COMPOSITE;
-+	else if (strncmp("svideo", buf, 6) == 0)
-+		new_type = OMAP_DSS_VENC_TYPE_SVIDEO;
-+	else
-+		return -EINVAL;
-+
-+	mutex_lock(&venc.venc_lock);
-+
-+	if (dssdev->phy.venc.type != new_type) {
-+		dssdev->phy.venc.type = new_type;
-+		if (dssdev->state == OMAP_DSS_DISPLAY_ACTIVE) {
-+			venc_power_off(dssdev);
-+			venc_power_on(dssdev);
-+		}
-+	}
-+
-+	mutex_unlock(&venc.venc_lock);
-+
-+	return size;
-+}
-+
-+static DEVICE_ATTR(venc_type, S_IRUGO | S_IWUSR,
-+		display_venc_type_show, display_venc_type_store);
-+
- /* driver */
- static int venc_panel_probe(struct omap_dss_device *dssdev)
- {
- 	dssdev->panel.timings = omap_dss_pal_timings;
- 
--	return 0;
-+	return device_create_file(&dssdev->dev, &dev_attr_venc_type);
- }
- 
- static void venc_panel_remove(struct omap_dss_device *dssdev)
- {
-+	device_remove_file(&dssdev->dev, &dev_attr_venc_type);
- }
- 
- static int venc_panel_enable(struct omap_dss_device *dssdev)
--- 
-1.7.0.4
+On Mon, Mar 19, 2012 at 5:06 AM, Tarun Kanti DebBarma
+<tarun.kanti@ti.com> wrote:
+> With dynamic allocation of IRQ the usage of OMAP_GPIO_IRQ
+> is no longer valid. We should be using gpio_to_irq() instead.
+>
+> Signed-off-by: Tarun Kanti DebBarma <tarun.kanti@ti.com>
+> ---
+> =A0arch/arm/mach-omap1/board-h2.c =A0 =A0 =A0 =A0| =A0 =A08 ++++----
+> =A0arch/arm/mach-omap1/board-h3.c =A0 =A0 =A0 =A0| =A0 =A09 ++++-----
+> =A0arch/arm/mach-omap1/board-htcherald.c | =A0 =A06 +++---
+> =A0arch/arm/mach-omap1/board-innovator.c | =A0 =A04 ++--
+> =A0arch/arm/mach-omap1/board-nokia770.c =A0| =A0 =A02 +-
+> =A0arch/arm/mach-omap1/board-osk.c =A0 =A0 =A0 | =A0 12 ++++++------
+> =A0arch/arm/mach-omap1/board-palmte.c =A0 =A0| =A0 =A02 +-
+> =A0arch/arm/mach-omap1/board-palmtt.c =A0 =A0| =A0 =A02 +-
+> =A0arch/arm/mach-omap1/board-palmz71.c =A0 | =A0 =A02 +-
+> =A0arch/arm/mach-omap1/board-voiceblue.c | =A0 16 +++++++---------
+> =A010 files changed, 30 insertions(+), 33 deletions(-)
+>
+> diff --git a/arch/arm/mach-omap1/board-h2.c b/arch/arm/mach-omap1/boa=
+rd-h2.c
+> index 00ad6b2..ad0eece 100644
+> --- a/arch/arm/mach-omap1/board-h2.c
+> +++ b/arch/arm/mach-omap1/board-h2.c
+> @@ -244,8 +244,6 @@ static struct resource h2_smc91x_resources[] =3D =
+{
+> =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0.flags =A0=3D IORESOURCE_MEM,
+> =A0 =A0 =A0 =A0},
+> =A0 =A0 =A0 =A0[1] =3D {
+> - =A0 =A0 =A0 =A0 =A0 =A0 =A0 .start =A0=3D OMAP_GPIO_IRQ(0),
+> - =A0 =A0 =A0 =A0 =A0 =A0 =A0 .end =A0 =A0=3D OMAP_GPIO_IRQ(0),
+> =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0.flags =A0=3D IORESOURCE_IRQ | IORESOU=
+RCE_IRQ_LOWEDGE,
+> =A0 =A0 =A0 =A0},
+> =A0};
+> @@ -364,11 +362,9 @@ static struct tps65010_board tps_board =3D {
+> =A0static struct i2c_board_info __initdata h2_i2c_board_info[] =3D {
+> =A0 =A0 =A0 =A0{
+> =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0I2C_BOARD_INFO("tps65010", 0x48),
+> - =A0 =A0 =A0 =A0 =A0 =A0 =A0 .irq =A0 =A0 =A0 =A0 =A0 =A0=3D OMAP_GP=
+IO_IRQ(58),
+> =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0.platform_data =A0=3D &tps_board,
+> =A0 =A0 =A0 =A0}, {
+> =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0I2C_BOARD_INFO("isp1301_omap", 0x2d),
+> - =A0 =A0 =A0 =A0 =A0 =A0 =A0 .irq =A0 =A0 =A0 =A0 =A0 =A0=3D OMAP_GP=
+IO_IRQ(2),
+> =A0 =A0 =A0 =A0},
+> =A0};
+>
+> @@ -437,10 +433,14 @@ static void __init h2_init(void)
+> =A0 =A0 =A0 =A0omap_cfg_reg(E19_1610_KBR4);
+> =A0 =A0 =A0 =A0omap_cfg_reg(N19_1610_KBR5);
+>
+> + =A0 =A0 =A0 h2_devices[2]->resource[1].start =3D gpio_to_irq(0);
+> + =A0 =A0 =A0 h2_devices[2]->resource[1].end =3D gpio_to_irq(0);
 
+Never, ever, ever do this. What happens here when someone else adds
+another device to the h2_devices array before the smc91x one?  Booom.
+Extremely fragile code.
+
+There's already a named resource struct you can use for this
+(h2_smc91x_resources). Use it.
+
+Same comments go for the other locations in this file as well as the
+other OMAP2+ patch, where appropriate.
+
+-Olof
+--
+To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
