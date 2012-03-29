@@ -1,52 +1,49 @@
-From: Yegor Yefremov <yegor_sub1@visionsystems.de>
-Subject: Re: AM3517evm
-Date: Thu, 29 Mar 2012 16:59:29 +0200
-Message-ID: <4F7478D1.5080708@visionsystems.de>
-References: <CAFu+nvFt8BcO1pDD6CXXM056WYG9AQDTv-boc7xF0C2JuHAyYw@mail.gmail.com> <4F5E0036.105@visionsystems.de> <20120315154335.GA29645@animalcreek.com> <4F621048.2090003@visionsystems.de> <20120315164221.GB29645@animalcreek.com> <20120315165245.GC29645@animalcreek.com>
-Reply-To: yegor_sub1@visionsystems.de
+From: Jon Hunter <jon-hunter@ti.com>
+Subject: Re: [PATCH] ARM: OMAP: hwmod: Fix error handling in functions used
+ OMAP4 onwards
+Date: Thu, 29 Mar 2012 10:01:48 -0500
+Message-ID: <4F74795C.1080506@ti.com>
+References: <1332842311-12308-1-git-send-email-rnayak@ti.com> <79CD15C6BA57404B839C016229A409A83183E0CE@DBDE01.ent.ti.com> <4F73FD52.60209@ti.com> <79CD15C6BA57404B839C016229A409A83183FB9F@DBDE01.ent.ti.com> <4F74252A.7060809@ti.com> <79CD15C6BA57404B839C016229A409A83183FC32@DBDE01.ent.ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
+Content-Type: text/plain; charset="ISO-8859-1"; format=flowed
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from hhlx01.vscom.de ([62.145.30.242]:48951 "EHLO
-	mail.visionsystems.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932491Ab2C2O7k (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 29 Mar 2012 10:59:40 -0400
-In-Reply-To: <20120315165245.GC29645@animalcreek.com>
+Received: from devils.ext.ti.com ([198.47.26.153]:46635 "EHLO
+	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1758908Ab2C2PBx (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 29 Mar 2012 11:01:53 -0400
+In-Reply-To: <79CD15C6BA57404B839C016229A409A83183FC32@DBDE01.ent.ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "Mark A. Greer" <mgreer@animalcreek.com>
-Cc: "George C. Huntington, III" <george.huntingtoniii@gmail.com>, linux-omap@vger.kernel.org, mporter@ti.com
+To: "Hiremath, Vaibhav" <hvaibhav@ti.com>
+Cc: "Nayak, Rajendra" <rnayak@ti.com>, "paul@pwsan.com" <paul@pwsan.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "Cousson, Benoit" <b-cousson@ti.com>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>
 
-Am 15.03.2012 17:52, schrieb Mark A. Greer:
-> On Thu, Mar 15, 2012 at 09:42:21AM -0700, Mark A. Greer wrote:
->> On Thu, Mar 15, 2012 at 04:52:40PM +0100, Yegor Yefremov wrote:
->>> Am 15.03.2012 16:43, schrieb Mark A. Greer:
->>>> On Mon, Mar 12, 2012 at 02:55:02PM +0100, Yegor Yefremov wrote:
->>>>> Am 09.03.2012 18:22, schrieb George C. Huntington, III:
->>>>>> I would like to make the newer kernel (3.x) work with the AM3517EVM.
->>>>>> I have a 2.6.32 and a 2.6.33 that run well on the board, but the
->>>>>> recent kernels have kernel panics before even running init.  where
->>>>>> should I start?  is there a better place to pursue this?
->>>>> Have you tried this one? http://git.kernel.org/?p=linux/kernel/git/tmlind/linux-omap.git;a=summary
->>>>>
->>>>> I have this one booting one month ago, but I checked out the kernel today and it hangs somewhere:
->>>>>
->>>>> Starting kernel ...
->>>>>
->>>>> Uncompressing Linux... done, booting the kernel.
->>>> This looks like you have your console device set to ttyS2 instead of ttyO2.
->>>>
->>>> Which branch of that repository did you use?
->>> My kernel params: CONFIG_CMDLINE="root=/dev/mmcblk0p2 rootwait console=ttyO2,115200" and I force them, so bootloader has nothing to say.
->>>
->>> I'm using master branch.
->> I just booted the latest master branch (b8fe178) with the hack below.
->> (Kernel command line: console=ttyO2,115200n8 root=/dev/mmcblk0p2 rw
->> rootfstype=ext3 rootwait)
-> I meant to add that I booted an am3517evm.
+Hi Viabhav,
 
-Is frame buffer working? I can boot with the latest linux-omap version, but as soon as I enable omapfb, kernel freezes before making any output to the serial console. Have I missed some DSS/DPI patches?
+On 3/29/2012 4:14, Hiremath, Vaibhav wrote:
+> On Thu, Mar 29, 2012 at 14:32:34, Nayak, Rajendra wrote:
+>> On Thursday 29 March 2012 02:26 PM, Hiremath, Vaibhav wrote:
+>>> The point I was trying to make here was, cpu_is_xxx() check will become ugly,
+>>> as more and more devices gets added to the list, am33xx being the first one
+>>> in omap34xx family.
+>>
+>> So are there more, other than AM33xx which are cortex A8 based but
+>> share the OMAP4 PRCM IP block?
+>>
+>
+> I would say, probably yes.
+>
+> But, things are so dynamic and you never know how things will shape up by
+> the time you freeze the design.
 
-Best regards,
-Yegor
+So this begs the question, why does AM33xx return true from 
+cpu_is_omap34xx() is the architecture is based upon OMAP4 and not OMAP3?
+
+I understand it is a Cortex-A8 versus Corex-A9, but if the architecture 
+is closer to OMAP4, then should it not be classed as OMAP4 and not OMAP3?
+
+Raises another question if we should really have arch_is_omapXXXX and 
+not cpu_is_omapXXXX.
+
+Cheers
+Jon
