@@ -1,16 +1,14 @@
 From: Tarun Kanti DebBarma <tarun.kanti@ti.com>
 Subject: [PATCH v3 1/4] ARM: OMAP1: boards: Fix OMAP_GPIO_IRQ usage with gpio_to_irq()
-Date: Thu, 29 Mar 2012 15:31:54 +0530
-Message-ID: <1333015317-11866-2-git-send-email-tarun.kanti@ti.com>
-References: <1333015317-11866-1-git-send-email-tarun.kanti@ti.com>
+Date: Thu, 29 Mar 2012 15:38:26 +0530
+Message-ID: <1333015706-11931-1-git-send-email-tarun.kanti@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from devils.ext.ti.com ([198.47.26.153]:57604 "EHLO
+Received: from devils.ext.ti.com ([198.47.26.153]:58003 "EHLO
 	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932662Ab2C2KCV (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 29 Mar 2012 06:02:21 -0400
-In-Reply-To: <1333015317-11866-1-git-send-email-tarun.kanti@ti.com>
+	with ESMTP id S1753961Ab2C2KIg (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 29 Mar 2012 06:08:36 -0400
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: linux-omap@vger.kernel.org
