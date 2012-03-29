@@ -1,53 +1,52 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [GIT PULL] omap fixes for merge window
-Date: Thu, 29 Mar 2012 07:41:52 -0700
-Message-ID: <20120329144151.GS9859@atomide.com>
-References: <20120321180536.GK9859@atomide.com>
- <CAOesGMiKc5Tc2e5X9=gSiFS87JtMWGmmtOLSStWJcO7ayoE6Rg@mail.gmail.com>
+From: Yegor Yefremov <yegor_sub1@visionsystems.de>
+Subject: Re: AM3517evm
+Date: Thu, 29 Mar 2012 16:59:29 +0200
+Message-ID: <4F7478D1.5080708@visionsystems.de>
+References: <CAFu+nvFt8BcO1pDD6CXXM056WYG9AQDTv-boc7xF0C2JuHAyYw@mail.gmail.com> <4F5E0036.105@visionsystems.de> <20120315154335.GA29645@animalcreek.com> <4F621048.2090003@visionsystems.de> <20120315164221.GB29645@animalcreek.com> <20120315165245.GC29645@animalcreek.com>
+Reply-To: yegor_sub1@visionsystems.de
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-01-ewr.mailhop.org ([204.13.248.71]:18577 "EHLO
-	mho-01-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752142Ab2C2Ol4 (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 29 Mar 2012 10:41:56 -0400
-Content-Disposition: inline
-In-Reply-To: <CAOesGMiKc5Tc2e5X9=gSiFS87JtMWGmmtOLSStWJcO7ayoE6Rg@mail.gmail.com>
+Received: from hhlx01.vscom.de ([62.145.30.242]:48951 "EHLO
+	mail.visionsystems.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S932491Ab2C2O7k (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 29 Mar 2012 10:59:40 -0400
+In-Reply-To: <20120315165245.GC29645@animalcreek.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Olof Johansson <olof@lixom.net>
-Cc: Arnd Bergmann <arnd@arndb.de>, linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org, Grant Likely <grant.likely@secretlab.ca>
+To: "Mark A. Greer" <mgreer@animalcreek.com>
+Cc: "George C. Huntington, III" <george.huntingtoniii@gmail.com>, linux-omap@vger.kernel.org, mporter@ti.com
 
-* Olof Johansson <olof@lixom.net> [120328 22:04]:
-> Hi Tony,
-> 
-> On Wed, Mar 21, 2012 at 11:05 AM, Tony Lindgren <tony@atomide.com> wrote:
-> > Hi Arnd & Olof,
-> >
-> > Here's a set of fixes that would be nice to get merged during
-> > the merge window before the GPIO changes get merged to avoid
-> > boot issues on many omap boards.
-> >
-> > The changes queued in the GPIO tree require getting rid of
-> > OMAP_GPIO_IRQ and use gpio_to_irq() instead. This is needed for
-> > dynamically allocated GPIO interrupt ranges.
-> 
-> Sorry for the slow response on this, we've been focused on getting the
-> main pulls going in. I'm about to start a fixes branch now and looked
-> at this pull request.
-> 
-> I replied to one of the original patches in this branch, they need to
-> be fixed before they can go in:
-> 
-> http://marc.info/?l=linux-omap&m=133299716528617&w=2
+Am 15.03.2012 17:52, schrieb Mark A. Greer:
+> On Thu, Mar 15, 2012 at 09:42:21AM -0700, Mark A. Greer wrote:
+>> On Thu, Mar 15, 2012 at 04:52:40PM +0100, Yegor Yefremov wrote:
+>>> Am 15.03.2012 16:43, schrieb Mark A. Greer:
+>>>> On Mon, Mar 12, 2012 at 02:55:02PM +0100, Yegor Yefremov wrote:
+>>>>> Am 09.03.2012 18:22, schrieb George C. Huntington, III:
+>>>>>> I would like to make the newer kernel (3.x) work with the AM3517EVM.
+>>>>>> I have a 2.6.32 and a 2.6.33 that run well on the board, but the
+>>>>>> recent kernels have kernel panics before even running init.  where
+>>>>>> should I start?  is there a better place to pursue this?
+>>>>> Have you tried this one? http://git.kernel.org/?p=linux/kernel/git/tmlind/linux-omap.git;a=summary
+>>>>>
+>>>>> I have this one booting one month ago, but I checked out the kernel today and it hangs somewhere:
+>>>>>
+>>>>> Starting kernel ...
+>>>>>
+>>>>> Uncompressing Linux... done, booting the kernel.
+>>>> This looks like you have your console device set to ttyS2 instead of ttyO2.
+>>>>
+>>>> Which branch of that repository did you use?
+>>> My kernel params: CONFIG_CMDLINE="root=/dev/mmcblk0p2 rootwait console=ttyO2,115200" and I force them, so bootloader has nothing to say.
+>>>
+>>> I'm using master branch.
+>> I just booted the latest master branch (b8fe178) with the hack below.
+>> (Kernel command line: console=ttyO2,115200n8 root=/dev/mmcblk0p2 rw
+>> rootfstype=ext3 rootwait)
+> I meant to add that I booted an am3517evm.
 
-Thanks, that's a good catch.
- 
-> Also, that way we can get a clean branch based on current mainline
-> without merge conflicts.
+Is frame buffer working? I can boot with the latest linux-omap version, but as soon as I enable omapfb, kernel freezes before making any output to the serial console. Have I missed some DSS/DPI patches?
 
-Yes will do.
-
-Regards,
-
-Tony
+Best regards,
+Yegor
