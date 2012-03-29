@@ -1,141 +1,51 @@
-From: "Joe Woodward" <jw@terrafix.co.uk>
-Subject: Re: Suspend broken on 3.3?
-Date: Thu, 29 Mar 2012 12:40:24 +0100
-Message-ID: <WC20120329114024.43178C@terrafix.co.uk>
-References: <CAMrsUd++maNjaK87bcRUqVHtz5zySujQXZK1YaMH9vnHVWCDag@mail.gmail.com> <878viln2t5.fsf@ti.com> <CAMrsUdKXZL4nT0MW=BcD53PsQFE+W1inij3XWe0e5+BjJF3odg@mail.gmail.com> <WC20120328153855.621724@terrafix.co.uk> <87vcloipow.fsf@ti.com> <WC20120329083556.20174D@terrafix.co.uk> <alpine.DEB.2.00.1203290356190.2788@utopia.booyaka.com> <WC20120329112755.541787@terrafix.co.uk>
+From: "Cousson, Benoit" <b-cousson@ti.com>
+Subject: Re: [GIT PULL] ARM: OMAP: i2c, gpio, spi, regulator and mmc DTS updates
+Date: Thu, 29 Mar 2012 16:08:00 +0200
+Message-ID: <4F746CC0.9050507@ti.com>
+References: <4F612C29.40608@ti.com> <20120315004638.GW12083@atomide.com> <201203150801.13183.arnd@arndb.de>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
+Content-Type: text/plain; charset="ISO-8859-1"; format=flowed
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from smtp1.keele.netcentral.co.uk ([212.57.235.197]:53959 "EHLO
-	smtp3.keele.netcentral.co.uk" rhost-flags-OK-FAIL-OK-OK)
-	by vger.kernel.org with ESMTP id S1753124Ab2C2Lku (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>);
-	Thu, 29 Mar 2012 07:40:50 -0400
-In-Reply-To: <WC20120329112755.541787@terrafix.co.uk>
+Received: from bear.ext.ti.com ([192.94.94.41]:37883 "EHLO bear.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751408Ab2C2OII (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Thu, 29 Mar 2012 10:08:08 -0400
+In-Reply-To: <201203150801.13183.arnd@arndb.de>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Joe Woodward <jw@terrafix.co.uk>, Paul Walmsley <paul@pwsan.com>
-Cc: Kevin Hilman <khilman@ti.com>, "Raja\\, Govindraj" <govindraj.raja@ti.com>, linux-omap@vger.kernel.org, Felipe Balbi <balbi@ti.com>, neilb@suse.de
+To: Arnd Bergmann <arnd@arndb.de>, Olof Johansson <olof@lixom.net>
+Cc: linux-arm-kernel@lists.infradead.org, Tony Lindgren <tony@atomide.com>, linux-omap <linux-omap@vger.kernel.org>
 
+Hi Arnd and Olof,
 
+On 3/15/2012 9:01 AM, Arnd Bergmann wrote:
+> On Thursday 15 March 2012, Tony Lindgren wrote:
+>> * Cousson, Benoit<b-cousson@ti.com>  [120314 16:41]:
+>>> Hi Tony,
+>>>
+>>> Here are the remaining DTS patches for 3.4.
+>>>
+>>> On top of the previous pull request, I just added the MMC DTS since the driver adaptation just got queued.
+>>>
+>>> It will be still be good to have that for 3.4 if possible, otherwise we will
+>>> have a bunch of drivers DT adapted but no DTS file to use them :-(
+>>
+>> This might be doable as a follow-up patch series at the end
+>> of the merge window or at -rc1 when the related driver changes
+>> have been merged.
+>>
+>> Arnd and Olof, what do you guys think?
+>
+> I'll have to look at the patches more closely, but from the diffstat it definitely
+> looks ok for a later merge once the driver is in. If you can rebase the branch on
+> top of the mmc tree (or the merge of that tree with whatever else is needed), it
+> should give us a bisectable history and I can stick it into a late/* branch right
+> away.
 
------Original Message-----
-From: "Joe Woodward" <jw@terrafix.co.uk>
-To: "Paul Walmsley" <paul@pwsan.com>
-Cc: "Kevin Hilman" <khilman@ti.com>, "Raja\\, Govindraj" <govindraj.raja@ti.com>, linux-omap@vger.kernel.org, "Felipe Balbi" <balbi@ti.com>, neilb@suse.de
-Date: Thu, 29 Mar 2012 12:27:55 +0100
-Subject: Re: Suspend broken on 3.3?
+FYI, MMC DT adaptation just got merged, I2C, GPIO, SPI, regulator DT 
+adaptation were already merged before, so it means that this branch can 
+be merged to take advantage of all the DT adapted drivers.
 
-> > Hello Joe,
-> > 
-> > thanks for reporting this.  Some thoughts -- really just pure
-> > speculation 
-> > -- but I hope some of it might be useful for you...
-> > 
-> > On Thu, 29 Mar 2012, Joe Woodward wrote:
-> > 
-> > > After digging a bit further I found that the problem isn't lost
-> > characters or character corruption at all...
-> > > 
-> > > The UART is actually at 430KBaud (not 900KBaud as I mentioned
-> > earlier).
-> > 
-> > 430Kbps?  Could you confirm this?  OMAP UARTs don't support that rate
-> > as 
-> > far as I know - the closest is 460Kbps (OMAP34xx TRM vZR Table 17-1
-> > "UART 
-> > Mode Baud Rates, Divisor Values, and Error Rates).  If one was
-> > desperate, 
-> > it might be possible to get 430Kbps by tweaking other parts of the
-> > clock 
-> > tree though...
-> 
-> Sorry for the confusion... It's 460KBaud - the 430 was just a typo in
-> my previous mail...
-> 
-> > 
-> > > The data received is very bursty (i.e. sets of messages every
-> second
-> > or 
-> > > so), containing a sync sequence to indicate a start of packet.
-> > > 
-> > > The received bytes should be: 0x01, 0x52, 0x41 ....rest of packet.
-> > > 
-> > > This works 100% of the time on 3.2, but on 3.3 I sometimes (but not
-> > always) get: 0x01, 0x00, 0x52, 0x41.
-> > > 
-> > > i.e. there is a NULL/0x00 inserted after the first character.
-> > 
-> > Is this on the serial console, or on a non-console serial port?
-> > 
-> > Looking at drivers/tty/serial/omap-serial.c:receive_chars(), I wonder
-> > if 
-> > the driver is somehow reading bytes from the RX FIFO when it's empty.
->  
-> > It's unclear to me how this could happen.  But you might want to try
-> > doing 
-> > an LSR read right before entering the loop in 
-> > drivers/tty/serial/omap-serial.c:receive_chars().  In stock v3.3,
-> this 
-> > would mean adding
-> > 
-> > 		lsr = serial_in(up, UART_LSR);
-> > 
-> > at line 190 of drivers/tty/serial/omap-serial.c.
-> > 
-> 
-> Adding this is made no obvious difference.
-> 
-> > 
-> > You might also try the DMA path as an experiment.  This will totally
-> > wedge 
-> > power management due to an insanely low timer expiration in that
-> path,
-> > but 
-> > at least might help narrow the problem down.  To do so with a quick
-> > hack, 
-> > you could set omap_serial_default_info.dma_enabled to true instead of
-> > false at arch/arm/mach-omap2/serial.c:76.
-> > 
-> 
-> This did the trick (I've added it in addition to the LSR read above,
-> i'll back out the LSR read and see if it still works).
-> When DMA is enabled the behaviour (as seen from my application in
-> userspace) is the same as on the stock 3.2 kernel (i.e. for me it works
-> :) ).
-> 
-
-I've just realised that if anyone has joined this thread late, then I'm running in a state with Govindraj's patch in a previous mail in this thread applied to serial.c to 
-fix the suspend issues due to the UART wakeup's not being correctly changed from userspace via sysfs.
-
-It may actually by this patch that is causing the interrupt-enabled serial driver to have broken? The tty that is causing me a problem does have wake-from-suspend 
-disabled for it from userspace...
-
-Cheers,
-Joe
-
-
-> Cheers,
-> Joe
-> 
-> > 
-> > And one other thing to try: does the behavior change if you set
-> > uart_debug 
-> > to true at arch/arm/mach-omap2/serial.c:278 ?
-> > 
-> > 
-> > - Paul
-> > --
-> > To unsubscribe from this list: send the line "unsubscribe linux-omap"
-> > in
-> > the body of a message to majordomo@vger.kernel.org
-> > More majordomo info at  http://vger.kernel.org/majordomo-info.html
-> 
-> 
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-omap"
-> in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
-
-
+Thanks,
+Benoit
