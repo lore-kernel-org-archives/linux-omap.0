@@ -1,54 +1,117 @@
-From: Rajendra Nayak <rnayak@ti.com>
-Subject: Re: [PATCH] ARM: OMAP: hwmod: Fix error handling in functions used
- OMAP4 onwards
-Date: Thu, 29 Mar 2012 11:42:34 +0530
-Message-ID: <4F73FD52.60209@ti.com>
-References: <1332842311-12308-1-git-send-email-rnayak@ti.com> <79CD15C6BA57404B839C016229A409A83183E0CE@DBDE01.ent.ti.com>
+From: "Raja, Govindraj" <govindraj.raja@ti.com>
+Subject: Re: [PATCH 1/3] OMAP2+: UART: Remove cpu checks for populating errata flags
+Date: Thu, 29 Mar 2012 13:05:24 +0530
+Message-ID: <CAMrsUdKAAcc=tnC_vGRosEsqUmJBVaDQ9T=n898+9n30QwsSag@mail.gmail.com>
+References: <1332325501-10467-1-git-send-email-govindraj.raja@ti.com>
+ <1332325501-10467-2-git-send-email-govindraj.raja@ti.com> <4F722C63.9080900@ti.com>
+ <CAMrsUdKfsoks4fB4GhrRcEur8niJsaWuYGE34+j5Bk6u2XiZQQ@mail.gmail.com> <4F733FC4.9010506@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aog123.obsmtp.com ([74.125.149.149]:56580 "EHLO
-	na3sys009aog123.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753706Ab2C2GMm (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>);
-	Thu, 29 Mar 2012 02:12:42 -0400
-Received: by obbeh20 with SMTP id eh20so2409395obb.19
-        for <linux-omap@vger.kernel.org>; Wed, 28 Mar 2012 23:12:41 -0700 (PDT)
-In-Reply-To: <79CD15C6BA57404B839C016229A409A83183E0CE@DBDE01.ent.ti.com>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Return-path: <linux-serial-owner@vger.kernel.org>
+In-Reply-To: <4F733FC4.9010506@ti.com>
+Sender: linux-serial-owner@vger.kernel.org
+To: Jon Hunter <jon-hunter@ti.com>
+Cc: linux-omap@vger.kernel.org, Kevin Hilman <khilman@ti.com>, Paul Walmsley <paul@pwsan.com>, Felipe Balbi <balbi@ti.com>, linux-serial@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 List-Id: linux-omap@vger.kernel.org
-To: "Hiremath, Vaibhav" <hvaibhav@ti.com>
-Cc: "Cousson, Benoit" <b-cousson@ti.com>, "paul@pwsan.com" <paul@pwsan.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>
 
-On Wednesday 28 March 2012 12:02 PM, Hiremath, Vaibhav wrote:
-> On Tue, Mar 27, 2012 at 15:28:31, Nayak, Rajendra wrote:
->> Some functions like _omap4_disable_module() and _omap4_wait_target_disable()
->> are (will be) used on all OMAPs OMAP4 and beyond which support module level
->> control. Fix the error checks in these functions to return if called on
->> any platform pre OMAP4 (i.e OMAP2 and OMAP3) instead of checking for
->> !cpu_is_omap44xx(). This avoids having to update the error check with a
->> '&&  !cpu_is_omap54xx()' when OMAP5 is introduced and possibly similar updates
->> when further OMAP generations are added.
+On Wed, Mar 28, 2012 at 10:13 PM, Jon Hunter <jon-hunter@ti.com> wrote:
+> Hi Govindraj,
+>
+>
+> On 3/28/2012 6:09, Raja, Govindraj wrote:
 >>
+>> On Wed, Mar 28, 2012 at 2:38 AM, Jon Hunter<jon-hunter@ti.com> =A0wr=
+ote:
+>>>
+>>> Hi Govindraj,
+>>>
+>>>
+
+[...]
+
+>>>> + =A0 =A0 =A0 u32 mvr, scheme;
+>>>> + =A0 =A0 =A0 u16 revision, major, minor;
+>>>> +
+>>>> + =A0 =A0 =A0 mvr =3D serial_in(up, UART_OMAP_MVER);
+>>>> +
+>>>> + =A0 =A0 =A0 /* Check revision register scheme */
+>>>> + =A0 =A0 =A0 scheme =3D mvr& =A0 =A0(0x03<< =A0 =A030);
+>>>> + =A0 =A0 =A0 scheme>>=3D 30;
+>>>
+>>>
+>>>
+>>> Minor nit-pick, why not ...
+>>>
+>>> =A0 =A0 =A0 =A0scheme =3D mvr>> =A030;
+>>>
+>>
+>> yes will correct it.
 >
-> Let me add some flavor here :)
 >
-> AM33xx, which has module level control, but falls under OMAP3 family of
-> devices. cpu_is_omap34xx() is true for AM33xx device and we have to add
-> check in all these functions. And I am sure we will have many of such
-> devices in the future.
->
-> Can we use some flag based option here, instead of cpu_is_xxx() check?
+> Thinking some more, could be better to add some #defines for
+> OMAP_MVR_VERSION_MASK/SHIFT here.
 >
 
-The intent of this patch was to make the error handling uniform across
-all modules control functions in hwmod, and it atleast addresses one
-problem of having to update these checks every time a new OMAP gets
-added.
+Yes sure.
 
-The problem that you bring up with AM33xx is regardless of this patch
-(you would still need to go update every !cpu_is_omap44xx() check)
-and IMHO should be handled separately, with a flag like you are
-suggesting or by some other means. If you already have patches on how
-this can be done, you should go ahead and post them out.
+>
+>>>
+>>>> + =A0 =A0 =A0 switch (scheme) {
+>>>> + =A0 =A0 =A0 case 0: /* Legacy Scheme: OMAP2/3 */
+>>>> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 /* MINOR_REV[0:4], MAJOR_REV[4:7] */
+>>>
+>>>
+>>>
+>>> This scheme is also true from OMAP1 devices. Maybe we could include=
+ in
+>>> the
+>>> comment.
+>>
+>>
+>> No omap1 from $SUBJECT also reason,
+>>
+>> mach-omap1/serial.c =3D> =A08250.c
+>> mach-omap2/serial.c =3D> =A0omap-serial.c
+>
+>
+> Got it! Thanks.
+>
+>>>> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 major =3D (mvr& =A0 =A00xf0)>> =A0 =A0=
+4;
+>>>> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 minor =3D (mvr& =A0 =A00x0f);
+>>>>
+>>>> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 break;
+>>>> + =A0 =A0 =A0 case 1:
+>>>> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 /* New Scheme: OMAP4+ */
+>>>> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 /* MINOR_REV[0:5], MAJOR_REV[8:10] *=
+/
+>>>> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 major =3D (mvr& =A0 =A00x7<< =A0 =A0=
+8)>> =A0 =A08;
+>>>
+>>>
+>>>
+>>> Nit-pick ...
+>>>
+>>> =A0 =A0 =A0 =A0major =3D (mvr>> =A08)& =A00x7;
+>>
+>>
+>> yes fine will correct this.
+>
+>
+> May be we should add #defines here to for OMAP_UART_MVR1_MAJ_MASK/SHI=
+=46T,
+> OMAP_UART_MVR1_MIN_MASK/SHIFT, OMAP_UART_MVR2_MAJ_MASK/SHIFT and
+> OMAP_UART_MVR2_MIN_MASK/SHIFT.
+>
+
+okay will add this.
+
+--
+Thanks,
+Govindraj.R
+--
+To unsubscribe from this list: send the line "unsubscribe linux-serial"=
+ in
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
