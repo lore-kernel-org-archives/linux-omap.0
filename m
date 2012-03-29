@@ -1,59 +1,59 @@
-From: Jon Hunter <jon-hunter@ti.com>
-Subject: Re: [PATCH] ARM: OMAP: hwmod: Fix error handling in functions used
- OMAP4 onwards
-Date: Thu, 29 Mar 2012 10:03:17 -0500
-Message-ID: <4F7479B5.5060401@ti.com>
-References: <1332842311-12308-1-git-send-email-rnayak@ti.com> <79CD15C6BA57404B839C016229A409A83183E0CE@DBDE01.ent.ti.com> <4F73FD52.60209@ti.com> <79CD15C6BA57404B839C016229A409A83183FB9F@DBDE01.ent.ti.com>
+From: Tony Lindgren <tony@atomide.com>
+Subject: Re: [PATCH] omap2+: pm: fix compilation break.
+Date: Thu, 29 Mar 2012 08:11:29 -0700
+Message-ID: <20120329151128.GT9859@atomide.com>
+References: <1333015762-476-1-git-send-email-govindraj.raja@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="ISO-8859-1"; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from arroyo.ext.ti.com ([192.94.94.40]:55260 "EHLO arroyo.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1758657Ab2C2PDV (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Thu, 29 Mar 2012 11:03:21 -0400
-In-Reply-To: <79CD15C6BA57404B839C016229A409A83183FB9F@DBDE01.ent.ti.com>
+Received: from mho-02-ewr.mailhop.org ([204.13.248.72]:35451 "EHLO
+	mho-02-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S932491Ab2C2PLc (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 29 Mar 2012 11:11:32 -0400
+Content-Disposition: inline
+In-Reply-To: <1333015762-476-1-git-send-email-govindraj.raja@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "Hiremath, Vaibhav" <hvaibhav@ti.com>
-Cc: "Nayak, Rajendra" <rnayak@ti.com>, "paul@pwsan.com" <paul@pwsan.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "Cousson, Benoit" <b-cousson@ti.com>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>
+To: "Govindraj.R" <govindraj.raja@ti.com>
+Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Kevin Hilman <khilman@ti.com>
 
-Hi Viabhav,
+* Govindraj.R <govindraj.raja@ti.com> [120329 03:12]:
+> From: "Govindraj.R" <govindraj.raja@ti.com>
+> 
+> Fix the compilation break observed on latest mainline.
+> 
+> Fixes below compilation break:
+> 
+> arch/arm/mach-omap2/pm.c: In function 'omap_pm_begin':
+> arch/arm/mach-omap2/pm.c:239: error: implicit declaration of function 'disable_hlt'
+> arch/arm/mach-omap2/pm.c: In function 'omap_pm_end':
+> arch/arm/mach-omap2/pm.c:247: error: implicit declaration of function 'enable_hlt'
 
-On 3/29/2012 3:56, Hiremath, Vaibhav wrote:
-> On Thu, Mar 29, 2012 at 11:42:34, Nayak, Rajendra wrote:
->> On Wednesday 28 March 2012 12:02 PM, Hiremath, Vaibhav wrote:
->>> On Tue, Mar 27, 2012 at 15:28:31, Nayak, Rajendra wrote:
->>>> Some functions like _omap4_disable_module() and _omap4_wait_target_disable()
->>>> are (will be) used on all OMAPs OMAP4 and beyond which support module level
->>>> control. Fix the error checks in these functions to return if called on
->>>> any platform pre OMAP4 (i.e OMAP2 and OMAP3) instead of checking for
->>>> !cpu_is_omap44xx(). This avoids having to update the error check with a
->>>> '&&   !cpu_is_omap54xx()' when OMAP5 is introduced and possibly similar updates
->>>> when further OMAP generations are added.
->>>>
->>>
->>> Let me add some flavor here :)
->>>
->>> AM33xx, which has module level control, but falls under OMAP3 family of
->>> devices. cpu_is_omap34xx() is true for AM33xx device and we have to add
->>> check in all these functions. And I am sure we will have many of such
->>> devices in the future.
->>>
->>> Can we use some flag based option here, instead of cpu_is_xxx() check?
->>>
->>
->> The intent of this patch was to make the error handling uniform across
->> all modules control functions in hwmod, and it atleast addresses one
->> problem of having to update these checks every time a new OMAP gets
->> added.
->>
->> The problem that you bring up with AM33xx is regardless of this patch
->> (you would still need to go update every !cpu_is_omap44xx() check)
->
-> Indeed, in any of cpu_is_xxx() check implementation, I have to add check
-> for cpu_is_am33xx().
+Care to mention which commit broke the compile?
 
-I hope we can avoid adding more cpu_is_amXXXX. That should be a last resort.
+Regards,
 
-Jon
+Tony
+ 
+> Cc: Kevin Hilman <khilman@ti.com>
+> Cc: Tony Lindgren <tony@atomide.com>
+> Signed-off-by: Govindraj.R <govindraj.raja@ti.com>
+> ---
+>  arch/arm/mach-omap2/pm.c |    1 +
+>  1 files changed, 1 insertions(+), 0 deletions(-)
+> 
+> diff --git a/arch/arm/mach-omap2/pm.c b/arch/arm/mach-omap2/pm.c
+> index a7bdec6..70da4f7 100644
+> --- a/arch/arm/mach-omap2/pm.c
+> +++ b/arch/arm/mach-omap2/pm.c
+> @@ -16,6 +16,7 @@
+>  #include <linux/opp.h>
+>  #include <linux/export.h>
+>  #include <linux/suspend.h>
+> +#include <asm/system_misc.h>
+>  
+>  #include <plat/omap-pm.h>
+>  #include <plat/omap_device.h>
+> -- 
+> 1.7.5.4
+> 
