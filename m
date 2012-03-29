@@ -1,107 +1,44 @@
-From: "Joe Woodward" <jw@terrafix.co.uk>
-Subject: Re: Suspend broken on 3.3?
-Date: Thu, 29 Mar 2012 10:46:43 +0100
-Message-ID: <WC20120329094643.651766@terrafix.co.uk>
-References: <87haxaq3ua.fsf@ti.com> <CAMrsUd++maNjaK87bcRUqVHtz5zySujQXZK1YaMH9vnHVWCDag@mail.gmail.com> <878viln2t5.fsf@ti.com> <CAMrsUdKXZL4nT0MW=BcD53PsQFE+W1inij3XWe0e5+BjJF3odg@mail.gmail.com> <WC20120328153855.621724@terrafix.co.uk> <87vcloipow.fsf@ti.com> <WC20120329083556.20174D@terrafix.co.uk> <CAM=Q2cvpUuy4kVynOrT+Rng1OgSqRmsS9e3uTTc=_fOwUgrD_g@mail.gmail.com>
+From: Tarun Kanti DebBarma <tarun.kanti@ti.com>
+Subject: [PATCH v3 4/4] ARM: OMAP: Remove OMAP_GPIO_IRQ macro definition
+Date: Thu, 29 Mar 2012 15:31:57 +0530
+Message-ID: <1333015317-11866-5-git-send-email-tarun.kanti@ti.com>
+References: <1333015317-11866-1-git-send-email-tarun.kanti@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
+Content-Type: text/plain
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from smtp1.keele.netcentral.co.uk ([212.57.235.197]:45296 "EHLO
-	smtp3.keele.netcentral.co.uk" rhost-flags-OK-FAIL-OK-OK)
-	by vger.kernel.org with ESMTP id S1751796Ab2C2JrH (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>);
-	Thu, 29 Mar 2012 05:47:07 -0400
-In-Reply-To: <CAM=Q2cvpUuy4kVynOrT+Rng1OgSqRmsS9e3uTTc=_fOwUgrD_g@mail.gmail.com>
+Received: from devils.ext.ti.com ([198.47.26.153]:57598 "EHLO
+	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754439Ab2C2KCQ (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 29 Mar 2012 06:02:16 -0400
+In-Reply-To: <1333015317-11866-1-git-send-email-tarun.kanti@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Shubhrajyoti Datta <omaplinuxkernel@gmail.com>
-Cc: Kevin Hilman <khilman@ti.com>, "Raja, Govindraj" <govindraj.raja@ti.com>, linux-omap@vger.kernel.org, Felipe Balbi <balbi@ti.com>, Paul Walmsley <paul@pwsan.com>, neilb@suse.de
+To: linux-omap@vger.kernel.org
+Cc: olof@lixom.net, tony@atomide.com, khilman@ti.com, b-cousson@ti.com, grant.likely@secretlab.ca, dmitry.torokhov@gmail.com, arnd@arndb.de, linux-arm-kernel@lists.infradead.org, Tarun Kanti DebBarma <tarun.kanti@ti.com>
 
-> Hi Joe,
-> 
-> > After digging a bit further I found that the problem isn't lost
-> characters or character corruption at all...
-> >
-> > The UART is actually at 460KBaud (not 900KBaud as I mentioned
-> earlier).
-> How did you verify that register read?
-> 
+Since all references to OMAP_GPIO_IRQ macro are replaced now
+with gpio_to_irq(), this can be removed altogether.
 
-I actually looked at the setting applied in my code (which I should have done earlier, oops :p).
+Signed-off-by: Tarun Kanti DebBarma <tarun.kanti@ti.com>
+---
+ arch/arm/plat-omap/include/plat/gpio.h |    4 ----
+ 1 files changed, 0 insertions(+), 4 deletions(-)
 
-...
-  newtio.c_iflag = (IGNPAR);
-  newtio.c_oflag = 0;
-  newtio.c_cflag = B460800 | CS8 | CLOCAL | CREAD;
-  newtio.c_lflag = 0;
-
-  newtio.c_cc[VINTR]    = 0;     /* Ctrl-c */ 
-  newtio.c_cc[VQUIT]    = 0;     /* Ctrl-\ */
-  newtio.c_cc[VERASE]   = 0;     /* del */
-  newtio.c_cc[VKILL]    = 0;     /* @ */
-  newtio.c_cc[VEOF]     = 0;     /* Ctrl-d */
-  newtio.c_cc[VTIME]    = 0;     /* inter-character timer unused */
-  newtio.c_cc[VMIN]     = 1;     /* blocking read until 1 character arrives */
-  newtio.c_cc[VSWTC]    = 0;     /* '\0' */
-  newtio.c_cc[VSTART]   = 0;     /* Ctrl-q */ 
-  newtio.c_cc[VSTOP]    = 0;     /* Ctrl-s */
-  newtio.c_cc[VSUSP]    = 0;     /* Ctrl-z */
-  newtio.c_cc[VEOL]     = 0;     /* '\0' */
-  newtio.c_cc[VREPRINT] = 0;     /* Ctrl-r */
-  newtio.c_cc[VDISCARD] = 0;     /* Ctrl-u */
-  newtio.c_cc[VWERASE]  = 0;     /* Ctrl-w */
-  newtio.c_cc[VLNEXT]   = 0;     /* Ctrl-v */
-  newtio.c_cc[VEOL2]    = 0;     /* '\0' */
-
-  /* Clean the modem line and activate the settings for the port
-  */
-  tcflush (handle->serialFD, TCIFLUSH);
-  tcsetattr (handle->serialFD, TCSANOW, &newtio);
-...
-
-I then loop read from a file descriptor to see the received bytes:
-
-  serialFD = open ("/dev/ttyO0", O_RDWR | O_NOCTTY); 
-...
-  while (1) {
-    count = read (serialFD, buffer, MAXIMUM_LINE_LENGTH);
-    ...
-    debug here...
-    ...
-  }
-
-And it's by inspecting the bytes read that I noticed the inserted 0x00 on 3.3.
-
-> 
-> The data received is very bursty (i.e. sets of messages every second
-> or so), containing a
-> > sync sequence to indicate a start of packet.
-> >
-> > The received bytes should be: 0x01, 0x52, 0x41 ....rest of packet.
-> >
-> > This works 100% of the time on 3.2, but on 3.3 I sometimes (but not
-> always) get: 0x01, 0x00, 0x52, 0x41.
-> >
-> > i.e. there is a NULL/0x00 inserted after the first character.
-> >
-> > All this is tested using a very simple userspace application thats
-> reads data from ttyO1.
-> >
-> > Any ideas? Should I kick open a new thread as it's not really to do
-> with suspend anymore?
-> Is there any flow control you are using?
-
-No flow control, but lack of flow control hasn't caused problems up to 3.2.
-
-Cheers,
-Joe
-
-> 
-> >
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-omap"
-> in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
-
+diff --git a/arch/arm/plat-omap/include/plat/gpio.h b/arch/arm/plat-omap/include/plat/gpio.h
+index 9e86ee0..d4df414 100644
+--- a/arch/arm/plat-omap/include/plat/gpio.h
++++ b/arch/arm/plat-omap/include/plat/gpio.h
+@@ -158,10 +158,6 @@
+ #define OMAP_MPUIO(nr)		(OMAP_MAX_GPIO_LINES + (nr))
+ #define OMAP_GPIO_IS_MPUIO(nr)	((nr) >= OMAP_MAX_GPIO_LINES)
+ 
+-#define OMAP_GPIO_IRQ(nr)	(OMAP_GPIO_IS_MPUIO(nr) ? \
+-				 IH_MPUIO_BASE + ((nr) & 0x0f) : \
+-				 IH_GPIO_BASE + (nr))
+-
+ #define METHOD_MPUIO		0
+ #define METHOD_GPIO_1510	1
+ #define METHOD_GPIO_1610	2
+-- 
+1.7.0.4
 
