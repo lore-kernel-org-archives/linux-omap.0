@@ -1,7 +1,7 @@
 From: Bryan Wu <bryan.wu@canonical.com>
-Subject: [PATCH 06/18] ARM: mach-orion5x: convert custom LED code to gpio_led and LED CPU trigger
-Date: Fri, 30 Mar 2012 19:58:21 +0800
-Message-ID: <1333108713-12707-7-git-send-email-bryan.wu@canonical.com>
+Subject: [PATCH 08/18] ARM: mach-integrator: retire custom LED code
+Date: Fri, 30 Mar 2012 19:58:23 +0800
+Message-ID: <1333108713-12707-9-git-send-email-bryan.wu@canonical.com>
 References: <1333108713-12707-1-git-send-email-bryan.wu@canonical.com>
 Return-path: <linux-kernel-owner@vger.kernel.org>
 In-Reply-To: <1333108713-12707-1-git-send-email-bryan.wu@canonical.com>
@@ -9,161 +9,237 @@ Sender: linux-kernel-owner@vger.kernel.org
 To: tony@atomide.com, linux@arm.linux.org.uk, rpurdie@rpsys.net, manuel.lauss@gmail.com, cjb@laptop.org, cbou@mail.ru, dwmw2@infradead.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org, linus.walleij@linaro.org, akpm@linux-foundation.org
 List-Id: linux-omap@vger.kernel.org
 
-Signed-off-by: Bryan Wu <bryan.wu@canonical.com>
-Acked-by: Nicolas Pitre <nico@fluxnic.net>
----
- arch/arm/mach-orion5x/rd88f5181l-fxo-setup.c |    1 -
- arch/arm/mach-orion5x/rd88f5181l-ge-setup.c  |    1 -
- arch/arm/mach-orion5x/rd88f5182-setup.c      |   72 ++++++++------------------
- arch/arm/mach-orion5x/rd88f6183ap-ge-setup.c |    1 -
- 4 files changed, 22 insertions(+), 53 deletions(-)
+Use the LED in core module for CPU activity and also enable 4
+debugging LEDs in baseboard.
 
-diff --git a/arch/arm/mach-orion5x/rd88f5181l-fxo-setup.c b/arch/arm/mach-orion5x/rd88f5181l-fxo-setup.c
-index 292038f..698ad13 100644
---- a/arch/arm/mach-orion5x/rd88f5181l-fxo-setup.c
-+++ b/arch/arm/mach-orion5x/rd88f5181l-fxo-setup.c
-@@ -18,7 +18,6 @@
- #include <linux/ethtool.h>
- #include <net/dsa.h>
- #include <asm/mach-types.h>
+The CPU activity LED is now handled by the trigger in the leds
+subsystem, retire this old CONFIG_LEDS-based code.
+
+Signed-off-by: Bryan Wu <bryan.wu@canonical.com>
+---
+ arch/arm/mach-integrator/Makefile |    3 +-
+ arch/arm/mach-integrator/core.c   |    1 -
+ arch/arm/mach-integrator/leds.c   |  158 ++++++++++++++++++++++---------------
+ 3 files changed, 96 insertions(+), 66 deletions(-)
+
+diff --git a/arch/arm/mach-integrator/Makefile b/arch/arm/mach-integrator/Makefile
+index ebeef96..5521d18 100644
+--- a/arch/arm/mach-integrator/Makefile
++++ b/arch/arm/mach-integrator/Makefile
+@@ -4,11 +4,10 @@
+ 
+ # Object file lists.
+ 
+-obj-y					:= core.o lm.o
++obj-y					:= core.o lm.o leds.o
+ obj-$(CONFIG_ARCH_INTEGRATOR_AP)	+= integrator_ap.o
+ obj-$(CONFIG_ARCH_INTEGRATOR_CP)	+= integrator_cp.o
+ 
+-obj-$(CONFIG_LEDS)			+= leds.o
+ obj-$(CONFIG_PCI)			+= pci_v3.o pci.o
+ obj-$(CONFIG_CPU_FREQ_INTEGRATOR)	+= cpu.o
+ obj-$(CONFIG_INTEGRATOR_IMPD1)		+= impd1.o
+diff --git a/arch/arm/mach-integrator/core.c b/arch/arm/mach-integrator/core.c
+index 8c53562..0c7c4ef 100644
+--- a/arch/arm/mach-integrator/core.c
++++ b/arch/arm/mach-integrator/core.c
+@@ -28,7 +28,6 @@
+ #include <mach/cm.h>
+ #include <mach/irqs.h>
+ 
 -#include <asm/leds.h>
- #include <asm/mach/arch.h>
- #include <asm/mach/pci.h>
- #include <mach/orion5x.h>
-diff --git a/arch/arm/mach-orion5x/rd88f5181l-ge-setup.c b/arch/arm/mach-orion5x/rd88f5181l-ge-setup.c
-index c44eaba..0379f5b 100644
---- a/arch/arm/mach-orion5x/rd88f5181l-ge-setup.c
-+++ b/arch/arm/mach-orion5x/rd88f5181l-ge-setup.c
-@@ -19,7 +19,6 @@
- #include <linux/i2c.h>
- #include <net/dsa.h>
  #include <asm/mach-types.h>
--#include <asm/leds.h>
- #include <asm/mach/arch.h>
- #include <asm/mach/pci.h>
- #include <mach/orion5x.h>
-diff --git a/arch/arm/mach-orion5x/rd88f5182-setup.c b/arch/arm/mach-orion5x/rd88f5182-setup.c
-index e3ce617..8bc8962 100644
---- a/arch/arm/mach-orion5x/rd88f5182-setup.c
-+++ b/arch/arm/mach-orion5x/rd88f5182-setup.c
-@@ -19,8 +19,8 @@
- #include <linux/mv643xx_eth.h>
- #include <linux/ata_platform.h>
- #include <linux/i2c.h>
+ #include <asm/mach/time.h>
+ #include <asm/pgtable.h>
+diff --git a/arch/arm/mach-integrator/leds.c b/arch/arm/mach-integrator/leds.c
+index 466defa..dab912b 100644
+--- a/arch/arm/mach-integrator/leds.c
++++ b/arch/arm/mach-integrator/leds.c
+@@ -1,90 +1,122 @@
+ /*
+- *  linux/arch/arm/mach-integrator/leds.c
++ * Driver for the 4 user LEDs found on the Integrator AP/CP baseboard
++ * Based on Versatile and RealView machine LED code
+  *
+- *  Integrator/AP and Integrator/CP LED control routines
+- *
+- *  Copyright (C) 1999 ARM Limited
+- *  Copyright (C) 2000 Deep Blue Solutions Ltd
+- *
+- * This program is free software; you can redistribute it and/or modify
+- * it under the terms of the GNU General Public License as published by
+- * the Free Software Foundation; either version 2 of the License, or
+- * (at your option) any later version.
+- *
+- * This program is distributed in the hope that it will be useful,
+- * but WITHOUT ANY WARRANTY; without even the implied warranty of
+- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+- * GNU General Public License for more details.
+- *
+- * You should have received a copy of the GNU General Public License
+- * along with this program; if not, write to the Free Software
+- * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
++ * License terms: GNU General Public License (GPL) version 2
++ * Author: Bryan Wu <bryan.wu@canonical.com>
+  */
+ #include <linux/kernel.h>
+ #include <linux/init.h>
+-#include <linux/smp.h>
+-#include <linux/spinlock.h>
+ #include <linux/io.h>
++#include <linux/slab.h>
 +#include <linux/leds.h>
- #include <asm/mach-types.h>
+ 
++#include <mach/cm.h>
+ #include <mach/hardware.h>
+ #include <mach/platform.h>
 -#include <asm/leds.h>
- #include <asm/mach/arch.h>
- #include <asm/mach/pci.h>
- #include <mach/orion5x.h>
-@@ -53,12 +53,6 @@
- #define RD88F5182_PCI_SLOT0_IRQ_A_PIN	7
- #define RD88F5182_PCI_SLOT0_IRQ_B_PIN	6
+-#include <asm/mach-types.h>
+-#include <mach/cm.h>
  
--/*
-- * GPIO Debug LED
-- */
--
--#define RD88F5182_GPIO_DBG_LED		0
--
- /*****************************************************************************
-  * 16M NOR Flash on Device bus CS1
-  ****************************************************************************/
-@@ -83,55 +77,32 @@ static struct platform_device rd88f5182_nor_flash = {
- 	.resource		= &rd88f5182_nor_flash_resource,
- };
+-static int saved_leds;
++#define ALPHA_REG __io_address(INTEGRATOR_DBG_BASE)
++#define LEDREG	(__io_address(INTEGRATOR_DBG_BASE) + INTEGRATOR_DBG_LEDS_OFFSET)
++
++struct integrator_led {
++	struct led_classdev	cdev;
++	u8			mask;
++};
++
++/*
++ * The triggers lines up below will only be used if the
++ * LED triggers are compiled in.
++ */
++static const struct {
++	const char *name;
++	const char *trigger;
++} integrator_leds[] = {
++	{ "integrator:green0", "heartbeat", },
++	{ "integrator:yellow", },
++	{ "integrator:red", },
++	{ "integrator:green1", },
++	{ "integrator:core_module", "cpu0", },
++};
  
--#ifdef CONFIG_LEDS
--
- /*****************************************************************************
-- * Use GPIO debug led as CPU active indication
-+ * Use GPIO LED as CPU active indication
-  ****************************************************************************/
+-static void integrator_leds_event(led_event_t ledevt)
++static void integrator_led_set(struct led_classdev *cdev,
++			      enum led_brightness b)
+ {
+-	unsigned long flags;
+-	const unsigned int dbg_base = IO_ADDRESS(INTEGRATOR_DBG_BASE);
+-	unsigned int update_alpha_leds;
++	struct integrator_led *led = container_of(cdev,
++						 struct integrator_led, cdev);
++	u32 reg = __raw_readl(LEDREG);
  
--static void rd88f5182_dbgled_event(led_event_t evt)
--{
--	int val;
--
--	if (evt == led_idle_end)
--		val = 1;
--	else if (evt == led_idle_start)
--		val = 0;
--	else
--		return;
--
--	gpio_set_value(RD88F5182_GPIO_DBG_LED, val);
--}
--
--static int __init rd88f5182_dbgled_init(void)
--{
--	int pin;
--
--	if (machine_is_rd88f5182()) {
--		pin = RD88F5182_GPIO_DBG_LED;
-+#define RD88F5182_GPIO_LED		0
+-	// yup, change the LEDs
+-	local_irq_save(flags);
+-	update_alpha_leds = 0;
++	if (b != LED_OFF)
++		reg |= led->mask;
++	else
++		reg &= ~led->mask;
  
--		if (gpio_request(pin, "DBGLED") == 0) {
--			if (gpio_direction_output(pin, 0) != 0) {
--				printk(KERN_ERR "rd88f5182_dbgled_init failed "
--						"to set output pin %d\n", pin);
--				gpio_free(pin);
--				return 0;
--			}
--		} else {
--			printk(KERN_ERR "rd88f5182_dbgled_init failed "
--					"to request gpio %d\n", pin);
--			return 0;
--		}
--
--		leds_event = rd88f5182_dbgled_event;
+-	switch(ledevt) {
+-	case led_idle_start:
+-		cm_control(CM_CTRL_LED, 0);
+-		break;
++	while (__raw_readl(ALPHA_REG) & 1)
++		cpu_relax();
+ 
+-	case led_idle_end:
+-		cm_control(CM_CTRL_LED, CM_CTRL_LED);
+-		break;
++	__raw_writel(reg, LEDREG);
++}
+ 
+-	case led_timer:
+-		saved_leds ^= GREEN_LED;
+-		update_alpha_leds = 1;
+-		break;
++static enum led_brightness integrator_led_get(struct led_classdev *cdev)
++{
++	struct integrator_led *led = container_of(cdev,
++						 struct integrator_led, cdev);
++	u32 reg = __raw_readl(LEDREG);
+ 
+-	case led_red_on:
+-		saved_leds |= RED_LED;
+-		update_alpha_leds = 1;
+-		break;
++	return (reg & led->mask) ? LED_FULL : LED_OFF;
++}
+ 
+-	case led_red_off:
+-		saved_leds &= ~RED_LED;
+-		update_alpha_leds = 1;
+-		break;
++static void cm_led_set(struct led_classdev *cdev,
++			      enum led_brightness b)
++{
++	if (b != LED_OFF)
++		cm_control(CM_CTRL_LED, CM_CTRL_LED);
++	else
++		cm_control(CM_CTRL_LED, 0);
++}
+ 
+-	default:
+-		break;
 -	}
--
--	return 0;
--}
-+static struct gpio_led rd88f5182_gpio_led_pins[] = {
-+	{
-+		.name		= "rd88f5182:cpu",
-+		.default_trigger = "cpu0",
-+		.gpio		= RD88F5182_GPIO_LED,
-+	},
-+};
++static enum led_brightness cm_led_get(struct led_classdev *cdev)
++{
++	u32 reg = readl(CM_CTRL);
  
--__initcall(rd88f5182_dbgled_init);
-+static struct gpio_led_platform_data rd88f5182_gpio_led_data = {
-+	.leds		= rd88f5182_gpio_led_pins,
-+	.num_leds	= ARRAY_SIZE(rd88f5182_gpio_led_pins),
-+};
- 
--#endif
-+static struct platform_device rd88f5182_gpio_leds = {
-+	.name	= "leds-gpio",
-+	.id	= -1,
-+	.dev	= {
-+		.platform_data = &rd88f5182_gpio_led_data,
-+	},
-+};
- 
- /*****************************************************************************
-  * PCI
-@@ -299,6 +270,7 @@ static void __init rd88f5182_init(void)
- 
- 	orion5x_setup_dev1_win(RD88F5182_NOR_BASE, RD88F5182_NOR_SIZE);
- 	platform_device_register(&rd88f5182_nor_flash);
-+	platform_device_register(&rd88f5182_gpio_leds);
- 
- 	i2c_register_board_info(0, &rd88f5182_i2c_rtc, 1);
+-	if (update_alpha_leds) {
+-		while (__raw_readl(dbg_base + INTEGRATOR_DBG_ALPHA_OFFSET) & 1);
+-		__raw_writel(saved_leds, dbg_base + INTEGRATOR_DBG_LEDS_OFFSET);
+-	}
+-	local_irq_restore(flags);
++	return (reg & CM_CTRL_LED) ? LED_FULL : LED_OFF;
  }
-diff --git a/arch/arm/mach-orion5x/rd88f6183ap-ge-setup.c b/arch/arm/mach-orion5x/rd88f6183ap-ge-setup.c
-index 2c5fab0..e2fd500 100644
---- a/arch/arm/mach-orion5x/rd88f6183ap-ge-setup.c
-+++ b/arch/arm/mach-orion5x/rd88f6183ap-ge-setup.c
-@@ -21,7 +21,6 @@
- #include <linux/ethtool.h>
- #include <net/dsa.h>
- #include <asm/mach-types.h>
--#include <asm/leds.h>
- #include <asm/mach/arch.h>
- #include <asm/mach/pci.h>
- #include <mach/orion5x.h>
+ 
+-static int __init leds_init(void)
++static int __init integrator_leds_init(void)
+ {
+-	if (machine_is_integrator() || machine_is_cintegrator())
+-		leds_event = integrator_leds_event;
++	int i;
++
++	for (i = 0; i < ARRAY_SIZE(integrator_leds); i++) {
++		struct integrator_led *led;
++
++		led = kzalloc(sizeof(*led), GFP_KERNEL);
++		if (!led)
++			break;
++
++
++		led->cdev.name = integrator_leds[i].name;
++
++		if (i == 4) { /* Setting for LED in core module */
++			led->cdev.brightness_set = cm_led_set;
++			led->cdev.brightness_get = cm_led_get;
++		} else {
++			led->cdev.brightness_set = integrator_led_set;
++			led->cdev.brightness_get = integrator_led_get;
++		}
++
++		led->cdev.default_trigger = integrator_leds[i].trigger;
++		led->mask = BIT(i);
++
++		if (led_classdev_register(NULL, &led->cdev) < 0) {
++			kfree(led);
++			break;
++		}
++	}
+ 
+ 	return 0;
+ }
+ 
+-core_initcall(leds_init);
++/*
++ * Since we may have triggers on any subsystem, defer registration
++ * until after subsystem_init.
++ */
++fs_initcall(integrator_leds_init);
 -- 
 1.7.9.1
