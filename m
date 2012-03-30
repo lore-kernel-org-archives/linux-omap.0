@@ -1,39 +1,134 @@
-From: Santosh Shilimkar <santosh.shilimkar@ti.com>
-Subject: Re: OMAP4 errata i740
-Date: Fri, 30 Mar 2012 17:54:04 +0530
-Message-ID: <4F75A5E4.4080507@ti.com>
-References: <1333094862.1932.15.camel@deskari> <CAMQu2gx30OLnxTS8TOh=xc36fFgtPs08Zhhx6raYDAQ3nxfO1g@mail.gmail.com> <1333095982.1932.21.camel@deskari> <4F756F66.6020103@ti.com> <4F757014.5030006@ti.com> <4F757262.60409@ti.com> <4F7589A3.6080104@ti.com> <4F758B15.1040905@ti.com> <4F75915D.9050205@ti.com> <CAMQu2gzXoqwdmd6xMs+Rp6TQDJtjQf+ydtRb3AL6+APnmfHzHA@mail.gmail.com> <4F75963C.2000508@ti.com> <CAMQu2gx0uOV9Kr=eQe_3e93RfE8L5txLsV4bvYOgAnjxQZr-GA@mail.gmail.com> <4F75A06A.80201@ti.com>
+From: "Raja, Govindraj" <govindraj.raja@ti.com>
+Subject: Re: Suspend broken on 3.3?
+Date: Fri, 30 Mar 2012 17:54:24 +0530
+Message-ID: <CAMrsUd+AvVp3n1oAREEEmCSBaeA-m68j7gLjXEeJKimX1erfUw@mail.gmail.com>
+References: <WC20120329112755.541787@terrafix.co.uk> <WC20120329114024.43178C@terrafix.co.uk>
+ <CAMrsUdKR4nwbBEOx9JPeS=GLDPyioHuijK2596=q2OwJ+ARbxA@mail.gmail.com>
+ <WC20120330075339.4017FC@terrafix.co.uk> <CAMrsUdKTx84_oHyS9JTCBTqtV-7907snCGFDrOXnPuNVSnvz7w@mail.gmail.com>
+ <WC20120330092609.901834@terrafix.co.uk> <CAMrsUdJrJZXjYOs87xmT_J0w7S=VZyfR0tBmhhuYOFmFsOB3SA@mail.gmail.com>
+ <WC20120330110442.381887@terrafix.co.uk>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aog102.obsmtp.com ([74.125.149.69]:59840 "EHLO
-	na3sys009aog102.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1760346Ab2C3MYM (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>);
-	Fri, 30 Mar 2012 08:24:12 -0400
-Received: by obbta17 with SMTP id ta17so936139obb.3
-        for <linux-omap@vger.kernel.org>; Fri, 30 Mar 2012 05:24:10 -0700 (PDT)
-In-Reply-To: <4F75A06A.80201@ti.com>
+Received: from na3sys009aog123.obsmtp.com ([74.125.149.149]:58398 "EHLO
+	na3sys009aog123.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1760380Ab2C3MYq convert rfc822-to-8bit
+	(ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Fri, 30 Mar 2012 08:24:46 -0400
+Received: by ggmi1 with SMTP id i1so222232ggm.3
+        for <linux-omap@vger.kernel.org>; Fri, 30 Mar 2012 05:24:44 -0700 (PDT)
+In-Reply-To: <WC20120330110442.381887@terrafix.co.uk>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "Cousson, Benoit" <b-cousson@ti.com>
-Cc: Archit Taneja <a0393947@ti.com>, Tomi Valkeinen <tomi.valkeinen@ti.com>, Paul Walmsley <paul@pwsan.com>, linux-omap <linux-omap@vger.kernel.org>, Kevin Hilman <khilman@ti.com>
+To: Joe Woodward <jw@terrafix.co.uk>
+Cc: Paul Walmsley <paul@pwsan.com>, Kevin Hilman <khilman@ti.com>, linux-omap@vger.kernel.org, Felipe Balbi <balbi@ti.com>, neilb@suse.de
 
-On Friday 30 March 2012 05:30 PM, Cousson, Benoit wrote:
-> On 3/30/2012 1:20 PM, Shilimkar, Santosh wrote:
-
-[..]
-
-> Playing with clock domain state from the driver is just not acceptable.
+On Fri, Mar 30, 2012 at 4:34 PM, Joe Woodward <jw@terrafix.co.uk> wrote=
+:
 >
+>
+> -----Original Message-----
+> From: "Raja, Govindraj" <govindraj.raja@ti.com>
+> To: Joe Woodward <jw@terrafix.co.uk>
+> Cc: Paul Walmsley <paul@pwsan.com>, Kevin Hilman <khilman@ti.com>, li=
+nux-omap@vger.kernel.org, Felipe Balbi <balbi@ti.com>, neilb@suse.de
+> Date: Fri, 30 Mar 2012 15:45:19 +0530
+> Subject: Re: Suspend broken on 3.3?
+>
+>> On Fri, Mar 30, 2012 at 2:56 PM, Joe Woodward <jw@terrafix.co.uk>
+>> wrote:
+>> > ...[snip]...
+>> >>
+>> >> Could you please try attached patch and let me know if this solve=
+s
+>> the
+>> >> rx issue as well,
+>> >> without using dma mode.
+>> >>
+>> >
+>> > Right,
+>> >
+>> > I think we've getting closer, but still not quite there...
+>> >
+>> > Firstly, the patch adds an include to "iomap.h" - but this doesn't
+>> exist in stock 3.3. Simply removing this include seemed to allow the
+>> compile to complete
+>> > successfully.
+>>
+>> Sorry I forgot to specify this is needed for latest mainline.
+>>
+>> >
+>> > With this patch applied (and not in DMA mode) I now get the
+>> following:
+>> > =A0- If I leave wake-from-suspend enabled for the serial port then=
+ it
+>> works correctly (i.e. no lost/extra 0x00 characters).
+>> > =A0- If I disable wake-from-suspend for the serial port and go thr=
+ough
+>> a suspend cycle (i.e. suspend and then wake), then the serial port
+>> starts to misbehave as
+>> > before.
+>> > =A0- If I then re-enable wake-from-suspend and go through a suspen=
+d
+>> cycle it starts to work correctly again.
+>> >
+>> > So the problem is still that if wake-from-suspend is disabled for =
+a
+>> serial port, and a suspend cycle is performed then when woken the
+>> serial port will not function
+>> > correctly if operating in interrupt-mode.
+>>
+>> I tried it on my 3430sdp but strangely I don't see a 0x00 char read
+>> after disabling uart wakeups
+>> and waking up by keypad press.
+>>
+>> Probably as a quick try we can try doing uart_insert_char only if da=
+ta
+>> was read from rx fifo
+>> (Attached patch)
+>>
+>
+> Sadly the patch makes no difference.
+>
+> I'm suprised you aren't seeing similar effects.
+>
+> I've done more testing, and a simplified test case is as follows:
+> - take a stock 3.3 kernel and apply your patch to allow disabling of =
+wake-from-suspend for the serial ports.
+> - disable wake-from-suspend for the console tty:
+> =A0echo disable > /sys/devices/platform/omap/omap_uart.2/power/wakeup
+> - perform a suspend (you'll need a button or something to wake you no=
+w that the console wont).
+> =A0echo mem > /sys/power/state
+>
+> At this point the console is noticable/painfully slow. No characters =
+are lost, but it's obvious something isn't right!
 
-Sorry for small digration but the clock-domain/power domain APIs
-were coming in between CPUIDLE code movement to drivers/idle/*
 
-How do we deal with that code which is today lying under platform
-code.
+Yes I see this behavior with console now it becomes very slow after we
+disable module level wakeups.
 
-Regards
-Santosh
+One difference to note is :
 
+in 3.2 =3D> full system PM is prevented in idle path if uart is active
+i.e, MPU will not hit retention
+
+in 3.3 =3D> MPU will hit retention independently of uart is active or n=
+ot.
+             I think the way to get MPU qos for uart port activity
+while in irq mode is to use PM_WKEN1
+             reg settings, meaning enabling module level wakeup event
+generation. Disabling it is causing this
+             slow response.
+
+Checking if we can workaround this scenario.
+
+--
+Thanks,
+Govindraj.R
+--
+To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
