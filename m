@@ -1,150 +1,313 @@
-From: Russell King - ARM Linux <linux@arm.linux.org.uk>
-Subject: Re: [PATCH] cpufreq: OMAP: fix build errors: depends on
-	ARCH_OMAP2PLUS
-Date: Fri, 30 Mar 2012 14:12:00 +0100
-Message-ID: <20120330131200.GA23442@n2100.arm.linux.org.uk>
-References: <1332807568-638-1-git-send-email-khilman@ti.com>
+From: Santosh Shilimkar <santosh.shilimkar@ti.com>
+Subject: [PATCH 2/3] ARM: OMAP4: cpuidle: Use coupled cpuidle states to implement SMP cpuidle.
+Date: Fri, 30 Mar 2012 18:57:27 +0530
+Message-ID: <1333114048-26136-3-git-send-email-santosh.shilimkar@ti.com>
+References: <1333114048-26136-1-git-send-email-santosh.shilimkar@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <cpufreq-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <1332807568-638-1-git-send-email-khilman@ti.com>
-Sender: cpufreq-owner@vger.kernel.org
-To: Kevin Hilman <khilman@ti.com>
-Cc: Dave Jones <davej@redhat.com>, cpufreq@vger.kernel.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Grazvydas Ignotas <notasas@gmail.com>
+Content-Type: text/plain
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from comal.ext.ti.com ([198.47.26.152]:54871 "EHLO comal.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1760037Ab2C3N1l (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Fri, 30 Mar 2012 09:27:41 -0400
+In-Reply-To: <1333114048-26136-1-git-send-email-santosh.shilimkar@ti.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: linux-omap@vger.kernel.org
+Cc: khilman@ti.com, ccross@android.com, linux-arm-kernel@lists.infradead.org, Santosh Shilimkar <santosh.shilimkar@ti.com>
 
-On Mon, Mar 26, 2012 at 05:19:28PM -0700, Kevin Hilman wrote:
-> The OMAP driver needs a 'depends on ARCH_OMAP2PLUS' since it only
-> builds for OMAP2+ platforms.
-> 
-> This 'depends on' was in the original patch from Russell King, but was
-> erroneously removed by me when making this option user-selectable in
-> commit b09db45c (cpufreq: OMAP driver depends CPUfreq tables.)  This
-> patch remedies that.
-> 
-> Apologies to Russell King for breaking his originally working patch.
-> 
-> Also, thanks to Grazvydas Ignotas for reporting the same problem.
-> 
-> Cc: Russell King <rmk+kernel@arm.linux.org.uk>
-> Cc: Grazvydas Ignotas <notasas@gmail.com>
-> Signed-off-by: Kevin Hilman <khilman@ti.com>
-> ---
-> Dave, this applies on top of your current fixes branch, and fixes a 
-> problem introduced there by me.  Please merge for v3.4-rc.  Thanks.
+OMAP4 CPUDILE driver is converted mainly based on notes from the
+coupled cpuidle patch series.
 
-Can you please check that you've picked up everything that's necessary,
-as I'm still seeing the below as outstanding from my original patch.
+The changes include :
+- Register both CPUs and C-states to cpuidle driver.
+- Set struct cpuidle_device.coupled_cpus
+- Set struct cpuidle_device.safe_state to non coupled state.
+- Set CPUIDLE_FLAG_COUPLED in struct cpuidle_state.flags for each
+  state that affects multiple cpus.
+- Separate ->enter hooks for coupled & simple idle.
+- CPU0 wait loop for CPU1 power transition.
+- CPU1 wakeup mechanism for the idle exit.
+- Enabling ARCH_NEEDS_CPU_IDLE_COUPLED for OMAP4.
 
-commit e55a42528cebb8fa7408dc95abb3859639a46750
-Author: Russell King <rmk+kernel@arm.linux.org.uk>
-Date:   Wed Feb 15 11:20:51 2012 +0000
+Thanks to Kevin Hilman and Colin Cross on the suggestions/fixes
+on the intermediate version of this patch.
 
-    ARM: OMAP: fix cpufreq build
-    
-    OMAPs cpufreq requires the frequency table support, but nothing ensures
-    that this is selected.  This can result in configurations which fail to
-    build:
-    
-    drivers/built-in.o:(.data+0x5238): undefined reference to `cpufreq_freq_attr_scaling_available_freqs'
-    drivers/cpufreq/omap-cpufreq.c:88: undefined reference to `cpufreq_frequency_table_target'
-    drivers/cpufreq/omap-cpufreq.c:60: undefined reference to `cpufreq_frequency_table_verify'
-    drivers/cpufreq/omap-cpufreq.c:186: undefined reference to `cpufreq_frequency_table_cpuinfo'
-    drivers/cpufreq/omap-cpufreq.c:190: undefined reference to `cpufreq_frequency_table_get_attr'
-    
-    Fix this by introducing a new configuration variable and having that
-    select CPU_FREQ_TABLE.
-    
-    Signed-off-by: Russell King <rmk+kernel@arm.linux.org.uk>
+Signed-off-by: Santosh Shilimkar <santosh.shilimkar@ti.com>
+CC: Kevin Hilman <khilman@ti.com>
+Cc: Colin Cross <ccross@android.com>
+---
+ arch/arm/mach-omap2/Kconfig       |    1 +
+ arch/arm/mach-omap2/cpuidle44xx.c |  167 ++++++++++++++++++++++---------------
+ 2 files changed, 101 insertions(+), 67 deletions(-)
 
-diff --git a/arch/arm/mach-omap2/clkt2xxx_virt_prcm_set.c b/arch/arm/mach-omap2/clkt2xxx_virt_prcm_set.c
-index 7072e0d..ad35d4e 100644
---- a/arch/arm/mach-omap2/clkt2xxx_virt_prcm_set.c
-+++ b/arch/arm/mach-omap2/clkt2xxx_virt_prcm_set.c
-@@ -166,7 +166,7 @@ int omap2_select_table_rate(struct clk *clk, unsigned long rate)
- 	return 0;
- }
+diff --git a/arch/arm/mach-omap2/Kconfig b/arch/arm/mach-omap2/Kconfig
+index e20c8ab..250786e 100644
+--- a/arch/arm/mach-omap2/Kconfig
++++ b/arch/arm/mach-omap2/Kconfig
+@@ -54,6 +54,7 @@ config ARCH_OMAP4
+ 	select PM_OPP if PM
+ 	select USB_ARCH_HAS_EHCI
+ 	select ARM_CPU_SUSPEND if PM
++	select ARCH_NEEDS_CPU_IDLE_COUPLED if CPU_IDLE
  
--#ifdef CONFIG_CPU_FREQ
-+#ifdef CONFIG_ARM_OMAP2PLUS_CPUFREQ
- /*
-  * Walk PRCM rate table and fillout cpufreq freq_table
-  * XXX This should be replaced by an OPP layer in the near future
-diff --git a/arch/arm/mach-omap2/clock.c b/arch/arm/mach-omap2/clock.c
-index f57ed5b..450feb0 100644
---- a/arch/arm/mach-omap2/clock.c
-+++ b/arch/arm/mach-omap2/clock.c
-@@ -536,7 +536,7 @@ struct clk_functions omap2_clk_functions = {
- 	.clk_set_rate		= omap2_clk_set_rate,
- 	.clk_set_parent		= omap2_clk_set_parent,
- 	.clk_disable_unused	= omap2_clk_disable_unused,
--#ifdef CONFIG_CPU_FREQ
-+#ifdef CONFIG_ARM_OMAP2PLUS_CPUFREQ
- 	/* These will be removed when the OPP code is integrated */
- 	.clk_init_cpufreq_table	= omap2_clk_init_cpufreq_table,
- 	.clk_exit_cpufreq_table	= omap2_clk_exit_cpufreq_table,
-diff --git a/arch/arm/mach-omap2/clock.h b/arch/arm/mach-omap2/clock.h
-index b8c2a68..f331cfc 100644
---- a/arch/arm/mach-omap2/clock.h
-+++ b/arch/arm/mach-omap2/clock.h
-@@ -146,7 +146,7 @@ extern const struct clksel_rate gpt_sys_rates[];
- extern const struct clksel_rate gfx_l3_rates[];
- extern const struct clksel_rate dsp_ick_rates[];
+ comment "OMAP Core Type"
+ 	depends on ARCH_OMAP2
+diff --git a/arch/arm/mach-omap2/cpuidle44xx.c b/arch/arm/mach-omap2/cpuidle44xx.c
+index f386cbe..5724393 100644
+--- a/arch/arm/mach-omap2/cpuidle44xx.c
++++ b/arch/arm/mach-omap2/cpuidle44xx.c
+@@ -21,6 +21,7 @@
+ #include "common.h"
+ #include "pm.h"
+ #include "prm.h"
++#include "clockdomain.h"
  
--#if defined(CONFIG_ARCH_OMAP2) && defined(CONFIG_CPU_FREQ)
-+#if defined(CONFIG_ARCH_OMAP2) && defined(CONFIG_ARM_OMAP2PLUS_CPUFREQ)
- extern void omap2_clk_init_cpufreq_table(struct cpufreq_frequency_table **table);
- extern void omap2_clk_exit_cpufreq_table(struct cpufreq_frequency_table **table);
- #else
-diff --git a/arch/arm/plat-omap/clock.c b/arch/arm/plat-omap/clock.c
-index 56b6f8b..618cf80 100644
---- a/arch/arm/plat-omap/clock.c
-+++ b/arch/arm/plat-omap/clock.c
-@@ -398,7 +398,7 @@ struct clk dummy_ck = {
- 	.ops	= &clkops_null,
+ #ifdef CONFIG_CPU_IDLE
+ 
+@@ -44,10 +45,11 @@ static struct cpuidle_params cpuidle_params_table[] = {
+ #define OMAP4_NUM_STATES ARRAY_SIZE(cpuidle_params_table)
+ 
+ struct omap4_idle_statedata omap4_idle_data[OMAP4_NUM_STATES];
+-static struct powerdomain *mpu_pd, *cpu0_pd, *cpu1_pd;
++static struct powerdomain *mpu_pd, *cpu_pd[NR_CPUS];
++static struct clockdomain *cpu_clkdm[NR_CPUS];
+ 
+ /**
+- * omap4_enter_idle - Programs OMAP4 to enter the specified state
++ * omap4_enter_idle_coupled_[simple/coupled] - OMAP4 cpuidle entry functions
+  * @dev: cpuidle device
+  * @drv: cpuidle driver
+  * @index: the index of state to be entered
+@@ -56,34 +58,40 @@ static struct powerdomain *mpu_pd, *cpu0_pd, *cpu1_pd;
+  * specified low power state selected by the governor.
+  * Returns the amount of time spent in the low power state.
+  */
+-static int omap4_enter_idle(struct cpuidle_device *dev,
++static int omap4_enter_idle_simple(struct cpuidle_device *dev,
++				   struct cpuidle_driver *drv,
++				   int index)
++{
++	local_fiq_disable();
++	omap_do_wfi();
++	local_fiq_enable();
++
++	return index;
++}
++
++static int omap4_enter_idle_coupled(struct cpuidle_device *dev,
+ 			struct cpuidle_driver *drv,
+ 			int index)
+ {
+ 	struct omap4_idle_statedata *cx =
+ 			cpuidle_get_statedata(&dev->states_usage[index]);
+-	u32 cpu1_state;
+ 	int cpu_id = smp_processor_id();
+ 
+ 	local_fiq_disable();
+ 
++	clockevents_notify(CLOCK_EVT_NOTIFY_BROADCAST_ENTER, &cpu_id);
++
+ 	/*
+-	 * CPU0 has to stay ON (i.e in C1) until CPU1 is OFF state.
++	 * CPU0 has to wait and stay ON until CPU1 is OFF state.
+ 	 * This is necessary to honour hardware recommondation
+ 	 * of triggeing all the possible low power modes once CPU1 is
+ 	 * out of coherency and in OFF mode.
+-	 * Update dev->last_state so that governor stats reflects right
+-	 * data.
+ 	 */
+-	cpu1_state = pwrdm_read_pwrst(cpu1_pd);
+-	if (cpu1_state != PWRDM_POWER_OFF) {
+-		index = drv->safe_state_index;
+-		cx = cpuidle_get_statedata(&dev->states_usage[index]);
++	if (dev->cpu == 0) {
++		while (pwrdm_read_pwrst(cpu_pd[1]) != PWRDM_POWER_OFF)
++			cpu_relax();
+ 	}
+ 
+-	if (index > 0)
+-		clockevents_notify(CLOCK_EVT_NOTIFY_BROADCAST_ENTER, &cpu_id);
+-
+ 	/*
+ 	 * Call idle CPU PM enter notifier chain so that
+ 	 * VFP and per CPU interrupt context is saved.
+@@ -91,25 +99,35 @@ static int omap4_enter_idle(struct cpuidle_device *dev,
+ 	if (cx->cpu_state == PWRDM_POWER_OFF)
+ 		cpu_pm_enter();
+ 
+-	pwrdm_set_logic_retst(mpu_pd, cx->mpu_logic_state);
+-	omap_set_pwrdm_state(mpu_pd, cx->mpu_state);
+-
+-	/*
+-	 * Call idle CPU cluster PM enter notifier chain
+-	 * to save GIC and wakeupgen context.
+-	 */
+-	if ((cx->mpu_state == PWRDM_POWER_RET) &&
+-		(cx->mpu_logic_state == PWRDM_POWER_OFF))
+-			cpu_cluster_pm_enter();
++	if (dev->cpu == 0) {
++		pwrdm_set_logic_retst(mpu_pd, cx->mpu_logic_state);
++		omap_set_pwrdm_state(mpu_pd, cx->mpu_state);
++
++		/*
++		 * Call idle CPU cluster PM enter notifier chain
++		 * to save GIC and wakeupgen context.
++		 */
++		if ((cx->mpu_state == PWRDM_POWER_RET) &&
++			(cx->mpu_logic_state == PWRDM_POWER_OFF))
++				cpu_cluster_pm_enter();
++	}
+ 
+ 	omap4_enter_lowpower(dev->cpu, cx->cpu_state);
+ 
++	if (dev->cpu == 0) {
++		/* Wakeup CPU1 only if it is not offlined */
++		if (cpumask_test_cpu(1, cpu_online_mask)) {
++			clkdm_wakeup(cpu_clkdm[1]);
++			clkdm_allow_idle(cpu_clkdm[1]);
++		}
++	}
++
+ 	/*
+ 	 * Call idle CPU PM exit notifier chain to restore
+ 	 * VFP and per CPU IRQ context. Only CPU0 state is
+ 	 * considered since CPU1 is managed by CPU hotplug.
+ 	 */
+-	if (pwrdm_read_prev_pwrst(cpu0_pd) == PWRDM_POWER_OFF)
++	if (pwrdm_read_prev_pwrst(cpu_pd[dev->cpu]) == PWRDM_POWER_OFF)
+ 		cpu_pm_exit();
+ 
+ 	/*
+@@ -119,8 +137,7 @@ static int omap4_enter_idle(struct cpuidle_device *dev,
+ 	if (omap4_mpuss_read_prev_context_state())
+ 		cpu_cluster_pm_exit();
+ 
+-	if (index > 0)
+-		clockevents_notify(CLOCK_EVT_NOTIFY_BROADCAST_EXIT, &cpu_id);
++	clockevents_notify(CLOCK_EVT_NOTIFY_BROADCAST_EXIT, &cpu_id);
+ 
+ 	local_fiq_enable();
+ 
+@@ -136,14 +153,17 @@ struct cpuidle_driver omap4_idle_driver = {
  };
  
--#ifdef CONFIG_CPU_FREQ
-+#ifdef CONFIG_ARM_OMAP2PLUS_CPUFREQ
- void clk_init_cpufreq_table(struct cpufreq_frequency_table **table)
+ static inline void _fill_cstate(struct cpuidle_driver *drv,
+-					int idx, const char *descr)
++					int idx, const char *descr, int flags)
  {
- 	unsigned long flags;
-diff --git a/arch/arm/plat-omap/include/plat/clock.h b/arch/arm/plat-omap/include/plat/clock.h
-index 240a7b9..879ba27 100644
---- a/arch/arm/plat-omap/include/plat/clock.h
-+++ b/arch/arm/plat-omap/include/plat/clock.h
-@@ -283,7 +283,7 @@ struct clk_functions {
- 	void		(*clk_allow_idle)(struct clk *clk);
- 	void		(*clk_deny_idle)(struct clk *clk);
- 	void		(*clk_disable_unused)(struct clk *clk);
--#ifdef CONFIG_CPU_FREQ
-+#ifdef CONFIG_ARM_OMAP2PLUS_CPUFREQ
- 	void		(*clk_init_cpufreq_table)(struct cpufreq_frequency_table **);
- 	void		(*clk_exit_cpufreq_table)(struct cpufreq_frequency_table **);
- #endif
-@@ -301,7 +301,7 @@ extern void recalculate_root_clocks(void);
- extern unsigned long followparent_recalc(struct clk *clk);
- extern void clk_enable_init_clocks(void);
- unsigned long omap_fixed_divisor_recalc(struct clk *clk);
--#ifdef CONFIG_CPU_FREQ
-+#ifdef CONFIG_ARM_OMAP2PLUS_CPUFREQ
- extern void clk_init_cpufreq_table(struct cpufreq_frequency_table **table);
- extern void clk_exit_cpufreq_table(struct cpufreq_frequency_table **table);
- #endif
-diff --git a/drivers/cpufreq/Kconfig.arm b/drivers/cpufreq/Kconfig.arm
-index 32d790d..587b578 100644
---- a/drivers/cpufreq/Kconfig.arm
-+++ b/drivers/cpufreq/Kconfig.arm
-@@ -3,8 +3,8 @@
- #
+ 	struct cpuidle_state *state = &drv->states[idx];
  
- config ARM_OMAP2PLUS_CPUFREQ
--	bool "TI OMAP2+"
--	default ARCH_OMAP2PLUS
-+	def_bool y
-+	depends on ARCH_OMAP2PLUS
- 	select CPU_FREQ_TABLE
+ 	state->exit_latency	= cpuidle_params_table[idx].exit_latency;
+ 	state->target_residency	= cpuidle_params_table[idx].target_residency;
+-	state->flags		= CPUIDLE_FLAG_TIME_VALID;
+-	state->enter		= omap4_enter_idle;
++	state->flags		= (CPUIDLE_FLAG_TIME_VALID | flags);
++	if (state->flags & CPUIDLE_FLAG_COUPLED)
++		state->enter		= omap4_enter_idle_coupled;
++	else
++		state->enter		= omap4_enter_idle_simple;
+ 	sprintf(state->name, "C%d", idx + 1);
+ 	strncpy(state->desc, descr, CPUIDLE_DESC_LEN);
+ }
+@@ -177,47 +197,60 @@ int __init omap4_idle_init(void)
+ 	unsigned int cpu_id = 0;
  
- config ARM_S3C2416_CPUFREQ
+ 	mpu_pd = pwrdm_lookup("mpu_pwrdm");
+-	cpu0_pd = pwrdm_lookup("cpu0_pwrdm");
+-	cpu1_pd = pwrdm_lookup("cpu1_pwrdm");
+-	if ((!mpu_pd) || (!cpu0_pd) || (!cpu1_pd))
++	cpu_pd[0] = pwrdm_lookup("cpu0_pwrdm");
++	cpu_pd[1] = pwrdm_lookup("cpu1_pwrdm");
++	if ((!mpu_pd) || (!cpu_pd[0]) || (!cpu_pd[1]))
+ 		return -ENODEV;
+ 
++	cpu_clkdm[0] = clkdm_lookup("mpu0_clkdm");
++	cpu_clkdm[1] = clkdm_lookup("mpu1_clkdm");
++	if (!cpu_clkdm[0] || !cpu_clkdm[1])
++		return -ENODEV;
+ 
+-	drv->safe_state_index = -1;
+-	dev = &per_cpu(omap4_idle_dev, cpu_id);
+-	dev->cpu = cpu_id;
+-
+-	/* C1 - CPU0 ON + CPU1 ON + MPU ON */
+-	_fill_cstate(drv, 0, "MPUSS ON");
+-	drv->safe_state_index = 0;
+-	cx = _fill_cstate_usage(dev, 0);
+-	cx->valid = 1;	/* C1 is always valid */
+-	cx->cpu_state = PWRDM_POWER_ON;
+-	cx->mpu_state = PWRDM_POWER_ON;
+-	cx->mpu_logic_state = PWRDM_POWER_RET;
+-
+-	/* C2 - CPU0 OFF + CPU1 OFF + MPU CSWR */
+-	_fill_cstate(drv, 1, "MPUSS CSWR");
+-	cx = _fill_cstate_usage(dev, 1);
+-	cx->cpu_state = PWRDM_POWER_OFF;
+-	cx->mpu_state = PWRDM_POWER_RET;
+-	cx->mpu_logic_state = PWRDM_POWER_RET;
+-
+-	/* C3 - CPU0 OFF + CPU1 OFF + MPU OSWR */
+-	_fill_cstate(drv, 2, "MPUSS OSWR");
+-	cx = _fill_cstate_usage(dev, 2);
+-	cx->cpu_state = PWRDM_POWER_OFF;
+-	cx->mpu_state = PWRDM_POWER_RET;
+-	cx->mpu_logic_state = PWRDM_POWER_OFF;
+-
+-	drv->state_count = OMAP4_NUM_STATES;
+-	cpuidle_register_driver(&omap4_idle_driver);
+-
+-	dev->state_count = OMAP4_NUM_STATES;
+-	if (cpuidle_register_device(dev)) {
+-		pr_err("%s: CPUidle register device failed\n", __func__);
+-			return -EIO;
++	for_each_cpu(cpu_id, cpu_online_mask) {
++		drv->safe_state_index = -1;
++		dev = &per_cpu(omap4_idle_dev, cpu_id);
++		dev->cpu = cpu_id;
++		dev->state_count = 0;
++		dev->coupled_cpus = *cpu_online_mask;
++		drv->state_count = 0;
++
++		/* C1 - CPU0 ON + CPU1 ON + MPU ON */
++		_fill_cstate(drv, 0, "MPUSS ON", 0);
++		drv->safe_state_index = 0;
++		cx = _fill_cstate_usage(dev, 0);
++		cx->valid = 1;	/* C1 is always valid */
++		cx->cpu_state = PWRDM_POWER_ON;
++		cx->mpu_state = PWRDM_POWER_ON;
++		cx->mpu_logic_state = PWRDM_POWER_RET;
++		dev->state_count++;
++		drv->state_count++;
++
++		/* C2 - CPU0 OFF + CPU1 OFF + MPU CSWR */
++		_fill_cstate(drv, 1, "MPUSS CSWR", CPUIDLE_FLAG_COUPLED);
++		cx = _fill_cstate_usage(dev, 1);
++		cx->cpu_state = PWRDM_POWER_OFF;
++		cx->mpu_state = PWRDM_POWER_RET;
++		cx->mpu_logic_state = PWRDM_POWER_RET;
++		dev->state_count++;
++		drv->state_count++;
++
++		/* C3 - CPU0 OFF + CPU1 OFF + MPU OSWR */
++		_fill_cstate(drv, 2, "MPUSS OSWR", CPUIDLE_FLAG_COUPLED);
++		cx = _fill_cstate_usage(dev, 2);
++		cx->cpu_state = PWRDM_POWER_OFF;
++		cx->mpu_state = PWRDM_POWER_RET;
++		cx->mpu_logic_state = PWRDM_POWER_OFF;
++		dev->state_count++;
++		drv->state_count++;
++
++		cpuidle_register_driver(&omap4_idle_driver);
++
++		if (cpuidle_register_device(dev)) {
++			pr_err("%s: CPUidle register failed\n", __func__);
++				return -EIO;
+ 		}
++	}
+ 
+ 	return 0;
+ }
+-- 
+1.7.5.4
 
