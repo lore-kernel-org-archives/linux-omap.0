@@ -1,215 +1,241 @@
-From: Thomas Klute <thomas2.klute@uni-dortmund.de>
-Subject: Re: smsc911x on Gumstix Overo/Tobi doesn't work
-Date: Fri, 30 Mar 2012 17:28:54 +0200
-Message-ID: <4F75D136.5020208@uni-dortmund.de>
-References: <4F6324D5.9010106@uni-dortmund.de> <20120316193337.GE7276@atomide.com> <4F675D9D.2040102@uni-dortmund.de> <20120319225131.GE9859@atomide.com> <4F6893C6.60701@uni-dortmund.de> <CAAwP0s3Qo7vtt=BY7Pvejg4Gc9X0O0n=yWg0JVGZHrmUJScMXw@mail.gmail.com>
+From: Jon Hunter <jon-hunter@ti.com>
+Subject: Re: [PATCH-V2 3/3] ARM: OMAP: Make OMAP clocksource source selection
+ runtime
+Date: Fri, 30 Mar 2012 10:34:40 -0500
+Message-ID: <4F75D290.8090706@ti.com>
+References: <1333115655-28530-1-git-send-email-hvaibhav@ti.com> <1333115655-28530-4-git-send-email-hvaibhav@ti.com>
 Mime-Version: 1.0
-Content-Type: multipart/mixed;
- boundary="------------070201070407010207050908"
+Content-Type: text/plain; charset="ISO-8859-1"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mx1.HRZ.Uni-Dortmund.DE ([129.217.128.51]:39903 "EHLO
-	unimail.uni-dortmund.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756271Ab2C3P27 (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 30 Mar 2012 11:28:59 -0400
-In-Reply-To: <CAAwP0s3Qo7vtt=BY7Pvejg4Gc9X0O0n=yWg0JVGZHrmUJScMXw@mail.gmail.com>
+Received: from arroyo.ext.ti.com ([192.94.94.40]:58659 "EHLO arroyo.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751269Ab2C3PfJ (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Fri, 30 Mar 2012 11:35:09 -0400
+In-Reply-To: <1333115655-28530-4-git-send-email-hvaibhav@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Javier Martinez Canillas <martinez.javier@gmail.com>
-Cc: Tony Lindgren <tony@atomide.com>, linux-omap@vger.kernel.org
+To: Vaibhav Hiremath <hvaibhav@ti.com>
+Cc: linux-omap@vger.kernel.org, khilman@ti.com, paul@pwsan.com, b-cousson@ti.com, tony@atomide.com, tom.leiming@gmail.com, rnayak@ti.com, santosh.shilimkar@ti.com, Felipe Balbi <balbi@ti.com>, Tarun Kanti DebBarma <tarun.kanti@ti.com>, linux-arm-kernel@lists.infradead.org
 
-This is a multi-part message in MIME format.
---------------070201070407010207050908
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 7bit
+Hi Vaibhav,
 
-Hi,
+On 3/30/2012 8:54, Vaibhav Hiremath wrote:
 
-I finally had some time to do more tests on this problem. Findings below.
-
-Am 20.03.2012 20:47, schrieb Javier Martinez Canillas:
-> On Tue, Mar 20, 2012 at 3:27 PM, Thomas Klute
-> <thomas2.klute@uni-dortmund.de> wrote:
->> Am 19.03.2012 23:51, schrieb Tony Lindgren:
->>> * Thomas Klute <thomas2.klute@uni-dortmund.de> [120319 09:26]:
->>>> Am 16.03.2012 20:33, schrieb Tony Lindgren:
->>>>> Hi,
->>>>>
->>>>> * Thomas Klute <thomas2.klute@uni-dortmund.de> [120316 05:08]:
->>>>>> Hi,
->>>>>>
->>>>>> I have trouble getting the Ethernet port on a Gumstix Overo with Tobi
->>>>>> expansion board to work with current kernel versions. With the latest
->>>>>> commit from linux-omap git (b8fe1781ec8bed5e086691a827a6ee11facec2aa),
->>>>>> the output from loading the smsc911x driver is as follows:
->>>>>>
->>>>>> du14:~# modprobe smsc911x
->>>>>> [  254.843811] smsc911x: Driver version 2008-10-21
->>>>>> [  254.854553] smsc911x: Driver version 2008-10-21
->>>>>> [  254.859588] _regulator_get: smsc911x.1 supply vdd33a not found, using
->>>>>> dummy regulator
->>>>>> [  254.868377] _regulator_get: smsc911x.1 supply vddvario not found,
->>>>>> using dummy regulator
->>>>>>
->>>>>> "ip link show" does not show any available Ethernet port.
->>>>>
->>>>> The first instance one should work the same way as earlier using
->>>>> fixed regulator in gpmc-smsc911x.c. Is it not working for you
->>>>> somehow? At least it works for me on zoom3.
->>>>
->>>> The Tobi board has only one Ethernet port.
->>>>
->>>>>> I know there has been some trouble with changes around smsc911x
->>>>>> regulator support and Gumstix Overo in particular. Am I just missing the
->>>>>> right regulator in my kernel config or is this a bug? I can test patches
->>>>>> in the latter case.
->>>>>
->>>>> The second smsc911x now needs a regulator. For multiple smsc911x instances,
->>>>> we should change things around so no regulator is created if one
->>>>> is passed.
->>>>>
->>>>> Care to test the following patch by passing a fixed regulator
->>>>> from board-overo.c?
->>>>
->>>> After applying the patch the Ethernet port works consistently once I had
->>>> done a cold boot (reboot from the unpatched kernel did not work).
->>>> Thank you!
->>>
->>> Hmm but this patch should not change the behaviour for the first smsc911x
->>> instance unless you specify a custom regulator.. Did you patch in a
->>> custom regulator, or do we have a bug somewhere? Or do you just need to
->>> do a cold reset without the patch I posted?
->>
->> You're right, during further tests I found that the problem lies
->> elsewhere: If the Ethernet cable is attached on modprobe, the device
->> works as expected, if not, it's not found (with or without the patch).
->> This means if I boot with the cable disconnected, the device won't show
->> up, but after
->>
->> # modprobe -r smsc911x
->> [attach cable]
->> # modprobe smsc911x
->>
->> it will work. I'd still consider this a bug, but it doesn't seem to be a
->> regulator problem.
->>
+> Current OMAP code supports couple of clocksource options based
+> on compilation flag (CONFIG_OMAP_32K_TIMER). The 32KHz sync-timer
+> and a gptimer which can run on 32KHz or system clock (e.g 38.4 MHz).
+> So there can be 3 options -
 > 
-> Hi Thomas,
+> 1. 32KHz sync-timer
+> 2. Sys_clock based (e.g 13/19.2/26/38.4 MHz) gptimer
+> 3. 32KHz based gptimer.
 > 
-> I had the same behavior with the smsc911x chip but on an IGEPv2 board.
-> The problem was when CONFIG_SMSC_PHY=y since the driver for the chip
-> internal PHY enables an energy detect power-down mode.
+> The optional gptimer based clocksource was added so that it can
+> give the high precision than sync-timer, so expected usage was 2
+> and not 3.
+> Unfortunately option 2, clocksource doesn't meet the requirement of
+> free-running clock as per clocksource need. It stops in low power states
+> when sys_clock is cut. That makes gptimer based clocksource option
+> useless for OMAP2/3/4 devices with sys_clock as a clock input.
+> Option 3 will still work but it is no better than 32K sync-timer
+> based clocksource.
 > 
-> The smsc911x driver probe function tries to software reset the chip
-> but if the cable is unplugged the energy detect puts the chip in a low
-> power mode. Since the chip is not in an operational state the reset
-> fails and hence the driver probe function. If the cable is plugged
-> then then energy is detected, the chip is in an operational state and
-> the reset is successful.
+> So ideally we can kill the gptimer based clocksource option but there
+> are some OMAP based derivative SoCs like AM33XX which doesn't have
+> 32K sync-timer hardware IP and need to fallback on 32KHz based gptimer
+> clocksource.
+> Considering above, make sync-timer and gptimer clocksource runtime
+> selectable so that both OMAP and AMXXXX continue to use the same code.
 > 
-> I sent a patch a few months ago to fix this issue. The patch disables
-> the energy detect power-down mode before reseting the chip and then it
-> enables again after reset.
+> Use hwmod database lookup mechanism, through which at run-time
+> we can identify availability of 32k-sync timer on the device,
+> else fall back to gptimer.
 > 
-> The commit is:
+> Signed-off-by: Vaibhav Hiremath <hvaibhav@ti.com>
+> Signed-off-by: Felipe Balbi <balbi@ti.com>
+> CC: Santosh Shilimkar <santosh.shilimkar@ti.com>
+> Cc: Benoit Cousson <b-cousson@ti.com>
+> Cc: Tony Lindgren <tony@atomide.com>
+> Cc: Paul Walmsley <paul@pwsan.com>
+> Cc: Tarun Kanti DebBarma <tarun.kanti@ti.com>
+> Cc: Ming Lei <tom.leiming@gmail.com>
+> ---
+>  arch/arm/mach-omap1/timer32k.c           |    6 ++-
+>  arch/arm/mach-omap2/timer.c              |   45 +++++++++-------
+>  arch/arm/plat-omap/counter_32k.c         |   86 ++++++++++++-----------------
+>  arch/arm/plat-omap/include/plat/common.h |    2 +-
+>  4 files changed, 68 insertions(+), 71 deletions(-)
+
+[...]
+
+> @@ -280,13 +265,33 @@ static void __init omap2_gp_clocksource_init(int gptimer_id,
+>  						const char *fck_source)
+>  {
+>  	int res;
+> +	struct omap_hwmod *oh;
+> +	const char *oh_name = "counter_32k";
+> +
+> +	/*
+> +	 * First check for availability for 32k-sync timer.
+> +	 *
+> +	 * In case of failure in finding 32k_counter module or
+> +	 * registering it as clocksource, execution will fallback to
+> +	 * gp-timer.
+> +	 */
+> +	oh = omap_hwmod_lookup(oh_name);
+> +	if (oh && oh->slaves_cnt != 0) {
+> +		u32 pbase;
+> +		unsigned long size;
+> +
+> +		pbase = oh->slaves[0]->addr->pa_start + 0x10;
+> +		size = oh->slaves[0]->addr->pa_end -
+> +			oh->slaves[0]->addr->pa_start;
+> +		res = omap_init_clocksource_32k(pbase, size);
+> +		if (!res)
+> +			return;
+
+
+If omap_init_clocksource_32k() fails should we also call BUG_ON here?
+
+> +	}
 > 
-> commit 6386994e03ebbe60338ded3d586308a41e81c0dc
-> Author: Javier Martinez Canillas <javier@dowhile0.org>
-> Date:   Tue Jan 3 13:36:19 2012 +0000
+> +	/* Fall back to gp-timer code */
+>  	res = omap_dm_timer_init_one(&clksrc, gptimer_id, fck_source);
+>  	BUG_ON(res);
 > 
->     net/smsc911x: Check if PHY is in operational mode before software reset
+> -	pr_info("OMAP clocksource: GPTIMER%d at %lu Hz\n",
+> -		gptimer_id, clksrc.rate);
+> -
+>  	__omap_dm_timer_load_start(&clksrc,
+>  			OMAP_TIMER_CTRL_ST | OMAP_TIMER_CTRL_AR, 0, 1);
+>  	setup_sched_clock(dmtimer_read_sched_clock, 32, clksrc.rate);
+> @@ -294,8 +299,10 @@ static void __init omap2_gp_clocksource_init(int gptimer_id,
+>  	if (clocksource_register_hz(&clocksource_gpt, clksrc.rate))
+>  		pr_err("Could not register clocksource %s\n",
+>  			clocksource_gpt.name);
+> +	else
+> +		pr_info("OMAP clocksource: GPTIMER%d at %lu Hz\n",
+> +			gptimer_id, clksrc.rate);
+>  }
+> -#endif
 > 
-> When I fix the issue I only guarded against generation 4 chips (i.e:
-> pdata->generation == 4), but maybe this problem also exists in other
-> SMSC chips (I didn't know since I only had access to specific
-> data-sheets).
+>  #define OMAP_SYS_TIMER_INIT(name, clkev_nr, clkev_src,			\
+>  				clksrc_nr, clksrc_src)			\
+> diff --git a/arch/arm/plat-omap/counter_32k.c b/arch/arm/plat-omap/counter_32k.c
+> index 5068fe5..c1af18c 100644
+> --- a/arch/arm/plat-omap/counter_32k.c
+> +++ b/arch/arm/plat-omap/counter_32k.c
+> @@ -35,8 +35,6 @@
+>   */
+>  static void __iomem *timer_32k_base;
 > 
-> Also you can try enabling debug in the driver by setting USE_DEBUG to
-> 1 in drivers/net/ethernet/smsc/smsc911x.h and also trying disabling
-> CONFIG_SMSC_PHY, this will use a generic PHY driver that doesn't put
-> the chip in auto power mode.
+> -#define OMAP16XX_TIMER_32K_SYNCHRONIZED		0xfffbc410
+> -
+>  static u32 notrace omap_32k_read_sched_clock(void)
+>  {
+>  	return timer_32k_base ? __raw_readl(timer_32k_base) : 0;
+> @@ -68,54 +66,42 @@ void read_persistent_clock(struct timespec *ts)
+>  	*ts = *tsp;
+>  }
+> 
+> -int __init omap_init_clocksource_32k(void)
+> +int __init omap_init_clocksource_32k(u32 pbase, unsigned long size)
+>  {
+> -	static char err[] __initdata = KERN_ERR
+> -			"%s: can't register clocksource!\n";
+> -
+> -	if (cpu_is_omap16xx() || cpu_class_is_omap2()) {
+> -		u32 pbase;
+> -		unsigned long size = SZ_4K;
+> -		void __iomem *base;
+> -		struct clk *sync_32k_ick;
+> -
+> -		if (cpu_is_omap16xx()) {
+> -			pbase = OMAP16XX_TIMER_32K_SYNCHRONIZED;
+> -			size = SZ_1K;
+> -		} else if (cpu_is_omap2420())
+> -			pbase = OMAP2420_32KSYNCT_BASE + 0x10;
+> -		else if (cpu_is_omap2430())
+> -			pbase = OMAP2430_32KSYNCT_BASE + 0x10;
+> -		else if (cpu_is_omap34xx())
+> -			pbase = OMAP3430_32KSYNCT_BASE + 0x10;
+> -		else if (cpu_is_omap44xx())
+> -			pbase = OMAP4430_32KSYNCT_BASE + 0x10;
+> -		else
+> -			return -ENODEV;
+> -
+> -		/* For this to work we must have a static mapping in io.c for this area */
+> -		base = ioremap(pbase, size);
+> -		if (!base)
+> -			return -ENODEV;
+> -
+> -		sync_32k_ick = clk_get(NULL, "omap_32ksync_ick");
+> -		if (!IS_ERR(sync_32k_ick))
+> -			clk_enable(sync_32k_ick);
 
-After looking at the code I set USE_DEBUG to 3 to get as much
-information as possible and tested with and without the SMSC PHY driver.
-Results:
+> -
 
-With the Ethernet cable attached, the device is properly initialized
-with and without the PHY driver (as before).
+> -		timer_32k_base = base;
+> -
+> -		/*
+> -		 * 120000 rough estimate from the calculations in
+> -		 * __clocksource_updatefreq_scale.
+> -		 */
+> -		clocks_calc_mult_shift(&persistent_mult, &persistent_shift,
+> -				32768, NSEC_PER_SEC, 120000);
+> -
+> -		if (clocksource_mmio_init(base, "32k_counter", 32768, 250, 32,
+> -					  clocksource_mmio_readl_up))
+> -			printk(err, "32k_counter");
+> -
+> -		setup_sched_clock(omap_32k_read_sched_clock, 32, 32768);
+> -	}
+> +	void __iomem *base;
+> +	struct clk *sync_32k_ick;
+> +
+> +	if (!pbase || !size)
+> +		return -ENODEV;
+> +	/*
+> +	 * For this to work we must have a static mapping in io.c
+> +	 * for this area
+> +	 */
+> +	base = ioremap(pbase, size);
+> +	if (!base)
+> +		return -ENODEV;
+> +
+> +	sync_32k_ick = clk_get(NULL, "omap_32ksync_ick");
+> +	if (!IS_ERR(sync_32k_ick))
+> +		clk_enable(sync_32k_ick);
 
-Without the cable, the smsc911x driver can initialize the card only if
-the smsc PHY driver had not been loaded previously. Unloading the PHY
-driver is not enough, even a reboot doesn't help. I have to do a cold
-boot (or attach the cable).
 
-I guess this confirms Javier's guess, but there's one catch: If you take
-a look at the attached logs (both without cable attached), you'll see
-that the device is recognized a generation 4, so the Javier's workaround
-should actually be used. I added a log output in the if
-(pdata->generation == 4) block to be sure, and indeed it is used.
+I know that this is carry over from the original code, but seems that if
+clk_get fails we should return an error. So maybe ...
 
-Any hints why the reset still fails?
 
-Regards,
-Thomas
+	sync_32k_ick = clk_get(NULL, "omap_32ksync_ick");
+	if (IS_ERR(sync_32k_ick))
+		return -ENODEV;
 
---------------070201070407010207050908
-Content-Type: text/x-log;
- name="smsc911x-trace-nocable-without_phy.log"
-Content-Transfer-Encoding: 7bit
-Content-Disposition: attachment;
- filename="smsc911x-trace-nocable-without_phy.log"
+	clk_enable(sync_32k_ick);
 
-[   33.119293] smsc911x: Driver version 2008-10-21
-[   33.201568] smsc911x smsc911x.0: (unregistered net_device): Driver Parameters:
-[   33.209289] smsc911x smsc911x.0: (unregistered net_device): LAN base: 0xD081E000
-[   33.217102] smsc911x smsc911x.0: (unregistered net_device): IRQ: 336
-[   33.223815] smsc911x smsc911x.0: (unregistered net_device): PHY will be autodetected.
-[   33.232482] smsc911x smsc911x.0: (unregistered net_device): BYTE_TEST: 0x87654321
-[   33.240417] smsc911x smsc911x.0: (unregistered net_device): LAN911x identified, idrev: 0x92210000, generation: 4
-[   33.254852] smsc911x smsc911x.0: eth0: Network interface: "eth0"
-[   33.261260] smsc911x smsc911x.0: eth0: External PHY is not supported, using internal PHY
-[   33.868133] smsc911x-mdio: probed
-[   33.871826] smsc911x smsc911x.0: eth0: PHY: addr 1, phy_id 0x0007C0C3
-[   33.878875] smsc911x smsc911x.0: eth0: attached PHY driver [SMSC LAN8700] (mii_bus:phy_addr=smsc911x-0:01, irq=-1)
-[   33.890411] smsc911x smsc911x.0: eth0: smsc911x_phy_check_loopbackpkt: Failed to transmit during loopback test
-[   33.901031] smsc911x smsc911x.0: eth0: Successfully verified loopback packet
-[   33.908569] smsc911x smsc911x.0: eth0: Passed Loop Back Test
-[   33.914550] smsc911x smsc911x.0: eth0: phy initialised successfully
-[   33.921356] smsc911x smsc911x.0: eth0: MAC Address is set to random_ether_addr
-[   33.928985] smsc911x smsc911x.0: eth0: MAC Address: 5a:ee:71:05:48:11
-[   33.935913] smsc911x: Driver version 2008-10-21
-[   33.940856] _regulator_get: smsc911x.1 supply vdd33a not found, using dummy regulator
-[   33.949584] _regulator_get: smsc911x.1 supply vddvario not found, using dummy regulator
-[   33.965057] smsc911x smsc911x.1: (unregistered net_device): Driver Parameters:
-[   33.972778] smsc911x smsc911x.1: (unregistered net_device): LAN base: 0xD090A000
-[   33.980590] smsc911x smsc911x.1: (unregistered net_device): IRQ: 225
-[   33.987304] smsc911x smsc911x.1: (unregistered net_device): PHY will be autodetected.
-[   34.094726] smsc911x: Device not READY in 100ms aborting
+> +
+> +	timer_32k_base = base;
+> +
+> +	/*
+> +	 * 120000 rough estimate from the calculations in
+> +	 * __clocksource_updatefreq_scale.
+> +	 */
+> +	clocks_calc_mult_shift(&persistent_mult, &persistent_shift,
+> +			32768, NSEC_PER_SEC, 120000);
+> +
+> +	if (clocksource_mmio_init(base, "32k_counter", 32768, 250, 32,
+> +				clocksource_mmio_readl_up))
+> +		pr_err("32k_counter: can't register clocksource!\n");
+> +
 
---------------070201070407010207050908
-Content-Type: text/x-log;
- name="smsc911x-trace-nocable-with_phy.log"
-Content-Transfer-Encoding: 7bit
-Content-Disposition: attachment;
- filename="smsc911x-trace-nocable-with_phy.log"
 
-[  150.724273] smsc911x: Driver version 2008-10-21
-[  150.735870] smsc911x smsc911x.0: (unregistered net_device): Driver Parameters:
-[  150.743591] smsc911x smsc911x.0: (unregistered net_device): LAN base: 0xD8A5C000
-[  150.751403] smsc911x smsc911x.0: (unregistered net_device): IRQ: 336
-[  150.758117] smsc911x smsc911x.0: (unregistered net_device): PHY will be autodetected.
-[  150.766845] smsc911x smsc911x.0: (unregistered net_device): BYTE_TEST: 0x87654321
-[  150.774780] smsc911x smsc911x.0: (unregistered net_device): LAN911x identified, idrev: 0x92210000, generation: 4
-[  150.785644] smsc911x smsc911x.0: (unregistered net_device): smsc911x_soft_reset: Failed to complete reset
-[  150.797027] smsc911x: Driver version 2008-10-21
-[  150.802001] _regulator_get: smsc911x.1 supply vdd33a not found, using dummy regulator
-[  150.811035] _regulator_get: smsc911x.1 supply vddvario not found, using dummy regulator
-[  150.821990] smsc911x smsc911x.1: (unregistered net_device): Driver Parameters:
-[  150.829925] smsc911x smsc911x.1: (unregistered net_device): LAN base: 0xD8A5E000
-[  150.837738] smsc911x smsc911x.1: (unregistered net_device): IRQ: 225
-[  150.844451] smsc911x smsc911x.1: (unregistered net_device): PHY will be autodetected.
-[  150.852722] smsc911x smsc911x.1: (unregistered net_device): BYTE_TEST: 0x00050005
-[  150.860626] smsc911x smsc911x.1: (unregistered net_device): smsc911x_init: BYTE_TEST: 0x00050005
-[  150.869873] smsc911x smsc911x.1: (unregistered net_device): smsc911x_init: top 16 bits equal to bottom 16 bits
-[  150.880401] smsc911x smsc911x.1: (unregistered net_device): This may mean the chip is set for 32 bit while the bus is reading 16 bit
+Extra line added here that should be removed.
 
---------------070201070407010207050908--
+Cheers
+Jon
