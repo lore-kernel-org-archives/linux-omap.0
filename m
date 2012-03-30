@@ -1,282 +1,174 @@
-From: Vaibhav Hiremath <hvaibhav@ti.com>
-Subject: [PATCH-V2 3/3] ARM: OMAP: Make OMAP clocksource source selection runtime
-Date: Fri, 30 Mar 2012 19:24:15 +0530
-Message-ID: <1333115655-28530-4-git-send-email-hvaibhav@ti.com>
-References: <1333115655-28530-1-git-send-email-hvaibhav@ti.com>
+From: Kevin Hilman <khilman@ti.com>
+Subject: Re: [PATCH] cpufreq: OMAP: fix build errors: depends on ARCH_OMAP2PLUS
+Date: Fri, 30 Mar 2012 07:24:18 -0700
+Message-ID: <87limif9pp.fsf@ti.com>
+References: <1332807568-638-1-git-send-email-khilman@ti.com>
+	<20120330131200.GA23442@n2100.arm.linux.org.uk>
 Mime-Version: 1.0
-Content-Type: text/plain
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from comal.ext.ti.com ([198.47.26.152]:57632 "EHLO comal.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1760787Ab2C3OFg (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Fri, 30 Mar 2012 10:05:36 -0400
-In-Reply-To: <1333115655-28530-1-git-send-email-hvaibhav@ti.com>
+Received: from na3sys009aog108.obsmtp.com ([74.125.149.199]:45597 "EHLO
+	na3sys009aog108.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1759558Ab2C3OYU (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>);
+	Fri, 30 Mar 2012 10:24:20 -0400
+Received: by ghbz12 with SMTP id z12so480921ghb.39
+        for <linux-omap@vger.kernel.org>; Fri, 30 Mar 2012 07:24:19 -0700 (PDT)
+In-Reply-To: <20120330131200.GA23442@n2100.arm.linux.org.uk> (Russell King's
+	message of "Fri, 30 Mar 2012 14:12:00 +0100")
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: linux-omap@vger.kernel.org
-Cc: tony@atomide.com, khilman@ti.com, paul@pwsan.com, rnayak@ti.com, b-cousson@ti.com, linux-arm-kernel@lists.infradead.org, santosh.shilimkar@ti.com, tom.leiming@gmail.com, Vaibhav Hiremath <hvaibhav@ti.com>, Felipe Balbi <balbi@ti.com>, Tarun Kanti DebBarma <tarun.kanti@ti.com>
+To: Russell King - ARM Linux <linux@arm.linux.org.uk>, Paul Walmsley <paul@pwsan.com>, Tony Lindgren <tony@atomide.com>
+Cc: Dave Jones <davej@redhat.com>, cpufreq@vger.kernel.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Grazvydas Ignotas <notasas@gmail.com>
 
-Current OMAP code supports couple of clocksource options based
-on compilation flag (CONFIG_OMAP_32K_TIMER). The 32KHz sync-timer
-and a gptimer which can run on 32KHz or system clock (e.g 38.4 MHz).
-So there can be 3 options -
+Russell King - ARM Linux <linux@arm.linux.org.uk> writes:
 
-1. 32KHz sync-timer
-2. Sys_clock based (e.g 13/19.2/26/38.4 MHz) gptimer
-3. 32KHz based gptimer.
+> On Mon, Mar 26, 2012 at 05:19:28PM -0700, Kevin Hilman wrote:
+>> The OMAP driver needs a 'depends on ARCH_OMAP2PLUS' since it only
+>> builds for OMAP2+ platforms.
+>> 
+>> This 'depends on' was in the original patch from Russell King, but was
+>> erroneously removed by me when making this option user-selectable in
+>> commit b09db45c (cpufreq: OMAP driver depends CPUfreq tables.)  This
+>> patch remedies that.
+>> 
+>> Apologies to Russell King for breaking his originally working patch.
+>> 
+>> Also, thanks to Grazvydas Ignotas for reporting the same problem.
+>> 
+>> Cc: Russell King <rmk+kernel@arm.linux.org.uk>
+>> Cc: Grazvydas Ignotas <notasas@gmail.com>
+>> Signed-off-by: Kevin Hilman <khilman@ti.com>
+>> ---
+>> Dave, this applies on top of your current fixes branch, and fixes a 
+>> problem introduced there by me.  Please merge for v3.4-rc.  Thanks.
+>
+> Can you please check that you've picked up everything that's necessary,
+> as I'm still seeing the below as outstanding from my original patch.
 
-The optional gptimer based clocksource was added so that it can
-give the high precision than sync-timer, so expected usage was 2
-and not 3.
-Unfortunately option 2, clocksource doesn't meet the requirement of
-free-running clock as per clocksource need. It stops in low power states
-when sys_clock is cut. That makes gptimer based clocksource option
-useless for OMAP2/3/4 devices with sys_clock as a clock input.
-Option 3 will still work but it is no better than 32K sync-timer
-based clocksource.
+Yes, all the code you touch below is now removed, and queued by Paul,
+but unfortunately, that branch didn't make it in time for v3.4. :(
 
-So ideally we can kill the gptimer based clocksource option but there
-are some OMAP based derivative SoCs like AM33XX which doesn't have
-32K sync-timer hardware IP and need to fallback on 32KHz based gptimer
-clocksource.
-Considering above, make sync-timer and gptimer clocksource runtime
-selectable so that both OMAP and AMXXXX continue to use the same code.
+Paul, maybe you can pull out my "cleanup cpufreq leftovers" patch and
+submit for v3.4-rc?
 
-Use hwmod database lookup mechanism, through which at run-time
-we can identify availability of 32k-sync timer on the device,
-else fall back to gptimer.
+Thanks,
 
-Signed-off-by: Vaibhav Hiremath <hvaibhav@ti.com>
-Signed-off-by: Felipe Balbi <balbi@ti.com>
-CC: Santosh Shilimkar <santosh.shilimkar@ti.com>
-Cc: Benoit Cousson <b-cousson@ti.com>
-Cc: Tony Lindgren <tony@atomide.com>
-Cc: Paul Walmsley <paul@pwsan.com>
-Cc: Tarun Kanti DebBarma <tarun.kanti@ti.com>
-Cc: Ming Lei <tom.leiming@gmail.com>
----
- arch/arm/mach-omap1/timer32k.c           |    6 ++-
- arch/arm/mach-omap2/timer.c              |   45 +++++++++-------
- arch/arm/plat-omap/counter_32k.c         |   86 ++++++++++++-----------------
- arch/arm/plat-omap/include/plat/common.h |    2 +-
- 4 files changed, 68 insertions(+), 71 deletions(-)
+Kevin
 
-diff --git a/arch/arm/mach-omap1/timer32k.c b/arch/arm/mach-omap1/timer32k.c
-index a2e6d07..3f96a00 100644
---- a/arch/arm/mach-omap1/timer32k.c
-+++ b/arch/arm/mach-omap1/timer32k.c
-@@ -72,6 +72,7 @@
-
- /* 16xx specific defines */
- #define OMAP1_32K_TIMER_BASE		0xfffb9000
-+#define OMAP1_32KSYNC_TIMER_BASE	0xfffbc410
- #define OMAP1_32K_TIMER_CR		0x08
- #define OMAP1_32K_TIMER_TVR		0x00
- #define OMAP1_32K_TIMER_TCR		0x04
-@@ -185,7 +186,10 @@ static __init void omap_init_32k_timer(void)
-  */
- bool __init omap_32k_timer_init(void)
- {
--	omap_init_clocksource_32k();
-+	u32 pbase;
-+
-+	pbase = cpu_is_omap16xx() ? OMAP1_32KSYNC_TIMER_BASE : NULL;
-+	omap_init_clocksource_32k(pbase, SZ_1K);
- 	omap_init_32k_timer();
-
- 	return true;
-diff --git a/arch/arm/mach-omap2/timer.c b/arch/arm/mach-omap2/timer.c
-index 5c9acea..f35db1a 100644
---- a/arch/arm/mach-omap2/timer.c
-+++ b/arch/arm/mach-omap2/timer.c
-@@ -234,21 +234,6 @@ static void __init omap2_gp_clockevent_init(int gptimer_id,
- }
-
- /* Clocksource code */
--
--#ifdef CONFIG_OMAP_32K_TIMER
--/*
-- * When 32k-timer is enabled, don't use GPTimer for clocksource
-- * instead, just leave default clocksource which uses the 32k
-- * sync counter.  See clocksource setup in plat-omap/counter_32k.c
-- */
--
--static void __init omap2_gp_clocksource_init(int unused, const char *dummy)
--{
--	omap_init_clocksource_32k();
--}
--
--#else
--
- static struct omap_dm_timer clksrc;
-
- /*
-@@ -280,13 +265,33 @@ static void __init omap2_gp_clocksource_init(int gptimer_id,
- 						const char *fck_source)
- {
- 	int res;
-+	struct omap_hwmod *oh;
-+	const char *oh_name = "counter_32k";
-+
-+	/*
-+	 * First check for availability for 32k-sync timer.
-+	 *
-+	 * In case of failure in finding 32k_counter module or
-+	 * registering it as clocksource, execution will fallback to
-+	 * gp-timer.
-+	 */
-+	oh = omap_hwmod_lookup(oh_name);
-+	if (oh && oh->slaves_cnt != 0) {
-+		u32 pbase;
-+		unsigned long size;
-+
-+		pbase = oh->slaves[0]->addr->pa_start + 0x10;
-+		size = oh->slaves[0]->addr->pa_end -
-+			oh->slaves[0]->addr->pa_start;
-+		res = omap_init_clocksource_32k(pbase, size);
-+		if (!res)
-+			return;
-+	}
-
-+	/* Fall back to gp-timer code */
- 	res = omap_dm_timer_init_one(&clksrc, gptimer_id, fck_source);
- 	BUG_ON(res);
-
--	pr_info("OMAP clocksource: GPTIMER%d at %lu Hz\n",
--		gptimer_id, clksrc.rate);
--
- 	__omap_dm_timer_load_start(&clksrc,
- 			OMAP_TIMER_CTRL_ST | OMAP_TIMER_CTRL_AR, 0, 1);
- 	setup_sched_clock(dmtimer_read_sched_clock, 32, clksrc.rate);
-@@ -294,8 +299,10 @@ static void __init omap2_gp_clocksource_init(int gptimer_id,
- 	if (clocksource_register_hz(&clocksource_gpt, clksrc.rate))
- 		pr_err("Could not register clocksource %s\n",
- 			clocksource_gpt.name);
-+	else
-+		pr_info("OMAP clocksource: GPTIMER%d at %lu Hz\n",
-+			gptimer_id, clksrc.rate);
- }
--#endif
-
- #define OMAP_SYS_TIMER_INIT(name, clkev_nr, clkev_src,			\
- 				clksrc_nr, clksrc_src)			\
-diff --git a/arch/arm/plat-omap/counter_32k.c b/arch/arm/plat-omap/counter_32k.c
-index 5068fe5..c1af18c 100644
---- a/arch/arm/plat-omap/counter_32k.c
-+++ b/arch/arm/plat-omap/counter_32k.c
-@@ -35,8 +35,6 @@
-  */
- static void __iomem *timer_32k_base;
-
--#define OMAP16XX_TIMER_32K_SYNCHRONIZED		0xfffbc410
--
- static u32 notrace omap_32k_read_sched_clock(void)
- {
- 	return timer_32k_base ? __raw_readl(timer_32k_base) : 0;
-@@ -68,54 +66,42 @@ void read_persistent_clock(struct timespec *ts)
- 	*ts = *tsp;
- }
-
--int __init omap_init_clocksource_32k(void)
-+int __init omap_init_clocksource_32k(u32 pbase, unsigned long size)
- {
--	static char err[] __initdata = KERN_ERR
--			"%s: can't register clocksource!\n";
--
--	if (cpu_is_omap16xx() || cpu_class_is_omap2()) {
--		u32 pbase;
--		unsigned long size = SZ_4K;
--		void __iomem *base;
--		struct clk *sync_32k_ick;
--
--		if (cpu_is_omap16xx()) {
--			pbase = OMAP16XX_TIMER_32K_SYNCHRONIZED;
--			size = SZ_1K;
--		} else if (cpu_is_omap2420())
--			pbase = OMAP2420_32KSYNCT_BASE + 0x10;
--		else if (cpu_is_omap2430())
--			pbase = OMAP2430_32KSYNCT_BASE + 0x10;
--		else if (cpu_is_omap34xx())
--			pbase = OMAP3430_32KSYNCT_BASE + 0x10;
--		else if (cpu_is_omap44xx())
--			pbase = OMAP4430_32KSYNCT_BASE + 0x10;
--		else
--			return -ENODEV;
--
--		/* For this to work we must have a static mapping in io.c for this area */
--		base = ioremap(pbase, size);
--		if (!base)
--			return -ENODEV;
--
--		sync_32k_ick = clk_get(NULL, "omap_32ksync_ick");
--		if (!IS_ERR(sync_32k_ick))
--			clk_enable(sync_32k_ick);
--
--		timer_32k_base = base;
--
--		/*
--		 * 120000 rough estimate from the calculations in
--		 * __clocksource_updatefreq_scale.
--		 */
--		clocks_calc_mult_shift(&persistent_mult, &persistent_shift,
--				32768, NSEC_PER_SEC, 120000);
--
--		if (clocksource_mmio_init(base, "32k_counter", 32768, 250, 32,
--					  clocksource_mmio_readl_up))
--			printk(err, "32k_counter");
--
--		setup_sched_clock(omap_32k_read_sched_clock, 32, 32768);
--	}
-+	void __iomem *base;
-+	struct clk *sync_32k_ick;
-+
-+	if (!pbase || !size)
-+		return -ENODEV;
-+	/*
-+	 * For this to work we must have a static mapping in io.c
-+	 * for this area
-+	 */
-+	base = ioremap(pbase, size);
-+	if (!base)
-+		return -ENODEV;
-+
-+	sync_32k_ick = clk_get(NULL, "omap_32ksync_ick");
-+	if (!IS_ERR(sync_32k_ick))
-+		clk_enable(sync_32k_ick);
-+
-+	timer_32k_base = base;
-+
-+	/*
-+	 * 120000 rough estimate from the calculations in
-+	 * __clocksource_updatefreq_scale.
-+	 */
-+	clocks_calc_mult_shift(&persistent_mult, &persistent_shift,
-+			32768, NSEC_PER_SEC, 120000);
-+
-+	if (clocksource_mmio_init(base, "32k_counter", 32768, 250, 32,
-+				clocksource_mmio_readl_up))
-+		pr_err("32k_counter: can't register clocksource!\n");
-+
-+	else
-+		pr_info("OMAP clocksource: 32k_counter at 32768 Hz\n");
-+
-+	setup_sched_clock(omap_32k_read_sched_clock, 32, 32768);
-+
- 	return 0;
- }
-diff --git a/arch/arm/plat-omap/include/plat/common.h b/arch/arm/plat-omap/include/plat/common.h
-index b4d7ec3..6cc1e43 100644
---- a/arch/arm/plat-omap/include/plat/common.h
-+++ b/arch/arm/plat-omap/include/plat/common.h
-@@ -30,7 +30,7 @@
- #include <plat/i2c.h>
- #include <plat/omap_hwmod.h>
-
--extern int __init omap_init_clocksource_32k(void);
-+extern int __init omap_init_clocksource_32k(u32 pbase, unsigned long size);
-
- extern void omap_reserve(void);
- extern int omap_dss_reset(struct omap_hwmod *);
---
-1.7.0.4
-
+>
+> commit e55a42528cebb8fa7408dc95abb3859639a46750
+> Author: Russell King <rmk+kernel@arm.linux.org.uk>
+> Date:   Wed Feb 15 11:20:51 2012 +0000
+>
+>     ARM: OMAP: fix cpufreq build
+>     
+>     OMAPs cpufreq requires the frequency table support, but nothing ensures
+>     that this is selected.  This can result in configurations which fail to
+>     build:
+>     
+>     drivers/built-in.o:(.data+0x5238): undefined reference to `cpufreq_freq_attr_scaling_available_freqs'
+>     drivers/cpufreq/omap-cpufreq.c:88: undefined reference to `cpufreq_frequency_table_target'
+>     drivers/cpufreq/omap-cpufreq.c:60: undefined reference to `cpufreq_frequency_table_verify'
+>     drivers/cpufreq/omap-cpufreq.c:186: undefined reference to `cpufreq_frequency_table_cpuinfo'
+>     drivers/cpufreq/omap-cpufreq.c:190: undefined reference to `cpufreq_frequency_table_get_attr'
+>     
+>     Fix this by introducing a new configuration variable and having that
+>     select CPU_FREQ_TABLE.
+>     
+>     Signed-off-by: Russell King <rmk+kernel@arm.linux.org.uk>
+>
+> diff --git a/arch/arm/mach-omap2/clkt2xxx_virt_prcm_set.c b/arch/arm/mach-omap2/clkt2xxx_virt_prcm_set.c
+> index 7072e0d..ad35d4e 100644
+> --- a/arch/arm/mach-omap2/clkt2xxx_virt_prcm_set.c
+> +++ b/arch/arm/mach-omap2/clkt2xxx_virt_prcm_set.c
+> @@ -166,7 +166,7 @@ int omap2_select_table_rate(struct clk *clk, unsigned long rate)
+>  	return 0;
+>  }
+>  
+> -#ifdef CONFIG_CPU_FREQ
+> +#ifdef CONFIG_ARM_OMAP2PLUS_CPUFREQ
+>  /*
+>   * Walk PRCM rate table and fillout cpufreq freq_table
+>   * XXX This should be replaced by an OPP layer in the near future
+> diff --git a/arch/arm/mach-omap2/clock.c b/arch/arm/mach-omap2/clock.c
+> index f57ed5b..450feb0 100644
+> --- a/arch/arm/mach-omap2/clock.c
+> +++ b/arch/arm/mach-omap2/clock.c
+> @@ -536,7 +536,7 @@ struct clk_functions omap2_clk_functions = {
+>  	.clk_set_rate		= omap2_clk_set_rate,
+>  	.clk_set_parent		= omap2_clk_set_parent,
+>  	.clk_disable_unused	= omap2_clk_disable_unused,
+> -#ifdef CONFIG_CPU_FREQ
+> +#ifdef CONFIG_ARM_OMAP2PLUS_CPUFREQ
+>  	/* These will be removed when the OPP code is integrated */
+>  	.clk_init_cpufreq_table	= omap2_clk_init_cpufreq_table,
+>  	.clk_exit_cpufreq_table	= omap2_clk_exit_cpufreq_table,
+> diff --git a/arch/arm/mach-omap2/clock.h b/arch/arm/mach-omap2/clock.h
+> index b8c2a68..f331cfc 100644
+> --- a/arch/arm/mach-omap2/clock.h
+> +++ b/arch/arm/mach-omap2/clock.h
+> @@ -146,7 +146,7 @@ extern const struct clksel_rate gpt_sys_rates[];
+>  extern const struct clksel_rate gfx_l3_rates[];
+>  extern const struct clksel_rate dsp_ick_rates[];
+>  
+> -#if defined(CONFIG_ARCH_OMAP2) && defined(CONFIG_CPU_FREQ)
+> +#if defined(CONFIG_ARCH_OMAP2) && defined(CONFIG_ARM_OMAP2PLUS_CPUFREQ)
+>  extern void omap2_clk_init_cpufreq_table(struct cpufreq_frequency_table **table);
+>  extern void omap2_clk_exit_cpufreq_table(struct cpufreq_frequency_table **table);
+>  #else
+> diff --git a/arch/arm/plat-omap/clock.c b/arch/arm/plat-omap/clock.c
+> index 56b6f8b..618cf80 100644
+> --- a/arch/arm/plat-omap/clock.c
+> +++ b/arch/arm/plat-omap/clock.c
+> @@ -398,7 +398,7 @@ struct clk dummy_ck = {
+>  	.ops	= &clkops_null,
+>  };
+>  
+> -#ifdef CONFIG_CPU_FREQ
+> +#ifdef CONFIG_ARM_OMAP2PLUS_CPUFREQ
+>  void clk_init_cpufreq_table(struct cpufreq_frequency_table **table)
+>  {
+>  	unsigned long flags;
+> diff --git a/arch/arm/plat-omap/include/plat/clock.h b/arch/arm/plat-omap/include/plat/clock.h
+> index 240a7b9..879ba27 100644
+> --- a/arch/arm/plat-omap/include/plat/clock.h
+> +++ b/arch/arm/plat-omap/include/plat/clock.h
+> @@ -283,7 +283,7 @@ struct clk_functions {
+>  	void		(*clk_allow_idle)(struct clk *clk);
+>  	void		(*clk_deny_idle)(struct clk *clk);
+>  	void		(*clk_disable_unused)(struct clk *clk);
+> -#ifdef CONFIG_CPU_FREQ
+> +#ifdef CONFIG_ARM_OMAP2PLUS_CPUFREQ
+>  	void		(*clk_init_cpufreq_table)(struct cpufreq_frequency_table **);
+>  	void		(*clk_exit_cpufreq_table)(struct cpufreq_frequency_table **);
+>  #endif
+> @@ -301,7 +301,7 @@ extern void recalculate_root_clocks(void);
+>  extern unsigned long followparent_recalc(struct clk *clk);
+>  extern void clk_enable_init_clocks(void);
+>  unsigned long omap_fixed_divisor_recalc(struct clk *clk);
+> -#ifdef CONFIG_CPU_FREQ
+> +#ifdef CONFIG_ARM_OMAP2PLUS_CPUFREQ
+>  extern void clk_init_cpufreq_table(struct cpufreq_frequency_table **table);
+>  extern void clk_exit_cpufreq_table(struct cpufreq_frequency_table **table);
+>  #endif
+> diff --git a/drivers/cpufreq/Kconfig.arm b/drivers/cpufreq/Kconfig.arm
+> index 32d790d..587b578 100644
+> --- a/drivers/cpufreq/Kconfig.arm
+> +++ b/drivers/cpufreq/Kconfig.arm
+> @@ -3,8 +3,8 @@
+>  #
+>  
+>  config ARM_OMAP2PLUS_CPUFREQ
+> -	bool "TI OMAP2+"
+> -	default ARCH_OMAP2PLUS
+> +	def_bool y
+> +	depends on ARCH_OMAP2PLUS
+>  	select CPU_FREQ_TABLE
+>  
+>  config ARM_S3C2416_CPUFREQ
+>
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-omap" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
