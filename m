@@ -1,72 +1,461 @@
-From: Tomi Valkeinen <tomi.valkeinen@ti.com>
-Subject: Re: OMAP4 errata i740
-Date: Fri, 30 Mar 2012 14:59:08 +0300
-Message-ID: <1333108748.1932.37.camel@deskari>
-References: <1333094862.1932.15.camel@deskari>
-	 <CAMQu2gx30OLnxTS8TOh=xc36fFgtPs08Zhhx6raYDAQ3nxfO1g@mail.gmail.com>
-	 <1333095982.1932.21.camel@deskari> <4F756F66.6020103@ti.com>
-	 <4F757014.5030006@ti.com> <4F757262.60409@ti.com> <4F7589A3.6080104@ti.com>
-	 <4F758B15.1040905@ti.com> <4F75915D.9050205@ti.com>
-	 <CAMQu2gzXoqwdmd6xMs+Rp6TQDJtjQf+ydtRb3AL6+APnmfHzHA@mail.gmail.com>
-	 <4F75963C.2000508@ti.com>
-	 <CAMQu2gx0uOV9Kr=eQe_3e93RfE8L5txLsV4bvYOgAnjxQZr-GA@mail.gmail.com>
-Mime-Version: 1.0
-Content-Type: multipart/mixed; boundary=0015175deff695cbdf04bc7491ce
+From: Bryan Wu <bryan.wu@canonical.com>
+Subject: [PATCH 02/18] ARM: at91: convert old leds drivers to gpio_led and led_trigger drivers
+Date: Fri, 30 Mar 2012 19:58:17 +0800
+Message-ID: <1333108713-12707-3-git-send-email-bryan.wu@canonical.com>
+References: <1333108713-12707-1-git-send-email-bryan.wu@canonical.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aog102.obsmtp.com ([74.125.149.69]:48575 "EHLO
-	na3sys009aog102.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S934267Ab2C3L7P (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>);
-	Fri, 30 Mar 2012 07:59:15 -0400
-Received: by bkwj5 with SMTP id j5so778908bkw.16
-        for <linux-omap@vger.kernel.org>; Fri, 30 Mar 2012 04:59:11 -0700 (PDT)
-In-Reply-To: <CAMQu2gx0uOV9Kr=eQe_3e93RfE8L5txLsV4bvYOgAnjxQZr-GA@mail.gmail.com>
+Received: from youngberry.canonical.com ([91.189.89.112]:60383 "EHLO
+	youngberry.canonical.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S933579Ab2C3L7U (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 30 Mar 2012 07:59:20 -0400
+In-Reply-To: <1333108713-12707-1-git-send-email-bryan.wu@canonical.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "Shilimkar, Santosh" <santosh.shilimkar@ti.com>
-Cc: Archit Taneja <a0393947@ti.com>, "Cousson, Benoit" <b-cousson@ti.com>, Paul Walmsley <paul@pwsan.com>, linux-omap <linux-omap@vger.kernel.org>, Kevin Hilman <khilman@ti.com>
+To: tony@atomide.com, linux@arm.linux.org.uk, rpurdie@rpsys.net, manuel.lauss@gmail.com, cjb@laptop.org, cbou@mail.ru, dwmw2@infradead.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org, linus.walleij@linaro.org, akpm@linux-foundation.org
 
---0015175deff695cbdf04bc7491ce
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: quoted-printable
+Build with at91 defconfigs successfully
 
-On Fri, 2012-03-30 at 16:50 +0530, Shilimkar, Santosh wrote:
+Signed-off-by: Bryan Wu <bryan.wu@canonical.com>
+Acked-by: Nicolas Ferre <nicolas.ferre@atmel.com>
+---
+ arch/arm/mach-at91/board-csb337.c       |    3 -
+ arch/arm/mach-at91/board-ecbat91.c      |   18 +++++-
+ arch/arm/mach-at91/board-eco920.c       |   23 ++++++-
+ arch/arm/mach-at91/board-kafa.c         |   17 ++++-
+ arch/arm/mach-at91/board-kb9202.c       |   23 ++++++-
+ arch/arm/mach-at91/board-rm9200dk.c     |    3 -
+ arch/arm/mach-at91/board-rm9200ek.c     |    3 -
+ arch/arm/mach-at91/board-sam9-l9260.c   |   23 ++++++-
+ arch/arm/mach-at91/board-sam9261ek.c    |    3 -
+ arch/arm/mach-at91/board-yl-9200.c      |    3 -
+ arch/arm/mach-at91/include/mach/board.h |    1 -
+ arch/arm/mach-at91/leds.c               |  105 -------------------------------
+ 12 files changed, 89 insertions(+), 136 deletions(-)
 
-> Exactly. That's what I mean. You tweak sysconfig or clockdomain,
-> both are messy.
->=20
-> if one need to choose between two bad options, I guess sysconifig
-> one is better because that is local to IPs and there is some way today
-> for drivers to manage sysconfig directly.
+diff --git a/arch/arm/mach-at91/board-csb337.c b/arch/arm/mach-at91/board-csb337.c
+index 1a1547b..ce2eea3 100644
+--- a/arch/arm/mach-at91/board-csb337.c
++++ b/arch/arm/mach-at91/board-csb337.c
+@@ -48,9 +48,6 @@ static void __init csb337_init_early(void)
+ 	/* Initialize processor: 3.6864 MHz crystal */
+ 	at91_initialize(3686400);
+ 
+-	/* Setup the LEDs */
+-	at91_init_leds(AT91_PIN_PB0, AT91_PIN_PB1);
+-
+ 	/* DBGU on ttyS0 */
+ 	at91_register_uart(0, 0, 0);
+ 
+diff --git a/arch/arm/mach-at91/board-ecbat91.c b/arch/arm/mach-at91/board-ecbat91.c
+index 69966ce..da671f5 100644
+--- a/arch/arm/mach-at91/board-ecbat91.c
++++ b/arch/arm/mach-at91/board-ecbat91.c
+@@ -51,9 +51,6 @@ static void __init ecb_at91init_early(void)
+ 	/* Initialize processor: 18.432 MHz crystal */
+ 	at91_initialize(18432000);
+ 
+-	/* Setup the LEDs */
+-	at91_init_leds(AT91_PIN_PC7, AT91_PIN_PC7);
+-
+ 	/* DBGU on ttyS0. (Rx & Tx only) */
+ 	at91_register_uart(0, 0, 0);
+ 
+@@ -149,6 +146,18 @@ static struct spi_board_info __initdata ecb_at91spi_devices[] = {
+ 	},
+ };
+ 
++/*
++ * LEDs
++ */
++static struct gpio_led ecb_leds[] = {
++	{	/* D1 */
++		.name			= "led1",
++		.gpio			= AT91_PIN_PC7,
++		.active_low		= 1,
++		.default_trigger	= "heartbeat",
++	}
++};
++
+ static void __init ecb_at91board_init(void)
+ {
+ 	/* Serial */
+@@ -168,6 +177,9 @@ static void __init ecb_at91board_init(void)
+ 
+ 	/* SPI */
+ 	at91_add_device_spi(ecb_at91spi_devices, ARRAY_SIZE(ecb_at91spi_devices));
++
++	/* LEDs */
++	at91_gpio_leds(ecb_leds, ARRAY_SIZE(ecb_leds));
+ }
+ 
+ MACHINE_START(ECBAT91, "emQbit's ECB_AT91")
+diff --git a/arch/arm/mach-at91/board-eco920.c b/arch/arm/mach-at91/board-eco920.c
+index f23aabe..3484eac 100644
+--- a/arch/arm/mach-at91/board-eco920.c
++++ b/arch/arm/mach-at91/board-eco920.c
+@@ -38,9 +38,6 @@ static void __init eco920_init_early(void)
+ 
+ 	at91_initialize(18432000);
+ 
+-	/* Setup the LEDs */
+-	at91_init_leds(AT91_PIN_PB0, AT91_PIN_PB1);
+-
+ 	/* DBGU on ttyS0. (Rx & Tx only */
+ 	at91_register_uart(0, 0, 0);
+ 
+@@ -101,6 +98,24 @@ static struct spi_board_info eco920_spi_devices[] = {
+ 	},
+ };
+ 
++/*
++ * LEDs
++ */
++static struct gpio_led eco920_leds[] = {
++	{	/* D1 */
++		.name			= "led1",
++		.gpio			= AT91_PIN_PB0,
++		.active_low		= 1,
++		.default_trigger	= "heartbeat",
++	},
++	{	/* D2 */
++		.name			= "led2",
++		.gpio			= AT91_PIN_PB1,
++		.active_low		= 1,
++		.default_trigger	= "timer",
++	}
++};
++
+ static void __init eco920_board_init(void)
+ {
+ 	at91_add_device_serial();
+@@ -131,6 +146,8 @@ static void __init eco920_board_init(void)
+ 	);
+ 
+ 	at91_add_device_spi(eco920_spi_devices, ARRAY_SIZE(eco920_spi_devices));
++	/* LEDs */
++	at91_gpio_leds(eco920_leds, ARRAY_SIZE(eco920_leds));
+ }
+ 
+ MACHINE_START(ECO920, "eco920")
+diff --git a/arch/arm/mach-at91/board-kafa.c b/arch/arm/mach-at91/board-kafa.c
+index efde1b2..bcd7f44 100644
+--- a/arch/arm/mach-at91/board-kafa.c
++++ b/arch/arm/mach-at91/board-kafa.c
+@@ -48,9 +48,6 @@ static void __init kafa_init_early(void)
+ 	/* Initialize processor: 18.432 MHz crystal */
+ 	at91_initialize(18432000);
+ 
+-	/* Set up the LEDs */
+-	at91_init_leds(AT91_PIN_PB4, AT91_PIN_PB4);
+-
+ 	/* DBGU on ttyS0. (Rx & Tx only) */
+ 	at91_register_uart(0, 0, 0);
+ 
+@@ -77,6 +74,18 @@ static struct at91_udc_data __initdata kafa_udc_data = {
+ 	.pullup_pin	= AT91_PIN_PB7,
+ };
+ 
++/*
++ * LEDs
++ */
++static struct gpio_led kafa_leds[] = {
++	{	/* D1 */
++		.name			= "led1",
++		.gpio			= AT91_PIN_PB4,
++		.active_low		= 1,
++		.default_trigger	= "heartbeat",
++	},
++};
++
+ static void __init kafa_board_init(void)
+ {
+ 	/* Serial */
+@@ -91,6 +100,8 @@ static void __init kafa_board_init(void)
+ 	at91_add_device_i2c(NULL, 0);
+ 	/* SPI */
+ 	at91_add_device_spi(NULL, 0);
++	/* LEDs */
++	at91_gpio_leds(kafa_leds, ARRAY_SIZE(kafa_leds));
+ }
+ 
+ MACHINE_START(KAFA, "Sperry-Sun KAFA")
+diff --git a/arch/arm/mach-at91/board-kb9202.c b/arch/arm/mach-at91/board-kb9202.c
+index 59b92aa..df74b72 100644
+--- a/arch/arm/mach-at91/board-kb9202.c
++++ b/arch/arm/mach-at91/board-kb9202.c
+@@ -51,9 +51,6 @@ static void __init kb9202_init_early(void)
+ 	/* Initialize processor: 10 MHz crystal */
+ 	at91_initialize(10000000);
+ 
+-	/* Set up the LEDs */
+-	at91_init_leds(AT91_PIN_PC19, AT91_PIN_PC18);
+-
+ 	/* DBGU on ttyS0. (Rx & Tx only) */
+ 	at91_register_uart(0, 0, 0);
+ 
+@@ -113,6 +110,24 @@ static struct atmel_nand_data __initdata kb9202_nand_data = {
+ 	.num_parts	= ARRAY_SIZE(kb9202_nand_partition),
+ };
+ 
++/*
++ * LEDs
++ */
++static struct gpio_led kb9202_leds[] = {
++	{	/* D1 */
++		.name			= "led1",
++		.gpio			= AT91_PIN_PC19,
++		.active_low		= 1,
++		.default_trigger	= "heartbeat",
++	},
++	{	/* D2 */
++		.name			= "led2",
++		.gpio			= AT91_PIN_PC18,
++		.active_low		= 1,
++		.default_trigger	= "timer",
++	}
++};
++
+ static void __init kb9202_board_init(void)
+ {
+ 	/* Serial */
+@@ -131,6 +146,8 @@ static void __init kb9202_board_init(void)
+ 	at91_add_device_spi(NULL, 0);
+ 	/* NAND */
+ 	at91_add_device_nand(&kb9202_nand_data);
++	/* LEDs */
++	at91_gpio_leds(kb9202_leds, ARRAY_SIZE(kb9202_leds));
+ }
+ 
+ MACHINE_START(KB9200, "KB920x")
+diff --git a/arch/arm/mach-at91/board-rm9200dk.c b/arch/arm/mach-at91/board-rm9200dk.c
+index 01332aa..d89a2ff 100644
+--- a/arch/arm/mach-at91/board-rm9200dk.c
++++ b/arch/arm/mach-at91/board-rm9200dk.c
+@@ -51,9 +51,6 @@ static void __init dk_init_early(void)
+ 	/* Initialize processor: 18.432 MHz crystal */
+ 	at91_initialize(18432000);
+ 
+-	/* Setup the LEDs */
+-	at91_init_leds(AT91_PIN_PB2, AT91_PIN_PB2);
+-
+ 	/* DBGU on ttyS0. (Rx & Tx only) */
+ 	at91_register_uart(0, 0, 0);
+ 
+diff --git a/arch/arm/mach-at91/board-rm9200ek.c b/arch/arm/mach-at91/board-rm9200ek.c
+index 11cbaa8..a14727d 100644
+--- a/arch/arm/mach-at91/board-rm9200ek.c
++++ b/arch/arm/mach-at91/board-rm9200ek.c
+@@ -51,9 +51,6 @@ static void __init ek_init_early(void)
+ 	/* Initialize processor: 18.432 MHz crystal */
+ 	at91_initialize(18432000);
+ 
+-	/* Setup the LEDs */
+-	at91_init_leds(AT91_PIN_PB1, AT91_PIN_PB2);
+-
+ 	/* DBGU on ttyS0. (Rx & Tx only) */
+ 	at91_register_uart(0, 0, 0);
+ 
+diff --git a/arch/arm/mach-at91/board-sam9-l9260.c b/arch/arm/mach-at91/board-sam9-l9260.c
+index e8b116b..7e4405e1 100644
+--- a/arch/arm/mach-at91/board-sam9-l9260.c
++++ b/arch/arm/mach-at91/board-sam9-l9260.c
+@@ -49,9 +49,6 @@ static void __init ek_init_early(void)
+ 	/* Initialize processor: 18.432 MHz crystal */
+ 	at91_initialize(18432000);
+ 
+-	/* Setup the LEDs */
+-	at91_init_leds(AT91_PIN_PA9, AT91_PIN_PA6);
+-
+ 	/* DBGU on ttyS0. (Rx & Tx only) */
+ 	at91_register_uart(0, 0, 0);
+ 
+@@ -182,6 +179,24 @@ static struct at91_mmc_data __initdata ek_mmc_data = {
+ 	.vcc_pin	= -EINVAL,
+ };
+ 
++/*
++ * LEDs
++ */
++static struct gpio_led ek_leds[] = {
++	{	/* D1 */
++		.name			= "led1",
++		.gpio			= AT91_PIN_PA9,
++		.active_low		= 1,
++		.default_trigger	= "heartbeat",
++	},
++	{	/* D2 */
++		.name			= "led2",
++		.gpio			= AT91_PIN_PA6,
++		.active_low		= 1,
++		.default_trigger	= "timer",
++	}
++};
++
+ static void __init ek_board_init(void)
+ {
+ 	/* Serial */
+@@ -200,6 +215,8 @@ static void __init ek_board_init(void)
+ 	at91_add_device_mmc(0, &ek_mmc_data);
+ 	/* I2C */
+ 	at91_add_device_i2c(NULL, 0);
++	/* LEDs */
++	at91_gpio_leds(ek_leds, ARRAY_SIZE(ek_leds));
+ }
+ 
+ MACHINE_START(SAM9_L9260, "Olimex SAM9-L9260")
+diff --git a/arch/arm/mach-at91/board-sam9261ek.c b/arch/arm/mach-at91/board-sam9261ek.c
+index c3f9944..0eaadc7 100644
+--- a/arch/arm/mach-at91/board-sam9261ek.c
++++ b/arch/arm/mach-at91/board-sam9261ek.c
+@@ -59,9 +59,6 @@ static void __init ek_init_early(void)
+ 	/* Initialize processor: 18.432 MHz crystal */
+ 	at91_initialize(18432000);
+ 
+-	/* Setup the LEDs */
+-	at91_init_leds(AT91_PIN_PA13, AT91_PIN_PA14);
+-
+ 	/* DBGU on ttyS0. (Rx & Tx only) */
+ 	at91_register_uart(0, 0, 0);
+ 
+diff --git a/arch/arm/mach-at91/board-yl-9200.c b/arch/arm/mach-at91/board-yl-9200.c
+index 38dd279..23e547b 100644
+--- a/arch/arm/mach-at91/board-yl-9200.c
++++ b/arch/arm/mach-at91/board-yl-9200.c
+@@ -59,9 +59,6 @@ static void __init yl9200_init_early(void)
+ 	/* Initialize processor: 18.432 MHz crystal */
+ 	at91_initialize(18432000);
+ 
+-	/* Setup the LEDs D2=PB17 (timer), D3=PB16 (cpu) */
+-	at91_init_leds(AT91_PIN_PB16, AT91_PIN_PB17);
+-
+ 	/* DBGU on ttyS0. (Rx & Tx only) */
+ 	at91_register_uart(0, 0, 0);
+ 
+diff --git a/arch/arm/mach-at91/include/mach/board.h b/arch/arm/mach-at91/include/mach/board.h
+index 544a5d5..964e06f 100644
+--- a/arch/arm/mach-at91/include/mach/board.h
++++ b/arch/arm/mach-at91/include/mach/board.h
+@@ -187,7 +187,6 @@ struct at91_can_data {
+ extern void __init at91_add_device_can(struct at91_can_data *data);
+ 
+  /* LEDs */
+-extern void __init at91_init_leds(u8 cpu_led, u8 timer_led);
+ extern void __init at91_gpio_leds(struct gpio_led *leds, int nr);
+ extern void __init at91_pwm_leds(struct gpio_led *leds, int nr);
+ 
+diff --git a/arch/arm/mach-at91/leds.c b/arch/arm/mach-at91/leds.c
+index 8dfafe7..1b1e62b 100644
+--- a/arch/arm/mach-at91/leds.c
++++ b/arch/arm/mach-at91/leds.c
+@@ -90,108 +90,3 @@ void __init at91_pwm_leds(struct gpio_led *leds, int nr)
+ #else
+ void __init at91_pwm_leds(struct gpio_led *leds, int nr){}
+ #endif
+-
+-
+-/* ------------------------------------------------------------------------- */
+-
+-#if defined(CONFIG_LEDS)
+-
+-#include <asm/leds.h>
+-
+-/*
+- * Old ARM-specific LED framework; not fully functional when generic time is
+- * in use.
+- */
+-
+-static u8 at91_leds_cpu;
+-static u8 at91_leds_timer;
+-
+-static inline void at91_led_on(unsigned int led)
+-{
+-	at91_set_gpio_value(led, 0);
+-}
+-
+-static inline void at91_led_off(unsigned int led)
+-{
+-	at91_set_gpio_value(led, 1);
+-}
+-
+-static inline void at91_led_toggle(unsigned int led)
+-{
+-	unsigned long is_off = at91_get_gpio_value(led);
+-	if (is_off)
+-		at91_led_on(led);
+-	else
+-		at91_led_off(led);
+-}
+-
+-
+-/*
+- * Handle LED events.
+- */
+-static void at91_leds_event(led_event_t evt)
+-{
+-	unsigned long flags;
+-
+-	local_irq_save(flags);
+-
+-	switch(evt) {
+-	case led_start:		/* System startup */
+-		at91_led_on(at91_leds_cpu);
+-		break;
+-
+-	case led_stop:		/* System stop / suspend */
+-		at91_led_off(at91_leds_cpu);
+-		break;
+-
+-#ifdef CONFIG_LEDS_TIMER
+-	case led_timer:		/* Every 50 timer ticks */
+-		at91_led_toggle(at91_leds_timer);
+-		break;
+-#endif
+-
+-#ifdef CONFIG_LEDS_CPU
+-	case led_idle_start:	/* Entering idle state */
+-		at91_led_off(at91_leds_cpu);
+-		break;
+-
+-	case led_idle_end:	/* Exit idle state */
+-		at91_led_on(at91_leds_cpu);
+-		break;
+-#endif
+-
+-	default:
+-		break;
+-	}
+-
+-	local_irq_restore(flags);
+-}
+-
+-
+-static int __init leds_init(void)
+-{
+-	if (!at91_leds_timer || !at91_leds_cpu)
+-		return -ENODEV;
+-
+-	leds_event = at91_leds_event;
+-
+-	leds_event(led_start);
+-	return 0;
+-}
+-
+-__initcall(leds_init);
+-
+-
+-void __init at91_init_leds(u8 cpu_led, u8 timer_led)
+-{
+-	/* Enable GPIO to access the LEDs */
+-	at91_set_gpio_output(cpu_led, 1);
+-	at91_set_gpio_output(timer_led, 1);
+-
+-	at91_leds_cpu	= cpu_led;
+-	at91_leds_timer	= timer_led;
+-}
+-
+-#else
+-void __init at91_init_leds(u8 cpu_led, u8 timer_led) {}
+-#endif
+-- 
+1.7.9.1
 
-If the driver touches sysconfig, isn't it possible that hwmod/something
-just reverts the changes? I mean, sysconfig register is supposedly
-"owned" by the arch code, and if the driver modifies it there could be a
-race condition.
-
- Tomi
-
-
---0015175deff695cbdf04bc7491ce
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: This is a digitally signed message part
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.4.11 (GNU/Linux)
-
-iQIcBAABAgAGBQJPdaAMAAoJEPo9qoy8lh71XVAP/Rz0Ull7RxfwnPym2n9EusKU
-9YB7WlZVGjugA6c1zVmkWrgsG9P/qqEeeuyXz91luvgYIXWDtfDkEe2S3/N/io8j
-JPqe5MaeFVswrZZqXmTz4cu5vAe3FxFESqU9MlgcrY3QM8TK06EQcFa6/H78Kh9G
-jv6yRhRNK6w98PzqIu7XdifKg8BR865LIteicXd5tLZIxmrRvuxqviw94BoKryk4
-IIXB5Og1Q/lN99JHcyDJeB20P2aE+0aTyYEHFr1LB/pPfUW8u8JuAwOlvQ/SUGdL
-aKBs0BPZlJtB2R2KoBBMQmh69o+ouj0F0P2G/GXR/AP0CQ19Ja3HJ/Qx38ncE8eQ
-Z5PNf6+Cl7C1FGAtdavuVHwyujiN5XEUzZXaDOkVQ9u9VZ0Et+j2MwB5lhVQsQWB
-taf1i2BlQEGdUMLNpk4xUtOLAYCSlw3eM+fYDE0bNF9L1VPwqEsEpfRRKBESMn6F
-wfvY9QkZr1p1tQqTHOl1NL8Z/QpwimPGNDy0sdGtSz+M/SQ6uobfbG+ZTStv0XhI
-TrNhPR5tWAeWPyxs+hy2vSB+YUW8bCeL8ZvlxBHrTPRsnAF1+zZPUsciOmTl3dmO
-QHV3qiRkElmCX0HRAXbseCVjWpLstshZ2Cr0Mtx7ByDAVJP3NO6QL7xKDtB0XkU1
-y2Kuvk+mVZ+GP0QiWIU0
-=SOpo
------END PGP SIGNATURE-----
-
---0015175deff695cbdf04bc7491ce--
