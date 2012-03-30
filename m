@@ -1,7 +1,8 @@
 From: Vaibhav Hiremath <hvaibhav@ti.com>
-Subject: [PATCH-V4 1/4] ARM: OMAP3+: am33xx: Add voltage domain data
-Date: Fri, 30 Mar 2012 21:33:52 +0530
-Message-ID: <1333123435-27186-2-git-send-email-hvaibhav@ti.com>
+Subject: [PATCH-V4 3/4] ARM: OMAP2+: powerdomain: Add offset & mask fields to
+ struct powerdomain
+Date: Fri, 30 Mar 2012 21:33:54 +0530
+Message-ID: <1333123435-27186-4-git-send-email-hvaibhav@ti.com>
 References: <1333123435-27186-1-git-send-email-hvaibhav@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
@@ -18,115 +19,81 @@ List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
 Sender: linux-arm-kernel-bounces@lists.infradead.org
 Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
 To: linux-omap@vger.kernel.org
-Cc: khilman@ti.com, paul@pwsan.com, b-cousson@ti.com, tony@atomide.com, rnayak@ti.com, Afzal Mohammed <afzal@ti.com>, Vaibhav Hiremath <hvaibhav@ti.com>, linux-arm-kernel@lists.infradead.org
+Cc: khilman@ti.com, paul@pwsan.com, b-cousson@ti.com, tony@atomide.com, rnayak@ti.com, Vaibhav Hiremath <hvaibhav@ti.com>, linux-arm-kernel@lists.infradead.org
 List-Id: linux-omap@vger.kernel.org
 
-Currently dummy voltage domain data is being created
-in order to succeed boot process, nothing has been done
-w.r.t actual hardware (voltage control).
+In case of AM33xx family of devices, there is no consistency between
+PWRSTCTRL & PWRSTST register offsers in PRM space, for example -
 
-Also, hook up the AM33XX voltage domain to OMAP framework.
+PRM_XXX           PWRSTCTRL     PWRSTST
+=======================================
+PRM_PER_MOD:      0x0C,         0x08
+PRM_WKUP_MOD:     0x04,         0x08
+PRM_MPU_MOD:      0x00,         0x04
+PRM_DEVICE_MOD:   NA,           NA
+
+And also, there is no consistency between bit-offsets inside
+PWRSTCTRL & PWRSTST register, for example -
+
+PRM_XXX           LOGICRET  MEMON  MEMRET
+=======================================
+GFX_PWRCTRL:      2,        17,    6
+PER_PWRCTRL:      3,        25,    29
+MPU_PWRCTRL:      2,        18,    22
+WKUP_PWRCTRL:     3,        NA,    NA
+
+This means, we need to maintain and pass on all this information
+in powerdomain handle; so adding fields for,
+   - PWRSTCTRL/ST register offset
+   - Logic retention state mask
+   - mem_on/ret/pwrst/retst mask
+
+Currently, this fields is only applicable and used for AM33XX devices.
 
 Signed-off-by: Vaibhav Hiremath <hvaibhav@ti.com>
-Signed-off-by: Afzal Mohammed <afzal@ti.com>
 Cc: Benoit Cousson <b-cousson@ti.com>
 Cc: Tony Lindgren <tony@atomide.com>
 Cc: Kevin Hilman <khilman@ti.com>
 Cc: Paul Walmsley <paul@pwsan.com>
 Cc: Rajendra Nayak <rnayak@ti.com>
 ---
- arch/arm/mach-omap2/Makefile                  |    2 +
- arch/arm/mach-omap2/io.c                      |    1 +
- arch/arm/mach-omap2/voltage.h                 |    1 +
- arch/arm/mach-omap2/voltagedomains33xx_data.c |   43 +++++++++++++++++++++++++
- 4 files changed, 47 insertions(+), 0 deletions(-)
- create mode 100644 arch/arm/mach-omap2/voltagedomains33xx_data.c
+ arch/arm/mach-omap2/powerdomain.h |   17 +++++++++++++++++
+ 1 files changed, 17 insertions(+), 0 deletions(-)
 
-diff --git a/arch/arm/mach-omap2/Makefile b/arch/arm/mach-omap2/Makefile
-index 74ae499..8d90f9f 100644
---- a/arch/arm/mach-omap2/Makefile
-+++ b/arch/arm/mach-omap2/Makefile
-@@ -99,6 +99,8 @@ obj-$(CONFIG_ARCH_OMAP2)		+= $(voltagedomain-common) \
- 					   voltagedomains2xxx_data.o
- obj-$(CONFIG_ARCH_OMAP3)		+= $(voltagedomain-common) \
- 					   voltagedomains3xxx_data.o
-+obj-$(CONFIG_SOC_OMAPAM33XX)		+= $(voltagedomain-common) \
-+					   voltagedomains33xx_data.o
- obj-$(CONFIG_ARCH_OMAP4)		+= $(voltagedomain-common) \
- 					   voltagedomains44xx_data.o
+diff --git a/arch/arm/mach-omap2/powerdomain.h b/arch/arm/mach-omap2/powerdomain.h
+index 0d72a8a..8fc50b2 100644
+--- a/arch/arm/mach-omap2/powerdomain.h
++++ b/arch/arm/mach-omap2/powerdomain.h
+@@ -92,6 +92,15 @@ struct powerdomain;
+  * @pwrdm_clkdms: Clockdomains in this powerdomain
+  * @node: list_head linking all powerdomains
+  * @voltdm_node: list_head linking all powerdomains in a voltagedomain
++ * @pwrstctrl_offs: (AM33XX only) XXX_PWRSTCTRL reg offset from prcm_offs
++ * @pwrstst_offs: (AM33XX only) XXX_PWRSTST reg offset from prcm_offs
++ * @logicretstate_mask: (AM33XX only) mask for logic retention bitfield
++ *	in @pwrstctrl_offs
++ * @mem_on_mask: (AM33XX only) mask for mem on bitfield in @pwrstctrl_offs
++ * @mem_ret_mask: (AM33XX only) mask for mem retention bitfield in @pwrstctrl_offs
++ * @mem_pwrst_mask: (AM33XX only) mask for mem state bitfield in @pwrstst_offs
++ * @mem_retst_mask: (AM33XX only) mask for mem retention state bitfield
++ *	in @pwrstctrl_offs
+  * @state:
+  * @state_counter:
+  * @timer:
+@@ -121,6 +130,14 @@ struct powerdomain {
+ 	unsigned ret_logic_off_counter;
+ 	unsigned ret_mem_off_counter[PWRDM_MAX_MEM_BANKS];
 
-diff --git a/arch/arm/mach-omap2/io.c b/arch/arm/mach-omap2/io.c
-index 51d4df8..523fb6d 100644
---- a/arch/arm/mach-omap2/io.c
-+++ b/arch/arm/mach-omap2/io.c
-@@ -466,6 +466,7 @@ void __init am33xx_init_early(void)
- {
- 	omap2_set_globals_am33xx();
- 	omap_common_init_early();
-+	am33xx_voltagedomains_init();
- 	omap3xxx_clk_init();
- }
- #endif
-diff --git a/arch/arm/mach-omap2/voltage.h b/arch/arm/mach-omap2/voltage.h
-index 16a1b09..a7c43c1 100644
---- a/arch/arm/mach-omap2/voltage.h
-+++ b/arch/arm/mach-omap2/voltage.h
-@@ -156,6 +156,7 @@ int omap_voltage_late_init(void);
-
- extern void omap2xxx_voltagedomains_init(void);
- extern void omap3xxx_voltagedomains_init(void);
-+extern void am33xx_voltagedomains_init(void);
- extern void omap44xx_voltagedomains_init(void);
-
- struct voltagedomain *voltdm_lookup(const char *name);
-diff --git a/arch/arm/mach-omap2/voltagedomains33xx_data.c b/arch/arm/mach-omap2/voltagedomains33xx_data.c
-new file mode 100644
-index 0000000..965458d
---- /dev/null
-+++ b/arch/arm/mach-omap2/voltagedomains33xx_data.c
-@@ -0,0 +1,43 @@
-+/*
-+ * AM33XX voltage domain data
-+ *
-+ * Copyright (C) 2011 Texas Instruments Incorporated - http://www.ti.com/
-+ *
-+ * This program is free software; you can redistribute it and/or
-+ * modify it under the terms of the GNU General Public License as
-+ * published by the Free Software Foundation version 2.
-+ *
-+ * This program is distributed "as is" WITHOUT ANY WARRANTY of any
-+ * kind, whether express or implied; without even the implied warranty
-+ * of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-+ * GNU General Public License for more details.
-+ */
++	const u8 pwrstctrl_offs;
++	const u8 pwrstst_offs;
++	const u32 logicretstate_mask;
++	const u32 mem_on_mask[PWRDM_MAX_MEM_BANKS];
++	const u32 mem_ret_mask[PWRDM_MAX_MEM_BANKS];
++	const u32 mem_pwrst_mask[PWRDM_MAX_MEM_BANKS];
++	const u32 mem_retst_mask[PWRDM_MAX_MEM_BANKS];
 +
-+#include <linux/kernel.h>
-+#include <linux/init.h>
-+
-+#include "voltage.h"
-+
-+static struct voltagedomain am33xx_voltdm_mpu = {
-+	.name		= "mpu",
-+};
-+
-+static struct voltagedomain am33xx_voltdm_core = {
-+	.name		= "core",
-+};
-+
-+static struct voltagedomain am33xx_voltdm_rtc = {
-+	.name		= "rtc",
-+};
-+
-+static struct voltagedomain *voltagedomains_am33xx[] __initdata = {
-+	&am33xx_voltdm_mpu,
-+	&am33xx_voltdm_core,
-+	&am33xx_voltdm_rtc,
-+	NULL,
-+};
-+
-+void __init am33xx_voltagedomains_init(void)
-+{
-+	voltdm_init(voltagedomains_am33xx);
-+}
+ #ifdef CONFIG_PM_DEBUG
+ 	s64 timer;
+ 	s64 state_timer[PWRDM_MAX_PWRSTS];
 --
 1.7.0.4
