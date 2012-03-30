@@ -1,101 +1,215 @@
-From: Igor Grinberg <grinberg@compulab.co.il>
-Subject: Re: [PATCH 05/12] Add dummy smsc911x regulators to cm-t35.
-Date: Fri, 30 Mar 2012 18:23:04 +0300
-Message-ID: <4F75CFD8.7050809@compulab.co.il>
-References: <1332494504-10251-1-git-send-email-Russ.Dill@ti.com> <1332494504-10251-6-git-send-email-Russ.Dill@ti.com> <4F71E290.2050403@compulab.co.il> <20120327172819.GQ9859@atomide.com> <4F72B0D0.70703@compulab.co.il> <20120328170316.GR9859@atomide.com>
+From: Thomas Klute <thomas2.klute@uni-dortmund.de>
+Subject: Re: smsc911x on Gumstix Overo/Tobi doesn't work
+Date: Fri, 30 Mar 2012 17:28:54 +0200
+Message-ID: <4F75D136.5020208@uni-dortmund.de>
+References: <4F6324D5.9010106@uni-dortmund.de> <20120316193337.GE7276@atomide.com> <4F675D9D.2040102@uni-dortmund.de> <20120319225131.GE9859@atomide.com> <4F6893C6.60701@uni-dortmund.de> <CAAwP0s3Qo7vtt=BY7Pvejg4Gc9X0O0n=yWg0JVGZHrmUJScMXw@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
-Return-path: <netdev-owner@vger.kernel.org>
-In-Reply-To: <20120328170316.GR9859@atomide.com>
-Sender: netdev-owner@vger.kernel.org
-To: Tony Lindgren <tony@atomide.com>
-Cc: Russ Dill <Russ.Dill@ti.com>, linux-omap@vger.kernel.org, Mark Brown <broonie@opensource.wolfsonmicro.com>, Matt Porter <mporter@ti.com>, robert.marklund@stericsson.com, linus.walleij@linaro.org, linux-arm-kernel <linux-arm-kernel@lists.infradead.org>, "netdev@vger.kernel.org" <netdev@vger.kernel.org>
+Content-Type: multipart/mixed;
+ boundary="------------070201070407010207050908"
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from mx1.HRZ.Uni-Dortmund.DE ([129.217.128.51]:39903 "EHLO
+	unimail.uni-dortmund.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756271Ab2C3P27 (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 30 Mar 2012 11:28:59 -0400
+In-Reply-To: <CAAwP0s3Qo7vtt=BY7Pvejg4Gc9X0O0n=yWg0JVGZHrmUJScMXw@mail.gmail.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Javier Martinez Canillas <martinez.javier@gmail.com>
+Cc: Tony Lindgren <tony@atomide.com>, linux-omap@vger.kernel.org
 
-On 03/28/12 19:03, Tony Lindgren wrote:
-> * Igor Grinberg <grinberg@compulab.co.il> [120327 23:36]:
->> Hi Tony,
->>
->> On 03/27/12 19:28, Tony Lindgren wrote:
->>> * Igor Grinberg <grinberg@compulab.co.il> [120327 08:56]:
->>>> Hi Russ,
+This is a multi-part message in MIME format.
+--------------070201070407010207050908
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 7bit
+
+Hi,
+
+I finally had some time to do more tests on this problem. Findings below.
+
+Am 20.03.2012 20:47, schrieb Javier Martinez Canillas:
+> On Tue, Mar 20, 2012 at 3:27 PM, Thomas Klute
+> <thomas2.klute@uni-dortmund.de> wrote:
+>> Am 19.03.2012 23:51, schrieb Tony Lindgren:
+>>> * Thomas Klute <thomas2.klute@uni-dortmund.de> [120319 09:26]:
+>>>> Am 16.03.2012 20:33, schrieb Tony Lindgren:
+>>>>> Hi,
+>>>>>
+>>>>> * Thomas Klute <thomas2.klute@uni-dortmund.de> [120316 05:08]:
+>>>>>> Hi,
+>>>>>>
+>>>>>> I have trouble getting the Ethernet port on a Gumstix Overo with Tobi
+>>>>>> expansion board to work with current kernel versions. With the latest
+>>>>>> commit from linux-omap git (b8fe1781ec8bed5e086691a827a6ee11facec2aa),
+>>>>>> the output from loading the smsc911x driver is as follows:
+>>>>>>
+>>>>>> du14:~# modprobe smsc911x
+>>>>>> [  254.843811] smsc911x: Driver version 2008-10-21
+>>>>>> [  254.854553] smsc911x: Driver version 2008-10-21
+>>>>>> [  254.859588] _regulator_get: smsc911x.1 supply vdd33a not found, using
+>>>>>> dummy regulator
+>>>>>> [  254.868377] _regulator_get: smsc911x.1 supply vddvario not found,
+>>>>>> using dummy regulator
+>>>>>>
+>>>>>> "ip link show" does not show any available Ethernet port.
+>>>>>
+>>>>> The first instance one should work the same way as earlier using
+>>>>> fixed regulator in gpmc-smsc911x.c. Is it not working for you
+>>>>> somehow? At least it works for me on zoom3.
 >>>>
->>>> This patch works, but can we, please use the attached patch instead?
+>>>> The Tobi board has only one Ethernet port.
+>>>>
+>>>>>> I know there has been some trouble with changes around smsc911x
+>>>>>> regulator support and Gumstix Overo in particular. Am I just missing the
+>>>>>> right regulator in my kernel config or is this a bug? I can test patches
+>>>>>> in the latter case.
+>>>>>
+>>>>> The second smsc911x now needs a regulator. For multiple smsc911x instances,
+>>>>> we should change things around so no regulator is created if one
+>>>>> is passed.
+>>>>>
+>>>>> Care to test the following patch by passing a fixed regulator
+>>>>> from board-overo.c?
+>>>>
+>>>> After applying the patch the Ethernet port works consistently once I had
+>>>> done a cold boot (reboot from the unpatched kernel did not work).
+>>>> Thank you!
 >>>
->>> Hmm what's the difference here? Do you have some real controllable
->>> regulator for one of the smsc911x instances?
+>>> Hmm but this patch should not change the behaviour for the first smsc911x
+>>> instance unless you specify a custom regulator.. Did you patch in a
+>>> custom regulator, or do we have a bug somewhere? Or do you just need to
+>>> do a cold reset without the patch I posted?
 >>
->> Well, the difference here is that those regulators will only be present
->> if the smsc911x controllers are present and their initialization is done
->> along with the controllers.
->> Also, I want to separate the cm-t35 from sb-t35 for future easier
->> refactoring of the sb-t35 code so it can be reused also on cm-t3517.
+>> You're right, during further tests I found that the problem lies
+>> elsewhere: If the Ethernet cable is attached on modprobe, the device
+>> works as expected, if not, it's not found (with or without the patch).
+>> This means if I boot with the cable disconnected, the device won't show
+>> up, but after
 >>
->> Only vddvario for smsc911x.0 is controllable - connected to VIO, but
->> VIO will never be disabled as it also controls many other devices
->> (DRAM is among them), so I prefer it to be dummy and keep it together
->> with vdd33a.
-> 
-> OK thanks for the clarification. 
-> 
->>> Anyways, I take it that you have tested that both smsc911x interfaces
->>> work now?
+>> # modprobe -r smsc911x
+>> [attach cable]
+>> # modprobe smsc911x
 >>
->> Yes, both regulators are registered and found by the smsc911x driver.
->> There is some kind of problem with the smsc911x.1, but it looks unrelated
->> to the patch:
-> 
-> OK good to hear. Regarding the following problem..
->  
->> smsc911x: Driver version 2008-10-21
->> irq 323: nobody cared (try booting with the "irqpoll" option)
->> [<c001ae6c>] (unwind_backtrace+0x0/0xfc) from [<c0088960>] (__report_bad_irq+0x28/0xbc)
->> [<c0088960>] (__report_bad_irq+0x28/0xbc) from [<c0088bd4>] (note_interrupt+0x1e0/0x230)
->> [<c0088bd4>] (note_interrupt+0x1e0/0x230) from [<c0086e48>] (handle_irq_event_percpu+0xb0/0x1a0)
->> [<c0086e48>] (handle_irq_event_percpu+0xb0/0x1a0) from [<c0086f74>] (handle_irq_event+0x3c/0x5c)
->> [<c0086f74>] (handle_irq_event+0x3c/0x5c) from [<c00895a0>] (handle_level_irq+0x90/0xfc)
->> [<c00895a0>] (handle_level_irq+0x90/0xfc) from [<c008699c>] (generic_handle_irq+0x38/0x40)
->> [<c008699c>] (generic_handle_irq+0x38/0x40) from [<c02635a0>] (gpio_irq_handler+0x1b0/0x20c)
->> [<c02635a0>] (gpio_irq_handler+0x1b0/0x20c) from [<c008699c>] (generic_handle_irq+0x38/0x40)
->> [<c008699c>] (generic_handle_irq+0x38/0x40) from [<c0015404>] (handle_IRQ+0x38/0x84)
->> [<c0015404>] (handle_IRQ+0x38/0x84) from [<c000865c>] (omap3_intc_handle_irq+0x48/0x4c)
->> [<c000865c>] (omap3_intc_handle_irq+0x48/0x4c) from [<c00140c4>] (__irq_svc+0x44/0x78)
->> Exception stack(0xcf02de20 to 0xcf02de68)
->> de20: cf02c018 cf02c000 00000000 cf02de58 60000013 c06739fc 00000143 c06739fc
->> de40: 60000013 00000508 c06739dc 00000000 00022d69 cf02de68 cf02b3c0 c04890fc
->> de60: 20000013 ffffffff
->> [<c00140c4>] (__irq_svc+0x44/0x78) from [<c04890fc>] (_raw_spin_unlock_irqrestore+0x64/0x68)
->> [<c04890fc>] (_raw_spin_unlock_irqrestore+0x64/0x68) from [<c0087d50>] (__setup_irq+0x1b4/0x3d4)
->> [<c0087d50>] (__setup_irq+0x1b4/0x3d4) from [<c00881a0>] (request_threaded_irq+0xdc/0x148)
->> [<c00881a0>] (request_threaded_irq+0xdc/0x148) from [<c0482954>] (smsc911x_drv_probe+0x350/0x528)
->> [<c0482954>] (smsc911x_drv_probe+0x350/0x528) from [<c02d5a8c>] (platform_drv_probe+0x18/0x1c)
->> [<c02d5a8c>] (platform_drv_probe+0x18/0x1c) from [<c02d4580>] (really_probe+0x64/0x160)
->> [<c02d4580>] (really_probe+0x64/0x160) from [<c02d46c4>] (driver_probe_device+0x48/0x60)
->> [<c02d46c4>] (driver_probe_device+0x48/0x60) from [<c02d4770>] (__driver_attach+0x94/0x98)
->> [<c02d4770>] (__driver_attach+0x94/0x98) from [<c02d2ffc>] (bus_for_each_dev+0x54/0x80)
->> [<c02d2ffc>] (bus_for_each_dev+0x54/0x80) from [<c02d3730>] (bus_add_driver+0xa8/0x2a4)
->> [<c02d3730>] (bus_add_driver+0xa8/0x2a4) from [<c02d4d6c>] (driver_register+0x78/0x184)
->> [<c02d4d6c>] (driver_register+0x78/0x184) from [<c0008758>] (do_one_initcall+0x34/0x184)
->> [<c0008758>] (do_one_initcall+0x34/0x184) from [<c0613248>] (do_basic_setup+0x34/0x40)
->> [<c0613248>] (do_basic_setup+0x34/0x40) from [<c06132b8>] (kernel_init+0x64/0xec)
->> [<c06132b8>] (kernel_init+0x64/0xec) from [<c00154cc>] (kernel_thread_exit+0x0/0x8)
->> handlers:
->> [<c032ea98>] smsc911x_irqhandler
->> Disabling IRQ #323
+>> it will work. I'd still consider this a bug, but it doesn't seem to be a
+>> regulator problem.
 >>
->> I still haven't had a chance to look into this.
->> Does anyone have a clue?
 > 
-> ..care to see if you have OMAP_GPIO_IRQ entry for your board? If so, we're
-> still waiting for the cleanup-fixes branch to get merged that changes
-> things to use gpio_to_irq() instead.
+> Hi Thomas,
+> 
+> I had the same behavior with the smsc911x chip but on an IGEPv2 board.
+> The problem was when CONFIG_SMSC_PHY=y since the driver for the chip
+> internal PHY enables an energy detect power-down mode.
+> 
+> The smsc911x driver probe function tries to software reset the chip
+> but if the cable is unplugged the energy detect puts the chip in a low
+> power mode. Since the chip is not in an operational state the reset
+> fails and hence the driver probe function. If the cable is plugged
+> then then energy is detected, the chip is in an operational state and
+> the reset is successful.
+> 
+> I sent a patch a few months ago to fix this issue. The patch disables
+> the energy detect power-down mode before reseting the chip and then it
+> enables again after reset.
+> 
+> The commit is:
+> 
+> commit 6386994e03ebbe60338ded3d586308a41e81c0dc
+> Author: Javier Martinez Canillas <javier@dowhile0.org>
+> Date:   Tue Jan 3 13:36:19 2012 +0000
+> 
+>     net/smsc911x: Check if PHY is in operational mode before software reset
+> 
+> When I fix the issue I only guarded against generation 4 chips (i.e:
+> pdata->generation == 4), but maybe this problem also exists in other
+> SMSC chips (I didn't know since I only had access to specific
+> data-sheets).
+> 
+> Also you can try enabling debug in the driver by setting USE_DEBUG to
+> 1 in drivers/net/ethernet/smsc/smsc911x.h and also trying disabling
+> CONFIG_SMSC_PHY, this will use a generic PHY driver that doesn't put
+> the chip in auto power mode.
 
-Nope, no OMAP_GPIO_IRQ in the board code.
-Also, the GPIO -> IRQ mapping for the smsc911x is done in gpmc-smsc911x.c
-and it uses gpio_to_irq() already.
+After looking at the code I set USE_DEBUG to 3 to get as much
+information as possible and tested with and without the SMSC PHY driver.
+Results:
 
+With the Ethernet cable attached, the device is properly initialized
+with and without the PHY driver (as before).
 
--- 
+Without the cable, the smsc911x driver can initialize the card only if
+the smsc PHY driver had not been loaded previously. Unloading the PHY
+driver is not enough, even a reboot doesn't help. I have to do a cold
+boot (or attach the cable).
+
+I guess this confirms Javier's guess, but there's one catch: If you take
+a look at the attached logs (both without cable attached), you'll see
+that the device is recognized a generation 4, so the Javier's workaround
+should actually be used. I added a log output in the if
+(pdata->generation == 4) block to be sure, and indeed it is used.
+
+Any hints why the reset still fails?
+
 Regards,
-Igor.
+Thomas
+
+--------------070201070407010207050908
+Content-Type: text/x-log;
+ name="smsc911x-trace-nocable-without_phy.log"
+Content-Transfer-Encoding: 7bit
+Content-Disposition: attachment;
+ filename="smsc911x-trace-nocable-without_phy.log"
+
+[   33.119293] smsc911x: Driver version 2008-10-21
+[   33.201568] smsc911x smsc911x.0: (unregistered net_device): Driver Parameters:
+[   33.209289] smsc911x smsc911x.0: (unregistered net_device): LAN base: 0xD081E000
+[   33.217102] smsc911x smsc911x.0: (unregistered net_device): IRQ: 336
+[   33.223815] smsc911x smsc911x.0: (unregistered net_device): PHY will be autodetected.
+[   33.232482] smsc911x smsc911x.0: (unregistered net_device): BYTE_TEST: 0x87654321
+[   33.240417] smsc911x smsc911x.0: (unregistered net_device): LAN911x identified, idrev: 0x92210000, generation: 4
+[   33.254852] smsc911x smsc911x.0: eth0: Network interface: "eth0"
+[   33.261260] smsc911x smsc911x.0: eth0: External PHY is not supported, using internal PHY
+[   33.868133] smsc911x-mdio: probed
+[   33.871826] smsc911x smsc911x.0: eth0: PHY: addr 1, phy_id 0x0007C0C3
+[   33.878875] smsc911x smsc911x.0: eth0: attached PHY driver [SMSC LAN8700] (mii_bus:phy_addr=smsc911x-0:01, irq=-1)
+[   33.890411] smsc911x smsc911x.0: eth0: smsc911x_phy_check_loopbackpkt: Failed to transmit during loopback test
+[   33.901031] smsc911x smsc911x.0: eth0: Successfully verified loopback packet
+[   33.908569] smsc911x smsc911x.0: eth0: Passed Loop Back Test
+[   33.914550] smsc911x smsc911x.0: eth0: phy initialised successfully
+[   33.921356] smsc911x smsc911x.0: eth0: MAC Address is set to random_ether_addr
+[   33.928985] smsc911x smsc911x.0: eth0: MAC Address: 5a:ee:71:05:48:11
+[   33.935913] smsc911x: Driver version 2008-10-21
+[   33.940856] _regulator_get: smsc911x.1 supply vdd33a not found, using dummy regulator
+[   33.949584] _regulator_get: smsc911x.1 supply vddvario not found, using dummy regulator
+[   33.965057] smsc911x smsc911x.1: (unregistered net_device): Driver Parameters:
+[   33.972778] smsc911x smsc911x.1: (unregistered net_device): LAN base: 0xD090A000
+[   33.980590] smsc911x smsc911x.1: (unregistered net_device): IRQ: 225
+[   33.987304] smsc911x smsc911x.1: (unregistered net_device): PHY will be autodetected.
+[   34.094726] smsc911x: Device not READY in 100ms aborting
+
+--------------070201070407010207050908
+Content-Type: text/x-log;
+ name="smsc911x-trace-nocable-with_phy.log"
+Content-Transfer-Encoding: 7bit
+Content-Disposition: attachment;
+ filename="smsc911x-trace-nocable-with_phy.log"
+
+[  150.724273] smsc911x: Driver version 2008-10-21
+[  150.735870] smsc911x smsc911x.0: (unregistered net_device): Driver Parameters:
+[  150.743591] smsc911x smsc911x.0: (unregistered net_device): LAN base: 0xD8A5C000
+[  150.751403] smsc911x smsc911x.0: (unregistered net_device): IRQ: 336
+[  150.758117] smsc911x smsc911x.0: (unregistered net_device): PHY will be autodetected.
+[  150.766845] smsc911x smsc911x.0: (unregistered net_device): BYTE_TEST: 0x87654321
+[  150.774780] smsc911x smsc911x.0: (unregistered net_device): LAN911x identified, idrev: 0x92210000, generation: 4
+[  150.785644] smsc911x smsc911x.0: (unregistered net_device): smsc911x_soft_reset: Failed to complete reset
+[  150.797027] smsc911x: Driver version 2008-10-21
+[  150.802001] _regulator_get: smsc911x.1 supply vdd33a not found, using dummy regulator
+[  150.811035] _regulator_get: smsc911x.1 supply vddvario not found, using dummy regulator
+[  150.821990] smsc911x smsc911x.1: (unregistered net_device): Driver Parameters:
+[  150.829925] smsc911x smsc911x.1: (unregistered net_device): LAN base: 0xD8A5E000
+[  150.837738] smsc911x smsc911x.1: (unregistered net_device): IRQ: 225
+[  150.844451] smsc911x smsc911x.1: (unregistered net_device): PHY will be autodetected.
+[  150.852722] smsc911x smsc911x.1: (unregistered net_device): BYTE_TEST: 0x00050005
+[  150.860626] smsc911x smsc911x.1: (unregistered net_device): smsc911x_init: BYTE_TEST: 0x00050005
+[  150.869873] smsc911x smsc911x.1: (unregistered net_device): smsc911x_init: top 16 bits equal to bottom 16 bits
+[  150.880401] smsc911x smsc911x.1: (unregistered net_device): This may mean the chip is set for 32 bit while the bus is reading 16 bit
+
+--------------070201070407010207050908--
