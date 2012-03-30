@@ -1,66 +1,62 @@
-From: Yegor Yefremov <yegor_sub1@visionsystems.de>
-Subject: Re: AM3517evm
-Date: Fri, 30 Mar 2012 11:44:09 +0200
-Message-ID: <4F758069.80502@visionsystems.de>
-References: <CAFu+nvFt8BcO1pDD6CXXM056WYG9AQDTv-boc7xF0C2JuHAyYw@mail.gmail.com> <4F5E0036.105@visionsystems.de> <20120315154335.GA29645@animalcreek.com> <4F621048.2090003@visionsystems.de> <20120315164221.GB29645@animalcreek.com> <20120315165245.GC29645@animalcreek.com> <4F7478D1.5080708@visionsystems.de>
-Reply-To: yegor_sub1@visionsystems.de
+From: Uwe =?iso-8859-1?Q?Kleine-K=F6nig?=
+	<u.kleine-koenig@pengutronix.de>
+Subject: Re: [PATCH 03/17] ARM: mark const init data with __initconst instead
+ of __initdata
+Date: Fri, 30 Mar 2012 11:50:24 +0200
+Message-ID: <20120330095024.GS15647@pengutronix.de>
+References: <20120329211131.GA31250@pengutronix.de>
+ <1333055554-31300-3-git-send-email-u.kleine-koenig@pengutronix.de>
+ <20120330061134.GD3254@S2101-09.ap.freescale.net>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from hhlx01.vscom.de ([62.145.30.242]:34318 "EHLO
-	mail.visionsystems.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1760240Ab2C3JoW (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 30 Mar 2012 05:44:22 -0400
-In-Reply-To: <4F7478D1.5080708@visionsystems.de>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset=iso-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Return-path: <linux-samsung-soc-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <20120330061134.GD3254@S2101-09.ap.freescale.net>
+Sender: linux-samsung-soc-owner@vger.kernel.org
+To: Shawn Guo <shawn.guo@linaro.org>
+Cc: linux-kernel@vger.kernel.org, Andrew Morton <akpm@linux-foundation.org>, kernel@pengutronix.de, Andrew Victor <linux@maxim.org.za>, Nicolas Ferre <nicolas.ferre@atmel.com>, Jean-Christophe Plagniol-Villard <plagnioj@jcrosoft.com>, Russell King <linux@arm.linux.org.uk>, Sekhar Nori <nsekhar@ti.com>, Kevin Hilman <khilman@ti.com>, Kukjin Kim <kgene.kim@samsung.com>, Lennert Buytenhek <kernel@wantstofly.org>, Nicolas Pitre <nico@fluxnic.net>, Eric Miao <eric.y.miao@gmail.com>, Haojian Zhuang <haojian.zhuang@gmail.com>, David Brown <davidb@codeaurora.org>, Daniel Walker <dwalker@fifo99.com>, Bryan Huntsman <bryanh@codeaurora.org>, Tony Lindgren <tony@atomide.com>, Barry Song <baohua.song@csr.com>, Andrew Lunn <andrew@lunn.ch>, Lucas De Marchi <lucas.demarchi@profusion.mobi>, linux-arm-kernel@lists.infradead.org, davinci-linux-open-source@linux.davincidsp.com, linux-sa
 List-Id: linux-omap@vger.kernel.org
-To: yegor_sub1@visionsystems.de
-Cc: "Mark A. Greer" <mgreer@animalcreek.com>, "George C. Huntington, III" <george.huntingtoniii@gmail.com>, linux-omap@vger.kernel.org, mporter@ti.com
 
-Am 29.03.2012 16:59, schrieb Yegor Yefremov:
-> Am 15.03.2012 17:52, schrieb Mark A. Greer:
->> On Thu, Mar 15, 2012 at 09:42:21AM -0700, Mark A. Greer wrote:
->>> On Thu, Mar 15, 2012 at 04:52:40PM +0100, Yegor Yefremov wrote:
->>>> Am 15.03.2012 16:43, schrieb Mark A. Greer:
->>>>> On Mon, Mar 12, 2012 at 02:55:02PM +0100, Yegor Yefremov wrote:
->>>>>> Am 09.03.2012 18:22, schrieb George C. Huntington, III:
->>>>>>> I would like to make the newer kernel (3.x) work with the AM3517EVM.
->>>>>>> I have a 2.6.32 and a 2.6.33 that run well on the board, but the
->>>>>>> recent kernels have kernel panics before even running init.  where
->>>>>>> should I start?  is there a better place to pursue this?
->>>>>> Have you tried this one? http://git.kernel.org/?p=linux/kernel/git/tmlind/linux-omap.git;a=summary
->>>>>>
->>>>>> I have this one booting one month ago, but I checked out the kernel today and it hangs somewhere:
->>>>>>
->>>>>> Starting kernel ...
->>>>>>
->>>>>> Uncompressing Linux... done, booting the kernel.
->>>>> This looks like you have your console device set to ttyS2 instead of ttyO2.
->>>>>
->>>>> Which branch of that repository did you use?
->>>> My kernel params: CONFIG_CMDLINE="root=/dev/mmcblk0p2 rootwait console=ttyO2,115200" and I force them, so bootloader has nothing to say.
->>>>
->>>> I'm using master branch.
->>> I just booted the latest master branch (b8fe178) with the hack below.
->>> (Kernel command line: console=ttyO2,115200n8 root=/dev/mmcblk0p2 rw
->>> rootfstype=ext3 rootwait)
->> I meant to add that I booted an am3517evm.
-> 
-> Is frame buffer working? I can boot with the latest linux-omap version, but as soon as I enable omapfb, kernel freezes before making any output to the serial console. Have I missed some DSS/DPI patches?
+Hello Shawn,
 
-After some research I found out that only the master branch is broken. At least rc7 is O.K.:
+On Fri, Mar 30, 2012 at 02:11:36PM +0800, Shawn Guo wrote:
+> On Thu, Mar 29, 2012 at 11:12:20PM +0200, Uwe Kleine-K=F6nig wrote:
+> ...
+> > diff --git a/arch/arm/mach-imx/imx51-dt.c b/arch/arm/mach-imx/imx51=
+-dt.c
+> > index 5cca573..7e00748 100644
+> > --- a/arch/arm/mach-imx/imx51-dt.c
+> > +++ b/arch/arm/mach-imx/imx51-dt.c
+> > @@ -102,7 +102,7 @@ static struct sys_timer imx51_timer =3D {
+> >  	.init =3D imx51_timer_init,
+> >  };
+> > =20
+> > -static const char *imx51_dt_board_compat[] __initdata =3D {
+> > +static const char *imx51_dt_board_compat[] __initconst =3D {
+> >  	"fsl,imx51-babbage",
+> >  	"fsl,imx51",
+> >  	NULL
+>=20
+>   CC      arch/arm/mach-imx/imx51-dt.o
+> arch/arm/mach-imx/imx51-dt.c:105:20: error: imx51_dt_board_compat cau=
+ses a section type conflict
+> make[2]: *** [arch/arm/mach-imx/imx51-dt.o] Error 1
+>=20
+> I do not understand why though.
+that's because the strings are constant, but the array is not. The fix
+is:
 
-git checkout v3.3-rc7
+-static const char *imx51_dt_board_compat[] __initconst =3D {
++static const char *const imx51_dt_board_compat[] __initconst =3D {
 
-master freezes:
+or keeping __initdata.
 
-git checkout origin/master 
+Best regards
+Uwe
 
-According to commit log (http://git.kernel.org/?p=linux/kernel/git/tmlind/linux-omap.git;a=commitdiff;h=b8fe1781ec8bed5e086691a827a6ee11facec2aa), there is nothing suspicious. 
-
-How can I see the real difference between v3.3-rc7 and master branch? Is this command sufficient?
-
-git diff v3.3-rc7..origin/master
-
-Yegor
+--=20
+Pengutronix e.K.                           | Uwe Kleine-K=F6nig        =
+    |
+Industrial Linux Solutions                 | http://www.pengutronix.de/=
+  |
