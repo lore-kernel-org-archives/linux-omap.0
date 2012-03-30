@@ -1,56 +1,49 @@
 From: Uwe =?iso-8859-1?Q?Kleine-K=F6nig?=
-	<u.kleine-koenig@pengutronix.de>
-Subject: Re: [PATCH 03/17] ARM: mark const init data with __initconst instead
- of __initdata
-Date: Fri, 30 Mar 2012 11:50:24 +0200
-Message-ID: <20120330095024.GS15647@pengutronix.de>
+        <u.kleine-koenig@pengutronix.de>
+Subject: Re: [PATCH 00/17] mark const init data with __initconst instead of
+ __initdata
+Date: Fri, 30 Mar 2012 11:59:00 +0200
+Message-ID: <20120330095859.GT15647@pengutronix.de>
 References: <20120329211131.GA31250@pengutronix.de>
- <1333055554-31300-3-git-send-email-u.kleine-koenig@pengutronix.de>
- <20120330061134.GD3254@S2101-09.ap.freescale.net>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=iso-8859-1
 Content-Transfer-Encoding: QUOTED-PRINTABLE
-Return-path: <linux-samsung-soc-owner@vger.kernel.org>
+Return-path: <linux-mips-bounce@linux-mips.org>
 Content-Disposition: inline
-In-Reply-To: <20120330061134.GD3254@S2101-09.ap.freescale.net>
-Sender: linux-samsung-soc-owner@vger.kernel.org
-To: Shawn Guo <shawn.guo@linaro.org>
-Cc: linux-kernel@vger.kernel.org, Andrew Morton <akpm@linux-foundation.org>, kernel@pengutronix.de, Andrew Victor <linux@maxim.org.za>, Nicolas Ferre <nicolas.ferre@atmel.com>, Jean-Christophe Plagniol-Villard <plagnioj@jcrosoft.com>, Russell King <linux@arm.linux.org.uk>, Sekhar Nori <nsekhar@ti.com>, Kevin Hilman <khilman@ti.com>, Kukjin Kim <kgene.kim@samsung.com>, Lennert Buytenhek <kernel@wantstofly.org>, Nicolas Pitre <nico@fluxnic.net>, Eric Miao <eric.y.miao@gmail.com>, Haojian Zhuang <haojian.zhuang@gmail.com>, David Brown <davidb@codeaurora.org>, Daniel Walker <dwalker@fifo99.com>, Bryan Huntsman <bryanh@codeaurora.org>, Tony Lindgren <tony@atomide.com>, Barry Song <baohua.song@csr.com>, Andrew Lunn <andrew@lunn.ch>, Lucas De Marchi <lucas.demarchi@profusion.mobi>, linux-arm-kernel@lists.infradead.org, davinci-linux-open-source@linux.davincidsp.com, linux-sa
+In-Reply-To: <20120329211131.GA31250@pengutronix.de>
+Sender: linux-mips-bounce@linux-mips.org
+Errors-to: linux-mips-bounce@linux-mips.org
+To: linux-kernel@vger.kernel.org, Andrew Morton <akpm@linux-foundation.org>
+Cc: Alexey Dobriyan <adobriyan@gmail.com>, Anatolij Gustschin <agust@denx.de>, Andreas Koensgen <ajk@comnets.uni-bremen.de>, Andrew Lunn <andrew@lunn.ch>, Andrew Victor <linux@maxim.org.za>, Arnd Bergmann <arnd@arndb.de>, Barry Song <baohua.song@csr.com>, Benjamin Herrenschmidt <benh@kernel.crashing.org>, Bryan Huntsman <bryanh@codeaurora.org>, cbe-oss-dev@lists.ozlabs.org, Christoph Lameter <cl@linux-foundation.org>, Daniel Walker <dwalker@fifo99.com>, David Brown <davidb@codeaurora.org>, David Howells <dhowells@redhat.com>, "David S. Miller" <davem@davemloft.net>, David Woodhouse <dwmw2@infradead.org>, davinci-linux-open-source@linux.davincidsp.com, Eric Miao <eric.y.miao@gmail.com>, Fenghua Yu <fenghua.yu@intel.com>, Grant Likely <gran>
 List-Id: linux-omap@vger.kernel.org
 
-Hello Shawn,
-
-On Fri, Mar 30, 2012 at 02:11:36PM +0800, Shawn Guo wrote:
-> On Thu, Mar 29, 2012 at 11:12:20PM +0200, Uwe Kleine-K=F6nig wrote:
-> ...
-> > diff --git a/arch/arm/mach-imx/imx51-dt.c b/arch/arm/mach-imx/imx51=
--dt.c
-> > index 5cca573..7e00748 100644
-> > --- a/arch/arm/mach-imx/imx51-dt.c
-> > +++ b/arch/arm/mach-imx/imx51-dt.c
-> > @@ -102,7 +102,7 @@ static struct sys_timer imx51_timer =3D {
-> >  	.init =3D imx51_timer_init,
-> >  };
-> > =20
-> > -static const char *imx51_dt_board_compat[] __initdata =3D {
-> > +static const char *imx51_dt_board_compat[] __initconst =3D {
-> >  	"fsl,imx51-babbage",
-> >  	"fsl,imx51",
-> >  	NULL
+On Thu, Mar 29, 2012 at 11:11:31PM +0200, Uwe Kleine-K=F6nig wrote:
+> Hello,
 >=20
->   CC      arch/arm/mach-imx/imx51-dt.o
-> arch/arm/mach-imx/imx51-dt.c:105:20: error: imx51_dt_board_compat cau=
-ses a section type conflict
-> make[2]: *** [arch/arm/mach-imx/imx51-dt.o] Error 1
+> this series fixes a common error to use __initdata to mark const
+> variables. Most of the time this works well enough to go unnoticed
+> (though I wonder why the linker doesn't warn about that).
+> Just try adding something like
 >=20
-> I do not understand why though.
-that's because the strings are constant, but the array is not. The fix
-is:
+> 	int something __initdata;
+>=20
+> to one of the patched files and compile to see the error.
+>=20
+> While touching these annotations I also corrected the position where =
+it
+> was wrong to go between the variable name and the =3D.
+>=20
+> Note this series is not compile tested.
+After a question by Shawn Guo I noticed that my command to do the chang=
+es
+was to lax and changed things that must not be changed (at least not
+with further care). Affected are lines like:
 
--static const char *imx51_dt_board_compat[] __initconst =3D {
-+static const char *const imx51_dt_board_compat[] __initconst =3D {
+	static const char *at91_dt_board_compat[] __initconst =3D {
 
-or keeping __initdata.
+While at91_dt_board_compat[0] is const, at91_dt_board_compat is not.
+
+I will send a fixed series later today.
 
 Best regards
 Uwe
