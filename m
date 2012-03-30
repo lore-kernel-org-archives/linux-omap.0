@@ -1,134 +1,150 @@
-From: "Raja, Govindraj" <govindraj.raja@ti.com>
-Subject: Re: Suspend broken on 3.3?
-Date: Fri, 30 Mar 2012 17:54:24 +0530
-Message-ID: <CAMrsUd+AvVp3n1oAREEEmCSBaeA-m68j7gLjXEeJKimX1erfUw@mail.gmail.com>
-References: <WC20120329112755.541787@terrafix.co.uk> <WC20120329114024.43178C@terrafix.co.uk>
- <CAMrsUdKR4nwbBEOx9JPeS=GLDPyioHuijK2596=q2OwJ+ARbxA@mail.gmail.com>
- <WC20120330075339.4017FC@terrafix.co.uk> <CAMrsUdKTx84_oHyS9JTCBTqtV-7907snCGFDrOXnPuNVSnvz7w@mail.gmail.com>
- <WC20120330092609.901834@terrafix.co.uk> <CAMrsUdJrJZXjYOs87xmT_J0w7S=VZyfR0tBmhhuYOFmFsOB3SA@mail.gmail.com>
- <WC20120330110442.381887@terrafix.co.uk>
+From: Russell King - ARM Linux <linux@arm.linux.org.uk>
+Subject: Re: [PATCH] cpufreq: OMAP: fix build errors: depends on
+	ARCH_OMAP2PLUS
+Date: Fri, 30 Mar 2012 14:12:00 +0100
+Message-ID: <20120330131200.GA23442@n2100.arm.linux.org.uk>
+References: <1332807568-638-1-git-send-email-khilman@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aog123.obsmtp.com ([74.125.149.149]:58398 "EHLO
-	na3sys009aog123.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1760380Ab2C3MYq convert rfc822-to-8bit
-	(ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Fri, 30 Mar 2012 08:24:46 -0400
-Received: by ggmi1 with SMTP id i1so222232ggm.3
-        for <linux-omap@vger.kernel.org>; Fri, 30 Mar 2012 05:24:44 -0700 (PDT)
-In-Reply-To: <WC20120330110442.381887@terrafix.co.uk>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset=us-ascii
+Return-path: <cpufreq-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <1332807568-638-1-git-send-email-khilman@ti.com>
+Sender: cpufreq-owner@vger.kernel.org
+To: Kevin Hilman <khilman@ti.com>
+Cc: Dave Jones <davej@redhat.com>, cpufreq@vger.kernel.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Grazvydas Ignotas <notasas@gmail.com>
 List-Id: linux-omap@vger.kernel.org
-To: Joe Woodward <jw@terrafix.co.uk>
-Cc: Paul Walmsley <paul@pwsan.com>, Kevin Hilman <khilman@ti.com>, linux-omap@vger.kernel.org, Felipe Balbi <balbi@ti.com>, neilb@suse.de
 
-On Fri, Mar 30, 2012 at 4:34 PM, Joe Woodward <jw@terrafix.co.uk> wrote=
-:
->
->
-> -----Original Message-----
-> From: "Raja, Govindraj" <govindraj.raja@ti.com>
-> To: Joe Woodward <jw@terrafix.co.uk>
-> Cc: Paul Walmsley <paul@pwsan.com>, Kevin Hilman <khilman@ti.com>, li=
-nux-omap@vger.kernel.org, Felipe Balbi <balbi@ti.com>, neilb@suse.de
-> Date: Fri, 30 Mar 2012 15:45:19 +0530
-> Subject: Re: Suspend broken on 3.3?
->
->> On Fri, Mar 30, 2012 at 2:56 PM, Joe Woodward <jw@terrafix.co.uk>
->> wrote:
->> > ...[snip]...
->> >>
->> >> Could you please try attached patch and let me know if this solve=
-s
->> the
->> >> rx issue as well,
->> >> without using dma mode.
->> >>
->> >
->> > Right,
->> >
->> > I think we've getting closer, but still not quite there...
->> >
->> > Firstly, the patch adds an include to "iomap.h" - but this doesn't
->> exist in stock 3.3. Simply removing this include seemed to allow the
->> compile to complete
->> > successfully.
->>
->> Sorry I forgot to specify this is needed for latest mainline.
->>
->> >
->> > With this patch applied (and not in DMA mode) I now get the
->> following:
->> > =A0- If I leave wake-from-suspend enabled for the serial port then=
- it
->> works correctly (i.e. no lost/extra 0x00 characters).
->> > =A0- If I disable wake-from-suspend for the serial port and go thr=
-ough
->> a suspend cycle (i.e. suspend and then wake), then the serial port
->> starts to misbehave as
->> > before.
->> > =A0- If I then re-enable wake-from-suspend and go through a suspen=
-d
->> cycle it starts to work correctly again.
->> >
->> > So the problem is still that if wake-from-suspend is disabled for =
-a
->> serial port, and a suspend cycle is performed then when woken the
->> serial port will not function
->> > correctly if operating in interrupt-mode.
->>
->> I tried it on my 3430sdp but strangely I don't see a 0x00 char read
->> after disabling uart wakeups
->> and waking up by keypad press.
->>
->> Probably as a quick try we can try doing uart_insert_char only if da=
-ta
->> was read from rx fifo
->> (Attached patch)
->>
->
-> Sadly the patch makes no difference.
->
-> I'm suprised you aren't seeing similar effects.
->
-> I've done more testing, and a simplified test case is as follows:
-> - take a stock 3.3 kernel and apply your patch to allow disabling of =
-wake-from-suspend for the serial ports.
-> - disable wake-from-suspend for the console tty:
-> =A0echo disable > /sys/devices/platform/omap/omap_uart.2/power/wakeup
-> - perform a suspend (you'll need a button or something to wake you no=
-w that the console wont).
-> =A0echo mem > /sys/power/state
->
-> At this point the console is noticable/painfully slow. No characters =
-are lost, but it's obvious something isn't right!
+On Mon, Mar 26, 2012 at 05:19:28PM -0700, Kevin Hilman wrote:
+> The OMAP driver needs a 'depends on ARCH_OMAP2PLUS' since it only
+> builds for OMAP2+ platforms.
+> 
+> This 'depends on' was in the original patch from Russell King, but was
+> erroneously removed by me when making this option user-selectable in
+> commit b09db45c (cpufreq: OMAP driver depends CPUfreq tables.)  This
+> patch remedies that.
+> 
+> Apologies to Russell King for breaking his originally working patch.
+> 
+> Also, thanks to Grazvydas Ignotas for reporting the same problem.
+> 
+> Cc: Russell King <rmk+kernel@arm.linux.org.uk>
+> Cc: Grazvydas Ignotas <notasas@gmail.com>
+> Signed-off-by: Kevin Hilman <khilman@ti.com>
+> ---
+> Dave, this applies on top of your current fixes branch, and fixes a 
+> problem introduced there by me.  Please merge for v3.4-rc.  Thanks.
 
+Can you please check that you've picked up everything that's necessary,
+as I'm still seeing the below as outstanding from my original patch.
 
-Yes I see this behavior with console now it becomes very slow after we
-disable module level wakeups.
+commit e55a42528cebb8fa7408dc95abb3859639a46750
+Author: Russell King <rmk+kernel@arm.linux.org.uk>
+Date:   Wed Feb 15 11:20:51 2012 +0000
 
-One difference to note is :
+    ARM: OMAP: fix cpufreq build
+    
+    OMAPs cpufreq requires the frequency table support, but nothing ensures
+    that this is selected.  This can result in configurations which fail to
+    build:
+    
+    drivers/built-in.o:(.data+0x5238): undefined reference to `cpufreq_freq_attr_scaling_available_freqs'
+    drivers/cpufreq/omap-cpufreq.c:88: undefined reference to `cpufreq_frequency_table_target'
+    drivers/cpufreq/omap-cpufreq.c:60: undefined reference to `cpufreq_frequency_table_verify'
+    drivers/cpufreq/omap-cpufreq.c:186: undefined reference to `cpufreq_frequency_table_cpuinfo'
+    drivers/cpufreq/omap-cpufreq.c:190: undefined reference to `cpufreq_frequency_table_get_attr'
+    
+    Fix this by introducing a new configuration variable and having that
+    select CPU_FREQ_TABLE.
+    
+    Signed-off-by: Russell King <rmk+kernel@arm.linux.org.uk>
 
-in 3.2 =3D> full system PM is prevented in idle path if uart is active
-i.e, MPU will not hit retention
+diff --git a/arch/arm/mach-omap2/clkt2xxx_virt_prcm_set.c b/arch/arm/mach-omap2/clkt2xxx_virt_prcm_set.c
+index 7072e0d..ad35d4e 100644
+--- a/arch/arm/mach-omap2/clkt2xxx_virt_prcm_set.c
++++ b/arch/arm/mach-omap2/clkt2xxx_virt_prcm_set.c
+@@ -166,7 +166,7 @@ int omap2_select_table_rate(struct clk *clk, unsigned long rate)
+ 	return 0;
+ }
+ 
+-#ifdef CONFIG_CPU_FREQ
++#ifdef CONFIG_ARM_OMAP2PLUS_CPUFREQ
+ /*
+  * Walk PRCM rate table and fillout cpufreq freq_table
+  * XXX This should be replaced by an OPP layer in the near future
+diff --git a/arch/arm/mach-omap2/clock.c b/arch/arm/mach-omap2/clock.c
+index f57ed5b..450feb0 100644
+--- a/arch/arm/mach-omap2/clock.c
++++ b/arch/arm/mach-omap2/clock.c
+@@ -536,7 +536,7 @@ struct clk_functions omap2_clk_functions = {
+ 	.clk_set_rate		= omap2_clk_set_rate,
+ 	.clk_set_parent		= omap2_clk_set_parent,
+ 	.clk_disable_unused	= omap2_clk_disable_unused,
+-#ifdef CONFIG_CPU_FREQ
++#ifdef CONFIG_ARM_OMAP2PLUS_CPUFREQ
+ 	/* These will be removed when the OPP code is integrated */
+ 	.clk_init_cpufreq_table	= omap2_clk_init_cpufreq_table,
+ 	.clk_exit_cpufreq_table	= omap2_clk_exit_cpufreq_table,
+diff --git a/arch/arm/mach-omap2/clock.h b/arch/arm/mach-omap2/clock.h
+index b8c2a68..f331cfc 100644
+--- a/arch/arm/mach-omap2/clock.h
++++ b/arch/arm/mach-omap2/clock.h
+@@ -146,7 +146,7 @@ extern const struct clksel_rate gpt_sys_rates[];
+ extern const struct clksel_rate gfx_l3_rates[];
+ extern const struct clksel_rate dsp_ick_rates[];
+ 
+-#if defined(CONFIG_ARCH_OMAP2) && defined(CONFIG_CPU_FREQ)
++#if defined(CONFIG_ARCH_OMAP2) && defined(CONFIG_ARM_OMAP2PLUS_CPUFREQ)
+ extern void omap2_clk_init_cpufreq_table(struct cpufreq_frequency_table **table);
+ extern void omap2_clk_exit_cpufreq_table(struct cpufreq_frequency_table **table);
+ #else
+diff --git a/arch/arm/plat-omap/clock.c b/arch/arm/plat-omap/clock.c
+index 56b6f8b..618cf80 100644
+--- a/arch/arm/plat-omap/clock.c
++++ b/arch/arm/plat-omap/clock.c
+@@ -398,7 +398,7 @@ struct clk dummy_ck = {
+ 	.ops	= &clkops_null,
+ };
+ 
+-#ifdef CONFIG_CPU_FREQ
++#ifdef CONFIG_ARM_OMAP2PLUS_CPUFREQ
+ void clk_init_cpufreq_table(struct cpufreq_frequency_table **table)
+ {
+ 	unsigned long flags;
+diff --git a/arch/arm/plat-omap/include/plat/clock.h b/arch/arm/plat-omap/include/plat/clock.h
+index 240a7b9..879ba27 100644
+--- a/arch/arm/plat-omap/include/plat/clock.h
++++ b/arch/arm/plat-omap/include/plat/clock.h
+@@ -283,7 +283,7 @@ struct clk_functions {
+ 	void		(*clk_allow_idle)(struct clk *clk);
+ 	void		(*clk_deny_idle)(struct clk *clk);
+ 	void		(*clk_disable_unused)(struct clk *clk);
+-#ifdef CONFIG_CPU_FREQ
++#ifdef CONFIG_ARM_OMAP2PLUS_CPUFREQ
+ 	void		(*clk_init_cpufreq_table)(struct cpufreq_frequency_table **);
+ 	void		(*clk_exit_cpufreq_table)(struct cpufreq_frequency_table **);
+ #endif
+@@ -301,7 +301,7 @@ extern void recalculate_root_clocks(void);
+ extern unsigned long followparent_recalc(struct clk *clk);
+ extern void clk_enable_init_clocks(void);
+ unsigned long omap_fixed_divisor_recalc(struct clk *clk);
+-#ifdef CONFIG_CPU_FREQ
++#ifdef CONFIG_ARM_OMAP2PLUS_CPUFREQ
+ extern void clk_init_cpufreq_table(struct cpufreq_frequency_table **table);
+ extern void clk_exit_cpufreq_table(struct cpufreq_frequency_table **table);
+ #endif
+diff --git a/drivers/cpufreq/Kconfig.arm b/drivers/cpufreq/Kconfig.arm
+index 32d790d..587b578 100644
+--- a/drivers/cpufreq/Kconfig.arm
++++ b/drivers/cpufreq/Kconfig.arm
+@@ -3,8 +3,8 @@
+ #
+ 
+ config ARM_OMAP2PLUS_CPUFREQ
+-	bool "TI OMAP2+"
+-	default ARCH_OMAP2PLUS
++	def_bool y
++	depends on ARCH_OMAP2PLUS
+ 	select CPU_FREQ_TABLE
+ 
+ config ARM_S3C2416_CPUFREQ
 
-in 3.3 =3D> MPU will hit retention independently of uart is active or n=
-ot.
-             I think the way to get MPU qos for uart port activity
-while in irq mode is to use PM_WKEN1
-             reg settings, meaning enabling module level wakeup event
-generation. Disabling it is causing this
-             slow response.
-
-Checking if we can workaround this scenario.
-
---
-Thanks,
-Govindraj.R
---
-To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
