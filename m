@@ -1,55 +1,55 @@
-From: Uwe =?iso-8859-1?Q?Kleine-K=F6nig?=
-        <u.kleine-koenig@pengutronix.de>
-Subject: Re: [PATCH 00/17] mark const init data with __initconst instead of
- __initdata
-Date: Fri, 30 Mar 2012 11:59:00 +0200
-Message-ID: <20120330095859.GT15647@pengutronix.de>
-References: <20120329211131.GA31250@pengutronix.de>
+From: "Cousson, Benoit" <b-cousson@ti.com>
+Subject: Re: OMAP4 errata i740
+Date: Fri, 30 Mar 2012 12:08:26 +0200
+Message-ID: <4F75861A.8040905@ti.com>
+References: <1333094862.1932.15.camel@deskari>  <CAMQu2gx30OLnxTS8TOh=xc36fFgtPs08Zhhx6raYDAQ3nxfO1g@mail.gmail.com> <1333095982.1932.21.camel@deskari>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Return-path: <linux-mips-bounce@linux-mips.org>
-Content-Disposition: inline
-In-Reply-To: <20120329211131.GA31250@pengutronix.de>
-Sender: linux-mips-bounce@linux-mips.org
-Errors-to: linux-mips-bounce@linux-mips.org
-To: linux-kernel@vger.kernel.org, Andrew Morton <akpm@linux-foundation.org>
-Cc: Alexey Dobriyan <adobriyan@gmail.com>, Anatolij Gustschin <agust@denx.de>, Andreas Koensgen <ajk@comnets.uni-bremen.de>, Andrew Lunn <andrew@lunn.ch>, Andrew Victor <linux@maxim.org.za>, Arnd Bergmann <arnd@arndb.de>, Barry Song <baohua.song@csr.com>, Benjamin Herrenschmidt <benh@kernel.crashing.org>, Bryan Huntsman <bryanh@codeaurora.org>, cbe-oss-dev@lists.ozlabs.org, Christoph Lameter <cl@linux-foundation.org>, Daniel Walker <dwalker@fifo99.com>, David Brown <davidb@codeaurora.org>, David Howells <dhowells@redhat.com>, "David S. Miller" <davem@davemloft.net>, David Woodhouse <dwmw2@infradead.org>, davinci-linux-open-source@linux.davincidsp.com, Eric Miao <eric.y.miao@gmail.com>, Fenghua Yu <fenghua.yu@intel.com>, Grant Likely <gran>
+Content-Type: text/plain; charset="UTF-8"; format=flowed
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from devils.ext.ti.com ([198.47.26.153]:59186 "EHLO
+	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755181Ab2C3KI3 (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 30 Mar 2012 06:08:29 -0400
+In-Reply-To: <1333095982.1932.21.camel@deskari>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Tomi Valkeinen <tomi.valkeinen@ti.com>
+Cc: "Shilimkar, Santosh" <santosh.shilimkar@ti.com>, Paul Walmsley <paul@pwsan.com>, linux-omap <linux-omap@vger.kernel.org>
 
-On Thu, Mar 29, 2012 at 11:11:31PM +0200, Uwe Kleine-K=F6nig wrote:
-> Hello,
->=20
-> this series fixes a common error to use __initdata to mark const
-> variables. Most of the time this works well enough to go unnoticed
-> (though I wonder why the linker doesn't warn about that).
-> Just try adding something like
->=20
-> 	int something __initdata;
->=20
-> to one of the patched files and compile to see the error.
->=20
-> While touching these annotations I also corrected the position where =
-it
-> was wrong to go between the variable name and the =3D.
->=20
-> Note this series is not compile tested.
-After a question by Shawn Guo I noticed that my command to do the chang=
-es
-was to lax and changed things that must not be changed (at least not
-with further care). Affected are lines like:
+On 3/30/2012 10:26 AM, Tomi Valkeinen wrote:
+> On Fri, 2012-03-30 at 13:51 +0530, Shilimkar, Santosh wrote:
+>> On Fri, Mar 30, 2012 at 1:37 PM, Tomi Valkeinen<tomi.valkeinen@ti.com>  wrote:
+>
+>>> All OMAP4 versions seem to be affected. I couldn't find a mention about
+>>> this in the mainline kernel. Any ideas how and where this should be
+>>> fixed?
+>>>
+>> It's not patched for mainline. Generally clock-domain code
+>> is abstracted from drivers but considering the errata and affected
+>> modules, I guees it should be handled by DSS driver
+>> since that is where the state of DSS or ISS will be known. Note
+>> ISS will be automatically taken care since it will always use disaplay.
+>>
+>> In internal tree's this was handled as part of DSS early suspend/resume
+>
+> That version doesn't work as it uses functions that are not exported to
+> drivers.
+>
+> I don't know much about the clock domain code, but I hope there's a way
+> to handle it there. Otherwise I guess I need to add a new set of
+> platform callback functions, so that the dss driver can call
+> arch/arm/mach-omap2 code to enable and disable the work-around. I
+> dislike that because I'm currently trying to remove those kinds of hacks
+> to make dss work better with DT =).
 
-	static const char *at91_dt_board_compat[] __initconst =3D {
+I think we should just find another workaround :-)
 
-While at91_dt_board_compat[0] is const, at91_dt_board_compat is not.
+There is not way we can let the drivers play directly with the clock 
+domain idle mode.
+And in theory hacking the local sysconfig should have the same effect.
 
-I will send a fixed series later today.
+So we should check for a better workaround with HW designers on that one.
 
-Best regards
-Uwe
-
---=20
-Pengutronix e.K.                           | Uwe Kleine-K=F6nig        =
-    |
-Industrial Linux Solutions                 | http://www.pengutronix.de/=
-  |
+Regards,
+Benoit
