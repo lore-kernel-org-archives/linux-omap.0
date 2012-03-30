@@ -1,67 +1,46 @@
-From: Uwe =?iso-8859-1?Q?Kleine-K=F6nig?= <u.kleine-koenig@pengutronix.de>
-Subject: [PATCH v2 00/15] mark const init data with __initconst instead of
- __initdata
-Date: Fri, 30 Mar 2012 22:03:58 +0200
-Message-ID: <20120330200358.GV15647@pengutronix.de>
-References: <20120329211131.GA31250@pengutronix.de>
+From: Tony Lindgren <tony@atomide.com>
+Subject: Re: defconfig for panda
+Date: Fri, 30 Mar 2012 14:39:32 -0700
+Message-ID: <20120330213930.GC8240@atomide.com>
+References: <1F91D012-8308-45BB-83AD-90E52D472AC2@kernel.crashing.org>
+ <20120330184859.GB8240@atomide.com>
+ <B05E7CFB-E2F3-426C-AAA8-622D715DB86A@kernel.crashing.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="iso-8859-1"
-Content-Transfer-Encoding: quoted-printable
-Return-path: <linux-mtd-bounces+gldm-linux-mtd-36=gmane.org@lists.infradead.org>
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from mho-02-ewr.mailhop.org ([204.13.248.72]:57497 "EHLO
+	mho-02-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S936205Ab2C3Vjf (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 30 Mar 2012 17:39:35 -0400
 Content-Disposition: inline
-In-Reply-To: <20120329211131.GA31250@pengutronix.de>
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-mtd>,
- <mailto:linux-mtd-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-mtd/>
-List-Post: <mailto:linux-mtd@lists.infradead.org>
-List-Help: <mailto:linux-mtd-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-mtd>,
- <mailto:linux-mtd-request@lists.infradead.org?subject=subscribe>
-Sender: linux-mtd-bounces@lists.infradead.org
-Errors-To: linux-mtd-bounces+gldm-linux-mtd-36=gmane.org@lists.infradead.org
-To: linux-kernel@vger.kernel.org, Andrew Morton <akpm@linux-foundation.org>
-Cc: Andrew Lunn <andrew@lunn.ch>, Christoph Lameter <cl@linux-foundation.org>, linux-mips@linux-mips.org, Tony Lindgren <tony@atomide.com>, Benjamin Herrenschmidt <benh@kernel.crashing.org>, Linus Walleij <linus.walleij@linaro.org>, Matt Porter <mporter@kernel.crashing.org>, Nicolas Ferre <nicolas.ferre@atmel.com>, Matthew Garrett <mjg59@srcf.ucam.org>, platform-driver-x86@vger.kernel.org, Grant Likely <grant.likely@secretlab.ca>, ibm-acpi-devel@lists.sourceforge.net, Randy Dunlap <rdunlap@xenotime.net>, linux-mtd@lists.infradead.org, Sekhar Nori <nsekhar@ti.com>, Daniel Walker <dwalker@fifo99.com>, lm-sensors@lm-sensors.org, Klaus Kudielka <klaus.kudielka@ieee.org>, Guenter Roeck <guenter.roeck@ericsson.com>, Kevin Hilman <khilman@ti.com>, linux-ia64@vger.kernel.org, Kukjin Kim <kgene.kim@samsung.com>, Russell King <linux@arm.linux.org.uk>, Samuel Ortiz <sameo@linux.intel.c>
+In-Reply-To: <B05E7CFB-E2F3-426C-AAA8-622D715DB86A@kernel.crashing.org>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Kumar Gala <galak@kernel.crashing.org>
+Cc: linux-omap@vger.kernel.org, Felipe Balbi <balbi@ti.com>
 
-Hello,
+* Kumar Gala <galak@kernel.crashing.org> [120330 14:14]:
+> 
+> On Mar 30, 2012, at 1:48 PM, Tony Lindgren wrote:
+> 
+> > Hi,
+> > 
+> > * Kumar Gala <galak@kernel.crashing.org> [120329 12:24]:
+> >> As I'm new to the OMAP community this might be a stupid question but trying to just build and run a stock v3.3 kernel on a pandaboard.  In doing so it seems as if some basic drivers are not enabled in omap2plus_defconfig for the board.  I'm trying to figure out if this is normal for some reason or just an oversight.
+> >> 
+> >> For example, USB and USB ethernet (SMC95xx).  I notice the linaro kernel tree introduces an omap4_defconfig, so just wondering should I send patches to omap2plus_defconfig or what?
+> > 
+> > We can add those to omap2plus_defconfig for sure, but let's have
+> > them added as modules. Then distros can use that easily in a
+> > standard way using initramfs-tools etc.
+> > 
+> > Let's not change the drivers that are currently built in if they're
+> > needed for mounting mmc or nfsroot. Those can be changed later on.
+> 
+> I'll work up a patch, however I was doing this as I was trying to get NFS root working and thus would need USB + USB ethernet compiled in and not as modules for panda.  Is that ok?
 
-On Thu, Mar 29, 2012 at 11:11:31PM +0200, Uwe Kleine-K=F6nig wrote:
-> this series fixes a common error to use __initdata to mark const
-> variables. Most of the time this works well enough to go unnoticed
-> (though I wonder why the linker doesn't warn about that).
-> Just try adding something like
-> =
+Maybe, let's take a look how much bigger the kernel becomes.
+Also we need to check if the same EHCI configuration works
+for omap3/4.
 
-> 	int something __initdata;
-> =
-
-> to one of the patched files and compile to see the error.
-> =
-
-> While touching these annotations I also corrected the position where it
-> was wrong to go between the variable name and the =3D.
-> =
-
-> Note this series is not compile tested.
-I now dropped the wrong annotations. So two patches became obsolete
-(mtd and percpu). Note that I also dropped fixing the position of
-__initdata if changing it to __initconst was wrong. (I think if
-__initdata is placed before the variable name it doesn't have any
-effect.)
-
-I didn't promote the Acks I got because all acked changes changed in v2.
-
-For the details changed in each patch see the changelogs in the
-respective patch mails that I follow up to this mail.
-
-Thanks
-Uwe
-
--- =
-
-Pengutronix e.K.                           | Uwe Kleine-K=F6nig            |
-Industrial Linux Solutions                 | http://www.pengutronix.de/  |
-
-______________________________________________________
-Linux MTD discussion mailing list
-http://lists.infradead.org/mailman/listinfo/linux-mtd/
+Tony
