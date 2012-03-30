@@ -1,36 +1,67 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: Re: defconfig for panda
-Date: Fri, 30 Mar 2012 11:48:59 -0700
-Message-ID: <20120330184859.GB8240@atomide.com>
-References: <1F91D012-8308-45BB-83AD-90E52D472AC2@kernel.crashing.org>
+From: Igor Grinberg <grinberg@compulab.co.il>
+Subject: Re: OMAP TWL4030/TPS65950 power off
+Date: Fri, 30 Mar 2012 22:20:07 +0300
+Message-ID: <4F760767.9080000@compulab.co.il>
+References: <CANLagX8oMGLkkKuvDw4g30CE+n9bbvO=ouEDk0Vf=xOM5Q2eDA@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-02-ewr.mailhop.org ([204.13.248.72]:44344 "EHLO
-	mho-02-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756782Ab2C3StC (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 30 Mar 2012 14:49:02 -0400
-Content-Disposition: inline
-In-Reply-To: <1F91D012-8308-45BB-83AD-90E52D472AC2@kernel.crashing.org>
+Received: from 50.23.254.54-static.reverse.softlayer.com ([50.23.254.54]:39741
+	"EHLO softlayer.compulab.co.il" rhost-flags-OK-OK-OK-FAIL)
+	by vger.kernel.org with ESMTP id S1756782Ab2C3TUV (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>);
+	Fri, 30 Mar 2012 15:20:21 -0400
+In-Reply-To: <CANLagX8oMGLkkKuvDw4g30CE+n9bbvO=ouEDk0Vf=xOM5Q2eDA@mail.gmail.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Kumar Gala <galak@kernel.crashing.org>
-Cc: linux-omap@vger.kernel.org, Felipe Balbi <balbi@ti.com>
+To: Ashwin Bihari <abihari@gmail.com>
+Cc: linux-omap <linux-omap@vger.kernel.org>
 
-Hi,
+Hi Ashwin,
 
-* Kumar Gala <galak@kernel.crashing.org> [120329 12:24]:
-> As I'm new to the OMAP community this might be a stupid question but trying to just build and run a stock v3.3 kernel on a pandaboard.  In doing so it seems as if some basic drivers are not enabled in omap2plus_defconfig for the board.  I'm trying to figure out if this is normal for some reason or just an oversight.
+On 03/30/12 21:04, Ashwin Bihari wrote:
+> Greetings,
 > 
-> For example, USB and USB ethernet (SMC95xx).  I notice the linaro kernel tree introduces an omap4_defconfig, so just wondering should I send patches to omap2plus_defconfig or what?
+> In one of the older Kernels, there was a twl4030-poweroff driver that
+> provided a hook to shutdown the OMAP when the "poweroff" or "shutdown
+> -h now" command was issued in Linux. This also put the
+> TWL4030/TPS65950 into it's power on state awaiting a press of the
+> power button. My most recent experience with this functionality
+> working is with a 2.6.32 Kernel.
 
-We can add those to omap2plus_defconfig for sure, but let's have
-them added as modules. Then distros can use that easily in a
-standard way using initramfs-tools etc.
+Probably, not the mainline kernel...
 
-Let's not change the drivers that are currently built in if they're
-needed for mounting mmc or nfsroot. Those can be changed later on.
+> 
+> I'm trying to get this functionality going with a 3.1.10 Kernel. I've
+> brought over the same twl4030-poweroff driver, but now the system just
+> crashes during shutdown as opposed to nice going down.
 
+The power off functionality of the TWL4030 is split in two phases:
+1) capturing the interrupt and propagating it through the input event handler
+   to the userspace (drivers/input/misc/twl4030-pwrbutton.c) - this is already
+   available in v3.1.10 stable kernel.
+2) overriding the pm_power_off method with TWL4030 specific implementation
+   (drivers/mfd/twl4030-power.c) available since:
+# git describe 26cc3ab984cd00e95cb58ba5aaea4238ea56c700
+v3.2-36-g26cc3ab
+
+To get that working, you need:
+1) the CONFIG_INPUT_TWL4030_PWRBUTTON enabled in the kernel config
+2) git cherry-pick 26cc3ab984cd00e95cb58ba5aaea4238ea56c700
+3) add struct twl4030_power_data to your board file and set use_poweroff field,
+   here is an example: http://www.spinics.net/lists/linux-omap/msg67280.html
+
+> 
+> The file 'drivers/mfd/twl4030-power.c' does define the
+> PWR_P1_SW_EVENTS and PWR_DEVOFF bit, but the PWR_DEVOFF bit is never
+> used to turn the system off, why is it even defined and what is the
+> right way of turning of the system now?
+
+If you experience problems with the above proposed solution,
+please, post console logs and may be also some debug output.
+Also, why can't you try it on 3.3 kernel?
+
+-- 
 Regards,
-
-Tony
+Igor.
