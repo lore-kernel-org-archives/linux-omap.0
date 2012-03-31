@@ -1,63 +1,26 @@
-From: Shubhrajyoti D <shubhrajyoti-l0cyMroinI0@public.gmane.org>
-Subject: [PATCHv3 3/3] spi: omap2-mcspi: Trivial optimisation
-Date: Sat, 31 Mar 2012 17:06:58 +0530
-Message-ID: <1333193818-3984-4-git-send-email-shubhrajyoti@ti.com>
-References: <1333193818-3984-1-git-send-email-shubhrajyoti@ti.com>
+From: "jin mong" <jjgoldaraz@madrid.uned.es>
+Subject: (unknown)
+Date: Sat, 31 Mar 2012 16:44:59 +0200
+Message-ID: <3a94b2e2c543be25d22e6fcf2a1cd522.squirrel__46902.4271508262$1333205141$gmane$org@correo.uned.es>
+Reply-To: jinmong22@yahoo.co.jp
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <spi-devel-general-bounces-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-In-Reply-To: <1333193818-3984-1-git-send-email-shubhrajyoti-l0cyMroinI0@public.gmane.org>
-List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/spi-devel-general>,
-	<mailto:spi-devel-general-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=unsubscribe>
-List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum_name=spi-devel-general>
-List-Post: <mailto:spi-devel-general-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-List-Help: <mailto:spi-devel-general-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=help>
-List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/spi-devel-general>,
-	<mailto:spi-devel-general-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
-Errors-To: spi-devel-general-bounces-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-To: spi-devel-general-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Cc: Shubhrajyoti, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, D <shubhrajyoti-l0cyMroinI0@public.gmane.org>
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7BIT
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from smtp-out-cinco.uned.es ([62.204.192.119]:47787 "EHLO
+	smtp-out-cinco.uned.es" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1757449Ab2CaOpU (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Sat, 31 Mar 2012 10:45:20 -0400
+Subject: 
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-Trivial optimisation of tmp variable by directly writing the value
-to the register.
+Greetings Partner,
 
-Cc :  Tarun Kanti DebBarma <tarun.kanti-l0cyMroinI0@public.gmane.org>
-Signed-off-by: Shubhrajyoti D <shubhrajyoti-l0cyMroinI0@public.gmane.org>
----
- drivers/spi/spi-omap2-mcspi.c |    7 +++----
- 1 files changed, 3 insertions(+), 4 deletions(-)
+This is my second time of sending you this notice. I have finally found
+you as an approved heir to the inheritance of the deposited funds with
+same surname of the deceased depositor.
 
-diff --git a/drivers/spi/spi-omap2-mcspi.c b/drivers/spi/spi-omap2-mcspi.c
-index 0b0da2f..f374eee 100644
---- a/drivers/spi/spi-omap2-mcspi.c
-+++ b/drivers/spi/spi-omap2-mcspi.c
-@@ -1050,16 +1050,15 @@ static int __init omap2_mcspi_master_setup(struct omap2_mcspi *mcspi)
- {
- 	struct spi_master	*master = mcspi->master;
- 	struct omap2_mcspi_regs	*ctx = &mcspi->ctx;
--	u32			tmp;
- 	int			ret = 0;
- 
- 	ret = omap2_mcspi_enable_clocks(mcspi);
- 	if (ret < 0)
- 		return ret;
- 
--	tmp = OMAP2_MCSPI_WAKEUPENABLE_WKEN;
--	mcspi_write_reg(master, OMAP2_MCSPI_WAKEUPENABLE, tmp);
--	ctx->wakeupenable = tmp;
-+	mcspi_write_reg(master, OMAP2_MCSPI_WAKEUPENABLE,
-+				OMAP2_MCSPI_WAKEUPENABLE_WKEN);
-+	ctx->wakeupenable = OMAP2_MCSPI_WAKEUPENABLE_WKEN;
- 
- 	omap2_mcspi_set_master_mode(master);
- 	omap2_mcspi_disable_clocks(mcspi);
--- 
-1.7.1
+Jin Mong
+Email: jinmong22@yahoo.co.jp
 
-
-------------------------------------------------------------------------------
-This SF email is sponsosred by:
-Try Windows Azure free for 90 days Click Here 
-http://p.sf.net/sfu/sfd2d-msazure
