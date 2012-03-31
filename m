@@ -1,55 +1,104 @@
-From: Ming Lei <tom.leiming@gmail.com>
-Subject: Re: [PATCH 1/3] ARM: OMAP2+: 32k-counter: Use hwmod lookup to check
- presence of 32k timer
-Date: Sat, 31 Mar 2012 16:39:36 +0800
-Message-ID: <CACVXFVPu1GEQy+sCgXMB8JCszPBBs8zHRVm94TYb1-y2afkqgw@mail.gmail.com>
-References: <1326983304-14619-1-git-send-email-hvaibhav@ti.com>
-	<1326983304-14619-2-git-send-email-hvaibhav@ti.com>
-	<87mx9ej8fp.fsf@ti.com>
-	<CACVXFVOqmC0OhT-Dim8dL9pWnmGwO2-Awc4V2Jziyf7DHQdYcQ@mail.gmail.com>
-	<79CD15C6BA57404B839C016229A409A83181EF3F@DBDE01.ent.ti.com>
-	<CACVXFVP4J8N271Tww77Btm9fGNiP17MepjswBJ0V-8Z4sNt8Eg@mail.gmail.com>
-	<4F672364.3020403@ti.com>
-	<79CD15C6BA57404B839C016229A409A83182386C@DBDE01.ent.ti.com>
-	<CAMQu2gyFNXgx87Fsq5is88DOkOx-nWK6ohwyFV-CY2uTkZCGMA@mail.gmail.com>
-	<79CD15C6BA57404B839C016229A409A83183EA54@DBDE01.ent.ti.com>
-	<CAMQu2gyF83HJOE9Rf-fZXXMt=p_WFjFf3DpAeW8L8+htR4E6-g@mail.gmail.com>
-	<79CD15C6BA57404B839C016229A409A83183EB47@DBDE01.ent.ti.com>
-	<CAMQu2gzYULK+=6-WKQnnQDpzTYW7xKAOZo7obyu2q178jtNE-Q@mail.gmail.com>
-	<79CD15C6BA57404B839C016229A409A831840C2E@DBDE01.ent.ti.com>
-	<CAMQu2gw7aceHSYSd+UMVS6kHQMqy0_maf8QTJaUMzp9z8822rQ@mail.gmail.com>
-	<79CD15C6BA57404B839C016229A409A831840E0C@DBDE01.ent.ti.com>
-	<4F7570FC.8000907@ti.com>
-	<79CD15C6BA57404B839C016229A409A831840F82@DBDE01.ent.ti.com>
-	<CAMQu2gzOkE6LD0WZ_9bKe3J-=Dv89rWaMzvWWvJHPMSPe6MzNg@mail.gmail.com>
-	<CACVXFVPbU2OqTN=S0AZCD10KuSBYxqyyRH_xee+WTaCD6VSmMQ@mail.gmail.com>
-	<CAMQu2gzuQ-q+3RHsW0=U305jCF-td5-PEXkGZ6WnQTqA1K8oAQ@mail.gmail.com>
+From: Shubhrajyoti <shubhrajyoti@ti.com>
+Subject: Re: [PATCHv3 0/6] spi: omap2-mcspi: driver updates
+Date: Sat, 31 Mar 2012 16:42:06 +0530
+Message-ID: <4F76E686.6010005@ti.com>
+References: <1333102822-17171-1-git-send-email-shubhrajyoti@ti.com> <20120331054413.0CF363E0465@localhost>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-pz0-f52.google.com ([209.85.210.52]:47121 "EHLO
-	mail-pz0-f52.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756144Ab2CaIjh (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Sat, 31 Mar 2012 04:39:37 -0400
-Received: by dake40 with SMTP id e40so442975dak.11
-        for <linux-omap@vger.kernel.org>; Sat, 31 Mar 2012 01:39:36 -0700 (PDT)
-In-Reply-To: <CAMQu2gzuQ-q+3RHsW0=U305jCF-td5-PEXkGZ6WnQTqA1K8oAQ@mail.gmail.com>
+Received: from na3sys009aob129.obsmtp.com ([74.125.149.136]:36179 "EHLO
+	na3sys009amx259.postini.com" rhost-flags-OK-OK-OK-FAIL)
+	by vger.kernel.org with ESMTP id S1754101Ab2CaLMV (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>);
+	Sat, 31 Mar 2012 07:12:21 -0400
+Received: by obbuo13 with SMTP id uo13so394136obb.20
+        for <linux-omap@vger.kernel.org>; Sat, 31 Mar 2012 04:12:19 -0700 (PDT)
+In-Reply-To: <20120331054413.0CF363E0465@localhost>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "Shilimkar, Santosh" <santosh.shilimkar@ti.com>
-Cc: "Hiremath, Vaibhav" <hvaibhav@ti.com>, "Hilman, Kevin" <khilman@ti.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, "marc.zyngier@arm.com" <marc.zyngier@arm.com>, "johnstul@us.ibm.com" <johnstul@us.ibm.com>, "Balbi, Felipe" <balbi@ti.com>, "Cousson, Benoit" <b-cousson@ti.com>, Tony Lindgren <tony@atomide.com>, Paul Walmsley <paul@pwsan.com>, "DebBarma, Tarun Kanti" <tarun.kanti@ti.com>
+To: Grant Likely <grant.likely@secretlab.ca>
+Cc: spi-devel-general@lists.sourceforge.net, Shubhrajyoti Datta <shubhrajyoti@ti.com>, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org
 
-On Sat, Mar 31, 2012 at 2:30 PM, Shilimkar, Santosh
-> Since you need to recompile the kernel, you can very much tweak the
-> clocksource to use GPTIMER with sysl clock. Support for that is still
-> in place.
+On Saturday 31 March 2012 11:14 AM, Grant Likely wrote:
+> On Fri, 30 Mar 2012 15:50:16 +0530, Shubhrajyoti D <shubhrajyoti@ti.com> wrote:
+>> The patch series does the following cleanups
+>> - Converts the spi to module_platform_driver
+>> - Use the devm functions so that the freeing need not 
+>>   be done in the driver.
+>> - Makes the driver use autosuspend
+>> - Folds Benoit's bus_num removal patch in the series
+>>
+>> Changes from v1
+>> - Makes the driver use autosuspend
+>> - Folds Benoit's bus_num removal patch in the series
+>>
+>> Changes from v2
+>> - The tmp variable is used to write this can be optimised 
+>>  as it is not needed if the value is directly written.
+>>  Acknowledge  Tarun for the suggestion.
+>>
+>> This is also available through
+>> git     : git://gitorious.org/linus-tree/linus-tree.git
+>> branch  : spi
+>>
+>> This is targeted for v3.5. 
+> Okay, now is a good time to talk about git pull request workflow.  10
+> days ago you published a git tree and I replied that I had pulled it
+> into mine.  Now you've got a new branch with the patches from the old
+> branch rebased onto a new head.  Compairing your branch with mine now
+> looks like this:
+>
+> $ git fetch git://gitorious.org/linus-tree/linus-tree.git spi
+> remote: Counting objects: 34, done.
+> remote: Compressing objects: 100% (28/28), done.
+> remote: Total 30 (delta 24), reused 6 (delta 2)
+> Unpacking objects: 100% (30/30), done.
+> From git://gitorious.org/linus-tree/linus-tree
+>  * branch            spi        -> FETCH_HEAD
+> $ git show-branch --topic origin spi/next FETCH_HEAD
+> ! [origin] Merge git://git.kernel.org/pub/scm/linux/kernel/git/davem/sparc
+>  ! [spi/next] Merge branch 'spi' of git://gitorious.org/linus-tree/linus-tree into spi/next
+>   ! [FETCH_HEAD] spi: omap2-mcspi: Trivial optimisation
+> ---
+>   + [FETCH_HEAD] spi: omap2-mcspi: Trivial optimisation
+>   + [FETCH_HEAD^] spi: omap2-mcspi: add support for pm_runtime autosuspend
+>   + [FETCH_HEAD~2] spi: omap2-mcspi: use devm_* functions
+>   + [FETCH_HEAD~3] spi: omap2-mcspi: convert to module_platform_driver
+>   + [FETCH_HEAD~4] spi: omap2-mcspi: make it behave as a module
+>   + [FETCH_HEAD~5] spi/omap: Remove bus_num usage for instance index
+>  -  [spi/next] Merge branch 'spi' of git://gitorious.org/linus-tree/linus-tree into spi/next
+>  +  [spi/next^2] OMAP : SPI : use devm_* functions
+>  +  [spi/next^2^] spi: omap2-mcspi: convert to module_platform_driver
+>  +  [spi/next^2~2] spi: omap2-mcspi: make it behave as a module
+> +++ [origin~189] Linux 3.3
+>
+> I cannot merge this branch.  If I did it would result in 2 commits for
+> each of the commits from the original branch.  You'll need go back and
+> rebase the new commits on top of the old base or on top of my current
+> spi/next branch[1]
+>
+> [1] git://git.secretlab.ca/git/linux-2.6 spi/next
+>
+> I've already published that branch, so I will not rebase it either to
+> remove the original commits.  The new commits must go on top.
+>
+> Next time, *don't* rebase a branch that has been pulled.  It should be
+> left alone and new commits added on top of it.
+Apologies for this time.
+Yes will take care henceforth.
+>   If your in the
+> situation where mainline has commits that you need to bring into the
+> branch, then *merge* mainline into your branch (preferably at a tagged
+> release point), or ask me to merge in mainline to give you a new
+> baseline to work from.
+>
+> One option I do have is to apply only the patches I'm missing to my
+> tree, but I'm not going to because I don't actually know if patches
+> 1, 2, or 3 have changed since the version that I've posted.  It's
+> safer for me to get you to rebase back onto the proper base and post
+> only the new patches.  Your cover letter should state specifically
+> which branch the patches apply on top of.
+Will send another pull request.
 
-With current kernel, running 'make menuconfig' can do it, but after applying
-Hiremath's patch[1], I have to edit the source code manually to get it, so looks
-this kind of tweaking is not friendly enough, :-(
 
-[1], http://marc.info/?l=linux-arm-kernel&m=133311647410324&w=2
-
-Thanks,
--- 
-Ming Lei
