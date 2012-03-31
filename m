@@ -1,11 +1,13 @@
 From: Shubhrajyoti D <shubhrajyoti-l0cyMroinI0@public.gmane.org>
-Subject: [PATCHv3 0/3] spi: omap2-mcspi: driver updates
-Date: Sat, 31 Mar 2012 17:06:55 +0530
-Message-ID: <1333193818-3984-1-git-send-email-shubhrajyoti@ti.com>
+Subject: [PATCHv3 1/3] spi/omap: Remove bus_num usage for instance index
+Date: Sat, 31 Mar 2012 17:06:56 +0530
+Message-ID: <1333193818-3984-2-git-send-email-shubhrajyoti@ti.com>
+References: <1333193818-3984-1-git-send-email-shubhrajyoti@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Return-path: <spi-devel-general-bounces-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+In-Reply-To: <1333193818-3984-1-git-send-email-shubhrajyoti-l0cyMroinI0@public.gmane.org>
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/spi-devel-general>,
 	<mailto:spi-devel-general-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=unsubscribe>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum_name=spi-devel-general>
@@ -15,33 +17,226 @@ List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/spi-devel-general>
 	<mailto:spi-devel-general-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
 Errors-To: spi-devel-general-bounces-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 To: spi-devel-general-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Cc: Shubhrajyoti, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, D <shubhrajyoti-l0cyMroinI0@public.gmane.org>
+Cc: Cousson <b-cousson-l0cyMroinI0@public.gmane.org>, Shubhrajyoti D <shubhrajyoti-l0cyMroinI0@public.gmane.org>, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Benoit
 List-Id: linux-omap@vger.kernel.org
 
-The patch series does the following cleanups
-- Makes the driver use autosuspend
-- Folds Benoit's bus_num removal patch in the series
-- The tmp variable is used to write this can be optimised 
- as it is not needed if the value is directly written.
- Acknowledge  Tarun for the suggestion.
+From: Benoit Cousson <b-cousson-l0cyMroinI0@public.gmane.org>
 
-This is also available through
-git     : git://gitorious.org/linus-tree/linus-tree.git
-branch  : spi_next
+bus_num was used to reference the mcspi controller instance in a fixed array.
+Remove this array and store this information directly inside drvdata structure.
 
-Rebased to Grant's spi/next branch.
+bus_num is now just set if the pdev->id is present or with -1 for dynamic
+allocation by SPI core, but the driver does not access it anymore.
 
+Clean some bad comments format, and remove un-needed space.
+
+Signed-off-by: Benoit Cousson <b-cousson-l0cyMroinI0@public.gmane.org>
+[Cleanup the OMAP2_MCSPI_MAX_CTRL macro as it is not needed anymore]
+Signed-off-by: Shubhrajyoti D <shubhrajyoti-l0cyMroinI0@public.gmane.org>
+---
+ drivers/spi/spi-omap2-mcspi.c |   75 ++++++++++++++++++----------------------
+ 1 files changed, 34 insertions(+), 41 deletions(-)
+
+diff --git a/drivers/spi/spi-omap2-mcspi.c b/drivers/spi/spi-omap2-mcspi.c
+index 33f54cd..1907ed2 100644
+--- a/drivers/spi/spi-omap2-mcspi.c
++++ b/drivers/spi/spi-omap2-mcspi.c
+@@ -45,9 +45,6 @@
  
-
-Benoit Cousson (1):
-  spi/omap: Remove bus_num usage for instance index
-
-Shubhrajyoti D (2):
-  spi: omap2-mcspi: add support for pm_runtime autosuspend
-  spi: omap2-mcspi: Trivial optimisation
-
- drivers/spi/spi-omap2-mcspi.c |   86 +++++++++++++++++++---------------------
- 1 files changed, 41 insertions(+), 45 deletions(-)
+ #define OMAP2_MCSPI_MAX_FREQ		48000000
+ 
+-/* OMAP2 has 3 SPI controllers, while OMAP3 has 4 */
+-#define OMAP2_MCSPI_MAX_CTRL 		4
+-
+ #define OMAP2_MCSPI_REVISION		0x00
+ #define OMAP2_MCSPI_SYSSTATUS		0x14
+ #define OMAP2_MCSPI_IRQSTATUS		0x18
+@@ -111,6 +108,16 @@ struct omap2_mcspi_dma {
+ #define DMA_MIN_BYTES			160
+ 
+ 
++/*
++ * Used for context save and restore, structure members to be updated whenever
++ * corresponding registers are modified.
++ */
++struct omap2_mcspi_regs {
++	u32 modulctrl;
++	u32 wakeupenable;
++	struct list_head cs;
++};
++
+ struct omap2_mcspi {
+ 	struct work_struct	work;
+ 	/* lock protects queue and registers */
+@@ -122,8 +129,9 @@ struct omap2_mcspi {
+ 	unsigned long		phys;
+ 	/* SPI1 has 4 channels, while SPI2 has 2 */
+ 	struct omap2_mcspi_dma	*dma_channels;
+-	struct  device		*dev;
++	struct device		*dev;
+ 	struct workqueue_struct *wq;
++	struct omap2_mcspi_regs ctx;
+ };
+ 
+ struct omap2_mcspi_cs {
+@@ -135,17 +143,6 @@ struct omap2_mcspi_cs {
+ 	u32			chconf0;
+ };
+ 
+-/* used for context save and restore, structure members to be updated whenever
+- * corresponding registers are modified.
+- */
+-struct omap2_mcspi_regs {
+-	u32 modulctrl;
+-	u32 wakeupenable;
+-	struct list_head cs;
+-};
+-
+-static struct omap2_mcspi_regs omap2_mcspi_ctx[OMAP2_MCSPI_MAX_CTRL];
+-
+ #define MOD_REG_BIT(val, mask, set) do { \
+ 	if (set) \
+ 		val |= mask; \
+@@ -236,9 +233,12 @@ static void omap2_mcspi_force_cs(struct spi_device *spi, int cs_active)
+ 
+ static void omap2_mcspi_set_master_mode(struct spi_master *master)
+ {
++	struct omap2_mcspi	*mcspi = spi_master_get_devdata(master);
++	struct omap2_mcspi_regs	*ctx = &mcspi->ctx;
+ 	u32 l;
+ 
+-	/* setup when switching from (reset default) slave mode
++	/*
++	 * Setup when switching from (reset default) slave mode
+ 	 * to single-channel master mode
+ 	 */
+ 	l = mcspi_read_reg(master, OMAP2_MCSPI_MODULCTRL);
+@@ -247,24 +247,20 @@ static void omap2_mcspi_set_master_mode(struct spi_master *master)
+ 	MOD_REG_BIT(l, OMAP2_MCSPI_MODULCTRL_SINGLE, 1);
+ 	mcspi_write_reg(master, OMAP2_MCSPI_MODULCTRL, l);
+ 
+-	omap2_mcspi_ctx[master->bus_num - 1].modulctrl = l;
++	ctx->modulctrl = l;
+ }
+ 
+ static void omap2_mcspi_restore_ctx(struct omap2_mcspi *mcspi)
+ {
+-	struct spi_master *spi_cntrl;
+-	struct omap2_mcspi_cs *cs;
+-	spi_cntrl = mcspi->master;
++	struct spi_master	*spi_cntrl = mcspi->master;
++	struct omap2_mcspi_regs	*ctx = &mcspi->ctx;
++	struct omap2_mcspi_cs	*cs;
+ 
+ 	/* McSPI: context restore */
+-	mcspi_write_reg(spi_cntrl, OMAP2_MCSPI_MODULCTRL,
+-			omap2_mcspi_ctx[spi_cntrl->bus_num - 1].modulctrl);
++	mcspi_write_reg(spi_cntrl, OMAP2_MCSPI_MODULCTRL, ctx->modulctrl);
++	mcspi_write_reg(spi_cntrl, OMAP2_MCSPI_WAKEUPENABLE, ctx->wakeupenable);
+ 
+-	mcspi_write_reg(spi_cntrl, OMAP2_MCSPI_WAKEUPENABLE,
+-			omap2_mcspi_ctx[spi_cntrl->bus_num - 1].wakeupenable);
+-
+-	list_for_each_entry(cs, &omap2_mcspi_ctx[spi_cntrl->bus_num - 1].cs,
+-			node)
++	list_for_each_entry(cs, &ctx->cs, node)
+ 		__raw_writel(cs->chconf0, cs->base + OMAP2_MCSPI_CHCONF0);
+ }
+ static void omap2_mcspi_disable_clocks(struct omap2_mcspi *mcspi)
+@@ -777,7 +773,8 @@ static int omap2_mcspi_request_dma(struct spi_device *spi)
+ static int omap2_mcspi_setup(struct spi_device *spi)
+ {
+ 	int			ret;
+-	struct omap2_mcspi	*mcspi;
++	struct omap2_mcspi	*mcspi = spi_master_get_devdata(spi->master);
++	struct omap2_mcspi_regs	*ctx = &mcspi->ctx;
+ 	struct omap2_mcspi_dma	*mcspi_dma;
+ 	struct omap2_mcspi_cs	*cs = spi->controller_state;
+ 
+@@ -787,7 +784,6 @@ static int omap2_mcspi_setup(struct spi_device *spi)
+ 		return -EINVAL;
+ 	}
+ 
+-	mcspi = spi_master_get_devdata(spi->master);
+ 	mcspi_dma = &mcspi->dma_channels[spi->chip_select];
+ 
+ 	if (!cs) {
+@@ -799,8 +795,7 @@ static int omap2_mcspi_setup(struct spi_device *spi)
+ 		cs->chconf0 = 0;
+ 		spi->controller_state = cs;
+ 		/* Link this to context save list */
+-		list_add_tail(&cs->node,
+-			&omap2_mcspi_ctx[mcspi->master->bus_num - 1].cs);
++		list_add_tail(&cs->node, &ctx->cs);
+ 	}
+ 
+ 	if (mcspi_dma->dma_rx_channel == -1
+@@ -1052,8 +1047,9 @@ static int omap2_mcspi_transfer(struct spi_device *spi, struct spi_message *m)
+ static int __init omap2_mcspi_master_setup(struct omap2_mcspi *mcspi)
+ {
+ 	struct spi_master	*master = mcspi->master;
++	struct omap2_mcspi_regs	*ctx = &mcspi->ctx;
+ 	u32			tmp;
+-	int ret = 0;
++	int			ret = 0;
+ 
+ 	ret = omap2_mcspi_enable_clocks(mcspi);
+ 	if (ret < 0)
+@@ -1061,7 +1057,7 @@ static int __init omap2_mcspi_master_setup(struct omap2_mcspi *mcspi)
+ 
+ 	tmp = OMAP2_MCSPI_WAKEUPENABLE_WKEN;
+ 	mcspi_write_reg(master, OMAP2_MCSPI_WAKEUPENABLE, tmp);
+-	omap2_mcspi_ctx[master->bus_num - 1].wakeupenable = tmp;
++	ctx->wakeupenable = tmp;
+ 
+ 	omap2_mcspi_set_master_mode(master);
+ 	omap2_mcspi_disable_clocks(mcspi);
+@@ -1108,7 +1104,6 @@ static int __devinit omap2_mcspi_probe(struct platform_device *pdev)
+ 	struct omap2_mcspi	*mcspi;
+ 	struct resource		*r;
+ 	int			status = 0, i;
+-	char			wq_name[20];
+ 	u32			regs_offset = 0;
+ 	static int		bus_num = 1;
+ 	struct device_node	*node = pdev->dev.of_node;
+@@ -1149,8 +1144,7 @@ static int __devinit omap2_mcspi_probe(struct platform_device *pdev)
+ 	mcspi = spi_master_get_devdata(master);
+ 	mcspi->master = master;
+ 
+-	sprintf(wq_name, "omap2_mcspi/%d", master->bus_num);
+-	mcspi->wq = alloc_workqueue(wq_name, WQ_MEM_RECLAIM, 1);
++	mcspi->wq = alloc_workqueue(dev_name(&pdev->dev), WQ_MEM_RECLAIM, 1);
+ 	if (mcspi->wq == NULL) {
+ 		status = -ENOMEM;
+ 		goto free_master;
+@@ -1178,7 +1172,7 @@ static int __devinit omap2_mcspi_probe(struct platform_device *pdev)
+ 
+ 	spin_lock_init(&mcspi->lock);
+ 	INIT_LIST_HEAD(&mcspi->msg_queue);
+-	INIT_LIST_HEAD(&omap2_mcspi_ctx[master->bus_num - 1].cs);
++	INIT_LIST_HEAD(&mcspi->ctx.cs);
+ 
+ 	mcspi->dma_channels = kcalloc(master->num_chipselect,
+ 			sizeof(struct omap2_mcspi_dma),
+@@ -1275,13 +1269,12 @@ static int omap2_mcspi_resume(struct device *dev)
+ {
+ 	struct spi_master	*master = dev_get_drvdata(dev);
+ 	struct omap2_mcspi	*mcspi = spi_master_get_devdata(master);
+-	struct omap2_mcspi_cs *cs;
++	struct omap2_mcspi_regs	*ctx = &mcspi->ctx;
++	struct omap2_mcspi_cs	*cs;
+ 
+ 	omap2_mcspi_enable_clocks(mcspi);
+-	list_for_each_entry(cs, &omap2_mcspi_ctx[master->bus_num - 1].cs,
+-			    node) {
++	list_for_each_entry(cs, &ctx->cs, node) {
+ 		if ((cs->chconf0 & OMAP2_MCSPI_CHCONF_FORCE) == 0) {
+-
+ 			/*
+ 			 * We need to toggle CS state for OMAP take this
+ 			 * change in account.
+-- 
+1.7.1
 
 
 ------------------------------------------------------------------------------
