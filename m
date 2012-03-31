@@ -1,7 +1,7 @@
 From: Shubhrajyoti D <shubhrajyoti-l0cyMroinI0@public.gmane.org>
-Subject: [PATCHv3 2/3] spi: omap2-mcspi: add support for pm_runtime autosuspend
-Date: Sat, 31 Mar 2012 17:06:57 +0530
-Message-ID: <1333193818-3984-3-git-send-email-shubhrajyoti@ti.com>
+Subject: [PATCHv3 3/3] spi: omap2-mcspi: Trivial optimisation
+Date: Sat, 31 Mar 2012 17:06:58 +0530
+Message-ID: <1333193818-3984-4-git-send-email-shubhrajyoti@ti.com>
 References: <1333193818-3984-1-git-send-email-shubhrajyoti@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
@@ -20,50 +20,39 @@ To: spi-devel-general-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 Cc: Shubhrajyoti, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, D <shubhrajyoti-l0cyMroinI0@public.gmane.org>
 List-Id: linux-omap@vger.kernel.org
 
-Adds support for configuring the omap2-mcspi driver use autosuspend for
-runtime power management. This can reduce the latency in starting an
-spi transfer by not suspending the device immediately following
-completion of a transfer. If another transfer then takes place before
-the autosuspend timeout (2 secs), the call to resume the device can
-return immediately saving some save/ restore cycles.
+Trivial optimisation of tmp variable by directly writing the value
+to the register.
 
-Acked-by: Govindraj.R <govindraj.raja-l0cyMroinI0@public.gmane.org>
+Cc :  Tarun Kanti DebBarma <tarun.kanti-l0cyMroinI0@public.gmane.org>
 Signed-off-by: Shubhrajyoti D <shubhrajyoti-l0cyMroinI0@public.gmane.org>
 ---
- drivers/spi/spi-omap2-mcspi.c |    6 +++++-
- 1 files changed, 5 insertions(+), 1 deletions(-)
+ drivers/spi/spi-omap2-mcspi.c |    7 +++----
+ 1 files changed, 3 insertions(+), 4 deletions(-)
 
 diff --git a/drivers/spi/spi-omap2-mcspi.c b/drivers/spi/spi-omap2-mcspi.c
-index 1907ed2..0b0da2f 100644
+index 0b0da2f..f374eee 100644
 --- a/drivers/spi/spi-omap2-mcspi.c
 +++ b/drivers/spi/spi-omap2-mcspi.c
-@@ -44,6 +44,7 @@
- #include <plat/mcspi.h>
- 
- #define OMAP2_MCSPI_MAX_FREQ		48000000
-+#define SPI_AUTOSUSPEND_TIMEOUT		2000
- 
- #define OMAP2_MCSPI_REVISION		0x00
- #define OMAP2_MCSPI_SYSSTATUS		0x14
-@@ -265,7 +266,8 @@ static void omap2_mcspi_restore_ctx(struct omap2_mcspi *mcspi)
- }
- static void omap2_mcspi_disable_clocks(struct omap2_mcspi *mcspi)
+@@ -1050,16 +1050,15 @@ static int __init omap2_mcspi_master_setup(struct omap2_mcspi *mcspi)
  {
--	pm_runtime_put_sync(mcspi->dev);
-+	pm_runtime_mark_last_busy(mcspi->dev);
-+	pm_runtime_put_autosuspend(mcspi->dev);
- }
+ 	struct spi_master	*master = mcspi->master;
+ 	struct omap2_mcspi_regs	*ctx = &mcspi->ctx;
+-	u32			tmp;
+ 	int			ret = 0;
  
- static int omap2_mcspi_enable_clocks(struct omap2_mcspi *mcspi)
-@@ -1212,6 +1214,8 @@ static int __devinit omap2_mcspi_probe(struct platform_device *pdev)
- 	if (status < 0)
- 		goto dma_chnl_free;
+ 	ret = omap2_mcspi_enable_clocks(mcspi);
+ 	if (ret < 0)
+ 		return ret;
  
-+	pm_runtime_use_autosuspend(&pdev->dev);
-+	pm_runtime_set_autosuspend_delay(&pdev->dev, SPI_AUTOSUSPEND_TIMEOUT);
- 	pm_runtime_enable(&pdev->dev);
+-	tmp = OMAP2_MCSPI_WAKEUPENABLE_WKEN;
+-	mcspi_write_reg(master, OMAP2_MCSPI_WAKEUPENABLE, tmp);
+-	ctx->wakeupenable = tmp;
++	mcspi_write_reg(master, OMAP2_MCSPI_WAKEUPENABLE,
++				OMAP2_MCSPI_WAKEUPENABLE_WKEN);
++	ctx->wakeupenable = OMAP2_MCSPI_WAKEUPENABLE_WKEN;
  
- 	if (status || omap2_mcspi_master_setup(mcspi) < 0)
+ 	omap2_mcspi_set_master_mode(master);
+ 	omap2_mcspi_disable_clocks(mcspi);
 -- 
 1.7.1
 
