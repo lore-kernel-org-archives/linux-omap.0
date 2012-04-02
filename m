@@ -1,228 +1,276 @@
-From: Javier Martinez Canillas <martinez.javier@gmail.com>
-Subject: Re: smsc911x on Gumstix Overo/Tobi doesn't work
-Date: Sun, 1 Apr 2012 21:20:58 +0200
-Message-ID: <CAAwP0s30z1DkfnTH0WE7S9m9t3iQuvKc+C_okrtzLFpN0gKhgw@mail.gmail.com>
-References: <4F6324D5.9010106@uni-dortmund.de> <20120316193337.GE7276@atomide.com>
- <4F675D9D.2040102@uni-dortmund.de> <20120319225131.GE9859@atomide.com>
- <4F6893C6.60701@uni-dortmund.de> <CAAwP0s3Qo7vtt=BY7Pvejg4Gc9X0O0n=yWg0JVGZHrmUJScMXw@mail.gmail.com>
- <4F75D136.5020208@uni-dortmund.de>
+From: "Hiremath, Vaibhav" <hvaibhav@ti.com>
+Subject: RE: [PATCH-V2 3/3] ARM: OMAP: Make OMAP clocksource source
+ selection runtime
+Date: Mon, 2 Apr 2012 06:06:49 +0000
+Message-ID: <79CD15C6BA57404B839C016229A409A831843008@DBDE01.ent.ti.com>
+References: <1333115655-28530-1-git-send-email-hvaibhav@ti.com>
+ <1333115655-28530-4-git-send-email-hvaibhav@ti.com> <4F75D290.8090706@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-gx0-f174.google.com ([209.85.161.174]:59868 "EHLO
-	mail-gx0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752843Ab2DATVT convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Sun, 1 Apr 2012 15:21:19 -0400
-Received: by gghe5 with SMTP id e5so964578ggh.19
-        for <linux-omap@vger.kernel.org>; Sun, 01 Apr 2012 12:21:18 -0700 (PDT)
-In-Reply-To: <4F75D136.5020208@uni-dortmund.de>
+Received: from devils.ext.ti.com ([198.47.26.153]:58759 "EHLO
+	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750911Ab2DBGHA convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 2 Apr 2012 02:07:00 -0400
+In-Reply-To: <4F75D290.8090706@ti.com>
+Content-Language: en-US
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Thomas Klute <thomas2.klute@uni-dortmund.de>
-Cc: Tony Lindgren <tony@atomide.com>, linux-omap@vger.kernel.org
+To: "Hunter, Jon" <jon-hunter@ti.com>
+Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "Hilman, Kevin" <khilman@ti.com>, "paul@pwsan.com" <paul@pwsan.com>, "Cousson, Benoit" <b-cousson@ti.com>, "tony@atomide.com" <tony@atomide.com>, "tom.leiming@gmail.com" <tom.leiming@gmail.com>, "Nayak, Rajendra" <rnayak@ti.com>, "Shilimkar, Santosh" <santosh.shilimkar@ti.com>, "Balbi, Felipe" <balbi@ti.com>, "DebBarma, Tarun Kanti" <tarun.kanti@ti.com>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>
 
-On Fri, Mar 30, 2012 at 5:28 PM, Thomas Klute
-<thomas2.klute@uni-dortmund.de> wrote:
-> Hi,
->
-> I finally had some time to do more tests on this problem. Findings be=
-low.
->
+On Fri, Mar 30, 2012 at 21:04:40, Hunter, Jon wrote:
+> Hi Vaibhav,
+> 
+> On 3/30/2012 8:54, Vaibhav Hiremath wrote:
+> 
+> > Current OMAP code supports couple of clocksource options based
+> > on compilation flag (CONFIG_OMAP_32K_TIMER). The 32KHz sync-timer
+> > and a gptimer which can run on 32KHz or system clock (e.g 38.4 MHz).
+> > So there can be 3 options -
+> > 
+> > 1. 32KHz sync-timer
+> > 2. Sys_clock based (e.g 13/19.2/26/38.4 MHz) gptimer
+> > 3. 32KHz based gptimer.
+> > 
+> > The optional gptimer based clocksource was added so that it can
+> > give the high precision than sync-timer, so expected usage was 2
+> > and not 3.
+> > Unfortunately option 2, clocksource doesn't meet the requirement of
+> > free-running clock as per clocksource need. It stops in low power states
+> > when sys_clock is cut. That makes gptimer based clocksource option
+> > useless for OMAP2/3/4 devices with sys_clock as a clock input.
+> > Option 3 will still work but it is no better than 32K sync-timer
+> > based clocksource.
+> > 
+> > So ideally we can kill the gptimer based clocksource option but there
+> > are some OMAP based derivative SoCs like AM33XX which doesn't have
+> > 32K sync-timer hardware IP and need to fallback on 32KHz based gptimer
+> > clocksource.
+> > Considering above, make sync-timer and gptimer clocksource runtime
+> > selectable so that both OMAP and AMXXXX continue to use the same code.
+> > 
+> > Use hwmod database lookup mechanism, through which at run-time
+> > we can identify availability of 32k-sync timer on the device,
+> > else fall back to gptimer.
+> > 
+> > Signed-off-by: Vaibhav Hiremath <hvaibhav@ti.com>
+> > Signed-off-by: Felipe Balbi <balbi@ti.com>
+> > CC: Santosh Shilimkar <santosh.shilimkar@ti.com>
+> > Cc: Benoit Cousson <b-cousson@ti.com>
+> > Cc: Tony Lindgren <tony@atomide.com>
+> > Cc: Paul Walmsley <paul@pwsan.com>
+> > Cc: Tarun Kanti DebBarma <tarun.kanti@ti.com>
+> > Cc: Ming Lei <tom.leiming@gmail.com>
+> > ---
+> >  arch/arm/mach-omap1/timer32k.c           |    6 ++-
+> >  arch/arm/mach-omap2/timer.c              |   45 +++++++++-------
+> >  arch/arm/plat-omap/counter_32k.c         |   86 ++++++++++++-----------------
+> >  arch/arm/plat-omap/include/plat/common.h |    2 +-
+> >  4 files changed, 68 insertions(+), 71 deletions(-)
+> 
+> [...]
+> 
+> > @@ -280,13 +265,33 @@ static void __init omap2_gp_clocksource_init(int gptimer_id,
+> >  						const char *fck_source)
+> >  {
+> >  	int res;
+> > +	struct omap_hwmod *oh;
+> > +	const char *oh_name = "counter_32k";
+> > +
+> > +	/*
+> > +	 * First check for availability for 32k-sync timer.
+> > +	 *
+> > +	 * In case of failure in finding 32k_counter module or
+> > +	 * registering it as clocksource, execution will fallback to
+> > +	 * gp-timer.
+> > +	 */
+> > +	oh = omap_hwmod_lookup(oh_name);
+> > +	if (oh && oh->slaves_cnt != 0) {
+> > +		u32 pbase;
+> > +		unsigned long size;
+> > +
+> > +		pbase = oh->slaves[0]->addr->pa_start + 0x10;
+> > +		size = oh->slaves[0]->addr->pa_end -
+> > +			oh->slaves[0]->addr->pa_start;
+> > +		res = omap_init_clocksource_32k(pbase, size);
+> > +		if (!res)
+> > +			return;
+> 
+> 
+> If omap_init_clocksource_32k() fails should we also call BUG_ON here?
+> 
 
-Great, I guess we are close to find the issue :)
+I don't think we should do that, for following reasons,
 
-> Am 20.03.2012 20:47, schrieb Javier Martinez Canillas:
->> On Tue, Mar 20, 2012 at 3:27 PM, Thomas Klute
->> <thomas2.klute@uni-dortmund.de> wrote:
->>> Am 19.03.2012 23:51, schrieb Tony Lindgren:
->>>> * Thomas Klute <thomas2.klute@uni-dortmund.de> [120319 09:26]:
->>>>> Am 16.03.2012 20:33, schrieb Tony Lindgren:
->>>>>> Hi,
->>>>>>
->>>>>> * Thomas Klute <thomas2.klute@uni-dortmund.de> [120316 05:08]:
->>>>>>> Hi,
->>>>>>>
->>>>>>> I have trouble getting the Ethernet port on a Gumstix Overo wit=
-h Tobi
->>>>>>> expansion board to work with current kernel versions. With the =
-latest
->>>>>>> commit from linux-omap git (b8fe1781ec8bed5e086691a827a6ee11fac=
-ec2aa),
->>>>>>> the output from loading the smsc911x driver is as follows:
->>>>>>>
->>>>>>> du14:~# modprobe smsc911x
->>>>>>> [ =C2=A0254.843811] smsc911x: Driver version 2008-10-21
->>>>>>> [ =C2=A0254.854553] smsc911x: Driver version 2008-10-21
->>>>>>> [ =C2=A0254.859588] _regulator_get: smsc911x.1 supply vdd33a no=
-t found, using
->>>>>>> dummy regulator
->>>>>>> [ =C2=A0254.868377] _regulator_get: smsc911x.1 supply vddvario =
-not found,
->>>>>>> using dummy regulator
->>>>>>>
->>>>>>> "ip link show" does not show any available Ethernet port.
->>>>>>
->>>>>> The first instance one should work the same way as earlier using
->>>>>> fixed regulator in gpmc-smsc911x.c. Is it not working for you
->>>>>> somehow? At least it works for me on zoom3.
->>>>>
->>>>> The Tobi board has only one Ethernet port.
->>>>>
->>>>>>> I know there has been some trouble with changes around smsc911x
->>>>>>> regulator support and Gumstix Overo in particular. Am I just mi=
-ssing the
->>>>>>> right regulator in my kernel config or is this a bug? I can tes=
-t patches
->>>>>>> in the latter case.
->>>>>>
->>>>>> The second smsc911x now needs a regulator. For multiple smsc911x=
- instances,
->>>>>> we should change things around so no regulator is created if one
->>>>>> is passed.
->>>>>>
->>>>>> Care to test the following patch by passing a fixed regulator
->>>>>> from board-overo.c?
->>>>>
->>>>> After applying the patch the Ethernet port works consistently onc=
-e I had
->>>>> done a cold boot (reboot from the unpatched kernel did not work).
->>>>> Thank you!
->>>>
->>>> Hmm but this patch should not change the behaviour for the first s=
-msc911x
->>>> instance unless you specify a custom regulator.. Did you patch in =
-a
->>>> custom regulator, or do we have a bug somewhere? Or do you just ne=
-ed to
->>>> do a cold reset without the patch I posted?
->>>
->>> You're right, during further tests I found that the problem lies
->>> elsewhere: If the Ethernet cable is attached on modprobe, the devic=
-e
->>> works as expected, if not, it's not found (with or without the patc=
-h).
->>> This means if I boot with the cable disconnected, the device won't =
-show
->>> up, but after
->>>
->>> # modprobe -r smsc911x
->>> [attach cable]
->>> # modprobe smsc911x
->>>
->>> it will work. I'd still consider this a bug, but it doesn't seem to=
- be a
->>> regulator problem.
->>>
->>
->> Hi Thomas,
->>
->> I had the same behavior with the smsc911x chip but on an IGEPv2 boar=
-d.
->> The problem was when CONFIG_SMSC_PHY=3Dy since the driver for the ch=
-ip
->> internal PHY enables an energy detect power-down mode.
->>
->> The smsc911x driver probe function tries to software reset the chip
->> but if the cable is unplugged the energy detect puts the chip in a l=
-ow
->> power mode. Since the chip is not in an operational state the reset
->> fails and hence the driver probe function. If the cable is plugged
->> then then energy is detected, the chip is in an operational state an=
-d
->> the reset is successful.
->>
->> I sent a patch a few months ago to fix this issue. The patch disable=
-s
->> the energy detect power-down mode before reseting the chip and then =
-it
->> enables again after reset.
->>
->> The commit is:
->>
->> commit 6386994e03ebbe60338ded3d586308a41e81c0dc
->> Author: Javier Martinez Canillas <javier@dowhile0.org>
->> Date: =C2=A0 Tue Jan 3 13:36:19 2012 +0000
->>
->> =C2=A0 =C2=A0 net/smsc911x: Check if PHY is in operational mode befo=
-re software reset
->>
->> When I fix the issue I only guarded against generation 4 chips (i.e:
->> pdata->generation =3D=3D 4), but maybe this problem also exists in o=
-ther
->> SMSC chips (I didn't know since I only had access to specific
->> data-sheets).
->>
->> Also you can try enabling debug in the driver by setting USE_DEBUG t=
-o
->> 1 in drivers/net/ethernet/smsc/smsc911x.h and also trying disabling
->> CONFIG_SMSC_PHY, this will use a generic PHY driver that doesn't put
->> the chip in auto power mode.
->
-> After looking at the code I set USE_DEBUG to 3 to get as much
-> information as possible and tested with and without the SMSC PHY driv=
-er.
-> Results:
->
-> With the Ethernet cable attached, the device is properly initialized
-> with and without the PHY driver (as before).
->
-> Without the cable, the smsc911x driver can initialize the card only i=
-f
-> the smsc PHY driver had not been loaded previously. Unloading the PHY
-> driver is not enough, even a reboot doesn't help. I have to do a cold
-> boot (or attach the cable).
->
-
-This makes sense since is the PHY driver who enables the auto energy
-detect mode.
-
-> I guess this confirms Javier's guess, but there's one catch: If you t=
-ake
-> a look at the attached logs (both without cable attached), you'll see
-> that the device is recognized a generation 4, so the Javier's workaro=
-und
-> should actually be used. I added a log output in the if
-> (pdata->generation =3D=3D 4) block to be sure, and indeed it is used.
->
-> Any hints why the reset still fails?
->
-> Regards,
-> Thomas
-
-My guess is that the PHY chip is still in a low power down and not
-being woken up before the MAC chip is tried to be software reseted. I
-didn't find in the SMSC LAN8700 data-sheet how long it takes to wake
-up the chip and probably it depends of the PHY chip (I only tried with
-the 8700) so if I were you I would try increasing the delay time after
-sending the MII command to disable the auto energy detect mode.
-
-Can you try this patch?
-
-diff --git a/drivers/net/ethernet/smsc/smsc911x.c
-b/drivers/net/ethernet/smsc/smsc911x.c
-index 24d2df0..d08709a 100644
---- a/drivers/net/ethernet/smsc/smsc911x.c
-+++ b/drivers/net/ethernet/smsc/smsc911x.c
-@@ -1349,7 +1349,7 @@ static int
-smsc911x_phy_disable_energy_detect(struct smsc911x_data *
-                        return rc;
-                }
-
--               mdelay(1);
-+               mdelay(100);
-        }
-
-        return 0;
+	- There will be platforms without 32k_counter modules, like am33xx.
+        For them, this BUG_ON will miss-leading.
+	- pr_err is already used to provide failure in this function.
+	- We have safe fallback option here.
 
 
-Best regards,
---=20
-Javier Mart=C3=ADnez Canillas
-(+34) 682 39 81 69
-Barcelona, Spain
---
-To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> > +	}
+> > 
+> > +	/* Fall back to gp-timer code */
+> >  	res = omap_dm_timer_init_one(&clksrc, gptimer_id, fck_source);
+> >  	BUG_ON(res);
+> > 
+> > -	pr_info("OMAP clocksource: GPTIMER%d at %lu Hz\n",
+> > -		gptimer_id, clksrc.rate);
+> > -
+> >  	__omap_dm_timer_load_start(&clksrc,
+> >  			OMAP_TIMER_CTRL_ST | OMAP_TIMER_CTRL_AR, 0, 1);
+> >  	setup_sched_clock(dmtimer_read_sched_clock, 32, clksrc.rate);
+> > @@ -294,8 +299,10 @@ static void __init omap2_gp_clocksource_init(int gptimer_id,
+> >  	if (clocksource_register_hz(&clocksource_gpt, clksrc.rate))
+> >  		pr_err("Could not register clocksource %s\n",
+> >  			clocksource_gpt.name);
+> > +	else
+> > +		pr_info("OMAP clocksource: GPTIMER%d at %lu Hz\n",
+> > +			gptimer_id, clksrc.rate);
+> >  }
+> > -#endif
+> > 
+> >  #define OMAP_SYS_TIMER_INIT(name, clkev_nr, clkev_src,			\
+> >  				clksrc_nr, clksrc_src)			\
+> > diff --git a/arch/arm/plat-omap/counter_32k.c b/arch/arm/plat-omap/counter_32k.c
+> > index 5068fe5..c1af18c 100644
+> > --- a/arch/arm/plat-omap/counter_32k.c
+> > +++ b/arch/arm/plat-omap/counter_32k.c
+> > @@ -35,8 +35,6 @@
+> >   */
+> >  static void __iomem *timer_32k_base;
+> > 
+> > -#define OMAP16XX_TIMER_32K_SYNCHRONIZED		0xfffbc410
+> > -
+> >  static u32 notrace omap_32k_read_sched_clock(void)
+> >  {
+> >  	return timer_32k_base ? __raw_readl(timer_32k_base) : 0;
+> > @@ -68,54 +66,42 @@ void read_persistent_clock(struct timespec *ts)
+> >  	*ts = *tsp;
+> >  }
+> > 
+> > -int __init omap_init_clocksource_32k(void)
+> > +int __init omap_init_clocksource_32k(u32 pbase, unsigned long size)
+> >  {
+> > -	static char err[] __initdata = KERN_ERR
+> > -			"%s: can't register clocksource!\n";
+> > -
+> > -	if (cpu_is_omap16xx() || cpu_class_is_omap2()) {
+> > -		u32 pbase;
+> > -		unsigned long size = SZ_4K;
+> > -		void __iomem *base;
+> > -		struct clk *sync_32k_ick;
+> > -
+> > -		if (cpu_is_omap16xx()) {
+> > -			pbase = OMAP16XX_TIMER_32K_SYNCHRONIZED;
+> > -			size = SZ_1K;
+> > -		} else if (cpu_is_omap2420())
+> > -			pbase = OMAP2420_32KSYNCT_BASE + 0x10;
+> > -		else if (cpu_is_omap2430())
+> > -			pbase = OMAP2430_32KSYNCT_BASE + 0x10;
+> > -		else if (cpu_is_omap34xx())
+> > -			pbase = OMAP3430_32KSYNCT_BASE + 0x10;
+> > -		else if (cpu_is_omap44xx())
+> > -			pbase = OMAP4430_32KSYNCT_BASE + 0x10;
+> > -		else
+> > -			return -ENODEV;
+> > -
+> > -		/* For this to work we must have a static mapping in io.c for this area */
+> > -		base = ioremap(pbase, size);
+> > -		if (!base)
+> > -			return -ENODEV;
+> > -
+> > -		sync_32k_ick = clk_get(NULL, "omap_32ksync_ick");
+> > -		if (!IS_ERR(sync_32k_ick))
+> > -			clk_enable(sync_32k_ick);
+> 
+> > -
+> 
+> > -		timer_32k_base = base;
+> > -
+> > -		/*
+> > -		 * 120000 rough estimate from the calculations in
+> > -		 * __clocksource_updatefreq_scale.
+> > -		 */
+> > -		clocks_calc_mult_shift(&persistent_mult, &persistent_shift,
+> > -				32768, NSEC_PER_SEC, 120000);
+> > -
+> > -		if (clocksource_mmio_init(base, "32k_counter", 32768, 250, 32,
+> > -					  clocksource_mmio_readl_up))
+> > -			printk(err, "32k_counter");
+> > -
+> > -		setup_sched_clock(omap_32k_read_sched_clock, 32, 32768);
+> > -	}
+> > +	void __iomem *base;
+> > +	struct clk *sync_32k_ick;
+> > +
+> > +	if (!pbase || !size)
+> > +		return -ENODEV;
+> > +	/*
+> > +	 * For this to work we must have a static mapping in io.c
+> > +	 * for this area
+> > +	 */
+> > +	base = ioremap(pbase, size);
+> > +	if (!base)
+> > +		return -ENODEV;
+> > +
+> > +	sync_32k_ick = clk_get(NULL, "omap_32ksync_ick");
+> > +	if (!IS_ERR(sync_32k_ick))
+> > +		clk_enable(sync_32k_ick);
+> 
+> 
+> I know that this is carry over from the original code, but seems that if
+> clk_get fails we should return an error. So maybe ...
+> 
+
+I thought of this before, but again the next thought came to my mind was, 
+somebody might have done this for some specific reasons, may be OMAP1 
+dependency or something? So I choose it to keep it as is...
+
+So before doing this, I thing we should conform from the original author
+about this implementation.
+
+May be Paul can comment and conform on this.
+
+Thanks,
+Vaibhav
+> 
+> 	sync_32k_ick = clk_get(NULL, "omap_32ksync_ick");
+> 	if (IS_ERR(sync_32k_ick))
+> 		return -ENODEV;
+> 
+> 	clk_enable(sync_32k_ick);
+> 
+> > +
+> > +	timer_32k_base = base;
+> > +
+> > +	/*
+> > +	 * 120000 rough estimate from the calculations in
+> > +	 * __clocksource_updatefreq_scale.
+> > +	 */
+> > +	clocks_calc_mult_shift(&persistent_mult, &persistent_shift,
+> > +			32768, NSEC_PER_SEC, 120000);
+> > +
+> > +	if (clocksource_mmio_init(base, "32k_counter", 32768, 250, 32,
+> > +				clocksource_mmio_readl_up))
+> > +		pr_err("32k_counter: can't register clocksource!\n");
+> > +
+> 
+> 
+> Extra line added here that should be removed.
+> 
+
+Ohhh ok. Will remove this in next version.
+
+I will wait for Tony's comment on this patch series, I need to 
+align with Tony on selection of clocksource between 32k Vs gptimer.
+
+Thanks,
+Vaibhav
+
+> Cheers
+> Jon
+> 
+
