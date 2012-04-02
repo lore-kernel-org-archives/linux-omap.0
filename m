@@ -1,124 +1,202 @@
-From: Chandrabhanu Mahapatra <cmahapatra@ti.com>
-Subject: [PATCH V3 3/3] OMAPDSS: DISPC: Correct DISPC functional clock usage
-Date: Mon, 2 Apr 2012 20:43:18 +0530
-Message-ID: <1333379598-11544-4-git-send-email-cmahapatra@ti.com>
-References: <1333379598-11544-1-git-send-email-cmahapatra@ti.com>
- <1333379598-11544-2-git-send-email-cmahapatra@ti.com>
- <1333379598-11544-3-git-send-email-cmahapatra@ti.com>
+From: Jon Hunter <jon-hunter@TI.COM>
+Subject: Re: [PATCH-V2 3/3] ARM: OMAP: Make OMAP clocksource source selection
+ runtime
+Date: Mon, 2 Apr 2012 10:31:20 -0500
+Message-ID: <4F79C648.5020504@ti.com>
+References: <1333115655-28530-1-git-send-email-hvaibhav@ti.com> <1333115655-28530-4-git-send-email-hvaibhav@ti.com> <4F75D290.8090706@ti.com> <79CD15C6BA57404B839C016229A409A831843008@DBDE01.ent.ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain
+Content-Type: text/plain; charset="ISO-8859-1"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from devils.ext.ti.com ([198.47.26.153]:35446 "EHLO
-	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753043Ab2DBPOG (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 2 Apr 2012 11:14:06 -0400
-In-Reply-To: <1333379598-11544-3-git-send-email-cmahapatra@ti.com>
+Received: from bear.ext.ti.com ([192.94.94.41]:43761 "EHLO bear.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751553Ab2DBPb1 (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Mon, 2 Apr 2012 11:31:27 -0400
+In-Reply-To: <79CD15C6BA57404B839C016229A409A831843008@DBDE01.ent.ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: tomi.valkeinen@ti.com
-Cc: linux-omap@vger.kernel.org, linux-fbdev@vger.kernel.org, Chandrabhanu Mahapatra <cmahapatra@ti.com>
+To: "Hiremath, Vaibhav" <hvaibhav@TI.COM>
+Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "Hilman, Kevin" <khilman@TI.COM>, "paul@pwsan.com" <paul@pwsan.com>, "Cousson, Benoit" <b-cousson@TI.COM>, "tony@atomide.com" <tony@atomide.com>, "tom.leiming@gmail.com" <tom.leiming@gmail.com>, "Nayak, Rajendra" <rnayak@TI.COM>, "Shilimkar, Santosh" <santosh.shilimkar@TI.COM>, "Balbi, Felipe" <balbi@TI.COM>, "DebBarma, Tarun Kanti" <tarun.kanti@TI.COM>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>
 
-DISPC_FCLK is incorrectly used as functional clock of DISPC in scaling
-calculations. So, DISPC_CORE_CLK replaces as functional clock of DISPC.
-DISPC_CORE_CLK is derived from DISPC_FCLK divided by an independent DISPC
-divisor LCD.
+On 4/2/2012 1:06, Hiremath, Vaibhav wrote:
 
-Signed-off-by: Chandrabhanu Mahapatra <cmahapatra@ti.com>
----
- drivers/video/omap2/dss/dispc.c |   28 ++++++++++++++++++++++------
- drivers/video/omap2/dss/dss.h   |    1 +
- 2 files changed, 23 insertions(+), 6 deletions(-)
+>> [...]
+>>
+>>> @@ -280,13 +265,33 @@ static void __init omap2_gp_clocksource_init(int gptimer_id,
+>>>  						const char *fck_source)
+>>>  {
+>>>  	int res;
+>>> +	struct omap_hwmod *oh;
+>>> +	const char *oh_name = "counter_32k";
+>>> +
+>>> +	/*
+>>> +	 * First check for availability for 32k-sync timer.
+>>> +	 *
+>>> +	 * In case of failure in finding 32k_counter module or
+>>> +	 * registering it as clocksource, execution will fallback to
+>>> +	 * gp-timer.
+>>> +	 */
+>>> +	oh = omap_hwmod_lookup(oh_name);
+>>> +	if (oh && oh->slaves_cnt != 0) {
+>>> +		u32 pbase;
+>>> +		unsigned long size;
+>>> +
+>>> +		pbase = oh->slaves[0]->addr->pa_start + 0x10;
+>>> +		size = oh->slaves[0]->addr->pa_end -
+>>> +			oh->slaves[0]->addr->pa_start;
+>>> +		res = omap_init_clocksource_32k(pbase, size);
+>>> +		if (!res)
+>>> +			return;
+>>
+>>
+>> If omap_init_clocksource_32k() fails should we also call BUG_ON here?
+>>
+> 
+> I don't think we should do that, for following reasons,
+> 
+> 	- There will be platforms without 32k_counter modules, like am33xx.
+>         For them, this BUG_ON will miss-leading.
+> 	- pr_err is already used to provide failure in this function.
+> 	- We have safe fallback option here.
 
-diff --git a/drivers/video/omap2/dss/dispc.c b/drivers/video/omap2/dss/dispc.c
-index 17ffa71..cfde674 100644
---- a/drivers/video/omap2/dss/dispc.c
-+++ b/drivers/video/omap2/dss/dispc.c
-@@ -1813,6 +1813,7 @@ static int dispc_ovl_calc_scaling(enum omap_plane plane,
- 				dss_feat_get_param_max(FEAT_PARAM_LINEWIDTH);
- 	const int max_decim_limit = 16;
- 	unsigned long fclk = 0;
-+	unsigned long dispc_core_clk = dispc_core_clk_rate(channel);
- 	int decim_x, decim_y, error, min_factor;
- 	u16 in_width, in_height, in_width_max = 0;
- 
-@@ -1855,7 +1856,7 @@ static int dispc_ovl_calc_scaling(enum omap_plane plane,
- 			fclk = calc_fclk(channel, in_width, in_height,
- 					out_width, out_height);
- 			error = (in_width > maxsinglelinewidth || !fclk ||
--				fclk > dispc_fclk_rate());
-+				fclk > dispc_core_clk);
- 			if (error) {
- 				if (decim_x == decim_y) {
- 					decim_x = min_factor;
-@@ -1893,7 +1894,7 @@ static int dispc_ovl_calc_scaling(enum omap_plane plane,
- 					out_width, out_height);
- 			error = (error || in_width > maxsinglelinewidth * 2 ||
- 				(in_width > maxsinglelinewidth && *five_taps) ||
--				!fclk || fclk > dispc_fclk_rate());
-+				!fclk || fclk > dispc_core_clk);
- 			if (error) {
- 				if (decim_x == decim_y) {
- 					decim_x = min_factor;
-@@ -1926,7 +1927,7 @@ static int dispc_ovl_calc_scaling(enum omap_plane plane,
- 	} else {
- 		int decim_x_min = decim_x;
- 		in_height = DIV_ROUND_UP(height, decim_y);
--		in_width_max = dispc_fclk_rate() /
-+		in_width_max = dispc_core_clk /
- 				DIV_ROUND_UP(dispc_mgr_pclk_rate(channel),
- 						out_width);
- 		decim_x = DIV_ROUND_UP(width, in_width_max);
-@@ -1950,13 +1951,13 @@ static int dispc_ovl_calc_scaling(enum omap_plane plane,
- 	}
- 
- 	DSSDBG("required fclk rate = %lu Hz\n", fclk);
--	DSSDBG("current fclk rate = %lu Hz\n", dispc_fclk_rate());
-+	DSSDBG("current fclk rate = %lu Hz\n", dispc_core_clk);
- 
--	if (!fclk || fclk > dispc_fclk_rate()) {
-+	if (!fclk || fclk > dispc_core_clk) {
- 		DSSERR("failed to set up scaling, "
- 			"required fclk rate = %lu Hz, "
- 			"current fclk rate = %lu Hz\n",
--			fclk, dispc_fclk_rate());
-+			fclk, dispc_core_clk);
- 		return -EINVAL;
- 	}
- 
-@@ -2646,6 +2647,21 @@ unsigned long dispc_mgr_pclk_rate(enum omap_channel channel)
- 	}
- }
- 
-+unsigned long dispc_core_clk_rate(enum omap_channel channel)
-+{
-+	int lcd = 1;
-+	unsigned long r = dispc_fclk_rate();
-+
-+	if (dss_has_feature(FEAT_CORE_CLK_DIV)) {
-+		lcd = REG_GET(DISPC_DIVISOR, 23, 16);
-+	} else {
-+		if (dispc_mgr_is_lcd(channel))
-+			lcd = REG_GET(DISPC_DIVISORo(channel), 23, 16);
-+	}
-+
-+	return r / lcd ;
-+}
-+
- void dispc_dump_clocks(struct seq_file *s)
- {
- 	int lcd, pcd;
-diff --git a/drivers/video/omap2/dss/dss.h b/drivers/video/omap2/dss/dss.h
-index d4b3dff..4748923 100644
---- a/drivers/video/omap2/dss/dss.h
-+++ b/drivers/video/omap2/dss/dss.h
-@@ -451,6 +451,7 @@ void dispc_mgr_set_pol_freq(enum omap_channel channel,
- 		enum omap_panel_config config, u8 acbi, u8 acb);
- unsigned long dispc_mgr_lclk_rate(enum omap_channel channel);
- unsigned long dispc_mgr_pclk_rate(enum omap_channel channel);
-+unsigned long dispc_core_clk_rate(enum omap_channel channel);
- int dispc_mgr_set_clock_div(enum omap_channel channel,
- 		struct dispc_clock_info *cinfo);
- int dispc_mgr_get_clock_div(enum omap_channel channel,
--- 
-1.7.1
 
+Ok, sorry I mis-read the code. I see the return here is on success and
+not failure. So this is fine.
+
+By the way, for an AM33xx device, I assume that the omap_hwmod_lookup
+will return NULL because the module does not exist. Therefore, you would
+not even enter the if statement and so there should not be any impact.
+Which still raises the question, if omap_hwmod_lookup() finds the device
+but omap_init_clocksource_32k() fails, should we at least WARN?
+
+The fallback option is only safe for devices that are not using power
+management and don't cut the sys-clk.
+
+
+>>> +	}
+>>>
+>>> +	/* Fall back to gp-timer code */
+>>>  	res = omap_dm_timer_init_one(&clksrc, gptimer_id, fck_source);
+>>>  	BUG_ON(res);
+>>>
+>>> -	pr_info("OMAP clocksource: GPTIMER%d at %lu Hz\n",
+>>> -		gptimer_id, clksrc.rate);
+>>> -
+>>>  	__omap_dm_timer_load_start(&clksrc,
+>>>  			OMAP_TIMER_CTRL_ST | OMAP_TIMER_CTRL_AR, 0, 1);
+>>>  	setup_sched_clock(dmtimer_read_sched_clock, 32, clksrc.rate);
+>>> @@ -294,8 +299,10 @@ static void __init omap2_gp_clocksource_init(int gptimer_id,
+>>>  	if (clocksource_register_hz(&clocksource_gpt, clksrc.rate))
+>>>  		pr_err("Could not register clocksource %s\n",
+>>>  			clocksource_gpt.name);
+>>> +	else
+>>> +		pr_info("OMAP clocksource: GPTIMER%d at %lu Hz\n",
+>>> +			gptimer_id, clksrc.rate);
+>>>  }
+>>> -#endif
+>>>
+>>>  #define OMAP_SYS_TIMER_INIT(name, clkev_nr, clkev_src,			\
+>>>  				clksrc_nr, clksrc_src)			\
+>>> diff --git a/arch/arm/plat-omap/counter_32k.c b/arch/arm/plat-omap/counter_32k.c
+>>> index 5068fe5..c1af18c 100644
+>>> --- a/arch/arm/plat-omap/counter_32k.c
+>>> +++ b/arch/arm/plat-omap/counter_32k.c
+>>> @@ -35,8 +35,6 @@
+>>>   */
+>>>  static void __iomem *timer_32k_base;
+>>>
+>>> -#define OMAP16XX_TIMER_32K_SYNCHRONIZED		0xfffbc410
+>>> -
+>>>  static u32 notrace omap_32k_read_sched_clock(void)
+>>>  {
+>>>  	return timer_32k_base ? __raw_readl(timer_32k_base) : 0;
+>>> @@ -68,54 +66,42 @@ void read_persistent_clock(struct timespec *ts)
+>>>  	*ts = *tsp;
+>>>  }
+>>>
+>>> -int __init omap_init_clocksource_32k(void)
+>>> +int __init omap_init_clocksource_32k(u32 pbase, unsigned long size)
+>>>  {
+>>> -	static char err[] __initdata = KERN_ERR
+>>> -			"%s: can't register clocksource!\n";
+>>> -
+>>> -	if (cpu_is_omap16xx() || cpu_class_is_omap2()) {
+>>> -		u32 pbase;
+>>> -		unsigned long size = SZ_4K;
+>>> -		void __iomem *base;
+>>> -		struct clk *sync_32k_ick;
+>>> -
+>>> -		if (cpu_is_omap16xx()) {
+>>> -			pbase = OMAP16XX_TIMER_32K_SYNCHRONIZED;
+>>> -			size = SZ_1K;
+>>> -		} else if (cpu_is_omap2420())
+>>> -			pbase = OMAP2420_32KSYNCT_BASE + 0x10;
+>>> -		else if (cpu_is_omap2430())
+>>> -			pbase = OMAP2430_32KSYNCT_BASE + 0x10;
+>>> -		else if (cpu_is_omap34xx())
+>>> -			pbase = OMAP3430_32KSYNCT_BASE + 0x10;
+>>> -		else if (cpu_is_omap44xx())
+>>> -			pbase = OMAP4430_32KSYNCT_BASE + 0x10;
+>>> -		else
+>>> -			return -ENODEV;
+>>> -
+>>> -		/* For this to work we must have a static mapping in io.c for this area */
+>>> -		base = ioremap(pbase, size);
+>>> -		if (!base)
+>>> -			return -ENODEV;
+>>> -
+>>> -		sync_32k_ick = clk_get(NULL, "omap_32ksync_ick");
+>>> -		if (!IS_ERR(sync_32k_ick))
+>>> -			clk_enable(sync_32k_ick);
+>>
+>>> -
+>>
+>>> -		timer_32k_base = base;
+>>> -
+>>> -		/*
+>>> -		 * 120000 rough estimate from the calculations in
+>>> -		 * __clocksource_updatefreq_scale.
+>>> -		 */
+>>> -		clocks_calc_mult_shift(&persistent_mult, &persistent_shift,
+>>> -				32768, NSEC_PER_SEC, 120000);
+>>> -
+>>> -		if (clocksource_mmio_init(base, "32k_counter", 32768, 250, 32,
+>>> -					  clocksource_mmio_readl_up))
+>>> -			printk(err, "32k_counter");
+>>> -
+>>> -		setup_sched_clock(omap_32k_read_sched_clock, 32, 32768);
+>>> -	}
+>>> +	void __iomem *base;
+>>> +	struct clk *sync_32k_ick;
+>>> +
+>>> +	if (!pbase || !size)
+>>> +		return -ENODEV;
+>>> +	/*
+>>> +	 * For this to work we must have a static mapping in io.c
+>>> +	 * for this area
+>>> +	 */
+>>> +	base = ioremap(pbase, size);
+>>> +	if (!base)
+>>> +		return -ENODEV;
+>>> +
+>>> +	sync_32k_ick = clk_get(NULL, "omap_32ksync_ick");
+>>> +	if (!IS_ERR(sync_32k_ick))
+>>> +		clk_enable(sync_32k_ick);
+>>
+>>
+>> I know that this is carry over from the original code, but seems that if
+>> clk_get fails we should return an error. So maybe ...
+>>
+> 
+> I thought of this before, but again the next thought came to my mind was, 
+> somebody might have done this for some specific reasons, may be OMAP1 
+> dependency or something? So I choose it to keep it as is...
+> 
+> So before doing this, I thing we should conform from the original author
+> about this implementation.
+
+
+Ok, yes good point.
+
+Cheers
+Jon
