@@ -1,148 +1,62 @@
-From: "Raja, Govindraj" <govindraj.raja@ti.com>
-Subject: Re: Suspend broken on 3.3?
-Date: Mon, 2 Apr 2012 16:13:13 +0530
-Message-ID: <CAMrsUd+K_EwXfypgYWNyAhR7b47avTpWDemS87OTkpH81cJ6Aw@mail.gmail.com>
-References: <WC20120329112755.541787@terrafix.co.uk> <WC20120329114024.43178C@terrafix.co.uk>
- <CAMrsUdKR4nwbBEOx9JPeS=GLDPyioHuijK2596=q2OwJ+ARbxA@mail.gmail.com>
- <WC20120330075339.4017FC@terrafix.co.uk> <CAMrsUdKTx84_oHyS9JTCBTqtV-7907snCGFDrOXnPuNVSnvz7w@mail.gmail.com>
- <WC20120330092609.901834@terrafix.co.uk> <CAMrsUdJrJZXjYOs87xmT_J0w7S=VZyfR0tBmhhuYOFmFsOB3SA@mail.gmail.com>
- <WC20120330110442.381887@terrafix.co.uk> <CAMrsUd+AvVp3n1oAREEEmCSBaeA-m68j7gLjXEeJKimX1erfUw@mail.gmail.com>
+From: Artem Bityutskiy <dedekind1@gmail.com>
+Subject: Re: [PATCH 0/5] mtd: plat_nand: Add default partition parser and
+ use it
+Date: Mon, 02 Apr 2012 14:08:45 +0300
+Message-ID: <1333364925.5440.104.camel@sauron.fi.intel.com>
+References: <201203281112.48788.hartleys@visionengravers.com>
+Reply-To: dedekind1@gmail.com
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aog118.obsmtp.com ([74.125.149.244]:37463 "EHLO
-	na3sys009aog118.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751597Ab2DBKnf convert rfc822-to-8bit
-	(ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Mon, 2 Apr 2012 06:43:35 -0400
-Received: by obbwd20 with SMTP id wd20so4941550obb.18
-        for <linux-omap@vger.kernel.org>; Mon, 02 Apr 2012 03:43:34 -0700 (PDT)
-In-Reply-To: <CAMrsUd+AvVp3n1oAREEEmCSBaeA-m68j7gLjXEeJKimX1erfUw@mail.gmail.com>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: multipart/signed; micalg="pgp-sha1"; protocol="application/pgp-signature";
+	boundary="=-tYG+VEjJEvHHNxPyqYt8"
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <201203281112.48788.hartleys@visionengravers.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: H Hartley Sweeten <hartleys@visionengravers.com>
+Cc: Linux Kernel <linux-kernel@vger.kernel.org>, linux-mtd@lists.infradead.org, linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org, uclinux-dist-devel@blackfin.uclinux.org, linux-sh@vger.kernel.org, linux-mips@linux-mips.org
 List-Id: linux-omap@vger.kernel.org
-To: Joe Woodward <jw@terrafix.co.uk>, Kevin Hilman <khilman@ti.com>
-Cc: Paul Walmsley <paul@pwsan.com>, linux-omap@vger.kernel.org, Felipe Balbi <balbi@ti.com>, neilb@suse.de
 
-On Fri, Mar 30, 2012 at 5:54 PM, Raja, Govindraj <govindraj.raja@ti.com=
-> wrote:
-> On Fri, Mar 30, 2012 at 4:34 PM, Joe Woodward <jw@terrafix.co.uk> wro=
-te:
->>
->>
->> -----Original Message-----
->> From: "Raja, Govindraj" <govindraj.raja@ti.com>
->> To: Joe Woodward <jw@terrafix.co.uk>
->> Cc: Paul Walmsley <paul@pwsan.com>, Kevin Hilman <khilman@ti.com>, l=
-inux-omap@vger.kernel.org, Felipe Balbi <balbi@ti.com>, neilb@suse.de
->> Date: Fri, 30 Mar 2012 15:45:19 +0530
->> Subject: Re: Suspend broken on 3.3?
->>
->>> On Fri, Mar 30, 2012 at 2:56 PM, Joe Woodward <jw@terrafix.co.uk>
->>> wrote:
->>> > ...[snip]...
->>> >>
->>> >> Could you please try attached patch and let me know if this solv=
-es
->>> the
->>> >> rx issue as well,
->>> >> without using dma mode.
->>> >>
->>> >
->>> > Right,
->>> >
->>> > I think we've getting closer, but still not quite there...
->>> >
->>> > Firstly, the patch adds an include to "iomap.h" - but this doesn'=
-t
->>> exist in stock 3.3. Simply removing this include seemed to allow th=
-e
->>> compile to complete
->>> > successfully.
->>>
->>> Sorry I forgot to specify this is needed for latest mainline.
->>>
->>> >
->>> > With this patch applied (and not in DMA mode) I now get the
->>> following:
->>> > =A0- If I leave wake-from-suspend enabled for the serial port the=
-n it
->>> works correctly (i.e. no lost/extra 0x00 characters).
->>> > =A0- If I disable wake-from-suspend for the serial port and go th=
-rough
->>> a suspend cycle (i.e. suspend and then wake), then the serial port
->>> starts to misbehave as
->>> > before.
->>> > =A0- If I then re-enable wake-from-suspend and go through a suspe=
-nd
->>> cycle it starts to work correctly again.
->>> >
->>> > So the problem is still that if wake-from-suspend is disabled for=
- a
->>> serial port, and a suspend cycle is performed then when woken the
->>> serial port will not function
->>> > correctly if operating in interrupt-mode.
->>>
->>> I tried it on my 3430sdp but strangely I don't see a 0x00 char read
->>> after disabling uart wakeups
->>> and waking up by keypad press.
->>>
->>> Probably as a quick try we can try doing uart_insert_char only if d=
-ata
->>> was read from rx fifo
->>> (Attached patch)
->>>
->>
->> Sadly the patch makes no difference.
->>
->> I'm suprised you aren't seeing similar effects.
->>
->> I've done more testing, and a simplified test case is as follows:
->> - take a stock 3.3 kernel and apply your patch to allow disabling of=
- wake-from-suspend for the serial ports.
->> - disable wake-from-suspend for the console tty:
->> =A0echo disable > /sys/devices/platform/omap/omap_uart.2/power/wakeu=
-p
->> - perform a suspend (you'll need a button or something to wake you n=
-ow that the console wont).
->> =A0echo mem > /sys/power/state
->>
->> At this point the console is noticable/painfully slow. No characters=
- are lost, but it's obvious something isn't right!
->
->
-> Yes I see this behavior with console now it becomes very slow after w=
-e
-> disable module level wakeups.
->
-> One difference to note is :
->
-> in 3.2 =3D> full system PM is prevented in idle path if uart is activ=
-e
-> i.e, MPU will not hit retention
->
-> in 3.3 =3D> MPU will hit retention independently of uart is active or=
- not.
-> =A0 =A0 =A0 =A0 =A0 =A0 I think the way to get MPU qos for uart port =
-activity
-> while in irq mode is to use PM_WKEN1
-> =A0 =A0 =A0 =A0 =A0 =A0 reg settings, meaning enabling module level w=
-akeup event
-> generation. Disabling it is causing this
-> =A0 =A0 =A0 =A0 =A0 =A0 slow response.
->
-> Checking if we can workaround this scenario.
 
-As of now what I can think of is to update qos reqest to prevent MPU
-from transitioning in case of port activity if wakeup capability for po=
-rt
-is disabled.
+--=-tYG+VEjJEvHHNxPyqYt8
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: quoted-printable
 
---
-Thanks,
-Govindraj.R
---
-To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+On Wed, 2012-03-28 at 11:12 -0700, H Hartley Sweeten wrote:
+> This patch series adds cmdlinepart as the default partition parser for th=
+e
+> plat_nand driver and updates all the arch setup code to use it.
+>=20
+> Arch setup code that requires other partition parsers can still pass that
+> information as chip.part_probe_types.
+>=20
+> Signed-off-by: H Hartley Sweeten <hsweeten@visionengravers.com>
+
+Pushed the series to l2-mtd.git, thanks!
+
+--=20
+Best Regards,
+Artem Bityutskiy
+
+--=-tYG+VEjJEvHHNxPyqYt8
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: This is a digitally signed message part
+Content-Transfer-Encoding: 7bit
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.4.12 (GNU/Linux)
+
+iQIcBAABAgAGBQJPeYi9AAoJECmIfjd9wqK01TkQAMewuEX1gPp1EPSpGZQcSvXs
+jsTvmYqJE6vhHRv8KlbN+bfz5Gjh4xsUyz63/QqILHv8ru3R3MypineF9tGlV+k+
+fvWdcmMuXQ4VmkfsIKQIQ4Y51wWJG91J4QG5Va/Epk7yXzyvskINWN3YWKp0J0Mk
+zePW7mBxEZFFRr45/sTK7Wx3Us8FU3NEV71cbXWjjw+AosLc4G92dIDXEie7BTUn
+OqS2+oRbNyigsDSb9WPTAu4O9Ln5p7F99elipFtBP/OGuSVK9Q92ImUwPB6FJf6E
++rZs/PiYrfMxkyCUsIw/4FVT49PbRusDsVSKzIrTxzzZ/mjb6ANx3gRJBqDXNyvH
+hdhzlacV4H4Id60jIuDeAocI95v39MPX5oQ075P4dNBDd06og9K0RGXvpFPXrVy5
+ZUwfws9ltOEy1oo4Mg8FpJ6j2OWTK/9xc0jFHcLB8WrQ669W9ScM+xQNpki1eaJk
+u5qPSAYr7mod3RLahiPytspkqGdXdtdK256ceUZ0c2u/Bc18mEtq27flRVA3/tc5
+OiWFAS+8d/qCR8evTAn5PSJoGmZk0ZAldcoZ2IRimwEuz8aXZjdX0pkezc8yhulV
+INJBhHNlei00Rop7Gq851ob32uUQrUO5DiPyhF/4WwIxMfeTQ3PsYjEI+j3IzfEF
+DyRHjIGr/NVucPumONWe
+=pJwc
+-----END PGP SIGNATURE-----
+
+--=-tYG+VEjJEvHHNxPyqYt8--
