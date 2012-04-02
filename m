@@ -1,90 +1,63 @@
-From: "S, Venkatraman" <svenkatr@ti.com>
-Subject: Re: [PATCH 0/8][git pull] mmc: omap: Assorted fixes for 3.4 merge window
-Date: Mon, 2 Apr 2012 13:22:44 +0530
-Message-ID: <CANfBPZ8o_Hdd7sUJ-DS-j9JOkQ=SRJcLChCfd7nCCPbaVVBkLA@mail.gmail.com>
-References: <1331905144-31655-1-git-send-email-svenkatr@ti.com> <87hax4kqsy.fsf@laptop.org>
+From: Roger Quadros <rogerq@ti.com>
+Subject: Re: L2 cache stability workaround for 4460 ES1.0
+Date: Mon, 2 Apr 2012 10:55:34 +0300
+Message-ID: <4F795B76.3030002@ti.com>
+References: <4F794D5D.3090509@ti.com> <CAMQu2gzsjUKUZtXnTeQ2UoRUQ5ZX4gxY3Cm9hGTLLc70eknUHA@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Return-path: <linux-mmc-owner@vger.kernel.org>
-In-Reply-To: <87hax4kqsy.fsf@laptop.org>
-Sender: linux-mmc-owner@vger.kernel.org
-To: Chris Ball <cjb@laptop.org>
-Cc: linux-mmc@vger.kernel.org, linux-omap@vger.kernel.org, balajitk@ti.com, balbi@ti.com
+Content-Type: text/plain; charset="ISO-8859-1"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from comal.ext.ti.com ([198.47.26.152]:58847 "EHLO comal.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751027Ab2DBHzg (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Mon, 2 Apr 2012 03:55:36 -0400
+Received: from dlep26.itg.ti.com ([157.170.170.121])
+	by comal.ext.ti.com (8.13.7/8.13.7) with ESMTP id q327taq0017129
+	for <linux-omap@vger.kernel.org>; Mon, 2 Apr 2012 02:55:36 -0500
+Received: from DFLE71.ent.ti.com (localhost [127.0.0.1])
+	by dlep26.itg.ti.com (8.13.8/8.13.8) with ESMTP id q327ta5u020582
+	for <linux-omap@vger.kernel.org>; Mon, 2 Apr 2012 02:55:36 -0500 (CDT)
+In-Reply-To: <CAMQu2gzsjUKUZtXnTeQ2UoRUQ5ZX4gxY3Cm9hGTLLc70eknUHA@mail.gmail.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: "Shilimkar, Santosh" <santosh.shilimkar@ti.com>
+Cc: "Dechesne, Nicolas" <n-dechesne@ti.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
 
-On Sun, Apr 1, 2012 at 10:10 AM, Chris Ball <cjb@laptop.org> wrote:
-> Hi,
->
-> On Fri, Mar 16 2012, Venkatraman S wrote:
->> Chris,
->> =A0 =A0Here are a group of fixes posted by Felipe and Balaji for the
->> OMAP hsmmc driver in the past few days.
->> =A0 =A0I've rebased them to the lastest mmc-next and posted them
->> here again. These have also been tested on OMAP4 development platfor=
-m.
+On 04/02/2012 10:38 AM, Shilimkar, Santosh wrote:
+> On Mon, Apr 2, 2012 at 12:25 PM, Roger Quadros <rogerq@ti.com> wrote:
+>> Hi Santosh,
 >>
->> Please feel to apply directly or pull if that's convenient.
+>> I came across the attached patch from you. I also came across this post
+>> stating that it was decided not to send this patch upstream.
 >>
->> Changes since yesterday (v1):-
->> =A0 =A0 =A0 Fixed formatting issues as suggested by Felipe
->> =A0 =A0 =A0 Marked some patches for stable.
+>> http://www.digipedia.pl/usenet/thread/18885/8437/#post8496
 >>
->> The following changes since commit 5f0390f10c0e9c9c504cdbf4af8022526=
-28a2490:
+>> The problem is that we have to keep porting this patch each time we
+>> update the kernel.
 >>
->> =A0 mmc: omap_hsmmc: Avoid a regulator voltage change with dt (2012-=
-03-14 11:33:20 -0400)
+>> Do you know if the root cause has been found? If not can we have this
+>> patch upstream till the root cause is found?
 >>
->> are available in the git repository at:
+> Yes and fixed in OMAP4460 ES1.2.
+
+Did you mean ES1.1?
+
+Could you please point me to the errata ID? The only cache related
+errata I can see is Errata ID: i690
+
+> 
+>> It seems the patch at least makes the kernel usable on ES1.0.
 >>
->> =A0 git://github.com/svenkatr/linux.git omap-mmc-pending-for-3.4
->>
->> for you to fetch changes up to 8d54766b608915035b47616ea564e4e9b4dda=
-29c:
->>
->> =A0 mmc: omap4: hsmmc: fix module re-insertion (2012-03-16 11:38:41 =
-+0530)
->
-> I've just rebased mmc-next on top of 3.4-rc1, and now there are many
-> conflicts against your tree -- please could you resend patches 3-8
-> against that base? =A0I'll take them for 3.4, and will take patches 1=
--2
-> for 3.5.
->
-I've rebased patches 3-8 into a new branch (See below).
-I'll send you 1-2 on top of 3.4-rc2 once it's out. Is it Ok ?
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D
-The following changes since commit a4dfa827bb5b9a984d4000ffb80134b9495e=
-4d8a:
+> I know but that still is not enough. It's like 80 % WA of the issue
+> seen on ES1.0. We are not suppose to have many boards with
+> ES1.0
+> 
+Even better if there are not many boards. It seems most of the boards
+will be with TI. I think we should have the fix in even if it is not
+100% fix.
 
-  mmc: sdio: Use empty system suspend/resume callbacks at the bus
-level (2012-04-01 00:35:06 -0400)
+What do you say?
 
-are available in the git repository at:
+regards,
+-roger
 
-  git://github.com/svenkatr/linux.git omap-mmc-fixes-3.4
-
-for you to fetch changes up to 80f833a2f77b8d6464209c0bb00a39ad835356a0=
-:
-
-  mmc: omap4: hsmmc: fix module re-insertion (2012-04-02 12:26:47 +0530=
-)
-
-----------------------------------------------------------------
-Balaji T K (3):
-      mmc: omap: use runtime put sync in probe error patch
-      mmc: omap: context save after enabling runtime pm
-      mmc: omap4: hsmmc: fix module re-insertion
-
-=46elipe Balbi (3):
-      mmc: host: omap_hsmmc: trivial cleanups
-      mmc: host: omap_hsmmc: make it behave well as a module
-      mmc: host: omap_hsmmc: convert to module_platform_driver
-
- drivers/mmc/host/omap_hsmmc.c |  181
-+++++++++++++++++++++--------------------------
- 1 file changed, 79 insertions(+), 102 deletions(-)
-
-Regards,
-Venkat.
