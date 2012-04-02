@@ -1,35 +1,36 @@
-From: Santosh Shilimkar <santosh.shilimkar@ti.com>
-Subject: Re: [PATCH-V2 2/3] ARM: OMAP2+: hwmod data: Add 32k-sync timer data
- to hwmod database
-Date: Mon, 02 Apr 2012 12:11:15 +0530
-Message-ID: <4F794A0B.6080309@ti.com>
-References: <1333115655-28530-1-git-send-email-hvaibhav@ti.com> <1333115655-28530-3-git-send-email-hvaibhav@ti.com>
+From: Jarkko Nikula <jarkko.nikula@bitmer.com>
+Subject: Re: [PATCH] omap1: mux: add missing include
+Date: Mon, 02 Apr 2012 09:47:00 +0300
+Message-ID: <4F794B64.5010107@bitmer.com>
+References: <1333294241-17510-1-git-send-email-aaro.koskinen@iki.fi>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aog123.obsmtp.com ([74.125.149.149]:43198 "EHLO
-	na3sys009aog123.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752383Ab2DBGlW (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 2 Apr 2012 02:41:22 -0400
-Received: by obbup19 with SMTP id up19so3608698obb.15
-        for <linux-omap@vger.kernel.org>; Sun, 01 Apr 2012 23:41:21 -0700 (PDT)
-In-Reply-To: <1333115655-28530-3-git-send-email-hvaibhav@ti.com>
+Received: from bitmer.com ([213.157.87.50]:59045 "EHLO bitmer.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1750758Ab2DBGrt (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Mon, 2 Apr 2012 02:47:49 -0400
+In-Reply-To: <1333294241-17510-1-git-send-email-aaro.koskinen@iki.fi>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Vaibhav Hiremath <hvaibhav@ti.com>
-Cc: linux-omap@vger.kernel.org, tony@atomide.com, khilman@ti.com, paul@pwsan.com, rnayak@ti.com, b-cousson@ti.com, linux-arm-kernel@lists.infradead.org, tom.leiming@gmail.com, Felipe Balbi <balbi@ti.com>
+To: Aaro Koskinen <aaro.koskinen@iki.fi>
+Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 
-On Friday 30 March 2012 07:24 PM, Vaibhav Hiremath wrote:
-> Add 32k-sync timer hwmod data to omap2 & 3 hwmod table
-> and also enable existing hwmod data for omap4 (was disabled before).
+On 04/01/2012 06:30 PM, Aaro Koskinen wrote:
+> Fix the following build breakage in v3.4-rc1:
 > 
-> Signed-off-by: Vaibhav Hiremath <hvaibhav@ti.com>
-> Signed-off-by: Felipe Balbi <balbi@ti.com>
-> Cc: Benoit Cousson <b-cousson@ti.com>
-> Cc: Tony Lindgren <tony@atomide.com>
-> Cc: Paul Walmsley <paul@pwsan.com>
-> CC: Santosh Shilimkar <santosh.shilimkar@ti.com>
-> Cc: Ming Lei <tom.leiming@gmail.com>
+> arch/arm/mach-omap1/mux.c:89:1: error: 'FUNC_MUX_CTRL_9' undeclared here (not in a function)
+> arch/arm/mach-omap1/mux.c:89:1: error: 'PULL_DWN_CTRL_2' undeclared here (not in a function)
+> arch/arm/mach-omap1/mux.c:93:1: error: 'FUNC_MUX_CTRL_C' undeclared here (not in a function)
+> 
+> etc.
+> 
+> Signed-off-by: Aaro Koskinen <aaro.koskinen@iki.fi>
 > ---
-Acked-by: Santosh Shilimkar <santosh.shilimkar@ti.com>
+>  arch/arm/mach-omap1/mux.c |    1 +
+>  1 files changed, 1 insertions(+), 0 deletions(-)
+> 
+(happens with omap1_defconfig if CONFIG_OMAP_MUX=y)
+
+Acked-by: Jarkko Nikula <jarkko.nikula@bitmer.com>
