@@ -1,181 +1,76 @@
-From: "Joe Woodward" <jw@terrafix.co.uk>
-Subject: Re: Suspend broken on 3.3?
-Date: Mon, 02 Apr 2012 13:37:47 +0100
-Message-ID: <WC20120402123747.29193B@terrafix.co.uk>
-References: <CAMrsUdKTx84_oHyS9JTCBTqtV-7907snCGFDrOXnPuNVSnvz7w@mail.gmail.com> <WC20120330092609.901834@terrafix.co.uk> <CAMrsUdJrJZXjYOs87xmT_J0w7S=VZyfR0tBmhhuYOFmFsOB3SA@mail.gmail.com> <WC20120330110442.381887@terrafix.co.uk> <CAMrsUd+AvVp3n1oAREEEmCSBaeA-m68j7gLjXEeJKimX1erfUw@mail.gmail.com> <CAMrsUd+K_EwXfypgYWNyAhR7b47avTpWDemS87OTkpH81cJ6Aw@mail.gmail.com>
+From: Chandrabhanu Mahapatra <cmahapatra@ti.com>
+Subject: [PATCH V3 0/3] OMAPDSS: DISPC: Enable predecimation for DMA and VRFB
+Date: Mon, 2 Apr 2012 19:29:40 +0530
+Message-ID: <1333375180-10470-1-git-send-email-cmahapatra@ti.com>
+References: <[PATCH V2 0/3] OMAPDSS: DISPC: Enable predecimation for DMA and VRFB>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-1
+Content-Type: text/plain; charset=UTF-8
 Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from smtp1.keele.netcentral.co.uk ([212.57.235.197]:34449 "EHLO
-	smtp3.keele.netcentral.co.uk" rhost-flags-OK-FAIL-OK-OK)
-	by vger.kernel.org with ESMTP id S1751458Ab2DBMiL (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 2 Apr 2012 08:38:11 -0400
-In-Reply-To: <CAMrsUd+K_EwXfypgYWNyAhR7b47avTpWDemS87OTkpH81cJ6Aw@mail.gmail.com>
+Received: from bear.ext.ti.com ([192.94.94.41]:36039 "EHLO bear.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751047Ab2DBN7v (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Mon, 2 Apr 2012 09:59:51 -0400
+In-Reply-To: <[PATCH V2 0/3] OMAPDSS: DISPC: Enable predecimation for DMA and VRFB>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "Raja, Govindraj" <govindraj.raja@ti.com>, Kevin Hilman <khilman@ti.com>
-Cc: Paul Walmsley <paul@pwsan.com>, linux-omap@vger.kernel.org, Felipe Balbi <balbi@ti.com>, neilb@suse.de
+To: tomi.valkeinen@ti.com
+Cc: linux-omap@vger.kernel.org, linux-fbdev@vger.kernel.org, Chandrabhanu Mahapatra <cmahapatra@ti.com>
 
+Hi everyone,
+the following patch set directs to enable predecimation for DMA and VRF=
+B
+which consists of two pacthes.
 
+The first patch is based on code written by Lajos Molnar <lajos@ti.com>=
+ in
+Android Kernel, which updates the code with predecimation logic thereby
+increasing the downscaling ability of the DISPC module.
 
------Original Message-----
-=46rom: "Raja, Govindraj" <govindraj.raja@ti.com>
-To: Joe Woodward <jw@terrafix.co.uk>, Kevin Hilman <khilman@ti.com>
-Cc: Paul Walmsley <paul@pwsan.com>, linux-omap@vger.kernel.org, Felipe =
-Balbi <balbi@ti.com>, neilb@suse.de
-Date: Mon, 2 Apr 2012 16:13:13 +0530
-Subject: Re: Suspend broken on 3.3?
+The second patch is based on code written by Ville Syrj=C3=A4l=C3=A4
+<ville.syrjala@nokia.com> which aims to avoid synclost errors occurring
+in OMAP3 due to some undocumented horizontal position and timing relate=
+d
+limitations which I faced during testing of the previous patch.
 
-> On Fri, Mar 30, 2012 at 5:54 PM, Raja, Govindraj
-> <govindraj.raja@ti.com> wrote:
-> > On Fri, Mar 30, 2012 at 4:34 PM, Joe Woodward <jw@terrafix.co.uk>
-> wrote:
-> >>
-> >>
-> >> -----Original Message-----
-> >> From: "Raja, Govindraj" <govindraj.raja@ti.com>
-> >> To: Joe Woodward <jw@terrafix.co.uk>
-> >> Cc: Paul Walmsley <paul@pwsan.com>, Kevin Hilman <khilman@ti.com>,
-> linux-omap@vger.kernel.org, Felipe Balbi <balbi@ti.com>, neilb@suse.d=
-e
-> >> Date: Fri, 30 Mar 2012 15:45:19 +0530
-> >> Subject: Re: Suspend broken on 3.3?
-> >>
-> >>> On Fri, Mar 30, 2012 at 2:56 PM, Joe Woodward <jw@terrafix.co.uk>
-> >>> wrote:
-> >>> > ...[snip]...
-> >>> >>
-> >>> >> Could you please try attached patch and let me know if this
-> solves
-> >>> the
-> >>> >> rx issue as well,
-> >>> >> without using dma mode.
-> >>> >>
-> >>> >
-> >>> > Right,
-> >>> >
-> >>> > I think we've getting closer, but still not quite there...
-> >>> >
-> >>> > Firstly, the patch adds an include to "iomap.h" - but this
-> doesn't
-> >>> exist in stock 3.3. Simply removing this include seemed to allow
-> the
-> >>> compile to complete
-> >>> > successfully.
-> >>>
-> >>> Sorry I forgot to specify this is needed for latest mainline.
-> >>>
-> >>> >
-> >>> > With this patch applied (and not in DMA mode) I now get the
-> >>> following:
-> >>> > =A0- If I leave wake-from-suspend enabled for the serial port t=
-hen
-> it
-> >>> works correctly (i.e. no lost/extra 0x00 characters).
-> >>> > =A0- If I disable wake-from-suspend for the serial port and go
-> through
-> >>> a suspend cycle (i.e. suspend and then wake), then the serial por=
-t
-> >>> starts to misbehave as
-> >>> > before.
-> >>> > =A0- If I then re-enable wake-from-suspend and go through a
-> suspend
-> >>> cycle it starts to work correctly again.
-> >>> >
-> >>> > So the problem is still that if wake-from-suspend is disabled f=
-or
-> a
-> >>> serial port, and a suspend cycle is performed then when woken the
-> >>> serial port will not function
-> >>> > correctly if operating in interrupt-mode.
-> >>>
-> >>> I tried it on my 3430sdp but strangely I don't see a 0x00 char re=
-ad
-> >>> after disabling uart wakeups
-> >>> and waking up by keypad press.
-> >>>
-> >>> Probably as a quick try we can try doing uart_insert_char only if
-> data
-> >>> was read from rx fifo
-> >>> (Attached patch)
-> >>>
-> >>
-> >> Sadly the patch makes no difference.
-> >>
-> >> I'm suprised you aren't seeing similar effects.
-> >>
-> >> I've done more testing, and a simplified test case is as follows:
-> >> - take a stock 3.3 kernel and apply your patch to allow disabling =
-of
-> wake-from-suspend for the serial ports.
-> >> - disable wake-from-suspend for the console tty:
-> >> =A0echo disable > /sys/devices/platform/omap/omap_uart.2/power/wak=
-eup
-> >> - perform a suspend (you'll need a button or something to wake you
-> now that the console wont).
-> >> =A0echo mem > /sys/power/state
-> >>
-> >> At this point the console is noticable/painfully slow. No characte=
-rs
-> are lost, but it's obvious something isn't right!
-> >
-> >
-> > Yes I see this behavior with console now it becomes very slow after
-> we
-> > disable module level wakeups.
-> >
-> > One difference to note is :
-> >
-> > in 3.2 =3D> full system PM is prevented in idle path if uart is act=
-ive
-> > i.e, MPU will not hit retention
-> >
-> > in 3.3 =3D> MPU will hit retention independently of uart is active =
-or
-> not.
-> > =A0 =A0 =A0 =A0 =A0 =A0 I think the way to get MPU qos for uart por=
-t
-> activity
-> > while in irq mode is to use PM_WKEN1
-> > =A0 =A0 =A0 =A0 =A0 =A0 reg settings, meaning enabling module level=
- wakeup
-> event
-> > generation. Disabling it is causing this
-> > =A0 =A0 =A0 =A0 =A0 =A0 slow response.
-> >
-> > Checking if we can workaround this scenario.
->=20
-> As of now what I can think of is to update qos reqest to prevent MPU
-> from transitioning in case of port activity if wakeup capability for
-> port
-> is disabled.
->=20
+The third patch corrects the usage of dispc fclk in scaling checks by
+replacing it with dispc_core_clk as per suggestions of Ville Syrj=C3=A4=
+l=C3=A4.
 
-Does that get us back to the same behaviour as in 3.2? If thats the bes=
-t we can do, then I guess that'll have to do.
+Modifications in V3 series:
+* In 1st patch a check for decim_x_min has been added to avoid assignin=
+g of
+decim_x less than possible leading to assignment of scaling more than 4=
+ times
+* In 2nd patch=20
+ -> check_horiz_timing() has been changed to check_horiz_timing_omap3()=
+ and
+	function description in code has been added
+ -> clean up code of dispc_mgr_lclk_rate() has been removed
+*  In 3rd patch dispc_core_clk_rate() is introduced.
 
-Will similar problems exist when in DMA-mode (as we I set the DMA flag =
-it seemed to work ok)?
+I have tested these patches successfully on OMAP2, OMAP3 AND OMAP4 on t=
+he
+mainline kernel v3.4rc1. Horizontal and vertical predecimation worked f=
+ine
+but skewed images were seen on OMAP2 and OMAP3 on HDMI tv during horizo=
+ntal
+predecimation which will be addressed in the future patches.
 
-It does seem a little strange from my naive point of view: surely what =
-peripherals/pins are used to wake the device from suspend should not af=
-fect how the device=20
-chooses to enable/disable clocks/power-domains to save power when runni=
-ng?
+All your comments and suggestions are welcome.
 
-Cheers,
-Joe
+Regards,
+Chandrabhanu
 
-> --
-> Thanks,
-> Govindraj.R
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-omap"
-> in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Chandrabhanu Mahapatra (3):
+  OMAPDSS: DISPC: Enable predecimation
+  OMAPDSS: DISPC: Handle synclost errors in OMAP3
+  OMAPDSS: DISPC: Correct DISPC functional clock usage
 
+ drivers/video/omap2/dss/dispc.c |  354 +++++++++++++++++++++++++++++--=
+-------
+ drivers/video/omap2/dss/dss.h   |    1 +
+ 2 files changed, 271 insertions(+), 84 deletions(-)
 
 --
 To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
