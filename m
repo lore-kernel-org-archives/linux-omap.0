@@ -1,52 +1,69 @@
-From: "ABRAHAM, KISHON VIJAY" <kishon-l0cyMroinI0@public.gmane.org>
-Subject: Re: [PATCH] usb: musb: make modules behave better
-Date: Mon, 2 Apr 2012 22:33:10 +0530
-Message-ID: <CAAe_U6+kqyn7mdujJKr-ysC+HyA0=pyO012H-FxYY6DSRjznJQ@mail.gmail.com>
-References: <1327574749-18552-1-git-send-email-balbi@ti.com>
-	<20120402143448.GD922@valkosipuli.localdomain>
+From: Kevin Hilman <khilman@ti.com>
+Subject: Re: [PATCH 1/3] ARM: OMAP2+: 32k-counter: Use hwmod lookup to check presence of 32k timer
+Date: Mon, 02 Apr 2012 11:35:38 -0700
+Message-ID: <87sjgmt211.fsf@ti.com>
+References: <1326983304-14619-1-git-send-email-hvaibhav@ti.com>
+	<CACVXFVP4J8N271Tww77Btm9fGNiP17MepjswBJ0V-8Z4sNt8Eg@mail.gmail.com>
+	<4F672364.3020403@ti.com>
+	<79CD15C6BA57404B839C016229A409A83182386C@DBDE01.ent.ti.com>
+	<CAMQu2gyFNXgx87Fsq5is88DOkOx-nWK6ohwyFV-CY2uTkZCGMA@mail.gmail.com>
+	<79CD15C6BA57404B839C016229A409A83183EA54@DBDE01.ent.ti.com>
+	<CAMQu2gyF83HJOE9Rf-fZXXMt=p_WFjFf3DpAeW8L8+htR4E6-g@mail.gmail.com>
+	<79CD15C6BA57404B839C016229A409A83183EB47@DBDE01.ent.ti.com>
+	<CAMQu2gzYULK+=6-WKQnnQDpzTYW7xKAOZo7obyu2q178jtNE-Q@mail.gmail.com>
+	<79CD15C6BA57404B839C016229A409A831840C2E@DBDE01.ent.ti.com>
+	<CAMQu2gw7aceHSYSd+UMVS6kHQMqy0_maf8QTJaUMzp9z8822rQ@mail.gmail.com>
+	<79CD15C6BA57404B839C016229A409A831840E0C@DBDE01.ent.ti.com>
+	<4F7570FC.8000907@ti.com>
+	<79CD15C6BA57404B839C016229A409A831840F82@DBDE01.ent.ti.com>
+	<CAMQu2gzOkE6LD0WZ_9bKe3J-=Dv89rWaMzvWWvJHPMSPe6MzNg@mail.gmail.com>
+	<CACVXFVPbU2OqTN=S0AZCD10KuSBYxqyyRH_xee+WTaCD6VSmMQ@mail.gmail.com>
+	<CAMQu2gzuQ-q+3RHsW0=U305jCF-td5-PEXkGZ6WnQTqA1K8oAQ@mail.gmail.com>
+	<CACVXFVPu1GEQy+sCgXMB8JCszPBBs8zHRVm94TYb1-y2afkqgw@mail.gmail.com>
+	<CAMQu2gwuRpZ133962r3N4Y4K3oQ88ySa=SyoS6v=sSHGA=SGKw@mail.gmail.com>
+	<CACVXFVMjSPhF_+CfbF2vD5ts+WtZGjofEWmknB0D1OpTM7geZw@mail.gmail.com>
+	<CAMQu2gyEUhDyyng+_oC5NpXHzWMaTGsnCSTTZcMUi2pLV0z8RQ@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Return-path: <linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20120402143448.GD922-S+BSfZ9RZZlogJBL88hg6CZi+YwRKgec@public.gmane.org>
-Sender: linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Sakari Ailus <sakari.ailus-X3B1VOXEql0@public.gmane.org>
-Cc: Felipe Balbi <balbi-l0cyMroinI0@public.gmane.org>, Linux USB Mailing List <linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Linux OMAP Mailing List <linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, davinci-linux-open-source-VycZQUHpC/PFrsHnngEfi1aTQe2KTcn/@public.gmane.org, Linux Kernel Mailing List <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from na3sys009aog133.obsmtp.com ([74.125.149.82]:38886 "EHLO
+	psmtp.com" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
+	id S1754333Ab2DBSfp (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Mon, 2 Apr 2012 14:35:45 -0400
+Received: by dakh32 with SMTP id h32so2546402dak.23
+        for <linux-omap@vger.kernel.org>; Mon, 02 Apr 2012 11:35:41 -0700 (PDT)
+In-Reply-To: <CAMQu2gyEUhDyyng+_oC5NpXHzWMaTGsnCSTTZcMUi2pLV0z8RQ@mail.gmail.com>
+	(Santosh Shilimkar's message of "Sun, 1 Apr 2012 11:23:44 +0530")
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: "Shilimkar, Santosh" <santosh.shilimkar@ti.com>
+Cc: Ming Lei <tom.leiming@gmail.com>, Tony Lindgren <tony@atomide.com>, "Hiremath, Vaibhav" <hvaibhav@ti.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, "marc.zyngier@arm.com" <marc.zyngier@arm.com>, "johnstul@us.ibm.com" <johnstul@us.ibm.com>, "Balbi, Felipe" <balbi@ti.com>, "Cousson, Benoit" <b-cousson@ti.com>, Paul Walmsley <paul@pwsan.com>, "DebBarma, Tarun Kanti" <tarun.kanti@ti.com>
 
-Hi,
+"Shilimkar, Santosh" <santosh.shilimkar@ti.com> writes:
 
-On Mon, Apr 2, 2012 at 8:04 PM, Sakari Ailus <sakari.ailus-X3B1VOXEql0@public.gmane.org> wrote:
-> Hi Felipe,
->
-> On Thu, Jan 26, 2012 at 12:45:49PM +0200, Felipe Balbi wrote:
->> There's really no point in doing all that
->> initcall trickery when we can safely let
->> udev handle module probing for us.
->>
->> Remove all of that trickery, by moving everybody
->> to module_init() and making proper use of
->> platform_device_register() rather than
->> platform_device_probe().
->>
->> Signed-off-by: Felipe Balbi <balbi-l0cyMroinI0@public.gmane.org>
->> ---
->>
->> Because this falls into the "has never worked before" category
->> I will be sending this only on the next merge window. This
->> also gives people enough time to complain about any mistakes
->> on the patch.
->
-> This patch looks correct and right to me, but it breaks musb when it's
-> compiled into the kernel, at least on the Nokia N950. I haven't yet figured
-> out exactly why, though.
+[...]
 
-Is it an abort?
-You can use the patch which I've sent to the list last week for fixing it.
-http://www.spinics.net/lists/linux-usb/msg60603.html.
+> I don't personally like to add features which hardly anybody use and
+> fundamentally broken with full kernel.
 
-Thanks
-Kishon
---
-To unsubscribe from this list: send the line "unsubscribe linux-usb" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Let's keep sane defaults, but not make it unreasonable to tweak eaither.
+
+I suggest what has already been mentioned.
+
+Register both timers, but have the sync timer have a higher rating.  On
+AMxxx where there is no sync timer, GPtimer will be used.
+
+For those who want to use GPtimer, they can boot using clocksource= to
+override the default.
+
+Santosh is right, GPtimer will not work on a PM enabled kernel, but
+there are lots of ways to use the cmdline to get a non-working kernel,
+so that's OK by me.
+
+Let's just ensure that the boot-defaults are sane.
+
+Kevin
+
+
+
+
