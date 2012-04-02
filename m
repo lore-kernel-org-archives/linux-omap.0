@@ -1,78 +1,65 @@
-From: "Shilimkar, Santosh" <santosh.shilimkar@ti.com>
-Subject: Re: L2 cache stability workaround for 4460 ES1.0
-Date: Mon, 2 Apr 2012 14:43:29 +0530
-Message-ID: <CAMQu2gxYN=+ghqpq5odKDYcAyzn_6uLk7UdjXQt_7dePh5cZVQ@mail.gmail.com>
-References: <4F794D5D.3090509@ti.com> <CAMQu2gzsjUKUZtXnTeQ2UoRUQ5ZX4gxY3Cm9hGTLLc70eknUHA@mail.gmail.com>
- <4F795B76.3030002@ti.com> <CAMQu2gy0Y1-kJyozbMZS4A4VXVt-K-M4zSih-gfStVmPpq-7NQ@mail.gmail.com>
- <4F795D02.8010705@ti.com>
+From: Chris Ball <cjb@laptop.org>
+Subject: Re: [PATCH 0/8][git pull] mmc: omap: Assorted fixes for 3.4 merge window
+Date: Mon, 02 Apr 2012 05:50:26 -0400
+Message-ID: <87pqbqjwd9.fsf@laptop.org>
+References: <1331905144-31655-1-git-send-email-svenkatr@ti.com>
+	<87hax4kqsy.fsf@laptop.org>
+	<CANfBPZ8o_Hdd7sUJ-DS-j9JOkQ=SRJcLChCfd7nCCPbaVVBkLA@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aog110.obsmtp.com ([74.125.149.203]:55058 "EHLO
-	na3sys009aog110.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751563Ab2DBJNv (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 2 Apr 2012 05:13:51 -0400
-Received: by qcsu28 with SMTP id u28so1851585qcs.22
-        for <linux-omap@vger.kernel.org>; Mon, 02 Apr 2012 02:13:50 -0700 (PDT)
-In-Reply-To: <4F795D02.8010705@ti.com>
+Received: from void.printf.net ([89.145.121.20]:50794 "EHLO void.printf.net"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1750967Ab2DBJuZ (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Mon, 2 Apr 2012 05:50:25 -0400
+In-Reply-To: <CANfBPZ8o_Hdd7sUJ-DS-j9JOkQ=SRJcLChCfd7nCCPbaVVBkLA@mail.gmail.com>
+	(Venkatraman S.'s message of "Mon, 2 Apr 2012 13:22:44 +0530")
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Roger Quadros <rogerq@ti.com>
-Cc: "Dechesne, Nicolas" <n-dechesne@ti.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
+To: "S, Venkatraman" <svenkatr@ti.com>
+Cc: linux-mmc@vger.kernel.org, linux-omap@vger.kernel.org, balajitk@ti.com, balbi@ti.com
 
-On Mon, Apr 2, 2012 at 1:32 PM, Roger Quadros <rogerq@ti.com> wrote:
-> On 04/02/2012 10:58 AM, Shilimkar, Santosh wrote:
->> On Mon, Apr 2, 2012 at 1:25 PM, Roger Quadros <rogerq@ti.com> wrote:
->>> On 04/02/2012 10:38 AM, Shilimkar, Santosh wrote:
->>>> On Mon, Apr 2, 2012 at 12:25 PM, Roger Quadros <rogerq@ti.com> wrote:
->>>>> Hi Santosh,
->>>>>
->>>>> I came across the attached patch from you. I also came across this post
->>>>> stating that it was decided not to send this patch upstream.
->>>>>
->>>>> http://www.digipedia.pl/usenet/thread/18885/8437/#post8496
->>>>>
->>>>> The problem is that we have to keep porting this patch each time we
->>>>> update the kernel.
->>>>>
->>>>> Do you know if the root cause has been found? If not can we have this
->>>>> patch upstream till the root cause is found?
->>>>>
->>>> Yes and fixed in OMAP4460 ES1.2.
->>>
->>> Did you mean ES1.1?
->>>
->> yep. Sorry for the typo.
->>
->>> Could you please point me to the errata ID? The only cache related
->>> errata I can see is Errata ID: i690
->>>
->>>>
->>>>> It seems the patch at least makes the kernel usable on ES1.0.
->>>>>
->>>> I know but that still is not enough. It's like 80 % WA of the issue
->>>> seen on ES1.0. We are not suppose to have many boards with
->>>> ES1.0
->>>>
->>> Even better if there are not many boards. It seems most of the boards
->>> will be with TI. I think we should have the fix in even if it is not
->>> 100% fix.
->>>
->>> What do you say?
->>>
->> My request is to get rid of ES1.0 board because the WA just
->> not completely correct. Don't feel patching kernel for silicon
->> which is not suppose to be used nether has complete WA
->> to support it.
->>
-> OK Santosh. seems like cache is broken bad on ES1.0.
->
-> Is it possible to disable the cache for ES1.0 and print a warning
-> message about it?
->
-Let's not add that support. See there are very few boards in
-TI where ES1.0 is used so I suggest those users keep using
-whatever works for them. Disable or the partial WA.
+Hi,
 
-Regards
-Santosh
+On Mon, Apr 02 2012, S, Venkatraman wrote:
+> I've rebased patches 3-8 into a new branch (See below).
+> I'll send you 1-2 on top of 3.4-rc2 once it's out. Is it Ok ?
+
+Yes, thanks.
+
+> > ==============
+> The following changes since commit a4dfa827bb5b9a984d4000ffb80134b9495e4d8a:
+>
+>   mmc: sdio: Use empty system suspend/resume callbacks at the bus
+> level (2012-04-01 00:35:06 -0400)
+>
+> are available in the git repository at:
+>
+>   git://github.com/svenkatr/linux.git omap-mmc-fixes-3.4
+>
+> for you to fetch changes up to 80f833a2f77b8d6464209c0bb00a39ad835356a0:
+>
+>   mmc: omap4: hsmmc: fix module re-insertion (2012-04-02 12:26:47 +0530)
+>
+> ----------------------------------------------------------------
+> Balaji T K (3):
+>       mmc: omap: use runtime put sync in probe error patch
+>       mmc: omap: context save after enabling runtime pm
+>       mmc: omap4: hsmmc: fix module re-insertion
+>
+> Felipe Balbi (3):
+>       mmc: host: omap_hsmmc: trivial cleanups
+>       mmc: host: omap_hsmmc: make it behave well as a module
+>       mmc: host: omap_hsmmc: convert to module_platform_driver
+
+Pushed to mmc-next for 3.4, and I normalized the commit message first
+lines to:
+
+        mmc: omap_hsmmc: description
+
+Thanks very much,
+
+- Chris.
+-- 
+Chris Ball   <cjb@laptop.org>   <http://printf.net/>
+One Laptop Per Child
