@@ -1,202 +1,160 @@
-From: Jon Hunter <jon-hunter@TI.COM>
-Subject: Re: [PATCH-V2 3/3] ARM: OMAP: Make OMAP clocksource source selection
- runtime
-Date: Mon, 2 Apr 2012 10:31:20 -0500
-Message-ID: <4F79C648.5020504@ti.com>
-References: <1333115655-28530-1-git-send-email-hvaibhav@ti.com> <1333115655-28530-4-git-send-email-hvaibhav@ti.com> <4F75D290.8090706@ti.com> <79CD15C6BA57404B839C016229A409A831843008@DBDE01.ent.ti.com>
+From: Jon Hunter <jon-hunter@ti.com>
+Subject: Re: [PATCH v2] OMAP2+: UART: Remove cpu checks for populating errata
+ flags
+Date: Mon, 2 Apr 2012 10:44:11 -0500
+Message-ID: <4F79C94B.90801@ti.com>
+References: <1332325501-10467-2-git-send-email-govindraj.raja@ti.com> <1333356489-5816-1-git-send-email-govindraj.raja@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="ISO-8859-1"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from bear.ext.ti.com ([192.94.94.41]:43761 "EHLO bear.ext.ti.com"
+Received: from arroyo.ext.ti.com ([192.94.94.40]:42504 "EHLO arroyo.ext.ti.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751553Ab2DBPb1 (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Mon, 2 Apr 2012 11:31:27 -0400
-In-Reply-To: <79CD15C6BA57404B839C016229A409A831843008@DBDE01.ent.ti.com>
+	id S1752288Ab2DBPoP (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Mon, 2 Apr 2012 11:44:15 -0400
+In-Reply-To: <1333356489-5816-1-git-send-email-govindraj.raja@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "Hiremath, Vaibhav" <hvaibhav@TI.COM>
-Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "Hilman, Kevin" <khilman@TI.COM>, "paul@pwsan.com" <paul@pwsan.com>, "Cousson, Benoit" <b-cousson@TI.COM>, "tony@atomide.com" <tony@atomide.com>, "tom.leiming@gmail.com" <tom.leiming@gmail.com>, "Nayak, Rajendra" <rnayak@TI.COM>, "Shilimkar, Santosh" <santosh.shilimkar@TI.COM>, "Balbi, Felipe" <balbi@TI.COM>, "DebBarma, Tarun Kanti" <tarun.kanti@TI.COM>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>
+To: "Govindraj.R" <govindraj.raja@ti.com>
+Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Paul Walmsley <paul@pwsan.com>, Kevin Hilman <khilman@ti.com>, Felipe Balbi <balbi@ti.com>
 
-On 4/2/2012 1:06, Hiremath, Vaibhav wrote:
+Hi Govindraj,
 
->> [...]
->>
->>> @@ -280,13 +265,33 @@ static void __init omap2_gp_clocksource_init(int gptimer_id,
->>>  						const char *fck_source)
->>>  {
->>>  	int res;
->>> +	struct omap_hwmod *oh;
->>> +	const char *oh_name = "counter_32k";
->>> +
->>> +	/*
->>> +	 * First check for availability for 32k-sync timer.
->>> +	 *
->>> +	 * In case of failure in finding 32k_counter module or
->>> +	 * registering it as clocksource, execution will fallback to
->>> +	 * gp-timer.
->>> +	 */
->>> +	oh = omap_hwmod_lookup(oh_name);
->>> +	if (oh && oh->slaves_cnt != 0) {
->>> +		u32 pbase;
->>> +		unsigned long size;
->>> +
->>> +		pbase = oh->slaves[0]->addr->pa_start + 0x10;
->>> +		size = oh->slaves[0]->addr->pa_end -
->>> +			oh->slaves[0]->addr->pa_start;
->>> +		res = omap_init_clocksource_32k(pbase, size);
->>> +		if (!res)
->>> +			return;
->>
->>
->> If omap_init_clocksource_32k() fails should we also call BUG_ON here?
->>
+Looks good, one minor comment ...
+
+On 4/2/2012 3:48, Govindraj.R wrote:
+
+> From: "Govindraj.R" <govindraj.raja@ti.com>
 > 
-> I don't think we should do that, for following reasons,
+> Currently the errata is populated based on cpu checks this can
+> be removed and replaced with module version check of uart ip block.
+> MVR reg is provided within the uart reg map use the same
+> to populate the errata and thus now errata population and handling
+> can be managed within the driver itself.
 > 
-> 	- There will be platforms without 32k_counter modules, like am33xx.
->         For them, this BUG_ON will miss-leading.
-> 	- pr_err is already used to provide failure in this function.
-> 	- We have safe fallback option here.
-
-
-Ok, sorry I mis-read the code. I see the return here is on success and
-not failure. So this is fine.
-
-By the way, for an AM33xx device, I assume that the omap_hwmod_lookup
-will return NULL because the module does not exist. Therefore, you would
-not even enter the if statement and so there should not be any impact.
-Which still raises the question, if omap_hwmod_lookup() finds the device
-but omap_init_clocksource_32k() fails, should we at least WARN?
-
-The fallback option is only safe for devices that are not using power
-management and don't cut the sys-clk.
-
-
->>> +	}
->>>
->>> +	/* Fall back to gp-timer code */
->>>  	res = omap_dm_timer_init_one(&clksrc, gptimer_id, fck_source);
->>>  	BUG_ON(res);
->>>
->>> -	pr_info("OMAP clocksource: GPTIMER%d at %lu Hz\n",
->>> -		gptimer_id, clksrc.rate);
->>> -
->>>  	__omap_dm_timer_load_start(&clksrc,
->>>  			OMAP_TIMER_CTRL_ST | OMAP_TIMER_CTRL_AR, 0, 1);
->>>  	setup_sched_clock(dmtimer_read_sched_clock, 32, clksrc.rate);
->>> @@ -294,8 +299,10 @@ static void __init omap2_gp_clocksource_init(int gptimer_id,
->>>  	if (clocksource_register_hz(&clocksource_gpt, clksrc.rate))
->>>  		pr_err("Could not register clocksource %s\n",
->>>  			clocksource_gpt.name);
->>> +	else
->>> +		pr_info("OMAP clocksource: GPTIMER%d at %lu Hz\n",
->>> +			gptimer_id, clksrc.rate);
->>>  }
->>> -#endif
->>>
->>>  #define OMAP_SYS_TIMER_INIT(name, clkev_nr, clkev_src,			\
->>>  				clksrc_nr, clksrc_src)			\
->>> diff --git a/arch/arm/plat-omap/counter_32k.c b/arch/arm/plat-omap/counter_32k.c
->>> index 5068fe5..c1af18c 100644
->>> --- a/arch/arm/plat-omap/counter_32k.c
->>> +++ b/arch/arm/plat-omap/counter_32k.c
->>> @@ -35,8 +35,6 @@
->>>   */
->>>  static void __iomem *timer_32k_base;
->>>
->>> -#define OMAP16XX_TIMER_32K_SYNCHRONIZED		0xfffbc410
->>> -
->>>  static u32 notrace omap_32k_read_sched_clock(void)
->>>  {
->>>  	return timer_32k_base ? __raw_readl(timer_32k_base) : 0;
->>> @@ -68,54 +66,42 @@ void read_persistent_clock(struct timespec *ts)
->>>  	*ts = *tsp;
->>>  }
->>>
->>> -int __init omap_init_clocksource_32k(void)
->>> +int __init omap_init_clocksource_32k(u32 pbase, unsigned long size)
->>>  {
->>> -	static char err[] __initdata = KERN_ERR
->>> -			"%s: can't register clocksource!\n";
->>> -
->>> -	if (cpu_is_omap16xx() || cpu_class_is_omap2()) {
->>> -		u32 pbase;
->>> -		unsigned long size = SZ_4K;
->>> -		void __iomem *base;
->>> -		struct clk *sync_32k_ick;
->>> -
->>> -		if (cpu_is_omap16xx()) {
->>> -			pbase = OMAP16XX_TIMER_32K_SYNCHRONIZED;
->>> -			size = SZ_1K;
->>> -		} else if (cpu_is_omap2420())
->>> -			pbase = OMAP2420_32KSYNCT_BASE + 0x10;
->>> -		else if (cpu_is_omap2430())
->>> -			pbase = OMAP2430_32KSYNCT_BASE + 0x10;
->>> -		else if (cpu_is_omap34xx())
->>> -			pbase = OMAP3430_32KSYNCT_BASE + 0x10;
->>> -		else if (cpu_is_omap44xx())
->>> -			pbase = OMAP4430_32KSYNCT_BASE + 0x10;
->>> -		else
->>> -			return -ENODEV;
->>> -
->>> -		/* For this to work we must have a static mapping in io.c for this area */
->>> -		base = ioremap(pbase, size);
->>> -		if (!base)
->>> -			return -ENODEV;
->>> -
->>> -		sync_32k_ick = clk_get(NULL, "omap_32ksync_ick");
->>> -		if (!IS_ERR(sync_32k_ick))
->>> -			clk_enable(sync_32k_ick);
->>
->>> -
->>
->>> -		timer_32k_base = base;
->>> -
->>> -		/*
->>> -		 * 120000 rough estimate from the calculations in
->>> -		 * __clocksource_updatefreq_scale.
->>> -		 */
->>> -		clocks_calc_mult_shift(&persistent_mult, &persistent_shift,
->>> -				32768, NSEC_PER_SEC, 120000);
->>> -
->>> -		if (clocksource_mmio_init(base, "32k_counter", 32768, 250, 32,
->>> -					  clocksource_mmio_readl_up))
->>> -			printk(err, "32k_counter");
->>> -
->>> -		setup_sched_clock(omap_32k_read_sched_clock, 32, 32768);
->>> -	}
->>> +	void __iomem *base;
->>> +	struct clk *sync_32k_ick;
->>> +
->>> +	if (!pbase || !size)
->>> +		return -ENODEV;
->>> +	/*
->>> +	 * For this to work we must have a static mapping in io.c
->>> +	 * for this area
->>> +	 */
->>> +	base = ioremap(pbase, size);
->>> +	if (!base)
->>> +		return -ENODEV;
->>> +
->>> +	sync_32k_ick = clk_get(NULL, "omap_32ksync_ick");
->>> +	if (!IS_ERR(sync_32k_ick))
->>> +		clk_enable(sync_32k_ick);
->>
->>
->> I know that this is carry over from the original code, but seems that if
->> clk_get fails we should return an error. So maybe ...
->>
+> Cc: Paul Walmsley <paul@pwsan.com>
+> Cc: Kevin Hilman <khilman@ti.com>
+> Cc: Jon Hunter <jon-hunter@ti.com>
+> Signed-off-by: Felipe Balbi <balbi@ti.com>
+> Signed-off-by: Govindraj.R <govindraj.raja@ti.com>
+> ---
+>  arch/arm/mach-omap2/serial.c                  |    8 ---
+>  arch/arm/plat-omap/include/plat/omap-serial.h |    1 -
+>  drivers/tty/serial/omap-serial.c              |   75 ++++++++++++++++++++++++-
+>  3 files changed, 74 insertions(+), 10 deletions(-)
 > 
-> I thought of this before, but again the next thought came to my mind was, 
-> somebody might have done this for some specific reasons, may be OMAP1 
-> dependency or something? So I choose it to keep it as is...
-> 
-> So before doing this, I thing we should conform from the original author
-> about this implementation.
+> diff --git a/arch/arm/mach-omap2/serial.c b/arch/arm/mach-omap2/serial.c
+> index 0cdd359..6affdd4 100644
+> --- a/arch/arm/mach-omap2/serial.c
+> +++ b/arch/arm/mach-omap2/serial.c
+> @@ -355,14 +355,6 @@ void __init omap_serial_init_port(struct omap_board_data *bdata,
+>  	omap_up.dma_rx_poll_rate = info->dma_rx_poll_rate;
+>  	omap_up.autosuspend_timeout = info->autosuspend_timeout;
+>  
+> -	/* Enable the MDR1 Errata i202 for OMAP2430/3xxx/44xx */
+> -	if (!cpu_is_omap2420() && !cpu_is_ti816x())
+> -		omap_up.errata |= UART_ERRATA_i202_MDR1_ACCESS;
+> -
+> -	/* Enable DMA Mode Force Idle Errata i291 for omap34xx/3630 */
+> -	if (cpu_is_omap34xx() || cpu_is_omap3630())
+> -		omap_up.errata |= UART_ERRATA_i291_DMA_FORCEIDLE;
+> -
+>  	pdata = &omap_up;
+>  	pdata_size = sizeof(struct omap_uart_port_info);
+>  
+> diff --git a/arch/arm/plat-omap/include/plat/omap-serial.h b/arch/arm/plat-omap/include/plat/omap-serial.h
+> index 9ff4444..1a52725 100644
+> --- a/arch/arm/plat-omap/include/plat/omap-serial.h
+> +++ b/arch/arm/plat-omap/include/plat/omap-serial.h
+> @@ -65,7 +65,6 @@ struct omap_uart_port_info {
+>  	bool			dma_enabled;	/* To specify DMA Mode */
+>  	unsigned int		uartclk;	/* UART clock rate */
+>  	upf_t			flags;		/* UPF_* flags */
+> -	u32			errata;
+>  	unsigned int		dma_rx_buf_size;
+>  	unsigned int		dma_rx_timeout;
+>  	unsigned int		autosuspend_timeout;
+> diff --git a/drivers/tty/serial/omap-serial.c b/drivers/tty/serial/omap-serial.c
+> index 0121486..7d218c6 100644
+> --- a/drivers/tty/serial/omap-serial.c
+> +++ b/drivers/tty/serial/omap-serial.c
+> @@ -44,6 +44,13 @@
+>  #include <plat/dmtimer.h>
+>  #include <plat/omap-serial.h>
+>  
+> +#define UART_BUILD_REVISION(x, y)	(((x) << 8) | (y))
+> +
+> +#define OMAP_UART_REV_42 0x0402
+> +#define OMAP_UART_REV_46 0x0406
+> +#define OMAP_UART_REV_52 0x0502
+> +#define OMAP_UART_REV_63 0x0603
+> +
+>  #define DEFAULT_CLK_SPEED 48000000 /* 48Mhz*/
+>  
+>  /* SCR register bitmasks */
+> @@ -53,6 +60,18 @@
+>  #define OMAP_UART_FCR_RX_FIFO_TRIG_SHIFT		6
+>  #define OMAP_UART_FCR_RX_FIFO_TRIG_MASK			(0x3 << 6)
+>  
+> +/* MVR register bitmasks */
+> +#define OMAP_UART_MVR_SCHEME_SHIFT	30
+> +
+> +#define OMAP_UART_LEGACY_MVR_MAJ_MASK	0xf0
+> +#define OMAP_UART_LEGACY_MVR_MAJ_SHIFT	4
+> +#define OMAP_UART_LEGACY_MVR_MIN_MASK	0x0f
+> +
+> +#define OMAP_UART_MVR_MAJ_MASK		0x7
 
 
-Ok, yes good point.
+I think that you need to be consistent in how you define the mask and
+shifts here. For Legacy major the mask is the actual bits in the
+register representing the major number but for non-legacy the mask is
+simply the bits minus the shift. So may be change the above define to ...
+
+#define OMAP_UART_MVR_MAJ_MASK		0x700
+
+> +#define OMAP_UART_MVR_MAJ_SHIFT		8
+> +#define OMAP_UART_MVR_MIN_MASK		0x3f
+> +
+> +
+
+
+I think you can remove one of the above lines of white space.
+
+>  static struct uart_omap_port *ui[OMAP_MAX_HSUART_PORTS];
+>  
+>  /* Forward declaration of functions */
+> @@ -1346,6 +1365,59 @@ static void uart_tx_dma_callback(int lch, u16 ch_status, void *data)
+>  	return;
+>  }
+>  
+> +static void omap_serial_fill_features_erratas(struct uart_omap_port *up)
+> +{
+> +	u32 mvr, scheme;
+> +	u16 revision, major, minor;
+> +
+> +	mvr = serial_in(up, UART_OMAP_MVER);
+> +
+> +	/* Check revision register scheme */
+> +	scheme = mvr >> OMAP_UART_MVR_SCHEME_SHIFT;
+> +
+> +	switch (scheme) {
+> +	case 0: /* Legacy Scheme: OMAP2/3 */
+> +		/* MINOR_REV[0:4], MAJOR_REV[4:7] */
+> +		major = (mvr & OMAP_UART_LEGACY_MVR_MAJ_MASK) >>
+> +					OMAP_UART_LEGACY_MVR_MAJ_SHIFT;
+> +		minor = (mvr & OMAP_UART_LEGACY_MVR_MIN_MASK);
+> +		break;
+> +	case 1:
+> +		/* New Scheme: OMAP4+ */
+> +		/* MINOR_REV[0:5], MAJOR_REV[8:10] */
+> +		major = (mvr >> OMAP_UART_MVR_MAJ_SHIFT) &
+> +					OMAP_UART_MVR_MAJ_MASK;
+
+
+By changing the mask definition, you can then make the code for
+extracting the major number consistent between legacy and non-legacy
+devices too. Easier to read :-)
 
 Cheers
 Jon
