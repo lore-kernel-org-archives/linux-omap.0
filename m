@@ -1,58 +1,78 @@
-From: Roger Quadros <rogerq@ti.com>
-Subject: [PATCH] OMAP4: Adding ID for OMAP4460 ES1.1
-Date: Mon, 2 Apr 2012 11:59:57 +0300
-Message-ID: <1333357197-6354-1-git-send-email-rogerq@ti.com>
+From: "Shilimkar, Santosh" <santosh.shilimkar@ti.com>
+Subject: Re: L2 cache stability workaround for 4460 ES1.0
+Date: Mon, 2 Apr 2012 14:43:29 +0530
+Message-ID: <CAMQu2gxYN=+ghqpq5odKDYcAyzn_6uLk7UdjXQt_7dePh5cZVQ@mail.gmail.com>
+References: <4F794D5D.3090509@ti.com> <CAMQu2gzsjUKUZtXnTeQ2UoRUQ5ZX4gxY3Cm9hGTLLc70eknUHA@mail.gmail.com>
+ <4F795B76.3030002@ti.com> <CAMQu2gy0Y1-kJyozbMZS4A4VXVt-K-M4zSih-gfStVmPpq-7NQ@mail.gmail.com>
+ <4F795D02.8010705@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain
+Content-Type: text/plain; charset=ISO-8859-1
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from bear.ext.ti.com ([192.94.94.41]:45637 "EHLO bear.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751082Ab2DBJAB (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Mon, 2 Apr 2012 05:00:01 -0400
+Received: from na3sys009aog110.obsmtp.com ([74.125.149.203]:55058 "EHLO
+	na3sys009aog110.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1751563Ab2DBJNv (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 2 Apr 2012 05:13:51 -0400
+Received: by qcsu28 with SMTP id u28so1851585qcs.22
+        for <linux-omap@vger.kernel.org>; Mon, 02 Apr 2012 02:13:50 -0700 (PDT)
+In-Reply-To: <4F795D02.8010705@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: linux-omap@vger.kernel.org
-Cc: Chris Lalancette <clalancette@gmail.com>, Roger Quadros <rogerq@ti.com>
+To: Roger Quadros <rogerq@ti.com>
+Cc: "Dechesne, Nicolas" <n-dechesne@ti.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
 
-From: Chris Lalancette <clalancette@gmail.com>
+On Mon, Apr 2, 2012 at 1:32 PM, Roger Quadros <rogerq@ti.com> wrote:
+> On 04/02/2012 10:58 AM, Shilimkar, Santosh wrote:
+>> On Mon, Apr 2, 2012 at 1:25 PM, Roger Quadros <rogerq@ti.com> wrote:
+>>> On 04/02/2012 10:38 AM, Shilimkar, Santosh wrote:
+>>>> On Mon, Apr 2, 2012 at 12:25 PM, Roger Quadros <rogerq@ti.com> wrote:
+>>>>> Hi Santosh,
+>>>>>
+>>>>> I came across the attached patch from you. I also came across this post
+>>>>> stating that it was decided not to send this patch upstream.
+>>>>>
+>>>>> http://www.digipedia.pl/usenet/thread/18885/8437/#post8496
+>>>>>
+>>>>> The problem is that we have to keep porting this patch each time we
+>>>>> update the kernel.
+>>>>>
+>>>>> Do you know if the root cause has been found? If not can we have this
+>>>>> patch upstream till the root cause is found?
+>>>>>
+>>>> Yes and fixed in OMAP4460 ES1.2.
+>>>
+>>> Did you mean ES1.1?
+>>>
+>> yep. Sorry for the typo.
+>>
+>>> Could you please point me to the errata ID? The only cache related
+>>> errata I can see is Errata ID: i690
+>>>
+>>>>
+>>>>> It seems the patch at least makes the kernel usable on ES1.0.
+>>>>>
+>>>> I know but that still is not enough. It's like 80 % WA of the issue
+>>>> seen on ES1.0. We are not suppose to have many boards with
+>>>> ES1.0
+>>>>
+>>> Even better if there are not many boards. It seems most of the boards
+>>> will be with TI. I think we should have the fix in even if it is not
+>>> 100% fix.
+>>>
+>>> What do you say?
+>>>
+>> My request is to get rid of ES1.0 board because the WA just
+>> not completely correct. Don't feel patching kernel for silicon
+>> which is not suppose to be used nether has complete WA
+>> to support it.
+>>
+> OK Santosh. seems like cache is broken bad on ES1.0.
+>
+> Is it possible to disable the cache for ES1.0 and print a warning
+> message about it?
+>
+Let's not add that support. See there are very few boards in
+TI where ES1.0 is used so I suggest those users keep using
+whatever works for them. Disable or the partial WA.
 
-Signed-off-by: Chris Lalancette <clalancette@gmail.com>
-Signed-off-by: Roger Quadros <rogerq@ti.com>
----
- arch/arm/mach-omap2/id.c              |    5 ++++-
- arch/arm/plat-omap/include/plat/cpu.h |    1 +
- 2 files changed, 5 insertions(+), 1 deletions(-)
-
-diff --git a/arch/arm/mach-omap2/id.c b/arch/arm/mach-omap2/id.c
-index 0e79b7b..f139817 100644
---- a/arch/arm/mach-omap2/id.c
-+++ b/arch/arm/mach-omap2/id.c
-@@ -478,9 +478,12 @@ void __init omap4xxx_check_revision(void)
- 	case 0xb94e:
- 		switch (rev) {
- 		case 0:
--		default:
- 			omap_revision = OMAP4460_REV_ES1_0;
- 			break;
-+		case 2:
-+		default:
-+			omap_revision = OMAP4460_REV_ES1_1;
-+			break;
- 		}
- 		break;
- 	case 0xb975:
-diff --git a/arch/arm/plat-omap/include/plat/cpu.h b/arch/arm/plat-omap/include/plat/cpu.h
-index dc6a86b..4bdf14e 100644
---- a/arch/arm/plat-omap/include/plat/cpu.h
-+++ b/arch/arm/plat-omap/include/plat/cpu.h
-@@ -445,6 +445,7 @@ IS_OMAP_TYPE(3517, 0x3517)
- 
- #define OMAP446X_CLASS		0x44600044
- #define OMAP4460_REV_ES1_0	(OMAP446X_CLASS | (0x10 << 8))
-+#define OMAP4460_REV_ES1_1	(OMAP446X_CLASS | (0x11 << 8))
- 
- #define OMAP447X_CLASS		0x44700044
- #define OMAP4470_REV_ES1_0	(OMAP447X_CLASS | (0x10 << 8))
--- 
-1.7.4.1
-
+Regards
+Santosh
