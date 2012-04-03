@@ -1,82 +1,134 @@
-From: "AnilKumar, Chimata" <anilkumar@ti.com>
-Subject: RE: [PATCH] ARM: OMAP: AM33XX: CAN: d_can: Add support for Bosch
- D_CAN controller
-Date: Tue, 3 Apr 2012 15:58:22 +0000
-Message-ID: <331ABD5ECB02734CA317220B2BBEABC1317D88B7@DBDE01.ent.ti.com>
-References: <1333456339-9372-1-git-send-email-anilkumar@ti.com>
- <4F7AF0C7.7020506@grandegger.com>
- <331ABD5ECB02734CA317220B2BBEABC1317D85D0@DBDE01.ent.ti.com>
- <4F7AFFEC.1010805@pengutronix.de>
- <331ABD5ECB02734CA317220B2BBEABC1317D86F7@DBDE01.ent.ti.com>
- <4F7B1854.90106@pengutronix.de>
+From: Shubhrajyoti D <shubhrajyoti-l0cyMroinI0@public.gmane.org>
+Subject: [PATCHv5 01/18] I2C: OMAP: make omap_i2c_unidle/idle functions depend on CONFIG_PM_RUNTIME
+Date: Tue, 3 Apr 2012 21:32:20 +0530
+Message-ID: <1333468957-5999-2-git-send-email-shubhrajyoti@ti.com>
+References: <1333468957-5999-1-git-send-email-shubhrajyoti@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
-Return-path: <linux-can-owner@vger.kernel.org>
-In-Reply-To: <4F7B1854.90106@pengutronix.de>
-Content-Language: en-US
-Sender: linux-can-owner@vger.kernel.org
-To: Marc Kleine-Budde <mkl@pengutronix.de>
-Cc: Wolfgang Grandegger <wg@grandegger.com>, "socketcan@hartkopp.net" <socketcan@hartkopp.net>, "m.kleine-budde@pengutronix.de" <m.kleine-budde@pengutronix.de>, "linux-can@vger.kernel.org" <linux-can@vger.kernel.org>, "netdev@vger.kernel.org" <netdev@vger.kernel.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "Gole, Anant" <anantgole@ti.com>, "Nori, Sekhar" <nsekhar@ti.com>
+Content-Type: text/plain
+Return-path: <linux-i2c-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <1333468957-5999-1-git-send-email-shubhrajyoti-l0cyMroinI0@public.gmane.org>
+Sender: linux-i2c-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Cc: linux-i2c-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, ben-linux-elnMNo+KYs3YtjvyW6yDsg@public.gmane.org, tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org, w.sang-bIcnvbaLZ9MEGnE8C9+IrQ@public.gmane.org, Shubhrajyoti D <shubhrajyoti-l0cyMroinI0@public.gmane.org>
 List-Id: linux-omap@vger.kernel.org
 
-On Tue, Apr 03, 2012 at 21:03:40, Marc Kleine-Budde wrote:
-> On 04/03/2012 04:29 PM, AnilKumar, Chimata wrote:
-> >>>> Please explain why this CAN controller cannot be handled by the existing
-> >>>> C_CAN driver, eventually with some extensions. The register layout seems
-> >>>> almost identical, at least.
-> >>>>
-> >>>> Wolfgang.
-> >>>>
-> >>>
-> >>> These are the some of the pointers I can say, why I had gone for separate
-> >>> file instead of existing driver:
-> >>> * In case of D_CAN driver we can see all the registers are 32bit length
-> >>>   but in case of C_CAN registers are in 16bit length.
-> >>
-> >> How many bits in these 32 bit registers are used?
-> > 
-> > In some cases (D_CAN_TXRQ, D_CAN_INTPND, D_CAN_MSGVAL) I have used all the
-> > bits, in some cases used few bits.
-> > 
-> > Roughly I can say that its (higher 16bits) % of usages is similar as compare
-> > to 16bits 
-> > 
-> > While checking the status of TXRequest registers and INT pending register,
-> > which is a hot code path, we have to put if checks for register access.
-> 
-> The c_can already has a c_can_read_reg32() function. It's for example
-> used in the rx_poll function. You can make it a function pointer (i.e.
-> pric->read_reg32()) for easy abstraction.
+The functions omap_i2c_unidle/idle are called from omap_i2c_runtime_resume
+and omap_i2c_runtime_suspend which is compiled for CONFIG_PM_RUNTIME.
+This patch removes the omap_i2c_unidle/idle functions and folds them
+into the runtime callbacks.
 
-This won't fit for D_CAN case because offsets are different in c_can compared
-to d_can. For example if I read CONTROL_REG register (0x0) in case of d_can,
-which will read only control register. In case of c_can it will read
-CONTROL_REG + STATUS register values in single read
+This fixes the below warn when CONFIG_PM_RUNTIME is not defined
 
-> 
-> >>> * Some of the registers, bit masks are different, so we have to add
-> >>>   checks on every API for differentiating the kind of device
-> >>
-> >> Which registers are this? Can you give us an example?
-> > 
-> > I am pointing out some of the resisters
-> > * Single registers in case of D_CAN but multiple register in case of C_CAN
-> >   So masks will change MASK, ARB, INTPND
-> > * D_CAN_IFCMD is the combination of COMM request and COMM mask registers
-> 
-> Maybe you can use the read_reg32 function on both c_can and d_can.
+ CC      arch/arm/mach-omap2/board-ti8168evm.o
+drivers/i2c/busses/i2c-omap.c:272: warning: 'omap_i2c_unidle' defined but not used
+drivers/i2c/busses/i2c-omap.c:293: warning: 'omap_i2c_idle' defined but not used
+  CC      net/ipv4/ip_forward.o
 
-Above comment applies here as well
+Signed-off-by: Shubhrajyoti D <shubhrajyoti-l0cyMroinI0@public.gmane.org>
+---
+ drivers/i2c/busses/i2c-omap.c |   75 +++++++++++++++++-----------------------
+ 1 files changed, 32 insertions(+), 43 deletions(-)
 
-> 
-> regards, Marc
-> 
-> -- 
-> Pengutronix e.K.                  | Marc Kleine-Budde           |
-> Industrial Linux Solutions        | Phone: +49-231-2826-924     |
-> Vertretung West/Dortmund          | Fax:   +49-5121-206917-5555 |
-> Amtsgericht Hildesheim, HRA 2686  | http://www.pengutronix.de   |
-> 
-> 
-
+diff --git a/drivers/i2c/busses/i2c-omap.c b/drivers/i2c/busses/i2c-omap.c
+index 801df60..4f4188d 100644
+--- a/drivers/i2c/busses/i2c-omap.c
++++ b/drivers/i2c/busses/i2c-omap.c
+@@ -269,47 +269,6 @@ static inline u16 omap_i2c_read_reg(struct omap_i2c_dev *i2c_dev, int reg)
+ 				(i2c_dev->regs[reg] << i2c_dev->reg_shift));
+ }
+ 
+-static void omap_i2c_unidle(struct omap_i2c_dev *dev)
+-{
+-	if (dev->flags & OMAP_I2C_FLAG_RESET_REGS_POSTIDLE) {
+-		omap_i2c_write_reg(dev, OMAP_I2C_CON_REG, 0);
+-		omap_i2c_write_reg(dev, OMAP_I2C_PSC_REG, dev->pscstate);
+-		omap_i2c_write_reg(dev, OMAP_I2C_SCLL_REG, dev->scllstate);
+-		omap_i2c_write_reg(dev, OMAP_I2C_SCLH_REG, dev->sclhstate);
+-		omap_i2c_write_reg(dev, OMAP_I2C_BUF_REG, dev->bufstate);
+-		omap_i2c_write_reg(dev, OMAP_I2C_SYSC_REG, dev->syscstate);
+-		omap_i2c_write_reg(dev, OMAP_I2C_WE_REG, dev->westate);
+-		omap_i2c_write_reg(dev, OMAP_I2C_CON_REG, OMAP_I2C_CON_EN);
+-	}
+-
+-	/*
+-	 * Don't write to this register if the IE state is 0 as it can
+-	 * cause deadlock.
+-	 */
+-	if (dev->iestate)
+-		omap_i2c_write_reg(dev, OMAP_I2C_IE_REG, dev->iestate);
+-}
+-
+-static void omap_i2c_idle(struct omap_i2c_dev *dev)
+-{
+-	u16 iv;
+-
+-	dev->iestate = omap_i2c_read_reg(dev, OMAP_I2C_IE_REG);
+-	if (dev->dtrev == OMAP_I2C_IP_VERSION_2)
+-		omap_i2c_write_reg(dev, OMAP_I2C_IP_V2_IRQENABLE_CLR, 1);
+-	else
+-		omap_i2c_write_reg(dev, OMAP_I2C_IE_REG, 0);
+-
+-	if (dev->rev < OMAP_I2C_OMAP1_REV_2) {
+-		iv = omap_i2c_read_reg(dev, OMAP_I2C_IV_REG); /* Read clears */
+-	} else {
+-		omap_i2c_write_reg(dev, OMAP_I2C_STAT_REG, dev->iestate);
+-
+-		/* Flush posted write */
+-		omap_i2c_read_reg(dev, OMAP_I2C_STAT_REG);
+-	}
+-}
+-
+ static int omap_i2c_init(struct omap_i2c_dev *dev)
+ {
+ 	u16 psc = 0, scll = 0, sclh = 0, buf = 0;
+@@ -1163,8 +1122,22 @@ static int omap_i2c_runtime_suspend(struct device *dev)
+ {
+ 	struct platform_device *pdev = to_platform_device(dev);
+ 	struct omap_i2c_dev *_dev = platform_get_drvdata(pdev);
++	u16 iv;
++
++	_dev->iestate = omap_i2c_read_reg(_dev, OMAP_I2C_IE_REG);
++	if (_dev->dtrev == OMAP_I2C_IP_VERSION_2)
++		omap_i2c_write_reg(_dev, OMAP_I2C_IP_V2_IRQENABLE_CLR, 1);
++	else
++		omap_i2c_write_reg(_dev, OMAP_I2C_IE_REG, 0);
++
++	if (_dev->rev < OMAP_I2C_OMAP1_REV_2) {
++		iv = omap_i2c_read_reg(_dev, OMAP_I2C_IV_REG); /* Read clears */
++	} else {
++		omap_i2c_write_reg(_dev, OMAP_I2C_STAT_REG, _dev->iestate);
+ 
+-	omap_i2c_idle(_dev);
++		/* Flush posted write */
++		omap_i2c_read_reg(_dev, OMAP_I2C_STAT_REG);
++	}
+ 
+ 	return 0;
+ }
+@@ -1174,7 +1147,23 @@ static int omap_i2c_runtime_resume(struct device *dev)
+ 	struct platform_device *pdev = to_platform_device(dev);
+ 	struct omap_i2c_dev *_dev = platform_get_drvdata(pdev);
+ 
+-	omap_i2c_unidle(_dev);
++	if (_dev->flags & OMAP_I2C_FLAG_RESET_REGS_POSTIDLE) {
++		omap_i2c_write_reg(_dev, OMAP_I2C_CON_REG, 0);
++		omap_i2c_write_reg(_dev, OMAP_I2C_PSC_REG, _dev->pscstate);
++		omap_i2c_write_reg(_dev, OMAP_I2C_SCLL_REG, _dev->scllstate);
++		omap_i2c_write_reg(_dev, OMAP_I2C_SCLH_REG, _dev->sclhstate);
++		omap_i2c_write_reg(_dev, OMAP_I2C_BUF_REG, _dev->bufstate);
++		omap_i2c_write_reg(_dev, OMAP_I2C_SYSC_REG, _dev->syscstate);
++		omap_i2c_write_reg(_dev, OMAP_I2C_WE_REG, _dev->westate);
++		omap_i2c_write_reg(_dev, OMAP_I2C_CON_REG, OMAP_I2C_CON_EN);
++	}
++
++	/*
++	 * Don't write to this register if the IE state is 0 as it can
++	 * cause deadlock.
++	 */
++	if (_dev->iestate)
++		omap_i2c_write_reg(_dev, OMAP_I2C_IE_REG, _dev->iestate);
+ 
+ 	return 0;
+ }
+-- 
+1.7.1
