@@ -1,32 +1,31 @@
 From: Vaibhav Hiremath <hvaibhav@ti.com>
-Subject: [PATCH-V3 2/3] ARM: OMAP3+: clockdomain33xx: Add clockdomain data and respective operations
-Date: Tue, 3 Apr 2012 18:39:37 +0530
-Message-ID: <1333458578-23073-3-git-send-email-hvaibhav@ti.com>
+Subject: [PATCH-V3 1/3] ARM: OMAP3+: cm33xx: Introduce AM33xx CM API's and register level details
+Date: Tue, 3 Apr 2012 18:39:36 +0530
+Message-ID: <1333458578-23073-2-git-send-email-hvaibhav@ti.com>
 References: <1333458578-23073-1-git-send-email-hvaibhav@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from comal.ext.ti.com ([198.47.26.152]:33647 "EHLO comal.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754644Ab2DCNTy (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Tue, 3 Apr 2012 09:19:54 -0400
+Received: from devils.ext.ti.com ([198.47.26.153]:59122 "EHLO
+	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754644Ab2DCNUD (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 3 Apr 2012 09:20:03 -0400
 In-Reply-To: <1333458578-23073-1-git-send-email-hvaibhav@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: linux-omap@vger.kernel.org
 Cc: tony@atomide.com, khilman@ti.com, paul@pwsan.com, rnayak@ti.com, b-cousson@ti.com, linux-arm-kernel@lists.infradead.org, Vaibhav Hiremath <hvaibhav@ti.com>, Afzal Mohammed <afzal@ti.com>, Vaibhav Bedia <vaibhav.bedia@ti.com>
 
-AM33XX PRCM module consist of, various clockdomains, in all
-total we have 18 clockdomains available, with following
-controlling options,
-   - NO Sleep: sleep transition can not be initiated,
-   - SW Sleep: sw forced sleep transition,
-   - SW Wakeup: sw forced wakeup transition,
-   - HW Auto: transitions are based upon hw conditions.
+As far as PRM/CM/PRCM modules are concerned, AM33XX device is
+different than OMAP3 and OMAP4 architectures; so similar to
+PRM implementation, handle AM33XX CM separately.
 
-This patch adds all available clockdomain data, respective
-clockdomain operations for AM33XX family of device, and also
-integrates it into existing OMAP framework.
+This patch introduces AM33XX CM module low-level api's, used and
+required by omap clockdomain and hwmod framework.
+Also, integrate these api's into existing OMAP framework.
+
+Please note that cm-regbits-33xx.h (register bit field offset)
+and cm33xx.h (register addr offset) files are mostly auto generated.
 
 Signed-off-by: Vaibhav Hiremath <hvaibhav@ti.com>
 Signed-off-by: Afzal Mohammed <afzal@ti.com>
@@ -37,61 +36,736 @@ CC: Tony Lindgren <tony@atomide.com>
 Cc: Paul Walmsley <paul@pwsan.com>
 Cc: Benoit Cousson <b-cousson@ti.com>
 ---
- arch/arm/mach-omap2/Makefile                |    2 +
- arch/arm/mach-omap2/clockdomain.h           |    2 +
- arch/arm/mach-omap2/clockdomain33xx.c       |   74 +++++++++
- arch/arm/mach-omap2/clockdomains33xx_data.c |  214 +++++++++++++++++++++++++++
- arch/arm/mach-omap2/io.c                    |    1 +
- 5 files changed, 293 insertions(+), 0 deletions(-)
- create mode 100644 arch/arm/mach-omap2/clockdomain33xx.c
- create mode 100644 arch/arm/mach-omap2/clockdomains33xx_data.c
+ arch/arm/mach-omap2/Makefile          |    3 +
+ arch/arm/mach-omap2/cm-regbits-33xx.h |  687 +++++++++++++++++++++++++++++++++
+ arch/arm/mach-omap2/cm33xx.c          |  313 +++++++++++++++
+ arch/arm/mach-omap2/cm33xx.h          |  420 ++++++++++++++++++++
+ arch/arm/mach-omap2/omap_hwmod.c      |   58 ++-
+ 5 files changed, 1464 insertions(+), 17 deletions(-)
+ create mode 100644 arch/arm/mach-omap2/cm-regbits-33xx.h
+ create mode 100644 arch/arm/mach-omap2/cm33xx.c
+ create mode 100644 arch/arm/mach-omap2/cm33xx.h
 
 diff --git a/arch/arm/mach-omap2/Makefile b/arch/arm/mach-omap2/Makefile
-index 1695dc8..13838df 100644
+index fd130e5..1695dc8 100644
 --- a/arch/arm/mach-omap2/Makefile
 +++ b/arch/arm/mach-omap2/Makefile
-@@ -135,6 +135,8 @@ obj-$(CONFIG_ARCH_OMAP3)		+= clockdomain.o \
- 					   clockdomain2xxx_3xxx.o \
- 					   clockdomains2xxx_3xxx_data.o \
- 					   clockdomains3xxx_data.o
-+obj-$(CONFIG_SOC_OMAPAM33XX)		+= clockdomain33xx.o \
-+					   clockdomains33xx_data.o
- obj-$(CONFIG_ARCH_OMAP4)		+= clockdomain.o \
- 					   clockdomain44xx.o \
- 					   clockdomains44xx_data.o
-diff --git a/arch/arm/mach-omap2/clockdomain.h b/arch/arm/mach-omap2/clockdomain.h
-index f7b5860..72cb12b 100644
---- a/arch/arm/mach-omap2/clockdomain.h
-+++ b/arch/arm/mach-omap2/clockdomain.h
-@@ -195,6 +195,7 @@ int clkdm_hwmod_disable(struct clockdomain *clkdm, struct omap_hwmod *oh);
- extern void __init omap242x_clockdomains_init(void);
- extern void __init omap243x_clockdomains_init(void);
- extern void __init omap3xxx_clockdomains_init(void);
-+extern void __init am33xx_clockdomains_init(void);
- extern void __init omap44xx_clockdomains_init(void);
- extern void _clkdm_add_autodeps(struct clockdomain *clkdm);
- extern void _clkdm_del_autodeps(struct clockdomain *clkdm);
-@@ -202,6 +203,7 @@ extern void _clkdm_del_autodeps(struct clockdomain *clkdm);
- extern struct clkdm_ops omap2_clkdm_operations;
- extern struct clkdm_ops omap3_clkdm_operations;
- extern struct clkdm_ops omap4_clkdm_operations;
-+extern struct clkdm_ops am33xx_clkdm_operations;
-
- extern struct clkdm_dep gfx_24xx_wkdeps[];
- extern struct clkdm_dep dsp_24xx_wkdeps[];
-diff --git a/arch/arm/mach-omap2/clockdomain33xx.c b/arch/arm/mach-omap2/clockdomain33xx.c
+@@ -85,6 +85,9 @@ obj-y					+= prm_common.o
+ obj-$(CONFIG_ARCH_OMAP2)		+= prcm.o cm2xxx_3xxx.o prm2xxx_3xxx.o
+ obj-$(CONFIG_ARCH_OMAP3)		+= prcm.o cm2xxx_3xxx.o prm2xxx_3xxx.o \
+ 					   vc3xxx_data.o vp3xxx_data.o
++
++obj-$(CONFIG_SOC_OMAPAM33XX)		+= cm33xx.o
++
+ # XXX The presence of cm2xxx_3xxx.o on the line below is temporary and
+ # will be removed once the OMAP4 part of the codebase is converted to
+ # use OMAP4-specific PRCM functions.
+diff --git a/arch/arm/mach-omap2/cm-regbits-33xx.h b/arch/arm/mach-omap2/cm-regbits-33xx.h
 new file mode 100644
-index 0000000..aca6388
+index 0000000..532027e
 --- /dev/null
-+++ b/arch/arm/mach-omap2/clockdomain33xx.c
-@@ -0,0 +1,74 @@
++++ b/arch/arm/mach-omap2/cm-regbits-33xx.h
+@@ -0,0 +1,687 @@
 +/*
-+ * AM33XX clockdomain control
++ * AM33XX Power Management register bits
++ *
++ * This file is automatically generated from the AM33XX hardware databases.
++ * Vaibhav Hiremath <hvaibhav@ti.com>
++ *
++ * Copyright (C) 2011-2012 Texas Instruments Incorporated - http://www.ti.com/
++ *
++ * This program is free software; you can redistribute it and/or
++ * modify it under the terms of the GNU General Public License as
++ * published by the Free Software Foundation version 2.
++ *
++ * This program is distributed "as is" WITHOUT ANY WARRANTY of any
++ * kind, whether express or implied; without even the implied warranty
++ * of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
++ * GNU General Public License for more details.
++ */
++
++
++#ifndef __ARCH_ARM_MACH_OMAP2_CM_REGBITS_33XX_H
++#define __ARCH_ARM_MACH_OMAP2_CM_REGBITS_33XX_H
++
++/*
++ * Used by CM_AUTOIDLE_DPLL_CORE, CM_AUTOIDLE_DPLL_DDR, CM_AUTOIDLE_DPLL_DISP,
++ * CM_AUTOIDLE_DPLL_MPU, CM_AUTOIDLE_DPLL_PER
++ */
++#define AM33XX_AUTO_DPLL_MODE_SHIFT			0
++#define AM33XX_AUTO_DPLL_MODE_MASK			(0x7 << 0)
++
++/* Used by CM_WKUP_CLKSTCTRL */
++#define AM33XX_CLKACTIVITY_ADC_FCLK_SHIFT		14
++#define AM33XX_CLKACTIVITY_ADC_FCLK_MASK		(1 << 16)
++
++/* Used by CM_PER_L4LS_CLKSTCTRL */
++#define AM33XX_CLKACTIVITY_CAN_CLK_SHIFT		11
++#define AM33XX_CLKACTIVITY_CAN_CLK_MASK			(1 << 11)
++
++/* Used by CM_PER_CLK_24MHZ_CLKSTCTRL */
++#define AM33XX_CLKACTIVITY_CLK_24MHZ_GCLK_SHIFT		4
++#define AM33XX_CLKACTIVITY_CLK_24MHZ_GCLK_MASK		(1 << 4)
++
++/* Used by CM_PER_CPSW_CLKSTCTRL */
++#define AM33XX_CLKACTIVITY_CPSW_125MHZ_GCLK_SHIFT	4
++#define AM33XX_CLKACTIVITY_CPSW_125MHZ_GCLK_MASK	(1 << 4)
++
++/* Used by CM_PER_L4HS_CLKSTCTRL */
++#define AM33XX_CLKACTIVITY_CPSW_250MHZ_GCLK_SHIFT	4
++#define AM33XX_CLKACTIVITY_CPSW_250MHZ_GCLK_MASK	(1 << 4)
++
++/* Used by CM_PER_L4HS_CLKSTCTRL */
++#define AM33XX_CLKACTIVITY_CPSW_50MHZ_GCLK_SHIFT	5
++#define AM33XX_CLKACTIVITY_CPSW_50MHZ_GCLK_MASK		(1 << 5)
++
++/* Used by CM_PER_L4HS_CLKSTCTRL */
++#define AM33XX_CLKACTIVITY_CPSW_5MHZ_GCLK_SHIFT		6
++#define AM33XX_CLKACTIVITY_CPSW_5MHZ_GCLK_MASK		(1 << 6)
++
++/* Used by CM_PER_L3_CLKSTCTRL */
++#define AM33XX_CLKACTIVITY_CPTS_RFT_GCLK_SHIFT		6
++#define AM33XX_CLKACTIVITY_CPTS_RFT_GCLK_MASK		(1 << 6)
++
++/* Used by CM_CEFUSE_CLKSTCTRL */
++#define AM33XX_CLKACTIVITY_CUST_EFUSE_SYS_CLK_SHIFT	9
++#define AM33XX_CLKACTIVITY_CUST_EFUSE_SYS_CLK_MASK	(1 << 9)
++
++/* Used by CM_L3_AON_CLKSTCTRL */
++#define AM33XX_CLKACTIVITY_DBGSYSCLK_SHIFT		2
++#define AM33XX_CLKACTIVITY_DBGSYSCLK_MASK		(1 << 2)
++
++/* Used by CM_L3_AON_CLKSTCTRL */
++#define AM33XX_CLKACTIVITY_DEBUG_CLKA_SHIFT		4
++#define AM33XX_CLKACTIVITY_DEBUG_CLKA_MASK		(1 << 4)
++
++/* Used by CM_PER_L3_CLKSTCTRL */
++#define AM33XX_CLKACTIVITY_EMIF_GCLK_SHIFT		2
++#define AM33XX_CLKACTIVITY_EMIF_GCLK_MASK		(1 << 2)
++
++/* Used by CM_GFX_L3_CLKSTCTRL */
++#define AM33XX_CLKACTIVITY_GFX_FCLK_SHIFT		9
++#define AM33XX_CLKACTIVITY_GFX_FCLK_MASK		(1 << 9)
++
++/* Used by CM_GFX_L3_CLKSTCTRL */
++#define AM33XX_CLKACTIVITY_GFX_L3_GCLK_SHIFT		8
++#define AM33XX_CLKACTIVITY_GFX_L3_GCLK_MASK		(1 << 8)
++
++/* Used by CM_WKUP_CLKSTCTRL */
++#define AM33XX_CLKACTIVITY_GPIO0_GDBCLK_SHIFT		8
++#define AM33XX_CLKACTIVITY_GPIO0_GDBCLK_MASK		(1 << 8)
++
++/* Used by CM_PER_L4LS_CLKSTCTRL */
++#define AM33XX_CLKACTIVITY_GPIO_1_GDBCLK_SHIFT		19
++#define AM33XX_CLKACTIVITY_GPIO_1_GDBCLK_MASK		(1 << 19)
++
++/* Used by CM_PER_L4LS_CLKSTCTRL */
++#define AM33XX_CLKACTIVITY_GPIO_2_GDBCLK_SHIFT		20
++#define AM33XX_CLKACTIVITY_GPIO_2_GDBCLK_MASK		(1 << 20)
++
++/* Used by CM_PER_L4LS_CLKSTCTRL */
++#define AM33XX_CLKACTIVITY_GPIO_3_GDBCLK_SHIFT		21
++#define AM33XX_CLKACTIVITY_GPIO_3_GDBCLK_MASK		(1 << 21)
++
++/* Used by CM_PER_L4LS_CLKSTCTRL */
++#define AM33XX_CLKACTIVITY_GPIO_4_GDBCLK_SHIFT		22
++#define AM33XX_CLKACTIVITY_GPIO_4_GDBCLK_MASK		(1 << 22)
++
++/* Used by CM_PER_L4LS_CLKSTCTRL */
++#define AM33XX_CLKACTIVITY_GPIO_5_GDBCLK_SHIFT		26
++#define AM33XX_CLKACTIVITY_GPIO_5_GDBCLK_MASK		(1 << 26)
++
++/* Used by CM_PER_L4LS_CLKSTCTRL */
++#define AM33XX_CLKACTIVITY_GPIO_6_GDBCLK_SHIFT		18
++#define AM33XX_CLKACTIVITY_GPIO_6_GDBCLK_MASK		(1 << 18)
++
++/* Used by CM_WKUP_CLKSTCTRL */
++#define AM33XX_CLKACTIVITY_I2C0_GFCLK_SHIFT		11
++#define AM33XX_CLKACTIVITY_I2C0_GFCLK_MASK		(1 << 11)
++
++/* Used by CM_PER_L4LS_CLKSTCTRL */
++#define AM33XX_CLKACTIVITY_I2C_FCLK_SHIFT		24
++#define AM33XX_CLKACTIVITY_I2C_FCLK_MASK		(1 << 24)
++
++/* Used by CM_PER_PRUSS_CLKSTCTRL */
++#define AM33XX_CLKACTIVITY_PRUSS_IEP_GCLK_SHIFT		5
++#define AM33XX_CLKACTIVITY_PRUSS_IEP_GCLK_MASK		(1 << 5)
++
++/* Used by CM_PER_PRUSS_CLKSTCTRL */
++#define AM33XX_CLKACTIVITY_PRUSS_OCP_GCLK_SHIFT		4
++#define AM33XX_CLKACTIVITY_PRUSS_OCP_GCLK_MASK		(1 << 4)
++
++/* Used by CM_PER_PRUSS_CLKSTCTRL */
++#define AM33XX_CLKACTIVITY_PRUSS_UART_GCLK_SHIFT	6
++#define AM33XX_CLKACTIVITY_PRUSS_UART_GCLK_MASK		(1 << 6)
++
++/* Used by CM_PER_L3S_CLKSTCTRL */
++#define AM33XX_CLKACTIVITY_L3S_GCLK_SHIFT		3
++#define AM33XX_CLKACTIVITY_L3S_GCLK_MASK		(1 << 3)
++
++/* Used by CM_L3_AON_CLKSTCTRL */
++#define AM33XX_CLKACTIVITY_L3_AON_GCLK_SHIFT		3
++#define AM33XX_CLKACTIVITY_L3_AON_GCLK_MASK		(1 << 3)
++
++/* Used by CM_PER_L3_CLKSTCTRL */
++#define AM33XX_CLKACTIVITY_L3_GCLK_SHIFT		4
++#define AM33XX_CLKACTIVITY_L3_GCLK_MASK			(1 << 4)
++
++/* Used by CM_PER_L4FW_CLKSTCTRL */
++#define AM33XX_CLKACTIVITY_L4FW_GCLK_SHIFT		8
++#define AM33XX_CLKACTIVITY_L4FW_GCLK_MASK		(1 << 8)
++
++/* Used by CM_PER_L4HS_CLKSTCTRL */
++#define AM33XX_CLKACTIVITY_L4HS_GCLK_SHIFT		3
++#define AM33XX_CLKACTIVITY_L4HS_GCLK_MASK		(1 << 3)
++
++/* Used by CM_PER_L4LS_CLKSTCTRL */
++#define AM33XX_CLKACTIVITY_L4LS_GCLK_SHIFT		8
++#define AM33XX_CLKACTIVITY_L4LS_GCLK_MASK		(1 << 8)
++
++/* Used by CM_GFX_L4LS_GFX_CLKSTCTRL__1 */
++#define AM33XX_CLKACTIVITY_L4LS_GFX_GCLK_SHIFT		8
++#define AM33XX_CLKACTIVITY_L4LS_GFX_GCLK_MASK		(1 << 8)
++
++/* Used by CM_CEFUSE_CLKSTCTRL */
++#define AM33XX_CLKACTIVITY_L4_CEFUSE_GICLK_SHIFT	8
++#define AM33XX_CLKACTIVITY_L4_CEFUSE_GICLK_MASK		(1 << 8)
++
++/* Used by CM_RTC_CLKSTCTRL */
++#define AM33XX_CLKACTIVITY_L4_RTC_GCLK_SHIFT		8
++#define AM33XX_CLKACTIVITY_L4_RTC_GCLK_MASK		(1 << 8)
++
++/* Used by CM_L4_WKUP_AON_CLKSTCTRL */
++#define AM33XX_CLKACTIVITY_L4_WKUP_AON_GCLK_SHIFT	2
++#define AM33XX_CLKACTIVITY_L4_WKUP_AON_GCLK_MASK	(1 << 2)
++
++/* Used by CM_WKUP_CLKSTCTRL */
++#define AM33XX_CLKACTIVITY_L4_WKUP_GCLK_SHIFT		2
++#define AM33XX_CLKACTIVITY_L4_WKUP_GCLK_MASK		(1 << 2)
++
++/* Used by CM_PER_L4LS_CLKSTCTRL */
++#define AM33XX_CLKACTIVITY_LCDC_GCLK_SHIFT		17
++#define AM33XX_CLKACTIVITY_LCDC_GCLK_MASK		(1 << 17)
++
++/* Used by CM_PER_LCDC_CLKSTCTRL */
++#define AM33XX_CLKACTIVITY_LCDC_L3_OCP_GCLK_SHIFT	4
++#define AM33XX_CLKACTIVITY_LCDC_L3_OCP_GCLK_MASK	(1 << 4)
++
++/* Used by CM_PER_LCDC_CLKSTCTRL */
++#define AM33XX_CLKACTIVITY_LCDC_L4_OCP_GCLK_SHIFT	5
++#define AM33XX_CLKACTIVITY_LCDC_L4_OCP_GCLK_MASK	(1 << 5)
++
++/* Used by CM_PER_L3_CLKSTCTRL */
++#define AM33XX_CLKACTIVITY_MCASP_GCLK_SHIFT		7
++#define AM33XX_CLKACTIVITY_MCASP_GCLK_MASK		(1 << 7)
++
++/* Used by CM_PER_L3_CLKSTCTRL */
++#define AM33XX_CLKACTIVITY_MMC_FCLK_SHIFT		3
++#define AM33XX_CLKACTIVITY_MMC_FCLK_MASK		(1 << 3)
++
++/* Used by CM_MPU_CLKSTCTRL */
++#define AM33XX_CLKACTIVITY_MPU_CLK_SHIFT		2
++#define AM33XX_CLKACTIVITY_MPU_CLK_MASK			(1 << 2)
++
++/* Used by CM_PER_OCPWP_L3_CLKSTCTRL */
++#define AM33XX_CLKACTIVITY_OCPWP_L3_GCLK_SHIFT		4
++#define AM33XX_CLKACTIVITY_OCPWP_L3_GCLK_MASK		(1 << 4)
++
++/* Used by CM_PER_OCPWP_L3_CLKSTCTRL */
++#define AM33XX_CLKACTIVITY_OCPWP_L4_GCLK_SHIFT		5
++#define AM33XX_CLKACTIVITY_OCPWP_L4_GCLK_MASK		(1 << 5)
++
++/* Used by CM_RTC_CLKSTCTRL */
++#define AM33XX_CLKACTIVITY_RTC_32KCLK_SHIFT		9
++#define AM33XX_CLKACTIVITY_RTC_32KCLK_MASK		(1 << 9)
++
++/* Used by CM_PER_L4LS_CLKSTCTRL */
++#define AM33XX_CLKACTIVITY_SPI_GCLK_SHIFT		25
++#define AM33XX_CLKACTIVITY_SPI_GCLK_MASK		(1 << 25)
++
++/* Used by CM_WKUP_CLKSTCTRL */
++#define AM33XX_CLKACTIVITY_SR_SYSCLK_SHIFT		3
++#define AM33XX_CLKACTIVITY_SR_SYSCLK_MASK		(1 << 3)
++
++/* Used by CM_WKUP_CLKSTCTRL */
++#define AM33XX_CLKACTIVITY_TIMER0_GCLK_SHIFT		10
++#define AM33XX_CLKACTIVITY_TIMER0_GCLK_MASK		(1 << 10)
++
++/* Used by CM_WKUP_CLKSTCTRL */
++#define AM33XX_CLKACTIVITY_TIMER1_GCLK_SHIFT		13
++#define AM33XX_CLKACTIVITY_TIMER1_GCLK_MASK		(1 << 13)
++
++/* Used by CM_PER_L4LS_CLKSTCTRL */
++#define AM33XX_CLKACTIVITY_TIMER2_GCLK_SHIFT		14
++#define AM33XX_CLKACTIVITY_TIMER2_GCLK_MASK		(1 << 14)
++
++/* Used by CM_PER_L4LS_CLKSTCTRL */
++#define AM33XX_CLKACTIVITY_TIMER3_GCLK_SHIFT		15
++#define AM33XX_CLKACTIVITY_TIMER3_GCLK_MASK		(1 << 15)
++
++/* Used by CM_PER_L4LS_CLKSTCTRL */
++#define AM33XX_CLKACTIVITY_TIMER4_GCLK_SHIFT		16
++#define AM33XX_CLKACTIVITY_TIMER4_GCLK_MASK		(1 << 16)
++
++/* Used by CM_PER_L4LS_CLKSTCTRL */
++#define AM33XX_CLKACTIVITY_TIMER5_GCLK_SHIFT		27
++#define AM33XX_CLKACTIVITY_TIMER5_GCLK_MASK		(1 << 27)
++
++/* Used by CM_PER_L4LS_CLKSTCTRL */
++#define AM33XX_CLKACTIVITY_TIMER6_GCLK_SHIFT		28
++#define AM33XX_CLKACTIVITY_TIMER6_GCLK_MASK		(1 << 28)
++
++/* Used by CM_PER_L4LS_CLKSTCTRL */
++#define AM33XX_CLKACTIVITY_TIMER7_GCLK_SHIFT		13
++#define AM33XX_CLKACTIVITY_TIMER7_GCLK_MASK		(1 << 13)
++
++/* Used by CM_WKUP_CLKSTCTRL */
++#define AM33XX_CLKACTIVITY_UART0_GFCLK_SHIFT		12
++#define AM33XX_CLKACTIVITY_UART0_GFCLK_MASK		(1 << 12)
++
++/* Used by CM_PER_L4LS_CLKSTCTRL */
++#define AM33XX_CLKACTIVITY_UART_GFCLK_SHIFT		10
++#define AM33XX_CLKACTIVITY_UART_GFCLK_MASK		(1 << 10)
++
++/* Used by CM_WKUP_CLKSTCTRL */
++#define AM33XX_CLKACTIVITY_WDT0_GCLK_SHIFT		9
++#define AM33XX_CLKACTIVITY_WDT0_GCLK_MASK		(1 << 9)
++
++/* Used by CM_WKUP_CLKSTCTRL */
++#define AM33XX_CLKACTIVITY_WDT1_GCLK_SHIFT		4
++#define AM33XX_CLKACTIVITY_WDT1_GCLK_MASK		(1 << 4)
++
++/* Used by CLKSEL_GFX_FCLK */
++#define AM33XX_CLKDIV_SEL_GFX_FCLK_SHIFT		0
++#define AM33XX_CLKDIV_SEL_GFX_FCLK_MASK			(1 << 0)
++
++/* Used by CM_CLKOUT_CTRL */
++#define AM33XX_CLKOUT2DIV_SHIFT				3
++#define AM33XX_CLKOUT2DIV_MASK				(0x05 << 3)
++
++/* Used by CM_CLKOUT_CTRL */
++#define AM33XX_CLKOUT2EN_SHIFT				7
++#define AM33XX_CLKOUT2EN_MASK				(1 << 7)
++
++/* Used by CM_CLKOUT_CTRL */
++#define AM33XX_CLKOUT2SOURCE_SHIFT			0
++#define AM33XX_CLKOUT2SOURCE_MASK			(0x02 << 0)
++
++/*
++ * Used by CLKSEL_GPIO0_DBCLK, CLKSEL_LCDC_PIXEL_CLK, CLKSEL_TIMER2_CLK,
++ * CLKSEL_TIMER3_CLK, CLKSEL_TIMER4_CLK, CLKSEL_TIMER5_CLK, CLKSEL_TIMER6_CLK,
++ * CLKSEL_TIMER7_CLK
++ */
++#define AM33XX_CLKSEL_SHIFT				0
++#define AM33XX_CLKSEL_MASK				(0x01 << 0)
++
++/*
++ * Renamed from CLKSEL Used by CLKSEL_PRUSS_OCP_CLK, CLKSEL_WDT1_CLK,
++ * CM_CPTS_RFT_CLKSEL
++ */
++#define AM33XX_CLKSEL_0_0_SHIFT				0
++#define AM33XX_CLKSEL_0_0_MASK				(1 << 0)
++
++#define AM33XX_CLKSEL_0_1_SHIFT				0
++#define AM33XX_CLKSEL_0_1_MASK				(3 << 0)
++
++/* Renamed from CLKSEL Used by CLKSEL_TIMER1MS_CLK */
++#define AM33XX_CLKSEL_0_2_SHIFT				0
++#define AM33XX_CLKSEL_0_2_MASK				(7 << 0)
++
++/* Used by CLKSEL_GFX_FCLK */
++#define AM33XX_CLKSEL_GFX_FCLK_SHIFT			1
++#define AM33XX_CLKSEL_GFX_FCLK_MASK			(1 << 1)
++
++/*
++ * Used by CM_MPU_CLKSTCTRL, CM_RTC_CLKSTCTRL, CM_PER_CLK_24MHZ_CLKSTCTRL,
++ * CM_PER_CPSW_CLKSTCTRL, CM_PER_PRUSS_CLKSTCTRL, CM_PER_L3S_CLKSTCTRL,
++ * CM_PER_L3_CLKSTCTRL, CM_PER_L4FW_CLKSTCTRL, CM_PER_L4HS_CLKSTCTRL,
++ * CM_PER_L4LS_CLKSTCTRL, CM_PER_LCDC_CLKSTCTRL, CM_PER_OCPWP_L3_CLKSTCTRL,
++ * CM_L3_AON_CLKSTCTRL, CM_L4_WKUP_AON_CLKSTCTRL, CM_WKUP_CLKSTCTRL,
++ * CM_GFX_L3_CLKSTCTRL, CM_GFX_L4LS_GFX_CLKSTCTRL__1, CM_CEFUSE_CLKSTCTRL
++ */
++#define AM33XX_CLKTRCTRL_SHIFT				0
++#define AM33XX_CLKTRCTRL_MASK				(0x3 << 0)
++
++/*
++ * Used by CM_SSC_DELTAMSTEP_DPLL_CORE, CM_SSC_DELTAMSTEP_DPLL_DDR,
++ * CM_SSC_DELTAMSTEP_DPLL_DISP, CM_SSC_DELTAMSTEP_DPLL_MPU,
++ * CM_SSC_DELTAMSTEP_DPLL_PER
++ */
++#define AM33XX_DELTAMSTEP_SHIFT				0
++#define AM33XX_DELTAMSTEP_MASK				(0x19 << 0)
++
++/* Used by CM_CLKSEL_DPLL_DDR, CM_CLKSEL_DPLL_DISP, CM_CLKSEL_DPLL_MPU */
++#define AM33XX_DPLL_BYP_CLKSEL_SHIFT			23
++#define AM33XX_DPLL_BYP_CLKSEL_MASK			(1 << 23)
++
++/* Used by CM_CLKDCOLDO_DPLL_PER */
++#define AM33XX_DPLL_CLKDCOLDO_GATE_CTRL_SHIFT		8
++#define AM33XX_DPLL_CLKDCOLDO_GATE_CTRL_MASK		(1 << 8)
++
++/* Used by CM_CLKDCOLDO_DPLL_PER */
++#define AM33XX_DPLL_CLKDCOLDO_PWDN_SHIFT		12
++#define AM33XX_DPLL_CLKDCOLDO_PWDN_MASK			(1 << 12)
++
++/* Used by CM_DIV_M2_DPLL_DDR, CM_DIV_M2_DPLL_DISP, CM_DIV_M2_DPLL_MPU */
++#define AM33XX_DPLL_CLKOUT_DIV_SHIFT			0
++#define AM33XX_DPLL_CLKOUT_DIV_MASK			(0x1f << 0)
++
++/* Renamed from DPLL_CLKOUT_DIV Used by CM_DIV_M2_DPLL_PER */
++#define AM33XX_DPLL_CLKOUT_DIV_0_6_SHIFT		0
++#define AM33XX_DPLL_CLKOUT_DIV_0_6_MASK			(0x06 << 0)
++
++/* Used by CM_DIV_M2_DPLL_DDR, CM_DIV_M2_DPLL_DISP, CM_DIV_M2_DPLL_MPU */
++#define AM33XX_DPLL_CLKOUT_DIVCHACK_SHIFT		5
++#define AM33XX_DPLL_CLKOUT_DIVCHACK_MASK		(1 << 5)
++
++/* Renamed from DPLL_CLKOUT_DIVCHACK Used by CM_DIV_M2_DPLL_PER */
++#define AM33XX_DPLL_CLKOUT_DIVCHACK_M2_PER_SHIFT	7
++#define AM33XX_DPLL_CLKOUT_DIVCHACK_M2_PER_MASK		(1 << 7)
++
++/*
++ * Used by CM_DIV_M2_DPLL_DDR, CM_DIV_M2_DPLL_DISP, CM_DIV_M2_DPLL_MPU,
++ * CM_DIV_M2_DPLL_PER
++ */
++#define AM33XX_DPLL_CLKOUT_GATE_CTRL_SHIFT		8
++#define AM33XX_DPLL_CLKOUT_GATE_CTRL_MASK		(1 << 8)
++
++/*
++ * Used by CM_CLKSEL_DPLL_CORE, CM_CLKSEL_DPLL_DDR, CM_CLKSEL_DPLL_DISP,
++ * CM_CLKSEL_DPLL_MPU
++ */
++#define AM33XX_DPLL_DIV_SHIFT				0
++#define AM33XX_DPLL_DIV_MASK				(0x7f << 0)
++
++#define AM33XX_DPLL_PER_DIV_MASK			(0xff << 0)
++
++/* Renamed from DPLL_DIV Used by CM_CLKSEL_DPLL_PERIPH */
++#define AM33XX_DPLL_DIV_0_7_SHIFT			0
++#define AM33XX_DPLL_DIV_0_7_MASK			(0x07 << 0)
++
++/*
++ * Used by CM_CLKMODE_DPLL_CORE, CM_CLKMODE_DPLL_DDR, CM_CLKMODE_DPLL_DISP,
++ * CM_CLKMODE_DPLL_MPU
++ */
++#define AM33XX_DPLL_DRIFTGUARD_EN_SHIFT			8
++#define AM33XX_DPLL_DRIFTGUARD_EN_MASK			(1 << 8)
++
++/*
++ * Used by CM_CLKMODE_DPLL_CORE, CM_CLKMODE_DPLL_DDR, CM_CLKMODE_DPLL_DISP,
++ * CM_CLKMODE_DPLL_MPU, CM_CLKMODE_DPLL_PER
++ */
++#define AM33XX_DPLL_EN_SHIFT				0
++#define AM33XX_DPLL_EN_MASK				(0x7 << 0)
++
++/*
++ * Used by CM_CLKMODE_DPLL_CORE, CM_CLKMODE_DPLL_DDR, CM_CLKMODE_DPLL_DISP,
++ * CM_CLKMODE_DPLL_MPU
++ */
++#define AM33XX_DPLL_LPMODE_EN_SHIFT			10
++#define AM33XX_DPLL_LPMODE_EN_MASK			(1 << 10)
++
++/*
++ * Used by CM_CLKSEL_DPLL_CORE, CM_CLKSEL_DPLL_DDR, CM_CLKSEL_DPLL_DISP,
++ * CM_CLKSEL_DPLL_MPU
++ */
++#define AM33XX_DPLL_MULT_SHIFT				8
++#define AM33XX_DPLL_MULT_MASK				(0x7ff << 8)
++
++/* Renamed from DPLL_MULT Used by CM_CLKSEL_DPLL_PERIPH */
++#define AM33XX_DPLL_MULT_PERIPH_SHIFT			8
++#define AM33XX_DPLL_MULT_PERIPH_MASK			(0xfff << 8)
++
++/*
++ * Used by CM_CLKMODE_DPLL_CORE, CM_CLKMODE_DPLL_DDR, CM_CLKMODE_DPLL_DISP,
++ * CM_CLKMODE_DPLL_MPU
++ */
++#define AM33XX_DPLL_REGM4XEN_SHIFT			11
++#define AM33XX_DPLL_REGM4XEN_MASK			(1 << 11)
++
++/* Used by CM_CLKSEL_DPLL_PERIPH */
++#define AM33XX_DPLL_SD_DIV_SHIFT			24
++#define AM33XX_DPLL_SD_DIV_MASK				(24, 31)
++
++/*
++ * Used by CM_CLKMODE_DPLL_CORE, CM_CLKMODE_DPLL_DDR, CM_CLKMODE_DPLL_DISP,
++ * CM_CLKMODE_DPLL_MPU, CM_CLKMODE_DPLL_PER
++ */
++#define AM33XX_DPLL_SSC_ACK_SHIFT			13
++#define AM33XX_DPLL_SSC_ACK_MASK			(1 << 13)
++
++/*
++ * Used by CM_CLKMODE_DPLL_CORE, CM_CLKMODE_DPLL_DDR, CM_CLKMODE_DPLL_DISP,
++ * CM_CLKMODE_DPLL_MPU, CM_CLKMODE_DPLL_PER
++ */
++#define AM33XX_DPLL_SSC_DOWNSPREAD_SHIFT		14
++#define AM33XX_DPLL_SSC_DOWNSPREAD_MASK			(1 << 14)
++
++/*
++ * Used by CM_CLKMODE_DPLL_CORE, CM_CLKMODE_DPLL_DDR, CM_CLKMODE_DPLL_DISP,
++ * CM_CLKMODE_DPLL_MPU, CM_CLKMODE_DPLL_PER
++ */
++#define AM33XX_DPLL_SSC_EN_SHIFT			12
++#define AM33XX_DPLL_SSC_EN_MASK				(1 << 12)
++
++/* Used by CM_DIV_M4_DPLL_CORE */
++#define AM33XX_HSDIVIDER_CLKOUT1_DIV_SHIFT		0
++#define AM33XX_HSDIVIDER_CLKOUT1_DIV_MASK		(0x1f << 0)
++
++/* Used by CM_DIV_M4_DPLL_CORE */
++#define AM33XX_HSDIVIDER_CLKOUT1_DIVCHACK_SHIFT		5
++#define AM33XX_HSDIVIDER_CLKOUT1_DIVCHACK_MASK		(1 << 5)
++
++/* Used by CM_DIV_M4_DPLL_CORE */
++#define AM33XX_HSDIVIDER_CLKOUT1_GATE_CTRL_SHIFT	8
++#define AM33XX_HSDIVIDER_CLKOUT1_GATE_CTRL_MASK		(1 << 8)
++
++/* Used by CM_DIV_M4_DPLL_CORE */
++#define AM33XX_HSDIVIDER_CLKOUT1_PWDN_SHIFT		12
++#define AM33XX_HSDIVIDER_CLKOUT1_PWDN_MASK		(1 << 12)
++
++/* Used by CM_DIV_M5_DPLL_CORE */
++#define AM33XX_HSDIVIDER_CLKOUT2_DIV_SHIFT		0
++#define AM33XX_HSDIVIDER_CLKOUT2_DIV_MASK		(0x1f << 0)
++
++/* Used by CM_DIV_M5_DPLL_CORE */
++#define AM33XX_HSDIVIDER_CLKOUT2_DIVCHACK_SHIFT		5
++#define AM33XX_HSDIVIDER_CLKOUT2_DIVCHACK_MASK		(1 << 5)
++
++/* Used by CM_DIV_M5_DPLL_CORE */
++#define AM33XX_HSDIVIDER_CLKOUT2_GATE_CTRL_SHIFT	8
++#define AM33XX_HSDIVIDER_CLKOUT2_GATE_CTRL_MASK		(1 << 8)
++
++/* Used by CM_DIV_M5_DPLL_CORE */
++#define AM33XX_HSDIVIDER_CLKOUT2_PWDN_SHIFT		12
++#define AM33XX_HSDIVIDER_CLKOUT2_PWDN_MASK		(1 << 12)
++
++/* Used by CM_DIV_M6_DPLL_CORE */
++#define AM33XX_HSDIVIDER_CLKOUT3_DIV_SHIFT		0
++#define AM33XX_HSDIVIDER_CLKOUT3_DIV_MASK		(0x04 << 0)
++
++/* Used by CM_DIV_M6_DPLL_CORE */
++#define AM33XX_HSDIVIDER_CLKOUT3_DIVCHACK_SHIFT		5
++#define AM33XX_HSDIVIDER_CLKOUT3_DIVCHACK_MASK		(1 << 5)
++
++/* Used by CM_DIV_M6_DPLL_CORE */
++#define AM33XX_HSDIVIDER_CLKOUT3_GATE_CTRL_SHIFT	8
++#define AM33XX_HSDIVIDER_CLKOUT3_GATE_CTRL_MASK		(1 << 8)
++
++/* Used by CM_DIV_M6_DPLL_CORE */
++#define AM33XX_HSDIVIDER_CLKOUT3_PWDN_SHIFT		12
++#define AM33XX_HSDIVIDER_CLKOUT3_PWDN_MASK		(1 << 12)
++
++/*
++ * Used by CM_MPU_MPU_CLKCTRL, CM_RTC_RTC_CLKCTRL, CM_PER_AES0_CLKCTRL,
++ * CM_PER_AES1_CLKCTRL, CM_PER_CLKDIV32K_CLKCTRL, CM_PER_CPGMAC0_CLKCTRL,
++ * CM_PER_DCAN0_CLKCTRL, CM_PER_DCAN1_CLKCTRL, CM_PER_DES_CLKCTRL,
++ * CM_PER_ELM_CLKCTRL, CM_PER_EMIF_CLKCTRL, CM_PER_EMIF_FW_CLKCTRL,
++ * CM_PER_EPWMSS0_CLKCTRL, CM_PER_EPWMSS1_CLKCTRL, CM_PER_EPWMSS2_CLKCTRL,
++ * CM_PER_GPIO1_CLKCTRL, CM_PER_GPIO2_CLKCTRL, CM_PER_GPIO3_CLKCTRL,
++ * CM_PER_GPIO4_CLKCTRL, CM_PER_GPIO5_CLKCTRL, CM_PER_GPIO6_CLKCTRL,
++ * CM_PER_GPMC_CLKCTRL, CM_PER_I2C1_CLKCTRL, CM_PER_I2C2_CLKCTRL,
++ * CM_PER_PRUSS_CLKCTRL, CM_PER_IEEE5000_CLKCTRL, CM_PER_L3_CLKCTRL,
++ * CM_PER_L3_INSTR_CLKCTRL, CM_PER_L4FW_CLKCTRL, CM_PER_L4HS_CLKCTRL,
++ * CM_PER_L4LS_CLKCTRL, CM_PER_LCDC_CLKCTRL, CM_PER_MAILBOX0_CLKCTRL,
++ * CM_PER_MAILBOX1_CLKCTRL, CM_PER_MCASP0_CLKCTRL, CM_PER_MCASP1_CLKCTRL,
++ * CM_PER_MCASP2_CLKCTRL, CM_PER_MLB_CLKCTRL, CM_PER_MMC0_CLKCTRL,
++ * CM_PER_MMC1_CLKCTRL, CM_PER_MMC2_CLKCTRL, CM_PER_MSTR_EXPS_CLKCTRL,
++ * CM_PER_OCMCRAM_CLKCTRL, CM_PER_OCPWP_CLKCTRL, CM_PER_PCIE_CLKCTRL,
++ * CM_PER_PKA_CLKCTRL, CM_PER_RNG_CLKCTRL, CM_PER_SHA0_CLKCTRL,
++ * CM_PER_SLV_EXPS_CLKCTRL, CM_PER_SPARE0_CLKCTRL, CM_PER_SPARE1_CLKCTRL,
++ * CM_PER_SPARE_CLKCTRL, CM_PER_SPI0_CLKCTRL, CM_PER_SPI1_CLKCTRL,
++ * CM_PER_SPI2_CLKCTRL, CM_PER_SPI3_CLKCTRL, CM_PER_SPINLOCK_CLKCTRL,
++ * CM_PER_TIMER2_CLKCTRL, CM_PER_TIMER3_CLKCTRL, CM_PER_TIMER4_CLKCTRL,
++ * CM_PER_TIMER5_CLKCTRL, CM_PER_TIMER6_CLKCTRL, CM_PER_TIMER7_CLKCTRL,
++ * CM_PER_TPCC_CLKCTRL, CM_PER_TPTC0_CLKCTRL, CM_PER_TPTC1_CLKCTRL,
++ * CM_PER_TPTC2_CLKCTRL, CM_PER_UART1_CLKCTRL, CM_PER_UART2_CLKCTRL,
++ * CM_PER_UART3_CLKCTRL, CM_PER_UART4_CLKCTRL, CM_PER_UART5_CLKCTRL,
++ * CM_PER_USB0_CLKCTRL, CM_WKUP_ADC_TSC_CLKCTRL, CM_WKUP_CONTROL_CLKCTRL,
++ * CM_WKUP_DEBUGSS_CLKCTRL, CM_WKUP_GPIO0_CLKCTRL, CM_WKUP_I2C0_CLKCTRL,
++ * CM_WKUP_L4WKUP_CLKCTRL, CM_WKUP_SMARTREFLEX0_CLKCTRL,
++ * CM_WKUP_SMARTREFLEX1_CLKCTRL, CM_WKUP_TIMER0_CLKCTRL,
++ * CM_WKUP_TIMER1_CLKCTRL, CM_WKUP_UART0_CLKCTRL, CM_WKUP_WDT0_CLKCTRL,
++ * CM_WKUP_WDT1_CLKCTRL, CM_GFX_BITBLT_CLKCTRL, CM_GFX_GFX_CLKCTRL,
++ * CM_GFX_MMUCFG_CLKCTRL, CM_GFX_MMUDATA_CLKCTRL, CM_CEFUSE_CEFUSE_CLKCTRL
++ */
++#define AM33XX_IDLEST_SHIFT				16
++#define AM33XX_IDLEST_MASK				(0x3 << 16)
++#define AM33XX_IDLEST_VAL				0x3
++
++/* Used by CM_MAC_CLKSEL */
++#define AM33XX_MII_CLK_SEL_SHIFT			2
++#define AM33XX_MII_CLK_SEL_MASK				(1 << 2)
++
++/*
++ * Used by CM_SSC_MODFREQDIV_DPLL_CORE, CM_SSC_MODFREQDIV_DPLL_DDR,
++ * CM_SSC_MODFREQDIV_DPLL_DISP, CM_SSC_MODFREQDIV_DPLL_MPU,
++ * CM_SSC_MODFREQDIV_DPLL_PER
++ */
++#define AM33XX_MODFREQDIV_EXPONENT_SHIFT		8
++#define AM33XX_MODFREQDIV_EXPONENT_MASK			(0x10 << 8)
++
++/*
++ * Used by CM_SSC_MODFREQDIV_DPLL_CORE, CM_SSC_MODFREQDIV_DPLL_DDR,
++ * CM_SSC_MODFREQDIV_DPLL_DISP, CM_SSC_MODFREQDIV_DPLL_MPU,
++ * CM_SSC_MODFREQDIV_DPLL_PER
++ */
++#define AM33XX_MODFREQDIV_MANTISSA_SHIFT		0
++#define AM33XX_MODFREQDIV_MANTISSA_MASK			(0x06 << 0)
++
++/*
++ * Used by CM_MPU_MPU_CLKCTRL, CM_RTC_RTC_CLKCTRL, CM_PER_AES0_CLKCTRL,
++ * CM_PER_AES1_CLKCTRL, CM_PER_CLKDIV32K_CLKCTRL, CM_PER_CPGMAC0_CLKCTRL,
++ * CM_PER_DCAN0_CLKCTRL, CM_PER_DCAN1_CLKCTRL, CM_PER_DES_CLKCTRL,
++ * CM_PER_ELM_CLKCTRL, CM_PER_EMIF_CLKCTRL, CM_PER_EMIF_FW_CLKCTRL,
++ * CM_PER_EPWMSS0_CLKCTRL, CM_PER_EPWMSS1_CLKCTRL, CM_PER_EPWMSS2_CLKCTRL,
++ * CM_PER_GPIO1_CLKCTRL, CM_PER_GPIO2_CLKCTRL, CM_PER_GPIO3_CLKCTRL,
++ * CM_PER_GPIO4_CLKCTRL, CM_PER_GPIO5_CLKCTRL, CM_PER_GPIO6_CLKCTRL,
++ * CM_PER_GPMC_CLKCTRL, CM_PER_I2C1_CLKCTRL, CM_PER_I2C2_CLKCTRL,
++ * CM_PER_PRUSS_CLKCTRL, CM_PER_IEEE5000_CLKCTRL, CM_PER_L3_CLKCTRL,
++ * CM_PER_L3_INSTR_CLKCTRL, CM_PER_L4FW_CLKCTRL, CM_PER_L4HS_CLKCTRL,
++ * CM_PER_L4LS_CLKCTRL, CM_PER_LCDC_CLKCTRL, CM_PER_MAILBOX0_CLKCTRL,
++ * CM_PER_MAILBOX1_CLKCTRL, CM_PER_MCASP0_CLKCTRL, CM_PER_MCASP1_CLKCTRL,
++ * CM_PER_MCASP2_CLKCTRL, CM_PER_MLB_CLKCTRL, CM_PER_MMC0_CLKCTRL,
++ * CM_PER_MMC1_CLKCTRL, CM_PER_MMC2_CLKCTRL, CM_PER_MSTR_EXPS_CLKCTRL,
++ * CM_PER_OCMCRAM_CLKCTRL, CM_PER_OCPWP_CLKCTRL, CM_PER_PCIE_CLKCTRL,
++ * CM_PER_PKA_CLKCTRL, CM_PER_RNG_CLKCTRL, CM_PER_SHA0_CLKCTRL,
++ * CM_PER_SLV_EXPS_CLKCTRL, CM_PER_SPARE0_CLKCTRL, CM_PER_SPARE1_CLKCTRL,
++ * CM_PER_SPARE_CLKCTRL, CM_PER_SPI0_CLKCTRL, CM_PER_SPI1_CLKCTRL,
++ * CM_PER_SPI2_CLKCTRL, CM_PER_SPI3_CLKCTRL, CM_PER_SPINLOCK_CLKCTRL,
++ * CM_PER_TIMER2_CLKCTRL, CM_PER_TIMER3_CLKCTRL, CM_PER_TIMER4_CLKCTRL,
++ * CM_PER_TIMER5_CLKCTRL, CM_PER_TIMER6_CLKCTRL, CM_PER_TIMER7_CLKCTRL,
++ * CM_PER_TPCC_CLKCTRL, CM_PER_TPTC0_CLKCTRL, CM_PER_TPTC1_CLKCTRL,
++ * CM_PER_TPTC2_CLKCTRL, CM_PER_UART1_CLKCTRL, CM_PER_UART2_CLKCTRL,
++ * CM_PER_UART3_CLKCTRL, CM_PER_UART4_CLKCTRL, CM_PER_UART5_CLKCTRL,
++ * CM_PER_USB0_CLKCTRL, CM_WKUP_ADC_TSC_CLKCTRL, CM_WKUP_CONTROL_CLKCTRL,
++ * CM_WKUP_DEBUGSS_CLKCTRL, CM_WKUP_GPIO0_CLKCTRL, CM_WKUP_I2C0_CLKCTRL,
++ * CM_WKUP_L4WKUP_CLKCTRL, CM_WKUP_SMARTREFLEX0_CLKCTRL,
++ * CM_WKUP_SMARTREFLEX1_CLKCTRL, CM_WKUP_TIMER0_CLKCTRL,
++ * CM_WKUP_TIMER1_CLKCTRL, CM_WKUP_UART0_CLKCTRL, CM_WKUP_WDT0_CLKCTRL,
++ * CM_WKUP_WDT1_CLKCTRL, CM_WKUP_WKUP_M3_CLKCTRL, CM_GFX_BITBLT_CLKCTRL,
++ * CM_GFX_GFX_CLKCTRL, CM_GFX_MMUCFG_CLKCTRL, CM_GFX_MMUDATA_CLKCTRL,
++ * CM_CEFUSE_CEFUSE_CLKCTRL
++ */
++#define AM33XX_MODULEMODE_SHIFT				0
++#define AM33XX_MODULEMODE_MASK				(0x3 << 0)
++
++/* Used by CM_WKUP_DEBUGSS_CLKCTRL */
++#define AM33XX_OPTCLK_DEBUG_CLKA_SHIFT			30
++#define AM33XX_OPTCLK_DEBUG_CLKA_MASK			(1 << 30)
++
++/* Used by CM_WKUP_DEBUGSS_CLKCTRL */
++#define AM33XX_OPTFCLKEN_DBGSYSCLK_SHIFT		19
++#define AM33XX_OPTFCLKEN_DBGSYSCLK_MASK			(1 << 19)
++
++/* Used by CM_WKUP_GPIO0_CLKCTRL */
++#define AM33XX_OPTFCLKEN_GPIO0_GDBCLK_SHIFT		18
++#define AM33XX_OPTFCLKEN_GPIO0_GDBCLK_MASK		(1 << 18)
++
++/* Used by CM_PER_GPIO1_CLKCTRL */
++#define AM33XX_OPTFCLKEN_GPIO_1_GDBCLK_SHIFT		18
++#define AM33XX_OPTFCLKEN_GPIO_1_GDBCLK_MASK		(1 << 18)
++
++/* Used by CM_PER_GPIO2_CLKCTRL */
++#define AM33XX_OPTFCLKEN_GPIO_2_GDBCLK_SHIFT		18
++#define AM33XX_OPTFCLKEN_GPIO_2_GDBCLK_MASK		(1 << 18)
++
++/* Used by CM_PER_GPIO3_CLKCTRL */
++#define AM33XX_OPTFCLKEN_GPIO_3_GDBCLK_SHIFT		18
++#define AM33XX_OPTFCLKEN_GPIO_3_GDBCLK_MASK		(1 << 18)
++
++/* Used by CM_PER_GPIO4_CLKCTRL */
++#define AM33XX_OPTFCLKEN_GPIO_4_GDBCLK_SHIFT		18
++#define AM33XX_OPTFCLKEN_GPIO_4_GDBCLK_MASK		(1 << 18)
++
++/* Used by CM_PER_GPIO5_CLKCTRL */
++#define AM33XX_OPTFCLKEN_GPIO_5_GDBCLK_SHIFT		18
++#define AM33XX_OPTFCLKEN_GPIO_5_GDBCLK_MASK		(1 << 18)
++
++/* Used by CM_PER_GPIO6_CLKCTRL */
++#define AM33XX_OPTFCLKEN_GPIO_6_GDBCLK_SHIFT		18
++#define AM33XX_OPTFCLKEN_GPIO_6_GDBCLK_MASK		(1 << 18)
++
++/*
++ * Used by CM_MPU_MPU_CLKCTRL, CM_PER_CPGMAC0_CLKCTRL, CM_PER_PRUSS_CLKCTRL,
++ * CM_PER_IEEE5000_CLKCTRL, CM_PER_LCDC_CLKCTRL, CM_PER_MLB_CLKCTRL,
++ * CM_PER_MSTR_EXPS_CLKCTRL, CM_PER_OCPWP_CLKCTRL, CM_PER_PCIE_CLKCTRL,
++ * CM_PER_SPARE_CLKCTRL, CM_PER_TPTC0_CLKCTRL, CM_PER_TPTC1_CLKCTRL,
++ * CM_PER_TPTC2_CLKCTRL, CM_PER_USB0_CLKCTRL, CM_WKUP_DEBUGSS_CLKCTRL,
++ * CM_WKUP_WKUP_M3_CLKCTRL, CM_GFX_BITBLT_CLKCTRL, CM_GFX_GFX_CLKCTRL
++ */
++#define AM33XX_STBYST_SHIFT				18
++#define AM33XX_STBYST_MASK				(1 << 18)
++
++/* Used by CM_WKUP_DEBUGSS_CLKCTRL */
++#define AM33XX_STM_PMD_CLKDIVSEL_SHIFT			27
++#define AM33XX_STM_PMD_CLKDIVSEL_MASK			(0x29 << 27)
++
++/* Used by CM_WKUP_DEBUGSS_CLKCTRL */
++#define AM33XX_STM_PMD_CLKSEL_SHIFT			22
++#define AM33XX_STM_PMD_CLKSEL_MASK			(0x23 << 22)
++
++/*
++ * Used by CM_IDLEST_DPLL_CORE, CM_IDLEST_DPLL_DDR, CM_IDLEST_DPLL_DISP,
++ * CM_IDLEST_DPLL_MPU, CM_IDLEST_DPLL_PER
++ */
++#define AM33XX_ST_DPLL_CLK_SHIFT			0
++#define AM33XX_ST_DPLL_CLK_MASK				(1 << 0)
++
++/* Used by CM_CLKDCOLDO_DPLL_PER */
++#define AM33XX_ST_DPLL_CLKDCOLDO_SHIFT			8
++#define AM33XX_ST_DPLL_CLKDCOLDO_MASK			(1 << 8)
++
++/*
++ * Used by CM_DIV_M2_DPLL_DDR, CM_DIV_M2_DPLL_DISP, CM_DIV_M2_DPLL_MPU,
++ * CM_DIV_M2_DPLL_PER
++ */
++#define AM33XX_ST_DPLL_CLKOUT_SHIFT			9
++#define AM33XX_ST_DPLL_CLKOUT_MASK			(1 << 9)
++
++/* Used by CM_DIV_M4_DPLL_CORE */
++#define AM33XX_ST_HSDIVIDER_CLKOUT1_SHIFT		9
++#define AM33XX_ST_HSDIVIDER_CLKOUT1_MASK		(1 << 9)
++
++/* Used by CM_DIV_M5_DPLL_CORE */
++#define AM33XX_ST_HSDIVIDER_CLKOUT2_SHIFT		9
++#define AM33XX_ST_HSDIVIDER_CLKOUT2_MASK		(1 << 9)
++
++/* Used by CM_DIV_M6_DPLL_CORE */
++#define AM33XX_ST_HSDIVIDER_CLKOUT3_SHIFT		9
++#define AM33XX_ST_HSDIVIDER_CLKOUT3_MASK		(1 << 9)
++
++/*
++ * Used by CM_IDLEST_DPLL_CORE, CM_IDLEST_DPLL_DDR, CM_IDLEST_DPLL_DISP,
++ * CM_IDLEST_DPLL_MPU, CM_IDLEST_DPLL_PER
++ */
++#define AM33XX_ST_MN_BYPASS_SHIFT			8
++#define AM33XX_ST_MN_BYPASS_MASK			(1 << 8)
++
++/* Used by CM_WKUP_DEBUGSS_CLKCTRL */
++#define AM33XX_TRC_PMD_CLKDIVSEL_SHIFT			24
++#define AM33XX_TRC_PMD_CLKDIVSEL_MASK			(0x26 << 24)
++
++/* Used by CM_WKUP_DEBUGSS_CLKCTRL */
++#define AM33XX_TRC_PMD_CLKSEL_SHIFT			20
++#define AM33XX_TRC_PMD_CLKSEL_MASK			(0x21 << 20)
++
++/* Used by CONTROL_SEC_CLK_CTRL */
++#define AM33XX_TIMER0_CLKSEL_MASK			(0x3 << 4)
++#endif
+diff --git a/arch/arm/mach-omap2/cm33xx.c b/arch/arm/mach-omap2/cm33xx.c
+new file mode 100644
+index 0000000..13f56ea
+--- /dev/null
++++ b/arch/arm/mach-omap2/cm33xx.c
+@@ -0,0 +1,313 @@
++/*
++ * AM33XX CM functions
 + *
 + * Copyright (C) 2011-2012 Texas Instruments Incorporated - http://www.ti.com/
 + * Vaibhav Hiremath <hvaibhav@ti.com>
 + *
-+ * Derived from mach-omap2/clockdomain44xx.c written by Rajendra Nayak
++ * Reference taken from from OMAP4 cminst44xx.c
 + *
 + * This program is free software; you can redistribute it and/or
 + * modify it under the terms of the GNU General Public License as
@@ -104,293 +778,844 @@ index 0000000..aca6388
 + */
 +
 +#include <linux/kernel.h>
-+
-+#include "clockdomain.h"
-+#include "cm33xx.h"
-+
-+
-+static int am33xx_clkdm_sleep(struct clockdomain *clkdm)
-+{
-+	am33xx_cm_clkdm_force_sleep(clkdm->cm_inst, clkdm->clkdm_offs);
-+	return 0;
-+}
-+
-+static int am33xx_clkdm_wakeup(struct clockdomain *clkdm)
-+{
-+	am33xx_cm_clkdm_force_wakeup(clkdm->cm_inst, clkdm->clkdm_offs);
-+	return 0;
-+}
-+
-+static void am33xx_clkdm_allow_idle(struct clockdomain *clkdm)
-+{
-+	am33xx_cm_clkdm_enable_hwsup(clkdm->cm_inst, clkdm->clkdm_offs);
-+}
-+
-+static void am33xx_clkdm_deny_idle(struct clockdomain *clkdm)
-+{
-+	am33xx_cm_clkdm_disable_hwsup(clkdm->cm_inst, clkdm->clkdm_offs);
-+}
-+
-+static int am33xx_clkdm_clk_enable(struct clockdomain *clkdm)
-+{
-+	if (clkdm->flags & CLKDM_CAN_FORCE_WAKEUP)
-+		return am33xx_clkdm_wakeup(clkdm);
-+
-+	return 0;
-+}
-+
-+static int am33xx_clkdm_clk_disable(struct clockdomain *clkdm)
-+{
-+	bool hwsup = false;
-+
-+	hwsup = am33xx_cm_is_clkdm_in_hwsup(clkdm->cm_inst, clkdm->clkdm_offs);
-+
-+	if (!hwsup && (clkdm->flags & CLKDM_CAN_FORCE_SLEEP))
-+		am33xx_clkdm_sleep(clkdm);
-+
-+	return 0;
-+}
-+
-+struct clkdm_ops am33xx_clkdm_operations = {
-+	.clkdm_sleep		= am33xx_clkdm_sleep,
-+	.clkdm_wakeup		= am33xx_clkdm_wakeup,
-+	.clkdm_allow_idle	= am33xx_clkdm_allow_idle,
-+	.clkdm_deny_idle	= am33xx_clkdm_deny_idle,
-+	.clkdm_clk_enable	= am33xx_clkdm_clk_enable,
-+	.clkdm_clk_disable	= am33xx_clkdm_clk_disable,
-+};
-diff --git a/arch/arm/mach-omap2/clockdomains33xx_data.c b/arch/arm/mach-omap2/clockdomains33xx_data.c
-new file mode 100644
-index 0000000..234035c
---- /dev/null
-+++ b/arch/arm/mach-omap2/clockdomains33xx_data.c
-@@ -0,0 +1,214 @@
-+/*
-+ * AM33XX Clock Domain data.
-+ *
-+ * Copyright (C) 2011-2012 Texas Instruments Incorporated - http://www.ti.com/
-+ * Vaibhav Hiremath <hvaibhav@ti.com>
-+ *
-+ * This program is free software; you can redistribute it and/or
-+ * modify it under the terms of the GNU General Public License as
-+ * published by the Free Software Foundation version 2.
-+ *
-+ * This program is distributed "as is" WITHOUT ANY WARRANTY of any
-+ * kind, whether express or implied; without even the implied warranty
-+ * of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-+ * GNU General Public License for more details.
-+ */
-+
-+#include <linux/kernel.h>
++#include <linux/types.h>
++#include <linux/errno.h>
++#include <linux/err.h>
 +#include <linux/io.h>
 +
-+#include "clockdomain.h"
++#include <plat/common.h>
++
 +#include "cm.h"
 +#include "cm33xx.h"
++#include "cm-regbits-34xx.h"
 +#include "cm-regbits-33xx.h"
++#include "prm33xx.h"
 +
-+static struct clockdomain l4ls_am33xx_clkdm = {
-+	.name		= "l4ls_clkdm",
-+	.pwrdm		= { .name = "per_pwrdm" },
-+	.cm_inst	= AM33XX_CM_PER_MOD,
-+	.clkdm_offs	= AM33XX_CM_PER_L4LS_CLKSTCTRL_OFFSET,
-+	.clktrctrl_mask	= AM33XX_CLKTRCTRL_MASK,
-+	.flags		= (CLKDM_CAN_SWSUP | CLKDM_NO_AUTODEPS),
-+};
++/*
++ * CLKCTRL_IDLEST_*: possible values for the CM_*_CLKCTRL.IDLEST bitfield:
++ *
++ *   0x0 func:     Module is fully functional, including OCP
++ *   0x1 trans:    Module is performing transition: wakeup, or sleep, or sleep
++ *                 abortion
++ *   0x2 idle:     Module is in Idle mode (only OCP part). It is functional if
++ *                 using separate functional clock
++ *   0x3 disabled: Module is disabled and cannot be accessed
++ *
++ */
++#define CLKCTRL_IDLEST_FUNCTIONAL		0x0
++#define CLKCTRL_IDLEST_INTRANSITION		0x1
++#define CLKCTRL_IDLEST_INTERFACE_IDLE		0x2
++#define CLKCTRL_IDLEST_DISABLED			0x3
 +
-+static struct clockdomain l3s_am33xx_clkdm = {
-+	.name		= "l3s_clkdm",
-+	.pwrdm		= { .name = "per_pwrdm" },
-+	.cm_inst	= AM33XX_CM_PER_MOD,
-+	.clkdm_offs	= AM33XX_CM_PER_L3S_CLKSTCTRL_OFFSET,
-+	.clktrctrl_mask	= AM33XX_CLKTRCTRL_MASK,
-+	.flags		= (CLKDM_CAN_SWSUP | CLKDM_NO_AUTODEPS),
-+};
++/* Private functions */
 +
-+static struct clockdomain l4fw_am33xx_clkdm = {
-+	.name		= "l4fw_clkdm",
-+	.pwrdm		= { .name = "per_pwrdm" },
-+	.cm_inst	= AM33XX_CM_PER_MOD,
-+	.clkdm_offs	= AM33XX_CM_PER_L4FW_CLKSTCTRL_OFFSET,
-+	.clktrctrl_mask	= AM33XX_CLKTRCTRL_MASK,
-+	.flags		= (CLKDM_CAN_SWSUP | CLKDM_NO_AUTODEPS),
-+};
-+
-+static struct clockdomain l3_am33xx_clkdm = {
-+	.name		= "l3_clkdm",
-+	.pwrdm		= { .name = "per_pwrdm" },
-+	.cm_inst	= AM33XX_CM_PER_MOD,
-+	.clkdm_offs	= AM33XX_CM_PER_L3_CLKSTCTRL_OFFSET,
-+	.clktrctrl_mask	= AM33XX_CLKTRCTRL_MASK,
-+	.flags		= (CLKDM_CAN_SWSUP | CLKDM_NO_AUTODEPS),
-+};
-+
-+static struct clockdomain l4hs_am33xx_clkdm = {
-+	.name		= "l4hs_clkdm",
-+	.pwrdm		= { .name = "per_pwrdm" },
-+	.cm_inst	= AM33XX_CM_PER_MOD,
-+	.clkdm_offs	= AM33XX_CM_PER_L4HS_CLKSTCTRL_OFFSET,
-+	.clktrctrl_mask	= AM33XX_CLKTRCTRL_MASK,
-+	.flags		= (CLKDM_CAN_SWSUP | CLKDM_NO_AUTODEPS),
-+};
-+
-+static struct clockdomain ocpwp_l3_am33xx_clkdm = {
-+	.name		= "ocpwp_l3_clkdm",
-+	.pwrdm		= { .name = "per_pwrdm" },
-+	.cm_inst	= AM33XX_CM_PER_MOD,
-+	.clkdm_offs	= AM33XX_CM_PER_OCPWP_L3_CLKSTCTRL_OFFSET,
-+	.clktrctrl_mask	= AM33XX_CLKTRCTRL_MASK,
-+	.flags		= (CLKDM_CAN_SWSUP | CLKDM_NO_AUTODEPS),
-+};
-+
-+static struct clockdomain pruss_ocp_am33xx_clkdm = {
-+	.name		= "pruss_ocp_clkdm",
-+	.pwrdm		= { .name = "per_pwrdm" },
-+	.cm_inst	= AM33XX_CM_PER_MOD,
-+	.clkdm_offs	= AM33XX_CM_PER_PRUSS_CLKSTCTRL_OFFSET,
-+	.clktrctrl_mask	= AM33XX_CLKTRCTRL_MASK,
-+	.flags		= (CLKDM_CAN_SWSUP | CLKDM_NO_AUTODEPS),
-+};
-+
-+static struct clockdomain cpsw_125mhz_am33xx_clkdm = {
-+	.name		= "cpsw_125mhz_clkdm",
-+	.pwrdm		= { .name = "per_pwrdm" },
-+	.cm_inst	= AM33XX_CM_PER_MOD,
-+	.clkdm_offs	= AM33XX_CM_PER_CPSW_CLKSTCTRL_OFFSET,
-+	.clktrctrl_mask	= AM33XX_CLKTRCTRL_MASK,
-+	.flags		= (CLKDM_CAN_SWSUP | CLKDM_NO_AUTODEPS),
-+};
-+
-+static struct clockdomain lcdc_am33xx_clkdm = {
-+	.name		= "lcdc_clkdm",
-+	.pwrdm		= { .name = "per_pwrdm" },
-+	.cm_inst	= AM33XX_CM_PER_MOD,
-+	.clkdm_offs	= AM33XX_CM_PER_LCDC_CLKSTCTRL_OFFSET,
-+	.clktrctrl_mask	= AM33XX_CLKTRCTRL_MASK,
-+	.flags		= (CLKDM_CAN_SWSUP | CLKDM_NO_AUTODEPS),
-+};
-+
-+static struct clockdomain clk_24mhz_am33xx_clkdm = {
-+	.name		= "clk_24mhz_clkdm",
-+	.pwrdm		= { .name = "per_pwrdm" },
-+	.cm_inst	= AM33XX_CM_PER_MOD,
-+	.clkdm_offs	= AM33XX_CM_PER_CLK_24MHZ_CLKSTCTRL_OFFSET,
-+	.clktrctrl_mask	= AM33XX_CLKTRCTRL_MASK,
-+	.flags		= (CLKDM_CAN_SWSUP | CLKDM_NO_AUTODEPS),
-+};
-+
-+static struct clockdomain l4_wkup_am33xx_clkdm = {
-+	.name		= "l4_wkup_clkdm",
-+	.pwrdm		= { .name = "wkup_pwrdm" },
-+	.cm_inst	= AM33XX_CM_WKUP_MOD,
-+	.clkdm_offs	= AM33XX_CM_WKUP_CLKSTCTRL_OFFSET,
-+	.clktrctrl_mask	= AM33XX_CLKTRCTRL_MASK,
-+	.flags		= (CLKDM_CAN_SWSUP | CLKDM_NO_AUTODEPS),
-+};
-+
-+static struct clockdomain l3_aon_am33xx_clkdm = {
-+	.name		= "l3_aon_clkdm",
-+	.pwrdm		= { .name = "wkup_pwrdm" },
-+	.cm_inst	= AM33XX_CM_WKUP_MOD,
-+	.clkdm_offs	= AM33XX_CM_L3_AON_CLKSTCTRL_OFFSET,
-+	.clktrctrl_mask	= AM33XX_CLKTRCTRL_MASK,
-+	.flags		= (CLKDM_CAN_SWSUP | CLKDM_NO_AUTODEPS),
-+};
-+
-+static struct clockdomain l4_wkup_aon_am33xx_clkdm = {
-+	.name		= "l4_wkup_aon_clkdm",
-+	.pwrdm		= { .name = "wkup_pwrdm" },
-+	.cm_inst	= AM33XX_CM_WKUP_MOD,
-+	.clkdm_offs	= AM33XX_CM_L4_WKUP_AON_CLKSTCTRL_OFFSET,
-+	.clktrctrl_mask	= AM33XX_CLKTRCTRL_MASK,
-+	.flags		= (CLKDM_CAN_SWSUP | CLKDM_NO_AUTODEPS),
-+};
-+
-+static struct clockdomain mpu_am33xx_clkdm = {
-+	.name		= "mpu_clkdm",
-+	.pwrdm		= { .name = "mpu_pwrdm" },
-+	.cm_inst	= AM33XX_CM_MPU_MOD,
-+	.clkdm_offs	= AM33XX_CM_MPU_CLKSTCTRL_OFFSET,
-+	.clktrctrl_mask	= AM33XX_CLKTRCTRL_MASK,
-+	.flags		= (CLKDM_CAN_SWSUP | CLKDM_NO_AUTODEPS),
-+};
-+
-+static struct clockdomain l4_rtc_am33xx_clkdm = {
-+	.name		= "l4_rtc_clkdm",
-+	.pwrdm		= { .name = "rtc_pwrdm" },
-+	.cm_inst	= AM33XX_CM_RTC_MOD,
-+	.clkdm_offs	= AM33XX_CM_RTC_CLKSTCTRL_OFFSET,
-+	.clktrctrl_mask	= AM33XX_CLKTRCTRL_MASK,
-+	.flags		= (CLKDM_CAN_SWSUP | CLKDM_NO_AUTODEPS),
-+};
-+
-+static struct clockdomain gfx_l3_am33xx_clkdm = {
-+	.name		= "gfx_l3_clkdm",
-+	.pwrdm		= { .name = "gfx_pwrdm" },
-+	.cm_inst	= AM33XX_CM_GFX_MOD,
-+	.clkdm_offs	= AM33XX_CM_GFX_L3_CLKSTCTRL_OFFSET,
-+	.clktrctrl_mask	= AM33XX_CLKTRCTRL_MASK,
-+	.flags		= (CLKDM_CAN_SWSUP | CLKDM_NO_AUTODEPS),
-+};
-+
-+static struct clockdomain gfx_l4ls_gfx_am33xx_clkdm = {
-+	.name		= "gfx_l4ls_gfx_clkdm",
-+	.pwrdm		= { .name = "gfx_pwrdm" },
-+	.cm_inst	= AM33XX_CM_GFX_MOD,
-+	.clkdm_offs	= AM33XX_CM_GFX_L4LS_GFX_CLKSTCTRL__1_OFFSET,
-+	.clktrctrl_mask	= AM33XX_CLKTRCTRL_MASK,
-+	.flags		= (CLKDM_CAN_SWSUP | CLKDM_NO_AUTODEPS),
-+};
-+
-+static struct clockdomain l4_cefuse_am33xx_clkdm = {
-+	.name		= "l4_cefuse_clkdm",
-+	.pwrdm		= { .name = "cefuse_pwrdm" },
-+	.cm_inst	= AM33XX_CM_CEFUSE_MOD,
-+	.clkdm_offs	= AM33XX_CM_CEFUSE_CLKSTCTRL_OFFSET,
-+	.clktrctrl_mask	= AM33XX_CLKTRCTRL_MASK,
-+	.flags		= (CLKDM_CAN_SWSUP | CLKDM_NO_AUTODEPS),
-+};
-+
-+static struct clockdomain *clockdomains_am33xx[] __initdata = {
-+	&l4ls_am33xx_clkdm,
-+	&l3s_am33xx_clkdm,
-+	&l4fw_am33xx_clkdm,
-+	&l3_am33xx_clkdm,
-+	&l4hs_am33xx_clkdm,
-+	&ocpwp_l3_am33xx_clkdm,
-+	&pruss_ocp_am33xx_clkdm,
-+	&cpsw_125mhz_am33xx_clkdm,
-+	&lcdc_am33xx_clkdm,
-+	&clk_24mhz_am33xx_clkdm,
-+	&l4_wkup_am33xx_clkdm,
-+	&l3_aon_am33xx_clkdm,
-+	&l4_wkup_aon_am33xx_clkdm,
-+	&mpu_am33xx_clkdm,
-+	&l4_rtc_am33xx_clkdm,
-+	&gfx_l3_am33xx_clkdm,
-+	&gfx_l4ls_gfx_am33xx_clkdm,
-+	&l4_cefuse_am33xx_clkdm,
-+	NULL,
-+};
-+
-+void __init am33xx_clockdomains_init(void)
++/* Read a register in a CM instance */
++static inline u32 am33xx_cm_read_reg(s16 inst, u16 idx)
 +{
-+	clkdm_register_platform_funcs(&am33xx_clkdm_operations);
-+	clkdm_register_clkdms(clockdomains_am33xx);
-+	clkdm_complete_init();
++	return __raw_readl(cm_base + inst + idx);
 +}
-diff --git a/arch/arm/mach-omap2/io.c b/arch/arm/mach-omap2/io.c
-index b594918..be08dc7 100644
---- a/arch/arm/mach-omap2/io.c
-+++ b/arch/arm/mach-omap2/io.c
-@@ -474,6 +474,7 @@ void __init am33xx_init_early(void)
- 	omap_common_init_early();
- 	am33xx_voltagedomains_init();
- 	am33xx_powerdomains_init();
-+	am33xx_clockdomains_init();
- 	omap3xxx_clk_init();
++
++/* Write into a register in a CM */
++static inline void am33xx_cm_write_reg(u32 val, s16 inst, u16 idx)
++{
++	__raw_writel(val, cm_base + inst + idx);
++}
++
++/* Read-modify-write a register in CM */
++static inline u32 am33xx_cm_rmw_reg_bits(u32 mask, u32 bits, s16 inst, s16 idx)
++{
++	u32 v;
++
++	v = am33xx_cm_read_reg(inst, idx);
++	v &= ~mask;
++	v |= bits;
++	am33xx_cm_write_reg(v, inst, idx);
++
++	return v;
++}
++
++static inline u32 am33xx_cm_set_reg_bits(u32 bits, s16 inst, s16 idx)
++{
++	return am33xx_cm_rmw_reg_bits(bits, bits, inst, idx);
++}
++
++static inline u32 am33xx_cm_clear_reg_bits(u32 bits, s16 inst, s16 idx)
++{
++	return am33xx_cm_rmw_reg_bits(bits, 0x0, inst, idx);
++}
++
++static inline u32 am33xx_cm_read_reg_bits(u16 inst, s16 idx, u32 mask)
++{
++	u32 v;
++
++	v = am33xx_cm_read_reg(inst, idx);
++	v &= mask;
++	v >>= __ffs(mask);
++
++	return v;
++}
++
++/**
++ * _clkctrl_idlest - read a CM_*_CLKCTRL register; mask & shift IDLEST bitfield
++ * @inst: CM instance register offset (*_INST macro)
++ * @cdoffs: Clockdomain register offset (*_CDOFFS macro)
++ * @clkctrl_offs: Module clock control register offset (*_CLKCTRL macro)
++ *
++ * Return the IDLEST bitfield of a CM_*_CLKCTRL register, shifted down to
++ * bit 0.
++ */
++static u32 _clkctrl_idlest(u16 inst, s16 cdoffs, u16 clkctrl_offs)
++{
++	u32 v = am33xx_cm_read_reg(inst, clkctrl_offs);
++	v &= AM33XX_IDLEST_MASK;
++	v >>= AM33XX_IDLEST_SHIFT;
++	return v;
++}
++
++/**
++ * _is_module_ready - can module registers be accessed without causing an abort?
++ * @inst: CM instance register offset (*_INST macro)
++ * @cdoffs: Clockdomain register offset (*_CDOFFS macro)
++ * @clkctrl_offs: Module clock control register offset (*_CLKCTRL macro)
++ *
++ * Returns true if the module's CM_*_CLKCTRL.IDLEST bitfield is either
++ * *FUNCTIONAL or *INTERFACE_IDLE; false otherwise.
++ */
++static bool _is_module_ready(u16 inst, s16 cdoffs, u16 clkctrl_offs)
++{
++	u32 v;
++
++	v = _clkctrl_idlest(inst, cdoffs, clkctrl_offs);
++
++	return (v == CLKCTRL_IDLEST_FUNCTIONAL ||
++		v == CLKCTRL_IDLEST_INTERFACE_IDLE) ? true : false;
++}
++
++/**
++ * _clktrctrl_write - write @c to a CM_CLKSTCTRL.CLKTRCTRL register bitfield
++ * @c: CLKTRCTRL register bitfield (LSB = bit 0, i.e., unshifted)
++ * @inst: CM instance register offset (*_INST macro)
++ * @cdoffs: Clockdomain register offset (*_CDOFFS macro)
++ *
++ * @c must be the unshifted value for CLKTRCTRL - i.e., this function
++ * will handle the shift itself.
++ */
++static void _clktrctrl_write(u8 c, s16 inst, u16 cdoffs)
++{
++	u32 v;
++
++	v = am33xx_cm_read_reg(inst, cdoffs);
++	v &= ~AM33XX_CLKTRCTRL_MASK;
++	v |= c << AM33XX_CLKTRCTRL_SHIFT;
++	am33xx_cm_write_reg(v, inst, cdoffs);
++}
++
++/* Public functions */
++
++/**
++ * am33xx_cm_is_clkdm_in_hwsup - is a clockdomain in hwsup idle mode?
++ * @inst: CM instance register offset (*_INST macro)
++ * @cdoffs: Clockdomain register offset (*_CDOFFS macro)
++ *
++ * Returns true if the clockdomain referred to by (@inst, @cdoffs)
++ * is in hardware-supervised idle mode, or 0 otherwise.
++ */
++bool am33xx_cm_is_clkdm_in_hwsup(s16 inst, u16 cdoffs)
++{
++	u32 v;
++
++	v = am33xx_cm_read_reg(inst, cdoffs);
++	v &= AM33XX_CLKTRCTRL_MASK;
++	v >>= AM33XX_CLKTRCTRL_SHIFT;
++
++	return (v == OMAP34XX_CLKSTCTRL_ENABLE_AUTO) ? true : false;
++}
++
++/**
++ * am33xx_cm_clkdm_enable_hwsup - put a clockdomain in hwsup-idle mode
++ * @inst: CM instance register offset (*_INST macro)
++ * @cdoffs: Clockdomain register offset (*_CDOFFS macro)
++ *
++ * Put a clockdomain referred to by (@inst, @cdoffs) into
++ * hardware-supervised idle mode.  No return value.
++ */
++void am33xx_cm_clkdm_enable_hwsup(s16 inst, u16 cdoffs)
++{
++	_clktrctrl_write(OMAP34XX_CLKSTCTRL_ENABLE_AUTO, inst, cdoffs);
++}
++
++/**
++ * am33xx_cm_clkdm_disable_hwsup - put a clockdomain in swsup-idle mode
++ * @inst: CM instance register offset (*_INST macro)
++ * @cdoffs: Clockdomain register offset (*_CDOFFS macro)
++ *
++ * Put a clockdomain referred to by (@inst, @cdoffs) into
++ * software-supervised idle mode, i.e., controlled manually by the
++ * Linux OMAP clockdomain code.  No return value.
++ */
++void am33xx_cm_clkdm_disable_hwsup(s16 inst, u16 cdoffs)
++{
++	_clktrctrl_write(OMAP34XX_CLKSTCTRL_DISABLE_AUTO, inst, cdoffs);
++}
++
++/**
++ * am33xx_cm_clkdm_force_sleep - try to put a clockdomain into idle
++ * @inst: CM instance register offset (*_INST macro)
++ * @cdoffs: Clockdomain register offset (*_CDOFFS macro)
++ *
++ * Put a clockdomain referred to by (@inst, @cdoffs) into idle
++ * No return value.
++ */
++void am33xx_cm_clkdm_force_sleep(s16 inst, u16 cdoffs)
++{
++	_clktrctrl_write(OMAP34XX_CLKSTCTRL_FORCE_SLEEP, inst, cdoffs);
++}
++
++/**
++ * am33xx_cm_clkdm_force_wakeup - try to take a clockdomain out of idle
++ * @inst: CM instance register offset (*_INST macro)
++ * @cdoffs: Clockdomain register offset (*_CDOFFS macro)
++ *
++ * Take a clockdomain referred to by (@inst, @cdoffs) out of idle,
++ * waking it up.  No return value.
++ */
++void am33xx_cm_clkdm_force_wakeup(s16 inst, u16 cdoffs)
++{
++	_clktrctrl_write(OMAP34XX_CLKSTCTRL_FORCE_WAKEUP, inst, cdoffs);
++}
++
++/*
++ *
++ */
++
++/**
++ * am33xx_cm_wait_module_ready - wait for a module to be in 'func' state
++ * @inst: CM instance register offset (*_INST macro)
++ * @cdoffs: Clockdomain register offset (*_CDOFFS macro)
++ * @clkctrl_offs: Module clock control register offset (*_CLKCTRL macro)
++ *
++ * Wait for the module IDLEST to be functional. If the idle state is in any
++ * the non functional state (trans, idle or disabled), module and thus the
++ * sysconfig cannot be accessed and will probably lead to an "imprecise
++ * external abort"
++ */
++int am33xx_cm_wait_module_ready(u16 inst, s16 cdoffs, u16 clkctrl_offs)
++{
++	int i = 0;
++
++	if (!clkctrl_offs)
++		return 0;
++
++	omap_test_timeout(_is_module_ready(inst, cdoffs, clkctrl_offs),
++			  MAX_MODULE_READY_TIME, i);
++
++	return (i < MAX_MODULE_READY_TIME) ? 0 : -EBUSY;
++}
++
++/**
++ * am33xx_cm_wait_module_idle - wait for a module to be in 'disabled'
++ * state
++ * @inst: CM instance register offset (*_INST macro)
++ * @cdoffs: Clockdomain register offset (*_CDOFFS macro)
++ * @clkctrl_offs: Module clock control register offset (*_CLKCTRL macro)
++ *
++ * Wait for the module IDLEST to be disabled. Some PRCM transition,
++ * like reset assertion or parent clock de-activation must wait the
++ * module to be fully disabled.
++ */
++int am33xx_cm_wait_module_idle(u16 inst, s16 cdoffs, u16 clkctrl_offs)
++{
++	int i = 0;
++
++	if (!clkctrl_offs)
++		return 0;
++
++	omap_test_timeout((_clkctrl_idlest(inst, cdoffs, clkctrl_offs) ==
++				CLKCTRL_IDLEST_DISABLED),
++				MAX_MODULE_READY_TIME, i);
++
++	return (i < MAX_MODULE_READY_TIME) ? 0 : -EBUSY;
++}
++
++/**
++ * am33xx_cm_module_enable - Enable the modulemode inside CLKCTRL
++ * @mode: Module mode (SW or HW)
++ * @inst: CM instance register offset (*_INST macro)
++ * @cdoffs: Clockdomain register offset (*_CDOFFS macro)
++ * @clkctrl_offs: Module clock control register offset (*_CLKCTRL macro)
++ *
++ * No return value.
++ */
++void am33xx_cm_module_enable(u8 mode, u16 inst, s16 cdoffs, u16 clkctrl_offs)
++{
++	u32 v;
++
++	v = am33xx_cm_read_reg(inst, clkctrl_offs);
++	v &= ~AM33XX_MODULEMODE_MASK;
++	v |= mode << AM33XX_MODULEMODE_SHIFT;
++	am33xx_cm_write_reg(v, inst, clkctrl_offs);
++}
++
++/**
++ * am33xx_cm_module_disable - Disable the module inside CLKCTRL
++ * @inst: CM instance register offset (*_INST macro)
++ * @cdoffs: Clockdomain register offset (*_CDOFFS macro)
++ * @clkctrl_offs: Module clock control register offset (*_CLKCTRL macro)
++ *
++ * No return value.
++ */
++void am33xx_cm_module_disable(u16 inst, s16 cdoffs, u16 clkctrl_offs)
++{
++	u32 v;
++
++	v = am33xx_cm_read_reg(inst, clkctrl_offs);
++	v &= ~AM33XX_MODULEMODE_MASK;
++	am33xx_cm_write_reg(v, inst, clkctrl_offs);
++}
+diff --git a/arch/arm/mach-omap2/cm33xx.h b/arch/arm/mach-omap2/cm33xx.h
+new file mode 100644
+index 0000000..ccc7eb6
+--- /dev/null
++++ b/arch/arm/mach-omap2/cm33xx.h
+@@ -0,0 +1,420 @@
++/*
++ * AM33XX CM offset macros
++ *
++ * Copyright (C) 2011-2012 Texas Instruments Incorporated - http://www.ti.com/
++ * Vaibhav Hiremath <hvaibhav@ti.com>
++ *
++ * This program is free software; you can redistribute it and/or
++ * modify it under the terms of the GNU General Public License as
++ * published by the Free Software Foundation version 2.
++ *
++ * This program is distributed "as is" WITHOUT ANY WARRANTY of any
++ * kind, whether express or implied; without even the implied warranty
++ * of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
++ * GNU General Public License for more details.
++ */
++
++#ifndef __ARCH_ARM_MACH_OMAP2_CM_33XX_H
++#define __ARCH_ARM_MACH_OMAP2_CM_33XX_H
++
++#include <linux/delay.h>
++#include <linux/errno.h>
++#include <linux/err.h>
++#include <linux/io.h>
++
++#include "common.h"
++
++#include "cm.h"
++#include "cm-regbits-33xx.h"
++#include "cm33xx.h"
++
++/* CM base address */
++#define AM33XX_CM_BASE		0x44e00000
++
++#define AM33XX_CM_REGADDR(inst, reg)				\
++	AM33XX_L4_WK_IO_ADDRESS(AM33XX_CM_BASE + (inst) + (reg))
++
++/* CM instances */
++#define AM33XX_CM_PER_MOD		0x0000
++#define AM33XX_CM_WKUP_MOD		0x0400
++#define AM33XX_CM_DPLL_MOD		0x0500
++#define AM33XX_CM_MPU_MOD		0x0600
++#define AM33XX_CM_DEVICE_MOD		0x0700
++#define AM33XX_CM_RTC_MOD		0x0800
++#define AM33XX_CM_GFX_MOD		0x0900
++#define AM33XX_CM_CEFUSE_MOD		0x0A00
++
++/* CM */
++
++/* CM.PER_CM register offsets */
++#define AM33XX_CM_PER_L4LS_CLKSTCTRL_OFFSET		0x0000
++#define AM33XX_CM_PER_L4LS_CLKSTCTRL			AM33XX_CM_REGADDR(AM33XX_CM_PER_MOD, 0x0000)
++#define AM33XX_CM_PER_L3S_CLKSTCTRL_OFFSET		0x0004
++#define AM33XX_CM_PER_L3S_CLKSTCTRL			AM33XX_CM_REGADDR(AM33XX_CM_PER_MOD, 0x0004)
++#define AM33XX_CM_PER_L4FW_CLKSTCTRL_OFFSET		0x0008
++#define AM33XX_CM_PER_L4FW_CLKSTCTRL			AM33XX_CM_REGADDR(AM33XX_CM_PER_MOD, 0x0008)
++#define AM33XX_CM_PER_L3_CLKSTCTRL_OFFSET		0x000c
++#define AM33XX_CM_PER_L3_CLKSTCTRL			AM33XX_CM_REGADDR(AM33XX_CM_PER_MOD, 0x000c)
++#define AM33XX_CM_PER_CPGMAC0_CLKCTRL_OFFSET		0x0014
++#define AM33XX_CM_PER_CPGMAC0_CLKCTRL			AM33XX_CM_REGADDR(AM33XX_CM_PER_MOD, 0x0014)
++#define AM33XX_CM_PER_LCDC_CLKCTRL_OFFSET		0x0018
++#define AM33XX_CM_PER_LCDC_CLKCTRL			AM33XX_CM_REGADDR(AM33XX_CM_PER_MOD, 0x0018)
++#define AM33XX_CM_PER_USB0_CLKCTRL_OFFSET		0x001c
++#define AM33XX_CM_PER_USB0_CLKCTRL			AM33XX_CM_REGADDR(AM33XX_CM_PER_MOD, 0x001c)
++#define AM33XX_CM_PER_MLB_CLKCTRL_OFFSET		0x0020
++#define AM33XX_CM_PER_MLB_CLKCTRL			AM33XX_CM_REGADDR(AM33XX_CM_PER_MOD, 0x0020)
++#define AM33XX_CM_PER_TPTC0_CLKCTRL_OFFSET		0x0024
++#define AM33XX_CM_PER_TPTC0_CLKCTRL			AM33XX_CM_REGADDR(AM33XX_CM_PER_MOD, 0x0024)
++#define AM33XX_CM_PER_EMIF_CLKCTRL_OFFSET		0x0028
++#define AM33XX_CM_PER_EMIF_CLKCTRL			AM33XX_CM_REGADDR(AM33XX_CM_PER_MOD, 0x0028)
++#define AM33XX_CM_PER_OCMCRAM_CLKCTRL_OFFSET		0x002c
++#define AM33XX_CM_PER_OCMCRAM_CLKCTRL			AM33XX_CM_REGADDR(AM33XX_CM_PER_MOD, 0x002c)
++#define AM33XX_CM_PER_GPMC_CLKCTRL_OFFSET		0x0030
++#define AM33XX_CM_PER_GPMC_CLKCTRL			AM33XX_CM_REGADDR(AM33XX_CM_PER_MOD, 0x0030)
++#define AM33XX_CM_PER_MCASP0_CLKCTRL_OFFSET		0x0034
++#define AM33XX_CM_PER_MCASP0_CLKCTRL			AM33XX_CM_REGADDR(AM33XX_CM_PER_MOD, 0x0034)
++#define AM33XX_CM_PER_UART5_CLKCTRL_OFFSET		0x0038
++#define AM33XX_CM_PER_UART5_CLKCTRL			AM33XX_CM_REGADDR(AM33XX_CM_PER_MOD, 0x0038)
++#define AM33XX_CM_PER_MMC0_CLKCTRL_OFFSET		0x003c
++#define AM33XX_CM_PER_MMC0_CLKCTRL			AM33XX_CM_REGADDR(AM33XX_CM_PER_MOD, 0x003c)
++#define AM33XX_CM_PER_ELM_CLKCTRL_OFFSET		0x0040
++#define AM33XX_CM_PER_ELM_CLKCTRL			AM33XX_CM_REGADDR(AM33XX_CM_PER_MOD, 0x0040)
++#define AM33XX_CM_PER_I2C2_CLKCTRL_OFFSET		0x0044
++#define AM33XX_CM_PER_I2C2_CLKCTRL			AM33XX_CM_REGADDR(AM33XX_CM_PER_MOD, 0x0044)
++#define AM33XX_CM_PER_I2C1_CLKCTRL_OFFSET		0x0048
++#define AM33XX_CM_PER_I2C1_CLKCTRL			AM33XX_CM_REGADDR(AM33XX_CM_PER_MOD, 0x0048)
++#define AM33XX_CM_PER_SPI0_CLKCTRL_OFFSET		0x004c
++#define AM33XX_CM_PER_SPI0_CLKCTRL			AM33XX_CM_REGADDR(AM33XX_CM_PER_MOD, 0x004c)
++#define AM33XX_CM_PER_SPI1_CLKCTRL_OFFSET		0x0050
++#define AM33XX_CM_PER_SPI1_CLKCTRL			AM33XX_CM_REGADDR(AM33XX_CM_PER_MOD, 0x0050)
++#define AM33XX_CM_PER_SPI2_CLKCTRL_OFFSET		0x0054
++#define AM33XX_CM_PER_SPI2_CLKCTRL			AM33XX_CM_REGADDR(AM33XX_CM_PER_MOD, 0x0054)
++#define AM33XX_CM_PER_SPI3_CLKCTRL_OFFSET		0x0058
++#define AM33XX_CM_PER_SPI3_CLKCTRL			AM33XX_CM_REGADDR(AM33XX_CM_PER_MOD, 0x0058)
++#define AM33XX_CM_PER_L4LS_CLKCTRL_OFFSET		0x0060
++#define AM33XX_CM_PER_L4LS_CLKCTRL			AM33XX_CM_REGADDR(AM33XX_CM_PER_MOD, 0x0060)
++#define AM33XX_CM_PER_L4FW_CLKCTRL_OFFSET		0x0064
++#define AM33XX_CM_PER_L4FW_CLKCTRL			AM33XX_CM_REGADDR(AM33XX_CM_PER_MOD, 0x0064)
++#define AM33XX_CM_PER_MCASP1_CLKCTRL_OFFSET		0x0068
++#define AM33XX_CM_PER_MCASP1_CLKCTRL			AM33XX_CM_REGADDR(AM33XX_CM_PER_MOD, 0x0068)
++#define AM33XX_CM_PER_UART1_CLKCTRL_OFFSET		0x006c
++#define AM33XX_CM_PER_UART1_CLKCTRL			AM33XX_CM_REGADDR(AM33XX_CM_PER_MOD, 0x006c)
++#define AM33XX_CM_PER_UART2_CLKCTRL_OFFSET		0x0070
++#define AM33XX_CM_PER_UART2_CLKCTRL			AM33XX_CM_REGADDR(AM33XX_CM_PER_MOD, 0x0070)
++#define AM33XX_CM_PER_UART3_CLKCTRL_OFFSET		0x0074
++#define AM33XX_CM_PER_UART3_CLKCTRL			AM33XX_CM_REGADDR(AM33XX_CM_PER_MOD, 0x0074)
++#define AM33XX_CM_PER_UART4_CLKCTRL_OFFSET		0x0078
++#define AM33XX_CM_PER_UART4_CLKCTRL			AM33XX_CM_REGADDR(AM33XX_CM_PER_MOD, 0x0078)
++#define AM33XX_CM_PER_TIMER7_CLKCTRL_OFFSET		0x007c
++#define AM33XX_CM_PER_TIMER7_CLKCTRL			AM33XX_CM_REGADDR(AM33XX_CM_PER_MOD, 0x007c)
++#define AM33XX_CM_PER_TIMER2_CLKCTRL_OFFSET		0x0080
++#define AM33XX_CM_PER_TIMER2_CLKCTRL			AM33XX_CM_REGADDR(AM33XX_CM_PER_MOD, 0x0080)
++#define AM33XX_CM_PER_TIMER3_CLKCTRL_OFFSET		0x0084
++#define AM33XX_CM_PER_TIMER3_CLKCTRL			AM33XX_CM_REGADDR(AM33XX_CM_PER_MOD, 0x0084)
++#define AM33XX_CM_PER_TIMER4_CLKCTRL_OFFSET		0x0088
++#define AM33XX_CM_PER_TIMER4_CLKCTRL			AM33XX_CM_REGADDR(AM33XX_CM_PER_MOD, 0x0088)
++#define AM33XX_CM_PER_MCASP2_CLKCTRL_OFFSET		0x008c
++#define AM33XX_CM_PER_MCASP2_CLKCTRL			AM33XX_CM_REGADDR(AM33XX_CM_PER_MOD, 0x008c)
++#define AM33XX_CM_PER_RNG_CLKCTRL_OFFSET		0x0090
++#define AM33XX_CM_PER_RNG_CLKCTRL			AM33XX_CM_REGADDR(AM33XX_CM_PER_MOD, 0x0090)
++#define AM33XX_CM_PER_AES0_CLKCTRL_OFFSET		0x0094
++#define AM33XX_CM_PER_AES0_CLKCTRL			AM33XX_CM_REGADDR(AM33XX_CM_PER_MOD, 0x0094)
++#define AM33XX_CM_PER_AES1_CLKCTRL_OFFSET		0x0098
++#define AM33XX_CM_PER_AES1_CLKCTRL			AM33XX_CM_REGADDR(AM33XX_CM_PER_MOD, 0x0098)
++#define AM33XX_CM_PER_DES_CLKCTRL_OFFSET		0x009c
++#define AM33XX_CM_PER_DES_CLKCTRL			AM33XX_CM_REGADDR(AM33XX_CM_PER_MOD, 0x009c)
++#define AM33XX_CM_PER_SHA0_CLKCTRL_OFFSET		0x00a0
++#define AM33XX_CM_PER_SHA0_CLKCTRL			AM33XX_CM_REGADDR(AM33XX_CM_PER_MOD, 0x00a0)
++#define AM33XX_CM_PER_PKA_CLKCTRL_OFFSET		0x00a4
++#define AM33XX_CM_PER_PKA_CLKCTRL			AM33XX_CM_REGADDR(AM33XX_CM_PER_MOD, 0x00a4)
++#define AM33XX_CM_PER_GPIO6_CLKCTRL_OFFSET		0x00a8
++#define AM33XX_CM_PER_GPIO6_CLKCTRL			AM33XX_CM_REGADDR(AM33XX_CM_PER_MOD, 0x00a8)
++#define AM33XX_CM_PER_GPIO1_CLKCTRL_OFFSET		0x00ac
++#define AM33XX_CM_PER_GPIO1_CLKCTRL			AM33XX_CM_REGADDR(AM33XX_CM_PER_MOD, 0x00ac)
++#define AM33XX_CM_PER_GPIO2_CLKCTRL_OFFSET		0x00b0
++#define AM33XX_CM_PER_GPIO2_CLKCTRL			AM33XX_CM_REGADDR(AM33XX_CM_PER_MOD, 0x00b0)
++#define AM33XX_CM_PER_GPIO3_CLKCTRL_OFFSET		0x00b4
++#define AM33XX_CM_PER_GPIO3_CLKCTRL			AM33XX_CM_REGADDR(AM33XX_CM_PER_MOD, 0x00b4)
++#define AM33XX_CM_PER_GPIO4_CLKCTRL_OFFSET		0x00b8
++#define AM33XX_CM_PER_GPIO4_CLKCTRL			AM33XX_CM_REGADDR(AM33XX_CM_PER_MOD, 0x00b8)
++#define AM33XX_CM_PER_TPCC_CLKCTRL_OFFSET		0x00bc
++#define AM33XX_CM_PER_TPCC_CLKCTRL			AM33XX_CM_REGADDR(AM33XX_CM_PER_MOD, 0x00bc)
++#define AM33XX_CM_PER_DCAN0_CLKCTRL_OFFSET		0x00c0
++#define AM33XX_CM_PER_DCAN0_CLKCTRL			AM33XX_CM_REGADDR(AM33XX_CM_PER_MOD, 0x00c0)
++#define AM33XX_CM_PER_DCAN1_CLKCTRL_OFFSET		0x00c4
++#define AM33XX_CM_PER_DCAN1_CLKCTRL			AM33XX_CM_REGADDR(AM33XX_CM_PER_MOD, 0x00c4)
++#define AM33XX_CM_PER_EPWMSS1_CLKCTRL_OFFSET		0x00cc
++#define AM33XX_CM_PER_EPWMSS1_CLKCTRL			AM33XX_CM_REGADDR(AM33XX_CM_PER_MOD, 0x00cc)
++#define AM33XX_CM_PER_EMIF_FW_CLKCTRL_OFFSET		0x00d0
++#define AM33XX_CM_PER_EMIF_FW_CLKCTRL			AM33XX_CM_REGADDR(AM33XX_CM_PER_MOD, 0x00d0)
++#define AM33XX_CM_PER_EPWMSS0_CLKCTRL_OFFSET		0x00d4
++#define AM33XX_CM_PER_EPWMSS0_CLKCTRL			AM33XX_CM_REGADDR(AM33XX_CM_PER_MOD, 0x00d4)
++#define AM33XX_CM_PER_EPWMSS2_CLKCTRL_OFFSET		0x00d8
++#define AM33XX_CM_PER_EPWMSS2_CLKCTRL			AM33XX_CM_REGADDR(AM33XX_CM_PER_MOD, 0x00d8)
++#define AM33XX_CM_PER_L3_INSTR_CLKCTRL_OFFSET		0x00dc
++#define AM33XX_CM_PER_L3_INSTR_CLKCTRL			AM33XX_CM_REGADDR(AM33XX_CM_PER_MOD, 0x00dc)
++#define AM33XX_CM_PER_L3_CLKCTRL_OFFSET			0x00e0
++#define AM33XX_CM_PER_L3_CLKCTRL			AM33XX_CM_REGADDR(AM33XX_CM_PER_MOD, 0x00e0)
++#define AM33XX_CM_PER_IEEE5000_CLKCTRL_OFFSET		0x00e4
++#define AM33XX_CM_PER_IEEE5000_CLKCTRL			AM33XX_CM_REGADDR(AM33XX_CM_PER_MOD, 0x00e4)
++#define AM33XX_CM_PER_PRUSS_CLKCTRL_OFFSET		0x00e8
++#define AM33XX_CM_PER_PRUSS_CLKCTRL			AM33XX_CM_REGADDR(AM33XX_CM_PER_MOD, 0x00e8)
++#define AM33XX_CM_PER_TIMER5_CLKCTRL_OFFSET		0x00ec
++#define AM33XX_CM_PER_TIMER5_CLKCTRL			AM33XX_CM_REGADDR(AM33XX_CM_PER_MOD, 0x00ec)
++#define AM33XX_CM_PER_TIMER6_CLKCTRL_OFFSET		0x00f0
++#define AM33XX_CM_PER_TIMER6_CLKCTRL			AM33XX_CM_REGADDR(AM33XX_CM_PER_MOD, 0x00f0)
++#define AM33XX_CM_PER_MMC1_CLKCTRL_OFFSET		0x00f4
++#define AM33XX_CM_PER_MMC1_CLKCTRL			AM33XX_CM_REGADDR(AM33XX_CM_PER_MOD, 0x00f4)
++#define AM33XX_CM_PER_MMC2_CLKCTRL_OFFSET		0x00f8
++#define AM33XX_CM_PER_MMC2_CLKCTRL			AM33XX_CM_REGADDR(AM33XX_CM_PER_MOD, 0x00f8)
++#define AM33XX_CM_PER_TPTC1_CLKCTRL_OFFSET		0x00fc
++#define AM33XX_CM_PER_TPTC1_CLKCTRL			AM33XX_CM_REGADDR(AM33XX_CM_PER_MOD, 0x00fc)
++#define AM33XX_CM_PER_TPTC2_CLKCTRL_OFFSET		0x0100
++#define AM33XX_CM_PER_TPTC2_CLKCTRL			AM33XX_CM_REGADDR(AM33XX_CM_PER_MOD, 0x0100)
++#define AM33XX_CM_PER_GPIO5_CLKCTRL_OFFSET		0x0104
++#define AM33XX_CM_PER_GPIO5_CLKCTRL			AM33XX_CM_REGADDR(AM33XX_CM_PER_MOD, 0x0104)
++#define AM33XX_CM_PER_SPINLOCK_CLKCTRL_OFFSET		0x010c
++#define AM33XX_CM_PER_SPINLOCK_CLKCTRL			AM33XX_CM_REGADDR(AM33XX_CM_PER_MOD, 0x010c)
++#define AM33XX_CM_PER_MAILBOX0_CLKCTRL_OFFSET		0x0110
++#define AM33XX_CM_PER_MAILBOX0_CLKCTRL			AM33XX_CM_REGADDR(AM33XX_CM_PER_MOD, 0x0110)
++#define AM33XX_CM_PER_L4HS_CLKSTCTRL_OFFSET		0x011c
++#define AM33XX_CM_PER_L4HS_CLKSTCTRL			AM33XX_CM_REGADDR(AM33XX_CM_PER_MOD, 0x011c)
++#define AM33XX_CM_PER_L4HS_CLKCTRL_OFFSET		0x0120
++#define AM33XX_CM_PER_L4HS_CLKCTRL			AM33XX_CM_REGADDR(AM33XX_CM_PER_MOD, 0x0120)
++#define AM33XX_CM_PER_MSTR_EXPS_CLKCTRL_OFFSET		0x0124
++#define AM33XX_CM_PER_MSTR_EXPS_CLKCTRL			AM33XX_CM_REGADDR(AM33XX_CM_PER_MOD, 0x0124)
++#define AM33XX_CM_PER_SLV_EXPS_CLKCTRL_OFFSET		0x0128
++#define AM33XX_CM_PER_SLV_EXPS_CLKCTRL			AM33XX_CM_REGADDR(AM33XX_CM_PER_MOD, 0x0128)
++#define AM33XX_CM_PER_OCPWP_L3_CLKSTCTRL_OFFSET		0x012c
++#define AM33XX_CM_PER_OCPWP_L3_CLKSTCTRL		AM33XX_CM_REGADDR(AM33XX_CM_PER_MOD, 0x012c)
++#define AM33XX_CM_PER_OCPWP_CLKCTRL_OFFSET		0x0130
++#define AM33XX_CM_PER_OCPWP_CLKCTRL			AM33XX_CM_REGADDR(AM33XX_CM_PER_MOD, 0x0130)
++#define AM33XX_CM_PER_MAILBOX1_CLKCTRL_OFFSET		0x0134
++#define AM33XX_CM_PER_MAILBOX1_CLKCTRL			AM33XX_CM_REGADDR(AM33XX_CM_PER_MOD, 0x0134)
++#define AM33XX_CM_PER_PRUSS_CLKSTCTRL_OFFSET		0x0140
++#define AM33XX_CM_PER_PRUSS_CLKSTCTRL			AM33XX_CM_REGADDR(AM33XX_CM_PER_MOD, 0x0140)
++#define AM33XX_CM_PER_CPSW_CLKSTCTRL_OFFSET		0x0144
++#define AM33XX_CM_PER_CPSW_CLKSTCTRL			AM33XX_CM_REGADDR(AM33XX_CM_PER_MOD, 0x0144)
++#define AM33XX_CM_PER_LCDC_CLKSTCTRL_OFFSET		0x0148
++#define AM33XX_CM_PER_LCDC_CLKSTCTRL			AM33XX_CM_REGADDR(AM33XX_CM_PER_MOD, 0x0148)
++#define AM33XX_CM_PER_CLKDIV32K_CLKCTRL_OFFSET		0x014c
++#define AM33XX_CM_PER_CLKDIV32K_CLKCTRL			AM33XX_CM_REGADDR(AM33XX_CM_PER_MOD, 0x014c)
++#define AM33XX_CM_PER_CLK_24MHZ_CLKSTCTRL_OFFSET	0x0150
++#define AM33XX_CM_PER_CLK_24MHZ_CLKSTCTRL		AM33XX_CM_REGADDR(AM33XX_CM_PER_MOD, 0x0150)
++
++/* CM.WKUP_CM register offsets */
++#define AM33XX_CM_WKUP_CLKSTCTRL_OFFSET			0x0000
++#define AM33XX_CM_WKUP_CLKSTCTRL			AM33XX_CM_REGADDR(AM33XX_CM_WKUP_MOD, 0x0000)
++#define AM33XX_CM_WKUP_CONTROL_CLKCTRL_OFFSET		0x0004
++#define AM33XX_CM_WKUP_CONTROL_CLKCTRL			AM33XX_CM_REGADDR(AM33XX_CM_WKUP_MOD, 0x0004)
++#define AM33XX_CM_WKUP_GPIO0_CLKCTRL_OFFSET		0x0008
++#define AM33XX_CM_WKUP_GPIO0_CLKCTRL			AM33XX_CM_REGADDR(AM33XX_CM_WKUP_MOD, 0x0008)
++#define AM33XX_CM_WKUP_L4WKUP_CLKCTRL_OFFSET		0x000c
++#define AM33XX_CM_WKUP_L4WKUP_CLKCTRL			AM33XX_CM_REGADDR(AM33XX_CM_WKUP_MOD, 0x000c)
++#define AM33XX_CM_WKUP_TIMER0_CLKCTRL_OFFSET		0x0010
++#define AM33XX_CM_WKUP_TIMER0_CLKCTRL			AM33XX_CM_REGADDR(AM33XX_CM_WKUP_MOD, 0x0010)
++#define AM33XX_CM_WKUP_DEBUGSS_CLKCTRL_OFFSET		0x0014
++#define AM33XX_CM_WKUP_DEBUGSS_CLKCTRL			AM33XX_CM_REGADDR(AM33XX_CM_WKUP_MOD, 0x0014)
++#define AM33XX_CM_L3_AON_CLKSTCTRL_OFFSET		0x0018
++#define AM33XX_CM_L3_AON_CLKSTCTRL			AM33XX_CM_REGADDR(AM33XX_CM_WKUP_MOD, 0x0018)
++#define AM33XX_CM_AUTOIDLE_DPLL_MPU_OFFSET		0x001c
++#define AM33XX_CM_AUTOIDLE_DPLL_MPU			AM33XX_CM_REGADDR(AM33XX_CM_WKUP_MOD, 0x001c)
++#define AM33XX_CM_IDLEST_DPLL_MPU_OFFSET		0x0020
++#define AM33XX_CM_IDLEST_DPLL_MPU			AM33XX_CM_REGADDR(AM33XX_CM_WKUP_MOD, 0x0020)
++#define AM33XX_CM_SSC_DELTAMSTEP_DPLL_MPU_OFFSET	0x0024
++#define AM33XX_CM_SSC_DELTAMSTEP_DPLL_MPU		AM33XX_CM_REGADDR(AM33XX_CM_WKUP_MOD, 0x0024)
++#define AM33XX_CM_SSC_MODFREQDIV_DPLL_MPU_OFFSET	0x0028
++#define AM33XX_CM_SSC_MODFREQDIV_DPLL_MPU		AM33XX_CM_REGADDR(AM33XX_CM_WKUP_MOD, 0x0028)
++#define AM33XX_CM_CLKSEL_DPLL_MPU_OFFSET		0x002c
++#define AM33XX_CM_CLKSEL_DPLL_MPU			AM33XX_CM_REGADDR(AM33XX_CM_WKUP_MOD, 0x002c)
++#define AM33XX_CM_AUTOIDLE_DPLL_DDR_OFFSET		0x0030
++#define AM33XX_CM_AUTOIDLE_DPLL_DDR			AM33XX_CM_REGADDR(AM33XX_CM_WKUP_MOD, 0x0030)
++#define AM33XX_CM_IDLEST_DPLL_DDR_OFFSET		0x0034
++#define AM33XX_CM_IDLEST_DPLL_DDR			AM33XX_CM_REGADDR(AM33XX_CM_WKUP_MOD, 0x0034)
++#define AM33XX_CM_SSC_DELTAMSTEP_DPLL_DDR_OFFSET	0x0038
++#define AM33XX_CM_SSC_DELTAMSTEP_DPLL_DDR		AM33XX_CM_REGADDR(AM33XX_CM_WKUP_MOD, 0x0038)
++#define AM33XX_CM_SSC_MODFREQDIV_DPLL_DDR_OFFSET	0x003c
++#define AM33XX_CM_SSC_MODFREQDIV_DPLL_DDR		AM33XX_CM_REGADDR(AM33XX_CM_WKUP_MOD, 0x003c)
++#define AM33XX_CM_CLKSEL_DPLL_DDR_OFFSET		0x0040
++#define AM33XX_CM_CLKSEL_DPLL_DDR			AM33XX_CM_REGADDR(AM33XX_CM_WKUP_MOD, 0x0040)
++#define AM33XX_CM_AUTOIDLE_DPLL_DISP_OFFSET		0x0044
++#define AM33XX_CM_AUTOIDLE_DPLL_DISP			AM33XX_CM_REGADDR(AM33XX_CM_WKUP_MOD, 0x0044)
++#define AM33XX_CM_IDLEST_DPLL_DISP_OFFSET		0x0048
++#define AM33XX_CM_IDLEST_DPLL_DISP			AM33XX_CM_REGADDR(AM33XX_CM_WKUP_MOD, 0x0048)
++#define AM33XX_CM_SSC_DELTAMSTEP_DPLL_DISP_OFFSET	0x004c
++#define AM33XX_CM_SSC_DELTAMSTEP_DPLL_DISP		AM33XX_CM_REGADDR(AM33XX_CM_WKUP_MOD, 0x004c)
++#define AM33XX_CM_SSC_MODFREQDIV_DPLL_DISP_OFFSET	0x0050
++#define AM33XX_CM_SSC_MODFREQDIV_DPLL_DISP		AM33XX_CM_REGADDR(AM33XX_CM_WKUP_MOD, 0x0050)
++#define AM33XX_CM_CLKSEL_DPLL_DISP_OFFSET		0x0054
++#define AM33XX_CM_CLKSEL_DPLL_DISP			AM33XX_CM_REGADDR(AM33XX_CM_WKUP_MOD, 0x0054)
++#define AM33XX_CM_AUTOIDLE_DPLL_CORE_OFFSET		0x0058
++#define AM33XX_CM_AUTOIDLE_DPLL_CORE			AM33XX_CM_REGADDR(AM33XX_CM_WKUP_MOD, 0x0058)
++#define AM33XX_CM_IDLEST_DPLL_CORE_OFFSET		0x005c
++#define AM33XX_CM_IDLEST_DPLL_CORE			AM33XX_CM_REGADDR(AM33XX_CM_WKUP_MOD, 0x005c)
++#define AM33XX_CM_SSC_DELTAMSTEP_DPLL_CORE_OFFSET	0x0060
++#define AM33XX_CM_SSC_DELTAMSTEP_DPLL_CORE		AM33XX_CM_REGADDR(AM33XX_CM_WKUP_MOD, 0x0060)
++#define AM33XX_CM_SSC_MODFREQDIV_DPLL_CORE_OFFSET	0x0064
++#define AM33XX_CM_SSC_MODFREQDIV_DPLL_CORE		AM33XX_CM_REGADDR(AM33XX_CM_WKUP_MOD, 0x0064)
++#define AM33XX_CM_CLKSEL_DPLL_CORE_OFFSET		0x0068
++#define AM33XX_CM_CLKSEL_DPLL_CORE			AM33XX_CM_REGADDR(AM33XX_CM_WKUP_MOD, 0x0068)
++#define AM33XX_CM_AUTOIDLE_DPLL_PER_OFFSET		0x006c
++#define AM33XX_CM_AUTOIDLE_DPLL_PER			AM33XX_CM_REGADDR(AM33XX_CM_WKUP_MOD, 0x006c)
++#define AM33XX_CM_IDLEST_DPLL_PER_OFFSET		0x0070
++#define AM33XX_CM_IDLEST_DPLL_PER			AM33XX_CM_REGADDR(AM33XX_CM_WKUP_MOD, 0x0070)
++#define AM33XX_CM_SSC_DELTAMSTEP_DPLL_PER_OFFSET	0x0074
++#define AM33XX_CM_SSC_DELTAMSTEP_DPLL_PER		AM33XX_CM_REGADDR(AM33XX_CM_WKUP_MOD, 0x0074)
++#define AM33XX_CM_SSC_MODFREQDIV_DPLL_PER_OFFSET	0x0078
++#define AM33XX_CM_SSC_MODFREQDIV_DPLL_PER		AM33XX_CM_REGADDR(AM33XX_CM_WKUP_MOD, 0x0078)
++#define AM33XX_CM_CLKDCOLDO_DPLL_PER_OFFSET		0x007c
++#define AM33XX_CM_CLKDCOLDO_DPLL_PER			AM33XX_CM_REGADDR(AM33XX_CM_WKUP_MOD, 0x007c)
++#define AM33XX_CM_DIV_M4_DPLL_CORE_OFFSET		0x0080
++#define AM33XX_CM_DIV_M4_DPLL_CORE			AM33XX_CM_REGADDR(AM33XX_CM_WKUP_MOD, 0x0080)
++#define AM33XX_CM_DIV_M5_DPLL_CORE_OFFSET		0x0084
++#define AM33XX_CM_DIV_M5_DPLL_CORE			AM33XX_CM_REGADDR(AM33XX_CM_WKUP_MOD, 0x0084)
++#define AM33XX_CM_CLKMODE_DPLL_MPU_OFFSET		0x0088
++#define AM33XX_CM_CLKMODE_DPLL_MPU			AM33XX_CM_REGADDR(AM33XX_CM_WKUP_MOD, 0x0088)
++#define AM33XX_CM_CLKMODE_DPLL_PER_OFFSET		0x008c
++#define AM33XX_CM_CLKMODE_DPLL_PER			AM33XX_CM_REGADDR(AM33XX_CM_WKUP_MOD, 0x008c)
++#define AM33XX_CM_CLKMODE_DPLL_CORE_OFFSET		0x0090
++#define AM33XX_CM_CLKMODE_DPLL_CORE			AM33XX_CM_REGADDR(AM33XX_CM_WKUP_MOD, 0x0090)
++#define AM33XX_CM_CLKMODE_DPLL_DDR_OFFSET		0x0094
++#define AM33XX_CM_CLKMODE_DPLL_DDR			AM33XX_CM_REGADDR(AM33XX_CM_WKUP_MOD, 0x0094)
++#define AM33XX_CM_CLKMODE_DPLL_DISP_OFFSET		0x0098
++#define AM33XX_CM_CLKMODE_DPLL_DISP			AM33XX_CM_REGADDR(AM33XX_CM_WKUP_MOD, 0x0098)
++#define AM33XX_CM_CLKSEL_DPLL_PERIPH_OFFSET		0x009c
++#define AM33XX_CM_CLKSEL_DPLL_PERIPH			AM33XX_CM_REGADDR(AM33XX_CM_WKUP_MOD, 0x009c)
++#define AM33XX_CM_DIV_M2_DPLL_DDR_OFFSET		0x00a0
++#define AM33XX_CM_DIV_M2_DPLL_DDR			AM33XX_CM_REGADDR(AM33XX_CM_WKUP_MOD, 0x00a0)
++#define AM33XX_CM_DIV_M2_DPLL_DISP_OFFSET		0x00a4
++#define AM33XX_CM_DIV_M2_DPLL_DISP			AM33XX_CM_REGADDR(AM33XX_CM_WKUP_MOD, 0x00a4)
++#define AM33XX_CM_DIV_M2_DPLL_MPU_OFFSET		0x00a8
++#define AM33XX_CM_DIV_M2_DPLL_MPU			AM33XX_CM_REGADDR(AM33XX_CM_WKUP_MOD, 0x00a8)
++#define AM33XX_CM_DIV_M2_DPLL_PER_OFFSET		0x00ac
++#define AM33XX_CM_DIV_M2_DPLL_PER			AM33XX_CM_REGADDR(AM33XX_CM_WKUP_MOD, 0x00ac)
++#define AM33XX_CM_WKUP_WKUP_M3_CLKCTRL_OFFSET		0x00b0
++#define AM33XX_CM_WKUP_WKUP_M3_CLKCTRL			AM33XX_CM_REGADDR(AM33XX_CM_WKUP_MOD, 0x00b0)
++#define AM33XX_CM_WKUP_UART0_CLKCTRL_OFFSET		0x00b4
++#define AM33XX_CM_WKUP_UART0_CLKCTRL			AM33XX_CM_REGADDR(AM33XX_CM_WKUP_MOD, 0x00b4)
++#define AM33XX_CM_WKUP_I2C0_CLKCTRL_OFFSET		0x00b8
++#define AM33XX_CM_WKUP_I2C0_CLKCTRL			AM33XX_CM_REGADDR(AM33XX_CM_WKUP_MOD, 0x00b8)
++#define AM33XX_CM_WKUP_ADC_TSC_CLKCTRL_OFFSET		0x00bc
++#define AM33XX_CM_WKUP_ADC_TSC_CLKCTRL			AM33XX_CM_REGADDR(AM33XX_CM_WKUP_MOD, 0x00bc)
++#define AM33XX_CM_WKUP_SMARTREFLEX0_CLKCTRL_OFFSET	0x00c0
++#define AM33XX_CM_WKUP_SMARTREFLEX0_CLKCTRL		AM33XX_CM_REGADDR(AM33XX_CM_WKUP_MOD, 0x00c0)
++#define AM33XX_CM_WKUP_TIMER1_CLKCTRL_OFFSET		0x00c4
++#define AM33XX_CM_WKUP_TIMER1_CLKCTRL			AM33XX_CM_REGADDR(AM33XX_CM_WKUP_MOD, 0x00c4)
++#define AM33XX_CM_WKUP_SMARTREFLEX1_CLKCTRL_OFFSET	0x00c8
++#define AM33XX_CM_WKUP_SMARTREFLEX1_CLKCTRL		AM33XX_CM_REGADDR(AM33XX_CM_WKUP_MOD, 0x00c8)
++#define AM33XX_CM_L4_WKUP_AON_CLKSTCTRL_OFFSET		0x00cc
++#define AM33XX_CM_L4_WKUP_AON_CLKSTCTRL			AM33XX_CM_REGADDR(AM33XX_CM_WKUP_MOD, 0x00cc)
++#define AM33XX_CM_WKUP_WDT0_CLKCTRL_OFFSET		0x00d0
++#define AM33XX_CM_WKUP_WDT0_CLKCTRL			AM33XX_CM_REGADDR(AM33XX_CM_WKUP_MOD, 0x00d0)
++#define AM33XX_CM_WKUP_WDT1_CLKCTRL_OFFSET		0x00d4
++#define AM33XX_CM_WKUP_WDT1_CLKCTRL			AM33XX_CM_REGADDR(AM33XX_CM_WKUP_MOD, 0x00d4)
++#define AM33XX_CM_DIV_M6_DPLL_CORE_OFFSET		0x00d8
++#define AM33XX_CM_DIV_M6_DPLL_CORE			AM33XX_CM_REGADDR(AM33XX_CM_WKUP_MOD, 0x00d8)
++
++/* CM.DPLL_CM register offsets */
++#define AM33XX_CLKSEL_TIMER7_CLK_OFFSET			0x0004
++#define AM33XX_CLKSEL_TIMER7_CLK			AM33XX_CM_REGADDR(AM33XX_CM_DPLL_MOD, 0x0004)
++#define AM33XX_CLKSEL_TIMER2_CLK_OFFSET			0x0008
++#define AM33XX_CLKSEL_TIMER2_CLK			AM33XX_CM_REGADDR(AM33XX_CM_DPLL_MOD, 0x0008)
++#define AM33XX_CLKSEL_TIMER3_CLK_OFFSET			0x000c
++#define AM33XX_CLKSEL_TIMER3_CLK			AM33XX_CM_REGADDR(AM33XX_CM_DPLL_MOD, 0x000c)
++#define AM33XX_CLKSEL_TIMER4_CLK_OFFSET			0x0010
++#define AM33XX_CLKSEL_TIMER4_CLK			AM33XX_CM_REGADDR(AM33XX_CM_DPLL_MOD, 0x0010)
++#define AM33XX_CM_MAC_CLKSEL_OFFSET			0x0014
++#define AM33XX_CM_MAC_CLKSEL				AM33XX_CM_REGADDR(AM33XX_CM_DPLL_MOD, 0x0014)
++#define AM33XX_CLKSEL_TIMER5_CLK_OFFSET			0x0018
++#define AM33XX_CLKSEL_TIMER5_CLK			AM33XX_CM_REGADDR(AM33XX_CM_DPLL_MOD, 0x0018)
++#define AM33XX_CLKSEL_TIMER6_CLK_OFFSET			0x001c
++#define AM33XX_CLKSEL_TIMER6_CLK			AM33XX_CM_REGADDR(AM33XX_CM_DPLL_MOD, 0x001c)
++#define AM33XX_CM_CPTS_RFT_CLKSEL_OFFSET		0x0020
++#define AM33XX_CM_CPTS_RFT_CLKSEL			AM33XX_CM_REGADDR(AM33XX_CM_DPLL_MOD, 0x0020)
++#define AM33XX_CLKSEL_TIMER1MS_CLK_OFFSET		0x0028
++#define AM33XX_CLKSEL_TIMER1MS_CLK			AM33XX_CM_REGADDR(AM33XX_CM_DPLL_MOD, 0x0028)
++#define AM33XX_CLKSEL_GFX_FCLK_OFFSET			0x002c
++#define AM33XX_CLKSEL_GFX_FCLK				AM33XX_CM_REGADDR(AM33XX_CM_DPLL_MOD, 0x002c)
++#define AM33XX_CLKSEL_PRUSS_OCP_CLK_OFFSET		0x0030
++#define AM33XX_CLKSEL_PRUSS_OCP_CLK			AM33XX_CM_REGADDR(AM33XX_CM_DPLL_MOD, 0x0030)
++#define AM33XX_CLKSEL_LCDC_PIXEL_CLK_OFFSET		0x0034
++#define AM33XX_CLKSEL_LCDC_PIXEL_CLK			AM33XX_CM_REGADDR(AM33XX_CM_DPLL_MOD, 0x0034)
++#define AM33XX_CLKSEL_WDT1_CLK_OFFSET			0x0038
++#define AM33XX_CLKSEL_WDT1_CLK				AM33XX_CM_REGADDR(AM33XX_CM_DPLL_MOD, 0x0038)
++#define AM33XX_CLKSEL_GPIO0_DBCLK_OFFSET		0x003c
++#define AM33XX_CLKSEL_GPIO0_DBCLK			AM33XX_CM_REGADDR(AM33XX_CM_DPLL_MOD, 0x003c)
++
++/* CM.MPU_CM register offsets */
++#define AM33XX_CM_MPU_CLKSTCTRL_OFFSET			0x0000
++#define AM33XX_CM_MPU_CLKSTCTRL				AM33XX_CM_REGADDR(AM33XX_CM_MPU_MOD, 0x0000)
++#define AM33XX_CM_MPU_MPU_CLKCTRL_OFFSET		0x0004
++#define AM33XX_CM_MPU_MPU_CLKCTRL			AM33XX_CM_REGADDR(AM33XX_CM_MPU_MOD, 0x0004)
++
++/* CM.DEVICE_CM register offsets */
++#define AM33XX_CM_CLKOUT_CTRL_OFFSET			0x0000
++#define AM33XX_CM_CLKOUT_CTRL				AM33XX_CM_REGADDR(AM33XX_CM_DEVICE_MOD, 0x0000)
++
++/* CM.RTC_CM register offsets */
++#define AM33XX_CM_RTC_RTC_CLKCTRL_OFFSET		0x0000
++#define AM33XX_CM_RTC_RTC_CLKCTRL			AM33XX_CM_REGADDR(AM33XX_CM_RTC_MOD, 0x0000)
++#define AM33XX_CM_RTC_CLKSTCTRL_OFFSET			0x0004
++#define AM33XX_CM_RTC_CLKSTCTRL				AM33XX_CM_REGADDR(AM33XX_CM_RTC_MOD, 0x0004)
++
++/* CM.GFX_CM register offsets */
++#define AM33XX_CM_GFX_L3_CLKSTCTRL_OFFSET		0x0000
++#define AM33XX_CM_GFX_L3_CLKSTCTRL			AM33XX_CM_REGADDR(AM33XX_CM_GFX_MOD, 0x0000)
++#define AM33XX_CM_GFX_GFX_CLKCTRL_OFFSET		0x0004
++#define AM33XX_CM_GFX_GFX_CLKCTRL			AM33XX_CM_REGADDR(AM33XX_CM_GFX_MOD, 0x0004)
++#define AM33XX_CM_GFX_BITBLT_CLKCTRL_OFFSET		0x0008
++#define AM33XX_CM_GFX_BITBLT_CLKCTRL			AM33XX_CM_REGADDR(AM33XX_CM_GFX_MOD, 0x0008)
++#define AM33XX_CM_GFX_L4LS_GFX_CLKSTCTRL__1_OFFSET	0x000c
++#define AM33XX_CM_GFX_L4LS_GFX_CLKSTCTRL__1		AM33XX_CM_REGADDR(AM33XX_CM_GFX_MOD, 0x000c)
++#define AM33XX_CM_GFX_MMUCFG_CLKCTRL_OFFSET		0x0010
++#define AM33XX_CM_GFX_MMUCFG_CLKCTRL			AM33XX_CM_REGADDR(AM33XX_CM_GFX_MOD, 0x0010)
++#define AM33XX_CM_GFX_MMUDATA_CLKCTRL_OFFSET		0x0014
++#define AM33XX_CM_GFX_MMUDATA_CLKCTRL			AM33XX_CM_REGADDR(AM33XX_CM_GFX_MOD, 0x0014)
++
++/* CM.CEFUSE_CM register offsets */
++#define AM33XX_CM_CEFUSE_CLKSTCTRL_OFFSET		0x0000
++#define AM33XX_CM_CEFUSE_CLKSTCTRL			AM33XX_CM_REGADDR(AM33XX_CM_CEFUSE_MOD, 0x0000)
++#define AM33XX_CM_CEFUSE_CEFUSE_CLKCTRL_OFFSET		0x0020
++#define AM33XX_CM_CEFUSE_CEFUSE_CLKCTRL			AM33XX_CM_REGADDR(AM33XX_CM_CEFUSE_MOD, 0x0020)
++
++
++extern bool am33xx_cm_is_clkdm_in_hwsup(s16 inst, u16 cdoffs);
++extern void am33xx_cm_clkdm_enable_hwsup(s16 inst, u16 cdoffs);
++extern void am33xx_cm_clkdm_disable_hwsup(s16 inst, u16 cdoffs);
++extern void am33xx_cm_clkdm_force_sleep(s16 inst, u16 cdoffs);
++extern void am33xx_cm_clkdm_force_wakeup(s16 inst, u16 cdoffs);
++
++#ifdef CONFIG_SOC_OMAPAM33XX
++extern int am33xx_cm_wait_module_idle(u16 inst, s16 cdoffs,
++					u16 clkctrl_offs);
++extern void am33xx_cm_module_enable(u8 mode, u16 inst, s16 cdoffs,
++					u16 clkctrl_offs);
++extern void am33xx_cm_module_disable(u16 inst, s16 cdoffs,
++					u16 clkctrl_offs);
++extern int am33xx_cm_wait_module_ready(u16 inst, s16 cdoffs,
++					u16 clkctrl_offs);
++#else
++static inline int am33xx_cm_wait_module_idle(u16 inst, s16 cdoffs,
++					u16 clkctrl_offs)
++{
++	return 0;
++}
++static inline void am33xx_cm_module_enable(u8 mode, u16 inst, s16 cdoffs,
++					u16 clkctrl_offs)
++{
++}
++static inline void am33xx_cm_module_disable(u16 inst, s16 cdoffs,
++					u16 clkctrl_offs)
++{
++}
++static inline int am33xx_cm_wait_module_ready(u16 inst, s16 cdoffs,
++					u16 clkctrl_offs)
++{
++	return 0;
++}
++#endif
++
++#endif
+diff --git a/arch/arm/mach-omap2/omap_hwmod.c b/arch/arm/mach-omap2/omap_hwmod.c
+index d698010..4cd59ec 100644
+--- a/arch/arm/mach-omap2/omap_hwmod.c
++++ b/arch/arm/mach-omap2/omap_hwmod.c
+@@ -149,6 +149,7 @@
+
+ #include "cm2xxx_3xxx.h"
+ #include "cminst44xx.h"
++#include "cm33xx.h"
+ #include "prm2xxx_3xxx.h"
+ #include "prm44xx.h"
+ #include "prm33xx.h"
+@@ -737,7 +738,7 @@ static void _disable_optional_clocks(struct omap_hwmod *oh)
+ static void _enable_module(struct omap_hwmod *oh)
+ {
+ 	/* The module mode does not exist prior OMAP4 */
+-	if (cpu_is_omap24xx() || cpu_is_omap34xx())
++	if (!cpu_is_omap44xx() && !cpu_is_am33xx())
+ 		return;
+
+ 	if (!oh->clkdm || !oh->prcm.omap4.modulemode)
+@@ -746,11 +747,17 @@ static void _enable_module(struct omap_hwmod *oh)
+ 	pr_debug("omap_hwmod: %s: _enable_module: %d\n",
+ 		 oh->name, oh->prcm.omap4.modulemode);
+
+-	omap4_cminst_module_enable(oh->prcm.omap4.modulemode,
+-				   oh->clkdm->prcm_partition,
+-				   oh->clkdm->cm_inst,
+-				   oh->clkdm->clkdm_offs,
+-				   oh->prcm.omap4.clkctrl_offs);
++	if (cpu_is_am33xx())
++		am33xx_cm_module_enable(oh->prcm.omap4.modulemode,
++				oh->clkdm->cm_inst,
++				oh->clkdm->clkdm_offs,
++				oh->prcm.omap4.clkctrl_offs);
++	else
++		omap4_cminst_module_enable(oh->prcm.omap4.modulemode,
++				oh->clkdm->prcm_partition,
++				oh->clkdm->cm_inst,
++				oh->clkdm->clkdm_offs,
++				oh->prcm.omap4.clkctrl_offs);
  }
- #endif
+
+ /**
+@@ -764,7 +771,7 @@ static void _enable_module(struct omap_hwmod *oh)
+  */
+ static int _omap4_wait_target_disable(struct omap_hwmod *oh)
+ {
+-	if (!cpu_is_omap44xx())
++	if (!cpu_is_omap44xx() && !cpu_is_am33xx())
+ 		return 0;
+
+ 	if (!oh)
+@@ -776,10 +783,15 @@ static int _omap4_wait_target_disable(struct omap_hwmod *oh)
+ 	if (oh->flags & HWMOD_NO_IDLEST)
+ 		return 0;
+
+-	return omap4_cminst_wait_module_idle(oh->clkdm->prcm_partition,
+-					     oh->clkdm->cm_inst,
+-					     oh->clkdm->clkdm_offs,
+-					     oh->prcm.omap4.clkctrl_offs);
++	if (cpu_is_am33xx())
++		return am33xx_cm_wait_module_idle(oh->clkdm->cm_inst,
++				oh->clkdm->clkdm_offs,
++				oh->prcm.omap4.clkctrl_offs);
++	else
++		return omap4_cminst_wait_module_idle(oh->clkdm->prcm_partition,
++				oh->clkdm->cm_inst,
++				oh->clkdm->clkdm_offs,
++				oh->prcm.omap4.clkctrl_offs);
+ }
+
+ /**
+@@ -794,7 +806,7 @@ static int _omap4_disable_module(struct omap_hwmod *oh)
+ 	int v;
+
+ 	/* The module mode does not exist prior OMAP4 */
+-	if (!cpu_is_omap44xx())
++	if (!cpu_is_omap44xx() && !cpu_is_am33xx())
+ 		return -EINVAL;
+
+ 	if (!oh->clkdm || !oh->prcm.omap4.modulemode)
+@@ -802,10 +814,15 @@ static int _omap4_disable_module(struct omap_hwmod *oh)
+
+ 	pr_debug("omap_hwmod: %s: %s\n", oh->name, __func__);
+
+-	omap4_cminst_module_disable(oh->clkdm->prcm_partition,
+-				    oh->clkdm->cm_inst,
+-				    oh->clkdm->clkdm_offs,
+-				    oh->prcm.omap4.clkctrl_offs);
++	if (cpu_is_am33xx())
++		am33xx_cm_module_disable(oh->clkdm->cm_inst,
++				oh->clkdm->clkdm_offs,
++				oh->prcm.omap4.clkctrl_offs);
++	else
++		omap4_cminst_module_disable(oh->clkdm->prcm_partition,
++				oh->clkdm->cm_inst,
++				oh->clkdm->clkdm_offs,
++				oh->prcm.omap4.clkctrl_offs);
+
+ 	if (oh->rst_lines_cnt >= 0)
+ 		return 0;
+@@ -1348,7 +1365,14 @@ static int _wait_target_ready(struct omap_hwmod *oh)
+
+ 	/* XXX check clock enable states */
+
+-	if (cpu_is_omap24xx() || cpu_is_omap34xx()) {
++	if (cpu_is_am33xx()) {
++		if (!oh->clkdm)
++			return -EINVAL;
++
++		ret = am33xx_cm_wait_module_ready(oh->clkdm->cm_inst,
++						oh->clkdm->clkdm_offs,
++						oh->prcm.omap4.clkctrl_offs);
++	} else if (cpu_is_omap24xx() || cpu_is_omap34xx()) {
+ 		ret = omap2_cm_wait_module_ready(oh->prcm.omap2.module_offs,
+ 						 oh->prcm.omap2.idlest_reg_id,
+ 						 oh->prcm.omap2.idlest_idle_bit);
 --
 1.7.0.4
 
