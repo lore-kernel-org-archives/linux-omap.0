@@ -1,226 +1,85 @@
-From: Sourav Poddar <sourav.poddar@ti.com>
-Subject: [PATCH RESEND] Input: omap-keypad: dynamically handle register offsets
-Date: Tue, 3 Apr 2012 10:52:26 +0530
-Message-ID: <1333430546-23454-1-git-send-email-sourav.poddar@ti.com>
+From: "Shilimkar, Santosh" <santosh.shilimkar@ti.com>
+Subject: Re: [PATCH 1/3] ARM: OMAP2+: 32k-counter: Use hwmod lookup to check
+ presence of 32k timer
+Date: Tue, 3 Apr 2012 11:20:30 +0530
+Message-ID: <CAMQu2gxYMdbdtbKUg+oyKDNOMCEWneL1FvW0TvNgDRt7gbk0cA@mail.gmail.com>
+References: <1326983304-14619-1-git-send-email-hvaibhav@ti.com>
+ <CACVXFVP4J8N271Tww77Btm9fGNiP17MepjswBJ0V-8Z4sNt8Eg@mail.gmail.com>
+ <4F672364.3020403@ti.com> <79CD15C6BA57404B839C016229A409A83182386C@DBDE01.ent.ti.com>
+ <CAMQu2gyFNXgx87Fsq5is88DOkOx-nWK6ohwyFV-CY2uTkZCGMA@mail.gmail.com>
+ <79CD15C6BA57404B839C016229A409A83183EA54@DBDE01.ent.ti.com>
+ <CAMQu2gyF83HJOE9Rf-fZXXMt=p_WFjFf3DpAeW8L8+htR4E6-g@mail.gmail.com>
+ <79CD15C6BA57404B839C016229A409A83183EB47@DBDE01.ent.ti.com>
+ <CAMQu2gzYULK+=6-WKQnnQDpzTYW7xKAOZo7obyu2q178jtNE-Q@mail.gmail.com>
+ <79CD15C6BA57404B839C016229A409A831840C2E@DBDE01.ent.ti.com>
+ <CAMQu2gw7aceHSYSd+UMVS6kHQMqy0_maf8QTJaUMzp9z8822rQ@mail.gmail.com>
+ <79CD15C6BA57404B839C016229A409A831840E0C@DBDE01.ent.ti.com>
+ <4F7570FC.8000907@ti.com> <79CD15C6BA57404B839C016229A409A831840F82@DBDE01.ent.ti.com>
+ <CAMQu2gzOkE6LD0WZ_9bKe3J-=Dv89rWaMzvWWvJHPMSPe6MzNg@mail.gmail.com>
+ <CACVXFVPbU2OqTN=S0AZCD10KuSBYxqyyRH_xee+WTaCD6VSmMQ@mail.gmail.com>
+ <CAMQu2gzuQ-q+3RHsW0=U305jCF-td5-PEXkGZ6WnQTqA1K8oAQ@mail.gmail.com>
+ <CACVXFVPu1GEQy+sCgXMB8JCszPBBs8zHRVm94TYb1-y2afkqgw@mail.gmail.com>
+ <CAMQu2gwuRpZ133962r3N4Y4K3oQ88ySa=SyoS6v=sSHGA=SGKw@mail.gmail.com>
+ <CACVXFVMjSPhF_+CfbF2vD5ts+WtZGjofEWmknB0D1OpTM7geZw@mail.gmail.com>
+ <CAMQu2gyEUhDyyng+_oC5NpXHzWMaTGsnCSTTZcMUi2pLV0z8RQ@mail.gmail.com> <87sjgmt211.fsf@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain
-Return-path: <linux-input-owner@vger.kernel.org>
-Sender: linux-input-owner@vger.kernel.org
-To: dmitry.torokhov@gmail.com, linux-input@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org
-Cc: sourav.poddar@ti.com, balbi@ti.com
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from na3sys009aog137.obsmtp.com ([74.125.149.18]:47552 "EHLO
+	psmtp.com" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
+	id S1751212Ab2DCFuw convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 3 Apr 2012 01:50:52 -0400
+Received: by qcso7 with SMTP id o7so2095844qcs.20
+        for <linux-omap@vger.kernel.org>; Mon, 02 Apr 2012 22:50:50 -0700 (PDT)
+In-Reply-To: <87sjgmt211.fsf@ti.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Kevin Hilman <khilman@ti.com>
+Cc: Ming Lei <tom.leiming@gmail.com>, Tony Lindgren <tony@atomide.com>, "Hiremath, Vaibhav" <hvaibhav@ti.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, "marc.zyngier@arm.com" <marc.zyngier@arm.com>, "johnstul@us.ibm.com" <johnstul@us.ibm.com>, "Balbi, Felipe" <balbi@ti.com>, "Cousson, Benoit" <b-cousson@ti.com>, Paul Walmsley <paul@pwsan.com>, "DebBarma, Tarun Kanti" <tarun.kanti@ti.com>
 
-From: G, Manjunath Kondaiah <manjugk@ti.com>
+On Tue, Apr 3, 2012 at 12:05 AM, Kevin Hilman <khilman@ti.com> wrote:
+> "Shilimkar, Santosh" <santosh.shilimkar@ti.com> writes:
+>
+> [...]
+>
+>> I don't personally like to add features which hardly anybody use and
+>> fundamentally broken with full kernel.
+>
+> Let's keep sane defaults, but not make it unreasonable to tweak eaith=
+er.
+>
+Exactly. Thanks for echoing the concern.
 
-Keypad controller register offsets are different for omap4
-and omap5. Handle these offsets through static mapping and
-assign these mappings during run time.
+> I suggest what has already been mentioned.
+>
+> Register both timers, but have the sync timer have a higher rating. =A0=
+On
+> AMxxx where there is no sync timer, GPtimer will be used.
+>
+Technically it's a hack just from clock precision point of view but I d=
+on't mind
+this.
 
-Signed-off-by: Felipe Balbi <balbi@ti.com>
-Signed-off-by: G, Manjunath Kondaiah <manjugk@ti.com>
-Signed-off-by: Sourav Poddar <sourav.poddar@ti.com>
----
-Test Info
- - Tested on omap4 sdp with 3.4-rc1
- - Tested on omap5430evm with 3.1 custom kernel.
- drivers/input/keyboard/Kconfig        |    6 +-
- drivers/input/keyboard/omap4-keypad.c |  120 ++++++++++++++++++++++++++------
- 2 files changed, 100 insertions(+), 26 deletions(-)
+> For those who want to use GPtimer, they can boot using clocksource=3D=
+ to
+> override the default.
+>
+Sounds good to me.
 
-diff --git a/drivers/input/keyboard/Kconfig b/drivers/input/keyboard/Kconfig
-index f354813..9a0e1a9 100644
---- a/drivers/input/keyboard/Kconfig
-+++ b/drivers/input/keyboard/Kconfig
-@@ -511,10 +511,10 @@ config KEYBOARD_OMAP
- 	  To compile this driver as a module, choose M here: the
- 	  module will be called omap-keypad.
- 
--config KEYBOARD_OMAP4
--	tristate "TI OMAP4 keypad support"
-+config KEYBOARD_OMAP4+
-+	tristate "TI OMAP4+ keypad support"
- 	help
--	  Say Y here if you want to use the OMAP4 keypad.
-+	  Say Y here if you want to use the OMAP4+ keypad.
- 
- 	  To compile this driver as a module, choose M here: the
- 	  module will be called omap4-keypad.
-diff --git a/drivers/input/keyboard/omap4-keypad.c b/drivers/input/keyboard/omap4-keypad.c
-index e809ac0..742e1e3 100644
---- a/drivers/input/keyboard/omap4-keypad.c
-+++ b/drivers/input/keyboard/omap4-keypad.c
-@@ -68,6 +68,11 @@
- 
- #define OMAP4_MASK_IRQSTATUSDISABLE	0xFFFF
- 
-+enum {
-+	KBD_REVISION_OMAP4 = 0,
-+	KBD_REVISION_OMAP5,
-+};
-+
- struct omap4_keypad {
- 	struct input_dev *input;
- 
-@@ -76,11 +81,66 @@ struct omap4_keypad {
- 
- 	unsigned int rows;
- 	unsigned int cols;
-+	unsigned int revision;
-+	u32 irqstatus;
-+	u32 irqenable;
- 	unsigned int row_shift;
- 	unsigned char key_state[8];
- 	unsigned short keymap[];
- };
- 
-+static int kbd_read_irqstatus(struct omap4_keypad *keypad_data, u32 offset)
-+{
-+	return __raw_readl(keypad_data->base + offset);
-+}
-+
-+static int kbd_write_irqstatus(struct omap4_keypad *keypad_data,
-+						u32 offset, u32 value)
-+{
-+	return __raw_writel(value, keypad_data->base + offset);
-+}
-+
-+static int kbd_write_irqenable(struct omap4_keypad *keypad_data,
-+						u32 offset, u32 value)
-+{
-+	return __raw_writel(value, keypad_data->base + offset);
-+}
-+
-+static int kbd_readl(struct omap4_keypad *keypad_data, u32 offset)
-+{
-+	if (keypad_data->revision == KBD_REVISION_OMAP4)
-+		return __raw_readl(keypad_data->base + offset);
-+	else if (keypad_data->revision == KBD_REVISION_OMAP5)
-+		return __raw_readl(keypad_data->base + offset + 0x10);
-+
-+	return -ENODEV;
-+}
-+
-+static void kbd_writel(struct omap4_keypad *keypad_data, u32 offset, u32 value)
-+{
-+	if (keypad_data->revision == KBD_REVISION_OMAP4)
-+		__raw_writel(value, keypad_data->base + offset);
-+	else if (keypad_data->revision == KBD_REVISION_OMAP5)
-+		__raw_writel(value, keypad_data->base + offset + 0x10);
-+}
-+
-+static int kbd_read_revision(struct omap4_keypad *keypad_data, u32 offset)
-+{
-+	int reg;
-+	reg = __raw_readl(keypad_data->base + offset);
-+	reg &= 0x03 << 30;
-+	reg >>= 30;
-+
-+	switch (reg) {
-+	case 1:
-+		return KBD_REVISION_OMAP5;
-+	case 0:
-+		return KBD_REVISION_OMAP4;
-+	default:
-+		return -ENODEV;
-+	}
-+}
-+
- /* Interrupt handler */
- static irqreturn_t omap4_keypad_interrupt(int irq, void *dev_id)
- {
-@@ -91,12 +151,11 @@ static irqreturn_t omap4_keypad_interrupt(int irq, void *dev_id)
- 	u32 *new_state = (u32 *) key_state;
- 
- 	/* Disable interrupts */
--	__raw_writel(OMAP4_VAL_IRQDISABLE,
--		     keypad_data->base + OMAP4_KBD_IRQENABLE);
-+	kbd_write_irqenable(keypad_data, keypad_data->irqenable,
-+			OMAP4_VAL_IRQDISABLE);
- 
--	*new_state = __raw_readl(keypad_data->base + OMAP4_KBD_FULLCODE31_0);
--	*(new_state + 1) = __raw_readl(keypad_data->base
--						+ OMAP4_KBD_FULLCODE63_32);
-+	*new_state = kbd_readl(keypad_data, OMAP4_KBD_FULLCODE31_0);
-+	*(new_state + 1) = kbd_readl(keypad_data, OMAP4_KBD_FULLCODE63_32);
- 
- 	for (row = 0; row < keypad_data->rows; row++) {
- 		changed = key_state[row] ^ keypad_data->key_state[row];
-@@ -121,12 +180,13 @@ static irqreturn_t omap4_keypad_interrupt(int irq, void *dev_id)
- 		sizeof(keypad_data->key_state));
- 
- 	/* clear pending interrupts */
--	__raw_writel(__raw_readl(keypad_data->base + OMAP4_KBD_IRQSTATUS),
--			keypad_data->base + OMAP4_KBD_IRQSTATUS);
-+	kbd_write_irqstatus(keypad_data, keypad_data->irqstatus,
-+		kbd_read_irqstatus(keypad_data, keypad_data->irqstatus));
- 
- 	/* enable interrupts */
--	__raw_writel(OMAP4_DEF_IRQENABLE_EVENTEN | OMAP4_DEF_IRQENABLE_LONGKEY,
--			keypad_data->base + OMAP4_KBD_IRQENABLE);
-+	kbd_write_irqenable(keypad_data, keypad_data->irqenable,
-+		OMAP4_DEF_IRQENABLE_EVENTEN |
-+			OMAP4_DEF_IRQENABLE_LONGKEY);
- 
- 	return IRQ_HANDLED;
- }
-@@ -139,16 +199,30 @@ static int omap4_keypad_open(struct input_dev *input)
- 
- 	disable_irq(keypad_data->irq);
- 
--	__raw_writel(OMAP4_VAL_FUNCTIONALCFG,
--			keypad_data->base + OMAP4_KBD_CTRL);
--	__raw_writel(OMAP4_VAL_DEBOUNCINGTIME,
--			keypad_data->base + OMAP4_KBD_DEBOUNCINGTIME);
--	__raw_writel(OMAP4_VAL_IRQDISABLE,
--			keypad_data->base + OMAP4_KBD_IRQSTATUS);
--	__raw_writel(OMAP4_DEF_IRQENABLE_EVENTEN | OMAP4_DEF_IRQENABLE_LONGKEY,
--			keypad_data->base + OMAP4_KBD_IRQENABLE);
--	__raw_writel(OMAP4_DEF_WUP_EVENT_ENA | OMAP4_DEF_WUP_LONG_KEY_ENA,
--			keypad_data->base + OMAP4_KBD_WAKEUPENABLE);
-+	keypad_data->revision = kbd_read_revision(keypad_data,
-+			OMAP4_KBD_REVISION);
-+	if (keypad_data->revision == KBD_REVISION_OMAP4) {
-+		keypad_data->irqstatus = OMAP4_KBD_IRQSTATUS;
-+		keypad_data->irqenable = OMAP4_KBD_IRQENABLE;
-+	} else if (keypad_data->revision == KBD_REVISION_OMAP5) {
-+		keypad_data->irqstatus = OMAP4_KBD_IRQSTATUS + 0x0c;
-+		keypad_data->irqenable = OMAP4_KBD_IRQENABLE + 0x0c;
-+	} else {
-+		pr_err("Omap keypad not found\n");
-+		return -ENODEV;
-+	}
-+
-+	kbd_writel(keypad_data, OMAP4_KBD_CTRL,
-+			OMAP4_VAL_FUNCTIONALCFG);
-+	kbd_writel(keypad_data, OMAP4_KBD_DEBOUNCINGTIME,
-+			OMAP4_VAL_DEBOUNCINGTIME);
-+	kbd_write_irqstatus(keypad_data, keypad_data->irqstatus,
-+			OMAP4_VAL_IRQDISABLE);
-+	kbd_write_irqenable(keypad_data, keypad_data->irqenable,
-+			OMAP4_DEF_IRQENABLE_EVENTEN |
-+				OMAP4_DEF_IRQENABLE_LONGKEY);
-+	kbd_writel(keypad_data, OMAP4_KBD_WAKEUPENABLE,
-+			OMAP4_DEF_WUP_EVENT_ENA | OMAP4_DEF_WUP_LONG_KEY_ENA);
- 
- 	enable_irq(keypad_data->irq);
- 
-@@ -162,12 +236,12 @@ static void omap4_keypad_close(struct input_dev *input)
- 	disable_irq(keypad_data->irq);
- 
- 	/* Disable interrupts */
--	__raw_writel(OMAP4_VAL_IRQDISABLE,
--		     keypad_data->base + OMAP4_KBD_IRQENABLE);
-+	kbd_write_irqenable(keypad_data, keypad_data->irqenable,
-+			OMAP4_VAL_IRQDISABLE);
- 
- 	/* clear pending interrupts */
--	__raw_writel(__raw_readl(keypad_data->base + OMAP4_KBD_IRQSTATUS),
--			keypad_data->base + OMAP4_KBD_IRQSTATUS);
-+	kbd_write_irqstatus(keypad_data, keypad_data->irqstatus,
-+		kbd_read_irqstatus(keypad_data, keypad_data->irqstatus));
- 
- 	enable_irq(keypad_data->irq);
- 
--- 
-1.7.1
+> Santosh is right, GPtimer will not work on a PM enabled kernel, but
+> there are lots of ways to use the cmdline to get a non-working kernel=
+,
+> so that's OK by me.
+>
+> Let's just ensure that the boot-defaults are sane.
+>
+Absolutely.
 
+Regards
+Santosh
+--
+To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
