@@ -1,85 +1,62 @@
-From: "Shilimkar, Santosh" <santosh.shilimkar@ti.com>
-Subject: Re: [PATCH 1/3] ARM: OMAP2+: 32k-counter: Use hwmod lookup to check
- presence of 32k timer
-Date: Tue, 3 Apr 2012 11:20:30 +0530
-Message-ID: <CAMQu2gxYMdbdtbKUg+oyKDNOMCEWneL1FvW0TvNgDRt7gbk0cA@mail.gmail.com>
-References: <1326983304-14619-1-git-send-email-hvaibhav@ti.com>
- <CACVXFVP4J8N271Tww77Btm9fGNiP17MepjswBJ0V-8Z4sNt8Eg@mail.gmail.com>
- <4F672364.3020403@ti.com> <79CD15C6BA57404B839C016229A409A83182386C@DBDE01.ent.ti.com>
- <CAMQu2gyFNXgx87Fsq5is88DOkOx-nWK6ohwyFV-CY2uTkZCGMA@mail.gmail.com>
- <79CD15C6BA57404B839C016229A409A83183EA54@DBDE01.ent.ti.com>
- <CAMQu2gyF83HJOE9Rf-fZXXMt=p_WFjFf3DpAeW8L8+htR4E6-g@mail.gmail.com>
- <79CD15C6BA57404B839C016229A409A83183EB47@DBDE01.ent.ti.com>
- <CAMQu2gzYULK+=6-WKQnnQDpzTYW7xKAOZo7obyu2q178jtNE-Q@mail.gmail.com>
- <79CD15C6BA57404B839C016229A409A831840C2E@DBDE01.ent.ti.com>
- <CAMQu2gw7aceHSYSd+UMVS6kHQMqy0_maf8QTJaUMzp9z8822rQ@mail.gmail.com>
- <79CD15C6BA57404B839C016229A409A831840E0C@DBDE01.ent.ti.com>
- <4F7570FC.8000907@ti.com> <79CD15C6BA57404B839C016229A409A831840F82@DBDE01.ent.ti.com>
- <CAMQu2gzOkE6LD0WZ_9bKe3J-=Dv89rWaMzvWWvJHPMSPe6MzNg@mail.gmail.com>
- <CACVXFVPbU2OqTN=S0AZCD10KuSBYxqyyRH_xee+WTaCD6VSmMQ@mail.gmail.com>
- <CAMQu2gzuQ-q+3RHsW0=U305jCF-td5-PEXkGZ6WnQTqA1K8oAQ@mail.gmail.com>
- <CACVXFVPu1GEQy+sCgXMB8JCszPBBs8zHRVm94TYb1-y2afkqgw@mail.gmail.com>
- <CAMQu2gwuRpZ133962r3N4Y4K3oQ88ySa=SyoS6v=sSHGA=SGKw@mail.gmail.com>
- <CACVXFVMjSPhF_+CfbF2vD5ts+WtZGjofEWmknB0D1OpTM7geZw@mail.gmail.com>
- <CAMQu2gyEUhDyyng+_oC5NpXHzWMaTGsnCSTTZcMUi2pLV0z8RQ@mail.gmail.com> <87sjgmt211.fsf@ti.com>
+From: Shubhrajyoti Datta <omaplinuxkernel-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+Subject: Re: [PATCHv3 0/3] spi: omap2-mcspi: driver updates
+Date: Tue, 3 Apr 2012 11:25:26 +0530
+Message-ID: <CAM=Q2cse5_mZtfNchE+uYpNPLd+_TSTFswxhfk0feaoMqmT7eA@mail.gmail.com>
+References: <1333193818-3984-1-git-send-email-shubhrajyoti@ti.com>
+	<20120402194049.06B613E314E@localhost>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aog137.obsmtp.com ([74.125.149.18]:47552 "EHLO
-	psmtp.com" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
-	id S1751212Ab2DCFuw convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 3 Apr 2012 01:50:52 -0400
-Received: by qcso7 with SMTP id o7so2095844qcs.20
-        for <linux-omap@vger.kernel.org>; Mon, 02 Apr 2012 22:50:50 -0700 (PDT)
-In-Reply-To: <87sjgmt211.fsf@ti.com>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset="iso-8859-1"
+Content-Transfer-Encoding: quoted-printable
+Return-path: <spi-devel-general-bounces-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+In-Reply-To: <20120402194049.06B613E314E@localhost>
+List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/spi-devel-general>,
+	<mailto:spi-devel-general-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=unsubscribe>
+List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum_name=spi-devel-general>
+List-Post: <mailto:spi-devel-general-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+List-Help: <mailto:spi-devel-general-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=help>
+List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/spi-devel-general>,
+	<mailto:spi-devel-general-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
+Errors-To: spi-devel-general-bounces-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+To: Grant Likely <grant.likely-s3s/WqlpOiPyB63q8FvJNQ@public.gmane.org>
+Cc: spi-devel-general-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Shubhrajyoti D <shubhrajyoti-l0cyMroinI0@public.gmane.org>, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Shubhrajyoti-e0URQFbLeQY2iJbIjFUEsiwD8/FfD2ys@public.gmane.org
 List-Id: linux-omap@vger.kernel.org
-To: Kevin Hilman <khilman@ti.com>
-Cc: Ming Lei <tom.leiming@gmail.com>, Tony Lindgren <tony@atomide.com>, "Hiremath, Vaibhav" <hvaibhav@ti.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, "marc.zyngier@arm.com" <marc.zyngier@arm.com>, "johnstul@us.ibm.com" <johnstul@us.ibm.com>, "Balbi, Felipe" <balbi@ti.com>, "Cousson, Benoit" <b-cousson@ti.com>, Paul Walmsley <paul@pwsan.com>, "DebBarma, Tarun Kanti" <tarun.kanti@ti.com>
 
-On Tue, Apr 3, 2012 at 12:05 AM, Kevin Hilman <khilman@ti.com> wrote:
-> "Shilimkar, Santosh" <santosh.shilimkar@ti.com> writes:
->
-> [...]
->
->> I don't personally like to add features which hardly anybody use and
->> fundamentally broken with full kernel.
->
-> Let's keep sane defaults, but not make it unreasonable to tweak eaith=
-er.
->
-Exactly. Thanks for echoing the concern.
+Hi Grant
 
-> I suggest what has already been mentioned.
+On Tue, Apr 3, 2012 at 1:10 AM, Grant Likely <grant.likely-s3s/WqlpOiPyB63q8FvJNQ@public.gmane.org> wr=
+ote:
+> On Sat, 31 Mar 2012 17:06:55 +0530, Shubhrajyoti D <shubhrajyoti-l0cyMroinI0@public.gmane.org> =
+wrote:
+>> The patch series does the following cleanups
+>> - Makes the driver use autosuspend
+>> - Folds Benoit's bus_num removal patch in the series
+>> - The tmp variable is used to write this can be optimised
+>> =A0as it is not needed if the value is directly written.
+>> =A0Acknowledge =A0Tarun for the suggestion.
+>>
+>> This is also available through
+>> git =A0 =A0 : git://gitorious.org/linus-tree/linus-tree.git
+>> branch =A0: spi_next
+>>
+>> Rebased to Grant's spi/next branch.
 >
-> Register both timers, but have the sync timer have a higher rating. =A0=
-On
-> AMxxx where there is no sync timer, GPtimer will be used.
->
-Technically it's a hack just from clock precision point of view but I d=
-on't mind
-this.
+> Merged, thanks.
+Thanks ,
 
-> For those who want to use GPtimer, they can boot using clocksource=3D=
- to
-> override the default.
 >
-Sounds good to me.
+> BTW, it's easier to pull if you put the branch after the git URL (I
+> can cut and paste all at once):
+>
+> =A0 =A0 =A0 =A0git://gitorious.org/linus-tree/linus-tree.git spi_next
+>
+> "git request-pull" can be your friend here.
+>
+OK good idea will do that.
 
-> Santosh is right, GPtimer will not work on a PM enabled kernel, but
-> there are lots of ways to use the cmdline to get a non-working kernel=
-,
-> so that's OK by me.
->
-> Let's just ensure that the boot-defaults are sane.
->
-Absolutely.
+---------------------------------------------------------------------------=
+---
+Better than sec? Nothing is better than sec when it comes to
+monitoring Big Data applications. Try Boundary one-second =
 
-Regards
-Santosh
---
-To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+resolution app monitoring today. Free.
+http://p.sf.net/sfu/Boundary-dev2dev
