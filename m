@@ -1,81 +1,68 @@
-From: Shubhrajyoti D <shubhrajyoti@ti.com>
-Subject: [PATCHv4 00/18] I2C updates
-Date: Tue, 3 Apr 2012 17:08:09 +0530
-Message-ID: <1333453107-7697-1-git-send-email-shubhrajyoti@ti.com>
+From: Shubhrajyoti D <shubhrajyoti-l0cyMroinI0@public.gmane.org>
+Subject: [PATCHv4 13/18] OMAP: I2C: Handle error check for pm runtime
+Date: Tue, 3 Apr 2012 17:08:22 +0530
+Message-ID: <1333453107-7697-14-git-send-email-shubhrajyoti@ti.com>
+References: <1333453107-7697-1-git-send-email-shubhrajyoti@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from comal.ext.ti.com ([198.47.26.152]:54779 "EHLO comal.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752029Ab2DCLjC (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Tue, 3 Apr 2012 07:39:02 -0400
-Sender: linux-omap-owner@vger.kernel.org
+Return-path: <linux-i2c-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <1333453107-7697-1-git-send-email-shubhrajyoti-l0cyMroinI0@public.gmane.org>
+Sender: linux-i2c-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Cc: linux-i2c-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, ben-linux-elnMNo+KYs3YtjvyW6yDsg@public.gmane.org, tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org, w.sang-bIcnvbaLZ9MEGnE8C9+IrQ@public.gmane.org, Shubhrajyoti D <shubhrajyoti-l0cyMroinI0@public.gmane.org>
 List-Id: linux-omap@vger.kernel.org
-To: linux-omap@vger.kernel.org
-Cc: linux-i2c@vger.kernel.org, linux-arm-kernel@lists.infradead.org, ben-linux@fluff.org, tony@atomide.com, w.sang@pengutronix.de, Shubhrajyoti D <shubhrajyoti@ti.com>
 
-The patch series does the following
+If PM runtime get_sync fails return with the error
+so that no further reads/writes goes through the interface.
+This will avoid possible abort.
 
-- Warn fixes if CONFIG_PM_RUNTIME is not selected.
-- I2C register restore only if context if the context is lost
-- Bus busy recovery mechanism.
-- the reset is not done in init.
+Signed-off-by: Shubhrajyoti D <shubhrajyoti-l0cyMroinI0@public.gmane.org>
+---
+ drivers/i2c/busses/i2c-omap.c |   13 ++++++++++---
+ 1 files changed, 10 insertions(+), 3 deletions(-)
 
-v2 changes
--Adds a patch to use devm_* functions
--Also checks the return type of the get_sync and in case
- of errors prevents register access.
-- In case of i2c remove register access was done without any
- get_sync fix the same.
-- Adds a pdata function pointer to do context save restore
-
-v3 changes
-- Split the omap_i2c_isr to increase readability
-- Adds the restore flag patch for OMAP4 to the series
-- Make the i2c use SET_RUNTIME_PM_OPS
-v4 changes
-- Folds a patch from Tasslehoff to prevent any merge conflicts.
-- Prevents the XDUF flag to be set if the underflow condition is not met.
-
-Tested on omap4sdp and omap3sdp.
-
-
-Following changes since commit dd775ae2549217d3ae09363e3edb305d0fa19928:
-
-  Linux 3.4-rc1 (2012-03-31 16:24:09 -0700)
-
-are available in the git repository at:
-  git@gitorious.org:linus-tree/linus-tree.git i2c-v4
-
-Jon Hunter (1):
-      I2C: OMAP: Correct I2C revision for OMAP3
-
-Shubhrajyoti D (15):
-      I2C : OMAP : make omap_i2c_unidle/idle functions depend on CONFIG_PM_RUNTIME
-      OMAP : I2C : Remove reset at init
-      OMAP: I2C: I2C register restore only if context is lost
-      OMAP: I2C: Fix the interrupt clearing in OMAP4
-      OMAP: I2C: Fix the mismatch of pm_runtime enable and disable
-      OMAP: I2C: Optimise the remove code
-      OMAP: I2C: Fix the error handling
-      I2C: OMAP: Don't check if wait_for_completion_timeout() returns less than zero
-      OMAP : I2C : use devm_* functions
-      I2C : OMAP : Fix the crash in i2c remove
-      OMAP: I2C: Handle error check for pm runtime
-      I2C : OMAP : Use SET_RUNTIME_PM_OPS
-      OMAP4: hwmod data: I2C: add flag for context restore
-      i2c: omap: make the read ready processing a separate function
-      i2c: omap: Do not set the XUDF if the underflow is not reached
-
-Tasslehoff Kjappfot (1):
-      I2C: OMAP : fix missing handling of errata I2C_OMAP3_1P153
-
-Vikram Pandita (1):
-      I2C: OMAP: Recover from Bus Busy condition
-
- arch/arm/mach-omap2/omap_hwmod_44xx_data.c |    3 +-
- arch/arm/plat-omap/i2c.c                   |    3 +
- drivers/i2c/busses/i2c-omap.c              |  330 +++++++++++++++-------------
- include/linux/i2c-omap.h                   |    1 +
- 4 files changed, 188 insertions(+), 149 deletions(-)
-
+diff --git a/drivers/i2c/busses/i2c-omap.c b/drivers/i2c/busses/i2c-omap.c
+index 8258597..95f1b2f 100644
+--- a/drivers/i2c/busses/i2c-omap.c
++++ b/drivers/i2c/busses/i2c-omap.c
+@@ -616,7 +616,9 @@ omap_i2c_xfer(struct i2c_adapter *adap, struct i2c_msg msgs[], int num)
+ 	int i;
+ 	int r;
+ 
+-	pm_runtime_get_sync(dev->dev);
++	r = pm_runtime_get_sync(dev->dev);
++	if (r < 0)
++		return r;
+ 
+ 	r = omap_i2c_wait_for_bb(dev);
+ 	if (r < 0)
+@@ -1044,7 +1046,9 @@ omap_i2c_probe(struct platform_device *pdev)
+ 		dev->regs = (u8 *)reg_map_ip_v1;
+ 
+ 	pm_runtime_enable(dev->dev);
+-	pm_runtime_get_sync(dev->dev);
++	r = pm_runtime_get_sync(dev->dev);
++	if (r < 0)
++		return r;
+ 
+ 	dev->rev = omap_i2c_read_reg(dev, OMAP_I2C_REV_REG) & 0xff;
+ 
+@@ -1129,12 +1133,15 @@ err_unuse_clocks:
+ static int __devexit omap_i2c_remove(struct platform_device *pdev)
+ {
+ 	struct omap_i2c_dev	*dev = platform_get_drvdata(pdev);
++	int ret;
+ 
+ 	platform_set_drvdata(pdev, NULL);
+ 
+ 	free_irq(dev->irq, dev);
+ 	i2c_del_adapter(&dev->adapter);
+-	pm_runtime_get_sync(&pdev->dev);
++	ret = pm_runtime_get_sync(&pdev->dev);
++	if (ret < 0)
++		return ret;
+ 	omap_i2c_write_reg(dev, OMAP_I2C_CON_REG, 0);
+ 	pm_runtime_put(&pdev->dev);
+ 	pm_runtime_disable(&pdev->dev);
+-- 
+1.7.1
