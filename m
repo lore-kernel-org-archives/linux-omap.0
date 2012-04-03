@@ -1,53 +1,56 @@
 From: Shubhrajyoti D <shubhrajyoti@ti.com>
-Subject: [PATCHv4 06/18] OMAP: I2C: Fix the mismatch of pm_runtime enable and disable
-Date: Tue, 3 Apr 2012 17:08:15 +0530
-Message-ID: <1333453107-7697-7-git-send-email-shubhrajyoti@ti.com>
+Subject: [PATCHv4 05/18] OMAP: I2C: Fix the interrupt clearing in OMAP4
+Date: Tue, 3 Apr 2012 17:08:14 +0530
+Message-ID: <1333453107-7697-6-git-send-email-shubhrajyoti@ti.com>
 References: <1333453107-7697-1-git-send-email-shubhrajyoti@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from devils.ext.ti.com ([198.47.26.153]:52591 "EHLO
+Received: from devils.ext.ti.com ([198.47.26.153]:52590 "EHLO
 	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754196Ab2DCLjQ (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 3 Apr 2012 07:39:16 -0400
+	with ESMTP id S1754092Ab2DCLjP (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 3 Apr 2012 07:39:15 -0400
 In-Reply-To: <1333453107-7697-1-git-send-email-shubhrajyoti@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: linux-omap@vger.kernel.org
-Cc: linux-i2c@vger.kernel.org, linux-arm-kernel@lists.infradead.org, ben-linux@fluff.org, tony@atomide.com, w.sang@pengutronix.de, Shubhrajyoti D <shubhrajyoti@ti.com>, Kevin Hilman <khilman@ti.com>, Rajendra Nayak <rnayak@ti.com>
+Cc: linux-i2c@vger.kernel.org, linux-arm-kernel@lists.infradead.org, ben-linux@fluff.org, tony@atomide.com, w.sang@pengutronix.de, Shubhrajyoti D <shubhrajyoti@ti.com>, Vikram Pandita <vikram.pandita@ti.com>
 
-Currently the i2c driver calls the pm_runtime_enable and never
-the disable. This may cause a warning when pm_runtime_enable
-checks for the count match.Attempting to fix the same by calling
-pm_runtime_disable in the error and the remove path.
+On OMAP4 we were writing 1 to IRQENABLE_CLR which cleared only
+the arbitration lost interrupt. The patch intends to fix the same by writing 0
+to the IE register clearing all interrupts.
 
-Cc: Kevin Hilman <khilman@ti.com>
-Cc: Rajendra Nayak <rnayak@ti.com>
+This is based on the work done by Vikram Pandita <vikram.pandita@ti.com>.
+
+The  changes from the original patch ...
+-  Does not use the IRQENABLE_CLR register to clear as it is not mentioned
+  to be legacy register IRQENABLE_CLR helps in  atomically
+  setting/clearing specific interrupts, instead use the OMAP_I2C_IE_REG as we are
+  clearing all interrupts.
+
+Cc: Vikram Pandita <vikram.pandita@ti.com>
 Signed-off-by: Shubhrajyoti D <shubhrajyoti@ti.com>
 ---
- drivers/i2c/busses/i2c-omap.c |    2 ++
- 1 files changed, 2 insertions(+), 0 deletions(-)
+ drivers/i2c/busses/i2c-omap.c |    6 ++----
+ 1 files changed, 2 insertions(+), 4 deletions(-)
 
 diff --git a/drivers/i2c/busses/i2c-omap.c b/drivers/i2c/busses/i2c-omap.c
-index 2769f67..3670088 100644
+index 45389db..2769f67 100644
 --- a/drivers/i2c/busses/i2c-omap.c
 +++ b/drivers/i2c/busses/i2c-omap.c
-@@ -1124,6 +1124,7 @@ err_unuse_clocks:
- 	omap_i2c_write_reg(dev, OMAP_I2C_CON_REG, 0);
- 	pm_runtime_put(dev->dev);
- 	iounmap(dev->base);
-+	pm_runtime_disable(&pdev->dev);
- err_free_mem:
- 	platform_set_drvdata(pdev, NULL);
- 	kfree(dev);
-@@ -1144,6 +1145,7 @@ omap_i2c_remove(struct platform_device *pdev)
- 	free_irq(dev->irq, dev);
- 	i2c_del_adapter(&dev->adapter);
- 	omap_i2c_write_reg(dev, OMAP_I2C_CON_REG, 0);
-+	pm_runtime_disable(&pdev->dev);
- 	iounmap(dev->base);
- 	kfree(dev);
- 	mem = platform_get_resource(pdev, IORESOURCE_MEM, 0);
+@@ -1179,10 +1179,8 @@ static int omap_i2c_runtime_suspend(struct device *dev)
+ 		_dev->dev_lost_count = _dev->get_context_loss_count(dev);
+ 
+ 	_dev->iestate = omap_i2c_read_reg(_dev, OMAP_I2C_IE_REG);
+-	if (_dev->dtrev == OMAP_I2C_IP_VERSION_2)
+-		omap_i2c_write_reg(_dev, OMAP_I2C_IP_V2_IRQENABLE_CLR, 1);
+-	else
+-		omap_i2c_write_reg(_dev, OMAP_I2C_IE_REG, 0);
++
++	omap_i2c_write_reg(_dev, OMAP_I2C_IE_REG, 0);
+ 
+ 	if (_dev->rev < OMAP_I2C_OMAP1_REV_2) {
+ 		iv = omap_i2c_read_reg(_dev, OMAP_I2C_IV_REG); /* Read clears */
 -- 
 1.7.1
 
