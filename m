@@ -1,60 +1,49 @@
 From: Shubhrajyoti D <shubhrajyoti@ti.com>
-Subject: [PATCHv5 16/18] I2C: OMAP: fix missing handling of errata I2C_OMAP3_1P153
-Date: Tue, 3 Apr 2012 21:32:35 +0530
-Message-ID: <1333468957-5999-17-git-send-email-shubhrajyoti@ti.com>
+Subject: [PATCHv5 18/18] ARM: OMAP4: hwmod data: I2C: add flag for context restore
+Date: Tue, 3 Apr 2012 21:32:37 +0530
+Message-ID: <1333468957-5999-19-git-send-email-shubhrajyoti@ti.com>
 References: <1333468957-5999-1-git-send-email-shubhrajyoti@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from comal.ext.ti.com ([198.47.26.152]:47922 "EHLO comal.ext.ti.com"
+Received: from bear.ext.ti.com ([192.94.94.41]:55671 "EHLO bear.ext.ti.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1755130Ab2DCQD4 (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Tue, 3 Apr 2012 12:03:56 -0400
+	id S1755188Ab2DCQEF (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Tue, 3 Apr 2012 12:04:05 -0400
 In-Reply-To: <1333468957-5999-1-git-send-email-shubhrajyoti@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: linux-omap@vger.kernel.org
-Cc: linux-i2c@vger.kernel.org, linux-arm-kernel@lists.infradead.org, ben-linux@fluff.org, tony@atomide.com, w.sang@pengutronix.de, Tasslehoff Kjappfot <tasskjapp@gmail.com>, Shubhrajyoti D <shubhrajyoti@ti.com>
+Cc: linux-i2c@vger.kernel.org, linux-arm-kernel@lists.infradead.org, ben-linux@fluff.org, tony@atomide.com, w.sang@pengutronix.de, Shubhrajyoti D <shubhrajyoti@ti.com>, Benoit Cousson <b-cousson@ti.com>, Paul Wamsley <paul@pwsan.com>
 
-From: Tasslehoff Kjappfot <tasskjapp@gmail.com>
+Restore of context is not done for OMAP4. This patch
+adds the OMAP_I2C_FLAG_RESET_REGS_POSTIDLE in the OMAP4
+hwmod data which activates the restore for OMAP4.
+Currently the OMAP4 does not hit device off still the
+driver may have support for it.
 
-i2c_probe set the dev->errata flag, but omap_i2c_init cleared the flag again.
-Move the errata handling to i2c_probe.
-
-Signed-off-by: Tasslehoff Kjappfot <tasskjapp@gmail.com>
+Cc: Benoit Cousson <b-cousson@ti.com>
+Cc: Paul Wamsley <paul@pwsan.com>
+Reviewed-by: Kevin Hilman <khilman@ti.com>
 Signed-off-by: Shubhrajyoti D <shubhrajyoti@ti.com>
 ---
- drivers/i2c/busses/i2c-omap.c |   10 +++++-----
- 1 files changed, 5 insertions(+), 5 deletions(-)
+ arch/arm/mach-omap2/omap_hwmod_44xx_data.c |    3 ++-
+ 1 files changed, 2 insertions(+), 1 deletions(-)
 
-diff --git a/drivers/i2c/busses/i2c-omap.c b/drivers/i2c/busses/i2c-omap.c
-index c113f41..51576d6 100644
---- a/drivers/i2c/busses/i2c-omap.c
-+++ b/drivers/i2c/busses/i2c-omap.c
-@@ -431,11 +431,6 @@ static int omap_i2c_init(struct omap_i2c_dev *dev)
- 	/* Take the I2C module out of reset: */
- 	omap_i2c_write_reg(dev, OMAP_I2C_CON_REG, OMAP_I2C_CON_EN);
+diff --git a/arch/arm/mach-omap2/omap_hwmod_44xx_data.c b/arch/arm/mach-omap2/omap_hwmod_44xx_data.c
+index 08daa5e..cddce60 100644
+--- a/arch/arm/mach-omap2/omap_hwmod_44xx_data.c
++++ b/arch/arm/mach-omap2/omap_hwmod_44xx_data.c
+@@ -2262,7 +2262,8 @@ static struct omap_hwmod_class omap44xx_i2c_hwmod_class = {
+ };
  
--	dev->errata = 0;
--
--	if (dev->flags & OMAP_I2C_FLAG_APPLY_ERRATA_I207)
--		dev->errata |= I2C_OMAP_ERRATA_I207;
--
- 	/* Enable interrupts */
- 	dev->iestate = (OMAP_I2C_IE_XRDY | OMAP_I2C_IE_RRDY |
- 			OMAP_I2C_IE_ARDY | OMAP_I2C_IE_NACK |
-@@ -1056,6 +1051,11 @@ omap_i2c_probe(struct platform_device *pdev)
+ static struct omap_i2c_dev_attr i2c_dev_attr = {
+-	.flags	= OMAP_I2C_FLAG_BUS_SHIFT_NONE,
++	.flags	= OMAP_I2C_FLAG_BUS_SHIFT_NONE |
++			OMAP_I2C_FLAG_RESET_REGS_POSTIDLE,
+ };
  
- 	dev->rev = omap_i2c_read_reg(dev, OMAP_I2C_REV_REG) & 0xff;
- 
-+	dev->errata = 0;
-+
-+	if (dev->flags & OMAP_I2C_FLAG_APPLY_ERRATA_I207)
-+		dev->errata |= I2C_OMAP_ERRATA_I207;
-+
- 	if (dev->rev <= OMAP_I2C_REV_ON_3430_3530)
- 		dev->errata |= I2C_OMAP3_1P153;
- 
+ /* i2c1 */
 -- 
 1.7.1
 
