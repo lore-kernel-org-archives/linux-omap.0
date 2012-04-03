@@ -1,75 +1,57 @@
-From: Grant Likely <grant.likely@secretlab.ca>
-Subject: Re: [PATCHv3 0/3] spi: omap2-mcspi: driver updates
-Date: Mon, 02 Apr 2012 13:40:48 -0600
-Message-ID: <20120402194049.06B613E314E@localhost>
-References: <1333193818-3984-1-git-send-email-shubhrajyoti@ti.com>
+From: Kevin Hilman <khilman@ti.com>
+Subject: Re: [PATCH 0/3] OMAP4: CPUidle: Add coupled idle support
+Date: Mon, 02 Apr 2012 22:04:43 -0700
+Message-ID: <87obr9s8wk.fsf@ti.com>
+References: <1333114048-26136-1-git-send-email-santosh.shilimkar@ti.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-pb0-f46.google.com ([209.85.160.46]:55553 "EHLO
-	mail-pb0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751691Ab2DBTkv (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 2 Apr 2012 15:40:51 -0400
-Received: by pbcun15 with SMTP id un15so4766369pbc.19
-        for <linux-omap@vger.kernel.org>; Mon, 02 Apr 2012 12:40:51 -0700 (PDT)
-In-Reply-To: <1333193818-3984-1-git-send-email-shubhrajyoti@ti.com>
+Received: from na3sys009aog115.obsmtp.com ([74.125.149.238]:43545 "EHLO
+	na3sys009aog115.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1751324Ab2DCFEq (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 3 Apr 2012 01:04:46 -0400
+Received: by pbbrq13 with SMTP id rq13so5046489pbb.31
+        for <linux-omap@vger.kernel.org>; Mon, 02 Apr 2012 22:04:45 -0700 (PDT)
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: spi-devel-general@lists.sourceforge.net
-Cc: Shubhrajyoti@ponder.secretlab.ca, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org, D <shubhrajyoti@ti.com>
+To: Santosh Shilimkar <santosh.shilimkar@ti.com>
+Cc: linux-omap@vger.kernel.org, ccross@android.com, linux-arm-kernel@lists.infradead.org
 
-On Sat, 31 Mar 2012 17:06:55 +0530, Shubhrajyoti D <shubhrajyoti@ti.com> wrote:
-> The patch series does the following cleanups
-> - Makes the driver use autosuspend
-> - Folds Benoit's bus_num removal patch in the series
-> - The tmp variable is used to write this can be optimised 
->  as it is not needed if the value is directly written.
->  Acknowledge  Tarun for the suggestion.
-> 
-> This is also available through
-> git     : git://gitorious.org/linus-tree/linus-tree.git
-> branch  : spi_next
-> 
-> Rebased to Grant's spi/next branch.
+Hi Santosh,
 
-Merged, thanks.
+Santosh Shilimkar <santosh.shilimkar@ti.com> writes:
 
-BTW, it's easier to pull if you put the branch after the git URL (I
-can cut and paste all at once):
+> The series adds the coupled cpuidle support for OMAP4 based on the v2
+> series posted [1]. This makes OMAP4 to support SMP cpuidle and also
+> removes the hard dependency of off-lining CPU1 to trigger deeper
+> C-states.
+>
+> I have put together a branch which is based on 3.3 kernel with
+> Len Browns next branch [2] which has time keeping and other cpuidle
+> patches which will mostly get merged by 3.4-rc1 and rebased coupled
+> idle series from [1].
 
-	git://gitorious.org/linus-tree/linus-tree.git spi_next
+Thanks for rebasing this.
 
-"git request-pull" can be your friend here.
+> git://gitorious.org/omap-sw-develoment/linux-omap-dev.git
+> for_3.5/omap4_coupled_cpuidle-rebase
 
-I've also respun the top commit (Trivial optimization...) because the
-Cc tag format was wrong in the commit text (whitespace errors).
-You'll need to be pendantic about stuff like that for trees that I
-might pull.
+This branch by itself seems to work fine.  However, when combining with
+other stuff that has merged for v3.4, it hangs during boot.  I haven't
+yet isolated the problem, but it's easy to reproduce by combining your
+branch with v3.4-rc1:
 
-g.
+  git checkout -b test/coupled-v3.4 v3.4-rc1
+  git merge -s recursive -X ours santosh/for_3.5/omap4_coupled_cpuidle-rebase [1]
+
+This hangs on boot, and it seems like a coupled state deadlock because
+commenting out the coupled states in the C-state creation of
+cpuidle44xx.c makes it boot just fine.
+
+Kevin
 
 
-> 
->  
-> 
-> Benoit Cousson (1):
->   spi/omap: Remove bus_num usage for instance index
-> 
-> Shubhrajyoti D (2):
->   spi: omap2-mcspi: add support for pm_runtime autosuspend
->   spi: omap2-mcspi: Trivial optimisation
-> 
->  drivers/spi/spi-omap2-mcspi.c |   86 +++++++++++++++++++---------------------
->  1 files changed, 41 insertions(+), 45 deletions(-)
-> 
-> 
-> ------------------------------------------------------------------------------
-> This SF email is sponsosred by:
-> Try Windows Azure free for 90 days Click Here 
-> http://p.sf.net/sfu/sfd2d-msazure
-> _______________________________________________
-> spi-devel-general mailing list
-> spi-devel-general@lists.sourceforge.net
-> https://lists.sourceforge.net/lists/listinfo/spi-devel-general
+[1] There were a couple conflicts in your branch with ACPI stuff from
+    v3.4-rc1 (maybe Len updated his branch?), so I just threw them
+    away with a recursive/ours merge.
 
--- 
-Grant Likely, B.Sc, P.Eng.
-Secret Lab Technologies,Ltd.
