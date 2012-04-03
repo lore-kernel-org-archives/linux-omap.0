@@ -1,67 +1,55 @@
-From: Roger Quadros <rogerq@ti.com>
-Subject: Re: [PATCH] OMAP4: Adding ID for OMAP4460 ES1.1
-Date: Tue, 3 Apr 2012 12:47:13 +0300
-Message-ID: <4F7AC721.4020205@ti.com>
-References: <1333357197-6354-1-git-send-email-rogerq@ti.com>
+From: Will Deacon <will.deacon@arm.com>
+Subject: Re: oprofile and ARM A9 hardware counter
+Date: Tue, 3 Apr 2012 10:47:49 +0100
+Message-ID: <20120403094749.GH17741@mudshark.cambridge.arm.com>
+References: <20120109224945.GA23090@mudshark.cambridge.arm.com>
+ <CACVXFVMnAt_YpYNC5B6W4Vh4HvtVS3D6jRORUw0AW5a4ub5aOw@mail.gmail.com>
+ <CAMsRxfJe_MEA=anzRu6jehGcZyg49uAx44_nDQ3_FRY=WrFLoA@mail.gmail.com>
+ <CACVXFVNXJ2vZM-dAxQPQ5LSOuvv5yvOrnytOB9PxURtkaSCP8w@mail.gmail.com>
+ <CACVXFVMH9WZDqs-mVjxL=1FY12uHyQAJMTCQuU5ru1wQT+YnZg@mail.gmail.com>
+ <CAMQu2gzW706YbOzHa4Am0=X17T0G3zBhOmWUd8eC6GY9F6OBog@mail.gmail.com>
+ <CACVXFVPb-McJj1oi284RW37Pe08cAXSw-jteFwfNVPpCJx5EaQ@mail.gmail.com>
+ <CAMQu2gwvgPfZv_LnB6GnYs=Wt+wj9GFPEDYiDK6C8TiTag3gTg@mail.gmail.com>
+ <20120403092524.GD17741@mudshark.cambridge.arm.com>
+ <CAMQu2gxE2STYxUGinzstX6W8jyofH829A__NQBjwLqZd9cqy=w@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="ISO-8859-1"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from comal.ext.ti.com ([198.47.26.152]:48502 "EHLO comal.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752910Ab2DCJrR (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Tue, 3 Apr 2012 05:47:17 -0400
-In-Reply-To: <1333357197-6354-1-git-send-email-rogerq@ti.com>
+Received: from cam-admin0.cambridge.arm.com ([217.140.96.50]:55225 "EHLO
+	cam-admin0.cambridge.arm.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1751429Ab2DCJsH (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 3 Apr 2012 05:48:07 -0400
+Content-Disposition: inline
+In-Reply-To: <CAMQu2gxE2STYxUGinzstX6W8jyofH829A__NQBjwLqZd9cqy=w@mail.gmail.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "tony@atomide.com" <tony@atomide.com>
-Cc: linux-omap@vger.kernel.org, Chris Lalancette <clalancette@gmail.com>
+To: "Shilimkar, Santosh" <santosh.shilimkar@ti.com>
+Cc: Ming Lei <ming.lei@canonical.com>, "eranian@gmail.com" <eranian@gmail.com>, Maynard Johnson <maynardj@us.ibm.com>, Lik Lik <lik88888@gmail.com>, "oprofile-list@lists.sourceforge.net" <oprofile-list@lists.sourceforge.net>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, "Cousson, Benoit" <b-cousson@ti.com>, Paul Walmsley <paul@pwsan.com>
 
-Hi Tony,
+On Tue, Apr 03, 2012 at 10:42:30AM +0100, Shilimkar, Santosh wrote:
+> On Tue, Apr 3, 2012 at 2:55 PM, Will Deacon <will.deacon@arm.com> wrote:
+> > Did you ever get to the bottom of this? This change really is required in
+> > order to generate PMU interrupts with the CTI and I don't know of any
+> > alternative to the above.
+> >
+> > Any suggestions?
+> >
+> Sorry I lost track of this one. There is one relevant patch in Kevin's queue
+> for 3.4/fixes. [1] which I generated for perf time stamp issue.
 
-Could you please take this patch for the next merge? Thanks.
+Thanks, I'll take a look.
 
-regards,
--roger
+> Can you try that patch and see if it helps the CTI issue as well ? There
+> is an outside chance that it might help. If it doesn't, we should commit
+> Ming Lei  patch.
 
-On 04/02/2012 11:59 AM, Roger Quadros wrote:
-> From: Chris Lalancette <clalancette@gmail.com>
-> 
-> Signed-off-by: Chris Lalancette <clalancette@gmail.com>
-> Signed-off-by: Roger Quadros <rogerq@ti.com>
-> ---
->  arch/arm/mach-omap2/id.c              |    5 ++++-
->  arch/arm/plat-omap/include/plat/cpu.h |    1 +
->  2 files changed, 5 insertions(+), 1 deletions(-)
-> 
-> diff --git a/arch/arm/mach-omap2/id.c b/arch/arm/mach-omap2/id.c
-> index 0e79b7b..f139817 100644
-> --- a/arch/arm/mach-omap2/id.c
-> +++ b/arch/arm/mach-omap2/id.c
-> @@ -478,9 +478,12 @@ void __init omap4xxx_check_revision(void)
->  	case 0xb94e:
->  		switch (rev) {
->  		case 0:
-> -		default:
->  			omap_revision = OMAP4460_REV_ES1_0;
->  			break;
-> +		case 2:
-> +		default:
-> +			omap_revision = OMAP4460_REV_ES1_1;
-> +			break;
->  		}
->  		break;
->  	case 0xb975:
-> diff --git a/arch/arm/plat-omap/include/plat/cpu.h b/arch/arm/plat-omap/include/plat/cpu.h
-> index dc6a86b..4bdf14e 100644
-> --- a/arch/arm/plat-omap/include/plat/cpu.h
-> +++ b/arch/arm/plat-omap/include/plat/cpu.h
-> @@ -445,6 +445,7 @@ IS_OMAP_TYPE(3517, 0x3517)
->  
->  #define OMAP446X_CLASS		0x44600044
->  #define OMAP4460_REV_ES1_0	(OMAP446X_CLASS | (0x10 << 8))
-> +#define OMAP4460_REV_ES1_1	(OMAP446X_CLASS | (0x11 << 8))
->  
->  #define OMAP447X_CLASS		0x44700044
->  #define OMAP4470_REV_ES1_0	(OMAP447X_CLASS | (0x10 << 8))
+It seems that they're both needed to get reliable PMU operation. Without the
+CLKDM_CAN_SWSUP fix, no interrupts are generated at all. Without the patch
+below ([1]), it seems that we don't generate enough. So it looks like we
+need them both.
 
+> [1] http://lists.infradead.org/pipermail/linux-arm-kernel/2012-March/089679.html
+
+Cheers,
+
+Will
