@@ -1,96 +1,91 @@
-From: Marc Kleine-Budde <mkl@pengutronix.de>
-Subject: Re: [PATCH] ARM: OMAP: AM33XX: CAN: d_can: Add support for Bosch
- D_CAN controller
-Date: Tue, 03 Apr 2012 17:33:40 +0200
-Message-ID: <4F7B1854.90106@pengutronix.de>
-References: <1333456339-9372-1-git-send-email-anilkumar@ti.com> <4F7AF0C7.7020506@grandegger.com> <331ABD5ECB02734CA317220B2BBEABC1317D85D0@DBDE01.ent.ti.com> <4F7AFFEC.1010805@pengutronix.de> <331ABD5ECB02734CA317220B2BBEABC1317D86F7@DBDE01.ent.ti.com>
+From: "Hiremath, Vaibhav" <hvaibhav@ti.com>
+Subject: RE: [PATCH 1/3] ARM: OMAP2+: 32k-counter: Use hwmod lookup to check
+ presence of 32k timer
+Date: Tue, 3 Apr 2012 15:35:42 +0000
+Message-ID: <79CD15C6BA57404B839C016229A409A8318461E8@DBDE01.ent.ti.com>
+References: <1326983304-14619-1-git-send-email-hvaibhav@ti.com>
+	<CACVXFVP4J8N271Tww77Btm9fGNiP17MepjswBJ0V-8Z4sNt8Eg@mail.gmail.com>
+	<4F672364.3020403@ti.com>
+	<79CD15C6BA57404B839C016229A409A83182386C@DBDE01.ent.ti.com>
+	<CAMQu2gyFNXgx87Fsq5is88DOkOx-nWK6ohwyFV-CY2uTkZCGMA@mail.gmail.com>
+	<79CD15C6BA57404B839C016229A409A83183EA54@DBDE01.ent.ti.com>
+	<CAMQu2gyF83HJOE9Rf-fZXXMt=p_WFjFf3DpAeW8L8+htR4E6-g@mail.gmail.com>
+	<79CD15C6BA57404B839C016229A409A83183EB47@DBDE01.ent.ti.com>
+	<CAMQu2gzYULK+=6-WKQnnQDpzTYW7xKAOZo7obyu2q178jtNE-Q@mail.gmail.com>
+	<79CD15C6BA57404B839C016229A409A831840C2E@DBDE01.ent.ti.com>
+	<CAMQu2gw7aceHSYSd+UMVS6kHQMqy0_maf8QTJaUMzp9z8822rQ@mail.gmail.com>
+	<79CD15C6BA57404B839C016229A409A831840E0C@DBDE01.ent.ti.com>
+	<4F7570FC.8000907@ti.com>
+	<79CD15C6BA57404B839C016229A409A831840F82@DBDE01.ent.ti.com>
+	<CAMQu2gzOkE6LD0WZ_9bKe3J-=Dv89rWaMzvWWvJHPMSPe6MzNg@mail.gmail.com>
+	<CACVXFVPbU2OqTN=S0AZCD10KuSBYxqyyRH_xee+WTaCD6VSmMQ@mail.gmail.com>
+	<CAMQu2gzuQ-q+3RHsW0=U305jCF-td5-PEXkGZ6WnQTqA1K8oAQ@mail.gmail.com>
+	<CACVXFVPu1GEQy+sCgXMB8JCszPBBs8zHRVm94TYb1-y2afkqgw@mail.gmail.com>
+	<CAMQu2gwuRpZ133962r3N4Y4K3oQ88ySa=SyoS6v=sSHGA=SGKw@mail.gmail.com>
+	<CACVXFVMjSPhF_+CfbF2vD5ts+WtZGjofEWmknB0D1OpTM7geZw@mail.gmail.com>
+	<CAMQu2gyEUhDyyng+_oC5NpXHzWMaTGsnCSTTZcMUi2pLV0z8RQ@mail.gmail.com>
+ <87sjgmt211.fsf@ti.com>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
- protocol="application/pgp-signature";
- boundary="------------enig39D5EC57251C2350EAE5D01F"
-Return-path: <linux-can-owner@vger.kernel.org>
-In-Reply-To: <331ABD5ECB02734CA317220B2BBEABC1317D86F7@DBDE01.ent.ti.com>
-Sender: linux-can-owner@vger.kernel.org
-To: "AnilKumar, Chimata" <anilkumar@ti.com>
-Cc: Wolfgang Grandegger <wg@grandegger.com>, "socketcan@hartkopp.net" <socketcan@hartkopp.net>, "m.kleine-budde@pengutronix.de" <m.kleine-budde@pengutronix.de>, "linux-can@vger.kernel.org" <linux-can@vger.kernel.org>, "netdev@vger.kernel.org" <netdev@vger.kernel.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "Gole, Anant" <anantgole@ti.com>, "Nori, Sekhar" <nsekhar@ti.com>
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from bear.ext.ti.com ([192.94.94.41]:53421 "EHLO bear.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1754823Ab2DCPgd convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 3 Apr 2012 11:36:33 -0400
+In-Reply-To: <87sjgmt211.fsf@ti.com>
+Content-Language: en-US
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: "Hilman, Kevin" <khilman@ti.com>, "Shilimkar, Santosh" <santosh.shilimkar@ti.com>
+Cc: Ming Lei <tom.leiming@gmail.com>, Tony Lindgren <tony@atomide.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, "marc.zyngier@arm.com" <marc.zyngier@arm.com>, "johnstul@us.ibm.com" <johnstul@us.ibm.com>, "Balbi, Felipe" <balbi@ti.com>, "Cousson, Benoit" <b-cousson@ti.com>, Paul Walmsley <paul@pwsan.com>, "DebBarma, Tarun Kanti" <tarun.kanti@ti.com>
 
-This is an OpenPGP/MIME signed message (RFC 2440 and 3156)
---------------enig39D5EC57251C2350EAE5D01F
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: quoted-printable
+On Tue, Apr 03, 2012 at 00:05:38, Hilman, Kevin wrote:
+> "Shilimkar, Santosh" <santosh.shilimkar@ti.com> writes:
+> 
+> [...]
+> 
+> > I don't personally like to add features which hardly anybody use and
+> > fundamentally broken with full kernel.
+> 
+> Let's keep sane defaults, but not make it unreasonable to tweak eaither.
+> 
+> I suggest what has already been mentioned.
+> 
+> Register both timers, but have the sync timer have a higher rating.  On
+> AMxxx where there is no sync timer, GPtimer will be used.
+> 
 
-On 04/03/2012 04:29 PM, AnilKumar, Chimata wrote:
->>>> Please explain why this CAN controller cannot be handled by the exis=
-ting
->>>> C_CAN driver, eventually with some extensions. The register layout s=
-eems
->>>> almost identical, at least.
->>>>
->>>> Wolfgang.
->>>>
->>>
->>> These are the some of the pointers I can say, why I had gone for sepa=
-rate
->>> file instead of existing driver:
->>> * In case of D_CAN driver we can see all the registers are 32bit leng=
-th
->>>   but in case of C_CAN registers are in 16bit length.
->>
->> How many bits in these 32 bit registers are used?
->=20
-> In some cases (D_CAN_TXRQ, D_CAN_INTPND, D_CAN_MSGVAL) I have used all =
-the
-> bits, in some cases used few bits.
->=20
-> Roughly I can say that its (higher 16bits) % of usages is similar as co=
-mpare
-> to 16bits=20
->=20
-> While checking the status of TXRequest registers and INT pending regist=
-er,
-> which is a hot code path, we have to put if checks for register access.=
+This is another good option, I can change the rating of both the timers.
+With below description and given understanding/discussion/usability of both
+the timers, we can reverse the rating,
+
+32K-sync counter = 300
+GPTIMER = 250
+
+Considering the fact that, 32k-sync counter is more usable than gptimer on
+OMAP platform.
 
 
-The c_can already has a c_can_read_reg32() function. It's for example
-used in the rx_poll function. You can make it a function pointer (i.e.
-pric->read_reg32()) for easy abstraction.
+@"include/linux/clocksource.h"
 
->>> * Some of the registers, bit masks are different, so we have to add
->>>   checks on every API for differentiating the kind of device
->>
->> Which registers are this? Can you give us an example?
->=20
-> I am pointing out some of the resisters
-> * Single registers in case of D_CAN but multiple register in case of C_=
-CAN
->   So masks will change MASK, ARB, INTPND
-> * D_CAN_IFCMD is the combination of COMM request and COMM mask register=
-s
-
-Maybe you can use the read_reg32 function on both c_can and d_can.
-
-regards, Marc
-
---=20
-Pengutronix e.K.                  | Marc Kleine-Budde           |
-Industrial Linux Solutions        | Phone: +49-231-2826-924     |
-Vertretung West/Dortmund          | Fax:   +49-5121-206917-5555 |
-Amtsgericht Hildesheim, HRA 2686  | http://www.pengutronix.de   |
+* @rating:             rating value for selection (higher is better)
+*                      To avoid rating inflation the following
+*                      list should give you a guide as to how
+*                      to assign your clocksource a rating
+*                      1-99: Unfit for real use
+*                             Only available for bootup and testing purposes.
+*                      100-199: Base level usability.
+*                              Functional for real use, but not desired.
+*                      200-299: Good.
+*                              A correct and usable clocksource.
+*                      300-399: Desired.
+*                              A reasonably fast and accurate clocksource.
+*                      400-499: Perfect
+*                              The ideal clocksource. A must-use where
+*                              available.
 
 
---------------enig39D5EC57251C2350EAE5D01F
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: OpenPGP digital signature
-Content-Disposition: attachment; filename="signature.asc"
+Thanks,
+Vaibhav
 
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.4.10 (GNU/Linux)
-Comment: Using GnuPG with Mozilla - http://enigmail.mozdev.org/
-
-iEYEARECAAYFAk97GFgACgkQjTAFq1RaXHOV6QCeMM8f8o6v9akR5R3pAYshVXiZ
-fjoAn1ipJ/AAbCzgB60NVQ8AbOqcoc40
-=oOjd
------END PGP SIGNATURE-----
-
---------------enig39D5EC57251C2350EAE5D01F--
