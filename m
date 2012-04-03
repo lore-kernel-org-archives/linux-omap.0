@@ -1,42 +1,92 @@
-From: Patrick <kpa_info@yahoo.fr>
-Subject: OMAP4 TWL6030 uv_to_vsel warning
-Date: Tue, 03 Apr 2012 16:27:57 +0200
-Message-ID: <4F7B08ED.1060104@yahoo.fr>
+From: Santosh Shilimkar <santosh.shilimkar@ti.com>
+Subject: Re: [PATCH 0/3] OMAP4: CPUidle: Add coupled idle support
+Date: Tue, 03 Apr 2012 20:36:22 +0530
+Message-ID: <4F7B11EE.6030904@ti.com>
+References: <1333114048-26136-1-git-send-email-santosh.shilimkar@ti.com> <87obr9s8wk.fsf@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from nm1.bullet.mail.ukl.yahoo.com ([217.146.183.218]:42403 "HELO
-	nm1.bullet.mail.ukl.yahoo.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with SMTP id S1754353Ab2DCOeB (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 3 Apr 2012 10:34:01 -0400
+Received: from na3sys009aog116.obsmtp.com ([74.125.149.240]:35625 "EHLO
+	na3sys009aog116.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1752210Ab2DCPG2 (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 3 Apr 2012 11:06:28 -0400
+Received: by ghrr20 with SMTP id r20so1944503ghr.41
+        for <linux-omap@vger.kernel.org>; Tue, 03 Apr 2012 08:06:27 -0700 (PDT)
+In-Reply-To: <87obr9s8wk.fsf@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: linux-omap@vger.kernel.org
+To: Kevin Hilman <khilman@ti.com>
+Cc: linux-omap@vger.kernel.org, ccross@android.com, linux-arm-kernel@lists.infradead.org
 
-Dear mailing-list,
+On Tuesday 03 April 2012 10:34 AM, Kevin Hilman wrote:
+> Hi Santosh,
+> 
+> Santosh Shilimkar <santosh.shilimkar@ti.com> writes:
+> 
+>> The series adds the coupled cpuidle support for OMAP4 based on the v2
+>> series posted [1]. This makes OMAP4 to support SMP cpuidle and also
+>> removes the hard dependency of off-lining CPU1 to trigger deeper
+>> C-states.
+>>
+>> I have put together a branch which is based on 3.3 kernel with
+>> Len Browns next branch [2] which has time keeping and other cpuidle
+>> patches which will mostly get merged by 3.4-rc1 and rebased coupled
+>> idle series from [1].
+> 
+> Thanks for rebasing this.
+> 
+>> git://gitorious.org/omap-sw-develoment/linux-omap-dev.git
+>> for_3.5/omap4_coupled_cpuidle-rebase
+> 
+> This branch by itself seems to work fine.  However, when combining with
+> other stuff that has merged for v3.4, it hangs during boot.  I haven't
+> yet isolated the problem, but it's easy to reproduce by combining your
+> branch with v3.4-rc1:
+> 
+>   git checkout -b test/coupled-v3.4 v3.4-rc1
+>   git merge -s recursive -X ours santosh/for_3.5/omap4_coupled_cpuidle-rebase [1]
+> 
+> This hangs on boot, and it seems like a coupled state deadlock because
+> commenting out the coupled states in the C-state creation of
+> cpuidle44xx.c makes it boot just fine.
+> 
+I managed to reproduce the issue. Just to ensure that any OMAP changes
+have not introduced the regression I merged all Tony's pull request on
+my branch and tried it out. OMAP changes are fine and coupled idle
+continue to work.
 
-I am working with the 3.3 kernel on an OMAP4430 with a TWL6030.
-I have many warning like the following:
+Started bisecting the commits. For bisect I have to create a series
+which is not dependent on Len's cpuidle updates. First round of bisect
+was not successful so tried one more time. Was very close to narrowing
+down on commit but then encountered set of commits where either CPUIDLE
+itself is broken(deeper C-states are not getting attempted) or I get
+softIRQ 08 pending error.
 
-twl6030_uv_to_vsel:OUT OF RANGE! non mapped vsel for 1375000 Vs max 1316660
+The last bad commit in bisect was ...
+[8682df25ca9afd3aac30f2c72d00bd98de2118e8] Merge branch
+'fortglx/3.4/rtc' of git://git.linaro.org/people/jstultz/linux into
+timers/core
 
-I would like to clarify this and eventually "remove" this warning.
-I have checked omap_twl.c file. It seems that twl6030_uv_to_vsel() 
-function have a special branch when uv is equal to 1350000 uV and when 
-bigger than 1350000 uV it print the error message.
+So far looks like, one of below series has introduced a race which is
+getting highlighted with coupled cpuidle patchset.
 
-On the same file I could see that on_volt (and the onlp_volt) are set by 
-default to 1375000 uV for the OMAP4.
+9b612fa Merge branch 'fortglx/3.4/clocksource' of
+git://git.linaro.org/people/jstultz/linux into timers/core
+8682df2 Merge branch 'fortglx/3.4/rtc' of
+git://git.linaro.org/people/jstultz/linux into timers/core
+97ac984 Merge branch 'fortglx/3.4/time' of
+git://git.linaro.org/people/jstultz/linux into timers/core
 
-On the datasheet of the TWL6030 I could see that the level is 1367400 
-uV. 1350000 nor than 1375000 are invalid level.
+Will try to continue the debug tomorrow. let me know if you find some
+thing interesting in your day time.
 
-Don't you thin that 1375000 and 1350000 should be the same value ?
-If we could change the default on_volt (and the onlp_volt) for the OMAP4 
-to 1350000 the Warning message will then be removed, and the effective 
-level on the TWL6030 will still stay to 1367400 uV.
+Regards
+santosh
 
-Any comment are welcome !
 
-Patrick
+
+
+
+
+
