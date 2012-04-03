@@ -1,49 +1,47 @@
-From: Shubhrajyoti D <shubhrajyoti@ti.com>
-Subject: [PATCHv5 18/18] ARM: OMAP4: hwmod data: I2C: add flag for context restore
-Date: Tue, 3 Apr 2012 21:32:37 +0530
-Message-ID: <1333468957-5999-19-git-send-email-shubhrajyoti@ti.com>
+From: Shubhrajyoti D <shubhrajyoti-l0cyMroinI0@public.gmane.org>
+Subject: [PATCHv5 17/18] I2C: OMAP: Do not set the XUDF if the underflow is not reached
+Date: Tue, 3 Apr 2012 21:32:36 +0530
+Message-ID: <1333468957-5999-18-git-send-email-shubhrajyoti@ti.com>
 References: <1333468957-5999-1-git-send-email-shubhrajyoti@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from bear.ext.ti.com ([192.94.94.41]:55671 "EHLO bear.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1755188Ab2DCQEF (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Tue, 3 Apr 2012 12:04:05 -0400
-In-Reply-To: <1333468957-5999-1-git-send-email-shubhrajyoti@ti.com>
-Sender: linux-omap-owner@vger.kernel.org
+Return-path: <linux-i2c-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <1333468957-5999-1-git-send-email-shubhrajyoti-l0cyMroinI0@public.gmane.org>
+Sender: linux-i2c-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Cc: linux-i2c-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, ben-linux-elnMNo+KYs3YtjvyW6yDsg@public.gmane.org, tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org, w.sang-bIcnvbaLZ9MEGnE8C9+IrQ@public.gmane.org, Shubhrajyoti D <shubhrajyoti-l0cyMroinI0@public.gmane.org>, Alexander Shishkin <virtuoso-0lOfPCoBze7YtjvyW6yDsg@public.gmane.org>, Moiz Sonasath <m-sonasath-l0cyMroinI0@public.gmane.org>
 List-Id: linux-omap@vger.kernel.org
-To: linux-omap@vger.kernel.org
-Cc: linux-i2c@vger.kernel.org, linux-arm-kernel@lists.infradead.org, ben-linux@fluff.org, tony@atomide.com, w.sang@pengutronix.de, Shubhrajyoti D <shubhrajyoti@ti.com>, Benoit Cousson <b-cousson@ti.com>, Paul Wamsley <paul@pwsan.com>
 
-Restore of context is not done for OMAP4. This patch
-adds the OMAP_I2C_FLAG_RESET_REGS_POSTIDLE in the OMAP4
-hwmod data which activates the restore for OMAP4.
-Currently the OMAP4 does not hit device off still the
-driver may have support for it.
+Currently in the 1.153 errata handling while waiting for transmitter
+underflow if NACK is got the XUDF flag is also set.
+The flag is set after wait for the condition is over.
 
-Cc: Benoit Cousson <b-cousson@ti.com>
-Cc: Paul Wamsley <paul@pwsan.com>
-Reviewed-by: Kevin Hilman <khilman@ti.com>
-Signed-off-by: Shubhrajyoti D <shubhrajyoti@ti.com>
+Cc: Alexander Shishkin <virtuoso-0lOfPCoBze7YtjvyW6yDsg@public.gmane.org>
+Cc: Moiz Sonasath <m-sonasath-l0cyMroinI0@public.gmane.org>
+Signed-off-by: Shubhrajyoti D <shubhrajyoti-l0cyMroinI0@public.gmane.org>
 ---
- arch/arm/mach-omap2/omap_hwmod_44xx_data.c |    3 ++-
- 1 files changed, 2 insertions(+), 1 deletions(-)
+ drivers/i2c/busses/i2c-omap.c |    2 +-
+ 1 files changed, 1 insertions(+), 1 deletions(-)
 
-diff --git a/arch/arm/mach-omap2/omap_hwmod_44xx_data.c b/arch/arm/mach-omap2/omap_hwmod_44xx_data.c
-index 08daa5e..cddce60 100644
---- a/arch/arm/mach-omap2/omap_hwmod_44xx_data.c
-+++ b/arch/arm/mach-omap2/omap_hwmod_44xx_data.c
-@@ -2262,7 +2262,8 @@ static struct omap_hwmod_class omap44xx_i2c_hwmod_class = {
- };
+diff --git a/drivers/i2c/busses/i2c-omap.c b/drivers/i2c/busses/i2c-omap.c
+index 51576d6..a3160d1 100644
+--- a/drivers/i2c/busses/i2c-omap.c
++++ b/drivers/i2c/busses/i2c-omap.c
+@@ -763,7 +763,6 @@ static int errata_omap3_1p153(struct omap_i2c_dev *dev, u16 *stat, int *err)
+ 		if (*stat & (OMAP_I2C_STAT_NACK | OMAP_I2C_STAT_AL)) {
+ 			omap_i2c_ack_stat(dev, *stat & (OMAP_I2C_STAT_XRDY |
+ 							OMAP_I2C_STAT_XDR));
+-			*err |= OMAP_I2C_STAT_XUDF;
+ 			return -ETIMEDOUT;
+ 		}
  
- static struct omap_i2c_dev_attr i2c_dev_attr = {
--	.flags	= OMAP_I2C_FLAG_BUS_SHIFT_NONE,
-+	.flags	= OMAP_I2C_FLAG_BUS_SHIFT_NONE |
-+			OMAP_I2C_FLAG_RESET_REGS_POSTIDLE,
- };
+@@ -776,6 +775,7 @@ static int errata_omap3_1p153(struct omap_i2c_dev *dev, u16 *stat, int *err)
+ 		return 0;
+ 	}
  
- /* i2c1 */
++	*err |= OMAP_I2C_STAT_XUDF;
+ 	return 0;
+ }
+ 
 -- 
 1.7.1
-
