@@ -1,76 +1,70 @@
-From: Will Deacon <will.deacon@arm.com>
-Subject: Re: oprofile and ARM A9 hardware counter
-Date: Tue, 3 Apr 2012 17:07:06 +0100
-Message-ID: <20120403160706.GP17741@mudshark.cambridge.arm.com>
-References: <CACVXFVMH9WZDqs-mVjxL=1FY12uHyQAJMTCQuU5ru1wQT+YnZg@mail.gmail.com>
- <CAMQu2gzW706YbOzHa4Am0=X17T0G3zBhOmWUd8eC6GY9F6OBog@mail.gmail.com>
- <CACVXFVPb-McJj1oi284RW37Pe08cAXSw-jteFwfNVPpCJx5EaQ@mail.gmail.com>
- <CAMQu2gwvgPfZv_LnB6GnYs=Wt+wj9GFPEDYiDK6C8TiTag3gTg@mail.gmail.com>
- <20120403092524.GD17741@mudshark.cambridge.arm.com>
- <CAMQu2gxE2STYxUGinzstX6W8jyofH829A__NQBjwLqZd9cqy=w@mail.gmail.com>
- <20120403094749.GH17741@mudshark.cambridge.arm.com>
- <CAMQu2gyFirtVTWpMu4G_qG5sq33J-_s_o2JhVAdrUf7P3qJ3AA@mail.gmail.com>
- <20120403123444.GL17741@mudshark.cambridge.arm.com>
- <878vicsxef.fsf@ti.com>
+From: Shubhrajyoti <shubhrajyoti@ti.com>
+Subject: Re: [PATCHv5 17/18] I2C: OMAP: Do not set the XUDF if the underflow
+ is not reached
+Date: Tue, 03 Apr 2012 22:02:12 +0530
+Message-ID: <4F7B260C.8070806@ti.com>
+References: <1333468957-5999-1-git-send-email-shubhrajyoti@ti.com>	<1333468957-5999-18-git-send-email-shubhrajyoti@ti.com> <CAEgRx2ye7VLfTDmpLdsJE=6qKzDngd=zpGK3Xn8UR3moioXYQw@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from cam-admin0.cambridge.arm.com ([217.140.96.50]:58831 "EHLO
-	cam-admin0.cambridge.arm.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754641Ab2DCQHf (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 3 Apr 2012 12:07:35 -0400
-Content-Disposition: inline
-In-Reply-To: <878vicsxef.fsf@ti.com>
+Received: from na3sys009aog116.obsmtp.com ([74.125.149.240]:51328 "EHLO
+	na3sys009aog116.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1754641Ab2DCQcl (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 3 Apr 2012 12:32:41 -0400
+Received: by pbcum15 with SMTP id um15so69834pbc.20
+        for <linux-omap@vger.kernel.org>; Tue, 03 Apr 2012 09:32:40 -0700 (PDT)
+In-Reply-To: <CAEgRx2ye7VLfTDmpLdsJE=6qKzDngd=zpGK3Xn8UR3moioXYQw@mail.gmail.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Kevin Hilman <khilman@ti.com>
-Cc: "Shilimkar, Santosh" <santosh.shilimkar@ti.com>, Ming Lei <ming.lei@canonical.com>, "eranian@gmail.com" <eranian@gmail.com>, Maynard Johnson <maynardj@us.ibm.com>, Lik Lik <lik88888@gmail.com>, "oprofile-list@lists.sourceforge.net" <oprofile-list@lists.sourceforge.net>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, Paul Walmsley <paul@pwsan.com>, Benoit Cousson <b-cousson@ti.com>
+To: "Sonasath, Moiz" <m-sonasath@ti.com>
+Cc: linux-omap@vger.kernel.org, linux-i2c@vger.kernel.org, linux-arm-kernel@lists.infradead.org, ben-linux@fluff.org, tony@atomide.com, w.sang@pengutronix.de, Alexander Shishkin <virtuoso@slind.org>
 
-On Tue, Apr 03, 2012 at 03:27:52PM +0100, Kevin Hilman wrote:
-> Hi Will,
+Hi Moiz,
+Thanks for your review.
 
-Hi Kevin,
+On Tuesday 03 April 2012 09:41 PM, Sonasath, Moiz wrote:
+> Shubhrajyoti,
+>
+> On Tue, Apr 3, 2012 at 11:02 AM, Shubhrajyoti D <shubhrajyoti@ti.com> wrote:
+>
+>> Currently in the 1.153 errata handling while waiting for transmitter
+>> underflow if NACK is got the XUDF flag is also set.
+>> The flag is set after wait for the condition is over.
+>>
+>> Cc: Alexander Shishkin <virtuoso@slind.org>
+>> Cc: Moiz Sonasath <m-sonasath@ti.com>
+>> Signed-off-by: Shubhrajyoti D <shubhrajyoti@ti.com>
+>> ---
+>>  drivers/i2c/busses/i2c-omap.c |    2 +-
+>>  1 files changed, 1 insertions(+), 1 deletions(-)
+>>
+>> diff --git a/drivers/i2c/busses/i2c-omap.c b/drivers/i2c/busses/i2c-omap.c
+>> index 51576d6..a3160d1 100644
+>> --- a/drivers/i2c/busses/i2c-omap.c
+>> +++ b/drivers/i2c/busses/i2c-omap.c
+>> @@ -763,7 +763,6 @@ static int errata_omap3_1p153(struct omap_i2c_dev
+>> *dev, u16 *stat, int *err)
+>>                if (*stat & (OMAP_I2C_STAT_NACK | OMAP_I2C_STAT_AL)) {
+>>                        omap_i2c_ack_stat(dev, *stat & (OMAP_I2C_STAT_XRDY |
+>>                                                        OMAP_I2C_STAT_XDR));
+>> -                       *err |= OMAP_I2C_STAT_XUDF;
+>>
+> I think we should set the NACK|AL err flag here instead??
+On return of negative values there is a goto and  those flags are set there.
+Did I miss something?
 
-> Will Deacon <will.deacon@arm.com> writes:
-> > The problem is, trying to boot this on my pandaboard results in a hang (see
-> > dmesg below). Even worse, the problem isn't easily bisectable since rebuilding
-> > a working image can give you something that no longer boots and I haven't found
-> > a reliable way to cause the lockup.
-> >
-> > I'll take JTAG for a whirl to see where we are. If anything looks wrong in
-> > my dmesg, please shout (there are plenty of things in there that look like
-> > they've gone awry).
-> 
-> Not sure why it hangs for you, but it worked for me both with your
-> branch on v3.3 and merging with v3.4-rc1[1]
+>
+>>                        return -ETIMEDOUT;
+>>                }
+>>
+>> @@ -776,6 +775,7 @@ static int errata_omap3_1p153(struct omap_i2c_dev
+>> *dev, u16 *stat, int *err)
+>>                return 0;
+>>        }
+>>
+>> +       *err |= OMAP_I2C_STAT_XUDF;
+>>
+> Ack for this change.
+Thanks.
 
-Thanks for testing that. It turns out that updating my x-loader (it was
-pretty ancient) fixed the boot hang, though I'm not sure I want to know why!
-
-> # perf stat sleep 1
-> 
->  Performance counter stats for 'sleep 1':
-> 
->           9.582520 task-clock                #    0.009 CPUs utilized          
->                  1 context-switches          #    0.104 K/sec                  
->                  0 CPU-migrations            #    0.000 K/sec                  
->                147 page-faults               #    0.015 M/sec                  
->            5096283 cycles                    #    0.532 GHz                    
->             607876 stalled-cycles-frontend   #   11.93% frontend cycles idle   
->            3285045 stalled-cycles-backend    #   64.46% backend  cycles idle   
->            2722485 instructions              #    0.53  insns per cycle        
->                                              #    1.21  stalled cycles per insn
->             259247 branches                  #   27.054 M/sec                  
->              84274 branch-misses             #   32.51% of all branches        
-
-Right. Can you confirm whether the PMU/CTI interrupts fire for you please?
-Just run perf top and look at /proc/interrupts while it's running. You
-should see a couple of arm-pmu entries in there and hopefully numbers > 0.
-
-For me, my earlier mis-diagnosis has turned out to be true and I can only
-see PMU interrupts if I apply the SWSUSP patch, which Santosh says will
-break pm.
-
-Cheers,
-
-Will
