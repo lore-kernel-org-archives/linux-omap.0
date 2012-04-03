@@ -1,84 +1,76 @@
-From: Marc Kleine-Budde <mkl@pengutronix.de>
-Subject: Re: [PATCH] ARM: OMAP: AM33XX: CAN: d_can: Add support for Bosch
- D_CAN controller
-Date: Tue, 03 Apr 2012 14:49:48 +0200
-Message-ID: <4F7AF1EC.1060802@pengutronix.de>
-References: <1333456339-9372-1-git-send-email-anilkumar@ti.com> <4F7AF0C7.7020506@grandegger.com>
+From: Vaibhav Hiremath <hvaibhav@ti.com>
+Subject: [PATCH-V3 0/3] ARM: OMAP3+: am33xx: Add CM, clock and clockdomain support
+Date: Tue, 3 Apr 2012 18:39:35 +0530
+Message-ID: <1333458578-23073-1-git-send-email-hvaibhav@ti.com>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
- protocol="application/pgp-signature";
- boundary="------------enigD7ED27F555E02A3C4A67427F"
-Return-path: <linux-can-owner@vger.kernel.org>
-In-Reply-To: <4F7AF0C7.7020506@grandegger.com>
-Sender: linux-can-owner@vger.kernel.org
-To: Wolfgang Grandegger <wg@grandegger.com>
-Cc: AnilKumar Ch <anilkumar@ti.com>, socketcan@hartkopp.net, m.kleine-budde@pengutronix.de, linux-can@vger.kernel.org, netdev@vger.kernel.org, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org, anantgole@ti.com, nsekhar@ti.com
+Content-Type: text/plain
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from comal.ext.ti.com ([198.47.26.152]:33571 "EHLO comal.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1753843Ab2DCNTp (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Tue, 3 Apr 2012 09:19:45 -0400
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: linux-omap@vger.kernel.org
+Cc: tony@atomide.com, khilman@ti.com, paul@pwsan.com, rnayak@ti.com, b-cousson@ti.com, linux-arm-kernel@lists.infradead.org, Vaibhav Hiremath <hvaibhav@ti.com>
 
-This is an OpenPGP/MIME signed message (RFC 2440 and 3156)
---------------enigD7ED27F555E02A3C4A67427F
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: quoted-printable
+This patch series adds CM low-level api's, clockdomain data,
+respective clockdomain operations and complete Clock Tree for
+AM33XX family of devices.
 
-On 04/03/2012 02:44 PM, Wolfgang Grandegger wrote:
-> On 04/03/2012 02:32 PM, AnilKumar Ch wrote:
->> This patch adds the support for Bosch D_CAN controller.
->>
->> Bosch D_CAN controller is a full-CAN implementation compliant to
->> CAN protocol version 2.0 part A and B. Bosch D_CAN user manual
->> can be obtained from: http://www.semiconductors.bosch.de/media/
->> en/pdf/ipmodules_1/can/d_can_users_manual_111.pdf
->>
->> D_CAN device is used on many SoCs like AM335x, DM8148 and DM813x
->> EVMs from TI, D_CAN details on AM335x can be accessed from:
->> http://www.ti.com/lit/ug/spruh73c/spruh73c.pdf
->>
->> D_CAN can be configurable for 16, 32, 64 and 128 message objects.
->> The driver implementation is based on 64 message objects.
->>
->> Following are the design choices made while writing the controller
->> driver:
->> 1. Interface Register set IF0 has be used for receive and IF1 is
->>    used for transmit message objects.
->> 2. Out of the total Message objects available, half of it are kept
->>    aside for RX purposes and the rest for TX purposes.
->> 3. NAPI implementation is such that both the TX and RX paths
->>    functions in polling mode.
->>
->> Signed-off-by: AnilKumar Ch <anilkumar@ti.com>
->=20
-> Please explain why this CAN controller cannot be handled by the existin=
-g
-> C_CAN driver, eventually with some extensions. The register layout seem=
-s
-> almost identical, at least.
+The earlier versions of patches submitted were,
 
-ACK.
+ - Patch-RFC was complete set of patches adding separate
+   implementation for all PRM, CM, Clockdomain, clock tree and HWMOD.
+ - Patch-V2 was basically reusing existing OMAP4 cminst and
+   clockdomain api's for AM33XX device (without clock tree).
 
-Have a look at the recent at91_can driver. It has been improved to work
-with a flexible number of message objects.
+But as aligned and discussed on previous patch submission on
+AM33XX PRM, we have decided to implement/handle whole AM33xx
+separately.
 
-Marc
+Please refer to the AM335x TRM available at -
+http://www.ti.com/product/am3359
 
---=20
-Pengutronix e.K.                  | Marc Kleine-Budde           |
-Industrial Linux Solutions        | Phone: +49-231-2826-924     |
-Vertretung West/Dortmund          | Fax:   +49-5121-206917-5555 |
-Amtsgericht Hildesheim, HRA 2686  | http://www.pengutronix.de   |
+I would like to bring same question again (but from CM context),
+
+Do we really want to implement CM and clockdomain api's separately?
+  In case of AM33XX PRM implementation, the reason why we had to
+  do it separately was, due to inconsistency of register offset and
+  bit-offsets. But, it is not the case in CM implementation, we have
+  some consistency there and existing OMAP4 code can be reused
+  for AM33XX.
+  I personally feel, we should consider Patch-V2 version here.
+  IMO, the only change required there is to rename files,
+    cminst44xx.c => cminst_33xx_44xx.c
+    clockdomain44xx.c => clockdomain_33xx_44xx.c
 
 
---------------enigD7ED27F555E02A3C4A67427F
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: OpenPGP digital signature
-Content-Disposition: attachment; filename="signature.asc"
+Vaibhav Hiremath (3):
+  ARM: OMAP3+: cm33xx: Introduce AM33xx CM API's and register level
+    details
+  ARM: OMAP3+: clockdomain33xx: Add clockdomain data and respective
+    operations
+  ARM: OMAP3+: clock33xx: Add AM33XX clock tree data
 
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.4.10 (GNU/Linux)
-Comment: Using GnuPG with Mozilla - http://enigmail.mozdev.org/
+ arch/arm/mach-omap2/Makefile                  |    6 +
+ arch/arm/mach-omap2/clock33xx.h               |   36 +
+ arch/arm/mach-omap2/clock33xx_data.c          | 2209 +++++++++++++++++++++++++
+ arch/arm/mach-omap2/clockdomain.h             |    2 +
+ arch/arm/mach-omap2/clockdomain33xx.c         |   74 +
+ arch/arm/mach-omap2/clockdomains33xx_data.c   |  214 +++
+ arch/arm/mach-omap2/cm-regbits-33xx.h         |  687 ++++++++
+ arch/arm/mach-omap2/cm33xx.c                  |  313 ++++
+ arch/arm/mach-omap2/cm33xx.h                  |  420 +++++
+ arch/arm/mach-omap2/io.c                      |    4 +-
+ arch/arm/mach-omap2/omap_hwmod.c              |   58 +-
+ arch/arm/plat-omap/include/plat/clkdev_omap.h |    1 +
+ 12 files changed, 4006 insertions(+), 18 deletions(-)
+ create mode 100644 arch/arm/mach-omap2/clock33xx.h
+ create mode 100644 arch/arm/mach-omap2/clock33xx_data.c
+ create mode 100644 arch/arm/mach-omap2/clockdomain33xx.c
+ create mode 100644 arch/arm/mach-omap2/clockdomains33xx_data.c
+ create mode 100644 arch/arm/mach-omap2/cm-regbits-33xx.h
+ create mode 100644 arch/arm/mach-omap2/cm33xx.c
+ create mode 100644 arch/arm/mach-omap2/cm33xx.h
 
-iEYEARECAAYFAk968fAACgkQjTAFq1RaXHOucACeKte8y+X35RKpQFlOdciPpCyD
-Z+8An33/U+k4w4agLhVwlUXrHnPkLRjF
-=JNBa
------END PGP SIGNATURE-----
-
---------------enigD7ED27F555E02A3C4A67427F--
