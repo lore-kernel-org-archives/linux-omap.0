@@ -1,180 +1,77 @@
-From: "Govindraj.R" <govindraj.raja@ti.com>
-Subject: [PATCH v3] OMAP2+: UART: Remove cpu checks for populating errata flags
-Date: Tue, 3 Apr 2012 19:12:34 +0530
-Message-ID: <1333460554-7356-1-git-send-email-govindraj.raja@ti.com>
-References: <1333356489-5816-1-git-send-email-govindraj.raja@ti.com>
+From: Balaji T K <balajitk@ti.com>
+Subject: [PATCH] arm: omap4: hsmmc: check for null pointer
+Date: Tue, 3 Apr 2012 19:17:38 +0530
+Message-ID: <1333460858-9324-1-git-send-email-balajitk@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
-Return-path: <linux-serial-owner@vger.kernel.org>
-In-Reply-To: <1333356489-5816-1-git-send-email-govindraj.raja@ti.com>
-Sender: linux-serial-owner@vger.kernel.org
-To: linux-omap@vger.kernel.org
-Cc: linux-serial@vger.kernel.org, linux-arm-kernel@lists.infradead.org, "Govindraj.R" <govindraj.raja@ti.com>, Jon Hunter <jon-hunter@ti.com>, Paul Walmsley <paul@pwsan.com>, Kevin Hilman <khilman@ti.com>, Felipe Balbi <balbi@ti.com>
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from comal.ext.ti.com ([198.47.26.152]:35755 "EHLO comal.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751872Ab2DCNo1 (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Tue, 3 Apr 2012 09:44:27 -0400
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: tony@atomide.com, linux-omap@vger.kernel.org
+Cc: linux-arm-kernel@lists.infradead.org, Balaji T K <balajitk@ti.com>
 
-From: "Govindraj.R" <govindraj.raja@ti.com>
+platform_device pdev can be NULL if CONFIG_MMC_OMAP_HS is not set.
+Add check for NULL pointer
 
-Currently the errata is populated based on cpu checks this can
-be removed and replaced with module version check of uart ip block.
-MVR reg is provided within the uart reg map use the same
-to populate the errata and thus now errata population and handling
-can be managed within the driver itself.
+Fixes the following boot crash seen with omap4sdp and omap4panda
+when MMC is disabled.
 
-Cc: Jon Hunter <jon-hunter@ti.com>
-Cc: Paul Walmsley <paul@pwsan.com>
-Cc: Kevin Hilman <khilman@ti.com>
-Signed-off-by: Felipe Balbi <balbi@ti.com>
-Signed-off-by: Govindraj.R <govindraj.raja@ti.com>
+Unable to handle kernel NULL pointer dereference at virtual address 0000008c
+pgd = c0004000
+[0000008c] *pgd=00000000
+Internal error: Oops: 5 [#1] SMP ARM
+Modules linked in:
+CPU: 0    Not tainted  (3.4.0-rc1-05971-ga4dfa82 #4)
+PC is at omap_4430sdp_init+0x184/0x410
+LR is at device_add+0x1a0/0x664
+
+Signed-off-by: Balaji T K <balajitk@ti.com>
+Reported-by: Santosh Shilimkar <santosh.shilimkar@ti.com>
 ---
- arch/arm/mach-omap2/serial.c                  |    8 ---
- arch/arm/plat-omap/include/plat/omap-serial.h |    1 -
- drivers/tty/serial/omap-serial.c              |   74 ++++++++++++++++++++++++-
- 3 files changed, 73 insertions(+), 10 deletions(-)
+ arch/arm/mach-omap2/board-4430sdp.c    |    6 +++++-
+ arch/arm/mach-omap2/board-omap4panda.c |    6 +++++-
+ 2 files changed, 10 insertions(+), 2 deletions(-)
 
-diff --git a/arch/arm/mach-omap2/serial.c b/arch/arm/mach-omap2/serial.c
-index 0cdd359..6affdd4 100644
---- a/arch/arm/mach-omap2/serial.c
-+++ b/arch/arm/mach-omap2/serial.c
-@@ -355,14 +355,6 @@ void __init omap_serial_init_port(struct omap_board_data *bdata,
- 	omap_up.dma_rx_poll_rate = info->dma_rx_poll_rate;
- 	omap_up.autosuspend_timeout = info->autosuspend_timeout;
+diff --git a/arch/arm/mach-omap2/board-4430sdp.c b/arch/arm/mach-omap2/board-4430sdp.c
+index a39fc4b..1ce771d 100644
+--- a/arch/arm/mach-omap2/board-4430sdp.c
++++ b/arch/arm/mach-omap2/board-4430sdp.c
+@@ -526,8 +526,12 @@ static int __init omap4_twl6030_hsmmc_init(struct omap2_hsmmc_info *controllers)
+ 	struct omap2_hsmmc_info *c;
  
--	/* Enable the MDR1 Errata i202 for OMAP2430/3xxx/44xx */
--	if (!cpu_is_omap2420() && !cpu_is_ti816x())
--		omap_up.errata |= UART_ERRATA_i202_MDR1_ACCESS;
--
--	/* Enable DMA Mode Force Idle Errata i291 for omap34xx/3630 */
--	if (cpu_is_omap34xx() || cpu_is_omap3630())
--		omap_up.errata |= UART_ERRATA_i291_DMA_FORCEIDLE;
--
- 	pdata = &omap_up;
- 	pdata_size = sizeof(struct omap_uart_port_info);
+ 	omap_hsmmc_init(controllers);
+-	for (c = controllers; c->mmc; c++)
++	for (c = controllers; c->mmc; c++) {
++		/* pdev can be null if CONFIG_MMC_OMAP_HS is not set */
++		if (!c->pdev)
++			continue;
+ 		omap4_twl6030_hsmmc_set_late_init(&c->pdev->dev);
++	}
  
-diff --git a/arch/arm/plat-omap/include/plat/omap-serial.h b/arch/arm/plat-omap/include/plat/omap-serial.h
-index 9ff4444..1a52725 100644
---- a/arch/arm/plat-omap/include/plat/omap-serial.h
-+++ b/arch/arm/plat-omap/include/plat/omap-serial.h
-@@ -65,7 +65,6 @@ struct omap_uart_port_info {
- 	bool			dma_enabled;	/* To specify DMA Mode */
- 	unsigned int		uartclk;	/* UART clock rate */
- 	upf_t			flags;		/* UPF_* flags */
--	u32			errata;
- 	unsigned int		dma_rx_buf_size;
- 	unsigned int		dma_rx_timeout;
- 	unsigned int		autosuspend_timeout;
-diff --git a/drivers/tty/serial/omap-serial.c b/drivers/tty/serial/omap-serial.c
-index 0121486..0555c96 100644
---- a/drivers/tty/serial/omap-serial.c
-+++ b/drivers/tty/serial/omap-serial.c
-@@ -44,6 +44,13 @@
- #include <plat/dmtimer.h>
- #include <plat/omap-serial.h>
- 
-+#define UART_BUILD_REVISION(x, y)	(((x) << 8) | (y))
-+
-+#define OMAP_UART_REV_42 0x0402
-+#define OMAP_UART_REV_46 0x0406
-+#define OMAP_UART_REV_52 0x0502
-+#define OMAP_UART_REV_63 0x0603
-+
- #define DEFAULT_CLK_SPEED 48000000 /* 48Mhz*/
- 
- /* SCR register bitmasks */
-@@ -53,6 +60,17 @@
- #define OMAP_UART_FCR_RX_FIFO_TRIG_SHIFT		6
- #define OMAP_UART_FCR_RX_FIFO_TRIG_MASK			(0x3 << 6)
- 
-+/* MVR register bitmasks */
-+#define OMAP_UART_MVR_SCHEME_SHIFT	30
-+
-+#define OMAP_UART_LEGACY_MVR_MAJ_MASK	0xf0
-+#define OMAP_UART_LEGACY_MVR_MAJ_SHIFT	4
-+#define OMAP_UART_LEGACY_MVR_MIN_MASK	0x0f
-+
-+#define OMAP_UART_MVR_MAJ_MASK		0x700
-+#define OMAP_UART_MVR_MAJ_SHIFT		8
-+#define OMAP_UART_MVR_MIN_MASK		0x3f
-+
- static struct uart_omap_port *ui[OMAP_MAX_HSUART_PORTS];
- 
- /* Forward declaration of functions */
-@@ -1346,6 +1364,59 @@ static void uart_tx_dma_callback(int lch, u16 ch_status, void *data)
- 	return;
+ 	return 0;
  }
+diff --git a/arch/arm/mach-omap2/board-omap4panda.c b/arch/arm/mach-omap2/board-omap4panda.c
+index d8c0e89..104fd6d 100644
+--- a/arch/arm/mach-omap2/board-omap4panda.c
++++ b/arch/arm/mach-omap2/board-omap4panda.c
+@@ -278,8 +278,12 @@ static int __init omap4_twl6030_hsmmc_init(struct omap2_hsmmc_info *controllers)
+ 	struct omap2_hsmmc_info *c;
  
-+static void omap_serial_fill_features_erratas(struct uart_omap_port *up)
-+{
-+	u32 mvr, scheme;
-+	u16 revision, major, minor;
-+
-+	mvr = serial_in(up, UART_OMAP_MVER);
-+
-+	/* Check revision register scheme */
-+	scheme = mvr >> OMAP_UART_MVR_SCHEME_SHIFT;
-+
-+	switch (scheme) {
-+	case 0: /* Legacy Scheme: OMAP2/3 */
-+		/* MINOR_REV[0:4], MAJOR_REV[4:7] */
-+		major = (mvr & OMAP_UART_LEGACY_MVR_MAJ_MASK) >>
-+					OMAP_UART_LEGACY_MVR_MAJ_SHIFT;
-+		minor = (mvr & OMAP_UART_LEGACY_MVR_MIN_MASK);
-+		break;
-+	case 1:
-+		/* New Scheme: OMAP4+ */
-+		/* MINOR_REV[0:5], MAJOR_REV[8:10] */
-+		major = (mvr & OMAP_UART_MVR_MAJ_MASK) >>
-+					OMAP_UART_MVR_MAJ_SHIFT;
-+		minor = (mvr & OMAP_UART_MVR_MIN_MASK);
-+		break;
-+	default:
-+		dev_warn(&up->pdev->dev,
-+			"Unknown %s revision, defaulting to highest\n",
-+			up->name);
-+		/* highest possible revision */
-+		major = 0xff;
-+		minor = 0xff;
+ 	omap_hsmmc_init(controllers);
+-	for (c = controllers; c->mmc; c++)
++	for (c = controllers; c->mmc; c++) {
++		/* pdev can be null if CONFIG_MMC_OMAP_HS is not set */
++		if (!c->pdev)
++			continue;
+ 		omap4_twl6030_hsmmc_set_late_init(&c->pdev->dev);
 +	}
-+
-+	/* normalize revision for the driver */
-+	revision = UART_BUILD_REVISION(major, minor);
-+
-+	switch (revision) {
-+	case OMAP_UART_REV_46:
-+		up->errata |= (UART_ERRATA_i202_MDR1_ACCESS |
-+				UART_ERRATA_i291_DMA_FORCEIDLE);
-+		break;
-+	case OMAP_UART_REV_52:
-+		up->errata |= (UART_ERRATA_i202_MDR1_ACCESS |
-+				UART_ERRATA_i291_DMA_FORCEIDLE);
-+		break;
-+	case OMAP_UART_REV_63:
-+		up->errata |= UART_ERRATA_i202_MDR1_ACCESS;
-+		break;
-+	default:
-+		break;
-+	}
-+}
-+
- static struct omap_uart_port_info *of_get_uart_port_info(struct device *dev)
- {
- 	struct omap_uart_port_info *omap_up_info;
-@@ -1443,7 +1514,6 @@ static int serial_omap_probe(struct platform_device *pdev)
- 						"%d\n", DEFAULT_CLK_SPEED);
- 	}
- 	up->uart_dma.uart_base = mem->start;
--	up->errata = omap_up_info->errata;
  
- 	if (omap_up_info->dma_enabled) {
- 		up->uart_dma.uart_dma_tx = dma_tx->start;
-@@ -1473,6 +1543,8 @@ static int serial_omap_probe(struct platform_device *pdev)
- 	pm_runtime_enable(&pdev->dev);
- 	pm_runtime_get_sync(&pdev->dev);
- 
-+	omap_serial_fill_features_erratas(up);
-+
- 	ui[up->port.line] = up;
- 	serial_omap_add_console_port(up);
- 
+ 	return 0;
+ }
 -- 
-1.7.5.4
+1.7.0.4
 
