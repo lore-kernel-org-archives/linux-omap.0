@@ -1,46 +1,54 @@
-From: Jon Hunter <jon-hunter@ti.com>
-Subject: Re: [PATCHv5 16/18] I2C: OMAP: fix missing handling of errata I2C_OMAP3_1P153
-Date: Wed, 4 Apr 2012 14:22:07 -0500
-Message-ID: <4F7C9F5F.8010206@ti.com>
-References: <1333468957-5999-1-git-send-email-shubhrajyoti@ti.com> <1333468957-5999-17-git-send-email-shubhrajyoti@ti.com> <4F7C7780.7040807@ti.com> <CAM=Q2cu8k8n2w8_=8VCFcFTTgywqc_Vk_eM_DDTap3YeYyAH2g@mail.gmail.com>
+From: "Cousson, Benoit" <b-cousson@ti.com>
+Subject: Re: [PATCH 2/9] ARM: OMAP2+: SmartReflex: move the driver specific
+ macros in include/linux/power
+Date: Wed, 4 Apr 2012 21:41:21 +0200
+Message-ID: <4F7CA3E1.2050809@ti.com>
+References: <1332173578-27422-1-git-send-email-j-pihet@ti.com> <1332173578-27422-3-git-send-email-j-pihet@ti.com> <4F7C9C89.9080605@codeaurora.org>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="ISO-8859-1"; format=flowed
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from comal.ext.ti.com ([198.47.26.152]:35097 "EHLO comal.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S932645Ab2DDTWg (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Wed, 4 Apr 2012 15:22:36 -0400
-In-Reply-To: <CAM=Q2cu8k8n2w8_=8VCFcFTTgywqc_Vk_eM_DDTap3YeYyAH2g@mail.gmail.com>
-Sender: linux-omap-owner@vger.kernel.org
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <4F7C9C89.9080605@codeaurora.org>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Trilok Soni <tsoni@codeaurora.org>
+Cc: jean.pihet@newoldbits.com, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Kevin Hilman <khilman@ti.com>, "Rafael J. Wysocki" <rjw@sisk.pl>, LKML <linux-kernel@vger.kernel.org>, Jean Pihet <j-pihet@ti.com>
 List-Id: linux-omap@vger.kernel.org
-To: Shubhrajyoti Datta <omaplinuxkernel@gmail.com>
-Cc: Shubhrajyoti D <shubhrajyoti@ti.com>, linux-omap@vger.kernel.org, tony@atomide.com, Tasslehoff Kjappfot <tasskjapp@gmail.com>, w.sang@pengutronix.de, linux-i2c@vger.kernel.org, ben-linux@fluff.org, linux-arm-kernel@lists.infradead.org
 
-Hi Shubhro,
-
-On 04/04/2012 12:45 PM, Shubhrajyoti Datta wrote:
-> Hi Jon,
+On 4/4/2012 9:10 PM, Trilok Soni wrote:
+> Hi Jean,
 >
+> On 3/19/2012 9:42 PM, jean.pihet@newoldbits.com wrote:
+>> From: Jean Pihet<j-pihet@ti.com>
+>>
+>> Move the driver specific macros from the smartreflex header file
+>> (arch/arm/mach-omap2/smartreflex.h) in a new header file
+>> include/linux/power/smartreflex.h.
+>>
+>> This change makes the SmartReflex implementation ready for the move
+>> to drivers/.
 >
->>> +       if (dev->flags&    OMAP_I2C_FLAG_APPLY_ERRATA_I207)
->>>
->>> +               dev->errata |= I2C_OMAP_ERRATA_I207;
->>> +
->>>         if (dev->rev<= OMAP_I2C_REV_ON_3430_3530)
->>>                 dev->errata |= I2C_OMAP3_1P153;
->>
->>
->> The errata ID is not correct. I believe that 1P153 is referring to the
->> section number in the errata doc and not the errata ID. The errata ID should
->> be i451 in the latest OMAP34xx and OMAP36xx docs.
->>
->> Please can you update this? The section number changed in the latest errata
->> docs and it took me a minute to find this.
->
-> Do you mind if that is a separate patch?
+> I wonder why someone would need a new directory under drivers/power
+> where the code is not about introducing new and generic AVS framework
+> but it is all about OMAP specific code.
 
-Not at all and in fact it probably should be.
+The main motivation is that it's a driver and thus does not have 
+anything to do inside mach-omap2.
 
-Thanks
-Jon
+Where will you put that otherwise?
+
+> What if tomorrow new generic
+> AVS framework comes from different chip vendor? I am sure this kind
+> of technology would be common in newer embedded chips.
+
+Probably, but this is hard to know with only one implementation so far 
+in the kernel.
+I guess when someone else will start pushing some new AVS driver inside 
+the AVS directory, we might realize that there is enough common part to 
+create a frwmk.
+
+IIRC, David Brownell was referring to the rule of three for such case. 
+Meaning that it worth having a generic fmwk when at least three 
+different drivers are doing the same kind of things.
+
+Regards,
+Benoit
