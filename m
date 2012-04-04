@@ -1,60 +1,77 @@
-From: "Raja, Govindraj" <govindraj.raja@ti.com>
-Subject: Re: [RESEND PATCH] ARM :OMAP2+: UART: Remove some of uart default pads
-Date: Wed, 4 Apr 2012 11:44:48 +0530
-Message-ID: <CAMrsUdLrpyGrhggi820WcR+DoHJVB8GQ1THUOO-C4LqUQtAxWQ@mail.gmail.com>
-References: <1332324149-16058-1-git-send-email-govindraj.raja@ti.com> <20120403181925.GH8240@atomide.com>
+From: "Shilimkar, Santosh" <santosh.shilimkar@ti.com>
+Subject: Re: [PATCH 1/3] ARM: OMAP2+: 32k-counter: Use hwmod lookup to check
+ presence of 32k timer
+Date: Wed, 4 Apr 2012 14:34:09 +0530
+Message-ID: <CAMQu2gxuFsovKTPK8wFOO8vMeiyMFnTqNDRZYgAcCsVWytpOTA@mail.gmail.com>
+References: <1326983304-14619-1-git-send-email-hvaibhav@ti.com>
+ <CACVXFVP4J8N271Tww77Btm9fGNiP17MepjswBJ0V-8Z4sNt8Eg@mail.gmail.com>
+ <4F672364.3020403@ti.com> <79CD15C6BA57404B839C016229A409A83182386C@DBDE01.ent.ti.com>
+ <CAMQu2gyFNXgx87Fsq5is88DOkOx-nWK6ohwyFV-CY2uTkZCGMA@mail.gmail.com>
+ <79CD15C6BA57404B839C016229A409A83183EA54@DBDE01.ent.ti.com>
+ <CAMQu2gyF83HJOE9Rf-fZXXMt=p_WFjFf3DpAeW8L8+htR4E6-g@mail.gmail.com>
+ <79CD15C6BA57404B839C016229A409A83183EB47@DBDE01.ent.ti.com>
+ <CAMQu2gzYULK+=6-WKQnnQDpzTYW7xKAOZo7obyu2q178jtNE-Q@mail.gmail.com>
+ <79CD15C6BA57404B839C016229A409A831840C2E@DBDE01.ent.ti.com>
+ <CAMQu2gw7aceHSYSd+UMVS6kHQMqy0_maf8QTJaUMzp9z8822rQ@mail.gmail.com>
+ <79CD15C6BA57404B839C016229A409A831840E0C@DBDE01.ent.ti.com>
+ <4F7570FC.8000907@ti.com> <79CD15C6BA57404B839C016229A409A831840F82@DBDE01.ent.ti.com>
+ <CAMQu2gzOkE6LD0WZ_9bKe3J-=Dv89rWaMzvWWvJHPMSPe6MzNg@mail.gmail.com>
+ <CACVXFVPbU2OqTN=S0AZCD10KuSBYxqyyRH_xee+WTaCD6VSmMQ@mail.gmail.com>
+ <CAMQu2gzuQ-q+3RHsW0=U305jCF-td5-PEXkGZ6WnQTqA1K8oAQ@mail.gmail.com>
+ <CACVXFVPu1GEQy+sCgXMB8JCszPBBs8zHRVm94TYb1-y2afkqgw@mail.gmail.com>
+ <CAMQu2gwuRpZ133962r3N4Y4K3oQ88ySa=SyoS6v=sSHGA=SGKw@mail.gmail.com>
+ <CACVXFVMjSPhF_+CfbF2vD5ts+WtZGjofEWmknB0D1OpTM7geZw@mail.gmail.com>
+ <CAMQu2gyEUhDyyng+_oC5NpXHzWMaTGsnCSTTZcMUi2pLV0z8RQ@mail.gmail.com>
+ <87sjgmt211.fsf@ti.com> <79CD15C6BA57404B839C016229A409A8318461E8@DBDE01.ent.ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aog127.obsmtp.com ([74.125.149.107]:33224 "EHLO
+Received: from na3sys009aog136.obsmtp.com ([74.125.149.85]:34147 "EHLO
 	psmtp.com" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
-	id S1751579Ab2DDGPU convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 4 Apr 2012 02:15:20 -0400
-Received: by obbeh20 with SMTP id eh20so732960obb.15
-        for <linux-omap@vger.kernel.org>; Tue, 03 Apr 2012 23:15:08 -0700 (PDT)
-In-Reply-To: <20120403181925.GH8240@atomide.com>
+	id S1755930Ab2DDJEa convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 4 Apr 2012 05:04:30 -0400
+Received: by obhx4 with SMTP id x4so89158obh.22
+        for <linux-omap@vger.kernel.org>; Wed, 04 Apr 2012 02:04:29 -0700 (PDT)
+In-Reply-To: <79CD15C6BA57404B839C016229A409A8318461E8@DBDE01.ent.ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Tony Lindgren <tony@atomide.com>
-Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Felipe Balbi <balbi@ti.com>, Kevin Hilman <khilman@ti.com>
+To: "Hiremath, Vaibhav" <hvaibhav@ti.com>
+Cc: "Hilman, Kevin" <khilman@ti.com>, Ming Lei <tom.leiming@gmail.com>, Tony Lindgren <tony@atomide.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, "marc.zyngier@arm.com" <marc.zyngier@arm.com>, "johnstul@us.ibm.com" <johnstul@us.ibm.com>, "Balbi, Felipe" <balbi@ti.com>, "Cousson, Benoit" <b-cousson@ti.com>, Paul Walmsley <paul@pwsan.com>, "DebBarma, Tarun Kanti" <tarun.kanti@ti.com>
 
-On Tue, Apr 3, 2012 at 11:49 PM, Tony Lindgren <tony@atomide.com> wrote=
-:
-> * Govindraj.R <govindraj.raja@ti.com> [120321 03:06]:
->> From: "Govindraj.R" <govindraj.raja@ti.com>
+On Tue, Apr 3, 2012 at 9:05 PM, Hiremath, Vaibhav <hvaibhav@ti.com> wro=
+te:
+> On Tue, Apr 03, 2012 at 00:05:38, Hilman, Kevin wrote:
+>> "Shilimkar, Santosh" <santosh.shilimkar@ti.com> writes:
 >>
->> The following commit:
->> (7496ba3 =A0ARM: OMAP2+: UART: Add default mux for all uarts)
->> added default pads for all uarts. But not all boards tend to
->> use all uarts and most of unused uart pins are muxed for
->> other purpose. This commit breaks the modules which where trying
->> to use unused uart pins on their boards.
+>> [...]
 >>
->> So remove all default pads except uart1/3 as most boards
->> tend to use either uart1/3 as console port and use only tx/rx
->> lines, declare only those pads for uart1/3.
->> If any boards tend to use any other uart other uart1/3
->> the mux data should to passed from board file and init individual
->> uart port using omap_serial_init_port api.
+>> > I don't personally like to add features which hardly anybody use a=
+nd
+>> > fundamentally broken with full kernel.
+>>
+>> Let's keep sane defaults, but not make it unreasonable to tweak eait=
+her.
+>>
+>> I suggest what has already been mentioned.
+>>
+>> Register both timers, but have the sync timer have a higher rating. =
+=A0On
+>> AMxxx where there is no sync timer, GPtimer will be used.
+>>
 >
-> This is still wrong. We can't mux any serial pins unless specifically
-> requested from the board-*.c files. So please do a fix to get back to
-> v3.2 behaviour where you basically revert 7496ba3.
+> This is another good option, I can change the rating of both the time=
+rs.
+> With below description and given understanding/discussion/usability o=
+f both
+> the timers, we can reverse the rating,
+>
+Btw, if we are going with this path, then there won't any need of comma=
+ndline
+option since clock-source can be switched from user space as well.
 
-How to do we fix the rx pin wakeup capability?
-The mux data has the info about the rx pin wakeup
-
-Without rx pin wakeup PM will be broken.
-=46ix all board files with duplicated data for uart3 or
-uart1 having rx pin marked as wakeup capable?
-
-Behavior in v3.2 was raw_write to all uarts rx_pin to enable wakeup
-enable bit.
-
---
-Thanks,
-Govindraj.R
+Regards
+santosh
 --
 To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
 n
