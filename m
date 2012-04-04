@@ -1,43 +1,35 @@
 From: Paul Walmsley <paul@pwsan.com>
-Subject: Re: [PATCH] ARM: OMAP3: clock: fix DPLL4 CLKSEL masks
-Date: Wed, 4 Apr 2012 08:40:00 -0600 (MDT)
-Message-ID: <alpine.DEB.2.00.1204040837510.8000@utopia.booyaka.com>
-References: <1332709687-22846-1-git-send-email-notasas@gmail.com>
+Subject: Re: Suspend broken on 3.3?
+Date: Wed, 4 Apr 2012 08:56:19 -0600 (MDT)
+Message-ID: <alpine.DEB.2.00.1204040852460.8000@utopia.booyaka.com>
+References: <WC20120329112755.541787@terrafix.co.uk> <WC20120329114024.43178C@terrafix.co.uk> <CAMrsUdKR4nwbBEOx9JPeS=GLDPyioHuijK2596=q2OwJ+ARbxA@mail.gmail.com> <WC20120330075339.4017FC@terrafix.co.uk> <CAMrsUdKTx84_oHyS9JTCBTqtV-7907snCGFDrOXnPuNVSnvz7w@mail.gmail.com>
+ <WC20120330092609.901834@terrafix.co.uk> <CAMrsUdJrJZXjYOs87xmT_J0w7S=VZyfR0tBmhhuYOFmFsOB3SA@mail.gmail.com> <WC20120330110442.381887@terrafix.co.uk> <CAMrsUd+AvVp3n1oAREEEmCSBaeA-m68j7gLjXEeJKimX1erfUw@mail.gmail.com>
+ <CAMrsUd+K_EwXfypgYWNyAhR7b47avTpWDemS87OTkpH81cJ6Aw@mail.gmail.com>
 Mime-Version: 1.0
 Content-Type: TEXT/PLAIN; charset=US-ASCII
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from utopia.booyaka.com ([72.9.107.138]:45859 "EHLO
+Received: from utopia.booyaka.com ([72.9.107.138]:37401 "EHLO
 	utopia.booyaka.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932142Ab2DDOkB (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 4 Apr 2012 10:40:01 -0400
-In-Reply-To: <1332709687-22846-1-git-send-email-notasas@gmail.com>
+	with ESMTP id S1756354Ab2DDO4U (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 4 Apr 2012 10:56:20 -0400
+In-Reply-To: <CAMrsUd+K_EwXfypgYWNyAhR7b47avTpWDemS87OTkpH81cJ6Aw@mail.gmail.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Grazvydas Ignotas <notasas@gmail.com>
-Cc: linux-omap@vger.kernel.org
+To: "Raja, Govindraj" <govindraj.raja@ti.com>
+Cc: Joe Woodward <jw@terrafix.co.uk>, Kevin Hilman <khilman@ti.com>, linux-omap@vger.kernel.org, Felipe Balbi <balbi@ti.com>, neilb@suse.de
 
-On Mon, 26 Mar 2012, Grazvydas Ignotas wrote:
+Hello Govindraj
 
-> Commit 2a9f5a4d455 "OMAP3 clock: remove unnecessary duplicate of dpll4_m2_ck,
-> added for 36xx" consolidated dpll4 clock structures between 34xx and 36xx,
-> but left 34xx CLKSEL masks for most dpll4 related clocks, which causes
-> clock code to not behave correctly when booting on DM3730 with higher
-> (36xx only) divisors set:
-> [    0.000000] WARNING: at arch/arm/mach-omap2/clkt_clksel.c:375 omap2_init_clksel_parent+0x104/0x114()
-> [    0.000000] clock: dpll4_m3_ck: init parent: could not find regval 0
-> [    0.000000] WARNING: at arch/arm/mach-omap2/clkt_clksel.c:194 omap2_clksel_recalc+0xd4/0xe4()
-> [    0.000000] clock: Could not find fieldval 0 for clock dpll4_m3_ck parent dpll4_ck
-> 
-> Fix this by switching to 36xx masks, as valid divisors will be limited
-> by clksel_rate lists.
-> 
-> Cc: Paul Walmsley <paul@pwsan.com>
-> Signed-off-by: Grazvydas Ignotas <notasas@gmail.com>
+On Mon, 2 Apr 2012, Raja, Govindraj wrote:
 
-Thanks, queued for 3.4-rc. 
+> As of now what I can think of is to update qos reqest to prevent MPU
+> from transitioning in case of port activity if wakeup capability for port
+> is disabled.
 
-(Looks like the lakml cc was accidentally dropped, so I went ahead and did 
-that, but maybe you could do that for me next time :-) )
+Haven't been following this thread closely, but this doesn't seem right.  
+Why would changing the UART driver's ability to wake from suspend via the 
+sysfs file prevent the driver from using hardware wakeups to wake from 
+dynamic idle?
 
 
 - Paul
