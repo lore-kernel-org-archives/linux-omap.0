@@ -1,100 +1,63 @@
-From: Paul Walmsley <paul@pwsan.com>
-Subject: Re: [PATCH 2/2] ARM: OMAP4: hwmod_data: Name the common irq for
- McBSP ports
-Date: Wed, 4 Apr 2012 09:46:51 -0600 (MDT)
-Message-ID: <alpine.DEB.2.00.1204040946230.8000@utopia.booyaka.com>
-References: <1332169966-25400-1-git-send-email-peter.ujfalusi@ti.com> <1332169966-25400-2-git-send-email-peter.ujfalusi@ti.com>
+From: Sakari Ailus <sakari.ailus@iki.fi>
+Subject: Re: [PATCH] usb: musb: make modules behave better
+Date: Wed, 4 Apr 2012 18:52:34 +0300
+Message-ID: <20120404155234.GC2913@valkosipuli.localdomain>
+References: <1327574749-18552-1-git-send-email-balbi@ti.com>
+ <20120402143448.GD922@valkosipuli.localdomain>
+ <CAAe_U6+kqyn7mdujJKr-ysC+HyA0=pyO012H-FxYY6DSRjznJQ@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: MULTIPART/MIXED; BOUNDARY="155748971-222532944-1333554411=:8000"
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from utopia.booyaka.com ([72.9.107.138]:33529 "EHLO
-	utopia.booyaka.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932269Ab2DDPqv (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 4 Apr 2012 11:46:51 -0400
-In-Reply-To: <1332169966-25400-2-git-send-email-peter.ujfalusi@ti.com>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <CAAe_U6+kqyn7mdujJKr-ysC+HyA0=pyO012H-FxYY6DSRjznJQ@mail.gmail.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: "ABRAHAM, KISHON VIJAY" <kishon@ti.com>
+Cc: Felipe Balbi <balbi@ti.com>, Linux USB Mailing List <linux-usb@vger.kernel.org>, Linux OMAP Mailing List <linux-omap@vger.kernel.org>, davinci-linux-open-source@linux.davincidsp.com, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>
 List-Id: linux-omap@vger.kernel.org
-To: Peter Ujfalusi <peter.ujfalusi@ti.com>
-Cc: Tony Lindgren <tony@atomide.com>, Jarkko Nikula <jarkko.nikula@bitmer.com>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 
-  This message is in MIME format.  The first part should be readable text,
-  while the remaining parts are likely unreadable without MIME-aware tools.
+Hi Kishon,
 
---155748971-222532944-1333554411=:8000
-Content-Type: TEXT/PLAIN; charset=ISO-8859-15
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+On Mon, Apr 02, 2012 at 10:33:10PM +0530, ABRAHAM, KISHON VIJAY wrote:
+> Hi,
+> 
+> On Mon, Apr 2, 2012 at 8:04 PM, Sakari Ailus <sakari.ailus@iki.fi> wrote:
+> > Hi Felipe,
+> >
+> > On Thu, Jan 26, 2012 at 12:45:49PM +0200, Felipe Balbi wrote:
+> >> There's really no point in doing all that
+> >> initcall trickery when we can safely let
+> >> udev handle module probing for us.
+> >>
+> >> Remove all of that trickery, by moving everybody
+> >> to module_init() and making proper use of
+> >> platform_device_register() rather than
+> >> platform_device_probe().
+> >>
+> >> Signed-off-by: Felipe Balbi <balbi@ti.com>
+> >> ---
+> >>
+> >> Because this falls into the "has never worked before" category
+> >> I will be sending this only on the next merge window. This
+> >> also gives people enough time to complain about any mistakes
+> >> on the patch.
+> >
+> > This patch looks correct and right to me, but it breaks musb when it's
+> > compiled into the kernel, at least on the Nokia N950. I haven't yet figured
+> > out exactly why, though.
+> 
+> Is it an abort?
+> You can use the patch which I've sent to the list last week for fixing it.
+> http://www.spinics.net/lists/linux-usb/msg60603.html.
 
-+ Beno=EEt
+It wasn't abort --- the USB simply refused to work. I tested your patch and
+it does indeed fix the problem I had.
 
-Hi Beno=EEt
+Feel free to add:
 
-On Mon, 19 Mar 2012, Peter Ujfalusi wrote:
+Tested-by: Sakari Ailus <sakari.ailus@iki.fi>
 
-> Use 'common' as name for the common irq number in hwmod data for the McBS=
-P
-> ports. The same name already in use for OMAP2430, and OMAP3.
->=20
-> Signed-off-by: Peter Ujfalusi <peter.ujfalusi@ti.com>
+Cheers,
 
-care to Ack this one for 3.5?
-
-
-- Paul
-
-
-> ---
->  arch/arm/mach-omap2/omap_hwmod_44xx_data.c |    8 ++++----
->  1 files changed, 4 insertions(+), 4 deletions(-)
->=20
-> diff --git a/arch/arm/mach-omap2/omap_hwmod_44xx_data.c b/arch/arm/mach-o=
-map2/omap_hwmod_44xx_data.c
-> index ef0524c..f8058b7 100644
-> --- a/arch/arm/mach-omap2/omap_hwmod_44xx_data.c
-> +++ b/arch/arm/mach-omap2/omap_hwmod_44xx_data.c
-> @@ -2942,7 +2942,7 @@ static struct omap_hwmod_class omap44xx_mcbsp_hwmod=
-_class =3D {
->  /* mcbsp1 */
->  static struct omap_hwmod omap44xx_mcbsp1_hwmod;
->  static struct omap_hwmod_irq_info omap44xx_mcbsp1_irqs[] =3D {
-> -=09{ .irq =3D 17 + OMAP44XX_IRQ_GIC_START },
-> +=09{ .name =3D "common", .irq =3D 17 + OMAP44XX_IRQ_GIC_START },
->  =09{ .irq =3D -1 }
->  };
-> =20
-> @@ -3017,7 +3017,7 @@ static struct omap_hwmod omap44xx_mcbsp1_hwmod =3D =
-{
->  /* mcbsp2 */
->  static struct omap_hwmod omap44xx_mcbsp2_hwmod;
->  static struct omap_hwmod_irq_info omap44xx_mcbsp2_irqs[] =3D {
-> -=09{ .irq =3D 22 + OMAP44XX_IRQ_GIC_START },
-> +=09{ .name =3D "common", .irq =3D 22 + OMAP44XX_IRQ_GIC_START },
->  =09{ .irq =3D -1 }
->  };
-> =20
-> @@ -3092,7 +3092,7 @@ static struct omap_hwmod omap44xx_mcbsp2_hwmod =3D =
-{
->  /* mcbsp3 */
->  static struct omap_hwmod omap44xx_mcbsp3_hwmod;
->  static struct omap_hwmod_irq_info omap44xx_mcbsp3_irqs[] =3D {
-> -=09{ .irq =3D 23 + OMAP44XX_IRQ_GIC_START },
-> +=09{ .name =3D "common", .irq =3D 23 + OMAP44XX_IRQ_GIC_START },
->  =09{ .irq =3D -1 }
->  };
-> =20
-> @@ -3167,7 +3167,7 @@ static struct omap_hwmod omap44xx_mcbsp3_hwmod =3D =
-{
->  /* mcbsp4 */
->  static struct omap_hwmod omap44xx_mcbsp4_hwmod;
->  static struct omap_hwmod_irq_info omap44xx_mcbsp4_irqs[] =3D {
-> -=09{ .irq =3D 16 + OMAP44XX_IRQ_GIC_START },
-> +=09{ .name =3D "common", .irq =3D 16 + OMAP44XX_IRQ_GIC_START },
->  =09{ .irq =3D -1 }
->  };
-> =20
-> --=20
-> 1.7.8.5
->=20
-
-
-- Paul
---155748971-222532944-1333554411=:8000--
+-- 
+Sakari Ailus
+e-mail: sakari.ailus@iki.fi	jabber/XMPP/Gmail: sailus@retiisi.org.uk
