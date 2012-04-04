@@ -1,35 +1,59 @@
 From: Paul Walmsley <paul@pwsan.com>
-Subject: Re: Suspend broken on 3.3?
-Date: Wed, 4 Apr 2012 08:56:19 -0600 (MDT)
-Message-ID: <alpine.DEB.2.00.1204040852460.8000@utopia.booyaka.com>
-References: <WC20120329112755.541787@terrafix.co.uk> <WC20120329114024.43178C@terrafix.co.uk> <CAMrsUdKR4nwbBEOx9JPeS=GLDPyioHuijK2596=q2OwJ+ARbxA@mail.gmail.com> <WC20120330075339.4017FC@terrafix.co.uk> <CAMrsUdKTx84_oHyS9JTCBTqtV-7907snCGFDrOXnPuNVSnvz7w@mail.gmail.com>
- <WC20120330092609.901834@terrafix.co.uk> <CAMrsUdJrJZXjYOs87xmT_J0w7S=VZyfR0tBmhhuYOFmFsOB3SA@mail.gmail.com> <WC20120330110442.381887@terrafix.co.uk> <CAMrsUd+AvVp3n1oAREEEmCSBaeA-m68j7gLjXEeJKimX1erfUw@mail.gmail.com>
- <CAMrsUd+K_EwXfypgYWNyAhR7b47avTpWDemS87OTkpH81cJ6Aw@mail.gmail.com>
+Subject: Re: [PATCH] OMAP: clock: fix race in disable all clocks
+Date: Wed, 4 Apr 2012 09:22:58 -0600 (MDT)
+Message-ID: <alpine.DEB.2.00.1204040922140.8000@utopia.booyaka.com>
+References: <1331835871-13328-1-git-send-email-nm@ti.com>
 Mime-Version: 1.0
 Content-Type: TEXT/PLAIN; charset=US-ASCII
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from utopia.booyaka.com ([72.9.107.138]:37401 "EHLO
+Received: from utopia.booyaka.com ([72.9.107.138]:37481 "EHLO
 	utopia.booyaka.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756354Ab2DDO4U (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 4 Apr 2012 10:56:20 -0400
-In-Reply-To: <CAMrsUd+K_EwXfypgYWNyAhR7b47avTpWDemS87OTkpH81cJ6Aw@mail.gmail.com>
+	with ESMTP id S1756379Ab2DDPW7 (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 4 Apr 2012 11:22:59 -0400
+In-Reply-To: <1331835871-13328-1-git-send-email-nm@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "Raja, Govindraj" <govindraj.raja@ti.com>
-Cc: Joe Woodward <jw@terrafix.co.uk>, Kevin Hilman <khilman@ti.com>, linux-omap@vger.kernel.org, Felipe Balbi <balbi@ti.com>, neilb@suse.de
+To: Nishanth Menon <nm@ti.com>
+Cc: linux-omap <linux-omap@vger.kernel.org>, linux-arm <linux-arm-kernel@lists.infradead.org>, Tony Lindgren <tony@atomide.com>, Todd Poynor <toddpoynor@google.com>
 
-Hello Govindraj
+cc Todd
 
-On Mon, 2 Apr 2012, Raja, Govindraj wrote:
+On Thu, 15 Mar 2012, Nishanth Menon wrote:
 
-> As of now what I can think of is to update qos reqest to prevent MPU
-> from transitioning in case of port activity if wakeup capability for port
-> is disabled.
+> clk_disable_unused is invoked when CONFIG_OMAP_RESET_CLOCKS=y.
+> Since clk_disable_unused is called as lateinitcall, there can
+> be more than a few workqueues executing off secondary CPU(s).
+> The current code does the following:
+> a) checks if clk is unused
+> b) holds lock
+> c) disables clk
+> d) unlocks
+> 
+> Between (a) and (b) being executed on CPU0, It is possible to
+> have a driver executing on CPU1 which could do a get_sync->clk_get
+> (and increase the use_count) of the clock which was just about
+> to be disabled by clk_disable_unused.
+> 
+> We ensure instead that the entire list traversal is protected by
+> the lock allowing for parent child clock traversal which could be
+> potentially be done by runtime operations to be safe as well.
+> 
+> Reported-by: Todd Poynor <toddpoynor@google.com>
+> Signed-off-by: Nishanth Menon <nm@ti.com>
+> ---
+> To confirm this in reality happens, I setup a trap as follows:
+>   @@ -450,6 +450,8 @@ static int __init clk_disable_unused(void)
+>   			continue;
+>   
+>   		spin_lock_irqsave(&clockfw_lock, flags);
+>  +		WARN(ck->usecount, "XXXX->RACECONDITION FOR CLOCK %s\n",
+>  +			ck->name);
+>   		arch_clock->clk_disable_unused(ck);
+>   		spin_unlock_irqrestore(&clockfw_lock, flags);
+>   	}
+> Resultant log: http://pastebin.pandaboard.org/index.php/view/66400792
 
-Haven't been following this thread closely, but this doesn't seem right.  
-Why would changing the UART driver's ability to wake from suspend via the 
-sysfs file prevent the driver from using hardware wakeups to wake from 
-dynamic idle?
+Thanks Nishanth & Todd, queued for 3.4-rc.
 
 
 - Paul
