@@ -1,59 +1,71 @@
-From: Shubhrajyoti Datta <omaplinuxkernel@gmail.com>
-Subject: Re: [PATCHv5 16/18] I2C: OMAP: fix missing handling of errata I2C_OMAP3_1P153
-Date: Wed, 4 Apr 2012 23:15:19 +0530
-Message-ID: <CAM=Q2cu8k8n2w8_=8VCFcFTTgywqc_Vk_eM_DDTap3YeYyAH2g@mail.gmail.com>
-References: <1333468957-5999-1-git-send-email-shubhrajyoti@ti.com>
-	<1333468957-5999-17-git-send-email-shubhrajyoti@ti.com>
-	<4F7C7780.7040807@ti.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+From: Javier Martinez Canillas <javier@dowhile0.org>
+Subject: [RESEND PATCH 1/2] ARM: OMAP2+: nand: Make board_onenand_init() visible to board code
+Date: Wed,  4 Apr 2012 20:36:25 +0200
+Message-ID: <1333564586-3259-1-git-send-email-javier@dowhile0.org>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-iy0-f174.google.com ([209.85.210.174]:54020 "EHLO
-	mail-iy0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932300Ab2DDRpU convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 4 Apr 2012 13:45:20 -0400
-In-Reply-To: <4F7C7780.7040807@ti.com>
+Received: from mail-wg0-f42.google.com ([74.125.82.42]:51447 "EHLO
+	mail-wg0-f42.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S932261Ab2DDShN (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 4 Apr 2012 14:37:13 -0400
+Received: by wgbds11 with SMTP id ds11so744276wgb.1
+        for <linux-omap@vger.kernel.org>; Wed, 04 Apr 2012 11:37:11 -0700 (PDT)
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Jon Hunter <jon-hunter@ti.com>
-Cc: Shubhrajyoti D <shubhrajyoti@ti.com>, linux-omap@vger.kernel.org, tony@atomide.com, Tasslehoff Kjappfot <tasskjapp@gmail.com>, w.sang@pengutronix.de, linux-i2c@vger.kernel.org, ben-linux@fluff.org, linux-arm-kernel@lists.infradead.org
+To: Tony Lindgren <tony@atomide.com>
+Cc: Russell King <linux@arm.linux.org.uk>, =?UTF-8?q?Enric=20Balletb=C3=B2=20i=20Serra?= <eballetbo@gmail.com>, linux-omap@vger.kernel.org, linaro-kernel@lists.linaro.org, linux-arm-kernel@lists.infradead.org, linaro-dev@lists.linaro.org, patches@linaro.org, Javier Martinez Canillas <javier@dowhile0.org>
 
-Hi Jon,
+board_onenand_init() and board_nand_init() initialization functions are
+used to initialize OneNAND and NAND memories respectively. But only
+board_nand_init() was visible to be used from board code. This patch makes
+possible to initialize a OneNAND flash memory within platform code.
 
+Signed-off-by: Javier Martinez Canillas <javier@dowhile0.org>
+---
+ arch/arm/mach-omap2/board-flash.c |    4 ++--
+ arch/arm/mach-omap2/board-flash.h |   11 +++++++++++
+ 2 files changed, 13 insertions(+), 2 deletions(-)
 
->> + =A0 =A0 =A0 if (dev->flags& =A0OMAP_I2C_FLAG_APPLY_ERRATA_I207)
->>
->> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 dev->errata |=3D I2C_OMAP_ERRATA_I207;
->> +
->> =A0 =A0 =A0 =A0if (dev->rev<=3D OMAP_I2C_REV_ON_3430_3530)
->> =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0dev->errata |=3D I2C_OMAP3_1P153;
->
->
-> The errata ID is not correct. I believe that 1P153 is referring to th=
-e
-> section number in the errata doc and not the errata ID. The errata ID=
- should
-> be i451 in the latest OMAP34xx and OMAP36xx docs.
->
-> Please can you update this? The section number changed in the latest =
-errata
-> docs and it took me a minute to find this.
+diff --git a/arch/arm/mach-omap2/board-flash.c b/arch/arm/mach-omap2/board-flash.c
+index 0349fd2..70a81f9 100644
+--- a/arch/arm/mach-omap2/board-flash.c
++++ b/arch/arm/mach-omap2/board-flash.c
+@@ -87,7 +87,7 @@ static struct omap_onenand_platform_data board_onenand_data = {
+ 	.dma_channel	= -1,   /* disable DMA in OMAP OneNAND driver */
+ };
+ 
+-static void
++void
+ __init board_onenand_init(struct mtd_partition *onenand_parts,
+ 				u8 nr_parts, u8 cs)
+ {
+@@ -98,7 +98,7 @@ __init board_onenand_init(struct mtd_partition *onenand_parts,
+ 	gpmc_onenand_init(&board_onenand_data);
+ }
+ #else
+-static void
++void
+ __init board_onenand_init(struct mtd_partition *nor_parts, u8 nr_parts, u8 cs)
+ {
+ }
+diff --git a/arch/arm/mach-omap2/board-flash.h b/arch/arm/mach-omap2/board-flash.h
+index d25503a..c44b70d 100644
+--- a/arch/arm/mach-omap2/board-flash.h
++++ b/arch/arm/mach-omap2/board-flash.h
+@@ -47,3 +47,14 @@ static inline void board_nand_init(struct mtd_partition *nand_parts,
+ {
+ }
+ #endif
++
++#if defined(CONFIG_MTD_ONENAND_OMAP2) || \
++		defined(CONFIG_MTD_ONENAND_OMAP2_MODULE)
++extern void board_onenand_init(struct mtd_partition *nand_parts,
++					u8 nr_parts, u8 cs);
++#else
++static inline void board_onenand_init(struct mtd_partition *nand_parts,
++					u8 nr_parts, u8 cs)
++{
++}
++#endif
+-- 
+1.7.7.6
 
-Do you mind if that is a separate patch?
-
->
-> Cheers
-> Jon
->
->
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-i2c" =
-in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at =A0http://vger.kernel.org/majordomo-info.html
---
-To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
