@@ -1,76 +1,66 @@
-From: Wolfgang Grandegger <wg@grandegger.com>
-Subject: Re: [PATCH] ARM: OMAP: AM33XX: CAN: d_can: Add support for Bosch
- D_CAN controller
-Date: Wed, 04 Apr 2012 18:21:41 +0200
-Message-ID: <4F7C7515.4070802@grandegger.com>
-References: <1333456339-9372-1-git-send-email-anilkumar@ti.com> <4F7AF0C7.7020506@grandegger.com> <331ABD5ECB02734CA317220B2BBEABC1317D85D0@DBDE01.ent.ti.com> <4F7AFFEC.1010805@pengutronix.de> <331ABD5ECB02734CA317220B2BBEABC1317D86F7@DBDE01.ent.ti.com> <4F7B1854.90106@pengutronix.de> <331ABD5ECB02734CA317220B2BBEABC1317D88B7@DBDE01.ent.ti.com>
+From: Jon Hunter <jon-hunter-l0cyMroinI0@public.gmane.org>
+Subject: Re: [PATCHv5 16/18] I2C: OMAP: fix missing handling of errata I2C_OMAP3_1P153
+Date: Wed, 4 Apr 2012 11:32:00 -0500
+Message-ID: <4F7C7780.7040807@ti.com>
+References: <1333468957-5999-1-git-send-email-shubhrajyoti@ti.com> <1333468957-5999-17-git-send-email-shubhrajyoti@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
+Content-Type: text/plain; charset="ISO-8859-1"; format=flowed
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-can-owner@vger.kernel.org>
-In-Reply-To: <331ABD5ECB02734CA317220B2BBEABC1317D88B7@DBDE01.ent.ti.com>
-Sender: linux-can-owner@vger.kernel.org
-To: "AnilKumar, Chimata" <anilkumar@ti.com>
-Cc: Marc Kleine-Budde <mkl@pengutronix.de>, "socketcan@hartkopp.net" <socketcan@hartkopp.net>, "m.kleine-budde@pengutronix.de" <m.kleine-budde@pengutronix.de>, "linux-can@vger.kernel.org" <linux-can@vger.kernel.org>, "netdev@vger.kernel.org" <netdev@vger.kernel.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "Gole, Anant" <anantgole@ti.com>, "Nori, Sekhar" <nsekhar@ti.com>
+Return-path: <linux-i2c-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <1333468957-5999-17-git-send-email-shubhrajyoti-l0cyMroinI0@public.gmane.org>
+Sender: linux-i2c-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Shubhrajyoti D <shubhrajyoti-l0cyMroinI0@public.gmane.org>
+Cc: linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org, Tasslehoff Kjappfot <tasskjapp-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, w.sang-bIcnvbaLZ9MEGnE8C9+IrQ@public.gmane.org, linux-i2c-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, ben-linux-elnMNo+KYs3YtjvyW6yDsg@public.gmane.org, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org
 List-Id: linux-omap@vger.kernel.org
 
-On 04/03/2012 05:58 PM, AnilKumar, Chimata wrote:
-> On Tue, Apr 03, 2012 at 21:03:40, Marc Kleine-Budde wrote:
->> On 04/03/2012 04:29 PM, AnilKumar, Chimata wrote:
->>>>>> Please explain why this CAN controller cannot be handled by the existing
->>>>>> C_CAN driver, eventually with some extensions. The register layout seems
->>>>>> almost identical, at least.
->>>>>>
->>>>>> Wolfgang.
->>>>>>
->>>>>
->>>>> These are the some of the pointers I can say, why I had gone for separate
->>>>> file instead of existing driver:
->>>>> * In case of D_CAN driver we can see all the registers are 32bit length
->>>>>   but in case of C_CAN registers are in 16bit length.
->>>>
->>>> How many bits in these 32 bit registers are used?
->>>
->>> In some cases (D_CAN_TXRQ, D_CAN_INTPND, D_CAN_MSGVAL) I have used all the
->>> bits, in some cases used few bits.
->>>
->>> Roughly I can say that its (higher 16bits) % of usages is similar as compare
->>> to 16bits 
->>>
->>> While checking the status of TXRequest registers and INT pending register,
->>> which is a hot code path, we have to put if checks for register access.
->>
->> The c_can already has a c_can_read_reg32() function. It's for example
->> used in the rx_poll function. You can make it a function pointer (i.e.
->> pric->read_reg32()) for easy abstraction.
-> 
-> This won't fit for D_CAN case because offsets are different in c_can compared
-> to d_can. For example if I read CONTROL_REG register (0x0) in case of d_can,
-> which will read only control register. In case of c_can it will read
-> CONTROL_REG + STATUS register values in single read
-> 
->>
->>>>> * Some of the registers, bit masks are different, so we have to add
->>>>>   checks on every API for differentiating the kind of device
->>>>
->>>> Which registers are this? Can you give us an example?
->>>
->>> I am pointing out some of the resisters
->>> * Single registers in case of D_CAN but multiple register in case of C_CAN
->>>   So masks will change MASK, ARB, INTPND
->>> * D_CAN_IFCMD is the combination of COMM request and COMM mask registers
->>
->> Maybe you can use the read_reg32 function on both c_can and d_can.
-> 
-> Above comment applies here as well
+Hi Shubhro,
 
-I did look into the manual. Unfortunately, a direct mapping of the C_CAN
-to the D_CAN registers seems not possible. It's not just a different
-alignment but sometimes two 16-bit C_CAN registers are folded into *one*
-32-bit D_CAN register. Therefore we need something more clever, e.g.
-using a separate struct or union or handling those register separately.
-I still think, if feasible, we should avoid an extra driver for the
-D_CAN controller, also because we sooner than later need the same
-infrastructure (register_c_can_dev etc.).
+On 04/03/2012 11:02 AM, Shubhrajyoti D wrote:
+> From: Tasslehoff Kjappfot<tasskjapp-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+>
+> i2c_probe set the dev->errata flag, but omap_i2c_init cleared the flag again.
+> Move the errata handling to i2c_probe.
+>
+> Signed-off-by: Tasslehoff Kjappfot<tasskjapp-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+> Signed-off-by: Shubhrajyoti D<shubhrajyoti-l0cyMroinI0@public.gmane.org>
+> ---
+>   drivers/i2c/busses/i2c-omap.c |   10 +++++-----
+>   1 files changed, 5 insertions(+), 5 deletions(-)
+>
+> diff --git a/drivers/i2c/busses/i2c-omap.c b/drivers/i2c/busses/i2c-omap.c
+> index c113f41..51576d6 100644
+> --- a/drivers/i2c/busses/i2c-omap.c
+> +++ b/drivers/i2c/busses/i2c-omap.c
+> @@ -431,11 +431,6 @@ static int omap_i2c_init(struct omap_i2c_dev *dev)
+>   	/* Take the I2C module out of reset: */
+>   	omap_i2c_write_reg(dev, OMAP_I2C_CON_REG, OMAP_I2C_CON_EN);
+>
+> -	dev->errata = 0;
+> -
+> -	if (dev->flags&  OMAP_I2C_FLAG_APPLY_ERRATA_I207)
+> -		dev->errata |= I2C_OMAP_ERRATA_I207;
+> -
+>   	/* Enable interrupts */
+>   	dev->iestate = (OMAP_I2C_IE_XRDY | OMAP_I2C_IE_RRDY |
+>   			OMAP_I2C_IE_ARDY | OMAP_I2C_IE_NACK |
+> @@ -1056,6 +1051,11 @@ omap_i2c_probe(struct platform_device *pdev)
+>
+>   	dev->rev = omap_i2c_read_reg(dev, OMAP_I2C_REV_REG)&  0xff;
+>
+> +	dev->errata = 0;
+> +
+> +	if (dev->flags&  OMAP_I2C_FLAG_APPLY_ERRATA_I207)
+> +		dev->errata |= I2C_OMAP_ERRATA_I207;
+> +
+>   	if (dev->rev<= OMAP_I2C_REV_ON_3430_3530)
+>   		dev->errata |= I2C_OMAP3_1P153;
 
-Wolfgang.
+The errata ID is not correct. I believe that 1P153 is referring to the 
+section number in the errata doc and not the errata ID. The errata ID 
+should be i451 in the latest OMAP34xx and OMAP36xx docs.
+
+Please can you update this? The section number changed in the latest 
+errata docs and it took me a minute to find this.
+
+Cheers
+Jon
