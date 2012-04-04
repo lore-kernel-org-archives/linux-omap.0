@@ -1,7 +1,8 @@
 From: Daniel Lezcano <daniel.lezcano-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>
-Subject: [PATCH 09/17][V2] ARM: OMAP3: define cpuidle statically
-Date: Wed,  4 Apr 2012 22:12:43 +0200
-Message-ID: <1333570371-1389-10-git-send-email-daniel.lezcano@linaro.org>
+Subject: [PATCH 08/17][V2] ARM: OMAP3: cpuidle - remove rx51 cpuidle
+	parameters table
+Date: Wed,  4 Apr 2012 22:12:42 +0200
+Message-ID: <1333570371-1389-9-git-send-email-daniel.lezcano@linaro.org>
 References: <1333570371-1389-1-git-send-email-daniel.lezcano@linaro.org>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
@@ -21,160 +22,127 @@ To: santosh.shilimkar-l0cyMroinI0@public.gmane.org, jean.pihet-OTs2U3NB0ngRmelmm
 Cc: linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linaro-dev-cunTk1MwBs8s++Sfvej+rw@public.gmane.org, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, patches-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org
 List-Id: linux-omap@vger.kernel.org
 
-Use the new cpuidle API and define in the driver the states.
+As suggested, this table is an optimized version for rx51 and we
+remove it in order to consolidate the cpuidle code between omap3
+and omap4, we remove this specific data definition which is used
+to override the default omap3 latencies but at the cost of extra
+code and complexity.
+
+In order to not lose the values which probably took time to be
+measured, the table is converted into a comment with an array
+description.
 
 Signed-off-by: Daniel Lezcano <daniel.lezcano-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>
 Reviewed-by: Jean Pihet <j-pihet-l0cyMroinI0@public.gmane.org>
 ---
- arch/arm/mach-omap2/cpuidle34xx.c |   86 +++++++++++++++++++++++++-----------
- 1 files changed, 60 insertions(+), 26 deletions(-)
+ arch/arm/mach-omap2/board-rx51.c  |   38 +++++++++++++++++-------------------
+ arch/arm/mach-omap2/cpuidle34xx.c |   17 ----------------
+ arch/arm/mach-omap2/pm.h          |    9 --------
+ 3 files changed, 18 insertions(+), 46 deletions(-)
 
+diff --git a/arch/arm/mach-omap2/board-rx51.c b/arch/arm/mach-omap2/board-rx51.c
+index 27f01f0..2da92a6 100644
+--- a/arch/arm/mach-omap2/board-rx51.c
++++ b/arch/arm/mach-omap2/board-rx51.c
+@@ -59,25 +59,24 @@ static struct platform_device leds_gpio = {
+ };
+ 
+ /*
+- * cpuidle C-states definition override from the default values.
+- * The 'exit_latency' field is the sum of sleep and wake-up latencies.
+- */
+-static struct cpuidle_params rx51_cpuidle_params[] = {
+-	/* C1 */
+-	{110 + 162, 5 , 1},
+-	/* C2 */
+-	{106 + 180, 309, 1},
+-	/* C3 */
+-	{107 + 410, 46057, 0},
+-	/* C4 */
+-	{121 + 3374, 46057, 0},
+-	/* C5 */
+-	{855 + 1146, 46057, 1},
+-	/* C6 */
+-	{7580 + 4134, 484329, 0},
+-	/* C7 */
+-	{7505 + 15274, 484329, 1},
+-};
++ * cpuidle C-states definition for rx51.
++ *
++ * The 'exit_latency' field is the sum of sleep
++ * and wake-up latencies.
++
++    ---------------------------------------------
++   | state |  exit_latency  |  target_residency  |
++    ---------------------------------------------
++   |  C1   |    110 + 162   |            5       |
++   |  C2   |    106 + 180   |          309       |
++   |  C3   |    107 + 410   |        46057       |
++   |  C4   |    121 + 3374  |        46057       |
++   |  C5   |    855 + 1146  |        46057       |
++   |  C6   |   7580 + 4134  |       484329       |
++   |  C7   |   7505 + 15274 |       484329       |
++    ---------------------------------------------
++
++*/
+ 
+ extern void __init rx51_peripherals_init(void);
+ 
+@@ -98,7 +97,6 @@ static void __init rx51_init(void)
+ 	struct omap_sdrc_params *sdrc_params;
+ 
+ 	omap3_mux_init(board_mux, OMAP_PACKAGE_CBB);
+-	omap3_pm_init_cpuidle(rx51_cpuidle_params);
+ 	omap_serial_init();
+ 
+ 	sdrc_params = nokia_get_sdram_timings();
 diff --git a/arch/arm/mach-omap2/cpuidle34xx.c b/arch/arm/mach-omap2/cpuidle34xx.c
-index 3519a8b..11a2c23 100644
+index 5358664..3519a8b 100644
 --- a/arch/arm/mach-omap2/cpuidle34xx.c
 +++ b/arch/arm/mach-omap2/cpuidle34xx.c
-@@ -301,23 +301,68 @@ DEFINE_PER_CPU(struct cpuidle_device, omap3_idle_dev);
+@@ -298,23 +298,6 @@ select_state:
+ 
+ DEFINE_PER_CPU(struct cpuidle_device, omap3_idle_dev);
+ 
+-void omap3_pm_init_cpuidle(struct cpuidle_params *cpuidle_board_params)
+-{
+-	int i;
+-
+-	if (!cpuidle_board_params)
+-		return;
+-
+-	for (i = 0; i < OMAP3_NUM_STATES; i++) {
+-		cpuidle_params_table[i].valid =	cpuidle_board_params[i].valid;
+-		cpuidle_params_table[i].exit_latency =
+-			cpuidle_board_params[i].exit_latency;
+-		cpuidle_params_table[i].target_residency =
+-			cpuidle_board_params[i].target_residency;
+-	}
+-	return;
+-}
+-
  struct cpuidle_driver omap3_idle_driver = {
  	.name = 	"omap3_idle",
  	.owner = 	THIS_MODULE,
-+	.states = {
-+		{
-+			.enter		  = omap3_enter_idle,
-+			.exit_latency	  = 2 + 2,
-+			.target_residency = 5,
-+			.flags		  = CPUIDLE_FLAG_TIME_VALID,
-+			.name		  = "C1",
-+			.desc		  = "MPU ON + CORE ON",
-+		},
-+		{
-+			.enter		  = omap3_enter_idle_bm,
-+			.exit_latency	  = 10 + 10,
-+			.target_residency = 30,
-+			.flags		  = CPUIDLE_FLAG_TIME_VALID,
-+			.name		  = "C2",
-+			.desc		  = "MPU ON + CORE ON",
-+		},
-+		{
-+			.enter		  = omap3_enter_idle_bm,
-+			.exit_latency	  = 50 + 50,
-+			.target_residency = 300,
-+			.flags		  = CPUIDLE_FLAG_TIME_VALID,
-+			.name		  = "C3",
-+			.desc		  = "MPU RET + CORE ON",
-+		},
-+		{
-+			.enter		  = omap3_enter_idle_bm,
-+			.exit_latency	  = 1500 + 1800,
-+			.target_residency = 4000,
-+			.flags		  = CPUIDLE_FLAG_TIME_VALID,
-+			.name		  = "C4",
-+			.desc		  = "MPU OFF + CORE ON",
-+		},
-+		{
-+			.enter		  = omap3_enter_idle_bm,
-+			.exit_latency	  = 2500 + 7500,
-+			.target_residency = 12000,
-+			.flags		  = CPUIDLE_FLAG_TIME_VALID,
-+			.name		  = "C5",
-+			.desc		  = "MPU RET + CORE RET",
-+		},
-+		{
-+			.enter		  = omap3_enter_idle_bm,
-+			.exit_latency	  = 3000 + 8500,
-+			.target_residency = 15000,
-+			.flags		  = CPUIDLE_FLAG_TIME_VALID,
-+			.name		  = "C6",
-+			.desc		  = "MPU OFF + CORE RET",
-+		},
-+		{
-+			.enter		  = omap3_enter_idle_bm,
-+			.exit_latency	  = 10000 + 30000,
-+			.target_residency = 30000,
-+			.flags		  = CPUIDLE_FLAG_TIME_VALID,
-+			.name		  = "C7",
-+			.desc		  = "MPU OFF + CORE OFF",
-+		},
-+	},
-+	.state_count = OMAP3_NUM_STATES,
-+	.safe_state_index = 0,
+diff --git a/arch/arm/mach-omap2/pm.h b/arch/arm/mach-omap2/pm.h
+index 36fa90b..5646b80 100644
+--- a/arch/arm/mach-omap2/pm.h
++++ b/arch/arm/mach-omap2/pm.h
+@@ -50,15 +50,6 @@ struct cpuidle_params {
+ 	u8 valid;		/* validates the C-state */
  };
  
--/* Helper to fill the C-state common data*/
--static inline void _fill_cstate(struct cpuidle_driver *drv,
--					int idx, const char *descr)
+-#if defined(CONFIG_PM) && defined(CONFIG_CPU_IDLE)
+-extern void omap3_pm_init_cpuidle(struct cpuidle_params *cpuidle_board_params);
+-#else
+-static
+-inline void omap3_pm_init_cpuidle(struct cpuidle_params *cpuidle_board_params)
 -{
--	struct cpuidle_state *state = &drv->states[idx];
--
--	state->exit_latency	= cpuidle_params_table[idx].exit_latency;
--	state->target_residency	= cpuidle_params_table[idx].target_residency;
--	state->flags		= CPUIDLE_FLAG_TIME_VALID;
--	state->enter		= omap3_enter_idle_bm;
--	sprintf(state->name, "C%d", idx + 1);
--	strncpy(state->desc, descr, CPUIDLE_DESC_LEN);
--
 -}
+-#endif
 -
- /* Helper to register the driver_data */
- static inline struct omap3_idle_statedata *_fill_cstate_usage(
- 					struct cpuidle_device *dev,
-@@ -350,50 +395,40 @@ int __init omap3_idle_init(void)
- 	cam_pd = pwrdm_lookup("cam_pwrdm");
+ extern int omap3_pm_get_suspend_state(struct powerdomain *pwrdm);
+ extern int omap3_pm_set_suspend_state(struct powerdomain *pwrdm, int state);
  
- 
--	drv->safe_state_index = -1;
- 	dev = &per_cpu(omap3_idle_dev, smp_processor_id());
- 
- 	/* C1 . MPU WFI + Core active */
--	_fill_cstate(drv, 0, "MPU ON + CORE ON");
--	(&drv->states[0])->enter = omap3_enter_idle;
--	drv->safe_state_index = 0;
- 	cx = _fill_cstate_usage(dev, 0);
- 	cx->valid = 1;	/* C1 is always valid */
- 	cx->mpu_state = PWRDM_POWER_ON;
- 	cx->core_state = PWRDM_POWER_ON;
- 
- 	/* C2 . MPU WFI + Core inactive */
--	_fill_cstate(drv, 1, "MPU ON + CORE ON");
- 	cx = _fill_cstate_usage(dev, 1);
- 	cx->mpu_state = PWRDM_POWER_ON;
- 	cx->core_state = PWRDM_POWER_ON;
- 
- 	/* C3 . MPU CSWR + Core inactive */
--	_fill_cstate(drv, 2, "MPU RET + CORE ON");
- 	cx = _fill_cstate_usage(dev, 2);
- 	cx->mpu_state = PWRDM_POWER_RET;
- 	cx->core_state = PWRDM_POWER_ON;
- 
- 	/* C4 . MPU OFF + Core inactive */
--	_fill_cstate(drv, 3, "MPU OFF + CORE ON");
- 	cx = _fill_cstate_usage(dev, 3);
- 	cx->mpu_state = PWRDM_POWER_OFF;
- 	cx->core_state = PWRDM_POWER_ON;
- 
- 	/* C5 . MPU RET + Core RET */
--	_fill_cstate(drv, 4, "MPU RET + CORE RET");
- 	cx = _fill_cstate_usage(dev, 4);
- 	cx->mpu_state = PWRDM_POWER_RET;
- 	cx->core_state = PWRDM_POWER_RET;
- 
- 	/* C6 . MPU OFF + Core RET */
--	_fill_cstate(drv, 5, "MPU OFF + CORE RET");
- 	cx = _fill_cstate_usage(dev, 5);
- 	cx->mpu_state = PWRDM_POWER_OFF;
- 	cx->core_state = PWRDM_POWER_RET;
- 
- 	/* C7 . MPU OFF + Core OFF */
--	_fill_cstate(drv, 6, "MPU OFF + CORE OFF");
- 	cx = _fill_cstate_usage(dev, 6);
- 	/*
- 	 * Erratum i583: implementation for ES rev < Es1.2 on 3630. We cannot
-@@ -411,7 +446,6 @@ int __init omap3_idle_init(void)
- 	drv->state_count = OMAP3_NUM_STATES;
- 	cpuidle_register_driver(&omap3_idle_driver);
- 
--	dev->state_count = OMAP3_NUM_STATES;
- 	if (cpuidle_register_device(dev)) {
- 		printk(KERN_ERR "%s: CPUidle register device failed\n",
- 		       __func__);
 -- 
 1.7.5.4
