@@ -1,7 +1,7 @@
 From: Daniel Lezcano <daniel.lezcano-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>
-Subject: [PATCH 14/17][V2] ARM: OMAP3 : cpuidle - simplify next_valid_state
-Date: Wed,  4 Apr 2012 22:12:48 +0200
-Message-ID: <1333570371-1389-15-git-send-email-daniel.lezcano@linaro.org>
+Subject: [PATCH 11/17][V2] ARM: OMAP3: cpuidle - remove cpuidle_params_table
+Date: Wed,  4 Apr 2012 22:12:45 +0200
+Message-ID: <1333570371-1389-12-git-send-email-daniel.lezcano@linaro.org>
 References: <1333570371-1389-1-git-send-email-daniel.lezcano@linaro.org>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
@@ -21,95 +21,85 @@ To: santosh.shilimkar-l0cyMroinI0@public.gmane.org, jean.pihet-OTs2U3NB0ngRmelmm
 Cc: linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linaro-dev-cunTk1MwBs8s++Sfvej+rw@public.gmane.org, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, patches-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org
 List-Id: linux-omap@vger.kernel.org
 
-Simplify the indentation by removing the useless 'else' statement.
-Remove the first loop for the 'idx' search as we have it already
-with the 'index' passed as parameter.
+We do not longer need the ''cpuidle_params_table' array as
+we defined the states in the driver and we checked they are
+all valid.
+
+We also remove the structure definition as it is no longer used.
 
 Signed-off-by: Daniel Lezcano <daniel.lezcano-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>
 Reviewed-by: Jean Pihet <j-pihet-l0cyMroinI0@public.gmane.org>
 ---
- arch/arm/mach-omap2/cpuidle34xx.c |   53 +++++++++++++-----------------------
- 1 files changed, 19 insertions(+), 34 deletions(-)
+ arch/arm/mach-omap2/cpuidle34xx.c |   28 +++-------------------------
+ arch/arm/mach-omap2/pm.h          |   12 ------------
+ 2 files changed, 3 insertions(+), 37 deletions(-)
 
 diff --git a/arch/arm/mach-omap2/cpuidle34xx.c b/arch/arm/mach-omap2/cpuidle34xx.c
-index e4738eb..35a1471 100644
+index 3f46e45..cdf1b8f 100644
 --- a/arch/arm/mach-omap2/cpuidle34xx.c
 +++ b/arch/arm/mach-omap2/cpuidle34xx.c
-@@ -174,13 +174,12 @@ static inline int omap3_enter_idle(struct cpuidle_device *dev,
-  * if it satisfies the enable_off_mode condition.
-  */
- static int next_valid_state(struct cpuidle_device *dev,
--			struct cpuidle_driver *drv,
--				int index)
-+			    struct cpuidle_driver *drv, int index)
- {
--	struct cpuidle_state *curr = &drv->states[index];
- 	struct omap3_idle_statedata *cx = &omap3_idle_data[index];
- 	u32 mpu_deepest_state = PWRDM_POWER_RET;
- 	u32 core_deepest_state = PWRDM_POWER_RET;
-+	int idx;
- 	int next_index = -1;
+@@ -38,36 +38,14 @@
  
- 	if (enable_off_mode) {
-@@ -196,42 +195,28 @@ static int next_valid_state(struct cpuidle_device *dev,
+ #ifdef CONFIG_CPU_IDLE
  
- 	/* Check if current state is valid */
- 	if ((cx->mpu_state >= mpu_deepest_state) &&
--	    (cx->core_state >= core_deepest_state)) {
-+	    (cx->core_state >= core_deepest_state))
- 		return index;
--	} else {
--		int idx = OMAP3_NUM_STATES - 1;
+-/*
+- * The latencies/thresholds for various C states have
+- * to be configured from the respective board files.
+- * These are some default values (which might not provide
+- * the best power savings) used on boards which do not
+- * pass these details from the board file.
+- */
+-static struct cpuidle_params cpuidle_params_table[] = {
+-	/* C1 */
+-	{2 + 2, 5, 1},
+-	/* C2 */
+-	{10 + 10, 30, 1},
+-	/* C3 */
+-	{50 + 50, 300, 1},
+-	/* C4 */
+-	{1500 + 1800, 4000, 1},
+-	/* C5 */
+-	{2500 + 7500, 12000, 1},
+-	/* C6 */
+-	{3000 + 8500, 15000, 1},
+-	/* C7 */
+-	{10000 + 30000, 300000, 1},
+-};
+-#define OMAP3_NUM_STATES ARRAY_SIZE(cpuidle_params_table)
 -
--		/* Reach the current state starting at highest C-state */
--		for (; idx >= 0; idx--) {
--			if (&drv->states[idx] == curr) {
--				next_index = idx;
--				break;
--			}
--		}
--
--		/* Should never hit this condition */
--		WARN_ON(next_index == -1);
- 
--		/*
--		 * Drop to next valid state.
--		 * Start search from the next (lower) state.
--		 */
--		idx--;
--		for (; idx >= 0; idx--) {
--			cx =  &omap3_idle_data[idx];
--			if ((cx->mpu_state >= mpu_deepest_state) &&
--			    (cx->core_state >= core_deepest_state)) {
--				next_index = idx;
--				break;
--			}
-+	/*
-+	 * Drop to next valid state.
-+	 * Start search from the next (lower) state.
-+	 */
-+	for (idx = index - 1; idx >= 0; idx--) {
-+		cx =  &omap3_idle_data[idx];
-+		if ((cx->mpu_state >= mpu_deepest_state) &&
-+		    (cx->core_state >= core_deepest_state)) {
-+			next_index = idx;
-+			break;
- 		}
--		/*
--		 * C1 is always valid.
--		 * So, no need to check for 'next_index == -1' outside
--		 * this loop.
--		 */
- 	}
- 
-+	/*
-+	 * C1 is always valid.
-+	 * So, no need to check for 'next_index == -1' outside
-+	 * this loop.
-+	 */
+ /* Mach specific information to be recorded in the C-state driver_data */
+ struct omap3_idle_statedata {
+ 	u32 mpu_state;
+ 	u32 core_state;
+ };
 +
- 	return next_index;
++#define OMAP3_NUM_STATES 7
++
+ struct omap3_idle_statedata omap3_idle_data[OMAP3_NUM_STATES];
+ 
+ struct powerdomain *mpu_pd, *core_pd, *per_pd, *cam_pd;
+diff --git a/arch/arm/mach-omap2/pm.h b/arch/arm/mach-omap2/pm.h
+index 5646b80..7856489 100644
+--- a/arch/arm/mach-omap2/pm.h
++++ b/arch/arm/mach-omap2/pm.h
+@@ -38,18 +38,6 @@ static inline int omap4_opp_init(void)
  }
+ #endif
+ 
+-/*
+- * cpuidle mach specific parameters
+- *
+- * The board code can override the default C-states definition using
+- * omap3_pm_init_cpuidle
+- */
+-struct cpuidle_params {
+-	u32 exit_latency;	/* exit_latency = sleep + wake-up latencies */
+-	u32 target_residency;
+-	u8 valid;		/* validates the C-state */
+-};
+-
+ extern int omap3_pm_get_suspend_state(struct powerdomain *pwrdm);
+ extern int omap3_pm_set_suspend_state(struct powerdomain *pwrdm, int state);
  
 -- 
 1.7.5.4
