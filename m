@@ -1,88 +1,51 @@
-From: "Hiremath, Vaibhav" <hvaibhav@ti.com>
-Subject: RE: [PATCH 1/3] ARM: OMAP2+: 32k-counter: Use hwmod lookup to check
- presence of 32k timer
-Date: Wed, 4 Apr 2012 10:39:54 +0000
-Message-ID: <79CD15C6BA57404B839C016229A409A83184715A@DBDE01.ent.ti.com>
-References: <1326983304-14619-1-git-send-email-hvaibhav@ti.com>
- <CACVXFVP4J8N271Tww77Btm9fGNiP17MepjswBJ0V-8Z4sNt8Eg@mail.gmail.com>
- <4F672364.3020403@ti.com>
- <79CD15C6BA57404B839C016229A409A83182386C@DBDE01.ent.ti.com>
- <CAMQu2gyFNXgx87Fsq5is88DOkOx-nWK6ohwyFV-CY2uTkZCGMA@mail.gmail.com>
- <79CD15C6BA57404B839C016229A409A83183EA54@DBDE01.ent.ti.com>
- <CAMQu2gyF83HJOE9Rf-fZXXMt=p_WFjFf3DpAeW8L8+htR4E6-g@mail.gmail.com>
- <79CD15C6BA57404B839C016229A409A83183EB47@DBDE01.ent.ti.com>
- <CAMQu2gzYULK+=6-WKQnnQDpzTYW7xKAOZo7obyu2q178jtNE-Q@mail.gmail.com>
- <79CD15C6BA57404B839C016229A409A831840C2E@DBDE01.ent.ti.com>
- <CAMQu2gw7aceHSYSd+UMVS6kHQMqy0_maf8QTJaUMzp9z8822rQ@mail.gmail.com>
- <79CD15C6BA57404B839C016229A409A831840E0C@DBDE01.ent.ti.com>
- <4F7570FC.8000907@ti.com>
- <79CD15C6BA57404B839C016229A409A831840F82@DBDE01.ent.ti.com>
- <CAMQu2gzOkE6LD0WZ_9bKe3J-=Dv89rWaMzvWWvJHPMSPe6MzNg@mail.gmail.com>
- <CACVXFVPbU2OqTN=S0AZCD10KuSBYxqyyRH_xee+WTaCD6VSmMQ@mail.gmail.com>
- <CAMQu2gzuQ-q+3RHsW0=U305jCF-td5-PEXkGZ6WnQTqA1K8oAQ@mail.gmail.com>
- <CACVXFVPu1GEQy+sCgXMB8JCszPBBs8zHRVm94TYb1-y2afkqgw@mail.gmail.com>
- <CAMQu2gwuRpZ133962r3N4Y4K3oQ88ySa=SyoS6v=sSHGA=SGKw@mail.gmail.com>
- <CACVXFVMjSPhF_+CfbF2vD5ts+WtZGjofEWmknB0D1OpTM7geZw@mail.gmail.com>
- <CAMQu2gyEUhDyyng+_oC5NpXHzWMaTGsnCSTTZcMUi2pLV0z8RQ@mail.gmail.com>
- <87sjgmt211.fsf@ti.com>
- <79CD15C6BA57404B839C016229A409A8318461E8@DBDE01.ent.ti.com>
- <CAMQu2gxuFsovKTPK8wFOO8vMeiyMFnTqNDRZYgAcCsVWytpOTA@mail.gmail.com>
+From: Will Deacon <will.deacon@arm.com>
+Subject: Re: oprofile and ARM A9 hardware counter
+Date: Wed, 4 Apr 2012 12:07:17 +0100
+Message-ID: <20120404110717.GE32505@mudshark.cambridge.arm.com>
+References: <CACVXFVMH9WZDqs-mVjxL=1FY12uHyQAJMTCQuU5ru1wQT+YnZg@mail.gmail.com>
+ <CAMQu2gzW706YbOzHa4Am0=X17T0G3zBhOmWUd8eC6GY9F6OBog@mail.gmail.com>
+ <CACVXFVPb-McJj1oi284RW37Pe08cAXSw-jteFwfNVPpCJx5EaQ@mail.gmail.com>
+ <CAMQu2gwvgPfZv_LnB6GnYs=Wt+wj9GFPEDYiDK6C8TiTag3gTg@mail.gmail.com>
+ <20120403092524.GD17741@mudshark.cambridge.arm.com>
+ <CAMQu2gxE2STYxUGinzstX6W8jyofH829A__NQBjwLqZd9cqy=w@mail.gmail.com>
+ <20120403094749.GH17741@mudshark.cambridge.arm.com>
+ <CAMQu2gyFirtVTWpMu4G_qG5sq33J-_s_o2JhVAdrUf7P3qJ3AA@mail.gmail.com>
+ <20120403123444.GL17741@mudshark.cambridge.arm.com>
+ <alpine.DEB.2.00.1204031800060.8000@utopia.booyaka.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from arroyo.ext.ti.com ([192.94.94.40]:47243 "EHLO arroyo.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752447Ab2DDKk0 convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 4 Apr 2012 06:40:26 -0400
-In-Reply-To: <CAMQu2gxuFsovKTPK8wFOO8vMeiyMFnTqNDRZYgAcCsVWytpOTA@mail.gmail.com>
-Content-Language: en-US
+Received: from cam-admin0.cambridge.arm.com ([217.140.96.50]:36876 "EHLO
+	cam-admin0.cambridge.arm.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1756037Ab2DDLHv (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 4 Apr 2012 07:07:51 -0400
+Content-Disposition: inline
+In-Reply-To: <alpine.DEB.2.00.1204031800060.8000@utopia.booyaka.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "Shilimkar, Santosh" <santosh.shilimkar@ti.com>
-Cc: "Hilman, Kevin" <khilman@ti.com>, Ming Lei <tom.leiming@gmail.com>, Tony Lindgren <tony@atomide.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, "marc.zyngier@arm.com" <marc.zyngier@arm.com>, "johnstul@us.ibm.com" <johnstul@us.ibm.com>, "Balbi, Felipe" <balbi@ti.com>, "Cousson, Benoit" <b-cousson@ti.com>, Paul Walmsley <paul@pwsan.com>, "DebBarma, Tarun Kanti" <tarun.kanti@ti.com>
+To: Paul Walmsley <paul@pwsan.com>
+Cc: "Shilimkar, Santosh" <santosh.shilimkar@ti.com>, Ming Lei <ming.lei@canonical.com>, "eranian@gmail.com" <eranian@gmail.com>, Maynard Johnson <maynardj@us.ibm.com>, Lik Lik <lik88888@gmail.com>, "oprofile-list@lists.sourceforge.net" <oprofile-list@lists.sourceforge.net>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, Benoit Cousson <b-cousson@ti.com>
 
-On Wed, Apr 04, 2012 at 14:34:09, Shilimkar, Santosh wrote:
-> On Tue, Apr 3, 2012 at 9:05 PM, Hiremath, Vaibhav <hvaibhav@ti.com> w=
-rote:
-> > On Tue, Apr 03, 2012 at 00:05:38, Hilman, Kevin wrote:
-> >> "Shilimkar, Santosh" <santosh.shilimkar@ti.com> writes:
-> >>
-> >> [...]
-> >>
-> >> > I don't personally like to add features which hardly anybody use=
- and
-> >> > fundamentally broken with full kernel.
-> >>
-> >> Let's keep sane defaults, but not make it unreasonable to tweak ea=
-ither.
-> >>
-> >> I suggest what has already been mentioned.
-> >>
-> >> Register both timers, but have the sync timer have a higher rating=
-=2E =A0On
-> >> AMxxx where there is no sync timer, GPtimer will be used.
-> >>
-> >
-> > This is another good option, I can change the rating of both the ti=
-mers.
-> > With below description and given understanding/discussion/usability=
- of both
-> > the timers, we can reverse the rating,
-> >
-> Btw, if we are going with this path, then there won't any need of com=
-mandline
-> option since clock-source can be switched from user space as well.
->=20
+Hi Paul,
 
-Yes, both the options will be open now and its upto user how he want to=
-=20
-choose it (either bootargs or sysfs).
+On Wed, Apr 04, 2012 at 01:00:53AM +0100, Paul Walmsley wrote:
+> On Tue, 3 Apr 2012, Will Deacon wrote:
+> 
+> > I'll take JTAG for a whirl to see where we are. If anything looks wrong in
+> > my dmesg, please shout (there are plenty of things in there that look like
+> > they've gone awry).
+> 
+> Might be worth booting with initcall_debug on the kernel command line.  
+> That will probably be easier than dealing with JTAG.
 
-Thanks,
-Vaibhav
---
-To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+JTAG is unusable anyway because it requires a new MLO, which makes the
+problem disappear.
+
+Using initcall_debug I tracked the hang down to cti_unlock:
+
+	val = __raw_readl(base + LOCKSTATUS);
+
+causes the board to die, presumably because CoreSight isn't in a fit state
+to be poked.
+
+Will
