@@ -1,104 +1,73 @@
-From: Jean Pihet <jean.pihet@newoldbits.com>
-Subject: Re: [PATCH 2/9] ARM: OMAP2+: SmartReflex: move the driver specific
- macros in include/linux/power
-Date: Thu, 5 Apr 2012 10:59:55 +0200
-Message-ID: <CAORVsuVt5uj5NAsqsce+7f=xMXC9-nck5cPUCOEC8QP3VkxYyA@mail.gmail.com>
-References: <1332173578-27422-1-git-send-email-j-pihet@ti.com>
-	<1332173578-27422-3-git-send-email-j-pihet@ti.com>
-	<4F7C9C89.9080605@codeaurora.org>
-	<4F7CA3E1.2050809@ti.com>
-	<4F7D4165.2060101@codeaurora.org>
+From: Archit Taneja <a0393947@ti.com>
+Subject: Re: OMAP34xx
+Date: Thu, 5 Apr 2012 14:40:03 +0530
+Message-ID: <4F7D616B.9030608@ti.com>
+References: <20120204185453.GB17309@n2100.arm.linux.org.uk> <20120204190109.GL20333@atomide.com> <20120204203453.GD17309@n2100.arm.linux.org.uk> <20120205125626.GA11372@n2100.arm.linux.org.uk> <20120205143824.GA12577@n2100.arm.linux.org.uk> <4F336D3A.2060302@ti.com> <20120209223400.GE19159@n2100.arm.linux.org.uk> <4F34B89F.1050904@ti.com> <20120405082442.GA25053@n2100.arm.linux.org.uk> <4F7D5921.2050401@ti.com> <20120405084932.GB25053@n2100.arm.linux.org.uk>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
+Content-Type: text/plain; charset="ISO-8859-1"; format=flowed
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-vx0-f174.google.com ([209.85.220.174]:57874 "EHLO
-	mail-vx0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753407Ab2DEI74 (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 5 Apr 2012 04:59:56 -0400
-Received: by vcqp1 with SMTP id p1so376970vcq.19
-        for <linux-omap@vger.kernel.org>; Thu, 05 Apr 2012 01:59:55 -0700 (PDT)
-In-Reply-To: <4F7D4165.2060101@codeaurora.org>
+Received: from devils.ext.ti.com ([198.47.26.153]:44032 "EHLO
+	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752875Ab2DEJKl (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 5 Apr 2012 05:10:41 -0400
+In-Reply-To: <20120405084932.GB25053@n2100.arm.linux.org.uk>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Trilok Soni <tsoni@codeaurora.org>
-Cc: "Cousson, Benoit" <b-cousson@ti.com>, Kevin Hilman <khilman@ti.com>, LKML <linux-kernel@vger.kernel.org>, "Rafael J. Wysocki" <rjw@sisk.pl>, linux-omap@vger.kernel.org, Jean Pihet <j-pihet@ti.com>, linux-arm-kernel@lists.infradead.org, gregkh@linuxfoundation.org
+To: Russell King - ARM Linux <linux@arm.linux.org.uk>
+Cc: Tony Lindgren <tony@atomide.com>, linux-omap@vger.kernel.org, Arnd Bergmann <arnd@arndb.de>, Olof Johansson <olof@lixom.net>, "Valkeinen, Tomi" <tomi.valkeinen@ti.com>, Benoit Cousson <b-cousson@ti.com>
 
-Hi!
-
-On Thu, Apr 5, 2012 at 8:53 AM, Trilok Soni <tsoni@codeaurora.org> wrote:
-> Hi Benoit,
->
->
+On Thursday 05 April 2012 02:19 PM, Russell King - ARM Linux wrote:
+> On Thu, Apr 05, 2012 at 02:04:41PM +0530, Archit Taneja wrote:
+>> We figured out the culprit patch, reverting this prevents the issue:
 >>
->> The main motivation is that it's a driver and thus does not have
->> anything to do inside mach-omap2.
->
->
-> Right, I understood that. mach-omap2 is not suitable for full fledged
-> drivers.
-
-The initial motivation is to provide a generic framework for this type
-of drivers, by cleaning up the current OMAP code and by providing as
-much generic code as possible.
-
-Cf. the patch sets I submitted before this very one:
-- the SR code clean-up [1], which is needed to make the code ready for
-the integration of new features,
-- the SR class support [2], which is needed for new SR classes to be
-implemented.
-
->From the maintainer point of view it made more sense to move the code
-before cleaning it up and so it should happen before [1] and [2].
-The result is that [1] and [2] will need to be rebased when the move
-is accepted and merged in.
-
-[1] http://marc.info/?l=linux-omap&m=133055488908132&w=2
-[2] http://marc.info/?l=linux-omap&m=133163445926544&w=2
-
+>> commit 46f8c3c7e95c0d30d95911e7975ddc4f93b3e237
+>> Author: Archit Taneja<archit@ti.com>
+>> Date:   Fri Oct 7 03:08:44 2011 -0600
 >>
->> Where will you put that otherwise?
->
->
-> Couple of suggestions:
->
-> drivers/platform/omap/avs?
-> drivers/misc/omap/avs?
->
-> I prefer first one.
-Those paths are for OMAP specific code and not for a generic framework.
-
+>>      ARM: OMAP: ctrl: Fix CONTROL_DSIPHY register fields
 >>
->> IIRC, David Brownell was referring to the rule of three for such case.
->> Meaning that it worth having a generic fmwk when at least three
->> different drivers are doing the same kind of things.
-
-Do OMAP v1 and OMAP v2 implementations count as 2 drivers? ;-)
-More seriously, the OMAP code for SmartReflex is far from complete in
-mainline. There is a plan to provide the following features:
-- OMAP v1 IP,
-- OMAP v2 IP,
-- class 1.5,
-- class 3,
-- class 3.5,
-- and more support for the upcoming chipsets.
-
-Also I am sure that other vendors could step in and have their
-platform specific code converted to the new fwk as well.
-
+>>      Fix the shift and mask macros for DSIx_PPID fields in
+>> CONTROL_DSIPHY. The
+>>      OMAP4430 Public TRM vV has these fields mentioned correctly.
+>>
+>>      Signed-off-by: Archit Taneja<archit@ti.com>
+>>      Acked-by: Benoit Cousson<b-cousson@ti.com>
+>>      Acked-by: Santosh Shilimkar<santosh.shilimkar@ti.com>
+>>      Signed-off-by: Paul Walmsley<paul@pwsan.com>
+>>
+>>
+>> This was added to be in sync with the register definitions in newer
+>> OMAP4 TRMs. But it turns out that the newer TRMs might be actually
+>> messing up the register fields in question.
 >
->
-> Yes, I remember that rule, but that's not stopping us to create a fwk, may
-> be others will rise once they see the framework and contribute
-> if their h/w architecture requirements are not addressed?
->
+> Okay, I've just tried reverting this commit, and the errors have gone.
+> However, I still see nothing on either display at boot time - not even
+> the backlight seems to be on.  Should I see anything on the displays?
 
-Thanks,
-Jean
+Backlight support isn't there yet because the TWL soultion to use it is 
+hacky. However, you should be able to see penguins if you have built-in 
+DSS2 in the kernel and enabled the following configs:
 
->
-> ---Trilok Soni
->
-> --
-> --
-> Sent by a consultant of the Qualcomm Innovation Center, Inc.
-> The Qualcomm Innovation Center, Inc. is a member of the Code Aurora Forum.
+CONFIG_DUMMY_CONSOLE=y
+CONFIG_FRAMEBUFFER_CONSOLE=y
+CONFIG_FONTS=y
+CONFIG_FONT_8x8=y
+CONFIG_FONT_8x16=y
+CONFIG_LOGO=y
+CONFIG_LOGO_LINUX_MONO=y
+CONFIG_LOGO_LINUX_VGA16=y
+CONFIG_LOGO_LINUX_CLUT224=y
+
+Tomi, Benoit,
+
+I tried to probe the DSI1 lines on a board which we get the errors. The 
+register fields DSI1_PPID and DSI2_PPID are definitely swapped in the 
+newer OMAP TRMs. I get around 950mV on DSI1's D1+ lane, and if I set the 
+corresponding D1+ bit in the DSI2_PPID, the voltage becomes 1.28V, the 
+DSI spec says that we need 1.2V when opearting in DSI LP mode.
+
+I'll post a patch which reverts this commit.
+
+Archit
+
