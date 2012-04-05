@@ -1,30 +1,43 @@
 From: Paul Walmsley <paul@pwsan.com>
-Subject: RE: [GIT PULL] ARM: OMAP: clock, powerdomain, clockdomain, hwmod
- fixes for early v3.4-rc
-Date: Thu, 5 Apr 2012 03:19:24 -0600 (MDT)
-Message-ID: <alpine.DEB.2.00.1204050318590.10302@utopia.booyaka.com>
-References: <alpine.DEB.2.00.1204041658200.7161@utopia.booyaka.com> <AA48DD8077D5D945A49BD1782C1140F1C219DB@fioues08.ebgroup.elektrobit.com>
+Subject: RE: OMAP3EVM not booting on l-o master
+Date: Thu, 5 Apr 2012 03:33:36 -0600 (MDT)
+Message-ID: <alpine.DEB.2.00.1204050330380.10302@utopia.booyaka.com>
+References: <C8443D0743D26F4388EA172BF4E2A7A9317C3A03@DBDE01.ent.ti.com> <C8443D0743D26F4388EA172BF4E2A7A9317C3B18@DBDE01.ent.ti.com>
 Mime-Version: 1.0
 Content-Type: TEXT/PLAIN; charset=US-ASCII
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from utopia.booyaka.com ([72.9.107.138]:38611 "EHLO
+Received: from utopia.booyaka.com ([72.9.107.138]:52691 "EHLO
 	utopia.booyaka.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752188Ab2DEJTZ (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 5 Apr 2012 05:19:25 -0400
-In-Reply-To: <AA48DD8077D5D945A49BD1782C1140F1C219DB@fioues08.ebgroup.elektrobit.com>
+	with ESMTP id S1752983Ab2DEJdh (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 5 Apr 2012 05:33:37 -0400
+In-Reply-To: <C8443D0743D26F4388EA172BF4E2A7A9317C3B18@DBDE01.ent.ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Madhusudhan.Gowda@elektrobit.com
-Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+To: "Mohammed, Afzal" <afzal@ti.com>
+Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
 
-On Thu, 5 Apr 2012, Madhusudhan.Gowda@elektrobit.com wrote:
+Hi
 
-> Hi Paul,
+On Wed, 4 Apr 2012, Mohammed, Afzal wrote:
+
+> Reverting merge commit
 > 
-> I think you have missed out to queue my patch. Could you please include
-> the same.
+> 58adb29 Merge branch 'io_chain_devel_3.4' of git://git.pwsan.com/linux-2.6 into prm
+> 
+> makes OMAP3EVM boot.
+> 
+> Bisecting into this merge could not be done as build was breaking
+> for most of the individual commits in the merge (except when
+> HEAD is the last commit of the merge, as below).
 
-I thought you were going to fix the patch description.  Could you please 
-do that and repost it?
+I just rebased this series on top of v3.4-rc1 and built each patch in it 
+successfully, so it sounds like there's some bisection-specific build 
+problem?
+
+As far as the crashes go, I don't think I have an OMAP3EVM, but I'll take 
+a look here on the OMAP35xx boards that I do have.
+
+Could you try booting with initcall_debug and posting the boot log?
+
 
 - Paul
