@@ -1,63 +1,48 @@
 From: Kevin Hilman <khilman@ti.com>
-Subject: [PATCH] ARM: OMAP2+: PRM: fix compile for OMAP4-only build
-Date: Thu,  5 Apr 2012 14:20:37 -0700
-Message-ID: <1333660837-23249-1-git-send-email-khilman@ti.com>
+Subject: Re: OMAP3EVM not booting on l-o master
+Date: Thu, 05 Apr 2012 14:21:26 -0700
+Message-ID: <87y5q9kh7t.fsf@ti.com>
+References: <C8443D0743D26F4388EA172BF4E2A7A9317C3A03@DBDE01.ent.ti.com>
+	<C8443D0743D26F4388EA172BF4E2A7A9317C3B18@DBDE01.ent.ti.com>
+	<alpine.DEB.2.00.1204050330380.10302@utopia.booyaka.com>
+	<alpine.DEB.2.00.1204050403460.10302@utopia.booyaka.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aog123.obsmtp.com ([74.125.149.149]:42336 "EHLO
-	na3sys009aog123.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752607Ab2DEVUQ (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 5 Apr 2012 17:20:16 -0400
-Received: by pbbjt11 with SMTP id jt11so2087460pbb.7
-        for <linux-omap@vger.kernel.org>; Thu, 05 Apr 2012 14:20:14 -0700 (PDT)
+Received: from na3sys009aog122.obsmtp.com ([74.125.149.147]:48430 "EHLO
+	na3sys009aog122.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1752607Ab2DEVV1 (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 5 Apr 2012 17:21:27 -0400
+Received: by dang27 with SMTP id g27so1968775dan.1
+        for <linux-omap@vger.kernel.org>; Thu, 05 Apr 2012 14:21:26 -0700 (PDT)
+In-Reply-To: <alpine.DEB.2.00.1204050403460.10302@utopia.booyaka.com> (Paul
+	Walmsley's message of "Thu, 5 Apr 2012 04:07:42 -0600 (MDT)")
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: linux-omap@vger.kernel.org, Paul Walmsley <paul@pwsan.com>
-Cc: linux-arm-kernel@lists.infradead.org
+To: Paul Walmsley <paul@pwsan.com>
+Cc: "Mohammed, Afzal" <afzal@ti.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
 
-For OMAP4 only builds, the omap2_prm_* functions have dummy wrappers
-to detect incorrect usage.  However, several unrelated omap3 PRM
-functions have made it inside the #else clause of the #ifdef wrapping
-the omap2_prm stubs, causing them to disappear on OMAP4-only builds.
+Paul Walmsley <paul@pwsan.com> writes:
 
-This was unnoticed until the IO chain support was added and introduced
-a new function in this section which is referenced by omap_hwmod.c:
+> On Thu, 5 Apr 2012, Paul Walmsley wrote:
+>
+>> I just rebased this series on top of v3.4-rc1 and built each patch in it 
+>> successfully, so it sounds like there's some bisection-specific build 
+>> problem?
+>
+> Okay, a quick update.  Just tried with a different .config, and can
+> reproduce the following build problem with patch 2 of the IO wakeup
+> series, in code that is later removed by patch 6:
+>
+> arch/arm/mach-omap2/pm34xx.c: In function 'omap_sram_idle':
+> arch/arm/mach-omap2/pm34xx.c:281:4: error: implicit declaration of function 'omap3_reconfigure_io_chain'
+>
+> That's my mistake and I will correct it here and send a new pull request, 
+> once we figure out what's going on with your boot hang.
 
-/work/kernel/omap/dev/arch/arm/mach-omap2/omap_hwmod.c: In function '_reconfigure_io_chain':
-/work/kernel/omap/dev/arch/arm/mach-omap2/omap_hwmod.c:1665:3: error: implicit declaration of function 'omap3xxx_prm_reconfigure_io_chain' [-Werror=implicit-fungiction-declaration]
+I notcied this problem too when building an OMAP4-only .config and just
+sent a patch: [PATCH] ARM: OMAP2+: PRM: fix compile for OMAP4-only build
 
-Fix by using the #ifdef to only wrap the omap2_prm functions that
-need stubs on OMAP4-only builds.
+Kevin
 
-Cc: Paul Walmsley <paul@pwsan.com>
-Signed-off-by: Kevin Hilman <khilman@ti.com>
----
-Paul, this patch applies on top your io_chain_devel_3.5 branch.
-
- arch/arm/mach-omap2/prm2xxx_3xxx.h |    4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
-
-diff --git a/arch/arm/mach-omap2/prm2xxx_3xxx.h b/arch/arm/mach-omap2/prm2xxx_3xxx.h
-index 1ba3d65..a8c946f 100644
---- a/arch/arm/mach-omap2/prm2xxx_3xxx.h
-+++ b/arch/arm/mach-omap2/prm2xxx_3xxx.h
-@@ -303,6 +303,8 @@ extern int omap2_prm_is_hardreset_asserted(s16 prm_mod, u8 shift);
- extern int omap2_prm_assert_hardreset(s16 prm_mod, u8 shift);
- extern int omap2_prm_deassert_hardreset(s16 prm_mod, u8 rst_shift, u8 st_shift);
- 
-+#endif	/* CONFIG_ARCH_OMAP4 */
-+
- /* OMAP3-specific VP functions */
- u32 omap3_prm_vp_check_txdone(u8 vp_id);
- void omap3_prm_vp_clear_txdone(u8 vp_id);
-@@ -323,8 +325,6 @@ extern void omap3xxx_prm_ocp_barrier(void);
- extern void omap3xxx_prm_save_and_clear_irqen(u32 *saved_mask);
- extern void omap3xxx_prm_restore_irqen(u32 *saved_mask);
- 
--#endif	/* CONFIG_ARCH_OMAP4 */
--
- #endif
- 
- /*
--- 
-1.7.9.2
 
