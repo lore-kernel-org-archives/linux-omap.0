@@ -1,38 +1,104 @@
-From: Paul Walmsley <paul@pwsan.com>
-Subject: Re: [GIT PULL] ARM: OMAP: clock, powerdomain, clockdomain, hwmod
- fixes for early v3.4-rc
-Date: Thu, 5 Apr 2012 02:50:08 -0600 (MDT)
-Message-ID: <alpine.DEB.2.00.1204050246410.10302@utopia.booyaka.com>
-References: <alpine.DEB.2.00.1204041658200.7161@utopia.booyaka.com> <20120405004139.GA10780@atomide.com> <alpine.DEB.2.00.1204042007140.10302@utopia.booyaka.com>
+From: Jean Pihet <jean.pihet@newoldbits.com>
+Subject: Re: [PATCH 2/9] ARM: OMAP2+: SmartReflex: move the driver specific
+ macros in include/linux/power
+Date: Thu, 5 Apr 2012 10:59:55 +0200
+Message-ID: <CAORVsuVt5uj5NAsqsce+7f=xMXC9-nck5cPUCOEC8QP3VkxYyA@mail.gmail.com>
+References: <1332173578-27422-1-git-send-email-j-pihet@ti.com>
+	<1332173578-27422-3-git-send-email-j-pihet@ti.com>
+	<4F7C9C89.9080605@codeaurora.org>
+	<4F7CA3E1.2050809@ti.com>
+	<4F7D4165.2060101@codeaurora.org>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+Content-Type: text/plain; charset=ISO-8859-1
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from utopia.booyaka.com ([72.9.107.138]:49552 "EHLO
-	utopia.booyaka.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753127Ab2DEIuK (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 5 Apr 2012 04:50:10 -0400
-In-Reply-To: <alpine.DEB.2.00.1204042007140.10302@utopia.booyaka.com>
+Received: from mail-vx0-f174.google.com ([209.85.220.174]:57874 "EHLO
+	mail-vx0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753407Ab2DEI74 (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 5 Apr 2012 04:59:56 -0400
+Received: by vcqp1 with SMTP id p1so376970vcq.19
+        for <linux-omap@vger.kernel.org>; Thu, 05 Apr 2012 01:59:55 -0700 (PDT)
+In-Reply-To: <4F7D4165.2060101@codeaurora.org>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Tony Lindgren <tony@atomide.com>
-Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+To: Trilok Soni <tsoni@codeaurora.org>
+Cc: "Cousson, Benoit" <b-cousson@ti.com>, Kevin Hilman <khilman@ti.com>, LKML <linux-kernel@vger.kernel.org>, "Rafael J. Wysocki" <rjw@sisk.pl>, linux-omap@vger.kernel.org, Jean Pihet <j-pihet@ti.com>, linux-arm-kernel@lists.infradead.org, gregkh@linuxfoundation.org
 
-On Wed, 4 Apr 2012, Paul Walmsley wrote:
+Hi!
 
-> On Wed, 4 Apr 2012, Tony Lindgren wrote:
-> 
-> > Thanks, looks like two of these patches I already merged into
-> > fixes yesterday from your earlier pull request. So merging this
-> > in would cause duplicate commits. Can you please update your
-> > branch to remove those two commits?
-> 
-> Do you happen to recall which ones they are?
+On Thu, Apr 5, 2012 at 8:53 AM, Trilok Soni <tsoni@codeaurora.org> wrote:
+> Hi Benoit,
+>
+>
+>>
+>> The main motivation is that it's a driver and thus does not have
+>> anything to do inside mach-omap2.
+>
+>
+> Right, I understood that. mach-omap2 is not suitable for full fledged
+> drivers.
 
-Anyway, am guessing that you are planning to pull these into your 
-'fixes' branch?  If so then probably the conflicts are with the 
-misc_devel_3.4 branch patches.  Will post another pull request for you 
-with those two patches dropped.  But if you're pulling these into a 
-different branch, please let me know...
+The initial motivation is to provide a generic framework for this type
+of drivers, by cleaning up the current OMAP code and by providing as
+much generic code as possible.
 
+Cf. the patch sets I submitted before this very one:
+- the SR code clean-up [1], which is needed to make the code ready for
+the integration of new features,
+- the SR class support [2], which is needed for new SR classes to be
+implemented.
 
-- Paul
+>From the maintainer point of view it made more sense to move the code
+before cleaning it up and so it should happen before [1] and [2].
+The result is that [1] and [2] will need to be rebased when the move
+is accepted and merged in.
+
+[1] http://marc.info/?l=linux-omap&m=133055488908132&w=2
+[2] http://marc.info/?l=linux-omap&m=133163445926544&w=2
+
+>>
+>> Where will you put that otherwise?
+>
+>
+> Couple of suggestions:
+>
+> drivers/platform/omap/avs?
+> drivers/misc/omap/avs?
+>
+> I prefer first one.
+Those paths are for OMAP specific code and not for a generic framework.
+
+>>
+>> IIRC, David Brownell was referring to the rule of three for such case.
+>> Meaning that it worth having a generic fmwk when at least three
+>> different drivers are doing the same kind of things.
+
+Do OMAP v1 and OMAP v2 implementations count as 2 drivers? ;-)
+More seriously, the OMAP code for SmartReflex is far from complete in
+mainline. There is a plan to provide the following features:
+- OMAP v1 IP,
+- OMAP v2 IP,
+- class 1.5,
+- class 3,
+- class 3.5,
+- and more support for the upcoming chipsets.
+
+Also I am sure that other vendors could step in and have their
+platform specific code converted to the new fwk as well.
+
+>
+>
+> Yes, I remember that rule, but that's not stopping us to create a fwk, may
+> be others will rise once they see the framework and contribute
+> if their h/w architecture requirements are not addressed?
+>
+
+Thanks,
+Jean
+
+>
+> ---Trilok Soni
+>
+> --
+> --
+> Sent by a consultant of the Qualcomm Innovation Center, Inc.
+> The Qualcomm Innovation Center, Inc. is a member of the Code Aurora Forum.
