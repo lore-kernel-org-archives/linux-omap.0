@@ -1,44 +1,66 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [GIT PULL] ARM: OMAP: clock, powerdomain, clockdomain, hwmod
- fixes for early v3.4-rc
-Date: Thu, 5 Apr 2012 09:42:24 -0700
-Message-ID: <20120405164223.GA3785@atomide.com>
-References: <alpine.DEB.2.00.1204041658200.7161@utopia.booyaka.com>
- <20120405004139.GA10780@atomide.com>
- <alpine.DEB.2.00.1204042007140.10302@utopia.booyaka.com>
- <alpine.DEB.2.00.1204050246410.10302@utopia.booyaka.com>
+From: Greg KH <gregkh@linuxfoundation.org>
+Subject: Re: [PATCH 0/3] OMAP2+: UART: Enable tx wakeup + remove cpu checks
+Date: Thu, 5 Apr 2012 09:47:11 -0700
+Message-ID: <20120405164711.GC16688@kroah.com>
+References: <1332325501-10467-1-git-send-email-govindraj.raja@ti.com>
+ <CAMrsUd+_coW7ebuN_o=yZbbSVKnkx5R6=yHjUEUc0EcQGtgSRQ@mail.gmail.com>
+ <20120405132617.76e04217@bob.linux.org.uk>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-02-ewr.mailhop.org ([204.13.248.72]:39282 "EHLO
-	mho-02-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752087Ab2DEQm3 (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 5 Apr 2012 12:42:29 -0400
+Content-Type: text/plain; charset=iso-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Return-path: <linux-serial-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <alpine.DEB.2.00.1204050246410.10302@utopia.booyaka.com>
-Sender: linux-omap-owner@vger.kernel.org
+In-Reply-To: <20120405132617.76e04217@bob.linux.org.uk>
+Sender: linux-serial-owner@vger.kernel.org
+To: Alan Cox <alan@linux.intel.com>
+Cc: "Raja, Govindraj" <govindraj.raja@ti.com>, Tony Lindgren <tony@atomide.com>, linux-serial@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Kevin Hilman <khilman@ti.com>, Paul Walmsley <paul@pwsan.com>, Felipe Balbi <balbi@ti.com>, linux-omap@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Paul Walmsley <paul@pwsan.com>
-Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 
-* Paul Walmsley <paul@pwsan.com> [120405 01:53]:
-> On Wed, 4 Apr 2012, Paul Walmsley wrote:
-> 
-> > On Wed, 4 Apr 2012, Tony Lindgren wrote:
-> > 
-> > > Thanks, looks like two of these patches I already merged into
-> > > fixes yesterday from your earlier pull request. So merging this
-> > > in would cause duplicate commits. Can you please update your
-> > > branch to remove those two commits?
-> > 
-> > Do you happen to recall which ones they are?
-> 
-> Anyway, am guessing that you are planning to pull these into your 
-> 'fixes' branch?  If so then probably the conflicts are with the 
-> misc_devel_3.4 branch patches.  Will post another pull request for you 
-> with those two patches dropped.  But if you're pulling these into a 
-> different branch, please let me know...
+On Thu, Apr 05, 2012 at 01:26:17PM +0100, Alan Cox wrote:
+> On Thu, 5 Apr 2012 16:54:03 +0530
+> "Raja, Govindraj" <govindraj.raja@ti.com> wrote:
+>=20
+> > On Wed, Mar 21, 2012 at 3:54 PM, Govindraj.R <govindraj.raja@ti.com=
+>
+> > wrote:
+> > > From: "Govindraj.R" <govindraj.raja@ti.com>
+> > >
+> > > Based on Linux-OMAP tree uart branch.
+> > > (git://git.kernel.org/pub/scm/linux/kernel/git/tmlind/linux-omap.=
+git
+> > > remotes/origin/uart)
+> > >
+> > > * Removes the cpu checks wherever possible and use version reg
+> > > =A0for populating features and errata's
+> > > * enable tx wakeup available in wer reg for applicable
+> > > =A0module revision's
+> > >
+> > > Govindraj.R (3):
+> > > =A0OMAP2+: UART: Remove cpu checks for populating errata flags
+> > > =A0OMAP2+: UART: enable tx wakeup bit for wer reg
+> > > =A0OMAP2+: UART: replace omap34xx/omap4xx cpu checks with not oma=
+p24xx
+> > >
+> > > =A0arch/arm/mach-omap2/serial.c =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0=
+| =A0 13 +----
+> > > =A0arch/arm/plat-omap/include/plat/omap-serial.h | =A0 =A08 +++-
+> > > =A0drivers/tty/serial/omap-serial.c =A0 =A0 =A0 =A0 =A0 =A0 =A0| =
+=A0 71
+> > > ++++++++++++++++++++++++- 3 files changed, 78 insertions(+), 14
+> > > deletions(-)
+> >=20
+> > Alan / Greg,
+> >=20
+> > With you ack on tty parts can this series be upstreamed from
+> > omap tree ?
+>=20
+> Fine by me - this seems primarily to be architectural details.
 
-Yes it's the fixes branch I was talking about, thanks for updating it.
+=46ine by me as well:
+	Acked-by: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
 
-Tony
+--
+To unsubscribe from this list: send the line "unsubscribe linux-serial"=
+ in
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
