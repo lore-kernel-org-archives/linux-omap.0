@@ -1,38 +1,44 @@
-From: Greg KH <greg@kroah.com>
-Subject: Re: [PATCH] staging: drm/omap: move where DMM driver is registered
-Date: Thu, 5 Apr 2012 09:41:12 -0700
-Message-ID: <20120405164112.GB16546@kroah.com>
-References: <1333640096-24142-1-git-send-email-rob.clark@linaro.org>
+From: Tony Lindgren <tony@atomide.com>
+Subject: Re: [GIT PULL] ARM: OMAP: clock, powerdomain, clockdomain, hwmod
+ fixes for early v3.4-rc
+Date: Thu, 5 Apr 2012 09:42:24 -0700
+Message-ID: <20120405164223.GA3785@atomide.com>
+References: <alpine.DEB.2.00.1204041658200.7161@utopia.booyaka.com>
+ <20120405004139.GA10780@atomide.com>
+ <alpine.DEB.2.00.1204042007140.10302@utopia.booyaka.com>
+ <alpine.DEB.2.00.1204050246410.10302@utopia.booyaka.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from out1-smtp.messagingengine.com ([66.111.4.25]:37558 "EHLO
-	out1-smtp.messagingengine.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752324Ab2DEQlO (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 5 Apr 2012 12:41:14 -0400
-Received: from compute5.internal (compute5.nyi.mail.srv.osa [10.202.2.45])
-	by gateway1.nyi.mail.srv.osa (Postfix) with ESMTP id 1F5CA21AC9
-	for <linux-omap@vger.kernel.org>; Thu,  5 Apr 2012 12:41:14 -0400 (EDT)
+Received: from mho-02-ewr.mailhop.org ([204.13.248.72]:39282 "EHLO
+	mho-02-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752087Ab2DEQm3 (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 5 Apr 2012 12:42:29 -0400
 Content-Disposition: inline
-In-Reply-To: <1333640096-24142-1-git-send-email-rob.clark@linaro.org>
+In-Reply-To: <alpine.DEB.2.00.1204050246410.10302@utopia.booyaka.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Rob Clark <rob.clark@linaro.org>
-Cc: dri-devel@lists.freedesktop.org, linux-omap@vger.kernel.org, patches@linaro.org, Tomi Valkeinen <tomi.valkeinen@ti.com>, Andy Gross <andy.gross@ti.com>, Rob Clark <rob@ti.com>
+To: Paul Walmsley <paul@pwsan.com>
+Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 
-On Thu, Apr 05, 2012 at 10:34:56AM -0500, Rob Clark wrote:
-> From: Rob Clark <rob@ti.com>
+* Paul Walmsley <paul@pwsan.com> [120405 01:53]:
+> On Wed, 4 Apr 2012, Paul Walmsley wrote:
 > 
-> Not sure what triggered the change in behavior, but seems to
-> result in recursively acquiring a mutex and hanging on boot.  But
-> omap_drm_init() seems a much more sane place to register the
-> driver for the DMM sub-device.
-> ---
->  drivers/staging/omapdrm/omap_drv.c |    7 ++++---
->  1 files changed, 4 insertions(+), 3 deletions(-)
+> > On Wed, 4 Apr 2012, Tony Lindgren wrote:
+> > 
+> > > Thanks, looks like two of these patches I already merged into
+> > > fixes yesterday from your earlier pull request. So merging this
+> > > in would cause duplicate commits. Can you please update your
+> > > branch to remove those two commits?
+> > 
+> > Do you happen to recall which ones they are?
+> 
+> Anyway, am guessing that you are planning to pull these into your 
+> 'fixes' branch?  If so then probably the conflicts are with the 
+> misc_devel_3.4 branch patches.  Will post another pull request for you 
+> with those two patches dropped.  But if you're pulling these into a 
+> different branch, please let me know...
 
-Is this needed for 3.4-final?  Any older kernels like 3.3 as well?
+Yes it's the fixes branch I was talking about, thanks for updating it.
 
-thanks,
-
-greg k-h
+Tony
