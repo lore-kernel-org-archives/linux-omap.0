@@ -1,123 +1,43 @@
-From: Paul Walmsley <paul@pwsan.com>
-Subject: [GIT PULL] ARM: OMAP: clock, powerdomain, clockdomain, hwmod fixes
- for early v3.4-rc (misc_devel_3.4 patches dropped)
-Date: Thu, 5 Apr 2012 03:42:07 -0600 (MDT)
-Message-ID: <alpine.DEB.2.00.1204050339510.10302@utopia.booyaka.com>
+From: Russell King - ARM Linux <linux@arm.linux.org.uk>
+Subject: Re: [PATCH 1/3] ARM: OMAP2+: 32k-counter: Use hwmod lookup to
+	check presence of 32k timer
+Date: Thu, 5 Apr 2012 10:52:21 +0100
+Message-ID: <20120405095221.GC25053@n2100.arm.linux.org.uk>
+References: <CACVXFVPbU2OqTN=S0AZCD10KuSBYxqyyRH_xee+WTaCD6VSmMQ@mail.gmail.com> <CAMQu2gzuQ-q+3RHsW0=U305jCF-td5-PEXkGZ6WnQTqA1K8oAQ@mail.gmail.com> <CACVXFVPu1GEQy+sCgXMB8JCszPBBs8zHRVm94TYb1-y2afkqgw@mail.gmail.com> <CAMQu2gwuRpZ133962r3N4Y4K3oQ88ySa=SyoS6v=sSHGA=SGKw@mail.gmail.com> <CACVXFVMjSPhF_+CfbF2vD5ts+WtZGjofEWmknB0D1OpTM7geZw@mail.gmail.com> <CAMQu2gyEUhDyyng+_oC5NpXHzWMaTGsnCSTTZcMUi2pLV0z8RQ@mail.gmail.com> <87sjgmt211.fsf@ti.com> <79CD15C6BA57404B839C016229A409A8318461E8@DBDE01.ent.ti.com> <CAMQu2gxuFsovKTPK8wFOO8vMeiyMFnTqNDRZYgAcCsVWytpOTA@mail.gmail.com> <79CD15C6BA57404B839C016229A409A83184846A@DBDE01.ent.ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: linux-arm-kernel-bounces@lists.infradead.org
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: tony@atomide.com
-Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from caramon.arm.linux.org.uk ([78.32.30.218]:44032 "EHLO
+	caramon.arm.linux.org.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754107Ab2DEJwo (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 5 Apr 2012 05:52:44 -0400
+Content-Disposition: inline
+In-Reply-To: <79CD15C6BA57404B839C016229A409A83184846A@DBDE01.ent.ti.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: "Hiremath, Vaibhav" <hvaibhav@ti.com>
+Cc: "Shilimkar, Santosh" <santosh.shilimkar@ti.com>, "Hilman, Kevin" <khilman@ti.com>, Ming Lei <tom.leiming@gmail.com>, Tony Lindgren <tony@atomide.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, "marc.zyngier@arm.com" <marc.zyngier@arm.com>, "johnstul@us.ibm.com" <johnstul@us.ibm.com>, "Balbi, Felipe" <balbi@ti.com>, "Cousson, Benoit" <b-cousson@ti.com>, Paul Walmsley <paul@pwsan.com>, "DebBarma, Tarun Kanti" <tarun.kanti@ti.com>
 
------BEGIN PGP SIGNED MESSAGE-----
-Hash: SHA1
+On Thu, Apr 05, 2012 at 09:36:00AM +0000, Hiremath, Vaibhav wrote:
+> There seems to be limitation for ARM architecture, it is restricted by
+> sched_clock implementation present in "arch/arm/kernel/sched_clock.c".
+> Natively, clocksource framework does support change in rate/frequency for
+> registered timer, using,
 
-Hi Tony,
+Any kind of switching of timing sources introduces loss of time issues
+by the mere fact that you can't instantly know the counter values of
+both timing sources at precisely the same instant - because CPUs can
+only do one thing at a time.  So any kind of repeated dynamic switching
+_will_ result in a gradual loss of time - which will be indeterminant
+as it depends on the frequency of the switching and the relative delta
+between the two.
 
-The following changes since commit dd775ae2549217d3ae09363e3edb305d0fa19928:
+To put it another way - it is not possible to maintain high precision
+and accuracy while dynamically switching your timing sources.
 
-  Linux 3.4-rc1 (2012-03-31 16:24:09 -0700)
-
-are available in the git repository at:
-
-  git://git.kernel.org/pub/scm/linux/kernel/git/pjw/omap-pending tags/omap-fixes-a2-for-3.4rc
-
-for you to fetch changes up to a9dd31b744a033b4324c93cec4ecb4c74061e2cf:
-
-  Merge branches 'clock_fixes_3.4rc', 'clockdomain_fixes_3.4rc', 'hsmmc_erratum_2_1_1_128_refine_3.4rc1', 'hwmod_data_fixes_a_3.4rc', 'hwmod_fixes_a2_3.4rc' and 'powerdomain_fixes_a_3.4rc' into omap-fixes-a2-for-3.4rc-branch (2012-04-05 03:00:22 -0600)
-
-This version is intended to merge cleanly into your 'fixes' branch.
-
-- ----------------------------------------------------------------
-
-OMAP clock, powerdomain, clockdomain, and hwmod fixes intended for the
-early v3.4-rc series.  Also contains an HSMMC integration refinement
-of an earlier hardware bug workaround.
-
-ARM: OMAP3: clock data: fill in some missing clockdomains
-ARM: OMAP4: clock data: Force a DPLL clkdm/pwrdm ON before a relock
-ARM: OMAP4: clock data: fix mult and div mask for USB_DPLL
-ARM: OMAP2+: powerdomain: Wait for powerdomain transition in pwrdm_state_switch()
-ARM: OMAP AM3517/3505: clock data: change EMAC clocks aliases
-ARM: OMAP2+: hwmod: Fix wrong SYSC_TYPE1_XXX_MASK bit definitions
-ARM: OMAP2+: hwmod: Make omap_hwmod_softreset wait for reset status
-ARM: OMAP2+: hwmod: Restore sysc after a reset
-ARM: OMAP: clock: fix race in disable all clocks
-ARM: OMAP4: hwmod data: Add aliases for McBSP fclk clocks
-ARM: OMAP2+: omap_hwmod: Allow io_ring wakeup configuration for all modules
-ARM: OMAP3xxx: clock data: fix DPLL4 CLKSEL masks
-ARM: OMAP3xxx: HSMMC: avoid erratum workaround when transceiver is attached
-ARM: OMAP44xx: clockdomain data: correct the emu_sys_clkdm CLKTRCTRL data
-
-- ----------------------------------------------------------------
-Ameya Palande (1):
-      ARM: OMAP4: clock data: fix mult and div mask for USB_DPLL
-
-Govindraj.R (1):
-      ARM: OMAP2+: omap_hwmod: Allow io_ring wakeup configuration for all modules
-
-Grazvydas Ignotas (2):
-      ARM: OMAP3xxx: HSMMC: avoid erratum workaround when transceiver is attached
-      ARM: OMAP3xxx: clock data: fix DPLL4 CLKSEL masks
-
-Ilya Yanok (1):
-      ARM: OMAP AM3517/3505: clock data: change EMAC clocks aliases
-
-Nishanth Menon (1):
-      ARM: OMAP: clock: fix race in disable all clocks
-
-Paul Walmsley (4):
-      ARM: OMAP44xx: clockdomain data: correct the emu_sys_clkdm CLKTRCTRL data
-      ARM: OMAP4: hwmod data: Add aliases for McBSP fclk clocks
-      ARM: OMAP3: clock data: fill in some missing clockdomains
-      Merge branches 'clock_fixes_3.4rc', 'clockdomain_fixes_3.4rc', 'hsmmc_erratum_2_1_1_128_refine_3.4rc1', 'hwmod_data_fixes_a_3.4rc', 'hwmod_fixes_a2_3.4rc' and 'powerdomain_fixes_a_3.4rc' into omap-fixes-a2-for-3.4rc-branch
-
-Rajendra Nayak (3):
-      ARM: OMAP4: clock data: Force a DPLL clkdm/pwrdm ON before a relock
-      ARM: OMAP2+: hwmod: Restore sysc after a reset
-      ARM: OMAP2+: hwmod: Make omap_hwmod_softreset wait for reset status
-
-Santosh Shilimkar (1):
-      ARM: OMAP2+: powerdomain: Wait for powerdomain transition in pwrdm_state_switch()
-
-Vaibhav Hiremath (1):
-      ARM: OMAP2+: hwmod: Fix wrong SYSC_TYPE1_XXX_MASK bit definitions
-
- arch/arm/mach-omap2/clock3xxx_data.c         |   18 ++++--
- arch/arm/mach-omap2/clock44xx_data.c         |    5 +-
- arch/arm/mach-omap2/clockdomains44xx_data.c  |    2 +-
- arch/arm/mach-omap2/hsmmc.c                  |    7 ++
- arch/arm/mach-omap2/omap_hwmod.c             |   88 +++++++++++---------------
- arch/arm/mach-omap2/omap_hwmod_44xx_data.c   |   28 ++++++++
- arch/arm/mach-omap2/powerdomain.c            |    8 ++-
- arch/arm/plat-omap/clock.c                   |    5 +-
- arch/arm/plat-omap/include/plat/omap_hwmod.h |   12 ++--
- 9 files changed, 105 insertions(+), 68 deletions(-)
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.4.12 (GNU/Linux)
-
-iQIcBAEBAgAGBQJPfWgsAAoJEMePsQ0LvSpLAQMP/082AoPpGNAO/wCz4RSvr7AS
-0RX2mqsVaLf++lvtlyooKb0oosUyXkPoE6hMt4t/3QwQ9B/NW3LdcGCJIO07OUcK
-767L7Dw19UOBZ6rDoESpqOplBC2jNwRlL5JzXz4Jera/vTws+uQ7M8Bb+LxjJRcV
-R675NCzgJQn0yiSesK9GWAF1QAT8JFpzmJekJ/A9+twT31yQg/vJjkitZjtUW2eJ
-/j8I0qVKS/NdxIf4I/Rt/rTWn6h1JXyMgq79q5IfqTAq/I4n9Vo1MQuzWEB58IeR
-uN7/vvZChLXLmwN/0pE1/QyZ28AARvOsq2iP+VZPXwpbSw05u+pKLwi74aYw13+C
-wdBqwGlJHYIlGQ5k/aJAllITKMv2QLA1o4DEarGiVnTNULL9fT+Os0uPWpckS31E
-ca+S70tGL/YO5C7uyjm3lqEy2uTe5pe4W4/qyeR9VD1Zvb+MBnPQbJ6ZbCSMmEF9
-RoSNHS5EouZVu+xxrYtqH02kUGlS7uhlUKCZBajasY8P9OrhFh57vZNuYmCdRwRG
-RjOk2VRDdrn7/egHlNfsguQUz6YPPDq6XZPfprZlFnUTJspzKC24pc6DJSSwBgyx
-VsLaJMHy1greZFXtvHY5ltr3DHyCqzAoTQ9/bmkJkQybqfMUsB51dmQKVNBhLFXm
-etfYMqw0KAGroKb+uNHP
-=qH6Y
------END PGP SIGNATURE-----
+I'm not about to lift the restriction that there's only one source for
+sched_clock() just for OMAP.  That'd require a lot of additional code -
+it's not just about adjusting the multiplier and shift, you also have to
+correct the returned ns value as well, which means synchronizing against
+two counters.  (And as I've pointed out above, that's impossible to do
+accurately.)
