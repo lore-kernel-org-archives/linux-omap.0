@@ -1,80 +1,52 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [RESEND PATCH] ARM :OMAP2+: UART: Remove some of uart default
- pads
-Date: Thu, 5 Apr 2012 09:58:12 -0700
-Message-ID: <20120405165811.GB3785@atomide.com>
-References: <1332324149-16058-1-git-send-email-govindraj.raja@ti.com>
- <20120403181925.GH8240@atomide.com>
- <CAMrsUdLrpyGrhggi820WcR+DoHJVB8GQ1THUOO-C4LqUQtAxWQ@mail.gmail.com>
+From: Greg KH <greg@kroah.com>
+Subject: Re: [PATCH] staging: drm/omap: move where DMM driver is registered
+Date: Thu, 5 Apr 2012 09:58:43 -0700
+Message-ID: <20120405165843.GA17004@kroah.com>
+References: <1333640096-24142-1-git-send-email-rob.clark@linaro.org>
+ <20120405164112.GB16546@kroah.com>
+ <CAF6AEGv7pUht3VkGqobCJd4+KPx2NUoju5++eRUpToAg1ZxPeg@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
+Content-Type: text/plain; charset=iso-8859-1
 Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-02-ewr.mailhop.org ([204.13.248.72]:64080 "EHLO
-	mho-02-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752087Ab2DEQ6Q (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 5 Apr 2012 12:58:16 -0400
+Received: from out1-smtp.messagingengine.com ([66.111.4.25]:52453 "EHLO
+	out1-smtp.messagingengine.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1750817Ab2DEQ6p (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 5 Apr 2012 12:58:45 -0400
+Received: from compute6.internal (compute6.nyi.mail.srv.osa [10.202.2.46])
+	by gateway1.nyi.mail.srv.osa (Postfix) with ESMTP id 6535C219C2
+	for <linux-omap@vger.kernel.org>; Thu,  5 Apr 2012 12:58:45 -0400 (EDT)
 Content-Disposition: inline
-In-Reply-To: <CAMrsUdLrpyGrhggi820WcR+DoHJVB8GQ1THUOO-C4LqUQtAxWQ@mail.gmail.com>
+In-Reply-To: <CAF6AEGv7pUht3VkGqobCJd4+KPx2NUoju5++eRUpToAg1ZxPeg@mail.gmail.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "Raja, Govindraj" <govindraj.raja@ti.com>
-Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Felipe Balbi <balbi@ti.com>, Kevin Hilman <khilman@ti.com>
+To: Rob Clark <rob.clark@linaro.org>
+Cc: linux-omap@vger.kernel.org, patches@linaro.org, dri-devel@lists.freedesktop.org
 
-* Raja, Govindraj <govindraj.raja@ti.com> [120403 23:18]:
-> On Tue, Apr 3, 2012 at 11:49 PM, Tony Lindgren <tony@atomide.com> wro=
-te:
-> > * Govindraj.R <govindraj.raja@ti.com> [120321 03:06]:
-> >> From: "Govindraj.R" <govindraj.raja@ti.com>
+On Thu, Apr 05, 2012 at 11:51:30AM -0500, Rob Clark wrote:
+> On Thu, Apr 5, 2012 at 11:41 AM, Greg KH <greg@kroah.com> wrote:
+> > On Thu, Apr 05, 2012 at 10:34:56AM -0500, Rob Clark wrote:
+> >> From: Rob Clark <rob@ti.com>
 > >>
-> >> The following commit:
-> >> (7496ba3 =C2=A0ARM: OMAP2+: UART: Add default mux for all uarts)
-> >> added default pads for all uarts. But not all boards tend to
-> >> use all uarts and most of unused uart pins are muxed for
-> >> other purpose. This commit breaks the modules which where trying
-> >> to use unused uart pins on their boards.
-> >>
-> >> So remove all default pads except uart1/3 as most boards
-> >> tend to use either uart1/3 as console port and use only tx/rx
-> >> lines, declare only those pads for uart1/3.
-> >> If any boards tend to use any other uart other uart1/3
-> >> the mux data should to passed from board file and init individual
-> >> uart port using omap_serial_init_port api.
+> >> Not sure what triggered the change in behavior, but seems to
+> >> result in recursively acquiring a mutex and hanging on boot. =A0Bu=
+t
+> >> omap_drm_init() seems a much more sane place to register the
+> >> driver for the DMM sub-device.
+> >> ---
+> >> =A0drivers/staging/omapdrm/omap_drv.c | =A0 =A07 ++++---
+> >> =A01 files changed, 4 insertions(+), 3 deletions(-)
 > >
-> > This is still wrong. We can't mux any serial pins unless specifical=
-ly
-> > requested from the board-*.c files. So please do a fix to get back =
-to
-> > v3.2 behaviour where you basically revert 7496ba3.
+> > Is this needed for 3.4-final? =A0Any older kernels like 3.3 as well=
+?
 >=20
-> How to do we fix the rx pin wakeup capability?
-> The mux data has the info about the rx pin wakeup
->=20
-> Without rx pin wakeup PM will be broken.
+> Yeah, it is needed for 3.4-final..  I need to check on 3.3 (it was
+> fine circa 3.3-rc6 or rc7)
 
-Let's first make things work reliably before even getting started
-about PM being broken.
+Ok, I'll queue it up for 3.4-final, let me know if it's also needed in
+3.3 if you get the chance.
 
-> Fix all board files with duplicated data for uart3 or
-> uart1 having rx pin marked as wakeup capable?
-
-And how do you know which pins to mux? You don't, unless you look
-at the schematics for all the boards.
-
-The only safe option without looking at the schematics is to
-make omap_serial_init not do any muxing. If you want muxing and
-PM wake-up events, then use omap_serial_init_port for those ports
-with board specific pins.
-=20
-> Behavior in v3.2 was raw_write to all uarts rx_pin to enable wakeup
-> enable bit.
-
-Hmm I don't think any muxing was done automatically unless
-omap_serial_init_port was being called with pins.
-
-Regards,
-
-Tony
+greg k-h
 --
 To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
 n
