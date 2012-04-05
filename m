@@ -1,45 +1,51 @@
-From: Paul Walmsley <paul@pwsan.com>
-Subject: Re: [PATCH] ARM: OMAP2+: PRM: fix compile for OMAP4-only build
-Date: Thu, 5 Apr 2012 15:33:32 -0600 (MDT)
-Message-ID: <alpine.DEB.2.00.1204051533110.10302@utopia.booyaka.com>
-References: <1333660837-23249-1-git-send-email-khilman@ti.com>
+From: Tony Lindgren <tony@atomide.com>
+Subject: Re: [PATCH] mmc: omap_hsmmc: set dto to 14 for all devices
+Date: Thu, 5 Apr 2012 15:08:48 -0700
+Message-ID: <20120405220848.GF3785@atomide.com>
+References: <1330622780-1909-1-git-send-email-Chase.Maupin@ti.com>
+ <m2399iqtgf.fsf@bob.laptop.org>
+ <alpine.DEB.2.00.1203120435200.11332@utopia.booyaka.com>
+ <87bonxcjrh.fsf@laptop.org>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from utopia.booyaka.com ([72.9.107.138]:60187 "EHLO
-	utopia.booyaka.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754018Ab2DEVdd (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 5 Apr 2012 17:33:33 -0400
-In-Reply-To: <1333660837-23249-1-git-send-email-khilman@ti.com>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-mmc-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <87bonxcjrh.fsf@laptop.org>
+Sender: linux-mmc-owner@vger.kernel.org
+To: Chris Ball <cjb@laptop.org>
+Cc: Paul Walmsley <paul@pwsan.com>, Chase Maupin <Chase.Maupin@ti.com>, linux-omap@vger.kernel.org, linux-mmc@vger.kernel.org, sakoman@gmail.com
 List-Id: linux-omap@vger.kernel.org
-To: Kevin Hilman <khilman@ti.com>
-Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 
-On Thu, 5 Apr 2012, Kevin Hilman wrote:
+* Chris Ball <cjb@laptop.org> [120315 20:26]:
+> Hi Paul,
+> 
+> On Mon, Mar 12 2012, Paul Walmsley wrote:
+> > I don't think this is the right fix.  Steve Sakoman and I discussed this a 
+> > few months ago -- we did some debugging and Steve observed the timeouts on 
+> > multiple block writes (0x19):
+> > [...]
+> > So perhaps something like the following patch instead?  Unfortunately, I 
+> > don't have one of these crappy SD cards as far as I know, so I can't 
+> > really test it.
+> >
+> >
+> > - Paul
+> >
+> > From: Paul Walmsley <paul@pwsan.com>
+> > Date: Mon, 12 Mar 2012 04:46:29 -0600
+> > Subject: [PATCH] mmc: use really long write timeout to deal with crappy cards
+> >
+> > Several people have noticed that crappy SD cards take much longer to
+> > complete multiple block writes than the 300ms that Linux specifies.
+> > Try to work around this by using a three second write timeout instead.
+> >
+> > <insert Chase's patch description here>
+> >
+> > Not-yet-signed-off-by: Paul Walmsley <paul@pwsan.com>
+> 
+> Sounds like a good idea -- want to send a signed-off patch for this?
 
-> For OMAP4 only builds, the omap2_prm_* functions have dummy wrappers
-> to detect incorrect usage.  However, several unrelated omap3 PRM
-> functions have made it inside the #else clause of the #ifdef wrapping
-> the omap2_prm stubs, causing them to disappear on OMAP4-only builds.
-> 
-> This was unnoticed until the IO chain support was added and introduced
-> a new function in this section which is referenced by omap_hwmod.c:
-> 
-> /work/kernel/omap/dev/arch/arm/mach-omap2/omap_hwmod.c: In function '_reconfigure_io_chain':
-> /work/kernel/omap/dev/arch/arm/mach-omap2/omap_hwmod.c:1665:3: error: implicit declaration of function 'omap3xxx_prm_reconfigure_io_chain' [-Werror=implicit-fungiction-declaration]
-> 
-> Fix by using the #ifdef to only wrap the omap2_prm functions that
-> need stubs on OMAP4-only builds.
-> 
-> Cc: Paul Walmsley <paul@pwsan.com>
-> Signed-off-by: Kevin Hilman <khilman@ti.com>
-> ---
-> Paul, this patch applies on top your io_chain_devel_3.5 branch.
+This seems like the right fix to me too. Works on my pandaboard es and
+some random card that produces I/O errors without this.
 
-Thanks, Tony reported this too.  Any objections to me rolling this into 
-the offending patch?
-> 
-
-
-- Paul
+Tested-by: Tony Lindgren <tony@atomide.com>
