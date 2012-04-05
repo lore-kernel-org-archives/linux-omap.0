@@ -1,268 +1,63 @@
-From: Jon Hunter <jon-hunter@ti.com>
-Subject: Re: [PATCH v3 1/9] ARM: OMAP2+: gpmc: driver conversion
-Date: Thu, 5 Apr 2012 15:34:23 -0500
-Message-ID: <4F7E01CF.3040203@ti.com>
-References: <cover.1333640054.git.afzal@ti.com> <cefbe934da40f0a169b1e3a75c46451e5546a8bd.1333640054.git.afzal@ti.com> <4F7DFED5.4030000@ti.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset="ISO-8859-1"; format=flowed
-Content-Transfer-Encoding: 7bit
+From: Kevin Hilman <khilman@ti.com>
+Subject: [PATCH] ARM: OMAP2+: PRM: fix compile for OMAP4-only build
+Date: Thu,  5 Apr 2012 14:20:37 -0700
+Message-ID: <1333660837-23249-1-git-send-email-khilman@ti.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from bear.ext.ti.com ([192.94.94.41]:44769 "EHLO bear.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1756035Ab2DEUel (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Thu, 5 Apr 2012 16:34:41 -0400
-In-Reply-To: <4F7DFED5.4030000@ti.com>
+Received: from na3sys009aog123.obsmtp.com ([74.125.149.149]:42336 "EHLO
+	na3sys009aog123.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1752607Ab2DEVUQ (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 5 Apr 2012 17:20:16 -0400
+Received: by pbbjt11 with SMTP id jt11so2087460pbb.7
+        for <linux-omap@vger.kernel.org>; Thu, 05 Apr 2012 14:20:14 -0700 (PDT)
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Afzal Mohammed <afzal@ti.com>
-Cc: Kevin Hilman <khilman@ti.com>, nm@ti.com, linux@arm.linux.org.uk, sameo@linux.intel.com, tony@atomide.com, artem.bityutskiy@linux.intel.com, linux-kernel@vger.kernel.org, Vaibhav Hiremath <hvaibhav@ti.com>, dbaryshkov@gmail.com, vimal.newwork@gmail.com, grinberg@compulab.co.il, mike@compulab.co.il, linux-mtd@lists.infradead.org, linux-omap@vger.kernel.org, dwmw2@infradead.org, linux-arm-kernel@lists.infradead.org
+To: linux-omap@vger.kernel.org, Paul Walmsley <paul@pwsan.com>
+Cc: linux-arm-kernel@lists.infradead.org
 
-Hi Afzal,
+For OMAP4 only builds, the omap2_prm_* functions have dummy wrappers
+to detect incorrect usage.  However, several unrelated omap3 PRM
+functions have made it inside the #else clause of the #ifdef wrapping
+the omap2_prm stubs, causing them to disappear on OMAP4-only builds.
 
-On 04/05/2012 03:21 PM, Jon Hunter wrote:
-> Hi Afzal,
->
-> On 04/05/2012 10:45 AM, Afzal Mohammed wrote:
->
-> [...]
->
->> +struct gpmc_irq {
->> + unsigned irq;
->> + u32 regval;
->
-> Are you using regval to indicate the bit-mask? If so, maybe call it
-> "bitmask" instead.
->
-> [...]
->
->> +static __devinit
->> +int gpmc_setup_cs_irq(struct gpmc *gpmc, struct gpmc_device_pdata *gdp,
->> + struct gpmc_cs_data *cs, struct resource *res)
->> +{
->> + int i, n, val;
->> +
->> + for (i = 0, n = 0; i< gpmc->num_irq; i++)
->> + if (gpmc->irq[i].regval& cs->irq_flags) {
->> + res[n].start = res[n].end = gpmc->irq[i].irq;
->> + res[n].flags = IORESOURCE_IRQ;
->> +
->> + dev_info(gpmc->dev, "resource irq %u for %s "
->> + "(on CS %d) [bit: %x]\n", res[n].start,
->> + gdp->name, cs->cs, __ffs(gpmc->irq[i].regval));
->> +
->> + switch (gpmc->irq[i].regval) {
->> + case GPMC_IRQ_WAIT0EDGEDETECTION:
->> + case GPMC_IRQ_WAIT1EDGEDETECTION:
->> + case GPMC_IRQ_WAIT2EDGEDETECTION:
->> + case GPMC_IRQ_WAIT3EDGEDETECTION:
->> + val = __ffs(gpmc->irq[i].regval);
->> + val -= __ffs(GPMC_IRQ_WAIT0EDGEDETECTION);
->> + gpmc_cs_configure(cs->cs,
->> + GPMC_CONFIG_WAITPIN, val);
->
-> Why is the configuration of the wait pin done here? It is possible to
-> use the wait pin may be used without enabling the interrupt.
+This was unnoticed until the IO chain support was added and introduced
+a new function in this section which is referenced by omap_hwmod.c:
 
-Sorry very bad english here on my part. I meant "it is possible to use a 
-wait pin, without enabling the interrupt".
+/work/kernel/omap/dev/arch/arm/mach-omap2/omap_hwmod.c: In function '_reconfigure_io_chain':
+/work/kernel/omap/dev/arch/arm/mach-omap2/omap_hwmod.c:1665:3: error: implicit declaration of function 'omap3xxx_prm_reconfigure_io_chain' [-Werror=implicit-fungiction-declaration]
 
-> Where do you handle allocating the wait pins to ensure two devices don't
-> attempt to use the same one? Like how the CS are managed.
->
-> Also, where you you configure the polarity of the wait pins? I would
-> have thought it would make sense to have the wait pin configured as part
-> of the cs configuration.
->
->> + }
->> + n++;
->> + }
->> +
->> + return n;
->> +}
->> +
->> +static __devinit int gpmc_setup_device(struct gpmc_device_pdata *gdp,
->> + struct gpmc_device *dev, struct gpmc *gpmc)
->> +{
->> + int i, j, n;
->> + struct gpmc_cs_data *cs;
->> +
->> + for (i = 0, n = 0, cs = gdp->cs_data; i< gdp->num_cs; i++, cs++)
->> + n += hweight32(cs->irq_flags& GPMC_IRQ_MASK);
->> +
->> + n += gdp->num_cs;
->> +
->> + dev->gpmc_res = devm_kzalloc(gpmc->dev, sizeof(*dev->gpmc_res) * n,
->> + GFP_KERNEL);
->> + if (dev->gpmc_res == NULL) {
->> + dev_err(gpmc->dev, "error: memory allocation\n");
->> + return -ENOMEM;
->> + }
->> +
->> + for (i = 0, j = 0, cs = gdp->cs_data; i< gdp->num_cs; cs++, i++) {
->> + dev->gpmc_res[j] = gpmc_setup_cs_mem(cs, gdp, gpmc);
->> + if (dev->gpmc_res[j++].flags& IORESOURCE_MEM)
->> + j += gpmc_setup_cs_irq(gpmc, gdp, cs,
->> + dev->gpmc_res + j);
->> + else {
->> + dev_err(gpmc->dev, "error: setup for %s\n", gdp->name);
->> + devm_kfree(gpmc->dev, dev->gpmc_res);
->> + dev->gpmc_res = NULL;
->> + dev->num_gpmc_res = 0;
->> + return -EINVAL;
->> + }
->> }
->
-> This section of code is not straight-forward to read. I see what you are
-> doing, but I am wondering if this could be improved.
->
-> First of all, returning a structure from a function is making this code
-> harder to read. Per the CodingStyle document in the kernel, it is
-> preferred for a function to return success or failure if the function is
-> an action, like a setup.
->
-> Secondly, do you need to pass cs, gdp and gpmc to gpmc_setup_cs_mem()?
-> It appears that gdp and gpmc are only used for prints. You could
-> probably avoid passing gdp and move the print to outside this function.
->
->> + dev->num_gpmc_res = j;
->>
->> - ret = request_irq(gpmc_irq,
->> - gpmc_handle_irq, IRQF_SHARED, "gpmc", gpmc_base);
->> - if (ret)
->> - pr_err("gpmc: irq-%d could not claim: err %d\n",
->> - gpmc_irq, ret);
->> - return ret;
->> + dev->name = gdp->name;
->> + dev->id = gdp->id;
->> + dev->pdata = gdp->pdata;
->> + dev->pdata_size = gdp->pdata_size;
->> + dev->per_res = gdp->per_res;
->> + dev->num_per_res = gdp->num_per_res;
->> +
->> + return 0;
->> +}
->> +
->> +static __devinit
->> +struct platform_device *gpmc_create_device(struct gpmc_device *p,
->> + struct gpmc *gpmc)
->> +{
->> + int num = p->num_per_res + p->num_gpmc_res;
->> + struct resource *res;
->> + struct platform_device *pdev;
->> +
->> + res = devm_kzalloc(gpmc->dev, sizeof(struct resource) * num,
->> + GFP_KERNEL);
->> + if (!res) {
->> + dev_err(gpmc->dev, "error: allocating memory\n");
->> + return NULL;
->> + }
->> +
->> + memcpy((char *)res, (const char *) p->gpmc_res,
->> + sizeof(struct resource) * p->num_gpmc_res);
->> + memcpy((char *)(res + p->num_gpmc_res), (const char *)p->per_res,
->> + sizeof(struct resource) * p->num_per_res);
->> +
->> + pdev = platform_device_register_resndata(gpmc->dev, p->name, p->id,
->> + res, num, p->pdata, p->pdata_size);
->> +
->> + devm_kfree(gpmc->dev, res);
->> +
->> + return pdev;
->> }
->> -postcore_initcall(gpmc_init);
->>
->> static irqreturn_t gpmc_handle_irq(int irq, void *dev)
->> {
->> - u8 cs;
->> + int i;
->> + u32 regval;
->> + struct gpmc *gpmc = dev;
->>
->> - /* check cs to invoke the irq */
->> - cs = ((gpmc_read_reg(GPMC_PREFETCH_CONFIG1))>> CS_NUM_SHIFT)& 0x7;
->> - if (OMAP_GPMC_IRQ_BASE+cs<= OMAP_GPMC_IRQ_END)
->> - generic_handle_irq(OMAP_GPMC_IRQ_BASE+cs);
->> + regval = gpmc_read_reg(GPMC_IRQSTATUS);
->> +
->> +
->> + for (i = 0; i< gpmc->num_irq; i++)
->> + if (regval& gpmc->irq[i].regval)
->> + generic_handle_irq(gpmc->irq[i].irq);
->> + gpmc_write_reg(GPMC_IRQSTATUS, regval);
->>
->> return IRQ_HANDLED;
->> }
->>
->> +static int gpmc_irq_endis(struct irq_data *p, bool endis)
->> +{
->> + struct gpmc *gpmc = irq_data_get_irq_chip_data(p);
->> + int i;
->> + u32 regval;
->> +
->> + for (i = 0; i< gpmc->num_irq; i++)
->> + if (p->irq == gpmc->irq[i].irq) {
->> + regval = gpmc_read_reg(GPMC_IRQENABLE);
->> + if (endis)
->> + regval |= gpmc->irq[i].regval;
->> + else
->> + regval&= ~gpmc->irq[i].regval;
->> + gpmc_write_reg(GPMC_IRQENABLE, regval);
->> + break;
->> + }
->> +
->> + return 0;
->> +}
->> +
->> +static void gpmc_irq_disable(struct irq_data *p)
->> +{
->> + gpmc_irq_endis(p, false);
->> +}
->> +
->> +static void gpmc_irq_enable(struct irq_data *p)
->> +{
->> + gpmc_irq_endis(p, true);
->> +}
->> +
->> +static void gpmc_irq_noop(struct irq_data *data) { }
->> +
->> +static unsigned int gpmc_irq_noop_ret(struct irq_data *data) { return
->> 0; }
->> +
->> +static __devinit int gpmc_setup_irq(struct gpmc *gpmc)
->> +{
->> + int i;
->> + u32 regval;
->> +
->> + if (!gpmc->master_irq)
->> + return -EINVAL;
->> +
->> + if (gpmc->num_irq< GPMC_NR_IRQ) {
->> + dev_warn(gpmc->dev, "Insufficient interrupts for device\n");
->> + return -EINVAL;
->> + } else if (gpmc->num_irq> GPMC_NR_IRQ)
->> + gpmc->num_irq = GPMC_NR_IRQ;
->
-> Hmmm ... why not just have ...
->
-> if (gpmc->num_irq != GPMC_NR_IRQ) {
-> dev_warn(...);
-> return -EINVAL;
-> }
->
-> This also raises the question why bother passing num_irq if we always
-> want it to be GPMC_NR_IRQ? Why not always initialise them all driver?
->
->> + gpmc->irq[0].regval = GPMC_IRQ_FIFOEVENT;
->> + gpmc->irq[1].regval = GPMC_IRQ_TERMINALCOUNT;
->> + gpmc->irq[2].regval = GPMC_IRQ_WAIT0EDGEDETECTION;
->> + gpmc->irq[3].regval = GPMC_IRQ_WAIT1EDGEDETECTION;
->> + gpmc->irq[4].regval = GPMC_IRQ_WAIT2EDGEDETECTION;
->> + gpmc->irq[5].regval = GPMC_IRQ_WAIT3EDGEDETECTION;
+Fix by using the #ifdef to only wrap the omap2_prm functions that
+need stubs on OMAP4-only builds.
 
-We need to be careful here, OMAP4 and OMAP5 devices only have 3 wait 
-pins. Hence, one less interrupt.
+Cc: Paul Walmsley <paul@pwsan.com>
+Signed-off-by: Kevin Hilman <khilman@ti.com>
+---
+Paul, this patch applies on top your io_chain_devel_3.5 branch.
 
-We may need to add a check on GPMC IP revision here.
+ arch/arm/mach-omap2/prm2xxx_3xxx.h |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
-Cheers
-Jon
+diff --git a/arch/arm/mach-omap2/prm2xxx_3xxx.h b/arch/arm/mach-omap2/prm2xxx_3xxx.h
+index 1ba3d65..a8c946f 100644
+--- a/arch/arm/mach-omap2/prm2xxx_3xxx.h
++++ b/arch/arm/mach-omap2/prm2xxx_3xxx.h
+@@ -303,6 +303,8 @@ extern int omap2_prm_is_hardreset_asserted(s16 prm_mod, u8 shift);
+ extern int omap2_prm_assert_hardreset(s16 prm_mod, u8 shift);
+ extern int omap2_prm_deassert_hardreset(s16 prm_mod, u8 rst_shift, u8 st_shift);
+ 
++#endif	/* CONFIG_ARCH_OMAP4 */
++
+ /* OMAP3-specific VP functions */
+ u32 omap3_prm_vp_check_txdone(u8 vp_id);
+ void omap3_prm_vp_clear_txdone(u8 vp_id);
+@@ -323,8 +325,6 @@ extern void omap3xxx_prm_ocp_barrier(void);
+ extern void omap3xxx_prm_save_and_clear_irqen(u32 *saved_mask);
+ extern void omap3xxx_prm_restore_irqen(u32 *saved_mask);
+ 
+-#endif	/* CONFIG_ARCH_OMAP4 */
+-
+ #endif
+ 
+ /*
+-- 
+1.7.9.2
+
