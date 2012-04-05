@@ -1,66 +1,55 @@
-From: Greg KH <gregkh@linuxfoundation.org>
-Subject: Re: [PATCH 0/3] OMAP2+: UART: Enable tx wakeup + remove cpu checks
-Date: Thu, 5 Apr 2012 09:47:11 -0700
-Message-ID: <20120405164711.GC16688@kroah.com>
-References: <1332325501-10467-1-git-send-email-govindraj.raja@ti.com>
- <CAMrsUd+_coW7ebuN_o=yZbbSVKnkx5R6=yHjUEUc0EcQGtgSRQ@mail.gmail.com>
- <20120405132617.76e04217@bob.linux.org.uk>
+From: Rob Clark <rob.clark@linaro.org>
+Subject: Re: [PATCH] staging: drm/omap: move where DMM driver is registered
+Date: Thu, 5 Apr 2012 11:51:30 -0500
+Message-ID: <CAF6AEGv7pUht3VkGqobCJd4+KPx2NUoju5++eRUpToAg1ZxPeg@mail.gmail.com>
+References: <1333640096-24142-1-git-send-email-rob.clark@linaro.org>
+	<20120405164112.GB16546@kroah.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-1
+Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: QUOTED-PRINTABLE
-Return-path: <linux-serial-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <20120405132617.76e04217@bob.linux.org.uk>
-Sender: linux-serial-owner@vger.kernel.org
-To: Alan Cox <alan@linux.intel.com>
-Cc: "Raja, Govindraj" <govindraj.raja@ti.com>, Tony Lindgren <tony@atomide.com>, linux-serial@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Kevin Hilman <khilman@ti.com>, Paul Walmsley <paul@pwsan.com>, Felipe Balbi <balbi@ti.com>, linux-omap@vger.kernel.org
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from mail-gx0-f174.google.com ([209.85.161.174]:42161 "EHLO
+	mail-gx0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752277Ab2DEQ4v convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 5 Apr 2012 12:56:51 -0400
+Received: by gghe5 with SMTP id e5so815581ggh.19
+        for <linux-omap@vger.kernel.org>; Thu, 05 Apr 2012 09:56:50 -0700 (PDT)
+In-Reply-To: <20120405164112.GB16546@kroah.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Greg KH <greg@kroah.com>
+Cc: linux-omap@vger.kernel.org, patches@linaro.org, dri-devel@lists.freedesktop.org
 
-On Thu, Apr 05, 2012 at 01:26:17PM +0100, Alan Cox wrote:
-> On Thu, 5 Apr 2012 16:54:03 +0530
-> "Raja, Govindraj" <govindraj.raja@ti.com> wrote:
->=20
-> > On Wed, Mar 21, 2012 at 3:54 PM, Govindraj.R <govindraj.raja@ti.com=
+On Thu, Apr 5, 2012 at 11:41 AM, Greg KH <greg@kroah.com> wrote:
+> On Thu, Apr 05, 2012 at 10:34:56AM -0500, Rob Clark wrote:
+>> From: Rob Clark <rob@ti.com>
+>>
+>> Not sure what triggered the change in behavior, but seems to
+>> result in recursively acquiring a mutex and hanging on boot. =A0But
+>> omap_drm_init() seems a much more sane place to register the
+>> driver for the DMM sub-device.
+>> ---
+>> =A0drivers/staging/omapdrm/omap_drv.c | =A0 =A07 ++++---
+>> =A01 files changed, 4 insertions(+), 3 deletions(-)
 >
-> > wrote:
-> > > From: "Govindraj.R" <govindraj.raja@ti.com>
-> > >
-> > > Based on Linux-OMAP tree uart branch.
-> > > (git://git.kernel.org/pub/scm/linux/kernel/git/tmlind/linux-omap.=
-git
-> > > remotes/origin/uart)
-> > >
-> > > * Removes the cpu checks wherever possible and use version reg
-> > > =A0for populating features and errata's
-> > > * enable tx wakeup available in wer reg for applicable
-> > > =A0module revision's
-> > >
-> > > Govindraj.R (3):
-> > > =A0OMAP2+: UART: Remove cpu checks for populating errata flags
-> > > =A0OMAP2+: UART: enable tx wakeup bit for wer reg
-> > > =A0OMAP2+: UART: replace omap34xx/omap4xx cpu checks with not oma=
-p24xx
-> > >
-> > > =A0arch/arm/mach-omap2/serial.c =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0=
-| =A0 13 +----
-> > > =A0arch/arm/plat-omap/include/plat/omap-serial.h | =A0 =A08 +++-
-> > > =A0drivers/tty/serial/omap-serial.c =A0 =A0 =A0 =A0 =A0 =A0 =A0| =
-=A0 71
-> > > ++++++++++++++++++++++++- 3 files changed, 78 insertions(+), 14
-> > > deletions(-)
-> >=20
-> > Alan / Greg,
-> >=20
-> > With you ack on tty parts can this series be upstreamed from
-> > omap tree ?
->=20
-> Fine by me - this seems primarily to be architectural details.
+> Is this needed for 3.4-final? =A0Any older kernels like 3.3 as well?
 
-=46ine by me as well:
-	Acked-by: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
+Yeah, it is needed for 3.4-final..  I need to check on 3.3 (it was
+fine circa 3.3-rc6 or rc7)
 
+BR,
+-R
+
+>
+> thanks,
+>
+> greg k-h
+> _______________________________________________
+> dri-devel mailing list
+> dri-devel@lists.freedesktop.org
+> http://lists.freedesktop.org/mailman/listinfo/dri-devel
 --
-To unsubscribe from this list: send the line "unsubscribe linux-serial"=
- in
+To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
+n
 the body of a message to majordomo@vger.kernel.org
 More majordomo info at  http://vger.kernel.org/majordomo-info.html
