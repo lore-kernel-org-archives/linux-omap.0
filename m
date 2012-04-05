@@ -1,86 +1,202 @@
-From: Santosh Shilimkar <santosh.shilimkar@ti.com>
-Subject: Re: [PATCH 1/3] ARM: OMAP2+: 32k-counter: Use hwmod lookup to	check
- presence of 32k timer
-Date: Thu, 05 Apr 2012 16:16:35 +0530
-Message-ID: <4F7D780B.9070201@ti.com>
-References: <CACVXFVPbU2OqTN=S0AZCD10KuSBYxqyyRH_xee+WTaCD6VSmMQ@mail.gmail.com> <CAMQu2gzuQ-q+3RHsW0=U305jCF-td5-PEXkGZ6WnQTqA1K8oAQ@mail.gmail.com> <CACVXFVPu1GEQy+sCgXMB8JCszPBBs8zHRVm94TYb1-y2afkqgw@mail.gmail.com> <CAMQu2gwuRpZ133962r3N4Y4K3oQ88ySa=SyoS6v=sSHGA=SGKw@mail.gmail.com> <CACVXFVMjSPhF_+CfbF2vD5ts+WtZGjofEWmknB0D1OpTM7geZw@mail.gmail.com> <CAMQu2gyEUhDyyng+_oC5NpXHzWMaTGsnCSTTZcMUi2pLV0z8RQ@mail.gmail.com> <87sjgmt211.fsf@ti.com> <79CD15C6BA57404B839C016229A409A8318461E8@DBDE01.ent.ti.com> <CAMQu2gxuFsovKTPK8wFOO8vMeiyMFnTqNDRZYgAcCsVWytpOTA@mail.gmail.com> <79CD15C6BA57404B839C016229A409A83184846A@DBDE01.ent.ti.com> <20120405095221.GC25053@n2100.arm.linux.org.uk> <79CD15C6BA57404B839C016229A409A831848621@DBDE01.ent.ti.com>
+From: Shubhrajyoti <shubhrajyoti@ti.com>
+Subject: Re: [PATCH v3] OMAP2+: UART: Remove cpu checks for populating errata
+ flags
+Date: Thu, 05 Apr 2012 16:42:53 +0530
+Message-ID: <4F7D7E35.9000303@ti.com>
+References: <1333356489-5816-1-git-send-email-govindraj.raja@ti.com> <1333460554-7356-1-git-send-email-govindraj.raja@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aog115.obsmtp.com ([74.125.149.238]:59055 "EHLO
-	na3sys009aog115.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753972Ab2DEKqn (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 5 Apr 2012 06:46:43 -0400
-Received: by obbta14 with SMTP id ta14so1708625obb.28
-        for <linux-omap@vger.kernel.org>; Thu, 05 Apr 2012 03:46:42 -0700 (PDT)
-In-Reply-To: <79CD15C6BA57404B839C016229A409A831848621@DBDE01.ent.ti.com>
+Received: from na3sys009aog103.obsmtp.com ([74.125.149.71]:42018 "EHLO
+	na3sys009aog103.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1750962Ab2DELNC (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 5 Apr 2012 07:13:02 -0400
+Received: by obbtb4 with SMTP id tb4so2425836obb.17
+        for <linux-omap@vger.kernel.org>; Thu, 05 Apr 2012 04:13:00 -0700 (PDT)
+In-Reply-To: <1333460554-7356-1-git-send-email-govindraj.raja@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "Hiremath, Vaibhav" <hvaibhav@ti.com>
-Cc: Russell King - ARM Linux <linux@arm.linux.org.uk>, "Hilman, Kevin" <khilman@ti.com>, Ming Lei <tom.leiming@gmail.com>, Tony Lindgren <tony@atomide.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, "marc.zyngier@arm.com" <marc.zyngier@arm.com>, "johnstul@us.ibm.com" <johnstul@us.ibm.com>, "Balbi, Felipe" <balbi@ti.com>, "Cousson, Benoit" <b-cousson@ti.com>, Paul Walmsley <paul@pwsan.com>, "DebBarma, Tarun Kanti" <tarun.kanti@ti.com>
+To: "Govindraj.R" <govindraj.raja@ti.com>
+Cc: linux-omap@vger.kernel.org, linux-serial@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Jon Hunter <jon-hunter@ti.com>, Paul Walmsley <paul@pwsan.com>, Kevin Hilman <khilman@ti.com>, Felipe Balbi <balbi@ti.com>
 
-On Thursday 05 April 2012 04:01 PM, Hiremath, Vaibhav wrote:
-> On Thu, Apr 05, 2012 at 15:22:21, Russell King - ARM Linux wrote:
->> On Thu, Apr 05, 2012 at 09:36:00AM +0000, Hiremath, Vaibhav wrote:
->>> There seems to be limitation for ARM architecture, it is restricted by
->>> sched_clock implementation present in "arch/arm/kernel/sched_clock.c".
->>> Natively, clocksource framework does support change in rate/frequency for
->>> registered timer, using,
->>
->> Any kind of switching of timing sources introduces loss of time issues
->> by the mere fact that you can't instantly know the counter values of
->> both timing sources at precisely the same instant - because CPUs can
->> only do one thing at a time.  So any kind of repeated dynamic switching
->> _will_ result in a gradual loss of time - which will be indeterminant
->> as it depends on the frequency of the switching and the relative delta
->> between the two.
->>
->> To put it another way - it is not possible to maintain high precision
->> and accuracy while dynamically switching your timing sources.
->>
->> I'm not about to lift the restriction that there's only one source for
->> sched_clock() just for OMAP.  That'd require a lot of additional code -
->> it's not just about adjusting the multiplier and shift, you also have to
->> correct the returned ns value as well, which means synchronizing against
->> two counters.  (And as I've pointed out above, that's impossible to do
->> accurately.)
->>
-> 
-> Thanks a ton Russell for confirming on this,
-> 
-> I understand, we also have to adjust ns value and such confirmation is what exactly I was looking for.
-> 
-> So this means, we have to use compile time option, as existing
-> implementation in "arch/arm/mach-omap2/timer.c".
-> 
-> Thanks again, I will repost patches shortly with the code changes (mentioned 
-> in my last email)
-> 
-I suggest you wait for Kevin and Tony to look at it.
+Hi Govind,
 
-Am still going back to what I proposed initially.
-Why not the conditional way as shown in the patch [1] I proposed or
-your initial patch with some updates?  Something like this.
+On Tuesday 03 April 2012 07:12 PM, Govindraj.R wrote:
+> From: "Govindraj.R" <govindraj.raja@ti.com>
+>
+> Currently the errata is populated based on cpu checks this can
+> be removed and replaced with module version check of uart ip block.
+> MVR reg is provided within the uart reg map use the same
+> to populate the errata and thus now errata population and handling
+> can be managed within the driver itself.
+>
+> Cc: Jon Hunter <jon-hunter@ti.com>
+> Cc: Paul Walmsley <paul@pwsan.com>
+> Cc: Kevin Hilman <khilman@ti.com>
+> Signed-off-by: Felipe Balbi <balbi@ti.com>
+> Signed-off-by: Govindraj.R <govindraj.raja@ti.com>
+> ---
+>  arch/arm/mach-omap2/serial.c                  |    8 ---
+>  arch/arm/plat-omap/include/plat/omap-serial.h |    1 -
+>  drivers/tty/serial/omap-serial.c              |   74 ++++++++++++++++++++++++-
+>  3 files changed, 73 insertions(+), 10 deletions(-)
+>
+> diff --git a/arch/arm/mach-omap2/serial.c b/arch/arm/mach-omap2/serial.c
+> index 0cdd359..6affdd4 100644
+> --- a/arch/arm/mach-omap2/serial.c
+> +++ b/arch/arm/mach-omap2/serial.c
+> @@ -355,14 +355,6 @@ void __init omap_serial_init_port(struct omap_board_data *bdata,
+>  	omap_up.dma_rx_poll_rate = info->dma_rx_poll_rate;
+>  	omap_up.autosuspend_timeout = info->autosuspend_timeout;
+>  
+> -	/* Enable the MDR1 Errata i202 for OMAP2430/3xxx/44xx */
+> -	if (!cpu_is_omap2420() && !cpu_is_ti816x())
+> -		omap_up.errata |= UART_ERRATA_i202_MDR1_ACCESS;
+> -
+> -	/* Enable DMA Mode Force Idle Errata i291 for omap34xx/3630 */
+> -	if (cpu_is_omap34xx() || cpu_is_omap3630())
+34xx is true for 3630 also thanks for fixing the unneeded oring.
+:-)
 
-if(commandline.clksource == gpt)
-	omap2_gptimer_clocksource_init(gptimer_id, fck_source);
-else if (omap_init_clocksource_32k())
-	omap2_gptimer_clocksource_init(gptimer_id, fck_source);
+> -		omap_up.errata |= UART_ERRATA_i291_DMA_FORCEIDLE;
+> -
+>  	pdata = &omap_up;
+>  	pdata_size = sizeof(struct omap_uart_port_info);
+>  
+> diff --git a/arch/arm/plat-omap/include/plat/omap-serial.h b/arch/arm/plat-omap/include/plat/omap-serial.h
+> index 9ff4444..1a52725 100644
+> --- a/arch/arm/plat-omap/include/plat/omap-serial.h
+> +++ b/arch/arm/plat-omap/include/plat/omap-serial.h
+> @@ -65,7 +65,6 @@ struct omap_uart_port_info {
+>  	bool			dma_enabled;	/* To specify DMA Mode */
+>  	unsigned int		uartclk;	/* UART clock rate */
+>  	upf_t			flags;		/* UPF_* flags */
+> -	u32			errata;
+>  	unsigned int		dma_rx_buf_size;
+>  	unsigned int		dma_rx_timeout;
+>  	unsigned int		autosuspend_timeout;
+> diff --git a/drivers/tty/serial/omap-serial.c b/drivers/tty/serial/omap-serial.c
+> index 0121486..0555c96 100644
+> --- a/drivers/tty/serial/omap-serial.c
+> +++ b/drivers/tty/serial/omap-serial.c
+> @@ -44,6 +44,13 @@
+>  #include <plat/dmtimer.h>
+>  #include <plat/omap-serial.h>
+>  
+> +#define UART_BUILD_REVISION(x, y)	(((x) << 8) | (y))
+> +
+> +#define OMAP_UART_REV_42 0x0402
+> +#define OMAP_UART_REV_46 0x0406
+> +#define OMAP_UART_REV_52 0x0502
+> +#define OMAP_UART_REV_63 0x0603
+Maybe a comment can be added or the #define changed to reflect
+the processor also so that it is easy to map.
 
-This won't need compile time option and gives you all everybody wants.
 
-1. Ability to use gpt as a clock-source for perf like stuff
-2. Hardware like AMXX where 32K synctimer doesn't exist which means
-omap_init_clocksource_32k() will fail and use gptimer.
-3. For OMAP, it will continue to use 32K sync timer.
-
-What am I missing Vaibhav?
-
-Regards
-Santosh
+A dev_info print could be added so that the bootup logs(probe) could
+tell what ip rev is booted is running.
 
 
-
-
+Feel free to ignore such trivial comments.
+> +
+>  #define DEFAULT_CLK_SPEED 48000000 /* 48Mhz*/
+>  
+>  /* SCR register bitmasks */
+> @@ -53,6 +60,17 @@
+>  #define OMAP_UART_FCR_RX_FIFO_TRIG_SHIFT		6
+>  #define OMAP_UART_FCR_RX_FIFO_TRIG_MASK			(0x3 << 6)
+>  
+> +/* MVR register bitmasks */
+> +#define OMAP_UART_MVR_SCHEME_SHIFT	30
+> +
+> +#define OMAP_UART_LEGACY_MVR_MAJ_MASK	0xf0
+> +#define OMAP_UART_LEGACY_MVR_MAJ_SHIFT	4
+> +#define OMAP_UART_LEGACY_MVR_MIN_MASK	0x0f
+> +
+> +#define OMAP_UART_MVR_MAJ_MASK		0x700
+> +#define OMAP_UART_MVR_MAJ_SHIFT		8
+> +#define OMAP_UART_MVR_MIN_MASK		0x3f
+> +
+>  static struct uart_omap_port *ui[OMAP_MAX_HSUART_PORTS];
+>  
+>  /* Forward declaration of functions */
+> @@ -1346,6 +1364,59 @@ static void uart_tx_dma_callback(int lch, u16 ch_status, void *data)
+>  	return;
+>  }
+>  
+> +static void omap_serial_fill_features_erratas(struct uart_omap_port *up)
+> +{
+> +	u32 mvr, scheme;
+> +	u16 revision, major, minor;
+> +
+> +	mvr = serial_in(up, UART_OMAP_MVER);
+> +
+> +	/* Check revision register scheme */
+> +	scheme = mvr >> OMAP_UART_MVR_SCHEME_SHIFT;
+> +
+> +	switch (scheme) {
+> +	case 0: /* Legacy Scheme: OMAP2/3 */
+> +		/* MINOR_REV[0:4], MAJOR_REV[4:7] */
+> +		major = (mvr & OMAP_UART_LEGACY_MVR_MAJ_MASK) >>
+> +					OMAP_UART_LEGACY_MVR_MAJ_SHIFT;
+> +		minor = (mvr & OMAP_UART_LEGACY_MVR_MIN_MASK);
+> +		break;
+> +	case 1:
+> +		/* New Scheme: OMAP4+ */
+> +		/* MINOR_REV[0:5], MAJOR_REV[8:10] */
+> +		major = (mvr & OMAP_UART_MVR_MAJ_MASK) >>
+> +					OMAP_UART_MVR_MAJ_SHIFT;
+> +		minor = (mvr & OMAP_UART_MVR_MIN_MASK);
+> +		break;
+> +	default:
+> +		dev_warn(&up->pdev->dev,
+> +			"Unknown %s revision, defaulting to highest\n",
+> +			up->name);
+> +		/* highest possible revision */
+> +		major = 0xff;
+> +		minor = 0xff;
+> +	}
+> +
+> +	/* normalize revision for the driver */
+> +	revision = UART_BUILD_REVISION(major, minor);
+> +
+> +	switch (revision) {
+> +	case OMAP_UART_REV_46:
+> +		up->errata |= (UART_ERRATA_i202_MDR1_ACCESS |
+> +				UART_ERRATA_i291_DMA_FORCEIDLE);
+> +		break;
+> +	case OMAP_UART_REV_52:
+> +		up->errata |= (UART_ERRATA_i202_MDR1_ACCESS |
+> +				UART_ERRATA_i291_DMA_FORCEIDLE);
+> +		break;
+> +	case OMAP_UART_REV_63:
+> +		up->errata |= UART_ERRATA_i202_MDR1_ACCESS;
+> +		break;
+> +	default:
+> +		break;
+> +	}
+> +}
+> +
+>  static struct omap_uart_port_info *of_get_uart_port_info(struct device *dev)
+>  {
+>  	struct omap_uart_port_info *omap_up_info;
+> @@ -1443,7 +1514,6 @@ static int serial_omap_probe(struct platform_device *pdev)
+>  						"%d\n", DEFAULT_CLK_SPEED);
+>  	}
+>  	up->uart_dma.uart_base = mem->start;
+> -	up->errata = omap_up_info->errata;
+>  
+>  	if (omap_up_info->dma_enabled) {
+>  		up->uart_dma.uart_dma_tx = dma_tx->start;
+> @@ -1473,6 +1543,8 @@ static int serial_omap_probe(struct platform_device *pdev)
+>  	pm_runtime_enable(&pdev->dev);
+>  	pm_runtime_get_sync(&pdev->dev);
+>  
+> +	omap_serial_fill_features_erratas(up);
+Nit : errata ( it is the prural of erratum)
+> +
+>  	ui[up->port.line] = up;
+>  	serial_omap_add_console_port(up);
+>  
 
