@@ -1,53 +1,42 @@
-From: Jon Hunter <jon-hunter@ti.com>
-Subject: Re: [PATCHv5 16/18] I2C: OMAP: fix missing handling of errata I2C_OMAP3_1P153
-Date: Thu, 5 Apr 2012 11:21:45 -0500
-Message-ID: <4F7DC699.8000609@ti.com>
-References: <1333468957-5999-1-git-send-email-shubhrajyoti@ti.com> <1333468957-5999-17-git-send-email-shubhrajyoti@ti.com> <4F7C7780.7040807@ti.com> <CAM=Q2cu8k8n2w8_=8VCFcFTTgywqc_Vk_eM_DDTap3YeYyAH2g@mail.gmail.com> <4F7C9F5F.8010206@ti.com>
+From: "Mohammed, Afzal" <afzal@ti.com>
+Subject: RE: OMAP3EVM not booting on l-o master
+Date: Thu, 5 Apr 2012 16:22:50 +0000
+Message-ID: <C8443D0743D26F4388EA172BF4E2A7A9317C4B44@DBDE01.ent.ti.com>
+References: <C8443D0743D26F4388EA172BF4E2A7A9317C3A03@DBDE01.ent.ti.com>
+ <C8443D0743D26F4388EA172BF4E2A7A9317C3B18@DBDE01.ent.ti.com>
+ <alpine.DEB.2.00.1204050330380.10302@utopia.booyaka.com>
+ <alpine.DEB.2.00.1204050403460.10302@utopia.booyaka.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="ISO-8859-1"; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from comal.ext.ti.com ([198.47.26.152]:55847 "EHLO comal.ext.ti.com"
+Received: from comal.ext.ti.com ([198.47.26.152]:55888 "EHLO comal.ext.ti.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753909Ab2DEQWN (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Thu, 5 Apr 2012 12:22:13 -0400
-In-Reply-To: <4F7C9F5F.8010206@ti.com>
+	id S1753613Ab2DEQWy convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 5 Apr 2012 12:22:54 -0400
+In-Reply-To: <alpine.DEB.2.00.1204050403460.10302@utopia.booyaka.com>
+Content-Language: en-US
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Shubhrajyoti Datta <omaplinuxkernel@gmail.com>
-Cc: tony@atomide.com, Tasslehoff Kjappfot <tasskjapp@gmail.com>, w.sang@pengutronix.de, linux-i2c@vger.kernel.org, ben-linux@fluff.org, linux-omap@vger.kernel.org, Shubhrajyoti D <shubhrajyoti@ti.com>, linux-arm-kernel@lists.infradead.org
+To: Paul Walmsley <paul@pwsan.com>
+Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
 
+Hi Paul,
 
+On Thu, Apr 05, 2012 at 15:37:42, Paul Walmsley wrote:
+> I just booted the 'io_chain_devel_3.5' branch from 
+> git://git.pwsan.com/linux-2.6 on a 35xx ES3.0 BeagleBoard with no 
+> problems.  Could you please try booting this branch on your OMAP3EVM?
 
-On 04/04/2012 02:22 PM, Jon Hunter wrote:
-> Hi Shubhro,
->
-> On 04/04/2012 12:45 PM, Shubhrajyoti Datta wrote:
->> Hi Jon,
->>
->>
->>>> + if (dev->flags& OMAP_I2C_FLAG_APPLY_ERRATA_I207)
->>>>
->>>> + dev->errata |= I2C_OMAP_ERRATA_I207;
->>>> +
->>>> if (dev->rev<= OMAP_I2C_REV_ON_3430_3530)
->>>> dev->errata |= I2C_OMAP3_1P153;
->>>
->>>
->>> The errata ID is not correct. I believe that 1P153 is referring to the
->>> section number in the errata doc and not the errata ID. The errata ID
->>> should
->>> be i451 in the latest OMAP34xx and OMAP36xx docs.
->>>
->>> Please can you update this? The section number changed in the latest
->>> errata
->>> docs and it took me a minute to find this.
->>
->> Do you mind if that is a separate patch?
->
-> Not at all and in fact it probably should be.
+I am unable to fetch using git protocol, hence tried,
 
-Sorry the erratum ID is not i451 but i462!
+http://git.pwsan.com/linux-2.6 & http://git.pwsan.com/linux-2.6.git
 
-Cheers
-Jon
+but giving error,
+
+fatal: http://git.pwsan.com/linux-2.6/info/refs not found: did you run git update-server-info on the server?
+
+Any other to try ?
+
+Regards
+Afzal
