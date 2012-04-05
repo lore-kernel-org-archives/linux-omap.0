@@ -1,39 +1,58 @@
-From: Igor Grinberg <grinberg@compulab.co.il>
-Subject: Re: [PATCH 05/12] Add dummy smsc911x regulators to cm-t35.
-Date: Thu, 05 Apr 2012 10:34:18 +0300
-Message-ID: <4F7D4AFA.1060600@compulab.co.il>
-References: <1332494504-10251-1-git-send-email-Russ.Dill@ti.com> <1332494504-10251-6-git-send-email-Russ.Dill@ti.com> <4F71E290.2050403@compulab.co.il> <CA+Bv8XYiv+gr4yB+k7sWSSjdYSsYdnRJuTO3A5zZhh4bkoziXw@mail.gmail.com> <4F72B0F5.4080705@compulab.co.il> <20120403174317.GE8240@atomide.com>
+From: Russell King - ARM Linux <linux@arm.linux.org.uk>
+Subject: Re: OMAP34xx
+Date: Thu, 5 Apr 2012 09:24:42 +0100
+Message-ID: <20120405082442.GA25053@n2100.arm.linux.org.uk>
+References: <20120204185453.GB17309@n2100.arm.linux.org.uk> <20120204190109.GL20333@atomide.com> <20120204203453.GD17309@n2100.arm.linux.org.uk> <20120205125626.GA11372@n2100.arm.linux.org.uk> <20120205143824.GA12577@n2100.arm.linux.org.uk> <4F336D3A.2060302@ti.com> <20120209223400.GE19159@n2100.arm.linux.org.uk> <4F34B89F.1050904@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from 50.23.254.54-static.reverse.softlayer.com ([50.23.254.54]:51107
-	"EHLO softlayer.compulab.co.il" rhost-flags-OK-OK-OK-FAIL)
-	by vger.kernel.org with ESMTP id S932094Ab2DEHee (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 5 Apr 2012 03:34:34 -0400
-In-Reply-To: <20120403174317.GE8240@atomide.com>
+Received: from caramon.arm.linux.org.uk ([78.32.30.218]:50214 "EHLO
+	caramon.arm.linux.org.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751552Ab2DEIY4 (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 5 Apr 2012 04:24:56 -0400
+Content-Disposition: inline
+In-Reply-To: <4F34B89F.1050904@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Tony Lindgren <tony@atomide.com>
-Cc: Russ Dill <Russ.Dill@ti.com>, linux-omap@vger.kernel.org, Mark Brown <broonie@opensource.wolfsonmicro.com>, Matt Porter <mporter@ti.com>, robert.marklund@stericsson.com, linus.walleij@linaro.org, linux-arm-kernel <linux-arm-kernel@lists.infradead.org>
+To: Archit Taneja <a0393947@ti.com>
+Cc: Tony Lindgren <tony@atomide.com>, linux-omap@vger.kernel.org, Arnd Bergmann <arnd@arndb.de>, Olof Johansson <olof@lixom.net>
 
-
-
-On 04/03/12 20:43, Tony Lindgren wrote:
-> * Igor Grinberg <grinberg@compulab.co.il> [120327 23:37]:
->> On 03/27/12 20:32, Russ Dill wrote:
->>> No objection.
+On Fri, Feb 10, 2012 at 11:56:39AM +0530, Archit Taneja wrote:
+> On Friday 10 February 2012 04:04 AM, Russell King - ARM Linux wrote:
+>> On Thu, Feb 09, 2012 at 12:22:42PM +0530, Archit Taneja wrote:
+>>> Hi,
+>>>
+>>> On Sunday 05 February 2012 08:08 PM, Russell King - ARM Linux wrote:
+>>>> Okay, so this requires backlight support, and TAAL selected, so that sorts
+>>>> that error, but causes others:
+>>>>
+>>>> taal display0: taal panel revision e3.83.7d
+>>>> omapdss DSI error: DSI CIO error, cio irqstatus 200000
+>>>> DSI CIO IRQ 0x200000: ERRCONTENTIONLP1_1
+>>>> omapdss DSI error: DSI CIO error, cio irqstatus 200000
+>>>> DSI CIO IRQ 0x200000: ERRCONTENTIONLP1_1
+>>>> omapdss DSI error: DSI CIO error, cio irqstatus 200000
+>>>> DSI CIO IRQ 0x200000: ERRCONTENTIONLP1_1
+>>>> omapdss DSI error: DSI CIO error, cio irqstatus 200000
+>>>> DSI CIO IRQ 0x200000: ERRCONTENTIONLP1_1
+>>>> omapdss DSI error: DSI CIO error, cio irqstatus 200000
+>>>> DSI CIO IRQ 0x200000: ERRCONTENTIONLP1_1
+>>>> omapdss DSI error: DSI CIO error, cio irqstatus 200000
+>>>> DSI CIO IRQ 0x200000: ERRCONTENTIONLP1_1
+>>>
+>>> This happens when the flex cable connected to the display is faulty or
+>>> loose.
 >>
->> 10x Russ.
-> 
-> I've combined patches 5 - 12 into a single patch as they
-> pretty much do the same thing, and to cut down
-> the patch noise for fixes. Merging into fixes with the
-> updated patch below.
+>> Well, I don't know - it works with ES1 and an old kernel just fine.
+>>
+>
+> Okay, I'll look into this more.
 
-10x, looks good!
+Any news on this?  I see no progress on this in mainline kernels:
 
+http://www.arm.linux.org.uk/developer/build/result.php?type=boot&idx=112
 
--- 
-Regards,
-Igor.
+Yet I can still boot the kernel with the originally provided kernel
+and CPU and it all works fine.
+
+Has anyone else tried to get the LCD panels working on the 4430SDP?
