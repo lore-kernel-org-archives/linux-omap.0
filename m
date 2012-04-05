@@ -1,36 +1,54 @@
-From: "yelsy carrasco" <westernunion@industriassula.com>
-Subject: Alert...
-Date: Thu, 05 Apr 2012 08:39:11 -0500
-Message-ID: <20120405083911.49c7ca85__24517.3034178608$1333638907$gmane$org@mail.industriassula.com>
-Reply-To: wu_africadep01@admin.in.th
-Mime-Version: 1.0
-Content-Type: text/plain;
-	charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
+From: Rob Clark <rob.clark@linaro.org>
+Subject: [PATCH] staging: drm/omap: move where DMM driver is registered
+Date: Thu,  5 Apr 2012 10:34:56 -0500
+Message-ID: <1333640096-24142-1-git-send-email-rob.clark@linaro.org>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail.industriassula.com ([190.4.30.20]:3160 "EHLO
-	mail.industriassula.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750959Ab2DEPOo convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 5 Apr 2012 11:14:44 -0400
+Received: from mail-yx0-f174.google.com ([209.85.213.174]:33288 "EHLO
+	mail-yx0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752708Ab2DEPlD (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 5 Apr 2012 11:41:03 -0400
+Received: by yenl12 with SMTP id l12so754898yen.19
+        for <linux-omap@vger.kernel.org>; Thu, 05 Apr 2012 08:41:02 -0700 (PDT)
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: westernunion@info.com
+To: dri-devel@lists.freedesktop.org, linux-omap@vger.kernel.org
+Cc: patches@linaro.org, Greg KH <greg@kroah.com>, Tomi Valkeinen <tomi.valkeinen@ti.com>, Andy Gross <andy.gross@ti.com>, Rob Clark <rob@ti.com>
 
-Dear Western Union Customer,
+From: Rob Clark <rob@ti.com>
 
-You have been awarded with the sum of $50,000 USD by our office, as one of our customers who use Western Union in their daily business transaction. This award was been selected through the internet, where your e-mail address was indicated and notified. Please provide Mr. Gary Epps with the following details listed below so that your fund will be remited to you through Western Union.
+Not sure what triggered the change in behavior, but seems to
+result in recursively acquiring a mutex and hanging on boot.  But
+omap_drm_init() seems a much more sane place to register the
+driver for the DMM sub-device.
+---
+ drivers/staging/omapdrm/omap_drv.c |    7 ++++---
+ 1 files changed, 4 insertions(+), 3 deletions(-)
 
-1. Name:______
-2. Address________
-3. Country:_______
-4. Phone Number____
-5. Occupation:________
-6. Sex:_________________
-7. Age___________________
+diff --git a/drivers/staging/omapdrm/omap_drv.c b/drivers/staging/omapdrm/omap_drv.c
+index 3df5b4c..620b8d5 100644
+--- a/drivers/staging/omapdrm/omap_drv.c
++++ b/drivers/staging/omapdrm/omap_drv.c
+@@ -803,9 +803,6 @@ static void pdev_shutdown(struct platform_device *device)
+ static int pdev_probe(struct platform_device *device)
+ {
+ 	DBG("%s", device->name);
+-	if (platform_driver_register(&omap_dmm_driver))
+-		dev_err(&device->dev, "DMM registration failed\n");
+-
+ 	return drm_platform_init(&omap_drm_driver, device);
+ }
+ 
+@@ -833,6 +830,10 @@ struct platform_driver pdev = {
+ static int __init omap_drm_init(void)
+ {
+ 	DBG("init");
++	if (platform_driver_register(&omap_dmm_driver)) {
++		/* we can continue on without DMM.. so not fatal */
++		dev_err(NULL, "DMM registration failed\n");
++	}
+ 	return platform_driver_register(&pdev);
+ }
+ 
+-- 
+1.7.9.1
 
-Mr.Gary Epps
-E-mail: wu_africadep01@admin.in.th
-
-As soon as these details are received and verified, your fund will be transferred to you.
-
-Thank you, for using western union
