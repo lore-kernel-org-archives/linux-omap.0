@@ -1,43 +1,85 @@
-From: Paul Walmsley <paul@pwsan.com>
-Subject: RE: OMAP3EVM not booting on l-o master
-Date: Thu, 5 Apr 2012 03:33:36 -0600 (MDT)
-Message-ID: <alpine.DEB.2.00.1204050330380.10302@utopia.booyaka.com>
-References: <C8443D0743D26F4388EA172BF4E2A7A9317C3A03@DBDE01.ent.ti.com> <C8443D0743D26F4388EA172BF4E2A7A9317C3B18@DBDE01.ent.ti.com>
+From: Trilok Soni <tsoni@codeaurora.org>
+Subject: Re: [PATCH 2/9] ARM: OMAP2+: SmartReflex: move the driver specific
+ macros in include/linux/power
+Date: Thu, 05 Apr 2012 15:05:02 +0530
+Message-ID: <4F7D6746.9020504@codeaurora.org>
+References: <1332173578-27422-1-git-send-email-j-pihet@ti.com> <1332173578-27422-3-git-send-email-j-pihet@ti.com> <4F7C9C89.9080605@codeaurora.org> <4F7CA3E1.2050809@ti.com> <4F7D4165.2060101@codeaurora.org> <CAORVsuVt5uj5NAsqsce+7f=xMXC9-nck5cPUCOEC8QP3VkxYyA@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from utopia.booyaka.com ([72.9.107.138]:52691 "EHLO
-	utopia.booyaka.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752983Ab2DEJdh (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 5 Apr 2012 05:33:37 -0400
-In-Reply-To: <C8443D0743D26F4388EA172BF4E2A7A9317C3B18@DBDE01.ent.ti.com>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <CAORVsuVt5uj5NAsqsce+7f=xMXC9-nck5cPUCOEC8QP3VkxYyA@mail.gmail.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Jean Pihet <jean.pihet@newoldbits.com>
+Cc: "Cousson, Benoit" <b-cousson@ti.com>, Kevin Hilman <khilman@ti.com>, LKML <linux-kernel@vger.kernel.org>, "Rafael J. Wysocki" <rjw@sisk.pl>, linux-omap@vger.kernel.org, Jean Pihet <j-pihet@ti.com>, linux-arm-kernel@lists.infradead.org, gregkh@linuxfoundation.org
 List-Id: linux-omap@vger.kernel.org
-To: "Mohammed, Afzal" <afzal@ti.com>
-Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
 
-Hi
+Hi Jean,
 
-On Wed, 4 Apr 2012, Mohammed, Afzal wrote:
+>
+> The initial motivation is to provide a generic framework for this type
+> of drivers, by cleaning up the current OMAP code and by providing as
+> much generic code as possible.
+>
+> Cf. the patch sets I submitted before this very one:
+> - the SR code clean-up [1], which is needed to make the code ready for
+> the integration of new features,
+> - the SR class support [2], which is needed for new SR classes to be
+> implemented.
+>
+>  From the maintainer point of view it made more sense to move the code
+> before cleaning it up and so it should happen before [1] and [2].
+> The result is that [1] and [2] will need to be rebased when the move
+> is accepted and merged in.
+>
+> [1] http://marc.info/?l=linux-omap&m=133055488908132&w=2
+> [2] http://marc.info/?l=linux-omap&m=133163445926544&w=2
 
-> Reverting merge commit
-> 
-> 58adb29 Merge branch 'io_chain_devel_3.4' of git://git.pwsan.com/linux-2.6 into prm
-> 
-> makes OMAP3EVM boot.
-> 
-> Bisecting into this merge could not be done as build was breaking
-> for most of the individual commits in the merge (except when
-> HEAD is the last commit of the merge, as below).
+I am going through your patches and including some wiki pages. I 
+understand the SR can be connected in two ways - intelligent and dumb :)
+For intelligent I mean you just configure SR and it will and program 
+PMIC, whereas in dumb scenarios application processor gets the 
+notification and then it goes and writes into PMIC based on some 
+floor/ceiling values. In the first case not much of apps. s/w but in the 
+later case whole lot.
 
-I just rebased this series on top of v3.4-rc1 and built each patch in it 
-successfully, so it sounds like there's some bisection-specific build 
-problem?
+>
+>>>
+>>> Where will you put that otherwise?
+>>
+>>
+>> Couple of suggestions:
+>>
+>> drivers/platform/omap/avs?
+>> drivers/misc/omap/avs?
+>>
+>> I prefer first one.
+> Those paths are for OMAP specific code and not for a generic framework.
+>
+>>>
+>>> IIRC, David Brownell was referring to the rule of three for such case.
+>>> Meaning that it worth having a generic fmwk when at least three
+>>> different drivers are doing the same kind of things.
+>
+> Do OMAP v1 and OMAP v2 implementations count as 2 drivers? ;-)
+> More seriously, the OMAP code for SmartReflex is far from complete in
+> mainline. There is a plan to provide the following features:
+> - OMAP v1 IP,
+> - OMAP v2 IP,
+> - class 1.5,
+> - class 3,
+> - class 3.5,
+> - and more support for the upcoming chipsets.
 
-As far as the crashes go, I don't think I have an OMAP3EVM, but I'll take 
-a look here on the OMAP35xx boards that I do have.
+I don't understand much of these versions right now, but hopefully after 
+going through all these docs. My only contention point is to not create 
+any directory into the drivers/power, unless it is generic fwk and then 
+build up "client" drivers on top of it. Meanwhile we could move this 
+driver into above options as I have suggested.
 
-Could you try booting with initcall_debug and posting the boot log?
+---Trilok Soni
 
-
-- Paul
+-- 
+--
+Sent by a consultant of the Qualcomm Innovation Center, Inc.
+The Qualcomm Innovation Center, Inc. is a member of the Code Aurora Forum.
