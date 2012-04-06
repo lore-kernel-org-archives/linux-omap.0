@@ -1,60 +1,58 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: Re: OMAP3EVM not booting on l-o master
-Date: Fri, 6 Apr 2012 11:24:36 -0700
-Message-ID: <20120406182435.GD15734@atomide.com>
-References: <C8443D0743D26F4388EA172BF4E2A7A9317C3B18@DBDE01.ent.ti.com>
- <alpine.DEB.2.00.1204050330380.10302@utopia.booyaka.com>
- <C8443D0743D26F4388EA172BF4E2A7A9317C47AD@DBDE01.ent.ti.com>
- <alpine.DEB.2.00.1204050414570.10302@utopia.booyaka.com>
- <CAMrsUdJV_JVmqqyR7fpX+efOr9Z43oZX0FkJN5Q7-f2YkFFvJQ@mail.gmail.com>
- <C8443D0743D26F4388EA172BF4E2A7A9317C4B2B@DBDE01.ent.ti.com>
- <20120405171653.GD3785@atomide.com>
- <C8443D0743D26F4388EA172BF4E2A7A9317C5D65@DBDE01.ent.ti.com>
- <20120406174129.GA15734@atomide.com>
- <alpine.DEB.2.00.1204061159100.11100@utopia.booyaka.com>
+From: Andrew Morton <akpm@linux-foundation.org>
+Subject: Re: [rtc-linux] [PATCH] RTC: twl6030: correct usage of static
+ register while reading time
+Date: Fri, 6 Apr 2012 12:19:34 -0700
+Message-ID: <20120406121934.0d6d3ffc.akpm@linux-foundation.org>
+References: <1332970441-3495-1-git-send-email-nm@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-01-ewr.mailhop.org ([204.13.248.71]:37413 "EHLO
-	mho-01-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753958Ab2DFSYj (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 6 Apr 2012 14:24:39 -0400
-Content-Disposition: inline
-In-Reply-To: <alpine.DEB.2.00.1204061159100.11100@utopia.booyaka.com>
+Received: from mail.linuxfoundation.org ([140.211.169.12]:36743 "EHLO
+	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752582Ab2DFTTg (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 6 Apr 2012 15:19:36 -0400
+In-Reply-To: <1332970441-3495-1-git-send-email-nm@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Paul Walmsley <paul@pwsan.com>
-Cc: "Mohammed, Afzal" <afzal@ti.com>, "R, Govindraj" <govindraj.raja@ti.com>, khilman@ti.com, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
+To: rtc-linux@googlegroups.com
+Cc: Nishanth Menon <nm@ti.com>, Konstantin Shlyakhovoy <x0155534@ti.com>, Alessandro Zummo <a.zummo@towertech.it>, Benoit Cousson <b-cousson@ti.com>, linux-omap <linux-omap@vger.kernel.org>
 
-* Paul Walmsley <paul@pwsan.com> [120406 11:11]:
-> cc Kevin
+On Wed, 28 Mar 2012 16:34:01 -0500
+Nishanth Menon <nm@ti.com> wrote:
+
+> From: Konstantin Shlyakhovoy <x0155534@ti.com>
 > 
-> On Fri, 6 Apr 2012, Tony Lindgren wrote:
+> RTC stores time and date in several registers. Due to the fact that
+> these registers can't be read instantaneously, there is a chance
+> that reading from counting registers gives an error of one minute,
+> one hour, one day, etc.
 > 
-> > So something in Paul's series is changing the interrupt
-> > behaviour somehow?
+> To address this issue, the RTC has hardware support to copy the
+> RTC counting registers to static shadowed registers.
+> The current implementation does not use this feature, and in a
+> stress test,  we can reproduce this error at a rate of around
+> two times per 300000 readings.
 > 
-> Am wondering if this might be due to the kernel not clearing some 
-> bootloader mux settings?
-> 
-> Perhaps the bootloader is configuring the mux hardware for I/O wakeups on 
-> a pad, but the kernel is missing an mux IRQ handler or mapping for it. Or 
-> maybe one of the kernel mux entries is missing the OMAP_WAKEUP_EN or 
-> OMAP_DEVICE_PAD_WAKEUP flags for a pad that the bootloader is configuring 
-> - I seem to recall that Kevin found some problems here with the 
-> mach-omap2/serial.c mux code.  Anyway, will create a patch to add some 
-> debugging here for Afzal to try.
+> Fix the implementation to ensure that the right snapshot of time
+> is captured.
 
-That's easy to check from dumping out the mux status from
-/sys/kernel/debug/omap_mux/* entries after booting with a working
-kernel.
- 
-> Also,it seems to me that when the mux layer starts, the code should 
-> probably clear out all of the I/O wakeup configuration in the hardware 
-> that the bootloader set up.
+hey, nice changelog!
 
-Yes that sounds right.
+Please cc me on rtc patches - I tend to be a bit slow reading the
+rtc-linux list.
 
-Regards,
+> Cc: Alessandro Zummo <a.zummo@towertech.it>
+> Cc: Benoit Cousson <b-cousson@ti.com>
+> Cc: linux-omap <linux-omap@vger.kernel.org>
+> Acked-by: Mykola Oleksiienko <x0174904@ti.com>
+> Acked-by: Oleksandr Dmytryshyn <oleksandr.dmytryshyn@ti.com>
+> Acked-by: Graeme Gregory <gg@slimlogic.co.uk>
+> Acked-by: Nishanth Menon <nm@ti.com>
+> Signed-off-by: Konstantin Shlyakhovoy <x0155534@ti.com>
 
-Tony
+I rewrote your acked-by to Signed-off-by, because you were on the
+delivery path of the patch. Documentation/SubmittingPatches has details.
+
+Is this OK?
+
