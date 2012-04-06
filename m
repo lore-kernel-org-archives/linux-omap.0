@@ -1,72 +1,80 @@
-From: Kevin Hilman <khilman@ti.com>
-Subject: Re: [PATCH 1/3] ARM: OMAP2+: 32k-counter: Use hwmod lookup to	check presence of 32k timer
-Date: Fri, 06 Apr 2012 14:18:47 -0700
-Message-ID: <874nswftjc.fsf@ti.com>
-References: <CACVXFVPbU2OqTN=S0AZCD10KuSBYxqyyRH_xee+WTaCD6VSmMQ@mail.gmail.com>
-	<CAMQu2gzuQ-q+3RHsW0=U305jCF-td5-PEXkGZ6WnQTqA1K8oAQ@mail.gmail.com>
-	<CACVXFVPu1GEQy+sCgXMB8JCszPBBs8zHRVm94TYb1-y2afkqgw@mail.gmail.com>
-	<CAMQu2gwuRpZ133962r3N4Y4K3oQ88ySa=SyoS6v=sSHGA=SGKw@mail.gmail.com>
-	<CACVXFVMjSPhF_+CfbF2vD5ts+WtZGjofEWmknB0D1OpTM7geZw@mail.gmail.com>
-	<CAMQu2gyEUhDyyng+_oC5NpXHzWMaTGsnCSTTZcMUi2pLV0z8RQ@mail.gmail.com>
-	<87sjgmt211.fsf@ti.com>
-	<79CD15C6BA57404B839C016229A409A8318461E8@DBDE01.ent.ti.com>
-	<CAMQu2gxuFsovKTPK8wFOO8vMeiyMFnTqNDRZYgAcCsVWytpOTA@mail.gmail.com>
-	<79CD15C6BA57404B839C016229A409A83184846A@DBDE01.ent.ti.com>
-	<20120405095221.GC25053@n2100.arm.linux.org.uk>
-	<79CD15C6BA57404B839C016229A409A831848621@DBDE01.ent.ti.com>
-	<87hawxkgoi.fsf@ti.com>
-	<79CD15C6BA57404B839C016229A409A831849432@DBDE01.ent.ti.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+From: Grazvydas Ignotas <notasas@gmail.com>
+Subject: [PATCH] ARM: OMAP: sram: fix BUG in dpll code for !PM case
+Date: Sat,  7 Apr 2012 00:53:21 +0300
+Message-ID: <1333749201-23255-1-git-send-email-notasas@gmail.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aog105.obsmtp.com ([74.125.149.75]:45261 "EHLO
-	na3sys009aog105.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753510Ab2DFVSr (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 6 Apr 2012 17:18:47 -0400
-Received: by pbcun4 with SMTP id un4so3016256pbc.8
-        for <linux-omap@vger.kernel.org>; Fri, 06 Apr 2012 14:18:46 -0700 (PDT)
-In-Reply-To: <79CD15C6BA57404B839C016229A409A831849432@DBDE01.ent.ti.com>
-	(Vaibhav Hiremath's message of "Fri, 6 Apr 2012 05:21:52 +0000")
+Received: from mail-we0-f174.google.com ([74.125.82.174]:33607 "EHLO
+	mail-we0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752650Ab2DFVx2 (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 6 Apr 2012 17:53:28 -0400
+Received: by wejx9 with SMTP id x9so1663326wej.19
+        for <linux-omap@vger.kernel.org>; Fri, 06 Apr 2012 14:53:27 -0700 (PDT)
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "Hiremath, Vaibhav" <hvaibhav@ti.com>
-Cc: Russell King - ARM Linux <linux@arm.linux.org.uk>, "Shilimkar, Santosh" <santosh.shilimkar@ti.com>, Ming Lei <tom.leiming@gmail.com>, Tony Lindgren <tony@atomide.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, "marc.zyngier@arm.com" <marc.zyngier@arm.com>, "johnstul@us.ibm.com" <johnstul@us.ibm.com>, "Balbi, Felipe" <balbi@ti.com>, "Cousson, Benoit" <b-cousson@ti.com>, Paul Walmsley <paul@pwsan.com>, "DebBarma, Tarun Kanti" <tarun.kanti@ti.com>
+To: linux-omap@vger.kernel.org
+Cc: linux-arm-kernel@lists.infradead.org, Tony Lindgren <tony@atomide.com>, Grazvydas Ignotas <notasas@gmail.com>
 
-"Hiremath, Vaibhav" <hvaibhav@ti.com> writes:
+_omap3_sram_configure_core_dpll is called when SDRC is reprogrammed,
+which is done regardless of CONFIG_PM setting, so we always need it's
+setup code too. Without this, we hit a BUG() on OMAP3 when kernel is
+built without CONFIG_PM:
 
-[...]
+Reprogramming SDRC clock to 332000000 Hz
+------------[ cut here ]------------
+kernel BUG at arch/arm/plat-omap/sram.c:342!
+Internal error: Oops - BUG: 0 [#1] ARM
+...
+[<c001c694>] (omap3_configure_core_dpll+0x68/0x6c) from [<c001b2dc>] (omap3_core_dpll_m2_set_rate+0x1)
+[<c001b2dc>] (omap3_core_dpll_m2_set_rate+0x138/0x1b0) from [<c001a478>] (omap2_clk_set_rate+0x14/0x2)
+[<c001a478>] (omap2_clk_set_rate+0x14/0x20) from [<c001c9dc>] (clk_set_rate+0x54/0x74)
+[<c001c9dc>] (clk_set_rate+0x54/0x74) from [<c022b9c8>] (omap_sdrc_init+0x70/0x90)
+[<c022b9c8>] (omap_sdrc_init+0x70/0x90) from [<c022f178>] (omap3pandora_init+0x11c/0x164)
+[<c022f178>] (omap3pandora_init+0x11c/0x164) from [<c022849c>] (customize_machine+0x20/0x28)
+[<c022849c>] (customize_machine+0x20/0x28) from [<c0225810>] (do_one_initcall+0xa0/0x16c)
+[<c0225810>] (do_one_initcall+0xa0/0x16c) from [<c02259e0>] (kernel_init+0x104/0x1ac)
+[<c02259e0>] (kernel_init+0x104/0x1ac) from [<c0009cec>] (kernel_thread_exit+0x0/0x8)
 
-> I liked Santosh's idea in using command line argument "clocksource=" and 
-> make decision based on this. I have implemented it and tried it on both
-> OMAP3EVM and beaglebone and it works great.
->
-> I have introduced something like this in mach-omap2/timer.c,
->
-> static int __init omap2_override_clocksource(char* str)
-> {
-> 	if (!str)
-> 		return 0;
-> 	/*
-> 	 * For OMAP architecture, we only have two options
-> 	 *    - sync_32k (default)
-> 	 *    - gp timer
-> 	 */
-> 	if (!strcmp(str, "gp timer"))
-> 		use_gptimer_clksrc = true;
->
-> 	return 0;
-> }
-> early_param("clocksource", omap2_override_clocksource);
+Signed-off-by: Grazvydas Ignotas <notasas@gmail.com>
+---
+ arch/arm/plat-omap/sram.c |   12 ++++++------
+ 1 files changed, 6 insertions(+), 6 deletions(-)
 
-How does this interact with the existing clocksource cmdline parameter
-already in kernel/time/clocksource.c? (c.f. boot_override_clocksource()) 
-
-IMO, this duplicates that functionality but less elegantly.
-
-What should happen is to let clocksource selection happen normally
-(based on presence or lack of HW, or cmdline override.)  Once that has
-happened, you can then setup_sched_clock() with parameters from querying
-the clocksource itself.
-
-Kevin
+diff --git a/arch/arm/plat-omap/sram.c b/arch/arm/plat-omap/sram.c
+index eec98af..f9a8c53 100644
+--- a/arch/arm/plat-omap/sram.c
++++ b/arch/arm/plat-omap/sram.c
+@@ -348,7 +348,6 @@ u32 omap3_configure_core_dpll(u32 m2, u32 unlock_dll, u32 f, u32 inc,
+ 			sdrc_actim_ctrl_b_1, sdrc_mr_1);
+ }
+ 
+-#ifdef CONFIG_PM
+ void omap3_sram_restore_context(void)
+ {
+ 	omap_sram_ceil = omap_sram_base + omap_sram_size;
+@@ -358,17 +357,18 @@ void omap3_sram_restore_context(void)
+ 			       omap3_sram_configure_core_dpll_sz);
+ 	omap_push_sram_idle();
+ }
+-#endif /* CONFIG_PM */
+-
+-#endif /* CONFIG_ARCH_OMAP3 */
+ 
+ static inline int omap34xx_sram_init(void)
+ {
+-#if defined(CONFIG_ARCH_OMAP3) && defined(CONFIG_PM)
+ 	omap3_sram_restore_context();
+-#endif
+ 	return 0;
+ }
++#else
++static inline int omap34xx_sram_init(void)
++{
++	return 0;
++}
++#endif /* CONFIG_ARCH_OMAP3 */
+ 
+ static inline int am33xx_sram_init(void)
+ {
+-- 
+1.7.0.4
 
