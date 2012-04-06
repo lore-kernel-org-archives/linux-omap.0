@@ -1,117 +1,103 @@
-From: "Hiremath, Vaibhav" <hvaibhav@ti.com>
-Subject: RE: [PATCH 1/3] ARM: OMAP2+: 32k-counter: Use hwmod lookup to	check
- presence of 32k timer
-Date: Fri, 6 Apr 2012 05:21:52 +0000
-Message-ID: <79CD15C6BA57404B839C016229A409A831849432@DBDE01.ent.ti.com>
-References: <CACVXFVPbU2OqTN=S0AZCD10KuSBYxqyyRH_xee+WTaCD6VSmMQ@mail.gmail.com>
-	<CAMQu2gzuQ-q+3RHsW0=U305jCF-td5-PEXkGZ6WnQTqA1K8oAQ@mail.gmail.com>
-	<CACVXFVPu1GEQy+sCgXMB8JCszPBBs8zHRVm94TYb1-y2afkqgw@mail.gmail.com>
-	<CAMQu2gwuRpZ133962r3N4Y4K3oQ88ySa=SyoS6v=sSHGA=SGKw@mail.gmail.com>
-	<CACVXFVMjSPhF_+CfbF2vD5ts+WtZGjofEWmknB0D1OpTM7geZw@mail.gmail.com>
-	<CAMQu2gyEUhDyyng+_oC5NpXHzWMaTGsnCSTTZcMUi2pLV0z8RQ@mail.gmail.com>
-	<87sjgmt211.fsf@ti.com>
-	<79CD15C6BA57404B839C016229A409A8318461E8@DBDE01.ent.ti.com>
-	<CAMQu2gxuFsovKTPK8wFOO8vMeiyMFnTqNDRZYgAcCsVWytpOTA@mail.gmail.com>
-	<79CD15C6BA57404B839C016229A409A83184846A@DBDE01.ent.ti.com>
-	<20120405095221.GC25053@n2100.arm.linux.org.uk>
-	<79CD15C6BA57404B839C016229A409A831848621@DBDE01.ent.ti.com>
- <87hawxkgoi.fsf@ti.com>
+From: "Raja, Govindraj" <govindraj.raja@ti.com>
+Subject: Re: [RESEND PATCH] ARM :OMAP2+: UART: Remove some of uart default pads
+Date: Fri, 6 Apr 2012 11:35:27 +0530
+Message-ID: <CAMrsUdJEY2o2CWjzSg5dabVEkpk48O5njtDU55Z3Jq2vViNJgQ@mail.gmail.com>
+References: <1332324149-16058-1-git-send-email-govindraj.raja@ti.com>
+ <20120403181925.GH8240@atomide.com> <CAMrsUdLrpyGrhggi820WcR+DoHJVB8GQ1THUOO-C4LqUQtAxWQ@mail.gmail.com>
+ <20120405165811.GB3785@atomide.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from devils.ext.ti.com ([198.47.26.153]:54516 "EHLO
-	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752019Ab2DFFWQ convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 6 Apr 2012 01:22:16 -0400
-In-Reply-To: <87hawxkgoi.fsf@ti.com>
-Content-Language: en-US
+Received: from na3sys009aog104.obsmtp.com ([74.125.149.73]:42879 "EHLO
+	na3sys009aog104.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1752876Ab2DFGFt convert rfc822-to-8bit
+	(ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Fri, 6 Apr 2012 02:05:49 -0400
+Received: by obbuo13 with SMTP id uo13so3485823obb.34
+        for <linux-omap@vger.kernel.org>; Thu, 05 Apr 2012 23:05:47 -0700 (PDT)
+In-Reply-To: <20120405165811.GB3785@atomide.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "Hilman, Kevin" <khilman@ti.com>
-Cc: Russell King - ARM Linux <linux@arm.linux.org.uk>, "Shilimkar, Santosh" <santosh.shilimkar@ti.com>, Ming Lei <tom.leiming@gmail.com>, Tony Lindgren <tony@atomide.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, "marc.zyngier@arm.com" <marc.zyngier@arm.com>, "johnstul@us.ibm.com" <johnstul@us.ibm.com>, "Balbi, Felipe" <balbi@ti.com>, "Cousson, Benoit" <b-cousson@ti.com>, Paul Walmsley <paul@pwsan.com>, "DebBarma, Tarun Kanti" <tarun.kanti@ti.com>
+To: Tony Lindgren <tony@atomide.com>
+Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Felipe Balbi <balbi@ti.com>, Kevin Hilman <khilman@ti.com>
 
-On Fri, Apr 06, 2012 at 03:03:01, Hilman, Kevin wrote:
-> "Hiremath, Vaibhav" <hvaibhav@ti.com> writes:
-> 
-> > On Thu, Apr 05, 2012 at 15:22:21, Russell King - ARM Linux wrote:
-> >> On Thu, Apr 05, 2012 at 09:36:00AM +0000, Hiremath, Vaibhav wrote:
-> >> > There seems to be limitation for ARM architecture, it is restricted by
-> >> > sched_clock implementation present in "arch/arm/kernel/sched_clock.c".
-> >> > Natively, clocksource framework does support change in rate/frequency for
-> >> > registered timer, using,
-> >> 
-> >> Any kind of switching of timing sources introduces loss of time issues
-> >> by the mere fact that you can't instantly know the counter values of
-> >> both timing sources at precisely the same instant - because CPUs can
-> >> only do one thing at a time.  So any kind of repeated dynamic switching
-> >> _will_ result in a gradual loss of time - which will be indeterminant
-> >> as it depends on the frequency of the switching and the relative delta
-> >> between the two.
-> >> 
-> >> To put it another way - it is not possible to maintain high precision
-> >> and accuracy while dynamically switching your timing sources.
-> >> 
-> >> I'm not about to lift the restriction that there's only one source for
-> >> sched_clock() just for OMAP.  That'd require a lot of additional code -
-> >> it's not just about adjusting the multiplier and shift, you also have to
-> >> correct the returned ns value as well, which means synchronizing against
-> >> two counters.  (And as I've pointed out above, that's impossible to do
-> >> accurately.)
-> >> 
-> >
-> > Thanks a ton Russell for confirming on this,
-> >
-> > I understand, we also have to adjust ns value and such confirmation is what exactly I was looking for.
-> >
-> > So this means, we have to use compile time option, as existing
-> > implementation in "arch/arm/mach-omap2/timer.c".
-> 
-> Not exactly.  A compile time option isn't (yet) the only option.
-> 
-> Russell points out the various problems with dynamic switching of
-> clocksources, which is true.  However, we're not trying to dynamically
-> switch clocksources.
-> 
-> What we need is only one-time selection at boot based on presence (or
-> not) of various timers.  IOW, we still only ever need to call
-> setup_sched_clock() once based on which HW timers are available.
-> 
-> Why not just delay the setup_sched_clock() until the clocksource is
-> decided?
-> 
+On Thu, Apr 5, 2012 at 10:28 PM, Tony Lindgren <tony@atomide.com> wrote=
+:
+> * Raja, Govindraj <govindraj.raja@ti.com> [120403 23:18]:
+>> On Tue, Apr 3, 2012 at 11:49 PM, Tony Lindgren <tony@atomide.com> wr=
+ote:
+>> > * Govindraj.R <govindraj.raja@ti.com> [120321 03:06]:
+>> >> From: "Govindraj.R" <govindraj.raja@ti.com>
+>> >>
+>> >> The following commit:
+>> >> (7496ba3 =A0ARM: OMAP2+: UART: Add default mux for all uarts)
+>> >> added default pads for all uarts. But not all boards tend to
+>> >> use all uarts and most of unused uart pins are muxed for
+>> >> other purpose. This commit breaks the modules which where trying
+>> >> to use unused uart pins on their boards.
+>> >>
+>> >> So remove all default pads except uart1/3 as most boards
+>> >> tend to use either uart1/3 as console port and use only tx/rx
+>> >> lines, declare only those pads for uart1/3.
+>> >> If any boards tend to use any other uart other uart1/3
+>> >> the mux data should to passed from board file and init individual
+>> >> uart port using omap_serial_init_port api.
+>> >
+>> > This is still wrong. We can't mux any serial pins unless specifica=
+lly
+>> > requested from the board-*.c files. So please do a fix to get back=
+ to
+>> > v3.2 behaviour where you basically revert 7496ba3.
+>>
+>> How to do we fix the rx pin wakeup capability?
+>> The mux data has the info about the rx pin wakeup
+>>
+>> Without rx pin wakeup PM will be broken.
+>
+> Let's first make things work reliably before even getting started
+> about PM being broken.
+>
 
-Kevin,
+okay.
 
-I liked Santosh's idea in using command line argument "clocksource=" and 
-make decision based on this. I have implemented it and tried it on both
-OMAP3EVM and beaglebone and it works great.
+>> Fix all board files with duplicated data for uart3 or
+>> uart1 having rx pin marked as wakeup capable?
+>
+> And how do you know which pins to mux? You don't, unless you look
+> at the schematics for all the boards.
+>
 
-I have introduced something like this in mach-omap2/timer.c,
-
-static int __init omap2_override_clocksource(char* str)
-{
-	if (!str)
-		return 0;
-	/*
-	 * For OMAP architecture, we only have two options
-	 *    - sync_32k (default)
-	 *    - gp timer
-	 */
-	if (!strcmp(str, "gp timer"))
-		use_gptimer_clksrc = true;
-
-	return 0;
-}
-early_param("clocksource", omap2_override_clocksource);
+agree even I am not sure of uarts used for console on all boards
 
 
-It solves all issues what we have been trying address.
+> The only safe option without looking at the schematics is to
+> make omap_serial_init not do any muxing. If you want muxing and
+> PM wake-up events, then use omap_serial_init_port for those ports
+> with board specific pins.
 
+okay.
+
+>
+>> Behavior in v3.2 was raw_write to all uarts rx_pin to enable wakeup
+>> enable bit.
+>
+> Hmm I don't think any muxing was done automatically unless
+> omap_serial_init_port was being called with pins.
+
+Muxing was happening even if we don't call omap_serial_init_port
+rx pin was muxed for wakeup capability for all uart pins
+
+omap_uart_idle_init =3D> was populating padconf offset value for ech ua=
+rt
+which was used in omap_uart_enable/disable_wakeup functions.
+This mechanism was keeping PM happening for all boards.
+
+--
 Thanks,
-
-Vaibhav
-
-> Kevin
-> 
-
+Govindraj.R
+--
+To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
