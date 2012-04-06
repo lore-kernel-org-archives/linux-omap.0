@@ -1,31 +1,37 @@
 From: Paul Walmsley <paul@pwsan.com>
-Subject: Re: [GIT PULL] ARM: OMAP: clock, powerdomain, clockdomain, hwmod
- fixes for early v3.4-rc (misc_devel_3.4 patches dropped)
-Date: Fri, 6 Apr 2012 01:10:46 -0600 (MDT)
-Message-ID: <alpine.DEB.2.00.1204060110140.10302@utopia.booyaka.com>
-References: <alpine.DEB.2.00.1204050339510.10302@utopia.booyaka.com> <20120405224658.GI3785@atomide.com> <CAOesGMjnKzA=BMPVHw0Jtsr2Lz+_ggAihaAyyVO3hWifUPd8Kw@mail.gmail.com>
+Subject: RE: OMAP3EVM not booting on l-o master
+Date: Fri, 6 Apr 2012 01:13:06 -0600 (MDT)
+Message-ID: <alpine.DEB.2.00.1204060111400.10302@utopia.booyaka.com>
+References: <C8443D0743D26F4388EA172BF4E2A7A9317C3A03@DBDE01.ent.ti.com> <C8443D0743D26F4388EA172BF4E2A7A9317C3B18@DBDE01.ent.ti.com> <alpine.DEB.2.00.1204050330380.10302@utopia.booyaka.com> <alpine.DEB.2.00.1204050403460.10302@utopia.booyaka.com>
+ <C8443D0743D26F4388EA172BF4E2A7A9317C4B44@DBDE01.ent.ti.com> <alpine.DEB.2.00.1204051303000.10302@utopia.booyaka.com> <C8443D0743D26F4388EA172BF4E2A7A9317C5DB6@DBDE01.ent.ti.com>
 Mime-Version: 1.0
 Content-Type: TEXT/PLAIN; charset=US-ASCII
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from utopia.booyaka.com ([72.9.107.138]:48939 "EHLO
+Received: from utopia.booyaka.com ([72.9.107.138]:48954 "EHLO
 	utopia.booyaka.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752484Ab2DFHKr (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 6 Apr 2012 03:10:47 -0400
-In-Reply-To: <CAOesGMjnKzA=BMPVHw0Jtsr2Lz+_ggAihaAyyVO3hWifUPd8Kw@mail.gmail.com>
+	with ESMTP id S1752484Ab2DFHNH (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 6 Apr 2012 03:13:07 -0400
+In-Reply-To: <C8443D0743D26F4388EA172BF4E2A7A9317C5DB6@DBDE01.ent.ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Olof Johansson <olof@lixom.net>
-Cc: Tony Lindgren <tony@atomide.com>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Arnd Bergmann <arnd@arndb.de>
+To: "Mohammed, Afzal" <afzal@ti.com>
+Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
 
-On Thu, 5 Apr 2012, Olof Johansson wrote:
+On Fri, 6 Apr 2012, Mohammed, Afzal wrote:
 
-> Paul, thanks for using a signed tag with an overview. There's no need
-> to list the changes in the signed tag though -- "git pull --log" will
-> include them in the merge commit instead. In general Linus tends to
-> not like seeing redundant info in the tag text that can be derived
-> from the branch contents instead.
+> On Fri, Apr 06, 2012 at 01:22:20, Paul Walmsley wrote:
+> > http://git.kernel.org/?p=linux/kernel/git/pjw/omap-devel.git;a=summary
+> > 
+> > If you open it in your web browser, it shows http and https URLs for the 
+> > tree that you should be able to pull from.  You'll want the 
+> > "io_chain_devel_3.5" branch.
+> 
+> OMAP3EVM does not boot with this branch, hung at the same point.
 
-Thanks -- will skip adding those in future pull requests.
+Okay, thanks for the test.  Based on your other message, it indeed sounds 
+like a mux problem.
 
+Perhaps you might be willing to add some debugging to omap_mux_late_init() 
+to find out what part of that function is causing it to hang?
 
 - Paul
