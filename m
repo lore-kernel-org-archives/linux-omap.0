@@ -1,249 +1,67 @@
-From: Shubhrajyoti <shubhrajyoti@ti.com>
-Subject: Re: [PATCH RESEND] Input: omap-keypad: dynamically handle register
- offsets
-Date: Fri, 06 Apr 2012 18:56:41 +0530
-Message-ID: <4F7EEF11.7050200@ti.com>
-References: <1333430546-23454-1-git-send-email-sourav.poddar@ti.com>
+From: Kevin Hilman <khilman@ti.com>
+Subject: Re: Suspend broken on 3.3?
+Date: Fri, 06 Apr 2012 07:21:28 -0700
+Message-ID: <87iphdeyaf.fsf@ti.com>
+References: <WC20120329112755.541787@terrafix.co.uk>
+	<WC20120329114024.43178C@terrafix.co.uk>
+	<CAMrsUdKR4nwbBEOx9JPeS=GLDPyioHuijK2596=q2OwJ+ARbxA@mail.gmail.com>
+	<WC20120330075339.4017FC@terrafix.co.uk>
+	<CAMrsUdKTx84_oHyS9JTCBTqtV-7907snCGFDrOXnPuNVSnvz7w@mail.gmail.com>
+	<WC20120330092609.901834@terrafix.co.uk>
+	<CAMrsUdJrJZXjYOs87xmT_J0w7S=VZyfR0tBmhhuYOFmFsOB3SA@mail.gmail.com>
+	<WC20120330110442.381887@terrafix.co.uk>
+	<CAMrsUd+AvVp3n1oAREEEmCSBaeA-m68j7gLjXEeJKimX1erfUw@mail.gmail.com>
+	<CAMrsUd+K_EwXfypgYWNyAhR7b47avTpWDemS87OTkpH81cJ6Aw@mail.gmail.com>
+	<alpine.DEB.2.00.1204040852460.8000@utopia.booyaka.com>
+	<CAMrsUd+WZcUvHGdR4WyF4uh35D17K9DXFAqpLHKBUbL1_5viDA@mail.gmail.com>
+	<alpine.DEB.2.00.1204051812320.10302@utopia.booyaka.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aog137.obsmtp.com ([74.125.149.18]:44017 "EHLO
-	psmtp.com" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
-	id S1754921Ab2DFN0v (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Fri, 6 Apr 2012 09:26:51 -0400
-Received: by pbcup15 with SMTP id up15so2438792pbc.28
-        for <linux-omap@vger.kernel.org>; Fri, 06 Apr 2012 06:26:50 -0700 (PDT)
-In-Reply-To: <1333430546-23454-1-git-send-email-sourav.poddar@ti.com>
+Received: from na3sys009aog102.obsmtp.com ([74.125.149.69]:34700 "EHLO
+	na3sys009aog102.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1753916Ab2DFOVa (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 6 Apr 2012 10:21:30 -0400
+Received: by pbcup15 with SMTP id up15so3184718pbc.14
+        for <linux-omap@vger.kernel.org>; Fri, 06 Apr 2012 07:21:29 -0700 (PDT)
+In-Reply-To: <alpine.DEB.2.00.1204051812320.10302@utopia.booyaka.com> (Paul
+	Walmsley's message of "Thu, 5 Apr 2012 18:29:42 -0600 (MDT)")
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Sourav Poddar <sourav.poddar@ti.com>
-Cc: dmitry.torokhov@gmail.com, linux-input@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org, balbi@ti.com
+To: Paul Walmsley <paul@pwsan.com>
+Cc: "Raja, Govindraj" <govindraj.raja@ti.com>, Joe Woodward <jw@terrafix.co.uk>, linux-omap@vger.kernel.org, Felipe Balbi <balbi@ti.com>, neilb@suse.de
 
- Hi Sourav,
-Some suggestions/ doubts.
+Paul Walmsley <paul@pwsan.com> writes:
 
-On Tuesday 03 April 2012 10:52 AM, Sourav Poddar wrote:
-> From: G, Manjunath Kondaiah <manjugk@ti.com>
+> On Wed, 4 Apr 2012, Raja, Govindraj wrote:
 >
-> Keypad controller register offsets are different for omap4
-> and omap5. Handle these offsets through static mapping and
-> assign these mappings during run time.
+>> On Wed, Apr 4, 2012 at 8:26 PM, Paul Walmsley <paul@pwsan.com> wrote:
+>> > On Mon, 2 Apr 2012, Raja, Govindraj wrote:
+>> >
+>> >> As of now what I can think of is to update qos reqest to prevent MPU
+>> >> from transitioning in case of port activity if wakeup capability for port
+>> >> is disabled.
+>> >
+>> > Haven't been following this thread closely, but this doesn't seem right.
+>> > Why would changing the UART driver's ability to wake from suspend via the
+>> > sysfs file prevent the driver from using hardware wakeups to wake from
+>> > dynamic idle?
+>> 
+>> 
+>> IIUC wakeup capability is needed in suspend path or in cpu idle path.
+>> 
+>> once uart wakeup capability is disabled from sysfs the Module level 
+>> wakeup from PM_WKEN1 reg on omap3 and pad wakeup from pin mux data given 
+>> will be disabled..
 >
-> Signed-off-by: Felipe Balbi <balbi@ti.com>
-> Signed-off-by: G, Manjunath Kondaiah <manjugk@ti.com>
-> Signed-off-by: Sourav Poddar <sourav.poddar@ti.com>
-> ---
-> Test Info
->  - Tested on omap4 sdp with 3.4-rc1
->  - Tested on omap5430evm with 3.1 custom kernel.
->  drivers/input/keyboard/Kconfig        |    6 +-
->  drivers/input/keyboard/omap4-keypad.c |  120 ++++++++++++++++++++++++++------
->  2 files changed, 100 insertions(+), 26 deletions(-)
->
-> diff --git a/drivers/input/keyboard/Kconfig b/drivers/input/keyboard/Kconfig
-> index f354813..9a0e1a9 100644
-> --- a/drivers/input/keyboard/Kconfig
-> +++ b/drivers/input/keyboard/Kconfig
-> @@ -511,10 +511,10 @@ config KEYBOARD_OMAP
->  	  To compile this driver as a module, choose M here: the
->  	  module will be called omap-keypad.
->  
-> -config KEYBOARD_OMAP4
-> -	tristate "TI OMAP4 keypad support"
-> +config KEYBOARD_OMAP4+
-> +	tristate "TI OMAP4+ keypad support"
->  	help
-> -	  Say Y here if you want to use the OMAP4 keypad.
-> +	  Say Y here if you want to use the OMAP4+ keypad.
->  
->  	  To compile this driver as a module, choose M here: the
->  	  module will be called omap4-keypad.
-> diff --git a/drivers/input/keyboard/omap4-keypad.c b/drivers/input/keyboard/omap4-keypad.c
-> index e809ac0..742e1e3 100644
-> --- a/drivers/input/keyboard/omap4-keypad.c
-> +++ b/drivers/input/keyboard/omap4-keypad.c
-> @@ -68,6 +68,11 @@
->  
->  #define OMAP4_MASK_IRQSTATUSDISABLE	0xFFFF
->  
-> +enum {
-> +	KBD_REVISION_OMAP4 = 0,
-> +	KBD_REVISION_OMAP5,
-> +};
-> +
->  struct omap4_keypad {
->  	struct input_dev *input;
->  
-> @@ -76,11 +81,66 @@ struct omap4_keypad {
->  
->  	unsigned int rows;
->  	unsigned int cols;
-> +	unsigned int revision;
-> +	u32 irqstatus;
-> +	u32 irqenable;
->  	unsigned int row_shift;
->  	unsigned char key_state[8];
->  	unsigned short keymap[];
->  };
->  
-> +static int kbd_read_irqstatus(struct omap4_keypad *keypad_data, u32 offset)
-> +{
-> +	return __raw_readl(keypad_data->base + offset);
-> +}
-> +
-> +static int kbd_write_irqstatus(struct omap4_keypad *keypad_data,
-> +						u32 offset, u32 value)
-> +{
-> +	return __raw_writel(value, keypad_data->base + offset);
-> +}
-> +
-> +static int kbd_write_irqenable(struct omap4_keypad *keypad_data,
-> +						u32 offset, u32 value)
-> +{
-> +	return __raw_writel(value, keypad_data->base + offset);
-> +}
-The functions
+> As far as I know, that sysfs wakeup file is not meant to disable 
+> all module-level wakeup.  Kevin can correct me if I'm wrong, but I think
+> it's only supposed to control wakeup from suspend.
 
-kbd_write_irqenable and kbd_write_irqstatus look identical.
-Could we optimise it? 
- 
-Feel free to ignore such trivial comments.
+In theory, sysfs control is meant for static suspend.  ISTR though that
+we were using it for idle as well so there weren't unncessary UART
+wakeups from idle on UART activity that was not serial console.
 
-> +
-> +static int kbd_readl(struct omap4_keypad *keypad_data, u32 offset)
-> +{
-> +	if (keypad_data->revision == KBD_REVISION_OMAP4)
-> +		return __raw_readl(keypad_data->base + offset);
-> +	else if (keypad_data->revision == KBD_REVISION_OMAP5)
-> +		return __raw_readl(keypad_data->base + offset + 0x10);
-> +
-> +	return -ENODEV;
-> +}
-> +
-> +static void kbd_writel(struct omap4_keypad *keypad_data, u32 offset, u32 value)
-> +{
-> +	if (keypad_data->revision == KBD_REVISION_OMAP4)
-> +		__raw_writel(value, keypad_data->base + offset);
-> +	else if (keypad_data->revision == KBD_REVISION_OMAP5)
-> +		__raw_writel(value, keypad_data->base + offset + 0x10);
-> +}
-> +
-> +static int kbd_read_revision(struct omap4_keypad *keypad_data, u32 offset)
-> +{
-> +	int reg;
-Can this be unsigned?
+Kevin
 
-> +	reg = __raw_readl(keypad_data->base + offset);
-> +	reg &= 0x03 << 30;
-> +	reg >>= 30;
-> +
-> +	switch (reg) {
-> +	case 1:
-> +		return KBD_REVISION_OMAP5;
-> +	case 0:
-> +		return KBD_REVISION_OMAP4;
-> +	default:
-> +		return -ENODEV;
-> +	}
-> +}
-> +
->  /* Interrupt handler */
->  static irqreturn_t omap4_keypad_interrupt(int irq, void *dev_id)
->  {
-> @@ -91,12 +151,11 @@ static irqreturn_t omap4_keypad_interrupt(int irq, void *dev_id)
->  	u32 *new_state = (u32 *) key_state;
->  
->  	/* Disable interrupts */
-> -	__raw_writel(OMAP4_VAL_IRQDISABLE,
-> -		     keypad_data->base + OMAP4_KBD_IRQENABLE);
-> +	kbd_write_irqenable(keypad_data, keypad_data->irqenable,
-> +			OMAP4_VAL_IRQDISABLE);
->  
-> -	*new_state = __raw_readl(keypad_data->base + OMAP4_KBD_FULLCODE31_0);
-> -	*(new_state + 1) = __raw_readl(keypad_data->base
-> -						+ OMAP4_KBD_FULLCODE63_32);
-> +	*new_state = kbd_readl(keypad_data, OMAP4_KBD_FULLCODE31_0);
-In the error case a negative value is returned.
-Could we prevent writing in that cases.
-> +	*(new_state + 1) = kbd_readl(keypad_data, OMAP4_KBD_FULLCODE63_32);
->  
->  	for (row = 0; row < keypad_data->rows; row++) {
->  		changed = key_state[row] ^ keypad_data->key_state[row];
-> @@ -121,12 +180,13 @@ static irqreturn_t omap4_keypad_interrupt(int irq, void *dev_id)
->  		sizeof(keypad_data->key_state));
->  
->  	/* clear pending interrupts */
-> -	__raw_writel(__raw_readl(keypad_data->base + OMAP4_KBD_IRQSTATUS),
-> -			keypad_data->base + OMAP4_KBD_IRQSTATUS);
-> +	kbd_write_irqstatus(keypad_data, keypad_data->irqstatus,
-> +		kbd_read_irqstatus(keypad_data, keypad_data->irqstatus));
->  
->  	/* enable interrupts */
-> -	__raw_writel(OMAP4_DEF_IRQENABLE_EVENTEN | OMAP4_DEF_IRQENABLE_LONGKEY,
-> -			keypad_data->base + OMAP4_KBD_IRQENABLE);
-> +	kbd_write_irqenable(keypad_data, keypad_data->irqenable,
-> +		OMAP4_DEF_IRQENABLE_EVENTEN |
-> +			OMAP4_DEF_IRQENABLE_LONGKEY);
->  
->  	return IRQ_HANDLED;
->  }
-> @@ -139,16 +199,30 @@ static int omap4_keypad_open(struct input_dev *input)
->  
->  	disable_irq(keypad_data->irq);
->  
-> -	__raw_writel(OMAP4_VAL_FUNCTIONALCFG,
-> -			keypad_data->base + OMAP4_KBD_CTRL);
-> -	__raw_writel(OMAP4_VAL_DEBOUNCINGTIME,
-> -			keypad_data->base + OMAP4_KBD_DEBOUNCINGTIME);
-> -	__raw_writel(OMAP4_VAL_IRQDISABLE,
-> -			keypad_data->base + OMAP4_KBD_IRQSTATUS);
-> -	__raw_writel(OMAP4_DEF_IRQENABLE_EVENTEN | OMAP4_DEF_IRQENABLE_LONGKEY,
-> -			keypad_data->base + OMAP4_KBD_IRQENABLE);
-> -	__raw_writel(OMAP4_DEF_WUP_EVENT_ENA | OMAP4_DEF_WUP_LONG_KEY_ENA,
-> -			keypad_data->base + OMAP4_KBD_WAKEUPENABLE);
-> +	keypad_data->revision = kbd_read_revision(keypad_data,
-> +			OMAP4_KBD_REVISION);
-> +	if (keypad_data->revision == KBD_REVISION_OMAP4) {
-> +		keypad_data->irqstatus = OMAP4_KBD_IRQSTATUS;
-> +		keypad_data->irqenable = OMAP4_KBD_IRQENABLE;
-> +	} else if (keypad_data->revision == KBD_REVISION_OMAP5) {
-> +		keypad_data->irqstatus = OMAP4_KBD_IRQSTATUS + 0x0c;
-> +		keypad_data->irqenable = OMAP4_KBD_IRQENABLE + 0x0c;
-> +	} else {
-> +		pr_err("Omap keypad not found\n");
-> +		return -ENODEV;
-> +	}
-> +
-> +	kbd_writel(keypad_data, OMAP4_KBD_CTRL,
-> +			OMAP4_VAL_FUNCTIONALCFG);
-> +	kbd_writel(keypad_data, OMAP4_KBD_DEBOUNCINGTIME,
-> +			OMAP4_VAL_DEBOUNCINGTIME);
-> +	kbd_write_irqstatus(keypad_data, keypad_data->irqstatus,
-> +			OMAP4_VAL_IRQDISABLE);
-> +	kbd_write_irqenable(keypad_data, keypad_data->irqenable,
-> +			OMAP4_DEF_IRQENABLE_EVENTEN |
-> +				OMAP4_DEF_IRQENABLE_LONGKEY);
-> +	kbd_writel(keypad_data, OMAP4_KBD_WAKEUPENABLE,
-> +			OMAP4_DEF_WUP_EVENT_ENA | OMAP4_DEF_WUP_LONG_KEY_ENA);
->  
->  	enable_irq(keypad_data->irq);
->  
-> @@ -162,12 +236,12 @@ static void omap4_keypad_close(struct input_dev *input)
->  	disable_irq(keypad_data->irq);
->  
->  	/* Disable interrupts */
-> -	__raw_writel(OMAP4_VAL_IRQDISABLE,
-> -		     keypad_data->base + OMAP4_KBD_IRQENABLE);
-> +	kbd_write_irqenable(keypad_data, keypad_data->irqenable,
-> +			OMAP4_VAL_IRQDISABLE);
->  
->  	/* clear pending interrupts */
-> -	__raw_writel(__raw_readl(keypad_data->base + OMAP4_KBD_IRQSTATUS),
-> -			keypad_data->base + OMAP4_KBD_IRQSTATUS);
-> +	kbd_write_irqstatus(keypad_data, keypad_data->irqstatus,
-> +		kbd_read_irqstatus(keypad_data, keypad_data->irqstatus));
->  
->  	enable_irq(keypad_data->irq);
->  
 
