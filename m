@@ -1,80 +1,99 @@
-From: Grazvydas Ignotas <notasas@gmail.com>
-Subject: [PATCH] ARM: OMAP: sram: fix BUG in dpll code for !PM case
-Date: Sat,  7 Apr 2012 00:53:21 +0300
-Message-ID: <1333749201-23255-1-git-send-email-notasas@gmail.com>
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-we0-f174.google.com ([74.125.82.174]:33607 "EHLO
-	mail-we0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752650Ab2DFVx2 (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 6 Apr 2012 17:53:28 -0400
-Received: by wejx9 with SMTP id x9so1663326wej.19
-        for <linux-omap@vger.kernel.org>; Fri, 06 Apr 2012 14:53:27 -0700 (PDT)
-Sender: linux-omap-owner@vger.kernel.org
+From: Andrew Morton <akpm@linux-foundation.org>
+Subject: Re: [PATCH 01/18] led-triggers: create a trigger for CPU activity
+Date: Fri, 6 Apr 2012 15:15:05 -0700
+Message-ID: <20120406151505.4eeb01ba.akpm@linux-foundation.org>
+References: <1333108713-12707-1-git-send-email-bryan.wu@canonical.com>
+	<1333108713-12707-2-git-send-email-bryan.wu@canonical.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <1333108713-12707-2-git-send-email-bryan.wu@canonical.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Bryan Wu <bryan.wu@canonical.com>
+Cc: tony@atomide.com, linux@arm.linux.org.uk, rpurdie@rpsys.net, manuel.lauss@gmail.com, cjb@laptop.org, cbou@mail.ru, dwmw2@infradead.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org, linus.walleij@linaro.org
 List-Id: linux-omap@vger.kernel.org
-To: linux-omap@vger.kernel.org
-Cc: linux-arm-kernel@lists.infradead.org, Tony Lindgren <tony@atomide.com>, Grazvydas Ignotas <notasas@gmail.com>
 
-_omap3_sram_configure_core_dpll is called when SDRC is reprogrammed,
-which is done regardless of CONFIG_PM setting, so we always need it's
-setup code too. Without this, we hit a BUG() on OMAP3 when kernel is
-built without CONFIG_PM:
+On Fri, 30 Mar 2012 19:58:16 +0800
+Bryan Wu <bryan.wu@canonical.com> wrote:
 
-Reprogramming SDRC clock to 332000000 Hz
-------------[ cut here ]------------
-kernel BUG at arch/arm/plat-omap/sram.c:342!
-Internal error: Oops - BUG: 0 [#1] ARM
-...
-[<c001c694>] (omap3_configure_core_dpll+0x68/0x6c) from [<c001b2dc>] (omap3_core_dpll_m2_set_rate+0x1)
-[<c001b2dc>] (omap3_core_dpll_m2_set_rate+0x138/0x1b0) from [<c001a478>] (omap2_clk_set_rate+0x14/0x2)
-[<c001a478>] (omap2_clk_set_rate+0x14/0x20) from [<c001c9dc>] (clk_set_rate+0x54/0x74)
-[<c001c9dc>] (clk_set_rate+0x54/0x74) from [<c022b9c8>] (omap_sdrc_init+0x70/0x90)
-[<c022b9c8>] (omap_sdrc_init+0x70/0x90) from [<c022f178>] (omap3pandora_init+0x11c/0x164)
-[<c022f178>] (omap3pandora_init+0x11c/0x164) from [<c022849c>] (customize_machine+0x20/0x28)
-[<c022849c>] (customize_machine+0x20/0x28) from [<c0225810>] (do_one_initcall+0xa0/0x16c)
-[<c0225810>] (do_one_initcall+0xa0/0x16c) from [<c02259e0>] (kernel_init+0x104/0x1ac)
-[<c02259e0>] (kernel_init+0x104/0x1ac) from [<c0009cec>] (kernel_thread_exit+0x0/0x8)
+> Attempting to consolidate the ARM LED code, this removes the
+> custom RealView LED trigger code to turn LEDs on and off in
+> response to CPU activity and replace it with a standard trigger.
+> 
+> (bryan.wu@canonical.com:
+> It moves arch/arm/kernel/leds.c syscore stubs into this trigger.
+> It also provides ledtrig_cpu trigger event stub in <linux/leds.h>.
+> Although it was inspired by ARM work, it can be used in other arch.)
+> 
+>
+> ...
+>
+> +#include <linux/percpu.h>
+> +#include <linux/syscore_ops.h>
+> +#include "leds.h"
+> +
+> +#define MAX_NAME_LEN	8
 
-Signed-off-by: Grazvydas Ignotas <notasas@gmail.com>
----
- arch/arm/plat-omap/sram.c |   12 ++++++------
- 1 files changed, 6 insertions(+), 6 deletions(-)
+The kernel already has at least eight different definitions of
+MAX_NAME_LEN.  I guess a ninth won't hurt ;)
 
-diff --git a/arch/arm/plat-omap/sram.c b/arch/arm/plat-omap/sram.c
-index eec98af..f9a8c53 100644
---- a/arch/arm/plat-omap/sram.c
-+++ b/arch/arm/plat-omap/sram.c
-@@ -348,7 +348,6 @@ u32 omap3_configure_core_dpll(u32 m2, u32 unlock_dll, u32 f, u32 inc,
- 			sdrc_actim_ctrl_b_1, sdrc_mr_1);
- }
- 
--#ifdef CONFIG_PM
- void omap3_sram_restore_context(void)
- {
- 	omap_sram_ceil = omap_sram_base + omap_sram_size;
-@@ -358,17 +357,18 @@ void omap3_sram_restore_context(void)
- 			       omap3_sram_configure_core_dpll_sz);
- 	omap_push_sram_idle();
- }
--#endif /* CONFIG_PM */
--
--#endif /* CONFIG_ARCH_OMAP3 */
- 
- static inline int omap34xx_sram_init(void)
- {
--#if defined(CONFIG_ARCH_OMAP3) && defined(CONFIG_PM)
- 	omap3_sram_restore_context();
--#endif
- 	return 0;
- }
-+#else
-+static inline int omap34xx_sram_init(void)
-+{
-+	return 0;
-+}
-+#endif /* CONFIG_ARCH_OMAP3 */
- 
- static inline int am33xx_sram_init(void)
- {
--- 
-1.7.0.4
+>
+> ...
+>
+> +static void __init ledtrig_cpu_register(void)
+> +{
+> +	int cpuid = smp_processor_id();
+> +	struct led_trigger *trig;
+> +	char *name = __get_cpu_var(trig_name);
+> +
+> +	snprintf(name, MAX_NAME_LEN, "cpu%d", cpuid);
+> +	led_trigger_register_simple(name, &trig);
+> +
+> +	pr_info("LED trigger %s indicate activity on CPU %d\n",
+> +		trig->name, cpuid);
+> +
+> +	__get_cpu_var(cpu_trig) = trig;
+> +}
+> +
+> +static void __exit ledtrig_cpu_unregister(void)
+> +{
+> +	struct led_trigger *trig = __get_cpu_var(cpu_trig);
+> +	char *name = __get_cpu_var(trig_name);
+> +
+> +	led_trigger_unregister_simple(trig);
+> +	__get_cpu_var(cpu_trig) = NULL;
+> +	memset(name, 0, MAX_NAME_LEN);
+> +}
+> +
+> +static int __init ledtrig_cpu_init(void)
+> +{
+> +	int cpu;
+> +
+> +	for_each_possible_cpu(cpu)
+> +		ledtrig_cpu_register();
+> +
+> +	register_syscore_ops(&ledtrig_cpu_syscore_ops);
+> +
+> +	return 0;
+> +}
+> +module_init(ledtrig_cpu_init);
 
+This all looks horridly broken.  We call ledtrig_cpu_register() once
+for each CPU, but we call it on the same CPU each time, and it uses
+smp_processor_id() which a) is wrong and b) will emit a runtime
+preemption-is-enabled warning.
+
+I'm assuming this wasn't tested on SMP.  It needs to be, please.
+
+Also, the code uses for_each_possible_cpu, ignoring CPU hotplug. 
+That's probably justifiable for this small storage size and not-hotpath
+code, but the decision should be given prominence and justified in the
+changelog or, better, in code comments please.
+
+>
+> ...
+>
+
+The patchset is basically an ARM thing.  Is there some ARM tree via
+which we can get it merged?
