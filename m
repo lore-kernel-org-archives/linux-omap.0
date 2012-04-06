@@ -1,44 +1,59 @@
-From: Paul Walmsley <paul@pwsan.com>
-Subject: Re: OMAP3EVM not booting on l-o master
-Date: Fri, 6 Apr 2012 12:08:32 -0600 (MDT)
-Message-ID: <alpine.DEB.2.00.1204061159100.11100@utopia.booyaka.com>
-References: <C8443D0743D26F4388EA172BF4E2A7A9317C3A03@DBDE01.ent.ti.com> <C8443D0743D26F4388EA172BF4E2A7A9317C3B18@DBDE01.ent.ti.com> <alpine.DEB.2.00.1204050330380.10302@utopia.booyaka.com> <C8443D0743D26F4388EA172BF4E2A7A9317C47AD@DBDE01.ent.ti.com>
- <alpine.DEB.2.00.1204050414570.10302@utopia.booyaka.com> <CAMrsUdJV_JVmqqyR7fpX+efOr9Z43oZX0FkJN5Q7-f2YkFFvJQ@mail.gmail.com> <C8443D0743D26F4388EA172BF4E2A7A9317C4B2B@DBDE01.ent.ti.com> <20120405171653.GD3785@atomide.com> <C8443D0743D26F4388EA172BF4E2A7A9317C5D65@DBDE01.ent.ti.com>
- <20120406174129.GA15734@atomide.com>
+From: Tony Lindgren <tony@atomide.com>
+Subject: Re: [RESEND PATCH] ARM :OMAP2+: UART: Remove some of uart default
+ pads
+Date: Fri, 6 Apr 2012 11:15:57 -0700
+Message-ID: <20120406181556.GC15734@atomide.com>
+References: <1332324149-16058-1-git-send-email-govindraj.raja@ti.com>
+ <20120403181925.GH8240@atomide.com>
+ <CAMrsUdLrpyGrhggi820WcR+DoHJVB8GQ1THUOO-C4LqUQtAxWQ@mail.gmail.com>
+ <20120405165811.GB3785@atomide.com>
+ <CAMrsUdJEY2o2CWjzSg5dabVEkpk48O5njtDU55Z3Jq2vViNJgQ@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from utopia.booyaka.com ([72.9.107.138]:59508 "EHLO
-	utopia.booyaka.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753887Ab2DFSId (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 6 Apr 2012 14:08:33 -0400
-In-Reply-To: <20120406174129.GA15734@atomide.com>
+Received: from mho-01-ewr.mailhop.org ([204.13.248.71]:33408 "EHLO
+	mho-01-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751155Ab2DFSP7 (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 6 Apr 2012 14:15:59 -0400
+Content-Disposition: inline
+In-Reply-To: <CAMrsUdJEY2o2CWjzSg5dabVEkpk48O5njtDU55Z3Jq2vViNJgQ@mail.gmail.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Tony Lindgren <tony@atomide.com>
-Cc: "Mohammed, Afzal" <afzal@ti.com>, "R, Govindraj" <govindraj.raja@ti.com>, khilman@ti.com, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
+To: "Raja, Govindraj" <govindraj.raja@ti.com>
+Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Felipe Balbi <balbi@ti.com>, Kevin Hilman <khilman@ti.com>
 
-cc Kevin
+* Raja, Govindraj <govindraj.raja@ti.com> [120405 23:08]:
+> On Thu, Apr 5, 2012 at 10:28 PM, Tony Lindgren <tony@atomide.com> wrote:
+> >
+> > Hmm I don't think any muxing was done automatically unless
+> > omap_serial_init_port was being called with pins.
+> 
+> Muxing was happening even if we don't call omap_serial_init_port
+> rx pin was muxed for wakeup capability for all uart pins
 
-On Fri, 6 Apr 2012, Tony Lindgren wrote:
+OK, but that was only for the wake-up muxing? That sounds risky
+too for some boards as the board may be using alternative uart
+pins instead of the default ones.
+ 
+> omap_uart_idle_init => was populating padconf offset value for ech uart
+> which was used in omap_uart_enable/disable_wakeup functions.
+> This mechanism was keeping PM happening for all boards.
 
-> So something in Paul's series is changing the interrupt
-> behaviour somehow?
+OK, that's safe if we also bail out for the cases where the default
+uart pins are not muxed to serial functionality to start with.
 
-Am wondering if this might be due to the kernel not clearing some 
-bootloader mux settings?
+So to summarize, the right fix is to:
 
-Perhaps the bootloader is configuring the mux hardware for I/O wakeups on 
-a pad, but the kernel is missing an mux IRQ handler or mapping for it. Or 
-maybe one of the kernel mux entries is missing the OMAP_WAKEUP_EN or 
-OMAP_DEVICE_PAD_WAKEUP flags for a pad that the bootloader is configuring 
-- I seem to recall that Kevin found some problems here with the 
-mach-omap2/serial.c mux code.  Anyway, will create a patch to add some 
-debugging here for Afzal to try.
+1. Only do muxing of uarts from other modes to uart mode if
+   omap_serial_init_port is being called with the board specific
+   mux options for the port in question.
 
-Also,it seems to me that when the mux layer starts, the code should 
-probably clear out all of the I/O wakeup configuration in the hardware 
-that the bootloader set up.
+2. Bail out early in omap_serial_init for each port that does not
+   have it's default uart pins already muxed to uart functionality.
 
+3. For the uart ports configured in #1 or #2 above, allow dynamic
+   remuxing of the wake-up capability but don't touch the others.
 
-- Paul
+Regards,
+
+Tony
