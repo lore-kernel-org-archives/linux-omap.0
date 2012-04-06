@@ -1,62 +1,72 @@
-From: Paul Walmsley <paul@pwsan.com>
-Subject: Re: Suspend broken on 3.3?
-Date: Thu, 5 Apr 2012 18:29:42 -0600 (MDT)
-Message-ID: <alpine.DEB.2.00.1204051812320.10302@utopia.booyaka.com>
-References: <WC20120329112755.541787@terrafix.co.uk> <WC20120329114024.43178C@terrafix.co.uk> <CAMrsUdKR4nwbBEOx9JPeS=GLDPyioHuijK2596=q2OwJ+ARbxA@mail.gmail.com> <WC20120330075339.4017FC@terrafix.co.uk> <CAMrsUdKTx84_oHyS9JTCBTqtV-7907snCGFDrOXnPuNVSnvz7w@mail.gmail.com>
- <WC20120330092609.901834@terrafix.co.uk> <CAMrsUdJrJZXjYOs87xmT_J0w7S=VZyfR0tBmhhuYOFmFsOB3SA@mail.gmail.com> <WC20120330110442.381887@terrafix.co.uk> <CAMrsUd+AvVp3n1oAREEEmCSBaeA-m68j7gLjXEeJKimX1erfUw@mail.gmail.com> <CAMrsUd+K_EwXfypgYWNyAhR7b47avTpWDemS87OTkpH81cJ6Aw@mail.gmail.com>
- <alpine.DEB.2.00.1204040852460.8000@utopia.booyaka.com> <CAMrsUd+WZcUvHGdR4WyF4uh35D17K9DXFAqpLHKBUbL1_5viDA@mail.gmail.com>
+From: Olof Johansson <olof@lixom.net>
+Subject: Re: [GIT PULL] ARM: OMAP: clock, powerdomain, clockdomain, hwmod
+ fixes for early v3.4-rc (misc_devel_3.4 patches dropped)
+Date: Thu, 5 Apr 2012 21:45:12 -0700
+Message-ID: <CAOesGMjnKzA=BMPVHw0Jtsr2Lz+_ggAihaAyyVO3hWifUPd8Kw@mail.gmail.com>
+References: <alpine.DEB.2.00.1204050339510.10302@utopia.booyaka.com>
+	<20120405224658.GI3785@atomide.com>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from utopia.booyaka.com ([72.9.107.138]:45355 "EHLO
-	utopia.booyaka.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753203Ab2DFA3n (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 5 Apr 2012 20:29:43 -0400
-In-Reply-To: <CAMrsUd+WZcUvHGdR4WyF4uh35D17K9DXFAqpLHKBUbL1_5viDA@mail.gmail.com>
+Received: from mail-yx0-f174.google.com ([209.85.213.174]:38646 "EHLO
+	mail-yx0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751219Ab2DFEpN convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 6 Apr 2012 00:45:13 -0400
+Received: by yenl12 with SMTP id l12so1146246yen.19
+        for <linux-omap@vger.kernel.org>; Thu, 05 Apr 2012 21:45:12 -0700 (PDT)
+In-Reply-To: <20120405224658.GI3785@atomide.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "Raja, Govindraj" <govindraj.raja@ti.com>, Kevin Hilman <khilman@ti.com>
-Cc: Joe Woodward <jw@terrafix.co.uk>, linux-omap@vger.kernel.org, Felipe Balbi <balbi@ti.com>, neilb@suse.de
+To: Tony Lindgren <tony@atomide.com>
+Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Paul Walmsley <paul@pwsan.com>, Arnd Bergmann <arnd@arndb.de>
 
-On Wed, 4 Apr 2012, Raja, Govindraj wrote:
+On Thu, Apr 5, 2012 at 3:46 PM, Tony Lindgren <tony@atomide.com> wrote:
+> Hi Olof,
+>
+> * Paul Walmsley <paul@pwsan.com> [120405 02:45]:
+>> Hi Tony,
+>>
+>> The following changes since commit dd775ae2549217d3ae09363e3edb305d0=
+fa19928:
+>>
+>> =A0 Linux 3.4-rc1 (2012-03-31 16:24:09 -0700)
+>>
+>> are available in the git repository at:
+>>
+>> =A0 git://git.kernel.org/pub/scm/linux/kernel/git/pjw/omap-pending t=
+ags/omap-fixes-a2-for-3.4rc
+>>
+>> for you to fetch changes up to a9dd31b744a033b4324c93cec4ecb4c74061e=
+2cf:
+>>
+>> =A0 Merge branches 'clock_fixes_3.4rc', 'clockdomain_fixes_3.4rc', '=
+hsmmc_erratum_2_1_1_128_refine_3.4rc1', 'hwmod_data_fixes_a_3.4rc', 'hw=
+mod_fixes_a2_3.4rc' and 'powerdomain_fixes_a_3.4rc' into omap-fixes-a2-=
+for-3.4rc-branch (2012-04-05 03:00:22 -0600)
+>>
+>> This version is intended to merge cleanly into your 'fixes' branch.
+>
+> If not too late for this round of fixes, can you please pull this
+> set of fixes directly from Paul?
+>
+> I was planning on including this into my fixes yesterday, but
+> two patches had to be dropped that Paul did last night.
+>
+> This one already has the signed tag ;)
 
-> On Wed, Apr 4, 2012 at 8:26 PM, Paul Walmsley <paul@pwsan.com> wrote:
-> > On Mon, 2 Apr 2012, Raja, Govindraj wrote:
-> >
-> >> As of now what I can think of is to update qos reqest to prevent MPU
-> >> from transitioning in case of port activity if wakeup capability for port
-> >> is disabled.
-> >
-> > Haven't been following this thread closely, but this doesn't seem right.
-> > Why would changing the UART driver's ability to wake from suspend via the
-> > sysfs file prevent the driver from using hardware wakeups to wake from
-> > dynamic idle?
-> 
-> 
-> IIUC wakeup capability is needed in suspend path or in cpu idle path.
-> 
-> once uart wakeup capability is disabled from sysfs the Module level 
-> wakeup from PM_WKEN1 reg on omap3 and pad wakeup from pin mux data given 
-> will be disabled..
+Thanks, pulled.
 
-As far as I know, that sysfs wakeup file is not meant to disable 
-all module-level wakeup.  Kevin can correct me if I'm wrong, but I think
-it's only supposed to control wakeup from suspend.
-
-So in my opinion, that sysfs file should not affect dynamic 
-module-level, or I/O ring wakeup at all.  If it is intended to affect 
-dynamic idle wakeup, then we also will need code to prevent the UART from 
-disabling its clocks when the sysfs wakeup file is set to disabled.
-
-> So after we enter suspend and wakeup from suspend using keypad press,
-> now through pm workqueue the MPU enters retention and uart module level
-> wakeups disabled at this point console becomes slower to respond.
-> 
-> Now enabling wakeups from sysfs enter suspend/resume to enable wakeups
-> and once we come back from wakeup console response is better.
-> 
-> So disabling uart module level wake up and allowing MPU to enter retention
-> is making console slow.
+Paul, thanks for using a signed tag with an overview. There's no need
+to list the changes in the signed tag though -- "git pull --log" will
+include them in the merge commit instead. In general Linus tends to
+not like seeing redundant info in the tag text that can be derived
+from the branch contents instead.
 
 
-- Paul
+-Olof
+--
+To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
