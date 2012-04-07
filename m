@@ -1,61 +1,31 @@
-From: Grazvydas Ignotas <notasas@gmail.com>
-Subject: PM related performance degradation on OMAP3
-Date: Sat, 7 Apr 2012 01:50:19 +0300
-Message-ID: <CANOLnOP5gq4Vtt00SgRNW-3GZDWk0sukBgJx4V6rkMLL+b6G-w@mail.gmail.com>
+From: "Menon, Nishanth" <nm@ti.com>
+Subject: Re: [rtc-linux] [PATCH] RTC: twl6030: correct usage of static
+ register while reading time
+Date: Sat, 7 Apr 2012 10:59:48 -0500
+Message-ID: <CAOMWX4ebLq_xy0KVdO2+EGkMfy5hbOghRTT_yTyJvZ+K9xApDQ@mail.gmail.com>
+References: <1332970441-3495-1-git-send-email-nm@ti.com> <20120406121934.0d6d3ffc.akpm@linux-foundation.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: text/plain; charset=ISO-8859-1
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-lb0-f174.google.com ([209.85.217.174]:60605 "EHLO
-	mail-lb0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755420Ab2DFWuV convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 6 Apr 2012 18:50:21 -0400
-Received: by lbbgg6 with SMTP id gg6so918411lbb.19
-        for <linux-omap@vger.kernel.org>; Fri, 06 Apr 2012 15:50:19 -0700 (PDT)
+Received: from na3sys009aog108.obsmtp.com ([74.125.149.199]:51234 "EHLO
+	na3sys009aog108.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1754933Ab2DGQAN (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Sat, 7 Apr 2012 12:00:13 -0400
+Received: by wgbdq13 with SMTP id dq13so3002047wgb.35
+        for <linux-omap@vger.kernel.org>; Sat, 07 Apr 2012 09:00:08 -0700 (PDT)
+In-Reply-To: <20120406121934.0d6d3ffc.akpm@linux-foundation.org>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: linux-omap@vger.kernel.org
-Cc: Kevin Hilman <khilman@ti.com>, Paul Walmsley <paul@pwsan.com>
+To: Andrew Morton <akpm@linux-foundation.org>
+Cc: rtc-linux@googlegroups.com, Konstantin Shlyakhovoy <x0155534@ti.com>, Alessandro Zummo <a.zummo@towertech.it>, Benoit Cousson <b-cousson@ti.com>, linux-omap <linux-omap@vger.kernel.org>
 
-Hello,
+On Fri, Apr 6, 2012 at 14:19, Andrew Morton <akpm@linux-foundation.org> wrote:
+>
+> I rewrote your acked-by to Signed-off-by, because you were on the
+> delivery path of the patch. Documentation/SubmittingPatches has details.
+>
+> Is this OK?
+sure, thanks.
 
-I'm DMA seeing performance loss related to CONFIG_PM on OMAP3.
-
-# CONFIG_PM is set:
-echo 3 > /proc/sys/vm/drop_caches
-# file copy from NAND (using NAND driver in DMA mode)
-dd if=3D/mnt/tmp/a of=3D/dev/null bs=3D1M count=3D32
-33554432 bytes (32.0MB) copied, 9.088714 seconds, 3.5MB/s
-# file read from SD (hsmmc uses DMA)
-dd if=3D/dev/mmcblk0 of=3D/dev/null bs=3D1M count=3D32
-33554432 bytes (32.0MB) copied, 2.065460 seconds, 15.5MB/s
-
-# CONFIG_PM not set:
-# NAND
-dd if=3D/mnt/tmp/a of=3D/dev/null bs=3D1M count=3D32
-33554432 bytes (32.0MB) copied, 5.653534 seconds, 5.7MB/s
-# SD
-dd if=3D/dev/mmcblk0 of=3D/dev/null bs=3D1M count=3D32
-33554432 bytes (32.0MB) copied, 1.919007 seconds, 16.7MB/s
-
-While SD card performance loss is not that bad (~7%), NAND one is
-worrying (~39%). I've tried disabling/enabling CONFIG_CPU_IDLE, also
-cpuidle states over sysfs, it did not have any significant effect. Is
-there something else to try?
-
-I'm guessing this is caused by CPU wakeup latency to service DMA
-interrupts? I've noticed that if I keep CPU busy, the loss is reduced
-almost completely.
-Talking about cpuidle, what's the difference between C1 and C2 states?
-They look mostly the same.
-Then there is omap3_do_wfi, it seems to be unconditionally putting
-SDRC on self-refresh, would it make sense to just do wfi in higher
-power states, like OMAP4 seems to be doing?
-
---=20
-Gra=C5=BEvydas
---
-To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Regards,
+Nishanth Menon
