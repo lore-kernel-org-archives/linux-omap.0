@@ -1,57 +1,86 @@
-From: "Robert P. J. Day" <rpjday@crashcourse.ca>
-Subject: shouldn't OMAP4 keypad depend on OMAP4?
-Date: Mon, 9 Apr 2012 15:59:50 -0400 (EDT)
-Message-ID: <alpine.DEB.2.02.1204091557260.5849@oneiric>
+From: Kevin Hilman <khilman-l0cyMroinI0@public.gmane.org>
+Subject: Re: [PATCH 02/17][V2] ARM: OMAP4: cpuidle - Declare the states with
+	the driver declaration
+Date: Mon, 09 Apr 2012 15:37:24 -0700
+Message-ID: <87vcl8a5wb.fsf@ti.com>
+References: <1333570371-1389-1-git-send-email-daniel.lezcano@linaro.org>
+	<1333570371-1389-3-git-send-email-daniel.lezcano@linaro.org>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from astoria.ccjclearline.com ([64.235.106.9]:36660 "EHLO
-	astoria.ccjclearline.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750734Ab2DIU51 (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 9 Apr 2012 16:57:27 -0400
-Received: from cpec03f0ed08c7f-cm001ac318e826.cpe.net.cable.rogers.com ([99.241.91.63] helo=crashcourse.ca)
-	by astoria.ccjclearline.com with esmtpsa (TLSv1:AES256-SHA:256)
-	(Exim 4.69)
-	(envelope-from <rpjday@crashcourse.ca>)
-	id 1SHKkm-0004UX-09
-	for linux-omap@vger.kernel.org; Mon, 09 Apr 2012 15:59:56 -0400
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <linaro-dev-bounces-cunTk1MwBs8s++Sfvej+rw@public.gmane.org>
+In-Reply-To: <1333570371-1389-3-git-send-email-daniel.lezcano-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>
+	(Daniel Lezcano's message of "Wed, 4 Apr 2012 22:12:36 +0200")
+List-Unsubscribe: <http://lists.linaro.org/mailman/options/linaro-dev>,
+	<mailto:linaro-dev-request-cunTk1MwBs8s++Sfvej+rw@public.gmane.org?subject=unsubscribe>
+List-Archive: <http://lists.linaro.org/pipermail/linaro-dev>
+List-Post: <mailto:linaro-dev-cunTk1MwBs8s++Sfvej+rw@public.gmane.org>
+List-Help: <mailto:linaro-dev-request-cunTk1MwBs8s++Sfvej+rw@public.gmane.org?subject=help>
+List-Subscribe: <http://lists.linaro.org/mailman/listinfo/linaro-dev>,
+	<mailto:linaro-dev-request-cunTk1MwBs8s++Sfvej+rw@public.gmane.org?subject=subscribe>
+Sender: linaro-dev-bounces-cunTk1MwBs8s++Sfvej+rw@public.gmane.org
+Errors-To: linaro-dev-bounces-cunTk1MwBs8s++Sfvej+rw@public.gmane.org
+To: Daniel Lezcano <daniel.lezcano-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>
+Cc: linaro-dev-cunTk1MwBs8s++Sfvej+rw@public.gmane.org, patches-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org, tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org
 List-Id: linux-omap@vger.kernel.org
-To: linux-omap@vger.kernel.org
 
+Daniel Lezcano <daniel.lezcano-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org> writes:
 
-  from current mainline kernel source, drivers/input/keyboard/Kconfig
+> The cpuidle API allows to declare statically the states in the driver
+> structure. Let's use it.
+> We do no longer need the fill_cstate function called at runtime and
+> by the way adding more instructions at boot time.
+>
+> Signed-off-by: Daniel Lezcano <daniel.lezcano-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>
+> Reviewed-by: Jean Pihet <j-pihet-l0cyMroinI0@public.gmane.org>
+> Reviewed-by: Santosh Shilimkar <santosh.shilimkar-l0cyMroinI0@public.gmane.org>
+> ---
+>  arch/arm/mach-omap2/cpuidle44xx.c |   57 +++++++++++++++++++++---------------
+>  1 files changed, 33 insertions(+), 24 deletions(-)
+>
+> diff --git a/arch/arm/mach-omap2/cpuidle44xx.c b/arch/arm/mach-omap2/cpuidle44xx.c
+> index ee0bc50..6d86b59 100644
+> --- a/arch/arm/mach-omap2/cpuidle44xx.c
+> +++ b/arch/arm/mach-omap2/cpuidle44xx.c
+> @@ -132,21 +132,39 @@ struct cpuidle_driver omap4_idle_driver = {
+>  	.name				= "omap4_idle",
+>  	.owner				= THIS_MODULE,
+>  	.en_core_tk_irqen		= 1,
+> +	.states = {
+> +		{
+> +			/* C1 - CPU0 ON + CPU1 ON + MPU ON */
+> +			.exit_latency = 2 + 2,
+> +			.target_residency = 5,
+> +			.flags = CPUIDLE_FLAG_TIME_VALID,
+> +			.enter = omap4_enter_idle,
+> +			.name = "C1",
+> +			.desc = "MPUSS ON"
+> +		},
+> +		{
+> +                        /* C2 - CPU0 OFF + CPU1 OFF + MPU CSWR */
+> +			.exit_latency = 328 + 440,
+> +			.target_residency = 960,
+> +			.flags = CPUIDLE_FLAG_TIME_VALID,
+> +			.enter = omap4_enter_idle,
+> +			.name = "C2",
+> +			.desc = "MPUSS CSWR",
+> +		},
+> +		{
+> +			/* C3 - CPU0 OFF + CPU1 OFF + MPU OSWR */
+> +			.exit_latency = 460 + 518,
+> +			.target_residency = 1100,
+> +			.flags = CPUIDLE_FLAG_TIME_VALID,
+> +			.enter = omap4_enter_idle,
+> +			.name = "C3",
+> +			.desc = "MPUSS OSWR",
+> +		},
+> +	},
+> +	.state_count = OMAP4_NUM_STATES,
 
-... snip ...
-config KEYBOARD_OMAP
-        tristate "TI OMAP keypad support"
-        depends on (ARCH_OMAP1 || ARCH_OMAP2)
-        help
-          Say Y here if you want to use the OMAP keypad.
+I think you can drop OMAP4_NUM_STATES here, and just use:
 
-          To compile this driver as a module, choose M here: the
-          module will be called omap-keypad.
+	.state_count = ARRAY_SIZE(omap4_idle_driver.states),
 
-config KEYBOARD_OMAP4
-        tristate "TI OMAP4 keypad support"
-        help
-          Say Y here if you want to use the OMAP4 keypad.
+Then drop OMAP4_NUM_STATES all together in patch 3.
 
-          To compile this driver as a module, choose M here: the
-          module will be called omap4-keypad.
-... snip ...
-
-  shouldn't that second entry depend on whatever is equivalent to
-OMAP4, like the entry before it?
-
-rday
-
--- 
-
-========================================================================
-Robert P. J. Day                                 Ottawa, Ontario, CANADA
-                        http://crashcourse.ca
-
-Twitter:                                       http://twitter.com/rpjday
-LinkedIn:                               http://ca.linkedin.com/in/rpjday
-========================================================================
+Kevin
