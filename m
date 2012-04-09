@@ -1,43 +1,67 @@
-From: Kevin Hilman <khilman-l0cyMroinI0@public.gmane.org>
-Subject: Re: [PATCH 06/17][V2] ARM: OMAP4: cpuidle - use the omap4_idle_data
-	variable directly
-Date: Mon, 09 Apr 2012 15:56:54 -0700
-Message-ID: <87r4vw8qfd.fsf@ti.com>
-References: <1333570371-1389-1-git-send-email-daniel.lezcano@linaro.org>
-	<1333570371-1389-7-git-send-email-daniel.lezcano@linaro.org>
+From: Tony Lindgren <tony@atomide.com>
+Subject: Re: [PATCH] ARM: OMAP: Revert "ARM: OMAP: ctrl: Fix CONTROL_DSIPHY
+ register fields"
+Date: Mon, 9 Apr 2012 16:02:34 -0700
+Message-ID: <20120409230234.GD6487@atomide.com>
+References: <1333955479-2675-1-git-send-email-archit@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <linaro-dev-bounces-cunTk1MwBs8s++Sfvej+rw@public.gmane.org>
-In-Reply-To: <1333570371-1389-7-git-send-email-daniel.lezcano-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>
-	(Daniel Lezcano's message of "Wed, 4 Apr 2012 22:12:40 +0200")
-List-Unsubscribe: <http://lists.linaro.org/mailman/options/linaro-dev>,
-	<mailto:linaro-dev-request-cunTk1MwBs8s++Sfvej+rw@public.gmane.org?subject=unsubscribe>
-List-Archive: <http://lists.linaro.org/pipermail/linaro-dev>
-List-Post: <mailto:linaro-dev-cunTk1MwBs8s++Sfvej+rw@public.gmane.org>
-List-Help: <mailto:linaro-dev-request-cunTk1MwBs8s++Sfvej+rw@public.gmane.org?subject=help>
-List-Subscribe: <http://lists.linaro.org/mailman/listinfo/linaro-dev>,
-	<mailto:linaro-dev-request-cunTk1MwBs8s++Sfvej+rw@public.gmane.org?subject=subscribe>
-Sender: linaro-dev-bounces-cunTk1MwBs8s++Sfvej+rw@public.gmane.org
-Errors-To: linaro-dev-bounces-cunTk1MwBs8s++Sfvej+rw@public.gmane.org
-To: Daniel Lezcano <daniel.lezcano-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>
-Cc: linaro-dev-cunTk1MwBs8s++Sfvej+rw@public.gmane.org, patches-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org, tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from mho-02-ewr.mailhop.org ([204.13.248.72]:37307 "EHLO
+	mho-02-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751109Ab2DIXCl (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 9 Apr 2012 19:02:41 -0400
+Content-Disposition: inline
+In-Reply-To: <1333955479-2675-1-git-send-email-archit@ti.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Archit Taneja <archit@ti.com>
+Cc: tomi.valkeinen@ti.com, linux@arm.linux.org.uk, linux-omap@vger.kernel.org, santosh.shilimkar@ti.com, paul@pwsan.com, b-cousson@ti.com
 
-Daniel Lezcano <daniel.lezcano-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org> writes:
+* Archit Taneja <archit@ti.com> [120409 00:15]:
+> This reverts commit 46f8c3c7e95c0d30d95911e7975ddc4f93b3e237.
+> 
+> The commit above swapped the DSI1_PPID and DSI2_PPID register fields in
+> CONTROL_DSIPHY to be in sync with the newer public OMAP TRMs(after version V).
+> 
+> With this commit, contention errors were reported on DSI lanes some OMAP4 SDPs.
+> After probing the DSI lanes on OMAP4 SDP, it was seen that setting bits in the
+> DSI2_PPID field was pulling up voltage on DSI1 lanes, and DSI1_PPID field was
+> pulling up voltage on DSI2 lanes.
+> 
+> This proves that the current version of OMAP4 TRM is incorrect, swap the
+> position of register fields according to the older TRM versions as they were
+> correct.
+> 
+> Signed-off-by: Archit Taneja <archit@ti.com>
 
-> We are storing the 'omap4_idle_data' in the private data field
-> of the cpuidle device. As we are using this variable only in this file,
-> that does not really make sense. Let's use the global variable directly
-> instead dereferencing pointers in an idle critical loop.
+Tomi, care to ack this one?
 
-Did you notice a performance impact before this change?   
+Tony
 
-> Also, that simplfies the code.
-
-possibly, but at the expense of clean abstractions which IMO helps readability.
-
-Unless there is a real performance hit here (which I doubt), I'd prefer
-to leave this as is.
-
-Kevin
+> ---
+>  .../include/mach/ctrl_module_pad_core_44xx.h       |    8 ++++----
+>  1 files changed, 4 insertions(+), 4 deletions(-)
+> 
+> diff --git a/arch/arm/mach-omap2/include/mach/ctrl_module_pad_core_44xx.h b/arch/arm/mach-omap2/include/mach/ctrl_module_pad_core_44xx.h
+> index 1e2d332..c88420d 100644
+> --- a/arch/arm/mach-omap2/include/mach/ctrl_module_pad_core_44xx.h
+> +++ b/arch/arm/mach-omap2/include/mach/ctrl_module_pad_core_44xx.h
+> @@ -941,10 +941,10 @@
+>  #define OMAP4_DSI2_LANEENABLE_MASK				(0x7 << 29)
+>  #define OMAP4_DSI1_LANEENABLE_SHIFT				24
+>  #define OMAP4_DSI1_LANEENABLE_MASK				(0x1f << 24)
+> -#define OMAP4_DSI2_PIPD_SHIFT					19
+> -#define OMAP4_DSI2_PIPD_MASK					(0x1f << 19)
+> -#define OMAP4_DSI1_PIPD_SHIFT					14
+> -#define OMAP4_DSI1_PIPD_MASK					(0x1f << 14)
+> +#define OMAP4_DSI1_PIPD_SHIFT					19
+> +#define OMAP4_DSI1_PIPD_MASK					(0x1f << 19)
+> +#define OMAP4_DSI2_PIPD_SHIFT					14
+> +#define OMAP4_DSI2_PIPD_MASK					(0x1f << 14)
+>  
+>  /* CONTROL_MCBSPLP */
+>  #define OMAP4_ALBCTRLRX_FSX_SHIFT				31
+> -- 
+> 1.7.5.4
+> 
