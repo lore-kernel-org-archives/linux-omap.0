@@ -1,101 +1,57 @@
-From: Santosh Shilimkar <santosh.shilimkar@ti.com>
-Subject: Re: [PATCH 0/3] OMAP4: CPUidle: Add coupled idle support
-Date: Mon, 09 Apr 2012 12:24:50 +0530
-Message-ID: <4F8287BA.2090602@ti.com>
-References: <1333114048-26136-1-git-send-email-santosh.shilimkar@ti.com> <87obr9s8wk.fsf@ti.com> <4F7B11EE.6030904@ti.com>
+From: Archit Taneja <archit@ti.com>
+Subject: [PATCH] ARM: OMAP: Revert "ARM: OMAP: ctrl: Fix CONTROL_DSIPHY register fields"
+Date: Mon, 9 Apr 2012 12:41:19 +0530
+Message-ID: <1333955479-2675-1-git-send-email-archit@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aog114.obsmtp.com ([74.125.149.211]:41620 "EHLO
-	na3sys009aog114.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752213Ab2DIGy4 (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 9 Apr 2012 02:54:56 -0400
-Received: by obbun3 with SMTP id un3so8441161obb.39
-        for <linux-omap@vger.kernel.org>; Sun, 08 Apr 2012 23:54:54 -0700 (PDT)
-In-Reply-To: <4F7B11EE.6030904@ti.com>
+Received: from comal.ext.ti.com ([198.47.26.152]:39617 "EHLO comal.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752919Ab2DIHMB (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Mon, 9 Apr 2012 03:12:01 -0400
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Kevin Hilman <khilman@ti.com>
-Cc: linux-omap@vger.kernel.org, ccross@android.com, linux-arm-kernel@lists.infradead.org
+To: tomi.valkeinen@ti.com, linux@arm.linux.org.uk
+Cc: tony@atomide.com, linux-omap@vger.kernel.org, santosh.shilimkar@ti.com, paul@pwsan.com, b-cousson@ti.com, Archit Taneja <archit@ti.com>
 
-On Tuesday 03 April 2012 08:36 PM, Santosh Shilimkar wrote:
-> On Tuesday 03 April 2012 10:34 AM, Kevin Hilman wrote:
->> Hi Santosh,
->>
->> Santosh Shilimkar <santosh.shilimkar@ti.com> writes:
->>
->>> The series adds the coupled cpuidle support for OMAP4 based on the v2
->>> series posted [1]. This makes OMAP4 to support SMP cpuidle and also
->>> removes the hard dependency of off-lining CPU1 to trigger deeper
->>> C-states.
->>>
->>> I have put together a branch which is based on 3.3 kernel with
->>> Len Browns next branch [2] which has time keeping and other cpuidle
->>> patches which will mostly get merged by 3.4-rc1 and rebased coupled
->>> idle series from [1].
->>
->> Thanks for rebasing this.
->>
->>> git://gitorious.org/omap-sw-develoment/linux-omap-dev.git
->>> for_3.5/omap4_coupled_cpuidle-rebase
->>
->> This branch by itself seems to work fine.  However, when combining with
->> other stuff that has merged for v3.4, it hangs during boot.  I haven't
->> yet isolated the problem, but it's easy to reproduce by combining your
->> branch with v3.4-rc1:
->>
->>   git checkout -b test/coupled-v3.4 v3.4-rc1
->>   git merge -s recursive -X ours santosh/for_3.5/omap4_coupled_cpuidle-rebase [1]
->>
->> This hangs on boot, and it seems like a coupled state deadlock because
->> commenting out the coupled states in the C-state creation of
->> cpuidle44xx.c makes it boot just fine.
->>
-> I managed to reproduce the issue. Just to ensure that any OMAP changes
-> have not introduced the regression I merged all Tony's pull request on
-> my branch and tried it out. OMAP changes are fine and coupled idle
-> continue to work.
-> 
-> Started bisecting the commits. For bisect I have to create a series
-> which is not dependent on Len's cpuidle updates. First round of bisect
-> was not successful so tried one more time. Was very close to narrowing
-> down on commit but then encountered set of commits where either CPUIDLE
-> itself is broken(deeper C-states are not getting attempted) or I get
-> softIRQ 08 pending error.
-> 
-> The last bad commit in bisect was ...
-> [8682df25ca9afd3aac30f2c72d00bd98de2118e8] Merge branch
-> 'fortglx/3.4/rtc' of git://git.linaro.org/people/jstultz/linux into
-> timers/core
-> 
-> So far looks like, one of below series has introduced a race which is
-> getting highlighted with coupled cpuidle patchset.
-> 
-> 9b612fa Merge branch 'fortglx/3.4/clocksource' of
-> git://git.linaro.org/people/jstultz/linux into timers/core
-> 8682df2 Merge branch 'fortglx/3.4/rtc' of
-> git://git.linaro.org/people/jstultz/linux into timers/core
-> 97ac984 Merge branch 'fortglx/3.4/time' of
-> git://git.linaro.org/people/jstultz/linux into timers/core
-> 
-Finally managed to crack down the issue.
-The broad-cast clock-event was remaining in shut-down mode and
-hence we were loosing the OS tick after entering to low power
-states. The cases where it use to work was mainly because of
-external interrupts like NFS etc.
+This reverts commit 46f8c3c7e95c0d30d95911e7975ddc4f93b3e237.
 
-Have posted a patch [1] on LKML which fixes the issue. Waiting
-for feedback from Thomas on it.
+The commit above swapped the DSI1_PPID and DSI2_PPID register fields in
+CONTROL_DSIPHY to be in sync with the newer public OMAP TRMs(after version V).
 
-Have updated the git tree with patch [1] + 3.4-rc2 and same is
-available here[2]
+With this commit, contention errors were reported on DSI lanes some OMAP4 SDPs.
+After probing the DSI lanes on OMAP4 SDP, it was seen that setting bits in the
+DSI2_PPID field was pulling up voltage on DSI1 lanes, and DSI1_PPID field was
+pulling up voltage on DSI2 lanes.
 
-Regards
-Santosh
+This proves that the current version of OMAP4 TRM is incorrect, swap the
+position of register fields according to the older TRM versions as they were
+correct.
 
-[1] https://lkml.org/lkml/2012/4/9/13
+Signed-off-by: Archit Taneja <archit@ti.com>
+---
+ .../include/mach/ctrl_module_pad_core_44xx.h       |    8 ++++----
+ 1 files changed, 4 insertions(+), 4 deletions(-)
 
-[2] git://gitorious.org/omap-sw-develoment/linux-omap-dev.git
-for_3.5/coupled_cpuidle-rebase
+diff --git a/arch/arm/mach-omap2/include/mach/ctrl_module_pad_core_44xx.h b/arch/arm/mach-omap2/include/mach/ctrl_module_pad_core_44xx.h
+index 1e2d332..c88420d 100644
+--- a/arch/arm/mach-omap2/include/mach/ctrl_module_pad_core_44xx.h
++++ b/arch/arm/mach-omap2/include/mach/ctrl_module_pad_core_44xx.h
+@@ -941,10 +941,10 @@
+ #define OMAP4_DSI2_LANEENABLE_MASK				(0x7 << 29)
+ #define OMAP4_DSI1_LANEENABLE_SHIFT				24
+ #define OMAP4_DSI1_LANEENABLE_MASK				(0x1f << 24)
+-#define OMAP4_DSI2_PIPD_SHIFT					19
+-#define OMAP4_DSI2_PIPD_MASK					(0x1f << 19)
+-#define OMAP4_DSI1_PIPD_SHIFT					14
+-#define OMAP4_DSI1_PIPD_MASK					(0x1f << 14)
++#define OMAP4_DSI1_PIPD_SHIFT					19
++#define OMAP4_DSI1_PIPD_MASK					(0x1f << 19)
++#define OMAP4_DSI2_PIPD_SHIFT					14
++#define OMAP4_DSI2_PIPD_MASK					(0x1f << 14)
+ 
+ /* CONTROL_MCBSPLP */
+ #define OMAP4_ALBCTRLRX_FSX_SHIFT				31
+-- 
+1.7.5.4
 
