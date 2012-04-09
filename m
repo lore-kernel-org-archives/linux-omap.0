@@ -1,89 +1,54 @@
-From: "Hiremath, Vaibhav" <hvaibhav@ti.com>
-Subject: RE: [PATCH 1/3] ARM: OMAP2+: 32k-counter: Use hwmod lookup to	check
- presence of 32k timer
-Date: Mon, 9 Apr 2012 06:25:48 +0000
-Message-ID: <79CD15C6BA57404B839C016229A409A83184AC0A@DBDE01.ent.ti.com>
-References: <CACVXFVPbU2OqTN=S0AZCD10KuSBYxqyyRH_xee+WTaCD6VSmMQ@mail.gmail.com>
-	<CAMQu2gzuQ-q+3RHsW0=U305jCF-td5-PEXkGZ6WnQTqA1K8oAQ@mail.gmail.com>
-	<CACVXFVPu1GEQy+sCgXMB8JCszPBBs8zHRVm94TYb1-y2afkqgw@mail.gmail.com>
-	<CAMQu2gwuRpZ133962r3N4Y4K3oQ88ySa=SyoS6v=sSHGA=SGKw@mail.gmail.com>
-	<CACVXFVMjSPhF_+CfbF2vD5ts+WtZGjofEWmknB0D1OpTM7geZw@mail.gmail.com>
-	<CAMQu2gyEUhDyyng+_oC5NpXHzWMaTGsnCSTTZcMUi2pLV0z8RQ@mail.gmail.com>
-	<87sjgmt211.fsf@ti.com>
-	<79CD15C6BA57404B839C016229A409A8318461E8@DBDE01.ent.ti.com>
-	<CAMQu2gxuFsovKTPK8wFOO8vMeiyMFnTqNDRZYgAcCsVWytpOTA@mail.gmail.com>
-	<79CD15C6BA57404B839C016229A409A83184846A@DBDE01.ent.ti.com>
-	<20120405095221.GC25053@n2100.arm.linux.org.uk>
-	<79CD15C6BA57404B839C016229A409A831848621@DBDE01.ent.ti.com>
-	<87hawxkgoi.fsf@ti.com>
-	<79CD15C6BA57404B839C016229A409A831849432@DBDE01.ent.ti.com>
- <874nswftjc.fsf@ti.com>
+From: Venkatraman S <svenkatr@ti.com>
+Subject: [PATCH 0/4] mmc: omap_hsmmc: Additional cleanups / features
+Date: Mon, 9 Apr 2012 12:08:31 +0530
+Message-ID: <1333953515-31925-1-git-send-email-svenkatr@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
+Content-Type: text/plain
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from bear.ext.ti.com ([192.94.94.41]:54162 "EHLO bear.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751831Ab2DIG0J convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 9 Apr 2012 02:26:09 -0400
-In-Reply-To: <874nswftjc.fsf@ti.com>
-Content-Language: en-US
+Received: from devils.ext.ti.com ([198.47.26.153]:35606 "EHLO
+	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751278Ab2DIGjE (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 9 Apr 2012 02:39:04 -0400
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "Hilman, Kevin" <khilman@ti.com>
-Cc: Russell King - ARM Linux <linux@arm.linux.org.uk>, "Shilimkar, Santosh" <santosh.shilimkar@ti.com>, Ming Lei <tom.leiming@gmail.com>, Tony Lindgren <tony@atomide.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, "marc.zyngier@arm.com" <marc.zyngier@arm.com>, "johnstul@us.ibm.com" <johnstul@us.ibm.com>, "Balbi, Felipe" <balbi@ti.com>, "Cousson, Benoit" <b-cousson@ti.com>, Paul Walmsley <paul@pwsan.com>, "DebBarma, Tarun Kanti" <tarun.kanti@ti.com>
+To: linux-mmc@vger.kernel.org, linux-omap@vger.kernel.org
+Cc: cjb@laptop.org, Venkatraman S <svenkatr@ti.com>
 
-On Sat, Apr 07, 2012 at 02:48:47, Hilman, Kevin wrote:
-> "Hiremath, Vaibhav" <hvaibhav@ti.com> writes:
-> 
-> [...]
-> 
-> > I liked Santosh's idea in using command line argument "clocksource=" and 
-> > make decision based on this. I have implemented it and tried it on both
-> > OMAP3EVM and beaglebone and it works great.
-> >
-> > I have introduced something like this in mach-omap2/timer.c,
-> >
-> > static int __init omap2_override_clocksource(char* str)
-> > {
-> > 	if (!str)
-> > 		return 0;
-> > 	/*
-> > 	 * For OMAP architecture, we only have two options
-> > 	 *    - sync_32k (default)
-> > 	 *    - gp timer
-> > 	 */
-> > 	if (!strcmp(str, "gp timer"))
-> > 		use_gptimer_clksrc = true;
-> >
-> > 	return 0;
-> > }
-> > early_param("clocksource", omap2_override_clocksource);
-> 
-> How does this interact with the existing clocksource cmdline parameter
-> already in kernel/time/clocksource.c? (c.f. boot_override_clocksource()) 
-> 
+Hi Chris,
+  As discussed previously [1], I've rebased the previous 2 patches
+that you decided to queue for 3.5, plus 2 additional cleanups.
 
-Not really, it doesn't interact with existing clocksource parameter
-Already present in kernel/time/clocksource.c.
+Best regards,
+Venkat.
 
-Both works independently...
+[1] http://marc.info/?l=linux-mmc&m=133336030703924&w=2
 
-> IMO, this duplicates that functionality but less elegantly.
-> 
-> What should happen is to let clocksource selection happen normally
-> (based on presence or lack of HW, or cmdline override.)  Once that has
-> happened, you can then setup_sched_clock() with parameters from querying
-> the clocksource itself.
-> 
+The following changes since commit 3bdc9ba892d6a294d16e9e6e0c4041926aa3d58c:
 
-After Russell's response, it is clear that we should not change the 
-clocksource dynamically, its not useful. So I do not see any benefits
-following that feature (as of now).
+  mmc: use really long write timeout to deal with crappy cards (2012-04-05 20:32:34 -0400)
 
-We just need to make sure that, we detect our clocksource and call
-setup_sched_clock() with appropriate rating.
+are available in the git repository at:
 
-Thanks,
-Vaibhav
+  git://github.com/svenkatr/linux.git mmc-omap_hsmmc-next
+
+for you to fetch changes up to 11c6cb1453f55b21e50fd891b3981a98a572d314:
+
+  mmc: omap_hsmmc: Cleanup use of cpu_is_* for debounce_clock (2012-04-09 11:58:22 +0530)
+
+----------------------------------------------------------------
+Balaji T K (2):
+      mmc: omap_hsmmc: Enable Auto CMD12
+      mmc: omap_hsmmc: add DDR support to omap_hsmmc
+
+Rajendra Nayak (1):
+      mmc: omap_hsmmc: Cleanup use of cpu_is_* for debounce_clock
+
+Venkatraman S (1):
+      mmc: omap_hsmmc: use spinlock IRQ safe variant
+
+ drivers/mmc/host/omap_hsmmc.c |   78 +++++++++++++++++++++++++-------------------
+ 1 file changed, 45 insertions(+), 33 deletions(-)
+
+-- 
+1.7.10.rc2
 
