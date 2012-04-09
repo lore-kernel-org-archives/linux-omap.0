@@ -1,133 +1,101 @@
-From: Venkatraman S <svenkatr@ti.com>
-Subject: [PATCH 4/4] mmc: omap_hsmmc: Cleanup use of cpu_is_* for debounce_clock
-Date: Mon, 9 Apr 2012 12:08:35 +0530
-Message-ID: <1333953515-31925-5-git-send-email-svenkatr@ti.com>
-References: <1333953515-31925-1-git-send-email-svenkatr@ti.com>
+From: Santosh Shilimkar <santosh.shilimkar@ti.com>
+Subject: Re: [PATCH 0/3] OMAP4: CPUidle: Add coupled idle support
+Date: Mon, 09 Apr 2012 12:24:50 +0530
+Message-ID: <4F8287BA.2090602@ti.com>
+References: <1333114048-26136-1-git-send-email-santosh.shilimkar@ti.com> <87obr9s8wk.fsf@ti.com> <4F7B11EE.6030904@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain
-Return-path: <linux-mmc-owner@vger.kernel.org>
-In-Reply-To: <1333953515-31925-1-git-send-email-svenkatr@ti.com>
-Sender: linux-mmc-owner@vger.kernel.org
-To: linux-mmc@vger.kernel.org, linux-omap@vger.kernel.org
-Cc: cjb@laptop.org, Rajendra Nayak <rnayak@ti.com>, Venkatraman S <svenkatr@ti.com>
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from na3sys009aog114.obsmtp.com ([74.125.149.211]:41620 "EHLO
+	na3sys009aog114.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1752213Ab2DIGy4 (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 9 Apr 2012 02:54:56 -0400
+Received: by obbun3 with SMTP id un3so8441161obb.39
+        for <linux-omap@vger.kernel.org>; Sun, 08 Apr 2012 23:54:54 -0700 (PDT)
+In-Reply-To: <4F7B11EE.6030904@ti.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Kevin Hilman <khilman@ti.com>
+Cc: linux-omap@vger.kernel.org, ccross@android.com, linux-arm-kernel@lists.infradead.org
 
-From: Rajendra Nayak <rnayak@ti.com>
+On Tuesday 03 April 2012 08:36 PM, Santosh Shilimkar wrote:
+> On Tuesday 03 April 2012 10:34 AM, Kevin Hilman wrote:
+>> Hi Santosh,
+>>
+>> Santosh Shilimkar <santosh.shilimkar@ti.com> writes:
+>>
+>>> The series adds the coupled cpuidle support for OMAP4 based on the v2
+>>> series posted [1]. This makes OMAP4 to support SMP cpuidle and also
+>>> removes the hard dependency of off-lining CPU1 to trigger deeper
+>>> C-states.
+>>>
+>>> I have put together a branch which is based on 3.3 kernel with
+>>> Len Browns next branch [2] which has time keeping and other cpuidle
+>>> patches which will mostly get merged by 3.4-rc1 and rebased coupled
+>>> idle series from [1].
+>>
+>> Thanks for rebasing this.
+>>
+>>> git://gitorious.org/omap-sw-develoment/linux-omap-dev.git
+>>> for_3.5/omap4_coupled_cpuidle-rebase
+>>
+>> This branch by itself seems to work fine.  However, when combining with
+>> other stuff that has merged for v3.4, it hangs during boot.  I haven't
+>> yet isolated the problem, but it's easy to reproduce by combining your
+>> branch with v3.4-rc1:
+>>
+>>   git checkout -b test/coupled-v3.4 v3.4-rc1
+>>   git merge -s recursive -X ours santosh/for_3.5/omap4_coupled_cpuidle-rebase [1]
+>>
+>> This hangs on boot, and it seems like a coupled state deadlock because
+>> commenting out the coupled states in the C-state creation of
+>> cpuidle44xx.c makes it boot just fine.
+>>
+> I managed to reproduce the issue. Just to ensure that any OMAP changes
+> have not introduced the regression I merged all Tony's pull request on
+> my branch and tried it out. OMAP changes are fine and coupled idle
+> continue to work.
+> 
+> Started bisecting the commits. For bisect I have to create a series
+> which is not dependent on Len's cpuidle updates. First round of bisect
+> was not successful so tried one more time. Was very close to narrowing
+> down on commit but then encountered set of commits where either CPUIDLE
+> itself is broken(deeper C-states are not getting attempted) or I get
+> softIRQ 08 pending error.
+> 
+> The last bad commit in bisect was ...
+> [8682df25ca9afd3aac30f2c72d00bd98de2118e8] Merge branch
+> 'fortglx/3.4/rtc' of git://git.linaro.org/people/jstultz/linux into
+> timers/core
+> 
+> So far looks like, one of below series has introduced a race which is
+> getting highlighted with coupled cpuidle patchset.
+> 
+> 9b612fa Merge branch 'fortglx/3.4/clocksource' of
+> git://git.linaro.org/people/jstultz/linux into timers/core
+> 8682df2 Merge branch 'fortglx/3.4/rtc' of
+> git://git.linaro.org/people/jstultz/linux into timers/core
+> 97ac984 Merge branch 'fortglx/3.4/time' of
+> git://git.linaro.org/people/jstultz/linux into timers/core
+> 
+Finally managed to crack down the issue.
+The broad-cast clock-event was remaining in shut-down mode and
+hence we were loosing the OS tick after entering to low power
+states. The cases where it use to work was mainly because of
+external interrupts like NFS etc.
 
-There really does not seem to be a need to use cpu_is_*
-check for getting the debounce clock as clkdev is
-perfectly capable of handling situations when certain
-clocks are only available on select platforms.
+Have posted a patch [1] on LKML which fixes the issue. Waiting
+for feedback from Thomas on it.
 
-Also get rid of the 'got_dbclk' flag and instead use the
-dbclk clock pointer to know if a valid debounce clock
-exists for the platform.
+Have updated the git tree with patch [1] + 3.4-rc2 and same is
+available here[2]
 
-Signed-off-by: Rajendra Nayak <rnayak@ti.com>
-Signed-off-by: Venkatraman S <svenkatr@ti.com>
----
- drivers/mmc/host/omap_hsmmc.c |   39 +++++++++++++++++----------------------
- 1 file changed, 17 insertions(+), 22 deletions(-)
+Regards
+Santosh
 
-diff --git a/drivers/mmc/host/omap_hsmmc.c b/drivers/mmc/host/omap_hsmmc.c
-index e8f296d..ea8afcb 100644
---- a/drivers/mmc/host/omap_hsmmc.c
-+++ b/drivers/mmc/host/omap_hsmmc.c
-@@ -170,7 +170,6 @@ struct omap_hsmmc_host {
- 	int			use_dma, dma_ch;
- 	int			dma_line_tx, dma_line_rx;
- 	int			slot_id;
--	int			got_dbclk;
- 	int			response_busy;
- 	int			context_loss;
- 	int			vdd;
-@@ -1097,7 +1096,7 @@ static int omap_hsmmc_switch_opcond(struct omap_hsmmc_host *host, int vdd)
- 
- 	/* Disable the clocks */
- 	pm_runtime_put_sync(host->dev);
--	if (host->got_dbclk)
-+	if (host->dbclk)
- 		clk_disable(host->dbclk);
- 
- 	/* Turn the power off */
-@@ -1108,7 +1107,7 @@ static int omap_hsmmc_switch_opcond(struct omap_hsmmc_host *host, int vdd)
- 		ret = mmc_slot(host).set_power(host->dev, host->slot_id, 1,
- 					       vdd);
- 	pm_runtime_get_sync(host->dev);
--	if (host->got_dbclk)
-+	if (host->dbclk)
- 		clk_enable(host->dbclk);
- 
- 	if (ret != 0)
-@@ -1902,21 +1901,17 @@ static int __devinit omap_hsmmc_probe(struct platform_device *pdev)
- 
- 	omap_hsmmc_context_save(host);
- 
--	if (cpu_is_omap2430()) {
--		host->dbclk = clk_get(&pdev->dev, "mmchsdb_fck");
--		/*
--		 * MMC can still work without debounce clock.
--		 */
--		if (IS_ERR(host->dbclk))
--			dev_warn(mmc_dev(host->mmc),
--				"Failed to get debounce clock\n");
--		else
--			host->got_dbclk = 1;
--
--		if (host->got_dbclk)
--			if (clk_enable(host->dbclk) != 0)
--				dev_dbg(mmc_dev(host->mmc), "Enabling debounce"
--							" clk failed\n");
-+	host->dbclk = clk_get(&pdev->dev, "mmchsdb_fck");
-+	/*
-+	 * MMC can still work without debounce clock.
-+	 */
-+	if (IS_ERR(host->dbclk)) {
-+		dev_warn(mmc_dev(host->mmc), "Failed to get debounce clk\n");
-+		host->dbclk = NULL;
-+	} else if (clk_enable(host->dbclk) != 0) {
-+		dev_warn(mmc_dev(host->mmc), "Failed to enable debounce clk\n");
-+		clk_put(host->dbclk);
-+		host->dbclk = NULL;
- 	}
- 
- 	/* Since we do only SG emulation, we can have as many segs
-@@ -2036,7 +2031,7 @@ err_irq:
- 	pm_runtime_put_sync(host->dev);
- 	pm_runtime_disable(host->dev);
- 	clk_put(host->fclk);
--	if (host->got_dbclk) {
-+	if (host->dbclk) {
- 		clk_disable(host->dbclk);
- 		clk_put(host->dbclk);
- 	}
-@@ -2069,7 +2064,7 @@ static int __devexit omap_hsmmc_remove(struct platform_device *pdev)
- 	pm_runtime_put_sync(host->dev);
- 	pm_runtime_disable(host->dev);
- 	clk_put(host->fclk);
--	if (host->got_dbclk) {
-+	if (host->dbclk) {
- 		clk_disable(host->dbclk);
- 		clk_put(host->dbclk);
- 	}
-@@ -2127,7 +2122,7 @@ static int omap_hsmmc_suspend(struct device *dev)
- 				OMAP_HSMMC_READ(host->base, HCTL) & ~SDBP);
- 	}
- 
--	if (host->got_dbclk)
-+	if (host->dbclk)
- 		clk_disable(host->dbclk);
- err:
- 	pm_runtime_put_sync(host->dev);
-@@ -2148,7 +2143,7 @@ static int omap_hsmmc_resume(struct device *dev)
- 
- 	pm_runtime_get_sync(host->dev);
- 
--	if (host->got_dbclk)
-+	if (host->dbclk)
- 		clk_enable(host->dbclk);
- 
- 	if (!(host->mmc->pm_flags & MMC_PM_KEEP_POWER))
--- 
-1.7.10.rc2
+[1] https://lkml.org/lkml/2012/4/9/13
+
+[2] git://gitorious.org/omap-sw-develoment/linux-omap-dev.git
+for_3.5/coupled_cpuidle-rebase
 
