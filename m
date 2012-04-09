@@ -1,219 +1,79 @@
 From: Jon Hunter <jon-hunter@ti.com>
-Subject: Re: [PATCH v3 1/9] ARM: OMAP2+: gpmc: driver conversion
-Date: Mon, 9 Apr 2012 14:50:37 -0500
-Message-ID: <4F833D8D.8000802@ti.com>
-References: <cover.1333640054.git.afzal@ti.com> <cefbe934da40f0a169b1e3a75c46451e5546a8bd.1333640054.git.afzal@ti.com> <4F7DFED5.4030000@ti.com> <C8443D0743D26F4388EA172BF4E2A7A9317C5E58@DBDE01.ent.ti.com>
+Subject: Re: [PATCH 1/3] ARM: OMAP2+: 32k-counter: Use hwmod lookup to	check
+ presence of 32k timer
+Date: Mon, 9 Apr 2012 15:18:22 -0500
+Message-ID: <4F83440E.70502@ti.com>
+References: <CACVXFVMjSPhF_+CfbF2vD5ts+WtZGjofEWmknB0D1OpTM7geZw@mail.gmail.com> <CAMQu2gyEUhDyyng+_oC5NpXHzWMaTGsnCSTTZcMUi2pLV0z8RQ@mail.gmail.com> <87sjgmt211.fsf@ti.com> <79CD15C6BA57404B839C016229A409A8318461E8@DBDE01.ent.ti.com> <CAMQu2gxuFsovKTPK8wFOO8vMeiyMFnTqNDRZYgAcCsVWytpOTA@mail.gmail.com> <79CD15C6BA57404B839C016229A409A83184846A@DBDE01.ent.ti.com> <20120405095221.GC25053@n2100.arm.linux.org.uk> <79CD15C6BA57404B839C016229A409A831848621@DBDE01.ent.ti.com> <87hawxkgoi.fsf@ti.com> <79CD15C6BA57404B839C016229A409A831849432@DBDE01.ent.ti.com> <20120406180452.GB15734@atomide.com> <79CD15C6BA57404B839C016229A409A83184ABEF@DBDE01.ent.ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="ISO-8859-1"; format=flowed
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from bear.ext.ti.com ([192.94.94.41]:43641 "EHLO bear.ext.ti.com"
+Received: from comal.ext.ti.com ([198.47.26.152]:57913 "EHLO comal.ext.ti.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754230Ab2DITvE (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Mon, 9 Apr 2012 15:51:04 -0400
-In-Reply-To: <C8443D0743D26F4388EA172BF4E2A7A9317C5E58@DBDE01.ent.ti.com>
+	id S1754615Ab2DIUSq (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Mon, 9 Apr 2012 16:18:46 -0400
+In-Reply-To: <79CD15C6BA57404B839C016229A409A83184ABEF@DBDE01.ent.ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "Mohammed, Afzal" <afzal@ti.com>
-Cc: "tony@atomide.com" <tony@atomide.com>, "Hilman, Kevin" <khilman@ti.com>, "linux@arm.linux.org.uk" <linux@arm.linux.org.uk>, "dwmw2@infradead.org" <dwmw2@infradead.org>, "sameo@linux.intel.com" <sameo@linux.intel.com>, "grinberg@compulab.co.il" <grinberg@compulab.co.il>, "mike@compulab.co.il" <mike@compulab.co.il>, "Menon, Nishanth" <nm@ti.com>, "artem.bityutskiy@linux.intel.com" <artem.bityutskiy@linux.intel.com>, "vimal.newwork@gmail.com" <vimal.newwork@gmail.com>, "dbaryshkov@gmail.com" <dbaryshkov@gmail.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, "linux-mtd@lists.infradead.org" <linux-mtd@lists.infradead.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "Hiremath, Vaibhav" <hvaibhav@ti.com>
+To: "Hiremath, Vaibhav" <hvaibhav@ti.com>
+Cc: Tony Lindgren <tony@atomide.com>, "Hilman, Kevin" <khilman@ti.com>, Paul Walmsley <paul@pwsan.com>, Russell King - ARM Linux <linux@arm.linux.org.uk>, "Cousson, Benoit" <b-cousson@ti.com>, "marc.zyngier@arm.com" <marc.zyngier@arm.com>, Ming Lei <tom.leiming@gmail.com>, "Balbi, Felipe" <balbi@ti.com>, "Shilimkar, Santosh" <santosh.shilimkar@ti.com>, "johnstul@us.ibm.com" <johnstul@us.ibm.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "DebBarma, Tarun Kanti" <tarun.kanti@ti.com>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>
 
-Hi Afzal,
+Hi Vaibhav,
 
-On 04/06/2012 01:52 AM, Mohammed, Afzal wrote:
-> Hi Jon,
+On 04/09/2012 01:19 AM, Hiremath, Vaibhav wrote:
+
+[...]
+
+> Let me summarize it here again,
 >
-> On Fri, Apr 06, 2012 at 01:51:41, Hunter, Jon wrote:
->>> +struct gpmc_irq	{
->>> +	unsigned		irq;
->>> +	u32			regval;
->>
->> Are you using regval to indicate the bit-mask? If so, maybe call it
->> "bitmask" instead.
+> Currently, the timer code is using config option CONFIG_OMAP_32K_TIMER,
+> to choose between 32ksync counter and gptimer; it is compile time option.
+> If user wants to use gptimer for HR ticks, he must build the kernel without
+> CONFIG_OMAP_32K_TIMER option.
 >
-> Yes, bitmask would be better.
+> AM335x family of devices doesn't have 32ksync_counter available, only option
+> here is to use gptimer for kernel clocksource and clockevents.
 >
->>> +			switch (gpmc->irq[i].regval) {
->>> +			case GPMC_IRQ_WAIT0EDGEDETECTION:
->>> +			case GPMC_IRQ_WAIT1EDGEDETECTION:
->>> +			case GPMC_IRQ_WAIT2EDGEDETECTION:
->>> +			case GPMC_IRQ_WAIT3EDGEDETECTION:
->>> +				val = __ffs(gpmc->irq[i].regval);
->>> +				val -= __ffs(GPMC_IRQ_WAIT0EDGEDETECTION);
->>> +				gpmc_cs_configure(cs->cs,
->>> +					GPMC_CONFIG_WAITPIN, val);
->>
->> Why is the configuration of the wait pin done here? It is possible to
->> use the wait pin may be used without enabling the interrupt.
->>
->> Where do you handle allocating the wait pins to ensure two devices don't
->> attempt to use the same one? Like how the CS are managed.
->>
->> Also, where you you configure the polarity of the wait pins? I would
->> have thought it would make sense to have the wait pin configured as part
->> of the cs configuration.
+> So in order to support, multi-omap build including devices like AM335x, we
+> must get rid of this option CONFIG_OMAP_32K_TIMER, atleast from clocksource
+> registration perspective.
 >
-> I will revisit waitpin configurations.
-
-Ok.
-
->>> +	for (i = 0, j = 0, cs = gdp->cs_data; i<   gdp->num_cs; cs++, i++) {
->>> +		dev->gpmc_res[j] = gpmc_setup_cs_mem(cs, gdp, gpmc);
->>> +		if (dev->gpmc_res[j++].flags&   IORESOURCE_MEM)
->>> +			j += gpmc_setup_cs_irq(gpmc, gdp, cs,
->>> +						dev->gpmc_res + j);
->>> +		else {
->>> +			dev_err(gpmc->dev, "error: setup for %s\n", gdp->name);
->>> +			devm_kfree(gpmc->dev, dev->gpmc_res);
->>> +			dev->gpmc_res = NULL;
->>> +			dev->num_gpmc_res = 0;
->>> +			return -EINVAL;
->>> +		}
->>>    	}
->>
->> This section of code is not straight-forward to read. I see what you are
->> doing, but I am wondering if this could be improved.
->>
->> First of all, returning a structure from a function is making this code
->> harder to read. Per the CodingStyle document in the kernel, it is
->> preferred for a function to return success or failure if the function is
->> an action, like a setup.
->>
->> Secondly, do you need to pass cs, gdp and gpmc to gpmc_setup_cs_mem()?
->> It appears that gdp and gpmc are only used for prints. You could
->> probably avoid passing gdp and move the print to outside this function.
+> So that means, we need to have some mechanism to handle or detect available
+> clocksource runtime. Options would be,
 >
-> This section will be modified to make it clearer.
-
-Thanks.
-
->>> +	if (gpmc->num_irq<   GPMC_NR_IRQ) {
->>> +		dev_warn(gpmc->dev, "Insufficient interrupts for device\n");
->>> +		return -EINVAL;
->>> +	} else if (gpmc->num_irq>   GPMC_NR_IRQ)
->>> +		gpmc->num_irq = GPMC_NR_IRQ;
->>
->> Hmmm ... why not just have ...
->>
->> 	if (gpmc->num_irq != GPMC_NR_IRQ) {
->> 		dev_warn(...);
->> 		return -EINVAL;
->> 	}
+>   - Use HWMOD to detect availability of 32ksync_counter, else fallback
+>     to gptimer. [This was my original patch]
 >
-> This will cause irq setup to fail if num_irq>  GPMC_NR_IRQ, even though
-> irq setup could have been done w/o any problem, only because platform
-> indicated willingness to accommodate more number of interrupts than
-> actually required for this device.
+>     But this restricts the use of gptimer completely on omap architecture,
+>     where we have 32ksync counter module.
 
-Ok, so num_irqs represents OMAP_GPMC_NR_IRQS and we are making sure we 
-have enough IRQs allocated by the platform.
+True, but we would always want to use the 32k timer if CONFIG_PM is 
+specified. So what I am saying is that if a device has a 32ksync timer 
+and CONFIG_PM is defined, we always want to use the 32ksync timer and a 
+gptimer should never be used.
 
->> This also raises the question why bother passing num_irq if we always
->> want it to be GPMC_NR_IRQ? Why not always initialise them all driver?
+So we should/must restrict the use of a gptimer is CONFIG_PM is enabled 
+for devices that have the 32ksync timer.
+
+>   - So the next solution is to still keep compile time option, so that user
+>     will get to use gptimer atleast just changing the kernel config option.
 >
-> Because num_irq (or available irqs for fictitious irq chip) is platform specific.
-
-Ok, so OMAP_GPMC_NR_IRQS is defined and will not vary from device to 
-device, so why pass this? Why not use it directly?
-
-Furthermore, GPMC_NR_IRQ is defined as 6 which is correct for OMAP2/3 
-but not for OMAP4/5, it is 5. Therefore, we need to detect whether we 
-are using an OMAP2/3 or OMAP4+ and set num_irqs based upon this. This 
-could be done in the probe and we can avoid passing this.
-
-So we could simplify this by configuring num_irqs in the probe function 
-and then just make sure num_irqs is less than OMAP_GPMC_NR_IRQS above.
-
->>> +	res = platform_get_resource(pdev, IORESOURCE_IRQ, 0);
->>> +	if (res == NULL)
->>> +		dev_warn(gpmc->dev, "Failed to get resource: irq\n");
->>> +	else
->>> +		gpmc->master_irq = res->start;
->>
->> Why not return an error if the IRQ is not found? We don't know if anyone
->> will be trying to use them.
+>     But, still, this is going to be kernel rebuild.
 >
-> Why do you want to do that ?
-
-Because this indicates a BUG :-)
-
-> If someone (say NAND) wants to work with irq, and if interrupt is not
-> available, NAND driver can fail, and suppose smsc911x ethernet is present
-> and he is not using gpmc irq, if we fail here, smsc911x also would
-> not work, which would have worked otherwise.
+>   - Next option came up was, register both the timers and override using
+>     kernel parameter.
 >
-> It is a different matter that even NAND setup will happen properly,
-> even if interrupt is not available, it is only when NAND is told to
-> work with IRQ, it fails, please see nand patches.
+>     This will work only if, both the timers run at same rate/frequency; since
+>     we have one more layer here setup_sched_clock(), which actually can be
+>     called only once.
 >
-> And as of now in mainline (with the code as is), there is not a single
-> board that will need gpmc irq for gpmc peripherals to work.
+>   - Next option suggested by Santosh, is to use kernel parameter as in parse
+>     it early, to make decision on if user wants to override default
+>     clocksource (32ksync)
 >
-> I feel we should try to get more devices working rather than preventing
-> more devices from working, when it could have.
+>     This is something will work for us and solves all above issues.
 
-I understand your point, but then you are hiding a BUG. If someone 
-introduces a BUG that causes this to fail, then it is easier to detect, 
-find and fix.
-
- From my perspective get the resources should never fail and if it does 
-and break the driver for all devices, then so be it, because a BUG has 
-been introduced. Ok, this may not be critical at this point but still is 
-should not fail.
-
->>> +	for (gdq = gp->device_pdata, gd = gpmc->device; *gdq; gdq++, i++) {
->>> +		ret = gpmc_setup_device(*gdq, gd, gpmc);
->>> +		if (IS_ERR_VALUE(ret))
->>> +			dev_err(gpmc->dev, "gpmc setup on %s failed\n",
->>> +								(*gdq)->name);
->>> +		else
->>> +			gd++;
->>> +	}
->>
->> Would a while loop be simpler?
->
-> My preference is to go with "for"
-
-Ok, just wondering if this could be cleaned up a little.
-
->>
->> The above loop appears to terminate when *gdq == 0. Is this always
->> guaranteed? In other words, safe?
->
-> This is a standard idiom for array of pointers
-
-Ok.
-
->>
->> I see that "i" is not being used in the above loop either.
->
-> That was left over code, it will be removed.
-
-Thanks.
-
->>> +struct gpmc_cs_data {
->>> +	unsigned		cs;
->>> +	unsigned long		mem_size;
->>> +	unsigned long		mem_start;
->>> +	unsigned long		mem_offset;
->>> +	struct gpmc_config	*config;
->>> +	unsigned		num_config;
->>> +	struct gpmc_timings	*timing;
->>> +	unsigned		irq_flags;
->>
->> I found the name irq_flags a bit unclear. This appears to be a mask for
->> the interrupts used. So may be this should be "irq_mask" or just "irqs".
->
-> Probably, this confusion arose as an attempt was made to club irq bit fields
-> with irq capability, so as to reduce additional macro definitions.
->
-> Here my preference is to keep irq_flags (or can be irq_capabilities), define
-> a new set of macros, and use bitmask in struct gpmc_irq
-
-Ok, how about irq_config? The name irq_flags make me think of flags 
-passed to configure the irq as in the set_irq_flags() API.
-
-> Thanks for the comments.
-
-No problem.
+What happens if PM is enabled? Can you still override the default? I 
+don't think this should be allowed for devices with a 32ksync timer.
 
 Jon
