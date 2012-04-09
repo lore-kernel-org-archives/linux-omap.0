@@ -1,79 +1,111 @@
-From: Jon Hunter <jon-hunter@ti.com>
-Subject: Re: [PATCH 1/3] ARM: OMAP2+: 32k-counter: Use hwmod lookup to	check
- presence of 32k timer
-Date: Mon, 9 Apr 2012 15:18:22 -0500
-Message-ID: <4F83440E.70502@ti.com>
-References: <CACVXFVMjSPhF_+CfbF2vD5ts+WtZGjofEWmknB0D1OpTM7geZw@mail.gmail.com> <CAMQu2gyEUhDyyng+_oC5NpXHzWMaTGsnCSTTZcMUi2pLV0z8RQ@mail.gmail.com> <87sjgmt211.fsf@ti.com> <79CD15C6BA57404B839C016229A409A8318461E8@DBDE01.ent.ti.com> <CAMQu2gxuFsovKTPK8wFOO8vMeiyMFnTqNDRZYgAcCsVWytpOTA@mail.gmail.com> <79CD15C6BA57404B839C016229A409A83184846A@DBDE01.ent.ti.com> <20120405095221.GC25053@n2100.arm.linux.org.uk> <79CD15C6BA57404B839C016229A409A831848621@DBDE01.ent.ti.com> <87hawxkgoi.fsf@ti.com> <79CD15C6BA57404B839C016229A409A831849432@DBDE01.ent.ti.com> <20120406180452.GB15734@atomide.com> <79CD15C6BA57404B839C016229A409A83184ABEF@DBDE01.ent.ti.com>
+From: Tony Lindgren <tony@atomide.com>
+Subject: Re: [RESEND PATCH] ARM :OMAP2+: UART: Remove some of uart default
+ pads
+Date: Mon, 9 Apr 2012 13:36:51 -0700
+Message-ID: <20120409203651.GB6487@atomide.com>
+References: <1332324149-16058-1-git-send-email-govindraj.raja@ti.com>
+ <20120403181925.GH8240@atomide.com>
+ <CAMrsUdLrpyGrhggi820WcR+DoHJVB8GQ1THUOO-C4LqUQtAxWQ@mail.gmail.com>
+ <20120405165811.GB3785@atomide.com>
+ <CAMrsUdJEY2o2CWjzSg5dabVEkpk48O5njtDU55Z3Jq2vViNJgQ@mail.gmail.com>
+ <20120406181556.GC15734@atomide.com>
+ <CAMrsUdKs21qtrWX0i44fvm7U2JW0L=2NgmZBHAZGmwp03XFm6w@mail.gmail.com>
+ <CA+Bv8XZgKg-Om9S=CcJEDWRan0pMZ_t1aCVT31q3REmcgLntBw@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="ISO-8859-1"; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from comal.ext.ti.com ([198.47.26.152]:57913 "EHLO comal.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754615Ab2DIUSq (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Mon, 9 Apr 2012 16:18:46 -0400
-In-Reply-To: <79CD15C6BA57404B839C016229A409A83184ABEF@DBDE01.ent.ti.com>
+Received: from mho-02-ewr.mailhop.org ([204.13.248.72]:30709 "EHLO
+	mho-02-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751701Ab2DIUgz (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 9 Apr 2012 16:36:55 -0400
+Content-Disposition: inline
+In-Reply-To: <CA+Bv8XZgKg-Om9S=CcJEDWRan0pMZ_t1aCVT31q3REmcgLntBw@mail.gmail.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "Hiremath, Vaibhav" <hvaibhav@ti.com>
-Cc: Tony Lindgren <tony@atomide.com>, "Hilman, Kevin" <khilman@ti.com>, Paul Walmsley <paul@pwsan.com>, Russell King - ARM Linux <linux@arm.linux.org.uk>, "Cousson, Benoit" <b-cousson@ti.com>, "marc.zyngier@arm.com" <marc.zyngier@arm.com>, Ming Lei <tom.leiming@gmail.com>, "Balbi, Felipe" <balbi@ti.com>, "Shilimkar, Santosh" <santosh.shilimkar@ti.com>, "johnstul@us.ibm.com" <johnstul@us.ibm.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "DebBarma, Tarun Kanti" <tarun.kanti@ti.com>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>
+To: Russ Dill <russ.dill@gmail.com>
+Cc: "Raja, Govindraj" <govindraj.raja@ti.com>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Felipe Balbi <balbi@ti.com>, Kevin Hilman <khilman@ti.com>
 
-Hi Vaibhav,
+* Russ Dill <russ.dill@gmail.com> [120409 09:59]:
+> > From: "Govindraj.R" <govindraj.raja@ti.com>
+> > Date: Mon, 9 Apr 2012 15:16:52 +0530
+> > Subject: [PATCH] ARM: OMAP2+: UART: Fix usage of default uart pads.
 
-On 04/09/2012 01:19 AM, Hiremath, Vaibhav wrote:
+> > -static int __init
+> > +int __init
+> > =C2=A0omap_mux_get_by_name(const char *muxname,
+> > =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0=
+ =C2=A0 =C2=A0struct omap_mux_partition **found_partition,
+> > =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0=
+ =C2=A0 =C2=A0struct omap_mux **found_mux)
 
-[...]
+This can now be one one line:
 
-> Let me summarize it here again,
->
-> Currently, the timer code is using config option CONFIG_OMAP_32K_TIMER,
-> to choose between 32ksync counter and gptimer; it is compile time option.
-> If user wants to use gptimer for HR ticks, he must build the kernel without
-> CONFIG_OMAP_32K_TIMER option.
->
-> AM335x family of devices doesn't have 32ksync_counter available, only option
-> here is to use gptimer for kernel clocksource and clockevents.
->
-> So in order to support, multi-omap build including devices like AM335x, we
-> must get rid of this option CONFIG_OMAP_32K_TIMER, atleast from clocksource
-> registration perspective.
->
-> So that means, we need to have some mechanism to handle or detect available
-> clocksource runtime. Options would be,
->
->   - Use HWMOD to detect availability of 32ksync_counter, else fallback
->     to gptimer. [This was my original patch]
->
->     But this restricts the use of gptimer completely on omap architecture,
->     where we have 32ksync counter module.
+int __init omap_mux_get_by_name(const char *muxname,
+=2E..
 
-True, but we would always want to use the 32k timer if CONFIG_PM is 
-specified. So what I am saying is that if a device has a 32ksync timer 
-and CONFIG_PM is defined, we always want to use the 32ksync timer and a 
-gptimer should never be used.
 
-So we should/must restrict the use of a gptimer is CONFIG_PM is enabled 
-for devices that have the 32ksync timer.
+> > + =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 u16 tx_mode, rx_=
+mode;
+> > +
+> > + =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 tx_mode =3D omap=
+_mux_read(tx_partition, tx_mux->reg_offset);
+> > + =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 rx_mode =3D omap=
+_mux_read(rx_partition, rx_mux->reg_offset);
+> > +
+> > + =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 if (!(rx_mode & =
+0x07) && !(tx_mode & 0x07)) {
+> > + =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=
+=A0 =C2=A0 default_omap_uart_pads[0].name =3D rx_pad_name;
+> > + =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=
+=A0 =C2=A0 default_omap_uart_pads[0].flags =C2=A0=3D
+> > + =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=
+=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 OMAP_DEVICE_PAD_REMUX | OMAP_DEV=
+ICE_PAD_WAKEUP;
+> > + =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=
+=A0 =C2=A0 default_omap_uart_pads[0].enable =3D OMAP_PIN_INPUT |
+> > + =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=
+=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0=
+ =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =
+=C2=A0 OMAP_MUX_MODE0;
+> > + =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=
+=A0 =C2=A0 default_omap_uart_pads[0].idle =3D OMAP_PIN_INPUT |
+> > + =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=
+=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0=
+ =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =
+=C2=A0 OMAP_MUX_MODE0;
+> > +
+> > + =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=
+=A0 =C2=A0 default_omap_uart_pads[1].name =3D tx_pad_name;
+> > + =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=
+=A0 =C2=A0 default_omap_uart_pads[1].enable =3D OMAP_PIN_OUTPUT |
+> > + =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=
+=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0=
+ =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =
+=C2=A0 OMAP_MUX_MODE0;
+> > + =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=
+=A0 =C2=A0 bdata->pads =3D default_omap_uart_pads;
+>=20
+> You are assigning this variable to a structure on the stack.
+>=20
+> > + =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=
+=A0 =C2=A0 bdata->pads_cnt =3D ARRAY_SIZE(default_omap_uart_pads);
 
->   - So the next solution is to still keep compile time option, so that user
->     will get to use gptimer atleast just changing the kernel config option.
->
->     But, still, this is going to be kernel rebuild.
->
->   - Next option came up was, register both the timers and override using
->     kernel parameter.
->
->     This will work only if, both the timers run at same rate/frequency; since
->     we have one more layer here setup_sched_clock(), which actually can be
->     called only once.
->
->   - Next option suggested by Santosh, is to use kernel parameter as in parse
->     it early, to make decision on if user wants to override default
->     clocksource (32ksync)
->
->     This is something will work for us and solves all above issues.
+Also, maybe make that into a separate function with comments added that
+we check that the default pins are muxed to uart rx and tx mode to star=
+t
+with. Otherwise it's a bit hard to figure out what's going on here.
 
-What happens if PM is enabled? Can you still override the default? I 
-don't think this should be allowed for devices with a 32ksync timer.
+Then please split it into two patches: First one removes all the unsafe
+muxing, then the second one enables wake-up events for the ports alread=
+y
+in uart rx/tx mode.
 
-Jon
+Regards,
+
+Tony
+--
+To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
