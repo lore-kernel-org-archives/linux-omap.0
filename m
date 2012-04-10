@@ -1,33 +1,59 @@
-From: Sebastian Andrzej Siewior <bigeasy-hfZtesqFncYOwBW4kG4KsQ@public.gmane.org>
-Subject: Re: [RFC] dt: export of_have_populated_dt
-Date: Tue, 10 Apr 2012 19:36:15 +0200
-Message-ID: <4F846F8F.6090307@linutronix.de>
-References: <1334070672-11252-1-git-send-email-balajitk@ti.com>
+From: Dmitry Torokhov <dmitry.torokhov@gmail.com>
+Subject: Re: [PATCH RESEND] Input: omap-keypad: dynamically handle register
+ offsets
+Date: Tue, 10 Apr 2012 10:47:00 -0700
+Message-ID: <20120410174700.GA6358@core.coreip.homeip.net>
+References: <1333430546-23454-1-git-send-email-sourav.poddar@ti.com>
+ <20120410162353.GA6217@core.coreip.homeip.net>
+ <ADE657CA350FB648AAC2C43247A983F00206986C017F@AUSP01VMBX24.collaborationhost.net>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"; Format="flowed"
-Content-Transfer-Encoding: 7bit
-Return-path: <devicetree-discuss-bounces+gldd-devicetree-discuss=m.gmane.org-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org>
-In-Reply-To: <1334070672-11252-1-git-send-email-balajitk-l0cyMroinI0@public.gmane.org>
-List-Unsubscribe: <https://lists.ozlabs.org/options/devicetree-discuss>,
- <mailto:devicetree-discuss-request-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org?subject=unsubscribe>
-List-Archive: <http://lists.ozlabs.org/pipermail/devicetree-discuss>
-List-Post: <mailto:devicetree-discuss-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org>
-List-Help: <mailto:devicetree-discuss-request-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org?subject=help>
-List-Subscribe: <https://lists.ozlabs.org/listinfo/devicetree-discuss>,
- <mailto:devicetree-discuss-request-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org?subject=subscribe>
-Errors-To: devicetree-discuss-bounces+gldd-devicetree-discuss=m.gmane.org-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org
-Sender: devicetree-discuss-bounces+gldd-devicetree-discuss=m.gmane.org-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org
-To: Balaji T K <balajitk-l0cyMroinI0@public.gmane.org>
-Cc: devicetree-discuss-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, cjb-2X9k7bc8m7Mdnm+yROfE0A@public.gmane.org
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-input-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <ADE657CA350FB648AAC2C43247A983F00206986C017F@AUSP01VMBX24.collaborationhost.net>
+Sender: linux-input-owner@vger.kernel.org
+To: H Hartley Sweeten <hartleys@visionengravers.com>
+Cc: Sourav Poddar <sourav.poddar@ti.com>, "linux-input@vger.kernel.org" <linux-input@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "balbi@ti.com" <balbi@ti.com>
 List-Id: linux-omap@vger.kernel.org
 
-On 04/10/2012 05:11 PM, Balaji T K wrote:
-> If of_have_populated_dt is called from module, build fails with "allnodes"
-> undefined error, so remove inline and export of_have_populated_dt.
+On Tue, Apr 10, 2012 at 11:39:43AM -0500, H Hartley Sweeten wrote:
+> On Tuesday, April 10, 2012 9:24 AM, Dmitry Torokhov wrote:
+> > On Tue, Apr 03, 2012 at 10:52:26AM +0530, Sourav Poddar wrote:
+> >> From: G, Manjunath Kondaiah <manjugk@ti.com>
+> >> 
+> >> Keypad controller register offsets are different for omap4
+> >> and omap5. Handle these offsets through static mapping and
+> >> assign these mappings during run time.
+> >> 
+> >
+> > In addition to Felipe's comments.
+> >
+> >> @@ -76,11 +81,66 @@ struct omap4_keypad {
+> >>  
+> >>  	unsigned int rows;
+> >>  	unsigned int cols;
+> >> +	unsigned int revision;
+> >> +	u32 irqstatus;
+> >> +	u32 irqenable;
+> >
+> >	u32 reg_offset;
+> >
+> > and you probably won't need revision field.
+> >
+> >>  	unsigned int row_shift;
+> >>  	unsigned char key_state[8];
+> >>  	unsigned short keymap[];
+> >>  };
+> >>  
+> >> +static int kbd_readl(struct omap4_keypad *keypad_data, u32 offset)
+> >> +{
+> >> +	if (keypad_data->revision == KBD_REVISION_OMAP4)
+> >> +		return __raw_readl(keypad_data->base + offset);
+> 
+> keypad_data->base is an ioremap'ed address. Shouldn't all the __raw_{read,write}l be
+> {read,write}l instead?
 
-Why do you need this function at all? You should not need it. *I*
-introduced it because I need it early x86 setup code to figure out if
-there a DT available or not. A driver should not care about it. You do 
-have your dev.of_node and this is it.
+Hmm, does it need endian conversion?
 
-Sebastian
+-- 
+Dmitry
