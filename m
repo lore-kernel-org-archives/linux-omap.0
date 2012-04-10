@@ -1,292 +1,151 @@
-From: Rob Clark <rob.clark@linaro.org>
-Subject: [PATCH] staging: drm/omap: dmabuf/prime support
-Date: Tue, 10 Apr 2012 13:19:55 -0500
-Message-ID: <1334081995-12820-1-git-send-email-rob.clark@linaro.org>
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-ob0-f174.google.com ([209.85.214.174]:52631 "EHLO
-	mail-ob0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1758172Ab2DJSUE (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 10 Apr 2012 14:20:04 -0400
-Received: by obbtb18 with SMTP id tb18so98349obb.19
-        for <linux-omap@vger.kernel.org>; Tue, 10 Apr 2012 11:20:03 -0700 (PDT)
-Sender: linux-omap-owner@vger.kernel.org
+From: Jon Hunter <jon-hunter@ti.com>
+Subject: Re: [PATCH v3 1/9] ARM: OMAP2+: gpmc: driver conversion
+Date: Tue, 10 Apr 2012 14:23:14 -0500
+Message-ID: <4F8488A2.7030602@ti.com>
+References: <cover.1333640054.git.afzal@ti.com> <cefbe934da40f0a169b1e3a75c46451e5546a8bd.1333640054.git.afzal@ti.com> <4F7DFED5.4030000@ti.com> <C8443D0743D26F4388EA172BF4E2A7A9317C5E58@DBDE01.ent.ti.com> <4F833D8D.8000802@ti.com> <C8443D0743D26F4388EA172BF4E2A7A9317C693C@DBDE01.ent.ti.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset="ISO-8859-1"; format=flowed
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <C8443D0743D26F4388EA172BF4E2A7A9317C693C@DBDE01.ent.ti.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: "Mohammed, Afzal" <afzal@ti.com>
+Cc: "tony@atomide.com" <tony@atomide.com>, "Hilman, Kevin" <khilman@ti.com>, "linux@arm.linux.org.uk" <linux@arm.linux.org.uk>, "dwmw2@infradead.org" <dwmw2@infradead.org>, "sameo@linux.intel.com" <sameo@linux.intel.com>, "grinberg@compulab.co.il" <grinberg@compulab.co.il>, "mike@compulab.co.il" <mike@compulab.co.il>, "Menon, Nishanth" <nm@ti.com>, "artem.bityutskiy@linux.intel.com" <artem.bityutskiy@linux.intel.com>, "vimal.newwork@gmail.com" <vimal.newwork@gmail.com>, "dbaryshkov@gmail.com" <dbaryshkov@gmail.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, "linux-mtd@lists.infradead.org" <linux-mtd@lists.infradead.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "Hiremath, Vaibhav" <hvaibhav@ti.com>
 List-Id: linux-omap@vger.kernel.org
-To: dri-devel@lists.freedesktop.org, linux-omap@vger.kernel.org
-Cc: patches@linaro.org, Greg KH <greg@kroah.com>, Tomi Valkeinen <tomi.valkeinen@ti.com>, Andy Gross <andy.gross@ti.com>, Rob Clark <rob@ti.com>
 
-From: Rob Clark <rob@ti.com>
+Hi Afzal,
 
-For now just implementing the exporting APIs, not yet importing.  And
-kmap is rejected on tiled buffers (although the usefulness of that seems
-questionable, but could be added later if needed).
+On 04/10/2012 06:00 AM, Mohammed, Afzal wrote:
+> Hi Jon,
+>
+> On Tue, Apr 10, 2012 at 01:20:37, Hunter, Jon wrote:
+>>> Because num_irq (or available irqs for fictitious irq chip) is platform specific.
+>>
+>> Ok, so OMAP_GPMC_NR_IRQS is defined and will not vary from device to
+>> device, so why pass this? Why not use it directly?
+>
+> Because OMAP_GPMC_NR_IRQS is platform specific, final intention is to
+> not have any platform specific header files in GPMC driver, not sure
+> as of now whether it would be possible. So keeping platform specific
+> things away from the driver as much as possible.
+>
+> And consider scenario where GPMC IP is used in other than OMAP family,
+> even though this a theoretical case, wanted to stress the point that
+> intention is to keep driver platform independent.
+>
+> Or else dynamic allocation of irqs may have to be used.
 
-Signed-off-by: Rob Clark <rob@ti.com>
----
- drivers/staging/omapdrm/Makefile          |    1 +
- drivers/staging/omapdrm/omap_drv.c        |    4 +-
- drivers/staging/omapdrm/omap_drv.h        |    7 ++
- drivers/staging/omapdrm/omap_gem.c        |   26 +++++-
- drivers/staging/omapdrm/omap_gem_dmabuf.c |  150 +++++++++++++++++++++++++++++
- 5 files changed, 186 insertions(+), 2 deletions(-)
- create mode 100644 drivers/staging/omapdrm/omap_gem_dmabuf.c
+I agree with your argument but I was thinking today only OMAP uses the 
+GPMC so we could not worry about this. Ok, leave as-is, but can we 
+modify the code as follows as the "else if" is not really needed...
 
-diff --git a/drivers/staging/omapdrm/Makefile b/drivers/staging/omapdrm/Makefile
-index d9cdc12..1ca0e00 100644
---- a/drivers/staging/omapdrm/Makefile
-+++ b/drivers/staging/omapdrm/Makefile
-@@ -13,6 +13,7 @@ omapdrm-y := omap_drv.o \
- 	omap_fb.o \
- 	omap_fbdev.o \
- 	omap_gem.o \
-+	omap_gem_dmabuf.o \
- 	omap_dmm_tiler.o \
- 	tcm-sita.o
- 
-diff --git a/drivers/staging/omapdrm/omap_drv.c b/drivers/staging/omapdrm/omap_drv.c
-index 620b8d5..1f559f4 100644
---- a/drivers/staging/omapdrm/omap_drv.c
-+++ b/drivers/staging/omapdrm/omap_drv.c
-@@ -746,7 +746,7 @@ static const struct file_operations omapdriver_fops = {
- 
- static struct drm_driver omap_drm_driver = {
- 		.driver_features =
--				DRIVER_HAVE_IRQ | DRIVER_MODESET | DRIVER_GEM,
-+				DRIVER_HAVE_IRQ | DRIVER_MODESET | DRIVER_GEM | DRIVER_PRIME,
- 		.load = dev_load,
- 		.unload = dev_unload,
- 		.open = dev_open,
-@@ -766,6 +766,8 @@ static struct drm_driver omap_drm_driver = {
- 		.debugfs_init = omap_debugfs_init,
- 		.debugfs_cleanup = omap_debugfs_cleanup,
- #endif
-+		.prime_handle_to_fd = drm_gem_prime_handle_to_fd,
-+		.gem_prime_export = omap_gem_prime_export,
- 		.gem_init_object = omap_gem_init_object,
- 		.gem_free_object = omap_gem_free_object,
- 		.gem_vm_ops = &omap_gem_vm_ops,
-diff --git a/drivers/staging/omapdrm/omap_drv.h b/drivers/staging/omapdrm/omap_drv.h
-index 3d22df7..2b41152 100644
---- a/drivers/staging/omapdrm/omap_drv.h
-+++ b/drivers/staging/omapdrm/omap_drv.h
-@@ -148,9 +148,16 @@ int omap_gem_roll(struct drm_gem_object *obj, uint32_t roll);
- int omap_gem_get_paddr(struct drm_gem_object *obj,
- 		dma_addr_t *paddr, bool remap);
- int omap_gem_put_paddr(struct drm_gem_object *obj);
-+int omap_gem_get_pages(struct drm_gem_object *obj, struct page ***pages,
-+		bool remap);
-+int omap_gem_put_pages(struct drm_gem_object *obj);
-+uint32_t omap_gem_flags(struct drm_gem_object *obj);
- uint64_t omap_gem_mmap_offset(struct drm_gem_object *obj);
- size_t omap_gem_mmap_size(struct drm_gem_object *obj);
- 
-+struct dma_buf * omap_gem_prime_export(struct drm_device *dev,
-+		struct drm_gem_object *obj, int flags);
-+
- static inline int align_pitch(int pitch, int width, int bpp)
- {
- 	int bytespp = (bpp + 7) / 8;
-diff --git a/drivers/staging/omapdrm/omap_gem.c b/drivers/staging/omapdrm/omap_gem.c
-index 921f058..c5ba334 100644
---- a/drivers/staging/omapdrm/omap_gem.c
-+++ b/drivers/staging/omapdrm/omap_gem.c
-@@ -266,6 +266,12 @@ static void omap_gem_detach_pages(struct drm_gem_object *obj)
- 	omap_obj->pages = NULL;
- }
- 
-+/* get buffer flags */
-+uint32_t omap_gem_flags(struct drm_gem_object *obj)
-+{
-+	return to_omap_bo(obj)->flags;
-+}
-+
- /** get mmap offset */
- static uint64_t mmap_offset(struct drm_gem_object *obj)
- {
-@@ -764,9 +770,27 @@ static int get_pages(struct drm_gem_object *obj, struct page ***pages)
- 	return 0;
- }
- 
--int omap_gem_get_pages(struct drm_gem_object *obj, struct page ***pages)
-+/* if !remap, and we don't have pages backing, then fail, rather than
-+ * increasing the pin count (which we don't really do yet anyways,
-+ * because we don't support swapping pages back out).  And 'remap'
-+ * might not be quite the right name, but I wanted to keep it working
-+ * similarly to omap_gem_get_paddr().  Note though that mutex is not
-+ * aquired if !remap (because this can be called in atomic ctxt),
-+ * but probably omap_gem_get_paddr() should be changed to work in the
-+ * same way.  If !remap, a matching omap_gem_put_pages() call is not
-+ * required (and should not be made).
-+ */
-+int omap_gem_get_pages(struct drm_gem_object *obj, struct page ***pages,
-+		bool remap)
- {
- 	int ret;
-+	if (!remap) {
-+		struct omap_gem_object *omap_obj = to_omap_bo(obj);
-+		if (!omap_obj->pages)
-+			return -ENOMEM;
-+		*pages = omap_obj->pages;
-+		return 0;
-+	}
- 	mutex_lock(&obj->dev->struct_mutex);
- 	ret = get_pages(obj, pages);
- 	mutex_unlock(&obj->dev->struct_mutex);
-diff --git a/drivers/staging/omapdrm/omap_gem_dmabuf.c b/drivers/staging/omapdrm/omap_gem_dmabuf.c
-new file mode 100644
-index 0000000..2fa39e8
---- /dev/null
-+++ b/drivers/staging/omapdrm/omap_gem_dmabuf.c
-@@ -0,0 +1,150 @@
-+/*
-+ * drivers/staging/omapdrm/omap_gem_dmabuf.c
-+ *
-+ * Copyright (C) 2011 Texas Instruments
-+ * Author: Rob Clark <rob.clark@linaro.org>
-+ *
-+ * This program is free software; you can redistribute it and/or modify it
-+ * under the terms of the GNU General Public License version 2 as published by
-+ * the Free Software Foundation.
-+ *
-+ * This program is distributed in the hope that it will be useful, but WITHOUT
-+ * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
-+ * FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License for
-+ * more details.
-+ *
-+ * You should have received a copy of the GNU General Public License along with
-+ * this program.  If not, see <http://www.gnu.org/licenses/>.
-+ */
-+
-+#include "omap_drv.h"
-+
-+#include <linux/dma-buf.h>
-+
-+static struct sg_table *omap_gem_map_dma_buf(
-+		struct dma_buf_attachment *attachment,
-+		enum dma_data_direction dir)
-+{
-+	struct drm_gem_object *obj = attachment->dmabuf->priv;
-+	struct sg_table *sg;
-+	dma_addr_t paddr;
-+	int ret;
-+
-+	sg = kzalloc(sizeof(*sg), GFP_KERNEL);
-+	if (!sg)
-+		return ERR_PTR(-ENOMEM);
-+
-+	/* camera, etc, need physically contiguous.. but we need a
-+	 * better way to know this..
-+	 */
-+	ret = omap_gem_get_paddr(obj, &paddr, true);
-+	if (ret)
-+		goto out;
-+
-+	ret = sg_alloc_table(sg, 1, GFP_KERNEL);
-+	if (ret)
-+		goto out;
-+
-+	sg_init_table(sg->sgl, 1);
-+	sg_dma_len(sg->sgl) = obj->size;
-+	sg_set_page(sg->sgl, pfn_to_page(PFN_DOWN(paddr)), obj->size, 0);
-+	sg_dma_address(sg->sgl) = paddr;
-+
-+out:
-+	if (ret)
-+		return ERR_PTR(ret);
-+	return sg;
-+}
-+
-+static void omap_gem_unmap_dma_buf(struct dma_buf_attachment *attachment,
-+		struct sg_table *sg, enum dma_data_direction dir)
-+{
-+	struct drm_gem_object *obj = attachment->dmabuf->priv;
-+	omap_gem_put_paddr(obj);
-+	sg_free_table(sg);
-+	kfree(sg);
-+}
-+
-+static void omap_gem_dmabuf_release(struct dma_buf *buffer)
-+{
-+	struct drm_gem_object *obj = buffer->priv;
-+	/* release reference that was taken when dmabuf was exported
-+	 * in omap_gem_prime_set()..
-+	 */
-+	drm_gem_object_unreference_unlocked(obj);
-+}
-+
-+
-+static int omap_gem_dmabuf_begin_cpu_access(struct dma_buf *buffer,
-+		size_t start, size_t len, enum dma_data_direction dir)
-+{
-+	struct drm_gem_object *obj = buffer->priv;
-+	struct page **pages;
-+	if (omap_gem_flags(obj) & OMAP_BO_TILED) {
-+		/* TODO we would need to pin at least part of the buffer to
-+		 * get de-tiled view.  For now just reject it.
-+		 */
-+		return -ENOMEM;
-+	}
-+	/* make sure we have the pages: */
-+	return omap_gem_get_pages(obj, &pages, true);
-+}
-+
-+static void omap_gem_dmabuf_end_cpu_access(struct dma_buf *buffer,
-+		size_t start, size_t len, enum dma_data_direction dir)
-+{
-+	struct drm_gem_object *obj = buffer->priv;
-+	omap_gem_put_pages(obj);
-+}
-+
-+
-+static void *omap_gem_dmabuf_kmap_atomic(struct dma_buf *buffer,
-+		unsigned long page_num)
-+{
-+	struct drm_gem_object *obj = buffer->priv;
-+	struct page **pages;
-+	omap_gem_get_pages(obj, &pages, false);
-+	return kmap_atomic(pages[page_num]);
-+}
-+
-+static void omap_gem_dmabuf_kunmap_atomic(struct dma_buf *buffer,
-+		unsigned long page_num, void *addr)
-+{
-+	kunmap_atomic(addr);
-+}
-+
-+static void *omap_gem_dmabuf_kmap(struct dma_buf *buffer,
-+		unsigned long page_num)
-+{
-+	struct drm_gem_object *obj = buffer->priv;
-+	struct page **pages;
-+	omap_gem_get_pages(obj, &pages, false);
-+	return kmap(pages[page_num]);
-+}
-+
-+static void omap_gem_dmabuf_kunmap(struct dma_buf *buffer,
-+		unsigned long page_num, void *addr)
-+{
-+	struct drm_gem_object *obj = buffer->priv;
-+	struct page **pages;
-+	omap_gem_get_pages(obj, &pages, false);
-+	kunmap(pages[page_num]);
-+}
-+
-+struct dma_buf_ops omap_dmabuf_ops = {
-+		.map_dma_buf = omap_gem_map_dma_buf,
-+		.unmap_dma_buf = omap_gem_unmap_dma_buf,
-+		.release = omap_gem_dmabuf_release,
-+		.begin_cpu_access = omap_gem_dmabuf_begin_cpu_access,
-+		.end_cpu_access = omap_gem_dmabuf_end_cpu_access,
-+		.kmap_atomic = omap_gem_dmabuf_kmap_atomic,
-+		.kunmap_atomic = omap_gem_dmabuf_kunmap_atomic,
-+		.kmap = omap_gem_dmabuf_kmap,
-+		.kunmap = omap_gem_dmabuf_kunmap,
-+};
-+
-+struct dma_buf * omap_gem_prime_export(struct drm_device *dev,
-+		struct drm_gem_object *obj, int flags)
-+{
-+	return dma_buf_export(obj, &omap_dmabuf_ops, obj->size, 0600);
-+}
--- 
-1.7.9.1
+if (gpmc->num_irq < GPMC_NR_IRQ) {
+	dev_warn(gpmc->dev, "Insufficient interrupts for device\n");
+	return -EINVAL;
+}
 
+gpmc->num_irq = GPMC_NR_IRQ;
+
+>>
+>> Furthermore, GPMC_NR_IRQ is defined as 6 which is correct for OMAP2/3
+>> but not for OMAP4/5, it is 5. Therefore, we need to detect whether we
+>> are using an OMAP2/3 or OMAP4+ and set num_irqs based upon this. This
+>> could be done in the probe and we can avoid passing this.
+>
+> Is it dependent on OMAPX or GPMC IP version? if it is IP version, then driver
+> can be enhanced to handle it, if not, platform has to pass this information.
+
+Here are the GPMC IP revisions ...
+
+OMAP5430 = 0x00000060
+OMAP4430 = 0x00000060
+OMAP3630 = 0x00000050
+OMAP3430 = 0x00000050
+
+So this should work for OMAP. We should check OMAP2 as well. What about 
+the AMxxx devices?
+
+>>>>> +	res = platform_get_resource(pdev, IORESOURCE_IRQ, 0);
+>>>>> +	if (res == NULL)
+>>>>> +		dev_warn(gpmc->dev, "Failed to get resource: irq\n");
+>>>>> +	else
+>>>>> +		gpmc->master_irq = res->start;
+>>>>
+>>>> Why not return an error if the IRQ is not found? We don't know if anyone
+>>>> will be trying to use them.
+>>>
+>>> Why do you want to do that ?
+>>
+>> Because this indicates a BUG :-)
+>
+> I disagree, this need not be considered a bug always,
+> for eg. If gpmc irq is not connected to intc
+
+Ok, so for devices existing today this indicates a bug ;-)
+
+At a minimum you need to improve the error handing here. If the 
+platform_get_resource fails you are still calling "gpmc_setup_irq()" 
+which appears to be pointless. It would be better if the gpmc irq chip 
+is not initialised in this case so that drivers attempting to request 
+these irqs failed.
+
+Also in gpmc_setup_irq() you have two for loops incrementing through 0 
+to gpmc->num_irq, can these for loops be combined?
+
+>>> If someone (say NAND) wants to work with irq, and if interrupt is not
+>>> available, NAND driver can fail, and suppose smsc911x ethernet is present
+>>> and he is not using gpmc irq, if we fail here, smsc911x also would
+>>> not work, which would have worked otherwise.
+>>>
+>>> It is a different matter that even NAND setup will happen properly,
+>>> even if interrupt is not available, it is only when NAND is told to
+>>> work with IRQ, it fails, please see nand patches.
+>>>
+>>> And as of now in mainline (with the code as is), there is not a single
+>>> board that will need gpmc irq for gpmc peripherals to work.
+>>>
+>>> I feel we should try to get more devices working rather than preventing
+>>> more devices from working, when it could have.
+>>
+>> I understand your point, but then you are hiding a BUG. If someone
+>> introduces a BUG that causes this to fail, then it is easier to detect,
+>> find and fix.
+>>
+>>   From my perspective get the resources should never fail and if it does
+>> and break the driver for all devices, then so be it, because a BUG has
+>> been introduced. Ok, this may not be critical at this point but still is
+>> should not fail.
+>
+> Agree for resources which are a must for device to work, not for resources
+> that can enhance its capability.
+
+If we can ensure that a device using the gpmc driver would fail when 
+requesting a specific gpmc irq (if the gpmc driver has failed to 
+initialise its irqs) then this would be ok. In other words, a device 
+calling request_irq for one of the pseudo gpmc irqs returns failure if 
+the gpmc itself failed to setup them up.
+
+>>
+>>>>> +	for (gdq = gp->device_pdata, gd = gpmc->device; *gdq; gdq++, i++) {
+>>>>> +		ret = gpmc_setup_device(*gdq, gd, gpmc);
+>>>>> +		if (IS_ERR_VALUE(ret))
+>>>>> +			dev_err(gpmc->dev, "gpmc setup on %s failed\n",
+>>>>> +								(*gdq)->name);
+>>>>> +		else
+>>>>> +			gd++;
+>>>>> +	}
+>>>>
+>>>> Would a while loop be simpler?
+>>>
+>>> My preference is to go with "for"
+>>
+>> Ok, just wondering if this could be cleaned up a little.
+>
+> For travelling through array of pointers, for looks natural to me, if you
+> have a better way, please send it, it can be folded in next version.
+
+Could you have num_devices to indicate how many platform devices there 
+are and then a simple for-loop of 0 to num_devices?
+
+Cheers
+Jon
