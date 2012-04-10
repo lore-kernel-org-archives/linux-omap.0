@@ -1,113 +1,118 @@
-From: "Mohammed, Afzal" <afzal@ti.com>
-Subject: RE: [PATCH v3 1/9] ARM: OMAP2+: gpmc: driver conversion
-Date: Tue, 10 Apr 2012 11:00:33 +0000
-Message-ID: <C8443D0743D26F4388EA172BF4E2A7A9317C693C@DBDE01.ent.ti.com>
-References: <cover.1333640054.git.afzal@ti.com>
- <cefbe934da40f0a169b1e3a75c46451e5546a8bd.1333640054.git.afzal@ti.com>
- <4F7DFED5.4030000@ti.com>
- <C8443D0743D26F4388EA172BF4E2A7A9317C5E58@DBDE01.ent.ti.com>
- <4F833D8D.8000802@ti.com>
+From: "S, Venkatraman" <svenkatr-l0cyMroinI0@public.gmane.org>
+Subject: Re: [PATCH 00/19] I2C updates
+Date: Tue, 10 Apr 2012 17:01:37 +0530
+Message-ID: <CANfBPZ92EEAqrFC2gnULAXwQKhWdAuNntHz0QVXuUR3Wr=nSGQ@mail.gmail.com>
+References: <1334055397-899-1-git-send-email-shubhrajyoti@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <4F833D8D.8000802@ti.com>
-Content-Language: en-US
-Sender: linux-kernel-owner@vger.kernel.org
-To: "Hunter, Jon" <jon-hunter@ti.com>
-Cc: "tony@atomide.com" <tony@atomide.com>, "Hilman, Kevin" <khilman@ti.com>, "linux@arm.linux.org.uk" <linux@arm.linux.org.uk>, "dwmw2@infradead.org" <dwmw2@infradead.org>, "sameo@linux.intel.com" <sameo@linux.intel.com>, "grinberg@compulab.co.il" <grinberg@compulab.co.il>, "mike@compulab.co.il" <mike@compulab.co.il>, "Menon, Nishanth" <nm@ti.com>, "artem.bityutskiy@linux.intel.com" <artem.bityutskiy@linux.intel.com>, "vimal.newwork@gmail.com" <vimal.newwork@gmail.com>, "dbaryshkov@gmail.com" <dbaryshkov@gmail.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, "linux-mtd@lists.infradead.org" <linux-mtd@lists.infradead.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "Hiremath, Vaibhav" <hvaibhav@ti.com>
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Return-path: <linux-i2c-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <1334055397-899-1-git-send-email-shubhrajyoti-l0cyMroinI0@public.gmane.org>
+Sender: linux-i2c-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Shubhrajyoti D <shubhrajyoti-l0cyMroinI0@public.gmane.org>
+Cc: linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org, w.sang-bIcnvbaLZ9MEGnE8C9+IrQ@public.gmane.org, linux-i2c-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, ben-linux-elnMNo+KYs3YtjvyW6yDsg@public.gmane.org, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org
 List-Id: linux-omap@vger.kernel.org
 
-Hi Jon,
+On Tue, Apr 10, 2012 at 4:26 PM, Shubhrajyoti D <shubhrajyoti-l0cyMroinI0@public.gmane.org> w=
+rote:
+> The patch series does the following
+>
+> - Warn fixes if CONFIG_PM_RUNTIME is not selected.
+> - I2C register restore only if context if the context is lost
+> - Bus busy recovery mechanism.
+> - the reset is not done in init.
+>
+> v2 changes
+> -Adds a patch to use devm_* functions
+> -Also checks the return type of the get_sync and in case
+> =A0of errors prevents register access.
+> - In case of i2c remove register access was done without any
+> =A0get_sync fix the same.
+> - Adds a pdata function pointer to do context save restore
+>
+> v3 changes
+> - Split the omap_i2c_isr to increase readability
+> - Adds the restore flag patch for OMAP4 to the series
+> - Make the i2c use SET_RUNTIME_PM_OPS
+> v4 changes
+> - Folds a patch from Tasslehoff to prevent any merge conflicts.
+> - Prevents the XDUF flag to be set if the underflow condition is not =
+met.
+>
+> v5 changes
+> - Add consistency in the subject naming.
+>
+> v6 changes
+> - As per discussion in [1] .Adds a patch to rename the 1p153 errata a=
+nd
+> =A0use the unique id instead as the section number in the recent erra=
+ta
+> =A0docs has changed.
+>
+>
+> [1] http://www.spinics.net/lists/linux-i2c/msg07607.html
+>
+> Tested on omap4sdp and omap3sdp.
+>
+>
+> The following changes since commit 258f742635360175564e9470eb060ff4d4=
+b984e7:
+>
+> =A0modpost: Fix modpost license checking of vmlinux.o (2012-04-09 20:=
+52:56 -0700)
+>
+> are available in the git repository at:
+> =A0git-OGgr7I4mDcYgsBAKwltoeQ@public.gmane.org:linus-tree/linus-tree.git i2c_omap-next
 
-On Tue, Apr 10, 2012 at 01:20:37, Hunter, Jon wrote:
-> > Because num_irq (or available irqs for fictitious irq chip) is platform specific.
-> 
-> Ok, so OMAP_GPMC_NR_IRQS is defined and will not vary from device to 
-> device, so why pass this? Why not use it directly?
+Minor nit:
+You might want to indicate a git:// link instead of an ssh URL ?
 
-Because OMAP_GPMC_NR_IRQS is platform specific, final intention is to
-not have any platform specific header files in GPMC driver, not sure
-as of now whether it would be possible. So keeping platform specific
-things away from the driver as much as possible.
-
-And consider scenario where GPMC IP is used in other than OMAP family,
-even though this a theoretical case, wanted to stress the point that
-intention is to keep driver platform independent.
-
-Or else dynamic allocation of irqs may have to be used.
-
-> 
-> Furthermore, GPMC_NR_IRQ is defined as 6 which is correct for OMAP2/3 
-> but not for OMAP4/5, it is 5. Therefore, we need to detect whether we 
-> are using an OMAP2/3 or OMAP4+ and set num_irqs based upon this. This 
-> could be done in the probe and we can avoid passing this.
- 
-Is it dependent on OMAPX or GPMC IP version? if it is IP version, then driver
-can be enhanced to handle it, if not, platform has to pass this information.
-
-> >>> +	res = platform_get_resource(pdev, IORESOURCE_IRQ, 0);
-> >>> +	if (res == NULL)
-> >>> +		dev_warn(gpmc->dev, "Failed to get resource: irq\n");
-> >>> +	else
-> >>> +		gpmc->master_irq = res->start;
-> >>
-> >> Why not return an error if the IRQ is not found? We don't know if anyone
-> >> will be trying to use them.
-> >
-> > Why do you want to do that ?
-> 
-> Because this indicates a BUG :-)
-
-I disagree, this need not be considered a bug always,
-for eg. If gpmc irq is not connected to intc
-
-> 
-> > If someone (say NAND) wants to work with irq, and if interrupt is not
-> > available, NAND driver can fail, and suppose smsc911x ethernet is present
-> > and he is not using gpmc irq, if we fail here, smsc911x also would
-> > not work, which would have worked otherwise.
-> >
-> > It is a different matter that even NAND setup will happen properly,
-> > even if interrupt is not available, it is only when NAND is told to
-> > work with IRQ, it fails, please see nand patches.
-> >
-> > And as of now in mainline (with the code as is), there is not a single
-> > board that will need gpmc irq for gpmc peripherals to work.
-> >
-> > I feel we should try to get more devices working rather than preventing
-> > more devices from working, when it could have.
-> 
-> I understand your point, but then you are hiding a BUG. If someone 
-> introduces a BUG that causes this to fail, then it is easier to detect, 
-> find and fix.
-> 
->  From my perspective get the resources should never fail and if it does 
-> and break the driver for all devices, then so be it, because a BUG has 
-> been introduced. Ok, this may not be critical at this point but still is 
-> should not fail.
-
-Agree for resources which are a must for device to work, not for resources
-that can enhance its capability.
-
-> 
-> >>> +	for (gdq = gp->device_pdata, gd = gpmc->device; *gdq; gdq++, i++) {
-> >>> +		ret = gpmc_setup_device(*gdq, gd, gpmc);
-> >>> +		if (IS_ERR_VALUE(ret))
-> >>> +			dev_err(gpmc->dev, "gpmc setup on %s failed\n",
-> >>> +								(*gdq)->name);
-> >>> +		else
-> >>> +			gd++;
-> >>> +	}
-> >>
-> >> Would a while loop be simpler?
-> >
-> > My preference is to go with "for"
-> 
-> Ok, just wondering if this could be cleaned up a little.
-
-For travelling through array of pointers, for looks natural to me, if you
-have a better way, please send it, it can be folded in next version.
-
-Regards
-Afzal
+>
+>
+> Jon Hunter (1):
+> =A0I2C: OMAP: Correct I2C revision for OMAP3
+>
+> Shubhrajyoti D (16):
+> =A0I2C: OMAP: make omap_i2c_unidle/idle functions depend on
+> =A0 =A0CONFIG_PM_RUNTIME
+> =A0I2C: OMAP: Remove reset at init
+> =A0I2C: OMAP: I2C register restore only if context is lost
+> =A0I2C: OMAP: Fix the interrupt clearing in OMAP4
+> =A0I2C: OMAP: Fix the mismatch of pm_runtime enable and disable
+> =A0I2C: OMAP: Optimise the remove code
+> =A0I2C: OMAP: Fix the error handling
+> =A0I2C: OMAP: Don't check if wait_for_completion_timeout() returns le=
+ss
+> =A0 =A0than zero
+> =A0I2C: OMAP: use devm_* functions
+> =A0I2C: OMAP: Fix the crash in i2c remove
+> =A0I2C: OMAP: Handle error check for pm runtime
+> =A0I2C: OMAP: Use SET_RUNTIME_PM_OPS
+> =A0I2C: OMAP: make the read ready processing a separate function
+> =A0I2C: OMAP: Do not set the XUDF if the underflow is not reached
+> =A0I2C: OMAP: Rename the 1p153 to the erratum id i462
+> =A0ARM: OMAP4: hwmod data: I2C: add flag for context restore
+>
+> Tasslehoff Kjappfot (1):
+> =A0I2C: OMAP: fix missing handling of errata I2C_OMAP3_1P153
+>
+> Vikram Pandita (1):
+> =A0I2C: OMAP: Recover from Bus Busy condition
+>
+> =A0arch/arm/mach-omap2/omap_hwmod_44xx_data.c | =A0 =A03 +-
+> =A0arch/arm/plat-omap/i2c.c =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 | =A0=
+ =A03 +
+> =A0drivers/i2c/busses/i2c-omap.c =A0 =A0 =A0 =A0 =A0 =A0 =A0| =A0342 =
++++++++++++++++-------------
+> =A0include/linux/i2c-omap.h =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 | =A0=
+ =A01 +
+> =A04 files changed, 194 insertions(+), 155 deletions(-)
+>
+> --
+> 1.7.4.1
+>
+>
+> _______________________________________________
+> linux-arm-kernel mailing list
+> linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org
+> http://lists.infradead.org/mailman/listinfo/linux-arm-kernel
