@@ -1,52 +1,57 @@
-From: "Cousson, Benoit" <b-cousson@ti.com>
-Subject: Re: [RFC] dt: export of_have_populated_dt
-Date: Tue, 10 Apr 2012 18:29:45 +0200
-Message-ID: <4F845FF9.5080005@ti.com>
-References: <1334070672-11252-1-git-send-email-balajitk@ti.com> <4F845D99.7020705@ti.com> <87y5q3v9pd.fsf@laptop.org>
+From: H Hartley Sweeten <hartleys@visionengravers.com>
+Subject: RE: [PATCH RESEND] Input: omap-keypad: dynamically handle register
+ offsets
+Date: Tue, 10 Apr 2012 11:39:43 -0500
+Message-ID: <ADE657CA350FB648AAC2C43247A983F00206986C017F@AUSP01VMBX24.collaborationhost.net>
+References: <1333430546-23454-1-git-send-email-sourav.poddar@ti.com>
+ <20120410162353.GA6217@core.coreip.homeip.net>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="ISO-8859-1"; format=flowed
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from comal.ext.ti.com ([198.47.26.152]:43015 "EHLO comal.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1755616Ab2DJQaM (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Tue, 10 Apr 2012 12:30:12 -0400
-In-Reply-To: <87y5q3v9pd.fsf@laptop.org>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
+Return-path: <linux-input-owner@vger.kernel.org>
+In-Reply-To: <20120410162353.GA6217@core.coreip.homeip.net>
+Content-Language: en-US
+Sender: linux-input-owner@vger.kernel.org
+To: Dmitry Torokhov <dmitry.torokhov@gmail.com>, Sourav Poddar <sourav.poddar@ti.com>
+Cc: "linux-input@vger.kernel.org" <linux-input@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "balbi@ti.com" <balbi@ti.com>
 List-Id: linux-omap@vger.kernel.org
-To: Chris Ball <cjb@laptop.org>, robherring2@gmail.com
-Cc: Balaji T K <balajitk@ti.com>, devicetree-discuss@lists.ozlabs.org, linux-omap@vger.kernel.org, rnayak@ti.com, bigeasy@linutronix.de
 
-Hi Chris,
-
-On 4/10/2012 6:21 PM, Chris Ball wrote:
-> Hi,
+On Tuesday, April 10, 2012 9:24 AM, Dmitry Torokhov wrote:
+> On Tue, Apr 03, 2012 at 10:52:26AM +0530, Sourav Poddar wrote:
+>> From: G, Manjunath Kondaiah <manjugk@ti.com>
+>> 
+>> Keypad controller register offsets are different for omap4
+>> and omap5. Handle these offsets through static mapping and
+>> assign these mappings during run time.
+>> 
 >
-> On Tue, Apr 10 2012, Cousson, Benoit wrote:
->> Hi Balaji,
->>
->> On 4/10/2012 5:11 PM, Balaji T K wrote:
->>> If of_have_populated_dt is called from module, build fails with "allnodes"
->>> undefined error, so remove inline and export of_have_populated_dt.
->>
->> Is this function really called from the MMC driver?
+> In addition to Felipe's comments.
 >
-> ~/git/linux % git grep of_have_populated_dt drivers/
-> drivers/gpio/gpio-samsung.c:    if (!of_have_populated_dt())
-> drivers/mmc/host/omap_hsmmc.c:  if (of_have_populated_dt()&&  !vdd)
-> drivers/mmc/host/omap_hsmmc.c:                   (!of_have_populated_dt())) {
+>> @@ -76,11 +81,66 @@ struct omap4_keypad {
+>>  
+>>  	unsigned int rows;
+>>  	unsigned int cols;
+>> +	unsigned int revision;
+>> +	u32 irqstatus;
+>> +	u32 irqenable;
+>
+>	u32 reg_offset;
+>
+> and you probably won't need revision field.
+>
+>>  	unsigned int row_shift;
+>>  	unsigned char key_state[8];
+>>  	unsigned short keymap[];
+>>  };
+>>  
+>> +static int kbd_readl(struct omap4_keypad *keypad_data, u32 offset)
+>> +{
+>> +	if (keypad_data->revision == KBD_REVISION_OMAP4)
+>> +		return __raw_readl(keypad_data->base + offset);
 
-Gosh, twice... I should be in a wrong branch :-(
+keypad_data->base is an ioremap'ed address. Shouldn't all the __raw_{read,write}l be
+{read,write}l instead?
 
-Then the next question to Rob...
+Regards,
+Hartley
 
-Rob,
-Does it make sense to use that in the driver? So far I was using that 
-only in the arch code to make the difference between the DT boot and the 
-non-DT boot.
-
-I guess that a driver should rely on of_match_device or non-NULL 
-device_node to figure out that?
-
-Thanks,
-Benoit
