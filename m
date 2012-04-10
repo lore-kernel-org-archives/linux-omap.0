@@ -1,94 +1,75 @@
-From: "T Krishnamoorthy, Balaji" <balajitk@ti.com>
-Subject: Re: omap-hsmmc build broken with OF enabled in latest kernel
-Date: Tue, 10 Apr 2012 19:42:20 +0530
-Message-ID: <CANrkHUaterZdjgz12KA+J2D4KURaiPuu-AvxYjk5mhFju7eJYg@mail.gmail.com>
-References: <20120410095444.GO24211@n2100.arm.linux.org.uk>
-	<87obqzwuog.fsf@laptop.org>
+From: Shubhrajyoti <shubhrajyoti-l0cyMroinI0@public.gmane.org>
+Subject: Re: [PATCH 00/19] I2C updates
+Date: Tue, 10 Apr 2012 20:26:51 +0530
+Message-ID: <4F844A33.90609@ti.com>
+References: <1334055397-899-1-git-send-email-shubhrajyoti@ti.com> <CANfBPZ92EEAqrFC2gnULAXwQKhWdAuNntHz0QVXuUR3Wr=nSGQ@mail.gmail.com> <20120410114153.GR20616@arwen.pp.htv.fi>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aog110.obsmtp.com ([74.125.149.203]:48188 "EHLO
-	na3sys009aog110.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754338Ab2DJOMY convert rfc822-to-8bit
-	(ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Tue, 10 Apr 2012 10:12:24 -0400
-Received: by lbom4 with SMTP id m4so3193927lbo.11
-        for <linux-omap@vger.kernel.org>; Tue, 10 Apr 2012 07:12:20 -0700 (PDT)
-In-Reply-To: <87obqzwuog.fsf@laptop.org>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-i2c-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <20120410114153.GR20616-S8G//mZuvNWo5Im9Ml3/Zg@public.gmane.org>
+Sender: linux-i2c-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: balbi-l0cyMroinI0@public.gmane.org
+Cc: "S, Venkatraman" <svenkatr-l0cyMroinI0@public.gmane.org>, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org, w.sang-bIcnvbaLZ9MEGnE8C9+IrQ@public.gmane.org, linux-i2c-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, ben-linux-elnMNo+KYs3YtjvyW6yDsg@public.gmane.org, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org
 List-Id: linux-omap@vger.kernel.org
-To: Chris Ball <cjb@laptop.org>
-Cc: Russell King - ARM Linux <linux@arm.linux.org.uk>, Rajendra Nayak <rnayak@ti.com>, Rob Herring <rob.herring@calxeda.com>, linux-omap@vger.kernel.org, "S, Venkatraman" <svenkatr@ti.com>
 
-On Tue, Apr 10, 2012 at 7:33 PM, Chris Ball <cjb@laptop.org> wrote:
-> Hi,
->
-> On Tue, Apr 10 2012, Russell King - ARM Linux wrote:
->> This commit:
->>
->> commit 46856a68dcb5f67c779d211fd6bcb5d7a2a7f19b
->> Author: Rajendra Nayak <rnayak@ti.com>
->> Date: =A0 Mon Mar 12 20:32:37 2012 +0530
->>
->> =A0 =A0 mmc: omap_hsmmc: Convert hsmmc driver to use device tree
->>
->> =A0 =A0 Define dt bindings for the ti-omap-hsmmc, and adapt the driv=
-er to extract
->> =A0 =A0 data (which was earlier passed as platform_data) from device=
- tree.
->>
->> =A0 =A0 Signed-off-by: Rajendra Nayak <rnayak@ti.com>
->> =A0 =A0 Acked-by: Rob Herring <rob.herring@calxeda.com>
->> =A0 =A0 Signed-off-by: Chris Ball <cjb@laptop.org>
->>
->> breaks omap-hsmmc compilation:
->>
->> drivers/mmc/host/omap_hsmmc.c:1745: error: expected ',' or ';' befor=
-e 'extern'
->>
->> +#ifdef CONFIG_OF
->> +static u16 omap4_reg_offset =3D 0x100;
->> +
->> +static const struct of_device_id omap_mmc_of_match[] =3D {
->> ...
->> +}
->> +MODULE_DEVICE_TABLE(of, omap_mmc_of_match);
->>
->> There should be a ';' after the }.
->
-> Thanks, and sorry for breaking the build. =A0I've pushed a fix to mmc=
--next
-> and will send it out to Linus.
->
-> Surprisingly, this patch does not break my build with gcc-4.6.0 --
-> and I've just checked that line 1745 is being compiled by purposefull=
-y
-> introducing an(other) error to it, which *did* break my build. =A0I w=
-onder
-> what's going on there; presumably it's the reason that no-one else sa=
-w
-> this earlier.
+On Tuesday 10 April 2012 05:11 PM, Felipe Balbi wrote:
+> On Tue, Apr 10, 2012 at 05:01:37PM +0530, S, Venkatraman wrote:
+>> On Tue, Apr 10, 2012 at 4:26 PM, Shubhrajyoti D <shubhrajyoti-l0cyMroinI0@public.gmane.org> wrote:
+[...]
+>>>  modpost: Fix modpost license checking of vmlinux.o (2012-04-09 20:52:56 -0700)
+>>>
+>>> are available in the git repository at:
+>>>  git-OGgr7I4mDcYgsBAKwltoeQ@public.gmane.org:linus-tree/linus-tree.git i2c_omap-next
+>> Minor nit:
+>> You might want to indicate a git:// link instead of an ssh URL ?
+> indeed, for those who haven't noticed git now has separate url and
+> pushurl for every remote. Meaning you can pull and push with different
+> urls. This solves this issue.
+Thanks,
+Venkat , Felipe
 
-Build fails iff omap_hsmmc is built as a module.
-Adding ';' fixes and uncovers another build error due to unexported
-variable allnodes, will send a RFC patch shortly.
+Here is the corrected pull request
+The following changes since commit 258f742635360175564e9470eb060ff4d4b984e7:
 
-ERROR: "allnodes" [drivers/mmc/host/omap_hsmmc.ko] undefined!
-make[3]: *** [__modpost] Error 1
+  modpost: Fix modpost license checking of vmlinux.o (2012-04-09
+20:52:56 -0700)
 
->
-> - Chris.
-> --
-> Chris Ball =A0 <cjb@laptop.org> =A0 <http://printf.net/>
-> One Laptop Per Child
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-omap"=
- in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at =A0http://vger.kernel.org/majordomo-info.html
---
-To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+are available in the git repository at:
+  git://gitorious.org/linus-tree/linus-tree.git i2c_omap-next
+
+Jon Hunter (1):
+      I2C: OMAP: Correct I2C revision for OMAP3
+
+Shubhrajyoti D (16):
+      I2C: OMAP: make omap_i2c_unidle/idle functions depend on
+CONFIG_PM_RUNTIME
+      I2C: OMAP: Remove reset at init
+      I2C: OMAP: I2C register restore only if context is lost
+      I2C: OMAP: Fix the interrupt clearing in OMAP4
+      I2C: OMAP: Fix the mismatch of pm_runtime enable and disable
+      I2C: OMAP: Optimise the remove code
+      I2C: OMAP: Fix the error handling
+      I2C: OMAP: Don't check if wait_for_completion_timeout() returns
+less than zero
+      I2C: OMAP: use devm_* functions
+      I2C: OMAP: Fix the crash in i2c remove
+      I2C: OMAP: Handle error check for pm runtime
+      I2C: OMAP: Use SET_RUNTIME_PM_OPS
+      I2C: OMAP: make the read ready processing a separate function
+      I2C: OMAP: Do not set the XUDF if the underflow is not reached
+      I2C: OMAP: Rename the 1p153 to the erratum id i462
+      ARM: OMAP4: hwmod data: I2C: add flag for context restore
+
+Tasslehoff Kjappfot (1):
+      I2C: OMAP: fix missing handling of errata I2C_OMAP3_1P153
+
+Vikram Pandita (1):
+      I2C: OMAP: Recover from Bus Busy condition
+
+ arch/arm/mach-omap2/omap_hwmod_44xx_data.c |    3 +-
+ arch/arm/plat-omap/i2c.c                   |    3 +
+ drivers/i2c/busses/i2c-omap.c              |  342
++++++++++++++++-------------
+ include/linux/i2c-omap.h                   |    1 +
+ 4 files changed, 194 insertions(+), 155 deletions(-)
