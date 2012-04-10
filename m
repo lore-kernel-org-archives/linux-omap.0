@@ -1,91 +1,67 @@
 From: Shubhrajyoti D <shubhrajyoti@ti.com>
-Subject: [PATCHv6 02/19] I2C: OMAP: Remove reset at init
-Date: Tue, 10 Apr 2012 16:26:20 +0530
-Message-ID: <1334055397-899-3-git-send-email-shubhrajyoti@ti.com>
+Subject: [PATCHv6 10/19] I2C: OMAP: Don't check if wait_for_completion_timeout() returns less than zero
+Date: Tue, 10 Apr 2012 16:26:28 +0530
+Message-ID: <1334055397-899-11-git-send-email-shubhrajyoti@ti.com>
 References: <1334055397-899-1-git-send-email-shubhrajyoti@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from bear.ext.ti.com ([192.94.94.41]:35278 "EHLO bear.ext.ti.com"
+Received: from arroyo.ext.ti.com ([192.94.94.40]:58538 "EHLO arroyo.ext.ti.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753616Ab2DJK5h (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Tue, 10 Apr 2012 06:57:37 -0400
+	id S1753616Ab2DJK5o (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Tue, 10 Apr 2012 06:57:44 -0400
 In-Reply-To: <1334055397-899-1-git-send-email-shubhrajyoti@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: linux-omap@vger.kernel.org
 Cc: linux-i2c@vger.kernel.org, linux-arm-kernel@lists.infradead.org, ben-linux@fluff.org, tony@atomide.com, w.sang@pengutronix.de, Shubhrajyoti D <shubhrajyoti@ti.com>
 
-The reset in the driver at init is not needed anymore as the
-following patch has removed the HWMOD_INIT_NO_RESET flag.
-6d3c55f [OMAP: hwmod: fix the i2c-reset timeout during bootup]
+By definition, wait_for_completion_timeout() returns an unsigned value and
+therefore, it is not necessary to check if the return value is less than zero
+as this is not possible.
 
-This patch does the following
--removes the reset from the probe and implements a omap_i2c_reset
- function to reset.
-- Reset is removed from omap_i2c_init, which was called
- not only during probe, but also after time out and error handling.
- omap_i2c_reset is added in those places to effect the reset.
+This is based on a patch from Jon Hunter <jon-hunter@ti.com>
+Changes from his patch
+- Declare a long as the wait_for_completion_timeout returns long.
 
+Original patch is
+http://git.omapzoom.org/?p=kernel/omap.git;a=commitdiff;h=ea02cece7b0000bc736e60c4188a11aaa74bc6e6
+
+Cc : Jon Hunter <jon-hunter@ti.com>
 Signed-off-by: Shubhrajyoti D <shubhrajyoti@ti.com>
 ---
- drivers/i2c/busses/i2c-omap.c |   20 +++++++++++++-------
- 1 files changed, 13 insertions(+), 7 deletions(-)
+ drivers/i2c/busses/i2c-omap.c |   10 ++++------
+ 1 files changed, 4 insertions(+), 6 deletions(-)
 
 diff --git a/drivers/i2c/busses/i2c-omap.c b/drivers/i2c/busses/i2c-omap.c
-index 4f4188d..e402ebb 100644
+index 959e97c..121c52e 100644
 --- a/drivers/i2c/busses/i2c-omap.c
 +++ b/drivers/i2c/busses/i2c-omap.c
-@@ -269,15 +269,9 @@ static inline u16 omap_i2c_read_reg(struct omap_i2c_dev *i2c_dev, int reg)
- 				(i2c_dev->regs[reg] << i2c_dev->reg_shift));
- }
- 
--static int omap_i2c_init(struct omap_i2c_dev *dev)
-+static int omap_i2c_reset(struct omap_i2c_dev *dev)
+@@ -502,7 +502,7 @@ static int omap_i2c_xfer_msg(struct i2c_adapter *adap,
+ 			     struct i2c_msg *msg, int stop)
  {
--	u16 psc = 0, scll = 0, sclh = 0, buf = 0;
--	u16 fsscll = 0, fssclh = 0, hsscll = 0, hssclh = 0;
--	unsigned long fclk_rate = 12000000;
- 	unsigned long timeout;
--	unsigned long internal_clk = 0;
--	struct clk *fclk;
--
- 	if (dev->rev >= OMAP_I2C_OMAP1_REV_2) {
- 		/* Disable I2C controller before soft reset */
- 		omap_i2c_write_reg(dev, OMAP_I2C_CON_REG,
-@@ -325,6 +319,16 @@ static int omap_i2c_init(struct omap_i2c_dev *dev)
- 							dev->westate);
- 		}
- 	}
-+}
-+
-+static int omap_i2c_init(struct omap_i2c_dev *dev)
-+{
-+	u16 psc = 0, scll = 0, sclh = 0, buf = 0;
-+	u16 fsscll = 0, fssclh = 0, hsscll = 0, hssclh = 0;
-+	unsigned long fclk_rate = 12000000;
-+	unsigned long internal_clk = 0;
-+	struct clk *fclk;
-+
- 	omap_i2c_write_reg(dev, OMAP_I2C_CON_REG, 0);
+ 	struct omap_i2c_dev *dev = i2c_get_adapdata(adap);
+-	int r;
++	unsigned long timeout;
+ 	u16 w;
  
- 	if (dev->flags & OMAP_I2C_FLAG_ALWAYS_ARMXOR_CLK) {
-@@ -548,6 +552,7 @@ static int omap_i2c_xfer_msg(struct i2c_adapter *adap,
- 		return r;
- 	if (r == 0) {
+ 	dev_dbg(dev->dev, "addr: 0x%04x, len: %d, flags: 0x%x, stop: %d\n",
+@@ -570,12 +570,10 @@ static int omap_i2c_xfer_msg(struct i2c_adapter *adap,
+ 	 * REVISIT: We should abort the transfer on signals, but the bus goes
+ 	 * into arbitration and we're currently unable to recover from it.
+ 	 */
+-	r = wait_for_completion_timeout(&dev->cmd_complete,
+-					OMAP_I2C_TIMEOUT);
++	timeout = wait_for_completion_timeout(&dev->cmd_complete,
++						OMAP_I2C_TIMEOUT);
+ 	dev->buf_len = 0;
+-	if (r < 0)
+-		return r;
+-	if (r == 0) {
++	if (timeout == 0) {
  		dev_err(dev->dev, "controller timed out\n");
-+		omap_i2c_reset(dev);
+ 		omap_i2c_reset(dev);
  		omap_i2c_init(dev);
- 		return -ETIMEDOUT;
- 	}
-@@ -558,6 +563,7 @@ static int omap_i2c_xfer_msg(struct i2c_adapter *adap,
- 	/* We have an error */
- 	if (dev->cmd_err & (OMAP_I2C_STAT_AL | OMAP_I2C_STAT_ROVR |
- 			    OMAP_I2C_STAT_XUDF)) {
-+		omap_i2c_reset(dev);
- 		omap_i2c_init(dev);
- 		return -EIO;
- 	}
 -- 
 1.7.4.1
 
