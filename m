@@ -1,60 +1,62 @@
-From: Grant Likely <grant.likely@secretlab.ca>
-Subject: Re: [RFC] dt: export of_have_populated_dt
-Date: Tue, 10 Apr 2012 14:33:57 -0600
-Message-ID: <20120410203357.D86323E0D65@localhost>
-References: <1334070672-11252-1-git-send-email-balajitk@ti.com> <4F845D99.7020705@ti.com> <87y5q3v9pd.fsf@laptop.org> <4F845FF9.5080005@ti.com> <4F846BDB.8020805@gmail.com>
+From: Jon Hunter <jon-hunter@ti.com>
+Subject: Re: [PATCH 1/3] ARM: OMAP2+: 32k-counter: Use hwmod lookup to check
+ presence of 32k timer
+Date: Tue, 10 Apr 2012 16:03:17 -0500
+Message-ID: <4F84A015.4060509@ti.com>
+References: <79CD15C6BA57404B839C016229A409A83184846A@DBDE01.ent.ti.com> <20120405095221.GC25053@n2100.arm.linux.org.uk> <79CD15C6BA57404B839C016229A409A831848621@DBDE01.ent.ti.com> <87hawxkgoi.fsf@ti.com> <79CD15C6BA57404B839C016229A409A831849432@DBDE01.ent.ti.com> <20120406180452.GB15734@atomide.com> <79CD15C6BA57404B839C016229A409A83184ABEF@DBDE01.ent.ti.com> <4F83440E.70502@ti.com> <20120410084413.GD25053@n2100.arm.linux.org.uk> <4F83F600.4000002@ti.com> <20120410092904.GE25053@n2100.arm.linux.org.uk> <CAMQu2gwSAPtXOYWP1VmVCuxru_CrbLC-gLaaD7n4+utu3rOwxQ@mail.gmail.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset="ISO-8859-1"; format=flowed
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-pz0-f52.google.com ([209.85.210.52]:39105 "EHLO
-	mail-pz0-f52.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1757221Ab2DJUeB (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 10 Apr 2012 16:34:01 -0400
-Received: by dake40 with SMTP id e40so218644dak.11
-        for <linux-omap@vger.kernel.org>; Tue, 10 Apr 2012 13:34:00 -0700 (PDT)
-In-Reply-To: <4F846BDB.8020805@gmail.com>
+Received: from devils.ext.ti.com ([198.47.26.153]:56767 "EHLO
+	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S932381Ab2DJVDe (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 10 Apr 2012 17:03:34 -0400
+In-Reply-To: <CAMQu2gwSAPtXOYWP1VmVCuxru_CrbLC-gLaaD7n4+utu3rOwxQ@mail.gmail.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Rob Herring <robherring2@gmail.com>, "Cousson, Benoit" <b-cousson@ti.com>
-Cc: linux-omap@vger.kernel.org, Balaji T K <balajitk@ti.com>, devicetree-discuss@lists.ozlabs.org, Chris Ball <cjb@laptop.org>, bigeasy@linutronix.de
+To: "Shilimkar, Santosh" <santosh.shilimkar@ti.com>
+Cc: Russell King - ARM Linux <linux@arm.linux.org.uk>, "Hiremath, Vaibhav" <hvaibhav@ti.com>, Tony Lindgren <tony@atomide.com>, "Hilman, Kevin" <khilman@ti.com>, Paul Walmsley <paul@pwsan.com>, "Cousson, Benoit" <b-cousson@ti.com>, "marc.zyngier@arm.com" <marc.zyngier@arm.com>, Ming Lei <tom.leiming@gmail.com>, "Balbi, Felipe" <balbi@ti.com>, "johnstul@us.ibm.com" <johnstul@us.ibm.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "DebBarma, Tarun Kanti" <tarun.kanti@ti.com>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>
 
-On Tue, 10 Apr 2012 12:20:27 -0500, Rob Herring <robherring2@gmail.com> wrote:
-> On 04/10/2012 11:29 AM, Cousson, Benoit wrote:
-> > Hi Chris,
-> > 
-> > On 4/10/2012 6:21 PM, Chris Ball wrote:
-> >> Hi,
-> >>
-> >> On Tue, Apr 10 2012, Cousson, Benoit wrote:
-> >>> Hi Balaji,
-> >>>
-> >>> On 4/10/2012 5:11 PM, Balaji T K wrote:
-> >>>> If of_have_populated_dt is called from module, build fails with
-> >>>> "allnodes"
-> >>>> undefined error, so remove inline and export of_have_populated_dt.
-> >>>
-> >>> Is this function really called from the MMC driver?
-> >>
-> >> ~/git/linux % git grep of_have_populated_dt drivers/
-> >> drivers/gpio/gpio-samsung.c:    if (!of_have_populated_dt())
-> >> drivers/mmc/host/omap_hsmmc.c:  if (of_have_populated_dt()&&  !vdd)
-> >> drivers/mmc/host/omap_hsmmc.c:                  
-> >> (!of_have_populated_dt())) {
-> > 
-> > Gosh, twice... I should be in a wrong branch :-(
-> > 
-> > Then the next question to Rob...
-> > 
-> > Rob,
-> > Does it make sense to use that in the driver? So far I was using that
-> > only in the arch code to make the difference between the DT boot and the
-> > non-DT boot.
-> > 
-> > I guess that a driver should rely on of_match_device or non-NULL
-> > device_node to figure out that?
-> > 
-> 
-> Agreed. of_match_device or device_node ptr check is the right approach.
 
-Good; I can safely ignore this patch.  :-)
+On 04/10/2012 04:51 AM, Shilimkar, Santosh wrote:
+> On Tue, Apr 10, 2012 at 2:59 PM, Russell King - ARM Linux
+> <linux@arm.linux.org.uk>  wrote:
+>> On Tue, Apr 10, 2012 at 02:27:36PM +0530, Santosh Shilimkar wrote:
+>>> On Tuesday 10 April 2012 02:14 PM, Russell King - ARM Linux wrote:
+>>>> On Mon, Apr 09, 2012 at 03:18:22PM -0500, Jon Hunter wrote:
+>>>>> True, but we would always want to use the 32k timer if CONFIG_PM is
+>>>>> specified. So what I am saying is that if a device has a 32ksync timer
+>>>>> and CONFIG_PM is defined, we always want to use the 32ksync timer and a
+>>>>> gptimer should never be used.
+>>>>
+>>>> Why?  What if you want to have PM enabled, and you also want to use the
+>>>> kernels high resolution timers, or you want more accurate timing than
+>>>> the 30.5us tick interval of the 32k timer?
+>>>
+>>> You might have missed the earlier comments on the thread. High
+>>> resolution GP timer(sysclk) will stop in deeper power states and
+>>> hence it can't be used with PM enabled usecases.
+>>
+>> Which means folk should be given the choice at boot time between running
+>> with the deeper power states and having a higher resolution timing source,
+>> rather than denying them the higher resolution timing source when PM is
+>> enabled.
+>
+> Good point. My point is such facilities is already part of the kernel and
+> there is no need to add a new one. The last proposal was allowing user to
+> choose gptimer as a clocksource and then you already have facility to
+> disable C-state now so, all should work in general
 
-g.
+Actually, thinking about this some more, you do not even need to disable 
+c-states. By using a gptimer1 and configuring it to use the SYSCLK as it 
+source, as long as the gptimer1 is not disabled, it will prevent SYSCLK 
+from ever turning off.
 
+Probably for good measure in this case we should also disable auto clock 
+gating of SYSCLK via the PRM_CLKSRC_CTRL (OMAP2/3) or PRM_CLKREQCTRL 
+(OMAP4).
+
+Sounds like a good approach.
+
+Jon
