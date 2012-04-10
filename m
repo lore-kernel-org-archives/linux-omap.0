@@ -1,43 +1,87 @@
-From: Kevin Hilman <khilman@ti.com>
-Subject: Re: [PATCH 00/17][V2] ARM: OMAP3/4 : cpuidle34xx and cpuidle44xx cleanups
-Date: Mon, 09 Apr 2012 16:23:46 -0700
-Message-ID: <87vcl87am5.fsf@ti.com>
-References: <1333570371-1389-1-git-send-email-daniel.lezcano@linaro.org>
+From: Tony Lindgren <tony@atomide.com>
+Subject: Re: [PATCH] arm: omap4: hsmmc: check for null pointer
+Date: Mon, 9 Apr 2012 17:08:09 -0700
+Message-ID: <20120410000808.GE6487@atomide.com>
+References: <1333460858-9324-1-git-send-email-balajitk@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aog115.obsmtp.com ([74.125.149.238]:36774 "EHLO
-	na3sys009aog115.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1758140Ab2DIXXk (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 9 Apr 2012 19:23:40 -0400
-Received: by pbcun1 with SMTP id un1so6042027pbc.29
-        for <linux-omap@vger.kernel.org>; Mon, 09 Apr 2012 16:23:39 -0700 (PDT)
-In-Reply-To: <1333570371-1389-1-git-send-email-daniel.lezcano@linaro.org>
-	(Daniel Lezcano's message of "Wed, 4 Apr 2012 22:12:34 +0200")
+Received: from mho-02-ewr.mailhop.org ([204.13.248.72]:42418 "EHLO
+	mho-02-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752984Ab2DJAIN (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 9 Apr 2012 20:08:13 -0400
+Content-Disposition: inline
+In-Reply-To: <1333460858-9324-1-git-send-email-balajitk@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Daniel Lezcano <daniel.lezcano@linaro.org>
-Cc: santosh.shilimkar@ti.com, jean.pihet@newoldbits.com, tony@atomide.com, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, rob.lee@linaro.org, linaro-dev@lists.linaro.org, patches@linaro.org
+To: Balaji T K <balajitk@ti.com>
+Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 
-Daniel Lezcano <daniel.lezcano@linaro.org> writes:
+* Balaji T K <balajitk@ti.com> [120403 06:47]:
+> platform_device pdev can be NULL if CONFIG_MMC_OMAP_HS is not set.
+> Add check for NULL pointer
+> 
+> Fixes the following boot crash seen with omap4sdp and omap4panda
+> when MMC is disabled.
+> 
+> Unable to handle kernel NULL pointer dereference at virtual address 0000008c
+> pgd = c0004000
+> [0000008c] *pgd=00000000
+> Internal error: Oops: 5 [#1] SMP ARM
+> Modules linked in:
+> CPU: 0    Not tainted  (3.4.0-rc1-05971-ga4dfa82 #4)
+> PC is at omap_4430sdp_init+0x184/0x410
+> LR is at device_add+0x1a0/0x664
+> 
+> Signed-off-by: Balaji T K <balajitk@ti.com>
+> Reported-by: Santosh Shilimkar <santosh.shilimkar@ti.com>
+> ---
+>  arch/arm/mach-omap2/board-4430sdp.c    |    6 +++++-
+>  arch/arm/mach-omap2/board-omap4panda.c |    6 +++++-
+>  2 files changed, 10 insertions(+), 2 deletions(-)
+> 
+> diff --git a/arch/arm/mach-omap2/board-4430sdp.c b/arch/arm/mach-omap2/board-4430sdp.c
+> index a39fc4b..1ce771d 100644
+> --- a/arch/arm/mach-omap2/board-4430sdp.c
+> +++ b/arch/arm/mach-omap2/board-4430sdp.c
+> @@ -526,8 +526,12 @@ static int __init omap4_twl6030_hsmmc_init(struct omap2_hsmmc_info *controllers)
+>  	struct omap2_hsmmc_info *c;
+>  
+>  	omap_hsmmc_init(controllers);
+> -	for (c = controllers; c->mmc; c++)
+> +	for (c = controllers; c->mmc; c++) {
+> +		/* pdev can be null if CONFIG_MMC_OMAP_HS is not set */
+> +		if (!c->pdev)
+> +			continue;
+>  		omap4_twl6030_hsmmc_set_late_init(&c->pdev->dev);
+> +	}
+>  
+>  	return 0;
+>  }
+> diff --git a/arch/arm/mach-omap2/board-omap4panda.c b/arch/arm/mach-omap2/board-omap4panda.c
+> index d8c0e89..104fd6d 100644
+> --- a/arch/arm/mach-omap2/board-omap4panda.c
+> +++ b/arch/arm/mach-omap2/board-omap4panda.c
+> @@ -278,8 +278,12 @@ static int __init omap4_twl6030_hsmmc_init(struct omap2_hsmmc_info *controllers)
+>  	struct omap2_hsmmc_info *c;
+>  
+>  	omap_hsmmc_init(controllers);
+> -	for (c = controllers; c->mmc; c++)
+> +	for (c = controllers; c->mmc; c++) {
+> +		/* pdev can be null if CONFIG_MMC_OMAP_HS is not set */
+> +		if (!c->pdev)
+> +			continue;
+>  		omap4_twl6030_hsmmc_set_late_init(&c->pdev->dev);
+> +	}
+>  
+>  	return 0;
+>  }
 
-> This patchset makes some cleanup on these cpuidle drivers
-> and consolidate the code across both architecture.
-
-Thanks for this really nice cleanup.  I have some comments on specific
-patches, but here's some general comments:
-
-Some minor comments:
-
-First, please be sure all patches have a descriptive changelog.  Yes,
-even simple ones need changelogs.  In particular, maintainers are
-looking for the "why" of a patch, not just the "what" or "how".
-
-Second, this series introduced a couple sparse warnings:
-
-/work/kernel/omap/pm/arch/arm/mach-omap2/cpuidle44xx.c:134:1: warning: symbol 'omap4_idle_dev' was not declared. Should it be static?
-/work/kernel/omap/pm/arch/arm/mach-omap2/cpuidle44xx.c:136:23: warning: symbol 'omap4_idle_driver' was not declared. Should it be static?
+Uhh cut and paste duplicate code.. Let's get rid of that while at
+it. Can you please update this so we have only one copy of
+omap4_twl6030_hsmmc_init in some place, maybe in one of the
+arch/arm/mach-omap2/*twl*.c files?
 
 Thanks,
 
-Kevin
+Tony
