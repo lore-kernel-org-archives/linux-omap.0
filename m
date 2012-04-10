@@ -1,75 +1,69 @@
-From: Shubhrajyoti <shubhrajyoti-l0cyMroinI0@public.gmane.org>
-Subject: Re: [PATCH 00/19] I2C updates
-Date: Tue, 10 Apr 2012 20:26:51 +0530
-Message-ID: <4F844A33.90609@ti.com>
-References: <1334055397-899-1-git-send-email-shubhrajyoti@ti.com> <CANfBPZ92EEAqrFC2gnULAXwQKhWdAuNntHz0QVXuUR3Wr=nSGQ@mail.gmail.com> <20120410114153.GR20616@arwen.pp.htv.fi>
+From: Balaji T K <balajitk@ti.com>
+Subject: [RFC] dt: export of_have_populated_dt
+Date: Tue, 10 Apr 2012 20:41:12 +0530
+Message-ID: <1334070672-11252-1-git-send-email-balajitk@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-i2c-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20120410114153.GR20616-S8G//mZuvNWo5Im9Ml3/Zg@public.gmane.org>
-Sender: linux-i2c-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: balbi-l0cyMroinI0@public.gmane.org
-Cc: "S, Venkatraman" <svenkatr-l0cyMroinI0@public.gmane.org>, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org, w.sang-bIcnvbaLZ9MEGnE8C9+IrQ@public.gmane.org, linux-i2c-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, ben-linux-elnMNo+KYs3YtjvyW6yDsg@public.gmane.org, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org
+Content-Type: text/plain
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from comal.ext.ti.com ([198.47.26.152]:37003 "EHLO comal.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1759039Ab2DJPIF (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Tue, 10 Apr 2012 11:08:05 -0400
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: robherring2@gmail.com, devicetree-discuss@lists.ozlabs.org
+Cc: linux-omap@vger.kernel.org, rnayak@ti.com, cjb@laptop.org, bigeasy@linutronix.de, Balaji T K <balajitk@ti.com>
 
-On Tuesday 10 April 2012 05:11 PM, Felipe Balbi wrote:
-> On Tue, Apr 10, 2012 at 05:01:37PM +0530, S, Venkatraman wrote:
->> On Tue, Apr 10, 2012 at 4:26 PM, Shubhrajyoti D <shubhrajyoti-l0cyMroinI0@public.gmane.org> wrote:
-[...]
->>>  modpost: Fix modpost license checking of vmlinux.o (2012-04-09 20:52:56 -0700)
->>>
->>> are available in the git repository at:
->>>  git-OGgr7I4mDcYgsBAKwltoeQ@public.gmane.org:linus-tree/linus-tree.git i2c_omap-next
->> Minor nit:
->> You might want to indicate a git:// link instead of an ssh URL ?
-> indeed, for those who haven't noticed git now has separate url and
-> pushurl for every remote. Meaning you can pull and push with different
-> urls. This solves this issue.
-Thanks,
-Venkat , Felipe
+If of_have_populated_dt is called from module, build fails with "allnodes"
+undefined error, so remove inline and export of_have_populated_dt.
 
-Here is the corrected pull request
-The following changes since commit 258f742635360175564e9470eb060ff4d4b984e7:
+Signed-off-by: Balaji T K <balajitk@ti.com>
+---
+ drivers/of/base.c  |    6 ++++++
+ include/linux/of.h |    6 +-----
+ 2 files changed, 7 insertions(+), 5 deletions(-)
 
-  modpost: Fix modpost license checking of vmlinux.o (2012-04-09
-20:52:56 -0700)
+diff --git a/drivers/of/base.c b/drivers/of/base.c
+index 5806449..dc1af42 100644
+--- a/drivers/of/base.c
++++ b/drivers/of/base.c
+@@ -186,6 +186,12 @@ struct property *of_find_property(const struct device_node *np,
+ }
+ EXPORT_SYMBOL(of_find_property);
+ 
++bool of_have_populated_dt(void)
++{
++	return allnodes != NULL;
++}
++EXPORT_SYMBOL(of_have_populated_dt);
++
+ /**
+  * of_find_all_nodes - Get next node in global list
+  * @prev:	Previous node or NULL to start iteration
+diff --git a/include/linux/of.h b/include/linux/of.h
+index fa7fb1d..28e933e 100644
+--- a/include/linux/of.h
++++ b/include/linux/of.h
+@@ -92,11 +92,6 @@ extern struct device_node *of_chosen;
+ extern struct device_node *of_aliases;
+ extern rwlock_t devtree_lock;
+ 
+-static inline bool of_have_populated_dt(void)
+-{
+-	return allnodes != NULL;
+-}
+-
+ static inline bool of_node_is_root(const struct device_node *node)
+ {
+ 	return node && (node->parent == NULL);
+@@ -112,6 +107,7 @@ static inline void of_node_set_flag(struct device_node *n, unsigned long flag)
+ 	set_bit(flag, &n->_flags);
+ }
+ 
++extern bool of_have_populated_dt(void);
+ extern struct device_node *of_find_all_nodes(struct device_node *prev);
+ 
+ /*
+-- 
+1.7.0.4
 
-are available in the git repository at:
-  git://gitorious.org/linus-tree/linus-tree.git i2c_omap-next
-
-Jon Hunter (1):
-      I2C: OMAP: Correct I2C revision for OMAP3
-
-Shubhrajyoti D (16):
-      I2C: OMAP: make omap_i2c_unidle/idle functions depend on
-CONFIG_PM_RUNTIME
-      I2C: OMAP: Remove reset at init
-      I2C: OMAP: I2C register restore only if context is lost
-      I2C: OMAP: Fix the interrupt clearing in OMAP4
-      I2C: OMAP: Fix the mismatch of pm_runtime enable and disable
-      I2C: OMAP: Optimise the remove code
-      I2C: OMAP: Fix the error handling
-      I2C: OMAP: Don't check if wait_for_completion_timeout() returns
-less than zero
-      I2C: OMAP: use devm_* functions
-      I2C: OMAP: Fix the crash in i2c remove
-      I2C: OMAP: Handle error check for pm runtime
-      I2C: OMAP: Use SET_RUNTIME_PM_OPS
-      I2C: OMAP: make the read ready processing a separate function
-      I2C: OMAP: Do not set the XUDF if the underflow is not reached
-      I2C: OMAP: Rename the 1p153 to the erratum id i462
-      ARM: OMAP4: hwmod data: I2C: add flag for context restore
-
-Tasslehoff Kjappfot (1):
-      I2C: OMAP: fix missing handling of errata I2C_OMAP3_1P153
-
-Vikram Pandita (1):
-      I2C: OMAP: Recover from Bus Busy condition
-
- arch/arm/mach-omap2/omap_hwmod_44xx_data.c |    3 +-
- arch/arm/plat-omap/i2c.c                   |    3 +
- drivers/i2c/busses/i2c-omap.c              |  342
-+++++++++++++++-------------
- include/linux/i2c-omap.h                   |    1 +
- 4 files changed, 194 insertions(+), 155 deletions(-)
