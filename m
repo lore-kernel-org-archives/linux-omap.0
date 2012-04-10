@@ -1,97 +1,94 @@
-From: "Poddar, Sourav" <sourav.poddar@ti.com>
-Subject: Re: [PATCH RESEND] Input: omap-keypad: dynamically handle register offsets
-Date: Tue, 10 Apr 2012 16:00:34 +0530
-Message-ID: <CAKdam55V0oRh34TPgc83Xj2xdk8=Dgaz7-441PFOj94mDZY__g@mail.gmail.com>
-References: <1333430546-23454-1-git-send-email-sourav.poddar@ti.com>
-	<20120410092441.GB20616@arwen.pp.htv.fi>
-	<CAKdam56-Pu+WJKLUpodTzOzGuGbAHuqZ3F-zVmrAtFM7EDhxpg@mail.gmail.com>
-	<20120410101609.GJ20616@arwen.pp.htv.fi>
+From: Shubhrajyoti D <shubhrajyoti-l0cyMroinI0@public.gmane.org>
+Subject: [PATCH 00/19] I2C updates
+Date: Tue, 10 Apr 2012 16:26:18 +0530
+Message-ID: <1334055397-899-1-git-send-email-shubhrajyoti@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aog114.obsmtp.com ([74.125.149.211]:33785 "EHLO
-	na3sys009aog114.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755355Ab2DJKah convert rfc822-to-8bit
-	(ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Tue, 10 Apr 2012 06:30:37 -0400
-Received: by wera13 with SMTP id a13so4437960wer.37
-        for <linux-omap@vger.kernel.org>; Tue, 10 Apr 2012 03:30:34 -0700 (PDT)
-In-Reply-To: <20120410101609.GJ20616@arwen.pp.htv.fi>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain
+Return-path: <linux-i2c-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Sender: linux-i2c-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Cc: linux-i2c-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, ben-linux-elnMNo+KYs3YtjvyW6yDsg@public.gmane.org, tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org, w.sang-bIcnvbaLZ9MEGnE8C9+IrQ@public.gmane.org, Shubhrajyoti D <shubhrajyoti-l0cyMroinI0@public.gmane.org>
 List-Id: linux-omap@vger.kernel.org
-To: balbi@ti.com
-Cc: dmitry.torokhov@gmail.com, linux-input@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org
 
-Hi Felipe,
+The patch series does the following
 
-On Tue, Apr 10, 2012 at 3:46 PM, Felipe Balbi <balbi@ti.com> wrote:
->
-> On Tue, Apr 10, 2012 at 03:37:28PM +0530, Poddar, Sourav wrote:
-> > Hi Felipe,
-> >
-> > On Tue, Apr 10, 2012 at 2:54 PM, Felipe Balbi <balbi@ti.com> wrote:
-> >
-> > =A0 =A0 On Tue, Apr 03, 2012 at 10:52:26AM +0530, Sourav Poddar wro=
-te:
-> > =A0 =A0 > +static int kbd_write_irqstatus(struct omap4_keypad *keyp=
-ad_data,
-> > =A0 =A0 > + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0=
- =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 u32 offset, u32 value)
-> > =A0 =A0 > +{
-> > =A0 =A0 > + =A0 =A0 return __raw_writel(value, keypad_data->base + =
-offset);
-> > =A0 =A0 > +}
-> > =A0 =A0 > +
-> > =A0 =A0 > +static int kbd_write_irqenable(struct omap4_keypad *keyp=
-ad_data,
-> > =A0 =A0 > + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0=
- =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 u32 offset, u32 value)
-> > =A0 =A0 > +{
-> > =A0 =A0 > + =A0 =A0 return __raw_writel(value, keypad_data->base + =
-offset);
-> > =A0 =A0 > +}
-> >
-> > =A0 =A0 if this only writes to irqenable, why do you pass offset as=
- an argument?
-> > =A0 =A0 likewise for irqstatus.
-> >
-> >
-> > Actually, here the offset is the "irqenable" register addresss offs=
-et and
-> > "irqstatus" register
-> > address offset from the base address.
-> > Since, the above two address are different in case of Omap4 and oma=
-p5, we are
-> > passing an offset
-> > depending on the particular revision of the keyboard selected durin=
-g probe.
->
-> but you already have those in keypad_data->irqenable/irqstatus right =
-?
+- Warn fixes if CONFIG_PM_RUNTIME is not selected.
+- I2C register restore only if context if the context is lost
+- Bus busy recovery mechanism.
+- the reset is not done in init.
 
-Yes.
->
-> Meaning you can access them directly here and save on the arguments:
->
-> static int kbd_write_irqenable(struct omap4_keypad *keypad_data, u32 =
-value)
-> {
-> =A0 =A0 return __raw_writel(value, keypad_data->base + keypad_data->i=
-rqenable);
-> }
->
-Thanks a lot for pointing this out. Yes, we should be able to directly =
-use
-the driver data for the above api.
-Will make the necessary change in the next version.
-~Sourav
->
->
-> --
-> balbi
---
-To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+v2 changes
+-Adds a patch to use devm_* functions
+-Also checks the return type of the get_sync and in case
+ of errors prevents register access.
+- In case of i2c remove register access was done without any
+ get_sync fix the same.
+- Adds a pdata function pointer to do context save restore
+
+v3 changes
+- Split the omap_i2c_isr to increase readability
+- Adds the restore flag patch for OMAP4 to the series
+- Make the i2c use SET_RUNTIME_PM_OPS
+v4 changes
+- Folds a patch from Tasslehoff to prevent any merge conflicts.
+- Prevents the XDUF flag to be set if the underflow condition is not met.
+
+v5 changes
+- Add consistency in the subject naming. 
+
+v6 changes
+- As per discussion in [1] .Adds a patch to rename the 1p153 errata and
+ use the unique id instead as the section number in the recent errata
+ docs has changed.
+
+
+[1] http://www.spinics.net/lists/linux-i2c/msg07607.html 
+
+Tested on omap4sdp and omap3sdp.
+
+
+The following changes since commit 258f742635360175564e9470eb060ff4d4b984e7:
+
+  modpost: Fix modpost license checking of vmlinux.o (2012-04-09 20:52:56 -0700)
+
+are available in the git repository at:
+  git-OGgr7I4mDcYgsBAKwltoeQ@public.gmane.org:linus-tree/linus-tree.git i2c_omap-next
+
+
+Jon Hunter (1):
+  I2C: OMAP: Correct I2C revision for OMAP3
+
+Shubhrajyoti D (16):
+  I2C: OMAP: make omap_i2c_unidle/idle functions depend on
+    CONFIG_PM_RUNTIME
+  I2C: OMAP: Remove reset at init
+  I2C: OMAP: I2C register restore only if context is lost
+  I2C: OMAP: Fix the interrupt clearing in OMAP4
+  I2C: OMAP: Fix the mismatch of pm_runtime enable and disable
+  I2C: OMAP: Optimise the remove code
+  I2C: OMAP: Fix the error handling
+  I2C: OMAP: Don't check if wait_for_completion_timeout() returns less
+    than zero
+  I2C: OMAP: use devm_* functions
+  I2C: OMAP: Fix the crash in i2c remove
+  I2C: OMAP: Handle error check for pm runtime
+  I2C: OMAP: Use SET_RUNTIME_PM_OPS
+  I2C: OMAP: make the read ready processing a separate function
+  I2C: OMAP: Do not set the XUDF if the underflow is not reached
+  I2C: OMAP: Rename the 1p153 to the erratum id i462
+  ARM: OMAP4: hwmod data: I2C: add flag for context restore
+
+Tasslehoff Kjappfot (1):
+  I2C: OMAP: fix missing handling of errata I2C_OMAP3_1P153
+
+Vikram Pandita (1):
+  I2C: OMAP: Recover from Bus Busy condition
+
+ arch/arm/mach-omap2/omap_hwmod_44xx_data.c |    3 +-
+ arch/arm/plat-omap/i2c.c                   |    3 +
+ drivers/i2c/busses/i2c-omap.c              |  342 +++++++++++++++-------------
+ include/linux/i2c-omap.h                   |    1 +
+ 4 files changed, 194 insertions(+), 155 deletions(-)
+
+-- 
+1.7.4.1
