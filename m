@@ -1,133 +1,63 @@
-From: Russ Dill <russ.dill@gmail.com>
-Subject: Re: [PATCH 2/2] OMAP2+: UART: Add mechanism to probe uart pins and
- configure rx wakeup
-Date: Tue, 10 Apr 2012 09:40:29 -0700
-Message-ID: <CA+Bv8Xb_B00Meid8EW2cmn5hu_b-bLv-1YZXnxN-yFm416MVWQ@mail.gmail.com>
-References: <1334065246-21294-1-git-send-email-govindraj.raja@ti.com>
-	<1334065246-21294-3-git-send-email-govindraj.raja@ti.com>
-	<20120410161136.GF6487@atomide.com>
+From: Rob Herring <robherring2@gmail.com>
+Subject: Re: [RFC] dt: export of_have_populated_dt
+Date: Tue, 10 Apr 2012 12:20:27 -0500
+Message-ID: <4F846BDB.8020805@gmail.com>
+References: <1334070672-11252-1-git-send-email-balajitk@ti.com> <4F845D99.7020705@ti.com> <87y5q3v9pd.fsf@laptop.org> <4F845FF9.5080005@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: base64
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-lb0-f174.google.com ([209.85.217.174]:54418 "EHLO
-	mail-lb0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751409Ab2DJQkb (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 10 Apr 2012 12:40:31 -0400
-Received: by lbbgm6 with SMTP id gm6so1143lbb.19
-        for <linux-omap@vger.kernel.org>; Tue, 10 Apr 2012 09:40:30 -0700 (PDT)
-In-Reply-To: <20120410161136.GF6487@atomide.com>
+Received: from mail-ob0-f174.google.com ([209.85.214.174]:34467 "EHLO
+	mail-ob0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751913Ab2DJRUb (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 10 Apr 2012 13:20:31 -0400
+Received: by obbtb18 with SMTP id tb18so37322obb.19
+        for <linux-omap@vger.kernel.org>; Tue, 10 Apr 2012 10:20:30 -0700 (PDT)
+In-Reply-To: <4F845FF9.5080005@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Tony Lindgren <tony@atomide.com>
-Cc: "Govindraj.R" <govindraj.raja@ti.com>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Felipe Balbi <balbi@ti.com>, Kevin Hilman <khilman@ti.com>
+To: "Cousson, Benoit" <b-cousson@ti.com>
+Cc: Chris Ball <cjb@laptop.org>, Balaji T K <balajitk@ti.com>, devicetree-discuss@lists.ozlabs.org, linux-omap@vger.kernel.org, rnayak@ti.com, bigeasy@linutronix.de
 
-T24gVHVlLCBBcHIgMTAsIDIwMTIgYXQgOToxMSBBTSwgVG9ueSBMaW5kZ3JlbiA8dG9ueUBhdG9t
-aWRlLmNvbT4gd3JvdGU6Cj4gKiBHb3ZpbmRyYWouUiA8Z292aW5kcmFqLnJhamFAdGkuY29tPiBb
-MTIwNDEwIDA2OjQ0XToKPj4gLS0tIGEvYXJjaC9hcm0vbWFjaC1vbWFwMi9zZXJpYWwuYwo+PiAr
-KysgYi9hcmNoL2FybS9tYWNoLW9tYXAyL3NlcmlhbC5jCj4+IEBAIC0xMjAsMTEgKzEyMCw2MyBA
-QCBzdGF0aWMgdm9pZCBvbWFwX3VhcnRfc2V0X3NtYXJ0aWRsZShzdHJ1Y3QgcGxhdGZvcm1fZGV2
-aWNlICpwZGV2KSB7fQo+PiDCoCNlbmRpZiAvKiBDT05GSUdfUE0gKi8KPj4KPj4gwqAjaWZkZWYg
-Q09ORklHX09NQVBfTVVYCj4+IC1zdGF0aWMgdm9pZCBvbWFwX3NlcmlhbF9maWxsX2RlZmF1bHRf
-cGFkcyhzdHJ1Y3Qgb21hcF9ib2FyZF9kYXRhICpiZGF0YSkKPj4gKwo+PiArI2RlZmluZSBPTUFQ
-X1VBUlRfREVGQVVMVF9QQURfTkFNRV9MRU4gwqAgwqAgwqAgMjgKPj4gK3N0YXRpYyBjaGFyIHJ4
-X3BhZF9uYW1lW09NQVBfVUFSVF9ERUZBVUxUX1BBRF9OQU1FX0xFTl0sCj4+ICsgwqAgwqAgwqAg
-wqAgwqAgwqAgdHhfcGFkX25hbWVbT01BUF9VQVJUX0RFRkFVTFRfUEFEX05BTUVfTEVOXSBfX2lu
-aXRkYXRhOwo+PiArc3RhdGljIHN0cnVjdCBvbWFwX2RldmljZV9wYWQgZGVmYXVsdF9vbWFwX3Vh
-cnRfcGFkc1syXSBfX2luaXRkYXRhOwo+Cj4gV29uJ3QgdGhlIGRlZmF1bHRfb21hcF91YXJ0X3Bh
-ZHMgZ2V0IG92ZXJ3cml0dGVuIGZvciBlYWNoIHBvcnQ/Cj4gV2UgbmVlZCB0aGF0IGluZm9ybWF0
-aW9uIGluIHRoZSBkcml2ZXIgdG9vIGZvciBlYWNoIHBvcnQ/IFdoeSBkb24ndCB5b3UKPiBqdXN0
-IGFsbG9jYXRlIGJkYXRhLnBhZHMgaW4gb21hcF9zZXJpYWxfYm9hcmRfaW5pdCBhcyB3ZSBub3cg
-YXNzdW1lIGl0J3MKPiBuZWVkZWQgZm9yIGVhY2ggcG9ydD8KCkJlY2F1c2Ugb2YgdGhlIHdheSB0
-aGUgZnVuY3Rpb24gaXMgdXNlZCwgaXQgZG9lc24ndC4gSXQgZG9lcyBzZWVtCnNvbWV3aGF0IGZy
-YWdpbGUgdGhvdWdoLCB3aXRoIG5vbi1vYnZpb3VzIGJyZWFrYWdlIHBvc3NpYmxlIGluIHRoZQpm
-dXR1cmUgaWYgc29tZW9uZSBjaGFuZ2VzIHRoZSB3YXkgb21hcF9zZXJpYWxfZmlsbF9kZWZhdWx0
-X3BhZHMgaXMKY2FsbGVkLgoKPj4gK3N0YXRpYyB2b2lkIMKgX19pbml0IG9tYXBfc2VyaWFsX2Zp
-bGxfZGVmYXVsdF9wYWRzKHN0cnVjdCBvbWFwX2JvYXJkX2RhdGEgKmJkYXRhKQo+PiDCoHsKPj4g
-KyDCoCDCoCBzdHJ1Y3Qgb21hcF9tdXhfcGFydGl0aW9uICp0eF9wYXJ0aXRpb24gPSBOVUxMLCAq
-cnhfcGFydGl0aW9uID0gTlVMTDsKPj4gKyDCoCDCoCBzdHJ1Y3Qgb21hcF9tdXggKnJ4X211eCA9
-IE5VTEwsICp0eF9tdXggPSBOVUxMOwo+PiArCj4+ICsgwqAgwqAgaWYgKGJkYXRhLT5pZCAhPSAy
-KSB7Cj4+ICsgwqAgwqAgwqAgwqAgwqAgwqAgc25wcmludGYocnhfcGFkX25hbWUsIE9NQVBfVUFS
-VF9ERUZBVUxUX1BBRF9OQU1FX0xFTiwKPj4gKyDCoCDCoCDCoCDCoCDCoCDCoCDCoCDCoCDCoCDC
-oCDCoCJ1YXJ0JWRfcngudWFydCVkX3J4IiwgYmRhdGEtPmlkICsgMSwgYmRhdGEtPmlkICsgMSk7
-Cj4+ICsgwqAgwqAgwqAgwqAgwqAgwqAgc25wcmludGYodHhfcGFkX25hbWUsIE9NQVBfVUFSVF9E
-RUZBVUxUX1BBRF9OQU1FX0xFTiwKPj4gKyDCoCDCoCDCoCDCoCDCoCDCoCDCoCDCoCDCoCDCoCDC
-oCJ1YXJ0JWRfdHgudWFydCVkX3R4IiwgYmRhdGEtPmlkICsgMSwgYmRhdGEtPmlkICsgMSk7Cj4+
-ICsgwqAgwqAgfSBlbHNlIHsKPj4gKyDCoCDCoCDCoCDCoCDCoCDCoCBzbnByaW50ZihyeF9wYWRf
-bmFtZSwgT01BUF9VQVJUX0RFRkFVTFRfUEFEX05BTUVfTEVOLAo+PiArIMKgIMKgIMKgIMKgIMKg
-IMKgIMKgIMKgIMKgIMKgICJ1YXJ0JWRfcnhfaXJyeC51YXJ0JWRfcnhfaXJyeCIsIGJkYXRhLT5p
-ZCArIDEsCj4+ICsgwqAgwqAgwqAgwqAgwqAgwqAgwqAgwqAgwqAgwqAgYmRhdGEtPmlkICsgMSk7
-Cj4+ICsgwqAgwqAgwqAgwqAgwqAgwqAgc25wcmludGYodHhfcGFkX25hbWUsIE9NQVBfVUFSVF9E
-RUZBVUxUX1BBRF9OQU1FX0xFTiwKPj4gKyDCoCDCoCDCoCDCoCDCoCDCoCDCoCDCoCDCoCDCoCAi
-dWFydCVkX3R4X2lydHgudWFydCVkX3R4X2lydHgiLCBiZGF0YS0+aWQgKyAxLAo+PiArIMKgIMKg
-IMKgIMKgIMKgIMKgIMKgIMKgIMKgIMKgIGJkYXRhLT5pZCArIDEpOwo+PiArIMKgIMKgIH0KPgo+
-IFRoaXMgd291bGQgYmUgc2ltcGxlciB3aXRoIHNvbWV0aGluZyBsaWtlIHRoaXMgKHVudGVzdGVk
-KToKPgo+IMKgIMKgIMKgIMKgY2hhciAqcnhfZm10LCAqdHhfZm10Owo+IMKgIMKgIMKgIMKgaW50
-IHVhcnRfbnIgPSBiZGF0YS0+aWQgKyAxOwo+Cj4gwqAgwqAgwqAgwqBpZiAoYmRhdGEtPmlkID09
-IDIpIHsKPiDCoCDCoCDCoCDCoCDCoCDCoCDCoCDCoHJ4X2ZtdCA9ICJ1YXJ0JWRfcngudWFydCVk
-X3J4IjsKPiDCoCDCoCDCoCDCoCDCoCDCoCDCoCDCoHR4X2ZtdCA9ICJ1YXJ0JWRfdHgudWFydCVk
-X3R4IjsKPiDCoCDCoCDCoCDCoH0gZWxzZSB7Cj4gwqAgwqAgwqAgwqAgwqAgwqAgwqAgwqByeF9m
-bXQgPSAidWFydCVkX3J4X2lycngudWFydCVkX3J4X2lycngiOwo+IMKgIMKgIMKgIMKgIMKgIMKg
-IMKgIMKgdHhfZm10ID0gInVhcnQlZF90eF9pcnR4LnVhcnQlZF90eF9pcnR4IjsKPiDCoCDCoCDC
-oCDCoH0KPgo+IMKgIMKgIMKgIMKgc25wcmludGYocnhfcGFkX25hbWUsIE9NQVBfVUFSVF9ERUZB
-VUxUX1BBRF9OQU1FX0xFTiwgcnhfZm10LAo+IMKgIMKgIMKgIMKgIMKgIMKgIMKgIMKgIMKgIMKg
-IMKgIMKgdWFydF9uciwgdWFydF9ucik7Cj4gwqAgwqAgwqAgwqBzbnByaW50Zih0eF9wYWRfbmFt
-ZSwgT01BUF9VQVJUX0RFRkFVTFRfUEFEX05BTUVfTEVOLCB0eF9mbXQsCj4gwqAgwqAgwqAgwqAg
-wqAgwqAgwqAgwqAgwqAgwqAgwqAgwqB1YXJ0X25yLCB1YXJ0X25yKTsKPgo+PiArIMKgIMKgIGlm
-IChvbWFwX211eF9nZXRfYnlfbmFtZShyeF9wYWRfbmFtZSwgJnJ4X3BhcnRpdGlvbiwgJnJ4X211
-eCkgPj0gMCAmJgo+PiArIMKgIMKgIMKgIMKgIMKgIMKgIMKgIMKgIMKgIMKgIG9tYXBfbXV4X2dl
-dF9ieV9uYW1lCj4+ICsgwqAgwqAgwqAgwqAgwqAgwqAgwqAgwqAgwqAgwqAgwqAgwqAgwqAgwqAg
-KHR4X3BhZF9uYW1lLCAmdHhfcGFydGl0aW9uLCAmdHhfbXV4KSA+PSAwKSB7Cj4+ICsgwqAgwqAg
-wqAgwqAgwqAgwqAgdTE2IHR4X21vZGUsIHJ4X21vZGU7Cj4+ICsKPj4gKyDCoCDCoCDCoCDCoCDC
-oCDCoCB0eF9tb2RlID0gb21hcF9tdXhfcmVhZCh0eF9wYXJ0aXRpb24sIHR4X211eC0+cmVnX29m
-ZnNldCk7Cj4+ICsgwqAgwqAgwqAgwqAgwqAgwqAgcnhfbW9kZSA9IG9tYXBfbXV4X3JlYWQocnhf
-cGFydGl0aW9uLCByeF9tdXgtPnJlZ19vZmZzZXQpOwo+PiArCj4+ICsgwqAgwqAgwqAgwqAgwqAg
-wqAgLyoKPj4gKyDCoCDCoCDCoCDCoCDCoCDCoCDCoCogQ2hlY2sgaWYgdWFydCBpcyB1c2VkIGlu
-IGRlZmF1bHQgdHgvcnggbW9kZSBpLmUuIGluIG11eCBtb2RlMAo+PiArIMKgIMKgIMKgIMKgIMKg
-IMKgIMKgKiBpZiB5ZXMgdGhlbiBjb25maWd1cmUgcnggcGluIGZvciB3YWtlIHVwIGNhcGFiaWxp
-dHkKPj4gKyDCoCDCoCDCoCDCoCDCoCDCoCDCoCovCj4+ICsgwqAgwqAgwqAgwqAgwqAgwqAgaWYg
-KCEocnhfbW9kZSAmIDB4MDcpICYmICEodHhfbW9kZSAmIDB4MDcpKSB7Cj4+ICsgwqAgwqAgwqAg
-wqAgwqAgwqAgwqAgwqAgwqAgwqAgZGVmYXVsdF9vbWFwX3VhcnRfcGFkc1swXS5uYW1lID0gcnhf
-cGFkX25hbWU7Cj4+ICsgwqAgwqAgwqAgwqAgwqAgwqAgwqAgwqAgwqAgwqAgZGVmYXVsdF9vbWFw
-X3VhcnRfcGFkc1swXS5mbGFncyDCoD0KPj4gKyDCoCDCoCDCoCDCoCDCoCDCoCDCoCDCoCDCoCDC
-oCDCoCDCoCDCoCDCoCBPTUFQX0RFVklDRV9QQURfUkVNVVggfCBPTUFQX0RFVklDRV9QQURfV0FL
-RVVQOwo+PiArIMKgIMKgIMKgIMKgIMKgIMKgIMKgIMKgIMKgIMKgIGRlZmF1bHRfb21hcF91YXJ0
-X3BhZHNbMF0uZW5hYmxlID0gT01BUF9QSU5fSU5QVVQgfAo+PiArIMKgIMKgIMKgIMKgIMKgIMKg
-IMKgIMKgIMKgIMKgIMKgIMKgIMKgIMKgIMKgIMKgIMKgIMKgIMKgIMKgIMKgIMKgIMKgIMKgIMKg
-IMKgIMKgIMKgIMKgIMKgIE9NQVBfTVVYX01PREUwOwo+PiArIMKgIMKgIMKgIMKgIMKgIMKgIMKg
-IMKgIMKgIMKgIGRlZmF1bHRfb21hcF91YXJ0X3BhZHNbMF0uaWRsZSA9IE9NQVBfUElOX0lOUFVU
-IHwKPj4gKyDCoCDCoCDCoCDCoCDCoCDCoCDCoCDCoCDCoCDCoCDCoCDCoCDCoCDCoCDCoCDCoCDC
-oCDCoCDCoCDCoCDCoCDCoCDCoCDCoCDCoCDCoCDCoCDCoCDCoCDCoCBPTUFQX01VWF9NT0RFMDsK
-Pj4gKwo+PiArIMKgIMKgIMKgIMKgIMKgIMKgIMKgIMKgIMKgIMKgIGRlZmF1bHRfb21hcF91YXJ0
-X3BhZHNbMV0ubmFtZSA9IHR4X3BhZF9uYW1lOwo+PiArIMKgIMKgIMKgIMKgIMKgIMKgIMKgIMKg
-IMKgIMKgIGRlZmF1bHRfb21hcF91YXJ0X3BhZHNbMV0uZW5hYmxlID0gT01BUF9QSU5fT1VUUFVU
-IHwKPj4gKyDCoCDCoCDCoCDCoCDCoCDCoCDCoCDCoCDCoCDCoCDCoCDCoCDCoCDCoCDCoCDCoCDC
-oCDCoCDCoCDCoCDCoCDCoCDCoCDCoCDCoCDCoCDCoCDCoCDCoCDCoCBPTUFQX01VWF9NT0RFMDsK
-Pj4gKyDCoCDCoCDCoCDCoCDCoCDCoCDCoCDCoCDCoCDCoCBiZGF0YS0+cGFkcyA9IGRlZmF1bHRf
-b21hcF91YXJ0X3BhZHM7Cj4+ICsgwqAgwqAgwqAgwqAgwqAgwqAgwqAgwqAgwqAgwqAgYmRhdGEt
-PnBhZHNfY250ID0gQVJSQVlfU0laRShkZWZhdWx0X29tYXBfdWFydF9wYWRzKTsKPj4gKyDCoCDC
-oCDCoCDCoCDCoCDCoCB9Cj4+ICsgwqAgwqAgfQo+PiDCoH0KPgo+IFRoZW4gbG9va2luZyBhdCBv
-bWFwX3NlcmlhbF9ib2FyZF9pbml0LCBpdCBzdGlsbCBsb29rcyB3cm9uZzoKPgo+IHZvaWQgX19p
-bml0IG9tYXBfc2VyaWFsX2JvYXJkX2luaXQoc3RydWN0IG9tYXBfdWFydF9wb3J0X2luZm8gKmlu
-Zm8pCj4gewo+IMKgIMKgIMKgIMKgc3RydWN0IG9tYXBfdWFydF9zdGF0ZSAqdWFydDsKPiDCoCDC
-oCDCoCDCoHN0cnVjdCBvbWFwX2JvYXJkX2RhdGEgYmRhdGE7Cj4KPiDCoCDCoCDCoCDCoGxpc3Rf
-Zm9yX2VhY2hfZW50cnkodWFydCwgJnVhcnRfbGlzdCwgbm9kZSkgewo+IMKgIMKgIMKgIMKgIMKg
-IMKgIMKgIMKgYmRhdGEuaWQgPSB1YXJ0LT5udW07Cj4gwqAgwqAgwqAgwqAgwqAgwqAgwqAgwqBi
-ZGF0YS5mbGFncyA9IDA7Cj4gwqAgwqAgwqAgwqAgwqAgwqAgwqAgwqBiZGF0YS5wYWRzID0gTlVM
-TDsKPiDCoCDCoCDCoCDCoCDCoCDCoCDCoCDCoGJkYXRhLnBhZHNfY250ID0gMDsKPgo+IMKgIMKg
-IMKgIMKgIMKgIMKgIMKgIMKgaWYgKGNwdV9pc19vbWFwNDR4eCgpIHx8IGNwdV9pc19vbWFwMzR4
-eCgpKQo+IMKgIMKgIMKgIMKgIMKgIMKgIMKgIMKgIMKgIMKgIMKgIMKgb21hcF9zZXJpYWxfZmls
-bF9kZWZhdWx0X3BhZHMoJmJkYXRhKTsKPgo+IFdoeSBkb24ndCB5b3UgZmlsbCB0aGUgcGFkcyBm
-b3Igb21hcDI/IEl0IGhhcyB0aGUgc2FtZSBwYWRzLCBhbHRob3VnaAo+IGl0IGRvZXMgbm90IGhh
-dmUgdGhlIHNlcmlhbCB3YWtlLXVwIGV2ZW50cyB3b3JraW5nLgo+Cj4gQW5kIHdoeSBkb24ndCB5
-b3UgZXhpdCBpZiBvbWFwX3NlcmlhbF9maWxsX2RlZmF1bHRfcGFkcyBmYWlscyBmb3IgdGhlCj4g
-bm8gaW5mbyBjYXNlPwo+Cj4gU2hvdWxkbid0IGl0IGJlIHNvbWV0aGluZyBsaWtlOgo+Cj4gwqAg
-wqAgwqAgwqAgwqAgwqAgwqAgwqBpZiAoIWluZm8pIHsKPiDCoCDCoCDCoCDCoCDCoCDCoCDCoCDC
-oCDCoCDCoCDCoCDCoHJlcyA9IG9tYXBfc2VyaWFsX2ZpbGxfZGVmYXVsdF9wYWRzKCZiZGF0YSk7
-Cj4gwqAgwqAgwqAgwqAgwqAgwqAgwqAgwqAgwqAgwqAgwqAgwqBpZiAoIXJlcykKPiDCoCDCoCDC
-oCDCoCDCoCDCoCDCoCDCoCDCoCDCoCDCoCDCoCDCoCDCoCDCoCDCoHJldHVybjsKPiDCoCDCoCDC
-oCDCoCDCoCDCoCDCoCDCoCDCoCDCoCDCoCDCoHBvcnQgPSBOVUxMOwo+IMKgIMKgIMKgIMKgIMKg
-IMKgIMKgIMKgfSBlbHNlIHsKPiDCoCDCoCDCoCDCoCDCoCDCoCDCoCDCoCDCoCDCoCDCoCDCoHBv
-cnQgPSAmaW5mb1t1YXJ0LT5udW1dOwo+IMKgIMKgIMKgIMKgIMKgIMKgIMKgIMKgfQo+IMKgIMKg
-IMKgIMKgIMKgIMKgIMKgIMKgb21hcF9zZXJpYWxfaW5pdF9wb3J0KCZiZGF0YSwgcG9ydCk7Cj4K
-PiBSZWdhcmRzLAo+Cj4gVG9ueQo=
+On 04/10/2012 11:29 AM, Cousson, Benoit wrote:
+> Hi Chris,
+> 
+> On 4/10/2012 6:21 PM, Chris Ball wrote:
+>> Hi,
+>>
+>> On Tue, Apr 10 2012, Cousson, Benoit wrote:
+>>> Hi Balaji,
+>>>
+>>> On 4/10/2012 5:11 PM, Balaji T K wrote:
+>>>> If of_have_populated_dt is called from module, build fails with
+>>>> "allnodes"
+>>>> undefined error, so remove inline and export of_have_populated_dt.
+>>>
+>>> Is this function really called from the MMC driver?
+>>
+>> ~/git/linux % git grep of_have_populated_dt drivers/
+>> drivers/gpio/gpio-samsung.c:    if (!of_have_populated_dt())
+>> drivers/mmc/host/omap_hsmmc.c:  if (of_have_populated_dt()&&  !vdd)
+>> drivers/mmc/host/omap_hsmmc.c:                  
+>> (!of_have_populated_dt())) {
+> 
+> Gosh, twice... I should be in a wrong branch :-(
+> 
+> Then the next question to Rob...
+> 
+> Rob,
+> Does it make sense to use that in the driver? So far I was using that
+> only in the arch code to make the difference between the DT boot and the
+> non-DT boot.
+> 
+> I guess that a driver should rely on of_match_device or non-NULL
+> device_node to figure out that?
+> 
+
+Agreed. of_match_device or device_node ptr check is the right approach.
+
+Rob
+
+> Thanks,
+> Benoit
+
