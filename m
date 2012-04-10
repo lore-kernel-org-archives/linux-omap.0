@@ -1,63 +1,33 @@
-From: Rob Herring <robherring2@gmail.com>
-Subject: Re: [RFC] dt: export of_have_populated_dt
-Date: Tue, 10 Apr 2012 12:20:27 -0500
-Message-ID: <4F846BDB.8020805@gmail.com>
-References: <1334070672-11252-1-git-send-email-balajitk@ti.com> <4F845D99.7020705@ti.com> <87y5q3v9pd.fsf@laptop.org> <4F845FF9.5080005@ti.com>
+From: Greg KH <greg@kroah.com>
+Subject: Re: [PATCH] staging: drm/omap: dmabuf/prime support
+Date: Tue, 10 Apr 2012 10:29:15 -0700
+Message-ID: <20120410172915.GA15984@kroah.com>
+References: <1333649744-28410-1-git-send-email-rob.clark@linaro.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-ob0-f174.google.com ([209.85.214.174]:34467 "EHLO
-	mail-ob0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751913Ab2DJRUb (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 10 Apr 2012 13:20:31 -0400
-Received: by obbtb18 with SMTP id tb18so37322obb.19
-        for <linux-omap@vger.kernel.org>; Tue, 10 Apr 2012 10:20:30 -0700 (PDT)
-In-Reply-To: <4F845FF9.5080005@ti.com>
+Received: from out1-smtp.messagingengine.com ([66.111.4.25]:38320 "EHLO
+	out1-smtp.messagingengine.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1753950Ab2DJR3S (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>);
+	Tue, 10 Apr 2012 13:29:18 -0400
+Received: from compute3.internal (compute3.nyi.mail.srv.osa [10.202.2.43])
+	by gateway1.nyi.mail.srv.osa (Postfix) with ESMTP id 95BF82176A
+	for <linux-omap@vger.kernel.org>; Tue, 10 Apr 2012 13:29:17 -0400 (EDT)
+Content-Disposition: inline
+In-Reply-To: <1333649744-28410-1-git-send-email-rob.clark@linaro.org>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "Cousson, Benoit" <b-cousson@ti.com>
-Cc: Chris Ball <cjb@laptop.org>, Balaji T K <balajitk@ti.com>, devicetree-discuss@lists.ozlabs.org, linux-omap@vger.kernel.org, rnayak@ti.com, bigeasy@linutronix.de
+To: Rob Clark <rob.clark@linaro.org>
+Cc: dri-devel@lists.freedesktop.org, linux-omap@vger.kernel.org, patches@linaro.org, Tomi Valkeinen <tomi.valkeinen@ti.com>, Andy Gross <andy.gross@ti.com>, Rob Clark <rob@ti.com>
 
-On 04/10/2012 11:29 AM, Cousson, Benoit wrote:
-> Hi Chris,
+On Thu, Apr 05, 2012 at 01:15:44PM -0500, Rob Clark wrote:
+> From: Rob Clark <rob@ti.com>
 > 
-> On 4/10/2012 6:21 PM, Chris Ball wrote:
->> Hi,
->>
->> On Tue, Apr 10 2012, Cousson, Benoit wrote:
->>> Hi Balaji,
->>>
->>> On 4/10/2012 5:11 PM, Balaji T K wrote:
->>>> If of_have_populated_dt is called from module, build fails with
->>>> "allnodes"
->>>> undefined error, so remove inline and export of_have_populated_dt.
->>>
->>> Is this function really called from the MMC driver?
->>
->> ~/git/linux % git grep of_have_populated_dt drivers/
->> drivers/gpio/gpio-samsung.c:    if (!of_have_populated_dt())
->> drivers/mmc/host/omap_hsmmc.c:  if (of_have_populated_dt()&&  !vdd)
->> drivers/mmc/host/omap_hsmmc.c:                  
->> (!of_have_populated_dt())) {
-> 
-> Gosh, twice... I should be in a wrong branch :-(
-> 
-> Then the next question to Rob...
-> 
-> Rob,
-> Does it make sense to use that in the driver? So far I was using that
-> only in the arch code to make the difference between the DT boot and the
-> non-DT boot.
-> 
-> I guess that a driver should rely on of_match_device or non-NULL
-> device_node to figure out that?
-> 
+> For now just implementing the exporting APIs, not yet importing.  And
+> kmap is rejected on tiled buffers (although the usefulness of that seems
+> questionable, but could be added later if needed).
 
-Agreed. of_match_device or device_node ptr check is the right approach.
+-ENOSIGNEDOFFBY :(
 
-Rob
-
-> Thanks,
-> Benoit
-
+Care to resend?
