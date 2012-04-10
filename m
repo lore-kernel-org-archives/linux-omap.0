@@ -1,33 +1,33 @@
-From: Greg KH <greg@kroah.com>
-Subject: Re: [PATCH] staging: drm/omap: dmabuf/prime support
-Date: Tue, 10 Apr 2012 10:29:15 -0700
-Message-ID: <20120410172915.GA15984@kroah.com>
-References: <1333649744-28410-1-git-send-email-rob.clark@linaro.org>
+From: Sebastian Andrzej Siewior <bigeasy-hfZtesqFncYOwBW4kG4KsQ@public.gmane.org>
+Subject: Re: [RFC] dt: export of_have_populated_dt
+Date: Tue, 10 Apr 2012 19:36:15 +0200
+Message-ID: <4F846F8F.6090307@linutronix.de>
+References: <1334070672-11252-1-git-send-email-balajitk@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from out1-smtp.messagingengine.com ([66.111.4.25]:38320 "EHLO
-	out1-smtp.messagingengine.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753950Ab2DJR3S (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>);
-	Tue, 10 Apr 2012 13:29:18 -0400
-Received: from compute3.internal (compute3.nyi.mail.srv.osa [10.202.2.43])
-	by gateway1.nyi.mail.srv.osa (Postfix) with ESMTP id 95BF82176A
-	for <linux-omap@vger.kernel.org>; Tue, 10 Apr 2012 13:29:17 -0400 (EDT)
-Content-Disposition: inline
-In-Reply-To: <1333649744-28410-1-git-send-email-rob.clark@linaro.org>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset="us-ascii"; Format="flowed"
+Content-Transfer-Encoding: 7bit
+Return-path: <devicetree-discuss-bounces+gldd-devicetree-discuss=m.gmane.org-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org>
+In-Reply-To: <1334070672-11252-1-git-send-email-balajitk-l0cyMroinI0@public.gmane.org>
+List-Unsubscribe: <https://lists.ozlabs.org/options/devicetree-discuss>,
+ <mailto:devicetree-discuss-request-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org?subject=unsubscribe>
+List-Archive: <http://lists.ozlabs.org/pipermail/devicetree-discuss>
+List-Post: <mailto:devicetree-discuss-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org>
+List-Help: <mailto:devicetree-discuss-request-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org?subject=help>
+List-Subscribe: <https://lists.ozlabs.org/listinfo/devicetree-discuss>,
+ <mailto:devicetree-discuss-request-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org?subject=subscribe>
+Errors-To: devicetree-discuss-bounces+gldd-devicetree-discuss=m.gmane.org-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org
+Sender: devicetree-discuss-bounces+gldd-devicetree-discuss=m.gmane.org-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org
+To: Balaji T K <balajitk-l0cyMroinI0@public.gmane.org>
+Cc: devicetree-discuss-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, cjb-2X9k7bc8m7Mdnm+yROfE0A@public.gmane.org
 List-Id: linux-omap@vger.kernel.org
-To: Rob Clark <rob.clark@linaro.org>
-Cc: dri-devel@lists.freedesktop.org, linux-omap@vger.kernel.org, patches@linaro.org, Tomi Valkeinen <tomi.valkeinen@ti.com>, Andy Gross <andy.gross@ti.com>, Rob Clark <rob@ti.com>
 
-On Thu, Apr 05, 2012 at 01:15:44PM -0500, Rob Clark wrote:
-> From: Rob Clark <rob@ti.com>
-> 
-> For now just implementing the exporting APIs, not yet importing.  And
-> kmap is rejected on tiled buffers (although the usefulness of that seems
-> questionable, but could be added later if needed).
+On 04/10/2012 05:11 PM, Balaji T K wrote:
+> If of_have_populated_dt is called from module, build fails with "allnodes"
+> undefined error, so remove inline and export of_have_populated_dt.
 
--ENOSIGNEDOFFBY :(
+Why do you need this function at all? You should not need it. *I*
+introduced it because I need it early x86 setup code to figure out if
+there a DT available or not. A driver should not care about it. You do 
+have your dev.of_node and this is it.
 
-Care to resend?
+Sebastian
