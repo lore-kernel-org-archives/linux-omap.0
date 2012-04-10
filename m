@@ -1,44 +1,50 @@
-From: Russell King - ARM Linux <linux@arm.linux.org.uk>
-Subject: omap-hsmmc build broken with OF enabled in latest kernel
-Date: Tue, 10 Apr 2012 10:54:44 +0100
-Message-ID: <20120410095444.GO24211@n2100.arm.linux.org.uk>
+From: "Govindraj.R" <govindraj.raja@ti.com>
+Subject: [GIT PULL]: omap-serial updates for 3.4-rc
+Date: Tue, 10 Apr 2012 15:32:28 +0530
+Message-ID: <1334052148-10385-1-git-send-email-govindraj.raja@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from caramon.arm.linux.org.uk ([78.32.30.218]:35340 "EHLO
-	caramon.arm.linux.org.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753562Ab2DJJzL (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 10 Apr 2012 05:55:11 -0400
-Content-Disposition: inline
+Received: from bear.ext.ti.com ([192.94.94.41]:60788 "EHLO bear.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1753562Ab2DJKCe (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Tue, 10 Apr 2012 06:02:34 -0400
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Rajendra Nayak <rnayak@ti.com>, Rob Herring <rob.herring@calxeda.com>, Chris Ball <cjb@laptop.org>, linux-omap@vger.kernel.org
+To: Tony Lindgren <tony@atomide.com>
+Cc: linux-omap@vger.kernel.org
 
-This commit:
+Hi Tony,
 
-commit 46856a68dcb5f67c779d211fd6bcb5d7a2a7f19b
-Author: Rajendra Nayak <rnayak@ti.com>
-Date:   Mon Mar 12 20:32:37 2012 +0530
+Please Pull the following omap uart changes.
+Changes basically involves getting rid of cpu checks
+for populating erratas and features and move the same
+from serial.c to omap-serial.c, MVR reg is used to find
+uart versions and errata flags are populated accordingly.
 
-    mmc: omap_hsmmc: Convert hsmmc driver to use device tree
+--
+Thanks,
+Govindraj.R
 
-    Define dt bindings for the ti-omap-hsmmc, and adapt the driver to extract
-    data (which was earlier passed as platform_data) from device tree.
+The following changes since commit 0034102808e0dbbf3a2394b82b1bb40b5778de9e:
 
-    Signed-off-by: Rajendra Nayak <rnayak@ti.com>
-    Acked-by: Rob Herring <rob.herring@calxeda.com>
-    Signed-off-by: Chris Ball <cjb@laptop.org>
+  Linux 3.4-rc2 (2012-04-07 18:30:41 -0700)
 
-breaks omap-hsmmc compilation:
+are available in the git repository at:
 
-drivers/mmc/host/omap_hsmmc.c:1745: error: expected ',' or ';' before 'extern'
+  git://gitorious.org/linux-3-x/omap-serial.git for_3.4/uart_fixes
 
-+#ifdef CONFIG_OF
-+static u16 omap4_reg_offset = 0x100;
-+
-+static const struct of_device_id omap_mmc_of_match[] = {
-...
-+}
-+MODULE_DEVICE_TABLE(of, omap_mmc_of_match);
+for you to fetch changes up to 6c34f211069409ea6d08b900eeaf86ef8efd0dca:
 
-There should be a ';' after the }.
+  OMAP2+: UART: replace omap34xx/omap4xx cpu checks with not omap24xx (2012-04-10 15:14:58 +0530)
+
+----------------------------------------------------------------
+Govindraj.R (3):
+      OMAP2+: UART: Remove cpu checks for populating errata flags
+      OMAP2+: UART: enable tx wakeup bit for wer reg
+      OMAP2+: UART: replace omap34xx/omap4xx cpu checks with not omap24xx
+
+ arch/arm/mach-omap2/serial.c                  |   13 +---
+ arch/arm/plat-omap/include/plat/omap-serial.h |    9 +++-
+ drivers/tty/serial/omap-serial.c              |   83 ++++++++++++++++++++++++-
+ 3 files changed, 91 insertions(+), 14 deletions(-)
