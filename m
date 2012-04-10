@@ -1,129 +1,79 @@
-From: Shubhrajyoti D <shubhrajyoti-l0cyMroinI0@public.gmane.org>
-Subject: [PATCHv6 15/19] I2C: OMAP: make the read ready processing a separate function
-Date: Tue, 10 Apr 2012 16:26:33 +0530
-Message-ID: <1334055397-899-16-git-send-email-shubhrajyoti@ti.com>
+From: Shubhrajyoti D <shubhrajyoti@ti.com>
+Subject: [PATCHv6 09/19] I2C: OMAP: Correct I2C revision for OMAP3
+Date: Tue, 10 Apr 2012 16:26:27 +0530
+Message-ID: <1334055397-899-10-git-send-email-shubhrajyoti@ti.com>
 References: <1334055397-899-1-git-send-email-shubhrajyoti@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
-Return-path: <linux-i2c-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <1334055397-899-1-git-send-email-shubhrajyoti-l0cyMroinI0@public.gmane.org>
-Sender: linux-i2c-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-Cc: linux-i2c-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, ben-linux-elnMNo+KYs3YtjvyW6yDsg@public.gmane.org, tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org, w.sang-bIcnvbaLZ9MEGnE8C9+IrQ@public.gmane.org, Shubhrajyoti D <shubhrajyoti-l0cyMroinI0@public.gmane.org>
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from arroyo.ext.ti.com ([192.94.94.40]:58536 "EHLO arroyo.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1753616Ab2DJK5m (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Tue, 10 Apr 2012 06:57:42 -0400
+In-Reply-To: <1334055397-899-1-git-send-email-shubhrajyoti@ti.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: linux-omap@vger.kernel.org
+Cc: linux-i2c@vger.kernel.org, linux-arm-kernel@lists.infradead.org, ben-linux@fluff.org, tony@atomide.com, w.sang@pengutronix.de, Jon Hunter <jon-hunter@ti.com>, Shubhrajyoti D <shubhrajyoti@ti.com>
 
-No functional change. Makes the read ready processing a separate
-function. This is to avoid extremely long level of indentation.
+From: Jon Hunter <jon-hunter@ti.com>
 
-Signed-off-by: Shubhrajyoti D <shubhrajyoti-l0cyMroinI0@public.gmane.org>
+The OMAP3530 is based upon the same silicon as the OMAP3430 and so the I2C
+revision is the same for 3430 and 3530. However, the OMAP3630 device has the
+same I2C revision as OMAP4. Correct the revision definition to reflect this.
+
+This patch is based on work done by Jon Hunter <jon-hunter@ti.com>
+Changes from his patch
+- Update OMAP_I2C_REV_ON_3430 also to reflect that it is same as 3530
+
+Signed-off-by: Jon Hunter <jon-hunter@ti.com>
+Signed-off-by: Shubhrajyoti D <shubhrajyoti@ti.com>
 ---
- drivers/i2c/busses/i2c-omap.c |   86 +++++++++++++++++++++-------------------
- 1 files changed, 45 insertions(+), 41 deletions(-)
+ drivers/i2c/busses/i2c-omap.c |   10 +++++-----
+ 1 files changed, 5 insertions(+), 5 deletions(-)
 
 diff --git a/drivers/i2c/busses/i2c-omap.c b/drivers/i2c/busses/i2c-omap.c
-index a5b1ec1..c113f41 100644
+index a461097..959e97c 100644
 --- a/drivers/i2c/busses/i2c-omap.c
 +++ b/drivers/i2c/busses/i2c-omap.c
-@@ -784,6 +784,49 @@ static int errata_omap3_1p153(struct omap_i2c_dev *dev, u16 *stat, int *err)
- 	return 0;
- }
+@@ -50,8 +50,8 @@
  
-+static int process_read_rdy(struct omap_i2c_dev *dev)
-+{
-+	u8 num_bytes = 1;
-+	u16 stat, w;
-+
-+	if (dev->errata & I2C_OMAP_ERRATA_I207)
-+		i2c_omap_errata_i207(dev, stat);
-+
-+	if (dev->fifo_size) {
-+		if (stat & OMAP_I2C_STAT_RRDY)
-+			num_bytes = dev->fifo_size;
-+		else    /* read RXSTAT on RDR interrupt */
-+			num_bytes = (omap_i2c_read_reg(dev,
-+					OMAP_I2C_BUFSTAT_REG) >> 8) & 0x3F;
-+	}
-+	while (num_bytes) {
-+		num_bytes--;
-+		w = omap_i2c_read_reg(dev, OMAP_I2C_DATA_REG);
-+		if (dev->buf_len) {
-+			*dev->buf++ = w;
-+			dev->buf_len--;
-+			/*
-+			 * Data reg in 2430, omap3 and omap4 is 8 bit wide
-+			 */
-+			if (dev->flags & OMAP_I2C_FLAG_16BIT_DATA_REG) {
-+				if (dev->buf_len) {
-+					*dev->buf++ = w >> 8;
-+					dev->buf_len--;
-+				}
-+			}
-+		} else {
-+			if (stat & OMAP_I2C_STAT_RRDY)
-+				dev_err(dev->dev,
-+					"RRDY IRQ while no data requested\n");
-+			if (stat & OMAP_I2C_STAT_RDR)
-+				dev_err(dev->dev,
-+					"RDR IRQ while no data requested\n");
-+			return -EIO;
-+		}
-+	}
-+	return 0;
-+}
-+
- static irqreturn_t
- omap_i2c_isr(int this_irq, void *dev_id)
- {
-@@ -834,48 +877,9 @@ complete:
- 			return IRQ_HANDLED;
- 		}
- 		if (stat & (OMAP_I2C_STAT_RRDY | OMAP_I2C_STAT_RDR)) {
--			u8 num_bytes = 1;
--
--			if (dev->errata & I2C_OMAP_ERRATA_I207)
--				i2c_omap_errata_i207(dev, stat);
-+			if (process_read_rdy(dev) == -EIO)
-+				break;
+ /* I2C controller revisions present on specific hardware */
+ #define OMAP_I2C_REV_ON_2430		0x36
+-#define OMAP_I2C_REV_ON_3430		0x3C
+-#define OMAP_I2C_REV_ON_3530_4430	0x40
++#define OMAP_I2C_REV_ON_3430_3530	0x3C
++#define OMAP_I2C_REV_ON_3630_4430	0x40
  
--			if (dev->fifo_size) {
--				if (stat & OMAP_I2C_STAT_RRDY)
--					num_bytes = dev->fifo_size;
--				else    /* read RXSTAT on RDR interrupt */
--					num_bytes = (omap_i2c_read_reg(dev,
--							OMAP_I2C_BUFSTAT_REG)
--							>> 8) & 0x3F;
--			}
--			while (num_bytes) {
--				num_bytes--;
--				w = omap_i2c_read_reg(dev, OMAP_I2C_DATA_REG);
--				if (dev->buf_len) {
--					*dev->buf++ = w;
--					dev->buf_len--;
--					/*
--					 * Data reg in 2430, omap3 and
--					 * omap4 is 8 bit wide
--					 */
--					if (dev->flags &
--						 OMAP_I2C_FLAG_16BIT_DATA_REG) {
--						if (dev->buf_len) {
--							*dev->buf++ = w >> 8;
--							dev->buf_len--;
--						}
--					}
--				} else {
--					if (stat & OMAP_I2C_STAT_RRDY)
--						dev_err(dev->dev,
--							"RRDY IRQ while no data"
--								" requested\n");
--					if (stat & OMAP_I2C_STAT_RDR)
--						dev_err(dev->dev,
--							"RDR IRQ while no data"
--								" requested\n");
--					break;
--				}
--			}
- 			omap_i2c_ack_stat(dev,
- 				stat & (OMAP_I2C_STAT_RRDY | OMAP_I2C_STAT_RDR));
- 			continue;
+ /* timeout waiting for the controller to respond */
+ #define OMAP_I2C_TIMEOUT (msecs_to_jiffies(1000))
+@@ -298,7 +298,7 @@ static int omap_i2c_reset(struct omap_i2c_dev *dev)
+ 			omap_i2c_write_reg(dev, OMAP_I2C_SYSC_REG,
+ 					   SYSC_AUTOIDLE_MASK);
+ 
+-		} else if (dev->rev >= OMAP_I2C_REV_ON_3430) {
++		} else if (dev->rev >= OMAP_I2C_REV_ON_3430_3530) {
+ 			dev->syscstate = SYSC_AUTOIDLE_MASK;
+ 			dev->syscstate |= SYSC_ENAWAKEUP_MASK;
+ 			dev->syscstate |= (SYSC_IDLEMODE_SMART <<
+@@ -1051,7 +1051,7 @@ omap_i2c_probe(struct platform_device *pdev)
+ 
+ 	dev->rev = omap_i2c_read_reg(dev, OMAP_I2C_REV_REG) & 0xff;
+ 
+-	if (dev->rev <= OMAP_I2C_REV_ON_3430)
++	if (dev->rev <= OMAP_I2C_REV_ON_3430_3530)
+ 		dev->errata |= I2C_OMAP3_1P153;
+ 
+ 	if (!(dev->flags & OMAP_I2C_FLAG_NO_FIFO)) {
+@@ -1069,7 +1069,7 @@ omap_i2c_probe(struct platform_device *pdev)
+ 
+ 		dev->fifo_size = (dev->fifo_size / 2);
+ 
+-		if (dev->rev >= OMAP_I2C_REV_ON_3530_4430)
++		if (dev->rev >= OMAP_I2C_REV_ON_3630_4430)
+ 			dev->b_hw = 0; /* Disable hardware fixes */
+ 		else
+ 			dev->b_hw = 1; /* Enable hardware fixes */
 -- 
 1.7.4.1
+
