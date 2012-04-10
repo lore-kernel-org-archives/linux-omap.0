@@ -1,134 +1,113 @@
-From: Shubhrajyoti D <shubhrajyoti-l0cyMroinI0@public.gmane.org>
-Subject: [PATCHv6 01/19] I2C: OMAP: make omap_i2c_unidle/idle functions depend on CONFIG_PM_RUNTIME
-Date: Tue, 10 Apr 2012 16:26:19 +0530
-Message-ID: <1334055397-899-2-git-send-email-shubhrajyoti@ti.com>
-References: <1334055397-899-1-git-send-email-shubhrajyoti@ti.com>
+From: "Mohammed, Afzal" <afzal@ti.com>
+Subject: RE: [PATCH v3 1/9] ARM: OMAP2+: gpmc: driver conversion
+Date: Tue, 10 Apr 2012 11:00:33 +0000
+Message-ID: <C8443D0743D26F4388EA172BF4E2A7A9317C693C@DBDE01.ent.ti.com>
+References: <cover.1333640054.git.afzal@ti.com>
+ <cefbe934da40f0a169b1e3a75c46451e5546a8bd.1333640054.git.afzal@ti.com>
+ <4F7DFED5.4030000@ti.com>
+ <C8443D0743D26F4388EA172BF4E2A7A9317C5E58@DBDE01.ent.ti.com>
+ <4F833D8D.8000802@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain
-Return-path: <linux-i2c-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <1334055397-899-1-git-send-email-shubhrajyoti-l0cyMroinI0@public.gmane.org>
-Sender: linux-i2c-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-Cc: linux-i2c-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, ben-linux-elnMNo+KYs3YtjvyW6yDsg@public.gmane.org, tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org, w.sang-bIcnvbaLZ9MEGnE8C9+IrQ@public.gmane.org, Shubhrajyoti D <shubhrajyoti-l0cyMroinI0@public.gmane.org>
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <4F833D8D.8000802@ti.com>
+Content-Language: en-US
+Sender: linux-kernel-owner@vger.kernel.org
+To: "Hunter, Jon" <jon-hunter@ti.com>
+Cc: "tony@atomide.com" <tony@atomide.com>, "Hilman, Kevin" <khilman@ti.com>, "linux@arm.linux.org.uk" <linux@arm.linux.org.uk>, "dwmw2@infradead.org" <dwmw2@infradead.org>, "sameo@linux.intel.com" <sameo@linux.intel.com>, "grinberg@compulab.co.il" <grinberg@compulab.co.il>, "mike@compulab.co.il" <mike@compulab.co.il>, "Menon, Nishanth" <nm@ti.com>, "artem.bityutskiy@linux.intel.com" <artem.bityutskiy@linux.intel.com>, "vimal.newwork@gmail.com" <vimal.newwork@gmail.com>, "dbaryshkov@gmail.com" <dbaryshkov@gmail.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, "linux-mtd@lists.infradead.org" <linux-mtd@lists.infradead.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "Hiremath, Vaibhav" <hvaibhav@ti.com>
 List-Id: linux-omap@vger.kernel.org
 
-The functions omap_i2c_unidle/idle are called from omap_i2c_runtime_resume
-and omap_i2c_runtime_suspend which is compiled for CONFIG_PM_RUNTIME.
-This patch removes the omap_i2c_unidle/idle functions and folds them
-into the runtime callbacks.
+Hi Jon,
 
-This fixes the below warn when CONFIG_PM_RUNTIME is not defined
+On Tue, Apr 10, 2012 at 01:20:37, Hunter, Jon wrote:
+> > Because num_irq (or available irqs for fictitious irq chip) is platform specific.
+> 
+> Ok, so OMAP_GPMC_NR_IRQS is defined and will not vary from device to 
+> device, so why pass this? Why not use it directly?
 
- CC      arch/arm/mach-omap2/board-ti8168evm.o
-drivers/i2c/busses/i2c-omap.c:272: warning: 'omap_i2c_unidle' defined but not used
-drivers/i2c/busses/i2c-omap.c:293: warning: 'omap_i2c_idle' defined but not used
-  CC      net/ipv4/ip_forward.o
+Because OMAP_GPMC_NR_IRQS is platform specific, final intention is to
+not have any platform specific header files in GPMC driver, not sure
+as of now whether it would be possible. So keeping platform specific
+things away from the driver as much as possible.
 
-Signed-off-by: Shubhrajyoti D <shubhrajyoti-l0cyMroinI0@public.gmane.org>
----
- drivers/i2c/busses/i2c-omap.c |   75 +++++++++++++++++-----------------------
- 1 files changed, 32 insertions(+), 43 deletions(-)
+And consider scenario where GPMC IP is used in other than OMAP family,
+even though this a theoretical case, wanted to stress the point that
+intention is to keep driver platform independent.
 
-diff --git a/drivers/i2c/busses/i2c-omap.c b/drivers/i2c/busses/i2c-omap.c
-index 801df60..4f4188d 100644
---- a/drivers/i2c/busses/i2c-omap.c
-+++ b/drivers/i2c/busses/i2c-omap.c
-@@ -269,47 +269,6 @@ static inline u16 omap_i2c_read_reg(struct omap_i2c_dev *i2c_dev, int reg)
- 				(i2c_dev->regs[reg] << i2c_dev->reg_shift));
- }
+Or else dynamic allocation of irqs may have to be used.
+
+> 
+> Furthermore, GPMC_NR_IRQ is defined as 6 which is correct for OMAP2/3 
+> but not for OMAP4/5, it is 5. Therefore, we need to detect whether we 
+> are using an OMAP2/3 or OMAP4+ and set num_irqs based upon this. This 
+> could be done in the probe and we can avoid passing this.
  
--static void omap_i2c_unidle(struct omap_i2c_dev *dev)
--{
--	if (dev->flags & OMAP_I2C_FLAG_RESET_REGS_POSTIDLE) {
--		omap_i2c_write_reg(dev, OMAP_I2C_CON_REG, 0);
--		omap_i2c_write_reg(dev, OMAP_I2C_PSC_REG, dev->pscstate);
--		omap_i2c_write_reg(dev, OMAP_I2C_SCLL_REG, dev->scllstate);
--		omap_i2c_write_reg(dev, OMAP_I2C_SCLH_REG, dev->sclhstate);
--		omap_i2c_write_reg(dev, OMAP_I2C_BUF_REG, dev->bufstate);
--		omap_i2c_write_reg(dev, OMAP_I2C_SYSC_REG, dev->syscstate);
--		omap_i2c_write_reg(dev, OMAP_I2C_WE_REG, dev->westate);
--		omap_i2c_write_reg(dev, OMAP_I2C_CON_REG, OMAP_I2C_CON_EN);
--	}
--
--	/*
--	 * Don't write to this register if the IE state is 0 as it can
--	 * cause deadlock.
--	 */
--	if (dev->iestate)
--		omap_i2c_write_reg(dev, OMAP_I2C_IE_REG, dev->iestate);
--}
--
--static void omap_i2c_idle(struct omap_i2c_dev *dev)
--{
--	u16 iv;
--
--	dev->iestate = omap_i2c_read_reg(dev, OMAP_I2C_IE_REG);
--	if (dev->dtrev == OMAP_I2C_IP_VERSION_2)
--		omap_i2c_write_reg(dev, OMAP_I2C_IP_V2_IRQENABLE_CLR, 1);
--	else
--		omap_i2c_write_reg(dev, OMAP_I2C_IE_REG, 0);
--
--	if (dev->rev < OMAP_I2C_OMAP1_REV_2) {
--		iv = omap_i2c_read_reg(dev, OMAP_I2C_IV_REG); /* Read clears */
--	} else {
--		omap_i2c_write_reg(dev, OMAP_I2C_STAT_REG, dev->iestate);
--
--		/* Flush posted write */
--		omap_i2c_read_reg(dev, OMAP_I2C_STAT_REG);
--	}
--}
--
- static int omap_i2c_init(struct omap_i2c_dev *dev)
- {
- 	u16 psc = 0, scll = 0, sclh = 0, buf = 0;
-@@ -1163,8 +1122,22 @@ static int omap_i2c_runtime_suspend(struct device *dev)
- {
- 	struct platform_device *pdev = to_platform_device(dev);
- 	struct omap_i2c_dev *_dev = platform_get_drvdata(pdev);
-+	u16 iv;
-+
-+	_dev->iestate = omap_i2c_read_reg(_dev, OMAP_I2C_IE_REG);
-+	if (_dev->dtrev == OMAP_I2C_IP_VERSION_2)
-+		omap_i2c_write_reg(_dev, OMAP_I2C_IP_V2_IRQENABLE_CLR, 1);
-+	else
-+		omap_i2c_write_reg(_dev, OMAP_I2C_IE_REG, 0);
-+
-+	if (_dev->rev < OMAP_I2C_OMAP1_REV_2) {
-+		iv = omap_i2c_read_reg(_dev, OMAP_I2C_IV_REG); /* Read clears */
-+	} else {
-+		omap_i2c_write_reg(_dev, OMAP_I2C_STAT_REG, _dev->iestate);
- 
--	omap_i2c_idle(_dev);
-+		/* Flush posted write */
-+		omap_i2c_read_reg(_dev, OMAP_I2C_STAT_REG);
-+	}
- 
- 	return 0;
- }
-@@ -1174,7 +1147,23 @@ static int omap_i2c_runtime_resume(struct device *dev)
- 	struct platform_device *pdev = to_platform_device(dev);
- 	struct omap_i2c_dev *_dev = platform_get_drvdata(pdev);
- 
--	omap_i2c_unidle(_dev);
-+	if (_dev->flags & OMAP_I2C_FLAG_RESET_REGS_POSTIDLE) {
-+		omap_i2c_write_reg(_dev, OMAP_I2C_CON_REG, 0);
-+		omap_i2c_write_reg(_dev, OMAP_I2C_PSC_REG, _dev->pscstate);
-+		omap_i2c_write_reg(_dev, OMAP_I2C_SCLL_REG, _dev->scllstate);
-+		omap_i2c_write_reg(_dev, OMAP_I2C_SCLH_REG, _dev->sclhstate);
-+		omap_i2c_write_reg(_dev, OMAP_I2C_BUF_REG, _dev->bufstate);
-+		omap_i2c_write_reg(_dev, OMAP_I2C_SYSC_REG, _dev->syscstate);
-+		omap_i2c_write_reg(_dev, OMAP_I2C_WE_REG, _dev->westate);
-+		omap_i2c_write_reg(_dev, OMAP_I2C_CON_REG, OMAP_I2C_CON_EN);
-+	}
-+
-+	/*
-+	 * Don't write to this register if the IE state is 0 as it can
-+	 * cause deadlock.
-+	 */
-+	if (_dev->iestate)
-+		omap_i2c_write_reg(_dev, OMAP_I2C_IE_REG, _dev->iestate);
- 
- 	return 0;
- }
--- 
-1.7.4.1
+Is it dependent on OMAPX or GPMC IP version? if it is IP version, then driver
+can be enhanced to handle it, if not, platform has to pass this information.
+
+> >>> +	res = platform_get_resource(pdev, IORESOURCE_IRQ, 0);
+> >>> +	if (res == NULL)
+> >>> +		dev_warn(gpmc->dev, "Failed to get resource: irq\n");
+> >>> +	else
+> >>> +		gpmc->master_irq = res->start;
+> >>
+> >> Why not return an error if the IRQ is not found? We don't know if anyone
+> >> will be trying to use them.
+> >
+> > Why do you want to do that ?
+> 
+> Because this indicates a BUG :-)
+
+I disagree, this need not be considered a bug always,
+for eg. If gpmc irq is not connected to intc
+
+> 
+> > If someone (say NAND) wants to work with irq, and if interrupt is not
+> > available, NAND driver can fail, and suppose smsc911x ethernet is present
+> > and he is not using gpmc irq, if we fail here, smsc911x also would
+> > not work, which would have worked otherwise.
+> >
+> > It is a different matter that even NAND setup will happen properly,
+> > even if interrupt is not available, it is only when NAND is told to
+> > work with IRQ, it fails, please see nand patches.
+> >
+> > And as of now in mainline (with the code as is), there is not a single
+> > board that will need gpmc irq for gpmc peripherals to work.
+> >
+> > I feel we should try to get more devices working rather than preventing
+> > more devices from working, when it could have.
+> 
+> I understand your point, but then you are hiding a BUG. If someone 
+> introduces a BUG that causes this to fail, then it is easier to detect, 
+> find and fix.
+> 
+>  From my perspective get the resources should never fail and if it does 
+> and break the driver for all devices, then so be it, because a BUG has 
+> been introduced. Ok, this may not be critical at this point but still is 
+> should not fail.
+
+Agree for resources which are a must for device to work, not for resources
+that can enhance its capability.
+
+> 
+> >>> +	for (gdq = gp->device_pdata, gd = gpmc->device; *gdq; gdq++, i++) {
+> >>> +		ret = gpmc_setup_device(*gdq, gd, gpmc);
+> >>> +		if (IS_ERR_VALUE(ret))
+> >>> +			dev_err(gpmc->dev, "gpmc setup on %s failed\n",
+> >>> +								(*gdq)->name);
+> >>> +		else
+> >>> +			gd++;
+> >>> +	}
+> >>
+> >> Would a while loop be simpler?
+> >
+> > My preference is to go with "for"
+> 
+> Ok, just wondering if this could be cleaned up a little.
+
+For travelling through array of pointers, for looks natural to me, if you
+have a better way, please send it, it can be folded in next version.
+
+Regards
+Afzal
