@@ -1,114 +1,49 @@
-From: Felipe Balbi <balbi@ti.com>
-Subject: Re: [PATCH 00/19] I2C updates
-Date: Tue, 10 Apr 2012 14:41:54 +0300
-Message-ID: <20120410114153.GR20616@arwen.pp.htv.fi>
-References: <1334055397-899-1-git-send-email-shubhrajyoti@ti.com>
- <CANfBPZ92EEAqrFC2gnULAXwQKhWdAuNntHz0QVXuUR3Wr=nSGQ@mail.gmail.com>
-Reply-To: balbi@ti.com
+From: "Govindraj.R" <govindraj.raja@ti.com>
+Subject: [PATCH 0/2] OMAP2+: UART: Fix usage of default mux pads
+Date: Tue, 10 Apr 2012 19:10:44 +0530
+Message-ID: <1334065246-21294-1-git-send-email-govindraj.raja@ti.com>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="YkilVOb9qhI0mB+X"
+Content-Type: text/plain
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aog101.obsmtp.com ([74.125.149.67]:56527 "EHLO
-	na3sys009aog101.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752653Ab2DJLmr (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>);
-	Tue, 10 Apr 2012 07:42:47 -0400
-Received: by lagz14 with SMTP id z14so5434422lag.14
-        for <linux-omap@vger.kernel.org>; Tue, 10 Apr 2012 04:42:45 -0700 (PDT)
-Content-Disposition: inline
-In-Reply-To: <CANfBPZ92EEAqrFC2gnULAXwQKhWdAuNntHz0QVXuUR3Wr=nSGQ@mail.gmail.com>
+Received: from devils.ext.ti.com ([198.47.26.153]:54717 "EHLO
+	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751424Ab2DJNlJ (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 10 Apr 2012 09:41:09 -0400
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "S, Venkatraman" <svenkatr@ti.com>
-Cc: Shubhrajyoti D <shubhrajyoti@ti.com>, linux-omap@vger.kernel.org, tony@atomide.com, w.sang@pengutronix.de, linux-i2c@vger.kernel.org, ben-linux@fluff.org, linux-arm-kernel@lists.infradead.org
+To: linux-omap@vger.kernel.org
+Cc: linux-arm-kernel@lists.infradead.org, Felipe Balbi <balbi@ti.com>, Kevin Hilman <khilman@ti.com>, Russ Dill <russ.dill@gmail.com>, Tony Lindgren <tony@atomide.com>, "Govindraj.R" <govindraj.raja@ti.com>
 
+From: "Govindraj.R" <govindraj.raja@ti.com>
 
---YkilVOb9qhI0mB+X
-Content-Type: text/plain; charset=iso-8859-1
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
+We populating default uart mux pins if no mux data is provided
+by board files. But were not probing the availability of uart pins
+in tx/rx mode i.e. mux mode0. If particular pin is used for any other
+purpose then default pads were breaking those peripherals e.g. uart2
+pin was used as gpio nreset pin ehci on beagle board.
 
-On Tue, Apr 10, 2012 at 05:01:37PM +0530, S, Venkatraman wrote:
-> On Tue, Apr 10, 2012 at 4:26 PM, Shubhrajyoti D <shubhrajyoti@ti.com> wro=
-te:
-> > The patch series does the following
-> >
-> > - Warn fixes if CONFIG_PM_RUNTIME is not selected.
-> > - I2C register restore only if context if the context is lost
-> > - Bus busy recovery mechanism.
-> > - the reset is not done in init.
-> >
-> > v2 changes
-> > -Adds a patch to use devm_* functions
-> > -Also checks the return type of the get_sync and in case
-> > =A0of errors prevents register access.
-> > - In case of i2c remove register access was done without any
-> > =A0get_sync fix the same.
-> > - Adds a pdata function pointer to do context save restore
-> >
-> > v3 changes
-> > - Split the omap_i2c_isr to increase readability
-> > - Adds the restore flag patch for OMAP4 to the series
-> > - Make the i2c use SET_RUNTIME_PM_OPS
-> > v4 changes
-> > - Folds a patch from Tasslehoff to prevent any merge conflicts.
-> > - Prevents the XDUF flag to be set if the underflow condition is not me=
-t.
-> >
-> > v5 changes
-> > - Add consistency in the subject naming.
-> >
-> > v6 changes
-> > - As per discussion in [1] .Adds a patch to rename the 1p153 errata and
-> > =A0use the unique id instead as the section number in the recent errata
-> > =A0docs has changed.
-> >
-> >
-> > [1] http://www.spinics.net/lists/linux-i2c/msg07607.html
-> >
-> > Tested on omap4sdp and omap3sdp.
-> >
-> >
-> > The following changes since commit 258f742635360175564e9470eb060ff4d4b9=
-84e7:
-> >
-> > =A0modpost: Fix modpost license checking of vmlinux.o (2012-04-09 20:52=
-:56 -0700)
-> >
-> > are available in the git repository at:
-> > =A0git@gitorious.org:linus-tree/linus-tree.git i2c_omap-next
->=20
-> Minor nit:
-> You might want to indicate a git:// link instead of an ssh URL ?
+So remove the default adding procedure and probe the pins before
+using them as uart pins. Determine if uart pins are used in uart mux_mode0
+then configure rx pin for wakeup capability.
 
-indeed, for those who haven't noticed git now has separate url and
-pushurl for every remote. Meaning you can pull and push with different
-urls. This solves this issue.
+Testing updates:
+Boot tested on 3430SDP
+Tested on beagle-xm with ehci module which needs uart pin muxed as gpio
+line for nreset sequence.
 
---=20
-balbi
+RX pad wakeup after enabling off mode in cpu_idle path and suspend path
+tested - 3430SDP & Beagle-XM
 
---YkilVOb9qhI0mB+X
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: Digital signature
+Govindraj.R (2):
+  OMAP2+: UART: Fix incorrect population of default uart pads
+  OMAP2+: UART: Add mechanism to probe uart pins and configure rx
+    wakeup
 
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.4.12 (GNU/Linux)
+ arch/arm/mach-omap2/mux.c    |    3 +-
+ arch/arm/mach-omap2/mux.h    |   10 +++
+ arch/arm/mach-omap2/serial.c |  164 +++++++++++++-----------------------------
+ 3 files changed, 61 insertions(+), 116 deletions(-)
 
-iQIbBAEBAgAGBQJPhByBAAoJEIaOsuA1yqREBSIP+KMZvtFTGd+iRfb/Lg93lQXH
-lijOH4NTHV82AARqOvsb3GMFof5AClXRqXzdv6YvF00Mvsrie7+T79f1FU3A/uMD
-22bS7pSgScv2Z817Fs8jrinLupLo4gFoZyPHC6sn7pFfIdWTbgXlhIwlc2Y7tO7e
-cBxVVmpgkgp95pnKKcCAoJlKfwSWApURDbWIzawNA5iG/lpzYBkl/FgYbeURTf7H
-FlHuYQCFuY3/dmrRIW+a3519/2zZLCXbW1afl4w7Mp8uLHYNYR3YEIfLRV9JXjcY
-o3hnlm+4Yc6Clq9dI0404LhCqpZOxFiq9lKgBF0qcyeVQAy4iRc9XUaLMOfo8Tpn
-fRIwpyLOfFZihfD+xvNqntOKkRjHJPCYwhW/Sjnf/3JCnmS31oLEXoVAG4A41eyO
-DamQMXl8Mdb7z3ihz8TZxglUGbdTZu5lNYZ6R4+K+fi6Tejja1dCUX3GF5I1PmpP
-i0Ypq6goSuQGa+ZBbYJ3AsZp/WNXttYhatRdvVZRfDwhKqhTYpJDDT40yjaZ3Gt9
-h/JS/Pc973ggEN19JqgrswGell6eGHa69qj1AgvGc2SD6VORQtMBrR9LBVr7kkrS
-gUy1k1u5khISuturOaJTLwUXGVaWBwePhvWavWdlp4BrXSV1LArJO01aUojmjDUk
-R2a5JVCth3Ax+vlXvcs=
-=k8VK
------END PGP SIGNATURE-----
+-- 
+1.7.9
 
---YkilVOb9qhI0mB+X--
