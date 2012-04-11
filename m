@@ -1,69 +1,75 @@
-From: Chris Ball <cjb@laptop.org>
-Subject: Re: [PATCH] mmc: omap_hsmmc: Get rid of of_have_populated_dt() usage
-Date: Wed, 11 Apr 2012 10:36:35 -0400
-Message-ID: <87398atjws.fsf@laptop.org>
-References: <1334138593-9692-1-git-send-email-rnayak@ti.com>
+From: Gary Thomas <gary@mlbassoc.com>
+Subject: Re: PM related performance degradation on OMAP3
+Date: Wed, 11 Apr 2012 08:59:41 -0600
+Message-ID: <4F859C5D.3090400@mlbassoc.com>
+References: <CANOLnOP5gq4Vtt00SgRNW-3GZDWk0sukBgJx4V6rkMLL+b6G-w@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-mmc-owner@vger.kernel.org>
-In-Reply-To: <1334138593-9692-1-git-send-email-rnayak@ti.com> (Rajendra
-	Nayak's message of "Wed, 11 Apr 2012 15:33:13 +0530")
-Sender: linux-mmc-owner@vger.kernel.org
-To: Rajendra Nayak <rnayak@ti.com>
-Cc: linux-omap@vger.kernel.org, linux-mmc@vger.kernel.org, devicetree-discuss@lists.ozlabs.org, b-cousson@ti.com, Balaji TK <balajitk@ti.com>, Rob Herring <rob.herring@calxeda.com>, Sebastian Andrzej Siewior <bigeasy@linutronix.de>
+Content-Type: text/plain; charset=UTF-8; format=flowed
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from hermes.mlbassoc.com ([64.234.241.98]:34664 "EHLO
+	mail.chez-thomas.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755344Ab2DKO7n (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 11 Apr 2012 10:59:43 -0400
+In-Reply-To: <CANOLnOP5gq4Vtt00SgRNW-3GZDWk0sukBgJx4V6rkMLL+b6G-w@mail.gmail.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Grazvydas Ignotas <notasas@gmail.com>
+Cc: linux-omap@vger.kernel.org, Kevin Hilman <khilman@ti.com>, Paul Walmsley <paul@pwsan.com>
 
-Hi,
+On 2012-04-06 16:50, Grazvydas Ignotas wrote:
+> Hello,
+>
+> I'm DMA seeing performance loss related to CONFIG_PM on OMAP3.
+>
+> # CONFIG_PM is set:
+> echo 3>  /proc/sys/vm/drop_caches
+> # file copy from NAND (using NAND driver in DMA mode)
+> dd if=/mnt/tmp/a of=/dev/null bs=1M count=32
+> 33554432 bytes (32.0MB) copied, 9.088714 seconds, 3.5MB/s
+> # file read from SD (hsmmc uses DMA)
+> dd if=/dev/mmcblk0 of=/dev/null bs=1M count=32
+> 33554432 bytes (32.0MB) copied, 2.065460 seconds, 15.5MB/s
+>
+> # CONFIG_PM not set:
+> # NAND
+> dd if=/mnt/tmp/a of=/dev/null bs=1M count=32
+> 33554432 bytes (32.0MB) copied, 5.653534 seconds, 5.7MB/s
+> # SD
+> dd if=/dev/mmcblk0 of=/dev/null bs=1M count=32
+> 33554432 bytes (32.0MB) copied, 1.919007 seconds, 16.7MB/s
+>
+> While SD card performance loss is not that bad (~7%), NAND one is
+> worrying (~39%). I've tried disabling/enabling CONFIG_CPU_IDLE, also
+> cpuidle states over sysfs, it did not have any significant effect. Is
+> there something else to try?
+>
+> I'm guessing this is caused by CPU wakeup latency to service DMA
+> interrupts? I've noticed that if I keep CPU busy, the loss is reduced
+> almost completely.
+> Talking about cpuidle, what's the difference between C1 and C2 states?
+> They look mostly the same.
+> Then there is omap3_do_wfi, it seems to be unconditionally putting
+> SDRC on self-refresh, would it make sense to just do wfi in higher
+> power states, like OMAP4 seems to be doing?
+>
 
-On Wed, Apr 11 2012, Rajendra Nayak wrote:
-> of_have_populated_dt() is not expected to be used in drivers but
-> instead only in early platform init code.
-> Drivers on the other hand should rely on dev->of_node or of_match_device().
-> Besides usage of of_have_populated_dt() also throws up build error as below
-> which was reported by Balaji TK, when omap_hsmmc is built as a module.
->
-> ERROR: "allnodes" [drivers/mmc/host/omap_hsmmc.ko] undefined!
-> make[1]: *** [__modpost] Error 1
-> make: *** [modules] Error 2
->
-> So get rid of all of_have_populated_dt() usage in omap_hsmmc driver and
-> instead use dev->of_node to make the same dicisions as earlier.
->
-> Signed-off-by: Rajendra Nayak <rnayak@ti.com>
-> Reported-by: Benoit Cousson <b-cousson@ti.com>
-> Cc: Balaji TK <balajitk@ti.com>
-> Cc: Rob Herring <rob.herring@calxeda.com>
-> Cc: Sebastian Andrzej Siewior <bigeasy@linutronix.de>
-> ---
->  drivers/mmc/host/omap_hsmmc.c |    4 ++--
->  1 files changed, 2 insertions(+), 2 deletions(-)
->
-> diff --git a/drivers/mmc/host/omap_hsmmc.c b/drivers/mmc/host/omap_hsmmc.c
-> index ecc9521..4254b6f 100644
-> --- a/drivers/mmc/host/omap_hsmmc.c
-> +++ b/drivers/mmc/host/omap_hsmmc.c
-> @@ -252,7 +252,7 @@ static int omap_hsmmc_set_power(struct device *dev, int slot, int power_on,
->  	 * the pbias cell programming support is still missing when
->  	 * booting with Device tree
->  	 */
-> -	if (of_have_populated_dt() && !vdd)
-> +	if (dev->of_node && !vdd)
->  		return 0;
->  
->  	if (mmc_slot(host).before_set_reg)
-> @@ -1564,7 +1564,7 @@ static void omap_hsmmc_set_ios(struct mmc_host *mmc, struct mmc_ios *ios)
->  			 * can't be allowed when booting with device
->  			 * tree.
->  			 */
-> -			(!of_have_populated_dt())) {
-> +			!host->dev->of_node) {
->  				/*
->  				 * The mmc_select_voltage fn of the core does
->  				 * not seem to set the power_mode to
+I fear I'm seeing similar problems with 3.3.  I have my board (similar
+to the BeagleBoard) ported to 3.0 and 3.3.  I'm seeing terrible network
+performance on 3.3.  For example, if I use TFTP to download a large file
+(~35MB), I get this:
+   3.0:  42.5 sec
+   3.3: 625.0 sec
+That's a factor of 15 worse!
 
-Thanks, pushed to mmc-next for 3.4.
+I'd like to try building without CONFIG_PM, but when I disabled this, my
+kernel fails to come up.  Can someone point me to the magic to build without
+CONFIG_PM, or possibly send me a working config file?
 
-- Chris.
+Thanks
+
 -- 
-Chris Ball   <cjb@laptop.org>   <http://printf.net/>
-One Laptop Per Child
+------------------------------------------------------------
+Gary Thomas                 |  Consulting for the
+MLB Associates              |    Embedded world
+------------------------------------------------------------
