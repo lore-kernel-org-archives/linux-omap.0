@@ -1,132 +1,86 @@
-From: "Ramirez Luna, Omar" <omar.ramirez-l0cyMroinI0@public.gmane.org>
-Subject: Re: [PATCH v3 4/4] ARM: omap: pass minimal SoC/board data for UART
-	from dt
-Date: Tue, 10 Apr 2012 19:16:56 -0500
-Message-ID: <CAB-zwWjSSsR0XMrntkEmHDtgJ_zDxgJh6KX=TsSKggd9mCgsVQ@mail.gmail.com>
-References: <1323863746-18145-1-git-send-email-rnayak@ti.com>
-	<1323863746-18145-5-git-send-email-rnayak@ti.com>
+From: Grazvydas Ignotas <notasas@gmail.com>
+Subject: Re: PM related performance degradation on OMAP3
+Date: Wed, 11 Apr 2012 03:29:58 +0300
+Message-ID: <CANOLnOPbHBshCdbmSOjYdubWqUivrVpR-+eaayu=v4Yy6yKdsQ@mail.gmail.com>
+References: <CANOLnOP5gq4Vtt00SgRNW-3GZDWk0sukBgJx4V6rkMLL+b6G-w@mail.gmail.com>
+	<877gxobudk.fsf@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="iso-8859-1"
-Content-Transfer-Encoding: quoted-printable
-Return-path: <linaro-dev-bounces-cunTk1MwBs8s++Sfvej+rw@public.gmane.org>
-In-Reply-To: <1323863746-18145-5-git-send-email-rnayak-l0cyMroinI0@public.gmane.org>
-List-Unsubscribe: <http://lists.linaro.org/mailman/options/linaro-dev>,
-	<mailto:linaro-dev-request-cunTk1MwBs8s++Sfvej+rw@public.gmane.org?subject=unsubscribe>
-List-Archive: <http://lists.linaro.org/pipermail/linaro-dev>
-List-Post: <mailto:linaro-dev-cunTk1MwBs8s++Sfvej+rw@public.gmane.org>
-List-Help: <mailto:linaro-dev-request-cunTk1MwBs8s++Sfvej+rw@public.gmane.org?subject=help>
-List-Subscribe: <http://lists.linaro.org/mailman/listinfo/linaro-dev>,
-	<mailto:linaro-dev-request-cunTk1MwBs8s++Sfvej+rw@public.gmane.org?subject=subscribe>
-Sender: linaro-dev-bounces-cunTk1MwBs8s++Sfvej+rw@public.gmane.org
-Errors-To: linaro-dev-bounces-cunTk1MwBs8s++Sfvej+rw@public.gmane.org
-To: Rajendra Nayak <rnayak-l0cyMroinI0@public.gmane.org>
-Cc: khilman-l0cyMroinI0@public.gmane.org, linaro-dev-cunTk1MwBs8s++Sfvej+rw@public.gmane.org, patches-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org, tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org, devicetree-discuss-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org, govindraj.raja-l0cyMroinI0@public.gmane.org, linux-serial-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from mail-iy0-f174.google.com ([209.85.210.174]:40980 "EHLO
+	mail-iy0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1759830Ab2DKA37 convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 10 Apr 2012 20:29:59 -0400
+Received: by iagz16 with SMTP id z16so493932iag.19
+        for <linux-omap@vger.kernel.org>; Tue, 10 Apr 2012 17:29:59 -0700 (PDT)
+In-Reply-To: <877gxobudk.fsf@ti.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Kevin Hilman <khilman@ti.com>
+Cc: linux-omap@vger.kernel.org, Paul Walmsley <paul@pwsan.com>
 
-Hi,
-
-On Wed, Dec 14, 2011 at 5:55 AM, Rajendra Nayak <rnayak-l0cyMroinI0@public.gmane.org> wrote:
-> Pass minimal data needed for console boot, from dt, for
-> OMAP4 panda/sdp and OMAP3 beagle boards, and get rid of the
-> static initialization from generic board file.
-...
-> diff --git a/arch/arm/mach-omap2/board-generic.c b/arch/arm/mach-omap2/bo=
-ard-generic.c
-> index 63b5416..a508ed5 100644
-> --- a/arch/arm/mach-omap2/board-generic.c
-> +++ b/arch/arm/mach-omap2/board-generic.c
-> @@ -69,7 +69,6 @@ static void __init omap_generic_init(void)
-> =A0 =A0 =A0 =A0if (node)
-> =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0irq_domain_add_simple(node, 0);
+On Mon, Apr 9, 2012 at 10:03 PM, Kevin Hilman <khilman@ti.com> wrote:
+> Grazvydas Ignotas <notasas@gmail.com> writes:
+>> While SD card performance loss is not that bad (~7%), NAND one is
+>> worrying (~39%). I've tried disabling/enabling CONFIG_CPU_IDLE, also
+>> cpuidle states over sysfs, it did not have any significant effect. I=
+s
+>> there something else to try?
 >
-> - =A0 =A0 =A0 omap_serial_init();
-> =A0 =A0 =A0 =A0omap_sdrc_init(NULL, NULL);
+> Looks like we might need a PM QoS constraint when there is DMA activi=
+ty
+> in progress.
 >
-> =A0 =A0 =A0 =A0of_platform_populate(NULL, omap_dt_match_table, NULL, NULL=
-);
-> --
-> 1.7.1
+> You can try doing a pm_qos_add_request() for PM_QOS_CPU_DMA_LATENCY w=
+hen
+> DMA transfers are active and I suspect that will help.
 
-I'm fairly new to DT and I'm trying to boot it with pandaboard and
-k3.3, however above hunk deletes omap serial initialization, which
-causes a panic on boot, because pdata is NULL:
+I've tried it and it didn't help much. It looks like the only thing it
+does is limiting cpuidle c-states, I tried to set qos dma latency to 0
+and it made it stay in C1 while transfer was ongoing (I watched
+/sys/devices/system/cpu/cpu0/cpuidle/state*/usage), but performance
+was still poor.
 
-static void serial_omap_start_tx(struct uart_port *port)
-{
-...
-                if (pdata->set_noidle)
+What I think is going on here is that omap_sram_idle() is taking too
+much time because it's overhead is too large. I've added a counter
+there and it seems to be called ~530 times per megabyte (DMA operates
+in ~2K chunks so it makes sense), that's over 2000 calls per second.
+Some quick measurement code shows ~243us spent for setting up in
+omap_sram_idle() (before and after omap34xx_do_sram_idle()).
 
-Perhaps because this change skips the following path:
+Could we perhaps have a lighter idle function for C1 that doesn't try
+to switch all powerdomain states and maybe not enable RAM
+self-refresh? As a quick test I've tried this in omap3_enter_idle():
 
-omap_serial_init->omap_serial_board_init->omap_serial_init_port
+        /* Execute ARM wfi */
+        if (index =3D=3D 0) {
+                clkdm_deny_idle(mpu_pd->pwrdm_clkdms[0]);
+                cpu_do_idle();
+        } else
+                omap_sram_idle();
 
-Where pdata is built in omap_device_build.
+=2E.and it brought performance close to !CONFIG_PM case (cpu_do_idle()
+is used as pm_idle on !CONFIG_PM). I don't know what side effects
+something like this might have though.
 
-I'm just trying to confirm that I'm not alone or doing some silly
-thing before getting in depth with the code.
+>> Then there is omap3_do_wfi, it seems to be unconditionally putting
+>> SDRC on self-refresh, would it make sense to just do wfi in higher
+>> power states, like OMAP4 seems to be doing?
+>
+> Not sure what you're referring to in OMAP4. =C2=A0There we do WFI in =
+every
+> idle state.
 
-Here it is the panic:
+What I meant is that OMAP3 idle code always tries to enable RAM
+self-refresh (regardless of c-state) before doing wfi while OMAP4 can
+do wfi without suspending RAM (although I might be misunderstanding
+all that asm code).
 
-[    2.024688] Unable to handle kernel NULL pointer dereference at
-virtual address 00000028
-[    2.031005] pgd =3D ed6f0000
-[    2.036315] [00000028] *pgd=3Daf339831, *pte=3D00000000, *ppte=3D00000000
-[    2.042907] Internal error: Oops: 17 [#1] SMP
-[    2.046630] Modules linked in:
-[    2.046630] CPU: 0    Not tainted  (3.3.0-00002-gda19af1-dirty #11)
-[    2.046630] PC is at serial_omap_start_tx+0x1cc/0x218
-[    2.046630] LR is at serial_omap_start_tx+0x1b8/0x218
-[    2.067840] pc : [<c02b3a54>]    lr : [<c02b3a40>]    psr: 60000193
-[    2.067840] sp : c21cbe70  ip : 00000001  fp : a0000113
-[    2.073699] r10: ef107000  r9 : ed684600  r8 : 0000001c
-[    2.085327] r7 : 00000002  r6 : 00000007  r5 : 00000000  r4 : ed684600
-[    2.086029] r3 : ef1281c0  r2 : fa020000  r1 : 00000004  r0 : c02b3a40
-[    2.086029] Flags: nZCv  IRQs off  FIQs on  Mode SVC_32  ISA ARM
-Segment user
-[    2.101684] Control: 10c53c7d  Table: ad6f004a  DAC: 00000015
-[    2.101684] Process S10udev (pid: 497, stack limit =3D 0xc21ca2f8)
-[    2.116973] Stack: (0xc21cbe70 to 0xc21cc000)
-[    2.123443] be60:                                     a0000113
-c0475b74 00000002 00000000
-[    2.126007] be80: c02ac7e0 ef107000 ed684600 20000113 00000000
-c02ac830 00000000 ed690ad0
-[    2.139099] bea0: ed6e981c c02ae348 c02ae288 ef107000 c21ca000
-0000001c ed6e9800 ef1074fc
-[    2.145385] bec0: c049cab4 ef1dcd80 ed6e9800 c0296aa8 60000113
-c02925e8 ef107194 ef107120
-[    2.152191] bee0: ef0003c0 00000000 ef1281c0 c0076214 ef1071b4
-ef1071b4 ef1074b4 ef1dcd80
-[    2.159790] bf00: ef107000 b6f5c000 0000001c c21ca000 00000400
-00000000 c02968c8 c0292638
-[    2.159790] bf20: c06e3ea0 0000001c c02968c8 ef168b80 c21cbf80
-00000000 ef1281c0 ef1dcd80
-[    2.175811] bf40: 0000001c b6f5c000 c21cbf80 00000000 00000000
-00000000 00000000 c010841c
-[    2.188476] bf60: c0014400 ef1281c0 ef1dcd80 b6f5c000 0000001c
-00000004 00000000 c0108570
-[    2.195068] bf80: 00000000 00000000 0000001c 00000000 0000001c
-b6f345c8 0000001c c00144a8
-[    2.195068] bfa0: c21ca000 c00142e0 0000001c b6f345c8 00000001
-b6f5c000 0000001c 00000000
-[    2.210723] bfc0: 0000001c b6f345c8 0000001c 00000004 b6f5c000
-00000000 00000001 00000000
-[    2.210723] bfe0: 00000000 be988948 b6e5ae98 b6eb7adc 60000110
-00000001 89389af9 fef855e7
-[    2.226379] [<c02b3a54>] (serial_omap_start_tx+0x1cc/0x218) from
-[<c02ac830>] (uart_start+0x68/0x6c)
-[    2.241973] [<c02ac830>] (uart_start+0x68/0x6c) from [<c02ae348>]
-(uart_write+0xc0/0xe4)
-[    2.241973] [<c02ae348>] (uart_write+0xc0/0xe4) from [<c0296aa8>]
-(n_tty_write+0x1e0/0x42c)
-[    2.257629] [<c0296aa8>] (n_tty_write+0x1e0/0x42c) from
-[<c0292638>] (tty_write+0x140/0x23c)
-[    2.270446] [<c0292638>] (tty_write+0x140/0x23c) from [<c010841c>]
-(vfs_write+0xb0/0x134)
-[    2.278594] [<c010841c>] (vfs_write+0xb0/0x134) from [<c0108570>]
-(sys_write+0x40/0x70)
-[    2.281311] [<c0108570>] (sys_write+0x40/0x70) from [<c00142e0>]
-(ret_fast_syscall+0x0/0x3c)
-
-Regards,
-
-Omar
+--=20
+Gra=C5=BEvydas
+--
+To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
