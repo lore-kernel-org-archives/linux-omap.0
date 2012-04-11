@@ -1,75 +1,127 @@
-From: Gary Thomas <gary@mlbassoc.com>
-Subject: Re: PM related performance degradation on OMAP3
-Date: Wed, 11 Apr 2012 08:59:41 -0600
-Message-ID: <4F859C5D.3090400@mlbassoc.com>
-References: <CANOLnOP5gq4Vtt00SgRNW-3GZDWk0sukBgJx4V6rkMLL+b6G-w@mail.gmail.com>
+From: Jon Hunter <jon-hunter@ti.com>
+Subject: Re: [PATCH v3 1/9] ARM: OMAP2+: gpmc: driver conversion
+Date: Wed, 11 Apr 2012 10:47:10 -0500
+Message-ID: <4F85A77E.30203@ti.com>
+References: <cover.1333640054.git.afzal@ti.com> <cefbe934da40f0a169b1e3a75c46451e5546a8bd.1333640054.git.afzal@ti.com> <4F7DFED5.4030000@ti.com> <C8443D0743D26F4388EA172BF4E2A7A9317C5E58@DBDE01.ent.ti.com> <4F833D8D.8000802@ti.com> <C8443D0743D26F4388EA172BF4E2A7A9317C693C@DBDE01.ent.ti.com> <4F8488A2.7030602@ti.com> <C8443D0743D26F4388EA172BF4E2A7A9317C6F4B@DBDE01.ent.ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8; format=flowed
+Content-Type: text/plain; charset="ISO-8859-1"
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from hermes.mlbassoc.com ([64.234.241.98]:34664 "EHLO
-	mail.chez-thomas.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755344Ab2DKO7n (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 11 Apr 2012 10:59:43 -0400
-In-Reply-To: <CANOLnOP5gq4Vtt00SgRNW-3GZDWk0sukBgJx4V6rkMLL+b6G-w@mail.gmail.com>
-Sender: linux-omap-owner@vger.kernel.org
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <C8443D0743D26F4388EA172BF4E2A7A9317C6F4B@DBDE01.ent.ti.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: "Mohammed, Afzal" <afzal@ti.com>
+Cc: "tony@atomide.com" <tony@atomide.com>, "Hilman, Kevin" <khilman@ti.com>, "linux@arm.linux.org.uk" <linux@arm.linux.org.uk>, "dwmw2@infradead.org" <dwmw2@infradead.org>, "sameo@linux.intel.com" <sameo@linux.intel.com>, "grinberg@compulab.co.il" <grinberg@compulab.co.il>, "mike@compulab.co.il" <mike@compulab.co.il>, "Menon, Nishanth" <nm@ti.com>, "artem.bityutskiy@linux.intel.com" <artem.bityutskiy@linux.intel.com>, "vimal.newwork@gmail.com" <vimal.newwork@gmail.com>, "dbaryshkov@gmail.com" <dbaryshkov@gmail.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, "linux-mtd@lists.infradead.org" <linux-mtd@lists.infradead.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "Hiremath, Vaibhav" <hvaibhav@ti.com>
 List-Id: linux-omap@vger.kernel.org
-To: Grazvydas Ignotas <notasas@gmail.com>
-Cc: linux-omap@vger.kernel.org, Kevin Hilman <khilman@ti.com>, Paul Walmsley <paul@pwsan.com>
 
-On 2012-04-06 16:50, Grazvydas Ignotas wrote:
-> Hello,
->
-> I'm DMA seeing performance loss related to CONFIG_PM on OMAP3.
->
-> # CONFIG_PM is set:
-> echo 3>  /proc/sys/vm/drop_caches
-> # file copy from NAND (using NAND driver in DMA mode)
-> dd if=/mnt/tmp/a of=/dev/null bs=1M count=32
-> 33554432 bytes (32.0MB) copied, 9.088714 seconds, 3.5MB/s
-> # file read from SD (hsmmc uses DMA)
-> dd if=/dev/mmcblk0 of=/dev/null bs=1M count=32
-> 33554432 bytes (32.0MB) copied, 2.065460 seconds, 15.5MB/s
->
-> # CONFIG_PM not set:
-> # NAND
-> dd if=/mnt/tmp/a of=/dev/null bs=1M count=32
-> 33554432 bytes (32.0MB) copied, 5.653534 seconds, 5.7MB/s
-> # SD
-> dd if=/dev/mmcblk0 of=/dev/null bs=1M count=32
-> 33554432 bytes (32.0MB) copied, 1.919007 seconds, 16.7MB/s
->
-> While SD card performance loss is not that bad (~7%), NAND one is
-> worrying (~39%). I've tried disabling/enabling CONFIG_CPU_IDLE, also
-> cpuidle states over sysfs, it did not have any significant effect. Is
-> there something else to try?
->
-> I'm guessing this is caused by CPU wakeup latency to service DMA
-> interrupts? I've noticed that if I keep CPU busy, the loss is reduced
-> almost completely.
-> Talking about cpuidle, what's the difference between C1 and C2 states?
-> They look mostly the same.
-> Then there is omap3_do_wfi, it seems to be unconditionally putting
-> SDRC on self-refresh, would it make sense to just do wfi in higher
-> power states, like OMAP4 seems to be doing?
->
+Hi Afzal,
 
-I fear I'm seeing similar problems with 3.3.  I have my board (similar
-to the BeagleBoard) ported to 3.0 and 3.3.  I'm seeing terrible network
-performance on 3.3.  For example, if I use TFTP to download a large file
-(~35MB), I get this:
-   3.0:  42.5 sec
-   3.3: 625.0 sec
-That's a factor of 15 worse!
+On 04/11/2012 12:11 AM, Mohammed, Afzal wrote:
+> Hi Jon,
+> 
+> On Wed, Apr 11, 2012 at 00:53:14, Hunter, Jon wrote:
+>> I agree with your argument but I was thinking today only OMAP uses the 
+>> GPMC so we could not worry about this. Ok, leave as-is, but can we 
+>> modify the code as follows as the "else if" is not really needed...
+>>
+>> if (gpmc->num_irq < GPMC_NR_IRQ) {
+>> 	dev_warn(gpmc->dev, "Insufficient interrupts for device\n");
+>> 	return -EINVAL;
+>> }
+>>
+>> gpmc->num_irq = GPMC_NR_IRQ;
+> 
+> Yes, it is better
+> 
+>>
+>>>>
+>>>> Furthermore, GPMC_NR_IRQ is defined as 6 which is correct for OMAP2/3
+>>>> but not for OMAP4/5, it is 5. Therefore, we need to detect whether we
+>>>> are using an OMAP2/3 or OMAP4+ and set num_irqs based upon this. This
+>>>> could be done in the probe and we can avoid passing this.
+>>>
+>>> Is it dependent on OMAPX or GPMC IP version? if it is IP version, then driver
+>>> can be enhanced to handle it, if not, platform has to pass this information.
+>>
+>> Here are the GPMC IP revisions ...
+>>
+>> OMAP5430 = 0x00000060
+>> OMAP4430 = 0x00000060
+>> OMAP3630 = 0x00000050
+>> OMAP3430 = 0x00000050
+>>
+>> So this should work for OMAP. We should check OMAP2 as well. What about 
+>> the AMxxx devices?
+> 
+> 
+> I badly needed this information, thanks.
+> 
+> AM3359 = 0x00000060, it has only 2 waitpin interrupts
 
-I'd like to try building without CONFIG_PM, but when I disabled this, my
-kernel fails to come up.  Can someone point me to the magic to build without
-CONFIG_PM, or possibly send me a working config file?
+Great so this is consistent!
 
-Thanks
+>>>>>>> +	res = platform_get_resource(pdev, IORESOURCE_IRQ, 0);
+>>>>>>> +	if (res == NULL)
+>>>>>>> +		dev_warn(gpmc->dev, "Failed to get resource: irq\n");
+>>>>>>> +	else
+>>>>>>> +		gpmc->master_irq = res->start;
+>>>>>>
+>>>>>> Why not return an error if the IRQ is not found? We don't know if anyone
+>>>>>> will be trying to use them.
+>>>>>
+>>>>> Why do you want to do that ?
+>>>>
+>>>> Because this indicates a BUG :-)
+>>>
+>>> I disagree, this need not be considered a bug always,
+>>> for eg. If gpmc irq is not connected to intc
+>>
+>> Ok, so for devices existing today this indicates a bug ;-)
+> 
+> I do not want to consider that case to be bug enough for probe
+> to fail, there are other drivers which does similar enhancing
+> its use cases,
+> 
+> eg. 1e351a9 mfd: Make TPS65910 usable without interrupts
 
--- 
-------------------------------------------------------------
-Gary Thomas                 |  Consulting for the
-MLB Associates              |    Embedded world
-------------------------------------------------------------
+Ok, fine.
+
+>>
+>> At a minimum you need to improve the error handing here. If the 
+>> platform_get_resource fails you are still calling "gpmc_setup_irq()" 
+>> which appears to be pointless. It would be better if the gpmc irq chip 
+>> is not initialised in this case so that drivers attempting to request 
+>> these irqs failed.
+> 
+> Please see gpmc_setup_irq, if irq is not present, it returns in the
+> beginning, and gpmc_irq_chip is not initialized in that case.
+
+Yes you are right.
+
+>>>>>>> +	for (gdq = gp->device_pdata, gd = gpmc->device; *gdq; gdq++, i++) {
+>>>>>>> +		ret = gpmc_setup_device(*gdq, gd, gpmc);
+>>>>>>> +		if (IS_ERR_VALUE(ret))
+>>>>>>> +			dev_err(gpmc->dev, "gpmc setup on %s failed\n",
+>>>>>>> +								(*gdq)->name);
+>>>>>>> +		else
+>>>>>>> +			gd++;
+>>>>>>> +	}
+>>>>>>
+>>>>>> Would a while loop be simpler?
+>>>>>
+>>>>> My preference is to go with "for"
+>>>>
+>>>> Ok, just wondering if this could be cleaned up a little.
+>>>
+>>> For travelling through array of pointers, for looks natural to me, if you
+>>> have a better way, please send it, it can be folded in next version.
+>>
+>> Could you have num_devices to indicate how many platform devices there 
+>> are and then a simple for-loop of 0 to num_devices?
+> 
+> This will cause coding to be done by platform to be less simple, and my
+> preference is not to use another variable
+
+Hehe, I wondered if that would make life a little more difficult. Ok
+lets leave it for now.
+
+Jon
