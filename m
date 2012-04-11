@@ -1,68 +1,70 @@
-From: "Hebbar, Gururaja" <gururaja.hebbar@ti.com>
-Subject: RE: [PATCHv7 14/18] I2C: OMAP: Use SET_RUNTIME_PM_OPS
-Date: Wed, 11 Apr 2012 12:09:22 +0000
-Message-ID: <1BAFE6F6C881BF42822005164F1491C331829571@DBDE01.ent.ti.com>
-References: <1334142776-10583-1-git-send-email-shubhrajyoti@ti.com>
- <1334142776-10583-15-git-send-email-shubhrajyoti@ti.com>
- <20120411113537.GG12064@arwen.pp.htv.fi>
+From: Rob Herring <robherring2@gmail.com>
+Subject: Re: [PATCH] mmc: omap_hsmmc: Get rid of of_have_populated_dt() usage
+Date: Wed, 11 Apr 2012 07:10:21 -0500
+Message-ID: <4F8574AD.5040306@gmail.com>
+References: <1334138593-9692-1-git-send-email-rnayak@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="Windows-1252"
-Content-Transfer-Encoding: 8BIT
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from comal.ext.ti.com ([198.47.26.152]:51091 "EHLO comal.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751839Ab2DKMJr convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 11 Apr 2012 08:09:47 -0400
-In-Reply-To: <20120411113537.GG12064@arwen.pp.htv.fi>
-Content-Language: en-US
+Received: from mail-ob0-f174.google.com ([209.85.214.174]:55173 "EHLO
+	mail-ob0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752503Ab2DKMK0 (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 11 Apr 2012 08:10:26 -0400
+In-Reply-To: <1334138593-9692-1-git-send-email-rnayak@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "Balbi, Felipe" <balbi@ti.com>, "Datta, Shubhrajyoti" <shubhrajyoti@ti.com>
-Cc: "tony@atomide.com" <tony@atomide.com>, "w.sang@pengutronix.de" <w.sang@pengutronix.de>, "linux-i2c@vger.kernel.org" <linux-i2c@vger.kernel.org>, "ben-linux@fluff.org" <ben-linux@fluff.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>
+To: Rajendra Nayak <rnayak@ti.com>
+Cc: cjb@laptop.org, devicetree-discuss@lists.ozlabs.org, linux-mmc@vger.kernel.org, Rob Herring <rob.herring@calxeda.com>, linux-omap@vger.kernel.org, Sebastian Andrzej Siewior <bigeasy@linutronix.de>, Balaji TK <balajitk@ti.com>
 
-Bablpi,
-
-On Wed, Apr 11, 2012 at 17:05:38, Balbi, Felipe wrote:
-> On Wed, Apr 11, 2012 at 04:42:52PM +0530, Shubhrajyoti D wrote:
-> > Use SET_RUNTIME_PM_OPS macro to set runtime functions.
-> > 
-> > Signed-off-by: Shubhrajyoti D <shubhrajyoti@ti.com>
-> > ---
-> >  drivers/i2c/busses/i2c-omap.c |   11 ++++-------
-> >  1 files changed, 4 insertions(+), 7 deletions(-)
-> > 
-> > diff --git a/drivers/i2c/busses/i2c-omap.c b/drivers/i2c/busses/i2c-omap.c
-> > index dd65416..28de1d2 100644
-> > --- a/drivers/i2c/busses/i2c-omap.c
-> > +++ b/drivers/i2c/busses/i2c-omap.c
-> > @@ -1217,15 +1217,12 @@ static int omap_i2c_runtime_resume(struct device *dev)
-> >  
-> >  	return 0;
-> >  }
-> > +#endif
-> >  
-> >  static struct dev_pm_ops omap_i2c_pm_ops = {
-> > -	.runtime_suspend = omap_i2c_runtime_suspend,
-> > -	.runtime_resume = omap_i2c_runtime_resume,
-> > +	SET_RUNTIME_PM_OPS(omap_i2c_runtime_suspend,
-> > +			   omap_i2c_runtime_resume, NULL)
-> >  };
-> > -#define OMAP_I2C_PM_OPS (&omap_i2c_pm_ops)
-> > -#else
-> > -#define OMAP_I2C_PM_OPS NULL
-> > -#endif
+On 04/11/2012 05:03 AM, Rajendra Nayak wrote:
+> of_have_populated_dt() is not expected to be used in drivers but
+> instead only in early platform init code.
+> Drivers on the other hand should rely on dev->of_node or of_match_device().
+> Besides usage of of_have_populated_dt() also throws up build error as below
+> which was reported by Balaji TK, when omap_hsmmc is built as a module.
 > 
-> I think you should keep this define, otherwise the pm pointer will
-> always be valid.
-
-No. using SET_RUNTIME_PM_OPS will make it NULL when !CONFIG_PM_RUNTIME
-Kindly correct me if I am wrong.
-
+> ERROR: "allnodes" [drivers/mmc/host/omap_hsmmc.ko] undefined!
+> make[1]: *** [__modpost] Error 1
+> make: *** [modules] Error 2
 > 
-> -- 
-> balbi
+> So get rid of all of_have_populated_dt() usage in omap_hsmmc driver and
+> instead use dev->of_node to make the same dicisions as earlier.
 > 
+> Signed-off-by: Rajendra Nayak <rnayak@ti.com>
+> Reported-by: Benoit Cousson <b-cousson@ti.com>
+> Cc: Balaji TK <balajitk@ti.com>
+> Cc: Rob Herring <rob.herring@calxeda.com>
 
+Ack
 
-Regards, 
-Gururaja
+Rob
+
+> Cc: Sebastian Andrzej Siewior <bigeasy@linutronix.de>
+> ---
+>  drivers/mmc/host/omap_hsmmc.c |    4 ++--
+>  1 files changed, 2 insertions(+), 2 deletions(-)
+> 
+> diff --git a/drivers/mmc/host/omap_hsmmc.c b/drivers/mmc/host/omap_hsmmc.c
+> index ecc9521..4254b6f 100644
+> --- a/drivers/mmc/host/omap_hsmmc.c
+> +++ b/drivers/mmc/host/omap_hsmmc.c
+> @@ -252,7 +252,7 @@ static int omap_hsmmc_set_power(struct device *dev, int slot, int power_on,
+>  	 * the pbias cell programming support is still missing when
+>  	 * booting with Device tree
+>  	 */
+> -	if (of_have_populated_dt() && !vdd)
+> +	if (dev->of_node && !vdd)
+>  		return 0;
+>  
+>  	if (mmc_slot(host).before_set_reg)
+> @@ -1564,7 +1564,7 @@ static void omap_hsmmc_set_ios(struct mmc_host *mmc, struct mmc_ios *ios)
+>  			 * can't be allowed when booting with device
+>  			 * tree.
+>  			 */
+> -			(!of_have_populated_dt())) {
+> +			!host->dev->of_node) {
+>  				/*
+>  				 * The mmc_select_voltage fn of the core does
+>  				 * not seem to set the power_mode to
+
