@@ -1,76 +1,102 @@
-From: Shubhrajyoti D <shubhrajyoti@ti.com>
-Subject: [PATCHv7 08/18] I2C: OMAP: Fix the error handling
-Date: Wed, 11 Apr 2012 16:22:19 +0530
-Message-ID: <1334141549-8288-9-git-send-email-shubhrajyoti@ti.com>
+From: Shubhrajyoti D <shubhrajyoti-l0cyMroinI0@public.gmane.org>
+Subject: [PATCHv7 11/18] I2C: OMAP: use devm_* functions
+Date: Wed, 11 Apr 2012 16:22:22 +0530
+Message-ID: <1334141549-8288-12-git-send-email-shubhrajyoti@ti.com>
 References: <1334141549-8288-1-git-send-email-shubhrajyoti@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-In-Reply-To: <1334141549-8288-1-git-send-email-shubhrajyoti@ti.com>
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: linux-arm-kernel-bounces@lists.infradead.org
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: linux-omap@vger.kernel.org
-Cc: tony@atomide.com, w.sang@pengutronix.de, linux-i2c@vger.kernel.org, ben-linux@fluff.org, Shubhrajyoti D <shubhrajyoti@ti.com>, linux-arm-kernel@lists.infradead.org
+Content-Type: text/plain
+Return-path: <linux-i2c-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <1334141549-8288-1-git-send-email-shubhrajyoti-l0cyMroinI0@public.gmane.org>
+Sender: linux-i2c-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Cc: linux-i2c-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, ben-linux-elnMNo+KYs3YtjvyW6yDsg@public.gmane.org, tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org, w.sang-bIcnvbaLZ9MEGnE8C9+IrQ@public.gmane.org, Shubhrajyoti D <shubhrajyoti-l0cyMroinI0@public.gmane.org>
 List-Id: linux-omap@vger.kernel.org
 
-Currently in probe
-      pm_runtime_put(dev->dev);
+The various devm_ functions allocate memory that is released when a driver
+detaches. This patch uses devm_kzalloc, devm_request_mem_region and
+devm_ioremap for data that is allocated in the probe function of a platform
+device and is only freed in the remove function.
 
-...
-        /* i2c device drivers may be active on return from add_adapter() */
-        adap->nr = pdev->id;
-        r = i2c_add_numbered_adapter(adap);
-        if (r) {
-                dev_err(dev->dev, "failure adding adapter\n");
-                goto err_free_irq;
-        }
-...
-
-        return 0;
-
-err_free_irq:
-        free_irq(dev->irq, dev);
-err_unuse_clocks:
-        omap_i2c_write_reg(dev, OMAP_I2C_CON_REG, 0);
-        pm_runtime_put(dev->dev);
-
-This may access the i2c registers without the clocks.
-Attempting to fix the same by moving the pm_rintime_put after the error check.
-
-Signed-off-by: Shubhrajyoti D <shubhrajyoti@ti.com>
+Signed-off-by: Shubhrajyoti D <shubhrajyoti-l0cyMroinI0@public.gmane.org>
 ---
- drivers/i2c/busses/i2c-omap.c |    4 ++--
- 1 files changed, 2 insertions(+), 2 deletions(-)
+ drivers/i2c/busses/i2c-omap.c |   29 +++++++++--------------------
+ 1 files changed, 9 insertions(+), 20 deletions(-)
 
 diff --git a/drivers/i2c/busses/i2c-omap.c b/drivers/i2c/busses/i2c-omap.c
-index 2096726..a461097 100644
+index 121c52e..86be475 100644
 --- a/drivers/i2c/busses/i2c-omap.c
 +++ b/drivers/i2c/busses/i2c-omap.c
-@@ -1095,8 +1095,6 @@ omap_i2c_probe(struct platform_device *pdev)
- 	dev_info(dev->dev, "bus %d rev%d.%d.%d at %d kHz\n", pdev->id,
- 		 dev->dtrev, dev->rev >> 4, dev->rev & 0xf, dev->speed);
+@@ -995,17 +995,17 @@ omap_i2c_probe(struct platform_device *pdev)
+ 		return -ENODEV;
+ 	}
  
--	pm_runtime_put(dev->dev);
--
- 	adap = &dev->adapter;
- 	i2c_set_adapdata(adap, dev);
- 	adap->owner = THIS_MODULE;
-@@ -1116,6 +1114,8 @@ omap_i2c_probe(struct platform_device *pdev)
+-	ioarea = request_mem_region(mem->start, resource_size(mem),
+-			pdev->name);
++	ioarea = devm_request_mem_region(&pdev->dev, mem->start,
++			resource_size(mem), pdev->name);
+ 	if (!ioarea) {
+ 		dev_err(&pdev->dev, "I2C region already claimed\n");
+ 		return -EBUSY;
+ 	}
  
- 	of_i2c_register_devices(adap);
+-	dev = kzalloc(sizeof(struct omap_i2c_dev), GFP_KERNEL);
++	dev = devm_kzalloc(&pdev->dev, sizeof(struct omap_i2c_dev), GFP_KERNEL);
+ 	if (!dev) {
+-		r = -ENOMEM;
+-		goto err_release_region;
++		dev_err(&pdev->dev, "Menory allocation failed\n");
++		return -ENOMEM;
+ 	}
  
-+	pm_runtime_put(dev->dev);
+ 	match = of_match_device(of_match_ptr(omap_i2c_of_match), &pdev->dev);
+@@ -1029,11 +1029,10 @@ omap_i2c_probe(struct platform_device *pdev)
+ 
+ 	dev->dev = &pdev->dev;
+ 	dev->irq = irq->start;
+-	dev->base = ioremap(mem->start, resource_size(mem));
+-	if (!dev->base) {
+-		r = -ENOMEM;
+-		goto err_free_mem;
+-	}
++	dev->base = devm_ioremap(&pdev->dev, mem->start, resource_size(mem));
++	if (!dev->base)
++		return -ENOMEM;
 +
- 	return 0;
  
- err_free_irq:
+ 	platform_set_drvdata(pdev, dev);
+ 
+@@ -1121,13 +1120,8 @@ err_free_irq:
+ err_unuse_clocks:
+ 	omap_i2c_write_reg(dev, OMAP_I2C_CON_REG, 0);
+ 	pm_runtime_put(dev->dev);
+-	iounmap(dev->base);
+ 	pm_runtime_disable(&pdev->dev);
+-err_free_mem:
+ 	platform_set_drvdata(pdev, NULL);
+-	kfree(dev);
+-err_release_region:
+-	release_mem_region(mem->start, resource_size(mem));
+ 
+ 	return r;
+ }
+@@ -1135,7 +1129,6 @@ err_release_region:
+ static int __devexit omap_i2c_remove(struct platform_device *pdev)
+ {
+ 	struct omap_i2c_dev	*dev = platform_get_drvdata(pdev);
+-	struct resource		*mem;
+ 
+ 	platform_set_drvdata(pdev, NULL);
+ 
+@@ -1143,10 +1136,6 @@ static int __devexit omap_i2c_remove(struct platform_device *pdev)
+ 	i2c_del_adapter(&dev->adapter);
+ 	omap_i2c_write_reg(dev, OMAP_I2C_CON_REG, 0);
+ 	pm_runtime_disable(&pdev->dev);
+-	iounmap(dev->base);
+-	kfree(dev);
+-	mem = platform_get_resource(pdev, IORESOURCE_MEM, 0);
+-	release_mem_region(mem->start, resource_size(mem));
+ 	return 0;
+ }
+ 
 -- 
 1.7.4.1
