@@ -1,138 +1,163 @@
-From: Russ Dill <Russ.Dill@ti.com>
-Subject: Re: [PATCH 1/2] OMAP2+: UART: Fix incorrect population of default
- uart pads
-Date: Wed, 11 Apr 2012 13:14:36 -0700
-Message-ID: <CA+Bv8XbtC4O4zjA=Ct0EwsNvLc6MyO3-NfSs+EcwvvBrf=YP=w@mail.gmail.com>
-References: <1334065246-21294-1-git-send-email-govindraj.raja@ti.com>
-	<1334065246-21294-2-git-send-email-govindraj.raja@ti.com>
+From: Paul Walmsley <paul@pwsan.com>
+Subject: Re: [PATCH v2 5/8] ARM: OMAP2+: hwmod: ensure that SYSCONFIG bits
+ are reprogrammed after a reset
+Date: Wed, 11 Apr 2012 14:15:43 -0600 (MDT)
+Message-ID: <alpine.DEB.2.00.1204111401480.29473@utopia.booyaka.com>
+References: <20120228053524.16278.59430.stgit@dusk> <20120228053657.16278.76132.stgit@dusk> <CAB-zwWhAa3PprwDLzWLkBFUHPeJO3HN3M9mAZF=ohGTvP43jYA@mail.gmail.com> <alpine.DEB.2.00.1203150024260.7269@utopia.booyaka.com>
+ <CAB-zwWh3tcz5xUkzthH_AAsmeXfMieUW-SCQnAaXyfSg8khqvg@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: base64
+Content-Type: MULTIPART/MIXED; BOUNDARY="155748971-5498708-1334175343=:29473"
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-lpp01m010-f46.google.com ([209.85.215.46]:37025 "EHLO
-	mail-lpp01m010-f46.google.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1756977Ab2DKUOi (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>);
-	Wed, 11 Apr 2012 16:14:38 -0400
-Received: by lahj13 with SMTP id j13so1014868lah.19
-        for <linux-omap@vger.kernel.org>; Wed, 11 Apr 2012 13:14:36 -0700 (PDT)
-In-Reply-To: <1334065246-21294-2-git-send-email-govindraj.raja@ti.com>
+Received: from utopia.booyaka.com ([72.9.107.138]:53784 "EHLO
+	utopia.booyaka.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754394Ab2DKUPo (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 11 Apr 2012 16:15:44 -0400
+In-Reply-To: <CAB-zwWh3tcz5xUkzthH_AAsmeXfMieUW-SCQnAaXyfSg8khqvg@mail.gmail.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "Govindraj.R" <govindraj.raja@ti.com>
-Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Felipe Balbi <balbi@ti.com>, Kevin Hilman <khilman@ti.com>, Tony Lindgren <tony@atomide.com>
+To: "Ramirez Luna, Omar" <omar.ramirez@ti.com>
+Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, =?ISO-8859-15?Q?Beno=EEt_Cousson?= <b-cousson@ti.com>
 
-T24gVHVlLCBBcHIgMTAsIDIwMTIgYXQgNjo0MCBBTSwgR292aW5kcmFqLlIgPGdvdmluZHJhai5y
-YWphQHRpLmNvbT4gd3JvdGU6Cj4gRnJvbTogIkdvdmluZHJhai5SIiA8Z292aW5kcmFqLnJhamFA
-dGkuY29tPgo+Cj4gVGhlIGZvbGxvd2luZyBjb21taXQ6Cj4gKDc0OTZiYTMgwqBBUk06IE9NQVAy
-KzogVUFSVDogQWRkIGRlZmF1bHQgbXV4IGZvciBhbGwgdWFydHMpCj4gYWRkZWQgZGVmYXVsdCBw
-YWRzIGZvciBhbGwgdWFydHMuIEJ1dCBub3QgYWxsIGJvYXJkcyB0ZW5kIHRvCj4gdXNlIGFsbCB1
-YXJ0cyBhbmQgbW9zdCBvZiB1bnVzZWQgdWFydCBwaW5zIGFyZSBtdXhlZCBmb3IKPiBvdGhlciBw
-dXJwb3NlLiBUaGlzIGNvbW1pdCBicmVha3MgdGhlIG1vZHVsZXMgd2hpY2ggd2hlcmUgdHJ5aW5n
-Cj4gdG8gdXNlIHVudXNlZCB1YXJ0IHBpbnMgb24gdGhlaXIgYm9hcmRzLgo+Cj4gU28gcmVtb3Zl
-IHRoZSBkZWZhdWx0IHBhZHMgYWRkaW5nLgo+Cj4gQ2M6IEZlbGlwZSBCYWxiaSA8YmFsYmlAdGku
-Y29tPgo+IENjOiBLZXZpbiBIaWxtYW4gPGtoaWxtYW5AdGkuY29tPgo+IENjOiBSdXNzIERpbGwg
-PHJ1c3MuZGlsbEBnbWFpbC5jb20+Cj4gUmVwb3J0ZWQtYnk6IFRvbnkgTGluZGdyZW4gPHRvbnlA
-YXRvbWlkZS5jb20+Cj4gU2lnbmVkLW9mZi1ieTogR292aW5kcmFqLlIgPGdvdmluZHJhai5yYWph
-QHRpLmNvbT4KClNpZ25lZC1vZmYtYnk6IFJ1c3MuRGlsbEB0aS5jb20KCj4gLS0tCj4gwqBhcmNo
-L2FybS9tYWNoLW9tYXAyL3NlcmlhbC5jIHwgwqAxMTYgLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0t
-LS0tLS0tLS0tLS0tLS0tLS0tCj4gwqAxIGZpbGVzIGNoYW5nZWQsIDAgaW5zZXJ0aW9ucygrKSwg
-MTE2IGRlbGV0aW9ucygtKQo+Cj4gZGlmZiAtLWdpdCBhL2FyY2gvYXJtL21hY2gtb21hcDIvc2Vy
-aWFsLmMgYi9hcmNoL2FybS9tYWNoLW9tYXAyL3NlcmlhbC5jCj4gaW5kZXggYzk1MDNhNy4uMTU1
-NDIzMyAxMDA2NDQKPiAtLS0gYS9hcmNoL2FybS9tYWNoLW9tYXAyL3NlcmlhbC5jCj4gKysrIGIv
-YXJjaC9hcm0vbWFjaC1vbWFwMi9zZXJpYWwuYwo+IEBAIC0xMjAsMTI0ICsxMjAsOCBAQCBzdGF0
-aWMgdm9pZCBvbWFwX3VhcnRfc2V0X3NtYXJ0aWRsZShzdHJ1Y3QgcGxhdGZvcm1fZGV2aWNlICpw
-ZGV2KSB7fQo+IMKgI2VuZGlmIC8qIENPTkZJR19QTSAqLwo+Cj4gwqAjaWZkZWYgQ09ORklHX09N
-QVBfTVVYCj4gLXN0YXRpYyBzdHJ1Y3Qgb21hcF9kZXZpY2VfcGFkIGRlZmF1bHRfdWFydDFfcGFk
-c1tdIF9faW5pdGRhdGEgPSB7Cj4gLSDCoCDCoCDCoCB7Cj4gLSDCoCDCoCDCoCDCoCDCoCDCoCDC
-oCAubmFtZSDCoCA9ICJ1YXJ0MV9jdHMudWFydDFfY3RzIiwKPiAtIMKgIMKgIMKgIMKgIMKgIMKg
-IMKgIC5lbmFibGUgPSBPTUFQX1BJTl9JTlBVVF9QVUxMVVAgfCBPTUFQX01VWF9NT0RFMCwKPiAt
-IMKgIMKgIMKgIH0sCj4gLSDCoCDCoCDCoCB7Cj4gLSDCoCDCoCDCoCDCoCDCoCDCoCDCoCAubmFt
-ZSDCoCA9ICJ1YXJ0MV9ydHMudWFydDFfcnRzIiwKPiAtIMKgIMKgIMKgIMKgIMKgIMKgIMKgIC5l
-bmFibGUgPSBPTUFQX1BJTl9PVVRQVVQgfCBPTUFQX01VWF9NT0RFMCwKPiAtIMKgIMKgIMKgIH0s
-Cj4gLSDCoCDCoCDCoCB7Cj4gLSDCoCDCoCDCoCDCoCDCoCDCoCDCoCAubmFtZSDCoCA9ICJ1YXJ0
-MV90eC51YXJ0MV90eCIsCj4gLSDCoCDCoCDCoCDCoCDCoCDCoCDCoCAuZW5hYmxlID0gT01BUF9Q
-SU5fT1VUUFVUIHwgT01BUF9NVVhfTU9ERTAsCj4gLSDCoCDCoCDCoCB9LAo+IC0gwqAgwqAgwqAg
-ewo+IC0gwqAgwqAgwqAgwqAgwqAgwqAgwqAgLm5hbWUgwqAgPSAidWFydDFfcngudWFydDFfcngi
-LAo+IC0gwqAgwqAgwqAgwqAgwqAgwqAgwqAgLmZsYWdzIMKgPSBPTUFQX0RFVklDRV9QQURfUkVN
-VVggfCBPTUFQX0RFVklDRV9QQURfV0FLRVVQLAo+IC0gwqAgwqAgwqAgwqAgwqAgwqAgwqAgLmVu
-YWJsZSA9IE9NQVBfUElOX0lOUFVUX1BVTExVUCB8IE9NQVBfTVVYX01PREUwLAo+IC0gwqAgwqAg
-wqAgwqAgwqAgwqAgwqAgLmlkbGUgwqAgPSBPTUFQX1BJTl9JTlBVVF9QVUxMVVAgfCBPTUFQX01V
-WF9NT0RFMCwKPiAtIMKgIMKgIMKgIH0sCj4gLX07Cj4gLQo+IC1zdGF0aWMgc3RydWN0IG9tYXBf
-ZGV2aWNlX3BhZCBkZWZhdWx0X3VhcnQyX3BhZHNbXSBfX2luaXRkYXRhID0gewo+IC0gwqAgwqAg
-wqAgewo+IC0gwqAgwqAgwqAgwqAgwqAgwqAgwqAgLm5hbWUgwqAgPSAidWFydDJfY3RzLnVhcnQy
-X2N0cyIsCj4gLSDCoCDCoCDCoCDCoCDCoCDCoCDCoCAuZW5hYmxlID0gT01BUF9QSU5fSU5QVVRf
-UFVMTFVQIHwgT01BUF9NVVhfTU9ERTAsCj4gLSDCoCDCoCDCoCB9LAo+IC0gwqAgwqAgwqAgewo+
-IC0gwqAgwqAgwqAgwqAgwqAgwqAgwqAgLm5hbWUgwqAgPSAidWFydDJfcnRzLnVhcnQyX3J0cyIs
-Cj4gLSDCoCDCoCDCoCDCoCDCoCDCoCDCoCAuZW5hYmxlID0gT01BUF9QSU5fT1VUUFVUIHwgT01B
-UF9NVVhfTU9ERTAsCj4gLSDCoCDCoCDCoCB9LAo+IC0gwqAgwqAgwqAgewo+IC0gwqAgwqAgwqAg
-wqAgwqAgwqAgwqAgLm5hbWUgwqAgPSAidWFydDJfdHgudWFydDJfdHgiLAo+IC0gwqAgwqAgwqAg
-wqAgwqAgwqAgwqAgLmVuYWJsZSA9IE9NQVBfUElOX09VVFBVVCB8IE9NQVBfTVVYX01PREUwLAo+
-IC0gwqAgwqAgwqAgfSwKPiAtIMKgIMKgIMKgIHsKPiAtIMKgIMKgIMKgIMKgIMKgIMKgIMKgIC5u
-YW1lIMKgID0gInVhcnQyX3J4LnVhcnQyX3J4IiwKPiAtIMKgIMKgIMKgIMKgIMKgIMKgIMKgIC5m
-bGFncyDCoD0gT01BUF9ERVZJQ0VfUEFEX1JFTVVYIHwgT01BUF9ERVZJQ0VfUEFEX1dBS0VVUCwK
-PiAtIMKgIMKgIMKgIMKgIMKgIMKgIMKgIC5lbmFibGUgPSBPTUFQX1BJTl9JTlBVVF9QVUxMVVAg
-fCBPTUFQX01VWF9NT0RFMCwKPiAtIMKgIMKgIMKgIMKgIMKgIMKgIMKgIC5pZGxlIMKgID0gT01B
-UF9QSU5fSU5QVVRfUFVMTFVQIHwgT01BUF9NVVhfTU9ERTAsCj4gLSDCoCDCoCDCoCB9LAo+IC19
-Owo+IC0KPiAtc3RhdGljIHN0cnVjdCBvbWFwX2RldmljZV9wYWQgZGVmYXVsdF91YXJ0M19wYWRz
-W10gX19pbml0ZGF0YSA9IHsKPiAtIMKgIMKgIMKgIHsKPiAtIMKgIMKgIMKgIMKgIMKgIMKgIMKg
-IC5uYW1lIMKgID0gInVhcnQzX2N0c19yY3R4LnVhcnQzX2N0c19yY3R4IiwKPiAtIMKgIMKgIMKg
-IMKgIMKgIMKgIMKgIC5lbmFibGUgPSBPTUFQX1BJTl9JTlBVVF9QVUxMVVAgfCBPTUFQX01VWF9N
-T0RFMCwKPiAtIMKgIMKgIMKgIH0sCj4gLSDCoCDCoCDCoCB7Cj4gLSDCoCDCoCDCoCDCoCDCoCDC
-oCDCoCAubmFtZSDCoCA9ICJ1YXJ0M19ydHNfc2QudWFydDNfcnRzX3NkIiwKPiAtIMKgIMKgIMKg
-IMKgIMKgIMKgIMKgIC5lbmFibGUgPSBPTUFQX1BJTl9PVVRQVVQgfCBPTUFQX01VWF9NT0RFMCwK
-PiAtIMKgIMKgIMKgIH0sCj4gLSDCoCDCoCDCoCB7Cj4gLSDCoCDCoCDCoCDCoCDCoCDCoCDCoCAu
-bmFtZSDCoCA9ICJ1YXJ0M190eF9pcnR4LnVhcnQzX3R4X2lydHgiLAo+IC0gwqAgwqAgwqAgwqAg
-wqAgwqAgwqAgLmVuYWJsZSA9IE9NQVBfUElOX09VVFBVVCB8IE9NQVBfTVVYX01PREUwLAo+IC0g
-wqAgwqAgwqAgfSwKPiAtIMKgIMKgIMKgIHsKPiAtIMKgIMKgIMKgIMKgIMKgIMKgIMKgIC5uYW1l
-IMKgID0gInVhcnQzX3J4X2lycngudWFydDNfcnhfaXJyeCIsCj4gLSDCoCDCoCDCoCDCoCDCoCDC
-oCDCoCAuZmxhZ3MgwqA9IE9NQVBfREVWSUNFX1BBRF9SRU1VWCB8IE9NQVBfREVWSUNFX1BBRF9X
-QUtFVVAsCj4gLSDCoCDCoCDCoCDCoCDCoCDCoCDCoCAuZW5hYmxlID0gT01BUF9QSU5fSU5QVVQg
-fCBPTUFQX01VWF9NT0RFMCwKPiAtIMKgIMKgIMKgIMKgIMKgIMKgIMKgIC5pZGxlIMKgID0gT01B
-UF9QSU5fSU5QVVQgfCBPTUFQX01VWF9NT0RFMCwKPiAtIMKgIMKgIMKgIH0sCj4gLX07Cj4gLQo+
-IC1zdGF0aWMgc3RydWN0IG9tYXBfZGV2aWNlX3BhZCBkZWZhdWx0X29tYXAzNnh4X3VhcnQ0X3Bh
-ZHNbXSBfX2luaXRkYXRhID0gewo+IC0gwqAgwqAgwqAgewo+IC0gwqAgwqAgwqAgwqAgwqAgwqAg
-wqAgLm5hbWUgwqAgPSAiZ3BtY193YWl0Mi51YXJ0NF90eCIsCj4gLSDCoCDCoCDCoCDCoCDCoCDC
-oCDCoCAuZW5hYmxlID0gT01BUF9QSU5fT1VUUFVUIHwgT01BUF9NVVhfTU9ERTAsCj4gLSDCoCDC
-oCDCoCB9LAo+IC0gwqAgwqAgwqAgewo+IC0gwqAgwqAgwqAgwqAgwqAgwqAgwqAgLm5hbWUgwqAg
-PSAiZ3BtY193YWl0My51YXJ0NF9yeCIsCj4gLSDCoCDCoCDCoCDCoCDCoCDCoCDCoCAuZmxhZ3Mg
-wqA9IE9NQVBfREVWSUNFX1BBRF9SRU1VWCB8IE9NQVBfREVWSUNFX1BBRF9XQUtFVVAsCj4gLSDC
-oCDCoCDCoCDCoCDCoCDCoCDCoCAuZW5hYmxlID0gT01BUF9QSU5fSU5QVVQgfCBPTUFQX01VWF9N
-T0RFMiwKPiAtIMKgIMKgIMKgIMKgIMKgIMKgIMKgIC5pZGxlIMKgID0gT01BUF9QSU5fSU5QVVQg
-fCBPTUFQX01VWF9NT0RFMiwKPiAtIMKgIMKgIMKgIH0sCj4gLX07Cj4gLQo+IC1zdGF0aWMgc3Ry
-dWN0IG9tYXBfZGV2aWNlX3BhZCBkZWZhdWx0X29tYXA0X3VhcnQ0X3BhZHNbXSBfX2luaXRkYXRh
-ID0gewo+IC0gwqAgwqAgwqAgewo+IC0gwqAgwqAgwqAgwqAgwqAgwqAgwqAgLm5hbWUgwqAgPSAi
-dWFydDRfdHgudWFydDRfdHgiLAo+IC0gwqAgwqAgwqAgwqAgwqAgwqAgwqAgLmVuYWJsZSA9IE9N
-QVBfUElOX09VVFBVVCB8IE9NQVBfTVVYX01PREUwLAo+IC0gwqAgwqAgwqAgfSwKPiAtIMKgIMKg
-IMKgIHsKPiAtIMKgIMKgIMKgIMKgIMKgIMKgIMKgIC5uYW1lIMKgID0gInVhcnQ0X3J4LnVhcnQ0
-X3J4IiwKPiAtIMKgIMKgIMKgIMKgIMKgIMKgIMKgIC5mbGFncyDCoD0gT01BUF9ERVZJQ0VfUEFE
-X1JFTVVYIHwgT01BUF9ERVZJQ0VfUEFEX1dBS0VVUCwKPiAtIMKgIMKgIMKgIMKgIMKgIMKgIMKg
-IC5lbmFibGUgPSBPTUFQX1BJTl9JTlBVVCB8IE9NQVBfTVVYX01PREUwLAo+IC0gwqAgwqAgwqAg
-wqAgwqAgwqAgwqAgLmlkbGUgwqAgPSBPTUFQX1BJTl9JTlBVVCB8IE9NQVBfTVVYX01PREUwLAo+
-IC0gwqAgwqAgwqAgfSwKPiAtfTsKPiAtCj4gwqBzdGF0aWMgdm9pZCBvbWFwX3NlcmlhbF9maWxs
-X2RlZmF1bHRfcGFkcyhzdHJ1Y3Qgb21hcF9ib2FyZF9kYXRhICpiZGF0YSkKPiDCoHsKPiAtIMKg
-IMKgIMKgIHN3aXRjaCAoYmRhdGEtPmlkKSB7Cj4gLSDCoCDCoCDCoCBjYXNlIDA6Cj4gLSDCoCDC
-oCDCoCDCoCDCoCDCoCDCoCBiZGF0YS0+cGFkcyA9IGRlZmF1bHRfdWFydDFfcGFkczsKPiAtIMKg
-IMKgIMKgIMKgIMKgIMKgIMKgIGJkYXRhLT5wYWRzX2NudCA9IEFSUkFZX1NJWkUoZGVmYXVsdF91
-YXJ0MV9wYWRzKTsKPiAtIMKgIMKgIMKgIMKgIMKgIMKgIMKgIGJyZWFrOwo+IC0gwqAgwqAgwqAg
-Y2FzZSAxOgo+IC0gwqAgwqAgwqAgwqAgwqAgwqAgwqAgYmRhdGEtPnBhZHMgPSBkZWZhdWx0X3Vh
-cnQyX3BhZHM7Cj4gLSDCoCDCoCDCoCDCoCDCoCDCoCDCoCBiZGF0YS0+cGFkc19jbnQgPSBBUlJB
-WV9TSVpFKGRlZmF1bHRfdWFydDJfcGFkcyk7Cj4gLSDCoCDCoCDCoCDCoCDCoCDCoCDCoCBicmVh
-azsKPiAtIMKgIMKgIMKgIGNhc2UgMjoKPiAtIMKgIMKgIMKgIMKgIMKgIMKgIMKgIGJkYXRhLT5w
-YWRzID0gZGVmYXVsdF91YXJ0M19wYWRzOwo+IC0gwqAgwqAgwqAgwqAgwqAgwqAgwqAgYmRhdGEt
-PnBhZHNfY250ID0gQVJSQVlfU0laRShkZWZhdWx0X3VhcnQzX3BhZHMpOwo+IC0gwqAgwqAgwqAg
-wqAgwqAgwqAgwqAgYnJlYWs7Cj4gLSDCoCDCoCDCoCBjYXNlIDM6Cj4gLSDCoCDCoCDCoCDCoCDC
-oCDCoCDCoCBpZiAoY3B1X2lzX29tYXA0NHh4KCkpIHsKPiAtIMKgIMKgIMKgIMKgIMKgIMKgIMKg
-IMKgIMKgIMKgIMKgIGJkYXRhLT5wYWRzID0gZGVmYXVsdF9vbWFwNF91YXJ0NF9wYWRzOwo+IC0g
-wqAgwqAgwqAgwqAgwqAgwqAgwqAgwqAgwqAgwqAgwqAgYmRhdGEtPnBhZHNfY250ID0KPiAtIMKg
-IMKgIMKgIMKgIMKgIMKgIMKgIMKgIMKgIMKgIMKgIMKgIMKgIMKgIMKgIEFSUkFZX1NJWkUoZGVm
-YXVsdF9vbWFwNF91YXJ0NF9wYWRzKTsKPiAtIMKgIMKgIMKgIMKgIMKgIMKgIMKgIH0gZWxzZSBp
-ZiAoY3B1X2lzX29tYXAzNjMwKCkpIHsKPiAtIMKgIMKgIMKgIMKgIMKgIMKgIMKgIMKgIMKgIMKg
-IMKgIGJkYXRhLT5wYWRzID0gZGVmYXVsdF9vbWFwMzZ4eF91YXJ0NF9wYWRzOwo+IC0gwqAgwqAg
-wqAgwqAgwqAgwqAgwqAgwqAgwqAgwqAgwqAgYmRhdGEtPnBhZHNfY250ID0KPiAtIMKgIMKgIMKg
-IMKgIMKgIMKgIMKgIMKgIMKgIMKgIMKgIMKgIMKgIMKgIMKgIEFSUkFZX1NJWkUoZGVmYXVsdF9v
-bWFwMzZ4eF91YXJ0NF9wYWRzKTsKPiAtIMKgIMKgIMKgIMKgIMKgIMKgIMKgIH0KPiAtIMKgIMKg
-IMKgIMKgIMKgIMKgIMKgIGJyZWFrOwo+IC0gwqAgwqAgwqAgZGVmYXVsdDoKPiAtIMKgIMKgIMKg
-IMKgIMKgIMKgIMKgIGJyZWFrOwo+IC0gwqAgwqAgwqAgfQo+IMKgfQo+IMKgI2Vsc2UKPiDCoHN0
-YXRpYyB2b2lkIG9tYXBfc2VyaWFsX2ZpbGxfZGVmYXVsdF9wYWRzKHN0cnVjdCBvbWFwX2JvYXJk
-X2RhdGEgKmJkYXRhKSB7fQo+IC0tCj4gMS43LjkKPgo=
+  This message is in MIME format.  The first part should be readable text,
+  while the remaining parts are likely unreadable without MIME-aware tools.
+
+--155748971-5498708-1334175343=:29473
+Content-Type: TEXT/PLAIN; charset=ISO-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+
+On Thu, 15 Mar 2012, Ramirez Luna, Omar wrote:
+
+> On Thu, Mar 15, 2012 at 1:25 AM, Paul Walmsley <paul@pwsan.com> wrote:
+> > On Wed, 14 Mar 2012, Ramirez Luna, Omar wrote:
+> >
+> >> If we reached here the reset lines will be asserted, and then the code
+> >> below touches sysc registers on a module under reset.
+> >
+> > Do you know of any case where this would be a problem? =A0Seems like it
+> > would only affect IP blocks that have both hard reset lines and SYSCONF=
+IG
+> > registers, and as far as I know, we don't have any of those defined?
+>=20
+> MMU (not yet mainlined) has both, a reset line and a sysconfig.
+
+Thanks, I've updated this patch with this fix, included below; rebased=20
+the series on v3.4-rc2 (the branch is now "hwmod_code_cleanup_3.5"); and=20
+will ask Tony to re-pull it.
+
+> I have been holding the hwmod for some time, but now that
+> rpmsg/remoteproc is going to mainline it could make use of it along
+> with omap3isp, however now I need to define functions to handle the
+> reset lines (although I was fine with hwmod handling it).
+
+OK.
+
+> AFAIKnew, hwmod handling the reset line was fine (IMHO), the only 2 thing=
+s were:
+> - For the drivers to somehow make use of shutdown/enable if they
+> needed they hwmod under reset and out.
+> - The annoying: hwmod XX failed to hardreset because of the wrong
+> reset sequence but causing no functional issues.
+
+Thanks for the feedback.  Apparently the OMAP4 DSP/ISS people had some=20
+issues with the old sequence, although I haven't heard anything from them=
+=20
+directly, so it's unclear what exactly is going on with their code.
+=20
+Anyway, please don't hesitate to let us know if you find any other issues=
+=20
+with the updated behavior.
+
+
+- Paul
+
+From: Paul Walmsley <paul@pwsan.com>
+Date: Mon, 27 Feb 2012 15:23:56 -0700
+Subject: [PATCH] ARM: OMAP2+: hwmod: update OCP_SYSCONFIG registers after a
+ custom reset
+
+Since OCP_SYSCONFIG bits are cleared during reset, they should be
+reprogrammed unless the IP block is being left in reset.  (The only IP
+blocks that are left in reset are IP blocks with hardreset lines and
+no custom reset function.)  If the IP block is left in reset, then it
+is inaccessible to the MPU, and an access to the OCP_SYSCONFIG
+register will cause an abort.
+
+This version incorporates comments from Omar Ramirez Luna
+<omar.ramirez@ti.com> to skip the OCP_SYSCONFIG access after asserting
+hardreset lines.  This allows the MMU (IOMMU) IP block, which has
+both hardreset lines and an OCP_SYSCONFIG register.
+
+Signed-off-by: Paul Walmsley <paul@pwsan.com>
+Cc: Beno=EEt Cousson <b-cousson@ti.com>
+Cc: Omar Ramirez Luna <omar.ramirez@ti.com>
+---
+ arch/arm/mach-omap2/omap_hwmod.c |   39 ++++++++++++++++++++++------------=
+----
+ 1 file changed, 23 insertions(+), 16 deletions(-)
+
+diff --git a/arch/arm/mach-omap2/omap_hwmod.c b/arch/arm/mach-omap2/omap_hw=
+mod.c
+index fed805c..451e865 100644
+--- a/arch/arm/mach-omap2/omap_hwmod.c
++++ b/arch/arm/mach-omap2/omap_hwmod.c
+@@ -1480,10 +1480,10 @@ dis_opt_clks:
+  * IVA) have idiosyncratic reset sequences.  So for these relatively
+  * rare cases, custom reset code can be supplied in the struct
+  * omap_hwmod_class .reset function pointer.  Passes along the return
+- * value from either _reset() or the custom reset function - these
+- * must return -EINVAL if the hwmod cannot be reset this way or if the
+- * hwmod is in the wrong state, -ETIMEDOUT if the module did not reset
+- * in time, or 0 upon success.
++ * value from either _ocp_softreset() or the custom reset function -
++ * these must return -EINVAL if the hwmod cannot be reset this way or
++ * if the hwmod is in the wrong state, -ETIMEDOUT if the module did
++ * not reset in time, or 0 upon success.
+  */
+ static int _reset(struct omap_hwmod *oh)
+ {
+@@ -1491,22 +1491,29 @@ static int _reset(struct omap_hwmod *oh)
+=20
+ =09pr_debug("omap_hwmod: %s: resetting\n", oh->name);
+=20
+-=09if (oh->class->reset)
+-=09=09return oh->class->reset(oh);
+-
+-=09if (!oh->rst_lines_cnt) {
+-=09=09r =3D _ocp_softreset(oh);
+-=09=09if (oh->class->sysc) {
+-=09=09=09_update_sysc_cache(oh);
+-=09=09=09_enable_sysc(oh);
++=09if (oh->class->reset) {
++=09=09r =3D oh->class->reset(oh);
++=09} else {
++=09=09if (oh->rst_lines_cnt > 0) {
++=09=09=09for (i =3D 0; i < oh->rst_lines_cnt; i++)
++=09=09=09=09_assert_hardreset(oh, oh->rst_lines[i].name);
++=09=09=09return 0;
++=09=09} else {
++=09=09=09r =3D _ocp_softreset(oh);
+ =09=09}
+-=09=09return r;
+ =09}
+=20
+-=09for (i =3D 0; i < oh->rst_lines_cnt; i++)
+-=09=09_assert_hardreset(oh, oh->rst_lines[i].name);
++=09/*
++=09 * OCP_SYSCONFIG bits need to be reprogrammed after a
++=09 * softreset.  The _enable() function should be split to avoid
++=09 * the rewrite of the OCP_SYSCONFIG register.
++=09 */
++=09if (oh->class->sysc) {
++=09=09_update_sysc_cache(oh);
++=09=09_enable_sysc(oh);
++=09}
+=20
+-=09return 0;
++=09return r;
+ }
+=20
+ /**
+--=20
+1.7.9.5
+
+--155748971-5498708-1334175343=:29473--
