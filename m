@@ -1,98 +1,64 @@
 From: "Mark A. Greer" <mgreer@animalcreek.com>
-Subject: Re: [PATCH 03/12] arm: omap3: Only sleep in cpuidle driver if I/O
- wake-ups work
-Date: Wed, 11 Apr 2012 16:08:35 -0700
-Message-ID: <20120411230835.GG31197@animalcreek.com>
+Subject: Re: [PATCH 05/12] arm: omap3: am35x: Add PWROFF feature
+Date: Wed, 11 Apr 2012 16:11:39 -0700
+Message-ID: <20120411231139.GH31197@animalcreek.com>
 References: <1334171147-7517-1-git-send-email-mgreer@animalcreek.com>
- <1334171147-7517-4-git-send-email-mgreer@animalcreek.com>
- <alpine.DEB.2.00.1204111532280.29473@utopia.booyaka.com>
- <20120411222313.GC31197@animalcreek.com>
- <alpine.DEB.2.00.1204111637490.29473@utopia.booyaka.com>
+ <1334171147-7517-6-git-send-email-mgreer@animalcreek.com>
+ <87iph5q43n.fsf@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail20.dotsterhost.com ([66.11.232.73]:41044 "EHLO
-	mail20.dotsterhost.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756515Ab2DKXh4 (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 11 Apr 2012 19:37:56 -0400
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
 Content-Disposition: inline
-In-Reply-To: <alpine.DEB.2.00.1204111637490.29473@utopia.booyaka.com>
-Sender: linux-omap-owner@vger.kernel.org
+In-Reply-To: <87iph5q43n.fsf@ti.com>
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
+List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
+List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
+Sender: linux-arm-kernel-bounces@lists.infradead.org
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
+To: Kevin Hilman <khilman@ti.com>
+Cc: paul@pwsan.com, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 List-Id: linux-omap@vger.kernel.org
-To: Paul Walmsley <paul@pwsan.com>
-Cc: govindraj.raja@ti.com, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, khilman@ti.com
 
-On Wed, Apr 11, 2012 at 04:47:31PM -0600, Paul Walmsley wrote:
-> cc Govindraj
+On Wed, Apr 11, 2012 at 03:46:20PM -0700, Kevin Hilman wrote:
+> Hi Mark,
 > 
-> On Wed, 11 Apr 2012, Mark A. Greer wrote:
+> "Mark A. Greer" <mgreer@animalcreek.com> writes:
 > 
-> > On Wed, Apr 11, 2012 at 03:37:47PM -0600, Paul Walmsley wrote:
+> > From: "Mark A. Greer" <mgreer@animalcreek.com>
 > >
-> > > I don't quite understand this patch.  Are you saying that AM3517/3505 
-> > > can't wake from WFI?  That would seem odd.
-> > 
-> > No, I'm saying that I/O doesn't seem to wake it up from the WFI.
-> > I've learned to not trust the am35x TRM much so I'm pretty much
-> > feeling my way along in the dark.
+> > Typical OMAP3 SoCs have four power domain states: ON,
+> > INACTIVE, RETENTION, and OFF.  The am35x family of SoCs
+> > has only two states: ON and INACTIVE.  To distinguish which
+> > set of states the current device has, add the 'OMAP3_HAS_PWROFF'
+> > feature.  When that feature/bit is set, the device supports the
+> > RETENTION and OFF states; otherwise, it doesn't.
+> >
+> > Signed-off-by: Mark A. Greer <mgreer@animalcreek.com>
 > 
-> Hehe, no worries, just curious.
+> Paul has mentioned this already, but the same applies here: We shouldn't
+> be using SoC-global feature flag for this.   We already have per-pwrdm
+> flags that indicate what states a given powerdomain suports (see .pwrsts
+> field.)
 > 
-> > I do know that without this patch, the system is extremely slow which I 
-> > believe is from it only returning from the WFI because of a timer 
-> > expiration or something like that.
-> 
-> How are you trying to wake it up -- from an incoming character via 
-> the UART?
-> 
-> Does the system pause in the middle of UART transmits, or does it get the 
-> transmit buffers out cleanly and just not respond promptly to incoming 
-> characters?
+> Wherever we have blind writes to next powerstates that assume support
+> for RET/OFF is present, those should probably use a helper function from
+> the powerdomain code that checks if that state is even supported.
 
-Both cpu_idle/pm_idle thread (arch/arm/kernel/process.c:cpu_idle()) and
-the cpu idle driver (arch/arm/mach-omap2/cpuidle34xx.c:omap3_enter_idle())
-behave the same without the 2 patches I posted.  During boot, things
-become extremely sluggish.  I took that to mean that the WFI wasn't being
-woken up unless a timer expired.  I also believed that not having I/O
-wake-ups would cause that so I made those patches.
+Okay, thanks Kevin.
 
-There don't appear to be any missing or additional characters from the UART.
-This is all during the boot-up so I'm not even trying to enter characters
-via the UART.  That's all I did for "testing", if you can call it that.
+> Jean's work on functional powerstates will probably help here if you
+> really need to support INACTIVE.  However, Paul may be right in that you
+> might just start with supporing ON only, and validate that module-level
+> wakups acutally work.
 
-For the emif4, etc. patches, I would do a suspend-to-RAM and hit a key
-on the keyboard to wake it up again.  There are no dropped or added
-characters in the [serial] console output.  It does complain that the
-expected state wasn't entered (INACTIVE) and by looking at
-/sys/kernel/debug/pm_debug/count, the CORE domain is the only one that
-didn't increment its "INA" count.
-
-> > > There are other sources of wakeup on the system other than I/O wakeup.  
-> > > I/O wakeup only applies to wakeups from the I/O pads when the chip is in 
-> > > RETENTION or OFF.  And as I understand it, neither of those apply to 
-> > > AM3517/3505?
-> > 
-> > Hmm, its true that RETENTION and OFF aren't supported.  It does wake up
-> > occasionally (as mentioned above) it just seems that I/O doesn't wake
-> > it up.  I may be mistaken.  I'm only going from what I've seen since and
-> > the TRM seems to have lots of errors so I'm not sure what to trust in it.
-> 
-> OK no problem, just trying to understand what's going on.  Sounds like 
-> you've gotten tossed into the deep end :-)
-
-:)
-
-> > > Even if I/O wakeups aren't supported, many of the IP blocks on the system 
-> > > should be able to cause the ARM to exit WFI by asserting their 
-> > > SWAKEUP lines and raising their interrupt lines.
-> > 
-> > Okay, but that doesn't seem to be working.  I'll look some more to see
-> > why they aren't working.
-> 
-> There could be a hidden dependency on I/O wakeup being present in the UART 
-> driver. We've been going through some UART driver angst recently...
-
-OK.
+Yeah, I'm going to do that as soon as I catch up the emails.  I thinking
+more & more that Paul is right and that we should just scrap the INACTIVE
+state and leave everything ON.
 
 Mark
 --
