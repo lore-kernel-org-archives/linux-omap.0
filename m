@@ -1,300 +1,138 @@
-From: "Mark A. Greer" <mgreer@animalcreek.com>
-Subject: [PATCH 08/12] arm: omap3: am35x: Fix clockdomain dependencies
-Date: Wed, 11 Apr 2012 12:05:43 -0700
-Message-ID: <1334171147-7517-9-git-send-email-mgreer@animalcreek.com>
-References: <1334171147-7517-1-git-send-email-mgreer@animalcreek.com>
+From: Russ Dill <Russ.Dill@ti.com>
+Subject: Re: [PATCH 1/2] OMAP2+: UART: Fix incorrect population of default
+ uart pads
+Date: Wed, 11 Apr 2012 13:14:36 -0700
+Message-ID: <CA+Bv8XbtC4O4zjA=Ct0EwsNvLc6MyO3-NfSs+EcwvvBrf=YP=w@mail.gmail.com>
+References: <1334065246-21294-1-git-send-email-govindraj.raja@ti.com>
+	<1334065246-21294-2-git-send-email-govindraj.raja@ti.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: base64
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail20.dotsterhost.com ([66.11.232.73]:50105 "EHLO
-	mail20.dotsterhost.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1761122Ab2DKTsN (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 11 Apr 2012 15:48:13 -0400
-In-Reply-To: <1334171147-7517-1-git-send-email-mgreer@animalcreek.com>
+Received: from mail-lpp01m010-f46.google.com ([209.85.215.46]:37025 "EHLO
+	mail-lpp01m010-f46.google.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1756977Ab2DKUOi (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>);
+	Wed, 11 Apr 2012 16:14:38 -0400
+Received: by lahj13 with SMTP id j13so1014868lah.19
+        for <linux-omap@vger.kernel.org>; Wed, 11 Apr 2012 13:14:36 -0700 (PDT)
+In-Reply-To: <1334065246-21294-2-git-send-email-govindraj.raja@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
-Cc: khilman@ti.com, paul@pwsan.com, "Mark A. Greer" <mgreer@animalcreek.com>
+To: "Govindraj.R" <govindraj.raja@ti.com>
+Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Felipe Balbi <balbi@ti.com>, Kevin Hilman <khilman@ti.com>, Tony Lindgren <tony@atomide.com>
 
-From: "Mark A. Greer" <mgreer@animalcreek.com>
-
-The am35x family of SoCs do not have an IVA so
-a parallel set of clockdomain dependencies are
-required that are simililar to OMAP3 but without
-any IVA dependencies.
-
-Signed-off-by: Mark A. Greer <mgreer@animalcreek.com>
----
- arch/arm/mach-omap2/clockdomains3xxx_data.c |  146 ++++++++++++++++++++++++++-
- 1 file changed, 141 insertions(+), 5 deletions(-)
-
-diff --git a/arch/arm/mach-omap2/clockdomains3xxx_data.c b/arch/arm/mach-omap2/clockdomains3xxx_data.c
-index b84e138..a05a8cb 100644
---- a/arch/arm/mach-omap2/clockdomains3xxx_data.c
-+++ b/arch/arm/mach-omap2/clockdomains3xxx_data.c
-@@ -59,6 +59,12 @@ static struct clkdm_dep gfx_sgx_3xxx_wkdeps[] = {
- 	{ NULL },
- };
- 
-+static struct clkdm_dep gfx_sgx_am35x_wkdeps[] = {
-+	{ .clkdm_name = "mpu_clkdm", },
-+	{ .clkdm_name = "wkup_clkdm", },
-+	{ NULL },
-+};
-+
- /* 3430: PM_WKDEP_PER: CORE, IVA2, MPU, WKUP */
- static struct clkdm_dep per_wkdeps[] = {
- 	{ .clkdm_name = "core_l3_clkdm" },
-@@ -69,6 +75,14 @@ static struct clkdm_dep per_wkdeps[] = {
- 	{ NULL },
- };
- 
-+static struct clkdm_dep per_am35x_wkdeps[] = {
-+	{ .clkdm_name = "core_l3_clkdm" },
-+	{ .clkdm_name = "core_l4_clkdm" },
-+	{ .clkdm_name = "mpu_clkdm" },
-+	{ .clkdm_name = "wkup_clkdm" },
-+	{ NULL },
-+};
-+
- /* 3430ES2: PM_WKDEP_USBHOST: CORE, IVA2, MPU, WKUP */
- static struct clkdm_dep usbhost_wkdeps[] = {
- 	{ .clkdm_name = "core_l3_clkdm" },
-@@ -79,6 +93,14 @@ static struct clkdm_dep usbhost_wkdeps[] = {
- 	{ NULL },
- };
- 
-+static struct clkdm_dep usbhost_am35x_wkdeps[] = {
-+	{ .clkdm_name = "core_l3_clkdm" },
-+	{ .clkdm_name = "core_l4_clkdm" },
-+	{ .clkdm_name = "mpu_clkdm" },
-+	{ .clkdm_name = "wkup_clkdm" },
-+	{ NULL },
-+};
-+
- /* 3430 PM_WKDEP_MPU: CORE, IVA2, DSS, PER */
- static struct clkdm_dep mpu_3xxx_wkdeps[] = {
- 	{ .clkdm_name = "core_l3_clkdm" },
-@@ -89,6 +111,14 @@ static struct clkdm_dep mpu_3xxx_wkdeps[] = {
- 	{ NULL },
- };
- 
-+static struct clkdm_dep mpu_am35x_wkdeps[] = {
-+	{ .clkdm_name = "core_l3_clkdm" },
-+	{ .clkdm_name = "core_l4_clkdm" },
-+	{ .clkdm_name = "dss_clkdm" },
-+	{ .clkdm_name = "per_clkdm" },
-+	{ NULL },
-+};
-+
- /* 3430 PM_WKDEP_IVA2: CORE, MPU, WKUP, DSS, PER */
- static struct clkdm_dep iva2_wkdeps[] = {
- 	{ .clkdm_name = "core_l3_clkdm" },
-@@ -116,6 +146,12 @@ static struct clkdm_dep dss_wkdeps[] = {
- 	{ NULL },
- };
- 
-+static struct clkdm_dep dss_am35x_wkdeps[] = {
-+	{ .clkdm_name = "mpu_clkdm" },
-+	{ .clkdm_name = "wkup_clkdm" },
-+	{ NULL },
-+};
-+
- /* 3430: PM_WKDEP_NEON: MPU */
- static struct clkdm_dep neon_wkdeps[] = {
- 	{ .clkdm_name = "mpu_clkdm" },
-@@ -131,6 +167,11 @@ static struct clkdm_dep dss_sleepdeps[] = {
- 	{ NULL },
- };
- 
-+static struct clkdm_dep dss_am35x_sleepdeps[] = {
-+	{ .clkdm_name = "mpu_clkdm" },
-+	{ NULL },
-+};
-+
- /* 3430: CM_SLEEPDEP_PER: MPU, IVA */
- static struct clkdm_dep per_sleepdeps[] = {
- 	{ .clkdm_name = "mpu_clkdm" },
-@@ -138,6 +179,11 @@ static struct clkdm_dep per_sleepdeps[] = {
- 	{ NULL },
- };
- 
-+static struct clkdm_dep per_am35x_sleepdeps[] = {
-+	{ .clkdm_name = "mpu_clkdm" },
-+	{ NULL },
-+};
-+
- /* 3430ES2: CM_SLEEPDEP_USBHOST: MPU, IVA */
- static struct clkdm_dep usbhost_sleepdeps[] = {
- 	{ .clkdm_name = "mpu_clkdm" },
-@@ -145,6 +191,11 @@ static struct clkdm_dep usbhost_sleepdeps[] = {
- 	{ NULL },
- };
- 
-+static struct clkdm_dep usbhost_am35x_sleepdeps[] = {
-+	{ .clkdm_name = "mpu_clkdm" },
-+	{ NULL },
-+};
-+
- /* 3430: CM_SLEEPDEP_CAM: MPU */
- static struct clkdm_dep cam_sleepdeps[] = {
- 	{ .clkdm_name = "mpu_clkdm" },
-@@ -175,6 +226,15 @@ static struct clockdomain mpu_3xxx_clkdm = {
- 	.clktrctrl_mask = OMAP3430_CLKTRCTRL_MPU_MASK,
- };
- 
-+static struct clockdomain mpu_am35x_clkdm = {
-+	.name		= "mpu_clkdm",
-+	.pwrdm		= { .name = "mpu_pwrdm" },
-+	.flags		= CLKDM_CAN_HWSUP | CLKDM_CAN_FORCE_WAKEUP,
-+	.dep_bit	= OMAP3430_EN_MPU_SHIFT,
-+	.wkdep_srcs	= mpu_am35x_wkdeps,
-+	.clktrctrl_mask = OMAP3430_CLKTRCTRL_MPU_MASK,
-+};
-+
- static struct clockdomain neon_clkdm = {
- 	.name		= "neon_clkdm",
- 	.pwrdm		= { .name = "neon_pwrdm" },
-@@ -210,6 +270,15 @@ static struct clockdomain sgx_clkdm = {
- 	.clktrctrl_mask = OMAP3430ES2_CLKTRCTRL_SGX_MASK,
- };
- 
-+static struct clockdomain sgx_am35x_clkdm = {
-+	.name		= "sgx_clkdm",
-+	.pwrdm		= { .name = "sgx_pwrdm" },
-+	.flags		= CLKDM_CAN_HWSUP_SWSUP,
-+	.wkdep_srcs	= gfx_sgx_am35x_wkdeps,
-+	.sleepdep_srcs	= gfx_sgx_sleepdeps,
-+	.clktrctrl_mask = OMAP3430ES2_CLKTRCTRL_SGX_MASK,
-+};
-+
- /*
-  * The die-to-die clockdomain was documented in the 34xx ES1 TRM, but
-  * then that information was removed from the 34xx ES2+ TRM.  It is
-@@ -261,6 +330,16 @@ static struct clockdomain dss_3xxx_clkdm = {
- 	.clktrctrl_mask = OMAP3430_CLKTRCTRL_DSS_MASK,
- };
- 
-+static struct clockdomain dss_am35x_clkdm = {
-+	.name		= "dss_clkdm",
-+	.pwrdm		= { .name = "dss_pwrdm" },
-+	.flags		= CLKDM_CAN_HWSUP_SWSUP,
-+	.dep_bit	= OMAP3430_PM_WKDEP_MPU_EN_DSS_SHIFT,
-+	.wkdep_srcs	= dss_am35x_wkdeps,
-+	.sleepdep_srcs	= dss_am35x_sleepdeps,
-+	.clktrctrl_mask = OMAP3430_CLKTRCTRL_DSS_MASK,
-+};
-+
- static struct clockdomain cam_clkdm = {
- 	.name		= "cam_clkdm",
- 	.pwrdm		= { .name = "cam_pwrdm" },
-@@ -279,6 +358,15 @@ static struct clockdomain usbhost_clkdm = {
- 	.clktrctrl_mask = OMAP3430ES2_CLKTRCTRL_USBHOST_MASK,
- };
- 
-+static struct clockdomain usbhost_am35x_clkdm = {
-+	.name		= "usbhost_clkdm",
-+	.pwrdm		= { .name = "core_pwrdm" },
-+	.flags		= CLKDM_CAN_HWSUP_SWSUP,
-+	.wkdep_srcs	= usbhost_am35x_wkdeps,
-+	.sleepdep_srcs	= usbhost_am35x_sleepdeps,
-+	.clktrctrl_mask = OMAP3430ES2_CLKTRCTRL_USBHOST_MASK,
-+};
-+
- static struct clockdomain per_clkdm = {
- 	.name		= "per_clkdm",
- 	.pwrdm		= { .name = "per_pwrdm" },
-@@ -289,6 +377,16 @@ static struct clockdomain per_clkdm = {
- 	.clktrctrl_mask = OMAP3430_CLKTRCTRL_PER_MASK,
- };
- 
-+static struct clockdomain per_am35x_clkdm = {
-+	.name		= "per_clkdm",
-+	.pwrdm		= { .name = "per_pwrdm" },
-+	.flags		= CLKDM_CAN_HWSUP_SWSUP,
-+	.dep_bit	= OMAP3430_EN_PER_SHIFT,
-+	.wkdep_srcs	= per_am35x_wkdeps,
-+	.sleepdep_srcs	= per_am35x_sleepdeps,
-+	.clktrctrl_mask = OMAP3430_CLKTRCTRL_PER_MASK,
-+};
-+
- /*
-  * Disable hw supervised mode for emu_clkdm, because emu_pwrdm is
-  * switched of even if sdti is in use
-@@ -341,6 +439,15 @@ static struct clkdm_autodep clkdm_autodeps[] = {
- 	}
- };
- 
-+static struct clkdm_autodep clkdm_am35x_autodeps[] = {
-+	{
-+		.clkdm = { .name = "mpu_clkdm" },
-+	},
-+	{
-+		.clkdm = { .name = NULL },
-+	}
-+};
-+
- /*
-  *
-  */
-@@ -366,6 +473,26 @@ static struct clockdomain *clockdomains_omap3430_common[] __initdata = {
- 	NULL
- };
- 
-+static struct clockdomain *clockdomains_am35x_common[] __initdata = {
-+	&wkup_common_clkdm,
-+	&cm_common_clkdm,
-+	&prm_common_clkdm,
-+	&mpu_am35x_clkdm,
-+	&neon_clkdm,
-+	&sgx_am35x_clkdm,
-+	&core_l3_3xxx_clkdm,
-+	&core_l4_3xxx_clkdm,
-+	&dss_am35x_clkdm,
-+	&per_am35x_clkdm,
-+	&emu_clkdm,
-+	&usbhost_am35x_clkdm,
-+	&dpll1_clkdm,
-+	&dpll3_clkdm,
-+	&dpll4_clkdm,
-+	&dpll5_clkdm,
-+	NULL
-+};
-+
- static struct clockdomain *clockdomains_omap3430es1[] __initdata = {
- 	&gfx_3430es1_clkdm,
- 	NULL,
-@@ -381,18 +508,27 @@ static struct clockdomain *clockdomains_omap3430es2plus[] __initdata = {
- void __init omap3xxx_clockdomains_init(void)
- {
- 	struct clockdomain **sc;
-+	unsigned int rev;
- 
- 	if (!cpu_is_omap34xx())
- 		return;
- 
- 	clkdm_register_platform_funcs(&omap3_clkdm_operations);
--	clkdm_register_clkdms(clockdomains_omap3430_common);
- 
--	sc = (omap_rev() == OMAP3430_REV_ES1_0) ? clockdomains_omap3430es1 :
--		clockdomains_omap3430es2plus;
-+	rev = omap_rev();
- 
--	clkdm_register_clkdms(sc);
-+	if (rev == OMAP3517_REV_ES1_0 || rev == OMAP3517_REV_ES1_1) {
-+		clkdm_register_clkdms(clockdomains_am35x_common);
-+		clkdm_register_autodeps(clkdm_am35x_autodeps);
-+	} else {
-+		clkdm_register_clkdms(clockdomains_omap3430_common);
-+
-+		sc = (rev == OMAP3430_REV_ES1_0) ?
-+			clockdomains_omap3430es1 : clockdomains_omap3430es2plus;
-+
-+		clkdm_register_clkdms(sc);
-+		clkdm_register_autodeps(clkdm_autodeps);
-+	}
- 
--	clkdm_register_autodeps(clkdm_autodeps);
- 	clkdm_complete_init();
- }
--- 
-1.7.9.4
-
+T24gVHVlLCBBcHIgMTAsIDIwMTIgYXQgNjo0MCBBTSwgR292aW5kcmFqLlIgPGdvdmluZHJhai5y
+YWphQHRpLmNvbT4gd3JvdGU6Cj4gRnJvbTogIkdvdmluZHJhai5SIiA8Z292aW5kcmFqLnJhamFA
+dGkuY29tPgo+Cj4gVGhlIGZvbGxvd2luZyBjb21taXQ6Cj4gKDc0OTZiYTMgwqBBUk06IE9NQVAy
+KzogVUFSVDogQWRkIGRlZmF1bHQgbXV4IGZvciBhbGwgdWFydHMpCj4gYWRkZWQgZGVmYXVsdCBw
+YWRzIGZvciBhbGwgdWFydHMuIEJ1dCBub3QgYWxsIGJvYXJkcyB0ZW5kIHRvCj4gdXNlIGFsbCB1
+YXJ0cyBhbmQgbW9zdCBvZiB1bnVzZWQgdWFydCBwaW5zIGFyZSBtdXhlZCBmb3IKPiBvdGhlciBw
+dXJwb3NlLiBUaGlzIGNvbW1pdCBicmVha3MgdGhlIG1vZHVsZXMgd2hpY2ggd2hlcmUgdHJ5aW5n
+Cj4gdG8gdXNlIHVudXNlZCB1YXJ0IHBpbnMgb24gdGhlaXIgYm9hcmRzLgo+Cj4gU28gcmVtb3Zl
+IHRoZSBkZWZhdWx0IHBhZHMgYWRkaW5nLgo+Cj4gQ2M6IEZlbGlwZSBCYWxiaSA8YmFsYmlAdGku
+Y29tPgo+IENjOiBLZXZpbiBIaWxtYW4gPGtoaWxtYW5AdGkuY29tPgo+IENjOiBSdXNzIERpbGwg
+PHJ1c3MuZGlsbEBnbWFpbC5jb20+Cj4gUmVwb3J0ZWQtYnk6IFRvbnkgTGluZGdyZW4gPHRvbnlA
+YXRvbWlkZS5jb20+Cj4gU2lnbmVkLW9mZi1ieTogR292aW5kcmFqLlIgPGdvdmluZHJhai5yYWph
+QHRpLmNvbT4KClNpZ25lZC1vZmYtYnk6IFJ1c3MuRGlsbEB0aS5jb20KCj4gLS0tCj4gwqBhcmNo
+L2FybS9tYWNoLW9tYXAyL3NlcmlhbC5jIHwgwqAxMTYgLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0t
+LS0tLS0tLS0tLS0tLS0tLS0tCj4gwqAxIGZpbGVzIGNoYW5nZWQsIDAgaW5zZXJ0aW9ucygrKSwg
+MTE2IGRlbGV0aW9ucygtKQo+Cj4gZGlmZiAtLWdpdCBhL2FyY2gvYXJtL21hY2gtb21hcDIvc2Vy
+aWFsLmMgYi9hcmNoL2FybS9tYWNoLW9tYXAyL3NlcmlhbC5jCj4gaW5kZXggYzk1MDNhNy4uMTU1
+NDIzMyAxMDA2NDQKPiAtLS0gYS9hcmNoL2FybS9tYWNoLW9tYXAyL3NlcmlhbC5jCj4gKysrIGIv
+YXJjaC9hcm0vbWFjaC1vbWFwMi9zZXJpYWwuYwo+IEBAIC0xMjAsMTI0ICsxMjAsOCBAQCBzdGF0
+aWMgdm9pZCBvbWFwX3VhcnRfc2V0X3NtYXJ0aWRsZShzdHJ1Y3QgcGxhdGZvcm1fZGV2aWNlICpw
+ZGV2KSB7fQo+IMKgI2VuZGlmIC8qIENPTkZJR19QTSAqLwo+Cj4gwqAjaWZkZWYgQ09ORklHX09N
+QVBfTVVYCj4gLXN0YXRpYyBzdHJ1Y3Qgb21hcF9kZXZpY2VfcGFkIGRlZmF1bHRfdWFydDFfcGFk
+c1tdIF9faW5pdGRhdGEgPSB7Cj4gLSDCoCDCoCDCoCB7Cj4gLSDCoCDCoCDCoCDCoCDCoCDCoCDC
+oCAubmFtZSDCoCA9ICJ1YXJ0MV9jdHMudWFydDFfY3RzIiwKPiAtIMKgIMKgIMKgIMKgIMKgIMKg
+IMKgIC5lbmFibGUgPSBPTUFQX1BJTl9JTlBVVF9QVUxMVVAgfCBPTUFQX01VWF9NT0RFMCwKPiAt
+IMKgIMKgIMKgIH0sCj4gLSDCoCDCoCDCoCB7Cj4gLSDCoCDCoCDCoCDCoCDCoCDCoCDCoCAubmFt
+ZSDCoCA9ICJ1YXJ0MV9ydHMudWFydDFfcnRzIiwKPiAtIMKgIMKgIMKgIMKgIMKgIMKgIMKgIC5l
+bmFibGUgPSBPTUFQX1BJTl9PVVRQVVQgfCBPTUFQX01VWF9NT0RFMCwKPiAtIMKgIMKgIMKgIH0s
+Cj4gLSDCoCDCoCDCoCB7Cj4gLSDCoCDCoCDCoCDCoCDCoCDCoCDCoCAubmFtZSDCoCA9ICJ1YXJ0
+MV90eC51YXJ0MV90eCIsCj4gLSDCoCDCoCDCoCDCoCDCoCDCoCDCoCAuZW5hYmxlID0gT01BUF9Q
+SU5fT1VUUFVUIHwgT01BUF9NVVhfTU9ERTAsCj4gLSDCoCDCoCDCoCB9LAo+IC0gwqAgwqAgwqAg
+ewo+IC0gwqAgwqAgwqAgwqAgwqAgwqAgwqAgLm5hbWUgwqAgPSAidWFydDFfcngudWFydDFfcngi
+LAo+IC0gwqAgwqAgwqAgwqAgwqAgwqAgwqAgLmZsYWdzIMKgPSBPTUFQX0RFVklDRV9QQURfUkVN
+VVggfCBPTUFQX0RFVklDRV9QQURfV0FLRVVQLAo+IC0gwqAgwqAgwqAgwqAgwqAgwqAgwqAgLmVu
+YWJsZSA9IE9NQVBfUElOX0lOUFVUX1BVTExVUCB8IE9NQVBfTVVYX01PREUwLAo+IC0gwqAgwqAg
+wqAgwqAgwqAgwqAgwqAgLmlkbGUgwqAgPSBPTUFQX1BJTl9JTlBVVF9QVUxMVVAgfCBPTUFQX01V
+WF9NT0RFMCwKPiAtIMKgIMKgIMKgIH0sCj4gLX07Cj4gLQo+IC1zdGF0aWMgc3RydWN0IG9tYXBf
+ZGV2aWNlX3BhZCBkZWZhdWx0X3VhcnQyX3BhZHNbXSBfX2luaXRkYXRhID0gewo+IC0gwqAgwqAg
+wqAgewo+IC0gwqAgwqAgwqAgwqAgwqAgwqAgwqAgLm5hbWUgwqAgPSAidWFydDJfY3RzLnVhcnQy
+X2N0cyIsCj4gLSDCoCDCoCDCoCDCoCDCoCDCoCDCoCAuZW5hYmxlID0gT01BUF9QSU5fSU5QVVRf
+UFVMTFVQIHwgT01BUF9NVVhfTU9ERTAsCj4gLSDCoCDCoCDCoCB9LAo+IC0gwqAgwqAgwqAgewo+
+IC0gwqAgwqAgwqAgwqAgwqAgwqAgwqAgLm5hbWUgwqAgPSAidWFydDJfcnRzLnVhcnQyX3J0cyIs
+Cj4gLSDCoCDCoCDCoCDCoCDCoCDCoCDCoCAuZW5hYmxlID0gT01BUF9QSU5fT1VUUFVUIHwgT01B
+UF9NVVhfTU9ERTAsCj4gLSDCoCDCoCDCoCB9LAo+IC0gwqAgwqAgwqAgewo+IC0gwqAgwqAgwqAg
+wqAgwqAgwqAgwqAgLm5hbWUgwqAgPSAidWFydDJfdHgudWFydDJfdHgiLAo+IC0gwqAgwqAgwqAg
+wqAgwqAgwqAgwqAgLmVuYWJsZSA9IE9NQVBfUElOX09VVFBVVCB8IE9NQVBfTVVYX01PREUwLAo+
+IC0gwqAgwqAgwqAgfSwKPiAtIMKgIMKgIMKgIHsKPiAtIMKgIMKgIMKgIMKgIMKgIMKgIMKgIC5u
+YW1lIMKgID0gInVhcnQyX3J4LnVhcnQyX3J4IiwKPiAtIMKgIMKgIMKgIMKgIMKgIMKgIMKgIC5m
+bGFncyDCoD0gT01BUF9ERVZJQ0VfUEFEX1JFTVVYIHwgT01BUF9ERVZJQ0VfUEFEX1dBS0VVUCwK
+PiAtIMKgIMKgIMKgIMKgIMKgIMKgIMKgIC5lbmFibGUgPSBPTUFQX1BJTl9JTlBVVF9QVUxMVVAg
+fCBPTUFQX01VWF9NT0RFMCwKPiAtIMKgIMKgIMKgIMKgIMKgIMKgIMKgIC5pZGxlIMKgID0gT01B
+UF9QSU5fSU5QVVRfUFVMTFVQIHwgT01BUF9NVVhfTU9ERTAsCj4gLSDCoCDCoCDCoCB9LAo+IC19
+Owo+IC0KPiAtc3RhdGljIHN0cnVjdCBvbWFwX2RldmljZV9wYWQgZGVmYXVsdF91YXJ0M19wYWRz
+W10gX19pbml0ZGF0YSA9IHsKPiAtIMKgIMKgIMKgIHsKPiAtIMKgIMKgIMKgIMKgIMKgIMKgIMKg
+IC5uYW1lIMKgID0gInVhcnQzX2N0c19yY3R4LnVhcnQzX2N0c19yY3R4IiwKPiAtIMKgIMKgIMKg
+IMKgIMKgIMKgIMKgIC5lbmFibGUgPSBPTUFQX1BJTl9JTlBVVF9QVUxMVVAgfCBPTUFQX01VWF9N
+T0RFMCwKPiAtIMKgIMKgIMKgIH0sCj4gLSDCoCDCoCDCoCB7Cj4gLSDCoCDCoCDCoCDCoCDCoCDC
+oCDCoCAubmFtZSDCoCA9ICJ1YXJ0M19ydHNfc2QudWFydDNfcnRzX3NkIiwKPiAtIMKgIMKgIMKg
+IMKgIMKgIMKgIMKgIC5lbmFibGUgPSBPTUFQX1BJTl9PVVRQVVQgfCBPTUFQX01VWF9NT0RFMCwK
+PiAtIMKgIMKgIMKgIH0sCj4gLSDCoCDCoCDCoCB7Cj4gLSDCoCDCoCDCoCDCoCDCoCDCoCDCoCAu
+bmFtZSDCoCA9ICJ1YXJ0M190eF9pcnR4LnVhcnQzX3R4X2lydHgiLAo+IC0gwqAgwqAgwqAgwqAg
+wqAgwqAgwqAgLmVuYWJsZSA9IE9NQVBfUElOX09VVFBVVCB8IE9NQVBfTVVYX01PREUwLAo+IC0g
+wqAgwqAgwqAgfSwKPiAtIMKgIMKgIMKgIHsKPiAtIMKgIMKgIMKgIMKgIMKgIMKgIMKgIC5uYW1l
+IMKgID0gInVhcnQzX3J4X2lycngudWFydDNfcnhfaXJyeCIsCj4gLSDCoCDCoCDCoCDCoCDCoCDC
+oCDCoCAuZmxhZ3MgwqA9IE9NQVBfREVWSUNFX1BBRF9SRU1VWCB8IE9NQVBfREVWSUNFX1BBRF9X
+QUtFVVAsCj4gLSDCoCDCoCDCoCDCoCDCoCDCoCDCoCAuZW5hYmxlID0gT01BUF9QSU5fSU5QVVQg
+fCBPTUFQX01VWF9NT0RFMCwKPiAtIMKgIMKgIMKgIMKgIMKgIMKgIMKgIC5pZGxlIMKgID0gT01B
+UF9QSU5fSU5QVVQgfCBPTUFQX01VWF9NT0RFMCwKPiAtIMKgIMKgIMKgIH0sCj4gLX07Cj4gLQo+
+IC1zdGF0aWMgc3RydWN0IG9tYXBfZGV2aWNlX3BhZCBkZWZhdWx0X29tYXAzNnh4X3VhcnQ0X3Bh
+ZHNbXSBfX2luaXRkYXRhID0gewo+IC0gwqAgwqAgwqAgewo+IC0gwqAgwqAgwqAgwqAgwqAgwqAg
+wqAgLm5hbWUgwqAgPSAiZ3BtY193YWl0Mi51YXJ0NF90eCIsCj4gLSDCoCDCoCDCoCDCoCDCoCDC
+oCDCoCAuZW5hYmxlID0gT01BUF9QSU5fT1VUUFVUIHwgT01BUF9NVVhfTU9ERTAsCj4gLSDCoCDC
+oCDCoCB9LAo+IC0gwqAgwqAgwqAgewo+IC0gwqAgwqAgwqAgwqAgwqAgwqAgwqAgLm5hbWUgwqAg
+PSAiZ3BtY193YWl0My51YXJ0NF9yeCIsCj4gLSDCoCDCoCDCoCDCoCDCoCDCoCDCoCAuZmxhZ3Mg
+wqA9IE9NQVBfREVWSUNFX1BBRF9SRU1VWCB8IE9NQVBfREVWSUNFX1BBRF9XQUtFVVAsCj4gLSDC
+oCDCoCDCoCDCoCDCoCDCoCDCoCAuZW5hYmxlID0gT01BUF9QSU5fSU5QVVQgfCBPTUFQX01VWF9N
+T0RFMiwKPiAtIMKgIMKgIMKgIMKgIMKgIMKgIMKgIC5pZGxlIMKgID0gT01BUF9QSU5fSU5QVVQg
+fCBPTUFQX01VWF9NT0RFMiwKPiAtIMKgIMKgIMKgIH0sCj4gLX07Cj4gLQo+IC1zdGF0aWMgc3Ry
+dWN0IG9tYXBfZGV2aWNlX3BhZCBkZWZhdWx0X29tYXA0X3VhcnQ0X3BhZHNbXSBfX2luaXRkYXRh
+ID0gewo+IC0gwqAgwqAgwqAgewo+IC0gwqAgwqAgwqAgwqAgwqAgwqAgwqAgLm5hbWUgwqAgPSAi
+dWFydDRfdHgudWFydDRfdHgiLAo+IC0gwqAgwqAgwqAgwqAgwqAgwqAgwqAgLmVuYWJsZSA9IE9N
+QVBfUElOX09VVFBVVCB8IE9NQVBfTVVYX01PREUwLAo+IC0gwqAgwqAgwqAgfSwKPiAtIMKgIMKg
+IMKgIHsKPiAtIMKgIMKgIMKgIMKgIMKgIMKgIMKgIC5uYW1lIMKgID0gInVhcnQ0X3J4LnVhcnQ0
+X3J4IiwKPiAtIMKgIMKgIMKgIMKgIMKgIMKgIMKgIC5mbGFncyDCoD0gT01BUF9ERVZJQ0VfUEFE
+X1JFTVVYIHwgT01BUF9ERVZJQ0VfUEFEX1dBS0VVUCwKPiAtIMKgIMKgIMKgIMKgIMKgIMKgIMKg
+IC5lbmFibGUgPSBPTUFQX1BJTl9JTlBVVCB8IE9NQVBfTVVYX01PREUwLAo+IC0gwqAgwqAgwqAg
+wqAgwqAgwqAgwqAgLmlkbGUgwqAgPSBPTUFQX1BJTl9JTlBVVCB8IE9NQVBfTVVYX01PREUwLAo+
+IC0gwqAgwqAgwqAgfSwKPiAtfTsKPiAtCj4gwqBzdGF0aWMgdm9pZCBvbWFwX3NlcmlhbF9maWxs
+X2RlZmF1bHRfcGFkcyhzdHJ1Y3Qgb21hcF9ib2FyZF9kYXRhICpiZGF0YSkKPiDCoHsKPiAtIMKg
+IMKgIMKgIHN3aXRjaCAoYmRhdGEtPmlkKSB7Cj4gLSDCoCDCoCDCoCBjYXNlIDA6Cj4gLSDCoCDC
+oCDCoCDCoCDCoCDCoCDCoCBiZGF0YS0+cGFkcyA9IGRlZmF1bHRfdWFydDFfcGFkczsKPiAtIMKg
+IMKgIMKgIMKgIMKgIMKgIMKgIGJkYXRhLT5wYWRzX2NudCA9IEFSUkFZX1NJWkUoZGVmYXVsdF91
+YXJ0MV9wYWRzKTsKPiAtIMKgIMKgIMKgIMKgIMKgIMKgIMKgIGJyZWFrOwo+IC0gwqAgwqAgwqAg
+Y2FzZSAxOgo+IC0gwqAgwqAgwqAgwqAgwqAgwqAgwqAgYmRhdGEtPnBhZHMgPSBkZWZhdWx0X3Vh
+cnQyX3BhZHM7Cj4gLSDCoCDCoCDCoCDCoCDCoCDCoCDCoCBiZGF0YS0+cGFkc19jbnQgPSBBUlJB
+WV9TSVpFKGRlZmF1bHRfdWFydDJfcGFkcyk7Cj4gLSDCoCDCoCDCoCDCoCDCoCDCoCDCoCBicmVh
+azsKPiAtIMKgIMKgIMKgIGNhc2UgMjoKPiAtIMKgIMKgIMKgIMKgIMKgIMKgIMKgIGJkYXRhLT5w
+YWRzID0gZGVmYXVsdF91YXJ0M19wYWRzOwo+IC0gwqAgwqAgwqAgwqAgwqAgwqAgwqAgYmRhdGEt
+PnBhZHNfY250ID0gQVJSQVlfU0laRShkZWZhdWx0X3VhcnQzX3BhZHMpOwo+IC0gwqAgwqAgwqAg
+wqAgwqAgwqAgwqAgYnJlYWs7Cj4gLSDCoCDCoCDCoCBjYXNlIDM6Cj4gLSDCoCDCoCDCoCDCoCDC
+oCDCoCDCoCBpZiAoY3B1X2lzX29tYXA0NHh4KCkpIHsKPiAtIMKgIMKgIMKgIMKgIMKgIMKgIMKg
+IMKgIMKgIMKgIMKgIGJkYXRhLT5wYWRzID0gZGVmYXVsdF9vbWFwNF91YXJ0NF9wYWRzOwo+IC0g
+wqAgwqAgwqAgwqAgwqAgwqAgwqAgwqAgwqAgwqAgwqAgYmRhdGEtPnBhZHNfY250ID0KPiAtIMKg
+IMKgIMKgIMKgIMKgIMKgIMKgIMKgIMKgIMKgIMKgIMKgIMKgIMKgIMKgIEFSUkFZX1NJWkUoZGVm
+YXVsdF9vbWFwNF91YXJ0NF9wYWRzKTsKPiAtIMKgIMKgIMKgIMKgIMKgIMKgIMKgIH0gZWxzZSBp
+ZiAoY3B1X2lzX29tYXAzNjMwKCkpIHsKPiAtIMKgIMKgIMKgIMKgIMKgIMKgIMKgIMKgIMKgIMKg
+IMKgIGJkYXRhLT5wYWRzID0gZGVmYXVsdF9vbWFwMzZ4eF91YXJ0NF9wYWRzOwo+IC0gwqAgwqAg
+wqAgwqAgwqAgwqAgwqAgwqAgwqAgwqAgwqAgYmRhdGEtPnBhZHNfY250ID0KPiAtIMKgIMKgIMKg
+IMKgIMKgIMKgIMKgIMKgIMKgIMKgIMKgIMKgIMKgIMKgIMKgIEFSUkFZX1NJWkUoZGVmYXVsdF9v
+bWFwMzZ4eF91YXJ0NF9wYWRzKTsKPiAtIMKgIMKgIMKgIMKgIMKgIMKgIMKgIH0KPiAtIMKgIMKg
+IMKgIMKgIMKgIMKgIMKgIGJyZWFrOwo+IC0gwqAgwqAgwqAgZGVmYXVsdDoKPiAtIMKgIMKgIMKg
+IMKgIMKgIMKgIMKgIGJyZWFrOwo+IC0gwqAgwqAgwqAgfQo+IMKgfQo+IMKgI2Vsc2UKPiDCoHN0
+YXRpYyB2b2lkIG9tYXBfc2VyaWFsX2ZpbGxfZGVmYXVsdF9wYWRzKHN0cnVjdCBvbWFwX2JvYXJk
+X2RhdGEgKmJkYXRhKSB7fQo+IC0tCj4gMS43LjkKPgo=
