@@ -1,127 +1,40 @@
 From: "Mohammed, Afzal" <afzal@ti.com>
-Subject: RE: [PATCH v3 1/9] ARM: OMAP2+: gpmc: driver conversion
-Date: Wed, 11 Apr 2012 05:11:56 +0000
-Message-ID: <C8443D0743D26F4388EA172BF4E2A7A9317C6F4B@DBDE01.ent.ti.com>
+Subject: RE: [PATCH v3 4/9] ARM: OMAP2+: gpmc-nand: populate gpmc configs
+Date: Wed, 11 Apr 2012 05:15:12 +0000
+Message-ID: <C8443D0743D26F4388EA172BF4E2A7A9317C6F64@DBDE01.ent.ti.com>
 References: <cover.1333640054.git.afzal@ti.com>
- <cefbe934da40f0a169b1e3a75c46451e5546a8bd.1333640054.git.afzal@ti.com>
- <4F7DFED5.4030000@ti.com>
- <C8443D0743D26F4388EA172BF4E2A7A9317C5E58@DBDE01.ent.ti.com>
- <4F833D8D.8000802@ti.com>
- <C8443D0743D26F4388EA172BF4E2A7A9317C693C@DBDE01.ent.ti.com>
- <4F8488A2.7030602@ti.com>
+ <6c120ab77d0900a6f977246bc58fb37c62280371.1333640054.git.afzal@ti.com>
+ <4F84890A.30500@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from arroyo.ext.ti.com ([192.94.94.40]:36136 "EHLO arroyo.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752121Ab2DKFMW convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 11 Apr 2012 01:12:22 -0400
-In-Reply-To: <4F8488A2.7030602@ti.com>
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
+In-Reply-To: <4F84890A.30500@ti.com>
 Content-Language: en-US
-Sender: linux-omap-owner@vger.kernel.org
-List-Id: linux-omap@vger.kernel.org
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
+List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
+List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
+Sender: linux-arm-kernel-bounces@lists.infradead.org
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
 To: "Hunter, Jon" <jon-hunter@ti.com>
-Cc: "tony@atomide.com" <tony@atomide.com>, "Hilman, Kevin" <khilman@ti.com>, "linux@arm.linux.org.uk" <linux@arm.linux.org.uk>, "dwmw2@infradead.org" <dwmw2@infradead.org>, "sameo@linux.intel.com" <sameo@linux.intel.com>, "grinberg@compulab.co.il" <grinberg@compulab.co.il>, "mike@compulab.co.il" <mike@compulab.co.il>, "Menon, Nishanth" <nm@ti.com>, "artem.bityutskiy@linux.intel.com" <artem.bityutskiy@linux.intel.com>, "vimal.newwork@gmail.com" <vimal.newwork@gmail.com>, "dbaryshkov@gmail.com" <dbaryshkov@gmail.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, "linux-mtd@lists.infradead.org" <linux-mtd@lists.infradead.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "Hiremath, Vaibhav" <hvaibhav@ti.com>
+Cc: "Hilman, Kevin" <khilman@ti.com>, "Menon, Nishanth" <nm@ti.com>, "linux@arm.linux.org.uk" <linux@arm.linux.org.uk>, "sameo@linux.intel.com" <sameo@linux.intel.com>, "tony@atomide.com" <tony@atomide.com>, "artem.bityutskiy@linux.intel.com" <artem.bityutskiy@linux.intel.com>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "dbaryshkov@gmail.com" <dbaryshkov@gmail.com>, "vimal.newwork@gmail.com" <vimal.newwork@gmail.com>, "grinberg@compulab.co.il" <grinberg@compulab.co.il>, "mike@compulab.co.il" <mike@compulab.co.il>, "linux-mtd@lists.infradead.org" <linux-mtd@lists.infradead.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "dwmw2@infradead.org" <dwmw2@infradead.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>
+List-Id: linux-omap@vger.kernel.org
 
 Hi Jon,
 
-On Wed, Apr 11, 2012 at 00:53:14, Hunter, Jon wrote:
-> I agree with your argument but I was thinking today only OMAP uses the 
-> GPMC so we could not worry about this. Ok, leave as-is, but can we 
-> modify the code as follows as the "else if" is not really needed...
+On Wed, Apr 11, 2012 at 00:54:58, Hunter, Jon wrote:
+> > +#define	GPMC_NAND_CONFIG_NUM	4
 > 
-> if (gpmc->num_irq < GPMC_NR_IRQ) {
-> 	dev_warn(gpmc->dev, "Insufficient interrupts for device\n");
-> 	return -EINVAL;
-> }
-> 
-> gpmc->num_irq = GPMC_NR_IRQ;
-
-Yes, it is better
-
-> 
-> >>
-> >> Furthermore, GPMC_NR_IRQ is defined as 6 which is correct for OMAP2/3
-> >> but not for OMAP4/5, it is 5. Therefore, we need to detect whether we
-> >> are using an OMAP2/3 or OMAP4+ and set num_irqs based upon this. This
-> >> could be done in the probe and we can avoid passing this.
-> >
-> > Is it dependent on OMAPX or GPMC IP version? if it is IP version, then driver
-> > can be enhanced to handle it, if not, platform has to pass this information.
-> 
-> Here are the GPMC IP revisions ...
-> 
-> OMAP5430 = 0x00000060
-> OMAP4430 = 0x00000060
-> OMAP3630 = 0x00000050
-> OMAP3430 = 0x00000050
-> 
-> So this should work for OMAP. We should check OMAP2 as well. What about 
-> the AMxxx devices?
+> Where does 4 come from?
 
 
-I badly needed this information, thanks.
-
-AM3359 = 0x00000060, it has only 2 waitpin interrupts
-
-> >>>>> +	res = platform_get_resource(pdev, IORESOURCE_IRQ, 0);
-> >>>>> +	if (res == NULL)
-> >>>>> +		dev_warn(gpmc->dev, "Failed to get resource: irq\n");
-> >>>>> +	else
-> >>>>> +		gpmc->master_irq = res->start;
-> >>>>
-> >>>> Why not return an error if the IRQ is not found? We don't know if anyone
-> >>>> will be trying to use them.
-> >>>
-> >>> Why do you want to do that ?
-> >>
-> >> Because this indicates a BUG :-)
-> >
-> > I disagree, this need not be considered a bug always,
-> > for eg. If gpmc irq is not connected to intc
-> 
-> Ok, so for devices existing today this indicates a bug ;-)
-
-I do not want to consider that case to be bug enough for probe
-to fail, there are other drivers which does similar enhancing
-its use cases,
-
-eg. 1e351a9 mfd: Make TPS65910 usable without interrupts
-
-> 
-> At a minimum you need to improve the error handing here. If the 
-> platform_get_resource fails you are still calling "gpmc_setup_irq()" 
-> which appears to be pointless. It would be better if the gpmc irq chip 
-> is not initialised in this case so that drivers attempting to request 
-> these irqs failed.
-
-Please see gpmc_setup_irq, if irq is not present, it returns in the
-beginning, and gpmc_irq_chip is not initialized in that case.
-
-> >>>>> +	for (gdq = gp->device_pdata, gd = gpmc->device; *gdq; gdq++, i++) {
-> >>>>> +		ret = gpmc_setup_device(*gdq, gd, gpmc);
-> >>>>> +		if (IS_ERR_VALUE(ret))
-> >>>>> +			dev_err(gpmc->dev, "gpmc setup on %s failed\n",
-> >>>>> +								(*gdq)->name);
-> >>>>> +		else
-> >>>>> +			gd++;
-> >>>>> +	}
-> >>>>
-> >>>> Would a while loop be simpler?
-> >>>
-> >>> My preference is to go with "for"
-> >>
-> >> Ok, just wondering if this could be cleaned up a little.
-> >
-> > For travelling through array of pointers, for looks natural to me, if you
-> > have a better way, please send it, it can be folded in next version.
-> 
-> Could you have num_devices to indicate how many platform devices there 
-> are and then a simple for-loop of 0 to num_devices?
-
-This will cause coding to be done by platform to be less simple, and my
-preference is not to use another variable
+It depends on the use case, for NAND, with the way it was being
+configured (or number of times gpmc_cs_configure was being called)
+4 are needed.
 
 Regards
 Afzal
