@@ -1,93 +1,68 @@
-From: Shubhrajyoti <shubhrajyoti-l0cyMroinI0@public.gmane.org>
-Subject: Re: [PATCHv7 00/18] I2C updates
-Date: Wed, 11 Apr 2012 16:31:22 +0530
-Message-ID: <4F856482.4030305@ti.com>
-References: <1334141549-8288-1-git-send-email-shubhrajyoti@ti.com>
+From: Rajendra Nayak <rnayak@ti.com>
+Subject: Re: [PATCH v2 2/2] ARM: omap: hwmod: Make omap_hwmod_softreset wait
+ for reset status
+Date: Wed, 11 Apr 2012 16:36:47 +0530
+Message-ID: <4F8565C7.4080506@ti.com>
+References: <1331659524-7635-1-git-send-email-rnayak@ti.com> <1331659524-7635-3-git-send-email-rnayak@ti.com> <alpine.DEB.2.00.1204101803020.20894@utopia.booyaka.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-i2c-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <1334141549-8288-1-git-send-email-shubhrajyoti-l0cyMroinI0@public.gmane.org>
-Sender: linux-i2c-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Shubhrajyoti D <shubhrajyoti-l0cyMroinI0@public.gmane.org>
-Cc: linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-i2c-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, ben-linux-elnMNo+KYs3YtjvyW6yDsg@public.gmane.org, tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org, w.sang-bIcnvbaLZ9MEGnE8C9+IrQ@public.gmane.org
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from na3sys009aog128.obsmtp.com ([74.125.149.141]:53252 "EHLO
+	na3sys009amx257.postini.com" rhost-flags-OK-OK-OK-FAIL)
+	by vger.kernel.org with ESMTP id S1756270Ab2DKLG6 (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>);
+	Wed, 11 Apr 2012 07:06:58 -0400
+Received: by ghrr18 with SMTP id r18so399876ghr.0
+        for <linux-omap@vger.kernel.org>; Wed, 11 Apr 2012 04:06:57 -0700 (PDT)
+In-Reply-To: <alpine.DEB.2.00.1204101803020.20894@utopia.booyaka.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Paul Walmsley <paul@pwsan.com>
+Cc: b-cousson@ti.com, khilman@ti.com, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Anand Gadiyar <gadiyar@ti.com>, Shubhrajyoti D <shubhrajyoti@ti.com>
 
-Please ignore this series sent the wrong patches by mistake.
-Will resend.
+Hi Paul,
 
+On Wednesday 11 April 2012 05:41 AM, Paul Walmsley wrote:
+> Just noticed that this change results in I2C softreset failed messages on
+> OMAP2/3/4 on v3.4-rc2.  For example, on 2420:
+>
+> [    0.200378] omap_hwmod: i2c1: softreset failed (waited 10000 usec)
+> [    0.222076] omap_hwmod: i2c2: softreset failed (waited 10000 usec)
+>
+> Looking more closely at the code, I think the intention of the original
+> code was basically correct.  HDQ and I2C both need to execute some custom
+> reset code after the SOFTRESET bit is set, but before the RESETDONE bit is
+> tested.  After this patch, the internal hwmod code tries to wait for
+> RESETDONE to change, before the custom code runs -- and that is going to
+> fail.
+>
+> Just out of curiosity, was the change in this patch prompted by some code
+> that needed the change?  Or was this a theoretical problem, driven by a
+> code review?
 
-On Wednesday 11 April 2012 04:22 PM, Shubhrajyoti D wrote:
-> The patch series does the following
->
-> - Warn fixes if CONFIG_PM_RUNTIME is not selected.
-> - I2C register restore only if context if the context is lost
-> - Bus busy recovery mechanism.
-> - the reset is not done in init.
-> - Adds a patch to use devm_* functions
-> - Also checks the return type of the get_sync and in case
->  of errors prevents register access, also print the cause of
->  failure in case of errors.
-> - In case of i2c remove register access was done without any
->  get_sync fix the same.
-> - Adds a pdata function pointer to do context save restore
-> - Split the omap_i2c_isr to increase readability
-> - Make the i2c use SET_RUNTIME_PM_OPS
-> - Folds a patch from Tasslehoff to prevent any merge conflicts.
-> - Prevents the XDUF flag to be set if the underflow condition is not met.
-> - As per discussion in [1] .Adds a patch to rename the 1p153 errata and
->  use the unique id instead as the section number in the recent errata
->  docs has changed.
->
-> - As discussed in [2] Paul has queued the flag for context restore patch,
->  removing it from the series.
->
->
-> [1] http://www.spinics.net/lists/linux-i2c/msg07607.html
-> [2] http://www.spinics.net/lists/linux-i2c/msg07685.html
->
-> Tested on omap4sdp and omap3sdp.
->
->
-> The following changes since commit 258f742635360175564e9470eb060ff4d4b984e7:
->
->   modpost: Fix modpost license checking of vmlinux.o (2012-04-09 20:52:56 -0700)
->
-> are available in the git repository at:
->   git://gitorious.org/linus-tree/linus-tree.git i2c_omap-next
->
->
->
-> Jon Hunter (1):
->   I2C: OMAP: Correct I2C revision for OMAP3
->
-> Shubhrajyoti D (15):
->   I2C: OMAP: make omap_i2c_unidle/idle functions depend on
->     CONFIG_PM_RUNTIME
->   I2C: OMAP: Remove reset at init
->   I2C: OMAP: I2C register restore only if context is lost
->   I2C: OMAP: Fix the interrupt clearing in OMAP4
->   I2C: OMAP: Fix the mismatch of pm_runtime enable and disable
->   I2C: OMAP: Optimise the remove code
->   I2C: OMAP: Fix the error handling
->   I2C: OMAP: Don't check if wait_for_completion_timeout() returns less
->     than zero
->   I2C: OMAP: use devm_* functions
->   I2C: OMAP: Fix the crash in i2c remove
->   I2C: OMAP: Handle error check for pm runtime
->   I2C: OMAP: Use SET_RUNTIME_PM_OPS
->   I2C: OMAP: make the read ready processing a separate function
->   I2C: OMAP: Do not set the XUDF if the underflow is not reached
->   I2C: OMAP: Rename the 1p153 to the erratum id i462
->
-> Tasslehoff Kjappfot (1):
->   I2C: OMAP: fix missing handling of errata I2C_OMAP3_1P153
->
-> Vikram Pandita (1):
->   I2C: OMAP: Recover from Bus Busy condition
->
->  arch/arm/plat-omap/i2c.c      |    3 +
->  drivers/i2c/busses/i2c-omap.c |  348 +++++++++++++++++++++++------------------
->  include/linux/i2c-omap.h      |    1 +
->  3 files changed, 198 insertions(+), 154 deletions(-)
->
+The changes were done to fix up random L3 interconnect errors that
+Anand G was seeing(during i2c reset operation) on some customer 
+platforms. I seem to have completely overlooked the I2C_EN programming 
+part done in omap_i2c_reset() function when I did the patch.
+
+While the patch did fix the issue for Anand, I guess it
+was because of the additional delay post reset, waiting on the
+RESETDONE bit and timing out, before accessing the i2c_con register.
+So looks like this patch should certainly be reverted but atleast some
+platforms/modules (the issue was seen on OMAP4/i2c) will need some
+delay between the omap_hwmod_softreset() call and any subsequent module
+register accesses.
+The patch from Fernando [1] can be quite useful if we can use the
+'srst_udelay' field to populate the appropriate delay needed which can
+then be used up in omap_hwmod_softreset() function.
+I am out sick today, but I can try some on these lines tomorrow once
+I am in office, if the approach seems fine to you.
+Btw, is [1] queued already by you/Benoit to go upstream or are there
+issues with it?
+
+regards,
+Rajendra
+
+[1] 
+http://lists.infradead.org/pipermail/linux-arm-kernel/2012-February/086713.html
