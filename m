@@ -1,40 +1,34 @@
-From: "Mohammed, Afzal" <afzal@ti.com>
-Subject: RE: [PATCH v3 4/9] ARM: OMAP2+: gpmc-nand: populate gpmc configs
-Date: Wed, 11 Apr 2012 05:15:12 +0000
-Message-ID: <C8443D0743D26F4388EA172BF4E2A7A9317C6F64@DBDE01.ent.ti.com>
-References: <cover.1333640054.git.afzal@ti.com>
- <6c120ab77d0900a6f977246bc58fb37c62280371.1333640054.git.afzal@ti.com>
- <4F84890A.30500@ti.com>
+From: Shubhrajyoti <shubhrajyoti-l0cyMroinI0@public.gmane.org>
+Subject: Re: [PATCHv6 19/19] ARM: OMAP4: hwmod data: I2C: add flag for context
+ restore
+Date: Wed, 11 Apr 2012 11:10:32 +0530
+Message-ID: <4F851950.6060503@ti.com>
+References: <1334055397-899-1-git-send-email-shubhrajyoti@ti.com> <1334055397-899-20-git-send-email-shubhrajyoti@ti.com> <alpine.DEB.2.00.1204101212530.20894@utopia.booyaka.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
+Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-In-Reply-To: <4F84890A.30500@ti.com>
-Content-Language: en-US
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: linux-arm-kernel-bounces@lists.infradead.org
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: "Hunter, Jon" <jon-hunter@ti.com>
-Cc: "Hilman, Kevin" <khilman@ti.com>, "Menon, Nishanth" <nm@ti.com>, "linux@arm.linux.org.uk" <linux@arm.linux.org.uk>, "sameo@linux.intel.com" <sameo@linux.intel.com>, "tony@atomide.com" <tony@atomide.com>, "artem.bityutskiy@linux.intel.com" <artem.bityutskiy@linux.intel.com>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "dbaryshkov@gmail.com" <dbaryshkov@gmail.com>, "vimal.newwork@gmail.com" <vimal.newwork@gmail.com>, "grinberg@compulab.co.il" <grinberg@compulab.co.il>, "mike@compulab.co.il" <mike@compulab.co.il>, "linux-mtd@lists.infradead.org" <linux-mtd@lists.infradead.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "dwmw2@infradead.org" <dwmw2@infradead.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>
+Return-path: <linux-i2c-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <alpine.DEB.2.00.1204101212530.20894-rwI8Ez+7Ko+d5PgPZx9QOdBPR1lH4CV8@public.gmane.org>
+Sender: linux-i2c-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Paul Walmsley <paul-DWxLp4Yu+b8AvxtiuMwx3w@public.gmane.org>
+Cc: linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-i2c-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, ben-linux-elnMNo+KYs3YtjvyW6yDsg@public.gmane.org, tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org, w.sang-bIcnvbaLZ9MEGnE8C9+IrQ@public.gmane.org, Benoit Cousson <b-cousson-l0cyMroinI0@public.gmane.org>
 List-Id: linux-omap@vger.kernel.org
 
-Hi Jon,
-
-On Wed, Apr 11, 2012 at 00:54:58, Hunter, Jon wrote:
-> > +#define	GPMC_NAND_CONFIG_NUM	4
-> 
-> Where does 4 come from?
-
-
-It depends on the use case, for NAND, with the way it was being
-configured (or number of times gpmc_cs_configure was being called)
-4 are needed.
-
-Regards
-Afzal
+On Tuesday 10 April 2012 11:43 PM, Paul Walmsley wrote:
+> On Tue, 10 Apr 2012, Shubhrajyoti D wrote:
+>
+>> Restore of context is not done for OMAP4. This patch
+>> adds the OMAP_I2C_FLAG_RESET_REGS_POSTIDLE in the OMAP4
+>> hwmod data which activates the restore for OMAP4.
+>> Currently the OMAP4 does not hit device off still the
+>> driver may have support for it.
+>>
+>> Cc: Benoit Cousson <b-cousson-l0cyMroinI0@public.gmane.org>
+>> Cc: Paul Wamsley <paul-DWxLp4Yu+b8AvxtiuMwx3w@public.gmane.org>
+>> Reviewed-by: Kevin Hilman <khilman-l0cyMroinI0@public.gmane.org>
+>> Signed-off-by: Shubhrajyoti D <shubhrajyoti-l0cyMroinI0@public.gmane.org>
+> Thanks, queued for 3.5.  You can drop this from your series; it will 
+> likely cause merge conflicts if you don't.
+Thanks Paul.
+Will drop this patch and resend.
+> - Paul
