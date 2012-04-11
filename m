@@ -1,83 +1,55 @@
-From: Felipe Balbi <balbi-l0cyMroinI0@public.gmane.org>
-Subject: Re: [PATCHv7 14/18] I2C: OMAP: Use SET_RUNTIME_PM_OPS
-Date: Wed, 11 Apr 2012 14:35:38 +0300
-Message-ID: <20120411113537.GG12064@arwen.pp.htv.fi>
-References: <1334142776-10583-1-git-send-email-shubhrajyoti@ti.com>
- <1334142776-10583-15-git-send-email-shubhrajyoti@ti.com>
-Reply-To: balbi-l0cyMroinI0@public.gmane.org
+From: "Munegowda, Keshava" <keshava_mgowda@ti.com>
+Subject: Re: [PATCH RESEND] ARM: OMAP3: USB: Fix the EHCI ULPI PHY reset issue
+Date: Wed, 11 Apr 2012 17:15:03 +0530
+Message-ID: <CAP05o4JWjoh-NoDeA3vYaS1yY_SGdm3TZvHA=pkQsP-Xo-kWnQ@mail.gmail.com>
+References: <1332139367-1302-1-git-send-email-keshava_mgowda@ti.com>
+	<4F71D87E.70100@compulab.co.il>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="HZmXSWY/1Xf1kK7R"
-Return-path: <linux-i2c-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <1334142776-10583-15-git-send-email-shubhrajyoti-l0cyMroinI0@public.gmane.org>
-Sender: linux-i2c-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Shubhrajyoti D <shubhrajyoti-l0cyMroinI0@public.gmane.org>
-Cc: linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-i2c-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, ben-linux-elnMNo+KYs3YtjvyW6yDsg@public.gmane.org, tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org, w.sang-bIcnvbaLZ9MEGnE8C9+IrQ@public.gmane.org
+Content-Type: text/plain; charset=ISO-8859-1
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from na3sys009aog136.obsmtp.com ([74.125.149.85]:57814 "EHLO
+	psmtp.com" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
+	id S1753603Ab2DKLpF (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Wed, 11 Apr 2012 07:45:05 -0400
+Received: by obbwd18 with SMTP id wd18so2119110obb.16
+        for <linux-omap@vger.kernel.org>; Wed, 11 Apr 2012 04:45:04 -0700 (PDT)
+In-Reply-To: <4F71D87E.70100@compulab.co.il>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: sameo@linux.intel.com
+Cc: linux-omap@vger.kernel.org, linux-usb@vger.kernel.org, balbi@ti.com, parthab@india.ti.com, govindraj.raja@ti.com, Igor Grinberg <grinberg@compulab.co.il>
 
+On Tue, Mar 27, 2012 at 8:40 PM, Igor Grinberg <grinberg@compulab.co.il> wrote:
+> On 03/19/12 08:42, Keshava Munegowda wrote:
+>> From: Keshava Munegowda <Keshava_mgowda@ti.com>
+>>
+>> It is observed that the echi ports of 3430 sdp board
+>> are not working due to the random timing of programming
+>> the associated GPIOs of the ULPI PHYs of the EHCI for reset.
+>> If the PHYs are reset at during usbhs core driver, host ports will
+>> not work because EHCI driver is loaded after the resetting PHYs.
+>> The PHYs should be in reset state while initializing the EHCI
+>> controller.
+>> The code which does the GPIO pins associated with the PHYs
+>> are programmed to reset is moved from the USB host core driver
+>> to EHCI driver.
+>>
+>> Signed-off-by: Keshava Munegowda <keshava_mgowda@ti.com>
+>> Reviewed-by: Partha Basak <parthab@india.ti.com>
+>
+> Both EHCI ports worked on cm-t3730 previously and
+> no regression is seen with this patch.
+>
+> Tested-by: Igor Grinberg <grinberg@compulab.co.il>
+>
+> --
+> Regards,
+> Igor.
 
---HZmXSWY/1Xf1kK7R
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
+Hi sameo
+         Since I am not seeing this patch in linux-next labled 3.4.rc2
+on 10th april 2012;
+ please let me know your plan to queue this patch for the main line.
 
-On Wed, Apr 11, 2012 at 04:42:52PM +0530, Shubhrajyoti D wrote:
-> Use SET_RUNTIME_PM_OPS macro to set runtime functions.
->=20
-> Signed-off-by: Shubhrajyoti D <shubhrajyoti-l0cyMroinI0@public.gmane.org>
-> ---
->  drivers/i2c/busses/i2c-omap.c |   11 ++++-------
->  1 files changed, 4 insertions(+), 7 deletions(-)
->=20
-> diff --git a/drivers/i2c/busses/i2c-omap.c b/drivers/i2c/busses/i2c-omap.c
-> index dd65416..28de1d2 100644
-> --- a/drivers/i2c/busses/i2c-omap.c
-> +++ b/drivers/i2c/busses/i2c-omap.c
-> @@ -1217,15 +1217,12 @@ static int omap_i2c_runtime_resume(struct device =
-*dev)
-> =20
->  	return 0;
->  }
-> +#endif
-> =20
->  static struct dev_pm_ops omap_i2c_pm_ops =3D {
-> -	.runtime_suspend =3D omap_i2c_runtime_suspend,
-> -	.runtime_resume =3D omap_i2c_runtime_resume,
-> +	SET_RUNTIME_PM_OPS(omap_i2c_runtime_suspend,
-> +			   omap_i2c_runtime_resume, NULL)
->  };
-> -#define OMAP_I2C_PM_OPS (&omap_i2c_pm_ops)
-> -#else
-> -#define OMAP_I2C_PM_OPS NULL
-> -#endif
-
-I think you should keep this define, otherwise the pm pointer will
-always be valid.
-
---=20
-balbi
-
---HZmXSWY/1Xf1kK7R
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: Digital signature
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.4.12 (GNU/Linux)
-
-iQIcBAEBAgAGBQJPhWyJAAoJEIaOsuA1yqREpdsQAILOy7nuY224tsxbOu3cIiB4
-fYa9QAHgpYj492glMxkfzdHAivnuTzdgKRHBKzikH8u7QvBnZ//QvE30cpinBV/1
-uFM1qRsAjPgLkVKjgnRgGxCOrWGDYisTiI+1WY46Nj+kg7nIwaIuiphalds2RAww
-VXHv2yPdNxrdbdm94d3RTN9tFGcRcMqgpw1K6Ql7+oRFnfwmW46Xp0pBoQB3jtGe
-lsS9qLPLX0xjbjhkqsoorFzhPlE+d2HiJrbA5b9zx7oYSfSyunfq9nrxlMIcYqPG
-L/kbERRS2r59cv4XPACZUeDG1Rd7YSwT7Ec6coZp3P0x33JhN77RXyWqBU5VDiJO
-u3x6Frk5NJgirYY/59FC37WJrcYLwnl4BQC7OtmAPNJ9Kvm+zi9ZJWW06XZ5P/Vs
-Tsa4Tx44XvqU03nJuI+sstmq9BTX1vzf9xo5oXGxkKMM1TsTzRPsXyDAzt+xbBwm
-KoS7sEFKBSfaazVNwXhIAiklpsL/8IhGR9JXZbI+xfnNhgT9gnz4nUaDER77zUCU
-k9Txf1e3DyPUIvCkcTg4r7eq1GlKyM1LJLX4ZCMRZeyxDrJmFTIPRpG38PZUlPVV
-vcfNWmaLyVBUrzkcMQxZq6soFah5AU5JMB5FXRXKymARbzrm+fb0zcGCsz1asWHF
-wQ9fMgxZUO3xl0I8656a
-=YR3t
------END PGP SIGNATURE-----
-
---HZmXSWY/1Xf1kK7R--
+Thanks and Regards
+Keshava
