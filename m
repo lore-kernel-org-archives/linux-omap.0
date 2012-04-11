@@ -1,49 +1,34 @@
-From: Grazvydas Ignotas <notasas@gmail.com>
-Subject: [PATCH] mtd: omap2: fix resource leak in prefetch-busy path
-Date: Wed, 11 Apr 2012 04:04:34 +0300
-Message-ID: <1334106274-24993-1-git-send-email-notasas@gmail.com>
+From: Rajendra Nayak <rnayak@ti.com>
+Subject: Re: [RFC] dt: export of_have_populated_dt
+Date: Wed, 11 Apr 2012 09:46:17 +0530
+Message-ID: <4F850591.3080209@ti.com>
+References: <1334070672-11252-1-git-send-email-balajitk@ti.com> <4F845D99.7020705@ti.com> <87y5q3v9pd.fsf@laptop.org> <4F845FF9.5080005@ti.com> <4F846BDB.8020805@gmail.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-wi0-f172.google.com ([209.85.212.172]:41682 "EHLO
-	mail-wi0-f172.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755856Ab2DKBEc (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 10 Apr 2012 21:04:32 -0400
-Received: by wibhj6 with SMTP id hj6so3881872wib.1
-        for <linux-omap@vger.kernel.org>; Tue, 10 Apr 2012 18:04:31 -0700 (PDT)
+Received: from na3sys009aog101.obsmtp.com ([74.125.149.67]:38019 "EHLO
+	na3sys009aog101.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1750871Ab2DKEQ1 (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>);
+	Wed, 11 Apr 2012 00:16:27 -0400
+Received: by dajr28 with SMTP id r28so643191daj.40
+        for <linux-omap@vger.kernel.org>; Tue, 10 Apr 2012 21:16:26 -0700 (PDT)
+In-Reply-To: <4F846BDB.8020805@gmail.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: linux-mtd@lists.infradead.org
-Cc: David Woodhouse <dwmw2@infradead.org>, Artem Bityutskiy <artem.bityutskiy@linux.intel.com>, linux-omap@vger.kernel.org, Grazvydas Ignotas <notasas@gmail.com>
+To: Rob Herring <robherring2@gmail.com>
+Cc: "Cousson, Benoit" <b-cousson@ti.com>, Chris Ball <cjb@laptop.org>, Balaji T K <balajitk@ti.com>, devicetree-discuss@lists.ozlabs.org, linux-omap@vger.kernel.org, bigeasy@linutronix.de
 
-If prefetch engine is busy, current code "forgets" to call
-dma_unmap_single(), which results in a deadlock later, so add it.
+On Tuesday 10 April 2012 10:50 PM, Rob Herring wrote:
+>> Rob,
+>> >  Does it make sense to use that in the driver? So far I was using that
+>> >  only in the arch code to make the difference between the DT boot and the
+>> >  non-DT boot.
+>> >
+>> >  I guess that a driver should rely on of_match_device or non-NULL
+>> >  device_node to figure out that?
+>> >
+> Agreed. of_match_device or device_node ptr check is the right approach.
 
-Signed-off-by: Grazvydas Ignotas <notasas@gmail.com>
----
- drivers/mtd/nand/omap2.c |    4 +++-
- 1 files changed, 3 insertions(+), 1 deletions(-)
-
-diff --git a/drivers/mtd/nand/omap2.c b/drivers/mtd/nand/omap2.c
-index f745f00..7feb274 100644
---- a/drivers/mtd/nand/omap2.c
-+++ b/drivers/mtd/nand/omap2.c
-@@ -402,7 +402,7 @@ static inline int omap_nand_dma_transfer(struct mtd_info *mtd, void *addr,
- 			PREFETCH_FIFOTHRESHOLD_MAX, 0x1, len, is_write);
- 	if (ret)
- 		/* PFPW engine is busy, use cpu copy method */
--		goto out_copy;
-+		goto out_copy_unmap;
- 
- 	init_completion(&info->comp);
- 
-@@ -421,6 +421,8 @@ static inline int omap_nand_dma_transfer(struct mtd_info *mtd, void *addr,
- 	dma_unmap_single(&info->pdev->dev, dma_addr, len, dir);
- 	return 0;
- 
-+out_copy_unmap:
-+	dma_unmap_single(&info->pdev->dev, dma_addr, len, dir);
- out_copy:
- 	if (info->nand.options & NAND_BUSWIDTH_16)
- 		is_write == 0 ? omap_read_buf16(mtd, (u_char *) addr, len)
--- 
-1.7.0.4
-
+Thanks Rob, I'll post a patch to fix that up.
