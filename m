@@ -1,26 +1,28 @@
-From: Paul Walmsley <paul@pwsan.com>
+From: "Mark A. Greer" <mgreer@animalcreek.com>
 Subject: Re: [PATCH 06/12] arm: omap3: am35x: Add full PWRDM_POWER_INACTIVE
  support
-Date: Wed, 11 Apr 2012 15:08:54 -0600 (MDT)
-Message-ID: <alpine.DEB.2.00.1204111506240.29473@utopia.booyaka.com>
-References: <1334171147-7517-1-git-send-email-mgreer@animalcreek.com> <1334171147-7517-7-git-send-email-mgreer@animalcreek.com> <CAORVsuW2Nax4h+SxEJ6dLM1AopAFPQjvK0FHa9N5mEEVCStpQw@mail.gmail.com>
+Date: Wed, 11 Apr 2012 14:12:53 -0700
+Message-ID: <20120411211253.GA7979@animalcreek.com>
+References: <1334171147-7517-1-git-send-email-mgreer@animalcreek.com>
+ <1334171147-7517-7-git-send-email-mgreer@animalcreek.com>
+ <CAORVsuW2Nax4h+SxEJ6dLM1AopAFPQjvK0FHa9N5mEEVCStpQw@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from utopia.booyaka.com ([72.9.107.138]:45951 "EHLO
-	utopia.booyaka.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S933260Ab2DKVIz (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 11 Apr 2012 17:08:55 -0400
+Received: from mail20.dotsterhost.com ([66.11.232.73]:33363 "EHLO
+	mail20.dotsterhost.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753625Ab2DKVMy (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 11 Apr 2012 17:12:54 -0400
+Content-Disposition: inline
 In-Reply-To: <CAORVsuW2Nax4h+SxEJ6dLM1AopAFPQjvK0FHa9N5mEEVCStpQw@mail.gmail.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: Jean Pihet <jean.pihet@newoldbits.com>
-Cc: "Mark A. Greer" <mgreer@animalcreek.com>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, khilman@ti.com
+Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, khilman@ti.com, paul@pwsan.com
 
-Hi
-
-On Wed, 11 Apr 2012, Jean Pihet wrote:
-
+On Wed, Apr 11, 2012 at 10:56:01PM +0200, Jean Pihet wrote:
+> Hi Mark,
+> 
 > On Wed, Apr 11, 2012 at 9:05 PM, Mark A. Greer <mgreer@animalcreek.com> wrote:
 > > From: "Mark A. Greer" <mgreer@animalcreek.com>
 > >
@@ -44,10 +46,15 @@ On Wed, 11 Apr 2012, Jean Pihet wrote:
 > and the functional states.
 > 
 > I would be glad to help on the AM35x support for the functional states.
+> 
+> What do you think?
 
-Since it might take a while for the functional powerstate code to go 
-upstream, if Mark wants to do this, I'd suggest that he split the
-powerdomain-specific patches off from the rest of his series.  This should 
-avoid blocking the rest of his patches on the infrastructure changes.
+Sure.  Sounds like the right thing to do.
 
-- Paul
+> [1] http://marc.info/?l=linux-omap&m=133417729712693&w=2
+
+Thanks for the pointer.  I'll do a little research and contact you
+out-of-band.
+
+Mark
+--
