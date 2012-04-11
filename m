@@ -1,104 +1,54 @@
-From: Kevin Hilman <khilman@ti.com>
-Subject: Re: PM related performance degradation on OMAP3
-Date: Wed, 11 Apr 2012 12:17:58 -0700
-Message-ID: <87hawqt6vt.fsf@ti.com>
-References: <CANOLnOP5gq4Vtt00SgRNW-3GZDWk0sukBgJx4V6rkMLL+b6G-w@mail.gmail.com>
-	<4F859C5D.3090400@mlbassoc.com>
+From: Paul Walmsley <paul@pwsan.com>
+Subject: Re: Suspend broken on 3.3?
+Date: Wed, 11 Apr 2012 13:34:06 -0600 (MDT)
+Message-ID: <alpine.DEB.2.00.1204111323210.29473@utopia.booyaka.com>
+References: <WC20120329112755.541787@terrafix.co.uk> <CAMrsUdKTx84_oHyS9JTCBTqtV-7907snCGFDrOXnPuNVSnvz7w@mail.gmail.com> <WC20120330092609.901834@terrafix.co.uk> <CAMrsUdJrJZXjYOs87xmT_J0w7S=VZyfR0tBmhhuYOFmFsOB3SA@mail.gmail.com> <WC20120330110442.381887@terrafix.co.uk>
+ <CAMrsUd+AvVp3n1oAREEEmCSBaeA-m68j7gLjXEeJKimX1erfUw@mail.gmail.com> <CAMrsUd+K_EwXfypgYWNyAhR7b47avTpWDemS87OTkpH81cJ6Aw@mail.gmail.com> <alpine.DEB.2.00.1204040852460.8000@utopia.booyaka.com> <CAMrsUd+WZcUvHGdR4WyF4uh35D17K9DXFAqpLHKBUbL1_5viDA@mail.gmail.com>
+ <alpine.DEB.2.00.1204051812320.10302@utopia.booyaka.com> <87iphdeyaf.fsf@ti.com> <CAMrsUdLMYVwd3rupHtrNKC0rMvx1-3B=4usOh8cwTUy8DX_hVg@mail.gmail.com> <87zkalc75h.fsf@ti.com> <alpine.DEB.2.00.1204090944191.6640@utopia.booyaka.com> <874nssde5h.fsf@ti.com>
+ <CAMrsUd+SLko-L=B9gfqSpdcYQrqmAgXa0yFVWrR2YXuW9FBLmQ@mail.gmail.com> <87fwcb5urr.fsf@ti.com> <CAMrsUd+-5_6dFxcj=BCt+gHwnzA7zBev0t_nQ3dQAGZzWq8X0w@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aog126.obsmtp.com ([74.125.149.155]:36944 "EHLO
-	na3sys009aog126.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S932836Ab2DKTRt (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>);
-	Wed, 11 Apr 2012 15:17:49 -0400
-Received: by pbcun15 with SMTP id un15so1696150pbc.5
-        for <linux-omap@vger.kernel.org>; Wed, 11 Apr 2012 12:17:48 -0700 (PDT)
-In-Reply-To: <4F859C5D.3090400@mlbassoc.com> (Gary Thomas's message of "Wed,
-	11 Apr 2012 08:59:41 -0600")
+Received: from utopia.booyaka.com ([72.9.107.138]:42968 "EHLO
+	utopia.booyaka.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755215Ab2DKTeH (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 11 Apr 2012 15:34:07 -0400
+In-Reply-To: <CAMrsUd+-5_6dFxcj=BCt+gHwnzA7zBev0t_nQ3dQAGZzWq8X0w@mail.gmail.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Gary Thomas <gary@mlbassoc.com>
-Cc: Grazvydas Ignotas <notasas@gmail.com>, linux-omap@vger.kernel.org, Paul Walmsley <paul@pwsan.com>
+To: "Raja, Govindraj" <govindraj.raja@ti.com>
+Cc: Kevin Hilman <khilman@ti.com>, Joe Woodward <jw@terrafix.co.uk>, linux-omap@vger.kernel.org, Felipe Balbi <balbi@ti.com>, neilb@suse.de, linux-serial@vger.kernel.org
 
-Gary Thomas <gary@mlbassoc.com> writes:
+Hi
 
-[...]
+a few brief comments based on a quick scan:
 
-> I fear I'm seeing similar problems with 3.3.  I have my board (similar
-> to the BeagleBoard) ported to 3.0 and 3.3.  I'm seeing terrible network
-> performance on 3.3.  For example, if I use TFTP to download a large file
-> (~35MB), I get this:
->   3.0:  42.5 sec
->   3.3: 625.0 sec
-> That's a factor of 15 worse!
+On Wed, 11 Apr 2012, Raja, Govindraj wrote:
 
-This might not be the same problem.  What is the NIC being used, and
-does it have GPIO interrupts?
+> Here is the patch [1] to do the same.
 
-If it's using GPIO interrupts, then you likely need this patch from
-mainline (v3.4-rc1)
+- I don't see where it affects I/O wakeups for the UART.  If I/O wakeups 
+are still set on the UART pads, won't that still wake the chip up from 
+suspend, even if module-level wakeups are disabled?
 
-If that doesn't work, or you're not using GPIO interrupts, could you
-confirm if the patch below[2] (based on idea from Grasvydas) increases
-performance for you when CONFIG_PM=y.
+- The UART driver and integration code should not be reading from or 
+writing to registers outside the UART IP block.  PRM register reads and 
+writes belong in the PRM code, which should then export a higher-level 
+interface to the calling code.  This is because, aside from making the 
+code easier to read and debug, we're trying to move the PRM and CM code to 
+drivers/.
 
-Kevin
+- The code to change the PM_WKEN* and test the PM_WKST* bits should 
+probably be called from omap_hwmod_{enable,disable}_wakeup(), not the UART 
+code directly.  The UART code shouldn't need to care about the hardware 
+details; it should just ask the integration layer to enable or disable 
+module-level wakeups.
 
-[1]
-Author: Kevin Hilman <khilman@ti.com>  2012-03-05 15:10:04
-Committer: Grant Likely <grant.likely@secretlab.ca>  2012-03-12 09:16:11
-Parent: 25db711df3258d125dc1209800317e5c0ef3c870 (gpio/omap: Fix IRQ handling for SPARSE_IRQ)
-Child:  8805f410e4fb88a56552c1af42d61b38837a38fd (gpio/omap: Fix section warning for omap_mpuio_alloc_gc())
-Branches: many (66)
-Follows: v3.3-rc7
-Precedes: v3.4-rc1
+As you work on these changes, please split them up into several different 
+topic series - one for the PRM changes, one for hwmod code/data changes, 
+and one for the UART driver/integration changes.  Just note the 
+dependencies in the series description E-mails.  That way, we can avoid 
+merge conflicts.
 
-    gpio/omap: fix wakeups on level-triggered GPIOs
-    
-    While both level- and edge-triggered GPIOs are capable of generating
-    interrupts, only edge-triggered GPIOs are capable of generating a
-    module-level wakeup to the PRCM (c.f. 34xx NDA TRM section 25.5.3.2.)
-    
-    In order to ensure that devices using level-triggered GPIOs as
-    interrupts can also cause wakeups (e.g. from idle), this patch enables
-    edge-triggering for wakeup-enabled, level-triggered GPIOs when a GPIO
-    bank is runtime-suspended (which also happens during idle.)
-    
-    This fixes a problem found in GPMC-connected network cards with GPIO
-    interrupts (e.g. smsc911x on Zoom3, Overo, ...) where network booting
-    with NFSroot was very slow since the GPIO IRQs used by the NIC were
-    not generating PRCM wakeups, and thus not waking the system from idle.
-    NOTE: until v3.3, this boot-time problem was somewhat masked because
-    the UART init prevented WFI during boot until the full serial driver
-    was available.  Preventing WFI allowed regular GPIO interrupts to fire
-    and this problem was not seen.  After the UART runtime PM cleanups, we
-    no longer avoid WFI during boot, so GPIO IRQs that were not causing
-    wakeups resulted in very slow IRQ response times.
-    
-    Tested on platforms using level-triggered GPIOs for network IRQs using
-    the SMSC911x NIC: 3530/Overo and 3630/Zoom3.
-    
-    Reported-by: Tony Lindgren <tony@atomide.com>
-    Tested-by: Tarun Kanti DebBarma <tarun.kanti@ti.com>
-    Tested-by: Tony Lindgren <tony@atomide.com>
-    Signed-off-by: Kevin Hilman <khilman@ti.com>
-    Signed-off-by: Grant Likely <grant.likely@secretlab.ca>
 
-[2]
-diff --git a/arch/arm/mach-omap2/cpuidle34xx.c b/arch/arm/mach-omap2/cpuidle34xx.c
-index 413aac4..ace4bf6 100644
---- a/arch/arm/mach-omap2/cpuidle34xx.c
-+++ b/arch/arm/mach-omap2/cpuidle34xx.c
-@@ -120,7 +120,10 @@ static int __omap3_enter_idle(struct cpuidle_device *dev,
- 		cpu_pm_enter();
- 
- 	/* Execute ARM wfi */
--	omap_sram_idle();
-+	if (index == 0)
-+		cpu_do_idle();
-+	else
-+		omap_sram_idle();
- 
- 	/*
- 	 * Call idle CPU PM enter notifier chain to restore
+- Paul
