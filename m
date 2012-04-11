@@ -1,121 +1,79 @@
-From: Shubhrajyoti D <shubhrajyoti-l0cyMroinI0@public.gmane.org>
-Subject: [PATCHv7 03/18] I2C: OMAP: Recover from Bus Busy condition
-Date: Wed, 11 Apr 2012 16:22:14 +0530
-Message-ID: <1334141549-8288-4-git-send-email-shubhrajyoti@ti.com>
+From: Shubhrajyoti D <shubhrajyoti@ti.com>
+Subject: [PATCHv7 18/18] I2C: OMAP: Rename the 1p153 to the erratum id i462
+Date: Wed, 11 Apr 2012 16:22:29 +0530
+Message-ID: <1334141549-8288-19-git-send-email-shubhrajyoti@ti.com>
 References: <1334141549-8288-1-git-send-email-shubhrajyoti@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
-Return-path: <linux-i2c-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <1334141549-8288-1-git-send-email-shubhrajyoti-l0cyMroinI0@public.gmane.org>
-Sender: linux-i2c-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-Cc: linux-i2c-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, ben-linux-elnMNo+KYs3YtjvyW6yDsg@public.gmane.org, tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org, w.sang-bIcnvbaLZ9MEGnE8C9+IrQ@public.gmane.org, Vikram Pandita <vikram.pandita-l0cyMroinI0@public.gmane.org>, Jon Hunter <jon-hunter-l0cyMroinI0@public.gmane.org>, Shubhrajyoti D <shubhrajyoti-l0cyMroinI0@public.gmane.org>
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from bear.ext.ti.com ([192.94.94.41]:59490 "EHLO bear.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1757569Ab2DKKxW (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Wed, 11 Apr 2012 06:53:22 -0400
+In-Reply-To: <1334141549-8288-1-git-send-email-shubhrajyoti@ti.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: linux-omap@vger.kernel.org
+Cc: linux-i2c@vger.kernel.org, linux-arm-kernel@lists.infradead.org, ben-linux@fluff.org, tony@atomide.com, w.sang@pengutronix.de, Shubhrajyoti D <shubhrajyoti@ti.com>, Jon Hunter <jon-hunter@ti.com>
 
-From: Vikram Pandita <vikram.pandita-l0cyMroinI0@public.gmane.org>
+The section number in the recent errata document has changed.
+Rename the erratum 1p153 to the unique id i462 instead, so that
+it is easier to reference. Also change the function name and comments
+to reflect the same.
 
-In case a peripheral is driving SDA bus low (ie. a start condition), provide
-a constant clock output using the test mode of the OMAP I2C controller to
-try and clear the bus. Soft reset I2C controller after attempting the bus clear
-to ensure that controller is in a good state.
-
-Based upon Vikram Pandita's patch from TI Android 3.0.
-I acknowledge the contributions and suggestions of Jon and Hemant.
-
-A couple differences from the original patch ...
-1. Add a new function for bus clear
-2. Ensure that the CON.I2C_EN bit is set when using the SYSTEST feature to
-   output a permanent clock. This bit needs to be set and typically it would
-   be set by the unidle function but this is not the case for all OMAP
-   generations.
-3. Program the SYSTEST setting only the bits we care about. However, restore
-   SYSTEST registers to there original state as some OMAP generations do not
-   implement perform a soft-reset.
-4. Clear the CON register after performing the bus clear, so when we call the
-   init function the controller is disabled and the init function will
-   re-enable later.
-
-Original patch can be found here:
-http://git.omapzoom.org/?p=kernel/omap.git;a=commit;h=a2ab04192ba25e60f95ba1ff3af5601a2d7b5bd1
-
-Signed-off-by: Vikram Pandita <vikram.pandita-l0cyMroinI0@public.gmane.org>
-Signed-off-by: Jon Hunter <jon-hunter-l0cyMroinI0@public.gmane.org>
-Signed-off-by: Shubhrajyoti D <shubhrajyoti-l0cyMroinI0@public.gmane.org>
+Cc: Jon Hunter <jon-hunter@ti.com>
+Signed-off-by: Shubhrajyoti D <shubhrajyoti@ti.com>
 ---
- drivers/i2c/busses/i2c-omap.c |   33 ++++++++++++++++++++++++++++++---
- 1 files changed, 30 insertions(+), 3 deletions(-)
+ drivers/i2c/busses/i2c-omap.c |   12 ++++++------
+ 1 files changed, 6 insertions(+), 6 deletions(-)
 
 diff --git a/drivers/i2c/busses/i2c-omap.c b/drivers/i2c/busses/i2c-omap.c
-index e402ebb..a882558 100644
+index 2bf8120..667d344 100644
 --- a/drivers/i2c/busses/i2c-omap.c
 +++ b/drivers/i2c/busses/i2c-omap.c
-@@ -147,16 +147,15 @@ enum {
- #define OMAP_I2C_SCLH_HSSCLH	8
+@@ -170,7 +170,7 @@ enum {
  
- /* I2C System Test Register (OMAP_I2C_SYSTEST): */
--#ifdef DEBUG
- #define OMAP_I2C_SYSTEST_ST_EN		(1 << 15)	/* System test enable */
- #define OMAP_I2C_SYSTEST_FREE		(1 << 14)	/* Free running mode */
- #define OMAP_I2C_SYSTEST_TMODE_MASK	(3 << 12)	/* Test mode select */
--#define OMAP_I2C_SYSTEST_TMODE_SHIFT	(12)		/* Test mode select */
-+#define OMAP_I2C_SYSTEST_TMODE_TEST	(2 << 12)	/* Test mode select */
-+#define OMAP_I2C_SYSTEST_TMODE_LOOP	(3 << 12)	/* Test mode select */
- #define OMAP_I2C_SYSTEST_SCL_I		(1 << 3)	/* SCL line sense in */
- #define OMAP_I2C_SYSTEST_SCL_O		(1 << 2)	/* SCL line drive out */
- #define OMAP_I2C_SYSTEST_SDA_I		(1 << 1)	/* SDA line sense in */
- #define OMAP_I2C_SYSTEST_SDA_O		(1 << 0)	/* SDA line drive out */
--#endif
+ /* Errata definitions */
+ #define I2C_OMAP_ERRATA_I207		(1 << 0)
+-#define I2C_OMAP3_1P153			(1 << 1)
++#define I2C_OMAP_ERRATA_I462		(1 << 1)
  
- /* OCP_SYSSTATUS bit definitions */
- #define SYSS_RESETDONE_MASK		(1 << 0)
-@@ -319,6 +318,7 @@ static int omap_i2c_reset(struct omap_i2c_dev *dev)
- 							dev->westate);
- 		}
- 	}
-+	return 0;
- }
- 
- static int omap_i2c_init(struct omap_i2c_dev *dev)
-@@ -471,6 +471,31 @@ static int omap_i2c_wait_for_bb(struct omap_i2c_dev *dev)
- }
+ struct omap_i2c_dev {
+ 	struct device		*dev;
+@@ -753,11 +753,11 @@ omap_i2c_omap1_isr(int this_irq, void *dev_id)
+ #endif
  
  /*
-+ * Bus Clear
-+ */
-+static int omap_i2c_bus_clear(struct omap_i2c_dev *dev)
-+{
-+	u16 w;
-+
-+	/*
-+	 * Per the I2C specification, if we are stuck in a bus busy state
-+	 * we can attempt a bus clear to try and recover the bus by sending
-+	 * at least 9 clock pulses on SCL. Put the I2C in a test mode so it
-+	 * will output a continuous clock on SCL.
-+	 */
-+	w = omap_i2c_read_reg(dev, OMAP_I2C_SYSTEST_REG);
-+	omap_i2c_write_reg(dev, OMAP_I2C_CON_REG, OMAP_I2C_CON_EN);
-+	omap_i2c_write_reg(dev, OMAP_I2C_SYSTEST_REG, (OMAP_I2C_SYSTEST_ST_EN
-+			   | OMAP_I2C_SYSTEST_TMODE_TEST));
-+	msleep(1);
-+	omap_i2c_write_reg(dev, OMAP_I2C_SYSTEST_REG, w);
-+	omap_i2c_write_reg(dev, OMAP_I2C_CON_REG, 0);
-+	omap_i2c_reset(dev);
-+	omap_i2c_init(dev);
-+	return omap_i2c_wait_for_bb(dev);
-+}
-+
-+/*
-  * Low level master read/write transaction.
+- * OMAP3430 Errata 1.153: When an XRDY/XDR is hit, wait for XUDF before writing
++ * OMAP3430 Errata i462: When an XRDY/XDR is hit, wait for XUDF before writing
+  * data to DATA_REG. Otherwise some data bytes can be lost while transferring
+  * them from the memory to the I2C interface.
   */
- static int omap_i2c_xfer_msg(struct i2c_adapter *adap,
-@@ -597,6 +622,8 @@ omap_i2c_xfer(struct i2c_adapter *adap, struct i2c_msg msgs[], int num)
+-static int errata_omap3_1p153(struct omap_i2c_dev *dev, u16 *stat, int *err)
++static int errata_omap3_i462(struct omap_i2c_dev *dev, u16 *stat, int *err)
+ {
+ 	unsigned long timeout = 10000;
  
- 	r = omap_i2c_wait_for_bb(dev);
- 	if (r < 0)
-+		r = omap_i2c_bus_clear(dev);
-+	if (r < 0)
- 		goto out;
+@@ -920,8 +920,8 @@ complete:
+ 					break;
+ 				}
  
- 	if (dev->set_mpu_wkup_lat != NULL)
+-				if ((dev->errata & I2C_OMAP3_1P153) &&
+-				    errata_omap3_1p153(dev, &stat, &err))
++				if ((dev->errata & I2C_OMAP_ERRATA_I462) &&
++				    errata_omap3_i462(dev, &stat, &err))
+ 					goto complete;
+ 
+ 				omap_i2c_write_reg(dev, OMAP_I2C_DATA_REG, w);
+@@ -1061,7 +1061,7 @@ omap_i2c_probe(struct platform_device *pdev)
+ 		dev->errata |= I2C_OMAP_ERRATA_I207;
+ 
+ 	if (dev->rev <= OMAP_I2C_REV_ON_3430_3530)
+-		dev->errata |= I2C_OMAP3_1P153;
++		dev->errata |= I2C_OMAP_ERRATA_I462;
+ 
+ 	if (!(dev->flags & OMAP_I2C_FLAG_NO_FIFO)) {
+ 		u16 s;
 -- 
 1.7.4.1
+
