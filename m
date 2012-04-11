@@ -1,56 +1,76 @@
 From: Shubhrajyoti D <shubhrajyoti@ti.com>
-Subject: [PATCHv7 05/18] I2C: OMAP: Fix the interrupt clearing in OMAP4
-Date: Wed, 11 Apr 2012 16:22:16 +0530
-Message-ID: <1334141549-8288-6-git-send-email-shubhrajyoti@ti.com>
+Subject: [PATCHv7 08/18] I2C: OMAP: Fix the error handling
+Date: Wed, 11 Apr 2012 16:22:19 +0530
+Message-ID: <1334141549-8288-9-git-send-email-shubhrajyoti@ti.com>
 References: <1334141549-8288-1-git-send-email-shubhrajyoti@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from bear.ext.ti.com ([192.94.94.41]:59499 "EHLO bear.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1757821Ab2DKKxY (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Wed, 11 Apr 2012 06:53:24 -0400
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
 In-Reply-To: <1334141549-8288-1-git-send-email-shubhrajyoti@ti.com>
-Sender: linux-omap-owner@vger.kernel.org
-List-Id: linux-omap@vger.kernel.org
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
+List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
+List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
+Sender: linux-arm-kernel-bounces@lists.infradead.org
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
 To: linux-omap@vger.kernel.org
-Cc: linux-i2c@vger.kernel.org, linux-arm-kernel@lists.infradead.org, ben-linux@fluff.org, tony@atomide.com, w.sang@pengutronix.de, Shubhrajyoti D <shubhrajyoti@ti.com>, Vikram Pandita <vikram.pandita@ti.com>
+Cc: tony@atomide.com, w.sang@pengutronix.de, linux-i2c@vger.kernel.org, ben-linux@fluff.org, Shubhrajyoti D <shubhrajyoti@ti.com>, linux-arm-kernel@lists.infradead.org
+List-Id: linux-omap@vger.kernel.org
 
-On OMAP4 we were writing 1 to IRQENABLE_CLR which cleared only
-the arbitration lost interrupt. The patch intends to fix the same by writing 0
-to the IE register clearing all interrupts.
+Currently in probe
+      pm_runtime_put(dev->dev);
 
-This is based on the work done by Vikram Pandita <vikram.pandita@ti.com>.
+...
+        /* i2c device drivers may be active on return from add_adapter() */
+        adap->nr = pdev->id;
+        r = i2c_add_numbered_adapter(adap);
+        if (r) {
+                dev_err(dev->dev, "failure adding adapter\n");
+                goto err_free_irq;
+        }
+...
 
-The  changes from the original patch ...
--  Does not use the IRQENABLE_CLR register to clear as it is not mentioned
-  to be legacy register IRQENABLE_CLR helps in  atomically
-  setting/clearing specific interrupts, instead use the OMAP_I2C_IE_REG as we are
-  clearing all interrupts.
+        return 0;
 
-Cc: Vikram Pandita <vikram.pandita@ti.com>
+err_free_irq:
+        free_irq(dev->irq, dev);
+err_unuse_clocks:
+        omap_i2c_write_reg(dev, OMAP_I2C_CON_REG, 0);
+        pm_runtime_put(dev->dev);
+
+This may access the i2c registers without the clocks.
+Attempting to fix the same by moving the pm_rintime_put after the error check.
+
 Signed-off-by: Shubhrajyoti D <shubhrajyoti@ti.com>
 ---
- drivers/i2c/busses/i2c-omap.c |    6 ++----
- 1 files changed, 2 insertions(+), 4 deletions(-)
+ drivers/i2c/busses/i2c-omap.c |    4 ++--
+ 1 files changed, 2 insertions(+), 2 deletions(-)
 
 diff --git a/drivers/i2c/busses/i2c-omap.c b/drivers/i2c/busses/i2c-omap.c
-index 45389db..2769f67 100644
+index 2096726..a461097 100644
 --- a/drivers/i2c/busses/i2c-omap.c
 +++ b/drivers/i2c/busses/i2c-omap.c
-@@ -1179,10 +1179,8 @@ static int omap_i2c_runtime_suspend(struct device *dev)
- 		_dev->dev_lost_count = _dev->get_context_loss_count(dev);
+@@ -1095,8 +1095,6 @@ omap_i2c_probe(struct platform_device *pdev)
+ 	dev_info(dev->dev, "bus %d rev%d.%d.%d at %d kHz\n", pdev->id,
+ 		 dev->dtrev, dev->rev >> 4, dev->rev & 0xf, dev->speed);
  
- 	_dev->iestate = omap_i2c_read_reg(_dev, OMAP_I2C_IE_REG);
--	if (_dev->dtrev == OMAP_I2C_IP_VERSION_2)
--		omap_i2c_write_reg(_dev, OMAP_I2C_IP_V2_IRQENABLE_CLR, 1);
--	else
--		omap_i2c_write_reg(_dev, OMAP_I2C_IE_REG, 0);
+-	pm_runtime_put(dev->dev);
+-
+ 	adap = &dev->adapter;
+ 	i2c_set_adapdata(adap, dev);
+ 	adap->owner = THIS_MODULE;
+@@ -1116,6 +1114,8 @@ omap_i2c_probe(struct platform_device *pdev)
+ 
+ 	of_i2c_register_devices(adap);
+ 
++	pm_runtime_put(dev->dev);
 +
-+	omap_i2c_write_reg(_dev, OMAP_I2C_IE_REG, 0);
+ 	return 0;
  
- 	if (_dev->rev < OMAP_I2C_OMAP1_REV_2) {
- 		iv = omap_i2c_read_reg(_dev, OMAP_I2C_IV_REG); /* Read clears */
+ err_free_irq:
 -- 
 1.7.4.1
-
