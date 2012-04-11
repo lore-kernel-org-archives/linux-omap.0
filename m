@@ -1,42 +1,35 @@
-From: Grazvydas Ignotas <notasas@gmail.com>
-Subject: Re: PM related performance degradation on OMAP3
-Date: Wed, 11 Apr 2012 20:23:04 +0300
-Message-ID: <CANOLnONfRGgSvS7ZLpee6m17=FEjX47-m8RvPt7RzGZ=f1FT2w@mail.gmail.com>
-References: <CANOLnOP5gq4Vtt00SgRNW-3GZDWk0sukBgJx4V6rkMLL+b6G-w@mail.gmail.com>
-	<4F859C5D.3090400@mlbassoc.com>
+From: Paul Walmsley <paul@pwsan.com>
+Subject: Re: [PATCH v4 01/12] ARM: OMAP2+: declare file-local functions as
+ static
+Date: Wed, 11 Apr 2012 12:16:11 -0600 (MDT)
+Message-ID: <alpine.DEB.2.00.1204111215480.29473@utopia.booyaka.com>
+References: <20120411003454.27059.37500.stgit@dusk> <20120411003516.27059.99477.stgit@dusk> <201204110843.57548.arnd@arndb.de>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-iy0-f174.google.com ([209.85.210.174]:64907 "EHLO
-	mail-iy0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1760771Ab2DKRXF convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 11 Apr 2012 13:23:05 -0400
-Received: by iagz16 with SMTP id z16so1527717iag.19
-        for <linux-omap@vger.kernel.org>; Wed, 11 Apr 2012 10:23:04 -0700 (PDT)
-In-Reply-To: <4F859C5D.3090400@mlbassoc.com>
+Received: from utopia.booyaka.com ([72.9.107.138]:44589 "EHLO
+	utopia.booyaka.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1760820Ab2DKSQN (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 11 Apr 2012 14:16:13 -0400
+In-Reply-To: <201204110843.57548.arnd@arndb.de>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Gary Thomas <gary@mlbassoc.com>
-Cc: linux-omap@vger.kernel.org, Kevin Hilman <khilman@ti.com>, Paul Walmsley <paul@pwsan.com>
+To: Arnd Bergmann <arnd@arndb.de>
+Cc: linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org, Govindraj R <govindraj.raja@ti.com>, Santosh Shilimkar <santosh.shilimkar@ti.com>, David Anders <x0132446@ti.com>
 
-On Wed, Apr 11, 2012 at 5:59 PM, Gary Thomas <gary@mlbassoc.com> wrote:
-> I'd like to try building without CONFIG_PM, but when I disabled this,=
- my
-> kernel fails to come up. =C2=A0Can someone point me to the magic to b=
-uild without
-> CONFIG_PM, or possibly send me a working config file?
+On Wed, 11 Apr 2012, Arnd Bergmann wrote:
 
-You probably need this patch:
-http://marc.info/?l=3Dlinux-omap&m=3D133374930011086&w=3D2
-If it still won't boot, you'll need to enable earlyprintk both in
-=2Econfig and as kernel argument to see where it dies.
+> On Wednesday 11 April 2012, Paul Walmsley wrote:
+> > Several function declarations used only in the files in which they're
+> > declared should include the static keyboard, but don't:
+> 					^^^ ???
 
+Heh, should have read "keyword".
 
---=20
-Gra=C5=BEvydas
---
-To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> The patch looks good otherwise,
+> 
+> Acked-by: Arnd Bergmann <arnd@arndb.de>
+
+Thanks for the comment, ack added.
+
+- Paul
