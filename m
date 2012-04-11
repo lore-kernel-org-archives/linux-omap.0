@@ -1,14 +1,14 @@
 From: Tarun Kanti DebBarma <tarun.kanti@ti.com>
-Subject: [PATCH] ARM: OMAP2+: remove redundant sysconfig context restore
-Date: Wed, 11 Apr 2012 14:04:16 +0530
-Message-ID: <1334133256-20475-1-git-send-email-tarun.kanti@ti.com>
+Subject: [PATCH] ARM: OMAP2+: dmtimer: remove redundant sysconfig context restore
+Date: Wed, 11 Apr 2012 14:09:35 +0530
+Message-ID: <1334133575-20671-1-git-send-email-tarun.kanti@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from bear.ext.ti.com ([192.94.94.41]:51996 "EHLO bear.ext.ti.com"
+Received: from bear.ext.ti.com ([192.94.94.41]:52303 "EHLO bear.ext.ti.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751450Ab2DKIe0 (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Wed, 11 Apr 2012 04:34:26 -0400
+	id S1754218Ab2DKIjk (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Wed, 11 Apr 2012 04:39:40 -0400
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: linux-omap@vger.kernel.org
@@ -21,6 +21,8 @@ This was causing incorrect context restore of sysconfig register.
 
 Signed-off-by: Tarun Kanti DebBarma <tarun.kanti@ti.com>
 ---
+Modified the $SUBJECT to include *dmtimer* as per convention.
+
  arch/arm/plat-omap/dmtimer.c |    2 --
  1 files changed, 0 insertions(+), 2 deletions(-)
 
