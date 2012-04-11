@@ -1,78 +1,59 @@
-From: Archit Taneja <a0393947@ti.com>
-Subject: query about _setup() in omap_hwmod.c
-Date: Wed, 11 Apr 2012 15:07:10 +0530
-Message-ID: <4F8550C6.9050402@ti.com>
+From: Rajendra Nayak <rnayak@ti.com>
+Subject: [PATCH] mmc: omap_hsmmc: Get rid of of_have_populated_dt() usage
+Date: Wed, 11 Apr 2012 15:33:13 +0530
+Message-ID: <1334138593-9692-1-git-send-email-rnayak@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="ISO-8859-1"; format=flowed
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from arroyo.ext.ti.com ([192.94.94.40]:49469 "EHLO arroyo.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752552Ab2DKJhk (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Wed, 11 Apr 2012 05:37:40 -0400
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain
+Return-path: <linux-mmc-owner@vger.kernel.org>
+Sender: linux-mmc-owner@vger.kernel.org
+To: cjb@laptop.org
+Cc: linux-omap@vger.kernel.org, linux-mmc@vger.kernel.org, devicetree-discuss@lists.ozlabs.org, b-cousson@ti.com, Rajendra Nayak <rnayak@ti.com>, Balaji TK <balajitk@ti.com>, Rob Herring <rob.herring@calxeda.com>, Sebastian Andrzej Siewior <bigeasy@linutronix.de>
 List-Id: linux-omap@vger.kernel.org
-To: Benoit Cousson <b-cousson@ti.com>, "paul@pwsan.com" <paul@pwsan.com>
-Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
 
-Hi,
+of_have_populated_dt() is not expected to be used in drivers but
+instead only in early platform init code.
+Drivers on the other hand should rely on dev->of_node or of_match_device().
+Besides usage of of_have_populated_dt() also throws up build error as below
+which was reported by Balaji TK, when omap_hsmmc is built as a module.
 
-I had a query about the _setup() function in 
-arch/arm/mach-omap2/omap_hwmod.c:
+ERROR: "allnodes" [drivers/mmc/host/omap_hsmmc.ko] undefined!
+make[1]: *** [__modpost] Error 1
+make: *** [modules] Error 2
 
-The function enables slave clocks right in the beginning, and based on 
-the value of postsetup_state, it either calls _idle(), _shutdown() or 
-does nothing.
+So get rid of all of_have_populated_dt() usage in omap_hsmmc driver and
+instead use dev->of_node to make the same dicisions as earlier.
 
-Now, for the case of _idle() or _shutdown(), I guess it's the job of 
-_disable_clocks() to disable the slave clocks before we exit _setup().
+Signed-off-by: Rajendra Nayak <rnayak@ti.com>
+Reported-by: Benoit Cousson <b-cousson@ti.com>
+Cc: Balaji TK <balajitk@ti.com>
+Cc: Rob Herring <rob.herring@calxeda.com>
+Cc: Sebastian Andrzej Siewior <bigeasy@linutronix.de>
+---
+ drivers/mmc/host/omap_hsmmc.c |    4 ++--
+ 1 files changed, 2 insertions(+), 2 deletions(-)
 
-If we compare how the slave clocks are enabled and disabled in _setup() 
-and _disable_clocks() respectively:
+diff --git a/drivers/mmc/host/omap_hsmmc.c b/drivers/mmc/host/omap_hsmmc.c
+index ecc9521..4254b6f 100644
+--- a/drivers/mmc/host/omap_hsmmc.c
++++ b/drivers/mmc/host/omap_hsmmc.c
+@@ -252,7 +252,7 @@ static int omap_hsmmc_set_power(struct device *dev, int slot, int power_on,
+ 	 * the pbias cell programming support is still missing when
+ 	 * booting with Device tree
+ 	 */
+-	if (of_have_populated_dt() && !vdd)
++	if (dev->of_node && !vdd)
+ 		return 0;
+ 
+ 	if (mmc_slot(host).before_set_reg)
+@@ -1564,7 +1564,7 @@ static void omap_hsmmc_set_ios(struct mmc_host *mmc, struct mmc_ios *ios)
+ 			 * can't be allowed when booting with device
+ 			 * tree.
+ 			 */
+-			(!of_have_populated_dt())) {
++			!host->dev->of_node) {
+ 				/*
+ 				 * The mmc_select_voltage fn of the core does
+ 				 * not seem to set the power_mode to
+-- 
+1.7.1
 
-static int _setup(struct omap_hwmod *oh, void *data)
-{
-	...
-	...
-	if (os->flags & OCPIF_SWSUP_IDLE) {
-                                 /* XXX omap_iclk_deny_idle(c); */
-                         } else {
-                                 /* XXX omap_iclk_allow_idle(c); */
-                                 clk_enable(c);
-                         }
-	}
-	...
-	...
-}
-
-static int _disable_clocks(struct omap_hwmod *oh)
-{
-	...
-	...
-	if (c && (os->flags & OCPIF_SWSUP_IDLE))
-		clk_disable(c);
-	...
-	...
-}
-
-Both these functions are taking different decisions based on whether 
-os->flags has OCPIF_SWSUP_IDLE or not.
-
-Would this lead to some sort of clk_enable() and clk_disable() mismatch?
-
-If I boot a 3.4-rc1 kernel on beagle with omap2plus_defconfig, I get:
-
-cat /sys/kernel/debug/clock/summary | grep dss
-
-name                parent              freq     use_count
-dss_ick                        l4_ick                 83000000   4
-dss2_alwon_fck                 sys_ck                 13000000   0
-dss_96m_fck                    omap_96m_fck           96000000   0
-dss_tv_fck                     omap_54m_fck           54000000   0
-dss1_alwon_fck                 dpll4_m4x2_ck          144000000  0
-
-dss_ick is the slave clock of all the dss hwmods on omap3. This doesn't 
-seem to be right, does it?
-
-Thanks,
-Archit
