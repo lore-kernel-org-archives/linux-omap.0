@@ -1,76 +1,65 @@
-From: "Mark A. Greer" <mgreer@animalcreek.com>
-Subject: Re: [PATCH 03/12] arm: omap3: Only sleep in cpuidle driver if I/O
- wake-ups work
-Date: Wed, 11 Apr 2012 15:23:13 -0700
-Message-ID: <20120411222313.GC31197@animalcreek.com>
+From: Kevin Hilman <khilman@ti.com>
+Subject: Re: [PATCH 11/12] arm: omap3: am35x: Add do_wfi routine for EMIF4 submodules
+Date: Wed, 11 Apr 2012 15:35:53 -0700
+Message-ID: <871untrj5i.fsf@ti.com>
 References: <1334171147-7517-1-git-send-email-mgreer@animalcreek.com>
- <1334171147-7517-4-git-send-email-mgreer@animalcreek.com>
- <alpine.DEB.2.00.1204111532280.29473@utopia.booyaka.com>
+	<1334171147-7517-12-git-send-email-mgreer@animalcreek.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail20.dotsterhost.com ([66.11.232.73]:46156 "EHLO
-	mail20.dotsterhost.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S933525Ab2DKWXO (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 11 Apr 2012 18:23:14 -0400
-Content-Disposition: inline
-In-Reply-To: <alpine.DEB.2.00.1204111532280.29473@utopia.booyaka.com>
+Received: from na3sys009aog101.obsmtp.com ([74.125.149.67]:50765 "EHLO
+	na3sys009aog101.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1751270Ab2DKWfo (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>);
+	Wed, 11 Apr 2012 18:35:44 -0400
+Received: by dajx4 with SMTP id x4so2178025daj.0
+        for <linux-omap@vger.kernel.org>; Wed, 11 Apr 2012 15:35:43 -0700 (PDT)
+In-Reply-To: <1334171147-7517-12-git-send-email-mgreer@animalcreek.com> (Mark
+	A. Greer's message of "Wed, 11 Apr 2012 12:05:46 -0700")
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Paul Walmsley <paul@pwsan.com>
-Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, khilman@ti.com
+To: "Mark A. Greer" <mgreer@animalcreek.com>
+Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, paul@pwsan.com, Ranjith Lohithakshan <ranjithl@ti.com>
 
-On Wed, Apr 11, 2012 at 03:37:47PM -0600, Paul Walmsley wrote:
-> 
-> On Wed, 11 Apr 2012, Mark A. Greer wrote:
-> 
-> > From: "Mark A. Greer" <mgreer@animalcreek.com>
-> > 
-> > Currently, the OMAP3 cpuidle driver calls omap3_enter_idle()
-> > which calls omap_sram_idle().  omap_sram_idle() eventually
-> > causes a 'wfi' instruction to be executed effectively putting
-> > the system to sleep.  It is assumed that an I/O wake-up event
-> > will occur to wake the system up again.  This doesn't work on
-> > systems that don't support I/O wake-ups (indicated by
-> > omap3_has_io_wakeup() returning false).
-> > 
-> > To handle this, follow the same path in omap3_enter_idle()
-> > that would be followed if an interrupt were pending.
-> 
-> I don't quite understand this patch.  Are you saying that AM3517/3505 
-> can't wake from WFI?  That would seem odd.
+"Mark A. Greer" <mgreer@animalcreek.com> writes:
 
-No, I'm saying that I/O doesn't seem to wake it up from the WFI.
-I've learned to not trust the am35x TRM much so I'm pretty much
-feeling my way along in the dark.  I do know that without this
-patch, the system is extremely slow which I believe is from it
-only returning from the WFI because of a timer expiration or
-something like that.
+> From: "Mark A. Greer" <mgreer@animalcreek.com>
+>
+> The typical SDRAM Controller Subsystem module (SDRC)
+> on TI OMAP3 devices has two submodules: the SDRAM Memory
+> Scheduler (SMS) submodule, and the SDRC submodule--the
+> 'SDRC' acronym/term is overloaded.  The am35x family of
+> devices is different in that it has an EMIF4 submodule
+> instead of an SDRC submodule.  The SMS submodules are
+> similar, though.
+>
+> The difference in SDRC/EMIF4 submodules is important because
+> omap34xx_cpu_suspend() will ultimately access the submodule's
+> registers and the register sets are different.  To support
+> the EMIF4 submodule, add the omap3_emif4_do_wfi() routine which
+> roughly does for the EMIF4 submodule what omap3_do_wfi() does
+> for the SDRC submodule.  This requires omap34xx_cpu_suspend()
+> to use a pointer set up in omap_push_sram_idle() so that it
+> jumps to the correct omap3*_do_wfi() routine in either SDRAM
+> or SRAM.
+>
+> Credits: arch/arm/mach-omap2/sleep3517.S in TI's am35x SDK
+> (05.03.02.00) which appears to be authored by Ranjith Lohithakshan
+> <ranjithl@ti.com> was used as a reference.
+>
+> CC: Ranjith Lohithakshan <ranjithl@ti.com>
+> Signed-off-by: Mark A. Greer <mgreer@animalcreek.com>
 
-> There are other sources of wakeup on the system other than I/O wakeup.  
-> I/O wakeup only applies to wakeups from the I/O pads when the chip is in 
-> RETENTION or OFF.  And as I understand it, neither of those apply to 
-> AM3517/3505?
+Dumb Q: do you actually need to do the EMIF4 self-refresh control from
+SRAM?
 
-Hmm, its true that RETENTION and OFF aren't supported.  It does wake up
-occasionally (as mentioned above) it just seems that I/O doesn't wake
-it up.  I may be mistaken.  I'm only going from what I've seen since and
-the TRM seems to have lots of errors so I'm not sure what to trust in it.
+The reason I ask is because on OMAP3, we tried going down the path of
+not running any of this from SRAM (run it from cache instead.)  However,
+due to some errata (c.f. wait_sdrc*, wait_dll_* ...), we had to handle
+these errata from SRAM.
 
-> Even if I/O wakeups aren't supported, many of the IP blocks on the system 
-> should be able to cause the ARM to exit WFI by asserting their 
-> SWAKEUP lines and raising their interrupt lines.
+Looking at your omap3_emif4_do_wfi, it looks like that's very minimal,
+and can probably be prefetched/run from cache.
 
-Okay, but that doesn't seem to be working.  I'll look some more to see
-why they aren't working.
+Kevin
 
-> So this change doesn't seem quite right to me...
-> 
-> More broadly, if AM3517/3505 only supports powerdomains ON, then you 
-> should probably use your own CPUIdle driver that doesn't touch the 
-> powerdomain states at all.
-
-Okay, I can do that.
-
-Mark
---
