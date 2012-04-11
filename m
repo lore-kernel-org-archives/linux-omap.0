@@ -1,54 +1,74 @@
-From: Paul Walmsley <paul@pwsan.com>
-Subject: Re: Suspend broken on 3.3?
-Date: Wed, 11 Apr 2012 13:34:06 -0600 (MDT)
-Message-ID: <alpine.DEB.2.00.1204111323210.29473@utopia.booyaka.com>
-References: <WC20120329112755.541787@terrafix.co.uk> <CAMrsUdKTx84_oHyS9JTCBTqtV-7907snCGFDrOXnPuNVSnvz7w@mail.gmail.com> <WC20120330092609.901834@terrafix.co.uk> <CAMrsUdJrJZXjYOs87xmT_J0w7S=VZyfR0tBmhhuYOFmFsOB3SA@mail.gmail.com> <WC20120330110442.381887@terrafix.co.uk>
- <CAMrsUd+AvVp3n1oAREEEmCSBaeA-m68j7gLjXEeJKimX1erfUw@mail.gmail.com> <CAMrsUd+K_EwXfypgYWNyAhR7b47avTpWDemS87OTkpH81cJ6Aw@mail.gmail.com> <alpine.DEB.2.00.1204040852460.8000@utopia.booyaka.com> <CAMrsUd+WZcUvHGdR4WyF4uh35D17K9DXFAqpLHKBUbL1_5viDA@mail.gmail.com>
- <alpine.DEB.2.00.1204051812320.10302@utopia.booyaka.com> <87iphdeyaf.fsf@ti.com> <CAMrsUdLMYVwd3rupHtrNKC0rMvx1-3B=4usOh8cwTUy8DX_hVg@mail.gmail.com> <87zkalc75h.fsf@ti.com> <alpine.DEB.2.00.1204090944191.6640@utopia.booyaka.com> <874nssde5h.fsf@ti.com>
- <CAMrsUd+SLko-L=B9gfqSpdcYQrqmAgXa0yFVWrR2YXuW9FBLmQ@mail.gmail.com> <87fwcb5urr.fsf@ti.com> <CAMrsUd+-5_6dFxcj=BCt+gHwnzA7zBev0t_nQ3dQAGZzWq8X0w@mail.gmail.com>
-Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+From: "Mark A. Greer" <mgreer@animalcreek.com>
+Subject: arm: omap3: am35x: Powerdomain, EMIF4, etc. fixups
+Date: Wed, 11 Apr 2012 12:05:35 -0700
+Message-ID: <1334171147-7517-1-git-send-email-mgreer@animalcreek.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from utopia.booyaka.com ([72.9.107.138]:42968 "EHLO
-	utopia.booyaka.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755215Ab2DKTeH (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 11 Apr 2012 15:34:07 -0400
-In-Reply-To: <CAMrsUd+-5_6dFxcj=BCt+gHwnzA7zBev0t_nQ3dQAGZzWq8X0w@mail.gmail.com>
+Received: from mail20.dotsterhost.com ([66.11.232.73]:49856 "EHLO
+	mail20.dotsterhost.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1761109Ab2DKTsH (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 11 Apr 2012 15:48:07 -0400
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "Raja, Govindraj" <govindraj.raja@ti.com>
-Cc: Kevin Hilman <khilman@ti.com>, Joe Woodward <jw@terrafix.co.uk>, linux-omap@vger.kernel.org, Felipe Balbi <balbi@ti.com>, neilb@suse.de, linux-serial@vger.kernel.org
+To: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+Cc: khilman@ti.com, paul@pwsan.com
 
-Hi
+The am35x family of SoCs has several differences from
+standard OMAP3 SoCs that haven't been accounted for in
+Linux ARM code.  These differences include:
 
-a few brief comments based on a quick scan:
+- There is no IVA.
+- The device doesn't not support RETENTION & OFF
+  power states.
+- The SDRC *module* has an EMIF4 submodule instead
+  of an SDRC submodule.
 
-On Wed, 11 Apr 2012, Raja, Govindraj wrote:
+This series of patches tries to account for those changes.
+They do the following:
 
-> Here is the patch [1] to do the same.
+- Prevent the cpu_idle thread and cpu_idle driver from
+  sleeping because there are no I/O wake-ups to wake
+  things back up again.
+- Add a new cpu feature that indicates whether the device
+  supports RETENTION & OFF power states.  Add code to
+  support devices that only have INACTIVE & ON states.
+- Add a parallel set of clockdomain dependencies that
+  don't include the IVA.
+- Add a new cpu feature that indicates whether the device
+  has an EMIF4 or SDRC submodule of the SDRC module (the
+  SDRC term/acronym is overloaded).  Add a minimal amount
+  of code to support the EMIF4 submodule.
+- Some miscellaneous patches to fix issues found while
+  developing & testing the changes outlined above.
 
-- I don't see where it affects I/O wakeups for the UART.  If I/O wakeups 
-are still set on the UART pads, won't that still wake the chip up from 
-suspend, even if module-level wakeups are disabled?
+With these patches, the am3517 EVM boots and suspend-to-RAM
+functions.  Unfortunately, though, after all of this, I still
+can't manage to get the CORE power domain to enter the INACTIVE
+state (at least according to /sys/kernel/debug/pm_debug/count
+with debugfs mounted under /sys/kernel/debug).
 
-- The UART driver and integration code should not be reading from or 
-writing to registers outside the UART IP block.  PRM register reads and 
-writes belong in the PRM code, which should then export a higher-level 
-interface to the calling code.  This is because, aside from making the 
-code easier to read and debug, we're trying to move the PRM and CM code to 
-drivers/.
+The EMIF4 support is fairly minimal because there is an
+EMIF driver working its way to mainline.  If more changes
+are necessary, they can be made once the final version of
+that driver is in mainline.
 
-- The code to change the PM_WKEN* and test the PM_WKST* bits should 
-probably be called from omap_hwmod_{enable,disable}_wakeup(), not the UART 
-code directly.  The UART code shouldn't need to care about the hardware 
-details; it should just ask the integration layer to enable or disable 
-module-level wakeups.
+Please note that the SDRC submodule mapping is used by the
+EMIF4 code.  They are at the same physical addresses and are
+the same size so it works okay.  The reason I left the
+mapping alone is because when those mappings are made, its
+too early to use cpu_is_xxx() or omap3_has_sdrc_emif4() and
+I didn't want to bloat the kernel with something that's
+not strictly necessary.  I already have the code for the
+separate mappings, so adding it in is easy, if that's
+preferred.  I tried to make the mapping reuse clear with the
+commit log and by adding a comment in am35xx_init_early().
 
-As you work on these changes, please split them up into several different 
-topic series - one for the PRM changes, one for hwmod code/data changes, 
-and one for the UART driver/integration changes.  Just note the 
-dependencies in the series description E-mails.  That way, we can avoid 
-merge conflicts.
+These patches are based on the latest mainline kernel as
+of this writing, commit 258f742635360175564e9470eb060ff4d4b984e7,
+(modpost: Fix modpost license checking of vmlinux.o).  That
+kernel with these patches was tested on an am35x EVM, am37x EVM,
+and a Beagleboard-xM.  Testing included suspend-to-RAM
+(i.e., "echo mem > /sys/power/state") with a rootfs mounted from
+mmc and nfs (except for the Beagleboard-xM).
 
-
-- Paul
+Mark
+--
