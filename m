@@ -1,70 +1,103 @@
-From: Rob Herring <robherring2@gmail.com>
-Subject: Re: [PATCH] mmc: omap_hsmmc: Get rid of of_have_populated_dt() usage
-Date: Wed, 11 Apr 2012 07:10:21 -0500
-Message-ID: <4F8574AD.5040306@gmail.com>
-References: <1334138593-9692-1-git-send-email-rnayak@ti.com>
+From: Felipe Balbi <balbi@ti.com>
+Subject: Re: [PATCHv7 14/18] I2C: OMAP: Use SET_RUNTIME_PM_OPS
+Date: Wed, 11 Apr 2012 15:10:58 +0300
+Message-ID: <20120411121056.GJ12064@arwen.pp.htv.fi>
+References: <1334142776-10583-1-git-send-email-shubhrajyoti@ti.com>
+ <1334142776-10583-15-git-send-email-shubhrajyoti@ti.com>
+ <20120411113537.GG12064@arwen.pp.htv.fi>
+ <1BAFE6F6C881BF42822005164F1491C331829571@DBDE01.ent.ti.com>
+Reply-To: balbi@ti.com
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
+Content-Type: multipart/signed; micalg=pgp-sha1;
+	protocol="application/pgp-signature"; boundary="hvDi6/M7gW6JbuLr"
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-ob0-f174.google.com ([209.85.214.174]:55173 "EHLO
-	mail-ob0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752503Ab2DKMK0 (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 11 Apr 2012 08:10:26 -0400
-In-Reply-To: <1334138593-9692-1-git-send-email-rnayak@ti.com>
+Received: from na3sys009aog124.obsmtp.com ([74.125.149.151]:52144 "EHLO
+	na3sys009aog124.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1751667Ab2DKMLs (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>);
+	Wed, 11 Apr 2012 08:11:48 -0400
+Received: by lbbgi11 with SMTP id gi11so589064lbb.38
+        for <linux-omap@vger.kernel.org>; Wed, 11 Apr 2012 05:11:45 -0700 (PDT)
+Content-Disposition: inline
+In-Reply-To: <1BAFE6F6C881BF42822005164F1491C331829571@DBDE01.ent.ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Rajendra Nayak <rnayak@ti.com>
-Cc: cjb@laptop.org, devicetree-discuss@lists.ozlabs.org, linux-mmc@vger.kernel.org, Rob Herring <rob.herring@calxeda.com>, linux-omap@vger.kernel.org, Sebastian Andrzej Siewior <bigeasy@linutronix.de>, Balaji TK <balajitk@ti.com>
+To: "Hebbar, Gururaja" <gururaja.hebbar@ti.com>
+Cc: "Balbi, Felipe" <balbi@ti.com>, "Datta, Shubhrajyoti" <shubhrajyoti@ti.com>, "tony@atomide.com" <tony@atomide.com>, "w.sang@pengutronix.de" <w.sang@pengutronix.de>, "linux-i2c@vger.kernel.org" <linux-i2c@vger.kernel.org>, "ben-linux@fluff.org" <ben-linux@fluff.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>
 
-On 04/11/2012 05:03 AM, Rajendra Nayak wrote:
-> of_have_populated_dt() is not expected to be used in drivers but
-> instead only in early platform init code.
-> Drivers on the other hand should rely on dev->of_node or of_match_device().
-> Besides usage of of_have_populated_dt() also throws up build error as below
-> which was reported by Balaji TK, when omap_hsmmc is built as a module.
-> 
-> ERROR: "allnodes" [drivers/mmc/host/omap_hsmmc.ko] undefined!
-> make[1]: *** [__modpost] Error 1
-> make: *** [modules] Error 2
-> 
-> So get rid of all of_have_populated_dt() usage in omap_hsmmc driver and
-> instead use dev->of_node to make the same dicisions as earlier.
-> 
-> Signed-off-by: Rajendra Nayak <rnayak@ti.com>
-> Reported-by: Benoit Cousson <b-cousson@ti.com>
-> Cc: Balaji TK <balajitk@ti.com>
-> Cc: Rob Herring <rob.herring@calxeda.com>
 
-Ack
+--hvDi6/M7gW6JbuLr
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
 
-Rob
+On Wed, Apr 11, 2012 at 12:09:22PM +0000, Hebbar, Gururaja wrote:
+> Bablpi,
+>=20
+> On Wed, Apr 11, 2012 at 17:05:38, Balbi, Felipe wrote:
+> > On Wed, Apr 11, 2012 at 04:42:52PM +0530, Shubhrajyoti D wrote:
+> > > Use SET_RUNTIME_PM_OPS macro to set runtime functions.
+> > >=20
+> > > Signed-off-by: Shubhrajyoti D <shubhrajyoti@ti.com>
+> > > ---
+> > >  drivers/i2c/busses/i2c-omap.c |   11 ++++-------
+> > >  1 files changed, 4 insertions(+), 7 deletions(-)
+> > >=20
+> > > diff --git a/drivers/i2c/busses/i2c-omap.c b/drivers/i2c/busses/i2c-o=
+map.c
+> > > index dd65416..28de1d2 100644
+> > > --- a/drivers/i2c/busses/i2c-omap.c
+> > > +++ b/drivers/i2c/busses/i2c-omap.c
+> > > @@ -1217,15 +1217,12 @@ static int omap_i2c_runtime_resume(struct dev=
+ice *dev)
+> > > =20
+> > >  	return 0;
+> > >  }
+> > > +#endif
+> > > =20
+> > >  static struct dev_pm_ops omap_i2c_pm_ops =3D {
+> > > -	.runtime_suspend =3D omap_i2c_runtime_suspend,
+> > > -	.runtime_resume =3D omap_i2c_runtime_resume,
+> > > +	SET_RUNTIME_PM_OPS(omap_i2c_runtime_suspend,
+> > > +			   omap_i2c_runtime_resume, NULL)
+> > >  };
+> > > -#define OMAP_I2C_PM_OPS (&omap_i2c_pm_ops)
+> > > -#else
+> > > -#define OMAP_I2C_PM_OPS NULL
+> > > -#endif
+> >=20
+> > I think you should keep this define, otherwise the pm pointer will
+> > always be valid.
+>=20
+> No. using SET_RUNTIME_PM_OPS will make it NULL when !CONFIG_PM_RUNTIME
+> Kindly correct me if I am wrong.
 
-> Cc: Sebastian Andrzej Siewior <bigeasy@linutronix.de>
-> ---
->  drivers/mmc/host/omap_hsmmc.c |    4 ++--
->  1 files changed, 2 insertions(+), 2 deletions(-)
-> 
-> diff --git a/drivers/mmc/host/omap_hsmmc.c b/drivers/mmc/host/omap_hsmmc.c
-> index ecc9521..4254b6f 100644
-> --- a/drivers/mmc/host/omap_hsmmc.c
-> +++ b/drivers/mmc/host/omap_hsmmc.c
-> @@ -252,7 +252,7 @@ static int omap_hsmmc_set_power(struct device *dev, int slot, int power_on,
->  	 * the pbias cell programming support is still missing when
->  	 * booting with Device tree
->  	 */
-> -	if (of_have_populated_dt() && !vdd)
-> +	if (dev->of_node && !vdd)
->  		return 0;
->  
->  	if (mmc_slot(host).before_set_reg)
-> @@ -1564,7 +1564,7 @@ static void omap_hsmmc_set_ios(struct mmc_host *mmc, struct mmc_ios *ios)
->  			 * can't be allowed when booting with device
->  			 * tree.
->  			 */
-> -			(!of_have_populated_dt())) {
-> +			!host->dev->of_node) {
->  				/*
->  				 * The mmc_select_voltage fn of the core does
->  				 * not seem to set the power_mode to
+you will have a defined structure with NULL members, but the structure
+itself is still valid.
 
+--=20
+balbi
+
+--hvDi6/M7gW6JbuLr
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: Digital signature
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.4.12 (GNU/Linux)
+
+iQIcBAEBAgAGBQJPhXTQAAoJEIaOsuA1yqREV6IP/jeBS/+15Q76Rfog1sHSBPnH
+u+qVOwmg6H/x4JAb1VRFSIKhal9WbmD7Py1na8tEtJ/qTx3FZi4Mgir4gJ+zz5+I
+mtmkuTeE54B1UDaYdJy3vtPYPGkNYarz/L9Mo/sr6CNTVghg6X49PByLRzNpjy8I
+mgE4LQNOtfcvzLwIFNgUaVxcMMiBjvd22U5JzVB9XpBcFVg0SRby1ViHjQ39rE2O
+g9WbIleP8QrG12yt3GJZcqLJPh9+jgyhvNQ6kHnhjajSXaPRQCSJyMFHEAzKG17B
+oO1khoa37GmCUzUtaS2sQvEJnsC1lBKRwplYCs2L/shztJtijEr7jikBRxxujERm
+2fFpVflW5sTIqLQO3i9oP7VZv9OlY6qUyh0mpw0X82W2KgZJwY9CsW05l0P90FgO
+wDYnYy6tGBQTtsVzg5miI77Ve9/B7XIl5scfbxTrCC1YGs69RSUpDLitLOUIO3ZE
+sUjXe9THxjR4lkiYyOzo4ajGZK6vn0F5yeqT5Cg9wwgOAbiArwMlqVEF0eKW33zN
+N4+t0sIOqFrpNRa0CigjrME96+6N7s5a/l5kWoWjBtoTYcejivjnYiscHcwOvDtw
+wE32qa0ikzOXNu14StRxYi4KLEJOK6l2XtdQndJA33lsXa8+t1zFzP2Y4Tk7t7ye
+jQE6orVcDOREJab2bx31
+=6t6+
+-----END PGP SIGNATURE-----
+
+--hvDi6/M7gW6JbuLr--
