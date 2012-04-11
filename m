@@ -1,48 +1,59 @@
-From: Jon Hunter <jon-hunter@ti.com>
-Subject: Re: [PATCH 02/12] arm: omap3: Only sleep during cpu_idle if I/O wake-ups
- work
-Date: Wed, 11 Apr 2012 18:42:44 -0500
-Message-ID: <4F8616F4.4010109@ti.com>
-References: <1334171147-7517-1-git-send-email-mgreer@animalcreek.com> <1334171147-7517-3-git-send-email-mgreer@animalcreek.com>
+From: Paul Walmsley <paul@pwsan.com>
+Subject: Re: [PATCH 08/12] arm: omap3: am35x: Fix clockdomain dependencies
+Date: Wed, 11 Apr 2012 17:49:26 -0600 (MDT)
+Message-ID: <alpine.DEB.2.00.1204111748540.29473@utopia.booyaka.com>
+References: <1334171147-7517-1-git-send-email-mgreer@animalcreek.com> <1334171147-7517-9-git-send-email-mgreer@animalcreek.com> <alpine.DEB.2.00.1204111540060.29473@utopia.booyaka.com> <20120411215513.GA31197@animalcreek.com> <alpine.DEB.2.00.1204111555360.29473@utopia.booyaka.com>
+ <20120411224911.GE31197@animalcreek.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="ISO-8859-1"
-Content-Transfer-Encoding: 7bit
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from comal.ext.ti.com ([198.47.26.152]:38915 "EHLO comal.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S965265Ab2DKXmr (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Wed, 11 Apr 2012 19:42:47 -0400
-In-Reply-To: <1334171147-7517-3-git-send-email-mgreer@animalcreek.com>
+Received: from utopia.booyaka.com ([72.9.107.138]:50132 "EHLO
+	utopia.booyaka.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S933996Ab2DKXtf (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 11 Apr 2012 19:49:35 -0400
+In-Reply-To: <20120411224911.GE31197@animalcreek.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: "Mark A. Greer" <mgreer@animalcreek.com>
-Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, khilman@ti.com, paul@pwsan.com
+Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, khilman@ti.com
 
-Hi Mark,
+On Wed, 11 Apr 2012, Mark A. Greer wrote:
 
-On 04/11/2012 02:05 PM, Mark A. Greer wrote:
-> From: "Mark A. Greer" <mgreer@animalcreek.com>
+> On Wed, Apr 11, 2012 at 04:04:44PM -0600, Paul Walmsley wrote:
+> > On Wed, 11 Apr 2012, Mark A. Greer wrote:
+> > 
+> > > On Wed, Apr 11, 2012 at 03:44:38PM -0600, Paul Walmsley wrote:
+> > > 
+> > > > Looks like there are an extra set of commas here, maybe just use:
+> > > > 
+> > > > static struct clkdm_dep gfx_sgx_am35x_wkdeps[] = {
+> > > > 	{ .clkdm_name = "mpu_clkdm" },
+> > > > 	{ .clkdm_name = "wkup_clkdm" },
+> > > > 	{ NULL },
+> > > 
+> > > Yes, there are extra commas but they come from the code I'm copying
+> > > and removing iva2_clkdm from.  I was keeping things consistent so I
+> > > kept the commas.  Given that, do you still want them removed?
+> > > (I'm indifferent.)
+> > 
+> > Yes please.  I realize it's a minor issue, but I'd like to keep the format 
+> > of these files internally consistent.
 > 
-> Currently in the OMAP3 code, cpu_idle() calls pm_idle(),
-> which is a function pointer set to omap3_pm_idle()).
-> omap3_pm_idle() calls omap_sram_idle() which eventually
-> causes a 'wfi' instruction to be executed effectively
-> putting the system to sleep.  It is assumed that an
-> I/O wake-up event will occur to wake the system up again.
-> This doesn't work on systems that don't support I/O wake-ups
-> (indicated by omap3_has_io_wakeup() returning false).
-> 
-> Leaving pm_idle() pointing to default_idle() won't work
-> either because the cpu_<processor>_do_idle() routine which
-> is eventually called may also execute a 'wfi' instruction
-> (e.g., cpu_v7_do_idle()).
+> Hrm, did you meant "No thanks"?  As in, leave the commas there since
+> that's what the code that is already there is like?
 
-So with this change you will never execute wfi?
+The current data is in this format:
 
-I would have thought a timer or peripheral interrupt would be able to
-bring you out of wfi. IO wake-ups would only be needed for very low
-power states. At least that is how it is on OMAP devices. I am not sure
-how the AMxxx devices differ.
+/* 3430 PM_WKDEP_CAM: IVA2, MPU, WKUP */
+static struct clkdm_dep cam_wkdeps[] = {
+	{ .clkdm_name = "iva2_clkdm" },
+	{ .clkdm_name = "mpu_clkdm" },
+	{ .clkdm_name = "wkup_clkdm" },
+	{ NULL },
+};
 
-Cheers
-Jon
+So if you can match that, it would be ideal.
+
+
+
+- Paul
