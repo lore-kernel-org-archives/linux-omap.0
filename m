@@ -1,86 +1,49 @@
-From: Ming Lei <tom.leiming@gmail.com>
-Subject: Re: [PATCH 1/3] ARM: OMAP2+: 32k-counter: Use hwmod lookup to check
- presence of 32k timer
-Date: Wed, 11 Apr 2012 09:00:35 +0800
-Message-ID: <CACVXFVMtPEo1h6auh8gc=ZAxb0+w_-Jy7ARixS30k=9-TeKrkw@mail.gmail.com>
-References: <79CD15C6BA57404B839C016229A409A83184846A@DBDE01.ent.ti.com>
-	<20120405095221.GC25053@n2100.arm.linux.org.uk>
-	<79CD15C6BA57404B839C016229A409A831848621@DBDE01.ent.ti.com>
-	<87hawxkgoi.fsf@ti.com>
-	<79CD15C6BA57404B839C016229A409A831849432@DBDE01.ent.ti.com>
-	<20120406180452.GB15734@atomide.com>
-	<79CD15C6BA57404B839C016229A409A83184ABEF@DBDE01.ent.ti.com>
-	<4F83440E.70502@ti.com>
-	<20120410084413.GD25053@n2100.arm.linux.org.uk>
-	<4F83F600.4000002@ti.com>
-	<20120410092904.GE25053@n2100.arm.linux.org.uk>
-	<CAMQu2gwSAPtXOYWP1VmVCuxru_CrbLC-gLaaD7n4+utu3rOwxQ@mail.gmail.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+From: Grazvydas Ignotas <notasas@gmail.com>
+Subject: [PATCH] mtd: omap2: fix resource leak in prefetch-busy path
+Date: Wed, 11 Apr 2012 04:04:34 +0300
+Message-ID: <1334106274-24993-1-git-send-email-notasas@gmail.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-pb0-f46.google.com ([209.85.160.46]:58336 "EHLO
-	mail-pb0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1759947Ab2DKBAg convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 10 Apr 2012 21:00:36 -0400
-Received: by pbcun15 with SMTP id un15so586525pbc.19
-        for <linux-omap@vger.kernel.org>; Tue, 10 Apr 2012 18:00:35 -0700 (PDT)
-In-Reply-To: <CAMQu2gwSAPtXOYWP1VmVCuxru_CrbLC-gLaaD7n4+utu3rOwxQ@mail.gmail.com>
+Received: from mail-wi0-f172.google.com ([209.85.212.172]:41682 "EHLO
+	mail-wi0-f172.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755856Ab2DKBEc (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 10 Apr 2012 21:04:32 -0400
+Received: by wibhj6 with SMTP id hj6so3881872wib.1
+        for <linux-omap@vger.kernel.org>; Tue, 10 Apr 2012 18:04:31 -0700 (PDT)
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "Shilimkar, Santosh" <santosh.shilimkar@ti.com>
-Cc: Russell King - ARM Linux <linux@arm.linux.org.uk>, Jon Hunter <jon-hunter@ti.com>, "Hiremath, Vaibhav" <hvaibhav@ti.com>, Tony Lindgren <tony@atomide.com>, "Hilman, Kevin" <khilman@ti.com>, Paul Walmsley <paul@pwsan.com>, "Cousson, Benoit" <b-cousson@ti.com>, "marc.zyngier@arm.com" <marc.zyngier@arm.com>, "Balbi, Felipe" <balbi@ti.com>, "johnstul@us.ibm.com" <johnstul@us.ibm.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "DebBarma, Tarun Kanti" <tarun.kanti@ti.com>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>
+To: linux-mtd@lists.infradead.org
+Cc: David Woodhouse <dwmw2@infradead.org>, Artem Bityutskiy <artem.bityutskiy@linux.intel.com>, linux-omap@vger.kernel.org, Grazvydas Ignotas <notasas@gmail.com>
 
-On Tue, Apr 10, 2012 at 5:51 PM, Shilimkar, Santosh
-<santosh.shilimkar@ti.com> wrote:
-> On Tue, Apr 10, 2012 at 2:59 PM, Russell King - ARM Linux
-> <linux@arm.linux.org.uk> wrote:
->> On Tue, Apr 10, 2012 at 02:27:36PM +0530, Santosh Shilimkar wrote:
->>> On Tuesday 10 April 2012 02:14 PM, Russell King - ARM Linux wrote:
->>> > On Mon, Apr 09, 2012 at 03:18:22PM -0500, Jon Hunter wrote:
->>> >> True, but we would always want to use the 32k timer if CONFIG_PM=
- is
->>> >> specified. So what I am saying is that if a device has a 32ksync=
- timer
->>> >> and CONFIG_PM is defined, we always want to use the 32ksync time=
-r and a
->>> >> gptimer should never be used.
->>> >
->>> > Why? =A0What if you want to have PM enabled, and you also want to=
- use the
->>> > kernels high resolution timers, or you want more accurate timing =
-than
->>> > the 30.5us tick interval of the 32k timer?
->>>
->>> You might have missed the earlier comments on the thread. High
->>> resolution GP timer(sysclk) will stop in deeper power states and
->>> hence it can't be used with PM enabled usecases.
->>
->> Which means folk should be given the choice at boot time between run=
-ning
->> with the deeper power states and having a higher resolution timing s=
-ource,
->> rather than denying them the higher resolution timing source when PM=
- is
->> enabled.
->
-> Good point. My point is such facilities is already part of the kernel=
- and
-> there is no need to add a new one. The last proposal was allowing use=
-r to
-> choose gptimer as a clocksource and then you already have facility to
-> disable C-state now so, all should work in general
+If prefetch engine is busy, current code "forgets" to call
+dma_unmap_single(), which results in a deadlock later, so add it.
 
-'nohlt' in boot cmd should work to prevent CPU from entering deep C-sta=
-te,
-which looks enough to make gptimer working well if system suspend isn't
-considered.
+Signed-off-by: Grazvydas Ignotas <notasas@gmail.com>
+---
+ drivers/mtd/nand/omap2.c |    4 +++-
+ 1 files changed, 3 insertions(+), 1 deletions(-)
 
-Thanks,
---=20
-Ming Lei
---
-To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+diff --git a/drivers/mtd/nand/omap2.c b/drivers/mtd/nand/omap2.c
+index f745f00..7feb274 100644
+--- a/drivers/mtd/nand/omap2.c
++++ b/drivers/mtd/nand/omap2.c
+@@ -402,7 +402,7 @@ static inline int omap_nand_dma_transfer(struct mtd_info *mtd, void *addr,
+ 			PREFETCH_FIFOTHRESHOLD_MAX, 0x1, len, is_write);
+ 	if (ret)
+ 		/* PFPW engine is busy, use cpu copy method */
+-		goto out_copy;
++		goto out_copy_unmap;
+ 
+ 	init_completion(&info->comp);
+ 
+@@ -421,6 +421,8 @@ static inline int omap_nand_dma_transfer(struct mtd_info *mtd, void *addr,
+ 	dma_unmap_single(&info->pdev->dev, dma_addr, len, dir);
+ 	return 0;
+ 
++out_copy_unmap:
++	dma_unmap_single(&info->pdev->dev, dma_addr, len, dir);
+ out_copy:
+ 	if (info->nand.options & NAND_BUSWIDTH_16)
+ 		is_write == 0 ? omap_read_buf16(mtd, (u_char *) addr, len)
+-- 
+1.7.0.4
+
