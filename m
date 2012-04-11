@@ -1,89 +1,52 @@
-From: Felipe Balbi <balbi@ti.com>
-Subject: Re: [PATCH] mmc: omap_hsmmc: Get rid of of_have_populated_dt() usage
-Date: Wed, 11 Apr 2012 13:31:46 +0300
-Message-ID: <20120411103145.GA12064@arwen.pp.htv.fi>
-References: <1334138593-9692-1-git-send-email-rnayak@ti.com>
- <20120411100956.GT12064@arwen.pp.htv.fi>
- <4F855BDC.9070103@ti.com>
- <20120411102632.GY12064@arwen.pp.htv.fi>
- <4F855D23.2090803@ti.com>
-Reply-To: balbi@ti.com
+From: Shubhrajyoti D <shubhrajyoti@ti.com>
+Subject: [PATCHv7 07/18] I2C: OMAP: Optimise the remove code
+Date: Wed, 11 Apr 2012 16:22:18 +0530
+Message-ID: <1334141549-8288-8-git-send-email-shubhrajyoti@ti.com>
+References: <1334141549-8288-1-git-send-email-shubhrajyoti@ti.com>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="fKtH0JUtvN5p2ETH"
-Return-path: <linux-mmc-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <4F855D23.2090803@ti.com>
-Sender: linux-mmc-owner@vger.kernel.org
-To: Rajendra Nayak <rnayak@ti.com>
-Cc: balbi@ti.com, cjb@laptop.org, linux-omap@vger.kernel.org, linux-mmc@vger.kernel.org, devicetree-discuss@lists.ozlabs.org, b-cousson@ti.com, Balaji TK <balajitk@ti.com>, Rob Herring <rob.herring@calxeda.com>, Sebastian Andrzej Siewior <bigeasy@linutronix.de>
+Content-Type: text/plain
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from devils.ext.ti.com ([198.47.26.153]:43189 "EHLO
+	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756297Ab2DKKxE (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 11 Apr 2012 06:53:04 -0400
+In-Reply-To: <1334141549-8288-1-git-send-email-shubhrajyoti@ti.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: linux-omap@vger.kernel.org
+Cc: linux-i2c@vger.kernel.org, linux-arm-kernel@lists.infradead.org, ben-linux@fluff.org, tony@atomide.com, w.sang@pengutronix.de, Shubhrajyoti D <shubhrajyoti@ti.com>
 
+The omap_i2c_remove function may not be needed after
+device exit so the memory could be freed.
 
---fKtH0JUtvN5p2ETH
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
+Signed-off-by: Shubhrajyoti D <shubhrajyoti@ti.com>
+---
+ drivers/i2c/busses/i2c-omap.c |    5 ++---
+ 1 files changed, 2 insertions(+), 3 deletions(-)
 
-On Wed, Apr 11, 2012 at 03:59:55PM +0530, Rajendra Nayak wrote:
-> On Wednesday 11 April 2012 03:56 PM, Felipe Balbi wrote:
-> >On Wed, Apr 11, 2012 at 03:54:28PM +0530, Rajendra Nayak wrote:
-> >>On Wednesday 11 April 2012 03:39 PM, Felipe Balbi wrote:
-> >>>On Wed, Apr 11, 2012 at 03:33:13PM +0530, Rajendra Nayak wrote:
-> >>>>@@ -1564,7 +1564,7 @@ static void omap_hsmmc_set_ios(struct mmc_host =
-*mmc, struct mmc_ios *ios)
-> >>>>  			 * can't be allowed when booting with device
-> >>>>  			 * tree.
-> >>>>  			 */
-> >>>>-			(!of_have_populated_dt())) {
-> >>>>+			!host->dev->of_node) {
-> >>>
-> >>>won't compile
-> >>>
-> >>why? compiles fine for me.
-> >
-> >aren't you missing the opening parenthesis ? Or is there a something not
-> >shown in the context ?
-> >
-> Its the missing context thats confusing :-)
->=20
-> This is how the code looks in the file after the patch.
->=20
->                if ((OMAP_HSMMC_READ(host->base, HCTL) & SDVSDET) &&
->                         (ios->vdd =3D=3D DUAL_VOLT_OCR_BIT) &&
->                         /*
->                          * With pbias cell programming missing, this
->                          * can't be allowed when booting with device
->                          * tree.
->                          */
->                         !host->dev->of_node) {
+diff --git a/drivers/i2c/busses/i2c-omap.c b/drivers/i2c/busses/i2c-omap.c
+index 3670088..2096726 100644
+--- a/drivers/i2c/busses/i2c-omap.c
++++ b/drivers/i2c/busses/i2c-omap.c
+@@ -1134,8 +1134,7 @@ err_release_region:
+ 	return r;
+ }
+ 
+-static int
+-omap_i2c_remove(struct platform_device *pdev)
++static int __devexit omap_i2c_remove(struct platform_device *pdev)
+ {
+ 	struct omap_i2c_dev	*dev = platform_get_drvdata(pdev);
+ 	struct resource		*mem;
+@@ -1228,7 +1227,7 @@ static struct dev_pm_ops omap_i2c_pm_ops = {
+ 
+ static struct platform_driver omap_i2c_driver = {
+ 	.probe		= omap_i2c_probe,
+-	.remove		= omap_i2c_remove,
++	.remove		= __devexit_p(omap_i2c_remove),
+ 	.driver		= {
+ 		.name	= "omap_i2c",
+ 		.owner	= THIS_MODULE,
+-- 
+1.7.4.1
 
-ok, my bad then. Should've looked at the source code. Sorry for the
-noise.
-
---=20
-balbi
-
---fKtH0JUtvN5p2ETH
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: Digital signature
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.4.12 (GNU/Linux)
-
-iQIcBAEBAgAGBQJPhV2RAAoJEIaOsuA1yqREDsQQAINS1PjgP4JSwNre03muMrF4
-NPEe+5EJa582ebc/1NVaevNMMaXgsi8++8UT2LV7PSzxh3zDQGlDNcg624nLs570
-dHAoLQAcnv/qwNSpR1CzxIFrpD0QvwilVGQdxftkJ5Ks/1KyNdFpRwpyopiCbZO5
-owe7ES4dVzLF843S25UcGhPoI1eFnRtRJrWCA03MVOXD0OJOOOJF7i8hWXyy9/U5
-4gl/SgvLFtHxyY9fQJwKoI/S6tkmEypDZu4S+IqdhuNhNjSvZeytZqBjeYbm04jc
-qYSi5qa/iRRMyHy/DOVq7Z7wWDh6AuxzGml7GkvFYpyZSR+gXkfWgpkgcw1J6u4H
-1hXKkLKT494XWf8/J/Vp88eYeUmR10Opakai+AvgqYUCUDo6cqKIG7wFUKhXF2bh
-G2Y9QyF1ap6Rt1iX30vDApup4yGUKofRH7n3iAh1TfD59gTugaHUybBRGEtEH59l
-PqMTNmL0IqTT+Rb37RFmFKcLii5mmcl1nghOapSfgo4ouVhU+J9mlZVdYWllQ54h
-eQtumm68QQdAS5OtNYYfKbPOkCfDzcvW+7/HpPzvIsmfHPUeTpHkoP+brILHVlG2
-8/3QVYyo8sV9cq6dzinXfvGGP+0d+8+40pF12CiHT1ME44YMTNStTphz9DzKlP2V
-aIrdbPEkL/MN8T/qhPKl
-=IWj0
------END PGP SIGNATURE-----
-
---fKtH0JUtvN5p2ETH--
