@@ -1,83 +1,54 @@
-From: Jean Pihet <jean.pihet@newoldbits.com>
-Subject: Re: [PATCH 06/12] arm: omap3: am35x: Add full PWRDM_POWER_INACTIVE support
-Date: Wed, 11 Apr 2012 23:15:43 +0200
-Message-ID: <CAORVsuW-Pz1ewrBVT_KOrLbtzOBcdkRgo53NDKh7ctRT=PzHpQ@mail.gmail.com>
-References: <1334171147-7517-1-git-send-email-mgreer@animalcreek.com>
-	<1334171147-7517-7-git-send-email-mgreer@animalcreek.com>
-	<CAORVsuW2Nax4h+SxEJ6dLM1AopAFPQjvK0FHa9N5mEEVCStpQw@mail.gmail.com>
-	<alpine.DEB.2.00.1204111506240.29473@utopia.booyaka.com>
-	<20120411211416.GB7979@animalcreek.com>
+From: Paul Walmsley <paul@pwsan.com>
+Subject: Re: [PATCH 12/12] arm: omap3: am35x: Register davinci_mdio before
+ davinci_emac
+Date: Wed, 11 Apr 2012 15:24:05 -0600 (MDT)
+Message-ID: <alpine.DEB.2.00.1204111520260.29473@utopia.booyaka.com>
+References: <1334171147-7517-1-git-send-email-mgreer@animalcreek.com> <1334171147-7517-13-git-send-email-mgreer@animalcreek.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-vx0-f174.google.com ([209.85.220.174]:38263 "EHLO
-	mail-vx0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S933303Ab2DKVPn convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 11 Apr 2012 17:15:43 -0400
-Received: by vcqp1 with SMTP id p1so919770vcq.19
-        for <linux-omap@vger.kernel.org>; Wed, 11 Apr 2012 14:15:43 -0700 (PDT)
-In-Reply-To: <20120411211416.GB7979@animalcreek.com>
+Received: from utopia.booyaka.com ([72.9.107.138]:39039 "EHLO
+	utopia.booyaka.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S933381Ab2DKVYG (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 11 Apr 2012 17:24:06 -0400
+In-Reply-To: <1334171147-7517-13-git-send-email-mgreer@animalcreek.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: "Mark A. Greer" <mgreer@animalcreek.com>
-Cc: Paul Walmsley <paul@pwsan.com>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, khilman@ti.com
+Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, khilman@ti.com, Ilya Yanok <yanok@emcraft.com>
 
-On Wed, Apr 11, 2012 at 11:14 PM, Mark A. Greer <mgreer@animalcreek.com=
-> wrote:
-> On Wed, Apr 11, 2012 at 03:08:54PM -0600, Paul Walmsley wrote:
->> Hi
->>
->> On Wed, 11 Apr 2012, Jean Pihet wrote:
->>
->> > On Wed, Apr 11, 2012 at 9:05 PM, Mark A. Greer <mgreer@animalcreek=
-=2Ecom> wrote:
->> > > From: "Mark A. Greer" <mgreer@animalcreek.com>
->> > >
->> > > The am35x family of SoCs only support PWRDM_POWER_ON
->> > > and PWRDM_POWER_INACTIVE power states. This causes
->> > > an issue in some areas of the OMAP3 power-related
->> > > code because of assumptions that PWRDM_POWER_RET
->> > > and/or PWRDM_POWER_OFF are always valid states.
->> > >
->> > > To get am35x SoCs to work properly, add missing support
->> > > for PWRDM_POWER_INACTIVE and remove assumptions that
->> > > PWRDM_POWER_RET and PWRDM_POWER_OFF are always valid states.
->> > >
->> > > Signed-off-by: Mark A. Greer <mgreer@animalcreek.com>
->> >
->> > I just posted a patch set '[RFC/PATCH v2 0/6] ARM: OMAP2+: PM:
->> > introduce the power domains functional states' [1] which I think
->> > should be used to base your patches on. This patch set introduces
->> > functional states for the power domains power ans logic states, an=
-d
->> > the conversion functions between the internal power and logic stat=
-es
->> > and the functional states.
->> >
->> > I would be glad to help on the AM35x support for the functional st=
-ates.
->>
->> Since it might take a while for the functional powerstate code to go
->> upstream, if Mark wants to do this, I'd suggest that he split the
->> powerdomain-specific patches off from the rest of his series. =A0Thi=
-s should
->> avoid blocking the rest of his patches on the infrastructure changes=
-=2E
->
-> Another good idea. =A0I'll do the split in another day or so in case =
-there
-> are more comments I can address when I respin & separate the patches.
-Sounds great!
+cc Ilya
 
-Regards,
-Jean
+On Wed, 11 Apr 2012, Mark A. Greer wrote:
 
->
-> Mark
-> --
---
-To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> From: "Mark A. Greer" <mgreer@animalcreek.com>
+> 
+> Problem:
+> --------
+> When resuming from a Suspend-to-RAM event, the eth0 device
+> (davinci emac/mdio) on am35xx boards wouldn't work and the
+> following error message appeared on the console:
+> 
+> "net eth0: could not connect to phy davinci_mdio-0:00"
+
+...
+
+> Signed-off-by: Mark A. Greer <mgreer@animalcreek.com>
+> ---
+>  arch/arm/mach-omap2/am35xx-emac.c |   11 ++++++-----
+>  1 file changed, 6 insertions(+), 5 deletions(-)
+> 
+> diff --git a/arch/arm/mach-omap2/am35xx-emac.c b/arch/arm/mach-omap2/am35xx-emac.c
+> index 1f97e74..d23bd6c 100644
+> --- a/arch/arm/mach-omap2/am35xx-emac.c
+> +++ b/arch/arm/mach-omap2/am35xx-emac.c
+
+This is a little off-topic from this patch, but we should get rid of this 
+arch/arm/mach-omap2/am35xx-emac.c file.  These on-chip devices should be 
+registered via the hwmod code.  Looking at 
+arch/arm/mach-omap2/omap_hwmod_3xxx_data.c, I don't see any trace of the 
+EMAC or MDIO in there.  That's where all of these IPSS IP blocks should be 
+declared...
+
+
+- Paul
