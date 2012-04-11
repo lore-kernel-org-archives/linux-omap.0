@@ -1,72 +1,78 @@
-From: Shubhrajyoti D <shubhrajyoti@ti.com>
-Subject: [PATCHv7 10/18] I2C: OMAP: Don't check if
- wait_for_completion_timeout() returns less than zero
-Date: Wed, 11 Apr 2012 16:42:48 +0530
-Message-ID: <1334142776-10583-11-git-send-email-shubhrajyoti@ti.com>
+From: Felipe Balbi <balbi@ti.com>
+Subject: Re: [PATCHv7 01/18] I2C: OMAP: make omap_i2c_unidle/idle functions
+ depend on CONFIG_PM_RUNTIME
+Date: Wed, 11 Apr 2012 14:32:54 +0300
+Message-ID: <20120411113254.GE12064@arwen.pp.htv.fi>
 References: <1334142776-10583-1-git-send-email-shubhrajyoti@ti.com>
+ <1334142776-10583-2-git-send-email-shubhrajyoti@ti.com>
+Reply-To: balbi@ti.com
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-In-Reply-To: <1334142776-10583-1-git-send-email-shubhrajyoti@ti.com>
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: linux-arm-kernel-bounces@lists.infradead.org
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: linux-omap@vger.kernel.org
-Cc: tony@atomide.com, w.sang@pengutronix.de, linux-i2c@vger.kernel.org, ben-linux@fluff.org, Shubhrajyoti D <shubhrajyoti@ti.com>, linux-arm-kernel@lists.infradead.org
+Content-Type: multipart/signed; micalg=pgp-sha1;
+	protocol="application/pgp-signature"; boundary="ExIO7AL6tcaLjJBF"
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from na3sys009aog126.obsmtp.com ([74.125.149.155]:52365 "EHLO
+	na3sys009aog126.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1751384Ab2DKLdn (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>);
+	Wed, 11 Apr 2012 07:33:43 -0400
+Received: by lbbgo4 with SMTP id go4so81955lbb.3
+        for <linux-omap@vger.kernel.org>; Wed, 11 Apr 2012 04:33:40 -0700 (PDT)
+Content-Disposition: inline
+In-Reply-To: <1334142776-10583-2-git-send-email-shubhrajyoti@ti.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Shubhrajyoti D <shubhrajyoti@ti.com>
+Cc: linux-omap@vger.kernel.org, linux-i2c@vger.kernel.org, linux-arm-kernel@lists.infradead.org, ben-linux@fluff.org, tony@atomide.com, w.sang@pengutronix.de
 
-By definition, wait_for_completion_timeout() returns an unsigned value and
-therefore, it is not necessary to check if the return value is less than zero
-as this is not possible.
 
-This is based on a patch from Jon Hunter <jon-hunter@ti.com>
-Changes from his patch
-- Declare a long as the wait_for_completion_timeout returns long.
+--ExIO7AL6tcaLjJBF
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
 
-Original patch is
-http://git.omapzoom.org/?p=kernel/omap.git;a=commitdiff;h=ea02cece7b0000bc736e60c4188a11aaa74bc6e6
+On Wed, Apr 11, 2012 at 04:42:39PM +0530, Shubhrajyoti D wrote:
+> The functions omap_i2c_unidle/idle are called from omap_i2c_runtime_resume
+> and omap_i2c_runtime_suspend which is compiled for CONFIG_PM_RUNTIME.
+> This patch removes the omap_i2c_unidle/idle functions and folds them
+> into the runtime callbacks.
+>=20
+> This fixes the below warn when CONFIG_PM_RUNTIME is not defined
+>=20
+>  CC      arch/arm/mach-omap2/board-ti8168evm.o
+> drivers/i2c/busses/i2c-omap.c:272: warning: 'omap_i2c_unidle' defined but=
+ not used
+> drivers/i2c/busses/i2c-omap.c:293: warning: 'omap_i2c_idle' defined but n=
+ot used
+>   CC      net/ipv4/ip_forward.o
+>=20
+> Signed-off-by: Shubhrajyoti D <shubhrajyoti@ti.com>
 
-Cc : Jon Hunter <jon-hunter@ti.com>
-Signed-off-by: Shubhrajyoti D <shubhrajyoti@ti.com>
----
- drivers/i2c/busses/i2c-omap.c |   10 ++++------
- 1 files changed, 4 insertions(+), 6 deletions(-)
+how about just moving them into the #ifdef ? /me thinks it's easier to
+read with the function. Matter of taste though, it's not that much code.
 
-diff --git a/drivers/i2c/busses/i2c-omap.c b/drivers/i2c/busses/i2c-omap.c
-index 959e97c..121c52e 100644
---- a/drivers/i2c/busses/i2c-omap.c
-+++ b/drivers/i2c/busses/i2c-omap.c
-@@ -502,7 +502,7 @@ static int omap_i2c_xfer_msg(struct i2c_adapter *adap,
- 			     struct i2c_msg *msg, int stop)
- {
- 	struct omap_i2c_dev *dev = i2c_get_adapdata(adap);
--	int r;
-+	unsigned long timeout;
- 	u16 w;
- 
- 	dev_dbg(dev->dev, "addr: 0x%04x, len: %d, flags: 0x%x, stop: %d\n",
-@@ -570,12 +570,10 @@ static int omap_i2c_xfer_msg(struct i2c_adapter *adap,
- 	 * REVISIT: We should abort the transfer on signals, but the bus goes
- 	 * into arbitration and we're currently unable to recover from it.
- 	 */
--	r = wait_for_completion_timeout(&dev->cmd_complete,
--					OMAP_I2C_TIMEOUT);
-+	timeout = wait_for_completion_timeout(&dev->cmd_complete,
-+						OMAP_I2C_TIMEOUT);
- 	dev->buf_len = 0;
--	if (r < 0)
--		return r;
--	if (r == 0) {
-+	if (timeout == 0) {
- 		dev_err(dev->dev, "controller timed out\n");
- 		omap_i2c_reset(dev);
- 		omap_i2c_init(dev);
--- 
-1.7.4.1
+--=20
+balbi
+
+--ExIO7AL6tcaLjJBF
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: Digital signature
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.4.12 (GNU/Linux)
+
+iQIcBAEBAgAGBQJPhWvmAAoJEIaOsuA1yqRE+RcQAKffYkWNqPYIpI/jQW66jNaJ
+pjZpl4QUggSfh7xdk60sv1kKpcT22W0gUqHY3rQ6omtvANayT5Zkqxv68VYb5FPT
+QEduVz8sgkWIt0uj+l5/qIRQUpo26vDnEOZBEtcBIMWshwMG5BXIJAi6j0XfgkLB
+fVbu4Tbz13b0XORRGWkmtZpoMnzCOOVqV5JY4NrUumBYM89b7qndRoEZtFfJapEU
+BhuSj6Ie+WXiyfOagvRE7llso20XPGqBVGVKfimsc4EeIpGonuX2//JlUDOxmlZw
+QUfG6ReYxdBdMQDQGzUihqaNnrMMDPcaSSe1eCkZn8ewaSor/ajGIQqbL30AFp32
+sRVI++ZWJ62FrXS3U9Ttxh/TLJZdXOPLCoVX0gFFYMchhZbCjpW1XMvJFhMvs3d4
+FPCS4yIRI8Pgygm27HRYUmDRnni+ZYD8Btq7OjKB5WN6ZdtahzcKlJEDKNWKgt8d
+dhkocGCQfY8upQXlr9iR4oWZj6vqZOJvmsAlbR02FYSvggEpPx1q8HwMKY/So7Qq
+8L8qMkZiekAOJPk1VusDSjQ9sEbMyva0dG1KEwuTFeTZX60jG0WMjrK5o8lpzWmo
+AuvkGydh8V+h+69AqVzTGItbxqenWcH3EA+DNjvLGy6sy9FY1NDNj5gBQnjNFg4H
+s4m6l4910zco6Z04Xxvn
+=P1qq
+-----END PGP SIGNATURE-----
+
+--ExIO7AL6tcaLjJBF--
