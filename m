@@ -1,50 +1,63 @@
-From: Shubhrajyoti <shubhrajyoti@ti.com>
-Subject: Re: [PATCHv7 11/18] I2C: OMAP: use devm_* functions
-Date: Wed, 11 Apr 2012 17:26:26 +0530
-Message-ID: <4F85716A.4030308@ti.com>
-References: <1334142776-10583-1-git-send-email-shubhrajyoti@ti.com> <1334142776-10583-12-git-send-email-shubhrajyoti@ti.com> <20120411113456.GF12064@arwen.pp.htv.fi>
+From: Shubhrajyoti Datta <omaplinuxkernel@gmail.com>
+Subject: Re: [PATCHv7 01/18] I2C: OMAP: make omap_i2c_unidle/idle functions
+ depend on CONFIG_PM_RUNTIME
+Date: Wed, 11 Apr 2012 17:29:07 +0530
+Message-ID: <CAM=Q2csMkvbVwSav8d4KCXkcNS=oQGpPY2R-hiVzZvVPEngrog@mail.gmail.com>
+References: <1334142776-10583-1-git-send-email-shubhrajyoti@ti.com>
+	<1334142776-10583-2-git-send-email-shubhrajyoti@ti.com>
+	<20120411113254.GE12064@arwen.pp.htv.fi>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aog134.obsmtp.com ([74.125.149.83]:54542 "EHLO
-	psmtp.com" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
-	id S1758105Ab2DKL4d (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Wed, 11 Apr 2012 07:56:33 -0400
-Received: by obbuo13 with SMTP id uo13so1212195obb.6
-        for <linux-omap@vger.kernel.org>; Wed, 11 Apr 2012 04:56:31 -0700 (PDT)
-In-Reply-To: <20120411113456.GF12064@arwen.pp.htv.fi>
+Received: from mail-iy0-f174.google.com ([209.85.210.174]:61881 "EHLO
+	mail-iy0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752280Ab2DKL7I convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 11 Apr 2012 07:59:08 -0400
+In-Reply-To: <20120411113254.GE12064@arwen.pp.htv.fi>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: balbi@ti.com
-Cc: linux-omap@vger.kernel.org, linux-i2c@vger.kernel.org, linux-arm-kernel@lists.infradead.org, ben-linux@fluff.org, tony@atomide.com, w.sang@pengutronix.de
+Cc: Shubhrajyoti D <shubhrajyoti@ti.com>, linux-omap@vger.kernel.org, linux-i2c@vger.kernel.org, linux-arm-kernel@lists.infradead.org, ben-linux@fluff.org, tony@atomide.com, w.sang@pengutronix.de
 
-On Wednesday 11 April 2012 05:04 PM, Felipe Balbi wrote:
-> On Wed, Apr 11, 2012 at 04:42:49PM +0530, Shubhrajyoti D wrote:
->> The various devm_ functions allocate memory that is released when a driver
->> detaches. This patch uses devm_kzalloc, devm_request_mem_region and
->> devm_ioremap for data that is allocated in the probe function of a platform
->> device and is only freed in the remove function.
+Hi Felipe,
+
+On Wed, Apr 11, 2012 at 5:02 PM, Felipe Balbi <balbi@ti.com> wrote:
+> On Wed, Apr 11, 2012 at 04:42:39PM +0530, Shubhrajyoti D wrote:
+>> The functions omap_i2c_unidle/idle are called from omap_i2c_runtime_=
+resume
+>> and omap_i2c_runtime_suspend which is compiled for CONFIG_PM_RUNTIME=
+=2E
+>> This patch removes the omap_i2c_unidle/idle functions and folds them
+>> into the runtime callbacks.
+>>
+>> This fixes the below warn when CONFIG_PM_RUNTIME is not defined
+>>
+>> =A0CC =A0 =A0 =A0arch/arm/mach-omap2/board-ti8168evm.o
+>> drivers/i2c/busses/i2c-omap.c:272: warning: 'omap_i2c_unidle' define=
+d but not used
+>> drivers/i2c/busses/i2c-omap.c:293: warning: 'omap_i2c_idle' defined =
+but not used
+>> =A0 CC =A0 =A0 =A0net/ipv4/ip_forward.o
 >>
 >> Signed-off-by: Shubhrajyoti D <shubhrajyoti@ti.com>
->> ---
->>  drivers/i2c/busses/i2c-omap.c |   29 +++++++++--------------------
->>  1 files changed, 9 insertions(+), 20 deletions(-)
->>
->> diff --git a/drivers/i2c/busses/i2c-omap.c b/drivers/i2c/busses/i2c-omap.c
->> index 121c52e..86be475 100644
->> --- a/drivers/i2c/busses/i2c-omap.c
->> +++ b/drivers/i2c/busses/i2c-omap.c
->> @@ -995,17 +995,17 @@ omap_i2c_probe(struct platform_device *pdev)
->>  		return -ENODEV;
->>  	}
->>  
->> -	ioarea = request_mem_region(mem->start, resource_size(mem),
->> -			pdev->name);
->> +	ioarea = devm_request_mem_region(&pdev->dev, mem->start,
->> +			resource_size(mem), pdev->name);
-> you could use devm_request_and_ioremap()
-OK will do that.
+>
+> how about just moving them into the #ifdef ? /me thinks it's easier t=
+o
+> read with the function. Matter of taste though, it's not that much co=
+de.
 
-thanks,
+Kevin preferred folding into the  runtime functions.
 
+http://www.spinics.net/lists/linux-omap/msg62764.html
+
+Don't feel strongly though.
+
+>
+> --
+> balbi
+--
+To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
