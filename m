@@ -1,56 +1,47 @@
-From: Shubhrajyoti D <shubhrajyoti@ti.com>
-Subject: [PATCHv7 05/18] I2C: OMAP: Fix the interrupt clearing in OMAP4
-Date: Wed, 11 Apr 2012 16:42:43 +0530
-Message-ID: <1334142776-10583-6-git-send-email-shubhrajyoti@ti.com>
+From: Shubhrajyoti D <shubhrajyoti-l0cyMroinI0@public.gmane.org>
+Subject: [PATCHv7 17/18] I2C: OMAP: Do not set the XUDF if the underflow is not reached
+Date: Wed, 11 Apr 2012 16:42:55 +0530
+Message-ID: <1334142776-10583-18-git-send-email-shubhrajyoti@ti.com>
 References: <1334142776-10583-1-git-send-email-shubhrajyoti@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from comal.ext.ti.com ([198.47.26.152]:47830 "EHLO comal.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1760107Ab2DKLOL (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Wed, 11 Apr 2012 07:14:11 -0400
-In-Reply-To: <1334142776-10583-1-git-send-email-shubhrajyoti@ti.com>
-Sender: linux-omap-owner@vger.kernel.org
+Return-path: <linux-i2c-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <1334142776-10583-1-git-send-email-shubhrajyoti-l0cyMroinI0@public.gmane.org>
+Sender: linux-i2c-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Cc: linux-i2c-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, ben-linux-elnMNo+KYs3YtjvyW6yDsg@public.gmane.org, tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org, w.sang-bIcnvbaLZ9MEGnE8C9+IrQ@public.gmane.org, Shubhrajyoti D <shubhrajyoti-l0cyMroinI0@public.gmane.org>, Alexander Shishkin <virtuoso-0lOfPCoBze7YtjvyW6yDsg@public.gmane.org>
 List-Id: linux-omap@vger.kernel.org
-To: linux-omap@vger.kernel.org
-Cc: linux-i2c@vger.kernel.org, linux-arm-kernel@lists.infradead.org, ben-linux@fluff.org, tony@atomide.com, w.sang@pengutronix.de, Shubhrajyoti D <shubhrajyoti@ti.com>, Vikram Pandita <vikram.pandita@ti.com>
 
-On OMAP4 we were writing 1 to IRQENABLE_CLR which cleared only
-the arbitration lost interrupt. The patch intends to fix the same by writing 0
-to the IE register clearing all interrupts.
+Currently in the 1.153 errata handling while waiting for transmitter
+underflow if NACK is got the XUDF flag is also set.
+The flag is set after wait for the condition is over.
 
-This is based on the work done by Vikram Pandita <vikram.pandita@ti.com>.
-
-The  changes from the original patch ...
--  Does not use the IRQENABLE_CLR register to clear as it is not mentioned
-  to be legacy register IRQENABLE_CLR helps in  atomically
-  setting/clearing specific interrupts, instead use the OMAP_I2C_IE_REG as we are
-  clearing all interrupts.
-
-Cc: Vikram Pandita <vikram.pandita@ti.com>
-Signed-off-by: Shubhrajyoti D <shubhrajyoti@ti.com>
+Cc: Alexander Shishkin <virtuoso-0lOfPCoBze7YtjvyW6yDsg@public.gmane.org>
+Acked-by: Moiz Sonasath <m-sonasath-l0cyMroinI0@public.gmane.org>
+Signed-off-by: Shubhrajyoti D <shubhrajyoti-l0cyMroinI0@public.gmane.org>
 ---
- drivers/i2c/busses/i2c-omap.c |    6 ++----
- 1 files changed, 2 insertions(+), 4 deletions(-)
+ drivers/i2c/busses/i2c-omap.c |    2 +-
+ 1 files changed, 1 insertions(+), 1 deletions(-)
 
 diff --git a/drivers/i2c/busses/i2c-omap.c b/drivers/i2c/busses/i2c-omap.c
-index 45389db..2769f67 100644
+index f28bd5d..2b7182b 100644
 --- a/drivers/i2c/busses/i2c-omap.c
 +++ b/drivers/i2c/busses/i2c-omap.c
-@@ -1179,10 +1179,8 @@ static int omap_i2c_runtime_suspend(struct device *dev)
- 		_dev->dev_lost_count = _dev->get_context_loss_count(dev);
+@@ -765,7 +765,6 @@ static int errata_omap3_1p153(struct omap_i2c_dev *dev, u16 *stat, int *err)
+ 		if (*stat & (OMAP_I2C_STAT_NACK | OMAP_I2C_STAT_AL)) {
+ 			omap_i2c_ack_stat(dev, *stat & (OMAP_I2C_STAT_XRDY |
+ 							OMAP_I2C_STAT_XDR));
+-			*err |= OMAP_I2C_STAT_XUDF;
+ 			return -ETIMEDOUT;
+ 		}
  
- 	_dev->iestate = omap_i2c_read_reg(_dev, OMAP_I2C_IE_REG);
--	if (_dev->dtrev == OMAP_I2C_IP_VERSION_2)
--		omap_i2c_write_reg(_dev, OMAP_I2C_IP_V2_IRQENABLE_CLR, 1);
--	else
--		omap_i2c_write_reg(_dev, OMAP_I2C_IE_REG, 0);
-+
-+	omap_i2c_write_reg(_dev, OMAP_I2C_IE_REG, 0);
+@@ -778,6 +777,7 @@ static int errata_omap3_1p153(struct omap_i2c_dev *dev, u16 *stat, int *err)
+ 		return 0;
+ 	}
  
- 	if (_dev->rev < OMAP_I2C_OMAP1_REV_2) {
- 		iv = omap_i2c_read_reg(_dev, OMAP_I2C_IV_REG); /* Read clears */
++	*err |= OMAP_I2C_STAT_XUDF;
+ 	return 0;
+ }
+ 
 -- 
 1.7.4.1
-
