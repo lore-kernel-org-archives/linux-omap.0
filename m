@@ -1,87 +1,129 @@
 From: Shubhrajyoti D <shubhrajyoti-l0cyMroinI0@public.gmane.org>
-Subject: [PATCHv7 00/18] I2C updates
-Date: Wed, 11 Apr 2012 16:22:11 +0530
-Message-ID: <1334141549-8288-1-git-send-email-shubhrajyoti@ti.com>
+Subject: [PATCHv7 15/18] I2C: OMAP: make the read ready processing a separate function
+Date: Wed, 11 Apr 2012 16:22:26 +0530
+Message-ID: <1334141549-8288-16-git-send-email-shubhrajyoti@ti.com>
+References: <1334141549-8288-1-git-send-email-shubhrajyoti@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
 Return-path: <linux-i2c-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <1334141549-8288-1-git-send-email-shubhrajyoti-l0cyMroinI0@public.gmane.org>
 Sender: linux-i2c-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 To: linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 Cc: linux-i2c-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, ben-linux-elnMNo+KYs3YtjvyW6yDsg@public.gmane.org, tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org, w.sang-bIcnvbaLZ9MEGnE8C9+IrQ@public.gmane.org, Shubhrajyoti D <shubhrajyoti-l0cyMroinI0@public.gmane.org>
 List-Id: linux-omap@vger.kernel.org
 
-The patch series does the following
+No functional change. Makes the read ready processing a separate
+function. This is to avoid extremely long level of indentation.
 
-- Warn fixes if CONFIG_PM_RUNTIME is not selected.
-- I2C register restore only if context if the context is lost
-- Bus busy recovery mechanism.
-- the reset is not done in init.
-- Adds a patch to use devm_* functions
-- Also checks the return type of the get_sync and in case
- of errors prevents register access, also print the cause of
- failure in case of errors.
-- In case of i2c remove register access was done without any
- get_sync fix the same.
-- Adds a pdata function pointer to do context save restore
-- Split the omap_i2c_isr to increase readability
-- Make the i2c use SET_RUNTIME_PM_OPS
-- Folds a patch from Tasslehoff to prevent any merge conflicts.
-- Prevents the XDUF flag to be set if the underflow condition is not met.
-- As per discussion in [1] .Adds a patch to rename the 1p153 errata and
- use the unique id instead as the section number in the recent errata
- docs has changed.
+Signed-off-by: Shubhrajyoti D <shubhrajyoti-l0cyMroinI0@public.gmane.org>
+---
+ drivers/i2c/busses/i2c-omap.c |   86 +++++++++++++++++++++-------------------
+ 1 files changed, 45 insertions(+), 41 deletions(-)
 
-- As discussed in [2] Paul has queued the flag for context restore patch,
- removing it from the series.
-
-
-[1] http://www.spinics.net/lists/linux-i2c/msg07607.html
-[2] http://www.spinics.net/lists/linux-i2c/msg07685.html
-
-Tested on omap4sdp and omap3sdp.
-
-
-The following changes since commit 258f742635360175564e9470eb060ff4d4b984e7:
-
-  modpost: Fix modpost license checking of vmlinux.o (2012-04-09 20:52:56 -0700)
-
-are available in the git repository at:
-  git://gitorious.org/linus-tree/linus-tree.git i2c_omap-next
-
-
-
-Jon Hunter (1):
-  I2C: OMAP: Correct I2C revision for OMAP3
-
-Shubhrajyoti D (15):
-  I2C: OMAP: make omap_i2c_unidle/idle functions depend on
-    CONFIG_PM_RUNTIME
-  I2C: OMAP: Remove reset at init
-  I2C: OMAP: I2C register restore only if context is lost
-  I2C: OMAP: Fix the interrupt clearing in OMAP4
-  I2C: OMAP: Fix the mismatch of pm_runtime enable and disable
-  I2C: OMAP: Optimise the remove code
-  I2C: OMAP: Fix the error handling
-  I2C: OMAP: Don't check if wait_for_completion_timeout() returns less
-    than zero
-  I2C: OMAP: use devm_* functions
-  I2C: OMAP: Fix the crash in i2c remove
-  I2C: OMAP: Handle error check for pm runtime
-  I2C: OMAP: Use SET_RUNTIME_PM_OPS
-  I2C: OMAP: make the read ready processing a separate function
-  I2C: OMAP: Do not set the XUDF if the underflow is not reached
-  I2C: OMAP: Rename the 1p153 to the erratum id i462
-
-Tasslehoff Kjappfot (1):
-  I2C: OMAP: fix missing handling of errata I2C_OMAP3_1P153
-
-Vikram Pandita (1):
-  I2C: OMAP: Recover from Bus Busy condition
-
- arch/arm/plat-omap/i2c.c      |    3 +
- drivers/i2c/busses/i2c-omap.c |  348 +++++++++++++++++++++++------------------
- include/linux/i2c-omap.h      |    1 +
- 3 files changed, 198 insertions(+), 154 deletions(-)
-
+diff --git a/drivers/i2c/busses/i2c-omap.c b/drivers/i2c/busses/i2c-omap.c
+index c396cb7..666a365 100644
+--- a/drivers/i2c/busses/i2c-omap.c
++++ b/drivers/i2c/busses/i2c-omap.c
+@@ -786,6 +786,49 @@ static int errata_omap3_1p153(struct omap_i2c_dev *dev, u16 *stat, int *err)
+ 	return 0;
+ }
+ 
++static int process_read_rdy(struct omap_i2c_dev *dev)
++{
++	u8 num_bytes = 1;
++	u16 stat, w;
++
++	if (dev->errata & I2C_OMAP_ERRATA_I207)
++		i2c_omap_errata_i207(dev, stat);
++
++	if (dev->fifo_size) {
++		if (stat & OMAP_I2C_STAT_RRDY)
++			num_bytes = dev->fifo_size;
++		else    /* read RXSTAT on RDR interrupt */
++			num_bytes = (omap_i2c_read_reg(dev,
++					OMAP_I2C_BUFSTAT_REG) >> 8) & 0x3F;
++	}
++	while (num_bytes) {
++		num_bytes--;
++		w = omap_i2c_read_reg(dev, OMAP_I2C_DATA_REG);
++		if (dev->buf_len) {
++			*dev->buf++ = w;
++			dev->buf_len--;
++			/*
++			 * Data reg in 2430, omap3 and omap4 is 8 bit wide
++			 */
++			if (dev->flags & OMAP_I2C_FLAG_16BIT_DATA_REG) {
++				if (dev->buf_len) {
++					*dev->buf++ = w >> 8;
++					dev->buf_len--;
++				}
++			}
++		} else {
++			if (stat & OMAP_I2C_STAT_RRDY)
++				dev_err(dev->dev,
++					"RRDY IRQ while no data requested\n");
++			if (stat & OMAP_I2C_STAT_RDR)
++				dev_err(dev->dev,
++					"RDR IRQ while no data requested\n");
++			return -EIO;
++		}
++	}
++	return 0;
++}
++
+ static irqreturn_t
+ omap_i2c_isr(int this_irq, void *dev_id)
+ {
+@@ -836,48 +879,9 @@ complete:
+ 			return IRQ_HANDLED;
+ 		}
+ 		if (stat & (OMAP_I2C_STAT_RRDY | OMAP_I2C_STAT_RDR)) {
+-			u8 num_bytes = 1;
+-
+-			if (dev->errata & I2C_OMAP_ERRATA_I207)
+-				i2c_omap_errata_i207(dev, stat);
++			if (process_read_rdy(dev) == -EIO)
++				break;
+ 
+-			if (dev->fifo_size) {
+-				if (stat & OMAP_I2C_STAT_RRDY)
+-					num_bytes = dev->fifo_size;
+-				else    /* read RXSTAT on RDR interrupt */
+-					num_bytes = (omap_i2c_read_reg(dev,
+-							OMAP_I2C_BUFSTAT_REG)
+-							>> 8) & 0x3F;
+-			}
+-			while (num_bytes) {
+-				num_bytes--;
+-				w = omap_i2c_read_reg(dev, OMAP_I2C_DATA_REG);
+-				if (dev->buf_len) {
+-					*dev->buf++ = w;
+-					dev->buf_len--;
+-					/*
+-					 * Data reg in 2430, omap3 and
+-					 * omap4 is 8 bit wide
+-					 */
+-					if (dev->flags &
+-						 OMAP_I2C_FLAG_16BIT_DATA_REG) {
+-						if (dev->buf_len) {
+-							*dev->buf++ = w >> 8;
+-							dev->buf_len--;
+-						}
+-					}
+-				} else {
+-					if (stat & OMAP_I2C_STAT_RRDY)
+-						dev_err(dev->dev,
+-							"RRDY IRQ while no data"
+-								" requested\n");
+-					if (stat & OMAP_I2C_STAT_RDR)
+-						dev_err(dev->dev,
+-							"RDR IRQ while no data"
+-								" requested\n");
+-					break;
+-				}
+-			}
+ 			omap_i2c_ack_stat(dev,
+ 				stat & (OMAP_I2C_STAT_RRDY | OMAP_I2C_STAT_RDR));
+ 			continue;
 -- 
 1.7.4.1
