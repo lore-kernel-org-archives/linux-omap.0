@@ -1,52 +1,56 @@
 From: Shubhrajyoti D <shubhrajyoti@ti.com>
-Subject: [PATCHv8 07/18] I2C: OMAP: Optimise the remove code
-Date: Thu, 12 Apr 2012 18:36:24 +0530
-Message-ID: <1334235995-6727-8-git-send-email-shubhrajyoti@ti.com>
+Subject: [PATCHv8 05/18] I2C: OMAP: Fix the interrupt clearing in OMAP4
+Date: Thu, 12 Apr 2012 18:36:22 +0530
+Message-ID: <1334235995-6727-6-git-send-email-shubhrajyoti@ti.com>
 References: <1334235995-6727-1-git-send-email-shubhrajyoti@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from comal.ext.ti.com ([198.47.26.152]:52819 "EHLO comal.ext.ti.com"
+Received: from comal.ext.ti.com ([198.47.26.152]:52828 "EHLO comal.ext.ti.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S932080Ab2DLNHQ (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Thu, 12 Apr 2012 09:07:16 -0400
+	id S932080Ab2DLNHU (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Thu, 12 Apr 2012 09:07:20 -0400
 In-Reply-To: <1334235995-6727-1-git-send-email-shubhrajyoti@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: linux-omap@vger.kernel.org
-Cc: linux-i2c@vger.kernel.org, linux-arm-kernel@lists.infradead.org, ben-linux@fluff.org, tony@atomide.com, w.sang@pengutronix.de, Shubhrajyoti D <shubhrajyoti@ti.com>
+Cc: linux-i2c@vger.kernel.org, linux-arm-kernel@lists.infradead.org, ben-linux@fluff.org, tony@atomide.com, w.sang@pengutronix.de, Shubhrajyoti D <shubhrajyoti@ti.com>, Vikram Pandita <vikram.pandita@ti.com>
 
-The omap_i2c_remove function may not be needed after
-device exit so the memory could be freed.
+On OMAP4 we were writing 1 to IRQENABLE_CLR which cleared only
+the arbitration lost interrupt. The patch intends to fix the same by writing 0
+to the IE register clearing all interrupts.
 
+This is based on the work done by Vikram Pandita <vikram.pandita@ti.com>.
+
+The  changes from the original patch ...
+-  Does not use the IRQENABLE_CLR register to clear as it is not mentioned
+  to be legacy register IRQENABLE_CLR helps in  atomically
+  setting/clearing specific interrupts, instead use the OMAP_I2C_IE_REG as we are
+  clearing all interrupts.
+
+Cc: Vikram Pandita <vikram.pandita@ti.com>
 Signed-off-by: Shubhrajyoti D <shubhrajyoti@ti.com>
 ---
- drivers/i2c/busses/i2c-omap.c |    5 ++---
- 1 files changed, 2 insertions(+), 3 deletions(-)
+ drivers/i2c/busses/i2c-omap.c |    6 ++----
+ 1 files changed, 2 insertions(+), 4 deletions(-)
 
 diff --git a/drivers/i2c/busses/i2c-omap.c b/drivers/i2c/busses/i2c-omap.c
-index 3670088..2096726 100644
+index 45389db..2769f67 100644
 --- a/drivers/i2c/busses/i2c-omap.c
 +++ b/drivers/i2c/busses/i2c-omap.c
-@@ -1134,8 +1134,7 @@ err_release_region:
- 	return r;
- }
+@@ -1179,10 +1179,8 @@ static int omap_i2c_runtime_suspend(struct device *dev)
+ 		_dev->dev_lost_count = _dev->get_context_loss_count(dev);
  
--static int
--omap_i2c_remove(struct platform_device *pdev)
-+static int __devexit omap_i2c_remove(struct platform_device *pdev)
- {
- 	struct omap_i2c_dev	*dev = platform_get_drvdata(pdev);
- 	struct resource		*mem;
-@@ -1228,7 +1227,7 @@ static struct dev_pm_ops omap_i2c_pm_ops = {
+ 	_dev->iestate = omap_i2c_read_reg(_dev, OMAP_I2C_IE_REG);
+-	if (_dev->dtrev == OMAP_I2C_IP_VERSION_2)
+-		omap_i2c_write_reg(_dev, OMAP_I2C_IP_V2_IRQENABLE_CLR, 1);
+-	else
+-		omap_i2c_write_reg(_dev, OMAP_I2C_IE_REG, 0);
++
++	omap_i2c_write_reg(_dev, OMAP_I2C_IE_REG, 0);
  
- static struct platform_driver omap_i2c_driver = {
- 	.probe		= omap_i2c_probe,
--	.remove		= omap_i2c_remove,
-+	.remove		= __devexit_p(omap_i2c_remove),
- 	.driver		= {
- 		.name	= "omap_i2c",
- 		.owner	= THIS_MODULE,
+ 	if (_dev->rev < OMAP_I2C_OMAP1_REV_2) {
+ 		iv = omap_i2c_read_reg(_dev, OMAP_I2C_IV_REG); /* Read clears */
 -- 
 1.7.4.1
 
