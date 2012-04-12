@@ -1,50 +1,124 @@
-From: "Cousson, Benoit" <b-cousson@ti.com>
-Subject: Re: [PATCH v4 0/7] Add TI EMIF SDRAM controller driver
-Date: Thu, 12 Apr 2012 21:24:29 +0200
-Message-ID: <4F872BED.7000703@ti.com>
-References: <1331934707-29487-1-git-send-email-aneesh@ti.com> <alpine.DEB.2.00.1204112042070.29473@utopia.booyaka.com> <20120412030044.GA26236@kroah.com> <4F867A95.9030104@ti.com> <20120412131045.GB31384@kroah.com> <C8443D0743D26F4388EA172BF4E2A7A93E95947E@DQHE04.ent.ti.com> <alpine.DEB.2.00.1204121053570.29473@utopia.booyaka.com> <4F87240F.6060902@ti.com> <alpine.DEB.2.00.1204121304050.29473@utopia.booyaka.com>
+From: akpm@linux-foundation.org
+Subject: [patch 10/14] drivers/rtc/rtc-twl.c: use static register while reading time
+Date: Thu, 12 Apr 2012 12:49:15 -0700
+Message-ID: <20120412194915.57741A0776@akpm.mtv.corp.google.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1;
-	format=flowed
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <alpine.DEB.2.00.1204121304050.29473@utopia.booyaka.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Paul Walmsley <paul@pwsan.com>
-Cc: "Balbi, Felipe" <balbi@ti.com>, "Mohammed, Afzal" <afzal@ti.com>, Greg KH <greg@kroah.com>, "Shilimkar, Santosh" <santosh.shilimkar@ti.com>, "V, Aneesh" <aneesh@ti.com>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "mgreer@animalcreek.com" <mgreer@animalcreek.com>, "msalter@redhat.com" <msalter@redhat.com>
+Content-Type: text/plain; charset=ASCII
+Content-Transfer-Encoding: 8bit
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from mail-qa0-f74.google.com ([209.85.216.74]:52742 "EHLO
+	mail-qa0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755144Ab2DLTtQ (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 12 Apr 2012 15:49:16 -0400
+Received: by qabg24 with SMTP id g24so311852qab.1
+        for <linux-omap@vger.kernel.org>; Thu, 12 Apr 2012 12:49:16 -0700 (PDT)
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: torvalds@linux-foundation.org
+Cc: akpm@linux-foundation.org, x0155534@ti.com, a.zummo@towertech.it, b-cousson@ti.com, gg@slimlogic.co.uk, linux-omap@vger.kernel.org, nm@ti.com, oleksandr.dmytryshyn@ti.com, x0174904@ti.com
 
-On 4/12/2012 9:15 PM, Paul Walmsley wrote:
-> Hi Beno=EEt,
->
-> On Thu, 12 Apr 2012, Cousson, Benoit wrote:
->
->> The LPDDR2 spec does consider as well NVM (Non Volatile Memory), so =
-I think we
->> should stick to driver/memory for EMIF.
->
-> Hmm good point!
->
->>> So perhaps something like drivers/memory/dram/ for the SDRAM contro=
-llers,
->>> and maybe drivers/memory/ for the GPMC?
->>
->> In fact Felipe was considering something else for that kind of gener=
-al purpose
->> bus driver like GMPC, C2C and LLI...
->>
->> ... But I do not remember the name :-)
->
-> It would be nice if we could separate IP blocks that can drive an Eth=
-ernet
-> controller or modem chip from the DRAM controllers; they are quite
-> different beasts from a common API standpoint.
+From: Konstantin Shlyakhovoy <x0155534@ti.com>
+Subject: drivers/rtc/rtc-twl.c: use static register while reading time
 
-Yep, fully agree. In fact Felipe's suggestion was something like=20
-drivers/ocd for off-chip devices, but maybe something like drivers/gpbu=
-s=20
-will highlight a little bit more the bus controller aspect of such driv=
-er.
+RTC stores time and date in several registers.  Due to the fact that these
+registers can't be read instantaneously, there is a chance that reading
+from counting registers gives an error of one minute, one hour, one day,
+etc.
 
-Regards,
-Benoit
+To address this issue, the RTC has hardware support to copy the RTC
+counting registers to static shadowed registers.  The current
+implementation does not use this feature, and in a stress test, we can
+reproduce this error at a rate of around two times per 300000 readings.
+
+Fix the implementation to ensure that the right snapshot of time is
+captured.
+
+Signed-off-by: Konstantin Shlyakhovoy <x0155534@ti.com>
+Signed-off-by: Nishanth Menon <nm@ti.com>
+Cc: Alessandro Zummo <a.zummo@towertech.it>
+Cc: Benoit Cousson <b-cousson@ti.com>
+Cc: linux-omap <linux-omap@vger.kernel.org>
+Acked-by: Mykola Oleksiienko <x0174904@ti.com>
+Acked-by: Oleksandr Dmytryshyn <oleksandr.dmytryshyn@ti.com>
+Acked-by: Graeme Gregory <gg@slimlogic.co.uk>
+Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
+---
+
+ drivers/rtc/rtc-twl.c |   43 +++++++++++++++++++++++++++++++++++-----
+ 1 file changed, 38 insertions(+), 5 deletions(-)
+
+diff -puN drivers/rtc/rtc-twl.c~drivers-rtc-rtc-twlc-use-static-register-while-reading-time drivers/rtc/rtc-twl.c
+--- a/drivers/rtc/rtc-twl.c~drivers-rtc-rtc-twlc-use-static-register-while-reading-time
++++ a/drivers/rtc/rtc-twl.c
+@@ -112,6 +112,7 @@ static const u8 twl6030_rtc_reg_map[] = 
+ #define BIT_RTC_CTRL_REG_TEST_MODE_M             0x10
+ #define BIT_RTC_CTRL_REG_SET_32_COUNTER_M        0x20
+ #define BIT_RTC_CTRL_REG_GET_TIME_M              0x40
++#define BIT_RTC_CTRL_REG_RTC_V_OPT               0x80
+ 
+ /* RTC_STATUS_REG bitfields */
+ #define BIT_RTC_STATUS_REG_RUN_M                 0x02
+@@ -235,25 +236,57 @@ static int twl_rtc_read_time(struct devi
+ 	unsigned char rtc_data[ALL_TIME_REGS + 1];
+ 	int ret;
+ 	u8 save_control;
++	u8 rtc_control;
+ 
+ 	ret = twl_rtc_read_u8(&save_control, REG_RTC_CTRL_REG);
+-	if (ret < 0)
++	if (ret < 0) {
++		dev_err(dev, "%s: reading CTRL_REG, error %d\n", __func__, ret);
+ 		return ret;
++	}
++	/* for twl6030/32 make sure BIT_RTC_CTRL_REG_GET_TIME_M is clear */
++	if (twl_class_is_6030()) {
++		if (save_control & BIT_RTC_CTRL_REG_GET_TIME_M) {
++			save_control &= ~BIT_RTC_CTRL_REG_GET_TIME_M;
++			ret = twl_rtc_write_u8(save_control, REG_RTC_CTRL_REG);
++			if (ret < 0) {
++				dev_err(dev, "%s clr GET_TIME, error %d\n",
++					__func__, ret);
++				return ret;
++			}
++		}
++	}
+ 
+-	save_control |= BIT_RTC_CTRL_REG_GET_TIME_M;
++	/* Copy RTC counting registers to static registers or latches */
++	rtc_control = save_control | BIT_RTC_CTRL_REG_GET_TIME_M;
+ 
+-	ret = twl_rtc_write_u8(save_control, REG_RTC_CTRL_REG);
+-	if (ret < 0)
++	/* for twl6030/32 enable read access to static shadowed registers */
++	if (twl_class_is_6030())
++		rtc_control |= BIT_RTC_CTRL_REG_RTC_V_OPT;
++
++	ret = twl_rtc_write_u8(rtc_control, REG_RTC_CTRL_REG);
++	if (ret < 0) {
++		dev_err(dev, "%s: writing CTRL_REG, error %d\n", __func__, ret);
+ 		return ret;
++	}
+ 
+ 	ret = twl_i2c_read(TWL_MODULE_RTC, rtc_data,
+ 			(rtc_reg_map[REG_SECONDS_REG]), ALL_TIME_REGS);
+ 
+ 	if (ret < 0) {
+-		dev_err(dev, "rtc_read_time error %d\n", ret);
++		dev_err(dev, "%s: reading data, error %d\n", __func__, ret);
+ 		return ret;
+ 	}
+ 
++	/* for twl6030 restore original state of rtc control register */
++	if (twl_class_is_6030()) {
++		ret = twl_rtc_write_u8(save_control, REG_RTC_CTRL_REG);
++		if (ret < 0) {
++			dev_err(dev, "%s: restore CTRL_REG, error %d\n",
++				__func__, ret);
++			return ret;
++		}
++	}
++
+ 	tm->tm_sec = bcd2bin(rtc_data[0]);
+ 	tm->tm_min = bcd2bin(rtc_data[1]);
+ 	tm->tm_hour = bcd2bin(rtc_data[2]);
+_
