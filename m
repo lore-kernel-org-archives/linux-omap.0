@@ -1,46 +1,46 @@
-From: Rajendra Nayak <rnayak@ti.com>
-Subject: [PATCH] ARM: omap: hwmod: warn only when clkdm is missing from both clk and hwmod
-Date: Thu, 12 Apr 2012 19:11:38 +0530
-Message-ID: <1334238098-29859-1-git-send-email-rnayak@ti.com>
+From: Greg KH <greg@kroah.com>
+Subject: Re: [PATCH v4 0/7] Add TI EMIF SDRAM controller driver
+Date: Thu, 12 Apr 2012 07:10:50 -0700
+Message-ID: <20120412141050.GA31968@kroah.com>
+References: <1331934707-29487-1-git-send-email-aneesh@ti.com>
+ <alpine.DEB.2.00.1204112042070.29473@utopia.booyaka.com>
+ <20120412030044.GA26236@kroah.com>
+ <4F867A95.9030104@ti.com>
+ <20120412131045.GB31384@kroah.com>
+ <C8443D0743D26F4388EA172BF4E2A7A93E95947E@DQHE04.ent.ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from devils.ext.ti.com ([198.47.26.153]:50629 "EHLO
-	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932140Ab2DLNl7 (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 12 Apr 2012 09:41:59 -0400
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <C8443D0743D26F4388EA172BF4E2A7A93E95947E@DQHE04.ent.ti.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: "Mohammed, Afzal" <afzal@ti.com>
+Cc: "Shilimkar, Santosh" <santosh.shilimkar@ti.com>, Paul Walmsley <paul@pwsan.com>, "V, Aneesh" <aneesh@ti.com>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "mgreer@animalcreek.com" <mgreer@animalcreek.com>, "msalter@redhat.com" <msalter@redhat.com>
 List-Id: linux-omap@vger.kernel.org
-To: paul@pwsan.com, b-cousson@ti.com
-Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Rajendra Nayak <rnayak@ti.com>
 
-On OMAP4+, the clkdm association is moved to hwmod while on older OMAPs'
-its associated with a clk.
-Hence look for a clkdm in both clk and hwmod and warn only when
-its missing in both. Also fix the pr_warning() to print the correct
-hwmod name.
+On Thu, Apr 12, 2012 at 01:34:15PM +0000, Mohammed, Afzal wrote:
+> Hi Greg,
+> 
+> On Thu, Apr 12, 2012 at 18:40:45, Greg KH wrote:
+> > On Thu, Apr 12, 2012 at 12:17:49PM +0530, Santosh Shilimkar wrote:
+> > > I was hoping that we will have some thing like drivers/memory/*
+> > > but since it doesn't exist, we used drivers/misc.
+> > 
+> > Why not create it?  I have no objection to that, it makes it more
+> > obvious as to what this really is.
+> 
+> There is another memory controller used in a few TI SoCs,
+> namely GPMC [1], do you prefer having it too there.
 
-Signed-off-by: Rajendra Nayak <rnayak@ti.com>
----
- arch/arm/mach-omap2/omap_hwmod.c |    4 ++--
- 1 files changed, 2 insertions(+), 2 deletions(-)
+Sure, why not?
 
-diff --git a/arch/arm/mach-omap2/omap_hwmod.c b/arch/arm/mach-omap2/omap_hwmod.c
-index 2c27fdb..83d56df 100644
---- a/arch/arm/mach-omap2/omap_hwmod.c
-+++ b/arch/arm/mach-omap2/omap_hwmod.c
-@@ -566,9 +566,9 @@ static int _init_main_clk(struct omap_hwmod *oh)
- 		return -EINVAL;
- 	}
- 
--	if (!oh->_clk->clkdm)
-+	if (!oh->_clk->clkdm && !oh->clkdm_name)
- 		pr_warning("omap_hwmod: %s: missing clockdomain for %s.\n",
--			   oh->main_clk, oh->_clk->name);
-+			   oh->name, oh->_clk->name);
- 
- 	return ret;
- }
--- 
-1.7.1
+> As of now it is not a driver, platform code handles GPMC, a patch
+> series for converting it into a driver (but still residing in
+> platform folder) was sent a few days back [2,3].
 
+People are moving things out of the platform folder, so drivers/memory
+makes sense.
+
+thanks,
+
+greg k-h
