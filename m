@@ -1,40 +1,39 @@
-From: "Mark A. Greer" <mgreer@animalcreek.com>
-Subject: Re: [PATCH 08/12] arm: omap3: am35x: Fix clockdomain dependencies
-Date: Thu, 12 Apr 2012 16:00:50 -0700
-Message-ID: <20120412230050.GO31197@animalcreek.com>
-References: <1334171147-7517-1-git-send-email-mgreer@animalcreek.com>
- <1334171147-7517-9-git-send-email-mgreer@animalcreek.com>
- <alpine.DEB.2.00.1204111540060.29473@utopia.booyaka.com>
- <20120411215513.GA31197@animalcreek.com>
- <alpine.DEB.2.00.1204111555360.29473@utopia.booyaka.com>
- <20120411224911.GE31197@animalcreek.com>
- <alpine.DEB.2.00.1204111748540.29473@utopia.booyaka.com>
- <20120412022313.GN31197@animalcreek.com>
- <alpine.DEB.2.00.1204112028560.29473@utopia.booyaka.com>
+From: "Woodruff, Richard" <r-woodruff2@ti.com>
+Subject: RE: PM related performance degradation on OMAP3
+Date: Thu, 12 Apr 2012 23:02:36 +0000
+Message-ID: <EF62F09C0797D947AD4180A1043C0DF73C3C2D1C@DLEE10.ent.ti.com>
+References: <CANOLnOP5gq4Vtt00SgRNW-3GZDWk0sukBgJx4V6rkMLL+b6G-w@mail.gmail.com>
+	<877gxobudk.fsf@ti.com>
+ <CANOLnOPbHBshCdbmSOjYdubWqUivrVpR-+eaayu=v4Yy6yKdsQ@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail20.dotsterhost.com ([66.11.232.73]:59836 "EHLO
-	mail20.dotsterhost.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756916Ab2DLXAv (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 12 Apr 2012 19:00:51 -0400
-Content-Disposition: inline
-In-Reply-To: <alpine.DEB.2.00.1204112028560.29473@utopia.booyaka.com>
+Received: from devils.ext.ti.com ([198.47.26.153]:55826 "EHLO
+	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755234Ab2DLXCj convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 12 Apr 2012 19:02:39 -0400
+In-Reply-To: <CANOLnOPbHBshCdbmSOjYdubWqUivrVpR-+eaayu=v4Yy6yKdsQ@mail.gmail.com>
+Content-Language: en-US
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Paul Walmsley <paul@pwsan.com>
-Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, khilman@ti.com
+To: Grazvydas Ignotas <notasas@gmail.com>, "Hilman, Kevin" <khilman@ti.com>
+Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, Paul Walmsley <paul@pwsan.com>
 
-On Wed, Apr 11, 2012 at 08:29:51PM -0600, Paul Walmsley wrote:
-> On Wed, 11 Apr 2012, Mark A. Greer wrote:
-> 
-> > Okay, I'll get rid of the commas (fwiw, gfx_sgx_3xxx_wkdeps[] has commas
-> > in k.o, the others don't).
-> 
-> Okay thanks, that's just an oversight in the mainline data.  If you're so 
-> inclined, feel free to clean that up in your patch...
+> From: linux-omap-owner@vger.kernel.org [mailto:linux-omap-
+> owner@vger.kernel.org] On Behalf Of Grazvydas Ignotas
+> Sent: Tuesday, April 10, 2012 7:30 PM
 
-I am and I will. :)
+> What I think is going on here is that omap_sram_idle() is taking too
+> much time because it's overhead is too large. I've added a counter
+> there and it seems to be called ~530 times per megabyte (DMA operates
+> in ~2K chunks so it makes sense), that's over 2000 calls per second.
+> Some quick measurement code shows ~243us spent for setting up in
+> omap_sram_idle() (before and after omap34xx_do_sram_idle()).
 
-Mark
---
+243uS is really a long time for C1. For some reason has grown a lot since last time I captured path in ETM.
+
+Your analysis correlates well to reports from a couple years back. N900 folks did report that the non-clock gated C1 was needed (as exists in code today). IIRC the NAND stack did have small-uS spins on NAND status or something which having higher clock stop penalty resulted in big performance dip. You needed like <10uS for C1 or bit hit.
+
+Regards,
+Richard W.
