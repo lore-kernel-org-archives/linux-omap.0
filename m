@@ -1,68 +1,813 @@
-From: "DebBarma, Tarun Kanti" <tarun.kanti@ti.com>
-Subject: Re: [PATCH] ARM: OMAP2+: remove redundant sysconfig context restore
-Date: Thu, 12 Apr 2012 10:22:22 +0530
-Message-ID: <CAC83ZvKyh38=BdWg9ExTM20Sq_c3e-fo2JrH5Cmv80hY8TxLLA@mail.gmail.com>
-References: <1334133256-20475-1-git-send-email-tarun.kanti@ti.com>
-	<87zkahlrdc.fsf@ti.com>
+From: Peter Ujfalusi <peter.ujfalusi@ti.com>
+Subject: Re: [PATCH for 3.4] MFD: twl6040: Convert to i2c
+ driver, and separate it from twl core
+Date: Thu, 12 Apr 2012 09:39:28 +0300
+Message-ID: <4F8678A0.7090600@ti.com>
+References: <1333443411-23056-1-git-send-email-peter.ujfalusi@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aog124.obsmtp.com ([74.125.149.151]:43217 "EHLO
-	na3sys009aog124.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753354Ab2DLEwX convert rfc822-to-8bit
-	(ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Thu, 12 Apr 2012 00:52:23 -0400
-Received: by qaeb19 with SMTP id b19so4192510qae.11
-        for <linux-omap@vger.kernel.org>; Wed, 11 Apr 2012 21:52:22 -0700 (PDT)
-In-Reply-To: <87zkahlrdc.fsf@ti.com>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset="iso-8859-1"
+Content-Transfer-Encoding: quoted-printable
+Return-path: <alsa-devel-bounces@alsa-project.org>
+In-Reply-To: <1333443411-23056-1-git-send-email-peter.ujfalusi@ti.com>
+List-Unsubscribe: <http://mailman.alsa-project.org/mailman/listinfo/alsa-devel>,
+	<mailto:alsa-devel-request@alsa-project.org?subject=unsubscribe>
+List-Archive: <http://mailman.alsa-project.org/pipermail/alsa-devel>
+List-Post: <mailto:alsa-devel@alsa-project.org>
+List-Help: <mailto:alsa-devel-request@alsa-project.org?subject=help>
+List-Subscribe: <http://mailman.alsa-project.org/mailman/listinfo/alsa-devel>,
+	<mailto:alsa-devel-request@alsa-project.org?subject=subscribe>
+Sender: alsa-devel-bounces@alsa-project.org
+Errors-To: alsa-devel-bounces@alsa-project.org
+To: Samuel Ortiz <sameo@linux.intel.com>, Tony Lindgren <tony@atomide.com>, Liam Girdwood <lrg@ti.com>
+Cc: linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org, Mark Brown <broonie@opensource.wolfsonmicro.com>, linux-kernel@vger.kernel.org, alsa-devel@alsa-project.org
 List-Id: linux-omap@vger.kernel.org
-To: Kevin Hilman <khilman@ti.com>
-Cc: linux-omap@vger.kernel.org, tony@atomide.com, santosh.shilimkar@ti.com, rnayak@ti.com, b-cousson@ti.com, linux-arm-kernel <linux-arm-kernel@lists.infradead.org>
 
-On Thu, Apr 12, 2012 at 6:04 AM, Kevin Hilman <khilman@ti.com> wrote:
-> Tarun Kanti DebBarma <tarun.kanti@ti.com> writes:
->
->> Since hwmod framework now manages sysconfig context save/restore
->> there is no more need to touch this register in driver. Hence,
->> remove restore of sysconfig register in omap_timer_restore_context.
->> This was causing incorrect context restore of sysconfig register.
->>
->> Signed-off-by: Tarun Kanti DebBarma <tarun.kanti@ti.com>
->
-> While cleaning this up, you can remove it from 'struct timer_regs' =A0=
-in
-> <plat/dmtimer.h> as well, since the code you remove is the only user.
-Oh yes I missed that. Thanks.
---
-Tarun
->
-> Kevin
->
->> ---
->> =A0arch/arm/plat-omap/dmtimer.c | =A0 =A02 --
->> =A01 files changed, 0 insertions(+), 2 deletions(-)
->>
->> diff --git a/arch/arm/plat-omap/dmtimer.c b/arch/arm/plat-omap/dmtim=
-er.c
->> index 652139c..15e7882 100644
->> --- a/arch/arm/plat-omap/dmtimer.c
->> +++ b/arch/arm/plat-omap/dmtimer.c
->> @@ -82,8 +82,6 @@ static void omap_dm_timer_write_reg(struct omap_dm=
-_timer *timer, u32 reg,
->>
->> =A0static void omap_timer_restore_context(struct omap_dm_timer *time=
-r)
->> =A0{
->> - =A0 =A0 __raw_writel(timer->context.tiocp_cfg,
->> - =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 timer->io_base + OMAP_TIME=
-R_OCP_CFG_OFFSET);
->> =A0 =A0 =A0 if (timer->revision =3D=3D 1)
->> =A0 =A0 =A0 =A0 =A0 =A0 =A0 __raw_writel(timer->context.tistat, time=
-r->sys_stat);
---
-To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Hi Samuel, Liam, Tony,
+
+Now rc2 is out, and the the OMAP4 audio is still broken.
+Can you please queue this patch for 3.4?
+
+The patch applies on top of mainline cleanly, and I also pushed a new
+branch just in case:
+
+The following changes since commit f549e088b806f44b6ab6eeef0cb71ced1d2488dd:
+
+  Merge tag 'rdma-for-linus' of
+git://git.kernel.org/pub/scm/linux/kernel/git/roland/infiniband
+(2012-04-11 13:24:52 -0700)
+
+are available in the git repository at:
+
+git@gitorious.org:omap-audio/linux-audio.git peter/upstream/for-3.4-rc3
+
+Peter Ujfalusi (1):
+      MFD: twl6040: Convert to i2c driver, and separate it from twl core
+
+ arch/arm/mach-omap2/board-4430sdp.c    |   12 ++--
+ arch/arm/mach-omap2/board-generic.c    |    2 +-
+ arch/arm/mach-omap2/board-omap4panda.c |   13 ++--
+ arch/arm/mach-omap2/twl-common.c       |   37 +++++++++--
+ arch/arm/mach-omap2/twl-common.h       |   10 +--
+ drivers/input/misc/Kconfig             |    3 +-
+ drivers/input/misc/twl6040-vibra.c     |    4 +-
+ drivers/mfd/Kconfig                    |   11 +++-
+ drivers/mfd/twl6040-core.c             |  114
++++++++++++++++++++-------------
+ include/linux/i2c/twl.h                |   12 ----
+ include/linux/mfd/twl6040.h            |   27 ++++++++
+ sound/soc/codecs/Kconfig               |    3 +-
+ sound/soc/codecs/twl6040.c             |    3 +-
+ sound/soc/omap/Kconfig                 |    2 +-
+ 14 files changed, 159 insertions(+), 94 deletions(-)
+
+Thank you very much,
+P=E9ter
+
+
+On 04/03/2012 11:56 AM, Peter Ujfalusi wrote:
+> Complete the separation of the twl6040 from the twl core since
+> it is a separate chip, not part of the twl6030 PMIC.
+> =
+
+> Make the needed Kconfig changes for the depending drivers at the same tim=
+e to
+> avoid breaking the kernel build (vibra, ASoC components).
+> =
+
+> Signed-off-by: Peter Ujfalusi <peter.ujfalusi@ti.com>
+> Reviewed-by: Mark Brown <broonie@opensource.wolfsonicro.com>
+> Acked-by: Tony Lindgren <tony@atomide.com>
+> Acked-by: Samuel Ortiz <sameo@linux.intel.com>
+> Acked-by: Dmitry Torokhov <dtor@mail.ru>
+> ---
+> =
+
+> Hi Samuel, Tony, Liam,
+> =
+
+> Due to some cross tree issues 3.4-rc1 have big regression in OMAP4 audio:
+> The twl6040 mfd driver (and codec, vibra) is no longer probe since the tw=
+l-core
+> now did not create the platform device for it. This means we do not have =
+audio
+> working in rc1.
+> This patch meant to follow the twl-core change (to not probe the twll6040=
+ as
+> platform device), but there were some glitch in the logistics so this pat=
+ch is
+> not in 3.4-rc1.
+> =
+
+> I have forward ported it on top of 3.4-rc1, and you can also find the pat=
+ch in:
+> git@gitorious.org:omap-audio/linux-audio.git peter/upstream/for-3.4-rc2
+> =
+
+> Can someone take this patch further to be included in 3.4-rc2?
+> =
+
+> Thank you,
+> Peter
+> =
+
+>  arch/arm/mach-omap2/board-4430sdp.c    |   12 ++--
+>  arch/arm/mach-omap2/board-generic.c    |    2 +-
+>  arch/arm/mach-omap2/board-omap4panda.c |   13 ++--
+>  arch/arm/mach-omap2/twl-common.c       |   37 +++++++++--
+>  arch/arm/mach-omap2/twl-common.h       |   10 +--
+>  drivers/input/misc/Kconfig             |    3 +-
+>  drivers/input/misc/twl6040-vibra.c     |    4 +-
+>  drivers/mfd/Kconfig                    |   11 +++-
+>  drivers/mfd/twl6040-core.c             |  114 +++++++++++++++++++-------=
+------
+>  include/linux/i2c/twl.h                |   12 ----
+>  include/linux/mfd/twl6040.h            |   27 ++++++++
+>  sound/soc/codecs/Kconfig               |    3 +-
+>  sound/soc/codecs/twl6040.c             |    3 +-
+>  sound/soc/omap/Kconfig                 |    2 +-
+>  14 files changed, 159 insertions(+), 94 deletions(-)
+> =
+
+> diff --git a/arch/arm/mach-omap2/board-4430sdp.c b/arch/arm/mach-omap2/bo=
+ard-4430sdp.c
+> index a39fc4b..130ab00 100644
+> --- a/arch/arm/mach-omap2/board-4430sdp.c
+> +++ b/arch/arm/mach-omap2/board-4430sdp.c
+> @@ -20,6 +20,7 @@
+>  #include <linux/usb/otg.h>
+>  #include <linux/spi/spi.h>
+>  #include <linux/i2c/twl.h>
+> +#include <linux/mfd/twl6040.h>
+>  #include <linux/gpio_keys.h>
+>  #include <linux/regulator/machine.h>
+>  #include <linux/regulator/fixed.h>
+> @@ -560,7 +561,7 @@ static struct regulator_init_data sdp4430_vusim =3D {
+>  	},
+>  };
+>  =
+
+> -static struct twl4030_codec_data twl6040_codec =3D {
+> +static struct twl6040_codec_data twl6040_codec =3D {
+>  	/* single-step ramp for headset and handsfree */
+>  	.hs_left_step	=3D 0x0f,
+>  	.hs_right_step	=3D 0x0f,
+> @@ -568,7 +569,7 @@ static struct twl4030_codec_data twl6040_codec =3D {
+>  	.hf_right_step	=3D 0x1d,
+>  };
+>  =
+
+> -static struct twl4030_vibra_data twl6040_vibra =3D {
+> +static struct twl6040_vibra_data twl6040_vibra =3D {
+>  	.vibldrv_res =3D 8,
+>  	.vibrdrv_res =3D 3,
+>  	.viblmotor_res =3D 10,
+> @@ -577,16 +578,14 @@ static struct twl4030_vibra_data twl6040_vibra =3D {
+>  	.vddvibr_uV =3D 0,	/* fixed volt supply - VBAT */
+>  };
+>  =
+
+> -static struct twl4030_audio_data twl6040_audio =3D {
+> +static struct twl6040_platform_data twl6040_data =3D {
+>  	.codec		=3D &twl6040_codec,
+>  	.vibra		=3D &twl6040_vibra,
+>  	.audpwron_gpio	=3D 127,
+> -	.naudint_irq	=3D OMAP44XX_IRQ_SYS_2N,
+>  	.irq_base	=3D TWL6040_CODEC_IRQ_BASE,
+>  };
+>  =
+
+>  static struct twl4030_platform_data sdp4430_twldata =3D {
+> -	.audio		=3D &twl6040_audio,
+>  	/* Regulators */
+>  	.vusim		=3D &sdp4430_vusim,
+>  	.vaux1		=3D &sdp4430_vaux1,
+> @@ -617,7 +616,8 @@ static int __init omap4_i2c_init(void)
+>  			TWL_COMMON_REGULATOR_VCXIO |
+>  			TWL_COMMON_REGULATOR_VUSB |
+>  			TWL_COMMON_REGULATOR_CLK32KG);
+> -	omap4_pmic_init("twl6030", &sdp4430_twldata);
+> +	omap4_pmic_init("twl6030", &sdp4430_twldata,
+> +			&twl6040_data, OMAP44XX_IRQ_SYS_2N);
+>  	omap_register_i2c_bus(2, 400, NULL, 0);
+>  	omap_register_i2c_bus(3, 400, sdp4430_i2c_3_boardinfo,
+>  				ARRAY_SIZE(sdp4430_i2c_3_boardinfo));
+> diff --git a/arch/arm/mach-omap2/board-generic.c b/arch/arm/mach-omap2/bo=
+ard-generic.c
+> index 74e1687..098d183 100644
+> --- a/arch/arm/mach-omap2/board-generic.c
+> +++ b/arch/arm/mach-omap2/board-generic.c
+> @@ -137,7 +137,7 @@ static struct twl4030_platform_data sdp4430_twldata =
+=3D {
+>  =
+
+>  static void __init omap4_i2c_init(void)
+>  {
+> -	omap4_pmic_init("twl6030", &sdp4430_twldata);
+> +	omap4_pmic_init("twl6030", &sdp4430_twldata, NULL, 0);
+>  }
+>  =
+
+>  static void __init omap4_init(void)
+> diff --git a/arch/arm/mach-omap2/board-omap4panda.c b/arch/arm/mach-omap2=
+/board-omap4panda.c
+> index d8c0e89..1b782ba 100644
+> --- a/arch/arm/mach-omap2/board-omap4panda.c
+> +++ b/arch/arm/mach-omap2/board-omap4panda.c
+> @@ -25,6 +25,7 @@
+>  #include <linux/gpio.h>
+>  #include <linux/usb/otg.h>
+>  #include <linux/i2c/twl.h>
+> +#include <linux/mfd/twl6040.h>
+>  #include <linux/regulator/machine.h>
+>  #include <linux/regulator/fixed.h>
+>  #include <linux/wl12xx.h>
+> @@ -284,7 +285,7 @@ static int __init omap4_twl6030_hsmmc_init(struct oma=
+p2_hsmmc_info *controllers)
+>  	return 0;
+>  }
+>  =
+
+> -static struct twl4030_codec_data twl6040_codec =3D {
+> +static struct twl6040_codec_data twl6040_codec =3D {
+>  	/* single-step ramp for headset and handsfree */
+>  	.hs_left_step	=3D 0x0f,
+>  	.hs_right_step	=3D 0x0f,
+> @@ -292,17 +293,14 @@ static struct twl4030_codec_data twl6040_codec =3D {
+>  	.hf_right_step	=3D 0x1d,
+>  };
+>  =
+
+> -static struct twl4030_audio_data twl6040_audio =3D {
+> +static struct twl6040_platform_data twl6040_data =3D {
+>  	.codec		=3D &twl6040_codec,
+>  	.audpwron_gpio	=3D 127,
+> -	.naudint_irq	=3D OMAP44XX_IRQ_SYS_2N,
+>  	.irq_base	=3D TWL6040_CODEC_IRQ_BASE,
+>  };
+>  =
+
+>  /* Panda board uses the common PMIC configuration */
+> -static struct twl4030_platform_data omap4_panda_twldata =3D {
+> -	.audio		=3D &twl6040_audio,
+> -};
+> +static struct twl4030_platform_data omap4_panda_twldata;
+>  =
+
+>  /*
+>   * Display monitor features are burnt in their EEPROM as EDID data. The =
+EEPROM
+> @@ -326,7 +324,8 @@ static int __init omap4_panda_i2c_init(void)
+>  			TWL_COMMON_REGULATOR_VCXIO |
+>  			TWL_COMMON_REGULATOR_VUSB |
+>  			TWL_COMMON_REGULATOR_CLK32KG);
+> -	omap4_pmic_init("twl6030", &omap4_panda_twldata);
+> +	omap4_pmic_init("twl6030", &omap4_panda_twldata,
+> +			&twl6040_data, OMAP44XX_IRQ_SYS_2N);
+>  	omap_register_i2c_bus(2, 400, NULL, 0);
+>  	/*
+>  	 * Bus 3 is attached to the DVI port where devices like the pico DLP
+> diff --git a/arch/arm/mach-omap2/twl-common.c b/arch/arm/mach-omap2/twl-c=
+ommon.c
+> index 4b57757..7a7b893 100644
+> --- a/arch/arm/mach-omap2/twl-common.c
+> +++ b/arch/arm/mach-omap2/twl-common.c
+> @@ -37,6 +37,16 @@ static struct i2c_board_info __initdata pmic_i2c_board=
+_info =3D {
+>  	.flags		=3D I2C_CLIENT_WAKE,
+>  };
+>  =
+
+> +static struct i2c_board_info __initdata omap4_i2c1_board_info[] =3D {
+> +	{
+> +		.addr		=3D 0x48,
+> +		.flags		=3D I2C_CLIENT_WAKE,
+> +	},
+> +	{
+> +		I2C_BOARD_INFO("twl6040", 0x4b),
+> +	},
+> +};
+> +
+>  void __init omap_pmic_init(int bus, u32 clkrate,
+>  			   const char *pmic_type, int pmic_irq,
+>  			   struct twl4030_platform_data *pmic_data)
+> @@ -49,14 +59,31 @@ void __init omap_pmic_init(int bus, u32 clkrate,
+>  	omap_register_i2c_bus(bus, clkrate, &pmic_i2c_board_info, 1);
+>  }
+>  =
+
+> +void __init omap4_pmic_init(const char *pmic_type,
+> +		    struct twl4030_platform_data *pmic_data,
+> +		    struct twl6040_platform_data *twl6040_data, int twl6040_irq)
+> +{
+> +	/* PMIC part*/
+> +	strncpy(omap4_i2c1_board_info[0].type, pmic_type,
+> +		sizeof(omap4_i2c1_board_info[0].type));
+> +	omap4_i2c1_board_info[0].irq =3D OMAP44XX_IRQ_SYS_1N;
+> +	omap4_i2c1_board_info[0].platform_data =3D pmic_data;
+> +
+> +	/* TWL6040 audio IC part */
+> +	omap4_i2c1_board_info[1].irq =3D twl6040_irq;
+> +	omap4_i2c1_board_info[1].platform_data =3D twl6040_data;
+> +
+> +	omap_register_i2c_bus(1, 400, omap4_i2c1_board_info, 2);
+> +
+> +}
+> +
+>  void __init omap_pmic_late_init(void)
+>  {
+>  	/* Init the OMAP TWL parameters (if PMIC has been registerd) */
+> -	if (!pmic_i2c_board_info.irq)
+> -		return;
+> -
+> -	omap3_twl_init();
+> -	omap4_twl_init();
+> +	if (pmic_i2c_board_info.irq)
+> +		omap3_twl_init();
+> +	if (omap4_i2c1_board_info[0].irq)
+> +		omap4_twl_init();
+>  }
+>  =
+
+>  #if defined(CONFIG_ARCH_OMAP3)
+> diff --git a/arch/arm/mach-omap2/twl-common.h b/arch/arm/mach-omap2/twl-c=
+ommon.h
+> index 275dde8..0962748 100644
+> --- a/arch/arm/mach-omap2/twl-common.h
+> +++ b/arch/arm/mach-omap2/twl-common.h
+> @@ -29,6 +29,7 @@
+>  =
+
+>  =
+
+>  struct twl4030_platform_data;
+> +struct twl6040_platform_data;
+>  =
+
+>  void omap_pmic_init(int bus, u32 clkrate, const char *pmic_type, int pmi=
+c_irq,
+>  		    struct twl4030_platform_data *pmic_data);
+> @@ -46,12 +47,9 @@ static inline void omap3_pmic_init(const char *pmic_ty=
+pe,
+>  	omap_pmic_init(1, 2600, pmic_type, INT_34XX_SYS_NIRQ, pmic_data);
+>  }
+>  =
+
+> -static inline void omap4_pmic_init(const char *pmic_type,
+> -				   struct twl4030_platform_data *pmic_data)
+> -{
+> -	/* Phoenix Audio IC needs I2C1 to start with 400 KHz or less */
+> -	omap_pmic_init(1, 400, pmic_type, OMAP44XX_IRQ_SYS_1N, pmic_data);
+> -}
+> +void omap4_pmic_init(const char *pmic_type,
+> +		    struct twl4030_platform_data *pmic_data,
+> +		    struct twl6040_platform_data *audio_data, int twl6040_irq);
+>  =
+
+>  void omap3_pmic_get_config(struct twl4030_platform_data *pmic_data,
+>  			   u32 pdata_flags, u32 regulators_flags);
+> diff --git a/drivers/input/misc/Kconfig b/drivers/input/misc/Kconfig
+> index 2d78779..7faf4a7 100644
+> --- a/drivers/input/misc/Kconfig
+> +++ b/drivers/input/misc/Kconfig
+> @@ -380,8 +380,7 @@ config INPUT_TWL4030_VIBRA
+>  =
+
+>  config INPUT_TWL6040_VIBRA
+>  	tristate "Support for TWL6040 Vibrator"
+> -	depends on TWL4030_CORE
+> -	select TWL6040_CORE
+> +	depends on TWL6040_CORE
+>  	select INPUT_FF_MEMLESS
+>  	help
+>  	  This option enables support for TWL6040 Vibrator Driver.
+> diff --git a/drivers/input/misc/twl6040-vibra.c b/drivers/input/misc/twl6=
+040-vibra.c
+> index 45874fe..14e94f5 100644
+> --- a/drivers/input/misc/twl6040-vibra.c
+> +++ b/drivers/input/misc/twl6040-vibra.c
+> @@ -28,7 +28,7 @@
+>  #include <linux/module.h>
+>  #include <linux/platform_device.h>
+>  #include <linux/workqueue.h>
+> -#include <linux/i2c/twl.h>
+> +#include <linux/input.h>
+>  #include <linux/mfd/twl6040.h>
+>  #include <linux/slab.h>
+>  #include <linux/delay.h>
+> @@ -257,7 +257,7 @@ static SIMPLE_DEV_PM_OPS(twl6040_vibra_pm_ops, twl604=
+0_vibra_suspend, NULL);
+>  =
+
+>  static int __devinit twl6040_vibra_probe(struct platform_device *pdev)
+>  {
+> -	struct twl4030_vibra_data *pdata =3D pdev->dev.platform_data;
+> +	struct twl6040_vibra_data *pdata =3D pdev->dev.platform_data;
+>  	struct vibra_info *info;
+>  	int ret;
+>  =
+
+> diff --git a/drivers/mfd/Kconfig b/drivers/mfd/Kconfig
+> index 29f463c..11e4438 100644
+> --- a/drivers/mfd/Kconfig
+> +++ b/drivers/mfd/Kconfig
+> @@ -268,10 +268,17 @@ config TWL6030_PWM
+>  	  This is used to control charging LED brightness.
+>  =
+
+>  config TWL6040_CORE
+> -	bool
+> -	depends on TWL4030_CORE && GENERIC_HARDIRQS
+> +	bool "Support for TWL6040 audio codec"
+> +	depends on I2C=3Dy && GENERIC_HARDIRQS
+>  	select MFD_CORE
+> +	select REGMAP_I2C
+>  	default n
+> +	help
+> +	  Say yes here if you want support for Texas Instruments TWL6040 audio
+> +	  codec.
+> +	  This driver provides common support for accessing the device,
+> +	  additional drivers must be enabled in order to use the
+> +	  functionality of the device (audio, vibra).
+>  =
+
+>  config MFD_STMPE
+>  	bool "Support STMicroelectronics STMPE"
+> diff --git a/drivers/mfd/twl6040-core.c b/drivers/mfd/twl6040-core.c
+> index b2d8e51..2d6beda 100644
+> --- a/drivers/mfd/twl6040-core.c
+> +++ b/drivers/mfd/twl6040-core.c
+> @@ -30,7 +30,9 @@
+>  #include <linux/platform_device.h>
+>  #include <linux/gpio.h>
+>  #include <linux/delay.h>
+> -#include <linux/i2c/twl.h>
+> +#include <linux/i2c.h>
+> +#include <linux/regmap.h>
+> +#include <linux/err.h>
+>  #include <linux/mfd/core.h>
+>  #include <linux/mfd/twl6040.h>
+>  =
+
+> @@ -39,7 +41,7 @@
+>  int twl6040_reg_read(struct twl6040 *twl6040, unsigned int reg)
+>  {
+>  	int ret;
+> -	u8 val =3D 0;
+> +	unsigned int val;
+>  =
+
+>  	mutex_lock(&twl6040->io_mutex);
+>  	/* Vibra control registers from cache */
+> @@ -47,7 +49,7 @@ int twl6040_reg_read(struct twl6040 *twl6040, unsigned =
+int reg)
+>  		     reg =3D=3D TWL6040_REG_VIBCTLR)) {
+>  		val =3D twl6040->vibra_ctrl_cache[VIBRACTRL_MEMBER(reg)];
+>  	} else {
+> -		ret =3D twl_i2c_read_u8(TWL_MODULE_AUDIO_VOICE, &val, reg);
+> +		ret =3D regmap_read(twl6040->regmap, reg, &val);
+>  		if (ret < 0) {
+>  			mutex_unlock(&twl6040->io_mutex);
+>  			return ret;
+> @@ -64,7 +66,7 @@ int twl6040_reg_write(struct twl6040 *twl6040, unsigned=
+ int reg, u8 val)
+>  	int ret;
+>  =
+
+>  	mutex_lock(&twl6040->io_mutex);
+> -	ret =3D twl_i2c_write_u8(TWL_MODULE_AUDIO_VOICE, val, reg);
+> +	ret =3D regmap_write(twl6040->regmap, reg, val);
+>  	/* Cache the vibra control registers */
+>  	if (reg =3D=3D TWL6040_REG_VIBCTLL || reg =3D=3D TWL6040_REG_VIBCTLR)
+>  		twl6040->vibra_ctrl_cache[VIBRACTRL_MEMBER(reg)] =3D val;
+> @@ -77,16 +79,9 @@ EXPORT_SYMBOL(twl6040_reg_write);
+>  int twl6040_set_bits(struct twl6040 *twl6040, unsigned int reg, u8 mask)
+>  {
+>  	int ret;
+> -	u8 val;
+>  =
+
+>  	mutex_lock(&twl6040->io_mutex);
+> -	ret =3D twl_i2c_read_u8(TWL_MODULE_AUDIO_VOICE, &val, reg);
+> -	if (ret)
+> -		goto out;
+> -
+> -	val |=3D mask;
+> -	ret =3D twl_i2c_write_u8(TWL_MODULE_AUDIO_VOICE, val, reg);
+> -out:
+> +	ret =3D regmap_update_bits(twl6040->regmap, reg, mask, mask);
+>  	mutex_unlock(&twl6040->io_mutex);
+>  	return ret;
+>  }
+> @@ -95,16 +90,9 @@ EXPORT_SYMBOL(twl6040_set_bits);
+>  int twl6040_clear_bits(struct twl6040 *twl6040, unsigned int reg, u8 mas=
+k)
+>  {
+>  	int ret;
+> -	u8 val;
+>  =
+
+>  	mutex_lock(&twl6040->io_mutex);
+> -	ret =3D twl_i2c_read_u8(TWL_MODULE_AUDIO_VOICE, &val, reg);
+> -	if (ret)
+> -		goto out;
+> -
+> -	val &=3D ~mask;
+> -	ret =3D twl_i2c_write_u8(TWL_MODULE_AUDIO_VOICE, val, reg);
+> -out:
+> +	ret =3D regmap_update_bits(twl6040->regmap, reg, mask, 0);
+>  	mutex_unlock(&twl6040->io_mutex);
+>  	return ret;
+>  }
+> @@ -494,32 +482,58 @@ static struct resource twl6040_codec_rsrc[] =3D {
+>  	},
+>  };
+>  =
+
+> -static int __devinit twl6040_probe(struct platform_device *pdev)
+> +static bool twl6040_readable_reg(struct device *dev, unsigned int reg)
+>  {
+> -	struct twl4030_audio_data *pdata =3D pdev->dev.platform_data;
+> +	/* Register 0 is not readable */
+> +	if (!reg)
+> +		return false;
+> +	return true;
+> +}
+> +
+> +static struct regmap_config twl6040_regmap_config =3D {
+> +	.reg_bits =3D 8,
+> +	.val_bits =3D 8,
+> +	.max_register =3D TWL6040_REG_STATUS, /* 0x2e */
+> +
+> +	.readable_reg =3D twl6040_readable_reg,
+> +};
+> +
+> +static int __devinit twl6040_probe(struct i2c_client *client,
+> +				     const struct i2c_device_id *id)
+> +{
+> +	struct twl6040_platform_data *pdata =3D client->dev.platform_data;
+>  	struct twl6040 *twl6040;
+>  	struct mfd_cell *cell =3D NULL;
+>  	int ret, children =3D 0;
+>  =
+
+>  	if (!pdata) {
+> -		dev_err(&pdev->dev, "Platform data is missing\n");
+> +		dev_err(&client->dev, "Platform data is missing\n");
+>  		return -EINVAL;
+>  	}
+>  =
+
+>  	/* In order to operate correctly we need valid interrupt config */
+> -	if (!pdata->naudint_irq || !pdata->irq_base) {
+> -		dev_err(&pdev->dev, "Invalid IRQ configuration\n");
+> +	if (!client->irq || !pdata->irq_base) {
+> +		dev_err(&client->dev, "Invalid IRQ configuration\n");
+>  		return -EINVAL;
+>  	}
+>  =
+
+> -	twl6040 =3D kzalloc(sizeof(struct twl6040), GFP_KERNEL);
+> -	if (!twl6040)
+> -		return -ENOMEM;
+> +	twl6040 =3D devm_kzalloc(&client->dev, sizeof(struct twl6040),
+> +			       GFP_KERNEL);
+> +	if (!twl6040) {
+> +		ret =3D -ENOMEM;
+> +		goto err;
+> +	}
+> +
+> +	twl6040->regmap =3D regmap_init_i2c(client, &twl6040_regmap_config);
+> +	if (IS_ERR(twl6040->regmap)) {
+> +		ret =3D PTR_ERR(twl6040->regmap);
+> +		goto err;
+> +	}
+>  =
+
+> -	platform_set_drvdata(pdev, twl6040);
+> +	i2c_set_clientdata(client, twl6040);
+>  =
+
+> -	twl6040->dev =3D &pdev->dev;
+> -	twl6040->irq =3D pdata->naudint_irq;
+> +	twl6040->dev =3D &client->dev;
+> +	twl6040->irq =3D client->irq;
+>  	twl6040->irq_base =3D pdata->irq_base;
+>  =
+
+>  	mutex_init(&twl6040->mutex);
+> @@ -588,12 +602,12 @@ static int __devinit twl6040_probe(struct platform_=
+device *pdev)
+>  	}
+>  =
+
+>  	if (children) {
+> -		ret =3D mfd_add_devices(&pdev->dev, pdev->id, twl6040->cells,
+> +		ret =3D mfd_add_devices(&client->dev, -1, twl6040->cells,
+>  				      children, NULL, 0);
+>  		if (ret)
+>  			goto mfd_err;
+>  	} else {
+> -		dev_err(&pdev->dev, "No platform data found for children\n");
+> +		dev_err(&client->dev, "No platform data found for children\n");
+>  		ret =3D -ENODEV;
+>  		goto mfd_err;
+>  	}
+> @@ -608,14 +622,15 @@ gpio2_err:
+>  	if (gpio_is_valid(twl6040->audpwron))
+>  		gpio_free(twl6040->audpwron);
+>  gpio1_err:
+> -	platform_set_drvdata(pdev, NULL);
+> -	kfree(twl6040);
+> +	i2c_set_clientdata(client, NULL);
+> +	regmap_exit(twl6040->regmap);
+> +err:
+>  	return ret;
+>  }
+>  =
+
+> -static int __devexit twl6040_remove(struct platform_device *pdev)
+> +static int __devexit twl6040_remove(struct i2c_client *client)
+>  {
+> -	struct twl6040 *twl6040 =3D platform_get_drvdata(pdev);
+> +	struct twl6040 *twl6040 =3D i2c_get_clientdata(client);
+>  =
+
+>  	if (twl6040->power_count)
+>  		twl6040_power(twl6040, 0);
+> @@ -626,23 +641,30 @@ static int __devexit twl6040_remove(struct platform=
+_device *pdev)
+>  	free_irq(twl6040->irq_base + TWL6040_IRQ_READY, twl6040);
+>  	twl6040_irq_exit(twl6040);
+>  =
+
+> -	mfd_remove_devices(&pdev->dev);
+> -	platform_set_drvdata(pdev, NULL);
+> -	kfree(twl6040);
+> +	mfd_remove_devices(&client->dev);
+> +	i2c_set_clientdata(client, NULL);
+> +	regmap_exit(twl6040->regmap);
+>  =
+
+>  	return 0;
+>  }
+>  =
+
+> -static struct platform_driver twl6040_driver =3D {
+> +static const struct i2c_device_id twl6040_i2c_id[] =3D {
+> +	{ "twl6040", 0, },
+> +	{ },
+> +};
+> +MODULE_DEVICE_TABLE(i2c, twl6040_i2c_id);
+> +
+> +static struct i2c_driver twl6040_driver =3D {
+> +	.driver =3D {
+> +		.name =3D "twl6040",
+> +		.owner =3D THIS_MODULE,
+> +	},
+>  	.probe		=3D twl6040_probe,
+>  	.remove		=3D __devexit_p(twl6040_remove),
+> -	.driver		=3D {
+> -		.owner	=3D THIS_MODULE,
+> -		.name	=3D "twl6040",
+> -	},
+> +	.id_table	=3D twl6040_i2c_id,
+>  };
+>  =
+
+> -module_platform_driver(twl6040_driver);
+> +module_i2c_driver(twl6040_driver);
+>  =
+
+>  MODULE_DESCRIPTION("TWL6040 MFD");
+>  MODULE_AUTHOR("Misael Lopez Cruz <misael.lopez@ti.com>");
+> diff --git a/include/linux/i2c/twl.h b/include/linux/i2c/twl.h
+> index 2463b61..1f90de0 100644
+> --- a/include/linux/i2c/twl.h
+> +++ b/include/linux/i2c/twl.h
+> @@ -666,23 +666,11 @@ struct twl4030_codec_data {
+>  	unsigned int check_defaults:1;
+>  	unsigned int reset_registers:1;
+>  	unsigned int hs_extmute:1;
+> -	u16 hs_left_step;
+> -	u16 hs_right_step;
+> -	u16 hf_left_step;
+> -	u16 hf_right_step;
+>  	void (*set_hs_extmute)(int mute);
+>  };
+>  =
+
+>  struct twl4030_vibra_data {
+>  	unsigned int	coexist;
+> -
+> -	/* twl6040 */
+> -	unsigned int vibldrv_res;	/* left driver resistance */
+> -	unsigned int vibrdrv_res;	/* right driver resistance */
+> -	unsigned int viblmotor_res;	/* left motor resistance */
+> -	unsigned int vibrmotor_res;	/* right motor resistance */
+> -	int vddvibl_uV;			/* VDDVIBL volt, set 0 for fixed reg */
+> -	int vddvibr_uV;			/* VDDVIBR volt, set 0 for fixed reg */
+>  };
+>  =
+
+>  struct twl4030_audio_data {
+> diff --git a/include/linux/mfd/twl6040.h b/include/linux/mfd/twl6040.h
+> index 9bc9ac6..b15b5f0 100644
+> --- a/include/linux/mfd/twl6040.h
+> +++ b/include/linux/mfd/twl6040.h
+> @@ -174,8 +174,35 @@
+>  #define TWL6040_SYSCLK_SEL_LPPLL	0
+>  #define TWL6040_SYSCLK_SEL_HPPLL	1
+>  =
+
+> +struct twl6040_codec_data {
+> +	u16 hs_left_step;
+> +	u16 hs_right_step;
+> +	u16 hf_left_step;
+> +	u16 hf_right_step;
+> +};
+> +
+> +struct twl6040_vibra_data {
+> +	unsigned int vibldrv_res;	/* left driver resistance */
+> +	unsigned int vibrdrv_res;	/* right driver resistance */
+> +	unsigned int viblmotor_res;	/* left motor resistance */
+> +	unsigned int vibrmotor_res;	/* right motor resistance */
+> +	int vddvibl_uV;			/* VDDVIBL volt, set 0 for fixed reg */
+> +	int vddvibr_uV;			/* VDDVIBR volt, set 0 for fixed reg */
+> +};
+> +
+> +struct twl6040_platform_data {
+> +	int audpwron_gpio;	/* audio power-on gpio */
+> +	unsigned int irq_base;
+> +
+> +	struct twl6040_codec_data *codec;
+> +	struct twl6040_vibra_data *vibra;
+> +};
+> +
+> +struct regmap;
+> +
+>  struct twl6040 {
+>  	struct device *dev;
+> +	struct regmap *regmap;
+>  	struct mutex mutex;
+>  	struct mutex io_mutex;
+>  	struct mutex irq_mutex;
+> diff --git a/sound/soc/codecs/Kconfig b/sound/soc/codecs/Kconfig
+> index 6508e8b..59d8efa 100644
+> --- a/sound/soc/codecs/Kconfig
+> +++ b/sound/soc/codecs/Kconfig
+> @@ -57,7 +57,7 @@ config SND_SOC_ALL_CODECS
+>  	select SND_SOC_TPA6130A2 if I2C
+>  	select SND_SOC_TLV320DAC33 if I2C
+>  	select SND_SOC_TWL4030 if TWL4030_CORE
+> -	select SND_SOC_TWL6040 if TWL4030_CORE
+> +	select SND_SOC_TWL6040 if TWL6040_CORE
+>  	select SND_SOC_UDA134X
+>  	select SND_SOC_UDA1380 if I2C
+>  	select SND_SOC_WL1273 if MFD_WL1273_CORE
+> @@ -276,7 +276,6 @@ config SND_SOC_TWL4030
+>  	tristate
+>  =
+
+>  config SND_SOC_TWL6040
+> -	select TWL6040_CORE
+>  	tristate
+>  =
+
+>  config SND_SOC_UDA134X
+> diff --git a/sound/soc/codecs/twl6040.c b/sound/soc/codecs/twl6040.c
+> index 2d8c6b8..dc7509b 100644
+> --- a/sound/soc/codecs/twl6040.c
+> +++ b/sound/soc/codecs/twl6040.c
+> @@ -26,7 +26,6 @@
+>  #include <linux/pm.h>
+>  #include <linux/platform_device.h>
+>  #include <linux/slab.h>
+> -#include <linux/i2c/twl.h>
+>  #include <linux/mfd/twl6040.h>
+>  =
+
+>  #include <sound/core.h>
+> @@ -1528,7 +1527,7 @@ static int twl6040_resume(struct snd_soc_codec *cod=
+ec)
+>  static int twl6040_probe(struct snd_soc_codec *codec)
+>  {
+>  	struct twl6040_data *priv;
+> -	struct twl4030_codec_data *pdata =3D dev_get_platdata(codec->dev);
+> +	struct twl6040_codec_data *pdata =3D dev_get_platdata(codec->dev);
+>  	struct platform_device *pdev =3D container_of(codec->dev,
+>  						   struct platform_device, dev);
+>  	int ret =3D 0;
+> diff --git a/sound/soc/omap/Kconfig b/sound/soc/omap/Kconfig
+> index e00dd0b..deafbfa 100644
+> --- a/sound/soc/omap/Kconfig
+> +++ b/sound/soc/omap/Kconfig
+> @@ -97,7 +97,7 @@ config SND_OMAP_SOC_SDP3430
+>  =
+
+>  config SND_OMAP_SOC_OMAP_ABE_TWL6040
+>  	tristate "SoC Audio support for OMAP boards using ABE and twl6040 codec"
+> -	depends on TWL4030_CORE && SND_OMAP_SOC && ARCH_OMAP4
+> +	depends on TWL6040_CORE && SND_OMAP_SOC && ARCH_OMAP4
+>  	select SND_OMAP_SOC_DMIC
+>  	select SND_OMAP_SOC_MCPDM
+>  	select SND_SOC_TWL6040
