@@ -1,57 +1,45 @@
-From: Tarun Kanti DebBarma <tarun.kanti@ti.com>
-Subject: [PATCH v2] ARM: OMAP2+: dmtimer: remove redundant sysconfig context restore
-Date: Thu, 12 Apr 2012 15:13:47 +0530
-Message-ID: <1334223827-28812-1-git-send-email-tarun.kanti@ti.com>
+From: Tushar Behera <tushar.behera@linaro.org>
+Subject: Re: [PATCH] mmc: omap_hsmmc: set dto to 14 for all devices
+Date: Thu, 12 Apr 2012 15:16:09 +0530
+Message-ID: <4F86A461.4010006@linaro.org>
+References: <1330622780-1909-1-git-send-email-Chase.Maupin@ti.com> <m2399iqtgf.fsf@bob.laptop.org> <alpine.DEB.2.00.1203120435200.11332@utopia.booyaka.com> <87bonxcjrh.fsf@laptop.org> <20120405220848.GF3785@atomide.com> <87obr57rmh.fsf@laptop.org> <alpine.DEB.2.00.1204051743360.10302@utopia.booyaka.com> <87k41t7n13.fsf@laptop.org>
 Mime-Version: 1.0
-Content-Type: text/plain
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from bear.ext.ti.com ([192.94.94.41]:53587 "EHLO bear.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1756600Ab2DLJnz (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Thu, 12 Apr 2012 05:43:55 -0400
+Received: from mail-pb0-f46.google.com ([209.85.160.46]:37552 "EHLO
+	mail-pb0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1762423Ab2DLJqQ (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 12 Apr 2012 05:46:16 -0400
+Received: by pbcun15 with SMTP id un15so2179318pbc.19
+        for <linux-omap@vger.kernel.org>; Thu, 12 Apr 2012 02:46:15 -0700 (PDT)
+In-Reply-To: <87k41t7n13.fsf@laptop.org>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: linux-omap@vger.kernel.org
-Cc: tony@atomide.com, khilman@ti.com, santosh.shilimkar@ti.com, rnayak@ti.com, b-cousson@ti.com, Tarun Kanti DebBarma <tarun.kanti@ti.com>
+To: Chris Ball <cjb@laptop.org>
+Cc: Paul Walmsley <paul@pwsan.com>, Tony Lindgren <tony@atomide.com>, Chase Maupin <Chase.Maupin@ti.com>, linux-omap@vger.kernel.org, linux-mmc@vger.kernel.org, sakoman@gmail.com
 
-Since hwmod framework now manages sysconfig context save/restore
-there is no more need to touch this register in driver. Hence,
-remove restore of sysconfig register in omap_timer_restore_context.
-This was causing incorrect context restore of sysconfig register.
+On 04/06/2012 05:24 AM, Chris Ball wrote:
+> Hi Paul,
+> 
+> On Thu, Apr 05 2012, Paul Walmsley wrote:
+>> I'm really sorry for the long delay!
+>>
+>> On Thu, 5 Apr 2012, Chris Ball wrote:
+>>
+>>> Thanks.  Paul, just waiting for your Signed-off-by.
+>>
+>> Signed-off-by: Paul Walmsley <paul@pwsan.com>
+> 
+> Thanks, no problem!  Pushed to mmc-next for 3.4.
+> 
+> - Chris.
+With this patch, I continuously get following message on my console.
+(Tested on Origen board, based on EXYNOS4210).
 
-Signed-off-by: Tarun Kanti DebBarma <tarun.kanti@ti.com>
----
-v2: removed tiocp_cfg from struct timer_regs {}
+mmc0: Too large timeout requested for CMD25!
 
- arch/arm/plat-omap/dmtimer.c              |    2 --
- arch/arm/plat-omap/include/plat/dmtimer.h |    1 -
- 2 files changed, 0 insertions(+), 3 deletions(-)
+So, with this change, should we update sdhci_calc_timeout() also?
 
-diff --git a/arch/arm/plat-omap/dmtimer.c b/arch/arm/plat-omap/dmtimer.c
-index 652139c..15e7882 100644
---- a/arch/arm/plat-omap/dmtimer.c
-+++ b/arch/arm/plat-omap/dmtimer.c
-@@ -82,8 +82,6 @@ static void omap_dm_timer_write_reg(struct omap_dm_timer *timer, u32 reg,
- 
- static void omap_timer_restore_context(struct omap_dm_timer *timer)
- {
--	__raw_writel(timer->context.tiocp_cfg,
--			timer->io_base + OMAP_TIMER_OCP_CFG_OFFSET);
- 	if (timer->revision == 1)
- 		__raw_writel(timer->context.tistat, timer->sys_stat);
- 
-diff --git a/arch/arm/plat-omap/include/plat/dmtimer.h b/arch/arm/plat-omap/include/plat/dmtimer.h
-index 9418f00..a4c08d0 100644
---- a/arch/arm/plat-omap/include/plat/dmtimer.h
-+++ b/arch/arm/plat-omap/include/plat/dmtimer.h
-@@ -75,7 +75,6 @@ struct clk;
- 
- struct timer_regs {
- 	u32 tidr;
--	u32 tiocp_cfg;
- 	u32 tistat;
- 	u32 tisr;
- 	u32 tier;
 -- 
-1.7.0.4
-
+Tushar Behera
