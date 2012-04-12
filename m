@@ -1,49 +1,33 @@
-From: Paul Walmsley <paul@pwsan.com>
-Subject: Re: [PATCH-V4 0/4] ARM: OMAP2+: Add voltagedomain, powerdomain &
- PRM support for AM33XX device
-Date: Thu, 12 Apr 2012 02:26:06 -0600 (MDT)
-Message-ID: <alpine.DEB.2.00.1204120207420.29473@utopia.booyaka.com>
-References: <1333123435-27186-1-git-send-email-hvaibhav@ti.com>
+From: Samuel Ortiz <sameo@linux.intel.com>
+Subject: Re: [PATCH for 3.4] MFD: twl6040: Convert to i2c driver, and
+ separate it from twl core
+Date: Thu, 12 Apr 2012 10:52:20 +0200
+Message-ID: <20120412085220.GA14106@sortiz-mobl>
+References: <1333443411-23056-1-git-send-email-peter.ujfalusi@ti.com>
+ <4F8678A0.7090600@ti.com>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from utopia.booyaka.com ([72.9.107.138]:60252 "EHLO
-	utopia.booyaka.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1759703Ab2DLI0H (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 12 Apr 2012 04:26:07 -0400
-In-Reply-To: <1333123435-27186-1-git-send-email-hvaibhav@ti.com>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <4F8678A0.7090600@ti.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Peter Ujfalusi <peter.ujfalusi@ti.com>
+Cc: Tony Lindgren <tony@atomide.com>, Liam Girdwood <lrg@ti.com>, Mark Brown <broonie@opensource.wolfsonmicro.com>, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, alsa-devel@alsa-project.org, linux-arm-kernel@lists.infradead.org
 List-Id: linux-omap@vger.kernel.org
-To: Vaibhav Hiremath <hvaibhav@ti.com>
-Cc: linux-omap@vger.kernel.org, tony@atomide.com, khilman@ti.com, rnayak@ti.com, b-cousson@ti.com, linux-arm-kernel@lists.infradead.org
 
-Hello Vaibhav,
+Hi Peter,
 
-On Fri, 30 Mar 2012, Vaibhav Hiremath wrote:
+On Thu, Apr 12, 2012 at 09:39:28AM +0300, Peter Ujfalusi wrote:
+> Hi Samuel, Liam, Tony,
+> 
+> Now rc2 is out, and the the OMAP4 audio is still broken.
+> Can you please queue this patch for 3.4?
+I'm busy this week, but I'll queue this one up beginning of next week. I have
+several MFD fixes pending, so I'll send a pull request before rc4 I hope.
 
-> After some healthy discussion, now we have come to the conclusion and
-> decided to handle AM33XX PRM/CM part separately; as AM33XX-PRCM module is
-> different than OMAP3 and OMAP4 architecture.
+Cheers,
+Samuel.
 
-Have been reviewing these patch sets here.  Are these associated with any 
-board file?  I had to hand-apply several patch sets due to some 
-differences in mach-omap2/io.c.  Upon looking more closely, and looking at 
-your GitHub branch:
-
-https://github.com/hvaibhav/am335x-linux/tree/am335x-prm-cm
-
-it seems that internally you've been modifying the AM3517 EVM board file 
-to test the BeagleBone?  But due to the init_early changes, this is 
-presumably not going to work if we want to keep the AM3517EVM working -- 
-is this your understanding as well?
-
-I'm kind of wondering how we're to test these...
-
-...
-
-BTW, the branch that I'm experimenting with is at 
-git://git.pwsan.com/linux-2.6 -- branch name 'am33xx_support_3.5' -- I am 
-still reviewing the patches there.
-
-
-- Paul
+-- 
+Intel Open Source Technology Centre
+http://oss.intel.com/
