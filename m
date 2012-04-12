@@ -1,101 +1,82 @@
-From: "Shilimkar, Santosh" <santosh.shilimkar@ti.com>
-Subject: Re: [PATCH 2/2] ARM: mm: Flush only CPU local cache instead of all
- cache levels.
-Date: Thu, 12 Apr 2012 20:00:26 +0530
-Message-ID: <CAMQu2gzdaGOq-dyJ8dZmyL3e+jg0QJj2BfQBsxh=EYkXrQVTsw@mail.gmail.com>
-References: <1334230187-21553-1-git-send-email-santosh.shilimkar@ti.com>
- <1334230187-21553-3-git-send-email-santosh.shilimkar@ti.com> <20120412132729.GA27744@e102568-lin.cambridge.arm.com>
+From: Gary Thomas <gary@mlbassoc.com>
+Subject: Re: PM related performance degradation on OMAP3
+Date: Thu, 12 Apr 2012 09:28:50 -0600
+Message-ID: <4F86F4B2.3080101@mlbassoc.com>
+References: <CANOLnOP5gq4Vtt00SgRNW-3GZDWk0sukBgJx4V6rkMLL+b6G-w@mail.gmail.com> <4F859C5D.3090400@mlbassoc.com> <87hawqt6vt.fsf@ti.com> <4F86B227.90802@mlbassoc.com> <87aa2hjavi.fsf@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aog115.obsmtp.com ([74.125.149.238]:38995 "EHLO
-	na3sys009aog115.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S934057Ab2DLOas convert rfc822-to-8bit
-	(ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Thu, 12 Apr 2012 10:30:48 -0400
-Received: by qafi31 with SMTP id i31so4452218qaf.8
-        for <linux-omap@vger.kernel.org>; Thu, 12 Apr 2012 07:30:46 -0700 (PDT)
-In-Reply-To: <20120412132729.GA27744@e102568-lin.cambridge.arm.com>
+Received: from hermes.mlbassoc.com ([64.234.241.98]:50382 "EHLO
+	mail.chez-thomas.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S934343Ab2DLP3H (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 12 Apr 2012 11:29:07 -0400
+In-Reply-To: <87aa2hjavi.fsf@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>
-Cc: "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, Catalin Marinas <Catalin.Marinas@arm.com>, "linux@arm.linux.org.uk" <linux@arm.linux.org.uk>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, Russell King <rmk+kernel@arm.linux.org.uk>
+To: Kevin Hilman <khilman@ti.com>
+Cc: Grazvydas Ignotas <notasas@gmail.com>, linux-omap@vger.kernel.org, Paul Walmsley <paul@pwsan.com>
 
-On Thu, Apr 12, 2012 at 6:57 PM, Lorenzo Pieralisi
-<lorenzo.pieralisi@arm.com> wrote:
-> Hi Santosh,
+On 2012-04-12 08:14, Kevin Hilman wrote:
+> Gary Thomas<gary@mlbassoc.com>  writes:
 >
-> just posted a series whose aim is the same, please have a look and
-> let's try to merge the two approaches.
+>> On 2012-04-11 13:17, Kevin Hilman wrote:
+>>> Gary Thomas<gary@mlbassoc.com>   writes:
+>>>
+>>> [...]
+>>>
+>>>> I fear I'm seeing similar problems with 3.3.  I have my board (similar
+>>>> to the BeagleBoard) ported to 3.0 and 3.3.  I'm seeing terrible network
+>>>> performance on 3.3.  For example, if I use TFTP to download a large file
+>>>> (~35MB), I get this:
+>>>>     3.0:  42.5 sec
+>>>>     3.3: 625.0 sec
+>>>> That's a factor of 15 worse!
+>>>
+>>> This might not be the same problem.  What is the NIC being used, and
+>>> does it have GPIO interrupts?
+>>
+>> My board uses SMSC911x with GPIO interrupt signal.
 >
-Sure ...
+> OK, then your problem is almost certainly solved by my GPIO triggering
+> fix, and not related to Grazvytas' problem.
+>
+>>>
+>>> If it's using GPIO interrupts, then you likely need this patch from
+>>> mainline (v3.4-rc1)
+>>
+>> I tried to just pick up the patch you [sort of] quoted below, but had
+>> a hard time applying it to my kernel. I've tried to just pick up the
+>> latest files from the mainline kernel, but so far I've nothing that
+>> builds
+>
+> Oh, right.  Sorry about that.  Yeah, that patch actually has
+> dependencies on other GPIO changes that were queued for v3.4 (and not in
+> v3.3.)
+>
+> If you're on v3.3, just pull the branch below[1] which is based on
+> v3.3-rc2.  Pulling that into a v3.3 should build just fine.
+>
+> Kevin
+>
+> [1] git://git.kernel.org/pub/scm/linux/kernel/git/khilman/linux-omap-pm.git for_3.4/fixes/gpio
 
-> On Thu, Apr 12, 2012 at 12:29:47PM +0100, Santosh Shilimkar wrote:
->> The ARMv7 processor setup functions clean and invalidates the
->> cpu cache before enabling MMU. The intention here is to start
->> with clean CPU local cache.
->>
->> But on architectures like Cortex-[A15/A8], this code will end
->> up flushing the L2 cache as well which undesirable and incorrect.
->
-> Undesirable agreed, can you define incorrect please ?
->
-I was mainly visualizing mainly the hotplug scenario where one CPU
-is middle of accessing shared data and other CPU in it's way up path
-flush L1 + L2. After thinking bit more, looks like it might work withou=
-t
-issues so incorrect may not be write word.
+This worked a treat, thanks.  My network performance is better
+now, but still not what it was.  The same TFTP transfer now takes
+71 seconds, so about 50% slower than on the 3.0 kernel.  Applying the
+second [unnamed] patch (arch/arm/mach-omap2/cpuidle34xx.c) made no difference.
 
->> The setup functions are used in CPU hotplug scenario's too and
->> hence flushing all cache levels should be avoided.
->>
->
-> Agreed, but this is also true for __cpu_disable() if we consider hotp=
-lug into
-> the picture. The difference is that __cpu_disable is not v7 specific
-> that's what I tried to address with my series, a more generic (and of=
- course
-> arguable) approach.
->
->> Fix this code by restricting the cache flush to local cpu
->> cache or L1.
->>
->> Signed-off-by: Santosh Shilimkar <santosh.shilimkar@ti.com>
->> Cc: Catalin Marinas <catalin.marinas@arm.com>
->> Cc: Russell King <rmk+kernel@arm.linux.org.uk>
->> ---
->> =A0arch/arm/mm/proc-v7.S | =A0 =A03 ++-
->> =A01 files changed, 2 insertions(+), 1 deletions(-)
->>
->> diff --git a/arch/arm/mm/proc-v7.S b/arch/arm/mm/proc-v7.S
->> index f1c8486..96cfc31 100644
->> --- a/arch/arm/mm/proc-v7.S
->> +++ b/arch/arm/mm/proc-v7.S
->> @@ -172,7 +172,8 @@ __v7_ca15mp_setup:
->> =A0__v7_setup:
->> =A0 =A0 =A0 adr =A0 =A0 r12, __v7_setup_stack =A0 =A0 =A0 =A0 =A0 @ =
-the local stack
->> =A0 =A0 =A0 stmia =A0 r12, {r0-r5, r7, r9, r11, lr}
->> - =A0 =A0 bl =A0 =A0 =A0v7_flush_dcache_all
->> + =A0 =A0 mov =A0 =A0 r0, #0x1
->> + =A0 =A0 bl =A0 =A0 =A0v7_flush_dcache_by_level
->
-> I did not post my patch here that is similar but basically the idea h=
-ere is
-> to clean/invalidate up to Level of Unification Inner Shareable.
->
-ok.
+I am interested in having PM working as I'm designing a battery powered
+portable unit, so I need to keep pursuing this.
 
-> That hardcoded 0x1 must be explained, it might work for most of the v=
-7 systems
-> but I think it should be generalized.
->
-Agree. I just looked at current V7 processors and thought that #1 shoul=
-d be
-fine.
---
-To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Note: I noticed that when I built with CONFIG_PM off and no other
+changes, my EHCI USB didn't work properly.  Should this be the case?
+
+Thanks again for your help
+
+
+-- 
+------------------------------------------------------------
+Gary Thomas                 |  Consulting for the
+MLB Associates              |    Embedded world
+------------------------------------------------------------
