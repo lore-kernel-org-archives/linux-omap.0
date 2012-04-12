@@ -1,61 +1,62 @@
-From: Shubhrajyoti D <shubhrajyoti@ti.com>
-Subject: [PATCHv8 14/18] I2C: OMAP: Use SET_RUNTIME_PM_OPS
-Date: Thu, 12 Apr 2012 18:36:31 +0530
-Message-ID: <1334235995-6727-15-git-send-email-shubhrajyoti@ti.com>
+From: Shubhrajyoti D <shubhrajyoti-l0cyMroinI0@public.gmane.org>
+Subject: [PATCHv8 10/18] I2C: OMAP: Don't check if wait_for_completion_timeout() returns less than zero
+Date: Thu, 12 Apr 2012 18:36:27 +0530
+Message-ID: <1334235995-6727-11-git-send-email-shubhrajyoti@ti.com>
 References: <1334235995-6727-1-git-send-email-shubhrajyoti@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from comal.ext.ti.com ([198.47.26.152]:52836 "EHLO comal.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S933851Ab2DLNHY (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Thu, 12 Apr 2012 09:07:24 -0400
-In-Reply-To: <1334235995-6727-1-git-send-email-shubhrajyoti@ti.com>
-Sender: linux-omap-owner@vger.kernel.org
+Return-path: <linux-i2c-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <1334235995-6727-1-git-send-email-shubhrajyoti-l0cyMroinI0@public.gmane.org>
+Sender: linux-i2c-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Cc: linux-i2c-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, ben-linux-elnMNo+KYs3YtjvyW6yDsg@public.gmane.org, tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org, w.sang-bIcnvbaLZ9MEGnE8C9+IrQ@public.gmane.org, Shubhrajyoti D <shubhrajyoti-l0cyMroinI0@public.gmane.org>
 List-Id: linux-omap@vger.kernel.org
-To: linux-omap@vger.kernel.org
-Cc: linux-i2c@vger.kernel.org, linux-arm-kernel@lists.infradead.org, ben-linux@fluff.org, tony@atomide.com, w.sang@pengutronix.de, Shubhrajyoti D <shubhrajyoti@ti.com>
 
-Use SET_RUNTIME_PM_OPS macro to set runtime functions.
+By definition, wait_for_completion_timeout() returns an unsigned value and
+therefore, it is not necessary to check if the return value is less than zero
+as this is not possible.
 
-Acked-by: Felipe Balbi <balbi@ti.com>
-Signed-off-by: Shubhrajyoti D <shubhrajyoti@ti.com>
+This is based on a patch from Jon Hunter <jon-hunter-l0cyMroinI0@public.gmane.org>
+Changes from his patch
+- Declare a long as the wait_for_completion_timeout returns long.
+
+Original patch is
+http://git.omapzoom.org/?p=kernel/omap.git;a=commitdiff;h=ea02cece7b0000bc736e60c4188a11aaa74bc6e6
+
+Cc : Jon Hunter <jon-hunter-l0cyMroinI0@public.gmane.org>
+Signed-off-by: Shubhrajyoti D <shubhrajyoti-l0cyMroinI0@public.gmane.org>
 ---
- drivers/i2c/busses/i2c-omap.c |    8 +++++---
- 1 files changed, 5 insertions(+), 3 deletions(-)
+ drivers/i2c/busses/i2c-omap.c |   10 ++++------
+ 1 files changed, 4 insertions(+), 6 deletions(-)
 
 diff --git a/drivers/i2c/busses/i2c-omap.c b/drivers/i2c/busses/i2c-omap.c
-index 95fb9f9..4815528 100644
+index 959e97c..121c52e 100644
 --- a/drivers/i2c/busses/i2c-omap.c
 +++ b/drivers/i2c/busses/i2c-omap.c
-@@ -1149,6 +1149,7 @@ static int __devexit omap_i2c_remove(struct platform_device *pdev)
- 	return 0;
- }
- 
-+#ifdef CONFIG_PM
- #ifdef CONFIG_PM_RUNTIME
- static void omap_i2c_restore(struct omap_i2c_dev *dev)
+@@ -502,7 +502,7 @@ static int omap_i2c_xfer_msg(struct i2c_adapter *adap,
+ 			     struct i2c_msg *msg, int stop)
  {
-@@ -1212,15 +1213,16 @@ static int omap_i2c_runtime_resume(struct device *dev)
+ 	struct omap_i2c_dev *dev = i2c_get_adapdata(adap);
+-	int r;
++	unsigned long timeout;
+ 	u16 w;
  
- 	return 0;
- }
-+#endif /* CONFIG_PM_RUNTIME */
- 
- static struct dev_pm_ops omap_i2c_pm_ops = {
--	.runtime_suspend = omap_i2c_runtime_suspend,
--	.runtime_resume = omap_i2c_runtime_resume,
-+	SET_RUNTIME_PM_OPS(omap_i2c_runtime_suspend,
-+			   omap_i2c_runtime_resume, NULL)
- };
- #define OMAP_I2C_PM_OPS (&omap_i2c_pm_ops)
- #else
- #define OMAP_I2C_PM_OPS NULL
--#endif
-+#endif /* CONFIG_PM */
- 
- static struct platform_driver omap_i2c_driver = {
- 	.probe		= omap_i2c_probe,
+ 	dev_dbg(dev->dev, "addr: 0x%04x, len: %d, flags: 0x%x, stop: %d\n",
+@@ -570,12 +570,10 @@ static int omap_i2c_xfer_msg(struct i2c_adapter *adap,
+ 	 * REVISIT: We should abort the transfer on signals, but the bus goes
+ 	 * into arbitration and we're currently unable to recover from it.
+ 	 */
+-	r = wait_for_completion_timeout(&dev->cmd_complete,
+-					OMAP_I2C_TIMEOUT);
++	timeout = wait_for_completion_timeout(&dev->cmd_complete,
++						OMAP_I2C_TIMEOUT);
+ 	dev->buf_len = 0;
+-	if (r < 0)
+-		return r;
+-	if (r == 0) {
++	if (timeout == 0) {
+ 		dev_err(dev->dev, "controller timed out\n");
+ 		omap_i2c_reset(dev);
+ 		omap_i2c_init(dev);
 -- 
 1.7.4.1
-
