@@ -1,77 +1,57 @@
-From: Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>
-Subject: Re: [PATCH 2/2] ARM: mm: Flush only CPU local cache instead of all
- cache levels.
-Date: Thu, 12 Apr 2012 14:27:29 +0100
-Message-ID: <20120412132729.GA27744@e102568-lin.cambridge.arm.com>
-References: <1334230187-21553-1-git-send-email-santosh.shilimkar@ti.com>
- <1334230187-21553-3-git-send-email-santosh.shilimkar@ti.com>
+From: "Mohammed, Afzal" <afzal@ti.com>
+Subject: RE: [PATCH v4 0/7] Add TI EMIF SDRAM controller driver
+Date: Thu, 12 Apr 2012 13:34:15 +0000
+Message-ID: <C8443D0743D26F4388EA172BF4E2A7A93E95947E@DQHE04.ent.ti.com>
+References: <1331934707-29487-1-git-send-email-aneesh@ti.com>
+ <alpine.DEB.2.00.1204112042070.29473@utopia.booyaka.com>
+ <20120412030044.GA26236@kroah.com> <4F867A95.9030104@ti.com>
+ <20120412131045.GB31384@kroah.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=WINDOWS-1252
+Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 8BIT
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from service87.mimecast.com ([91.220.42.44]:44588 "EHLO
-	service87.mimecast.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1757519Ab2DLN1n convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 12 Apr 2012 09:27:43 -0400
-In-Reply-To: <1334230187-21553-3-git-send-email-santosh.shilimkar@ti.com>
-Content-Disposition: inline
-Sender: linux-omap-owner@vger.kernel.org
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <20120412131045.GB31384@kroah.com>
+Content-Language: en-US
+Sender: linux-kernel-owner@vger.kernel.org
+To: Greg KH <greg@kroah.com>, "Shilimkar, Santosh" <santosh.shilimkar@ti.com>
+Cc: Paul Walmsley <paul@pwsan.com>, "V, Aneesh" <aneesh@ti.com>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "mgreer@animalcreek.com" <mgreer@animalcreek.com>, "msalter@redhat.com" <msalter@redhat.com>
 List-Id: linux-omap@vger.kernel.org
-To: Santosh Shilimkar <santosh.shilimkar@ti.com>
-Cc: "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, Catalin Marinas <Catalin.Marinas@arm.com>, "linux@arm.linux.org.uk" <linux@arm.linux.org.uk>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, Russell King <rmk+kernel@arm.linux.org.uk>
 
-Hi Santosh,
+Hi Greg,
 
-just posted a series whose aim is the same, please have a look and
-let's try to merge the two approaches.
-
-On Thu, Apr 12, 2012 at 12:29:47PM +0100, Santosh Shilimkar wrote:
-> The ARMv7 processor setup functions clean and invalidates the
-> cpu cache before enabling MMU. The intention here is to start
-> with clean CPU local cache.
+On Thu, Apr 12, 2012 at 18:40:45, Greg KH wrote:
+> On Thu, Apr 12, 2012 at 12:17:49PM +0530, Santosh Shilimkar wrote:
+> > I was hoping that we will have some thing like drivers/memory/*
+> > but since it doesn't exist, we used drivers/misc.
 > 
-> But on architectures like Cortex-[A15/A8], this code will end
-> up flushing the L2 cache as well which undesirable and incorrect.
+> Why not create it?  I have no objection to that, it makes it more
+> obvious as to what this really is.
 
-Undesirable agreed, can you define incorrect please ?
+There is another memory controller used in a few TI SoCs,
+namely GPMC [1], do you prefer having it too there.
 
-> The setup functions are used in CPU hotplug scenario's too and
-> hence flushing all cache levels should be avoided.
-> 
+As of now it is not a driver, platform code handles GPMC, a patch
+series for converting it into a driver (but still residing in
+platform folder) was sent a few days back [2,3].
 
-Agreed, but this is also true for __cpu_disable() if we consider hotplug into
-the picture. The difference is that __cpu_disable is not v7 specific
-that's what I tried to address with my series, a more generic (and of course
-arguable) approach.
 
-> Fix this code by restricting the cache flush to local cpu
-> cache or L1.
-> 
-> Signed-off-by: Santosh Shilimkar <santosh.shilimkar@ti.com>
-> Cc: Catalin Marinas <catalin.marinas@arm.com>
-> Cc: Russell King <rmk+kernel@arm.linux.org.uk>
-> ---
->  arch/arm/mm/proc-v7.S |    3 ++-
->  1 files changed, 2 insertions(+), 1 deletions(-)
-> 
-> diff --git a/arch/arm/mm/proc-v7.S b/arch/arm/mm/proc-v7.S
-> index f1c8486..96cfc31 100644
-> --- a/arch/arm/mm/proc-v7.S
-> +++ b/arch/arm/mm/proc-v7.S
-> @@ -172,7 +172,8 @@ __v7_ca15mp_setup:
->  __v7_setup:
->  	adr	r12, __v7_setup_stack		@ the local stack
->  	stmia	r12, {r0-r5, r7, r9, r11, lr}
-> -	bl	v7_flush_dcache_all
-> +	mov	r0, #0x1
-> +	bl	v7_flush_dcache_by_level
+Regards
+Afzal
 
-I did not post my patch here that is similar but basically the idea here is
-to clean/invalidate up to Level of Unification Inner Shareable.
+[1]
+GPMC (General Purpose Memory Controller) in brief:
+GPMC is an unified memory controller dedicated to interfacing external
+memory devices like
+ Asynchronous SRAM like memories and application specific integrated circuit devices.
+ Asynchronous, synchronous, and page mode burst NOR flash devices NAND flash
+ Pseudo-SRAM devices
 
-That hardcoded 0x1 must be explained, it might work for most of the v7 systems
-but I think it should be generalized.
+GPMC has to be configured as required by timings of the connected
+peripheral. It needs to be configured only initially. Once it is
+configured it can be used to handle different protocols like NAND,
+NOR. Various kinds of devices like ethernet, uart, usb, fpga etc
+can work using GPMC interface. GPMC has a seperate additional
+functionality of NAND handling
 
-Thanks,
-Lorenzo
-
+[2] https://lkml.org/lkml/2012/4/5/210
+[3] https://lkml.org/lkml/2012/4/5/212
