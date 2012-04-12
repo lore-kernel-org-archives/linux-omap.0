@@ -1,46 +1,67 @@
-From: Greg KH <greg@kroah.com>
-Subject: Re: [PATCH v4 0/7] Add TI EMIF SDRAM controller driver
-Date: Thu, 12 Apr 2012 07:10:50 -0700
-Message-ID: <20120412141050.GA31968@kroah.com>
-References: <1331934707-29487-1-git-send-email-aneesh@ti.com>
- <alpine.DEB.2.00.1204112042070.29473@utopia.booyaka.com>
- <20120412030044.GA26236@kroah.com>
- <4F867A95.9030104@ti.com>
- <20120412131045.GB31384@kroah.com>
- <C8443D0743D26F4388EA172BF4E2A7A93E95947E@DQHE04.ent.ti.com>
+From: Kevin Hilman <khilman@ti.com>
+Subject: Re: PM related performance degradation on OMAP3
+Date: Thu, 12 Apr 2012 07:14:09 -0700
+Message-ID: <87aa2hjavi.fsf@ti.com>
+References: <CANOLnOP5gq4Vtt00SgRNW-3GZDWk0sukBgJx4V6rkMLL+b6G-w@mail.gmail.com>
+	<4F859C5D.3090400@mlbassoc.com> <87hawqt6vt.fsf@ti.com>
+	<4F86B227.90802@mlbassoc.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-kernel-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <C8443D0743D26F4388EA172BF4E2A7A93E95947E@DQHE04.ent.ti.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: "Mohammed, Afzal" <afzal@ti.com>
-Cc: "Shilimkar, Santosh" <santosh.shilimkar@ti.com>, Paul Walmsley <paul@pwsan.com>, "V, Aneesh" <aneesh@ti.com>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "mgreer@animalcreek.com" <mgreer@animalcreek.com>, "msalter@redhat.com" <msalter@redhat.com>
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from na3sys009aog111.obsmtp.com ([74.125.149.205]:43857 "EHLO
+	na3sys009aog111.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S933556Ab2DLOOQ (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>);
+	Thu, 12 Apr 2012 10:14:16 -0400
+Received: by dadn15 with SMTP id n15so3099555dad.16
+        for <linux-omap@vger.kernel.org>; Thu, 12 Apr 2012 07:14:12 -0700 (PDT)
+In-Reply-To: <4F86B227.90802@mlbassoc.com> (Gary Thomas's message of "Thu, 12
+	Apr 2012 04:44:55 -0600")
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Gary Thomas <gary@mlbassoc.com>
+Cc: Grazvydas Ignotas <notasas@gmail.com>, linux-omap@vger.kernel.org, Paul Walmsley <paul@pwsan.com>
 
-On Thu, Apr 12, 2012 at 01:34:15PM +0000, Mohammed, Afzal wrote:
-> Hi Greg,
-> 
-> On Thu, Apr 12, 2012 at 18:40:45, Greg KH wrote:
-> > On Thu, Apr 12, 2012 at 12:17:49PM +0530, Santosh Shilimkar wrote:
-> > > I was hoping that we will have some thing like drivers/memory/*
-> > > but since it doesn't exist, we used drivers/misc.
-> > 
-> > Why not create it?  I have no objection to that, it makes it more
-> > obvious as to what this really is.
-> 
-> There is another memory controller used in a few TI SoCs,
-> namely GPMC [1], do you prefer having it too there.
+Gary Thomas <gary@mlbassoc.com> writes:
 
-Sure, why not?
+> On 2012-04-11 13:17, Kevin Hilman wrote:
+>> Gary Thomas<gary@mlbassoc.com>  writes:
+>>
+>> [...]
+>>
+>>> I fear I'm seeing similar problems with 3.3.  I have my board (similar
+>>> to the BeagleBoard) ported to 3.0 and 3.3.  I'm seeing terrible network
+>>> performance on 3.3.  For example, if I use TFTP to download a large file
+>>> (~35MB), I get this:
+>>>    3.0:  42.5 sec
+>>>    3.3: 625.0 sec
+>>> That's a factor of 15 worse!
+>>
+>> This might not be the same problem.  What is the NIC being used, and
+>> does it have GPIO interrupts?
+>
+> My board uses SMSC911x with GPIO interrupt signal.
 
-> As of now it is not a driver, platform code handles GPMC, a patch
-> series for converting it into a driver (but still residing in
-> platform folder) was sent a few days back [2,3].
+OK, then your problem is almost certainly solved by my GPIO triggering
+fix, and not related to Grazvytas' problem.
 
-People are moving things out of the platform folder, so drivers/memory
-makes sense.
+>>
+>> If it's using GPIO interrupts, then you likely need this patch from
+>> mainline (v3.4-rc1)
+>
+> I tried to just pick up the patch you [sort of] quoted below, but had
+> a hard time applying it to my kernel. I've tried to just pick up the
+> latest files from the mainline kernel, but so far I've nothing that
+> builds
 
-thanks,
+Oh, right.  Sorry about that.  Yeah, that patch actually has
+dependencies on other GPIO changes that were queued for v3.4 (and not in
+v3.3.)
 
-greg k-h
+If you're on v3.3, just pull the branch below[1] which is based on
+v3.3-rc2.  Pulling that into a v3.3 should build just fine.
+
+Kevin
+
+[1] git://git.kernel.org/pub/scm/linux/kernel/git/khilman/linux-omap-pm.git for_3.4/fixes/gpio
+
