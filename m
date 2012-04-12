@@ -1,68 +1,51 @@
 From: Paul Walmsley <paul@pwsan.com>
-Subject: Re: [PATCH v2 2/2] ARM: omap: hwmod: Make omap_hwmod_softreset wait
- for reset status
-Date: Thu, 12 Apr 2012 11:15:00 -0600 (MDT)
-Message-ID: <alpine.DEB.2.00.1204121107450.29473@utopia.booyaka.com>
-References: <1331659524-7635-1-git-send-email-rnayak@ti.com> <1331659524-7635-3-git-send-email-rnayak@ti.com> <alpine.DEB.2.00.1204101803020.20894@utopia.booyaka.com> <4F8565C7.4080506@ti.com> <alpine.DEB.2.00.1204111251100.29473@utopia.booyaka.com>
- <4F86D304.1020902@ti.com>
+Subject: Re: [PATCH] mmc: omap_hsmmc: set dto to 14 for all devices
+Date: Thu, 12 Apr 2012 11:56:06 -0600 (MDT)
+Message-ID: <alpine.DEB.2.00.1204121130370.29473@utopia.booyaka.com>
+References: <1330622780-1909-1-git-send-email-Chase.Maupin@ti.com> <m2399iqtgf.fsf@bob.laptop.org> <alpine.DEB.2.00.1203120435200.11332@utopia.booyaka.com> <87bonxcjrh.fsf@laptop.org> <20120405220848.GF3785@atomide.com> <87obr57rmh.fsf@laptop.org>
+ <alpine.DEB.2.00.1204051743360.10302@utopia.booyaka.com> <87k41t7n13.fsf@laptop.org> <4F86A461.4010006@linaro.org>
 Mime-Version: 1.0
 Content-Type: TEXT/PLAIN; charset=US-ASCII
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from utopia.booyaka.com ([72.9.107.138]:57011 "EHLO
-	utopia.booyaka.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751306Ab2DLRPA (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 12 Apr 2012 13:15:00 -0400
-In-Reply-To: <4F86D304.1020902@ti.com>
-Sender: linux-omap-owner@vger.kernel.org
+Return-path: <linux-mmc-owner@vger.kernel.org>
+In-Reply-To: <4F86A461.4010006@linaro.org>
+Sender: linux-mmc-owner@vger.kernel.org
+To: Tushar Behera <tushar.behera@linaro.org>
+Cc: Chris Ball <cjb@laptop.org>, Tony Lindgren <tony@atomide.com>, Chase Maupin <Chase.Maupin@ti.com>, linux-omap@vger.kernel.org, linux-mmc@vger.kernel.org, sakoman@gmail.com
 List-Id: linux-omap@vger.kernel.org
-To: Rajendra Nayak <rnayak@ti.com>
-Cc: b-cousson@ti.com, khilman@ti.com, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Anand Gadiyar <gadiyar@ti.com>, Shubhrajyoti D <shubhrajyoti@ti.com>
 
-Hi Rajendra,
+Hello Tushar,
 
-On Thu, 12 Apr 2012, Rajendra Nayak wrote:
+On Thu, 12 Apr 2012, Tushar Behera wrote:
 
-> On Thursday 12 April 2012 12:29 AM, Paul Walmsley wrote:
-> > That approach sounds fine to me, but I don't think Fernando's patch will
-> > help with I2C..  Since it uses a custom reset function omap_i2c_reset(),
-> > the delay will actually need to go there.
+> With this patch, I continuously get following message on my console.
+> (Tested on Origen board, based on EXYNOS4210).
 > 
-> While working on fixing this I stumbled upon a couple of other
-> things which don't seem right.
+> mmc0: Too large timeout requested for CMD25!
 > 
-> The i2c custom reset funtion (omap_i2c_reset) uses a hwmod exposed
-> api to set the SOFTRESET bit, however it then accesses the hwmod
-> internal structure to poll on RESETDONE status bit. Should there be
-> another function exposed to poll on RESETDONE too?
+> So, with this change, should we update sdhci_calc_timeout() also?
 
-Sure, something like that would make sense for 3.5.
+Looks like most of the host drivers that range-check the timeout value 
+silently clamp it at the hardware-supported maximum value:
 
-> _reset() function documents its return value to be -ETIMEDOUT, if the
-> module fails to reset in time, and hence expects the custom reset
-> function to return the same in such cases. The omap_i2c_reset() function
-> seems to return 0 even in cases of timeout. However looking more closely
-> the return value from _reset() does not seem to be used in the framework
-> today.
-> 
-> The comment in _ocp_softreset() suggests the intent was to add a new
-> state to the hwmod state machine.
-> 
->         /*
->          * XXX add _HWMOD_STATE_WEDGED for modules that don't come back from
->          * _wait_target_ready() or _reset()
->          */
-> 
-> is it still the case, or should _reset() just return a void?
+drivers/mmc/host/atmel-mci.c
+drivers/mmc/host/davinci_mmc.c
+drivers/mmc/host/mvsdio.c
+drivers/mmc/host/omap_hsmmc.c
+drivers/mmc/host/wbsd.c
+drivers/mmc/host/tifm_sd.c
 
-There's a patch queued to pass along the return status from _reset():
+So maybe try the same thing for your driver?
 
-http://marc.info/?l=linux-omap&m=133417544011862&w=2
+Of course it seems that some drivers don't range-check the timeout value 
+at all :-(
 
-As far as the new state goes, if you'd like to add a new state to indicate 
-an IP block that fails _reset()/_wait_target_ready() and should be blocked 
-from further use, that sounds good to me...
+drivers/mmc/host/bfin_sdh.c
+drivers/mmc/host/mmci.c
+drivers/mmc/host/msm_sdcc.c
+drivers/mmc/host/pxamci.c
+drivers/mmc/host/mxs-mmc.c
+drivers/mmc/host/omap.c
 
 
-regards,
 
 - Paul
