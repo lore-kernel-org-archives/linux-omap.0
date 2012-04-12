@@ -1,35 +1,41 @@
-From: Paul Walmsley <paul@pwsan.com>
+From: Aneesh V <aneesh@ti.com>
 Subject: Re: [PATCH v4 0/7] Add TI EMIF SDRAM controller driver
-Date: Wed, 11 Apr 2012 20:44:39 -0600 (MDT)
-Message-ID: <alpine.DEB.2.00.1204112042070.29473@utopia.booyaka.com>
-References: <1331934707-29487-1-git-send-email-aneesh@ti.com>
+Date: Wed, 11 Apr 2012 19:57:59 -0700
+Message-ID: <4F8644B7.1010705@ti.com>
+References: <1331934707-29487-1-git-send-email-aneesh@ti.com> <alpine.DEB.2.00.1204112042070.29473@utopia.booyaka.com>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+Content-Type: text/plain; charset="ISO-8859-1"; format=flowed
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <1331934707-29487-1-git-send-email-aneesh@ti.com>
+In-Reply-To: <alpine.DEB.2.00.1204112042070.29473@utopia.booyaka.com>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Aneesh V <aneesh@ti.com>, Greg KH <greg@kroah.com>
-Cc: linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org, mgreer@animalcreek.com, msalter@redhat.com
+To: Paul Walmsley <paul@pwsan.com>
+Cc: Greg KH <greg@kroah.com>, linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org, mgreer@animalcreek.com, msalter@redhat.com, santosh.shilimkar@ti.com
 List-Id: linux-omap@vger.kernel.org
 
-Cc Mark Greer, Mark Salter
+Hi Paul,
 
-Hi Greg, Aneesh,
+On 04/11/2012 07:44 PM, Paul Walmsley wrote:
+> Cc Mark Greer, Mark Salter
+>
+> Hi Greg, Aneesh,
+>
+> On Sat, 17 Mar 2012, Aneesh V wrote:
+>
+>> Add a driver for the EMIF SDRAM controller used in TI SoCs
+>>
+>> EMIF is an SDRAM controller that supports, based on its revision,
+>> one or more of LPDDR2/DDR2/DDR3 protocols.This driver adds support
+>> for LPDDR2.
+>
+> Just checking to see what the current state of this series is.  Greg, are
+> you considering this for merging, or are there remaining issues?  Aneesh,
+> do you have any remaining issues to resolve with this set?
 
-On Sat, 17 Mar 2012, Aneesh V wrote:
+No. I don't have anything remaining. It's just that I was on vacation
+for a while and couldn't find time for this after that. If Greg is fine
+with this, I can rebase it and send one final version with
+Reviewed-By's from Santosh and Benoit.
 
-> Add a driver for the EMIF SDRAM controller used in TI SoCs
-> 
-> EMIF is an SDRAM controller that supports, based on its revision,
-> one or more of LPDDR2/DDR2/DDR3 protocols.This driver adds support
-> for LPDDR2.
-
-Just checking to see what the current state of this series is.  Greg, are 
-you considering this for merging, or are there remaining issues?  Aneesh, 
-do you have any remaining issues to resolve with this set?
-
-This is useful not only for OMAP4 and AM3517/3505, but also will probably 
-be useful for the C6x chips that Mark Salter is working on.
-
-
-- Paul
+thanks,
+Aneesh
