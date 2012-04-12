@@ -1,33 +1,57 @@
-From: Samuel Ortiz <sameo@linux.intel.com>
-Subject: Re: [PATCH for 3.4] MFD: twl6040: Convert to i2c driver, and
- separate it from twl core
-Date: Thu, 12 Apr 2012 10:52:20 +0200
-Message-ID: <20120412085220.GA14106@sortiz-mobl>
-References: <1333443411-23056-1-git-send-email-peter.ujfalusi@ti.com>
- <4F8678A0.7090600@ti.com>
+From: Tarun Kanti DebBarma <tarun.kanti@ti.com>
+Subject: [PATCH v2] ARM: OMAP2+: dmtimer: remove redundant sysconfig context restore
+Date: Thu, 12 Apr 2012 15:13:47 +0530
+Message-ID: <1334223827-28812-1-git-send-email-tarun.kanti@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-kernel-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <4F8678A0.7090600@ti.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Peter Ujfalusi <peter.ujfalusi@ti.com>
-Cc: Tony Lindgren <tony@atomide.com>, Liam Girdwood <lrg@ti.com>, Mark Brown <broonie@opensource.wolfsonmicro.com>, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, alsa-devel@alsa-project.org, linux-arm-kernel@lists.infradead.org
+Content-Type: text/plain
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from bear.ext.ti.com ([192.94.94.41]:53587 "EHLO bear.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1756600Ab2DLJnz (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Thu, 12 Apr 2012 05:43:55 -0400
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: linux-omap@vger.kernel.org
+Cc: tony@atomide.com, khilman@ti.com, santosh.shilimkar@ti.com, rnayak@ti.com, b-cousson@ti.com, Tarun Kanti DebBarma <tarun.kanti@ti.com>
 
-Hi Peter,
+Since hwmod framework now manages sysconfig context save/restore
+there is no more need to touch this register in driver. Hence,
+remove restore of sysconfig register in omap_timer_restore_context.
+This was causing incorrect context restore of sysconfig register.
 
-On Thu, Apr 12, 2012 at 09:39:28AM +0300, Peter Ujfalusi wrote:
-> Hi Samuel, Liam, Tony,
-> 
-> Now rc2 is out, and the the OMAP4 audio is still broken.
-> Can you please queue this patch for 3.4?
-I'm busy this week, but I'll queue this one up beginning of next week. I have
-several MFD fixes pending, so I'll send a pull request before rc4 I hope.
+Signed-off-by: Tarun Kanti DebBarma <tarun.kanti@ti.com>
+---
+v2: removed tiocp_cfg from struct timer_regs {}
 
-Cheers,
-Samuel.
+ arch/arm/plat-omap/dmtimer.c              |    2 --
+ arch/arm/plat-omap/include/plat/dmtimer.h |    1 -
+ 2 files changed, 0 insertions(+), 3 deletions(-)
 
+diff --git a/arch/arm/plat-omap/dmtimer.c b/arch/arm/plat-omap/dmtimer.c
+index 652139c..15e7882 100644
+--- a/arch/arm/plat-omap/dmtimer.c
++++ b/arch/arm/plat-omap/dmtimer.c
+@@ -82,8 +82,6 @@ static void omap_dm_timer_write_reg(struct omap_dm_timer *timer, u32 reg,
+ 
+ static void omap_timer_restore_context(struct omap_dm_timer *timer)
+ {
+-	__raw_writel(timer->context.tiocp_cfg,
+-			timer->io_base + OMAP_TIMER_OCP_CFG_OFFSET);
+ 	if (timer->revision == 1)
+ 		__raw_writel(timer->context.tistat, timer->sys_stat);
+ 
+diff --git a/arch/arm/plat-omap/include/plat/dmtimer.h b/arch/arm/plat-omap/include/plat/dmtimer.h
+index 9418f00..a4c08d0 100644
+--- a/arch/arm/plat-omap/include/plat/dmtimer.h
++++ b/arch/arm/plat-omap/include/plat/dmtimer.h
+@@ -75,7 +75,6 @@ struct clk;
+ 
+ struct timer_regs {
+ 	u32 tidr;
+-	u32 tiocp_cfg;
+ 	u32 tistat;
+ 	u32 tisr;
+ 	u32 tier;
 -- 
-Intel Open Source Technology Centre
-http://oss.intel.com/
+1.7.0.4
+
