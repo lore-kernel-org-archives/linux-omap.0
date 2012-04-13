@@ -1,173 +1,177 @@
-From: Russell King - ARM Linux <linux@arm.linux.org.uk>
-Subject: Re: [PATCH] cpufreq: OMAP: fix build errors: depends on
-	ARCH_OMAP2PLUS
-Date: Fri, 13 Apr 2012 19:53:22 +0100
-Message-ID: <20120413185322.GG25053@n2100.arm.linux.org.uk>
-References: <1332807568-638-1-git-send-email-khilman@ti.com> <4F7CC926.5050300@ti.com>
+From: Grazvydas Ignotas <notasas@gmail.com>
+Subject: Re: PM related performance degradation on OMAP3
+Date: Fri, 13 Apr 2012 22:32:57 +0300
+Message-ID: <CANOLnOM_-yhr-j=UO3ynJ6HyJxzd_2FshPMXMLpcBcOB0mL7Qw@mail.gmail.com>
+References: <CANOLnOP5gq4Vtt00SgRNW-3GZDWk0sukBgJx4V6rkMLL+b6G-w@mail.gmail.com>
+	<877gxobudk.fsf@ti.com>
+	<CANOLnOPbHBshCdbmSOjYdubWqUivrVpR-+eaayu=v4Yy6yKdsQ@mail.gmail.com>
+	<87ehrtn6na.fsf@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <cpufreq-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <4F7CC926.5050300@ti.com>
-Sender: cpufreq-owner@vger.kernel.org
-To: Kevin Hilman <khilman@ti.com>, Dave Jones <davej@redhat.com>
-Cc: cpufreq@vger.kernel.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Grazvydas Ignotas <notasas@gmail.com>
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from mail-iy0-f174.google.com ([209.85.210.174]:48783 "EHLO
+	mail-iy0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751970Ab2DMTc6 convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 13 Apr 2012 15:32:58 -0400
+Received: by iagz16 with SMTP id z16so4639692iag.19
+        for <linux-omap@vger.kernel.org>; Fri, 13 Apr 2012 12:32:57 -0700 (PDT)
+In-Reply-To: <87ehrtn6na.fsf@ti.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Kevin Hilman <khilman@ti.com>
+Cc: linux-omap@vger.kernel.org, Paul Walmsley <paul@pwsan.com>
 
-On Wed, Apr 04, 2012 at 03:20:22PM -0700, Kevin Hilman wrote:
-> Hi Dave,
+On Thu, Apr 12, 2012 at 3:19 AM, Kevin Hilman <khilman@ti.com> wrote:
+> It would be helpful now to narrow down what are the big contributors =
+to
+> the overhead in omap_sram_idle(). =C2=A0Most of the code there is ski=
+pped for
+> C1 because the next states for MPU and CORE are both ON.
+
+Ok I did some tests, all in mostly idle system with just init, busybox
+shell and dd doing a NAND read to /dev/null . MB/s is throughput that
+dd reports, mA and approx. current draw during the transfer, read from
+fuel gauge that's onboard.
+
+MB/s| mA|comment
+ 3.7|218|mainline f549e088b80
+ 3.8|224|nand qos PM_QOS_CPU_DMA_LATENCY 0 [1]
+ 4.4|220|[1] + pwrdm_p*_transition commented [2]
+ 3.8|225|[1] + omap34xx_do_sram_idle->cpu_do_idle [3]
+ 4.2|210|[1] + pwrdm_set_next_pwrst(per_pd, PWRDM_POWER_ON) [4]
+ 4.0|224|[1] + 'Deny idle' [5]
+ 5.1|210|[2] + [4] + [5]
+ 5.2|202|[5] + omap_sram_idle->cpu_do_idle [6]
+ 5.5|243|!CONFIG_PM
+ 6.1|282|busywait DMA end (for reference)
+
+> There are 2 primary differences that I see as possible causes. =C2=A0=
+I list
+> them here with a couple more experiments for you to try to help us
+> narrow this down.
 >
-> On 03/26/2012 05:19 PM, Kevin Hilman wrote:
->> The OMAP driver needs a 'depends on ARCH_OMAP2PLUS' since it only
->> builds for OMAP2+ platforms.
->>
->> This 'depends on' was in the original patch from Russell King, but was
->> erroneously removed by me when making this option user-selectable in
->> commit b09db45c (cpufreq: OMAP driver depends CPUfreq tables.)  This
->> patch remedies that.
->>
->> Apologies to Russell King for breaking his originally working patch.
->>
->> Also, thanks to Grazvydas Ignotas for reporting the same problem.
->>
->> Cc: Russell King<rmk+kernel@arm.linux.org.uk>
->> Cc: Grazvydas Ignotas<notasas@gmail.com>
->> Signed-off-by: Kevin Hilman<khilman@ti.com>
->> ---
->> Dave, this applies on top of your current fixes branch, and fixes a
->> problem introduced there by me.  Please merge for v3.4-rc.  Thanks.
+> 1) powerdomain accounting: pwrdm_pre_transition(), pwrdm_post_transit=
+ion()
 >
-> Can you pick this up for v3.4-rc?
+> Could you try using omap_sram_idle() and just commenting out those
+> calls? =C2=A0Does that help performance? =C2=A0Those iterate over all=
+ the
+> powerdomains, so defintely add some overhead, but I don't think it
+> would be as significant as what you're seeing.
 
-Right, I'm fed up with chasing over this trivial patch.  It's been almost
-a full month since the problem was first reported and it _still_ remains
-unfixed in mainline, despite me chasing over it.  So, sorry, you lose.
+Seems to be taking good part of it.
 
-I'm merging my fix (attached) which I've been running against the nightly
-builds into my fixes branch and will ask Linus to pull it this weekend.
-If you want something else, then please send a patch on top of my fix to
-do what you want.
+> =C2=A0 =C2=A0Much more likely is...
+>
+> 2) jump to SRAM, SDRC self-refresh, SDRC errata workarounds
 
-Alternatively, send a replacement fix to Linus _before_ Sunday evening
-copying me with it and I'll drop this from my tree.  But I want to see
-an alternative going to Linus for that to happen.
+Could not notice any difference.
 
-8<===
-From: Russell King <rmk+kernel@arm.linux.org.uk>
-Subject: [PATCH] ARM: OMAP: fix cpufreq build
+To me it looks like this results from many small things adding up..
+Idle is called so often that pwrdm_p*_transition() and those
+pwrdm_for_each_clkdm() walks start slowing everything down, perhaps
+because they access lots of registers on slow buses? Maybe some
+register cache would help us there, or are those registers expected to
+be changed by hardware often?
+Also trying to idle PER while transfer is ongoing (as reported in
+previous mail) doesn't sound like a good idea and is one of the
+reasons for slowdown. Seems to also causing more current drain,
+ironically.
 
-OMAPs cpufreq requires the frequency table support, but nothing ensures
-that this is selected.  This can result in configurations which fail to
-build:
 
-drivers/built-in.o:(.data+0x5238): undefined reference to `cpufreq_freq_attr_scaling_available_freqs'
-drivers/cpufreq/omap-cpufreq.c:88: undefined reference to `cpufreq_frequency_table_target'
-drivers/cpufreq/omap-cpufreq.c:60: undefined reference to `cpufreq_frequency_table_verify'
-drivers/cpufreq/omap-cpufreq.c:186: undefined reference to `cpufreq_frequency_table_cpuinfo'
-drivers/cpufreq/omap-cpufreq.c:190: undefined reference to `cpufreq_frequency_table_get_attr'
+changes (again, sorry for corrupted diffs, but they should be easy to
+reproduce):
+[2]:
+--- a/arch/arm/mach-omap2/pm34xx.c
++++ b/arch/arm/mach-omap2/pm34xx.c
+@@ -307,7 +307,7 @@ void omap_sram_idle(void)
+                        omap3_enable_io_chain();
+        }
 
-Fix this by introducing a new configuration variable and having that
-select CPU_FREQ_TABLE.
+-       pwrdm_pre_transition();
++//     pwrdm_pre_transition();
 
-Signed-off-by: Russell King <rmk+kernel@arm.linux.org.uk>
----
- arch/arm/mach-omap2/clkt2xxx_virt_prcm_set.c |    2 +-
- arch/arm/mach-omap2/clock.c                  |    2 +-
- arch/arm/mach-omap2/clock.h                  |    2 +-
- arch/arm/plat-omap/clock.c                   |    2 +-
- arch/arm/plat-omap/include/plat/clock.h      |    4 ++--
- drivers/cpufreq/Kconfig.arm                  |    4 ++--
- 6 files changed, 8 insertions(+), 8 deletions(-)
+        /* PER */
+        if (per_next_state < PWRDM_POWER_ON) {
+@@ -372,7 +373,7 @@ void omap_sram_idle(void)
+        }
+        omap3_intc_resume_idle();
 
-diff --git a/arch/arm/mach-omap2/clkt2xxx_virt_prcm_set.c b/arch/arm/mach-omap2/clkt2xxx_virt_prcm_set.c
-index 7072e0d..ad35d4e 100644
---- a/arch/arm/mach-omap2/clkt2xxx_virt_prcm_set.c
-+++ b/arch/arm/mach-omap2/clkt2xxx_virt_prcm_set.c
-@@ -166,7 +166,7 @@ int omap2_select_table_rate(struct clk *clk, unsigned long rate)
- 	return 0;
- }
- 
--#ifdef CONFIG_CPU_FREQ
-+#ifdef CONFIG_ARM_OMAP2PLUS_CPUFREQ
- /*
-  * Walk PRCM rate table and fillout cpufreq freq_table
-  * XXX This should be replaced by an OPP layer in the near future
-diff --git a/arch/arm/mach-omap2/clock.c b/arch/arm/mach-omap2/clock.c
-index f57ed5b..450feb0 100644
---- a/arch/arm/mach-omap2/clock.c
-+++ b/arch/arm/mach-omap2/clock.c
-@@ -536,7 +536,7 @@ struct clk_functions omap2_clk_functions = {
- 	.clk_set_rate		= omap2_clk_set_rate,
- 	.clk_set_parent		= omap2_clk_set_parent,
- 	.clk_disable_unused	= omap2_clk_disable_unused,
--#ifdef CONFIG_CPU_FREQ
-+#ifdef CONFIG_ARM_OMAP2PLUS_CPUFREQ
- 	/* These will be removed when the OPP code is integrated */
- 	.clk_init_cpufreq_table	= omap2_clk_init_cpufreq_table,
- 	.clk_exit_cpufreq_table	= omap2_clk_exit_cpufreq_table,
-diff --git a/arch/arm/mach-omap2/clock.h b/arch/arm/mach-omap2/clock.h
-index b8c2a68..f331cfc 100644
---- a/arch/arm/mach-omap2/clock.h
-+++ b/arch/arm/mach-omap2/clock.h
-@@ -146,7 +146,7 @@ extern const struct clksel_rate gpt_sys_rates[];
- extern const struct clksel_rate gfx_l3_rates[];
- extern const struct clksel_rate dsp_ick_rates[];
- 
--#if defined(CONFIG_ARCH_OMAP2) && defined(CONFIG_CPU_FREQ)
-+#if defined(CONFIG_ARCH_OMAP2) && defined(CONFIG_ARM_OMAP2PLUS_CPUFREQ)
- extern void omap2_clk_init_cpufreq_table(struct cpufreq_frequency_table **table);
- extern void omap2_clk_exit_cpufreq_table(struct cpufreq_frequency_table **table);
- #else
-diff --git a/arch/arm/plat-omap/clock.c b/arch/arm/plat-omap/clock.c
-index 8506cbb..304bf4e 100644
---- a/arch/arm/plat-omap/clock.c
-+++ b/arch/arm/plat-omap/clock.c
-@@ -398,7 +398,7 @@ struct clk dummy_ck = {
- 	.ops	= &clkops_null,
- };
- 
--#ifdef CONFIG_CPU_FREQ
-+#ifdef CONFIG_ARM_OMAP2PLUS_CPUFREQ
- void clk_init_cpufreq_table(struct cpufreq_frequency_table **table)
- {
- 	unsigned long flags;
-diff --git a/arch/arm/plat-omap/include/plat/clock.h b/arch/arm/plat-omap/include/plat/clock.h
-index 240a7b9..879ba27 100644
---- a/arch/arm/plat-omap/include/plat/clock.h
-+++ b/arch/arm/plat-omap/include/plat/clock.h
-@@ -283,7 +283,7 @@ struct clk_functions {
- 	void		(*clk_allow_idle)(struct clk *clk);
- 	void		(*clk_deny_idle)(struct clk *clk);
- 	void		(*clk_disable_unused)(struct clk *clk);
--#ifdef CONFIG_CPU_FREQ
-+#ifdef CONFIG_ARM_OMAP2PLUS_CPUFREQ
- 	void		(*clk_init_cpufreq_table)(struct cpufreq_frequency_table **);
- 	void		(*clk_exit_cpufreq_table)(struct cpufreq_frequency_table **);
- #endif
-@@ -301,7 +301,7 @@ extern void recalculate_root_clocks(void);
- extern unsigned long followparent_recalc(struct clk *clk);
- extern void clk_enable_init_clocks(void);
- unsigned long omap_fixed_divisor_recalc(struct clk *clk);
--#ifdef CONFIG_CPU_FREQ
-+#ifdef CONFIG_ARM_OMAP2PLUS_CPUFREQ
- extern void clk_init_cpufreq_table(struct cpufreq_frequency_table **table);
- extern void clk_exit_cpufreq_table(struct cpufreq_frequency_table **table);
- #endif
-diff --git a/drivers/cpufreq/Kconfig.arm b/drivers/cpufreq/Kconfig.arm
-index ffbb446..9e8f7a9 100644
---- a/drivers/cpufreq/Kconfig.arm
-+++ b/drivers/cpufreq/Kconfig.arm
-@@ -3,8 +3,8 @@
- #
- 
- config ARM_OMAP2PLUS_CPUFREQ
--	bool "TI OMAP2+"
--	default ARCH_OMAP2PLUS
-+	def_bool y
-+	depends on ARCH_OMAP2PLUS
- 	select CPU_FREQ_TABLE
- 
- config ARM_S3C2416_CPUFREQ
--- 
-1.7.4.4
+-       pwrdm_post_transition();
++//     pwrdm_post_transition();
 
+        /* PER */
+        if (per_next_state < PWRDM_POWER_ON) {
+[3]:
+--- a/arch/arm/mach-omap2/pm34xx.c
++++ b/arch/arm/mach-omap2/pm34xx.c
+@@ -347,7 +347,7 @@ void omap_sram_idle(void)
+        if (save_state =3D=3D 1 || save_state =3D=3D 3)
+                cpu_suspend(save_state, omap34xx_do_sram_idle);
+        else
+-               omap34xx_do_sram_idle(save_state);
++               cpu_do_idle();
+
+        /* Restore normal SDRC POWER settings */
+        if (cpu_is_omap3430() && omap_rev() >=3D OMAP3430_REV_ES3_0 &&
+[4]:
+--- a/arch/arm/mach-omap2/cpuidle34xx.c
++++ b/arch/arm/mach-omap2/cpuidle34xx.c
+@@ -107,6 +107,7 @@ static int __omap3_enter_idle(struct cpuidle_device=
+ *dev,
+        if (index =3D=3D 0) {
+                pwrdm_for_each_clkdm(mpu_pd, _cpuidle_deny_idle);
+                pwrdm_for_each_clkdm(core_pd, _cpuidle_deny_idle);
++               pwrdm_set_next_pwrst(per_pd, PWRDM_POWER_ON);
+        }
+
+        /*
+[5]:
+--- a/arch/arm/mach-omap2/cpuidle34xx.c
++++ b/arch/arm/mach-omap2/cpuidle34xx.c
+@@ -105,8 +105,7 @@ static int __omap3_enter_idle(struct cpuidle_device=
+ *dev,
+
+        /* Deny idle for C1 */
+        if (index =3D=3D 0) {
+-               pwrdm_for_each_clkdm(mpu_pd, _cpuidle_deny_idle);
+-               pwrdm_for_each_clkdm(core_pd, _cpuidle_deny_idle);
++               clkdm_deny_idle(mpu_pd->pwrdm_clkdms[0]);
+        }
+
+        /*
+@@ -128,8 +128,7 @@ static int __omap3_enter_idle(struct cpuidle_device=
+ *dev,
+
+        /* Re-allow idle for C1 */
+        if (index =3D=3D 0) {
+-               pwrdm_for_each_clkdm(mpu_pd, _cpuidle_allow_idle);
+-               pwrdm_for_each_clkdm(core_pd, _cpuidle_allow_idle);
++               clkdm_allow_idle(mpu_pd->pwrdm_clkdms[0]);
+        }
+
+ return_sleep_time:
+[6]:
+--- a/arch/arm/mach-omap2/cpuidle34xx.c
++++ b/arch/arm/mach-omap2/cpuidle34xx.c
+@@ -117,7 +116,8 @@ static int __omap3_enter_idle(struct cpuidle_device=
+ *dev,
+                cpu_pm_enter();
+
+        /* Execute ARM wfi */
+-       omap_sram_idle();
++       //omap_sram_idle();
++       cpu_do_idle();
+
+        /*
+         * Call idle CPU PM enter notifier chain to restore
+
+
+--=20
+Gra=C5=BEvydas
+--
+To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
