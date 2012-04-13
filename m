@@ -1,28 +1,35 @@
-From: Russell King - ARM Linux <linux@arm.linux.org.uk>
-Subject: omap-serial: transmission of x-char with DMA (and other issues)
-Date: Fri, 13 Apr 2012 11:41:11 +0100
-Message-ID: <20120413104111.GF25053@n2100.arm.linux.org.uk>
+From: Paul Walmsley <paul@pwsan.com>
+Subject: RE: [PATCH-V4 0/4] ARM: OMAP2+: Add voltagedomain, powerdomain &
+ PRM support for AM33XX device
+Date: Fri, 13 Apr 2012 04:43:07 -0600 (MDT)
+Message-ID: <alpine.DEB.2.00.1204130440390.25832@utopia.booyaka.com>
+References: <1333123435-27186-1-git-send-email-hvaibhav@ti.com> <alpine.DEB.2.00.1204120207420.29473@utopia.booyaka.com> <79CD15C6BA57404B839C016229A409A83E9EA07A@DBDE01.ent.ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from caramon.arm.linux.org.uk ([78.32.30.218]:54204 "EHLO
-	caramon.arm.linux.org.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751101Ab2DMKlQ (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 13 Apr 2012 06:41:16 -0400
-Content-Disposition: inline
+Received: from utopia.booyaka.com ([72.9.107.138]:51120 "EHLO
+	utopia.booyaka.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751101Ab2DMKnI (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 13 Apr 2012 06:43:08 -0400
+In-Reply-To: <79CD15C6BA57404B839C016229A409A83E9EA07A@DBDE01.ent.ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: linux-omap@vger.kernel.org, linux-serial@vger.kernel.org
+To: "Hiremath, Vaibhav" <hvaibhav@ti.com>
+Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "tony@atomide.com" <tony@atomide.com>, "Hilman, Kevin" <khilman@ti.com>, "Nayak, Rajendra" <rnayak@ti.com>, "Cousson, Benoit" <b-cousson@ti.com>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>
 
-Can someone tell me how this works with the current omap-serial driver
-please?  It looks to me like this has been broken when DMA support was
-added to the driver.
+Hi Vaibhav,
 
-Moreover, please look at the probe function error paths.  They seem to
-be lacking any kind of realistic cleanup, so are a potential memory leak.
+On Fri, 13 Apr 2012, Hiremath, Vaibhav wrote:
 
-Then there's the issue of fiddling with the xmit buffer so that it's
-using coherent memory in the startup and shutdown functions (why?  when
-other serial drivers cope just fine without doing this).  If we want to
-use DMA coherent memory there, there should be a clean way to do this,
-rather than going behind the upper layers.
+> Yes, we are using am3517evm file for AM33XX MACHINE_INIT definition here.
+> These patches have been reviewed and accepted in the list, only thing is
+> they couldn't make it to upstream during v3.4 merge window.
+> 
+> I believe Tony is going to push them for v3.5 now.
+
+Hmm, but if you modify the AM3517EVM board file to call 
+am33xx_init_early(), won't that break the AM3517EVM board?
+Wouldn't a separate board file be needed for the AM33xx?
+
+
+- Paul
