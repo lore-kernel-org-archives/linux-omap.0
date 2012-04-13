@@ -1,58 +1,76 @@
-From: Rajendra Nayak <rnayak@ti.com>
-Subject: Re: [PATCH v2 2/2] ARM: omap: hwmod: Make omap_hwmod_softreset wait
- for reset status
-Date: Fri, 13 Apr 2012 14:56:31 +0530
-Message-ID: <4F87F147.3040002@ti.com>
-References: <1331659524-7635-1-git-send-email-rnayak@ti.com> <1331659524-7635-3-git-send-email-rnayak@ti.com> <alpine.DEB.2.00.1204101803020.20894@utopia.booyaka.com> <4F8565C7.4080506@ti.com> <alpine.DEB.2.00.1204111251100.29473@utopia.booyaka.com>
+From: Vaibhav Hiremath <hvaibhav@ti.com>
+Subject: [PATCH-V3 0/3] ARM: OMAP: Make OMAP clocksource source selection runtime
+Date: Fri, 13 Apr 2012 15:09:04 +0530
+Message-ID: <1334309947-25214-1-git-send-email-hvaibhav@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aog122.obsmtp.com ([74.125.149.147]:60135 "EHLO
-	na3sys009aog122.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1758126Ab2DMJ0j (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>);
-	Fri, 13 Apr 2012 05:26:39 -0400
-Received: by obbta14 with SMTP id ta14so429473obb.33
-        for <linux-omap@vger.kernel.org>; Fri, 13 Apr 2012 02:26:38 -0700 (PDT)
-In-Reply-To: <alpine.DEB.2.00.1204111251100.29473@utopia.booyaka.com>
+Received: from bear.ext.ti.com ([192.94.94.41]:46968 "EHLO bear.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S932798Ab2DMJj2 (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Fri, 13 Apr 2012 05:39:28 -0400
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Paul Walmsley <paul@pwsan.com>
-Cc: b-cousson@ti.com, khilman@ti.com, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Anand Gadiyar <gadiyar@ti.com>, Shubhrajyoti D <shubhrajyoti@ti.com>
+To: linux-omap@vger.kernel.org
+Cc: tony@atomide.com, khilman@ti.com, paul@pwsan.com, rnayak@ti.com, b-cousson@ti.com, linux-arm-kernel@lists.infradead.org, Vaibhav Hiremath <hvaibhav@ti.com>
 
-Hi Paul,
+Current OMAP code supports couple of clocksource options based
+on compilation flag (CONFIG_OMAP_32K_TIMER). The 32KHz sync-timer
+and a gptimer which can run on 32KHz or system clock (e.g 38.4 MHz)
 
->> >  While the patch did fix the issue for Anand, I guess it
->> >  was because of the additional delay post reset, waiting on the
->> >  RESETDONE bit and timing out, before accessing the i2c_con register.
+This patch series cleans up the existing 32k-sync timer implementation
+without any major code changes, uses kernel parameter to override
+the default clocksource of "counter_32k", also in order to support
+some OMAP based derivative SoCs like AM33XX which doesn't have
+32K sync-timer hardware IP, adds hwmod lookup for omap2+
+devices, and if lookup fails then fall back to gp-timer.
 
-I thought some more on this and the logic of the delay between the
-SOFTRESET bit being set and an immediate register access did not make
-much sense, because even polling on RESETDONE bit involves an immediate
-i2c register access, albeit a different one.
-
-I had a chat again with Anand this morning and realized the patch that
-fixed the problems he saw on some customer hardware had changes from
-both patch 1/2 and patch 2/2 from this series clubbed into one patch.
-I seem to have split them into 2 patches later while posting it out
-on the list.
-
-So in all likelihood its the changes in patch 1/2 which made a
-difference and the patch 2/2 was a result of my (wrong) analysis based
-on code review.
-
-The problems seen were extremely rare and not having access to those
-few failing boards is making it difficult to re-validate with these
-changes removed. However based on my analysis (hopefully right this time 
-:)) it seems safe to revert this patch in mainline.
-
-Should I go ahead and send a revert for the -rc?
-
-regards,
-Rajendra
+if(use_gptimer_clksrc == true)
+	gptimer clocksource init;
+else if (counter_32 init == false)
+	/* Fallback to gptimer */
+	gptimer clocksource init(;
 
 
+With this, we should be able to support multi-omap boot
+including devices with/without 32k-sync timer.
+
+This patch-series has been boot tested on AM37xEVM platform, it
+would be helpful if somebody help me to validate it on OMAP1/2
+platforms.
+
+History:
+========
+Changes from V2:
+http://lists.infradead.org/pipermail/linux-arm-kernel/2012-March/092037.html
+        - Added early_param support to read clocksource selection
+	  from user through kernel parameter ("clocksource=")
+	- Converted to ocp_if changes from Paul
+
+Changes from V1:
+http://lists.infradead.org/pipermail/linux-arm-kernel/2012-January/081037.html
+        - Based on Tony's comment, added pbase & size argument to
+	  omap_init_clocksource_32k(), to avoid cpu_is_xxx() check.
+	- Added commit description based on discussion on list
+          (Thanks to Santosh here)
+	- Reorder patch sequence
 
 
+Vaibhav Hiremath (3):
+  ARM: OMAP2/3: Add idle_st bits for ST_32KSYNC timer to prcm-common
+    header
+  ARM: OMAP2/3: hwmod data: Add 32k-sync timer data to hwmod database
+  ARM: OMAP: Make OMAP clocksource source selection using kernel param
+
+ arch/arm/mach-omap1/timer32k.c                     |    6 +-
+ arch/arm/mach-omap2/omap_hwmod_2420_data.c         |   19 ++++
+ arch/arm/mach-omap2/omap_hwmod_2430_data.c         |   19 ++++
+ arch/arm/mach-omap2/omap_hwmod_2xxx_ipblock_data.c |   19 ++++
+ arch/arm/mach-omap2/omap_hwmod_3xxx_data.c         |   54 +++++++++++
+ arch/arm/mach-omap2/omap_hwmod_common_data.h       |    1 +
+ arch/arm/mach-omap2/prcm-common.h                  |    4 +
+ arch/arm/mach-omap2/timer.c                        |  100 +++++++++++++++-----
+ arch/arm/plat-omap/counter_32k.c                   |   85 +++++++----------
+ arch/arm/plat-omap/include/plat/common.h           |    2 +-
+ 10 files changed, 236 insertions(+), 73 deletions(-)
 
