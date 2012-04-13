@@ -1,39 +1,119 @@
-From: "Woodruff, Richard" <r-woodruff2@ti.com>
-Subject: RE: PM related performance degradation on OMAP3
-Date: Thu, 12 Apr 2012 23:02:36 +0000
-Message-ID: <EF62F09C0797D947AD4180A1043C0DF73C3C2D1C@DLEE10.ent.ti.com>
-References: <CANOLnOP5gq4Vtt00SgRNW-3GZDWk0sukBgJx4V6rkMLL+b6G-w@mail.gmail.com>
-	<877gxobudk.fsf@ti.com>
- <CANOLnOPbHBshCdbmSOjYdubWqUivrVpR-+eaayu=v4Yy6yKdsQ@mail.gmail.com>
+From: "Mark A. Greer" <mgreer@animalcreek.com>
+Subject: Re: [PATCH 11/12] arm: omap3: am35x: Add do_wfi routine for EMIF4
+ submodules
+Date: Thu, 12 Apr 2012 17:12:27 -0700
+Message-ID: <20120413001227.GP31197@animalcreek.com>
+References: <1334171147-7517-1-git-send-email-mgreer@animalcreek.com>
+ <1334171147-7517-12-git-send-email-mgreer@animalcreek.com>
+ <alpine.DEB.2.00.1204111623110.29473@utopia.booyaka.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from devils.ext.ti.com ([198.47.26.153]:55826 "EHLO
-	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755234Ab2DLXCj convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 12 Apr 2012 19:02:39 -0400
-In-Reply-To: <CANOLnOPbHBshCdbmSOjYdubWqUivrVpR-+eaayu=v4Yy6yKdsQ@mail.gmail.com>
-Content-Language: en-US
+Received: from mail20.dotsterhost.com ([66.11.232.73]:56458 "EHLO
+	mail20.dotsterhost.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751968Ab2DMAM3 (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 12 Apr 2012 20:12:29 -0400
+Content-Disposition: inline
+In-Reply-To: <alpine.DEB.2.00.1204111623110.29473@utopia.booyaka.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Grazvydas Ignotas <notasas@gmail.com>, "Hilman, Kevin" <khilman@ti.com>
-Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, Paul Walmsley <paul@pwsan.com>
+To: Paul Walmsley <paul@pwsan.com>
+Cc: Ranjith Lohithakshan <ranjithl@ti.com>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, khilman@ti.com
 
-> From: linux-omap-owner@vger.kernel.org [mailto:linux-omap-
-> owner@vger.kernel.org] On Behalf Of Grazvydas Ignotas
-> Sent: Tuesday, April 10, 2012 7:30 PM
+On Wed, Apr 11, 2012 at 04:36:25PM -0600, Paul Walmsley wrote:
+> Hi
+> 
+> just a few comments based on a quick look
+> 
+> On Wed, 11 Apr 2012, Mark A. Greer wrote:
 
-> What I think is going on here is that omap_sram_idle() is taking too
-> much time because it's overhead is too large. I've added a counter
-> there and it seems to be called ~530 times per megabyte (DMA operates
-> in ~2K chunks so it makes sense), that's over 2000 calls per second.
-> Some quick measurement code shows ~243us spent for setting up in
-> omap_sram_idle() (before and after omap34xx_do_sram_idle()).
+> > diff --git a/arch/arm/mach-omap2/sleep34xx.S b/arch/arm/mach-omap2/sleep34xx.S
+> > index 1f62f23..22aac4c 100644
+> > --- a/arch/arm/mach-omap2/sleep34xx.S
+> > +++ b/arch/arm/mach-omap2/sleep34xx.S
 
-243uS is really a long time for C1. For some reason has grown a lot since last time I captured path in ETM.
+> > @@ -391,6 +401,52 @@ wait_dll_lock_counter:
+> >  ENTRY(omap3_do_wfi_sz)
+> >  	.word	. - omap3_do_wfi
+> >  
+> > +/*
+> > + * Do WFI instruction (SDRC module has EMIF4 submodule)
+> > + *
+> > + * This code gets copied to internal SRAM and is accessible
+> > + * from both SDRAM and SRAM:
+> > + * - executed from SRAM for non-off modes (omap3_emif4_do_wfi_sram),
+> > + * - executed from SDRAM for OFF mode (omap3_emif4_do_wfi).
+> > + */
+> > +	.align	3
+> > +ENTRY(omap3_emif4_do_wfi)
+> > +	/* Put EMIF in self-refresh */
+> 
+> Hmm, I guess this comment isn't quite right; it just tells it to go to 
+> self-refresh when it's "idle" ? (see below)
+> 
+> > +	ldr     r4, pwr_mgmt_ctrl
+> > +	ldr     r5, [r4]
+> > +	orr     r5, r5, #0x200
+> 
+> Maybe use a macro here in place of the #0x200 to indicate what it's trying 
+> to set...
+> 
+> Do you happen to know what "idle" means in the context of SPRUGR0B Section 
+> 9.2.3.4.5.1 "SDRAM Self-Refresh Mode" ?  Is it referring to 
+> target module-level idle, e.g. SIdleReq; or is it referring to 
+> an internal definition of idle, e.g., something like "no reads or writes 
+> from/to the SDRAM" ?  Am wondering if this should just be set once during 
+> EMIF initialization.
 
-Your analysis correlates well to reports from a couple years back. N900 folks did report that the non-clock gated C1 was needed (as exists in code today). IIRC the NAND stack did have small-uS spins on NAND status or something which having higher clock stop penalty resulted in big performance dip. You needed like <10uS for C1 or bit hit.
+I can't tell from tne manual.  I assumed it meant the latter of the choices
+you listed.  I just tested a kernel with it set up during EMIF init (value
+of 0x80000200) and removed the related bits from omap3_emif4_do_wfi() and
+it booted and returned from suspend-to-RAM just fine.  So, it seems that
+it can be moved to EMIF init.
 
-Regards,
-Richard W.
+[I swear I tested this some time ago and discovered that it was needed
+in omap3_emif4_do_wfi().  Oh well...]
+
+> 
+> > +	str     r5, [r4]
+> 
+> Might be good to do a readback after this to ensure that the store has 
+> made it to the EMIF.
+> 
+> Also, scanning SPRUGR0B, it looks like this setting is dependent partially 
+> on the REG_PM_TIM field in the same register.  Might be good to set 
+> REG_PM_TIM during EMIF init to avoid any bootloader dependency.
+
+True but moot now since I'll move the code to EMIF init.
+
+> > +
+> > +	dsb
+> > +	dmb
+> > +
+> > +	wfi
+> > +
+> > +	nop
+> > +	nop
+> > +	nop
+> > +	nop
+> > +	nop
+> > +	nop
+> > +	nop
+> > +	nop
+> > +	nop
+> > +	nop
+> 
+> Are these NOPs necessary?  Is the number of NOPs dependent on CPU or bus 
+> speed or some ARM parameter?
+
+After looking through the am35x errata, I don't think so.  AFAICT,
+they are there to work around--from omap3535 errata (sprz278f.pdf)--
+Advisory 3.1.1.75, "IVA2: CAM/SGX Dependencies (OMAP3530/25 only)".
+I don't see that or any other errata that requires a nop in the
+am35x errata so I'll get rid of them.
+
+[As I went through the errata again, I noticed talk about the device
+going into RET state.  Sigh...]
+
+Mark
+--
