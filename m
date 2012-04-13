@@ -1,35 +1,35 @@
 From: Paul Walmsley <paul@pwsan.com>
-Subject: RE: [PATCH-V4 0/4] ARM: OMAP2+: Add voltagedomain, powerdomain &
- PRM support for AM33XX device
-Date: Fri, 13 Apr 2012 04:43:07 -0600 (MDT)
-Message-ID: <alpine.DEB.2.00.1204130440390.25832@utopia.booyaka.com>
-References: <1333123435-27186-1-git-send-email-hvaibhav@ti.com> <alpine.DEB.2.00.1204120207420.29473@utopia.booyaka.com> <79CD15C6BA57404B839C016229A409A83E9EA07A@DBDE01.ent.ti.com>
+Subject: Re: [PATCH v2 2/2] ARM: omap: hwmod: Make omap_hwmod_softreset wait
+ for reset status
+Date: Fri, 13 Apr 2012 04:45:46 -0600 (MDT)
+Message-ID: <alpine.DEB.2.00.1204130443530.25832@utopia.booyaka.com>
+References: <1331659524-7635-1-git-send-email-rnayak@ti.com> <1331659524-7635-3-git-send-email-rnayak@ti.com> <alpine.DEB.2.00.1204101803020.20894@utopia.booyaka.com> <4F8565C7.4080506@ti.com> <alpine.DEB.2.00.1204111251100.29473@utopia.booyaka.com>
+ <4F87F147.3040002@ti.com>
 Mime-Version: 1.0
 Content-Type: TEXT/PLAIN; charset=US-ASCII
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from utopia.booyaka.com ([72.9.107.138]:51120 "EHLO
+Received: from utopia.booyaka.com ([72.9.107.138]:51150 "EHLO
 	utopia.booyaka.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751101Ab2DMKnI (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 13 Apr 2012 06:43:08 -0400
-In-Reply-To: <79CD15C6BA57404B839C016229A409A83E9EA07A@DBDE01.ent.ti.com>
+	with ESMTP id S935211Ab2DMKpq (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 13 Apr 2012 06:45:46 -0400
+In-Reply-To: <4F87F147.3040002@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "Hiremath, Vaibhav" <hvaibhav@ti.com>
-Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "tony@atomide.com" <tony@atomide.com>, "Hilman, Kevin" <khilman@ti.com>, "Nayak, Rajendra" <rnayak@ti.com>, "Cousson, Benoit" <b-cousson@ti.com>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>
+To: Rajendra Nayak <rnayak@ti.com>
+Cc: b-cousson@ti.com, khilman@ti.com, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Anand Gadiyar <gadiyar@ti.com>, Shubhrajyoti D <shubhrajyoti@ti.com>
 
-Hi Vaibhav,
+Hi Rajendra,
 
-On Fri, 13 Apr 2012, Hiremath, Vaibhav wrote:
+thanks for the summary,
 
-> Yes, we are using am3517evm file for AM33XX MACHINE_INIT definition here.
-> These patches have been reviewed and accepted in the list, only thing is
-> they couldn't make it to upstream during v3.4 merge window.
-> 
-> I believe Tony is going to push them for v3.5 now.
+On Fri, 13 Apr 2012, Rajendra Nayak wrote:
 
-Hmm, but if you modify the AM3517EVM board file to call 
-am33xx_init_early(), won't that break the AM3517EVM board?
-Wouldn't a separate board file be needed for the AM33xx?
+> Should I go ahead and send a revert for the -rc?
+
+Thanks for the offer, I don't think it's needed -- I'll just build the 
+revert changelog here with your comments from your E-mail.
+
+regards
 
 
 - Paul
