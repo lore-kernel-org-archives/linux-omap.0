@@ -1,35 +1,35 @@
 From: Paul Walmsley <paul@pwsan.com>
-Subject: Re: [PATCH v2 2/2] ARM: omap: hwmod: Make omap_hwmod_softreset wait
- for reset status
-Date: Fri, 13 Apr 2012 04:45:46 -0600 (MDT)
-Message-ID: <alpine.DEB.2.00.1204130443530.25832@utopia.booyaka.com>
-References: <1331659524-7635-1-git-send-email-rnayak@ti.com> <1331659524-7635-3-git-send-email-rnayak@ti.com> <alpine.DEB.2.00.1204101803020.20894@utopia.booyaka.com> <4F8565C7.4080506@ti.com> <alpine.DEB.2.00.1204111251100.29473@utopia.booyaka.com>
- <4F87F147.3040002@ti.com>
+Subject: Re: [PATCH 1/2] ARM: OMAP2/3: VENC hwmods: Remove OCPIF_SWSUP_IDLE
+ flag from VENC slave interface
+Date: Fri, 13 Apr 2012 05:20:29 -0600 (MDT)
+Message-ID: <alpine.DEB.2.00.1204130520170.25832@utopia.booyaka.com>
+References: <1334304116-18872-1-git-send-email-archit@ti.com> <1334304116-18872-2-git-send-email-archit@ti.com>
 Mime-Version: 1.0
 Content-Type: TEXT/PLAIN; charset=US-ASCII
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from utopia.booyaka.com ([72.9.107.138]:51150 "EHLO
+Received: from utopia.booyaka.com ([72.9.107.138]:41603 "EHLO
 	utopia.booyaka.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S935211Ab2DMKpq (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 13 Apr 2012 06:45:46 -0400
-In-Reply-To: <4F87F147.3040002@ti.com>
+	with ESMTP id S1752275Ab2DMLUb (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 13 Apr 2012 07:20:31 -0400
+In-Reply-To: <1334304116-18872-2-git-send-email-archit@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Rajendra Nayak <rnayak@ti.com>
-Cc: b-cousson@ti.com, khilman@ti.com, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Anand Gadiyar <gadiyar@ti.com>, Shubhrajyoti D <shubhrajyoti@ti.com>
+To: Archit Taneja <archit@ti.com>
+Cc: tomi.valkeinen@ti.com, linux-omap@vger.kernel.org, b-cousson@ti.com, linux-arm-kernel@lists.infradead.org
 
-Hi Rajendra,
+On Fri, 13 Apr 2012, Archit Taneja wrote:
 
-thanks for the summary,
+> The clocks for all DSS slave interfaces were recently changed to "dss_ick" on
+> OMAP2 and OMAP3, this clock can be autoidled by PRCM. The VENC interface
+> previously had "dss_54m_fck" as it's clock which couldn't be autoidled, and
+> hence the OCPIF_SWSUP_IDLE flag was needed.
+> 
+> Remove the OCPIF_SWSUP_IDLE flag from VENC interfaces as it's clock is now
+> "dss_ick".
+> 
+> Signed-off-by: Archit Taneja <archit@ti.com>
 
-On Fri, 13 Apr 2012, Rajendra Nayak wrote:
-
-> Should I go ahead and send a revert for the -rc?
-
-Thanks for the offer, I don't think it's needed -- I'll just build the 
-revert changelog here with your comments from your E-mail.
-
-regards
+Thanks, queued for 3.4-rc.
 
 
 - Paul
