@@ -1,42 +1,31 @@
-From: Russell King - ARM Linux <linux@arm.linux.org.uk>
-Subject: [PATCH] mmc: omap_hsmmc: release correct resource
-Date: Sat, 14 Apr 2012 14:41:25 +0100
-Message-ID: <20120414134125.GT24211@n2100.arm.linux.org.uk>
+From: Olof Johansson <olof@lixom.net>
+Subject: Re: [PATCH] ARM: OMAP: clock: cleanup CPUfreq leftovers, fix build errors
+Date: Sat, 14 Apr 2012 17:50:18 -0700
+Message-ID: <CAOesGMhgf0MigmeFaQditLF32L1tbmNHUJ1-ZcubVPe76zVsgQ@mail.gmail.com>
+References: <1334350335-1250-1-git-send-email-khilman@ti.com>
+	<20120413224807.GH6487@atomide.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=ISO-8859-1
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from caramon.arm.linux.org.uk ([78.32.30.218]:44477 "EHLO
-	caramon.arm.linux.org.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751233Ab2DNNla (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Sat, 14 Apr 2012 09:41:30 -0400
-Content-Disposition: inline
+Received: from mail-wg0-f44.google.com ([74.125.82.44]:47862 "EHLO
+	mail-wg0-f44.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752888Ab2DOAuT (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Sat, 14 Apr 2012 20:50:19 -0400
+Received: by wgbdr13 with SMTP id dr13so4105938wgb.1
+        for <linux-omap@vger.kernel.org>; Sat, 14 Apr 2012 17:50:18 -0700 (PDT)
+In-Reply-To: <20120413224807.GH6487@atomide.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+To: Tony Lindgren <tony@atomide.com>
+Cc: Kevin Hilman <khilman@ti.com>, Paul Walmsley <paul@pwsan.com>, Russell King <rmk+kernel@arm.linux.org.uk>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 
-res can be one of several resources, as this variable is re-used several
-times during probe.  This can cause the wrong resource parameters to be
-passed to release_mem_region().
+On Fri, Apr 13, 2012 at 3:48 PM, Tony Lindgren <tony@atomide.com> wrote:
+> Yes let's drop the unnecessary code instead as Kevin is suggesting.
+> Please queue this directly with Olof as discussed on #armlinux:
+>
+> Acked-by: Tony Lindgren <tony@atomide.com>
 
-Get the original memory resource before calling release_mem_region().
+Applied to fixes. Thanks!
 
-Signed-off-by: Russell King <rmk+kernel@arm.linux.org.uk>
----
- drivers/mmc/host/omap_hsmmc.c |    4 +++-
- 1 file changed, 3 insertions(+), 1 deletion(-)
 
-diff --git a/drivers/mmc/host/omap_hsmmc.c b/drivers/mmc/host/omap_hsmmc.c
-index d12bdbe..4b2e1f0 100644
---- a/drivers/mmc/host/omap_hsmmc.c
-+++ b/drivers/mmc/host/omap_hsmmc.c
-@@ -2027,7 +2027,9 @@ static int __devinit omap_hsmmc_probe(struct platform_device *pdev)
- err_alloc:
- 	omap_hsmmc_gpio_free(pdata);
- err:
--	release_mem_region(res->start, resource_size(res));
-+	res = platform_get_resource(pdev, IORESOURCE_MEM, 0);
-+	if (res)
-+		release_mem_region(res->start, resource_size(res));
- 	return ret;
- }
- 
+-Olof
