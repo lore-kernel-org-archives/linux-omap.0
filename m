@@ -1,52 +1,98 @@
-From: Tarun Kanti DebBarma <tarun.kanti@ti.com>
-Subject: [PATCH 0/3] ARM: OMAP2+: dmtimer: cleanup related to devm API and clk usage
-Date: Mon, 16 Apr 2012 17:55:22 +0530
-Message-ID: <1334579125-15566-1-git-send-email-tarun.kanti@ti.com>
+From: "Govindraj.R" <govindraj.raja@ti.com>
+Subject: [PATCH] tty: omap-serial: Keep the wakeup mechanism enabled by default
+Date: Mon, 16 Apr 2012 18:00:07 +0530
+Message-ID: <1334579407-16970-1-git-send-email-govindraj.raja@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from devils.ext.ti.com ([198.47.26.153]:37476 "EHLO
-	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754188Ab2DPMZh (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 16 Apr 2012 08:25:37 -0400
-Sender: linux-omap-owner@vger.kernel.org
-List-Id: linux-omap@vger.kernel.org
+Return-path: <linux-serial-owner@vger.kernel.org>
+Sender: linux-serial-owner@vger.kernel.org
 To: linux-omap@vger.kernel.org
-Cc: tony@atomide.com, khilman@ti.com, paul@pwsan.com, b-cousson@ti.com, santosh.shilimkar@ti.com, rnayak@ti.com, Tarun Kanti DebBarma <tarun.kanti@ti.com>
+Cc: linux-serial@vger.kernel.org, linux-arm-kernel@lists.infradead.org, "Govindraj.R" <govindraj.raja@ti.com>, Paul Walmsley <paul@pwsan.com>, Kevin Hilman <khilman@ti.com>
+List-Id: linux-omap@vger.kernel.org
 
-The devm API usage in probe() simplifies error handling operation.
-Since iclk is not used in the driver it is removed from wherever
-not needed. The fclk naming is made uniform as per OMAP4 platform,
-viz. "timer1_fck", "timer2_fck", ... in all relevant places which
-include hwmod database. With this change there is no more need to
-construct clock names using sprintf() to be used in clk_get()
-during initialization. Instead we can use oh->main_clk directly.
+From: "Govindraj.R" <govindraj.raja@ti.com>
 
-Reference:
-git://git.kernel.org/pub/scm/linux/kernel/git/torvalds/linux-2.6.git
-Commit: e816b57a337ea3b755de72bec38c10c864f23015 (Linux 3.4-rc3)
+The wakeups can be left enabled by default and should be disabled
+only when disabled from sysfs and while entering suspend.
 
-Series is available here for reference:
-git://gitorious.org/~tarunkanti/omap-sw-develoment/tarunkantis-linux-omap-dev dmtimer_cleanup_for_3.5
+Thanks to Kevin Hilman <khilman@ti.com> for suggesting this.
+Discussion References:
+http://www.spinics.net/lists/linux-omap/msg67764.html
+http://www.spinics.net/lists/linux-omap/msg67838.html
 
-Tested on following platforms:
-OMAP4430SDP, OMAP3430SDP, OMAP2430SDP.
-Could not test on OMAP2420 due to unavailability of board.
+Cc: Paul Walmsley <paul@pwsan.com>
+Cc: Kevin Hilman <khilman@ti.com>
+Signed-off-by: Govindraj.R <govindraj.raja@ti.com>
+---
+ drivers/tty/serial/omap-serial.c |   30 +++++++++++-------------------
+ 1 files changed, 11 insertions(+), 19 deletions(-)
 
-Tarun Kanti DebBarma (3):
-  ARM: OMAP: dmtimer: Use devm_ API and do some cleanup in probe()
-  ARM: OMAP2+: dmtimer: cleanup iclk usage
-  ARM: OMAP2+: dmtimer: cleanup fclk usage
-
- arch/arm/mach-omap2/clock2420_data.c       |   72 ++++++++++++++--------------
- arch/arm/mach-omap2/clock2430_data.c       |   72 ++++++++++++++--------------
- arch/arm/mach-omap2/clock3xxx_data.c       |   72 ++++++++++++++--------------
- arch/arm/mach-omap2/clock44xx_data.c       |   33 ++++--------
- arch/arm/mach-omap2/omap_hwmod_2420_data.c |   24 +++++-----
- arch/arm/mach-omap2/omap_hwmod_2430_data.c |   24 +++++-----
- arch/arm/mach-omap2/omap_hwmod_3xxx_data.c |   24 +++++-----
- arch/arm/mach-omap2/timer.c                |   10 +----
- arch/arm/plat-omap/dmtimer.c               |   51 +++++++------------
- arch/arm/plat-omap/include/plat/dmtimer.h  |    2 +-
- 10 files changed, 176 insertions(+), 208 deletions(-)
+diff --git a/drivers/tty/serial/omap-serial.c b/drivers/tty/serial/omap-serial.c
+index d00b38e..4a92447 100644
+--- a/drivers/tty/serial/omap-serial.c
++++ b/drivers/tty/serial/omap-serial.c
+@@ -930,13 +930,6 @@ serial_omap_pm(struct uart_port *port, unsigned int state,
+ 	serial_out(up, UART_EFR, efr);
+ 	serial_out(up, UART_LCR, 0);
+ 
+-	if (!device_may_wakeup(&up->pdev->dev)) {
+-		if (!state)
+-			pm_runtime_forbid(&up->pdev->dev);
+-		else
+-			pm_runtime_allow(&up->pdev->dev);
+-	}
+-
+ 	pm_runtime_put(&up->pdev->dev);
+ }
+ 
+@@ -1184,10 +1177,16 @@ static struct uart_driver serial_omap_reg = {
+ static int serial_omap_suspend(struct device *dev)
+ {
+ 	struct uart_omap_port *up = dev_get_drvdata(dev);
++	struct omap_uart_port_info *pdata = dev->platform_data;
+ 
+ 	if (up) {
+ 		uart_suspend_port(&serial_omap_reg, &up->port);
+ 		flush_work_sync(&up->qos_work);
++
++		if (!device_may_wakeup(dev)) {
++			pdata->enable_wakeup(up->pdev, false);
++			up->wakeups_enabled = false;
++		}
+ 	}
+ 
+ 	return 0;
+@@ -1582,18 +1581,6 @@ static int serial_omap_runtime_suspend(struct device *dev)
+ 	if (pdata->get_context_loss_count)
+ 		up->context_loss_cnt = pdata->get_context_loss_count(dev);
+ 
+-	if (device_may_wakeup(dev)) {
+-		if (!up->wakeups_enabled) {
+-			pdata->enable_wakeup(up->pdev, true);
+-			up->wakeups_enabled = true;
+-		}
+-	} else {
+-		if (up->wakeups_enabled) {
+-			pdata->enable_wakeup(up->pdev, false);
+-			up->wakeups_enabled = false;
+-		}
+-	}
+-
+ 	/* Errata i291 */
+ 	if (up->use_dma && pdata->set_forceidle &&
+ 			(up->errata & UART_ERRATA_i291_DMA_FORCEIDLE))
+@@ -1618,6 +1605,11 @@ static int serial_omap_runtime_resume(struct device *dev)
+ 				serial_omap_restore_context(up);
+ 		}
+ 
++		if (!up->wakeups_enabled) {
++			pdata->enable_wakeup(up->pdev, true);
++			up->wakeups_enabled = true;
++		}
++
+ 		/* Errata i291 */
+ 		if (up->use_dma && pdata->set_noidle &&
+ 				(up->errata & UART_ERRATA_i291_DMA_FORCEIDLE))
+-- 
+1.7.9
 
