@@ -1,63 +1,98 @@
-From: Samuel Ortiz <sameo-VuQAYsv1563Yd54FQh9/CA@public.gmane.org>
-Subject: Re: [PATCH RESEND] ARM: OMAP3: USB: Fix the EHCI ULPI PHY reset issue
-Date: Mon, 16 Apr 2012 18:46:46 +0200
-Message-ID: <20120416164646.GP24130@sortiz-mobl>
-References: <1332139367-1302-1-git-send-email-keshava_mgowda@ti.com>
- <4F71D87E.70100@compulab.co.il>
- <CAP05o4JWjoh-NoDeA3vYaS1yY_SGdm3TZvHA=pkQsP-Xo-kWnQ@mail.gmail.com>
+From: Paul Walmsley <paul@pwsan.com>
+Subject: Re: [PATCH 3/3] ARM: OMAP2+: dmtimer: cleanup fclk usage
+Date: Mon, 16 Apr 2012 10:40:12 -0600 (MDT)
+Message-ID: <alpine.DEB.2.00.1204161034290.29048@utopia.booyaka.com>
+References: <1334579125-15566-1-git-send-email-tarun.kanti@ti.com> <1334579125-15566-4-git-send-email-tarun.kanti@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <CAP05o4JWjoh-NoDeA3vYaS1yY_SGdm3TZvHA=pkQsP-Xo-kWnQ-JsoAwUIsXosN+BqQ9rBEUg@public.gmane.org>
-Sender: linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: "Munegowda, Keshava" <keshava_mgowda-l0cyMroinI0@public.gmane.org>
-Cc: linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, balbi-l0cyMroinI0@public.gmane.org, parthab-PpE0FKYn9XJWk0Htik3J/w@public.gmane.org, govindraj.raja-l0cyMroinI0@public.gmane.org, Igor Grinberg <grinberg-UTxiZqZC01RS1MOuV/RT9w@public.gmane.org>
+Content-Type: TEXT/PLAIN; charset=US-ASCII
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from utopia.booyaka.com ([72.9.107.138]:51743 "EHLO
+	utopia.booyaka.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754201Ab2DPQkN (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 16 Apr 2012 12:40:13 -0400
+In-Reply-To: <1334579125-15566-4-git-send-email-tarun.kanti@ti.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Tarun Kanti DebBarma <tarun.kanti@ti.com>
+Cc: linux-omap@vger.kernel.org, tony@atomide.com, khilman@ti.com, b-cousson@ti.com, santosh.shilimkar@ti.com, rnayak@ti.com
 
-Hi Keshava,
+Hi
 
-On Wed, Apr 11, 2012 at 05:15:03PM +0530, Munegowda, Keshava wrote:
-> On Tue, Mar 27, 2012 at 8:40 PM, Igor Grinberg <grinberg-UTxiZqZC01RS1MOuV/RT9w@public.gmane.org> wrote:
-> > On 03/19/12 08:42, Keshava Munegowda wrote:
-> >> From: Keshava Munegowda <Keshava_mgowda-l0cyMroinI0@public.gmane.org>
-> >>
-> >> It is observed that the echi ports of 3430 sdp board
-> >> are not working due to the random timing of programming
-> >> the associated GPIOs of the ULPI PHYs of the EHCI for reset.
-> >> If the PHYs are reset at during usbhs core driver, host ports will
-> >> not work because EHCI driver is loaded after the resetting PHYs.
-> >> The PHYs should be in reset state while initializing the EHCI
-> >> controller.
-> >> The code which does the GPIO pins associated with the PHYs
-> >> are programmed to reset is moved from the USB host core driver
-> >> to EHCI driver.
-> >>
-> >> Signed-off-by: Keshava Munegowda <keshava_mgowda-l0cyMroinI0@public.gmane.org>
-> >> Reviewed-by: Partha Basak <parthab-PpE0FKYn9XJWk0Htik3J/w@public.gmane.org>
-> >
-> > Both EHCI ports worked on cm-t3730 previously and
-> > no regression is seen with this patch.
-> >
-> > Tested-by: Igor Grinberg <grinberg-UTxiZqZC01RS1MOuV/RT9w@public.gmane.org>
-> >
-> > --
-> > Regards,
-> > Igor.
+a few comments
+
+On Mon, 16 Apr 2012, Tarun Kanti DebBarma wrote:
+
+> Timer clock nodes have been re-named as "timer1_fck", "timer2_fck", ...
+> in place of "gpt1_fck", "gpt2_fck", ... This is in line with the names
+> present in OMAP4 gptimer hwmod database assigned to oh->main_clk.
+> Now we can get the fck name directly from oh->main_clk and pass the
+> same to clk_get() to extract the fclk and thus avoid construction
+> of fclk clock name.
 > 
-> Hi sameo
->          Since I am not seeing this patch in linux-next labled 3.4.rc2
-> on 10th april 2012;
->  please let me know your plan to queue this patch for the main line.
-I applied this one to my for-linus branch, thanks.
+> Signed-off-by: Tarun Kanti DebBarma <tarun.kanti@ti.com>
+> ---
+>  arch/arm/mach-omap2/clock2420_data.c       |   72 ++++++++++++++--------------
+>  arch/arm/mach-omap2/clock2430_data.c       |   72 ++++++++++++++--------------
+>  arch/arm/mach-omap2/clock3xxx_data.c       |   72 ++++++++++++++--------------
+>  arch/arm/mach-omap2/clock44xx_data.c       |   22 ++++----
+>  arch/arm/mach-omap2/omap_hwmod_2420_data.c |   24 +++++-----
+>  arch/arm/mach-omap2/omap_hwmod_2430_data.c |   24 +++++-----
+>  arch/arm/mach-omap2/omap_hwmod_3xxx_data.c |   24 +++++-----
+>  arch/arm/mach-omap2/timer.c                |    3 +-
+>  8 files changed, 156 insertions(+), 157 deletions(-)
+> 
+> diff --git a/arch/arm/mach-omap2/clock2420_data.c b/arch/arm/mach-omap2/clock2420_data.c
+> index bace930..8d12e8e 100644
+> --- a/arch/arm/mach-omap2/clock2420_data.c
+> +++ b/arch/arm/mach-omap2/clock2420_data.c
+> @@ -847,8 +847,8 @@ static struct clk gpt1_ick = {
+>  	.recalc		= &followparent_recalc,
+>  };
+>  
+> -static struct clk gpt1_fck = {
+> -	.name		= "gpt1_fck",
+> +static struct clk timer1_fck = {
+> +	.name		= "timer1_fck",
 
-Cheers,
-Samuel.
+So if you look at the OMAP242x TRM, you can see that the actual name for 
+these clocks should be WU_GPT1_CLK and CORE_GPT*_CLK.  That's definitely 
+closer to our existing "gpt*_fck" naming scheme, so I don't see the point 
+in renaming the existing clock names.  It shouldn't affect the drivers or 
+integration code in any way...
 
--- 
-Intel Open Source Technology Centre
-http://oss.intel.com/
---
-To unsubscribe from this list: send the line "unsubscribe linux-usb" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> @@ -1823,29 +1823,29 @@ static struct omap_clk omap2420_clks[] = {
+>  	CLK(NULL,	"virt_prcm_set", &virt_prcm_set, CK_242X),
+>  	/* general l4 interface ck, multi-parent functional clk */
+>  	CLK(NULL,	"gpt1_ick",	&gpt1_ick,	CK_242X),
+> -	CLK(NULL,	"gpt1_fck",	&gpt1_fck,	CK_242X),
+> +	CLK(NULL,	"timer1_fck",	&timer1_fck,	CK_242X),
+
+And these changes can be dropped too.  The only reason that these lines 
+need to be kept around at all is because we're still using the clkdev code 
+to register clocks (not just provide aliases).
+
+> diff --git a/arch/arm/mach-omap2/timer.c b/arch/arm/mach-omap2/timer.c
+> index 5d7a0ee..9459d70 100644
+> --- a/arch/arm/mach-omap2/timer.c
+> +++ b/arch/arm/mach-omap2/timer.c
+> @@ -164,8 +164,7 @@ static int __init omap_dm_timer_init_one(struct omap_dm_timer *timer,
+>  		return -ENXIO;
+>  
+>  	/* After the dmtimer is using hwmod these clocks won't be needed */
+> -	sprintf(name, "gpt%d_fck", gptimer_id);
+> -	timer->fclk = clk_get(NULL, name);
+> +	timer->fclk = clk_get(NULL, oh->main_clk);
+>  	if (IS_ERR(timer->fclk))
+>  		return -ENODEV;
+
+If you find yourself accessing struct omap_hwmod structure fields 
+directly, something is almost certainly wrong; and this case is not an
+exception.  Since the omap_device code is defining an "fck" alias to the 
+main_clk, all you should need to do is:
+
+-     sprintf(name, "gpt%d_fck", gptimer_id);
+-     timer->fclk = clk_get(NULL, name);  
++     timer->fclk = clk_get(NULL, "fck");
+
+
+- Paul
