@@ -1,14 +1,14 @@
 From: Shubhrajyoti D <shubhrajyoti@ti.com>
-Subject: [PATCH 1/7] ARM: OMAP: UART: Make context_loss_cnt signed
-Date: Mon, 16 Apr 2012 20:36:55 +0530
-Message-ID: <1334588821-5224-2-git-send-email-shubhrajyoti@ti.com>
+Subject: [PATCH 4/7] UART: OMAP: Remove the default setting of special character
+Date: Mon, 16 Apr 2012 20:36:58 +0530
+Message-ID: <1334588821-5224-5-git-send-email-shubhrajyoti@ti.com>
 References: <1334588821-5224-1-git-send-email-shubhrajyoti@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from bear.ext.ti.com ([192.94.94.41]:35046 "EHLO bear.ext.ti.com"
+Received: from bear.ext.ti.com ([192.94.94.41]:35043 "EHLO bear.ext.ti.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753761Ab2DPPHP (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	id S1754576Ab2DPPHP (ORCPT <rfc822;linux-omap@vger.kernel.org>);
 	Mon, 16 Apr 2012 11:07:15 -0400
 In-Reply-To: <1334588821-5224-1-git-send-email-shubhrajyoti@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
@@ -16,57 +16,41 @@ List-Id: linux-omap@vger.kernel.org
 To: linux-serial@vger.kernel.org
 Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Shubhrajyoti D <shubhrajyoti@ti.com>, "Govindraj.R" <govindraj.raja@ti.com>
 
-get_context_loss_count returns an int however it is stored in
-unsigned integer context_loss_cnt . This patch tries to make
-context_loss_cnt int. So that in case of errors(which may be negative)
-the value is not interpreted wrongly.
+Special character detect enable if enabled by default.Received data
+comparison with XOFF2 data happens by default.
 
-In serial_omap_runtime_resume in case of errors returned by
-get_context_loss_count print a warning and do a restore.
+tty provides only XOFF1 no X0FF2 is provided so no need
+to enable check for XOFF2.
+
+Keeping this enabled might give some slow transfers due to dummy xoff2
+comparison with xoff2 reset value.
+
+Since not all want the XOFF2 support lets not enable it by
+default.
 
 Cc: Govindraj.R <govindraj.raja@ti.com>
 Signed-off-by: Shubhrajyoti D <shubhrajyoti@ti.com>
 ---
- arch/arm/plat-omap/include/plat/omap-serial.h |    2 +-
- drivers/tty/serial/omap-serial.c              |   10 ++++++++--
- 2 files changed, 9 insertions(+), 3 deletions(-)
+ drivers/tty/serial/omap-serial.c |    6 +-----
+ 1 files changed, 1 insertions(+), 5 deletions(-)
 
-diff --git a/arch/arm/plat-omap/include/plat/omap-serial.h b/arch/arm/plat-omap/include/plat/omap-serial.h
-index 9ff4444..b7fb6dc 100644
---- a/arch/arm/plat-omap/include/plat/omap-serial.h
-+++ b/arch/arm/plat-omap/include/plat/omap-serial.h
-@@ -128,7 +128,7 @@ struct uart_omap_port {
- 	unsigned char		msr_saved_flags;
- 	char			name[20];
- 	unsigned long		port_activity;
--	u32			context_loss_cnt;
-+	int			context_loss_cnt;
- 	u32			errata;
- 	u8			wakeups_enabled;
- 
 diff --git a/drivers/tty/serial/omap-serial.c b/drivers/tty/serial/omap-serial.c
-index d00b38e..fe099bb 100644
+index 887d578..7c69b21 100644
 --- a/drivers/tty/serial/omap-serial.c
 +++ b/drivers/tty/serial/omap-serial.c
-@@ -1612,10 +1612,16 @@ static int serial_omap_runtime_resume(struct device *dev)
+@@ -682,11 +682,7 @@ serial_omap_configure_xonxoff
+ 	serial_out(up, UART_MCR, up->mcr | UART_MCR_TCRTLR);
+ 	serial_out(up, UART_LCR, UART_LCR_CONF_MODE_B);
+ 	serial_out(up, UART_TI752_TCR, OMAP_UART_TCR_TRIG);
+-	/* Enable special char function UARTi.EFR_REG[5] and
+-	 * load the new software flow control mode IXON or IXOFF
+-	 * and restore the UARTi.EFR_REG[4] ENHANCED_EN value.
+-	 */
+-	serial_out(up, UART_EFR, up->efr | UART_EFR_SCD);
++
+ 	serial_out(up, UART_LCR, UART_LCR_CONF_MODE_A);
  
- 	if (up && pdata) {
- 		if (pdata->get_context_loss_count) {
--			u32 loss_cnt = pdata->get_context_loss_count(dev);
-+			int loss_cnt = pdata->get_context_loss_count(dev);
- 
--			if (up->context_loss_cnt != loss_cnt)
-+			if (loss_cnt < 0) {
-+				dev_err(dev,
-+					"get_context_loss_count failed : %d\n",
-+					loss_cnt);
- 				serial_omap_restore_context(up);
-+			} else if (up->context_loss_cnt != loss_cnt) {
-+				serial_omap_restore_context(up);
-+			}
- 		}
- 
- 		/* Errata i291 */
+ 	serial_out(up, UART_MCR, up->mcr & ~UART_MCR_TCRTLR);
 -- 
 1.7.4.1
 
