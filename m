@@ -1,56 +1,44 @@
-From: Paul Walmsley <paul@pwsan.com>
-Subject: Re: [PATCH 2/3] ARM: OMAP2+: dmtimer: cleanup iclk usage
-Date: Mon, 16 Apr 2012 10:50:08 -0600 (MDT)
-Message-ID: <alpine.DEB.2.00.1204161049250.29048@utopia.booyaka.com>
-References: <1334579125-15566-1-git-send-email-tarun.kanti@ti.com> <1334579125-15566-3-git-send-email-tarun.kanti@ti.com>
+From: Tony Lindgren <tony@atomide.com>
+Subject: Re: [PATCH] OMAP: fix DMA vs memory ordering
+Date: Mon, 16 Apr 2012 10:58:49 -0700
+Message-ID: <20120416175849.GI6487@atomide.com>
+References: <20120414132435.GS24211@n2100.arm.linux.org.uk>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from utopia.booyaka.com ([72.9.107.138]:51477 "EHLO
-	utopia.booyaka.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751221Ab2DPQuJ (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 16 Apr 2012 12:50:09 -0400
-In-Reply-To: <1334579125-15566-3-git-send-email-tarun.kanti@ti.com>
+Received: from mho-02-ewr.mailhop.org ([204.13.248.72]:13428 "EHLO
+	mho-02-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751209Ab2DPR6x (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 16 Apr 2012 13:58:53 -0400
+Content-Disposition: inline
+In-Reply-To: <20120414132435.GS24211@n2100.arm.linux.org.uk>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Tarun Kanti DebBarma <tarun.kanti@ti.com>
-Cc: linux-omap@vger.kernel.org, tony@atomide.com, khilman@ti.com, b-cousson@ti.com, santosh.shilimkar@ti.com, rnayak@ti.com
+To: Russell King - ARM Linux <linux@arm.linux.org.uk>
+Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 
-Hi Tarun,
+Hi,
 
-by the way,
-
-On Mon, 16 Apr 2012, Tarun Kanti DebBarma wrote:
-
-> We do not use iclk anywhere in the dmtimer driver and so removing it.
-> Hence removing the timer iclk entries from OMAP4 clkdev table as well.
+* Russell King - ARM Linux <linux@arm.linux.org.uk> [120414 06:27]:
+> Using coherent DMA memory with the OMAP DMA engine results in
+> unpredictable behaviour due to memory ordering issues; as things stand,
+> there is no guarantee that data written to coherent DMA memory will be
+> visible to the DMA hardware.
 > 
-> Signed-off-by: Tarun Kanti DebBarma <tarun.kanti@ti.com>
-> ---
->  arch/arm/mach-omap2/clock44xx_data.c      |   11 -----------
->  arch/arm/mach-omap2/timer.c               |    7 -------
->  arch/arm/plat-omap/include/plat/dmtimer.h |    2 +-
->  3 files changed, 1 insertions(+), 19 deletions(-)
+> This is because the OMAP dma_write() accessor contains no barriers,
+> necessary on ARMv6 and above.  The effect of this can be seen in comments
+> in the OMAP serial driver, which incorrectly talks about cache flushing
+> for the coherent DMA stuff.
 > 
+> Rather than adding barriers to the accessors, add it in the DMA support
+> code just before we enable DMA, and just after we disable DMA.  This
+> avoids having barriers for every DMA register access.
 
-...
+Good catch.
 
-> diff --git a/arch/arm/plat-omap/include/plat/dmtimer.h b/arch/arm/plat-omap/include/plat/dmtimer.h
-> index 9418f00..be2b8c4 100644
-> --- a/arch/arm/plat-omap/include/plat/dmtimer.h
-> +++ b/arch/arm/plat-omap/include/plat/dmtimer.h
-> @@ -259,7 +259,7 @@ struct omap_dm_timer {
->  	unsigned long phys_base;
->  	int id;
->  	int irq;
-> -	struct clk *iclk, *fclk;
-> +	struct clk *fclk;
->  
->  	void __iomem	*io_base;
->  	void __iomem	*sys_stat;	/* TISTAT timer status */
+I guess what you're saying is we don't want to do mb() for each completed
+transfer that calls the driver specific callback function?
 
-Am dropping this stray change, it seems unrelated to the rest of the 
-patch.
+Other than that:
 
-
-- Paul
+Acked-by: Tony Lindgren <tony@atomide.com>
