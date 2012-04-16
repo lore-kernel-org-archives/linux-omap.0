@@ -1,36 +1,40 @@
-From: Peter Ujfalusi <peter.ujfalusi@ti.com>
-Subject: Re: [PATCH for 3.4] MFD: twl6040: Convert to i2c
- driver, and separate it from twl core
-Date: Mon, 16 Apr 2012 17:55:20 +0300
-Message-ID: <4F8C32D8.7060405@ti.com>
-References: <1333443411-23056-1-git-send-email-peter.ujfalusi@ti.com>
-	<20120416144623.GD24130@sortiz-mobl>
+From: Shubhrajyoti <shubhrajyoti@ti.com>
+Subject: Re: [PATCH 1/3] ARM: OMAP: dmtimer: Use devm_ API and do some cleanup
+ in probe()
+Date: Mon, 16 Apr 2012 20:32:07 +0530
+Message-ID: <4F8C346F.9020200@ti.com>
+References: <1334579125-15566-1-git-send-email-tarun.kanti@ti.com> <1334579125-15566-2-git-send-email-tarun.kanti@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="iso-8859-1"
-Content-Transfer-Encoding: quoted-printable
-Return-path: <alsa-devel-bounces@alsa-project.org>
-In-Reply-To: <20120416144623.GD24130@sortiz-mobl>
-List-Unsubscribe: <http://mailman.alsa-project.org/mailman/listinfo/alsa-devel>,
-	<mailto:alsa-devel-request@alsa-project.org?subject=unsubscribe>
-List-Archive: <http://mailman.alsa-project.org/pipermail/alsa-devel>
-List-Post: <mailto:alsa-devel@alsa-project.org>
-List-Help: <mailto:alsa-devel-request@alsa-project.org?subject=help>
-List-Subscribe: <http://mailman.alsa-project.org/mailman/listinfo/alsa-devel>,
-	<mailto:alsa-devel-request@alsa-project.org?subject=subscribe>
-Sender: alsa-devel-bounces@alsa-project.org
-Errors-To: alsa-devel-bounces@alsa-project.org
-To: Samuel Ortiz <sameo@linux.intel.com>
-Cc: alsa-devel@alsa-project.org, Tony Lindgren <tony@atomide.com>, Mark Brown <broonie@opensource.wolfsonmicro.com>, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, Liam Girdwood <lrg@ti.com>, linux-arm-kernel@lists.infradead.org
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from na3sys009aog110.obsmtp.com ([74.125.149.203]:56449 "EHLO
+	na3sys009aog110.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1754214Ab2DPPCS (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>);
+	Mon, 16 Apr 2012 11:02:18 -0400
+Received: by obbef5 with SMTP id ef5so7364641obb.10
+        for <linux-omap@vger.kernel.org>; Mon, 16 Apr 2012 08:02:17 -0700 (PDT)
+In-Reply-To: <1334579125-15566-2-git-send-email-tarun.kanti@ti.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Tarun Kanti DebBarma <tarun.kanti@ti.com>
+Cc: linux-omap@vger.kernel.org, tony@atomide.com, khilman@ti.com, paul@pwsan.com, b-cousson@ti.com, santosh.shilimkar@ti.com, rnayak@ti.com
 
-Hi Samuel,
+On Monday 16 April 2012 05:55 PM, Tarun Kanti DebBarma wrote:
+> Replace the regular kzalloc and ioremap with the devm_ equivalent
+> to simplify error handling. We don't need kree() anymore in
+> omap_dm_timer_remove().
+>
+> Also added *dev* pointer to reference pdev->dev which makes the
+> usage shorter in code.
+>
+> Signed-off-by: Tarun Kanti DebBarma <tarun.kanti@ti.com>
+> ---
+>
+<snip>
+> -	timer->io_base = ioremap(mem->start, resource_size(mem));
+> +	timer->io_base = devm_ioremap(dev, mem->start, resource_size(mem));
+>  	if (!timer->io_base) {
+Could we use  devm_request_and_ioremap here?
 
-On 04/16/2012 05:46 PM, Samuel Ortiz wrote:
-> Applied to my for-linus branch. I'll send a pull request this week, so I
-> expect it to make it to rc4.
-
-Thank you!
-
--- =
-
-P=E9ter
