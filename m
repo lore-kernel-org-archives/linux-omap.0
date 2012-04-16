@@ -1,55 +1,79 @@
-From: Samuel Ortiz <sameo@linux.intel.com>
-Subject: Re: [PATCH for 3.4] MFD: twl6040: Convert to i2c driver, and
- separate it from twl core
-Date: Mon, 16 Apr 2012 16:46:23 +0200
-Message-ID: <20120416144623.GD24130@sortiz-mobl>
-References: <1333443411-23056-1-git-send-email-peter.ujfalusi@ti.com>
+From: "Hiremath, Vaibhav" <hvaibhav@ti.com>
+Subject: RE: [PATCH 0/3] ARM: OMAP2+: dmtimer: cleanup related to devm API
+ and clk usage
+Date: Mon, 16 Apr 2012 14:53:20 +0000
+Message-ID: <79CD15C6BA57404B839C016229A409A83E9EE723@DBDE01.ent.ti.com>
+References: <1334579125-15566-1-git-send-email-tarun.kanti@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-kernel-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <1333443411-23056-1-git-send-email-peter.ujfalusi@ti.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Peter Ujfalusi <peter.ujfalusi@ti.com>
-Cc: Tony Lindgren <tony@atomide.com>, Liam Girdwood <lrg@ti.com>, Mark Brown <broonie@opensource.wolfsonmicro.com>, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, alsa-devel@alsa-project.org, linux-arm-kernel@lists.infradead.org
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from devils.ext.ti.com ([198.47.26.153]:47323 "EHLO
+	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754432Ab2DPOx2 convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 16 Apr 2012 10:53:28 -0400
+In-Reply-To: <1334579125-15566-1-git-send-email-tarun.kanti@ti.com>
+Content-Language: en-US
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: "DebBarma, Tarun Kanti" <tarun.kanti@ti.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
+Cc: "tony@atomide.com" <tony@atomide.com>, "Hilman, Kevin" <khilman@ti.com>, "paul@pwsan.com" <paul@pwsan.com>, "Cousson, Benoit" <b-cousson@ti.com>, "Shilimkar, Santosh" <santosh.shilimkar@ti.com>, "Nayak, Rajendra" <rnayak@ti.com>
 
-Hi Peter,
+On Mon, Apr 16, 2012 at 17:55:22, DebBarma, Tarun Kanti wrote:
+> The devm API usage in probe() simplifies error handling operation.
+> Since iclk is not used in the driver it is removed from wherever
+> not needed. The fclk naming is made uniform as per OMAP4 platform,
+> viz. "timer1_fck", "timer2_fck", ... in all relevant places which
+> include hwmod database. With this change there is no more need to
+> construct clock names using sprintf() to be used in clk_get()
+> during initialization. Instead we can use oh->main_clk directly.
+> 
+Correct me if I am wrong here, I believe there is no relation between 
+naming of clock and sprintf; with the existing code you can still use
+oh>main_clk, isn't it?
 
-On Tue, Apr 03, 2012 at 11:56:51AM +0300, Peter Ujfalusi wrote:
-> Complete the separation of the twl6040 from the twl core since
-> it is a separate chip, not part of the twl6030 PMIC.
-> 
-> Make the needed Kconfig changes for the depending drivers at the same time to
-> avoid breaking the kernel build (vibra, ASoC components).
-> 
-> Signed-off-by: Peter Ujfalusi <peter.ujfalusi@ti.com>
-> Reviewed-by: Mark Brown <broonie@opensource.wolfsonicro.com>
-> Acked-by: Tony Lindgren <tony@atomide.com>
-> Acked-by: Samuel Ortiz <sameo@linux.intel.com>
-> Acked-by: Dmitry Torokhov <dtor@mail.ru>
-> ---
-> 
-> Hi Samuel, Tony, Liam,
-> 
-> Due to some cross tree issues 3.4-rc1 have big regression in OMAP4 audio:
-> The twl6040 mfd driver (and codec, vibra) is no longer probe since the twl-core
-> now did not create the platform device for it. This means we do not have audio
-> working in rc1.
-> This patch meant to follow the twl-core change (to not probe the twll6040 as
-> platform device), but there were some glitch in the logistics so this patch is
-> not in 3.4-rc1.
-> 
-> I have forward ported it on top of 3.4-rc1, and you can also find the patch in:
-> git@gitorious.org:omap-audio/linux-audio.git peter/upstream/for-3.4-rc2
-> 
-> Can someone take this patch further to be included in 3.4-rc2?
-Applied to my for-linus branch. I'll send a pull request this week, so I
-expect it to make it to rc4.
+Below code alone should work right, so that driver code is becomes 
+independent of clock name.
 
-Cheers,
-Samuel.
+-	sprintf(name, "gpt%d_fck", gptimer_id);
+-	timer->fclk = clk_get(NULL, name);
++	timer->fclk = clk_get(NULL, oh->main_clk);
 
--- 
-Intel Open Source Technology Centre
-http://oss.intel.com/
+
+Thanks,
+Vaibhav
+
+> Reference:
+> git://git.kernel.org/pub/scm/linux/kernel/git/torvalds/linux-2.6.git
+> Commit: e816b57a337ea3b755de72bec38c10c864f23015 (Linux 3.4-rc3)
+> 
+> Series is available here for reference:
+> git://gitorious.org/~tarunkanti/omap-sw-develoment/tarunkantis-linux-omap-dev dmtimer_cleanup_for_3.5
+> 
+> Tested on following platforms:
+> OMAP4430SDP, OMAP3430SDP, OMAP2430SDP.
+> Could not test on OMAP2420 due to unavailability of board.
+> 
+> Tarun Kanti DebBarma (3):
+>   ARM: OMAP: dmtimer: Use devm_ API and do some cleanup in probe()
+>   ARM: OMAP2+: dmtimer: cleanup iclk usage
+>   ARM: OMAP2+: dmtimer: cleanup fclk usage
+> 
+>  arch/arm/mach-omap2/clock2420_data.c       |   72 ++++++++++++++--------------
+>  arch/arm/mach-omap2/clock2430_data.c       |   72 ++++++++++++++--------------
+>  arch/arm/mach-omap2/clock3xxx_data.c       |   72 ++++++++++++++--------------
+>  arch/arm/mach-omap2/clock44xx_data.c       |   33 ++++--------
+>  arch/arm/mach-omap2/omap_hwmod_2420_data.c |   24 +++++-----
+>  arch/arm/mach-omap2/omap_hwmod_2430_data.c |   24 +++++-----
+>  arch/arm/mach-omap2/omap_hwmod_3xxx_data.c |   24 +++++-----
+>  arch/arm/mach-omap2/timer.c                |   10 +----
+>  arch/arm/plat-omap/dmtimer.c               |   51 +++++++------------
+>  arch/arm/plat-omap/include/plat/dmtimer.h  |    2 +-
+>  10 files changed, 176 insertions(+), 208 deletions(-)
+> 
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-omap" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> 
+
