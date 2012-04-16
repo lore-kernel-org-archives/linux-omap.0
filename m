@@ -1,83 +1,63 @@
-From: Shubhrajyoti D <shubhrajyoti@ti.com>
-Subject: [PATCH 3/7] UART: OMAP: fix software flow control
-Date: Mon, 16 Apr 2012 20:36:57 +0530
-Message-ID: <1334588821-5224-4-git-send-email-shubhrajyoti@ti.com>
-References: <1334588821-5224-1-git-send-email-shubhrajyoti@ti.com>
+From: Samuel Ortiz <sameo-VuQAYsv1563Yd54FQh9/CA@public.gmane.org>
+Subject: Re: [PATCH RESEND] ARM: OMAP3: USB: Fix the EHCI ULPI PHY reset issue
+Date: Mon, 16 Apr 2012 18:46:46 +0200
+Message-ID: <20120416164646.GP24130@sortiz-mobl>
+References: <1332139367-1302-1-git-send-email-keshava_mgowda@ti.com>
+ <4F71D87E.70100@compulab.co.il>
+ <CAP05o4JWjoh-NoDeA3vYaS1yY_SGdm3TZvHA=pkQsP-Xo-kWnQ@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from bear.ext.ti.com ([192.94.94.41]:35045 "EHLO bear.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754611Ab2DPPHP (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Mon, 16 Apr 2012 11:07:15 -0400
-In-Reply-To: <1334588821-5224-1-git-send-email-shubhrajyoti@ti.com>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Content-Disposition: inline
+In-Reply-To: <CAP05o4JWjoh-NoDeA3vYaS1yY_SGdm3TZvHA=pkQsP-Xo-kWnQ-JsoAwUIsXosN+BqQ9rBEUg@public.gmane.org>
+Sender: linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: "Munegowda, Keshava" <keshava_mgowda-l0cyMroinI0@public.gmane.org>
+Cc: linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, balbi-l0cyMroinI0@public.gmane.org, parthab-PpE0FKYn9XJWk0Htik3J/w@public.gmane.org, govindraj.raja-l0cyMroinI0@public.gmane.org, Igor Grinberg <grinberg-UTxiZqZC01RS1MOuV/RT9w@public.gmane.org>
 List-Id: linux-omap@vger.kernel.org
-To: linux-serial@vger.kernel.org
-Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Vikram Pandita <vikram.pandita@ti.com>, stable@vger.kernel.org, "Govindraj.R" <govindraj.raja@ti.com>, Shubhrajyoti D <shubhrajyoti@ti.com>
 
-From: Vikram Pandita <vikram.pandita@ti.com>
+Hi Keshava,
 
-Software flow control register bits were not defined correctly.
+On Wed, Apr 11, 2012 at 05:15:03PM +0530, Munegowda, Keshava wrote:
+> On Tue, Mar 27, 2012 at 8:40 PM, Igor Grinberg <grinberg-UTxiZqZC01RS1MOuV/RT9w@public.gmane.org> wrote:
+> > On 03/19/12 08:42, Keshava Munegowda wrote:
+> >> From: Keshava Munegowda <Keshava_mgowda-l0cyMroinI0@public.gmane.org>
+> >>
+> >> It is observed that the echi ports of 3430 sdp board
+> >> are not working due to the random timing of programming
+> >> the associated GPIOs of the ULPI PHYs of the EHCI for reset.
+> >> If the PHYs are reset at during usbhs core driver, host ports will
+> >> not work because EHCI driver is loaded after the resetting PHYs.
+> >> The PHYs should be in reset state while initializing the EHCI
+> >> controller.
+> >> The code which does the GPIO pins associated with the PHYs
+> >> are programmed to reset is moved from the USB host core driver
+> >> to EHCI driver.
+> >>
+> >> Signed-off-by: Keshava Munegowda <keshava_mgowda-l0cyMroinI0@public.gmane.org>
+> >> Reviewed-by: Partha Basak <parthab-PpE0FKYn9XJWk0Htik3J/w@public.gmane.org>
+> >
+> > Both EHCI ports worked on cm-t3730 previously and
+> > no regression is seen with this patch.
+> >
+> > Tested-by: Igor Grinberg <grinberg-UTxiZqZC01RS1MOuV/RT9w@public.gmane.org>
+> >
+> > --
+> > Regards,
+> > Igor.
+> 
+> Hi sameo
+>          Since I am not seeing this patch in linux-next labled 3.4.rc2
+> on 10th april 2012;
+>  please let me know your plan to queue this patch for the main line.
+I applied this one to my for-linus branch, thanks.
 
-Also clarify the IXON and IXOFF logic to reflect what userspace wants.
+Cheers,
+Samuel.
 
-Cc: stable@vger.kernel.org
-Cc: Govindraj.R <govindraj.raja@ti.com>
-Signed-off-by: Vikram Pandita <vikram.pandita@ti.com>
-Signed-off-by: Shubhrajyoti D <shubhrajyoti@ti.com>
----
- arch/arm/plat-omap/include/plat/omap-serial.h |    4 ++--
- drivers/tty/serial/omap-serial.c              |   12 ++++++------
- 2 files changed, 8 insertions(+), 8 deletions(-)
-
-diff --git a/arch/arm/plat-omap/include/plat/omap-serial.h b/arch/arm/plat-omap/include/plat/omap-serial.h
-index b7fb6dc..6edc30a 100644
---- a/arch/arm/plat-omap/include/plat/omap-serial.h
-+++ b/arch/arm/plat-omap/include/plat/omap-serial.h
-@@ -42,10 +42,10 @@
- #define OMAP_UART_WER_MOD_WKUP	0X7F
- 
- /* Enable XON/XOFF flow control on output */
--#define OMAP_UART_SW_TX		0x04
-+#define OMAP_UART_SW_TX		0x8
- 
- /* Enable XON/XOFF flow control on input */
--#define OMAP_UART_SW_RX		0x04
-+#define OMAP_UART_SW_RX		0x2
- 
- #define OMAP_UART_SYSC_RESET	0X07
- #define OMAP_UART_TCR_TRIG	0X0F
-diff --git a/drivers/tty/serial/omap-serial.c b/drivers/tty/serial/omap-serial.c
-index 10e80bb..887d578 100644
---- a/drivers/tty/serial/omap-serial.c
-+++ b/drivers/tty/serial/omap-serial.c
-@@ -651,19 +651,19 @@ serial_omap_configure_xonxoff
- 
- 	/*
- 	 * IXON Flag:
--	 * Enable XON/XOFF flow control on output.
--	 * Transmit XON1, XOFF1
-+	 * Flow control for OMAP.TX
-+	 * OMAP.RX should listen for XON/XOFF
- 	 */
- 	if (termios->c_iflag & IXON)
--		up->efr |= OMAP_UART_SW_TX;
-+		up->efr |= OMAP_UART_SW_RX;
- 
- 	/*
- 	 * IXOFF Flag:
--	 * Enable XON/XOFF flow control on input.
--	 * Receiver compares XON1, XOFF1.
-+	 * Flow control for OMAP.RX
-+	 * OMAP.TX should send XON/XOFF
- 	 */
- 	if (termios->c_iflag & IXOFF)
--		up->efr |= OMAP_UART_SW_RX;
-+		up->efr |= OMAP_UART_SW_TX;
- 
- 	serial_out(up, UART_EFR, up->efr | UART_EFR_ECB);
- 	serial_out(up, UART_LCR, UART_LCR_CONF_MODE_A);
 -- 
-1.7.4.1
-
+Intel Open Source Technology Centre
+http://oss.intel.com/
+--
+To unsubscribe from this list: send the line "unsubscribe linux-usb" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
