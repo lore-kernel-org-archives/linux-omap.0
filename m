@@ -1,56 +1,69 @@
 From: "Cousson, Benoit" <b-cousson@ti.com>
-Subject: Re: [GIT PULL] ARM: OMAP: i2c, gpio, spi,
- regulator and mmc DTS updates
-Date: Mon, 16 Apr 2012 22:29:58 +0200
-Message-ID: <4F8C8146.6070603@ti.com>
-References: <4F612C29.40608@ti.com> <20120315004638.GW12083@atomide.com>
- <201203150801.13183.arnd@arndb.de> <4F746CC0.9050507@ti.com>
- <CAOesGMg+xLrVNxF0XwO8poAtuduwEcxrXLN9pXa+T+y7kKMy7Q@mail.gmail.com>
- <CAOesGMjJMgQF9jUUUMbm22oaEzan6eLW+-kWN9iB85buJxp4Dg@mail.gmail.com>
+Subject: Re: [PATCH 3/3] ARM: OMAP2+: dmtimer: cleanup fclk usage
+Date: Mon, 16 Apr 2012 22:51:23 +0200
+Message-ID: <4F8C864B.4090101@ti.com>
+References: <1334579125-15566-1-git-send-email-tarun.kanti@ti.com> <1334579125-15566-4-git-send-email-tarun.kanti@ti.com> <alpine.DEB.2.00.1204161034290.29048@utopia.booyaka.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"; Format="flowed"
+Content-Type: text/plain; charset="ISO-8859-1"; format=flowed
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-In-Reply-To: <CAOesGMjJMgQF9jUUUMbm22oaEzan6eLW+-kWN9iB85buJxp4Dg@mail.gmail.com>
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: linux-arm-kernel-bounces@lists.infradead.org
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: Olof Johansson <olof@lixom.net>
-Cc: Tony Lindgren <tony@atomide.com>, linux-omap <linux-omap@vger.kernel.org>, linux-arm-kernel@lists.infradead.org, Arnd Bergmann <arnd@arndb.de>, arm@kernel.org
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from bear.ext.ti.com ([192.94.94.41]:58922 "EHLO bear.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751023Ab2DPUv2 (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Mon, 16 Apr 2012 16:51:28 -0400
+In-Reply-To: <alpine.DEB.2.00.1204161034290.29048@utopia.booyaka.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Paul Walmsley <paul@pwsan.com>
+Cc: Tarun Kanti DebBarma <tarun.kanti@ti.com>, linux-omap@vger.kernel.org, tony@atomide.com, khilman@ti.com, santosh.shilimkar@ti.com, rnayak@ti.com
 
-Hi Olof,
-
-On 4/15/2012 3:19 AM, Olof Johansson wrote:
-> Benoit, Tony,
+On 4/16/2012 6:40 PM, Paul Walmsley wrote:
+> Hi
 >
-> On Thu, Mar 29, 2012 at 11:31 AM, Olof Johansson<olof@lixom.net>  wrote:
->> On Thu, Mar 29, 2012 at 7:08 AM, Cousson, Benoit<b-cousson@ti.com>  wrote:
->>> FYI, MMC DT adaptation just got merged, I2C, GPIO, SPI, regulator DT
->>> adaptation were already merged before, so it means that this branch can be
->>> merged to take advantage of all the DT adapted drivers.
+> a few comments
+>
+> On Mon, 16 Apr 2012, Tarun Kanti DebBarma wrote:
+
+...
+
+>> diff --git a/arch/arm/mach-omap2/timer.c b/arch/arm/mach-omap2/timer.c
+>> index 5d7a0ee..9459d70 100644
+>> --- a/arch/arm/mach-omap2/timer.c
+>> +++ b/arch/arm/mach-omap2/timer.c
+>> @@ -164,8 +164,7 @@ static int __init omap_dm_timer_init_one(struct omap_dm_timer *timer,
+>>   		return -ENXIO;
 >>
->> I've pulled this in as late/omap-dt, included in next/dt3 and
->> for-next. I'll let it sit in linux-next for at least one day before
->> it's sent in. Since it's just device tree additions, risk for
->> regressions should be low.
+>>   	/* After the dmtimer is using hwmod these clocks won't be needed */
+>> -	sprintf(name, "gpt%d_fck", gptimer_id);
+>> -	timer->fclk = clk_get(NULL, name);
+>> +	timer->fclk = clk_get(NULL, oh->main_clk);
+>>   	if (IS_ERR(timer->fclk))
+>>   		return -ENODEV;
 >
-> As you've noticed, this didn't make it into 3.4 due to the window
-> closing early. :(
+> If you find yourself accessing struct omap_hwmod structure fields
+> directly, something is almost certainly wrong; and this case is not an
+> exception.  Since the omap_device code is defining an "fck" alias to the
+> main_clk, all you should need to do is:
+>
+> -     sprintf(name, "gpt%d_fck", gptimer_id);
+> -     timer->fclk = clk_get(NULL, name);
+> +     timer->fclk = clk_get(NULL, "fck");
 
-Yes, I did :-(
+Are you sure that's the same in that case?
+"timer1_fck" is an unique entry in the clkdev table whereas there are a 
+bunch of clock nodes with the "fck" alias local to a device.
+Without the proper dev_id, there is no way to guaranty we will get the 
+timer fck clock alias.
 
-> I've renamed the branch in arm-soc to omap/dt-missed-3.4 and merged it
-> into next/dt for the 3.5 merge window.
+Since that code is executed pretty early before there is any device, 
+accessing directly the hwmod entry seems to be the only method to get 
+the proper clock without having to provide again the full clock name.
 
-OK, cool, I was about to ping you about that series. I'll then be able 
-to use it as a stable base for further OMAP DT patches.
+AFAIR, the "fck" alias is created during the omap_device creation, so I 
+guess it is too early here to have it.
 
-Thanks,
+To be honest I'm always a little bit confused with that early code, but 
+it looks like there is no device at all in that early part of the code.
+
+Regards,
 Benoit
