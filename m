@@ -1,44 +1,45 @@
 From: Shubhrajyoti D <shubhrajyoti@ti.com>
-Subject: [PATCH 0/7] UART: OMAP: Updates
-Date: Mon, 16 Apr 2012 20:36:54 +0530
-Message-ID: <1334588821-5224-1-git-send-email-shubhrajyoti@ti.com>
+Subject: [PATCH 5/7] UART: OMAP: Prevent cutting of clocks if put_sync immediately follows
+Date: Mon, 16 Apr 2012 20:36:59 +0530
+Message-ID: <1334588821-5224-6-git-send-email-shubhrajyoti@ti.com>
+References: <1334588821-5224-1-git-send-email-shubhrajyoti@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
 Return-path: <linux-serial-owner@vger.kernel.org>
+In-Reply-To: <1334588821-5224-1-git-send-email-shubhrajyoti@ti.com>
 Sender: linux-serial-owner@vger.kernel.org
 To: linux-serial@vger.kernel.org
-Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Shubhrajyoti D <shubhrajyoti@ti.com>
+Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Shubhrajyoti D <shubhrajyoti@ti.com>, "Govindraj.R" <govindraj.raja@ti.com>
 List-Id: linux-omap@vger.kernel.org
 
-The patch series collects few previously posted patches 
-and adds some clock fixes to the series.
+In serial_omap_stop_tx in the dma case. We do a autosuspend and
+immediately a put_sync. Prevent the call of auto suspend. The else
+case is left as is.
 
-The patch series does following.
-- Makes the context_loss_cnt signed to make error handling possible.
-- The clock cutting is missed in the error cases, fix it.
-- Make the serial_omap_console_ports depend on the macro
- OMAP_MAX_HSUART_PORTS.
-- use devinit and devexit for the probe and remove functions.
-- Fixes to the software flow control.
+Cc: Govindraj.R <govindraj.raja@ti.com>
+Signed-off-by: Shubhrajyoti D <shubhrajyoti@ti.com>
+---
+ drivers/tty/serial/omap-serial.c |    5 ++---
+ 1 files changed, 2 insertions(+), 3 deletions(-)
 
-The following changes since commit e816b57a337ea3b755de72bec38c10c864f23015:
+diff --git a/drivers/tty/serial/omap-serial.c b/drivers/tty/serial/omap-serial.c
+index 7c69b21..1593986 100644
+--- a/drivers/tty/serial/omap-serial.c
++++ b/drivers/tty/serial/omap-serial.c
+@@ -149,11 +149,10 @@ static void serial_omap_stop_tx(struct uart_port *port)
+ 		omap_stop_dma(up->uart_dma.tx_dma_channel);
+ 		omap_free_dma(up->uart_dma.tx_dma_channel);
+ 		up->uart_dma.tx_dma_channel = OMAP_UART_DMA_CH_FREE;
+-		pm_runtime_mark_last_busy(&up->pdev->dev);
+-		pm_runtime_put_autosuspend(&up->pdev->dev);
++	} else {
++		pm_runtime_get_sync(&up->pdev->dev);
+ 	}
+ 
+-	pm_runtime_get_sync(&up->pdev->dev);
+ 	if (up->ier & UART_IER_THRI) {
+ 		up->ier &= ~UART_IER_THRI;
+ 		serial_out(up, UART_IER, up->ier);
+-- 
+1.7.4.1
 
-  Linux 3.4-rc3 (2012-04-15 18:28:29 -0700)
-
-are available in the git repository at:
-  git://gitorious.org/linus-tree/linus-tree.git uart-omap-next
-
-Shubhrajyoti D (6):
-      ARM: OMAP: UART: Make context_loss_cnt signed
-      UART: OMAP: Cut the clock in the error cases
-      UART: OMAP: Remove the default setting of special character
-      UART: OMAP: Prevent cutting of clocks if put_sync immediately follows
-      UART: OMAP: Remove the hardcode serial_omap_console_ports array.
-      UART: OMAP: Trivial optimisation of the probe and remove
-
-Vikram Pandita (1):
-      UART: OMAP: fix software flow control
-
- arch/arm/plat-omap/include/plat/omap-serial.h |    6 ++--
- drivers/tty/serial/omap-serial.c              |   47 ++++++++++++++-----------
- 2 files changed, 29 insertions(+), 24 deletions(-)
