@@ -1,133 +1,56 @@
-From: akpm@linux-foundation.org
-Subject: [merged] drivers-rtc-rtc-twlc-use-static-register-while-reading-time.patch removed from -mm tree
-Date: Mon, 16 Apr 2012 13:15:36 -0700
-Message-ID: <20120416201536.A7AF6A0308@akpm.mtv.corp.google.com>
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-qa0-f74.google.com ([209.85.216.74]:45990 "EHLO
-	mail-qa0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754760Ab2DPUPh (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 16 Apr 2012 16:15:37 -0400
-Sender: linux-omap-owner@vger.kernel.org
+From: "Cousson, Benoit" <b-cousson@ti.com>
+Subject: Re: [GIT PULL] ARM: OMAP: i2c, gpio, spi,
+ regulator and mmc DTS updates
+Date: Mon, 16 Apr 2012 22:29:58 +0200
+Message-ID: <4F8C8146.6070603@ti.com>
+References: <4F612C29.40608@ti.com> <20120315004638.GW12083@atomide.com>
+ <201203150801.13183.arnd@arndb.de> <4F746CC0.9050507@ti.com>
+ <CAOesGMg+xLrVNxF0XwO8poAtuduwEcxrXLN9pXa+T+y7kKMy7Q@mail.gmail.com>
+ <CAOesGMjJMgQF9jUUUMbm22oaEzan6eLW+-kWN9iB85buJxp4Dg@mail.gmail.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset="us-ascii"; Format="flowed"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
+In-Reply-To: <CAOesGMjJMgQF9jUUUMbm22oaEzan6eLW+-kWN9iB85buJxp4Dg@mail.gmail.com>
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
+List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
+List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
+Sender: linux-arm-kernel-bounces@lists.infradead.org
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
+To: Olof Johansson <olof@lixom.net>
+Cc: Tony Lindgren <tony@atomide.com>, linux-omap <linux-omap@vger.kernel.org>, linux-arm-kernel@lists.infradead.org, Arnd Bergmann <arnd@arndb.de>, arm@kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: x0155534@ti.com, a.zummo@towertech.it, b-cousson@ti.com, gg@slimlogic.co.uk, linux-omap@vger.kernel.org, nm@ti.com, oleksandr.dmytryshyn@ti.com, x0174904@ti.com, mm-commits@vger.kernel.org
 
+Hi Olof,
 
-The patch titled
-     Subject: drivers/rtc/rtc-twl.c: use static register while reading time
-has been removed from the -mm tree.  Its filename was
-     drivers-rtc-rtc-twlc-use-static-register-while-reading-time.patch
+On 4/15/2012 3:19 AM, Olof Johansson wrote:
+> Benoit, Tony,
+>
+> On Thu, Mar 29, 2012 at 11:31 AM, Olof Johansson<olof@lixom.net>  wrote:
+>> On Thu, Mar 29, 2012 at 7:08 AM, Cousson, Benoit<b-cousson@ti.com>  wrote:
+>>> FYI, MMC DT adaptation just got merged, I2C, GPIO, SPI, regulator DT
+>>> adaptation were already merged before, so it means that this branch can be
+>>> merged to take advantage of all the DT adapted drivers.
+>>
+>> I've pulled this in as late/omap-dt, included in next/dt3 and
+>> for-next. I'll let it sit in linux-next for at least one day before
+>> it's sent in. Since it's just device tree additions, risk for
+>> regressions should be low.
+>
+> As you've noticed, this didn't make it into 3.4 due to the window
+> closing early. :(
 
-This patch was dropped because it was merged into mainline or a subsystem tree
+Yes, I did :-(
 
-The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
+> I've renamed the branch in arm-soc to omap/dt-missed-3.4 and merged it
+> into next/dt for the 3.5 merge window.
 
-------------------------------------------------------
-From: Konstantin Shlyakhovoy <x0155534@ti.com>
-Subject: drivers/rtc/rtc-twl.c: use static register while reading time
+OK, cool, I was about to ping you about that series. I'll then be able 
+to use it as a stable base for further OMAP DT patches.
 
-RTC stores time and date in several registers.  Due to the fact that these
-registers can't be read instantaneously, there is a chance that reading
-from counting registers gives an error of one minute, one hour, one day,
-etc.
-
-To address this issue, the RTC has hardware support to copy the RTC
-counting registers to static shadowed registers.  The current
-implementation does not use this feature, and in a stress test, we can
-reproduce this error at a rate of around two times per 300000 readings.
-
-Fix the implementation to ensure that the right snapshot of time is
-captured.
-
-Signed-off-by: Konstantin Shlyakhovoy <x0155534@ti.com>
-Signed-off-by: Nishanth Menon <nm@ti.com>
-Cc: Alessandro Zummo <a.zummo@towertech.it>
-Cc: Benoit Cousson <b-cousson@ti.com>
-Cc: linux-omap <linux-omap@vger.kernel.org>
-Acked-by: Mykola Oleksiienko <x0174904@ti.com>
-Acked-by: Oleksandr Dmytryshyn <oleksandr.dmytryshyn@ti.com>
-Acked-by: Graeme Gregory <gg@slimlogic.co.uk>
-Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
----
-
- drivers/rtc/rtc-twl.c |   43 +++++++++++++++++++++++++++++++++++-----
- 1 file changed, 38 insertions(+), 5 deletions(-)
-
-diff -puN drivers/rtc/rtc-twl.c~drivers-rtc-rtc-twlc-use-static-register-while-reading-time drivers/rtc/rtc-twl.c
---- a/drivers/rtc/rtc-twl.c~drivers-rtc-rtc-twlc-use-static-register-while-reading-time
-+++ a/drivers/rtc/rtc-twl.c
-@@ -112,6 +112,7 @@ static const u8 twl6030_rtc_reg_map[] = 
- #define BIT_RTC_CTRL_REG_TEST_MODE_M             0x10
- #define BIT_RTC_CTRL_REG_SET_32_COUNTER_M        0x20
- #define BIT_RTC_CTRL_REG_GET_TIME_M              0x40
-+#define BIT_RTC_CTRL_REG_RTC_V_OPT               0x80
- 
- /* RTC_STATUS_REG bitfields */
- #define BIT_RTC_STATUS_REG_RUN_M                 0x02
-@@ -235,25 +236,57 @@ static int twl_rtc_read_time(struct devi
- 	unsigned char rtc_data[ALL_TIME_REGS + 1];
- 	int ret;
- 	u8 save_control;
-+	u8 rtc_control;
- 
- 	ret = twl_rtc_read_u8(&save_control, REG_RTC_CTRL_REG);
--	if (ret < 0)
-+	if (ret < 0) {
-+		dev_err(dev, "%s: reading CTRL_REG, error %d\n", __func__, ret);
- 		return ret;
-+	}
-+	/* for twl6030/32 make sure BIT_RTC_CTRL_REG_GET_TIME_M is clear */
-+	if (twl_class_is_6030()) {
-+		if (save_control & BIT_RTC_CTRL_REG_GET_TIME_M) {
-+			save_control &= ~BIT_RTC_CTRL_REG_GET_TIME_M;
-+			ret = twl_rtc_write_u8(save_control, REG_RTC_CTRL_REG);
-+			if (ret < 0) {
-+				dev_err(dev, "%s clr GET_TIME, error %d\n",
-+					__func__, ret);
-+				return ret;
-+			}
-+		}
-+	}
- 
--	save_control |= BIT_RTC_CTRL_REG_GET_TIME_M;
-+	/* Copy RTC counting registers to static registers or latches */
-+	rtc_control = save_control | BIT_RTC_CTRL_REG_GET_TIME_M;
- 
--	ret = twl_rtc_write_u8(save_control, REG_RTC_CTRL_REG);
--	if (ret < 0)
-+	/* for twl6030/32 enable read access to static shadowed registers */
-+	if (twl_class_is_6030())
-+		rtc_control |= BIT_RTC_CTRL_REG_RTC_V_OPT;
-+
-+	ret = twl_rtc_write_u8(rtc_control, REG_RTC_CTRL_REG);
-+	if (ret < 0) {
-+		dev_err(dev, "%s: writing CTRL_REG, error %d\n", __func__, ret);
- 		return ret;
-+	}
- 
- 	ret = twl_i2c_read(TWL_MODULE_RTC, rtc_data,
- 			(rtc_reg_map[REG_SECONDS_REG]), ALL_TIME_REGS);
- 
- 	if (ret < 0) {
--		dev_err(dev, "rtc_read_time error %d\n", ret);
-+		dev_err(dev, "%s: reading data, error %d\n", __func__, ret);
- 		return ret;
- 	}
- 
-+	/* for twl6030 restore original state of rtc control register */
-+	if (twl_class_is_6030()) {
-+		ret = twl_rtc_write_u8(save_control, REG_RTC_CTRL_REG);
-+		if (ret < 0) {
-+			dev_err(dev, "%s: restore CTRL_REG, error %d\n",
-+				__func__, ret);
-+			return ret;
-+		}
-+	}
-+
- 	tm->tm_sec = bcd2bin(rtc_data[0]);
- 	tm->tm_min = bcd2bin(rtc_data[1]);
- 	tm->tm_hour = bcd2bin(rtc_data[2]);
-_
-
-Patches currently in -mm which might be from x0155534@ti.com are
-
-
+Thanks,
+Benoit
