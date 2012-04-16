@@ -1,98 +1,96 @@
 From: "Govindraj.R" <govindraj.raja@ti.com>
-Subject: [PATCH] tty: omap-serial: Keep the wakeup mechanism enabled by default
-Date: Mon, 16 Apr 2012 18:00:07 +0530
-Message-ID: <1334579407-16970-1-git-send-email-govindraj.raja@ti.com>
+Subject: [PATCH 2/2] ARM: OMAP2+: omap_hwmod: Add api to enable/disable module level wakeup events
+Date: Mon, 16 Apr 2012 18:10:53 +0530
+Message-ID: <1334580053-17242-3-git-send-email-govindraj.raja@ti.com>
+References: <1334580053-17242-1-git-send-email-govindraj.raja@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
-Return-path: <linux-serial-owner@vger.kernel.org>
-Sender: linux-serial-owner@vger.kernel.org
-To: linux-omap@vger.kernel.org
-Cc: linux-serial@vger.kernel.org, linux-arm-kernel@lists.infradead.org, "Govindraj.R" <govindraj.raja@ti.com>, Paul Walmsley <paul@pwsan.com>, Kevin Hilman <khilman@ti.com>
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from devils.ext.ti.com ([198.47.26.153]:38336 "EHLO
+	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753598Ab2DPMlG (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 16 Apr 2012 08:41:06 -0400
+In-Reply-To: <1334580053-17242-1-git-send-email-govindraj.raja@ti.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: linux-omap@vger.kernel.org
+Cc: linux-arm-kernel@lists.infradead.org, Kevin Hilman <khilman@ti.com>, Paul Walmsley <paul@pwsan.com>, "Govindraj.R" <govindraj.raja@ti.com>
 
 From: "Govindraj.R" <govindraj.raja@ti.com>
 
-The wakeups can be left enabled by default and should be disabled
-only when disabled from sysfs and while entering suspend.
+On 24xx/34xx/36xx Module level wakeup events are enabled/disabled using
+PM_WKEN1_CORE/PM_WKEN_PER regs.
 
-Thanks to Kevin Hilman <khilman@ti.com> for suggesting this.
-Discussion References:
-http://www.spinics.net/lists/linux-omap/msg67764.html
-http://www.spinics.net/lists/linux-omap/msg67838.html
+Add api to control the module level wakeup mechanism from info provided from
+hwmod data. If module level wakeups are available from hwmod data then they
+have to be enabled/disabled as per driver request.
+
+omap_hwmod_enable/disable_wakeup is used from serial.c which should
+act on those registers to enable or disable the module level wakeup
 
 Cc: Paul Walmsley <paul@pwsan.com>
 Cc: Kevin Hilman <khilman@ti.com>
 Signed-off-by: Govindraj.R <govindraj.raja@ti.com>
 ---
- drivers/tty/serial/omap-serial.c |   30 +++++++++++-------------------
- 1 files changed, 11 insertions(+), 19 deletions(-)
+ arch/arm/mach-omap2/omap_hwmod.c |   31 +++++++++++++++++++++++++++++++
+ 1 files changed, 31 insertions(+), 0 deletions(-)
 
-diff --git a/drivers/tty/serial/omap-serial.c b/drivers/tty/serial/omap-serial.c
-index d00b38e..4a92447 100644
---- a/drivers/tty/serial/omap-serial.c
-+++ b/drivers/tty/serial/omap-serial.c
-@@ -930,13 +930,6 @@ serial_omap_pm(struct uart_port *port, unsigned int state,
- 	serial_out(up, UART_EFR, efr);
- 	serial_out(up, UART_LCR, 0);
- 
--	if (!device_may_wakeup(&up->pdev->dev)) {
--		if (!state)
--			pm_runtime_forbid(&up->pdev->dev);
--		else
--			pm_runtime_allow(&up->pdev->dev);
--	}
--
- 	pm_runtime_put(&up->pdev->dev);
+diff --git a/arch/arm/mach-omap2/omap_hwmod.c b/arch/arm/mach-omap2/omap_hwmod.c
+index 2c27fdb..05576ae 100644
+--- a/arch/arm/mach-omap2/omap_hwmod.c
++++ b/arch/arm/mach-omap2/omap_hwmod.c
+@@ -382,6 +382,35 @@ static int _set_module_autoidle(struct omap_hwmod *oh, u8 autoidle,
  }
  
-@@ -1184,10 +1177,16 @@ static struct uart_driver serial_omap_reg = {
- static int serial_omap_suspend(struct device *dev)
- {
- 	struct uart_omap_port *up = dev_get_drvdata(dev);
-+	struct omap_uart_port_info *pdata = dev->platform_data;
- 
- 	if (up) {
- 		uart_suspend_port(&serial_omap_reg, &up->port);
- 		flush_work_sync(&up->qos_work);
+ /**
++ * _enable_module_level_wakeup - enable/disable module level wakeup on hwmod.
++ * @oh: struct omap_hwmod *
++ * @set_wake: bool value indicating to set (true) or clear (false) module level
++ *		wakeup enable
++ *
++ * Set or clear the  module level wakeup capability the
++ * hwmod @oh. This function configures th PM_WKEN reg bits if they
++ * are available from hwmod. No return value
++ */
++static void _enable_module_level_wakeup(struct omap_hwmod *oh, bool set_wake)
++{
++	u32 v;
 +
-+		if (!device_may_wakeup(dev)) {
-+			pdata->enable_wakeup(up->pdev, false);
-+			up->wakeups_enabled = false;
-+		}
++	if (oh->prcm.omap2.module_wakeup_offs &&
++			oh->prcm.omap2.module_wakeup_bit) {
++		v = omap2_prm_read_mod_reg(oh->prcm.omap2.module_offs,
++				oh->prcm.omap2.module_wakeup_offs);
++
++		if (set_wake)
++			v |= oh->prcm.omap2.module_wakeup_bit;
++		else
++			v &= ~oh->prcm.omap2.module_wakeup_bit;
++
++		omap2_prm_write_mod_reg(v, oh->prcm.omap2.module_offs,
++				oh->prcm.omap2.module_wakeup_offs);
++	}
++}
++
++/**
+  * _set_idle_ioring_wakeup - enable/disable IO pad wakeup on hwmod idle for mux
+  * @oh: struct omap_hwmod *
+  * @set_wake: bool value indicating to set (true) or clear (false) wakeup enable
+@@ -2471,6 +2500,7 @@ int omap_hwmod_enable_wakeup(struct omap_hwmod *oh)
+ 		_write_sysconfig(v, oh);
  	}
  
- 	return 0;
-@@ -1582,18 +1581,6 @@ static int serial_omap_runtime_suspend(struct device *dev)
- 	if (pdata->get_context_loss_count)
- 		up->context_loss_cnt = pdata->get_context_loss_count(dev);
++	_enable_module_level_wakeup(oh, true);
+ 	_set_idle_ioring_wakeup(oh, true);
+ 	spin_unlock_irqrestore(&oh->_lock, flags);
  
--	if (device_may_wakeup(dev)) {
--		if (!up->wakeups_enabled) {
--			pdata->enable_wakeup(up->pdev, true);
--			up->wakeups_enabled = true;
--		}
--	} else {
--		if (up->wakeups_enabled) {
--			pdata->enable_wakeup(up->pdev, false);
--			up->wakeups_enabled = false;
--		}
--	}
--
- 	/* Errata i291 */
- 	if (up->use_dma && pdata->set_forceidle &&
- 			(up->errata & UART_ERRATA_i291_DMA_FORCEIDLE))
-@@ -1618,6 +1605,11 @@ static int serial_omap_runtime_resume(struct device *dev)
- 				serial_omap_restore_context(up);
- 		}
+@@ -2504,6 +2534,7 @@ int omap_hwmod_disable_wakeup(struct omap_hwmod *oh)
+ 		_write_sysconfig(v, oh);
+ 	}
  
-+		if (!up->wakeups_enabled) {
-+			pdata->enable_wakeup(up->pdev, true);
-+			up->wakeups_enabled = true;
-+		}
-+
- 		/* Errata i291 */
- 		if (up->use_dma && pdata->set_noidle &&
- 				(up->errata & UART_ERRATA_i291_DMA_FORCEIDLE))
++	_enable_module_level_wakeup(oh, false);
+ 	_set_idle_ioring_wakeup(oh, false);
+ 	spin_unlock_irqrestore(&oh->_lock, flags);
+ 
 -- 
 1.7.9
 
