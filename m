@@ -1,42 +1,55 @@
-From: "Govindraj.R" <govindraj.raja@ti.com>
-Subject: [PATCH 0/2] ARM: omap_hwmod: add api to enable/disable module level wakeup
-Date: Mon, 16 Apr 2012 18:10:51 +0530
-Message-ID: <1334580053-17242-1-git-send-email-govindraj.raja@ti.com>
+From: Samuel Ortiz <sameo@linux.intel.com>
+Subject: Re: [PATCH for 3.4] MFD: twl6040: Convert to i2c driver, and
+ separate it from twl core
+Date: Mon, 16 Apr 2012 16:46:23 +0200
+Message-ID: <20120416144623.GD24130@sortiz-mobl>
+References: <1333443411-23056-1-git-send-email-peter.ujfalusi@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from devils.ext.ti.com ([198.47.26.153]:38337 "EHLO
-	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753610Ab2DPMlG (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 16 Apr 2012 08:41:06 -0400
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <1333443411-23056-1-git-send-email-peter.ujfalusi@ti.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Peter Ujfalusi <peter.ujfalusi@ti.com>
+Cc: Tony Lindgren <tony@atomide.com>, Liam Girdwood <lrg@ti.com>, Mark Brown <broonie@opensource.wolfsonmicro.com>, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, alsa-devel@alsa-project.org, linux-arm-kernel@lists.infradead.org
 List-Id: linux-omap@vger.kernel.org
-To: linux-omap@vger.kernel.org
-Cc: linux-arm-kernel@lists.infradead.org, Kevin Hilman <khilman@ti.com>, Paul Walmsley <paul@pwsan.com>, "Govindraj.R" <govindraj.raja@ti.com>
 
-From: "Govindraj.R" <govindraj.raja@ti.com>
+Hi Peter,
 
-On omap2/3 module level wakeup is handled using PM_WKEN registers.
-Expand the hwmod framework to handle the module level wakeup enable 
-registers.
+On Tue, Apr 03, 2012 at 11:56:51AM +0300, Peter Ujfalusi wrote:
+> Complete the separation of the twl6040 from the twl core since
+> it is a separate chip, not part of the twl6030 PMIC.
+> 
+> Make the needed Kconfig changes for the depending drivers at the same time to
+> avoid breaking the kernel build (vibra, ASoC components).
+> 
+> Signed-off-by: Peter Ujfalusi <peter.ujfalusi@ti.com>
+> Reviewed-by: Mark Brown <broonie@opensource.wolfsonicro.com>
+> Acked-by: Tony Lindgren <tony@atomide.com>
+> Acked-by: Samuel Ortiz <sameo@linux.intel.com>
+> Acked-by: Dmitry Torokhov <dtor@mail.ru>
+> ---
+> 
+> Hi Samuel, Tony, Liam,
+> 
+> Due to some cross tree issues 3.4-rc1 have big regression in OMAP4 audio:
+> The twl6040 mfd driver (and codec, vibra) is no longer probe since the twl-core
+> now did not create the platform device for it. This means we do not have audio
+> working in rc1.
+> This patch meant to follow the twl-core change (to not probe the twll6040 as
+> platform device), but there were some glitch in the logistics so this patch is
+> not in 3.4-rc1.
+> 
+> I have forward ported it on top of 3.4-rc1, and you can also find the patch in:
+> git@gitorious.org:omap-audio/linux-audio.git peter/upstream/for-3.4-rc2
+> 
+> Can someone take this patch further to be included in 3.4-rc2?
+Applied to my for-linus branch. I'll send a pull request this week, so I
+expect it to make it to rc4.
 
-Tested on Beagle-xm by enabling and disabling uart wakeups from sysfs
-Series depends on following patch for testing.
-http://marc.info/?l=linux-omap&m=133457952909998&w=2
-
-Govindraj.R (2):
-  ARM: OMAP2+: omap_hwmod: Add interface to incorporate module level
-    wakeup
-  ARM: OMAP2+: omap_hwmod: Add api to enable/disable module level
-    wakeup events
-
- arch/arm/mach-omap2/omap_hwmod.c             |   31 ++++++++++++++++++++++++++
- arch/arm/mach-omap2/omap_hwmod_2420_data.c   |    6 +++++
- arch/arm/mach-omap2/omap_hwmod_2430_data.c   |    6 +++++
- arch/arm/mach-omap2/omap_hwmod_3xxx_data.c   |    8 ++++++
- arch/arm/plat-omap/include/plat/omap_hwmod.h |    4 +++
- 5 files changed, 55 insertions(+), 0 deletions(-)
+Cheers,
+Samuel.
 
 -- 
-1.7.9
-
+Intel Open Source Technology Centre
+http://oss.intel.com/
