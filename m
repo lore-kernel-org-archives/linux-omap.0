@@ -1,117 +1,133 @@
-From: "Hiremath, Vaibhav" <hvaibhav@ti.com>
-Subject: RE: [PATCH 0/3] ARM: OMAP2+: dmtimer: cleanup related to devm API
- and clk usage
-Date: Mon, 16 Apr 2012 19:53:27 +0000
-Message-ID: <79CD15C6BA57404B839C016229A409A83E9EEE72@DBDE01.ent.ti.com>
-References: <1334579125-15566-1-git-send-email-tarun.kanti@ti.com>
-	<79CD15C6BA57404B839C016229A409A83E9EE723@DBDE01.ent.ti.com>
- <CAC83Zv+pe6b71whtOJRaZYX=S5aMxSo4YBv0EqR2KJh5zK8uUA@mail.gmail.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+From: akpm@linux-foundation.org
+Subject: [merged] drivers-rtc-rtc-twlc-use-static-register-while-reading-time.patch removed from -mm tree
+Date: Mon, 16 Apr 2012 13:15:36 -0700
+Message-ID: <20120416201536.A7AF6A0308@akpm.mtv.corp.google.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from arroyo.ext.ti.com ([192.94.94.40]:37192 "EHLO arroyo.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754328Ab2DPTxe convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 16 Apr 2012 15:53:34 -0400
-In-Reply-To: <CAC83Zv+pe6b71whtOJRaZYX=S5aMxSo4YBv0EqR2KJh5zK8uUA@mail.gmail.com>
-Content-Language: en-US
+Received: from mail-qa0-f74.google.com ([209.85.216.74]:45990 "EHLO
+	mail-qa0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754760Ab2DPUPh (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 16 Apr 2012 16:15:37 -0400
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "DebBarma, Tarun Kanti" <tarun.kanti@ti.com>
-Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "tony@atomide.com" <tony@atomide.com>, "Hilman, Kevin" <khilman@ti.com>, "paul@pwsan.com" <paul@pwsan.com>, "Cousson, Benoit" <b-cousson@ti.com>, "Shilimkar, Santosh" <santosh.shilimkar@ti.com>, "Nayak, Rajendra" <rnayak@ti.com>
-
-On Tue, Apr 17, 2012 at 01:20:49, DebBarma, Tarun Kanti wrote:
-> On Mon, Apr 16, 2012 at 8:23 PM, Hiremath, Vaibhav <hvaibhav@ti.com> =
-wrote:
-> > On Mon, Apr 16, 2012 at 17:55:22, DebBarma, Tarun Kanti wrote:
-> >> The devm API usage in probe() simplifies error handling operation.
-> >> Since iclk is not used in the driver it is removed from wherever
-> >> not needed. The fclk naming is made uniform as per OMAP4 platform,
-> >> viz. "timer1_fck", "timer2_fck", ... in all relevant places which
-> >> include hwmod database. With this change there is no more need to
-> >> construct clock names using sprintf() to be used in clk_get()
-> >> during initialization. Instead we can use oh->main_clk directly.
-> >>
-> > Correct me if I am wrong here, I believe there is no relation betwe=
-en
-> > naming of clock and sprintf; with the existing code you can still u=
-se
-> > oh>main_clk, isn't it?
-> Right. The only thing is we don't that anymore.
->=20
-> >
-> > Below code alone should work right, so that driver code is becomes
-> > independent of clock name.
-> >
-> > - =A0 =A0 =A0 sprintf(name, "gpt%d_fck", gptimer_id);
-> > - =A0 =A0 =A0 timer->fclk =3D clk_get(NULL, name);
-> > + =A0 =A0 =A0 timer->fclk =3D clk_get(NULL, oh->main_clk);
-> Yes. Of course, Paul has given alternate suggestion to using oh->main=
-_clk.
-
-Yeah, I just saw it. I agree that, that's better option.
-
-Thanks,
-Vaibhav
+To: x0155534@ti.com, a.zummo@towertech.it, b-cousson@ti.com, gg@slimlogic.co.uk, linux-omap@vger.kernel.org, nm@ti.com, oleksandr.dmytryshyn@ti.com, x0174904@ti.com, mm-commits@vger.kernel.org
 
 
-> --
-> Tarun
-> >
-> >
-> > Thanks,
-> > Vaibhav
-> >
-> >> Reference:
-> >> git://git.kernel.org/pub/scm/linux/kernel/git/torvalds/linux-2.6.g=
-it
-> >> Commit: e816b57a337ea3b755de72bec38c10c864f23015 (Linux 3.4-rc3)
-> >>
-> >> Series is available here for reference:
-> >> git://gitorious.org/~tarunkanti/omap-sw-develoment/tarunkantis-lin=
-ux-omap-dev dmtimer_cleanup_for_3.5
-> >>
-> >> Tested on following platforms:
-> >> OMAP4430SDP, OMAP3430SDP, OMAP2430SDP.
-> >> Could not test on OMAP2420 due to unavailability of board.
-> >>
-> >> Tarun Kanti DebBarma (3):
-> >> =A0 ARM: OMAP: dmtimer: Use devm_ API and do some cleanup in probe=
-()
-> >> =A0 ARM: OMAP2+: dmtimer: cleanup iclk usage
-> >> =A0 ARM: OMAP2+: dmtimer: cleanup fclk usage
-> >>
-> >> =A0arch/arm/mach-omap2/clock2420_data.c =A0 =A0 =A0 | =A0 72 +++++=
-+++++++++--------------
-> >> =A0arch/arm/mach-omap2/clock2430_data.c =A0 =A0 =A0 | =A0 72 +++++=
-+++++++++--------------
-> >> =A0arch/arm/mach-omap2/clock3xxx_data.c =A0 =A0 =A0 | =A0 72 +++++=
-+++++++++--------------
-> >> =A0arch/arm/mach-omap2/clock44xx_data.c =A0 =A0 =A0 | =A0 33 ++++-=
--------
-> >> =A0arch/arm/mach-omap2/omap_hwmod_2420_data.c | =A0 24 +++++-----
-> >> =A0arch/arm/mach-omap2/omap_hwmod_2430_data.c | =A0 24 +++++-----
-> >> =A0arch/arm/mach-omap2/omap_hwmod_3xxx_data.c | =A0 24 +++++-----
-> >> =A0arch/arm/mach-omap2/timer.c =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0| =A0=
- 10 +----
-> >> =A0arch/arm/plat-omap/dmtimer.c =A0 =A0 =A0 =A0 =A0 =A0 =A0 | =A0 =
-51 +++++++------------
-> >> =A0arch/arm/plat-omap/include/plat/dmtimer.h =A0| =A0 =A02 +-
-> >> =A010 files changed, 176 insertions(+), 208 deletions(-)
-> >>
-> >> --
-> >> To unsubscribe from this list: send the line "unsubscribe linux-om=
-ap" in
-> >> the body of a message to majordomo@vger.kernel.org
-> >> More majordomo info at =A0http://vger.kernel.org/majordomo-info.ht=
-ml
-> >>
-> >
->=20
+The patch titled
+     Subject: drivers/rtc/rtc-twl.c: use static register while reading time
+has been removed from the -mm tree.  Its filename was
+     drivers-rtc-rtc-twlc-use-static-register-while-reading-time.patch
 
---
-To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+This patch was dropped because it was merged into mainline or a subsystem tree
+
+The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
+
+------------------------------------------------------
+From: Konstantin Shlyakhovoy <x0155534@ti.com>
+Subject: drivers/rtc/rtc-twl.c: use static register while reading time
+
+RTC stores time and date in several registers.  Due to the fact that these
+registers can't be read instantaneously, there is a chance that reading
+from counting registers gives an error of one minute, one hour, one day,
+etc.
+
+To address this issue, the RTC has hardware support to copy the RTC
+counting registers to static shadowed registers.  The current
+implementation does not use this feature, and in a stress test, we can
+reproduce this error at a rate of around two times per 300000 readings.
+
+Fix the implementation to ensure that the right snapshot of time is
+captured.
+
+Signed-off-by: Konstantin Shlyakhovoy <x0155534@ti.com>
+Signed-off-by: Nishanth Menon <nm@ti.com>
+Cc: Alessandro Zummo <a.zummo@towertech.it>
+Cc: Benoit Cousson <b-cousson@ti.com>
+Cc: linux-omap <linux-omap@vger.kernel.org>
+Acked-by: Mykola Oleksiienko <x0174904@ti.com>
+Acked-by: Oleksandr Dmytryshyn <oleksandr.dmytryshyn@ti.com>
+Acked-by: Graeme Gregory <gg@slimlogic.co.uk>
+Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
+---
+
+ drivers/rtc/rtc-twl.c |   43 +++++++++++++++++++++++++++++++++++-----
+ 1 file changed, 38 insertions(+), 5 deletions(-)
+
+diff -puN drivers/rtc/rtc-twl.c~drivers-rtc-rtc-twlc-use-static-register-while-reading-time drivers/rtc/rtc-twl.c
+--- a/drivers/rtc/rtc-twl.c~drivers-rtc-rtc-twlc-use-static-register-while-reading-time
++++ a/drivers/rtc/rtc-twl.c
+@@ -112,6 +112,7 @@ static const u8 twl6030_rtc_reg_map[] = 
+ #define BIT_RTC_CTRL_REG_TEST_MODE_M             0x10
+ #define BIT_RTC_CTRL_REG_SET_32_COUNTER_M        0x20
+ #define BIT_RTC_CTRL_REG_GET_TIME_M              0x40
++#define BIT_RTC_CTRL_REG_RTC_V_OPT               0x80
+ 
+ /* RTC_STATUS_REG bitfields */
+ #define BIT_RTC_STATUS_REG_RUN_M                 0x02
+@@ -235,25 +236,57 @@ static int twl_rtc_read_time(struct devi
+ 	unsigned char rtc_data[ALL_TIME_REGS + 1];
+ 	int ret;
+ 	u8 save_control;
++	u8 rtc_control;
+ 
+ 	ret = twl_rtc_read_u8(&save_control, REG_RTC_CTRL_REG);
+-	if (ret < 0)
++	if (ret < 0) {
++		dev_err(dev, "%s: reading CTRL_REG, error %d\n", __func__, ret);
+ 		return ret;
++	}
++	/* for twl6030/32 make sure BIT_RTC_CTRL_REG_GET_TIME_M is clear */
++	if (twl_class_is_6030()) {
++		if (save_control & BIT_RTC_CTRL_REG_GET_TIME_M) {
++			save_control &= ~BIT_RTC_CTRL_REG_GET_TIME_M;
++			ret = twl_rtc_write_u8(save_control, REG_RTC_CTRL_REG);
++			if (ret < 0) {
++				dev_err(dev, "%s clr GET_TIME, error %d\n",
++					__func__, ret);
++				return ret;
++			}
++		}
++	}
+ 
+-	save_control |= BIT_RTC_CTRL_REG_GET_TIME_M;
++	/* Copy RTC counting registers to static registers or latches */
++	rtc_control = save_control | BIT_RTC_CTRL_REG_GET_TIME_M;
+ 
+-	ret = twl_rtc_write_u8(save_control, REG_RTC_CTRL_REG);
+-	if (ret < 0)
++	/* for twl6030/32 enable read access to static shadowed registers */
++	if (twl_class_is_6030())
++		rtc_control |= BIT_RTC_CTRL_REG_RTC_V_OPT;
++
++	ret = twl_rtc_write_u8(rtc_control, REG_RTC_CTRL_REG);
++	if (ret < 0) {
++		dev_err(dev, "%s: writing CTRL_REG, error %d\n", __func__, ret);
+ 		return ret;
++	}
+ 
+ 	ret = twl_i2c_read(TWL_MODULE_RTC, rtc_data,
+ 			(rtc_reg_map[REG_SECONDS_REG]), ALL_TIME_REGS);
+ 
+ 	if (ret < 0) {
+-		dev_err(dev, "rtc_read_time error %d\n", ret);
++		dev_err(dev, "%s: reading data, error %d\n", __func__, ret);
+ 		return ret;
+ 	}
+ 
++	/* for twl6030 restore original state of rtc control register */
++	if (twl_class_is_6030()) {
++		ret = twl_rtc_write_u8(save_control, REG_RTC_CTRL_REG);
++		if (ret < 0) {
++			dev_err(dev, "%s: restore CTRL_REG, error %d\n",
++				__func__, ret);
++			return ret;
++		}
++	}
++
+ 	tm->tm_sec = bcd2bin(rtc_data[0]);
+ 	tm->tm_min = bcd2bin(rtc_data[1]);
+ 	tm->tm_hour = bcd2bin(rtc_data[2]);
+_
+
+Patches currently in -mm which might be from x0155534@ti.com are
+
+
