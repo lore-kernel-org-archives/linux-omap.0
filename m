@@ -1,40 +1,79 @@
-From: Shubhrajyoti <shubhrajyoti@ti.com>
-Subject: Re: [PATCH 1/3] ARM: OMAP: dmtimer: Use devm_ API and do some cleanup
- in probe()
-Date: Mon, 16 Apr 2012 20:32:07 +0530
-Message-ID: <4F8C346F.9020200@ti.com>
-References: <1334579125-15566-1-git-send-email-tarun.kanti@ti.com> <1334579125-15566-2-git-send-email-tarun.kanti@ti.com>
+From: "Hiremath, Vaibhav" <hvaibhav@ti.com>
+Subject: RE: [PATCH 2/3] ARM: OMAP2+: dmtimer: cleanup iclk usage
+Date: Mon, 16 Apr 2012 15:03:54 +0000
+Message-ID: <79CD15C6BA57404B839C016229A409A83E9EE79A@DBDE01.ent.ti.com>
+References: <1334579125-15566-1-git-send-email-tarun.kanti@ti.com>
+ <1334579125-15566-3-git-send-email-tarun.kanti@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aog110.obsmtp.com ([74.125.149.203]:56449 "EHLO
-	na3sys009aog110.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754214Ab2DPPCS (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>);
-	Mon, 16 Apr 2012 11:02:18 -0400
-Received: by obbef5 with SMTP id ef5so7364641obb.10
-        for <linux-omap@vger.kernel.org>; Mon, 16 Apr 2012 08:02:17 -0700 (PDT)
-In-Reply-To: <1334579125-15566-2-git-send-email-tarun.kanti@ti.com>
+Received: from devils.ext.ti.com ([198.47.26.153]:48140 "EHLO
+	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753671Ab2DPPEB convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 16 Apr 2012 11:04:01 -0400
+In-Reply-To: <1334579125-15566-3-git-send-email-tarun.kanti@ti.com>
+Content-Language: en-US
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Tarun Kanti DebBarma <tarun.kanti@ti.com>
-Cc: linux-omap@vger.kernel.org, tony@atomide.com, khilman@ti.com, paul@pwsan.com, b-cousson@ti.com, santosh.shilimkar@ti.com, rnayak@ti.com
+To: "DebBarma, Tarun Kanti" <tarun.kanti@ti.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
+Cc: "tony@atomide.com" <tony@atomide.com>, "Hilman, Kevin" <khilman@ti.com>, "paul@pwsan.com" <paul@pwsan.com>, "Cousson, Benoit" <b-cousson@ti.com>, "Shilimkar, Santosh" <santosh.shilimkar@ti.com>, "Nayak, Rajendra" <rnayak@ti.com>
 
-On Monday 16 April 2012 05:55 PM, Tarun Kanti DebBarma wrote:
-> Replace the regular kzalloc and ioremap with the devm_ equivalent
-> to simplify error handling. We don't need kree() anymore in
-> omap_dm_timer_remove().
->
-> Also added *dev* pointer to reference pdev->dev which makes the
-> usage shorter in code.
->
+On Mon, Apr 16, 2012 at 17:55:24, DebBarma, Tarun Kanti wrote:
+> We do not use iclk anywhere in the dmtimer driver and so removing it.
+> Hence removing the timer iclk entries from OMAP4 clkdev table as well.
+> 
 > Signed-off-by: Tarun Kanti DebBarma <tarun.kanti@ti.com>
 > ---
->
-<snip>
-> -	timer->io_base = ioremap(mem->start, resource_size(mem));
-> +	timer->io_base = devm_ioremap(dev, mem->start, resource_size(mem));
->  	if (!timer->io_base) {
-Could we use  devm_request_and_ioremap here?
+>  arch/arm/mach-omap2/clock44xx_data.c      |   11 -----------
+>  arch/arm/mach-omap2/timer.c               |    7 -------
+>  arch/arm/plat-omap/include/plat/dmtimer.h |    2 +-
+>  3 files changed, 1 insertions(+), 19 deletions(-)
+> 
+> diff --git a/arch/arm/mach-omap2/clock44xx_data.c b/arch/arm/mach-omap2/clock44xx_data.c
+> index fa6ea65..2172f66 100644
+> --- a/arch/arm/mach-omap2/clock44xx_data.c
+> +++ b/arch/arm/mach-omap2/clock44xx_data.c
+> @@ -3355,17 +3355,6 @@ static struct omap_clk omap44xx_clks[] = {
+>  	CLK(NULL,	"auxclk5_ck",			&auxclk5_ck,	CK_443X),
+>  	CLK(NULL,	"auxclkreq5_ck",		&auxclkreq5_ck,	CK_443X),
+>  	CLK(NULL,	"gpmc_ck",			&dummy_ck,	CK_443X),
+> -	CLK(NULL,	"gpt1_ick",			&dummy_ck,	CK_443X),
+> -	CLK(NULL,	"gpt2_ick",			&dummy_ck,	CK_443X),
+> -	CLK(NULL,	"gpt3_ick",			&dummy_ck,	CK_443X),
+> -	CLK(NULL,	"gpt4_ick",			&dummy_ck,	CK_443X),
+> -	CLK(NULL,	"gpt5_ick",			&dummy_ck,	CK_443X),
+> -	CLK(NULL,	"gpt6_ick",			&dummy_ck,	CK_443X),
+> -	CLK(NULL,	"gpt7_ick",			&dummy_ck,	CK_443X),
+> -	CLK(NULL,	"gpt8_ick",			&dummy_ck,	CK_443X),
+> -	CLK(NULL,	"gpt9_ick",			&dummy_ck,	CK_443X),
+> -	CLK(NULL,	"gpt10_ick",			&dummy_ck,	CK_443X),
+> -	CLK(NULL,	"gpt11_ick",			&dummy_ck,	CK_443X),
+>  	CLK("omap_i2c.1",	"ick",				&dummy_ck,	CK_443X),
+>  	CLK("omap_i2c.2",	"ick",				&dummy_ck,	CK_443X),
+>  	CLK("omap_i2c.3",	"ick",				&dummy_ck,	CK_443X),
+> diff --git a/arch/arm/mach-omap2/timer.c b/arch/arm/mach-omap2/timer.c
+> index c512bac..5d7a0ee 100644
+> --- a/arch/arm/mach-omap2/timer.c
+> +++ b/arch/arm/mach-omap2/timer.c
+> @@ -169,13 +169,6 @@ static int __init omap_dm_timer_init_one(struct omap_dm_timer *timer,
+>  	if (IS_ERR(timer->fclk))
+>  		return -ENODEV;
+>  
+> -	sprintf(name, "gpt%d_ick", gptimer_id);
+> -	timer->iclk = clk_get(NULL, name);
+> -	if (IS_ERR(timer->iclk)) {
+> -		clk_put(timer->fclk);
+> -		return -ENODEV;
+> -	}
+> -
+
+Doesn't this impact OMAP3x family?
+The interface clocks will be enabled in omap_hwmod_enable(), 
+only if you set OCPIF_SWSUP_IDLE flag.
+
+Thanks,
+Vaibhav
+
+>  	omap_hwmod_enable(oh);
 
