@@ -1,229 +1,172 @@
-From: Ivan Djelic <ivan.djelic@parrot.com>
-Subject: [PATCH] ARM: OMAP3: gpmc: add BCH ecc api and modes
-Date: Tue, 17 Apr 2012 10:48:56 +0200
-Message-ID: <1334652536-4442-1-git-send-email-ivan.djelic@parrot.com>
+From: "Shilimkar, Santosh" <santosh.shilimkar@ti.com>
+Subject: Re: [PATCH 0/3] OMAP4: CPUidle: Add coupled idle support
+Date: Tue, 17 Apr 2012 15:53:05 +0530
+Message-ID: <CAMQu2gxusZFn2ifOTqvC6WG+TzW0FhBw8bhJkfXcBPPyUib5Ww@mail.gmail.com>
+References: <1333114048-26136-1-git-send-email-santosh.shilimkar@ti.com>
+ <87obr9s8wk.fsf@ti.com> <4F7B11EE.6030904@ti.com> <4F8287BA.2090602@ti.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-wi0-f178.google.com ([209.85.212.178]:61484 "EHLO
-	mail-wi0-f178.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755593Ab2DQIty (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 17 Apr 2012 04:49:54 -0400
-Received: by wibhq7 with SMTP id hq7so393894wib.1
-        for <linux-omap@vger.kernel.org>; Tue, 17 Apr 2012 01:49:52 -0700 (PDT)
+Received: from na3sys009aog125.obsmtp.com ([74.125.149.153]:53505 "EHLO
+	na3sys009aog125.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1751775Ab2DQKX1 convert rfc822-to-8bit
+	(ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Tue, 17 Apr 2012 06:23:27 -0400
+Received: by qam2 with SMTP id 2so288237qam.14
+        for <linux-omap@vger.kernel.org>; Tue, 17 Apr 2012 03:23:26 -0700 (PDT)
+In-Reply-To: <4F8287BA.2090602@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: linux-omap@vger.kernel.org
-Cc: ivan.djelic@parrot.com, linux-mtd@lists.infradead.org
+To: Kevin Hilman <khilman@ti.com>
+Cc: linux-omap@vger.kernel.org, ccross@android.com, linux-arm-kernel@lists.infradead.org
 
-This patch adds a simple BCH ecc computation api, similar to the
-existing Hamming ecc api. It is intended to be used by the MTD layer.
-It implements the following features:
+On Mon, Apr 9, 2012 at 12:24 PM, Santosh Shilimkar
+<santosh.shilimkar@ti.com> wrote:
+> On Tuesday 03 April 2012 08:36 PM, Santosh Shilimkar wrote:
+>> On Tuesday 03 April 2012 10:34 AM, Kevin Hilman wrote:
+>>> Hi Santosh,
+>>>
+>>> Santosh Shilimkar <santosh.shilimkar@ti.com> writes:
+>>>
+>>>> The series adds the coupled cpuidle support for OMAP4 based on the=
+ v2
+>>>> series posted [1]. This makes OMAP4 to support SMP cpuidle and als=
+o
+>>>> removes the hard dependency of off-lining CPU1 to trigger deeper
+>>>> C-states.
+>>>>
+>>>> I have put together a branch which is based on 3.3 kernel with
+>>>> Len Browns next branch [2] which has time keeping and other cpuidl=
+e
+>>>> patches which will mostly get merged by 3.4-rc1 and rebased couple=
+d
+>>>> idle series from [1].
+>>>
+>>> Thanks for rebasing this.
+>>>
+>>>> git://gitorious.org/omap-sw-develoment/linux-omap-dev.git
+>>>> for_3.5/omap4_coupled_cpuidle-rebase
+>>>
+>>> This branch by itself seems to work fine. =A0However, when combinin=
+g with
+>>> other stuff that has merged for v3.4, it hangs during boot. =A0I ha=
+ven't
+>>> yet isolated the problem, but it's easy to reproduce by combining y=
+our
+>>> branch with v3.4-rc1:
+>>>
+>>> =A0 git checkout -b test/coupled-v3.4 v3.4-rc1
+>>> =A0 git merge -s recursive -X ours santosh/for_3.5/omap4_coupled_cp=
+uidle-rebase [1]
+>>>
+>>> This hangs on boot, and it seems like a coupled state deadlock beca=
+use
+>>> commenting out the coupled states in the C-state creation of
+>>> cpuidle44xx.c makes it boot just fine.
+>>>
+>> I managed to reproduce the issue. Just to ensure that any OMAP chang=
+es
+>> have not introduced the regression I merged all Tony's pull request =
+on
+>> my branch and tried it out. OMAP changes are fine and coupled idle
+>> continue to work.
+>>
+>> Started bisecting the commits. For bisect I have to create a series
+>> which is not dependent on Len's cpuidle updates. First round of bise=
+ct
+>> was not successful so tried one more time. Was very close to narrowi=
+ng
+>> down on commit but then encountered set of commits where either CPUI=
+DLE
+>> itself is broken(deeper C-states are not getting attempted) or I get
+>> softIRQ 08 pending error.
+>>
+>> The last bad commit in bisect was ...
+>> [8682df25ca9afd3aac30f2c72d00bd98de2118e8] Merge branch
+>> 'fortglx/3.4/rtc' of git://git.linaro.org/people/jstultz/linux into
+>> timers/core
+>>
+>> So far looks like, one of below series has introduced a race which i=
+s
+>> getting highlighted with coupled cpuidle patchset.
+>>
+>> 9b612fa Merge branch 'fortglx/3.4/clocksource' of
+>> git://git.linaro.org/people/jstultz/linux into timers/core
+>> 8682df2 Merge branch 'fortglx/3.4/rtc' of
+>> git://git.linaro.org/people/jstultz/linux into timers/core
+>> 97ac984 Merge branch 'fortglx/3.4/time' of
+>> git://git.linaro.org/people/jstultz/linux into timers/core
+>>
+> Finally managed to crack down the issue.
+> The broad-cast clock-event was remaining in shut-down mode and
+> hence we were loosing the OS tick after entering to low power
+> states. The cases where it use to work was mainly because of
+> external interrupts like NFS etc.
+>
+> Have posted a patch [1] on LKML which fixes the issue. Waiting
+> for feedback from Thomas on it.
+>
+Based on the discussion on patch [1], I ended up creating another
+patch(end of the email) for OMAP4 idle driver. Git tree is
+updated accordingly and available here [2]
 
-- support 4-bit and 8-bit ecc computation
-- do not protect user bytes in spare area, only data area is protected
-- ecc for an erased NAND page (0xFFs) is also a sequence of 0xFFs
+Regards,
+Santosh
 
-This last feature is obtained by adding a constant polynomial to
-the hardware computed ecc. It allows to correct bitflips in blank pages
-and is extremely useful to support filesystems such as UBIFS, which expect
-erased pages to contain only 0xFFs.
+[1] https://lkml.org/lkml/2012/4/9/13
 
-This api has been tested on an OMAP3630 board.
+[2] git://gitorious.org/omap-sw-develoment/linux-omap-dev.git
+ for_3.5/coupled_cpuidle-rebase
 
-Signed-off-by: Ivan Djelic <ivan.djelic@parrot.com>
+=46rom d36a31b21e3d839ff0ae440186874bfeb6e7edc1 Mon Sep 17 00:00:00 200=
+1
+=46rom: Santosh Shilimkar <santosh.shilimkar@ti.com>
+Date: Tue, 17 Apr 2012 15:09:20 +0530
+Subject: [PATCH] ARM: OMAP4: CPUidle: Open broadcast clock-event device=
+=2E
+
+OMAP4 idle driver uses CLOCK_EVT_NOTIFY_BROADCAST_[ENTER/EXIT]
+for broadcast clock events. But _ENTER/_EXIT doesn't really open
+broadcast clock events and to explicitly setup the broadcast device,
+CLOCK_EVT_NOTIFY_BROADCAST_ON should be used.
+
+So far the broadcast device was opened up by generic code and hence
+OMAP4 idle was working without explicit CLOCK_EVT_NOTIFY_BROADCAST_ON.
+=46rom commit 77b0d60 {clockevents: Leave the broadcast device in shutd=
+own
+mode}, the default setup is skipped so driver needs to open up the
+broadcast device.
+
+Without this patch, boot might hang since CPU enters deeper idle state =
+in
+which local timer stalls and broad cast timer is not armed.
+
+Discussion thread :
+	https://lkml.org/lkml/2012/4/9/13
+
+Signed-off-by: Santosh Shilimkar <santosh.shilimkar@ti.com>
 ---
- arch/arm/mach-omap2/gpmc.c             |  148 ++++++++++++++++++++++++++++++++
- arch/arm/plat-omap/include/plat/gpmc.h |   10 +++
- 2 files changed, 158 insertions(+)
+ arch/arm/mach-omap2/cpuidle44xx.c |    1 +
+ 1 files changed, 1 insertions(+), 0 deletions(-)
 
-diff --git a/arch/arm/mach-omap2/gpmc.c b/arch/arm/mach-omap2/gpmc.c
-index 00d5108..dc9a9a4 100644
---- a/arch/arm/mach-omap2/gpmc.c
-+++ b/arch/arm/mach-omap2/gpmc.c
-@@ -49,6 +49,7 @@
- #define GPMC_ECC_CONTROL	0x1f8
- #define GPMC_ECC_SIZE_CONFIG	0x1fc
- #define GPMC_ECC1_RESULT        0x200
-+#define GPMC_ECC_BCH_RESULT_0   0x240
- 
- #define GPMC_CS0_OFFSET		0x60
- #define GPMC_CS_SIZE		0x30
-@@ -920,3 +921,150 @@ int gpmc_calculate_ecc(int cs, const u_char *dat, u_char *ecc_code)
- 	return 0;
- }
- EXPORT_SYMBOL_GPL(gpmc_calculate_ecc);
-+
-+#ifdef CONFIG_ARCH_OMAP3
-+
-+/**
-+ * gpmc_enable_hwecc_bch - enable hardware BCH ecc functionality
-+ * @cs: chip select number
-+ * @mode: read/write mode
-+ * @dev_width: device bus width(1 for x16, 0 for x8)
-+ * @nsectors: how many 512-byte sectors to process
-+ * @nerrors: how many errors to correct per sector (4 or 8)
-+ */
-+int gpmc_enable_hwecc_bch(int cs, int mode, int dev_width, int nsectors,
-+			  int nerrors)
-+{
-+	unsigned int val;
-+
-+	/* check if ecc module is in use */
-+	if (gpmc_ecc_used != -EINVAL)
-+		return -EINVAL;
-+
-+	/*
-+	 * FIXME: some OMAP3 revisions have a hardware bug which prevents
-+	 * the 4-bit BCH mode to work properly. Such revisions should be
-+	 * detected and rejected here.
-+	 */
-+
-+	gpmc_ecc_used = cs;
-+
-+	/* clear ecc and enable bits */
-+	gpmc_write_reg(GPMC_ECC_CONTROL, 0x101);
-+
-+	/*
-+	 * When using BCH, sector size is hardcoded to 512 bytes.
-+	 * Here we are using wrapping mode 6 both for reading and writing, with:
-+	 *  size0 = 0  (no additional protected byte in spare area)
-+	 *  size1 = 32 (skip 32 nibbles = 16 bytes per sector in spare area)
-+	 */
-+	gpmc_write_reg(GPMC_ECC_SIZE_CONFIG, (32 << 22) | (0 << 12));
-+
-+	/* BCH configuration */
-+	val = ((1                        << 16) | /* enable BCH */
-+	       (((nerrors == 8) ? 1 : 0) << 12) | /* 8 or 4 bits */
-+	       (0x06                     <<  8) | /* wrap mode = 6 */
-+	       (dev_width                <<  7) | /* bus width */
-+	       (((nsectors-1) & 0x7)     <<  4) | /* number of sectors */
-+	       (cs                       <<  1) | /* ECC CS */
-+	       (0x1));                            /* enable ECC */
-+
-+	gpmc_write_reg(GPMC_ECC_CONFIG, val);
-+	return 0;
-+}
-+EXPORT_SYMBOL_GPL(gpmc_enable_hwecc_bch);
-+
-+/**
-+ * gpmc_calculate_ecc_bch4 - Generate 7 ecc bytes per sector of 512 data bytes
-+ * @cs:  chip select number
-+ * @dat: The pointer to data on which ecc is computed
-+ * @ecc: The ecc output buffer
-+ */
-+int gpmc_calculate_ecc_bch4(int cs, const u_char *dat, u_char *ecc)
-+{
-+	int i;
-+	unsigned long nsectors, reg, val1, val2;
-+
-+	if (gpmc_ecc_used != cs)
-+		return -EINVAL;
-+
-+	nsectors = ((gpmc_read_reg(GPMC_ECC_CONFIG) >> 4) & 0x7) + 1;
-+
-+	for (i = 0; i < nsectors; i++) {
-+
-+		reg = GPMC_ECC_BCH_RESULT_0 + 16*i;
-+
-+		/* Read hw-computed remainder */
-+		val1 = gpmc_read_reg(reg + 0);
-+		val2 = gpmc_read_reg(reg + 4);
-+
-+		/*
-+		 * Add constant polynomial to remainder, in order to get an ecc
-+		 * sequence of 0xFFs for a buffer filled with 0xFFs; and
-+		 * left-justify the resulting polynomial.
-+		 */
-+		*ecc++ = 0x28 ^ ((val2 >> 12) & 0xFF);
-+		*ecc++ = 0x13 ^ ((val2 >>  4) & 0xFF);
-+		*ecc++ = 0xcc ^ (((val2 & 0xF) << 4)|((val1 >> 28) & 0xF));
-+		*ecc++ = 0x39 ^ ((val1 >> 20) & 0xFF);
-+		*ecc++ = 0x96 ^ ((val1 >> 12) & 0xFF);
-+		*ecc++ = 0xac ^ ((val1 >> 4) & 0xFF);
-+		*ecc++ = 0x7f ^ ((val1 & 0xF) << 4);
-+	}
-+
-+	gpmc_ecc_used = -EINVAL;
-+	return 0;
-+}
-+EXPORT_SYMBOL_GPL(gpmc_calculate_ecc_bch4);
-+
-+/**
-+ * gpmc_calculate_ecc_bch8 - Generate 13 ecc bytes per block of 512 data bytes
-+ * @cs:  chip select number
-+ * @dat: The pointer to data on which ecc is computed
-+ * @ecc: The ecc output buffer
-+ */
-+int gpmc_calculate_ecc_bch8(int cs, const u_char *dat, u_char *ecc)
-+{
-+	int i;
-+	unsigned long nsectors, reg, val1, val2, val3, val4;
-+
-+	if (gpmc_ecc_used != cs)
-+		return -EINVAL;
-+
-+	nsectors = ((gpmc_read_reg(GPMC_ECC_CONFIG) >> 4) & 0x7) + 1;
-+
-+	for (i = 0; i < nsectors; i++) {
-+
-+		reg = GPMC_ECC_BCH_RESULT_0 + 16*i;
-+
-+		/* Read hw-computed remainder */
-+		val1 = gpmc_read_reg(reg + 0);
-+		val2 = gpmc_read_reg(reg + 4);
-+		val3 = gpmc_read_reg(reg + 8);
-+		val4 = gpmc_read_reg(reg + 12);
-+
-+		/*
-+		 * Add constant polynomial to remainder, in order to get an ecc
-+		 * sequence of 0xFFs for a buffer filled with 0xFFs.
-+		 */
-+		*ecc++ = 0xef ^ (val4 & 0xFF);
-+		*ecc++ = 0x51 ^ ((val3 >> 24) & 0xFF);
-+		*ecc++ = 0x2e ^ ((val3 >> 16) & 0xFF);
-+		*ecc++ = 0x09 ^ ((val3 >> 8) & 0xFF);
-+		*ecc++ = 0xed ^ (val3 & 0xFF);
-+		*ecc++ = 0x93 ^ ((val2 >> 24) & 0xFF);
-+		*ecc++ = 0x9a ^ ((val2 >> 16) & 0xFF);
-+		*ecc++ = 0xc2 ^ ((val2 >> 8) & 0xFF);
-+		*ecc++ = 0x97 ^ (val2 & 0xFF);
-+		*ecc++ = 0x79 ^ ((val1 >> 24) & 0xFF);
-+		*ecc++ = 0xe5 ^ ((val1 >> 16) & 0xFF);
-+		*ecc++ = 0x24 ^ ((val1 >> 8) & 0xFF);
-+		*ecc++ = 0xb5 ^ (val1 & 0xFF);
-+	}
-+
-+	gpmc_ecc_used = -EINVAL;
-+	return 0;
-+}
-+EXPORT_SYMBOL_GPL(gpmc_calculate_ecc_bch8);
-+
-+#endif /* CONFIG_ARCH_OMAP3 */
-diff --git a/arch/arm/plat-omap/include/plat/gpmc.h b/arch/arm/plat-omap/include/plat/gpmc.h
-index 1527929..23791ca 100644
---- a/arch/arm/plat-omap/include/plat/gpmc.h
-+++ b/arch/arm/plat-omap/include/plat/gpmc.h
-@@ -92,6 +92,8 @@ enum omap_ecc {
- 	OMAP_ECC_HAMMING_CODE_HW, /* gpmc to detect the error */
- 		/* 1-bit ecc: stored at beginning of spare area as romcode */
- 	OMAP_ECC_HAMMING_CODE_HW_ROMCODE, /* gpmc method & romcode layout */
-+	OMAP_ECC_BCH4_CODE_HW, /* 4-bit BCH ecc code */
-+	OMAP_ECC_BCH8_CODE_HW, /* 8-bit BCH ecc code */
- };
- 
- /*
-@@ -157,4 +159,12 @@ extern int gpmc_nand_write(int cs, int cmd, int wval);
- 
- int gpmc_enable_hwecc(int cs, int mode, int dev_width, int ecc_size);
- int gpmc_calculate_ecc(int cs, const u_char *dat, u_char *ecc_code);
-+
-+#ifdef CONFIG_ARCH_OMAP3
-+int gpmc_enable_hwecc_bch(int cs, int mode, int dev_width, int nsectors,
-+			  int nerrors);
-+int gpmc_calculate_ecc_bch4(int cs, const u_char *dat, u_char *ecc);
-+int gpmc_calculate_ecc_bch8(int cs, const u_char *dat, u_char *ecc);
-+#endif /* CONFIG_ARCH_OMAP3 */
-+
- #endif
--- 
-1.7.10
+diff --git a/arch/arm/mach-omap2/cpuidle44xx.c
+b/arch/arm/mach-omap2/cpuidle44xx.c
+index ccc8e82..cf804e9 100644
+--- a/arch/arm/mach-omap2/cpuidle44xx.c
++++ b/arch/arm/mach-omap2/cpuidle44xx.c
+@@ -259,6 +259,7 @@ int __init omap4_idle_init(void)
+ 		dev->state_count++;
+ 		drv->state_count++;
 
++		clockevents_notify(CLOCK_EVT_NOTIFY_BROADCAST_ON, &cpu_id);
+ 		cpuidle_register_driver(&omap4_idle_driver);
+
+ 		if (cpuidle_register_device(dev)) {
+--=20
+1.7.5.4
+--
+To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
