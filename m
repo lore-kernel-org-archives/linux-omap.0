@@ -1,211 +1,160 @@
-From: Kevin Hilman <khilman@ti.com>
-Subject: Re: [PATCH] tty: omap-serial: Keep the wakeup mechanism enabled by default
-Date: Tue, 17 Apr 2012 16:25:45 -0700
-Message-ID: <87vckyq6ti.fsf@ti.com>
-References: <1334579407-16970-1-git-send-email-govindraj.raja@ti.com>
+From: Paul Walmsley <paul@pwsan.com>
+Subject: [GIT PULL] ARM: OMAP2+: resolve some sparse, cppcheck warnings
+Date: Tue, 17 Apr 2012 17:29:57 -0600 (MDT)
+Message-ID: <alpine.DEB.2.00.1204171729290.29048@utopia.booyaka.com>
+References: <alpine.DEB.2.00.1204171516290.29048@utopia.booyaka.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aog114.obsmtp.com ([74.125.149.211]:59692 "EHLO
-	na3sys009aog114.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751990Ab2DQXZs (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>);
-	Tue, 17 Apr 2012 19:25:48 -0400
-Received: by pbcup15 with SMTP id up15so8553891pbc.0
-        for <linux-omap@vger.kernel.org>; Tue, 17 Apr 2012 16:25:47 -0700 (PDT)
-In-Reply-To: <1334579407-16970-1-git-send-email-govindraj.raja@ti.com>
-	(Govindraj R.'s message of "Mon, 16 Apr 2012 18:00:07 +0530")
+Received: from utopia.booyaka.com ([72.9.107.138]:36474 "EHLO
+	utopia.booyaka.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752307Ab2DQX36 (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 17 Apr 2012 19:29:58 -0400
+In-Reply-To: <alpine.DEB.2.00.1204171516290.29048@utopia.booyaka.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "Govindraj.R" <govindraj.raja@ti.com>
-Cc: linux-omap@vger.kernel.org, Paul Walmsley <paul@pwsan.com>, linux-arm-kernel@lists.infradead.org, linux-serial@vger.kernel.org
+To: tony@atomide.com
+Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 
-"Govindraj.R" <govindraj.raja@ti.com> writes:
+-----BEGIN PGP SIGNED MESSAGE-----
+Hash: SHA1
 
-> From: "Govindraj.R" <govindraj.raja@ti.com>
->
-> The wakeups can be left enabled by default and should be disabled
-> only when disabled from sysfs and while entering suspend.
+Hi Tony,
 
-Left enabled?  That assumes something else has initizlied them, but we
-can't make that assumption.
+The following changes since commit 0034102808e0dbbf3a2394b82b1bb40b5778de9e:
 
-First, wakeups should be disabled when ->probe has finished.  Then,
-they should be enabled whenever driver is in use, and disabled when
-the driver is not in use.
+  Linux 3.4-rc2 (2012-04-07 18:30:41 -0700)
 
-I'm not familiar enough with uart_ops, but it looks like they should
-probably be enabled in uart_ops->startup and disabled in
-uart_ops->shutdown.  
+are available in the git repository at:
 
-I've hacked up a test patch[1] which was required for module-wakeups to
-work for me.  I tested module-level wakeups by disabling all C-states
-except C1 using the new sysfs control for disabling C-states[2].
+  git://git.kernel.org/pub/scm/linux/kernel/git/pjw/omap-pending tags/omap-cleanup-a2-for-3.5
 
-More comments below...
+for you to fetch changes up to eeb3711b89d68e147e05e7b43a49ecc5009dc157:
 
-> Thanks to Kevin Hilman <khilman@ti.com> for suggesting this.
-> Discussion References:
-> http://www.spinics.net/lists/linux-omap/msg67764.html
-> http://www.spinics.net/lists/linux-omap/msg67838.html
->
-> Cc: Paul Walmsley <paul@pwsan.com>
-> Cc: Kevin Hilman <khilman@ti.com>
-> Signed-off-by: Govindraj.R <govindraj.raja@ti.com>
-> ---
->  drivers/tty/serial/omap-serial.c |   30 +++++++++++-------------------
->  1 files changed, 11 insertions(+), 19 deletions(-)
->
-> diff --git a/drivers/tty/serial/omap-serial.c b/drivers/tty/serial/omap-serial.c
-> index d00b38e..4a92447 100644
-> --- a/drivers/tty/serial/omap-serial.c
-> +++ b/drivers/tty/serial/omap-serial.c
-> @@ -930,13 +930,6 @@ serial_omap_pm(struct uart_port *port, unsigned int state,
->  	serial_out(up, UART_EFR, efr);
->  	serial_out(up, UART_LCR, 0);
->  
-> -	if (!device_may_wakeup(&up->pdev->dev)) {
-> -		if (!state)
-> -			pm_runtime_forbid(&up->pdev->dev);
-> -		else
-> -			pm_runtime_allow(&up->pdev->dev);
-> -	}
-> -
->  	pm_runtime_put(&up->pdev->dev);
->  }
->  
-> @@ -1184,10 +1177,16 @@ static struct uart_driver serial_omap_reg = {
->  static int serial_omap_suspend(struct device *dev)
->  {
->  	struct uart_omap_port *up = dev_get_drvdata(dev);
-> +	struct omap_uart_port_info *pdata = dev->platform_data;
->  
->  	if (up) {
->  		uart_suspend_port(&serial_omap_reg, &up->port);
->  		flush_work_sync(&up->qos_work);
-> +
-> +		if (!device_may_wakeup(dev)) {
-> +			pdata->enable_wakeup(up->pdev, false);
+  ARM: OMAP2+: clean up some cppcheck warnings (2012-04-17 15:50:47 -0600)
 
-Should check for the presence of pdata->enable_wakeup() before calling.  
-Same thing below.
+- ----------------------------------------------------------------
+Resolve static analysis warnings generated by files in
+arch/arm/mach-omap1, arch/arm/mach-omap2, and arch/arm/plat-omap.
+Fixes all but one sparse warning and most of the useful
+cppcheck warnings (excepting the warnings generated by the
+dmtimer integration code which is going up via 3.4-rc fixes)
 
-> +			up->wakeups_enabled = false;
-> +		}
->  	}
->  
->  	return 0;
-> @@ -1582,18 +1581,6 @@ static int serial_omap_runtime_suspend(struct device *dev)
->  	if (pdata->get_context_loss_count)
->  		up->context_loss_cnt = pdata->get_context_loss_count(dev);
->  
-> -	if (device_may_wakeup(dev)) {
-> -		if (!up->wakeups_enabled) {
-> -			pdata->enable_wakeup(up->pdev, true);
-> -			up->wakeups_enabled = true;
-> -		}
-> -	} else {
-> -		if (up->wakeups_enabled) {
-> -			pdata->enable_wakeup(up->pdev, false);
-> -			up->wakeups_enabled = false;
-> -		}
-> -	}
-> -
->  	/* Errata i291 */
->  	if (up->use_dma && pdata->set_forceidle &&
->  			(up->errata & UART_ERRATA_i291_DMA_FORCEIDLE))
-> @@ -1618,6 +1605,11 @@ static int serial_omap_runtime_resume(struct device *dev)
->  				serial_omap_restore_context(up);
->  		}
->  
-> +		if (!up->wakeups_enabled) {
-> +			pdata->enable_wakeup(up->pdev, true);
-> +			up->wakeups_enabled = true;
-> +		}
+- ----------------------------------------------------------------
 
-You put the disable in ->suspend, but the enable in ->runtime_resume.
+This version drops the OMAP1 dmtimer integration patch ("ARM: OMAP1:
+DMTIMER: fix broken timer clock source selection") that will go
+upstream during 3.4-rc fixes.  There are no other changes from the
+previous branch.
 
-Doesn't this belong in ->resume ?
+The previous version of this series has been test-booted on 5912OSK,
+N800, CM-T3517, 3530ES3.0 Beagle, 37xx EVM, and 4430ES2 Panda.  A few
+minor notes: N800 here is not mounting MMC with or without this
+series, this is probably due to a problem with my local N800 test
+setup which has recently changed.  Also CM-T3517 does not boot to
+userspace either with or without this series.
 
-Kevin
+Boot transcripts of the previous version can be found at:
 
->  		/* Errata i291 */
->  		if (up->use_dma && pdata->set_noidle &&
->  				(up->errata & UART_ERRATA_i291_DMA_FORCEIDLE))
+    http://www.pwsan.com/omap/bootlogs/20120417/sparse_cppcheck_cleanup_3.5__0b93afd5d945a8c002f4d380a88b5d7a61c49289/
 
+object size (delta in bytes from v3.4-rc2 (0034102808e0dbbf3a2394b82b1bb40b5778de9e)):
+ text 	 data 	  bss 	total 	kernel
+  -76 	  +24 	    0 	  -52 	5912osk_testconfig/vmlinux
+ -100 	   -8 	    0 	 -108 	n800_multi_omap2xxx/vmlinux
+  -68 	   -8 	    0 	  -76 	n800_testconfig/vmlinux
+ -216 	  +56 	  -32 	 -192 	omap1_defconfig/vmlinux
+ -148 	  +32 	    0 	 -116 	omap2_4_testconfig/vmlinux
+ -212 	    0 	    0 	 -212 	omap2plus_defconfig/vmlinux
+ -148 	    0 	    0 	 -148 	omap2plus_no_pm/vmlinux
+ -152 	    0 	    0 	 -152 	omap3_4_testconfig/vmlinux
+ -100 	   -8 	    0 	 -108 	omap3_testconfig/vmlinux
+ -188 	  -24 	    0 	 -212 	omap4_testconfig/vmlinux
 
+Paul Walmsley (11):
+      ARM: OMAP2+: declare file-local functions as static
+      ARM: OMAP: add includes for missing prototypes
+      ARM: OMAP1: OCPI: move to mach-omap1/
+      ARM: OMAP1: OHCI: use platform_data fn ptr to enable OCPI bus
+      ARM: OMAP2+: GPMC: resolve type-conversion warning from sparse
+      ARM: OMAP: fix 'using plain integer as NULL pointer' sparse warnings
+      ARM: OMAP: OCM RAM: use memset_io() when clearing SRAM
+      ARM: OMAP: DMA: use constant array maximum, drop some LCD DMA code
+      ARM: OMAP: USB: remove unnecessary sideways include
+      ARM: OMAP1: board files: deduplicate and clean some NAND-related code
+      ARM: OMAP2+: clean up some cppcheck warnings
 
-[1] Feel free to fold this into your original patch.
+ arch/arm/mach-omap1/Makefile                 |   13 ++++++---
+ arch/arm/mach-omap1/ams-delta-fiq.c          |    2 +-
+ arch/arm/mach-omap1/board-fsample.c          |   16 +----------
+ arch/arm/mach-omap1/board-h2.c               |   17 +-----------
+ arch/arm/mach-omap1/board-h3.c               |   16 +----------
+ arch/arm/mach-omap1/board-nand.c             |   37 ++++++++++++++++++++++++++
+ arch/arm/mach-omap1/board-palmz71.c          |    4 +--
+ arch/arm/mach-omap1/board-perseus2.c         |   16 +----------
+ arch/arm/mach-omap1/clock.c                  |    3 +--
+ arch/arm/mach-omap1/common.h                 |   11 +++++++-
+ arch/arm/mach-omap1/fpga.c                   |    2 +-
+ arch/arm/mach-omap1/id.c                     |    2 ++
+ arch/arm/mach-omap1/io.c                     |    3 +--
+ arch/arm/mach-omap1/irq.c                    |    2 ++
+ arch/arm/mach-omap1/lcd_dma.c                |    7 +----
+ arch/arm/{plat-omap => mach-omap1}/ocpi.c    |    7 +++--
+ arch/arm/mach-omap1/pm.c                     |    9 +++----
+ arch/arm/mach-omap1/reset.c                  |    2 ++
+ arch/arm/mach-omap1/timer.c                  |    3 +--
+ arch/arm/mach-omap1/usb.c                    |    3 +++
+ arch/arm/mach-omap2/am35xx-emac.c            |   37 ++++++++++++--------------
+ arch/arm/mach-omap2/board-omap3evm.c         |    8 +++---
+ arch/arm/mach-omap2/board-omap4panda.c       |    8 +++---
+ arch/arm/mach-omap2/board-rx51-peripherals.c |    4 +--
+ arch/arm/mach-omap2/board-zoom-display.c     |    1 +
+ arch/arm/mach-omap2/common.h                 |    2 --
+ arch/arm/mach-omap2/devices.c                |    7 +++--
+ arch/arm/mach-omap2/gpio.c                   |    2 +-
+ arch/arm/mach-omap2/gpmc-onenand.c           |    3 +--
+ arch/arm/mach-omap2/gpmc.c                   |    3 +--
+ arch/arm/mach-omap2/hwspinlock.c             |    2 +-
+ arch/arm/mach-omap2/io.c                     |    1 +
+ arch/arm/mach-omap2/irq.c                    |    3 ++-
+ arch/arm/mach-omap2/mux.c                    |    2 +-
+ arch/arm/mach-omap2/omap-secure.c            |    1 +
+ arch/arm/mach-omap2/omap-wakeupgen.c         |    2 +-
+ arch/arm/mach-omap2/pm24xx.c                 |    3 ---
+ arch/arm/mach-omap2/pm34xx.c                 |   10 +++----
+ arch/arm/mach-omap2/prm_common.c             |    4 ++-
+ arch/arm/mach-omap2/serial.c                 |    2 +-
+ arch/arm/mach-omap2/usb-tusb6010.c           |    2 +-
+ arch/arm/plat-omap/Makefile                  |    3 ---
+ arch/arm/plat-omap/common.c                  |    1 +
+ arch/arm/plat-omap/dma.c                     |   13 +++++++--
+ arch/arm/plat-omap/dmtimer.c                 |    3 ++-
+ arch/arm/plat-omap/include/plat/board.h      |    2 ++
+ arch/arm/plat-omap/include/plat/common.h     |    2 ++
+ arch/arm/plat-omap/include/plat/dma.h        |    1 +
+ arch/arm/plat-omap/include/plat/dmtimer.h    |    4 +--
+ arch/arm/plat-omap/omap_device.c             |    2 --
+ arch/arm/plat-omap/sram.c                    |    4 +--
+ arch/arm/plat-omap/usb.c                     |    4 ---
+ drivers/usb/host/ohci-omap.c                 |    5 ++--
+ 53 files changed, 161 insertions(+), 165 deletions(-)
+ create mode 100644 arch/arm/mach-omap1/board-nand.c
+ rename arch/arm/{plat-omap => mach-omap1}/ocpi.c (93%)
 
->From 8a4a24998aaf35240f0010b172537da64351a7d6 Mon Sep 17 00:00:00 2001
-From: Kevin Hilman <khilman@ti.com>
-Date: Tue, 17 Apr 2012 16:24:05 -0700
-Subject: [PATCH] omap-serial: fix default wakeup settings
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.4.12 (GNU/Linux)
 
----
- drivers/tty/serial/omap-serial.c |   10 ++++++++++
- 1 file changed, 10 insertions(+)
-
-diff --git a/drivers/tty/serial/omap-serial.c b/drivers/tty/serial/omap-serial.c
-index 4a92447..6458ec9 100644
---- a/drivers/tty/serial/omap-serial.c
-+++ b/drivers/tty/serial/omap-serial.c
-@@ -511,6 +511,7 @@ static void serial_omap_break_ctl(struct uart_port *port, int break_state)
- static int serial_omap_startup(struct uart_port *port)
- {
- 	struct uart_omap_port *up = (struct uart_omap_port *)port;
-+	struct omap_uart_port_info *pdata = up->pdev->dev.platform_data;
- 	unsigned long flags = 0;
- 	int retval;
- 
-@@ -525,6 +526,9 @@ static int serial_omap_startup(struct uart_port *port)
- 	dev_dbg(up->port.dev, "serial_omap_startup+%d\n", up->port.line);
- 
- 	pm_runtime_get_sync(&up->pdev->dev);
-+	if (pdata->enable_wakeup)
-+		pdata->enable_wakeup(up->pdev, true);
-+
- 	/*
- 	 * Clear the FIFO buffers and disable them.
- 	 * (they will be reenabled in set_termios())
-@@ -589,6 +593,7 @@ static int serial_omap_startup(struct uart_port *port)
- static void serial_omap_shutdown(struct uart_port *port)
- {
- 	struct uart_omap_port *up = (struct uart_omap_port *)port;
-+	struct omap_uart_port_info *pdata = up->pdev->dev.platform_data;
- 	unsigned long flags = 0;
- 
- 	dev_dbg(up->port.dev, "serial_omap_shutdown+%d\n", up->port.line);
-@@ -628,6 +633,8 @@ static void serial_omap_shutdown(struct uart_port *port)
- 		up->uart_dma.rx_buf = NULL;
- 	}
- 
-+	if (pdata->enable_wakeup)
-+		pdata->enable_wakeup(up->pdev, false);
- 	pm_runtime_put(&up->pdev->dev);
- 	free_irq(up->port.irq, up);
- }
-@@ -1475,6 +1482,9 @@ static int serial_omap_probe(struct platform_device *pdev)
- 	if (ret != 0)
- 		goto err_add_port;
- 
-+	if (omap_up_info->enable_wakeup)
-+		omap_up_info->enable_wakeup(pdev, false);
-+
- 	pm_runtime_put(&pdev->dev);
- 	platform_set_drvdata(pdev, up);
- 	return 0;
--- 
-1.7.9.2
-
-
-
-[1] shell snippit for disabling C-states
-
-# CPUidle: disable everything but C1
-cd /sys/devices/system/cpu/cpu0/cpuidle
-for state in state[1-6]*; do
-  if [ -e ${state} ]; then 
-    echo 1 > cat ${state}/disable
-  fi
-done
+iQIbBAEBAgAGBQJPjfzDAAoJEMePsQ0LvSpL6mUP+ImtiaS78Of2vl3lTt6RodRO
+CjbCIa3xK7Db3iIPo2iJJgHxYYGyyAtDrCxZShLyuYg5ivtxGSBZ1HDsWNL/uBmn
+a8teYFXJd2S4JZedsO8pIRwo2n7YKtHlI6HW7gyz/HrZrlYysixdAEHDwPCaDzA3
+Er2jpVBx20NpQuArUexz3Y/gRRTtNpL6KHaj7RLSr2HCBrUGjHGZxdalSmIaL7x8
+otMNQFcVNl4vOIHZY4ThzPrTExQuMhxssi1pBJtscx7Q2Q8CDUix8cluysUSdXX9
+hQps385yFRLVe5NKTXanWwP4fxeuRql0IcJ60YLX5BxsXgd7768lAWWMM7IiHsZ4
+sR1jGlwDR/RzxQxSyaCO/9kUg+6LH0CZXdFQHVZpydTdp74ShzT7V74DpPwZkdvo
+44jlANmCYWRMeVs82IgP2qjpU86SUT5DlR4q523PudBKYZyZCw9OqML5cG4hVN4m
+YBG0TWfebhJQ8Xm1Bb6tFZy33NG+EfJ+F+IQ0M0tddV7aNP0lOiWysDHKlgRMuyZ
+IiZR16IVghFwEcMxFejLl5WfEkQ2Eu4Bax0tU0iEDgOlMkZaCX4+qjmkPDhqrAhK
+DQim6gNM6Lue7DkZiDfqFbKEvYrV42cvf4ggEzuT1pQh3csjYrnWomZUUrm9YJge
+xMukLIN3k5ge5AI15i4=
+=amuA
+-----END PGP SIGNATURE-----
