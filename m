@@ -1,170 +1,120 @@
-From: "Shilimkar, Santosh" <santosh.shilimkar@ti.com>
-Subject: Re: [PATCH 0/3] OMAP4: CPUidle: Add coupled idle support
-Date: Tue, 17 Apr 2012 15:53:05 +0530
-Message-ID: <CAMQu2gxusZFn2ifOTqvC6WG+TzW0FhBw8bhJkfXcBPPyUib5Ww@mail.gmail.com>
-References: <1333114048-26136-1-git-send-email-santosh.shilimkar@ti.com>
- <87obr9s8wk.fsf@ti.com> <4F7B11EE.6030904@ti.com> <4F8287BA.2090602@ti.com>
+From: "Raja, Govindraj" <govindraj.raja@ti.com>
+Subject: Re: [PATCH 2/2] OMAP2+: UART: Add mechanism to probe uart pins and
+ configure rx wakeup
+Date: Tue, 17 Apr 2012 18:17:19 +0530
+Message-ID: <CAMrsUd+v-qhVPLbJp1ecE2+e5ayJAQrAzALr1sviH9RDJv3aMg@mail.gmail.com>
+References: <1334065246-21294-1-git-send-email-govindraj.raja@ti.com>
+ <1334065246-21294-3-git-send-email-govindraj.raja@ti.com> <20120410161136.GF6487@atomide.com>
+ <CAMrsUdK2ZqCGWtL104tBC_h-XHD0UMMFagch_eSER+92zC1FiQ@mail.gmail.com> <20120417014103.GA21106@atomide.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aog125.obsmtp.com ([74.125.149.153]:53505 "EHLO
-	na3sys009aog125.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751775Ab2DQKX1 convert rfc822-to-8bit
+Received: from na3sys009aog114.obsmtp.com ([74.125.149.211]:35178 "EHLO
+	na3sys009aog114.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1756072Ab2DQMrm convert rfc822-to-8bit
 	(ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Tue, 17 Apr 2012 06:23:27 -0400
-Received: by qam2 with SMTP id 2so288237qam.14
-        for <linux-omap@vger.kernel.org>; Tue, 17 Apr 2012 03:23:26 -0700 (PDT)
-In-Reply-To: <4F8287BA.2090602@ti.com>
+	Tue, 17 Apr 2012 08:47:42 -0400
+Received: by obbwc20 with SMTP id wc20so5421626obb.25
+        for <linux-omap@vger.kernel.org>; Tue, 17 Apr 2012 05:47:41 -0700 (PDT)
+In-Reply-To: <20120417014103.GA21106@atomide.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Kevin Hilman <khilman@ti.com>
-Cc: linux-omap@vger.kernel.org, ccross@android.com, linux-arm-kernel@lists.infradead.org
+To: Tony Lindgren <tony@atomide.com>
+Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Felipe Balbi <balbi@ti.com>, Kevin Hilman <khilman@ti.com>, Russ Dill <russ.dill@gmail.com>
 
-On Mon, Apr 9, 2012 at 12:24 PM, Santosh Shilimkar
-<santosh.shilimkar@ti.com> wrote:
-> On Tuesday 03 April 2012 08:36 PM, Santosh Shilimkar wrote:
->> On Tuesday 03 April 2012 10:34 AM, Kevin Hilman wrote:
->>> Hi Santosh,
->>>
->>> Santosh Shilimkar <santosh.shilimkar@ti.com> writes:
->>>
->>>> The series adds the coupled cpuidle support for OMAP4 based on the=
- v2
->>>> series posted [1]. This makes OMAP4 to support SMP cpuidle and als=
-o
->>>> removes the hard dependency of off-lining CPU1 to trigger deeper
->>>> C-states.
->>>>
->>>> I have put together a branch which is based on 3.3 kernel with
->>>> Len Browns next branch [2] which has time keeping and other cpuidl=
-e
->>>> patches which will mostly get merged by 3.4-rc1 and rebased couple=
-d
->>>> idle series from [1].
->>>
->>> Thanks for rebasing this.
->>>
->>>> git://gitorious.org/omap-sw-develoment/linux-omap-dev.git
->>>> for_3.5/omap4_coupled_cpuidle-rebase
->>>
->>> This branch by itself seems to work fine. =A0However, when combinin=
-g with
->>> other stuff that has merged for v3.4, it hangs during boot. =A0I ha=
-ven't
->>> yet isolated the problem, but it's easy to reproduce by combining y=
-our
->>> branch with v3.4-rc1:
->>>
->>> =A0 git checkout -b test/coupled-v3.4 v3.4-rc1
->>> =A0 git merge -s recursive -X ours santosh/for_3.5/omap4_coupled_cp=
-uidle-rebase [1]
->>>
->>> This hangs on boot, and it seems like a coupled state deadlock beca=
-use
->>> commenting out the coupled states in the C-state creation of
->>> cpuidle44xx.c makes it boot just fine.
->>>
->> I managed to reproduce the issue. Just to ensure that any OMAP chang=
-es
->> have not introduced the regression I merged all Tony's pull request =
-on
->> my branch and tried it out. OMAP changes are fine and coupled idle
->> continue to work.
+On Tue, Apr 17, 2012 at 7:11 AM, Tony Lindgren <tony@atomide.com> wrote=
+:
+> Hi,
+>
+> Few more comments below.
+>
+> * Raja, Govindraj <govindraj.raja@ti.com> [120411 04:53]:
+> ...
+>
+>> +static int =A0__init omap_serial_fill_default_pads(struct omap_boar=
+d_data *bdata,
+>> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0=
+ =A0 =A0 =A0 =A0 =A0 struct omap_uart_state *uart)
+>> +{
+>> + =A0 =A0 struct omap_mux_partition *tx_partition =3D NULL, *rx_part=
+ition =3D NULL;
+>> + =A0 =A0 struct omap_mux *rx_mux =3D NULL, *tx_mux =3D NULL;
+>> + =A0 =A0 char *rx_fmt, *tx_fmt;
+>> + =A0 =A0 int uart_nr =3D bdata->id + 1;
+>> +
+>> + =A0 =A0 if (bdata->id !=3D 2) {
+>> + =A0 =A0 =A0 =A0 =A0 =A0 rx_fmt =3D "uart%d_rx.uart%d_rx";
+>> + =A0 =A0 =A0 =A0 =A0 =A0 tx_fmt =3D "uart%d_tx.uart%d_tx";
+>> + =A0 =A0 } else {
+>> + =A0 =A0 =A0 =A0 =A0 =A0 rx_fmt =3D "uart%d_rx_irrx.uart%d_rx_irrx"=
+;
+>> + =A0 =A0 =A0 =A0 =A0 =A0 tx_fmt =3D "uart%d_tx_irtx.uart%d_tx_irtx"=
+;
+>> + =A0 =A0 }
+>> +
+>> + =A0 =A0 snprintf(rx_pad_name, OMAP_UART_DEFAULT_PAD_NAME_LEN, rx_f=
+mt,
+>> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 uart_nr, uart_nr);
+>> + =A0 =A0 snprintf(tx_pad_name, OMAP_UART_DEFAULT_PAD_NAME_LEN, tx_f=
+mt,
+>> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 uart_nr, uart_nr);
+>
+> This naming won't work for the fourth port on 3630 as there are no "u=
+art4_rx"
+> or "uart4_tx" mux entries, they are "gpmc_wait2.uart4_tx" and
+> "gpmc_wait3.uart4_tx".
+
+But uart4 is unused on 3630 boards and boards trying to use them
+should configure them from board file.
+(I thought we agreed on this approach where only if uarts are
+available in mux mode0 those ports will be dynamically muxed for wakeup
+others should use omap_serial_init_port)
+
+>
+>> @@ -289,8 +354,8 @@ void __init omap_serial_board_init(struct
+>> omap_uart_port_info *info)
+>> =A0 =A0 =A0 =A0 =A0 =A0 =A0 bdata.pads =3D NULL;
+>> =A0 =A0 =A0 =A0 =A0 =A0 =A0 bdata.pads_cnt =3D 0;
 >>
->> Started bisecting the commits. For bisect I have to create a series
->> which is not dependent on Len's cpuidle updates. First round of bise=
-ct
->> was not successful so tried one more time. Was very close to narrowi=
-ng
->> down on commit but then encountered set of commits where either CPUI=
-DLE
->> itself is broken(deeper C-states are not getting attempted) or I get
->> softIRQ 08 pending error.
+>> - =A0 =A0 =A0 =A0 =A0 =A0 if (cpu_is_omap44xx() || cpu_is_omap34xx()=
+)
+>> - =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 omap_serial_fill_default_p=
+ads(&bdata);
+>> + =A0 =A0 =A0 =A0 =A0 =A0 if (omap_serial_fill_default_pads(&bdata, =
+uart))
+>> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 continue;
 >>
->> The last bad commit in bisect was ...
->> [8682df25ca9afd3aac30f2c72d00bd98de2118e8] Merge branch
->> 'fortglx/3.4/rtc' of git://git.linaro.org/people/jstultz/linux into
->> timers/core
->>
->> So far looks like, one of below series has introduced a race which i=
+>> =A0 =A0 =A0 =A0 =A0 =A0 =A0 if (!info)
+>> =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 omap_serial_init_port(&b=
+data, NULL);
+>
+> Can't the omap_serial_board_init() now be just be omap_serial_init(vo=
+id)
+> as it's not used anywhere else?
+
+Yes sure we can remove that.
+
+>
+> Anyways, this is getting too complex for the -rc series as at least 2=
+430sdp
+> is using alternative pins for the first uart. Let's patch to remove j=
+ust
+> the uart4 entry for 3630 for the -rc and then we can properly fix thi=
 s
->> getting highlighted with coupled cpuidle patchset.
->>
->> 9b612fa Merge branch 'fortglx/3.4/clocksource' of
->> git://git.linaro.org/people/jstultz/linux into timers/core
->> 8682df2 Merge branch 'fortglx/3.4/rtc' of
->> git://git.linaro.org/people/jstultz/linux into timers/core
->> 97ac984 Merge branch 'fortglx/3.4/time' of
->> git://git.linaro.org/people/jstultz/linux into timers/core
->>
-> Finally managed to crack down the issue.
-> The broad-cast clock-event was remaining in shut-down mode and
-> hence we were loosing the OS tick after entering to low power
-> states. The cases where it use to work was mainly because of
-> external interrupts like NFS etc.
->
-> Have posted a patch [1] on LKML which fixes the issue. Waiting
-> for feedback from Thomas on it.
->
-Based on the discussion on patch [1], I ended up creating another
-patch(end of the email) for OMAP4 idle driver. Git tree is
-updated accordingly and available here [2]
+> for the next merge window.
 
-Regards,
-Santosh
+Okay. in that case the earlier patch [1] should be fine to solve the
+gpmc issue observed
+and ehci issue on beagle-xm.
 
-[1] https://lkml.org/lkml/2012/4/9/13
+--
+Thanks,
+Govindraj.R
 
-[2] git://gitorious.org/omap-sw-develoment/linux-omap-dev.git
- for_3.5/coupled_cpuidle-rebase
-
-=46rom d36a31b21e3d839ff0ae440186874bfeb6e7edc1 Mon Sep 17 00:00:00 200=
-1
-=46rom: Santosh Shilimkar <santosh.shilimkar@ti.com>
-Date: Tue, 17 Apr 2012 15:09:20 +0530
-Subject: [PATCH] ARM: OMAP4: CPUidle: Open broadcast clock-event device=
-=2E
-
-OMAP4 idle driver uses CLOCK_EVT_NOTIFY_BROADCAST_[ENTER/EXIT]
-for broadcast clock events. But _ENTER/_EXIT doesn't really open
-broadcast clock events and to explicitly setup the broadcast device,
-CLOCK_EVT_NOTIFY_BROADCAST_ON should be used.
-
-So far the broadcast device was opened up by generic code and hence
-OMAP4 idle was working without explicit CLOCK_EVT_NOTIFY_BROADCAST_ON.
-=46rom commit 77b0d60 {clockevents: Leave the broadcast device in shutd=
-own
-mode}, the default setup is skipped so driver needs to open up the
-broadcast device.
-
-Without this patch, boot might hang since CPU enters deeper idle state =
-in
-which local timer stalls and broad cast timer is not armed.
-
-Discussion thread :
-	https://lkml.org/lkml/2012/4/9/13
-
-Signed-off-by: Santosh Shilimkar <santosh.shilimkar@ti.com>
----
- arch/arm/mach-omap2/cpuidle44xx.c |    1 +
- 1 files changed, 1 insertions(+), 0 deletions(-)
-
-diff --git a/arch/arm/mach-omap2/cpuidle44xx.c
-b/arch/arm/mach-omap2/cpuidle44xx.c
-index ccc8e82..cf804e9 100644
---- a/arch/arm/mach-omap2/cpuidle44xx.c
-+++ b/arch/arm/mach-omap2/cpuidle44xx.c
-@@ -259,6 +259,7 @@ int __init omap4_idle_init(void)
- 		dev->state_count++;
- 		drv->state_count++;
-
-+		clockevents_notify(CLOCK_EVT_NOTIFY_BROADCAST_ON, &cpu_id);
- 		cpuidle_register_driver(&omap4_idle_driver);
-
- 		if (cpuidle_register_device(dev)) {
---=20
-1.7.5.4
+[1]:
+http://lists.infradead.org/pipermail/linux-arm-kernel/2012-March/090961=
+=2Ehtml
 --
 To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
 n
