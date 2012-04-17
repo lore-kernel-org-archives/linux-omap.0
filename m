@@ -1,231 +1,270 @@
-From: Kevin Hilman <khilman@ti.com>
-Subject: Re: PM related performance degradation on OMAP3
-Date: Tue, 17 Apr 2012 07:30:51 -0700
-Message-ID: <87y5puwhus.fsf@ti.com>
-References: <CANOLnOP5gq4Vtt00SgRNW-3GZDWk0sukBgJx4V6rkMLL+b6G-w@mail.gmail.com>
-	<877gxobudk.fsf@ti.com>
-	<CANOLnOPbHBshCdbmSOjYdubWqUivrVpR-+eaayu=v4Yy6yKdsQ@mail.gmail.com>
-	<87ehrtn6na.fsf@ti.com>
-	<CANOLnOM_-yhr-j=UO3ynJ6HyJxzd_2FshPMXMLpcBcOB0mL7Qw@mail.gmail.com>
+From: Shubhrajyoti Datta <omaplinuxkernel-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+Subject: Re: [PATCHv8 04/18] I2C: OMAP: I2C register restore only if context
+ is lost
+Date: Tue, 17 Apr 2012 20:38:40 +0530
+Message-ID: <CAM=Q2cvGFgNtvCX=TXAioAUKH9z+VzeKW2ZHhpxUC+s2_yS1QA@mail.gmail.com>
+References: <1334235995-6727-1-git-send-email-shubhrajyoti@ti.com>
+	<1334235995-6727-5-git-send-email-shubhrajyoti@ti.com>
+	<87d376zd2v.fsf@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
+Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: QUOTED-PRINTABLE
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aog113.obsmtp.com ([74.125.149.209]:48328 "EHLO
-	na3sys009aog113.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752970Ab2DQOa4 convert rfc822-to-8bit
-	(ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Tue, 17 Apr 2012 10:30:56 -0400
-Received: by dang27 with SMTP id g27so7808448dan.1
-        for <linux-omap@vger.kernel.org>; Tue, 17 Apr 2012 07:30:55 -0700 (PDT)
-In-Reply-To: <CANOLnOM_-yhr-j=UO3ynJ6HyJxzd_2FshPMXMLpcBcOB0mL7Qw@mail.gmail.com>
-	(Grazvydas Ignotas's message of "Fri, 13 Apr 2012 22:32:57 +0300")
-Sender: linux-omap-owner@vger.kernel.org
+Return-path: <linux-i2c-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <87d376zd2v.fsf-l0cyMroinI0@public.gmane.org>
+Sender: linux-i2c-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Kevin Hilman <khilman-l0cyMroinI0@public.gmane.org>
+Cc: Shubhrajyoti D <shubhrajyoti-l0cyMroinI0@public.gmane.org>, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-i2c-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, ben-linux-elnMNo+KYs3YtjvyW6yDsg@public.gmane.org, tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org, w.sang-bIcnvbaLZ9MEGnE8C9+IrQ@public.gmane.org
 List-Id: linux-omap@vger.kernel.org
-To: Grazvydas Ignotas <notasas@gmail.com>
-Cc: linux-omap@vger.kernel.org, Paul Walmsley <paul@pwsan.com>
 
-Grazvydas Ignotas <notasas@gmail.com> writes:
+Hi Kevin,
+Thanks for your review,
 
-> On Thu, Apr 12, 2012 at 3:19 AM, Kevin Hilman <khilman@ti.com> wrote:
->> It would be helpful now to narrow down what are the big contributors=
- to
->> the overhead in omap_sram_idle(). =C2=A0Most of the code there is sk=
-ipped for
->> C1 because the next states for MPU and CORE are both ON.
+On Tue, Apr 17, 2012 at 7:15 PM, Kevin Hilman <khilman-l0cyMroinI0@public.gmane.org> wrote:
+> Shubhrajyoti D <shubhrajyoti-l0cyMroinI0@public.gmane.org> writes:
 >
-> Ok I did some tests, all in mostly idle system with just init, busybo=
-x
-> shell and dd doing a NAND read to /dev/null .=20
-
-Hmm, I seem to get a hang using dd to read from NAND /dev/mtdX on my
-Overo.  I saw your patch 'mtd: omap2: fix resource leak in prefetch-bus=
-y
-path' but that didn't seem to help my crash.
-
-> MB/s is throughput that
-> dd reports, mA and approx. current draw during the transfer, read fro=
-m
-> fuel gauge that's onboard.
+>> =A0Currently i2c register restore is done always.
+>> =A0Adding conditional restore.
+>> =A0The i2c register restore is done only if the context is lost.
 >
-> MB/s| mA|comment
->  3.7|218|mainline f549e088b80
->  3.8|224|nand qos PM_QOS_CPU_DMA_LATENCY 0 [1]
->  4.4|220|[1] + pwrdm_p*_transition commented [2]
->  3.8|225|[1] + omap34xx_do_sram_idle->cpu_do_idle [3]
->  4.2|210|[1] + pwrdm_set_next_pwrst(per_pd, PWRDM_POWER_ON) [4]
->  4.0|224|[1] + 'Deny idle' [5]
->  5.1|210|[2] + [4] + [5]
->  5.2|202|[5] + omap_sram_idle->cpu_do_idle [6]
->  5.5|243|!CONFIG_PM
->  6.1|282|busywait DMA end (for reference)
+> OK, minor comment below.
+>
+>> =A0Also remove the definition of SYSS_RESETDONE_MASK and use the
+>> =A0one in omap_hwmod.h.
+>
+> The definition is removed, but I don't see any of the users removed.
+> If the users were cleaned up earlier in the series, then the removal =
+of
+> this should be done with that, or as a separate patch. =A0I don't see=
+ why
+> it belongs with this patch.
 
-Thanks for the detailed experiments.  This definitely confirms we have
-some serious unwanted overhead for C1, and our C-state latency values
-are clearly way off base, since they only account HW latency and not an=
-y
-of the SW latency introduced in omap_sram_idle().
+I have not removed the users actually the macro was redefined.
+I have instead used the definition in omap_hwmod.h which gets added
+when I include omap_device.h
 
->> There are 2 primary differences that I see as possible causes. =C2=A0=
-I list
->> them here with a couple more experiments for you to try to help us
->> narrow this down.
+Let me know if you prefer a  separate patch?
+
+>
+>> Signed-off-by: Shubhrajyoti D <shubhrajyoti-l0cyMroinI0@public.gmane.org>
+>> ---
+>> =A0arch/arm/plat-omap/i2c.c =A0 =A0 =A0| =A0 =A03 ++
+>> =A0drivers/i2c/busses/i2c-omap.c | =A0 52 ++++++++++++++++++++++++++=
+--------------
+>> =A0include/linux/i2c-omap.h =A0 =A0 =A0| =A0 =A01 +
+>> =A03 files changed, 38 insertions(+), 18 deletions(-)
 >>
->> 1) powerdomain accounting: pwrdm_pre_transition(), pwrdm_post_transi=
-tion()
+>> diff --git a/arch/arm/plat-omap/i2c.c b/arch/arm/plat-omap/i2c.c
+>> index db071bc..4ccab07 100644
+>> --- a/arch/arm/plat-omap/i2c.c
+>> +++ b/arch/arm/plat-omap/i2c.c
+>> @@ -179,6 +179,9 @@ static inline int omap2_i2c_add_bus(int bus_id)
+>> =A0 =A0 =A0 =A0*/
+>> =A0 =A0 =A0 if (cpu_is_omap34xx())
+>> =A0 =A0 =A0 =A0 =A0 =A0 =A0 pdata->set_mpu_wkup_lat =3D omap_pm_set_=
+max_mpu_wakeup_lat_compat;
+>> +
+>> + =A0 =A0 pdata->get_context_loss_count =3D omap_pm_get_dev_context_=
+loss_count;
+>> +
+>> =A0 =A0 =A0 pdev =3D omap_device_build(name, bus_id, oh, pdata,
+>> =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 sizeof(struct omap_i2c_b=
+us_platform_data),
+>> =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 NULL, 0, 0);
+>> diff --git a/drivers/i2c/busses/i2c-omap.c b/drivers/i2c/busses/i2c-=
+omap.c
+>> index a882558..45389db 100644
+>> --- a/drivers/i2c/busses/i2c-omap.c
+>> +++ b/drivers/i2c/busses/i2c-omap.c
+>> @@ -43,6 +43,7 @@
+>> =A0#include <linux/slab.h>
+>> =A0#include <linux/i2c-omap.h>
+>> =A0#include <linux/pm_runtime.h>
+>> +#include <plat/omap_device.h>
 >>
->> Could you try using omap_sram_idle() and just commenting out those
->> calls? =C2=A0Does that help performance? =C2=A0Those iterate over al=
-l the
->> powerdomains, so defintely add some overhead, but I don't think it
->> would be as significant as what you're seeing.
->
-> Seems to be taking good part of it.
->
->> =C2=A0 =C2=A0Much more likely is...
+>> =A0/* I2C controller revisions */
+>> =A0#define OMAP_I2C_OMAP1_REV_2 =A0 =A0 =A0 =A0 0x20
+>> @@ -157,9 +158,6 @@ enum {
+>> =A0#define OMAP_I2C_SYSTEST_SDA_I =A0 =A0 =A0 =A0 =A0 =A0 =A0 (1 << =
+1) =A0 =A0 =A0 =A0/* SDA line sense in */
+>> =A0#define OMAP_I2C_SYSTEST_SDA_O =A0 =A0 =A0 =A0 =A0 =A0 =A0 (1 << =
+0) =A0 =A0 =A0 =A0/* SDA line drive out */
 >>
->> 2) jump to SRAM, SDRC self-refresh, SDRC errata workarounds
+>> -/* OCP_SYSSTATUS bit definitions */
+>> -#define SYSS_RESETDONE_MASK =A0 =A0 =A0 =A0 =A0(1 << 0)
+>> -
+>> =A0/* OCP_SYSCONFIG bit definitions */
+>> =A0#define SYSC_CLOCKACTIVITY_MASK =A0 =A0 =A0 =A0 =A0 =A0 =A0(0x3 <=
+< 8)
+>> =A0#define SYSC_SIDLEMODE_MASK =A0 =A0 =A0 =A0 =A0(0x3 << 3)
+>> @@ -184,6 +182,7 @@ struct omap_i2c_dev {
+>> =A0 =A0 =A0 u32 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 latency; =A0=
+ =A0 =A0 =A0/* maximum mpu wkup latency */
+>> =A0 =A0 =A0 void =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0(*set_mpu_wk=
+up_lat)(struct device *dev,
+>> =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =
+=A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 long latency);
+>> + =A0 =A0 int =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 (*get_context_=
+loss_count)(struct device *dev);
+>> =A0 =A0 =A0 u32 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 speed; =A0 =A0=
+ =A0 =A0 =A0/* Speed of bus in kHz */
+>> =A0 =A0 =A0 u32 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 dtrev; =A0 =A0=
+ =A0 =A0 =A0/* extra revision from DT */
+>> =A0 =A0 =A0 u32 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 flags;
+>> @@ -206,6 +205,7 @@ struct omap_i2c_dev {
+>> =A0 =A0 =A0 u16 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 syscstate;
+>> =A0 =A0 =A0 u16 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 westate;
+>> =A0 =A0 =A0 u16 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 errata;
+>> + =A0 =A0 int =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 dev_lost_count=
+;
+>> =A0};
+>>
+>> =A0static const u8 reg_map_ip_v1[] =3D {
+>> @@ -1025,6 +1025,7 @@ omap_i2c_probe(struct platform_device *pdev)
+>> =A0 =A0 =A0 =A0 =A0 =A0 =A0 dev->speed =3D pdata->clkrate;
+>> =A0 =A0 =A0 =A0 =A0 =A0 =A0 dev->flags =3D pdata->flags;
+>> =A0 =A0 =A0 =A0 =A0 =A0 =A0 dev->set_mpu_wkup_lat =3D pdata->set_mpu=
+_wkup_lat;
+>> + =A0 =A0 =A0 =A0 =A0 =A0 dev->get_context_loss_count =3D pdata->get=
+_context_loss_count;
+>> =A0 =A0 =A0 =A0 =A0 =A0 =A0 dev->dtrev =3D pdata->rev;
+>> =A0 =A0 =A0 }
+>>
+>> @@ -1151,12 +1152,32 @@ omap_i2c_remove(struct platform_device *pdev=
+)
+>> =A0}
+>>
+>> =A0#ifdef CONFIG_PM_RUNTIME
+>> +static void omap_i2c_restore(struct omap_i2c_dev *dev)
+>> +{
+>> + =A0 =A0 omap_i2c_write_reg(dev, OMAP_I2C_CON_REG, 0);
+>> + =A0 =A0 omap_i2c_write_reg(dev, OMAP_I2C_PSC_REG, dev->pscstate);
+>> + =A0 =A0 omap_i2c_write_reg(dev, OMAP_I2C_SCLL_REG, dev->scllstate)=
+;
+>> + =A0 =A0 omap_i2c_write_reg(dev, OMAP_I2C_SCLH_REG, dev->sclhstate)=
+;
+>> + =A0 =A0 omap_i2c_write_reg(dev, OMAP_I2C_BUF_REG, dev->bufstate);
+>> + =A0 =A0 omap_i2c_write_reg(dev, OMAP_I2C_WE_REG, dev->westate);
+>> + =A0 =A0 omap_i2c_write_reg(dev, OMAP_I2C_CON_REG, OMAP_I2C_CON_EN)=
+;
+>> + =A0 =A0 /*
+>> + =A0 =A0 =A0* Don't write to this register if the IE state is 0 as =
+it can
+>> + =A0 =A0 =A0* cause deadlock.
+>> + =A0 =A0 =A0*/
+>> + =A0 =A0 if (dev->iestate)
+>> + =A0 =A0 =A0 =A0 =A0 =A0 omap_i2c_write_reg(dev, OMAP_I2C_IE_REG, d=
+ev->iestate);
+>> +
+>> +}
+>> =A0static int omap_i2c_runtime_suspend(struct device *dev)
+>> =A0{
+>> =A0 =A0 =A0 struct platform_device *pdev =3D to_platform_device(dev)=
+;
+>> =A0 =A0 =A0 struct omap_i2c_dev *_dev =3D platform_get_drvdata(pdev)=
+;
+>> =A0 =A0 =A0 u16 iv;
+>>
+>> + =A0 =A0 if (_dev->get_context_loss_count)
+>> + =A0 =A0 =A0 =A0 =A0 =A0 _dev->dev_lost_count =3D _dev->get_context=
+_loss_count(dev);
+>> +
+>> =A0 =A0 =A0 _dev->iestate =3D omap_i2c_read_reg(_dev, OMAP_I2C_IE_RE=
+G);
+>> =A0 =A0 =A0 if (_dev->dtrev =3D=3D OMAP_I2C_IP_VERSION_2)
+>> =A0 =A0 =A0 =A0 =A0 =A0 =A0 omap_i2c_write_reg(_dev, OMAP_I2C_IP_V2_=
+IRQENABLE_CLR, 1);
+>> @@ -1179,24 +1200,19 @@ static int omap_i2c_runtime_resume(struct de=
+vice *dev)
+>> =A0{
+>> =A0 =A0 =A0 struct platform_device *pdev =3D to_platform_device(dev)=
+;
+>> =A0 =A0 =A0 struct omap_i2c_dev *_dev =3D platform_get_drvdata(pdev)=
+;
+>> + =A0 =A0 int loss_cnt;
+>>
+>> - =A0 =A0 if (_dev->flags & OMAP_I2C_FLAG_RESET_REGS_POSTIDLE) {
+>> - =A0 =A0 =A0 =A0 =A0 =A0 omap_i2c_write_reg(_dev, OMAP_I2C_CON_REG,=
+ 0);
+>> - =A0 =A0 =A0 =A0 =A0 =A0 omap_i2c_write_reg(_dev, OMAP_I2C_PSC_REG,=
+ _dev->pscstate);
+>> - =A0 =A0 =A0 =A0 =A0 =A0 omap_i2c_write_reg(_dev, OMAP_I2C_SCLL_REG=
+, _dev->scllstate);
+>> - =A0 =A0 =A0 =A0 =A0 =A0 omap_i2c_write_reg(_dev, OMAP_I2C_SCLH_REG=
+, _dev->sclhstate);
+>> - =A0 =A0 =A0 =A0 =A0 =A0 omap_i2c_write_reg(_dev, OMAP_I2C_BUF_REG,=
+ _dev->bufstate);
+>> - =A0 =A0 =A0 =A0 =A0 =A0 omap_i2c_write_reg(_dev, OMAP_I2C_SYSC_REG=
+, _dev->syscstate);
+>> - =A0 =A0 =A0 =A0 =A0 =A0 omap_i2c_write_reg(_dev, OMAP_I2C_WE_REG, =
+_dev->westate);
+>> - =A0 =A0 =A0 =A0 =A0 =A0 omap_i2c_write_reg(_dev, OMAP_I2C_CON_REG,=
+ OMAP_I2C_CON_EN);
+>> + =A0 =A0 if (_dev->get_context_loss_count) {
+>> + =A0 =A0 =A0 =A0 =A0 =A0 loss_cnt =3D _dev->get_context_loss_count(=
+dev);
+>> + =A0 =A0 =A0 =A0 =A0 =A0 if (loss_cnt < 0)
+>> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 return loss_cnt;
 >
-> Could not notice any difference.
->
-> To me it looks like this results from many small things adding up..
-> Idle is called so often that pwrdm_p*_transition() and those
-> pwrdm_for_each_clkdm() walks start slowing everything down, perhaps
-> because they access lots of registers on slow buses?=20
+> To avoid messing up driver state, upon error, you should probably
+> restore context, not abort.
+Agreed , will fix this.
 
-Yes PRCM register accesses are unfortunately rather slow, and we've
-known that for some time, but haven't done any detailed analysis of the
-overhead.
+>
+>> + =A0 =A0 =A0 =A0 =A0 =A0 if (_dev->dev_lost_count =3D=3D loss_cnt &=
+& _dev->dev_lost_count)
+>> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 return 0;
+>
+> Why the non-zero check?
 
-Using the function_graph tracer, I was able to see that the pre/post
-transition are taking an enormous amount of time:
+Actually the driver probe-->omap_i2c_init
 
-  - pwrdm pre-transition: 1400+ us at 600MHz (4000+ us at 125MHz)
-  - pwrdm post-transtion: 1600+ us at 600MHz (6000+ us at 125MHz)
+here
+<snip>
+                dev->pscstate =3D psc;
+                dev->scllstate =3D scll;
+                dev->sclhstate =3D sclh;
+                dev->bufstate =3D buf;
+<snip>
 
-Notice the big difference between 600MHz OPP and 125MHz OPP.  Are you
-using CPUfreq at all in your tests?  If using cpufreq + ondemand
-governor, you're probably running at low OPP due to lack of CPU activit=
-y
-which will also affect the latencies in the idle path.
-
-> Maybe some register cache would help us there, or are those registers
-> expected to be changed by hardware often?
-
-Yes, we've known that some sort of register cache here would be useful
-for some time, but haven't got to implementing it.
-
-> Also trying to idle PER while transfer is ongoing (as reported in
-> previous mail) doesn't sound like a good idea and is one of the
-> reasons for slowdown. Seems to also causing more current drain,
-> ironically.
-
-Agreed.  Again, using the function_graph tracer, I get some pretty big
-latencies from the GPIO pre/post idling process:
-
-  - gpio_prepare_for_idle(): 2400+ us at 600MHz (8200+ us at 125MHz)
-  - gpio_resume_from_idle(): 2200+ us at 600MHz (7600+ us at 125MHz)
-
-Removing PER transtions as you did will get rid of those.
-
-I'm looking into this in more detail know, and will likely have a few
-patches for you to experiment with.
-
-Thanks again for digging into this with us,
-
-Kevin
+variables are updated and the first write happens in the handler.
 
 >
+> Seems like all you need to check is if (_dev->dev_lost_count !=3D los=
+s_cnt).
 >
-> changes (again, sorry for corrupted diffs, but they should be easy to
-> reproduce):
-> [2]:
-> --- a/arch/arm/mach-omap2/pm34xx.c
-> +++ b/arch/arm/mach-omap2/pm34xx.c
-> @@ -307,7 +307,7 @@ void omap_sram_idle(void)
->                         omap3_enable_io_chain();
->         }
+> Kevin
 >
-> -       pwrdm_pre_transition();
-> +//     pwrdm_pre_transition();
->
->         /* PER */
->         if (per_next_state < PWRDM_POWER_ON) {
-> @@ -372,7 +373,7 @@ void omap_sram_idle(void)
->         }
->         omap3_intc_resume_idle();
->
-> -       pwrdm_post_transition();
-> +//     pwrdm_post_transition();
->
->         /* PER */
->         if (per_next_state < PWRDM_POWER_ON) {
-> [3]:
-> --- a/arch/arm/mach-omap2/pm34xx.c
-> +++ b/arch/arm/mach-omap2/pm34xx.c
-> @@ -347,7 +347,7 @@ void omap_sram_idle(void)
->         if (save_state =3D=3D 1 || save_state =3D=3D 3)
->                 cpu_suspend(save_state, omap34xx_do_sram_idle);
->         else
-> -               omap34xx_do_sram_idle(save_state);
-> +               cpu_do_idle();
->
->         /* Restore normal SDRC POWER settings */
->         if (cpu_is_omap3430() && omap_rev() >=3D OMAP3430_REV_ES3_0 &=
-&
-> [4]:
-> --- a/arch/arm/mach-omap2/cpuidle34xx.c
-> +++ b/arch/arm/mach-omap2/cpuidle34xx.c
-> @@ -107,6 +107,7 @@ static int __omap3_enter_idle(struct cpuidle_devi=
-ce *dev,
->         if (index =3D=3D 0) {
->                 pwrdm_for_each_clkdm(mpu_pd, _cpuidle_deny_idle);
->                 pwrdm_for_each_clkdm(core_pd, _cpuidle_deny_idle);
-> +               pwrdm_set_next_pwrst(per_pd, PWRDM_POWER_ON);
->         }
->
->         /*
-> [5]:
-> --- a/arch/arm/mach-omap2/cpuidle34xx.c
-> +++ b/arch/arm/mach-omap2/cpuidle34xx.c
-> @@ -105,8 +105,7 @@ static int __omap3_enter_idle(struct cpuidle_devi=
-ce *dev,
->
->         /* Deny idle for C1 */
->         if (index =3D=3D 0) {
-> -               pwrdm_for_each_clkdm(mpu_pd, _cpuidle_deny_idle);
-> -               pwrdm_for_each_clkdm(core_pd, _cpuidle_deny_idle);
-> +               clkdm_deny_idle(mpu_pd->pwrdm_clkdms[0]);
->         }
->
->         /*
-> @@ -128,8 +128,7 @@ static int __omap3_enter_idle(struct cpuidle_devi=
-ce *dev,
->
->         /* Re-allow idle for C1 */
->         if (index =3D=3D 0) {
-> -               pwrdm_for_each_clkdm(mpu_pd, _cpuidle_allow_idle);
-> -               pwrdm_for_each_clkdm(core_pd, _cpuidle_allow_idle);
-> +               clkdm_allow_idle(mpu_pd->pwrdm_clkdms[0]);
->         }
->
->  return_sleep_time:
-> [6]:
-> --- a/arch/arm/mach-omap2/cpuidle34xx.c
-> +++ b/arch/arm/mach-omap2/cpuidle34xx.c
-> @@ -117,7 +116,8 @@ static int __omap3_enter_idle(struct cpuidle_devi=
-ce *dev,
->                 cpu_pm_enter();
->
->         /* Execute ARM wfi */
-> -       omap_sram_idle();
-> +       //omap_sram_idle();
-> +       cpu_do_idle();
->
->         /*
->          * Call idle CPU PM enter notifier chain to restore
---
-To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+>> =A0 =A0 =A0 }
+>>
+>> - =A0 =A0 /*
+>> - =A0 =A0 =A0* Don't write to this register if the IE state is 0 as =
+it can
+>> - =A0 =A0 =A0* cause deadlock.
+>> - =A0 =A0 =A0*/
+>> - =A0 =A0 if (_dev->iestate)
+>> - =A0 =A0 =A0 =A0 =A0 =A0 omap_i2c_write_reg(_dev, OMAP_I2C_IE_REG, =
+_dev->iestate);
+>> + =A0 =A0 if (_dev->flags & OMAP_I2C_FLAG_RESET_REGS_POSTIDLE)
+>> + =A0 =A0 =A0 =A0 =A0 =A0 omap_i2c_restore(_dev);
+>>
+>> =A0 =A0 =A0 return 0;
+>> =A0}
+>> diff --git a/include/linux/i2c-omap.h b/include/linux/i2c-omap.h
+>> index 92a0dc7..c76cbc0 100644
+>> --- a/include/linux/i2c-omap.h
+>> +++ b/include/linux/i2c-omap.h
+>> @@ -35,6 +35,7 @@ struct omap_i2c_bus_platform_data {
+>> =A0 =A0 =A0 u32 =A0 =A0 =A0 =A0 =A0 =A0 rev;
+>> =A0 =A0 =A0 u32 =A0 =A0 =A0 =A0 =A0 =A0 flags;
+>> =A0 =A0 =A0 void =A0 =A0 =A0 =A0 =A0 =A0(*set_mpu_wkup_lat)(struct d=
+evice *dev, long set);
+>> + =A0 =A0 int =A0 =A0 =A0 =A0 =A0 =A0 (*get_context_loss_count)(stru=
+ct device *dev);
+>> =A0};
+>>
+>> =A0#endif
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-omap"=
+ in
+> the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+> More majordomo info at =A0http://vger.kernel.org/majordomo-info.html
