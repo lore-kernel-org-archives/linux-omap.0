@@ -1,30 +1,64 @@
-From: Paul Walmsley <paul@pwsan.com>
-Subject: Re: [PATCH v4 11/12] ARM: OMAP1: DMTIMER: fix broken timer clock
- source selection
-Date: Tue, 17 Apr 2012 15:53:09 -0600 (MDT)
-Message-ID: <alpine.DEB.2.00.1204171552360.29048@utopia.booyaka.com>
-References: <20120411003454.27059.37500.stgit@dusk> <20120411003559.27059.1315.stgit@dusk> <20120417214802.GH21106@atomide.com>
+From: Kevin Hilman <khilman@ti.com>
+Subject: Re: [PATCH] ARM: OMAP: serial: Fix the ocp smart idlemode handling bug
+Date: Tue, 17 Apr 2012 15:20:55 -0700
+Message-ID: <878vhut2yg.fsf@ti.com>
+References: <1334339704-4554-1-git-send-email-santosh.shilimkar@ti.com>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from utopia.booyaka.com ([72.9.107.138]:32867 "EHLO
-	utopia.booyaka.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751207Ab2DQVxK (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 17 Apr 2012 17:53:10 -0400
-In-Reply-To: <20120417214802.GH21106@atomide.com>
+Received: from na3sys009aog128.obsmtp.com ([74.125.149.141]:35385 "EHLO
+	na3sys009aog128.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1751757Ab2DQWU7 (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>);
+	Tue, 17 Apr 2012 18:20:59 -0400
+Received: by dacx6 with SMTP id x6so8876153dac.18
+        for <linux-omap@vger.kernel.org>; Tue, 17 Apr 2012 15:20:57 -0700 (PDT)
+In-Reply-To: <1334339704-4554-1-git-send-email-santosh.shilimkar@ti.com>
+	(Santosh Shilimkar's message of "Fri, 13 Apr 2012 23:25:04 +0530")
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Tony Lindgren <tony@atomide.com>
-Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Tarun Kanti DebBarma <tarun.kanti@ti.com>
+To: Santosh Shilimkar <santosh.shilimkar@ti.com>
+Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, "Govindraj.R" <govindraj.raja@ti.com>, Paul Walmsley <paul@pwsan.com>
 
-On Tue, 17 Apr 2012, Tony Lindgren wrote:
+Santosh Shilimkar <santosh.shilimkar@ti.com> writes:
 
-> Uhh looks like this was caused by commit 97933d6 (ARM: OMAP1: dmtimer: conversion
-> to platform devices) moving code and changing it :(
-> 
-> I'll pick this to fixes.
+> The current serial UART code, while fidling with ocp idlemode bits,
+> forget about the smart idle wakeup bit even if it is supported by
+> UART IP block. This will lead to missing the module wakeup on OMAP's
+> where the smart idle wakeup is supported.
+>
+> This was the root cause of the console sluggishness issue, I have been
+> observing on OMAP4 devices and also can be potential reason for some
+> other UART wakeup issues.
+>
+> Signed-off-by: Santosh Shilimkar <santosh.shilimkar@ti.com>
+> Cc: Govindraj.R <govindraj.raja@ti.com>
+> Cc: Kevin Hilman <khilman@ti.com>
+> Cc: Paul Walmsley <paul@pwsan.com>
 
-Sounds good, will drop this from my series and send a new pull request.
+Acked-by: Kevin Hilman <khilman@ti.com>
 
-
-- Paul
+> ---
+>  arch/arm/mach-omap2/serial.c |    8 +++++++-
+>  1 files changed, 7 insertions(+), 1 deletions(-)
+>
+> diff --git a/arch/arm/mach-omap2/serial.c b/arch/arm/mach-omap2/serial.c
+> index c9503a7..b28aae1 100644
+> --- a/arch/arm/mach-omap2/serial.c
+> +++ b/arch/arm/mach-omap2/serial.c
+> @@ -108,8 +108,14 @@ static void omap_uart_set_noidle(struct platform_device *pdev)
+>  static void omap_uart_set_smartidle(struct platform_device *pdev)
+>  {
+>  	struct omap_device *od = to_omap_device(pdev);
+> +	u8 idlemode;
+>  
+> -	omap_hwmod_set_slave_idlemode(od->hwmods[0], HWMOD_IDLEMODE_SMART);
+> +	if (od->hwmods[0]->class->sysc->idlemodes & SIDLE_SMART_WKUP)
+> +		idlemode = HWMOD_IDLEMODE_SMART_WKUP;
+> +	else
+> +		idlemode = HWMOD_IDLEMODE_SMART;
+> +
+> +	omap_hwmod_set_slave_idlemode(od->hwmods[0], idlemode);
+>  }
+>  
+>  #else
