@@ -1,122 +1,189 @@
-From: "Raja, Govindraj" <govindraj.raja@ti.com>
-Subject: Re: [PATCH 2/2] OMAP2+: UART: Add mechanism to probe uart pins and
- configure rx wakeup
-Date: Tue, 17 Apr 2012 18:17:19 +0530
-Message-ID: <CAMrsUd+v-qhVPLbJp1ecE2+e5ayJAQrAzALr1sviH9RDJv3aMg@mail.gmail.com>
-References: <1334065246-21294-1-git-send-email-govindraj.raja@ti.com>
- <1334065246-21294-3-git-send-email-govindraj.raja@ti.com> <20120410161136.GF6487@atomide.com>
- <CAMrsUdK2ZqCGWtL104tBC_h-XHD0UMMFagch_eSER+92zC1FiQ@mail.gmail.com> <20120417014103.GA21106@atomide.com>
+From: Kevin Hilman <khilman-l0cyMroinI0@public.gmane.org>
+Subject: Re: [PATCHv8 04/18] I2C: OMAP: I2C register restore only if context is lost
+Date: Tue, 17 Apr 2012 06:45:44 -0700
+Message-ID: <87d376zd2v.fsf@ti.com>
+References: <1334235995-6727-1-git-send-email-shubhrajyoti@ti.com>
+	<1334235995-6727-5-git-send-email-shubhrajyoti@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aog114.obsmtp.com ([74.125.149.211]:35178 "EHLO
-	na3sys009aog114.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1756072Ab2DQMrm convert rfc822-to-8bit
-	(ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Tue, 17 Apr 2012 08:47:42 -0400
-Received: by obbwc20 with SMTP id wc20so5421626obb.25
-        for <linux-omap@vger.kernel.org>; Tue, 17 Apr 2012 05:47:41 -0700 (PDT)
-In-Reply-To: <20120417014103.GA21106@atomide.com>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-i2c-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <1334235995-6727-5-git-send-email-shubhrajyoti-l0cyMroinI0@public.gmane.org>
+	(Shubhrajyoti D.'s message of "Thu, 12 Apr 2012 18:36:21 +0530")
+Sender: linux-i2c-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Shubhrajyoti D <shubhrajyoti-l0cyMroinI0@public.gmane.org>
+Cc: linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-i2c-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, ben-linux-elnMNo+KYs3YtjvyW6yDsg@public.gmane.org, tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org, w.sang-bIcnvbaLZ9MEGnE8C9+IrQ@public.gmane.org
 List-Id: linux-omap@vger.kernel.org
-To: Tony Lindgren <tony@atomide.com>
-Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Felipe Balbi <balbi@ti.com>, Kevin Hilman <khilman@ti.com>, Russ Dill <russ.dill@gmail.com>
 
-On Tue, Apr 17, 2012 at 7:11 AM, Tony Lindgren <tony@atomide.com> wrote=
-:
-> Hi,
+Shubhrajyoti D <shubhrajyoti-l0cyMroinI0@public.gmane.org> writes:
+
+>  Currently i2c register restore is done always.
+>  Adding conditional restore.
+>  The i2c register restore is done only if the context is lost.
+
+OK, minor comment below.
+
+>  Also remove the definition of SYSS_RESETDONE_MASK and use the
+>  one in omap_hwmod.h.
+
+The definition is removed, but I don't see any of the users removed.
+If the users were cleaned up earlier in the series, then the removal of
+this should be done with that, or as a separate patch.  I don't see why
+it belongs with this patch.
+
+> Signed-off-by: Shubhrajyoti D <shubhrajyoti-l0cyMroinI0@public.gmane.org>
+> ---
+>  arch/arm/plat-omap/i2c.c      |    3 ++
+>  drivers/i2c/busses/i2c-omap.c |   52 ++++++++++++++++++++++++++--------------
+>  include/linux/i2c-omap.h      |    1 +
+>  3 files changed, 38 insertions(+), 18 deletions(-)
 >
-> Few more comments below.
->
-> * Raja, Govindraj <govindraj.raja@ti.com> [120411 04:53]:
-> ...
->
->> +static int =A0__init omap_serial_fill_default_pads(struct omap_boar=
-d_data *bdata,
->> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0=
- =A0 =A0 =A0 =A0 =A0 struct omap_uart_state *uart)
->> +{
->> + =A0 =A0 struct omap_mux_partition *tx_partition =3D NULL, *rx_part=
-ition =3D NULL;
->> + =A0 =A0 struct omap_mux *rx_mux =3D NULL, *tx_mux =3D NULL;
->> + =A0 =A0 char *rx_fmt, *tx_fmt;
->> + =A0 =A0 int uart_nr =3D bdata->id + 1;
->> +
->> + =A0 =A0 if (bdata->id !=3D 2) {
->> + =A0 =A0 =A0 =A0 =A0 =A0 rx_fmt =3D "uart%d_rx.uart%d_rx";
->> + =A0 =A0 =A0 =A0 =A0 =A0 tx_fmt =3D "uart%d_tx.uart%d_tx";
->> + =A0 =A0 } else {
->> + =A0 =A0 =A0 =A0 =A0 =A0 rx_fmt =3D "uart%d_rx_irrx.uart%d_rx_irrx"=
-;
->> + =A0 =A0 =A0 =A0 =A0 =A0 tx_fmt =3D "uart%d_tx_irtx.uart%d_tx_irtx"=
-;
->> + =A0 =A0 }
->> +
->> + =A0 =A0 snprintf(rx_pad_name, OMAP_UART_DEFAULT_PAD_NAME_LEN, rx_f=
-mt,
->> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 uart_nr, uart_nr);
->> + =A0 =A0 snprintf(tx_pad_name, OMAP_UART_DEFAULT_PAD_NAME_LEN, tx_f=
-mt,
->> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 uart_nr, uart_nr);
->
-> This naming won't work for the fourth port on 3630 as there are no "u=
-art4_rx"
-> or "uart4_tx" mux entries, they are "gpmc_wait2.uart4_tx" and
-> "gpmc_wait3.uart4_tx".
+> diff --git a/arch/arm/plat-omap/i2c.c b/arch/arm/plat-omap/i2c.c
+> index db071bc..4ccab07 100644
+> --- a/arch/arm/plat-omap/i2c.c
+> +++ b/arch/arm/plat-omap/i2c.c
+> @@ -179,6 +179,9 @@ static inline int omap2_i2c_add_bus(int bus_id)
+>  	 */
+>  	if (cpu_is_omap34xx())
+>  		pdata->set_mpu_wkup_lat = omap_pm_set_max_mpu_wakeup_lat_compat;
+> +
+> +	pdata->get_context_loss_count = omap_pm_get_dev_context_loss_count;
+> +
+>  	pdev = omap_device_build(name, bus_id, oh, pdata,
+>  			sizeof(struct omap_i2c_bus_platform_data),
+>  			NULL, 0, 0);
+> diff --git a/drivers/i2c/busses/i2c-omap.c b/drivers/i2c/busses/i2c-omap.c
+> index a882558..45389db 100644
+> --- a/drivers/i2c/busses/i2c-omap.c
+> +++ b/drivers/i2c/busses/i2c-omap.c
+> @@ -43,6 +43,7 @@
+>  #include <linux/slab.h>
+>  #include <linux/i2c-omap.h>
+>  #include <linux/pm_runtime.h>
+> +#include <plat/omap_device.h>
+>  
+>  /* I2C controller revisions */
+>  #define OMAP_I2C_OMAP1_REV_2		0x20
+> @@ -157,9 +158,6 @@ enum {
+>  #define OMAP_I2C_SYSTEST_SDA_I		(1 << 1)	/* SDA line sense in */
+>  #define OMAP_I2C_SYSTEST_SDA_O		(1 << 0)	/* SDA line drive out */
+>  
+> -/* OCP_SYSSTATUS bit definitions */
+> -#define SYSS_RESETDONE_MASK		(1 << 0)
+> -
+>  /* OCP_SYSCONFIG bit definitions */
+>  #define SYSC_CLOCKACTIVITY_MASK		(0x3 << 8)
+>  #define SYSC_SIDLEMODE_MASK		(0x3 << 3)
+> @@ -184,6 +182,7 @@ struct omap_i2c_dev {
+>  	u32			latency;	/* maximum mpu wkup latency */
+>  	void			(*set_mpu_wkup_lat)(struct device *dev,
+>  						    long latency);
+> +	int			(*get_context_loss_count)(struct device *dev);
+>  	u32			speed;		/* Speed of bus in kHz */
+>  	u32			dtrev;		/* extra revision from DT */
+>  	u32			flags;
+> @@ -206,6 +205,7 @@ struct omap_i2c_dev {
+>  	u16			syscstate;
+>  	u16			westate;
+>  	u16			errata;
+> +	int			dev_lost_count;
+>  };
+>  
+>  static const u8 reg_map_ip_v1[] = {
+> @@ -1025,6 +1025,7 @@ omap_i2c_probe(struct platform_device *pdev)
+>  		dev->speed = pdata->clkrate;
+>  		dev->flags = pdata->flags;
+>  		dev->set_mpu_wkup_lat = pdata->set_mpu_wkup_lat;
+> +		dev->get_context_loss_count = pdata->get_context_loss_count;
+>  		dev->dtrev = pdata->rev;
+>  	}
+>  
+> @@ -1151,12 +1152,32 @@ omap_i2c_remove(struct platform_device *pdev)
+>  }
+>  
+>  #ifdef CONFIG_PM_RUNTIME
+> +static void omap_i2c_restore(struct omap_i2c_dev *dev)
+> +{
+> +	omap_i2c_write_reg(dev, OMAP_I2C_CON_REG, 0);
+> +	omap_i2c_write_reg(dev, OMAP_I2C_PSC_REG, dev->pscstate);
+> +	omap_i2c_write_reg(dev, OMAP_I2C_SCLL_REG, dev->scllstate);
+> +	omap_i2c_write_reg(dev, OMAP_I2C_SCLH_REG, dev->sclhstate);
+> +	omap_i2c_write_reg(dev, OMAP_I2C_BUF_REG, dev->bufstate);
+> +	omap_i2c_write_reg(dev, OMAP_I2C_WE_REG, dev->westate);
+> +	omap_i2c_write_reg(dev, OMAP_I2C_CON_REG, OMAP_I2C_CON_EN);
+> +	/*
+> +	 * Don't write to this register if the IE state is 0 as it can
+> +	 * cause deadlock.
+> +	 */
+> +	if (dev->iestate)
+> +		omap_i2c_write_reg(dev, OMAP_I2C_IE_REG, dev->iestate);
+> +
+> +}
+>  static int omap_i2c_runtime_suspend(struct device *dev)
+>  {
+>  	struct platform_device *pdev = to_platform_device(dev);
+>  	struct omap_i2c_dev *_dev = platform_get_drvdata(pdev);
+>  	u16 iv;
+>  
+> +	if (_dev->get_context_loss_count)
+> +		_dev->dev_lost_count = _dev->get_context_loss_count(dev);
+> +
+>  	_dev->iestate = omap_i2c_read_reg(_dev, OMAP_I2C_IE_REG);
+>  	if (_dev->dtrev == OMAP_I2C_IP_VERSION_2)
+>  		omap_i2c_write_reg(_dev, OMAP_I2C_IP_V2_IRQENABLE_CLR, 1);
+> @@ -1179,24 +1200,19 @@ static int omap_i2c_runtime_resume(struct device *dev)
+>  {
+>  	struct platform_device *pdev = to_platform_device(dev);
+>  	struct omap_i2c_dev *_dev = platform_get_drvdata(pdev);
+> +	int loss_cnt;
+>  
+> -	if (_dev->flags & OMAP_I2C_FLAG_RESET_REGS_POSTIDLE) {
+> -		omap_i2c_write_reg(_dev, OMAP_I2C_CON_REG, 0);
+> -		omap_i2c_write_reg(_dev, OMAP_I2C_PSC_REG, _dev->pscstate);
+> -		omap_i2c_write_reg(_dev, OMAP_I2C_SCLL_REG, _dev->scllstate);
+> -		omap_i2c_write_reg(_dev, OMAP_I2C_SCLH_REG, _dev->sclhstate);
+> -		omap_i2c_write_reg(_dev, OMAP_I2C_BUF_REG, _dev->bufstate);
+> -		omap_i2c_write_reg(_dev, OMAP_I2C_SYSC_REG, _dev->syscstate);
+> -		omap_i2c_write_reg(_dev, OMAP_I2C_WE_REG, _dev->westate);
+> -		omap_i2c_write_reg(_dev, OMAP_I2C_CON_REG, OMAP_I2C_CON_EN);
+> +	if (_dev->get_context_loss_count) {
+> +		loss_cnt = _dev->get_context_loss_count(dev);
+> +		if (loss_cnt < 0)
+> +			return loss_cnt;
 
-But uart4 is unused on 3630 boards and boards trying to use them
-should configure them from board file.
-(I thought we agreed on this approach where only if uarts are
-available in mux mode0 those ports will be dynamically muxed for wakeup
-others should use omap_serial_init_port)
+To avoid messing up driver state, upon error, you should probably
+restore context, not abort.
 
->
->> @@ -289,8 +354,8 @@ void __init omap_serial_board_init(struct
->> omap_uart_port_info *info)
->> =A0 =A0 =A0 =A0 =A0 =A0 =A0 bdata.pads =3D NULL;
->> =A0 =A0 =A0 =A0 =A0 =A0 =A0 bdata.pads_cnt =3D 0;
->>
->> - =A0 =A0 =A0 =A0 =A0 =A0 if (cpu_is_omap44xx() || cpu_is_omap34xx()=
-)
->> - =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 omap_serial_fill_default_p=
-ads(&bdata);
->> + =A0 =A0 =A0 =A0 =A0 =A0 if (omap_serial_fill_default_pads(&bdata, =
-uart))
->> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 continue;
->>
->> =A0 =A0 =A0 =A0 =A0 =A0 =A0 if (!info)
->> =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 omap_serial_init_port(&b=
-data, NULL);
->
-> Can't the omap_serial_board_init() now be just be omap_serial_init(vo=
-id)
-> as it's not used anywhere else?
+> +		if (_dev->dev_lost_count == loss_cnt && _dev->dev_lost_count)
+> +			return 0;
 
-Yes sure we can remove that.
+Why the non-zero check?
 
->
-> Anyways, this is getting too complex for the -rc series as at least 2=
-430sdp
-> is using alternative pins for the first uart. Let's patch to remove j=
-ust
-> the uart4 entry for 3630 for the -rc and then we can properly fix thi=
-s
-> for the next merge window.
+Seems like all you need to check is if (_dev->dev_lost_count != loss_cnt).
 
-Okay. in that case the earlier patch [1] should be fine to solve the
-gpmc issue observed
-and ehci issue on beagle-xm.
+Kevin
 
---
-Thanks,
-Govindraj.R
-
-[1]:
-http://lists.infradead.org/pipermail/linux-arm-kernel/2012-March/090961=
-=2Ehtml
---
-To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+>  	}
+>  
+> -	/*
+> -	 * Don't write to this register if the IE state is 0 as it can
+> -	 * cause deadlock.
+> -	 */
+> -	if (_dev->iestate)
+> -		omap_i2c_write_reg(_dev, OMAP_I2C_IE_REG, _dev->iestate);
+> +	if (_dev->flags & OMAP_I2C_FLAG_RESET_REGS_POSTIDLE)
+> +		omap_i2c_restore(_dev);
+>  
+>  	return 0;
+>  }
+> diff --git a/include/linux/i2c-omap.h b/include/linux/i2c-omap.h
+> index 92a0dc7..c76cbc0 100644
+> --- a/include/linux/i2c-omap.h
+> +++ b/include/linux/i2c-omap.h
+> @@ -35,6 +35,7 @@ struct omap_i2c_bus_platform_data {
+>  	u32		rev;
+>  	u32		flags;
+>  	void		(*set_mpu_wkup_lat)(struct device *dev, long set);
+> +	int		(*get_context_loss_count)(struct device *dev);
+>  };
+>  
+>  #endif
