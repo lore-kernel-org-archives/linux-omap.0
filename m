@@ -1,48 +1,71 @@
 From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH] ARM: OMAP: sram: fix BUG in dpll code for !PM case
-Date: Tue, 17 Apr 2012 10:22:27 -0700
-Message-ID: <20120417172227.GB21106@atomide.com>
-References: <1333749201-23255-1-git-send-email-notasas@gmail.com>
- <20120409224946.GC6487@atomide.com>
+Subject: Re: [GIT PULL]: omap-serial updates for 3.4-rc
+Date: Tue, 17 Apr 2012 10:35:31 -0700
+Message-ID: <20120417173530.GC21106@atomide.com>
+References: <1334052148-10385-1-git-send-email-govindraj.raja@ti.com>
+ <CAMrsUdKDhuDLr2=0uiQtY=r4pvmJQo=pJgERRCXySLghO7yGXA@mail.gmail.com>
+ <CAMrsUdJ7wzX+Hnx_wBWNnCQz__0sMw8ruFGVWH+x3NGWG0NVQw@mail.gmail.com>
+ <CAMrsUdJ9ehjC4-hChddQRnH0BtpFG3bVBTnm6zFZpU6F0za_bg@mail.gmail.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-01-ewr.mailhop.org ([204.13.248.71]:29401 "EHLO
+Received: from mho-01-ewr.mailhop.org ([204.13.248.71]:39382 "EHLO
 	mho-01-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753330Ab2DQRWb (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 17 Apr 2012 13:22:31 -0400
+	with ESMTP id S1751241Ab2DQRfe (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 17 Apr 2012 13:35:34 -0400
 Content-Disposition: inline
-In-Reply-To: <20120409224946.GC6487@atomide.com>
+In-Reply-To: <CAMrsUdJ9ehjC4-hChddQRnH0BtpFG3bVBTnm6zFZpU6F0za_bg@mail.gmail.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Grazvydas Ignotas <notasas@gmail.com>
-Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+To: "Raja, Govindraj" <govindraj.raja@ti.com>
+Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, "Balbi, Felipe" <balbi@ti.com>, "Shilimkar, Santosh" <santosh.shilimkar@ti.com>
 
-* Tony Lindgren <tony@atomide.com> [120409 15:52]:
-> * Grazvydas Ignotas <notasas@gmail.com> [120406 14:56]:
-> > _omap3_sram_configure_core_dpll is called when SDRC is reprogrammed,
-> > which is done regardless of CONFIG_PM setting, so we always need it's
-> > setup code too. Without this, we hit a BUG() on OMAP3 when kernel is
-> > built without CONFIG_PM:
-> > 
-> > Reprogramming SDRC clock to 332000000 Hz
-> > ------------[ cut here ]------------
-> > kernel BUG at arch/arm/plat-omap/sram.c:342!
-> > Internal error: Oops - BUG: 0 [#1] ARM
-> > ...
-> > [<c001c694>] (omap3_configure_core_dpll+0x68/0x6c) from [<c001b2dc>] (omap3_core_dpll_m2_set_rate+0x1)
-> > [<c001b2dc>] (omap3_core_dpll_m2_set_rate+0x138/0x1b0) from [<c001a478>] (omap2_clk_set_rate+0x14/0x2)
-> > [<c001a478>] (omap2_clk_set_rate+0x14/0x20) from [<c001c9dc>] (clk_set_rate+0x54/0x74)
-> > [<c001c9dc>] (clk_set_rate+0x54/0x74) from [<c022b9c8>] (omap_sdrc_init+0x70/0x90)
-> > [<c022b9c8>] (omap_sdrc_init+0x70/0x90) from [<c022f178>] (omap3pandora_init+0x11c/0x164)
-> > [<c022f178>] (omap3pandora_init+0x11c/0x164) from [<c022849c>] (customize_machine+0x20/0x28)
-> > [<c022849c>] (customize_machine+0x20/0x28) from [<c0225810>] (do_one_initcall+0xa0/0x16c)
-> > [<c0225810>] (do_one_initcall+0xa0/0x16c) from [<c02259e0>] (kernel_init+0x104/0x1ac)
-> > [<c02259e0>] (kernel_init+0x104/0x1ac) from [<c0009cec>] (kernel_thread_exit+0x0/0x8)
+Hi,
+
+* Raja, Govindraj <govindraj.raja@ti.com> [120416 03:44]:
 > 
-> Looks like this was caused by the added ifdef CONFIG_PM from
-> commit 3231fc88 (OMAP3: PM: restore SRAM functions after off-mode).
+> The following changes since commit e816b57a337ea3b755de72bec38c10c864f23015:
+> 
+>   Linux 3.4-rc3 (2012-04-15 18:28:29 -0700)
+> 
+> are available in the git repository at:
+> 
+>   git://gitorious.org/linux-3-x/omap-serial.git for_3.4/uart_fixes
+> 
+> for you to fetch changes up to 381772fefe13e73fc3d01c462d401785767c3775:
+> 
+>   ARM: OMAP: serial: Fix the ocp smart idlemode handling bug
+> (2012-04-16 15:46:26 +0530)
+> 
+> ----------------------------------------------------------------
+> Govindraj.R (5):
+>       OMAP2+: UART: Remove cpu checks for populating errata flags
 
-Applying this into fixes.
+Not a fix.
+
+>       OMAP2+: UART: enable tx wakeup bit for wer reg
+
+Not a fix, and should get reviewed and merged via linux-serial mailing
+list.
+
+>       OMAP2+: UART: replace omap34xx/omap4xx cpu checks with not omap24xx
+
+Not a fix.
+
+>       OMAP2+: UART: Fix incorrect population of default uart pads
+
+I'll apply this directly with updated comments into fixes.
+
+>       OMAP2+: UART: Add mechanism to probe uart pins and configure rx wakeup
+
+Not ready and too intrusive for -rc cycle.
+ 
+> Santosh Shilimkar (1):
+>       ARM: OMAP: serial: Fix the ocp smart idlemode handling bug
+
+It seems this can wait as the wake-up events are anyways broken right
+now when we remove the muxing.
+
+So not pulling.
 
 Tony
