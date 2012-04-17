@@ -1,184 +1,211 @@
 From: Kevin Hilman <khilman@ti.com>
-Subject: Re: [PATCH 1/2] ARM: OMAP2+: omap_hwmod: Add interface to incorporate module level wakeup
-Date: Tue, 17 Apr 2012 15:36:01 -0700
-Message-ID: <87obqqrnou.fsf@ti.com>
-References: <1334580053-17242-1-git-send-email-govindraj.raja@ti.com>
-	<1334580053-17242-2-git-send-email-govindraj.raja@ti.com>
+Subject: Re: [PATCH] tty: omap-serial: Keep the wakeup mechanism enabled by default
+Date: Tue, 17 Apr 2012 16:25:45 -0700
+Message-ID: <87vckyq6ti.fsf@ti.com>
+References: <1334579407-16970-1-git-send-email-govindraj.raja@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aog133.obsmtp.com ([74.125.149.82]:59038 "EHLO
-	na3sys009aog133.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752307Ab2DQWgE (ORCPT
+Received: from na3sys009aog114.obsmtp.com ([74.125.149.211]:59692 "EHLO
+	na3sys009aog114.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1751990Ab2DQXZs (ORCPT
 	<rfc822;linux-omap@vger.kernel.org>);
-	Tue, 17 Apr 2012 18:36:04 -0400
-Received: by dajr28 with SMTP id r28so10245228daj.26
-        for <linux-omap@vger.kernel.org>; Tue, 17 Apr 2012 15:36:02 -0700 (PDT)
-In-Reply-To: <1334580053-17242-2-git-send-email-govindraj.raja@ti.com>
-	(Govindraj R.'s message of "Mon, 16 Apr 2012 18:10:52 +0530")
+	Tue, 17 Apr 2012 19:25:48 -0400
+Received: by pbcup15 with SMTP id up15so8553891pbc.0
+        for <linux-omap@vger.kernel.org>; Tue, 17 Apr 2012 16:25:47 -0700 (PDT)
+In-Reply-To: <1334579407-16970-1-git-send-email-govindraj.raja@ti.com>
+	(Govindraj R.'s message of "Mon, 16 Apr 2012 18:00:07 +0530")
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: "Govindraj.R" <govindraj.raja@ti.com>
-Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Paul Walmsley <paul@pwsan.com>
+Cc: linux-omap@vger.kernel.org, Paul Walmsley <paul@pwsan.com>, linux-arm-kernel@lists.infradead.org, linux-serial@vger.kernel.org
 
 "Govindraj.R" <govindraj.raja@ti.com> writes:
 
 > From: "Govindraj.R" <govindraj.raja@ti.com>
 >
-> On 24xx/34xx/36xx Module level wakeup events are enabled/disabled using
-> PM_WKEN1_CORE/PM_WKEN_PER regs. The module level wakeups are enabled by
-> default from bootloader, 
+> The wakeups can be left enabled by default and should be disabled
+> only when disabled from sysfs and while entering suspend.
 
-Which bootloader?  what board?
+Left enabled?  That assumes something else has initizlied them, but we
+can't make that assumption.
 
-We cannot make any assumptions about what bootloader does (or doesn't
-do).  
+First, wakeups should be disabled when ->probe has finished.  Then,
+they should be enabled whenever driver is in use, and disabled when
+the driver is not in use.
 
-There is also some default init to these PM_WKEN values in prcm_setup_regs()
-for OMAP3 as well, which could be removed (at least for the UARTs) when
-this is handled by the UART init code.
+I'm not familiar enough with uart_ops, but it looks like they should
+probably be enabled in uart_ops->startup and disabled in
+uart_ops->shutdown.  
 
-Kevin
+I've hacked up a test patch[1] which was required for module-wakeups to
+work for me.  I tested module-level wakeups by disabling all C-states
+except C1 using the new sysfs control for disabling C-states[2].
 
+More comments below...
 
-> however the wakeups can be enabled/disabled
-> using sysfs entry example for uart:
-> echo disabled > /sys/devices/platform/omap/omap_uart.X/power/wakeup
-> [X=0,1,2,3]
->
-> So expand omap2 prcm structure to incorporate the PM_WKEN reg offset
-> and bit mask to control the module level wakeup. This info from hwmod
-> data can be used hwmod framework omap_hwmod_enable/disable_wakeup.
+> Thanks to Kevin Hilman <khilman@ti.com> for suggesting this.
+> Discussion References:
+> http://www.spinics.net/lists/linux-omap/msg67764.html
+> http://www.spinics.net/lists/linux-omap/msg67838.html
 >
 > Cc: Paul Walmsley <paul@pwsan.com>
 > Cc: Kevin Hilman <khilman@ti.com>
 > Signed-off-by: Govindraj.R <govindraj.raja@ti.com>
 > ---
->  arch/arm/mach-omap2/omap_hwmod_2420_data.c   |    6 ++++++
->  arch/arm/mach-omap2/omap_hwmod_2430_data.c   |    6 ++++++
->  arch/arm/mach-omap2/omap_hwmod_3xxx_data.c   |    8 ++++++++
->  arch/arm/plat-omap/include/plat/omap_hwmod.h |    4 ++++
->  4 files changed, 24 insertions(+), 0 deletions(-)
+>  drivers/tty/serial/omap-serial.c |   30 +++++++++++-------------------
+>  1 files changed, 11 insertions(+), 19 deletions(-)
 >
-> diff --git a/arch/arm/mach-omap2/omap_hwmod_2420_data.c b/arch/arm/mach-omap2/omap_hwmod_2420_data.c
-> index a5409ce..676274b 100644
-> --- a/arch/arm/mach-omap2/omap_hwmod_2420_data.c
-> +++ b/arch/arm/mach-omap2/omap_hwmod_2420_data.c
-> @@ -791,6 +791,8 @@ static struct omap_hwmod omap2420_uart1_hwmod = {
->  			.module_bit = OMAP24XX_EN_UART1_SHIFT,
->  			.idlest_reg_id = 1,
->  			.idlest_idle_bit = OMAP24XX_EN_UART1_SHIFT,
-> +			.module_wakeup_offs = PM_WKEN1,
-> +			.module_wakeup_bit = OMAP24XX_ST_UART1_MASK,
->  		},
->  	},
->  	.slaves		= omap2420_uart1_slaves,
-> @@ -816,6 +818,8 @@ static struct omap_hwmod omap2420_uart2_hwmod = {
->  			.module_bit = OMAP24XX_EN_UART2_SHIFT,
->  			.idlest_reg_id = 1,
->  			.idlest_idle_bit = OMAP24XX_EN_UART2_SHIFT,
-> +			.module_wakeup_offs = PM_WKEN1,
-> +			.module_wakeup_bit = OMAP24XX_ST_UART2_MASK,
->  		},
->  	},
->  	.slaves		= omap2420_uart2_slaves,
-> @@ -841,6 +845,8 @@ static struct omap_hwmod omap2420_uart3_hwmod = {
->  			.module_bit = OMAP24XX_EN_UART3_SHIFT,
->  			.idlest_reg_id = 2,
->  			.idlest_idle_bit = OMAP24XX_EN_UART3_SHIFT,
-> +			.module_wakeup_offs = OMAP24XX_PM_WKEN2,
-> +			.module_wakeup_bit = OMAP24XX_ST_UART3_MASK,
->  		},
->  	},
->  	.slaves		= omap2420_uart3_slaves,
-> diff --git a/arch/arm/mach-omap2/omap_hwmod_2430_data.c b/arch/arm/mach-omap2/omap_hwmod_2430_data.c
-> index c4f56cb..94d4463 100644
-> --- a/arch/arm/mach-omap2/omap_hwmod_2430_data.c
-> +++ b/arch/arm/mach-omap2/omap_hwmod_2430_data.c
-> @@ -864,6 +864,8 @@ static struct omap_hwmod omap2430_uart1_hwmod = {
->  			.module_bit = OMAP24XX_EN_UART1_SHIFT,
->  			.idlest_reg_id = 1,
->  			.idlest_idle_bit = OMAP24XX_EN_UART1_SHIFT,
-> +			.module_wakeup_offs = PM_WKEN1,
-> +			.module_wakeup_bit = OMAP24XX_ST_UART1_MASK,
->  		},
->  	},
->  	.slaves		= omap2430_uart1_slaves,
-> @@ -889,6 +891,8 @@ static struct omap_hwmod omap2430_uart2_hwmod = {
->  			.module_bit = OMAP24XX_EN_UART2_SHIFT,
->  			.idlest_reg_id = 1,
->  			.idlest_idle_bit = OMAP24XX_EN_UART2_SHIFT,
-> +			.module_wakeup_offs = PM_WKEN1,
-> +			.module_wakeup_bit = OMAP24XX_ST_UART2_MASK,
->  		},
->  	},
->  	.slaves		= omap2430_uart2_slaves,
-> @@ -914,6 +918,8 @@ static struct omap_hwmod omap2430_uart3_hwmod = {
->  			.module_bit = OMAP24XX_EN_UART3_SHIFT,
->  			.idlest_reg_id = 2,
->  			.idlest_idle_bit = OMAP24XX_EN_UART3_SHIFT,
-> +			.module_wakeup_offs = OMAP24XX_PM_WKEN2,
-> +			.module_wakeup_bit = OMAP24XX_ST_UART3_MASK,
->  		},
->  	},
->  	.slaves		= omap2430_uart3_slaves,
-> diff --git a/arch/arm/mach-omap2/omap_hwmod_3xxx_data.c b/arch/arm/mach-omap2/omap_hwmod_3xxx_data.c
-> index 34b9766d..9ed038d 100644
-> --- a/arch/arm/mach-omap2/omap_hwmod_3xxx_data.c
-> +++ b/arch/arm/mach-omap2/omap_hwmod_3xxx_data.c
-> @@ -1248,6 +1248,8 @@ static struct omap_hwmod omap3xxx_uart1_hwmod = {
->  			.module_bit = OMAP3430_EN_UART1_SHIFT,
->  			.idlest_reg_id = 1,
->  			.idlest_idle_bit = OMAP3430_EN_UART1_SHIFT,
-> +			.module_wakeup_offs = PM_WKEN1,
-> +			.module_wakeup_bit = OMAP3430_ST_UART1_MASK,
->  		},
->  	},
->  	.slaves		= omap3xxx_uart1_slaves,
-> @@ -1273,6 +1275,8 @@ static struct omap_hwmod omap3xxx_uart2_hwmod = {
->  			.module_bit = OMAP3430_EN_UART2_SHIFT,
->  			.idlest_reg_id = 1,
->  			.idlest_idle_bit = OMAP3430_EN_UART2_SHIFT,
-> +			.module_wakeup_offs = PM_WKEN1,
-> +			.module_wakeup_bit = OMAP3430_ST_UART2_MASK,
->  		},
->  	},
->  	.slaves		= omap3xxx_uart2_slaves,
-> @@ -1298,6 +1302,8 @@ static struct omap_hwmod omap3xxx_uart3_hwmod = {
->  			.module_bit = OMAP3430_EN_UART3_SHIFT,
->  			.idlest_reg_id = 1,
->  			.idlest_idle_bit = OMAP3430_EN_UART3_SHIFT,
-> +			.module_wakeup_offs = PM_WKEN1,
-> +			.module_wakeup_bit = OMAP3430_ST_UART3_MASK,
->  		},
->  	},
->  	.slaves		= omap3xxx_uart3_slaves,
-> @@ -1334,6 +1340,8 @@ static struct omap_hwmod omap3xxx_uart4_hwmod = {
->  			.module_bit = OMAP3630_EN_UART4_SHIFT,
->  			.idlest_reg_id = 1,
->  			.idlest_idle_bit = OMAP3630_EN_UART4_SHIFT,
-> +			.module_wakeup_offs = PM_WKEN1,
-> +			.module_wakeup_bit = OMAP3630_ST_UART4_MASK,
->  		},
->  	},
->  	.slaves		= omap3xxx_uart4_slaves,
-> diff --git a/arch/arm/plat-omap/include/plat/omap_hwmod.h b/arch/arm/plat-omap/include/plat/omap_hwmod.h
-> index 8070145..5c7711b 100644
-> --- a/arch/arm/plat-omap/include/plat/omap_hwmod.h
-> +++ b/arch/arm/plat-omap/include/plat/omap_hwmod.h
-> @@ -343,6 +343,8 @@ struct omap_hwmod_class_sysconfig {
->   * @idlest_reg_id: IDLEST register ID (e.g., 3 for CM_IDLEST3)
->   * @idlest_idle_bit: register bit shift for CM_IDLEST slave idle bit
->   * @idlest_stdby_bit: register bit shift for CM_IDLEST master standby bit
-> + * @module_wakeup_offs: PRCM register offset for PM_WKEN
-> + * @module_wakeup_bit: regiter bit mask for PM_WKEN
->   *
->   * @prcm_reg_id and @module_bit are specific to the AUTOIDLE, WKST,
->   * WKEN, GRPSEL registers.  In an ideal world, no extra information
-> @@ -357,6 +359,8 @@ struct omap_hwmod_omap2_prcm {
->  	u8 idlest_reg_id;
->  	u8 idlest_idle_bit;
->  	u8 idlest_stdby_bit;
-> +	s16 module_wakeup_offs;
-> +	u32 module_wakeup_bit;
->  };
+> diff --git a/drivers/tty/serial/omap-serial.c b/drivers/tty/serial/omap-serial.c
+> index d00b38e..4a92447 100644
+> --- a/drivers/tty/serial/omap-serial.c
+> +++ b/drivers/tty/serial/omap-serial.c
+> @@ -930,13 +930,6 @@ serial_omap_pm(struct uart_port *port, unsigned int state,
+>  	serial_out(up, UART_EFR, efr);
+>  	serial_out(up, UART_LCR, 0);
+>  
+> -	if (!device_may_wakeup(&up->pdev->dev)) {
+> -		if (!state)
+> -			pm_runtime_forbid(&up->pdev->dev);
+> -		else
+> -			pm_runtime_allow(&up->pdev->dev);
+> -	}
+> -
+>  	pm_runtime_put(&up->pdev->dev);
+>  }
+>  
+> @@ -1184,10 +1177,16 @@ static struct uart_driver serial_omap_reg = {
+>  static int serial_omap_suspend(struct device *dev)
+>  {
+>  	struct uart_omap_port *up = dev_get_drvdata(dev);
+> +	struct omap_uart_port_info *pdata = dev->platform_data;
+>  
+>  	if (up) {
+>  		uart_suspend_port(&serial_omap_reg, &up->port);
+>  		flush_work_sync(&up->qos_work);
+> +
+> +		if (!device_may_wakeup(dev)) {
+> +			pdata->enable_wakeup(up->pdev, false);
+
+Should check for the presence of pdata->enable_wakeup() before calling.  
+Same thing below.
+
+> +			up->wakeups_enabled = false;
+> +		}
+>  	}
+>  
+>  	return 0;
+> @@ -1582,18 +1581,6 @@ static int serial_omap_runtime_suspend(struct device *dev)
+>  	if (pdata->get_context_loss_count)
+>  		up->context_loss_cnt = pdata->get_context_loss_count(dev);
+>  
+> -	if (device_may_wakeup(dev)) {
+> -		if (!up->wakeups_enabled) {
+> -			pdata->enable_wakeup(up->pdev, true);
+> -			up->wakeups_enabled = true;
+> -		}
+> -	} else {
+> -		if (up->wakeups_enabled) {
+> -			pdata->enable_wakeup(up->pdev, false);
+> -			up->wakeups_enabled = false;
+> -		}
+> -	}
+> -
+>  	/* Errata i291 */
+>  	if (up->use_dma && pdata->set_forceidle &&
+>  			(up->errata & UART_ERRATA_i291_DMA_FORCEIDLE))
+> @@ -1618,6 +1605,11 @@ static int serial_omap_runtime_resume(struct device *dev)
+>  				serial_omap_restore_context(up);
+>  		}
+>  
+> +		if (!up->wakeups_enabled) {
+> +			pdata->enable_wakeup(up->pdev, true);
+> +			up->wakeups_enabled = true;
+> +		}
+
+You put the disable in ->suspend, but the enable in ->runtime_resume.
+
+Doesn't this belong in ->resume ?
+
+Kevin
+
+>  		/* Errata i291 */
+>  		if (up->use_dma && pdata->set_noidle &&
+>  				(up->errata & UART_ERRATA_i291_DMA_FORCEIDLE))
+
+
+
+[1] Feel free to fold this into your original patch.
+
+>From 8a4a24998aaf35240f0010b172537da64351a7d6 Mon Sep 17 00:00:00 2001
+From: Kevin Hilman <khilman@ti.com>
+Date: Tue, 17 Apr 2012 16:24:05 -0700
+Subject: [PATCH] omap-serial: fix default wakeup settings
+
+---
+ drivers/tty/serial/omap-serial.c |   10 ++++++++++
+ 1 file changed, 10 insertions(+)
+
+diff --git a/drivers/tty/serial/omap-serial.c b/drivers/tty/serial/omap-serial.c
+index 4a92447..6458ec9 100644
+--- a/drivers/tty/serial/omap-serial.c
++++ b/drivers/tty/serial/omap-serial.c
+@@ -511,6 +511,7 @@ static void serial_omap_break_ctl(struct uart_port *port, int break_state)
+ static int serial_omap_startup(struct uart_port *port)
+ {
+ 	struct uart_omap_port *up = (struct uart_omap_port *)port;
++	struct omap_uart_port_info *pdata = up->pdev->dev.platform_data;
+ 	unsigned long flags = 0;
+ 	int retval;
+ 
+@@ -525,6 +526,9 @@ static int serial_omap_startup(struct uart_port *port)
+ 	dev_dbg(up->port.dev, "serial_omap_startup+%d\n", up->port.line);
+ 
+ 	pm_runtime_get_sync(&up->pdev->dev);
++	if (pdata->enable_wakeup)
++		pdata->enable_wakeup(up->pdev, true);
++
+ 	/*
+ 	 * Clear the FIFO buffers and disable them.
+ 	 * (they will be reenabled in set_termios())
+@@ -589,6 +593,7 @@ static int serial_omap_startup(struct uart_port *port)
+ static void serial_omap_shutdown(struct uart_port *port)
+ {
+ 	struct uart_omap_port *up = (struct uart_omap_port *)port;
++	struct omap_uart_port_info *pdata = up->pdev->dev.platform_data;
+ 	unsigned long flags = 0;
+ 
+ 	dev_dbg(up->port.dev, "serial_omap_shutdown+%d\n", up->port.line);
+@@ -628,6 +633,8 @@ static void serial_omap_shutdown(struct uart_port *port)
+ 		up->uart_dma.rx_buf = NULL;
+ 	}
+ 
++	if (pdata->enable_wakeup)
++		pdata->enable_wakeup(up->pdev, false);
+ 	pm_runtime_put(&up->pdev->dev);
+ 	free_irq(up->port.irq, up);
+ }
+@@ -1475,6 +1482,9 @@ static int serial_omap_probe(struct platform_device *pdev)
+ 	if (ret != 0)
+ 		goto err_add_port;
+ 
++	if (omap_up_info->enable_wakeup)
++		omap_up_info->enable_wakeup(pdev, false);
++
+ 	pm_runtime_put(&pdev->dev);
+ 	platform_set_drvdata(pdev, up);
+ 	return 0;
+-- 
+1.7.9.2
+
+
+
+[1] shell snippit for disabling C-states
+
+# CPUidle: disable everything but C1
+cd /sys/devices/system/cpu/cpu0/cpuidle
+for state in state[1-6]*; do
+  if [ -e ${state} ]; then 
+    echo 1 > cat ${state}/disable
+  fi
+done
