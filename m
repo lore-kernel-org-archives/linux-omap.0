@@ -1,43 +1,31 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH 02/10] ARM: OMAP2+: SmartReflex: move the platform
- specific macros in plat-omap
-Date: Wed, 18 Apr 2012 13:18:07 -0700
-Message-ID: <20120418201807.GQ21106@atomide.com>
-References: <1331829845-9526-1-git-send-email-j-pihet@ti.com>
- <1331829845-9526-3-git-send-email-j-pihet@ti.com>
- <20120315171359.GA7276@atomide.com>
- <CAORVsuUp9VBX1XbkQkcq91XsbRSut1RC6KCNPFHrX+RfWv7hQA@mail.gmail.com>
+From: Russell King - ARM Linux <linux@arm.linux.org.uk>
+Subject: Re: [PATCH 8/8] ARM: omap_hsmmc: remove platform data dma_mask and
+	initialization
+Date: Wed, 18 Apr 2012 21:24:47 +0100
+Message-ID: <20120418202447.GT25053@n2100.arm.linux.org.uk>
+References: <20120418100954.GK25053@n2100.arm.linux.org.uk> <E1SKRsg-0004bX-4w@rmk-PC.arm.linux.org.uk> <CANrkHUajRzoCp7K8L3cJArWN3xdqpft8L4k-o4gFTRTo8nmhmg@mail.gmail.com> <20120418152956.GP25053@n2100.arm.linux.org.uk> <CANrkHUYvKdBUZh9UmWcE30ywAAiqhN-KcnSAE2T56WJLFPX1gA@mail.gmail.com> <20120418194224.GS25053@n2100.arm.linux.org.uk> <20120418200214.GP21106@atomide.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-kernel-owner@vger.kernel.org>
+Return-path: <linux-mmc-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <CAORVsuUp9VBX1XbkQkcq91XsbRSut1RC6KCNPFHrX+RfWv7hQA@mail.gmail.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Jean Pihet <jean.pihet@newoldbits.com>
-Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Kevin Hilman <khilman@ti.com>, "Rafael J. Wysocki" <rjw@sisk.pl>, LKML <linux-kernel@vger.kernel.org>, Jean Pihet <j-pihet@ti.com>
+In-Reply-To: <20120418200214.GP21106@atomide.com>
+Sender: linux-mmc-owner@vger.kernel.org
+To: Tony Lindgren <tony@atomide.com>
+Cc: "T Krishnamoorthy, Balaji" <balajitk@ti.com>, linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org, linux-mmc@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-* Jean Pihet <jean.pihet@newoldbits.com> [120316 08:22]:
-> Hi Tony,
-> 
-> On Thu, Mar 15, 2012 at 6:14 PM, Tony Lindgren <tony@atomide.com> wrote:
-> > * jean.pihet@newoldbits.com <jean.pihet@newoldbits.com> [120315 09:47]:
-> >> From: Jean Pihet <j-pihet@ti.com>
-> >>
-> >> Move the platform specific macros from the smartreflex header file
-> >> (arch/arm/mach-omap2/smartreflex.h) in a new header file in plat-omap
-> >> (arch/arm/plat-omap/include/plat/smartreflex.h).
-> >>
-> >> This change makes the SmartReflex implementation ready for the move
-> >> to drivers/.
-> >
-> > Glad to see this happening!
-> >
-> > This would be better located in linux/power/smartreflex.h rather than
-> > plat/smartreflex.h.
-> Ok. Is the file name still Ok in that case? Should it mention OMAP?
+On Wed, Apr 18, 2012 at 01:02:15PM -0700, Tony Lindgren wrote:
+> The scatterlist entries are separate DMA requests on omap1, there's no
+> chaining support in the DMA hardware on omap1. So yes, it's for every
+> scatterlist entry on omap1.
 
-Well I guess smartreflex is enough, in theory it could be on other
-processors than omap too.
+There's no direct scatterlist support on OMAP2 either (omap_hsmmc _used_
+to do each scatterlist entry separately too).  The DMA engine driver
+does the same, but will walk the scatterlist internally rather than the
+driver having to do it.
 
-Tony
+I'd like to have the same thing happen on OMAP1 as well (it's actually
+quite simple to do) and it means that this DMA engine implementation
+detail is (correctly) hidden from the drivers - provided there's no
+dependencies on each individual scatterlist entry back to the peripheral
+driver.
