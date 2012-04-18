@@ -1,137 +1,79 @@
-From: Jean Pihet <jean.pihet@newoldbits.com>
-Subject: Re: [PATCH v2 0/9] PM: Create the AVS class of drivers
-Date: Wed, 18 Apr 2012 10:04:22 +0200
-Message-ID: <CAORVsuV-GJAabY49G0fOgcBcg-CNdpNiTE+AcBN07wrWZH3qcQ@mail.gmail.com>
-References: <1332173578-27422-1-git-send-email-j-pihet@ti.com>
+From: Tomi Valkeinen <tomi.valkeinen@ti.com>
+Subject: Re: [PATCH] ARM: OMAP: Revert "ARM: OMAP: ctrl: Fix CONTROL_DSIPHY
+ register fields"
+Date: Wed, 18 Apr 2012 11:06:26 +0300
+Message-ID: <1334736386.1886.8.camel@deskari>
+References: <1333955479-2675-1-git-send-email-archit@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <1332173578-27422-1-git-send-email-j-pihet@ti.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: akpm@linux-foundation.org, gregkh@linuxfoundation.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Kevin Hilman <khilman@ti.com>, "Rafael J. Wysocki" <rjw@sisk.pl>, LKML <linux-kernel@vger.kernel.org>, Tony Lindgren <tony@atomide.com>, KEERTHY J <j-keerthy@ti.com>
-Cc: Jean Pihet <j-pihet@ti.com>
+Content-Type: multipart/signed; micalg="pgp-sha1"; protocol="application/pgp-signature"; boundary="=-cr71e4OkXDD/lygAtl8l"
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from na3sys009aog112.obsmtp.com ([74.125.149.207]:34729 "EHLO
+	na3sys009aog112.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1751062Ab2DRIGc (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>);
+	Wed, 18 Apr 2012 04:06:32 -0400
+Received: by lahi5 with SMTP id i5so6823907lah.11
+        for <linux-omap@vger.kernel.org>; Wed, 18 Apr 2012 01:06:29 -0700 (PDT)
+In-Reply-To: <1333955479-2675-1-git-send-email-archit@ti.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Archit Taneja <archit@ti.com>
+Cc: linux@arm.linux.org.uk, tony@atomide.com, linux-omap@vger.kernel.org, santosh.shilimkar@ti.com, paul@pwsan.com, b-cousson@ti.com
 
-Hi Andrew, Greg,
 
-Can you please look at this patch set?
-The idea is to create a framework and drivers for the AVS class of
-devices. This patch set implements the first step by moving the
-existing code to drivers/power/avs. Next steps will be to implement
-class support and notifications, add more classes of operations for
-OMAP chips, etc.
+--=-cr71e4OkXDD/lygAtl8l
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: quoted-printable
 
-Keerthy J is taking over the ownership of this code and will continue
-the development further.
+Hi,
 
-What do you think?
+On Mon, 2012-04-09 at 12:41 +0530, Archit Taneja wrote:
+> This reverts commit 46f8c3c7e95c0d30d95911e7975ddc4f93b3e237.
+>=20
+> The commit above swapped the DSI1_PPID and DSI2_PPID register fields in
+> CONTROL_DSIPHY to be in sync with the newer public OMAP TRMs(after versio=
+n V).
+>=20
+> With this commit, contention errors were reported on DSI lanes some OMAP4=
+ SDPs.
+> After probing the DSI lanes on OMAP4 SDP, it was seen that setting bits i=
+n the
+> DSI2_PPID field was pulling up voltage on DSI1 lanes, and DSI1_PPID field=
+ was
+> pulling up voltage on DSI2 lanes.
+>=20
+> This proves that the current version of OMAP4 TRM is incorrect, swap the
+> position of register fields according to the older TRM versions as they w=
+ere
+> correct.
 
-Regards,
-Jean
+Are we sure the bits are the same for all OMAP4 versions? I'm just
+wondering why the change was made to TRM...
 
-On Mon, Mar 19, 2012 at 5:12 PM,  <jean.pihet@newoldbits.com> wrote:
-> From: Jean Pihet <j-pihet@ti.com>
->
-> AVS is a power management technique which controls the operating
-> voltage of a device in order to optimize (i.e. reduce) its power
-> consumption. The voltage is adapted depending on static factors
-> (chip manufacturing process) and dynamic factors (temperature
-> depending performance).
-> AVS is also called SmartReflex on OMAP devices.
->
-> To that end, create the AVS framework in drivers/power/avs and
-> move the OMAP SmartReflex code to the new directory.
->
-> In preparation to the move of the OMAP code the following changes hav=
-e been
-> made:
-> - split the include files into generic and platform specific code,
-> - fill in platform data from the device initialization code and pass
-> =A0it to the driver,
-> - create CONFIG_AVS* config options accordingly.
->
-> The platform integration data for SmartReflex is passed from hwmod
-> and the voltage layer to the driver using pdata.
->
->
-> Tested on OMAP3 Beagleboard using omap2plus_defconfig with the
-> CONFIG_POWER_AVS* options set.
-> Based on master branch of the l-o git tree (3.3.0-rc6) [1], commit
-> 85244e0edd240da2004bb2ab7cbcbc67a336f20d.
->
-> [1] git://git.kernel.org/pub/scm/linux/kernel/git/tmlind/linux-omap.g=
-it
->
->
-> History:
-> v2: rework after the comments on MLs
-> =A0. Keep the OMAP Kconfig options in the arch dir (Rafael),
-> =A0. Move the shared header file from plat-omap to
-> =A0 =A0include/linux/power/ (Tony)
->
-> v1: initial revision
->
->
-> Jean Pihet (9):
-> =A0ARM: OMAP3+: voltage: export functions to plat/voltage.h
-> =A0ARM: OMAP2+: SmartReflex: move the driver specific macros in
-> =A0 =A0include/linux/power
-> =A0ARM: OMAP3+: SmartReflex: class drivers should use struct omap_sr =
-*
-> =A0ARM: OMAP2+: smartreflex: Use the names from hwmod data instead of
-> =A0 =A0voltage domains.
-> =A0ARM: OMAP3: hwmod: rename the smartreflex entries
-> =A0ARM: OMAP2+: SmartReflex: introduce a busy loop condition test mac=
-ro
-> =A0ARM: OMAP2+: SmartReflex: Use per-OPP data structure
-> =A0ARM: OMAP2+: SmartReflex: add POWER_AVS Kconfig options
-> =A0ARM: OMAP: SmartReflex: Move smartreflex driver to drivers/
->
-> =A0arch/arm/mach-omap2/Makefile =A0 =A0 =A0 =A0 =A0 =A0 =A0 | =A0 =A0=
-4 +-
-> =A0arch/arm/mach-omap2/omap_hwmod_3xxx_data.c | =A0 12 +-
-> =A0arch/arm/mach-omap2/omap_hwmod_44xx_data.c | =A0 =A03 +-
-> =A0arch/arm/mach-omap2/pm.h =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 | =A0=
- =A02 +-
-> =A0arch/arm/mach-omap2/smartreflex-class3.c =A0 | =A0 60 --
-> =A0arch/arm/mach-omap2/smartreflex.c =A0 =A0 =A0 =A0 =A0| 1165 ------=
-----------------------
-> =A0arch/arm/mach-omap2/smartreflex.h =A0 =A0 =A0 =A0 =A0| =A0256 ----=
---
-> =A0arch/arm/mach-omap2/sr_device.c =A0 =A0 =A0 =A0 =A0 =A0| =A0 38 +-
-> =A0arch/arm/mach-omap2/voltage.h =A0 =A0 =A0 =A0 =A0 =A0 =A0| =A0 =A0=
-1 -
-> =A0arch/arm/mach-omap2/vp.h =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 | =A0=
- =A02 -
-> =A0arch/arm/plat-omap/Kconfig =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 | =A0 3=
-0 +-
-> =A0arch/arm/plat-omap/include/plat/voltage.h =A0| =A0 =A03 +
-> =A0drivers/power/Kconfig =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0|=
- =A0 =A02 +
-> =A0drivers/power/Makefile =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 | =A0=
- =A02 +
-> =A0drivers/power/avs/Kconfig =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0| =A0=
- 12 +
-> =A0drivers/power/avs/Makefile =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 | =A0 =A0=
-2 +
-> =A0drivers/power/avs/smartreflex-class3.c =A0 =A0 | =A0 61 ++
-> =A0drivers/power/avs/smartreflex.c =A0 =A0 =A0 =A0 =A0 =A0| 1118 ++++=
-++++++++++++++++++++++
-> =A0drivers/power/avs/smartreflex.h =A0 =A0 =A0 =A0 =A0 =A0| =A0238 ++=
-++++
-> =A0include/linux/power/smartreflex.h =A0 =A0 =A0 =A0 =A0| =A0 97 +++
-> =A020 files changed, 1590 insertions(+), 1518 deletions(-)
-> =A0delete mode 100644 arch/arm/mach-omap2/smartreflex-class3.c
-> =A0delete mode 100644 arch/arm/mach-omap2/smartreflex.c
-> =A0delete mode 100644 arch/arm/mach-omap2/smartreflex.h
-> =A0create mode 100644 drivers/power/avs/Kconfig
-> =A0create mode 100644 drivers/power/avs/Makefile
-> =A0create mode 100644 drivers/power/avs/smartreflex-class3.c
-> =A0create mode 100644 drivers/power/avs/smartreflex.c
-> =A0create mode 100644 drivers/power/avs/smartreflex.h
-> =A0create mode 100644 include/linux/power/smartreflex.h
->
-> --
-> 1.7.5.4
->
+ Tomi
+
+
+--=-cr71e4OkXDD/lygAtl8l
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: This is a digitally signed message part
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.4.11 (GNU/Linux)
+
+iQIcBAABAgAGBQJPjnYCAAoJEPo9qoy8lh71pPMP/0n+4ifvPjYp/8UDSV7BP17r
+E1q/z4jX1GfamRLV6gC4b7kVzwdF7eG+3d5emJXxSkb8boPzKhb29mBJAf+i5dgE
+ylEknTyrD+qOY2h9h+JenTjsdpvqonWZPu1dqG1wfMXyyn1es+/Ufhml6/QQyWli
+NxABjvsCI15E/C7u+HB4bDxe42YQS7T7fM3cJMLu/CjdB4+bwp0/aARrYFfZW0BF
+ntXs5zVUPQDEkfCzzDC9feolEI4dbl3YNq3MkmB4WcIG0JsHLibrTjoR5Bocx6Hv
+c3yk1ZVCCsr2bnroYEggZtbme9y8oD5uOyfDWniORj0H8QHx8W9dqlCWOee/qWd7
+QWjMeopVvRFA3h3xLFYc18zLasc49Uh3oS/HSTLG73JcKV1JSm/SedRDaAkhdnha
+tPTNe7h3JhbftzMb5VhK00zXWJqqCUt/66t6Hv7f9S8cU1q/xSlN55m2NTXW2FEQ
+Q8TUJcAmKXgIi+t72wuOF+5XuHgGYtSn5UBHt7vyMz3aViaP/CQxmeIy3LRxFhDn
+pk6Lf9aZ76R9zTEdSLMjh1wGKcydfMefPX3bVS2LupNj2lhFesPJuwof84NJ6kdg
+bOYlssEVD/AEeWh3PcC2RazOPWWTlCgE2synKAxsKfAfc0G3jNtjXYG4UFvCVVxs
+5Z9sH26pqiWPIwZHBiDK
+=e49E
+-----END PGP SIGNATURE-----
+
+--=-cr71e4OkXDD/lygAtl8l--
+
