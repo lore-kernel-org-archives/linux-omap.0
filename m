@@ -1,54 +1,108 @@
 From: Ricardo Neri <ricardo.neri@ti.com>
-Subject: [PATCH 3/3] ARM: OMAP4: board-omap4panda: Register platform device for HDMI audio codec
-Date: Tue, 17 Apr 2012 19:40:46 -0500
-Message-ID: <1334709646-8468-4-git-send-email-ricardo.neri@ti.com>
-References: <1334709646-8468-1-git-send-email-ricardo.neri@ti.com>
+Subject: [PATCH] ALSA: Add definitions for CEA-861 Audio InfoFrames
+Date: Tue, 17 Apr 2012 19:46:11 -0500
+Message-ID: <1334709971-8538-1-git-send-email-ricardo.neri@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from devils.ext.ti.com ([198.47.26.153]:54514 "EHLO
-	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752499Ab2DRAk6 (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 17 Apr 2012 20:40:58 -0400
-In-Reply-To: <1334709646-8468-1-git-send-email-ricardo.neri@ti.com>
+Received: from arroyo.ext.ti.com ([192.94.94.40]:48041 "EHLO arroyo.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751903Ab2DRAq3 (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Tue, 17 Apr 2012 20:46:29 -0400
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: tony@atomide.com, broonie@opensource.wolfsonmicro.com, lrg@ti.com
-Cc: s-guiriec@ti.com, peter.ujfalusi@ti.com, linux-omap@vger.kernel.org, alsa-devel@alsa-project.org, Ricardo Neri <ricardo.neri@ti.com>
+To: tiwai@suse.de, broonie@opensource.wolfsonmicro.com, lrg@ti.com
+Cc: peter.ujfalusi@ti.com, s-guiriec@ti.com, alsa-devel@alsa-project.org, linux-omap@vger.kernel.org, Ricardo Neri <ricardo.neri@ti.com>
 
-Add platform device registratation for HDMI audio codec. This is to
-be able to transmit audio through the HDMI output featured in Pandaboard
-and PandaboardES boards.
+Along with the IEC-60958 channel status word, CEA-861 Audio InfoFrames
+are used in HDMI and DisplayPort to describe the parameters of the audio
+stream. Hence, drivers for such devices may use these definitions to, for
+instance, fill a CEA-861 data structure and pass it to a display driver
+to configure an IP.
 
 Signed-off-by: Ricardo Neri <ricardo.neri@ti.com>
 ---
- arch/arm/mach-omap2/board-omap4panda.c |    6 ++++++
- 1 files changed, 6 insertions(+), 0 deletions(-)
+ include/sound/asound.h   |   14 ++++++++++++++
+ include/sound/asoundef.h |   41 +++++++++++++++++++++++++++++++++++++++++
+ 2 files changed, 55 insertions(+), 0 deletions(-)
 
-diff --git a/arch/arm/mach-omap2/board-omap4panda.c b/arch/arm/mach-omap2/board-omap4panda.c
-index d8c0e89..07dd0e4 100644
---- a/arch/arm/mach-omap2/board-omap4panda.c
-+++ b/arch/arm/mach-omap2/board-omap4panda.c
-@@ -116,6 +116,11 @@ static struct platform_device panda_abe_audio = {
- 	},
- };
+diff --git a/include/sound/asound.h b/include/sound/asound.h
+index a2e4ff5..0876a1e 100644
+--- a/include/sound/asound.h
++++ b/include/sound/asound.h
+@@ -70,6 +70,20 @@ struct snd_aes_iec958 {
  
-+static struct platform_device panda_hdmi_audio_codec = {
-+	.name	= "hdmi-audio-codec",
-+	.id	= -1,
+ /****************************************************************************
+  *                                                                          *
++ *        CEA-861 Audio InfoFrame. Used in HDMI and DisplayPort		    *
++ *                                                                          *
++ ****************************************************************************/
++
++struct snd_cea_861_aud_if {
++	unsigned char db1_ct_cc; /* coding type and channel count */
++	unsigned char db2_sf_ss; /* sample frequency and size */
++	unsigned char db3; /* not used, all zeros */
++	unsigned char db4_ca; /* channel allocation code */
++	unsigned char db5_dminh_lsv; /* downmix inhibit & level-shit values */
 +};
 +
- static struct platform_device btwilink_device = {
- 	.name	= "btwilink",
- 	.id	= -1,
-@@ -125,6 +130,7 @@ static struct platform_device *panda_devices[] __initdata = {
- 	&leds_gpio,
- 	&wl1271_device,
- 	&panda_abe_audio,
-+	&panda_hdmi_audio_codec,
- 	&btwilink_device,
- };
++/****************************************************************************
++ *                                                                          *
+  *      Section for driver hardware dependent interface - /dev/snd/hw?      *
+  *                                                                          *
+  ****************************************************************************/
+diff --git a/include/sound/asoundef.h b/include/sound/asoundef.h
+index 20ebf32..bb05c02 100644
+--- a/include/sound/asoundef.h
++++ b/include/sound/asoundef.h
+@@ -170,6 +170,47 @@
+ #define IEC958_AES5_CON_CGMSA_COPYNOMORE (2<<0)	/* condition not be used */
+ #define IEC958_AES5_CON_CGMSA_COPYNEVER	(3<<0)	/* no copying is permitted */
  
++/****************************************************************************
++ *                                                                          *
++ *        CEA-861 Audio InfoFrame. Used in HDMI and DisplayPort		    *
++ *                                                                          *
++ ****************************************************************************/
++#define CEA861_AUDIO_INFOFRAME_DB1CC		(7<<0) /* mask - channel count */
++#define CEA861_AUDIO_INFOFRAME_DB1CT		(0xf<<4) /* mask - coding type */
++#define CEA861_AUDIO_INFOFRAME_DB1CT_FROM_STREAM (0<<4) /* refer to stream */
++#define CEA861_AUDIO_INFOFRAME_DB1CT_IEC60958	(1<<4) /* IEC-60958 L-PCM */
++#define CEA861_AUDIO_INFOFRAME_DB1CT_AC3	(2<<4) /* AC-3 */
++#define CEA861_AUDIO_INFOFRAME_DB1CT_MPEG1	(3<<4) /* MPEG1 Layers 1 & 2 */
++#define CEA861_AUDIO_INFOFRAME_DB1CT_MP3	(4<<4) /* MPEG1 Layer 3 */
++#define CEA861_AUDIO_INFOFRAME_DB1CT_MPEG2_MULTICH (5<<4) /* MPEG2 Multichannel */
++#define CEA861_AUDIO_INFOFRAME_DB1CT_AAC	(6<<4) /* AAC */
++#define CEA861_AUDIO_INFOFRAME_DB1CT_DTS	(7<<4) /* DTS */
++#define CEA861_AUDIO_INFOFRAME_DB1CT_ATRAC	(8<<4) /* ATRAC */
++#define CEA861_AUDIO_INFOFRAME_DB1CT_ONEBIT	(9<<4) /* One Bit Audio */
++#define CEA861_AUDIO_INFOFRAME_DB1CT_DOLBY_DIG_PLUS (10<<4) /* Dolby Digital + */
++#define CEA861_AUDIO_INFOFRAME_DB1CT_DTS_HD	(11<<4) /* DTS-HD */
++#define CEA861_AUDIO_INFOFRAME_DB1CT_MAT	(12<<4) /* MAT (MLP) */
++#define CEA861_AUDIO_INFOFRAME_DB1CT_DST	(13<<4) /* DST */
++#define CEA861_AUDIO_INFOFRAME_DB1CT_WMA_PRO	(14<<4) /* WMA Pro */
++#define CEA861_AUDIO_INFOFRAME_DB2SF		(7<<2) /* mask - sample frequency */
++#define CEA861_AUDIO_INFOFRAME_DB2SF_FROM_STREAM (0<<2) /* refer to stream */
++#define CEA861_AUDIO_INFOFRAME_DB2SF_32000	(1<<2) /* 32kHz */
++#define CEA861_AUDIO_INFOFRAME_DB2SF_44100	(2<<2) /* 44.1kHz */
++#define CEA861_AUDIO_INFOFRAME_DB2SF_48000	(3<<2) /* 48kHz */
++#define CEA861_AUDIO_INFOFRAME_DB2SF_88200	(4<<2) /* 88.2kHz */
++#define CEA861_AUDIO_INFOFRAME_DB2SF_96000	(5<<2) /* 96kHz */
++#define CEA861_AUDIO_INFOFRAME_DB2SF_176400	(6<<2) /* 176.4kHz */
++#define CEA861_AUDIO_INFOFRAME_DB2SF_192000	(7<<2) /* 192kHz */
++#define CEA861_AUDIO_INFOFRAME_DB2SS		(3<<0) /* mask - sample size */
++#define CEA861_AUDIO_INFOFRAME_DB2SS_FROM_STREAM (0<<0) /* refer to stream */
++#define CEA861_AUDIO_INFOFRAME_DB2SS_16BIT	(1<<0) /* 16 bits */
++#define CEA861_AUDIO_INFOFRAME_DB2SS_20BIT	(2<<0) /* 20 bits */
++#define CEA861_AUDIO_INFOFRAME_DB2SS_24BIT	(3<<0) /* 24 bits */
++#define CEA861_AUDIO_INFOFRAME_DB5_DM_INH	(1<<7) /* mask - inhibit downmixing */
++#define CEA861_AUDIO_INFOFRAME_DB5_DM_INH_PERMITTED (0<<7) /* stereo downmix permitted */
++#define CEA861_AUDIO_INFOFRAME_DB5_DM_INH_PROHIBITED (1<<7) /* stereo downmis prohibited */
++#define CEA861_AUDIO_INFOFRAME_DB5_LSV		(0xf<<3) /* mask - level-shift values */
++
+ /*****************************************************************************
+  *                                                                           *
+  *                            MIDI v1.0 interface                            *
 -- 
 1.7.5.4
 
