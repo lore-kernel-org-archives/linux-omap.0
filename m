@@ -1,95 +1,152 @@
-From: Grazvydas Ignotas <notasas@gmail.com>
-Subject: Re: [PATCH 5/6] ARM: OMAP3: update cpuidle latency and threshold figures
-Date: Wed, 18 Apr 2012 18:18:27 +0300
-Message-ID: <CANOLnOOmshFXKK73qY+rY7yak3hjwR7i=TCShv-GdMEwOvRdLw@mail.gmail.com>
-References: <1334756720-29166-1-git-send-email-j-pihet@ti.com>
-	<1334756720-29166-6-git-send-email-j-pihet@ti.com>
+From: "T Krishnamoorthy, Balaji" <balajitk@ti.com>
+Subject: Re: [PATCH 8/8] ARM: omap_hsmmc: remove platform data dma_mask and initialization
+Date: Wed, 18 Apr 2012 20:53:32 +0530
+Message-ID: <CANrkHUajRzoCp7K8L3cJArWN3xdqpft8L4k-o4gFTRTo8nmhmg@mail.gmail.com>
+References: <20120418100954.GK25053@n2100.arm.linux.org.uk>
+	<E1SKRsg-0004bX-4w@rmk-PC.arm.linux.org.uk>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
+Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: QUOTED-PRINTABLE
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-lb0-f174.google.com ([209.85.217.174]:43392 "EHLO
-	mail-lb0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751151Ab2DRPS3 convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 18 Apr 2012 11:18:29 -0400
-Received: by lbom4 with SMTP id m4so2300620lbo.19
-        for <linux-omap@vger.kernel.org>; Wed, 18 Apr 2012 08:18:27 -0700 (PDT)
-In-Reply-To: <1334756720-29166-6-git-send-email-j-pihet@ti.com>
-Sender: linux-omap-owner@vger.kernel.org
+Return-path: <linux-mmc-owner@vger.kernel.org>
+In-Reply-To: <E1SKRsg-0004bX-4w@rmk-PC.arm.linux.org.uk>
+Sender: linux-mmc-owner@vger.kernel.org
+To: Russell King <rmk+kernel@arm.linux.org.uk>
+Cc: linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org, linux-mmc@vger.kernel.org, Tony Lindgren <tony@atomide.com>
 List-Id: linux-omap@vger.kernel.org
-To: jean.pihet@newoldbits.com
-Cc: linux-omap@vger.kernel.org, paul@pwsan.com, b-cousson@ti.com, khilman@ti.com, linux-arm-kernel@lists.infradead.org, Jean Pihet <j-pihet@ti.com>
 
-On Wed, Apr 18, 2012 at 4:45 PM,  <jean.pihet@newoldbits.com> wrote:
-> From: Jean Pihet <j-pihet@ti.com>
+On Wed, Apr 18, 2012 at 3:42 PM, Russell King
+<rmk+kernel@arm.linux.org.uk> wrote:
+> DMAengine uses the DMA engine device structure when mapping/unmapping
+> memory for DMA, so the MMC devices do not need their DMA masks
+> initialized (this reflects hardware: the MMC device is not the device
+> doing DMA.)
 >
-> Update the data from the measurements performed at HW and SW levels.
->
-> Cf. http://www.omappedia.org/wiki/Power_Management_Device_Latencies_M=
-easurement
-> for a detailed explanation on where are the numbers coming from.
->
-> ...
-> ToDo:
-> - Measure the wake-up latencies for all power domains for OMAP3
-> - Correct some numbers when sys_clkreq and sys_offmode are supported
->
-> Signed-off-by: Jean Pihet <j-pihet@ti.com>
-> Reviewed-by: Kevin Hilman <khilman@ti.com>
+> Signed-off-by: Russell King <rmk+kernel@arm.linux.org.uk>
 > ---
-> =C2=A0arch/arm/mach-omap2/cpuidle34xx.c | =C2=A0 52 +++++++++++++++++=
-++++++-------------
-> =C2=A01 files changed, 33 insertions(+), 19 deletions(-)
+> =A0arch/arm/mach-omap1/board-h2-mmc.c =A0 =A0| =A0 =A01 -
+> =A0arch/arm/mach-omap1/board-h3-mmc.c =A0 =A0| =A0 =A01 -
+> =A0arch/arm/mach-omap1/board-nokia770.c =A0| =A0 =A01 -
+> =A0arch/arm/mach-omap2/board-n8x0.c =A0 =A0 =A0| =A0 =A01 -
+> =A0arch/arm/mach-omap2/hsmmc.c =A0 =A0 =A0 =A0 =A0 | =A0 =A01 -
+> =A0arch/arm/plat-omap/include/plat/mmc.h | =A0 =A02 --
+Hi,
+
+drivers/mmc/host/omap.c is also using dma_mask should that also be remo=
+ved
+
+> =A06 files changed, 0 insertions(+), 7 deletions(-)
 >
-> diff --git a/arch/arm/mach-omap2/cpuidle34xx.c b/arch/arm/mach-omap2/=
-cpuidle34xx.c
-> index 2f95cfc..e406d7b 100644
-> --- a/arch/arm/mach-omap2/cpuidle34xx.c
-> +++ b/arch/arm/mach-omap2/cpuidle34xx.c
-> @@ -39,27 +39,41 @@
-<snip>
-> =C2=A0static struct cpuidle_params cpuidle_params_table[] =3D {
-> - =C2=A0 =C2=A0 =C2=A0 /* C1 */
-> - =C2=A0 =C2=A0 =C2=A0 {2 + 2, 5, 1},
-> - =C2=A0 =C2=A0 =C2=A0 /* C2 */
-> - =C2=A0 =C2=A0 =C2=A0 {10 + 10, 30, 1},
-> - =C2=A0 =C2=A0 =C2=A0 /* C3 */
-> - =C2=A0 =C2=A0 =C2=A0 {50 + 50, 300, 1},
-> - =C2=A0 =C2=A0 =C2=A0 /* C4 */
-> - =C2=A0 =C2=A0 =C2=A0 {1500 + 1800, 4000, 1},
-> - =C2=A0 =C2=A0 =C2=A0 /* C5 */
-> - =C2=A0 =C2=A0 =C2=A0 {2500 + 7500, 12000, 1},
-> - =C2=A0 =C2=A0 =C2=A0 /* C6 */
-> - =C2=A0 =C2=A0 =C2=A0 {3000 + 8500, 15000, 1},
-> - =C2=A0 =C2=A0 =C2=A0 /* C7 */
-> - =C2=A0 =C2=A0 =C2=A0 {10000 + 30000, 300000, 1},
-> + =C2=A0 =C2=A0 =C2=A0 /* C1 . MPU WFI + Core active */
-> + =C2=A0 =C2=A0 =C2=A0 {73 + 78, 152, 1},
-> + =C2=A0 =C2=A0 =C2=A0 /* C2 . MPU WFI + Core inactive */
-> + =C2=A0 =C2=A0 =C2=A0 {165 + 88, 345, 1},
-> + =C2=A0 =C2=A0 =C2=A0 /* C3 . MPU CSWR + Core inactive */
-> + =C2=A0 =C2=A0 =C2=A0 {163 + 182, 345, 1},
-> + =C2=A0 =C2=A0 =C2=A0 /* C4 . MPU OFF + Core inactive */
-> + =C2=A0 =C2=A0 =C2=A0 {2852 + 605, 150000, 1},
-> + =C2=A0 =C2=A0 =C2=A0 /* C5 . MPU RET + Core RET */
-> + =C2=A0 =C2=A0 =C2=A0 {800 + 366, 2120, 1},
-> + =C2=A0 =C2=A0 =C2=A0 /* C6 . MPU OFF + Core RET */
-> + =C2=A0 =C2=A0 =C2=A0 {4080 + 801, 215000, 1},
-> + =C2=A0 =C2=A0 =C2=A0 /* C7 . MPU OFF + Core OFF */
-> + =C2=A0 =C2=A0 =C2=A0 {4300 + 13000, 215000, 1},
-> =C2=A0};
-
-These (C1 at least) seem to look quite a bit better than what we see he=
-re:
-http://marc.info/?t=3D133375282700004&r=3D1&w=3D2
-according to that wiki log, some of those measurements are from 2010,
-I wonder if that still matches today's code well.
-
-
---=20
-Gra=C5=BEvydas
---
-To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> diff --git a/arch/arm/mach-omap1/board-h2-mmc.c b/arch/arm/mach-omap1=
+/board-h2-mmc.c
+> index da0e37d..e1362ce 100644
+> --- a/arch/arm/mach-omap1/board-h2-mmc.c
+> +++ b/arch/arm/mach-omap1/board-h2-mmc.c
+> @@ -54,7 +54,6 @@ static struct omap_mmc_platform_data mmc1_data =3D =
+{
+> =A0 =A0 =A0 =A0.nr_slots =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =
+=3D 1,
+> =A0 =A0 =A0 =A0.init =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =
+=A0 =3D mmc_late_init,
+> =A0 =A0 =A0 =A0.cleanup =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0=
+=3D mmc_cleanup,
+> - =A0 =A0 =A0 .dma_mask =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =3D=
+ 0xffffffff,
+> =A0 =A0 =A0 =A0.slots[0] =A0 =A0 =A0 =3D {
+> =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0.set_power =A0 =A0 =A0 =A0 =A0 =A0 =A0=
+=3D mmc_set_power,
+> =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0.ocr_mask =A0 =A0 =A0 =A0 =A0 =A0 =A0 =
+=3D MMC_VDD_32_33 | MMC_VDD_33_34,
+> diff --git a/arch/arm/mach-omap1/board-h3-mmc.c b/arch/arm/mach-omap1=
+/board-h3-mmc.c
+> index f8242aa..c74daac 100644
+> --- a/arch/arm/mach-omap1/board-h3-mmc.c
+> +++ b/arch/arm/mach-omap1/board-h3-mmc.c
+> @@ -36,7 +36,6 @@ static int mmc_set_power(struct device *dev, int sl=
+ot, int power_on,
+> =A0*/
+> =A0static struct omap_mmc_platform_data mmc1_data =3D {
+> =A0 =A0 =A0 =A0.nr_slots =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =
+=3D 1,
+> - =A0 =A0 =A0 .dma_mask =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =3D=
+ 0xffffffff,
+> =A0 =A0 =A0 =A0.slots[0] =A0 =A0 =A0 =3D {
+> =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0.set_power =A0 =A0 =A0 =A0 =A0 =A0 =A0=
+=3D mmc_set_power,
+> =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0.ocr_mask =A0 =A0 =A0 =A0 =A0 =A0 =A0 =
+=3D MMC_VDD_32_33 | MMC_VDD_33_34,
+> diff --git a/arch/arm/mach-omap1/board-nokia770.c b/arch/arm/mach-oma=
+p1/board-nokia770.c
+> index d21dcc2..cac9954 100644
+> --- a/arch/arm/mach-omap1/board-nokia770.c
+> +++ b/arch/arm/mach-omap1/board-nokia770.c
+> @@ -185,7 +185,6 @@ static int nokia770_mmc_get_cover_state(struct de=
+vice *dev, int slot)
+>
+> =A0static struct omap_mmc_platform_data nokia770_mmc2_data =3D {
+> =A0 =A0 =A0 =A0.nr_slots =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =
+=3D 1,
+> - =A0 =A0 =A0 .dma_mask =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =3D=
+ 0xffffffff,
+> =A0 =A0 =A0 =A0.max_freq =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =
+=3D 12000000,
+> =A0 =A0 =A0 =A0.slots[0] =A0 =A0 =A0 =3D {
+> =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0.set_power =A0 =A0 =A0 =A0 =A0 =A0 =A0=
+=3D nokia770_mmc_set_power,
+> diff --git a/arch/arm/mach-omap2/board-n8x0.c b/arch/arm/mach-omap2/b=
+oard-n8x0.c
+> index 518091c..1003748 100644
+> --- a/arch/arm/mach-omap2/board-n8x0.c
+> +++ b/arch/arm/mach-omap2/board-n8x0.c
+> @@ -470,7 +470,6 @@ static struct omap_mmc_platform_data mmc1_data =3D=
+ {
+> =A0 =A0 =A0 =A0.cleanup =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0=
+=3D n8x0_mmc_cleanup,
+> =A0 =A0 =A0 =A0.shutdown =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =
+=3D n8x0_mmc_shutdown,
+> =A0 =A0 =A0 =A0.max_freq =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =
+=3D 24000000,
+> - =A0 =A0 =A0 .dma_mask =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =3D=
+ 0xffffffff,
+> =A0 =A0 =A0 =A0.slots[0] =3D {
+> =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0.wires =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0=
+ =A0=3D 4,
+> =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0.set_power =A0 =A0 =A0 =A0 =A0 =A0 =A0=
+=3D n8x0_mmc_set_power,
+> diff --git a/arch/arm/mach-omap2/hsmmc.c b/arch/arm/mach-omap2/hsmmc.=
+c
+> index b0268ea..41e5277 100644
+> --- a/arch/arm/mach-omap2/hsmmc.c
+> +++ b/arch/arm/mach-omap2/hsmmc.c
+> @@ -315,7 +315,6 @@ static int __init omap_hsmmc_pdata_init(struct om=
+ap2_hsmmc_info *c,
+> =A0 =A0 =A0 =A0mmc->slots[0].caps =3D c->caps;
+> =A0 =A0 =A0 =A0mmc->slots[0].pm_caps =3D c->pm_caps;
+> =A0 =A0 =A0 =A0mmc->slots[0].internal_clock =3D !c->ext_clock;
+> - =A0 =A0 =A0 mmc->dma_mask =3D 0xffffffff;
+> =A0 =A0 =A0 =A0mmc->max_freq =3D c->max_freq;
+> =A0 =A0 =A0 =A0if (cpu_is_omap44xx())
+> =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0mmc->reg_offset =3D OMAP4_MMC_REG_OFFS=
+ET;
+> diff --git a/arch/arm/plat-omap/include/plat/mmc.h b/arch/arm/plat-om=
+ap/include/plat/mmc.h
+> index 7a38750..9fe87a7 100644
+> --- a/arch/arm/plat-omap/include/plat/mmc.h
+> +++ b/arch/arm/plat-omap/include/plat/mmc.h
+> @@ -80,8 +80,6 @@ struct omap_mmc_platform_data {
+> =A0 =A0 =A0 =A0/* Return context loss count due to PM states changing=
+ */
+> =A0 =A0 =A0 =A0int (*get_context_loss_count)(struct device *dev);
+>
+> - =A0 =A0 =A0 u64 dma_mask;
+> -
+> =A0 =A0 =A0 =A0/* Integrating attributes from the omap_hwmod layer */
+> =A0 =A0 =A0 =A0u8 controller_flags;
+>
+> --
+> 1.7.4.4
+>
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-mmc" =
+in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at =A0http://vger.kernel.org/majordomo-info.html
