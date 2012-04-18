@@ -1,161 +1,85 @@
-From: jean.pihet@newoldbits.com
-Subject: [PATCH 6/6] ARM: OMAP2+: PM: use power domain functional state in stats counters
-Date: Wed, 18 Apr 2012 14:39:42 +0200
-Message-ID: <1334752782-28804-7-git-send-email-j-pihet@ti.com>
-References: <1334752782-28804-1-git-send-email-j-pihet@ti.com>
+From: Felipe Balbi <balbi@ti.com>
+Subject: Re: Crash in omap2430_musb_init()
+Date: Wed, 18 Apr 2012 15:48:46 +0300
+Message-ID: <20120418124842.GR13842@arwen.pp.htv.fi>
+References: <1334751449.2027.18.camel@deskari>
+ <20120418123108.GO13842@arwen.pp.htv.fi>
+ <1334752778.2027.24.camel@deskari>
+Reply-To: balbi@ti.com
+Mime-Version: 1.0
+Content-Type: multipart/signed; micalg=pgp-sha1;
+	protocol="application/pgp-signature"; boundary="8so8ZvRz607RvwFp"
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-wi0-f170.google.com ([209.85.212.170]:60715 "EHLO
-	mail-wi0-f170.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752739Ab2DRMkT (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 18 Apr 2012 08:40:19 -0400
-Received: by wibhr17 with SMTP id hr17so554905wib.1
-        for <linux-omap@vger.kernel.org>; Wed, 18 Apr 2012 05:40:18 -0700 (PDT)
-In-Reply-To: <1334752782-28804-1-git-send-email-j-pihet@ti.com>
+Received: from na3sys009aog108.obsmtp.com ([74.125.149.199]:52440 "EHLO
+	na3sys009aog108.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1752021Ab2DRMts (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>);
+	Wed, 18 Apr 2012 08:49:48 -0400
+Received: by lagr15 with SMTP id r15so10802932lag.16
+        for <linux-omap@vger.kernel.org>; Wed, 18 Apr 2012 05:49:46 -0700 (PDT)
+Content-Disposition: inline
+In-Reply-To: <1334752778.2027.24.camel@deskari>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: linux-omap@vger.kernel.org, paul@pwsan.com, b-cousson@ti.com, khilman@ti.com, linux-arm-kernel@lists.infradead.org
-Cc: Jean Pihet <j-pihet@ti.com>
+To: Tomi Valkeinen <tomi.valkeinen@ti.com>
+Cc: balbi@ti.com, linux-omap@vger.kernel.org
 
-From: Jean Pihet <j-pihet@ti.com>
 
-The PM code uses some counters to keep track of the power domains
-transitions, in order to provide the information to drivers (in
-pwrdm_get_context_loss_count) and to expose the information to
-sysfs for debug purpose.
+--8so8ZvRz607RvwFp
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
 
-This patch provides the information for each functional state.
+On Wed, Apr 18, 2012 at 03:39:38PM +0300, Tomi Valkeinen wrote:
+> On Wed, 2012-04-18 at 15:31 +0300, Felipe Balbi wrote:
+> > Hi,
+> >=20
+> > On Wed, Apr 18, 2012 at 03:17:29PM +0300, Tomi Valkeinen wrote:
+> > > Hi,
+> > >=20
+> > > I was updating my tree to latest rc from Linus, and noticed that ther=
+e's
+> > > a crash related to USB on omap4 blaze board. It happens on both Linus=
+'s
+> > > master branch and v3.4-rc3.
+>=20
+> > please merge my fixes branch from my k.org tree
+> > git://git.kernel.org/pub/scm/linux/kernel/git/balbi/usb.git and see if
+> > you still have the same problem.
+> >=20
+> > There are a few fixes to musb which might solve this problem.
+>=20
+> I merged your master branch, and did a few boots. Seems to work fine,
+> thanks.
+>=20
+> Are those headed for the next merge window or -rc?
 
-Signed-off-by: Jean Pihet <j-pihet@ti.com>
----
- arch/arm/mach-omap2/pm-debug.c    |   15 ++++++++-------
- arch/arm/mach-omap2/powerdomain.c |   12 ++++++------
- arch/arm/mach-omap2/powerdomain.h |    4 ++--
- 3 files changed, 16 insertions(+), 15 deletions(-)
+those are for next -rc. They've already been merged by Greg into his
+usb-linus branch so should be fixed on -rc4.
 
-diff --git a/arch/arm/mach-omap2/pm-debug.c b/arch/arm/mach-omap2/pm-debug.c
-index 814bcd9..13c00fb 100644
---- a/arch/arm/mach-omap2/pm-debug.c
-+++ b/arch/arm/mach-omap2/pm-debug.c
-@@ -53,9 +53,10 @@ enum {
- 	DEBUG_FILE_TIMERS,
- };
- 
--static const char pwrdm_state_names[][PWRDM_MAX_PWRSTS] = {
-+static const char pwrdm_state_names[][PWRDM_MAX_FUNC_PWRSTS] = {
- 	"OFF",
--	"RET",
-+	"OSWR",
-+	"CSWR",
- 	"INA",
- 	"ON"
- };
-@@ -102,13 +103,13 @@ static int pwrdm_dbg_show_counter(struct powerdomain *pwrdm, void *user)
- 		strncmp(pwrdm->name, "dpll", 4) == 0)
- 		return 0;
- 
--	if (pwrdm->state != pwrdm_read_pwrst(pwrdm))
-+	if (pwrdm->state != pwrdm_read_func_pwrst(pwrdm))
- 		printk(KERN_ERR "pwrdm state mismatch(%s) %d != %d\n",
--			pwrdm->name, pwrdm->state, pwrdm_read_pwrst(pwrdm));
-+		       pwrdm->name, pwrdm->state, pwrdm_read_func_pwrst(pwrdm));
- 
- 	seq_printf(s, "%s (%s)", pwrdm->name,
- 			pwrdm_state_names[pwrdm->state]);
--	for (i = 0; i < PWRDM_MAX_PWRSTS; i++)
-+	for (i = 0; i < PWRDM_MAX_FUNC_PWRSTS; i++)
- 		seq_printf(s, ",%s:%d", pwrdm_state_names[i],
- 			pwrdm->state_counter[i]);
- 
-@@ -137,7 +138,7 @@ static int pwrdm_dbg_show_timer(struct powerdomain *pwrdm, void *user)
- 	seq_printf(s, "%s (%s)", pwrdm->name,
- 		pwrdm_state_names[pwrdm->state]);
- 
--	for (i = 0; i < 4; i++)
-+	for (i = 0; i < PWRDM_MAX_FUNC_PWRSTS; i++)
- 		seq_printf(s, ",%s:%lld", pwrdm_state_names[i],
- 			pwrdm->state_timer[i]);
- 
-@@ -211,7 +212,7 @@ static int __init pwrdms_setup(struct powerdomain *pwrdm, void *dir)
- 
- 	t = sched_clock();
- 
--	for (i = 0; i < 4; i++)
-+	for (i = 0; i < PWRDM_MAX_FUNC_PWRSTS; i++)
- 		pwrdm->state_timer[i] = 0;
- 
- 	pwrdm->timer = t;
-diff --git a/arch/arm/mach-omap2/powerdomain.c b/arch/arm/mach-omap2/powerdomain.c
-index 3faac62..3f78f16 100644
---- a/arch/arm/mach-omap2/powerdomain.c
-+++ b/arch/arm/mach-omap2/powerdomain.c
-@@ -106,7 +106,7 @@ static int _pwrdm_register(struct powerdomain *pwrdm)
- 	list_add(&pwrdm->node, &pwrdm_list);
- 
- 	/* Initialize the powerdomain's state counter */
--	for (i = 0; i < PWRDM_MAX_PWRSTS; i++)
-+	for (i = 0; i < PWRDM_MAX_FUNC_PWRSTS; i++)
- 		pwrdm->state_counter[i] = 0;
- 
- 	pwrdm->ret_logic_off_counter = 0;
-@@ -114,7 +114,7 @@ static int _pwrdm_register(struct powerdomain *pwrdm)
- 		pwrdm->ret_mem_off_counter[i] = 0;
- 
- 	pwrdm_wait_transition(pwrdm);
--	pwrdm->state = pwrdm_read_pwrst(pwrdm);
-+	pwrdm->state = pwrdm_read_func_pwrst(pwrdm);
- 	pwrdm->state_counter[pwrdm->state] = 1;
- 
- 	pr_debug("powerdomain: registered %s\n", pwrdm->name);
-@@ -149,17 +149,17 @@ static int _pwrdm_state_switch(struct powerdomain *pwrdm, int flag)
- 	if (pwrdm == NULL)
- 		return -EINVAL;
- 
--	state = pwrdm_read_pwrst(pwrdm);
-+	state = pwrdm_read_func_pwrst(pwrdm);
- 
- 	switch (flag) {
- 	case PWRDM_STATE_NOW:
- 		prev = pwrdm->state;
- 		break;
- 	case PWRDM_STATE_PREV:
--		prev = pwrdm_read_prev_pwrst(pwrdm);
-+		prev = pwrdm_read_prev_func_pwrst(pwrdm);
- 		if (pwrdm->state != prev)
- 			pwrdm->state_counter[prev]++;
--		if (prev == PWRDM_POWER_RET)
-+		if (prev == PWRDM_FUNC_PWRST_OSWR)
- 			_update_logic_membank_counters(pwrdm);
- 		/*
- 		 * If the power domain did not hit the desired state,
-@@ -1240,7 +1240,7 @@ int pwrdm_get_context_loss_count(struct powerdomain *pwrdm)
- 		return -ENODEV;
- 	}
- 
--	count = pwrdm->state_counter[PWRDM_POWER_OFF];
-+	count = pwrdm->state_counter[PWRDM_FUNC_PWRST_OFF];
- 	count += pwrdm->ret_logic_off_counter;
- 
- 	for (i = 0; i < pwrdm->banks; i++)
-diff --git a/arch/arm/mach-omap2/powerdomain.h b/arch/arm/mach-omap2/powerdomain.h
-index 4e5ce15..9249d42 100644
---- a/arch/arm/mach-omap2/powerdomain.h
-+++ b/arch/arm/mach-omap2/powerdomain.h
-@@ -135,13 +135,13 @@ struct powerdomain {
- 	struct list_head voltdm_node;
- 	struct mutex lock;
- 	int state;
--	unsigned state_counter[PWRDM_MAX_PWRSTS];
-+	unsigned state_counter[PWRDM_MAX_FUNC_PWRSTS];
- 	unsigned ret_logic_off_counter;
- 	unsigned ret_mem_off_counter[PWRDM_MAX_MEM_BANKS];
- 
- #ifdef CONFIG_PM_DEBUG
- 	s64 timer;
--	s64 state_timer[PWRDM_MAX_PWRSTS];
-+	s64 state_timer[PWRDM_MAX_FUNC_PWRSTS];
- #endif
- };
- 
--- 
-1.7.7.6
+--=20
+balbi
 
+--8so8ZvRz607RvwFp
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: Digital signature
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.4.12 (GNU/Linux)
+
+iQIcBAEBAgAGBQJPjrgpAAoJEIaOsuA1yqREJxoP/ixrZ61v7fUDOFgckPJUxjYB
+M8bbJue8fxVJ/+hQ7aAmJBxdrE18fqEDsJwyLJ/mg+O+HEOyolPLhUgYR8E03gvM
+igfgoUFtieiN3IBIDFJ9HlqImzuFMamQ8hhY5DzZD5Vm4jFhtTbcOP4alg4YQZ5q
+ayxgD0H/hqvAr4AxO5D/w/dli54v7Qgw+nwaI6rcP2dOikDZPP1UmAmFpa62K8Fx
+a40DbrZI4O/29+14X04ytdum5rSyKqgOq254iclua3VplbSbodxavDGL3xlUhBAr
+TGrVj7ypVGXFhnn/NNMQvOmZyqi+e/c3QHyr82yRVIJ5ZILdMtct3LvxfLzd7cRi
+c1wtko+P9Lkg8EYWcka5YS/QEH0ZUuMIXnBj6h1xaQz54YeNe3jZkF4klF14O4lz
+F1kDdT6x6/LCatjH7bxH3b9zzjwYKRWsZBD4gLsdizcBU6gwifzQi+4hLkmGJJ+S
+mVDfFcZpe8nyseyVVk7bHqNzwSqtUNJPRVoJ4RuGfbCaVW++mZB2a8zA5I5YLx+9
+K0T4icRmFJIU3XpHHDDYZXjEcifjGYuEDDwMWbV4/pLfABx43LPeJ0uSqUIB5fNu
+WIzdrs2A8N+nGvk3jYz8b6H2N90HzRcgb/L7kprzhe1XNdEIKiJEKmFpoJk/aDNL
+767FEUShBbXfIR42HU4g
+=kPuT
+-----END PGP SIGNATURE-----
+
+--8so8ZvRz607RvwFp--
