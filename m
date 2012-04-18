@@ -1,57 +1,46 @@
-From: Archit Taneja <a0393947@ti.com>
-Subject: Re: [PATCH] ARM: OMAP: Revert "ARM: OMAP: ctrl: Fix CONTROL_DSIPHY
- register fields"
-Date: Wed, 18 Apr 2012 13:43:46 +0530
-Message-ID: <4F8E77BA.3000507@ti.com>
-References: <1333955479-2675-1-git-send-email-archit@ti.com> <1334736386.1886.8.camel@deskari>
+From: Paul Walmsley <paul@pwsan.com>
+Subject: Re: [PATCH 3/3] ARM: OMAP2+: dmtimer: cleanup fclk usage
+Date: Wed, 18 Apr 2012 02:15:41 -0600 (MDT)
+Message-ID: <alpine.DEB.2.00.1204180213330.29048@utopia.booyaka.com>
+References: <1334579125-15566-1-git-send-email-tarun.kanti@ti.com> <1334579125-15566-4-git-send-email-tarun.kanti@ti.com> <alpine.DEB.2.00.1204161034290.29048@utopia.booyaka.com> <4F8C864B.4090101@ti.com>
+ <CAC83ZvJ=TsDvs-pVZP1PyLFQY=nLh48tDE8SYQFxrLOUD-3aHQ@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: MULTIPART/MIXED; BOUNDARY="155748971-449549567-1334736941=:29048"
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from devils.ext.ti.com ([198.47.26.153]:48877 "EHLO
-	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751072Ab2DRIO1 (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 18 Apr 2012 04:14:27 -0400
-In-Reply-To: <1334736386.1886.8.camel@deskari>
+Received: from utopia.booyaka.com ([72.9.107.138]:39006 "EHLO
+	utopia.booyaka.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751072Ab2DRIPm (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 18 Apr 2012 04:15:42 -0400
+In-Reply-To: <CAC83ZvJ=TsDvs-pVZP1PyLFQY=nLh48tDE8SYQFxrLOUD-3aHQ@mail.gmail.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Tomi Valkeinen <tomi.valkeinen@ti.com>
-Cc: linux@arm.linux.org.uk, tony@atomide.com, linux-omap@vger.kernel.org, santosh.shilimkar@ti.com, paul@pwsan.com, b-cousson@ti.com
+To: "DebBarma, Tarun Kanti" <tarun.kanti@ti.com>
+Cc: "Cousson, Benoit" <b-cousson@ti.com>, linux-omap@vger.kernel.org, tony@atomide.com, khilman@ti.com, santosh.shilimkar@ti.com, rnayak@ti.com
 
-On Wednesday 18 April 2012 01:36 PM, Tomi Valkeinen wrote:
-> Hi,
->
-> On Mon, 2012-04-09 at 12:41 +0530, Archit Taneja wrote:
->> This reverts commit 46f8c3c7e95c0d30d95911e7975ddc4f93b3e237.
->>
->> The commit above swapped the DSI1_PPID and DSI2_PPID register fields in
->> CONTROL_DSIPHY to be in sync with the newer public OMAP TRMs(after version V).
->>
->> With this commit, contention errors were reported on DSI lanes some OMAP4 SDPs.
->> After probing the DSI lanes on OMAP4 SDP, it was seen that setting bits in the
->> DSI2_PPID field was pulling up voltage on DSI1 lanes, and DSI1_PPID field was
->> pulling up voltage on DSI2 lanes.
->>
->> This proves that the current version of OMAP4 TRM is incorrect, swap the
->> position of register fields according to the older TRM versions as they were
->> correct.
->
-> Are we sure the bits are the same for all OMAP4 versions? I'm just
-> wondering why the change was made to TRM...
+  This message is in MIME format.  The first part should be readable text,
+  while the remaining parts are likely unreadable without MIME-aware tools.
 
-I've tried on OMAP4430 ES2.1 and OMAP4460 ES1.1. I can try on a couple 
-more revisions.
+--155748971-449549567-1334736941=:29048
+Content-Type: TEXT/PLAIN; charset=ISO-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 
-As far as why the change was made in the TRM, it's a bit hard to find 
-the right people, or get response from them :), I'll give that a try again.
+Hi Tarun
 
-If we do conclude that this revert patch is needed, it might probably be 
-a candidate for the 3.2 and 3.3 stable kernels, just wanted to point 
-that out.
+On Wed, 18 Apr 2012, DebBarma, Tarun Kanti wrote:
 
-Archit
+> That' right, I confirmed that clk_get(NULL, "fck") does not work.
 
->
->   Tomi
->
+Yes, you and Beno=EEt are right, I should have looked more closely at what=
+=20
+was being patched.
 
+> For this to work we need the dev pointer in place of NULL.
+> What is your alternate suggestion? Thanks.
+
+Rather than accessing the struct omap_hwmod field directly,=20
+please, in a separate patch against omap_hwmod.c, create a function to=20
+return the main clock.  Something like "omap_hwmod_get_main_clk()".
+
+
+- Paul
+--155748971-449549567-1334736941=:29048--
