@@ -1,48 +1,30 @@
-From: "Raja, Govindraj" <govindraj.raja@ti.com>
-Subject: Re: [PATCH] tty: omap-serial: Keep the wakeup mechanism enabled by default
-Date: Wed, 18 Apr 2012 18:46:31 +0530
-Message-ID: <CAMrsUdL1S5GiyG0egS=CHg2fdNkyZVF-wuCNGDg547kfTUODng@mail.gmail.com>
-References: <1334579407-16970-1-git-send-email-govindraj.raja@ti.com> <87vckyq6ti.fsf@ti.com>
+From: "From Hang Seng Bank" <olsenlaura84@gmx.us>
+Subject: 18/4/2012.
+Date: Wed, 18 Apr 2012 11:53:35 +0100
+Message-ID: <201204181103.q3IAMww5002323@mail.ucla.edu>
+Reply-To: draymndch8@yahoo.co.jp
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Return-path: <linux-serial-owner@vger.kernel.org>
-In-Reply-To: <87vckyq6ti.fsf@ti.com>
-Sender: linux-serial-owner@vger.kernel.org
-To: Kevin Hilman <khilman@ti.com>
-Cc: linux-omap@vger.kernel.org, Paul Walmsley <paul@pwsan.com>, linux-arm-kernel@lists.infradead.org, linux-serial@vger.kernel.org
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7BIT
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from out-68.smtp.ucla.edu ([169.232.46.179]:41458 "EHLO
+	out-68.smtp.ucla.edu" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753267Ab2DRNgn convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 18 Apr 2012 09:36:43 -0400
+Content-Description: Mail message body
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Recipients <olsenlaura84@gmx.us>
 
-On Wed, Apr 18, 2012 at 4:55 AM, Kevin Hilman <khilman@ti.com> wrote:
-> "Govindraj.R" <govindraj.raja@ti.com> writes:
->
->> From: "Govindraj.R" <govindraj.raja@ti.com>
->>
->> The wakeups can be left enabled by default and should be disabled
->> only when disabled from sysfs and while entering suspend.
->
-> Left enabled? =A0That assumes something else has initizlied them, but=
- we
-> can't make that assumption.
->
-> First, wakeups should be disabled when ->probe has finished. =A0Then,
-> they should be enabled whenever driver is in use, and disabled when
-> the driver is not in use.
->
-> I'm not familiar enough with uart_ops, but it looks like they should
-> probably be enabled in uart_ops->startup and disabled in
-> uart_ops->shutdown.
-
-uart_ops->shutdown gets called in suspend path also
-serial_omap_suspend =3D> uart_suspend_port =3D > ops->shutdown(uport);
-
-This will leave uart wakeup disabled in suspend path.
-
---
-Thanks,
-Govindraj.R
---
-To unsubscribe from this list: send the line "unsubscribe linux-serial"=
- in
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Dear friend                                 18/4/2012.
+I am Dr Raymond Chien Independent Non-executive Director of Hang Seng
+Bank Hong Kong I have a business transaction of $44.5 million USD
+to share with you,If interested contact me for more details via my
+personal email:  draymndch8@yahoo.co.jp
+Full names:
+Address:
+Age:
+Occupation:
+Phone/Fax
+Regards
+Dr Raymond Chien Kuo Fung 
