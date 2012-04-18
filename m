@@ -1,68 +1,110 @@
-From: "Turquette, Mike" <mturquette@ti.com>
-Subject: Re: [PATCH 2/2] OMAPDSS: Ensure OPP100 when DSS is operational
-Date: Wed, 18 Apr 2012 10:26:02 -0700
-Message-ID: <CAJOA=zN4ghhg2wpJeqFN97myMihGxvOSN05NkxoMFKG2BgYORA@mail.gmail.com>
-References: <1331205217-19927-1-git-send-email-tomi.valkeinen@ti.com>
- <1331205217-19927-2-git-send-email-tomi.valkeinen@ti.com> <1331646353.2856.354.camel@deskari>
- <87zkbkmjo1.fsf@ti.com> <1331707131.1618.7.camel@lappy> <87vckxm0px.fsf@ti.com>
+From: Kevin Hilman <khilman@ti.com>
+Subject: Re: [PATCH 1/9] ARM: OMAP3+: voltage: export functions to plat/voltage.h
+Date: Wed, 18 Apr 2012 10:27:45 -0700
+Message-ID: <87y5ptkl0u.fsf@ti.com>
+References: <1332173578-27422-1-git-send-email-j-pihet@ti.com>
+	<1332173578-27422-2-git-send-email-j-pihet@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aog120.obsmtp.com ([74.125.149.140]:44041 "EHLO
-	na3sys009aog120.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753088Ab2DRR00 convert rfc822-to-8bit
-	(ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Wed, 18 Apr 2012 13:26:26 -0400
-Received: by eeit10 with SMTP id t10so2216184eei.4
-        for <linux-omap@vger.kernel.org>; Wed, 18 Apr 2012 10:26:23 -0700 (PDT)
-In-Reply-To: <87vckxm0px.fsf@ti.com>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <1332173578-27422-2-git-send-email-j-pihet@ti.com> (jean pihet's
+	message of "Mon, 19 Mar 2012 17:12:50 +0100")
+Sender: linux-kernel-owner@vger.kernel.org
+To: jean.pihet@newoldbits.com
+Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, "Rafael J. Wysocki" <rjw@sisk.pl>, LKML <linux-kernel@vger.kernel.org>, Jean Pihet <j-pihet@ti.com>
 List-Id: linux-omap@vger.kernel.org
-To: Kevin Hilman <khilman@ti.com>
-Cc: Tomi Valkeinen <tomi.valkeinen@ti.com>, linux-omap@vger.kernel.org, Paul Walmsley <paul@pwsan.com>, archit@ti.com
 
-On Wed, Apr 18, 2012 at 10:03 AM, Kevin Hilman <khilman@ti.com> wrote:
-> Tomi Valkeinen <tomi.valkeinen@ti.com> writes:
->> On Tue, 2012-03-13 at 11:37 -0700, Kevin Hilman wrote:
->>> It sounds to me like it acutally is a throughput constraint on CORE=
-=2E =A0If
->>> so, wouldn't it be clearer to set a throughput constraint that is
->>> calculated based on the pixel clock and resulting bitrate that woul=
-d
->>> have the same effect?
->>
->> I don't see that these limits would have anything to do with CORE. I=
-'m
->> guessing that the DSS HW just can't function properly with high cloc=
-ks
->> and low voltage.
+Hi Jean,
+
+jean.pihet@newoldbits.com writes:
+
+> From: Jean Pihet <j-pihet@ti.com>
 >
-> OK, this gets back to something we've talked about a few times that i=
-s
-> needed in the clock framework. =A0Basically, we need a way for clocks=
- to
-> prevent changes so these kinds of dependencies can be tracked. =A0We'=
-ve
-> talked about new APIs like clk_allow_changes(), clk_block_changes() o=
-r
-> something like that.
+> Move some functions from mach-omap2/ dir to the plat/ dir.
+> The SmartReflex class driver is a user of the basic voltage domains
+> functions (enable, disable, reset).
 >
-> Basically, something that allows clocks to know that their will not b=
-e
-> changed under them.
+> Signed-off-by: Jean Pihet <j-pihet@ti.com>
+> Cc: Kevin Hilman <khilman@ti.com>
 
-Are the DSS clocks changing frequency behind your back?  Or are the
-clock rates staying the same while the voltage is dropped?
+Rather than expose the VP functions directly, how about adding a new API
+at the voltdm layer to start/stop AVS.  Maybe something like:
 
-=46or the former issue Kevin is right that we need better clock
-semantics.  For the latter issue hopefully the future dvfs
-architecture will do the right thing (at least it does on paper).
+  voltdm_avs_start(struct voltagedomain *voltdm)
+  voltdm_avs_stop(struct voltagedomain *voltdm)
 
-Regards,
-Mike
---
-To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+These will internally just call VP enable/disable for now, but we may
+have more to add to these in the future to support other SR classes.
+
+Kevin
+
+> ---
+>  arch/arm/mach-omap2/smartreflex-class3.c  |    1 +
+>  arch/arm/mach-omap2/smartreflex.h         |    2 +-
+>  arch/arm/mach-omap2/voltage.h             |    1 -
+>  arch/arm/mach-omap2/vp.h                  |    2 --
+>  arch/arm/plat-omap/include/plat/voltage.h |    3 +++
+>  5 files changed, 5 insertions(+), 4 deletions(-)
+>
+> diff --git a/arch/arm/mach-omap2/smartreflex-class3.c b/arch/arm/mach-omap2/smartreflex-class3.c
+> index 955566e..e12c51e 100644
+> --- a/arch/arm/mach-omap2/smartreflex-class3.c
+> +++ b/arch/arm/mach-omap2/smartreflex-class3.c
+> @@ -12,6 +12,7 @@
+>   */
+>  
+>  #include "smartreflex.h"
+> +#include "voltage.h"
+>  
+>  static int sr_class3_enable(struct voltagedomain *voltdm)
+>  {
+> diff --git a/arch/arm/mach-omap2/smartreflex.h b/arch/arm/mach-omap2/smartreflex.h
+> index 5809141..c4e8530 100644
+> --- a/arch/arm/mach-omap2/smartreflex.h
+> +++ b/arch/arm/mach-omap2/smartreflex.h
+> @@ -22,7 +22,7 @@
+>  
+>  #include <linux/platform_device.h>
+>  
+> -#include "voltage.h"
+> +#include <plat/voltage.h>
+>  
+>  /*
+>   * Different Smartreflex IPs version. The v1 is the 65nm version used in
+> diff --git a/arch/arm/mach-omap2/voltage.h b/arch/arm/mach-omap2/voltage.h
+> index 16a1b09..a81dea8 100644
+> --- a/arch/arm/mach-omap2/voltage.h
+> +++ b/arch/arm/mach-omap2/voltage.h
+> @@ -167,6 +167,5 @@ int voltdm_for_each_pwrdm(struct voltagedomain *voltdm,
+>  			  int (*fn)(struct voltagedomain *voltdm,
+>  				    struct powerdomain *pwrdm));
+>  int voltdm_scale(struct voltagedomain *voltdm, unsigned long target_volt);
+> -void voltdm_reset(struct voltagedomain *voltdm);
+>  unsigned long voltdm_get_voltage(struct voltagedomain *voltdm);
+>  #endif
+> diff --git a/arch/arm/mach-omap2/vp.h b/arch/arm/mach-omap2/vp.h
+> index 7c155d2..837cb8d 100644
+> --- a/arch/arm/mach-omap2/vp.h
+> +++ b/arch/arm/mach-omap2/vp.h
+> @@ -118,8 +118,6 @@ extern struct omap_vp_instance omap4_vp_iva;
+>  extern struct omap_vp_instance omap4_vp_core;
+>  
+>  void omap_vp_init(struct voltagedomain *voltdm);
+> -void omap_vp_enable(struct voltagedomain *voltdm);
+> -void omap_vp_disable(struct voltagedomain *voltdm);
+>  int omap_vp_forceupdate_scale(struct voltagedomain *voltdm,
+>  			      unsigned long target_volt);
+>  int omap_vp_update_errorgain(struct voltagedomain *voltdm,
+> diff --git a/arch/arm/plat-omap/include/plat/voltage.h b/arch/arm/plat-omap/include/plat/voltage.h
+> index 0a6a482..1842709 100644
+> --- a/arch/arm/plat-omap/include/plat/voltage.h
+> +++ b/arch/arm/plat-omap/include/plat/voltage.h
+> @@ -16,5 +16,8 @@ struct voltagedomain;
+>  struct voltagedomain *voltdm_lookup(const char *name);
+>  int voltdm_scale(struct voltagedomain *voltdm, unsigned long target_volt);
+>  unsigned long voltdm_get_voltage(struct voltagedomain *voltdm);
+> +void voltdm_reset(struct voltagedomain *voltdm);
+>  
+> +void omap_vp_enable(struct voltagedomain *voltdm);
+> +void omap_vp_disable(struct voltagedomain *voltdm);
+>  #endif
