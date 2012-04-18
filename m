@@ -1,108 +1,106 @@
-From: Ricardo Neri <ricardo.neri@ti.com>
-Subject: [PATCH] ALSA: Add definitions for CEA-861 Audio InfoFrames
-Date: Tue, 17 Apr 2012 19:46:11 -0500
-Message-ID: <1334709971-8538-1-git-send-email-ricardo.neri@ti.com>
+From: "DebBarma, Tarun Kanti" <tarun.kanti@ti.com>
+Subject: Re: [PATCH 3/3] ARM: OMAP2+: dmtimer: cleanup fclk usage
+Date: Wed, 18 Apr 2012 10:30:55 +0530
+Message-ID: <CAC83ZvJ=TsDvs-pVZP1PyLFQY=nLh48tDE8SYQFxrLOUD-3aHQ@mail.gmail.com>
+References: <1334579125-15566-1-git-send-email-tarun.kanti@ti.com>
+	<1334579125-15566-4-git-send-email-tarun.kanti@ti.com>
+	<alpine.DEB.2.00.1204161034290.29048@utopia.booyaka.com>
+	<4F8C864B.4090101@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from arroyo.ext.ti.com ([192.94.94.40]:48041 "EHLO arroyo.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751903Ab2DRAq3 (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Tue, 17 Apr 2012 20:46:29 -0400
+Received: from na3sys009aog125.obsmtp.com ([74.125.149.153]:45741 "EHLO
+	na3sys009aog125.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1750730Ab2DRFA6 convert rfc822-to-8bit
+	(ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Wed, 18 Apr 2012 01:00:58 -0400
+Received: by qcsc20 with SMTP id c20so5432766qcs.18
+        for <linux-omap@vger.kernel.org>; Tue, 17 Apr 2012 22:00:55 -0700 (PDT)
+In-Reply-To: <4F8C864B.4090101@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: tiwai@suse.de, broonie@opensource.wolfsonmicro.com, lrg@ti.com
-Cc: peter.ujfalusi@ti.com, s-guiriec@ti.com, alsa-devel@alsa-project.org, linux-omap@vger.kernel.org, Ricardo Neri <ricardo.neri@ti.com>
+To: "Cousson, Benoit" <b-cousson@ti.com>
+Cc: Paul Walmsley <paul@pwsan.com>, linux-omap@vger.kernel.org, tony@atomide.com, khilman@ti.com, santosh.shilimkar@ti.com, rnayak@ti.com
 
-Along with the IEC-60958 channel status word, CEA-861 Audio InfoFrames
-are used in HDMI and DisplayPort to describe the parameters of the audio
-stream. Hence, drivers for such devices may use these definitions to, for
-instance, fill a CEA-861 data structure and pass it to a display driver
-to configure an IP.
+Hi Paul,
 
-Signed-off-by: Ricardo Neri <ricardo.neri@ti.com>
----
- include/sound/asound.h   |   14 ++++++++++++++
- include/sound/asoundef.h |   41 +++++++++++++++++++++++++++++++++++++++++
- 2 files changed, 55 insertions(+), 0 deletions(-)
+On Tue, Apr 17, 2012 at 2:21 AM, Cousson, Benoit <b-cousson@ti.com> wro=
+te:
+> On 4/16/2012 6:40 PM, Paul Walmsley wrote:
+>>
+>> Hi
+>>
+>> a few comments
+>>
+>> On Mon, 16 Apr 2012, Tarun Kanti DebBarma wrote:
+>
+>
+> ...
+>
+>
+>>> diff --git a/arch/arm/mach-omap2/timer.c b/arch/arm/mach-omap2/time=
+r.c
+>>> index 5d7a0ee..9459d70 100644
+>>> --- a/arch/arm/mach-omap2/timer.c
+>>> +++ b/arch/arm/mach-omap2/timer.c
+>>> @@ -164,8 +164,7 @@ static int __init omap_dm_timer_init_one(struct
+>>> omap_dm_timer *timer,
+>>> =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0return -ENXIO;
+>>>
+>>> =A0 =A0 =A0 =A0/* After the dmtimer is using hwmod these clocks won=
+'t be needed
+>>> */
+>>> - =A0 =A0 =A0 sprintf(name, "gpt%d_fck", gptimer_id);
+>>> - =A0 =A0 =A0 timer->fclk =3D clk_get(NULL, name);
+>>> + =A0 =A0 =A0 timer->fclk =3D clk_get(NULL, oh->main_clk);
+>>> =A0 =A0 =A0 =A0if (IS_ERR(timer->fclk))
+>>> =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0return -ENODEV;
+>>
+>>
+>> If you find yourself accessing struct omap_hwmod structure fields
+>> directly, something is almost certainly wrong; and this case is not =
+an
+>> exception. =A0Since the omap_device code is defining an "fck" alias =
+to the
+>> main_clk, all you should need to do is:
+>>
+>> - =A0 =A0 sprintf(name, "gpt%d_fck", gptimer_id);
+>> - =A0 =A0 timer->fclk =3D clk_get(NULL, name);
+>> + =A0 =A0 timer->fclk =3D clk_get(NULL, "fck");
+>
+>
+> Are you sure that's the same in that case?
+> "timer1_fck" is an unique entry in the clkdev table whereas there are=
+ a
+> bunch of clock nodes with the "fck" alias local to a device.
+> Without the proper dev_id, there is no way to guaranty we will get th=
+e timer
+> fck clock alias.
+That' right, I confirmed that clk_get(NULL, "fck") does not work.
+=46or this to work we need the dev pointer in place of NULL.
+What is your alternate suggestion? Thanks.
+--
+Tarun
 
-diff --git a/include/sound/asound.h b/include/sound/asound.h
-index a2e4ff5..0876a1e 100644
---- a/include/sound/asound.h
-+++ b/include/sound/asound.h
-@@ -70,6 +70,20 @@ struct snd_aes_iec958 {
- 
- /****************************************************************************
-  *                                                                          *
-+ *        CEA-861 Audio InfoFrame. Used in HDMI and DisplayPort		    *
-+ *                                                                          *
-+ ****************************************************************************/
-+
-+struct snd_cea_861_aud_if {
-+	unsigned char db1_ct_cc; /* coding type and channel count */
-+	unsigned char db2_sf_ss; /* sample frequency and size */
-+	unsigned char db3; /* not used, all zeros */
-+	unsigned char db4_ca; /* channel allocation code */
-+	unsigned char db5_dminh_lsv; /* downmix inhibit & level-shit values */
-+};
-+
-+/****************************************************************************
-+ *                                                                          *
-  *      Section for driver hardware dependent interface - /dev/snd/hw?      *
-  *                                                                          *
-  ****************************************************************************/
-diff --git a/include/sound/asoundef.h b/include/sound/asoundef.h
-index 20ebf32..bb05c02 100644
---- a/include/sound/asoundef.h
-+++ b/include/sound/asoundef.h
-@@ -170,6 +170,47 @@
- #define IEC958_AES5_CON_CGMSA_COPYNOMORE (2<<0)	/* condition not be used */
- #define IEC958_AES5_CON_CGMSA_COPYNEVER	(3<<0)	/* no copying is permitted */
- 
-+/****************************************************************************
-+ *                                                                          *
-+ *        CEA-861 Audio InfoFrame. Used in HDMI and DisplayPort		    *
-+ *                                                                          *
-+ ****************************************************************************/
-+#define CEA861_AUDIO_INFOFRAME_DB1CC		(7<<0) /* mask - channel count */
-+#define CEA861_AUDIO_INFOFRAME_DB1CT		(0xf<<4) /* mask - coding type */
-+#define CEA861_AUDIO_INFOFRAME_DB1CT_FROM_STREAM (0<<4) /* refer to stream */
-+#define CEA861_AUDIO_INFOFRAME_DB1CT_IEC60958	(1<<4) /* IEC-60958 L-PCM */
-+#define CEA861_AUDIO_INFOFRAME_DB1CT_AC3	(2<<4) /* AC-3 */
-+#define CEA861_AUDIO_INFOFRAME_DB1CT_MPEG1	(3<<4) /* MPEG1 Layers 1 & 2 */
-+#define CEA861_AUDIO_INFOFRAME_DB1CT_MP3	(4<<4) /* MPEG1 Layer 3 */
-+#define CEA861_AUDIO_INFOFRAME_DB1CT_MPEG2_MULTICH (5<<4) /* MPEG2 Multichannel */
-+#define CEA861_AUDIO_INFOFRAME_DB1CT_AAC	(6<<4) /* AAC */
-+#define CEA861_AUDIO_INFOFRAME_DB1CT_DTS	(7<<4) /* DTS */
-+#define CEA861_AUDIO_INFOFRAME_DB1CT_ATRAC	(8<<4) /* ATRAC */
-+#define CEA861_AUDIO_INFOFRAME_DB1CT_ONEBIT	(9<<4) /* One Bit Audio */
-+#define CEA861_AUDIO_INFOFRAME_DB1CT_DOLBY_DIG_PLUS (10<<4) /* Dolby Digital + */
-+#define CEA861_AUDIO_INFOFRAME_DB1CT_DTS_HD	(11<<4) /* DTS-HD */
-+#define CEA861_AUDIO_INFOFRAME_DB1CT_MAT	(12<<4) /* MAT (MLP) */
-+#define CEA861_AUDIO_INFOFRAME_DB1CT_DST	(13<<4) /* DST */
-+#define CEA861_AUDIO_INFOFRAME_DB1CT_WMA_PRO	(14<<4) /* WMA Pro */
-+#define CEA861_AUDIO_INFOFRAME_DB2SF		(7<<2) /* mask - sample frequency */
-+#define CEA861_AUDIO_INFOFRAME_DB2SF_FROM_STREAM (0<<2) /* refer to stream */
-+#define CEA861_AUDIO_INFOFRAME_DB2SF_32000	(1<<2) /* 32kHz */
-+#define CEA861_AUDIO_INFOFRAME_DB2SF_44100	(2<<2) /* 44.1kHz */
-+#define CEA861_AUDIO_INFOFRAME_DB2SF_48000	(3<<2) /* 48kHz */
-+#define CEA861_AUDIO_INFOFRAME_DB2SF_88200	(4<<2) /* 88.2kHz */
-+#define CEA861_AUDIO_INFOFRAME_DB2SF_96000	(5<<2) /* 96kHz */
-+#define CEA861_AUDIO_INFOFRAME_DB2SF_176400	(6<<2) /* 176.4kHz */
-+#define CEA861_AUDIO_INFOFRAME_DB2SF_192000	(7<<2) /* 192kHz */
-+#define CEA861_AUDIO_INFOFRAME_DB2SS		(3<<0) /* mask - sample size */
-+#define CEA861_AUDIO_INFOFRAME_DB2SS_FROM_STREAM (0<<0) /* refer to stream */
-+#define CEA861_AUDIO_INFOFRAME_DB2SS_16BIT	(1<<0) /* 16 bits */
-+#define CEA861_AUDIO_INFOFRAME_DB2SS_20BIT	(2<<0) /* 20 bits */
-+#define CEA861_AUDIO_INFOFRAME_DB2SS_24BIT	(3<<0) /* 24 bits */
-+#define CEA861_AUDIO_INFOFRAME_DB5_DM_INH	(1<<7) /* mask - inhibit downmixing */
-+#define CEA861_AUDIO_INFOFRAME_DB5_DM_INH_PERMITTED (0<<7) /* stereo downmix permitted */
-+#define CEA861_AUDIO_INFOFRAME_DB5_DM_INH_PROHIBITED (1<<7) /* stereo downmis prohibited */
-+#define CEA861_AUDIO_INFOFRAME_DB5_LSV		(0xf<<3) /* mask - level-shift values */
-+
- /*****************************************************************************
-  *                                                                           *
-  *                            MIDI v1.0 interface                            *
--- 
-1.7.5.4
-
+>
+> Since that code is executed pretty early before there is any device,
+> accessing directly the hwmod entry seems to be the only method to get=
+ the
+> proper clock without having to provide again the full clock name.
+>
+> AFAIR, the "fck" alias is created during the omap_device creation, so=
+ I
+> guess it is too early here to have it.
+>
+> To be honest I'm always a little bit confused with that early code, b=
+ut it
+> looks like there is no device at all in that early part of the code.
+>
+> Regards,
+> Benoit
+--
+To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
