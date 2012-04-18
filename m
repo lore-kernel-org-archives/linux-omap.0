@@ -1,131 +1,52 @@
-From: Omar Ramirez Luna <omar.luna-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>
-Subject: [PATCH v2] iommu: OMAP: device detach on domain destroy
-Date: Wed, 18 Apr 2012 13:09:41 -0500
-Message-ID: <1334772581-32015-1-git-send-email-omar.luna@linaro.org>
+From: Tony Lindgren <tony@atomide.com>
+Subject: Re: [PATCH 6/8] mmc: omap_hsmmc: add DMA engine support
+Date: Wed, 18 Apr 2012 11:11:12 -0700
+Message-ID: <20120418181112.GK21106@atomide.com>
+References: <20120418100954.GK25053@n2100.arm.linux.org.uk>
+ <E1SKRs1-0004bP-HH@rmk-PC.arm.linux.org.uk>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <iommu-bounces-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org>
-List-Unsubscribe: <https://lists.linuxfoundation.org/mailman/options/iommu>,
-	<mailto:iommu-request-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org?subject=unsubscribe>
-List-Archive: <http://lists.linuxfoundation.org/pipermail/iommu/>
-List-Post: <mailto:iommu-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org>
-List-Help: <mailto:iommu-request-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org?subject=help>
-List-Subscribe: <https://lists.linuxfoundation.org/mailman/listinfo/iommu>,
-	<mailto:iommu-request-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org?subject=subscribe>
-Sender: iommu-bounces-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org
-Errors-To: iommu-bounces-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org
-To: Joerg Roedel <joerg.roedel-5C7GfCeVMHo@public.gmane.org>
-Cc: Ohad Ben-Cohen <ohad-Ix1uc/W3ht7QT0dZR+AlfA@public.gmane.org>, linaro-dev-cunTk1MwBs8s++Sfvej+rw@public.gmane.org, patches-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org, Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>, iommu-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org, Laurent Pinchart <laurent.pinchart-ryLnwIuWjnjg/C1BVhZhaw@public.gmane.org>, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-mmc-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <E1SKRs1-0004bP-HH@rmk-PC.arm.linux.org.uk>
+Sender: linux-mmc-owner@vger.kernel.org
+To: Russell King <rmk+kernel@arm.linux.org.uk>
+Cc: linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org, linux-mmc@vger.kernel.org, Chris Ball <cjb@laptop.org>
 List-Id: linux-omap@vger.kernel.org
 
-'domain_destroy with devices attached' case isn't yet handled, instead
-code assumes that the device was already detached.
+* Russell King <rmk+kernel@arm.linux.org.uk> [120418 03:15]:
+> Add DMA engine support to the OMAP HSMMC driver.  This supplements the
+> private DMA API implementation contained within this driver, and the
+> driver can be switched at build time between using DMA engine and the
+> private DMA API.
 
-If the domain is destroyed the hardware still has access to invalid
-pointers to its page table and internal iommu object. In order to
-detach the users we need to track devices using the iommu, current
-use cases only have one user of iommu per instance. When required
-this can evolve to a list with the devices using the iommu_dev.
+Glad to see this happening!
 
-Reported-by: Joerg Roedel <joro-zLv9SwRftAIdnm+yROfE0A@public.gmane.org>
-Reviewed-by: Ohad Ben-Cohen <ohad-Ix1uc/W3ht7QT0dZR+AlfA@public.gmane.org>
-Signed-off-by: Omar Ramirez Luna <omar.luna-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>
----
+No luck here though, after a quick test I'm getting the following with MMC
+not working:
 
-v2: rebased onto v3.4-rc2
+zoom3
+[    2.277160] omap_hsmmc omap_hsmmc.1: unable to obtain RX DMA engine channel 48
+[    2.284729] omap_hsmmc omap_hsmmc.2: unable to obtain RX DMA engine channel 78
+[    2.292999] omap_hsmmc omap_hsmmc.0: unable to obtain RX DMA engine channel 62
+blaze
+[    1.681610] omap_hsmmc omap_hsmmc.1: unable to obtain RX DMA engine channel 48
+[    1.689331] omap_hsmmc omap_hsmmc.0: unable to obtain RX DMA engine channel 62
+[    1.697174] omap_hsmmc omap_hsmmc.4: unable to obtain RX DMA engine channel 60
+n900
+[    2.492248] omap_hsmmc omap_hsmmc.0: unable to obtain RX DMA engine channel 62
+[    2.500488] omap_hsmmc omap_hsmmc.1: unable to obtain RX DMA engine channel 48
 
- drivers/iommu/omap-iommu.c |   32 +++++++++++++++++++++++---------
- 1 files changed, 23 insertions(+), 9 deletions(-)
+And leaving out patch 7/8 produces similar errors for both rx and tx, but MMC
+works without DMA:
 
-diff --git a/drivers/iommu/omap-iommu.c b/drivers/iommu/omap-iommu.c
-index 6899dcd..e70ee2b 100644
---- a/drivers/iommu/omap-iommu.c
-+++ b/drivers/iommu/omap-iommu.c
-@@ -41,11 +41,13 @@
-  * @pgtable:	the page table
-  * @iommu_dev:	an omap iommu device attached to this domain. only a single
-  *		iommu device can be attached for now.
-+ * @dev:	Device using this domain.
-  * @lock:	domain lock, should be taken when attaching/detaching
-  */
- struct omap_iommu_domain {
- 	u32 *pgtable;
- 	struct omap_iommu *iommu_dev;
-+	struct device *dev;
- 	spinlock_t lock;
- };
- 
-@@ -1081,6 +1083,7 @@ omap_iommu_attach_dev(struct iommu_domain *domain, struct device *dev)
- 	}
- 
- 	omap_domain->iommu_dev = arch_data->iommu_dev = oiommu;
-+	omap_domain->dev = dev;
- 	oiommu->domain = domain;
- 
- out:
-@@ -1088,19 +1091,16 @@ out:
- 	return ret;
- }
- 
--static void omap_iommu_detach_dev(struct iommu_domain *domain,
--				 struct device *dev)
-+static void _omap_iommu_detach_dev(struct omap_iommu_domain *omap_domain,
-+			struct device *dev)
- {
--	struct omap_iommu_domain *omap_domain = domain->priv;
--	struct omap_iommu_arch_data *arch_data = dev->archdata.iommu;
- 	struct omap_iommu *oiommu = dev_to_omap_iommu(dev);
--
--	spin_lock(&omap_domain->lock);
-+	struct omap_iommu_arch_data *arch_data = dev->archdata.iommu;
- 
- 	/* only a single device is supported per domain for now */
- 	if (omap_domain->iommu_dev != oiommu) {
- 		dev_err(dev, "invalid iommu device\n");
--		goto out;
-+		return;
- 	}
- 
- 	iopgtable_clear_entry_all(oiommu);
-@@ -1108,8 +1108,16 @@ static void omap_iommu_detach_dev(struct iommu_domain *domain,
- 	omap_iommu_detach(oiommu);
- 
- 	omap_domain->iommu_dev = arch_data->iommu_dev = NULL;
-+	omap_domain->dev = NULL;
-+}
- 
--out:
-+static void omap_iommu_detach_dev(struct iommu_domain *domain,
-+				 struct device *dev)
-+{
-+	struct omap_iommu_domain *omap_domain = domain->priv;
-+
-+	spin_lock(&omap_domain->lock);
-+	_omap_iommu_detach_dev(omap_domain, dev);
- 	spin_unlock(&omap_domain->lock);
- }
- 
-@@ -1148,13 +1156,19 @@ out:
- 	return -ENOMEM;
- }
- 
--/* assume device was already detached */
- static void omap_iommu_domain_destroy(struct iommu_domain *domain)
- {
- 	struct omap_iommu_domain *omap_domain = domain->priv;
- 
- 	domain->priv = NULL;
- 
-+	/*
-+	 * An iommu device is still attached
-+	 * (currently, only one device can be attached) ?
-+	 */
-+	if (omap_domain->iommu_dev)
-+		_omap_iommu_detach_dev(omap_domain, omap_domain->dev);
-+
- 	kfree(omap_domain->pgtable);
- 	kfree(omap_domain);
- }
--- 
-1.7.4.1
+n900
+[    2.478363] omap_hsmmc omap_hsmmc.0: unable to obtain RX DMA engine channel 62
+[    2.486267] omap_hsmmc omap_hsmmc.0: unable to obtain TX DMA engine channel 61
+[    2.718322] omap_hsmmc omap_hsmmc.1: unable to obtain RX DMA engine channel 48
+[    2.726135] omap_hsmmc omap_hsmmc.1: unable to obtain TX DMA engine channel 47
+
+
+Regards,
+
+Tony
