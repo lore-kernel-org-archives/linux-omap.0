@@ -1,78 +1,106 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH] OMAP4: Adding ID for OMAP4460 ES1.1
-Date: Wed, 18 Apr 2012 09:50:09 -0700
-Message-ID: <20120418165008.GI21106@atomide.com>
-References: <1333357197-6354-1-git-send-email-rogerq@ti.com>
- <4F7AC721.4020205@ti.com>
+From: Kevin Hilman <khilman@ti.com>
+Subject: Re: [PATCH 2/2] OMAPDSS: Ensure OPP100 when DSS is operational
+Date: Wed, 18 Apr 2012 10:03:22 -0700
+Message-ID: <87vckxm0px.fsf@ti.com>
+References: <1331205217-19927-1-git-send-email-tomi.valkeinen@ti.com>
+	<1331205217-19927-2-git-send-email-tomi.valkeinen@ti.com>
+	<1331646353.2856.354.camel@deskari> <87zkbkmjo1.fsf@ti.com>
+	<1331707131.1618.7.camel@lappy>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-02-ewr.mailhop.org ([204.13.248.72]:16772 "EHLO
-	mho-02-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751064Ab2DRQuM (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 18 Apr 2012 12:50:12 -0400
-Content-Disposition: inline
-In-Reply-To: <4F7AC721.4020205@ti.com>
+Received: from na3sys009aog102.obsmtp.com ([74.125.149.69]:47995 "EHLO
+	na3sys009aog102.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1751342Ab2DRRDg (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>);
+	Wed, 18 Apr 2012 13:03:36 -0400
+Received: by dajx4 with SMTP id x4so13321750daj.14
+        for <linux-omap@vger.kernel.org>; Wed, 18 Apr 2012 10:03:34 -0700 (PDT)
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Roger Quadros <rogerq@ti.com>
-Cc: linux-omap@vger.kernel.org, Chris Lalancette <clalancette@gmail.com>
+To: Tomi Valkeinen <tomi.valkeinen@ti.com>, "Turquette, Mike" <mturquette@ti.com>
+Cc: linux-omap@vger.kernel.org, Paul Walmsley <paul@pwsan.com>, archit@ti.com
 
-Hi,
+[ Tomi, sorry for the delay.  I thought I had sent this a while back,
+  but found it in my drafts folder. ]
 
-* Roger Quadros <rogerq@ti.com> [120403 02:50]:
-> Hi Tony,
-> 
-> Could you please take this patch for the next merge? Thanks.
++Mike for clock comments
 
-Yes, it seems that this is not needed as a fix for the -rc cycle?
+Tomi Valkeinen <tomi.valkeinen@ti.com> writes:
 
-If it's needed as a fix, please let me know and also describe
-what breaks.
+> On Tue, 2012-03-13 at 11:37 -0700, Kevin Hilman wrote:
+>> Hi Tomi,
+>> 
+>> Tomi Valkeinen <tomi.valkeinen@ti.com> writes:
+>> 
+>> > Hi Kevin, Paul,
+>> >
+>> > I know you're busy, but I'd appreciate a comment/ack on these two small
+>> > patches, so I could get them in to next merge window. Otherwise using
+>> > any other OPP than OPP100 will most likely break the DSS.
+>> >
+>> > This looks quite straightforward fix for me, but I'm not sure if there
+>> > could be any side effects.
+>> 
+>> How does it affect OMAP3?  OPP50/OPP100 names are specific to OMAP4.
+>
+> They are? At least 3630 TRM speaks of them in the DSS chapter.
+>
 
-Regards,
+The OPP names might exist, but the freq/voltage values are different
+between 3430, 3630 and 4430.
 
-Tony
+The point is that it's hard to make SoC independent code that depends on
+a particular OPP because OPPs are defined as SoC specific.
 
- 
-> On 04/02/2012 11:59 AM, Roger Quadros wrote:
-> > From: Chris Lalancette <clalancette@gmail.com>
-> > 
-> > Signed-off-by: Chris Lalancette <clalancette@gmail.com>
-> > Signed-off-by: Roger Quadros <rogerq@ti.com>
-> > ---
-> >  arch/arm/mach-omap2/id.c              |    5 ++++-
-> >  arch/arm/plat-omap/include/plat/cpu.h |    1 +
-> >  2 files changed, 5 insertions(+), 1 deletions(-)
-> > 
-> > diff --git a/arch/arm/mach-omap2/id.c b/arch/arm/mach-omap2/id.c
-> > index 0e79b7b..f139817 100644
-> > --- a/arch/arm/mach-omap2/id.c
-> > +++ b/arch/arm/mach-omap2/id.c
-> > @@ -478,9 +478,12 @@ void __init omap4xxx_check_revision(void)
-> >  	case 0xb94e:
-> >  		switch (rev) {
-> >  		case 0:
-> > -		default:
-> >  			omap_revision = OMAP4460_REV_ES1_0;
-> >  			break;
-> > +		case 2:
-> > +		default:
-> > +			omap_revision = OMAP4460_REV_ES1_1;
-> > +			break;
-> >  		}
-> >  		break;
-> >  	case 0xb975:
-> > diff --git a/arch/arm/plat-omap/include/plat/cpu.h b/arch/arm/plat-omap/include/plat/cpu.h
-> > index dc6a86b..4bdf14e 100644
-> > --- a/arch/arm/plat-omap/include/plat/cpu.h
-> > +++ b/arch/arm/plat-omap/include/plat/cpu.h
-> > @@ -445,6 +445,7 @@ IS_OMAP_TYPE(3517, 0x3517)
-> >  
-> >  #define OMAP446X_CLASS		0x44600044
-> >  #define OMAP4460_REV_ES1_0	(OMAP446X_CLASS | (0x10 << 8))
-> > +#define OMAP4460_REV_ES1_1	(OMAP446X_CLASS | (0x11 << 8))
-> >  
-> >  #define OMAP447X_CLASS		0x44700044
-> >  #define OMAP4470_REV_ES1_0	(OMAP447X_CLASS | (0x10 << 8))
-> 
+>> Also, Can you help us understand the exact nature of the constraint?
+>
+> The TRM lists maximum clock rates for the DSS clocks. You should be able
+> to find them by searching "OPP100" in the DSS chapter. In my TRMs there
+> are:
+>
+> OMAP3630: Table 7-19. Display Subsystem Clocks
+> OMAP4430: Table 10-4. DSS Clock Frequencies
+>
+>> It sounds to me like it acutally is a throughput constraint on CORE.  If
+>> so, wouldn't it be clearer to set a throughput constraint that is
+>> calculated based on the pixel clock and resulting bitrate that would
+>> have the same effect?
+>
+> I don't see that these limits would have anything to do with CORE. I'm
+> guessing that the DSS HW just can't function properly with high clocks
+> and low voltage.
+
+OK, this gets back to something we've talked about a few times that is
+needed in the clock framework.  Basically, we need a way for clocks to
+prevent changes so these kinds of dependencies can be tracked.  We've
+talked about new APIs like clk_allow_changes(), clk_block_changes() or
+something like that.
+
+Basically, something that allows clocks to know that their will not be
+changed under them. 
+
+> Making a constraint for the throughput is another matter, which should
+> be also fixed at some point. So in the future I hope we'll have PM
+> constraints coming from two sources: 1) a calculation based on the
+> memory throughput needs 
+
+This can be done today.  That is the purpose of the tput constraint.
+
+> 2) the minimum clock rates.
+
+Right, today we don't have a way do to this, and clock framework support
+will be needed.  I'll let Paul & Mike comment on that aspect, and
+hopefully we'll have something in common clock that will be able to
+handle this eventually.
+
+> But both of those are non-trivial to code, so this patch aims to keep
+> DSS working until those are implemented. Also, in practice, it's quite
+> rare that the DSS clocks would all be below the limits in the tables.
+> That could only happen with a fixed, known configuration with rather
+> small displays.
+
+So, in summary, I have no objection $SUBJECT patch which implements the
+constraint using the only available method we have today.
+
+Kevin
