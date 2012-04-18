@@ -1,52 +1,31 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH 6/8] mmc: omap_hsmmc: add DMA engine support
-Date: Wed, 18 Apr 2012 11:11:12 -0700
-Message-ID: <20120418181112.GK21106@atomide.com>
-References: <20120418100954.GK25053@n2100.arm.linux.org.uk>
- <E1SKRs1-0004bP-HH@rmk-PC.arm.linux.org.uk>
+From: Omar Ramirez Luna <omar.luna@linaro.org>
+Subject: Re: [PATCH] iommu: OMAP: device detach on domain destroy
+Date: Wed, 18 Apr 2012 13:11:46 -0500
+Message-ID: <CALLhW=4NQnauYkAYcDi9Q8s40pyhoF0v2pd76A2ckOh6YyZ_ww@mail.gmail.com>
+References: <1333123429-3727-1-git-send-email-omar.luna@linaro.org>
+	<20120412102505.GL2428@amd.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-mmc-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <E1SKRs1-0004bP-HH@rmk-PC.arm.linux.org.uk>
-Sender: linux-mmc-owner@vger.kernel.org
-To: Russell King <rmk+kernel@arm.linux.org.uk>
-Cc: linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org, linux-mmc@vger.kernel.org, Chris Ball <cjb@laptop.org>
+Content-Type: text/plain; charset=ISO-8859-1
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from mail-bk0-f46.google.com ([209.85.214.46]:65321 "EHLO
+	mail-bk0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753251Ab2DRSLs (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 18 Apr 2012 14:11:48 -0400
+Received: by bkcik5 with SMTP id ik5so5728219bkc.19
+        for <linux-omap@vger.kernel.org>; Wed, 18 Apr 2012 11:11:47 -0700 (PDT)
+In-Reply-To: <20120412102505.GL2428@amd.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Joerg Roedel <joerg.roedel@amd.com>
+Cc: Ohad Ben-Cohen <ohad@wizery.com>, Tony Lindgren <tony@atomide.com>, Laurent Pinchart <laurent.pinchart@ideasonboard.com>, iommu@lists.linux-foundation.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, patches@linaro.org, linaro-dev@lists.linaro.org
 
-* Russell King <rmk+kernel@arm.linux.org.uk> [120418 03:15]:
-> Add DMA engine support to the OMAP HSMMC driver.  This supplements the
-> private DMA API implementation contained within this driver, and the
-> driver can be switched at build time between using DMA engine and the
-> private DMA API.
+Hi Joerg,
 
-Glad to see this happening!
+On 12 April 2012 05:25, Joerg Roedel <joerg.roedel@amd.com> wrote:
+> Doesn't apply against 3.4-rc2. Please rebase and send a new version.
 
-No luck here though, after a quick test I'm getting the following with MMC
-not working:
+I rebased the patch and sent v2.
 
-zoom3
-[    2.277160] omap_hsmmc omap_hsmmc.1: unable to obtain RX DMA engine channel 48
-[    2.284729] omap_hsmmc omap_hsmmc.2: unable to obtain RX DMA engine channel 78
-[    2.292999] omap_hsmmc omap_hsmmc.0: unable to obtain RX DMA engine channel 62
-blaze
-[    1.681610] omap_hsmmc omap_hsmmc.1: unable to obtain RX DMA engine channel 48
-[    1.689331] omap_hsmmc omap_hsmmc.0: unable to obtain RX DMA engine channel 62
-[    1.697174] omap_hsmmc omap_hsmmc.4: unable to obtain RX DMA engine channel 60
-n900
-[    2.492248] omap_hsmmc omap_hsmmc.0: unable to obtain RX DMA engine channel 62
-[    2.500488] omap_hsmmc omap_hsmmc.1: unable to obtain RX DMA engine channel 48
+Thanks,
 
-And leaving out patch 7/8 produces similar errors for both rx and tx, but MMC
-works without DMA:
-
-n900
-[    2.478363] omap_hsmmc omap_hsmmc.0: unable to obtain RX DMA engine channel 62
-[    2.486267] omap_hsmmc omap_hsmmc.0: unable to obtain TX DMA engine channel 61
-[    2.718322] omap_hsmmc omap_hsmmc.1: unable to obtain RX DMA engine channel 48
-[    2.726135] omap_hsmmc omap_hsmmc.1: unable to obtain TX DMA engine channel 47
-
-
-Regards,
-
-Tony
+Omar
