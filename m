@@ -1,69 +1,68 @@
-From: Tomi Valkeinen <tomi.valkeinen@ti.com>
-Subject: Re: [PATCH] remove unused FB_OMAP_BOOTLOADER_INIT config option
-Date: Wed, 18 Apr 2012 17:16:42 +0300
-Message-ID: <1334758602.2027.35.camel@deskari>
-References: <1333443555-21559-1-git-send-email-pmeerw@pmeerw.net>
+From: Kevin Hilman <khilman@ti.com>
+Subject: Re: [PATCH] tty: omap-serial: Keep the wakeup mechanism enabled by default
+Date: Wed, 18 Apr 2012 07:21:33 -0700
+Message-ID: <87mx69nms2.fsf@ti.com>
+References: <1334579407-16970-1-git-send-email-govindraj.raja@ti.com>
+	<87vckyq6ti.fsf@ti.com>
+	<CAMrsUdL1S5GiyG0egS=CHg2fdNkyZVF-wuCNGDg547kfTUODng@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg="pgp-sha1"; protocol="application/pgp-signature"; boundary="=-gVj3VOQ5jrc/kz573bwV"
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aog130.obsmtp.com ([74.125.149.143]:50195 "EHLO
-	na3sys009aog130.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753427Ab2DROQs (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>);
-	Wed, 18 Apr 2012 10:16:48 -0400
-Received: by lagv3 with SMTP id v3so7215080lag.13
-        for <linux-omap@vger.kernel.org>; Wed, 18 Apr 2012 07:16:45 -0700 (PDT)
-In-Reply-To: <1333443555-21559-1-git-send-email-pmeerw@pmeerw.net>
+Received: from na3sys009aog124.obsmtp.com ([74.125.149.151]:50993 "EHLO
+	na3sys009aog124.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1751210Ab2DROVe convert rfc822-to-8bit
+	(ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Wed, 18 Apr 2012 10:21:34 -0400
+Received: by dajx4 with SMTP id x4so10880814daj.28
+        for <linux-omap@vger.kernel.org>; Wed, 18 Apr 2012 07:21:33 -0700 (PDT)
+In-Reply-To: <CAMrsUdL1S5GiyG0egS=CHg2fdNkyZVF-wuCNGDg547kfTUODng@mail.gmail.com>
+	(Govindraj Raja's message of "Wed, 18 Apr 2012 18:46:31 +0530")
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Peter Meerwald <pmeerw@pmeerw.net>
-Cc: linux-omap@vger.kernel.org, Peter Meerwald <p.meerwald@bct-electronic.com>
+To: "Raja, Govindraj" <govindraj.raja@ti.com>
+Cc: linux-omap@vger.kernel.org, Paul Walmsley <paul@pwsan.com>, linux-arm-kernel@lists.infradead.org, linux-serial@vger.kernel.org
 
+"Raja, Govindraj" <govindraj.raja@ti.com> writes:
 
---=-gVj3VOQ5jrc/kz573bwV
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: quoted-printable
+> On Wed, Apr 18, 2012 at 4:55 AM, Kevin Hilman <khilman@ti.com> wrote:
+>> "Govindraj.R" <govindraj.raja@ti.com> writes:
+>>
+>>> From: "Govindraj.R" <govindraj.raja@ti.com>
+>>>
+>>> The wakeups can be left enabled by default and should be disabled
+>>> only when disabled from sysfs and while entering suspend.
+>>
+>> Left enabled? =C2=A0That assumes something else has initizlied them,=
+ but we
+>> can't make that assumption.
+>>
+>> First, wakeups should be disabled when ->probe has finished. =C2=A0T=
+hen,
+>> they should be enabled whenever driver is in use, and disabled when
+>> the driver is not in use.
+>>
+>> I'm not familiar enough with uart_ops, but it looks like they should
+>> probably be enabled in uart_ops->startup and disabled in
+>> uart_ops->shutdown.
+>
+> uart_ops->shutdown gets called in suspend path also
+> serial_omap_suspend =3D> uart_suspend_port =3D > ops->shutdown(uport)=
+;
+>
+> This will leave uart wakeup disabled in suspend path.
 
-On Tue, 2012-04-03 at 10:59 +0200, Peter Meerwald wrote:
-> From: Peter Meerwald <p.meerwald@bct-electronic.com>
->=20
-> code depending on FB_OMAP_BOOTLOADER_INIT has been removed long before
-> (e.g. Tomi Valkeinen, 03 Mar 2011: OMAP: DSS2: Remove FB_OMAP_BOOTLOADER_=
-INIT
-> support), but the option still exists Kconfig and has no use
->=20
-> Signed-off-by: Peter Meerwald <p.meerwald@bct-electronic.com>
->=20
-> ---
->  drivers/video/omap/Kconfig |    8 --------
->  1 files changed, 0 insertions(+), 8 deletions(-)
+As I said, I'm not familiar enough with uart_ops to know which are the
+right ones.
 
-Thanks, I'll apply.
+Maybe ->request_port and ->release_port are the right ones?
 
- Tomi
+The point is that wakeups should be enabled whenever driver is in use,
+and disabled when the driver is not in use.
 
-
---=-gVj3VOQ5jrc/kz573bwV
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: This is a digitally signed message part
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.4.11 (GNU/Linux)
-
-iQIcBAABAgAGBQJPjszKAAoJEPo9qoy8lh71IccP/RlIn4yiRBWJF7v2WcpPcw71
-opL8Zt4+e69Xyz+07KiSwAOWVDfLwRq1yaPER8ILLTtbAzGMjsy168wdWwren0AR
-iXKoyR9ghUitN3QBUwAGL6ERPgxHFDDTYaFX0skonT9YFXyvtW+/H6XrfZH4zpXS
-xr3bS5keLjLW3dKBQLmjRbbPcy6GBD97bBMRm3LsqH6eK0uWnjZq1cDH2g1yySCl
-OYwRxFtpCHxO/IAUIZ5mf564lS8l1SA/A2y+6g9sVJmrFzrWTqgslkPthFv8Aq0J
-iZk9xfpmmeEzhYwt5IZpSeTG84JQdGEgKpCAie0HQT0hrrHjgBqhGVRUsrSp9gP7
-gCixa2oe2eXYQqwL1jIX6/JOuwJzPqPjEl1x59GEQb6miKkpMzCVEDV2Sn3nggpc
-fbUoHp33Nim81ZSmfEqUhM2BQyB4ycTDG86ohfS/AAExSqweXCbSKUrm+rWXTc94
-vdJQ91eeiray/MMi44Ch4ASFVHva5Fk9La08ZAqsPHoMzXDXWpvTjf1ZJEmWIC1R
-DdGYD8TriDemcXbvazXr7ZpIv3x7wNlQr2GJ57DNZ9RFtHTqstL4Ts9k10oEKvUr
-Ve/vcL3GmqMpWQW2tk1qKIpNv9miQJKMlwfdx3Ol73kodCThFv0SpPK+RH5AUjRg
-ad0SjT1jDJSTnlmDYi8d
-=kpDA
------END PGP SIGNATURE-----
-
---=-gVj3VOQ5jrc/kz573bwV--
-
+Kevin
+--
+To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
