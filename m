@@ -1,40 +1,39 @@
-From: Greg KH <gregkh@linuxfoundation.org>
-Subject: Re: [PATCH v2 0/9] PM: Create the AVS class of drivers
-Date: Wed, 18 Apr 2012 17:08:42 -0700
-Message-ID: <20120419000842.GA24575@kroah.com>
-References: <1332173578-27422-1-git-send-email-j-pihet@ti.com>
- <CAORVsuV-GJAabY49G0fOgcBcg-CNdpNiTE+AcBN07wrWZH3qcQ@mail.gmail.com>
+From: Oleg Matcovschi <oleg.matcovschi@ti.com>
+Subject: [PATCH] ASoC: omap-pcm: Free dma buffers in case of error.
+Date: Wed, 18 Apr 2012 17:37:50 -0700
+Message-ID: <1334795870-5726-1-git-send-email-oleg.matcovschi@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-pz0-f52.google.com ([209.85.210.52]:38095 "EHLO
-	mail-pz0-f52.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751605Ab2DSAIq (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 18 Apr 2012 20:08:46 -0400
-Received: by dake40 with SMTP id e40so10546423dak.11
-        for <linux-omap@vger.kernel.org>; Wed, 18 Apr 2012 17:08:46 -0700 (PDT)
-Content-Disposition: inline
-In-Reply-To: <CAORVsuV-GJAabY49G0fOgcBcg-CNdpNiTE+AcBN07wrWZH3qcQ@mail.gmail.com>
+Received: from bear.ext.ti.com ([192.94.94.41]:34462 "EHLO bear.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751370Ab2DSAiB (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Wed, 18 Apr 2012 20:38:01 -0400
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Jean Pihet <jean.pihet@newoldbits.com>
-Cc: akpm@linux-foundation.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Kevin Hilman <khilman@ti.com>, "Rafael J. Wysocki" <rjw@sisk.pl>, LKML <linux-kernel@vger.kernel.org>, Tony Lindgren <tony@atomide.com>, KEERTHY J <j-keerthy@ti.com>, Jean Pihet <j-pihet@ti.com>
+To: linux-omap@vger.kernel.org, alsa-devel@alsa-project.org
+Cc: Jarkko Nikula <jhnikula@gmail.com>, Oleg Matcovschi <oleg.matcovschi@ti.com>
 
-On Wed, Apr 18, 2012 at 10:04:22AM +0200, Jean Pihet wrote:
-> Hi Andrew, Greg,
-> 
-> Can you please look at this patch set?
-> The idea is to create a framework and drivers for the AVS class of
-> devices. This patch set implements the first step by moving the
-> existing code to drivers/power/avs. Next steps will be to implement
-> class support and notifications, add more classes of operations for
-> OMAP chips, etc.
-> 
-> Keerthy J is taking over the ownership of this code and will continue
-> the development further.
-> 
-> What do you think?
+Signed-off-by: Oleg Matcovschi <oleg.matcovschi@ti.com>
+---
+ sound/soc/omap/omap-pcm.c |    4 ++++
+ 1 files changed, 4 insertions(+), 0 deletions(-)
 
-I think Kevin and Rafael's comments need to be addressed.
+diff --git a/sound/soc/omap/omap-pcm.c b/sound/soc/omap/omap-pcm.c
+index a2a464f..380a5bd 100644
+--- a/sound/soc/omap/omap-pcm.c
++++ b/sound/soc/omap/omap-pcm.c
+@@ -414,6 +414,10 @@ static int omap_pcm_new(struct snd_soc_pcm_runtime *rtd)
+ 	}
+ 
+ out:
++	/* free preallocated buffers in case of error */
++	if (ret)
++		omap_pcm_free_dma_buffers(pcm);
++
+ 	return ret;
+ }
+ 
+-- 
+1.7.4.1
 
-greg k-h
