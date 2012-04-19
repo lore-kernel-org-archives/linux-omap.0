@@ -1,55 +1,48 @@
-From: Russell King - ARM Linux <linux@arm.linux.org.uk>
-Subject: Re: [PATCH] ARM: OMAP: Revert "ARM: OMAP: ctrl: Fix CONTROL_DSIPHY
-	register fields"
-Date: Thu, 19 Apr 2012 10:31:58 +0100
-Message-ID: <20120419093158.GX25053@n2100.arm.linux.org.uk>
-References: <1333955479-2675-1-git-send-email-archit@ti.com> <1334736386.1886.8.camel@deskari> <4F8E77BA.3000507@ti.com>
+From: Paul Walmsley <paul@pwsan.com>
+Subject: Re: [PATCH 12/12] ARM: OMAP2xxx: hwmod data: start to fix the IVA1,
+ IVA2 and DSP
+Date: Thu, 19 Apr 2012 03:33:03 -0600 (MDT)
+Message-ID: <alpine.DEB.2.00.1204190331560.29048@utopia.booyaka.com>
+References: <20120308023614.8205.78768.stgit@dusk> <20120308023840.8205.51532.stgit@dusk> <alpine.DEB.2.00.1204190317030.29048@utopia.booyaka.com> <20120419092823.GW25053@n2100.arm.linux.org.uk>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from caramon.arm.linux.org.uk ([78.32.30.218]:40814 "EHLO
-	caramon.arm.linux.org.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754271Ab2DSJcK (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 19 Apr 2012 05:32:10 -0400
-Content-Disposition: inline
-In-Reply-To: <4F8E77BA.3000507@ti.com>
+Received: from utopia.booyaka.com ([72.9.107.138]:36994 "EHLO
+	utopia.booyaka.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753000Ab2DSJdE (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 19 Apr 2012 05:33:04 -0400
+In-Reply-To: <20120419092823.GW25053@n2100.arm.linux.org.uk>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Archit Taneja <a0393947@ti.com>
-Cc: Tomi Valkeinen <tomi.valkeinen@ti.com>, tony@atomide.com, linux-omap@vger.kernel.org, santosh.shilimkar@ti.com, paul@pwsan.com, b-cousson@ti.com
+To: Russell King - ARM Linux <linux@arm.linux.org.uk>
+Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 
-On Wed, Apr 18, 2012 at 01:43:46PM +0530, Archit Taneja wrote:
-> On Wednesday 18 April 2012 01:36 PM, Tomi Valkeinen wrote:
->> Hi,
->>
->> On Mon, 2012-04-09 at 12:41 +0530, Archit Taneja wrote:
->>> This reverts commit 46f8c3c7e95c0d30d95911e7975ddc4f93b3e237.
->>>
->>> The commit above swapped the DSI1_PPID and DSI2_PPID register fields in
->>> CONTROL_DSIPHY to be in sync with the newer public OMAP TRMs(after version V).
->>>
->>> With this commit, contention errors were reported on DSI lanes some OMAP4 SDPs.
->>> After probing the DSI lanes on OMAP4 SDP, it was seen that setting bits in the
->>> DSI2_PPID field was pulling up voltage on DSI1 lanes, and DSI1_PPID field was
->>> pulling up voltage on DSI2 lanes.
->>>
->>> This proves that the current version of OMAP4 TRM is incorrect, swap the
->>> position of register fields according to the older TRM versions as they were
->>> correct.
->>
->> Are we sure the bits are the same for all OMAP4 versions? I'm just
->> wondering why the change was made to TRM...
->
-> I've tried on OMAP4430 ES2.1 and OMAP4460 ES1.1. I can try on a couple  
-> more revisions.
->
-> As far as why the change was made in the TRM, it's a bit hard to find  
-> the right people, or get response from them :), I'll give that a try 
-> again.
->
-> If we do conclude that this revert patch is needed, it might probably be  
-> a candidate for the 3.2 and 3.3 stable kernels, just wanted to point  
-> that out.
+On Thu, 19 Apr 2012, Russell King - ARM Linux wrote:
 
-I was just going to ask about this, as I haven't noticed any improvement
-in mainline kernels since I reported the original failure...
+> FYI, I'm also seeing omap_hwmod errors on boot:
+> 
+> 3430ldp: http://www.arm.linux.org.uk/developer/build/result.php?type=boot&idx=133
+> omap_hwmod: i2c1: softreset failed (waited 10000 usec)
+> omap_hwmod: i2c2: softreset failed (waited 10000 usec)
+> omap_hwmod: i2c3: softreset failed (waited 10000 usec)
+> 
+> 4430sdp: http://www.arm.linux.org.uk/developer/build/result.php?type=boot&idx=134
+> omap_hwmod: i2c1: softreset failed (waited 10000 usec)
+> omap_hwmod: i2c2: softreset failed (waited 10000 usec)
+> omap_hwmod: i2c3: softreset failed (waited 10000 usec)
+> omap_hwmod: i2c4: softreset failed (waited 10000 usec)
+> omap_hwmod: ipu: failed to hardreset
+
+Thanks for the report.  Those should be resolved by:
+
+ARM: OMAP2+: hwmod: Revert "ARM: OMAP2+: hwmod: Make omap_hwmod_softreset 
+wait for reset status"
+
+which was sent upstream to Tony as part of
+
+http://git.kernel.org/?p=linux/kernel/git/pjw/omap-pending.git;a=commit;h=3c55c1baffa5f719eb2ae9729088bc867f972f53
+
+Hopefully it will go into the next v3.4-rc kernel.
+
+
+- Paul
