@@ -1,329 +1,132 @@
-From: "Mark A. Greer" <mgreer@animalcreek.com>
-Subject: [PATCH v2] arm: omap3: am35x: Fix clockdomain dependencies
-Date: Thu, 19 Apr 2012 13:16:46 -0700
-Message-ID: <1334866606-8291-1-git-send-email-mgreer@animalcreek.com>
+From: Paul Walmsley <paul@pwsan.com>
+Subject: [GIT PULL] ARM: OMAP2+: hwmod data: add most of the remaining OMAP4
+ hwmods
+Date: Thu, 19 Apr 2012 14:29:51 -0600 (MDT)
+Message-ID: <alpine.DEB.2.00.1204191428550.29048@utopia.booyaka.com>
+Mime-Version: 1.0
+Content-Type: MULTIPART/MIXED; BOUNDARY="155748971-471955330-1334867391=:29048"
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail20.dotsterhost.com ([66.11.232.73]:36463 "EHLO
-	mail20.dotsterhost.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756315Ab2DSUQ6 (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 19 Apr 2012 16:16:58 -0400
+Received: from utopia.booyaka.com ([72.9.107.138]:37457 "EHLO
+	utopia.booyaka.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751371Ab2DSU3v (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 19 Apr 2012 16:29:51 -0400
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
-Cc: paul@pwsan.com, khilman@ti.com, "Mark A. Greer" <mgreer@animalcreek.com>
+To: tony@atomide.com
+Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 
-From: "Mark A. Greer" <mgreer@animalcreek.com>
+  This message is in MIME format.  The first part should be readable text,
+  while the remaining parts are likely unreadable without MIME-aware tools.
 
-The am35x family of SoCs do not have an IVA so
-a parallel set of clockdomain dependencies are
-required that are simililar to OMAP3 but without
-any IVA dependencies.
+--155748971-471955330-1334867391=:29048
+Content-Type: TEXT/PLAIN; charset=ISO-8859-15
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 
-Signed-off-by: Mark A. Greer <mgreer@animalcreek.com>
----
+-----BEGIN PGP SIGNED MESSAGE-----
+Hash: SHA1
 
-Paul, this is a respin of
-	"[PATCH 08/12] arm: omap3: am35x: Fix clockdomain dependencies"
+Hi Tony,
 
-with your comments [hopefully] addressed.  I'm breaking that long series
-into smaller pieces because most of them really weren't related.
+The following changes since commit 3af35fbcd088e0b675fa423a879c596384894180=
+:
 
- arch/arm/mach-omap2/clockdomains3xxx_data.c |  157 ++++++++++++++++++++++++---
- 1 file changed, 144 insertions(+), 13 deletions(-)
+  ARM: OMAP2xxx: hwmod data: start to fix the IVA1, IVA2 and DSP (2012-04-1=
+9 04:25:08 -0600)
 
-diff --git a/arch/arm/mach-omap2/clockdomains3xxx_data.c b/arch/arm/mach-omap2/clockdomains3xxx_data.c
-index 6038adb..e72991f 100644
---- a/arch/arm/mach-omap2/clockdomains3xxx_data.c
-+++ b/arch/arm/mach-omap2/clockdomains3xxx_data.c
-@@ -59,6 +59,12 @@ static struct clkdm_dep gfx_sgx_3xxx_wkdeps[] = {
- 	{ NULL },
- };
- 
-+static struct clkdm_dep gfx_sgx_am35x_wkdeps[] = {
-+	{ .clkdm_name = "mpu_clkdm" },
-+	{ .clkdm_name = "wkup_clkdm" },
-+	{ NULL },
-+};
-+
- /* 3430: PM_WKDEP_PER: CORE, IVA2, MPU, WKUP */
- static struct clkdm_dep per_wkdeps[] = {
- 	{ .clkdm_name = "core_l3_clkdm" },
-@@ -69,6 +75,14 @@ static struct clkdm_dep per_wkdeps[] = {
- 	{ NULL },
- };
- 
-+static struct clkdm_dep per_am35x_wkdeps[] = {
-+	{ .clkdm_name = "core_l3_clkdm" },
-+	{ .clkdm_name = "core_l4_clkdm" },
-+	{ .clkdm_name = "mpu_clkdm" },
-+	{ .clkdm_name = "wkup_clkdm" },
-+	{ NULL },
-+};
-+
- /* 3430ES2: PM_WKDEP_USBHOST: CORE, IVA2, MPU, WKUP */
- static struct clkdm_dep usbhost_wkdeps[] = {
- 	{ .clkdm_name = "core_l3_clkdm" },
-@@ -79,6 +93,14 @@ static struct clkdm_dep usbhost_wkdeps[] = {
- 	{ NULL },
- };
- 
-+static struct clkdm_dep usbhost_am35x_wkdeps[] = {
-+	{ .clkdm_name = "core_l3_clkdm" },
-+	{ .clkdm_name = "core_l4_clkdm" },
-+	{ .clkdm_name = "mpu_clkdm" },
-+	{ .clkdm_name = "wkup_clkdm" },
-+	{ NULL },
-+};
-+
- /* 3430 PM_WKDEP_MPU: CORE, IVA2, DSS, PER */
- static struct clkdm_dep mpu_3xxx_wkdeps[] = {
- 	{ .clkdm_name = "core_l3_clkdm" },
-@@ -89,6 +111,14 @@ static struct clkdm_dep mpu_3xxx_wkdeps[] = {
- 	{ NULL },
- };
- 
-+static struct clkdm_dep mpu_am35x_wkdeps[] = {
-+	{ .clkdm_name = "core_l3_clkdm" },
-+	{ .clkdm_name = "core_l4_clkdm" },
-+	{ .clkdm_name = "dss_clkdm" },
-+	{ .clkdm_name = "per_clkdm" },
-+	{ NULL },
-+};
-+
- /* 3430 PM_WKDEP_IVA2: CORE, MPU, WKUP, DSS, PER */
- static struct clkdm_dep iva2_wkdeps[] = {
- 	{ .clkdm_name = "core_l3_clkdm" },
-@@ -116,6 +146,12 @@ static struct clkdm_dep dss_wkdeps[] = {
- 	{ NULL },
- };
- 
-+static struct clkdm_dep dss_am35x_wkdeps[] = {
-+	{ .clkdm_name = "mpu_clkdm" },
-+	{ .clkdm_name = "wkup_clkdm" },
-+	{ NULL },
-+};
-+
- /* 3430: PM_WKDEP_NEON: MPU */
- static struct clkdm_dep neon_wkdeps[] = {
- 	{ .clkdm_name = "mpu_clkdm" },
-@@ -131,6 +167,11 @@ static struct clkdm_dep dss_sleepdeps[] = {
- 	{ NULL },
- };
- 
-+static struct clkdm_dep dss_am35x_sleepdeps[] = {
-+	{ .clkdm_name = "mpu_clkdm" },
-+	{ NULL },
-+};
-+
- /* 3430: CM_SLEEPDEP_PER: MPU, IVA */
- static struct clkdm_dep per_sleepdeps[] = {
- 	{ .clkdm_name = "mpu_clkdm" },
-@@ -138,6 +179,11 @@ static struct clkdm_dep per_sleepdeps[] = {
- 	{ NULL },
- };
- 
-+static struct clkdm_dep per_am35x_sleepdeps[] = {
-+	{ .clkdm_name = "mpu_clkdm" },
-+	{ NULL },
-+};
-+
- /* 3430ES2: CM_SLEEPDEP_USBHOST: MPU, IVA */
- static struct clkdm_dep usbhost_sleepdeps[] = {
- 	{ .clkdm_name = "mpu_clkdm" },
-@@ -145,6 +191,11 @@ static struct clkdm_dep usbhost_sleepdeps[] = {
- 	{ NULL },
- };
- 
-+static struct clkdm_dep usbhost_am35x_sleepdeps[] = {
-+	{ .clkdm_name = "mpu_clkdm" },
-+	{ NULL },
-+};
-+
- /* 3430: CM_SLEEPDEP_CAM: MPU */
- static struct clkdm_dep cam_sleepdeps[] = {
- 	{ .clkdm_name = "mpu_clkdm" },
-@@ -175,6 +226,15 @@ static struct clockdomain mpu_3xxx_clkdm = {
- 	.clktrctrl_mask = OMAP3430_CLKTRCTRL_MPU_MASK,
- };
- 
-+static struct clockdomain mpu_am35x_clkdm = {
-+	.name		= "mpu_clkdm",
-+	.pwrdm		= { .name = "mpu_pwrdm" },
-+	.flags		= CLKDM_CAN_HWSUP | CLKDM_CAN_FORCE_WAKEUP,
-+	.dep_bit	= OMAP3430_EN_MPU_SHIFT,
-+	.wkdep_srcs	= mpu_am35x_wkdeps,
-+	.clktrctrl_mask = OMAP3430_CLKTRCTRL_MPU_MASK,
-+};
-+
- static struct clockdomain neon_clkdm = {
- 	.name		= "neon_clkdm",
- 	.pwrdm		= { .name = "neon_pwrdm" },
-@@ -210,6 +270,15 @@ static struct clockdomain sgx_clkdm = {
- 	.clktrctrl_mask = OMAP3430ES2_CLKTRCTRL_SGX_MASK,
- };
- 
-+static struct clockdomain sgx_am35x_clkdm = {
-+	.name		= "sgx_clkdm",
-+	.pwrdm		= { .name = "sgx_pwrdm" },
-+	.flags		= CLKDM_CAN_HWSUP_SWSUP,
-+	.wkdep_srcs	= gfx_sgx_am35x_wkdeps,
-+	.sleepdep_srcs	= gfx_sgx_sleepdeps,
-+	.clktrctrl_mask = OMAP3430ES2_CLKTRCTRL_SGX_MASK,
-+};
-+
- /*
-  * The die-to-die clockdomain was documented in the 34xx ES1 TRM, but
-  * then that information was removed from the 34xx ES2+ TRM.  It is
-@@ -261,6 +330,16 @@ static struct clockdomain dss_3xxx_clkdm = {
- 	.clktrctrl_mask = OMAP3430_CLKTRCTRL_DSS_MASK,
- };
- 
-+static struct clockdomain dss_am35x_clkdm = {
-+	.name		= "dss_clkdm",
-+	.pwrdm		= { .name = "dss_pwrdm" },
-+	.flags		= CLKDM_CAN_HWSUP_SWSUP,
-+	.dep_bit	= OMAP3430_PM_WKDEP_MPU_EN_DSS_SHIFT,
-+	.wkdep_srcs	= dss_am35x_wkdeps,
-+	.sleepdep_srcs	= dss_am35x_sleepdeps,
-+	.clktrctrl_mask = OMAP3430_CLKTRCTRL_DSS_MASK,
-+};
-+
- static struct clockdomain cam_clkdm = {
- 	.name		= "cam_clkdm",
- 	.pwrdm		= { .name = "cam_pwrdm" },
-@@ -279,6 +358,15 @@ static struct clockdomain usbhost_clkdm = {
- 	.clktrctrl_mask = OMAP3430ES2_CLKTRCTRL_USBHOST_MASK,
- };
- 
-+static struct clockdomain usbhost_am35x_clkdm = {
-+	.name		= "usbhost_clkdm",
-+	.pwrdm		= { .name = "core_pwrdm" },
-+	.flags		= CLKDM_CAN_HWSUP_SWSUP,
-+	.wkdep_srcs	= usbhost_am35x_wkdeps,
-+	.sleepdep_srcs	= usbhost_am35x_sleepdeps,
-+	.clktrctrl_mask = OMAP3430ES2_CLKTRCTRL_USBHOST_MASK,
-+};
-+
- static struct clockdomain per_clkdm = {
- 	.name		= "per_clkdm",
- 	.pwrdm		= { .name = "per_pwrdm" },
-@@ -289,6 +377,16 @@ static struct clockdomain per_clkdm = {
- 	.clktrctrl_mask = OMAP3430_CLKTRCTRL_PER_MASK,
- };
- 
-+static struct clockdomain per_am35x_clkdm = {
-+	.name		= "per_clkdm",
-+	.pwrdm		= { .name = "per_pwrdm" },
-+	.flags		= CLKDM_CAN_HWSUP_SWSUP,
-+	.dep_bit	= OMAP3430_EN_PER_SHIFT,
-+	.wkdep_srcs	= per_am35x_wkdeps,
-+	.sleepdep_srcs	= per_am35x_sleepdeps,
-+	.clktrctrl_mask = OMAP3430_CLKTRCTRL_PER_MASK,
-+};
-+
- /*
-  * Disable hw supervised mode for emu_clkdm, because emu_pwrdm is
-  * switched of even if sdti is in use
-@@ -341,31 +439,44 @@ static struct clkdm_autodep clkdm_autodeps[] = {
- 	}
- };
- 
-+static struct clkdm_autodep clkdm_am35x_autodeps[] = {
-+	{
-+		.clkdm = { .name = "mpu_clkdm" },
-+	},
-+	{
-+		.clkdm = { .name = NULL },
-+	}
-+};
-+
- /*
-  *
-  */
- 
--static struct clockdomain *clockdomains_omap3430_common[] __initdata = {
-+static struct clockdomain *clockdomains_common[] __initdata = {
- 	&wkup_common_clkdm,
- 	&cm_common_clkdm,
- 	&prm_common_clkdm,
--	&mpu_3xxx_clkdm,
- 	&neon_clkdm,
--	&iva2_clkdm,
--	&d2d_clkdm,
- 	&core_l3_3xxx_clkdm,
- 	&core_l4_3xxx_clkdm,
--	&dss_3xxx_clkdm,
--	&cam_clkdm,
--	&per_clkdm,
- 	&emu_clkdm,
- 	&dpll1_clkdm,
--	&dpll2_clkdm,
- 	&dpll3_clkdm,
- 	&dpll4_clkdm,
- 	NULL
- };
- 
-+static struct clockdomain *clockdomains_omap3430[] __initdata = {
-+	&mpu_3xxx_clkdm,
-+	&iva2_clkdm,
-+	&d2d_clkdm,
-+	&dss_3xxx_clkdm,
-+	&cam_clkdm,
-+	&per_clkdm,
-+	&dpll2_clkdm,
-+	NULL
-+};
-+
- static struct clockdomain *clockdomains_omap3430es1[] __initdata = {
- 	&gfx_3430es1_clkdm,
- 	NULL,
-@@ -378,21 +489,41 @@ static struct clockdomain *clockdomains_omap3430es2plus[] __initdata = {
- 	NULL,
- };
- 
-+static struct clockdomain *clockdomains_am35x[] __initdata = {
-+	&mpu_am35x_clkdm,
-+	&sgx_am35x_clkdm,
-+	&dss_am35x_clkdm,
-+	&per_am35x_clkdm,
-+	&usbhost_am35x_clkdm,
-+	&dpll5_clkdm,
-+	NULL
-+};
-+
- void __init omap3xxx_clockdomains_init(void)
- {
- 	struct clockdomain **sc;
-+	unsigned int rev;
- 
- 	if (!cpu_is_omap34xx())
- 		return;
- 
- 	clkdm_register_platform_funcs(&omap3_clkdm_operations);
--	clkdm_register_clkdms(clockdomains_omap3430_common);
-+	clkdm_register_clkdms(clockdomains_common);
- 
--	sc = (omap_rev() == OMAP3430_REV_ES1_0) ? clockdomains_omap3430es1 :
--		clockdomains_omap3430es2plus;
-+	rev = omap_rev();
- 
--	clkdm_register_clkdms(sc);
-+	if (rev == OMAP3517_REV_ES1_0 || rev == OMAP3517_REV_ES1_1) {
-+		clkdm_register_clkdms(clockdomains_am35x);
-+		clkdm_register_autodeps(clkdm_am35x_autodeps);
-+	} else {
-+		clkdm_register_clkdms(clockdomains_omap3430);
-+
-+		sc = (rev == OMAP3430_REV_ES1_0) ?
-+			clockdomains_omap3430es1 : clockdomains_omap3430es2plus;
-+
-+		clkdm_register_clkdms(sc);
-+		clkdm_register_autodeps(clkdm_autodeps);
-+	}
- 
--	clkdm_register_autodeps(clkdm_autodeps);
- 	clkdm_complete_init();
- }
--- 
-1.7.9.4
+are available in the git repository at:
 
+  git://git.kernel.org/pub/scm/linux/kernel/git/pjw/omap-pending tags/omap-=
+devel-a-for-3.5
+
+for you to fetch changes up to 96566043b19ae76d3828ce75cbf28dc6d0bcaaf1:
+
+  ARM: OMAP4: hwmod data: add DEBUGSS skeleton (2012-04-19 13:33:59 -0600)
+
+- ----------------------------------------------------------------
+Add in most of the remaining hwmods (IP block descriptions) for the
+OMAP44xx family of SoCs.  There still seem to be a few missing, such
+as those for the MMU IP blocks, but this seems to cover the bulk of
+the remainder.
+
+- ----------------------------------------------------------------
+
+This is based on top of the hwmod cleanup for 3.5 tag.
+
+This series has been boot-tested on N800, 2430SDP, CM-T3517, 3530ES3
+Beagle, 3730ES1.2 EVM, and 4430ES2 Panda.  System suspend entry and
+exit (via UART wakeup) was tested on 3530ES3 Beagle and 4430ES2 Panda.
+Dynamic idle entry and exit (via UART wakeup) was tested on 3530ES3
+Beagle.  Logs of this testing are available at
+
+    http://www.pwsan.com/omap/bootlogs/20120419/omap4_hwmod_devel_a_3.5__96=
+566043b19ae76d3828ce75cbf28dc6d0bcaaf1/
+
+
+- - Paul
+
+- ---
+
+object size (delta in bytes from hwmod_cleanup_a_3.5 (3af35fbcd088e0b675fa4=
+23a879c596384894180)):
+ text =09 data =09  bss =09total =09kernel
+    0 =09    0 =09    0 =09    0 =095912osk_testconfig/vmlinux
+    0 =09    0 =09    0 =09    0 =09n800_multi_omap2xxx/vmlinux
+    0 =09    0 =09    0 =09    0 =09n800_testconfig/vmlinux
+    0 =09    0 =09    0 =09    0 =09omap1_defconfig/vmlinux
++4096 =09+7008 =09    0 =09+11104 =09omap2_4_testconfig/vmlinux
+    0 =09+6944 =09    0 =09+6944 =09omap2plus_defconfig/vmlinux
++4096 =09+7008 =09    0 =09+11104 =09omap2plus_no_pm/vmlinux
++4160 =09+7008 =09  +64 =09+11232 =09omap3_4_testconfig/vmlinux
+    0 =09    0 =09    0 =09    0 =09omap3_testconfig/vmlinux
+    0 =09+7136 =09    0 =09+7136 =09omap4_testconfig/vmlinux
+
+Beno=EEt Cousson (6):
+      ARM: OMAP4: hwmod data: add GPMC
+      ARM: OMAP4: hwmod data: add the Slimbus IP blocks
+      ARM: OMAP4: hwmod data: add McASP
+      ARM: OMAP4: hwmod data: add remaining USB-related IP blocks
+      ARM: OMAP4: hwmod data: add the OCP-WP IP block
+      ARM: OMAP4: hwmod data: add DEBUGSS skeleton
+
+Ming Lei (1):
+      ARM: OMAP4: hwmod data: introduce fdif(face detect module) hwmod
+
+Paul Walmsley (8):
+      ARM: OMAP2+: clockdomains: make {prm,cm}_clkdm common
+      ARM: OMAP4: hwmod data: add HDQ/1-wire
+      ARM: OMAP4: hwmod data: add EMIF1 and 2
+      ARM: OMAP4: hwmod data: add GPU
+      ARM: OMAP4: hwmod data: add some interconnect-related IP blocks
+      ARM: OMAP4: hwmod data: add OCM RAM IP block
+      ARM: OMAP4: hwmod data: add System Control Module
+      ARM: OMAP4: hwmod data: add PRCM and related IP blocks
+
+ arch/arm/mach-omap2/Makefile                     |    8 +-
+ arch/arm/mach-omap2/clockdomain44xx.c            |    6 +
+ arch/arm/mach-omap2/clockdomains2xxx_3xxx_data.c |   10 -
+ arch/arm/mach-omap2/clockdomains44xx_data.c      |    2 +
+ arch/arm/mach-omap2/clockdomains_common_data.c   |   24 +
+ arch/arm/mach-omap2/omap_hwmod_44xx_data.c       | 1504 ++++++++++++++++++=
+++++++++++++++++++++++++++++++++++---
+ arch/arm/plat-omap/include/plat/omap_hwmod.h     |    1 +
+ 7 files changed, 1463 insertions(+), 92 deletions(-)
+ create mode 100644 arch/arm/mach-omap2/clockdomains_common_data.c
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.4.12 (GNU/Linux)
+
+iQIcBAEBAgAGBQJPkHV6AAoJEMePsQ0LvSpLJOAQAKi5wXrem3JhunXGUoywuKw/
+/qy8Fy+s392JWzRla9c0+3Wn0MmcmSECdHFP49j1kiGrK2Nd3DpYQA4artkRKvlD
+G9XhUYoxoV3cf6/b7QlMVxz2NHtm5BvhNPiwGOgMpyqPr121CaNihjcjyyzOl6nQ
+006BUUWuxACwe5wBtqWa2CA4TLM+8+D/edtpTcrMBLgpfMqjQ2m4RwIgjV5A3D/h
+KfSIrfaXe2xXEcIjqoGghsEesUThvw7GrKeP3Kde1cQKjR7inz1QrdjuKYG7RB5L
+DrxWAZFyPY6aoo1QheiCaw8BpFWhX1sI43Wz6TUE5vOfLqwWoZk4lnMz2rS6KelJ
+zRy/cmHzeMGY0j1o+VlYh80WHEl/sqOurIxsN0rJey1c/KRJURR8qmmPkRbyxsvD
+hoLhFpP6Uh0CVJubayi/UPr+kUZZNYCLIpU8WBHa5Dqf8ID6NB7TbqgVTCIt86y7
+r2kXOoF27KLXdZMundElcNGWuI906t/UbFt1x6KgIUO0mYCmjA8XymgoEWKCkzDv
+oiWxHsECT/lRS2M9KGrQHzQsV9Uc/UmFH2bkPKLoA0zJpDrOViWYDroezp7i3kB9
+cwaTyb2jilTRR+AIghGvhLFIh5PSAJZoIBcQEhWHykG+kL+NLXRRaVrtPBB6NSMQ
+aFxSceVcuSynFrRe8IvN
+=3DsO30
+-----END PGP SIGNATURE-----
+--155748971-471955330-1334867391=:29048--
