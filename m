@@ -1,57 +1,45 @@
-From: "Mark A. Greer" <mgreer@animalcreek.com>
-Subject: [PATCH] arm: omap3: am35x: Don't mark missing features as present
-Date: Thu, 19 Apr 2012 11:58:47 -0700
-Message-ID: <1334861927-1741-1-git-send-email-mgreer@animalcreek.com>
+From: Jan =?ISO-8859-1?Q?L=FCbbe?= <jlu@pengutronix.de>
+Subject: Re: AM3517 boot failure
+Date: Thu, 19 Apr 2012 20:12:45 +0200
+Message-ID: <1334859165.9998.43.camel@polaris.local>
+References: <alpine.DEB.2.00.1204182005260.29048@utopia.booyaka.com>
+	 <4F8FC572.80406@compulab.co.il>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail20.dotsterhost.com ([66.11.232.73]:40630 "EHLO
-	mail20.dotsterhost.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754723Ab2DSS71 (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 19 Apr 2012 14:59:27 -0400
+Received: from sirius.lasnet.de ([78.47.116.19]:57461 "EHLO sirius.lasnet.de"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1756134Ab2DSTCO convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 19 Apr 2012 15:02:14 -0400
+In-Reply-To: <4F8FC572.80406@compulab.co.il>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
-Cc: "Mark A. Greer" <mgreer@animalcreek.com>
+To: Igor Grinberg <grinberg@compulab.co.il>
+Cc: Paul Walmsley <paul@pwsan.com>, linux-omap@vger.kernel.org
 
-From: "Mark A. Greer" <mgreer@animalcreek.com>
+On Thu, 2012-04-19 at 10:57 +0300, Igor Grinberg wrote:=20
+> On 04/19/12 05:07, Paul Walmsley wrote:
+> > Is anyone else seeing this?
+>=20
+> I've tried various configurations and can confirm this hang.
+> I still haven't got my hands on bisecting this.
+> There is nothing special about CM-T3517,
+> IMO this can be seen on any AM35xx based board with EMAC, or am I mis=
+taken?
+> Anyway, can anybody try nfsroot on other AM35xx based board with EMAC=
+ supported?
 
-The Chip Identification register on the am35x family of SoCs
-has bits 12, 7:5, and 3:2 marked as reserved and are read as
-zeroes.  Unfortunately, on other omap SoCs, a 0 bit means a
-feature is "Full Use" so the OMAP3_CHECK_FEATURE() macro
-called by omap3_check_features() will incorrectly interpret
-those zeroes to mean that a feature is present even though it
-isn't.  To fix that, the feature bits that are incorrectly
-set (namely, OMAP3_HAS_IVA and OMAP3_HAS_ISP) need to be
-cleared after all of the calls to OMAP3_CHECK_FEATURE() in
-omap3_check_features() are made.
+I have a board with the AM3505 and NFS root works fine here. I'm using
+3.4-rc3, Mark A. Greer's patch series on this list (2012-04-11) and Pau=
+l
+Walmsley's fixes-for-v3.4-rc3 tag. A possible difference is that I'm
+using the fixed PHY driver.
 
-Signed-off-by: Mark A. Greer <mgreer@animalcreek.com>
----
- arch/arm/mach-omap2/id.c |   11 +++++++++++
- 1 file changed, 11 insertions(+)
-
-diff --git a/arch/arm/mach-omap2/id.c b/arch/arm/mach-omap2/id.c
-index 0e79b7b..9736049 100644
---- a/arch/arm/mach-omap2/id.c
-+++ b/arch/arm/mach-omap2/id.c
-@@ -248,6 +248,17 @@ void __init omap3xxx_check_features(void)
- 	omap_features |= OMAP3_HAS_SDRC;
- 
- 	/*
-+	 * am35x fixups:
-+	 * - The am35x Chip ID register has bits 12, 7:5, and 3:2 marked as
-+	 *   reserved and therefore return 0 when read.  Unfortunately,
-+	 *   OMAP3_CHECK_FEATURE() will interpret some of those zeroes to
-+	 *   mean that a feature is present even though it isn't so clear
-+	 *   the incorrectly set feature bits.
-+	 */
-+	if (cpu_is_omap3505() || cpu_is_omap3517())
-+		omap_features &= ~(OMAP3_HAS_IVA | OMAP3_HAS_ISP);
-+
-+	/*
- 	 * TODO: Get additional info (where applicable)
- 	 *       e.g. Size of L2 cache.
- 	 */
--- 
-1.7.9.4
-
+Best regards,
+Jan L=C3=BCbbe
+--
+To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
