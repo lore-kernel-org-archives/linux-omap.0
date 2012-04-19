@@ -1,65 +1,66 @@
-From: Daniel Lezcano <daniel.lezcano@linaro.org>
-Subject: Re: [PATCH 00/17][V2] ARM: OMAP3/4 : cpuidle34xx and cpuidle44xx
- cleanups
-Date: Thu, 19 Apr 2012 16:03:56 +0200
-Message-ID: <4F901B4C.2090905@linaro.org>
-References: <1333570371-1389-1-git-send-email-daniel.lezcano@linaro.org> <87vcl87am5.fsf@ti.com>
+From: Igor Grinberg <grinberg@compulab.co.il>
+Subject: Re: [PATCH] ARM: OMAP: USB: fix warning on EHCI PHY reset path
+Date: Thu, 19 Apr 2012 17:10:20 +0300
+Message-ID: <4F901CCC.9000703@compulab.co.il>
+References: <1332857335-27911-1-git-send-email-grinberg@compulab.co.il>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8;
-	format=flowed
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-bk0-f46.google.com ([209.85.214.46]:60107 "EHLO
-	mail-bk0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753017Ab2DSOEB (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 19 Apr 2012 10:04:01 -0400
-Received: by bkcik5 with SMTP id ik5so6393751bkc.19
-        for <linux-omap@vger.kernel.org>; Thu, 19 Apr 2012 07:04:00 -0700 (PDT)
-In-Reply-To: <87vcl87am5.fsf@ti.com>
+Received: from 50.23.254.54-static.reverse.softlayer.com ([50.23.254.54]:52102
+	"EHLO softlayer.compulab.co.il" rhost-flags-OK-OK-OK-FAIL)
+	by vger.kernel.org with ESMTP id S1755581Ab2DSOKd (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>);
+	Thu, 19 Apr 2012 10:10:33 -0400
+In-Reply-To: <1332857335-27911-1-git-send-email-grinberg@compulab.co.il>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Kevin Hilman <khilman@ti.com>
-Cc: santosh.shilimkar@ti.com, jean.pihet@newoldbits.com, tony@atomide.com, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, rob.lee@linaro.org, linaro-dev@lists.linaro.org, patches@linaro.org
+To: Felipe Balbi <balbi@ti.com>, Alan Stern <stern@rowland.harvard.edu>
+Cc: Igor Grinberg <grinberg@compulab.co.il>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, Keshava Munegowda <Keshava_mgowda@ti.com>, linux-usb@vger.kernel.org, linux-omap@vger.kernel.org, Samuel Ortiz <sameo@linux.intel.com>
 
-On 04/10/2012 01:23 AM, Kevin Hilman wrote:
-> Daniel Lezcano<daniel.lezcano@linaro.org>  writes:
->
->> This patchset makes some cleanup on these cpuidle drivers
->> and consolidate the code across both architecture.
->
-> Thanks for this really nice cleanup.  I have some comments on specifi=
-c
-> patches, but here's some general comments:
->
-> Some minor comments:
->
-> First, please be sure all patches have a descriptive changelog.  Yes,
-> even simple ones need changelogs.  In particular, maintainers are
-> looking for the "why" of a patch, not just the "what" or "how".
->
-> Second, this series introduced a couple sparse warnings:
->
-> /work/kernel/omap/pm/arch/arm/mach-omap2/cpuidle44xx.c:134:1: warning=
-: symbol 'omap4_idle_dev' was not declared. Should it be static?
-> /work/kernel/omap/pm/arch/arm/mach-omap2/cpuidle44xx.c:136:23: warnin=
-g: symbol 'omap4_idle_driver' was not declared. Should it be static?
+ping
 
-Ok, I probably missed it. I will fix that it in the next version.
+Alan, Felipe,
+Can this go into 3.5?
 
-Thanks for reviewing.
+The dependency patch has already reached Samuel's tree,
+what would be the best way to apply this one?
+Should I ask Samuel to apply this one also (after having your acks)
+via his tree, to reduce possible merge failures/conflicts?
 
-   -- Daniel
+On 03/27/12 16:08, Igor Grinberg wrote:
+> When PHY reset pin is connected to a GPIO on external GPIO chip
+> (e.g. I2C), we should not call the gpio_set_value() function, but
+> gpio_set_value_cansleep().
+> 
+> Signed-off-by: Igor Grinberg <grinberg@compulab.co.il>
+> ---
+> This patch depends on the patch from Keshava [1]:
+> ARM: OMAP3: USB: Fix the EHCI ULPI PHY reset issue
+> 
+> [1] http://www.spinics.net/lists/linux-omap/msg66774.html
+> 
+>  drivers/usb/host/ehci-omap.c |    4 ++--
+>  1 files changed, 2 insertions(+), 2 deletions(-)
+> 
+> diff --git a/drivers/usb/host/ehci-omap.c b/drivers/usb/host/ehci-omap.c
+> index 5c78f9e..26e9241 100644
+> --- a/drivers/usb/host/ehci-omap.c
+> +++ b/drivers/usb/host/ehci-omap.c
+> @@ -258,10 +258,10 @@ static int ehci_hcd_omap_probe(struct platform_device *pdev)
+>  		udelay(10);
+>  
+>  		if (gpio_is_valid(pdata->reset_gpio_port[0]))
+> -			gpio_set_value(pdata->reset_gpio_port[0], 1);
+> +			gpio_set_value_cansleep(pdata->reset_gpio_port[0], 1);
+>  
+>  		if (gpio_is_valid(pdata->reset_gpio_port[1]))
+> -			gpio_set_value(pdata->reset_gpio_port[1], 1);
+> +			gpio_set_value_cansleep(pdata->reset_gpio_port[1], 1);
+>  	}
+>  
+>  	return 0;
 
---=20
-  <http://www.linaro.org/> Linaro.org =E2=94=82 Open source software fo=
-r ARM SoCs
-
-=46ollow Linaro:  <http://www.facebook.com/pages/Linaro> Facebook |
-<http://twitter.com/#!/linaroorg> Twitter |
-<http://www.linaro.org/linaro-blog/> Blog
-
---
-To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+-- 
+Regards,
+Igor.
