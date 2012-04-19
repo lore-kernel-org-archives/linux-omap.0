@@ -1,64 +1,75 @@
 From: Shubhrajyoti D <shubhrajyoti-l0cyMroinI0@public.gmane.org>
-Subject: [PATCHv8 00/10] I2C fixes
-Date: Thu, 19 Apr 2012 18:58:11 +0530
-Message-ID: <1334842101-20670-1-git-send-email-shubhrajyoti@ti.com>
+Subject: [PATCHv8 07/10] I2C: OMAP: Handle error check for pm runtime
+Date: Thu, 19 Apr 2012 18:58:18 +0530
+Message-ID: <1334842101-20670-8-git-send-email-shubhrajyoti@ti.com>
+References: <1334842101-20670-1-git-send-email-shubhrajyoti@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
 Return-path: <linux-i2c-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <1334842101-20670-1-git-send-email-shubhrajyoti-l0cyMroinI0@public.gmane.org>
 Sender: linux-i2c-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 To: linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 Cc: linux-i2c-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, ben-linux-elnMNo+KYs3YtjvyW6yDsg@public.gmane.org, tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org, w.sang-bIcnvbaLZ9MEGnE8C9+IrQ@public.gmane.org, Shubhrajyoti D <shubhrajyoti-l0cyMroinI0@public.gmane.org>
 List-Id: linux-omap@vger.kernel.org
 
-This patch series seperates the fixes from other 
-changes from [2] 
+If PM runtime get_sync fails return with the error
+so that no further reads/writes goes through the interface.
+This will avoid possible abort. Add a error message in case
+of failure with the cause of the failure.
 
-[2] http://www.spinics.net/lists/linux-omap/msg68056.html
+Signed-off-by: Shubhrajyoti D <shubhrajyoti-l0cyMroinI0@public.gmane.org>
+---
+ drivers/i2c/busses/i2c-omap.c |   19 ++++++++++++++++---
+ 1 files changed, 16 insertions(+), 3 deletions(-)
 
-The patch series does the following
-
-- Warn fixes if CONFIG_PM_RUNTIME is not selected.
-- In case of i2c remove register access was done without any
- get_sync fix the same.
-- Folds a patch from Tasslehoff to prevent any merge conflicts.
-- Prevents the XDUF flag to be set if the underflow condition is not met.
-- As per discussion in [1] .Adds a patch to rename the 1p153 errata and
- use the unique id instead as the section number in the recent errata
- docs has changed.
-
-
-
-[1] http://www.spinics.net/lists/linux-i2c/msg07607.html
-
-Tested on omap4sdp and omap3sdp.
-
-The following changes since commit 592fe8980688e7cba46897685d014c7fb3018a67:
-
-  Merge tag 'ext4_for_linus' of git://git.kernel.org/pub/scm/linux/kernel/git/tytso/ext4 (2012-04-17 13:30:34 -0700)
-
-are available in the git repository at:
-
-  git://gitorious.org/linus-tree/linus-tree.git i2c_omap-fixes
-
-
-Shubhrajyoti D (9):
-  I2C: OMAP: make omap_i2c_unidle/idle functions depend on
-    CONFIG_PM_RUNTIME
-  I2C: OMAP: Fix the mismatch of pm_runtime enable and disable
-  I2C: OMAP: Fix the interrupt clearing in OMAP4
-  I2C: OMAP: Fix the error handling
-  I2C: OMAP: Don't check if wait_for_completion_timeout() returns less
-    than zero
-  I2C: OMAP: Fix the crash in i2c remove
-  I2C: OMAP: Handle error check for pm runtime
-  I2C: OMAP: Do not set the XUDF if the underflow is not reached
-  I2C: OMAP: Rename the 1p153 to the erratum id i462
-
-Tasslehoff Kjappfot (1):
-  I2C: OMAP: fix missing handling of errata I2C_OMAP3_1P153
-
- drivers/i2c/busses/i2c-omap.c |  132 +++++++++++++++++++++--------------------
- 1 files changed, 67 insertions(+), 65 deletions(-)
-
+diff --git a/drivers/i2c/busses/i2c-omap.c b/drivers/i2c/busses/i2c-omap.c
+index 44e8cfa..d555dcd 100644
+--- a/drivers/i2c/busses/i2c-omap.c
++++ b/drivers/i2c/busses/i2c-omap.c
+@@ -585,7 +585,11 @@ omap_i2c_xfer(struct i2c_adapter *adap, struct i2c_msg msgs[], int num)
+ 	int i;
+ 	int r;
+ 
+-	pm_runtime_get_sync(dev->dev);
++	r = pm_runtime_get_sync(dev->dev);
++	if (r < 0) {
++		dev_err(dev->dev, "pm_runtime_get_sync failed %d\n", r);
++		return r;
++	}
+ 
+ 	r = omap_i2c_wait_for_bb(dev);
+ 	if (r < 0)
+@@ -1011,7 +1015,11 @@ omap_i2c_probe(struct platform_device *pdev)
+ 		dev->regs = (u8 *)reg_map_ip_v1;
+ 
+ 	pm_runtime_enable(dev->dev);
+-	pm_runtime_get_sync(dev->dev);
++	r = pm_runtime_get_sync(dev->dev);
++	if (r < 0) {
++		dev_err(dev->dev, "pm_runtime_get_sync failed:%d\n", r);
++		return r;
++	}
+ 
+ 	dev->rev = omap_i2c_read_reg(dev, OMAP_I2C_REV_REG) & 0xff;
+ 
+@@ -1103,12 +1111,17 @@ omap_i2c_remove(struct platform_device *pdev)
+ {
+ 	struct omap_i2c_dev	*dev = platform_get_drvdata(pdev);
+ 	struct resource		*mem;
++	int ret;
+ 
+ 	platform_set_drvdata(pdev, NULL);
+ 
+ 	free_irq(dev->irq, dev);
+ 	i2c_del_adapter(&dev->adapter);
+-	pm_runtime_get_sync(&pdev->dev);
++	ret = pm_runtime_get_sync(&pdev->dev);
++	if (ret < 0) {
++		dev_err(dev->dev, "pm_runtime_get_sync failed %d\n", ret);
++		return ret;
++	}
+ 	omap_i2c_write_reg(dev, OMAP_I2C_CON_REG, 0);
+ 	pm_runtime_put(&pdev->dev);
+ 	pm_runtime_disable(&pdev->dev);
 -- 
 1.7.5.4
