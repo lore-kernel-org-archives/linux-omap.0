@@ -1,296 +1,148 @@
-From: "Poddar, Sourav" <sourav.poddar@ti.com>
-Subject: Re: [PATCHv2] Input: omap-keypad: dynamically handle register offsets
-Date: Thu, 19 Apr 2012 16:57:34 +0530
-Message-ID: <CAKdam577T_rmvq4S4=yEu7m8_84hj81mS+ibWGSBRvvzmYrsgg@mail.gmail.com>
-References: <1334216338-29977-1-git-send-email-sourav.poddar@ti.com>
+From: Tomi Valkeinen <tomi.valkeinen@ti.com>
+Subject: Re: [PATCH 4/6] OMAPDSS: MANAGER: Make DISPC timings a
+ manager_info parameter
+Date: Thu, 19 Apr 2012 14:37:32 +0300
+Message-ID: <1334835452.1911.38.camel@deskari>
+References: <1334561027-28569-1-git-send-email-archit@ti.com>
+	 <1334561027-28569-5-git-send-email-archit@ti.com>
+	 <1334761105.2027.67.camel@deskari>  <4F8FAD01.3090406@ti.com>
+	 <1334817446.1521.57.camel@lappy>  <4F8FE42D.6030105@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Return-path: <linux-input-owner@vger.kernel.org>
-In-Reply-To: <1334216338-29977-1-git-send-email-sourav.poddar@ti.com>
-Sender: linux-input-owner@vger.kernel.org
-To: dmitry.torokhov@gmail.com, linux-input@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org
-Cc: sourav.poddar@ti.com, balbi@ti.com
+Content-Type: multipart/signed; micalg="pgp-sha1"; protocol="application/pgp-signature"; boundary="=-tbaADqEttnXDedWKu1SA"
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from na3sys009aog107.obsmtp.com ([74.125.149.197]:59664 "EHLO
+	na3sys009aog107.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1754118Ab2DSLhk (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>);
+	Thu, 19 Apr 2012 07:37:40 -0400
+Received: by lagw12 with SMTP id w12so6530734lag.20
+        for <linux-omap@vger.kernel.org>; Thu, 19 Apr 2012 04:37:37 -0700 (PDT)
+In-Reply-To: <4F8FE42D.6030105@ti.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Archit Taneja <a0393947@ti.com>
+Cc: linux-omap@vger.kernel.org, linux-fbdev@vger.kernel.org
 
-Hi Dmitry,
 
-Any comments on this?
+--=-tbaADqEttnXDedWKu1SA
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: quoted-printable
 
-~Sourav
+On Thu, 2012-04-19 at 15:38 +0530, Archit Taneja wrote:
+> On Thursday 19 April 2012 12:07 PM, Tomi Valkeinen wrote:
+> > On Thu, 2012-04-19 at 11:43 +0530, Archit Taneja wrote:
+> >> On Wednesday 18 April 2012 08:28 PM, Tomi Valkeinen wrote:
+> >>> On Mon, 2012-04-16 at 12:53 +0530, Archit Taneja wrote:
+> >>>> DISPC manager size and DISPC manager blanking parameters(for LCD man=
+agers)
+> >>>> follow the shadow register programming model. Currently, they are pr=
+ogrammed
+> >>>> directly by the interface drivers.
+> >>>>
+> >>>> Make timings(omap_video_timing struct) an overlay_manager_info membe=
+r, they are
+> >>>> now programmed via the apply mechanism used for programming shadow r=
+egisters.
+> >>>>
+> >>>> The interface driver now call the function dss_mgr_set_timings() whi=
+ch applies
+> >>>> the new timing parameters, rather than directly writing to DISPC reg=
+isters.
+> >>>
+> >>> I don't think that works correctly. The omap_overlay_manager_info is
+> >>> supposed to be set with set_manager_info() by the user of omapdss, to
+> >>> configure the manager's features. The timings are not supposed to be =
+set
+> >>> via that mechanism, but with dssdev->set_timings().
+> >>>
+> >>> This is similar to the info and extra_info for overlay. info has stuf=
+f
+> >>> that omapdss doesn't change, it just uses what the user gives.
+> >>> extra_info, on the other hand, has omapdss private stuff that the use=
+r
+> >>> does not see. Timings are clearly private stuff in this sense, becaus=
+e
+> >>> they are set via dssdev->set_timings().
+> >>>
+> >>> One reason for this is the programming model we use. If the user of
+> >>> omapdss does get_info() for two overlays, changes the infos, and then
+> >>> calls set_info() for both overlays and finally apply() for the manage=
+r,
+> >>> we don't do any locking there because omapdss presumes the info is
+> >>> handled by one user. If, say, the dpi.c would change the info and cal=
+l
+> >>> apply at the same time, the configuration could go badly wrong.
+> >>
+> >> I think I get your point. So even though get_info() and set_info() fn'=
+s
+> >> are spinlock protected, if there are 2 users setting the info, it
+> >> doesn't mean that the info they finally written is correct. Is this
+> >> example the same thing as what you mean ? :
+> >>
+> >> In order of time:
+> >>
+> >> -user 1 gets an overlay's info
+> >>
+> >> -user 2 gets an overlay's info
+> >>
+> >> -user 1 modifies and sets overlay info
+> >>
+> >> -user 2 sets overlay info without the knowledge of what user 1 did.
+> >>
+> >> So even though we ensure these events happen sequentially, we don't
+> >> protect the info across multiple users.
+> >
+> > Yes. The spinlocks ensure that the info is "whole", so we don't get a
+> > few fields from user1 and a few fields from user2. But they don't
+> > protect us from the case you described above.
+> >
+> > For that we would need a "dss lock" that the user would acquire before
+> > using get_info and set_info. But I don't want to go to that direction,
+> > because we really only support one user anyway.
+> >
+> > The problem in this particular case is that omapdss itself becomes
+> > another user if it uses get_info&  set_info. And that can be easily
+> > avoided by splitting the configuration into public (the "info") and
+> > internal ("extra_info"). The users of omapdss never touch the
+> > extra_info, and omapdss never touches the info.
+>=20
+> omapdss touches info via sysfs, so if we use sysfs(in a fast way, using=
+=20
+> a it in scripts, for example) while fb uses DSS2, then we might hit this=
+=20
+> issue.
 
-On Thu, Apr 12, 2012 at 1:08 PM, Sourav Poddar <sourav.poddar@ti.com> w=
-rote:
-> From: G, Manjunath Kondaiah <manjugk@ti.com>
->
-> Keypad controller register offsets are different for omap4
-> and omap5. Handle these offsets through static mapping and
-> assign these mappings during run time.
->
-> Tested on omap4430 sdp with 3.4-rc2.
-> Tested on omap5430evm with 3.1-custom kernel.
->
-> Signed-off-by: Felipe Balbi <balbi@ti.com>
-> Signed-off-by: G, Manjunath Kondaiah <manjugk@ti.com>
-> Signed-off-by: Sourav Poddar <sourav.poddar@ti.com>
-> ---
-> Changes since v1:
-> - Fix Felipe's comment about getting rid
-> =A0of one argument from irqstatus/irqenable api
-> - Fix Dmitry's comment:
-> =A0- get rid of revision check in readl/writel
-> =A0- Relace ENODEV with proper macro.
-> =A0- Use switch statement
-> =A0drivers/input/keyboard/Kconfig =A0 =A0 =A0 =A0| =A0 =A06 +-
-> =A0drivers/input/keyboard/omap4-keypad.c | =A0115 +++++++++++++++++++=
-+++++++-------
-> =A02 files changed, 95 insertions(+), 26 deletions(-)
->
-> diff --git a/drivers/input/keyboard/Kconfig b/drivers/input/keyboard/=
-Kconfig
-> index f354813..9a0e1a9 100644
-> --- a/drivers/input/keyboard/Kconfig
-> +++ b/drivers/input/keyboard/Kconfig
-> @@ -511,10 +511,10 @@ config KEYBOARD_OMAP
-> =A0 =A0 =A0 =A0 =A0To compile this driver as a module, choose M here:=
- the
-> =A0 =A0 =A0 =A0 =A0module will be called omap-keypad.
->
-> -config KEYBOARD_OMAP4
-> - =A0 =A0 =A0 tristate "TI OMAP4 keypad support"
-> +config KEYBOARD_OMAP4+
-> + =A0 =A0 =A0 tristate "TI OMAP4+ keypad support"
-> =A0 =A0 =A0 =A0help
-> - =A0 =A0 =A0 =A0 Say Y here if you want to use the OMAP4 keypad.
-> + =A0 =A0 =A0 =A0 Say Y here if you want to use the OMAP4+ keypad.
->
-> =A0 =A0 =A0 =A0 =A0To compile this driver as a module, choose M here:=
- the
-> =A0 =A0 =A0 =A0 =A0module will be called omap4-keypad.
-> diff --git a/drivers/input/keyboard/omap4-keypad.c b/drivers/input/ke=
-yboard/omap4-keypad.c
-> index e809ac0..8e46563 100644
-> --- a/drivers/input/keyboard/omap4-keypad.c
-> +++ b/drivers/input/keyboard/omap4-keypad.c
-> @@ -68,6 +68,11 @@
->
-> =A0#define OMAP4_MASK_IRQSTATUSDISABLE =A0 =A00xFFFF
->
-> +enum {
-> + =A0 =A0 =A0 KBD_REVISION_OMAP4 =3D 0,
-> + =A0 =A0 =A0 KBD_REVISION_OMAP5,
-> +};
-> +
-> =A0struct omap4_keypad {
-> =A0 =A0 =A0 =A0struct input_dev *input;
->
-> @@ -76,11 +81,61 @@ struct omap4_keypad {
->
-> =A0 =A0 =A0 =A0unsigned int rows;
-> =A0 =A0 =A0 =A0unsigned int cols;
-> + =A0 =A0 =A0 unsigned int revision;
-> + =A0 =A0 =A0 u32 irqstatus;
-> + =A0 =A0 =A0 u32 irqenable;
-> + =A0 =A0 =A0 u32 reg_offset;
-> =A0 =A0 =A0 =A0unsigned int row_shift;
-> =A0 =A0 =A0 =A0unsigned char key_state[8];
-> =A0 =A0 =A0 =A0unsigned short keymap[];
-> =A0};
->
-> +static int kbd_read_irqstatus(struct omap4_keypad *keypad_data, u32 =
-offset)
-> +{
-> + =A0 =A0 =A0 return __raw_readl(keypad_data->base + offset);
-> +}
-> +
-> +static int kbd_write_irqstatus(struct omap4_keypad *keypad_data,
-> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0=
- =A0 =A0 =A0 =A0 =A0 =A0 u32 value)
-> +{
-> + =A0 =A0 =A0 return __raw_writel(value, keypad_data->base + keypad_d=
-ata->irqstatus);
-> +}
-> +
-> +static int kbd_write_irqenable(struct omap4_keypad *keypad_data,
-> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0=
- =A0 =A0 =A0 =A0 =A0 =A0 u32 value)
-> +{
-> + =A0 =A0 =A0 return __raw_writel(value, keypad_data->base + keypad_d=
-ata->irqenable);
-> +}
-> +
-> +static int kbd_readl(struct omap4_keypad *keypad_data, u32 offset)
-> +{
-> + =A0 =A0 =A0 return __raw_readl(keypad_data->base +
-> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 keypad_data->reg_offset=
- + offset);
-> +}
-> +
-> +static void kbd_writel(struct omap4_keypad *keypad_data, u32 offset,=
- u32 value)
-> +{
-> + =A0 =A0 =A0 __raw_writel(value, keypad_data->base +
-> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 keypad_data->reg_offset=
- + offset);
-> +}
-> +
-> +static int kbd_read_revision(struct omap4_keypad *keypad_data, u32 o=
-ffset)
-> +{
-> + =A0 =A0 =A0 int reg;
-> + =A0 =A0 =A0 reg =3D __raw_readl(keypad_data->base + offset);
-> + =A0 =A0 =A0 reg &=3D 0x03 << 30;
-> + =A0 =A0 =A0 reg >>=3D 30;
-> +
-> + =A0 =A0 =A0 switch (reg) {
-> + =A0 =A0 =A0 case 1:
-> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 return KBD_REVISION_OMAP5;
-> + =A0 =A0 =A0 case 0:
-> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 return KBD_REVISION_OMAP4;
-> + =A0 =A0 =A0 default:
-> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 return -EINVAL;
-> + =A0 =A0 =A0 }
-> +}
-> +
-> =A0/* Interrupt handler */
-> =A0static irqreturn_t omap4_keypad_interrupt(int irq, void *dev_id)
-> =A0{
-> @@ -91,12 +146,10 @@ static irqreturn_t omap4_keypad_interrupt(int ir=
-q, void *dev_id)
-> =A0 =A0 =A0 =A0u32 *new_state =3D (u32 *) key_state;
->
-> =A0 =A0 =A0 =A0/* Disable interrupts */
-> - =A0 =A0 =A0 __raw_writel(OMAP4_VAL_IRQDISABLE,
-> - =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0keypad_data->base + OMAP4_KB=
-D_IRQENABLE);
-> + =A0 =A0 =A0 kbd_write_irqenable(keypad_data, OMAP4_VAL_IRQDISABLE);
->
-> - =A0 =A0 =A0 *new_state =3D __raw_readl(keypad_data->base + OMAP4_KB=
-D_FULLCODE31_0);
-> - =A0 =A0 =A0 *(new_state + 1) =3D __raw_readl(keypad_data->base
-> - =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0=
- =A0 =A0 =A0 =A0 =A0 =A0 + OMAP4_KBD_FULLCODE63_32);
-> + =A0 =A0 =A0 *new_state =3D kbd_readl(keypad_data, OMAP4_KBD_FULLCOD=
-E31_0);
-> + =A0 =A0 =A0 *(new_state + 1) =3D kbd_readl(keypad_data, OMAP4_KBD_F=
-ULLCODE63_32);
->
-> =A0 =A0 =A0 =A0for (row =3D 0; row < keypad_data->rows; row++) {
-> =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0changed =3D key_state[row] ^ keypad_da=
-ta->key_state[row];
-> @@ -121,12 +174,12 @@ static irqreturn_t omap4_keypad_interrupt(int i=
-rq, void *dev_id)
-> =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0sizeof(keypad_data->key_state));
->
-> =A0 =A0 =A0 =A0/* clear pending interrupts */
-> - =A0 =A0 =A0 __raw_writel(__raw_readl(keypad_data->base + OMAP4_KBD_=
-IRQSTATUS),
-> - =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 keypad_data->base + OMA=
-P4_KBD_IRQSTATUS);
-> + =A0 =A0 =A0 kbd_write_irqstatus(keypad_data,
-> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 kbd_read_irqstatus(keypad_data, keypad_=
-data->irqstatus));
->
-> =A0 =A0 =A0 =A0/* enable interrupts */
-> - =A0 =A0 =A0 __raw_writel(OMAP4_DEF_IRQENABLE_EVENTEN | OMAP4_DEF_IR=
-QENABLE_LONGKEY,
-> - =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 keypad_data->base + OMA=
-P4_KBD_IRQENABLE);
-> + =A0 =A0 =A0 kbd_write_irqenable(keypad_data, OMAP4_DEF_IRQENABLE_EV=
-ENTEN |
-> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 OMAP4_DEF_IRQENABLE_LON=
-GKEY);
->
-> =A0 =A0 =A0 =A0return IRQ_HANDLED;
-> =A0}
-> @@ -139,16 +192,33 @@ static int omap4_keypad_open(struct input_dev *=
-input)
->
-> =A0 =A0 =A0 =A0disable_irq(keypad_data->irq);
->
-> - =A0 =A0 =A0 __raw_writel(OMAP4_VAL_FUNCTIONALCFG,
-> - =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 keypad_data->base + OMA=
-P4_KBD_CTRL);
-> - =A0 =A0 =A0 __raw_writel(OMAP4_VAL_DEBOUNCINGTIME,
-> - =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 keypad_data->base + OMA=
-P4_KBD_DEBOUNCINGTIME);
-> - =A0 =A0 =A0 __raw_writel(OMAP4_VAL_IRQDISABLE,
-> - =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 keypad_data->base + OMA=
-P4_KBD_IRQSTATUS);
-> - =A0 =A0 =A0 __raw_writel(OMAP4_DEF_IRQENABLE_EVENTEN | OMAP4_DEF_IR=
-QENABLE_LONGKEY,
-> - =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 keypad_data->base + OMA=
-P4_KBD_IRQENABLE);
-> - =A0 =A0 =A0 __raw_writel(OMAP4_DEF_WUP_EVENT_ENA | OMAP4_DEF_WUP_LO=
-NG_KEY_ENA,
-> - =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 keypad_data->base + OMA=
-P4_KBD_WAKEUPENABLE);
-> + =A0 =A0 =A0 keypad_data->revision =3D kbd_read_revision(keypad_data=
-,
-> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 OMAP4_KBD_REVISION);
-> + =A0 =A0 =A0 switch (keypad_data->revision) {
-> + =A0 =A0 =A0 case 1:
-> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 keypad_data->irqstatus =3D OMAP4_KBD_IR=
-QSTATUS + 0x0c;
-> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 keypad_data->irqenable =3D OMAP4_KBD_IR=
-QENABLE + 0x0c;
-> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 keypad_data->reg_offset =3D 0x10;
-> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 break;
-> + =A0 =A0 =A0 case 0:
-> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 keypad_data->irqstatus =3D OMAP4_KBD_IR=
-QSTATUS;
-> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 keypad_data->irqenable =3D OMAP4_KBD_IR=
-QENABLE;
-> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 keypad_data->reg_offset =3D 0x00;
-> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 break;
-> + =A0 =A0 =A0 default:
-> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 pr_err("Omap keypad not found\n");
-> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 return -ENODEV;
-> + =A0 =A0 =A0 }
-> +
-> + =A0 =A0 =A0 kbd_writel(keypad_data, OMAP4_KBD_CTRL,
-> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 OMAP4_VAL_FUNCTIONALCFG=
-);
-> + =A0 =A0 =A0 kbd_writel(keypad_data, OMAP4_KBD_DEBOUNCINGTIME,
-> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 OMAP4_VAL_DEBOUNCINGTIM=
-E);
-> + =A0 =A0 =A0 kbd_write_irqstatus(keypad_data, OMAP4_VAL_IRQDISABLE);
-> + =A0 =A0 =A0 kbd_write_irqenable(keypad_data, OMAP4_DEF_IRQENABLE_EV=
-ENTEN |
-> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 OMAP4_D=
-EF_IRQENABLE_LONGKEY);
-> + =A0 =A0 =A0 kbd_writel(keypad_data, OMAP4_KBD_WAKEUPENABLE,
-> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 OMAP4_DEF_WUP_EVENT_ENA=
- | OMAP4_DEF_WUP_LONG_KEY_ENA);
->
-> =A0 =A0 =A0 =A0enable_irq(keypad_data->irq);
->
-> @@ -162,12 +232,11 @@ static void omap4_keypad_close(struct input_dev=
- *input)
-> =A0 =A0 =A0 =A0disable_irq(keypad_data->irq);
->
-> =A0 =A0 =A0 =A0/* Disable interrupts */
-> - =A0 =A0 =A0 __raw_writel(OMAP4_VAL_IRQDISABLE,
-> - =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0keypad_data->base + OMAP4_KB=
-D_IRQENABLE);
-> + =A0 =A0 =A0 kbd_write_irqenable(keypad_data, OMAP4_VAL_IRQDISABLE);
->
-> =A0 =A0 =A0 =A0/* clear pending interrupts */
-> - =A0 =A0 =A0 __raw_writel(__raw_readl(keypad_data->base + OMAP4_KBD_=
-IRQSTATUS),
-> - =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 keypad_data->base + OMA=
-P4_KBD_IRQSTATUS);
-> + =A0 =A0 =A0 kbd_write_irqstatus(keypad_data,
-> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 kbd_read_irqstatus(keypad_data, keypad_=
-data->irqstatus));
->
-> =A0 =A0 =A0 =A0enable_irq(keypad_data->irq);
->
-> --
-> 1.7.1
->
---
-To unsubscribe from this list: send the line "unsubscribe linux-input" =
-in
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+The sysfs calls come from the user, so in that sense it's not omapdss
+that is doing the change.
+
+But it's true that with sysfs we may have two users for omapdss, for
+example the scripts using sysfs and omapfb. Hopefully we can deprecate
+the sysfs files at some point...
+
+ Tomi
+
+
+--=-tbaADqEttnXDedWKu1SA
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: This is a digitally signed message part
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.4.11 (GNU/Linux)
+
+iQIcBAABAgAGBQJPj/j8AAoJEPo9qoy8lh71+FEP/1siePf6viHqfYrx3AxThgyH
+vV6X+/n7nJY7GLclPvucwyGg5fbVvhSbNZZaZIMEKbZTu+qpVRjV+MDAypa/wp1T
+6xYgXr0n+pE/zaJJt53AHqzfhXFOuPjlxM/dPuJqntY7jhKNGwecLhZ+BvD5Thjo
+SWbKVXvZBIIWMOGTfUaSikw6nFVcsiSUfcxoeXa+LP1ctaIuUCz8SPpbLwhqFKbW
+qq+fMREFqDAvRmD3dPrZdRfA4EaTJOZhOnzlWpvpx3m5GvxwliTrMW9qZhRK/62F
+VNUjBbo1qIlBVEXObsixbdD3r+qDLqolzOGq7/GN5rN96b8W7Lzp08g1LACALh66
+QMHp56Vi567hgAKiIY85CwLKG5JxB3knV2VOQuWqqem68K29Zw2767889bwSikUs
+QZVJ7kVzaNxTP0twxonMXcsirw77rth+K6pzmdASj3CpyB9d9WH/kwDdxcKiCaQC
+vnv44+5haotUBTI30fqImvCoKXhk6dcmX5mBASlwycPbO/DlZwU31nePFl2SwPAo
+2SCxrQt6On+P2/KE9N+kf6X72aGAcd/lEG6mr5H2rVJ1Xg6xEmNaGokwLu4Wg+lO
+6okHulSt05Dc+jOyEW9BmGDhwq45Cz6DkNLc2zKOTLEz0jUh9spsstNqwFdsOflf
+pRN1C45Nxzn6cHr4G+Pm
+=+YSM
+-----END PGP SIGNATURE-----
+
+--=-tbaADqEttnXDedWKu1SA--
+
