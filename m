@@ -1,56 +1,40 @@
-From: Chris Ball <cjb@laptop.org>
-Subject: Re: [PATCH 2/3] mmc: omap_hsmmc: Add fclk frequency to debufs
-Date: Wed, 18 Apr 2012 20:04:54 -0400
-Message-ID: <87obqolh7d.fsf@laptop.org>
-References: <1334742553-11060-1-git-send-email-svenkatr@ti.com>
-	<1334742553-11060-2-git-send-email-svenkatr@ti.com>
+From: Greg KH <gregkh@linuxfoundation.org>
+Subject: Re: [PATCH v2 0/9] PM: Create the AVS class of drivers
+Date: Wed, 18 Apr 2012 17:08:42 -0700
+Message-ID: <20120419000842.GA24575@kroah.com>
+References: <1332173578-27422-1-git-send-email-j-pihet@ti.com>
+ <CAORVsuV-GJAabY49G0fOgcBcg-CNdpNiTE+AcBN07wrWZH3qcQ@mail.gmail.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-mmc-owner@vger.kernel.org>
-In-Reply-To: <1334742553-11060-2-git-send-email-svenkatr@ti.com> (Venkatraman
-	S.'s message of "Wed, 18 Apr 2012 15:19:12 +0530")
-Sender: linux-mmc-owner@vger.kernel.org
-To: Venkatraman S <svenkatr@ti.com>
-Cc: linux-mmc@vger.kernel.org, linux-omap@vger.kernel.org, Viswanath Puttagunta <vishp@ti.com>
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from mail-pz0-f52.google.com ([209.85.210.52]:38095 "EHLO
+	mail-pz0-f52.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751605Ab2DSAIq (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 18 Apr 2012 20:08:46 -0400
+Received: by dake40 with SMTP id e40so10546423dak.11
+        for <linux-omap@vger.kernel.org>; Wed, 18 Apr 2012 17:08:46 -0700 (PDT)
+Content-Disposition: inline
+In-Reply-To: <CAORVsuV-GJAabY49G0fOgcBcg-CNdpNiTE+AcBN07wrWZH3qcQ@mail.gmail.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Jean Pihet <jean.pihet@newoldbits.com>
+Cc: akpm@linux-foundation.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Kevin Hilman <khilman@ti.com>, "Rafael J. Wysocki" <rjw@sisk.pl>, LKML <linux-kernel@vger.kernel.org>, Tony Lindgren <tony@atomide.com>, KEERTHY J <j-keerthy@ti.com>, Jean Pihet <j-pihet@ti.com>
 
-Hi,
+On Wed, Apr 18, 2012 at 10:04:22AM +0200, Jean Pihet wrote:
+> Hi Andrew, Greg,
+> 
+> Can you please look at this patch set?
+> The idea is to create a framework and drivers for the AVS class of
+> devices. This patch set implements the first step by moving the
+> existing code to drivers/power/avs. Next steps will be to implement
+> class support and notifications, add more classes of operations for
+> OMAP chips, etc.
+> 
+> Keerthy J is taking over the ownership of this code and will continue
+> the development further.
+> 
+> What do you think?
 
-On Wed, Apr 18 2012, Venkatraman S wrote:
-> From: Viswanath Puttagunta <vishp@ti.com>
->
-> Add mmc functional clock frequency to list of
-> internal state variables to display for debug.
->
-> Signed-off-by: Viswanath Puttagunta <vishp@ti.com>
-> Signed-off-by: Venkatraman S <svenkatr@ti.com>
-> ---
->  drivers/mmc/host/omap_hsmmc.c |    5 +++--
->  1 file changed, 3 insertions(+), 2 deletions(-)
->
-> diff --git a/drivers/mmc/host/omap_hsmmc.c b/drivers/mmc/host/omap_hsmmc.c
-> index d15b149..d046ba2 100644
-> --- a/drivers/mmc/host/omap_hsmmc.c
-> +++ b/drivers/mmc/host/omap_hsmmc.c
-> @@ -1683,8 +1683,9 @@ static int omap_hsmmc_regs_show(struct seq_file *s, void *data)
->  	if (host->pdata->get_context_loss_count)
->  		context_loss = host->pdata->get_context_loss_count(host->dev);
->  
-> -	seq_printf(s, "mmc%d:\n ctx_loss:\t%d:%d\n\nregs:\n",
-> -			mmc->index, host->context_loss, context_loss);
-> +	seq_printf(s, "mmc%d:\n ctx_loss:\t%d:%d\n fclk:\t\t%lu Hz\n\nregs:\n",
-> +		mmc->index, host->context_loss, context_loss,
+I think Kevin and Rafael's comments need to be addressed.
 
-Minor nit, but it looks like this line breaks indentation.
-
-> +			clk_get_rate(host->fclk));
->  
->  	if (host->suspended) {
->  		seq_printf(s, "host suspended, can't read registers\n");
-
-Thanks,
-
-- Chris.
--- 
-Chris Ball   <cjb@laptop.org>   <http://printf.net/>
-One Laptop Per Child
+greg k-h
