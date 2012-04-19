@@ -1,116 +1,94 @@
-From: Paul Walmsley <paul@pwsan.com>
-Subject: Re: [PATCH v2 4/8] ARM: OMAP2+: hwmod: revise hardreset behavior
-Date: Thu, 19 Apr 2012 13:46:40 -0600 (MDT)
-Message-ID: <alpine.DEB.2.00.1204191338370.29048@utopia.booyaka.com>
-References: <20120228053524.16278.59430.stgit@dusk> <20120228053654.16278.73632.stgit@dusk> <alpine.DEB.2.00.1204182253550.29048@utopia.booyaka.com> <4F90001E.8060201@ti.com> <alpine.DEB.2.00.1204191050110.29048@utopia.booyaka.com>
- <4F90641D.3090208@ti.com>
+From: "Turquette, Mike" <mturquette@ti.com>
+Subject: Re: [PATCH 2/2] OMAPDSS: Ensure OPP100 when DSS is operational
+Date: Thu, 19 Apr 2012 12:56:20 -0700
+Message-ID: <CAJOA=zNpjE37z8DhjcRgx9zqMXXn++juqwPDuPopBM546KHwEg@mail.gmail.com>
+References: <1331205217-19927-1-git-send-email-tomi.valkeinen@ti.com>
+ <1331205217-19927-2-git-send-email-tomi.valkeinen@ti.com> <1331646353.2856.354.camel@deskari>
+ <87zkbkmjo1.fsf@ti.com> <1331707131.1618.7.camel@lappy> <87vckxm0px.fsf@ti.com>
+ <CAJOA=zN4ghhg2wpJeqFN97myMihGxvOSN05NkxoMFKG2BgYORA@mail.gmail.com> <1334811972.1521.30.camel@lappy>
 Mime-Version: 1.0
-Content-Type: MULTIPART/MIXED; BOUNDARY="155748971-1599479799-1334864800=:29048"
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from utopia.booyaka.com ([72.9.107.138]:56362 "EHLO
-	utopia.booyaka.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932255Ab2DSTql (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 19 Apr 2012 15:46:41 -0400
-In-Reply-To: <4F90641D.3090208@ti.com>
+Received: from na3sys009aog104.obsmtp.com ([74.125.149.73]:41191 "EHLO
+	na3sys009aog104.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S932141Ab2DSUEl convert rfc822-to-8bit
+	(ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Thu, 19 Apr 2012 16:04:41 -0400
+Received: by eaaq12 with SMTP id q12so2313680eaa.19
+        for <linux-omap@vger.kernel.org>; Thu, 19 Apr 2012 13:04:39 -0700 (PDT)
+In-Reply-To: <1334811972.1521.30.camel@lappy>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "Cousson, Benoit" <b-cousson@ti.com>
-Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, "Ramirez Luna, Omar" <omar.ramirez@ti.com>, Ohad Ben-Cohen <ohad@wizery.com>
+To: Tomi Valkeinen <tomi.valkeinen@ti.com>
+Cc: Kevin Hilman <khilman@ti.com>, linux-omap@vger.kernel.org, Paul Walmsley <paul@pwsan.com>, archit@ti.com
 
-  This message is in MIME format.  The first part should be readable text,
-  while the remaining parts are likely unreadable without MIME-aware tools.
+On Wed, Apr 18, 2012 at 10:06 PM, Tomi Valkeinen <tomi.valkeinen@ti.com=
+> wrote:
+> On Wed, 2012-04-18 at 10:26 -0700, Turquette, Mike wrote:
+>> On Wed, Apr 18, 2012 at 10:03 AM, Kevin Hilman <khilman@ti.com> wrot=
+e:
+>> > Tomi Valkeinen <tomi.valkeinen@ti.com> writes:
+>> >> On Tue, 2012-03-13 at 11:37 -0700, Kevin Hilman wrote:
+>> >>> It sounds to me like it acutally is a throughput constraint on C=
+ORE. =A0If
+>> >>> so, wouldn't it be clearer to set a throughput constraint that i=
+s
+>> >>> calculated based on the pixel clock and resulting bitrate that w=
+ould
+>> >>> have the same effect?
+>> >>
+>> >> I don't see that these limits would have anything to do with CORE=
+=2E I'm
+>> >> guessing that the DSS HW just can't function properly with high c=
+locks
+>> >> and low voltage.
+>> >
+>> > OK, this gets back to something we've talked about a few times tha=
+t is
+>> > needed in the clock framework. =A0Basically, we need a way for clo=
+cks to
+>> > prevent changes so these kinds of dependencies can be tracked. =A0=
+We've
+>> > talked about new APIs like clk_allow_changes(), clk_block_changes(=
+) or
+>> > something like that.
+>> >
+>> > Basically, something that allows clocks to know that their will no=
+t be
+>> > changed under them.
+>>
+>> Are the DSS clocks changing frequency behind your back? =A0Or are th=
+e
+>> clock rates staying the same while the voltage is dropped?
+>
+> The latter. The clocks do not change behind my back. It's the DSS dri=
+ver
+> making the clock rate changes.
 
---155748971-1599479799-1334864800=:29048
-Content-Type: TEXT/PLAIN; charset=ISO-8859-15
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Right.  The DVFS RFC that I'm working on right now should at least
+take care of the voltage scaling down when it shouldn't.
 
-Hi Beno=EEt,
+>> For the former issue Kevin is right that we need better clock
+>> semantics. =A0For the latter issue hopefully the future dvfs
+>> architecture will do the right thing (at least it does on paper).
+>
+> Note that many of the DSS clocks are generated inside DSS HW, and
+> managed by the DSS driver, and thus the clock framework doesn't know
+> anything about them. Will the future dvfs offer some way for the driv=
+ers
+> to limit the OPP?
 
-On Thu, 19 Apr 2012, Cousson, Benoit wrote:
+It must!
 
-> On 4/19/2012 7:17 PM, Paul Walmsley wrote:
-> > On Thu, 19 Apr 2012, Cousson, Benoit wrote:
-> >=20
-> > > The concern of the people doing SW in these embedded processors was m=
-ainly
-> > > because we were releasing the reset of processor without loading any =
-SW
-> > > first
-> > > and thus the processor was executing some random instructions.
-> > >=20
-> > > So if we consider a better hwmods definition, we can potentially fix =
-the
-> > > MMU
-> > > case:
-> > >=20
-> > >      'mmu_ipu':
-> > >          'rst_ipu_mmu_cache'
-> > >=20
-> > >      'mmu_dsp':
-> > >          'rst_dsp_mmu_cache'
-> > >=20
-> > >      'iva_config':
-> > >          'rst_logic'
-> >=20
-> > Wouldn't these still be "pseudo-hwmods?"  Or do each of these actually
-> > have address space, interconnect ports, etc.?
->=20
-> Yes, these ones are the only real IPs for MPU stand point, with interconn=
-ect
-> port and configuration registers.
+In fact the common clk framework today (merged in 3.4-rc1) allows you
+to model your DSS clocks in a common way that jives with the rest of
+the SoC/PMIC/whatever.
 
-These are the MMUs documented in Chapter 20 of the OMAP4430 TRM=20
-vX, right? =20
-
-I don't really understand the interaction of the hardreset lines with=20
-these IPs.  Chapter 20 doesn't seem to mention the PRCM-controllable=20
-hardreset lines at all.  It only mentions the OCP_SYSCONFIG registers=20
-associated with them.
-
-Meanwhile Table 3-375 "RM_DSP_RSTCTRL" mentions a DSP MMU, cache, and=20
-slave interface reset line.  Is that referring to the same MMU that is=20
-mentioned in Chapter 20?  The end of Section 20.2 "MMU Integration"=20
-mentions two different DSP MMUs, a "shared cache MMU" and an "L2 MMU" -=20
-maybe the hardreset line only pertains to the first MMU?
-
-> > > But then we do have the processor resets that have to be exposed
-> > > somewhere.
-> > >=20
-> > >      'ipu':
-> > >          'rst_cpu0'
-> > >          'rst_cpu1'
-> > >=20
-> > >      'dsp':
-> > >          'rst_dsp'
-> > >=20
-> > >      'iva':
-> > >          'rst_seq1'
-> > >          'rst_seq2'
-> > >=20
-> > > None of these one should be controlled automatically.
-> >=20
-> > Don't we still want to put these IP blocks into reset until a driver fo=
-r
-> > these IP blocks is loaded?
->=20
-> Yes, indeed, my point is where are we going to declare these reset lines =
-if we
-> do not have any fake hwmods to store them.
-
-Wouldn't we associate them with the processor hwmods?  e.g.,=20
-omap44xx_iva_hwmod, omap44xx_dsp_hwmod ?
-
-> Well, for the MMU we can, these are regular IPs (almost). The real issues=
- was
-> for the processors.
-
-Omar, do you know  how these hardreset lines interact with the MMUs=20
-described in the TRM Chapter 20?
-
-> First they will have to release their driver :-)
-
-Hehe, indeed.
-
-
-- Paul
---155748971-1599479799-1334864800=:29048--
+Regards,
+Mike
+--
+To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
