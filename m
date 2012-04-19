@@ -1,82 +1,73 @@
-From: "S, Venkatraman" <svenkatr@ti.com>
+From: Chris Ball <cjb@laptop.org>
 Subject: Re: [PATCH 2/3] mmc: omap_hsmmc: Add fclk frequency to debufs
-Date: Thu, 19 Apr 2012 09:55:52 +0530
-Message-ID: <CANfBPZ9iQRsaqDkcxNcu9BePZQhTGYc50pSUYNVdt00Ab5Tsrw@mail.gmail.com>
+Date: Thu, 19 Apr 2012 00:36:21 -0400
+Message-ID: <873980l4my.fsf@laptop.org>
 References: <1334742553-11060-1-git-send-email-svenkatr@ti.com>
- <1334742553-11060-2-git-send-email-svenkatr@ti.com> <87obqolh7d.fsf@laptop.org>
+	<1334742553-11060-2-git-send-email-svenkatr@ti.com>
+	<87obqolh7d.fsf@laptop.org>
+	<CANfBPZ9iQRsaqDkcxNcu9BePZQhTGYc50pSUYNVdt00Ab5Tsrw@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
+Content-Type: text/plain; charset=utf-8
 Content-Transfer-Encoding: QUOTED-PRINTABLE
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aog102.obsmtp.com ([74.125.149.69]:60201 "EHLO
-	na3sys009aog102.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751016Ab2DSE0P convert rfc822-to-8bit
-	(ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Thu, 19 Apr 2012 00:26:15 -0400
-Received: by bkwj4 with SMTP id j4so7147167bkw.40
-        for <linux-omap@vger.kernel.org>; Wed, 18 Apr 2012 21:26:12 -0700 (PDT)
-In-Reply-To: <87obqolh7d.fsf@laptop.org>
-Sender: linux-omap-owner@vger.kernel.org
-List-Id: linux-omap@vger.kernel.org
-To: Chris Ball <cjb@laptop.org>
+Return-path: <linux-mmc-owner@vger.kernel.org>
+In-Reply-To: <CANfBPZ9iQRsaqDkcxNcu9BePZQhTGYc50pSUYNVdt00Ab5Tsrw@mail.gmail.com>
+	(Venkatraman S.'s message of "Thu, 19 Apr 2012 09:55:52 +0530")
+Sender: linux-mmc-owner@vger.kernel.org
+To: "S, Venkatraman" <svenkatr@ti.com>
 Cc: linux-mmc@vger.kernel.org, linux-omap@vger.kernel.org, Viswanath Puttagunta <vishp@ti.com>
+List-Id: linux-omap@vger.kernel.org
 
-On Thu, Apr 19, 2012 at 5:34 AM, Chris Ball <cjb@laptop.org> wrote:
-> Hi,
->
-> On Wed, Apr 18 2012, Venkatraman S wrote:
->> From: Viswanath Puttagunta <vishp@ti.com>
->>
->> Add mmc functional clock frequency to list of
->> internal state variables to display for debug.
->>
->> Signed-off-by: Viswanath Puttagunta <vishp@ti.com>
->> Signed-off-by: Venkatraman S <svenkatr@ti.com>
->> ---
->> =A0drivers/mmc/host/omap_hsmmc.c | =A0 =A05 +++--
->> =A01 file changed, 3 insertions(+), 2 deletions(-)
->>
->> diff --git a/drivers/mmc/host/omap_hsmmc.c b/drivers/mmc/host/omap_h=
-smmc.c
->> index d15b149..d046ba2 100644
->> --- a/drivers/mmc/host/omap_hsmmc.c
->> +++ b/drivers/mmc/host/omap_hsmmc.c
->> @@ -1683,8 +1683,9 @@ static int omap_hsmmc_regs_show(struct seq_fil=
-e *s, void *data)
->> =A0 =A0 =A0 if (host->pdata->get_context_loss_count)
->> =A0 =A0 =A0 =A0 =A0 =A0 =A0 context_loss =3D host->pdata->get_contex=
-t_loss_count(host->dev);
->>
->> - =A0 =A0 seq_printf(s, "mmc%d:\n ctx_loss:\t%d:%d\n\nregs:\n",
->> - =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 mmc->index, host->context_=
-loss, context_loss);
->> + =A0 =A0 seq_printf(s, "mmc%d:\n ctx_loss:\t%d:%d\n fclk:\t\t%lu Hz=
-\n\nregs:\n",
->> + =A0 =A0 =A0 =A0 =A0 =A0 mmc->index, host->context_loss, context_lo=
-ss,
->
-> Minor nit, but it looks like this line breaks indentation.
+Hi,
 
-It does ? I thought I actually fixed the indentation of the original
-patch by removing a tabstop, as it was going
-too far into the right.
-checkpatch.pl doesn't complain about it.
-
->
->> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 clk_get_rate(host->fclk));
+On Thu, Apr 19 2012, S, Venkatraman wrote:
+>>> diff --git a/drivers/mmc/host/omap_hsmmc.c b/drivers/mmc/host/omap_=
+hsmmc.c
+>>> index d15b149..d046ba2 100644
+>>> --- a/drivers/mmc/host/omap_hsmmc.c
+>>> +++ b/drivers/mmc/host/omap_hsmmc.c
+>>> @@ -1683,8 +1683,9 @@ static int omap_hsmmc_regs_show(struct seq_fi=
+le *s, void *data)
+>>> =C2=A0 =C2=A0 =C2=A0 if (host->pdata->get_context_loss_count)
+>>> =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 context_loss =3D h=
+ost->pdata->get_context_loss_count(host->dev);
+>>>
+>>> - =C2=A0 =C2=A0 seq_printf(s, "mmc%d:\n ctx_loss:\t%d:%d\n\nregs:\n=
+",
+>>> - =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=
+=A0 mmc->index, host->context_loss, context_loss);
+>>> + =C2=A0 =C2=A0 seq_printf(s, "mmc%d:\n ctx_loss:\t%d:%d\n fclk:\t\=
+t%lu Hz\n\nregs:\n",
+>>> + =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 mmc->index, host->conte=
+xt_loss, context_loss,
 >>
->> =A0 =A0 =A0 if (host->suspended) {
->> =A0 =A0 =A0 =A0 =A0 =A0 =A0 seq_printf(s, "host suspended, can't rea=
-d registers\n");
+>> Minor nit, but it looks like this line breaks indentation.
 >
-> Thanks,
->
-> - Chris.
-> --
-> Chris Ball =A0 <cjb@laptop.org> =A0 <http://printf.net/>
-> One Laptop Per Child
---
-To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> It does ? I thought I actually fixed the indentation of the original
+> patch by removing a tabstop, as it was going
+> too far into the right.
+> checkpatch.pl doesn't complain about it.
+
+After applying it, omap_hsmmc.c looks like this here:
+
+        seq_printf(s, "mmc%d:\n ctx_loss:\t%d:%d\n fclk:\t\t%lu Hz\n\nr=
+egs:\n",
+                mmc->index, host->context_loss, context_loss,
+                        clk_get_rate(host->fclk));
+
+(That's with tabs converted to spaces for e-mail.)
+
+So you're right that the original lines are indented a character too fa=
+r
+to the right, but after your patch there are different indentations use=
+d
+for lines 2 and 3 above, so that's worse than it was before.
+
+All of the seq_printf() calls in omap_hsmmc.c have the same indentation
+one space too far to the right.  I guess we should just stick with it.
+
+Thanks,
+
+- Chris.
+--=20
+Chris Ball   <cjb@laptop.org>   <http://printf.net/>
+One Laptop Per Child
