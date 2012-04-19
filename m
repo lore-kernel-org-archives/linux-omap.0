@@ -1,66 +1,43 @@
-From: Igor Grinberg <grinberg@compulab.co.il>
-Subject: Re: [PATCH] ARM: OMAP: USB: fix warning on EHCI PHY reset path
-Date: Thu, 19 Apr 2012 17:10:20 +0300
-Message-ID: <4F901CCC.9000703@compulab.co.il>
-References: <1332857335-27911-1-git-send-email-grinberg@compulab.co.il>
+From: "Raja, Govindraj" <govindraj.raja@ti.com>
+Subject: Re: [PATCH] tty: omap-serial: Keep the wakeup mechanism enabled by default
+Date: Thu, 19 Apr 2012 20:00:12 +0530
+Message-ID: <CAMrsUdJ_ewe1td9nOO+0ociP4O_tyPgjH=w11r_mFW_yc7PDAQ@mail.gmail.com>
+References: <1334579407-16970-1-git-send-email-govindraj.raja@ti.com>
+ <87vckyq6ti.fsf@ti.com> <CAMrsUdL1S5GiyG0egS=CHg2fdNkyZVF-wuCNGDg547kfTUODng@mail.gmail.com>
+ <87mx69nms2.fsf@ti.com> <20120418200833.24ef25ff@pyramind.ukuu.org.uk>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from 50.23.254.54-static.reverse.softlayer.com ([50.23.254.54]:52102
-	"EHLO softlayer.compulab.co.il" rhost-flags-OK-OK-OK-FAIL)
-	by vger.kernel.org with ESMTP id S1755581Ab2DSOKd (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>);
-	Thu, 19 Apr 2012 10:10:33 -0400
-In-Reply-To: <1332857335-27911-1-git-send-email-grinberg@compulab.co.il>
-Sender: linux-omap-owner@vger.kernel.org
+Return-path: <linux-serial-owner@vger.kernel.org>
+In-Reply-To: <20120418200833.24ef25ff@pyramind.ukuu.org.uk>
+Sender: linux-serial-owner@vger.kernel.org
+To: Alan Cox <alan@lxorguk.ukuu.org.uk>
+Cc: Kevin Hilman <khilman@ti.com>, linux-omap@vger.kernel.org, Paul Walmsley <paul@pwsan.com>, linux-arm-kernel@lists.infradead.org, linux-serial@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Felipe Balbi <balbi@ti.com>, Alan Stern <stern@rowland.harvard.edu>
-Cc: Igor Grinberg <grinberg@compulab.co.il>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, Keshava Munegowda <Keshava_mgowda@ti.com>, linux-usb@vger.kernel.org, linux-omap@vger.kernel.org, Samuel Ortiz <sameo@linux.intel.com>
 
-ping
+On Thu, Apr 19, 2012 at 12:38 AM, Alan Cox <alan@lxorguk.ukuu.org.uk> wrote:
+>> The point is that wakeups should be enabled whenever driver is in use,
+>> and disabled when the driver is not in use.
+>
+>
+> Which is the tty_port methods for initialisation and shutdown, which are
+> mutex protected against each other and hang up.
+>
+> Not sure how the uart layer glue exposes that.
 
-Alan, Felipe,
-Can this go into 3.5?
+Is it okay to read the port flags to identify the port state in
+driver whether the serial port shutdown ops is called from
+port_suspend or due to port closure.
 
-The dependency patch has already reached Samuel's tree,
-what would be the best way to apply this one?
-Should I ask Samuel to apply this one also (after having your acks)
-via his tree, to reduce possible merge failures/conflicts?
+Since port_shutdown gets called even from uart_suspend_port
 
-On 03/27/12 16:08, Igor Grinberg wrote:
-> When PHY reset pin is connected to a GPIO on external GPIO chip
-> (e.g. I2C), we should not call the gpio_set_value() function, but
-> gpio_set_value_cansleep().
-> 
-> Signed-off-by: Igor Grinberg <grinberg@compulab.co.il>
-> ---
-> This patch depends on the patch from Keshava [1]:
-> ARM: OMAP3: USB: Fix the EHCI ULPI PHY reset issue
-> 
-> [1] http://www.spinics.net/lists/linux-omap/msg66774.html
-> 
->  drivers/usb/host/ehci-omap.c |    4 ++--
->  1 files changed, 2 insertions(+), 2 deletions(-)
-> 
-> diff --git a/drivers/usb/host/ehci-omap.c b/drivers/usb/host/ehci-omap.c
-> index 5c78f9e..26e9241 100644
-> --- a/drivers/usb/host/ehci-omap.c
-> +++ b/drivers/usb/host/ehci-omap.c
-> @@ -258,10 +258,10 @@ static int ehci_hcd_omap_probe(struct platform_device *pdev)
->  		udelay(10);
->  
->  		if (gpio_is_valid(pdata->reset_gpio_port[0]))
-> -			gpio_set_value(pdata->reset_gpio_port[0], 1);
-> +			gpio_set_value_cansleep(pdata->reset_gpio_port[0], 1);
->  
->  		if (gpio_is_valid(pdata->reset_gpio_port[1]))
-> -			gpio_set_value(pdata->reset_gpio_port[1], 1);
-> +			gpio_set_value_cansleep(pdata->reset_gpio_port[1], 1);
->  	}
->  
->  	return 0;
+Is things like
 
--- 
-Regards,
-Igor.
+test_bit(ASYNCB_SUSPENDED, &port->flags);
+or
+test_bit(ASYNCB_CLOSING, &port->flags);
+
+allowed in low level driver ?
+
+--
+Thanks,
+Govindraj.R
