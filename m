@@ -1,53 +1,80 @@
-From: Olof Johansson <olof@lixom.net>
-Subject: Re: [GIT PULL] omap fixes for v3.4-rc3
-Date: Wed, 18 Apr 2012 21:24:48 -0700
-Message-ID: <CAOesGMjD22nqUg6k=e-U9Dbs_ueE2o-_cfvaZMDv34SZE9U-=Q@mail.gmail.com>
-References: <20120418182349.GM21106@atomide.com>
+From: "S, Venkatraman" <svenkatr@ti.com>
+Subject: Re: [PATCH 2/3] mmc: omap_hsmmc: Add fclk frequency to debufs
+Date: Thu, 19 Apr 2012 09:55:52 +0530
+Message-ID: <CANfBPZ9iQRsaqDkcxNcu9BePZQhTGYc50pSUYNVdt00Ab5Tsrw@mail.gmail.com>
+References: <1334742553-11060-1-git-send-email-svenkatr@ti.com>
+ <1334742553-11060-2-git-send-email-svenkatr@ti.com> <87obqolh7d.fsf@laptop.org>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-yw0-f46.google.com ([209.85.213.46]:61258 "EHLO
-	mail-yw0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750834Ab2DSEYs convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 19 Apr 2012 00:24:48 -0400
-Received: by yhmm54 with SMTP id m54so4162545yhm.19
-        for <linux-omap@vger.kernel.org>; Wed, 18 Apr 2012 21:24:48 -0700 (PDT)
-In-Reply-To: <20120418182349.GM21106@atomide.com>
+Received: from na3sys009aog102.obsmtp.com ([74.125.149.69]:60201 "EHLO
+	na3sys009aog102.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1751016Ab2DSE0P convert rfc822-to-8bit
+	(ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Thu, 19 Apr 2012 00:26:15 -0400
+Received: by bkwj4 with SMTP id j4so7147167bkw.40
+        for <linux-omap@vger.kernel.org>; Wed, 18 Apr 2012 21:26:12 -0700 (PDT)
+In-Reply-To: <87obqolh7d.fsf@laptop.org>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Tony Lindgren <tony@atomide.com>
-Cc: Arnd Bergmann <arnd@arndb.de>, linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org
+To: Chris Ball <cjb@laptop.org>
+Cc: linux-mmc@vger.kernel.org, linux-omap@vger.kernel.org, Viswanath Puttagunta <vishp@ti.com>
 
-On Wed, Apr 18, 2012 at 11:23 AM, Tony Lindgren <tony@atomide.com> wrot=
-e:
-> Hi Arnd & Olof,
+On Thu, Apr 19, 2012 at 5:34 AM, Chris Ball <cjb@laptop.org> wrote:
+> Hi,
 >
-> Here are some fixes for the -rc cycle. The biggest change is to
-> remove bad muxing for serial ports that was causing random oopses
-> with at least zoom3 and nfsroot.
+> On Wed, Apr 18 2012, Venkatraman S wrote:
+>> From: Viswanath Puttagunta <vishp@ti.com>
+>>
+>> Add mmc functional clock frequency to list of
+>> internal state variables to display for debug.
+>>
+>> Signed-off-by: Viswanath Puttagunta <vishp@ti.com>
+>> Signed-off-by: Venkatraman S <svenkatr@ti.com>
+>> ---
+>> =A0drivers/mmc/host/omap_hsmmc.c | =A0 =A05 +++--
+>> =A01 file changed, 3 insertions(+), 2 deletions(-)
+>>
+>> diff --git a/drivers/mmc/host/omap_hsmmc.c b/drivers/mmc/host/omap_h=
+smmc.c
+>> index d15b149..d046ba2 100644
+>> --- a/drivers/mmc/host/omap_hsmmc.c
+>> +++ b/drivers/mmc/host/omap_hsmmc.c
+>> @@ -1683,8 +1683,9 @@ static int omap_hsmmc_regs_show(struct seq_fil=
+e *s, void *data)
+>> =A0 =A0 =A0 if (host->pdata->get_context_loss_count)
+>> =A0 =A0 =A0 =A0 =A0 =A0 =A0 context_loss =3D host->pdata->get_contex=
+t_loss_count(host->dev);
+>>
+>> - =A0 =A0 seq_printf(s, "mmc%d:\n ctx_loss:\t%d:%d\n\nregs:\n",
+>> - =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 mmc->index, host->context_=
+loss, context_loss);
+>> + =A0 =A0 seq_printf(s, "mmc%d:\n ctx_loss:\t%d:%d\n fclk:\t\t%lu Hz=
+\n\nregs:\n",
+>> + =A0 =A0 =A0 =A0 =A0 =A0 mmc->index, host->context_loss, context_lo=
+ss,
 >
-> Now using a signed tag.
->
-> Regards,
->
-> Tony
->
->
-> The following changes since commit 0034102808e0dbbf3a2394b82b1bb40b57=
-78de9e:
->
-> =A0Linux 3.4-rc2 (2012-04-07 18:30:41 -0700)
->
-> are available in the git repository at:
->
-> =A0git://git.kernel.org/pub/scm/linux/kernel/git/tmlind/linux-omap ta=
-gs/omap-fixes-for-v3.4-rc3
+> Minor nit, but it looks like this line breaks indentation.
 
-Thanks, pulled.
+It does ? I thought I actually fixed the indentation of the original
+patch by removing a tabstop, as it was going
+too far into the right.
+checkpatch.pl doesn't complain about it.
 
-
--Olof
+>
+>> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 clk_get_rate(host->fclk));
+>>
+>> =A0 =A0 =A0 if (host->suspended) {
+>> =A0 =A0 =A0 =A0 =A0 =A0 =A0 seq_printf(s, "host suspended, can't rea=
+d registers\n");
+>
+> Thanks,
+>
+> - Chris.
+> --
+> Chris Ball =A0 <cjb@laptop.org> =A0 <http://printf.net/>
+> One Laptop Per Child
 --
 To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
 n
