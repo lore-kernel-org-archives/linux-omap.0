@@ -1,69 +1,91 @@
-From: Alan Stern <stern-nwvwT67g6+6dFdvTe/nMLpVzexx5G7lz@public.gmane.org>
-Subject: Re: [PATCH] ARM: OMAP: USB: fix warning on EHCI PHY reset path
-Date: Thu, 19 Apr 2012 11:01:16 -0400 (EDT)
-Message-ID: <Pine.LNX.4.44L0.1204191059581.2070-100000@iolanthe.rowland.org>
-References: <4F901CCC.9000703@compulab.co.il>
+From: =?iso-8859-1?Q?M=E5ns_Rullg=E5rd?= <mans@mansr.com>
+Subject: Re: AM3517 boot failure
+Date: Thu, 19 Apr 2012 16:04:42 +0100
+Message-ID: <yw1x8vhrsqyd.fsf@unicorn.mansr.com>
+References: <alpine.DEB.2.00.1204182005260.29048@utopia.booyaka.com>
+	<4F8FC572.80406@compulab.co.il>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
-Return-path: <linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <4F901CCC.9000703-UTxiZqZC01RS1MOuV/RT9w@public.gmane.org>
-Sender: linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Igor Grinberg <grinberg-UTxiZqZC01RS1MOuV/RT9w@public.gmane.org>
-Cc: Felipe Balbi <balbi-l0cyMroinI0@public.gmane.org>, Greg Kroah-Hartman <gregkh-hQyY1W1yCW8ekmWlsbkhG0B+6BGkLq7r@public.gmane.org>, Keshava Munegowda <Keshava_mgowda-l0cyMroinI0@public.gmane.org>, linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Samuel Ortiz <sameo-VuQAYsv1563Yd54FQh9/CA@public.gmane.org>
+Content-Type: text/plain; charset=iso-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from unicorn.mansr.com ([78.86.181.103]:35984 "EHLO
+	unicorn.mansr.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752277Ab2DSP2L convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 19 Apr 2012 11:28:11 -0400
+In-Reply-To: <4F8FC572.80406@compulab.co.il> (Igor Grinberg's message of "Thu,
+	19 Apr 2012 10:57:38 +0300")
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Igor Grinberg <grinberg@compulab.co.il>
+Cc: Paul Walmsley <paul@pwsan.com>, linux-omap@vger.kernel.org
 
-On Thu, 19 Apr 2012, Igor Grinberg wrote:
+Igor Grinberg <grinberg@compulab.co.il> writes:
 
-> ping
-> 
-> Alan, Felipe,
-> Can this go into 3.5?
+> On 04/19/12 05:07, Paul Walmsley wrote:
+>>=20
+>> Hi,
+>>=20
+>> just wanted to mention this on the list to see if anyone else was se=
+eing=20
+>> it.  I'm using a Compulab CM-T3517 and attempting to use nfsroot, an=
+d the=20
+>> boot hangs.  Here are the last few lines when booting with=20
+>> initcall_debug:
+>>=20
+>> [    7.069885] initcall scsi_complete_async_scans+0x0/0x10c returned=
+ 0 after 29 usecs
+>> [    7.077880] calling  gpio_keys_init+0x0/0xc @ 1
+>> [    7.084167] initcall gpio_keys_init+0x0/0xc returned 0 after 1400=
+ usecs
+>> [    7.091278] calling  rtc_hctosys+0x0/0x110 @ 1
+>> [    7.096038] /home/paul/linux/drivers/rtc/hctosys.c: unable to ope=
+n rtc device (rtc0)
+>> [    7.104217] initcall rtc_hctosys+0x0/0x110 returned -19 after 798=
+7 usecs
+>> [    7.111297] calling  net_secret_init+0x0/0x1c @ 1
+>> [    7.116333] initcall net_secret_init+0x0/0x1c returned 0 after 11=
+9 usecs
+>> [    7.123443] calling  tcp_congestion_default+0x0/0xc @ 1
+>> [    7.128997] initcall tcp_congestion_default+0x0/0xc returned 0 af=
+ter 0 usecs
+>> [    7.136444] calling  ip_auto_config+0x0/0xf70 @ 1
+>>=20
+>> Is anyone else seeing this?
+>
+> I've tried various configurations and can confirm this hang.
+> I still haven't got my hands on bisecting this.
+> There is nothing special about CM-T3517,
+> IMO this can be seen on any AM35xx based board with EMAC, or am I mis=
+taken?
+> Anyway, can anybody try nfsroot on other AM35xx based board with EMAC
+> supported?
 
-It's okay with me.
+I did a little digging...
 
-Acked-by: Alan Stern <stern-nwvwT67g6+6dFdvTe/nMLpVzexx5G7lz@public.gmane.org>
+=46irstly, only the am3571evm board registers the davinci_emac platform
+device.  On a Craneboard or a CM-T3517 there will simply be no network
+device for IP autoconfig to use (unless you magically have DT working).
 
-> The dependency patch has already reached Samuel's tree,
-> what would be the best way to apply this one?
-> Should I ask Samuel to apply this one also (after having your acks)
-> via his tree, to reduce possible merge failures/conflicts?
+Secondly, the clock configuration for davinci_emac on am35xx is broken.
+omap3xxx_clk_init() registers two clocks for dev_id "davinci_emac", one
+with con_id "emac_clk", one with "phy_clk".  When davinci_emac_probe()
+then does a clk_get(dev, NULL), this fails since there is no matching
+con_id.  Likewise for davinci_mdio_probe().
 
-Sure, go ahead.
+With a little hacking, I got the platform device registered and the
+clocks matching as (I think) they should.  It now detects the correct
+PHY, so that's something.
 
-> On 03/27/12 16:08, Igor Grinberg wrote:
-> > When PHY reset pin is connected to a GPIO on external GPIO chip
-> > (e.g. I2C), we should not call the gpio_set_value() function, but
-> > gpio_set_value_cansleep().
-> > 
-> > Signed-off-by: Igor Grinberg <grinberg-UTxiZqZC01RS1MOuV/RT9w@public.gmane.org>
-> > ---
-> > This patch depends on the patch from Keshava [1]:
-> > ARM: OMAP3: USB: Fix the EHCI ULPI PHY reset issue
-> > 
-> > [1] http://www.spinics.net/lists/linux-omap/msg66774.html
-> > 
-> >  drivers/usb/host/ehci-omap.c |    4 ++--
-> >  1 files changed, 2 insertions(+), 2 deletions(-)
-> > 
-> > diff --git a/drivers/usb/host/ehci-omap.c b/drivers/usb/host/ehci-omap.c
-> > index 5c78f9e..26e9241 100644
-> > --- a/drivers/usb/host/ehci-omap.c
-> > +++ b/drivers/usb/host/ehci-omap.c
-> > @@ -258,10 +258,10 @@ static int ehci_hcd_omap_probe(struct platform_device *pdev)
-> >  		udelay(10);
-> >  
-> >  		if (gpio_is_valid(pdata->reset_gpio_port[0]))
-> > -			gpio_set_value(pdata->reset_gpio_port[0], 1);
-> > +			gpio_set_value_cansleep(pdata->reset_gpio_port[0], 1);
-> >  
-> >  		if (gpio_is_valid(pdata->reset_gpio_port[1]))
-> > -			gpio_set_value(pdata->reset_gpio_port[1], 1);
-> > +			gpio_set_value_cansleep(pdata->reset_gpio_port[1], 1);
-> >  	}
-> >  
-> >  	return 0;
+However, the IP config is still getting stuck.  For reasons I don't
+know, the msleep(1) call in ic_open_devs() never returns.
 
+That's as far as I got.
+
+--=20
+M=E5ns Rullg=E5rd
+mans@mansr.com
 --
-To unsubscribe from this list: send the line "unsubscribe linux-usb" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
+n
+the body of a message to majordomo@vger.kernel.org
 More majordomo info at  http://vger.kernel.org/majordomo-info.html
