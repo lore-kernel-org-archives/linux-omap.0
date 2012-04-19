@@ -1,44 +1,56 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH-V4 0/4] ARM: OMAP2+: Add voltagedomain, powerdomain &
- PRM support for AM33XX device
-Date: Wed, 18 Apr 2012 16:21:35 -0700
-Message-ID: <20120418232135.GU21106@atomide.com>
-References: <1333123435-27186-1-git-send-email-hvaibhav@ti.com>
- <alpine.DEB.2.00.1204120207420.29473@utopia.booyaka.com>
- <79CD15C6BA57404B839C016229A409A83E9EA07A@DBDE01.ent.ti.com>
- <alpine.DEB.2.00.1204130440390.25832@utopia.booyaka.com>
+From: Chris Ball <cjb@laptop.org>
+Subject: Re: [PATCH 2/3] mmc: omap_hsmmc: Add fclk frequency to debufs
+Date: Wed, 18 Apr 2012 20:04:54 -0400
+Message-ID: <87obqolh7d.fsf@laptop.org>
+References: <1334742553-11060-1-git-send-email-svenkatr@ti.com>
+	<1334742553-11060-2-git-send-email-svenkatr@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-02-ewr.mailhop.org ([204.13.248.72]:22406 "EHLO
-	mho-02-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753618Ab2DRXVk (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 18 Apr 2012 19:21:40 -0400
-Content-Disposition: inline
-In-Reply-To: <alpine.DEB.2.00.1204130440390.25832@utopia.booyaka.com>
-Sender: linux-omap-owner@vger.kernel.org
+Return-path: <linux-mmc-owner@vger.kernel.org>
+In-Reply-To: <1334742553-11060-2-git-send-email-svenkatr@ti.com> (Venkatraman
+	S.'s message of "Wed, 18 Apr 2012 15:19:12 +0530")
+Sender: linux-mmc-owner@vger.kernel.org
+To: Venkatraman S <svenkatr@ti.com>
+Cc: linux-mmc@vger.kernel.org, linux-omap@vger.kernel.org, Viswanath Puttagunta <vishp@ti.com>
 List-Id: linux-omap@vger.kernel.org
-To: Paul Walmsley <paul@pwsan.com>
-Cc: "Hiremath, Vaibhav" <hvaibhav@ti.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "Hilman, Kevin" <khilman@ti.com>, "Nayak, Rajendra" <rnayak@ti.com>, "Cousson, Benoit" <b-cousson@ti.com>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>
 
-* Paul Walmsley <paul@pwsan.com> [120413 03:46]:
-> Hi Vaibhav,
-> 
-> On Fri, 13 Apr 2012, Hiremath, Vaibhav wrote:
-> 
-> > Yes, we are using am3517evm file for AM33XX MACHINE_INIT definition here.
-> > These patches have been reviewed and accepted in the list, only thing is
-> > they couldn't make it to upstream during v3.4 merge window.
-> > 
-> > I believe Tony is going to push them for v3.5 now.
-> 
-> Hmm, but if you modify the AM3517EVM board file to call 
-> am33xx_init_early(), won't that break the AM3517EVM board?
-> Wouldn't a separate board file be needed for the AM33xx?
+Hi,
 
-You can have multiple MACHINE_START entries in a board-*.c file
-if that's what you're asking.
+On Wed, Apr 18 2012, Venkatraman S wrote:
+> From: Viswanath Puttagunta <vishp@ti.com>
+>
+> Add mmc functional clock frequency to list of
+> internal state variables to display for debug.
+>
+> Signed-off-by: Viswanath Puttagunta <vishp@ti.com>
+> Signed-off-by: Venkatraman S <svenkatr@ti.com>
+> ---
+>  drivers/mmc/host/omap_hsmmc.c |    5 +++--
+>  1 file changed, 3 insertions(+), 2 deletions(-)
+>
+> diff --git a/drivers/mmc/host/omap_hsmmc.c b/drivers/mmc/host/omap_hsmmc.c
+> index d15b149..d046ba2 100644
+> --- a/drivers/mmc/host/omap_hsmmc.c
+> +++ b/drivers/mmc/host/omap_hsmmc.c
+> @@ -1683,8 +1683,9 @@ static int omap_hsmmc_regs_show(struct seq_file *s, void *data)
+>  	if (host->pdata->get_context_loss_count)
+>  		context_loss = host->pdata->get_context_loss_count(host->dev);
+>  
+> -	seq_printf(s, "mmc%d:\n ctx_loss:\t%d:%d\n\nregs:\n",
+> -			mmc->index, host->context_loss, context_loss);
+> +	seq_printf(s, "mmc%d:\n ctx_loss:\t%d:%d\n fclk:\t\t%lu Hz\n\nregs:\n",
+> +		mmc->index, host->context_loss, context_loss,
 
-Regards,
+Minor nit, but it looks like this line breaks indentation.
 
-Tony
+> +			clk_get_rate(host->fclk));
+>  
+>  	if (host->suspended) {
+>  		seq_printf(s, "host suspended, can't read registers\n");
+
+Thanks,
+
+- Chris.
+-- 
+Chris Ball   <cjb@laptop.org>   <http://printf.net/>
+One Laptop Per Child
