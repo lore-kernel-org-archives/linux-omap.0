@@ -1,109 +1,116 @@
-From: =?iso-8859-1?Q?M=E5ns_Rullg=E5rd?= <mans@mansr.com>
-Subject: Re: AM3517 boot failure
-Date: Thu, 19 Apr 2012 20:43:28 +0100
-Message-ID: <yw1xd373qzhb.fsf@unicorn.mansr.com>
-References: <alpine.DEB.2.00.1204182005260.29048@utopia.booyaka.com>
-	<4F8FC572.80406@compulab.co.il> <yw1x8vhrsqyd.fsf@unicorn.mansr.com>
-	<20120419180513.GA14705@animalcreek.com>
+From: Paul Walmsley <paul@pwsan.com>
+Subject: Re: [PATCH v2 4/8] ARM: OMAP2+: hwmod: revise hardreset behavior
+Date: Thu, 19 Apr 2012 13:46:40 -0600 (MDT)
+Message-ID: <alpine.DEB.2.00.1204191338370.29048@utopia.booyaka.com>
+References: <20120228053524.16278.59430.stgit@dusk> <20120228053654.16278.73632.stgit@dusk> <alpine.DEB.2.00.1204182253550.29048@utopia.booyaka.com> <4F90001E.8060201@ti.com> <alpine.DEB.2.00.1204191050110.29048@utopia.booyaka.com>
+ <4F90641D.3090208@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: MULTIPART/MIXED; BOUNDARY="155748971-1599479799-1334864800=:29048"
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from unicorn.mansr.com ([78.86.181.103]:41076 "EHLO
-	unicorn.mansr.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756418Ab2DSTnb convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 19 Apr 2012 15:43:31 -0400
-In-Reply-To: <20120419180513.GA14705@animalcreek.com> (Mark A. Greer's message
-	of "Thu, 19 Apr 2012 11:05:13 -0700")
+Received: from utopia.booyaka.com ([72.9.107.138]:56362 "EHLO
+	utopia.booyaka.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S932255Ab2DSTql (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 19 Apr 2012 15:46:41 -0400
+In-Reply-To: <4F90641D.3090208@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "Mark A. Greer" <mgreer@animalcreek.com>
-Cc: Igor Grinberg <grinberg@compulab.co.il>, Paul Walmsley <paul@pwsan.com>, linux-omap@vger.kernel.org
+To: "Cousson, Benoit" <b-cousson@ti.com>
+Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, "Ramirez Luna, Omar" <omar.ramirez@ti.com>, Ohad Ben-Cohen <ohad@wizery.com>
 
-"Mark A. Greer" <mgreer@animalcreek.com> writes:
+  This message is in MIME format.  The first part should be readable text,
+  while the remaining parts are likely unreadable without MIME-aware tools.
 
-> On Thu, Apr 19, 2012 at 04:04:42PM +0100, M=E5ns Rullg=E5rd wrote:
->> Igor Grinberg <grinberg@compulab.co.il> writes:
->>=20
->> > On 04/19/12 05:07, Paul Walmsley wrote:
->> >>=20
->> >> Hi,
->> >>=20
->> >> just wanted to mention this on the list to see if anyone else was=
- seeing=20
->> >> it.  I'm using a Compulab CM-T3517 and attempting to use nfsroot,=
- and the=20
->> >> boot hangs.  Here are the last few lines when booting with=20
->> >> initcall_debug:
->
->> I did a little digging...
->
->> Secondly, the clock configuration for davinci_emac on am35xx is brok=
-en.
->> omap3xxx_clk_init() registers two clocks for dev_id "davinci_emac", =
-one
->> with con_id "emac_clk", one with "phy_clk".  When davinci_emac_probe=
-()
->> then does a clk_get(dev, NULL), this fails since there is no matchin=
-g
->> con_id.  Likewise for davinci_mdio_probe().
->
-> This is fixed by 59269b94483eabeacbc9a535944b3dafac92a303
-> (ARM: OMAP AM3517/3505: clock data: change EMAC clocks aliases) from
-> Ilya Yanok <yanok@emcraft.com>.  Its in the current mainline kernel.
+--155748971-1599479799-1334864800=:29048
+Content-Type: TEXT/PLAIN; charset=ISO-8859-15
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 
-Yeah, I noticed after I'd already figured out why it was failing.  Oh
-well, it was a good exercise.
+Hi Beno=EEt,
 
->> With a little hacking, I got the platform device registered and the
->> clocks matching as (I think) they should.  It now detects the correc=
-t
->> PHY, so that's something.
->>=20
->> However, the IP config is still getting stuck.  For reasons I don't
->> know, the msleep(1) call in ic_open_devs() never returns.
->>=20
->> That's as far as I got.
->
-> I tried the current mainline on my am3517 evm and it hangs as well.
-> I'm not surprised, the am35xx has some serious issues ATM.  I submitt=
-ed
-> a set of patches to fix a lot of them but they need to be reworked.
-> I'm working on that now.
->
-> Until then, don't expect much to work well.  If it does seem to work =
-well,
-> you got lucky.  If you want to get running quickly, try the ***HACK**=
-*
-> below.  Current mainline boot with it applied, CONFIG_TI_DAVINCI_EMAC=
-=3Dy,
-> boots on my am3517 evm with both an MMC-mounted & NFS-mounted rootfs.
->
-> Mark
-> --
->
-> diff --git a/arch/arm/mach-omap2/pm34xx.c b/arch/arm/mach-omap2/pm34x=
-x.c
-> index 703bd10..187f5cb 100644
-> --- a/arch/arm/mach-omap2/pm34xx.c
-> +++ b/arch/arm/mach-omap2/pm34xx.c
-> @@ -705,7 +705,6 @@ static int __init omap3_pm_init(void)
->         struct clockdomain *neon_clkdm, *per_clkdm, *mpu_clkdm, *core=
-_clkdm;
->         int ret;
->
-> -       if (!cpu_is_omap34xx())
->                 return -ENODEV;
->
->         if (!omap3_has_io_chain_ctrl())
+On Thu, 19 Apr 2012, Cousson, Benoit wrote:
 
-That does indeed make it boot.
+> On 4/19/2012 7:17 PM, Paul Walmsley wrote:
+> > On Thu, 19 Apr 2012, Cousson, Benoit wrote:
+> >=20
+> > > The concern of the people doing SW in these embedded processors was m=
+ainly
+> > > because we were releasing the reset of processor without loading any =
+SW
+> > > first
+> > > and thus the processor was executing some random instructions.
+> > >=20
+> > > So if we consider a better hwmods definition, we can potentially fix =
+the
+> > > MMU
+> > > case:
+> > >=20
+> > >      'mmu_ipu':
+> > >          'rst_ipu_mmu_cache'
+> > >=20
+> > >      'mmu_dsp':
+> > >          'rst_dsp_mmu_cache'
+> > >=20
+> > >      'iva_config':
+> > >          'rst_logic'
+> >=20
+> > Wouldn't these still be "pseudo-hwmods?"  Or do each of these actually
+> > have address space, interconnect ports, etc.?
+>=20
+> Yes, these ones are the only real IPs for MPU stand point, with interconn=
+ect
+> port and configuration registers.
 
---=20
-M=E5ns Rullg=E5rd
-mans@mansr.com
---
-To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+These are the MMUs documented in Chapter 20 of the OMAP4430 TRM=20
+vX, right? =20
+
+I don't really understand the interaction of the hardreset lines with=20
+these IPs.  Chapter 20 doesn't seem to mention the PRCM-controllable=20
+hardreset lines at all.  It only mentions the OCP_SYSCONFIG registers=20
+associated with them.
+
+Meanwhile Table 3-375 "RM_DSP_RSTCTRL" mentions a DSP MMU, cache, and=20
+slave interface reset line.  Is that referring to the same MMU that is=20
+mentioned in Chapter 20?  The end of Section 20.2 "MMU Integration"=20
+mentions two different DSP MMUs, a "shared cache MMU" and an "L2 MMU" -=20
+maybe the hardreset line only pertains to the first MMU?
+
+> > > But then we do have the processor resets that have to be exposed
+> > > somewhere.
+> > >=20
+> > >      'ipu':
+> > >          'rst_cpu0'
+> > >          'rst_cpu1'
+> > >=20
+> > >      'dsp':
+> > >          'rst_dsp'
+> > >=20
+> > >      'iva':
+> > >          'rst_seq1'
+> > >          'rst_seq2'
+> > >=20
+> > > None of these one should be controlled automatically.
+> >=20
+> > Don't we still want to put these IP blocks into reset until a driver fo=
+r
+> > these IP blocks is loaded?
+>=20
+> Yes, indeed, my point is where are we going to declare these reset lines =
+if we
+> do not have any fake hwmods to store them.
+
+Wouldn't we associate them with the processor hwmods?  e.g.,=20
+omap44xx_iva_hwmod, omap44xx_dsp_hwmod ?
+
+> Well, for the MMU we can, these are regular IPs (almost). The real issues=
+ was
+> for the processors.
+
+Omar, do you know  how these hardreset lines interact with the MMUs=20
+described in the TRM Chapter 20?
+
+> First they will have to release their driver :-)
+
+Hehe, indeed.
+
+
+- Paul
+--155748971-1599479799-1334864800=:29048--
