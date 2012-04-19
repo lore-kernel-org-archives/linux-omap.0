@@ -1,53 +1,63 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH 8/8] ARM: omap_hsmmc: remove platform data dma_mask and
- initialization
-Date: Thu, 19 Apr 2012 11:07:42 -0700
-Message-ID: <20120419180741.GX21106@atomide.com>
-References: <20120418152956.GP25053@n2100.arm.linux.org.uk>
- <CANrkHUYvKdBUZh9UmWcE30ywAAiqhN-KcnSAE2T56WJLFPX1gA@mail.gmail.com>
- <20120418194224.GS25053@n2100.arm.linux.org.uk>
- <20120418200214.GP21106@atomide.com>
- <20120418202447.GT25053@n2100.arm.linux.org.uk>
- <20120418210142.GR21106@atomide.com>
- <20120418211606.GU25053@n2100.arm.linux.org.uk>
- <20120418213642.GV25053@n2100.arm.linux.org.uk>
- <20120419013914.GV21106@atomide.com>
- <20120419174332.GY25053@n2100.arm.linux.org.uk>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-mmc-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <20120419174332.GY25053@n2100.arm.linux.org.uk>
-Sender: linux-mmc-owner@vger.kernel.org
-To: Russell King - ARM Linux <linux@arm.linux.org.uk>
-Cc: linux-omap@vger.kernel.org, linux-mmc@vger.kernel.org, "T Krishnamoorthy, Balaji" <balajitk@ti.com>, linux-arm-kernel@lists.infradead.org
+From: "Mark A. Greer" <mgreer@animalcreek.com>
+Subject: [PATCH] arm: omap3: Only access IVA if one exists
+Date: Thu, 19 Apr 2012 11:17:45 -0700
+Message-ID: <1334859465-14352-1-git-send-email-mgreer@animalcreek.com>
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from mail20.dotsterhost.com ([66.11.232.73]:33228 "EHLO
+	mail20.dotsterhost.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754556Ab2DSSRt (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 19 Apr 2012 14:17:49 -0400
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+Cc: "Mark A. Greer" <mgreer@animalcreek.com>
 
-* Russell King - ARM Linux <linux@arm.linux.org.uk> [120419 10:46]:
-> On Wed, Apr 18, 2012 at 06:39:14PM -0700, Tony Lindgren wrote:
-> > Cool, you almost got it. Got it working for n800 and 770 with the following
-> > patch. Only extremely light testing done now so careful with this patch too..
-> > 
-> > Had to hack in support for the src_port and dst_port that's needed for
-> > omap_set_dma_src/dest_params on omap1.
-> 
-> What's the relationship between these ports and the DMA request signal?
-> Is there a document which describes this?
+From: "Mark A. Greer" <mgreer@animalcreek.com>
 
-It's the source and destination addresses bus port, so it's more related
-to the addresses than request signal. I guess routing of the DMA request
-signal is what it really does.
+prcm_setup_regs() blindly accesses IVA bits
+in the PRM and calls omap3_iva_idle() which
+does more IVA related register accesses.
+Only do this if the IVA hardware actually
+exists.
 
-I'm now wondering if it might be possible to set it automatically based on
-source and destination address.
+Signed-off-by: Mark A. Greer <mgreer@animalcreek.com>
+---
+ arch/arm/mach-omap2/pm34xx.c |   15 ++++++++++-----
+ 1 file changed, 10 insertions(+), 5 deletions(-)
 
-There's some information in the omap5912 trm on pages 717 and 718:
+diff --git a/arch/arm/mach-omap2/pm34xx.c b/arch/arm/mach-omap2/pm34xx.c
+index 703bd10..ec92676 100644
+--- a/arch/arm/mach-omap2/pm34xx.c
++++ b/arch/arm/mach-omap2/pm34xx.c
+@@ -583,10 +583,13 @@ static void __init prcm_setup_regs(void)
+ 			  OMAP3430_PER_MOD, OMAP3430_PM_MPUGRPSEL);
+ 
+ 	/* Don't attach IVA interrupts */
+-	omap2_prm_write_mod_reg(0, WKUP_MOD, OMAP3430_PM_IVAGRPSEL);
+-	omap2_prm_write_mod_reg(0, CORE_MOD, OMAP3430_PM_IVAGRPSEL1);
+-	omap2_prm_write_mod_reg(0, CORE_MOD, OMAP3430ES2_PM_IVAGRPSEL3);
+-	omap2_prm_write_mod_reg(0, OMAP3430_PER_MOD, OMAP3430_PM_IVAGRPSEL);
++	if (omap3_has_iva()) {
++		omap2_prm_write_mod_reg(0, WKUP_MOD, OMAP3430_PM_IVAGRPSEL);
++		omap2_prm_write_mod_reg(0, CORE_MOD, OMAP3430_PM_IVAGRPSEL1);
++		omap2_prm_write_mod_reg(0, CORE_MOD, OMAP3430ES2_PM_IVAGRPSEL3);
++		omap2_prm_write_mod_reg(0, OMAP3430_PER_MOD,
++					OMAP3430_PM_IVAGRPSEL);
++	}
+ 
+ 	/* Clear any pending 'reset' flags */
+ 	omap2_prm_write_mod_reg(0xffffffff, MPU_MOD, OMAP2_RM_RSTST);
+@@ -600,7 +603,9 @@ static void __init prcm_setup_regs(void)
+ 	/* Clear any pending PRCM interrupts */
+ 	omap2_prm_write_mod_reg(0, OCP_MOD, OMAP3_PRM_IRQSTATUS_MPU_OFFSET);
+ 
+-	omap3_iva_idle();
++	if (omap3_has_iva())
++		omap3_iva_idle();
++
+ 	omap3_d2d_idle();
+ }
+ 
+-- 
+1.7.9.4
 
-http://www.ti.com/litv/pdf/spru742
-
-It says for CSDP source port "This field identifies the port originator of
-the transfer."
-
-Regards,
-
-Tony
