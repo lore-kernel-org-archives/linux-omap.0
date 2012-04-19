@@ -1,7 +1,7 @@
 From: Shubhrajyoti D <shubhrajyoti-l0cyMroinI0@public.gmane.org>
-Subject: [PATCHv8 07/10] I2C: OMAP: Handle error check for pm runtime
-Date: Thu, 19 Apr 2012 18:58:18 +0530
-Message-ID: <1334842101-20670-8-git-send-email-shubhrajyoti@ti.com>
+Subject: [PATCHv8 04/10] I2C: OMAP: Fix the error handling
+Date: Thu, 19 Apr 2012 18:58:15 +0530
+Message-ID: <1334842101-20670-5-git-send-email-shubhrajyoti@ti.com>
 References: <1334842101-20670-1-git-send-email-shubhrajyoti@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
@@ -12,64 +12,56 @@ To: linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 Cc: linux-i2c-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, ben-linux-elnMNo+KYs3YtjvyW6yDsg@public.gmane.org, tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org, w.sang-bIcnvbaLZ9MEGnE8C9+IrQ@public.gmane.org, Shubhrajyoti D <shubhrajyoti-l0cyMroinI0@public.gmane.org>
 List-Id: linux-omap@vger.kernel.org
 
-If PM runtime get_sync fails return with the error
-so that no further reads/writes goes through the interface.
-This will avoid possible abort. Add a error message in case
-of failure with the cause of the failure.
+Currently in probe
+      pm_runtime_put(dev->dev);
+
+...
+        /* i2c device drivers may be active on return from add_adapter() */
+        adap->nr = pdev->id;
+        r = i2c_add_numbered_adapter(adap);
+        if (r) {
+                dev_err(dev->dev, "failure adding adapter\n");
+                goto err_free_irq;
+        }
+...
+
+        return 0;
+
+err_free_irq:
+        free_irq(dev->irq, dev);
+err_unuse_clocks:
+        omap_i2c_write_reg(dev, OMAP_I2C_CON_REG, 0);
+        pm_runtime_put(dev->dev);
+
+This may access the i2c registers without the clocks.
+Attempting to fix the same by moving the pm_rintime_put after the error check.
 
 Signed-off-by: Shubhrajyoti D <shubhrajyoti-l0cyMroinI0@public.gmane.org>
 ---
- drivers/i2c/busses/i2c-omap.c |   19 ++++++++++++++++---
- 1 files changed, 16 insertions(+), 3 deletions(-)
+ drivers/i2c/busses/i2c-omap.c |    4 ++--
+ 1 files changed, 2 insertions(+), 2 deletions(-)
 
 diff --git a/drivers/i2c/busses/i2c-omap.c b/drivers/i2c/busses/i2c-omap.c
-index 44e8cfa..d555dcd 100644
+index bf07ffd..1777d79 100644
 --- a/drivers/i2c/busses/i2c-omap.c
 +++ b/drivers/i2c/busses/i2c-omap.c
-@@ -585,7 +585,11 @@ omap_i2c_xfer(struct i2c_adapter *adap, struct i2c_msg msgs[], int num)
- 	int i;
- 	int r;
+@@ -1061,8 +1061,6 @@ omap_i2c_probe(struct platform_device *pdev)
+ 	dev_info(dev->dev, "bus %d rev%d.%d.%d at %d kHz\n", pdev->id,
+ 		 dev->dtrev, dev->rev >> 4, dev->rev & 0xf, dev->speed);
  
--	pm_runtime_get_sync(dev->dev);
-+	r = pm_runtime_get_sync(dev->dev);
-+	if (r < 0) {
-+		dev_err(dev->dev, "pm_runtime_get_sync failed %d\n", r);
-+		return r;
-+	}
+-	pm_runtime_put(dev->dev);
+-
+ 	adap = &dev->adapter;
+ 	i2c_set_adapdata(adap, dev);
+ 	adap->owner = THIS_MODULE;
+@@ -1082,6 +1080,8 @@ omap_i2c_probe(struct platform_device *pdev)
  
- 	r = omap_i2c_wait_for_bb(dev);
- 	if (r < 0)
-@@ -1011,7 +1015,11 @@ omap_i2c_probe(struct platform_device *pdev)
- 		dev->regs = (u8 *)reg_map_ip_v1;
+ 	of_i2c_register_devices(adap);
  
- 	pm_runtime_enable(dev->dev);
--	pm_runtime_get_sync(dev->dev);
-+	r = pm_runtime_get_sync(dev->dev);
-+	if (r < 0) {
-+		dev_err(dev->dev, "pm_runtime_get_sync failed:%d\n", r);
-+		return r;
-+	}
++	pm_runtime_put(dev->dev);
++
+ 	return 0;
  
- 	dev->rev = omap_i2c_read_reg(dev, OMAP_I2C_REV_REG) & 0xff;
- 
-@@ -1103,12 +1111,17 @@ omap_i2c_remove(struct platform_device *pdev)
- {
- 	struct omap_i2c_dev	*dev = platform_get_drvdata(pdev);
- 	struct resource		*mem;
-+	int ret;
- 
- 	platform_set_drvdata(pdev, NULL);
- 
- 	free_irq(dev->irq, dev);
- 	i2c_del_adapter(&dev->adapter);
--	pm_runtime_get_sync(&pdev->dev);
-+	ret = pm_runtime_get_sync(&pdev->dev);
-+	if (ret < 0) {
-+		dev_err(dev->dev, "pm_runtime_get_sync failed %d\n", ret);
-+		return ret;
-+	}
- 	omap_i2c_write_reg(dev, OMAP_I2C_CON_REG, 0);
- 	pm_runtime_put(&pdev->dev);
- 	pm_runtime_disable(&pdev->dev);
+ err_free_irq:
 -- 
 1.7.5.4
