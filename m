@@ -1,132 +1,144 @@
-From: Paul Walmsley <paul@pwsan.com>
-Subject: [GIT PULL] ARM: OMAP2+: hwmod data: add most of the remaining OMAP4
- hwmods
-Date: Thu, 19 Apr 2012 14:29:51 -0600 (MDT)
-Message-ID: <alpine.DEB.2.00.1204191428550.29048@utopia.booyaka.com>
+From: "Ramirez Luna, Omar" <omar.ramirez@ti.com>
+Subject: Re: [PATCH v2 4/8] ARM: OMAP2+: hwmod: revise hardreset behavior
+Date: Thu, 19 Apr 2012 16:15:12 -0500
+Message-ID: <CAB-zwWg4cFV-0zUmc4izrv=o4de9rc-8UNiB4x8-Nd8E9VuVfg@mail.gmail.com>
+References: <20120228053524.16278.59430.stgit@dusk>
+ <20120228053654.16278.73632.stgit@dusk>
+ <alpine.DEB.2.00.1204182253550.29048@utopia.booyaka.com>
+ <4F90001E.8060201@ti.com>
+ <alpine.DEB.2.00.1204191050110.29048@utopia.booyaka.com>
+ <4F90641D.3090208@ti.com>
+ <alpine.DEB.2.00.1204191338370.29048@utopia.booyaka.com>
 Mime-Version: 1.0
-Content-Type: MULTIPART/MIXED; BOUNDARY="155748971-471955330-1334867391=:29048"
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from utopia.booyaka.com ([72.9.107.138]:37457 "EHLO
-	utopia.booyaka.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751371Ab2DSU3v (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 19 Apr 2012 16:29:51 -0400
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset="iso-8859-1"
+Content-Transfer-Encoding: quoted-printable
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
+In-Reply-To: <alpine.DEB.2.00.1204191338370.29048@utopia.booyaka.com>
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
+List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
+List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
+Sender: linux-arm-kernel-bounces@lists.infradead.org
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
+To: Paul Walmsley <paul@pwsan.com>
+Cc: Ohad Ben-Cohen <ohad@wizery.com>, linux-omap@vger.kernel.org, "Cousson,
+ Benoit" <b-cousson@ti.com>, linux-arm-kernel@lists.infradead.org
 List-Id: linux-omap@vger.kernel.org
-To: tony@atomide.com
-Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 
-  This message is in MIME format.  The first part should be readable text,
-  while the remaining parts are likely unreadable without MIME-aware tools.
+Hi Paul,
 
---155748971-471955330-1334867391=:29048
-Content-Type: TEXT/PLAIN; charset=ISO-8859-15
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+On Thu, Apr 19, 2012 at 2:46 PM, Paul Walmsley <paul@pwsan.com> wrote:
+> Hi Beno=EEt,
+>
+> On Thu, 19 Apr 2012, Cousson, Benoit wrote:
+>
+>> On 4/19/2012 7:17 PM, Paul Walmsley wrote:
+>> > On Thu, 19 Apr 2012, Cousson, Benoit wrote:
+>> >
+>> > > The concern of the people doing SW in these embedded processors was =
+mainly
+>> > > because we were releasing the reset of processor without loading any=
+ SW
+>> > > first
+>> > > and thus the processor was executing some random instructions.
+>> > >
+>> > > So if we consider a better hwmods definition, we can potentially fix=
+ the
+>> > > MMU
+>> > > case:
+>> > >
+>> > > =A0 =A0 =A0'mmu_ipu':
+>> > > =A0 =A0 =A0 =A0 =A0'rst_ipu_mmu_cache'
+>> > >
+>> > > =A0 =A0 =A0'mmu_dsp':
+>> > > =A0 =A0 =A0 =A0 =A0'rst_dsp_mmu_cache'
+>> > >
+>> > > =A0 =A0 =A0'iva_config':
+>> > > =A0 =A0 =A0 =A0 =A0'rst_logic'
+>> >
+>> > Wouldn't these still be "pseudo-hwmods?" =A0Or do each of these actual=
+ly
+>> > have address space, interconnect ports, etc.?
+>>
+>> Yes, these ones are the only real IPs for MPU stand point, with intercon=
+nect
+>> port and configuration registers.
+>
+> These are the MMUs documented in Chapter 20 of the OMAP4430 TRM
+> vX, right?
+>
+> I don't really understand the interaction of the hardreset lines with
+> these IPs. =A0Chapter 20 doesn't seem to mention the PRCM-controllable
+> hardreset lines at all. =A0It only mentions the OCP_SYSCONFIG registers
+> associated with them.
+>
+> Meanwhile Table 3-375 "RM_DSP_RSTCTRL" mentions a DSP MMU, cache, and
+> slave interface reset line. =A0Is that referring to the same MMU that is
+> mentioned in Chapter 20? =A0The end of Section 20.2 "MMU Integration"
+> mentions two different DSP MMUs, a "shared cache MMU" and an "L2 MMU" -
+> maybe the hardreset line only pertains to the first MMU?
 
------BEGIN PGP SIGNED MESSAGE-----
-Hash: SHA1
+I don't thinks so, because trying to read the L2 MMU registers with
+DSP RST2 asserted causes an L3 error.
 
-Hi Tony,
+DSP's "shared cache MMU" refers to section 5.3.2.5 Attribute MMU which
+is inside the dsp megamodule, OTOH "L2 MMU" refers to section 5.3.4
+MMU, the latter is the one being referenced in section 20.
 
-The following changes since commit 3af35fbcd088e0b675fa423a879c596384894180=
-:
+>> > > But then we do have the processor resets that have to be exposed
+>> > > somewhere.
+>> > >
+>> > > =A0 =A0 =A0'ipu':
+>> > > =A0 =A0 =A0 =A0 =A0'rst_cpu0'
+>> > > =A0 =A0 =A0 =A0 =A0'rst_cpu1'
+>> > >
+>> > > =A0 =A0 =A0'dsp':
+>> > > =A0 =A0 =A0 =A0 =A0'rst_dsp'
+>> > >
+>> > > =A0 =A0 =A0'iva':
+>> > > =A0 =A0 =A0 =A0 =A0'rst_seq1'
+>> > > =A0 =A0 =A0 =A0 =A0'rst_seq2'
+>> > >
+>> > > None of these one should be controlled automatically.
+>> >
+>> > Don't we still want to put these IP blocks into reset until a driver f=
+or
+>> > these IP blocks is loaded?
+>>
+>> Yes, indeed, my point is where are we going to declare these reset lines=
+ if we
+>> do not have any fake hwmods to store them.
+>
+> Wouldn't we associate them with the processor hwmods? =A0e.g.,
+> omap44xx_iva_hwmod, omap44xx_dsp_hwmod ?
+>
+>> Well, for the MMU we can, these are regular IPs (almost). The real issue=
+s was
+>> for the processors.
+>
+> Omar, do you know =A0how these hardreset lines interact with the MMUs
+> described in the TRM Chapter 20?
 
-  ARM: OMAP2xxx: hwmod data: start to fix the IVA1, IVA2 and DSP (2012-04-1=
-9 04:25:08 -0600)
+For M3, RM_MPU_M3_RSTCTRL[2].RST3 releases both the cache and mmu
+interfaces, this one is needed if you want to program the mmu by
+touching any of the MMU registers, typical initialization is to
+deassert this line and then enable the M3 clock (since it is shared
+with its MMU) which should allow the reset to complete *only* after
+the clock has been enabled.
 
-are available in the git repository at:
+For DSP, RM_DSP_RSTCTRL[1].RST2 it also releases dsp, cache and mmu
+(however the dsp doesn't boot until RST1 is deasserted), it is the
+same rationale as above; you deassert RST2, enable dsp clock (so reset
+can complete) and then program mmu.
 
-  git://git.kernel.org/pub/scm/linux/kernel/git/pjw/omap-pending tags/omap-=
-devel-a-for-3.5
+Touching any mmu registers without deasserting its reset line (even if
+the associated clock is ON) generates a L3 error.
 
-for you to fetch changes up to 96566043b19ae76d3828ce75cbf28dc6d0bcaaf1:
+This can be found in 3.5.6 Reset sequences for DSP and M3.
 
-  ARM: OMAP4: hwmod data: add DEBUGSS skeleton (2012-04-19 13:33:59 -0600)
+Regards,
 
-- ----------------------------------------------------------------
-Add in most of the remaining hwmods (IP block descriptions) for the
-OMAP44xx family of SoCs.  There still seem to be a few missing, such
-as those for the MMU IP blocks, but this seems to cover the bulk of
-the remainder.
-
-- ----------------------------------------------------------------
-
-This is based on top of the hwmod cleanup for 3.5 tag.
-
-This series has been boot-tested on N800, 2430SDP, CM-T3517, 3530ES3
-Beagle, 3730ES1.2 EVM, and 4430ES2 Panda.  System suspend entry and
-exit (via UART wakeup) was tested on 3530ES3 Beagle and 4430ES2 Panda.
-Dynamic idle entry and exit (via UART wakeup) was tested on 3530ES3
-Beagle.  Logs of this testing are available at
-
-    http://www.pwsan.com/omap/bootlogs/20120419/omap4_hwmod_devel_a_3.5__96=
-566043b19ae76d3828ce75cbf28dc6d0bcaaf1/
-
-
-- - Paul
-
-- ---
-
-object size (delta in bytes from hwmod_cleanup_a_3.5 (3af35fbcd088e0b675fa4=
-23a879c596384894180)):
- text =09 data =09  bss =09total =09kernel
-    0 =09    0 =09    0 =09    0 =095912osk_testconfig/vmlinux
-    0 =09    0 =09    0 =09    0 =09n800_multi_omap2xxx/vmlinux
-    0 =09    0 =09    0 =09    0 =09n800_testconfig/vmlinux
-    0 =09    0 =09    0 =09    0 =09omap1_defconfig/vmlinux
-+4096 =09+7008 =09    0 =09+11104 =09omap2_4_testconfig/vmlinux
-    0 =09+6944 =09    0 =09+6944 =09omap2plus_defconfig/vmlinux
-+4096 =09+7008 =09    0 =09+11104 =09omap2plus_no_pm/vmlinux
-+4160 =09+7008 =09  +64 =09+11232 =09omap3_4_testconfig/vmlinux
-    0 =09    0 =09    0 =09    0 =09omap3_testconfig/vmlinux
-    0 =09+7136 =09    0 =09+7136 =09omap4_testconfig/vmlinux
-
-Beno=EEt Cousson (6):
-      ARM: OMAP4: hwmod data: add GPMC
-      ARM: OMAP4: hwmod data: add the Slimbus IP blocks
-      ARM: OMAP4: hwmod data: add McASP
-      ARM: OMAP4: hwmod data: add remaining USB-related IP blocks
-      ARM: OMAP4: hwmod data: add the OCP-WP IP block
-      ARM: OMAP4: hwmod data: add DEBUGSS skeleton
-
-Ming Lei (1):
-      ARM: OMAP4: hwmod data: introduce fdif(face detect module) hwmod
-
-Paul Walmsley (8):
-      ARM: OMAP2+: clockdomains: make {prm,cm}_clkdm common
-      ARM: OMAP4: hwmod data: add HDQ/1-wire
-      ARM: OMAP4: hwmod data: add EMIF1 and 2
-      ARM: OMAP4: hwmod data: add GPU
-      ARM: OMAP4: hwmod data: add some interconnect-related IP blocks
-      ARM: OMAP4: hwmod data: add OCM RAM IP block
-      ARM: OMAP4: hwmod data: add System Control Module
-      ARM: OMAP4: hwmod data: add PRCM and related IP blocks
-
- arch/arm/mach-omap2/Makefile                     |    8 +-
- arch/arm/mach-omap2/clockdomain44xx.c            |    6 +
- arch/arm/mach-omap2/clockdomains2xxx_3xxx_data.c |   10 -
- arch/arm/mach-omap2/clockdomains44xx_data.c      |    2 +
- arch/arm/mach-omap2/clockdomains_common_data.c   |   24 +
- arch/arm/mach-omap2/omap_hwmod_44xx_data.c       | 1504 ++++++++++++++++++=
-++++++++++++++++++++++++++++++++++---
- arch/arm/plat-omap/include/plat/omap_hwmod.h     |    1 +
- 7 files changed, 1463 insertions(+), 92 deletions(-)
- create mode 100644 arch/arm/mach-omap2/clockdomains_common_data.c
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.4.12 (GNU/Linux)
-
-iQIcBAEBAgAGBQJPkHV6AAoJEMePsQ0LvSpLJOAQAKi5wXrem3JhunXGUoywuKw/
-/qy8Fy+s392JWzRla9c0+3Wn0MmcmSECdHFP49j1kiGrK2Nd3DpYQA4artkRKvlD
-G9XhUYoxoV3cf6/b7QlMVxz2NHtm5BvhNPiwGOgMpyqPr121CaNihjcjyyzOl6nQ
-006BUUWuxACwe5wBtqWa2CA4TLM+8+D/edtpTcrMBLgpfMqjQ2m4RwIgjV5A3D/h
-KfSIrfaXe2xXEcIjqoGghsEesUThvw7GrKeP3Kde1cQKjR7inz1QrdjuKYG7RB5L
-DrxWAZFyPY6aoo1QheiCaw8BpFWhX1sI43Wz6TUE5vOfLqwWoZk4lnMz2rS6KelJ
-zRy/cmHzeMGY0j1o+VlYh80WHEl/sqOurIxsN0rJey1c/KRJURR8qmmPkRbyxsvD
-hoLhFpP6Uh0CVJubayi/UPr+kUZZNYCLIpU8WBHa5Dqf8ID6NB7TbqgVTCIt86y7
-r2kXOoF27KLXdZMundElcNGWuI906t/UbFt1x6KgIUO0mYCmjA8XymgoEWKCkzDv
-oiWxHsECT/lRS2M9KGrQHzQsV9Uc/UmFH2bkPKLoA0zJpDrOViWYDroezp7i3kB9
-cwaTyb2jilTRR+AIghGvhLFIh5PSAJZoIBcQEhWHykG+kL+NLXRRaVrtPBB6NSMQ
-aFxSceVcuSynFrRe8IvN
-=3DsO30
------END PGP SIGNATURE-----
---155748971-471955330-1334867391=:29048--
+Omar
