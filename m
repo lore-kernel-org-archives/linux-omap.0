@@ -1,148 +1,85 @@
 From: Tomi Valkeinen <tomi.valkeinen@ti.com>
-Subject: Re: [PATCH 4/6] OMAPDSS: MANAGER: Make DISPC timings a
- manager_info parameter
-Date: Thu, 19 Apr 2012 14:37:32 +0300
-Message-ID: <1334835452.1911.38.camel@deskari>
+Subject: Re: [PATCH 0/6] OMAPDSS: APPLY: Treat overlay manager timings as
+ shadow registers
+Date: Thu, 19 Apr 2012 14:48:55 +0300
+Message-ID: <1334836135.1911.40.camel@deskari>
 References: <1334561027-28569-1-git-send-email-archit@ti.com>
-	 <1334561027-28569-5-git-send-email-archit@ti.com>
-	 <1334761105.2027.67.camel@deskari>  <4F8FAD01.3090406@ti.com>
-	 <1334817446.1521.57.camel@lappy>  <4F8FE42D.6030105@ti.com>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg="pgp-sha1"; protocol="application/pgp-signature"; boundary="=-tbaADqEttnXDedWKu1SA"
+Content-Type: multipart/signed; micalg="pgp-sha1"; protocol="application/pgp-signature"; boundary="=-oo8g7HI0wMb4jFPBhoKR"
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aog107.obsmtp.com ([74.125.149.197]:59664 "EHLO
-	na3sys009aog107.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754118Ab2DSLhk (ORCPT
+Received: from na3sys009aog116.obsmtp.com ([74.125.149.240]:47517 "EHLO
+	na3sys009aog116.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1754899Ab2DSLtA (ORCPT
 	<rfc822;linux-omap@vger.kernel.org>);
-	Thu, 19 Apr 2012 07:37:40 -0400
-Received: by lagw12 with SMTP id w12so6530734lag.20
-        for <linux-omap@vger.kernel.org>; Thu, 19 Apr 2012 04:37:37 -0700 (PDT)
-In-Reply-To: <4F8FE42D.6030105@ti.com>
+	Thu, 19 Apr 2012 07:49:00 -0400
+Received: by lagu2 with SMTP id u2so8825260lag.21
+        for <linux-omap@vger.kernel.org>; Thu, 19 Apr 2012 04:48:57 -0700 (PDT)
+In-Reply-To: <1334561027-28569-1-git-send-email-archit@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Archit Taneja <a0393947@ti.com>
+To: Archit Taneja <archit@ti.com>
 Cc: linux-omap@vger.kernel.org, linux-fbdev@vger.kernel.org
 
 
---=-tbaADqEttnXDedWKu1SA
+--=-oo8g7HI0wMb4jFPBhoKR
 Content-Type: text/plain; charset="UTF-8"
 Content-Transfer-Encoding: quoted-printable
 
-On Thu, 2012-04-19 at 15:38 +0530, Archit Taneja wrote:
-> On Thursday 19 April 2012 12:07 PM, Tomi Valkeinen wrote:
-> > On Thu, 2012-04-19 at 11:43 +0530, Archit Taneja wrote:
-> >> On Wednesday 18 April 2012 08:28 PM, Tomi Valkeinen wrote:
-> >>> On Mon, 2012-04-16 at 12:53 +0530, Archit Taneja wrote:
-> >>>> DISPC manager size and DISPC manager blanking parameters(for LCD man=
-agers)
-> >>>> follow the shadow register programming model. Currently, they are pr=
-ogrammed
-> >>>> directly by the interface drivers.
-> >>>>
-> >>>> Make timings(omap_video_timing struct) an overlay_manager_info membe=
-r, they are
-> >>>> now programmed via the apply mechanism used for programming shadow r=
-egisters.
-> >>>>
-> >>>> The interface driver now call the function dss_mgr_set_timings() whi=
-ch applies
-> >>>> the new timing parameters, rather than directly writing to DISPC reg=
-isters.
-> >>>
-> >>> I don't think that works correctly. The omap_overlay_manager_info is
-> >>> supposed to be set with set_manager_info() by the user of omapdss, to
-> >>> configure the manager's features. The timings are not supposed to be =
-set
-> >>> via that mechanism, but with dssdev->set_timings().
-> >>>
-> >>> This is similar to the info and extra_info for overlay. info has stuf=
-f
-> >>> that omapdss doesn't change, it just uses what the user gives.
-> >>> extra_info, on the other hand, has omapdss private stuff that the use=
-r
-> >>> does not see. Timings are clearly private stuff in this sense, becaus=
-e
-> >>> they are set via dssdev->set_timings().
-> >>>
-> >>> One reason for this is the programming model we use. If the user of
-> >>> omapdss does get_info() for two overlays, changes the infos, and then
-> >>> calls set_info() for both overlays and finally apply() for the manage=
-r,
-> >>> we don't do any locking there because omapdss presumes the info is
-> >>> handled by one user. If, say, the dpi.c would change the info and cal=
-l
-> >>> apply at the same time, the configuration could go badly wrong.
-> >>
-> >> I think I get your point. So even though get_info() and set_info() fn'=
-s
-> >> are spinlock protected, if there are 2 users setting the info, it
-> >> doesn't mean that the info they finally written is correct. Is this
-> >> example the same thing as what you mean ? :
-> >>
-> >> In order of time:
-> >>
-> >> -user 1 gets an overlay's info
-> >>
-> >> -user 2 gets an overlay's info
-> >>
-> >> -user 1 modifies and sets overlay info
-> >>
-> >> -user 2 sets overlay info without the knowledge of what user 1 did.
-> >>
-> >> So even though we ensure these events happen sequentially, we don't
-> >> protect the info across multiple users.
-> >
-> > Yes. The spinlocks ensure that the info is "whole", so we don't get a
-> > few fields from user1 and a few fields from user2. But they don't
-> > protect us from the case you described above.
-> >
-> > For that we would need a "dss lock" that the user would acquire before
-> > using get_info and set_info. But I don't want to go to that direction,
-> > because we really only support one user anyway.
-> >
-> > The problem in this particular case is that omapdss itself becomes
-> > another user if it uses get_info&  set_info. And that can be easily
-> > avoided by splitting the configuration into public (the "info") and
-> > internal ("extra_info"). The users of omapdss never touch the
-> > extra_info, and omapdss never touches the info.
+On Mon, 2012-04-16 at 12:53 +0530, Archit Taneja wrote:
+> An overlay manager's timings (the manager size, and blanking parameters i=
+f an
+> LCD manager) are DISPC shadow registers, and they should hence follow the
+> correct programming model.
 >=20
-> omapdss touches info via sysfs, so if we use sysfs(in a fast way, using=
-=20
-> a it in scripts, for example) while fb uses DSS2, then we might hit this=
-=20
-> issue.
+> This set makes the timings a manager_info parameter. The interface driver=
+s now
+> set the timings in manager_info instead of directly writing to registers.
+>=20
+> This change also prevents the need to use display resolution for overlay
+> checks, hence making some of the APPLY functions less dependent on the di=
+splay.
+>=20
+> These patches apply over:
+>=20
+> git://gitorious.org/linux-omap-dss2/linux.git dev
+>=20
+> Archit Taneja (6):
+>   OMAPDSS: DISPC/RFBI: Use dispc_mgr_set_lcd_timings() for setting lcd
+>     size
+>   OMAPDSS: DISPC: Use a common function to set manager timings
+>   OMAPDSS: DISPC: Clean up manager timing/size functions
+>   OMAPDSS: MANAGER: Make DISPC timings a manager_info parameter
+>   OMAPDSS: MANAGER: Check validity of manager timings
+>   OMAPDSS: APPLY: Remove display dependency from overlay and manager
+>     checks
 
-The sysfs calls come from the user, so in that sense it's not omapdss
-that is doing the change.
-
-But it's true that with sysfs we may have two users for omapdss, for
-example the scripts using sysfs and omapfb. Hopefully we can deprecate
-the sysfs files at some point...
+The patches 1, 2 and 3 in this series look like independent cleanups.
+Should I apply those, or do you think there may be changes required?
 
  Tomi
 
 
---=-tbaADqEttnXDedWKu1SA
+--=-oo8g7HI0wMb4jFPBhoKR
 Content-Type: application/pgp-signature; name="signature.asc"
 Content-Description: This is a digitally signed message part
 
 -----BEGIN PGP SIGNATURE-----
 Version: GnuPG v1.4.11 (GNU/Linux)
 
-iQIcBAABAgAGBQJPj/j8AAoJEPo9qoy8lh71+FEP/1siePf6viHqfYrx3AxThgyH
-vV6X+/n7nJY7GLclPvucwyGg5fbVvhSbNZZaZIMEKbZTu+qpVRjV+MDAypa/wp1T
-6xYgXr0n+pE/zaJJt53AHqzfhXFOuPjlxM/dPuJqntY7jhKNGwecLhZ+BvD5Thjo
-SWbKVXvZBIIWMOGTfUaSikw6nFVcsiSUfcxoeXa+LP1ctaIuUCz8SPpbLwhqFKbW
-qq+fMREFqDAvRmD3dPrZdRfA4EaTJOZhOnzlWpvpx3m5GvxwliTrMW9qZhRK/62F
-VNUjBbo1qIlBVEXObsixbdD3r+qDLqolzOGq7/GN5rN96b8W7Lzp08g1LACALh66
-QMHp56Vi567hgAKiIY85CwLKG5JxB3knV2VOQuWqqem68K29Zw2767889bwSikUs
-QZVJ7kVzaNxTP0twxonMXcsirw77rth+K6pzmdASj3CpyB9d9WH/kwDdxcKiCaQC
-vnv44+5haotUBTI30fqImvCoKXhk6dcmX5mBASlwycPbO/DlZwU31nePFl2SwPAo
-2SCxrQt6On+P2/KE9N+kf6X72aGAcd/lEG6mr5H2rVJ1Xg6xEmNaGokwLu4Wg+lO
-6okHulSt05Dc+jOyEW9BmGDhwq45Cz6DkNLc2zKOTLEz0jUh9spsstNqwFdsOflf
-pRN1C45Nxzn6cHr4G+Pm
-=+YSM
+iQIcBAABAgAGBQJPj/unAAoJEPo9qoy8lh71VVQP+wdhydNE7pMPjZXeqPGyuD6z
+sryg20ttU8bK9d9oEFQoBmPy6aaNhj6RkYwj9EEFycmnhNSIK6lD9dHa4HixHckC
+75HupgkDcyGTmoRyvlvVY6A28zKNmkTIN9hhBSwm/f3X07QUttqrO4/TRnIi/SKa
+x3Yb8eCjve5nNUYOx3wbhTKSvJKhSXuZOo5LHtVkoXUOdXgHTqfTqIgx5Q5JFInp
+mfSRL5M/G+YAglzJrN7s2XIPZd3KX1q9hV5J7pwQ0WARjiwCy43rd1OYnAyQHAUB
+thVWKpnqqBd5HEoQ8trQ86Z1qltsIlEf4YuGk1hnYOeOLrUuFfOR3lAoLNYQk+ri
+hoMHEa/FC8kJq5hGMZ8v/4AulN9DInX8dM0yQC2Gpy0gsj30jgNcKFalPMc7j88n
++eiQWq/kk9r+0b7dntpsIlwcUt+GZ0wyuFbs65ukhH62ZA4qeh1qpT+HoCN59ZyY
+KwLTae7CAidf/hC848WOLoxpVWQOblVk40KTkMUao4nnbllmoUN9ZUh+EzQg7PMb
+PqIyVR7mJcBd6TX1rbN7y2ozeYD6oEj5d1Ds9kxLvdpxH07xXgO8g9vKUl+aUv5N
+2iDamUCRXZMm81e9FVHL6JKC2iV6wLwBUjkz5X0ERey02EZgkgirpD2VrDwuvS3V
+c3uJLwoGbDEsEDp4+ll8
+=xwJh
 -----END PGP SIGNATURE-----
 
---=-tbaADqEttnXDedWKu1SA--
+--=-oo8g7HI0wMb4jFPBhoKR--
 
