@@ -1,69 +1,44 @@
-From: Shubhrajyoti Datta <omaplinuxkernel@gmail.com>
-Subject: Re: [PATCH 2/7] UART: OMAP: Cut the clock in the error cases
-Date: Fri, 20 Apr 2012 18:50:25 +0530
-Message-ID: <CAM=Q2cvRs2z7sf1ZeU-tMAZLgjPSM5V2fABLyj7087drThf44A@mail.gmail.com>
-References: <1334588821-5224-1-git-send-email-shubhrajyoti@ti.com>
-	<1334588821-5224-3-git-send-email-shubhrajyoti@ti.com>
-	<87bomprjic.fsf@ti.com>
-	<4F8E62D2.9080206@ti.com>
-	<87bompp2bk.fsf@ti.com>
-	<4F8EDA24.5020209@ti.com>
+From: Alan Cox <alan@lxorguk.ukuu.org.uk>
+Subject: Re: [PATCH] tty: serial_core: Add mechanism to identify port
+ closure.
+Date: Fri, 20 Apr 2012 14:27:40 +0100
+Message-ID: <20120420142740.053b9981@pyramind.ukuu.org.uk>
+References: <1334919473-18870-1-git-send-email-govindraj.raja@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-serial-owner@vger.kernel.org>
-In-Reply-To: <4F8EDA24.5020209@ti.com>
+In-Reply-To: <1334919473-18870-1-git-send-email-govindraj.raja@ti.com>
 Sender: linux-serial-owner@vger.kernel.org
-To: Shubhrajyoti <shubhrajyoti@ti.com>
-Cc: Kevin Hilman <khilman@ti.com>, linux-serial@vger.kernel.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, stable@vger.kernel.org, "Govindraj.R" <govindraj.raja@ti.com>
+To: "Govindraj.R" <govindraj.raja@ti.com>
+Cc: linux-serial@vger.kernel.org, linux-omap@vger.kernel.org, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, Alan Cox <alan@linux.intel.com>
 List-Id: linux-omap@vger.kernel.org
 
-On Wed, Apr 18, 2012 at 8:43 PM, Shubhrajyoti <shubhrajyoti@ti.com> wrote:
->>
->> Kevin
-> Yes agree completely. Will describe that in the changelog.
-> --
-Does the following changelog look ok?
+> diff --git a/drivers/tty/serial/serial_core.c b/drivers/tty/serial/serial_core.c
+> index 9c4c05b..0dc246d 100644
+> --- a/drivers/tty/serial/serial_core.c
+> +++ b/drivers/tty/serial/serial_core.c
+> @@ -1284,6 +1284,8 @@ static void uart_close(struct tty_struct *tty, struct file *filp)
+>  		uart_wait_until_sent(tty, uport->timeout);
+>  	}
+>  
+> +	state->uart_port->closing = true;
 
->From 37fdc2d40c9b2b19b8c5a9a4b8f7dd547d420f55 Mon Sep 17 00:00:00 2001
-From: Shubhrajyoti D <shubhrajyoti@ti.com>
-Date: Wed, 4 Apr 2012 16:32:37 +0530
-Subject: [PATCH] UART: OMAP: call pm_runtime_put/autosuspend in the error cases
+So what are the locking rules for this - when is it valid and when can it
+be tested.
 
-In the error cases the runtime_put call is missed. This patch intends to fix the
-same. In case dma request fails, we fall back to the nondma mode so after
-enabling the threshold call put_autosuspend.
+This also still seems a hack to me - the core tty code doesn't have
+suspend/resume/open/close confused. The uart layer does, so really the
+uart layer needs untangling. I'm skeptical yet another magic state
+variable is the answer, particularly when the locking model for the
+variable appears undefined.
 
-Cc: Govindraj.R <govindraj.raja@ti.com>
-Signed-off-by: Shubhrajyoti D <shubhrajyoti@ti.com>
----
- drivers/tty/serial/omap-serial.c |    6 +++++-
- 1 files changed, 5 insertions(+), 1 deletions(-)
+Teach the uart core code to pass an extra argument indicating whether its
+really doing shutdown/open or merely doing suspend/resume. It's perfectly
+sensible that it tries to use the same helper for both, its broken that
+the called code cannot tell which.
 
-diff --git a/drivers/tty/serial/omap-serial.c b/drivers/tty/serial/omap-serial.c
-index fe099bb..10e80bb 100644
---- a/drivers/tty/serial/omap-serial.c
-+++ b/drivers/tty/serial/omap-serial.c
-@@ -319,6 +319,8 @@ static void serial_omap_start_tx(struct uart_port *port)
+The parameter would also be a local variable which avoids all the locking
+questions.
 
- 		if (ret < 0) {
- 			serial_omap_enable_ier_thri(up);
-+			pm_runtime_mark_last_busy(&up->pdev->dev);
-+			pm_runtime_put_autosuspend(&up->pdev->dev);
- 			return;
- 		}
- 	}
-@@ -1029,8 +1031,10 @@ static int serial_omap_poll_get_char(struct
-uart_port *port)
-
- 	pm_runtime_get_sync(&up->pdev->dev);
- 	status = serial_in(up, UART_LSR);
--	if (!(status & UART_LSR_DR))
-+	if (!(status & UART_LSR_DR)) {
-+		pm_runtime_put(&up->pdev->dev);
- 		return NO_POLL_CHAR;
-+	}
-
- 	status = serial_in(up, UART_RX);
- 	pm_runtime_put(&up->pdev->dev);
--- 
-1.7.5.4
+Alan
