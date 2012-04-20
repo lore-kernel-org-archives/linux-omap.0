@@ -1,53 +1,91 @@
-From: Rabin Vincent <rabin@rab.in>
-Subject: Re: Bug in _und_usr on dual-core ARM?
-Date: Fri, 20 Apr 2012 18:07:19 +0530
-Message-ID: <CAH+eYFB9BObf6RgdUixWhY-_Cc-HHHO8Q1STq06MEEQhpda9Gw@mail.gmail.com>
-References: <BANLkTinY+_+tHatRWuRFUJewUibpmvkUqA@mail.gmail.com> <20110621091529.GA22868@n2100.arm.linux.org.uk>
+From: Tarun Kanti DebBarma <tarun.kanti@ti.com>
+Subject: [PATCH v2 3/4] ARM: OMAP2+: dmtimer: cleanup iclk usage
+Date: Fri, 20 Apr 2012 18:09:22 +0530
+Message-ID: <1334925563-20768-4-git-send-email-tarun.kanti@ti.com>
+References: <1334925563-20768-1-git-send-email-tarun.kanti@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: text/plain
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-yw0-f46.google.com ([209.85.213.46]:61816 "EHLO
-	mail-yw0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751280Ab2DTMiM convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 20 Apr 2012 08:38:12 -0400
-Received: by yhmm54 with SMTP id m54so5055938yhm.19
-        for <linux-omap@vger.kernel.org>; Fri, 20 Apr 2012 05:38:12 -0700 (PDT)
-In-Reply-To: <20110621091529.GA22868@n2100.arm.linux.org.uk>
+Received: from comal.ext.ti.com ([198.47.26.152]:57645 "EHLO comal.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751415Ab2DTMjf (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Fri, 20 Apr 2012 08:39:35 -0400
+In-Reply-To: <1334925563-20768-1-git-send-email-tarun.kanti@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Russell King - ARM Linux <linux@arm.linux.org.uk>
-Cc: TAO HU <tghk48@motorola.com>, linux-omap <linux-omap@vger.kernel.org>, Zhou Ming-a17711 <a17711@motorola.com>, linux-arm-kernel@lists.infradead.org
+To: linux-omap@vger.kernel.org
+Cc: linux-arm-kernel@lists.infradead.org, Tarun Kanti DebBarma <tarun.kanti@ti.com>, "Cousson, Benoit" <b-cousson@ti.com>, Paul Walmsley <paul@pwsan.com>, Tony Lindgren <tony@atomide.com>, Kevin Hilman <khilman@ti.com>, Rajendra Nayak <rnayak@ti.com>, Santosh Shilimkar <santosh.shilimkar@ti.com>
 
-On Tue, Jun 21, 2011 at 14:45, Russell King - ARM Linux
-<linux@arm.linux.org.uk> wrote:
-> On Tue, Jun 21, 2011 at 04:31:19PM +0800, TAO HU wrote:
->> We got an issue on our OMAP4 SMP system.
->> Looks like __und_user(), which was triggered by a user space
->> exception, got a page fault hence lead to might_sleep() failure.
->
-> Could you see whether this patch prevents the warning please.
->
-> diff --git a/arch/arm/mm/fault.c b/arch/arm/mm/fault.c
-> index bc0e1d8..d52b940 100644
-> --- a/arch/arm/mm/fault.c
-> +++ b/arch/arm/mm/fault.c
-> @@ -289,7 +289,7 @@ do_page_fault(unsigned long addr, unsigned int fs=
-r, struct pt_regs *regs)
-> =A0 =A0 =A0 =A0 * If we're in an interrupt or have no user
-> =A0 =A0 =A0 =A0 * context, we must not take the fault..
-> =A0 =A0 =A0 =A0 */
-> - =A0 =A0 =A0 if (in_atomic() || !mm)
-> + =A0 =A0 =A0 if (in_atomic() || irqs_disabled() || !mm)
-> =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0goto no_context;
->
-> =A0 =A0 =A0 =A0/*
+We do not use iclk anywhere in the dmtimer driver and so removing it.
+Hence removing the timer iclk entries from OMAP4 clkdev table as well.
 
-I am able to trigger the discussed warning on current mainline with a
-constructed test case, and the above patch does prevent it.  Could it
-please be applied?
---
-To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Cc: Cousson, Benoit <b-cousson@ti.com>
+Cc: Paul Walmsley <paul@pwsan.com>
+Cc: Tony Lindgren <tony@atomide.com>
+Cc: Kevin Hilman <khilman@ti.com>
+Cc: Rajendra Nayak <rnayak@ti.com>
+Cc: Santosh Shilimkar <santosh.shilimkar@ti.com>
+
+Signed-off-by: Tarun Kanti DebBarma <tarun.kanti@ti.com>
+---
+ arch/arm/mach-omap2/clock44xx_data.c      |   11 -----------
+ arch/arm/mach-omap2/timer.c               |    7 -------
+ arch/arm/plat-omap/include/plat/dmtimer.h |    2 +-
+ 3 files changed, 1 insertions(+), 19 deletions(-)
+
+diff --git a/arch/arm/mach-omap2/clock44xx_data.c b/arch/arm/mach-omap2/clock44xx_data.c
+index fa6ea65..2172f66 100644
+--- a/arch/arm/mach-omap2/clock44xx_data.c
++++ b/arch/arm/mach-omap2/clock44xx_data.c
+@@ -3355,17 +3355,6 @@ static struct omap_clk omap44xx_clks[] = {
+ 	CLK(NULL,	"auxclk5_ck",			&auxclk5_ck,	CK_443X),
+ 	CLK(NULL,	"auxclkreq5_ck",		&auxclkreq5_ck,	CK_443X),
+ 	CLK(NULL,	"gpmc_ck",			&dummy_ck,	CK_443X),
+-	CLK(NULL,	"gpt1_ick",			&dummy_ck,	CK_443X),
+-	CLK(NULL,	"gpt2_ick",			&dummy_ck,	CK_443X),
+-	CLK(NULL,	"gpt3_ick",			&dummy_ck,	CK_443X),
+-	CLK(NULL,	"gpt4_ick",			&dummy_ck,	CK_443X),
+-	CLK(NULL,	"gpt5_ick",			&dummy_ck,	CK_443X),
+-	CLK(NULL,	"gpt6_ick",			&dummy_ck,	CK_443X),
+-	CLK(NULL,	"gpt7_ick",			&dummy_ck,	CK_443X),
+-	CLK(NULL,	"gpt8_ick",			&dummy_ck,	CK_443X),
+-	CLK(NULL,	"gpt9_ick",			&dummy_ck,	CK_443X),
+-	CLK(NULL,	"gpt10_ick",			&dummy_ck,	CK_443X),
+-	CLK(NULL,	"gpt11_ick",			&dummy_ck,	CK_443X),
+ 	CLK("omap_i2c.1",	"ick",				&dummy_ck,	CK_443X),
+ 	CLK("omap_i2c.2",	"ick",				&dummy_ck,	CK_443X),
+ 	CLK("omap_i2c.3",	"ick",				&dummy_ck,	CK_443X),
+diff --git a/arch/arm/mach-omap2/timer.c b/arch/arm/mach-omap2/timer.c
+index c512bac..5d7a0ee 100644
+--- a/arch/arm/mach-omap2/timer.c
++++ b/arch/arm/mach-omap2/timer.c
+@@ -169,13 +169,6 @@ static int __init omap_dm_timer_init_one(struct omap_dm_timer *timer,
+ 	if (IS_ERR(timer->fclk))
+ 		return -ENODEV;
+ 
+-	sprintf(name, "gpt%d_ick", gptimer_id);
+-	timer->iclk = clk_get(NULL, name);
+-	if (IS_ERR(timer->iclk)) {
+-		clk_put(timer->fclk);
+-		return -ENODEV;
+-	}
+-
+ 	omap_hwmod_enable(oh);
+ 
+ 	sys_timer_reserved |= (1 << (gptimer_id - 1));
+diff --git a/arch/arm/plat-omap/include/plat/dmtimer.h b/arch/arm/plat-omap/include/plat/dmtimer.h
+index 9418f00..be2b8c4 100644
+--- a/arch/arm/plat-omap/include/plat/dmtimer.h
++++ b/arch/arm/plat-omap/include/plat/dmtimer.h
+@@ -259,7 +259,7 @@ struct omap_dm_timer {
+ 	unsigned long phys_base;
+ 	int id;
+ 	int irq;
+-	struct clk *iclk, *fclk;
++	struct clk *fclk;
+ 
+ 	void __iomem	*io_base;
+ 	void __iomem	*sys_stat;	/* TISTAT timer status */
+-- 
+1.7.0.4
+
