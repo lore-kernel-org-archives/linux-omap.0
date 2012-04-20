@@ -1,143 +1,105 @@
-From: Tero Kristo <t-kristo@ti.com>
-Subject: [PATCH 11/19] ARM: OMAP4: PM: save/restore CM L3INSTR registers when MPU hits OSWR/OFF mode
-Date: Fri, 20 Apr 2012 12:33:44 +0300
-Message-ID: <1334914432-26456-12-git-send-email-t-kristo@ti.com>
-References: <1334914432-26456-1-git-send-email-t-kristo@ti.com>
-Mime-Version: 1.0
-Content-Type: text/plain
+From: Jan Weitzel <j.weitzel@phytec.de>
+Subject: [PATCH] ARM: OMAP2+ Add Primview displays to panel-generic
+Date: Fri, 20 Apr 2012 11:41:22 +0200
+Message-ID: <1334914882-20250-1-git-send-email-j.weitzel@phytec.de>
+References: <1334910621.2058.2.camel@deskari>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from devils.ext.ti.com ([198.47.26.153]:37984 "EHLO
-	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753056Ab2DTJen (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 20 Apr 2012 05:34:43 -0400
-In-Reply-To: <1334914432-26456-1-git-send-email-t-kristo@ti.com>
+Received: from mail.rapiddevelopmentkit.de ([217.6.246.34]:56615 "EHLO
+	root.phytec.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1750814Ab2DTJl3 (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Fri, 20 Apr 2012 05:41:29 -0400
+In-Reply-To: <1334910621.2058.2.camel@deskari>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: linux-omap@vger.kernel.org, khilman@ti.com, paul@pwsan.com
-Cc: linux-arm-kernel@lists.infradead.org, Rajendra Nayak <rnayak@ti.com>, Santosh Shilimkar <santosh.shilimkar@ti.com>
+To: tomi.valkeinen@ti.com
+Cc: linux-omap@vger.kernel.org, Jan Weitzel <j.weitzel@phytec.de>
 
-From: Rajendra Nayak <rnayak@ti.com>
+Add displays to panel-generic-dpi.c
+Prime View PD050VL1 (640 x 480)
+Prime View PD104SLF (800 x 600)
+Prime View PM070WL4 (800 x 480)
 
-On HS devices on the way out of MPU OSWR and OFF ROM code wrongly
-overwrites the CM L3INSTR registers. So to avoid this, save them and
-restore on the way out from MPU OSWR/OFF.
-
-Signed-off-by: Rajendra Nayak <rnayak@ti.com>
-Signed-off-by: Santosh Shilimkar <santosh.shilimkar@ti.com>
-[t-kristo@ti.com: added omap4 pm errata support]
-Signed-off-by: Tero Kristo <t-kristo@ti.com>
+Signed-off-by: Jan Weitzel <j.weitzel@phytec.de>
 ---
- arch/arm/mach-omap2/omap-mpuss-lowpower.c |   35 ++++++++++++++++++++++++++++-
- arch/arm/mach-omap2/pm.h                  |    1 +
- arch/arm/mach-omap2/pm44xx.c              |    8 ++++++
- 3 files changed, 43 insertions(+), 1 deletions(-)
+v2:	Add primeview prefix
 
-diff --git a/arch/arm/mach-omap2/omap-mpuss-lowpower.c b/arch/arm/mach-omap2/omap-mpuss-lowpower.c
-index 208d4a4..2ae5e2c 100644
---- a/arch/arm/mach-omap2/omap-mpuss-lowpower.c
-+++ b/arch/arm/mach-omap2/omap-mpuss-lowpower.c
-@@ -95,6 +95,12 @@ static struct reg_tuple ivahd_reg[] = {
- 	{.addr = OMAP4430_PM_IVAHD_PWRSTCTRL}
+ drivers/video/omap2/displays/panel-generic-dpi.c |   63 ++++++++++++++++++++++
+ 1 files changed, 63 insertions(+), 0 deletions(-)
+
+diff --git a/drivers/video/omap2/displays/panel-generic-dpi.c b/drivers/video/omap2/displays/panel-generic-dpi.c
+index 28b9a6d..85ee8d3 100644
+--- a/drivers/video/omap2/displays/panel-generic-dpi.c
++++ b/drivers/video/omap2/displays/panel-generic-dpi.c
+@@ -363,6 +363,69 @@ static struct panel_config generic_dpi_panels[] = {
+ 
+ 		.name			= "ortustech_com43h4m10xtc",
+ 	},
++
++	/* Prime-View PD050VL1 */
++	{
++		{
++			.x_res		= 640,
++			.y_res		= 480,
++
++			.pixel_clock	= 25000,
++
++			.hsw		= 96,
++			.hfp		= 18,
++			.hbp		= 46,
++
++			.vsw		= 2,
++			.vfp		= 10,
++			.vbp		= 33,
++		},
++		.config			= OMAP_DSS_LCD_TFT | OMAP_DSS_LCD_IVS |
++					  OMAP_DSS_LCD_IHS | OMAP_DSS_LCD_IPC,
++		.name			= "primeview_pd050vl1",
++	},
++
++	/* Prime-View PM070WL4 */
++	{
++		{
++			.x_res		= 800,
++			.y_res		= 480,
++
++			.pixel_clock	= 32000,
++
++			.hsw		= 128,
++			.hfp		= 42,
++			.hbp		= 86,
++
++			.vsw		= 2,
++			.vfp		= 10,
++			.vbp		= 33,
++		},
++		.config			= OMAP_DSS_LCD_TFT | OMAP_DSS_LCD_IVS |
++					  OMAP_DSS_LCD_IHS | OMAP_DSS_LCD_IPC,
++		.name			= "primeview_pm070wl4",
++	},
++
++	/* Prime-View PD104SLF */
++	{
++		{
++			.x_res		= 800,
++			.y_res		= 600,
++
++			.pixel_clock	= 40000,
++
++			.hsw		= 128,
++			.hfp		= 42,
++			.hbp		= 86,
++
++			.vsw		= 4,
++			.vfp		= 1,
++			.vbp		= 23,
++		},
++		.config			= OMAP_DSS_LCD_TFT | OMAP_DSS_LCD_IVS |
++					  OMAP_DSS_LCD_IHS | OMAP_DSS_LCD_IPC,
++		.name			= "primeview_pd104slf",
++	},
  };
  
-+static struct reg_tuple l3instr_reg[] = {
-+	{.addr = OMAP4430_CM_L3INSTR_L3_3_CLKCTRL},
-+	{.addr = OMAP4430_CM_L3INSTR_L3_INSTR_CLKCTRL},
-+	{.addr = OMAP4430_CM_L3INSTR_OCP_WP1_CLKCTRL},
-+};
-+
- /*
-  * Program the wakeup routine address for the CPU0 and CPU1
-  * used for OFF or DORMANT wakeup.
-@@ -262,6 +268,28 @@ static inline void restore_ivahd_tesla_regs(void)
- 		__raw_writel(ivahd_reg[i].val, ivahd_reg[i].addr);
- }
- 
-+static inline void save_l3instr_regs(void)
-+{
-+	int i;
-+
-+	if (!IS_PM44XX_ERRATUM(PM_OMAP4_ROM_L3INSTR_ERRATUM))
-+		return;
-+
-+	for (i = 0; i < ARRAY_SIZE(l3instr_reg); i++)
-+		l3instr_reg[i].val = __raw_readl(l3instr_reg[i].addr);
-+}
-+
-+static inline void restore_l3instr_regs(void)
-+{
-+	int i;
-+
-+	if (!IS_PM44XX_ERRATUM(PM_OMAP4_ROM_L3INSTR_ERRATUM))
-+		return;
-+
-+	for (i = 0; i < ARRAY_SIZE(l3instr_reg); i++)
-+		__raw_writel(l3instr_reg[i].val, l3instr_reg[i].addr);
-+}
-+
- /**
-  * omap4_enter_lowpower: OMAP4 MPUSS Low Power Entry Function
-  * The purpose of this function is to manage low power programming
-@@ -321,13 +349,16 @@ int omap4_enter_lowpower(unsigned int cpu, unsigned int power_state)
- 		omap4_cm_prepare_off();
- 		omap4_dpll_prepare_off();
- 		save_ivahd_tesla_regs();
-+		save_l3instr_regs();
- 		save_state = 3;
- 	} else if ((pwrdm_read_next_pwrst(mpuss_pd) == PWRDM_POWER_RET) &&
- 		(pwrdm_read_logic_retst(mpuss_pd) == PWRDM_POWER_OFF)) {
- 		save_ivahd_tesla_regs();
-+		save_l3instr_regs();
- 		save_state = 2;
- 	} else if (pwrdm_read_next_pwrst(mpuss_pd) == PWRDM_POWER_OFF) {
- 		save_ivahd_tesla_regs();
-+		save_l3instr_regs();
- 		save_state = 3;
- 	}
- 
-@@ -352,8 +383,10 @@ int omap4_enter_lowpower(unsigned int cpu, unsigned int power_state)
- 	wakeup_cpu = smp_processor_id();
- 	set_cpu_next_pwrst(wakeup_cpu, PWRDM_POWER_ON);
- 
--	if (omap4_mpuss_read_prev_context_state())
-+	if (omap4_mpuss_read_prev_context_state()) {
- 		restore_ivahd_tesla_regs();
-+		restore_l3instr_regs();
-+	}
- 
- 	if (omap4_device_prev_state_off()) {
- 		omap4_dpll_resume_off();
-diff --git a/arch/arm/mach-omap2/pm.h b/arch/arm/mach-omap2/pm.h
-index 051aeb9..c312d57 100644
---- a/arch/arm/mach-omap2/pm.h
-+++ b/arch/arm/mach-omap2/pm.h
-@@ -132,6 +132,7 @@ static inline void enable_omap3630_toggle_l2_on_restore(void) { }
- #endif		/* defined(CONFIG_PM) && defined(CONFIG_ARCH_OMAP3) */
- 
- #define PM_OMAP4_ROM_IVAHD_TESLA_ERRATUM	(1 << 0)
-+#define PM_OMAP4_ROM_L3INSTR_ERRATUM		(1 << 1)
- 
- #if defined(CONFIG_PM) && defined(CONFIG_ARCH_OMAP4)
- extern u16 pm44xx_errata;
-diff --git a/arch/arm/mach-omap2/pm44xx.c b/arch/arm/mach-omap2/pm44xx.c
-index 67cb799..0472921 100644
---- a/arch/arm/mach-omap2/pm44xx.c
-+++ b/arch/arm/mach-omap2/pm44xx.c
-@@ -272,6 +272,14 @@ static int __init omap4_pm_init(void)
- 	if (cpu_is_omap443x() && omap_type() != OMAP2_DEVICE_TYPE_GP)
- 		pm44xx_errata |= PM_OMAP4_ROM_IVAHD_TESLA_ERRATUM;
- 
-+	/*
-+	 * Similar to above errata, ROM code modifies L3INSTR clock
-+	 * registers also and these must be saved / restored during
-+	 * MPU OSWR / device off.
-+	 */
-+	if (omap_type() != OMAP2_DEVICE_TYPE_GP)
-+		pm44xx_errata |= PM_OMAP4_ROM_L3INSTR_ERRATUM;
-+
- #ifdef CONFIG_SUSPEND
- 	omap_pm_suspend = omap4_pm_suspend;
- #endif
+ struct panel_drv_data {
 -- 
-1.7.4.1
+1.7.0.4
 
