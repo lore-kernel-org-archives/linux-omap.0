@@ -1,50 +1,67 @@
-From: Enrico <ebutera@users.sourceforge.net>
-Subject: Re: YUV422 input to CPI?
-Date: Fri, 20 Apr 2012 12:26:46 +0200
-Message-ID: <CA+2YH7vpCdXhJUQrsZ+3Tp=b5q=3su1K4TaEumWGeMeCZXpvyw@mail.gmail.com>
-References: <E47FC7FC-B1CC-4E8A-9957-AEAF483DDAFA@pg.canterbury.ac.nz>
+From: Grazvydas Ignotas <notasas@gmail.com>
+Subject: Re: [PATCH] OMAPDSS: VENC: allow switching venc type at runtime
+Date: Fri, 20 Apr 2012 13:49:58 +0300
+Message-ID: <CANOLnOP9ciznRxddjFSLuWALme57Woq0p6zP93U3tOFvd9em5w@mail.gmail.com>
+References: <1332978312-11959-1-git-send-email-notasas@gmail.com>
+	<1334911137.2058.8.camel@deskari>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
+Content-Type: text/plain; charset=UTF-8
 Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-vx0-f174.google.com ([209.85.220.174]:56588 "EHLO
-	mail-vx0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754294Ab2DTK0r convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 20 Apr 2012 06:26:47 -0400
-Received: by vcqp1 with SMTP id p1so6245468vcq.19
-        for <linux-omap@vger.kernel.org>; Fri, 20 Apr 2012 03:26:47 -0700 (PDT)
-In-Reply-To: <E47FC7FC-B1CC-4E8A-9957-AEAF483DDAFA@pg.canterbury.ac.nz>
+Received: from mail-lpp01m010-f46.google.com ([209.85.215.46]:50793 "EHLO
+	mail-lpp01m010-f46.google.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1752841Ab2DTKt7 convert rfc822-to-8bit
+	(ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Fri, 20 Apr 2012 06:49:59 -0400
+In-Reply-To: <1334911137.2058.8.camel@deskari>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Simon Knopp <simon.knopp@pg.canterbury.ac.nz>
-Cc: linux-omap@vger.kernel.org, "General mailing list for gumstix users." <gumstix-users@lists.sourceforge.net>
+To: Tomi Valkeinen <tomi.valkeinen@ti.com>
+Cc: linux-fbdev@vger.kernel.org, linux-omap@vger.kernel.org
 
-On Thu, Apr 19, 2012 at 11:56 PM, Simon Knopp
-<simon.knopp@pg.canterbury.ac.nz> wrote:
-> Hi all,
+On Fri, Apr 20, 2012 at 11:38 AM, Tomi Valkeinen <tomi.valkeinen@ti.com=
+> wrote:
+> On Thu, 2012-03-29 at 02:45 +0300, Grazvydas Ignotas wrote:
+>> VENC type (composite/svideo) doesn't have to be fixed by board wirin=
+g,
+>> it is possible to provide both connectors, which is what pandora doe=
+s.
+>> Having to recompile the kernel for users who have TV connector types
+>> that's don't match default board setting is very inconvenient, espec=
+ially
 >
-> I have a camera module capable of outputting YUV422 over a parallel i=
-nterface. I've been having some issues interfacing this to a Gumstix. R=
-eading through the OMAP3530 tech ref, I'm now beginning to wonder wheth=
-er it is actually possible to input YUV422 to the CPI?
+> You don't have to recompile the kernel, you could just set the venc t=
+ype
+> in the board file depending on a boot parameter.
 >
-> - =A0Section 12.1.1 mentions RGB and YeCyMgG for "image sensors"; YUV=
- is only mentioned for CS1&2.
-> - =A0On the other hand, 12.4.6.1 says that the CCDC accepts YUV data =
-in numerous formats.
+>> for users of a consumer device, so add support for switching VENC ty=
+pe
+>> at runtime over a new sysfs file venc_type.
 >
-> Is anyone able to confirm whether it's possible to input YUV422 to th=
-e CPI?
+> I really dislike adding new custom sysfs entries for omapdss, and I'd
+> like to avoid them if at all possible.
 
-Yes it's possible but yuv support is still not in mainline kernel.
+Well some panels already have custom attributes, and venc could be
+considered as special panel type, so if it's allowed for panels, why
+not allow it for venc?
 
-Have a look at the linux-media ml archive to know what is the current
-status, problems etc...basically if you don't need bt656 support you
-can try the omap3isp-omap3isp-yuv branch at [1].
+> Do you need to change the venc
+> type during runtime, or is it enough that it can be set during boot?
 
-Enrico
+We need this on runtime, otherwise it causes several issues:
+- reboot is required to change the setting, although there is no
+technical reason to really require it. This punishes users who want to
+try both settings or have both TV types (with a portable device this
+may sometimes happen).
+- having to provide a way for users to change this in kernel boot
+arguments. Note that many pandora users don't know how to handle boot
+scripts, so a bootloader menu of some sort would be needed or ability
+to edit u-boot environment from Linux, both of which would be
+needlessly complicated solutions.
 
-[1]: http://git.linuxtv.org/pinchartl/media.git
+
+--=20
+Gra=C5=BEvydas
 --
 To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
 n
