@@ -1,33 +1,59 @@
 From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [GIT PULL] ARM: OMAP3+: PRM/hwmod: fix and improve I/O chain
- wakeup support
-Date: Fri, 20 Apr 2012 09:55:16 -0700
-Message-ID: <20120420165508.GD21106@atomide.com>
-References: <alpine.DEB.2.00.1203120413530.11332@utopia.booyaka.com>
- <1334910066.2149.33.camel@sokoban>
+Subject: Re: defconfig for panda
+Date: Fri, 20 Apr 2012 10:13:49 -0700
+Message-ID: <20120420171345.GE21106@atomide.com>
+References: <1F91D012-8308-45BB-83AD-90E52D472AC2@kernel.crashing.org>
+ <20120330184859.GB8240@atomide.com>
+ <B05E7CFB-E2F3-426C-AAA8-622D715DB86A@kernel.crashing.org>
+ <20120330213930.GC8240@atomide.com>
+ <20120420160126.GA21441@beef>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-01-ewr.mailhop.org ([204.13.248.71]:13144 "EHLO
-	mho-01-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753456Ab2DTQzV (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 20 Apr 2012 12:55:21 -0400
+Received: from mho-02-ewr.mailhop.org ([204.13.248.72]:46778 "EHLO
+	mho-02-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754669Ab2DTRNx (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 20 Apr 2012 13:13:53 -0400
 Content-Disposition: inline
-In-Reply-To: <1334910066.2149.33.camel@sokoban>
+In-Reply-To: <20120420160126.GA21441@beef>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Tero Kristo <t-kristo@ti.com>
-Cc: Paul Walmsley <paul@pwsan.com>, linux-omap@vger.kernel.org, rnayak@ti.com, linux-arm-kernel@lists.infradead.org
+To: Matt Porter <mporter@ti.com>
+Cc: Kumar Gala <galak@kernel.crashing.org>, linux-omap@vger.kernel.org, Felipe Balbi <balbi@ti.com>
 
-* Tero Kristo <t-kristo@ti.com> [120420 01:24]:
-> Hi,
+* Matt Porter <mporter@ti.com> [120420 09:04]:
+> On Fri, Mar 30, 2012 at 02:39:32PM -0700, Tony Lindgren wrote:
+> > * Kumar Gala <galak@kernel.crashing.org> [120330 14:14]:
+> > > 
+> > > On Mar 30, 2012, at 1:48 PM, Tony Lindgren wrote:
+> > > 
+> > > > Hi,
+> > > > 
+> > > > * Kumar Gala <galak@kernel.crashing.org> [120329 12:24]:
+> > > >> As I'm new to the OMAP community this might be a stupid question but trying to just build and run a stock v3.3 kernel on a pandaboard.  In doing so it seems as if some basic drivers are not enabled in omap2plus_defconfig for the board.  I'm trying to figure out if this is normal for some reason or just an oversight.
+> > > >> 
+> > > >> For example, USB and USB ethernet (SMC95xx).  I notice the linaro kernel tree introduces an omap4_defconfig, so just wondering should I send patches to omap2plus_defconfig or what?
+> > > > 
+> > > > We can add those to omap2plus_defconfig for sure, but let's have
+> > > > them added as modules. Then distros can use that easily in a
+> > > > standard way using initramfs-tools etc.
+> > > > 
+> > > > Let's not change the drivers that are currently built in if they're
+> > > > needed for mounting mmc or nfsroot. Those can be changed later on.
+> > > 
+> > > I'll work up a patch, however I was doing this as I was trying to get NFS root working and thus would need USB + USB ethernet compiled in and not as modules for panda.  Is that ok?
+> > 
+> > Maybe, let's take a look how much bigger the kernel becomes.
+> > Also we need to check if the same EHCI configuration works
+> > for omap3/4.
 > 
-> What happened with this pull request? It doesn't seem to be in 3.4 at
-> least.
+> FWIW, the same EHCI + SMSC95xx config is used for Beagle xM for
+> nfsroot. First thing I enable on any builds.
 
-There was a boot issue on omap3 evm and that branch got dropped.
-Will merge it again after Paul has figured out the issue.
+OK, can somebody please do a minimal patch to omap2plus_defconfig
+for this?
 
-Regards,
+Basically run make savedefconfig with those changes added and
+then diff against omap2plus_defconfig.
 
 Tony
