@@ -1,85 +1,100 @@
 From: Kevin Hilman <khilman@ti.com>
-Subject: Re: [PATCH 2/7] UART: OMAP: Cut the clock in the error cases
-Date: Fri, 20 Apr 2012 06:46:13 -0700
-Message-ID: <8762cuqzx6.fsf@ti.com>
-References: <1334588821-5224-1-git-send-email-shubhrajyoti@ti.com>
-	<1334588821-5224-3-git-send-email-shubhrajyoti@ti.com>
-	<87bomprjic.fsf@ti.com> <4F8E62D2.9080206@ti.com>
-	<87bompp2bk.fsf@ti.com> <4F8EDA24.5020209@ti.com>
-	<CAM=Q2cvRs2z7sf1ZeU-tMAZLgjPSM5V2fABLyj7087drThf44A@mail.gmail.com>
+Subject: Re: [PATCH 00/19] ARM: OMAP4 device off support
+Date: Fri, 20 Apr 2012 06:55:20 -0700
+Message-ID: <87vckupkxj.fsf@ti.com>
+References: <1334914432-26456-1-git-send-email-t-kristo@ti.com>
+	<CANrkHUa5q10FFxsZfgtMqKbzKKFHCcf3yYsaOK+hG8CJiME2TA@mail.gmail.com>
+	<1334926721.2149.40.camel@sokoban>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aog125.obsmtp.com ([74.125.149.153]:56381 "EHLO
-	na3sys009aog125.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754028Ab2DTNqP (ORCPT
+Received: from na3sys009aog137.obsmtp.com ([74.125.149.18]:49272 "EHLO
+	na3sys009aog137.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1752108Ab2DTNzX (ORCPT
 	<rfc822;linux-omap@vger.kernel.org>);
-	Fri, 20 Apr 2012 09:46:15 -0400
-Received: by pbcxa12 with SMTP id xa12so1299139pbc.37
-        for <linux-omap@vger.kernel.org>; Fri, 20 Apr 2012 06:46:13 -0700 (PDT)
-In-Reply-To: <CAM=Q2cvRs2z7sf1ZeU-tMAZLgjPSM5V2fABLyj7087drThf44A@mail.gmail.com>
-	(Shubhrajyoti Datta's message of "Fri, 20 Apr 2012 18:50:25 +0530")
+	Fri, 20 Apr 2012 09:55:23 -0400
+Received: by dajr28 with SMTP id r28so14686967daj.26
+        for <linux-omap@vger.kernel.org>; Fri, 20 Apr 2012 06:55:20 -0700 (PDT)
+In-Reply-To: <1334926721.2149.40.camel@sokoban> (Tero Kristo's message of
+	"Fri, 20 Apr 2012 15:58:40 +0300")
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Shubhrajyoti Datta <omaplinuxkernel@gmail.com>
-Cc: Shubhrajyoti <shubhrajyoti@ti.com>, linux-serial@vger.kernel.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, stable@vger.kernel.org, "Govindraj.R" <govindraj.raja@ti.com>
+To: t-kristo@ti.com
+Cc: "T Krishnamoorthy, Balaji" <balajitk@ti.com>, linux-omap@vger.kernel.org, paul@pwsan.com, linux-arm-kernel@lists.infradead.org
 
-Shubhrajyoti Datta <omaplinuxkernel@gmail.com> writes:
+Tero Kristo <t-kristo@ti.com> writes:
 
-> On Wed, Apr 18, 2012 at 8:43 PM, Shubhrajyoti <shubhrajyoti@ti.com> wrote:
->>>
->>> Kevin
->> Yes agree completely. Will describe that in the changelog.
->> --
-> Does the following changelog look ok?
+[...]
 
-A little better, but still doesn't explain things so that someone who is
-not intimately familar with the driver can understand the auto-suspend
-version is needed in the one case.
+>> I tried your branch on gp/emu devices but could not reproduce this issue.
+>> My observation is that while resuming, omap_hsmmc.1 eMMC is
+>> trying to turn on phoenix vaux1 regulator via i2c which fails due
+>> to controller timeout.
+>> Note: eMMC is present only on sdp/blaze
+>
+> Did you try this with off-mode enabled and did you check the device
+> actually goes to off? (see pm_debug/count and verify core off count is
+> increasing.) And as said, I was only able to see this problem on a blaze
+> device, panda works fine. But yes, you are probably right and it is not
+> an MMC driver issue but I2C.
 
-Possibly explaining in more detail what would happen if the normal put
-is used here instead of the autosuspend version might help.
+Can you try the patch below?  It sounds like the same problem.
 
 Kevin
 
-> From 37fdc2d40c9b2b19b8c5a9a4b8f7dd547d420f55 Mon Sep 17 00:00:00 2001
-> From: Shubhrajyoti D <shubhrajyoti@ti.com>
-> Date: Wed, 4 Apr 2012 16:32:37 +0530
-> Subject: [PATCH] UART: OMAP: call pm_runtime_put/autosuspend in the error cases
->
-> In the error cases the runtime_put call is missed. This patch intends to fix the
-> same. In case dma request fails, we fall back to the nondma mode so after
-> enabling the threshold call put_autosuspend.
->
-> Cc: Govindraj.R <govindraj.raja@ti.com>
-> Signed-off-by: Shubhrajyoti D <shubhrajyoti@ti.com>
-> ---
->  drivers/tty/serial/omap-serial.c |    6 +++++-
->  1 files changed, 5 insertions(+), 1 deletions(-)
->
-> diff --git a/drivers/tty/serial/omap-serial.c b/drivers/tty/serial/omap-serial.c
-> index fe099bb..10e80bb 100644
-> --- a/drivers/tty/serial/omap-serial.c
-> +++ b/drivers/tty/serial/omap-serial.c
-> @@ -319,6 +319,8 @@ static void serial_omap_start_tx(struct uart_port *port)
->
->  		if (ret < 0) {
->  			serial_omap_enable_ier_thri(up);
-> +			pm_runtime_mark_last_busy(&up->pdev->dev);
-> +			pm_runtime_put_autosuspend(&up->pdev->dev);
->  			return;
->  		}
->  	}
-> @@ -1029,8 +1031,10 @@ static int serial_omap_poll_get_char(struct
-> uart_port *port)
->
->  	pm_runtime_get_sync(&up->pdev->dev);
->  	status = serial_in(up, UART_LSR);
-> -	if (!(status & UART_LSR_DR))
-> +	if (!(status & UART_LSR_DR)) {
-> +		pm_runtime_put(&up->pdev->dev);
->  		return NO_POLL_CHAR;
-> +	}
->
->  	status = serial_in(up, UART_RX);
->  	pm_runtime_put(&up->pdev->dev);
+
+>From 999f34629140f436099050eb7aac514bfd2a2235 Mon Sep 17 00:00:00 2001
+From: NeilBrown <neilb@suse.de>
+Date: Fri, 30 Dec 2011 12:40:30 +1100
+Subject: [PATCH] OMAP/I2C - Fix timeout problem during suspend.
+
+On a board with OMAP3 processor and TWL4030 Power management,
+we need to talk to the TWL4030 during late suspend but cannot
+because the I2C interrupt is disabled (as late suspend disables
+interrupt).
+
+e.g. I get messages like:
+
+[   62.161102] musb-omap2430 musb-omap2430: LATE power domain suspend
+[   63.167205] omap_i2c omap_i2c.1: controller timed out
+[   63.183044] twl: i2c_read failed to transfer all messages
+[   64.182861] omap_i2c omap_i2c.1: controller timed out
+[   64.198455] twl: i2c_write failed to transfer all messages
+[   65.198455] omap_i2c omap_i2c.1: controller timed out
+[   65.203765] twl: i2c_write failed to transfer all messages
+
+The stack shows omap2430_runtime_suspend calling twl4030_set_suspend
+which tries to power-down the USB PHY (twl4030_phy_suspend ->
+twl4030_phy_power -> __twl4030_phy_power which as a nice WARN_ON
+that helps).
+
+Then we get the same in resume:
+
+[   69.603912] musb-omap2430 musb-omap2430: EARLY power domain resume
+[   70.610473] omap_i2c omap_i2c.1: controller timed out
+[   70.626129] twl: i2c_write failed to transfer all messages
+etc.
+
+So don't disable interrupts for I2C.
+
+Signed-off-by: NeilBrown <neilb@suse.de>
+---
+ drivers/i2c/busses/i2c-omap.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/drivers/i2c/busses/i2c-omap.c b/drivers/i2c/busses/i2c-omap.c
+index 801df60..e024c50 100644
+--- a/drivers/i2c/busses/i2c-omap.c
++++ b/drivers/i2c/busses/i2c-omap.c
+@@ -1092,7 +1092,7 @@ omap_i2c_probe(struct platform_device *pdev)
+ 
+ 	isr = (dev->rev < OMAP_I2C_OMAP1_REV_2) ? omap_i2c_omap1_isr :
+ 								   omap_i2c_isr;
+-	r = request_irq(dev->irq, isr, 0, pdev->name, dev);
++	r = request_irq(dev->irq, isr, IRQF_NO_SUSPEND, pdev->name, dev);
+ 
+ 	if (r) {
+ 		dev_err(dev->dev, "failure requesting irq %i\n", dev->irq);
+-- 
+1.7.9.2
+
