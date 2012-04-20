@@ -1,102 +1,116 @@
-From: Tomi Valkeinen <tomi.valkeinen@ti.com>
-Subject: Re: [PATCH] OMAPDSS: VENC: allow switching venc type at runtime
-Date: Fri, 20 Apr 2012 14:34:59 +0300
-Message-ID: <1334921699.2058.31.camel@deskari>
-References: <1332978312-11959-1-git-send-email-notasas@gmail.com>
-	 <1334911137.2058.8.camel@deskari>
-	 <CANOLnOP9ciznRxddjFSLuWALme57Woq0p6zP93U3tOFvd9em5w@mail.gmail.com>
+From: Felipe Balbi <balbi@ti.com>
+Subject: Re: [PATCH] ARM: OMAP: USB: fix warning on EHCI PHY reset path
+Date: Fri, 20 Apr 2012 14:57:30 +0300
+Message-ID: <20120420115728.GF12830@arwen.pp.htv.fi>
+References: <4F901CCC.9000703@compulab.co.il>
+ <Pine.LNX.4.44L0.1204191059581.2070-100000@iolanthe.rowland.org>
+Reply-To: balbi@ti.com
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg="pgp-sha1"; protocol="application/pgp-signature"; boundary="=-sY7rKz83zhdMxDlDAIh0"
+Content-Type: multipart/signed; micalg=pgp-sha1;
+	protocol="application/pgp-signature"; boundary="V4b9U9vrdWczvw78"
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aog116.obsmtp.com ([74.125.149.240]:59262 "EHLO
-	na3sys009aog116.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755553Ab2DTLfG (ORCPT
+Received: from na3sys009aog113.obsmtp.com ([74.125.149.209]:44130 "EHLO
+	na3sys009aog113.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1755604Ab2DTL6h (ORCPT
 	<rfc822;linux-omap@vger.kernel.org>);
-	Fri, 20 Apr 2012 07:35:06 -0400
-Received: by lagy4 with SMTP id y4so9673973lag.22
-        for <linux-omap@vger.kernel.org>; Fri, 20 Apr 2012 04:35:02 -0700 (PDT)
-In-Reply-To: <CANOLnOP9ciznRxddjFSLuWALme57Woq0p6zP93U3tOFvd9em5w@mail.gmail.com>
+	Fri, 20 Apr 2012 07:58:37 -0400
+Received: by lbbgm6 with SMTP id gm6so3251272lbb.41
+        for <linux-omap@vger.kernel.org>; Fri, 20 Apr 2012 04:58:34 -0700 (PDT)
+Content-Disposition: inline
+In-Reply-To: <Pine.LNX.4.44L0.1204191059581.2070-100000@iolanthe.rowland.org>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Grazvydas Ignotas <notasas@gmail.com>
-Cc: linux-fbdev@vger.kernel.org, linux-omap@vger.kernel.org
+To: Alan Stern <stern@rowland.harvard.edu>
+Cc: Igor Grinberg <grinberg@compulab.co.il>, Felipe Balbi <balbi@ti.com>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, Keshava Munegowda <Keshava_mgowda@ti.com>, linux-usb@vger.kernel.org, linux-omap@vger.kernel.org, Samuel Ortiz <sameo@linux.intel.com>
 
 
---=-sY7rKz83zhdMxDlDAIh0
-Content-Type: text/plain; charset="UTF-8"
+--V4b9U9vrdWczvw78
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
 Content-Transfer-Encoding: quoted-printable
 
-On Fri, 2012-04-20 at 13:49 +0300, Grazvydas Ignotas wrote:
-> On Fri, Apr 20, 2012 at 11:38 AM, Tomi Valkeinen <tomi.valkeinen@ti.com> =
-wrote:
-> > On Thu, 2012-03-29 at 02:45 +0300, Grazvydas Ignotas wrote:
-> >> VENC type (composite/svideo) doesn't have to be fixed by board wiring,
-> >> it is possible to provide both connectors, which is what pandora does.
-> >> Having to recompile the kernel for users who have TV connector types
-> >> that's don't match default board setting is very inconvenient, especia=
-lly
-> >
-> > You don't have to recompile the kernel, you could just set the venc typ=
-e
-> > in the board file depending on a boot parameter.
-> >
-> >> for users of a consumer device, so add support for switching VENC type
-> >> at runtime over a new sysfs file venc_type.
-> >
-> > I really dislike adding new custom sysfs entries for omapdss, and I'd
-> > like to avoid them if at all possible.
+On Thu, Apr 19, 2012 at 11:01:16AM -0400, Alan Stern wrote:
+> On Thu, 19 Apr 2012, Igor Grinberg wrote:
 >=20
-> Well some panels already have custom attributes, and venc could be
-> considered as special panel type, so if it's allowed for panels, why
-> not allow it for venc?
-
-It's not really about "allowing". It's just that each new sysfs file is
-a new non-standard custom API to userspace which we need to support
-until the end of time. Adding new sysfs files carelessly will cause a
-nightmare for me in the future, so by default I'm against new sysfs
-files =3D).
-
-> > Do you need to change the venc
-> > type during runtime, or is it enough that it can be set during boot?
+> > ping
+> >=20
+> > Alan, Felipe,
+> > Can this go into 3.5?
 >=20
-> We need this on runtime, otherwise it causes several issues:
-> - reboot is required to change the setting, although there is no
-> technical reason to really require it. This punishes users who want to
-> try both settings or have both TV types (with a portable device this
-> may sometimes happen).
-> - having to provide a way for users to change this in kernel boot
-> arguments. Note that many pandora users don't know how to handle boot
-> scripts, so a bootloader menu of some sort would be needed or ability
-> to edit u-boot environment from Linux, both of which would be
-> needlessly complicated solutions.
+> It's okay with me.
+>=20
+> Acked-by: Alan Stern <stern@rowland.harvard.edu>
 
-Ok. Sounds like we need to have dynamic configuration. I'll review the
-patch.
+Also fine from my side:
 
- Tomi
+Acked-by: Felipe Balbi <balbi@ti.com>
 
+> > The dependency patch has already reached Samuel's tree,
+> > what would be the best way to apply this one?
+> > Should I ask Samuel to apply this one also (after having your acks)
+> > via his tree, to reduce possible merge failures/conflicts?
+>=20
+> Sure, go ahead.
+>=20
+> > On 03/27/12 16:08, Igor Grinberg wrote:
+> > > When PHY reset pin is connected to a GPIO on external GPIO chip
+> > > (e.g. I2C), we should not call the gpio_set_value() function, but
+> > > gpio_set_value_cansleep().
+> > >=20
+> > > Signed-off-by: Igor Grinberg <grinberg@compulab.co.il>
+> > > ---
+> > > This patch depends on the patch from Keshava [1]:
+> > > ARM: OMAP3: USB: Fix the EHCI ULPI PHY reset issue
+> > >=20
+> > > [1] http://www.spinics.net/lists/linux-omap/msg66774.html
+> > >=20
+> > >  drivers/usb/host/ehci-omap.c |    4 ++--
+> > >  1 files changed, 2 insertions(+), 2 deletions(-)
+> > >=20
+> > > diff --git a/drivers/usb/host/ehci-omap.c b/drivers/usb/host/ehci-oma=
+p.c
+> > > index 5c78f9e..26e9241 100644
+> > > --- a/drivers/usb/host/ehci-omap.c
+> > > +++ b/drivers/usb/host/ehci-omap.c
+> > > @@ -258,10 +258,10 @@ static int ehci_hcd_omap_probe(struct platform_=
+device *pdev)
+> > >  		udelay(10);
+> > > =20
+> > >  		if (gpio_is_valid(pdata->reset_gpio_port[0]))
+> > > -			gpio_set_value(pdata->reset_gpio_port[0], 1);
+> > > +			gpio_set_value_cansleep(pdata->reset_gpio_port[0], 1);
+> > > =20
+> > >  		if (gpio_is_valid(pdata->reset_gpio_port[1]))
+> > > -			gpio_set_value(pdata->reset_gpio_port[1], 1);
+> > > +			gpio_set_value_cansleep(pdata->reset_gpio_port[1], 1);
+> > >  	}
+> > > =20
+> > >  	return 0;
+>=20
 
---=-sY7rKz83zhdMxDlDAIh0
+--=20
+balbi
+
+--V4b9U9vrdWczvw78
 Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: This is a digitally signed message part
+Content-Description: Digital signature
 
 -----BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.4.11 (GNU/Linux)
+Version: GnuPG v1.4.12 (GNU/Linux)
 
-iQIcBAABAgAGBQJPkUnjAAoJEPo9qoy8lh71NFAQAIDk8BX4GN1mm9V2gVDn33Ap
-C42PR6GfXMrw7/+DTUK18kHKIZms37nIe75SlTkmtsKcrr+Qe09I2ZsLJf3tHjRb
-xndoEGRdLv0uI6dQ/iFOJz7HUEHIpDXW8aGrUDlKTXXMmNfh0DgAJIA+ESdAVi5o
-rCvd/ts1ci19ZVYbHmlRpjHXxtLEqaxa3VOvJnwtEusrFdssfgrv0UBOXSXq1K89
-r/IzSp5hKzz50CXvDyNTUzdFlsWVvMgp+GW8ihb9pJLkuE+rtmFiGhZhHhFi09X0
-xgZGkvidn6DOrRi9Voh0O77cYwOWY2/2uMk1HKxXdQX9+JiEfxki62udLIc9yd5L
-Vs1u4ffg8BzXWxsc8rkHrwzavJqewXRAmakdcneCkStfLMP7pd1ujfA8N42KIGHg
-vk9mxzL9686/2Lu5FYFHX5ggInSMqaL5A4QUqNpx5ackuK0lUDSa4Kf34jF4JuyZ
-DWNXU4wDe/G3LP9G9tVZSbTnBuohRDuiUqLyNV/Go7kqqg1SNLwqdl3mnL0HeJO4
-4aGfvK27uLY0p1f8LL20ljdc6UI+t7UxuOHROgrSEV7/kr7zzNh4OzJhtrnm808y
-I+JRuZUW5/JCTv4wFf9SOgTk7XGm+aOdhqESgoWlfVPKIwV89yj8AZSFjfEqwtlQ
-9AGpXv0sWm1yRRb7DexX
-=6Lkb
+iQIcBAEBAgAGBQJPkU8oAAoJEIaOsuA1yqREIZAQALJDsPD4WhT5mKylfHntDl0W
+ce8+Z98Kx4cUFNuHFBSzwC2geGzVC8phCcC/bhaKPZW/RyqC9pXFaXrJIjioUL1J
+BUNv3hje+tw1Th44ME0b9BMIK2B2B7JXhwkc5OgB8uJZyiIjioI1wpSsCbc+rJpG
+8NXbxv64bztTOTFKfeHMMZXae/9ycQ9+TCzPK+Cx6IQj9fAPJZzhXJVCz+eQMVAu
+XjSKinI0Rhwo90cJN7KHcJIYULhd3zHvQjqMiFQq0Us5IcoIE+E2a2iBM+uOFZFd
+Bwaq6W/4hm0JJTqaGRHem2mopRtwpXlE2FMZc0JtmzZFKzQI+BK73fzJoslHK5MZ
+OgJH6bVZrcS7e5YprBNiXmFRXFWWELqpofCzKwORW5Ydki84NjRlDji9qsUvcAE/
+CJh83fPfXuckzAhFHpa4hX7YGaoIQoWwpy1zbaj1p/TvDWRb70mLHpz1IGo9QWyI
+FcUQXmzegRsIOxFAMd4CyCr1qhRahcwgEYtstnip33kyewW6tqVW6kXn7TrH0t8+
+0K4pXCtYTdZyLJmNu5fjb0cNo1dZMpf2DyLiePK+m/x9pJtD9tqzrbUzOxCQKmaW
+aTh5WhqK+tUiWg9BBS5mbFZXrf01ZVluNNqv5kqI9JOfQwlmBxq8DzY1kxlMTDne
+qMCX/XLMqh2fRlSofxqo
+=/EM5
 -----END PGP SIGNATURE-----
 
---=-sY7rKz83zhdMxDlDAIh0--
-
+--V4b9U9vrdWczvw78--
