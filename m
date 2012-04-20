@@ -1,68 +1,47 @@
-From: "Govindraj.R" <govindraj.raja@ti.com>
-Subject: [PATCH v2 3/3] ARM: omap3: pm: Remove uart module level wakeup configurations
-Date: Fri, 20 Apr 2012 16:40:07 +0530
-Message-ID: <1334920207-19160-4-git-send-email-govindraj.raja@ti.com>
-References: <1334920207-19160-1-git-send-email-govindraj.raja@ti.com>
+From: Grazvydas Ignotas <notasas@gmail.com>
+Subject: Re: [PATCH] mtd: nand: omap: add support for hardware BCH ecc
+Date: Fri, 20 Apr 2012 14:12:27 +0300
+Message-ID: <CANOLnOOjrZEbPByOD3EQTZ3vn2ZO0SMdyYo1oME_NLRyYciXUQ@mail.gmail.com>
+References: <1334915328-10673-1-git-send-email-ivan.djelic@parrot.com>
 Mime-Version: 1.0
-Content-Type: text/plain
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from comal.ext.ti.com ([198.47.26.152]:53107 "EHLO comal.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1755157Ab2DTLKb (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Fri, 20 Apr 2012 07:10:31 -0400
-In-Reply-To: <1334920207-19160-1-git-send-email-govindraj.raja@ti.com>
+Received: from mail-lb0-f174.google.com ([209.85.217.174]:48596 "EHLO
+	mail-lb0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754443Ab2DTLM3 convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 20 Apr 2012 07:12:29 -0400
+Received: by lbom4 with SMTP id m4so3850924lbo.19
+        for <linux-omap@vger.kernel.org>; Fri, 20 Apr 2012 04:12:27 -0700 (PDT)
+In-Reply-To: <1334915328-10673-1-git-send-email-ivan.djelic@parrot.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: linux-omap@vger.kernel.org
-Cc: linux-arm-kernel@lists.infradead.org, "Govindraj.R" <govindraj.raja@ti.com>, Paul Walmsley <paul@pwsan.com>, Kevin Hilman <khilman@ti.com>, Benoit Cousson <b-cousson@ti.com>, Tero Kristo <t-kristo@ti.com>
+To: Ivan Djelic <ivan.djelic@parrot.com>
+Cc: linux-mtd@lists.infradead.org, Jan Weitzel <J.Weitzel@phytec.de>, linux-omap@vger.kernel.org
 
-From: "Govindraj.R" <govindraj.raja@ti.com>
+On Fri, Apr 20, 2012 at 12:48 PM, Ivan Djelic <ivan.djelic@parrot.com> =
+wrote:
+> Hello,
+> This patch provides hardware NAND BCH ecc support for OMAP3 boards.
+> It depends on the following patches:
+>
+> new GPMC BCH api (linux-omap):
+> http://lists.infradead.org/pipermail/linux-mtd/2012-April/040757.html
+>
+> race condition fix in OMAP mtd driver:
+> http://lists.infradead.org/pipermail/linux-mtd/2012-April/040724.html
 
-The uart module level wakeups enabling and disabling
-are now handled from uart driver itself remove the uart module
-level configurations from pm code.
+I don't have this one in my mailbox (looked up through the archives),
+so commenting about it here. What about just dropping omap_wait()
+instead? I think gpmc_nand_read(.. GPMC_NAND_DATA) is equivalent to
+ordinary data read, knowing that omap_wait() looks like a duplicate of
+generic nand_wait(), just without LED support.
 
-Cc: Paul Walmsley <paul@pwsan.com>
-Cc: Kevin Hilman <khilman@ti.com>
-Cc: Benoit Cousson <b-cousson@ti.com>
-Cc: Tero Kristo <t-kristo@ti.com>
-Signed-off-by: Govindraj.R <govindraj.raja@ti.com>
----
- arch/arm/mach-omap2/pm34xx.c |   14 +++++---------
- 1 files changed, 5 insertions(+), 9 deletions(-)
 
-diff --git a/arch/arm/mach-omap2/pm34xx.c b/arch/arm/mach-omap2/pm34xx.c
-index 703bd10..7a19498 100644
---- a/arch/arm/mach-omap2/pm34xx.c
-+++ b/arch/arm/mach-omap2/pm34xx.c
-@@ -529,8 +529,6 @@ static void __init omap3_d2d_idle(void)
- 
- static void __init prcm_setup_regs(void)
- {
--	u32 omap3630_en_uart4_mask = cpu_is_omap3630() ?
--					OMAP3630_EN_UART4_MASK : 0;
- 	u32 omap3630_grpsel_uart4_mask = cpu_is_omap3630() ?
- 					OMAP3630_GRPSEL_UART4_MASK : 0;
- 
-@@ -562,13 +560,11 @@ static void __init prcm_setup_regs(void)
- 				OMAP3430_DSS_MOD, PM_WKEN);
- 
- 	/* Enable wakeups in PER */
--	omap2_prm_write_mod_reg(omap3630_en_uart4_mask |
--			  OMAP3430_EN_GPIO2_MASK | OMAP3430_EN_GPIO3_MASK |
--			  OMAP3430_EN_GPIO4_MASK | OMAP3430_EN_GPIO5_MASK |
--			  OMAP3430_EN_GPIO6_MASK | OMAP3430_EN_UART3_MASK |
--			  OMAP3430_EN_MCBSP2_MASK | OMAP3430_EN_MCBSP3_MASK |
--			  OMAP3430_EN_MCBSP4_MASK,
--			  OMAP3430_PER_MOD, PM_WKEN);
-+	omap2_prm_write_mod_reg(OMAP3430_EN_GPIO2_MASK |
-+			OMAP3430_EN_GPIO3_MASK | OMAP3430_EN_GPIO4_MASK |
-+			OMAP3430_EN_GPIO5_MASK | OMAP3430_EN_GPIO6_MASK |
-+			OMAP3430_EN_MCBSP2_MASK | OMAP3430_EN_MCBSP3_MASK |
-+			OMAP3430_EN_MCBSP4_MASK, OMAP3430_PER_MOD, PM_WKEN);
- 	/* and allow them to wake up MPU */
- 	omap2_prm_write_mod_reg(omap3630_grpsel_uart4_mask |
- 			  OMAP3430_GRPSEL_GPIO2_MASK |
--- 
-1.7.9
-
+--=20
+Gra=C5=BEvydas
+--
+To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
