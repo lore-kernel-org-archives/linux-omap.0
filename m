@@ -1,15 +1,15 @@
 From: Tero Kristo <t-kristo@ti.com>
-Subject: [PATCHv4 1/8] ARM: OMAP4: suspend: Program all domains to retention
-Date: Fri, 20 Apr 2012 12:19:44 +0300
-Message-ID: <1334913591-26312-2-git-send-email-t-kristo@ti.com>
+Subject: [PATCHv4 2/8] TEMP: ARM: OMAP4: hwmod_data: Do not get DSP out of reset at boot time
+Date: Fri, 20 Apr 2012 12:19:45 +0300
+Message-ID: <1334913591-26312-3-git-send-email-t-kristo@ti.com>
 References: <1334913591-26312-1-git-send-email-t-kristo@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from arroyo.ext.ti.com ([192.94.94.40]:52297 "EHLO arroyo.ext.ti.com"
+Received: from arroyo.ext.ti.com ([192.94.94.40]:52300 "EHLO arroyo.ext.ti.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1750814Ab2DTJUH (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Fri, 20 Apr 2012 05:20:07 -0400
+	id S1750814Ab2DTJUJ (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Fri, 20 Apr 2012 05:20:09 -0400
 In-Reply-To: <1334913591-26312-1-git-send-email-t-kristo@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
@@ -18,33 +18,33 @@ Cc: linux-arm-kernel@lists.infradead.org, Rajendra Nayak <rnayak@ti.com>
 
 From: Rajendra Nayak <rnayak@ti.com>
 
-Remove the FIXME's in the suspend sequence since
-we now intend to support system level RET support.
+With no driver handling DSP, if brought out of reset, it stays
+active and does not assert standby. This leads to IVAHD powerdomain not
+transitioning and hence preventing chip retention.
+
+This patch is no longer needed once Paul's powerdomain fixes are merged:
+   http://marc.info/?l=linux-omap&m=133040749621183&w=2
+
+Just provided for testing purposes.
 
 Signed-off-by: Rajendra Nayak <rnayak@ti.com>
 Signed-off-by: Tero Kristo <t-kristo@ti.com>
-Reviewed-by: Santosh Shilimkar <santosh.shilimkar@ti.com>
 ---
- arch/arm/mach-omap2/pm44xx.c |    6 ------
- 1 files changed, 0 insertions(+), 6 deletions(-)
+ arch/arm/mach-omap2/omap_hwmod_44xx_data.c |    1 +
+ 1 files changed, 1 insertions(+), 0 deletions(-)
 
-diff --git a/arch/arm/mach-omap2/pm44xx.c b/arch/arm/mach-omap2/pm44xx.c
-index 8856253..31990d5 100644
---- a/arch/arm/mach-omap2/pm44xx.c
-+++ b/arch/arm/mach-omap2/pm44xx.c
-@@ -101,12 +101,6 @@ static int __init pwrdms_setup(struct powerdomain *pwrdm, void *unused)
- 	if (!strncmp(pwrdm->name, "cpu", 3))
- 		return 0;
- 
--	/*
--	 * FIXME: Remove this check when core retention is supported
--	 * Only MPUSS power domain is added in the list.
--	 */
--	if (strcmp(pwrdm->name, "mpu_pwrdm"))
--		return 0;
- 
- 	pwrst = kmalloc(sizeof(struct power_state), GFP_ATOMIC);
- 	if (!pwrst)
+diff --git a/arch/arm/mach-omap2/omap_hwmod_44xx_data.c b/arch/arm/mach-omap2/omap_hwmod_44xx_data.c
+index cc9bd10..86e1b96 100644
+--- a/arch/arm/mach-omap2/omap_hwmod_44xx_data.c
++++ b/arch/arm/mach-omap2/omap_hwmod_44xx_data.c
+@@ -1160,6 +1160,7 @@ static struct omap_hwmod omap44xx_dsp_hwmod = {
+ 	.name		= "dsp",
+ 	.class		= &omap44xx_dsp_hwmod_class,
+ 	.clkdm_name	= "tesla_clkdm",
++	.flags		= HWMOD_INIT_NO_RESET,
+ 	.mpu_irqs	= omap44xx_dsp_irqs,
+ 	.rst_lines	= omap44xx_dsp_resets,
+ 	.rst_lines_cnt	= ARRAY_SIZE(omap44xx_dsp_resets),
 -- 
 1.7.4.1
 
