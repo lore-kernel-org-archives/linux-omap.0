@@ -1,75 +1,118 @@
 From: Tero Kristo <t-kristo@ti.com>
-Subject: [PATCH 18/19] ARM: OMAP4460: wakeupgen: set GIC_CPU0 backup status flag always
-Date: Fri, 20 Apr 2012 12:33:51 +0300
-Message-ID: <1334914432-26456-19-git-send-email-t-kristo@ti.com>
+Subject: [PATCH 17/19] ARM: OMAP4: put cpu1 back to sleep if no wake request
+Date: Fri, 20 Apr 2012 12:33:50 +0300
+Message-ID: <1334914432-26456-18-git-send-email-t-kristo@ti.com>
 References: <1334914432-26456-1-git-send-email-t-kristo@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from comal.ext.ti.com ([198.47.26.152]:48179 "EHLO comal.ext.ti.com"
+Received: from arroyo.ext.ti.com ([192.94.94.40]:53169 "EHLO arroyo.ext.ti.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753596Ab2DTJev (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Fri, 20 Apr 2012 05:34:51 -0400
+	id S1752147Ab2DTJeu (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Fri, 20 Apr 2012 05:34:50 -0400
 In-Reply-To: <1334914432-26456-1-git-send-email-t-kristo@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: linux-omap@vger.kernel.org, khilman@ti.com, paul@pwsan.com
 Cc: linux-arm-kernel@lists.infradead.org
 
-Without this, CPU0 will crash in the ROM code during wakeup from
-device off. This patch also clears the GIC save area, to prevent
-ROM code from writing garbage to the GIC registers during wakeup.
-The actual GIC restore is done by kernel.
-
-This bug fix applies only to OMAP4460, it is fixed on OMAP4470.
+If AUX_CORE_BOOT0 does not indicate wakeup request for cpu1, put it back
+to off. This is needed during wakeup from device off to prevent cpu1
+from being stuck indefinitely in the wakeup loop and also to prevent
+wakeup problem on GP chips with device off mode.
 
 Signed-off-by: Tero Kristo <t-kristo@ti.com>
 ---
- arch/arm/mach-omap2/omap-wakeupgen.c   |   14 ++++++++++++++
- arch/arm/mach-omap2/omap4-sar-layout.h |    1 +
- 2 files changed, 15 insertions(+), 0 deletions(-)
+ arch/arm/mach-omap2/omap-headsmp.S |   45 ++++++++++++++++++++++++++++++++---
+ 1 files changed, 41 insertions(+), 4 deletions(-)
 
-diff --git a/arch/arm/mach-omap2/omap-wakeupgen.c b/arch/arm/mach-omap2/omap-wakeupgen.c
-index c7c4db4..30da299 100644
---- a/arch/arm/mach-omap2/omap-wakeupgen.c
-+++ b/arch/arm/mach-omap2/omap-wakeupgen.c
-@@ -447,10 +447,24 @@ int __init omap_wakeupgen_init(void)
+diff --git a/arch/arm/mach-omap2/omap-headsmp.S b/arch/arm/mach-omap2/omap-headsmp.S
+index d602555..59c6578 100644
+--- a/arch/arm/mach-omap2/omap-headsmp.S
++++ b/arch/arm/mach-omap2/omap-headsmp.S
+@@ -17,8 +17,37 @@
  
- 	if (omap_type() == OMAP2_DEVICE_TYPE_GP) {
- 		sar_base = ioremap(OMAP44XX_SAR_RAM_BASE, SZ_16K);
-+		/* Clean GIC SAR area */
-+		for (i = SAR_BACKUP_STATUS_OFFSET; i < WAKEUPGENENB_OFFSET_CPU0;
-+			i += 4)
-+			sar_writel(0, i, 0);
+ #include <linux/linkage.h>
+ #include <linux/init.h>
++#include <mach/omap-secure.h>
++#include "prcm_mpu44xx.h"
 +
- 		sar_writel(GIC_ISR_NON_SECURE, ICDISR_CPU0_OFFSET, 0);
- 		sar_writel(GIC_ISR_NON_SECURE, ICDISR_CPU1_OFFSET, 0);
- 		for (i = 0; i < max_spi_reg; i++)
- 			sar_writel(GIC_ISR_NON_SECURE, ICDISR_SPI_OFFSET, i);
-+
-+		/*
-+		 * Set CPU0 GIC backup flag permanently for omap4460,
-+		 * this is needed because of the ROM code bug that breaks
-+		 * GIC during wakeup from device off
-+		 */
-+		if (cpu_is_omap446x())
-+			__raw_writel(SAR_BACKUP_STATUS_GIC_CPU0,
-+				     sar_base + SAR_BACKUP_STATUS_OFFSET);
- 		iounmap(sar_base);
- 		sar_base = NULL;
- 	} else {
-diff --git a/arch/arm/mach-omap2/omap4-sar-layout.h b/arch/arm/mach-omap2/omap4-sar-layout.h
-index 0056667..e621c51 100644
---- a/arch/arm/mach-omap2/omap4-sar-layout.h
-+++ b/arch/arm/mach-omap2/omap4-sar-layout.h
-@@ -88,6 +88,7 @@
- #define ICDISR_CPU0_OFFSET			(SAR_BANK3_OFFSET + 0x50c)
- #define ICDISR_CPU1_OFFSET			(SAR_BANK3_OFFSET + 0x510)
- #define ICDISR_SPI_OFFSET			(SAR_BANK3_OFFSET + 0x514)
-+#define SAR_BACKUP_STATUS_GIC_CPU0		0x1
++#define CPU1_PWRSTCTRL (OMAP4430_PRCM_MPU_BASE + OMAP4430_PRCM_MPU_CPU1_INST + \
++			OMAP4_PM_CPU1_PWRSTCTRL_OFFSET)
  
- /* WakeUpGen save restore offset from OMAP44XX_SAR_RAM_BASE */
- #define WAKEUPGENENB_OFFSET_CPU0		(SAR_BANK3_OFFSET + 0x684)
+ 	__CPUINIT
++
++ENTRY(omap_cpu1_off)
++	ldr	r12, =CPU1_PWRSTCTRL
++	ldr	r0, [r12]
++	and	r0, #3
++	cmp	r0, #2
++	beq	exit_cpu1_off
++
++	mov	r0, #0x3
++	mov	r1, #0x0
++	ldr	r12, =OMAP4_MON_SCU_PWR_INDEX
++	dsb
++	smc     #0
++
++	isb
++	dsb
++	dmb
++	wfi
++	nop
++	nop
++exit_cpu1_off:
++	mov	pc, lr
++ENDPROC(omap_cpu1_off)
++
+ /*
+  * OMAP4 specific entry point for secondary CPU to jump from ROM
+  * code.  This routine also provides a holding flag into which
+@@ -27,32 +56,40 @@
+  * register AuxCoreBoot0.
+  */
+ ENTRY(omap_secondary_startup)
+-hold:	ldr	r12,=0x103
++	ldr	r12,=0x103
+ 	dsb
+ 	smc	#0			@ read from AuxCoreBoot0
+ 	mov	r0, r0, lsr #9
+ 	mrc	p15, 0, r4, c0, c0, 5
+ 	and	r4, r4, #0x0f
+ 	cmp	r0, r4
+-	bne	hold
++	beq	omap_cont_boot
++
++	bl	omap_cpu1_off
++	b	omap_secondary_startup
+ 
+ 	/*
+ 	 * we've been released from the wait loop,secondary_stack
+ 	 * should now contain the SVC stack for this core
+ 	 */
++omap_cont_boot:
+ 	b	secondary_startup
+ ENDPROC(omap_secondary_startup)
+ 
+ ENTRY(omap_secondary_startup_4460)
+-hold_2:	ldr	r12,=0x103
++	ldr	r12,=0x103
+ 	dsb
+ 	smc	#0			@ read from AuxCoreBoot0
+ 	mov	r0, r0, lsr #9
+ 	mrc	p15, 0, r4, c0, c0, 5
+ 	and	r4, r4, #0x0f
+ 	cmp	r0, r4
+-	bne	hold_2
++	beq	omap4460_cont_boot
++
++	bl	omap_cpu1_off
++	b	omap_secondary_startup_4460
+ 
++omap4460_cont_boot:
+ 	/*
+ 	 * GIC distributor control register has changed between
+ 	 * CortexA9 r1pX and r2pX. The Control Register secure
 -- 
 1.7.4.1
 
