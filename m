@@ -1,112 +1,85 @@
-From: Chandrabhanu Mahapatra <cmahapatra@ti.com>
-Subject: [PATCH V3 3/3] OMAPDSS: DISPC: Correct DISPC functional clock usage
-Date: Fri, 20 Apr 2012 19:01:13 +0530
-Message-ID: <1334928673-27943-1-git-send-email-cmahapatra@ti.com>
-References: <1333379598-11544-4-git-send-email-cmahapatra@ti.com>
+From: Kevin Hilman <khilman@ti.com>
+Subject: Re: [PATCH 2/7] UART: OMAP: Cut the clock in the error cases
+Date: Fri, 20 Apr 2012 06:46:13 -0700
+Message-ID: <8762cuqzx6.fsf@ti.com>
+References: <1334588821-5224-1-git-send-email-shubhrajyoti@ti.com>
+	<1334588821-5224-3-git-send-email-shubhrajyoti@ti.com>
+	<87bomprjic.fsf@ti.com> <4F8E62D2.9080206@ti.com>
+	<87bompp2bk.fsf@ti.com> <4F8EDA24.5020209@ti.com>
+	<CAM=Q2cvRs2z7sf1ZeU-tMAZLgjPSM5V2fABLyj7087drThf44A@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from comal.ext.ti.com ([198.47.26.152]:60975 "EHLO comal.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1756208Ab2DTNb3 (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Fri, 20 Apr 2012 09:31:29 -0400
-In-Reply-To: <1333379598-11544-4-git-send-email-cmahapatra@ti.com>
+Received: from na3sys009aog125.obsmtp.com ([74.125.149.153]:56381 "EHLO
+	na3sys009aog125.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1754028Ab2DTNqP (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>);
+	Fri, 20 Apr 2012 09:46:15 -0400
+Received: by pbcxa12 with SMTP id xa12so1299139pbc.37
+        for <linux-omap@vger.kernel.org>; Fri, 20 Apr 2012 06:46:13 -0700 (PDT)
+In-Reply-To: <CAM=Q2cvRs2z7sf1ZeU-tMAZLgjPSM5V2fABLyj7087drThf44A@mail.gmail.com>
+	(Shubhrajyoti Datta's message of "Fri, 20 Apr 2012 18:50:25 +0530")
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: tomi.valkeinen@ti.com
-Cc: linux-omap@vger.kernel.org, linux-fbdev@vger.kernel.org, Chandrabhanu Mahapatra <cmahapatra@ti.com>
+To: Shubhrajyoti Datta <omaplinuxkernel@gmail.com>
+Cc: Shubhrajyoti <shubhrajyoti@ti.com>, linux-serial@vger.kernel.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, stable@vger.kernel.org, "Govindraj.R" <govindraj.raja@ti.com>
 
-DISPC_FCLK is incorrectly used as functional clock of DISPC in scaling
-calculations. So, DISPC_CORE_CLK replaces as functional clock of DISPC.
-DISPC_CORE_CLK is derived from DISPC_FCLK divided by an independent DISPC
-divisor LCD.
+Shubhrajyoti Datta <omaplinuxkernel@gmail.com> writes:
 
-Signed-off-by: Chandrabhanu Mahapatra <cmahapatra@ti.com>
----
- drivers/video/omap2/dss/dispc.c |   25 +++++++++++++++++++------
- drivers/video/omap2/dss/dss.h   |    1 +
- 2 files changed, 20 insertions(+), 6 deletions(-)
+> On Wed, Apr 18, 2012 at 8:43 PM, Shubhrajyoti <shubhrajyoti@ti.com> wrote:
+>>>
+>>> Kevin
+>> Yes agree completely. Will describe that in the changelog.
+>> --
+> Does the following changelog look ok?
 
-diff --git a/drivers/video/omap2/dss/dispc.c b/drivers/video/omap2/dss/dispc.c
-index 17ffa71..0417423 100644
---- a/drivers/video/omap2/dss/dispc.c
-+++ b/drivers/video/omap2/dss/dispc.c
-@@ -1855,7 +1855,7 @@ static int dispc_ovl_calc_scaling(enum omap_plane plane,
- 			fclk = calc_fclk(channel, in_width, in_height,
- 					out_width, out_height);
- 			error = (in_width > maxsinglelinewidth || !fclk ||
--				fclk > dispc_fclk_rate());
-+				fclk > dispc_core_clk_rate());
- 			if (error) {
- 				if (decim_x == decim_y) {
- 					decim_x = min_factor;
-@@ -1893,7 +1893,7 @@ static int dispc_ovl_calc_scaling(enum omap_plane plane,
- 					out_width, out_height);
- 			error = (error || in_width > maxsinglelinewidth * 2 ||
- 				(in_width > maxsinglelinewidth && *five_taps) ||
--				!fclk || fclk > dispc_fclk_rate());
-+				!fclk || fclk > dispc_core_clk_rate());
- 			if (error) {
- 				if (decim_x == decim_y) {
- 					decim_x = min_factor;
-@@ -1926,7 +1926,7 @@ static int dispc_ovl_calc_scaling(enum omap_plane plane,
- 	} else {
- 		int decim_x_min = decim_x;
- 		in_height = DIV_ROUND_UP(height, decim_y);
--		in_width_max = dispc_fclk_rate() /
-+		in_width_max = dispc_core_clk_rate() /
- 				DIV_ROUND_UP(dispc_mgr_pclk_rate(channel),
- 						out_width);
- 		decim_x = DIV_ROUND_UP(width, in_width_max);
-@@ -1950,13 +1950,13 @@ static int dispc_ovl_calc_scaling(enum omap_plane plane,
- 	}
- 
- 	DSSDBG("required fclk rate = %lu Hz\n", fclk);
--	DSSDBG("current fclk rate = %lu Hz\n", dispc_fclk_rate());
-+	DSSDBG("current fclk rate = %lu Hz\n", dispc_core_clk_rate());
- 
--	if (!fclk || fclk > dispc_fclk_rate()) {
-+	if (!fclk || fclk > dispc_core_clk_rate()) {
- 		DSSERR("failed to set up scaling, "
- 			"required fclk rate = %lu Hz, "
- 			"current fclk rate = %lu Hz\n",
--			fclk, dispc_fclk_rate());
-+			fclk, dispc_core_clk_rate());
- 		return -EINVAL;
- 	}
- 
-@@ -2646,6 +2646,19 @@ unsigned long dispc_mgr_pclk_rate(enum omap_channel channel)
- 	}
- }
- 
-+unsigned long dispc_core_clk_rate(void)
-+{
-+	int lcd;
-+	unsigned long fclk = dispc_fclk_rate();
-+
-+	if (dss_has_feature(FEAT_CORE_CLK_DIV))
-+		lcd = REG_GET(DISPC_DIVISOR, 23, 16);
-+	else
-+		lcd = REG_GET(DISPC_DIVISORo(OMAP_DSS_CHANNEL_LCD), 23, 16);
-+
-+	return fclk / lcd;
-+}
-+
- void dispc_dump_clocks(struct seq_file *s)
- {
- 	int lcd, pcd;
-diff --git a/drivers/video/omap2/dss/dss.h b/drivers/video/omap2/dss/dss.h
-index d4b3dff..1bde34c 100644
---- a/drivers/video/omap2/dss/dss.h
-+++ b/drivers/video/omap2/dss/dss.h
-@@ -451,6 +451,7 @@ void dispc_mgr_set_pol_freq(enum omap_channel channel,
- 		enum omap_panel_config config, u8 acbi, u8 acb);
- unsigned long dispc_mgr_lclk_rate(enum omap_channel channel);
- unsigned long dispc_mgr_pclk_rate(enum omap_channel channel);
-+unsigned long dispc_core_clk_rate(void);
- int dispc_mgr_set_clock_div(enum omap_channel channel,
- 		struct dispc_clock_info *cinfo);
- int dispc_mgr_get_clock_div(enum omap_channel channel,
--- 
-1.7.1
+A little better, but still doesn't explain things so that someone who is
+not intimately familar with the driver can understand the auto-suspend
+version is needed in the one case.
 
+Possibly explaining in more detail what would happen if the normal put
+is used here instead of the autosuspend version might help.
+
+Kevin
+
+> From 37fdc2d40c9b2b19b8c5a9a4b8f7dd547d420f55 Mon Sep 17 00:00:00 2001
+> From: Shubhrajyoti D <shubhrajyoti@ti.com>
+> Date: Wed, 4 Apr 2012 16:32:37 +0530
+> Subject: [PATCH] UART: OMAP: call pm_runtime_put/autosuspend in the error cases
+>
+> In the error cases the runtime_put call is missed. This patch intends to fix the
+> same. In case dma request fails, we fall back to the nondma mode so after
+> enabling the threshold call put_autosuspend.
+>
+> Cc: Govindraj.R <govindraj.raja@ti.com>
+> Signed-off-by: Shubhrajyoti D <shubhrajyoti@ti.com>
+> ---
+>  drivers/tty/serial/omap-serial.c |    6 +++++-
+>  1 files changed, 5 insertions(+), 1 deletions(-)
+>
+> diff --git a/drivers/tty/serial/omap-serial.c b/drivers/tty/serial/omap-serial.c
+> index fe099bb..10e80bb 100644
+> --- a/drivers/tty/serial/omap-serial.c
+> +++ b/drivers/tty/serial/omap-serial.c
+> @@ -319,6 +319,8 @@ static void serial_omap_start_tx(struct uart_port *port)
+>
+>  		if (ret < 0) {
+>  			serial_omap_enable_ier_thri(up);
+> +			pm_runtime_mark_last_busy(&up->pdev->dev);
+> +			pm_runtime_put_autosuspend(&up->pdev->dev);
+>  			return;
+>  		}
+>  	}
+> @@ -1029,8 +1031,10 @@ static int serial_omap_poll_get_char(struct
+> uart_port *port)
+>
+>  	pm_runtime_get_sync(&up->pdev->dev);
+>  	status = serial_in(up, UART_LSR);
+> -	if (!(status & UART_LSR_DR))
+> +	if (!(status & UART_LSR_DR)) {
+> +		pm_runtime_put(&up->pdev->dev);
+>  		return NO_POLL_CHAR;
+> +	}
+>
+>  	status = serial_in(up, UART_RX);
+>  	pm_runtime_put(&up->pdev->dev);
