@@ -1,160 +1,311 @@
-From: Oleg Matcovschi <oleg.matcovschi@ti.com>
-Subject: [PATCH] omap: dma: Clear status registers on enable/disable irq.
-Date: Fri, 20 Apr 2012 13:42:58 -0700
-Message-ID: <1334954578-10478-1-git-send-email-oleg.matcovschi@ti.com>
+From: Paul Walmsley <paul@pwsan.com>
+Subject: Re: [PATCH] ARM: OMAP2+: watchdog: fix !PM boot crash, disarm timer
+ after hwmod reset
+Date: Fri, 20 Apr 2012 14:59:59 -0600 (MDT)
+Message-ID: <alpine.DEB.2.00.1204201451510.11306@utopia.booyaka.com>
+References: <1334353873-15972-1-git-send-email-khilman@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain
-Return-path: <linux-kernel-owner@vger.kernel.org>
-Sender: linux-kernel-owner@vger.kernel.org
-To: linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org
-Cc: tony@atomide.com, linux@arm.linux.org.uk, Oleg Matcovschi <oleg.matcovschi@ti.com>
+Content-Type: TEXT/PLAIN; charset=US-ASCII
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from utopia.booyaka.com ([72.9.107.138]:58943 "EHLO
+	utopia.booyaka.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752506Ab2DTVAA (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 20 Apr 2012 17:00:00 -0400
+In-Reply-To: <1334353873-15972-1-git-send-email-khilman@ti.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Kevin Hilman <khilman@ti.com>
+Cc: Tony Lindgren <tony@atomide.com>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, santosh.shilimkar@ti.com
 
-Use omap_disable_channel_irq() function instead of directly accessing CICR.
-The omap_disable_chanel_irq() function clears pending interrupts
-and disables interrupt on channel.
-Functions omap2_enable_irq_lch()/omap2_disable_irq_lch() clear interrupt
-status register.
+cc Santosh
 
-Signed-off-by: Oleg Matcovschi <oleg.matcovschi@ti.com>
+Hi Kevin,
+
+Nice changelog!
+
+On Fri, 13 Apr 2012, Kevin Hilman wrote:
+
+> Without runtime PM enabled, hwmod needs to leave all IP blocks in an
+> enabled state by default so any driver access to the HW will succeed.
+> This is accomplished by seting the postsetup_state to enabled for all
+> hwmods during init when runtime PM is disabled.
+> 
+> Currently, we have a special case for WDT in that its postsetup_state
+> is always set to disabled.  This is done so that the WDT is disabled
+> and the timer is disarmed at boot in case there is no WDT driver.
+> This also means that when runtime PM is disabled, if a WDT driver *is*
+> built in the kernel, the kernel will crash on the first access to the
+> WDT hardware.
+> 
+> We can't simply leave the WDT module enabled, because the timer is
+> armed by default after reset. That means that if there is no WDT
+> driver initialzed or loaded before the timer expires, the kernel will
+> reboot.
+> 
+> To fix this, a custom reset method is added to the watchdog class of
+> omap_hwmod.  This method will *always* disarm the timer after hwmod
+> reset.  The WDT timer then will only be rearmed when/if the driver is
+> loaded for the WDT.  With the timer disarmed by default, we no longer
+> need a special-case for the postsetup_state of WDT during init, so it
+> is removed.
+> 
+> Any platforms wishing to ensure the watchdog remains armed across the
+> entire boot boot can simply disable the reset-on-init feature of the
+> watchdog hwmod using omap_hwmod_no_setup_reset().
+> 
+> Tested on 3530/Overo, 4430/Panda.
+> 
+> NOTE: on 4430, the hwmod OCP reset does not seem to rearm the timer as
+> documented in the TRM (and what happens on OMAP3.)  I noticed this
+> because testing the HWMOD_INIT_NO_RESET feature with no driver loaded,
+> I expected a reboot part way through the boot, but did not see a
+> reboot.  Adding some debug to read the counter, I verified that right
+> after OCP softreset, the counter is not firing.  After writing the
+> magic start sequence, the timer starts counting.  This means that the
+> timer disarm sequence added here does not seem to be needed for 4430,
+> but is technically the correct way to ensure the timer is disarmed, so
+> it is left in for OMAP4.
+> 
+> Special thanks to Paul Walmsley for helping brainstorm ideas to fix
+> this problem.
+> 
+> Cc: Paul Walmsley <paul@pwsan.com>
+> Signed-off-by: Kevin Hilman <khilman@ti.com>
+
+This looks great, looks like it will finally fix this longstanding bug.  I 
+think Santosh hit it too a long time ago, so I suspect he will be happy 
+too.
+
+One comment: I think that omap2_wd_timer_reset() needs to be updated in 
+light of commit 3c55c1baffa5f719eb2ae9729088bc867f972f53 ("ARM: OMAP2+: 
+hwmod: Revert "ARM: OMAP2+: hwmod: Make omap_hwmod_softreset wait for 
+reset status"").  I did this here.  It's passed basic build testing but 
+haven't tried booting it yet.  Care to take a look and see if you have any 
+comments?  It's also available in the 'hwmod_devel_a_3.5' branch of 
+git://git.pwsan.com/linux-2.6
+
+Also, am thinking about queuing this for 3.5 rather than 3.4-rc fixes due 
+to the massive hwmod data changes queued for 3.5, and since we've 
+suffered with this bug for at least a year, but wanted to run it by you 
+first.  That should save Tony some rebase hassle.  Any opinions on this?
+
+
+- Paul
+
+From: Kevin Hilman <khilman@ti.com>
+Date: Fri, 20 Apr 2012 14:48:14 -0600
+Subject: [PATCH] ARM: OMAP2+: WDTIMER integration: fix !PM boot crash, disarm
+ timer after hwmod reset
+
+Without runtime PM enabled, hwmod needs to leave all IP blocks in an
+enabled state by default so any driver access to the HW will succeed.
+This is accomplished by seting the postsetup_state to enabled for all
+hwmods during init when runtime PM is disabled.
+
+Currently, we have a special case for WDT in that its postsetup_state
+is always set to disabled.  This is done so that the WDT is disabled
+and the timer is disarmed at boot in case there is no WDT driver.
+This also means that when runtime PM is disabled, if a WDT driver *is*
+built in the kernel, the kernel will crash on the first access to the
+WDT hardware.
+
+We can't simply leave the WDT module enabled, because the timer is
+armed by default after reset. That means that if there is no WDT
+driver initialzed or loaded before the timer expires, the kernel will
+reboot.
+
+To fix this, a custom reset method is added to the watchdog class of
+omap_hwmod.  This method will *always* disarm the timer after hwmod
+reset.  The WDT timer then will only be rearmed when/if the driver is
+loaded for the WDT.  With the timer disarmed by default, we no longer
+need a special-case for the postsetup_state of WDT during init, so it
+is removed.
+
+Any platforms wishing to ensure the watchdog remains armed across the
+entire boot boot can simply disable the reset-on-init feature of the
+watchdog hwmod using omap_hwmod_no_setup_reset().
+
+Tested on 3530/Overo, 4430/Panda.
+
+NOTE: on 4430, the hwmod OCP reset does not seem to rearm the timer as
+documented in the TRM (and what happens on OMAP3.)  I noticed this
+because testing the HWMOD_INIT_NO_RESET feature with no driver loaded,
+I expected a reboot part way through the boot, but did not see a
+reboot.  Adding some debug to read the counter, I verified that right
+after OCP softreset, the counter is not firing.  After writing the
+magic start sequence, the timer starts counting.  This means that the
+timer disarm sequence added here does not seem to be needed for 4430,
+but is technically the correct way to ensure the timer is disarmed, so
+it is left in for OMAP4.
+
+Special thanks to Paul Walmsley for helping brainstorm ideas to fix
+this problem.
+
+Cc: Paul Walmsley <paul@pwsan.com>
+Signed-off-by: Kevin Hilman <khilman@ti.com>
+Cc: Santosh Shilimkar <santosh.shilimkar@ti.com>
+[paul@pwsan.com: updated the omap2_wd_timer_reset() function in the
+ wake of commit 3c55c1baffa5f719eb2ae9729088bc867f972f53 ("ARM:
+ OMAP2+: hwmod: Revert "ARM: OMAP2+: hwmod: Make omap_hwmod_softreset
+ wait for reset status""); added kerneldoc]
+Signed-off-by: Paul Walmsley <paul@pwsan.com>
 ---
- arch/arm/plat-omap/dma.c |   57 +++++++++++++++++++++------------------------
- 1 files changed, 27 insertions(+), 30 deletions(-)
+ arch/arm/mach-omap2/io.c                           |   18 --------
+ arch/arm/mach-omap2/omap_hwmod_2xxx_ipblock_data.c |    3 +-
+ arch/arm/mach-omap2/omap_hwmod_3xxx_data.c         |    3 +-
+ arch/arm/mach-omap2/omap_hwmod_44xx_data.c         |    1 +
+ arch/arm/mach-omap2/wd_timer.c                     |   46 ++++++++++++++++++++
+ arch/arm/mach-omap2/wd_timer.h                     |    1 +
+ 6 files changed, 52 insertions(+), 20 deletions(-)
 
-diff --git a/arch/arm/plat-omap/dma.c b/arch/arm/plat-omap/dma.c
-index 3ec7ec5..d420b7f 100644
---- a/arch/arm/plat-omap/dma.c
-+++ b/arch/arm/plat-omap/dma.c
-@@ -563,11 +563,9 @@ EXPORT_SYMBOL(omap_set_dma_dest_burst_mode);
+diff --git a/arch/arm/mach-omap2/io.c b/arch/arm/mach-omap2/io.c
+index 065bd76..fafcc35 100644
+--- a/arch/arm/mach-omap2/io.c
++++ b/arch/arm/mach-omap2/io.c
+@@ -363,24 +363,6 @@ static void __init omap_hwmod_init_postsetup(void)
+ #endif
+ 	omap_hwmod_for_each(_set_hwmod_postsetup_state, &postsetup_state);
  
- static inline void omap_enable_channel_irq(int lch)
- {
--	u32 status;
+-	/*
+-	 * Set the default postsetup state for unusual modules (like
+-	 * MPU WDT).
+-	 *
+-	 * The postsetup_state is not actually used until
+-	 * omap_hwmod_late_init(), so boards that desire full watchdog
+-	 * coverage of kernel initialization can reprogram the
+-	 * postsetup_state between the calls to
+-	 * omap2_init_common_infra() and omap_sdrc_init().
+-	 *
+-	 * XXX ideally we could detect whether the MPU WDT was currently
+-	 * enabled here and make this conditional
+-	 */
+-	postsetup_state = _HWMOD_STATE_DISABLED;
+-	omap_hwmod_for_each_by_class("wd_timer",
+-				     _set_hwmod_postsetup_state,
+-				     &postsetup_state);
 -
- 	/* Clear CSR */
- 	if (cpu_class_is_omap1())
--		status = p->dma_read(CSR, lch);
-+		p->dma_read(CSR, lch);
- 	else if (cpu_class_is_omap2())
- 		p->dma_write(OMAP2_DMA_CSR_CLEAR_MASK, CSR, lch);
- 
-@@ -575,10 +573,15 @@ static inline void omap_enable_channel_irq(int lch)
- 	p->dma_write(dma_chan[lch].enabled_irqs, CICR, lch);
+ 	omap_pm_if_early_init();
  }
  
--static void omap_disable_channel_irq(int lch)
-+static inline void omap_disable_channel_irq(int lch)
+diff --git a/arch/arm/mach-omap2/omap_hwmod_2xxx_ipblock_data.c b/arch/arm/mach-omap2/omap_hwmod_2xxx_ipblock_data.c
+index 2a67297..6cc70ed 100644
+--- a/arch/arm/mach-omap2/omap_hwmod_2xxx_ipblock_data.c
++++ b/arch/arm/mach-omap2/omap_hwmod_2xxx_ipblock_data.c
+@@ -86,7 +86,8 @@ static struct omap_hwmod_class_sysconfig omap2xxx_wd_timer_sysc = {
+ struct omap_hwmod_class omap2xxx_wd_timer_hwmod_class = {
+ 	.name		= "wd_timer",
+ 	.sysc		= &omap2xxx_wd_timer_sysc,
+-	.pre_shutdown	= &omap2_wd_timer_disable
++	.pre_shutdown	= &omap2_wd_timer_disable,
++	.reset		= &omap2_wd_timer_reset,
+ };
+ 
+ /*
+diff --git a/arch/arm/mach-omap2/omap_hwmod_3xxx_data.c b/arch/arm/mach-omap2/omap_hwmod_3xxx_data.c
+index db86ce9..77ccbfa 100644
+--- a/arch/arm/mach-omap2/omap_hwmod_3xxx_data.c
++++ b/arch/arm/mach-omap2/omap_hwmod_3xxx_data.c
+@@ -1200,7 +1200,8 @@ static struct omap_hwmod_class_sysconfig i2c_sysc = {
+ static struct omap_hwmod_class omap3xxx_wd_timer_hwmod_class = {
+ 	.name		= "wd_timer",
+ 	.sysc		= &omap3xxx_wd_timer_sysc,
+-	.pre_shutdown	= &omap2_wd_timer_disable
++	.pre_shutdown	= &omap2_wd_timer_disable,
++	.reset		= &omap2_wd_timer_reset,
+ };
+ 
+ /* wd_timer2 */
+diff --git a/arch/arm/mach-omap2/omap_hwmod_44xx_data.c b/arch/arm/mach-omap2/omap_hwmod_44xx_data.c
+index 6abc757..22fb63e 100644
+--- a/arch/arm/mach-omap2/omap_hwmod_44xx_data.c
++++ b/arch/arm/mach-omap2/omap_hwmod_44xx_data.c
+@@ -5215,6 +5215,7 @@ static struct omap_hwmod_class omap44xx_wd_timer_hwmod_class = {
+ 	.name		= "wd_timer",
+ 	.sysc		= &omap44xx_wd_timer_sysc,
+ 	.pre_shutdown	= &omap2_wd_timer_disable,
++	.reset		= &omap2_wd_timer_reset,
+ };
+ 
+ /* wd_timer2 */
+diff --git a/arch/arm/mach-omap2/wd_timer.c b/arch/arm/mach-omap2/wd_timer.c
+index 4067669..fcbb663 100644
+--- a/arch/arm/mach-omap2/wd_timer.c
++++ b/arch/arm/mach-omap2/wd_timer.c
+@@ -14,6 +14,7 @@
+ #include <plat/omap_hwmod.h>
+ 
+ #include "wd_timer.h"
++#include "common.h"
+ 
+ /*
+  * In order to avoid any assumptions from bootloader regarding WDT
+@@ -25,6 +26,8 @@
+ #define OMAP_WDT_WPS		0x34
+ #define OMAP_WDT_SPR		0x48
+ 
++/* Maximum microseconds to wait for OMAP module to softreset */
++#define MAX_MODULE_SOFTRESET_WAIT	10000
+ 
+ int omap2_wd_timer_disable(struct omap_hwmod *oh)
  {
--	if (cpu_class_is_omap2())
--		p->dma_write(0, CICR, lch);
-+	/* disable channel interrupts */
-+	p->dma_write(0, CICR, lch);
-+	/* Clear CSR */
-+	if (cpu_class_is_omap1())
-+		p->dma_read(CSR, lch);
-+	else if (cpu_class_is_omap2())
-+		p->dma_write(OMAP2_DMA_CSR_CLEAR_MASK, CSR, lch);
+@@ -54,3 +57,46 @@ int omap2_wd_timer_disable(struct omap_hwmod *oh)
+ 	return 0;
  }
  
- void omap_enable_dma_irq(int lch, u16 bits)
-@@ -622,14 +625,14 @@ static inline void disable_lnk(int lch)
- 	l = p->dma_read(CLNK_CTRL, lch);
- 
- 	/* Disable interrupts */
-+	omap_disable_channel_irq(lch);
++/**
++ * omap2_wdtimer_reset - reset and disable the WDTIMER IP block
++ * @oh: struct omap_hwmod *
++ *
++ * After the WDTIMER IP blocks are reset on OMAP2/3, we must also take
++ * care to execute the special watchdog disable sequence.  This is
++ * because the watchdog is re-armed upon OCP softreset.  (On OMAP4,
++ * this behavior was apparently changed and the watchdog is no longer
++ * re-armed after an OCP soft-reset.)  Returns -ETIMEDOUT if the reset
++ * did not complete, or 0 upon success.
++ *
++ * XXX Most of this code should be moved to the omap_hwmod.c layer
++ * during a normal merge window.  omap_hwmod_softreset() should be
++ * renamed to omap_hwmod_set_ocp_softreset(), and omap_hwmod_softreset()
++ * should call the hwmod _ocp_softreset() code.
++ */
++int omap2_wd_timer_reset(struct omap_hwmod *oh)
++{
++	u32 v;
++	int c = 0;
 +
- 	if (cpu_class_is_omap1()) {
--		p->dma_write(0, CICR, lch);
- 		/* Set the STOP_LNK bit */
- 		l |= 1 << 14;
- 	}
++	/* Write to the SOFTRESET bit */
++	omap_hwmod_softreset(oh);
++
++	/* Poll on RESETDONE bit */
++	omap_test_timeout((omap_hwmod_read(oh,
++					   oh->class->sysc->syss_offs)
++			   & SYSS_RESETDONE_MASK),
++			  MAX_MODULE_SOFTRESET_WAIT, c);
++
++	if (oh->class->sysc->srst_udelay)
++		udelay(oh->class->sysc->srst_udelay);
++
++	if (c == MAX_MODULE_SOFTRESET_WAIT)
++		pr_warning("%s: %s: softreset failed (waited %d usec)\n",
++			   __func__, oh->name, MAX_MODULE_SOFTRESET_WAIT);
++	else
++		pr_debug("%s: %s: softreset in %d usec\n", __func__,
++			 oh->name, c);
++
++	return (c == MAX_MODULE_SOFTRESET_WAIT) ? -ETIMEDOUT :
++		omap2_wd_timer_disable(oh);
++}
+diff --git a/arch/arm/mach-omap2/wd_timer.h b/arch/arm/mach-omap2/wd_timer.h
+index e0054a2..f6bbba7 100644
+--- a/arch/arm/mach-omap2/wd_timer.h
++++ b/arch/arm/mach-omap2/wd_timer.h
+@@ -13,5 +13,6 @@
+ #include <plat/omap_hwmod.h>
  
- 	if (cpu_class_is_omap2()) {
--		omap_disable_channel_irq(lch);
- 		/* Clear the ENABLE_LNK bit */
- 		l &= ~(1 << 15);
- 	}
-@@ -647,6 +650,9 @@ static inline void omap2_enable_irq_lch(int lch)
- 		return;
+ extern int omap2_wd_timer_disable(struct omap_hwmod *oh);
++extern int omap2_wd_timer_reset(struct omap_hwmod *oh);
  
- 	spin_lock_irqsave(&dma_chan_lock, flags);
-+	/* clear IRQ STATUS */
-+	p->dma_write(1 << lch, IRQSTATUS_L0, lch);
-+	/* Enable interrupt */
- 	val = p->dma_read(IRQENABLE_L0, lch);
- 	val |= 1 << lch;
- 	p->dma_write(val, IRQENABLE_L0, lch);
-@@ -662,9 +668,12 @@ static inline void omap2_disable_irq_lch(int lch)
- 		return;
- 
- 	spin_lock_irqsave(&dma_chan_lock, flags);
-+	/* Disable interrupt */
- 	val = p->dma_read(IRQENABLE_L0, lch);
- 	val &= ~(1 << lch);
- 	p->dma_write(val, IRQENABLE_L0, lch);
-+	/* clear IRQ STATUS */
-+	p->dma_write(1 << lch, IRQSTATUS_L0, lch);
- 	spin_unlock_irqrestore(&dma_chan_lock, flags);
- }
- 
-@@ -735,11 +744,8 @@ int omap_request_dma(int dev_id, const char *dev_name,
- 	}
- 
- 	if (cpu_class_is_omap2()) {
--		omap2_enable_irq_lch(free_ch);
- 		omap_enable_channel_irq(free_ch);
--		/* Clear the CSR register and IRQ status register */
--		p->dma_write(OMAP2_DMA_CSR_CLEAR_MASK, CSR, free_ch);
--		p->dma_write(1 << free_ch, IRQSTATUS_L0, 0);
-+		omap2_enable_irq_lch(free_ch);
- 	}
- 
- 	*dma_ch_out = free_ch;
-@@ -758,27 +764,19 @@ void omap_free_dma(int lch)
- 		return;
- 	}
- 
--	if (cpu_class_is_omap1()) {
--		/* Disable all DMA interrupts for the channel. */
--		p->dma_write(0, CICR, lch);
--		/* Make sure the DMA transfer is stopped. */
--		p->dma_write(0, CCR, lch);
--	}
--
--	if (cpu_class_is_omap2()) {
-+	/* Disable interrupt for logical channel */
-+	if (cpu_class_is_omap2())
- 		omap2_disable_irq_lch(lch);
- 
--		/* Clear the CSR register and IRQ status register */
--		p->dma_write(OMAP2_DMA_CSR_CLEAR_MASK, CSR, lch);
--		p->dma_write(1 << lch, IRQSTATUS_L0, lch);
-+	/* Disable all DMA interrupts for the channel. */
-+	omap_disable_channel_irq(lch);
- 
--		/* Disable all DMA interrupts for the channel. */
--		p->dma_write(0, CICR, lch);
-+	/* Make sure the DMA transfer is stopped. */
-+	p->dma_write(0, CCR, lch);
- 
--		/* Make sure the DMA transfer is stopped. */
--		p->dma_write(0, CCR, lch);
-+	/* Clear registers */
-+	if (cpu_class_is_omap2())
- 		omap_clear_dma(lch);
--	}
- 
- 	spin_lock_irqsave(&dma_chan_lock, flags);
- 	dma_chan[lch].dev_id = -1;
-@@ -926,8 +924,7 @@ void omap_stop_dma(int lch)
- 	u32 l;
- 
- 	/* Disable all interrupts on the channel */
--	if (cpu_class_is_omap1())
--		p->dma_write(0, CICR, lch);
-+	omap_disable_channel_irq(lch);
- 
- 	l = p->dma_read(CCR, lch);
- 	if (IS_DMA_ERRATA(DMA_ERRATA_i541) &&
+ #endif
 -- 
-1.7.4.1
+1.7.10
+
