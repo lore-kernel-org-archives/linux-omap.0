@@ -1,152 +1,93 @@
 From: Tero Kristo <t-kristo@ti.com>
-Subject: [PATCH 19/19] ARM: OMAP4: powerdomain: update mpu / core off counters during device off
-Date: Fri, 20 Apr 2012 12:33:52 +0300
-Message-ID: <1334914432-26456-20-git-send-email-t-kristo@ti.com>
+Subject: [PATCH 15/19] ARM: OMAP4430: PM: workaround for DDR corruption on second CS
+Date: Fri, 20 Apr 2012 12:33:48 +0300
+Message-ID: <1334914432-26456-16-git-send-email-t-kristo@ti.com>
 References: <1334914432-26456-1-git-send-email-t-kristo@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from comal.ext.ti.com ([198.47.26.152]:48183 "EHLO comal.ext.ti.com"
+Received: from bear.ext.ti.com ([192.94.94.41]:51401 "EHLO bear.ext.ti.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753614Ab2DTJex (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Fri, 20 Apr 2012 05:34:53 -0400
+	id S1752656Ab2DTJes (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Fri, 20 Apr 2012 05:34:48 -0400
 In-Reply-To: <1334914432-26456-1-git-send-email-t-kristo@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: linux-omap@vger.kernel.org, khilman@ti.com, paul@pwsan.com
-Cc: linux-arm-kernel@lists.infradead.org
+Cc: linux-arm-kernel@lists.infradead.org, Santosh Shilimkar <santosh.shilimkar@ti.com>
 
-Currently device off does not have any counters / timers of its own
-and it is impossible to track the time spent in this state. In device
-off, MPU / CORE powerdomains enter OSWR, so normally the RETENTION
-state times / counts are increased during device off.
+From: Santosh Shilimkar <santosh.shilimkar@ti.com>
 
-This patch adds a new field to the powerdomain struct for context loss
-register, which is checked during pwrdm_post_transition to see if
-a device off type context loss has happened. If this is the case,
-the counters + timers for OFF state are touched instead of RETENTION.
+Work around for Errata ID: i632 "LPDDR2 Corruption After OFF Mode
+Transition When CS1 Is Used On EMIF" which impacts OMAP443x silicon
+The issue occurs when EMIF_SDRAM_CONFIG is restored first before
+EMIF_SDRAM_CONFIG_2 is not yet restored, the register configuration
+is not set properly, we apply the required workaround allowing
+the restore sequence to work properly.
 
+Signed-off-by: Santosh Shilimkar <santosh.shilimkar@ti.com>
+[t-kristo@ti.com: moved workaround from omap-sar.c to pm44xx.c]
 Signed-off-by: Tero Kristo <t-kristo@ti.com>
 ---
- arch/arm/mach-omap2/omap-mpuss-lowpower.c   |    1 -
- arch/arm/mach-omap2/powerdomain.c           |    9 +++++++++
- arch/arm/mach-omap2/powerdomain.h           |    2 ++
- arch/arm/mach-omap2/powerdomains44xx_data.c |    2 ++
- arch/arm/mach-omap2/prm44xx.c               |   15 +++++++++++++++
- arch/arm/mach-omap2/prm44xx.h               |    2 ++
- 6 files changed, 30 insertions(+), 1 deletions(-)
+ .../include/mach/ctrl_module_wkup_44xx.h           |    2 +
+ arch/arm/mach-omap2/pm44xx.c                       |   24 ++++++++++++++++++++
+ 2 files changed, 26 insertions(+), 0 deletions(-)
 
-diff --git a/arch/arm/mach-omap2/omap-mpuss-lowpower.c b/arch/arm/mach-omap2/omap-mpuss-lowpower.c
-index b4ca6f3..b7d139a 100644
---- a/arch/arm/mach-omap2/omap-mpuss-lowpower.c
-+++ b/arch/arm/mach-omap2/omap-mpuss-lowpower.c
-@@ -404,7 +404,6 @@ int omap4_enter_lowpower(unsigned int cpu, unsigned int power_state)
- 	if (omap4_device_prev_state_off()) {
- 		omap4_dpll_resume_off();
- 		omap4_cm_resume_off();
--		omap4_device_clear_prev_off_state();
- 	}
+diff --git a/arch/arm/mach-omap2/include/mach/ctrl_module_wkup_44xx.h b/arch/arm/mach-omap2/include/mach/ctrl_module_wkup_44xx.h
+index a0af9ba..b763a79 100644
+--- a/arch/arm/mach-omap2/include/mach/ctrl_module_wkup_44xx.h
++++ b/arch/arm/mach-omap2/include/mach/ctrl_module_wkup_44xx.h
+@@ -28,6 +28,8 @@
+ #define OMAP4_CTRL_MODULE_WKUP_IP_REVISION		0x0000
+ #define OMAP4_CTRL_MODULE_WKUP_IP_HWINFO		0x0004
+ #define OMAP4_CTRL_MODULE_WKUP_IP_SYSCONFIG		0x0010
++#define OMAP4_CTRL_SECURE_EMIF1_SDRAM_CONFIG2_REG	0x0114
++#define OMAP4_CTRL_SECURE_EMIF2_SDRAM_CONFIG2_REG	0x011c
+ #define OMAP4_CTRL_MODULE_WKUP_CONF_DEBUG_SEL_TST_0	0x0460
+ #define OMAP4_CTRL_MODULE_WKUP_CONF_DEBUG_SEL_TST_1	0x0464
+ #define OMAP4_CTRL_MODULE_WKUP_CONF_DEBUG_SEL_TST_2	0x0468
+diff --git a/arch/arm/mach-omap2/pm44xx.c b/arch/arm/mach-omap2/pm44xx.c
+index 0472921..d4d18d9 100644
+--- a/arch/arm/mach-omap2/pm44xx.c
++++ b/arch/arm/mach-omap2/pm44xx.c
+@@ -17,6 +17,9 @@
+ #include <linux/err.h>
+ #include <linux/slab.h>
+ #include <asm/system_misc.h>
++#include <linux/io.h>
++
++#include <mach/ctrl_module_wkup_44xx.h>
  
- 	pwrdm_post_transition();
-diff --git a/arch/arm/mach-omap2/powerdomain.c b/arch/arm/mach-omap2/powerdomain.c
-index 068f06b..cb3eab2 100644
---- a/arch/arm/mach-omap2/powerdomain.c
-+++ b/arch/arm/mach-omap2/powerdomain.c
-@@ -160,6 +160,15 @@ static int _pwrdm_state_switch(struct powerdomain *pwrdm, int flag)
- 		break;
- 	case PWRDM_STATE_PREV:
- 		prev = pwrdm_read_prev_pwrst(pwrdm);
-+
-+		/*
-+		 * If powerdomain has context offset defined, check if
-+		 * the domain has lost context (i.e. entered off)
-+		 */
-+		if (pwrdm->context_offs)
-+			if (omap4_pwrdm_lost_context_rff(pwrdm->prcm_offs,
-+							 pwrdm->context_offs))
-+				prev = PWRDM_POWER_OFF;
- 		if (pwrdm->state != prev)
- 			pwrdm->state_counter[prev]++;
- 		if (prev == PWRDM_POWER_RET)
-diff --git a/arch/arm/mach-omap2/powerdomain.h b/arch/arm/mach-omap2/powerdomain.h
-index 0d72a8a..a427645 100644
---- a/arch/arm/mach-omap2/powerdomain.h
-+++ b/arch/arm/mach-omap2/powerdomain.h
-@@ -82,6 +82,7 @@ struct powerdomain;
-  * @name: Powerdomain name
-  * @voltdm: voltagedomain containing this powerdomain
-  * @prcm_offs: the address offset from CM_BASE/PRM_BASE
-+ * @context_offs: the address offset for the CONTEXT register
-  * @prcm_partition: (OMAP4 only) the PRCM partition ID containing @prcm_offs
-  * @pwrsts: Possible powerdomain power states
-  * @pwrsts_logic_ret: Possible logic power states when pwrdm in RETENTION
-@@ -106,6 +107,7 @@ struct powerdomain {
- 		struct voltagedomain *ptr;
- 	} voltdm;
- 	const s16 prcm_offs;
-+	const s16 context_offs;
- 	const u8 pwrsts;
- 	const u8 pwrsts_logic_ret;
- 	const u8 flags;
-diff --git a/arch/arm/mach-omap2/powerdomains44xx_data.c b/arch/arm/mach-omap2/powerdomains44xx_data.c
-index d8701ce..c4de02f 100644
---- a/arch/arm/mach-omap2/powerdomains44xx_data.c
-+++ b/arch/arm/mach-omap2/powerdomains44xx_data.c
-@@ -36,6 +36,7 @@ static struct powerdomain core_44xx_pwrdm = {
- 	.voltdm		  = { .name = "core" },
- 	.prcm_offs	  = OMAP4430_PRM_CORE_INST,
- 	.prcm_partition	  = OMAP4430_PRM_PARTITION,
-+	.context_offs	  = OMAP4_RM_L3_1_L3_1_CONTEXT_OFFSET,
- 	.pwrsts		  = PWRSTS_RET_ON,
- 	.pwrsts_logic_ret = PWRSTS_OFF_RET,
- 	.banks		  = 5,
-@@ -205,6 +206,7 @@ static struct powerdomain mpu_44xx_pwrdm = {
- 	.voltdm		  = { .name = "mpu" },
- 	.prcm_offs	  = OMAP4430_PRM_MPU_INST,
- 	.prcm_partition	  = OMAP4430_PRM_PARTITION,
-+	.context_offs	  = OMAP4_RM_MPU_MPU_CONTEXT_OFFSET,
- 	.pwrsts		  = PWRSTS_RET_ON,
- 	.pwrsts_logic_ret = PWRSTS_OFF_RET,
- 	.banks		  = 3,
-diff --git a/arch/arm/mach-omap2/prm44xx.c b/arch/arm/mach-omap2/prm44xx.c
-index ab810cd..cf996a6 100644
---- a/arch/arm/mach-omap2/prm44xx.c
-+++ b/arch/arm/mach-omap2/prm44xx.c
-@@ -274,6 +274,21 @@ static void __init omap4_enable_io_wakeup(void)
- 			OMAP4_PRM_IO_PMCTRL_OFFSET);
- }
+ #include "common.h"
+ #include "clockdomain.h"
+@@ -215,6 +218,27 @@ static int __init omap4_pm_init(void)
  
-+bool omap4_pwrdm_lost_context_rff(s16 inst, s16 offset)
-+{
-+	u32 val;
+ 	pr_err("Power Management for TI OMAP4.\n");
+ 
++	/*
++	 * Work around for OMAP443x Errata i632: "LPDDR2 Corruption After OFF
++	 * Mode Transition When CS1 Is Used On EMIF":
++	 * Overwrite EMIF1/EMIF2
++	 * SECURE_EMIF1_SDRAM_CONFIG2_REG
++	 * SECURE_EMIF2_SDRAM_CONFIG2_REG
++	 */
++	if (cpu_is_omap443x()) {
++		void __iomem *secure_ctrl_mod;
 +
-+	val = omap4_prminst_read_inst_reg(OMAP4430_PRM_PARTITION, inst, offset);
++		secure_ctrl_mod = ioremap(OMAP4_CTRL_MODULE_WKUP, SZ_4K);
++		BUG_ON(!secure_ctrl_mod);
 +
-+	if (val & OMAP4430_LOSTCONTEXT_RFF_MASK) {
-+		omap4_prminst_write_inst_reg(val, OMAP4430_PRM_PARTITION, inst,
-+					     offset);
-+		return true;
++		__raw_writel(0x10, secure_ctrl_mod +
++			     OMAP4_CTRL_SECURE_EMIF1_SDRAM_CONFIG2_REG);
++		__raw_writel(0x10, secure_ctrl_mod +
++			     OMAP4_CTRL_SECURE_EMIF2_SDRAM_CONFIG2_REG);
++		wmb();
++		iounmap(secure_ctrl_mod);
 +	}
 +
-+	return false;
-+}
-+
- /**
-  * omap4_device_set_state_off() - setup device off state
-  * @enable:	set to off or not.
-diff --git a/arch/arm/mach-omap2/prm44xx.h b/arch/arm/mach-omap2/prm44xx.h
-index 54a057e..517851b 100644
---- a/arch/arm/mach-omap2/prm44xx.h
-+++ b/arch/arm/mach-omap2/prm44xx.h
-@@ -770,6 +770,8 @@ extern void omap44xx_prm_ocp_barrier(void);
- extern void omap44xx_prm_save_and_clear_irqen(u32 *saved_mask);
- extern void omap44xx_prm_restore_irqen(u32 *saved_mask);
- 
-+extern bool omap4_pwrdm_lost_context_rff(s16 inst, s16 offset);
-+
- # endif
- 
- #endif
+ 	ret = pwrdm_for_each(pwrdms_setup, NULL);
+ 	if (ret) {
+ 		pr_err("Failed to setup powerdomains\n");
 -- 
 1.7.4.1
 
