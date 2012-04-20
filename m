@@ -1,100 +1,189 @@
-From: Kevin Hilman <khilman@ti.com>
-Subject: Re: [PATCH 00/19] ARM: OMAP4 device off support
-Date: Fri, 20 Apr 2012 06:55:20 -0700
-Message-ID: <87vckupkxj.fsf@ti.com>
-References: <1334914432-26456-1-git-send-email-t-kristo@ti.com>
-	<CANrkHUa5q10FFxsZfgtMqKbzKKFHCcf3yYsaOK+hG8CJiME2TA@mail.gmail.com>
-	<1334926721.2149.40.camel@sokoban>
+From: "Datta, Shubhrajyoti" <shubhrajyoti-l0cyMroinI0@public.gmane.org>
+Subject: Re: [PATCHv8 04/18] I2C: OMAP: I2C register restore only if context
+ is lost
+Date: Fri, 20 Apr 2012 19:47:44 +0530
+Message-ID: <CANQgH-Y9hNgHsuD6s+DHDC7ff+V1efawXvfceyC_q+N92w1PVw@mail.gmail.com>
+References: <1334235995-6727-1-git-send-email-shubhrajyoti@ti.com>
+	<1334235995-6727-5-git-send-email-shubhrajyoti@ti.com>
+	<87d376zd2v.fsf@ti.com>
+	<CAM=Q2cvGFgNtvCX=TXAioAUKH9z+VzeKW2ZHhpxUC+s2_yS1QA@mail.gmail.com>
+	<CANQgH-aUyx97rDUUTy8L1qHSSgdC2YaP7LaQor4RAGPfb2JX=g@mail.gmail.com>
+	<87wr5dnndj.fsf@ti.com>
+	<CANQgH-af1VCutKqpq8jK1yTPHybgvnUNA3zdfQq4AYcWcJRtvA@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aog137.obsmtp.com ([74.125.149.18]:49272 "EHLO
-	na3sys009aog137.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752108Ab2DTNzX (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>);
-	Fri, 20 Apr 2012 09:55:23 -0400
-Received: by dajr28 with SMTP id r28so14686967daj.26
-        for <linux-omap@vger.kernel.org>; Fri, 20 Apr 2012 06:55:20 -0700 (PDT)
-In-Reply-To: <1334926721.2149.40.camel@sokoban> (Tero Kristo's message of
-	"Fri, 20 Apr 2012 15:58:40 +0300")
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Return-path: <linux-i2c-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <CANQgH-af1VCutKqpq8jK1yTPHybgvnUNA3zdfQq4AYcWcJRtvA-JsoAwUIsXosN+BqQ9rBEUg@public.gmane.org>
+Sender: linux-i2c-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Kevin Hilman <khilman-l0cyMroinI0@public.gmane.org>
+Cc: Shubhrajyoti Datta <omaplinuxkernel-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-i2c-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, ben-linux-elnMNo+KYs3YtjvyW6yDsg@public.gmane.org, tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org, w.sang-bIcnvbaLZ9MEGnE8C9+IrQ@public.gmane.org
 List-Id: linux-omap@vger.kernel.org
-To: t-kristo@ti.com
-Cc: "T Krishnamoorthy, Balaji" <balajitk@ti.com>, linux-omap@vger.kernel.org, paul@pwsan.com, linux-arm-kernel@lists.infradead.org
 
-Tero Kristo <t-kristo@ti.com> writes:
-
-[...]
-
->> I tried your branch on gp/emu devices but could not reproduce this issue.
->> My observation is that while resuming, omap_hsmmc.1 eMMC is
->> trying to turn on phoenix vaux1 regulator via i2c which fails due
->> to controller timeout.
->> Note: eMMC is present only on sdp/blaze
+On Fri, Apr 20, 2012 at 7:43 PM, Datta, Shubhrajyoti
+<shubhrajyoti-l0cyMroinI0@public.gmane.org> wrote:
 >
-> Did you try this with off-mode enabled and did you check the device
-> actually goes to off? (see pm_debug/count and verify core off count is
-> increasing.) And as said, I was only able to see this problem on a blaze
-> device, panda works fine. But yes, you are probably right and it is not
-> an MMC driver issue but I2C.
+>
+>
+> On Wed, Apr 18, 2012 at 7:38 PM, Kevin Hilman <khilman-l0cyMroinI0@public.gmane.org> wrote:
+>>
+>> "
+>
+>
+>> > =A0#define OMAP_I2C_SYSTEST_SDA_O =A0 =A0 =A0 =A0 =A0 =A0 =A0 (1 <=
+< 0) =A0 =A0 =A0 =A0/* SDA
+>> > line drive out */
+>> >
+>> > -/* OCP_SYSSTATUS bit definitions */
+>> > -#define SYSS_RESETDONE_MASK =A0 =A0 =A0 =A0 =A0(1 << 0)
+>> > -
+>>
+>> Unrelated to this patch.
+>
+>
+Actually if this is not removed we get a warn as the header file gets
+added when I add omap_device.h and the compiler sees a redefinition. Ho=
+wever
+I agree that it can be a seperate patch.
 
-Can you try the patch below?  It sounds like the same problem.
+ Here is the updated patch with your comments.
+ Thanks.
+=46rom c5efbe2bb050c113a1cb1b959a8890578ba9b237 Mon Sep 17 00:00:00 200=
+1
+=46rom: Shubhrajyoti D <shubhrajyoti-l0cyMroinI0@public.gmane.org>
+Date: Fri, 20 Apr 2012 11:15:28 +0530
+Subject: [PATCH] I2C: OMAP: I2C register restore only if context is los=
+t
 
-Kevin
+ Currently i2c register restore is done always.
+ Adding conditional restore.
+ The i2c register restore is done only if the context is lost
+ or in case of error to be on the safe side.
 
-
->From 999f34629140f436099050eb7aac514bfd2a2235 Mon Sep 17 00:00:00 2001
-From: NeilBrown <neilb@suse.de>
-Date: Fri, 30 Dec 2011 12:40:30 +1100
-Subject: [PATCH] OMAP/I2C - Fix timeout problem during suspend.
-
-On a board with OMAP3 processor and TWL4030 Power management,
-we need to talk to the TWL4030 during late suspend but cannot
-because the I2C interrupt is disabled (as late suspend disables
-interrupt).
-
-e.g. I get messages like:
-
-[   62.161102] musb-omap2430 musb-omap2430: LATE power domain suspend
-[   63.167205] omap_i2c omap_i2c.1: controller timed out
-[   63.183044] twl: i2c_read failed to transfer all messages
-[   64.182861] omap_i2c omap_i2c.1: controller timed out
-[   64.198455] twl: i2c_write failed to transfer all messages
-[   65.198455] omap_i2c omap_i2c.1: controller timed out
-[   65.203765] twl: i2c_write failed to transfer all messages
-
-The stack shows omap2430_runtime_suspend calling twl4030_set_suspend
-which tries to power-down the USB PHY (twl4030_phy_suspend ->
-twl4030_phy_power -> __twl4030_phy_power which as a nice WARN_ON
-that helps).
-
-Then we get the same in resume:
-
-[   69.603912] musb-omap2430 musb-omap2430: EARLY power domain resume
-[   70.610473] omap_i2c omap_i2c.1: controller timed out
-[   70.626129] twl: i2c_write failed to transfer all messages
-etc.
-
-So don't disable interrupts for I2C.
-
-Signed-off-by: NeilBrown <neilb@suse.de>
+Cc: Kevin Hilman <khilman-l0cyMroinI0@public.gmane.org>
+Signed-off-by: Shubhrajyoti D <shubhrajyoti-l0cyMroinI0@public.gmane.org>
 ---
- drivers/i2c/busses/i2c-omap.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ arch/arm/plat-omap/i2c.c      |    3 +++
+ drivers/i2c/busses/i2c-omap.c |   35 ++++++++++++++++++++++++++-------=
+--
+ include/linux/i2c-omap.h      |    1 +
+ 3 files changed, 30 insertions(+), 9 deletions(-)
 
-diff --git a/drivers/i2c/busses/i2c-omap.c b/drivers/i2c/busses/i2c-omap.c
-index 801df60..e024c50 100644
+diff --git a/arch/arm/plat-omap/i2c.c b/arch/arm/plat-omap/i2c.c
+index db071bc..4ccab07 100644
+--- a/arch/arm/plat-omap/i2c.c
++++ b/arch/arm/plat-omap/i2c.c
+@@ -179,6 +179,9 @@ static inline int omap2_i2c_add_bus(int bus_id)
+ 	 */
+ 	if (cpu_is_omap34xx())
+ 		pdata->set_mpu_wkup_lat =3D omap_pm_set_max_mpu_wakeup_lat_compat;
++
++	pdata->get_context_loss_count =3D omap_pm_get_dev_context_loss_count;
++
+ 	pdev =3D omap_device_build(name, bus_id, oh, pdata,
+ 			sizeof(struct omap_i2c_bus_platform_data),
+ 			NULL, 0, 0);
+diff --git a/drivers/i2c/busses/i2c-omap.c b/drivers/i2c/busses/i2c-oma=
+p.c
+index f5094b1..d95b01b 100644
 --- a/drivers/i2c/busses/i2c-omap.c
 +++ b/drivers/i2c/busses/i2c-omap.c
-@@ -1092,7 +1092,7 @@ omap_i2c_probe(struct platform_device *pdev)
- 
- 	isr = (dev->rev < OMAP_I2C_OMAP1_REV_2) ? omap_i2c_omap1_isr :
- 								   omap_i2c_isr;
--	r = request_irq(dev->irq, isr, 0, pdev->name, dev);
-+	r = request_irq(dev->irq, isr, IRQF_NO_SUSPEND, pdev->name, dev);
- 
- 	if (r) {
- 		dev_err(dev->dev, "failure requesting irq %i\n", dev->irq);
--- 
-1.7.9.2
+@@ -43,6 +43,7 @@
+ #include <linux/slab.h>
+ #include <linux/i2c-omap.h>
+ #include <linux/pm_runtime.h>
++#include <plat/omap_device.h>
 
+ /* I2C controller revisions */
+ #define OMAP_I2C_OMAP1_REV_2		0x20
+@@ -185,6 +186,7 @@ struct omap_i2c_dev {
+ 	u32			latency;	/* maximum mpu wkup latency */
+ 	void			(*set_mpu_wkup_lat)(struct device *dev,
+ 						    long latency);
++	int			(*get_context_loss_count)(struct device *dev);
+ 	u32			speed;		/* Speed of bus in kHz */
+ 	u32			dtrev;		/* extra revision from DT */
+ 	u32			flags;
+@@ -207,6 +209,7 @@ struct omap_i2c_dev {
+ 	u16			syscstate;
+ 	u16			westate;
+ 	u16			errata;
++	int			dev_lost_count;
+ };
+
+ static const u8 reg_map_ip_v1[] =3D {
+@@ -989,6 +992,7 @@ omap_i2c_probe(struct platform_device *pdev)
+ 		dev->speed =3D pdata->clkrate;
+ 		dev->flags =3D pdata->flags;
+ 		dev->set_mpu_wkup_lat =3D pdata->set_mpu_wkup_lat;
++		dev->get_context_loss_count =3D pdata->get_context_loss_count;
+ 		dev->dtrev =3D pdata->rev;
+ 	}
+
+@@ -1133,12 +1137,26 @@ omap_i2c_remove(struct platform_device *pdev)
+ }
+
+ #ifdef CONFIG_PM_RUNTIME
++static void omap_i2c_restore(struct omap_i2c_dev *dev)
++{
++	omap_i2c_write_reg(dev, OMAP_I2C_CON_REG, 0);
++	omap_i2c_write_reg(dev, OMAP_I2C_PSC_REG, dev->pscstate);
++	omap_i2c_write_reg(dev, OMAP_I2C_SCLL_REG, dev->scllstate);
++	omap_i2c_write_reg(dev, OMAP_I2C_SCLH_REG, dev->sclhstate);
++	omap_i2c_write_reg(dev, OMAP_I2C_BUF_REG, dev->bufstate);
++	omap_i2c_write_reg(dev, OMAP_I2C_WE_REG, dev->westate);
++	omap_i2c_write_reg(dev, OMAP_I2C_CON_REG, OMAP_I2C_CON_EN);
++
++}
+ static int omap_i2c_runtime_suspend(struct device *dev)
+ {
+ 	struct platform_device *pdev =3D to_platform_device(dev);
+ 	struct omap_i2c_dev *_dev =3D platform_get_drvdata(pdev);
+ 	u16 iv;
+
++	if (_dev->get_context_loss_count)
++		_dev->dev_lost_count =3D _dev->get_context_loss_count(dev);
++
+ 	_dev->iestate =3D omap_i2c_read_reg(_dev, OMAP_I2C_IE_REG);
+
+ 	omap_i2c_write_reg(_dev, OMAP_I2C_IE_REG, 0);
+@@ -1159,16 +1177,15 @@ static int omap_i2c_runtime_resume(struct devic=
+e *dev)
+ {
+ 	struct platform_device *pdev =3D to_platform_device(dev);
+ 	struct omap_i2c_dev *_dev =3D platform_get_drvdata(pdev);
++	int loss_cnt;
++
++	if (!(_dev->flags & OMAP_I2C_FLAG_RESET_REGS_POSTIDLE))
++		return 0;
+
+-	if (_dev->flags & OMAP_I2C_FLAG_RESET_REGS_POSTIDLE) {
+-		omap_i2c_write_reg(_dev, OMAP_I2C_CON_REG, 0);
+-		omap_i2c_write_reg(_dev, OMAP_I2C_PSC_REG, _dev->pscstate);
+-		omap_i2c_write_reg(_dev, OMAP_I2C_SCLL_REG, _dev->scllstate);
+-		omap_i2c_write_reg(_dev, OMAP_I2C_SCLH_REG, _dev->sclhstate);
+-		omap_i2c_write_reg(_dev, OMAP_I2C_BUF_REG, _dev->bufstate);
+-		omap_i2c_write_reg(_dev, OMAP_I2C_SYSC_REG, _dev->syscstate);
+-		omap_i2c_write_reg(_dev, OMAP_I2C_WE_REG, _dev->westate);
+-		omap_i2c_write_reg(_dev, OMAP_I2C_CON_REG, OMAP_I2C_CON_EN);
++	if (_dev->get_context_loss_count) {
++		loss_cnt =3D _dev->get_context_loss_count(dev);
++		if (_dev->dev_lost_count !=3D loss_cnt)
++			omap_i2c_restore(_dev);
+ 	}
+
+ 	/*
+diff --git a/include/linux/i2c-omap.h b/include/linux/i2c-omap.h
+index 92a0dc7..c76cbc0 100644
+--- a/include/linux/i2c-omap.h
++++ b/include/linux/i2c-omap.h
+@@ -35,6 +35,7 @@ struct omap_i2c_bus_platform_data {
+ 	u32		rev;
+ 	u32		flags;
+ 	void		(*set_mpu_wkup_lat)(struct device *dev, long set);
++	int		(*get_context_loss_count)(struct device *dev);
+ };
+
+ #endif
+--=20
+1.7.5.4
