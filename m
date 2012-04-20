@@ -1,36 +1,50 @@
 From: Tero Kristo <t-kristo@ti.com>
-Subject: [PATCHv4 0/8] ARM: OMAP4: core retention support
-Date: Fri, 20 Apr 2012 12:19:43 +0300
-Message-ID: <1334913591-26312-1-git-send-email-t-kristo@ti.com>
+Subject: [PATCHv4 1/8] ARM: OMAP4: suspend: Program all domains to retention
+Date: Fri, 20 Apr 2012 12:19:44 +0300
+Message-ID: <1334913591-26312-2-git-send-email-t-kristo@ti.com>
+References: <1334913591-26312-1-git-send-email-t-kristo@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from arroyo.ext.ti.com ([192.94.94.40]:52296 "EHLO arroyo.ext.ti.com"
+Received: from arroyo.ext.ti.com ([192.94.94.40]:52297 "EHLO arroyo.ext.ti.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1750799Ab2DTJUH (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	id S1750814Ab2DTJUH (ORCPT <rfc822;linux-omap@vger.kernel.org>);
 	Fri, 20 Apr 2012 05:20:07 -0400
+In-Reply-To: <1334913591-26312-1-git-send-email-t-kristo@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: linux-omap@vger.kernel.org, khilman@ti.com, paul@pwsan.com
-Cc: linux-arm-kernel@lists.infradead.org
+Cc: linux-arm-kernel@lists.infradead.org, Rajendra Nayak <rnayak@ti.com>
 
-Changes compared to previous version:
+From: Rajendra Nayak <rnayak@ti.com>
 
-- rebased on top of 3.4
-- added back TEMP patch for preventing DSP wakeup as Paul's powerdomain
-  fixes are not yet in (patch #2)
-- added open switch retention support (OSWR), can be enabled by
-  echo 1 > /debug/pm_debug/enable_oswr_mode
-- fixed support for 4460 (added patch #3)
+Remove the FIXME's in the suspend sequence since
+we now intend to support system level RET support.
 
-Applies on top of mainline 3.4 + iochain set. May kind of work without
-the iochain set but waking up from retention might be impossible.
+Signed-off-by: Rajendra Nayak <rnayak@ti.com>
+Signed-off-by: Tero Kristo <t-kristo@ti.com>
+Reviewed-by: Santosh Shilimkar <santosh.shilimkar@ti.com>
+---
+ arch/arm/mach-omap2/pm44xx.c |    6 ------
+ 1 files changed, 0 insertions(+), 6 deletions(-)
 
-Tested both CSWR + OSWR modes on omap4430 EMU blaze + omap4460 GP panda.
-
-Working branch available here:
-tree: git://gitorious.org/~kristo/omap-pm/omap-pm-work.git
-branch: mainline-3.4-omap4-ret
-
--Tero
+diff --git a/arch/arm/mach-omap2/pm44xx.c b/arch/arm/mach-omap2/pm44xx.c
+index 8856253..31990d5 100644
+--- a/arch/arm/mach-omap2/pm44xx.c
++++ b/arch/arm/mach-omap2/pm44xx.c
+@@ -101,12 +101,6 @@ static int __init pwrdms_setup(struct powerdomain *pwrdm, void *unused)
+ 	if (!strncmp(pwrdm->name, "cpu", 3))
+ 		return 0;
+ 
+-	/*
+-	 * FIXME: Remove this check when core retention is supported
+-	 * Only MPUSS power domain is added in the list.
+-	 */
+-	if (strcmp(pwrdm->name, "mpu_pwrdm"))
+-		return 0;
+ 
+ 	pwrst = kmalloc(sizeof(struct power_state), GFP_ATOMIC);
+ 	if (!pwrst)
+-- 
+1.7.4.1
 
