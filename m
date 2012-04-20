@@ -1,71 +1,62 @@
-From: Paul Walmsley <paul@pwsan.com>
-Subject: [PATCH] USB: OTG: isp1301_omap: resolve unused variable warning from
- gcc
-Date: Fri, 20 Apr 2012 15:29:20 -0600 (MDT)
-Message-ID: <alpine.DEB.2.00.1204201527350.11306@utopia.booyaka.com>
-Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+From: Felipe Contreras <felipe.contreras@gmail.com>
+Subject: [PATCH] arm: omap: fix trivial warnings for dspbridge
+Date: Sat, 21 Apr 2012 01:04:18 +0300
+Message-ID: <1334959458-2873-1-git-send-email-felipe.contreras@gmail.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from utopia.booyaka.com ([72.9.107.138]:50512 "EHLO
-	utopia.booyaka.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754427Ab2DTV3V (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 20 Apr 2012 17:29:21 -0400
+Received: from mail-we0-f174.google.com ([74.125.82.174]:63929 "EHLO
+	mail-we0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753276Ab2DTWEt (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 20 Apr 2012 18:04:49 -0400
+Received: by wejx9 with SMTP id x9so6347462wej.19
+        for <linux-omap@vger.kernel.org>; Fri, 20 Apr 2012 15:04:48 -0700 (PDT)
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: balbi@ti.com
-Cc: Heikki Krogerus <heikki.krogerus@linux.intel.com>, linux-omap@vger.kernel.org, linux-usb@vger.kernel.org
+To: Tony Lindgren <tony@atomide.com>, linux-omap@vger.kernel.org
+Cc: Russell King <linux@arm.linux.org.uk>, Jiri Kosina <trivial@kernel.org>, linux-arm-kernel@lists.infradead.org, Felipe Contreras <felipe.contreras@gmail.com>
 
+arch/arm/plat-omap/devices.c: In function 'omap_dsp_reserve_sdram_memblock':
+arch/arm/plat-omap/devices.c:170: warning: format '%x' expects type 'unsigned int', but argument 3 has type 'phys_addr_t'
+arch/arm/mach-omap2/dsp.c: In function 'omap_dsp_init':
+arch/arm/mach-omap2/dsp.c:60: warning: format '%x' expects type 'unsigned int', but argument 3 has type 'phys_addr_t'
+arch/arm/mach-omap2/dsp.c:60: warning: format '%x' expects type 'unsigned int', but argument 4 has type 'phys_addr_t'
 
-Resolve this build warning:
-
-drivers/usb/otg/isp1301_omap.c: In function 'isp1301_set_peripheral':
-drivers/usb/otg/isp1301_omap.c:1340:6: warning: unused variable 'l'
-
-This shows up when building with the 'omap1_defconfig' and
-'5912osk_testconfig' configs from git://git.pwsan.com/omap_kconfigs.
-
-Compile-tested only.
-
-Cc: Heikki Krogerus <heikki.krogerus@linux.intel.com>
-Cc: Felipe Balbi <balbi@ti.com>
-Signed-off-by: Paul Walmsley <paul@pwsan.com>
+Signed-off-by: Felipe Contreras <felipe.contreras@gmail.com>
 ---
- drivers/usb/otg/isp1301_omap.c |   15 ++++++++-------
- 1 file changed, 8 insertions(+), 7 deletions(-)
+ arch/arm/mach-omap2/dsp.c    |    5 +++--
+ arch/arm/plat-omap/devices.c |    4 ++--
+ 2 files changed, 5 insertions(+), 4 deletions(-)
 
-diff --git a/drivers/usb/otg/isp1301_omap.c b/drivers/usb/otg/isp1301_omap.c
-index 70cf5d7..33cd709 100644
---- a/drivers/usb/otg/isp1301_omap.c
-+++ b/drivers/usb/otg/isp1301_omap.c
-@@ -1336,9 +1336,6 @@ static int
- isp1301_set_peripheral(struct usb_otg *otg, struct usb_gadget *gadget)
- {
- 	struct isp1301	*isp = container_of(otg->phy, struct isp1301, phy);
--#ifndef	CONFIG_USB_OTG
--	u32 l;
--#endif
+diff --git a/arch/arm/mach-omap2/dsp.c b/arch/arm/mach-omap2/dsp.c
+index 74f18f2..7665c49 100644
+--- a/arch/arm/mach-omap2/dsp.c
++++ b/arch/arm/mach-omap2/dsp.c
+@@ -57,8 +57,9 @@ static int __init omap_dsp_init(void)
  
- 	if (!otg || isp != the_transceiver)
- 		return -ENODEV;
-@@ -1365,10 +1362,14 @@ isp1301_set_peripheral(struct usb_otg *otg, struct usb_gadget *gadget)
- 	otg->gadget = gadget;
- 	// FIXME update its refcount
+ 	if (pdata->phys_mempool_base) {
+ 		pdata->phys_mempool_size = CONFIG_TIDSPBRIDGE_MEMPOOL_SIZE;
+-		pr_info("%s: %x bytes @ %x\n", __func__,
+-			pdata->phys_mempool_size, pdata->phys_mempool_base);
++		pr_info("%s: %llu bytes @ %llu\n", __func__,
++			(unsigned long long)pdata->phys_mempool_size,
++			(unsigned long long)pdata->phys_mempool_base);
+ 	}
  
--	l = omap_readl(OTG_CTRL) & OTG_CTRL_MASK;
--	l &= ~(OTG_XCEIV_OUTPUTS|OTG_CTRL_BITS);
--	l |= OTG_ID;
--	omap_writel(l, OTG_CTRL);
-+	{
-+		u32 l;
-+
-+		l = omap_readl(OTG_CTRL) & OTG_CTRL_MASK;
-+		l &= ~(OTG_XCEIV_OUTPUTS|OTG_CTRL_BITS);
-+		l |= OTG_ID;
-+		omap_writel(l, OTG_CTRL);
-+	}
+ 	pdev = platform_device_alloc("omap-dsp", -1);
+diff --git a/arch/arm/plat-omap/devices.c b/arch/arm/plat-omap/devices.c
+index 60278f4..ffccec7 100644
+--- a/arch/arm/plat-omap/devices.c
++++ b/arch/arm/plat-omap/devices.c
+@@ -167,8 +167,8 @@ void __init omap_dsp_reserve_sdram_memblock(void)
  
- 	power_up(isp);
- 	isp->phy.state = OTG_STATE_B_IDLE;
+ 	paddr = arm_memblock_steal(size, SZ_1M);
+ 	if (!paddr) {
+-		pr_err("%s: failed to reserve %x bytes\n",
+-				__func__, size);
++		pr_err("%s: failed to reserve %llu bytes\n",
++				__func__, (unsigned long long)size);
+ 		return;
+ 	}
+ 
 -- 
 1.7.10
 
