@@ -1,93 +1,86 @@
 From: Tero Kristo <t-kristo@ti.com>
-Subject: [PATCH 15/19] ARM: OMAP4430: PM: workaround for DDR corruption on second CS
-Date: Fri, 20 Apr 2012 12:33:48 +0300
-Message-ID: <1334914432-26456-16-git-send-email-t-kristo@ti.com>
+Subject: [PATCH 12/19] ARM: OMAP4: PM: update ROM return address for OSWR and OFF
+Date: Fri, 20 Apr 2012 12:33:45 +0300
+Message-ID: <1334914432-26456-13-git-send-email-t-kristo@ti.com>
 References: <1334914432-26456-1-git-send-email-t-kristo@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from bear.ext.ti.com ([192.94.94.41]:51401 "EHLO bear.ext.ti.com"
+Received: from comal.ext.ti.com ([198.47.26.152]:48161 "EHLO comal.ext.ti.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752656Ab2DTJes (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Fri, 20 Apr 2012 05:34:48 -0400
+	id S1751493Ab2DTJep (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Fri, 20 Apr 2012 05:34:45 -0400
 In-Reply-To: <1334914432-26456-1-git-send-email-t-kristo@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: linux-omap@vger.kernel.org, khilman@ti.com, paul@pwsan.com
-Cc: linux-arm-kernel@lists.infradead.org, Santosh Shilimkar <santosh.shilimkar@ti.com>
+Cc: linux-arm-kernel@lists.infradead.org, Carlos Leija <cileija@ti.com>, Praneeth Bajjuri <praneeth@ti.com>, Bryan Buckley <bryan.buckley@ti.com>
 
-From: Santosh Shilimkar <santosh.shilimkar@ti.com>
+From: Carlos Leija <cileija@ti.com>
 
-Work around for Errata ID: i632 "LPDDR2 Corruption After OFF Mode
-Transition When CS1 Is Used On EMIF" which impacts OMAP443x silicon
-The issue occurs when EMIF_SDRAM_CONFIG is restored first before
-EMIF_SDRAM_CONFIG_2 is not yet restored, the register configuration
-is not set properly, we apply the required workaround allowing
-the restore sequence to work properly.
+At wakeup from OFF/OSWR CPU1 will call secure HAL service through a local
+secure dispatcher with MMU off, thus ROM will save a PA return address.
+Later in the wakeup, when SMC driver calls an RPC through
+omap4_secure_dispatcher (MMU is on now), ROM code won't log the new return
+address as RPCs are handled different. Thus ROM will attempt to return to
+a PA address when the MMU is on and the system will hang.
 
-Signed-off-by: Santosh Shilimkar <santosh.shilimkar@ti.com>
-[t-kristo@ti.com: moved workaround from omap-sar.c to pm44xx.c]
+We need to do this for OSWR state and OFF state of mpu power domain,
+not just for device off(mpu pd OFF).
+
+Signed-off-by: Carlos Leija <cileija@ti.com>
+Signed-off-by: Praneeth Bajjuri <praneeth@ti.com>
+Signed-off-by: Bryan Buckley <bryan.buckley@ti.com>
+[t-kristo@ti.com: merged the two patches into one]
 Signed-off-by: Tero Kristo <t-kristo@ti.com>
 ---
- .../include/mach/ctrl_module_wkup_44xx.h           |    2 +
- arch/arm/mach-omap2/pm44xx.c                       |   24 ++++++++++++++++++++
- 2 files changed, 26 insertions(+), 0 deletions(-)
+ arch/arm/mach-omap2/include/mach/omap-secure.h |    1 +
+ arch/arm/mach-omap2/omap-mpuss-lowpower.c      |   13 +++++++++++++
+ 2 files changed, 14 insertions(+), 0 deletions(-)
 
-diff --git a/arch/arm/mach-omap2/include/mach/ctrl_module_wkup_44xx.h b/arch/arm/mach-omap2/include/mach/ctrl_module_wkup_44xx.h
-index a0af9ba..b763a79 100644
---- a/arch/arm/mach-omap2/include/mach/ctrl_module_wkup_44xx.h
-+++ b/arch/arm/mach-omap2/include/mach/ctrl_module_wkup_44xx.h
-@@ -28,6 +28,8 @@
- #define OMAP4_CTRL_MODULE_WKUP_IP_REVISION		0x0000
- #define OMAP4_CTRL_MODULE_WKUP_IP_HWINFO		0x0004
- #define OMAP4_CTRL_MODULE_WKUP_IP_SYSCONFIG		0x0010
-+#define OMAP4_CTRL_SECURE_EMIF1_SDRAM_CONFIG2_REG	0x0114
-+#define OMAP4_CTRL_SECURE_EMIF2_SDRAM_CONFIG2_REG	0x011c
- #define OMAP4_CTRL_MODULE_WKUP_CONF_DEBUG_SEL_TST_0	0x0460
- #define OMAP4_CTRL_MODULE_WKUP_CONF_DEBUG_SEL_TST_1	0x0464
- #define OMAP4_CTRL_MODULE_WKUP_CONF_DEBUG_SEL_TST_2	0x0468
-diff --git a/arch/arm/mach-omap2/pm44xx.c b/arch/arm/mach-omap2/pm44xx.c
-index 0472921..d4d18d9 100644
---- a/arch/arm/mach-omap2/pm44xx.c
-+++ b/arch/arm/mach-omap2/pm44xx.c
-@@ -17,6 +17,9 @@
- #include <linux/err.h>
- #include <linux/slab.h>
- #include <asm/system_misc.h>
-+#include <linux/io.h>
-+
-+#include <mach/ctrl_module_wkup_44xx.h>
+diff --git a/arch/arm/mach-omap2/include/mach/omap-secure.h b/arch/arm/mach-omap2/include/mach/omap-secure.h
+index c90a435..d9bde61 100644
+--- a/arch/arm/mach-omap2/include/mach/omap-secure.h
++++ b/arch/arm/mach-omap2/include/mach/omap-secure.h
+@@ -43,6 +43,7 @@
+ #define OMAP4_MON_L2X0_PREFETCH_INDEX	0x113
  
+ /* Secure PPA(Primary Protected Application) APIs */
++#define OMAP4_PPA_SERVICE_0		0x21
+ #define OMAP4_PPA_L2_POR_INDEX		0x23
+ #define OMAP4_PPA_CPU_ACTRL_SMP_INDEX	0x25
+ 
+diff --git a/arch/arm/mach-omap2/omap-mpuss-lowpower.c b/arch/arm/mach-omap2/omap-mpuss-lowpower.c
+index 2ae5e2c..b4ca6f3 100644
+--- a/arch/arm/mach-omap2/omap-mpuss-lowpower.c
++++ b/arch/arm/mach-omap2/omap-mpuss-lowpower.c
+@@ -52,6 +52,8 @@
+ 
+ #include <plat/omap44xx.h>
+ 
++#include <mach/omap-secure.h>
++
+ #include "iomap.h"
  #include "common.h"
- #include "clockdomain.h"
-@@ -215,6 +218,27 @@ static int __init omap4_pm_init(void)
+ #include "omap4-sar-layout.h"
+@@ -384,6 +386,17 @@ int omap4_enter_lowpower(unsigned int cpu, unsigned int power_state)
+ 	set_cpu_next_pwrst(wakeup_cpu, PWRDM_POWER_ON);
  
- 	pr_err("Power Management for TI OMAP4.\n");
- 
-+	/*
-+	 * Work around for OMAP443x Errata i632: "LPDDR2 Corruption After OFF
-+	 * Mode Transition When CS1 Is Used On EMIF":
-+	 * Overwrite EMIF1/EMIF2
-+	 * SECURE_EMIF1_SDRAM_CONFIG2_REG
-+	 * SECURE_EMIF2_SDRAM_CONFIG2_REG
-+	 */
-+	if (cpu_is_omap443x()) {
-+		void __iomem *secure_ctrl_mod;
+ 	if (omap4_mpuss_read_prev_context_state()) {
++		/*
++		 * Dummy dispatcher call after OSWR and OFF
++		 * Restore the right return Kernel address (with MMU on) for
++		 * subsequent calls to secure ROM. Otherwise the return address
++		 * will be to a PA return address and the system will hang.
++		 */
++		if (omap_type() != OMAP2_DEVICE_TYPE_GP)
++			omap_secure_dispatcher(OMAP4_PPA_SERVICE_0,
++					       FLAG_START_CRITICAL,
++					       0, 0, 0, 0, 0);
 +
-+		secure_ctrl_mod = ioremap(OMAP4_CTRL_MODULE_WKUP, SZ_4K);
-+		BUG_ON(!secure_ctrl_mod);
-+
-+		__raw_writel(0x10, secure_ctrl_mod +
-+			     OMAP4_CTRL_SECURE_EMIF1_SDRAM_CONFIG2_REG);
-+		__raw_writel(0x10, secure_ctrl_mod +
-+			     OMAP4_CTRL_SECURE_EMIF2_SDRAM_CONFIG2_REG);
-+		wmb();
-+		iounmap(secure_ctrl_mod);
-+	}
-+
- 	ret = pwrdm_for_each(pwrdms_setup, NULL);
- 	if (ret) {
- 		pr_err("Failed to setup powerdomains\n");
+ 		restore_ivahd_tesla_regs();
+ 		restore_l3instr_regs();
+ 	}
 -- 
 1.7.4.1
 
