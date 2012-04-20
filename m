@@ -1,69 +1,81 @@
-From: Grazvydas Ignotas <notasas@gmail.com>
-Subject: Re: [PATCH] OMAPDSS: VENC: allow switching venc type at runtime
-Date: Fri, 20 Apr 2012 13:49:58 +0300
-Message-ID: <CANOLnOP9ciznRxddjFSLuWALme57Woq0p6zP93U3tOFvd9em5w@mail.gmail.com>
-References: <1332978312-11959-1-git-send-email-notasas@gmail.com>
-	<1334911137.2058.8.camel@deskari>
+From: "Govindraj.R" <govindraj.raja@ti.com>
+Subject: [PATCH] tty: serial_core: Add mechanism to identify port closure.
+Date: Fri, 20 Apr 2012 16:27:53 +0530
+Message-ID: <1334919473-18870-1-git-send-email-govindraj.raja@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-lpp01m010-f46.google.com ([209.85.215.46]:50793 "EHLO
-	mail-lpp01m010-f46.google.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752841Ab2DTKt7 convert rfc822-to-8bit
-	(ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Fri, 20 Apr 2012 06:49:59 -0400
-In-Reply-To: <1334911137.2058.8.camel@deskari>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain
+Return-path: <linux-serial-owner@vger.kernel.org>
+Sender: linux-serial-owner@vger.kernel.org
+To: linux-serial@vger.kernel.org
+Cc: linux-omap@vger.kernel.org, "Govindraj.R" <govindraj.raja@ti.com>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, Alan Cox <alan@linux.intel.com>
 List-Id: linux-omap@vger.kernel.org
-To: Tomi Valkeinen <tomi.valkeinen@ti.com>
-Cc: linux-fbdev@vger.kernel.org, linux-omap@vger.kernel.org
 
-On Fri, Apr 20, 2012 at 11:38 AM, Tomi Valkeinen <tomi.valkeinen@ti.com=
-> wrote:
-> On Thu, 2012-03-29 at 02:45 +0300, Grazvydas Ignotas wrote:
->> VENC type (composite/svideo) doesn't have to be fixed by board wirin=
-g,
->> it is possible to provide both connectors, which is what pandora doe=
-s.
->> Having to recompile the kernel for users who have TV connector types
->> that's don't match default board setting is very inconvenient, espec=
-ially
->
-> You don't have to recompile the kernel, you could just set the venc t=
-ype
-> in the board file depending on a boot parameter.
->
->> for users of a consumer device, so add support for switching VENC ty=
-pe
->> at runtime over a new sysfs file venc_type.
->
-> I really dislike adding new custom sysfs entries for omapdss, and I'd
-> like to avoid them if at all possible.
+From: "Govindraj.R" <govindraj.raja@ti.com>
 
-Well some panels already have custom attributes, and venc could be
-considered as special panel type, so if it's allowed for panels, why
-not allow it for venc?
+Currently all low level uart driver register to serial_core layer
+this core layer exposes various serial uart ops.
 
-> Do you need to change the venc
-> type during runtime, or is it enough that it can be set during boot?
+Currently the core layer provides startup and shutdown hooks
+to low level driver, but in port suspend case the shutdown gets called
+from uart_suspend_port this makes little difficult in low level driver
+to any action specific to port closure.
 
-We need this on runtime, otherwise it causes several issues:
-- reboot is required to change the setting, although there is no
-technical reason to really require it. This punishes users who want to
-try both settings or have both TV types (with a portable device this
-may sometimes happen).
-- having to provide a way for users to change this in kernel boot
-arguments. Note that many pandora users don't know how to handle boot
-scripts, so a bootloader menu of some sort would be needed or ability
-to edit u-boot environment from Linux, both of which would be
-needlessly complicated solutions.
+For example if low level driver tries to disable uart platform
+specific wakeups after port closure in low level driver it can be only done
+in shutdown ops since this ops is called even in suspend case low level
+driver needs some info whether the current shutdown ops is result of
+port close or if its suspend ops.
 
+To differentiate this expand the core layer uart_port info with closing flag
+this flag is set to true during shutdown and set to false while port open.
 
---=20
-Gra=C5=BEvydas
---
-To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Thus closing flag added with this patch can be used in low level driver to
+identify the port close.
+
+Discussion reference:
+http://marc.info/?l=linux-omap&m=133491321605924&w=2
+
+Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
+Cc: Alan Cox <alan@linux.intel.com>
+Signed-off-by: Govindraj.R <govindraj.raja@ti.com>
+---
+ drivers/tty/serial/serial_core.c |    3 +++
+ include/linux/serial_core.h      |    1 +
+ 2 files changed, 4 insertions(+), 0 deletions(-)
+
+diff --git a/drivers/tty/serial/serial_core.c b/drivers/tty/serial/serial_core.c
+index 9c4c05b..0dc246d 100644
+--- a/drivers/tty/serial/serial_core.c
++++ b/drivers/tty/serial/serial_core.c
+@@ -1284,6 +1284,8 @@ static void uart_close(struct tty_struct *tty, struct file *filp)
+ 		uart_wait_until_sent(tty, uport->timeout);
+ 	}
+ 
++	state->uart_port->closing = true;
++
+ 	mutex_lock(&port->mutex);
+ 	uart_shutdown(tty, state);
+ 	uart_flush_buffer(tty);
+@@ -1518,6 +1520,7 @@ static int uart_open(struct tty_struct *tty, struct file *filp)
+ 	if (port->count == 1)
+ 		uart_change_pm(state, 0);
+ 
++	state->uart_port->closing = false;
+ 	/*
+ 	 * Start up the serial port.
+ 	 */
+diff --git a/include/linux/serial_core.h b/include/linux/serial_core.h
+index 2db407a..f5cd1ee 100644
+--- a/include/linux/serial_core.h
++++ b/include/linux/serial_core.h
+@@ -381,6 +381,7 @@ struct uart_port {
+ 	unsigned char		irq_wake;
+ 	unsigned char		unused[2];
+ 	void			*private_data;		/* generic platform data pointer */
++	unsigned char		closing;
+ };
+ 
+ static inline int serial_port_in(struct uart_port *up, int offset)
+-- 
+1.7.9
+
