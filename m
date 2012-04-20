@@ -1,97 +1,53 @@
-From: "T Krishnamoorthy, Balaji" <balajitk@ti.com>
-Subject: Re: [PATCH 00/19] ARM: OMAP4 device off support
-Date: Fri, 20 Apr 2012 17:50:16 +0530
-Message-ID: <CANrkHUa5q10FFxsZfgtMqKbzKKFHCcf3yYsaOK+hG8CJiME2TA@mail.gmail.com>
-References: <1334914432-26456-1-git-send-email-t-kristo@ti.com>
+From: Rabin Vincent <rabin@rab.in>
+Subject: Re: Bug in _und_usr on dual-core ARM?
+Date: Fri, 20 Apr 2012 18:07:19 +0530
+Message-ID: <CAH+eYFB9BObf6RgdUixWhY-_Cc-HHHO8Q1STq06MEEQhpda9Gw@mail.gmail.com>
+References: <BANLkTinY+_+tHatRWuRFUJewUibpmvkUqA@mail.gmail.com> <20110621091529.GA22868@n2100.arm.linux.org.uk>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="iso-8859-1"
-Content-Transfer-Encoding: quoted-printable
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-In-Reply-To: <1334914432-26456-1-git-send-email-t-kristo@ti.com>
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: linux-arm-kernel-bounces@lists.infradead.org
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: Tero Kristo <t-kristo@ti.com>
-Cc: khilman@ti.com, paul@pwsan.com, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from mail-yw0-f46.google.com ([209.85.213.46]:61816 "EHLO
+	mail-yw0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751280Ab2DTMiM convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 20 Apr 2012 08:38:12 -0400
+Received: by yhmm54 with SMTP id m54so5055938yhm.19
+        for <linux-omap@vger.kernel.org>; Fri, 20 Apr 2012 05:38:12 -0700 (PDT)
+In-Reply-To: <20110621091529.GA22868@n2100.arm.linux.org.uk>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Russell King - ARM Linux <linux@arm.linux.org.uk>
+Cc: TAO HU <tghk48@motorola.com>, linux-omap <linux-omap@vger.kernel.org>, Zhou Ming-a17711 <a17711@motorola.com>, linux-arm-kernel@lists.infradead.org
 
-On Fri, Apr 20, 2012 at 3:03 PM, Tero Kristo <t-kristo@ti.com> wrote:
-> Hi,
+On Tue, Jun 21, 2011 at 14:45, Russell King - ARM Linux
+<linux@arm.linux.org.uk> wrote:
+> On Tue, Jun 21, 2011 at 04:31:19PM +0800, TAO HU wrote:
+>> We got an issue on our OMAP4 SMP system.
+>> Looks like __und_user(), which was triggered by a user space
+>> exception, got a page fault hence lead to might_sleep() failure.
 >
-> First version for this work. Applies on top of mainline + iochain set +
-> OMAP4 core retention set. Working tree available here:
-> tree: git://gitorious.org/~kristo/omap-pm/omap-pm-work.git
-> branch: mainline-3.4-omap4-dev-off
+> Could you see whether this patch prevents the warning please.
 >
-> Tested on omap4430 EMU blaze + omap4460 GP panda boards.
+> diff --git a/arch/arm/mm/fault.c b/arch/arm/mm/fault.c
+> index bc0e1d8..d52b940 100644
+> --- a/arch/arm/mm/fault.c
+> +++ b/arch/arm/mm/fault.c
+> @@ -289,7 +289,7 @@ do_page_fault(unsigned long addr, unsigned int fs=
+r, struct pt_regs *regs)
+> =A0 =A0 =A0 =A0 * If we're in an interrupt or have no user
+> =A0 =A0 =A0 =A0 * context, we must not take the fault..
+> =A0 =A0 =A0 =A0 */
+> - =A0 =A0 =A0 if (in_atomic() || !mm)
+> + =A0 =A0 =A0 if (in_atomic() || irqs_disabled() || !mm)
+> =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0goto no_context;
 >
-> Some drivers have issues with device off, most notably MMC, as it breaks
-> device off on blaze device after 1 entry to device off mode:
->
-> [ =A0208.906921] omap_i2c omap_i2c.1: XRDY IRQ while no data to send
-> [ =A0209.905639] omap_i2c omap_i2c.1: controller timed out
-> [ =A0209.905792] twl: i2c_read failed to transfer all messages
-> [ =A0209.905792] omap_hsmmc omap_hsmmc.1: could not set regulator OCR (-1=
-10)
-> [ =A0212.296203] mmc0: error -110 during resume (card was removed?)
-Hi Tero,
+> =A0 =A0 =A0 =A0/*
 
-I tried your branch on gp/emu devices but could not reproduce this issue.
-My observation is that while resuming, omap_hsmmc.1 eMMC is
-trying to turn on phoenix vaux1 regulator via i2c which fails due
-to controller timeout.
-Note: eMMC is present only on sdp/blaze
-
-> [ =A0212.562164] PM: resume of devices complete after 3656.007 msecs
-> [ =A0212.660125] Restarting tasks ... done.
-> #
-> # echo mem > /sys/power/state
-> [ =A0220.376892] PM: Syncing filesystems ... done.
-> [ =A0220.382476] Freezing user space processes ... (elapsed 0.01 seconds)=
- done.
-> [ =A0220.408386] Freezing remaining freezable tasks ... (elapsed 0.02 sec=
-onds) don
-> e.
-> [ =A0220.439605] Suspending console(s) (use no_console_suspend to debug)
-> [ =A0220.454650] dpm_run_callback(): platform_pm_suspend+0x0/0x54 returns=
- -110
-> [ =A0220.454711] PM: Device omap_hsmmc.1 failed to suspend: error -110
-> [ =A0220.454711] PM: Some devices failed to suspend
-> [ =A0220.718261] PM: resume of devices complete after 263.539 msecs
-> [ =A0220.743988] Restarting tasks ... done.
->
-> Attempting to disable MMC from config prevented boot completely for me,
-> so this issue is likely to stay until someone fixes the MMC driver.
-> Panda device works fine though, although the wakeup from device off is
-> slow due to problems with some other drivers (most likely I2C.)
->
-
-can you try this patch if you want to disable MMC
-http://permalink.gmane.org/gmane.linux.ports.arm.omap/74540
-or
-http://www.spinics.net/lists/linux-omap/msg67879.html
-and build omap_hsmmc as module.
-
-> Off mode is disabled by default, it can be enabled by either calling
-> omap4_pm_enable_off_mode(1) from board files or alternatively writing
-> to a debugfs node from userspace:
->
-> echo 1 > /debug/pm_debug/enable_off_mode
->
-> Device off entry can be tracked through the debugfs also, it increases
-> the core_pwrdm OFF state counter / timer, as this is an invalid state
-> for the chip normally (core enters OSWR in device off.) Not sure if this
-> a good way to do this but comments are welcome.
->
-> -Tero
->
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-omap" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at =A0http://vger.kernel.org/majordomo-info.html
+I am able to trigger the discussed warning on current mainline with a
+constructed test case, and the above patch does prevent it.  Could it
+please be applied?
+--
+To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
