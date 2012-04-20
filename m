@@ -1,77 +1,118 @@
 From: Tero Kristo <t-kristo@ti.com>
-Subject: [PATCHv4 6/8] ARM: OMAP4: PM: support ret_logic/mem_off_counters
-Date: Fri, 20 Apr 2012 12:19:49 +0300
-Message-ID: <1334913591-26312-7-git-send-email-t-kristo@ti.com>
+Subject: [PATCHv4 8/8] ARM: OMAP4: PM: Added option for enabling OSWR
+Date: Fri, 20 Apr 2012 12:19:51 +0300
+Message-ID: <1334913591-26312-9-git-send-email-t-kristo@ti.com>
 References: <1334913591-26312-1-git-send-email-t-kristo@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from bear.ext.ti.com ([192.94.94.41]:50513 "EHLO bear.ext.ti.com"
+Received: from comal.ext.ti.com ([198.47.26.152]:47273 "EHLO comal.ext.ti.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752147Ab2DTJUV (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Fri, 20 Apr 2012 05:20:21 -0400
+	id S1752323Ab2DTJUZ (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Fri, 20 Apr 2012 05:20:25 -0400
 In-Reply-To: <1334913591-26312-1-git-send-email-t-kristo@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: linux-omap@vger.kernel.org, khilman@ti.com, paul@pwsan.com
-Cc: linux-arm-kernel@lists.infradead.org, Axel Haslam <axelhaslam@gmail.com>, Rajendra Nayak <rnayak@ti.com>
+Cc: linux-arm-kernel@lists.infradead.org
 
-From: Axel Haslam <axelhaslam@gmail.com>
+PM debug now contains a file that can be used to control OSWR support
+enable / disable on OMAP4. Also removed the off_mode_enable file for
+the same platform as it is unsupported.
 
-On OMAP4, there is no support to read previous logic state
-or previous memory state achieved when a power domain transitions
-to RET. Instead there are module level context registers.
-
-In order to support the powerdomain level logic/mem_off_counters
-on OMAP4, instead use the previous power state achieved (RET) and
-the *programmed* logic/mem RET state to derive if a powerdomain lost
-logic or did not.
-
-If the powerdomain is programmed to enter RET state and lose logic
-in RET state, knowing that the powerdomain entered RET is good enough
-to derive that the logic was lost as well, in such cases.
-
-Signed-off-by: Axel Haslam <axelhaslam@gmail.com>
-[rnayak@ti.com: Updated changelog, updated patch to support mem counters]
-Signed-off-by: Rajendra Nayak <rnayak@ti.com>
 Signed-off-by: Tero Kristo <t-kristo@ti.com>
 ---
- arch/arm/mach-omap2/powerdomain.c |   16 ++++++++++------
- 1 files changed, 10 insertions(+), 6 deletions(-)
+ arch/arm/mach-omap2/pm-debug.c |   20 ++++++++++++++++----
+ arch/arm/mach-omap2/pm.h       |    1 +
+ arch/arm/mach-omap2/pm44xx.c   |   16 ++++++++++++++++
+ 3 files changed, 33 insertions(+), 4 deletions(-)
 
-diff --git a/arch/arm/mach-omap2/powerdomain.c b/arch/arm/mach-omap2/powerdomain.c
-index 96ad3dbe..068f06b 100644
---- a/arch/arm/mach-omap2/powerdomain.c
-+++ b/arch/arm/mach-omap2/powerdomain.c
-@@ -124,18 +124,22 @@ static int _pwrdm_register(struct powerdomain *pwrdm)
- static void _update_logic_membank_counters(struct powerdomain *pwrdm)
- {
- 	int i;
--	u8 prev_logic_pwrst, prev_mem_pwrst;
-+	int logic_pwrst, mem_pwrst;
+diff --git a/arch/arm/mach-omap2/pm-debug.c b/arch/arm/mach-omap2/pm-debug.c
+index 814bcd9..d9a8e42 100644
+--- a/arch/arm/mach-omap2/pm-debug.c
++++ b/arch/arm/mach-omap2/pm-debug.c
+@@ -39,6 +39,7 @@
+ #include "pm.h"
+ 
+ u32 enable_off_mode;
++static u32 enable_oswr_mode;
+ 
+ #ifdef CONFIG_DEBUG_FS
+ #include <linux/debugfs.h>
+@@ -247,10 +248,13 @@ static int option_set(void *data, u64 val)
+ 			omap_pm_enable_off_mode();
+ 		else
+ 			omap_pm_disable_off_mode();
+-		if (cpu_is_omap34xx())
+-			omap3_pm_off_mode_enable(val);
 +
-+	logic_pwrst = pwrdm_read_prev_logic_pwrst(pwrdm);
-+	if (logic_pwrst == -EINVAL)
-+		logic_pwrst = pwrdm_read_logic_retst(pwrdm);
- 
--	prev_logic_pwrst = pwrdm_read_prev_logic_pwrst(pwrdm);
- 	if ((pwrdm->pwrsts_logic_ret == PWRSTS_OFF_RET) &&
--	    (prev_logic_pwrst == PWRDM_POWER_OFF))
-+	    (logic_pwrst == PWRDM_POWER_OFF))
- 		pwrdm->ret_logic_off_counter++;
- 
- 	for (i = 0; i < pwrdm->banks; i++) {
--		prev_mem_pwrst = pwrdm_read_prev_mem_pwrst(pwrdm, i);
--
-+		mem_pwrst = pwrdm_read_prev_mem_pwrst(pwrdm, i);
-+		if (mem_pwrst == -EINVAL)
-+			mem_pwrst = pwrdm_read_mem_retst(pwrdm, i);
- 		if ((pwrdm->pwrsts_mem_ret[i] == PWRSTS_OFF_RET) &&
--		    (prev_mem_pwrst == PWRDM_POWER_OFF))
-+		    (mem_pwrst == PWRDM_POWER_OFF))
- 			pwrdm->ret_mem_off_counter[i]++;
++		omap3_pm_off_mode_enable(val);
  	}
+ 
++	if (option == &enable_oswr_mode)
++		omap4_pm_oswr_mode_enable(val);
++
+ 	return 0;
  }
+ 
+@@ -274,8 +278,16 @@ static int __init pm_dbg_init(void)
+ 
+ 	pwrdm_for_each(pwrdms_setup, (void *)d);
+ 
+-	(void) debugfs_create_file("enable_off_mode", S_IRUGO | S_IWUSR, d,
+-				   &enable_off_mode, &pm_dbg_option_fops);
++	if (cpu_is_omap34xx())
++		(void) debugfs_create_file("enable_off_mode",
++			S_IRUGO | S_IWUSR, d, &enable_off_mode,
++			&pm_dbg_option_fops);
++
++	if (cpu_is_omap44xx())
++		(void) debugfs_create_file("enable_oswr_mode",
++			S_IRUGO | S_IWUSR, d, &enable_oswr_mode,
++			&pm_dbg_option_fops);
++
+ 	pm_dbg_init_done = 1;
+ 
+ 	return 0;
+diff --git a/arch/arm/mach-omap2/pm.h b/arch/arm/mach-omap2/pm.h
+index 256e63c..07ad800 100644
+--- a/arch/arm/mach-omap2/pm.h
++++ b/arch/arm/mach-omap2/pm.h
+@@ -17,6 +17,7 @@
+ 
+ extern void *omap3_secure_ram_storage;
+ extern void omap3_pm_off_mode_enable(int);
++extern void omap4_pm_oswr_mode_enable(int);
+ extern void omap_sram_idle(void);
+ extern int omap_set_pwrdm_state(struct powerdomain *pwrdm, u32 state);
+ extern int omap3_idle_init(void);
+diff --git a/arch/arm/mach-omap2/pm44xx.c b/arch/arm/mach-omap2/pm44xx.c
+index cc85576..07ac0d3 100644
+--- a/arch/arm/mach-omap2/pm44xx.c
++++ b/arch/arm/mach-omap2/pm44xx.c
+@@ -115,6 +115,22 @@ static int __init pwrdms_setup(struct powerdomain *pwrdm, void *unused)
+ 	return omap_set_pwrdm_state(pwrst->pwrdm, pwrst->next_state);
+ }
+ 
++void omap4_pm_oswr_mode_enable(int enable)
++{
++	u32 next_logic_state;
++	struct power_state *pwrst;
++
++	if (enable)
++		next_logic_state = PWRDM_POWER_OFF;
++	else
++		next_logic_state = PWRDM_POWER_RET;
++
++	list_for_each_entry(pwrst, &pwrst_list, node) {
++		pwrst->next_logic_state = next_logic_state;
++		pwrdm_set_logic_retst(pwrst->pwrdm, pwrst->next_logic_state);
++	}
++}
++
+ /**
+  * omap_default_idle - OMAP4 default ilde routine.'
+  *
 -- 
 1.7.4.1
 
