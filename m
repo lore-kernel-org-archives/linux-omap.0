@@ -1,105 +1,66 @@
-From: Jan Weitzel <j.weitzel@phytec.de>
-Subject: [PATCH] ARM: OMAP2+ Add Primview displays to panel-generic
-Date: Fri, 20 Apr 2012 11:41:22 +0200
-Message-ID: <1334914882-20250-1-git-send-email-j.weitzel@phytec.de>
+From: Tomi Valkeinen <tomi.valkeinen@ti.com>
+Subject: Re: [PATCH] ARM: OMAP2+ Add Primview displays to panel-generic
+Date: Fri, 20 Apr 2012 12:45:30 +0300
+Message-ID: <1334915130.2058.22.camel@deskari>
 References: <1334910621.2058.2.camel@deskari>
+	 <1334914882-20250-1-git-send-email-j.weitzel@phytec.de>
+Mime-Version: 1.0
+Content-Type: multipart/signed; micalg="pgp-sha1"; protocol="application/pgp-signature"; boundary="=-cRyIYaPihjTZqF7WfUo/"
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail.rapiddevelopmentkit.de ([217.6.246.34]:56615 "EHLO
-	root.phytec.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1750814Ab2DTJl3 (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Fri, 20 Apr 2012 05:41:29 -0400
-In-Reply-To: <1334910621.2058.2.camel@deskari>
+Received: from na3sys009aog119.obsmtp.com ([74.125.149.246]:49712 "EHLO
+	na3sys009aog119.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1752453Ab2DTJpf (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>);
+	Fri, 20 Apr 2012 05:45:35 -0400
+Received: by lagv3 with SMTP id v3so12015406lag.27
+        for <linux-omap@vger.kernel.org>; Fri, 20 Apr 2012 02:45:32 -0700 (PDT)
+In-Reply-To: <1334914882-20250-1-git-send-email-j.weitzel@phytec.de>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: tomi.valkeinen@ti.com
-Cc: linux-omap@vger.kernel.org, Jan Weitzel <j.weitzel@phytec.de>
+To: Jan Weitzel <j.weitzel@phytec.de>
+Cc: linux-omap@vger.kernel.org
 
-Add displays to panel-generic-dpi.c
-Prime View PD050VL1 (640 x 480)
-Prime View PD104SLF (800 x 600)
-Prime View PM070WL4 (800 x 480)
 
-Signed-off-by: Jan Weitzel <j.weitzel@phytec.de>
----
-v2:	Add primeview prefix
+--=-cRyIYaPihjTZqF7WfUo/
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: quoted-printable
 
- drivers/video/omap2/displays/panel-generic-dpi.c |   63 ++++++++++++++++++++++
- 1 files changed, 63 insertions(+), 0 deletions(-)
+On Fri, 2012-04-20 at 11:41 +0200, Jan Weitzel wrote:
+> Add displays to panel-generic-dpi.c
+> Prime View PD050VL1 (640 x 480)
+> Prime View PD104SLF (800 x 600)
+> Prime View PM070WL4 (800 x 480)
+>=20
+> Signed-off-by: Jan Weitzel <j.weitzel@phytec.de>
+> ---
+> v2:	Add primeview prefix
 
-diff --git a/drivers/video/omap2/displays/panel-generic-dpi.c b/drivers/video/omap2/displays/panel-generic-dpi.c
-index 28b9a6d..85ee8d3 100644
---- a/drivers/video/omap2/displays/panel-generic-dpi.c
-+++ b/drivers/video/omap2/displays/panel-generic-dpi.c
-@@ -363,6 +363,69 @@ static struct panel_config generic_dpi_panels[] = {
- 
- 		.name			= "ortustech_com43h4m10xtc",
- 	},
-+
-+	/* Prime-View PD050VL1 */
-+	{
-+		{
-+			.x_res		= 640,
-+			.y_res		= 480,
-+
-+			.pixel_clock	= 25000,
-+
-+			.hsw		= 96,
-+			.hfp		= 18,
-+			.hbp		= 46,
-+
-+			.vsw		= 2,
-+			.vfp		= 10,
-+			.vbp		= 33,
-+		},
-+		.config			= OMAP_DSS_LCD_TFT | OMAP_DSS_LCD_IVS |
-+					  OMAP_DSS_LCD_IHS | OMAP_DSS_LCD_IPC,
-+		.name			= "primeview_pd050vl1",
-+	},
-+
-+	/* Prime-View PM070WL4 */
-+	{
-+		{
-+			.x_res		= 800,
-+			.y_res		= 480,
-+
-+			.pixel_clock	= 32000,
-+
-+			.hsw		= 128,
-+			.hfp		= 42,
-+			.hbp		= 86,
-+
-+			.vsw		= 2,
-+			.vfp		= 10,
-+			.vbp		= 33,
-+		},
-+		.config			= OMAP_DSS_LCD_TFT | OMAP_DSS_LCD_IVS |
-+					  OMAP_DSS_LCD_IHS | OMAP_DSS_LCD_IPC,
-+		.name			= "primeview_pm070wl4",
-+	},
-+
-+	/* Prime-View PD104SLF */
-+	{
-+		{
-+			.x_res		= 800,
-+			.y_res		= 600,
-+
-+			.pixel_clock	= 40000,
-+
-+			.hsw		= 128,
-+			.hfp		= 42,
-+			.hbp		= 86,
-+
-+			.vsw		= 4,
-+			.vfp		= 1,
-+			.vbp		= 23,
-+		},
-+		.config			= OMAP_DSS_LCD_TFT | OMAP_DSS_LCD_IVS |
-+					  OMAP_DSS_LCD_IHS | OMAP_DSS_LCD_IPC,
-+		.name			= "primeview_pd104slf",
-+	},
- };
- 
- struct panel_drv_data {
--- 
-1.7.0.4
+Thanks, I'll apply.
+
+ Tomi
+
+
+--=-cRyIYaPihjTZqF7WfUo/
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: This is a digitally signed message part
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.4.11 (GNU/Linux)
+
+iQIcBAABAgAGBQJPkTA6AAoJEPo9qoy8lh71n8QQAIy+SnLUqA/jBWbkgZH2MSlc
+O82uqhto6mDBcTdZ5wB8zN+r4gd+Yw00hwAJC+cV44UlBmQL68gN0XFZGWO2tdSv
+06sl3oMf1Y+jSmDNbotYRBfKSNHTJWMxBNR6WJzx7hNKs5CRnbW4/wLHwMa+rwzS
+0RTZC09rlctZS7ev77OFVGBZGeIbnhoIS2cM1PYw4eAiyUfa23QXx6yP7X5lC1es
+Kdc6z/cAfDTXGPxqT12ufm2ew4eXok7HCBxCo5lWmIqvrRi0oJgNfUyghaMzReyP
+rzruZv/Jm7xYiSRcwmmXG+jeFYyrYjtSlqyP2dQgvmo1W9YR22FG2/ZOPtkGv5Je
+0wJJ6jd1ftvWXYlCvy2WnvG2C9+Ymm6kB3y8AoiAhUPefCxzVZxZBoBwjs9+L08P
++kZslEBHmJruToXL/fU9x8zB3orpUUOkXB+8rBZSWFcfJToGJjrjirIcY9buZL31
+cdC+8G/BGz5UImHLWpT/YHEV6OuLenVUy3deY7tZqSc1kPe3uOGJKm4tg/cyvbMq
+yprzTYSwSi5xdfQTXkSX6vhykrvBXo6Tye0cF9vcfMVUBbS31ySoPiMeNPkYj0fe
+mhEJcszd6jMEJY+Yc8AJ5RFyYYU5NrWJmr9gcMeMiWCwOYfK4iaYQ/JDIqAkIyvC
+IWj60oeJFug9xtx1TY4E
+=J9d9
+-----END PGP SIGNATURE-----
+
+--=-cRyIYaPihjTZqF7WfUo/--
 
