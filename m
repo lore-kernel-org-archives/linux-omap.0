@@ -1,59 +1,142 @@
-From: Sebastian Reichel <sre@debian.org>
-Subject: HSI: any status updates on omap_ssi?
-Date: Sat, 21 Apr 2012 12:52:35 +0200
-Message-ID: <20120421105235.GA3296@earth.universe>
+From: Janusz Krzysztofik <jkrzyszt@tis.icnet.pl>
+Subject: Re: [PATCH v9 11/25] gpio/omap: cleanup omap_gpio_mod_init function
+Date: Sat, 21 Apr 2012 16:03:36 +0200
+Message-ID: <13629551.hP3ZV1ajDo@vclass>
+References: <1328203851-20435-1-git-send-email-tarun.kanti@ti.com> <1328203851-20435-12-git-send-email-tarun.kanti@ti.com>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha256;
-	protocol="application/pgp-signature"; boundary="envbJBWh7q8WU6mo"
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 7Bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from ring0.de ([91.143.88.219]:44845 "EHLO ring0.de"
+Received: from d1.icnet.pl ([212.160.220.21]:60751 "EHLO d1.icnet.pl"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752142Ab2DULWw (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Sat, 21 Apr 2012 07:22:52 -0400
-Content-Disposition: inline
+	id S1752099Ab2DUOEy (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Sat, 21 Apr 2012 10:04:54 -0400
+In-Reply-To: <1328203851-20435-12-git-send-email-tarun.kanti@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Carlos Chinea <carlos.chinea@nokia.com>
-Cc: linux-omap@vger.kernel.org
+To: Tarun Kanti DebBarma <tarun.kanti@ti.com>
+Cc: linux-omap@vger.kernel.org, grant.likely@secretlab.ca, khilman@ti.com, tony@atomide.com, linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Charulatha V <charu@ti.com>
 
+On Thursday 02 of February 2012 23:00:37 Tarun Kanti DebBarma wrote:
+> With register offsets now defined for respective OMAP versions we can get rid
+> of cpu_class_* checks. This function now has common initialization code for
+> all OMAP versions...
+> 
+> Signed-off-by: Tarun Kanti DebBarma <tarun.kanti@ti.com>
+> Signed-off-by: Charulatha V <charu@ti.com>
+> Reviewed-by: Santosh Shilimkar <santosh.shilimkar@ti.com>
+> Acked-by: Tony Lindgren <tony@atomide.com>
 
---envbJBWh7q8WU6mo
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
+Sorry for being so late with my comment for chanes already present in 
+mainline, but this patch breaks GPIO on Amstrad Delta at least, and I 
+have neither enough spare time nor enough experience with non OMAP1 
+machines to provide a solution myself.
 
-Hi,
+> ---
+>  arch/arm/mach-omap1/gpio16xx.c |   35 +++++++++++++++++-
+>  drivers/gpio/gpio-omap.c       |   77 ++++++++++++----------------------------
+>  2 files changed, 57 insertions(+), 55 deletions(-)
+...
+> diff --git a/drivers/gpio/gpio-omap.c b/drivers/gpio/gpio-omap.c
+> index f39d9e4..a948351 100644
+> --- a/drivers/gpio/gpio-omap.c
+> +++ b/drivers/gpio/gpio-omap.c
+...
+> @@ -898,62 +896,30 @@ static void __init omap_gpio_show_rev(struct gpio_bank *bank)
+>   */
+>  static struct lock_class_key gpio_lock_class;
+>  
+> -/* TODO: Cleanup cpu_is_* checks */
+>  static void omap_gpio_mod_init(struct gpio_bank *bank)
+>  {
+> -	if (cpu_class_is_omap2()) {
+> -		if (cpu_is_omap44xx()) {
+> -			__raw_writel(0xffffffff, bank->base +
+> -					OMAP4_GPIO_IRQSTATUSCLR0);
+> -			__raw_writel(0x00000000, bank->base +
+> -					 OMAP4_GPIO_DEBOUNCENABLE);
+> -			/* Initialize interface clk ungated, module enabled */
+> -			__raw_writel(0, bank->base + OMAP4_GPIO_CTRL);
+> -		} else if (cpu_is_omap34xx()) {
+> -			__raw_writel(0x00000000, bank->base +
+> -					OMAP24XX_GPIO_IRQENABLE1);
+> -			__raw_writel(0xffffffff, bank->base +
+> -					OMAP24XX_GPIO_IRQSTATUS1);
+> -			__raw_writel(0x00000000, bank->base +
+> -					OMAP24XX_GPIO_DEBOUNCE_EN);
+> -
+> -			/* Initialize interface clk ungated, module enabled */
+> -			__raw_writel(0, bank->base + OMAP24XX_GPIO_CTRL);
+> -		}
+> -	} else if (cpu_class_is_omap1()) {
+> -		if (bank_is_mpuio(bank)) {
+> -			__raw_writew(0xffff, bank->base +
+> -				OMAP_MPUIO_GPIO_MASKIT / bank->stride);
+> -			mpuio_init(bank);
+> -		}
+> -		if (cpu_is_omap15xx() && bank->method == METHOD_GPIO_1510) {
+> -			__raw_writew(0xffff, bank->base
+> -						+ OMAP1510_GPIO_INT_MASK);
+> -			__raw_writew(0x0000, bank->base
+> -						+ OMAP1510_GPIO_INT_STATUS);
+> -		}
+> -		if (cpu_is_omap16xx() && bank->method == METHOD_GPIO_1610) {
+> -			__raw_writew(0x0000, bank->base
+> -						+ OMAP1610_GPIO_IRQENABLE1);
+> -			__raw_writew(0xffff, bank->base
+> -						+ OMAP1610_GPIO_IRQSTATUS1);
+> -			__raw_writew(0x0014, bank->base
+> -						+ OMAP1610_GPIO_SYSCONFIG);
+> +	void __iomem *base = bank->base;
+> +	u32 l = 0xffffffff;
+>  
+> -			/*
+> -			 * Enable system clock for GPIO module.
+> -			 * The CAM_CLK_CTRL *is* really the right place.
+> -			 */
+> -			omap_writel(omap_readl(ULPD_CAM_CLK_CTRL) | 0x04,
+> -						ULPD_CAM_CLK_CTRL);
+> -		}
+> -		if (cpu_is_omap7xx() && bank->method == METHOD_GPIO_7XX) {
+> -			__raw_writel(0xffffffff, bank->base
+> -						+ OMAP7XX_GPIO_INT_MASK);
+> -			__raw_writel(0x00000000, bank->base
+> -						+ OMAP7XX_GPIO_INT_STATUS);
+> -		}
+> +	if (bank->width == 16)
+> +		l = 0xffff;
+> +
+> +	if (bank_is_mpuio(bank)) {
+> +		__raw_writel(l, bank->base + bank->regs->irqenable);
+> +		return;
+>  	}
+> +
+> +	_gpio_rmw(base, bank->regs->irqenable, l, bank->regs->irqenable_inv);
+> +	_gpio_rmw(base, bank->regs->irqstatus, l,
+> +					bank->regs->irqenable_inv == false);
+> +	_gpio_rmw(base, bank->regs->irqenable, l, bank->regs->debounce_en != 0);
+> +	_gpio_rmw(base, bank->regs->irqenable, l, bank->regs->ctrl != 0);
 
-Missing omap_ssi support is currently the most important missing
-feature, to make the mainline kernel on the Nokia N900 useful, see
-also [0].
+bank->regs->irqenable trgister is manipulated 3 times in a row, each 
+time based on different criteria. This breaks GPIO on Amstrad Delta at 
+least, and generally looks wrong. I was only able to verify that 
+commenting out the above two lines fixes the issue with Amstrad Delta for 
+me.
 
-Can you prepare SSI inclusion into the mainline kernel, now that HSI
-has been pulled into 3.4? Do you think we get SSI support in 3.5?
+> +	if (bank->regs->debounce_en)
+> +		_gpio_rmw(base, bank->regs->debounce_en, 0, 1);
 
-[0] http://elinux.org/N900
+This also looks suspicious, I guess the second line should rather be:
 
--- Sebastian
+		_gpio_rmw(base, bank->regs->debounce, 0, 1);
 
---envbJBWh7q8WU6mo
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: Digital signature
+> +
+> +	 /* Initialize interface clk ungated, module enabled */
+> +	if (bank->regs->ctrl)
+> +		_gpio_rmw(base, bank->regs->ctrl, 0, 1);
 
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.4.12 (GNU/Linux)
+Is bank->regs->ctrl a flag, or a register offset? If the latter, is that 
+offset guaranteed to never take a valid value of 0?
 
-iQIcBAEBCAAGBQJPkpFzAAoJENju1/PIO/qaDAAP/0K9t8iuIgMYVsGHIVgzT6ln
-xOOy8Zy4j3I+xI7i8jqbRP2AvDBb0JqFi9qOy8ZiiyiGh5mwTUMf7c8LlJ1L2N19
-W9oGA7NdtXLAvxV1lNY4V/ZAOgeFP4SEDsS3DjG3tZ3FobQiyelnuwKF7sReCZaS
-71Lo5oxU8r95AfS7hM+Dele5g1sK0nxTOJ3LhCEDIqnF9fUdMDi13RPu8594+HZY
-nykcy6rgpvXiR24e/xxi6Y8Y7iBfWMlrmjtACnAXrtwqF3rwwSaoE8VevC//F2Tw
-q5fDhD1kfZcAa/ThvgstiEah+9RzyKQ8oAX00HYyGGld9fukgmkmIuPyK3c9xfIi
-85hOeEcNRlBFGjmo71smXfST/orziAYe70qOyQMgClbO+fKfs+yk+RcfF0X/zz4/
-oD0TRinjCihrtSgYSo67St0W7IjgxCohByxpNRb2LDaKUr6XMaj3b+oh/mK0KuCO
-vEdGqsPGN/sq61nmonspFoAHzyuuuVAC90gvSMewyzmKAUPbToRpAe+W1eGuwszG
-l2qUn5Q171VnSuUMe8GlA4JBTKBq6rAgrfX7bVZ2up3HuzJY17gTbdvHtBjy2VI7
-r72qIIAmsFrYGd0siQnN5q1IwbQW25IAGIOMIOO5QhC2QeDUMkVNJ3YpLkI1hJmE
-gDp0Kivwb0yc86xWYyrx
-=tGGa
------END PGP SIGNATURE-----
-
---envbJBWh7q8WU6mo--
+Thanks,
+Janusz
