@@ -1,43 +1,59 @@
-From: Russell King - ARM Linux <linux@arm.linux.org.uk>
-Subject: Re: [PATCH 5/8] mmc: omap_hsmmc: release correct resource
-Date: Sat, 21 Apr 2012 10:48:49 +0100
-Message-ID: <20120421094849.GZ25053@n2100.arm.linux.org.uk>
-References: <20120418100954.GK25053@n2100.arm.linux.org.uk> <E1SKRrh-0004bL-3j@rmk-PC.arm.linux.org.uk> <20120420222305.GI21106@atomide.com> <878vhqggbc.fsf@laptop.org> <871unhhkvk.fsf@laptop.org>
+From: Sebastian Reichel <sre@debian.org>
+Subject: HSI: any status updates on omap_ssi?
+Date: Sat, 21 Apr 2012 12:52:35 +0200
+Message-ID: <20120421105235.GA3296@earth.universe>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: multipart/signed; micalg=pgp-sha256;
+	protocol="application/pgp-signature"; boundary="envbJBWh7q8WU6mo"
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from caramon.arm.linux.org.uk ([78.32.30.218]:48457 "EHLO
-	caramon.arm.linux.org.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754715Ab2DUJtU (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Sat, 21 Apr 2012 05:49:20 -0400
+Received: from ring0.de ([91.143.88.219]:44845 "EHLO ring0.de"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752142Ab2DULWw (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Sat, 21 Apr 2012 07:22:52 -0400
 Content-Disposition: inline
-In-Reply-To: <871unhhkvk.fsf@laptop.org>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Chris Ball <cjb@laptop.org>
-Cc: Tony Lindgren <tony@atomide.com>, linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org, linux-mmc@vger.kernel.org
+To: Carlos Chinea <carlos.chinea@nokia.com>
+Cc: linux-omap@vger.kernel.org
 
-On Fri, Apr 20, 2012 at 10:35:59PM -0400, Chris Ball wrote:
-> Hi,
-> 
-> On Fri, Apr 20 2012, Chris Ball wrote:
-> > On Fri, Apr 20 2012, Tony Lindgren wrote:
-> >> * Russell King <rmk+kernel@arm.linux.org.uk> [120418 03:15]:
-> >>> res can be one of several resources, as this variable is re-used several
-> >>> times during probe.  This can cause the wrong resource parameters to be
-> >>> passed to release_mem_region().
-> >>> 
-> >>> Get the original memory resource before calling release_mem_region().
-> >>> 
-> >>> Signed-off-by: Russell King <rmk+kernel@arm.linux.org.uk>
-> >>
-> >> Acked-by: Tony Lindgren <tony@atomide.com>
-> >
-> > Thanks, pushed to mmc-next for 3.4.
-> 
-> (Actually, that's premature of me, sorry -- just noticed that this
-> is part of an RFC patchset.  I'll wait for the rest of the patches.)
 
-It was previously posted as an entirely separate patch - the reason its
-part of this RFC is because I needed the patch while developing this
-series.  So please go ahead and take _this_ patch.
+--envbJBWh7q8WU6mo
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+
+Hi,
+
+Missing omap_ssi support is currently the most important missing
+feature, to make the mainline kernel on the Nokia N900 useful, see
+also [0].
+
+Can you prepare SSI inclusion into the mainline kernel, now that HSI
+has been pulled into 3.4? Do you think we get SSI support in 3.5?
+
+[0] http://elinux.org/N900
+
+-- Sebastian
+
+--envbJBWh7q8WU6mo
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: Digital signature
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.4.12 (GNU/Linux)
+
+iQIcBAEBCAAGBQJPkpFzAAoJENju1/PIO/qaDAAP/0K9t8iuIgMYVsGHIVgzT6ln
+xOOy8Zy4j3I+xI7i8jqbRP2AvDBb0JqFi9qOy8ZiiyiGh5mwTUMf7c8LlJ1L2N19
+W9oGA7NdtXLAvxV1lNY4V/ZAOgeFP4SEDsS3DjG3tZ3FobQiyelnuwKF7sReCZaS
+71Lo5oxU8r95AfS7hM+Dele5g1sK0nxTOJ3LhCEDIqnF9fUdMDi13RPu8594+HZY
+nykcy6rgpvXiR24e/xxi6Y8Y7iBfWMlrmjtACnAXrtwqF3rwwSaoE8VevC//F2Tw
+q5fDhD1kfZcAa/ThvgstiEah+9RzyKQ8oAX00HYyGGld9fukgmkmIuPyK3c9xfIi
+85hOeEcNRlBFGjmo71smXfST/orziAYe70qOyQMgClbO+fKfs+yk+RcfF0X/zz4/
+oD0TRinjCihrtSgYSo67St0W7IjgxCohByxpNRb2LDaKUr6XMaj3b+oh/mK0KuCO
+vEdGqsPGN/sq61nmonspFoAHzyuuuVAC90gvSMewyzmKAUPbToRpAe+W1eGuwszG
+l2qUn5Q171VnSuUMe8GlA4JBTKBq6rAgrfX7bVZ2up3HuzJY17gTbdvHtBjy2VI7
+r72qIIAmsFrYGd0siQnN5q1IwbQW25IAGIOMIOO5QhC2QeDUMkVNJ3YpLkI1hJmE
+gDp0Kivwb0yc86xWYyrx
+=tGGa
+-----END PGP SIGNATURE-----
+
+--envbJBWh7q8WU6mo--
