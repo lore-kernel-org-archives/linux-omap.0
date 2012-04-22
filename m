@@ -1,62 +1,79 @@
-From: Artem Bityutskiy <artem.bityutskiy@linux.intel.com>
-Subject: Re: [PATCH] mtd: omap2: fix resource leak in prefetch-busy path
-Date: Sun, 22 Apr 2012 15:45:16 +0300
-Message-ID: <1335098716.4879.7.camel@golum>
-References: <1334106274-24993-1-git-send-email-notasas@gmail.com>
-Reply-To: artem.bityutskiy@linux.intel.com
+From: "Hiremath, Vaibhav" <hvaibhav@ti.com>
+Subject: RE: YUV422 input to CPI?
+Date: Sun, 22 Apr 2012 14:11:56 +0000
+Message-ID: <79CD15C6BA57404B839C016229A409A83E9F8032@DBDE01.ent.ti.com>
+References: <E47FC7FC-B1CC-4E8A-9957-AEAF483DDAFA@pg.canterbury.ac.nz>
+ <CA+2YH7vpCdXhJUQrsZ+3Tp=b5q=3su1K4TaEumWGeMeCZXpvyw@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg="pgp-sha1"; protocol="application/pgp-signature";
-	boundary="=-IZTs6yjpwK6c0S+eo9hE"
+Content-Type: text/plain; charset=iso-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mga02.intel.com ([134.134.136.20]:49212 "EHLO mga02.intel.com"
+Received: from arroyo.ext.ti.com ([192.94.94.40]:60628 "EHLO arroyo.ext.ti.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751613Ab2DVMpU (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Sun, 22 Apr 2012 08:45:20 -0400
-In-Reply-To: <1334106274-24993-1-git-send-email-notasas@gmail.com>
+	id S1751814Ab2DVOMP convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Sun, 22 Apr 2012 10:12:15 -0400
+In-Reply-To: <CA+2YH7vpCdXhJUQrsZ+3Tp=b5q=3su1K4TaEumWGeMeCZXpvyw@mail.gmail.com>
+Content-Language: en-US
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Grazvydas Ignotas <notasas@gmail.com>
-Cc: linux-mtd@lists.infradead.org, linux-omap@vger.kernel.org, David Woodhouse <dwmw2@infradead.org>
+To: Enrico <ebutera@users.sourceforge.net>, Simon Knopp <simon.knopp@pg.canterbury.ac.nz>
+Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "General mailing list for gumstix users." <gumstix-users@lists.sourceforge.net>
 
-
---=-IZTs6yjpwK6c0S+eo9hE
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: quoted-printable
-
-On Wed, 2012-04-11 at 04:04 +0300, Grazvydas Ignotas wrote:
-> If prefetch engine is busy, current code "forgets" to call
-> dma_unmap_single(), which results in a deadlock later, so add it.
+On Fri, Apr 20, 2012 at 15:56:46, Enrico wrote:
+> On Thu, Apr 19, 2012 at 11:56 PM, Simon Knopp
+> <simon.knopp@pg.canterbury.ac.nz> wrote:
+> > Hi all,
+> >
+> > I have a camera module capable of outputting YUV422 over a parallel=
+ interface. I've been having some issues interfacing this to a Gumstix.=
+ Reading through the OMAP3530 tech ref, I'm now beginning to wonder whe=
+ther it is actually possible to input YUV422 to the CPI?
+> >
+> > - =A0Section 12.1.1 mentions RGB and YeCyMgG for "image sensors"; Y=
+UV is only mentioned for CS1&2.
+> > - =A0On the other hand, 12.4.6.1 says that the CCDC accepts YUV dat=
+a in numerous formats.
+> >
+> > Is anyone able to confirm whether it's possible to input YUV422 to =
+the CPI?
 >=20
-> Signed-off-by: Grazvydas Ignotas <notasas@gmail.com>
+> Yes it's possible but yuv support is still not in mainline kernel.
+>=20
+> Have a look at the linux-media ml archive to know what is the current
+> status, problems etc...basically if you don't need bt656 support you
+> can try the omap3isp-omap3isp-yuv branch at [1].
+>=20
 
-Pushed to l2-mtd.git, thanks!
+During one of the internal releases, I have added YUV (BT656) support, =
+it is=20
+based on 2.6.37 based kernel, but still it will give you pointer and he=
+lp
+you to change the code to get support for the same.
 
---=20
-Best Regards,
-Artem Bityutskiy
+I have created separate, clean and independent patches for=20
+adding support for BT656 YUV support.
 
---=-IZTs6yjpwK6c0S+eo9hE
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: This is a digitally signed message part
-Content-Transfer-Encoding: 7bit
 
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.4.12 (GNU/Linux)
+http://arago-project.org/git/projects/?p=3Dlinux-omap3.git;a=3Dhistory;=
+f=3Ddrivers/media/video/isp;hb=3D20c003f2f024d9f50f59edf9f1b8f5f035fb15=
+b8
 
-iQIcBAABAgAGBQJPk/1dAAoJECmIfjd9wqK0zbsQAJiLSJIYdzQtC9syYamMc8yf
-6x6cdglhtSj/BuOg/se8JqIWTVPS7uams6EU/uopvqxYZkCcj3bgTlPvPPT/nFhM
-7wwpVBWLmvfFZUbMJb0J8s7H1yC222DmkQYCM6srhfyfVW9h/+2KEWgW1JbGEEuM
-8wsRJLB89r6Tu52fjopo1W1CAYmduI/sXrgXisLiFACzrHkvLr9ljX7D/vTjmvR2
-ZzgrGEPMh+czRGbwrg6b4eUFsvXN+xoppUZMo80v1C/Wq5OEv6008Ahzp0pcGUCr
-zOoLPQ4Sosm87rF9DYrN1roqwiHztwuolFrWfGmSng36kyFLKxYuufuS/dXbeH9o
-IdR5GCNky6/MtHx5+Wdpk3IxLCmeZVbl9LiPdsvypk0aXizAorZW+4arxqlKUOkg
-7N/CfgT39qGqHo7meGvWWfoCdSWYyPCEZmckAoreNiCjUBpLqHXXxQNxi/vkb0sU
-Fr/6eB3rMi9gKSeIZ7UyQ3ZqxcvRBu02unkScs3Hfrk5uzX3uD6ybAOgPFXo4F3u
-6vissNSvo0EXDb+5usR85/drytRg7sMXpymQKcOP91Ybcia1GIET8kup6tRHm2RI
-b9YOL0hThVqhjS2l0duRtsitqMTC7D2VWBIhCZtGIBmvPwWcGCzdvc/iYF4+3W/C
-8qOUp+302riNyPvoQAbj
-=GN7r
------END PGP SIGNATURE-----
 
---=-IZTs6yjpwK6c0S+eo9hE--
+Thanks,
+Vaibhav
 
+> Enrico
+>=20
+> [1]: http://git.linuxtv.org/pinchartl/media.git
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-omap"=
+ in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+>=20
+
+--
+To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
