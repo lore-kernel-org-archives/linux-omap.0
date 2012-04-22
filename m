@@ -1,27 +1,37 @@
-From: Russ Dill <Russ.Dill@ti.com>
-Subject: Re: [PATCH] Fix build breakage in omap-usb-host.c
-Date: Sun, 22 Apr 2012 01:50:39 -0700
-Message-ID: <CA+Bv8XbDZSsrF5NPXVE-zOWQ=NoZmWvtsoDTL42a70unFA8QFw@mail.gmail.com>
-References: <1335084498-17918-1-git-send-email-Russ.Dill@ti.com>
+From: Russell King - ARM Linux <linux@arm.linux.org.uk>
+Subject: tidspbridge in drivers/staging
+Date: Sun, 22 Apr 2012 10:57:17 +0100
+Message-ID: <20120422095717.GA25053@n2100.arm.linux.org.uk>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
+Content-Type: text/plain; charset=iso-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-lb0-f174.google.com ([209.85.217.174]:58220 "EHLO
-	mail-lb0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751980Ab2DVIul (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Sun, 22 Apr 2012 04:50:41 -0400
-Received: by lbom4 with SMTP id m4so4923510lbo.19
-        for <linux-omap@vger.kernel.org>; Sun, 22 Apr 2012 01:50:39 -0700 (PDT)
-In-Reply-To: <1335084498-17918-1-git-send-email-Russ.Dill@ti.com>
+Received: from caramon.arm.linux.org.uk ([78.32.30.218]:43830 "EHLO
+	caramon.arm.linux.org.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750899Ab2DVJ5Y (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Sun, 22 Apr 2012 05:57:24 -0400
+Content-Disposition: inline
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: linux-omap@vger.kernel.org
-Cc: Keshava Munegowda <Keshava_mgowda@ti.com>, Samuel Ortiz <sameo@linux.intel.com>, Russ Dill <Russ.Dill@ti.com>
+To: linux-omap@vger.kernel.org, =?iso-8859-1?Q?V=EDctor_Manuel_J=E1quez?= Leal <vjaquez@igalia.com>
+Cc: Greg KH <gregkh@linuxfoundation.org>
 
-On Sun, Apr 22, 2012 at 1:48 AM, Russ Dill <Russ.Dill@ti.com> wrote:
-> 'ARM: OMAP3: USB: Fix the EHCI ULPI PHY reset issue' removes the include for
-> linux/gpio.h from omap-usb-host.c. This include indirectly includes plat/cpu.h
-> which is required by omap-usb-host.c. Fix the build breakage by including
-> it directly.
+I've noticed these failure from time to time in my omap4 randconfig bui=
+lds:
 
-(Sorry, I should add some detail, this is a build breakage in linux-next)
+drivers/staging/tidspbridge/core/tiomap3430.c: In function 'bridge_brd_=
+start':
+drivers/staging/tidspbridge/core/tiomap3430.c:425: error: implicit decl=
+aration of function 'OMAP2_L4_IO_ADDRESS'
+drivers/staging/tidspbridge/core/wdt.c: In function 'dsp_wdt_init':
+drivers/staging/tidspbridge/core/wdt.c:56: error: implicit declaration =
+of function 'OMAP2_L4_IO_ADDRESS'
+
+Looking at git, it looks like there is some activity with tidspbridge
+(by V=EDctor).  Is there any interest in fixing these errors for v3.4
+(or even v3.4-rc5)?
+--
+To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
