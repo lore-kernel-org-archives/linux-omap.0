@@ -1,69 +1,41 @@
-From: Igor Grinberg <grinberg-UTxiZqZC01RS1MOuV/RT9w@public.gmane.org>
-Subject: Re: [PATCH RESEND] ARM: OMAP3: USB: Fix the EHCI ULPI PHY reset issue
-Date: Sun, 22 Apr 2012 09:36:27 +0300
-Message-ID: <4F93A6EB.5050503@compulab.co.il>
-References: <1332139367-1302-1-git-send-email-keshava_mgowda@ti.com> <4F71D87E.70100@compulab.co.il> <CAP05o4JWjoh-NoDeA3vYaS1yY_SGdm3TZvHA=pkQsP-Xo-kWnQ@mail.gmail.com> <20120416164646.GP24130@sortiz-mobl>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20120416164646.GP24130@sortiz-mobl>
-Sender: linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Samuel Ortiz <sameo-VuQAYsv1563Yd54FQh9/CA@public.gmane.org>
-Cc: "Munegowda, Keshava" <keshava_mgowda-l0cyMroinI0@public.gmane.org>, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, balbi-l0cyMroinI0@public.gmane.org, parthab-PpE0FKYn9XJWk0Htik3J/w@public.gmane.org, govindraj.raja-l0cyMroinI0@public.gmane.org
+From: Russ Dill <Russ.Dill@ti.com>
+Subject: [PATCH] Fix build breakage in omap-usb-host.c
+Date: Sun, 22 Apr 2012 01:48:18 -0700
+Message-ID: <1335084498-17918-1-git-send-email-Russ.Dill@ti.com>
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from mail-ob0-f174.google.com ([209.85.214.174]:57311 "EHLO
+	mail-ob0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751809Ab2DVIs3 (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Sun, 22 Apr 2012 04:48:29 -0400
+Received: by obbta14 with SMTP id ta14so11362612obb.19
+        for <linux-omap@vger.kernel.org>; Sun, 22 Apr 2012 01:48:28 -0700 (PDT)
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: linux-omap@vger.kernel.org
+Cc: Keshava Munegowda <Keshava_mgowda@ti.com>, Samuel Ortiz <sameo@linux.intel.com>, Russ Dill <Russ.Dill@ti.com>
 
-Hi Samuel,
+'ARM: OMAP3: USB: Fix the EHCI ULPI PHY reset issue' removes the include for
+linux/gpio.h from omap-usb-host.c. This include indirectly includes plat/cpu.h
+which is required by omap-usb-host.c. Fix the build breakage by including
+it directly.
 
-On 04/16/12 19:46, Samuel Ortiz wrote:
-> Hi Keshava,
-> 
-> On Wed, Apr 11, 2012 at 05:15:03PM +0530, Munegowda, Keshava wrote:
->> On Tue, Mar 27, 2012 at 8:40 PM, Igor Grinberg <grinberg-UTxiZqZC01RS1MOuV/RT9w@public.gmane.org> wrote:
->>> On 03/19/12 08:42, Keshava Munegowda wrote:
->>>> From: Keshava Munegowda <Keshava_mgowda-l0cyMroinI0@public.gmane.org>
->>>>
->>>> It is observed that the echi ports of 3430 sdp board
->>>> are not working due to the random timing of programming
->>>> the associated GPIOs of the ULPI PHYs of the EHCI for reset.
->>>> If the PHYs are reset at during usbhs core driver, host ports will
->>>> not work because EHCI driver is loaded after the resetting PHYs.
->>>> The PHYs should be in reset state while initializing the EHCI
->>>> controller.
->>>> The code which does the GPIO pins associated with the PHYs
->>>> are programmed to reset is moved from the USB host core driver
->>>> to EHCI driver.
->>>>
->>>> Signed-off-by: Keshava Munegowda <keshava_mgowda-l0cyMroinI0@public.gmane.org>
->>>> Reviewed-by: Partha Basak <parthab-PpE0FKYn9XJWk0Htik3J/w@public.gmane.org>
->>>
->>> Both EHCI ports worked on cm-t3730 previously and
->>> no regression is seen with this patch.
->>>
->>> Tested-by: Igor Grinberg <grinberg-UTxiZqZC01RS1MOuV/RT9w@public.gmane.org>
->>>
->>> --
->>> Regards,
->>> Igor.
->>
->> Hi sameo
->>          Since I am not seeing this patch in linux-next labled 3.4.rc2
->> on 10th april 2012;
->>  please let me know your plan to queue this patch for the main line.
-> I applied this one to my for-linus branch, thanks.
+Signed-off-by: Russ Dill <Russ.Dill@ti.com>
+---
+ drivers/mfd/omap-usb-host.c |    1 +
+ 1 file changed, 1 insertion(+)
 
-Since, you have already applied this patch to your tree,
-can you please take also the [1] patch?
-It has ackes from Felipe and Alan and depends on the patch in subj.
-
-Thanks
-
-[1] http://www.spinics.net/lists/linux-omap/msg67253.html
-
+diff --git a/drivers/mfd/omap-usb-host.c b/drivers/mfd/omap-usb-host.c
+index c8aae66..7e96bb2 100644
+--- a/drivers/mfd/omap-usb-host.c
++++ b/drivers/mfd/omap-usb-host.c
+@@ -25,6 +25,7 @@
+ #include <linux/clk.h>
+ #include <linux/dma-mapping.h>
+ #include <linux/spinlock.h>
++#include <plat/cpu.h>
+ #include <plat/usb.h>
+ #include <linux/pm_runtime.h>
+ 
 -- 
-Regards,
-Igor.
---
-To unsubscribe from this list: send the line "unsubscribe linux-usb" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+1.7.9.5
+
