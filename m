@@ -1,142 +1,69 @@
-From: Janusz Krzysztofik <jkrzyszt@tis.icnet.pl>
-Subject: Re: [PATCH v9 11/25] gpio/omap: cleanup omap_gpio_mod_init function
-Date: Sat, 21 Apr 2012 16:03:36 +0200
-Message-ID: <13629551.hP3ZV1ajDo@vclass>
-References: <1328203851-20435-1-git-send-email-tarun.kanti@ti.com> <1328203851-20435-12-git-send-email-tarun.kanti@ti.com>
+From: Igor Grinberg <grinberg-UTxiZqZC01RS1MOuV/RT9w@public.gmane.org>
+Subject: Re: [PATCH RESEND] ARM: OMAP3: USB: Fix the EHCI ULPI PHY reset issue
+Date: Sun, 22 Apr 2012 09:36:27 +0300
+Message-ID: <4F93A6EB.5050503@compulab.co.il>
+References: <1332139367-1302-1-git-send-email-keshava_mgowda@ti.com> <4F71D87E.70100@compulab.co.il> <CAP05o4JWjoh-NoDeA3vYaS1yY_SGdm3TZvHA=pkQsP-Xo-kWnQ@mail.gmail.com> <20120416164646.GP24130@sortiz-mobl>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 7Bit
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from d1.icnet.pl ([212.160.220.21]:60751 "EHLO d1.icnet.pl"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752099Ab2DUOEy (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Sat, 21 Apr 2012 10:04:54 -0400
-In-Reply-To: <1328203851-20435-12-git-send-email-tarun.kanti@ti.com>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <20120416164646.GP24130@sortiz-mobl>
+Sender: linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Samuel Ortiz <sameo-VuQAYsv1563Yd54FQh9/CA@public.gmane.org>
+Cc: "Munegowda, Keshava" <keshava_mgowda-l0cyMroinI0@public.gmane.org>, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, balbi-l0cyMroinI0@public.gmane.org, parthab-PpE0FKYn9XJWk0Htik3J/w@public.gmane.org, govindraj.raja-l0cyMroinI0@public.gmane.org
 List-Id: linux-omap@vger.kernel.org
-To: Tarun Kanti DebBarma <tarun.kanti@ti.com>
-Cc: linux-omap@vger.kernel.org, grant.likely@secretlab.ca, khilman@ti.com, tony@atomide.com, linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Charulatha V <charu@ti.com>
 
-On Thursday 02 of February 2012 23:00:37 Tarun Kanti DebBarma wrote:
-> With register offsets now defined for respective OMAP versions we can get rid
-> of cpu_class_* checks. This function now has common initialization code for
-> all OMAP versions...
+Hi Samuel,
+
+On 04/16/12 19:46, Samuel Ortiz wrote:
+> Hi Keshava,
 > 
-> Signed-off-by: Tarun Kanti DebBarma <tarun.kanti@ti.com>
-> Signed-off-by: Charulatha V <charu@ti.com>
-> Reviewed-by: Santosh Shilimkar <santosh.shilimkar@ti.com>
-> Acked-by: Tony Lindgren <tony@atomide.com>
+> On Wed, Apr 11, 2012 at 05:15:03PM +0530, Munegowda, Keshava wrote:
+>> On Tue, Mar 27, 2012 at 8:40 PM, Igor Grinberg <grinberg-UTxiZqZC01RS1MOuV/RT9w@public.gmane.org> wrote:
+>>> On 03/19/12 08:42, Keshava Munegowda wrote:
+>>>> From: Keshava Munegowda <Keshava_mgowda-l0cyMroinI0@public.gmane.org>
+>>>>
+>>>> It is observed that the echi ports of 3430 sdp board
+>>>> are not working due to the random timing of programming
+>>>> the associated GPIOs of the ULPI PHYs of the EHCI for reset.
+>>>> If the PHYs are reset at during usbhs core driver, host ports will
+>>>> not work because EHCI driver is loaded after the resetting PHYs.
+>>>> The PHYs should be in reset state while initializing the EHCI
+>>>> controller.
+>>>> The code which does the GPIO pins associated with the PHYs
+>>>> are programmed to reset is moved from the USB host core driver
+>>>> to EHCI driver.
+>>>>
+>>>> Signed-off-by: Keshava Munegowda <keshava_mgowda-l0cyMroinI0@public.gmane.org>
+>>>> Reviewed-by: Partha Basak <parthab-PpE0FKYn9XJWk0Htik3J/w@public.gmane.org>
+>>>
+>>> Both EHCI ports worked on cm-t3730 previously and
+>>> no regression is seen with this patch.
+>>>
+>>> Tested-by: Igor Grinberg <grinberg-UTxiZqZC01RS1MOuV/RT9w@public.gmane.org>
+>>>
+>>> --
+>>> Regards,
+>>> Igor.
+>>
+>> Hi sameo
+>>          Since I am not seeing this patch in linux-next labled 3.4.rc2
+>> on 10th april 2012;
+>>  please let me know your plan to queue this patch for the main line.
+> I applied this one to my for-linus branch, thanks.
 
-Sorry for being so late with my comment for chanes already present in 
-mainline, but this patch breaks GPIO on Amstrad Delta at least, and I 
-have neither enough spare time nor enough experience with non OMAP1 
-machines to provide a solution myself.
+Since, you have already applied this patch to your tree,
+can you please take also the [1] patch?
+It has ackes from Felipe and Alan and depends on the patch in subj.
 
-> ---
->  arch/arm/mach-omap1/gpio16xx.c |   35 +++++++++++++++++-
->  drivers/gpio/gpio-omap.c       |   77 ++++++++++++----------------------------
->  2 files changed, 57 insertions(+), 55 deletions(-)
-...
-> diff --git a/drivers/gpio/gpio-omap.c b/drivers/gpio/gpio-omap.c
-> index f39d9e4..a948351 100644
-> --- a/drivers/gpio/gpio-omap.c
-> +++ b/drivers/gpio/gpio-omap.c
-...
-> @@ -898,62 +896,30 @@ static void __init omap_gpio_show_rev(struct gpio_bank *bank)
->   */
->  static struct lock_class_key gpio_lock_class;
->  
-> -/* TODO: Cleanup cpu_is_* checks */
->  static void omap_gpio_mod_init(struct gpio_bank *bank)
->  {
-> -	if (cpu_class_is_omap2()) {
-> -		if (cpu_is_omap44xx()) {
-> -			__raw_writel(0xffffffff, bank->base +
-> -					OMAP4_GPIO_IRQSTATUSCLR0);
-> -			__raw_writel(0x00000000, bank->base +
-> -					 OMAP4_GPIO_DEBOUNCENABLE);
-> -			/* Initialize interface clk ungated, module enabled */
-> -			__raw_writel(0, bank->base + OMAP4_GPIO_CTRL);
-> -		} else if (cpu_is_omap34xx()) {
-> -			__raw_writel(0x00000000, bank->base +
-> -					OMAP24XX_GPIO_IRQENABLE1);
-> -			__raw_writel(0xffffffff, bank->base +
-> -					OMAP24XX_GPIO_IRQSTATUS1);
-> -			__raw_writel(0x00000000, bank->base +
-> -					OMAP24XX_GPIO_DEBOUNCE_EN);
-> -
-> -			/* Initialize interface clk ungated, module enabled */
-> -			__raw_writel(0, bank->base + OMAP24XX_GPIO_CTRL);
-> -		}
-> -	} else if (cpu_class_is_omap1()) {
-> -		if (bank_is_mpuio(bank)) {
-> -			__raw_writew(0xffff, bank->base +
-> -				OMAP_MPUIO_GPIO_MASKIT / bank->stride);
-> -			mpuio_init(bank);
-> -		}
-> -		if (cpu_is_omap15xx() && bank->method == METHOD_GPIO_1510) {
-> -			__raw_writew(0xffff, bank->base
-> -						+ OMAP1510_GPIO_INT_MASK);
-> -			__raw_writew(0x0000, bank->base
-> -						+ OMAP1510_GPIO_INT_STATUS);
-> -		}
-> -		if (cpu_is_omap16xx() && bank->method == METHOD_GPIO_1610) {
-> -			__raw_writew(0x0000, bank->base
-> -						+ OMAP1610_GPIO_IRQENABLE1);
-> -			__raw_writew(0xffff, bank->base
-> -						+ OMAP1610_GPIO_IRQSTATUS1);
-> -			__raw_writew(0x0014, bank->base
-> -						+ OMAP1610_GPIO_SYSCONFIG);
-> +	void __iomem *base = bank->base;
-> +	u32 l = 0xffffffff;
->  
-> -			/*
-> -			 * Enable system clock for GPIO module.
-> -			 * The CAM_CLK_CTRL *is* really the right place.
-> -			 */
-> -			omap_writel(omap_readl(ULPD_CAM_CLK_CTRL) | 0x04,
-> -						ULPD_CAM_CLK_CTRL);
-> -		}
-> -		if (cpu_is_omap7xx() && bank->method == METHOD_GPIO_7XX) {
-> -			__raw_writel(0xffffffff, bank->base
-> -						+ OMAP7XX_GPIO_INT_MASK);
-> -			__raw_writel(0x00000000, bank->base
-> -						+ OMAP7XX_GPIO_INT_STATUS);
-> -		}
-> +	if (bank->width == 16)
-> +		l = 0xffff;
-> +
-> +	if (bank_is_mpuio(bank)) {
-> +		__raw_writel(l, bank->base + bank->regs->irqenable);
-> +		return;
->  	}
-> +
-> +	_gpio_rmw(base, bank->regs->irqenable, l, bank->regs->irqenable_inv);
-> +	_gpio_rmw(base, bank->regs->irqstatus, l,
-> +					bank->regs->irqenable_inv == false);
-> +	_gpio_rmw(base, bank->regs->irqenable, l, bank->regs->debounce_en != 0);
-> +	_gpio_rmw(base, bank->regs->irqenable, l, bank->regs->ctrl != 0);
+Thanks
 
-bank->regs->irqenable trgister is manipulated 3 times in a row, each 
-time based on different criteria. This breaks GPIO on Amstrad Delta at 
-least, and generally looks wrong. I was only able to verify that 
-commenting out the above two lines fixes the issue with Amstrad Delta for 
-me.
+[1] http://www.spinics.net/lists/linux-omap/msg67253.html
 
-> +	if (bank->regs->debounce_en)
-> +		_gpio_rmw(base, bank->regs->debounce_en, 0, 1);
-
-This also looks suspicious, I guess the second line should rather be:
-
-		_gpio_rmw(base, bank->regs->debounce, 0, 1);
-
-> +
-> +	 /* Initialize interface clk ungated, module enabled */
-> +	if (bank->regs->ctrl)
-> +		_gpio_rmw(base, bank->regs->ctrl, 0, 1);
-
-Is bank->regs->ctrl a flag, or a register offset? If the latter, is that 
-offset guaranteed to never take a valid value of 0?
-
-Thanks,
-Janusz
+-- 
+Regards,
+Igor.
+--
+To unsubscribe from this list: send the line "unsubscribe linux-usb" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
