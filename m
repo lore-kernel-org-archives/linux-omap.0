@@ -1,37 +1,49 @@
-From: Chris Ball <cjb@laptop.org>
-Subject: Re: [PATCH 5/8] mmc: omap_hsmmc: release correct resource
-Date: Sun, 22 Apr 2012 11:20:18 -0400
-Message-ID: <87obqjg5e5.fsf@laptop.org>
-References: <20120418100954.GK25053@n2100.arm.linux.org.uk>
-	<E1SKRrh-0004bL-3j@rmk-PC.arm.linux.org.uk>
-	<20120420222305.GI21106@atomide.com> <878vhqggbc.fsf@laptop.org>
-	<871unhhkvk.fsf@laptop.org>
-	<20120421094849.GZ25053@n2100.arm.linux.org.uk>
+From: Greg KH <gregkh@linuxfoundation.org>
+Subject: Re: tidspbridge in drivers/staging
+Date: Sun, 22 Apr 2012 09:16:19 -0700
+Message-ID: <20120422161619.GA26175@kroah.com>
+References: <20120422095717.GA25053@n2100.arm.linux.org.uk>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-mmc-owner@vger.kernel.org>
-In-Reply-To: <20120421094849.GZ25053@n2100.arm.linux.org.uk> (Russell King's
-	message of "Sat, 21 Apr 2012 10:48:49 +0100")
-Sender: linux-mmc-owner@vger.kernel.org
-To: Russell King - ARM Linux <linux@arm.linux.org.uk>
-Cc: Tony Lindgren <tony@atomide.com>, linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org, linux-mmc@vger.kernel.org
+Content-Type: text/plain; charset=iso-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from mail-pz0-f51.google.com ([209.85.210.51]:44872 "EHLO
+	mail-pz0-f51.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750857Ab2DVQQY (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Sun, 22 Apr 2012 12:16:24 -0400
+Received: by dadz8 with SMTP id z8so14526408dad.10
+        for <linux-omap@vger.kernel.org>; Sun, 22 Apr 2012 09:16:24 -0700 (PDT)
+Content-Disposition: inline
+In-Reply-To: <20120422095717.GA25053@n2100.arm.linux.org.uk>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Russell King - ARM Linux <linux@arm.linux.org.uk>, linux-omap@vger.kernel.org, =?iso-8859-1?Q?V=EDctor_Manuel_J=E1quez?= Leal <vjaquez@igalia.com>
 
-Hi,
+On Sun, Apr 22, 2012 at 10:57:17AM +0100, Russell King - ARM Linux wrot=
+e:
+> I've noticed these failure from time to time in my omap4 randconfig b=
+uilds:
+>=20
+> drivers/staging/tidspbridge/core/tiomap3430.c: In function 'bridge_br=
+d_start':
+> drivers/staging/tidspbridge/core/tiomap3430.c:425: error: implicit de=
+claration of function 'OMAP2_L4_IO_ADDRESS'
+> drivers/staging/tidspbridge/core/wdt.c: In function 'dsp_wdt_init':
+> drivers/staging/tidspbridge/core/wdt.c:56: error: implicit declaratio=
+n of function 'OMAP2_L4_IO_ADDRESS'
+>=20
+> Looking at git, it looks like there is some activity with tidspbridge
+> (by V=EDctor).  Is there any interest in fixing these errors for v3.4
+> (or even v3.4-rc5)?
 
-On Sat, Apr 21 2012, Russell King - ARM Linux wrote:
->> > Thanks, pushed to mmc-next for 3.4.
->> 
->> (Actually, that's premature of me, sorry -- just noticed that this
->> is part of an RFC patchset.  I'll wait for the rest of the patches.)
->
-> It was previously posted as an entirely separate patch - the reason its
-> part of this RFC is because I needed the patch while developing this
-> series.  So please go ahead and take _this_ patch.
+Along those lines, what's the plans on getting this code _out_ of
+staging?  I haven't seen anything going on here in a while...
 
-Okay, thanks.  It's back in mmc-next.
+thanks,
 
-- Chris.
--- 
-Chris Ball   <cjb@laptop.org>   <http://printf.net/>
-One Laptop Per Child
+greg k-h
+--
+To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
