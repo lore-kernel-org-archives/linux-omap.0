@@ -1,37 +1,62 @@
-From: Russell King - ARM Linux <linux@arm.linux.org.uk>
-Subject: tidspbridge in drivers/staging
-Date: Sun, 22 Apr 2012 10:57:17 +0100
-Message-ID: <20120422095717.GA25053@n2100.arm.linux.org.uk>
+From: Artem Bityutskiy <artem.bityutskiy@linux.intel.com>
+Subject: Re: [PATCH] mtd: omap2: fix resource leak in prefetch-busy path
+Date: Sun, 22 Apr 2012 15:45:16 +0300
+Message-ID: <1335098716.4879.7.camel@golum>
+References: <1334106274-24993-1-git-send-email-notasas@gmail.com>
+Reply-To: artem.bityutskiy@linux.intel.com
 Mime-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: multipart/signed; micalg="pgp-sha1"; protocol="application/pgp-signature";
+	boundary="=-IZTs6yjpwK6c0S+eo9hE"
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from caramon.arm.linux.org.uk ([78.32.30.218]:43830 "EHLO
-	caramon.arm.linux.org.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750899Ab2DVJ5Y (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Sun, 22 Apr 2012 05:57:24 -0400
-Content-Disposition: inline
+Received: from mga02.intel.com ([134.134.136.20]:49212 "EHLO mga02.intel.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751613Ab2DVMpU (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Sun, 22 Apr 2012 08:45:20 -0400
+In-Reply-To: <1334106274-24993-1-git-send-email-notasas@gmail.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: linux-omap@vger.kernel.org, =?iso-8859-1?Q?V=EDctor_Manuel_J=E1quez?= Leal <vjaquez@igalia.com>
-Cc: Greg KH <gregkh@linuxfoundation.org>
+To: Grazvydas Ignotas <notasas@gmail.com>
+Cc: linux-mtd@lists.infradead.org, linux-omap@vger.kernel.org, David Woodhouse <dwmw2@infradead.org>
 
-I've noticed these failure from time to time in my omap4 randconfig bui=
-lds:
 
-drivers/staging/tidspbridge/core/tiomap3430.c: In function 'bridge_brd_=
-start':
-drivers/staging/tidspbridge/core/tiomap3430.c:425: error: implicit decl=
-aration of function 'OMAP2_L4_IO_ADDRESS'
-drivers/staging/tidspbridge/core/wdt.c: In function 'dsp_wdt_init':
-drivers/staging/tidspbridge/core/wdt.c:56: error: implicit declaration =
-of function 'OMAP2_L4_IO_ADDRESS'
+--=-IZTs6yjpwK6c0S+eo9hE
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: quoted-printable
 
-Looking at git, it looks like there is some activity with tidspbridge
-(by V=EDctor).  Is there any interest in fixing these errors for v3.4
-(or even v3.4-rc5)?
---
-To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+On Wed, 2012-04-11 at 04:04 +0300, Grazvydas Ignotas wrote:
+> If prefetch engine is busy, current code "forgets" to call
+> dma_unmap_single(), which results in a deadlock later, so add it.
+>=20
+> Signed-off-by: Grazvydas Ignotas <notasas@gmail.com>
+
+Pushed to l2-mtd.git, thanks!
+
+--=20
+Best Regards,
+Artem Bityutskiy
+
+--=-IZTs6yjpwK6c0S+eo9hE
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: This is a digitally signed message part
+Content-Transfer-Encoding: 7bit
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.4.12 (GNU/Linux)
+
+iQIcBAABAgAGBQJPk/1dAAoJECmIfjd9wqK0zbsQAJiLSJIYdzQtC9syYamMc8yf
+6x6cdglhtSj/BuOg/se8JqIWTVPS7uams6EU/uopvqxYZkCcj3bgTlPvPPT/nFhM
+7wwpVBWLmvfFZUbMJb0J8s7H1yC222DmkQYCM6srhfyfVW9h/+2KEWgW1JbGEEuM
+8wsRJLB89r6Tu52fjopo1W1CAYmduI/sXrgXisLiFACzrHkvLr9ljX7D/vTjmvR2
+ZzgrGEPMh+czRGbwrg6b4eUFsvXN+xoppUZMo80v1C/Wq5OEv6008Ahzp0pcGUCr
+zOoLPQ4Sosm87rF9DYrN1roqwiHztwuolFrWfGmSng36kyFLKxYuufuS/dXbeH9o
+IdR5GCNky6/MtHx5+Wdpk3IxLCmeZVbl9LiPdsvypk0aXizAorZW+4arxqlKUOkg
+7N/CfgT39qGqHo7meGvWWfoCdSWYyPCEZmckAoreNiCjUBpLqHXXxQNxi/vkb0sU
+Fr/6eB3rMi9gKSeIZ7UyQ3ZqxcvRBu02unkScs3Hfrk5uzX3uD6ybAOgPFXo4F3u
+6vissNSvo0EXDb+5usR85/drytRg7sMXpymQKcOP91Ybcia1GIET8kup6tRHm2RI
+b9YOL0hThVqhjS2l0duRtsitqMTC7D2VWBIhCZtGIBmvPwWcGCzdvc/iYF4+3W/C
+8qOUp+302riNyPvoQAbj
+=GN7r
+-----END PGP SIGNATURE-----
+
+--=-IZTs6yjpwK6c0S+eo9hE--
+
