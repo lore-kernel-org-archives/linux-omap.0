@@ -1,41 +1,39 @@
-From: Russell King - ARM Linux <linux@arm.linux.org.uk>
-Subject: Re: [PATCH 1/8] ARM: OMAP: fix DMA vs memory ordering
-Date: Mon, 23 Apr 2012 15:19:24 +0100
-Message-ID: <20120423141924.GB24299@n2100.arm.linux.org.uk>
-References: <20120418100954.GK25053@n2100.arm.linux.org.uk> <E1SKRqN-0004b4-Me@rmk-PC.arm.linux.org.uk> <20120420222230.GH21106@atomide.com>
+From: Greg KH <greg@kroah.com>
+Subject: Re: [PATCH v4 0/7] Add TI EMIF SDRAM controller driver
+Date: Mon, 23 Apr 2012 07:27:17 -0700
+Message-ID: <20120423142717.GA32380@kroah.com>
+References: <1331934707-29487-1-git-send-email-aneesh@ti.com>
+ <alpine.DEB.2.00.1204112042070.29473@utopia.booyaka.com>
+ <20120412030044.GA26236@kroah.com>
+ <CAM=4YEQ6_+7xPwi2jucks1P9p8tO3cSG7S0s=VVJVrueb4fB=g@mail.gmail.com>
+ <C8443D0743D26F4388EA172BF4E2A7A93E96E7C5@DBDE01.ent.ti.com>
+ <CAMQu2gz2CD+-kcSF2HVGWWrjk3DmsGgcuucBXan5NqtVUSwa2w@mail.gmail.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from caramon.arm.linux.org.uk ([78.32.30.218]:36451 "EHLO
-	caramon.arm.linux.org.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751675Ab2DWOTe (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 23 Apr 2012 10:19:34 -0400
+Return-path: <linux-kernel-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <20120420222230.GH21106@atomide.com>
-Sender: linux-omap-owner@vger.kernel.org
+In-Reply-To: <CAMQu2gz2CD+-kcSF2HVGWWrjk3DmsGgcuucBXan5NqtVUSwa2w@mail.gmail.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: "Shilimkar, Santosh" <santosh.shilimkar@ti.com>
+Cc: "Mohammed, Afzal" <afzal@ti.com>, "V, Aneesh" <aneesh@ti.com>, Paul Walmsley <paul@pwsan.com>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "mgreer@animalcreek.com" <mgreer@animalcreek.com>, "msalter@redhat.com" <msalter@redhat.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, "Hunter, Jon" <jon-hunter@ti.com>
 List-Id: linux-omap@vger.kernel.org
-To: Tony Lindgren <tony@atomide.com>
-Cc: linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org, linux-mmc@vger.kernel.org
 
-On Fri, Apr 20, 2012 at 03:22:33PM -0700, Tony Lindgren wrote:
-> * Russell King <rmk+kernel@arm.linux.org.uk> [120418 03:14]:
-> > Using coherent DMA memory with the OMAP DMA engine results in
-> > unpredictable behaviour due to memory ordering issues; as things stand,
-> > there is no guarantee that data written to coherent DMA memory will be
-> > visible to the DMA hardware.
-> > 
-> > This is because the OMAP dma_write() accessor contains no barriers,
-> > necessary on ARMv6 and above.  The effect of this can be seen in comments
-> > in the OMAP serial driver, which incorrectly talks about cache flushing
-> > for the coherent DMA stuff.
-> > 
-> > Rather than adding barriers to the accessors, add it in the DMA support
-> > code just before we enable DMA, and just after we disable DMA.  This
-> > avoids having barriers for every DMA register access.
-> > 
-> > Signed-off-by: Russell King <rmk+kernel@arm.linux.org.uk>
+On Mon, Apr 23, 2012 at 04:34:46PM +0530, Shilimkar, Santosh wrote:
+> Afzal,
 > 
-> Acked-by: Tony Lindgren <tony@atomide.com>
+> On Mon, Apr 23, 2012 at 4:26 PM, Mohammed, Afzal <afzal@ti.com> wrote:
+> > Hi Aneesh,
+> >
+> > On Fri, Apr 13, 2012 at 01:28:55, V, Aneesh wrote:
+> >
+> >> Thanks. I will wait for your review then. Once I have your comments
+> >> I will re-work and submit in the new directory structure proposed.
+> >
+> > Do you have a plan on submitting EMIF driver in the new proposed
+> > (drivers/memory) directory. Or shall I submit GPMC driver by creating
+> > the new "memory" directory.
+> >
+>  Greg mentioned that he plans to do a review of EMIF driver. We were waiting
+> for his comments before sending the updated series.
 
-Would you like me to push this upstream on my next -rc push (with a
-stable tag?)
+No, don't wait for me, please resend, I was waiting for you :)
