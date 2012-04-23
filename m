@@ -1,63 +1,60 @@
-From: Tomi Valkeinen <tomi.valkeinen@ti.com>
-Subject: Re: [PATCH 03/10] OMAPDSS: HDMI: OMAP4: Correcty typo in I2S
- definitions
-Date: Mon, 23 Apr 2012 15:42:29 +0300
-Message-ID: <1335184949.1535.14.camel@lappy>
-References: <1332974305-4578-1-git-send-email-ricardo.neri@ti.com>
-	 <1332974305-4578-4-git-send-email-ricardo.neri@ti.com>
-Mime-Version: 1.0
-Content-Type: multipart/signed; micalg="pgp-sha1"; protocol="application/pgp-signature"; boundary="=-ORTiyTU4Y2pnEz3bf+mo"
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Subject: [PATCH] arm: igep0020: Specify the VPLL2 regulator unconditionally
+Date: Mon, 23 Apr 2012 14:48:58 +0200
+Message-ID: <1335185338-22006-1-git-send-email-laurent.pinchart@ideasonboard.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aog138.obsmtp.com ([74.125.149.19]:53352 "EHLO
-	na3sys009aog138.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752936Ab2DWMmg (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>);
-	Mon, 23 Apr 2012 08:42:36 -0400
-Received: by lbbgh12 with SMTP id gh12so3417592lbb.15
-        for <linux-omap@vger.kernel.org>; Mon, 23 Apr 2012 05:42:34 -0700 (PDT)
-In-Reply-To: <1332974305-4578-4-git-send-email-ricardo.neri@ti.com>
+Received: from perceval.ideasonboard.com ([95.142.166.194]:36479 "EHLO
+	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752257Ab2DWMss (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 23 Apr 2012 08:48:48 -0400
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Ricardo Neri <ricardo.neri@ti.com>
-Cc: mythripk@ti.com, s-chereau@ti.com, x0055901@ti.com, vaibhav.bedia@ti.com, s-guiriec@ti.com, lrg@ti.com, peter.ujfalusi@ti.com, agraf@suse.de, research@ottomaneng.com, linux-omap@vger.kernel.org
+To: linux-omap@vger.kernel.org
+Cc: Enric Balletbo i Serra <eballetbo@iseebcn.com>, Mike Rapoport <mike@compulab.co.il>, Tony Lindgren <tony@atomide.com>
 
+The supply is connected to the DSS DO-D5 pins and is thus needed for
+both serial and parallel display interfaces on the igep0030 as well as
+the igep0020.
 
---=-ORTiyTU4Y2pnEz3bf+mo
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: quoted-printable
+If the igep0030 module isn't connected to a display, no DSI or DPI
+display will be specified in board code, and the DSS driver won't enable
+to VPLL2 regulator anyway.
 
-On Wed, 2012-03-28 at 16:38 -0600, Ricardo Neri wrote:
-> Signed-off-by: Ricardo Neri <ricardo.neri@ti.com>
+Signed-off-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+---
+ arch/arm/mach-omap2/board-igep0020.c |   10 +++++-----
+ 1 files changed, 5 insertions(+), 5 deletions(-)
 
-There's a typo in the subject of the typo fix =3D).
+diff --git a/arch/arm/mach-omap2/board-igep0020.c b/arch/arm/mach-omap2/board-igep0020.c
+index a59ace0..242cdff 100644
+--- a/arch/arm/mach-omap2/board-igep0020.c
++++ b/arch/arm/mach-omap2/board-igep0020.c
+@@ -539,7 +539,10 @@ static void __init igep_i2c_init(void)
+ {
+ 	int ret;
+ 
+-	omap3_pmic_get_config(&igep_twldata, TWL_COMMON_PDATA_USB, 0);
++	omap3_pmic_get_config(&igep_twldata, TWL_COMMON_PDATA_USB,
++			      TWL_COMMON_REGULATOR_VPLL2);
++	igep_twldata.vpll2->constraints.apply_uV = true;
++	igep_twldata.vpll2->constraints.name = "VDVI";
+ 
+ 	if (machine_is_igep0020()) {
+ 		/*
+@@ -553,10 +556,7 @@ static void __init igep_i2c_init(void)
+ 
+ 		igep_twldata.keypad	= &igep2_keypad_pdata;
+ 		/* Get common pmic data */
+-		omap3_pmic_get_config(&igep_twldata, TWL_COMMON_PDATA_AUDIO,
+-				      TWL_COMMON_REGULATOR_VPLL2);
+-		igep_twldata.vpll2->constraints.apply_uV = true;
+-		igep_twldata.vpll2->constraints.name = "VDVI";
++		omap3_pmic_get_config(&igep_twldata, TWL_COMMON_PDATA_AUDIO, 0);
+ 	}
+ 
+ 	omap3_pmic_init("twl4030", &igep_twldata);
+-- 
+Regards,
 
-And always provide a patch description, please. In the simplest cases it
-can be the same as the subject.
-
- Tomi
-
-
---=-ORTiyTU4Y2pnEz3bf+mo
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: This is a digitally signed message part
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.4.11 (GNU/Linux)
-
-iQIcBAABAgAGBQJPlU40AAoJEPo9qoy8lh71aBAP/iN8zvWWlKSXTgVIphZ7o+cQ
-w9OoXhDnnssGe699yHCuRRslg/Qi5feC9aw6sUF3K1cJJ7wdB3Cvj1qpWoNpyftW
-37x7Z4eF5r2i9wyyjfL8uFu6oHJPea8ZJlqzvKCwGflosENwBmn+M4N+6PqKwGTO
-dft0U9HbKtcW3VFGfILL434fb7arb+2ys6Jv2QZ8HLCbky+nuRF52127iLS0gEdR
-erEeP7IqojnOpGdHcHiHsanvMqLHKTp2vo6OcFhI/lWLrbL5DG1JgkwfgMIecAMG
-PzQVS8H0U5O8I1vl2QlBd6vJ3zzAPshEAoW873h9dqwseNQW5uNraudhIb0jlY8a
-u36V9qphXn9fvueKMKfbGuzvQw1g4D2hU5uNoDI7JYQkd2dMMNANhEUG1fXBQeeC
-Lb8EK3MIFebfYyilr30cQ8dj05Wz7GchA1yHK76P8TLTehUZlemgaJxy7qzTZT85
-EN1igrJy/MOpUu00fMacRaVRZVVAuGpxGqE+9qBREZNPlMtgNP98CHpGy8A5llV/
-Fon1bDupgy67qHofbJLwlo2yxzxaRY8tLOGNtts4+JU1feXeFDcKxp+IJ2bZ7iF1
-iOfy7S/NaTmIN3QhTlQW+EqOYVPFgqqH6uo4hElTkpnxHKYesXroSDMVxmDdbdi7
-iJa/LQ0AsvNougvwBKcF
-=r8Li
------END PGP SIGNATURE-----
-
---=-ORTiyTU4Y2pnEz3bf+mo--
+Laurent Pinchart
 
