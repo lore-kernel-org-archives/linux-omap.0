@@ -1,82 +1,70 @@
-From: "Mahapatra, Chandrabhanu" <cmahapatra@ti.com>
-Subject: Re: [PATCH V3 3/3] OMAPDSS: DISPC: Correct DISPC functional clock usage
-Date: Mon, 23 Apr 2012 10:05:32 +0530
-Message-ID: <CAF0AtAu6xhQmQZLbW9keTMjcSfPwsVUoWa7e4fsSpHXms+pVSQ@mail.gmail.com>
-References: <1333379598-11544-4-git-send-email-cmahapatra@ti.com>
-	<1334928673-27943-1-git-send-email-cmahapatra@ti.com>
-	<1334932153.2058.40.camel@deskari>
+From: "Hiremath, Vaibhav" <hvaibhav@ti.com>
+Subject: RE: YUV422 input to CPI?
+Date: Mon, 23 Apr 2012 05:24:28 +0000
+Message-ID: <79CD15C6BA57404B839C016229A409A83E9F85BE@DBDE01.ent.ti.com>
+References: <E47FC7FC-B1CC-4E8A-9957-AEAF483DDAFA@pg.canterbury.ac.nz>
+ <CA+2YH7vpCdXhJUQrsZ+3Tp=b5q=3su1K4TaEumWGeMeCZXpvyw@mail.gmail.com>
+ <79CD15C6BA57404B839C016229A409A83E9F8032@DBDE01.ent.ti.com>
+ <511240CD-BADD-4E0F-8F4B-0107A420BF9E@pg.canterbury.ac.nz>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aog135.obsmtp.com ([74.125.149.84]:46698 "EHLO
-	na3sys009aog135.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751059Ab2DWEfe convert rfc822-to-8bit
-	(ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Mon, 23 Apr 2012 00:35:34 -0400
-Received: by obbup16 with SMTP id up16so8470596obb.15
-        for <linux-omap@vger.kernel.org>; Sun, 22 Apr 2012 21:35:33 -0700 (PDT)
-In-Reply-To: <1334932153.2058.40.camel@deskari>
+Received: from arroyo.ext.ti.com ([192.94.94.40]:43689 "EHLO arroyo.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1753314Ab2DWFYp convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 23 Apr 2012 01:24:45 -0400
+In-Reply-To: <511240CD-BADD-4E0F-8F4B-0107A420BF9E@pg.canterbury.ac.nz>
+Content-Language: en-US
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Tomi Valkeinen <tomi.valkeinen@ti.com>
-Cc: linux-omap@vger.kernel.org, linux-fbdev@vger.kernel.org
+To: Simon Knopp <simon.knopp@pg.canterbury.ac.nz>, Enrico <ebutera@users.sourceforge.net>
+Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "General mailing list for gumstix users." <gumstix-users@lists.sourceforge.net>
 
-On Fri, Apr 20, 2012 at 7:59 PM, Tomi Valkeinen <tomi.valkeinen@ti.com>=
- wrote:
-> On Fri, 2012-04-20 at 19:01 +0530, Chandrabhanu Mahapatra wrote:
->> DISPC_FCLK is incorrectly used as functional clock of DISPC in scali=
-ng
->> calculations. So, DISPC_CORE_CLK replaces as functional clock of DIS=
-PC.
->> DISPC_CORE_CLK is derived from DISPC_FCLK divided by an independent =
-DISPC
->> divisor LCD.
->>
->> Signed-off-by: Chandrabhanu Mahapatra <cmahapatra@ti.com>
->> ---
->> =A0drivers/video/omap2/dss/dispc.c | =A0 25 +++++++++++++++++++-----=
--
->> =A0drivers/video/omap2/dss/dss.h =A0 | =A0 =A01 +
->> =A02 files changed, 20 insertions(+), 6 deletions(-)
->>
->> diff --git a/drivers/video/omap2/dss/dispc.c b/drivers/video/omap2/d=
-ss/dispc.c
->> index 17ffa71..0417423 100644
->> --- a/drivers/video/omap2/dss/dispc.c
->> +++ b/drivers/video/omap2/dss/dispc.c
->> @@ -1855,7 +1855,7 @@ static int dispc_ovl_calc_scaling(enum omap_pl=
-ane plane,
->> =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 fclk =3D calc_fclk(chann=
-el, in_width, in_height,
->> =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =
-=A0 =A0 out_width, out_height);
->> =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 error =3D (in_width > ma=
-xsinglelinewidth || !fclk ||
->> - =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 fclk > dis=
-pc_fclk_rate());
->> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 fclk > dis=
-pc_core_clk_rate());
->
-> The patch is now otherwise fine, but I think it needs some more
-> renaming. Now the code mixes fclk and core-clk names, which is rather
-> confusing. I guess the calc_fclk should actually be calc_req_core_clk=
-?
-> And the fclk variable core_clk (or cclk or something)?
->
-> =A0Tomi
->
+On Mon, Apr 23, 2012 at 08:48:35, Simon Knopp wrote:
+> On 23/04/2012, at 2:11 AM, Hiremath, Vaibhav wrote:
+> > On Fri, Apr 20, 2012 at 15:56:46, Enrico wrote:
+> >> 
+> >> Yes it's possible but yuv support is still not in mainline kernel.
+> >> 
+> >> Have a look at the linux-media ml archive to know what is the current
+> >> status, problems etc...basically if you don't need bt656 support you
+> >> can try the omap3isp-omap3isp-yuv branch at [1].
+> >> 
+> > 
+> > During one of the internal releases, I have added YUV (BT656) support, it is 
+> > based on 2.6.37 based kernel, but still it will give you pointer and help
+> > you to change the code to get support for the same.
+> > 
+> > I have created separate, clean and independent patches for 
+> > adding support for BT656 YUV support.
+> > 
+> > 
+> > http://arago-project.org/git/projects/?p=linux-omap3.git;a=history;f=drivers/media/video/isp;hb=20c003f2f024d9f50f59edf9f1b8f5f035fb15b8
+> > 
+> > 
+> > Thanks,
+> > Vaibhav
+> > 
+> >> Enrico
+> >> 
+> >> [1]: http://git.linuxtv.org/pinchartl/media.git
+> 
+> Thanks Enrico and Vaibhav. 
+> 
+> My current setup uses an old version of the isp code for kernel 2.6.34 from a patch in the linux-omap3-caspapx OpenEmbedded recipe for Gumstix (not ideal, but I need gstreamer dsp support). I'm not sure which commit/branch/tree/patchset this is based on, but it turns out it does support YUV. 
+> 
 
-As per TRM dispc_core_clk is also a functional clock, so I think above
-code should be fine. But, to avoid confusion of names the renaming of
-fclk, calc_fclk and calc_fclk_five_taps can be done.
+That's even closer then, it would be easier to back port from 2.6.37 to 
+2.6.34. And as I said, refer to it as a reference or pointer to backport it, 
+and patch commit description should help you to understand this.
 
 
---=20
-Chandrabhanu Mahapatra
-Texas Instruments India Pvt. Ltd.
---
-To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Thanks,
+Vaibhav
+
+> Regards,
+> Simon.
+> 
+> 
+
