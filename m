@@ -1,106 +1,118 @@
-From: "Cousson, Benoit" <b-cousson@ti.com>
-Subject: Re: [PATCH] ARM: OMAP4: hwmod data: Update AESS data with memory
- bank area
-Date: Mon, 23 Apr 2012 22:34:29 +0200
-Message-ID: <4F95BCD5.3060501@ti.com>
-References: <1335212747-8006-1-git-send-email-s-guiriec@ti.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset="ISO-8859-1"; format=flowed
-Content-Transfer-Encoding: 7bit
+From: Grazvydas Ignotas <notasas@gmail.com>
+Subject: [PATCH v2] OMAPDSS: VENC: allow switching venc output type at runtime
+Date: Tue, 24 Apr 2012 00:08:54 +0300
+Message-ID: <1335215334-32608-1-git-send-email-notasas@gmail.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from arroyo.ext.ti.com ([192.94.94.40]:46709 "EHLO arroyo.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751819Ab2DWUei (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Mon, 23 Apr 2012 16:34:38 -0400
-In-Reply-To: <1335212747-8006-1-git-send-email-s-guiriec@ti.com>
+Received: from mail-wg0-f42.google.com ([74.125.82.42]:36308 "EHLO
+	mail-wg0-f42.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755432Ab2DWVJB (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 23 Apr 2012 17:09:01 -0400
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Sebastien Guiriec <s-guiriec@ti.com>
-Cc: linux-omap@vger.kernel.org, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, Paul Walmsley <paul@pwsan.com>
+To: linux-fbdev@vger.kernel.org
+Cc: linux-omap@vger.kernel.org, Tomi Valkeinen <tomi.valkeinen@ti.com>, Grazvydas Ignotas <notasas@gmail.com>
 
-+ lakml and Paul
+VENC output type (composite/svideo) doesn't have to be fixed by board
+wiring, it is possible to also provide composite signal through svideo
+luminance connector (software enabled), which is what pandora does.
 
-On 4/23/2012 10:25 PM, Sebastien Guiriec wrote:
-> Add AESS memory bank data in hwmod in order to provide memory
-> address information to the driver. AESS is divided inside 5
-> memory banks than can be accessed directly by MPU or by L3.
-> - PMEM: Program memory bank.
-> - SMEM: Sample memory bank.
-> - CMEM: Coefficients memory bank
-> - DMEM: Data memory bank.
-> - MPU/DMA: Register of AESS IP.
->
-> Signed-off-by: Sebastien Guiriec<s-guiriec@ti.com>
+Having to recompile the kernel for users who have TV connector types
+that don't match default board setting is very inconvenient, especially
+for users of a consumer device, so add support for switching VENC output
+type at runtime over a new sysfs file output_type.
 
-Acked-by: Benoit Cousson <b-cousson@ti.com>
+Signed-off-by: Grazvydas Ignotas <notasas@gmail.com>
+---
+ Documentation/arm/OMAP/DSS     |    1 +
+ drivers/video/omap2/dss/venc.c |   54 +++++++++++++++++++++++++++++++++++++++-
+ 2 files changed, 54 insertions(+), 1 deletions(-)
 
-Thanks Seb, I'll take it for my WIP cleanup branch.
-
-Regards,
-Benoit
-
-> ---
->   arch/arm/mach-omap2/omap_hwmod_44xx_data.c |   42 ++++++++++++++++++++++++++++
->   1 files changed, 42 insertions(+), 0 deletions(-)
->
-> diff --git a/arch/arm/mach-omap2/omap_hwmod_44xx_data.c b/arch/arm/mach-omap2/omap_hwmod_44xx_data.c
-> index 4906129..b0d333a 100644
-> --- a/arch/arm/mach-omap2/omap_hwmod_44xx_data.c
-> +++ b/arch/arm/mach-omap2/omap_hwmod_44xx_data.c
-> @@ -3999,6 +3999,27 @@ static struct omap_hwmod_ocp_if omap44xx_l4_cfg__ocp_wp_noc = {
->
->   static struct omap_hwmod_addr_space omap44xx_aess_addrs[] = {
->   	{
-> +		.name		= "dmem",
-> +		.pa_start	= 0x40180000,
-> +		.pa_end		= 0x4018ffff
-> +	},
-> +	{
-> +		.name		= "cmem",
-> +		.pa_start	= 0x401a0000,
-> +		.pa_end		= 0x401a1fff
-> +	},
-> +	{
-> +		.name		= "smem",
-> +		.pa_start	= 0x401c0000,
-> +		.pa_end		= 0x401c5fff
-> +	},
-> +	{
-> +		.name		= "pmem",
-> +		.pa_start	= 0x401e0000,
-> +		.pa_end		= 0x401e1fff
-> +	},
-> +	{
-> +		.name		= "mpu",
->   		.pa_start	= 0x401f1000,
->   		.pa_end		= 0x401f13ff,
->   		.flags		= ADDR_TYPE_RT
-> @@ -4017,6 +4038,27 @@ static struct omap_hwmod_ocp_if omap44xx_l4_abe__aess = {
->
->   static struct omap_hwmod_addr_space omap44xx_aess_dma_addrs[] = {
->   	{
-> +		.name		= "dmem_dma",
-> +		.pa_start	= 0x49080000,
-> +		.pa_end		= 0x4908ffff
-> +	},
-> +	{
-> +		.name		= "cmem_dma",
-> +		.pa_start	= 0x490a0000,
-> +		.pa_end		= 0x490a1fff
-> +	},
-> +	{
-> +		.name		= "smem_dma",
-> +		.pa_start	= 0x490c0000,
-> +		.pa_end		= 0x490c5fff
-> +	},
-> +	{
-> +		.name		= "pmem_dma",
-> +		.pa_start	= 0x490e0000,
-> +		.pa_end		= 0x490e1fff
-> +	},
-> +	{
-> +		.name		= "dma",
->   		.pa_start	= 0x490f1000,
->   		.pa_end		= 0x490f13ff,
->   		.flags		= ADDR_TYPE_RT
+diff --git a/Documentation/arm/OMAP/DSS b/Documentation/arm/OMAP/DSS
+index 888ae7b..d0aea91 100644
+--- a/Documentation/arm/OMAP/DSS
++++ b/Documentation/arm/OMAP/DSS
+@@ -156,6 +156,7 @@ timings		Display timings (pixclock,xres/hfp/hbp/hsw,yres/vfp/vbp/vsw)
+ 		"pal" and "ntsc"
+ panel_name
+ tear_elim	Tearing elimination 0=off, 1=on
++output_type	Output type (video encoder only): "composite" or "svideo"
+ 
+ There are also some debugfs files at <debugfs>/omapdss/ which show information
+ about clocks and registers.
+diff --git a/drivers/video/omap2/dss/venc.c b/drivers/video/omap2/dss/venc.c
+index 9c3daf7..bde0153 100644
+--- a/drivers/video/omap2/dss/venc.c
++++ b/drivers/video/omap2/dss/venc.c
+@@ -485,16 +485,68 @@ unsigned long venc_get_pixel_clock(void)
+ 	return 13500000;
+ }
+ 
++static ssize_t display_output_type_show(struct device *dev,
++		struct device_attribute *attr, char *buf)
++{
++	struct omap_dss_device *dssdev = to_dss_device(dev);
++	const char *ret;
++
++	switch (dssdev->phy.venc.type) {
++	case OMAP_DSS_VENC_TYPE_COMPOSITE:
++		ret = "composite";
++		break;
++	case OMAP_DSS_VENC_TYPE_SVIDEO:
++		ret = "svideo";
++		break;
++	default:
++		return -EINVAL;
++	}
++
++	return snprintf(buf, PAGE_SIZE, "%s\n", ret);
++}
++
++static ssize_t display_output_type_store(struct device *dev,
++		struct device_attribute *attr, const char *buf, size_t size)
++{
++	struct omap_dss_device *dssdev = to_dss_device(dev);
++	enum omap_dss_venc_type new_type;
++
++	if (sysfs_streq("composite", buf))
++		new_type = OMAP_DSS_VENC_TYPE_COMPOSITE;
++	else if (sysfs_streq("svideo", buf))
++		new_type = OMAP_DSS_VENC_TYPE_SVIDEO;
++	else
++		return -EINVAL;
++
++	mutex_lock(&venc.venc_lock);
++
++	if (dssdev->phy.venc.type != new_type) {
++		dssdev->phy.venc.type = new_type;
++		if (dssdev->state == OMAP_DSS_DISPLAY_ACTIVE) {
++			venc_power_off(dssdev);
++			venc_power_on(dssdev);
++		}
++	}
++
++	mutex_unlock(&venc.venc_lock);
++
++	return size;
++}
++
++static DEVICE_ATTR(output_type, S_IRUGO | S_IWUSR,
++		display_output_type_show, display_output_type_store);
++
+ /* driver */
+ static int venc_panel_probe(struct omap_dss_device *dssdev)
+ {
+ 	dssdev->panel.timings = omap_dss_pal_timings;
+ 
+-	return 0;
++	return device_create_file(&dssdev->dev, &dev_attr_output_type);
+ }
+ 
+ static void venc_panel_remove(struct omap_dss_device *dssdev)
+ {
++	device_remove_file(&dssdev->dev, &dev_attr_output_type);
+ }
+ 
+ static int venc_panel_enable(struct omap_dss_device *dssdev)
+-- 
+1.7.0.4
 
