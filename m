@@ -1,50 +1,99 @@
-From: "DebBarma, Tarun Kanti" <tarun.kanti@ti.com>
-Subject: Re: [PATCH v2 3/4] ARM: OMAP2+: dmtimer: cleanup iclk usage
-Date: Tue, 24 Apr 2012 01:06:59 +0530
-Message-ID: <CAC83ZvKrV6yjwj9BoU662p8MRbB-h2JGE6AS3eGgaPy8+z=J7w@mail.gmail.com>
-References: <1334925563-20768-1-git-send-email-tarun.kanti@ti.com>
-	<1334925563-20768-4-git-send-email-tarun.kanti@ti.com>
-	<87obqijq4j.fsf@ti.com>
+From: Sebastien Guiriec <s-guiriec@ti.com>
+Subject: [PATCH] ARM: OMAP4: hwmod data: Update AESS data with memory bank area
+Date: Mon, 23 Apr 2012 22:25:47 +0200
+Message-ID: <1335212747-8006-1-git-send-email-s-guiriec@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: text/plain
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aog137.obsmtp.com ([74.125.149.18]:55310 "EHLO
-	na3sys009aog137.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753040Ab2DWThB convert rfc822-to-8bit
-	(ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Mon, 23 Apr 2012 15:37:01 -0400
-Received: by qcro28 with SMTP id o28so8524864qcr.5
-        for <linux-omap@vger.kernel.org>; Mon, 23 Apr 2012 12:36:59 -0700 (PDT)
-In-Reply-To: <87obqijq4j.fsf@ti.com>
+Received: from comal.ext.ti.com ([198.47.26.152]:52969 "EHLO comal.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752397Ab2DWUZy (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Mon, 23 Apr 2012 16:25:54 -0400
+Received: from dlelxv30.itg.ti.com ([172.17.2.17])
+	by comal.ext.ti.com (8.13.7/8.13.7) with ESMTP id q3NKPsq0020888
+	for <linux-omap@vger.kernel.org>; Mon, 23 Apr 2012 15:25:54 -0500
+Received: from DFLE71.ent.ti.com (dfle71.ent.ti.com [128.247.5.62])
+	by dlelxv30.itg.ti.com (8.13.8/8.13.8) with ESMTP id q3NKPsD8012683
+	for <linux-omap@vger.kernel.org>; Mon, 23 Apr 2012 15:25:54 -0500
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Kevin Hilman <khilman@ti.com>
-Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, "Cousson, Benoit" <b-cousson@ti.com>, Paul Walmsley <paul@pwsan.com>, Tony Lindgren <tony@atomide.com>, Rajendra Nayak <rnayak@ti.com>, Santosh Shilimkar <santosh.shilimkar@ti.com>
+To: =?UTF-8?q?Beno=C3=AEt=20Cousson?= <b-cousson@ti.com>, linux-omap@vger.kernel.org
+Cc: Sebastien Guiriec <s-guiriec@ti.com>
 
-On Mon, Apr 23, 2012 at 11:18 PM, Kevin Hilman <khilman@ti.com> wrote:
-> Tarun Kanti DebBarma <tarun.kanti@ti.com> writes:
->
->> We do not use iclk anywhere in the dmtimer driver and so removing it=
-=2E
->> Hence removing the timer iclk entries from OMAP4 clkdev table as wel=
-l.
->
-> What about the OMAP2/3 clkdev tables? =A0Can't those be removed as we=
-ll?
-No, they are being used. In fact I removed them in the beginning only
-to discover they are needed.
+Add AESS memory bank data in hwmod in order to provide memory
+address information to the driver. AESS is divided inside 5
+memory banks than can be accessed directly by MPU or by L3.
+- PMEM: Program memory bank.
+- SMEM: Sample memory bank.
+- CMEM: Coefficients memory bank
+- DMEM: Data memory bank.
+- MPU/DMA: Register of AESS IP.
 
->
-> Comment applies to PATCH 4/4 also.
-You mean removing iclk from clkdev table? That is already done in this =
-patch!!
---
-Tarun
->
-> Kevin
---
-To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Signed-off-by: Sebastien Guiriec <s-guiriec@ti.com>
+---
+ arch/arm/mach-omap2/omap_hwmod_44xx_data.c |   42 ++++++++++++++++++++++++++++
+ 1 files changed, 42 insertions(+), 0 deletions(-)
+
+diff --git a/arch/arm/mach-omap2/omap_hwmod_44xx_data.c b/arch/arm/mach-omap2/omap_hwmod_44xx_data.c
+index 4906129..b0d333a 100644
+--- a/arch/arm/mach-omap2/omap_hwmod_44xx_data.c
++++ b/arch/arm/mach-omap2/omap_hwmod_44xx_data.c
+@@ -3999,6 +3999,27 @@ static struct omap_hwmod_ocp_if omap44xx_l4_cfg__ocp_wp_noc = {
+ 
+ static struct omap_hwmod_addr_space omap44xx_aess_addrs[] = {
+ 	{
++		.name		= "dmem",
++		.pa_start	= 0x40180000,
++		.pa_end		= 0x4018ffff
++	},
++	{
++		.name		= "cmem",
++		.pa_start	= 0x401a0000,
++		.pa_end		= 0x401a1fff
++	},
++	{
++		.name		= "smem",
++		.pa_start	= 0x401c0000,
++		.pa_end		= 0x401c5fff
++	},
++	{
++		.name		= "pmem",
++		.pa_start	= 0x401e0000,
++		.pa_end		= 0x401e1fff
++	},
++	{
++		.name		= "mpu",
+ 		.pa_start	= 0x401f1000,
+ 		.pa_end		= 0x401f13ff,
+ 		.flags		= ADDR_TYPE_RT
+@@ -4017,6 +4038,27 @@ static struct omap_hwmod_ocp_if omap44xx_l4_abe__aess = {
+ 
+ static struct omap_hwmod_addr_space omap44xx_aess_dma_addrs[] = {
+ 	{
++		.name		= "dmem_dma",
++		.pa_start	= 0x49080000,
++		.pa_end		= 0x4908ffff
++	},
++	{
++		.name		= "cmem_dma",
++		.pa_start	= 0x490a0000,
++		.pa_end		= 0x490a1fff
++	},
++	{
++		.name		= "smem_dma",
++		.pa_start	= 0x490c0000,
++		.pa_end		= 0x490c5fff
++	},
++	{
++		.name		= "pmem_dma",
++		.pa_start	= 0x490e0000,
++		.pa_end		= 0x490e1fff
++	},
++	{
++		.name		= "dma",
+ 		.pa_start	= 0x490f1000,
+ 		.pa_end		= 0x490f13ff,
+ 		.flags		= ADDR_TYPE_RT
+-- 
+1.7.4.1
+
