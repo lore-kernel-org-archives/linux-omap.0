@@ -1,118 +1,103 @@
-From: Tomi Valkeinen <tomi.valkeinen@ti.com>
-Subject: Re: [PATCH] OMAPDSS: Provide interface for audio support in DSS
-Date: Mon, 23 Apr 2012 13:41:11 +0300
-Message-ID: <1335177671.1535.6.camel@lappy>
-References: <1332971516-4325-1-git-send-email-ricardo.neri@ti.com>
-	 <1332971516-4325-2-git-send-email-ricardo.neri@ti.com>
-	 <1334923436.1564.8.camel@lappy>  <4F919AFB.8080105@ti.com>
+From: "Mohammed, Afzal" <afzal@ti.com>
+Subject: RE: OMAP3EVM not booting on l-o master
+Date: Mon, 23 Apr 2012 10:43:24 +0000
+Message-ID: <C8443D0743D26F4388EA172BF4E2A7A93E96E7A7@DBDE01.ent.ti.com>
+References: <C8443D0743D26F4388EA172BF4E2A7A9317C3A03@DBDE01.ent.ti.com>
+	 <C8443D0743D26F4388EA172BF4E2A7A9317C3B18@DBDE01.ent.ti.com>
+	 <alpine.DEB.2.00.1204050330380.10302@utopia.booyaka.com>
+	 <alpine.DEB.2.00.1204050403460.10302@utopia.booyaka.com>
+	 <C8443D0743D26F4388EA172BF4E2A7A9317C4B44@DBDE01.ent.ti.com>
+	 <alpine.DEB.2.00.1204051303000.10302@utopia.booyaka.com>
+	 <C8443D0743D26F4388EA172BF4E2A7A9317C5DB6@DBDE01.ent.ti.com>
+	 <alpine.DEB.2.00.1204060111400.10302@utopia.booyaka.com>
+	 <C8443D0743D26F4388EA172BF4E2A7A9317C5EEF@DBDE01.ent.ti.com>
+	 <1335173044.2149.64.camel@sokoban>
+	 <C8443D0743D26F4388EA172BF4E2A7A93E96E75A@DBDE01.ent.ti.com>
+ <1335176002.2149.65.camel@sokoban>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg="pgp-sha1"; protocol="application/pgp-signature"; boundary="=-J96pBYFvrBnACMDKQSMx"
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aog122.obsmtp.com ([74.125.149.147]:43901 "EHLO
-	na3sys009aog122.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754877Ab2DWKlT (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>);
-	Mon, 23 Apr 2012 06:41:19 -0400
-Received: by lagz14 with SMTP id z14so11590963lag.14
-        for <linux-omap@vger.kernel.org>; Mon, 23 Apr 2012 03:41:16 -0700 (PDT)
-In-Reply-To: <4F919AFB.8080105@ti.com>
+Received: from arroyo.ext.ti.com ([192.94.94.40]:34311 "EHLO arroyo.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1754957Ab2DWKn3 (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Mon, 23 Apr 2012 06:43:29 -0400
+In-Reply-To: <1335176002.2149.65.camel@sokoban>
+Content-Language: en-US
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Ricardo Neri <ricardo.neri@ti.com>
-Cc: s-chereau@ti.com, x0055901@ti.com, s-guiriec@ti.com, lrg@ti.com, peter.ujfalusi@ti.com, linux-omap@vger.kernel.org
+To: "Kristo, Tero" <t-kristo@ti.com>
+Cc: Paul Walmsley <paul@pwsan.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
 
-
---=-J96pBYFvrBnACMDKQSMx
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: quoted-printable
-
-On Fri, 2012-04-20 at 12:20 -0500, Ricardo Neri wrote:
-> Hi Tomi,
->=20
-> Thanks for your comments!
->=20
-> On 04/20/2012 07:03 AM, Tomi Valkeinen wrote:
-
-> > I can't say anything about the parameters for audio_config, so I trust
-> > they are ok. But some comments about the functions:
->=20
-> Fwiw, I have been testing this approach on OMAP4 and OMAP5 during the=20
-> last week and it seems to work fine. :) Perhaps in the future I can=20
-> extend it to cover speaker mapping for the multichannel use-case.
-
-Ok. I'll try to go through the rests of patches from you today.
-
-> > I don't like foo_enable(bool enable) style functions. While it does
-> > reduce the amount of code a bit, I think it's much less readable than
-> > separate foo_enable() and foo_disable() functions.
->=20
-> I will split the functions audio_enable into audio_enable and=20
-> audio_disable and audio_start into audio_start and audio_stop.
-> >
-> > audio_detect sounds a bit misleading to me... You're not detecting
-> > anything, but asking if audio is supported. So... "audio_supported()" o=
-r
-> > something?
->=20
-> I was looking for a name that denotes that audio support is dynamic:=20
-> while a display may be capable of playing audio, it may be supported=20
-> only for some configurations (e.g., VESA vs CEA video timings).=20
-> Something like audio_supported_now() would be fully descriptive but I=20
-> guess audio_supported() looks nicer.
-
-Right, I see. I agree that audio_supported() doesn't convey all the
-information about the context. But audio_supported_now() does sound a
-bit odd =3D).
-
-> > Is there need for the audio_config function, or could the audio configs
-> > be given with audio_start call?
->=20
-> I propose to have separate functions for configuration and audio start=
-=20
-> to provide full flexibility. The users of the DSS audio interface should=
-=20
-> be able to decide when to configure and when to start the audio;=20
-> otherwise, synchronization issues may arise. For instance, on OMAP HDMI=
-=20
-> IPs, the audio configuration must be done while the audio wrapper is=20
-> disabled; but the DMA transfers must start after enabling the audio=20
-> wrapper (or FIFO underflow and audio channel shifting may occur). As the=
-=20
-> DMA tranfers are started by a different driver (e.g., ASoC), DSS does=20
-> control it and, instead, should provide functionality to config and=20
-> start audio when required.
->=20
-> Furthermore, IMHO, having a config function to effectively configure and=
-=20
-> a start function to effectively start audio contributes to improve=20
-> readability.
-
-Ok, I agree.
-
- Tomi
-
-
---=-J96pBYFvrBnACMDKQSMx
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: This is a digitally signed message part
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.4.11 (GNU/Linux)
-
-iQIcBAABAgAGBQJPlTHAAAoJEPo9qoy8lh71JnYQAI1+IqN88REdPAIQKwvmH/Dw
-e93X9LPHH5EFf4ECPcKAT3XmQ0yY5F8nSIaJzuM3tcPo+aHoXHq+EPdcL4r+cFQP
-FC8jkhSMsdmqyUDxXJrr2zEwoQ3bov72SOX2LSHh0b7e98Etb74rjI4VNQhpW9gt
-QBTJZtbPscnsMmgb24Ok/fRT2A8oM+uxGSwCmZGpHnTKKEsoOGcwTniIchVo9gjC
-Lk8O1PaMDl+m2UYunQJMMZ+vSYSJQ7jF6xiYScqW6vUmg1mTTmjSOpYAXvD8Bh9C
-+Q1JBpZ/cnGJCU/w00Lz3gjPQTvUI+CoVI06WHttwKvM/5k3Me7mcPhJi/6wl0sy
-iVv1z4bSlc2PobwFCNo0pmqUCXYyT7uu+hr/Z/AOycUy5WRKY6DHYv9duqDctJd9
-qbUl8NyCgDUst3B7RIUjemlfw2N8Ca0dACWLoyYqaBrHIWT+dyPBMxM+uMuCkioP
-JD9oT6XkhS0KablECWk5KEsr0G+pb6JTHRSbxlHvIXG4fbLpn9g/UmVqHDJ/aBNY
-FPzemL987f5eAjVysAltlD/pMxPn8yfgK9K6bMmqEz0xX6OYCIqRH1ziVDIg3aMK
-35nAbX7Mjq/34TM95zFcwfAQSRDfYRyxLun2cum7LEucmDf9caiNX1JBerELaOAi
-G/r6zxipcNDABA762bi6
-=kF59
------END PGP SIGNATURE-----
-
---=-J96pBYFvrBnACMDKQSMx--
-
+SGkgVGVybywNCg0KT24gTW9uLCBBcHIgMjMsIDIwMTIgYXQgMTU6NDM6MjIsIEtyaXN0bywgVGVy
+byB3cm90ZToNCj4gPiA+IGNhbiB5b3UgdHJ5IHRoZSBhdHRhY2hlZCBwYXRjaCB3aXRoIHRoaXMg
+YnJhbmNoIGFuZCBvbWFwM2V2bSBib2FyZD8gSQ0KPiA+ID4gZG9uJ3QgaGF2ZSB0aGUgYm9hcmQg
+bXlzZWxmIHNvIEkgY2FuJ3QgdGVzdCBpdCBteXNlbGYgKEkgdGVzdGVkIHRoaXMNCj4gPiA+IHdp
+dGggb21hcDNiZWFnbGUgYW5kIGl0IHdvcmtzIHdpdGggdGhhdCBvbmUuKQ0KDQoNCldpdGggeW91
+ciBwYXRjaCwgT01BUDNFVk0gYm9vdHMgbm9ybWFsbHkuDQoNClRlc3RlZCBieSBjcmVhdGluZyBz
+YW1lIGNoYW5nZXMgYXMgaW4geW91ciBwYXRjaCBhcyBiZWxvdyAocGF0Y2ggY291bGQgbm90DQpi
+ZSBhcHBsaWVkLCBzZWVtcyBpdCB3YXMgY29ycnVwdGVkKQ0KDQpSZWdhcmRzDQpBZnphbA0KDQpk
+aWZmIC0tZ2l0IGEvYXJjaC9hcm0vbWFjaC1vbWFwMi9tdXguYyBiL2FyY2gvYXJtL21hY2gtb21h
+cDIvbXV4LmMNCmluZGV4IDY1YzMzOTEuLjE3MzQ5ZTMgMTAwNjQ0DQotLS0gYS9hcmNoL2FybS9t
+YWNoLW9tYXAyL211eC5jDQorKysgYi9hcmNoL2FybS9tYWNoLW9tYXAyL211eC5jDQpAQCAtNDEs
+NiArNDEsNyBAQA0KICNpbmNsdWRlICJjb250cm9sLmgiDQogI2luY2x1ZGUgIm11eC5oIg0KICNp
+bmNsdWRlICJwcm0uaCINCisjaW5jbHVkZSAicG0uaCINCg0KICNkZWZpbmUgT01BUF9NVVhfQkFT
+RV9PRkZTRVQgICAgICAgICAgIDB4MzAgICAgLyogT2Zmc2V0IGZyb20gQ1RSTF9CQVNFICovDQog
+I2RlZmluZSBPTUFQX01VWF9CQVNFX1NaICAgICAgICAgICAgICAgMHg1Y2ENCkBAIC00MjcsNiAr
+NDI4LDEzIEBAIHN0YXRpYyBpcnFyZXR1cm5fdCBvbWFwX2h3bW9kX211eF9oYW5kbGVfaXJxKGlu
+dCBpcnEsIHZvaWQgKnVudXNlZCkNCiAgICAgICAgcmV0dXJuIElSUV9IQU5ETEVEOw0KIH0NCg0K
+K3N0YXRpYyBpcnFyZXR1cm5fdCBvbWFwMzR4eF9od21vZF9tdXhfaGFuZGxlX2lycShpbnQgaXJx
+LCB2b2lkICp1bnVzZWQpDQorew0KKyAgICAgICBvbWFwX2h3bW9kX2Zvcl9lYWNoKF9vbWFwX2h3
+bW9kX211eF9oYW5kbGVfaXJxLCBOVUxMKTsNCisgICAgICAgcHJjbV9pbnRfYWNrX2lvKCk7DQor
+ICAgICAgIHJldHVybiBJUlFfSEFORExFRDsNCit9DQorDQogLyogQXNzdW1lcyB0aGUgY2FsbGlu
+ZyBmdW5jdGlvbiB0YWtlcyBjYXJlIG9mIGxvY2tpbmcgKi8NCiB2b2lkIG9tYXBfaHdtb2RfbXV4
+KHN0cnVjdCBvbWFwX2h3bW9kX211eF9pbmZvICpobXV4LCB1OCBzdGF0ZSkNCiB7DQpAQCAtNzky
+LDYgKzgwMCw3IEBAIHN0YXRpYyBpbnQgX19pbml0IG9tYXBfbXV4X2xhdGVfaW5pdCh2b2lkKQ0K
+IHsNCiAgICAgICAgc3RydWN0IG9tYXBfbXV4X3BhcnRpdGlvbiAqcGFydGl0aW9uOw0KICAgICAg
+ICBpbnQgcmV0Ow0KKyAgICAgICBpcnFfaGFuZGxlcl90IGlycV9oYW5kbGVyOw0KDQogICAgICAg
+IGxpc3RfZm9yX2VhY2hfZW50cnkocGFydGl0aW9uLCAmbXV4X3BhcnRpdGlvbnMsIG5vZGUpIHsN
+CiAgICAgICAgICAgICAgICBzdHJ1Y3Qgb21hcF9tdXhfZW50cnkgKmUsICp0bXA7DQpAQCAtODEy
+LDEyICs4MjEsMTkgQEAgc3RhdGljIGludCBfX2luaXQgb21hcF9tdXhfbGF0ZV9pbml0KHZvaWQp
+DQogICAgICAgICAgICAgICAgfQ0KICAgICAgICB9DQoNCisjaWZkZWYgQ09ORklHX1BNDQorICAg
+ICAgIGlmIChjcHVfaXNfb21hcDM0eHgoKSkNCisgICAgICAgICAgICAgICBpcnFfaGFuZGxlciA9
+IG9tYXAzNHh4X2h3bW9kX211eF9oYW5kbGVfaXJxOw0KKyAgICAgICBlbHNlDQorICAgICAgICAg
+ICAgICAgaXJxX2hhbmRsZXIgPSBvbWFwX2h3bW9kX211eF9oYW5kbGVfaXJxOw0KKw0KICAgICAg
+ICByZXQgPSByZXF1ZXN0X2lycShvbWFwX3ByY21fZXZlbnRfdG9faXJxKCJpbyIpLA0KLSAgICAg
+ICAgICAgICAgIG9tYXBfaHdtb2RfbXV4X2hhbmRsZV9pcnEsIElSUUZfU0hBUkVEIHwgSVJRRl9O
+T19TVVNQRU5ELA0KKyAgICAgICAgICAgICAgIGlycV9oYW5kbGVyLCBJUlFGX1NIQVJFRCB8IElS
+UUZfTk9fU1VTUEVORCwNCiAgICAgICAgICAgICAgICAgICAgICAgICJod21vZF9pbyIsIG9tYXBf
+bXV4X2xhdGVfaW5pdCk7DQoNCiAgICAgICAgaWYgKHJldCkNCiAgICAgICAgICAgICAgICBwcl93
+YXJuaW5nKCJtdXg6IEZhaWxlZCB0byBzZXR1cCBod21vZCBpbyBpcnEgJWRcbiIsIHJldCk7DQor
+I2VuZGlmDQoNCiAgICAgICAgb21hcF9tdXhfZGJnX2luaXQoKTsNCg0KZGlmZiAtLWdpdCBhL2Fy
+Y2gvYXJtL21hY2gtb21hcDIvcG0uaCBiL2FyY2gvYXJtL21hY2gtb21hcDIvcG0uaA0KaW5kZXgg
+MzZmYTkwYi4uMDliYTllNyAxMDA2NDQNCi0tLSBhL2FyY2gvYXJtL21hY2gtb21hcDIvcG0uaA0K
+KysrIGIvYXJjaC9hcm0vbWFjaC1vbWFwMi9wbS5oDQpAQCAtMjAsNiArMjAsNyBAQCBleHRlcm4g
+dm9pZCBvbWFwM19wbV9vZmZfbW9kZV9lbmFibGUoaW50KTsNCiBleHRlcm4gdm9pZCBvbWFwX3Ny
+YW1faWRsZSh2b2lkKTsNCiBleHRlcm4gaW50IG9tYXBfc2V0X3B3cmRtX3N0YXRlKHN0cnVjdCBw
+b3dlcmRvbWFpbiAqcHdyZG0sIHUzMiBzdGF0ZSk7DQogZXh0ZXJuIGludCBvbWFwM19pZGxlX2lu
+aXQodm9pZCk7DQorZXh0ZXJuIHZvaWQgcHJjbV9pbnRfYWNrX2lvKHZvaWQpOw0KIGV4dGVybiBp
+bnQgb21hcDRfaWRsZV9pbml0KHZvaWQpOw0KIGV4dGVybiBpbnQgb21hcF9wbV9jbGtkbXNfc2V0
+dXAoc3RydWN0IGNsb2NrZG9tYWluICpjbGtkbSwgdm9pZCAqdW51c2VkKTsNCiBleHRlcm4gaW50
+ICgqb21hcF9wbV9zdXNwZW5kKSh2b2lkKTsNCmRpZmYgLS1naXQgYS9hcmNoL2FybS9tYWNoLW9t
+YXAyL3BtMzR4eC5jIGIvYXJjaC9hcm0vbWFjaC1vbWFwMi9wbTM0eHguYw0KaW5kZXggYWZlM2Rk
+YS4uY2VhNDQwOCAxMDA2NDQNCi0tLSBhL2FyY2gvYXJtL21hY2gtb21hcDIvcG0zNHh4LmMNCisr
+KyBiL2FyY2gvYXJtL21hY2gtb21hcDIvcG0zNHh4LmMNCkBAIC0xODIsMTQgKzE4MiwxMCBAQCBz
+dGF0aWMgaW50IHByY21fY2xlYXJfbW9kX2lycXMoczE2IG1vZHVsZSwgdTggcmVncywgdTMyIGln
+bm9yZV9iaXRzKQ0KICAgICAgICByZXR1cm4gYzsNCiB9DQoNCi1zdGF0aWMgaXJxcmV0dXJuX3Qg
+X3ByY21faW50X2hhbmRsZV9pbyhpbnQgaXJxLCB2b2lkICp1bnVzZWQpDQordm9pZCBwcmNtX2lu
+dF9hY2tfaW8odm9pZCkNCiB7DQotICAgICAgIGludCBjOw0KLQ0KLSAgICAgICBjID0gcHJjbV9j
+bGVhcl9tb2RfaXJxcyhXS1VQX01PRCwgMSwNCisgICAgICAgcHJjbV9jbGVhcl9tb2RfaXJxcyhX
+S1VQX01PRCwgMSwNCiAgICAgICAgICAgICAgICB+KE9NQVAzNDMwX1NUX0lPX01BU0sgfCBPTUFQ
+MzQzMF9TVF9JT19DSEFJTl9NQVNLKSk7DQotDQotICAgICAgIHJldHVybiBjID8gSVJRX0hBTkRM
+RUQgOiBJUlFfTk9ORTsNCiB9DQoNCiBzdGF0aWMgaXJxcmV0dXJuX3QgX3ByY21faW50X2hhbmRs
+ZV93YWtldXAoaW50IGlycSwgdm9pZCAqdW51c2VkKQ0KQEAgLTY4MywxNiArNjc5LDYgQEAgc3Rh
+dGljIGludCBfX2luaXQgb21hcDNfcG1faW5pdCh2b2lkKQ0KICAgICAgICAgICAgICAgIGdvdG8g
+ZXJyMTsNCiAgICAgICAgfQ0KDQotICAgICAgIC8qIElPIGludGVycnVwdCBpcyBzaGFyZWQgd2l0
+aCBtdXggY29kZSAqLw0KLSAgICAgICByZXQgPSByZXF1ZXN0X2lycShvbWFwX3ByY21fZXZlbnRf
+dG9faXJxKCJpbyIpLA0KLSAgICAgICAgICAgICAgIF9wcmNtX2ludF9oYW5kbGVfaW8sIElSUUZf
+U0hBUkVEIHwgSVJRRl9OT19TVVNQRU5ELCAicG1faW8iLA0KLSAgICAgICAgICAgICAgIG9tYXAz
+X3BtX2luaXQpOw0KLQ0KLSAgICAgICBpZiAocmV0KSB7DQotICAgICAgICAgICAgICAgcHJfZXJy
+KCJwbTogRmFpbGVkIHRvIHJlcXVlc3QgcG1faW8gaXJxXG4iKTsNCi0gICAgICAgICAgICAgICBn
+b3RvIGVycjE7DQotICAgICAgIH0NCi0NCiAgICAgICAgcmV0ID0gcHdyZG1fZm9yX2VhY2gocHdy
+ZG1zX3NldHVwLCBOVUxMKTsNCiAgICAgICAgaWYgKHJldCkgew0KICAgICAgICAgICAgICAgIHBy
+aW50ayhLRVJOX0VSUiAiRmFpbGVkIHRvIHNldHVwIHBvd2VyZG9tYWluc1xuIik7DQo=
