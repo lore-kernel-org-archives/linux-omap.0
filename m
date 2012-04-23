@@ -1,79 +1,60 @@
-From: "Shilimkar, Santosh" <santosh.shilimkar@ti.com>
-Subject: Re: [RFC 0/8] DMA engine conversion
-Date: Mon, 23 Apr 2012 18:02:52 +0530
-Message-ID: <CAMQu2gyQ3928VQ9Q9Y0mNiacB+br2oGezGCvhLXikbOTi-JR3Q@mail.gmail.com>
-References: <20120418100954.GK25053@n2100.arm.linux.org.uk> <20120423114615.GB25053@n2100.arm.linux.org.uk>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Subject: [PATCH] omapdss: Add support for the OrtusTech COM57H5M24KSC panel
+Date: Mon, 23 Apr 2012 14:41:34 +0200
+Message-ID: <1335184894-21733-1-git-send-email-laurent.pinchart@ideasonboard.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aog128.obsmtp.com ([74.125.149.141]:45403 "EHLO
-	na3sys009aog128.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754544Ab2DWMdO convert rfc822-to-8bit
-	(ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Mon, 23 Apr 2012 08:33:14 -0400
-Received: by qcsc20 with SMTP id c20so7044465qcs.4
-        for <linux-omap@vger.kernel.org>; Mon, 23 Apr 2012 05:33:13 -0700 (PDT)
-In-Reply-To: <20120423114615.GB25053@n2100.arm.linux.org.uk>
+Received: from perceval.ideasonboard.com ([95.142.166.194]:34088 "EHLO
+	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753289Ab2DWMlT (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 23 Apr 2012 08:41:19 -0400
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Russell King - ARM Linux <linux@arm.linux.org.uk>
-Cc: linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org, linux-mmc@vger.kernel.org
+To: Tomi Valkeinen <tomi.valkeinen@ti.com>
+Cc: linux-omap@vger.kernel.org
 
-On Mon, Apr 23, 2012 at 5:16 PM, Russell King - ARM Linux
-<linux@arm.linux.org.uk> wrote:
-> Here's a patch which converts the SPI driver to use dma engine suppor=
-t.
-> It's more or less a mechanical replacement in this driver. =A0Tested =
-on
-> OMAP4430SDP ethernet (which basically means that udhcpc works.)
->
-> One thing to note: the old DMA code programmed the DMA hardware for a=
-n
-> element count of N and frame size of 1, with element sync. =A0The DMA
-> engine code will program the DMA hardware for an element count of 1 a=
-nd
-> a frame size of N, with frame sync. =A0This appears to work - but at =
-the
-> moment I've not looked to see if there's any implications of this.
->
-> You can enable/disable the DMA engine code for the TX or RX side by
-> tweaking the two definitions at the top of the file if you want to do
-> comparisons.
->
-> Comments? =A0If none, I'll see about committing this into the patch s=
-et,
-> adding the removal of the private DMA code, and sending it out more
-> "officially" with the next round of RFC for this set.
->
-Element sync vs Frame sync change seems to be fine thought it's
-bit puzzling that why it was not that way first place.
+Signed-off-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+---
+ drivers/video/omap2/displays/panel-generic-dpi.c |   25 ++++++++++++++++++++++
+ 1 files changed, 25 insertions(+), 0 deletions(-)
 
-> Modulo the element vs frame sync issue, I think folk can see that the
-> conversion process is fairly straight forward - it's more or less:
-> 1. add struct dma_chan * pointer to the private structure.
-> 2. add allocation/freeing functions for the DMA engine channels.
-> 3. convert the callbacks to match the DMA engine callback prototype.
-> 4. add code to set the DMA engine channel configuration appropriately
-> =A0 (avoiding any unnecessary calls) via dmaengine_slave_config().
-> 5. add code to queue the transfer via dmaengine_prep_slave_sg() and
-> =A0 dmaengine_submit().
-> 6. omap_start_dma() becomes dma_async_issue_pending().
->
-> =A0drivers/spi/spi-omap2-mcspi.c | =A0186 +++++++++++++++++++++++++++=
-++++++-------
-> =A01 files changed, 153 insertions(+), 33 deletions(-)
+diff --git a/drivers/video/omap2/displays/panel-generic-dpi.c b/drivers/video/omap2/displays/panel-generic-dpi.c
+index 28b9a6d..9411ad7 100644
+--- a/drivers/video/omap2/displays/panel-generic-dpi.c
++++ b/drivers/video/omap2/displays/panel-generic-dpi.c
+@@ -363,6 +363,31 @@ static struct panel_config generic_dpi_panels[] = {
+ 
+ 		.name			= "ortustech_com43h4m10xtc",
+ 	},
++
++	/* OrtusTech COM57H5M24KSC */
++	{
++		{
++			.x_res		= 640,
++			.y_res		= 480,
++
++			.pixel_clock	= 25000,
++
++			.hsw		= 30,
++			.hfp		= 48,
++			.hbp		= 82,
++
++			.vsw		= 3,
++			.vfp		= 10,
++			.vbp		= 32,
++		},
++		.acbi			= 0x0,
++		.acb			= 0x0,
++		.config			= OMAP_DSS_LCD_TFT | OMAP_DSS_LCD_IVS |
++					  OMAP_DSS_LCD_IHS | OMAP_DSS_LCD_IPC,
++		.power_on_delay		= 0,
++		.power_off_delay	= 0,
++		.name			= "ortustech_com57h5m24ksc",
++	},
+ 
+ 	/* Innolux AT080TN52 */
+ 	{
+-- 
+Regards,
 
-The patch seems to be fine to me.
+Laurent Pinchart
 
-Am looping Shubro in case he has any comment on "why element sync was u=
-sed ?"
-and also to test the patch with more peripherals connected over SPI.
-
-Regards
-Santosh
---
-To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
