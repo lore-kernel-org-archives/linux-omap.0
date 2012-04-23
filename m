@@ -1,168 +1,71 @@
-From: "Govindraj.R" <govindraj.raja@ti.com>
-Subject: [PATCH] tty: omap-serial: configure wakeup mechanism based on port usage.
-Date: Mon, 23 Apr 2012 18:45:37 +0530
-Message-ID: <1335186937-24822-1-git-send-email-govindraj.raja@ti.com>
+From: Tomi Valkeinen <tomi.valkeinen@ti.com>
+Subject: Re: [PATCH 01/10] OMAPDSS: HDMI: Remove ASoC codec
+Date: Mon, 23 Apr 2012 16:17:14 +0300
+Message-ID: <1335187034.1535.35.camel@lappy>
+References: <1332974305-4578-1-git-send-email-ricardo.neri@ti.com>
+	 <1332974305-4578-2-git-send-email-ricardo.neri@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain
-Return-path: <linux-serial-owner@vger.kernel.org>
-Sender: linux-serial-owner@vger.kernel.org
-To: linux-serial@vger.kernel.org
-Cc: linux-omap@vger.kernel.org, "Govindraj.R" <govindraj.raja@ti.com>, Paul Walmsley <paul@pwsan.com>, Kevin Hilman <khilman@ti.com>
+Content-Type: multipart/signed; micalg="pgp-sha1"; protocol="application/pgp-signature"; boundary="=-P2LOglqoYA4YMb+5A99B"
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from na3sys009aog122.obsmtp.com ([74.125.149.147]:40172 "EHLO
+	na3sys009aog122.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1752454Ab2DWNRW (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>);
+	Mon, 23 Apr 2012 09:17:22 -0400
+Received: by lbbgm6 with SMTP id gm6so5641516lbb.13
+        for <linux-omap@vger.kernel.org>; Mon, 23 Apr 2012 06:17:19 -0700 (PDT)
+In-Reply-To: <1332974305-4578-2-git-send-email-ricardo.neri@ti.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-
-From: "Govindraj.R" <govindraj.raja@ti.com>
-
-With set_wakeup port ops availability from serial_core layer
-which will be called when port is opened with state as true
-indicating the wakeups can be enabled for this port and state
-as false while port shutdown where we can disable the wakeups.
-
-But wakeup can be also enabled/disabled when requested from sysfs.
-If disabled wakeup will be disabled while entering suspend and be
-enabled back based on pm state while resuming.
-
-Thanks to Kevin Hilman <khilman@ti.com> for suggesting this.
-Discussion References:
-http://www.spinics.net/lists/linux-omap/msg67764.html
-http://www.spinics.net/lists/linux-omap/msg67838.html
-
-Cc: Paul Walmsley <paul@pwsan.com>
-Signed-off-by: Kevin Hilman <khilman@ti.com>
-[suggestion and modification to enable and disable wakeup
-capability based on port usage]
-Signed-off-by: Govindraj.R <govindraj.raja@ti.com>
----
-
-Patch is tested using the patch as in here[1]
-Tested on beagle-XM by enabling and disabling wakeups
-from sysfs and opening and closing a uart port.
-
-[1]: http://marc.info/?l=linux-omap&m=133518614022144&w=2
+To: Ricardo Neri <ricardo.neri@ti.com>
+Cc: mythripk@ti.com, s-chereau@ti.com, x0055901@ti.com, vaibhav.bedia@ti.com, s-guiriec@ti.com, lrg@ti.com, peter.ujfalusi@ti.com, agraf@suse.de, research@ottomaneng.com, linux-omap@vger.kernel.org
 
 
- arch/arm/plat-omap/include/plat/omap-serial.h |    1 -
- drivers/tty/serial/omap-serial.c              |   45 +++++++++++++++----------
- 2 files changed, 27 insertions(+), 19 deletions(-)
+--=-P2LOglqoYA4YMb+5A99B
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: quoted-printable
 
-diff --git a/arch/arm/plat-omap/include/plat/omap-serial.h b/arch/arm/plat-omap/include/plat/omap-serial.h
-index 9ff4444..8e6d734 100644
---- a/arch/arm/plat-omap/include/plat/omap-serial.h
-+++ b/arch/arm/plat-omap/include/plat/omap-serial.h
-@@ -130,7 +130,6 @@ struct uart_omap_port {
- 	unsigned long		port_activity;
- 	u32			context_loss_cnt;
- 	u32			errata;
--	u8			wakeups_enabled;
- 
- 	struct pm_qos_request	pm_qos_request;
- 	u32			latency;
-diff --git a/drivers/tty/serial/omap-serial.c b/drivers/tty/serial/omap-serial.c
-index d00b38e..b8f328e 100644
---- a/drivers/tty/serial/omap-serial.c
-+++ b/drivers/tty/serial/omap-serial.c
-@@ -525,6 +525,7 @@ static int serial_omap_startup(struct uart_port *port)
- 	dev_dbg(up->port.dev, "serial_omap_startup+%d\n", up->port.line);
- 
- 	pm_runtime_get_sync(&up->pdev->dev);
-+
- 	/*
- 	 * Clear the FIFO buffers and disable them.
- 	 * (they will be reenabled in set_termios())
-@@ -910,11 +911,27 @@ serial_omap_set_termios(struct uart_port *port, struct ktermios *termios,
- 	dev_dbg(up->port.dev, "serial_omap_set_termios+%d\n", up->port.line);
- }
- 
-+static int serial_omap_set_wake(struct uart_port *port, unsigned int state)
-+{
-+	struct uart_omap_port *up = (struct uart_omap_port *)port;
-+	struct omap_uart_port_info *pdata = up->pdev->dev.platform_data;
-+	u8 enable_wakeup = false;
-+
-+	if (state)
-+		enable_wakeup = true;
-+
-+	if (pdata->enable_wakeup)
-+		pdata->enable_wakeup(up->pdev, enable_wakeup);
-+
-+	return 0;
-+}
-+
- static void
- serial_omap_pm(struct uart_port *port, unsigned int state,
- 	       unsigned int oldstate)
- {
- 	struct uart_omap_port *up = (struct uart_omap_port *)port;
-+	struct omap_uart_port_info *pdata = up->pdev->dev.platform_data;
- 	unsigned char efr;
- 
- 	dev_dbg(up->port.dev, "serial_omap_pm+%d\n", up->port.line);
-@@ -930,12 +947,8 @@ serial_omap_pm(struct uart_port *port, unsigned int state,
- 	serial_out(up, UART_EFR, efr);
- 	serial_out(up, UART_LCR, 0);
- 
--	if (!device_may_wakeup(&up->pdev->dev)) {
--		if (!state)
--			pm_runtime_forbid(&up->pdev->dev);
--		else
--			pm_runtime_allow(&up->pdev->dev);
--	}
-+	if (!state && pdata->enable_wakeup)
-+		pdata->enable_wakeup(up->pdev, true);
- 
- 	pm_runtime_put(&up->pdev->dev);
- }
-@@ -1161,6 +1174,7 @@ static struct uart_ops serial_omap_pops = {
- 	.shutdown	= serial_omap_shutdown,
- 	.set_termios	= serial_omap_set_termios,
- 	.pm		= serial_omap_pm,
-+	.set_wake	= serial_omap_set_wake,
- 	.type		= serial_omap_type,
- 	.release_port	= serial_omap_release_port,
- 	.request_port	= serial_omap_request_port,
-@@ -1184,10 +1198,14 @@ static struct uart_driver serial_omap_reg = {
- static int serial_omap_suspend(struct device *dev)
- {
- 	struct uart_omap_port *up = dev_get_drvdata(dev);
-+	struct omap_uart_port_info *pdata = dev->platform_data;
- 
- 	if (up) {
- 		uart_suspend_port(&serial_omap_reg, &up->port);
- 		flush_work_sync(&up->qos_work);
-+
-+		if (!device_may_wakeup(dev))
-+			pdata->enable_wakeup(up->pdev, false);
- 	}
- 
- 	return 0;
-@@ -1476,6 +1494,9 @@ static int serial_omap_probe(struct platform_device *pdev)
- 	if (ret != 0)
- 		goto err_add_port;
- 
-+	if (omap_up_info->enable_wakeup)
-+		omap_up_info->enable_wakeup(pdev, false);
-+
- 	pm_runtime_put(&pdev->dev);
- 	platform_set_drvdata(pdev, up);
- 	return 0;
-@@ -1582,18 +1603,6 @@ static int serial_omap_runtime_suspend(struct device *dev)
- 	if (pdata->get_context_loss_count)
- 		up->context_loss_cnt = pdata->get_context_loss_count(dev);
- 
--	if (device_may_wakeup(dev)) {
--		if (!up->wakeups_enabled) {
--			pdata->enable_wakeup(up->pdev, true);
--			up->wakeups_enabled = true;
--		}
--	} else {
--		if (up->wakeups_enabled) {
--			pdata->enable_wakeup(up->pdev, false);
--			up->wakeups_enabled = false;
--		}
--	}
--
- 	/* Errata i291 */
- 	if (up->use_dma && pdata->set_forceidle &&
- 			(up->errata & UART_ERRATA_i291_DMA_FORCEIDLE))
--- 
-1.7.9
+On Wed, 2012-03-28 at 16:38 -0600, Ricardo Neri wrote:
+> Instead of having an ASoC codec embedded into DSS code, use the generic D=
+SS
+> device driverinterface for audio support. This allows to any potential us=
+er,
+> including an ASoC driver, take advantage of the HDMI audio functionality.
+
+The description could be improved. The patch removes lots of code from
+the hdmi driver, but the description doesn't really describe what's
+going on and where the code goes (if anywhere). In fact, it even feels
+that the description is about something else. It basically just says
+"use generic DSS interface for audio", but the patch doesn't do that, it
+removes code.
+
+Also how does this affect the current driver? I presume it effectively
+removes HDMI audio support? Does the code still compile with this patch?
+
+ Tomi
+
+
+--=-P2LOglqoYA4YMb+5A99B
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: This is a digitally signed message part
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.4.11 (GNU/Linux)
+
+iQIcBAABAgAGBQJPlVZaAAoJEPo9qoy8lh71szoP/inenR/lNLND3AYJ8usQuIMV
+BQFll9WVeMYbkV54C6I9aqfLkvpOjYQHePiUyqV/Lq/6VBeVL7ilxPGS4nY87Nq1
+jucYbsmXq7cxOZbkcjr4MXvXFVChNdwkdAxYuO+LwcCF+ySfMPliwo3uc3yKiS0q
+cJ8a87bM/CKAwd/K+P9/4+lUpqt90TgGCBUlfEVL3nE8CMFJdNycJvwycjxKaWzL
+mqtH2k2anVKXVpWBCf3bLopSqO4wJgtTc8mnhSSrvFLRZHXb2w32XTf5xzis+YlL
+hYXyxOocyPAPHB5EbXFu7AO06Fy8dxSx0dbETTxked9LQA0VEBurpxNWDwfdwTFC
+pmzOlum83oOylrUjyaAoFnI+Viv8GUskRcDFYU6Ybb7ZJqe5lWs0EGMiaQgGS68h
+hMTWgWnYWHMYo5DoKSnMhSEnd0ps0wRtqrIwDC4WoxehF5ZD09C1Jf6ZG9j8qSCc
+rQrhTmk2BU2483VhD9pQdCrT7HmFMPQjjEdvJKz8Cxv+qiJk5WrTySTRv/DMriG+
+n9fBT+ygEoNmZ0k1QMmHHkZI383ka9wmyQ+e9if+rO5x67ld0kvTUWtOIMfhfYrQ
+ASI+695kWMunn/o4EMZCGuv4YbDKLQlmaQOeix0sSHDbF5RPovmxf/phiVMzC3Cv
+v4SS3jA7k3L4CauD6LvS
+=RhoR
+-----END PGP SIGNATURE-----
+
+--=-P2LOglqoYA4YMb+5A99B--
 
