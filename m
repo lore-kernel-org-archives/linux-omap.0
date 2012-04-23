@@ -1,60 +1,66 @@
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-Subject: [PATCH] arm: igep0020: Specify the VPLL2 regulator unconditionally
-Date: Mon, 23 Apr 2012 14:48:58 +0200
-Message-ID: <1335185338-22006-1-git-send-email-laurent.pinchart@ideasonboard.com>
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from perceval.ideasonboard.com ([95.142.166.194]:36479 "EHLO
-	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752257Ab2DWMss (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 23 Apr 2012 08:48:48 -0400
-Sender: linux-omap-owner@vger.kernel.org
+From: "Govindraj.R" <govindraj.raja@ti.com>
+Subject: [PATCH] tty: serial_core: Utilise/Enable the set_wake uart ops
+Date: Mon, 23 Apr 2012 18:30:07 +0530
+Message-ID: <1335186007-24452-1-git-send-email-govindraj.raja@ti.com>
+Mime-Version: 1.0
+Content-Type: text/plain
+Return-path: <linux-serial-owner@vger.kernel.org>
+Sender: linux-serial-owner@vger.kernel.org
+To: linux-serial@vger.kernel.org
+Cc: linux-omap@vger.kernel.org, "Govindraj.R" <govindraj.raja@ti.com>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, Alan Cox <alan@linux.intel.com>
 List-Id: linux-omap@vger.kernel.org
-To: linux-omap@vger.kernel.org
-Cc: Enric Balletbo i Serra <eballetbo@iseebcn.com>, Mike Rapoport <mike@compulab.co.il>, Tony Lindgren <tony@atomide.com>
 
-The supply is connected to the DSS DO-D5 pins and is thus needed for
-both serial and parallel display interfaces on the igep0030 as well as
-the igep0020.
+From: "Govindraj.R" <govindraj.raja@ti.com>
 
-If the igep0030 module isn't connected to a display, no DSI or DPI
-display will be specified in board code, and the DSS driver won't enable
-to VPLL2 regulator anyway.
+Currently all low level uart driver register to serial_core layer
+this core layer exposes various serial uart ops.
 
-Signed-off-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Whenever port is opened the low level platform specific wakeup
+capability can be enabled use the already available set_wakeup uart ops
+to configure wakeup capability.
+
+When port is opened the wakeup can be enabled and when port is shutdown
+the wakeups can be disabled.
+
+Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
+Cc: Alan Cox <alan@linux.intel.com>
+Signed-off-by: Govindraj.R <govindraj.raja@ti.com>
 ---
- arch/arm/mach-omap2/board-igep0020.c |   10 +++++-----
- 1 files changed, 5 insertions(+), 5 deletions(-)
+ drivers/tty/serial/serial_core.c |   14 ++++++++++++++
+ 1 files changed, 14 insertions(+), 0 deletions(-)
 
-diff --git a/arch/arm/mach-omap2/board-igep0020.c b/arch/arm/mach-omap2/board-igep0020.c
-index a59ace0..242cdff 100644
---- a/arch/arm/mach-omap2/board-igep0020.c
-+++ b/arch/arm/mach-omap2/board-igep0020.c
-@@ -539,7 +539,10 @@ static void __init igep_i2c_init(void)
- {
- 	int ret;
- 
--	omap3_pmic_get_config(&igep_twldata, TWL_COMMON_PDATA_USB, 0);
-+	omap3_pmic_get_config(&igep_twldata, TWL_COMMON_PDATA_USB,
-+			      TWL_COMMON_REGULATOR_VPLL2);
-+	igep_twldata.vpll2->constraints.apply_uV = true;
-+	igep_twldata.vpll2->constraints.name = "VDVI";
- 
- 	if (machine_is_igep0020()) {
- 		/*
-@@ -553,10 +556,7 @@ static void __init igep_i2c_init(void)
- 
- 		igep_twldata.keypad	= &igep2_keypad_pdata;
- 		/* Get common pmic data */
--		omap3_pmic_get_config(&igep_twldata, TWL_COMMON_PDATA_AUDIO,
--				      TWL_COMMON_REGULATOR_VPLL2);
--		igep_twldata.vpll2->constraints.apply_uV = true;
--		igep_twldata.vpll2->constraints.name = "VDVI";
-+		omap3_pmic_get_config(&igep_twldata, TWL_COMMON_PDATA_AUDIO, 0);
+diff --git a/drivers/tty/serial/serial_core.c b/drivers/tty/serial/serial_core.c
+index 9c4c05b..44b81aa 100644
+--- a/drivers/tty/serial/serial_core.c
++++ b/drivers/tty/serial/serial_core.c
+@@ -185,6 +185,13 @@ static int uart_port_startup(struct tty_struct *tty, struct uart_state *state,
  	}
  
- 	omap3_pmic_init("twl4030", &igep_twldata);
+ 	/*
++	 * Now with port open enable any platform specific wakeup
++	 * capability for the port if available.
++	 */
++	if (uport->ops->set_wake)
++		uport->ops->set_wake(uport, true);
++
++	/*
+ 	 * This is to allow setserial on this port. People may want to set
+ 	 * port/irq/type and then reconfigure the port properly if it failed
+ 	 * now.
+@@ -1427,6 +1434,13 @@ static void uart_port_shutdown(struct tty_port *port)
+ 	uport->ops->shutdown(uport);
+ 
+ 	/*
++	 * now port is closed disable any platform
++	 * specific wakeup capability that might be enabled.
++	 */
++	if (uport->ops->set_wake)
++		uport->ops->set_wake(uport, false);
++
++	/*
+ 	 * Ensure that the IRQ handler isn't running on another CPU.
+ 	 */
+ 	synchronize_irq(uport->irq);
 -- 
-Regards,
-
-Laurent Pinchart
+1.7.9
 
