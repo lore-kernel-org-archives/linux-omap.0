@@ -1,57 +1,46 @@
-From: Felipe Contreras <felipe.contreras@gmail.com>
-Subject: Re: [PATCH] staging: tidspbridge: fix build errors for OMAP2_L4_IO_ADDRESS
-Date: Mon, 23 Apr 2012 17:49:11 +0300
-Message-ID: <CAMP44s0GDu91B5v90NKnOOiz0-N7iGp-q8MX_uBWEWLp8dSAng@mail.gmail.com>
-References: <1335191654-1217-1-git-send-email-felipe.contreras@gmail.com>
-	<20120423143917.GD24299@n2100.arm.linux.org.uk>
+From: Shubhrajyoti <shubhrajyoti@ti.com>
+Subject: Re: [RFC 0/8] DMA engine conversion
+Date: Mon, 23 Apr 2012 20:57:20 +0530
+Message-ID: <4F9574D8.1000104@ti.com>
+References: <20120418100954.GK25053@n2100.arm.linux.org.uk> <20120423114615.GB25053@n2100.arm.linux.org.uk> <CAMQu2gyQ3928VQ9Q9Y0mNiacB+br2oGezGCvhLXikbOTi-JR3Q@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-ee0-f46.google.com ([74.125.83.46]:64490 "EHLO
-	mail-ee0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752316Ab2DWOtN convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 23 Apr 2012 10:49:13 -0400
-Received: by eekc41 with SMTP id c41so3274032eek.19
-        for <linux-omap@vger.kernel.org>; Mon, 23 Apr 2012 07:49:12 -0700 (PDT)
-In-Reply-To: <20120423143917.GD24299@n2100.arm.linux.org.uk>
+Received: from na3sys009aog101.obsmtp.com ([74.125.149.67]:38425 "EHLO
+	na3sys009aog101.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1751637Ab2DWP1d (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>);
+	Mon, 23 Apr 2012 11:27:33 -0400
+Received: by yhkk6 with SMTP id k6so7639299yhk.30
+        for <linux-omap@vger.kernel.org>; Mon, 23 Apr 2012 08:27:32 -0700 (PDT)
+In-Reply-To: <CAMQu2gyQ3928VQ9Q9Y0mNiacB+br2oGezGCvhLXikbOTi-JR3Q@mail.gmail.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Russell King - ARM Linux <linux@arm.linux.org.uk>
-Cc: Tony Lindgren <tony@atomide.com>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Omar Ramirez Luna <omar.ramirez@ti.com>
+To: "Shilimkar, Santosh" <santosh.shilimkar@ti.com>
+Cc: Russell King - ARM Linux <linux@arm.linux.org.uk>, linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org, linux-mmc@vger.kernel.org
 
-On Mon, Apr 23, 2012 at 5:39 PM, Russell King - ARM Linux
-<linux@arm.linux.org.uk> wrote:
-> On Mon, Apr 23, 2012 at 05:34:14PM +0300, Felipe Contreras wrote:
->> drivers/staging/tidspbridge/core/tiomap3430.c: In function 'bridge_b=
-rd_start':
->> drivers/staging/tidspbridge/core/tiomap3430.c:425: error: implicit d=
-eclaration of function 'OMAP2_L4_IO_ADDRESS'
->> drivers/staging/tidspbridge/core/wdt.c: In function 'dsp_wdt_init':
->> drivers/staging/tidspbridge/core/wdt.c:56: error: implicit declarati=
-on of function 'OMAP2_L4_IO_ADDRESS'
->>
->> The proper fix will come later.
+On Monday 23 April 2012 06:02 PM, Shilimkar, Santosh wrote:
+>> conversion process is fairly straight forward - it's more or less:
+>> > 1. add struct dma_chan * pointer to the private structure.
+>> > 2. add allocation/freeing functions for the DMA engine channels.
+>> > 3. convert the callbacks to match the DMA engine callback prototype.
+>> > 4. add code to set the DMA engine channel configuration appropriately
+>> >   (avoiding any unnecessary calls) via dmaengine_slave_config().
+>> > 5. add code to queue the transfer via dmaengine_prep_slave_sg() and
+>> >   dmaengine_submit().
+>> > 6. omap_start_dma() becomes dma_async_issue_pending().
+>> >
+>> >  drivers/spi/spi-omap2-mcspi.c |  186 +++++++++++++++++++++++++++++++++-------
+>> >  1 files changed, 153 insertions(+), 33 deletions(-)
+> The patch seems to be fine to me.
 >
-> Hmm. =C2=A0Given that this is staging stuff, which hasn't been making=
- much
-> progress out of staging, I'd suggest not doing the quick fix on it, b=
-ut
-> spending the time to implement the proper fix now and move the code
-> closer to the point where it can move out of staging.
+> Am looping Shubro in case he has any comment on "why element sync was used ?"
+> and also to test the patch with more peripherals connected over SPI.
+>
+> Regards
+> Santosh
+Tested on omap4 ethernet and omap3 touchscreen
+also did a spidev test.
 
-Omar is already on that.
-
-> You might get a gold star from Greg for moving this forward...
-
-In my experience gold stars from Greg mean nothing.
-
-Cheers.
-
---=20
-=46elipe Contreras
---
-To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Tested-by: Shubhrajyoti <shubhrajyoti@ti.com <mailto:shubhrajyoti@ti.com>>
