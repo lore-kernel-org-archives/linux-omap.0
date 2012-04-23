@@ -1,46 +1,72 @@
-From: Shubhrajyoti <shubhrajyoti@ti.com>
-Subject: Re: [RFC 0/8] DMA engine conversion
-Date: Mon, 23 Apr 2012 20:57:20 +0530
-Message-ID: <4F9574D8.1000104@ti.com>
-References: <20120418100954.GK25053@n2100.arm.linux.org.uk> <20120423114615.GB25053@n2100.arm.linux.org.uk> <CAMQu2gyQ3928VQ9Q9Y0mNiacB+br2oGezGCvhLXikbOTi-JR3Q@mail.gmail.com>
+From: Grazvydas Ignotas <notasas@gmail.com>
+Subject: Re: [PATCH] OMAPDSS: VENC: allow switching venc type at runtime
+Date: Mon, 23 Apr 2012 18:32:54 +0300
+Message-ID: <CANOLnOPcuiD7+rqafeSTZc3GB0_C10viUZe0+XbJQ0be82qDtQ@mail.gmail.com>
+References: <1332978312-11959-1-git-send-email-notasas@gmail.com>
+	<1335183802.30659.17.camel@deskari>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aog101.obsmtp.com ([74.125.149.67]:38425 "EHLO
-	na3sys009aog101.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751637Ab2DWP1d (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>);
-	Mon, 23 Apr 2012 11:27:33 -0400
-Received: by yhkk6 with SMTP id k6so7639299yhk.30
-        for <linux-omap@vger.kernel.org>; Mon, 23 Apr 2012 08:27:32 -0700 (PDT)
-In-Reply-To: <CAMQu2gyQ3928VQ9Q9Y0mNiacB+br2oGezGCvhLXikbOTi-JR3Q@mail.gmail.com>
+Received: from mail-iy0-f174.google.com ([209.85.210.174]:41475 "EHLO
+	mail-iy0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752950Ab2DWPcz convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 23 Apr 2012 11:32:55 -0400
+In-Reply-To: <1335183802.30659.17.camel@deskari>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "Shilimkar, Santosh" <santosh.shilimkar@ti.com>
-Cc: Russell King - ARM Linux <linux@arm.linux.org.uk>, linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org, linux-mmc@vger.kernel.org
+To: Tomi Valkeinen <tomi.valkeinen@ti.com>
+Cc: linux-fbdev@vger.kernel.org, linux-omap@vger.kernel.org
 
-On Monday 23 April 2012 06:02 PM, Shilimkar, Santosh wrote:
->> conversion process is fairly straight forward - it's more or less:
->> > 1. add struct dma_chan * pointer to the private structure.
->> > 2. add allocation/freeing functions for the DMA engine channels.
->> > 3. convert the callbacks to match the DMA engine callback prototype.
->> > 4. add code to set the DMA engine channel configuration appropriately
->> >   (avoiding any unnecessary calls) via dmaengine_slave_config().
->> > 5. add code to queue the transfer via dmaengine_prep_slave_sg() and
->> >   dmaengine_submit().
->> > 6. omap_start_dma() becomes dma_async_issue_pending().
->> >
->> >  drivers/spi/spi-omap2-mcspi.c |  186 +++++++++++++++++++++++++++++++++-------
->> >  1 files changed, 153 insertions(+), 33 deletions(-)
-> The patch seems to be fine to me.
+On Mon, Apr 23, 2012 at 3:23 PM, Tomi Valkeinen <tomi.valkeinen@ti.com>=
+ wrote:
+> On Thu, 2012-03-29 at 02:45 +0300, Grazvydas Ignotas wrote:
+>> VENC type (composite/svideo) doesn't have to be fixed by board wirin=
+g,
+>> it is possible to provide both connectors, which is what pandora doe=
+s.
+>> Having to recompile the kernel for users who have TV connector types
+>> that's don't match default board setting is very inconvenient, espec=
+ially
+>> for users of a consumer device, so add support for switching VENC ty=
+pe
+>> at runtime over a new sysfs file venc_type.
+>>
+>> Signed-off-by: Grazvydas Ignotas <notasas@gmail.com>
+>> ---
+>> =C2=A0Documentation/arm/OMAP/DSS =C2=A0 =C2=A0 | =C2=A0 =C2=A01 +
+>> =C2=A0drivers/video/omap2/dss/venc.c | =C2=A0 55 +++++++++++++++++++=
+++++++++++++++++++++-
+>> =C2=A02 files changed, 55 insertions(+), 1 deletions(-)
+>>
+>> diff --git a/Documentation/arm/OMAP/DSS b/Documentation/arm/OMAP/DSS
+>> index 888ae7b..18e2214 100644
+>> --- a/Documentation/arm/OMAP/DSS
+>> +++ b/Documentation/arm/OMAP/DSS
+>> @@ -156,6 +156,7 @@ timings =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 Displ=
+ay timings (pixclock,xres/hfp/hbp/hsw,yres/vfp/vbp/vsw)
+>> =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 "pal" and "ntsc"
+>> =C2=A0panel_name
+>> =C2=A0tear_elim =C2=A0 =C2=A0Tearing elimination 0=3Doff, 1=3Don
+>> +venc_type =C2=A0 =C2=A0Output type (video encoder only): "composite=
+" or "svideo"
 >
-> Am looping Shubro in case he has any comment on "why element sync was used ?"
-> and also to test the patch with more peripherals connected over SPI.
->
-> Regards
-> Santosh
-Tested on omap4 ethernet and omap3 touchscreen
-also did a spidev test.
+> I think we could have a better name here. "venc" name is quite obscur=
+e
+> on the user level. And it's not even quite correct, venc stays the sa=
+me,
+> it's just the output that is changed. "output_type"? "connector"?
+> "connector_type"?
 
-Tested-by: Shubhrajyoti <shubhrajyoti@ti.com <mailto:shubhrajyoti@ti.com>>
+I'll go for output_type then, connector* associates with fixed hardware=
+ to me.
+I'll take care of other comments too.
+
+
+--=20
+Gra=C5=BEvydas
+--
+To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
