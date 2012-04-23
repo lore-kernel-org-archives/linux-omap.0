@@ -1,76 +1,54 @@
-From: "Datta, Shubhrajyoti" <shubhrajyoti@ti.com>
-Subject: Re: [PATCHv8 02/10] I2C: OMAP: Fix the mismatch of pm_runtime enable
- and disable
-Date: Mon, 23 Apr 2012 21:27:00 +0530
-Message-ID: <CANQgH-YfhZWEi0nMVAJmgwGzYsNWmQr4HOwn7g4cZ1Ca405-1g@mail.gmail.com>
-References: <1334842101-20670-1-git-send-email-shubhrajyoti@ti.com>
-	<1334842101-20670-3-git-send-email-shubhrajyoti@ti.com>
-	<20120423154345.GA27321@pengutronix.de>
+From: Russell King - ARM Linux <linux@arm.linux.org.uk>
+Subject: [RFC 00/12] OMAP DMA engine conversion
+Date: Mon, 23 Apr 2012 17:04:10 +0100
+Message-ID: <20120423160409.GE24299@n2100.arm.linux.org.uk>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aog119.obsmtp.com ([74.125.149.246]:33878 "EHLO
-	na3sys009aog119.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752698Ab2DWP5C (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>);
-	Mon, 23 Apr 2012 11:57:02 -0400
-Received: by qabg1 with SMTP id g1so1960622qab.6
-        for <linux-omap@vger.kernel.org>; Mon, 23 Apr 2012 08:57:00 -0700 (PDT)
-In-Reply-To: <20120423154345.GA27321@pengutronix.de>
+Received: from caramon.arm.linux.org.uk ([78.32.30.218]:41404 "EHLO
+	caramon.arm.linux.org.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751638Ab2DWQES (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 23 Apr 2012 12:04:18 -0400
+Content-Disposition: inline
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Wolfram Sang <w.sang@pengutronix.de>
-Cc: linux-omap@vger.kernel.org, linux-i2c@vger.kernel.org, linux-arm-kernel@lists.infradead.org, ben-linux@fluff.org, tony@atomide.com, Kevin Hilman <khilman@ti.com>, Rajendra Nayak <rnayak@ti.com>
+To: linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org, linux-mmc@vger.kernel.org
 
-Thanks for review,
+For the full text, please see 
 
-On Mon, Apr 23, 2012 at 9:13 PM, Wolfram Sang <w.sang@pengutronix.de> wrote:
-> On Thu, Apr 19, 2012 at 06:58:13PM +0530, Shubhrajyoti D wrote:
->> Currently the i2c driver calls the pm_runtime_enable and never
->> the disable. This may cause a warning when pm_runtime_enable
->> checks for the count match.Attempting to fix the same by calling
->> pm_runtime_disable in the error and the remove path.
->
-> Why "attempting"?
-yes will correct it. The updated patch below.
+http://lists.arm.linux.org.uk/lurker/message/20120418.100954.7fa7acf8.en.html
 
->From 1f6d8671d15b16de8840f0ff23d77d613a03e876 Mon Sep 17 00:00:00 2001
-From: Shubhrajyoti D <shubhrajyoti@ti.com>
-Date: Fri, 16 Dec 2011 19:43:16 +0530
-Subject: [PATCHv8 02/10] I2C: OMAP: Fix the mismatch of pm_runtime enable and
- disable
+This version contains updates for some of the comments received from the
+previous round, and adds the OMAP1/2 MMC and SPI drivers to the conversion.
 
-Currently the i2c driver calls the pm_runtime_enable and never
-the disable. This may cause a warning when pm_runtime_enable
-checks for the count match. Fix the same by calling  pm_runtime_disable
-in the error and the remove path.
+I've also added a note to feature-removal noting that the existing APIs
+will be removed around 2013 - I'm planning January for that at the
+moment.  Having drivers around which are unconverted blocks further work
+on the DMA engine conversion, so it's actually important that we get
+as many drivers converted as soon as possible.
 
-Cc: Kevin Hilman <khilman@ti.com>
-Cc: Rajendra Nayak <rnayak@ti.com>
-Signed-off-by: Shubhrajyoti D <shubhrajyoti@ti.com>
----
- drivers/i2c/busses/i2c-omap.c |    2 ++
- 1 files changed, 2 insertions(+), 0 deletions(-)
+Anything which isn't converted will probably have its DMA code removed,
+or if that results in the driver not being usable, the driver itself
+will be removed.
 
-diff --git a/drivers/i2c/busses/i2c-omap.c b/drivers/i2c/busses/i2c-omap.c
-index 4f4188d..c851672 100644
---- a/drivers/i2c/busses/i2c-omap.c
-+++ b/drivers/i2c/busses/i2c-omap.c
-@@ -1090,6 +1090,7 @@ err_unuse_clocks:
- 	omap_i2c_write_reg(dev, OMAP_I2C_CON_REG, 0);
- 	pm_runtime_put(dev->dev);
- 	iounmap(dev->base);
-+	pm_runtime_disable(&pdev->dev);
- err_free_mem:
- 	platform_set_drvdata(pdev, NULL);
- 	kfree(dev);
-@@ -1110,6 +1111,7 @@ omap_i2c_remove(struct platform_device *pdev)
- 	free_irq(dev->irq, dev);
- 	i2c_del_adapter(&dev->adapter);
- 	omap_i2c_write_reg(dev, OMAP_I2C_CON_REG, 0);
-+	pm_runtime_disable(&pdev->dev);
- 	iounmap(dev->base);
- 	kfree(dev);
- 	mem = platform_get_resource(pdev, IORESOURCE_MEM, 0);
--- 
-1.7.5.4
+This series is still in RFC mode...
+
+ Documentation/feature-removal-schedule.txt |   11 +
+ arch/arm/mach-omap1/board-h2-mmc.c         |    1 -
+ arch/arm/mach-omap1/board-h3-mmc.c         |    1 -
+ arch/arm/mach-omap1/board-nokia770.c       |    1 -
+ arch/arm/mach-omap2/board-n8x0.c           |    1 -
+ arch/arm/mach-omap2/hsmmc.c                |    1 -
+ arch/arm/plat-omap/dma.c                   |   14 +
+ arch/arm/plat-omap/include/plat/mmc.h      |    2 -
+ drivers/dma/Kconfig                        |   10 +
+ drivers/dma/Makefile                       |    2 +
+ drivers/dma/omap-dma.c                     |  521 ++++++++++++++++++++++++++++
+ drivers/dma/sa11x0-dma.c                   |  249 ++++---------
+ drivers/dma/virt-dma.c                     |   99 ++++++
+ drivers/dma/virt-dma.h                     |  138 ++++++++
+ drivers/mmc/host/omap.c                    |  369 +++++++++-----------
+ drivers/mmc/host/omap_hsmmc.c              |  206 ++++++------
+ drivers/spi/spi-omap2-mcspi.c              |  228 +++++++------
+ 17 files changed, 1268 insertions(+), 586 deletions(-)
+
