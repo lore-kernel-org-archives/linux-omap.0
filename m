@@ -1,67 +1,51 @@
-From: Russell King - ARM Linux <linux@arm.linux.org.uk>
-Subject: Re: [PATCH 8/8] ARM: omap_hsmmc: remove platform data dma_mask and
-	initialization
-Date: Mon, 23 Apr 2012 15:34:32 +0100
-Message-ID: <20120423143432.GC24299@n2100.arm.linux.org.uk>
-References: <20120418213642.GV25053@n2100.arm.linux.org.uk> <20120419013914.GV21106@atomide.com> <20120419174332.GY25053@n2100.arm.linux.org.uk> <20120419180741.GX21106@atomide.com> <20120420151034.GA24205@n2100.arm.linux.org.uk> <20120420152623.GA21106@atomide.com> <20120420153743.GB24205@n2100.arm.linux.org.uk> <20120420164957.GC21106@atomide.com> <20120423141415.GA24299@n2100.arm.linux.org.uk> <20120423143048.GC3739@atomide.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+From: Felipe Contreras <felipe.contreras@gmail.com>
+Subject: [PATCH] staging: tidspbridge: fix build errors for OMAP2_L4_IO_ADDRESS
+Date: Mon, 23 Apr 2012 17:34:14 +0300
+Message-ID: <1335191654-1217-1-git-send-email-felipe.contreras@gmail.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from caramon.arm.linux.org.uk ([78.32.30.218]:52202 "EHLO
-	caramon.arm.linux.org.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753018Ab2DWOel (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 23 Apr 2012 10:34:41 -0400
-Content-Disposition: inline
-In-Reply-To: <20120423143048.GC3739@atomide.com>
+Received: from mail-lpp01m010-f46.google.com ([209.85.215.46]:49334 "EHLO
+	mail-lpp01m010-f46.google.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1755269Ab2DWOen (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>);
+	Mon, 23 Apr 2012 10:34:43 -0400
+Received: by lahj13 with SMTP id j13so9181396lah.19
+        for <linux-omap@vger.kernel.org>; Mon, 23 Apr 2012 07:34:42 -0700 (PDT)
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Tony Lindgren <tony@atomide.com>
-Cc: linux-omap@vger.kernel.org, linux-mmc@vger.kernel.org, "T Krishnamoorthy, Balaji" <balajitk@ti.com>, linux-arm-kernel@lists.infradead.org
+To: Tony Lindgren <tony@atomide.com>, linux-omap@vger.kernel.org
+Cc: Russell King <linux@arm.linux.org.uk>, linux-arm-kernel@lists.infradead.org, Omar Ramirez Luna <omar.ramirez@ti.com>, Felipe Contreras <felipe.contreras@gmail.com>
 
-On Mon, Apr 23, 2012 at 07:30:48AM -0700, Tony Lindgren wrote:
-> * Russell King - ARM Linux <linux@arm.linux.org.uk> [120423 07:17]:
-> > On Fri, Apr 20, 2012 at 09:50:00AM -0700, Tony Lindgren wrote:
-> > > Then something like this is still needed on top of your original mmc driver
-> > > patch for omap2420:
-> > > 
-> > > --- a/drivers/mmc/host/omap.c
-> > > +++ b/drivers/mmc/host/omap.c
-> > > @@ -1617,11 +1617,14 @@ static int __init mmc_omap_probe(struct platform_device *pdev)
-> > >  	host->dma_tx_burst = -1;
-> > >  	host->dma_rx_burst = -1;
-> > >  
-> > > -	sig = host->id == 0 ? OMAP_DMA_MMC_TX : OMAP_DMA_MMC2_TX;
-> > > +	if (cpu_is_omap24xx())
-> > > +		sig = host->id == 0 ? OMAP24XX_DMA_MMC1_TX :  OMAP24XX_DMA_MMC2_TX;
-> > > +	else
-> > > +		sig = host->id == 0 ? OMAP_DMA_MMC_TX : OMAP_DMA_MMC2_TX;
-> > >  	host->dma_tx = dma_request_channel(mask, omap_dma_filter_fn, &sig);
-> > >  #if 0
-> > >  	if (!host->dma_tx) {
-> > > -		def_err(host->dev, "unable to obtain TX DMA engine channel %u\n",
-> > > +		dev_err(host->dev, "unable to obtain TX DMA engine channel %u\n",
-> > >  			sig);
-> > >  		goto err_dma;
-> > >  	}
-> > > @@ -1632,7 +1635,10 @@ static int __init mmc_omap_probe(struct platform_device *pdev)
-> > >  #endif
-> > >  #endif
-> > >  #ifdef USE_DMA_ENGINE
-> > > -	sig = host->id == 0 ? OMAP_DMA_MMC_RX : OMAP_DMA_MMC2_RX;
-> > > +	if (cpu_is_omap24xx())
-> > > +		sig = host->id == 0 ? OMAP24XX_DMA_MMC1_RX :  OMAP24XX_DMA_MMC2_RX;
-> > > +	else
-> > > +		sig = host->id == 0 ? OMAP_DMA_MMC_RX : OMAP_DMA_MMC2_RX;
-> > >  	host->dma_rx = dma_request_channel(mask, omap_dma_filter_fn, &sig);
-> > >  #if 0
-> > >  	if (!host->dma_rx) {
-> > 
-> > Is there any chance this DMA signal information could be moved into
-> > platform resources, like omap_hsmmc has done?  I could then get rid
-> > of the plat/dma.h dependence from this driver.
-> 
-> Sure, I'll take a look at that later on today.
+drivers/staging/tidspbridge/core/tiomap3430.c: In function 'bridge_brd_start':
+drivers/staging/tidspbridge/core/tiomap3430.c:425: error: implicit declaration of function 'OMAP2_L4_IO_ADDRESS'
+drivers/staging/tidspbridge/core/wdt.c: In function 'dsp_wdt_init':
+drivers/staging/tidspbridge/core/wdt.c:56: error: implicit declaration of function 'OMAP2_L4_IO_ADDRESS'
 
-Let me re-post the series first so you can produce patches against the
-latest version of the series.  It's 11 patches, which contains the SPI
-conversion.
+The proper fix will come later.
+
+Signed-off-by: Felipe Contreras <felipe.contreras@gmail.com>
+---
+ drivers/staging/tidspbridge/include/dspbridge/dbdefs.h |    8 ++++++++
+ 1 file changed, 8 insertions(+)
+
+diff --git a/drivers/staging/tidspbridge/include/dspbridge/dbdefs.h b/drivers/staging/tidspbridge/include/dspbridge/dbdefs.h
+index c8f4645..f9a0d16 100644
+--- a/drivers/staging/tidspbridge/include/dspbridge/dbdefs.h
++++ b/drivers/staging/tidspbridge/include/dspbridge/dbdefs.h
+@@ -28,6 +28,14 @@
+ #define PG_ALIGN_LOW(addr, pg_size) ((addr) & PG_MASK(pg_size))
+ #define PG_ALIGN_HIGH(addr, pg_size) (((addr)+(pg_size)-1) & PG_MASK(pg_size))
+ 
++/*
++ * NOTE: Please update to use ioremap + read/write
++ */
++
++#define OMAP2_L4_IO_OFFSET	0xb2000000
++#define IOMEM(x)		((void __force __iomem *)(x))
++#define OMAP2_L4_IO_ADDRESS(pa)	IOMEM((pa) + OMAP2_L4_IO_OFFSET)
++
+ /* API return value and calling convention */
+ #define DBAPI                       int
+ 
+-- 
+1.7.10
+
