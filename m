@@ -1,55 +1,45 @@
-From: Alan Cox <alan@lxorguk.ukuu.org.uk>
-Subject: Re: [PATCH] tty: serial_core: Add mechanism to identify port
- closure.
-Date: Mon, 23 Apr 2012 11:07:22 +0100
-Message-ID: <20120423110722.7d8dd2c0@pyramind.ukuu.org.uk>
-References: <1334919473-18870-1-git-send-email-govindraj.raja@ti.com>
-	<20120420142740.053b9981@pyramind.ukuu.org.uk>
-	<CAMrsUdLaamf9boyMF824iTXdDce0qB3AiUfMiM3a1gL2DcVPqA@mail.gmail.com>
+From: "Mohammed, Afzal" <afzal@ti.com>
+Subject: RE: OMAP3EVM not booting on l-o master
+Date: Mon, 23 Apr 2012 10:07:09 +0000
+Message-ID: <C8443D0743D26F4388EA172BF4E2A7A93E96E75A@DBDE01.ent.ti.com>
+References: <C8443D0743D26F4388EA172BF4E2A7A9317C3A03@DBDE01.ent.ti.com>
+	 <C8443D0743D26F4388EA172BF4E2A7A9317C3B18@DBDE01.ent.ti.com>
+	 <alpine.DEB.2.00.1204050330380.10302@utopia.booyaka.com>
+	 <alpine.DEB.2.00.1204050403460.10302@utopia.booyaka.com>
+	 <C8443D0743D26F4388EA172BF4E2A7A9317C4B44@DBDE01.ent.ti.com>
+	 <alpine.DEB.2.00.1204051303000.10302@utopia.booyaka.com>
+	 <C8443D0743D26F4388EA172BF4E2A7A9317C5DB6@DBDE01.ent.ti.com>
+	 <alpine.DEB.2.00.1204060111400.10302@utopia.booyaka.com>
+	 <C8443D0743D26F4388EA172BF4E2A7A9317C5EEF@DBDE01.ent.ti.com>
+ <1335173044.2149.64.camel@sokoban>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from lxorguk.ukuu.org.uk ([81.2.110.251]:35045 "EHLO
-	lxorguk.ukuu.org.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754822Ab2DWKEp (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 23 Apr 2012 06:04:45 -0400
-In-Reply-To: <CAMrsUdLaamf9boyMF824iTXdDce0qB3AiUfMiM3a1gL2DcVPqA@mail.gmail.com>
+Received: from bear.ext.ti.com ([192.94.94.41]:39135 "EHLO bear.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1754667Ab2DWKHN (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Mon, 23 Apr 2012 06:07:13 -0400
+In-Reply-To: <1335173044.2149.64.camel@sokoban>
+Content-Language: en-US
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "Raja, Govindraj" <govindraj.raja@ti.com>
-Cc: linux-serial@vger.kernel.org, linux-omap@vger.kernel.org, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, Alan Cox <alan@linux.intel.com>
+To: "Kristo, Tero" <t-kristo@ti.com>
+Cc: Paul Walmsley <paul@pwsan.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
 
-> diff --git a/drivers/tty/serial/serial_core.c b/drivers/tty/serial/serial_core.c
-> index 9c4c05b..c176ff2 100644
-> --- a/drivers/tty/serial/serial_core.c
-> +++ b/drivers/tty/serial/serial_core.c
-> @@ -1426,6 +1426,9 @@ static void uart_port_shutdown(struct tty_port *port)
->  	 */
->  	uport->ops->shutdown(uport);
-> 
-> +	if (uport->ops->set_wake)
-> +		uport->ops->set_wake(uport, false);
-> +
->  	/*
->  	 * Ensure that the IRQ handler isn't running on another CPU.
->  	 */
-> @@ -1512,6 +1515,9 @@ static int uart_open(struct tty_struct *tty,
-> struct file *filp)
->  		goto err_dec_count;
->  	}
-> 
-> +	if (uport->ops->set_wake)
-> +		uport->ops->set_wake(uport, true);
-> +
->  	/*
->  	 * Make sure the device is in D0 state.
->  	 */
-
-This is probably the right approach for now. In the ideal world we should
-probably use the struct device * and device power management but that is
-a big upheaval and would mean fixing lots of other stuff first.
-
-So this looks good to me - providing it doesn't break anything else.
-
-Alan
+SGkgVGVybywNCg0KV2l0aCAidGhpcyBicmFuY2giIHlvdSBtZWFudCwNCg0KSEVBRCBAIDI5NzYy
+NGMgQVJNOiBPTUFQMzogUE06IFJlbW92ZSBJTyBEYWlzeWNoYWluIGNvbnRyb2wgZnJvbSBjcHVp
+ZGxlLA0KDQpyaWdodCA/ICh0aGUgb25lIFBhdWwgc3VnZ2VzdGVkIHRvIHRyeSkNCg0KUmVnYXJk
+cw0KQWZ6YWwNCg0KT24gTW9uLCBBcHIgMjMsIDIwMTIgYXQgMTQ6NTQ6MDQsIEtyaXN0bywgVGVy
+byB3cm90ZToNCj4gT24gRnJpLCAyMDEyLTA0LTA2IGF0IDA3OjUyICswMDAwLCBNb2hhbW1lZCwg
+QWZ6YWwgd3JvdGU6DQo+ID4gSGkgUGF1bCwNCj4gPiANCj4gPiBPbiBGcmksIEFwciAwNiwgMjAx
+MiBhdCAxMjo0MzowNiwgUGF1bCBXYWxtc2xleSB3cm90ZToNCj4gPiA+IFBlcmhhcHMgeW91IG1p
+Z2h0IGJlIHdpbGxpbmcgdG8gYWRkIHNvbWUgZGVidWdnaW5nIHRvIG9tYXBfbXV4X2xhdGVfaW5p
+dCgpIA0KPiA+ID4gdG8gZmluZCBvdXQgd2hhdCBwYXJ0IG9mIHRoYXQgZnVuY3Rpb24gaXMgY2F1
+c2luZyBpdCB0byBoYW5nPw0KPiA+IA0KPiA+IEl0IGlzIGdldHRpbmcgaHVuZyBhcyBpbnRlcnJ1
+cHQgaGFuZGxlciAib21hcF9od21vZF9tdXhfaGFuZGxlX2lycSINCj4gPiBpcyBiZWluZyByZXBl
+YXRlZGx5IGNhbGxlZC4NCj4gPiANCj4gDQo+IEhpIEFmemFsLA0KPiANCj4gY2FuIHlvdSB0cnkg
+dGhlIGF0dGFjaGVkIHBhdGNoIHdpdGggdGhpcyBicmFuY2ggYW5kIG9tYXAzZXZtIGJvYXJkPyBJ
+DQo+IGRvbid0IGhhdmUgdGhlIGJvYXJkIG15c2VsZiBzbyBJIGNhbid0IHRlc3QgaXQgbXlzZWxm
+IChJIHRlc3RlZCB0aGlzDQo+IHdpdGggb21hcDNiZWFnbGUgYW5kIGl0IHdvcmtzIHdpdGggdGhh
+dCBvbmUuKQ0KPiANCj4gLVRlcm8NCj4gDQo+IA0KDQo=
