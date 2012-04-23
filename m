@@ -1,97 +1,105 @@
-From: Ashwin Bihari <abihari@gmail.com>
-Subject: DM3730 BSP issue with msleep()
-Date: Mon, 23 Apr 2012 13:13:57 -0400
-Message-ID: <CANLagX-mf7wsG+AR3mMb2TX=ZmJFkwi66Q2G9D-VqnbBAbFUdQ@mail.gmail.com>
+From: Shubhrajyoti <shubhrajyoti@ti.com>
+Subject: Re: [PATCHv8 07/10] I2C: OMAP: Handle error check for pm runtime
+Date: Mon, 23 Apr 2012 22:56:44 +0530
+Message-ID: <4F9590D4.7070304@ti.com>
+References: <1334842101-20670-1-git-send-email-shubhrajyoti@ti.com> <1334842101-20670-8-git-send-email-shubhrajyoti@ti.com> <20120423162008.GB27321@pengutronix.de>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-vb0-f46.google.com ([209.85.212.46]:56960 "EHLO
-	mail-vb0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752971Ab2DWRN5 (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 23 Apr 2012 13:13:57 -0400
-Received: by vbbff1 with SMTP id ff1so8300104vbb.19
-        for <linux-omap@vger.kernel.org>; Mon, 23 Apr 2012 10:13:57 -0700 (PDT)
+Received: from na3sys009aog119.obsmtp.com ([74.125.149.246]:45991 "EHLO
+	na3sys009aog119.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1753549Ab2DWR0x (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>);
+	Mon, 23 Apr 2012 13:26:53 -0400
+Received: by pbcwz12 with SMTP id wz12so4379612pbc.30
+        for <linux-omap@vger.kernel.org>; Mon, 23 Apr 2012 10:26:51 -0700 (PDT)
+In-Reply-To: <20120423162008.GB27321@pengutronix.de>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: linux-omap <linux-omap@vger.kernel.org>
-
-Greetings,
-
-I'm trying to add support for our DM3730-based SOMs to the latest
-Kernel and am basing my work on the latest and greatest Linux-next
-(3.4.0-rc4-next-20120423-dirty currently) and am finding an
-interesting issue with the use of msleep.
-
-I'm trying to bring up a basic system with SD and Ethernet support for
-starters, and am finding that the MMC detection code just hangs, after
-some digging around I found the issue to be related to the use of
-mmc_delay() calls which depending on the timeout required either uses
-mdelay() or msleep(). All of the calls to mdelay() succeed, while the
-msleep() call hangs.
-
-Interestingly, msleep() is used in earlier
-(arch/arm/mach-omap2)/board-* level files and that seems to function
-properly.
-
-I got around the mmc_delay() properly by using the change below (this
-is only temporary), but I end up hanging somewhere farther along and
-the last few lines are:
-
-[    2.047088] twl_rtc twl_rtc: Power up reset detected.
-[    2.052673] twl_rtc twl_rtc: Enabling TWL-RTC
-[    2.064331] twl_rtc twl_rtc: rtc core: registered twl_rtc as rtc0
-[    2.073028] i2c /dev entries driver
-[    2.080505] Driver for 1-wire Dallas network protocol.
-[    2.091522] omap_wdt: OMAP Watchdog Timer Rev 0x31: initial timeout 60 sec
-[    2.101043] twl4030_wdt twl4030_wdt: Failed to register misc device
-[    2.107940] twl4030_wdt: probe of twl4030_wdt failed with error -16
-[    2.122222] omap_hsmmc omap_hsmmc.0: Failed to get debounce clk
-[    2.382659] usbcore: registered new interface driver usbhid
-[    2.388549] usbhid: USB HID core driver
-[    2.392822] oprofile: hardware counters not available
-[    2.398284] oprofile: using timer interrupt.
-[    2.403961] TCP: cubic registered
-[    2.407623] Initializing XFRM netlink socket
-[    2.412506] NET: Registered protocol family 17
-[    2.417388] NET: Registered protocol family 15
-[    2.422821] Registering the dns_resolver key type
-[    2.428222] VFP support v0.3: implementor 41 architecture 3 part 30
-variant c rev 3
-[    2.436676] ThumbEE CPU extension supported.
-[    2.493072] clock: disabling unused clocks to save power
-[    2.545989] twl_rtc twl_rtc: setting system clock to 2000-01-01
-00:00:00 UTC (946684800)
-[    2.560760] Waiting for root device /dev/mmcblk0p2...
-[    2.783111] mmc0: host does not support reading read-only switch.
-assuming write-enable.
-[    2.794372] mmc0: new high speed SDHC card at address b368
-[    2.814636] mmcblk0: mmc0:b368 00000 3.74 GiB
-[    2.828704]  mmcblk0: p1 p2
-
-Does anyone have any pointers for me to try out to see what's going on?
-
-------------
-diff --git a/drivers/mmc/core/core.h b/drivers/mmc/core/core.h
-index 3bdafbc..7062f15 100644
---- a/drivers/mmc/core/core.h
-+++ b/drivers/mmc/core/core.h
-@@ -48,12 +48,16 @@ void mmc_power_off(struct mmc_host *host);
-
- static inline void mmc_delay(unsigned int ms)
- {
-+       cond_resched();
-+       mdelay(ms);
-+#if 0
-        if (ms < 1000 / HZ) {
-                cond_resched();
-                mdelay(ms);
-        } else {
-                msleep(ms);
-        }
-+#endif
- }
-
- void mmc_rescan(struct work_struct *work);
+To: Wolfram Sang <w.sang@pengutronix.de>
+Cc: linux-omap@vger.kernel.org, linux-i2c@vger.kernel.org, linux-arm-kernel@lists.infradead.org, ben-linux@fluff.org, tony@atomide.com
 
 
--- Ashwin
+On Monday 23 April 2012 09:50 PM, Wolfram Sang wrote:
+> On Thu, Apr 19, 2012 at 06:58:18PM +0530, Shubhrajyoti D wrote:
+>> If PM runtime get_sync fails return with the error
+>> so that no further reads/writes goes through the interface.
+>> This will avoid possible abort. Add a error message in case
+>> of failure with the cause of the failure.
+> I don't think the error message is especially helpful. You also use different
+> string (probably typo).
+Will correct and resend
+>
+>> Signed-off-by: Shubhrajyoti D <shubhrajyoti@ti.com>
+>> ---
+>>  drivers/i2c/busses/i2c-omap.c |   19 ++++++++++++++++---
+>>  1 files changed, 16 insertions(+), 3 deletions(-)
+>>
+>> diff --git a/drivers/i2c/busses/i2c-omap.c b/drivers/i2c/busses/i2c-omap.c
+>> index 44e8cfa..d555dcd 100644
+>> --- a/drivers/i2c/busses/i2c-omap.c
+>> +++ b/drivers/i2c/busses/i2c-omap.c
+>> @@ -585,7 +585,11 @@ omap_i2c_xfer(struct i2c_adapter *adap, struct i2c_msg msgs[], int num)
+>>  	int i;
+>>  	int r;
+>>  
+>> -	pm_runtime_get_sync(dev->dev);
+>> +	r = pm_runtime_get_sync(dev->dev);
+>> +	if (r < 0) {
+>> +		dev_err(dev->dev, "pm_runtime_get_sync failed %d\n", r);
+>> +		return r;
+>> +	}
+>>  
+>>  	r = omap_i2c_wait_for_bb(dev);
+>>  	if (r < 0)
+>> @@ -1011,7 +1015,11 @@ omap_i2c_probe(struct platform_device *pdev)
+>>  		dev->regs = (u8 *)reg_map_ip_v1;
+>>  
+>>  	pm_runtime_enable(dev->dev);
+>> -	pm_runtime_get_sync(dev->dev);
+>> +	r = pm_runtime_get_sync(dev->dev);
+>> +	if (r < 0) {
+>> +		dev_err(dev->dev, "pm_runtime_get_sync failed:%d\n", r);
+>> +		return r;
+>> +	}
+> Smatch says:
+>
+> drivers/i2c/busses/i2c-omap.c:1021 omap_i2c_probe() warn: 'mem->start' was not released on error
+>
+> In fact, you are leaking quite more.
+Ops  will correct, thanks.
+>
+>> @@ -1103,12 +1111,17 @@ omap_i2c_remove(struct platform_device *pdev)
+>>  {
+>>  	struct omap_i2c_dev	*dev = platform_get_drvdata(pdev);
+>>  	struct resource		*mem;
+>> +	int ret;
+>>  
+>>  	platform_set_drvdata(pdev, NULL);
+>>  
+>>  	free_irq(dev->irq, dev);
+>>  	i2c_del_adapter(&dev->adapter);
+>> -	pm_runtime_get_sync(&pdev->dev);
+>> +	ret = pm_runtime_get_sync(&pdev->dev);
+>> +	if (ret < 0) {
+>> +		dev_err(dev->dev, "pm_runtime_get_sync failed %d\n", ret);
+>> +		return ret;
+>> +	}
+> I am no too familiar with runtime_pm. Is it really so bad to fail remove, when
+> get_sync has an error? Why is it checked and e.g. pm_runtime_put later is not?
+> Any pointers?
+If the get_sync fails the clock were not enabled so checking to prevent
+register access.
+>
+>>  	omap_i2c_write_reg(dev, OMAP_I2C_CON_REG, 0);
+>>  	pm_runtime_put(&pdev->dev);
+>>  	pm_runtime_disable(&pdev->dev);
+>> -- 
+>> 1.7.5.4
+>>
+> Thanks,
+>
+>    Wolfram
+>
+
