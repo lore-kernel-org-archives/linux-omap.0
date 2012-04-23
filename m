@@ -1,75 +1,63 @@
-From: Felipe Balbi <balbi@ti.com>
-Subject: Re: [PATCH] USB: OTG: isp1301_omap: resolve unused variable warning
- from gcc
-Date: Mon, 23 Apr 2012 14:59:27 +0300
-Message-ID: <20120423115925.GW26302@arwen.pp.htv.fi>
-References: <alpine.DEB.2.00.1204201527350.11306@utopia.booyaka.com>
-Reply-To: balbi@ti.com
+From: Mark Brown <broonie@opensource.wolfsonmicro.com>
+Subject: Re: [alsa-devel] [PATCH] ASoC: omap-pcm: Free dma buffers in case of
+ error.
+Date: Mon, 23 Apr 2012 13:04:33 +0100
+Message-ID: <20120423120432.GD8318@opensource.wolfsonmicro.com>
+References: <1334795870-5726-1-git-send-email-oleg.matcovschi@ti.com>
+ <CAPo=G1yqVDj1u3_d28MzE1POaJcvi3e2VVh3i5EqmJuwgWWWkQ@mail.gmail.com>
+ <20120420130810.GA20681@sirena.org.uk>
+ <E0D6B3D7803B1A49AC7CEA9958379F6318873C@DFLE36.ent.ti.com>
 Mime-Version: 1.0
 Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="Hy4a9G0dOYssRJVI"
+	protocol="application/pgp-signature"; boundary="fOHHtNG4YXGJ0yqR"
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aog103.obsmtp.com ([74.125.149.71]:52311 "EHLO
-	na3sys009aog103.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752239Ab2DWMAj (ORCPT
+Received: from opensource.wolfsonmicro.com ([80.75.67.52]:33956 "EHLO
+	opensource.wolfsonmicro.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1752454Ab2DWMEg (ORCPT
 	<rfc822;linux-omap@vger.kernel.org>);
-	Mon, 23 Apr 2012 08:00:39 -0400
-Received: by lagw12 with SMTP id w12so8274487lag.6
-        for <linux-omap@vger.kernel.org>; Mon, 23 Apr 2012 05:00:37 -0700 (PDT)
+	Mon, 23 Apr 2012 08:04:36 -0400
 Content-Disposition: inline
-In-Reply-To: <alpine.DEB.2.00.1204201527350.11306@utopia.booyaka.com>
+In-Reply-To: <E0D6B3D7803B1A49AC7CEA9958379F6318873C@DFLE36.ent.ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Paul Walmsley <paul@pwsan.com>
-Cc: balbi@ti.com, Heikki Krogerus <heikki.krogerus@linux.intel.com>, linux-omap@vger.kernel.org, linux-usb@vger.kernel.org
+To: "Matcovschi, Oleg" <oleg.matcovschi@ti.com>
+Cc: "Ujfalusi, Peter" <peter.ujfalusi@ti.com>, "alsa-devel@alsa-project.org" <alsa-devel@alsa-project.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
 
 
---Hy4a9G0dOYssRJVI
+--fOHHtNG4YXGJ0yqR
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
 
-On Fri, Apr 20, 2012 at 03:29:20PM -0600, Paul Walmsley wrote:
->=20
-> Resolve this build warning:
->=20
-> drivers/usb/otg/isp1301_omap.c: In function 'isp1301_set_peripheral':
-> drivers/usb/otg/isp1301_omap.c:1340:6: warning: unused variable 'l'
->=20
-> This shows up when building with the 'omap1_defconfig' and
-> '5912osk_testconfig' configs from git://git.pwsan.com/omap_kconfigs.
->=20
-> Compile-tested only.
->=20
-> Cc: Heikki Krogerus <heikki.krogerus@linux.intel.com>
-> Cc: Felipe Balbi <balbi@ti.com>
-> Signed-off-by: Paul Walmsley <paul@pwsan.com>
+On Fri, Apr 20, 2012 at 05:59:25PM +0000, Matcovschi, Oleg wrote:
 
-applied, thanks
+> Should I resend patch again including maintainers?
 
---=20
-balbi
+Please, I didn't see it so I'll need a copy if I'm going to review it.
 
---Hy4a9G0dOYssRJVI
+> Sorry, my first patch. Will do in future patches.
+
+No worries.
+
+--fOHHtNG4YXGJ0yqR
 Content-Type: application/pgp-signature; name="signature.asc"
 Content-Description: Digital signature
 
 -----BEGIN PGP SIGNATURE-----
 Version: GnuPG v1.4.12 (GNU/Linux)
 
-iQIcBAEBAgAGBQJPlUQdAAoJEIaOsuA1yqRE0HIP/1L3KWlf9Vfzjr1sy8af4EFy
-8a3j7nF0jnQdqtNMZXcB70GRGgGMVBLlourEFOevwC0uT/q2rY5ffYfqAkeFZX0H
-FH74Zc5+DsQ0gok883fxtVmrAoOHKDjobvD2HotRlJABekwCXuGpwFcQWSV8MFwF
-7OZJdOUAc3ACh8dR9dXlKlYpFbv1HZZgmDC1Je1TgcDS2kUPtbTzO42OcsyT9l9m
-GiHjDL1LGBCcSUSFXMtuZvjxgIziCOa3ogE/nB3mdT7CWSY5s8ftOBPcbbrVoGJr
-gnVM4WC+fCxnkWDAn5GDREWvdob8kuvrFCkBs+H7BTntjFsa6ZPqqLnR5ei9oZtb
-+6jjCFMiv6GG6cAOdkF3m+jHJ1X44GMVBs3wA5557oiijmHFDY4y6PASi4Ir5/UH
-kIzkpV5tpkGN0O7othxhWREuLnyzg5NSA0abdFbI4qSXCvLh7m3aLYwTcKMHnYUV
-+FK5NqQMDPDygtjAYeE2mU97vJmi5Ntuq260Mzzwc8EnkGwxesxvj3EltXPBk1EP
-YnjVwD9mx9FynivYgDwO64wSwbYmMWschrNn+IHzK/gylBU3nOCxkzX6OmxoXzh8
-2W321iP2WCixMTdvK9OHsoRDmSb6qC3aPzoCJoP4eUnjoDBUVsDQI5N8rnL81+oQ
-8lkryjsozIZCqfglpNl6
-=IFFZ
+iQIcBAEBAgAGBQJPlUSHAAoJEBus8iNuMP3dGqYP+wZF5k8Nu4AVmeFYnlbU55Hi
+AUBl89XwTnzQraWdpS4Ti/ycUEL5YKzkgS/Um5206sUeUOSaHd5kvQ/osgH3an/t
+FuMnHEyoY9hCVS4mduwcuDtx1I9wR+pZWEWUff164D+tTBkDWx4GWtDDzYE1AQIz
+UzFePu4YvRgvMaQ1g9dMoD8AhbiO5Go2tZGRKIyfx25M03wb6jEwHqI01e2SCV84
+zTcXgMdWi5I0qAIhwguxOaW6jxJYf9NKFq+fvBPGm0KNJqi9TVnMqkBy+PFFtx6x
+/3W5W75VFQtmvMtjJu/3ZQ3a0mTCz4rFgW20mqOl2pXE24rCA2lpLylBtneke0iV
+tN0n15c0CFqkOQyooXPk/pOxjfrdx1bpw2N1X0G0i8Ueb7o2aPwlr+Jfrs8HPELM
+V0SKFUFUB9FZ8Zcvao+Ggo2tlBxmSXhZ4VIYooIDVA+9UIjOhYagb9esXj+wryY/
+qEdqGbTgy7Hc/s9DEiorhkRnumBTLCc+5NYjLvt+sR64fRlWChFT2LaLGq4uoRfj
+5/VSdny3P4/g7gTNul+8FpgCdMdnnpRrLI8h40oJCbVG5Tca/vZb+h4xAq6h7ghQ
+m9rIn6G2EVeHeqwUJtqY7BzGYwCH9UA2lFtzPb/FfgoHJ2ClQlNVXf1QGdz1GDHq
+iHDm6FbL/yUmq1WJZIma
+=dL4+
 -----END PGP SIGNATURE-----
 
---Hy4a9G0dOYssRJVI--
+--fOHHtNG4YXGJ0yqR--
