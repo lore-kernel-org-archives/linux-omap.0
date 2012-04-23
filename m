@@ -1,99 +1,97 @@
-From: Wolfram Sang <w.sang-bIcnvbaLZ9MEGnE8C9+IrQ@public.gmane.org>
-Subject: Re: [PATCHv8 05/10] I2C: OMAP: Don't check if
- wait_for_completion_timeout() returns less than zero
-Date: Mon, 23 Apr 2012 19:11:08 +0200
-Message-ID: <20120423171108.GJ27321@pengutronix.de>
-References: <1334842101-20670-1-git-send-email-shubhrajyoti@ti.com>
- <1334842101-20670-6-git-send-email-shubhrajyoti@ti.com>
+From: Ashwin Bihari <abihari@gmail.com>
+Subject: DM3730 BSP issue with msleep()
+Date: Mon, 23 Apr 2012 13:13:57 -0400
+Message-ID: <CANLagX-mf7wsG+AR3mMb2TX=ZmJFkwi66Q2G9D-VqnbBAbFUdQ@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="I/5syFLg1Ed7r+1G"
-Return-path: <linux-i2c-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <1334842101-20670-6-git-send-email-shubhrajyoti-l0cyMroinI0@public.gmane.org>
-Sender: linux-i2c-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Shubhrajyoti D <shubhrajyoti-l0cyMroinI0@public.gmane.org>
-Cc: linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-i2c-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, ben-linux-elnMNo+KYs3YtjvyW6yDsg@public.gmane.org, tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org
+Content-Type: text/plain; charset=ISO-8859-1
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from mail-vb0-f46.google.com ([209.85.212.46]:56960 "EHLO
+	mail-vb0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752971Ab2DWRN5 (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 23 Apr 2012 13:13:57 -0400
+Received: by vbbff1 with SMTP id ff1so8300104vbb.19
+        for <linux-omap@vger.kernel.org>; Mon, 23 Apr 2012 10:13:57 -0700 (PDT)
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: linux-omap <linux-omap@vger.kernel.org>
+
+Greetings,
+
+I'm trying to add support for our DM3730-based SOMs to the latest
+Kernel and am basing my work on the latest and greatest Linux-next
+(3.4.0-rc4-next-20120423-dirty currently) and am finding an
+interesting issue with the use of msleep.
+
+I'm trying to bring up a basic system with SD and Ethernet support for
+starters, and am finding that the MMC detection code just hangs, after
+some digging around I found the issue to be related to the use of
+mmc_delay() calls which depending on the timeout required either uses
+mdelay() or msleep(). All of the calls to mdelay() succeed, while the
+msleep() call hangs.
+
+Interestingly, msleep() is used in earlier
+(arch/arm/mach-omap2)/board-* level files and that seems to function
+properly.
+
+I got around the mmc_delay() properly by using the change below (this
+is only temporary), but I end up hanging somewhere farther along and
+the last few lines are:
+
+[    2.047088] twl_rtc twl_rtc: Power up reset detected.
+[    2.052673] twl_rtc twl_rtc: Enabling TWL-RTC
+[    2.064331] twl_rtc twl_rtc: rtc core: registered twl_rtc as rtc0
+[    2.073028] i2c /dev entries driver
+[    2.080505] Driver for 1-wire Dallas network protocol.
+[    2.091522] omap_wdt: OMAP Watchdog Timer Rev 0x31: initial timeout 60 sec
+[    2.101043] twl4030_wdt twl4030_wdt: Failed to register misc device
+[    2.107940] twl4030_wdt: probe of twl4030_wdt failed with error -16
+[    2.122222] omap_hsmmc omap_hsmmc.0: Failed to get debounce clk
+[    2.382659] usbcore: registered new interface driver usbhid
+[    2.388549] usbhid: USB HID core driver
+[    2.392822] oprofile: hardware counters not available
+[    2.398284] oprofile: using timer interrupt.
+[    2.403961] TCP: cubic registered
+[    2.407623] Initializing XFRM netlink socket
+[    2.412506] NET: Registered protocol family 17
+[    2.417388] NET: Registered protocol family 15
+[    2.422821] Registering the dns_resolver key type
+[    2.428222] VFP support v0.3: implementor 41 architecture 3 part 30
+variant c rev 3
+[    2.436676] ThumbEE CPU extension supported.
+[    2.493072] clock: disabling unused clocks to save power
+[    2.545989] twl_rtc twl_rtc: setting system clock to 2000-01-01
+00:00:00 UTC (946684800)
+[    2.560760] Waiting for root device /dev/mmcblk0p2...
+[    2.783111] mmc0: host does not support reading read-only switch.
+assuming write-enable.
+[    2.794372] mmc0: new high speed SDHC card at address b368
+[    2.814636] mmcblk0: mmc0:b368 00000 3.74 GiB
+[    2.828704]  mmcblk0: p1 p2
+
+Does anyone have any pointers for me to try out to see what's going on?
+
+------------
+diff --git a/drivers/mmc/core/core.h b/drivers/mmc/core/core.h
+index 3bdafbc..7062f15 100644
+--- a/drivers/mmc/core/core.h
++++ b/drivers/mmc/core/core.h
+@@ -48,12 +48,16 @@ void mmc_power_off(struct mmc_host *host);
+
+ static inline void mmc_delay(unsigned int ms)
+ {
++       cond_resched();
++       mdelay(ms);
++#if 0
+        if (ms < 1000 / HZ) {
+                cond_resched();
+                mdelay(ms);
+        } else {
+                msleep(ms);
+        }
++#endif
+ }
+
+ void mmc_rescan(struct work_struct *work);
 
 
---I/5syFLg1Ed7r+1G
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
-
-On Thu, Apr 19, 2012 at 06:58:16PM +0530, Shubhrajyoti D wrote:
-> By definition, wait_for_completion_timeout() returns an unsigned value and
-> therefore, it is not necessary to check if the return value is less than =
-zero
-> as this is not possible.
->=20
-> This is based on a patch from Jon Hunter <jon-hunter-l0cyMroinI0@public.gmane.org>
-> Changes from his patch
-> - Declare a long as the wait_for_completion_timeout returns long.
->=20
-> Original patch is
-> http://git.omapzoom.org/?p=3Dkernel/omap.git;a=3Dcommitdiff;h=3Dea02cece7=
-b0000bc736e60c4188a11aaa74bc6e6
-
-The original patch has a signed-off, so you need to include it here as
-well.
-
->=20
-> Cc : Jon Hunter <jon-hunter-l0cyMroinI0@public.gmane.org>
-> Signed-off-by: Shubhrajyoti D <shubhrajyoti-l0cyMroinI0@public.gmane.org>
-> ---
->  drivers/i2c/busses/i2c-omap.c |   10 ++++------
->  1 files changed, 4 insertions(+), 6 deletions(-)
->=20
-> diff --git a/drivers/i2c/busses/i2c-omap.c b/drivers/i2c/busses/i2c-omap.c
-> index 1777d79..fec8d5c 100644
-> --- a/drivers/i2c/busses/i2c-omap.c
-> +++ b/drivers/i2c/busses/i2c-omap.c
-> @@ -473,7 +473,7 @@ static int omap_i2c_xfer_msg(struct i2c_adapter *adap,
->  			     struct i2c_msg *msg, int stop)
->  {
->  	struct omap_i2c_dev *dev =3D i2c_get_adapdata(adap);
-> -	int r;
-> +	unsigned long timeout;
->  	u16 w;
-> =20
->  	dev_dbg(dev->dev, "addr: 0x%04x, len: %d, flags: 0x%x, stop: %d\n",
-> @@ -541,12 +541,10 @@ static int omap_i2c_xfer_msg(struct i2c_adapter *ad=
-ap,
->  	 * REVISIT: We should abort the transfer on signals, but the bus goes
->  	 * into arbitration and we're currently unable to recover from it.
->  	 */
-> -	r =3D wait_for_completion_timeout(&dev->cmd_complete,
-> -					OMAP_I2C_TIMEOUT);
-> +	timeout =3D wait_for_completion_timeout(&dev->cmd_complete,
-> +						OMAP_I2C_TIMEOUT);
->  	dev->buf_len =3D 0;
-> -	if (r < 0)
-> -		return r;
-> -	if (r =3D=3D 0) {
-> +	if (timeout =3D=3D 0) {
->  		dev_err(dev->dev, "controller timed out\n");
->  		omap_i2c_init(dev);
->  		return -ETIMEDOUT;
-> --=20
-> 1.7.5.4
->=20
-
---=20
-Pengutronix e.K.                           | Wolfram Sang                |
-Industrial Linux Solutions                 | http://www.pengutronix.de/  |
-
---I/5syFLg1Ed7r+1G
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: Digital signature
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.4.12 (GNU/Linux)
-
-iEYEARECAAYFAk+VjSwACgkQD27XaX1/VRtTqQCghNp32aefExdzxHFJftLDLz7j
-b7kAoJW0aQgVD8lKOzkzOYQ8ZJ/kdG9u
-=ltUz
------END PGP SIGNATURE-----
-
---I/5syFLg1Ed7r+1G--
+-- Ashwin
