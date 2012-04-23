@@ -1,72 +1,85 @@
-From: Grazvydas Ignotas <notasas@gmail.com>
-Subject: Re: [PATCH] OMAPDSS: VENC: allow switching venc type at runtime
-Date: Mon, 23 Apr 2012 18:32:54 +0300
-Message-ID: <CANOLnOPcuiD7+rqafeSTZc3GB0_C10viUZe0+XbJQ0be82qDtQ@mail.gmail.com>
-References: <1332978312-11959-1-git-send-email-notasas@gmail.com>
-	<1335183802.30659.17.camel@deskari>
+From: Wolfram Sang <w.sang@pengutronix.de>
+Subject: Re: [PATCHv8 02/10] I2C: OMAP: Fix the mismatch of pm_runtime enable
+ and disable
+Date: Mon, 23 Apr 2012 17:43:45 +0200
+Message-ID: <20120423154345.GA27321@pengutronix.de>
+References: <1334842101-20670-1-git-send-email-shubhrajyoti@ti.com>
+ <1334842101-20670-3-git-send-email-shubhrajyoti@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: multipart/signed; micalg=pgp-sha1;
+	protocol="application/pgp-signature"; boundary="ikeVEW9yuYc//A+q"
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-iy0-f174.google.com ([209.85.210.174]:41475 "EHLO
-	mail-iy0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752950Ab2DWPcz convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 23 Apr 2012 11:32:55 -0400
-In-Reply-To: <1335183802.30659.17.camel@deskari>
+Received: from metis.ext.pengutronix.de ([92.198.50.35]:41418 "EHLO
+	metis.ext.pengutronix.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752315Ab2DWPns (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 23 Apr 2012 11:43:48 -0400
+Content-Disposition: inline
+In-Reply-To: <1334842101-20670-3-git-send-email-shubhrajyoti@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Tomi Valkeinen <tomi.valkeinen@ti.com>
-Cc: linux-fbdev@vger.kernel.org, linux-omap@vger.kernel.org
+To: Shubhrajyoti D <shubhrajyoti@ti.com>
+Cc: linux-omap@vger.kernel.org, linux-i2c@vger.kernel.org, linux-arm-kernel@lists.infradead.org, ben-linux@fluff.org, tony@atomide.com, Kevin Hilman <khilman@ti.com>, Rajendra Nayak <rnayak@ti.com>
 
-On Mon, Apr 23, 2012 at 3:23 PM, Tomi Valkeinen <tomi.valkeinen@ti.com>=
- wrote:
-> On Thu, 2012-03-29 at 02:45 +0300, Grazvydas Ignotas wrote:
->> VENC type (composite/svideo) doesn't have to be fixed by board wirin=
-g,
->> it is possible to provide both connectors, which is what pandora doe=
-s.
->> Having to recompile the kernel for users who have TV connector types
->> that's don't match default board setting is very inconvenient, espec=
-ially
->> for users of a consumer device, so add support for switching VENC ty=
-pe
->> at runtime over a new sysfs file venc_type.
->>
->> Signed-off-by: Grazvydas Ignotas <notasas@gmail.com>
->> ---
->> =C2=A0Documentation/arm/OMAP/DSS =C2=A0 =C2=A0 | =C2=A0 =C2=A01 +
->> =C2=A0drivers/video/omap2/dss/venc.c | =C2=A0 55 +++++++++++++++++++=
-++++++++++++++++++++-
->> =C2=A02 files changed, 55 insertions(+), 1 deletions(-)
->>
->> diff --git a/Documentation/arm/OMAP/DSS b/Documentation/arm/OMAP/DSS
->> index 888ae7b..18e2214 100644
->> --- a/Documentation/arm/OMAP/DSS
->> +++ b/Documentation/arm/OMAP/DSS
->> @@ -156,6 +156,7 @@ timings =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 Displ=
-ay timings (pixclock,xres/hfp/hbp/hsw,yres/vfp/vbp/vsw)
->> =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 "pal" and "ntsc"
->> =C2=A0panel_name
->> =C2=A0tear_elim =C2=A0 =C2=A0Tearing elimination 0=3Doff, 1=3Don
->> +venc_type =C2=A0 =C2=A0Output type (video encoder only): "composite=
-" or "svideo"
->
-> I think we could have a better name here. "venc" name is quite obscur=
-e
-> on the user level. And it's not even quite correct, venc stays the sa=
-me,
-> it's just the output that is changed. "output_type"? "connector"?
-> "connector_type"?
 
-I'll go for output_type then, connector* associates with fixed hardware=
- to me.
-I'll take care of other comments too.
+--ikeVEW9yuYc//A+q
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
 
+On Thu, Apr 19, 2012 at 06:58:13PM +0530, Shubhrajyoti D wrote:
+> Currently the i2c driver calls the pm_runtime_enable and never
+> the disable. This may cause a warning when pm_runtime_enable
+> checks for the count match.Attempting to fix the same by calling
+> pm_runtime_disable in the error and the remove path.
+
+Why "attempting"?
+
+>=20
+> Cc: Kevin Hilman <khilman@ti.com>
+> Cc: Rajendra Nayak <rnayak@ti.com>
+> Signed-off-by: Shubhrajyoti D <shubhrajyoti@ti.com>
+> ---
+>  drivers/i2c/busses/i2c-omap.c |    2 ++
+>  1 files changed, 2 insertions(+), 0 deletions(-)
+>=20
+> diff --git a/drivers/i2c/busses/i2c-omap.c b/drivers/i2c/busses/i2c-omap.c
+> index 4f4188d..c851672 100644
+> --- a/drivers/i2c/busses/i2c-omap.c
+> +++ b/drivers/i2c/busses/i2c-omap.c
+> @@ -1090,6 +1090,7 @@ err_unuse_clocks:
+>  	omap_i2c_write_reg(dev, OMAP_I2C_CON_REG, 0);
+>  	pm_runtime_put(dev->dev);
+>  	iounmap(dev->base);
+> +	pm_runtime_disable(&pdev->dev);
+>  err_free_mem:
+>  	platform_set_drvdata(pdev, NULL);
+>  	kfree(dev);
+> @@ -1110,6 +1111,7 @@ omap_i2c_remove(struct platform_device *pdev)
+>  	free_irq(dev->irq, dev);
+>  	i2c_del_adapter(&dev->adapter);
+>  	omap_i2c_write_reg(dev, OMAP_I2C_CON_REG, 0);
+> +	pm_runtime_disable(&pdev->dev);
+>  	iounmap(dev->base);
+>  	kfree(dev);
+>  	mem =3D platform_get_resource(pdev, IORESOURCE_MEM, 0);
+> --=20
+> 1.7.5.4
+>=20
 
 --=20
-Gra=C5=BEvydas
---
-To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Pengutronix e.K.                           | Wolfram Sang                |
+Industrial Linux Solutions                 | http://www.pengutronix.de/  |
+
+--ikeVEW9yuYc//A+q
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: Digital signature
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.4.12 (GNU/Linux)
+
+iEYEARECAAYFAk+VeLEACgkQD27XaX1/VRtADgCfYP/8EsIUTqpJJOT0eddyPPr0
+V04AoK1HA98AGLRlVqfli8pqH9y5QGPo
+=mpw+
+-----END PGP SIGNATURE-----
+
+--ikeVEW9yuYc//A+q--
