@@ -1,126 +1,206 @@
-From: Shubhrajyoti Datta <omaplinuxkernel@gmail.com>
-Subject: Re: [PATCH 00/19] ARM: OMAP4 device off support
-Date: Mon, 23 Apr 2012 11:58:37 +0530
-Message-ID: <CAM=Q2cv7saQXuOCieGZ3TgUG0NNxSdmME9orAw=tHdkRrDEsqA@mail.gmail.com>
-References: <1334914432-26456-1-git-send-email-t-kristo@ti.com>
-	<CANrkHUa5q10FFxsZfgtMqKbzKKFHCcf3yYsaOK+hG8CJiME2TA@mail.gmail.com>
-	<1334926721.2149.40.camel@sokoban>
-	<87vckupkxj.fsf@ti.com>
-	<1334933002.2149.44.camel@sokoban>
-	<CANQgH-aL42ka+veae0aPaebt=eA8iyF=ThVXGkOzFhNumKnhtw@mail.gmail.com>
-	<1334934436.2149.49.camel@sokoban>
+From: Chandrabhanu Mahapatra <cmahapatra@ti.com>
+Subject: [PATCH V3 3/3] OMAPDSS: DISPC: Correct DISPC functional clock usage
+Date: Mon, 23 Apr 2012 12:16:50 +0530
+Message-ID: <1335163610-19737-1-git-send-email-cmahapatra@ti.com>
+References: <1333379598-11544-4-git-send-email-cmahapatra@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: text/plain
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-iy0-f174.google.com ([209.85.210.174]:56825 "EHLO
-	mail-iy0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753238Ab2DWG2h convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 23 Apr 2012 02:28:37 -0400
-Received: by iadi9 with SMTP id i9so1587197iad.19
-        for <linux-omap@vger.kernel.org>; Sun, 22 Apr 2012 23:28:37 -0700 (PDT)
-In-Reply-To: <1334934436.2149.49.camel@sokoban>
+Received: from devils.ext.ti.com ([198.47.26.153]:38065 "EHLO
+	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753748Ab2DWGrG (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 23 Apr 2012 02:47:06 -0400
+In-Reply-To: <1333379598-11544-4-git-send-email-cmahapatra@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: shubhrajyoti@ti.com
-Cc: Kevin Hilman <khilman@ti.com>, "T Krishnamoorthy, Balaji" <balajitk@ti.com>, linux-omap@vger.kernel.org, paul@pwsan.com, linux-arm-kernel@lists.infradead.org
+To: tomi.valkeinen@ti.com
+Cc: linux-omap@vger.kernel.org, linux-fbdev@vger.kernel.org, Chandrabhanu Mahapatra <cmahapatra@ti.com>
 
-On Fri, Apr 20, 2012 at 8:37 PM, Tero Kristo <t-kristo@ti.com> wrote:
-> On Fri, 2012-04-20 at 20:21 +0530, Datta, Shubhrajyoti wrote:
->> On Fri, Apr 20, 2012 at 8:13 PM, Tero Kristo <t-kristo@ti.com> wrote=
-:
->> > On Fri, 2012-04-20 at 06:55 -0700, Kevin Hilman wrote:
->> >> Tero Kristo <t-kristo@ti.com> writes:
->> >>
->> >> [...]
->> >>
->> >> >> I tried your branch on gp/emu devices but could not reproduce =
-this issue.
->> >> >> My observation is that while resuming, omap_hsmmc.1 eMMC is
->> >> >> trying to turn on phoenix vaux1 regulator via i2c which fails =
-due
->> >> >> to controller timeout.
->> >> >> Note: eMMC is present only on sdp/blaze
->> >> >
->> >> > Did you try this with off-mode enabled and did you check the de=
-vice
->> >> > actually goes to off? (see pm_debug/count and verify core off c=
-ount is
->> >> > increasing.) And as said, I was only able to see this problem o=
-n a blaze
->> >> > device, panda works fine. But yes, you are probably right and i=
-t is not
->> >> > an MMC driver issue but I2C.
->> >>
->> >> Can you try the patch below? =A0It sounds like the same problem.
->> >
->> > Doesn't help with this one. I guess I2C loses context during devic=
-e off
->> > and it is not restored properly.
->> >
->> > -Tero
->> Could you try the following patch
->>
->> https://lkml.org/lkml/2012/3/30/345
->
-> That does the trick, after this it is working fine on blaze, and this
-> also fixes the timeout issues seen on panda board (meaning wake-up fr=
-om
-> device off is much faster.)
+DISPC_FCLK is incorrectly used as functional clock of DISPC in scaling
+calculations. So, DISPC_CORE_CLK replaces as functional clock of DISPC.
+DISPC_CORE_CLK is derived from DISPC_FCLK divided by an independent DISPC
+divisor LCD.
 
-Thats great.
-=46eel free to try the following.
-I2C conditional restore"
-http://www.mail-archive.com/linux-omap@vger.kernel.org/msg66859.html
-
-Also cooked a below rfc/untested patch for mmc restore.
-
-
-
-=46rom c28ec76f8a20c3ce59b72245ab9f3bc293b1ac43 Mon Sep 17 00:00:00 200=
-1
-=46rom: Shubhrajyoti D <shubhrajyoti@ti.com>
-Date: Mon, 23 Apr 2012 11:52:54 +0530
-Subject: [RFC PATCH] hsmmc: omap: Support for device off
-
-Attempt to have device off support. Current the function hsmmc_get_cont=
-ext_loss
-is made NULL for OMAP4. Remove it as post Terro's patches context may b=
-e lost.
-Also it is good to have no assumptions of the context loss in the
-driver.
-
-Signed-off-by: Shubhrajyoti D <shubhrajyoti@ti.com>
+Signed-off-by: Chandrabhanu Mahapatra <cmahapatra@ti.com>
 ---
- arch/arm/mach-omap2/hsmmc.c |    6 ------
- 1 files changed, 0 insertions(+), 6 deletions(-)
+ drivers/video/omap2/dss/dispc.c |   67 +++++++++++++++++++++++---------------
+ drivers/video/omap2/dss/dss.h   |    1 +
+ 2 files changed, 41 insertions(+), 27 deletions(-)
 
-diff --git a/arch/arm/mach-omap2/hsmmc.c b/arch/arm/mach-omap2/hsmmc.c
-index b0268ea..2361f24 100644
---- a/arch/arm/mach-omap2/hsmmc.c
-+++ b/arch/arm/mach-omap2/hsmmc.c
-@@ -32,17 +32,11 @@ static u16 control_mmc1;
-
- #define HSMMC_NAME_LEN 9
-
--#if defined(CONFIG_ARCH_OMAP3) && defined(CONFIG_PM)
--
- static int hsmmc_get_context_loss(struct device *dev)
- {
-        return omap_pm_get_dev_context_loss_count(dev);
+diff --git a/drivers/video/omap2/dss/dispc.c b/drivers/video/omap2/dss/dispc.c
+index 17ffa71..f1be23f 100644
+--- a/drivers/video/omap2/dss/dispc.c
++++ b/drivers/video/omap2/dss/dispc.c
+@@ -1721,11 +1721,11 @@ static int check_horiz_timing_omap3(enum omap_channel channel, u16 pos_x,
+ 	return 0;
  }
-
--#else
--#define hsmmc_get_context_loss NULL
--#endif
--
- static void omap_hsmmc1_before_set_reg(struct device *dev, int slot,
-                                  int power_on, int vdd)
+ 
+-static unsigned long calc_fclk_five_taps(enum omap_channel channel, u16 width,
+-		u16 height, u16 out_width, u16 out_height,
++static unsigned long calc_core_clk_five_taps(enum omap_channel channel,
++		u16 width, u16 height, u16 out_width, u16 out_height,
+ 		enum omap_color_mode color_mode)
  {
---
-1.7.0.4
---
-To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+-	u32 fclk = 0;
++	u32 core_clk = 0;
+ 	u64 tmp, pclk = dispc_mgr_pclk_rate(channel);
+ 
+ 	if (height <= out_height && width <= out_width)
+@@ -1737,7 +1737,7 @@ static unsigned long calc_fclk_five_taps(enum omap_channel channel, u16 width,
+ 
+ 		tmp = pclk * height * out_width;
+ 		do_div(tmp, 2 * out_height * ppl);
+-		fclk = tmp;
++		core_clk = tmp;
+ 
+ 		if (height > 2 * out_height) {
+ 			if (ppl == out_width)
+@@ -1745,23 +1745,23 @@ static unsigned long calc_fclk_five_taps(enum omap_channel channel, u16 width,
+ 
+ 			tmp = pclk * (height - 2 * out_height) * out_width;
+ 			do_div(tmp, 2 * out_height * (ppl - out_width));
+-			fclk = max(fclk, (u32) tmp);
++			core_clk = max_t(u32, core_clk, tmp);
+ 		}
+ 	}
+ 
+ 	if (width > out_width) {
+ 		tmp = pclk * width;
+ 		do_div(tmp, out_width);
+-		fclk = max(fclk, (u32) tmp);
++		core_clk = max_t(u32, core_clk, tmp);
+ 
+ 		if (color_mode == OMAP_DSS_COLOR_RGB24U)
+-			fclk <<= 1;
++			core_clk <<= 1;
+ 	}
+ 
+-	return fclk;
++	return core_clk;
+ }
+ 
+-static unsigned long calc_fclk(enum omap_channel channel, u16 width,
++static unsigned long calc_core_clk(enum omap_channel channel, u16 width,
+ 		u16 height, u16 out_width, u16 out_height)
+ {
+ 	unsigned int hf, vf;
+@@ -1812,7 +1812,7 @@ static int dispc_ovl_calc_scaling(enum omap_plane plane,
+ 	const int maxsinglelinewidth =
+ 				dss_feat_get_param_max(FEAT_PARAM_LINEWIDTH);
+ 	const int max_decim_limit = 16;
+-	unsigned long fclk = 0;
++	unsigned long core_clk = 0;
+ 	int decim_x, decim_y, error, min_factor;
+ 	u16 in_width, in_height, in_width_max = 0;
+ 
+@@ -1852,10 +1852,10 @@ static int dispc_ovl_calc_scaling(enum omap_plane plane,
+ 		do {
+ 			in_height = DIV_ROUND_UP(height, decim_y);
+ 			in_width = DIV_ROUND_UP(width, decim_x);
+-			fclk = calc_fclk(channel, in_width, in_height,
++			core_clk = calc_core_clk(channel, in_width, in_height,
+ 					out_width, out_height);
+-			error = (in_width > maxsinglelinewidth || !fclk ||
+-				fclk > dispc_fclk_rate());
++			error = (in_width > maxsinglelinewidth || !core_clk ||
++				core_clk > dispc_core_clk_rate());
+ 			if (error) {
+ 				if (decim_x == decim_y) {
+ 					decim_x = min_factor;
+@@ -1878,8 +1878,8 @@ static int dispc_ovl_calc_scaling(enum omap_plane plane,
+ 		do {
+ 			in_height = DIV_ROUND_UP(height, decim_y);
+ 			in_width = DIV_ROUND_UP(width, decim_x);
+-			fclk = calc_fclk_five_taps(channel, in_width, in_height,
+-				out_width, out_height, color_mode);
++			core_clk = calc_core_clk_five_taps(channel, in_width,
++				in_height, out_width, out_height, color_mode);
+ 
+ 			error = check_horiz_timing_omap3(channel, pos_x,
+ 				in_width, in_height, out_width, out_height);
+@@ -1889,11 +1889,11 @@ static int dispc_ovl_calc_scaling(enum omap_plane plane,
+ 					in_height < out_height * 2)
+ 					*five_taps = false;
+ 			if (!*five_taps)
+-				fclk = calc_fclk(channel, in_width, in_height,
+-					out_width, out_height);
++				core_clk = calc_core_clk(channel, in_width,
++					in_height, out_width, out_height);
+ 			error = (error || in_width > maxsinglelinewidth * 2 ||
+ 				(in_width > maxsinglelinewidth && *five_taps) ||
+-				!fclk || fclk > dispc_fclk_rate());
++				!core_clk || core_clk > dispc_core_clk_rate());
+ 			if (error) {
+ 				if (decim_x == decim_y) {
+ 					decim_x = min_factor;
+@@ -1926,7 +1926,7 @@ static int dispc_ovl_calc_scaling(enum omap_plane plane,
+ 	} else {
+ 		int decim_x_min = decim_x;
+ 		in_height = DIV_ROUND_UP(height, decim_y);
+-		in_width_max = dispc_fclk_rate() /
++		in_width_max = dispc_core_clk_rate() /
+ 				DIV_ROUND_UP(dispc_mgr_pclk_rate(channel),
+ 						out_width);
+ 		decim_x = DIV_ROUND_UP(width, in_width_max);
+@@ -1945,18 +1945,18 @@ static int dispc_ovl_calc_scaling(enum omap_plane plane,
+ 			return -EINVAL;
+ 		}
+ 
+-		fclk = calc_fclk(channel, in_width, in_height, out_width,
+-				out_height);
++		core_clk = calc_core_clk(channel, in_width, in_height,
++				out_width, out_height);
+ 	}
+ 
+-	DSSDBG("required fclk rate = %lu Hz\n", fclk);
+-	DSSDBG("current fclk rate = %lu Hz\n", dispc_fclk_rate());
++	DSSDBG("required core clk rate = %lu Hz\n", core_clk);
++	DSSDBG("current core clk rate = %lu Hz\n", dispc_core_clk_rate());
+ 
+-	if (!fclk || fclk > dispc_fclk_rate()) {
++	if (!core_clk || core_clk > dispc_core_clk_rate()) {
+ 		DSSERR("failed to set up scaling, "
+-			"required fclk rate = %lu Hz, "
+-			"current fclk rate = %lu Hz\n",
+-			fclk, dispc_fclk_rate());
++			"required core clk rate = %lu Hz, "
++			"current core clk rate = %lu Hz\n",
++			core_clk, dispc_core_clk_rate());
+ 		return -EINVAL;
+ 	}
+ 
+@@ -2646,6 +2646,19 @@ unsigned long dispc_mgr_pclk_rate(enum omap_channel channel)
+ 	}
+ }
+ 
++unsigned long dispc_core_clk_rate(void)
++{
++	int lcd;
++	unsigned long fclk = dispc_fclk_rate();
++
++	if (dss_has_feature(FEAT_CORE_CLK_DIV))
++		lcd = REG_GET(DISPC_DIVISOR, 23, 16);
++	else
++		lcd = REG_GET(DISPC_DIVISORo(OMAP_DSS_CHANNEL_LCD), 23, 16);
++
++	return fclk / lcd;
++}
++
+ void dispc_dump_clocks(struct seq_file *s)
+ {
+ 	int lcd, pcd;
+diff --git a/drivers/video/omap2/dss/dss.h b/drivers/video/omap2/dss/dss.h
+index d4b3dff..1bde34c 100644
+--- a/drivers/video/omap2/dss/dss.h
++++ b/drivers/video/omap2/dss/dss.h
+@@ -451,6 +451,7 @@ void dispc_mgr_set_pol_freq(enum omap_channel channel,
+ 		enum omap_panel_config config, u8 acbi, u8 acb);
+ unsigned long dispc_mgr_lclk_rate(enum omap_channel channel);
+ unsigned long dispc_mgr_pclk_rate(enum omap_channel channel);
++unsigned long dispc_core_clk_rate(void);
+ int dispc_mgr_set_clock_div(enum omap_channel channel,
+ 		struct dispc_clock_info *cinfo);
+ int dispc_mgr_get_clock_div(enum omap_channel channel,
+-- 
+1.7.1
+
