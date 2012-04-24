@@ -1,7 +1,7 @@
 From: Daniel Lezcano <daniel.lezcano-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>
-Subject: [PATCH 16/18][V3] ARM: OMAP3: set omap3_idle_data as static
-Date: Tue, 24 Apr 2012 16:05:37 +0200
-Message-ID: <1335276339-11135-17-git-send-email-daniel.lezcano@linaro.org>
+Subject: [PATCH 15/18][V3] ARM: OMAP3: cpuidle - simplify next_valid_state
+Date: Tue, 24 Apr 2012 16:05:36 +0200
+Message-ID: <1335276339-11135-16-git-send-email-daniel.lezcano@linaro.org>
 References: <1335276339-11135-1-git-send-email-daniel.lezcano@linaro.org>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
@@ -21,27 +21,95 @@ To: santosh.shilimkar-l0cyMroinI0@public.gmane.org, jean.pihet-OTs2U3NB0ngRmelmm
 Cc: linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linaro-dev-cunTk1MwBs8s++Sfvej+rw@public.gmane.org, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, patches-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org
 List-Id: linux-omap@vger.kernel.org
 
-Reduce the scope of the omap3_idle_data to the file as it is only used
-in cpuidle34xx.c.
+Simplify the indentation by removing the useless 'else' statement.
+Remove the first loop for the 'idx' search as we have it already
+with the 'index' passed as parameter.
 
 Signed-off-by: Daniel Lezcano <daniel.lezcano-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>
 Reviewed-by: Jean Pihet <j-pihet-l0cyMroinI0@public.gmane.org>
 ---
- arch/arm/mach-omap2/cpuidle34xx.c |    2 +-
- 1 files changed, 1 insertions(+), 1 deletions(-)
+ arch/arm/mach-omap2/cpuidle34xx.c |   53 +++++++++++++-----------------------
+ 1 files changed, 19 insertions(+), 34 deletions(-)
 
 diff --git a/arch/arm/mach-omap2/cpuidle34xx.c b/arch/arm/mach-omap2/cpuidle34xx.c
-index e7599e7..ee02a8c 100644
+index 242f77d..e7599e7 100644
 --- a/arch/arm/mach-omap2/cpuidle34xx.c
 +++ b/arch/arm/mach-omap2/cpuidle34xx.c
-@@ -44,7 +44,7 @@ struct omap3_idle_statedata {
- 	u32 core_state;
- };
+@@ -172,13 +172,12 @@ static inline int omap3_enter_idle(struct cpuidle_device *dev,
+  * if it satisfies the enable_off_mode condition.
+  */
+ static int next_valid_state(struct cpuidle_device *dev,
+-			struct cpuidle_driver *drv,
+-				int index)
++			    struct cpuidle_driver *drv, int index)
+ {
+-	struct cpuidle_state *curr = &drv->states[index];
+ 	struct omap3_idle_statedata *cx = &omap3_idle_data[index];
+ 	u32 mpu_deepest_state = PWRDM_POWER_RET;
+ 	u32 core_deepest_state = PWRDM_POWER_RET;
++	int idx;
+ 	int next_index = -1;
  
--struct omap3_idle_statedata omap3_idle_data[] = {
-+static struct omap3_idle_statedata omap3_idle_data[] = {
- 	{
- 		.mpu_state = PWRDM_POWER_ON,
- 		.core_state = PWRDM_POWER_ON,
+ 	if (enable_off_mode) {
+@@ -194,42 +193,28 @@ static int next_valid_state(struct cpuidle_device *dev,
+ 
+ 	/* Check if current state is valid */
+ 	if ((cx->mpu_state >= mpu_deepest_state) &&
+-	    (cx->core_state >= core_deepest_state)) {
++	    (cx->core_state >= core_deepest_state))
+ 		return index;
+-	} else {
+-		int idx = ARRAY_SIZE(omap3_idle_data) - 1;
+-
+-		/* Reach the current state starting at highest C-state */
+-		for (; idx >= 0; idx--) {
+-			if (&drv->states[idx] == curr) {
+-				next_index = idx;
+-				break;
+-			}
+-		}
+-
+-		/* Should never hit this condition */
+-		WARN_ON(next_index == -1);
+ 
+-		/*
+-		 * Drop to next valid state.
+-		 * Start search from the next (lower) state.
+-		 */
+-		idx--;
+-		for (; idx >= 0; idx--) {
+-			cx =  &omap3_idle_data[idx];
+-			if ((cx->mpu_state >= mpu_deepest_state) &&
+-			    (cx->core_state >= core_deepest_state)) {
+-				next_index = idx;
+-				break;
+-			}
++	/*
++	 * Drop to next valid state.
++	 * Start search from the next (lower) state.
++	 */
++	for (idx = index - 1; idx >= 0; idx--) {
++		cx =  &omap3_idle_data[idx];
++		if ((cx->mpu_state >= mpu_deepest_state) &&
++		    (cx->core_state >= core_deepest_state)) {
++			next_index = idx;
++			break;
+ 		}
+-		/*
+-		 * C1 is always valid.
+-		 * So, no need to check for 'next_index == -1' outside
+-		 * this loop.
+-		 */
+ 	}
+ 
++	/*
++	 * C1 is always valid.
++	 * So, no need to check for 'next_index == -1' outside
++	 * this loop.
++	 */
++
+ 	return next_index;
+ }
+ 
 -- 
 1.7.5.4
