@@ -1,7 +1,7 @@
 From: Daniel Lezcano <daniel.lezcano-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>
-Subject: [PATCH 15/18][V3] ARM: OMAP3: cpuidle - simplify next_valid_state
-Date: Tue, 24 Apr 2012 16:05:36 +0200
-Message-ID: <1335276339-11135-16-git-send-email-daniel.lezcano@linaro.org>
+Subject: [PATCH 17/18][V3] ARM: OMAP3/4: consolidate cpuidle Makefile
+Date: Tue, 24 Apr 2012 16:05:38 +0200
+Message-ID: <1335276339-11135-18-git-send-email-daniel.lezcano@linaro.org>
 References: <1335276339-11135-1-git-send-email-daniel.lezcano@linaro.org>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
@@ -21,95 +21,125 @@ To: santosh.shilimkar-l0cyMroinI0@public.gmane.org, jean.pihet-OTs2U3NB0ngRmelmm
 Cc: linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linaro-dev-cunTk1MwBs8s++Sfvej+rw@public.gmane.org, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, patches-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org
 List-Id: linux-omap@vger.kernel.org
 
-Simplify the indentation by removing the useless 'else' statement.
-Remove the first loop for the 'idx' search as we have it already
-with the 'index' passed as parameter.
+Define a CPU_IDLE section in the makefile, declare the functions in
+the header files conforming to the kernel coding rules and remove the
+'define's in the C files.
 
 Signed-off-by: Daniel Lezcano <daniel.lezcano-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>
 Reviewed-by: Jean Pihet <j-pihet-l0cyMroinI0@public.gmane.org>
 ---
- arch/arm/mach-omap2/cpuidle34xx.c |   53 +++++++++++++-----------------------
- 1 files changed, 19 insertions(+), 34 deletions(-)
+ arch/arm/mach-omap2/Makefile      |   11 +++++++----
+ arch/arm/mach-omap2/cpuidle34xx.c |    8 --------
+ arch/arm/mach-omap2/cpuidle44xx.c |    8 --------
+ arch/arm/mach-omap2/pm.h          |   17 +++++++++++++++--
+ 4 files changed, 22 insertions(+), 22 deletions(-)
 
+diff --git a/arch/arm/mach-omap2/Makefile b/arch/arm/mach-omap2/Makefile
+index d8604a3..92d5fb6 100644
+--- a/arch/arm/mach-omap2/Makefile
++++ b/arch/arm/mach-omap2/Makefile
+@@ -64,10 +64,8 @@ endif
+ ifeq ($(CONFIG_PM),y)
+ obj-$(CONFIG_ARCH_OMAP2)		+= pm24xx.o
+ obj-$(CONFIG_ARCH_OMAP2)		+= sleep24xx.o
+-obj-$(CONFIG_ARCH_OMAP3)		+= pm34xx.o sleep34xx.o \
+-					   cpuidle34xx.o
+-obj-$(CONFIG_ARCH_OMAP4)		+= pm44xx.o omap-mpuss-lowpower.o \
+-					   cpuidle44xx.o
++obj-$(CONFIG_ARCH_OMAP3)		+= pm34xx.o sleep34xx.o
++obj-$(CONFIG_ARCH_OMAP4)		+= pm44xx.o omap-mpuss-lowpower.o
+ obj-$(CONFIG_PM_DEBUG)			+= pm-debug.o
+ obj-$(CONFIG_OMAP_SMARTREFLEX)          += sr_device.o smartreflex.o
+ obj-$(CONFIG_OMAP_SMARTREFLEX_CLASS3)	+= smartreflex-class3.o
+@@ -81,6 +79,11 @@ endif
+ 
+ endif
+ 
++ifeq ($(CONFIG_CPU_IDLE),y)
++obj-$(CONFIG_ARCH_OMAP3)                += cpuidle34xx.o
++obj-$(CONFIG_ARCH_OMAP4)                += cpuidle44xx.o
++endif
++
+ # PRCM
+ obj-y					+= prm_common.o
+ obj-$(CONFIG_ARCH_OMAP2)		+= prcm.o cm2xxx_3xxx.o prm2xxx_3xxx.o
 diff --git a/arch/arm/mach-omap2/cpuidle34xx.c b/arch/arm/mach-omap2/cpuidle34xx.c
-index 242f77d..e7599e7 100644
+index ee02a8c..0d28596 100644
 --- a/arch/arm/mach-omap2/cpuidle34xx.c
 +++ b/arch/arm/mach-omap2/cpuidle34xx.c
-@@ -172,13 +172,12 @@ static inline int omap3_enter_idle(struct cpuidle_device *dev,
-  * if it satisfies the enable_off_mode condition.
-  */
- static int next_valid_state(struct cpuidle_device *dev,
--			struct cpuidle_driver *drv,
--				int index)
-+			    struct cpuidle_driver *drv, int index)
- {
--	struct cpuidle_state *curr = &drv->states[index];
- 	struct omap3_idle_statedata *cx = &omap3_idle_data[index];
- 	u32 mpu_deepest_state = PWRDM_POWER_RET;
- 	u32 core_deepest_state = PWRDM_POWER_RET;
-+	int idx;
- 	int next_index = -1;
+@@ -36,8 +36,6 @@
+ #include "control.h"
+ #include "common.h"
  
- 	if (enable_off_mode) {
-@@ -194,42 +193,28 @@ static int next_valid_state(struct cpuidle_device *dev,
- 
- 	/* Check if current state is valid */
- 	if ((cx->mpu_state >= mpu_deepest_state) &&
--	    (cx->core_state >= core_deepest_state)) {
-+	    (cx->core_state >= core_deepest_state))
- 		return index;
--	} else {
--		int idx = ARRAY_SIZE(omap3_idle_data) - 1;
+-#ifdef CONFIG_CPU_IDLE
 -
--		/* Reach the current state starting at highest C-state */
--		for (; idx >= 0; idx--) {
--			if (&drv->states[idx] == curr) {
--				next_index = idx;
--				break;
--			}
--		}
--
--		/* Should never hit this condition */
--		WARN_ON(next_index == -1);
+ /* Mach specific information to be recorded in the C-state driver_data */
+ struct omap3_idle_statedata {
+ 	u32 mpu_state;
+@@ -376,9 +374,3 @@ int __init omap3_idle_init(void)
  
--		/*
--		 * Drop to next valid state.
--		 * Start search from the next (lower) state.
--		 */
--		idx--;
--		for (; idx >= 0; idx--) {
--			cx =  &omap3_idle_data[idx];
--			if ((cx->mpu_state >= mpu_deepest_state) &&
--			    (cx->core_state >= core_deepest_state)) {
--				next_index = idx;
--				break;
--			}
-+	/*
-+	 * Drop to next valid state.
-+	 * Start search from the next (lower) state.
-+	 */
-+	for (idx = index - 1; idx >= 0; idx--) {
-+		cx =  &omap3_idle_data[idx];
-+		if ((cx->mpu_state >= mpu_deepest_state) &&
-+		    (cx->core_state >= core_deepest_state)) {
-+			next_index = idx;
-+			break;
- 		}
--		/*
--		 * C1 is always valid.
--		 * So, no need to check for 'next_index == -1' outside
--		 * this loop.
--		 */
- 	}
- 
-+	/*
-+	 * C1 is always valid.
-+	 * So, no need to check for 'next_index == -1' outside
-+	 * this loop.
-+	 */
-+
- 	return next_index;
+ 	return 0;
  }
+-#else
+-int __init omap3_idle_init(void)
+-{
+-	return 0;
+-}
+-#endif /* CONFIG_CPU_IDLE */
+diff --git a/arch/arm/mach-omap2/cpuidle44xx.c b/arch/arm/mach-omap2/cpuidle44xx.c
+index be1617c..02d15bb 100644
+--- a/arch/arm/mach-omap2/cpuidle44xx.c
++++ b/arch/arm/mach-omap2/cpuidle44xx.c
+@@ -22,8 +22,6 @@
+ #include "pm.h"
+ #include "prm.h"
+ 
+-#ifdef CONFIG_CPU_IDLE
+-
+ /* Machine specific information */
+ struct omap4_idle_statedata {
+ 	u32 cpu_state;
+@@ -199,9 +197,3 @@ int __init omap4_idle_init(void)
+ 
+ 	return 0;
+ }
+-#else
+-int __init omap4_idle_init(void)
+-{
+-	return 0;
+-}
+-#endif /* CONFIG_CPU_IDLE */
+diff --git a/arch/arm/mach-omap2/pm.h b/arch/arm/mach-omap2/pm.h
+index 7856489..ab04d3b 100644
+--- a/arch/arm/mach-omap2/pm.h
++++ b/arch/arm/mach-omap2/pm.h
+@@ -15,12 +15,25 @@
+ 
+ #include "powerdomain.h"
+ 
++#ifdef CONFIG_CPU_IDLE
++extern int __init omap3_idle_init(void);
++extern int __init omap4_idle_init(void);
++#else
++static inline int omap3_idle_init(void)
++{
++	return 0;
++}
++
++static inline int omap4_idle_init(void)
++{
++	return 0;
++}
++#endif
++
+ extern void *omap3_secure_ram_storage;
+ extern void omap3_pm_off_mode_enable(int);
+ extern void omap_sram_idle(void);
+ extern int omap_set_pwrdm_state(struct powerdomain *pwrdm, u32 state);
+-extern int omap3_idle_init(void);
+-extern int omap4_idle_init(void);
+ extern int omap_pm_clkdms_setup(struct clockdomain *clkdm, void *unused);
+ extern int (*omap_pm_suspend)(void);
  
 -- 
 1.7.5.4
