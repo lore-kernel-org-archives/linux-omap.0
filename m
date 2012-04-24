@@ -1,111 +1,80 @@
-From: "Shilimkar, Santosh" <santosh.shilimkar@ti.com>
-Subject: Re: [PATCH] ARM: OMAP2+: watchdog: fix !PM boot crash, disarm timer
- after hwmod reset
-Date: Tue, 24 Apr 2012 11:39:21 +0530
-Message-ID: <CAMQu2gwTtGLFaQnRs5CXdkqAf+SaOfBbSe2BxcaJNPJWhcEBOg@mail.gmail.com>
-References: <1334353873-15972-1-git-send-email-khilman@ti.com> <alpine.DEB.2.00.1204201451510.11306@utopia.booyaka.com>
+From: "Raja, Govindraj" <govindraj.raja@ti.com>
+Subject: Re: [PATCH 1/2] OMAP2+: UART: Fix incorrect population of default
+ uart pads
+Date: Tue, 24 Apr 2012 14:08:00 +0530
+Message-ID: <CAMrsUdKnDaO7qV2NpNvTb3QdO-XeM_PF645Mc43RozFVex71hQ@mail.gmail.com>
+References: <1334065246-21294-1-git-send-email-govindraj.raja@ti.com>
+ <1334065246-21294-2-git-send-email-govindraj.raja@ti.com> <87397uhv0q.fsf@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aog117.obsmtp.com ([74.125.149.242]:44462 "EHLO
-	na3sys009aog117.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753282Ab2DXGJn convert rfc822-to-8bit
+Received: from na3sys009aog119.obsmtp.com ([74.125.149.246]:59373 "EHLO
+	na3sys009aog119.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1755991Ab2DXIiX convert rfc822-to-8bit
 	(ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Tue, 24 Apr 2012 02:09:43 -0400
-Received: by qatm19 with SMTP id m19so2649500qat.12
-        for <linux-omap@vger.kernel.org>; Mon, 23 Apr 2012 23:09:42 -0700 (PDT)
-In-Reply-To: <alpine.DEB.2.00.1204201451510.11306@utopia.booyaka.com>
+	Tue, 24 Apr 2012 04:38:23 -0400
+Received: by obceq6 with SMTP id eq6so697015obc.6
+        for <linux-omap@vger.kernel.org>; Tue, 24 Apr 2012 01:38:21 -0700 (PDT)
+In-Reply-To: <87397uhv0q.fsf@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Paul Walmsley <paul@pwsan.com>
-Cc: Kevin Hilman <khilman@ti.com>, Tony Lindgren <tony@atomide.com>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+To: Kevin Hilman <khilman@ti.com>, Tony Lindgren <tony@atomide.com>
+Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Felipe Balbi <balbi@ti.com>, Russ Dill <russ.dill@gmail.com>
 
-On Sat, Apr 21, 2012 at 2:29 AM, Paul Walmsley <paul@pwsan.com> wrote:
-> cc Santosh
+On Tue, Apr 24, 2012 at 5:15 AM, Kevin Hilman <khilman@ti.com> wrote:
+> "Govindraj.R" <govindraj.raja@ti.com> writes:
 >
-> Hi Kevin,
+>> From: "Govindraj.R" <govindraj.raja@ti.com>
+>>
+>> The following commit:
+>> (7496ba3 =A0ARM: OMAP2+: UART: Add default mux for all uarts)
+>> added default pads for all uarts. But not all boards tend to
+>> use all uarts and most of unused uart pins are muxed for
+>> other purpose. This commit breaks the modules which where trying
+>> to use unused uart pins on their boards.
+>>
+>> So remove the default pads adding.
 >
-> Nice changelog!
+> I just noticed that this patch breaks runtime PM & wakeups for UART
+> console (at least on 3530/Overo with ttyO2 console.)
 >
-> On Fri, 13 Apr 2012, Kevin Hilman wrote:
+> By removing the pads, the initial device_init_wakeup() is not called =
+on
+> port init. =A0Without this call serial_omap_pm() disables runtime PM
+> because it checks device_may_wakeup().
 >
->> Without runtime PM enabled, hwmod needs to leave all IP blocks in an
->> enabled state by default so any driver access to the HW will succeed=
-=2E
->> This is accomplished by seting the postsetup_state to enabled for al=
+> Since runtime PM was disabled, I manually re-enabled it and then enab=
+led
+> wakeups:
+>
+> =A0echo auto > /sys/devices/platform/omap_uart.2/power/control
+> =A0echo enabled > /sys/devices/platform/omap_uart.2/tty/ttyO2/power/w=
+akeup
+>
+> Then, after enabling auto-suspend timeouts, it seems wakeups are stil=
 l
->> hwmods during init when runtime PM is disabled.
->>
->> Currently, we have a special case for WDT in that its postsetup_stat=
-e
->> is always set to disabled. =A0This is done so that the WDT is disabl=
-ed
->> and the timer is disarmed at boot in case there is no WDT driver.
->> This also means that when runtime PM is disabled, if a WDT driver *i=
-s*
->> built in the kernel, the kernel will crash on the first access to th=
-e
->> WDT hardware.
->>
->> We can't simply leave the WDT module enabled, because the timer is
->> armed by default after reset. That means that if there is no WDT
->> driver initialzed or loaded before the timer expires, the kernel wil=
-l
->> reboot.
->>
->> To fix this, a custom reset method is added to the watchdog class of
->> omap_hwmod. =A0This method will *always* disarm the timer after hwmo=
-d
->> reset. =A0The WDT timer then will only be rearmed when/if the driver=
- is
->> loaded for the WDT. =A0With the timer disarmed by default, we no lon=
-ger
->> need a special-case for the postsetup_state of WDT during init, so i=
-t
->> is removed.
->>
->> Any platforms wishing to ensure the watchdog remains armed across th=
-e
->> entire boot boot can simply disable the reset-on-init feature of the
->> watchdog hwmod using omap_hwmod_no_setup_reset().
->>
->> Tested on 3530/Overo, 4430/Panda.
->>
->> NOTE: on 4430, the hwmod OCP reset does not seem to rearm the timer =
-as
->> documented in the TRM (and what happens on OMAP3.) =A0I noticed this
->> because testing the HWMOD_INIT_NO_RESET feature with no driver loade=
-d,
->> I expected a reboot part way through the boot, but did not see a
->> reboot. =A0Adding some debug to read the counter, I verified that ri=
-ght
->> after OCP softreset, the counter is not firing. =A0After writing the
->> magic start sequence, the timer starts counting. =A0This means that =
-the
->> timer disarm sequence added here does not seem to be needed for 4430=
-,
->> but is technically the correct way to ensure the timer is disarmed, =
-so
->> it is left in for OMAP4.
->>
->> Special thanks to Paul Walmsley for helping brainstorm ideas to fix
->> this problem.
->>
->> Cc: Paul Walmsley <paul@pwsan.com>
->> Signed-off-by: Kevin Hilman <khilman@ti.com>
+> not working since the console hangs.
 >
-> This looks great, looks like it will finally fix this longstanding bu=
-g. =A0I
-> think Santosh hit it too a long time ago, so I suspect he will be hap=
-py
-> too.
->
-Indeed !!
-Thanks a lot Kevin/Paul for getting this sorted out.
+> Reverting $SUBJECT patch gets things working again.
 
-=46WIW,
-Acked-by: Santosh Shilimkar ,santosh.shilimkar@ti.com>
+This was decided as part of discussion [1]
+
+If we are _reconsidering_ taking this patch [2]
+to dynamically probe uart pins and enable rx wakeup.
+
+I can re-work on the patch[2] as per tony's comments[1]
+and re-post it.
+
+--
+Thanks,
+Govindraj.R
+
+[1]:
+http://www.spinics.net/lists/linux-omap/msg68226.html
+
+[2]:
+http://www.spinics.net/lists/linux-omap/msg67822.html
 --
 To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
 n
