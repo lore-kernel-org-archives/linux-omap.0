@@ -1,37 +1,57 @@
-From: Janusz Krzysztofik <jkrzyszt@tis.icnet.pl>
-Subject: Re: [PATCH v9 11/25] gpio/omap: cleanup omap_gpio_mod_init function
-Date: Wed, 25 Apr 2012 00:37:42 +0200
-Message-ID: <2991865.CRb195aGPQ@acer>
-References: <1328203851-20435-1-git-send-email-tarun.kanti@ti.com>
- <CAC83ZvK630=6B-k2TfV3XBg8w7ZosLVDNE4ezjDYnn=hcXA48Q@mail.gmail.com>
- <CAC83ZvJDDvCu8NKTOYh75USA3fvSAKEGaXXi9PtCM955K_keSA@mail.gmail.com>
+From: Grazvydas Ignotas <notasas@gmail.com>
+Subject: Re: [RFC 00/12] OMAP DMA engine conversion
+Date: Wed, 25 Apr 2012 01:47:21 +0300
+Message-ID: <CANOLnOOf0znGBSSQp5B3U+1q2OJBXnB_1T0aiuma_rJZDZA08Q@mail.gmail.com>
+References: <20120423160409.GE24299@n2100.arm.linux.org.uk>
+	<20120424103858.GC25053@n2100.arm.linux.org.uk>
+	<20120424165147.GP3739@atomide.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-In-Reply-To: <CAC83ZvJDDvCu8NKTOYh75USA3fvSAKEGaXXi9PtCM955K_keSA@mail.gmail.com>
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: linux-arm-kernel-bounces@lists.infradead.org
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: "DebBarma, Tarun Kanti" <tarun.kanti@ti.com>
-Cc: khilman@ti.com, tony@atomide.com, linux-kernel@vger.kernel.org, grant.likely@secretlab.ca, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Charulatha V <charu@ti.com>
+Content-Type: text/plain; charset=ISO-8859-13
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from mail-iy0-f174.google.com ([209.85.210.174]:45238 "EHLO
+	mail-iy0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1758257Ab2DXWrW convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 24 Apr 2012 18:47:22 -0400
+In-Reply-To: <20120424165147.GP3739@atomide.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Tony Lindgren <tony@atomide.com>
+Cc: Russell King - ARM Linux <linux@arm.linux.org.uk>, linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org, linux-mmc@vger.kernel.org
 
-Dnia wtorek, 24 kwietnia 2012 21:06:59 DebBarma, Tarun Kanti pisze:
-> Hi Janusz,
-> 
-> Here is the patch, with attachment as well. I have just tested on
-> OMAP4 platform.
-> Testing on other OMAP2+ platforms is pending. In the meantime can you please
-> validate on OMAP1 platform and confirm? Thanks.
+On Tue, Apr 24, 2012 at 7:51 PM, Tony Lindgren <tony@atomide.com> wrote=
+:
+> * Russell King - ARM Linux <linux@arm.linux.org.uk> [120424 03:42]:
+>> Here's another patch - for the OMAP NAND driver.
+>>
+>> One thing this doesn't do is configure up the source/destination bur=
+sts,
+>> which the old code did:
+>>
+>> =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 omap_set_dma_dest_bu=
+rst_mode(info->dma_ch,
+>> =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =
+=A0 =A0 =A0 OMAP_DMA_DATA_BURST_16);
+>> =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 omap_set_dma_src_bur=
+st_mode(info->dma_ch,
+>> =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =
+=A0 =A0 =A0 OMAP_DMA_DATA_BURST_16);
+>
+> Grazvydas, care to give this patch a go?
 
-Hi,
-Please give me a day or two.
-Thanks,
-Janusz
+Tested-by: Grazvydas Ignotas <notasas@gmail.com>
+for:
+- SD card connected over transceiver to MMC2
+- touchscreen connected over SPI
+- NAND on GPMC in DMA mode
+Seems to be working just as they did before, except that I'm not sure
+SPI was crossing PIO threshold.
+
+
+--=20
+Gra=FEvydas
+--
+To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
