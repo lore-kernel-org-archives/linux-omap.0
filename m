@@ -1,46 +1,37 @@
-From: Russell King - ARM Linux <linux@arm.linux.org.uk>
-Subject: Re: [PATCH 06/12] mmc: omap_hsmmc: remove private DMA API
-	implementation
-Date: Tue, 24 Apr 2012 23:05:30 +0100
-Message-ID: <20120424220530.GA6290@n2100.arm.linux.org.uk>
-References: <20120423160409.GE24299@n2100.arm.linux.org.uk> <E1SMLmF-0002WO-Ch@rmk-PC.arm.linux.org.uk> <CANOLnOM29Mn2BTydX=C5FEu6evkS5W8eL87RwNmppJWuVLGjAQ@mail.gmail.com>
+From: Janusz Krzysztofik <jkrzyszt@tis.icnet.pl>
+Subject: Re: [PATCH v9 11/25] gpio/omap: cleanup omap_gpio_mod_init function
+Date: Wed, 25 Apr 2012 00:37:42 +0200
+Message-ID: <2991865.CRb195aGPQ@acer>
+References: <1328203851-20435-1-git-send-email-tarun.kanti@ti.com>
+ <CAC83ZvK630=6B-k2TfV3XBg8w7ZosLVDNE4ezjDYnn=hcXA48Q@mail.gmail.com>
+ <CAC83ZvJDDvCu8NKTOYh75USA3fvSAKEGaXXi9PtCM955K_keSA@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from caramon.arm.linux.org.uk ([78.32.30.218]:44023 "EHLO
-	caramon.arm.linux.org.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1757339Ab2DXWFm (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 24 Apr 2012 18:05:42 -0400
-Content-Disposition: inline
-In-Reply-To: <CANOLnOM29Mn2BTydX=C5FEu6evkS5W8eL87RwNmppJWuVLGjAQ@mail.gmail.com>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
+In-Reply-To: <CAC83ZvJDDvCu8NKTOYh75USA3fvSAKEGaXXi9PtCM955K_keSA@mail.gmail.com>
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
+List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
+List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
+Sender: linux-arm-kernel-bounces@lists.infradead.org
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
+To: "DebBarma, Tarun Kanti" <tarun.kanti@ti.com>
+Cc: khilman@ti.com, tony@atomide.com, linux-kernel@vger.kernel.org, grant.likely@secretlab.ca, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Charulatha V <charu@ti.com>
 List-Id: linux-omap@vger.kernel.org
-To: Grazvydas Ignotas <notasas@gmail.com>
-Cc: linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org, linux-mmc@vger.kernel.org, Chris Ball <cjb@laptop.org>
 
-On Wed, Apr 25, 2012 at 12:51:09AM +0300, Grazvydas Ignotas wrote:
-> On Mon, Apr 23, 2012 at 7:06 PM, Russell King
-> <rmk+kernel@arm.linux.org.uk> wrote:
-> > Remove the private DMA API implementation from omap_hsmmc, making it
-> > use entirely the DMA engine API.
-> >
-> > Signed-off-by: Russell King <rmk+kernel@arm.linux.org.uk>
+Dnia wtorek, 24 kwietnia 2012 21:06:59 DebBarma, Tarun Kanti pisze:
+> Hi Janusz,
 > 
-> Since the driver becomes useless without DMA_ENGINE, we probably want
-> a 'depends on'?
+> Here is the patch, with attachment as well. I have just tested on
+> OMAP4 platform.
+> Testing on other OMAP2+ platforms is pending. In the meantime can you please
+> validate on OMAP1 platform and confirm? Thanks.
 
-I think it's possible to use tweak this to use PIO should DMA_ENGINE
-not be available - though first we need to sort out all the filter
-functions and how we select the DMA channels.  That's pretty much an
-open question (which was brought up in my original set of patches)
-and remains to these ones.
-
-How we did this with the AMBA Primecell drivers was to pass in the
-filter function and filter argument from platform code, allowing the
-primecell drivers to be used with any DMA engine.  That doesn't work
-with DT though...
-
-At the moment, I don't have an answer for this, because of the DT
-implications here.  So, the issue is rather stuck, and as a result
-I'm just sticking the "extern" declarations for the filter function
-into drivers that have been converted.
+Hi,
+Please give me a day or two.
+Thanks,
+Janusz
