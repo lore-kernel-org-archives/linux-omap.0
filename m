@@ -1,65 +1,118 @@
 From: Tony Lindgren <tony@atomide.com>
-Subject: [PATCH 5/7] ARM: OMAP2: Use hwmod to initialize mmc for 2420
-Date: Mon, 23 Apr 2012 17:08:35 -0700
-Message-ID: <20120424000835.17783.50945.stgit@muffinssi.local>
+Subject: [PATCH 3/7] ARM: OMAP2+: Move omap_dsp_reserve_sdram_memblock() to
+ mach-omap2
+Date: Mon, 23 Apr 2012 17:08:30 -0700
+Message-ID: <20120424000830.17783.42727.stgit@muffinssi.local>
 References: <20120424000607.17783.81686.stgit@muffinssi.local>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-02-ewr.mailhop.org ([204.13.248.72]:64310 "EHLO
-	mho-02-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753609Ab2DXAIg (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 23 Apr 2012 20:08:36 -0400
+Received: from mho-01-ewr.mailhop.org ([204.13.248.71]:40160 "EHLO
+	mho-01-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753585Ab2DXAIb (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 23 Apr 2012 20:08:31 -0400
 In-Reply-To: <20120424000607.17783.81686.stgit@muffinssi.local>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: linux-arm-kernel@lists.infradead.org
 Cc: linux-omap@vger.kernel.org
 
-This allows us to pass dma request lines in platform data to
-MMC driver the same way as we already do for omap2430 and later.
+This hardware exists only on 2430 and later omaps, so there's no
+need to have it in plat-omap/devices.c.
+
+Note that we don't have any users for exported omap_dsp_get_mempool_base(),
+so we can make it static.
 
 Signed-off-by: Tony Lindgren <tony@atomide.com>
 ---
- arch/arm/mach-omap2/devices.c |   19 ++++++++++++++++---
- 1 file changed, 16 insertions(+), 3 deletions(-)
+ arch/arm/mach-omap2/dsp.c    |   27 +++++++++++++++++++++++++--
+ arch/arm/plat-omap/devices.c |   29 -----------------------------
+ 2 files changed, 25 insertions(+), 31 deletions(-)
 
-diff --git a/arch/arm/mach-omap2/devices.c b/arch/arm/mach-omap2/devices.c
-index e433603..a2e839a 100644
---- a/arch/arm/mach-omap2/devices.c
-+++ b/arch/arm/mach-omap2/devices.c
-@@ -616,7 +616,11 @@ static inline void omap242x_mmc_mux(struct omap_mmc_platform_data
+diff --git a/arch/arm/mach-omap2/dsp.c b/arch/arm/mach-omap2/dsp.c
+index 74f18f2..0b8dc3f 100644
+--- a/arch/arm/mach-omap2/dsp.c
++++ b/arch/arm/mach-omap2/dsp.c
+@@ -28,8 +28,6 @@
  
- void __init omap242x_init_mmc(struct omap_mmc_platform_data **mmc_data)
- {
--	char *name = "mmci-omap";
-+	struct platform_device *pdev;
-+	struct omap_hwmod *oh;
-+	int id = 0;
-+	char *oh_name = "mmci";
-+	char *dev_name = "mmci-omap";
+ #include <plat/dsp.h>
  
- 	if (!mmc_data[0]) {
- 		pr_err("%s fails: Incomplete platform data\n", __func__);
-@@ -624,8 +628,17 @@ void __init omap242x_init_mmc(struct omap_mmc_platform_data **mmc_data)
- 	}
+-extern phys_addr_t omap_dsp_get_mempool_base(void);
+-
+ static struct platform_device *omap_dsp_pdev;
  
- 	omap242x_mmc_mux(mmc_data[0]);
--	omap_mmc_add(name, 0, OMAP2_MMC1_BASE, OMAP2420_MMC_SIZE,
--					INT_24XX_MMC_IRQ, mmc_data[0]);
+ static struct omap_dsp_platform_data omap_dsp_pdata __initdata = {
+@@ -47,6 +45,31 @@ static struct omap_dsp_platform_data omap_dsp_pdata __initdata = {
+ 	.dsp_cm_rmw_bits = omap2_cm_rmw_mod_reg_bits,
+ };
+ 
++static phys_addr_t omap_dsp_phys_mempool_base;
 +
-+	oh = omap_hwmod_lookup(oh_name);
-+	if (!oh) {
-+		pr_err("Could not look up %s\n", oh_name);
++void __init omap_dsp_reserve_sdram_memblock(void)
++{
++	phys_addr_t size = CONFIG_TIDSPBRIDGE_MEMPOOL_SIZE;
++	phys_addr_t paddr;
++
++	if (!size)
++		return;
++
++	paddr = arm_memblock_steal(size, SZ_1M);
++	if (!paddr) {
++		pr_err("%s: failed to reserve %x bytes\n",
++				__func__, size);
 +		return;
 +	}
-+	pdev = omap_device_build(dev_name, id, oh, mmc_data[0],
-+				 sizeof(struct omap_mmc_platform_data), NULL, 0, 0);
-+	if (IS_ERR(pdev))
-+		WARN(1, "Can'd build omap_device for %s:%s.\n",
-+					dev_name, oh->name);
- }
- 
++
++	omap_dsp_phys_mempool_base = paddr;
++}
++
++static phys_addr_t omap_dsp_get_mempool_base(void)
++{
++	return omap_dsp_phys_mempool_base;
++}
++
+ static int __init omap_dsp_init(void)
+ {
+ 	struct platform_device *pdev;
+diff --git a/arch/arm/plat-omap/devices.c b/arch/arm/plat-omap/devices.c
+index a0cfe66..1151d0b 100644
+--- a/arch/arm/plat-omap/devices.c
++++ b/arch/arm/plat-omap/devices.c
+@@ -109,35 +109,6 @@ static void omap_init_rng(void)
+ static inline void omap_init_rng(void) {}
  #endif
+ 
+-#if defined(CONFIG_TIDSPBRIDGE) || defined(CONFIG_TIDSPBRIDGE_MODULE)
+-
+-static phys_addr_t omap_dsp_phys_mempool_base;
+-
+-void __init omap_dsp_reserve_sdram_memblock(void)
+-{
+-	phys_addr_t size = CONFIG_TIDSPBRIDGE_MEMPOOL_SIZE;
+-	phys_addr_t paddr;
+-
+-	if (!size)
+-		return;
+-
+-	paddr = arm_memblock_steal(size, SZ_1M);
+-	if (!paddr) {
+-		pr_err("%s: failed to reserve %x bytes\n",
+-				__func__, size);
+-		return;
+-	}
+-
+-	omap_dsp_phys_mempool_base = paddr;
+-}
+-
+-phys_addr_t omap_dsp_get_mempool_base(void)
+-{
+-	return omap_dsp_phys_mempool_base;
+-}
+-EXPORT_SYMBOL(omap_dsp_get_mempool_base);
+-#endif
+-
+ /*
+  * This gets called after board-specific INIT_MACHINE, and initializes most
+  * on-chip peripherals accessible on this board (except for few like USB):
 
