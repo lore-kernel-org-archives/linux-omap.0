@@ -1,93 +1,78 @@
 From: Daniel Lezcano <daniel.lezcano@linaro.org>
-Subject: [PATCH 11/18][V3] ARM: OMAP3: cpuidle - remove the 'valid' field
-Date: Tue, 24 Apr 2012 16:05:32 +0200
-Message-ID: <1335276339-11135-12-git-send-email-daniel.lezcano@linaro.org>
+Subject: [PATCH 07/18][V3] ARM: OMAP4: cpuidle - remove omap4_idle_data initialization at boot time
+Date: Tue, 24 Apr 2012 16:05:28 +0200
+Message-ID: <1335276339-11135-8-git-send-email-daniel.lezcano@linaro.org>
 References: <1335276339-11135-1-git-send-email-daniel.lezcano@linaro.org>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-wg0-f44.google.com ([74.125.82.44]:33562 "EHLO
-	mail-wg0-f44.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753963Ab2DXOGD (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 24 Apr 2012 10:06:03 -0400
-Received: by mail-wg0-f44.google.com with SMTP id dr13so716062wgb.1
-        for <linux-omap@vger.kernel.org>; Tue, 24 Apr 2012 07:06:02 -0700 (PDT)
+Received: from mail-wg0-f42.google.com ([74.125.82.42]:65201 "EHLO
+	mail-wg0-f42.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753650Ab2DXOF4 (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 24 Apr 2012 10:05:56 -0400
+Received: by mail-wg0-f42.google.com with SMTP id ds11so3516464wgb.1
+        for <linux-omap@vger.kernel.org>; Tue, 24 Apr 2012 07:05:56 -0700 (PDT)
 In-Reply-To: <1335276339-11135-1-git-send-email-daniel.lezcano@linaro.org>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: santosh.shilimkar@ti.com, jean.pihet@newoldbits.com, khilman@ti.com, tony@atomide.com
 Cc: linux-omap@vger.kernel.org, linaro-dev@lists.linaro.org, linux-arm-kernel@lists.infradead.org, patches@linaro.org
 
-With the previous changes all the states are valid, except
-the last state which can be handled by decreasing the number
-of states.
+We initialized it at compile time, no need to do that at boot
+time.
 
 Signed-off-by: Daniel Lezcano <daniel.lezcano@linaro.org>
 Reviewed-by: Jean Pihet <j-pihet@ti.com>
+Reviewed-by: Santosh Shilimkar <santosh.shilimkar@ti.com>
 ---
- arch/arm/mach-omap2/cpuidle34xx.c |   11 ++---------
- 1 files changed, 2 insertions(+), 9 deletions(-)
+ arch/arm/mach-omap2/cpuidle44xx.c |   24 ------------------------
+ 1 files changed, 0 insertions(+), 24 deletions(-)
 
-diff --git a/arch/arm/mach-omap2/cpuidle34xx.c b/arch/arm/mach-omap2/cpuidle34xx.c
-index f394ea6..29b4f87 100644
---- a/arch/arm/mach-omap2/cpuidle34xx.c
-+++ b/arch/arm/mach-omap2/cpuidle34xx.c
-@@ -67,7 +67,6 @@ static struct cpuidle_params cpuidle_params_table[] = {
- struct omap3_idle_statedata {
- 	u32 mpu_state;
- 	u32 core_state;
--	u8 valid;
+diff --git a/arch/arm/mach-omap2/cpuidle44xx.c b/arch/arm/mach-omap2/cpuidle44xx.c
+index f1410f1..be1617c 100644
+--- a/arch/arm/mach-omap2/cpuidle44xx.c
++++ b/arch/arm/mach-omap2/cpuidle44xx.c
+@@ -170,14 +170,6 @@ struct cpuidle_driver omap4_idle_driver = {
+ 	.safe_state_index = 0,
  };
- struct omap3_idle_statedata omap3_idle_data[OMAP3_NUM_STATES];
  
-@@ -191,8 +190,7 @@ static int next_valid_state(struct cpuidle_device *dev,
- 	}
- 
- 	/* Check if current state is valid */
--	if ((cx->valid) &&
--	    (cx->mpu_state >= mpu_deepest_state) &&
-+	if ((cx->mpu_state >= mpu_deepest_state) &&
- 	    (cx->core_state >= core_deepest_state)) {
- 		return index;
- 	} else {
-@@ -216,8 +214,7 @@ static int next_valid_state(struct cpuidle_device *dev,
- 		idx--;
- 		for (; idx >= 0; idx--) {
- 			cx = cpuidle_get_statedata(&dev->states_usage[idx]);
--			if ((cx->valid) &&
--			    (cx->mpu_state >= mpu_deepest_state) &&
-+			if ((cx->mpu_state >= mpu_deepest_state) &&
- 			    (cx->core_state >= core_deepest_state)) {
- 				next_index = idx;
- 				break;
-@@ -371,7 +368,6 @@ static inline struct omap3_idle_statedata *_fill_cstate_usage(
- 	struct omap3_idle_statedata *cx = &omap3_idle_data[idx];
- 	struct cpuidle_state_usage *state_usage = &dev->states_usage[idx];
- 
--	cx->valid		= cpuidle_params_table[idx].valid;
- 	cpuidle_set_statedata(state_usage, cx);
- 
- 	return cx;
-@@ -386,7 +382,6 @@ static inline struct omap3_idle_statedata *_fill_cstate_usage(
- int __init omap3_idle_init(void)
+-static inline struct omap4_idle_statedata *_fill_cstate_usage(
+-					struct cpuidle_device *dev,
+-					int idx)
+-{
+-	struct omap4_idle_statedata *cx = &omap4_idle_data[idx];
+-	return cx;
+-}
+-
+ /**
+  * omap4_idle_init - Init routine for OMAP4 idle
+  *
+@@ -186,7 +178,6 @@ static inline struct omap4_idle_statedata *_fill_cstate_usage(
+  */
+ int __init omap4_idle_init(void)
  {
+-	struct omap4_idle_statedata *cx;
  	struct cpuidle_device *dev;
--	struct cpuidle_driver *drv = &omap3_idle_driver;
- 	struct omap3_idle_statedata *cx;
+ 	unsigned int cpu_id = 0;
  
- 	mpu_pd = pwrdm_lookup("mpu_pwrdm");
-@@ -399,7 +394,6 @@ int __init omap3_idle_init(void)
+@@ -199,21 +190,6 @@ int __init omap4_idle_init(void)
+ 	dev = &per_cpu(omap4_idle_dev, cpu_id);
+ 	dev->cpu = cpu_id;
  
- 	/* C1 . MPU WFI + Core active */
- 	cx = _fill_cstate_usage(dev, 0);
--	cx->valid = 1;	/* C1 is always valid */
- 	cx->mpu_state = PWRDM_POWER_ON;
- 	cx->core_state = PWRDM_POWER_ON;
- 
-@@ -433,7 +427,6 @@ int __init omap3_idle_init(void)
- 	cx->mpu_state = PWRDM_POWER_OFF;
- 	cx->core_state = PWRDM_POWER_OFF;
- 
--	drv->state_count = OMAP3_NUM_STATES;
- 	cpuidle_register_driver(&omap3_idle_driver);
+-	cx = _fill_cstate_usage(dev, 0);
+-	cx->cpu_state = PWRDM_POWER_ON;
+-	cx->mpu_state = PWRDM_POWER_ON;
+-	cx->mpu_logic_state = PWRDM_POWER_RET;
+-
+-	cx = _fill_cstate_usage(dev, 1);
+-	cx->cpu_state = PWRDM_POWER_OFF;
+-	cx->mpu_state = PWRDM_POWER_RET;
+-	cx->mpu_logic_state = PWRDM_POWER_RET;
+-
+-	cx = _fill_cstate_usage(dev, 2);
+-	cx->cpu_state = PWRDM_POWER_OFF;
+-	cx->mpu_state = PWRDM_POWER_RET;
+-	cx->mpu_logic_state = PWRDM_POWER_OFF;
+-
+ 	cpuidle_register_driver(&omap4_idle_driver);
  
  	if (cpuidle_register_device(dev)) {
 -- 
