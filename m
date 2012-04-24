@@ -1,152 +1,47 @@
-From: Daniel Lezcano <daniel.lezcano@linaro.org>
-Subject: [PATCH 14/18][V3] ARM: OMAP3: cpuidle - use omap3_idle_data directly
-Date: Tue, 24 Apr 2012 16:05:35 +0200
-Message-ID: <1335276339-11135-15-git-send-email-daniel.lezcano@linaro.org>
+From: Daniel Lezcano <daniel.lezcano-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>
+Subject: [PATCH 16/18][V3] ARM: OMAP3: set omap3_idle_data as static
+Date: Tue, 24 Apr 2012 16:05:37 +0200
+Message-ID: <1335276339-11135-17-git-send-email-daniel.lezcano@linaro.org>
 References: <1335276339-11135-1-git-send-email-daniel.lezcano@linaro.org>
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-wg0-f44.google.com ([74.125.82.44]:33562 "EHLO
-	mail-wg0-f44.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754009Ab2DXOGI (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 24 Apr 2012 10:06:08 -0400
-Received: by mail-wg0-f44.google.com with SMTP id dr13so716062wgb.1
-        for <linux-omap@vger.kernel.org>; Tue, 24 Apr 2012 07:06:08 -0700 (PDT)
-In-Reply-To: <1335276339-11135-1-git-send-email-daniel.lezcano@linaro.org>
-Sender: linux-omap-owner@vger.kernel.org
+Mime-Version: 1.0
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <linaro-dev-bounces-cunTk1MwBs8s++Sfvej+rw@public.gmane.org>
+In-Reply-To: <1335276339-11135-1-git-send-email-daniel.lezcano-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>
+List-Unsubscribe: <http://lists.linaro.org/mailman/options/linaro-dev>,
+	<mailto:linaro-dev-request-cunTk1MwBs8s++Sfvej+rw@public.gmane.org?subject=unsubscribe>
+List-Archive: <http://lists.linaro.org/pipermail/linaro-dev>
+List-Post: <mailto:linaro-dev-cunTk1MwBs8s++Sfvej+rw@public.gmane.org>
+List-Help: <mailto:linaro-dev-request-cunTk1MwBs8s++Sfvej+rw@public.gmane.org?subject=help>
+List-Subscribe: <http://lists.linaro.org/mailman/listinfo/linaro-dev>,
+	<mailto:linaro-dev-request-cunTk1MwBs8s++Sfvej+rw@public.gmane.org?subject=subscribe>
+Sender: linaro-dev-bounces-cunTk1MwBs8s++Sfvej+rw@public.gmane.org
+Errors-To: linaro-dev-bounces-cunTk1MwBs8s++Sfvej+rw@public.gmane.org
+To: santosh.shilimkar-l0cyMroinI0@public.gmane.org, jean.pihet-OTs2U3NB0ngRmelmmXo44Q@public.gmane.org, khilman-l0cyMroinI0@public.gmane.org, tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org
+Cc: linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linaro-dev-cunTk1MwBs8s++Sfvej+rw@public.gmane.org, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, patches-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org
 List-Id: linux-omap@vger.kernel.org
-To: santosh.shilimkar@ti.com, jean.pihet@newoldbits.com, khilman@ti.com, tony@atomide.com
-Cc: linux-omap@vger.kernel.org, linaro-dev@lists.linaro.org, linux-arm-kernel@lists.infradead.org, patches@linaro.org
 
-We are storing the 'omap3_idle_data' in the private data field
-of the cpuidle device. As we are using this variable only in this file,
-that does not really make sense. Let's use the global variable directly.
+Reduce the scope of the omap3_idle_data to the file as it is only used
+in cpuidle34xx.c.
 
-As the table is initialized statically, let's remove the initialization at
-startup too.
-
-Signed-off-by: Daniel Lezcano <daniel.lezcano@linaro.org>
-Reviewed-by: Jean Pihet <j-pihet@ti.com>
+Signed-off-by: Daniel Lezcano <daniel.lezcano-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>
+Reviewed-by: Jean Pihet <j-pihet-l0cyMroinI0@public.gmane.org>
 ---
- arch/arm/mach-omap2/cpuidle34xx.c |   63 +++---------------------------------
- 1 files changed, 6 insertions(+), 57 deletions(-)
+ arch/arm/mach-omap2/cpuidle34xx.c |    2 +-
+ 1 files changed, 1 insertions(+), 1 deletions(-)
 
 diff --git a/arch/arm/mach-omap2/cpuidle34xx.c b/arch/arm/mach-omap2/cpuidle34xx.c
-index 93e2450..242f77d 100644
+index e7599e7..ee02a8c 100644
 --- a/arch/arm/mach-omap2/cpuidle34xx.c
 +++ b/arch/arm/mach-omap2/cpuidle34xx.c
-@@ -95,8 +95,7 @@ static int __omap3_enter_idle(struct cpuidle_device *dev,
- 				struct cpuidle_driver *drv,
- 				int index)
- {
--	struct omap3_idle_statedata *cx =
--			cpuidle_get_statedata(&dev->states_usage[index]);
-+	struct omap3_idle_statedata *cx = &omap3_idle_data[index];
- 	u32 mpu_state = cx->mpu_state, core_state = cx->core_state;
- 
- 	local_fiq_disable();
-@@ -176,9 +175,8 @@ static int next_valid_state(struct cpuidle_device *dev,
- 			struct cpuidle_driver *drv,
- 				int index)
- {
--	struct cpuidle_state_usage *curr_usage = &dev->states_usage[index];
- 	struct cpuidle_state *curr = &drv->states[index];
--	struct omap3_idle_statedata *cx = cpuidle_get_statedata(curr_usage);
-+	struct omap3_idle_statedata *cx = &omap3_idle_data[index];
- 	u32 mpu_deepest_state = PWRDM_POWER_RET;
- 	u32 core_deepest_state = PWRDM_POWER_RET;
- 	int next_index = -1;
-@@ -218,7 +216,7 @@ static int next_valid_state(struct cpuidle_device *dev,
- 		 */
- 		idx--;
- 		for (; idx >= 0; idx--) {
--			cx = cpuidle_get_statedata(&dev->states_usage[idx]);
-+			cx =  &omap3_idle_data[idx];
- 			if ((cx->mpu_state >= mpu_deepest_state) &&
- 			    (cx->core_state >= core_deepest_state)) {
- 				next_index = idx;
-@@ -275,7 +273,7 @@ static int omap3_enter_idle_bm(struct cpuidle_device *dev,
- 	 * Prevent PER off if CORE is not in retention or off as this
- 	 * would disable PER wakeups completely.
- 	 */
--	cx = cpuidle_get_statedata(&dev->states_usage[index]);
-+	cx = &omap3_idle_data[index];
- 	core_next_state = cx->core_state;
- 	per_next_state = per_saved_state = pwrdm_read_next_pwrst(per_pd);
- 	if ((per_next_state == PWRDM_POWER_OFF) &&
-@@ -365,19 +363,6 @@ struct cpuidle_driver omap3_idle_driver = {
- 	.safe_state_index = 0,
+@@ -44,7 +44,7 @@ struct omap3_idle_statedata {
+ 	u32 core_state;
  };
  
--/* Helper to register the driver_data */
--static inline struct omap3_idle_statedata *_fill_cstate_usage(
--					struct cpuidle_device *dev,
--					int idx)
--{
--	struct omap3_idle_statedata *cx = &omap3_idle_data[idx];
--	struct cpuidle_state_usage *state_usage = &dev->states_usage[idx];
--
--	cpuidle_set_statedata(state_usage, cx);
--
--	return cx;
--}
--
- /**
-  * omap3_idle_init - Init routine for OMAP3 idle
-  *
-@@ -387,52 +372,16 @@ static inline struct omap3_idle_statedata *_fill_cstate_usage(
- int __init omap3_idle_init(void)
- {
- 	struct cpuidle_device *dev;
--	struct omap3_idle_statedata *cx;
- 
- 	mpu_pd = pwrdm_lookup("mpu_pwrdm");
- 	core_pd = pwrdm_lookup("core_pwrdm");
- 	per_pd = pwrdm_lookup("per_pwrdm");
- 	cam_pd = pwrdm_lookup("cam_pwrdm");
- 
-+	cpuidle_register_driver(&omap3_idle_driver);
- 
- 	dev = &per_cpu(omap3_idle_dev, smp_processor_id());
--
--	/* C1 . MPU WFI + Core active */
--	cx = _fill_cstate_usage(dev, 0);
--	cx->mpu_state = PWRDM_POWER_ON;
--	cx->core_state = PWRDM_POWER_ON;
--
--	/* C2 . MPU WFI + Core inactive */
--	cx = _fill_cstate_usage(dev, 1);
--	cx->mpu_state = PWRDM_POWER_ON;
--	cx->core_state = PWRDM_POWER_ON;
--
--	/* C3 . MPU CSWR + Core inactive */
--	cx = _fill_cstate_usage(dev, 2);
--	cx->mpu_state = PWRDM_POWER_RET;
--	cx->core_state = PWRDM_POWER_ON;
--
--	/* C4 . MPU OFF + Core inactive */
--	cx = _fill_cstate_usage(dev, 3);
--	cx->mpu_state = PWRDM_POWER_OFF;
--	cx->core_state = PWRDM_POWER_ON;
--
--	/* C5 . MPU RET + Core RET */
--	cx = _fill_cstate_usage(dev, 4);
--	cx->mpu_state = PWRDM_POWER_RET;
--	cx->core_state = PWRDM_POWER_RET;
--
--	/* C6 . MPU OFF + Core RET */
--	cx = _fill_cstate_usage(dev, 5);
--	cx->mpu_state = PWRDM_POWER_OFF;
--	cx->core_state = PWRDM_POWER_RET;
--
--	/* C7 . MPU OFF + Core OFF */
--	cx = _fill_cstate_usage(dev, 6);
--	cx->mpu_state = PWRDM_POWER_OFF;
--	cx->core_state = PWRDM_POWER_OFF;
--
--	cpuidle_register_driver(&omap3_idle_driver);
-+	dev->cpu = 0;
- 
- 	if (cpuidle_register_device(dev)) {
- 		printk(KERN_ERR "%s: CPUidle register device failed\n",
+-struct omap3_idle_statedata omap3_idle_data[] = {
++static struct omap3_idle_statedata omap3_idle_data[] = {
+ 	{
+ 		.mpu_state = PWRDM_POWER_ON,
+ 		.core_state = PWRDM_POWER_ON,
 -- 
 1.7.5.4
-
