@@ -1,205 +1,55 @@
-From: Kevin Hilman <khilman@ti.com>
-Subject: Re: [PATCH] tty: omap-serial: configure wakeup mechanism based on port usage.
-Date: Mon, 23 Apr 2012 16:54:28 -0700
-Message-ID: <87fwbugg23.fsf@ti.com>
-References: <1335186937-24822-1-git-send-email-govindraj.raja@ti.com>
+From: Tony Lindgren <tony@atomide.com>
+Subject: [PATCH 0/7] Series short description
+Date: Mon, 23 Apr 2012 17:08:21 -0700
+Message-ID: <20120424000607.17783.81686.stgit@muffinssi.local>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-serial-owner@vger.kernel.org>
-In-Reply-To: <1335186937-24822-1-git-send-email-govindraj.raja@ti.com>
-	(Govindraj R.'s message of "Mon, 23 Apr 2012 18:45:37 +0530")
-Sender: linux-serial-owner@vger.kernel.org
-To: "Govindraj.R" <govindraj.raja@ti.com>
-Cc: linux-serial@vger.kernel.org, linux-omap@vger.kernel.org, Paul Walmsley <paul@pwsan.com>
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from mho-01-ewr.mailhop.org ([204.13.248.71]:40060 "EHLO
+	mho-01-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753585Ab2DXAIY (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 23 Apr 2012 20:08:24 -0400
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: linux-arm-kernel@lists.infradead.org
+Cc: linux-omap@vger.kernel.org
 
-"Govindraj.R" <govindraj.raja@ti.com> writes:
+Hi all,
 
-> From: "Govindraj.R" <govindraj.raja@ti.com>
->
-> With set_wakeup port ops availability from serial_core layer
-> which will be called when port is opened with state as true
-> indicating the wakeups can be enabled for this port and state
-> as false while port shutdown where we can disable the wakeups.
->
-> But wakeup can be also enabled/disabled when requested from sysfs.
-> If disabled wakeup will be disabled while entering suspend and be
-> enabled back based on pm state while resuming.
+Here are some patches to almost remove plat-omap/devices.c
+as omap2+ is using hwmod to initialize most things.
 
-Nice, this is definitely the right direction.  Thanks.
+The only driver remaining in plat-omap/devices.c is the
+rng driver.
 
-> Thanks to Kevin Hilman <khilman@ti.com> for suggesting this.
-> Discussion References:
-> http://www.spinics.net/lists/linux-omap/msg67764.html
-> http://www.spinics.net/lists/linux-omap/msg67838.html
->
-> Cc: Paul Walmsley <paul@pwsan.com>
-> Signed-off-by: Kevin Hilman <khilman@ti.com>
-> [suggestion and modification to enable and disable wakeup
-> capability based on port usage]
+This also changes omap1 and 2420 specific mmc driver to
+pass DMA request lines via platform_data as requested by
+Russell.
 
-I haven't signed-off on this, and technically since I'm not on the
-delivery path, I shouldn't have a sign-off either.  See 
-Documenation/SubmittingPatches for all the details on s-o-b tags.
+Regards,
 
-I will give it an ack or tested-by after I've gone through it, but for
-now I have a few minor comments below.  Also just reported that l-o
-master has broken UART wakeups due to the default mux settings change
-earlier, so that has to be sorted out in order to properly test this.
+Tony
 
-> Signed-off-by: Govindraj.R <govindraj.raja@ti.com>
-> ---
->
-> Patch is tested using the patch as in here[1]
-> Tested on beagle-XM by enabling and disabling wakeups
-> from sysfs and opening and closing a uart port.
->
-> [1]: http://marc.info/?l=linux-omap&m=133518614022144&w=2
->
->
->  arch/arm/plat-omap/include/plat/omap-serial.h |    1 -
->  drivers/tty/serial/omap-serial.c              |   45 +++++++++++++++----------
->  2 files changed, 27 insertions(+), 19 deletions(-)
->
-> diff --git a/arch/arm/plat-omap/include/plat/omap-serial.h b/arch/arm/plat-omap/include/plat/omap-serial.h
-> index 9ff4444..8e6d734 100644
-> --- a/arch/arm/plat-omap/include/plat/omap-serial.h
-> +++ b/arch/arm/plat-omap/include/plat/omap-serial.h
-> @@ -130,7 +130,6 @@ struct uart_omap_port {
->  	unsigned long		port_activity;
->  	u32			context_loss_cnt;
->  	u32			errata;
-> -	u8			wakeups_enabled;
->  
->  	struct pm_qos_request	pm_qos_request;
->  	u32			latency;
-> diff --git a/drivers/tty/serial/omap-serial.c b/drivers/tty/serial/omap-serial.c
-> index d00b38e..b8f328e 100644
-> --- a/drivers/tty/serial/omap-serial.c
-> +++ b/drivers/tty/serial/omap-serial.c
-> @@ -525,6 +525,7 @@ static int serial_omap_startup(struct uart_port *port)
->  	dev_dbg(up->port.dev, "serial_omap_startup+%d\n", up->port.line);
->  
->  	pm_runtime_get_sync(&up->pdev->dev);
-> +
+---
 
-stray whitespace change?
+Tony Lindgren (7):
+      ARM: OMAP1: Move omap_init_audio() to keep the devices in alphabetical order
+      ARM: OMAP1: Move omap_init_uwire to mach-omap1
+      ARM: OMAP2+: Move omap_dsp_reserve_sdram_memblock() to mach-omap2
+      ARM: OMAP2: Add MMC hwmod data for 2420
+      ARM: OMAP2: Use hwmod to initialize mmc for 2420
+      ARM: OMAP: Move omap_mmc_add() to mach-omap1
+      ARM: OMAP1: Pass dma request lines in platform data to MMC driver
 
->  	/*
->  	 * Clear the FIFO buffers and disable them.
->  	 * (they will be reenabled in set_termios())
-> @@ -910,11 +911,27 @@ serial_omap_set_termios(struct uart_port *port, struct ktermios *termios,
->  	dev_dbg(up->port.dev, "serial_omap_set_termios+%d\n", up->port.line);
->  }
->  
-> +static int serial_omap_set_wake(struct uart_port *port, unsigned int state)
-> +{
-> +	struct uart_omap_port *up = (struct uart_omap_port *)port;
-> +	struct omap_uart_port_info *pdata = up->pdev->dev.platform_data;
-> +	u8 enable_wakeup = false;
 
-s/u8/bool/ 
+ arch/arm/mach-omap1/devices.c              |  121 +++++++++++++++++++++++++---
+ arch/arm/mach-omap2/devices.c              |   19 ++++
+ arch/arm/mach-omap2/dsp.c                  |   27 ++++++
+ arch/arm/mach-omap2/omap_hwmod_2420_data.c |   63 ++++++++++++++
+ arch/arm/plat-omap/devices.c               |  122 ----------------------------
+ arch/arm/plat-omap/include/plat/mmc.h      |    9 --
+ 6 files changed, 214 insertions(+), 147 deletions(-)
 
-> +
-> +	if (state)
-> +		enable_wakeup = true;
-> +
-> +	if (pdata->enable_wakeup)
-> +		pdata->enable_wakeup(up->pdev, enable_wakeup);
-
-but actually, the above 7 lines could be more concisely written:
-
-	if (pdata->enable_wakeup)
-		pdata->enable_wakeup(up->pdev, state ? true : false);
-
-> +
-> +	return 0;
-> +}
-> +
->  static void
->  serial_omap_pm(struct uart_port *port, unsigned int state,
->  	       unsigned int oldstate)
->  {
->  	struct uart_omap_port *up = (struct uart_omap_port *)port;
-> +	struct omap_uart_port_info *pdata = up->pdev->dev.platform_data;
->  	unsigned char efr;
->  
->  	dev_dbg(up->port.dev, "serial_omap_pm+%d\n", up->port.line);
-> @@ -930,12 +947,8 @@ serial_omap_pm(struct uart_port *port, unsigned int state,
->  	serial_out(up, UART_EFR, efr);
->  	serial_out(up, UART_LCR, 0);
->  
-> -	if (!device_may_wakeup(&up->pdev->dev)) {
-> -		if (!state)
-> -			pm_runtime_forbid(&up->pdev->dev);
-> -		else
-> -			pm_runtime_allow(&up->pdev->dev);
-> -	}
-> +	if (!state && pdata->enable_wakeup)
-> +		pdata->enable_wakeup(up->pdev, true);
->  
->  	pm_runtime_put(&up->pdev->dev);
->  }
-> @@ -1161,6 +1174,7 @@ static struct uart_ops serial_omap_pops = {
->  	.shutdown	= serial_omap_shutdown,
->  	.set_termios	= serial_omap_set_termios,
->  	.pm		= serial_omap_pm,
-> +	.set_wake	= serial_omap_set_wake,
->  	.type		= serial_omap_type,
->  	.release_port	= serial_omap_release_port,
->  	.request_port	= serial_omap_request_port,
-> @@ -1184,10 +1198,14 @@ static struct uart_driver serial_omap_reg = {
->  static int serial_omap_suspend(struct device *dev)
->  {
->  	struct uart_omap_port *up = dev_get_drvdata(dev);
-> +	struct omap_uart_port_info *pdata = dev->platform_data;
->  
->  	if (up) {
->  		uart_suspend_port(&serial_omap_reg, &up->port);
->  		flush_work_sync(&up->qos_work);
-> +
-> +		if (!device_may_wakeup(dev))
-> +			pdata->enable_wakeup(up->pdev, false);
-
-If wakeups are disabled in suspend, where are they re-enabled?  I don't
-see anything added to the ->resume() method.
-
-Is serial_omap_pm() called during resume to ensure wakeups are
-(re)enabled?
-
-If so this should be well described in the changelog.
-
-Kevin
-
->  	}
->  
->  	return 0;
-> @@ -1476,6 +1494,9 @@ static int serial_omap_probe(struct platform_device *pdev)
->  	if (ret != 0)
->  		goto err_add_port;
->  
-> +	if (omap_up_info->enable_wakeup)
-> +		omap_up_info->enable_wakeup(pdev, false);
-> +
->  	pm_runtime_put(&pdev->dev);
->  	platform_set_drvdata(pdev, up);
->  	return 0;
-> @@ -1582,18 +1603,6 @@ static int serial_omap_runtime_suspend(struct device *dev)
->  	if (pdata->get_context_loss_count)
->  		up->context_loss_cnt = pdata->get_context_loss_count(dev);
->  
-> -	if (device_may_wakeup(dev)) {
-> -		if (!up->wakeups_enabled) {
-> -			pdata->enable_wakeup(up->pdev, true);
-> -			up->wakeups_enabled = true;
-> -		}
-> -	} else {
-> -		if (up->wakeups_enabled) {
-> -			pdata->enable_wakeup(up->pdev, false);
-> -			up->wakeups_enabled = false;
-> -		}
-> -	}
-> -
->  	/* Errata i291 */
->  	if (up->use_dma && pdata->set_forceidle &&
->  			(up->errata & UART_ERRATA_i291_DMA_FORCEIDLE))
+-- 
+Signature
