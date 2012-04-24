@@ -1,83 +1,53 @@
-From: Kevin Hilman <khilman@ti.com>
-Subject: Re: OMAP3EVM not booting on l-o master
-Date: Tue, 24 Apr 2012 10:07:51 -0700
-Message-ID: <87obqhawig.fsf@ti.com>
-References: <C8443D0743D26F4388EA172BF4E2A7A9317C3A03@DBDE01.ent.ti.com>
-	<C8443D0743D26F4388EA172BF4E2A7A9317C3B18@DBDE01.ent.ti.com>
-	<alpine.DEB.2.00.1204050330380.10302@utopia.booyaka.com>
-	<alpine.DEB.2.00.1204050403460.10302@utopia.booyaka.com>
-	<C8443D0743D26F4388EA172BF4E2A7A9317C4B44@DBDE01.ent.ti.com>
-	<alpine.DEB.2.00.1204051303000.10302@utopia.booyaka.com>
-	<C8443D0743D26F4388EA172BF4E2A7A9317C5DB6@DBDE01.ent.ti.com>
-	<alpine.DEB.2.00.1204060111400.10302@utopia.booyaka.com>
-	<C8443D0743D26F4388EA172BF4E2A7A9317C5EEF@DBDE01.ent.ti.com>
-	<1335173044.2149.64.camel@sokoban>
+From: "Cousson, Benoit" <b-cousson@ti.com>
+Subject: Re: [PATCHv4 4/8] ARM: OMAP4: hwmod: flag hwmods/modules supporting
+ module level context status
+Date: Tue, 24 Apr 2012 19:14:52 +0200
+Message-ID: <4F96DF8C.6040400@ti.com>
+References: <1334913591-26312-1-git-send-email-t-kristo@ti.com>  <1334913591-26312-5-git-send-email-t-kristo@ti.com>  <4F957ACD.2040103@ti.com> <1335278815.2149.93.camel@sokoban>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset="UTF-8"; format=flowed
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aog138.obsmtp.com ([74.125.149.19]:59374 "EHLO
-	na3sys009aog138.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755481Ab2DXRHo (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>);
-	Tue, 24 Apr 2012 13:07:44 -0400
-Received: by pbbrq13 with SMTP id rq13so346941pbb.8
-        for <linux-omap@vger.kernel.org>; Tue, 24 Apr 2012 10:07:43 -0700 (PDT)
-In-Reply-To: <1335173044.2149.64.camel@sokoban> (Tero Kristo's message of
-	"Mon, 23 Apr 2012 12:24:04 +0300")
+Received: from bear.ext.ti.com ([192.94.94.41]:42051 "EHLO bear.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1755528Ab2DXRPB (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Tue, 24 Apr 2012 13:15:01 -0400
+In-Reply-To: <1335278815.2149.93.camel@sokoban>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: t-kristo@ti.com
-Cc: "Mohammed, Afzal" <afzal@ti.com>, Paul Walmsley <paul@pwsan.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
+Cc: Jon Hunter <jon-hunter@ti.com>, linux-omap@vger.kernel.org, khilman@ti.com, paul@pwsan.com, Rajendra Nayak <rnayak@ti.com>, linux-arm-kernel@lists.infradead.org
 
-Hi Tero,
-
-Tero Kristo <t-kristo@ti.com> writes:
-
-> On Fri, 2012-04-06 at 07:52 +0000, Mohammed, Afzal wrote:
->> Hi Paul,
->> 
->> On Fri, Apr 06, 2012 at 12:43:06, Paul Walmsley wrote:
->> > Perhaps you might be willing to add some debugging to omap_mux_late_init() 
->> > to find out what part of that function is causing it to hang?
->> 
->> It is getting hung as interrupt handler "omap_hwmod_mux_handle_irq"
->> is being repeatedly called.
->> 
+On 4/24/2012 4:46 PM, Tero Kristo wrote:
+> On Mon, 2012-04-23 at 10:52 -0500, Jon Hunter wrote:
+>> Hi Tero,
+>>
+>> On 04/20/2012 04:19 AM, Tero Kristo wrote:
+>>> From: Rajendra Nayak<rnayak@ti.com>
+>>>
+>>> On OMAP4 most modules/hwmods support module level context status. On
+>>> OMAP3 and earlier, we relyed on the power domain level context status.
+>>> Identify all such modules using a 'HWMOD_CONTEXT_REG' flag, all such
+>>> hwmods already have a valid 'context_offs' populated in .prcm structure.
+>>
+>> Is it necessary to add another flag? Can't we just check if context_offs
+>> is non-zero? Would save adding a lot more lines to an already large file
+>> :-)
 >
-> Hi Afzal,
->
-> can you try the attached patch with this branch and omap3evm board? I
-> don't have the board myself so I can't test it myself (I tested this
-> with omap3beagle and it works with that one.)
+> Actually one of the older versions of this patch was just checking
+> against a non-zero value, but it was decided to be changed as
+> potentially the context_offs can be zero even if it is a valid offset.
 
-Thanks for digging into this problem and coming up with a proposed
-solution.  Some questions below...
+Yeah, but still, every OMAP4 IPs are supporting that except two of them 
+I guess, so it is a pity to add that to every IPs.
 
->
-> -Tero
->
->
-> From 26733dd988ccc9e72355a39e01b2d6e9215a892d Mon Sep 17 00:00:00 2001
-> From: Tero Kristo <t-kristo@ti.com>
-> Date: Mon, 23 Apr 2012 12:14:46 +0300
-> Subject: [PATCH] ARM: OMAP3: PM: move wakeup event ack to hwmod_io handler
->
-> PRCM IO interrupts are handled with a shared interrupt handler logic.
-> Currently hwmod_io is processing the actual event, but the acking
-> of the IO wakeups is done from the PM code with a separate handler.
-> If a wakeup event is detected during init before the PM code is in
-> place, the interrupt handler can hang in an infinite loop. Fix this
-> by removing the pm_io handler, and calling its functionality from
-> within the hwmod_io handler. This fix applies only to OMAP3, as
-> OMAP4 does not have similar wakeup handling logic.
->
-> Signed-off-by: Tero Kristo <t-kristo@ti.com>
+We'd better add a HWMOD_NO_CONTEXT_REG to the few IPs that are not 
+supporting that. Since OMAP 2 & 3 does not have this feature at all, we 
+can check on the cpu revision.
 
+I think the issue raised by Rajendra was about AM35xx that looks like an 
+OMAP3 variant but does have these registers like an OMAP4 variant:-(
 
-Doesn't this mean that even on a !PM kernel that IO events might still
-be firing for nothing?
+Regards,
+Benoit
 
-Seems like it would be better to ensure that these interrupts are just
-disabled until the PM core initializes and can enable them.
-
-Kevin
