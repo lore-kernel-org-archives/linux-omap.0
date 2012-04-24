@@ -1,402 +1,87 @@
 From: Vaibhav Hiremath <hvaibhav@ti.com>
-Subject: [PATCH-V4 3/3] ARM: OMAP: Make OMAP clocksource source selection using kernel param
-Date: Tue, 24 Apr 2012 15:15:49 +0530
-Message-ID: <1335260749-25877-4-git-send-email-hvaibhav@ti.com>
-References: <1335260749-25877-1-git-send-email-hvaibhav@ti.com>
+Subject: [PATCH-V4 0/3] ARM: OMAP: Make OMAP clocksource source selection runtime
+Date: Tue, 24 Apr 2012 15:15:46 +0530
+Message-ID: <1335260749-25877-1-git-send-email-hvaibhav@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from arroyo.ext.ti.com ([192.94.94.40]:60816 "EHLO arroyo.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S932199Ab2DXJvV (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Tue, 24 Apr 2012 05:51:21 -0400
-In-Reply-To: <1335260749-25877-1-git-send-email-hvaibhav@ti.com>
+Received: from devils.ext.ti.com ([198.47.26.153]:54374 "EHLO
+	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S932206Ab2DXJvK (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 24 Apr 2012 05:51:10 -0400
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: linux-omap@vger.kernel.org
-Cc: tony@atomide.com, khilman@ti.com, paul@pwsan.com, santosh.shilimkar@ti.com, b-cousson@ti.com, linux-arm-kernel@lists.infradead.org, Vaibhav Hiremath <hvaibhav@ti.com>, Felipe Balbi <balbi@ti.com>, Tarun Kanti DebBarma <tarun.kanti@ti.com>, Ming Lei <tom.leiming@gmail.com>
+Cc: tony@atomide.com, khilman@ti.com, paul@pwsan.com, santosh.shilimkar@ti.com, b-cousson@ti.com, linux-arm-kernel@lists.infradead.org, Vaibhav Hiremath <hvaibhav@ti.com>
 
 Current OMAP code supports couple of clocksource options based
 on compilation flag (CONFIG_OMAP_32K_TIMER). The 32KHz sync-timer
-and a gptimer which can run on 32KHz or system clock (e.g 38.4 MHz).
-So there can be 3 options -
+and a gptimer which can run on 32KHz or system clock (e.g 38.4 MHz)
 
-1. 32KHz sync-timer
-2. Sys_clock based (e.g 13/19.2/26/38.4 MHz) gptimer
-3. 32KHz based gptimer.
+This patch series cleans up the existing 32k-sync timer implementation
+without any major code changes, uses kernel parameter to override
+the default clocksource of "counter_32k", also in order to support
+some OMAP based derivative SoCs like AM33XX which doesn't have
+32K sync-timer hardware IP, adds hwmod lookup for omap2+
+devices, and if lookup fails then fall back to gp-timer.
 
-The optional gptimer based clocksource was added so that it can
-give the high precision than sync-timer, so expected usage was 2
-and not 3.
-Unfortunately option 2, clocksource doesn't meet the requirement of
-free-running clock as per clocksource need. It stops in low power states
-when sys_clock is cut. That makes gptimer based clocksource option
-useless for OMAP2/3/4 devices with sys_clock as a clock input.
-Option 3 will still work but it is no better than 32K sync-timer
-based clocksource.
+if(use_gptimer_clksrc == true)
+	gptimer clocksource init;
+else if (counter_32 init == false)
+	/* Fallback to gptimer */
+	gptimer clocksource init(;
 
-So ideally we can kill the gptimer based clocksource option but there
-are some OMAP based derivative SoCs like AM33XX which doesn't have
-32K sync-timer hardware IP and need to fallback on 32KHz based gptimer
-clocksource.
-Considering above, make sync-timer and gptimer clocksource runtime
-selectable so that both OMAP and AMXXXX continue to use the same code.
+With this, we should be able to support multi-omap boot
+including devices with/without 32k-sync timer.
 
-Also, in order to precisely configure/setup sched_clock for given
-clocksource, decision has to be made early enough in boot sequence.
+This patch-series has been boot tested on AM37xEVM platform, it
+would be helpful if somebody help me to validate it on OMAP1/2
+platforms.
 
-So, the solution is,
+The patches are also available at -
+https://github.com/hvaibhav/am335x-linux   32ksync-timer-cleanup
 
-Use kernel parameter ("clocksource=") to override
-default 32k_sync-timer, in addition to this, we also use hwmod database
-lookup mechanism, through which at run-time we can identify availability
-of 32k-sync timer on the device, else fall back to gptimer.
+History:
+========
+Changes from V3:
+http://www.mail-archive.com/linux-omap@vger.kernel.org/msg66462.html
+	- Fixed all review comments from Kevin H
+		* Moved counter_32k CR register offset handling to
+		  counter_32k.c file, so now, calling funtion don't have
+		  to maintain or add offset to base addr.
+		* Added comment for funtion omap_init_clocksource_32k()
+		* Used resource_size() for calculate size
+		* Convert WARN_ON to pr_warn
 
-Signed-off-by: Vaibhav Hiremath <hvaibhav@ti.com>
-Signed-off-by: Felipe Balbi <balbi@ti.com>
-Cc: Santosh Shilimkar <santosh.shilimkar@ti.com>
-Cc: Kevin Hilman <khilman@ti.com>
-Cc: Benoit Cousson <b-cousson@ti.com>
-Cc: Tony Lindgren <tony@atomide.com>
-Cc: Paul Walmsley <paul@pwsan.com>
-Cc: Tarun Kanti DebBarma <tarun.kanti@ti.com>
-Cc: Ming Lei <tom.leiming@gmail.com>
----
- arch/arm/mach-omap1/timer32k.c           |    6 ++-
- arch/arm/mach-omap2/timer.c              |   99 +++++++++++++++++++++------
- arch/arm/plat-omap/counter_32k.c         |  108 +++++++++++++++---------------
- arch/arm/plat-omap/include/plat/common.h |    2 +-
- 4 files changed, 138 insertions(+), 77 deletions(-)
+Changes from V2:
+http://lists.infradead.org/pipermail/linux-arm-kernel/2012-March/092037.html
+	- Added early_param support to read clocksource selection
+	  from user through kernel parameter ("clocksource=")
+	- Converted to ocp_if changes from Paul
 
-diff --git a/arch/arm/mach-omap1/timer32k.c b/arch/arm/mach-omap1/timer32k.c
-index 325b9a0..6262e11 100644
---- a/arch/arm/mach-omap1/timer32k.c
-+++ b/arch/arm/mach-omap1/timer32k.c
-@@ -71,6 +71,7 @@
+Changes from V1:
+http://lists.infradead.org/pipermail/linux-arm-kernel/2012-January/081037.html
+	- Based on Tony's comment, added pbase & size argument to
+	  omap_init_clocksource_32k(), to avoid cpu_is_xxx() check.
+	- Added commit description based on discussion on list
+	  (Thanks to Santosh here)
+	- Reorder patch sequence
 
- /* 16xx specific defines */
- #define OMAP1_32K_TIMER_BASE		0xfffb9000
-+#define OMAP1_32KSYNC_TIMER_BASE	0xfffbc400
- #define OMAP1_32K_TIMER_CR		0x08
- #define OMAP1_32K_TIMER_TVR		0x00
- #define OMAP1_32K_TIMER_TCR		0x04
-@@ -184,7 +185,10 @@ static __init void omap_init_32k_timer(void)
-  */
- bool __init omap_32k_timer_init(void)
- {
--	omap_init_clocksource_32k();
-+	u32 pbase;
-+
-+	pbase = cpu_is_omap16xx() ? OMAP1_32KSYNC_TIMER_BASE : NULL;
-+	omap_init_clocksource_32k(pbase, SZ_1K);
- 	omap_init_32k_timer();
+Vaibhav Hiremath (3):
+  ARM: OMAP2/3: Add idle_st bits for ST_32KSYNC timer to prcm-common
+    header
+  ARM: OMAP2/3: hwmod data: Add 32k-sync timer data to hwmod database
+  ARM: OMAP: Make OMAP clocksource source selection using kernel param
 
- 	return true;
-diff --git a/arch/arm/mach-omap2/timer.c b/arch/arm/mach-omap2/timer.c
-index ecec873..2afc4ab 100644
---- a/arch/arm/mach-omap2/timer.c
-+++ b/arch/arm/mach-omap2/timer.c
-@@ -243,22 +243,8 @@ static void __init omap2_gp_clockevent_init(int gptimer_id,
- }
-
- /* Clocksource code */
--
--#ifdef CONFIG_OMAP_32K_TIMER
--/*
-- * When 32k-timer is enabled, don't use GPTimer for clocksource
-- * instead, just leave default clocksource which uses the 32k
-- * sync counter.  See clocksource setup in plat-omap/counter_32k.c
-- */
--
--static void __init omap2_gp_clocksource_init(int unused, const char *dummy)
--{
--	omap_init_clocksource_32k();
--}
--
--#else
--
- static struct omap_dm_timer clksrc;
-+static bool use_gptimer_clksrc;
-
- /*
-  * clocksource
-@@ -285,7 +271,33 @@ static u32 notrace dmtimer_read_sched_clock(void)
- }
-
- /* Setup free-running counter for clocksource */
--static void __init omap2_gp_clocksource_init(int gptimer_id,
-+static int __init omap2_sync32k_clocksource_init(void)
-+{
-+	int ret;
-+	struct omap_hwmod *oh;
-+	struct resource res;
-+	const char *oh_name = "counter_32k";
-+
-+	oh = omap_hwmod_lookup(oh_name);
-+	if (!oh || oh->slaves_cnt == 0)
-+		return -ENODEV;
-+
-+	ret = omap_hwmod_get_resource_byname(oh, IORESOURCE_MEM, NULL, &res);
-+	if (ret) {
-+		pr_warn("%s: failed to get counter_32k resource (%d)\n",
-+							__func__, ret);
-+		return ret;
-+	}
-+
-+	ret = omap_init_clocksource_32k(res.start, resource_size(&res));
-+	if (ret)
-+		pr_warn("%s: failed to initialize counter_32k (%d)\n",
-+							__func__, ret);
-+
-+	return ret;
-+}
-+
-+static void __init omap2_gptimer_clocksource_init(int gptimer_id,
- 						const char *fck_source)
- {
- 	int res;
-@@ -293,9 +305,6 @@ static void __init omap2_gp_clocksource_init(int gptimer_id,
- 	res = omap_dm_timer_init_one(&clksrc, gptimer_id, fck_source);
- 	BUG_ON(res);
-
--	pr_info("OMAP clocksource: GPTIMER%d at %lu Hz\n",
--		gptimer_id, clksrc.rate);
--
- 	__omap_dm_timer_load_start(&clksrc,
- 			OMAP_TIMER_CTRL_ST | OMAP_TIMER_CTRL_AR, 0, 1);
- 	setup_sched_clock(dmtimer_read_sched_clock, 32, clksrc.rate);
-@@ -303,15 +312,36 @@ static void __init omap2_gp_clocksource_init(int gptimer_id,
- 	if (clocksource_register_hz(&clocksource_gpt, clksrc.rate))
- 		pr_err("Could not register clocksource %s\n",
- 			clocksource_gpt.name);
-+	else
-+		pr_info("OMAP clocksource: GPTIMER%d at %lu Hz\n",
-+			gptimer_id, clksrc.rate);
-+}
-+
-+static void __init omap2_clocksource_init(int gptimer_id,
-+						const char *fck_source)
-+{
-+	/*
-+	 * First give preference to kernel parameter configuration
-+	 * by user (clocksource="gp timer").
-+	 *
-+	 * In case of missing kernel parameter for clocksource,
-+	 * first check for availability for 32k-sync timer, in case
-+	 * of failure in finding 32k_counter module or registering
-+	 * it as clocksource, execution will fallback to gp-timer.
-+	 */
-+	if (use_gptimer_clksrc == true)
-+		omap2_gptimer_clocksource_init(gptimer_id, fck_source);
-+	else if (omap2_sync32k_clocksource_init())
-+		/* Fall back to gp-timer code */
-+		omap2_gptimer_clocksource_init(gptimer_id, fck_source);
- }
--#endif
-
- #define OMAP_SYS_TIMER_INIT(name, clkev_nr, clkev_src,			\
- 				clksrc_nr, clksrc_src)			\
- static void __init omap##name##_timer_init(void)			\
- {									\
- 	omap2_gp_clockevent_init((clkev_nr), clkev_src);		\
--	omap2_gp_clocksource_init((clksrc_nr), clksrc_src);		\
-+	omap2_clocksource_init((clksrc_nr), clksrc_src);		\
- }
-
- #define OMAP_SYS_TIMER(name)						\
-@@ -342,7 +372,7 @@ static DEFINE_TWD_LOCAL_TIMER(twd_local_timer,
- static void __init omap4_timer_init(void)
- {
- 	omap2_gp_clockevent_init(1, OMAP4_CLKEV_SOURCE);
--	omap2_gp_clocksource_init(2, OMAP4_MPU_SOURCE);
-+	omap2_clocksource_init(2, OMAP4_MPU_SOURCE);
- #ifdef CONFIG_LOCAL_TIMERS
- 	/* Local timers are not supprted on OMAP4430 ES1.0 */
- 	if (omap_rev() != OMAP4430_REV_ES1_0) {
-@@ -510,3 +540,28 @@ static int __init omap2_dm_timer_init(void)
- 	return 0;
- }
- arch_initcall(omap2_dm_timer_init);
-+
-+/**
-+ * omap2_override_clocksource - clocksource override with user configuration
-+ *
-+ * Allows user to override default clocksource, using kernel parameter
-+ *   clocksource="gp timer"
-+ *
-+ * Note that, here we are using same standard kernel parameter "clocksource=",
-+ * and not introducing any OMAP specific interface.
-+ */
-+static int __init omap2_override_clocksource(char *str)
-+{
-+	if (!str)
-+		return 0;
-+	/*
-+	 * For OMAP architecture, we only have two options
-+	 *    - sync_32k (default)
-+	 *    - gp timer
-+	 */
-+	if (!strcmp(str, "gp timer"))
-+		use_gptimer_clksrc = true;
-+
-+	return 0;
-+}
-+early_param("clocksource", omap2_override_clocksource);
-diff --git a/arch/arm/plat-omap/counter_32k.c b/arch/arm/plat-omap/counter_32k.c
-index 5068fe5..3e3cdab 100644
---- a/arch/arm/plat-omap/counter_32k.c
-+++ b/arch/arm/plat-omap/counter_32k.c
-@@ -27,19 +27,20 @@
-
- #include <plat/clock.h>
-
-+/* OMAP2_32KSYNCNT_CR_OFF: offset of 32ksync counter register */
-+#define OMAP2_32KSYNCNT_CR_OFF		0x10
-+
- /*
-  * 32KHz clocksource ... always available, on pretty most chips except
-  * OMAP 730 and 1510.  Other timers could be used as clocksources, with
-  * higher resolution in free-running counter modes (e.g. 12 MHz xtal),
-  * but systems won't necessarily want to spend resources that way.
-  */
--static void __iomem *timer_32k_base;
--
--#define OMAP16XX_TIMER_32K_SYNCHRONIZED		0xfffbc410
-+static void __iomem *sync32k_cnt_reg;
-
- static u32 notrace omap_32k_read_sched_clock(void)
- {
--	return timer_32k_base ? __raw_readl(timer_32k_base) : 0;
-+	return sync32k_cnt_reg ? __raw_readl(sync32k_cnt_reg) : 0;
- }
-
- /**
-@@ -59,7 +60,7 @@ void read_persistent_clock(struct timespec *ts)
- 	struct timespec *tsp = &persistent_ts;
-
- 	last_cycles = cycles;
--	cycles = timer_32k_base ? __raw_readl(timer_32k_base) : 0;
-+	cycles = sync32k_cnt_reg ? __raw_readl(sync32k_cnt_reg) : 0;
- 	delta = cycles - last_cycles;
-
- 	nsecs = clocksource_cyc2ns(delta, persistent_mult, persistent_shift);
-@@ -68,54 +69,55 @@ void read_persistent_clock(struct timespec *ts)
- 	*ts = *tsp;
- }
-
--int __init omap_init_clocksource_32k(void)
-+/**
-+ * omap_init_clocksource_32k - setup and register counter 32k as a
-+ * kernel clocksource
-+ * @pbase: base addr of counter_32k module
-+ * @size: size of counter_32k to map
-+ *
-+ * Returns 0 upon success or negative error code upon failure.
-+ *
-+ */
-+int __init omap_init_clocksource_32k(u32 pbase, unsigned long size)
- {
--	static char err[] __initdata = KERN_ERR
--			"%s: can't register clocksource!\n";
--
--	if (cpu_is_omap16xx() || cpu_class_is_omap2()) {
--		u32 pbase;
--		unsigned long size = SZ_4K;
--		void __iomem *base;
--		struct clk *sync_32k_ick;
--
--		if (cpu_is_omap16xx()) {
--			pbase = OMAP16XX_TIMER_32K_SYNCHRONIZED;
--			size = SZ_1K;
--		} else if (cpu_is_omap2420())
--			pbase = OMAP2420_32KSYNCT_BASE + 0x10;
--		else if (cpu_is_omap2430())
--			pbase = OMAP2430_32KSYNCT_BASE + 0x10;
--		else if (cpu_is_omap34xx())
--			pbase = OMAP3430_32KSYNCT_BASE + 0x10;
--		else if (cpu_is_omap44xx())
--			pbase = OMAP4430_32KSYNCT_BASE + 0x10;
--		else
--			return -ENODEV;
--
--		/* For this to work we must have a static mapping in io.c for this area */
--		base = ioremap(pbase, size);
--		if (!base)
--			return -ENODEV;
--
--		sync_32k_ick = clk_get(NULL, "omap_32ksync_ick");
--		if (!IS_ERR(sync_32k_ick))
--			clk_enable(sync_32k_ick);
--
--		timer_32k_base = base;
--
--		/*
--		 * 120000 rough estimate from the calculations in
--		 * __clocksource_updatefreq_scale.
--		 */
--		clocks_calc_mult_shift(&persistent_mult, &persistent_shift,
--				32768, NSEC_PER_SEC, 120000);
--
--		if (clocksource_mmio_init(base, "32k_counter", 32768, 250, 32,
--					  clocksource_mmio_readl_up))
--			printk(err, "32k_counter");
--
--		setup_sched_clock(omap_32k_read_sched_clock, 32, 32768);
-+	int ret;
-+	void __iomem *base;
-+	struct clk *sync32k_ick;
-+
-+	if (!pbase || !size)
-+		return -ENODEV;
-+	/*
-+	 * For this to work we must have a static mapping in io.c
-+	 * for this area
-+	 */
-+	base = ioremap(pbase, size);
-+	if (!base) {
-+		pr_err("32k_counter: failed to map base addr\n");
-+		return -ENODEV;
- 	}
--	return 0;
-+
-+	sync32k_ick = clk_get(NULL, "omap_32ksync_ick");
-+	if (!IS_ERR(sync32k_ick))
-+		clk_enable(sync32k_ick);
-+
-+	sync32k_cnt_reg = base + OMAP2_32KSYNCNT_CR_OFF;
-+
-+	/*
-+	 * 120000 rough estimate from the calculations in
-+	 * __clocksource_updatefreq_scale.
-+	 */
-+	clocks_calc_mult_shift(&persistent_mult, &persistent_shift,
-+			32768, NSEC_PER_SEC, 120000);
-+
-+	ret = clocksource_mmio_init(base, "32k_counter", 32768, 250, 32,
-+				clocksource_mmio_readl_up);
-+	if (ret) {
-+		pr_err("32k_counter: can't register clocksource\n");
-+		return ret;
-+	}
-+
-+	setup_sched_clock(omap_32k_read_sched_clock, 32, 32768);
-+	pr_info("OMAP clocksource: 32k_counter at 32768 Hz\n");
-+
-+	return ret;
- }
-diff --git a/arch/arm/plat-omap/include/plat/common.h b/arch/arm/plat-omap/include/plat/common.h
-index a557b84..eed5335 100644
---- a/arch/arm/plat-omap/include/plat/common.h
-+++ b/arch/arm/plat-omap/include/plat/common.h
-@@ -30,7 +30,7 @@
- #include <plat/i2c.h>
- #include <plat/omap_hwmod.h>
-
--extern int __init omap_init_clocksource_32k(void);
-+extern int __init omap_init_clocksource_32k(u32 pbase, unsigned long size);
-
- extern void __init omap_check_revision(void);
-
---
-1.7.0.4
+ arch/arm/mach-omap1/timer32k.c                     |    6 +-
+ arch/arm/mach-omap2/omap_hwmod_2420_data.c         |   19 ++++
+ arch/arm/mach-omap2/omap_hwmod_2430_data.c         |   19 ++++
+ arch/arm/mach-omap2/omap_hwmod_2xxx_ipblock_data.c |   19 ++++
+ arch/arm/mach-omap2/omap_hwmod_3xxx_data.c         |   54 ++++++++++
+ arch/arm/mach-omap2/omap_hwmod_common_data.h       |    1 +
+ arch/arm/mach-omap2/prcm-common.h                  |    4 +
+ arch/arm/mach-omap2/timer.c                        |   99 ++++++++++++++----
+ arch/arm/plat-omap/counter_32k.c                   |  108 ++++++++++----------
+ arch/arm/plat-omap/include/plat/common.h           |    2 +-
+ 10 files changed, 254 insertions(+), 77 deletions(-)
 
