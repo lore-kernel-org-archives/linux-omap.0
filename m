@@ -1,201 +1,212 @@
-From: Santosh Shilimkar <santosh.shilimkar@ti.com>
-Subject: Re: PM related performance degradation on OMAP3
-Date: Tue, 24 Apr 2012 16:08:03 +0530
-Message-ID: <4F96828B.1090902@ti.com>
-References: <CANOLnOP5gq4Vtt00SgRNW-3GZDWk0sukBgJx4V6rkMLL+b6G-w@mail.gmail.com> <877gxobudk.fsf@ti.com> <CANOLnOPbHBshCdbmSOjYdubWqUivrVpR-+eaayu=v4Yy6yKdsQ@mail.gmail.com> <87ehrtn6na.fsf@ti.com> <CANOLnOM_-yhr-j=UO3ynJ6HyJxzd_2FshPMXMLpcBcOB0mL7Qw@mail.gmail.com> <87y5puwhus.fsf@ti.com> <CAORVsuWP72dHFSBhX=Kux7GEk33qQgR74a74FFwzA8uniSabAQ@mail.gmail.com>
+From: Russell King - ARM Linux <linux@arm.linux.org.uk>
+Subject: Re: [RFC 00/12] OMAP DMA engine conversion
+Date: Tue, 24 Apr 2012 11:38:58 +0100
+Message-ID: <20120424103858.GC25053@n2100.arm.linux.org.uk>
+References: <20120423160409.GE24299@n2100.arm.linux.org.uk>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aog128.obsmtp.com ([74.125.149.141]:55598 "EHLO
-	na3sys009aog128.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1750931Ab2DXKiK (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>);
-	Tue, 24 Apr 2012 06:38:10 -0400
-Received: by obbwd18 with SMTP id wd18so1041152obb.18
-        for <linux-omap@vger.kernel.org>; Tue, 24 Apr 2012 03:38:08 -0700 (PDT)
-In-Reply-To: <CAORVsuWP72dHFSBhX=Kux7GEk33qQgR74a74FFwzA8uniSabAQ@mail.gmail.com>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-mmc-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <20120423160409.GE24299@n2100.arm.linux.org.uk>
+Sender: linux-mmc-owner@vger.kernel.org
+To: linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org, linux-mmc@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Jean Pihet <jean.pihet@newoldbits.com>
-Cc: Kevin Hilman <khilman@ti.com>, Grazvydas Ignotas <notasas@gmail.com>, linux-omap@vger.kernel.org, Paul Walmsley <paul@pwsan.com>, Tero Kristo <t-kristo@ti.com>
 
-+ Tero
+Here's another patch - for the OMAP NAND driver.
 
-On Tuesday 24 April 2012 03:20 PM, Jean Pihet wrote:
-> Hi Grazvydas, Kevin,
-> 
-> I did some gather some performance measurements and statistics using
-> custom tracepoints in __omap3_enter_idle.
-> All the details are at
-> http://www.omappedia.org/wiki/Power_Management_Device_Latencies_Measurement#C1_performance_problem:_analysis
-> .
-> 
-Nice data.
+One thing this doesn't do is configure up the source/destination bursts,
+which the old code did:
 
-> The setup is:
-> - Beagleboard (OMAP3530) at 500MHz,
-> - l-o master kernel + functional power states + per-device PM QoS. It
-> has been checked that the changes from l-o master do not have an
-> impact on the performance.
-> - The data transfer is performed using dd from a file in JFFS2 to
-> /dev/null: 'dd if=/tmp/mnt/a of=/dev/null bs=1M count=32'.
-> 
-> On Tue, Apr 17, 2012 at 4:30 PM, Kevin Hilman <khilman@ti.com> wrote:
->> Grazvydas Ignotas <notasas@gmail.com> writes:
->>
->>> On Thu, Apr 12, 2012 at 3:19 AM, Kevin Hilman <khilman@ti.com> wrote:
->>>> It would be helpful now to narrow down what are the big contributors to
->>>> the overhead in omap_sram_idle().  Most of the code there is skipped for
->>>> C1 because the next states for MPU and CORE are both ON.
->>>
->>> Ok I did some tests, all in mostly idle system with just init, busybox
->>> shell and dd doing a NAND read to /dev/null .
->>
-> ...
->>
->>> MB/s is throughput that
->>> dd reports, mA and approx. current draw during the transfer, read from
->>> fuel gauge that's onboard.
->>>
->>> MB/s| mA|comment
->>>  3.7|218|mainline f549e088b80
->>>  3.8|224|nand qos PM_QOS_CPU_DMA_LATENCY 0 [1]
->>>  4.4|220|[1] + pwrdm_p*_transition commented [2]
->>>  3.8|225|[1] + omap34xx_do_sram_idle->cpu_do_idle [3]
->>>  4.2|210|[1] + pwrdm_set_next_pwrst(per_pd, PWRDM_POWER_ON) [4]
->>>  4.0|224|[1] + 'Deny idle' [5]
->>>  5.1|210|[2] + [4] + [5]
->>>  5.2|202|[5] + omap_sram_idle->cpu_do_idle [6]
->>>  5.5|243|!CONFIG_PM
->>>  6.1|282|busywait DMA end (for reference)
-> 
-> Here are the results (BW in MB/s) on Beagleboard:
-> - 4.7: without using DMA,
-> 
-> - Using DMA
->   2.1: [0]
->   2.1: [1] only C1
->   2.6: [1]+[2] no pre_ post_
->   2.3: [1]+[5] no pwrdm_for_each_clkdm
->   2.8: [1]+[5]+[2]
->   3.1: [1]+[5]+[6] no omap_sram_idle
->   3.1: No IDLE, no omap_sram_idle, all pwrdms to ON
-> 
-> So indeed this shows there is some serious performance issue with the
-> C1 C-state.
->
-Looks like other clock-domain (notably l4, per, AON) should be denied
-idle in C1 to avoid the huge penalties. It might just do the trick.
+                        omap_set_dma_dest_burst_mode(info->dma_ch,
+                                        OMAP_DMA_DATA_BURST_16);
+                        omap_set_dma_src_burst_mode(info->dma_ch,
+                                        OMAP_DMA_DATA_BURST_16);
 
+In dma-engine speak, I'm using "burst" for the number of elements to
+transfer for each frame, with frame sync in place (in other words, the
+number of transfers to occur for every assertion of the DMA request.)
+That's how burst is defined on other DMA hardware, so I'm not entirely
+sure at the moment how critical (or what) the above bursts are doing,
+whether they're configuring the memory side of the transfer or not.
+I'll take a deeper look into that this evening, but in the mean time,
+what's below should be a direct conversion.
 
->> Thanks for the detailed experiments.  This definitely confirms we have
->> some serious unwanted overhead for C1, and our C-state latency values
->> are clearly way off base, since they only account HW latency and not any
->> of the SW latency introduced in omap_sram_idle().
->>
->>>> There are 2 primary differences that I see as possible causes.  I list
->>>> them here with a couple more experiments for you to try to help us
->>>> narrow this down.
->>>>
->>>> 1) powerdomain accounting: pwrdm_pre_transition(), pwrdm_post_transition()
->>>>
->>>> Could you try using omap_sram_idle() and just commenting out those
->>>> calls?  Does that help performance?  Those iterate over all the
->>>> powerdomains, so defintely add some overhead, but I don't think it
->>>> would be as significant as what you're seeing.
->>>
->>> Seems to be taking good part of it.
->>>
->>>>    Much more likely is...
->>>>
->>>> 2) jump to SRAM, SDRC self-refresh, SDRC errata workarounds
->>>
->>> Could not notice any difference.
->>>
->>> To me it looks like this results from many small things adding up..
->>> Idle is called so often that pwrdm_p*_transition() and those
->>> pwrdm_for_each_clkdm() walks start slowing everything down, perhaps
->>> because they access lots of registers on slow buses?
-> 
-> From the list of contributors, the main ones are:
->     (140us) pwrdm_pre_transition and pwrdm_post_transition,
+MTD does have this weirdness that it uses vmalloc regions and passes
+addresses in vmalloc regions into drivers - I've left that hack in but
+it is _highly_ undefined whether the DMA activity would be visible via
+the vmalloc mapping as things currently stand.  (You're probably going
+to be okay with non-aliasing VIPT caches, but VIVT and aliasing VIPT
+caches are potential random data corruption candidates.)  That's a
+short-coming across many MTD drivers, one which needs sorting out across
+the board.
 
-I have observed this one on OMAP4 too. There was a plan to remove
-this as part of Tero's PD/CD use-counting series.
+ drivers/mtd/nand/omap2.c |   93 +++++++++++++++++++++++++++++++++++++++++++++-
+ 1 files changed, 92 insertions(+), 1 deletions(-)
 
->     (105us) omap2_gpio_prepare_for_idle and
-> omap2_gpio_resume_after_idle. This could be avoided if PER stays ON in
-> the latency-critical C-states,
-Yes. In C1 when you deny idle for per, there should be no need to
-call this. But even in the case when it is called, why is it taking
-105 uS. Needs to dig further.
+diff --git a/drivers/mtd/nand/omap2.c b/drivers/mtd/nand/omap2.c
+index c2b0bba..bd4ed08 100644
+--- a/drivers/mtd/nand/omap2.c
++++ b/drivers/mtd/nand/omap2.c
+@@ -9,6 +9,7 @@
+  */
+ 
+ #include <linux/platform_device.h>
++#include <linux/dmaengine.h>
+ #include <linux/dma-mapping.h>
+ #include <linux/delay.h>
+ #include <linux/module.h>
+@@ -119,6 +120,7 @@ struct omap_nand_info {
+ 	int				gpmc_cs;
+ 	unsigned long			phys_base;
+ 	struct completion		comp;
++	struct dma_chan			*dma;
+ 	int				dma_ch;
+ 	int				gpmc_irq;
+ 	enum {
+@@ -336,6 +338,10 @@ static void omap_nand_dma_cb(int lch, u16 ch_status, void *data)
+ {
+ 	complete((struct completion *) data);
+ }
++static void omap_nand_dma_callback(void *data)
++{
++	complete((struct completion *) data);
++}
+ 
+ /*
+  * omap_nand_dma_transfer: configer and start dma transfer
+@@ -373,6 +379,56 @@ static inline int omap_nand_dma_transfer(struct mtd_info *mtd, void *addr,
+ 		addr = page_address(p1) + ((size_t)addr & ~PAGE_MASK);
+ 	}
+ 
++	if (info->dma) {
++		struct dma_async_tx_descriptor *tx;
++		struct scatterlist sg;
++		unsigned n;
++
++		sg_init_one(&sg, addr, len);
++		n = dma_map_sg(info->dma->device->dev, &sg, 1, dir);
++		if (n == 0) {
++			dev_err(&info->pdev->dev,
++				"Couldn't DMA map a %d byte buffer\n", len);
++			goto out_copy;
++		}
++
++		tx = dmaengine_prep_slave_sg(info->dma, &sg, n,
++			is_write ? DMA_MEM_TO_DEV : DMA_DEV_TO_MEM,
++			DMA_PREP_INTERRUPT | DMA_CTRL_ACK);
++		if (!tx) {
++			dma_unmap_sg(info->dma->device->dev, &sg, 1, dir);
++			goto out_copy;
++		}
++		tx->callback = omap_nand_dma_callback;
++		tx->callback_param = &info->comp;
++		dmaengine_submit(tx);
++
++		/*  configure and start prefetch transfer */
++		ret = gpmc_prefetch_enable(info->gpmc_cs,
++			PREFETCH_FIFOTHRESHOLD_MAX, 0x1, len, is_write);
++		if (ret) {
++			/* PFPW engine is busy, use cpu copy method */
++			dma_unmap_sg(info->dma->device->dev, &sg, 1, dir);
++			goto out_copy;
++		}
++
++		init_completion(&info->comp);
++		dma_async_issue_pending(info->dma);
++
++		/* setup and start DMA using dma_addr */
++		wait_for_completion(&info->comp);
++		tim = 0;
++		limit = (loops_per_jiffy * msecs_to_jiffies(OMAP_NAND_TIMEOUT_MS));
++		while (gpmc_read_status(GPMC_PREFETCH_COUNT) && (tim++ < limit))
++			cpu_relax();
++
++		/* disable and stop the PFPW engine */
++		gpmc_prefetch_reset(info->gpmc_cs);
++
++		dma_unmap_sg(info->dma->device->dev, &sg, 1, dir);
++		return 0;
++	}
++
+ 	dma_addr = dma_map_single(&info->pdev->dev, addr, len, dir);
+ 	if (dma_mapping_error(&info->pdev->dev, dma_addr)) {
+ 		dev_err(&info->pdev->dev,
+@@ -405,7 +461,6 @@ static inline int omap_nand_dma_transfer(struct mtd_info *mtd, void *addr,
+ 		goto out_copy;
+ 
+ 	init_completion(&info->comp);
+-
+ 	omap_start_dma(info->dma_ch);
+ 
+ 	/* setup and start DMA using dma_addr */
+@@ -925,12 +980,16 @@ static int omap_dev_ready(struct mtd_info *mtd)
+ 	return 1;
+ }
+ 
++extern bool omap_dma_filter_fn(struct dma_chan *chan, void *param);
++
+ static int __devinit omap_nand_probe(struct platform_device *pdev)
+ {
+ 	struct omap_nand_info		*info;
+ 	struct omap_nand_platform_data	*pdata;
+ 	int				err;
+ 	int				i, offset;
++	dma_cap_mask_t mask;
++	unsigned sig;
+ 
+ 	pdata = pdev->dev.platform_data;
+ 	if (pdata == NULL) {
+@@ -1011,6 +1070,33 @@ static int __devinit omap_nand_probe(struct platform_device *pdev)
+ 		break;
+ 
+ 	case NAND_OMAP_PREFETCH_DMA:
++		dma_cap_zero(mask);
++		dma_cap_set(DMA_SLAVE, mask);
++		sig = OMAP24XX_DMA_GPMC;
++		info->dma = dma_request_channel(mask, omap_dma_filter_fn, &sig);
++		if (!info->dma) {
++			dev_warn(&pdev->dev, "DMA engine request failed\n");
++		} else {
++			struct dma_slave_config cfg;
++			int rc;
++
++			memset(&cfg, 0, sizeof(cfg));
++			cfg.src_addr = info->phys_base;
++			cfg.dst_addr = info->phys_base;
++			cfg.src_addr_width = DMA_SLAVE_BUSWIDTH_4_BYTES;
++			cfg.dst_addr_width = DMA_SLAVE_BUSWIDTH_4_BYTES;
++			cfg.src_maxburst = 16;
++			cfg.dst_maxburst = 16;
++			rc = dmaengine_slave_config(info->dma, &cfg);
++			if (rc) {
++				dev_err(&pdev->dev, "DMA engine slave config failed: %d\n",
++					rc);
++				goto out_release_mem_region;
++			}
++			info->nand.read_buf   = omap_read_buf_dma_pref;
++			info->nand.write_buf  = omap_write_buf_dma_pref;
++			break;
++		}
+ 		err = omap_request_dma(OMAP24XX_DMA_GPMC, "NAND",
+ 				omap_nand_dma_cb, &info->comp, &info->dma_ch);
+ 		if (err < 0) {
+@@ -1110,6 +1196,8 @@ static int __devinit omap_nand_probe(struct platform_device *pdev)
+ 	return 0;
+ 
+ out_release_mem_region:
++	if (info->dma)
++		dma_release_channel(info->dma);
+ 	release_mem_region(info->phys_base, NAND_IO_SIZE);
+ out_free_info:
+ 	kfree(info);
+@@ -1127,6 +1215,9 @@ static int omap_nand_remove(struct platform_device *pdev)
+ 	if (info->dma_ch != -1)
+ 		omap_free_dma(info->dma_ch);
+ 
++	if (info->dma)
++		dma_release_channel(info->dma);
++
+ 	if (info->gpmc_irq)
+ 		free_irq(info->gpmc_irq, info);
+ 
 
->     (78us) pwrdm_for_each_clkdm(mpu, core, deny_idle/allow_idle),
-Depending on OPP, a PRCM read can take upto ~12-14 uS, so above
-shouldn't be surprising.
-
->     (33us estimated) omap_set_pwrdm_state(mpu, core, neon),
-This is again dominated by PRCM read
-
->     (11 us) clkdm_allow_idle(mpu). Is this needed?
-> 
-I guess yes other wise when C2+ is attempted MPU CD can't idle.
-
-> Here are a few questions and suggestions:
-> - In case of latency critical C-states could the high-latency code be
-> bypassed in favor of a much simpler version? Pushing the concept a bit
-> farther one could have a C1 state that just relaxes the cpu (no WFI),
-> a C2 state which bypasses a lot of code in __omap3_enter_idle, and the
-> rest of the C-states as we have today,
-We should do that. Infact C1 state should be as lite as possible like
-WFI or so.
-
-> - Is it needed to iterate through all the power and clock domains in
-> order to keep them active?
-That iteration should be removed.
-
-> - Trying to idle some non related power domains (e.g. PER) causes a
-> performance hit. How to link all the power domains states to the
-> cpuidle C-state? The per-device PM QoS framework could be used to
-> constraint some power domains, but this is highly dependent on the use
-> case.
->
-Note that just limiting PER PD state to ON is not going to
-solve the penalty. You need to avoid per CD transition and
-hence deny idle. I remember Nokia team did this on some
-products.
-
-
->> Yes PRCM register accesses are unfortunately rather slow, and we've
->> known that for some time, but haven't done any detailed analysis of the
->> overhead.
-> That would be worth doing the analysis. A lot of read accesses to the
-> current, next and previous power states are performed in the idle
-> code.
-> 
->> Using the function_graph tracer, I was able to see that the pre/post
->> transition are taking an enormous amount of time:
->>
->>  - pwrdm pre-transition: 1400+ us at 600MHz (4000+ us at 125MHz)
->>  - pwrdm post-transtion: 1600+ us at 600MHz (6000+ us at 125MHz)
->>
->> Notice the big difference between 600MHz OPP and 125MHz OPP.  Are you
->> using CPUfreq at all in your tests?  If using cpufreq + ondemand
->> governor, you're probably running at low OPP due to lack of CPU activity
->> which will also affect the latencies in the idle path.
->>
->>> Maybe some register cache would help us there, or are those registers
->>> expected to be changed by hardware often?
->>
->> Yes, we've known that some sort of register cache here would be useful
->> for some time, but haven't got to implementing it.
-> I can try some proof of concept code, just to prove its usefulness.
-> 
-Please do so. We were hoping that after Tero's series, we don't need
-this pre/post stuff but am not sure if Tero is addressing that.
-
-Register cache initiative is most welcome.
-
-Regards
-Santosh
