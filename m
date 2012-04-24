@@ -1,132 +1,77 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH-V4 3/3] ARM: OMAP: Make OMAP clocksource source
- selection using kernel param
-Date: Tue, 24 Apr 2012 09:20:16 -0700
-Message-ID: <20120424162016.GK3739@atomide.com>
-References: <1335260749-25877-1-git-send-email-hvaibhav@ti.com>
- <1335260749-25877-4-git-send-email-hvaibhav@ti.com>
+From: Sebastian Reichel <sre@debian.org>
+Subject: Re: HSI: any status updates on omap_ssi?
+Date: Tue, 24 Apr 2012 18:27:55 +0200
+Message-ID: <20120424162754.GA9407@earth.universe>
+References: <20120421105235.GA3296@earth.universe>
+ <20120424152316.GH3739@atomide.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: multipart/signed; micalg=pgp-sha256;
+	protocol="application/pgp-signature"; boundary="+HP7ph2BbKc20aGI"
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-01-ewr.mailhop.org ([204.13.248.71]:31918 "EHLO
-	mho-01-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755770Ab2DXQUU (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 24 Apr 2012 12:20:20 -0400
+Received: from ring0.de ([91.143.88.219]:41568 "EHLO ring0.de"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1755860Ab2DXQ2B (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Tue, 24 Apr 2012 12:28:01 -0400
 Content-Disposition: inline
-In-Reply-To: <1335260749-25877-4-git-send-email-hvaibhav@ti.com>
+In-Reply-To: <20120424152316.GH3739@atomide.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Vaibhav Hiremath <hvaibhav@ti.com>
-Cc: linux-omap@vger.kernel.org, khilman@ti.com, paul@pwsan.com, santosh.shilimkar@ti.com, b-cousson@ti.com, linux-arm-kernel@lists.infradead.org, Felipe Balbi <balbi@ti.com>, Tarun Kanti DebBarma <tarun.kanti@ti.com>, Ming Lei <tom.leiming@gmail.com>
-
-Hi,
-
-* Vaibhav Hiremath <hvaibhav@ti.com> [120424 02:54]:
-> Current OMAP code supports couple of clocksource options based
-> on compilation flag (CONFIG_OMAP_32K_TIMER). The 32KHz sync-timer
-> and a gptimer which can run on 32KHz or system clock (e.g 38.4 MHz).
-> So there can be 3 options -
-> 
-> 1. 32KHz sync-timer
-> 2. Sys_clock based (e.g 13/19.2/26/38.4 MHz) gptimer
-> 3. 32KHz based gptimer.
-> 
-> The optional gptimer based clocksource was added so that it can
-> give the high precision than sync-timer, so expected usage was 2
-> and not 3.
-> Unfortunately option 2, clocksource doesn't meet the requirement of
-> free-running clock as per clocksource need. It stops in low power states
-> when sys_clock is cut. That makes gptimer based clocksource option
-> useless for OMAP2/3/4 devices with sys_clock as a clock input.
-> Option 3 will still work but it is no better than 32K sync-timer
-> based clocksource.
-
-For some cases sys clock based timer is still valid if you don't
-care about PM. In that case deeper idle states need to be disabled,
-not the timer as discussed earlier. Please update the comments accordingly.
- 
-> So ideally we can kill the gptimer based clocksource option but there
-> are some OMAP based derivative SoCs like AM33XX which doesn't have
-> 32K sync-timer hardware IP and need to fallback on 32KHz based gptimer
-> clocksource.
-
-Maybe just say: "We must support both sync timer and gptimer based
-clocksource as some AM33XX hardware does not have the sync timer."
-
-> Considering above, make sync-timer and gptimer clocksource runtime
-> selectable so that both OMAP and AMXXXX continue to use the same code.
-> 
-> Also, in order to precisely configure/setup sched_clock for given
-> clocksource, decision has to be made early enough in boot sequence.
-> 
-> So, the solution is,
-> 
-> Use kernel parameter ("clocksource=") to override
-
-Maybe say: "Use standard kernel parameter ("clocksource=")..."
-
-> --- a/arch/arm/mach-omap1/timer32k.c
-> +++ b/arch/arm/mach-omap1/timer32k.c
-> @@ -71,6 +71,7 @@
-> 
->  /* 16xx specific defines */
->  #define OMAP1_32K_TIMER_BASE		0xfffb9000
-> +#define OMAP1_32KSYNC_TIMER_BASE	0xfffbc400
->  #define OMAP1_32K_TIMER_CR		0x08
->  #define OMAP1_32K_TIMER_TVR		0x00
->  #define OMAP1_32K_TIMER_TCR		0x04
-> @@ -184,7 +185,10 @@ static __init void omap_init_32k_timer(void)
->   */
->  bool __init omap_32k_timer_init(void)
->  {
-> -	omap_init_clocksource_32k();
-> +	u32 pbase;
-> +
-> +	pbase = cpu_is_omap16xx() ? OMAP1_32KSYNC_TIMER_BASE : NULL;
-> +	omap_init_clocksource_32k(pbase, SZ_1K);
->  	omap_init_32k_timer();
-> 
->  	return true;
-
-Has this patch been tested on omap1?
+To: Tony Lindgren <tony@atomide.com>
+Cc: linux-omap@vger.kernel.org
 
 
-> --- a/arch/arm/mach-omap2/timer.c
-> +++ b/arch/arm/mach-omap2/timer.c
-> @@ -510,3 +540,28 @@ static int __init omap2_dm_timer_init(void)
->  	return 0;
->  }
->  arch_initcall(omap2_dm_timer_init);
-> +
-> +/**
-> + * omap2_override_clocksource - clocksource override with user configuration
-> + *
-> + * Allows user to override default clocksource, using kernel parameter
-> + *   clocksource="gp timer"
-> + *
-> + * Note that, here we are using same standard kernel parameter "clocksource=",
-> + * and not introducing any OMAP specific interface.
-> + */
-> +static int __init omap2_override_clocksource(char *str)
-> +{
-> +	if (!str)
-> +		return 0;
-> +	/*
-> +	 * For OMAP architecture, we only have two options
-> +	 *    - sync_32k (default)
-> +	 *    - gp timer
-> +	 */
-> +	if (!strcmp(str, "gp timer"))
-> +		use_gptimer_clksrc = true;
-> +
-> +	return 0;
-> +}
-> +early_param("clocksource", omap2_override_clocksource);
+--+HP7ph2BbKc20aGI
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
 
-Should say "For omap2plus architectures" and should say three options.
-If the sys clock based timer is not currently supported, please mention
-that in the comments.
+On Tue, Apr 24, 2012 at 08:23:16AM -0700, Tony Lindgren wrote:
+> * Sebastian Reichel <sre@debian.org> [120421 04:26]:
+> > Hi,
+> >=20
+> > Missing omap_ssi support is currently the most important missing
+> > feature, to make the mainline kernel on the Nokia N900 useful, see
+> > also [0].
+> >=20
+> > Can you prepare SSI inclusion into the mainline kernel, now that HSI
+> > has been pulled into 3.4? Do you think we get SSI support in 3.5?
+>=20
+> Also FYI related to n900, you need to have bce492c0 (ARM: OMAP2+: UART: F=
+ix
+> incorrect population of default uart pads) applied after v3.1 if using
+> CONFIG_OMAP_MUX to avoid some SSI pins getting wronly muxed to UART.
 
-Regards,
+Thanks for the info.
 
-Tony
+> Then to verify, the hw floating point error you reported a while back
+> with omap2plus_defconfig got resolved, right?
+
+I have not tried again since then. The error only occured, if the
+kernel has been built with OMAP2 support. It does not show up on
+kernels, which support only OMAP3/OMAP4.
+
+-- Sebastian
+
+--+HP7ph2BbKc20aGI
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: Digital signature
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.4.12 (GNU/Linux)
+
+iQIcBAEBCAAGBQJPltSKAAoJENju1/PIO/qateAP/iwmdPGwtNlHR7IDEUEU0UoY
+VLAZQOn/JqlHeuVk8+LGj3vWVwKEISEAxahKkhjYi6o8J5F56WHIBTD4I0QjeBps
+eYQwt/QbJoL9AJFqaFFR0VZ1RvWimZwTptE3E8h99cHalPyOO71JQvu4jgWrL4zv
+C9L2HVLyXv9tFvz9/j+5R5iTsby+wH+lwL9ZmJ06n0xMF+2iVjKY4eL5PeqkxKOx
+ykth9FCr6nv7ioQKUFSI8paMqYiux8G9hTf4NdNY+r6DLna1u3CAxSArv7fje49t
+h9IEH9QiUw+8Sx8+Vqm/nJx/sQB7uY5cH8ZwpmUTDk1leIl+OXMJB3YxTlgll6mL
+VfwElJLPW62d+RSJ9MKi1dLh4xGZQpB9iZKMUGEuR86lOQspBdDSDsAObqhwqlOR
+Frij3lA2LCXdq0IqTqMqLD3wBgEfOSdg7D5jTzTr7zepcyo4HIDhV+VDvva/j59m
+F3JOSzbnGLeM6WaZuaHlNTllT10vnsxhcjtEz/9lDD79NV4/ThTup6np0Iivl6ao
+XYleIQHegsSGFP6ApOs8YARVGPB5GVinT2nECSQ4uIj8g2z8Q1PDxw2cOyHC4aUJ
+01T54lbWR1/L/R9sw6mJaM50KPLQF6+h9cm7t0nMmOlc2FS+YmpgpiP1GnnQZGbj
+Zpv4FMnsRQBRbqhu8QxO
+=6zH8
+-----END PGP SIGNATURE-----
+
+--+HP7ph2BbKc20aGI--
