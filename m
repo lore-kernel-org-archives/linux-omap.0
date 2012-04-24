@@ -1,80 +1,61 @@
-From: "Mark A. Greer" <mgreer@animalcreek.com>
-Subject: Re: [PATCH 03/12] arm: omap3: Only sleep in cpuidle driver if I/O
- wake-ups work
-Date: Tue, 24 Apr 2012 16:25:06 -0700
-Message-ID: <20120424232506.GA8850@animalcreek.com>
-References: <1334171147-7517-1-git-send-email-mgreer@animalcreek.com>
- <1334171147-7517-4-git-send-email-mgreer@animalcreek.com>
- <alpine.DEB.2.00.1204111532280.29473@utopia.booyaka.com>
- <20120424205105.GA26749@animalcreek.com>
+From: Russell King - ARM Linux <linux@arm.linux.org.uk>
+Subject: Re: [RFC 00/12] OMAP DMA engine conversion
+Date: Wed, 25 Apr 2012 00:29:29 +0100
+Message-ID: <20120424232928.GB6290@n2100.arm.linux.org.uk>
+References: <20120423160409.GE24299@n2100.arm.linux.org.uk> <20120424103858.GC25053@n2100.arm.linux.org.uk> <20120424165147.GP3739@atomide.com> <CANOLnOOf0znGBSSQp5B3U+1q2OJBXnB_1T0aiuma_rJZDZA08Q@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=iso-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail20.dotsterhost.com ([66.11.232.73]:36838 "EHLO
-	mail20.dotsterhost.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754172Ab2DXXZI (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 24 Apr 2012 19:25:08 -0400
+Received: from caramon.arm.linux.org.uk ([78.32.30.218]:58276 "EHLO
+	caramon.arm.linux.org.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756606Ab2DXX3o (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 24 Apr 2012 19:29:44 -0400
 Content-Disposition: inline
-In-Reply-To: <20120424205105.GA26749@animalcreek.com>
+In-Reply-To: <CANOLnOOf0znGBSSQp5B3U+1q2OJBXnB_1T0aiuma_rJZDZA08Q@mail.gmail.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Paul Walmsley <paul@pwsan.com>, khilman@ti.com
-Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+To: Grazvydas Ignotas <notasas@gmail.com>
+Cc: Tony Lindgren <tony@atomide.com>, linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org, linux-mmc@vger.kernel.org
 
-On Tue, Apr 24, 2012 at 01:51:05PM -0700, Mark A. Greer wrote:
-> On Wed, Apr 11, 2012 at 03:37:47PM -0600, Paul Walmsley wrote:
-> > Hi
-> 
-> Hi Paul, Kevin.
-> 
-> > On Wed, 11 Apr 2012, Mark A. Greer wrote:
-> > 
-> > > From: "Mark A. Greer" <mgreer@animalcreek.com>
-> > > 
-> > > Currently, the OMAP3 cpuidle driver calls omap3_enter_idle()
-> > > which calls omap_sram_idle().  omap_sram_idle() eventually
-> > > causes a 'wfi' instruction to be executed effectively putting
-> > > the system to sleep.  It is assumed that an I/O wake-up event
-> > > will occur to wake the system up again.  This doesn't work on
-> > > systems that don't support I/O wake-ups (indicated by
-> > > omap3_has_io_wakeup() returning false).
-> > > 
-> > > To handle this, follow the same path in omap3_enter_idle()
-> > > that would be followed if an interrupt were pending.
-> > 
-> > I don't quite understand this patch.  Are you saying that AM3517/3505 
-> > can't wake from WFI?  That would seem odd.
-> > 
-> > There are other sources of wakeup on the system other than I/O wakeup.  
-> > I/O wakeup only applies to wakeups from the I/O pads when the chip is in 
-> > RETENTION or OFF.  And as I understand it, neither of those apply to 
-> > AM3517/3505?
-> > 
-> > Even if I/O wakeups aren't supported, many of the IP blocks on the system 
-> > should be able to cause the ARM to exit WFI by asserting their 
-> > SWAKEUP lines and raising their interrupt lines.
-> 
-> I have changed the code to keep everything in the ON state and use
-> cpu_do_idle()--basically a wfi, cpu_v7_do_idle() in this case--and everything
-> works well (except networking, see below) when using an mmc-based rootfs.
-> 
-> The issue is with the emac--it can't wake the system up unless there
-> is an irq from the PHY to a wakeup-enabled GPIO (confirmed by h/w engr).
-> So, when using networking or using an nfs-based rootfs, there are all
-> kinds of timeouts, etc.  Basically, doing a wfi (i.e., pm_idle or cpuidle)
-> and expecting the emac to wake the system back up won't work.
-> 
-> How would you like me to proceed (to avoid the wfi in pm_idle & cpuidle)?
+On Wed, Apr 25, 2012 at 01:47:21AM +0300, Grazvydas Ignotas wrote:
+> On Tue, Apr 24, 2012 at 7:51 PM, Tony Lindgren <tony@atomide.com> wro=
+te:
+> > * Russell King - ARM Linux <linux@arm.linux.org.uk> [120424 03:42]:
+> >> Here's another patch - for the OMAP NAND driver.
+> >>
+> >> One thing this doesn't do is configure up the source/destination b=
+ursts,
+> >> which the old code did:
+> >>
+> >> =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 omap_set_dma_dest_=
+burst_mode(info->dma_ch,
+> >> =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0=
+ =A0 =A0 =A0 OMAP_DMA_DATA_BURST_16);
+> >> =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 omap_set_dma_src_b=
+urst_mode(info->dma_ch,
+> >> =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0=
+ =A0 =A0 =A0 OMAP_DMA_DATA_BURST_16);
+> >
+> > Grazvydas, care to give this patch a go?
+>=20
+> Tested-by: Grazvydas Ignotas <notasas@gmail.com>
+> for:
+> - SD card connected over transceiver to MMC2
+> - touchscreen connected over SPI
+> - NAND on GPMC in DMA mode
+> Seems to be working just as they did before, except that I'm not sure
+> SPI was crossing PIO threshold.
 
-Just thinking out loud...
+I think my testing on OMAP4430SDP with the SPI based ethernet should've
+caught anything untoward there.
 
-We could chose whether pm_idle & cpuidle issue a wfi based on
-whether there is a davinci-emac present.  The issue with that is
-that someday there may be another SoC that has a davinci-emac that
-can wake up the system.  I know cpu_is_xxx() is frowned upon but
-this does seem like a proper usage of it--the deciding factor
-really is whether its an am35x or not (and CONFIG_TI_DAVINCI_EMAC
-is enabled).
+=46or the MMC2, could you say whether this was the hsmmc driver or the
+older omap1/2 driver please?
 
-Mark
+Thanks.
 --
+To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
