@@ -1,103 +1,119 @@
 From: Tony Lindgren <tony@atomide.com>
-Subject: [PATCH 7/7] ARM: OMAP1: Pass dma request lines in platform data to
- MMC driver
-Date: Mon, 23 Apr 2012 17:08:39 -0700
-Message-ID: <20120424000839.17783.70410.stgit@muffinssi.local>
-References: <20120424000607.17783.81686.stgit@muffinssi.local>
+Subject: Re: [PATCH 07/12] mmc: omap: add DMA engine support
+Date: Mon, 23 Apr 2012 17:13:30 -0700
+Message-ID: <20120424001330.GD3739@atomide.com>
+References: <20120423160409.GE24299@n2100.arm.linux.org.uk>
+ <E1SMLmZ-0002WS-Rd@rmk-PC.arm.linux.org.uk>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-01-ewr.mailhop.org ([204.13.248.71]:40234 "EHLO
-	mho-01-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755087Ab2DXAIk (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 23 Apr 2012 20:08:40 -0400
-In-Reply-To: <20120424000607.17783.81686.stgit@muffinssi.local>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-mmc-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <E1SMLmZ-0002WS-Rd@rmk-PC.arm.linux.org.uk>
+Sender: linux-mmc-owner@vger.kernel.org
+To: Russell King <rmk+kernel@arm.linux.org.uk>
+Cc: linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org, linux-mmc@vger.kernel.org, Jarkko Lavinen <jarkko.lavinen@nokia.com>, Chris Ball <cjb@laptop.org>
 List-Id: linux-omap@vger.kernel.org
-To: linux-arm-kernel@lists.infradead.org
-Cc: linux-omap@vger.kernel.org
 
-Pass dma request lines in platform data to MMC driver.
+* Russell King <rmk+kernel@arm.linux.org.uk> [120423 09:11]:
+> Add DMA engine support to the OMAP driver.  This supplements the
+> private DMA API implementation contained within this driver, and the
+> driver can be switched at build time between using DMA engine and the
+> private DMA API.
 
-Signed-off-by: Tony Lindgren <tony@atomide.com>
----
- arch/arm/mach-omap1/devices.c |   18 ++++++++++++++++--
- 1 file changed, 16 insertions(+), 2 deletions(-)
+Below is what's needed to use DMA request lines from platform data.
+Note also the release_mem_region change that we'll now need for
+this one also (but not as a fix).
 
-diff --git a/arch/arm/mach-omap1/devices.c b/arch/arm/mach-omap1/devices.c
-index 2192676..fa1fa4d 100644
---- a/arch/arm/mach-omap1/devices.c
-+++ b/arch/arm/mach-omap1/devices.c
-@@ -22,6 +22,7 @@
- #include <plat/tc.h>
- #include <plat/board.h>
- #include <plat/mux.h>
-+#include <plat/dma.h>
- #include <plat/mmc.h>
- #include <plat/omap7xx.h>
+I've posted a cleanup patch series to mostly remove plat-omap/devices.c
+that takes care of passing the DMA request lines in platform data.
+That series should get merged before the driver changes for this
+driver to keep DMA working.
+
+Regards,
+
+Tony
+
+
+--- a/drivers/mmc/host/omap.c
++++ b/drivers/mmc/host/omap.c
+@@ -1313,7 +1313,7 @@ static int __init mmc_omap_probe(struct platform_device *pdev)
+ 	struct mmc_omap_host *host = NULL;
+ 	struct resource *res;
+ 	dma_cap_mask_t mask;
+-	unsigned sig;
++	unsigned tx_req, rx_req;
+ 	int i, ret = 0;
+ 	int irq;
  
-@@ -144,13 +145,14 @@ static inline void omap1_mmc_mux(struct omap_mmc_platform_data *mmc_controller,
+@@ -1389,37 +1389,44 @@ static int __init mmc_omap_probe(struct platform_device *pdev)
+ 	host->dma_tx_burst = -1;
+ 	host->dma_rx_burst = -1;
+ 
+-	if (cpu_is_omap24xx())
+-		sig = host->id == 0 ? OMAP24XX_DMA_MMC1_TX : OMAP24XX_DMA_MMC2_TX;
+-	else
+-		sig = host->id == 0 ? OMAP_DMA_MMC_TX : OMAP_DMA_MMC2_TX;
+-	host->dma_tx = dma_request_channel(mask, omap_dma_filter_fn, &sig);
++	res = platform_get_resource_byname(pdev, IORESOURCE_DMA, "tx");
++	if (!res) {
++		dev_err(host->dev, "cannot get DMA TX channel\n");
++		goto err_free_dma;
++	}
++	tx_req = res->start;
++
++	res = platform_get_resource_byname(pdev, IORESOURCE_DMA, "rx");
++	if (!res) {
++		dev_err(host->dev, "cannot get DMA RX channel\n");
++		goto err_free_dma;
++	}
++	rx_req = res->start;
++
++	host->dma_tx = dma_request_channel(mask, omap_dma_filter_fn, &tx_req);
+ #if 0
+ 	if (!host->dma_tx) {
+ 		dev_err(host->dev, "unable to obtain TX DMA engine channel %u\n",
+-			sig);
+-		goto err_dma;
++			tx_req);
++		goto err_free_dma;
  	}
+ #else
+ 	if (!host->dma_tx)
+ 		dev_warn(host->dev, "unable to obtain TX DMA engine channel %u\n",
+-			sig);
++			tx_req);
+ #endif
+-	if (cpu_is_omap24xx())
+-		sig = host->id == 0 ? OMAP24XX_DMA_MMC1_RX : OMAP24XX_DMA_MMC2_RX;
+-	else
+-		sig = host->id == 0 ? OMAP_DMA_MMC_RX : OMAP_DMA_MMC2_RX;
+-	host->dma_rx = dma_request_channel(mask, omap_dma_filter_fn, &sig);
++
++	host->dma_rx = dma_request_channel(mask, omap_dma_filter_fn, &rx_req);
+ #if 0
+ 	if (!host->dma_rx) {
+ 		dev_err(host->dev, "unable to obtain RX DMA engine channel %u\n",
+-			sig);
+-		goto err_dma;
++			rx_req);
++		goto err_free_dma;
+ 	}
+ #else
+ 	if (!host->dma_rx)
+ 		dev_warn(host->dev, "unable to obtain RX DMA engine channel %u\n",
+-			sig);
++			rx_req);
+ #endif
+ 
+ 	ret = request_irq(host->irq, mmc_omap_irq, 0, DRIVER_NAME, host);
+@@ -1466,7 +1473,9 @@ err_free_mmc_host:
+ err_ioremap:
+ 	kfree(host);
+ err_free_mem_region:
+-	release_mem_region(res->start, resource_size(res));
++	res = platform_get_resource(pdev, IORESOURCE_MEM, 0);
++	if (res)
++		release_mem_region(res->start, resource_size(res));
+ 	return ret;
  }
  
--#define OMAP_MMC_NR_RES		2
-+#define OMAP_MMC_NR_RES		4
- 
- /*
-  * Register MMC devices.
-  */
- static int __init omap_mmc_add(const char *name, int id, unsigned long base,
- 				unsigned long size, unsigned int irq,
-+				unsigned rx_req, unsigned tx_req,
- 				struct omap_mmc_platform_data *data)
- {
- 	struct platform_device *pdev;
-@@ -167,6 +169,12 @@ static int __init omap_mmc_add(const char *name, int id, unsigned long base,
- 	res[0].flags = IORESOURCE_MEM;
- 	res[1].start = res[1].end = irq;
- 	res[1].flags = IORESOURCE_IRQ;
-+	res[2].start = rx_req;
-+	res[2].name = "rx";
-+	res[2].flags = IORESOURCE_DMA;
-+	res[3].start = tx_req;
-+	res[3].name = "tx";
-+	res[3].flags = IORESOURCE_DMA;
- 
- 	ret = platform_device_add_resources(pdev, res, ARRAY_SIZE(res));
- 	if (ret == 0)
-@@ -194,6 +202,7 @@ void __init omap1_init_mmc(struct omap_mmc_platform_data **mmc_data,
- 
- 	for (i = 0; i < nr_controllers; i++) {
- 		unsigned long base, size;
-+		unsigned rx_req, tx_req;
- 		unsigned int irq = 0;
- 
- 		if (!mmc_data[i])
-@@ -205,19 +214,24 @@ void __init omap1_init_mmc(struct omap_mmc_platform_data **mmc_data,
- 		case 0:
- 			base = OMAP1_MMC1_BASE;
- 			irq = INT_MMC;
-+			rx_req = OMAP_DMA_MMC_RX;
-+			tx_req = OMAP_DMA_MMC_TX;
- 			break;
- 		case 1:
- 			if (!cpu_is_omap16xx())
- 				return;
- 			base = OMAP1_MMC2_BASE;
- 			irq = INT_1610_MMC2;
-+			rx_req = OMAP_DMA_MMC2_RX;
-+			tx_req = OMAP_DMA_MMC2_TX;
- 			break;
- 		default:
- 			continue;
- 		}
- 		size = OMAP1_MMC_SIZE;
- 
--		omap_mmc_add("mmci-omap", i, base, size, irq, mmc_data[i]);
-+		omap_mmc_add("mmci-omap", i, base, size, irq,
-+				rx_req, tx_req, mmc_data[i]);
- 	};
- }
- 
-
