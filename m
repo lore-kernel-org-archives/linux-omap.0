@@ -1,45 +1,43 @@
-From: Tero Kristo <t-kristo@ti.com>
-Subject: Re: [PATCHv4 4/8] ARM: OMAP4: hwmod: flag hwmods/modules
- supporting module level context status
-Date: Tue, 24 Apr 2012 17:46:55 +0300
-Message-ID: <1335278815.2149.93.camel@sokoban>
-References: <1334913591-26312-1-git-send-email-t-kristo@ti.com>
-	 <1334913591-26312-5-git-send-email-t-kristo@ti.com>
-	 <4F957ACD.2040103@ti.com>
-Reply-To: <t-kristo@ti.com>
+From: Tony Lindgren <tony@atomide.com>
+Subject: Re: HSI: any status updates on omap_ssi?
+Date: Tue, 24 Apr 2012 08:23:16 -0700
+Message-ID: <20120424152316.GH3739@atomide.com>
+References: <20120421105235.GA3296@earth.universe>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from comal.ext.ti.com ([198.47.26.152]:59556 "EHLO comal.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754710Ab2DXOrB (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Tue, 24 Apr 2012 10:47:01 -0400
-In-Reply-To: <4F957ACD.2040103@ti.com>
+Received: from mho-02-ewr.mailhop.org ([204.13.248.72]:56169 "EHLO
+	mho-02-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755598Ab2DXPXX (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 24 Apr 2012 11:23:23 -0400
+Content-Disposition: inline
+In-Reply-To: <20120421105235.GA3296@earth.universe>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Jon Hunter <jon-hunter@ti.com>
-Cc: linux-omap@vger.kernel.org, khilman@ti.com, paul@pwsan.com, Rajendra Nayak <rnayak@ti.com>, linux-arm-kernel@lists.infradead.org
+To: Sebastian Reichel <sre@debian.org>
+Cc: Carlos Chinea <carlos.chinea@nokia.com>, linux-omap@vger.kernel.org
 
-On Mon, 2012-04-23 at 10:52 -0500, Jon Hunter wrote:
-> Hi Tero,
+* Sebastian Reichel <sre@debian.org> [120421 04:26]:
+> Hi,
 > 
-> On 04/20/2012 04:19 AM, Tero Kristo wrote:
-> > From: Rajendra Nayak <rnayak@ti.com>
-> > 
-> > On OMAP4 most modules/hwmods support module level context status. On
-> > OMAP3 and earlier, we relyed on the power domain level context status.
-> > Identify all such modules using a 'HWMOD_CONTEXT_REG' flag, all such
-> > hwmods already have a valid 'context_offs' populated in .prcm structure.
+> Missing omap_ssi support is currently the most important missing
+> feature, to make the mainline kernel on the Nokia N900 useful, see
+> also [0].
 > 
-> Is it necessary to add another flag? Can't we just check if context_offs
-> is non-zero? Would save adding a lot more lines to an already large file
-> :-)
+> Can you prepare SSI inclusion into the mainline kernel, now that HSI
+> has been pulled into 3.4? Do you think we get SSI support in 3.5?
 
-Actually one of the older versions of this patch was just checking
-against a non-zero value, but it was decided to be changed as
-potentially the context_offs can be zero even if it is a valid offset.
+Also FYI related to n900, you need to have bce492c0 (ARM: OMAP2+: UART: Fix
+incorrect population of default uart pads) applied after v3.1 if using
+CONFIG_OMAP_MUX to avoid some SSI pins getting wronly muxed to UART.
 
--Tero
+Then to verify, the hw floating point error you reported a while back
+with omap2plus_defconfig got resolved, right?
 
+Regards,
+
+Tony
+
+ 
+> [0] http://elinux.org/N900
 
