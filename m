@@ -1,53 +1,79 @@
-From: "Cousson, Benoit" <b-cousson@ti.com>
-Subject: Re: [PATCHv4 4/8] ARM: OMAP4: hwmod: flag hwmods/modules supporting
- module level context status
-Date: Tue, 24 Apr 2012 19:14:52 +0200
-Message-ID: <4F96DF8C.6040400@ti.com>
-References: <1334913591-26312-1-git-send-email-t-kristo@ti.com>  <1334913591-26312-5-git-send-email-t-kristo@ti.com>  <4F957ACD.2040103@ti.com> <1335278815.2149.93.camel@sokoban>
+From: Tony Lindgren <tony@atomide.com>
+Subject: Re: [PATCH] OMAP4: panda: add statics to remove warnings
+Date: Tue, 24 Apr 2012 10:16:31 -0700
+Message-ID: <20120424171630.GQ3739@atomide.com>
+References: <1335166780-5899-1-git-send-email-tomi.valkeinen@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from bear.ext.ti.com ([192.94.94.41]:42051 "EHLO bear.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1755528Ab2DXRPB (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Tue, 24 Apr 2012 13:15:01 -0400
-In-Reply-To: <1335278815.2149.93.camel@sokoban>
+Received: from mho-01-ewr.mailhop.org ([204.13.248.71]:25466 "EHLO
+	mho-01-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756606Ab2DXRQd (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 24 Apr 2012 13:16:33 -0400
+Content-Disposition: inline
+In-Reply-To: <1335166780-5899-1-git-send-email-tomi.valkeinen@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: t-kristo@ti.com
-Cc: Jon Hunter <jon-hunter@ti.com>, linux-omap@vger.kernel.org, khilman@ti.com, paul@pwsan.com, Rajendra Nayak <rnayak@ti.com>, linux-arm-kernel@lists.infradead.org
+To: Tomi Valkeinen <tomi.valkeinen@ti.com>
+Cc: linux-omap@vger.kernel.org
 
-On 4/24/2012 4:46 PM, Tero Kristo wrote:
-> On Mon, 2012-04-23 at 10:52 -0500, Jon Hunter wrote:
->> Hi Tero,
->>
->> On 04/20/2012 04:19 AM, Tero Kristo wrote:
->>> From: Rajendra Nayak<rnayak@ti.com>
->>>
->>> On OMAP4 most modules/hwmods support module level context status. On
->>> OMAP3 and earlier, we relyed on the power domain level context status.
->>> Identify all such modules using a 'HWMOD_CONTEXT_REG' flag, all such
->>> hwmods already have a valid 'context_offs' populated in .prcm structure.
->>
->> Is it necessary to add another flag? Can't we just check if context_offs
->> is non-zero? Would save adding a lot more lines to an already large file
->> :-)
->
-> Actually one of the older versions of this patch was just checking
-> against a non-zero value, but it was decided to be changed as
-> potentially the context_offs can be zero even if it is a valid offset.
+* Tomi Valkeinen <tomi.valkeinen@ti.com> [120423 00:43]:
+> Add statics to board-omap4-panda.c's internal functions and data
+> structures to remove warnings.
 
-Yeah, but still, every OMAP4 IPs are supporting that except two of them 
-I guess, so it is a pity to add that to every IPs.
+Care to update with the warnings produced?
 
-We'd better add a HWMOD_NO_CONTEXT_REG to the few IPs that are not 
-supporting that. Since OMAP 2 & 3 does not have this feature at all, we 
-can check on the cpu revision.
-
-I think the issue raised by Rajendra was about AM35xx that looks like an 
-OMAP3 variant but does have these registers like an OMAP4 variant:-(
-
-Regards,
-Benoit
-
+Tony
+ 
+> Signed-off-by: Tomi Valkeinen <tomi.valkeinen@ti.com>
+> ---
+>  arch/arm/mach-omap2/board-omap4panda.c |    8 ++++----
+>  1 files changed, 4 insertions(+), 4 deletions(-)
+> 
+> diff --git a/arch/arm/mach-omap2/board-omap4panda.c b/arch/arm/mach-omap2/board-omap4panda.c
+> index 1b782ba..8216e5f 100644
+> --- a/arch/arm/mach-omap2/board-omap4panda.c
+> +++ b/arch/arm/mach-omap2/board-omap4panda.c
+> @@ -231,7 +231,7 @@ static struct platform_device omap_vwlan_device = {
+>  	},
+>  };
+>  
+> -struct wl12xx_platform_data omap_panda_wlan_data  __initdata = {
+> +static struct wl12xx_platform_data omap_panda_wlan_data  __initdata = {
+>  	/* PANDA ref clock is 38.4 MHz */
+>  	.board_ref_clock = 2,
+>  };
+> @@ -438,7 +438,7 @@ static struct panel_dvi_platform_data omap4_dvi_panel = {
+>  	.i2c_bus_num = 3,
+>  };
+>  
+> -struct omap_dss_device omap4_panda_dvi_device = {
+> +static struct omap_dss_device omap4_panda_dvi_device = {
+>  	.type			= OMAP_DISPLAY_TYPE_DPI,
+>  	.name			= "dvi",
+>  	.driver_name		= "dvi",
+> @@ -448,7 +448,7 @@ struct omap_dss_device omap4_panda_dvi_device = {
+>  	.channel		= OMAP_DSS_CHANNEL_LCD2,
+>  };
+>  
+> -int __init omap4_panda_dvi_init(void)
+> +static int __init omap4_panda_dvi_init(void)
+>  {
+>  	int r;
+>  
+> @@ -509,7 +509,7 @@ static struct omap_dss_board_info omap4_panda_dss_data = {
+>  	.default_device	= &omap4_panda_dvi_device,
+>  };
+>  
+> -void __init omap4_panda_display_init(void)
+> +static void __init omap4_panda_display_init(void)
+>  {
+>  	int r;
+>  
+> -- 
+> 1.7.4.1
+> 
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-omap" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
