@@ -1,42 +1,80 @@
-From: Grazvydas Ignotas <notasas@gmail.com>
-Subject: Re: [PATCH/RFT 0/3] ARM: OMAP: PM: reduce overhead of pwrdm pre/post transitions
-Date: Wed, 25 Apr 2012 02:01:45 +0300
-Message-ID: <CANOLnOOBit16XSmKRKf8QasuGTiyChMVKKnLM8X0SWRMKaMJbg@mail.gmail.com>
-References: <1335277420-29124-1-git-send-email-khilman@ti.com>
+From: "Mark A. Greer" <mgreer@animalcreek.com>
+Subject: Re: [PATCH 03/12] arm: omap3: Only sleep in cpuidle driver if I/O
+ wake-ups work
+Date: Tue, 24 Apr 2012 16:25:06 -0700
+Message-ID: <20120424232506.GA8850@animalcreek.com>
+References: <1334171147-7517-1-git-send-email-mgreer@animalcreek.com>
+ <1334171147-7517-4-git-send-email-mgreer@animalcreek.com>
+ <alpine.DEB.2.00.1204111532280.29473@utopia.booyaka.com>
+ <20120424205105.GA26749@animalcreek.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-iy0-f174.google.com ([209.85.210.174]:37635 "EHLO
-	mail-iy0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1758518Ab2DXXBq convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 24 Apr 2012 19:01:46 -0400
-Received: by iadi9 with SMTP id i9so1607593iad.19
-        for <linux-omap@vger.kernel.org>; Tue, 24 Apr 2012 16:01:46 -0700 (PDT)
-In-Reply-To: <1335277420-29124-1-git-send-email-khilman@ti.com>
+Received: from mail20.dotsterhost.com ([66.11.232.73]:36838 "EHLO
+	mail20.dotsterhost.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754172Ab2DXXZI (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 24 Apr 2012 19:25:08 -0400
+Content-Disposition: inline
+In-Reply-To: <20120424205105.GA26749@animalcreek.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Kevin Hilman <khilman@ti.com>
-Cc: linux-omap@vger.kernel.org, Jean Pihet <jean.pihet@newoldbits.com>, Tero Kristo <t-kristo@ti.com>, Paul Walmsley <paul@pwsan.com>, Santosh Shilimkar <santosh.shilimkar@ti.com>
+To: Paul Walmsley <paul@pwsan.com>, khilman@ti.com
+Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 
-On Tue, Apr 24, 2012 at 5:23 PM, Kevin Hilman <khilman@ti.com> wrote:
-> Here's a first pass attempt to reduce the overhead of the pre/post
-> transitions by allowing them to be called per powerdomain and making
-> them conditional on powerdomain transtions.
->
-> This can be used for testing/measurements to see the reduction the
-> latencies involved in entering/exiting idle with and without these
-> patches.
+On Tue, Apr 24, 2012 at 01:51:05PM -0700, Mark A. Greer wrote:
+> On Wed, Apr 11, 2012 at 03:37:47PM -0600, Paul Walmsley wrote:
+> > Hi
+> 
+> Hi Paul, Kevin.
+> 
+> > On Wed, 11 Apr 2012, Mark A. Greer wrote:
+> > 
+> > > From: "Mark A. Greer" <mgreer@animalcreek.com>
+> > > 
+> > > Currently, the OMAP3 cpuidle driver calls omap3_enter_idle()
+> > > which calls omap_sram_idle().  omap_sram_idle() eventually
+> > > causes a 'wfi' instruction to be executed effectively putting
+> > > the system to sleep.  It is assumed that an I/O wake-up event
+> > > will occur to wake the system up again.  This doesn't work on
+> > > systems that don't support I/O wake-ups (indicated by
+> > > omap3_has_io_wakeup() returning false).
+> > > 
+> > > To handle this, follow the same path in omap3_enter_idle()
+> > > that would be followed if an interrupt were pending.
+> > 
+> > I don't quite understand this patch.  Are you saying that AM3517/3505 
+> > can't wake from WFI?  That would seem odd.
+> > 
+> > There are other sources of wakeup on the system other than I/O wakeup.  
+> > I/O wakeup only applies to wakeups from the I/O pads when the chip is in 
+> > RETENTION or OFF.  And as I understand it, neither of those apply to 
+> > AM3517/3505?
+> > 
+> > Even if I/O wakeups aren't supported, many of the IP blocks on the system 
+> > should be able to cause the ARM to exit WFI by asserting their 
+> > SWAKEUP lines and raising their interrupt lines.
+> 
+> I have changed the code to keep everything in the ON state and use
+> cpu_do_idle()--basically a wfi, cpu_v7_do_idle() in this case--and everything
+> works well (except networking, see below) when using an mmc-based rootfs.
+> 
+> The issue is with the emac--it can't wake the system up unless there
+> is an irq from the PHY to a wakeup-enabled GPIO (confirmed by h/w engr).
+> So, when using networking or using an nfs-based rootfs, there are all
+> kinds of timeouts, etc.  Basically, doing a wfi (i.e., pm_idle or cpuidle)
+> and expecting the emac to wake the system back up won't work.
+> 
+> How would you like me to proceed (to avoid the wfi in pm_idle & cpuidle)?
 
-Seems to have similar effect as my earlier test of simply commenting
-out pre/post transitions (~4.4MB/s), so this definitely helps.
+Just thinking out loud...
 
-Tested-by: Grazvydas Ignotas <notasas@gmail.com>
+We could chose whether pm_idle & cpuidle issue a wfi based on
+whether there is a davinci-emac present.  The issue with that is
+that someday there may be another SoC that has a davinci-emac that
+can wake up the system.  I know cpu_is_xxx() is frowned upon but
+this does seem like a proper usage of it--the deciding factor
+really is whether its an am35x or not (and CONFIG_TI_DAVINCI_EMAC
+is enabled).
 
---=20
-Gra=C5=BEvydas
+Mark
 --
-To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
