@@ -1,85 +1,132 @@
 From: Kevin Hilman <khilman@ti.com>
-Subject: [PATCH/RFT 2/3] ARM: OMAP3: PM: call pre/post transition per powerdomain
-Date: Tue, 24 Apr 2012 07:23:39 -0700
-Message-ID: <1335277420-29124-3-git-send-email-khilman@ti.com>
+Subject: [PATCH/RFT 1/3] ARM: OMAP2+: powerdomain: allow pre/post transtion to be per pwrdm
+Date: Tue, 24 Apr 2012 07:23:38 -0700
+Message-ID: <1335277420-29124-2-git-send-email-khilman@ti.com>
 References: <1335277420-29124-1-git-send-email-khilman@ti.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aog108.obsmtp.com ([74.125.149.199]:53058 "EHLO
-	na3sys009aog108.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754679Ab2DXOWz (ORCPT
+Received: from na3sys009aog109.obsmtp.com ([74.125.149.201]:36643 "EHLO
+	na3sys009aog109.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1754679Ab2DXOWy (ORCPT
 	<rfc822;linux-omap@vger.kernel.org>);
-	Tue, 24 Apr 2012 10:22:55 -0400
-Received: by pbcuo5 with SMTP id uo5so162376pbc.32
-        for <linux-omap@vger.kernel.org>; Tue, 24 Apr 2012 07:22:54 -0700 (PDT)
+	Tue, 24 Apr 2012 10:22:54 -0400
+Received: by pbbrp2 with SMTP id rp2so97526pbb.15
+        for <linux-omap@vger.kernel.org>; Tue, 24 Apr 2012 07:22:52 -0700 (PDT)
 In-Reply-To: <1335277420-29124-1-git-send-email-khilman@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: linux-omap@vger.kernel.org
 Cc: Jean Pihet <jean.pihet@newoldbits.com>, Tero Kristo <t-kristo@ti.com>, Paul Walmsley <paul@pwsan.com>, Santosh Shilimkar <santosh.shilimkar@ti.com>
 
-We only need to call the pre/post transtion methods when we know the
-power state is changing.  First, split up the pre/post transition
-calls to be per-powerdomain, and then make them conditional on whether
-the power domain is actually changing states.
+Iteration over all power domains in the idle path is unnecessary since
+only power domains that are transitioning need to be accounted for.
+Also PRCM register accesses are known to be expensive, so the
+additional latency added to the idle path is signficiant.
+
+In order allow the pre/post transitions to be isolated and called
+per-pwrdm, change the API so passing in a specific power domain will
+trigger the pre/post transtion accounting for only that specific power
+domain.  Passing NULL means iterating over all power domains as is
+current behavior.
 
 Signed-off-by: Kevin Hilman <khilman@ti.com>
 ---
- arch/arm/mach-omap2/pm34xx.c |   12 +++++++++---
- 1 file changed, 9 insertions(+), 3 deletions(-)
+ arch/arm/mach-omap2/omap-mpuss-lowpower.c |    4 ++--
+ arch/arm/mach-omap2/pm34xx.c              |    4 ++--
+ arch/arm/mach-omap2/powerdomain.c         |   16 ++++++++++++----
+ arch/arm/mach-omap2/powerdomain.h         |    4 ++--
+ 4 files changed, 18 insertions(+), 10 deletions(-)
 
+diff --git a/arch/arm/mach-omap2/omap-mpuss-lowpower.c b/arch/arm/mach-omap2/omap-mpuss-lowpower.c
+index 13670aa..e35a86b 100644
+--- a/arch/arm/mach-omap2/omap-mpuss-lowpower.c
++++ b/arch/arm/mach-omap2/omap-mpuss-lowpower.c
+@@ -255,7 +255,7 @@ int omap4_enter_lowpower(unsigned int cpu, unsigned int power_state)
+ 		return -ENXIO;
+ 	}
+ 
+-	pwrdm_pre_transition();
++	pwrdm_pre_transition(NULL);
+ 
+ 	/*
+ 	 * Check MPUSS next state and save interrupt controller if needed.
+@@ -287,7 +287,7 @@ int omap4_enter_lowpower(unsigned int cpu, unsigned int power_state)
+ 	wakeup_cpu = smp_processor_id();
+ 	set_cpu_next_pwrst(wakeup_cpu, PWRDM_POWER_ON);
+ 
+-	pwrdm_post_transition();
++	pwrdm_post_transition(NULL);
+ 
+ 	return 0;
+ }
 diff --git a/arch/arm/mach-omap2/pm34xx.c b/arch/arm/mach-omap2/pm34xx.c
-index 2451b90..74a7f8c 100644
+index 703bd10..2451b90 100644
 --- a/arch/arm/mach-omap2/pm34xx.c
 +++ b/arch/arm/mach-omap2/pm34xx.c
-@@ -307,16 +307,19 @@ void omap_sram_idle(void)
+@@ -307,7 +307,7 @@ void omap_sram_idle(void)
  			omap3_enable_io_chain();
  	}
  
--	pwrdm_pre_transition(NULL);
-+	if (mpu_next_state < PWRDM_POWER_ON)
-+		pwrdm_pre_transition(mpu_pwrdm);
+-	pwrdm_pre_transition();
++	pwrdm_pre_transition(NULL);
  
  	/* PER */
  	if (per_next_state < PWRDM_POWER_ON) {
-+		pwrdm_pre_transition(per_pwrdm);
- 		per_going_off = (per_next_state == PWRDM_POWER_OFF) ? 1 : 0;
- 		omap2_gpio_prepare_for_idle(per_going_off);
- 	}
- 
- 	/* CORE */
- 	if (core_next_state < PWRDM_POWER_ON) {
-+		pwrdm_pre_transition(core_pwrdm);
- 		if (core_next_state == PWRDM_POWER_OFF) {
- 			omap3_core_save_context();
- 			omap3_cm_save_context();
-@@ -369,15 +372,15 @@ void omap_sram_idle(void)
- 			omap2_prm_clear_mod_reg_bits(OMAP3430_AUTO_OFF_MASK,
- 					       OMAP3430_GR_MOD,
- 					       OMAP3_PRM_VOLTCTRL_OFFSET);
-+		pwrdm_post_transition(core_pwrdm);
+@@ -372,7 +372,7 @@ void omap_sram_idle(void)
  	}
  	omap3_intc_resume_idle();
  
--	pwrdm_post_transition(NULL);
--
+-	pwrdm_post_transition();
++	pwrdm_post_transition(NULL);
+ 
  	/* PER */
  	if (per_next_state < PWRDM_POWER_ON) {
- 		per_prev_state = pwrdm_read_prev_pwrst(per_pwrdm);
- 		omap2_gpio_resume_after_idle();
-+		pwrdm_post_transition(per_pwrdm);
- 	}
- 
- 	/* Disable IO-PAD and IO-CHAIN wakeup */
-@@ -390,6 +393,9 @@ void omap_sram_idle(void)
- 			omap3_disable_io_chain();
- 	}
- 
-+	if (mpu_next_state < PWRDM_POWER_ON)
-+		pwrdm_post_transition(mpu_pwrdm);
-+
- 	clkdm_allow_idle(mpu_pwrdm->pwrdm_clkdms[0]);
+diff --git a/arch/arm/mach-omap2/powerdomain.c b/arch/arm/mach-omap2/powerdomain.c
+index 96ad3dbe..0baf8c3 100644
+--- a/arch/arm/mach-omap2/powerdomain.c
++++ b/arch/arm/mach-omap2/powerdomain.c
+@@ -991,15 +991,23 @@ int pwrdm_clkdm_state_switch(struct clockdomain *clkdm)
+ 	return -EINVAL;
  }
  
+-int pwrdm_pre_transition(void)
++int pwrdm_pre_transition(struct powerdomain *pwrdm)
+ {
+-	pwrdm_for_each(_pwrdm_pre_transition_cb, NULL);
++	if (pwrdm) 
++		_pwrdm_pre_transition_cb(pwrdm, NULL);
++	else 
++		pwrdm_for_each(_pwrdm_pre_transition_cb, NULL);
++
+ 	return 0;
+ }
+ 
+-int pwrdm_post_transition(void)
++int pwrdm_post_transition(struct powerdomain *pwrdm)
+ {
+-	pwrdm_for_each(_pwrdm_post_transition_cb, NULL);
++	if (pwrdm)
++		_pwrdm_post_transition_cb(pwrdm, NULL);
++	else
++		pwrdm_for_each(_pwrdm_post_transition_cb, NULL);
++
+ 	return 0;
+ }
+ 
+diff --git a/arch/arm/mach-omap2/powerdomain.h b/arch/arm/mach-omap2/powerdomain.h
+index 0d72a8a..a468de4 100644
+--- a/arch/arm/mach-omap2/powerdomain.h
++++ b/arch/arm/mach-omap2/powerdomain.h
+@@ -214,8 +214,8 @@ int pwrdm_wait_transition(struct powerdomain *pwrdm);
+ 
+ int pwrdm_state_switch(struct powerdomain *pwrdm);
+ int pwrdm_clkdm_state_switch(struct clockdomain *clkdm);
+-int pwrdm_pre_transition(void);
+-int pwrdm_post_transition(void);
++int pwrdm_pre_transition(struct powerdomain *pwrdm);
++int pwrdm_post_transition(struct powerdomain *pwrdm);
+ int pwrdm_set_lowpwrstchange(struct powerdomain *pwrdm);
+ int pwrdm_get_context_loss_count(struct powerdomain *pwrdm);
+ bool pwrdm_can_ever_lose_context(struct powerdomain *pwrdm);
 -- 
 1.7.9.2
 
