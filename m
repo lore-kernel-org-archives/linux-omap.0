@@ -1,97 +1,69 @@
-From: Jon Hunter <jon-hunter@ti.com>
-Subject: Re: [PATCH 15/19] ARM: OMAP4430: PM: workaround for DDR corruption
- on second CS
-Date: Tue, 24 Apr 2012 13:22:14 -0500
-Message-ID: <4F96EF56.5020604@ti.com>
-References: <1334914432-26456-1-git-send-email-t-kristo@ti.com> <1334914432-26456-16-git-send-email-t-kristo@ti.com>
+From: "Mark A. Greer" <mgreer@animalcreek.com>
+Subject: Re: [PATCH 03/12] arm: omap3: Only sleep in cpuidle driver if I/O
+ wake-ups work
+Date: Tue, 24 Apr 2012 13:51:05 -0700
+Message-ID: <20120424205105.GA26749@animalcreek.com>
+References: <1334171147-7517-1-git-send-email-mgreer@animalcreek.com>
+ <1334171147-7517-4-git-send-email-mgreer@animalcreek.com>
+ <alpine.DEB.2.00.1204111532280.29473@utopia.booyaka.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="ISO-8859-1"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from arroyo.ext.ti.com ([192.94.94.40]:36793 "EHLO arroyo.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1755782Ab2DXSWU (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Tue, 24 Apr 2012 14:22:20 -0400
-In-Reply-To: <1334914432-26456-16-git-send-email-t-kristo@ti.com>
+Received: from mail20.dotsterhost.com ([66.11.232.73]:50139 "EHLO
+	mail20.dotsterhost.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754157Ab2DXUvH (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 24 Apr 2012 16:51:07 -0400
+Content-Disposition: inline
+In-Reply-To: <alpine.DEB.2.00.1204111532280.29473@utopia.booyaka.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Tero Kristo <t-kristo@ti.com>
-Cc: linux-omap@vger.kernel.org, khilman@ti.com, paul@pwsan.com, Santosh Shilimkar <santosh.shilimkar@ti.com>, linux-arm-kernel@lists.infradead.org
+To: Paul Walmsley <paul@pwsan.com>, khilman@ti.com
+Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 
-Hi Tero,
+On Wed, Apr 11, 2012 at 03:37:47PM -0600, Paul Walmsley wrote:
+> Hi
 
-On 04/20/2012 04:33 AM, Tero Kristo wrote:
-> From: Santosh Shilimkar <santosh.shilimkar@ti.com>
+Hi Paul, Kevin.
+
+> On Wed, 11 Apr 2012, Mark A. Greer wrote:
 > 
-> Work around for Errata ID: i632 "LPDDR2 Corruption After OFF Mode
-> Transition When CS1 Is Used On EMIF" which impacts OMAP443x silicon
-> The issue occurs when EMIF_SDRAM_CONFIG is restored first before
-> EMIF_SDRAM_CONFIG_2 is not yet restored, the register configuration
-> is not set properly, we apply the required workaround allowing
-> the restore sequence to work properly.
+> > From: "Mark A. Greer" <mgreer@animalcreek.com>
+> > 
+> > Currently, the OMAP3 cpuidle driver calls omap3_enter_idle()
+> > which calls omap_sram_idle().  omap_sram_idle() eventually
+> > causes a 'wfi' instruction to be executed effectively putting
+> > the system to sleep.  It is assumed that an I/O wake-up event
+> > will occur to wake the system up again.  This doesn't work on
+> > systems that don't support I/O wake-ups (indicated by
+> > omap3_has_io_wakeup() returning false).
+> > 
+> > To handle this, follow the same path in omap3_enter_idle()
+> > that would be followed if an interrupt were pending.
 > 
-> Signed-off-by: Santosh Shilimkar <santosh.shilimkar@ti.com>
-> [t-kristo@ti.com: moved workaround from omap-sar.c to pm44xx.c]
-> Signed-off-by: Tero Kristo <t-kristo@ti.com>
-> ---
->  .../include/mach/ctrl_module_wkup_44xx.h           |    2 +
->  arch/arm/mach-omap2/pm44xx.c                       |   24 ++++++++++++++++++++
->  2 files changed, 26 insertions(+), 0 deletions(-)
+> I don't quite understand this patch.  Are you saying that AM3517/3505 
+> can't wake from WFI?  That would seem odd.
 > 
-> diff --git a/arch/arm/mach-omap2/include/mach/ctrl_module_wkup_44xx.h b/arch/arm/mach-omap2/include/mach/ctrl_module_wkup_44xx.h
-> index a0af9ba..b763a79 100644
-> --- a/arch/arm/mach-omap2/include/mach/ctrl_module_wkup_44xx.h
-> +++ b/arch/arm/mach-omap2/include/mach/ctrl_module_wkup_44xx.h
-> @@ -28,6 +28,8 @@
->  #define OMAP4_CTRL_MODULE_WKUP_IP_REVISION		0x0000
->  #define OMAP4_CTRL_MODULE_WKUP_IP_HWINFO		0x0004
->  #define OMAP4_CTRL_MODULE_WKUP_IP_SYSCONFIG		0x0010
-> +#define OMAP4_CTRL_SECURE_EMIF1_SDRAM_CONFIG2_REG	0x0114
-> +#define OMAP4_CTRL_SECURE_EMIF2_SDRAM_CONFIG2_REG	0x011c
->  #define OMAP4_CTRL_MODULE_WKUP_CONF_DEBUG_SEL_TST_0	0x0460
->  #define OMAP4_CTRL_MODULE_WKUP_CONF_DEBUG_SEL_TST_1	0x0464
->  #define OMAP4_CTRL_MODULE_WKUP_CONF_DEBUG_SEL_TST_2	0x0468
-> diff --git a/arch/arm/mach-omap2/pm44xx.c b/arch/arm/mach-omap2/pm44xx.c
-> index 0472921..d4d18d9 100644
-> --- a/arch/arm/mach-omap2/pm44xx.c
-> +++ b/arch/arm/mach-omap2/pm44xx.c
-> @@ -17,6 +17,9 @@
->  #include <linux/err.h>
->  #include <linux/slab.h>
->  #include <asm/system_misc.h>
-> +#include <linux/io.h>
-> +
-> +#include <mach/ctrl_module_wkup_44xx.h>
->  
->  #include "common.h"
->  #include "clockdomain.h"
-> @@ -215,6 +218,27 @@ static int __init omap4_pm_init(void)
->  
->  	pr_err("Power Management for TI OMAP4.\n");
->  
-> +	/*
-> +	 * Work around for OMAP443x Errata i632: "LPDDR2 Corruption After OFF
-> +	 * Mode Transition When CS1 Is Used On EMIF":
-> +	 * Overwrite EMIF1/EMIF2
-> +	 * SECURE_EMIF1_SDRAM_CONFIG2_REG
-> +	 * SECURE_EMIF2_SDRAM_CONFIG2_REG
-> +	 */
-> +	if (cpu_is_omap443x()) {
-> +		void __iomem *secure_ctrl_mod;
-> +
-> +		secure_ctrl_mod = ioremap(OMAP4_CTRL_MODULE_WKUP, SZ_4K);
-> +		BUG_ON(!secure_ctrl_mod);
-> +
-> +		__raw_writel(0x10, secure_ctrl_mod +
-> +			     OMAP4_CTRL_SECURE_EMIF1_SDRAM_CONFIG2_REG);
-> +		__raw_writel(0x10, secure_ctrl_mod +
-> +			     OMAP4_CTRL_SECURE_EMIF2_SDRAM_CONFIG2_REG);
+> There are other sources of wakeup on the system other than I/O wakeup.  
+> I/O wakeup only applies to wakeups from the I/O pads when the chip is in 
+> RETENTION or OFF.  And as I understand it, neither of those apply to 
+> AM3517/3505?
+> 
+> Even if I/O wakeups aren't supported, many of the IP blocks on the system 
+> should be able to cause the ARM to exit WFI by asserting their 
+> SWAKEUP lines and raising their interrupt lines.
 
-According to the erratum description the above registers are used to
-restore the EMIFx_SDRAM_CONFIG2 registers. So although the value 0x10,
-maybe the value being used for EMIFx_SDRAM_CONFIG2 registers, shouldn't
-we read the EMIFx_SDRAM_CONFIG2 registers and store them in the above
-registers?
+I have changed the code to keep everything in the ON state and use
+cpu_do_idle()--basically a wfi, cpu_v7_do_idle() in this case--and everything
+works well (except networking, see below) when using an mmc-based rootfs.
 
-Cheers
-Jon
+The issue is with the emac--it can't wake the system up unless there
+is an irq from the PHY to a wakeup-enabled GPIO (confirmed by h/w engr).
+So, when using networking or using an nfs-based rootfs, there are all
+kinds of timeouts, etc.  Basically, doing a wfi (i.e., pm_idle or cpuidle)
+and expecting the emac to wake the system back up won't work.
+
+How would you like me to proceed (to avoid the wfi in pm_idle & cpuidle)?
+
+Thanks,
+
+Mark
