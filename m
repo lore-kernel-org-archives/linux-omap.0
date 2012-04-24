@@ -1,81 +1,191 @@
 From: Jon Hunter <jon-hunter@ti.com>
-Subject: Re: [PATCH 08/19] ARM: OMAP4: PM: Add device-off support
-Date: Tue, 24 Apr 2012 12:46:52 -0500
-Message-ID: <4F96E70C.4040008@ti.com>
-References: <1334914432-26456-1-git-send-email-t-kristo@ti.com> <1334914432-26456-9-git-send-email-t-kristo@ti.com>
+Subject: Re: [PATCH 10/19] ARM: OMAP4: PM: Work-around for ROM code BUG of
+ IVAHD/TESLA
+Date: Tue, 24 Apr 2012 12:50:31 -0500
+Message-ID: <4F96E7E7.9050005@ti.com>
+References: <1334914432-26456-1-git-send-email-t-kristo@ti.com> <1334914432-26456-11-git-send-email-t-kristo@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="ISO-8859-1"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from devils.ext.ti.com ([198.47.26.153]:54918 "EHLO
+Received: from devils.ext.ti.com ([198.47.26.153]:55152 "EHLO
 	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755759Ab2DXRq7 (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 24 Apr 2012 13:46:59 -0400
-In-Reply-To: <1334914432-26456-9-git-send-email-t-kristo@ti.com>
+	with ESMTP id S1757152Ab2DXRui (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 24 Apr 2012 13:50:38 -0400
+In-Reply-To: <1334914432-26456-11-git-send-email-t-kristo@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: Tero Kristo <t-kristo@ti.com>
-Cc: linux-omap@vger.kernel.org, khilman@ti.com, paul@pwsan.com, Santosh Shilimkar <santosh.shilimkar@ti.com>, linux-arm-kernel@lists.infradead.org
+Cc: linux-omap@vger.kernel.org, khilman@ti.com, paul@pwsan.com, Rajendra Nayak <rnayak@ti.com>, Santosh Shilimkar <santosh.shilimkar@ti.com>, linux-arm-kernel@lists.infradead.org
 
 Hi Tero,
 
 On 04/20/2012 04:33 AM, Tero Kristo wrote:
-> This patch adds device off support to OMAP4 device type.
+> From: Santosh Shilimkar <santosh.shilimkar@ti.com>
 > 
-> OFF mode is disabled by default, however, there are two ways to enable
-> OFF mode:
-> a) In the board file, call omap4_pm_off_mode_enable(1)
-> b) Enable OFF mode using the debugfs entry
-> echo "1">/sys/kernel/debug/pm_debug/enable_off_mode
-> (conversely echo '0' will disable it as well).
+> The ROM BUG is when MPU Domain OFF wake up sequence that can compromise
+> IVA and Tesla execution.
 > 
+> At wakeup from MPU OFF on HS device only (not GP device), when
+> restoring the Secure RAM, the ROM Code reconfigures the clocks the
+> same way it is done at Cold Reset.
+> The IVAHD Clocks and Power Domain settings are:
+> 	IVAHD_CM2 IVAHD_CLKCTRL_MODULE_MODE = DISABLE
+> 	IVAHD_CM2 SL2_CLKCTRL_MODULE_MODE = DISABLE
+> 	IVAHD_CM2 SL2_CLKSTCTRL_CLKTRCTRL = HW_AUTO
+> 	IVAHD_PRM IVAHD_PWRSTCTRL_POWERSTATE = OFF
+> The TESLA Clocks and Power Domain settings are:
+> 	TESLA_CM1 TESLA_CLKCTRL_MODULE_MODE = DISABLE
+> 	TESLA_CM1 TESLA_CLKSTCTRL_CLKTRCTRL = HW_AUTO
+> 	TESLA_PRM TESLA_PWRSTCTRL_POWERSTATE = OFF
+> 
+> This patch fixes the low power OFF mode code so that the these
+> registers are saved and restore across MPU OFF state.
+> 
+> Also because of this limitation, MPU OFF alone is not targeted without
+> device OFF to avoid IVAHD and TESLA execution impact
+
+You may wish to state which devices is impacted by this in the changelog.
+
+> Signed-off-by: Rajendra Nayak <rnayak@ti.com>
 > Signed-off-by: Santosh Shilimkar <santosh.shilimkar@ti.com>
-> [t-kristo@ti.com: largely re-structured the code]
+> [t-kristo@ti.com: added omap4 pm errata support]
 > Signed-off-by: Tero Kristo <t-kristo@ti.com>
 > ---
->  arch/arm/mach-omap2/omap-mpuss-lowpower.c |   24 ++++++++++-
->  arch/arm/mach-omap2/omap-wakeupgen.c      |   47 +++++++++++++++++++-
->  arch/arm/mach-omap2/pm-debug.c            |   17 +++++--
->  arch/arm/mach-omap2/pm.h                  |   28 ++++++++++--
->  arch/arm/mach-omap2/pm44xx.c              |   45 +++++++++++++++++++
->  arch/arm/mach-omap2/prm44xx.c             |   66 +++++++++++++++++++++++++++++
->  6 files changed, 214 insertions(+), 13 deletions(-)
+>  arch/arm/mach-omap2/omap-mpuss-lowpower.c |   53 +++++++++++++++++++++++++++++
+>  arch/arm/mach-omap2/pm.h                  |    2 +
+>  arch/arm/mach-omap2/pm44xx.c              |    9 +++++
+>  3 files changed, 64 insertions(+), 0 deletions(-)
 > 
 > diff --git a/arch/arm/mach-omap2/omap-mpuss-lowpower.c b/arch/arm/mach-omap2/omap-mpuss-lowpower.c
-> index e02c082..b9a2cc7 100644
+> index b9a2cc7..208d4a4 100644
 > --- a/arch/arm/mach-omap2/omap-mpuss-lowpower.c
 > +++ b/arch/arm/mach-omap2/omap-mpuss-lowpower.c
-> @@ -60,6 +60,7 @@
->  #include "prcm44xx.h"
->  #include "prm44xx.h"
->  #include "prm-regbits-44xx.h"
-> +#include "cm44xx.h"
+> @@ -52,6 +52,7 @@
 >  
->  #ifdef CONFIG_SMP
+>  #include <plat/omap44xx.h>
 >  
-> @@ -232,6 +233,7 @@ int omap4_enter_lowpower(unsigned int cpu, unsigned int power_state)
->  {
->  	unsigned int save_state = 0;
->  	unsigned int wakeup_cpu;
-> +	int ret;
+> +#include "iomap.h"
+>  #include "common.h"
+>  #include "omap4-sar-layout.h"
+>  #include "pm.h"
+> @@ -76,6 +77,24 @@ static DEFINE_PER_CPU(struct omap4_cpu_pm_info, omap4_pm_info);
+>  static struct powerdomain *mpuss_pd;
+>  static void __iomem *sar_base;
 >  
->  	if (omap_rev() == OMAP4430_REV_ES1_0)
->  		return -ENXIO;
-> @@ -263,9 +265,21 @@ int omap4_enter_lowpower(unsigned int cpu, unsigned int power_state)
->  	 * In MPUSS OSWR or device OFF, interrupt controller  contest is lost.
->  	 */
->  	mpuss_clear_prev_logic_pwrst();
-> -	if ((pwrdm_read_next_pwrst(mpuss_pd) == PWRDM_POWER_RET) &&
-> -		(pwrdm_read_logic_retst(mpuss_pd) == PWRDM_POWER_OFF))
-> +	if (omap4_device_next_state_off()) {
-> +		/* Save the device context to SAR RAM */
-> +		ret = omap_sar_save();
-> +		if (ret)
-> +			return ret;
+> +struct reg_tuple {
+> +	void __iomem *addr;
+> +	u32 val;
+> +};
+> +
+> +static struct reg_tuple tesla_reg[] = {
+> +	{.addr = OMAP4430_CM_TESLA_CLKSTCTRL},
+> +	{.addr = OMAP4430_CM_TESLA_TESLA_CLKCTRL},
+> +	{.addr = OMAP4430_PM_TESLA_PWRSTCTRL},
+> +};
+> +
+> +static struct reg_tuple ivahd_reg[] = {
+> +	{.addr = OMAP4430_CM_IVAHD_CLKSTCTRL},
+> +	{.addr = OMAP4430_CM_IVAHD_IVAHD_CLKCTRL},
+> +	{.addr = OMAP4430_CM_IVAHD_SL2_CLKCTRL},
+> +	{.addr = OMAP4430_PM_IVAHD_PWRSTCTRL}
+> +};
+> +
+>  /*
+>   * Program the wakeup routine address for the CPU0 and CPU1
+>   * used for OFF or DORMANT wakeup.
+> @@ -215,6 +234,34 @@ static void save_l2x0_context(void)
+>  {}
+>  #endif
+>  
+> +static inline void save_ivahd_tesla_regs(void)
+> +{
+> +	int i;
+> +
+> +	if (!IS_PM44XX_ERRATUM(PM_OMAP4_ROM_IVAHD_TESLA_ERRATUM))
+> +		return;
+> +
+> +	for (i = 0; i < ARRAY_SIZE(tesla_reg); i++)
+> +		tesla_reg[i].val = __raw_readl(tesla_reg[i].addr);
+> +
+> +	for (i = 0; i < ARRAY_SIZE(ivahd_reg); i++)
+> +		ivahd_reg[i].val = __raw_readl(ivahd_reg[i].addr);
+> +}
+> +
+> +static inline void restore_ivahd_tesla_regs(void)
+> +{
+> +	int i;
+> +
+> +	if (!IS_PM44XX_ERRATUM(PM_OMAP4_ROM_IVAHD_TESLA_ERRATUM))
+> +		return;
+> +
+> +	for (i = 0; i < ARRAY_SIZE(tesla_reg); i++)
+> +		__raw_writel(tesla_reg[i].val, tesla_reg[i].addr);
+> +
+> +	for (i = 0; i < ARRAY_SIZE(ivahd_reg); i++)
+> +		__raw_writel(ivahd_reg[i].val, ivahd_reg[i].addr);
+> +}
+> +
+>  /**
+>   * omap4_enter_lowpower: OMAP4 MPUSS Low Power Entry Function
+>   * The purpose of this function is to manage low power programming
+> @@ -273,11 +320,14 @@ int omap4_enter_lowpower(unsigned int cpu, unsigned int power_state)
+>  		omap_sar_overwrite();
+>  		omap4_cm_prepare_off();
+>  		omap4_dpll_prepare_off();
+> +		save_ivahd_tesla_regs();
+>  		save_state = 3;
+>  	} else if ((pwrdm_read_next_pwrst(mpuss_pd) == PWRDM_POWER_RET) &&
+>  		(pwrdm_read_logic_retst(mpuss_pd) == PWRDM_POWER_OFF)) {
+> +		save_ivahd_tesla_regs();
+>  		save_state = 2;
+>  	} else if (pwrdm_read_next_pwrst(mpuss_pd) == PWRDM_POWER_OFF) {
+> +		save_ivahd_tesla_regs();
+>  		save_state = 3;
+>  	}
+>  
+> @@ -302,6 +352,9 @@ int omap4_enter_lowpower(unsigned int cpu, unsigned int power_state)
+>  	wakeup_cpu = smp_processor_id();
+>  	set_cpu_next_pwrst(wakeup_cpu, PWRDM_POWER_ON);
+>  
+> +	if (omap4_mpuss_read_prev_context_state())
+> +		restore_ivahd_tesla_regs();
+> +
+>  	if (omap4_device_prev_state_off()) {
+>  		omap4_dpll_resume_off();
+>  		omap4_cm_resume_off();
+> diff --git a/arch/arm/mach-omap2/pm.h b/arch/arm/mach-omap2/pm.h
+> index e78ec63..051aeb9 100644
+> --- a/arch/arm/mach-omap2/pm.h
+> +++ b/arch/arm/mach-omap2/pm.h
+> @@ -131,6 +131,8 @@ extern void enable_omap3630_toggle_l2_on_restore(void);
+>  static inline void enable_omap3630_toggle_l2_on_restore(void) { }
+>  #endif		/* defined(CONFIG_PM) && defined(CONFIG_ARCH_OMAP3) */
+>  
+> +#define PM_OMAP4_ROM_IVAHD_TESLA_ERRATUM	(1 << 0)
+> +
+>  #if defined(CONFIG_PM) && defined(CONFIG_ARCH_OMAP4)
+>  extern u16 pm44xx_errata;
+>  #define IS_PM44XX_ERRATUM(id)		(pm44xx_errata & (id))
+> diff --git a/arch/arm/mach-omap2/pm44xx.c b/arch/arm/mach-omap2/pm44xx.c
+> index 8238097..67cb799 100644
+> --- a/arch/arm/mach-omap2/pm44xx.c
+> +++ b/arch/arm/mach-omap2/pm44xx.c
+> @@ -263,6 +263,15 @@ static int __init omap4_pm_init(void)
+>  
+>  	(void) clkdm_for_each(omap_pm_clkdms_setup, NULL);
+>  
+> +	/*
+> +	 * ROM code initializes IVAHD and TESLA clock registers during
+> +	 * secure RAM restore phase on omap4430 EMU/HS devices, thus
+> +	 * IVAHD / TESLA clock registers must be saved / restored
+> +	 * during MPU OSWR / device off.
+> +	 */
+> +	if (cpu_is_omap443x() && omap_type() != OMAP2_DEVICE_TYPE_GP)
+> +		pm44xx_errata |= PM_OMAP4_ROM_IVAHD_TESLA_ERRATUM;
 
-Is it safe to simply return here? I was not sure if we need to call
-pwrdm_post_transition, given that we have already called
-pwrdm_pre_transition on entry.
+This erratum does not impact omap4430 es2.3 so the above should account
+for that.
 
 Cheers
 Jon
