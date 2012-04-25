@@ -1,83 +1,75 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH v2] ARM: OMAP3: gpmc: add BCH ecc api and modes
-Date: Wed, 25 Apr 2012 10:03:14 -0700
-Message-ID: <20120425170313.GW3739@atomide.com>
-References: <1334861024-27386-1-git-send-email-ivan.djelic@parrot.com>
+From: Janusz Krzysztofik <jkrzyszt@tis.icnet.pl>
+Subject: Re: [PATCH v3.4-rc3] MTD: NAND: ams-delta: Fix request_mem_region() failure
+Date: Wed, 25 Apr 2012 19:01:14 +0200
+Message-ID: <1587089.0XMyH6e1Ic@acer>
+References: <1334670557-25640-1-git-send-email-jkrzyszt@tis.icnet.pl> <1335366823.6356.11.camel@koala>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-02-ewr.mailhop.org ([204.13.248.72]:25472 "EHLO
-	mho-02-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754374Ab2DYRDS (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 25 Apr 2012 13:03:18 -0400
-Content-Disposition: inline
-In-Reply-To: <1334861024-27386-1-git-send-email-ivan.djelic@parrot.com>
+Received: from d1.icnet.pl ([212.160.220.21]:57031 "EHLO d1.icnet.pl"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1756158Ab2DYRPq convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 25 Apr 2012 13:15:46 -0400
+In-Reply-To: <1335366823.6356.11.camel@koala>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Ivan Djelic <ivan.djelic@parrot.com>
-Cc: linux-omap@vger.kernel.org, linux-mtd@lists.infradead.org
+To: dedekind1@gmail.com
+Cc: David Woodhouse <dwmw2@infradead.org>, Tony Lindgren <tony@atomide.com>, Artem Bityutskiy <Artem.Bityutskiy@linux.intel.com>, linux-kernel@vger.kernel.org, linux-mtd@lists.infradead.org, linux-omap@vger.kernel.org
 
-Hi,
+Dnia =C5=9Broda, 25 kwietnia 2012 18:13:38 Artem Bityutskiy pisze:
+> On Tue, 2012-04-17 at 15:49 +0200, Janusz Krzysztofik wrote:
+> > A call to request_mem_region() has been introduced in the omap-gpio
+> > driver recently (commit 96751fcbe5438e95514b025e9cee7a6d38038f40,
+> > "gpio/omap: Use devm_ API and add request_mem_region"). This change
+> > prevented the Amstrad Delta NAND driver, which was doing the same i=
+n
+> > order to take control over OMAP MPU I/O lines that the NAND device=20
+hangs
+> > off, from loading successfully.
+> >=20
+> > There is another driver, omap-keypad, which also manipulates OMAP=20
+MPUIO
+> > registers, but has never been calling request_mem_region() on=20
+startup,
+> > so it's not affected by the change in the gpio-omap and works=20
+correctly.
+> >=20
+> > Drop request_mem_region() call and related bits from ams-delta NAND
+> > driver.
+> >=20
+> > Created and tested against linux-3.4-rc3.
+> >=20
+> > Signed-off-by: Janusz Krzysztofik <jkrzyszt@tis.icnet.pl>
+>=20
+> How about race conditions? Where is the guarantee that these 2 driver=
+s
+> won't affect each other when doing I/O at the same time to the same H=
+W
+> resources?
 
-Few comments below.
+Both drivers use separate subsets of registers that belong to the OMAP1=
+=20
+MPU I/O device, but are used for controlling different sets of I/O pins=
+=2E=20
+The NAND driver reads/writes the folowing registers:
+- OMAP_MPUIO_INPUT_LATCH,
+- OMAP_MPUIO_OUTPUT,
+- OMAP_MPUIO_IO_CNTL,
+while the keypad driver - the following:
+- OMAP_MPUIO_KBR_LATCH,
+- OMAP_MPUIO_KBC,
+- OMAP_MPUIO_KBD_MASKIT
+- OMAP_MPUIO_GPIO_DEBOUNCING.
+Both subsets are non-overlapping, and we rely on the drivers being free=
+=20
+of bugs and doing their job correctly, not stepping on each others'=20
+feet, I guess.
 
-* Ivan Djelic <ivan.djelic@parrot.com> [120419 11:49]:
-> 
-> diff --git a/arch/arm/mach-omap2/gpmc.c b/arch/arm/mach-omap2/gpmc.c
-> index 00d5108..e3a91a1 100644
-> --- a/arch/arm/mach-omap2/gpmc.c
-> +++ b/arch/arm/mach-omap2/gpmc.c
-> @@ -49,6 +49,7 @@
->  #define GPMC_ECC_CONTROL	0x1f8
->  #define GPMC_ECC_SIZE_CONFIG	0x1fc
->  #define GPMC_ECC1_RESULT        0x200
-> +#define GPMC_ECC_BCH_RESULT_0   0x240
-
-Can you please add a comment here saying something like:
-
-#define GPMC_ECC_BCH_RESULT_0   0x240	/* Not available on omap2 */
-  
-
-> @@ -920,3 +921,150 @@ int gpmc_calculate_ecc(int cs, const u_char *dat, u_char *ecc_code)
->  	return 0;
->  }
->  EXPORT_SYMBOL_GPL(gpmc_calculate_ecc);
-> +
-> +#ifdef CONFIG_ARCH_OMAP3
-> +
-> +/**
-> + * gpmc_enable_hwecc_bch - enable hardware BCH ecc functionality
-> + * @cs: chip select number
-> + * @mode: read/write mode
-> + * @dev_width: device bus width(1 for x16, 0 for x8)
-> + * @nsectors: how many 512-byte sectors to process
-> + * @nerrors: how many errors to correct per sector (4 or 8)
-> + */
-> +int gpmc_enable_hwecc_bch(int cs, int mode, int dev_width, int nsectors,
-> +			  int nerrors)
-> +{
-> +	unsigned int val;
-> +
-> +	/* check if ecc module is in use */
-> +	if (gpmc_ecc_used != -EINVAL)
-> +		return -EINVAL;
-> +	/*
-> +	 * FIXME: some OMAP3 revisions have a hardware bug which prevents
-> +	 * the 4-bit BCH mode from working properly. Such revisions could be
-> +	 * detected and rejected here.
-> +	 */
-
-This should then be disabled to avoid corruption. Maybe only allow it
-initially on omaps that have been tested? And for omap2 it should return
-error  for sure.
-
-Or do you know the broken omap3 versions?
-
-Also, should you first request this feature in case multiple drivers
-need to share it?
-
-Other than that, looks good to me.
-
-Regards,
-
-Tony
+Thanks,
+Janusz
+--
+To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
