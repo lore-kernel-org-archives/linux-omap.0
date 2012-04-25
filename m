@@ -1,67 +1,73 @@
-From: "Cousson, Benoit" <b-cousson@ti.com>
-Subject: Re: [PATCH-V3 3/3] ARM: OMAP3+: clock33xx: Add AM33XX clock tree
- data
-Date: Wed, 25 Apr 2012 14:33:21 +0200
-Message-ID: <4F97EF11.4020300@ti.com>
-References: <1333458578-23073-1-git-send-email-hvaibhav@ti.com> <1333458578-23073-4-git-send-email-hvaibhav@ti.com> <alpine.DEB.2.00.1204241857260.24864@utopia.booyaka.com> <79CD15C6BA57404B839C016229A409A83E9FD175@DBDE01.ent.ti.com> <4F97B891.1020601@ti.com> <79CD15C6BA57404B839C016229A409A83E9FD707@DBDE01.ent.ti.com> <4F97E243.6000500@ti.com> <79CD15C6BA57404B839C016229A409A83E9FDA47@DBDE01.ent.ti.com>
+From: Tomi Valkeinen <tomi.valkeinen@ti.com>
+Subject: Re: [PATCH v2] OMAPDSS: VENC: allow switching venc output type at
+ runtime
+Date: Wed, 25 Apr 2012 15:37:10 +0300
+Message-ID: <1335357430.2799.6.camel@deskari>
+References: <1335215334-32608-1-git-send-email-notasas@gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="ISO-8859-1"; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: multipart/signed; micalg="pgp-sha1"; protocol="application/pgp-signature"; boundary="=-nODeJHYxL9qh2Eda99q3"
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from arroyo.ext.ti.com ([192.94.94.40]:37074 "EHLO arroyo.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751254Ab2DYMd0 (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Wed, 25 Apr 2012 08:33:26 -0400
-In-Reply-To: <79CD15C6BA57404B839C016229A409A83E9FDA47@DBDE01.ent.ti.com>
+Received: from na3sys009aog103.obsmtp.com ([74.125.149.71]:40838 "EHLO
+	na3sys009aog103.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1753182Ab2DYMhR (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>);
+	Wed, 25 Apr 2012 08:37:17 -0400
+Received: by lagv3 with SMTP id v3so42091lag.27
+        for <linux-omap@vger.kernel.org>; Wed, 25 Apr 2012 05:37:13 -0700 (PDT)
+In-Reply-To: <1335215334-32608-1-git-send-email-notasas@gmail.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "Hiremath, Vaibhav" <hvaibhav@ti.com>
-Cc: Paul Walmsley <paul@pwsan.com>, "Mohammed, Afzal" <afzal@ti.com>, "Bedia, Vaibhav" <vaibhav.bedia@ti.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "tony@atomide.com" <tony@atomide.com>, "Hilman, Kevin" <khilman@ti.com>, "Nayak, Rajendra" <rnayak@ti.com>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>
+To: Grazvydas Ignotas <notasas@gmail.com>
+Cc: linux-fbdev@vger.kernel.org, linux-omap@vger.kernel.org
 
-On 4/25/2012 2:26 PM, Hiremath, Vaibhav wrote:
-> On Wed, Apr 25, 2012 at 17:08:43, Cousson, Benoit wrote:
->> On 4/25/2012 12:20 PM, Hiremath, Vaibhav wrote:
->>> On Wed, Apr 25, 2012 at 14:10:49, Cousson, Benoit wrote:
->>
->> ...
->>
-> <snip>
->>
->>> How would I know the rate of this clock in driver? Say for example, I want
->>> to configure my internal divider based on input rate?
->>> OR
->>> I want to change the rate of dss_clk itself?
->>> OR
->>> Looking at debugfs, would I get the rate of dss_clk?
->>
->> No because that clock will not exist anymore, but you will have the real
->> clock rate from the "dss_dss_clk".
->>
->
-> Thanks Benoit, I think I understand your perspective on Module Vs leaf node
-> and now able to digest as well.
-> Probably Last Q, which I think clarify all my doubts,
->
-> Assume we have complete hwmod instance and built a device using
-> omap_device_build() api, and also the driver is completely using runtime pm
-> api's,
-> How can driver get the clk handle (required to get the rate)?
-> Is there any api already available for this?
 
-The omap_device fmwk will auto-magically create a "fck" clkdev entry for 
-the main_clk.
+--=-nODeJHYxL9qh2Eda99q3
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: quoted-printable
 
-The API is thus the standard: clk_get(dev, "fck"), to get the clock 
-handle and then you can use the other clock API.
+On Tue, 2012-04-24 at 00:08 +0300, Grazvydas Ignotas wrote:
+> VENC output type (composite/svideo) doesn't have to be fixed by board
+> wiring, it is possible to also provide composite signal through svideo
+> luminance connector (software enabled), which is what pandora does.
+>=20
+> Having to recompile the kernel for users who have TV connector types
+> that don't match default board setting is very inconvenient, especially
+> for users of a consumer device, so add support for switching VENC output
+> type at runtime over a new sysfs file output_type.
+>=20
+> Signed-off-by: Grazvydas Ignotas <notasas@gmail.com>
+> ---
+>  Documentation/arm/OMAP/DSS     |    1 +
+>  drivers/video/omap2/dss/venc.c |   54 ++++++++++++++++++++++++++++++++++=
++++++-
+>  2 files changed, 54 insertions(+), 1 deletions(-)
 
-The idea is to enforce the usage of clock alias local to the device and 
-not trying anymore to get the real clock name. It thus allows driver to 
-work on various variant / revision without having to modify the driver.
+Looks fine to me. Thanks! Applying.
 
-The fmwk will also create clock alias for any opt_clock present in the 
-hwmod.
+ Tomi
 
-Regards,
-Benoit
 
+--=-nODeJHYxL9qh2Eda99q3
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: This is a digitally signed message part
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.4.11 (GNU/Linux)
+
+iQIcBAABAgAGBQJPl+/2AAoJEPo9qoy8lh71PMsQAKiyEdWqe9i9VGDFSUOPIQzD
+FVkuReqp6uga0ZfVAADeYQ4c9sj4hbNMSXird4/cmRNfi32d9gzVVbaveHQyQ5rT
+wV+TKO4w/WHF7OkJSoXkFXTF5CI6NlwwQ/CAxWjIIaYSTAQmuOE82wq/5xXAleCa
+8B4V5Hvt11V3CxDaWBrM6zH4F7HkkdGON5cKPSkp2gKvC/5TpH3lw/fpLK26yY2Q
+P+/Z1NXkTW+yq7HAi2DxQZPs5B54+OwjEhO8h0TCWPbOHt2qn3bl25SIoYcKC5+6
++AjKvXoOfkuxO2flMMlRdYVuFFYpYZV/oYOl3XPCi0JmX09N1HMqSMDcISXw+ETu
+6GAG8MhCqOvPv3e9vceL78nif8w6w3SFyQu5uvoYk+OhfVwN6jJvigwKmCY2YDvn
+ptNqYlWBS3/XNStnUCRcy7zLHls2eIdTuD9NZVOWerOdnX8TsJYComK8vmry3PqC
+6czLYbXsWTQFJZ+b2Y7wxHHvUgfu9OQkFNWj0FAa/iOHDAp/S0RtYLYjvAu+uvqc
+qiWhYSoIxJwEDtTG675GCmgzWbyHoSvnRA68jwhMlNjnO5PvbGoAaJqfCHt2Fl25
+RIO8rmNsVG8Ao+NWctlwB7heG5Sc+vQ2cpgxEB6RCCb2hSUWBlP8gYu+Dgez89MQ
+Xnnat8OdQSke5JJpLXHT
+=XGDV
+-----END PGP SIGNATURE-----
+
+--=-nODeJHYxL9qh2Eda99q3--
 
