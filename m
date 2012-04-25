@@ -1,122 +1,165 @@
-From: "Cousson, Benoit" <b-cousson@ti.com>
-Subject: Re: [PATCH-V3 3/3] ARM: OMAP3+: clock33xx: Add AM33XX clock tree
- data
-Date: Wed, 25 Apr 2012 10:40:49 +0200
-Message-ID: <4F97B891.1020601@ti.com>
-References: <1333458578-23073-1-git-send-email-hvaibhav@ti.com> <1333458578-23073-4-git-send-email-hvaibhav@ti.com> <alpine.DEB.2.00.1204241857260.24864@utopia.booyaka.com> <79CD15C6BA57404B839C016229A409A83E9FD175@DBDE01.ent.ti.com>
+From: "Hiremath, Vaibhav" <hvaibhav@ti.com>
+Subject: RE: [PATCH-V4 3/3] ARM: OMAP: Make OMAP clocksource source
+ selection using kernel param
+Date: Wed, 25 Apr 2012 08:40:42 +0000
+Message-ID: <79CD15C6BA57404B839C016229A409A83E9FD4DC@DBDE01.ent.ti.com>
+References: <1335260749-25877-1-git-send-email-hvaibhav@ti.com>
+ <1335260749-25877-4-git-send-email-hvaibhav@ti.com>
+ <20120424162016.GK3739@atomide.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1;
-	format=flowed
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from devils.ext.ti.com ([198.47.26.153]:46079 "EHLO
+Received: from devils.ext.ti.com ([198.47.26.153]:46270 "EHLO
 	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754735Ab2DYIk4 (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 25 Apr 2012 04:40:56 -0400
-In-Reply-To: <79CD15C6BA57404B839C016229A409A83E9FD175@DBDE01.ent.ti.com>
+	with ESMTP id S1752419Ab2DYIo0 convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 25 Apr 2012 04:44:26 -0400
+In-Reply-To: <20120424162016.GK3739@atomide.com>
+Content-Language: en-US
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "Hiremath, Vaibhav" <hvaibhav@ti.com>
-Cc: Paul Walmsley <paul@pwsan.com>, "Mohammed, Afzal" <afzal@ti.com>, "Bedia, Vaibhav" <vaibhav.bedia@ti.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "tony@atomide.com" <tony@atomide.com>, "Hilman, Kevin" <khilman@ti.com>, "Nayak, Rajendra" <rnayak@ti.com>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>
+To: Tony Lindgren <tony@atomide.com>
+Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "Hilman, Kevin" <khilman@ti.com>, "paul@pwsan.com" <paul@pwsan.com>, "Shilimkar, Santosh" <santosh.shilimkar@ti.com>, "Cousson, Benoit" <b-cousson@ti.com>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, "Balbi, Felipe" <balbi@ti.com>, "DebBarma, Tarun Kanti" <tarun.kanti@ti.com>, Ming Lei <tom.leiming@gmail.com>
 
-Hi Vaibhav,
+On Tue, Apr 24, 2012 at 21:50:16, Tony Lindgren wrote:
 
-On 4/25/2012 7:48 AM, Hiremath, Vaibhav wrote:
-> On Wed, Apr 25, 2012 at 06:33:26, Paul Walmsley wrote:
->> Hello Vaibhav, Afzal, Vaibhav,
->>
->> On Tue, 3 Apr 2012, Vaibhav Hiremath wrote:
->>
->>> AM33XX clock implementation is different than any existing OMAP
->>> family of devices. Although DPLL module is similar to OMAP4
->>> device, but the usage is very much different than OMAP4.
->>> AM33XX has different peripheral set and each module gets
->>> integrated to the clock framework differently than OMAP
->>> family of devices.
->>>
->>> This patch adds full Clock tree data for AM33XX family
->>> of devices and also integrates it into existing OMAP framework.
->>
->> What do you think about the possibility of removing all of the leaf =
-clocks
->> that have AM33XX_MODULEMODE_SWCTRL as their .enable_bit, assuming th=
-ere
->> are no .fixed_div or .clksel* fields associated with the clocks?
->>
->> In theory, I don't think they are needed.  The drivers should be usi=
-ng
->> runtime PM, and that should enable and disable the module via the hw=
-mod
->> code, rather than the clock code.
->>
->> Of course some clocks would still be needed for the main_clk fields =
-for
->> the hwmods, but the hwmods should be able to use the leaf clock's pa=
-rent
->> clocks for that.
->>
->> That would save quite a few lines of data.  And I think Beno=EEt is =
-planning
->> to do that for OMAP4+.
->>
->> What do you think?
->>
->
-> Paul,
->
-> Yes, theoretically it is possible to do it. But it will also break so=
-me of
-> the existing things, like,
->
-> 1. DebugFS clock interface
->
-> I believe, with this change, you will not have all the leaf nodes as =
-part of clock tree, so they will not be populated in /debug/clock/
->
-> 2. Enable and disable of the module is one part, but what about, chan=
-ging
->     the rate of the clock (followparent_recalc)?
->     With the proper and complete clock tree, you can traverse the clo=
-ck and
->     driver code doesn't need to know about parent.
->     Driver can simply call clk_set_rate() on leaf clock, and clock tr=
-ee will
->     handle it.
->
-> If at all we take this path, we have to build the clk node runtime
-> (on-the-fly), AND/OR add new pm_runtime_set_rate() api.
+Thanks Tony for review comments, my response in-lined below -
 
-Not at all. You just have to get the fck of that hwmod and use the cloc=
-k=20
-API.
+> Hi,
+> 
+> * Vaibhav Hiremath <hvaibhav@ti.com> [120424 02:54]:
+> > Current OMAP code supports couple of clocksource options based
+> > on compilation flag (CONFIG_OMAP_32K_TIMER). The 32KHz sync-timer
+> > and a gptimer which can run on 32KHz or system clock (e.g 38.4 MHz).
+> > So there can be 3 options -
+> > 
+> > 1. 32KHz sync-timer
+> > 2. Sys_clock based (e.g 13/19.2/26/38.4 MHz) gptimer
+> > 3. 32KHz based gptimer.
+> > 
+> > The optional gptimer based clocksource was added so that it can
+> > give the high precision than sync-timer, so expected usage was 2
+> > and not 3.
+> > Unfortunately option 2, clocksource doesn't meet the requirement of
+> > free-running clock as per clocksource need. It stops in low power states
+> > when sys_clock is cut. That makes gptimer based clocksource option
+> > useless for OMAP2/3/4 devices with sys_clock as a clock input.
+> > Option 3 will still work but it is no better than 32K sync-timer
+> > based clocksource.
+> 
+> For some cases sys clock based timer is still valid if you don't
+> care about PM. In that case deeper idle states need to be disabled,
+> not the timer as discussed earlier. Please update the comments accordingly.
+>  
 
-> Are you available on IRC chat anytime? We can discuss on this and ali=
-gn
-> quickly.
-> I am available on linux-omap irc channel (with the name =3D "hvaibhav=
-")
+Ok, I will add below statement, 
 
-That will not change anything, the point is that MODULEMODE_SWCTRL is=20
-uses for module control, not for clock directly, and that's why it is=20
-handled by the hwmod.
+"Also, in order to use option 2, deeper idle stated MUST be disabled."
 
-That will just replace the main_clk from the hwmod with the parent of=20
-the current modulemode nodes. Only the enable/disable part will be=20
-handled, if that node used to have a div, then the parent will handle t=
-hat.
 
-Today this module mode clock node is just a duplication of the hwmod=20
-node. By removing it, you will reduce the size of the data and have a=20
-much mode accurate representation of the reality.
+> > So ideally we can kill the gptimer based clocksource option but there
+> > are some OMAP based derivative SoCs like AM33XX which doesn't have
+> > 32K sync-timer hardware IP and need to fallback on 32KHz based gptimer
+> > clocksource.
+> 
+> Maybe just say: "We must support both sync timer and gptimer based
+> clocksource as some AM33XX hardware does not have the sync timer."
+> 
 
-Using the clock tree to handle these nodes was a hack we had to do=20
-because the hwmod fmwk was not ready when OMAP4 was introduced and=20
-because most drivers were not using pm_runtime.
+Ok, I can change the description accordingly.
 
-Regards,
-Benoit
---
-To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> > Considering above, make sync-timer and gptimer clocksource runtime
+> > selectable so that both OMAP and AMXXXX continue to use the same code.
+> > 
+> > Also, in order to precisely configure/setup sched_clock for given
+> > clocksource, decision has to be made early enough in boot sequence.
+> > 
+> > So, the solution is,
+> > 
+> > Use kernel parameter ("clocksource=") to override
+> 
+> Maybe say: "Use standard kernel parameter ("clocksource=")..."
+> 
+
+Ditto, I will change the description accordingly.
+
+> > --- a/arch/arm/mach-omap1/timer32k.c
+> > +++ b/arch/arm/mach-omap1/timer32k.c
+> > @@ -71,6 +71,7 @@
+> > 
+> >  /* 16xx specific defines */
+> >  #define OMAP1_32K_TIMER_BASE		0xfffb9000
+> > +#define OMAP1_32KSYNC_TIMER_BASE	0xfffbc400
+> >  #define OMAP1_32K_TIMER_CR		0x08
+> >  #define OMAP1_32K_TIMER_TVR		0x00
+> >  #define OMAP1_32K_TIMER_TCR		0x04
+> > @@ -184,7 +185,10 @@ static __init void omap_init_32k_timer(void)
+> >   */
+> >  bool __init omap_32k_timer_init(void)
+> >  {
+> > -	omap_init_clocksource_32k();
+> > +	u32 pbase;
+> > +
+> > +	pbase = cpu_is_omap16xx() ? OMAP1_32KSYNC_TIMER_BASE : NULL;
+> > +	omap_init_clocksource_32k(pbase, SZ_1K);
+> >  	omap_init_32k_timer();
+> > 
+> >  	return true;
+> 
+> Has this patch been tested on omap1?
+> 
+
+I do not have omap1 board with me, so I can not test it. If somebody can 
+provide some help here, that would be really great?
+
+> 
+> > --- a/arch/arm/mach-omap2/timer.c
+> > +++ b/arch/arm/mach-omap2/timer.c
+> > @@ -510,3 +540,28 @@ static int __init omap2_dm_timer_init(void)
+> >  	return 0;
+> >  }
+> >  arch_initcall(omap2_dm_timer_init);
+> > +
+> > +/**
+> > + * omap2_override_clocksource - clocksource override with user configuration
+> > + *
+> > + * Allows user to override default clocksource, using kernel parameter
+> > + *   clocksource="gp timer"
+> > + *
+> > + * Note that, here we are using same standard kernel parameter "clocksource=",
+> > + * and not introducing any OMAP specific interface.
+> > + */
+> > +static int __init omap2_override_clocksource(char *str)
+> > +{
+> > +	if (!str)
+> > +		return 0;
+> > +	/*
+> > +	 * For OMAP architecture, we only have two options
+> > +	 *    - sync_32k (default)
+> > +	 *    - gp timer
+> > +	 */
+> > +	if (!strcmp(str, "gp timer"))
+> > +		use_gptimer_clksrc = true;
+> > +
+> > +	return 0;
+> > +}
+> > +early_param("clocksource", omap2_override_clocksource);
+> 
+> Should say "For omap2plus architectures" and should say three options.
+> If the sys clock based timer is not currently supported, please mention
+> that in the comments.
+> 
+
+"gp timer" above is nothing but, sys_clock based gptimer option only. May be I should add the source in bracket or something?
+Like,
+	*    - sync_32k (default)
+	*    - gp timer (sys_clock)
+
+Thanks,
+Vaibhav
+
+> Regards,
+> 
+> Tony
+> 
+
