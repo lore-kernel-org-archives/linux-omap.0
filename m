@@ -1,69 +1,58 @@
-From: Felipe Balbi <balbi@ti.com>
-Subject: Re: [PATCH 6/6] twl4030-usb: Don't report EVENT_ID when there is
- VBUS.
-Date: Wed, 25 Apr 2012 11:05:27 +0300
-Message-ID: <20120425080526.GA3777@arwen.pp.htv.fi>
-References: <20120425072931.20124.56635.stgit@notabene.brown>
- <20120425073311.20124.58619.stgit@notabene.brown>
-Reply-To: balbi@ti.com
+From: Mark Brown <broonie@opensource.wolfsonmicro.com>
+Subject: Re: [PATCH v2] ASoC: omap-pcm: Free dma buffers in case of error.
+Date: Wed, 25 Apr 2012 09:09:57 +0100
+Message-ID: <20120425080957.GC3195@opensource.wolfsonmicro.com>
+References: <1335319322-22336-1-git-send-email-oleg.matcovschi@ti.com>
 Mime-Version: 1.0
 Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="IS0zKkzwUGydFO0o"
-Return-path: <linux-kernel-owner@vger.kernel.org>
+	protocol="application/pgp-signature"; boundary="mvpLiMfbWzRoNl4x"
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from opensource.wolfsonmicro.com ([80.75.67.52]:45627 "EHLO
+	opensource.wolfsonmicro.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1751653Ab2DYIJ7 (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>);
+	Wed, 25 Apr 2012 04:09:59 -0400
 Content-Disposition: inline
-In-Reply-To: <20120425073311.20124.58619.stgit@notabene.brown>
-Sender: linux-kernel-owner@vger.kernel.org
-To: NeilBrown <neilb@suse.de>
-Cc: Samuel Ortiz <sameo@linux.intel.com>, Felipe Balbi <balbi@ti.com>, Grazvydas Ignotas <notasas@gmail.com>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, linux-kernel@vger.kernel.org, linux-usb@vger.kernel.org, linux-omap@vger.kernel.org
+In-Reply-To: <1335319322-22336-1-git-send-email-oleg.matcovschi@ti.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Oleg Matcovschi <oleg.matcovschi@ti.com>
+Cc: linux-omap@vger.kernel.org, alsa-devel@alsa-project.org, peter.ujfalusi@ti.com, jarkko.nikula@bitmer.com, lrg@ti.com, perex@perex.cz, tiwai@suse.de
 
 
---IS0zKkzwUGydFO0o
+--mvpLiMfbWzRoNl4x
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
 
-Hi,
+On Tue, Apr 24, 2012 at 07:02:02PM -0700, Oleg Matcovschi wrote:
+> Change-Id: I4ba9de0de4681332539246ccc5e11a7a8fb32e79
+> Signed-off-by: Oleg Matcovschi <oleg.matcovschi@ti.com>
 
-On Wed, Apr 25, 2012 at 05:33:11PM +1000, NeilBrown wrote:
-> Some USB chargers tie the ID pin low via various resistors.
-> So they can cause VBUS to be high and ID to be low.
->=20
-> The 'A' end of an OTG cable never receives VBUS, it only ever generates i=
-t.
+Don't include Change-Ids in upstream submissions, they only make sense
+within whatever private development tree you are using.
 
-this isn't entirely true. Have you considered Accessory Charger
-Adapters ?
+Acked-by: Mark Brown <broonie@opensource.wolfsonmicro.com>
 
-> So if we see VBUS and are not generating it, this must be a charger,
-> not the A end of an OTG cable, so in that case, ignore the fact that
-> ID is low.
-
-wrong.
-
---=20
-balbi
-
---IS0zKkzwUGydFO0o
+--mvpLiMfbWzRoNl4x
 Content-Type: application/pgp-signature; name="signature.asc"
 Content-Description: Digital signature
 
 -----BEGIN PGP SIGNATURE-----
 Version: GnuPG v1.4.12 (GNU/Linux)
 
-iQIcBAEBAgAGBQJPl7BGAAoJEIaOsuA1yqREJ+8P/RoFYs7SyVGi6Ha03PnzpO/N
-rkRpOGl8puCfcMznBYH2ELRF6V51yCUN8wXruY3tR0uJi7ObYAVu45pUhHJ0kJuV
-SZygjsEjFAJHu+ZPLSX9sZgBEQYdQgHCaVXg+8RpPpZ32bYu2UC82DJ4vDm1VdXq
-hs2nCwaYb7YsxDzqe+5TM7bvWen7gmvrgR/ljgol0qI+GJsB53w4tySZydithbj/
-5hBsZ0ru/nXPhQDxYOKXrT6FwNdajyB29b2vL7Ywk+m4dho+lnigAwBcoEgQL/Eo
-JaXRZHzctNBznZ/y0Jlm/fL6LV+vOBcg2zOKLg6a25R4bwhH3XCb5fMwBwto8R5+
-ZN/UVvWaTWAlVAhtv8dSd3Kjchx6wlwpBBQQfsCXtJPF53RKossFb/zpg56ZR63Z
-vRF8vEM6Zo7j1U4gWE3KjDClJY8tkN4C48w+rhMiT/TQLoutV17P/tjMzIBjcouH
-kIYGsGgdlQZVId5fIh3CqAzP2R82ZAWYwwIsnEkEpU64g4g93knYvV1gj4E4U3dj
-BxnwUtCCz2ifkkNDmi+4SMh1WkbIxLRo/bgvYQWxnMM/GY+b8GvApME8qP9BVGNe
-MOdwrzYQxfABRjhR4BbszNJX57SHCOLmAYEVJMCxkmgHfd6tAx0aS21ot02mWPbR
-mL+lnQGWCI2Yzp+ow1eT
-=/Eaz
+iQIcBAEBAgAGBQJPl7FOAAoJEBus8iNuMP3d1mwQAJDP8eh9LuCfnyw3MoSiwjRf
+epSpD5Xerkj5NCC9D7GyQbXo3Ah3GR/vMqp95ZS/7jYZs6s1GalD20f4Dc15xFXq
+HHapgzI4xqbrak+1Z1qCsJzPSPZ7Lu8HeIcsztvBM8/dCJMU3NCo+PCSP8Iemymy
+veO/k837GhwbwXAuqmSZh613PLDjR9ZTuwapWxOznzvSI2kYSjL2meGKSBrdlSHH
+B+HBMEjmqRNpELoyWCoPDkFLcFsvnBuoep/HkSSUKTsbcCQvI/B7Lamb3PEOlXtQ
+WgrMWHCbGQi0w3V2/OvPIfaxCh3Ulc/LBxdD+0a9NDLGZChuVhk0RcIzKsqKZ+EF
+W8LgipcROxDMwHmEYjNNGCsWzdKluoR8sj9UcpFxen1uZPDkVtf6gRaFnTgabGTs
+fCPrWQS+rHtilEpdfwOj3jM+4rbFmfHnehG/JUOSKKZ/gofjQrQeoHUQgIWxQ3L2
+lePBBuuf6BrqefyuMU6zDIPgklda2jUlDSnrQyKlyI9QSXdelUEiF/OCrZROY+s4
+ywmLY7TJlEy9n0JK4+Rk4ilDiS8hYo9CvOza6wFxnP46NlYSMoh0nMYFPPMMc2dt
++vaLmOmwtQEcBNyG7G6n4fMMNxcZ0MwHlS5BMdO2MaGETTPUMq/u6pQRDUr9xM+7
+25XN8qt2YyyburaJ+9RX
+=nu1p
 -----END PGP SIGNATURE-----
 
---IS0zKkzwUGydFO0o--
+--mvpLiMfbWzRoNl4x--
