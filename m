@@ -1,94 +1,99 @@
-From: "Cousson, Benoit" <b-cousson@ti.com>
-Subject: Re: [PATCH-V3 3/3] ARM: OMAP3+: clock33xx: Add AM33XX clock tree
- data
-Date: Wed, 25 Apr 2012 13:38:43 +0200
-Message-ID: <4F97E243.6000500@ti.com>
-References: <1333458578-23073-1-git-send-email-hvaibhav@ti.com> <1333458578-23073-4-git-send-email-hvaibhav@ti.com> <alpine.DEB.2.00.1204241857260.24864@utopia.booyaka.com> <79CD15C6BA57404B839C016229A409A83E9FD175@DBDE01.ent.ti.com> <4F97B891.1020601@ti.com> <79CD15C6BA57404B839C016229A409A83E9FD707@DBDE01.ent.ti.com>
+From: Grazvydas Ignotas <notasas@gmail.com>
+Subject: Re: [PATCH 6/6] twl4030-usb: Don't report EVENT_ID when there is VBUS.
+Date: Wed, 25 Apr 2012 14:44:54 +0300
+Message-ID: <CANOLnOMYqnjopeyEcP3MfuGLinTzmdz9Shoc+cwYGQaDiAiZ-g@mail.gmail.com>
+References: <20120425072931.20124.56635.stgit@notabene.brown>
+	<20120425073311.20124.58619.stgit@notabene.brown>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="ISO-8859-1"; format=flowed
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from bear.ext.ti.com ([192.94.94.41]:47389 "EHLO bear.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1758862Ab2DYLiu (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Wed, 25 Apr 2012 07:38:50 -0400
-In-Reply-To: <79CD15C6BA57404B839C016229A409A83E9FD707@DBDE01.ent.ti.com>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <20120425073311.20124.58619.stgit@notabene.brown>
+Sender: linux-kernel-owner@vger.kernel.org
+To: NeilBrown <neilb@suse.de>
+Cc: Samuel Ortiz <sameo@linux.intel.com>, Felipe Balbi <balbi@ti.com>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, linux-kernel@vger.kernel.org, linux-usb@vger.kernel.org, linux-omap@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "Hiremath, Vaibhav" <hvaibhav@ti.com>
-Cc: Paul Walmsley <paul@pwsan.com>, "Mohammed, Afzal" <afzal@ti.com>, "Bedia, Vaibhav" <vaibhav.bedia@ti.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "tony@atomide.com" <tony@atomide.com>, "Hilman, Kevin" <khilman@ti.com>, "Nayak, Rajendra" <rnayak@ti.com>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>
 
-On 4/25/2012 12:20 PM, Hiremath, Vaibhav wrote:
-> On Wed, Apr 25, 2012 at 14:10:49, Cousson, Benoit wrote:
-
-...
-
->> That will not change anything, the point is that MODULEMODE_SWCTRL is
->> uses for module control, not for clock directly, and that's why it is
->> handled by the hwmod.
->>
->> That will just replace the main_clk from the hwmod with the parent of
->> the current modulemode nodes. Only the enable/disable part will be
->> handled, if that node used to have a div, then the parent will handle that.
->>
->> Today this module mode clock node is just a duplication of the hwmod
->> node. By removing it, you will reduce the size of the data and have a
->> much mode accurate representation of the reality.
->>
->> Using the clock tree to handle these nodes was a hack we had to do
->> because the hwmod fmwk was not ready when OMAP4 was introduced and
->> because most drivers were not using pm_runtime.
->>
+On Wed, Apr 25, 2012 at 10:33 AM, NeilBrown <neilb@suse.de> wrote:
+> Some USB chargers tie the ID pin low via various resistors.
+> So they can cause VBUS to be high and ID to be low.
 >
-> Benoit,
+> The 'A' end of an OTG cable never receives VBUS, it only ever generat=
+es it.
 >
-> I completely understand what are trying to explain here, and I completely agree with you on the fact that, MODULEMODE_SWCTRL is for module control and is clock node is just a duplication.
+> So if we see VBUS and are not generating it, this must be a charger,
+> not the A end of an OTG cable, so in that case, ignore the fact that
+> ID is low.
 >
-> Module enable and disable is one part, and I am not at all referring to this.
-> My point is, more from other piece of code which are dependent on clocktree.
-> In order to have proper and complete debugfs representation of all the
-> clocks, somebody has to maintain the information of leaf clocks to parent
-> relation, Isn't it?
+> This assumes that VBUS_PRES isn't asserted when the charge pump is
+> providing VBUS. =C2=A0The document isn't clear on this and some exper=
+iments
+> suggest that it isn't.
 
-Nope, not at all. All the clocks will stay in the clock tree. The clock 
-consumers a.k.a hwmods does not have to be in the clock tree.
-Having some fake leaf nodes in the clock tree is just adding some fake 
-intermediate clocks instead of the real consumer. These nodes do not 
-exist, they were added to have a point of control from the driver before 
-runtime_pm was there.
+Like already mentioned, this is not what I see on pandora. I don't
+know, maybe it's due to some errata or different versions of TWL chip
+act different, or perhaps even board design issue, but that's how it
+is here.
 
-> For example, take OMAP44xx "dss_dss_clk" clock, OR any clock with "followparent_recalc" field, the question I am raising here is,
+If you look at git history, this has been changed back and forth
+several times, like in commit def6f8b9. Perhaps some platform_data
+could be added to handle this, I don't know..
 
-Then it is not an issue. If this is a real clock, it will then stay in 
-the clock data.
+>
+> Signed-off-by: NeilBrown <neilb@suse.de>
+> ---
+>
+> =C2=A0drivers/usb/otg/twl4030-usb.c | =C2=A0 19 ++++++++++---------
+> =C2=A01 file changed, 10 insertions(+), 9 deletions(-)
+>
+> diff --git a/drivers/usb/otg/twl4030-usb.c b/drivers/usb/otg/twl4030-=
+usb.c
+> index bd8fe9b..990400f 100644
+> --- a/drivers/usb/otg/twl4030-usb.c
+> +++ b/drivers/usb/otg/twl4030-usb.c
+> @@ -268,15 +268,16 @@ static enum usb_phy_events twl4030_usb_linkstat=
+(struct twl4030_usb *twl)
+> =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0=
+ =C2=A0 =C2=A0STS_HW_CONDITIONS);
+> =C2=A0 =C2=A0 =C2=A0 =C2=A0if (status < 0)
+> =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0dev_err(twl->d=
+ev, "USB link status err %d\n", status);
+> - =C2=A0 =C2=A0 =C2=A0 else if (status & (BIT(7) | BIT(2))) {
+> - =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 if (status & (BIT(=
+7)))
+> - =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0=
+ =C2=A0 =C2=A0twl->vbus_supplied =3D true;
+> -
+> - =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 if (status & BIT(2=
+))
+> - =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0=
+ =C2=A0 linkstat =3D USB_EVENT_ID;
+> - =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 else
+> - =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0=
+ =C2=A0 linkstat =3D USB_EVENT_VBUS;
+> - =C2=A0 =C2=A0 =C2=A0 } else
+> + =C2=A0 =C2=A0 =C2=A0 else if (status & (BIT(7))) {
+> + =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 /* We have VBUS so=
+ ignore ID_PRES - it is only meaningful
+> + =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0* as an indi=
+cator of an A plug when there is no
+> + =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0* VBUS.
+> + =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0*/
+> + =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 twl->vbus_supplied=
+ =3D true;
+> + =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 linkstat =3D USB_E=
+VENT_VBUS;
+> + =C2=A0 =C2=A0 =C2=A0 } else if (status & BIT(2))
+> + =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 linkstat =3D USB_E=
+VENT_ID;
+> + =C2=A0 =C2=A0 =C2=A0 else
+> =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0linkstat =3D U=
+SB_EVENT_NONE;
+>
+> =C2=A0 =C2=A0 =C2=A0 =C2=A0dev_dbg(twl->dev, "HW_CONDITIONS 0x%02x/%d=
+; link %d\n",
+>
+>
 
-> How would I know the rate of this clock in driver? Say for example, I want
-> to configure my internal divider based on input rate?
-> OR
-> I want to change the rate of dss_clk itself?
-> OR
-> Looking at debugfs, would I get the rate of dss_clk?
-
-No because that clock will not exist anymore, but you will have the real 
-clock rate from the "dss_dss_clk".
-
-> OR
-> Will I have dss_clk present in /debug/clock/?
-> OR
-> Are we expecting user to know parent of such leaf clocks?
-
-Yes, because it is not leaf nodes anymore, but modules.
-
-> OR
-> Are we planning to export hwmod->main_clk (which is parent clk here) to
-> User in debugfs or something?
-
-Well, I used to have a patch do expose hwmod to debugfs, but this is not 
-that useful.
-
-I think this is a non-issue, we are just removing clock nodes that are 
-not real nodes, so it will not change anything practically speaking.
-
-Regards,
-Benoit
-
+--=20
+Gra=C5=BEvydas
