@@ -1,61 +1,45 @@
-From: Paul Walmsley <paul@pwsan.com>
-Subject: Re: [PATCH-V3 3/3] ARM: OMAP3+: clock33xx: Add AM33XX clock tree
- data
-Date: Tue, 24 Apr 2012 19:03:26 -0600 (MDT)
-Message-ID: <alpine.DEB.2.00.1204241857260.24864@utopia.booyaka.com>
-References: <1333458578-23073-1-git-send-email-hvaibhav@ti.com> <1333458578-23073-4-git-send-email-hvaibhav@ti.com>
+From: Oleg Matcovschi <oleg.matcovschi@ti.com>
+Subject: [PATCH v2] ASoC: omap-pcm: Free dma buffers in case of error.
+Date: Tue, 24 Apr 2012 19:02:02 -0700
+Message-ID: <1335319322-22336-1-git-send-email-oleg.matcovschi@ti.com>
 Mime-Version: 1.0
-Content-Type: MULTIPART/MIXED; BOUNDARY="155748971-608425141-1335315806=:24864"
+Content-Type: text/plain
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from utopia.booyaka.com ([72.9.107.138]:32871 "EHLO
-	utopia.booyaka.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1757063Ab2DYBD1 (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 24 Apr 2012 21:03:27 -0400
-In-Reply-To: <1333458578-23073-4-git-send-email-hvaibhav@ti.com>
+Received: from arroyo.ext.ti.com ([192.94.94.40]:60944 "EHLO arroyo.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752063Ab2DYCDR (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Tue, 24 Apr 2012 22:03:17 -0400
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Vaibhav Hiremath <hvaibhav@ti.com>, Afzal Mohammed <afzal@ti.com>, Vaibhav Bedia <vaibhav.bedia@ti.com>
-Cc: linux-omap@vger.kernel.org, tony@atomide.com, khilman@ti.com, rnayak@ti.com, b-cousson@ti.com, linux-arm-kernel@lists.infradead.org
+To: linux-omap@vger.kernel.org, alsa-devel@alsa-project.org
+Cc: peter.ujfalusi@ti.com, jarkko.nikula@bitmer.com, lrg@ti.com, broonie@opensource.wolfsonmicro.com, perex@perex.cz, tiwai@suse.de, Oleg Matcovschi <oleg.matcovschi@ti.com>
 
-  This message is in MIME format.  The first part should be readable text,
-  while the remaining parts are likely unreadable without MIME-aware tools.
+Change-Id: I4ba9de0de4681332539246ccc5e11a7a8fb32e79
+Signed-off-by: Oleg Matcovschi <oleg.matcovschi@ti.com>
+---
+v1:
+ initial revision
+v2:
+ resending patch including maintainers
 
---155748971-608425141-1335315806=:24864
-Content-Type: TEXT/PLAIN; charset=ISO-8859-15
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+ sound/soc/omap/omap-pcm.c |    4 ++++
+ 1 files changed, 4 insertions(+), 0 deletions(-)
 
-Hello Vaibhav, Afzal, Vaibhav,
+diff --git a/sound/soc/omap/omap-pcm.c b/sound/soc/omap/omap-pcm.c
+index a2a464f..380a5bd 100644
+--- a/sound/soc/omap/omap-pcm.c
++++ b/sound/soc/omap/omap-pcm.c
+@@ -414,6 +414,10 @@ static int omap_pcm_new(struct snd_soc_pcm_runtime *rtd)
+ 	}
+ 
+ out:
++	/* free preallocated buffers in case of error */
++	if (ret)
++		omap_pcm_free_dma_buffers(pcm);
++
+ 	return ret;
+ }
+ 
+-- 
+1.7.4.1
 
-On Tue, 3 Apr 2012, Vaibhav Hiremath wrote:
-
-> AM33XX clock implementation is different than any existing OMAP
-> family of devices. Although DPLL module is similar to OMAP4
-> device, but the usage is very much different than OMAP4.
-> AM33XX has different peripheral set and each module gets
-> integrated to the clock framework differently than OMAP
-> family of devices.
->=20
-> This patch adds full Clock tree data for AM33XX family
-> of devices and also integrates it into existing OMAP framework.
-
-What do you think about the possibility of removing all of the leaf clocks
-that have AM33XX_MODULEMODE_SWCTRL as their .enable_bit, assuming there=20
-are no .fixed_div or .clksel* fields associated with the clocks?
-
-In theory, I don't think they are needed.  The drivers should be using=20
-runtime PM, and that should enable and disable the module via the hwmod=20
-code, rather than the clock code.
-
-Of course some clocks would still be needed for the main_clk fields for=20
-the hwmods, but the hwmods should be able to use the leaf clock's parent=20
-clocks for that.
-
-That would save quite a few lines of data.  And I think Beno=EEt is plannin=
-g=20
-to do that for OMAP4+.
-
-What do you think?
-
-
-- Paul
---155748971-608425141-1335315806=:24864--
