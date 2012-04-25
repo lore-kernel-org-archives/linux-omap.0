@@ -1,83 +1,106 @@
-From: "Hiremath, Vaibhav" <hvaibhav@ti.com>
-Subject: RE: [PATCH-V3 3/3] ARM: OMAP3+: clock33xx: Add AM33XX clock tree
- data
-Date: Wed, 25 Apr 2012 12:40:28 +0000
-Message-ID: <79CD15C6BA57404B839C016229A409A83E9FDAE7@DBDE01.ent.ti.com>
-References: <1333458578-23073-1-git-send-email-hvaibhav@ti.com>
- <1333458578-23073-4-git-send-email-hvaibhav@ti.com>
- <alpine.DEB.2.00.1204241857260.24864@utopia.booyaka.com>
- <79CD15C6BA57404B839C016229A409A83E9FD175@DBDE01.ent.ti.com>
- <4F97B891.1020601@ti.com>
- <79CD15C6BA57404B839C016229A409A83E9FD707@DBDE01.ent.ti.com>
- <4F97E243.6000500@ti.com>
- <79CD15C6BA57404B839C016229A409A83E9FDA47@DBDE01.ent.ti.com>
- <4F97EF11.4020300@ti.com>
+From: "DebBarma, Tarun Kanti" <tarun.kanti@ti.com>
+Subject: Re: [PATCH v9 11/25] gpio/omap: cleanup omap_gpio_mod_init function
+Date: Wed, 25 Apr 2012 18:24:14 +0530
+Message-ID: <CAC83ZvKN_Qxw-9RPfpJaL5434j0HgysZ364F+b29rdSCQWhm7A@mail.gmail.com>
+References: <1328203851-20435-1-git-send-email-tarun.kanti@ti.com>
+	<1328203851-20435-12-git-send-email-tarun.kanti@ti.com>
+	<13629551.hP3ZV1ajDo@vclass>
+	<CAC83ZvK630=6B-k2TfV3XBg8w7ZosLVDNE4ezjDYnn=hcXA48Q@mail.gmail.com>
+	<CAC83ZvJDDvCu8NKTOYh75USA3fvSAKEGaXXi9PtCM955K_keSA@mail.gmail.com>
+	<20120424160447.GI3739@atomide.com>
+	<CAC83Zv+CCLQfZHfqMcbof6JtA-hOK1PfX5Gs0BBVQhBAiWzX_g@mail.gmail.com>
+	<CAMQu2gzwijaSzXprEwTNTie3zCgFcNPonAexzrO_AWc2a8jOkw@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
+Content-Type: text/plain; charset=ISO-8859-1
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from arroyo.ext.ti.com ([192.94.94.40]:37491 "EHLO arroyo.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1750972Ab2DYMkf convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 25 Apr 2012 08:40:35 -0400
-In-Reply-To: <4F97EF11.4020300@ti.com>
-Content-Language: en-US
+Received: from na3sys009aog134.obsmtp.com ([74.125.149.83]:54787 "EHLO
+	na3sys009aog134.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1751392Ab2DYMyQ (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>);
+	Wed, 25 Apr 2012 08:54:16 -0400
+Received: by qcsq13 with SMTP id q13so36861qcs.17
+        for <linux-omap@vger.kernel.org>; Wed, 25 Apr 2012 05:54:15 -0700 (PDT)
+In-Reply-To: <CAMQu2gzwijaSzXprEwTNTie3zCgFcNPonAexzrO_AWc2a8jOkw@mail.gmail.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "Cousson, Benoit" <b-cousson@ti.com>
-Cc: Paul Walmsley <paul@pwsan.com>, "Mohammed, Afzal" <afzal@ti.com>, "Bedia, Vaibhav" <vaibhav.bedia@ti.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "tony@atomide.com" <tony@atomide.com>, "Hilman, Kevin" <khilman@ti.com>, "Nayak, Rajendra" <rnayak@ti.com>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>
+To: "Shilimkar, Santosh" <santosh.shilimkar@ti.com>
+Cc: Tony Lindgren <tony@atomide.com>, Janusz Krzysztofik <jkrzyszt@tis.icnet.pl>, linux-omap@vger.kernel.org, grant.likely@secretlab.ca, khilman@ti.com, linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Charulatha V <charu@ti.com>
 
-On Wed, Apr 25, 2012 at 18:03:21, Cousson, Benoit wrote:
-> On 4/25/2012 2:26 PM, Hiremath, Vaibhav wrote:
-> > On Wed, Apr 25, 2012 at 17:08:43, Cousson, Benoit wrote:
-> >> On 4/25/2012 12:20 PM, Hiremath, Vaibhav wrote:
-> >>> On Wed, Apr 25, 2012 at 14:10:49, Cousson, Benoit wrote:
-> >>
-> >> ...
-> >>
-> > <snip>
-> >>
-> >>> How would I know the rate of this clock in driver? Say for example, I want
-> >>> to configure my internal divider based on input rate?
-> >>> OR
-> >>> I want to change the rate of dss_clk itself?
-> >>> OR
-> >>> Looking at debugfs, would I get the rate of dss_clk?
-> >>
-> >> No because that clock will not exist anymore, but you will have the real
-> >> clock rate from the "dss_dss_clk".
-> >>
-> >
-> > Thanks Benoit, I think I understand your perspective on Module Vs leaf node
-> > and now able to digest as well.
-> > Probably Last Q, which I think clarify all my doubts,
-> >
-> > Assume we have complete hwmod instance and built a device using
-> > omap_device_build() api, and also the driver is completely using runtime pm
-> > api's,
-> > How can driver get the clk handle (required to get the rate)?
-> > Is there any api already available for this?
-> 
-> The omap_device fmwk will auto-magically create a "fck" clkdev entry for 
-> the main_clk.
-> 
-> The API is thus the standard: clk_get(dev, "fck"), to get the clock 
-> handle and then you can use the other clock API.
-> 
-> The idea is to enforce the usage of clock alias local to the device and 
-> not trying anymore to get the real clock name. It thus allows driver to 
-> work on various variant / revision without having to modify the driver.
-> 
-> The fmwk will also create clock alias for any opt_clock present in the 
-> hwmod.
-> 
-
-Yes, Yes, I missed this. Omap_device_build() internally add "fck" to the 
-clkdev table for both main_clk and opt_clks.
-
-Thanks for describing it for me. I will change AM33XX clock tree for this
-And submit the next version soon.
-
-Thanks,
-Vaibhav
-
+On Wed, Apr 25, 2012 at 12:09 PM, Shilimkar, Santosh
+<santosh.shilimkar@ti.com> wrote:
+> On Wed, Apr 25, 2012 at 10:04 AM, DebBarma, Tarun Kanti
+> <tarun.kanti@ti.com> wrote:
+>> On Tue, Apr 24, 2012 at 9:34 PM, Tony Lindgren <tony@atomide.com> wrote:
+>>> * DebBarma, Tarun Kanti <tarun.kanti@ti.com> [120424 08:40]:
+>>>> Hi Janusz,
+>>>>
+>>>> On Tue, Apr 24, 2012 at 12:24 AM, DebBarma, Tarun Kanti
+>>>> <tarun.kanti@ti.com> wrote:
+>>>> > On Sat, Apr 21, 2012 at 7:33 PM, Janusz Krzysztofik
+>>>> > <jkrzyszt@tis.icnet.pl> wrote:
+>>>> >> On Thursday 02 of February 2012 23:00:37 Tarun Kanti DebBarma wrote:
+>>>> >>> With register offsets now defined for respective OMAP versions we can get rid
+>>>> >>> of cpu_class_* checks. This function now has common initialization code for
+>>>> >>> all OMAP versions...
+>>>> >>>
+>>>> >>> Signed-off-by: Tarun Kanti DebBarma <tarun.kanti@ti.com>
+>>>> >>> Signed-off-by: Charulatha V <charu@ti.com>
+>>>> >>> Reviewed-by: Santosh Shilimkar <santosh.shilimkar@ti.com>
+>>>> >>> Acked-by: Tony Lindgren <tony@atomide.com>
+>>>> >>
+>>>> >> Sorry for being so late with my comment for chanes already present in
+>>>> >> mainline, but this patch breaks GPIO on Amstrad Delta at least, and I
+>>>> >> have neither enough spare time nor enough experience with non OMAP1
+>>>> >> machines to provide a solution myself.
+>>>> > Yes, I looked at the omap_gpio_mod_init() and OMAP1 configurations are
+>>>> > overwritten.
+>>>> > Also looks like there is issue in making distinction between omap15xx
+>>>> > and omap16xx.
+>>>> > I will post a patch and you can help me testing it in OMAP1 platform.
+>>>> > Thanks for pointing this out.
+>>> ...
+>>>
+>>>> Here is the patch, with attachment as well. I have just tested on
+>>>> OMAP4 platform.
+>>>> Testing on other OMAP2+ platforms is pending. In the meantime can you please
+>>>> validate on OMAP1 platform and confirm? Thanks.
+>>>> --
+>>>> Tarun
+>>>>
+>>>> From: Tarun Kanti DebBarma <tarun.kanti@ti.com>
+>>>> Date: Tue, 24 Apr 2012 20:34:32 +0530
+>>>> Subject: [PATCH] gpio/omap: fix omap1 register overwrite in omap_gpio_mod_init
+>>>>
+>>>> Initialization of irqenable, irqstatus registers is the common
+>>>> operation done in this function for all OMAP platforms, viz.
+>>>> OMAP1, OMAP2+. The latter _gpio_rmw()'s to irqenable register
+>>>> was overwriting the correctly programmed OMAP1 value at the
+>>>> beginning. As a result, even though it worked on OMAP2+
+>>>> platforms it was breaking OMAP1 functionality.
+>>>
+>>> Sounds like the original patch was never tested on omap1?
+>> That's right, only bootup test was done on OMAP1710-SDP.
+>>
+>>>
+>>>> On closer observation it is found that the first _gpio_rmw()
+>>>> which is supposedly done to take care of OMAP1 platform is
+>>>> generic enough and takes care of OMAP2+ platform as well.
+>>>> Therefore remove the latter _gpio_rmw() to irqenable as they
+>>>> are redundant.
+>>>>
+>>>> Also, changing the sequence and logic of initializing the
+>>>> irqstatus.
+>>>
+>>> Please mention also the breaking commit here and get this fix
+>>> merged as a regression as soon as it's tested for the current
+>>> -rc series.
+>> Sure, I will do that!
+>
+> Looks like it is regression on 3.4 as well so CC stable when you
+> post the patch.
+Ok, I will do that.
+--
+Tarun
+>
+> Regards
+> Santosh
