@@ -1,60 +1,44 @@
 From: NeilBrown <neilb@suse.de>
-Subject: [PATCH 0/3] Ensure twl4030 interrupts are lost during suspend.
-Date: Wed, 25 Apr 2012 13:05:23 +1000
-Message-ID: <20120425025637.7832.14013.stgit@notabene.brown>
+Subject: [PATCH 3/3] twl4030: enable wakeup on twl4030 IRQ.
+Date: Wed, 25 Apr 2012 13:05:24 +1000
+Message-ID: <20120425030524.7832.66013.stgit@notabene.brown>
+References: <20120425025637.7832.14013.stgit@notabene.brown>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from cantor2.suse.de ([195.135.220.15]:48991 "EHLO mx2.suse.de"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1757157Ab2DYDGR (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Tue, 24 Apr 2012 23:06:17 -0400
-Sender: linux-omap-owner@vger.kernel.org
-List-Id: linux-omap@vger.kernel.org
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <20120425025637.7832.14013.stgit@notabene.brown>
+Sender: linux-kernel-owner@vger.kernel.org
 To: Tony Lindgren <tony@atomide.com>, Russell King <linux@arm.linux.org.uk>, Samuel Ortiz <sameo@linux.intel.com>, Thomas Gleixner <tglx@linutronix.de>, "Rafael J. Wysocki" <rjw@sisk.pl>
-Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org, linux-pm@vger.kernel.org
+Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org, linux-pm@vger.kernel.org, NeilBrown <neilb@suse.de>
+List-Id: linux-omap@vger.kernel.org
 
-Sorry for the scatter-gun list of email address, but while each of
-these patches only touches one subsystem, they really needed each
-other to provide proper context.
+Most of the interrupts that come through this line should trigger
+wakeups:
+  power button
+  RTC alarm
+  power available
+  usb plug/unplug
 
-The goal is to ensure that an interrupt that arrives on a TWL4030
-connected to an OMAP3, during the 'late-suspend' stage will
-cause the suspend to abort (if the interrupt is properly configured).
-(e.g. power button, RTC alarm, USB plug/unplug)
+so mark the interrupt as a wakeup interrupt.
+This is particularly important for when the interrupt arrives during
+the late suspend phase.  Without this setting it will be ignored.
 
-The interrupt as seen by the OMAP3 is a level-triggered interrupt so
-if it arrives at this time, it is masked.  With the current code it
-remains masked and so cannot wake the device from suspend.
-
-To fix this:
-  The twl4030 drivers must mark the interrupt for wakeup
-  The OMAP interrupt handler must allow the interrupt to be
-     marked for wakeup
-  The core interrupt/PM code must allow masked level-triggered
-     interrupts to abort a suspend.
-
-I'm least sure about that last one.  My patch unmasks any masked
-interrupt that is suppose to support wakeup.  I suspect that is
-correct but I don't know enough about general IRQ handling to be sure.
-Maybe there could be cases where a driver has explicitly masked the
-interrupt without cleaning the 'wakeup' setting.  Is that allowed?
-
-
+Signed-off-by: NeilBrown <neilb@suse.de>
 ---
 
-NeilBrown (3):
-      twl4030: enable wakeup on twl4030 IRQ.
-      IRQ: allow check_wakeup_irqs to notice level-triggered interrupts.
-      ARM: omap2+: set IRQCHIP_SKIP_SET_WAKE for INTC interrupts.
-
-
- arch/arm/mach-omap2/irq.c |    1 +
  drivers/mfd/twl4030-irq.c |    1 +
- kernel/irq/pm.c           |    6 ++++++
- 3 files changed, 8 insertions(+)
+ 1 file changed, 1 insertion(+)
 
--- 
-Signature
-
+diff --git a/drivers/mfd/twl4030-irq.c b/drivers/mfd/twl4030-irq.c
+index 5d656e8..ad733d7 100644
+--- a/drivers/mfd/twl4030-irq.c
++++ b/drivers/mfd/twl4030-irq.c
+@@ -757,6 +757,7 @@ int twl4030_init_irq(struct device *dev, int irq_num)
+ 		dev_err(dev, "could not claim irq%d: %d\n", irq_num, status);
+ 		goto fail_rqirq;
+ 	}
++	enable_irq_wake(irq_num);
+ 
+ 	return irq_base;
+ fail_rqirq:
