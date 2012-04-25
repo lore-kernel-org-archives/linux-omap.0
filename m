@@ -1,34 +1,58 @@
-From: Gary Thomas <gary@mlbassoc.com>
-Subject: MUSB problem
-Date: Wed, 25 Apr 2012 06:19:43 -0600
-Message-ID: <4F97EBDF.7090400@mlbassoc.com>
+From: "Hiremath, Vaibhav" <hvaibhav@ti.com>
+Subject: RE: [PATCH-V3 3/3] ARM: OMAP3+: clock33xx: Add AM33XX clock tree
+ data
+Date: Wed, 25 Apr 2012 12:26:44 +0000
+Message-ID: <79CD15C6BA57404B839C016229A409A83E9FDA47@DBDE01.ent.ti.com>
+References: <1333458578-23073-1-git-send-email-hvaibhav@ti.com>
+ <1333458578-23073-4-git-send-email-hvaibhav@ti.com>
+ <alpine.DEB.2.00.1204241857260.24864@utopia.booyaka.com>
+ <79CD15C6BA57404B839C016229A409A83E9FD175@DBDE01.ent.ti.com>
+ <4F97B891.1020601@ti.com>
+ <79CD15C6BA57404B839C016229A409A83E9FD707@DBDE01.ent.ti.com>
+ <4F97E243.6000500@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from hermes.mlbassoc.com ([64.234.241.98]:59645 "EHLO
-	mail.chez-thomas.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1758779Ab2DYMTp (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 25 Apr 2012 08:19:45 -0400
+Received: from arroyo.ext.ti.com ([192.94.94.40]:36697 "EHLO arroyo.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1750972Ab2DYM0y convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 25 Apr 2012 08:26:54 -0400
+In-Reply-To: <4F97E243.6000500@ti.com>
+Content-Language: en-US
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: linux-omap@vger.kernel.org
+To: "Cousson, Benoit" <b-cousson@ti.com>
+Cc: Paul Walmsley <paul@pwsan.com>, "Mohammed, Afzal" <afzal@ti.com>, "Bedia, Vaibhav" <vaibhav.bedia@ti.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "tony@atomide.com" <tony@atomide.com>, "Hilman, Kevin" <khilman@ti.com>, "Nayak, Rajendra" <rnayak@ti.com>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>
 
-I'm running 3.3.0 on an OMAP DM3730, with SMSC75xx connected
-via the MUSB device.  I get this error continually although
-the device (and network channel) seem happy:
-   musb_ep_program 835: broken !rx_reinit, ep2 csr a200
+On Wed, Apr 25, 2012 at 17:08:43, Cousson, Benoit wrote:
+> On 4/25/2012 12:20 PM, Hiremath, Vaibhav wrote:
+> > On Wed, Apr 25, 2012 at 14:10:49, Cousson, Benoit wrote:
+> 
+> ...
+> 
+<snip>
+> 
+> > How would I know the rate of this clock in driver? Say for example, I want
+> > to configure my internal divider based on input rate?
+> > OR
+> > I want to change the rate of dss_clk itself?
+> > OR
+> > Looking at debugfs, would I get the rate of dss_clk?
+> 
+> No because that clock will not exist anymore, but you will have the real 
+> clock rate from the "dss_dss_clk".
+> 
 
-What does it mean?  How do I fix it (i.e. keep it from happening)?
+Thanks Benoit, I think I understand your perspective on Module Vs leaf node 
+and now able to digest as well.
+Probably Last Q, which I think clarify all my doubts,
 
-Note: disabling DMA isn't really an option as the whole point of
-the SMSC75xx is to get gigabit ethernet and I doubt that's possible
-without DMA :-)
+Assume we have complete hwmod instance and built a device using 
+omap_device_build() api, and also the driver is completely using runtime pm 
+api's,
+How can driver get the clk handle (required to get the rate)? 
+Is there any api already available for this?
 
-Thanks for any pointers/ideas
-
--- 
-------------------------------------------------------------
-Gary Thomas                 |  Consulting for the
-MLB Associates              |    Embedded world
-------------------------------------------------------------
+Thanks,
+Vaibhav
