@@ -1,66 +1,85 @@
-From: Grazvydas Ignotas <notasas@gmail.com>
-Subject: Re: [RFC 00/12] OMAP DMA engine conversion
-Date: Wed, 25 Apr 2012 02:59:44 +0300
-Message-ID: <CANOLnOM5tkVyLzBvT6i7ziXq1Ld=yzeL5upUdAMUav=wF3HL+A@mail.gmail.com>
-References: <20120423160409.GE24299@n2100.arm.linux.org.uk>
-	<20120424103858.GC25053@n2100.arm.linux.org.uk>
-	<20120424165147.GP3739@atomide.com>
-	<CANOLnOOf0znGBSSQp5B3U+1q2OJBXnB_1T0aiuma_rJZDZA08Q@mail.gmail.com>
-	<20120424232928.GB6290@n2100.arm.linux.org.uk>
+From: Paul Walmsley <paul@pwsan.com>
+Subject: Re: [PATCH-V3 2/3] ARM: OMAP3+: clockdomain33xx: Add clockdomain
+ data and respective operations
+Date: Tue, 24 Apr 2012 18:22:26 -0600 (MDT)
+Message-ID: <alpine.DEB.2.00.1204241725430.24864@utopia.booyaka.com>
+References: <1333458578-23073-1-git-send-email-hvaibhav@ti.com> <1333458578-23073-3-git-send-email-hvaibhav@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Return-path: <linux-mmc-owner@vger.kernel.org>
-In-Reply-To: <20120424232928.GB6290@n2100.arm.linux.org.uk>
-Sender: linux-mmc-owner@vger.kernel.org
-To: Russell King - ARM Linux <linux@arm.linux.org.uk>
-Cc: Tony Lindgren <tony@atomide.com>, linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org, linux-mmc@vger.kernel.org
+Content-Type: TEXT/PLAIN; charset=US-ASCII
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from utopia.booyaka.com ([72.9.107.138]:47386 "EHLO
+	utopia.booyaka.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752744Ab2DYAW1 (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 24 Apr 2012 20:22:27 -0400
+In-Reply-To: <1333458578-23073-3-git-send-email-hvaibhav@ti.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Vaibhav Hiremath <hvaibhav@ti.com>, Afzal Mohammed <afzal@ti.com>, Vaibhav Bedia <vaibhav.bedia@ti.com>
+Cc: linux-omap@vger.kernel.org, tony@atomide.com, khilman@ti.com, rnayak@ti.com, b-cousson@ti.com, linux-arm-kernel@lists.infradead.org
 
-On Wed, Apr 25, 2012 at 2:29 AM, Russell King - ARM Linux
-<linux@arm.linux.org.uk> wrote:
-> On Wed, Apr 25, 2012 at 01:47:21AM +0300, Grazvydas Ignotas wrote:
->> On Tue, Apr 24, 2012 at 7:51 PM, Tony Lindgren <tony@atomide.com> wr=
-ote:
->> > * Russell King - ARM Linux <linux@arm.linux.org.uk> [120424 03:42]=
-:
->> >> Here's another patch - for the OMAP NAND driver.
->> >>
->> >> One thing this doesn't do is configure up the source/destination =
-bursts,
->> >> which the old code did:
->> >>
->> >> =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=
-=A0 =C2=A0 =C2=A0 omap_set_dma_dest_burst_mode(info->dma_ch,
->> >> =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=
-=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0=
- OMAP_DMA_DATA_BURST_16);
->> >> =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=
-=A0 =C2=A0 =C2=A0 omap_set_dma_src_burst_mode(info->dma_ch,
->> >> =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=
-=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0=
- OMAP_DMA_DATA_BURST_16);
->> >
->> > Grazvydas, care to give this patch a go?
->>
->> Tested-by: Grazvydas Ignotas <notasas@gmail.com>
->> for:
->> - SD card connected over transceiver to MMC2
->> - touchscreen connected over SPI
->> - NAND on GPMC in DMA mode
->> Seems to be working just as they did before, except that I'm not sur=
-e
->> SPI was crossing PIO threshold.
->
-> I think my testing on OMAP4430SDP with the SPI based ethernet should'=
-ve
-> caught anything untoward there.
->
-> For the MMC2, could you say whether this was the hsmmc driver or the
-> older omap1/2 driver please?
+Hello Vaibhav, Afzal, Vaibhav,
 
-hsmmc running on OMAP3 pandora.
+A few questions while reviewing this patch:
+
+On Tue, 3 Apr 2012, Vaibhav Hiremath wrote:
+
+> AM33XX PRCM module consist of, various clockdomains, in all
+> total we have 18 clockdomains available, with following
+> controlling options,
+>    - NO Sleep: sleep transition can not be initiated,
+>    - SW Sleep: sw forced sleep transition,
+>    - SW Wakeup: sw forced wakeup transition,
+>    - HW Auto: transitions are based upon hw conditions.
+> 
+> This patch adds all available clockdomain data, respective
+> clockdomain operations for AM33XX family of device, and also
+> integrates it into existing OMAP framework.
+> 
+> Signed-off-by: Vaibhav Hiremath <hvaibhav@ti.com>
+> Signed-off-by: Afzal Mohammed <afzal@ti.com>
+> Signed-off-by: Vaibhav Bedia <vaibhav.bedia@ti.com>
+
+...
+
+> +static struct clockdomain l4ls_am33xx_clkdm = {
+> +	.name		= "l4ls_clkdm",
+> +	.pwrdm		= { .name = "per_pwrdm" },
+> +	.cm_inst	= AM33XX_CM_PER_MOD,
+> +	.clkdm_offs	= AM33XX_CM_PER_L4LS_CLKSTCTRL_OFFSET,
+> +	.clktrctrl_mask	= AM33XX_CLKTRCTRL_MASK,
+> +	.flags		= (CLKDM_CAN_SWSUP | CLKDM_NO_AUTODEPS),
+
+It looks to me like we don't need the .clktrctrl_mask field, since 
+according to the clockdomains code, the CLKTRCTRL field is at the same bit 
+shift for each clockdomain.
+
+Also, since we're not defining any autodeps for the AM335x platform, we 
+shouldn't need the CLKDM_NO_AUTODEPS flag either?  Since no autodeps are 
+defined, the default will be to not set any autodeps.
+
+Another question is about the CLKTRCTRL bitfields.  According to
+_AM335x ARM Cortex-A8 Microprocessors (MPUs) Technical Reference
+Manual_ Rev. D (SPRUH73D), most of the clockdomains support NO_SLEEP mode 
+(i.e., CLKTRCTRL = 0x0).  That means that technically, we should also set 
+the CLKDM_CAN_DISABLE_AUTO flag.  Unless the documentation is incorrect 
+here?  In another section (Table 8-9 "Clock Transition Mode Settings"), 
+it claims that CLKTRCTRL = 0 is not supported...
+
+Also, a question about the L4_WKUP clockdomain:
+
+> +static struct clockdomain l4_wkup_am33xx_clkdm = {
+> +	.name		= "l4_wkup_clkdm",
+> +	.pwrdm		= { .name = "wkup_pwrdm" },
+> +	.cm_inst	= AM33XX_CM_WKUP_MOD,
+> +	.clkdm_offs	= AM33XX_CM_WKUP_CLKSTCTRL_OFFSET,
+> +	.clktrctrl_mask	= AM33XX_CLKTRCTRL_MASK,
+> +	.flags		= (CLKDM_CAN_SWSUP | CLKDM_NO_AUTODEPS),
+> +};
+
+Table 8-89 "CM_WKUP_CLKSTCTRL Register Field Descriptions" of SPRUH73D 
+claims that this clockdomain supports hardware-supervised automatic 
+clockdomain transitions.  Again this conflicts with Table 8-9.  Is this a 
+documentation bug, or should we update the patch?
 
 
---=20
-Gra=C5=BEvydas
+- Paul
