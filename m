@@ -1,91 +1,155 @@
-From: "Shilimkar, Santosh" <santosh.shilimkar@ti.com>
-Subject: Re: [PATCH v9 11/25] gpio/omap: cleanup omap_gpio_mod_init function
-Date: Wed, 25 Apr 2012 12:09:32 +0530
-Message-ID: <CAMQu2gzwijaSzXprEwTNTie3zCgFcNPonAexzrO_AWc2a8jOkw@mail.gmail.com>
-References: <1328203851-20435-1-git-send-email-tarun.kanti@ti.com>
- <1328203851-20435-12-git-send-email-tarun.kanti@ti.com> <13629551.hP3ZV1ajDo@vclass>
- <CAC83ZvK630=6B-k2TfV3XBg8w7ZosLVDNE4ezjDYnn=hcXA48Q@mail.gmail.com>
- <CAC83ZvJDDvCu8NKTOYh75USA3fvSAKEGaXXi9PtCM955K_keSA@mail.gmail.com>
- <20120424160447.GI3739@atomide.com> <CAC83Zv+CCLQfZHfqMcbof6JtA-hOK1PfX5Gs0BBVQhBAiWzX_g@mail.gmail.com>
+From: "Govindraj.R" <govindraj.raja@ti.com>
+Subject: [PATCH 1/2 v4] ARM: OMAP2+: omap_hwmod: Add api to enable/disable module level wakeup events
+Date: Wed, 25 Apr 2012 12:47:17 +0530
+Message-ID: <1335338237-4095-1-git-send-email-govindraj.raja@ti.com>
+References: <1335276552-24340-1-git-send-email-govindraj.raja@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <CAC83Zv+CCLQfZHfqMcbof6JtA-hOK1PfX5Gs0BBVQhBAiWzX_g@mail.gmail.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: "DebBarma, Tarun Kanti" <tarun.kanti@ti.com>
-Cc: Tony Lindgren <tony@atomide.com>, Janusz Krzysztofik <jkrzyszt@tis.icnet.pl>, linux-omap@vger.kernel.org, grant.likely@secretlab.ca, khilman@ti.com, linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Charulatha V <charu@ti.com>
+Content-Type: text/plain
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from comal.ext.ti.com ([198.47.26.152]:59933 "EHLO comal.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752534Ab2DYHRf (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Wed, 25 Apr 2012 03:17:35 -0400
+In-Reply-To: <1335276552-24340-1-git-send-email-govindraj.raja@ti.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: linux-omap@vger.kernel.org
+Cc: linux-arm-kernel@lists.infradead.org, "Govindraj.R" <govindraj.raja@ti.com>, Tero Kristo <t-kristo@ti.com>, Tony Lindgren <tony@atomide.com>, Paul Walmsley <paul@pwsan.com>, Kevin Hilman <khilman@ti.com>, Benoit Cousson <b-cousson@ti.com>, Rajendra Nayak <rnayak@ti.com>, Santosh Shilimkar <santosh.shilimkar@ti.com>
 
-On Wed, Apr 25, 2012 at 10:04 AM, DebBarma, Tarun Kanti
-<tarun.kanti@ti.com> wrote:
-> On Tue, Apr 24, 2012 at 9:34 PM, Tony Lindgren <tony@atomide.com> wrote:
->> * DebBarma, Tarun Kanti <tarun.kanti@ti.com> [120424 08:40]:
->>> Hi Janusz,
->>>
->>> On Tue, Apr 24, 2012 at 12:24 AM, DebBarma, Tarun Kanti
->>> <tarun.kanti@ti.com> wrote:
->>> > On Sat, Apr 21, 2012 at 7:33 PM, Janusz Krzysztofik
->>> > <jkrzyszt@tis.icnet.pl> wrote:
->>> >> On Thursday 02 of February 2012 23:00:37 Tarun Kanti DebBarma wrote:
->>> >>> With register offsets now defined for respective OMAP versions we can get rid
->>> >>> of cpu_class_* checks. This function now has common initialization code for
->>> >>> all OMAP versions...
->>> >>>
->>> >>> Signed-off-by: Tarun Kanti DebBarma <tarun.kanti@ti.com>
->>> >>> Signed-off-by: Charulatha V <charu@ti.com>
->>> >>> Reviewed-by: Santosh Shilimkar <santosh.shilimkar@ti.com>
->>> >>> Acked-by: Tony Lindgren <tony@atomide.com>
->>> >>
->>> >> Sorry for being so late with my comment for chanes already present in
->>> >> mainline, but this patch breaks GPIO on Amstrad Delta at least, and I
->>> >> have neither enough spare time nor enough experience with non OMAP1
->>> >> machines to provide a solution myself.
->>> > Yes, I looked at the omap_gpio_mod_init() and OMAP1 configurations are
->>> > overwritten.
->>> > Also looks like there is issue in making distinction between omap15xx
->>> > and omap16xx.
->>> > I will post a patch and you can help me testing it in OMAP1 platform.
->>> > Thanks for pointing this out.
->> ...
->>
->>> Here is the patch, with attachment as well. I have just tested on
->>> OMAP4 platform.
->>> Testing on other OMAP2+ platforms is pending. In the meantime can you please
->>> validate on OMAP1 platform and confirm? Thanks.
->>> --
->>> Tarun
->>>
->>> From: Tarun Kanti DebBarma <tarun.kanti@ti.com>
->>> Date: Tue, 24 Apr 2012 20:34:32 +0530
->>> Subject: [PATCH] gpio/omap: fix omap1 register overwrite in omap_gpio_mod_init
->>>
->>> Initialization of irqenable, irqstatus registers is the common
->>> operation done in this function for all OMAP platforms, viz.
->>> OMAP1, OMAP2+. The latter _gpio_rmw()'s to irqenable register
->>> was overwriting the correctly programmed OMAP1 value at the
->>> beginning. As a result, even though it worked on OMAP2+
->>> platforms it was breaking OMAP1 functionality.
->>
->> Sounds like the original patch was never tested on omap1?
-> That's right, only bootup test was done on OMAP1710-SDP.
->
->>
->>> On closer observation it is found that the first _gpio_rmw()
->>> which is supposedly done to take care of OMAP1 platform is
->>> generic enough and takes care of OMAP2+ platform as well.
->>> Therefore remove the latter _gpio_rmw() to irqenable as they
->>> are redundant.
->>>
->>> Also, changing the sequence and logic of initializing the
->>> irqstatus.
->>
->> Please mention also the breaking commit here and get this fix
->> merged as a regression as soon as it's tested for the current
->> -rc series.
-> Sure, I will do that!
+From: "Govindraj.R" <govindraj.raja@ti.com>
 
-Looks like it is regression on 3.4 as well so CC stable when you
-post the patch.
+On 24xx/34xx/36xx Module level wakeup events are enabled/disabled using
+PM_WKEN1_CORE/PM_WKEN_PER regs.
 
-Regards
-Santosh
+Add api to control the module level wakeup mechanism from info provided from
+hwmod data.
+
+omap_hwmod_enable/disable_wakeup is used from serial.c which should
+configure PM_WKEN register to enable or disable the module level wakeup.
+
+Cc: Tero Kristo <t-kristo@ti.com>
+Cc: Tony Lindgren <tony@atomide.com>
+Cc: Paul Walmsley <paul@pwsan.com>
+Cc: Kevin Hilman <khilman@ti.com>
+Cc: Benoit Cousson <b-cousson@ti.com>
+Cc: Rajendra Nayak <rnayak@ti.com>
+Cc: Santosh Shilimkar <santosh.shilimkar@ti.com>
+Signed-off-by: Govindraj.R <govindraj.raja@ti.com>
+---
+ arch/arm/mach-omap2/omap_hwmod.c   |   23 +++++++++++++++++++++++
+ arch/arm/mach-omap2/prm2xxx_3xxx.c |   16 ++++++++++++++++
+ arch/arm/mach-omap2/prm2xxx_3xxx.h |    9 +++++++++
+ 3 files changed, 48 insertions(+), 0 deletions(-)
+
+diff --git a/arch/arm/mach-omap2/omap_hwmod.c b/arch/arm/mach-omap2/omap_hwmod.c
+index 2c27fdb..25f306b 100644
+--- a/arch/arm/mach-omap2/omap_hwmod.c
++++ b/arch/arm/mach-omap2/omap_hwmod.c
+@@ -382,6 +382,27 @@ static int _set_module_autoidle(struct omap_hwmod *oh, u8 autoidle,
+ }
+ 
+ /**
++ * _enable_module_level_wakeup - enable/disable module level wakeup on hwmod.
++ * @oh: struct omap_hwmod *
++ * @set_wake: bool value indicating to set (true) or clear (false) module level
++ *		wakeup enable
++ *
++ * Set or clear the  module level wakeup capability the
++ * hwmod @oh. This function configures th PM_WKEN reg bits if they
++ * are available from hwmod. No return value
++ */
++static void _enable_module_level_wakeup(struct omap_hwmod *oh, bool set_wake)
++{
++	if (oh->prcm.omap2.module_offs && oh->prcm.omap2.prcm_reg_id &&
++			oh->prcm.omap2.idlest_idle_bit)
++		omap2_prm_enable_prcm_module_wakeup(
++				oh->prcm.omap2.module_offs,
++				oh->prcm.omap2.prcm_reg_id,
++				oh->prcm.omap2.idlest_idle_bit,
++				set_wake);
++}
++
++/**
+  * _set_idle_ioring_wakeup - enable/disable IO pad wakeup on hwmod idle for mux
+  * @oh: struct omap_hwmod *
+  * @set_wake: bool value indicating to set (true) or clear (false) wakeup enable
+@@ -2471,6 +2492,7 @@ int omap_hwmod_enable_wakeup(struct omap_hwmod *oh)
+ 		_write_sysconfig(v, oh);
+ 	}
+ 
++	_enable_module_level_wakeup(oh, true);
+ 	_set_idle_ioring_wakeup(oh, true);
+ 	spin_unlock_irqrestore(&oh->_lock, flags);
+ 
+@@ -2504,6 +2526,7 @@ int omap_hwmod_disable_wakeup(struct omap_hwmod *oh)
+ 		_write_sysconfig(v, oh);
+ 	}
+ 
++	_enable_module_level_wakeup(oh, false);
+ 	_set_idle_ioring_wakeup(oh, false);
+ 	spin_unlock_irqrestore(&oh->_lock, flags);
+ 
+diff --git a/arch/arm/mach-omap2/prm2xxx_3xxx.c b/arch/arm/mach-omap2/prm2xxx_3xxx.c
+index 9ce7654..85a753e 100644
+--- a/arch/arm/mach-omap2/prm2xxx_3xxx.c
++++ b/arch/arm/mach-omap2/prm2xxx_3xxx.c
+@@ -28,6 +28,10 @@
+ #include "prm-regbits-24xx.h"
+ #include "prm-regbits-34xx.h"
+ 
++static const u8 pm_wken_offs[] = {
++	PM_WKEN1, OMAP24XX_PM_WKEN2
++};
++
+ static const struct omap_prcm_irq omap3_prcm_irqs[] = {
+ 	OMAP_PRCM_IRQ("wkup",	0,	0),
+ 	OMAP_PRCM_IRQ("io",	9,	1),
+@@ -91,6 +95,18 @@ u32 omap2_prm_clear_mod_reg_bits(u32 bits, s16 module, s16 idx)
+ 	return omap2_prm_rmw_mod_reg_bits(bits, 0x0, module, idx);
+ }
+ 
++void omap2_prm_enable_prcm_module_wakeup(s16 prcm_mod, u8 prm_reg_id,
++			u8 prm_reg_shift, bool set_wake)
++{
++	if (prm_reg_id && (prm_reg_id <= ARRAY_SIZE(pm_wken_offs))) {
++		if (set_wake)
++			omap2_prm_set_mod_reg_bits(1 << prm_reg_shift,
++				prcm_mod, pm_wken_offs[prm_reg_id - 1]);
++		else
++			omap2_prm_clear_mod_reg_bits(1 << prm_reg_shift,
++				prcm_mod, pm_wken_offs[prm_reg_id - 1]);
++	}
++}
+ 
+ /**
+  * omap2_prm_is_hardreset_asserted - read the HW reset line state of
+diff --git a/arch/arm/mach-omap2/prm2xxx_3xxx.h b/arch/arm/mach-omap2/prm2xxx_3xxx.h
+index 70ac2a1..49a185a 100644
+--- a/arch/arm/mach-omap2/prm2xxx_3xxx.h
++++ b/arch/arm/mach-omap2/prm2xxx_3xxx.h
+@@ -289,6 +289,13 @@ static inline int omap2_prm_deassert_hardreset(s16 prm_mod, u8 rst_shift,
+ 		"not suppose to be used on omap4\n");
+ 	return 0;
+ }
++static inline void omap2_prm_enable_prcm_module_wakeup(s16 prcm_mod,
++		u8 prm_reg_id, u8 prm_reg_shift, bool set_wake)
++{
++	WARN(1, "prm: omap2xxx/omap3xxx specific function and "
++		"not suppose to be used on omap4\n");
++	return 0;
++}
+ #else
+ /* Power/reset management domain register get/set */
+ extern u32 omap2_prm_read_mod_reg(s16 module, u16 idx);
+@@ -297,6 +304,8 @@ extern u32 omap2_prm_rmw_mod_reg_bits(u32 mask, u32 bits, s16 module, s16 idx);
+ extern u32 omap2_prm_set_mod_reg_bits(u32 bits, s16 module, s16 idx);
+ extern u32 omap2_prm_clear_mod_reg_bits(u32 bits, s16 module, s16 idx);
+ extern u32 omap2_prm_read_mod_bits_shift(s16 domain, s16 idx, u32 mask);
++extern void omap2_prm_enable_prcm_module_wakeup(s16 prcm_mod, u8 prm_reg_id,
++			u8 prm_reg_shift, bool set_wake);
+ 
+ /* These omap2_ PRM functions apply to both OMAP2 and 3 */
+ extern int omap2_prm_is_hardreset_asserted(s16 prm_mod, u8 shift);
+-- 
+1.7.9
+
