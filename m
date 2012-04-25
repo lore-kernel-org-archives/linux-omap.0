@@ -1,79 +1,101 @@
-From: Artem Bityutskiy <dedekind1@gmail.com>
-Subject: Re: [PATCH] ARM: OMAP3: gpmc: add BCH ecc api and modes
-Date: Wed, 25 Apr 2012 17:48:49 +0300
-Message-ID: <1335365341.6356.5.camel@koala>
-References: <1334652536-4442-1-git-send-email-ivan.djelic@parrot.com>
-Reply-To: dedekind1@gmail.com
+From: Jon Hunter <jon-hunter@ti.com>
+Subject: Re: [PATCH 01/19] ARM: OMAP4: PM: save/restore all DPLL settings
+ in OFF mode
+Date: Wed, 25 Apr 2012 10:12:56 -0500
+Message-ID: <4F981478.3040201@ti.com>
+References: <1334914432-26456-1-git-send-email-t-kristo@ti.com>  <1334914432-26456-2-git-send-email-t-kristo@ti.com>  <4F957EB2.9080200@ti.com> <1335339230.2149.110.camel@sokoban>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg="pgp-sha1"; protocol="application/pgp-signature";
-	boundary="=-zmnzT0y8UlxgqZGyn8W4"
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-lb0-f174.google.com ([209.85.217.174]:54848 "EHLO
-	mail-lb0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751413Ab2DYOtD (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 25 Apr 2012 10:49:03 -0400
-Received: by lbbgf7 with SMTP id gf7so151855lbb.19
-        for <linux-omap@vger.kernel.org>; Wed, 25 Apr 2012 07:49:02 -0700 (PDT)
-In-Reply-To: <1334652536-4442-1-git-send-email-ivan.djelic@parrot.com>
+Received: from comal.ext.ti.com ([198.47.26.152]:59534 "EHLO comal.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751183Ab2DYPND (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Wed, 25 Apr 2012 11:13:03 -0400
+In-Reply-To: <1335339230.2149.110.camel@sokoban>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Tony Lindgren <tony@atomide.com>
-Cc: linux-omap@vger.kernel.org, linux-mtd@lists.infradead.org, Ivan Djelic <ivan.djelic@parrot.com>
+To: t-kristo@ti.com
+Cc: Tony Lindgren <tony@atomide.com>, linux-omap@vger.kernel.org, khilman@ti.com, paul@pwsan.com, Nishanth Menon <nm@ti.com>, Rajendra Nayak <rnayak@ti.com>, Santosh Shilimkar <santosh.shilimkar@ti.com>, linux-arm-kernel@lists.infradead.org
 
+Hi Tero,
 
---=-zmnzT0y8UlxgqZGyn8W4
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: quoted-printable
+On 04/25/2012 02:33 AM, Tero Kristo wrote:
+> On Mon, 2012-04-23 at 11:09 -0500, Jon Hunter wrote:
+>> Hi Tero,
+>>
+>> On 04/20/2012 04:33 AM, Tero Kristo wrote:
+>>
+>> [...]
+>>
+>>> +/**
+>>> + * omap4_dpll_print_reg - dump out a single DPLL register value
+>>> + * @dpll_reg: register to dump
+>>> + * @name: name of the register
+>>> + * @tuple: content of the register
+>>> + *
+>>> + * Helper dump function to print out a DPLL register value in case
+>>> + * of restore failures.
+>>> + */
+>>> +static void omap4_dpll_print_reg(struct omap4_dpll_regs *dpll_reg, char *name,
+>>> +				 struct dpll_reg *tuple)
+>>> +{
+>>> +	if (tuple->offset)
+>>> +		pr_warn("%s - Address offset = 0x%08x, value=0x%08x\n", name,
+>>> +			tuple->offset, tuple->val);
+>>
+>> Minor nit-pick here ...
+>>
+>> 1. Offset is 16-bits and so we can just have "offset = 0x%04x"
+>> 2. Consider dropping "Address" from "Address offset"
+>> 3. Can we be consistent in our spaces for "offset = " and "value="?
+>>
+>>> +}
+>>> +
+>>> +/*
+>>> + * omap4_dpll_dump_regs - dump out DPLL registers
+>>> + * @dpll_reg: DPLL to dump
+>>> + *
+>>> + * Dump out the contents of the registers for a DPLL. Called if a
+>>> + * restore for DPLL fails to lock.
+>>> + */
+>>> +static void omap4_dpll_dump_regs(struct omap4_dpll_regs *dpll_reg)
+>>> +{
+>>> +	pr_warn("%s: Unable to lock dpll %s[part=%x inst=%x]:\n",
+>>> +		__func__, dpll_reg->name, dpll_reg->mod_partition,
+>>> +		dpll_reg->mod_inst);
+>>> +	omap4_dpll_print_reg(dpll_reg, "clksel", &dpll_reg->clksel);
+>>> +	omap4_dpll_print_reg(dpll_reg, "div_m2", &dpll_reg->div_m2);
+>>> +	omap4_dpll_print_reg(dpll_reg, "div_m3", &dpll_reg->div_m3);
+>>> +	omap4_dpll_print_reg(dpll_reg, "div_m4", &dpll_reg->div_m4);
+>>> +	omap4_dpll_print_reg(dpll_reg, "div_m5", &dpll_reg->div_m5);
+>>> +	omap4_dpll_print_reg(dpll_reg, "div_m6", &dpll_reg->div_m6);
+>>> +	omap4_dpll_print_reg(dpll_reg, "div_m7", &dpll_reg->div_m7);
+>>> +	omap4_dpll_print_reg(dpll_reg, "clkdcoldo", &dpll_reg->clkdcoldo);
+>>> +	omap4_dpll_print_reg(dpll_reg, "clkmode", &dpll_reg->clkmode);
+>>> +	omap4_dpll_print_reg(dpll_reg, "autoidle", &dpll_reg->autoidle);
+>>> +	if (dpll_reg->idlest.offset)
+>>> +		pr_warn("idlest - Address offset = 0x%08x, before val=0x%08x"
+>>> +			" after = 0x%08x\n", dpll_reg->idlest.offset,
+>>> +			dpll_reg->idlest.val,
+>>> +			omap4_dpll_read_reg(dpll_reg, &dpll_reg->idlest));
+>>
+>> Nit-pick ...
+>>
+>> 1. Same comments as above
+>> 2. Consider dropping "Address offset" altogether here as we print
+>> "idlest" the offset should be implied.
+>> 3. Also can we be consistent in our naming of "before val and "after"?
+>> For example, "val before =" and "val now = ".
+> 
+> Okay, I'll modify both prints slightly. Question though, do we want
+> these prints in the kernel in the first place? At least Tony has been
+> frowning upon register dumps in the kernel and this falls into that
+> category. What we could do is just to print the warning but drop the
+> register dumps out.
 
-On Tue, 2012-04-17 at 10:48 +0200, Ivan Djelic wrote:
-> This patch adds a simple BCH ecc computation api, similar to the
-> existing Hamming ecc api. It is intended to be used by the MTD layer.
-> It implements the following features:
->=20
-> - support 4-bit and 8-bit ecc computation
-> - do not protect user bytes in spare area, only data area is protected
-> - ecc for an erased NAND page (0xFFs) is also a sequence of 0xFFs
->=20
-> This last feature is obtained by adding a constant polynomial to
-> the hardware computed ecc. It allows to correct bitflips in blank pages
-> and is extremely useful to support filesystems such as UBIFS, which expec=
-t
-> erased pages to contain only 0xFFs.
->=20
-> This api has been tested on an OMAP3630 board.
->=20
-> Signed-off-by: Ivan Djelic <ivan.djelic@parrot.com>
+Thanks. Good question. If we are not seeing failures often, and I would
+hope not, probably ok to remove. However, I will let Tony comment here  ...
 
-Hi Tony,
-
-what do you think about merging this patch? This is the enabler for
-making UBIFS actually usable on OMAP platforms which use BCH ECC. There
-are 2 other MTD patches which depend on this - so I wonder if it is
-easier to merge this one via the MTD tree, providing it has your/others'
-ack(s).
-
-Thanks!
-
---=20
-Best Regards,
-Artem Bityutskiy
-
---=-zmnzT0y8UlxgqZGyn8W4
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: This is a digitally signed message part
-Content-Transfer-Encoding: 7bit
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.4.11 (GNU/Linux)
-
-iQEcBAABAgAGBQJPmA7RAAoJEJtuLFy+q7fe9L8H/RGKeKKn3XASoUUHWAVIBa5R
-jnqq8iexEkNzVhvRMcjCj6gA/5eRDifUrIHDFvYtB5iQResZz6VIM2qQ1qD6tiXo
-IGjNLVNhJIGOBEkcA1MagLnQMT7KEB5WMDEpw8XGMSGoN+c/GodueDH/XsTM1mit
-IipQ/OhIDcXhsBmUA/rdCJNqJGZqoZSZi0Xt/1Usqva2kiTOHmQQwI5jOaFbV0dR
-Dg6lHK1IfOzPPww5bqr4RM9NNRLdOrzmDcLCqHgWemUpPusrrxk+XlbcZEUGc/Py
-VJaHYKNqAyh7kkoxaJSuBFD17w36UfbcFsCGUC7YaTXlPlQXYLYQN63Z9va74DM=
-=WqAR
------END PGP SIGNATURE-----
-
---=-zmnzT0y8UlxgqZGyn8W4--
-
+Cheers
+Jon
