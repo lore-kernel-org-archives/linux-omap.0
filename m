@@ -1,59 +1,54 @@
 From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH v3 0/9] Convert OMAP GPMC to driver
-Date: Wed, 25 Apr 2012 09:44:25 -0700
-Message-ID: <20120425164424.GT3739@atomide.com>
-References: <cover.1333638917.git.afzal@ti.com>
+Subject: Re: [TMP] OMAP3EVM: Test gpmc nand & smsc911x
+Date: Wed, 25 Apr 2012 09:47:26 -0700
+Message-ID: <20120425164726.GU3739@atomide.com>
+References: <cover.1333640054.git.afzal@ti.com>
+ <bb95fec60401f7cf6ac77200a12baf3fc83852f5.1333640054.git.afzal@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-01-ewr.mailhop.org ([204.13.248.71]:64551 "EHLO
-	mho-01-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752528Ab2DYQoi (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 25 Apr 2012 12:44:38 -0400
+Received: from mho-02-ewr.mailhop.org ([204.13.248.72]:54951 "EHLO
+	mho-02-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753838Ab2DYQrh (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 25 Apr 2012 12:47:37 -0400
 Content-Disposition: inline
-In-Reply-To: <cover.1333638917.git.afzal@ti.com>
+In-Reply-To: <bb95fec60401f7cf6ac77200a12baf3fc83852f5.1333640054.git.afzal@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: Afzal Mohammed <afzal@ti.com>
 Cc: khilman@ti.com, linux@arm.linux.org.uk, dwmw2@infradead.org, sameo@linux.intel.com, grinberg@compulab.co.il, mike@compulab.co.il, nm@ti.com, artem.bityutskiy@linux.intel.com, vimal.newwork@gmail.com, dbaryshkov@gmail.com, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-mtd@lists.infradead.org, linux-kernel@vger.kernel.org
 
-* Afzal Mohammed <afzal@ti.com> [120405 09:06]:
-> Hi,
-> 
-> GPMC driver conversion series. NAND and smsc911x ethernet device has
-> been adapted to use GPMC driver.
-> 
-> Patches has been generated over linux-omap/master, HEAD
-> 33fc21e Linux-omap rebuilt: Updated to v3.4-rc1, merged in most of pending branches
-> As OMAP3EVM does not boot linux-omap/master, merge commit,
-> 58adb29 Merge branch 'io_chain_devel_3.4' of git://git.pwsan.com/linux-2.6 into prm
-> has to be reverted to get OMAP3EVM boot.
-> Last patch (with subject prefix TMP - 9/9) is for testing.
-> 
-> Once driver is acceptable, platform code for other peripherals
-> connected via GPMC would be adapted to make use of GPMC driver. And
-> then the board modifications. But before that HWMOD entry has to be
-> populated for respective SoC(s ?).
- 
-No, we can't do it this way, it breaks things. We need to first
-convert everything to use the new GPMC driver, then move it. 
- 
-> Now DESTINATION FOR THIS DRIVER has to be decided. Original plan was
-> to consider GPMC as MFD. The peripheral(s) connected to GPMC being
-> considered childs of MFD.
+* Afzal Mohammed <afzal@ti.com> [120405 09:08]:
+> @@ -114,6 +147,8 @@ static struct omap_smsc911x_platform_data smsc911x_cfg = {
+>  
+>  static inline void __init omap3evm_init_smsc911x(void)
+>  {
+> +	struct gpmc_device_pdata *gpmc_smsc911x_info;
+> +
+>  	/* Configure ethernet controller reset gpio */
+>  	if (cpu_is_omap3430()) {
+>  		if (get_omap3_evm_rev() == OMAP3EVM_BOARD_GEN_1)
+> @@ -122,7 +157,11 @@ static inline void __init omap3evm_init_smsc911x(void)
+>  			smsc911x_cfg.gpio_reset = OMAP3EVM_GEN2_ETHR_GPIO_RST;
+>  	}
+>  
+> -	gpmc_smsc911x_init(&smsc911x_cfg);
+> +	gpmc_smsc911x_info = gpmc_smsc911x_init(&smsc911x_cfg);
+> +	if (gpmc_smsc911x_info)
+> +		*gpmc_data_cur++ = gpmc_smsc911x_info;
+> +	else
+> +		pr_err("error: unable to initilaize gpmc smsc911x\n");
+>  }
+>  
+>  #else
 
-Let's not put it into MFD. This is a bus driver. But that
-decision can wait as we cleary have quite a few things to convert
-first under arch/arm/mach-omap2.
- 
-> Various options that could be seen so far on where this driver can go,
-> 1. mfd
-> 2. misc
-> 3. drivers/platform/arm/ (create an new one?)
-> 4. memory (create a new one ?)
+Obviously we can't merge any of this if until all the board-*.c files
+are changed and tested.
 
-It's a parallel bus driver, not memory not misc, not MFD.
+Can you maybe still keep the old interfaces in addition to the new ones
+so we can do the conversion one board-*.c file at a time while keeping
+things working?
 
-Cheers,
+Regards,
 
-Tony 
+Tony
