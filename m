@@ -1,120 +1,200 @@
-From: "Hiremath, Vaibhav" <hvaibhav@ti.com>
-Subject: RE: [PATCH-V3 2/3] ARM: OMAP3+: clockdomain33xx: Add clockdomain
- data and respective operations
-Date: Wed, 25 Apr 2012 07:30:50 +0000
-Message-ID: <79CD15C6BA57404B839C016229A409A83E9FD30E@DBDE01.ent.ti.com>
-References: <1333458578-23073-1-git-send-email-hvaibhav@ti.com>
- <1333458578-23073-3-git-send-email-hvaibhav@ti.com>
- <alpine.DEB.2.00.1204241725430.24864@utopia.booyaka.com>
+From: Tero Kristo <t-kristo@ti.com>
+Subject: Re: [PATCH 10/19] ARM: OMAP4: PM: Work-around for ROM code BUG of
+ IVAHD/TESLA
+Date: Wed, 25 Apr 2012 10:31:13 +0300
+Message-ID: <1335339073.2149.107.camel@sokoban>
+References: <1334914432-26456-1-git-send-email-t-kristo@ti.com>
+	 <1334914432-26456-11-git-send-email-t-kristo@ti.com>
+	 <4F96E7E7.9050005@ti.com>
+Reply-To: <t-kristo@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from bear.ext.ti.com ([192.94.94.41]:33092 "EHLO bear.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751739Ab2DYHa5 convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 25 Apr 2012 03:30:57 -0400
-In-Reply-To: <alpine.DEB.2.00.1204241725430.24864@utopia.booyaka.com>
-Content-Language: en-US
+Received: from devils.ext.ti.com ([198.47.26.153]:42105 "EHLO
+	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751739Ab2DYHbU (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 25 Apr 2012 03:31:20 -0400
+In-Reply-To: <4F96E7E7.9050005@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Paul Walmsley <paul@pwsan.com>, "Mohammed, Afzal" <afzal@ti.com>, "Bedia, Vaibhav" <vaibhav.bedia@ti.com>
-Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "tony@atomide.com" <tony@atomide.com>, "Hilman, Kevin" <khilman@ti.com>, "Nayak, Rajendra" <rnayak@ti.com>, "Cousson, Benoit" <b-cousson@ti.com>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>
+To: Jon Hunter <jon-hunter@ti.com>
+Cc: linux-omap@vger.kernel.org, khilman@ti.com, paul@pwsan.com, Rajendra Nayak <rnayak@ti.com>, Santosh Shilimkar <santosh.shilimkar@ti.com>, linux-arm-kernel@lists.infradead.org
 
-On Wed, Apr 25, 2012 at 05:52:26, Paul Walmsley wrote:
-> Hello Vaibhav, Afzal, Vaibhav,
+On Tue, 2012-04-24 at 12:50 -0500, Jon Hunter wrote:
+> Hi Tero,
 > 
-> A few questions while reviewing this patch:
-> 
-> On Tue, 3 Apr 2012, Vaibhav Hiremath wrote:
-> 
-> > AM33XX PRCM module consist of, various clockdomains, in all
-> > total we have 18 clockdomains available, with following
-> > controlling options,
-> >    - NO Sleep: sleep transition can not be initiated,
-> >    - SW Sleep: sw forced sleep transition,
-> >    - SW Wakeup: sw forced wakeup transition,
-> >    - HW Auto: transitions are based upon hw conditions.
+> On 04/20/2012 04:33 AM, Tero Kristo wrote:
+> > From: Santosh Shilimkar <santosh.shilimkar@ti.com>
 > > 
-> > This patch adds all available clockdomain data, respective
-> > clockdomain operations for AM33XX family of device, and also
-> > integrates it into existing OMAP framework.
+> > The ROM BUG is when MPU Domain OFF wake up sequence that can compromise
+> > IVA and Tesla execution.
 > > 
-> > Signed-off-by: Vaibhav Hiremath <hvaibhav@ti.com>
-> > Signed-off-by: Afzal Mohammed <afzal@ti.com>
-> > Signed-off-by: Vaibhav Bedia <vaibhav.bedia@ti.com>
+> > At wakeup from MPU OFF on HS device only (not GP device), when
+> > restoring the Secure RAM, the ROM Code reconfigures the clocks the
+> > same way it is done at Cold Reset.
+> > The IVAHD Clocks and Power Domain settings are:
+> > 	IVAHD_CM2 IVAHD_CLKCTRL_MODULE_MODE = DISABLE
+> > 	IVAHD_CM2 SL2_CLKCTRL_MODULE_MODE = DISABLE
+> > 	IVAHD_CM2 SL2_CLKSTCTRL_CLKTRCTRL = HW_AUTO
+> > 	IVAHD_PRM IVAHD_PWRSTCTRL_POWERSTATE = OFF
+> > The TESLA Clocks and Power Domain settings are:
+> > 	TESLA_CM1 TESLA_CLKCTRL_MODULE_MODE = DISABLE
+> > 	TESLA_CM1 TESLA_CLKSTCTRL_CLKTRCTRL = HW_AUTO
+> > 	TESLA_PRM TESLA_PWRSTCTRL_POWERSTATE = OFF
+> > 
+> > This patch fixes the low power OFF mode code so that the these
+> > registers are saved and restore across MPU OFF state.
+> > 
+> > Also because of this limitation, MPU OFF alone is not targeted without
+> > device OFF to avoid IVAHD and TESLA execution impact
 > 
-> ...
+> You may wish to state which devices is impacted by this in the changelog.
+
+Okay.
+
 > 
-> > +static struct clockdomain l4ls_am33xx_clkdm = {
-> > +	.name		= "l4ls_clkdm",
-> > +	.pwrdm		= { .name = "per_pwrdm" },
-> > +	.cm_inst	= AM33XX_CM_PER_MOD,
-> > +	.clkdm_offs	= AM33XX_CM_PER_L4LS_CLKSTCTRL_OFFSET,
-> > +	.clktrctrl_mask	= AM33XX_CLKTRCTRL_MASK,
-> > +	.flags		= (CLKDM_CAN_SWSUP | CLKDM_NO_AUTODEPS),
-> 
-> It looks to me like we don't need the .clktrctrl_mask field, since 
-> according to the clockdomains code, the CLKTRCTRL field is at the same bit 
-> shift for each clockdomain.
-> 
-
-Yeah, we actually don't need it, probably I added for completeness.
-I will remove it in next version.
-
-
-> Also, since we're not defining any autodeps for the AM335x platform, we 
-> shouldn't need the CLKDM_NO_AUTODEPS flag either?  Since no autodeps are 
-> defined, the default will be to not set any autodeps.
-> 
-
-This is required to avoid few "pr_debug", if you don't provide it.
-For example, without this flag set, you will get,
-
-pr_debug("clockdomain: hardware cannot set/clear sleep "
-		"dependency affecting %s from %s\n", clkdm1->name,
-             clkdm2->name);
-
-Refer to the file omap_hwmod.c, function, _enable(), the call sequence is,
-
-_enable() => _add_initiator_dep() => clkdm_add_sleepdep() =>leads to warning
-
-
-
-> Another question is about the CLKTRCTRL bitfields.  According to
-> _AM335x ARM Cortex-A8 Microprocessors (MPUs) Technical Reference
-> Manual_ Rev. D (SPRUH73D), most of the clockdomains support NO_SLEEP mode 
-> (i.e., CLKTRCTRL = 0x0).  That means that technically, we should also set 
-> the CLKDM_CAN_DISABLE_AUTO flag.  Unless the documentation is incorrect 
-> here?  In another section (Table 8-9 "Clock Transition Mode Settings"), 
-> it claims that CLKTRCTRL = 0 is not supported...
-> 
-
-It is not supported, and should be considered as documentation issue.
-
-> Also, a question about the L4_WKUP clockdomain:
-> 
-> > +static struct clockdomain l4_wkup_am33xx_clkdm = {
-> > +	.name		= "l4_wkup_clkdm",
-> > +	.pwrdm		= { .name = "wkup_pwrdm" },
-> > +	.cm_inst	= AM33XX_CM_WKUP_MOD,
-> > +	.clkdm_offs	= AM33XX_CM_WKUP_CLKSTCTRL_OFFSET,
-> > +	.clktrctrl_mask	= AM33XX_CLKTRCTRL_MASK,
-> > +	.flags		= (CLKDM_CAN_SWSUP | CLKDM_NO_AUTODEPS),
+> > Signed-off-by: Rajendra Nayak <rnayak@ti.com>
+> > Signed-off-by: Santosh Shilimkar <santosh.shilimkar@ti.com>
+> > [t-kristo@ti.com: added omap4 pm errata support]
+> > Signed-off-by: Tero Kristo <t-kristo@ti.com>
+> > ---
+> >  arch/arm/mach-omap2/omap-mpuss-lowpower.c |   53 +++++++++++++++++++++++++++++
+> >  arch/arm/mach-omap2/pm.h                  |    2 +
+> >  arch/arm/mach-omap2/pm44xx.c              |    9 +++++
+> >  3 files changed, 64 insertions(+), 0 deletions(-)
+> > 
+> > diff --git a/arch/arm/mach-omap2/omap-mpuss-lowpower.c b/arch/arm/mach-omap2/omap-mpuss-lowpower.c
+> > index b9a2cc7..208d4a4 100644
+> > --- a/arch/arm/mach-omap2/omap-mpuss-lowpower.c
+> > +++ b/arch/arm/mach-omap2/omap-mpuss-lowpower.c
+> > @@ -52,6 +52,7 @@
+> >  
+> >  #include <plat/omap44xx.h>
+> >  
+> > +#include "iomap.h"
+> >  #include "common.h"
+> >  #include "omap4-sar-layout.h"
+> >  #include "pm.h"
+> > @@ -76,6 +77,24 @@ static DEFINE_PER_CPU(struct omap4_cpu_pm_info, omap4_pm_info);
+> >  static struct powerdomain *mpuss_pd;
+> >  static void __iomem *sar_base;
+> >  
+> > +struct reg_tuple {
+> > +	void __iomem *addr;
+> > +	u32 val;
 > > +};
+> > +
+> > +static struct reg_tuple tesla_reg[] = {
+> > +	{.addr = OMAP4430_CM_TESLA_CLKSTCTRL},
+> > +	{.addr = OMAP4430_CM_TESLA_TESLA_CLKCTRL},
+> > +	{.addr = OMAP4430_PM_TESLA_PWRSTCTRL},
+> > +};
+> > +
+> > +static struct reg_tuple ivahd_reg[] = {
+> > +	{.addr = OMAP4430_CM_IVAHD_CLKSTCTRL},
+> > +	{.addr = OMAP4430_CM_IVAHD_IVAHD_CLKCTRL},
+> > +	{.addr = OMAP4430_CM_IVAHD_SL2_CLKCTRL},
+> > +	{.addr = OMAP4430_PM_IVAHD_PWRSTCTRL}
+> > +};
+> > +
+> >  /*
+> >   * Program the wakeup routine address for the CPU0 and CPU1
+> >   * used for OFF or DORMANT wakeup.
+> > @@ -215,6 +234,34 @@ static void save_l2x0_context(void)
+> >  {}
+> >  #endif
+> >  
+> > +static inline void save_ivahd_tesla_regs(void)
+> > +{
+> > +	int i;
+> > +
+> > +	if (!IS_PM44XX_ERRATUM(PM_OMAP4_ROM_IVAHD_TESLA_ERRATUM))
+> > +		return;
+> > +
+> > +	for (i = 0; i < ARRAY_SIZE(tesla_reg); i++)
+> > +		tesla_reg[i].val = __raw_readl(tesla_reg[i].addr);
+> > +
+> > +	for (i = 0; i < ARRAY_SIZE(ivahd_reg); i++)
+> > +		ivahd_reg[i].val = __raw_readl(ivahd_reg[i].addr);
+> > +}
+> > +
+> > +static inline void restore_ivahd_tesla_regs(void)
+> > +{
+> > +	int i;
+> > +
+> > +	if (!IS_PM44XX_ERRATUM(PM_OMAP4_ROM_IVAHD_TESLA_ERRATUM))
+> > +		return;
+> > +
+> > +	for (i = 0; i < ARRAY_SIZE(tesla_reg); i++)
+> > +		__raw_writel(tesla_reg[i].val, tesla_reg[i].addr);
+> > +
+> > +	for (i = 0; i < ARRAY_SIZE(ivahd_reg); i++)
+> > +		__raw_writel(ivahd_reg[i].val, ivahd_reg[i].addr);
+> > +}
+> > +
+> >  /**
+> >   * omap4_enter_lowpower: OMAP4 MPUSS Low Power Entry Function
+> >   * The purpose of this function is to manage low power programming
+> > @@ -273,11 +320,14 @@ int omap4_enter_lowpower(unsigned int cpu, unsigned int power_state)
+> >  		omap_sar_overwrite();
+> >  		omap4_cm_prepare_off();
+> >  		omap4_dpll_prepare_off();
+> > +		save_ivahd_tesla_regs();
+> >  		save_state = 3;
+> >  	} else if ((pwrdm_read_next_pwrst(mpuss_pd) == PWRDM_POWER_RET) &&
+> >  		(pwrdm_read_logic_retst(mpuss_pd) == PWRDM_POWER_OFF)) {
+> > +		save_ivahd_tesla_regs();
+> >  		save_state = 2;
+> >  	} else if (pwrdm_read_next_pwrst(mpuss_pd) == PWRDM_POWER_OFF) {
+> > +		save_ivahd_tesla_regs();
+> >  		save_state = 3;
+> >  	}
+> >  
+> > @@ -302,6 +352,9 @@ int omap4_enter_lowpower(unsigned int cpu, unsigned int power_state)
+> >  	wakeup_cpu = smp_processor_id();
+> >  	set_cpu_next_pwrst(wakeup_cpu, PWRDM_POWER_ON);
+> >  
+> > +	if (omap4_mpuss_read_prev_context_state())
+> > +		restore_ivahd_tesla_regs();
+> > +
+> >  	if (omap4_device_prev_state_off()) {
+> >  		omap4_dpll_resume_off();
+> >  		omap4_cm_resume_off();
+> > diff --git a/arch/arm/mach-omap2/pm.h b/arch/arm/mach-omap2/pm.h
+> > index e78ec63..051aeb9 100644
+> > --- a/arch/arm/mach-omap2/pm.h
+> > +++ b/arch/arm/mach-omap2/pm.h
+> > @@ -131,6 +131,8 @@ extern void enable_omap3630_toggle_l2_on_restore(void);
+> >  static inline void enable_omap3630_toggle_l2_on_restore(void) { }
+> >  #endif		/* defined(CONFIG_PM) && defined(CONFIG_ARCH_OMAP3) */
+> >  
+> > +#define PM_OMAP4_ROM_IVAHD_TESLA_ERRATUM	(1 << 0)
+> > +
+> >  #if defined(CONFIG_PM) && defined(CONFIG_ARCH_OMAP4)
+> >  extern u16 pm44xx_errata;
+> >  #define IS_PM44XX_ERRATUM(id)		(pm44xx_errata & (id))
+> > diff --git a/arch/arm/mach-omap2/pm44xx.c b/arch/arm/mach-omap2/pm44xx.c
+> > index 8238097..67cb799 100644
+> > --- a/arch/arm/mach-omap2/pm44xx.c
+> > +++ b/arch/arm/mach-omap2/pm44xx.c
+> > @@ -263,6 +263,15 @@ static int __init omap4_pm_init(void)
+> >  
+> >  	(void) clkdm_for_each(omap_pm_clkdms_setup, NULL);
+> >  
+> > +	/*
+> > +	 * ROM code initializes IVAHD and TESLA clock registers during
+> > +	 * secure RAM restore phase on omap4430 EMU/HS devices, thus
+> > +	 * IVAHD / TESLA clock registers must be saved / restored
+> > +	 * during MPU OSWR / device off.
+> > +	 */
+> > +	if (cpu_is_omap443x() && omap_type() != OMAP2_DEVICE_TYPE_GP)
+> > +		pm44xx_errata |= PM_OMAP4_ROM_IVAHD_TESLA_ERRATUM;
 > 
-> Table 8-89 "CM_WKUP_CLKSTCTRL Register Field Descriptions" of SPRUH73D 
-> claims that this clockdomain supports hardware-supervised automatic 
-> clockdomain transitions.  Again this conflicts with Table 8-9.  Is this a 
-> documentation bug, or should we update the patch?
-> 
+> This erratum does not impact omap4430 es2.3 so the above should account
+> for that.
 
-Ditto, should be considered as doc issue. I have already raised all this 
-documentation issues, and should get fixed.
+Okay, will change that.
 
-Thanks,
-Vaibhav
-> 
-> - Paul
-> 
+-Tero
 
