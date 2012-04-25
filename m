@@ -1,53 +1,84 @@
 From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [TMP] OMAP3EVM: Test gpmc nand & smsc911x
-Date: Wed, 25 Apr 2012 09:47:26 -0700
-Message-ID: <20120425164726.GU3739@atomide.com>
-References: <cover.1333640054.git.afzal@ti.com>
- <bb95fec60401f7cf6ac77200a12baf3fc83852f5.1333640054.git.afzal@ti.com>
+Subject: Re: [PATCH] ARM: OMAP3: gpmc: add BCH ecc api and modes
+Date: Wed, 25 Apr 2012 09:49:39 -0700
+Message-ID: <20120425164938.GV3739@atomide.com>
+References: <1334652536-4442-1-git-send-email-ivan.djelic@parrot.com>
+ <1335365341.6356.5.camel@koala>
+ <20120425152310.GR3739@atomide.com>
+ <1335368681.6356.16.camel@koala>
+ <20120425155759.GS3739@atomide.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-02-ewr.mailhop.org ([204.13.248.72]:54951 "EHLO
-	mho-02-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753838Ab2DYQrh (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 25 Apr 2012 12:47:37 -0400
+Received: from mho-01-ewr.mailhop.org ([204.13.248.71]:12753 "EHLO
+	mho-01-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754374Ab2DYQtm (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 25 Apr 2012 12:49:42 -0400
 Content-Disposition: inline
-In-Reply-To: <bb95fec60401f7cf6ac77200a12baf3fc83852f5.1333640054.git.afzal@ti.com>
+In-Reply-To: <20120425155759.GS3739@atomide.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Afzal Mohammed <afzal@ti.com>
-Cc: khilman@ti.com, linux@arm.linux.org.uk, dwmw2@infradead.org, sameo@linux.intel.com, grinberg@compulab.co.il, mike@compulab.co.il, nm@ti.com, artem.bityutskiy@linux.intel.com, vimal.newwork@gmail.com, dbaryshkov@gmail.com, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-mtd@lists.infradead.org, linux-kernel@vger.kernel.org
+To: Artem Bityutskiy <dedekind1@gmail.com>
+Cc: linux-omap@vger.kernel.org, linux-mtd@lists.infradead.org, Ivan Djelic <ivan.djelic@parrot.com>
 
-* Afzal Mohammed <afzal@ti.com> [120405 09:08]:
-> @@ -114,6 +147,8 @@ static struct omap_smsc911x_platform_data smsc911x_cfg = {
->  
->  static inline void __init omap3evm_init_smsc911x(void)
->  {
-> +	struct gpmc_device_pdata *gpmc_smsc911x_info;
-> +
->  	/* Configure ethernet controller reset gpio */
->  	if (cpu_is_omap3430()) {
->  		if (get_omap3_evm_rev() == OMAP3EVM_BOARD_GEN_1)
-> @@ -122,7 +157,11 @@ static inline void __init omap3evm_init_smsc911x(void)
->  			smsc911x_cfg.gpio_reset = OMAP3EVM_GEN2_ETHR_GPIO_RST;
->  	}
->  
-> -	gpmc_smsc911x_init(&smsc911x_cfg);
-> +	gpmc_smsc911x_info = gpmc_smsc911x_init(&smsc911x_cfg);
-> +	if (gpmc_smsc911x_info)
-> +		*gpmc_data_cur++ = gpmc_smsc911x_info;
-> +	else
-> +		pr_err("error: unable to initilaize gpmc smsc911x\n");
->  }
->  
->  #else
+* Tony Lindgren <tony@atomide.com> [120425 09:01]:
+> * Artem Bityutskiy <dedekind1@gmail.com> [120425 08:48]:
+> > On Wed, 2012-04-25 at 08:23 -0700, Tony Lindgren wrote:
+> > > Hi,
+> > > 
+> > > * Artem Bityutskiy <dedekind1@gmail.com> [120425 07:52]:
+> > > > On Tue, 2012-04-17 at 10:48 +0200, Ivan Djelic wrote:
+> > > > > This patch adds a simple BCH ecc computation api, similar to the
+> > > > > existing Hamming ecc api. It is intended to be used by the MTD layer.
+> > > > > It implements the following features:
+> > > > > 
+> > > > > - support 4-bit and 8-bit ecc computation
+> > > > > - do not protect user bytes in spare area, only data area is protected
+> > > > > - ecc for an erased NAND page (0xFFs) is also a sequence of 0xFFs
+> > > > > 
+> > > > > This last feature is obtained by adding a constant polynomial to
+> > > > > the hardware computed ecc. It allows to correct bitflips in blank pages
+> > > > > and is extremely useful to support filesystems such as UBIFS, which expect
+> > > > > erased pages to contain only 0xFFs.
+> > > > > 
+> > > > > This api has been tested on an OMAP3630 board.
+> > > > > 
+> > > > > Signed-off-by: Ivan Djelic <ivan.djelic@parrot.com>
+> > > > 
+> > > > Hi Tony,
+> > > > 
+> > > > what do you think about merging this patch? This is the enabler for
+> > > > making UBIFS actually usable on OMAP platforms which use BCH ECC. There
+> > > > are 2 other MTD patches which depend on this - so I wonder if it is
+> > > > easier to merge this one via the MTD tree, providing it has your/others'
+> > > > ack(s).
+> > > 
+> > > Looks OK to me, however there are other pending GPMC patches to convert
+> > > it to a platform device device driver. Need to look those closer though.
+> > > Anyways, it's best that I queue them to avoid merge conflicts.
+> > 
+> > Sure.
+> > 
+> > > Do you these for other changes for UBIFS?
+> > 
+> > Not in UBIFS, but in drivers/mtd/nand/omap2.c - Ivan sent another patch
+> > which adds BCH support to to omap2.c, was sent to linux-omap, subject
+> > "[PATCH] mtd: nand: omap: add support for hardware BCH ecc"
+> > 
+> > >  If so, I can set up an immutable
+> > > branch for GPMC that you can merge in as well.
+> > 
+> > I guess this would be a good idea, but probably it is better to do this
+> > when you believe you merged most gpmc patches, so probably closer to the
+> > final -rc?
+> 
+> Yes let's wait a week or so as there are also the dmaengine patch for
+> drivers/mtd/nand/omap2.c that might conflict. So let's get the dmaengine
+> patches to some branch first.
 
-Obviously we can't merge any of this if until all the board-*.c files
-are changed and tested.
-
-Can you maybe still keep the old interfaces in addition to the new ones
-so we can do the conversion one board-*.c file at a time while keeping
-things working?
+Looking at the gpmc platform driver series, we can't merge those until
+all the board-*.c files are converted. So let's plan on first making sure
+the dmaengine changes work, then apply the BCH ecc patches.
 
 Regards,
 
