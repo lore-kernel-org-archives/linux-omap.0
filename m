@@ -1,165 +1,224 @@
-From: "Hiremath, Vaibhav" <hvaibhav@ti.com>
-Subject: RE: [PATCH-V4 3/3] ARM: OMAP: Make OMAP clocksource source
- selection using kernel param
-Date: Wed, 25 Apr 2012 08:40:42 +0000
-Message-ID: <79CD15C6BA57404B839C016229A409A83E9FD4DC@DBDE01.ent.ti.com>
-References: <1335260749-25877-1-git-send-email-hvaibhav@ti.com>
- <1335260749-25877-4-git-send-email-hvaibhav@ti.com>
- <20120424162016.GK3739@atomide.com>
+From: "Shilimkar, Santosh" <santosh.shilimkar@ti.com>
+Subject: Re: [PATCH/RFT 1/3] ARM: OMAP2+: powerdomain: allow pre/post
+ transtion to be per pwrdm
+Date: Wed, 25 Apr 2012 14:14:13 +0530
+Message-ID: <CAMQu2gxat-QuEeX4Gg_CQ64exGeh-bjiJQqQ1PF14bCNyvnRLw@mail.gmail.com>
+References: <1335277420-29124-1-git-send-email-khilman@ti.com> <1335277420-29124-2-git-send-email-khilman@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from devils.ext.ti.com ([198.47.26.153]:46270 "EHLO
-	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752419Ab2DYIo0 convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 25 Apr 2012 04:44:26 -0400
-In-Reply-To: <20120424162016.GK3739@atomide.com>
-Content-Language: en-US
+Received: from na3sys009aog113.obsmtp.com ([74.125.149.209]:34280 "EHLO
+	na3sys009aog113.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1752419Ab2DYIof convert rfc822-to-8bit
+	(ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Wed, 25 Apr 2012 04:44:35 -0400
+Received: by qcsp15 with SMTP id p15so1507761qcs.16
+        for <linux-omap@vger.kernel.org>; Wed, 25 Apr 2012 01:44:34 -0700 (PDT)
+In-Reply-To: <1335277420-29124-2-git-send-email-khilman@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Tony Lindgren <tony@atomide.com>
-Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "Hilman, Kevin" <khilman@ti.com>, "paul@pwsan.com" <paul@pwsan.com>, "Shilimkar, Santosh" <santosh.shilimkar@ti.com>, "Cousson, Benoit" <b-cousson@ti.com>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, "Balbi, Felipe" <balbi@ti.com>, "DebBarma, Tarun Kanti" <tarun.kanti@ti.com>, Ming Lei <tom.leiming@gmail.com>
+To: Kevin Hilman <khilman@ti.com>
+Cc: linux-omap@vger.kernel.org, Jean Pihet <jean.pihet@newoldbits.com>, Tero Kristo <t-kristo@ti.com>, Paul Walmsley <paul@pwsan.com>
 
-On Tue, Apr 24, 2012 at 21:50:16, Tony Lindgren wrote:
+On Tue, Apr 24, 2012 at 7:53 PM, Kevin Hilman <khilman@ti.com> wrote:
+> Iteration over all power domains in the idle path is unnecessary sinc=
+e
+> only power domains that are transitioning need to be accounted for.
+> Also PRCM register accesses are known to be expensive, so the
+> additional latency added to the idle path is signficiant.
+>
+> In order allow the pre/post transitions to be isolated and called
+> per-pwrdm, change the API so passing in a specific power domain will
+> trigger the pre/post transtion accounting for only that specific powe=
+r
+> domain. =A0Passing NULL means iterating over all power domains as is
+> current behavior.
+>
+> Signed-off-by: Kevin Hilman <khilman@ti.com>
+> ---
+> =A0arch/arm/mach-omap2/omap-mpuss-lowpower.c | =A0 =A04 ++--
+> =A0arch/arm/mach-omap2/pm34xx.c =A0 =A0 =A0 =A0 =A0 =A0 =A0| =A0 =A04=
+ ++--
+> =A0arch/arm/mach-omap2/powerdomain.c =A0 =A0 =A0 =A0 | =A0 16 +++++++=
++++++----
+> =A0arch/arm/mach-omap2/powerdomain.h =A0 =A0 =A0 =A0 | =A0 =A04 ++--
+> =A04 files changed, 18 insertions(+), 10 deletions(-)
+>
+[...]
 
-Thanks Tony for review comments, my response in-lined below -
+> diff --git a/arch/arm/mach-omap2/powerdomain.c b/arch/arm/mach-omap2/=
+powerdomain.c
+> index 96ad3dbe..0baf8c3 100644
+> --- a/arch/arm/mach-omap2/powerdomain.c
+> +++ b/arch/arm/mach-omap2/powerdomain.c
+> @@ -991,15 +991,23 @@ int pwrdm_clkdm_state_switch(struct clockdomain=
+ *clkdm)
+> =A0 =A0 =A0 =A0return -EINVAL;
+> =A0}
+>
+> -int pwrdm_pre_transition(void)
+> +int pwrdm_pre_transition(struct powerdomain *pwrdm)
+> =A0{
+> - =A0 =A0 =A0 pwrdm_for_each(_pwrdm_pre_transition_cb, NULL);
+> + =A0 =A0 =A0 if (pwrdm)
+> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 _pwrdm_pre_transition_cb(pwrdm, NULL);
+> + =A0 =A0 =A0 else
+> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 pwrdm_for_each(_pwrdm_pre_transition_cb=
+, NULL);
+> +
+> =A0 =A0 =A0 =A0return 0;
+> =A0}
+>
+Minor nit. Noticed couple of whitespace errors in the patch.
 
-> Hi,
-> 
-> * Vaibhav Hiremath <hvaibhav@ti.com> [120424 02:54]:
-> > Current OMAP code supports couple of clocksource options based
-> > on compilation flag (CONFIG_OMAP_32K_TIMER). The 32KHz sync-timer
-> > and a gptimer which can run on 32KHz or system clock (e.g 38.4 MHz).
-> > So there can be 3 options -
-> > 
-> > 1. 32KHz sync-timer
-> > 2. Sys_clock based (e.g 13/19.2/26/38.4 MHz) gptimer
-> > 3. 32KHz based gptimer.
-> > 
-> > The optional gptimer based clocksource was added so that it can
-> > give the high precision than sync-timer, so expected usage was 2
-> > and not 3.
-> > Unfortunately option 2, clocksource doesn't meet the requirement of
-> > free-running clock as per clocksource need. It stops in low power states
-> > when sys_clock is cut. That makes gptimer based clocksource option
-> > useless for OMAP2/3/4 devices with sys_clock as a clock input.
-> > Option 3 will still work but it is no better than 32K sync-timer
-> > based clocksource.
-> 
-> For some cases sys clock based timer is still valid if you don't
-> care about PM. In that case deeper idle states need to be disabled,
-> not the timer as discussed earlier. Please update the comments accordingly.
->  
+-------
+ERROR: trailing whitespace
+#82: FILE: arch/arm/mach-omap2/powerdomain.c:996:
++^Iif (pwrdm) $
 
-Ok, I will add below statement, 
+ERROR: trailing whitespace
+#84: FILE: arch/arm/mach-omap2/powerdomain.c:998:
++^Ielse $
 
-"Also, in order to use option 2, deeper idle stated MUST be disabled."
+total: 2 errors, 0 warnings, 69 lines checked
+-------
 
+Updated patch below with that fixed.
 
-> > So ideally we can kill the gptimer based clocksource option but there
-> > are some OMAP based derivative SoCs like AM33XX which doesn't have
-> > 32K sync-timer hardware IP and need to fallback on 32KHz based gptimer
-> > clocksource.
-> 
-> Maybe just say: "We must support both sync timer and gptimer based
-> clocksource as some AM33XX hardware does not have the sync timer."
-> 
+Regards
+Santosh
 
-Ok, I can change the description accordingly.
+=46rom 2782503adcf91142d2aee4bafe29989095ece3ba Mon Sep 17 00:00:00 200=
+1
+=46rom: Kevin Hilman <khilman@ti.com>
+Date: Wed, 25 Apr 2012 14:05:21 +0530
+Subject: [PATCH 1/1] ARM: OMAP2+: powerdomain: allow pre/post transtion=
+ to be
+ per pwrdm
 
-> > Considering above, make sync-timer and gptimer clocksource runtime
-> > selectable so that both OMAP and AMXXXX continue to use the same code.
-> > 
-> > Also, in order to precisely configure/setup sched_clock for given
-> > clocksource, decision has to be made early enough in boot sequence.
-> > 
-> > So, the solution is,
-> > 
-> > Use kernel parameter ("clocksource=") to override
-> 
-> Maybe say: "Use standard kernel parameter ("clocksource=")..."
-> 
+Iteration over all power domains in the idle path is unnecessary since
+only power domains that are transitioning need to be accounted for.
+Also PRCM register accesses are known to be expensive, so the
+additional latency added to the idle path is signficiant.
 
-Ditto, I will change the description accordingly.
+In order allow the pre/post transitions to be isolated and called
+per-pwrdm, change the API so passing in a specific power domain will
+trigger the pre/post transtion accounting for only that specific power
+domain.  Passing NULL means iterating over all power domains as is
+current behavior.
 
-> > --- a/arch/arm/mach-omap1/timer32k.c
-> > +++ b/arch/arm/mach-omap1/timer32k.c
-> > @@ -71,6 +71,7 @@
-> > 
-> >  /* 16xx specific defines */
-> >  #define OMAP1_32K_TIMER_BASE		0xfffb9000
-> > +#define OMAP1_32KSYNC_TIMER_BASE	0xfffbc400
-> >  #define OMAP1_32K_TIMER_CR		0x08
-> >  #define OMAP1_32K_TIMER_TVR		0x00
-> >  #define OMAP1_32K_TIMER_TCR		0x04
-> > @@ -184,7 +185,10 @@ static __init void omap_init_32k_timer(void)
-> >   */
-> >  bool __init omap_32k_timer_init(void)
-> >  {
-> > -	omap_init_clocksource_32k();
-> > +	u32 pbase;
-> > +
-> > +	pbase = cpu_is_omap16xx() ? OMAP1_32KSYNC_TIMER_BASE : NULL;
-> > +	omap_init_clocksource_32k(pbase, SZ_1K);
-> >  	omap_init_32k_timer();
-> > 
-> >  	return true;
-> 
-> Has this patch been tested on omap1?
-> 
+Signed-off-by: Kevin Hilman <khilman@ti.com>
+---
+ arch/arm/mach-omap2/omap-mpuss-lowpower.c |    4 ++--
+ arch/arm/mach-omap2/pm34xx.c              |    4 ++--
+ arch/arm/mach-omap2/powerdomain.c         |   16 ++++++++++++----
+ arch/arm/mach-omap2/powerdomain.h         |    4 ++--
+ 4 files changed, 18 insertions(+), 10 deletions(-)
 
-I do not have omap1 board with me, so I can not test it. If somebody can 
-provide some help here, that would be really great?
+diff --git a/arch/arm/mach-omap2/omap-mpuss-lowpower.c
+b/arch/arm/mach-omap2/omap-mpuss-lowpower.c
+index 13670aa..e35a86b 100644
+--- a/arch/arm/mach-omap2/omap-mpuss-lowpower.c
++++ b/arch/arm/mach-omap2/omap-mpuss-lowpower.c
+@@ -255,7 +255,7 @@ int omap4_enter_lowpower(unsigned int cpu,
+unsigned int power_state)
+ 		return -ENXIO;
+ 	}
 
-> 
-> > --- a/arch/arm/mach-omap2/timer.c
-> > +++ b/arch/arm/mach-omap2/timer.c
-> > @@ -510,3 +540,28 @@ static int __init omap2_dm_timer_init(void)
-> >  	return 0;
-> >  }
-> >  arch_initcall(omap2_dm_timer_init);
-> > +
-> > +/**
-> > + * omap2_override_clocksource - clocksource override with user configuration
-> > + *
-> > + * Allows user to override default clocksource, using kernel parameter
-> > + *   clocksource="gp timer"
-> > + *
-> > + * Note that, here we are using same standard kernel parameter "clocksource=",
-> > + * and not introducing any OMAP specific interface.
-> > + */
-> > +static int __init omap2_override_clocksource(char *str)
-> > +{
-> > +	if (!str)
-> > +		return 0;
-> > +	/*
-> > +	 * For OMAP architecture, we only have two options
-> > +	 *    - sync_32k (default)
-> > +	 *    - gp timer
-> > +	 */
-> > +	if (!strcmp(str, "gp timer"))
-> > +		use_gptimer_clksrc = true;
-> > +
-> > +	return 0;
-> > +}
-> > +early_param("clocksource", omap2_override_clocksource);
-> 
-> Should say "For omap2plus architectures" and should say three options.
-> If the sys clock based timer is not currently supported, please mention
-> that in the comments.
-> 
+-	pwrdm_pre_transition();
++	pwrdm_pre_transition(NULL);
 
-"gp timer" above is nothing but, sys_clock based gptimer option only. May be I should add the source in bracket or something?
-Like,
-	*    - sync_32k (default)
-	*    - gp timer (sys_clock)
+ 	/*
+ 	 * Check MPUSS next state and save interrupt controller if needed.
+@@ -287,7 +287,7 @@ int omap4_enter_lowpower(unsigned int cpu,
+unsigned int power_state)
+ 	wakeup_cpu =3D smp_processor_id();
+ 	set_cpu_next_pwrst(wakeup_cpu, PWRDM_POWER_ON);
 
-Thanks,
-Vaibhav
+-	pwrdm_post_transition();
++	pwrdm_post_transition(NULL);
 
-> Regards,
-> 
-> Tony
-> 
+ 	return 0;
+ }
+diff --git a/arch/arm/mach-omap2/pm34xx.c b/arch/arm/mach-omap2/pm34xx.=
+c
+index 703bd10..2451b90 100644
+--- a/arch/arm/mach-omap2/pm34xx.c
++++ b/arch/arm/mach-omap2/pm34xx.c
+@@ -307,7 +307,7 @@ void omap_sram_idle(void)
+ 			omap3_enable_io_chain();
+ 	}
 
+-	pwrdm_pre_transition();
++	pwrdm_pre_transition(NULL);
+
+ 	/* PER */
+ 	if (per_next_state < PWRDM_POWER_ON) {
+@@ -372,7 +372,7 @@ void omap_sram_idle(void)
+ 	}
+ 	omap3_intc_resume_idle();
+
+-	pwrdm_post_transition();
++	pwrdm_post_transition(NULL);
+
+ 	/* PER */
+ 	if (per_next_state < PWRDM_POWER_ON) {
+diff --git a/arch/arm/mach-omap2/powerdomain.c
+b/arch/arm/mach-omap2/powerdomain.c
+index 96ad3dbe..bb6780d 100644
+--- a/arch/arm/mach-omap2/powerdomain.c
++++ b/arch/arm/mach-omap2/powerdomain.c
+@@ -991,15 +991,23 @@ int pwrdm_clkdm_state_switch(struct clockdomain *=
+clkdm)
+ 	return -EINVAL;
+ }
+
+-int pwrdm_pre_transition(void)
++int pwrdm_pre_transition(struct powerdomain *pwrdm)
+ {
+-	pwrdm_for_each(_pwrdm_pre_transition_cb, NULL);
++	if (pwrdm)
++		_pwrdm_pre_transition_cb(pwrdm, NULL);
++	else
++		pwrdm_for_each(_pwrdm_pre_transition_cb, NULL);
++
+ 	return 0;
+ }
+
+-int pwrdm_post_transition(void)
++int pwrdm_post_transition(struct powerdomain *pwrdm)
+ {
+-	pwrdm_for_each(_pwrdm_post_transition_cb, NULL);
++	if (pwrdm)
++		_pwrdm_post_transition_cb(pwrdm, NULL);
++	else
++		pwrdm_for_each(_pwrdm_post_transition_cb, NULL);
++
+ 	return 0;
+ }
+
+diff --git a/arch/arm/mach-omap2/powerdomain.h
+b/arch/arm/mach-omap2/powerdomain.h
+index 0d72a8a..a468de4 100644
+--- a/arch/arm/mach-omap2/powerdomain.h
++++ b/arch/arm/mach-omap2/powerdomain.h
+@@ -214,8 +214,8 @@ int pwrdm_wait_transition(struct powerdomain *pwrdm=
+);
+
+ int pwrdm_state_switch(struct powerdomain *pwrdm);
+ int pwrdm_clkdm_state_switch(struct clockdomain *clkdm);
+-int pwrdm_pre_transition(void);
+-int pwrdm_post_transition(void);
++int pwrdm_pre_transition(struct powerdomain *pwrdm);
++int pwrdm_post_transition(struct powerdomain *pwrdm);
+ int pwrdm_set_lowpwrstchange(struct powerdomain *pwrdm);
+ int pwrdm_get_context_loss_count(struct powerdomain *pwrdm);
+ bool pwrdm_can_ever_lose_context(struct powerdomain *pwrdm);
+--=20
+1.7.5.4
+--
+To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
