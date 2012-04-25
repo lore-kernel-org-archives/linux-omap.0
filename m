@@ -1,106 +1,90 @@
 From: Tero Kristo <t-kristo@ti.com>
-Subject: Re: [PATCH 15/19] ARM: OMAP4430: PM: workaround for DDR corruption
- on second CS
-Date: Wed, 25 Apr 2012 10:26:02 +0300
-Message-ID: <1335338762.2149.103.camel@sokoban>
+Subject: Re: [PATCH 08/19] ARM: OMAP4: PM: Add device-off support
+Date: Wed, 25 Apr 2012 10:30:15 +0300
+Message-ID: <1335339015.2149.106.camel@sokoban>
 References: <1334914432-26456-1-git-send-email-t-kristo@ti.com>
-	 <1334914432-26456-16-git-send-email-t-kristo@ti.com>
-	 <4F96EF56.5020604@ti.com>
+	 <1334914432-26456-9-git-send-email-t-kristo@ti.com>
+	 <4F96E70C.4040008@ti.com>
 Reply-To: <t-kristo@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="UTF-8"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from arroyo.ext.ti.com ([192.94.94.40]:49327 "EHLO arroyo.ext.ti.com"
+Received: from comal.ext.ti.com ([198.47.26.152]:60649 "EHLO comal.ext.ti.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752569Ab2DYH0M (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Wed, 25 Apr 2012 03:26:12 -0400
-In-Reply-To: <4F96EF56.5020604@ti.com>
+	id S1751627Ab2DYHaU (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Wed, 25 Apr 2012 03:30:20 -0400
+In-Reply-To: <4F96E70C.4040008@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: Jon Hunter <jon-hunter@ti.com>
 Cc: linux-omap@vger.kernel.org, khilman@ti.com, paul@pwsan.com, Santosh Shilimkar <santosh.shilimkar@ti.com>, linux-arm-kernel@lists.infradead.org
 
-On Tue, 2012-04-24 at 13:22 -0500, Jon Hunter wrote:
+On Tue, 2012-04-24 at 12:46 -0500, Jon Hunter wrote:
 > Hi Tero,
 > 
 > On 04/20/2012 04:33 AM, Tero Kristo wrote:
-> > From: Santosh Shilimkar <santosh.shilimkar@ti.com>
+> > This patch adds device off support to OMAP4 device type.
 > > 
-> > Work around for Errata ID: i632 "LPDDR2 Corruption After OFF Mode
-> > Transition When CS1 Is Used On EMIF" which impacts OMAP443x silicon
-> > The issue occurs when EMIF_SDRAM_CONFIG is restored first before
-> > EMIF_SDRAM_CONFIG_2 is not yet restored, the register configuration
-> > is not set properly, we apply the required workaround allowing
-> > the restore sequence to work properly.
+> > OFF mode is disabled by default, however, there are two ways to enable
+> > OFF mode:
+> > a) In the board file, call omap4_pm_off_mode_enable(1)
+> > b) Enable OFF mode using the debugfs entry
+> > echo "1">/sys/kernel/debug/pm_debug/enable_off_mode
+> > (conversely echo '0' will disable it as well).
 > > 
 > > Signed-off-by: Santosh Shilimkar <santosh.shilimkar@ti.com>
-> > [t-kristo@ti.com: moved workaround from omap-sar.c to pm44xx.c]
+> > [t-kristo@ti.com: largely re-structured the code]
 > > Signed-off-by: Tero Kristo <t-kristo@ti.com>
 > > ---
-> >  .../include/mach/ctrl_module_wkup_44xx.h           |    2 +
-> >  arch/arm/mach-omap2/pm44xx.c                       |   24 ++++++++++++++++++++
-> >  2 files changed, 26 insertions(+), 0 deletions(-)
+> >  arch/arm/mach-omap2/omap-mpuss-lowpower.c |   24 ++++++++++-
+> >  arch/arm/mach-omap2/omap-wakeupgen.c      |   47 +++++++++++++++++++-
+> >  arch/arm/mach-omap2/pm-debug.c            |   17 +++++--
+> >  arch/arm/mach-omap2/pm.h                  |   28 ++++++++++--
+> >  arch/arm/mach-omap2/pm44xx.c              |   45 +++++++++++++++++++
+> >  arch/arm/mach-omap2/prm44xx.c             |   66 +++++++++++++++++++++++++++++
+> >  6 files changed, 214 insertions(+), 13 deletions(-)
 > > 
-> > diff --git a/arch/arm/mach-omap2/include/mach/ctrl_module_wkup_44xx.h b/arch/arm/mach-omap2/include/mach/ctrl_module_wkup_44xx.h
-> > index a0af9ba..b763a79 100644
-> > --- a/arch/arm/mach-omap2/include/mach/ctrl_module_wkup_44xx.h
-> > +++ b/arch/arm/mach-omap2/include/mach/ctrl_module_wkup_44xx.h
-> > @@ -28,6 +28,8 @@
-> >  #define OMAP4_CTRL_MODULE_WKUP_IP_REVISION		0x0000
-> >  #define OMAP4_CTRL_MODULE_WKUP_IP_HWINFO		0x0004
-> >  #define OMAP4_CTRL_MODULE_WKUP_IP_SYSCONFIG		0x0010
-> > +#define OMAP4_CTRL_SECURE_EMIF1_SDRAM_CONFIG2_REG	0x0114
-> > +#define OMAP4_CTRL_SECURE_EMIF2_SDRAM_CONFIG2_REG	0x011c
-> >  #define OMAP4_CTRL_MODULE_WKUP_CONF_DEBUG_SEL_TST_0	0x0460
-> >  #define OMAP4_CTRL_MODULE_WKUP_CONF_DEBUG_SEL_TST_1	0x0464
-> >  #define OMAP4_CTRL_MODULE_WKUP_CONF_DEBUG_SEL_TST_2	0x0468
-> > diff --git a/arch/arm/mach-omap2/pm44xx.c b/arch/arm/mach-omap2/pm44xx.c
-> > index 0472921..d4d18d9 100644
-> > --- a/arch/arm/mach-omap2/pm44xx.c
-> > +++ b/arch/arm/mach-omap2/pm44xx.c
-> > @@ -17,6 +17,9 @@
-> >  #include <linux/err.h>
-> >  #include <linux/slab.h>
-> >  #include <asm/system_misc.h>
-> > +#include <linux/io.h>
-> > +
-> > +#include <mach/ctrl_module_wkup_44xx.h>
+> > diff --git a/arch/arm/mach-omap2/omap-mpuss-lowpower.c b/arch/arm/mach-omap2/omap-mpuss-lowpower.c
+> > index e02c082..b9a2cc7 100644
+> > --- a/arch/arm/mach-omap2/omap-mpuss-lowpower.c
+> > +++ b/arch/arm/mach-omap2/omap-mpuss-lowpower.c
+> > @@ -60,6 +60,7 @@
+> >  #include "prcm44xx.h"
+> >  #include "prm44xx.h"
+> >  #include "prm-regbits-44xx.h"
+> > +#include "cm44xx.h"
 > >  
-> >  #include "common.h"
-> >  #include "clockdomain.h"
-> > @@ -215,6 +218,27 @@ static int __init omap4_pm_init(void)
+> >  #ifdef CONFIG_SMP
 > >  
-> >  	pr_err("Power Management for TI OMAP4.\n");
+> > @@ -232,6 +233,7 @@ int omap4_enter_lowpower(unsigned int cpu, unsigned int power_state)
+> >  {
+> >  	unsigned int save_state = 0;
+> >  	unsigned int wakeup_cpu;
+> > +	int ret;
 > >  
-> > +	/*
-> > +	 * Work around for OMAP443x Errata i632: "LPDDR2 Corruption After OFF
-> > +	 * Mode Transition When CS1 Is Used On EMIF":
-> > +	 * Overwrite EMIF1/EMIF2
-> > +	 * SECURE_EMIF1_SDRAM_CONFIG2_REG
-> > +	 * SECURE_EMIF2_SDRAM_CONFIG2_REG
-> > +	 */
-> > +	if (cpu_is_omap443x()) {
-> > +		void __iomem *secure_ctrl_mod;
-> > +
-> > +		secure_ctrl_mod = ioremap(OMAP4_CTRL_MODULE_WKUP, SZ_4K);
-> > +		BUG_ON(!secure_ctrl_mod);
-> > +
-> > +		__raw_writel(0x10, secure_ctrl_mod +
-> > +			     OMAP4_CTRL_SECURE_EMIF1_SDRAM_CONFIG2_REG);
-> > +		__raw_writel(0x10, secure_ctrl_mod +
-> > +			     OMAP4_CTRL_SECURE_EMIF2_SDRAM_CONFIG2_REG);
+> >  	if (omap_rev() == OMAP4430_REV_ES1_0)
+> >  		return -ENXIO;
+> > @@ -263,9 +265,21 @@ int omap4_enter_lowpower(unsigned int cpu, unsigned int power_state)
+> >  	 * In MPUSS OSWR or device OFF, interrupt controller  contest is lost.
+> >  	 */
+> >  	mpuss_clear_prev_logic_pwrst();
+> > -	if ((pwrdm_read_next_pwrst(mpuss_pd) == PWRDM_POWER_RET) &&
+> > -		(pwrdm_read_logic_retst(mpuss_pd) == PWRDM_POWER_OFF))
+> > +	if (omap4_device_next_state_off()) {
+> > +		/* Save the device context to SAR RAM */
+> > +		ret = omap_sar_save();
+> > +		if (ret)
+> > +			return ret;
 > 
-> According to the erratum description the above registers are used to
-> restore the EMIFx_SDRAM_CONFIG2 registers. So although the value 0x10,
-> maybe the value being used for EMIFx_SDRAM_CONFIG2 registers, shouldn't
-> we read the EMIFx_SDRAM_CONFIG2 registers and store them in the above
-> registers?
+> Is it safe to simply return here? I was not sure if we need to call
+> pwrdm_post_transition, given that we have already called
+> pwrdm_pre_transition on entry.
 
-This might be a good idea, however, this patch might be tagged as TEMP
-until the EMIF driver is in place, this fix should rather be located
-there. I'll take a look at this if I can change the implementation a
-bit.
+Hmm, thats a good point, I'll change the patch slightly. Anyway,
+currently the potential solo pwrdm_pre_transition() will not break
+anything, but in future it would, as we are planning to control AUTO_RET
+feature through the pwrdm_pre / pwrdm_post calls.
 
 -Tero
 
