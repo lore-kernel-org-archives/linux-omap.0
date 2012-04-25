@@ -1,163 +1,133 @@
-From: "Shilimkar, Santosh" <santosh.shilimkar@ti.com>
-Subject: Re: [PATCH/RFT 0/3] ARM: OMAP: PM: reduce overhead of pwrdm pre/post transitions
-Date: Wed, 25 Apr 2012 18:54:25 +0530
-Message-ID: <CAMQu2gxExpmtOUtr=-yy0wyU7sZqyTQY=oiwS0AZM+iWgTnQRA@mail.gmail.com>
-References: <1335277420-29124-1-git-send-email-khilman@ti.com>
+From: Ashwin Bihari <abihari@gmail.com>
+Subject: Re: DM3730 BSP issue with msleep()
+Date: Wed, 25 Apr 2012 09:44:50 -0400
+Message-ID: <CANLagX9sYmAzKfY2tPdOyNm0ZyVWdy=90uc0XavMRFPJtuRTaA@mail.gmail.com>
+References: <CANLagX-mf7wsG+AR3mMb2TX=ZmJFkwi66Q2G9D-VqnbBAbFUdQ@mail.gmail.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aog130.obsmtp.com ([74.125.149.143]:49516 "EHLO
-	na3sys009aog130.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752243Ab2DYNYr convert rfc822-to-8bit
-	(ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Wed, 25 Apr 2012 09:24:47 -0400
-Received: by qcro28 with SMTP id o28so61692qcr.5
-        for <linux-omap@vger.kernel.org>; Wed, 25 Apr 2012 06:24:45 -0700 (PDT)
-In-Reply-To: <1335277420-29124-1-git-send-email-khilman@ti.com>
+Received: from mail-ob0-f174.google.com ([209.85.214.174]:42125 "EHLO
+	mail-ob0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1757396Ab2DYNov convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 25 Apr 2012 09:44:51 -0400
+Received: by obbta14 with SMTP id ta14so105855obb.19
+        for <linux-omap@vger.kernel.org>; Wed, 25 Apr 2012 06:44:50 -0700 (PDT)
+In-Reply-To: <CANLagX-mf7wsG+AR3mMb2TX=ZmJFkwi66Q2G9D-VqnbBAbFUdQ@mail.gmail.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Kevin Hilman <khilman@ti.com>
-Cc: linux-omap@vger.kernel.org, Jean Pihet <jean.pihet@newoldbits.com>, Tero Kristo <t-kristo@ti.com>, Paul Walmsley <paul@pwsan.com>
+To: linux-omap <linux-omap@vger.kernel.org>
 
-On Tue, Apr 24, 2012 at 7:53 PM, Kevin Hilman <khilman@ti.com> wrote:
-> Here's a first pass attempt to reduce the overhead of the pre/post
-> transitions by allowing them to be called per powerdomain and making
-> them conditional on powerdomain transtions.
+On Mon, Apr 23, 2012 at 1:13 PM, Ashwin Bihari <abihari@gmail.com> wrot=
+e:
+> Greetings,
 >
-> This can be used for testing/measurements to see the reduction the
-> latencies involved in entering/exiting idle with and without these
-> patches.
+> I'm trying to add support for our DM3730-based SOMs to the latest
+> Kernel and am basing my work on the latest and greatest Linux-next
+> (3.4.0-rc4-next-20120423-dirty currently) and am finding an
+> interesting issue with the use of msleep.
 >
-> Kevin Hilman (3):
-> =A0ARM: OMAP2+: powerdomain: allow pre/post transtion to be per pwrdm
-> =A0ARM: OMAP3: PM: call pre/post transition per powerdomain
-> =A0ARM: OMAP3: PM: cleanup cam_pwrdm leftovers
+> I'm trying to bring up a basic system with SD and Ethernet support fo=
+r
+> starters, and am finding that the MMC detection code just hangs, afte=
+r
+> some digging around I found the issue to be related to the use of
+> mmc_delay() calls which depending on the timeout required either uses
+> mdelay() or msleep(). All of the calls to mdelay() succeed, while the
+> msleep() call hangs.
 >
-I have reviewed and tested this series on OMAP4 with coupleidle and sys=
-tem
-wide supsned. It continues to work as expected. I have done an addition=
-al
-patch(end of email)  as mentioned to take advantage of per powerdomain
-pre/post transition API update.
-
-Thanks for the series. it certainly removes the big over-head we had be=
-fore
-with the pre-post APIs.
-
-=46WIW,
-Reviewed-tested-by: Santosh Shilimkar <santosh.shilimkar@ti.com>
-
-Regards
-Santosh
-
-=46rom e535b0d8948ed44732c6128ff4236cfe32d2f40a Mon Sep 17 00:00:00 200=
+> Interestingly, msleep() is used in earlier
+> (arch/arm/mach-omap2)/board-* level files and that seems to function
+> properly.
+>
+> I got around the mmc_delay() properly by using the change below (this
+> is only temporary), but I end up hanging somewhere farther along and
+> the last few lines are:
+>
+> [ =A0 =A02.047088] twl_rtc twl_rtc: Power up reset detected.
+> [ =A0 =A02.052673] twl_rtc twl_rtc: Enabling TWL-RTC
+> [ =A0 =A02.064331] twl_rtc twl_rtc: rtc core: registered twl_rtc as r=
+tc0
+> [ =A0 =A02.073028] i2c /dev entries driver
+> [ =A0 =A02.080505] Driver for 1-wire Dallas network protocol.
+> [ =A0 =A02.091522] omap_wdt: OMAP Watchdog Timer Rev 0x31: initial ti=
+meout 60 sec
+> [ =A0 =A02.101043] twl4030_wdt twl4030_wdt: Failed to register misc d=
+evice
+> [ =A0 =A02.107940] twl4030_wdt: probe of twl4030_wdt failed with erro=
+r -16
+> [ =A0 =A02.122222] omap_hsmmc omap_hsmmc.0: Failed to get debounce cl=
+k
+> [ =A0 =A02.382659] usbcore: registered new interface driver usbhid
+> [ =A0 =A02.388549] usbhid: USB HID core driver
+> [ =A0 =A02.392822] oprofile: hardware counters not available
+> [ =A0 =A02.398284] oprofile: using timer interrupt.
+> [ =A0 =A02.403961] TCP: cubic registered
+> [ =A0 =A02.407623] Initializing XFRM netlink socket
+> [ =A0 =A02.412506] NET: Registered protocol family 17
+> [ =A0 =A02.417388] NET: Registered protocol family 15
+> [ =A0 =A02.422821] Registering the dns_resolver key type
+> [ =A0 =A02.428222] VFP support v0.3: implementor 41 architecture 3 pa=
+rt 30
+> variant c rev 3
+> [ =A0 =A02.436676] ThumbEE CPU extension supported.
+> [ =A0 =A02.493072] clock: disabling unused clocks to save power
+> [ =A0 =A02.545989] twl_rtc twl_rtc: setting system clock to 2000-01-0=
 1
-=46rom: Santosh Shilimkar <santosh.shilimkar@ti.com>
-Date: Wed, 25 Apr 2012 17:04:08 +0530
-Subject: [PATCH] ARM: OMAP4: PM: call pre/post transition per powerdoma=
-in
+> 00:00:00 UTC (946684800)
+> [ =A0 =A02.560760] Waiting for root device /dev/mmcblk0p2...
+> [ =A0 =A02.783111] mmc0: host does not support reading read-only swit=
+ch.
+> assuming write-enable.
+> [ =A0 =A02.794372] mmc0: new high speed SDHC card at address b368
+> [ =A0 =A02.814636] mmcblk0: mmc0:b368 00000 3.74 GiB
+> [ =A0 =A02.828704] =A0mmcblk0: p1 p2
+>
+> Does anyone have any pointers for me to try out to see what's going o=
+n?
+>
+> ------------
+> diff --git a/drivers/mmc/core/core.h b/drivers/mmc/core/core.h
+> index 3bdafbc..7062f15 100644
+> --- a/drivers/mmc/core/core.h
+> +++ b/drivers/mmc/core/core.h
+> @@ -48,12 +48,16 @@ void mmc_power_off(struct mmc_host *host);
+>
+> =A0static inline void mmc_delay(unsigned int ms)
+> =A0{
+> + =A0 =A0 =A0 cond_resched();
+> + =A0 =A0 =A0 mdelay(ms);
+> +#if 0
+> =A0 =A0 =A0 =A0if (ms < 1000 / HZ) {
+> =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0cond_resched();
+> =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0mdelay(ms);
+> =A0 =A0 =A0 =A0} else {
+> =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0msleep(ms);
+> =A0 =A0 =A0 =A0}
+> +#endif
+> =A0}
+>
+> =A0void mmc_rescan(struct work_struct *work);
+>
+>
+> -- Ashwin
 
-Iteration over all power domains in the idle path is unnecessary since
-only power domains that are transitioning need to be accounted for.
+I've continued to debug this a bit further and have been updating to
+the latest versions of linux-next to see if any of the behavior change
+and it hasn't yet. However, I did try to see if I could use an EXT2
+ramdisk (that I know works on other Kernels I have) to avoid any
+potential issues I am having with the SD and it turns out that the
+ramdisk also doesn't mount. The mounting of the ramdisk root also
+hangs in some of the very code "fs/namespace.c" code that I haven't
+even touched.
 
-Update OMAP4 low power code accordingly.
+I have a OMAP3530 SOM that works with the same image and it boots from
+ramdisk, SD and all without any problems.
 
-Signed-off-by: Santosh Shilimkar <santosh.shilimkar@ti.com>
-Cc: Kevin Hilman <khilman@ti.com>
----
-There is one issue though about MPUSS powerdomain accounting. It will
-get called on both CPUs and might result in duplicate pm debug counter
-update. There is no functional issue with that as such but needs to
-be cleaned up.
+I must be missing or have no configured something at a very early
+level to get this messed up..any ideas?
 
-Will address that issue in a seperate series.
-
- arch/arm/mach-omap2/omap-mpuss-lowpower.c |   22 ++++++++++++++++++++-=
--
- 1 files changed, 20 insertions(+), 2 deletions(-)
-
-diff --git a/arch/arm/mach-omap2/omap-mpuss-lowpower.c
-b/arch/arm/mach-omap2/omap-mpuss-lowpower.c
-index e35a86b..3a709b2 100644
---- a/arch/arm/mach-omap2/omap-mpuss-lowpower.c
-+++ b/arch/arm/mach-omap2/omap-mpuss-lowpower.c
-@@ -117,6 +117,20 @@ static inline void clear_cpu_prev_pwrst(unsigned
-int cpu_id)
- }
-
- /*
-+ * CPU powerdomain pre/post transition.
-+ */
-+static inline void cpu_pwrdm_pre_post_transition(unsigned int cpu_id,
-+				bool pre_transition)
-+{
-+	struct omap4_cpu_pm_info *pm_info =3D &per_cpu(omap4_pm_info, cpu_id)=
-;
-+
-+	if (pre_transition)
-+		pwrdm_pre_transition(pm_info->pwrdm);
-+	else
-+		pwrdm_post_transition(pm_info->pwrdm);
-+}
-+
-+/*
-  * Store the SCU power status value to scratchpad memory
-  */
- static void scu_pwrst_prepare(unsigned int cpu_id, unsigned int cpu_st=
-ate)
-@@ -255,7 +269,7 @@ int omap4_enter_lowpower(unsigned int cpu,
-unsigned int power_state)
- 		return -ENXIO;
- 	}
-
--	pwrdm_pre_transition(NULL);
-+	pwrdm_pre_transition(mpuss_pd);
-
- 	/*
- 	 * Check MPUSS next state and save interrupt controller if needed.
-@@ -266,6 +280,7 @@ int omap4_enter_lowpower(unsigned int cpu,
-unsigned int power_state)
- 		(pwrdm_read_logic_retst(mpuss_pd) =3D=3D PWRDM_POWER_OFF))
- 		save_state =3D 2;
-
-+	cpu_pwrdm_pre_post_transition(cpu, 1);
- 	cpu_clear_prev_logic_pwrst(cpu);
- 	set_cpu_next_pwrst(cpu, power_state);
- 	set_cpu_wakeup_addr(cpu, virt_to_phys(omap4_cpu_resume));
-@@ -285,9 +300,10 @@ int omap4_enter_lowpower(unsigned int cpu,
-unsigned int power_state)
- 	 * domain transition
- 	 */
- 	wakeup_cpu =3D smp_processor_id();
-+	cpu_pwrdm_pre_post_transition(wakeup_cpu, 0);
- 	set_cpu_next_pwrst(wakeup_cpu, PWRDM_POWER_ON);
-
--	pwrdm_post_transition(NULL);
-+	pwrdm_post_transition(mpuss_pd);
-
- 	return 0;
- }
-@@ -307,6 +323,7 @@ int __cpuinit omap4_hotplug_cpu(unsigned int cpu,
-unsigned int power_state)
- 	if (power_state =3D=3D PWRDM_POWER_OFF)
- 		cpu_state =3D 1;
-
-+	cpu_pwrdm_pre_post_transition(cpu, 1);
- 	clear_cpu_prev_pwrst(cpu);
- 	set_cpu_next_pwrst(cpu, power_state);
- 	set_cpu_wakeup_addr(cpu, virt_to_phys(omap_secondary_startup));
-@@ -319,6 +336,7 @@ int __cpuinit omap4_hotplug_cpu(unsigned int cpu,
-unsigned int power_state)
- 	 */
- 	omap4_finish_suspend(cpu_state);
-
-+	cpu_pwrdm_pre_post_transition(wakeup_cpu, 0);
- 	set_cpu_next_pwrst(cpu, PWRDM_POWER_ON);
- 	return 0;
- }
---=20
-1.7.5.4
+-- Ashwin
 --
 To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
 n
