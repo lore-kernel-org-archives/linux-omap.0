@@ -1,73 +1,95 @@
-From: Janusz Krzysztofik <jkrzyszt@tis.icnet.pl>
-Subject: Re: [PATCH v3.4-rc3] MTD: NAND: ams-delta: Fix request_mem_region() failure
-Date: Wed, 25 Apr 2012 19:01:14 +0200
-Message-ID: <1587089.0XMyH6e1Ic@acer>
-References: <1334670557-25640-1-git-send-email-jkrzyszt@tis.icnet.pl> <1335366823.6356.11.camel@koala>
+From: Ivan Djelic <ivan.djelic@parrot.com>
+Subject: Re: [PATCH v2] ARM: OMAP3: gpmc: add BCH ecc api and modes
+Date: Wed, 25 Apr 2012 20:28:36 +0200
+Message-ID: <20120425182836.GA17023@parrot.com>
+References: <1334861024-27386-1-git-send-email-ivan.djelic@parrot.com>
+ <20120425170313.GW3739@atomide.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=utf-8
 Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from d1.icnet.pl ([212.160.220.21]:57031 "EHLO d1.icnet.pl"
+Received: from co202.xi-lite.net ([149.6.83.202]:35954 "EHLO co202.xi-lite.net"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1756158Ab2DYRPq convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 25 Apr 2012 13:15:46 -0400
-In-Reply-To: <1335366823.6356.11.camel@koala>
+	id S1756340Ab2DYS37 (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Wed, 25 Apr 2012 14:29:59 -0400
+Content-Disposition: inline
+In-Reply-To: <20120425170313.GW3739@atomide.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: dedekind1@gmail.com
-Cc: David Woodhouse <dwmw2@infradead.org>, Tony Lindgren <tony@atomide.com>, Artem Bityutskiy <Artem.Bityutskiy@linux.intel.com>, linux-kernel@vger.kernel.org, linux-mtd@lists.infradead.org, linux-omap@vger.kernel.org
+To: Tony Lindgren <tony@atomide.com>
+Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-mtd@lists.infradead.org" <linux-mtd@lists.infradead.org>
 
-Dnia =C5=9Broda, 25 kwietnia 2012 18:13:38 Artem Bityutskiy pisze:
-> On Tue, 2012-04-17 at 15:49 +0200, Janusz Krzysztofik wrote:
-> > A call to request_mem_region() has been introduced in the omap-gpio
-> > driver recently (commit 96751fcbe5438e95514b025e9cee7a6d38038f40,
-> > "gpio/omap: Use devm_ API and add request_mem_region"). This change
-> > prevented the Amstrad Delta NAND driver, which was doing the same i=
-n
-> > order to take control over OMAP MPU I/O lines that the NAND device=20
-hangs
-> > off, from loading successfully.
-> >=20
-> > There is another driver, omap-keypad, which also manipulates OMAP=20
-MPUIO
-> > registers, but has never been calling request_mem_region() on=20
-startup,
-> > so it's not affected by the change in the gpio-omap and works=20
-correctly.
-> >=20
-> > Drop request_mem_region() call and related bits from ams-delta NAND
-> > driver.
-> >=20
-> > Created and tested against linux-3.4-rc3.
-> >=20
-> > Signed-off-by: Janusz Krzysztofik <jkrzyszt@tis.icnet.pl>
+Hi Tony,
+Thanks for the review,
+
+On Wed, Apr 25, 2012 at 06:03:14PM +0100, Tony Lindgren wrote:
+(...)
+> >  #define GPMC_ECC1_RESULT        0x200
+> > +#define GPMC_ECC_BCH_RESULT_0   0x240
 >=20
-> How about race conditions? Where is the guarantee that these 2 driver=
-s
-> won't affect each other when doing I/O at the same time to the same H=
-W
-> resources?
+> Can you please add a comment here saying something like:
+>=20
+> #define GPMC_ECC_BCH_RESULT_0   0x240	/* Not available on omap2 */
 
-Both drivers use separate subsets of registers that belong to the OMAP1=
-=20
-MPU I/O device, but are used for controlling different sets of I/O pins=
-=2E=20
-The NAND driver reads/writes the folowing registers:
-- OMAP_MPUIO_INPUT_LATCH,
-- OMAP_MPUIO_OUTPUT,
-- OMAP_MPUIO_IO_CNTL,
-while the keypad driver - the following:
-- OMAP_MPUIO_KBR_LATCH,
-- OMAP_MPUIO_KBC,
-- OMAP_MPUIO_KBD_MASKIT
-- OMAP_MPUIO_GPIO_DEBOUNCING.
-Both subsets are non-overlapping, and we rely on the drivers being free=
-=20
-of bugs and doing their job correctly, not stepping on each others'=20
-feet, I guess.
+OK sure.
+
+> > +	/* check if ecc module is in use */
+> > +	if (gpmc_ecc_used !=3D -EINVAL)
+> > +		return -EINVAL;
+> > +	/*
+> > +	 * FIXME: some OMAP3 revisions have a hardware bug which prevents
+> > +	 * the 4-bit BCH mode from working properly. Such revisions could=
+ be
+> > +	 * detected and rejected here.
+> > +	 */
+>=20
+> This should then be disabled to avoid corruption. Maybe only allow it
+> initially on omaps that have been tested? And for omap2 it should ret=
+urn
+> error  for sure.
+
+OK I'll add a check.
+
+>=20
+> Or do you know the broken omap3 versions?
+
+Well, I was hoping that someone from linux-omap could tell me :)
+I found this HW ECC feature table in
+http://processors.wiki.ti.com/index.php/Raw_NAND_ECC:
+
+         1b     4b      8b
+---------------------------
+OMAP35x  YES    NO      YES
+AM35x    YES    YES     YES
+AM/DM37x YES    YES     YES
+
+and other wiki pages confirmed that 4-bit mode is not supported on all =
+OMAP35xx chips.
+OTOH, I know from TI support that 4-bit mode is at least supported on
+OMAP3630 ES1.x (x >=3D 1).
+
+So, a conservative approach would be to reject 4-bit mode on all chips =
+but
+omap3630 with rev >=3D 1.1. Other revisions/chips could be added later =
+if they are
+confirmed to work; what do you think ?
+
+> Also, should you first request this feature in case multiple drivers
+> need to share it?
+
+According to TI documentation (OMAP36xx ES1.x TRM, =C2=A710.1.4, GPMC f=
+unctional diagram),
+the GPMC ECC engines (Hamming and BCH) are dedicated to NAND access onl=
+y; therefore
+I believe the mtd driver is the only potential user of this feature.
+Also, the existing Hamming ecc API does not perform any request; or did=
+ I miss
+something? If I need to perform the request, is there an existing api t=
+o do so?
 
 Thanks,
-Janusz
+--
+Ivan
 --
 To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
 n
