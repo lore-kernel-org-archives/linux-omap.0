@@ -1,73 +1,110 @@
-From: Artem Bityutskiy <dedekind1@gmail.com>
-Subject: Re: [PATCH v3.4-rc3] MTD: NAND: ams-delta: Fix request_mem_region()
- failure
-Date: Wed, 25 Apr 2012 18:13:38 +0300
-Message-ID: <1335366823.6356.11.camel@koala>
-References: <1334670557-25640-1-git-send-email-jkrzyszt@tis.icnet.pl>
-Reply-To: dedekind1@gmail.com
+From: Jon Hunter <jon-hunter@ti.com>
+Subject: Re: [PATCH 15/19] ARM: OMAP4430: PM: workaround for DDR corruption
+ on second CS
+Date: Wed, 25 Apr 2012 10:16:06 -0500
+Message-ID: <4F981536.2030609@ti.com>
+References: <1334914432-26456-1-git-send-email-t-kristo@ti.com>  <1334914432-26456-16-git-send-email-t-kristo@ti.com>  <4F96EF56.5020604@ti.com> <1335338762.2149.103.camel@sokoban>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg="pgp-sha1"; protocol="application/pgp-signature";
-	boundary="=-wruPd1P8yR95skTx5DEE"
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-lpp01m010-f46.google.com ([209.85.215.46]:41849 "EHLO
-	mail-lpp01m010-f46.google.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1750757Ab2DYPNp (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>);
-	Wed, 25 Apr 2012 11:13:45 -0400
-In-Reply-To: <1334670557-25640-1-git-send-email-jkrzyszt@tis.icnet.pl>
+Received: from devils.ext.ti.com ([198.47.26.153]:40134 "EHLO
+	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752080Ab2DYPQN (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 25 Apr 2012 11:16:13 -0400
+In-Reply-To: <1335338762.2149.103.camel@sokoban>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Janusz Krzysztofik <jkrzyszt@tis.icnet.pl>
-Cc: David Woodhouse <dwmw2@infradead.org>, Tony Lindgren <tony@atomide.com>, Artem Bityutskiy <Artem.Bityutskiy@linux.intel.com>, linux-kernel@vger.kernel.org, linux-mtd@lists.infradead.org, linux-omap@vger.kernel.org
+To: t-kristo@ti.com
+Cc: linux-omap@vger.kernel.org, khilman@ti.com, paul@pwsan.com, Santosh Shilimkar <santosh.shilimkar@ti.com>, linux-arm-kernel@lists.infradead.org
 
+Hi Tero,
 
---=-wruPd1P8yR95skTx5DEE
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: quoted-printable
+On 04/25/2012 02:26 AM, Tero Kristo wrote:
+> On Tue, 2012-04-24 at 13:22 -0500, Jon Hunter wrote:
+>> Hi Tero,
+>>
+>> On 04/20/2012 04:33 AM, Tero Kristo wrote:
+>>> From: Santosh Shilimkar <santosh.shilimkar@ti.com>
+>>>
+>>> Work around for Errata ID: i632 "LPDDR2 Corruption After OFF Mode
+>>> Transition When CS1 Is Used On EMIF" which impacts OMAP443x silicon
+>>> The issue occurs when EMIF_SDRAM_CONFIG is restored first before
+>>> EMIF_SDRAM_CONFIG_2 is not yet restored, the register configuration
+>>> is not set properly, we apply the required workaround allowing
+>>> the restore sequence to work properly.
+>>>
+>>> Signed-off-by: Santosh Shilimkar <santosh.shilimkar@ti.com>
+>>> [t-kristo@ti.com: moved workaround from omap-sar.c to pm44xx.c]
+>>> Signed-off-by: Tero Kristo <t-kristo@ti.com>
+>>> ---
+>>>  .../include/mach/ctrl_module_wkup_44xx.h           |    2 +
+>>>  arch/arm/mach-omap2/pm44xx.c                       |   24 ++++++++++++++++++++
+>>>  2 files changed, 26 insertions(+), 0 deletions(-)
+>>>
+>>> diff --git a/arch/arm/mach-omap2/include/mach/ctrl_module_wkup_44xx.h b/arch/arm/mach-omap2/include/mach/ctrl_module_wkup_44xx.h
+>>> index a0af9ba..b763a79 100644
+>>> --- a/arch/arm/mach-omap2/include/mach/ctrl_module_wkup_44xx.h
+>>> +++ b/arch/arm/mach-omap2/include/mach/ctrl_module_wkup_44xx.h
+>>> @@ -28,6 +28,8 @@
+>>>  #define OMAP4_CTRL_MODULE_WKUP_IP_REVISION		0x0000
+>>>  #define OMAP4_CTRL_MODULE_WKUP_IP_HWINFO		0x0004
+>>>  #define OMAP4_CTRL_MODULE_WKUP_IP_SYSCONFIG		0x0010
+>>> +#define OMAP4_CTRL_SECURE_EMIF1_SDRAM_CONFIG2_REG	0x0114
+>>> +#define OMAP4_CTRL_SECURE_EMIF2_SDRAM_CONFIG2_REG	0x011c
+>>>  #define OMAP4_CTRL_MODULE_WKUP_CONF_DEBUG_SEL_TST_0	0x0460
+>>>  #define OMAP4_CTRL_MODULE_WKUP_CONF_DEBUG_SEL_TST_1	0x0464
+>>>  #define OMAP4_CTRL_MODULE_WKUP_CONF_DEBUG_SEL_TST_2	0x0468
+>>> diff --git a/arch/arm/mach-omap2/pm44xx.c b/arch/arm/mach-omap2/pm44xx.c
+>>> index 0472921..d4d18d9 100644
+>>> --- a/arch/arm/mach-omap2/pm44xx.c
+>>> +++ b/arch/arm/mach-omap2/pm44xx.c
+>>> @@ -17,6 +17,9 @@
+>>>  #include <linux/err.h>
+>>>  #include <linux/slab.h>
+>>>  #include <asm/system_misc.h>
+>>> +#include <linux/io.h>
+>>> +
+>>> +#include <mach/ctrl_module_wkup_44xx.h>
+>>>  
+>>>  #include "common.h"
+>>>  #include "clockdomain.h"
+>>> @@ -215,6 +218,27 @@ static int __init omap4_pm_init(void)
+>>>  
+>>>  	pr_err("Power Management for TI OMAP4.\n");
+>>>  
+>>> +	/*
+>>> +	 * Work around for OMAP443x Errata i632: "LPDDR2 Corruption After OFF
+>>> +	 * Mode Transition When CS1 Is Used On EMIF":
+>>> +	 * Overwrite EMIF1/EMIF2
+>>> +	 * SECURE_EMIF1_SDRAM_CONFIG2_REG
+>>> +	 * SECURE_EMIF2_SDRAM_CONFIG2_REG
+>>> +	 */
+>>> +	if (cpu_is_omap443x()) {
+>>> +		void __iomem *secure_ctrl_mod;
+>>> +
+>>> +		secure_ctrl_mod = ioremap(OMAP4_CTRL_MODULE_WKUP, SZ_4K);
+>>> +		BUG_ON(!secure_ctrl_mod);
+>>> +
+>>> +		__raw_writel(0x10, secure_ctrl_mod +
+>>> +			     OMAP4_CTRL_SECURE_EMIF1_SDRAM_CONFIG2_REG);
+>>> +		__raw_writel(0x10, secure_ctrl_mod +
+>>> +			     OMAP4_CTRL_SECURE_EMIF2_SDRAM_CONFIG2_REG);
+>>
+>> According to the erratum description the above registers are used to
+>> restore the EMIFx_SDRAM_CONFIG2 registers. So although the value 0x10,
+>> maybe the value being used for EMIFx_SDRAM_CONFIG2 registers, shouldn't
+>> we read the EMIFx_SDRAM_CONFIG2 registers and store them in the above
+>> registers?
+> 
+> This might be a good idea, however, this patch might be tagged as TEMP
+> until the EMIF driver is in place, this fix should rather be located
+> there. I'll take a look at this if I can change the implementation a
+> bit.
 
-On Tue, 2012-04-17 at 15:49 +0200, Janusz Krzysztofik wrote:
-> A call to request_mem_region() has been introduced in the omap-gpio
-> driver recently (commit 96751fcbe5438e95514b025e9cee7a6d38038f40,
-> "gpio/omap: Use devm_ API and add request_mem_region"). This change
-> prevented the Amstrad Delta NAND driver, which was doing the same in
-> order to take control over OMAP MPU I/O lines that the NAND device hangs
-> off, from loading successfully.
->=20
-> There is another driver, omap-keypad, which also manipulates OMAP MPUIO
-> registers, but has never been calling request_mem_region() on startup,
-> so it's not affected by the change in the gpio-omap and works correctly.
->=20
-> Drop request_mem_region() call and related bits from ams-delta NAND
-> driver.
->=20
-> Created and tested against linux-3.4-rc3.
->=20
-> Signed-off-by: Janusz Krzysztofik <jkrzyszt@tis.icnet.pl>
+By the way, I did dump the EMIF1_SDRAM_CONFIG2 register on a omap4403
+and it is configured to 0x10. So I think that reading this register and
+saving would be safe.
 
-How about race conditions? Where is the guarantee that these 2 drivers
-won't affect each other when doing I/O at the same time to the same HW
-resources?
-
---=20
-Best Regards,
-Artem Bityutskiy
-
---=-wruPd1P8yR95skTx5DEE
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: This is a digitally signed message part
-Content-Transfer-Encoding: 7bit
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.4.11 (GNU/Linux)
-
-iQEcBAABAgAGBQJPmBSiAAoJEJtuLFy+q7felSkIAI6o7Jf26D3n4Z5ar2Fbpz88
-lYR7XtaE0wkuCzfwJGqIUodUClIuK9OaLzklXdRXhUGlElW9UO9moF+5jFYsFLcJ
-vFc5N0YJIityhRe9I9lkagw2es5bEUw0hiGdSruQWCOYtYpTTxg3cjkpvmg66VXK
-C5my7xT+4bWz21xU76vINVXPJPAonmWl949ISgDVY9MtjpPgU4iFnuHuIXcMRVVk
-DtzBChj9ZIwYy+SWA2CtYftr/ifRATn/vIZMcqCL7ZiIpm2dkzm/erpvntpQ04C1
-MNVUrgbYAzI/Gm1I7h3QAWAogBLBxGe7Th9wJ1LUlYOytqDiCSFvkT8cwvMmstk=
-=Q+rG
------END PGP SIGNATURE-----
-
---=-wruPd1P8yR95skTx5DEE--
-
+Cheers
+Jon
