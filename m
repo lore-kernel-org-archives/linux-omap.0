@@ -1,54 +1,150 @@
-From: Ricardo Neri <ricardo.neri@ti.com>
-Subject: Re: [PATCH 01/10] OMAPDSS: HDMI: Remove ASoC codec
-Date: Tue, 24 Apr 2012 21:27:43 -0500
-Message-ID: <4F97611F.1040102@ti.com>
-References: <1332974305-4578-1-git-send-email-ricardo.neri@ti.com>  <1332974305-4578-2-git-send-email-ricardo.neri@ti.com> <1335187034.1535.35.camel@lappy>
+From: NeilBrown <neilb@suse.de>
+Subject: [PATCH 1/2] ARM: omap_hdq: Fix some error/debug handling.
+Date: Wed, 25 Apr 2012 12:40:49 +1000
+Message-ID: <20120425124049.188bad16@notabene.brown>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"; format=flowed
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from comal.ext.ti.com ([198.47.26.152]:43523 "EHLO comal.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752063Ab2DYC1t (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Tue, 24 Apr 2012 22:27:49 -0400
-In-Reply-To: <1335187034.1535.35.camel@lappy>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: multipart/signed; micalg=PGP-SHA1;
+ boundary="Sig_/1I0tc=q.QZU8f8WnjxmOv83"; protocol="application/pgp-signature"
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Evgeniy@suse.de, "Polyakov <zbr"@ioremap.net
+Cc: linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Tomi Valkeinen <tomi.valkeinen@ti.com>
-Cc: mythripk@ti.com, s-chereau@ti.com, x0055901@ti.com, vaibhav.bedia@ti.com, s-guiriec@ti.com, lrg@ti.com, peter.ujfalusi@ti.com, agraf@suse.de, research@ottomaneng.com, linux-omap@vger.kernel.org
 
-Hi Tomi,
+--Sig_/1I0tc=q.QZU8f8WnjxmOv83
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: quoted-printable
 
-Thanks for your comments!
 
-On 04/23/2012 08:17 AM, Tomi Valkeinen wrote:
-> On Wed, 2012-03-28 at 16:38 -0600, Ricardo Neri wrote:
->> Instead of having an ASoC codec embedded into DSS code, use the generic DSS
->> device driverinterface for audio support. This allows to any potential user,
->> including an ASoC driver, take advantage of the HDMI audio functionality.
->
-> The description could be improved. The patch removes lots of code from
-> the hdmi driver, but the description doesn't really describe what's
-> going on and where the code goes (if anywhere). In fact, it even feels
-> that the description is about something else. It basically just says
-> "use generic DSS interface for audio", but the patch doesn't do that, it
-> removes code.
+- some debug messages missed spaces.  The did this because they
+  broke a string onto 2 lines - badly.  That practice is currently
+  out of favour, so join the two strings together, insert the space,
+  and put newlines elsewhere.
+- sometimes no error was returned when it should have been
+- sometimes a message is printed when there is no error, rather
+  than when there is one.
 
-Yes. It seems that the description is more suitable for the whole patch 
-series. I was trying to justify why I was removing the ASoC HDMI codec. 
-I will rephrase to state that this patch removes the HDMI audio support 
-to restore in a separate patch through the DSS audio interface.
->
-> Also how does this affect the current driver? I presume it effectively
-> removes HDMI audio support? Does the code still compile with this patch?
+Signed-off-by: NeilBrown <neilb@suse.de>
+---
+ drivers/w1/masters/omap_hdq.c |   29 +++++++++++++++++------------
+ 1 file changed, 17 insertions(+), 12 deletions(-)
 
-Yes, the code still compiles as the current ASoC HDMI codec exists with 
-independences of the ASoC HDMI DAI and machine drivers. It will compile 
-but it will not probe and ALSA HDMI audio support will be missing.
+diff --git a/drivers/w1/masters/omap_hdq.c b/drivers/w1/masters/omap_hdq.c
+index 5ef385b..3356d75 100644
+--- a/drivers/w1/masters/omap_hdq.c
++++ b/drivers/w1/masters/omap_hdq.c
+@@ -180,14 +180,16 @@ static int hdq_write_byte(struct hdq_data *hdq_data, =
+u8 val, u8 *status)
+ 		hdq_data->hdq_irqstatus, OMAP_HDQ_TIMEOUT);
+ 	if (ret =3D=3D 0) {
+ 		dev_dbg(hdq_data->dev, "TX wait elapsed\n");
++		ret =3D -ETIMEDOUT;
+ 		goto out;
+ 	}
+=20
+ 	*status =3D hdq_data->hdq_irqstatus;
+ 	/* check irqstatus */
+ 	if (!(*status & OMAP_HDQ_INT_STATUS_TXCOMPLETE)) {
+-		dev_dbg(hdq_data->dev, "timeout waiting for"
+-			"TXCOMPLETE/RXCOMPLETE, %x", *status);
++		dev_dbg(hdq_data->dev,
++			"timeout waiting for TXCOMPLETE/RXCOMPLETE, %x",
++			*status);
+ 		ret =3D -ETIMEDOUT;
+ 		goto out;
+ 	}
+@@ -197,8 +199,9 @@ static int hdq_write_byte(struct hdq_data *hdq_data, u8=
+ val, u8 *status)
+ 			OMAP_HDQ_CTRL_STATUS_GO,
+ 			OMAP_HDQ_FLAG_CLEAR, &tmp_status);
+ 	if (ret) {
+-		dev_dbg(hdq_data->dev, "timeout waiting GO bit"
+-			"return to zero, %x", tmp_status);
++		dev_dbg(hdq_data->dev,
++			"timeout waiting GO bit return to zero, %x",
++			tmp_status);
+ 	}
+=20
+ out:
+@@ -340,8 +343,9 @@ static int omap_hdq_break(struct hdq_data *hdq_data)
+ 			OMAP_HDQ_CTRL_STATUS_GO, OMAP_HDQ_FLAG_CLEAR,
+ 			&tmp_status);
+ 	if (ret)
+-		dev_dbg(hdq_data->dev, "timeout waiting INIT&GO bits"
+-			"return to zero, %x", tmp_status);
++		dev_dbg(hdq_data->dev,
++			"timeout waiting INIT&GO bits return to zero, %x",
++			tmp_status);
+=20
+ out:
+ 	mutex_unlock(&hdq_data->hdq_mutex);
+@@ -385,8 +389,9 @@ static int hdq_read_byte(struct hdq_data *hdq_data, u8 =
+*val)
+ 		status =3D hdq_data->hdq_irqstatus;
+ 		/* check irqstatus */
+ 		if (!(status & OMAP_HDQ_INT_STATUS_RXCOMPLETE)) {
+-			dev_dbg(hdq_data->dev, "timeout waiting for"
+-				"RXCOMPLETE, %x", status);
++			dev_dbg(hdq_data->dev,
++				"timeout waiting for RXCOMPLETE, %x",
++				status);
+ 			ret =3D -ETIMEDOUT;
+ 			goto out;
+ 		}
+@@ -396,7 +401,7 @@ static int hdq_read_byte(struct hdq_data *hdq_data, u8 =
+*val)
+ out:
+ 	mutex_unlock(&hdq_data->hdq_mutex);
+ rtn:
+-	return 0;
++	return ret;
+=20
+ }
+=20
+@@ -469,8 +474,8 @@ static int omap_hdq_put(struct hdq_data *hdq_data)
+ 		return -EINTR;
+=20
+ 	if (0 =3D=3D hdq_data->hdq_usecount) {
+-		dev_dbg(hdq_data->dev, "attempt to decrement use count"
+-			"when it is zero");
++		dev_dbg(hdq_data->dev,
++			"attempt to decrement use count when it is zero");
+ 		ret =3D -EINVAL;
+ 	} else {
+ 		hdq_data->hdq_usecount--;
+@@ -540,7 +545,7 @@ static void omap_w1_write_byte(void *_hdq, u8 byte)
+ 	mutex_unlock(&hdq_data->hdq_mutex);
+=20
+ 	ret =3D hdq_write_byte(hdq_data, byte, &status);
+-	if (ret =3D=3D 0) {
++	if (ret < 0) {
+ 		dev_dbg(hdq_data->dev, "TX failure:Ctrl status %x\n", status);
+ 		return;
+ 	}
+--=20
+1.7.10
 
-BR,
 
-Ricardo
->
->   Tomi
+--Sig_/1I0tc=q.QZU8f8WnjxmOv83
+Content-Type: application/pgp-signature; name=signature.asc
+Content-Disposition: attachment; filename=signature.asc
 
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v2.0.18 (GNU/Linux)
+
+iQIVAwUBT5dkMTnsnt1WYoG5AQJX6Q/+INsrJFhBmOZYO1/jIvDXFXz1vRYxwQbH
+Gs31SDte8B//ibi3LmM7OwIXezWuwxFcaOruTiNqOoCX0tIa8+sY85GcqDtaglgg
+FUeE8cLg4mxwH1fPxxDNM1Uy63S9fx5lbVqkPuuh1/lqZUoKzHXAvepULM0kTtOz
+CDrAjD42Vq8dvsI9vh6wyuyog9DoT9n93s3oD/LN7nZ/ctelIoPtT7BxLwXWjndM
+19rJev4MXtWJ9jrhU0wGKwfb9sbYR6q5Ugq9AAFdp3p5OpY9zbXWei2oZdVEHq+r
+3SPxsNbqEL3zGNc8O5m6vzrZ+ZcGDLsQbeILVecNk1W+4tnxLL+zRwuhOuoIOpSE
+3ZVa1jLqS8GjqeGDMt5j6GAGzzoU2qKWDlnoFLz90Iq4Y7M9jqX8aUwddvnmIWXA
+ZJZDYPLmG6RjNMljSMQbanxzlHIfhlSAK1EnBEzFXWUe4MokSrQiiYTJg3Hylsj3
+2c0t7E4ve3VuB0+mZCYZmI55kn/PCqPiGz6rk6m6tTlNXDi3b/PQsrMNGjF0BRKh
+e2GYy5Whb6Ll0i1r0nyzTUlhh+9DejUiGwjb+rniyo8vFFeLKxZVCPfqCoI06OiI
+5hS1OaNh1LXSzX2J2GY0WMbXzcXPzfA5yEoIXc4EVgTkD6qcVQylTRDk/BYPvhsv
+6A12Hjfzl8U=
+=P8TQ
+-----END PGP SIGNATURE-----
+
+--Sig_/1I0tc=q.QZU8f8WnjxmOv83--
