@@ -1,122 +1,165 @@
-From: Thomas Gleixner <tglx@linutronix.de>
-Subject: Re: [PATCH 2/3] IRQ: allow check_wakeup_irqs to notice level-triggered
- interrupts.
-Date: Wed, 25 Apr 2012 14:54:54 +0200 (CEST)
-Message-ID: <alpine.LFD.2.02.1204251402360.2542@ionos>
-References: <20120425025637.7832.14013.stgit@notabene.brown> <20120425030524.7832.85239.stgit@notabene.brown> <alpine.LFD.2.02.1204251018530.2542@ionos> <20120425193916.0db1b4b1@notabene.brown>
+From: "Shilimkar, Santosh" <santosh.shilimkar@ti.com>
+Subject: Re: [PATCH/RFT 0/3] ARM: OMAP: PM: reduce overhead of pwrdm pre/post transitions
+Date: Wed, 25 Apr 2012 18:54:25 +0530
+Message-ID: <CAMQu2gxExpmtOUtr=-yy0wyU7sZqyTQY=oiwS0AZM+iWgTnQRA@mail.gmail.com>
+References: <1335277420-29124-1-git-send-email-khilman@ti.com>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20120425193916.0db1b4b1@notabene.brown>
-Sender: linux-kernel-owner@vger.kernel.org
-To: NeilBrown <neilb@suse.de>
-Cc: Tony Lindgren <tony@atomide.com>, Russell King <linux@arm.linux.org.uk>, Samuel Ortiz <sameo@linux.intel.com>, "Rafael J. Wysocki" <rjw@sisk.pl>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org, linux-pm@vger.kernel.org
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from na3sys009aog130.obsmtp.com ([74.125.149.143]:49516 "EHLO
+	na3sys009aog130.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1752243Ab2DYNYr convert rfc822-to-8bit
+	(ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Wed, 25 Apr 2012 09:24:47 -0400
+Received: by qcro28 with SMTP id o28so61692qcr.5
+        for <linux-omap@vger.kernel.org>; Wed, 25 Apr 2012 06:24:45 -0700 (PDT)
+In-Reply-To: <1335277420-29124-1-git-send-email-khilman@ti.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Kevin Hilman <khilman@ti.com>
+Cc: linux-omap@vger.kernel.org, Jean Pihet <jean.pihet@newoldbits.com>, Tero Kristo <t-kristo@ti.com>, Paul Walmsley <paul@pwsan.com>
 
-On Wed, 25 Apr 2012, NeilBrown wrote:
-> On Wed, 25 Apr 2012 10:50:15 +0200 (CEST) Thomas Gleixner
-> <tglx@linutronix.de> wrote:
-> 
-> > On Wed, 25 Apr 2012, NeilBrown wrote:
-> > 
-> > > Level triggered interrupts do not cause IRQS_PENDING to be set, so
-> > > check_wakeup_irqs ignores them.
-> > > They don't need to set IRQS_PENDING as the level stays high which
-> > > shows that they must be pending.  However if such an interrupt fired
-> > > during late suspend, it will have been masked so the fact that it
-> > > is still asserted will not cause the suspend to abort.
-> > > 
-> > > So if any wakeup interrupt is masked, unmask it when checking wakeup
-> > > irqs.  If the interrupt is asserted, suspend will abort.
-> > > 
-> > > Signed-off-by: NeilBrown <neilb@suse.de>
-> > > ---
-> > > 
-> > >  kernel/irq/pm.c |    6 ++++++
-> > >  1 file changed, 6 insertions(+)
-> > > 
-> > > diff --git a/kernel/irq/pm.c b/kernel/irq/pm.c
-> > > index 15e53b1..0d26206 100644
-> > > --- a/kernel/irq/pm.c
-> > > +++ b/kernel/irq/pm.c
-> > > @@ -106,6 +106,12 @@ int check_wakeup_irqs(void)
-> > >  		if (irqd_is_wakeup_set(&desc->irq_data)) {
-> > >  			if (desc->istate & IRQS_PENDING)
-> > >  				return -EBUSY;
-> > > +			if (irqd_irq_masked(&desc->irq_data))
-> > > +				/* Probably a level interrupt
-> > > +				 * which fired recently and was
-> > > +				 * masked
-> > > +				 */
-> > > +				unmask_irq(desc);
-> > 
-> > Oh no. We don't unmask unconditionally. What about an interrupt which
-> > is disabled, has no handler ..... ? That needs more thought.
-> 
-> If there is no handler, then irqd_is_wakeup_set() should fail should it not?
+On Tue, Apr 24, 2012 at 7:53 PM, Kevin Hilman <khilman@ti.com> wrote:
+> Here's a first pass attempt to reduce the overhead of the pre/post
+> transitions by allowing them to be called per powerdomain and making
+> them conditional on powerdomain transtions.
+>
+> This can be used for testing/measurements to see the reduction the
+> latencies involved in entering/exiting idle with and without these
+> patches.
+>
+> Kevin Hilman (3):
+> =A0ARM: OMAP2+: powerdomain: allow pre/post transtion to be per pwrdm
+> =A0ARM: OMAP3: PM: call pre/post transition per powerdomain
+> =A0ARM: OMAP3: PM: cleanup cam_pwrdm leftovers
+>
+I have reviewed and tested this series on OMAP4 with coupleidle and sys=
+tem
+wide supsned. It continues to work as expected. I have done an addition=
+al
+patch(end of email)  as mentioned to take advantage of per powerdomain
+pre/post transition API update.
 
-Well, it does not. The wakeup state is a permanent flag on the irq
-line. Though we don't have IRQS_SUSPENDED on that descriptor.
- 
-> For disabled: would it be OK to check desc->depth?
-> Something like:
->      if (desc->depth == 1 && (desc->state & IRQS_SUSPENDED) &&
->          irqd_irq_masked(&desc->irq_data))
->               unmask_irq(desc);
-> 
+Thanks for the series. it certainly removes the big over-head we had be=
+fore
+with the pre-post APIs.
 
-Why not simply managing the pending bit for level irqs ?
+=46WIW,
+Reviewed-tested-by: Santosh Shilimkar <santosh.shilimkar@ti.com>
 
-Index: tip/kernel/irq/chip.c
-===================================================================
---- tip.orig/kernel/irq/chip.c
-+++ tip/kernel/irq/chip.c
-@@ -379,8 +379,10 @@ handle_level_irq(unsigned int irq, struc
- 	 * If its disabled or no action available
- 	 * keep it masked and get out of here
- 	 */
--	if (unlikely(!desc->action || irqd_irq_disabled(&desc->irq_data)))
-+	if (unlikely(!desc->action || irqd_irq_disabled(&desc->irq_data))) {
-+		desc->istate |= IRQS_PENDING;
- 		goto out_unlock;
-+	}
- 
- 	handle_irq_event(desc);
- 
-Index: tip/kernel/irq/resend.c
-===================================================================
---- tip.orig/kernel/irq/resend.c
-+++ tip/kernel/irq/resend.c
-@@ -58,10 +58,13 @@ void check_irq_resend(struct irq_desc *d
+Regards
+Santosh
+
+=46rom e535b0d8948ed44732c6128ff4236cfe32d2f40a Mon Sep 17 00:00:00 200=
+1
+=46rom: Santosh Shilimkar <santosh.shilimkar@ti.com>
+Date: Wed, 25 Apr 2012 17:04:08 +0530
+Subject: [PATCH] ARM: OMAP4: PM: call pre/post transition per powerdoma=
+in
+
+Iteration over all power domains in the idle path is unnecessary since
+only power domains that are transitioning need to be accounted for.
+
+Update OMAP4 low power code accordingly.
+
+Signed-off-by: Santosh Shilimkar <santosh.shilimkar@ti.com>
+Cc: Kevin Hilman <khilman@ti.com>
+---
+There is one issue though about MPUSS powerdomain accounting. It will
+get called on both CPUs and might result in duplicate pm debug counter
+update. There is no functional issue with that as such but needs to
+be cleaned up.
+
+Will address that issue in a seperate series.
+
+ arch/arm/mach-omap2/omap-mpuss-lowpower.c |   22 ++++++++++++++++++++-=
+-
+ 1 files changed, 20 insertions(+), 2 deletions(-)
+
+diff --git a/arch/arm/mach-omap2/omap-mpuss-lowpower.c
+b/arch/arm/mach-omap2/omap-mpuss-lowpower.c
+index e35a86b..3a709b2 100644
+--- a/arch/arm/mach-omap2/omap-mpuss-lowpower.c
++++ b/arch/arm/mach-omap2/omap-mpuss-lowpower.c
+@@ -117,6 +117,20 @@ static inline void clear_cpu_prev_pwrst(unsigned
+int cpu_id)
+ }
+
+ /*
++ * CPU powerdomain pre/post transition.
++ */
++static inline void cpu_pwrdm_pre_post_transition(unsigned int cpu_id,
++				bool pre_transition)
++{
++	struct omap4_cpu_pm_info *pm_info =3D &per_cpu(omap4_pm_info, cpu_id)=
+;
++
++	if (pre_transition)
++		pwrdm_pre_transition(pm_info->pwrdm);
++	else
++		pwrdm_post_transition(pm_info->pwrdm);
++}
++
++/*
+  * Store the SCU power status value to scratchpad memory
+  */
+ static void scu_pwrst_prepare(unsigned int cpu_id, unsigned int cpu_st=
+ate)
+@@ -255,7 +269,7 @@ int omap4_enter_lowpower(unsigned int cpu,
+unsigned int power_state)
+ 		return -ENXIO;
+ 	}
+
+-	pwrdm_pre_transition(NULL);
++	pwrdm_pre_transition(mpuss_pd);
+
  	/*
- 	 * We do not resend level type interrupts. Level type
- 	 * interrupts are resent by hardware when they are still
--	 * active.
-+	 * active. Clear the pending bit so suspend/resume does not
-+	 * get confused.
+ 	 * Check MPUSS next state and save interrupt controller if needed.
+@@ -266,6 +280,7 @@ int omap4_enter_lowpower(unsigned int cpu,
+unsigned int power_state)
+ 		(pwrdm_read_logic_retst(mpuss_pd) =3D=3D PWRDM_POWER_OFF))
+ 		save_state =3D 2;
+
++	cpu_pwrdm_pre_post_transition(cpu, 1);
+ 	cpu_clear_prev_logic_pwrst(cpu);
+ 	set_cpu_next_pwrst(cpu, power_state);
+ 	set_cpu_wakeup_addr(cpu, virt_to_phys(omap4_cpu_resume));
+@@ -285,9 +300,10 @@ int omap4_enter_lowpower(unsigned int cpu,
+unsigned int power_state)
+ 	 * domain transition
  	 */
--	if (irq_settings_is_level(desc))
-+	if (irq_settings_is_level(desc)) {
-+		desc->istate &= ~IRQS_PENDING;
- 		return;
-+	}
- 	if (desc->istate & IRQS_REPLAY)
- 		return;
- 	if (desc->istate & IRQS_PENDING) {
+ 	wakeup_cpu =3D smp_processor_id();
++	cpu_pwrdm_pre_post_transition(wakeup_cpu, 0);
+ 	set_cpu_next_pwrst(wakeup_cpu, PWRDM_POWER_ON);
 
-And to handle interrupts which have been disabled before suspend add:
+-	pwrdm_post_transition(NULL);
++	pwrdm_post_transition(mpuss_pd);
 
-Index: tip/kernel/irq/pm.c
-===================================================================
---- tip.orig/kernel/irq/pm.c
-+++ tip/kernel/irq/pm.c
-@@ -103,7 +103,8 @@ int check_wakeup_irqs(void)
- 	int irq;
- 
- 	for_each_irq_desc(irq, desc) {
--		if (irqd_is_wakeup_set(&desc->irq_data)) {
-+		if (desc->depth == 1 &&
-+		    irqd_is_wakeup_set(&desc->irq_data)) {
- 			if (desc->istate & IRQS_PENDING)
- 				return -EBUSY;
- 			continue;
+ 	return 0;
+ }
+@@ -307,6 +323,7 @@ int __cpuinit omap4_hotplug_cpu(unsigned int cpu,
+unsigned int power_state)
+ 	if (power_state =3D=3D PWRDM_POWER_OFF)
+ 		cpu_state =3D 1;
+
++	cpu_pwrdm_pre_post_transition(cpu, 1);
+ 	clear_cpu_prev_pwrst(cpu);
+ 	set_cpu_next_pwrst(cpu, power_state);
+ 	set_cpu_wakeup_addr(cpu, virt_to_phys(omap_secondary_startup));
+@@ -319,6 +336,7 @@ int __cpuinit omap4_hotplug_cpu(unsigned int cpu,
+unsigned int power_state)
+ 	 */
+ 	omap4_finish_suspend(cpu_state);
+
++	cpu_pwrdm_pre_post_transition(wakeup_cpu, 0);
+ 	set_cpu_next_pwrst(cpu, PWRDM_POWER_ON);
+ 	return 0;
+ }
+--=20
+1.7.5.4
+--
+To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
