@@ -1,101 +1,73 @@
-From: Jon Hunter <jon-hunter@ti.com>
-Subject: Re: [PATCH 01/19] ARM: OMAP4: PM: save/restore all DPLL settings
- in OFF mode
-Date: Wed, 25 Apr 2012 10:12:56 -0500
-Message-ID: <4F981478.3040201@ti.com>
-References: <1334914432-26456-1-git-send-email-t-kristo@ti.com>  <1334914432-26456-2-git-send-email-t-kristo@ti.com>  <4F957EB2.9080200@ti.com> <1335339230.2149.110.camel@sokoban>
+From: Artem Bityutskiy <dedekind1@gmail.com>
+Subject: Re: [PATCH v3.4-rc3] MTD: NAND: ams-delta: Fix request_mem_region()
+ failure
+Date: Wed, 25 Apr 2012 18:13:38 +0300
+Message-ID: <1335366823.6356.11.camel@koala>
+References: <1334670557-25640-1-git-send-email-jkrzyszt@tis.icnet.pl>
+Reply-To: dedekind1@gmail.com
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: 7bit
+Content-Type: multipart/signed; micalg="pgp-sha1"; protocol="application/pgp-signature";
+	boundary="=-wruPd1P8yR95skTx5DEE"
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from comal.ext.ti.com ([198.47.26.152]:59534 "EHLO comal.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751183Ab2DYPND (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Wed, 25 Apr 2012 11:13:03 -0400
-In-Reply-To: <1335339230.2149.110.camel@sokoban>
+Received: from mail-lpp01m010-f46.google.com ([209.85.215.46]:41849 "EHLO
+	mail-lpp01m010-f46.google.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1750757Ab2DYPNp (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>);
+	Wed, 25 Apr 2012 11:13:45 -0400
+In-Reply-To: <1334670557-25640-1-git-send-email-jkrzyszt@tis.icnet.pl>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: t-kristo@ti.com
-Cc: Tony Lindgren <tony@atomide.com>, linux-omap@vger.kernel.org, khilman@ti.com, paul@pwsan.com, Nishanth Menon <nm@ti.com>, Rajendra Nayak <rnayak@ti.com>, Santosh Shilimkar <santosh.shilimkar@ti.com>, linux-arm-kernel@lists.infradead.org
+To: Janusz Krzysztofik <jkrzyszt@tis.icnet.pl>
+Cc: David Woodhouse <dwmw2@infradead.org>, Tony Lindgren <tony@atomide.com>, Artem Bityutskiy <Artem.Bityutskiy@linux.intel.com>, linux-kernel@vger.kernel.org, linux-mtd@lists.infradead.org, linux-omap@vger.kernel.org
 
-Hi Tero,
 
-On 04/25/2012 02:33 AM, Tero Kristo wrote:
-> On Mon, 2012-04-23 at 11:09 -0500, Jon Hunter wrote:
->> Hi Tero,
->>
->> On 04/20/2012 04:33 AM, Tero Kristo wrote:
->>
->> [...]
->>
->>> +/**
->>> + * omap4_dpll_print_reg - dump out a single DPLL register value
->>> + * @dpll_reg: register to dump
->>> + * @name: name of the register
->>> + * @tuple: content of the register
->>> + *
->>> + * Helper dump function to print out a DPLL register value in case
->>> + * of restore failures.
->>> + */
->>> +static void omap4_dpll_print_reg(struct omap4_dpll_regs *dpll_reg, char *name,
->>> +				 struct dpll_reg *tuple)
->>> +{
->>> +	if (tuple->offset)
->>> +		pr_warn("%s - Address offset = 0x%08x, value=0x%08x\n", name,
->>> +			tuple->offset, tuple->val);
->>
->> Minor nit-pick here ...
->>
->> 1. Offset is 16-bits and so we can just have "offset = 0x%04x"
->> 2. Consider dropping "Address" from "Address offset"
->> 3. Can we be consistent in our spaces for "offset = " and "value="?
->>
->>> +}
->>> +
->>> +/*
->>> + * omap4_dpll_dump_regs - dump out DPLL registers
->>> + * @dpll_reg: DPLL to dump
->>> + *
->>> + * Dump out the contents of the registers for a DPLL. Called if a
->>> + * restore for DPLL fails to lock.
->>> + */
->>> +static void omap4_dpll_dump_regs(struct omap4_dpll_regs *dpll_reg)
->>> +{
->>> +	pr_warn("%s: Unable to lock dpll %s[part=%x inst=%x]:\n",
->>> +		__func__, dpll_reg->name, dpll_reg->mod_partition,
->>> +		dpll_reg->mod_inst);
->>> +	omap4_dpll_print_reg(dpll_reg, "clksel", &dpll_reg->clksel);
->>> +	omap4_dpll_print_reg(dpll_reg, "div_m2", &dpll_reg->div_m2);
->>> +	omap4_dpll_print_reg(dpll_reg, "div_m3", &dpll_reg->div_m3);
->>> +	omap4_dpll_print_reg(dpll_reg, "div_m4", &dpll_reg->div_m4);
->>> +	omap4_dpll_print_reg(dpll_reg, "div_m5", &dpll_reg->div_m5);
->>> +	omap4_dpll_print_reg(dpll_reg, "div_m6", &dpll_reg->div_m6);
->>> +	omap4_dpll_print_reg(dpll_reg, "div_m7", &dpll_reg->div_m7);
->>> +	omap4_dpll_print_reg(dpll_reg, "clkdcoldo", &dpll_reg->clkdcoldo);
->>> +	omap4_dpll_print_reg(dpll_reg, "clkmode", &dpll_reg->clkmode);
->>> +	omap4_dpll_print_reg(dpll_reg, "autoidle", &dpll_reg->autoidle);
->>> +	if (dpll_reg->idlest.offset)
->>> +		pr_warn("idlest - Address offset = 0x%08x, before val=0x%08x"
->>> +			" after = 0x%08x\n", dpll_reg->idlest.offset,
->>> +			dpll_reg->idlest.val,
->>> +			omap4_dpll_read_reg(dpll_reg, &dpll_reg->idlest));
->>
->> Nit-pick ...
->>
->> 1. Same comments as above
->> 2. Consider dropping "Address offset" altogether here as we print
->> "idlest" the offset should be implied.
->> 3. Also can we be consistent in our naming of "before val and "after"?
->> For example, "val before =" and "val now = ".
-> 
-> Okay, I'll modify both prints slightly. Question though, do we want
-> these prints in the kernel in the first place? At least Tony has been
-> frowning upon register dumps in the kernel and this falls into that
-> category. What we could do is just to print the warning but drop the
-> register dumps out.
+--=-wruPd1P8yR95skTx5DEE
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: quoted-printable
 
-Thanks. Good question. If we are not seeing failures often, and I would
-hope not, probably ok to remove. However, I will let Tony comment here  ...
+On Tue, 2012-04-17 at 15:49 +0200, Janusz Krzysztofik wrote:
+> A call to request_mem_region() has been introduced in the omap-gpio
+> driver recently (commit 96751fcbe5438e95514b025e9cee7a6d38038f40,
+> "gpio/omap: Use devm_ API and add request_mem_region"). This change
+> prevented the Amstrad Delta NAND driver, which was doing the same in
+> order to take control over OMAP MPU I/O lines that the NAND device hangs
+> off, from loading successfully.
+>=20
+> There is another driver, omap-keypad, which also manipulates OMAP MPUIO
+> registers, but has never been calling request_mem_region() on startup,
+> so it's not affected by the change in the gpio-omap and works correctly.
+>=20
+> Drop request_mem_region() call and related bits from ams-delta NAND
+> driver.
+>=20
+> Created and tested against linux-3.4-rc3.
+>=20
+> Signed-off-by: Janusz Krzysztofik <jkrzyszt@tis.icnet.pl>
 
-Cheers
-Jon
+How about race conditions? Where is the guarantee that these 2 drivers
+won't affect each other when doing I/O at the same time to the same HW
+resources?
+
+--=20
+Best Regards,
+Artem Bityutskiy
+
+--=-wruPd1P8yR95skTx5DEE
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: This is a digitally signed message part
+Content-Transfer-Encoding: 7bit
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.4.11 (GNU/Linux)
+
+iQEcBAABAgAGBQJPmBSiAAoJEJtuLFy+q7felSkIAI6o7Jf26D3n4Z5ar2Fbpz88
+lYR7XtaE0wkuCzfwJGqIUodUClIuK9OaLzklXdRXhUGlElW9UO9moF+5jFYsFLcJ
+vFc5N0YJIityhRe9I9lkagw2es5bEUw0hiGdSruQWCOYtYpTTxg3cjkpvmg66VXK
+C5my7xT+4bWz21xU76vINVXPJPAonmWl949ISgDVY9MtjpPgU4iFnuHuIXcMRVVk
+DtzBChj9ZIwYy+SWA2CtYftr/ifRATn/vIZMcqCL7ZiIpm2dkzm/erpvntpQ04C1
+MNVUrgbYAzI/Gm1I7h3QAWAogBLBxGe7Th9wJ1LUlYOytqDiCSFvkT8cwvMmstk=
+=Q+rG
+-----END PGP SIGNATURE-----
+
+--=-wruPd1P8yR95skTx5DEE--
+
