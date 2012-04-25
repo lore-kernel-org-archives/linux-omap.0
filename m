@@ -1,90 +1,60 @@
 From: NeilBrown <neilb@suse.de>
-Subject: [PATCH 2/2] ARM: omap_hdq: use wait_event_timeout to wait for read
- to complete.
-Date: Wed, 25 Apr 2012 12:41:53 +1000
-Message-ID: <20120425124153.2afa318b@notabene.brown>
+Subject: [PATCH 0/3] Ensure twl4030 interrupts are lost during suspend.
+Date: Wed, 25 Apr 2012 13:05:23 +1000
+Message-ID: <20120425025637.7832.14013.stgit@notabene.brown>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=PGP-SHA1;
- boundary="Sig_/Byvb+x7.RNoVf8/1eqchkOo"; protocol="application/pgp-signature"
-Return-path: <linux-kernel-owner@vger.kernel.org>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Evgeniy Polyakov <zbr@ioremap.net>
-Cc: linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from cantor2.suse.de ([195.135.220.15]:48991 "EHLO mx2.suse.de"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1757157Ab2DYDGR (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Tue, 24 Apr 2012 23:06:17 -0400
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Tony Lindgren <tony@atomide.com>, Russell King <linux@arm.linux.org.uk>, Samuel Ortiz <sameo@linux.intel.com>, Thomas Gleixner <tglx@linutronix.de>, "Rafael J. Wysocki" <rjw@sisk.pl>
+Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org, linux-pm@vger.kernel.org
 
---Sig_/Byvb+x7.RNoVf8/1eqchkOo
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: quoted-printable
+Sorry for the scatter-gun list of email address, but while each of
+these patches only touches one subsystem, they really needed each
+other to provide proper context.
+
+The goal is to ensure that an interrupt that arrives on a TWL4030
+connected to an OMAP3, during the 'late-suspend' stage will
+cause the suspend to abort (if the interrupt is properly configured).
+(e.g. power button, RTC alarm, USB plug/unplug)
+
+The interrupt as seen by the OMAP3 is a level-triggered interrupt so
+if it arrives at this time, it is masked.  With the current code it
+remains masked and so cannot wake the device from suspend.
+
+To fix this:
+  The twl4030 drivers must mark the interrupt for wakeup
+  The OMAP interrupt handler must allow the interrupt to be
+     marked for wakeup
+  The core interrupt/PM code must allow masked level-triggered
+     interrupts to abort a suspend.
+
+I'm least sure about that last one.  My patch unmasks any masked
+interrupt that is suppose to support wakeup.  I suspect that is
+correct but I don't know enough about general IRQ handling to be sure.
+Maybe there could be cases where a driver has explicitly masked the
+interrupt without cleaning the 'wakeup' setting.  Is that allowed?
 
 
-There is no gain in having a loop - there is no risk of missing the
-interrupt with wait_event_timeout.
-
-Signed-off-by: NeilBrown <neilb@suse.de>
 ---
- drivers/w1/masters/omap_hdq.c |   15 ++++++---------
- 1 file changed, 6 insertions(+), 9 deletions(-)
 
-diff --git a/drivers/w1/masters/omap_hdq.c b/drivers/w1/masters/omap_hdq.c
-index 3356d75..eb01c7f 100644
---- a/drivers/w1/masters/omap_hdq.c
-+++ b/drivers/w1/masters/omap_hdq.c
-@@ -357,7 +357,6 @@ static int hdq_read_byte(struct hdq_data *hdq_data, u8 =
-*val)
- {
- 	int ret =3D 0;
- 	u8 status;
--	unsigned long timeout =3D jiffies + OMAP_HDQ_TIMEOUT;
-=20
- 	ret =3D mutex_lock_interruptible(&hdq_data->hdq_mutex);
- 	if (ret < 0) {
-@@ -375,15 +374,13 @@ static int hdq_read_byte(struct hdq_data *hdq_data, u=
-8 *val)
- 			OMAP_HDQ_CTRL_STATUS_DIR | OMAP_HDQ_CTRL_STATUS_GO,
- 			OMAP_HDQ_CTRL_STATUS_DIR | OMAP_HDQ_CTRL_STATUS_GO);
- 		/*
--		 * The RX comes immediately after TX. It
--		 * triggers another interrupt before we
--		 * sleep. So we have to wait for RXCOMPLETE bit.
-+		 * The RX comes immediately after TX.
- 		 */
--		while (!(hdq_data->hdq_irqstatus
--			& OMAP_HDQ_INT_STATUS_RXCOMPLETE)
--			&& time_before(jiffies, timeout)) {
--			schedule_timeout_uninterruptible(1);
--		}
-+		wait_event_timeout(hdq_wait_queue,
-+				   (hdq_data->hdq_irqstatus
-+				    & OMAP_HDQ_INT_STATUS_RXCOMPLETE),
-+				   OMAP_HDQ_TIMEOUT);
-+
- 		hdq_reg_merge(hdq_data, OMAP_HDQ_CTRL_STATUS, 0,
- 			OMAP_HDQ_CTRL_STATUS_DIR);
- 		status =3D hdq_data->hdq_irqstatus;
---=20
-1.7.10
+NeilBrown (3):
+      twl4030: enable wakeup on twl4030 IRQ.
+      IRQ: allow check_wakeup_irqs to notice level-triggered interrupts.
+      ARM: omap2+: set IRQCHIP_SKIP_SET_WAKE for INTC interrupts.
 
 
---Sig_/Byvb+x7.RNoVf8/1eqchkOo
-Content-Type: application/pgp-signature; name=signature.asc
-Content-Disposition: attachment; filename=signature.asc
+ arch/arm/mach-omap2/irq.c |    1 +
+ drivers/mfd/twl4030-irq.c |    1 +
+ kernel/irq/pm.c           |    6 ++++++
+ 3 files changed, 8 insertions(+)
 
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v2.0.18 (GNU/Linux)
+-- 
+Signature
 
-iQIVAwUBT5dkcTnsnt1WYoG5AQLyPA/8Dz14GgEITah2Dk2eFRof/JyJMi2Vecjj
-A5gPDKZSIu2yVsAO1KVYkm8NLLImm2e/KL9ya7RowBmrsZqqSZMcrmu+b2UHhKfy
-AdQUEVtuPiIzeNDGDuFtHDfb0kIixyN97EETiLTFqZ2dxbmy9Day0uQVRygUYFKn
-iQ1tITYiwC6poWMj0FChYLqMBGMkk3OEgR36tW4r9siY8CKDraM4A7NnDtvtffnP
-gGhFGfUXaSKvM9wxTQummuAk8WSeUsTGvc0yImHW0u6FyEuDrpyV6NTlq5YcbRs6
-SIS94FWY5Sb96xeD8wCvqcATISfiMsbBBxkbXvSbdmMVtK3ytKcvwSzF4ucPEbd2
-3hQc0vexigNsZh0WbIo6+344OOqLjxlYO6P3WIUofBl9HGYDQxqhidfkNQFw9uXT
-inRvRYeRqAvAmO8qWvJ0ggrNG+YsdOCUZrEKi18SKyLS51ZiuWi/yoCUZPwTZWYW
-bkJxIaH/UwFfDW6ZYqEE/vF/Ft1bAbxCbzScK5dLXVQ06leq4K7xRT0LYN4SkVf8
-82+t61g7sjJv9vv1X39Q0huxNRcVokDLSkuOkG5r9zGBSM7PzuUDU4ydtevmmeQk
-g7lR07VGbzsIezEEZKCVvtAkbLmbBBMw97++hsIu1nJN7UDh89Kl9BIYkaHXumzT
-rW4KydaP84Q=
-=IL/C
------END PGP SIGNATURE-----
-
---Sig_/Byvb+x7.RNoVf8/1eqchkOo--
