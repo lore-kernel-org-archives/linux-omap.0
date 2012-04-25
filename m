@@ -1,107 +1,143 @@
-From: =?UTF-8?Q?Enric_Balletb=C3=B2_i_Serra?= <eballetbo@gmail.com>
-Subject: Re: [RESEND PATCH 1/2] ARM: OMAP2+: nand: Make board_onenand_init()
- visible to board code
-Date: Wed, 25 Apr 2012 09:59:33 +0200
-Message-ID: <CAFqH_52aiDvR_xHY6TUN7igMiq6EqB-Nx9D=sPMCUeUaKLiuQg@mail.gmail.com>
-References: <1333564586-3259-1-git-send-email-javier@dowhile0.org>
+From: "Shilimkar, Santosh" <santosh.shilimkar@ti.com>
+Subject: Re: [PATCH 15/19] ARM: OMAP4430: PM: workaround for DDR corruption on
+ second CS
+Date: Wed, 25 Apr 2012 13:29:22 +0530
+Message-ID: <CAMQu2gzn06PWBQxBgRN-su191Zp4d9Ywzg=5NLgAW0on9B0PDQ@mail.gmail.com>
+References: <1334914432-26456-1-git-send-email-t-kristo@ti.com>
+ <1334914432-26456-16-git-send-email-t-kristo@ti.com> <4F96EF56.5020604@ti.com>
+ <1335338762.2149.103.camel@sokoban>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
+Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-iy0-f174.google.com ([209.85.210.174]:34013 "EHLO
-	mail-iy0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752394Ab2DYH7d convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 25 Apr 2012 03:59:33 -0400
-Received: by iadi9 with SMTP id i9so2155461iad.19
-        for <linux-omap@vger.kernel.org>; Wed, 25 Apr 2012 00:59:33 -0700 (PDT)
-In-Reply-To: <1333564586-3259-1-git-send-email-javier@dowhile0.org>
+Received: from na3sys009aog105.obsmtp.com ([74.125.149.75]:56860 "EHLO
+	na3sys009aog105.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1752394Ab2DYH7o convert rfc822-to-8bit
+	(ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Wed, 25 Apr 2012 03:59:44 -0400
+Received: by qao25 with SMTP id 25so651146qao.20
+        for <linux-omap@vger.kernel.org>; Wed, 25 Apr 2012 00:59:42 -0700 (PDT)
+In-Reply-To: <1335338762.2149.103.camel@sokoban>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Javier Martinez Canillas <javier@dowhile0.org>
-Cc: Tony Lindgren <tony@atomide.com>, Russell King <linux@arm.linux.org.uk>, linux-omap@vger.kernel.org, linaro-kernel@lists.linaro.org, linux-arm-kernel@lists.infradead.org, linaro-dev@lists.linaro.org, patches@linaro.org
+To: t-kristo@ti.com
+Cc: Jon Hunter <jon-hunter@ti.com>, linux-omap@vger.kernel.org, khilman@ti.com, paul@pwsan.com, linux-arm-kernel@lists.infradead.org
 
-2012/4/4 Javier Martinez Canillas <javier@dowhile0.org>:
-> board_onenand_init() and board_nand_init() initialization functions a=
-re
-> used to initialize OneNAND and NAND memories respectively. But only
-> board_nand_init() was visible to be used from board code. This patch =
-makes
-> possible to initialize a OneNAND flash memory within platform code.
+On Wed, Apr 25, 2012 at 12:56 PM, Tero Kristo <t-kristo@ti.com> wrote:
+> On Tue, 2012-04-24 at 13:22 -0500, Jon Hunter wrote:
+>> Hi Tero,
+>>
+>> On 04/20/2012 04:33 AM, Tero Kristo wrote:
+>> > From: Santosh Shilimkar <santosh.shilimkar@ti.com>
+>> >
+>> > Work around for Errata ID: i632 "LPDDR2 Corruption After OFF Mode
+>> > Transition When CS1 Is Used On EMIF" which impacts OMAP443x silico=
+n
+>> > The issue occurs when EMIF_SDRAM_CONFIG is restored first before
+>> > EMIF_SDRAM_CONFIG_2 is not yet restored, the register configuratio=
+n
+>> > is not set properly, we apply the required workaround allowing
+>> > the restore sequence to work properly.
+>> >
+>> > Signed-off-by: Santosh Shilimkar <santosh.shilimkar@ti.com>
+>> > [t-kristo@ti.com: moved workaround from omap-sar.c to pm44xx.c]
+>> > Signed-off-by: Tero Kristo <t-kristo@ti.com>
+>> > ---
+>> > =A0.../include/mach/ctrl_module_wkup_44xx.h =A0 =A0 =A0 =A0 =A0 | =
+=A0 =A02 +
+>> > =A0arch/arm/mach-omap2/pm44xx.c =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0=
+ =A0 =A0 | =A0 24 ++++++++++++++++++++
+>> > =A02 files changed, 26 insertions(+), 0 deletions(-)
+>> >
+>> > diff --git a/arch/arm/mach-omap2/include/mach/ctrl_module_wkup_44x=
+x.h b/arch/arm/mach-omap2/include/mach/ctrl_module_wkup_44xx.h
+>> > index a0af9ba..b763a79 100644
+>> > --- a/arch/arm/mach-omap2/include/mach/ctrl_module_wkup_44xx.h
+>> > +++ b/arch/arm/mach-omap2/include/mach/ctrl_module_wkup_44xx.h
+>> > @@ -28,6 +28,8 @@
+>> > =A0#define OMAP4_CTRL_MODULE_WKUP_IP_REVISION =A0 =A0 =A0 =A0 0x00=
+00
+>> > =A0#define OMAP4_CTRL_MODULE_WKUP_IP_HWINFO =A0 =A0 =A0 =A0 =A0 0x=
+0004
+>> > =A0#define OMAP4_CTRL_MODULE_WKUP_IP_SYSCONFIG =A0 =A0 =A0 =A0 =A0=
+ =A0 =A0 =A00x0010
+>> > +#define OMAP4_CTRL_SECURE_EMIF1_SDRAM_CONFIG2_REG =A00x0114
+>> > +#define OMAP4_CTRL_SECURE_EMIF2_SDRAM_CONFIG2_REG =A00x011c
+>> > =A0#define OMAP4_CTRL_MODULE_WKUP_CONF_DEBUG_SEL_TST_0 =A0 =A0 =A0=
+ =A00x0460
+>> > =A0#define OMAP4_CTRL_MODULE_WKUP_CONF_DEBUG_SEL_TST_1 =A0 =A0 =A0=
+ =A00x0464
+>> > =A0#define OMAP4_CTRL_MODULE_WKUP_CONF_DEBUG_SEL_TST_2 =A0 =A0 =A0=
+ =A00x0468
+>> > diff --git a/arch/arm/mach-omap2/pm44xx.c b/arch/arm/mach-omap2/pm=
+44xx.c
+>> > index 0472921..d4d18d9 100644
+>> > --- a/arch/arm/mach-omap2/pm44xx.c
+>> > +++ b/arch/arm/mach-omap2/pm44xx.c
+>> > @@ -17,6 +17,9 @@
+>> > =A0#include <linux/err.h>
+>> > =A0#include <linux/slab.h>
+>> > =A0#include <asm/system_misc.h>
+>> > +#include <linux/io.h>
+>> > +
+>> > +#include <mach/ctrl_module_wkup_44xx.h>
+>> >
+>> > =A0#include "common.h"
+>> > =A0#include "clockdomain.h"
+>> > @@ -215,6 +218,27 @@ static int __init omap4_pm_init(void)
+>> >
+>> > =A0 =A0 pr_err("Power Management for TI OMAP4.\n");
+>> >
+>> > + =A0 /*
+>> > + =A0 =A0* Work around for OMAP443x Errata i632: "LPDDR2 Corruptio=
+n After OFF
+>> > + =A0 =A0* Mode Transition When CS1 Is Used On EMIF":
+>> > + =A0 =A0* Overwrite EMIF1/EMIF2
+>> > + =A0 =A0* SECURE_EMIF1_SDRAM_CONFIG2_REG
+>> > + =A0 =A0* SECURE_EMIF2_SDRAM_CONFIG2_REG
+>> > + =A0 =A0*/
+>> > + =A0 if (cpu_is_omap443x()) {
+>> > + =A0 =A0 =A0 =A0 =A0 void __iomem *secure_ctrl_mod;
+>> > +
+>> > + =A0 =A0 =A0 =A0 =A0 secure_ctrl_mod =3D ioremap(OMAP4_CTRL_MODUL=
+E_WKUP, SZ_4K);
+>> > + =A0 =A0 =A0 =A0 =A0 BUG_ON(!secure_ctrl_mod);
+>> > +
+>> > + =A0 =A0 =A0 =A0 =A0 __raw_writel(0x10, secure_ctrl_mod +
+>> > + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0OMAP4_CTRL_SECURE=
+_EMIF1_SDRAM_CONFIG2_REG);
+>> > + =A0 =A0 =A0 =A0 =A0 __raw_writel(0x10, secure_ctrl_mod +
+>> > + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0OMAP4_CTRL_SECURE=
+_EMIF2_SDRAM_CONFIG2_REG);
+>>
+>> According to the erratum description the above registers are used to
+>> restore the EMIFx_SDRAM_CONFIG2 registers. So although the value 0x1=
+0,
+>> maybe the value being used for EMIFx_SDRAM_CONFIG2 registers, should=
+n't
+>> we read the EMIFx_SDRAM_CONFIG2 registers and store them in the abov=
+e
+>> registers?
 >
-> Signed-off-by: Javier Martinez Canillas <javier@dowhile0.org>
-> ---
-> =C2=A0arch/arm/mach-omap2/board-flash.c | =C2=A0 =C2=A04 ++--
-> =C2=A0arch/arm/mach-omap2/board-flash.h | =C2=A0 11 +++++++++++
-> =C2=A02 files changed, 13 insertions(+), 2 deletions(-)
+> This might be a good idea, however, this patch might be tagged as TEM=
+P
+> until the EMIF driver is in place, this fix should rather be located
+> there. I'll take a look at this if I can change the implementation a
+> bit.
 >
-> diff --git a/arch/arm/mach-omap2/board-flash.c b/arch/arm/mach-omap2/=
-board-flash.c
-> index 0349fd2..70a81f9 100644
-> --- a/arch/arm/mach-omap2/board-flash.c
-> +++ b/arch/arm/mach-omap2/board-flash.c
-> @@ -87,7 +87,7 @@ static struct omap_onenand_platform_data board_onen=
-and_data =3D {
-> =C2=A0 =C2=A0 =C2=A0 =C2=A0.dma_channel =C2=A0 =C2=A0=3D -1, =C2=A0 /=
-* disable DMA in OMAP OneNAND driver */
-> =C2=A0};
->
-> -static void
-> +void
-> =C2=A0__init board_onenand_init(struct mtd_partition *onenand_parts,
-> =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0=
- =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0u8 nr_parts, u8 cs)
-> =C2=A0{
-> @@ -98,7 +98,7 @@ __init board_onenand_init(struct mtd_partition *one=
-nand_parts,
-> =C2=A0 =C2=A0 =C2=A0 =C2=A0gpmc_onenand_init(&board_onenand_data);
-> =C2=A0}
-> =C2=A0#else
-> -static void
-> +void
-> =C2=A0__init board_onenand_init(struct mtd_partition *nor_parts, u8 n=
-r_parts, u8 cs)
-> =C2=A0{
-> =C2=A0}
-> diff --git a/arch/arm/mach-omap2/board-flash.h b/arch/arm/mach-omap2/=
-board-flash.h
-> index d25503a..c44b70d 100644
-> --- a/arch/arm/mach-omap2/board-flash.h
-> +++ b/arch/arm/mach-omap2/board-flash.h
-> @@ -47,3 +47,14 @@ static inline void board_nand_init(struct mtd_part=
-ition *nand_parts,
-> =C2=A0{
-> =C2=A0}
-> =C2=A0#endif
-> +
-> +#if defined(CONFIG_MTD_ONENAND_OMAP2) || \
-> + =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 defined(CONFIG_MTD=
-_ONENAND_OMAP2_MODULE)
-> +extern void board_onenand_init(struct mtd_partition *nand_parts,
-> + =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0=
- =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 u8 nr_p=
-arts, u8 cs);
-> +#else
-> +static inline void board_onenand_init(struct mtd_partition *nand_par=
-ts,
-> + =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0=
- =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 u8 nr_p=
-arts, u8 cs)
-> +{
-> +}
-> +#endif
-> --
-> 1.7.7.6
->
+This patch doesn't have any dependency with EMIF driver since it's more=
+ of
+SAR restore BUG. If the dependency is from the regsister macro etc poin=
+t
+of view, PM code can to the mapping and since it is needed only once
+in the init. EMIF driver is unware of SAR restore phase and that was th=
+e
+purpose of the DMA bases SAR restore design.
 
-Seems good to me.
+Hope this clarifies.
 
-Tony, as this is a fix ,may be included ?
-
-Acked-by: Enric Balletbo i Serra <eballetbo@gmail.com>
-Tested-by: Enric Balletbo i Serra <eballetbo@gmail.com>
-
-Cheers,
-    Enric
+Regards
+Santosh
 --
 To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
 n
