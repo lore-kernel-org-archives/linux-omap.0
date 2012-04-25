@@ -1,57 +1,106 @@
 From: Tero Kristo <t-kristo@ti.com>
-Subject: Re: [PATCH 12/19] ARM: OMAP4: PM: update ROM return address for
- OSWR and OFF
-Date: Wed, 25 Apr 2012 10:24:14 +0300
-Message-ID: <1335338654.2149.101.camel@sokoban>
+Subject: Re: [PATCH 15/19] ARM: OMAP4430: PM: workaround for DDR corruption
+ on second CS
+Date: Wed, 25 Apr 2012 10:26:02 +0300
+Message-ID: <1335338762.2149.103.camel@sokoban>
 References: <1334914432-26456-1-git-send-email-t-kristo@ti.com>
-	 <1334914432-26456-13-git-send-email-t-kristo@ti.com>
-	 <20120424163916.GN3739@atomide.com>
+	 <1334914432-26456-16-git-send-email-t-kristo@ti.com>
+	 <4F96EF56.5020604@ti.com>
 Reply-To: <t-kristo@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="UTF-8"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from bear.ext.ti.com ([192.94.94.41]:60946 "EHLO bear.ext.ti.com"
+Received: from arroyo.ext.ti.com ([192.94.94.40]:49327 "EHLO arroyo.ext.ti.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751303Ab2DYHYU (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Wed, 25 Apr 2012 03:24:20 -0400
-In-Reply-To: <20120424163916.GN3739@atomide.com>
+	id S1752569Ab2DYH0M (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Wed, 25 Apr 2012 03:26:12 -0400
+In-Reply-To: <4F96EF56.5020604@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Tony Lindgren <tony@atomide.com>
-Cc: linux-omap@vger.kernel.org, khilman@ti.com, paul@pwsan.com, linux-arm-kernel@lists.infradead.org, Carlos Leija <cileija@ti.com>, Praneeth Bajjuri <praneeth@ti.com>, Bryan Buckley <bryan.buckley@ti.com>
+To: Jon Hunter <jon-hunter@ti.com>
+Cc: linux-omap@vger.kernel.org, khilman@ti.com, paul@pwsan.com, Santosh Shilimkar <santosh.shilimkar@ti.com>, linux-arm-kernel@lists.infradead.org
 
-On Tue, 2012-04-24 at 09:39 -0700, Tony Lindgren wrote:
-> * Tero Kristo <t-kristo@ti.com> [120420 02:39]:
-> > @@ -384,6 +386,17 @@ int omap4_enter_lowpower(unsigned int cpu, unsigned int power_state)
-> >  	set_cpu_next_pwrst(wakeup_cpu, PWRDM_POWER_ON);
-> >  
-> >  	if (omap4_mpuss_read_prev_context_state()) {
-> > +		/*
-> > +		 * Dummy dispatcher call after OSWR and OFF
-> > +		 * Restore the right return Kernel address (with MMU on) for
-> > +		 * subsequent calls to secure ROM. Otherwise the return address
-> > +		 * will be to a PA return address and the system will hang.
-> > +		 */
-> > +		if (omap_type() != OMAP2_DEVICE_TYPE_GP)
-> > +			omap_secure_dispatcher(OMAP4_PPA_SERVICE_0,
-> > +					       FLAG_START_CRITICAL,
-> > +					       0, 0, 0, 0, 0);
-> > +
-> >  		restore_ivahd_tesla_regs();
-> >  		restore_l3instr_regs();
+On Tue, 2012-04-24 at 13:22 -0500, Jon Hunter wrote:
+> Hi Tero,
 > 
-> This SoC test here too should be only done once during init.
+> On 04/20/2012 04:33 AM, Tero Kristo wrote:
+> > From: Santosh Shilimkar <santosh.shilimkar@ti.com>
+> > 
+> > Work around for Errata ID: i632 "LPDDR2 Corruption After OFF Mode
+> > Transition When CS1 Is Used On EMIF" which impacts OMAP443x silicon
+> > The issue occurs when EMIF_SDRAM_CONFIG is restored first before
+> > EMIF_SDRAM_CONFIG_2 is not yet restored, the register configuration
+> > is not set properly, we apply the required workaround allowing
+> > the restore sequence to work properly.
+> > 
+> > Signed-off-by: Santosh Shilimkar <santosh.shilimkar@ti.com>
+> > [t-kristo@ti.com: moved workaround from omap-sar.c to pm44xx.c]
+> > Signed-off-by: Tero Kristo <t-kristo@ti.com>
+> > ---
+> >  .../include/mach/ctrl_module_wkup_44xx.h           |    2 +
+> >  arch/arm/mach-omap2/pm44xx.c                       |   24 ++++++++++++++++++++
+> >  2 files changed, 26 insertions(+), 0 deletions(-)
+> > 
+> > diff --git a/arch/arm/mach-omap2/include/mach/ctrl_module_wkup_44xx.h b/arch/arm/mach-omap2/include/mach/ctrl_module_wkup_44xx.h
+> > index a0af9ba..b763a79 100644
+> > --- a/arch/arm/mach-omap2/include/mach/ctrl_module_wkup_44xx.h
+> > +++ b/arch/arm/mach-omap2/include/mach/ctrl_module_wkup_44xx.h
+> > @@ -28,6 +28,8 @@
+> >  #define OMAP4_CTRL_MODULE_WKUP_IP_REVISION		0x0000
+> >  #define OMAP4_CTRL_MODULE_WKUP_IP_HWINFO		0x0004
+> >  #define OMAP4_CTRL_MODULE_WKUP_IP_SYSCONFIG		0x0010
+> > +#define OMAP4_CTRL_SECURE_EMIF1_SDRAM_CONFIG2_REG	0x0114
+> > +#define OMAP4_CTRL_SECURE_EMIF2_SDRAM_CONFIG2_REG	0x011c
+> >  #define OMAP4_CTRL_MODULE_WKUP_CONF_DEBUG_SEL_TST_0	0x0460
+> >  #define OMAP4_CTRL_MODULE_WKUP_CONF_DEBUG_SEL_TST_1	0x0464
+> >  #define OMAP4_CTRL_MODULE_WKUP_CONF_DEBUG_SEL_TST_2	0x0468
+> > diff --git a/arch/arm/mach-omap2/pm44xx.c b/arch/arm/mach-omap2/pm44xx.c
+> > index 0472921..d4d18d9 100644
+> > --- a/arch/arm/mach-omap2/pm44xx.c
+> > +++ b/arch/arm/mach-omap2/pm44xx.c
+> > @@ -17,6 +17,9 @@
+> >  #include <linux/err.h>
+> >  #include <linux/slab.h>
+> >  #include <asm/system_misc.h>
+> > +#include <linux/io.h>
+> > +
+> > +#include <mach/ctrl_module_wkup_44xx.h>
+> >  
+> >  #include "common.h"
+> >  #include "clockdomain.h"
+> > @@ -215,6 +218,27 @@ static int __init omap4_pm_init(void)
+> >  
+> >  	pr_err("Power Management for TI OMAP4.\n");
+> >  
+> > +	/*
+> > +	 * Work around for OMAP443x Errata i632: "LPDDR2 Corruption After OFF
+> > +	 * Mode Transition When CS1 Is Used On EMIF":
+> > +	 * Overwrite EMIF1/EMIF2
+> > +	 * SECURE_EMIF1_SDRAM_CONFIG2_REG
+> > +	 * SECURE_EMIF2_SDRAM_CONFIG2_REG
+> > +	 */
+> > +	if (cpu_is_omap443x()) {
+> > +		void __iomem *secure_ctrl_mod;
+> > +
+> > +		secure_ctrl_mod = ioremap(OMAP4_CTRL_MODULE_WKUP, SZ_4K);
+> > +		BUG_ON(!secure_ctrl_mod);
+> > +
+> > +		__raw_writel(0x10, secure_ctrl_mod +
+> > +			     OMAP4_CTRL_SECURE_EMIF1_SDRAM_CONFIG2_REG);
+> > +		__raw_writel(0x10, secure_ctrl_mod +
+> > +			     OMAP4_CTRL_SECURE_EMIF2_SDRAM_CONFIG2_REG);
+> 
+> According to the erratum description the above registers are used to
+> restore the EMIFx_SDRAM_CONFIG2 registers. So although the value 0x10,
+> maybe the value being used for EMIFx_SDRAM_CONFIG2 registers, shouldn't
+> we read the EMIFx_SDRAM_CONFIG2 registers and store them in the above
+> registers?
 
-You sure about this one? I will end up creating a variable omap_is_gp or
-such, which looks somewhat silly and is going to be a duplicate (it will
-not provide any extra value in addition to the existing omap_type()
-check.) Also, similar checks are used elsewhere in the kernel, look at
-omap-wakeupgen.c, pm34xx.c, pm44xx.c, control.c for example. Should all
-of these be replaced? Well, most of these are related to secure context
-saving so maybe the mechanism behind these should be changed somehow
-globally.
+This might be a good idea, however, this patch might be tagged as TEMP
+until the EMIF driver is in place, this fix should rather be located
+there. I'll take a look at this if I can change the implementation a
+bit.
 
 -Tero
-
 
