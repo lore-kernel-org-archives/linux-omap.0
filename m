@@ -1,110 +1,34 @@
-From: Jon Hunter <jon-hunter@ti.com>
-Subject: Re: [PATCH 15/19] ARM: OMAP4430: PM: workaround for DDR corruption
- on second CS
-Date: Wed, 25 Apr 2012 10:16:06 -0500
-Message-ID: <4F981536.2030609@ti.com>
-References: <1334914432-26456-1-git-send-email-t-kristo@ti.com>  <1334914432-26456-16-git-send-email-t-kristo@ti.com>  <4F96EF56.5020604@ti.com> <1335338762.2149.103.camel@sokoban>
+From: "Cousson, Benoit" <b-cousson@ti.com>
+Subject: Re: [PATCH-V3 3/3] ARM: OMAP3+: clock33xx: Add AM33XX clock tree
+ data
+Date: Wed, 25 Apr 2012 17:22:57 +0200
+Message-ID: <4F9816D1.3000102@ti.com>
+References: <1333458578-23073-1-git-send-email-hvaibhav@ti.com> <1333458578-23073-4-git-send-email-hvaibhav@ti.com> <alpine.DEB.2.00.1204241857260.24864@utopia.booyaka.com> <79CD15C6BA57404B839C016229A409A83E9FD175@DBDE01.ent.ti.com> <4F97B891.1020601@ti.com> <79CD15C6BA57404B839C016229A409A83E9FD707@DBDE01.ent.ti.com> <4F97E243.6000500@ti.com> <79CD15C6BA57404B839C016229A409A83E9FDA47@DBDE01.ent.ti.com> <4F97EF11.4020300@ti.com> <79CD15C6BA57404B839C016229A409A83E9FDAE7@DBDE01.ent.ti.com> <alpine.DEB.2.00.1204250755020.29696@utopia.booyaka.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
+Content-Type: text/plain; charset="ISO-8859-1"; format=flowed
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from devils.ext.ti.com ([198.47.26.153]:40134 "EHLO
-	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752080Ab2DYPQN (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 25 Apr 2012 11:16:13 -0400
-In-Reply-To: <1335338762.2149.103.camel@sokoban>
+Received: from arroyo.ext.ti.com ([192.94.94.40]:48291 "EHLO arroyo.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1754086Ab2DYPXE (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Wed, 25 Apr 2012 11:23:04 -0400
+In-Reply-To: <alpine.DEB.2.00.1204250755020.29696@utopia.booyaka.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: t-kristo@ti.com
-Cc: linux-omap@vger.kernel.org, khilman@ti.com, paul@pwsan.com, Santosh Shilimkar <santosh.shilimkar@ti.com>, linux-arm-kernel@lists.infradead.org
+To: Paul Walmsley <paul@pwsan.com>
+Cc: "Hiremath, Vaibhav" <hvaibhav@ti.com>, "Mohammed, Afzal" <afzal@ti.com>, "Bedia, Vaibhav" <vaibhav.bedia@ti.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "tony@atomide.com" <tony@atomide.com>, "Hilman, Kevin" <khilman@ti.com>, "Nayak, Rajendra" <rnayak@ti.com>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>
 
-Hi Tero,
+On 4/25/2012 3:55 PM, Paul Walmsley wrote:
+> Hi Vaibhav,
+>
+> On Wed, 25 Apr 2012, Hiremath, Vaibhav wrote:
+>
+>> Thanks for describing it for me. I will change AM33XX clock tree for this
+>> And submit the next version soon.
+>
+> Well I can just remove those leaf clock entries from my copy here, if
+> you're okay with that ?
 
-On 04/25/2012 02:26 AM, Tero Kristo wrote:
-> On Tue, 2012-04-24 at 13:22 -0500, Jon Hunter wrote:
->> Hi Tero,
->>
->> On 04/20/2012 04:33 AM, Tero Kristo wrote:
->>> From: Santosh Shilimkar <santosh.shilimkar@ti.com>
->>>
->>> Work around for Errata ID: i632 "LPDDR2 Corruption After OFF Mode
->>> Transition When CS1 Is Used On EMIF" which impacts OMAP443x silicon
->>> The issue occurs when EMIF_SDRAM_CONFIG is restored first before
->>> EMIF_SDRAM_CONFIG_2 is not yet restored, the register configuration
->>> is not set properly, we apply the required workaround allowing
->>> the restore sequence to work properly.
->>>
->>> Signed-off-by: Santosh Shilimkar <santosh.shilimkar@ti.com>
->>> [t-kristo@ti.com: moved workaround from omap-sar.c to pm44xx.c]
->>> Signed-off-by: Tero Kristo <t-kristo@ti.com>
->>> ---
->>>  .../include/mach/ctrl_module_wkup_44xx.h           |    2 +
->>>  arch/arm/mach-omap2/pm44xx.c                       |   24 ++++++++++++++++++++
->>>  2 files changed, 26 insertions(+), 0 deletions(-)
->>>
->>> diff --git a/arch/arm/mach-omap2/include/mach/ctrl_module_wkup_44xx.h b/arch/arm/mach-omap2/include/mach/ctrl_module_wkup_44xx.h
->>> index a0af9ba..b763a79 100644
->>> --- a/arch/arm/mach-omap2/include/mach/ctrl_module_wkup_44xx.h
->>> +++ b/arch/arm/mach-omap2/include/mach/ctrl_module_wkup_44xx.h
->>> @@ -28,6 +28,8 @@
->>>  #define OMAP4_CTRL_MODULE_WKUP_IP_REVISION		0x0000
->>>  #define OMAP4_CTRL_MODULE_WKUP_IP_HWINFO		0x0004
->>>  #define OMAP4_CTRL_MODULE_WKUP_IP_SYSCONFIG		0x0010
->>> +#define OMAP4_CTRL_SECURE_EMIF1_SDRAM_CONFIG2_REG	0x0114
->>> +#define OMAP4_CTRL_SECURE_EMIF2_SDRAM_CONFIG2_REG	0x011c
->>>  #define OMAP4_CTRL_MODULE_WKUP_CONF_DEBUG_SEL_TST_0	0x0460
->>>  #define OMAP4_CTRL_MODULE_WKUP_CONF_DEBUG_SEL_TST_1	0x0464
->>>  #define OMAP4_CTRL_MODULE_WKUP_CONF_DEBUG_SEL_TST_2	0x0468
->>> diff --git a/arch/arm/mach-omap2/pm44xx.c b/arch/arm/mach-omap2/pm44xx.c
->>> index 0472921..d4d18d9 100644
->>> --- a/arch/arm/mach-omap2/pm44xx.c
->>> +++ b/arch/arm/mach-omap2/pm44xx.c
->>> @@ -17,6 +17,9 @@
->>>  #include <linux/err.h>
->>>  #include <linux/slab.h>
->>>  #include <asm/system_misc.h>
->>> +#include <linux/io.h>
->>> +
->>> +#include <mach/ctrl_module_wkup_44xx.h>
->>>  
->>>  #include "common.h"
->>>  #include "clockdomain.h"
->>> @@ -215,6 +218,27 @@ static int __init omap4_pm_init(void)
->>>  
->>>  	pr_err("Power Management for TI OMAP4.\n");
->>>  
->>> +	/*
->>> +	 * Work around for OMAP443x Errata i632: "LPDDR2 Corruption After OFF
->>> +	 * Mode Transition When CS1 Is Used On EMIF":
->>> +	 * Overwrite EMIF1/EMIF2
->>> +	 * SECURE_EMIF1_SDRAM_CONFIG2_REG
->>> +	 * SECURE_EMIF2_SDRAM_CONFIG2_REG
->>> +	 */
->>> +	if (cpu_is_omap443x()) {
->>> +		void __iomem *secure_ctrl_mod;
->>> +
->>> +		secure_ctrl_mod = ioremap(OMAP4_CTRL_MODULE_WKUP, SZ_4K);
->>> +		BUG_ON(!secure_ctrl_mod);
->>> +
->>> +		__raw_writel(0x10, secure_ctrl_mod +
->>> +			     OMAP4_CTRL_SECURE_EMIF1_SDRAM_CONFIG2_REG);
->>> +		__raw_writel(0x10, secure_ctrl_mod +
->>> +			     OMAP4_CTRL_SECURE_EMIF2_SDRAM_CONFIG2_REG);
->>
->> According to the erratum description the above registers are used to
->> restore the EMIFx_SDRAM_CONFIG2 registers. So although the value 0x10,
->> maybe the value being used for EMIFx_SDRAM_CONFIG2 registers, shouldn't
->> we read the EMIFx_SDRAM_CONFIG2 registers and store them in the above
->> registers?
-> 
-> This might be a good idea, however, this patch might be tagged as TEMP
-> until the EMIF driver is in place, this fix should rather be located
-> there. I'll take a look at this if I can change the implementation a
-> bit.
+Please take care of changing the hwmod main_clk as well. But maybe 
+that's not part of that series.
 
-By the way, I did dump the EMIF1_SDRAM_CONFIG2 register on a omap4403
-and it is configured to 0x10. So I think that reading this register and
-saving would be safe.
-
-Cheers
-Jon
