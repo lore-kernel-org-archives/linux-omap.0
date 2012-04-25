@@ -1,41 +1,59 @@
-From: Liam Girdwood <lrg@ti.com>
-Subject: Re: [PATCH v2] ASoC: omap-pcm: Free dma buffers in case of error.
-Date: Wed, 25 Apr 2012 17:18:45 +0100
-Message-ID: <1335370725.29563.0.camel@odin>
-References: <1335319322-22336-1-git-send-email-oleg.matcovschi@ti.com>
+From: Tony Lindgren <tony@atomide.com>
+Subject: Re: [PATCH v3 0/9] Convert OMAP GPMC to driver
+Date: Wed, 25 Apr 2012 09:44:25 -0700
+Message-ID: <20120425164424.GT3739@atomide.com>
+References: <cover.1333638917.git.afzal@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aog113.obsmtp.com ([74.125.149.209]:34129 "EHLO
-	na3sys009aog113.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752736Ab2DYQSu (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>);
-	Wed, 25 Apr 2012 12:18:50 -0400
-Received: by wibhm17 with SMTP id hm17so245309wib.15
-        for <linux-omap@vger.kernel.org>; Wed, 25 Apr 2012 09:18:47 -0700 (PDT)
-In-Reply-To: <1335319322-22336-1-git-send-email-oleg.matcovschi@ti.com>
+Received: from mho-01-ewr.mailhop.org ([204.13.248.71]:64551 "EHLO
+	mho-01-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752528Ab2DYQoi (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 25 Apr 2012 12:44:38 -0400
+Content-Disposition: inline
+In-Reply-To: <cover.1333638917.git.afzal@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Oleg Matcovschi <oleg.matcovschi@ti.com>
-Cc: linux-omap@vger.kernel.org, alsa-devel@alsa-project.org, peter.ujfalusi@ti.com, jarkko.nikula@bitmer.com, broonie@opensource.wolfsonmicro.com, perex@perex.cz, tiwai@suse.de
+To: Afzal Mohammed <afzal@ti.com>
+Cc: khilman@ti.com, linux@arm.linux.org.uk, dwmw2@infradead.org, sameo@linux.intel.com, grinberg@compulab.co.il, mike@compulab.co.il, nm@ti.com, artem.bityutskiy@linux.intel.com, vimal.newwork@gmail.com, dbaryshkov@gmail.com, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-mtd@lists.infradead.org, linux-kernel@vger.kernel.org
 
-On Tue, 2012-04-24 at 19:02 -0700, Oleg Matcovschi wrote:
-> Change-Id: I4ba9de0de4681332539246ccc5e11a7a8fb32e79
-> Signed-off-by: Oleg Matcovschi <oleg.matcovschi@ti.com>
-> ---
-> v1:
->  initial revision
-> v2:
->  resending patch including maintainers
+* Afzal Mohammed <afzal@ti.com> [120405 09:06]:
+> Hi,
 > 
->  sound/soc/omap/omap-pcm.c |    4 ++++
->  1 files changed, 4 insertions(+), 0 deletions(-)
+> GPMC driver conversion series. NAND and smsc911x ethernet device has
+> been adapted to use GPMC driver.
 > 
+> Patches has been generated over linux-omap/master, HEAD
+> 33fc21e Linux-omap rebuilt: Updated to v3.4-rc1, merged in most of pending branches
+> As OMAP3EVM does not boot linux-omap/master, merge commit,
+> 58adb29 Merge branch 'io_chain_devel_3.4' of git://git.pwsan.com/linux-2.6 into prm
+> has to be reverted to get OMAP3EVM boot.
+> Last patch (with subject prefix TMP - 9/9) is for testing.
+> 
+> Once driver is acceptable, platform code for other peripherals
+> connected via GPMC would be adapted to make use of GPMC driver. And
+> then the board modifications. But before that HWMOD entry has to be
+> populated for respective SoC(s ?).
+ 
+No, we can't do it this way, it breaks things. We need to first
+convert everything to use the new GPMC driver, then move it. 
+ 
+> Now DESTINATION FOR THIS DRIVER has to be decided. Original plan was
+> to consider GPMC as MFD. The peripheral(s) connected to GPMC being
+> considered childs of MFD.
 
-Now applied for 3.4 with change ID removed.
+Let's not put it into MFD. This is a bus driver. But that
+decision can wait as we cleary have quite a few things to convert
+first under arch/arm/mach-omap2.
+ 
+> Various options that could be seen so far on where this driver can go,
+> 1. mfd
+> 2. misc
+> 3. drivers/platform/arm/ (create an new one?)
+> 4. memory (create a new one ?)
 
-Thanks
+It's a parallel bus driver, not memory not misc, not MFD.
 
-Liam
+Cheers,
 
+Tony 
