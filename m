@@ -1,84 +1,82 @@
 From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH] ARM: OMAP3: gpmc: add BCH ecc api and modes
-Date: Wed, 25 Apr 2012 09:49:39 -0700
-Message-ID: <20120425164938.GV3739@atomide.com>
-References: <1334652536-4442-1-git-send-email-ivan.djelic@parrot.com>
- <1335365341.6356.5.camel@koala>
- <20120425152310.GR3739@atomide.com>
- <1335368681.6356.16.camel@koala>
- <20120425155759.GS3739@atomide.com>
+Subject: Re: [PATCH v2] ARM: OMAP3: gpmc: add BCH ecc api and modes
+Date: Wed, 25 Apr 2012 10:03:14 -0700
+Message-ID: <20120425170313.GW3739@atomide.com>
+References: <1334861024-27386-1-git-send-email-ivan.djelic@parrot.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-01-ewr.mailhop.org ([204.13.248.71]:12753 "EHLO
-	mho-01-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754374Ab2DYQtm (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 25 Apr 2012 12:49:42 -0400
+Received: from mho-02-ewr.mailhop.org ([204.13.248.72]:25472 "EHLO
+	mho-02-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754374Ab2DYRDS (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 25 Apr 2012 13:03:18 -0400
 Content-Disposition: inline
-In-Reply-To: <20120425155759.GS3739@atomide.com>
+In-Reply-To: <1334861024-27386-1-git-send-email-ivan.djelic@parrot.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Artem Bityutskiy <dedekind1@gmail.com>
-Cc: linux-omap@vger.kernel.org, linux-mtd@lists.infradead.org, Ivan Djelic <ivan.djelic@parrot.com>
+To: Ivan Djelic <ivan.djelic@parrot.com>
+Cc: linux-omap@vger.kernel.org, linux-mtd@lists.infradead.org
 
-* Tony Lindgren <tony@atomide.com> [120425 09:01]:
-> * Artem Bityutskiy <dedekind1@gmail.com> [120425 08:48]:
-> > On Wed, 2012-04-25 at 08:23 -0700, Tony Lindgren wrote:
-> > > Hi,
-> > > 
-> > > * Artem Bityutskiy <dedekind1@gmail.com> [120425 07:52]:
-> > > > On Tue, 2012-04-17 at 10:48 +0200, Ivan Djelic wrote:
-> > > > > This patch adds a simple BCH ecc computation api, similar to the
-> > > > > existing Hamming ecc api. It is intended to be used by the MTD layer.
-> > > > > It implements the following features:
-> > > > > 
-> > > > > - support 4-bit and 8-bit ecc computation
-> > > > > - do not protect user bytes in spare area, only data area is protected
-> > > > > - ecc for an erased NAND page (0xFFs) is also a sequence of 0xFFs
-> > > > > 
-> > > > > This last feature is obtained by adding a constant polynomial to
-> > > > > the hardware computed ecc. It allows to correct bitflips in blank pages
-> > > > > and is extremely useful to support filesystems such as UBIFS, which expect
-> > > > > erased pages to contain only 0xFFs.
-> > > > > 
-> > > > > This api has been tested on an OMAP3630 board.
-> > > > > 
-> > > > > Signed-off-by: Ivan Djelic <ivan.djelic@parrot.com>
-> > > > 
-> > > > Hi Tony,
-> > > > 
-> > > > what do you think about merging this patch? This is the enabler for
-> > > > making UBIFS actually usable on OMAP platforms which use BCH ECC. There
-> > > > are 2 other MTD patches which depend on this - so I wonder if it is
-> > > > easier to merge this one via the MTD tree, providing it has your/others'
-> > > > ack(s).
-> > > 
-> > > Looks OK to me, however there are other pending GPMC patches to convert
-> > > it to a platform device device driver. Need to look those closer though.
-> > > Anyways, it's best that I queue them to avoid merge conflicts.
-> > 
-> > Sure.
-> > 
-> > > Do you these for other changes for UBIFS?
-> > 
-> > Not in UBIFS, but in drivers/mtd/nand/omap2.c - Ivan sent another patch
-> > which adds BCH support to to omap2.c, was sent to linux-omap, subject
-> > "[PATCH] mtd: nand: omap: add support for hardware BCH ecc"
-> > 
-> > >  If so, I can set up an immutable
-> > > branch for GPMC that you can merge in as well.
-> > 
-> > I guess this would be a good idea, but probably it is better to do this
-> > when you believe you merged most gpmc patches, so probably closer to the
-> > final -rc?
+Hi,
+
+Few comments below.
+
+* Ivan Djelic <ivan.djelic@parrot.com> [120419 11:49]:
 > 
-> Yes let's wait a week or so as there are also the dmaengine patch for
-> drivers/mtd/nand/omap2.c that might conflict. So let's get the dmaengine
-> patches to some branch first.
+> diff --git a/arch/arm/mach-omap2/gpmc.c b/arch/arm/mach-omap2/gpmc.c
+> index 00d5108..e3a91a1 100644
+> --- a/arch/arm/mach-omap2/gpmc.c
+> +++ b/arch/arm/mach-omap2/gpmc.c
+> @@ -49,6 +49,7 @@
+>  #define GPMC_ECC_CONTROL	0x1f8
+>  #define GPMC_ECC_SIZE_CONFIG	0x1fc
+>  #define GPMC_ECC1_RESULT        0x200
+> +#define GPMC_ECC_BCH_RESULT_0   0x240
 
-Looking at the gpmc platform driver series, we can't merge those until
-all the board-*.c files are converted. So let's plan on first making sure
-the dmaengine changes work, then apply the BCH ecc patches.
+Can you please add a comment here saying something like:
+
+#define GPMC_ECC_BCH_RESULT_0   0x240	/* Not available on omap2 */
+  
+
+> @@ -920,3 +921,150 @@ int gpmc_calculate_ecc(int cs, const u_char *dat, u_char *ecc_code)
+>  	return 0;
+>  }
+>  EXPORT_SYMBOL_GPL(gpmc_calculate_ecc);
+> +
+> +#ifdef CONFIG_ARCH_OMAP3
+> +
+> +/**
+> + * gpmc_enable_hwecc_bch - enable hardware BCH ecc functionality
+> + * @cs: chip select number
+> + * @mode: read/write mode
+> + * @dev_width: device bus width(1 for x16, 0 for x8)
+> + * @nsectors: how many 512-byte sectors to process
+> + * @nerrors: how many errors to correct per sector (4 or 8)
+> + */
+> +int gpmc_enable_hwecc_bch(int cs, int mode, int dev_width, int nsectors,
+> +			  int nerrors)
+> +{
+> +	unsigned int val;
+> +
+> +	/* check if ecc module is in use */
+> +	if (gpmc_ecc_used != -EINVAL)
+> +		return -EINVAL;
+> +	/*
+> +	 * FIXME: some OMAP3 revisions have a hardware bug which prevents
+> +	 * the 4-bit BCH mode from working properly. Such revisions could be
+> +	 * detected and rejected here.
+> +	 */
+
+This should then be disabled to avoid corruption. Maybe only allow it
+initially on omaps that have been tested? And for omap2 it should return
+error  for sure.
+
+Or do you know the broken omap3 versions?
+
+Also, should you first request this feature in case multiple drivers
+need to share it?
+
+Other than that, looks good to me.
 
 Regards,
 
