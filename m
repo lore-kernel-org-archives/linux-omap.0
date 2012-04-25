@@ -1,155 +1,97 @@
-From: "Govindraj.R" <govindraj.raja@ti.com>
-Subject: [PATCH 1/2 v4] ARM: OMAP2+: omap_hwmod: Add api to enable/disable module level wakeup events
-Date: Wed, 25 Apr 2012 12:47:17 +0530
-Message-ID: <1335338237-4095-1-git-send-email-govindraj.raja@ti.com>
-References: <1335276552-24340-1-git-send-email-govindraj.raja@ti.com>
+From: Tero Kristo <t-kristo@ti.com>
+Subject: Re: [PATCH 05/19] ARM: OMAP4: PM: Add SAR backup support towards
+ device OFF
+Date: Wed, 25 Apr 2012 10:18:29 +0300
+Message-ID: <1335338309.2149.96.camel@sokoban>
+References: <1334914432-26456-1-git-send-email-t-kristo@ti.com>
+	 <1334914432-26456-6-git-send-email-t-kristo@ti.com>
+	 <20120424163547.GL3739@atomide.com>
+Reply-To: <t-kristo@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from comal.ext.ti.com ([198.47.26.152]:59933 "EHLO comal.ext.ti.com"
+Received: from bear.ext.ti.com ([192.94.94.41]:60592 "EHLO bear.ext.ti.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752534Ab2DYHRf (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Wed, 25 Apr 2012 03:17:35 -0400
-In-Reply-To: <1335276552-24340-1-git-send-email-govindraj.raja@ti.com>
+	id S1752754Ab2DYHSg (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Wed, 25 Apr 2012 03:18:36 -0400
+In-Reply-To: <20120424163547.GL3739@atomide.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: linux-omap@vger.kernel.org
-Cc: linux-arm-kernel@lists.infradead.org, "Govindraj.R" <govindraj.raja@ti.com>, Tero Kristo <t-kristo@ti.com>, Tony Lindgren <tony@atomide.com>, Paul Walmsley <paul@pwsan.com>, Kevin Hilman <khilman@ti.com>, Benoit Cousson <b-cousson@ti.com>, Rajendra Nayak <rnayak@ti.com>, Santosh Shilimkar <santosh.shilimkar@ti.com>
+To: Tony Lindgren <tony@atomide.com>
+Cc: linux-omap@vger.kernel.org, khilman@ti.com, paul@pwsan.com, linux-arm-kernel@lists.infradead.org, Santosh Shilimkar <santosh.shilimkar@ti.com>
 
-From: "Govindraj.R" <govindraj.raja@ti.com>
+On Tue, 2012-04-24 at 09:35 -0700, Tony Lindgren wrote:
+> * Tero Kristo <t-kristo@ti.com> [120420 02:39]:
+> > +
+> > +static int omap4_sar_not_accessible(void)
+> > +{
+> > +	u32 usbhost_state, usbtll_state;
+> > +
+> > +	/*
+> > +	 * Make sure that USB host and TLL modules are not
+> > +	 * enabled before attempting to save the context
+> > +	 * registers, otherwise this will trigger an exception.
+> > +	 */
+> > +	usbhost_state = omap4_cminst_read_inst_reg(OMAP4430_CM2_PARTITION,
+> > +						   OMAP4430_CM2_L3INIT_INST,
+> > +						   OMAP4_CM_L3INIT_USB_HOST_CLKCTRL_OFFSET)
+> > +	    & (OMAP4430_STBYST_MASK | OMAP4430_IDLEST_MASK);
+> > +
+> > +	usbtll_state = omap4_cminst_read_inst_reg(OMAP4430_CM2_PARTITION,
+> > +						  OMAP4430_CM2_L3INIT_INST,
+> > +						  OMAP4_CM_L3INIT_USB_TLL_CLKCTRL_OFFSET)
+> > +	    & OMAP4430_IDLEST_MASK;
+> 
+> Formatting here looks bad, maybe just do it in separate steps:
+> 
+> 	usbhost_state = omap4_cminst...
+> 	usbhost_state &= OMAP4430_STBYST_MASK | OMAP4430_IDLEST_MASK;
+> ...
+> 
+> 
+> > +	/*
+> > +	 * Not supported on ES1.0 silicon
+> > +	 */
+> > +	if (omap_rev() == OMAP4430_REV_ES1_0) {
+> > +		WARN_ONCE(1, "omap4: SAR backup not supported on ES1.0 ..\n");
+> > +		return -ENODEV;
+> > +	}
+> 
+> Everytime there's SoC/hardware revision detection in a non __init function, 
+> something is most likely wrong.
+> 
+> 
+> > +void omap4_sar_overwrite(void)
+> > +{
+> > +	u32 val = 0;
+> > +	u32 offset = 0;
+> > +
+> > +	if (cpu_is_omap446x())
+> > +		offset = 0x04;
+> 
+> Here too.
+> 
+> 
+> > +static int __init omap4_sar_ram_init(void)
+> > +{
+> > +	/*
+> > +	 * To avoid code running on other OMAPs in
+> > +	 * multi-omap builds
+> > +	 */
+> > +	if (!cpu_is_omap44xx())
+> > +		return -ENODEV;
+> 
+> You should configure things here instead by setting function
+> pointers or variables.
+> 
+> Regards,
+> 
+> Tony
 
-On 24xx/34xx/36xx Module level wakeup events are enabled/disabled using
-PM_WKEN1_CORE/PM_WKEN_PER regs.
+Okay, I can drop rest of these from this patch, most of them do not
+exist in the final code (removed by later patches for autogeneration), I
+just left this here for historical reasons.
 
-Add api to control the module level wakeup mechanism from info provided from
-hwmod data.
-
-omap_hwmod_enable/disable_wakeup is used from serial.c which should
-configure PM_WKEN register to enable or disable the module level wakeup.
-
-Cc: Tero Kristo <t-kristo@ti.com>
-Cc: Tony Lindgren <tony@atomide.com>
-Cc: Paul Walmsley <paul@pwsan.com>
-Cc: Kevin Hilman <khilman@ti.com>
-Cc: Benoit Cousson <b-cousson@ti.com>
-Cc: Rajendra Nayak <rnayak@ti.com>
-Cc: Santosh Shilimkar <santosh.shilimkar@ti.com>
-Signed-off-by: Govindraj.R <govindraj.raja@ti.com>
----
- arch/arm/mach-omap2/omap_hwmod.c   |   23 +++++++++++++++++++++++
- arch/arm/mach-omap2/prm2xxx_3xxx.c |   16 ++++++++++++++++
- arch/arm/mach-omap2/prm2xxx_3xxx.h |    9 +++++++++
- 3 files changed, 48 insertions(+), 0 deletions(-)
-
-diff --git a/arch/arm/mach-omap2/omap_hwmod.c b/arch/arm/mach-omap2/omap_hwmod.c
-index 2c27fdb..25f306b 100644
---- a/arch/arm/mach-omap2/omap_hwmod.c
-+++ b/arch/arm/mach-omap2/omap_hwmod.c
-@@ -382,6 +382,27 @@ static int _set_module_autoidle(struct omap_hwmod *oh, u8 autoidle,
- }
- 
- /**
-+ * _enable_module_level_wakeup - enable/disable module level wakeup on hwmod.
-+ * @oh: struct omap_hwmod *
-+ * @set_wake: bool value indicating to set (true) or clear (false) module level
-+ *		wakeup enable
-+ *
-+ * Set or clear the  module level wakeup capability the
-+ * hwmod @oh. This function configures th PM_WKEN reg bits if they
-+ * are available from hwmod. No return value
-+ */
-+static void _enable_module_level_wakeup(struct omap_hwmod *oh, bool set_wake)
-+{
-+	if (oh->prcm.omap2.module_offs && oh->prcm.omap2.prcm_reg_id &&
-+			oh->prcm.omap2.idlest_idle_bit)
-+		omap2_prm_enable_prcm_module_wakeup(
-+				oh->prcm.omap2.module_offs,
-+				oh->prcm.omap2.prcm_reg_id,
-+				oh->prcm.omap2.idlest_idle_bit,
-+				set_wake);
-+}
-+
-+/**
-  * _set_idle_ioring_wakeup - enable/disable IO pad wakeup on hwmod idle for mux
-  * @oh: struct omap_hwmod *
-  * @set_wake: bool value indicating to set (true) or clear (false) wakeup enable
-@@ -2471,6 +2492,7 @@ int omap_hwmod_enable_wakeup(struct omap_hwmod *oh)
- 		_write_sysconfig(v, oh);
- 	}
- 
-+	_enable_module_level_wakeup(oh, true);
- 	_set_idle_ioring_wakeup(oh, true);
- 	spin_unlock_irqrestore(&oh->_lock, flags);
- 
-@@ -2504,6 +2526,7 @@ int omap_hwmod_disable_wakeup(struct omap_hwmod *oh)
- 		_write_sysconfig(v, oh);
- 	}
- 
-+	_enable_module_level_wakeup(oh, false);
- 	_set_idle_ioring_wakeup(oh, false);
- 	spin_unlock_irqrestore(&oh->_lock, flags);
- 
-diff --git a/arch/arm/mach-omap2/prm2xxx_3xxx.c b/arch/arm/mach-omap2/prm2xxx_3xxx.c
-index 9ce7654..85a753e 100644
---- a/arch/arm/mach-omap2/prm2xxx_3xxx.c
-+++ b/arch/arm/mach-omap2/prm2xxx_3xxx.c
-@@ -28,6 +28,10 @@
- #include "prm-regbits-24xx.h"
- #include "prm-regbits-34xx.h"
- 
-+static const u8 pm_wken_offs[] = {
-+	PM_WKEN1, OMAP24XX_PM_WKEN2
-+};
-+
- static const struct omap_prcm_irq omap3_prcm_irqs[] = {
- 	OMAP_PRCM_IRQ("wkup",	0,	0),
- 	OMAP_PRCM_IRQ("io",	9,	1),
-@@ -91,6 +95,18 @@ u32 omap2_prm_clear_mod_reg_bits(u32 bits, s16 module, s16 idx)
- 	return omap2_prm_rmw_mod_reg_bits(bits, 0x0, module, idx);
- }
- 
-+void omap2_prm_enable_prcm_module_wakeup(s16 prcm_mod, u8 prm_reg_id,
-+			u8 prm_reg_shift, bool set_wake)
-+{
-+	if (prm_reg_id && (prm_reg_id <= ARRAY_SIZE(pm_wken_offs))) {
-+		if (set_wake)
-+			omap2_prm_set_mod_reg_bits(1 << prm_reg_shift,
-+				prcm_mod, pm_wken_offs[prm_reg_id - 1]);
-+		else
-+			omap2_prm_clear_mod_reg_bits(1 << prm_reg_shift,
-+				prcm_mod, pm_wken_offs[prm_reg_id - 1]);
-+	}
-+}
- 
- /**
-  * omap2_prm_is_hardreset_asserted - read the HW reset line state of
-diff --git a/arch/arm/mach-omap2/prm2xxx_3xxx.h b/arch/arm/mach-omap2/prm2xxx_3xxx.h
-index 70ac2a1..49a185a 100644
---- a/arch/arm/mach-omap2/prm2xxx_3xxx.h
-+++ b/arch/arm/mach-omap2/prm2xxx_3xxx.h
-@@ -289,6 +289,13 @@ static inline int omap2_prm_deassert_hardreset(s16 prm_mod, u8 rst_shift,
- 		"not suppose to be used on omap4\n");
- 	return 0;
- }
-+static inline void omap2_prm_enable_prcm_module_wakeup(s16 prcm_mod,
-+		u8 prm_reg_id, u8 prm_reg_shift, bool set_wake)
-+{
-+	WARN(1, "prm: omap2xxx/omap3xxx specific function and "
-+		"not suppose to be used on omap4\n");
-+	return 0;
-+}
- #else
- /* Power/reset management domain register get/set */
- extern u32 omap2_prm_read_mod_reg(s16 module, u16 idx);
-@@ -297,6 +304,8 @@ extern u32 omap2_prm_rmw_mod_reg_bits(u32 mask, u32 bits, s16 module, s16 idx);
- extern u32 omap2_prm_set_mod_reg_bits(u32 bits, s16 module, s16 idx);
- extern u32 omap2_prm_clear_mod_reg_bits(u32 bits, s16 module, s16 idx);
- extern u32 omap2_prm_read_mod_bits_shift(s16 domain, s16 idx, u32 mask);
-+extern void omap2_prm_enable_prcm_module_wakeup(s16 prcm_mod, u8 prm_reg_id,
-+			u8 prm_reg_shift, bool set_wake);
- 
- /* These omap2_ PRM functions apply to both OMAP2 and 3 */
- extern int omap2_prm_is_hardreset_asserted(s16 prm_mod, u8 shift);
--- 
-1.7.9
+-Tero
 
