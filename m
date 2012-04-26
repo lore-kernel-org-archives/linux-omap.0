@@ -1,51 +1,70 @@
-From: Paul Walmsley <paul@pwsan.com>
-Subject: RE: [PATCH-V5 3/3] ARM: OMAP: Make OMAP clocksource source selection
+From: Kevin Hilman <khilman@ti.com>
+Subject: Re: [PATCH-V4 3/3] ARM: OMAP: Make OMAP clocksource source selection
  using kernel param
-Date: Thu, 26 Apr 2012 13:30:49 -0600 (MDT)
-Message-ID: <alpine.DEB.2.00.1204261330010.10308@utopia.booyaka.com>
-References: <1335362340-14960-1-git-send-email-hvaibhav@ti.com> <1335362340-14960-4-git-send-email-hvaibhav@ti.com> <alpine.DEB.2.00.1204260904580.10308@utopia.booyaka.com> <79CD15C6BA57404B839C016229A409A83E9FF819@DBDE01.ent.ti.com>
+Date: Thu, 26 Apr 2012 12:47:34 -0700
+Message-ID: <4F99A656.9030800@ti.com>
+References: <1335260749-25877-1-git-send-email-hvaibhav@ti.com> <1335260749-25877-4-git-send-email-hvaibhav@ti.com> <87aa1ybaxf.fsf@ti.com>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from utopia.booyaka.com ([72.9.107.138]:59696 "EHLO
-	utopia.booyaka.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754536Ab2DZTau (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 26 Apr 2012 15:30:50 -0400
-In-Reply-To: <79CD15C6BA57404B839C016229A409A83E9FF819@DBDE01.ent.ti.com>
+Received: from na3sys009aog122.obsmtp.com ([74.125.149.147]:50991 "EHLO
+	na3sys009aog122.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1758622Ab2DZTrf (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>);
+	Thu, 26 Apr 2012 15:47:35 -0400
+Received: by dacx6 with SMTP id x6so2193565dac.18
+        for <linux-omap@vger.kernel.org>; Thu, 26 Apr 2012 12:47:34 -0700 (PDT)
+In-Reply-To: <87aa1ybaxf.fsf@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "Hiremath, Vaibhav" <hvaibhav@ti.com>
-Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "tony@atomide.com" <tony@atomide.com>, "Hilman, Kevin" <khilman@ti.com>, "Shilimkar, Santosh" <santosh.shilimkar@ti.com>, "Cousson, Benoit" <b-cousson@ti.com>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, "Balbi, Felipe" <balbi@ti.com>, "DebBarma, Tarun Kanti" <tarun.kanti@ti.com>, Ming Lei <tom.leiming@gmail.com>
+To: Kevin Hilman <khilman@ti.com>
+Cc: Vaibhav Hiremath <hvaibhav@ti.com>, linux-omap@vger.kernel.org, tony@atomide.com, paul@pwsan.com, santosh.shilimkar@ti.com, b-cousson@ti.com, linux-arm-kernel@lists.infradead.org, Felipe Balbi <balbi@ti.com>, Tarun Kanti DebBarma <tarun.kanti@ti.com>, Ming Lei <tom.leiming@gmail.com>
 
-On Thu, 26 Apr 2012, Hiremath, Vaibhav wrote:
+On 04/26/2012 11:33 AM, Kevin Hilman wrote:
+> Vaibhav Hiremath<hvaibhav@ti.com>  writes:
+>
+>> Current OMAP code supports couple of clocksource options based
+>> on compilation flag (CONFIG_OMAP_32K_TIMER). The 32KHz sync-timer
+>> and a gptimer which can run on 32KHz or system clock (e.g 38.4 MHz).
+>
+> [...]
+>
+>> +
+>> +	sync32k_ick = clk_get(NULL, "omap_32ksync_ick");
+>> +	if (!IS_ERR(sync32k_ick))
+>> +		clk_enable(sync32k_ick);
+>> +
+>> +	sync32k_cnt_reg = base + OMAP2_32KSYNCNT_CR_OFF;
+>> +
+>> +	/*
+>> +	 * 120000 rough estimate from the calculations in
+>> +	 * __clocksource_updatefreq_scale.
+>> +	 */
+>> +	clocks_calc_mult_shift(&persistent_mult,&persistent_shift,
+>> +			32768, NSEC_PER_SEC, 120000);
+>> +
+>> +	ret = clocksource_mmio_init(base, "32k_counter", 32768, 250, 32,
+>> +				clocksource_mmio_readl_up);
+>
+> After discussing this a bit with Vaibhav offline, we found that 'base'
+> here should be sync32k_cnt_reg.
 
-> On Thu, Apr 26, 2012 at 20:40:34, Paul Walmsley wrote:
-> > On Wed, 25 Apr 2012, Vaibhav Hiremath wrote:
-> > 
-> <snip>
-> > > +
-> > > +	sync32k_ick = clk_get(NULL, "omap_32ksync_ick");
-> > > +	if (!IS_ERR(sync32k_ick))
-> > > +		clk_enable(sync32k_ick);
-> > 
-> > You've added hwmod data for this IP block, which is good.  This will 
-> > presumably cause the IP block to be idled on boot.  But you haven't 
-> > converted this code to use either the hwmod enable code -- just using 
-> > clk_get() isn't enough.  (Better would be to use a driver and the PM 
-> > runtime functions, of course, but maybe this runs too early?)
-> > 
-> > If the 32k sync timer is in OCP force-idle, then that might produce the 
-> > hangs you're seeing.
-> > 
-> 
-> I tried disabling all idle related flags in hwmod entry but no change in 
-> observation, kernel still hangs.
-> 
-> I even conformed the register content by connecting debugger, and it is set 
-> to No-idle state.
+Sorry, this was confusing.  To be more specific, s/base/sync32k_cnt_reg/ 
+in the clocksource_mmio_init line
+above.
 
-Okay, thanks for testing.  Please do update this patch to use 
-omap_hwmod_enable(), etc.; see for example omap_dm_timer_init_one().
+Kevin
 
-
-- Paul
+> Can you guys that were seeing the hang confirm that that fixes the
+> issue?
+>
+> If so, please reply with your Tested-by.
+>
+> Thanks,
+>
+> Kevin
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-omap" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
