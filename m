@@ -1,112 +1,239 @@
 From: Keerthy <j-keerthy@ti.com>
-Subject: [PATCH V3 05/10] ARM: OMAP2+: SmartReflex: introduce a busy loop
- condition test macro
-Date: Thu, 26 Apr 2012 23:10:36 +0530
-Message-ID: <1335462041-4949-6-git-send-email-j-keerthy@ti.com>
+Subject: [PATCH V3 07/10] ARM: OMAP2+: SmartReflex: Use per-OPP data structure
+Date: Thu, 26 Apr 2012 23:10:38 +0530
+Message-ID: <1335462041-4949-8-git-send-email-j-keerthy@ti.com>
 References: <1335462041-4949-1-git-send-email-j-keerthy@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
+Content-Type: text/plain
+Return-path: <linux-kernel-owner@vger.kernel.org>
 In-Reply-To: <1335462041-4949-1-git-send-email-j-keerthy@ti.com>
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: linux-arm-kernel-bounces@lists.infradead.org
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
+Sender: linux-kernel-owner@vger.kernel.org
 To: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, khilman@ti.com, rjw@sisk.pl, linux-kernel@vger.kernel.org, linux-pm@lists.linux-foundation.org
-Cc: j-keerthy@ti.com, j-pihet@ti.com
+Cc: j-pihet@ti.com, j-keerthy@ti.com, Paul Walmsley <paul@pwsan.com>, Thara Gopinath <thara@ti.com>, Nishanth Menon <nm@ti.com>
 List-Id: linux-omap@vger.kernel.org
 
 From: Jean Pihet <j-pihet@ti.com>
 
-Now that omap_test_timeout is only accessible from mach-omap2/,
-introduce a similar function for SR.
+The SmartReflex driver incorrectly treats some per-OPP data as data
+common to all OPPs (e.g., ERRMINLIMIT).  Move this data into a per-OPP
+data structure.
 
-This change makes the SmartReflex implementation ready for the move
-to drivers/.
+Furthermore, in order to make the SmartReflex implementation ready for
+the move to drivers/, remove the dependency from the SR driver code
+to the voltage layer by querying the data tables only from the SR device
+init code.
+
+Based on Paul's original code for the SmartReflex driver conversion.
 
 Signed-off-by: Jean Pihet <j-pihet@ti.com>
 Signed-off-by: J Keerthy <j-keerthy@ti.com>
+Cc: Paul Walmsley <paul@pwsan.com>
+Cc: Thara Gopinath <thara@ti.com>
+Cc: Nishanth Menon <nm@ti.com>
+Cc: Kevin Hilman <khilman@ti.com>
 ---
- arch/arm/mach-omap2/smartreflex.c |   12 ++++++------
- include/linux/power/smartreflex.h |   23 ++++++++++++++++++++++-
- 2 files changed, 28 insertions(+), 7 deletions(-)
+ arch/arm/mach-omap2/smartreflex.c |   38 +++++++++++++++++-------------------
+ arch/arm/mach-omap2/sr_device.c   |   36 +++++++++++++++++++++++++++++-----
+ include/linux/power/smartreflex.h |    8 +++++-
+ 3 files changed, 54 insertions(+), 28 deletions(-)
 
 diff --git a/arch/arm/mach-omap2/smartreflex.c b/arch/arm/mach-omap2/smartreflex.c
-index d859277..acef08d 100644
+index acef08d..20075de 100644
 --- a/arch/arm/mach-omap2/smartreflex.c
 +++ b/arch/arm/mach-omap2/smartreflex.c
-@@ -289,9 +289,9 @@ static void sr_v1_disable(struct omap_sr *sr)
- 	 * Wait for SR to be disabled.
- 	 * wait until ERRCONFIG.MCUDISACKINTST = 1. Typical latency is 1us.
- 	 */
--	omap_test_timeout((sr_read_reg(sr, ERRCONFIG_V1) &
--			ERRCONFIG_MCUDISACKINTST), SR_DISABLE_TIMEOUT,
--			timeout);
-+	sr_test_cond_timeout((sr_read_reg(sr, ERRCONFIG_V1) &
-+			     ERRCONFIG_MCUDISACKINTST), SR_DISABLE_TIMEOUT,
-+			     timeout);
+@@ -347,22 +347,23 @@ static void sr_v2_disable(struct omap_sr *sr)
+ 	sr_write_reg(sr, IRQSTATUS, IRQSTATUS_MCUDISABLEACKINT);
+ }
  
- 	if (timeout >= SR_DISABLE_TIMEOUT)
- 		dev_warn(&sr->pdev->dev, "%s: Smartreflex disable timedout\n",
-@@ -334,9 +334,9 @@ static void sr_v2_disable(struct omap_sr *sr)
- 	 * Wait for SR to be disabled.
- 	 * wait until IRQSTATUS.MCUDISACKINTST = 1. Typical latency is 1us.
- 	 */
--	omap_test_timeout((sr_read_reg(sr, IRQSTATUS) &
--			IRQSTATUS_MCUDISABLEACKINT), SR_DISABLE_TIMEOUT,
--			timeout);
-+	sr_test_cond_timeout((sr_read_reg(sr, IRQSTATUS) &
-+			     IRQSTATUS_MCUDISABLEACKINT), SR_DISABLE_TIMEOUT,
-+			     timeout);
+-static u32 sr_retrieve_nvalue(struct omap_sr *sr, u32 efuse_offs)
++static struct omap_sr_nvalue_table *sr_retrieve_nvalue_row(
++				struct omap_sr *sr, u32 efuse_offs)
+ {
+ 	int i;
  
- 	if (timeout >= SR_DISABLE_TIMEOUT)
- 		dev_warn(&sr->pdev->dev, "%s: Smartreflex disable timedout\n",
+ 	if (!sr->nvalue_table) {
+ 		dev_warn(&sr->pdev->dev, "%s: Missing ntarget value table\n",
+ 			__func__);
+-		return 0;
++		return NULL;
+ 	}
+ 
+ 	for (i = 0; i < sr->nvalue_count; i++) {
+ 		if (sr->nvalue_table[i].efuse_offs == efuse_offs)
+-			return sr->nvalue_table[i].nvalue;
++			return &sr->nvalue_table[i];
+ 	}
+ 
+-	return 0;
++	return NULL;
+ }
+ 
+ /* Public Functions */
+@@ -586,7 +587,7 @@ int sr_enable(struct voltagedomain *voltdm, unsigned long volt)
+ {
+ 	struct omap_volt_data *volt_data;
+ 	struct omap_sr *sr = _sr_lookup(voltdm);
+-	u32 nvalue_reciprocal;
++	struct omap_sr_nvalue_table *nvalue_row;
+ 	int ret;
+ 
+ 	if (IS_ERR(sr)) {
+@@ -602,16 +603,16 @@ int sr_enable(struct voltagedomain *voltdm, unsigned long volt)
+ 		return PTR_ERR(volt_data);
+ 	}
+ 
+-	nvalue_reciprocal = sr_retrieve_nvalue(sr, volt_data->sr_efuse_offs);
++	nvalue_row = sr_retrieve_nvalue_row(sr, volt_data->sr_efuse_offs);
+ 
+-	if (!nvalue_reciprocal) {
+-		dev_warn(&sr->pdev->dev, "%s: NVALUE = 0 at voltage %ld\n",
+-			__func__, volt);
++	if (!nvalue_row) {
++		dev_warn(&sr->pdev->dev, "%s: failure getting SR data for this voltage %ld\n",
++			 __func__, volt);
+ 		return -ENODATA;
+ 	}
+ 
+ 	/* errminlimit is opp dependent and hence linked to voltage */
+-	sr->err_minlimit = volt_data->sr_errminlimit;
++	sr->err_minlimit = nvalue_row->errminlimit;
+ 
+ 	pm_runtime_get_sync(&sr->pdev->dev);
+ 
+@@ -624,7 +625,7 @@ int sr_enable(struct voltagedomain *voltdm, unsigned long volt)
+ 	if (ret)
+ 		return ret;
+ 
+-	sr_write_reg(sr, NVALUERECIPROCAL, nvalue_reciprocal);
++	sr_write_reg(sr, NVALUERECIPROCAL, nvalue_row->nvalue);
+ 
+ 	/* SRCONFIG - enable SR */
+ 	sr_modify_reg(sr, SRCONFIG, SRCONFIG_SRENABLE, SRCONFIG_SRENABLE);
+@@ -872,7 +873,6 @@ static int __init omap_sr_probe(struct platform_device *pdev)
+ 	struct omap_sr_data *pdata = pdev->dev.platform_data;
+ 	struct resource *mem, *irq;
+ 	struct dentry *nvalue_dir;
+-	struct omap_volt_data *volt_data;
+ 	int i, ret = 0;
+ 
+ 	sr_info = kzalloc(sizeof(struct omap_sr), GFP_KERNEL);
+@@ -990,12 +990,10 @@ static int __init omap_sr_probe(struct platform_device *pdev)
+ 		goto err_debugfs;
+ 	}
+ 
+-	omap_voltage_get_volttable(sr_info->voltdm, &volt_data);
+-	if (!volt_data) {
+-		dev_warn(&pdev->dev, "%s: %s: No Voltage table for the"
+-			" corresponding vdd. Cannot create debugfs"
+-			"entries for n-values\n",
+-			__func__, sr_info->name);
++	if (sr_info->nvalue_count == 0 || !sr_info->nvalue_table) {
++		dev_warn(&pdev->dev, "%s: %s: No Voltage table for the corresponding vdd. Cannot create debugfs entries for n-values\n",
++			 __func__, sr_info->name);
++
+ 		ret = -ENODATA;
+ 		goto err_debugfs;
+ 	}
+@@ -1003,8 +1001,8 @@ static int __init omap_sr_probe(struct platform_device *pdev)
+ 	for (i = 0; i < sr_info->nvalue_count; i++) {
+ 		char name[NVALUE_NAME_LEN + 1];
+ 
+-		snprintf(name, sizeof(name), "volt_%d",
+-			 volt_data[i].volt_nominal);
++		snprintf(name, sizeof(name), "volt_%lu",
++				sr_info->nvalue_table[i].volt_nominal);
+ 		(void) debugfs_create_x32(name, S_IRUGO | S_IWUSR, nvalue_dir,
+ 				&(sr_info->nvalue_table[i].nvalue));
+ 	}
+diff --git a/arch/arm/mach-omap2/sr_device.c b/arch/arm/mach-omap2/sr_device.c
+index e081174..e107e39 100644
+--- a/arch/arm/mach-omap2/sr_device.c
++++ b/arch/arm/mach-omap2/sr_device.c
+@@ -36,7 +36,10 @@ static void __init sr_set_nvalues(struct omap_volt_data *volt_data,
+ 				struct omap_sr_data *sr_data)
+ {
+ 	struct omap_sr_nvalue_table *nvalue_table;
+-	int i, count = 0;
++	int i, j, count = 0;
++
++	sr_data->nvalue_count = 0;
++	sr_data->nvalue_table = NULL;
+ 
+ 	while (volt_data[count].volt_nominal)
+ 		count++;
+@@ -44,8 +47,14 @@ static void __init sr_set_nvalues(struct omap_volt_data *volt_data,
+ 	nvalue_table = kzalloc(sizeof(struct omap_sr_nvalue_table)*count,
+ 			GFP_KERNEL);
+ 
+-	for (i = 0; i < count; i++) {
++	if (!nvalue_table) {
++		pr_err("OMAP: SmartReflex: cannot allocate memory for n-value table\n");
++		return;
++	}
++
++	for (i = 0, j = 0; i < count; i++) {
+ 		u32 v;
++
+ 		/*
+ 		 * In OMAP4 the efuse registers are 24 bit aligned.
+ 		 * A __raw_readl will fail for non-32 bit aligned address
+@@ -58,15 +67,30 @@ static void __init sr_set_nvalues(struct omap_volt_data *volt_data,
+ 				omap_ctrl_readb(offset + 1) << 8 |
+ 				omap_ctrl_readb(offset + 2) << 16;
+ 		} else {
+-			 v = omap_ctrl_readl(volt_data[i].sr_efuse_offs);
++			v = omap_ctrl_readl(volt_data[i].sr_efuse_offs);
+ 		}
+ 
+-		nvalue_table[i].efuse_offs = volt_data[i].sr_efuse_offs;
+-		nvalue_table[i].nvalue = v;
++		/*
++		 * Many OMAP SoCs don't have the eFuse values set.
++		 * For example, pretty much all OMAP3xxx before
++		 * ES3.something.
++		 *
++		 * XXX There needs to be some way for board files or
++		 * userspace to add these in.
++		 */
++		if (v == 0)
++			continue;
++
++		nvalue_table[j].nvalue = v;
++		nvalue_table[j].efuse_offs = volt_data[i].sr_efuse_offs;
++		nvalue_table[j].errminlimit = volt_data[i].sr_errminlimit;
++		nvalue_table[j].volt_nominal = volt_data[i].volt_nominal;
++
++		j++;
+ 	}
+ 
+ 	sr_data->nvalue_table = nvalue_table;
+-	sr_data->nvalue_count = count;
++	sr_data->nvalue_count = j;
+ }
+ 
+ static int __init sr_dev_init(struct omap_hwmod *oh, void *user)
 diff --git a/include/linux/power/smartreflex.h b/include/linux/power/smartreflex.h
-index 884eaee..78b795e 100644
+index 78b795e..222f901 100644
 --- a/include/linux/power/smartreflex.h
 +++ b/include/linux/power/smartreflex.h
-@@ -22,7 +22,7 @@
- 
- #include <linux/types.h>
- #include <linux/platform_device.h>
--
-+#include <linux/delay.h>
- #include <plat/voltage.h>
- 
- /*
-@@ -168,6 +168,27 @@ struct omap_sr {
+@@ -243,12 +243,16 @@ struct omap_sr_class_data {
+ /**
+  * struct omap_sr_nvalue_table	- Smartreflex n-target value info
+  *
+- * @efuse_offs:	The offset of the efuse where n-target values are stored.
+- * @nvalue:	The n-target value.
++ * @efuse_offs:	  The offset of the efuse where n-target values are stored.
++ * @nvalue:	  The n-target value.
++ * @errminlimit:  The value of the ERRMINLIMIT bitfield for this n-target
++ * @volt_nominal: microvolts DC that the VDD is initially programmed to
+  */
+ struct omap_sr_nvalue_table {
+ 	u32 efuse_offs;
+ 	u32 nvalue;
++	u32 errminlimit;
++	unsigned long volt_nominal;
  };
  
  /**
-+ * test_cond_timeout - busy-loop, testing a condition
-+ * @cond: condition to test until it evaluates to true
-+ * @timeout: maximum number of microseconds in the timeout
-+ * @index: loop index (integer)
-+ *
-+ * Loop waiting for @cond to become true or until at least @timeout
-+ * microseconds have passed.  To use, define some integer @index in the
-+ * calling code.  After running, if @index == @timeout, then the loop has
-+ * timed out.
-+ *
-+ * Copied from omap_test_timeout */
-+#define sr_test_cond_timeout(cond, timeout, index)		\
-+({								\
-+	for (index = 0; index < timeout; index++) {		\
-+		if (cond)					\
-+			break;					\
-+		udelay(1);					\
-+	}							\
-+})
-+
-+/**
-  * struct omap_sr_pmic_data - Strucutre to be populated by pmic code to pass
-  *				pmic specific info to smartreflex driver
-  *
 -- 
 1.7.5.4
