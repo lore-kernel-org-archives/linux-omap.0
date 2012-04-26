@@ -1,54 +1,97 @@
-From: Ricardo Neri <ricardo.neri@ti.com>
-Subject: Re: [PATCH 0/3] ARM: OMAP: Add platform devices for ASoC HDMI drivers
-Date: Wed, 25 Apr 2012 18:29:24 -0500
-Message-ID: <4F9888D4.5090207@ti.com>
-References: <1334709646-8468-1-git-send-email-ricardo.neri@ti.com>
+From: Paul Walmsley <paul@pwsan.com>
+Subject: RE: [PATCH-V3 2/3] ARM: OMAP3+: clockdomain33xx: Add clockdomain
+ data and respective operations
+Date: Wed, 25 Apr 2012 21:19:28 -0600 (MDT)
+Message-ID: <alpine.DEB.2.00.1204252118170.30642@utopia.booyaka.com>
+References: <1333458578-23073-1-git-send-email-hvaibhav@ti.com> <1333458578-23073-3-git-send-email-hvaibhav@ti.com> <alpine.DEB.2.00.1204241725430.24864@utopia.booyaka.com> <79CD15C6BA57404B839C016229A409A83E9FD30E@DBDE01.ent.ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="ISO-8859-1"; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from bear.ext.ti.com ([192.94.94.41]:33530 "EHLO bear.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S932454Ab2DYX3d (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Wed, 25 Apr 2012 19:29:33 -0400
-In-Reply-To: <1334709646-8468-1-git-send-email-ricardo.neri@ti.com>
+Received: from utopia.booyaka.com ([72.9.107.138]:44888 "EHLO
+	utopia.booyaka.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751522Ab2DZDT3 (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 25 Apr 2012 23:19:29 -0400
+In-Reply-To: <79CD15C6BA57404B839C016229A409A83E9FD30E@DBDE01.ent.ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Ricardo Neri <ricardo.neri@ti.com>
-Cc: tony@atomide.com, broonie@opensource.wolfsonmicro.com, lrg@ti.com, s-guiriec@ti.com, peter.ujfalusi@ti.com, linux-omap@vger.kernel.org, alsa-devel@alsa-project.org
+To: "Hiremath, Vaibhav" <hvaibhav@ti.com>
+Cc: "Mohammed, Afzal" <afzal@ti.com>, "Bedia, Vaibhav" <vaibhav.bedia@ti.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "tony@atomide.com" <tony@atomide.com>, "Hilman, Kevin" <khilman@ti.com>, "Nayak, Rajendra" <rnayak@ti.com>, "Cousson, Benoit" <b-cousson@ti.com>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>
 
-Hi Tony,
+On Wed, 25 Apr 2012, Hiremath, Vaibhav wrote:
 
-I was wondering if you've had the time to take a look at these patches.
+> On Wed, Apr 25, 2012 at 05:52:26, Paul Walmsley wrote:
+> > A few questions while reviewing this patch:
+> > 
+> > On Tue, 3 Apr 2012, Vaibhav Hiremath wrote:
+> > 
+> > > AM33XX PRCM module consist of, various clockdomains, in all
+> > > total we have 18 clockdomains available, with following
+> > > controlling options,
+> > >    - NO Sleep: sleep transition can not be initiated,
+> > >    - SW Sleep: sw forced sleep transition,
+> > >    - SW Wakeup: sw forced wakeup transition,
+> > >    - HW Auto: transitions are based upon hw conditions.
+> > > 
+> > > This patch adds all available clockdomain data, respective
+> > > clockdomain operations for AM33XX family of device, and also
+> > > integrates it into existing OMAP framework.
+> > > 
+> > > Signed-off-by: Vaibhav Hiremath <hvaibhav@ti.com>
+> > > Signed-off-by: Afzal Mohammed <afzal@ti.com>
+> > > Signed-off-by: Vaibhav Bedia <vaibhav.bedia@ti.com>
+> > 
+> > ...
+> > 
+> > > +static struct clockdomain l4ls_am33xx_clkdm = {
+> > > +	.name		= "l4ls_clkdm",
+> > > +	.pwrdm		= { .name = "per_pwrdm" },
+> > > +	.cm_inst	= AM33XX_CM_PER_MOD,
+> > > +	.clkdm_offs	= AM33XX_CM_PER_L4LS_CLKSTCTRL_OFFSET,
+> > > +	.clktrctrl_mask	= AM33XX_CLKTRCTRL_MASK,
+> > > +	.flags		= (CLKDM_CAN_SWSUP | CLKDM_NO_AUTODEPS),
+> > 
+> > It looks to me like we don't need the .clktrctrl_mask field, since 
+> > according to the clockdomains code, the CLKTRCTRL field is at the same bit 
+> > shift for each clockdomain.
+> > 
+> 
+> Yeah, we actually don't need it, probably I added for completeness.
+> I will remove it in next version.
 
-Thanks!
+I've removed them here.
 
-Ricardo
-On 04/17/2012 07:40 PM, Ricardo Neri wrote:
-> This set of patches is intended to add the platform devices for the ASoC
-> HDMI drivers when not using device tree. For this, I took an approach similar
-> to DMIC and McPDM by creating a dedicated functions to create the devices.
->
-> I included the device for the CPU DAI driver, omap-hdmi-audio-dai, and the
-> device for the machine driver, omap-hdmi-audio, in devices.c to reflect the
-> fact that any OMAP4 (and OMAP5 in the future) has HDMI IP. I put the device
-> for the codec in the board file to reflect the fact that not necessarily all
-> the boards with OMAP4/5 have the HDMI output wired.
->
-> Best regards
->
-> Ricardo
->
-> Ricardo Neri (3):
->    ARM: OMAP: devices: Register platform devices for HDMI audio
->    ARM: OMAP4: board-4430sdp: Register platform device for HDMI audio
->      codec
->    ARM: OMAP4: board-omap4panda: Register platform device for HDMI audio
->      codec
->
->   arch/arm/mach-omap2/board-4430sdp.c    |    6 ++++++
->   arch/arm/mach-omap2/board-omap4panda.c |    6 ++++++
->   arch/arm/mach-omap2/devices.c          |   31 +++++++++++++++++++++++++++++++
->   3 files changed, 43 insertions(+), 0 deletions(-)
->
+> > Also, since we're not defining any autodeps for the AM335x platform, we 
+> > shouldn't need the CLKDM_NO_AUTODEPS flag either?  Since no autodeps are 
+> > defined, the default will be to not set any autodeps.
+> > 
+> 
+> This is required to avoid few "pr_debug", if you don't provide it.
+> For example, without this flag set, you will get,
+> 
+> pr_debug("clockdomain: hardware cannot set/clear sleep "
+> 		"dependency affecting %s from %s\n", clkdm1->name,
+>              clkdm2->name);
+> 
+> Refer to the file omap_hwmod.c, function, _enable(), the call sequence is,
+> 
+> _enable() => _add_initiator_dep() => clkdm_add_sleepdep() =>leads to warning
 
+Seems like the better thing to do is to just avoid calling
+_{add,del}_initiator_dep() on the AM335x.
+
+> > Another question is about the CLKTRCTRL bitfields.  According to
+> > _AM335x ARM Cortex-A8 Microprocessors (MPUs) Technical Reference
+> > Manual_ Rev. D (SPRUH73D), most of the clockdomains support NO_SLEEP mode 
+> > (i.e., CLKTRCTRL = 0x0).  That means that technically, we should also set 
+> > the CLKDM_CAN_DISABLE_AUTO flag.  Unless the documentation is incorrect 
+> > here?  In another section (Table 8-9 "Clock Transition Mode Settings"), 
+> > it claims that CLKTRCTRL = 0 is not supported...
+> > 
+> 
+> It is not supported, and should be considered as documentation issue.
+
+Okay so I guess the description for this patch (quoted above) is wrong 
+then also?
+
+
+- Paul
