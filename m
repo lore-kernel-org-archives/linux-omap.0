@@ -1,69 +1,48 @@
-From: "Hiremath, Vaibhav" <hvaibhav@ti.com>
-Subject: RE: [PATCH-V4 0/4] ARM: OMAP2+: Add voltagedomain, powerdomain &
- PRM support for AM33XX device
-Date: Thu, 26 Apr 2012 18:49:12 +0000
-Message-ID: <79CD15C6BA57404B839C016229A409A83E9FF9EA@DBDE01.ent.ti.com>
-References: <1333123435-27186-1-git-send-email-hvaibhav@ti.com>
- <alpine.DEB.2.00.1204120207420.29473@utopia.booyaka.com>
- <79CD15C6BA57404B839C016229A409A83E9EA07A@DBDE01.ent.ti.com>
- <20120418231837.GT21106@atomide.com>
- <79CD15C6BA57404B839C016229A409A83E9F9C2D@DBDE01.ent.ti.com>
- <20120426184312.GY3739@atomide.com>
+From: Paul Walmsley <paul@pwsan.com>
+Subject: RE: [PATCH-V3 2/3] ARM: OMAP3+: clockdomain33xx: Add clockdomain
+ data and respective operations
+Date: Thu, 26 Apr 2012 12:56:47 -0600 (MDT)
+Message-ID: <alpine.DEB.2.00.1204261252430.10308@utopia.booyaka.com>
+References: <1333458578-23073-1-git-send-email-hvaibhav@ti.com> <1333458578-23073-3-git-send-email-hvaibhav@ti.com> <alpine.DEB.2.00.1204241725430.24864@utopia.booyaka.com> <79CD15C6BA57404B839C016229A409A83E9FD30E@DBDE01.ent.ti.com>
+ <alpine.DEB.2.00.1204252118170.30642@utopia.booyaka.com> <79CD15C6BA57404B839C016229A409A83E9FE75B@DBDE01.ent.ti.com> <alpine.DEB.2.00.1204260252240.10308@utopia.booyaka.com> <79CD15C6BA57404B839C016229A409A83E9FF79B@DBDE01.ent.ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from devils.ext.ti.com ([198.47.26.153]:54347 "EHLO
-	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752598Ab2DZStW convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 26 Apr 2012 14:49:22 -0400
-In-Reply-To: <20120426184312.GY3739@atomide.com>
-Content-Language: en-US
+Received: from utopia.booyaka.com ([72.9.107.138]:59443 "EHLO
+	utopia.booyaka.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754230Ab2DZS4s (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 26 Apr 2012 14:56:48 -0400
+In-Reply-To: <79CD15C6BA57404B839C016229A409A83E9FF79B@DBDE01.ent.ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Tony Lindgren <tony@atomide.com>
-Cc: Paul Walmsley <paul@pwsan.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "Hilman, Kevin" <khilman@ti.com>, "Nayak, Rajendra" <rnayak@ti.com>, "Cousson, Benoit" <b-cousson@ti.com>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>
+To: "Hiremath, Vaibhav" <hvaibhav@ti.com>
+Cc: "Mohammed, Afzal" <afzal@ti.com>, "Bedia, Vaibhav" <vaibhav.bedia@ti.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "tony@atomide.com" <tony@atomide.com>, "Hilman, Kevin" <khilman@ti.com>, "Nayak, Rajendra" <rnayak@ti.com>, "Cousson, Benoit" <b-cousson@ti.com>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>
 
-On Fri, Apr 27, 2012 at 00:13:13, Tony Lindgren wrote:
-> * Hiremath, Vaibhav <hvaibhav@ti.com> [120423 11:31]:
-> > On Thu, Apr 19, 2012 at 04:48:37, Tony Lindgren wrote:
-> > > * Hiremath, Vaibhav <hvaibhav@ti.com> [120413 03:39]:
-> > > > On Thu, Apr 12, 2012 at 13:56:06, Paul Walmsley wrote:
-> > > > 
-> > > > Yes, we are using am3517evm file for AM33XX MACHINE_INIT definition here.
-> > > > These patches have been reviewed and accepted in the list, only thing is
-> > > > they couldn't make it to upstream during v3.4 merge window.
-> > > > 
-> > > > I believe Tony is going to push them for v3.5 now.
-> > > 
-> > > Hmm care to clarify which patches are you talking about here?
-> > > 
+On Thu, 26 Apr 2012, Hiremath, Vaibhav wrote:
+
+> On Thu, Apr 26, 2012 at 14:27:20, Paul Walmsley wrote:
+
+(attribution lost)
+
+> > > I am thinking of separating clocktree patch (PATCH-V3 3/3) from this series, 
+> > > so that clockdomain stuff can get in independently, and clocktree anyway 
+> > > will follow them (it may take some time in review cycle).
 > > 
-> > Tony,
-> > I was referring to initial 2 baseport patches which we have dropped due 
-> > dependency on mach-types.
-> > 
-> > arm:omap:am33xx: Add AM335XEVM machine support
-> > arm:omap:am33xx: Add low level debugging support
+> > Yes, I was thinking of doing this too.  The only aspect that gave me pause 
+> > is that the clockdomain changes are not 100% separate from the clock tree.  
+> > So we may have to update the clockdomain data as the clock tree changes.
 > 
-> Can you please repost these against current v3.4-rc4? 
->  
+> Why do you say that, clockdomain changes are not 100% separate from 
+> clocktree? It is completely independent...
 
-Ok, I will do that.
+Clock enables and disables call clkdm_clk_{enable,disable}() which 
+undertakes the clockdomain enable sequence on the first clock enabled 
+inside the clockdomain, and the clockdomain disable sequence on the last 
+clock inside the clockdomain.  The clockdomain is associated with the 
+clock via the struct clk .clkdm and .clkdm_name fields.
 
-> > One patch (which was independent) from this series, made its way to upstream,
-> > ARM: OMAP2+: id: Add am33xx SoC type detection
-> 
-> OK
->  
-> > Can you please make sure that, it gets included into your next pull request?
-> 
-> As far as I remember they looked OK for minimal board changes.
-> 
+So yes, they are interconnected; particularly if the clkdiv32k MODULEMODE 
+"clock" is really needed.
 
-Yes, they were accepted and were also available under linux-omap/soc2 branch 
-for quite some time.
 
-Thanks,
-Vaibhav
-
+- Paul
