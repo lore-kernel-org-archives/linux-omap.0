@@ -1,85 +1,95 @@
-From: Tomi Valkeinen <tomi.valkeinen@ti.com>
-Subject: Re: [PATCH 10/10] OMAPDSS: HDMI: Implement DSS driver interface
- for audio
-Date: Thu, 26 Apr 2012 10:31:44 +0300
-Message-ID: <1335425504.1962.17.camel@deskari>
-References: <1332974305-4578-1-git-send-email-ricardo.neri@ti.com>
-	 <1332974305-4578-11-git-send-email-ricardo.neri@ti.com>
-	 <1335186116.1535.23.camel@lappy>  <4F97820E.2020006@ti.com>
-	 <1335334757.1923.19.camel@lappy>  <4F988262.7000703@ti.com>
+From: Russ Dill <russ.dill@gmail.com>
+Subject: Re: [PATCH-V4 3/3] ARM: OMAP: Make OMAP clocksource source selection
+ using kernel param
+Date: Thu, 26 Apr 2012 00:45:18 -0700
+Message-ID: <CA+Bv8XYDNKWByVEMWniYruH6bcDtOihne5ecoXWJs6fYq418bQ@mail.gmail.com>
+References: <1335260749-25877-1-git-send-email-hvaibhav@ti.com>
+	<1335260749-25877-4-git-send-email-hvaibhav@ti.com>
+	<CA+Bv8XYemH3zW48id_ZAvC2gU_uZMFei6dMO1GUog_YTvFBV2Q@mail.gmail.com>
+	<79CD15C6BA57404B839C016229A409A83E9FE722@DBDE01.ent.ti.com>
+	<CA+Bv8XaWkBr7ZDTjmjDg_K+JhEfWdYEt=eKQ5Gj8NMbw4K=Jmg@mail.gmail.com>
+	<79CD15C6BA57404B839C016229A409A83E9FE807@DBDE01.ent.ti.com>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg="pgp-sha1"; protocol="application/pgp-signature"; boundary="=-ldue1md+xnJfDyvXtwzU"
+Content-Type: text/plain; charset=UTF-8
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aog112.obsmtp.com ([74.125.149.207]:55440 "EHLO
-	na3sys009aog112.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1750908Ab2DZHbv (ORCPT
+Received: from mail-lpp01m010-f46.google.com ([209.85.215.46]:35673 "EHLO
+	mail-lpp01m010-f46.google.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1751090Ab2DZHpU (ORCPT
 	<rfc822;linux-omap@vger.kernel.org>);
-	Thu, 26 Apr 2012 03:31:51 -0400
-Received: by lagv3 with SMTP id v3so839242lag.41
-        for <linux-omap@vger.kernel.org>; Thu, 26 Apr 2012 00:31:47 -0700 (PDT)
-In-Reply-To: <4F988262.7000703@ti.com>
+	Thu, 26 Apr 2012 03:45:20 -0400
+Received: by lahj13 with SMTP id j13so759660lah.19
+        for <linux-omap@vger.kernel.org>; Thu, 26 Apr 2012 00:45:18 -0700 (PDT)
+In-Reply-To: <79CD15C6BA57404B839C016229A409A83E9FE807@DBDE01.ent.ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Ricardo Neri <ricardo.neri@ti.com>
-Cc: mythripk@ti.com, s-chereau@ti.com, x0055901@ti.com, "Bedia, Vaibhav" <vaibhav.bedia@ti.com>, s-guiriec@ti.com, lrg@ti.com, peter.ujfalusi@ti.com, agraf@suse.de, research@ottomaneng.com, linux-omap@vger.kernel.org, alsa-devel <alsa-devel@alsa-project.org>
+To: "Hiremath, Vaibhav" <hvaibhav@ti.com>
+Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "tony@atomide.com" <tony@atomide.com>, "Hilman, Kevin" <khilman@ti.com>, "paul@pwsan.com" <paul@pwsan.com>, "Shilimkar, Santosh" <santosh.shilimkar@ti.com>, "Cousson, Benoit" <b-cousson@ti.com>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, "Balbi, Felipe" <balbi@ti.com>, "DebBarma, Tarun Kanti" <tarun.kanti@ti.com>, Ming Lei <tom.leiming@gmail.com>
+
+On Wed, Apr 25, 2012 at 11:23 PM, Hiremath, Vaibhav <hvaibhav@ti.com> wrote:
+> On Thu, Apr 26, 2012 at 11:26:09, Russ Dill wrote:
+>> On Wed, Apr 25, 2012 at 10:42 PM, Hiremath, Vaibhav <hvaibhav@ti.com> wrote:
+>> > On Thu, Apr 26, 2012 at 10:06:40, Russ Dill wrote:
+>> >> On Tue, Apr 24, 2012 at 2:45 AM, Vaibhav Hiremath <hvaibhav@ti.com> wrote:
+>> >> > Current OMAP code supports couple of clocksource options based
+>> >> > on compilation flag (CONFIG_OMAP_32K_TIMER). The 32KHz sync-timer
+>> >> > and a gptimer which can run on 32KHz or system clock (e.g 38.4 MHz).
+>> >> > So there can be 3 options -
+>> >> >
+>> >> > 1. 32KHz sync-timer
+>> >> > 2. Sys_clock based (e.g 13/19.2/26/38.4 MHz) gptimer
+>> >> > 3. 32KHz based gptimer.
+>> >> >
+>> >> > The optional gptimer based clocksource was added so that it can
+>> >> > give the high precision than sync-timer, so expected usage was 2
+>> >> > and not 3.
+>> >> > Unfortunately option 2, clocksource doesn't meet the requirement of
+>> >> > free-running clock as per clocksource need. It stops in low power states
+>> >> > when sys_clock is cut. That makes gptimer based clocksource option
+>> >> > useless for OMAP2/3/4 devices with sys_clock as a clock input.
+>> >> > Option 3 will still work but it is no better than 32K sync-timer
+>> >> > based clocksource.
+>> >> >
+>> >> > So ideally we can kill the gptimer based clocksource option but there
+>> >> > are some OMAP based derivative SoCs like AM33XX which doesn't have
+>> >> > 32K sync-timer hardware IP and need to fallback on 32KHz based gptimer
+>> >> > clocksource.
+>> >> > Considering above, make sync-timer and gptimer clocksource runtime
+>> >> > selectable so that both OMAP and AMXXXX continue to use the same code.
+>> >> >
+>> >> > Also, in order to precisely configure/setup sched_clock for given
+>> >> > clocksource, decision has to be made early enough in boot sequence.
+>> >> >
+>> >> > So, the solution is,
+>> >> >
+>> >> > Use kernel parameter ("clocksource=") to override
+>> >> > default 32k_sync-timer, in addition to this, we also use hwmod database
+>> >> > lookup mechanism, through which at run-time we can identify availability
+>> >> > of 32k-sync timer on the device, else fall back to gptimer.
+>> >> >
+>> >> > Signed-off-by: Vaibhav Hiremath <hvaibhav@ti.com>
+>> >> > Signed-off-by: Felipe Balbi <balbi@ti.com>
+>> >> > Cc: Santosh Shilimkar <santosh.shilimkar@ti.com>
+>> >> > Cc: Kevin Hilman <khilman@ti.com>
+>> >> > Cc: Benoit Cousson <b-cousson@ti.com>
+>> >> > Cc: Tony Lindgren <tony@atomide.com>
+>> >> > Cc: Paul Walmsley <paul@pwsan.com>
+>> >> > Cc: Tarun Kanti DebBarma <tarun.kanti@ti.com>
+>> >> > Cc: Ming Lei <tom.leiming@gmail.com>
+>> >>
+>> >> This fails to boot on my Mistral am37x-evm with omap2plus_defconfig
+>> >>
+>> >
+>> > Thanks Russ, for validating it.
+>> >
+>> > But I do not see any relation between your boot process stuck and this patch.
+>> > What is the observation without these patches?
+>>
+>> With no patches applied it boots, with 1/3 applied it boots, with 2/3
+>> applied it boots, with 3/3 applied it gets hung. I also tested on my
+>> beagleboard b4, that booted fine.
+>>
+>
+> You mean to say, on Beagleboard it boots up fine. And same fails on EVM?
 
 
---=-ldue1md+xnJfDyvXtwzU
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: quoted-printable
-
-On Wed, 2012-04-25 at 18:01 -0500, Ricardo Neri wrote:
-
-> > If so, we need to make sure it's not currently called in an atomic
-> > context, because it would break if the function will sleep in the
-> > future. And with "make sure" I just mean that we check the code and kee=
-p
-> > it in mind. Or perhaps adding a comment in the header, that says
-> > "audio_enable may sleep, other audio functions do not sleep" or such.
->=20
-> I revisited the ALSA code. Only the audio_start function is atomic.=20
-> Although ALSA may not be the only user, it makes sense to me to think=20
-> that they will follow a similar approach in terms of locks.
->=20
-> Hence, based on that and on the reasons you describe (audio_enable=20
-> potentially taking too long to return), Rephrasing what you stated, a=20
-> mutex may be used for the enable/disable and config operations. Only=20
-> start/stop would be protected by a spinlock. This should be described in=
-=20
-> comments in the header file. Does it make sense to you?
-
-Yes. Well, you don't need to mention the locks, they are internal
-implementation details. It should be enough to say that start/stop never
-sleeps and the other functions may sleep.
-
-And, this is obvious but just to be sure, note that you should use
-spinlocks in all of the functions if possible. We just need to make sure
-we can use mutex in the future if we need to.
-
- Tomi
-
-
---=-ldue1md+xnJfDyvXtwzU
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: This is a digitally signed message part
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.4.11 (GNU/Linux)
-
-iQIcBAABAgAGBQJPmPngAAoJEPo9qoy8lh71ZrIP/3LHvXLlz3gYAwF2uJfIT0MI
-q3crrKfuapHvjqVU+ouSZRY+Ck9nDSg3dfWs/XliK79vVs9ByVJMwD9RkzeliXCx
-JfUsohstV/yBxRRZflXpXsH5q6evL3yXSiAsTofyddVILHT84eST9PPi2Z3HKIPC
-YBjbT/j08KM8lzDIs6AHPDnEFxBNHHg4bhioCFqGX/sHlnHlGAoYf3HCT8+F+tB7
-3HjeRkL9+nJB1uqaW6/QWZo1cJ86JYMYy1/82vTgZZRSnFzbh+Y77DMlD5VafxfM
-alr2/5m5nuOO0hySoIvpJFy2VF9tZwZ03cG0r7H6HR1OtdjBCJ4lrBdHZcdwt21V
-Aq3MHJODCsGx7MOAMNQNsdCka53AvKW50xRnZnrS5tu31TFXPW6QAM08M6JaELcO
-qqnelEAB5RptUtel3P24OXnwwr2vdaB3RxQGfAo/3XSeQ5NYMNLkFyipZuZFBmRR
-GKC7sKyMrPtYJ+N3T7eY9aoE304JTha8ENEu+7e6wt9UjfAhq4pyuVh2uDGB9Hn7
-eCz5kepfjIZizls6+nWmInNoX0lzMXZciVB/zPDh6JT3EQ1ebyiERkDV91LPXKeD
-ybNNGpvB+aKw9hijn56p50uNoiR0YdHVUROezMJ4A4HXliMXzFd/b5x6JeO9VdyK
-fz5YDLd0ezebrYLnd3Ov
-=IW/b
------END PGP SIGNATURE-----
-
---=-ldue1md+xnJfDyvXtwzU--
-
+yes
