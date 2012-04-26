@@ -1,32 +1,23 @@
 From: Keerthy <j-keerthy@ti.com>
-Subject: [PATCH V3 01/10] ARM: OMAP2+: SmartReflex: move the smartreflex
- header to include/linux/power
-Date: Thu, 26 Apr 2012 23:10:32 +0530
-Message-ID: <1335462041-4949-2-git-send-email-j-keerthy@ti.com>
+Subject: [PATCH V3 09/10] ARM: OMAP2+: SmartReflex: add POWER_AVS Kconfig options
+Date: Thu, 26 Apr 2012 23:10:40 +0530
+Message-ID: <1335462041-4949-10-git-send-email-j-keerthy@ti.com>
 References: <1335462041-4949-1-git-send-email-j-keerthy@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
+Content-Type: text/plain
+Return-path: <linux-kernel-owner@vger.kernel.org>
 In-Reply-To: <1335462041-4949-1-git-send-email-j-keerthy@ti.com>
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: linux-arm-kernel-bounces@lists.infradead.org
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
+Sender: linux-kernel-owner@vger.kernel.org
 To: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, khilman@ti.com, rjw@sisk.pl, linux-kernel@vger.kernel.org, linux-pm@lists.linux-foundation.org
-Cc: j-keerthy@ti.com, j-pihet@ti.com
+Cc: j-pihet@ti.com, j-keerthy@ti.com
 List-Id: linux-omap@vger.kernel.org
 
 From: Jean Pihet <j-pihet@ti.com>
 
-Move the smartreflex header file
-(arch/arm/mach-omap2/smartreflex.h) in a new header file
-include/linux/power/smartreflex.h.
+Add a Kconfig menu (POWER_AVS) and rename the Kconfig options
+for the OMAP SmartReflex implementation:
+	CONFIG_OMAP_SMARTREFLEX renames to CONFIG_POWER_AVS_OMAP
+	CONFIG_OMAP_SMARTREFLEX_CLASS3 renames to CONFIG_POWER_AVS_OMAP_CLASS3
 
 This change makes the SmartReflex implementation ready for the move
 to drivers/.
@@ -34,132 +25,125 @@ to drivers/.
 Signed-off-by: Jean Pihet <j-pihet@ti.com>
 Signed-off-by: J Keerthy <j-keerthy@ti.com>
 ---
- arch/arm/mach-omap2/omap_hwmod_3xxx_data.c         |    4 ++--
- arch/arm/mach-omap2/omap_hwmod_44xx_data.c         |    3 +--
- arch/arm/mach-omap2/smartreflex-class3.c           |    3 ++-
- arch/arm/mach-omap2/smartreflex.c                  |    3 +--
- arch/arm/mach-omap2/sr_device.c                    |    2 +-
- .../linux/power}/smartreflex.h                     |    7 ++++---
- 6 files changed, 11 insertions(+), 11 deletions(-)
- rename {arch/arm/mach-omap2 => include/linux/power}/smartreflex.h (98%)
+ arch/arm/mach-omap2/Makefile      |    5 ++-
+ arch/arm/mach-omap2/pm.h          |    2 +-
+ arch/arm/plat-omap/Kconfig        |   45 ++++++++++++++++++++++++------------
+ include/linux/power/smartreflex.h |    2 +-
+ 4 files changed, 35 insertions(+), 19 deletions(-)
 
-diff --git a/arch/arm/mach-omap2/omap_hwmod_3xxx_data.c b/arch/arm/mach-omap2/omap_hwmod_3xxx_data.c
-index 0c65079..144d118 100644
---- a/arch/arm/mach-omap2/omap_hwmod_3xxx_data.c
-+++ b/arch/arm/mach-omap2/omap_hwmod_3xxx_data.c
-@@ -14,6 +14,8 @@
-  *
-  * XXX these should be marked initdata for multi-OMAP kernels
-  */
-+#include <linux/power/smartreflex.h>
+diff --git a/arch/arm/mach-omap2/Makefile b/arch/arm/mach-omap2/Makefile
+index d8604a3..85ca797 100644
+--- a/arch/arm/mach-omap2/Makefile
++++ b/arch/arm/mach-omap2/Makefile
+@@ -69,8 +69,9 @@ obj-$(CONFIG_ARCH_OMAP3)		+= pm34xx.o sleep34xx.o \
+ obj-$(CONFIG_ARCH_OMAP4)		+= pm44xx.o omap-mpuss-lowpower.o \
+ 					   cpuidle44xx.o
+ obj-$(CONFIG_PM_DEBUG)			+= pm-debug.o
+-obj-$(CONFIG_OMAP_SMARTREFLEX)          += sr_device.o smartreflex.o
+-obj-$(CONFIG_OMAP_SMARTREFLEX_CLASS3)	+= smartreflex-class3.o
 +
- #include <plat/omap_hwmod.h>
- #include <mach/irqs.h>
- #include <plat/cpu.h>
-@@ -29,8 +31,6 @@
- #include <plat/dmtimer.h>
++obj-$(CONFIG_POWER_AVS_OMAP)		+= sr_device.o smartreflex.o
++obj-$(CONFIG_POWER_AVS_OMAP_CLASS3)	+= smartreflex-class3.o
  
- #include "omap_hwmod_common_data.h"
--
--#include "smartreflex.h"
- #include "prm-regbits-34xx.h"
- #include "cm-regbits-34xx.h"
- #include "wd_timer.h"
-diff --git a/arch/arm/mach-omap2/omap_hwmod_44xx_data.c b/arch/arm/mach-omap2/omap_hwmod_44xx_data.c
-index 4906129..1079c79 100644
---- a/arch/arm/mach-omap2/omap_hwmod_44xx_data.c
-+++ b/arch/arm/mach-omap2/omap_hwmod_44xx_data.c
-@@ -19,6 +19,7 @@
-  */
+ AFLAGS_sleep24xx.o			:=-Wa,-march=armv6
+ AFLAGS_sleep34xx.o			:=-Wa,-march=armv7-a$(plus_sec)
+diff --git a/arch/arm/mach-omap2/pm.h b/arch/arm/mach-omap2/pm.h
+index 36fa90b..77c8c85 100644
+--- a/arch/arm/mach-omap2/pm.h
++++ b/arch/arm/mach-omap2/pm.h
+@@ -109,7 +109,7 @@ extern void enable_omap3630_toggle_l2_on_restore(void);
+ static inline void enable_omap3630_toggle_l2_on_restore(void) { }
+ #endif		/* defined(CONFIG_PM) && defined(CONFIG_ARCH_OMAP3) */
  
- #include <linux/io.h>
-+#include <linux/power/smartreflex.h>
+-#ifdef CONFIG_OMAP_SMARTREFLEX
++#ifdef CONFIG_POWER_AVS_OMAP
+ extern int omap_devinit_smartreflex(void);
+ extern void omap_enable_smartreflex_on_init(void);
+ #else
+diff --git a/arch/arm/plat-omap/Kconfig b/arch/arm/plat-omap/Kconfig
+index ad95c7a..bba384d 100644
+--- a/arch/arm/plat-omap/Kconfig
++++ b/arch/arm/plat-omap/Kconfig
+@@ -45,37 +45,52 @@ config OMAP_DEBUG_LEDS
+ 	depends on OMAP_DEBUG_DEVICES
+ 	default y if LEDS_CLASS
  
- #include <plat/omap_hwmod.h>
- #include <plat/cpu.h>
-@@ -32,8 +33,6 @@
- #include <plat/common.h>
+-config OMAP_SMARTREFLEX
+-	bool "SmartReflex support"
+-	depends on (ARCH_OMAP3 || ARCH_OMAP4) && PM
++menuconfig POWER_AVS
++	tristate "Adaptive Voltage Scaling class support"
+ 	help
+-	  Say Y if you want to enable SmartReflex.
++	  AVS(Adaptive Voltage Scaling) is a power management technique which
++	  finely controls the operating voltage of a device in order to optimize
++	   (i.e. reduce) its power consumption.
++	  At a given operating point the voltage is adapted depending on
++	  static factors (chip manufacturing process) and dynamic factors
++	  (temperature depending performance).
++	  AVS is also called SmartReflex on OMAP devices.
++
++	  Say Y here to enable Adaptive Voltage Scaling class support.
++
++if POWER_AVS
  
- #include "omap_hwmod_common_data.h"
--
--#include "smartreflex.h"
- #include "cm1_44xx.h"
- #include "cm2_44xx.h"
- #include "prm44xx.h"
-diff --git a/arch/arm/mach-omap2/smartreflex-class3.c b/arch/arm/mach-omap2/smartreflex-class3.c
-index 955566e..ab8cf83 100644
---- a/arch/arm/mach-omap2/smartreflex-class3.c
-+++ b/arch/arm/mach-omap2/smartreflex-class3.c
-@@ -11,7 +11,8 @@
-  * published by the Free Software Foundation.
-  */
+-	  SmartReflex can perform continuous dynamic voltage
+-	  scaling around the nominal operating point voltage
+-	  according to silicon characteristics and operating
+-	  conditions. Enabling SmartReflex reduces power
+-	  consumption.
++config POWER_AVS_OMAP
++	bool "AVS(Adaptive Voltage Scaling) support for OMAP IP versions 1&2"
++	depends on (ARCH_OMAP3 || ARCH_OMAP4) && PM
++	help
++	  Say Y to enable AVS support on OMAP containing the version 1 or
++	  version 2 of the SmartReflex IP.
++	  V1 is the 65nm version used in OMAP3430.
++	  V2 is the update for the 45nm version of the IP used in OMAP3630
++	  and OMAP4430
  
--#include "smartreflex.h"
-+#include <linux/power/smartreflex.h>
-+#include "voltage.h"
+ 	  Please note, that by default SmartReflex is only
+-	  initialized. To enable the automatic voltage
+-	  compensation for vdd mpu  and vdd core from user space,
++	  initialized and not enabled. To enable the automatic voltage
++	  compensation for vdd mpu and vdd core from user space,
+ 	  user must write 1 to
+-		/debug/voltage/vdd_<X>/smartreflex/autocomp,
+-	  where X is mpu or core for OMAP3.
++		/debug/smartreflex/sr_<X>/autocomp,
++	  where X is mpu_iva or core for OMAP3.
+ 	  Optionally autocompensation can be enabled in the kernel
+ 	  by default during system init via the enable_on_init flag
+ 	  which an be passed as platform data to the smartreflex driver.
  
- static int sr_class3_enable(struct voltagedomain *voltdm)
- {
-diff --git a/arch/arm/mach-omap2/smartreflex.c b/arch/arm/mach-omap2/smartreflex.c
-index 008fbd7..98309d3 100644
---- a/arch/arm/mach-omap2/smartreflex.c
-+++ b/arch/arm/mach-omap2/smartreflex.c
-@@ -25,11 +25,10 @@
- #include <linux/delay.h>
- #include <linux/slab.h>
- #include <linux/pm_runtime.h>
-+#include <linux/power/smartreflex.h>
+-config OMAP_SMARTREFLEX_CLASS3
++config POWER_AVS_OMAP_CLASS3
+ 	bool "Class 3 mode of Smartreflex Implementation"
+-	depends on OMAP_SMARTREFLEX && TWL4030_CORE
++	depends on POWER_AVS_OMAP && TWL4030_CORE
+ 	help
+ 	  Say Y to enable Class 3 implementation of Smartreflex
  
- #include "common.h"
--
- #include "pm.h"
--#include "smartreflex.h"
+ 	  Class 3 implementation of Smartreflex employs continuous hardware
+ 	  voltage calibration.
  
- #define SMARTREFLEX_NAME_LEN	16
- #define NVALUE_NAME_LEN		40
-diff --git a/arch/arm/mach-omap2/sr_device.c b/arch/arm/mach-omap2/sr_device.c
-index a503e1e..86e438e 100644
---- a/arch/arm/mach-omap2/sr_device.c
-+++ b/arch/arm/mach-omap2/sr_device.c
-@@ -17,6 +17,7 @@
-  * it under the terms of the GNU General Public License version 2 as
-  * published by the Free Software Foundation.
-  */
-+#include <linux/power/smartreflex.h>
- 
- #include <linux/err.h>
- #include <linux/slab.h>
-@@ -24,7 +25,6 @@
- 
- #include <plat/omap_device.h>
- 
--#include "smartreflex.h"
- #include "voltage.h"
- #include "control.h"
- #include "pm.h"
-diff --git a/arch/arm/mach-omap2/smartreflex.h b/include/linux/power/smartreflex.h
-similarity index 98%
-rename from arch/arm/mach-omap2/smartreflex.h
-rename to include/linux/power/smartreflex.h
-index 5809141..69eb270 100644
---- a/arch/arm/mach-omap2/smartreflex.h
++endif # POWER_AVS
++
+ config OMAP_RESET_CLOCKS
+ 	bool "Reset unused clocks during boot"
+ 	depends on ARCH_OMAP
+diff --git a/include/linux/power/smartreflex.h b/include/linux/power/smartreflex.h
+index 222f901..3101e62 100644
+--- a/include/linux/power/smartreflex.h
 +++ b/include/linux/power/smartreflex.h
-@@ -17,12 +17,13 @@
-  * published by the Free Software Foundation.
-  */
+@@ -207,7 +207,7 @@ struct omap_smartreflex_dev_attr {
+ 	const char      *sensor_voltdm_name;
+ };
  
--#ifndef __ASM_ARM_OMAP_SMARTREFLEX_H
--#define __ASM_ARM_OMAP_SMARTREFLEX_H
-+#ifndef __POWER_SMARTREFLEX_H
-+#define __POWER_SMARTREFLEX_H
- 
-+#include <linux/types.h>
- #include <linux/platform_device.h>
- 
--#include "voltage.h"
-+#include <plat/voltage.h>
- 
+-#ifdef CONFIG_OMAP_SMARTREFLEX
++#ifdef CONFIG_POWER_AVS_OMAP
  /*
-  * Different Smartreflex IPs version. The v1 is the 65nm version used in
+  * The smart reflex driver supports CLASS1 CLASS2 and CLASS3 SR.
+  * The smartreflex class driver should pass the class type.
 -- 
 1.7.5.4
