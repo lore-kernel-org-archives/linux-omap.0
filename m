@@ -1,82 +1,54 @@
-From: "Hiremath, Vaibhav" <hvaibhav@ti.com>
-Subject: RE: [PATCH-V4 3/3] ARM: OMAP: Make OMAP clocksource source
- selection using kernel param
-Date: Thu, 26 Apr 2012 05:42:38 +0000
-Message-ID: <79CD15C6BA57404B839C016229A409A83E9FE722@DBDE01.ent.ti.com>
-References: <1335260749-25877-1-git-send-email-hvaibhav@ti.com>
-	<1335260749-25877-4-git-send-email-hvaibhav@ti.com>
- <CA+Bv8XYemH3zW48id_ZAvC2gU_uZMFei6dMO1GUog_YTvFBV2Q@mail.gmail.com>
+From: Paul Walmsley <paul@pwsan.com>
+Subject: Re: [PATCH-V3 3/3] ARM: OMAP3+: clock33xx: Add AM33XX clock tree
+ data
+Date: Wed, 25 Apr 2012 23:45:21 -0600 (MDT)
+Message-ID: <alpine.DEB.2.00.1204252335190.30642@utopia.booyaka.com>
+References: <1333458578-23073-1-git-send-email-hvaibhav@ti.com> <1333458578-23073-4-git-send-email-hvaibhav@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from comal.ext.ti.com ([198.47.26.152]:52503 "EHLO comal.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751781Ab2DZFmr convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 26 Apr 2012 01:42:47 -0400
-In-Reply-To: <CA+Bv8XYemH3zW48id_ZAvC2gU_uZMFei6dMO1GUog_YTvFBV2Q@mail.gmail.com>
-Content-Language: en-US
+Received: from utopia.booyaka.com ([72.9.107.138]:35775 "EHLO
+	utopia.booyaka.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751363Ab2DZFpW (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 26 Apr 2012 01:45:22 -0400
+In-Reply-To: <1333458578-23073-4-git-send-email-hvaibhav@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Russ Dill <russ.dill@gmail.com>
-Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "tony@atomide.com" <tony@atomide.com>, "Hilman, Kevin" <khilman@ti.com>, "paul@pwsan.com" <paul@pwsan.com>, "Shilimkar, Santosh" <santosh.shilimkar@ti.com>, "Cousson, Benoit" <b-cousson@ti.com>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, "Balbi, Felipe" <balbi@ti.com>, "DebBarma, Tarun Kanti" <tarun.kanti@ti.com>, Ming Lei <tom.leiming@gmail.com>
+To: Vaibhav Hiremath <hvaibhav@ti.com>, Afzal Mohammed <afzal@ti.com>, Vaibhav Bedia <vaibhav.bedia@ti.com>
+Cc: linux-omap@vger.kernel.org, tony@atomide.com, khilman@ti.com, rnayak@ti.com, b-cousson@ti.com, linux-arm-kernel@lists.infradead.org
 
-On Thu, Apr 26, 2012 at 10:06:40, Russ Dill wrote:
-> On Tue, Apr 24, 2012 at 2:45 AM, Vaibhav Hiremath <hvaibhav@ti.com> wrote:
-> > Current OMAP code supports couple of clocksource options based
-> > on compilation flag (CONFIG_OMAP_32K_TIMER). The 32KHz sync-timer
-> > and a gptimer which can run on 32KHz or system clock (e.g 38.4 MHz).
-> > So there can be 3 options -
-> >
-> > 1. 32KHz sync-timer
-> > 2. Sys_clock based (e.g 13/19.2/26/38.4 MHz) gptimer
-> > 3. 32KHz based gptimer.
-> >
-> > The optional gptimer based clocksource was added so that it can
-> > give the high precision than sync-timer, so expected usage was 2
-> > and not 3.
-> > Unfortunately option 2, clocksource doesn't meet the requirement of
-> > free-running clock as per clocksource need. It stops in low power states
-> > when sys_clock is cut. That makes gptimer based clocksource option
-> > useless for OMAP2/3/4 devices with sys_clock as a clock input.
-> > Option 3 will still work but it is no better than 32K sync-timer
-> > based clocksource.
-> >
-> > So ideally we can kill the gptimer based clocksource option but there
-> > are some OMAP based derivative SoCs like AM33XX which doesn't have
-> > 32K sync-timer hardware IP and need to fallback on 32KHz based gptimer
-> > clocksource.
-> > Considering above, make sync-timer and gptimer clocksource runtime
-> > selectable so that both OMAP and AMXXXX continue to use the same code.
-> >
-> > Also, in order to precisely configure/setup sched_clock for given
-> > clocksource, decision has to be made early enough in boot sequence.
-> >
-> > So, the solution is,
-> >
-> > Use kernel parameter ("clocksource=") to override
-> > default 32k_sync-timer, in addition to this, we also use hwmod database
-> > lookup mechanism, through which at run-time we can identify availability
-> > of 32k-sync timer on the device, else fall back to gptimer.
-> >
-> > Signed-off-by: Vaibhav Hiremath <hvaibhav@ti.com>
-> > Signed-off-by: Felipe Balbi <balbi@ti.com>
-> > Cc: Santosh Shilimkar <santosh.shilimkar@ti.com>
-> > Cc: Kevin Hilman <khilman@ti.com>
-> > Cc: Benoit Cousson <b-cousson@ti.com>
-> > Cc: Tony Lindgren <tony@atomide.com>
-> > Cc: Paul Walmsley <paul@pwsan.com>
-> > Cc: Tarun Kanti DebBarma <tarun.kanti@ti.com>
-> > Cc: Ming Lei <tom.leiming@gmail.com>
-> 
-> This fails to boot on my Mistral am37x-evm with omap2plus_defconfig
-> 
+Hi,
 
-Thanks Russ, for validating it.
+> +/*
+> + * clkdiv32 is generated from fixed division of 732.4219
+> + */
+> +static struct clk clkdiv32k_ick = {
+> +	.name		= "clkdiv32k_ick",
+> +	.clkdm_name	= "clk_24mhz_clkdm",
+> +	.rate		= 32768,
+> +	.parent		= &clk_24mhz,
+> +	.enable_reg	= AM33XX_CM_PER_CLKDIV32K_CLKCTRL,
+> +	.enable_bit	= AM33XX_MODULEMODE_SWCTRL,
+> +	.ops		= &clkops_omap2_dflt,
+> +};
 
-But I do not see any relation between your boot process stuck and this patch.
-What is the observation without these patches?
+While working on this file, this clock seemed quite perplexing.  Perhaps 
+you might be able to answer some questions about it.
 
-Thanks,
-Vaibhav
+- The fractional fixed division seems a little bogus.  Is this actually an 
+M,N counter?  A few moments with PARI revealed a likely M,N of 64,46875.  
+Could you please confirm that this is the case for this clock?
 
+- This clock structure makes this clock appear to be a fixed-frequency 
+clock.  But according to SPRUH73D Figure 8-10 "Peripheral PLL Structure", 
+the divider feeding this clock can be switched between an M,N of 64,46875 
+and 32,46875 depending on the value of CONTROL_CLK32K_DIVRATIO_CTRL.  So 
+shouldn't we implement that?
+
+- This clock is feeding downstream clocks, but it's using the MODULEMODE 
+control interface, as if it were a standalone IP block.  Do you know why 
+it's using the MODULEMODE control method rather than some optional clock 
+control bits, like OMAP4 does?
+
+
+- Paul
