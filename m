@@ -1,85 +1,150 @@
-From: Russ Dill <russ.dill@gmail.com>
-Subject: Re: [PATCH-V4 3/3] ARM: OMAP: Make OMAP clocksource source selection
- using kernel param
-Date: Wed, 25 Apr 2012 22:56:09 -0700
-Message-ID: <CA+Bv8XaWkBr7ZDTjmjDg_K+JhEfWdYEt=eKQ5Gj8NMbw4K=Jmg@mail.gmail.com>
-References: <1335260749-25877-1-git-send-email-hvaibhav@ti.com>
-	<1335260749-25877-4-git-send-email-hvaibhav@ti.com>
-	<CA+Bv8XYemH3zW48id_ZAvC2gU_uZMFei6dMO1GUog_YTvFBV2Q@mail.gmail.com>
-	<79CD15C6BA57404B839C016229A409A83E9FE722@DBDE01.ent.ti.com>
+From: "Shilimkar, Santosh" <santosh.shilimkar@ti.com>
+Subject: Re: [PATCH 15/19] ARM: OMAP4430: PM: workaround for DDR corruption on
+ second CS
+Date: Thu, 26 Apr 2012 11:49:43 +0530
+Message-ID: <CAMQu2gwEuKGtcrP4x-JU3NH906QKvScRwO7vDtrghErKaaF0HA@mail.gmail.com>
+References: <1334914432-26456-1-git-send-email-t-kristo@ti.com>
+ <1334914432-26456-16-git-send-email-t-kristo@ti.com> <4F96EF56.5020604@ti.com>
+ <1335338762.2149.103.camel@sokoban> <4F981536.2030609@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-lpp01m010-f46.google.com ([209.85.215.46]:38038 "EHLO
-	mail-lpp01m010-f46.google.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751363Ab2DZF4L (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>);
-	Thu, 26 Apr 2012 01:56:11 -0400
-Received: by lahj13 with SMTP id j13so705238lah.19
-        for <linux-omap@vger.kernel.org>; Wed, 25 Apr 2012 22:56:09 -0700 (PDT)
-In-Reply-To: <79CD15C6BA57404B839C016229A409A83E9FE722@DBDE01.ent.ti.com>
+Received: from na3sys009aog111.obsmtp.com ([74.125.149.205]:37884 "EHLO
+	na3sys009aog111.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1751985Ab2DZGUG convert rfc822-to-8bit
+	(ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Thu, 26 Apr 2012 02:20:06 -0400
+Received: by qcsk26 with SMTP id k26so560972qcs.40
+        for <linux-omap@vger.kernel.org>; Wed, 25 Apr 2012 23:20:04 -0700 (PDT)
+In-Reply-To: <4F981536.2030609@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "Hiremath, Vaibhav" <hvaibhav@ti.com>
-Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "tony@atomide.com" <tony@atomide.com>, "Hilman, Kevin" <khilman@ti.com>, "paul@pwsan.com" <paul@pwsan.com>, "Shilimkar, Santosh" <santosh.shilimkar@ti.com>, "Cousson, Benoit" <b-cousson@ti.com>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, "Balbi, Felipe" <balbi@ti.com>, "DebBarma, Tarun Kanti" <tarun.kanti@ti.com>, Ming Lei <tom.leiming@gmail.com>
+To: Jon Hunter <jon-hunter@ti.com>
+Cc: t-kristo@ti.com, linux-omap@vger.kernel.org, khilman@ti.com, paul@pwsan.com, linux-arm-kernel@lists.infradead.org
 
-On Wed, Apr 25, 2012 at 10:42 PM, Hiremath, Vaibhav <hvaibhav@ti.com> wrote:
-> On Thu, Apr 26, 2012 at 10:06:40, Russ Dill wrote:
->> On Tue, Apr 24, 2012 at 2:45 AM, Vaibhav Hiremath <hvaibhav@ti.com> wrote:
->> > Current OMAP code supports couple of clocksource options based
->> > on compilation flag (CONFIG_OMAP_32K_TIMER). The 32KHz sync-timer
->> > and a gptimer which can run on 32KHz or system clock (e.g 38.4 MHz).
->> > So there can be 3 options -
->> >
->> > 1. 32KHz sync-timer
->> > 2. Sys_clock based (e.g 13/19.2/26/38.4 MHz) gptimer
->> > 3. 32KHz based gptimer.
->> >
->> > The optional gptimer based clocksource was added so that it can
->> > give the high precision than sync-timer, so expected usage was 2
->> > and not 3.
->> > Unfortunately option 2, clocksource doesn't meet the requirement of
->> > free-running clock as per clocksource need. It stops in low power states
->> > when sys_clock is cut. That makes gptimer based clocksource option
->> > useless for OMAP2/3/4 devices with sys_clock as a clock input.
->> > Option 3 will still work but it is no better than 32K sync-timer
->> > based clocksource.
->> >
->> > So ideally we can kill the gptimer based clocksource option but there
->> > are some OMAP based derivative SoCs like AM33XX which doesn't have
->> > 32K sync-timer hardware IP and need to fallback on 32KHz based gptimer
->> > clocksource.
->> > Considering above, make sync-timer and gptimer clocksource runtime
->> > selectable so that both OMAP and AMXXXX continue to use the same code.
->> >
->> > Also, in order to precisely configure/setup sched_clock for given
->> > clocksource, decision has to be made early enough in boot sequence.
->> >
->> > So, the solution is,
->> >
->> > Use kernel parameter ("clocksource=") to override
->> > default 32k_sync-timer, in addition to this, we also use hwmod database
->> > lookup mechanism, through which at run-time we can identify availability
->> > of 32k-sync timer on the device, else fall back to gptimer.
->> >
->> > Signed-off-by: Vaibhav Hiremath <hvaibhav@ti.com>
->> > Signed-off-by: Felipe Balbi <balbi@ti.com>
->> > Cc: Santosh Shilimkar <santosh.shilimkar@ti.com>
->> > Cc: Kevin Hilman <khilman@ti.com>
->> > Cc: Benoit Cousson <b-cousson@ti.com>
->> > Cc: Tony Lindgren <tony@atomide.com>
->> > Cc: Paul Walmsley <paul@pwsan.com>
->> > Cc: Tarun Kanti DebBarma <tarun.kanti@ti.com>
->> > Cc: Ming Lei <tom.leiming@gmail.com>
->>
->> This fails to boot on my Mistral am37x-evm with omap2plus_defconfig
->>
+On Wed, Apr 25, 2012 at 8:46 PM, Jon Hunter <jon-hunter@ti.com> wrote:
+> Hi Tero,
 >
-> Thanks Russ, for validating it.
+> On 04/25/2012 02:26 AM, Tero Kristo wrote:
+>> On Tue, 2012-04-24 at 13:22 -0500, Jon Hunter wrote:
+>>> Hi Tero,
+>>>
+>>> On 04/20/2012 04:33 AM, Tero Kristo wrote:
+>>>> From: Santosh Shilimkar <santosh.shilimkar@ti.com>
+>>>>
+>>>> Work around for Errata ID: i632 "LPDDR2 Corruption After OFF Mode
+>>>> Transition When CS1 Is Used On EMIF" which impacts OMAP443x silico=
+n
+>>>> The issue occurs when EMIF_SDRAM_CONFIG is restored first before
+>>>> EMIF_SDRAM_CONFIG_2 is not yet restored, the register configuratio=
+n
+>>>> is not set properly, we apply the required workaround allowing
+>>>> the restore sequence to work properly.
+>>>>
+>>>> Signed-off-by: Santosh Shilimkar <santosh.shilimkar@ti.com>
+>>>> [t-kristo@ti.com: moved workaround from omap-sar.c to pm44xx.c]
+>>>> Signed-off-by: Tero Kristo <t-kristo@ti.com>
+>>>> ---
+>>>> =A0.../include/mach/ctrl_module_wkup_44xx.h =A0 =A0 =A0 =A0 =A0 | =
+=A0 =A02 +
+>>>> =A0arch/arm/mach-omap2/pm44xx.c =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0=
+ =A0 =A0 | =A0 24 ++++++++++++++++++++
+>>>> =A02 files changed, 26 insertions(+), 0 deletions(-)
+>>>>
+>>>> diff --git a/arch/arm/mach-omap2/include/mach/ctrl_module_wkup_44x=
+x.h b/arch/arm/mach-omap2/include/mach/ctrl_module_wkup_44xx.h
+>>>> index a0af9ba..b763a79 100644
+>>>> --- a/arch/arm/mach-omap2/include/mach/ctrl_module_wkup_44xx.h
+>>>> +++ b/arch/arm/mach-omap2/include/mach/ctrl_module_wkup_44xx.h
+>>>> @@ -28,6 +28,8 @@
+>>>> =A0#define OMAP4_CTRL_MODULE_WKUP_IP_REVISION =A0 =A0 =A0 =A0 0x00=
+00
+>>>> =A0#define OMAP4_CTRL_MODULE_WKUP_IP_HWINFO =A0 =A0 =A0 =A0 =A0 0x=
+0004
+>>>> =A0#define OMAP4_CTRL_MODULE_WKUP_IP_SYSCONFIG =A0 =A0 =A0 =A0 =A0=
+ =A0 =A0 =A00x0010
+>>>> +#define OMAP4_CTRL_SECURE_EMIF1_SDRAM_CONFIG2_REG =A00x0114
+>>>> +#define OMAP4_CTRL_SECURE_EMIF2_SDRAM_CONFIG2_REG =A00x011c
+>>>> =A0#define OMAP4_CTRL_MODULE_WKUP_CONF_DEBUG_SEL_TST_0 =A0 =A0 =A0=
+ =A00x0460
+>>>> =A0#define OMAP4_CTRL_MODULE_WKUP_CONF_DEBUG_SEL_TST_1 =A0 =A0 =A0=
+ =A00x0464
+>>>> =A0#define OMAP4_CTRL_MODULE_WKUP_CONF_DEBUG_SEL_TST_2 =A0 =A0 =A0=
+ =A00x0468
+>>>> diff --git a/arch/arm/mach-omap2/pm44xx.c b/arch/arm/mach-omap2/pm=
+44xx.c
+>>>> index 0472921..d4d18d9 100644
+>>>> --- a/arch/arm/mach-omap2/pm44xx.c
+>>>> +++ b/arch/arm/mach-omap2/pm44xx.c
+>>>> @@ -17,6 +17,9 @@
+>>>> =A0#include <linux/err.h>
+>>>> =A0#include <linux/slab.h>
+>>>> =A0#include <asm/system_misc.h>
+>>>> +#include <linux/io.h>
+>>>> +
+>>>> +#include <mach/ctrl_module_wkup_44xx.h>
+>>>>
+>>>> =A0#include "common.h"
+>>>> =A0#include "clockdomain.h"
+>>>> @@ -215,6 +218,27 @@ static int __init omap4_pm_init(void)
+>>>>
+>>>> =A0 =A0 pr_err("Power Management for TI OMAP4.\n");
+>>>>
+>>>> + =A0 /*
+>>>> + =A0 =A0* Work around for OMAP443x Errata i632: "LPDDR2 Corruptio=
+n After OFF
+>>>> + =A0 =A0* Mode Transition When CS1 Is Used On EMIF":
+>>>> + =A0 =A0* Overwrite EMIF1/EMIF2
+>>>> + =A0 =A0* SECURE_EMIF1_SDRAM_CONFIG2_REG
+>>>> + =A0 =A0* SECURE_EMIF2_SDRAM_CONFIG2_REG
+>>>> + =A0 =A0*/
+>>>> + =A0 if (cpu_is_omap443x()) {
+>>>> + =A0 =A0 =A0 =A0 =A0 void __iomem *secure_ctrl_mod;
+>>>> +
+>>>> + =A0 =A0 =A0 =A0 =A0 secure_ctrl_mod =3D ioremap(OMAP4_CTRL_MODUL=
+E_WKUP, SZ_4K);
+>>>> + =A0 =A0 =A0 =A0 =A0 BUG_ON(!secure_ctrl_mod);
+>>>> +
+>>>> + =A0 =A0 =A0 =A0 =A0 __raw_writel(0x10, secure_ctrl_mod +
+>>>> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0OMAP4_CTRL_SECURE=
+_EMIF1_SDRAM_CONFIG2_REG);
+>>>> + =A0 =A0 =A0 =A0 =A0 __raw_writel(0x10, secure_ctrl_mod +
+>>>> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0OMAP4_CTRL_SECURE=
+_EMIF2_SDRAM_CONFIG2_REG);
+>>>
+>>> According to the erratum description the above registers are used t=
+o
+>>> restore the EMIFx_SDRAM_CONFIG2 registers. So although the value 0x=
+10,
+>>> maybe the value being used for EMIFx_SDRAM_CONFIG2 registers, shoul=
+dn't
+>>> we read the EMIFx_SDRAM_CONFIG2 registers and store them in the abo=
+ve
+>>> registers?
+>>
+>> This might be a good idea, however, this patch might be tagged as TE=
+MP
+>> until the EMIF driver is in place, this fix should rather be located
+>> there. I'll take a look at this if I can change the implementation a
+>> bit.
 >
-> But I do not see any relation between your boot process stuck and this patch.
-> What is the observation without these patches?
+> By the way, I did dump the EMIF1_SDRAM_CONFIG2 register on a omap4403
+> and it is configured to 0x10. So I think that reading this register a=
+nd
+> saving would be safe.
+>
+That's right. The reason it is harcoded is, it will be 0x10 or 0x0. Wri=
+ting 0x10
+even of we use 1 chip select doesn't create any issue as such.
 
-With no patches applied it boots, with 1/3 applied it boots, with 2/3
-applied it boots, with 3/3 applied it gets hung. I also tested on my
-beagleboard b4, that booted fine.
+But go ahead and read the register and store it. That way it will
+appear bit cleaner.
+
+Regards
+Santosh
+--
+To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
