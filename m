@@ -1,138 +1,59 @@
-From: "DebBarma, Tarun Kanti" <tarun.kanti@ti.com>
-Subject: Re: [PATCH v9 11/25] gpio/omap: cleanup omap_gpio_mod_init function
-Date: Thu, 26 Apr 2012 10:43:57 +0530
-Message-ID: <CAC83ZvL54bot+yQoRPPX3_9O5wfdpdBCNb4-Chw7sPyVFDBGSg@mail.gmail.com>
-References: <1328203851-20435-1-git-send-email-tarun.kanti@ti.com>
- <1328203851-20435-12-git-send-email-tarun.kanti@ti.com>
- <13629551.hP3ZV1ajDo@vclass>
- <CAC83ZvK630=6B-k2TfV3XBg8w7ZosLVDNE4ezjDYnn=hcXA48Q@mail.gmail.com>
- <CAC83ZvJDDvCu8NKTOYh75USA3fvSAKEGaXXi9PtCM955K_keSA@mail.gmail.com>
- <20120424160447.GI3739@atomide.com>
- <CAC83Zv+CCLQfZHfqMcbof6JtA-hOK1PfX5Gs0BBVQhBAiWzX_g@mail.gmail.com>
- <CAMQu2gzwijaSzXprEwTNTie3zCgFcNPonAexzrO_AWc2a8jOkw@mail.gmail.com>
- <CAC83ZvKN_Qxw-9RPfpJaL5434j0HgysZ364F+b29rdSCQWhm7A@mail.gmail.com>
- <20120425134508.GE25053@n2100.arm.linux.org.uk>
+From: "Mohammed, Afzal" <afzal@ti.com>
+Subject: RE: [PATCH v3 0/9] Convert OMAP GPMC to driver
+Date: Thu, 26 Apr 2012 05:18:15 +0000
+Message-ID: <C8443D0743D26F4388EA172BF4E2A7A93E9700FE@DBDE01.ent.ti.com>
+References: <cover.1333638917.git.afzal@ti.com>
+ <20120425164424.GT3739@atomide.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="iso-8859-1"
-Content-Transfer-Encoding: quoted-printable
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-In-Reply-To: <20120425134508.GE25053@n2100.arm.linux.org.uk>
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: linux-arm-kernel-bounces@lists.infradead.org
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: Russell King - ARM Linux <linux@arm.linux.org.uk>
-Cc: khilman@ti.com, Janusz Krzysztofik <jkrzyszt@tis.icnet.pl>, Tony Lindgren <tony@atomide.com>, linux-kernel@vger.kernel.org, grant.likely@secretlab.ca, "Shilimkar, Santosh" <santosh.shilimkar@ti.com>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Charulatha V <charu@ti.com>
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <20120425164424.GT3739@atomide.com>
+Content-Language: en-US
+Sender: linux-kernel-owner@vger.kernel.org
+To: Tony Lindgren <tony@atomide.com>
+Cc: "Hilman, Kevin" <khilman@ti.com>, "linux@arm.linux.org.uk" <linux@arm.linux.org.uk>, "dwmw2@infradead.org" <dwmw2@infradead.org>, "sameo@linux.intel.com" <sameo@linux.intel.com>, "grinberg@compulab.co.il" <grinberg@compulab.co.il>, "mike@compulab.co.il" <mike@compulab.co.il>, "Menon, Nishanth" <nm@ti.com>, "artem.bityutskiy@linux.intel.com" <artem.bityutskiy@linux.intel.com>, "vimal.newwork@gmail.com" <vimal.newwork@gmail.com>, "dbaryshkov@gmail.com" <dbaryshkov@gmail.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, "linux-mtd@lists.infradead.org" <linux-mtd@lists.infradead.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, Greg KH <greg@kroah.com>
 List-Id: linux-omap@vger.kernel.org
 
-On Wed, Apr 25, 2012 at 7:15 PM, Russell King - ARM Linux
-<linux@arm.linux.org.uk> wrote:
-> On Wed, Apr 25, 2012 at 06:24:14PM +0530, DebBarma, Tarun Kanti wrote:
->> On Wed, Apr 25, 2012 at 12:09 PM, Shilimkar, Santosh
->> <santosh.shilimkar@ti.com> wrote:
->> > On Wed, Apr 25, 2012 at 10:04 AM, DebBarma, Tarun Kanti
->> > <tarun.kanti@ti.com> wrote:
->> >> On Tue, Apr 24, 2012 at 9:34 PM, Tony Lindgren <tony@atomide.com> wro=
-te:
->> >>> * DebBarma, Tarun Kanti <tarun.kanti@ti.com> [120424 08:40]:
->> >>>> Hi Janusz,
->> >>>>
->> >>>> On Tue, Apr 24, 2012 at 12:24 AM, DebBarma, Tarun Kanti
->> >>>> <tarun.kanti@ti.com> wrote:
->> >>>> > On Sat, Apr 21, 2012 at 7:33 PM, Janusz Krzysztofik
->> >>>> > <jkrzyszt@tis.icnet.pl> wrote:
->> >>>> >> On Thursday 02 of February 2012 23:00:37 Tarun Kanti DebBarma wr=
-ote:
->> >>>> >>> With register offsets now defined for respective OMAP versions =
-we can get rid
->> >>>> >>> of cpu_class_* checks. This function now has common initializat=
-ion code for
->> >>>> >>> all OMAP versions...
->> >>>> >>>
->> >>>> >>> Signed-off-by: Tarun Kanti DebBarma <tarun.kanti@ti.com>
->> >>>> >>> Signed-off-by: Charulatha V <charu@ti.com>
->> >>>> >>> Reviewed-by: Santosh Shilimkar <santosh.shilimkar@ti.com>
->> >>>> >>> Acked-by: Tony Lindgren <tony@atomide.com>
->> >>>> >>
->> >>>> >> Sorry for being so late with my comment for chanes already prese=
-nt in
->> >>>> >> mainline, but this patch breaks GPIO on Amstrad Delta at least, =
-and I
->> >>>> >> have neither enough spare time nor enough experience with non OM=
-AP1
->> >>>> >> machines to provide a solution myself.
->> >>>> > Yes, I looked at the omap_gpio_mod_init() and OMAP1 configuration=
-s are
->> >>>> > overwritten.
->> >>>> > Also looks like there is issue in making distinction between omap=
-15xx
->> >>>> > and omap16xx.
->> >>>> > I will post a patch and you can help me testing it in OMAP1 platf=
-orm.
->> >>>> > Thanks for pointing this out.
->> >>> ...
->> >>>
->> >>>> Here is the patch, with attachment as well. I have just tested on
->> >>>> OMAP4 platform.
->> >>>> Testing on other OMAP2+ platforms is pending. In the meantime can y=
-ou please
->> >>>> validate on OMAP1 platform and confirm? Thanks.
->> >>>> --
->> >>>> Tarun
->> >>>>
->> >>>> From: Tarun Kanti DebBarma <tarun.kanti@ti.com>
->> >>>> Date: Tue, 24 Apr 2012 20:34:32 +0530
->> >>>> Subject: [PATCH] gpio/omap: fix omap1 register overwrite in omap_gp=
-io_mod_init
->> >>>>
->> >>>> Initialization of irqenable, irqstatus registers is the common
->> >>>> operation done in this function for all OMAP platforms, viz.
->> >>>> OMAP1, OMAP2+. The latter _gpio_rmw()'s to irqenable register
->> >>>> was overwriting the correctly programmed OMAP1 value at the
->> >>>> beginning. As a result, even though it worked on OMAP2+
->> >>>> platforms it was breaking OMAP1 functionality.
->> >>>
->> >>> Sounds like the original patch was never tested on omap1?
->> >> That's right, only bootup test was done on OMAP1710-SDP.
->> >>
->> >>>
->> >>>> On closer observation it is found that the first _gpio_rmw()
->> >>>> which is supposedly done to take care of OMAP1 platform is
->> >>>> generic enough and takes care of OMAP2+ platform as well.
->> >>>> Therefore remove the latter _gpio_rmw() to irqenable as they
->> >>>> are redundant.
->> >>>>
->> >>>> Also, changing the sequence and logic of initializing the
->> >>>> irqstatus.
->> >>>
->> >>> Please mention also the breaking commit here and get this fix
->> >>> merged as a regression as soon as it's tested for the current
->> >>> -rc series.
->> >> Sure, I will do that!
->> >
->> > Looks like it is regression on 3.4 as well so CC stable when you
->> > post the patch.
->> Ok, I will do that.
->
-> Correction.
->
-> Don't email your patch in any way to the stable folk _before_ it has been
-> taken into Linus' tree. =A0However, you _may_ add in the patch attributat=
-ions
-> a Cc: <stable@vger.kernel.org> tag if you want the stable folk to
-> automatically pick up your patch when it _does_ end up in Linus' tree.
-> But... make sure that git send-email or whatever doesn't automatically
-> add that to the recipients for the emailed patch.
->
-> If you send the stable people a patch before its in mainline, you'll get
-> a whinge telling you to read Documentation/stable_kernel_rules.txt
+Hi Tony,
 
-Alright, I will add Cc: <stable@vger.kernel.org> tag in the patch.
-Thanks.
---
-Tarun
+On Wed, Apr 25, 2012 at 22:14:25, Tony Lindgren wrote:
+> > Once driver is acceptable, platform code for other peripherals
+> > connected via GPMC would be adapted to make use of GPMC driver. And
+> > then the board modifications. But before that HWMOD entry has to be
+> > populated for respective SoC(s ?).
+>  
+> No, we can't do it this way, it breaks things. We need to first
+> convert everything to use the new GPMC driver, then move it. 
+
+Sorry, my statements were not clear, I meant once driver is
+acceptable & still living in mach-omap2, platform code dealing
+with peripherals on gpmc would be adapted to make use of gpmc
+driver. Moving driver to new location is only planned as a
+separate commit after, before mentioned changes. Hope with this
+clarification we are on same track. 
+
+>  
+> > Now DESTINATION FOR THIS DRIVER has to be decided. Original plan was
+> > to consider GPMC as MFD. The peripheral(s) connected to GPMC being
+> > considered childs of MFD.
+> 
+> Let's not put it into MFD. This is a bus driver. But that
+> decision can wait as we cleary have quite a few things to convert
+> first under arch/arm/mach-omap2.
+>  
+> > Various options that could be seen so far on where this driver can go,
+> > 1. mfd
+> > 2. misc
+> > 3. drivers/platform/arm/ (create an new one?)
+> > 4. memory (create a new one ?)
+> 
+> It's a parallel bus driver, not memory not misc, not MFD.
+
+Greg suggested to send gpmc driver to new memory folder.
+
+In the next version, gpmc driver would still be in mach-omap2,
+moving to new location can be done later.
+
+Regards
+Afzal
