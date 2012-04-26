@@ -1,39 +1,38 @@
-From: Mark Brown <broonie@opensource.wolfsonmicro.com>
-Subject: Re: [PATCH V3 00/10] PM: Create the AVS(Adaptive Voltage
-	Scaling)
-Date: Thu, 26 Apr 2012 20:11:59 +0100
-Message-ID: <20120426191159.GA9415@sirena.org.uk>
-References: <1335462041-4949-1-git-send-email-j-keerthy@ti.com>
+From: Paul Walmsley <paul@pwsan.com>
+Subject: Re: [PATCH-V5 1/3] ARM: OMAP2/3: Add idle_st bits for ST_32KSYNC
+ timer to prcm-common header
+Date: Thu, 26 Apr 2012 13:25:48 -0600 (MDT)
+Message-ID: <alpine.DEB.2.00.1204261325380.10308@utopia.booyaka.com>
+References: <1335362340-14960-1-git-send-email-hvaibhav@ti.com> <1335362340-14960-2-git-send-email-hvaibhav@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-pm-bounces@lists.linux-foundation.org>
-Content-Disposition: inline
-In-Reply-To: <1335462041-4949-1-git-send-email-j-keerthy@ti.com>
-List-Unsubscribe: <https://lists.linuxfoundation.org/mailman/options/linux-pm>,
-	<mailto:linux-pm-request@lists.linux-foundation.org?subject=unsubscribe>
-List-Archive: <http://lists.linuxfoundation.org/pipermail/linux-pm/>
-List-Post: <mailto:linux-pm@lists.linux-foundation.org>
-List-Help: <mailto:linux-pm-request@lists.linux-foundation.org?subject=help>
-List-Subscribe: <https://lists.linuxfoundation.org/mailman/listinfo/linux-pm>,
-	<mailto:linux-pm-request@lists.linux-foundation.org?subject=subscribe>
-Sender: linux-pm-bounces@lists.linux-foundation.org
-Errors-To: linux-pm-bounces@lists.linux-foundation.org
-To: Keerthy <j-keerthy@ti.com>
-Cc: khilman@ti.com, linux-kernel@vger.kernel.org, linux-pm@lists.linux-foundation.org, linux-omap@vger.kernel.org, j-pihet@ti.com, linux-arm-kernel@lists.infradead.org
+Content-Type: TEXT/PLAIN; charset=US-ASCII
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from utopia.booyaka.com ([72.9.107.138]:45305 "EHLO
+	utopia.booyaka.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755088Ab2DZTZt (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 26 Apr 2012 15:25:49 -0400
+In-Reply-To: <1335362340-14960-2-git-send-email-hvaibhav@ti.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Vaibhav Hiremath <hvaibhav@ti.com>
+Cc: linux-omap@vger.kernel.org, tony@atomide.com, khilman@ti.com, santosh.shilimkar@ti.com, b-cousson@ti.com, linux-arm-kernel@lists.infradead.org, Felipe Balbi <balbi@ti.com>
 
-On Thu, Apr 26, 2012 at 11:10:31PM +0530, Keerthy wrote:
-> From: J Keerthy <j-keerthy@ti.com>
+On Wed, 25 Apr 2012, Vaibhav Hiremath wrote:
+
+> Add missing idle_st bit for 32k-sync timer into the prcm-common
+> header file, required for hwmod data.
 > 
-> AVS(Adaptive Voltage Scaling) is a power management technique which
-> controls the operating voltage of a device in order to optimize (i.e. reduce)
-> its power consumption. The voltage is adapted depending on static factors
-> (chip manufacturing process) and dynamic factors (temperature
-> depending performance).
-> The TI AVS solution is named Smartreflex. 
+> Signed-off-by: Vaibhav Hiremath <hvaibhav@ti.com>
+> Reviewed-by: Santosh Shilimkar <santosh.shilimkar@ti.com>
+> Cc: Felipe Balbi <balbi@ti.com>
+> Cc: Benoit Cousson <b-cousson@ti.com>
+> Cc: Tony Lindgren <tony@atomide.com>
+> Cc: Paul Walmsley <paul@pwsan.com>
+> Cc: Kevin Hilman <khilman@ti.com>
+> ---
+> NOTE: This patch is same as first version, without any code changes.
 
-What's the relationship between this and existing things like devfreq
-and cpufreq?  It'd be better if the changelogs made this clear and
-provided an overview of how all these different subsystems are intended
-to fit together.
+Thanks, queued for 3.5.
+
+
+- Paul
