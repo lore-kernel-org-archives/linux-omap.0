@@ -1,48 +1,37 @@
-From: Paul Walmsley <paul@pwsan.com>
-Subject: RE: [PATCH-V3 2/3] ARM: OMAP3+: clockdomain33xx: Add clockdomain
- data and respective operations
-Date: Thu, 26 Apr 2012 12:56:47 -0600 (MDT)
-Message-ID: <alpine.DEB.2.00.1204261252430.10308@utopia.booyaka.com>
-References: <1333458578-23073-1-git-send-email-hvaibhav@ti.com> <1333458578-23073-3-git-send-email-hvaibhav@ti.com> <alpine.DEB.2.00.1204241725430.24864@utopia.booyaka.com> <79CD15C6BA57404B839C016229A409A83E9FD30E@DBDE01.ent.ti.com>
- <alpine.DEB.2.00.1204252118170.30642@utopia.booyaka.com> <79CD15C6BA57404B839C016229A409A83E9FE75B@DBDE01.ent.ti.com> <alpine.DEB.2.00.1204260252240.10308@utopia.booyaka.com> <79CD15C6BA57404B839C016229A409A83E9FF79B@DBDE01.ent.ti.com>
+From: Tony Lindgren <tony@atomide.com>
+Subject: Re: [PATCH-V4 0/4] ARM: OMAP2+: Add voltagedomain, powerdomain &
+ PRM support for AM33XX device
+Date: Thu, 26 Apr 2012 12:05:25 -0700
+Message-ID: <20120426190524.GZ3739@atomide.com>
+References: <1333123435-27186-1-git-send-email-hvaibhav@ti.com>
+ <alpine.DEB.2.00.1204120207420.29473@utopia.booyaka.com>
+ <79CD15C6BA57404B839C016229A409A83E9EA07A@DBDE01.ent.ti.com>
+ <20120418231837.GT21106@atomide.com>
+ <79CD15C6BA57404B839C016229A409A83E9F9C2D@DBDE01.ent.ti.com>
+ <20120426184312.GY3739@atomide.com>
+ <79CD15C6BA57404B839C016229A409A83E9FF9EA@DBDE01.ent.ti.com>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from utopia.booyaka.com ([72.9.107.138]:59443 "EHLO
-	utopia.booyaka.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754230Ab2DZS4s (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 26 Apr 2012 14:56:48 -0400
-In-Reply-To: <79CD15C6BA57404B839C016229A409A83E9FF79B@DBDE01.ent.ti.com>
+Received: from mho-02-ewr.mailhop.org ([204.13.248.72]:35238 "EHLO
+	mho-02-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751716Ab2DZTF2 (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 26 Apr 2012 15:05:28 -0400
+Content-Disposition: inline
+In-Reply-To: <79CD15C6BA57404B839C016229A409A83E9FF9EA@DBDE01.ent.ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: "Hiremath, Vaibhav" <hvaibhav@ti.com>
-Cc: "Mohammed, Afzal" <afzal@ti.com>, "Bedia, Vaibhav" <vaibhav.bedia@ti.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "tony@atomide.com" <tony@atomide.com>, "Hilman, Kevin" <khilman@ti.com>, "Nayak, Rajendra" <rnayak@ti.com>, "Cousson, Benoit" <b-cousson@ti.com>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>
+Cc: Paul Walmsley <paul@pwsan.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "Hilman, Kevin" <khilman@ti.com>, "Nayak, Rajendra" <rnayak@ti.com>, "Cousson, Benoit" <b-cousson@ti.com>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>
 
-On Thu, 26 Apr 2012, Hiremath, Vaibhav wrote:
-
-> On Thu, Apr 26, 2012 at 14:27:20, Paul Walmsley wrote:
-
-(attribution lost)
-
-> > > I am thinking of separating clocktree patch (PATCH-V3 3/3) from this series, 
-> > > so that clockdomain stuff can get in independently, and clocktree anyway 
-> > > will follow them (it may take some time in review cycle).
-> > 
-> > Yes, I was thinking of doing this too.  The only aspect that gave me pause 
-> > is that the clockdomain changes are not 100% separate from the clock tree.  
-> > So we may have to update the clockdomain data as the clock tree changes.
+* Hiremath, Vaibhav <hvaibhav@ti.com> [120426 11:52]:
 > 
-> Why do you say that, clockdomain changes are not 100% separate from 
-> clocktree? It is completely independent...
+> Yes, they were accepted and were also available under linux-omap/soc2 branch 
+> for quite some time.
 
-Clock enables and disables call clkdm_clk_{enable,disable}() which 
-undertakes the clockdomain enable sequence on the first clock enabled 
-inside the clockdomain, and the clockdomain disable sequence on the last 
-clock inside the clockdomain.  The clockdomain is associated with the 
-clock via the struct clk .clkdm and .clkdm_name fields.
+Hmm sorry if I've dropped them accidentally. I tend to drop the branches
+after each merge window and purge my linux-omap mailbox too.
 
-So yes, they are interconnected; particularly if the clkdiv32k MODULEMODE 
-"clock" is really needed.
+Regards,
 
-
-- Paul
+Tony
