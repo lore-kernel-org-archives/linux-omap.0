@@ -1,37 +1,39 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH-V4 0/4] ARM: OMAP2+: Add voltagedomain, powerdomain &
- PRM support for AM33XX device
-Date: Thu, 26 Apr 2012 12:05:25 -0700
-Message-ID: <20120426190524.GZ3739@atomide.com>
-References: <1333123435-27186-1-git-send-email-hvaibhav@ti.com>
- <alpine.DEB.2.00.1204120207420.29473@utopia.booyaka.com>
- <79CD15C6BA57404B839C016229A409A83E9EA07A@DBDE01.ent.ti.com>
- <20120418231837.GT21106@atomide.com>
- <79CD15C6BA57404B839C016229A409A83E9F9C2D@DBDE01.ent.ti.com>
- <20120426184312.GY3739@atomide.com>
- <79CD15C6BA57404B839C016229A409A83E9FF9EA@DBDE01.ent.ti.com>
+From: Mark Brown <broonie@opensource.wolfsonmicro.com>
+Subject: Re: [PATCH V3 00/10] PM: Create the AVS(Adaptive Voltage
+	Scaling)
+Date: Thu, 26 Apr 2012 20:11:59 +0100
+Message-ID: <20120426191159.GA9415@sirena.org.uk>
+References: <1335462041-4949-1-git-send-email-j-keerthy@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-02-ewr.mailhop.org ([204.13.248.72]:35238 "EHLO
-	mho-02-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751716Ab2DZTF2 (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 26 Apr 2012 15:05:28 -0400
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-pm-bounces@lists.linux-foundation.org>
 Content-Disposition: inline
-In-Reply-To: <79CD15C6BA57404B839C016229A409A83E9FF9EA@DBDE01.ent.ti.com>
-Sender: linux-omap-owner@vger.kernel.org
+In-Reply-To: <1335462041-4949-1-git-send-email-j-keerthy@ti.com>
+List-Unsubscribe: <https://lists.linuxfoundation.org/mailman/options/linux-pm>,
+	<mailto:linux-pm-request@lists.linux-foundation.org?subject=unsubscribe>
+List-Archive: <http://lists.linuxfoundation.org/pipermail/linux-pm/>
+List-Post: <mailto:linux-pm@lists.linux-foundation.org>
+List-Help: <mailto:linux-pm-request@lists.linux-foundation.org?subject=help>
+List-Subscribe: <https://lists.linuxfoundation.org/mailman/listinfo/linux-pm>,
+	<mailto:linux-pm-request@lists.linux-foundation.org?subject=subscribe>
+Sender: linux-pm-bounces@lists.linux-foundation.org
+Errors-To: linux-pm-bounces@lists.linux-foundation.org
+To: Keerthy <j-keerthy@ti.com>
+Cc: khilman@ti.com, linux-kernel@vger.kernel.org, linux-pm@lists.linux-foundation.org, linux-omap@vger.kernel.org, j-pihet@ti.com, linux-arm-kernel@lists.infradead.org
 List-Id: linux-omap@vger.kernel.org
-To: "Hiremath, Vaibhav" <hvaibhav@ti.com>
-Cc: Paul Walmsley <paul@pwsan.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "Hilman, Kevin" <khilman@ti.com>, "Nayak, Rajendra" <rnayak@ti.com>, "Cousson, Benoit" <b-cousson@ti.com>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>
 
-* Hiremath, Vaibhav <hvaibhav@ti.com> [120426 11:52]:
+On Thu, Apr 26, 2012 at 11:10:31PM +0530, Keerthy wrote:
+> From: J Keerthy <j-keerthy@ti.com>
 > 
-> Yes, they were accepted and were also available under linux-omap/soc2 branch 
-> for quite some time.
+> AVS(Adaptive Voltage Scaling) is a power management technique which
+> controls the operating voltage of a device in order to optimize (i.e. reduce)
+> its power consumption. The voltage is adapted depending on static factors
+> (chip manufacturing process) and dynamic factors (temperature
+> depending performance).
+> The TI AVS solution is named Smartreflex. 
 
-Hmm sorry if I've dropped them accidentally. I tend to drop the branches
-after each merge window and purge my linux-omap mailbox too.
-
-Regards,
-
-Tony
+What's the relationship between this and existing things like devfreq
+and cpufreq?  It'd be better if the changelogs made this clear and
+provided an overview of how all these different subsystems are intended
+to fit together.
