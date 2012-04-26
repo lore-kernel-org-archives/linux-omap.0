@@ -1,49 +1,71 @@
-From: Shubhrajyoti <shubhrajyoti-l0cyMroinI0@public.gmane.org>
-Subject: Re: [PATCHv8 06/10] I2C: OMAP: Fix the crash in i2c remove
-Date: Thu, 26 Apr 2012 11:58:19 +0530
-Message-ID: <4F98EB03.8060903@ti.com>
-References: <1334842101-20670-1-git-send-email-shubhrajyoti@ti.com> <1334842101-20670-7-git-send-email-shubhrajyoti@ti.com> <20120423164944.GE27321@pengutronix.de> <4F96ED77.9070503@ti.com> <20120424181806.GF9007@pengutronix.de>
+From: Paul Walmsley <paul@pwsan.com>
+Subject: RE: [PATCH-V3 3/3] ARM: OMAP3+: clock33xx: Add AM33XX clock tree
+ data
+Date: Thu, 26 Apr 2012 00:36:00 -0600 (MDT)
+Message-ID: <alpine.DEB.2.00.1204260025140.30642@utopia.booyaka.com>
+References: <1333458578-23073-1-git-send-email-hvaibhav@ti.com> <1333458578-23073-4-git-send-email-hvaibhav@ti.com> <alpine.DEB.2.00.1204252335190.30642@utopia.booyaka.com> <79CD15C6BA57404B839C016229A409A83E9FE7EA@DBDE01.ent.ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=windows-1252
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Return-path: <linux-i2c-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20120424181806.GF9007-bIcnvbaLZ9MEGnE8C9+IrQ@public.gmane.org>
-Sender: linux-i2c-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Wolfram Sang <w.sang-bIcnvbaLZ9MEGnE8C9+IrQ@public.gmane.org>
-Cc: linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-i2c-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, "linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org" <linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org>, ben-linux-elnMNo+KYs3YtjvyW6yDsg@public.gmane.org, tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org, stable-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Kevin Hilman <khilman-l0cyMroinI0@public.gmane.org>, Rajendra Nayak <rnayak-l0cyMroinI0@public.gmane.org>
+Content-Type: TEXT/PLAIN; charset=US-ASCII
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from utopia.booyaka.com ([72.9.107.138]:38503 "EHLO
+	utopia.booyaka.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751781Ab2DZGgB (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 26 Apr 2012 02:36:01 -0400
+In-Reply-To: <79CD15C6BA57404B839C016229A409A83E9FE7EA@DBDE01.ent.ti.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: "Hiremath, Vaibhav" <hvaibhav@ti.com>
+Cc: "Mohammed, Afzal" <afzal@ti.com>, "Bedia, Vaibhav" <vaibhav.bedia@ti.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "tony@atomide.com" <tony@atomide.com>, "Hilman, Kevin" <khilman@ti.com>, "Nayak, Rajendra" <rnayak@ti.com>, "Cousson, Benoit" <b-cousson@ti.com>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>
 
-On Tuesday 24 April 2012 11:48 PM, Wolfram Sang wrote:
-> On Tue, Apr 24, 2012 at 11:44:15PM +0530, Shubhrajyoti wrote:
->> On Monday 23 April 2012 10:19 PM, Wolfram Sang wrote:
->>>>     [  154.901153] Exception stack(0xdf9b9fb0 to 0xdf9b9ff8)
->>>>>     [  154.907104] 9fa0:                                     beaf=
-1f04 4006be00 0000000f 0000000c
->>>>>     [  154.915710] 9fc0: 4006c000 00000000 00008034 ffffff40 0000=
-0007 00000000 00000000 0007b8d7
->>>>>     [  154.916778] 9fe0: 00000000 beaf1b68 0000d23c 4005baf0 8000=
-0010 ffffffff
->>>>>     [  154.931335]  r6:ffffffff r5:80000010 r4:4005baf0 r3:beaf1f=
-04
->>>>>     [  154.937316] ---[ end trace 1b75b31a2719ed21 ]--
->>>>>
->>>>> Cc: <stable-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
->>>>> Signed-off-by: Shubhrajyoti D <shubhrajyoti-l0cyMroinI0@public.gmane.org>
->>> Is this really the correct solution? I do wonder that every driver =
-using
->>> runtime PM should enable the clocks on their own. That should be do=
-ne by
->>> the core,=20
->> By core you don't mean the i2c core but the pm layer right?
-> Yes.
->
->>> I'd say; it is not unusual that drivers need to write to
->>> registers in remove(). If it is correct, can I get some acks?
->> I did see the crash.
-> That was never a doubt. With "correct" I meant "correct solution".
->
->> Will wait for the pm experts to comment.
+On Thu, 26 Apr 2012, Hiremath, Vaibhav wrote:
 
-As far as I know I don=92t think that the pm layer doesn't enable the c=
-locks
-for the drivers on remove. Maybe Kevin or Rajendra can comment better.
+> Unfortunately, this is fractional divider, assuming input clock of 24MHz.
+> 
+> 24MHz / 732.4219 = 32KHz (Normal OPP100)
+> 24MHz / 366.2109 = 32KHz (OPP50)
+
+Yes, I already saw that in the TRM.  The question is, how is the 
+fractional divider implemented in the hardware?  Is it implemented as an 
+M,N counter?  It's rather unlikely to be dividing by 732.4219 directly -- 
+in fact that value isn't even accurate.
+
+> As per the Spec, we have some known HW/Si issues to run whole system at 
+> OPP50, that's where if you refer to the TRM Table 8-22. Per PLL Typical 
+> Frequencies (MHz), it only talks about OPP100, which is 732.4219 divider.
+> 
+> So, technically, if both OPP's (OPP100 and OPP50) works fine, then yes, we 
+> should handle it. But given the fact that, OPP50 is not fully functional due 
+> to HW/Si issues, from CORE and PER perspective we will always stay at OPP100.
+
+I see.
+
+> To summarize, I had to make it fixed-frequency due to,
+> 
+>  - Fractional divisor value.
+
+This could be implemented as an M,N counter, unless the hardware is doing 
+something more unusual.
+
+> > - This clock is feeding downstream clocks, but it's using the MODULEMODE 
+> > control interface, as if it were a standalone IP block.  Do you know why 
+> > it's using the MODULEMODE control method rather than some optional clock 
+> > control bits, like OMAP4 does?
+> 
+> Yes, this clock is feeding to timers, gpio debounce clocks, etc...
+> Honestly, I do not know the answer to why part of it.
+> (May be another integration/design issue)
+
+Could you please check with the AM335x PRCM designers about this to find 
+out what that MODULEMODE bit is actually doing (i.e., is it actually 
+enabling the clock, and if so, why did they not use the OPTFCLKEN bits) ?  
+The AM335x TRM has almost no documentation on what those MODULEMODE bits 
+are doing in this case.
+
+We're trying to remove all of these MODULEMODE clocks from the clock 
+framework, and also remove the accompanying clockdomain control sequence 
+from the clock code.  But now it's looking like it may be impossible due 
+to this "clock," which means we'll need to keep that code around, which is 
+unfortunate.
+
+
+- Paul
