@@ -1,86 +1,94 @@
 From: Keerthy <j-keerthy@ti.com>
-Subject: [PATCH V3 04/10] ARM: OMAP3: hwmod: rename the smartreflex entries
-Date: Thu, 26 Apr 2012 23:10:35 +0530
-Message-ID: <1335462041-4949-5-git-send-email-j-keerthy@ti.com>
-References: <1335462041-4949-1-git-send-email-j-keerthy@ti.com>
+Subject: [PATCH V3 00/10] PM: Create the AVS(Adaptive Voltage Scaling)
+Date: Thu, 26 Apr 2012 23:10:31 +0530
+Message-ID: <1335462041-4949-1-git-send-email-j-keerthy@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from bear.ext.ti.com ([192.94.94.41]:40717 "EHLO bear.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1756505Ab2DZRl3 (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Thu, 26 Apr 2012 13:41:29 -0400
-In-Reply-To: <1335462041-4949-1-git-send-email-j-keerthy@ti.com>
-Sender: linux-omap-owner@vger.kernel.org
-List-Id: linux-omap@vger.kernel.org
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Sender: linux-kernel-owner@vger.kernel.org
 To: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, khilman@ti.com, rjw@sisk.pl, linux-kernel@vger.kernel.org, linux-pm@lists.linux-foundation.org
 Cc: j-pihet@ti.com, j-keerthy@ti.com
+List-Id: linux-omap@vger.kernel.org
 
-From: Jean Pihet <j-pihet@ti.com>
+From: J Keerthy <j-keerthy@ti.com>
 
-Change the name field value to better reflect the smartreflex
-integration in the system.
+AVS(Adaptive Voltage Scaling) is a power management technique which
+controls the operating voltage of a device in order to optimize (i.e. reduce)
+its power consumption. The voltage is adapted depending on static factors
+(chip manufacturing process) and dynamic factors (temperature
+depending performance).
+The TI AVS solution is named Smartreflex. 
 
-Signed-off-by: Jean Pihet <j-pihet@ti.com>
-Signed-off-by: J Keerthy <j-keerthy@ti.com>
----
- arch/arm/mach-omap2/omap_hwmod_3xxx_data.c |    8 ++++----
- arch/arm/mach-omap2/smartreflex.c          |    2 +-
- 2 files changed, 5 insertions(+), 5 deletions(-)
+To that end, create the AVS driver in drivers/power/avs and
+move the OMAP SmartReflex code to the new directory. The
+class driver is still retained in the mach-omap2 directory.
 
-diff --git a/arch/arm/mach-omap2/omap_hwmod_3xxx_data.c b/arch/arm/mach-omap2/omap_hwmod_3xxx_data.c
-index 144d118..15907b0 100644
---- a/arch/arm/mach-omap2/omap_hwmod_3xxx_data.c
-+++ b/arch/arm/mach-omap2/omap_hwmod_3xxx_data.c
-@@ -1324,7 +1324,7 @@ static struct omap_hwmod_irq_info omap3_smartreflex_mpu_irqs[] = {
- };
- 
- static struct omap_hwmod omap34xx_sr1_hwmod = {
--	.name		= "sr1",
-+	.name		= "smartreflex_mpu_iva",
- 	.class		= &omap34xx_smartreflex_hwmod_class,
- 	.main_clk	= "sr1_fck",
- 	.prcm		= {
-@@ -1342,7 +1342,7 @@ static struct omap_hwmod omap34xx_sr1_hwmod = {
- };
- 
- static struct omap_hwmod omap36xx_sr1_hwmod = {
--	.name		= "sr1",
-+	.name		= "smartreflex_mpu_iva",
- 	.class		= &omap36xx_smartreflex_hwmod_class,
- 	.main_clk	= "sr1_fck",
- 	.prcm		= {
-@@ -1369,7 +1369,7 @@ static struct omap_hwmod_irq_info omap3_smartreflex_core_irqs[] = {
- };
- 
- static struct omap_hwmod omap34xx_sr2_hwmod = {
--	.name		= "sr2",
-+	.name		= "smartreflex_core",
- 	.class		= &omap34xx_smartreflex_hwmod_class,
- 	.main_clk	= "sr2_fck",
- 	.prcm		= {
-@@ -1387,7 +1387,7 @@ static struct omap_hwmod omap34xx_sr2_hwmod = {
- };
- 
- static struct omap_hwmod omap36xx_sr2_hwmod = {
--	.name		= "sr2",
-+	.name		= "smartreflex_core",
- 	.class		= &omap36xx_smartreflex_hwmod_class,
- 	.main_clk	= "sr2_fck",
- 	.prcm		= {
-diff --git a/arch/arm/mach-omap2/smartreflex.c b/arch/arm/mach-omap2/smartreflex.c
-index 2edd1e2..d859277 100644
---- a/arch/arm/mach-omap2/smartreflex.c
-+++ b/arch/arm/mach-omap2/smartreflex.c
-@@ -183,7 +183,7 @@ static void sr_set_regfields(struct omap_sr *sr)
- 		sr->err_weight = OMAP3430_SR_ERRWEIGHT;
- 		sr->err_maxlimit = OMAP3430_SR_ERRMAXLIMIT;
- 		sr->accum_data = OMAP3430_SR_ACCUMDATA;
--		if (!(strcmp(sr->name, "sr1"))) {
-+		if (!(strcmp(sr->name, "smartreflex_mpu_iva"))) {
- 			sr->senn_avgweight = OMAP3430_SR1_SENNAVGWEIGHT;
- 			sr->senp_avgweight = OMAP3430_SR1_SENPAVGWEIGHT;
- 		} else {
+In preparation to the move of the OMAP code the following changes have been
+made:
+- fill in platform data from the device initialization code and pass
+ it to the driver,
+- create CONFIG_AVS* config options accordingly.
+
+The platform integration data for SmartReflex is passed from hwmod
+and the voltage layer to the driver using pdata.
+
+Tested on OMAP4430 SDP using omap2plus_defconfig with the
+CONFIG_POWER_AVS* options set. Voltage correction seen
+on oscilloscope on all three VDDs.
+Based on master branch of the l-o git tree, commit
+6bd61e8de0511dd9831eb9d89eea0b4603a10e9e.
+
+Tree: git://gitorious.org/~keerthy05/omap-pm/keerthy-sr.git for_smartreflex_ip_driver_move 
+
+V3: rework after the comments on MLs
+ . Retain Efuse offsets check to identify a particular OPP.
+ . Introduce a common header file accessible both by arch/arm/mach-omap2/
+   and drivers/.
+ . Retain the class driver in mach-omap2/ and move IP driver to drivers/power/
+   avs since class driver needs voltage layer support.
+
+History:
+v2: rework after the comments on MLs
+ . Keep the OMAP Kconfig options in the arch dir (Rafael),
+ . Move the shared header file from plat-omap to
+   include/linux/power/ (Tony)
+
+v1: initial revision
+
+J Keerthy (1):
+  ARM: OMAP2+: Voltage: Move the omap_volt_data structure to plat
+
+Jean Pihet (9):
+  ARM: OMAP2+: SmartReflex: move the smartreflex header to include/linux/power
+  ARM: OMAP3+: SmartReflex: class drivers should use struct omap_sr *
+  ARM: OMAP2+: smartreflex: Use the names from hwmod data instead of
+    voltage domains.
+  ARM: OMAP3: hwmod: rename the smartreflex entries
+  ARM: OMAP2+: SmartReflex: introduce a busy loop condition test macro
+  ARM: OMAP2+: SmartReflex: Use per-OPP data structure
+  ARM: OMAP2+: SmartReflex: Create per-opp debugfs node for errminlimit
+  ARM: OMAP2+: SmartReflex: add POWER_AVS Kconfig options
+  ARM: OMAP: SmartReflex: Move smartreflex driver to drivers/
+ arch/arm/mach-omap2/Makefile                       |    5 +-
+ arch/arm/mach-omap2/omap_hwmod_3xxx_data.c         |   12 +-
+ arch/arm/mach-omap2/omap_hwmod_44xx_data.c         |    3 +-
+ arch/arm/mach-omap2/pm.h                           |    2 +-
+ arch/arm/mach-omap2/smartreflex-class3.c           |   29 ++--
+ arch/arm/mach-omap2/sr_device.c                    |   39 ++++-
+ arch/arm/mach-omap2/voltage.h                      |   21 +---
+ arch/arm/plat-omap/Kconfig                         |   31 ++--
+ arch/arm/plat-omap/include/plat/voltage.h          |   21 +++-
+ drivers/power/Kconfig                              |    2 +
+ drivers/power/Makefile                             |    1 +
+ drivers/power/avs/Kconfig                          |   12 ++
+ drivers/power/avs/Makefile                         |    1 +
+ .../mach-omap2 => drivers/power/avs}/smartreflex.c |  161 ++++++++------------
+ .../linux/power}/smartreflex.h                     |   74 ++++++++--
+ 15 files changed, 235 insertions(+), 179 deletions(-)
+ create mode 100644 drivers/power/avs/Kconfig
+ create mode 100644 drivers/power/avs/Makefile
+ rename {arch/arm/mach-omap2 => drivers/power/avs}/smartreflex.c (90%)
+ rename {arch/arm/mach-omap2 => include/linux/power}/smartreflex.h (79%)
+
 -- 
 1.7.5.4
-
