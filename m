@@ -1,76 +1,56 @@
-From: "Mark A. Greer" <mgreer@animalcreek.com>
-Subject: Re: [PATCH] arm: omap3: am35x: Don't mark missing features as
- present
-Date: Fri, 27 Apr 2012 14:30:02 -0700
-Message-ID: <20120427213002.GC19196@animalcreek.com>
-References: <1334861927-1741-1-git-send-email-mgreer@animalcreek.com>
- <871un827m0.fsf@ti.com>
+From: Kevin Hilman <khilman@ti.com>
+Subject: Re: [PATCH v9 11/25] gpio/omap: cleanup omap_gpio_mod_init function
+Date: Fri, 27 Apr 2012 14:31:11 -0700
+Message-ID: <87pqaszwtc.fsf@ti.com>
+References: <1328203851-20435-1-git-send-email-tarun.kanti@ti.com>
+	<1328203851-20435-12-git-send-email-tarun.kanti@ti.com>
+	<13629551.hP3ZV1ajDo@vclass>
+	<CAC83ZvK630=6B-k2TfV3XBg8w7ZosLVDNE4ezjDYnn=hcXA48Q@mail.gmail.com>
+	<CAC83ZvJDDvCu8NKTOYh75USA3fvSAKEGaXXi9PtCM955K_keSA@mail.gmail.com>
+	<20120424160447.GI3739@atomide.com>
+	<CAC83Zv+CCLQfZHfqMcbof6JtA-hOK1PfX5Gs0BBVQhBAiWzX_g@mail.gmail.com>
+	<CAMQu2gzwijaSzXprEwTNTie3zCgFcNPonAexzrO_AWc2a8jOkw@mail.gmail.com>
+	<CAC83ZvKN_Qxw-9RPfpJaL5434j0HgysZ364F+b29rdSCQWhm7A@mail.gmail.com>
+	<20120425134508.GE25053@n2100.arm.linux.org.uk>
+	<CAC83ZvL54bot+yQoRPPX3_9O5wfdpdBCNb4-Chw7sPyVFDBGSg@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail20.dotsterhost.com ([66.11.232.73]:52573 "EHLO
-	mail20.dotsterhost.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751626Ab2D0VaE (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 27 Apr 2012 17:30:04 -0400
-Content-Disposition: inline
-In-Reply-To: <871un827m0.fsf@ti.com>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <CAC83ZvL54bot+yQoRPPX3_9O5wfdpdBCNb4-Chw7sPyVFDBGSg@mail.gmail.com>
+	(Tarun Kanti DebBarma's message of "Thu, 26 Apr 2012 10:43:57 +0530")
+Sender: linux-kernel-owner@vger.kernel.org
+To: "DebBarma, Tarun Kanti" <tarun.kanti@ti.com>
+Cc: Russell King - ARM Linux <linux@arm.linux.org.uk>, "Shilimkar, Santosh" <santosh.shilimkar@ti.com>, Janusz Krzysztofik <jkrzyszt@tis.icnet.pl>, Tony Lindgren <tony@atomide.com>, linux-kernel@vger.kernel.org, grant.likely@secretlab.ca, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Charulatha V <charu@ti.com>
 List-Id: linux-omap@vger.kernel.org
-To: Kevin Hilman <khilman@ti.com>
-Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 
-On Fri, Apr 27, 2012 at 02:21:59PM -0700, Kevin Hilman wrote:
-> "Mark A. Greer" <mgreer@animalcreek.com> writes:
-> 
-> > From: "Mark A. Greer" <mgreer@animalcreek.com>
-> >
-> > The Chip Identification register on the am35x family of SoCs
-> > has bits 12, 7:5, and 3:2 marked as reserved and are read as
-> > zeroes.  Unfortunately, on other omap SoCs, a 0 bit means a
-> > feature is "Full Use" so the OMAP3_CHECK_FEATURE() macro
-> > called by omap3_check_features() will incorrectly interpret
-> > those zeroes to mean that a feature is present even though it
-> > isn't.  To fix that, the feature bits that are incorrectly
-> > set (namely, OMAP3_HAS_IVA and OMAP3_HAS_ISP) need to be
-> > cleared after all of the calls to OMAP3_CHECK_FEATURE() in
-> > omap3_check_features() are made.
-> >
-> > Signed-off-by: Mark A. Greer <mgreer@animalcreek.com>
-> > ---
-> >  arch/arm/mach-omap2/id.c |   11 +++++++++++
-> >  1 file changed, 11 insertions(+)
-> >
-> > diff --git a/arch/arm/mach-omap2/id.c b/arch/arm/mach-omap2/id.c
-> > index 0e79b7b..9736049 100644
-> > --- a/arch/arm/mach-omap2/id.c
-> > +++ b/arch/arm/mach-omap2/id.c
-> > @@ -248,6 +248,17 @@ void __init omap3xxx_check_features(void)
-> >  	omap_features |= OMAP3_HAS_SDRC;
-> >  
-> >  	/*
-> > +	 * am35x fixups:
-> > +	 * - The am35x Chip ID register has bits 12, 7:5, and 3:2 marked as
-> > +	 *   reserved and therefore return 0 when read.  Unfortunately,
-> > +	 *   OMAP3_CHECK_FEATURE() will interpret some of those zeroes to
-> > +	 *   mean that a feature is present even though it isn't so clear
-> > +	 *   the incorrectly set feature bits.
-> > +	 */
-> > +	if (cpu_is_omap3505() || cpu_is_omap3517())
-> > +		omap_features &= ~(OMAP3_HAS_IVA | OMAP3_HAS_ISP);
-> 
-> I just sent a series that removes these cpu_is macros:
-> 
->    http://marc.info/?l=linux-omap&m=133548306205953&w=2
-> 
-> It looks like I can just replace the above with 'if (cpu_is_am35xx()', correct?
+"DebBarma, Tarun Kanti" <tarun.kanti@ti.com> writes:
 
-Yes.
+> On Wed, Apr 25, 2012 at 7:15 PM, Russell King - ARM Linux <linux@arm.=
+linux.org.uk> wrote:
 
-> Since you have various AM35x devices, could you could give my series a
-> spin and make this change?  If it works, and acked-by/tested-by on my
-> series would be appreciated as well.
+[...]
 
-Sure.  I already have them ported to your series.  I have to leave early
-today but I'll test them & get them to you on Monday.  Sorry for the delay.
+>> Correction.
+>>
+>> Don't email your patch in any way to the stable folk _before_ it has=
+ been
+>> taken into Linus' tree. =C2=A0However, you _may_ add in the patch at=
+tributations
+>> a Cc: <stable@vger.kernel.org> tag if you want the stable folk to
+>> automatically pick up your patch when it _does_ end up in Linus' tre=
+e.
+>> But... make sure that git send-email or whatever doesn't automatical=
+ly
+>> add that to the recipients for the emailed patch.
+>>
+>> If you send the stable people a patch before its in mainline, you'll=
+ get
+>> a whinge telling you to read Documentation/stable_kernel_rules.txt
+>
+> Alright, I will add Cc: <stable@vger.kernel.org> tag in the patch.
 
-Mark
+If you do that, be sure to use --suppress-cc=3Dbodycc when you send it
+with git-send-email.
+
+Kevin
