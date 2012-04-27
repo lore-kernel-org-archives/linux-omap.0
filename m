@@ -1,46 +1,50 @@
-From: "Hiremath, Vaibhav" <hvaibhav@ti.com>
-Subject: RE: [PATCH-V3 3/3] ARM: OMAP3+: clock33xx: Add AM33XX clock tree
- data
-Date: Fri, 27 Apr 2012 10:03:28 +0000
-Message-ID: <79CD15C6BA57404B839C016229A409A83EA00AC6@DBDE01.ent.ti.com>
-References: <1333458578-23073-1-git-send-email-hvaibhav@ti.com>
- <1333458578-23073-4-git-send-email-hvaibhav@ti.com>
- <alpine.DEB.2.00.1204260246170.10308@utopia.booyaka.com>
+From: Rajendra Nayak <rnayak@ti.com>
+Subject: [PATCH] ARM: OMAP3: Fix CM register bit masks
+Date: Fri, 27 Apr 2012 17:53:25 +0530
+Message-ID: <1335529405-14230-1-git-send-email-rnayak@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
+Content-Type: text/plain
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from bear.ext.ti.com ([192.94.94.41]:34016 "EHLO bear.ext.ti.com"
+Received: from comal.ext.ti.com ([198.47.26.152]:44173 "EHLO comal.ext.ti.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1755528Ab2D0KDh convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 27 Apr 2012 06:03:37 -0400
-In-Reply-To: <alpine.DEB.2.00.1204260246170.10308@utopia.booyaka.com>
-Content-Language: en-US
+	id S1755566Ab2D0MXg (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Fri, 27 Apr 2012 08:23:36 -0400
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Paul Walmsley <paul@pwsan.com>, "Mohammed, Afzal" <afzal@ti.com>, "Bedia, Vaibhav" <vaibhav.bedia@ti.com>
-Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "tony@atomide.com" <tony@atomide.com>, "Hilman, Kevin" <khilman@ti.com>, "Nayak, Rajendra" <rnayak@ti.com>, "Cousson, Benoit" <b-cousson@ti.com>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>
+To: paul@pwsan.com
+Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Rajendra Nayak <rnayak@ti.com>
 
-On Thu, Apr 26, 2012 at 14:19:28, Paul Walmsley wrote:
-> Hello Vaibhav,
-> 
-> looking at Table 1-1 "Device Features" of SPRUH73D, it seems that some 
-> AM33xx family chips come with some features disabled, such as the 
-> PRU-ICSS, the SGX, Ethernet, or USB.  How will this affect the clock tree?  
-> For example, is it correct for us to include the PRU-ICSS clock control on 
-> a clock tree that is booted on an AM3352 or an AM3354?
-> 
-> 
+The register bits for MPU_CLK_SRC and IVA2_CLK_SRC
+in CM_CLKSEL1_PLL register are 3 bits wide.
+Fix the MASK definition accordingly.
 
-I thought of this, but if you look at the existing way of handling such Si version based clock registration is supported by "cpu_clkflg", like CK_3XXX, 
-CK_AM35XX, etc...
+Signed-off-by: Rajendra Nayak <rnayak@ti.com>
+---
+ arch/arm/mach-omap2/cm-regbits-34xx.h |    4 ++--
+ 1 files changed, 2 insertions(+), 2 deletions(-)
 
-During my baseport patch submission, Tony had removed CK_AM33XX flag while 
-merging them. I believe, we are trying to get rid of these flags, and that's 
-where Tony had removed them form my baseport patch.
-I was not sure on how to handle this, so I decided to continue with full 
-chip support (AM3358 and AM3359).
+diff --git a/arch/arm/mach-omap2/cm-regbits-34xx.h b/arch/arm/mach-omap2/cm-regbits-34xx.h
+index b912759..8083a8c 100644
+--- a/arch/arm/mach-omap2/cm-regbits-34xx.h
++++ b/arch/arm/mach-omap2/cm-regbits-34xx.h
+@@ -79,7 +79,7 @@
+ 
+ /* CM_CLKSEL1_PLL_IVA2 */
+ #define OMAP3430_IVA2_CLK_SRC_SHIFT			19
+-#define OMAP3430_IVA2_CLK_SRC_MASK			(0x3 << 19)
++#define OMAP3430_IVA2_CLK_SRC_MASK			(0x7 << 19)
+ #define OMAP3430_IVA2_DPLL_MULT_SHIFT			8
+ #define OMAP3430_IVA2_DPLL_MULT_MASK			(0x7ff << 8)
+ #define OMAP3430_IVA2_DPLL_DIV_SHIFT			0
+@@ -124,7 +124,7 @@
+ 
+ /* CM_CLKSEL1_PLL_MPU */
+ #define OMAP3430_MPU_CLK_SRC_SHIFT			19
+-#define OMAP3430_MPU_CLK_SRC_MASK			(0x3 << 19)
++#define OMAP3430_MPU_CLK_SRC_MASK			(0x7 << 19)
+ #define OMAP3430_MPU_DPLL_MULT_SHIFT			8
+ #define OMAP3430_MPU_DPLL_MULT_MASK			(0x7ff << 8)
+ #define OMAP3430_MPU_DPLL_DIV_SHIFT			0
+-- 
+1.7.1
 
-
-Thanks,
-Vaibhav
