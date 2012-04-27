@@ -1,34 +1,60 @@
-From: Russell King - ARM Linux <linux@arm.linux.org.uk>
-Subject: Audio support on OMAP 3430LDP or 4430SDP boards
-Date: Fri, 27 Apr 2012 14:58:02 +0100
-Message-ID: <20120427135802.GA28062@n2100.arm.linux.org.uk>
+From: Tarun Kanti DebBarma <tarun.kanti@ti.com>
+Subject: [PATCH 0/8] gpio/omap: remaining cleanups and fix
+Date: Fri, 27 Apr 2012 19:43:30 +0530
+Message-ID: <1335536018-16004-1-git-send-email-tarun.kanti@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from caramon.arm.linux.org.uk ([78.32.30.218]:48344 "EHLO
-	caramon.arm.linux.org.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1760000Ab2D0N6H (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 27 Apr 2012 09:58:07 -0400
-Content-Disposition: inline
+Received: from devils.ext.ti.com ([198.47.26.153]:53971 "EHLO
+	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1759691Ab2D0ONx (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 27 Apr 2012 10:13:53 -0400
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: linux-omap@vger.kernel.org
+Cc: linux-arm-kernel@lists.infradead.org, Tarun Kanti DebBarma <tarun.kanti@ti.com>, Kevin Hilman <khilman@ti.com>, Tony Lindgren <tony@atomide.com>, Santosh Shilimkar <santosh.shilimkar@ti.com>, "Cousson, Benoit" <b-cousson@ti.com>, Grant Likely <grant.likely@secretlab.ca>
+
+Here are the remaining cleanup patches. There are broadly
+two categories of cleanups.
+
+Cat-1: Those missed while introducing new feature like SPARSE_IRQ
+       handling and DT support; use edge/level handlers from
+       generic IRQ framework.
+
+Cat-2: Removal of redundant fields from struct gpio_bank{} as a
+       result of they being already covered by members within
+       context field of struct gpio_bank{}.
+
+Reference: git://git.kernel.org/pub/scm/linux/kernel/git/torvalds/linux-2.6.git
+Commit: 66f75a5d028beaf67c931435fdc3e7823125730c (Linux 3.4-rc4)
+
+Series is available for reference here:
+git://gitorious.org/~tarunkanti/omap-sw-develoment/tarunkantis-linux-omap-dev.git for_3.5/gpio_more_cleanup_fixes
+
+Test info:
+OMAP2+ platforms: OMAP2430SDP, OMAP3430SDP, OMAP4430SDP
+OMAP1: Bootup test on OMAP1710SDP.
+
+Cc: Kevin Hilman <khilman@ti.com>
+Cc: Tony Lindgren <tony@atomide.com>
 Cc: Santosh Shilimkar <santosh.shilimkar@ti.com>
+Cc: Cousson, Benoit <b-cousson@ti.com>
+Cc: Grant Likely <grant.likely@secretlab.ca>
+Tarun Kanti DebBarma (8):
+  gpio/omap: remove virtual_irq_start variable
+  gpio/omap: remove saved_fallingdetect, saved_risingdetect
+  gpio/omap: remove suspend_wakeup field from struct gpio_bank
+  gpio/omap: remove saved_wakeup field from struct gpio_bank
+  gpio/omap: remove retrigger variable in gpio_irq_handler
+  gpio/omap: remove suspend/resume callbacks
+  gpio/omap: remove cpu_is_omapxxxx() checks from *_runtime_resume()
+  gpio/omap: fix missing check in *_runtime_suspend()
 
-Can someone please hint on what audio is supported on these two OMAP
-boards?  From what I can tell, the answer is either "nothing" or "hdmi",
-both of which are useless to me if someone wants me to convert the OMAP
-ASoC driver to DMA engine.
+ arch/arm/mach-omap1/gpio15xx.c         |    2 -
+ arch/arm/mach-omap1/gpio16xx.c         |    5 --
+ arch/arm/mach-omap1/gpio7xx.c          |    7 --
+ arch/arm/mach-omap2/gpio.c             |    3 +-
+ arch/arm/plat-omap/include/plat/gpio.h |    3 +-
+ drivers/gpio/gpio-omap.c               |  103 +++++++-------------------------
+ 6 files changed, 27 insertions(+), 96 deletions(-)
 
->From what I can see on the 4430SDP, there's a 3.5mm headset jack,
-microphones and speakers on the board, so the board does have audio
-hardware.  However, it seems (as, I'm afraid to say, seems to be pretty
-much standard practice with OMAP) there's a total lack of software
-support in mainline.
-
-This kind'a prevents me testing changes to the DMA support for OMAP
-ASoC...
-
-What can be done to remedy this situation?
-
-Thanks.
