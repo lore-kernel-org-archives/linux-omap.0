@@ -1,28 +1,38 @@
-From: Linus Walleij <linus.walleij@linaro.org>
-Subject: Re: [PATCH 2/8] dmaengine: amba-pl08x: ensure physical channels are
- properly held
-Date: Fri, 27 Apr 2012 22:38:08 +0200
-Message-ID: <CACRpkdY8rJYQhUwtW1mtmnY8WB7T7mowefqOmiJdCZ1iS5E89A@mail.gmail.com>
-References: <20120418100954.GK25053@n2100.arm.linux.org.uk>
-	<E1SKRqh-0004b8-RH@rmk-PC.arm.linux.org.uk>
-	<20120418101938.GM25053@n2100.arm.linux.org.uk>
+From: Kevin Hilman <khilman@ti.com>
+Subject: Re: [PATCH-V4 4/4] ARM: OMAP3+: am33xx: Add powerdomain & PRM support
+Date: Fri, 27 Apr 2012 13:44:02 -0700
+Message-ID: <87lilg52i5.fsf@ti.com>
+References: <1333123435-27186-1-git-send-email-hvaibhav@ti.com>
+	<1333123435-27186-5-git-send-email-hvaibhav@ti.com>
+	<87bome579d.fsf@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Return-path: <linux-mmc-owner@vger.kernel.org>
-In-Reply-To: <20120418101938.GM25053@n2100.arm.linux.org.uk>
-Sender: linux-mmc-owner@vger.kernel.org
-To: Russell King - ARM Linux <linux@arm.linux.org.uk>
-Cc: linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org, linux-mmc@vger.kernel.org, Vinod Koul <vinod.koul@intel.com>, Dan Williams <dan.j.williams@intel.com>
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from na3sys009aog131.obsmtp.com ([74.125.149.247]:38880 "EHLO
+	na3sys009aog131.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1760645Ab2D0UoD (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>);
+	Fri, 27 Apr 2012 16:44:03 -0400
+Received: by pbcuo15 with SMTP id uo15so1698349pbc.11
+        for <linux-omap@vger.kernel.org>; Fri, 27 Apr 2012 13:44:01 -0700 (PDT)
+In-Reply-To: <87bome579d.fsf@ti.com> (Kevin Hilman's message of "Thu, 26 Apr
+	2012 17:49:02 -0700")
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Vaibhav Hiremath <hvaibhav@ti.com>
+Cc: linux-omap@vger.kernel.org, paul@pwsan.com, b-cousson@ti.com, tony@atomide.com, rnayak@ti.com, Afzal Mohammed <afzal@ti.com>, linux-arm-kernel@lists.infradead.org
 
-On Wed, Apr 18, 2012 at 12:19 PM, Russell King - ARM Linux
-<linux@arm.linux.org.uk> wrote:
+Kevin Hilman <khilman@ti.com> writes:
 
-> Oops, this patch wasn't supposed to be part of this set...
+[...]
 
-...however it gives me the impression that you have a patch set cooking
-to also switch PL08x over to the virtual channel mechanism which is
-really appetizing to see :-)
+> I also don't like all the cpu_is* checking currently in omap_hwmod.c
+> (which is here before you added this) and have an idea on how to clean
+> it up, I should have a patch by tomorrow for this.  That should help
+> adding am33xx support here without needing all the cpu_is* checking.
 
-Yours,
-Linus Walleij
+Series just posted: 
+
+   http://marc.info/?l=linux-omap&m=133555727831379&w=2
+
+Kevin
