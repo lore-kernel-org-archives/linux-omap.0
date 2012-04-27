@@ -1,226 +1,96 @@
 From: Kevin Hilman <khilman@ti.com>
-Subject: Re: [PATCH 05/12] arm: omap3: am35x: Add PWROFF feature
-Date: Fri, 27 Apr 2012 14:07:13 -0700
-Message-ID: <87r4v828am.fsf@ti.com>
+Subject: Re: [PATCH 03/12] arm: omap3: Only sleep in cpuidle driver if I/O wake-ups work
+Date: Fri, 27 Apr 2012 14:12:12 -0700
+Message-ID: <87haw4282b.fsf@ti.com>
 References: <1334171147-7517-1-git-send-email-mgreer@animalcreek.com>
-	<1334171147-7517-6-git-send-email-mgreer@animalcreek.com>
-	<87iph5q43n.fsf@ti.com> <20120424043639.GA24317@animalcreek.com>
+	<1334171147-7517-4-git-send-email-mgreer@animalcreek.com>
+	<alpine.DEB.2.00.1204111532280.29473@utopia.booyaka.com>
+	<20120424205105.GA26749@animalcreek.com>
+	<20120424232506.GA8850@animalcreek.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aog124.obsmtp.com ([74.125.149.151]:33037 "EHLO
-	na3sys009aog124.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751620Ab2D0VHN (ORCPT
+Received: from na3sys009aog129.obsmtp.com ([74.125.149.142]:40245 "EHLO
+	na3sys009aog129.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1753090Ab2D0VMM (ORCPT
 	<rfc822;linux-omap@vger.kernel.org>);
-	Fri, 27 Apr 2012 17:07:13 -0400
-Received: by dadq36 with SMTP id q36so1326383dad.22
-        for <linux-omap@vger.kernel.org>; Fri, 27 Apr 2012 14:07:12 -0700 (PDT)
-In-Reply-To: <20120424043639.GA24317@animalcreek.com> (Mark A. Greer's message
-	of "Mon, 23 Apr 2012 21:36:39 -0700")
+	Fri, 27 Apr 2012 17:12:12 -0400
+Received: by dakh32 with SMTP id h32so1490887dak.23
+        for <linux-omap@vger.kernel.org>; Fri, 27 Apr 2012 14:12:11 -0700 (PDT)
+In-Reply-To: <20120424232506.GA8850@animalcreek.com> (Mark A. Greer's message
+	of "Tue, 24 Apr 2012 16:25:06 -0700")
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: "Mark A. Greer" <mgreer@animalcreek.com>
-Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, paul@pwsan.com
+Cc: Paul Walmsley <paul@pwsan.com>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 
 "Mark A. Greer" <mgreer@animalcreek.com> writes:
 
-> On Wed, Apr 11, 2012 at 03:46:20PM -0700, Kevin Hilman wrote:
->> Hi Mark,
->
-> Hi Kevin.
->
->> "Mark A. Greer" <mgreer@animalcreek.com> writes:
+> On Tue, Apr 24, 2012 at 01:51:05PM -0700, Mark A. Greer wrote:
+>> On Wed, Apr 11, 2012 at 03:37:47PM -0600, Paul Walmsley wrote:
+>> > Hi
 >> 
->> > From: "Mark A. Greer" <mgreer@animalcreek.com>
->> >
->> > Typical OMAP3 SoCs have four power domain states: ON,
->> > INACTIVE, RETENTION, and OFF.  The am35x family of SoCs
->> > has only two states: ON and INACTIVE.  To distinguish which
->> > set of states the current device has, add the 'OMAP3_HAS_PWROFF'
->> > feature.  When that feature/bit is set, the device supports the
->> > RETENTION and OFF states; otherwise, it doesn't.
->> >
->> > Signed-off-by: Mark A. Greer <mgreer@animalcreek.com>
+>> Hi Paul, Kevin.
 >> 
->> Paul has mentioned this already, but the same applies here: We shouldn't
->> be using SoC-global feature flag for this.   We already have per-pwrdm
->> flags that indicate what states a given powerdomain suports (see .pwrsts
->> field.)
+>> > On Wed, 11 Apr 2012, Mark A. Greer wrote:
+>> > 
+>> > > From: "Mark A. Greer" <mgreer@animalcreek.com>
+>> > > 
+>> > > Currently, the OMAP3 cpuidle driver calls omap3_enter_idle()
+>> > > which calls omap_sram_idle().  omap_sram_idle() eventually
+>> > > causes a 'wfi' instruction to be executed effectively putting
+>> > > the system to sleep.  It is assumed that an I/O wake-up event
+>> > > will occur to wake the system up again.  This doesn't work on
+>> > > systems that don't support I/O wake-ups (indicated by
+>> > > omap3_has_io_wakeup() returning false).
+>> > > 
+>> > > To handle this, follow the same path in omap3_enter_idle()
+>> > > that would be followed if an interrupt were pending.
+>> > 
+>> > I don't quite understand this patch.  Are you saying that AM3517/3505 
+>> > can't wake from WFI?  That would seem odd.
+>> > 
+>> > There are other sources of wakeup on the system other than I/O wakeup.  
+>> > I/O wakeup only applies to wakeups from the I/O pads when the chip is in 
+>> > RETENTION or OFF.  And as I understand it, neither of those apply to 
+>> > AM3517/3505?
+>> > 
+>> > Even if I/O wakeups aren't supported, many of the IP blocks on the system 
+>> > should be able to cause the ARM to exit WFI by asserting their 
+>> > SWAKEUP lines and raising their interrupt lines.
 >> 
->> Wherever we have blind writes to next powerstates that assume support
->> for RET/OFF is present, those should probably use a helper function from
->> the powerdomain code that checks if that state is even supported.
+>> I have changed the code to keep everything in the ON state and use
+>> cpu_do_idle()--basically a wfi, cpu_v7_do_idle() in this case--and everything
+>> works well (except networking, see below) when using an mmc-based rootfs.
+>> 
+>> The issue is with the emac--it can't wake the system up unless there
+>> is an irq from the PHY to a wakeup-enabled GPIO (confirmed by h/w engr).
+>> So, when using networking or using an nfs-based rootfs, there are all
+>> kinds of timeouts, etc.  Basically, doing a wfi (i.e., pm_idle or cpuidle)
+>> and expecting the emac to wake the system back up won't work.
+>> 
+>> How would you like me to proceed (to avoid the wfi in pm_idle & cpuidle)?
 >
-> How about something like the patch below?
-> Note: its not well tested; just RFC.
+> Just thinking out loud...
+>
+> We could chose whether pm_idle & cpuidle issue a wfi based on
+> whether there is a davinci-emac present.  The issue with that is
+> that someday there may be another SoC that has a davinci-emac that
+> can wake up the system.  I know cpu_is_xxx() is frowned upon but
+> this does seem like a proper usage of it--the deciding factor
+> really is whether its an am35x or not (and CONFIG_TI_DAVINCI_EMAC
+> is enabled).
 
-Yes, your proposed patch looks right to me.
+The presence of the davinci_emac is probably overkill, avoiding WFI
+should really only be done when the davinci_emac is *active*.
+e.g. using an am35x with an EMAC *present*, but not in use because
+there's an MMC rootfs for example.
 
-I guess it's up to Paul & Jean to see if they'd rather see this build on
-top of the Jean's functional power state work, or take this as a
-standalone fix.
+If there's a good way to detect an in-use davinci_emac, then
+disable_hlt() can be used to avoid WFI.  When the davinci_emac is not in
+use (e.g. module unloaded etc.) then enable_hlt() can be used to
+(re)allow WFI.
 
 Kevin
 
->> Jean's work on functional powerstates will probably help here if you
->> really need to support INACTIVE.  However, Paul may be right in that you
->> might just start with supporing ON only, and validate that module-level
->> wakups acutally work.
->
-> Yes, I think INACTIVE is a red herring so I'm going to stick with k.o
-> master branch for now (IOW, not base on Jean's patches).  If you still
-> want me to base on his patches, just let me know.
->
-> Mark
-> --
->
-> From 32c54adb15c76396aeec809d38de4dde936b1e66 Mon Sep 17 00:00:00 2001
-> From: "Mark A. Greer" <mgreer@animalcreek.com>
-> Date: Mon, 23 Apr 2012 17:48:06 -0700
-> Subject: [PATCH] arm: omap: Use only valid power domain states
->
-> Some parts of the OMAP code assume that all power
-> domains support certain states (e.g., RET & OFF).
-> This isn't always true (e.g., the am35x family of
-> SoC's) so those assumptions need to be removed.
->
-> Remove those assumptions by looking up the deepest
-> state that a power domain can be in whereever its
-> being blindly set.  The 'max()' of the deepest
-> state and what the code formerly wanted to set it
-> to, is the correct state.  If the code formerly
-> wanted to set it to PWRDM_POWER_OFF, then the
-> deepest possible state will be used (i.e., no
-> need to perform the 'max()').
->
-> The code still assumes that ON is a valid state.
->
-> Signed-off-by: Mark A. Greer <mgreer@animalcreek.com>
-> ---
->  arch/arm/mach-omap2/cpuidle34xx.c |   14 ++++++++++----
->  arch/arm/mach-omap2/pm34xx.c      |   15 +++++++++------
->  arch/arm/mach-omap2/powerdomain.c |   25 +++++++++++++++++++++++++
->  arch/arm/mach-omap2/powerdomain.h |    2 ++
->  4 files changed, 46 insertions(+), 10 deletions(-)
->
-> diff --git a/arch/arm/mach-omap2/cpuidle34xx.c b/arch/arm/mach-omap2/cpuidle34xx.c
-> index 5358664..60aa0c3 100644
-> --- a/arch/arm/mach-omap2/cpuidle34xx.c
-> +++ b/arch/arm/mach-omap2/cpuidle34xx.c
-> @@ -175,19 +175,25 @@ static int next_valid_state(struct cpuidle_device *dev,
->  	struct cpuidle_state_usage *curr_usage = &dev->states_usage[index];
->  	struct cpuidle_state *curr = &drv->states[index];
->  	struct omap3_idle_statedata *cx = cpuidle_get_statedata(curr_usage);
-> -	u32 mpu_deepest_state = PWRDM_POWER_RET;
-> -	u32 core_deepest_state = PWRDM_POWER_RET;
-> +	u32 mpu_deepest_state, mpu_deepest_possible;
-> +	u32 core_deepest_state, core_deepest_possible;
->  	int next_index = -1;
->  
-> +	mpu_deepest_possible = pwrdm_get_deepest_state(mpu_pd);
-> +	mpu_deepest_state = max(mpu_deepest_possible, (u32)PWRDM_POWER_RET);
-> +
-> +	core_deepest_possible = pwrdm_get_deepest_state(core_pd);
-> +	core_deepest_state = max(core_deepest_possible, (u32)PWRDM_POWER_RET);
-> +
->  	if (enable_off_mode) {
-> -		mpu_deepest_state = PWRDM_POWER_OFF;
-> +		mpu_deepest_state = mpu_deepest_possible;
->  		/*
->  		 * Erratum i583: valable for ES rev < Es1.2 on 3630.
->  		 * CORE OFF mode is not supported in a stable form, restrict
->  		 * instead the CORE state to RET.
->  		 */
->  		if (!IS_PM34XX_ERRATUM(PM_SDRC_WAKEUP_ERRATUM_i583))
-> -			core_deepest_state = PWRDM_POWER_OFF;
-> +			core_deepest_state = core_deepest_possible;
->  	}
->  
->  	/* Check if current state is valid */
-> diff --git a/arch/arm/mach-omap2/pm34xx.c b/arch/arm/mach-omap2/pm34xx.c
-> index ec92676..7737bfb 100644
-> --- a/arch/arm/mach-omap2/pm34xx.c
-> +++ b/arch/arm/mach-omap2/pm34xx.c
-> @@ -614,12 +614,11 @@ void omap3_pm_off_mode_enable(int enable)
->  	struct power_state *pwrst;
->  	u32 state;
->  
-> -	if (enable)
-> -		state = PWRDM_POWER_OFF;
-> -	else
-> -		state = PWRDM_POWER_RET;
-> -
->  	list_for_each_entry(pwrst, &pwrst_list, node) {
-> +		state = pwrdm_get_deepest_state(pwrst->pwrdm);
-> +		if (!enable)
-> +			state = max(state, (u32)PWRDM_POWER_RET);
-> +
->  		if (IS_PM34XX_ERRATUM(PM_SDRC_WAKEUP_ERRATUM_i583) &&
->  				pwrst->pwrdm == core_pwrdm &&
->  				state == PWRDM_POWER_OFF) {
-> @@ -660,6 +659,7 @@ int omap3_pm_set_suspend_state(struct powerdomain *pwrdm, int state)
->  static int __init pwrdms_setup(struct powerdomain *pwrdm, void *unused)
->  {
->  	struct power_state *pwrst;
-> +	u32 state;
->  
->  	if (!pwrdm->pwrsts)
->  		return 0;
-> @@ -668,7 +668,10 @@ static int __init pwrdms_setup(struct powerdomain *pwrdm, void *unused)
->  	if (!pwrst)
->  		return -ENOMEM;
->  	pwrst->pwrdm = pwrdm;
-> -	pwrst->next_state = PWRDM_POWER_RET;
-> +
-> +	state = pwrdm_get_deepest_state(pwrdm);
-> +	pwrst->next_state = max(state, (u32)PWRDM_POWER_RET);
-> +
->  	list_add(&pwrst->node, &pwrst_list);
->  
->  	if (pwrdm_has_hdwr_sar(pwrdm))
-> diff --git a/arch/arm/mach-omap2/powerdomain.c b/arch/arm/mach-omap2/powerdomain.c
-> index 96ad3dbe..9c80c19 100644
-> --- a/arch/arm/mach-omap2/powerdomain.c
-> +++ b/arch/arm/mach-omap2/powerdomain.c
-> @@ -1078,3 +1078,28 @@ bool pwrdm_can_ever_lose_context(struct powerdomain *pwrdm)
->  
->  	return 0;
->  }
-> +
-> +/**
-> + * pwrdm_get_deepest_state - Get deepest valid state domain can enter
-> + * @pwrdm: struct powerdomain *
-> + *
-> + * Find and return the deepest valid state a power domain can be in.
-> + * Returns the deepest state that @pwrdm can enter.
-> + */
-> +u32 pwrdm_get_deepest_state(struct powerdomain *pwrdm)
-> +{
-> +	u32 valid_states, deepest_state;
-> +
-> +	valid_states = pwrdm->pwrsts;
-> +
-> +	if (valid_states & PWRSTS_OFF)
-> +		deepest_state = PWRDM_POWER_OFF;
-> +	else if (valid_states & PWRSTS_RET)
-> +		deepest_state = PWRDM_POWER_RET;
-> +	else if (valid_states & PWRSTS_INACTIVE)
-> +		deepest_state = PWRDM_POWER_INACTIVE;
-> +	else
-> +		deepest_state = PWRDM_POWER_ON;
-> +
-> +	return deepest_state;
-> +}
-> diff --git a/arch/arm/mach-omap2/powerdomain.h b/arch/arm/mach-omap2/powerdomain.h
-> index 0d72a8a..9688ff1 100644
-> --- a/arch/arm/mach-omap2/powerdomain.h
-> +++ b/arch/arm/mach-omap2/powerdomain.h
-> @@ -220,6 +220,8 @@ int pwrdm_set_lowpwrstchange(struct powerdomain *pwrdm);
->  int pwrdm_get_context_loss_count(struct powerdomain *pwrdm);
->  bool pwrdm_can_ever_lose_context(struct powerdomain *pwrdm);
->  
-> +u32 pwrdm_get_deepest_state(struct powerdomain *pwrdm);
-> +
->  extern void omap242x_powerdomains_init(void);
->  extern void omap243x_powerdomains_init(void);
->  extern void omap3xxx_powerdomains_init(void);
+
