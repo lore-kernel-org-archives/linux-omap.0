@@ -1,34 +1,51 @@
-From: Russell King - ARM Linux <linux@arm.linux.org.uk>
-Subject: Re: [PATCH 2/8] dmaengine: amba-pl08x: ensure physical channels
-	are properly held
-Date: Fri, 27 Apr 2012 22:41:28 +0100
-Message-ID: <20120427214128.GH28062@n2100.arm.linux.org.uk>
-References: <20120418100954.GK25053@n2100.arm.linux.org.uk> <E1SKRqh-0004b8-RH@rmk-PC.arm.linux.org.uk> <20120418101938.GM25053@n2100.arm.linux.org.uk> <CACRpkdY8rJYQhUwtW1mtmnY8WB7T7mowefqOmiJdCZ1iS5E89A@mail.gmail.com>
+From: "Mark A. Greer" <mgreer@animalcreek.com>
+Subject: Re: [PATCH 03/12] arm: omap3: Only sleep in cpuidle driver if I/O
+ wake-ups work
+Date: Fri, 27 Apr 2012 14:55:27 -0700
+Message-ID: <20120427215527.GD19196@animalcreek.com>
+References: <1334171147-7517-1-git-send-email-mgreer@animalcreek.com>
+ <1334171147-7517-4-git-send-email-mgreer@animalcreek.com>
+ <alpine.DEB.2.00.1204111532280.29473@utopia.booyaka.com>
+ <20120424205105.GA26749@animalcreek.com>
+ <20120424232506.GA8850@animalcreek.com>
+ <87haw4282b.fsf@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from caramon.arm.linux.org.uk ([78.32.30.218]:39749 "EHLO
-	caramon.arm.linux.org.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752849Ab2D0Vln (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 27 Apr 2012 17:41:43 -0400
+Received: from mail20.dotsterhost.com ([66.11.232.73]:58081 "EHLO
+	mail20.dotsterhost.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753574Ab2D0Vz3 (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 27 Apr 2012 17:55:29 -0400
 Content-Disposition: inline
-In-Reply-To: <CACRpkdY8rJYQhUwtW1mtmnY8WB7T7mowefqOmiJdCZ1iS5E89A@mail.gmail.com>
+In-Reply-To: <87haw4282b.fsf@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Linus Walleij <linus.walleij@linaro.org>
-Cc: linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org, linux-mmc@vger.kernel.org, Vinod Koul <vinod.koul@intel.com>, Dan Williams <dan.j.williams@intel.com>
+To: Kevin Hilman <khilman@ti.com>
+Cc: Paul Walmsley <paul@pwsan.com>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 
-On Fri, Apr 27, 2012 at 10:38:08PM +0200, Linus Walleij wrote:
-> On Wed, Apr 18, 2012 at 12:19 PM, Russell King - ARM Linux
-> <linux@arm.linux.org.uk> wrote:
+On Fri, Apr 27, 2012 at 02:12:12PM -0700, Kevin Hilman wrote:
+> "Mark A. Greer" <mgreer@animalcreek.com> writes:
 > 
-> > Oops, this patch wasn't supposed to be part of this set...
+> > On Tue, Apr 24, 2012 at 01:51:05PM -0700, Mark A. Greer wrote:
+
+> > We could chose whether pm_idle & cpuidle issue a wfi based on
+> > whether there is a davinci-emac present.  The issue with that is
+> > that someday there may be another SoC that has a davinci-emac that
+> > can wake up the system.  I know cpu_is_xxx() is frowned upon but
+> > this does seem like a proper usage of it--the deciding factor
+> > really is whether its an am35x or not (and CONFIG_TI_DAVINCI_EMAC
+> > is enabled).
 > 
-> ...however it gives me the impression that you have a patch set cooking
-> to also switch PL08x over to the virtual channel mechanism which is
-> really appetizing to see :-)
+> The presence of the davinci_emac is probably overkill, avoiding WFI
+> should really only be done when the davinci_emac is *active*.
+> e.g. using an am35x with an EMAC *present*, but not in use because
+> there's an MMC rootfs for example.
+> 
+> If there's a good way to detect an in-use davinci_emac, then
+> disable_hlt() can be used to avoid WFI.  When the davinci_emac is not in
+> use (e.g. module unloaded etc.) then enable_hlt() can be used to
+> (re)allow WFI.
 
-Actually, that doesn't exist yet.
+Good idea.  I'll see what I can do.
 
-This was a patch I'd had floating around, but I don't think its needed
-in any way - I mis-analysed the code and created the patch...
+Mark
