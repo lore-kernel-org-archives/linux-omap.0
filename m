@@ -1,47 +1,62 @@
-From: Ricardo Neri <ricardo.neri@ti.com>
-Subject: Re: Build error: undefined reference to `snd_soc_unregister_codec'
-Date: Fri, 27 Apr 2012 10:16:47 -0500
-Message-ID: <4F9AB85F.3020107@ti.com>
-References: <20120427132818.GO24211@n2100.arm.linux.org.uk>
+From: "Ujfalusi, Peter" <peter.ujfalusi@ti.com>
+Subject: Re: Audio support on OMAP 3430LDP or 4430SDP boards
+Date: Fri, 27 Apr 2012 18:53:39 +0300
+Message-ID: <CAPo=G1ze3Yfr5FyQG_nByT3b5k=+Ux+6aupg=dD1Qe-Zx1RiqQ@mail.gmail.com>
+References: <20120427135802.GA28062@n2100.arm.linux.org.uk>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="ISO-8859-1"; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from devils.ext.ti.com ([198.47.26.153]:57781 "EHLO
-	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1760363Ab2D0PRH (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 27 Apr 2012 11:17:07 -0400
-In-Reply-To: <20120427132818.GO24211@n2100.arm.linux.org.uk>
+Received: from na3sys009aob106.obsmtp.com ([74.125.149.76]:38101 "EHLO
+	na3sys009aog106.obsmtp.com" rhost-flags-OK-OK-OK-FAIL)
+	by vger.kernel.org with ESMTP id S932294Ab2D0Pxl convert rfc822-to-8bit
+	(ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Fri, 27 Apr 2012 11:53:41 -0400
+Received: by yhoo21 with SMTP id o21so778279yho.4
+        for <linux-omap@vger.kernel.org>; Fri, 27 Apr 2012 08:53:39 -0700 (PDT)
+In-Reply-To: <20120427135802.GA28062@n2100.arm.linux.org.uk>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: Russell King - ARM Linux <linux@arm.linux.org.uk>
-Cc: linux-omap@vger.kernel.org, Peter Ujfalusi <peter.ujfalusi@ti.com>, Jarkko Nikula <jarkko.nikula@bitmer.com>, Tomi Valkeinen <tomi.valkeinen@ti.com>
+Cc: linux-omap@vger.kernel.org, Santosh Shilimkar <santosh.shilimkar@ti.com>
 
-Hi Rusell,
+Hi Russell,
 
-On 04/27/2012 08:28 AM, Russell King - ARM Linux wrote:
-> When building ALSA as modules:
+On Fri, Apr 27, 2012 at 4:58 PM, Russell King - ARM Linux
+<linux@arm.linux.org.uk> wrote:
+> Can someone please hint on what audio is supported on these two OMAP
+> boards? =A0From what I can tell, the answer is either "nothing" or "h=
+dmi",
+> both of which are useless to me if someone wants me to convert the OM=
+AP
+> ASoC driver to DMA engine.
 >
-> drivers/built-in.o: In function `omapdss_hdmihw_remove':
-> omap_hwspinlock.c:(.text+0x23da8): undefined reference to `snd_soc_unregister_codec'
-> drivers/built-in.o: In function `omapdss_hdmihw_probe':
-> omap_hwspinlock.c:(.text+0x24248): undefined reference to `snd_soc_register_codec'
->
-> (the filename is inaccurate).
->
-> This happens because drivers/video/omap2/dss/hdmi.c is built-in and uses
-> ASoC services, but ASoC and ALSA are modular.
+> From what I can see on the 4430SDP, there's a 3.5mm headset jack,
+> microphones and speakers on the board, so the board does have audio
+> hardware. =A0However, it seems (as, I'm afraid to say, seems to be pr=
+etty
+> much standard practice with OMAP) there's a total lack of software
+> support in mainline.
 
-As you mention, this happens because the ASoC HDMI codec is embeeded in 
-the DSS driver. There is a set of patches currently under discussion to 
-decouple the ASoC HDMI codec from DSS[1]. This will fix the issue.
+3.4-rc have audio support for SDP4430/Blaze, PandaBoard4430,
+PandaBoardES (4460).
+OMAP3 support is there for a long time, not sure about 3430LDP, but
+the omap3-SDP,
+BeagleBoards, Nokia n900, Pandora have at least ASoC machine driver.
 
-BR,
-[1]http://www.spinics.net/lists/linux-omap/msg67307.html
+> This kind'a prevents me testing changes to the DMA support for OMAP
+> ASoC...
 
-Ricardo
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-omap" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+The ASoC driver for DMA: sound/soc/omap/omap-pcm.c
+We also have dma engine support in the ASoC core:
+sound/soc/soc-dmaengine-pcm.c
+It provides some level of abstraction for us to use DMA engine with aud=
+io.
 
+--=20
+P=E9ter
+--
+To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
