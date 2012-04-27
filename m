@@ -1,100 +1,69 @@
-From: "Hiremath, Vaibhav" <hvaibhav@ti.com>
-Subject: RE: [PATCH-V4 4/4] ARM: OMAP3+: am33xx: Add powerdomain & PRM
- support
-Date: Fri, 27 Apr 2012 06:37:09 +0000
-Message-ID: <79CD15C6BA57404B839C016229A409A83EA00381@DBDE01.ent.ti.com>
-References: <1333123435-27186-1-git-send-email-hvaibhav@ti.com>
-	<1333123435-27186-5-git-send-email-hvaibhav@ti.com> <87bome579d.fsf@ti.com>
+From: Tero Kristo <t-kristo@ti.com>
+Subject: Re: [PATCH/RFT 3/3] ARM: OMAP3: PM: cleanup cam_pwrdm leftovers
+Date: Fri, 27 Apr 2012 10:20:14 +0300
+Message-ID: <1335511214.2149.136.camel@sokoban>
+References: <1335277420-29124-1-git-send-email-khilman@ti.com>
+	 <1335277420-29124-4-git-send-email-khilman@ti.com>
+Reply-To: <t-kristo@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from devils.ext.ti.com ([198.47.26.153]:59195 "EHLO
-	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750864Ab2D0GhT convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 27 Apr 2012 02:37:19 -0400
-In-Reply-To: <87bome579d.fsf@ti.com>
-Content-Language: en-US
+Received: from arroyo.ext.ti.com ([192.94.94.40]:36713 "EHLO arroyo.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751278Ab2D0HUT (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Fri, 27 Apr 2012 03:20:19 -0400
+In-Reply-To: <1335277420-29124-4-git-send-email-khilman@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "Hilman, Kevin" <khilman@ti.com>
-Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "paul@pwsan.com" <paul@pwsan.com>, "Cousson, Benoit" <b-cousson@ti.com>, "tony@atomide.com" <tony@atomide.com>, "Nayak, Rajendra" <rnayak@ti.com>, "Mohammed, Afzal" <afzal@ti.com>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>
+To: Kevin Hilman <khilman@ti.com>
+Cc: linux-omap@vger.kernel.org, Jean Pihet <jean.pihet@newoldbits.com>, Paul Walmsley <paul@pwsan.com>, Santosh Shilimkar <santosh.shilimkar@ti.com>
 
-On Fri, Apr 27, 2012 at 06:19:02, Hilman, Kevin wrote:
-> Vaibhav Hiremath <hvaibhav@ti.com> writes:
-> 
-> > As far as PRM/CM/PRCM modules are concerned, AM33XX device is
-> > different than OMAP3 and OMAP4 architectures; so we need to
-> > handle it separately.
-> > This patch adds support for, Powerdomain, Powerdomain data,
-> > PRM api's required for AM33XX device.
-> >
-> > And also, hooks up AM33XX powerdomain to existing OMAP framework.
-> 
-> [...]
-> 
-> > @@ -1288,7 +1289,15 @@ static int _assert_hardreset(struct omap_hwmod *oh, const char *name)
-> >  	if (IS_ERR_VALUE(ret))
-> >  		return ret;
-> >
-> > -	if (cpu_is_omap24xx() || cpu_is_omap34xx())
-> > +	/*
-> > +	 * cpu_is_omap34xx() is true for am33xx device as well, so
-> > +	 * fist check for cpu_is_am33xx().
-> > +	 */
-> > +	if (cpu_is_am33xx())
-> > +		return am33xx_prm_assert_hardreset(ohri.rst_shift,
-> > +				oh->clkdm->pwrdm.ptr->prcm_offs,
-> > +				oh->prcm.omap4.rstctrl_offs);
-> 
-> This still troubles me.  I *really* don't like that we have a dependence
-> on cpu_is* call ordering.  This is very fragile and error prone.
-> 
-> I also don't like all the cpu_is* checking currently in omap_hwmod.c
-> (which is here before you added this) and have an idea on how to clean
-> it up, I should have a patch by tomorrow for this.  That should help
-> adding am33xx support here without needing all the cpu_is* checking.
-> 
-> That being said, I just did a simple experiment[1] to see why
-> cpu_is_omap34xx() needs to be true for AM33xx in the first place.  Based
-> on my quick experiment, it does not appear to be needed.  I think our
-> lives will be much simpler if cpu_is_omap34xx() is not true for the
-> AM335x family. 
-> 
-> Can you have a look at my test branch[1] and see what you think?  I
-> changed the omap_revision for AM335x so that cpu_is_omap34xx() is no
-> longer true on this platform.  Then, I only needed to fixup the SRAM
-> init, and it boots just fine on my BeagleBone.
-> 
-> I really think we need to go this route, because having
-> cpu_is_omap34xx() true on AM335x is causing more headaches than it is
-> solving problems.  This will require you to rework a little bit these
-> clock/power/voltage domain patches, but I belive it will greatly
-> simplify the maintainability of the end result.
-> 
+Looks good to me, acked.
 
-Let me spend some time, and explore your changes; I think getting system to boot should not be only criteria here.
-But honestly, I fully agree with you that, we are creating more issue, 
-adding more cpu_is_xxx() checks, with cpu_is_34xx() true for AM33xx. 
+-Tero
 
-As I have done in the past initially, I recommend and vote for,
-
- 1. Creating separate family cpu_is_am33xx() for AM33xx device.
-OR
- 2. Bring it to omap44xx family, since prcm block is closer to omap4
-    and not with omap3. Also, 
-
-
-Tony,
-I will let tony make a decision on this. By the time, Tony makes his 
-decision, I will spend time to explore your (Kevin's below) branch.
-
-Thanks,
-Vaibhav
-
-> Kevin
+On Tue, 2012-04-24 at 07:23 -0700, Kevin Hilman wrote:
+> commit e7410cf7 (02fdb03e69699f26e1370d0e51593dbc8a4e5265) moved
+> mangement of cam_pwrdm to CPUidle but left some remnants behind,
+> namely the call to clkcm_allo_idle() for the clockdomains in the MPU
+> pwrdm.  Remove these since they are not necessary and cause unwanted
+> latency in the idle path.
 > 
-> [1] git://git.kernel.org/pub/scm/linux/kernel/git/khilman/linux-omap-pm.git tmp/am335x-cpu-is-hacking
+> Cc: Tero Kristo <Tero Kristo <t-kristo@ti.com>
+> Signed-off-by: Kevin Hilman <khilman@ti.com>
+> ---
+>  arch/arm/mach-omap2/pm34xx.c |    4 ----
+>  1 file changed, 4 deletions(-)
 > 
-> 
+> diff --git a/arch/arm/mach-omap2/pm34xx.c b/arch/arm/mach-omap2/pm34xx.c
+> index 74a7f8c..66ff828 100644
+> --- a/arch/arm/mach-omap2/pm34xx.c
+> +++ b/arch/arm/mach-omap2/pm34xx.c
+> @@ -70,7 +70,6 @@ void (*omap3_do_wfi_sram)(void);
+>  
+>  static struct powerdomain *mpu_pwrdm, *neon_pwrdm;
+>  static struct powerdomain *core_pwrdm, *per_pwrdm;
+> -static struct powerdomain *cam_pwrdm;
+>  
+>  static void omap3_enable_io_chain(void)
+>  {
+> @@ -395,8 +394,6 @@ void omap_sram_idle(void)
+>  
+>  	if (mpu_next_state < PWRDM_POWER_ON)
+>  		pwrdm_post_transition(mpu_pwrdm);
+> -
+> -	clkdm_allow_idle(mpu_pwrdm->pwrdm_clkdms[0]);
+>  }
+>  
+>  static void omap3_pm_idle(void)
+> @@ -759,7 +756,6 @@ static int __init omap3_pm_init(void)
+>  	neon_pwrdm = pwrdm_lookup("neon_pwrdm");
+>  	per_pwrdm = pwrdm_lookup("per_pwrdm");
+>  	core_pwrdm = pwrdm_lookup("core_pwrdm");
+> -	cam_pwrdm = pwrdm_lookup("cam_pwrdm");
+>  
+>  	neon_clkdm = clkdm_lookup("neon_clkdm");
+>  	mpu_clkdm = clkdm_lookup("mpu_clkdm");
+
 
