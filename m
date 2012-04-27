@@ -1,73 +1,52 @@
 From: Kevin Hilman <khilman@ti.com>
-Subject: Re: [PATCH 0/8] gpio/omap: remaining cleanups and fix
-Date: Fri, 27 Apr 2012 14:57:27 -0700
-Message-ID: <87ipgkzvlk.fsf@ti.com>
-References: <1335536018-16004-1-git-send-email-tarun.kanti@ti.com>
-	<20120427190759.C6DC43E0B4D@localhost>
+Subject: Re: [PATCH 1/3] ARM: omap2+: set IRQCHIP_SKIP_SET_WAKE for INTC interrupts.
+Date: Fri, 27 Apr 2012 15:01:52 -0700
+Message-ID: <8762ckzve7.fsf@ti.com>
+References: <20120425025637.7832.14013.stgit@notabene.brown>
+	<20120425030524.7832.52047.stgit@notabene.brown>
+	<878vhi9qj8.fsf@ti.com> <20120427065040.3ba0fce2@notabene.brown>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aog101.obsmtp.com ([74.125.149.67]:44137 "EHLO
-	na3sys009aog101.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755324Ab2D0V51 (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>);
-	Fri, 27 Apr 2012 17:57:27 -0400
-Received: by dakb39 with SMTP id b39so1691180dak.7
-        for <linux-omap@vger.kernel.org>; Fri, 27 Apr 2012 14:57:25 -0700 (PDT)
-In-Reply-To: <20120427190759.C6DC43E0B4D@localhost> (Grant Likely's message of
-	"Fri, 27 Apr 2012 13:07:59 -0600")
-Sender: linux-omap-owner@vger.kernel.org
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <20120427065040.3ba0fce2@notabene.brown> (NeilBrown's message of
+	"Fri, 27 Apr 2012 06:50:40 +1000")
+Sender: linux-kernel-owner@vger.kernel.org
+To: NeilBrown <neilb@suse.de>
+Cc: Tony Lindgren <tony@atomide.com>, Russell King <linux@arm.linux.org.uk>, Samuel Ortiz <sameo@linux.intel.com>, Thomas Gleixner <tglx@linutronix.de>, "Rafael J. Wysocki" <rjw@sisk.pl>, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-pm@vger.kernel.org, Santosh Shilimkar <santosh.shilimkar@ti.com>
 List-Id: linux-omap@vger.kernel.org
-To: Grant Likely <grant.likely@secretlab.ca>
-Cc: Tarun Kanti DebBarma <tarun.kanti@ti.com>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Tony Lindgren <tony@atomide.com>, Santosh Shilimkar <santosh.shilimkar@ti.com>, "Cousson, Benoit" <b-cousson@ti.com>
 
-Grant Likely <grant.likely@secretlab.ca> writes:
+NeilBrown <neilb@suse.de> writes:
 
-> On Fri, 27 Apr 2012 19:43:30 +0530, Tarun Kanti DebBarma <tarun.kanti@ti.com> wrote:
->> Here are the remaining cleanup patches. There are broadly
->> two categories of cleanups.
->> 
->> Cat-1: Those missed while introducing new feature like SPARSE_IRQ
->>        handling and DT support; use edge/level handlers from
->>        generic IRQ framework.
->> 
->> Cat-2: Removal of redundant fields from struct gpio_bank{} as a
->>        result of they being already covered by members within
->>        context field of struct gpio_bank{}.
->> 
->> Reference: git://git.kernel.org/pub/scm/linux/kernel/git/torvalds/linux-2.6.git
->> Commit: 66f75a5d028beaf67c931435fdc3e7823125730c (Linux 3.4-rc4)
->> 
->> Series is available for reference here:
->> git://gitorious.org/~tarunkanti/omap-sw-develoment/tarunkantis-linux-omap-dev.git for_3.5/gpio_more_cleanup_fixes
->> 
->> Test info:
->> OMAP2+ platforms: OMAP2430SDP, OMAP3430SDP, OMAP4430SDP
->> OMAP1: Bootup test on OMAP1710SDP.
->> 
->> Cc: Kevin Hilman <khilman@ti.com>
->> Cc: Tony Lindgren <tony@atomide.com>
->> Cc: Santosh Shilimkar <santosh.shilimkar@ti.com>
->> Cc: Cousson, Benoit <b-cousson@ti.com>
->> Cc: Grant Likely <grant.likely@secretlab.ca>
->> Tarun Kanti DebBarma (8):
->>   gpio/omap: remove virtual_irq_start variable
->>   gpio/omap: remove saved_fallingdetect, saved_risingdetect
->>   gpio/omap: remove suspend_wakeup field from struct gpio_bank
->>   gpio/omap: remove saved_wakeup field from struct gpio_bank
->>   gpio/omap: remove retrigger variable in gpio_irq_handler
->>   gpio/omap: remove suspend/resume callbacks
->>   gpio/omap: remove cpu_is_omapxxxx() checks from *_runtime_resume()
->>   gpio/omap: fix missing check in *_runtime_suspend()
+> On Thu, 26 Apr 2012 13:39:07 -0700 Kevin Hilman <khilman@ti.com> wrote:
 >
-> The changes look fine to me.  Which branch should this series be
-> merged through?  It can either go via arm-soc or my gpio/next branch.
+>> NeilBrown <neilb@suse.de> writes:
+>> 
+>> > All interrupts can wake-from-sleep (I think) so it should be
+>> > permissible to call enable_irq_wake().  Setting this flag allows that.
+>> >
+>> > It is needed because without this, an interrupt which is delivered
+>> > during late suspend will get ignored but will not cause suspend to
+>> > abort.
+>> > If enable_irq_wake() is called and succeeds, check_wakuep_irqs()
+>> > will abort the suspend if the interrupt has fired.
+>> >
+>> > Signed-off-by: NeilBrown <neilb@suse.de>
+>> 
+>> The name of this flag and the effect of setting it are somewhat
+>> confusing (e.g. why does skipping set_wake suddenly make wakeups work.)
+>> So I tried to make it clearer with a reworking of the changelog (below.)
+>> 
+>> If I understood this correctly, and if you're OK with the updated
+>> changelog, I'll queue this up for v3.5.
+>> 
+>
+> I'm very OK with your updated changelog - thanks.  Filling in various bits
+> that I didn't know and clarifies the rest :-)
 
-This needs a little more review/testing on OMAP.
+Great, thanks.
 
-Expect a pull request from me when it's ready and you can take it
-through gpio/nex.
-
-Thanks,
+Adding ack from Santosh (thanks!) and queuing for v3.5[1]
 
 Kevin
+
+[1] git://git.kernel.org/pub/scm/linux/kernel/git/khilman/linux-omap-pm.git for_3.5/pm-misc
