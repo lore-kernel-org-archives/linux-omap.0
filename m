@@ -1,93 +1,27 @@
-From: Tero Kristo <t-kristo@ti.com>
-Subject: Re: OMAP3EVM not booting on l-o master
-Date: Fri, 27 Apr 2012 16:16:31 +0300
-Message-ID: <1335532591.2149.163.camel@sokoban>
-References: <C8443D0743D26F4388EA172BF4E2A7A9317C3A03@DBDE01.ent.ti.com>
-	 <C8443D0743D26F4388EA172BF4E2A7A9317C3B18@DBDE01.ent.ti.com>
-	 <alpine.DEB.2.00.1204050330380.10302@utopia.booyaka.com>
-	 <alpine.DEB.2.00.1204050403460.10302@utopia.booyaka.com>
-	 <C8443D0743D26F4388EA172BF4E2A7A9317C4B44@DBDE01.ent.ti.com>
-	 <alpine.DEB.2.00.1204051303000.10302@utopia.booyaka.com>
-	 <C8443D0743D26F4388EA172BF4E2A7A9317C5DB6@DBDE01.ent.ti.com>
-	 <alpine.DEB.2.00.1204060111400.10302@utopia.booyaka.com>
-	 <C8443D0743D26F4388EA172BF4E2A7A9317C5EEF@DBDE01.ent.ti.com>
-	 <1335173044.2149.64.camel@sokoban>  <87obqhawig.fsf@ti.com>
-Reply-To: <t-kristo@ti.com>
+From: Russell King - ARM Linux <linux@arm.linux.org.uk>
+Subject: Build error: undefined reference to `snd_soc_unregister_codec'
+Date: Fri, 27 Apr 2012 14:28:18 +0100
+Message-ID: <20120427132818.GO24211@n2100.arm.linux.org.uk>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from devils.ext.ti.com ([198.47.26.153]:50524 "EHLO
-	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756683Ab2D0NQg (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 27 Apr 2012 09:16:36 -0400
-In-Reply-To: <87obqhawig.fsf@ti.com>
+Received: from caramon.arm.linux.org.uk ([78.32.30.218]:38265 "EHLO
+	caramon.arm.linux.org.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1760139Ab2D0N2Y (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 27 Apr 2012 09:28:24 -0400
+Content-Disposition: inline
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Kevin Hilman <khilman@ti.com>
-Cc: "Mohammed, Afzal" <afzal@ti.com>, Paul Walmsley <paul@pwsan.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
+To: linux-omap@vger.kernel.org, Peter Ujfalusi <peter.ujfalusi@ti.com>, Jarkko Nikula <jarkko.nikula@bitmer.com>, Tomi Valkeinen <tomi.valkeinen@ti.com>
 
-On Tue, 2012-04-24 at 10:07 -0700, Kevin Hilman wrote:
-> Hi Tero,
-> 
-> Tero Kristo <t-kristo@ti.com> writes:
-> 
-> > On Fri, 2012-04-06 at 07:52 +0000, Mohammed, Afzal wrote:
-> >> Hi Paul,
-> >> 
-> >> On Fri, Apr 06, 2012 at 12:43:06, Paul Walmsley wrote:
-> >> > Perhaps you might be willing to add some debugging to omap_mux_late_init() 
-> >> > to find out what part of that function is causing it to hang?
-> >> 
-> >> It is getting hung as interrupt handler "omap_hwmod_mux_handle_irq"
-> >> is being repeatedly called.
-> >> 
-> >
-> > Hi Afzal,
-> >
-> > can you try the attached patch with this branch and omap3evm board? I
-> > don't have the board myself so I can't test it myself (I tested this
-> > with omap3beagle and it works with that one.)
-> 
-> Thanks for digging into this problem and coming up with a proposed
-> solution.  Some questions below...
-> 
-> >
-> > -Tero
-> >
-> >
-> > From 26733dd988ccc9e72355a39e01b2d6e9215a892d Mon Sep 17 00:00:00 2001
-> > From: Tero Kristo <t-kristo@ti.com>
-> > Date: Mon, 23 Apr 2012 12:14:46 +0300
-> > Subject: [PATCH] ARM: OMAP3: PM: move wakeup event ack to hwmod_io handler
-> >
-> > PRCM IO interrupts are handled with a shared interrupt handler logic.
-> > Currently hwmod_io is processing the actual event, but the acking
-> > of the IO wakeups is done from the PM code with a separate handler.
-> > If a wakeup event is detected during init before the PM code is in
-> > place, the interrupt handler can hang in an infinite loop. Fix this
-> > by removing the pm_io handler, and calling its functionality from
-> > within the hwmod_io handler. This fix applies only to OMAP3, as
-> > OMAP4 does not have similar wakeup handling logic.
-> >
-> > Signed-off-by: Tero Kristo <t-kristo@ti.com>
-> 
-> 
-> Doesn't this mean that even on a !PM kernel that IO events might still
-> be firing for nothing?
+When building ALSA as modules:
 
-I actually disabled the IO handler in !PM kernel, as I thought this
-would be a problem there.
+drivers/built-in.o: In function `omapdss_hdmihw_remove':
+omap_hwspinlock.c:(.text+0x23da8): undefined reference to `snd_soc_unregister_codec'
+drivers/built-in.o: In function `omapdss_hdmihw_probe':
+omap_hwspinlock.c:(.text+0x24248): undefined reference to `snd_soc_register_codec'
 
-> Seems like it would be better to ensure that these interrupts are just
-> disabled until the PM core initializes and can enable them.
+(the filename is inaccurate).
 
-I thought about this but I couldn't figure out a clean way to do this.
-If I do irq_request, it automatically enables the interrupt, and if
-there is an interrupt pending it will fire immediately and get stuck. I
-can of course do some really nasty hackery for disabling all interrupts
-when requesting it and then manually disabling it before enabling
-interrupts again... but this does not look too nice imo.
-
--Tero
-
+This happens because drivers/video/omap2/dss/hdmi.c is built-in and uses
+ASoC services, but ASoC and ALSA are modular.
