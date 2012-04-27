@@ -1,85 +1,51 @@
-From: Tarun Kanti DebBarma <tarun.kanti@ti.com>
-Subject: [PATCH 7/8] gpio/omap: remove cpu_is_omapxxxx() checks from *_runtime_resume()
-Date: Fri, 27 Apr 2012 19:43:37 +0530
-Message-ID: <1335536018-16004-8-git-send-email-tarun.kanti@ti.com>
-References: <1335536018-16004-1-git-send-email-tarun.kanti@ti.com>
+From: "Shilimkar, Santosh" <santosh.shilimkar@ti.com>
+Subject: Re: Audio support on OMAP 3430LDP or 4430SDP boards
+Date: Fri, 27 Apr 2012 19:45:46 +0530
+Message-ID: <CAMQu2gw0pYcb5SoVLbWPL4rfda24EZVPPUUziU8gxZxviDBLZg@mail.gmail.com>
+References: <20120427135802.GA28062@n2100.arm.linux.org.uk>
 Mime-Version: 1.0
-Content-Type: text/plain
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from comal.ext.ti.com ([198.47.26.152]:50695 "EHLO comal.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1756683Ab2D0ONz (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Fri, 27 Apr 2012 10:13:55 -0400
-In-Reply-To: <1335536018-16004-1-git-send-email-tarun.kanti@ti.com>
+Received: from na3sys009aog137.obsmtp.com ([74.125.149.18]:56160 "EHLO
+	na3sys009aog137.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1756683Ab2D0OQJ convert rfc822-to-8bit
+	(ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Fri, 27 Apr 2012 10:16:09 -0400
+Received: by qcsk26 with SMTP id k26so412915qcs.12
+        for <linux-omap@vger.kernel.org>; Fri, 27 Apr 2012 07:16:07 -0700 (PDT)
+In-Reply-To: <20120427135802.GA28062@n2100.arm.linux.org.uk>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: linux-omap@vger.kernel.org
-Cc: linux-arm-kernel@lists.infradead.org, Tarun Kanti DebBarma <tarun.kanti@ti.com>, Kevin Hilman <khilman@ti.com>, Tony Lindgren <tony@atomide.com>, Santosh Shilimkar <santosh.shilimkar@ti.com>, "Cousson, Benoit" <b-cousson@ti.com>, Grant Likely <grant.likely@secretlab.ca>
+To: Russell King - ARM Linux <linux@arm.linux.org.uk>
+Cc: linux-omap@vger.kernel.org, Peter Ujfalusi <peter.ujfalusi@ti.com>, Liam Girdwood <lrg@ti.com>
 
-Add register offsets for GPIO_IRQSTATUS_RAW_0, GPIO_IRQSTATUS_RAW_0
-which are present on OMAP4+ processors. Now we can distinguish
-conditions applicable to OMAP4,5 and those specific to OMAP24xx
-and OMAP3xxx.
++ Peter and Liam to comment
 
-Cc: Kevin Hilman <khilman@ti.com>
-Cc: Tony Lindgren <tony@atomide.com>
-Cc: Santosh Shilimkar <santosh.shilimkar@ti.com>
-Cc: Cousson, Benoit <b-cousson@ti.com>
-Cc: Grant Likely <grant.likely@secretlab.ca>
-Signed-off-by: Tarun Kanti DebBarma <tarun.kanti@ti.com>
----
- arch/arm/mach-omap2/gpio.c             |    2 ++
- arch/arm/plat-omap/include/plat/gpio.h |    2 ++
- drivers/gpio/gpio-omap.c               |    4 ++--
- 3 files changed, 6 insertions(+), 2 deletions(-)
-
-diff --git a/arch/arm/mach-omap2/gpio.c b/arch/arm/mach-omap2/gpio.c
-index 86f91a6..a144e22 100644
---- a/arch/arm/mach-omap2/gpio.c
-+++ b/arch/arm/mach-omap2/gpio.c
-@@ -101,6 +101,8 @@ static int __init omap2_gpio_dev_init(struct omap_hwmod *oh, void *unused)
- 		pdata->regs->dataout = OMAP4_GPIO_DATAOUT;
- 		pdata->regs->set_dataout = OMAP4_GPIO_SETDATAOUT;
- 		pdata->regs->clr_dataout = OMAP4_GPIO_CLEARDATAOUT;
-+		pdata->regs->irqstatus_raw0 = OMAP4_GPIO_IRQSTATUSRAW0;
-+		pdata->regs->irqstatus_raw1 = OMAP4_GPIO_IRQSTATUSRAW1;
- 		pdata->regs->irqstatus = OMAP4_GPIO_IRQSTATUS0;
- 		pdata->regs->irqstatus2 = OMAP4_GPIO_IRQSTATUS1;
- 		pdata->regs->irqenable = OMAP4_GPIO_IRQSTATUSSET0;
-diff --git a/arch/arm/plat-omap/include/plat/gpio.h b/arch/arm/plat-omap/include/plat/gpio.h
-index d903e7d..50fb7cc 100644
---- a/arch/arm/plat-omap/include/plat/gpio.h
-+++ b/arch/arm/plat-omap/include/plat/gpio.h
-@@ -172,6 +172,8 @@ struct omap_gpio_reg_offs {
- 	u16 clr_dataout;
- 	u16 irqstatus;
- 	u16 irqstatus2;
-+	u16 irqstatus_raw0;
-+	u16 irqstatus_raw1;
- 	u16 irqenable;
- 	u16 irqenable2;
- 	u16 set_irqenable;
-diff --git a/drivers/gpio/gpio-omap.c b/drivers/gpio/gpio-omap.c
-index ae62c62..d238f84 100644
---- a/drivers/gpio/gpio-omap.c
-+++ b/drivers/gpio/gpio-omap.c
-@@ -1289,14 +1289,14 @@ static int omap_gpio_runtime_resume(struct device *dev)
- 		old0 = __raw_readl(bank->base + bank->regs->leveldetect0);
- 		old1 = __raw_readl(bank->base + bank->regs->leveldetect1);
- 
--		if (cpu_is_omap24xx() || cpu_is_omap34xx()) {
-+		if (!bank->regs->irqstatus_raw0) {
- 			__raw_writel(old0 | gen, bank->base +
- 						bank->regs->leveldetect0);
- 			__raw_writel(old1 | gen, bank->base +
- 						bank->regs->leveldetect1);
- 		}
- 
--		if (cpu_is_omap44xx()) {
-+		if (bank->regs->irqstatus_raw0) {
- 			__raw_writel(old0 | l, bank->base +
- 						bank->regs->leveldetect0);
- 			__raw_writel(old1 | l, bank->base +
--- 
-1.7.0.4
-
+On Fri, Apr 27, 2012 at 7:28 PM, Russell King - ARM Linux
+<linux@arm.linux.org.uk> wrote:
+> Can someone please hint on what audio is supported on these two OMAP
+> boards? =A0From what I can tell, the answer is either "nothing" or "h=
+dmi",
+> both of which are useless to me if someone wants me to convert the OM=
+AP
+> ASoC driver to DMA engine.
+>
+> From what I can see on the 4430SDP, there's a 3.5mm headset jack,
+> microphones and speakers on the board, so the board does have audio
+> hardware. =A0However, it seems (as, I'm afraid to say, seems to be pr=
+etty
+> much standard practice with OMAP) there's a total lack of software
+> support in mainline.
+>
+> This kind'a prevents me testing changes to the DMA support for OMAP
+> ASoC...
+>
+> What can be done to remedy this situation?
+>
+> Thanks.
+--
+To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
