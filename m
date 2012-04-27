@@ -1,78 +1,267 @@
-From: Kevin Hilman <khilman@ti.com>
-Subject: Re: [PATCH-V4 4/4] ARM: OMAP3+: am33xx: Add powerdomain & PRM support
-Date: Thu, 26 Apr 2012 17:49:02 -0700
-Message-ID: <87bome579d.fsf@ti.com>
-References: <1333123435-27186-1-git-send-email-hvaibhav@ti.com>
-	<1333123435-27186-5-git-send-email-hvaibhav@ti.com>
+From: Ricardo Neri <ricardo.neri@ti.com>
+Subject: Re: [PATCH 02/10] OMAPDSS: HDMI: OMAP4: Remove CEA-861 audio infoframe
+ and IEC-60958 enums
+Date: Thu, 26 Apr 2012 20:32:08 -0500
+Message-ID: <4F99F718.2040603@ti.com>
+References: <1332974305-4578-1-git-send-email-ricardo.neri@ti.com>  <1332974305-4578-3-git-send-email-ricardo.neri@ti.com> <1335186769.1535.30.camel@lappy> <4F977185.1060107@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset="UTF-8"; format=flowed
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aog118.obsmtp.com ([74.125.149.244]:36272 "EHLO
-	na3sys009aog118.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1759644Ab2D0AtE (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>);
-	Thu, 26 Apr 2012 20:49:04 -0400
-Received: by dadz9 with SMTP id z9so258485dad.33
-        for <linux-omap@vger.kernel.org>; Thu, 26 Apr 2012 17:49:02 -0700 (PDT)
-In-Reply-To: <1333123435-27186-5-git-send-email-hvaibhav@ti.com> (Vaibhav
-	Hiremath's message of "Fri, 30 Mar 2012 21:33:55 +0530")
+Received: from bear.ext.ti.com ([192.94.94.41]:37570 "EHLO bear.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1758102Ab2D0BcU (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Thu, 26 Apr 2012 21:32:20 -0400
+In-Reply-To: <4F977185.1060107@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Vaibhav Hiremath <hvaibhav@ti.com>
-Cc: linux-omap@vger.kernel.org, paul@pwsan.com, b-cousson@ti.com, tony@atomide.com, rnayak@ti.com, Afzal Mohammed <afzal@ti.com>, linux-arm-kernel@lists.infradead.org
+To: Tomi Valkeinen <tomi.valkeinen@ti.com>
+Cc: mythripk@ti.com, s-chereau@ti.com, x0055901@ti.com, vaibhav.bedia@ti.com, s-guiriec@ti.com, lrg@ti.com, peter.ujfalusi@ti.com, agraf@suse.de, research@ottomaneng.com, linux-omap@vger.kernel.org
 
-Vaibhav Hiremath <hvaibhav@ti.com> writes:
+On 04/24/2012 10:37 PM, Ricardo Neri wrote:
+> On 04/23/2012 08:12 AM, Tomi Valkeinen wrote:
+>> On Wed, 2012-03-28 at 16:38 -0600, Ricardo Neri wrote:
+>>> In order to avoid duplication of definitions. Use the definitions
+>>> provided
+>>> by asoundef.h. Furthermore, as CEA-861 and IEC-60958 are used by both
+>>> DisplayPort and HDMI, this helps to make the code more generic.
+>>
+>> The first two sentences should probably be just one sentence.
+> Actually, I just rephrased the whole description :). I will submit it in
+> v2 of the patch series.
+>>
+>>> Signed-off-by: Ricardo Neri<ricardo.neri@ti.com>
+>>> ---
+>>> drivers/video/omap2/dss/ti_hdmi_4xxx_ip.c | 15 +++---
+>>> drivers/video/omap2/dss/ti_hdmi_4xxx_ip.h | 80
+>>> ++---------------------------
+>>> 2 files changed, 12 insertions(+), 83 deletions(-)
+>>>
+>>> diff --git a/drivers/video/omap2/dss/ti_hdmi_4xxx_ip.c
+>>> b/drivers/video/omap2/dss/ti_hdmi_4xxx_ip.c
+>>> index 4740e64..4ab3b19 100644
+>>> --- a/drivers/video/omap2/dss/ti_hdmi_4xxx_ip.c
+>>> +++ b/drivers/video/omap2/dss/ti_hdmi_4xxx_ip.c
+>>> @@ -29,7 +29,6 @@
+>>> #include<linux/string.h>
+>>> #include<linux/seq_file.h>
+>>> #include<linux/gpio.h>
+>>> -
+>>
+>> Unrelated change.
+> I will remove it.
+>>
+>>> #include "ti_hdmi_4xxx_ip.h"
+>>> #include "dss.h"
+>>>
+>>> @@ -1156,7 +1155,7 @@ void hdmi_core_audio_config(struct hdmi_ip_data
+>>> *ip_data,
+>>> }
+>>>
+>>> void hdmi_core_audio_infoframe_config(struct hdmi_ip_data *ip_data,
+>>> - struct hdmi_core_infoframe_audio *info_aud)
+>>> + struct snd_cea_861_aud_if *info_aud)
+>>> {
+>>> u8 val;
+>>> u8 sum = 0, checksum = 0;
+>>> @@ -1172,22 +1171,24 @@ void hdmi_core_audio_infoframe_config(struct
+>>> hdmi_ip_data *ip_data,
+>>> hdmi_write_reg(av_base, HDMI_CORE_AV_AUDIO_LEN, 0x0a);
+>>> sum += 0x84 + 0x001 + 0x00a;
+>>>
+>>> - val = (info_aud->db1_coding_type<< 4)
+>>> - | (info_aud->db1_channel_count - 1);
+>>> + val = (info_aud->coding_type<< CEA861_AUDIO_INFOFRAME_DB1CT_SHIFT)
+>>> + | (info_aud->channel_count - 1);
+>>> hdmi_write_reg(av_base, HDMI_CORE_AV_AUD_DBYTE(0), val);
+>>> sum += val;
+>>>
+>>> - val = (info_aud->db2_sample_freq<< 2) | info_aud->db2_sample_size;
+>>> + val = (info_aud->sample_freq<< CEA861_AUDIO_INFOFRAME_DB2SF_SHIFT)
+>>> + | (info_aud->sample_size);
+>>> hdmi_write_reg(av_base, HDMI_CORE_AV_AUD_DBYTE(1), val);
+>>> sum += val;
+>>>
+>>> hdmi_write_reg(av_base, HDMI_CORE_AV_AUD_DBYTE(2), 0x00);
+>>>
+>>> - val = info_aud->db4_channel_alloc;
+>>> + val = info_aud->channel_alloc;
+>>> hdmi_write_reg(av_base, HDMI_CORE_AV_AUD_DBYTE(3), val);
+>>> sum += val;
+>>>
+>>> - val = (info_aud->db5_downmix_inh<< 7) | (info_aud->db5_lsv<< 3);
+>>> + val = (info_aud->st_downmix<< CEA861_AUDIO_INFOFRAME_DB5_DM_INH_SHIFT)
+>>> + | (info_aud->lsv<< CEA861_AUDIO_INFOFRAME_DB5_LSV_SHIFT);
+>>> hdmi_write_reg(av_base, HDMI_CORE_AV_AUD_DBYTE(4), val);
+>>> sum += val;
+>>>
+>>> diff --git a/drivers/video/omap2/dss/ti_hdmi_4xxx_ip.h
+>>> b/drivers/video/omap2/dss/ti_hdmi_4xxx_ip.h
+>>> index a442998..d6b49b6 100644
+>>> --- a/drivers/video/omap2/dss/ti_hdmi_4xxx_ip.h
+>>> +++ b/drivers/video/omap2/dss/ti_hdmi_4xxx_ip.h
+>>> @@ -28,6 +28,8 @@
+>>> defined(CONFIG_SND_OMAP_SOC_OMAP4_HDMI_MODULE)
+>>> #include<sound/soc.h>
+>>> #include<sound/pcm_params.h>
+>>> +#include<sound/asound.h>
+>>> +#include<sound/asoundef.h>
+>>
+>> You don't need to include these in the header file.
+> I will remove it.
+>>
+>>> #endif
+>>>
+>>> /* HDMI Wrapper */
+>>> @@ -284,35 +286,6 @@ enum hdmi_core_infoframe {
+>>> HDMI_INFOFRAME_AVI_DB5PR_8 = 7,
+>>> HDMI_INFOFRAME_AVI_DB5PR_9 = 8,
+>>> HDMI_INFOFRAME_AVI_DB5PR_10 = 9,
+>>> - HDMI_INFOFRAME_AUDIO_DB1CT_FROM_STREAM = 0,
+>>> - HDMI_INFOFRAME_AUDIO_DB1CT_IEC60958 = 1,
+>>> - HDMI_INFOFRAME_AUDIO_DB1CT_AC3 = 2,
+>>> - HDMI_INFOFRAME_AUDIO_DB1CT_MPEG1 = 3,
+>>> - HDMI_INFOFRAME_AUDIO_DB1CT_MP3 = 4,
+>>> - HDMI_INFOFRAME_AUDIO_DB1CT_MPEG2_MULTICH = 5,
+>>> - HDMI_INFOFRAME_AUDIO_DB1CT_AAC = 6,
+>>> - HDMI_INFOFRAME_AUDIO_DB1CT_DTS = 7,
+>>> - HDMI_INFOFRAME_AUDIO_DB1CT_ATRAC = 8,
+>>> - HDMI_INFOFRAME_AUDIO_DB1CT_ONEBIT = 9,
+>>> - HDMI_INFOFRAME_AUDIO_DB1CT_DOLBY_DIGITAL_PLUS = 10,
+>>> - HDMI_INFOFRAME_AUDIO_DB1CT_DTS_HD = 11,
+>>> - HDMI_INFOFRAME_AUDIO_DB1CT_MAT = 12,
+>>> - HDMI_INFOFRAME_AUDIO_DB1CT_DST = 13,
+>>> - HDMI_INFOFRAME_AUDIO_DB1CT_WMA_PRO = 14,
+>>> - HDMI_INFOFRAME_AUDIO_DB2SF_FROM_STREAM = 0,
+>>> - HDMI_INFOFRAME_AUDIO_DB2SF_32000 = 1,
+>>> - HDMI_INFOFRAME_AUDIO_DB2SF_44100 = 2,
+>>> - HDMI_INFOFRAME_AUDIO_DB2SF_48000 = 3,
+>>> - HDMI_INFOFRAME_AUDIO_DB2SF_88200 = 4,
+>>> - HDMI_INFOFRAME_AUDIO_DB2SF_96000 = 5,
+>>> - HDMI_INFOFRAME_AUDIO_DB2SF_176400 = 6,
+>>> - HDMI_INFOFRAME_AUDIO_DB2SF_192000 = 7,
+>>> - HDMI_INFOFRAME_AUDIO_DB2SS_FROM_STREAM = 0,
+>>> - HDMI_INFOFRAME_AUDIO_DB2SS_16BIT = 1,
+>>> - HDMI_INFOFRAME_AUDIO_DB2SS_20BIT = 2,
+>>> - HDMI_INFOFRAME_AUDIO_DB2SS_24BIT = 3,
+>>> - HDMI_INFOFRAME_AUDIO_DB5_DM_INH_PERMITTED = 0,
+>>> - HDMI_INFOFRAME_AUDIO_DB5_DM_INH_PROHIBITED = 1
+>>> };
+>>>
+>>> enum hdmi_packing_mode {
+>>> @@ -322,17 +295,6 @@ enum hdmi_packing_mode {
+>>> HDMI_PACK_ALREADYPACKED = 7
+>>> };
+>>>
+>>> -enum hdmi_core_audio_sample_freq {
+>>> - HDMI_AUDIO_FS_32000 = 0x3,
+>>> - HDMI_AUDIO_FS_44100 = 0x0,
+>>> - HDMI_AUDIO_FS_48000 = 0x2,
+>>> - HDMI_AUDIO_FS_88200 = 0x8,
+>>> - HDMI_AUDIO_FS_96000 = 0xA,
+>>> - HDMI_AUDIO_FS_176400 = 0xC,
+>>> - HDMI_AUDIO_FS_192000 = 0xE,
+>>> - HDMI_AUDIO_FS_NOT_INDICATED = 0x1
+>>> -};
+>>> -
+>>> enum hdmi_core_audio_layout {
+>>> HDMI_AUDIO_LAYOUT_2CH = 0,
+>>> HDMI_AUDIO_LAYOUT_8CH = 1
+>>> @@ -393,31 +355,10 @@ enum hdmi_audio_i2s_config {
+>>
+>> Are the defines left in the hdmi_audio_i2s_config something that are IP
+>> specific? Are they even used? I'm just wondering why many of the defines
+>> are in sound headers, but some are left here.
+> Some are specific to the OMAP4 HDMI IP, such as HDMI_AUDIO_I2S_SDx_EN.
+> Some others refer to generic I2S concepts (such as
+> I2S_SCK_EDGE_FALLING/RISING) but defines are used to configure registers
+> and such configuration may be different in other hardware. The defines
+> that this patch removes are values that are effectively transmitted to
+> the sink and are clearly defined in the relevant standards. Anyways, I
+> will look at it further to see if some of them can be removed as well.
+> Also, the I2S is the same for most of the supported use-cases, if not
+> all of them. Maybe I can remove the unused ones.
 
-> As far as PRM/CM/PRCM modules are concerned, AM33XX device is
-> different than OMAP3 and OMAP4 architectures; so we need to
-> handle it separately.
-> This patch adds support for, Powerdomain, Powerdomain data,
-> PRM api's required for AM33XX device.
+I took at a second look at the hdmi_audio_i2s_config. As they are used 
+to set IP-specific registers, I think they should be kept. Regarding the 
+unused defines, they are not too many, do not do harm and let you know 
+what other config values are available. I would like to keep them. What 
+do you think?
+
+BR,
+
+Ricardo
+>>
+>>> HDMI_AUDIO_I2S_LSB_SHIFTED_FIRST = 1,
+>>> HDMI_AUDIO_I2S_MAX_WORD_20BITS = 0,
+>>> HDMI_AUDIO_I2S_MAX_WORD_24BITS = 1,
+>>> - HDMI_AUDIO_I2S_CHST_WORD_NOT_SPECIFIED = 0,
+>>> - HDMI_AUDIO_I2S_CHST_WORD_16_BITS = 1,
+>>> - HDMI_AUDIO_I2S_CHST_WORD_17_BITS = 6,
+>>> - HDMI_AUDIO_I2S_CHST_WORD_18_BITS = 2,
+>>> - HDMI_AUDIO_I2S_CHST_WORD_19_BITS = 4,
+>>> - HDMI_AUDIO_I2S_CHST_WORD_20_BITS_20MAX = 5,
+>>> - HDMI_AUDIO_I2S_CHST_WORD_20_BITS_24MAX = 1,
+>>> - HDMI_AUDIO_I2S_CHST_WORD_21_BITS = 6,
+>>> - HDMI_AUDIO_I2S_CHST_WORD_22_BITS = 2,
+>>> - HDMI_AUDIO_I2S_CHST_WORD_23_BITS = 4,
+>>> - HDMI_AUDIO_I2S_CHST_WORD_24_BITS = 5,
+>>> HDMI_AUDIO_I2S_SCK_EDGE_FALLING = 0,
+>>> HDMI_AUDIO_I2S_SCK_EDGE_RISING = 1,
+>>> HDMI_AUDIO_I2S_VBIT_FOR_PCM = 0,
+>>> HDMI_AUDIO_I2S_VBIT_FOR_COMPRESSED = 1,
+>>> - HDMI_AUDIO_I2S_INPUT_LENGTH_NA = 0,
+>>> - HDMI_AUDIO_I2S_INPUT_LENGTH_16 = 2,
+>>> - HDMI_AUDIO_I2S_INPUT_LENGTH_17 = 12,
+>>> - HDMI_AUDIO_I2S_INPUT_LENGTH_18 = 4,
+>>> - HDMI_AUDIO_I2S_INPUT_LENGTH_19 = 8,
+>>> - HDMI_AUDIO_I2S_INPUT_LENGTH_20 = 10,
+>>> - HDMI_AUDIO_I2S_INPUT_LENGTH_21 = 13,
+>>> - HDMI_AUDIO_I2S_INPUT_LENGTH_22 = 5,
+>>> - HDMI_AUDIO_I2S_INPUT_LENGTH_23 = 9,
+>>> - HDMI_AUDIO_I2S_INPUT_LENGTH_24 = 11,
+>>> HDMI_AUDIO_I2S_FIRST_BIT_SHIFT = 0,
+>>> HDMI_AUDIO_I2S_FIRST_BIT_NO_SHIFT = 1,
+>>> HDMI_AUDIO_I2S_SD0_EN = 1,
+>>> @@ -486,19 +427,6 @@ struct hdmi_core_infoframe_avi {
+>>> /* Pixel number start of right bar */
+>>> u16 db12_13_pixel_sofright;
+>>> };
+>>> -/*
+>>> - * Refer to section 8.2 in HDMI 1.3 specification for
+>>> - * details about infoframe databytes
+>>> - */
+>>> -struct hdmi_core_infoframe_audio {
+>>> - u8 db1_coding_type;
+>>> - u8 db1_channel_count;
+>>> - u8 db2_sample_freq;
+>>> - u8 db2_sample_size;
+>>> - u8 db4_channel_alloc;
+>>> - bool db5_downmix_inh;
+>>> - u8 db5_lsv; /* Level shift values for downmix */
+>>> -};
+>>>
+>>> struct hdmi_core_packet_enable_repeat {
+>>> u32 audio_pkt;
+>>> @@ -559,7 +487,7 @@ struct hdmi_core_audio_i2s_config {
+>>>
+>>> struct hdmi_core_audio_config {
+>>> struct hdmi_core_audio_i2s_config i2s_cfg;
+>>> - enum hdmi_core_audio_sample_freq freq_sample;
+>>> + u32 freq_sample;
+>>
+>> Try to keep consistent code formatting. If the original code indents the
+>> field names, indent your field name also.
 >
-> And also, hooks up AM33XX powerdomain to existing OMAP framework.
-
-[...]
-
-> @@ -1288,7 +1289,15 @@ static int _assert_hardreset(struct omap_hwmod *oh, const char *name)
->  	if (IS_ERR_VALUE(ret))
->  		return ret;
+> I will fix the indentation.
 >
-> -	if (cpu_is_omap24xx() || cpu_is_omap34xx())
-> +	/*
-> +	 * cpu_is_omap34xx() is true for am33xx device as well, so
-> +	 * fist check for cpu_is_am33xx().
-> +	 */
-> +	if (cpu_is_am33xx())
-> +		return am33xx_prm_assert_hardreset(ohri.rst_shift,
-> +				oh->clkdm->pwrdm.ptr->prcm_offs,
-> +				oh->prcm.omap4.rstctrl_offs);
-
-This still troubles me.  I *really* don't like that we have a dependence
-on cpu_is* call ordering.  This is very fragile and error prone.
-
-I also don't like all the cpu_is* checking currently in omap_hwmod.c
-(which is here before you added this) and have an idea on how to clean
-it up, I should have a patch by tomorrow for this.  That should help
-adding am33xx support here without needing all the cpu_is* checking.
-
-That being said, I just did a simple experiment[1] to see why
-cpu_is_omap34xx() needs to be true for AM33xx in the first place.  Based
-on my quick experiment, it does not appear to be needed.  I think our
-lives will be much simpler if cpu_is_omap34xx() is not true for the
-AM335x family. 
-
-Can you have a look at my test branch[1] and see what you think?  I
-changed the omap_revision for AM335x so that cpu_is_omap34xx() is no
-longer true on this platform.  Then, I only needed to fixup the SRAM
-init, and it boots just fine on my BeagleBone.
-
-I really think we need to go this route, because having
-cpu_is_omap34xx() true on AM335x is causing more headaches than it is
-solving problems.  This will require you to rework a little bit these
-clock/power/voltage domain patches, but I belive it will greatly
-simplify the maintainability of the end result.
-
-Kevin
-
-[1] git://git.kernel.org/pub/scm/linux/kernel/git/khilman/linux-omap-pm.git tmp/am335x-cpu-is-hacking
+> BR,
+> Ricardo
+>>
+>> Tomi
+>
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-omap" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at http://vger.kernel.org/majordomo-info.html
 
