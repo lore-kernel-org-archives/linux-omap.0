@@ -1,226 +1,114 @@
 From: Santosh Shilimkar <santosh.shilimkar@ti.com>
-Subject: [PATCH v5 7/7] memory: emif: add debugfs entries for emif
-Date: Fri, 27 Apr 2012 17:54:09 +0530
-Message-ID: <1335529449-28046-8-git-send-email-santosh.shilimkar@ti.com>
+Subject: [PATCH v5 0/7] Add TI EMIF SDRAM controller driver
+Date: Fri, 27 Apr 2012 17:54:02 +0530
+Message-ID: <1335529449-28046-1-git-send-email-santosh.shilimkar@ti.com>
 References: <y>
- <1335529449-28046-1-git-send-email-santosh.shilimkar@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <1335529449-28046-1-git-send-email-santosh.shilimkar@ti.com>
+In-Reply-To: <y>
 Sender: linux-kernel-owner@vger.kernel.org
 To: linux-kernel@vger.kernel.org
-Cc: greg@kroah.com, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Aneesh V <aneesh@ti.com>, Santosh Shilimkar <santosh.shilimkar@ti.com>
+Cc: greg@kroah.com, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Santosh Shilimkar <santosh.shilimkar@ti.com>
 List-Id: linux-omap@vger.kernel.org
 
-From: Aneesh V <aneesh@ti.com>
+Add a driver for the EMIF SDRAM controller used in Texas Instrument SoCs
 
-Add debug entries for:
-	1. calculated registers per frequency
-	2. last polled value of MR4(temperature level
-	   of LPDDR2 memory)
+EMIF is an SDRAM controller that supports, based on its revision,
+one or more of LPDDR2/DDR2/DDR3 protocols.This driver adds support
+for LPDDR2.
 
-Signed-off-by: Aneesh V <aneesh@ti.com>
-Reviewed-by: Santosh Shilimkar <santosh.shilimkar@ti.com>
-Reviewed-by: Benoit Cousson <b-cousson@ti.com>
-[santosh.shilimkar@ti.com: Moved to drivers/memory from drivers/misc]
-Signed-off-by: Santosh Shilimkar <santosh.shilimkar@ti.com>
-Tested-by: Lokesh Vutla <lokeshvutla@ti.com>
+The driver supports the following features:
+- Calculates the DDR AC timing parameters to be set in EMIF
+  registers using data from the device data-sheets and based
+  on the DDR frequency. If data from data-sheets is not available
+  default timing values from the JEDEC spec are used. These
+  will be safe, but not necessarily optimal
+- API for changing timings during DVFS or at boot-up
+- Temperature alert configuration and handling of temperature
+  alerts, if any for LPDDR2 devices
+  * temperature alert is based on periodic polling of MR4 mode
+    register in DDR devices automatically performed by hardware
+  * timings are de-rated and brought back to nominal when
+    temperature raises and falls respectively
+- Cache of calculated register values to avoid re-calculating
+  them
+
+The driver will need some minor updates when it is eventually
+integrated with Dynamic Voltage and Frequency Scaling (DVFS).
+This can not be done now as DVFS support is not available in
+the mainline yet.
+
+Discussions with Santosh Shilimkar <santosh.shilimkar@ti.com>
+were immensely helpful in shaping up the interfaces. Vibhore Vardhan
+<vvardhan@gmail.com> did the initial code snippet for thermal
+handling.
+
+Testing: 
+- The driver is tested on OMAP4430 SDP.
+- The driver in a slightly adapted form is also tested on OMAP5.
+- Since mainline kernel doesn't have DVFS support yet,
+  testing was done using a test module.
+- Temperature alert handling was tested with simulated interrupts
+  and faked temperature values as testing all cases in real-life
+  scenarios is difficult.
+- Tested the driver as a module
+
 Cc: Greg KH <greg@kroah.com>
----
- drivers/memory/emif.c |  138 +++++++++++++++++++++++++++++++++++++++++++++++++
- 1 files changed, 138 insertions(+), 0 deletions(-)
 
-diff --git a/drivers/memory/emif.c b/drivers/memory/emif.c
-index 3dfffbb..33a4396 100644
---- a/drivers/memory/emif.c
-+++ b/drivers/memory/emif.c
-@@ -18,6 +18,7 @@
- #include <linux/platform_device.h>
- #include <linux/interrupt.h>
- #include <linux/slab.h>
-+#include <linux/debugfs.h>
- #include <linux/seq_file.h>
- #include <linux/module.h>
- #include <linux/list.h>
-@@ -47,6 +48,7 @@
-  *				frequency change (i.e. corresponding to the
-  *				frequency in effect at the moment)
-  * @plat_data:			Pointer to saved platform data.
-+ * @debugfs_root:		dentry to the root folder for EMIF in debugfs
-  */
- struct emif_data {
- 	u8				duplicate;
-@@ -60,6 +62,7 @@ struct emif_data {
- 	struct emif_regs		*regs_cache[EMIF_MAX_NUM_FREQUENCIES];
- 	struct emif_regs		*curr_regs;
- 	struct emif_platform_data	*plat_data;
-+	struct dentry			*debugfs_root;
- };
- 
- static struct emif_data *emif1;
-@@ -68,6 +71,130 @@ static unsigned long	irq_state;
- static u32		t_ck; /* DDR clock period in ps */
- static LIST_HEAD(device_list);
- 
-+static void do_emif_regdump_show(struct seq_file *s, struct emif_data *emif,
-+	struct emif_regs *regs)
-+{
-+	u32 type = emif->plat_data->device_info->type;
-+	u32 ip_rev = emif->plat_data->ip_rev;
-+
-+	seq_printf(s, "EMIF register cache dump for %dMHz\n",
-+		regs->freq/1000000);
-+
-+	seq_printf(s, "ref_ctrl_shdw\t: 0x%08x\n", regs->ref_ctrl_shdw);
-+	seq_printf(s, "sdram_tim1_shdw\t: 0x%08x\n", regs->sdram_tim1_shdw);
-+	seq_printf(s, "sdram_tim2_shdw\t: 0x%08x\n", regs->sdram_tim2_shdw);
-+	seq_printf(s, "sdram_tim3_shdw\t: 0x%08x\n", regs->sdram_tim3_shdw);
-+
-+	if (ip_rev == EMIF_4D) {
-+		seq_printf(s, "read_idle_ctrl_shdw_normal\t: 0x%08x\n",
-+			regs->read_idle_ctrl_shdw_normal);
-+		seq_printf(s, "read_idle_ctrl_shdw_volt_ramp\t: 0x%08x\n",
-+			regs->read_idle_ctrl_shdw_volt_ramp);
-+	} else if (ip_rev == EMIF_4D5) {
-+		seq_printf(s, "dll_calib_ctrl_shdw_normal\t: 0x%08x\n",
-+			regs->dll_calib_ctrl_shdw_normal);
-+		seq_printf(s, "dll_calib_ctrl_shdw_volt_ramp\t: 0x%08x\n",
-+			regs->dll_calib_ctrl_shdw_volt_ramp);
-+	}
-+
-+	if (type == DDR_TYPE_LPDDR2_S2 || type == DDR_TYPE_LPDDR2_S4) {
-+		seq_printf(s, "ref_ctrl_shdw_derated\t: 0x%08x\n",
-+			regs->ref_ctrl_shdw_derated);
-+		seq_printf(s, "sdram_tim1_shdw_derated\t: 0x%08x\n",
-+			regs->sdram_tim1_shdw_derated);
-+		seq_printf(s, "sdram_tim3_shdw_derated\t: 0x%08x\n",
-+			regs->sdram_tim3_shdw_derated);
-+	}
-+}
-+
-+static int emif_regdump_show(struct seq_file *s, void *unused)
-+{
-+	struct emif_data	*emif	= s->private;
-+	struct emif_regs	**regs_cache;
-+	int			i;
-+
-+	if (emif->duplicate)
-+		regs_cache = emif1->regs_cache;
-+	else
-+		regs_cache = emif->regs_cache;
-+
-+	for (i = 0; i < EMIF_MAX_NUM_FREQUENCIES && regs_cache[i]; i++) {
-+		do_emif_regdump_show(s, emif, regs_cache[i]);
-+		seq_printf(s, "\n");
-+	}
-+
-+	return 0;
-+}
-+
-+static int emif_regdump_open(struct inode *inode, struct file *file)
-+{
-+	return single_open(file, emif_regdump_show, inode->i_private);
-+}
-+
-+static const struct file_operations emif_regdump_fops = {
-+	.open			= emif_regdump_open,
-+	.read			= seq_read,
-+	.release		= single_release,
-+};
-+
-+static int emif_mr4_show(struct seq_file *s, void *unused)
-+{
-+	struct emif_data *emif = s->private;
-+
-+	seq_printf(s, "MR4=%d\n", emif->temperature_level);
-+	return 0;
-+}
-+
-+static int emif_mr4_open(struct inode *inode, struct file *file)
-+{
-+	return single_open(file, emif_mr4_show, inode->i_private);
-+}
-+
-+static const struct file_operations emif_mr4_fops = {
-+	.open			= emif_mr4_open,
-+	.read			= seq_read,
-+	.release		= single_release,
-+};
-+
-+static int __init_or_module emif_debugfs_init(struct emif_data *emif)
-+{
-+	struct dentry	*dentry;
-+	int		ret;
-+
-+	dentry = debugfs_create_dir(dev_name(emif->dev), NULL);
-+	if (IS_ERR(dentry)) {
-+		ret = PTR_ERR(dentry);
-+		goto err0;
-+	}
-+	emif->debugfs_root = dentry;
-+
-+	dentry = debugfs_create_file("regcache_dump", S_IRUGO,
-+			emif->debugfs_root, emif, &emif_regdump_fops);
-+	if (IS_ERR(dentry)) {
-+		ret = PTR_ERR(dentry);
-+		goto err1;
-+	}
-+
-+	dentry = debugfs_create_file("mr4", S_IRUGO,
-+			emif->debugfs_root, emif, &emif_mr4_fops);
-+	if (IS_ERR(dentry)) {
-+		ret = PTR_ERR(dentry);
-+		goto err1;
-+	}
-+
-+	return 0;
-+err1:
-+	debugfs_remove_recursive(emif->debugfs_root);
-+err0:
-+	return ret;
-+}
-+
-+static void __exit emif_debugfs_exit(struct emif_data *emif)
-+{
-+	debugfs_remove_recursive(emif->debugfs_root);
-+	emif->debugfs_root = NULL;
-+}
-+
- /*
-  * Calculate the period of DDR clock from frequency value
-  */
-@@ -1175,6 +1302,7 @@ static int __init_or_module emif_probe(struct platform_device *pdev)
- 	}
- 
- 	emif_onetime_settings(emif);
-+	emif_debugfs_init(emif);
- 	disable_and_clear_all_interrupts(emif);
- 	setup_interrupts(emif, irq);
- 
-@@ -1198,6 +1326,15 @@ error:
- 	return -ENODEV;
- }
- 
-+static int __exit emif_remove(struct platform_device *pdev)
-+{
-+	struct emif_data *emif = platform_get_drvdata(pdev);
-+
-+	emif_debugfs_exit(emif);
-+
-+	return 0;
-+}
-+
- static void emif_shutdown(struct platform_device *pdev)
- {
- 	struct emif_data	*emif = platform_get_drvdata(pdev);
-@@ -1508,6 +1645,7 @@ static void __attribute__((unused)) freq_post_notify_handling(void)
- }
- 
- static struct platform_driver emif_driver = {
-+	.remove		= __exit_p(emif_remove),
- 	.shutdown	= emif_shutdown,
- 	.driver = {
- 		.name = "emif",
+v5:
+- Moved the EMIF driver to drivers/memory as per discussion thread [2]
+
+v4:
+- Converted instances of EXPORT_SYMBOL to EXPORT_SYMBOL_GPL
+- Removed un-necessary "#ifndef __ASSEMBLY__'
+- Minor formatting fix
+
+v2:
+- Fixed a bug found in the implementation of errata i728
+  workaround
+- Fixed the value of frequency printed in debugfs
+- Dropped the hwmod patch as Paul has already posted a
+  a hwmod series [1] that adds hwmod for EMIF
+- Converted instances of __init to __init_or_module
+
+Regards
+Santosh
+
+[1] http://thread.gmane.org/gmane.linux.ports.arm.omap/72855
+[2] https://lkml.org/lkml/2012/4/12/173
+
+
+Aneesh V (7):
+  ddr: add LPDDR2 data from JESD209-2
+  memory: emif: add register definitions for EMIF
+  memory: emif: add basic infrastructure for EMIF driver
+  memory: emif: handle frequency and voltage change events
+  memory: emif: add interrupt and temperature handling
+  memory: emif: add one-time settings
+  memory: emif: add debugfs entries for emif
+
+ Documentation/memory-devices/ti-emif.txt |   57 +
+ drivers/Kconfig                          |    4 +
+ drivers/Makefile                         |    3 +
+ drivers/memory/Kconfig                   |   22 +
+ drivers/memory/Makefile                  |    5 +
+ drivers/memory/emif.c                    | 1670 ++++++++++++++++++++++++++++++
+ drivers/memory/emif.h                    |  589 +++++++++++
+ include/linux/platform_data/emif_plat.h  |  128 +++
+ include/memory/jedec_ddr.h               |  175 ++++
+ lib/Kconfig                              |    8 +
+ lib/Makefile                             |    2 +
+ lib/jedec_ddr_data.c                     |  135 +++
+ 12 files changed, 2798 insertions(+), 0 deletions(-)
+ create mode 100644 Documentation/memory-devices/ti-emif.txt
+ create mode 100644 drivers/memory/Kconfig
+ create mode 100644 drivers/memory/Makefile
+ create mode 100644 drivers/memory/emif.c
+ create mode 100644 drivers/memory/emif.h
+ create mode 100644 include/linux/platform_data/emif_plat.h
+ create mode 100644 include/memory/jedec_ddr.h
+ create mode 100644 lib/jedec_ddr_data.c
+
 -- 
 1.7.5.4
