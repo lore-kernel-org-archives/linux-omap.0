@@ -1,42 +1,63 @@
-From: "Hiremath, Vaibhav" <hvaibhav@ti.com>
-Subject: RE: [PATCH-V5 3/3] ARM: OMAP: Make OMAP clocksource source
- selection using kernel param
-Date: Fri, 27 Apr 2012 05:31:07 +0000
-Message-ID: <79CD15C6BA57404B839C016229A409A83EA000B5@DBDE01.ent.ti.com>
-References: <1335362340-14960-1-git-send-email-hvaibhav@ti.com>
- <1335362340-14960-4-git-send-email-hvaibhav@ti.com>
- <alpine.DEB.2.00.1204260904580.10308@utopia.booyaka.com>
- <79CD15C6BA57404B839C016229A409A83E9FF819@DBDE01.ent.ti.com>
- <alpine.DEB.2.00.1204261330010.10308@utopia.booyaka.com>
- <alpine.DEB.2.00.1204261636340.10308@utopia.booyaka.com>
+From: "J, KEERTHY" <j-keerthy@ti.com>
+Subject: Re: [PATCH V3 00/10] PM: Create the AVS(Adaptive Voltage Scaling)
+Date: Fri, 27 Apr 2012 11:09:10 +0530
+Message-ID: <CAJ6a13a6WN9h1QZynpEOf-R6RXwWBZ2eOPkTeNc15JX_YfAz_w@mail.gmail.com>
+References: <1335462041-4949-1-git-send-email-j-keerthy@ti.com>
+	<20120426191159.GA9415@sirena.org.uk>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from devils.ext.ti.com ([198.47.26.153]:56254 "EHLO
-	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751278Ab2D0FbS convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 27 Apr 2012 01:31:18 -0400
-In-Reply-To: <alpine.DEB.2.00.1204261636340.10308@utopia.booyaka.com>
-Content-Language: en-US
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <20120426191159.GA9415@sirena.org.uk>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Mark Brown <broonie@opensource.wolfsonmicro.com>
+Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, khilman@ti.com, rjw@sisk.pl, linux-kernel@vger.kernel.org, linux-pm@lists.linux-foundation.org, j-pihet@ti.com
 List-Id: linux-omap@vger.kernel.org
-To: Paul Walmsley <paul@pwsan.com>
-Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "tony@atomide.com" <tony@atomide.com>, "Hilman, Kevin" <khilman@ti.com>, "Shilimkar, Santosh" <santosh.shilimkar@ti.com>, "Cousson, Benoit" <b-cousson@ti.com>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, "Balbi, Felipe" <balbi@ti.com>, "DebBarma, Tarun Kanti" <tarun.kanti@ti.com>, Ming Lei <tom.leiming@gmail.com>
 
-On Fri, Apr 27, 2012 at 04:08:07, Paul Walmsley wrote:
-> On Thu, 26 Apr 2012, Paul Walmsley wrote:
-> 
-> > Okay, thanks for testing.  Please do update this patch to use 
-> > omap_hwmod_enable(), etc.; see for example omap_dm_timer_init_one().
-> 
-> And, just to be explicit, the ioremap(), clk_get(), and clk_enable() 
-> should no longer be needed for OMAP2+, once you add the 
-> omap_hwmod_enable().
-> 
+Hello Mark,
 
-What about OMAP1 architecture? Will it work? 
+On Fri, Apr 27, 2012 at 12:41 AM, Mark Brown
+<broonie@opensource.wolfsonmicro.com> wrote:
+> On Thu, Apr 26, 2012 at 11:10:31PM +0530, Keerthy wrote:
+>> From: J Keerthy <j-keerthy@ti.com>
+>>
+>> AVS(Adaptive Voltage Scaling) is a power management technique which
+>> controls the operating voltage of a device in order to optimize (i.e=
+=2E reduce)
+>> its power consumption. The voltage is adapted depending on static fa=
+ctors
+>> (chip manufacturing process) and dynamic factors (temperature
+>> depending performance).
+>> The TI AVS solution is named Smartreflex.
+>
+> What's the relationship between this and existing things like devfreq
+> and cpufreq? =A0It'd be better if the changelogs made this clear and
+> provided an overview of how all these different subsystems are intend=
+ed
+> to fit together.
 
-Thanks,
-Vaibhav
+Devfreq and cpufreq are related to dynamic frequency/voltage switching =
+between
+pre defined Operating Performance Points or the OPPs. Every OPP being
+a voltage/frequency pair. Smartreflex is a different
+power management technique.
 
+SmartReflex is a technology that uses adaptive
+power supply to achieve the goal of reducing active power consumption.
+With SmartReflex, the power supply voltage can be adapted to the silico=
+n
+performance either statically (for example, adapted to the manufacturin=
+g process
+of a given device), or dynamically (for example, adapted to the tempera=
+ture
+induced current performance of the device).
+
+So for every OPP(voltage/frequency pair) depending on the silicon proce=
+ss and
+temperature the Smartreflex tries to get the voltage to an optimal
+value at which
+the corresponding frequency can be sustained.
+
+--=20
+Regards and Thanks,
+Keerthy
