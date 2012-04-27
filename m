@@ -1,361 +1,79 @@
-From: Grant Likely <grant.likely@secretlab.ca>
-Subject: Re: [PATCH 10/12] spi: omap2-mcspi: add DMA engine support
-Date: Fri, 27 Apr 2012 11:20:57 -0600
-Message-ID: <20120427172057.420973E0B4D@localhost>
-References: <20120423160409.GE24299@n2100.arm.linux.org.uk> <E1SMLnY-0002Wg-TD@rmk-PC.arm.linux.org.uk>
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-pz0-f51.google.com ([209.85.210.51]:40122 "EHLO
-	mail-pz0-f51.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1760225Ab2D0RVA (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 27 Apr 2012 13:21:00 -0400
-Received: by dadz8 with SMTP id z8so1272841dad.10
-        for <linux-omap@vger.kernel.org>; Fri, 27 Apr 2012 10:20:59 -0700 (PDT)
-In-Reply-To: <E1SMLnY-0002Wg-TD@rmk-PC.arm.linux.org.uk>
-Sender: linux-omap-owner@vger.kernel.org
+From: Mark Brown <broonie@opensource.wolfsonmicro.com>
+Subject: Re: [PATCH V3 00/10] PM: Create the AVS(Adaptive Voltage
+	Scaling)
+Date: Fri, 27 Apr 2012 18:56:58 +0100
+Message-ID: <20120427175657.GP18260@opensource.wolfsonmicro.com>
+References: <1335462041-4949-1-git-send-email-j-keerthy@ti.com>
+	<20120426191159.GA9415@sirena.org.uk>
+	<CAJ6a13a6WN9h1QZynpEOf-R6RXwWBZ2eOPkTeNc15JX_YfAz_w@mail.gmail.com>
+Mime-Version: 1.0
+Content-Type: multipart/mixed; boundary="===============4879448653714740865=="
+Return-path: <linux-pm-bounces@lists.linux-foundation.org>
+In-Reply-To: <CAJ6a13a6WN9h1QZynpEOf-R6RXwWBZ2eOPkTeNc15JX_YfAz_w@mail.gmail.com>
+List-Unsubscribe: <https://lists.linuxfoundation.org/mailman/options/linux-pm>,
+	<mailto:linux-pm-request@lists.linux-foundation.org?subject=unsubscribe>
+List-Archive: <http://lists.linuxfoundation.org/pipermail/linux-pm/>
+List-Post: <mailto:linux-pm@lists.linux-foundation.org>
+List-Help: <mailto:linux-pm-request@lists.linux-foundation.org?subject=help>
+List-Subscribe: <https://lists.linuxfoundation.org/mailman/listinfo/linux-pm>,
+	<mailto:linux-pm-request@lists.linux-foundation.org?subject=subscribe>
+Sender: linux-pm-bounces@lists.linux-foundation.org
+Errors-To: linux-pm-bounces@lists.linux-foundation.org
+To: "J, KEERTHY" <j-keerthy@ti.com>
+Cc: khilman@ti.com, linux-kernel@vger.kernel.org, linux-pm@lists.linux-foundation.org, linux-omap@vger.kernel.org, j-pihet@ti.com, linux-arm-kernel@lists.infradead.org
 List-Id: linux-omap@vger.kernel.org
-To: Russell King <rmk+kernel@arm.linux.org.uk>, linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org, linux-mmc@vger.kernel.org
-Cc: spi-devel-general@lists.sourceforge.net
 
-On Mon, 23 Apr 2012 17:07:32 +0100, Russell King <rmk+kernel@arm.linux.org.uk> wrote:
-> Add DMA engine support to the OMAP SPI driver.  This supplements the
-> private DMA API implementation contained within this driver, and the
-> driver can be independently switched at build time between using DMA
-> engine and the private DMA API for the transmit and receive sides.
-> 
-> Tested-by: Shubhrajyoti <shubhrajyoti@ti.com>
-> Signed-off-by: Russell King <rmk+kernel@arm.linux.org.uk>
-> ---
->  drivers/spi/spi-omap2-mcspi.c |  184 ++++++++++++++++++++++++++++++++++-------
->  1 files changed, 152 insertions(+), 32 deletions(-)
 
-This patch and the next one appear to be part of a larger series.
-Feel free to take them through whatever tree you need to.
+--===============4879448653714740865==
+Content-Type: multipart/signed; micalg=pgp-sha1;
+	protocol="application/pgp-signature"; boundary="iq/fWD14IMVFWBCD"
+Content-Disposition: inline
 
-Acked-by: Grant Likely <grant.likely@secretlab.ca>  (for both)
 
-g.
+--iq/fWD14IMVFWBCD
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
 
-> 
-> diff --git a/drivers/spi/spi-omap2-mcspi.c b/drivers/spi/spi-omap2-mcspi.c
-> index bb9274c..b2461d7 100644
-> --- a/drivers/spi/spi-omap2-mcspi.c
-> +++ b/drivers/spi/spi-omap2-mcspi.c
-> @@ -20,6 +20,8 @@
->   * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
->   *
->   */
-> +#define USE_DMA_ENGINE_RX
-> +#define USE_DMA_ENGINE_TX
->  
->  #include <linux/kernel.h>
->  #include <linux/init.h>
-> @@ -28,6 +30,7 @@
->  #include <linux/device.h>
->  #include <linux/delay.h>
->  #include <linux/dma-mapping.h>
-> +#include <linux/dmaengine.h>
->  #include <linux/platform_device.h>
->  #include <linux/err.h>
->  #include <linux/clk.h>
-> @@ -95,6 +98,8 @@
->  
->  /* We have 2 DMA channels per CS, one for RX and one for TX */
->  struct omap2_mcspi_dma {
-> +	struct dma_chan *dma_tx;
-> +	struct dma_chan *dma_rx;
->  	int dma_tx_channel;
->  	int dma_rx_channel;
->  
-> @@ -290,6 +295,30 @@ static int mcspi_wait_for_reg_bit(void __iomem *reg, unsigned long bit)
->  	return 0;
->  }
->  
-> +static void omap2_mcspi_rx_callback(void *data)
-> +{
-> +	struct spi_device *spi = data;
-> +	struct omap2_mcspi *mcspi = spi_master_get_devdata(spi->master);
-> +	struct omap2_mcspi_dma *mcspi_dma = &mcspi->dma_channels[spi->chip_select];
-> +
-> +	complete(&mcspi_dma->dma_rx_completion);
-> +
-> +	/* We must disable the DMA RX request */
-> +	omap2_mcspi_set_dma_req(spi, 1, 0);
-> +}
-> +
-> +static void omap2_mcspi_tx_callback(void *data)
-> +{
-> +	struct spi_device *spi = data;
-> +	struct omap2_mcspi *mcspi = spi_master_get_devdata(spi->master);
-> +	struct omap2_mcspi_dma *mcspi_dma = &mcspi->dma_channels[spi->chip_select];
-> +
-> +	complete(&mcspi_dma->dma_tx_completion);
-> +
-> +	/* We must disable the DMA TX request */
-> +	omap2_mcspi_set_dma_req(spi, 0, 0);
-> +}
-> +
->  static unsigned
->  omap2_mcspi_txrx_dma(struct spi_device *spi, struct spi_transfer *xfer)
->  {
-> @@ -304,6 +333,9 @@ omap2_mcspi_txrx_dma(struct spi_device *spi, struct spi_transfer *xfer)
->  	u8			* rx;
->  	const u8		* tx;
->  	void __iomem		*chstat_reg;
-> +	struct dma_slave_config	cfg;
-> +	enum dma_slave_buswidth width;
-> +	unsigned es;
->  
->  	mcspi = spi_master_get_devdata(spi->master);
->  	mcspi_dma = &mcspi->dma_channels[spi->chip_select];
-> @@ -311,6 +343,71 @@ omap2_mcspi_txrx_dma(struct spi_device *spi, struct spi_transfer *xfer)
->  
->  	chstat_reg = cs->base + OMAP2_MCSPI_CHSTAT0;
->  
-> +	if (cs->word_len <= 8) {
-> +		width = DMA_SLAVE_BUSWIDTH_1_BYTE;
-> +		es = 1;
-> +	} else if (cs->word_len <= 16) {
-> +		width = DMA_SLAVE_BUSWIDTH_2_BYTES;
-> +		es = 2;
-> +	} else {
-> +		width = DMA_SLAVE_BUSWIDTH_4_BYTES;
-> +		es = 4;
-> +	}
-> +
-> +	memset(&cfg, 0, sizeof(cfg));
-> +	cfg.src_addr = cs->phys + OMAP2_MCSPI_RX0;
-> +	cfg.dst_addr = cs->phys + OMAP2_MCSPI_TX0;
-> +	cfg.src_addr_width = width;
-> +	cfg.dst_addr_width = width;
-> +	cfg.src_maxburst = 1;
-> +	cfg.dst_maxburst = 1;
-> +
-> +	if (xfer->tx_buf && mcspi_dma->dma_tx) {
-> +		struct dma_async_tx_descriptor *tx;
-> +		struct scatterlist sg;
-> +
-> +		dmaengine_slave_config(mcspi_dma->dma_tx, &cfg);
-> +
-> +		sg_init_table(&sg, 1);
-> +		sg_dma_address(&sg) = xfer->tx_dma;
-> +		sg_dma_len(&sg) = xfer->len;
-> +
-> +		tx = dmaengine_prep_slave_sg(mcspi_dma->dma_tx, &sg, 1,
-> +			DMA_MEM_TO_DEV, DMA_PREP_INTERRUPT | DMA_CTRL_ACK);
-> +		if (tx) {
-> +			tx->callback = omap2_mcspi_tx_callback;
-> +			tx->callback_param = spi;
-> +			dmaengine_submit(tx);
-> +		} else {
-> +			/* FIXME: fall back to PIO? */
-> +		}
-> +	}
-> +
-> +	if (xfer->rx_buf && mcspi_dma->dma_rx) {
-> +		struct dma_async_tx_descriptor *tx;
-> +		struct scatterlist sg;
-> +		size_t len = xfer->len - es;
-> +
-> +		dmaengine_slave_config(mcspi_dma->dma_rx, &cfg);
-> +
-> +		if (l & OMAP2_MCSPI_CHCONF_TURBO)
-> +			len -= es;
-> +
-> +		sg_init_table(&sg, 1);
-> +		sg_dma_address(&sg) = xfer->rx_dma;
-> +		sg_dma_len(&sg) = len;
-> +
-> +		tx = dmaengine_prep_slave_sg(mcspi_dma->dma_rx, &sg, 1,
-> +			DMA_DEV_TO_MEM, DMA_PREP_INTERRUPT | DMA_CTRL_ACK);
-> +		if (tx) {
-> +			tx->callback = omap2_mcspi_rx_callback;
-> +			tx->callback_param = spi;
-> +			dmaengine_submit(tx);
-> +		} else {
-> +			/* FIXME: fall back to PIO? */
-> +		}
-> +	}
-> +
->  	count = xfer->len;
->  	c = count;
->  	word_len = cs->word_len;
-> @@ -332,7 +429,7 @@ omap2_mcspi_txrx_dma(struct spi_device *spi, struct spi_transfer *xfer)
->  		element_count = count >> 2;
->  	}
->  
-> -	if (tx != NULL) {
-> +	if (tx != NULL && mcspi_dma->dma_tx_channel != -1) {
->  		omap_set_dma_transfer_params(mcspi_dma->dma_tx_channel,
->  				data_type, element_count, 1,
->  				OMAP_DMA_SYNC_ELEMENT,
-> @@ -347,7 +444,7 @@ omap2_mcspi_txrx_dma(struct spi_device *spi, struct spi_transfer *xfer)
->  				xfer->tx_dma, 0, 0);
->  	}
->  
-> -	if (rx != NULL) {
-> +	if (rx != NULL && mcspi_dma->dma_rx_channel != -1) {
->  		elements = element_count - 1;
->  		if (l & OMAP2_MCSPI_CHCONF_TURBO)
->  			elements--;
-> @@ -367,12 +464,18 @@ omap2_mcspi_txrx_dma(struct spi_device *spi, struct spi_transfer *xfer)
->  	}
->  
->  	if (tx != NULL) {
-> -		omap_start_dma(mcspi_dma->dma_tx_channel);
-> +		if (mcspi_dma->dma_tx)
-> +			dma_async_issue_pending(mcspi_dma->dma_tx);
-> +		else
-> +			omap_start_dma(mcspi_dma->dma_tx_channel);
->  		omap2_mcspi_set_dma_req(spi, 0, 1);
->  	}
->  
->  	if (rx != NULL) {
-> -		omap_start_dma(mcspi_dma->dma_rx_channel);
-> +		if (mcspi_dma->dma_rx)
-> +			dma_async_issue_pending(mcspi_dma->dma_rx);
-> +		else
-> +			omap_start_dma(mcspi_dma->dma_rx_channel);
->  		omap2_mcspi_set_dma_req(spi, 1, 1);
->  	}
->  
-> @@ -396,7 +499,10 @@ omap2_mcspi_txrx_dma(struct spi_device *spi, struct spi_transfer *xfer)
->  		dma_unmap_single(&spi->dev, xfer->rx_dma, count, DMA_FROM_DEVICE);
->  		omap2_mcspi_set_enable(spi, 0);
->  
-> +		elements = element_count - 1;
-> +
->  		if (l & OMAP2_MCSPI_CHCONF_TURBO) {
-> +			elements--;
->  
->  			if (likely(mcspi_read_cs_reg(spi, OMAP2_MCSPI_CHSTAT0)
->  				   & OMAP2_MCSPI_CHSTAT_RXS)) {
-> @@ -715,50 +821,58 @@ static int omap2_mcspi_setup_transfer(struct spi_device *spi,
->  
->  static void omap2_mcspi_dma_rx_callback(int lch, u16 ch_status, void *data)
->  {
-> -	struct spi_device	*spi = data;
-> -	struct omap2_mcspi	*mcspi;
-> -	struct omap2_mcspi_dma	*mcspi_dma;
-> -
-> -	mcspi = spi_master_get_devdata(spi->master);
-> -	mcspi_dma = &(mcspi->dma_channels[spi->chip_select]);
-> -
-> -	complete(&mcspi_dma->dma_rx_completion);
-> -
-> -	/* We must disable the DMA RX request */
-> -	omap2_mcspi_set_dma_req(spi, 1, 0);
-> +	omap2_mcspi_rx_callback(data);
->  }
->  
->  static void omap2_mcspi_dma_tx_callback(int lch, u16 ch_status, void *data)
->  {
-> -	struct spi_device	*spi = data;
-> -	struct omap2_mcspi	*mcspi;
-> -	struct omap2_mcspi_dma	*mcspi_dma;
-> -
-> -	mcspi = spi_master_get_devdata(spi->master);
-> -	mcspi_dma = &(mcspi->dma_channels[spi->chip_select]);
-> -
-> -	complete(&mcspi_dma->dma_tx_completion);
-> -
-> -	/* We must disable the DMA TX request */
-> -	omap2_mcspi_set_dma_req(spi, 0, 0);
-> +	omap2_mcspi_tx_callback(data);
->  }
->  
-> +extern bool omap_dma_filter_fn(struct dma_chan *chan, void *param);
-> +
->  static int omap2_mcspi_request_dma(struct spi_device *spi)
->  {
->  	struct spi_master	*master = spi->master;
->  	struct omap2_mcspi	*mcspi;
->  	struct omap2_mcspi_dma	*mcspi_dma;
-> +	dma_cap_mask_t mask;
-> +	unsigned sig;
->  
->  	mcspi = spi_master_get_devdata(master);
->  	mcspi_dma = mcspi->dma_channels + spi->chip_select;
->  
-> +	init_completion(&mcspi_dma->dma_rx_completion);
-> +	init_completion(&mcspi_dma->dma_tx_completion);
-> +
-> +	dma_cap_zero(mask);
-> +	dma_cap_set(DMA_SLAVE, mask);
-> +#ifdef USE_DMA_ENGINE_RX
-> +	sig = mcspi_dma->dma_rx_sync_dev;
-> +	mcspi_dma->dma_rx = dma_request_channel(mask, omap_dma_filter_fn, &sig);
-> +	if (!mcspi_dma->dma_rx) {
-> +		dev_err(&spi->dev, "no RX DMA engine channel for McSPI\n");
-> +		return -EAGAIN;
-> +	}
-> +#else
->  	if (omap_request_dma(mcspi_dma->dma_rx_sync_dev, "McSPI RX",
->  			omap2_mcspi_dma_rx_callback, spi,
->  			&mcspi_dma->dma_rx_channel)) {
->  		dev_err(&spi->dev, "no RX DMA channel for McSPI\n");
->  		return -EAGAIN;
->  	}
-> +#endif
->  
-> +#ifdef USE_DMA_ENGINE_TX
-> +	sig = mcspi_dma->dma_tx_sync_dev;
-> +	mcspi_dma->dma_tx = dma_request_channel(mask, omap_dma_filter_fn, &sig);
-> +	if (!mcspi_dma->dma_tx) {
-> +		dev_err(&spi->dev, "no TX DMA engine channel for McSPI\n");
-> +		dma_release_channel(mcspi_dma->dma_rx);
-> +		mcspi_dma->dma_rx = NULL;
-> +		return -EAGAIN;
-> +	}
-> +#else
->  	if (omap_request_dma(mcspi_dma->dma_tx_sync_dev, "McSPI TX",
->  			omap2_mcspi_dma_tx_callback, spi,
->  			&mcspi_dma->dma_tx_channel)) {
-> @@ -767,9 +881,7 @@ static int omap2_mcspi_request_dma(struct spi_device *spi)
->  		dev_err(&spi->dev, "no TX DMA channel for McSPI\n");
->  		return -EAGAIN;
->  	}
-> -
-> -	init_completion(&mcspi_dma->dma_rx_completion);
-> -	init_completion(&mcspi_dma->dma_tx_completion);
-> +#endif
->  
->  	return 0;
->  }
-> @@ -803,8 +915,8 @@ static int omap2_mcspi_setup(struct spi_device *spi)
->  			&omap2_mcspi_ctx[mcspi->master->bus_num - 1].cs);
->  	}
->  
-> -	if (mcspi_dma->dma_rx_channel == -1
-> -			|| mcspi_dma->dma_tx_channel == -1) {
-> +	if ((!mcspi_dma->dma_rx && mcspi_dma->dma_rx_channel == -1) ||
-> +	    (!mcspi_dma->dma_tx && mcspi_dma->dma_tx_channel == -1)) {
->  		ret = omap2_mcspi_request_dma(spi);
->  		if (ret < 0)
->  			return ret;
-> @@ -839,6 +951,14 @@ static void omap2_mcspi_cleanup(struct spi_device *spi)
->  	if (spi->chip_select < spi->master->num_chipselect) {
->  		mcspi_dma = &mcspi->dma_channels[spi->chip_select];
->  
-> +		if (mcspi_dma->dma_rx) {
-> +			dma_release_channel(mcspi_dma->dma_rx);
-> +			mcspi_dma->dma_rx = NULL;
-> +		}
-> +		if (mcspi_dma->dma_tx) {
-> +			dma_release_channel(mcspi_dma->dma_tx);
-> +			mcspi_dma->dma_tx = NULL;
-> +		}
->  		if (mcspi_dma->dma_rx_channel != -1) {
->  			omap_free_dma(mcspi_dma->dma_rx_channel);
->  			mcspi_dma->dma_rx_channel = -1;
-> -- 
-> 1.7.4.4
-> 
-> 
-> _______________________________________________
-> linux-arm-kernel mailing list
-> linux-arm-kernel@lists.infradead.org
-> http://lists.infradead.org/mailman/listinfo/linux-arm-kernel
+On Fri, Apr 27, 2012 at 11:09:10AM +0530, J, KEERTHY wrote:
 
--- 
-Grant Likely, B.Sc, P.Eng.
-Secret Lab Technologies, Ltd.
+> Devfreq and cpufreq are related to dynamic frequency/voltage switching between
+> pre defined Operating Performance Points or the OPPs. Every OPP being
+> a voltage/frequency pair. Smartreflex is a different
+> power management technique.
+
+But presumably these things should integrate somehow - for example,
+should devfreq and cpufreq be providing inputs into what AVS is doing,
+and if so how?
+
+--iq/fWD14IMVFWBCD
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: Digital signature
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.4.12 (GNU/Linux)
+
+iQIcBAEBAgAGBQJPmt3jAAoJEBus8iNuMP3dwCIP/1i2rPocJbbB7yGsjpZmoc0F
+b3lRK6RmOuad98MAeSv1AO7/J6QI3N7s7oVhJfkP69j3mxzXdQf2AE6DSgqbWJT4
+wU1qRVsrC1WniNeDHU8ucXq6wIMalxUapfVhUJDChz4Ui04+si6xkKfWjkKHMSZa
+zv+7TequN2Rk8EVmZtMdyonyBjXTNchjIJ7AREUfrXKHL1LTRn5zljr/QMb+bKiW
+fN0ndG7iDizDTwDY67tXDdMN5WlIVl7FexGV/L44V32F4iENeBkOn3rfI2AzLSKX
+XBpKidSO54q1s4HrrzdPBGAkV70K/BBNktQWAd85CFptQ3jP4TNTrr0FV56/URNK
+waLW58bP3RfWYEQyBIsixdFVbgk6/M01FmwSUOdFf26dsQi0sDh29LrM67RkNKmt
+p2O+oLuJRKAjUh5dJOtyqkXpjdSEKBcl/gmREQqdS1AGzhdaP6BZ0mN1XIuYGPi/
+JsRHUbXAlFzYNc4F2dEYE5WIo1fj1q/9kWwhY8vLPvFZlCWyEr8NfgASdpY0gxbC
+Hn9YjPv+fCQN6SUKaUfLiaGThTh7e5zysuvjHU+w+eGNZBNSgvZA7ofaf/TsX+Ba
+ike7OfcLi/Noho5LBD2Dxsbtg/lNamL5n8pdDFu+OwCoqj64cspjz7mOFcJaaSFd
+xPst2wKotL3rtuxYiVMl
+=IFMA
+-----END PGP SIGNATURE-----
+
+--iq/fWD14IMVFWBCD--
+
+--===============4879448653714740865==
+Content-Type: text/plain; charset="us-ascii"
+MIME-Version: 1.0
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
+
+
+--===============4879448653714740865==--
