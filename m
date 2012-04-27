@@ -1,70 +1,60 @@
-From: Russell King - ARM Linux <linux@arm.linux.org.uk>
-Subject: Re: [PATCH 05/12] mmc: omap_hsmmc: add DMA engine support
-Date: Fri, 27 Apr 2012 20:03:32 +0100
-Message-ID: <20120427190332.GG28062@n2100.arm.linux.org.uk>
-References: <20120423160409.GE24299@n2100.arm.linux.org.uk> <E1SMLlv-0002WI-8a@rmk-PC.arm.linux.org.uk> <CACRpkdZPEnPTpp+vwJed4ZkXLNjEVUz==YVvwg_bhuUOyD3Fxg@mail.gmail.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+From: Grant Likely <grant.likely@secretlab.ca>
+Subject: Re: [PATCH 0/8] gpio/omap: remaining cleanups and fix
+Date: Fri, 27 Apr 2012 13:07:59 -0600
+Message-ID: <20120427190759.C6DC43E0B4D@localhost>
+References: <1335536018-16004-1-git-send-email-tarun.kanti@ti.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from caramon.arm.linux.org.uk ([78.32.30.218]:53778 "EHLO
-	caramon.arm.linux.org.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754820Ab2D0TDt (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 27 Apr 2012 15:03:49 -0400
-Content-Disposition: inline
-In-Reply-To: <CACRpkdZPEnPTpp+vwJed4ZkXLNjEVUz==YVvwg_bhuUOyD3Fxg@mail.gmail.com>
+Received: from mail-pz0-f51.google.com ([209.85.210.51]:34890 "EHLO
+	mail-pz0-f51.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1758719Ab2D0TIC (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 27 Apr 2012 15:08:02 -0400
+Received: by dadz8 with SMTP id z8so1374369dad.10
+        for <linux-omap@vger.kernel.org>; Fri, 27 Apr 2012 12:08:02 -0700 (PDT)
+In-Reply-To: <1335536018-16004-1-git-send-email-tarun.kanti@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Linus Walleij <linus.walleij@linaro.org>
-Cc: linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org, linux-mmc@vger.kernel.org, Chris Ball <cjb@laptop.org>
+To: linux-omap@vger.kernel.org
+Cc: linux-arm-kernel@lists.infradead.org, Tarun Kanti DebBarma <tarun.kanti@ti.com>, Kevin Hilman <khilman@ti.com>, Tony Lindgren <tony@atomide.com>, Santosh Shilimkar <santosh.shilimkar@ti.com>, "Cousson, Benoit" <b-cousson@ti.com>
 
-On Fri, Apr 27, 2012 at 09:00:22PM +0200, Linus Walleij wrote:
-> On Mon, Apr 23, 2012 at 6:05 PM, Russell King
-> <rmk+kernel@arm.linux.org.uk> wrote:
->=20
-> > Add DMA engine support to the OMAP HSMMC driver. =A0This supplement=
-s the
-> > private DMA API implementation contained within this driver, and th=
-e
-> > driver can be switched at build time between using DMA engine and t=
-he
-> > private DMA API.
-> >
-> > Signed-off-by: Russell King <rmk+kernel@arm.linux.org.uk>
->=20
-> Great,
->=20
-> > +#if 1
-> > + =A0 =A0 =A0 =A0 =A0 =A0 =A0 sig =3D host->dma_line_rx;
-> > + =A0 =A0 =A0 =A0 =A0 =A0 =A0 host->rx_chan =3D dma_request_channel=
-(mask, omap_dma_filter_fn, &sig);
-> > + =A0 =A0 =A0 =A0 =A0 =A0 =A0 if (!host->rx_chan) {
-> > + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 dev_warn(mmc_dev(host=
-->mmc), "unable to obtain RX DMA engine channel %u\n", sig);
-> > + =A0 =A0 =A0 =A0 =A0 =A0 =A0 }
-> > +#endif
-> > +#if 1
-> > + =A0 =A0 =A0 =A0 =A0 =A0 =A0 sig =3D host->dma_line_tx;
-> > + =A0 =A0 =A0 =A0 =A0 =A0 =A0 host->tx_chan =3D dma_request_channel=
-(mask, omap_dma_filter_fn, &sig);
-> > + =A0 =A0 =A0 =A0 =A0 =A0 =A0 if (!host->tx_chan) {
-> > + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 dev_warn(mmc_dev(host=
-->mmc), "unable to obtain TX DMA engine channel %u\n", sig);
-> > + =A0 =A0 =A0 =A0 =A0 =A0 =A0 }
-> > +#endif
->=20
-> Are these development artifacts?
+On Fri, 27 Apr 2012 19:43:30 +0530, Tarun Kanti DebBarma <tarun.kanti@ti.com> wrote:
+> Here are the remaining cleanup patches. There are broadly
+> two categories of cleanups.
+> 
+> Cat-1: Those missed while introducing new feature like SPARSE_IRQ
+>        handling and DT support; use edge/level handlers from
+>        generic IRQ framework.
+> 
+> Cat-2: Removal of redundant fields from struct gpio_bank{} as a
+>        result of they being already covered by members within
+>        context field of struct gpio_bank{}.
+> 
+> Reference: git://git.kernel.org/pub/scm/linux/kernel/git/torvalds/linux-2.6.git
+> Commit: 66f75a5d028beaf67c931435fdc3e7823125730c (Linux 3.4-rc4)
+> 
+> Series is available for reference here:
+> git://gitorious.org/~tarunkanti/omap-sw-develoment/tarunkantis-linux-omap-dev.git for_3.5/gpio_more_cleanup_fixes
+> 
+> Test info:
+> OMAP2+ platforms: OMAP2430SDP, OMAP3430SDP, OMAP4430SDP
+> OMAP1: Bootup test on OMAP1710SDP.
+> 
+> Cc: Kevin Hilman <khilman@ti.com>
+> Cc: Tony Lindgren <tony@atomide.com>
+> Cc: Santosh Shilimkar <santosh.shilimkar@ti.com>
+> Cc: Cousson, Benoit <b-cousson@ti.com>
+> Cc: Grant Likely <grant.likely@secretlab.ca>
+> Tarun Kanti DebBarma (8):
+>   gpio/omap: remove virtual_irq_start variable
+>   gpio/omap: remove saved_fallingdetect, saved_risingdetect
+>   gpio/omap: remove suspend_wakeup field from struct gpio_bank
+>   gpio/omap: remove saved_wakeup field from struct gpio_bank
+>   gpio/omap: remove retrigger variable in gpio_irq_handler
+>   gpio/omap: remove suspend/resume callbacks
+>   gpio/omap: remove cpu_is_omapxxxx() checks from *_runtime_resume()
+>   gpio/omap: fix missing check in *_runtime_suspend()
 
-Read the commit message. ;)
+The changes look fine to me.  Which branch should this series be
+merged through?  It can either go via arm-soc or my gpio/next branch.
 
-They're there (and removed by the next patch) so that the driver can
-be easily switched between DMA engine and the private DMA API.  Simply
-change the relevant #if to zero at build time.
+g.
 
-I don't think it warrants config symbols or trying to do it via module
-params as its just a stepping stone through the process.
---
-To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
