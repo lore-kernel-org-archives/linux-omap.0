@@ -1,56 +1,34 @@
-From: Kevin Hilman <khilman@ti.com>
-Subject: Re: [PATCH v9 11/25] gpio/omap: cleanup omap_gpio_mod_init function
-Date: Fri, 27 Apr 2012 14:31:11 -0700
-Message-ID: <87pqaszwtc.fsf@ti.com>
-References: <1328203851-20435-1-git-send-email-tarun.kanti@ti.com>
-	<1328203851-20435-12-git-send-email-tarun.kanti@ti.com>
-	<13629551.hP3ZV1ajDo@vclass>
-	<CAC83ZvK630=6B-k2TfV3XBg8w7ZosLVDNE4ezjDYnn=hcXA48Q@mail.gmail.com>
-	<CAC83ZvJDDvCu8NKTOYh75USA3fvSAKEGaXXi9PtCM955K_keSA@mail.gmail.com>
-	<20120424160447.GI3739@atomide.com>
-	<CAC83Zv+CCLQfZHfqMcbof6JtA-hOK1PfX5Gs0BBVQhBAiWzX_g@mail.gmail.com>
-	<CAMQu2gzwijaSzXprEwTNTie3zCgFcNPonAexzrO_AWc2a8jOkw@mail.gmail.com>
-	<CAC83ZvKN_Qxw-9RPfpJaL5434j0HgysZ364F+b29rdSCQWhm7A@mail.gmail.com>
-	<20120425134508.GE25053@n2100.arm.linux.org.uk>
-	<CAC83ZvL54bot+yQoRPPX3_9O5wfdpdBCNb4-Chw7sPyVFDBGSg@mail.gmail.com>
+From: Russell King - ARM Linux <linux@arm.linux.org.uk>
+Subject: Re: [PATCH 2/8] dmaengine: amba-pl08x: ensure physical channels
+	are properly held
+Date: Fri, 27 Apr 2012 22:41:28 +0100
+Message-ID: <20120427214128.GH28062@n2100.arm.linux.org.uk>
+References: <20120418100954.GK25053@n2100.arm.linux.org.uk> <E1SKRqh-0004b8-RH@rmk-PC.arm.linux.org.uk> <20120418101938.GM25053@n2100.arm.linux.org.uk> <CACRpkdY8rJYQhUwtW1mtmnY8WB7T7mowefqOmiJdCZ1iS5E89A@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <CAC83ZvL54bot+yQoRPPX3_9O5wfdpdBCNb4-Chw7sPyVFDBGSg@mail.gmail.com>
-	(Tarun Kanti DebBarma's message of "Thu, 26 Apr 2012 10:43:57 +0530")
-Sender: linux-kernel-owner@vger.kernel.org
-To: "DebBarma, Tarun Kanti" <tarun.kanti@ti.com>
-Cc: Russell King - ARM Linux <linux@arm.linux.org.uk>, "Shilimkar, Santosh" <santosh.shilimkar@ti.com>, Janusz Krzysztofik <jkrzyszt@tis.icnet.pl>, Tony Lindgren <tony@atomide.com>, linux-kernel@vger.kernel.org, grant.likely@secretlab.ca, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Charulatha V <charu@ti.com>
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from caramon.arm.linux.org.uk ([78.32.30.218]:39749 "EHLO
+	caramon.arm.linux.org.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752849Ab2D0Vln (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 27 Apr 2012 17:41:43 -0400
+Content-Disposition: inline
+In-Reply-To: <CACRpkdY8rJYQhUwtW1mtmnY8WB7T7mowefqOmiJdCZ1iS5E89A@mail.gmail.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Linus Walleij <linus.walleij@linaro.org>
+Cc: linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org, linux-mmc@vger.kernel.org, Vinod Koul <vinod.koul@intel.com>, Dan Williams <dan.j.williams@intel.com>
 
-"DebBarma, Tarun Kanti" <tarun.kanti@ti.com> writes:
+On Fri, Apr 27, 2012 at 10:38:08PM +0200, Linus Walleij wrote:
+> On Wed, Apr 18, 2012 at 12:19 PM, Russell King - ARM Linux
+> <linux@arm.linux.org.uk> wrote:
+> 
+> > Oops, this patch wasn't supposed to be part of this set...
+> 
+> ...however it gives me the impression that you have a patch set cooking
+> to also switch PL08x over to the virtual channel mechanism which is
+> really appetizing to see :-)
 
-> On Wed, Apr 25, 2012 at 7:15 PM, Russell King - ARM Linux <linux@arm.=
-linux.org.uk> wrote:
+Actually, that doesn't exist yet.
 
-[...]
-
->> Correction.
->>
->> Don't email your patch in any way to the stable folk _before_ it has=
- been
->> taken into Linus' tree. =C2=A0However, you _may_ add in the patch at=
-tributations
->> a Cc: <stable@vger.kernel.org> tag if you want the stable folk to
->> automatically pick up your patch when it _does_ end up in Linus' tre=
-e.
->> But... make sure that git send-email or whatever doesn't automatical=
-ly
->> add that to the recipients for the emailed patch.
->>
->> If you send the stable people a patch before its in mainline, you'll=
- get
->> a whinge telling you to read Documentation/stable_kernel_rules.txt
->
-> Alright, I will add Cc: <stable@vger.kernel.org> tag in the patch.
-
-If you do that, be sure to use --suppress-cc=3Dbodycc when you send it
-with git-send-email.
-
-Kevin
+This was a patch I'd had floating around, but I don't think its needed
+in any way - I mis-analysed the code and created the patch...
