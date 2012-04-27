@@ -1,60 +1,61 @@
-From: Grant Likely <grant.likely@secretlab.ca>
-Subject: Re: [PATCH 0/8] gpio/omap: remaining cleanups and fix
-Date: Fri, 27 Apr 2012 13:07:59 -0600
-Message-ID: <20120427190759.C6DC43E0B4D@localhost>
-References: <1335536018-16004-1-git-send-email-tarun.kanti@ti.com>
+From: "Ujfalusi, Peter" <peter.ujfalusi@ti.com>
+Subject: Re: Audio support on OMAP 3430LDP or 4430SDP boards
+Date: Fri, 27 Apr 2012 22:17:19 +0300
+Message-ID: <CAPo=G1xj8ukm9++DtrKcJQ=iW2iOsAxPvAp5GHCXu35J8fQnBA@mail.gmail.com>
+References: <20120427135802.GA28062@n2100.arm.linux.org.uk>
+	<CAPo=G1ze3Yfr5FyQG_nByT3b5k=+Ux+6aupg=dD1Qe-Zx1RiqQ@mail.gmail.com>
+	<20120427160445.GC28062@n2100.arm.linux.org.uk>
+	<CAPo=G1xJj_mJAETqtxWdugYhP0LV=0XrMLeFGtkOBJZAi3Jy1A@mail.gmail.com>
+	<20120427165032.GD28062@n2100.arm.linux.org.uk>
+	<CAPo=G1yiX1644Cwkdnt7Ff7+yYbJQw5mnEbwd0txw-Wj_YdV7Q@mail.gmail.com>
+	<20120427171933.GE28062@n2100.arm.linux.org.uk>
+	<CAPo=G1wDANyQ5ARyerizp6oA=Wyc7s_to7zfz-n4GdZ20tfX4g@mail.gmail.com>
+	<20120427183116.GF28062@n2100.arm.linux.org.uk>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-pz0-f51.google.com ([209.85.210.51]:34890 "EHLO
-	mail-pz0-f51.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1758719Ab2D0TIC (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 27 Apr 2012 15:08:02 -0400
-Received: by dadz8 with SMTP id z8so1374369dad.10
-        for <linux-omap@vger.kernel.org>; Fri, 27 Apr 2012 12:08:02 -0700 (PDT)
-In-Reply-To: <1335536018-16004-1-git-send-email-tarun.kanti@ti.com>
+Received: from na3sys009aog135.obsmtp.com ([74.125.149.84]:59832 "EHLO
+	na3sys009aog135.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1761289Ab2D0TRV convert rfc822-to-8bit
+	(ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Fri, 27 Apr 2012 15:17:21 -0400
+Received: by iakl21 with SMTP id l21so1595263iak.9
+        for <linux-omap@vger.kernel.org>; Fri, 27 Apr 2012 12:17:20 -0700 (PDT)
+In-Reply-To: <20120427183116.GF28062@n2100.arm.linux.org.uk>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: linux-omap@vger.kernel.org
-Cc: linux-arm-kernel@lists.infradead.org, Tarun Kanti DebBarma <tarun.kanti@ti.com>, Kevin Hilman <khilman@ti.com>, Tony Lindgren <tony@atomide.com>, Santosh Shilimkar <santosh.shilimkar@ti.com>, "Cousson, Benoit" <b-cousson@ti.com>
+To: Russell King - ARM Linux <linux@arm.linux.org.uk>
+Cc: linux-omap@vger.kernel.org, Santosh Shilimkar <santosh.shilimkar@ti.com>, Liam Girdwood <lrg@ti.com>
 
-On Fri, 27 Apr 2012 19:43:30 +0530, Tarun Kanti DebBarma <tarun.kanti@ti.com> wrote:
-> Here are the remaining cleanup patches. There are broadly
-> two categories of cleanups.
-> 
-> Cat-1: Those missed while introducing new feature like SPARSE_IRQ
->        handling and DT support; use edge/level handlers from
->        generic IRQ framework.
-> 
-> Cat-2: Removal of redundant fields from struct gpio_bank{} as a
->        result of they being already covered by members within
->        context field of struct gpio_bank{}.
-> 
-> Reference: git://git.kernel.org/pub/scm/linux/kernel/git/torvalds/linux-2.6.git
-> Commit: 66f75a5d028beaf67c931435fdc3e7823125730c (Linux 3.4-rc4)
-> 
-> Series is available for reference here:
-> git://gitorious.org/~tarunkanti/omap-sw-develoment/tarunkantis-linux-omap-dev.git for_3.5/gpio_more_cleanup_fixes
-> 
-> Test info:
-> OMAP2+ platforms: OMAP2430SDP, OMAP3430SDP, OMAP4430SDP
-> OMAP1: Bootup test on OMAP1710SDP.
-> 
-> Cc: Kevin Hilman <khilman@ti.com>
-> Cc: Tony Lindgren <tony@atomide.com>
-> Cc: Santosh Shilimkar <santosh.shilimkar@ti.com>
-> Cc: Cousson, Benoit <b-cousson@ti.com>
-> Cc: Grant Likely <grant.likely@secretlab.ca>
-> Tarun Kanti DebBarma (8):
->   gpio/omap: remove virtual_irq_start variable
->   gpio/omap: remove saved_fallingdetect, saved_risingdetect
->   gpio/omap: remove suspend_wakeup field from struct gpio_bank
->   gpio/omap: remove saved_wakeup field from struct gpio_bank
->   gpio/omap: remove retrigger variable in gpio_irq_handler
->   gpio/omap: remove suspend/resume callbacks
->   gpio/omap: remove cpu_is_omapxxxx() checks from *_runtime_resume()
->   gpio/omap: fix missing check in *_runtime_suspend()
+Hi Russell,
 
-The changes look fine to me.  Which branch should this series be
-merged through?  It can either go via arm-soc or my gpio/next branch.
+On Fri, Apr 27, 2012 at 9:31 PM, Russell King - ARM Linux
+<linux@arm.linux.org.uk> wrote:
+>> Can you check if you have this commit:
+>> http://git.kernel.org/?p=3Dlinux/kernel/git/torvalds/linux.git;a=3Dc=
+ommit;h=3D8eaeb9393397be8eb700ab38a69c450975463b77
+>
+> I don't have that in the branch I'm building because I started the
+> DMA engine work against v3.4-rc3.
+>
+>> This is the second patch to separate the twl6040 from twl-core.
+>> If you are missing this patch twl6040 will not probe (twl core will
+>> not register the audio if we have twl6030).
+>
+> So it sounds like if I rebase stuff forward to -rc4, it should start
+> working?
 
-g.
+Yes, it should.
+Unfortunately the two patch went separately to avoid merge issues.
+You will need to configure the Headset path to be able to hear the audi=
+o.
+I can send my .aconf if you are interested.
 
+--=20
+P=E9ter
+--
+To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
