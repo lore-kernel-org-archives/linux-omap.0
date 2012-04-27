@@ -1,14 +1,11 @@
 From: Kevin Hilman <khilman@ti.com>
-Subject: [PATCH 3/6] ARM: OMAP4: hwmod: drop extra cpu_is check from
- _wait_target_disable()
-Date: Fri, 27 Apr 2012 13:05:37 -0700
-Message-ID: <1335557140-10854-4-git-send-email-khilman@ti.com>
-References: <1335557140-10854-1-git-send-email-khilman@ti.com>
+Subject: [PATCH 0/6] ARM: OMAP: hwmod: remove runtime cpu_is checking
+Date: Fri, 27 Apr 2012 13:05:34 -0700
+Message-ID: <1335557140-10854-1-git-send-email-khilman@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-In-Reply-To: <1335557140-10854-1-git-send-email-khilman@ti.com>
 List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
  <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
 List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
@@ -22,28 +19,34 @@ To: Paul Walmsley <paul@pwsan.com>, linux-omap@vger.kernel.org
 Cc: linux-arm-kernel@lists.infradead.org
 List-Id: linux-omap@vger.kernel.org
 
-_omap4_wait_target_disable() is called only from inside _omap4_disable_module()
-which is already protected by SoC specific checks.  Remove the cpu_is check
-here.
+This series attempts to remove all the runtime cpu_is* checking in
+omap_hwmod.c in favor of using function pointers initialized at init
+time.
 
-Signed-off-by: Kevin Hilman <khilman@ti.com>
----
- arch/arm/mach-omap2/omap_hwmod.c |    3 ---
- 1 file changed, 3 deletions(-)
+This series was motivated by the addition of support for the AM335x
+series which was done by adding several more cpu_is* checks, and
+provided the proverbial straw that broke the camel's back.  
 
-diff --git a/arch/arm/mach-omap2/omap_hwmod.c b/arch/arm/mach-omap2/omap_hwmod.c
-index a978350..3641b0a 100644
---- a/arch/arm/mach-omap2/omap_hwmod.c
-+++ b/arch/arm/mach-omap2/omap_hwmod.c
-@@ -803,9 +803,6 @@ static void _omap4_enable_module(struct omap_hwmod *oh)
-  */
- static int _omap4_wait_target_disable(struct omap_hwmod *oh)
- {
--	if (!cpu_is_omap44xx())
--		return 0;
--
- 	if (!oh)
- 		return -EINVAL;
- 
+In addition to the cleanup, this provides a much cleaner way of adding
+additional SoC support since it no longer requires adding additional
+runtime cpu_is* checks.
+
+Boot tested on OMAP3530/Overo and OMAP4430/Panda.
+
+Kevin Hilman (6):
+  ARM: OMAP4: hwmod: rename _enable_module to _omap4_enable_module()
+  ARM: OMAP2+: hwmod: use init-time function ptrs for enable/disable
+    module
+  ARM: OMAP4: hwmod: drop extra cpu_is check from
+    _wait_target_disable()
+  ARM: OMAP2+: hwmod: use init-time function pointer for
+    wait_target_ready
+  ARM: OMAP2+: hwmod: use init-time function pointer for hardreset
+  ARM: OMAP2+: hwmod: use init-time function pointer for _init_clkdm
+
+ arch/arm/mach-omap2/omap_hwmod.c             |  192 +++++++++++++++-----------
+ arch/arm/plat-omap/include/plat/omap_hwmod.h |   11 ++
+ 2 files changed, 126 insertions(+), 77 deletions(-)
+
 -- 
 1.7.9.2
