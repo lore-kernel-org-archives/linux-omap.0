@@ -1,56 +1,93 @@
-From: Santosh Shilimkar <santosh.shilimkar@ti.com>
-Subject: Re: [PATCH v4 0/7] Add TI EMIF SDRAM controller driver
-Date: Fri, 27 Apr 2012 18:46:22 +0530
-Message-ID: <4F9A9C26.9080404@ti.com>
-References: <1331934707-29487-1-git-send-email-aneesh@ti.com> <alpine.DEB.2.00.1204112042070.29473@utopia.booyaka.com> <20120412030044.GA26236@kroah.com> <CAM=4YEQ6_+7xPwi2jucks1P9p8tO3cSG7S0s=VVJVrueb4fB=g@mail.gmail.com> <C8443D0743D26F4388EA172BF4E2A7A93E96E7C5@DBDE01.ent.ti.com> <CAMQu2gz2CD+-kcSF2HVGWWrjk3DmsGgcuucBXan5NqtVUSwa2w@mail.gmail.com> <20120423142717.GA32380@kroah.com> <CAMQu2gxoP8qOT6DP_QJkNVyTp3uzVYgbkJuNz7k9fx4fh2iPmg@mail.gmail.com>
+From: Tero Kristo <t-kristo@ti.com>
+Subject: Re: OMAP3EVM not booting on l-o master
+Date: Fri, 27 Apr 2012 16:16:31 +0300
+Message-ID: <1335532591.2149.163.camel@sokoban>
+References: <C8443D0743D26F4388EA172BF4E2A7A9317C3A03@DBDE01.ent.ti.com>
+	 <C8443D0743D26F4388EA172BF4E2A7A9317C3B18@DBDE01.ent.ti.com>
+	 <alpine.DEB.2.00.1204050330380.10302@utopia.booyaka.com>
+	 <alpine.DEB.2.00.1204050403460.10302@utopia.booyaka.com>
+	 <C8443D0743D26F4388EA172BF4E2A7A9317C4B44@DBDE01.ent.ti.com>
+	 <alpine.DEB.2.00.1204051303000.10302@utopia.booyaka.com>
+	 <C8443D0743D26F4388EA172BF4E2A7A9317C5DB6@DBDE01.ent.ti.com>
+	 <alpine.DEB.2.00.1204060111400.10302@utopia.booyaka.com>
+	 <C8443D0743D26F4388EA172BF4E2A7A9317C5EEF@DBDE01.ent.ti.com>
+	 <1335173044.2149.64.camel@sokoban>  <87obqhawig.fsf@ti.com>
+Reply-To: <t-kristo@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
+Content-Type: text/plain; charset="UTF-8"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aog129.obsmtp.com ([74.125.149.142]:45865 "EHLO
-	na3sys009aog129.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1756047Ab2D0NQb (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>);
-	Fri, 27 Apr 2012 09:16:31 -0400
-Received: by obbuo13 with SMTP id uo13so1082726obb.29
-        for <linux-omap@vger.kernel.org>; Fri, 27 Apr 2012 06:16:29 -0700 (PDT)
-In-Reply-To: <CAMQu2gxoP8qOT6DP_QJkNVyTp3uzVYgbkJuNz7k9fx4fh2iPmg@mail.gmail.com>
+Received: from devils.ext.ti.com ([198.47.26.153]:50524 "EHLO
+	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756683Ab2D0NQg (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 27 Apr 2012 09:16:36 -0400
+In-Reply-To: <87obqhawig.fsf@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Greg KH <greg@kroah.com>
-Cc: "Mohammed, Afzal" <afzal@ti.com>, "V, Aneesh" <aneesh@ti.com>, Paul Walmsley <paul@pwsan.com>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "mgreer@animalcreek.com" <mgreer@animalcreek.com>, "msalter@redhat.com" <msalter@redhat.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, "Hunter, Jon" <jon-hunter@ti.com>
+To: Kevin Hilman <khilman@ti.com>
+Cc: "Mohammed, Afzal" <afzal@ti.com>, Paul Walmsley <paul@pwsan.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
 
-Greg,
-
-On Monday 23 April 2012 08:14 PM, Shilimkar, Santosh wrote:
-> On Mon, Apr 23, 2012 at 7:57 PM, Greg KH <greg@kroah.com> wrote:
->> On Mon, Apr 23, 2012 at 04:34:46PM +0530, Shilimkar, Santosh wrote:
->>> Afzal,
->>>
->>> On Mon, Apr 23, 2012 at 4:26 PM, Mohammed, Afzal <afzal@ti.com> wrote:
->>>> Hi Aneesh,
->>>>
->>>> On Fri, Apr 13, 2012 at 01:28:55, V, Aneesh wrote:
->>>>
->>>>> Thanks. I will wait for your review then. Once I have your comments
->>>>> I will re-work and submit in the new directory structure proposed.
->>>>
->>>> Do you have a plan on submitting EMIF driver in the new proposed
->>>> (drivers/memory) directory. Or shall I submit GPMC driver by creating
->>>> the new "memory" directory.
->>>>
->>>  Greg mentioned that he plans to do a review of EMIF driver. We were waiting
->>> for his comments before sending the updated series.
->>
->> No, don't wait for me, please resend, I was waiting for you :)
+On Tue, 2012-04-24 at 10:07 -0700, Kevin Hilman wrote:
+> Hi Tero,
 > 
-> Thanks Greg !!
-> Will start working on updating the patch set and post it on list.
+> Tero Kristo <t-kristo@ti.com> writes:
 > 
-Have posted the updated version [1] as per discussion on
-this thread.
+> > On Fri, 2012-04-06 at 07:52 +0000, Mohammed, Afzal wrote:
+> >> Hi Paul,
+> >> 
+> >> On Fri, Apr 06, 2012 at 12:43:06, Paul Walmsley wrote:
+> >> > Perhaps you might be willing to add some debugging to omap_mux_late_init() 
+> >> > to find out what part of that function is causing it to hang?
+> >> 
+> >> It is getting hung as interrupt handler "omap_hwmod_mux_handle_irq"
+> >> is being repeatedly called.
+> >> 
+> >
+> > Hi Afzal,
+> >
+> > can you try the attached patch with this branch and omap3evm board? I
+> > don't have the board myself so I can't test it myself (I tested this
+> > with omap3beagle and it works with that one.)
+> 
+> Thanks for digging into this problem and coming up with a proposed
+> solution.  Some questions below...
+> 
+> >
+> > -Tero
+> >
+> >
+> > From 26733dd988ccc9e72355a39e01b2d6e9215a892d Mon Sep 17 00:00:00 2001
+> > From: Tero Kristo <t-kristo@ti.com>
+> > Date: Mon, 23 Apr 2012 12:14:46 +0300
+> > Subject: [PATCH] ARM: OMAP3: PM: move wakeup event ack to hwmod_io handler
+> >
+> > PRCM IO interrupts are handled with a shared interrupt handler logic.
+> > Currently hwmod_io is processing the actual event, but the acking
+> > of the IO wakeups is done from the PM code with a separate handler.
+> > If a wakeup event is detected during init before the PM code is in
+> > place, the interrupt handler can hang in an infinite loop. Fix this
+> > by removing the pm_io handler, and calling its functionality from
+> > within the hwmod_io handler. This fix applies only to OMAP3, as
+> > OMAP4 does not have similar wakeup handling logic.
+> >
+> > Signed-off-by: Tero Kristo <t-kristo@ti.com>
+> 
+> 
+> Doesn't this mean that even on a !PM kernel that IO events might still
+> be firing for nothing?
 
-Regards
-Santosh
+I actually disabled the IO handler in !PM kernel, as I thought this
+would be a problem there.
 
-[1] http://www.spinics.net/lists/arm-kernel/msg171869.html
+> Seems like it would be better to ensure that these interrupts are just
+> disabled until the PM core initializes and can enable them.
+
+I thought about this but I couldn't figure out a clean way to do this.
+If I do irq_request, it automatically enables the interrupt, and if
+there is an interrupt pending it will fire immediately and get stuck. I
+can of course do some really nasty hackery for disabling all interrupts
+when requesting it and then manually disabling it before enabling
+interrupts again... but this does not look too nice imo.
+
+-Tero
+
