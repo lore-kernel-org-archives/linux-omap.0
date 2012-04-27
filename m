@@ -1,79 +1,84 @@
-From: Mark Brown <broonie@opensource.wolfsonmicro.com>
-Subject: Re: [PATCH V3 00/10] PM: Create the AVS(Adaptive Voltage
-	Scaling)
-Date: Fri, 27 Apr 2012 18:56:58 +0100
-Message-ID: <20120427175657.GP18260@opensource.wolfsonmicro.com>
-References: <1335462041-4949-1-git-send-email-j-keerthy@ti.com>
-	<20120426191159.GA9415@sirena.org.uk>
-	<CAJ6a13a6WN9h1QZynpEOf-R6RXwWBZ2eOPkTeNc15JX_YfAz_w@mail.gmail.com>
+From: "Ujfalusi, Peter" <peter.ujfalusi@ti.com>
+Subject: Re: Audio support on OMAP 3430LDP or 4430SDP boards
+Date: Fri, 27 Apr 2012 21:14:23 +0300
+Message-ID: <CAPo=G1wDANyQ5ARyerizp6oA=Wyc7s_to7zfz-n4GdZ20tfX4g@mail.gmail.com>
+References: <20120427135802.GA28062@n2100.arm.linux.org.uk>
+	<CAPo=G1ze3Yfr5FyQG_nByT3b5k=+Ux+6aupg=dD1Qe-Zx1RiqQ@mail.gmail.com>
+	<20120427160445.GC28062@n2100.arm.linux.org.uk>
+	<CAPo=G1xJj_mJAETqtxWdugYhP0LV=0XrMLeFGtkOBJZAi3Jy1A@mail.gmail.com>
+	<20120427165032.GD28062@n2100.arm.linux.org.uk>
+	<CAPo=G1yiX1644Cwkdnt7Ff7+yYbJQw5mnEbwd0txw-Wj_YdV7Q@mail.gmail.com>
+	<20120427171933.GE28062@n2100.arm.linux.org.uk>
 Mime-Version: 1.0
-Content-Type: multipart/mixed; boundary="===============4879448653714740865=="
-Return-path: <linux-pm-bounces@lists.linux-foundation.org>
-In-Reply-To: <CAJ6a13a6WN9h1QZynpEOf-R6RXwWBZ2eOPkTeNc15JX_YfAz_w@mail.gmail.com>
-List-Unsubscribe: <https://lists.linuxfoundation.org/mailman/options/linux-pm>,
-	<mailto:linux-pm-request@lists.linux-foundation.org?subject=unsubscribe>
-List-Archive: <http://lists.linuxfoundation.org/pipermail/linux-pm/>
-List-Post: <mailto:linux-pm@lists.linux-foundation.org>
-List-Help: <mailto:linux-pm-request@lists.linux-foundation.org?subject=help>
-List-Subscribe: <https://lists.linuxfoundation.org/mailman/listinfo/linux-pm>,
-	<mailto:linux-pm-request@lists.linux-foundation.org?subject=subscribe>
-Sender: linux-pm-bounces@lists.linux-foundation.org
-Errors-To: linux-pm-bounces@lists.linux-foundation.org
-To: "J, KEERTHY" <j-keerthy@ti.com>
-Cc: khilman@ti.com, linux-kernel@vger.kernel.org, linux-pm@lists.linux-foundation.org, linux-omap@vger.kernel.org, j-pihet@ti.com, linux-arm-kernel@lists.infradead.org
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from na3sys009aog137.obsmtp.com ([74.125.149.18]:39555 "EHLO
+	na3sys009aog137.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1760977Ab2D0SO3 convert rfc822-to-8bit
+	(ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Fri, 27 Apr 2012 14:14:29 -0400
+Received: by yenl11 with SMTP id l11so744642yen.30
+        for <linux-omap@vger.kernel.org>; Fri, 27 Apr 2012 11:14:24 -0700 (PDT)
+In-Reply-To: <20120427171933.GE28062@n2100.arm.linux.org.uk>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Russell King - ARM Linux <linux@arm.linux.org.uk>
+Cc: linux-omap@vger.kernel.org, Santosh Shilimkar <santosh.shilimkar@ti.com>, Liam Girdwood <lrg@ti.com>
 
+On Fri, Apr 27, 2012 at 8:19 PM, Russell King - ARM Linux
+<linux@arm.linux.org.uk> wrote:
+> root@omap-4430sdp:~# lsmod
+> Module =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0Size =A0Used by
+> snd_soc_dmic =A0 =A0 =A0 =A0 =A0 =A01492 =A00
+> snd_soc_omap4_hdmi =A0 =A0 =A01724 =A00
+> snd_soc_omap_hdmi =A0 =A0 =A0 1536 =A00
+> snd_soc_omap_abe_twl6040 =A0 =A0 4867 =A00
+> snd_soc_omap_dmic =A0 =A0 =A0 4248 =A00
+> snd_soc_omap_mcpdm =A0 =A0 =A03077 =A01 snd_soc_omap_abe_twl6040
+> snd_soc_omap =A0 =A0 =A0 =A0 =A0 =A02987 =A00
+> snd_soc_twl6040 =A0 =A0 =A0 =A018601 =A01 snd_soc_omap_abe_twl6040
+> root@omap-4430sdp:~# cat /proc/asound/cards
+> --- no soundcards ---
+> root@omap-4430sdp:~# grep . /sys/kernel/debug/asoc/*
+> /sys/kernel/debug/asoc/codecs:dmic-codec
+> /sys/kernel/debug/asoc/codecs:snd-soc-dummy
+> /sys/kernel/debug/asoc/codecs:omapdss_hdmi
 
---===============4879448653714740865==
-Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="iq/fWD14IMVFWBCD"
-Content-Disposition: inline
+the twl6040 codec is missing.
 
+> /sys/kernel/debug/asoc/dais:dmic-hifi
+> /sys/kernel/debug/asoc/dais:omap-dmic
+> /sys/kernel/debug/asoc/dais:omap-mcpdm
+> /sys/kernel/debug/asoc/dais:snd-soc-dummy-dai
+> /sys/kernel/debug/asoc/dais:hdmi-audio-codec
 
---iq/fWD14IMVFWBCD
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
+as well the dai for the twl6040.
 
-On Fri, Apr 27, 2012 at 11:09:10AM +0530, J, KEERTHY wrote:
+> /sys/kernel/debug/asoc/platforms:omap-pcm-audio
+> /sys/kernel/debug/asoc/platforms:snd-soc-dummy
+>
+> So the answer is... no.
 
-> Devfreq and cpufreq are related to dynamic frequency/voltage switching between
-> pre defined Operating Performance Points or the OPPs. Every OPP being
-> a voltage/frequency pair. Smartreflex is a different
-> power management technique.
+Hrm.
+I don't think you can build the twl6040 MFD core driver as a module.
+Do you have CONFIG_TWL6040_CORE=3Dy ?
+We have MFD for twl6040 since it provides audio and vibra functionality=
+ as well.
 
-But presumably these things should integrate somehow - for example,
-should devfreq and cpufreq be providing inputs into what AVS is doing,
-and if so how?
+Can you check if you have this commit:
+http://git.kernel.org/?p=3Dlinux/kernel/git/torvalds/linux.git;a=3Dcomm=
+it;h=3D8eaeb9393397be8eb700ab38a69c450975463b77
 
---iq/fWD14IMVFWBCD
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: Digital signature
+This is the second patch to separate the twl6040 from twl-core.
+If you are missing this patch twl6040 will not probe (twl core will
+not register the
+audio if we have twl6030).
 
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.4.12 (GNU/Linux)
-
-iQIcBAEBAgAGBQJPmt3jAAoJEBus8iNuMP3dwCIP/1i2rPocJbbB7yGsjpZmoc0F
-b3lRK6RmOuad98MAeSv1AO7/J6QI3N7s7oVhJfkP69j3mxzXdQf2AE6DSgqbWJT4
-wU1qRVsrC1WniNeDHU8ucXq6wIMalxUapfVhUJDChz4Ui04+si6xkKfWjkKHMSZa
-zv+7TequN2Rk8EVmZtMdyonyBjXTNchjIJ7AREUfrXKHL1LTRn5zljr/QMb+bKiW
-fN0ndG7iDizDTwDY67tXDdMN5WlIVl7FexGV/L44V32F4iENeBkOn3rfI2AzLSKX
-XBpKidSO54q1s4HrrzdPBGAkV70K/BBNktQWAd85CFptQ3jP4TNTrr0FV56/URNK
-waLW58bP3RfWYEQyBIsixdFVbgk6/M01FmwSUOdFf26dsQi0sDh29LrM67RkNKmt
-p2O+oLuJRKAjUh5dJOtyqkXpjdSEKBcl/gmREQqdS1AGzhdaP6BZ0mN1XIuYGPi/
-JsRHUbXAlFzYNc4F2dEYE5WIo1fj1q/9kWwhY8vLPvFZlCWyEr8NfgASdpY0gxbC
-Hn9YjPv+fCQN6SUKaUfLiaGThTh7e5zysuvjHU+w+eGNZBNSgvZA7ofaf/TsX+Ba
-ike7OfcLi/Noho5LBD2Dxsbtg/lNamL5n8pdDFu+OwCoqj64cspjz7mOFcJaaSFd
-xPst2wKotL3rtuxYiVMl
-=IFMA
------END PGP SIGNATURE-----
-
---iq/fWD14IMVFWBCD--
-
---===============4879448653714740865==
-Content-Type: text/plain; charset="us-ascii"
-MIME-Version: 1.0
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
-
-
---===============4879448653714740865==--
+--=20
+P=E9ter
+--
+To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
