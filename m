@@ -1,37 +1,94 @@
-From: Paul Walmsley <paul@pwsan.com>
-Subject: Re: [PATCH] ARM: OMAP2+: hwmod: Add new sysc_type3 into omap_hwmod
- required for am33xx
-Date: Fri, 27 Apr 2012 19:34:38 -0600 (MDT)
-Message-ID: <alpine.DEB.2.00.1204271934230.10308@utopia.booyaka.com>
-References: <1329481488-27771-1-git-send-email-hvaibhav@ti.com>
+From: Richard Zhao <richard.zhao@freescale.com>
+Subject: [RESEND PATCH 1/2] ARM: add cpufreq transiton notifier to adjust loops_per_jiffy for smp
+Date: Sat, 28 Apr 2012 11:28:42 +0800
+Message-ID: <1335583723-18915-1-git-send-email-richard.zhao@freescale.com>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from utopia.booyaka.com ([72.9.107.138]:35953 "EHLO
-	utopia.booyaka.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1757647Ab2D1Bej (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 27 Apr 2012 21:34:39 -0400
-In-Reply-To: <1329481488-27771-1-git-send-email-hvaibhav@ti.com>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain
+Return-path: <cpufreq-owner@vger.kernel.org>
+Sender: cpufreq-owner@vger.kernel.org
+To: linux-arm-kernel@lists.infradead.org, cpufreq@vger.kernel.org
+Cc: linux@arm.linux.org.uk, arnd@arndb.de, catalin.marinas@arm.com, will.deacon@arm.com, davej@redhat.com, linux-omap@vger.kernel.org, Richard Zhao <richard.zhao@freescale.com>
 List-Id: linux-omap@vger.kernel.org
-To: Vaibhav Hiremath <hvaibhav@ti.com>
-Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, khilman@ti.com, tony@atomide.com, b-cousson@ti.com, Vaibhav Bedia <vaibhav.bedia@ti.com>
 
-On Fri, 17 Feb 2012, Vaibhav Hiremath wrote:
+If CONFIG_SMP, cpufreq skips loops_per_jiffy update, because different
+arch has different per-cpu loops_per_jiffy definition.
 
-> In case of AM33xx family of devices (like cpsw) have different sysc
-> bit field offsets defined,
-> 
-> sysc_type3:
-> |  3     2  |  1    0  |
-> | STDBYMODE | IDLEMODE |
-> 
-> So introduce new sysc_type3 in omap_hwmod common data.
-> 
-> Signed-off-by: Vaibhav Hiremath <hvaibhav@ti.com>
-> Signed-off-by: Vaibhav Bedia <vaibhav.bedia@ti.com>
+Signed-off-by: Richard Zhao <richard.zhao@freescale.com>
+Acked-by: Russell King <rmk+kernel@arm.linux.org.uk>
+---
+ arch/arm/kernel/smp.c |   54 +++++++++++++++++++++++++++++++++++++++++++++++++
+ 1 files changed, 54 insertions(+), 0 deletions(-)
 
-Thanks, queued for 3.5.
+diff --git a/arch/arm/kernel/smp.c b/arch/arm/kernel/smp.c
+index addbbe8..33af711 100644
+--- a/arch/arm/kernel/smp.c
++++ b/arch/arm/kernel/smp.c
+@@ -25,6 +25,7 @@
+ #include <linux/percpu.h>
+ #include <linux/clockchips.h>
+ #include <linux/completion.h>
++#include <linux/cpufreq.h>
+ 
+ #include <linux/atomic.h>
+ #include <asm/cacheflush.h>
+@@ -604,3 +605,56 @@ int setup_profiling_timer(unsigned int multiplier)
+ {
+ 	return -EINVAL;
+ }
++
++#ifdef CONFIG_CPU_FREQ
++
++static DEFINE_PER_CPU(unsigned long, l_p_j_ref);
++static DEFINE_PER_CPU(unsigned long, l_p_j_ref_freq);
++static unsigned long global_l_p_j_ref;
++static unsigned long global_l_p_j_ref_freq;
++
++static int cpufreq_callback(struct notifier_block *nb,
++					unsigned long val, void *data)
++{
++	struct cpufreq_freqs *freq = data;
++	int cpu = freq->cpu;
++
++	if (freq->flags & CPUFREQ_CONST_LOOPS)
++		return NOTIFY_OK;
++
++	if (!per_cpu(l_p_j_ref, cpu)) {
++		per_cpu(l_p_j_ref, cpu) =
++			per_cpu(cpu_data, cpu).loops_per_jiffy;
++		per_cpu(l_p_j_ref_freq, cpu) = freq->old;
++		if (!global_l_p_j_ref) {
++			global_l_p_j_ref = loops_per_jiffy;
++			global_l_p_j_ref_freq = freq->old;
++		}
++	}
++
++	if ((val == CPUFREQ_PRECHANGE  && freq->old < freq->new) ||
++	    (val == CPUFREQ_POSTCHANGE && freq->old > freq->new) ||
++	    (val == CPUFREQ_RESUMECHANGE || val == CPUFREQ_SUSPENDCHANGE)) {
++		loops_per_jiffy = cpufreq_scale(global_l_p_j_ref,
++						global_l_p_j_ref_freq,
++						freq->new);
++		per_cpu(cpu_data, cpu).loops_per_jiffy =
++			cpufreq_scale(per_cpu(l_p_j_ref, cpu),
++					per_cpu(l_p_j_ref_freq, cpu),
++					freq->new);
++	}
++	return NOTIFY_OK;
++}
++
++static struct notifier_block cpufreq_notifier = {
++	.notifier_call  = cpufreq_callback,
++};
++
++static int __init register_cpufreq_notifier(void)
++{
++	return cpufreq_register_notifier(&cpufreq_notifier,
++						CPUFREQ_TRANSITION_NOTIFIER);
++}
++core_initcall(register_cpufreq_notifier);
++
++#endif
+-- 
+1.7.5.4
 
 
-- Paul
