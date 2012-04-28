@@ -1,40 +1,42 @@
-From: "Mohammed, Afzal" <afzal@ti.com>
-Subject: RE: OMAP3EVM not booting on l-o master
-Date: Sat, 28 Apr 2012 11:51:16 +0000
-Message-ID: <C8443D0743D26F4388EA172BF4E2A7A93E971437@DBDE01.ent.ti.com>
-References: <C8443D0743D26F4388EA172BF4E2A7A9317C3A03@DBDE01.ent.ti.com>
-	<C8443D0743D26F4388EA172BF4E2A7A9317C3B18@DBDE01.ent.ti.com>
-	<alpine.DEB.2.00.1204050330380.10302@utopia.booyaka.com>
-	<alpine.DEB.2.00.1204050403460.10302@utopia.booyaka.com>
-	<C8443D0743D26F4388EA172BF4E2A7A9317C4B44@DBDE01.ent.ti.com>
-	<alpine.DEB.2.00.1204051303000.10302@utopia.booyaka.com>
-	<C8443D0743D26F4388EA172BF4E2A7A9317C5DB6@DBDE01.ent.ti.com>
-	<alpine.DEB.2.00.1204060111400.10302@utopia.booyaka.com>
-	<C8443D0743D26F4388EA172BF4E2A7A9317C5EEF@DBDE01.ent.ti.com>
-	<1335173044.2149.64.camel@sokoban> <87obqhawig.fsf@ti.com>
-	<1335532591.2149.163.camel@sokoban> <87fwbowyuu.fsf@ti.com>
+From: Grazvydas Ignotas <notasas@gmail.com>
+Subject: Re: [PATCH/RFT 3/3] ARM: OMAP3: PM: cleanup cam_pwrdm leftovers
+Date: Sat, 28 Apr 2012 17:47:45 +0300
+Message-ID: <CANOLnOPoTx8ypXrJnyXUh8tf1+d8bBXYRk09ZqV2uEe_=oSRyQ@mail.gmail.com>
+References: <1335277420-29124-1-git-send-email-khilman@ti.com>
+	<1335277420-29124-4-git-send-email-khilman@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from arroyo.ext.ti.com ([192.94.94.40]:53240 "EHLO arroyo.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1750885Ab2D1LvX convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Sat, 28 Apr 2012 07:51:23 -0400
-In-Reply-To: <87fwbowyuu.fsf@ti.com>
-Content-Language: en-US
+Received: from mail-iy0-f174.google.com ([209.85.210.174]:36345 "EHLO
+	mail-iy0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753774Ab2D1Orp convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Sat, 28 Apr 2012 10:47:45 -0400
+Received: by iadi9 with SMTP id i9so2242783iad.19
+        for <linux-omap@vger.kernel.org>; Sat, 28 Apr 2012 07:47:45 -0700 (PDT)
+In-Reply-To: <1335277420-29124-4-git-send-email-khilman@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "Hilman, Kevin" <khilman@ti.com>, "Kristo, Tero" <t-kristo@ti.com>
-Cc: Paul Walmsley <paul@pwsan.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
+To: Kevin Hilman <khilman@ti.com>
+Cc: linux-omap@vger.kernel.org, Jean Pihet <jean.pihet@newoldbits.com>, Tero Kristo <t-kristo@ti.com>, Paul Walmsley <paul@pwsan.com>, Santosh Shilimkar <santosh.shilimkar@ti.com>
 
-Hi Kevin,
+On Tue, Apr 24, 2012 at 5:23 PM, Kevin Hilman <khilman@ti.com> wrote:
+> commit e7410cf7 (02fdb03e69699f26e1370d0e51593dbc8a4e5265) moved
+> mangement of cam_pwrdm to CPUidle but left some remnants behind,
+> namely the call to clkcm_allo_idle() for the clockdomains in the MPU
+> pwrdm. =C2=A0Remove these since they are not necessary and cause unwa=
+nted
+> latency in the idle path.
 
-On Sat, Apr 28, 2012 at 04:45:21, Hilman, Kevin wrote:
-> Afzal, care to test the patch below to see if it fixes your boot problem
-> on OMAP3EVM with the IO chain series?
+Only noticed this now; what does
+02fdb03e69699f26e1370d0e51593dbc8a4e5265 refer to? Doesn't seem to be
+resolving to anything here.
 
-Your patch fixes the boot problem
 
-Regards
-Afzal
+--=20
+Gra=C5=BEvydas
+--
+To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
