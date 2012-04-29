@@ -1,41 +1,79 @@
-From: Russell King - ARM Linux <linux@arm.linux.org.uk>
-Subject: Re: Audio support on OMAP 3430LDP or 4430SDP boards
-Date: Sun, 29 Apr 2012 21:35:25 +0100
-Message-ID: <20120429203525.GA4618@n2100.arm.linux.org.uk>
-References: <20120427135802.GA28062@n2100.arm.linux.org.uk> <CAPo=G1ze3Yfr5FyQG_nByT3b5k=+Ux+6aupg=dD1Qe-Zx1RiqQ@mail.gmail.com> <20120427160445.GC28062@n2100.arm.linux.org.uk> <CAPo=G1xJj_mJAETqtxWdugYhP0LV=0XrMLeFGtkOBJZAi3Jy1A@mail.gmail.com> <20120427165032.GD28062@n2100.arm.linux.org.uk> <CAPo=G1yiX1644Cwkdnt7Ff7+yYbJQw5mnEbwd0txw-Wj_YdV7Q@mail.gmail.com> <20120427171933.GE28062@n2100.arm.linux.org.uk> <CAPo=G1wDANyQ5ARyerizp6oA=Wyc7s_to7zfz-n4GdZ20tfX4g@mail.gmail.com> <20120427183116.GF28062@n2100.arm.linux.org.uk> <20120427193129.GA3951@n2100.arm.linux.org.uk>
+From: NeilBrown <neilb-l3A5Bk7waGM@public.gmane.org>
+Subject: Re: [PATCH 0/6] twl4030: Various fixes for charing-from-USB
+Date: Mon, 30 Apr 2012 09:30:02 +1000
+Message-ID: <20120430093002.472dfdde@notabene.brown>
+References: <20120425072931.20124.56635.stgit@notabene.brown>
+	<CANOLnOOQDxu-P=yTN6159XJANq-_FSCtZ4rBt69NSCPjLz1Rjw@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from caramon.arm.linux.org.uk ([78.32.30.218]:46550 "EHLO
-	caramon.arm.linux.org.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753532Ab2D2Uff (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Sun, 29 Apr 2012 16:35:35 -0400
-Content-Disposition: inline
-In-Reply-To: <20120427193129.GA3951@n2100.arm.linux.org.uk>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: multipart/signed; micalg=PGP-SHA1;
+ boundary="Sig_/zSwXBRtVkfNvnqhYrj/p1k5"; protocol="application/pgp-signature"
+Return-path: <linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <CANOLnOOQDxu-P=yTN6159XJANq-_FSCtZ4rBt69NSCPjLz1Rjw-JsoAwUIsXosN+BqQ9rBEUg@public.gmane.org>
+Sender: linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Grazvydas Ignotas <notasas-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+Cc: Samuel Ortiz <sameo-VuQAYsv1563Yd54FQh9/CA@public.gmane.org>, Felipe Balbi <balbi-l0cyMroinI0@public.gmane.org>, Greg Kroah-Hartman <gregkh-hQyY1W1yCW8ekmWlsbkhG0B+6BGkLq7r@public.gmane.org>, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Anton Vorontsov <anton.vorontsov-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>
 List-Id: linux-omap@vger.kernel.org
-To: "Ujfalusi, Peter" <peter.ujfalusi@ti.com>
-Cc: linux-omap@vger.kernel.org, Santosh Shilimkar <santosh.shilimkar@ti.com>, Liam Girdwood <lrg@ti.com>
 
-On Fri, Apr 27, 2012 at 08:31:29PM +0100, Russell King - ARM Linux wrote:
-> and the 'noise' from the small loudspeakers is just about recognizable -
-> but is not what I was expecting (it's slow, plus it sounds on those small
-> speakers that it's horribly distorted.)  I can't get the headset jack
-> working to be able to play it through a decent sound system, through which
-> I'll be able to actually _hear_ what the corruption is.
+--Sig_/zSwXBRtVkfNvnqhYrj/p1k5
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: quoted-printable
 
-I've just tried pluging a 3.5mm stereo jack plug into the headset jack,
-and tried loading up the rip and ring to sleave with various different
-loads.  I see no reaction on the detection IRQ line:
+On Wed, 25 Apr 2012 14:31:13 +0300 Grazvydas Ignotas <notasas-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+wrote:
 
-389:          0          0   twl6040  twl6040_irq_plug
+> On Wed, Apr 25, 2012 at 10:33 AM, NeilBrown <neilb-l3A5Bk7waGM@public.gmane.org> wrote:
+> > Following are a collection of patches that I've need using for a while
+> > to make sure the charge-from-usb on my GTA04 works.
+> > Hopefully I've included the right people in the recipient list :-)
+>=20
+> You missed the power supply maintainers - ./scripts/get_maintainer.pl
+> is usually good at finding the right people, although their
+> MAINTAINERS entry could be better I guess..
+>=20
+>=20
 
-which seems to suggest that the jack detection is non-functional.
+I guess you mean:
 
-With all the documentation for the 4430SDP board hidden away under NDAs
-within TI, I am unable to do any investigation myself to work out what's
-wrong.
+POWER SUPPLY CLASS/SUBSYSTEM and DRIVERS
+M:	Anton Vorontsov <cbou-JGs/UdohzUI@public.gmane.org>
+M:	David Woodhouse <dwmw2-wEGCiKHe2LqWVfeAwA7xHQ@public.gmane.org>
+T:	git git://git.infradead.org/battery-2.6.git
+S:	Maintained
+F:	include/linux/power_supply.h
+F:	drivers/power/power_supply*
 
-Please can someone at TI take a current mainline kernel, build it, and
-test out audio support on the 4430SDP - specifically output through the
-headset jack into a line input, and report when it works.  Thanks.
+
+get_maintainer.pl didn't find them.  The F: line seems to say they aren't
+interested in individual drivers...
+
+I'll include them if I resend.
+Thanks,
+NeilBrown
+
+--Sig_/zSwXBRtVkfNvnqhYrj/p1k5
+Content-Type: application/pgp-signature; name=signature.asc
+Content-Disposition: attachment; filename=signature.asc
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v2.0.18 (GNU/Linux)
+
+iQIVAwUBT53O+jnsnt1WYoG5AQK78RAAq6bgJypEJ3LeuH+EiEzQEWna4Gum4rsi
+7qL59VkLqVEQWhgRG7kVBG0gP0xsreVPDy9J2ttDKA1CCKWKvy69m9Cn1EkPpZ9e
+bC/cLmHzujjXKz02xZPMp7HlRi2bcdAxzAKcmiN9sYLPLXC8MYL+kg1/v1tKWY+Y
+T7HN5MmcN32BQvelDTI0N+GDFmfRkbuvW9FpGkg+MmfRnbQTcaeGohfA1wTMcjwX
+uKsgwIynypMHOt9YrxA6fGQeycIHdK5Qb6uxtBwFJEKDxaxmfdJWXSFUC6jhtZHZ
+Cnx/J1h5MB3htl+MdA/IFVu5gbF7L8IxnpcCEfrRQqKVWfvveWCOQJGD2l8igzQs
+Jz5N2OU/lqfZq2FjQzla0h6w2hkpn0xU2WteG3XE46r22pZBQNZee0c0TSmmzB7B
+R/pG0tnwVe9stqVaSsozuoiLloz6+TwdOA7MKK2IVLhH46bBGpw3pJzyxM7Tja53
+xmwoFwT8IgYzMro1tMqT6GG/tXOBQWD4P71d3/JvfLPdKiXQoBkCKxTs7aUCePra
+FyJjb1C/vCR9NlyvCEJK6wTCtUzQ8WGElqwNFVs9gL03MSaUsw6fP3sd9VRbvp4Q
+WimxDOiNahGevVW5Ni4Jw9fBKwFdjlzjHMLR/iKNKT9Kr+kPSw601E+sGZKPB50n
+LCxqrycDCA4=
+=4J7s
+-----END PGP SIGNATURE-----
+
+--Sig_/zSwXBRtVkfNvnqhYrj/p1k5--
+--
+To unsubscribe from this list: send the line "unsubscribe linux-usb" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
