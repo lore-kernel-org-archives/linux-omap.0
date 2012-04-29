@@ -1,66 +1,62 @@
-From: "Hiremath, Vaibhav" <hvaibhav@ti.com>
-Subject: RE: [PATCH 0/6] ARM: OMAP: hwmod: remove runtime cpu_is checking
-Date: Sun, 29 Apr 2012 10:29:03 +0000
-Message-ID: <79CD15C6BA57404B839C016229A409A83EA02502@DBDE01.ent.ti.com>
-References: <1335557140-10854-1-git-send-email-khilman@ti.com>
+From: Janusz Krzysztofik <jkrzyszt@tis.icnet.pl>
+Subject: Re: [PATCH] gpio/omap: fix incorrect initialization of omap_gpio_mod_init
+Date: Sun, 29 Apr 2012 13:32:50 +0200
+Message-ID: <5062087.MRndu11OX4@vclass>
+References: <1335515951-6907-1-git-send-email-tarun.kanti@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 7Bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from bear.ext.ti.com ([192.94.94.41]:58062 "EHLO bear.ext.ti.com"
+Received: from d1.icnet.pl ([212.160.220.21]:36849 "EHLO d1.icnet.pl"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751802Ab2D2K3S convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Sun, 29 Apr 2012 06:29:18 -0400
-In-Reply-To: <1335557140-10854-1-git-send-email-khilman@ti.com>
-Content-Language: en-US
+	id S1752348Ab2D2Lg7 (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Sun, 29 Apr 2012 07:36:59 -0400
+In-Reply-To: <1335515951-6907-1-git-send-email-tarun.kanti@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "Hilman, Kevin" <khilman@ti.com>, Paul Walmsley <paul@pwsan.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
-Cc: "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>
+To: Tarun Kanti DebBarma <tarun.kanti@ti.com>
+Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, stable@vger.kernel.org, Tony Lindgren <tony@atomide.com>, Kevin Hilman <khilman@ti.com>, Santosh Shilimkar <santosh.shilimkar@ti.com>, Grant Likely <grant.likely@secretlab.ca>
 
-On Sat, Apr 28, 2012 at 01:35:34, Hilman, Kevin wrote:
-> This series attempts to remove all the runtime cpu_is* checking in
-> omap_hwmod.c in favor of using function pointers initialized at init
-> time.
+On Friday 27 of April 2012 14:09:11 Tarun Kanti DebBarma wrote:
+> Breaking commit: ab985f0f7c2c0ef90b7c832f0c04f470dda0593d
 > 
-> This series was motivated by the addition of support for the AM335x
-> series which was done by adding several more cpu_is* checks, and
-> provided the proverbial straw that broke the camel's back.  
+> Initialization of irqenable, irqstatus registers is the common
+> operation done in this function for all OMAP platforms, viz.
+> OMAP1, OMAP2+. The latter _gpio_rmw()'s to irqenable register
+> was overwriting the correctly programmed OMAP1 value at the
+> beginning. As a result, even though it worked on OMAP2+
+> platforms it was breaking OMAP1 functionality. On close
+> observation it is found that the first _gpio_rmw() which is
+> supposedly done to take care of OMAP1 platform is generic enough
+> and takes care of OMAP2+ platform as well. Therefore remove the
+> latter _gpio_rmw() to irqenable as they are redundant now.
 > 
-> In addition to the cleanup, this provides a much cleaner way of adding
-> additional SoC support since it no longer requires adding additional
-> runtime cpu_is* checks.
+> Writing to ctrl and debounce_en registers for OMAP2+ platforms
+> are modified to match the original(pre-cleanup) code where the
+> registers are initialized with 0. In the cleanup series since
+> we are using _gpio_rmw(reg, 0, 1), instead of __raw_writel(),
+> we are just reading and writing the same values to ctrl and
+> debounce_en. This is not an issue for debounce_en register
+> because it has 0x0 as the default value. But in the case of
+> ctrl register the default value is 0x2 (GATINGRATIO = 0x1)
+> so that we end up writing 0x2 instead of intended 0 value.
+> Therefore correcting it to _gpio_rmw(reg, l, 0), where
+> l = 0xffffffff so that registers are initialized to 0.
 > 
-> Boot tested on OMAP3530/Overo and OMAP4430/Panda.
-> 
+> Also, changing the sequence and logic of initializing the irqstatus.
 
-Also, tested on AM37xEVM. And also, will integrated for AM33xx development, so that I won't get into cpu_is_xxx check at all.
+Hi,
+Sorry for not responding in 2 days, as I promissed. The reason is that 
+there are still more issues with GPIO on my Amstrad Delta, for example 
+those introduced with commit 384ebe1c2849160d040df3e68634ec506f13d9ff, 
+and I'm still trying to understand and fix them. Than, it's hard for me 
+to provide you with my Tested-by: before I'm confident those other issues 
+are not related.
 
+Anyway, and with respect to Kevin's comments, reverting the irqstatus 
+vs. irqenable initialization order doesn't seem to break anything for 
+me, and changes to debounce_en and ctrl register handling seem not 
+relevant to my test machine.
 
 Thanks,
-Vaibhav
-
-> Kevin Hilman (6):
->   ARM: OMAP4: hwmod: rename _enable_module to _omap4_enable_module()
->   ARM: OMAP2+: hwmod: use init-time function ptrs for enable/disable
->     module
->   ARM: OMAP4: hwmod: drop extra cpu_is check from
->     _wait_target_disable()
->   ARM: OMAP2+: hwmod: use init-time function pointer for
->     wait_target_ready
->   ARM: OMAP2+: hwmod: use init-time function pointer for hardreset
->   ARM: OMAP2+: hwmod: use init-time function pointer for _init_clkdm
-> 
->  arch/arm/mach-omap2/omap_hwmod.c             |  192 +++++++++++++++-----------
->  arch/arm/plat-omap/include/plat/omap_hwmod.h |   11 ++
->  2 files changed, 126 insertions(+), 77 deletions(-)
-> 
-> -- 
-> 1.7.9.2
-> 
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-omap" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
-> 
-
+Janusz
