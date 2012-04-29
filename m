@@ -1,79 +1,105 @@
-From: NeilBrown <neilb-l3A5Bk7waGM@public.gmane.org>
-Subject: Re: [PATCH 0/6] twl4030: Various fixes for charing-from-USB
-Date: Mon, 30 Apr 2012 09:30:02 +1000
-Message-ID: <20120430093002.472dfdde@notabene.brown>
+From: NeilBrown <neilb@suse.de>
+Subject: Re: [PATCH 3/6] twl4030_charger: allow charging whenever VBUS is
+ present.
+Date: Mon, 30 Apr 2012 09:34:30 +1000
+Message-ID: <20120430093430.17efed8a@notabene.brown>
 References: <20120425072931.20124.56635.stgit@notabene.brown>
-	<CANOLnOOQDxu-P=yTN6159XJANq-_FSCtZ4rBt69NSCPjLz1Rjw@mail.gmail.com>
+	<20120425073310.20124.15112.stgit@notabene.brown>
+	<CANOLnOO2kkyPUrRJiF-EX6NddG746gWvJ_fZrZPr0TC6DkbH9g@mail.gmail.com>
 Mime-Version: 1.0
 Content-Type: multipart/signed; micalg=PGP-SHA1;
- boundary="Sig_/zSwXBRtVkfNvnqhYrj/p1k5"; protocol="application/pgp-signature"
-Return-path: <linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <CANOLnOOQDxu-P=yTN6159XJANq-_FSCtZ4rBt69NSCPjLz1Rjw-JsoAwUIsXosN+BqQ9rBEUg@public.gmane.org>
-Sender: linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Grazvydas Ignotas <notasas-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
-Cc: Samuel Ortiz <sameo-VuQAYsv1563Yd54FQh9/CA@public.gmane.org>, Felipe Balbi <balbi-l0cyMroinI0@public.gmane.org>, Greg Kroah-Hartman <gregkh-hQyY1W1yCW8ekmWlsbkhG0B+6BGkLq7r@public.gmane.org>, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Anton Vorontsov <anton.vorontsov-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>
+ boundary="Sig_/IgZlEJprE52JgbA66Ex.pb0"; protocol="application/pgp-signature"
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <CANOLnOO2kkyPUrRJiF-EX6NddG746gWvJ_fZrZPr0TC6DkbH9g@mail.gmail.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Grazvydas Ignotas <notasas@gmail.com>
+Cc: Samuel Ortiz <sameo@linux.intel.com>, Felipe Balbi <balbi@ti.com>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, linux-kernel@vger.kernel.org, linux-usb@vger.kernel.org, linux-omap@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
---Sig_/zSwXBRtVkfNvnqhYrj/p1k5
-Content-Type: text/plain; charset=US-ASCII
+--Sig_/IgZlEJprE52JgbA66Ex.pb0
+Content-Type: text/plain; charset=UTF-8
 Content-Transfer-Encoding: quoted-printable
 
-On Wed, 25 Apr 2012 14:31:13 +0300 Grazvydas Ignotas <notasas-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+On Wed, 25 Apr 2012 14:33:25 +0300 Grazvydas Ignotas <notasas@gmail.com>
 wrote:
 
-> On Wed, Apr 25, 2012 at 10:33 AM, NeilBrown <neilb-l3A5Bk7waGM@public.gmane.org> wrote:
-> > Following are a collection of patches that I've need using for a while
-> > to make sure the charge-from-usb on my GTA04 works.
-> > Hopefully I've included the right people in the recipient list :-)
+> On Wed, Apr 25, 2012 at 10:33 AM, NeilBrown <neilb@suse.de> wrote:
+> > We currently refuse to charge if the USB ID pin is grounded, even
+> > though VBUS might be present.
+> > However some chargers do pull the ID pin low through a resistor which
+> > might be as low as 47Kohm (openmoko charger).
+> >
+> > The documentation is unclear but some experimental evidence suggests
+> > that when the charge pump provides VBUS that doesn't get reflected in
+> > HW_CONDITIONS, so we should be safe to ignore the ID pin.
 >=20
-> You missed the power supply maintainers - ./scripts/get_maintainer.pl
-> is usually good at finding the right people, although their
-> MAINTAINERS entry could be better I guess..
->=20
->=20
+> On pandora I see the opposite, STS_VBUS is set regardless of who
+> drives it, so this will break pandora..
 
-I guess you mean:
+OK... I guess this needs more thought.
+I'll withdraw this patch and 6/6 for now.
+The rest should be good to go.  Maybe I'll resend them an include Anton
+Vorontsov..
 
-POWER SUPPLY CLASS/SUBSYSTEM and DRIVERS
-M:	Anton Vorontsov <cbou-JGs/UdohzUI@public.gmane.org>
-M:	David Woodhouse <dwmw2-wEGCiKHe2LqWVfeAwA7xHQ@public.gmane.org>
-T:	git git://git.infradead.org/battery-2.6.git
-S:	Maintained
-F:	include/linux/power_supply.h
-F:	drivers/power/power_supply*
-
-
-get_maintainer.pl didn't find them.  The F: line seems to say they aren't
-interested in individual drivers...
-
-I'll include them if I resend.
 Thanks,
 NeilBrown
 
---Sig_/zSwXBRtVkfNvnqhYrj/p1k5
+>=20
+> >
+> > Signed-off-by: NeilBrown <neilb@suse.de>
+> > ---
+> >
+> > =C2=A0drivers/power/twl4030_charger.c | =C2=A0 =C2=A06 +-----
+> > =C2=A01 file changed, 1 insertion(+), 5 deletions(-)
+> >
+> > diff --git a/drivers/power/twl4030_charger.c b/drivers/power/twl4030_ch=
+arger.c
+> > index 0511610..684662a 100644
+> > --- a/drivers/power/twl4030_charger.c
+> > +++ b/drivers/power/twl4030_charger.c
+> > @@ -155,11 +155,7 @@ static int twl4030_bci_have_vbus(struct twl4030_bc=
+i *bci)
+> >
+> > =C2=A0 =C2=A0 =C2=A0 =C2=A0dev_dbg(bci->dev, "check_vbus: HW_CONDITIONS=
+ %02x\n", hwsts);
+> >
+> > - =C2=A0 =C2=A0 =C2=A0 /* in case we also have STS_USB_ID, VBUS is driv=
+en by TWL itself */
+> > - =C2=A0 =C2=A0 =C2=A0 if ((hwsts & TWL4030_STS_VBUS) && !(hwsts & TWL4=
+030_STS_USB_ID))
+> > - =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 return 1;
+> > -
+> > - =C2=A0 =C2=A0 =C2=A0 return 0;
+> > + =C2=A0 =C2=A0 =C2=A0 return (hwsts & TWL4030_STS_VBUS);
+> > =C2=A0}
+> >
+> > =C2=A0/*
+> >
+> >
+>=20
+>=20
+
+
+--Sig_/IgZlEJprE52JgbA66Ex.pb0
 Content-Type: application/pgp-signature; name=signature.asc
 Content-Disposition: attachment; filename=signature.asc
 
 -----BEGIN PGP SIGNATURE-----
 Version: GnuPG v2.0.18 (GNU/Linux)
 
-iQIVAwUBT53O+jnsnt1WYoG5AQK78RAAq6bgJypEJ3LeuH+EiEzQEWna4Gum4rsi
-7qL59VkLqVEQWhgRG7kVBG0gP0xsreVPDy9J2ttDKA1CCKWKvy69m9Cn1EkPpZ9e
-bC/cLmHzujjXKz02xZPMp7HlRi2bcdAxzAKcmiN9sYLPLXC8MYL+kg1/v1tKWY+Y
-T7HN5MmcN32BQvelDTI0N+GDFmfRkbuvW9FpGkg+MmfRnbQTcaeGohfA1wTMcjwX
-uKsgwIynypMHOt9YrxA6fGQeycIHdK5Qb6uxtBwFJEKDxaxmfdJWXSFUC6jhtZHZ
-Cnx/J1h5MB3htl+MdA/IFVu5gbF7L8IxnpcCEfrRQqKVWfvveWCOQJGD2l8igzQs
-Jz5N2OU/lqfZq2FjQzla0h6w2hkpn0xU2WteG3XE46r22pZBQNZee0c0TSmmzB7B
-R/pG0tnwVe9stqVaSsozuoiLloz6+TwdOA7MKK2IVLhH46bBGpw3pJzyxM7Tja53
-xmwoFwT8IgYzMro1tMqT6GG/tXOBQWD4P71d3/JvfLPdKiXQoBkCKxTs7aUCePra
-FyJjb1C/vCR9NlyvCEJK6wTCtUzQ8WGElqwNFVs9gL03MSaUsw6fP3sd9VRbvp4Q
-WimxDOiNahGevVW5Ni4Jw9fBKwFdjlzjHMLR/iKNKT9Kr+kPSw601E+sGZKPB50n
-LCxqrycDCA4=
-=4J7s
+iQIVAwUBT53QBjnsnt1WYoG5AQJIMhAAnujJM2yR8TpVVDkyKYA4Q2vkXM7wDVv8
+nR2vuAUxLDQ4URBwylFbvniYnzLEPn/NJ9hI1eBOakVr+sCuoJFpoJsw040ln5+2
+lk+QWEPp05kh9inEp0+/Du15eJ7IUrYmhdqbXHqeSmzz7VgihY2j+JDvhX1tR8W+
+e0zYJHZ+CWauCW1RnLUrBpCNu1JFBeXJTTk7ivxb87CocDjMbiJMdiqJqhwUj7gj
+gt+thlk7NxV4wJ/5WiqFiw7EMV4gCqsxTXqhBZsrWhklbuOjbh9YwvifDLjqWgYY
+gGLZy+ib6SZugb95BaDezLdj/7ThRtvTjeOVlad0YxphGm+0eFiRyxTzHwuAK4s8
+QlVeY1yjxaa+tSGxSmbRo0LKfBDwEl4IAEfCoIoz9oO+NPt6bKftKoZI1Pcty+qt
+0Xj2NxQ52hja0ksu06hGnwza0SdDer/O8ILq84g80hVpWcOAhuV7cDWH01Hgg0EV
+za9tkhwtPn5cXKUyUiVOH1sPsyJ5iVhDV8Lp4uPIhi6d9bEvblAoLQHU4cg5bMSg
+P8G8iitIPtJazSBzrJWVXK7qe4cu8/RKIb+yQpD32QNC8ekXoxtpoYmNxDK6844/
+1Jt70125lKXsQxrxi/3nmo+i6l8uczDMPtO470Tf5ikIDolQkYgNpSbuELrF3KVB
+bkM0GB4LQoA=
+=VsrG
 -----END PGP SIGNATURE-----
 
---Sig_/zSwXBRtVkfNvnqhYrj/p1k5--
---
-To unsubscribe from this list: send the line "unsubscribe linux-usb" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+--Sig_/IgZlEJprE52JgbA66Ex.pb0--
