@@ -1,66 +1,68 @@
-From: Kevin Hilman <khilman@ti.com>
-Subject: Re: [PATCH 03/12] arm: omap3: Only sleep in cpuidle driver if I/O wake-ups work
-Date: Mon, 30 Apr 2012 15:00:56 -0700
-Message-ID: <878vhcriav.fsf@ti.com>
+From: "Mark A. Greer" <mgreer@animalcreek.com>
+Subject: Re: [PATCH 05/12] arm: omap3: am35x: Add PWROFF feature
+Date: Mon, 30 Apr 2012 15:08:36 -0700
+Message-ID: <20120430220836.GB19256@animalcreek.com>
 References: <1334171147-7517-1-git-send-email-mgreer@animalcreek.com>
-	<1334171147-7517-4-git-send-email-mgreer@animalcreek.com>
-	<alpine.DEB.2.00.1204111532280.29473@utopia.booyaka.com>
-	<20120424205105.GA26749@animalcreek.com>
-	<20120424232506.GA8850@animalcreek.com> <87haw4282b.fsf@ti.com>
-	<20120430213433.GA19256@animalcreek.com>
+ <1334171147-7517-6-git-send-email-mgreer@animalcreek.com>
+ <87iph5q43n.fsf@ti.com>
+ <20120424043639.GA24317@animalcreek.com>
+ <87r4v828am.fsf@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aog129.obsmtp.com ([74.125.149.142]:41454 "EHLO
-	na3sys009aog129.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1756580Ab2D3WA6 (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>);
-	Mon, 30 Apr 2012 18:00:58 -0400
-Received: by dajr28 with SMTP id r28so4813252daj.40
-        for <linux-omap@vger.kernel.org>; Mon, 30 Apr 2012 15:00:57 -0700 (PDT)
-In-Reply-To: <20120430213433.GA19256@animalcreek.com> (Mark A. Greer's message
-	of "Mon, 30 Apr 2012 14:34:33 -0700")
+Received: from mail20.dotsterhost.com ([66.11.232.73]:46793 "EHLO
+	mail20.dotsterhost.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756418Ab2D3WIh (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 30 Apr 2012 18:08:37 -0400
+Content-Disposition: inline
+In-Reply-To: <87r4v828am.fsf@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "Mark A. Greer" <mgreer@animalcreek.com>
-Cc: Paul Walmsley <paul@pwsan.com>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+To: Kevin Hilman <khilman@ti.com>
+Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, paul@pwsan.com
 
-"Mark A. Greer" <mgreer@animalcreek.com> writes:
+On Fri, Apr 27, 2012 at 02:07:13PM -0700, Kevin Hilman wrote:
+> "Mark A. Greer" <mgreer@animalcreek.com> writes:
+> 
+> > On Wed, Apr 11, 2012 at 03:46:20PM -0700, Kevin Hilman wrote:
+> >> Hi Mark,
+> >
+> > Hi Kevin.
+> >
+> >> "Mark A. Greer" <mgreer@animalcreek.com> writes:
+> >> 
+> >> > From: "Mark A. Greer" <mgreer@animalcreek.com>
+> >> >
+> >> > Typical OMAP3 SoCs have four power domain states: ON,
+> >> > INACTIVE, RETENTION, and OFF.  The am35x family of SoCs
+> >> > has only two states: ON and INACTIVE.  To distinguish which
+> >> > set of states the current device has, add the 'OMAP3_HAS_PWROFF'
+> >> > feature.  When that feature/bit is set, the device supports the
+> >> > RETENTION and OFF states; otherwise, it doesn't.
+> >> >
+> >> > Signed-off-by: Mark A. Greer <mgreer@animalcreek.com>
+> >> 
+> >> Paul has mentioned this already, but the same applies here: We shouldn't
+> >> be using SoC-global feature flag for this.   We already have per-pwrdm
+> >> flags that indicate what states a given powerdomain suports (see .pwrsts
+> >> field.)
+> >> 
+> >> Wherever we have blind writes to next powerstates that assume support
+> >> for RET/OFF is present, those should probably use a helper function from
+> >> the powerdomain code that checks if that state is even supported.
+> >
+> > How about something like the patch below?
+> > Note: its not well tested; just RFC.
+> 
+> Yes, your proposed patch looks right to me.
+> 
+> I guess it's up to Paul & Jean to see if they'd rather see this build on
+> top of the Jean's functional power state work, or take this as a
+> standalone fix.
+> 
+> Kevin
 
-> On Fri, Apr 27, 2012 at 02:12:12PM -0700, Kevin Hilman wrote:
->> "Mark A. Greer" <mgreer@animalcreek.com> writes:
->> 
->> > On Tue, Apr 24, 2012 at 01:51:05PM -0700, Mark A. Greer wrote:
->
->> > Just thinking out loud...
->> >
->> > We could chose whether pm_idle & cpuidle issue a wfi based on
->> > whether there is a davinci-emac present.  The issue with that is
->> > that someday there may be another SoC that has a davinci-emac that
->> > can wake up the system.  I know cpu_is_xxx() is frowned upon but
->> > this does seem like a proper usage of it--the deciding factor
->> > really is whether its an am35x or not (and CONFIG_TI_DAVINCI_EMAC
->> > is enabled).
->> 
->> The presence of the davinci_emac is probably overkill, avoiding WFI
->> should really only be done when the davinci_emac is *active*.
->> e.g. using an am35x with an EMAC *present*, but not in use because
->> there's an MMC rootfs for example.
->> 
->> If there's a good way to detect an in-use davinci_emac, then
->> disable_hlt() can be used to avoid WFI.  When the davinci_emac is not in
->> use (e.g. module unloaded etc.) then enable_hlt() can be used to
->> (re)allow WFI.
->
-> This can work for pm_idle but what should be done for cpu_idle
-> (as in, omap3_enter_idle[_bm])?  We should have some sort of
-> solution for that so users can safely enable CONFIG_CPU_IDLE
-> and not have the am3517 fall apart.
+FYI, I just submitted the patch,
+	http://www.spinics.net/lists/linux-omap/msg69066.html
 
-disable_hlt() will prevent either the default idle *or* CPUidle from
-being called.
-
-It will simply call cpu_relax() instead of calling any idle
-function. (c.f. cpu_idle() in arch/arm/kernel/process.c)
-
-Kevin
+Mark
