@@ -1,60 +1,66 @@
-From: Janusz Krzysztofik <jkrzyszt@tis.icnet.pl>
-Subject: Re: [PATCH v3.4-rc3] MTD: NAND: ams-delta: Fix request_mem_region() failure
-Date: Mon, 30 Apr 2012 20:09:54 +0200
-Message-ID: <1520744.9xCxNUdyzk@acer>
-References: <1334670557-25640-1-git-send-email-jkrzyszt@tis.icnet.pl> <1587089.0XMyH6e1Ic@acer> <1335417678.2290.7.camel@koala>
+From: "alan@alanlee.org" <alan@alanlee.org>
+Subject: Stable version and repository loc
+Date: Mon, 30 Apr 2012 14:20:41 -0400 (EDT)
+Message-ID: <565579833.8864.1335810041069.JavaMail.vpopmail@webmail.networksolutionsemail.com>
+Reply-To: "alan@alanlee.org" <alan@alanlee.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 7Bit
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <1335417678.2290.7.camel@koala>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Tony Lindgren <tony@atomide.com>
-Cc: dedekind1@gmail.com, David Woodhouse <dwmw2@infradead.org>, Artem Bityutskiy <Artem.Bityutskiy@linux.intel.com>, linux-kernel@vger.kernel.org, linux-mtd@lists.infradead.org, linux-omap@vger.kernel.org
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from omr13.networksolutionsemail.com ([205.178.146.63]:39680 "EHLO
+	omr13.networksolutionsemail.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1755985Ab2D3SUm (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>);
+	Mon, 30 Apr 2012 14:20:42 -0400
+Received: from cm-omr9 (mail.networksolutionsemail.com [205.178.146.50])
+	by omr13.networksolutionsemail.com (8.13.8/8.13.8) with ESMTP id q3UIKfg1010066
+	for <linux-omap@vger.kernel.org>; Mon, 30 Apr 2012 14:20:41 -0400
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: linux-omap@vger.kernel.org
 
-Dnia czwartek, 26 kwietnia 2012 08:20:59 Artem Bityutskiy pisze:
-> On Wed, 2012-04-25 at 19:01 +0200, Janusz Krzysztofik wrote:
-> > Both drivers use separate subsets of registers that belong to the 
-OMAP1 
-> > MPU I/O device, but are used for controlling different sets of I/O 
-pins. 
-> > The NAND driver reads/writes the folowing registers:
-> > - OMAP_MPUIO_INPUT_LATCH,
-> > - OMAP_MPUIO_OUTPUT,
-> > - OMAP_MPUIO_IO_CNTL,
-> > while the keypad driver - the following:
-> > - OMAP_MPUIO_KBR_LATCH,
-> > - OMAP_MPUIO_KBC,
-> > - OMAP_MPUIO_KBD_MASKIT
-> > - OMAP_MPUIO_GPIO_DEBOUNCING.
-> > Both subsets are non-overlapping, and we rely on the drivers being 
-free 
-> > of bugs and doing their job correctly, not stepping on each others' 
-> > feet, I guess.
-> 
-> First of all, I think this information should be in the commit 
-message.
-> Also, some sort of comment in the driver code would be nice.
-> 
-> If locking the memory region is too coarse approach, the should have a
-> small separate omap-specific MPUIO subsystem which will be used by
-> drivers to access MPUIO?
-> 
-> Another question - should request_mem_region() be also removed from 
-the
-> omap-gpio driver then? I think it is more sensible to put a comment
-> there that it is sharing MPIO with other drivers,  instead of having 
-an
-> illusion of exclusive memory region ownership.
-> 
-> But this is up to the OMAP community - I can take this patch to my
-> l2-mtd tree if you get an ack from Tony or other OMAP guys.
 
-Tony,
-Would I get your Ack for this fix if I extend the commit message as Artem 
-suggested? If not, what do you think should be a correct way to fix the 
-regression?
 
-Thanks,
-Janusz
+Hola,
+
+
+
+What is the latest version of the Linux kernel OMAP tree that is considered
+stable?  I'm in the middle of bringing up a bare-metal roll of Linux on a
+derivative of the AM3517 family (Jacinto 3) on a commercial automotive radio.
+ I'm new to Linux on OMAP but old to Linux kernel development itself (since
+pre-1.0).  It appears the latest PSP from TI contains a version of 2.6.37 but
+it's main line cousin is more than a year old now.  And from lurking here on the
+very active Linux OMAP list, that's likely a enormous number of changes.  I'm
+just looking for the most current stable starting point and working up from
+there as technical problems dictate.
+
+
+
+I'm also looking for the git tree.  There are many broken links in the Getting
+Started section of:
+
+
+
+http://omappedia.org/wiki/Linux_OMAP_Kernel_Project
+<http://omappedia.org/wiki/Linux_OMAP_Kernel_Project>
+
+
+
+And the ones that work near the end don't appear to line up with my recent
+memory of list traffic.
+
+
+
+Any help/pointers would be greatly appreciated.
+
+
+
+Alan Hightower
+
+Design Engineer
+
+Panasonic Automotive Systems
+
+
+
