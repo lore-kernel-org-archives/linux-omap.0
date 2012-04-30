@@ -1,79 +1,66 @@
 From: Kevin Hilman <khilman@ti.com>
-Subject: Re: [PATCH V3 00/10] PM: Create the AVS(Adaptive Voltage Scaling)
-Date: Mon, 30 Apr 2012 14:51:48 -0700
-Message-ID: <87wr4wriq3.fsf@ti.com>
-References: <1335462041-4949-1-git-send-email-j-keerthy@ti.com>
-	<20120426191159.GA9415@sirena.org.uk>
-	<CAJ6a13a6WN9h1QZynpEOf-R6RXwWBZ2eOPkTeNc15JX_YfAz_w@mail.gmail.com>
-	<20120427175657.GP18260@opensource.wolfsonmicro.com>
-	<87397o3n4y.fsf@ti.com>
-	<20120430095429.GB3170@opensource.wolfsonmicro.com>
+Subject: Re: [PATCH 03/12] arm: omap3: Only sleep in cpuidle driver if I/O wake-ups work
+Date: Mon, 30 Apr 2012 15:00:56 -0700
+Message-ID: <878vhcriav.fsf@ti.com>
+References: <1334171147-7517-1-git-send-email-mgreer@animalcreek.com>
+	<1334171147-7517-4-git-send-email-mgreer@animalcreek.com>
+	<alpine.DEB.2.00.1204111532280.29473@utopia.booyaka.com>
+	<20120424205105.GA26749@animalcreek.com>
+	<20120424232506.GA8850@animalcreek.com> <87haw4282b.fsf@ti.com>
+	<20120430213433.GA19256@animalcreek.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aog130.obsmtp.com ([74.125.149.143]:54841 "EHLO
-	na3sys009aog130.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1756606Ab2D3Vv4 (ORCPT
+Received: from na3sys009aog129.obsmtp.com ([74.125.149.142]:41454 "EHLO
+	na3sys009aog129.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1756580Ab2D3WA6 (ORCPT
 	<rfc822;linux-omap@vger.kernel.org>);
-	Mon, 30 Apr 2012 17:51:56 -0400
-Received: by pbcxa12 with SMTP id xa12so4344047pbc.23
-        for <linux-omap@vger.kernel.org>; Mon, 30 Apr 2012 14:51:55 -0700 (PDT)
-In-Reply-To: <20120430095429.GB3170@opensource.wolfsonmicro.com> (Mark Brown's
-	message of "Mon, 30 Apr 2012 10:54:29 +0100")
+	Mon, 30 Apr 2012 18:00:58 -0400
+Received: by dajr28 with SMTP id r28so4813252daj.40
+        for <linux-omap@vger.kernel.org>; Mon, 30 Apr 2012 15:00:57 -0700 (PDT)
+In-Reply-To: <20120430213433.GA19256@animalcreek.com> (Mark A. Greer's message
+	of "Mon, 30 Apr 2012 14:34:33 -0700")
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Mark Brown <broonie@opensource.wolfsonmicro.com>
-Cc: "J, KEERTHY" <j-keerthy@ti.com>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, rjw@sisk.pl, linux-kernel@vger.kernel.org, linux-pm@lists.linux-foundation.org, j-pihet@ti.com, durgadoss.r@intel.com
+To: "Mark A. Greer" <mgreer@animalcreek.com>
+Cc: Paul Walmsley <paul@pwsan.com>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 
-Mark Brown <broonie@opensource.wolfsonmicro.com> writes:
+"Mark A. Greer" <mgreer@animalcreek.com> writes:
 
-> On Fri, Apr 27, 2012 at 02:01:17PM -0700, Kevin Hilman wrote:
->> Mark Brown <broonie@opensource.wolfsonmicro.com> writes:
+> On Fri, Apr 27, 2012 at 02:12:12PM -0700, Kevin Hilman wrote:
+>> "Mark A. Greer" <mgreer@animalcreek.com> writes:
+>> 
+>> > On Tue, Apr 24, 2012 at 01:51:05PM -0700, Mark A. Greer wrote:
 >
->> > But presumably these things should integrate somehow - for example,
->> > should devfreq and cpufreq be providing inputs into what AVS is doing,
->> > and if so how?
+>> > Just thinking out loud...
+>> >
+>> > We could chose whether pm_idle & cpuidle issue a wfi based on
+>> > whether there is a davinci-emac present.  The issue with that is
+>> > that someday there may be another SoC that has a davinci-emac that
+>> > can wake up the system.  I know cpu_is_xxx() is frowned upon but
+>> > this does seem like a proper usage of it--the deciding factor
+>> > really is whether its an am35x or not (and CONFIG_TI_DAVINCI_EMAC
+>> > is enabled).
+>> 
+>> The presence of the davinci_emac is probably overkill, avoiding WFI
+>> should really only be done when the davinci_emac is *active*.
+>> e.g. using an am35x with an EMAC *present*, but not in use because
+>> there's an MMC rootfs for example.
+>> 
+>> If there's a good way to detect an in-use davinci_emac, then
+>> disable_hlt() can be used to avoid WFI.  When the davinci_emac is not in
+>> use (e.g. module unloaded etc.) then enable_hlt() can be used to
+>> (re)allow WFI.
 >
->> The way it is currently designed, cpufreq/devfreq/regulator layers don't
->> need to know about AVS.
->
-> Yes, and that was a part of my concern, but see below.
->
->> The higher-level layers only know about the "nominal" voltage.  AVS
->> hardware does automatic, adaptive, micro-adjustments around that nominal
->> voltage, and these micro-adjustments are managed by the AVS hardware
->> sending commands to the PMIC.  (specifically, on OMAP, the AVS sensors
->> provide inputs to the voltage processor (VP) which provide inputs to the
->> voltage controller (VC) which sends commands to the PMIC[1].)
->
-> Right, that's what I'd understood it to be.  
->
->> The driver proposed here is primarily for initializing the various
->> parameters/sensitivity/etc. of the AVS hardware, but the actual voltage
->> adjustments are done in hardware by VC/VP.
->
-> It's not just a driver, though - it's also creating this power/avs
-> thing, though now I look at the code rather than just its shape there's
-> not actually an abstraction being added here, it's mostly just straight
-> code motion of the arch/arm code that's there already.  The changelog
-> and the shape of the code make it sound like this is intended to be
-> somewhat generic when really it's providing some OMAP specific tuning
-> for the device which is much less of a concern.
->
-> I guess for now it's probably OK to just clarify in the documentation
-> and say that whoever adds the second driver has to work on making this
-> generic :)
+> This can work for pm_idle but what should be done for cpu_idle
+> (as in, omap3_enter_idle[_bm])?  We should have some sort of
+> solution for that so users can safely enable CONFIG_CPU_IDLE
+> and not have the am3517 fall apart.
 
-Agreed.
+disable_hlt() will prevent either the default idle *or* CPUidle from
+being called.
 
-In a different thread (which I can't seem to find now) we discussed this
-as well, so it just sounds like the changelog should clarify this a bit
-better.
+It will simply call cpu_relax() instead of calling any idle
+function. (c.f. cpu_idle() in arch/arm/kernel/process.c)
 
 Kevin
-
-> This does also sound rather like it's in a similar area to the current
-> management work which Durgadoss R (CCed) was working on, though with a
-> slightly different application and in the OMAP case it's pretty much all
-> hidden in the external processor.
-
