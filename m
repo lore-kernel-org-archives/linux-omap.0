@@ -1,47 +1,53 @@
 From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH 0/6] ARM: OMAP: hwmod: remove runtime cpu_is checking
-Date: Mon, 30 Apr 2012 09:05:29 -0700
-Message-ID: <20120430160527.GC3739@atomide.com>
-References: <1335557140-10854-1-git-send-email-khilman@ti.com>
- <4F9E8CA7.8050700@ti.com>
+Subject: Re: "smsc911x: Add fixed board regulators" problem
+Date: Mon, 30 Apr 2012 09:11:55 -0700
+Message-ID: <20120430161155.GD3739@atomide.com>
+References: <CA+2YH7tPBeJARm=ipq=HTtqNH6pDu8yQKMRMgL1Cz9rkSpzRBQ@mail.gmail.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-01-ewr.mailhop.org ([204.13.248.71]:58082 "EHLO
-	mho-01-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753044Ab2D3QFd (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 30 Apr 2012 12:05:33 -0400
+Received: from mho-02-ewr.mailhop.org ([204.13.248.72]:48708 "EHLO
+	mho-02-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753506Ab2D3QL7 (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 30 Apr 2012 12:11:59 -0400
 Content-Disposition: inline
-In-Reply-To: <4F9E8CA7.8050700@ti.com>
+In-Reply-To: <CA+2YH7tPBeJARm=ipq=HTtqNH6pDu8yQKMRMgL1Cz9rkSpzRBQ@mail.gmail.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Santosh Shilimkar <santosh.shilimkar@ti.com>
-Cc: Kevin Hilman <khilman@ti.com>, Paul Walmsley <paul@pwsan.com>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+To: Enrico <ebutera@users.sourceforge.net>
+Cc: linux-omap@vger.kernel.org, Russ Dill <Russ.Dill@ti.com>, Enric Balletbo i Serra <eballetbo@iseebcn.com>
 
-* Santosh Shilimkar <santosh.shilimkar@ti.com> [120430 06:03]:
-> On Saturday 28 April 2012 01:35 AM, Kevin Hilman wrote:
-> > This series attempts to remove all the runtime cpu_is* checking in
-> > omap_hwmod.c in favor of using function pointers initialized at init
-> > time.
-> > 
-> > This series was motivated by the addition of support for the AM335x
-> > series which was done by adding several more cpu_is* checks, and
-> > provided the proverbial straw that broke the camel's back.  
-> > 
-> > In addition to the cleanup, this provides a much cleaner way of adding
-> > additional SoC support since it no longer requires adding additional
-> > runtime cpu_is* checks.
-> > 
-> > Boot tested on OMAP3530/Overo and OMAP4430/Panda.
-> > 
-> I was looking at some of these while trying to OMAP5
-> support. Indeed the cpu_is_* is becoming increasingly
-> no maintanable and ugly. Thanks for the series.
+Hi,
 
-Also we need to start considering what happens if non-omap code
-calls cpu_is_omapxxx for common zImage kernels.. So it's best to
-make sure they only happen in omap specific calls during init time.
+* Enrico <ebutera@users.sourceforge.net> [120430 08:02]:
+> Hi,
+> 
+> hi get this at boot on an IGEP board (igep0020), latest linux-omap
+> master (20 Apr):
+> 
+> [    0.047704] WARNING: at fs/sysfs/dir.c:508 sysfs_add_one+0x9c/0xac()
+> [    0.047712] sysfs: cannot create duplicate filename
+> '/devices/platform/reg-fixed-voltage.0'
+
+This is because of trying to create multiple fixed regulators with
+id 0 as discussed earlier. AFAIK there's still no clean way to deal
+with that unfortunately..
+
+Can you try changing the id to something random like below?
 
 Regards,
 
 Tony
+
+
+--- a/arch/arm/mach-omap2/board-igep0020.c
++++ b/arch/arm/mach-omap2/board-igep0020.c
+@@ -641,7 +641,7 @@ static struct regulator_consumer_supply dummy_supplies[] = {
+ 
+ static void __init igep_init(void)
+ {
+-	regulator_register_fixed(0, dummy_supplies, ARRAY_SIZE(dummy_supplies));
++	regulator_register_fixed(42, dummy_supplies, ARRAY_SIZE(dummy_supplies));
+ 	omap3_mux_init(board_mux, OMAP_PACKAGE_CBB);
+ 
+ 	/* Get IGEP2 hardware revision */
