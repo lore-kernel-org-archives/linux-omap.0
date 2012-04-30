@@ -1,112 +1,85 @@
-From: Vaibhav Bedia <vaibhav.bedia@ti.com>
-Subject: [PATCH 1/1] [RESEND] ARM: OMAP3+: dpll: Configure autoidle mode only if it's supported
-Date: Mon, 30 Apr 2012 14:02:02 +0530
-Message-ID: <1335774722-6728-1-git-send-email-vaibhav.bedia@ti.com>
+From: Jean Pihet <jean.pihet@newoldbits.com>
+Subject: Re: [PATCH/RFT 5/8] ARM: OMAP: clock: remove unused CK_3505 flag
+Date: Mon, 30 Apr 2012 11:05:41 +0200
+Message-ID: <CAORVsuVgNKUcsM+GuQfahp0r5U=24qBQhrX1E-DewhNvh0hk7g@mail.gmail.com>
+References: <1335482993-14035-1-git-send-email-khilman@ti.com>
+	<1335482993-14035-6-git-send-email-khilman@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from devils.ext.ti.com ([198.47.26.153]:51976 "EHLO
-	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753255Ab2D3IcL (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 30 Apr 2012 04:32:11 -0400
+Received: from mail-vb0-f46.google.com ([209.85.212.46]:61556 "EHLO
+	mail-vb0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752041Ab2D3JFl convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 30 Apr 2012 05:05:41 -0400
+Received: by vbbff1 with SMTP id ff1so1891414vbb.19
+        for <linux-omap@vger.kernel.org>; Mon, 30 Apr 2012 02:05:41 -0700 (PDT)
+In-Reply-To: <1335482993-14035-6-git-send-email-khilman@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
-Cc: paul@pswan.com, b-cousson@ti.com, Vaibhav Bedia <vaibhav.bedia@ti.com>
+To: Kevin Hilman <khilman@ti.com>
+Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 
-The current DPLL code enables and disables autoidle features
-without checking whether the autoidle register is available.
-Fix this by putting a check for the existence of the autoidle
-register in the DPLL data.
+Hi Kevin,
 
-With such a check in place, for DPLLs which do not support this
-feature, simply skipping the autoidle_reg entry in the DPLL data
-is sufficient.
+On Fri, Apr 27, 2012 at 1:29 AM, Kevin Hilman <khilman@ti.com> wrote:
+> This flag is no longer used since clock init all AM35x devices
+> is now the same.
+>
+> Acked-by: Vaibhav Hiremath <hvaibhav@ti.com>
+> Tested-by: Vaibhav Hiremath <hvaibhav@ti.com>
+> Signed-off-by: Kevin Hilman <khilman@ti.com>
+> ---
+> =A0arch/arm/plat-omap/include/plat/clkdev_omap.h | =A0 =A03 +--
+> =A01 file changed, 1 insertion(+), 2 deletions(-)
+>
+> diff --git a/arch/arm/plat-omap/include/plat/clkdev_omap.h b/arch/arm=
+/plat-omap/include/plat/clkdev_omap.h
+> index b299b8d..45afa4d 100644
+> --- a/arch/arm/plat-omap/include/plat/clkdev_omap.h
+> +++ b/arch/arm/plat-omap/include/plat/clkdev_omap.h
+> @@ -34,7 +34,6 @@ struct omap_clk {
+> =A0#define CK_243X =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0(1 << 5) =A0 =A0 =A0=
+ =A0/* 243x, 253x */
+> =A0#define CK_3430ES1 =A0 =A0 (1 << 6) =A0 =A0 =A0 =A0/* 34xxES1 only=
+ */
+> =A0#define CK_3430ES2PLUS (1 << 7) =A0 =A0 =A0 =A0/* 34xxES2, ES3, no=
+n-Sitara 35xx only */
+> -#define CK_3505 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0(1 << 8)
+> =A0#define CK_3517 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0(1 << 9)
+If this is the only flag remaining, should it better be renamed to CK_3=
+5XX?
 
-Signed-off-by: Vaibhav Bedia <vaibhav.bedia@ti.com>
----
-This change is needed for AM33xx, which does not support
-autoidle mode for the DPLLs.
+> =A0#define CK_36XX =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0(1 << 10) =A0 =A0 =A0=
+ /* 36xx/37xx-specific clocks */
+> =A0#define CK_443X =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0(1 << 11)
+> @@ -44,7 +43,7 @@ struct omap_clk {
+>
+>
+> =A0#define CK_34XX =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0(CK_3430ES1 | CK_34=
+30ES2PLUS)
+> -#define CK_AM35XX =A0 =A0 =A0(CK_3505 | CK_3517) =A0 =A0 /* all Sita=
+ra AM35xx */
+> +#define CK_AM35XX =A0 =A0 =A0CK_3517 =A0 =A0 =A0 =A0 /* all Sitara A=
+M35xx */
+> =A0#define CK_3XXX =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0(CK_34XX | CK_AM35X=
+X | CK_36XX)
+>
 
- arch/arm/mach-omap2/dpll3xxx.c |   23 ++++++++++++++++++-----
- 1 files changed, 18 insertions(+), 5 deletions(-)
+Regards,
+Jean
 
-diff --git a/arch/arm/mach-omap2/dpll3xxx.c b/arch/arm/mach-omap2/dpll3xxx.c
-index fc56745..f0f10be 100644
---- a/arch/arm/mach-omap2/dpll3xxx.c
-+++ b/arch/arm/mach-omap2/dpll3xxx.c
-@@ -142,7 +142,8 @@ static int _omap3_noncore_dpll_lock(struct clk *clk)
- 
- 	ai = omap3_dpll_autoidle_read(clk);
- 
--	omap3_dpll_deny_idle(clk);
-+	if (ai)
-+		omap3_dpll_deny_idle(clk);
- 
- 	_omap3_dpll_write_clken(clk, DPLL_LOCKED);
- 
-@@ -186,8 +187,6 @@ static int _omap3_noncore_dpll_bypass(struct clk *clk)
- 
- 	if (ai)
- 		omap3_dpll_allow_idle(clk);
--	else
--		omap3_dpll_deny_idle(clk);
- 
- 	return r;
- }
-@@ -216,8 +215,6 @@ static int _omap3_noncore_dpll_stop(struct clk *clk)
- 
- 	if (ai)
- 		omap3_dpll_allow_idle(clk);
--	else
--		omap3_dpll_deny_idle(clk);
- 
- 	return 0;
- }
-@@ -519,6 +516,9 @@ u32 omap3_dpll_autoidle_read(struct clk *clk)
- 
- 	dd = clk->dpll_data;
- 
-+	if (!dd->autoidle_reg)
-+		return -EINVAL;
-+
- 	v = __raw_readl(dd->autoidle_reg);
- 	v &= dd->autoidle_mask;
- 	v >>= __ffs(dd->autoidle_mask);
-@@ -545,6 +545,12 @@ void omap3_dpll_allow_idle(struct clk *clk)
- 
- 	dd = clk->dpll_data;
- 
-+	if (!dd->autoidle_reg) {
-+		pr_debug("clock: DPLL %s: autoidle not supported\n",
-+			clk->name);
-+		return;
-+	}
-+
- 	/*
- 	 * REVISIT: CORE DPLL can optionally enter low-power bypass
- 	 * by writing 0x5 instead of 0x1.  Add some mechanism to
-@@ -554,6 +560,7 @@ void omap3_dpll_allow_idle(struct clk *clk)
- 	v &= ~dd->autoidle_mask;
- 	v |= DPLL_AUTOIDLE_LOW_POWER_STOP << __ffs(dd->autoidle_mask);
- 	__raw_writel(v, dd->autoidle_reg);
-+
- }
- 
- /**
-@@ -572,6 +579,12 @@ void omap3_dpll_deny_idle(struct clk *clk)
- 
- 	dd = clk->dpll_data;
- 
-+	if (!dd->autoidle_reg) {
-+		pr_debug("clock: DPLL %s: autoidle not supported\n",
-+			clk->name);
-+		return;
-+	}
-+
- 	v = __raw_readl(dd->autoidle_reg);
- 	v &= ~dd->autoidle_mask;
- 	v |= DPLL_AUTOIDLE_DISABLE << __ffs(dd->autoidle_mask);
--- 
-1.7.0.4
-
+>
+> --
+> 1.7.9.2
+>
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-omap"=
+ in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at =A0http://vger.kernel.org/majordomo-info.html
+--
+To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
