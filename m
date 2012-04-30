@@ -1,57 +1,113 @@
-From: Koen Kooi <koen@dominion.thruhere.net>
-Subject: Re: [PATCH/RFT 6/8] ARM: OMAP: remove unused cpu_is_omap3505()
-Date: Mon, 30 Apr 2012 11:35:43 +0200
-Message-ID: <2D046CE0-37F1-4C35-B7B1-1B75203DE147@dominion.thruhere.net>
-References: <1335482993-14035-1-git-send-email-khilman@ti.com> <1335482993-14035-7-git-send-email-khilman@ti.com> <CAORVsuVYXooj5CPzZZhOL8asmoX5X1bB=D-7pyf4McgKOATmyg@mail.gmail.com>
-Mime-Version: 1.0 (Apple Message framework v1257)
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7BIT
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-wg0-f44.google.com ([74.125.82.44]:39748 "EHLO
-	mail-wg0-f44.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755133Ab2D3Jfr convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 30 Apr 2012 05:35:47 -0400
-Received: by wgbdr13 with SMTP id dr13so364193wgb.1
-        for <linux-omap@vger.kernel.org>; Mon, 30 Apr 2012 02:35:46 -0700 (PDT)
-In-Reply-To: <CAORVsuVYXooj5CPzZZhOL8asmoX5X1bB=D-7pyf4McgKOATmyg@mail.gmail.com>
-Sender: linux-omap-owner@vger.kernel.org
+From: Mark Brown <broonie@opensource.wolfsonmicro.com>
+Subject: Re: [PATCH V3 00/10] PM: Create the AVS(Adaptive Voltage
+	Scaling)
+Date: Mon, 30 Apr 2012 10:54:29 +0100
+Message-ID: <20120430095429.GB3170@opensource.wolfsonmicro.com>
+References: <1335462041-4949-1-git-send-email-j-keerthy@ti.com>
+	<20120426191159.GA9415@sirena.org.uk>
+	<CAJ6a13a6WN9h1QZynpEOf-R6RXwWBZ2eOPkTeNc15JX_YfAz_w@mail.gmail.com>
+	<20120427175657.GP18260@opensource.wolfsonmicro.com>
+	<87397o3n4y.fsf@ti.com>
+Mime-Version: 1.0
+Content-Type: multipart/mixed; boundary="===============8108554701136473573=="
+Return-path: <linux-pm-bounces@lists.linux-foundation.org>
+In-Reply-To: <87397o3n4y.fsf@ti.com>
+List-Unsubscribe: <https://lists.linuxfoundation.org/mailman/options/linux-pm>,
+	<mailto:linux-pm-request@lists.linux-foundation.org?subject=unsubscribe>
+List-Archive: <http://lists.linuxfoundation.org/pipermail/linux-pm/>
+List-Post: <mailto:linux-pm@lists.linux-foundation.org>
+List-Help: <mailto:linux-pm-request@lists.linux-foundation.org?subject=help>
+List-Subscribe: <https://lists.linuxfoundation.org/mailman/listinfo/linux-pm>,
+	<mailto:linux-pm-request@lists.linux-foundation.org?subject=subscribe>
+Sender: linux-pm-bounces@lists.linux-foundation.org
+Errors-To: linux-pm-bounces@lists.linux-foundation.org
+To: Kevin Hilman <khilman@ti.com>
+Cc: "J, KEERTHY" <j-keerthy@ti.com>, linux-kernel@vger.kernel.org, linux-pm@lists.linux-foundation.org, linux-omap@vger.kernel.org, j-pihet@ti.com, linux-arm-kernel@lists.infradead.org
 List-Id: linux-omap@vger.kernel.org
-To: Jean Pihet <jean.pihet@newoldbits.com>
-Cc: Kevin Hilman <khilman@ti.com>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 
 
-Op 30 apr. 2012, om 11:07 heeft Jean Pihet het volgende geschreven:
+--===============8108554701136473573==
+Content-Type: multipart/signed; micalg=pgp-sha1;
+	protocol="application/pgp-signature"; boundary="8P1HSweYDcXXzwPJ"
+Content-Disposition: inline
 
-> Kevin,
-> 
-> On Fri, Apr 27, 2012 at 1:29 AM, Kevin Hilman <khilman@ti.com> wrote:
->> The 3505 check is now unused and can be removed.
->> 
->> There are no longer any cpu_is_* checks that depend on specific IP
->> detection.
->> 
->> Acked-by: Vaibhav Hiremath <hvaibhav@ti.com>
->> Tested-by: Vaibhav Hiremath <hvaibhav@ti.com>
->> Signed-off-by: Kevin Hilman <khilman@ti.com>
->> ---
->>  arch/arm/plat-omap/include/plat/cpu.h |    8 +-------
->>  1 file changed, 1 insertion(+), 7 deletions(-)
->> 
->> diff --git a/arch/arm/plat-omap/include/plat/cpu.h b/arch/arm/plat-omap/include/plat/cpu.h
->> index 41f3e5a..b34bf6c 100644
->> --- a/arch/arm/plat-omap/include/plat/cpu.h
->> +++ b/arch/arm/plat-omap/include/plat/cpu.h
->> @@ -250,8 +250,7 @@ IS_AM_SUBCLASS(335x, 0x335)
->>  * cpu_is_omap2423():  True for OMAP2423
->>  * cpu_is_omap2430():  True for OMAP2430
->>  * cpu_is_omap3430():  True for OMAP3430
->> - * cpu_is_omap3505():  True for OMAP3505
->> - * cpu_is_omap3517():  True for OMAP3517
->> + * cpu_is_omap3517():  True for AM35x: OMAP3517, OMAP3505
-> Is cpu_is_omap35xx() a better name for it?
 
-No, since 3530 is the same as 3430 :(
+--8P1HSweYDcXXzwPJ
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
 
-regards,
+On Fri, Apr 27, 2012 at 02:01:17PM -0700, Kevin Hilman wrote:
+> Mark Brown <broonie@opensource.wolfsonmicro.com> writes:
 
-Koen
+> > But presumably these things should integrate somehow - for example,
+> > should devfreq and cpufreq be providing inputs into what AVS is doing,
+> > and if so how?
+
+> The way it is currently designed, cpufreq/devfreq/regulator layers don't
+> need to know about AVS.
+
+Yes, and that was a part of my concern, but see below.
+
+> The higher-level layers only know about the "nominal" voltage.  AVS
+> hardware does automatic, adaptive, micro-adjustments around that nominal
+> voltage, and these micro-adjustments are managed by the AVS hardware
+> sending commands to the PMIC.  (specifically, on OMAP, the AVS sensors
+> provide inputs to the voltage processor (VP) which provide inputs to the
+> voltage controller (VC) which sends commands to the PMIC[1].)
+
+Right, that's what I'd understood it to be. =20
+
+> The driver proposed here is primarily for initializing the various
+> parameters/sensitivity/etc. of the AVS hardware, but the actual voltage
+> adjustments are done in hardware by VC/VP.
+
+It's not just a driver, though - it's also creating this power/avs
+thing, though now I look at the code rather than just its shape there's
+not actually an abstraction being added here, it's mostly just straight
+code motion of the arch/arm code that's there already.  The changelog
+and the shape of the code make it sound like this is intended to be
+somewhat generic when really it's providing some OMAP specific tuning
+for the device which is much less of a concern.
+
+I guess for now it's probably OK to just clarify in the documentation
+and say that whoever adds the second driver has to work on making this
+generic :)
+
+This does also sound rather like it's in a similar area to the current
+management work which Durgadoss R (CCed) was working on, though with a
+slightly different application and in the OMAP case it's pretty much all
+hidden in the external processor.
+
+--8P1HSweYDcXXzwPJ
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: Digital signature
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.4.12 (GNU/Linux)
+
+iQIcBAEBAgAGBQJPnmFNAAoJEBus8iNuMP3dhM8P/2QSv9mJ0brc+jjv0V77iy7f
+/fXc7pneBBwXwUPC5RJJGS0Qc/iTjaTN2QfYpw8TjdnuEKsOpwuz1W4UCZNRWKxu
+72dXmNB2u1F+Tf9rXBHZqW2OE6slDhuvhIdly/rOwjjmf6IGf37vJb2i+fA8V0gW
+aevaGzwC3asRM1QQxQ3fAKx7Xc4kdULG0ifJ/7mYoeFK0IBEHLusClhVJFTGOZ1i
+aHjD2I0ASGt7O1N3Ewg2a+uxaDjNvGLBRI2UxdmSoI68ygTIwizUkUFuZ1ozoP3I
+BP9AX3YuRZXwxVNYOv0sNSNgQ50mE7NYYbGinw7NiUyDHIQ9WSEml4ltJLC3Pt01
+vtrECuEy1ck7ewrGhbRvzrCnArOiVnt7cUYBd2TxGp3P8kJ0tnp9JvRnjYT6T3G7
+ISAlckx6ZcUaDCU0JxHhc4XmksI5upw0LojrwnlPJMOjcLkr6rr5e7t2d+3E4G2u
+lh0Uw5xNnT6Sthj2OS5wNTtzPrC5ltk2LLSAxhEM2fybEmg6twvxdAa19RpofyT0
+zgMtqA9vwjMintaGLdq05MNyeIGFu/ChJ55Y5rh8z0lQN3x0OJlD4nwN/dMadut+
+U/vOAP12ug4V6GamKuWrejOjKEpUVJdRoKNTWK6G9ZcajIa0ZAX+KTNFKvR+PAYz
+veNrHzL4OvV/3MabrWpy
+=WsSD
+-----END PGP SIGNATURE-----
+
+--8P1HSweYDcXXzwPJ--
+
+--===============8108554701136473573==
+Content-Type: text/plain; charset="us-ascii"
+MIME-Version: 1.0
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
+
+
+--===============8108554701136473573==--
