@@ -1,62 +1,54 @@
-From: "Mark A. Greer" <mgreer@animalcreek.com>
-Subject: Re: [PATCH/RFT 0/8] ARM: OMAP: remove IP checks from SoC family
- detection
-Date: Mon, 30 Apr 2012 09:30:30 -0700
-Message-ID: <20120430163030.GC18669@animalcreek.com>
-References: <1335482993-14035-1-git-send-email-khilman@ti.com>
- <20120427220813.GE19196@animalcreek.com>
- <87aa1wyfq5.fsf@ti.com>
- <20120428202047.GA7068@numbers.woodsts.org>
- <79CD15C6BA57404B839C016229A409A83EA024D6@DBDE01.ent.ti.com>
+From: Enrico <ebutera@users.sourceforge.net>
+Subject: Re: "smsc911x: Add fixed board regulators" problem
+Date: Mon, 30 Apr 2012 18:39:33 +0200
+Message-ID: <CA+2YH7sDaL-qaLadHPTfgBJXKTO_N_Ug-yrBqzKbe0AXH6rT4g@mail.gmail.com>
+References: <CA+2YH7tPBeJARm=ipq=HTtqNH6pDu8yQKMRMgL1Cz9rkSpzRBQ@mail.gmail.com>
+	<20120430161155.GD3739@atomide.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail20.dotsterhost.com ([66.11.232.73]:48968 "EHLO
-	mail20.dotsterhost.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753636Ab2D3Qac (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 30 Apr 2012 12:30:32 -0400
-Content-Disposition: inline
-In-Reply-To: <79CD15C6BA57404B839C016229A409A83EA024D6@DBDE01.ent.ti.com>
+Received: from mail-vx0-f174.google.com ([209.85.220.174]:43568 "EHLO
+	mail-vx0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752073Ab2D3Qje convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 30 Apr 2012 12:39:34 -0400
+Received: by vcqp1 with SMTP id p1so2161756vcq.19
+        for <linux-omap@vger.kernel.org>; Mon, 30 Apr 2012 09:39:33 -0700 (PDT)
+In-Reply-To: <20120430161155.GD3739@atomide.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "Hiremath, Vaibhav" <hvaibhav@ti.com>
-Cc: "Derald D. Woods" <woods.rt@gmail.com>, "Hilman, Kevin" <khilman@ti.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
+To: Tony Lindgren <tony@atomide.com>
+Cc: linux-omap@vger.kernel.org, Russ Dill <Russ.Dill@ti.com>, Enric Balletbo i Serra <eballetbo@iseebcn.com>
 
-On Sun, Apr 29, 2012 at 09:48:26AM +0000, Hiremath, Vaibhav wrote:
-> On Sun, Apr 29, 2012 at 01:50:48, Derald D. Woods wrote:
-> > On Fri, Apr 27, 2012 at 03:25:38PM -0700, Kevin Hilman wrote:
+On Mon, Apr 30, 2012 at 6:11 PM, Tony Lindgren <tony@atomide.com> wrote=
+:
+> Hi,
+>
+> * Enrico <ebutera@users.sourceforge.net> [120430 08:02]:
+>> Hi,
+>>
+>> hi get this at boot on an IGEP board (igep0020), latest linux-omap
+>> master (20 Apr):
+>>
+>> [ =A0 =A00.047704] WARNING: at fs/sysfs/dir.c:508 sysfs_add_one+0x9c=
+/0xac()
+>> [ =A0 =A00.047712] sysfs: cannot create duplicate filename
+>> '/devices/platform/reg-fixed-voltage.0'
+>
+> This is because of trying to create multiple fixed regulators with
+> id 0 as discussed earlier. AFAIK there's still no clean way to deal
+> with that unfortunately..
+>
+> Can you try changing the id to something random like below?
 
-> > 
-> > Hello Kevin,
-> > 
-> > I have a Logic PD AM3517 Zoom Experimenter [SOMAM3517-10-1780RJXR-C (REV A)].
-> > 
-> > My board booted to the Linux login on MMC rootfs.
-> > 
-> 
-> I tried to validate these patches now with latest baseline, and I am not 
-> getting Linux prompt though,
-> 
-> I am based on linux-omap/master (1e32b7eee) and applied all 8 patches from 
-> Kevin, it always halts at,
+Sorry i must have missed the discussion, i used 40 and it works. I'll
+send a patch.
 
-> Starting kernel ...
-> 
-> Uncompressing Linux... done, booting the kernel.
-> [    0.000000] Booting Linux on physical CPU 0
-> [    0.000000] Linux version 3.4.0-rc3-11794-gbbc91ff (a0393758@psplinux064) (gcc version 4.5.3 20110311 (prerelease) (GCC) ) #1 SMP Sun Apr 29 14:52:26 IST 2012
+Thanks,
 
-> [    0.000000] Kernel command line: root=/dev/ram0 rw mem=128M console=ttyS2,115200n8 console=ttyO2,115200n8 initrd=0x81600000,16M
-
-> [    2.566741] ThumbEE CPU extension supported.
-> [    2.582977] voltdm_scale: No voltage scale API registered for vdd_mpu_iva
-> [    2.590332] voltdm_scale: No voltage scale API registered for vdd_core
-> [    2.597503] PM: no software I/O chain control; some wakeups may be lost
-> [    2.645935] clock: disabling unused clocks to save power
-> [    2.659515] drivers/rtc/hctosys.c: unable to open rtc device (rtc0)
-> [    2.671844] RAMDISK: gzip image found at block 0
-
-Try adding 'nohlt' to your cmdline and make sure that CONFIG_CPU_IDLE
-is disabled.
-
-Mark
+Enrico
+--
+To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
