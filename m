@@ -1,45 +1,46 @@
 From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH 07/12] mmc: omap: add DMA engine support
-Date: Mon, 30 Apr 2012 08:59:38 -0700
-Message-ID: <20120430155937.GB3739@atomide.com>
-References: <20120423160409.GE24299@n2100.arm.linux.org.uk>
- <E1SMLmZ-0002WS-Rd@rmk-PC.arm.linux.org.uk>
- <20120424001330.GD3739@atomide.com>
- <20120428163716.GI28062@n2100.arm.linux.org.uk>
+Subject: Re: [PATCH 0/6] ARM: OMAP: hwmod: remove runtime cpu_is checking
+Date: Mon, 30 Apr 2012 09:05:29 -0700
+Message-ID: <20120430160527.GC3739@atomide.com>
+References: <1335557140-10854-1-git-send-email-khilman@ti.com>
+ <4F9E8CA7.8050700@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-mmc-owner@vger.kernel.org>
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from mho-01-ewr.mailhop.org ([204.13.248.71]:58082 "EHLO
+	mho-01-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753044Ab2D3QFd (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 30 Apr 2012 12:05:33 -0400
 Content-Disposition: inline
-In-Reply-To: <20120428163716.GI28062@n2100.arm.linux.org.uk>
-Sender: linux-mmc-owner@vger.kernel.org
-To: Russell King - ARM Linux <linux@arm.linux.org.uk>
-Cc: linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org, linux-mmc@vger.kernel.org, Jarkko Lavinen <jarkko.lavinen@nokia.com>, Chris Ball <cjb@laptop.org>
+In-Reply-To: <4F9E8CA7.8050700@ti.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Santosh Shilimkar <santosh.shilimkar@ti.com>
+Cc: Kevin Hilman <khilman@ti.com>, Paul Walmsley <paul@pwsan.com>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 
-* Russell King - ARM Linux <linux@arm.linux.org.uk> [120428 09:40]:
-> On Mon, Apr 23, 2012 at 05:13:30PM -0700, Tony Lindgren wrote:
-> > * Russell King <rmk+kernel@arm.linux.org.uk> [120423 09:11]:
-> > > Add DMA engine support to the OMAP driver.  This supplements the
-> > > private DMA API implementation contained within this driver, and the
-> > > driver can be switched at build time between using DMA engine and the
-> > > private DMA API.
+* Santosh Shilimkar <santosh.shilimkar@ti.com> [120430 06:03]:
+> On Saturday 28 April 2012 01:35 AM, Kevin Hilman wrote:
+> > This series attempts to remove all the runtime cpu_is* checking in
+> > omap_hwmod.c in favor of using function pointers initialized at init
+> > time.
 > > 
-> > Below is what's needed to use DMA request lines from platform data.
-> > Note also the release_mem_region change that we'll now need for
-> > this one also (but not as a fix).
+> > This series was motivated by the addition of support for the AM335x
+> > series which was done by adding several more cpu_is* checks, and
+> > provided the proverbial straw that broke the camel's back.  
 > > 
-> > I've posted a cleanup patch series to mostly remove plat-omap/devices.c
-> > that takes care of passing the DMA request lines in platform data.
-> > That series should get merged before the driver changes for this
-> > driver to keep DMA working.
-> 
-> Okay, how do we want to handle this patch?  I don't think there's any
-> urgency for this patch at the present time, so I'm quite happy for this
-> to be delayed after the next merge window after we have the pre-requisits
-> for it in place.  (And trying to get it in earlier is only going to give
-> us git tree dependencies to deal with.)
+> > In addition to the cleanup, this provides a much cleaner way of adding
+> > additional SoC support since it no longer requires adding additional
+> > runtime cpu_is* checks.
+> > 
+> > Boot tested on OMAP3530/Overo and OMAP4430/Panda.
+> > 
+> I was looking at some of these while trying to OMAP5
+> support. Indeed the cpu_is_* is becoming increasingly
+> no maintanable and ugly. Thanks for the series.
 
-Sounds good to me.
+Also we need to start considering what happens if non-omap code
+calls cpu_is_omapxxx for common zImage kernels.. So it's best to
+make sure they only happen in omap specific calls during init time.
 
 Regards,
 
