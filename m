@@ -1,113 +1,139 @@
-From: Mark Brown <broonie@opensource.wolfsonmicro.com>
-Subject: Re: [PATCH V3 00/10] PM: Create the AVS(Adaptive Voltage
-	Scaling)
-Date: Mon, 30 Apr 2012 10:54:29 +0100
-Message-ID: <20120430095429.GB3170@opensource.wolfsonmicro.com>
-References: <1335462041-4949-1-git-send-email-j-keerthy@ti.com>
-	<20120426191159.GA9415@sirena.org.uk>
-	<CAJ6a13a6WN9h1QZynpEOf-R6RXwWBZ2eOPkTeNc15JX_YfAz_w@mail.gmail.com>
-	<20120427175657.GP18260@opensource.wolfsonmicro.com>
-	<87397o3n4y.fsf@ti.com>
+From: Tero Kristo <t-kristo@ti.com>
+Subject: Re: [PATCH 4/6] twl4030_charger: Allow charger to control the
+ regulator that feeds it.
+Date: Mon, 30 Apr 2012 13:14:32 +0300
+Message-ID: <1335780872.2149.181.camel@sokoban>
+References: <20120425072931.20124.56635.stgit@notabene.brown>
+	 <20120425073310.20124.68293.stgit@notabene.brown>
+Reply-To: <t-kristo@ti.com>
 Mime-Version: 1.0
-Content-Type: multipart/mixed; boundary="===============8108554701136473573=="
-Return-path: <linux-pm-bounces@lists.linux-foundation.org>
-In-Reply-To: <87397o3n4y.fsf@ti.com>
-List-Unsubscribe: <https://lists.linuxfoundation.org/mailman/options/linux-pm>,
-	<mailto:linux-pm-request@lists.linux-foundation.org?subject=unsubscribe>
-List-Archive: <http://lists.linuxfoundation.org/pipermail/linux-pm/>
-List-Post: <mailto:linux-pm@lists.linux-foundation.org>
-List-Help: <mailto:linux-pm-request@lists.linux-foundation.org?subject=help>
-List-Subscribe: <https://lists.linuxfoundation.org/mailman/listinfo/linux-pm>,
-	<mailto:linux-pm-request@lists.linux-foundation.org?subject=subscribe>
-Sender: linux-pm-bounces@lists.linux-foundation.org
-Errors-To: linux-pm-bounces@lists.linux-foundation.org
-To: Kevin Hilman <khilman@ti.com>
-Cc: "J, KEERTHY" <j-keerthy@ti.com>, linux-kernel@vger.kernel.org, linux-pm@lists.linux-foundation.org, linux-omap@vger.kernel.org, j-pihet@ti.com, linux-arm-kernel@lists.infradead.org
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <20120425073310.20124.68293.stgit@notabene.brown>
+Sender: linux-kernel-owner@vger.kernel.org
+To: NeilBrown <neilb@suse.de>
+Cc: Samuel Ortiz <sameo@linux.intel.com>, Felipe Balbi <balbi@ti.com>, Grazvydas Ignotas <notasas@gmail.com>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, linux-kernel@vger.kernel.org, linux-usb@vger.kernel.org, linux-omap@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
+Hi Neil,
 
---===============8108554701136473573==
-Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="8P1HSweYDcXXzwPJ"
-Content-Disposition: inline
+As I am supposed to be acting as a maintainer for the drivers/mfd/twl-*,
+you can add an ack from me for the twl-core.c part. It looks kind of
+okay, even if I would eventually like to remove/fix the ugly regulator
+init from twl-core.
 
+Just a question, who is going to merge all this seeing it is touching
+stuff all over the place?
 
---8P1HSweYDcXXzwPJ
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
-
-On Fri, Apr 27, 2012 at 02:01:17PM -0700, Kevin Hilman wrote:
-> Mark Brown <broonie@opensource.wolfsonmicro.com> writes:
-
-> > But presumably these things should integrate somehow - for example,
-> > should devfreq and cpufreq be providing inputs into what AVS is doing,
-> > and if so how?
-
-> The way it is currently designed, cpufreq/devfreq/regulator layers don't
-> need to know about AVS.
-
-Yes, and that was a part of my concern, but see below.
-
-> The higher-level layers only know about the "nominal" voltage.  AVS
-> hardware does automatic, adaptive, micro-adjustments around that nominal
-> voltage, and these micro-adjustments are managed by the AVS hardware
-> sending commands to the PMIC.  (specifically, on OMAP, the AVS sensors
-> provide inputs to the voltage processor (VP) which provide inputs to the
-> voltage controller (VC) which sends commands to the PMIC[1].)
-
-Right, that's what I'd understood it to be. =20
-
-> The driver proposed here is primarily for initializing the various
-> parameters/sensitivity/etc. of the AVS hardware, but the actual voltage
-> adjustments are done in hardware by VC/VP.
-
-It's not just a driver, though - it's also creating this power/avs
-thing, though now I look at the code rather than just its shape there's
-not actually an abstraction being added here, it's mostly just straight
-code motion of the arch/arm code that's there already.  The changelog
-and the shape of the code make it sound like this is intended to be
-somewhat generic when really it's providing some OMAP specific tuning
-for the device which is much less of a concern.
-
-I guess for now it's probably OK to just clarify in the documentation
-and say that whoever adds the second driver has to work on making this
-generic :)
-
-This does also sound rather like it's in a similar area to the current
-management work which Durgadoss R (CCed) was working on, though with a
-slightly different application and in the OMAP case it's pretty much all
-hidden in the external processor.
-
---8P1HSweYDcXXzwPJ
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: Digital signature
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.4.12 (GNU/Linux)
-
-iQIcBAEBAgAGBQJPnmFNAAoJEBus8iNuMP3dhM8P/2QSv9mJ0brc+jjv0V77iy7f
-/fXc7pneBBwXwUPC5RJJGS0Qc/iTjaTN2QfYpw8TjdnuEKsOpwuz1W4UCZNRWKxu
-72dXmNB2u1F+Tf9rXBHZqW2OE6slDhuvhIdly/rOwjjmf6IGf37vJb2i+fA8V0gW
-aevaGzwC3asRM1QQxQ3fAKx7Xc4kdULG0ifJ/7mYoeFK0IBEHLusClhVJFTGOZ1i
-aHjD2I0ASGt7O1N3Ewg2a+uxaDjNvGLBRI2UxdmSoI68ygTIwizUkUFuZ1ozoP3I
-BP9AX3YuRZXwxVNYOv0sNSNgQ50mE7NYYbGinw7NiUyDHIQ9WSEml4ltJLC3Pt01
-vtrECuEy1ck7ewrGhbRvzrCnArOiVnt7cUYBd2TxGp3P8kJ0tnp9JvRnjYT6T3G7
-ISAlckx6ZcUaDCU0JxHhc4XmksI5upw0LojrwnlPJMOjcLkr6rr5e7t2d+3E4G2u
-lh0Uw5xNnT6Sthj2OS5wNTtzPrC5ltk2LLSAxhEM2fybEmg6twvxdAa19RpofyT0
-zgMtqA9vwjMintaGLdq05MNyeIGFu/ChJ55Y5rh8z0lQN3x0OJlD4nwN/dMadut+
-U/vOAP12ug4V6GamKuWrejOjKEpUVJdRoKNTWK6G9ZcajIa0ZAX+KTNFKvR+PAYz
-veNrHzL4OvV/3MabrWpy
-=WsSD
------END PGP SIGNATURE-----
-
---8P1HSweYDcXXzwPJ--
-
---===============8108554701136473573==
-Content-Type: text/plain; charset="us-ascii"
-MIME-Version: 1.0
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
+-Tero
 
 
---===============8108554701136473573==--
+On Wed, 2012-04-25 at 17:33 +1000, NeilBrown wrote:
+> The charger needs usb3v1 to be running, so add a new consumer to
+> keep it running.
+> 
+> This allows the charger to draw current even when the USB driver has
+> powered down.
+> 
+> Signed-off-by: NeilBrown <neilb@suse.de>
+> ---
+> 
+>  drivers/mfd/twl-core.c          |    9 +++++----
+>  drivers/power/twl4030_charger.c |   15 +++++++++++++++
+>  2 files changed, 20 insertions(+), 4 deletions(-)
+> 
+> diff --git a/drivers/mfd/twl-core.c b/drivers/mfd/twl-core.c
+> index 7c2267e..4cbf285 100644
+> --- a/drivers/mfd/twl-core.c
+> +++ b/drivers/mfd/twl-core.c
+> @@ -723,8 +723,9 @@ add_children(struct twl4030_platform_data *pdata, unsigned irq_base,
+>  		static struct regulator_consumer_supply usb1v8 = {
+>  			.supply =	"usb1v8",
+>  		};
+> -		static struct regulator_consumer_supply usb3v1 = {
+> -			.supply =	"usb3v1",
+> +		static struct regulator_consumer_supply usb3v1[] = {
+> +			{ .supply =	"usb3v1" },
+> +			{ .supply =	"bci3v1" },
+>  		};
+>  
+>  	/* First add the regulators so that they can be used by transceiver */
+> @@ -752,7 +753,7 @@ add_children(struct twl4030_platform_data *pdata, unsigned irq_base,
+>  				return PTR_ERR(child);
+>  
+>  			child = add_regulator_linked(TWL4030_REG_VUSB3V1,
+> -						      &usb_fixed, &usb3v1, 1,
+> +						      &usb_fixed, usb3v1, 2,
+>  						      features);
+>  			if (IS_ERR(child))
+>  				return PTR_ERR(child);
+> @@ -773,7 +774,7 @@ add_children(struct twl4030_platform_data *pdata, unsigned irq_base,
+>  		if (twl_has_regulator() && child) {
+>  			usb1v5.dev_name = dev_name(child);
+>  			usb1v8.dev_name = dev_name(child);
+> -			usb3v1.dev_name = dev_name(child);
+> +			usb3v1[0].dev_name = dev_name(child);
+>  		}
+>  	}
+>  	if (twl_has_usb() && pdata->usb && twl_class_is_6030()) {
+> diff --git a/drivers/power/twl4030_charger.c b/drivers/power/twl4030_charger.c
+> index 684662a..d9d8e4a 100644
+> --- a/drivers/power/twl4030_charger.c
+> +++ b/drivers/power/twl4030_charger.c
+> @@ -21,6 +21,7 @@
+>  #include <linux/power_supply.h>
+>  #include <linux/notifier.h>
+>  #include <linux/usb/otg.h>
+> +#include <linux/regulator/machine.h>
+>  
+>  #define TWL4030_BCIMSTATEC	0x02
+>  #define TWL4030_BCIICHG		0x08
+> @@ -86,6 +87,8 @@ struct twl4030_bci {
+>  	struct work_struct	work;
+>  	int			irq_chg;
+>  	int			irq_bci;
+> +	struct regulator	*usb_reg;
+> +	int			usb_enabled;
+>  
+>  	unsigned long		event;
+>  };
+> @@ -179,6 +182,12 @@ static int twl4030_charger_enable_usb(struct twl4030_bci *bci, bool enable)
+>  			return -EACCES;
+>  		}
+>  
+> +		/* Need to keep regulator on */
+> +		if (!bci->usb_enabled) {
+> +			regulator_enable(bci->usb_reg);
+> +			bci->usb_enabled = 1;
+> +		}
+> +
+>  		/* forcing the field BCIAUTOUSB (BOOT_BCI[1]) to 1 */
+>  		ret = twl4030_clear_set_boot_bci(0, TWL4030_BCIAUTOUSB);
+>  		if (ret < 0)
+> @@ -189,6 +198,10 @@ static int twl4030_charger_enable_usb(struct twl4030_bci *bci, bool enable)
+>  			TWL4030_USBFASTMCHG, TWL4030_BCIMFSTS4);
+>  	} else {
+>  		ret = twl4030_clear_set_boot_bci(TWL4030_BCIAUTOUSB, 0);
+> +		if (bci->usb_enabled) {
+> +			regulator_disable(bci->usb_reg);
+> +			bci->usb_enabled = 0;
+> +		}
+>  	}
+>  
+>  	return ret;
+> @@ -507,6 +520,8 @@ static int __init twl4030_bci_probe(struct platform_device *pdev)
+>  	bci->usb.num_properties = ARRAY_SIZE(twl4030_charger_props);
+>  	bci->usb.get_property = twl4030_bci_get_property;
+>  
+> +	bci->usb_reg = regulator_get(bci->dev, "bci3v1");
+> +
+>  	ret = power_supply_register(&pdev->dev, &bci->usb);
+>  	if (ret) {
+>  		dev_err(&pdev->dev, "failed to register usb: %d\n", ret);
+> 
+> 
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-omap" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
