@@ -1,103 +1,68 @@
 From: Kevin Hilman <khilman@ti.com>
-Subject: Re: [PATCH 1/6] ARM: OMAP4: hwmod: rename _enable_module to _omap4_enable_module()
-Date: Mon, 30 Apr 2012 10:15:52 -0700
-Message-ID: <877gwxw37b.fsf@ti.com>
-References: <1335557140-10854-1-git-send-email-khilman@ti.com>
-	<1335557140-10854-2-git-send-email-khilman@ti.com>
-	<alpine.DEB.2.00.1204300821290.10308@utopia.booyaka.com>
+Subject: Re: [PATCH/RFT 5/8] ARM: OMAP: clock: remove unused CK_3505 flag
+Date: Mon, 30 Apr 2012 10:19:40 -0700
+Message-ID: <87397lw30z.fsf@ti.com>
+References: <1335482993-14035-1-git-send-email-khilman@ti.com>
+	<1335482993-14035-6-git-send-email-khilman@ti.com>
+	<CAORVsuVgNKUcsM+GuQfahp0r5U=24qBQhrX1E-DewhNvh0hk7g@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aob106.obsmtp.com ([74.125.149.76]:51803 "EHLO
-	na3sys009aog106.obsmtp.com" rhost-flags-OK-OK-OK-FAIL)
-	by vger.kernel.org with ESMTP id S1754078Ab2D3RP4 (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>);
-	Mon, 30 Apr 2012 13:15:56 -0400
-Received: by pbcwy7 with SMTP id wy7so749415pbc.31
-        for <linux-omap@vger.kernel.org>; Mon, 30 Apr 2012 10:15:55 -0700 (PDT)
-In-Reply-To: <alpine.DEB.2.00.1204300821290.10308@utopia.booyaka.com> (Paul
-	Walmsley's message of "Mon, 30 Apr 2012 08:22:25 -0600 (MDT)")
+Received: from na3sys009aog126.obsmtp.com ([74.125.149.155]:55327 "EHLO
+	na3sys009aog126.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1755985Ab2D3RTp convert rfc822-to-8bit
+	(ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Mon, 30 Apr 2012 13:19:45 -0400
+Received: by pbbrp2 with SMTP id rp2so1357299pbb.0
+        for <linux-omap@vger.kernel.org>; Mon, 30 Apr 2012 10:19:43 -0700 (PDT)
+In-Reply-To: <CAORVsuVgNKUcsM+GuQfahp0r5U=24qBQhrX1E-DewhNvh0hk7g@mail.gmail.com>
+	(Jean Pihet's message of "Mon, 30 Apr 2012 11:05:41 +0200")
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Paul Walmsley <paul@pwsan.com>
+To: Jean Pihet <jean.pihet@newoldbits.com>
 Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 
-Paul Walmsley <paul@pwsan.com> writes:
+Jean Pihet <jean.pihet@newoldbits.com> writes:
 
 > Hi Kevin,
 >
-> On Fri, 27 Apr 2012, Kevin Hilman wrote:
->
->> _enable_module is specific to OMAP4-class SoCs, so rename it to
->> be consistend with the corresponding _omap4_disable_module.
->> 
+> On Fri, Apr 27, 2012 at 1:29 AM, Kevin Hilman <khilman@ti.com> wrote:
+>> This flag is no longer used since clock init all AM35x devices
+>> is now the same.
+>>
+>> Acked-by: Vaibhav Hiremath <hvaibhav@ti.com>
+>> Tested-by: Vaibhav Hiremath <hvaibhav@ti.com>
 >> Signed-off-by: Kevin Hilman <khilman@ti.com>
->
-> I tweaked the commit message here a little bit - please let me know if you 
-> have any comments.
+>> ---
+>> =C2=A0arch/arm/plat-omap/include/plat/clkdev_omap.h | =C2=A0 =C2=A03=
+ +--
+>> =C2=A01 file changed, 1 insertion(+), 2 deletions(-)
+>>
+>> diff --git a/arch/arm/plat-omap/include/plat/clkdev_omap.h b/arch/ar=
+m/plat-omap/include/plat/clkdev_omap.h
+>> index b299b8d..45afa4d 100644
+>> --- a/arch/arm/plat-omap/include/plat/clkdev_omap.h
+>> +++ b/arch/arm/plat-omap/include/plat/clkdev_omap.h
+>> @@ -34,7 +34,6 @@ struct omap_clk {
+>> =C2=A0#define CK_243X =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0=
+ =C2=A0(1 << 5) =C2=A0 =C2=A0 =C2=A0 =C2=A0/* 243x, 253x */
+>> =C2=A0#define CK_3430ES1 =C2=A0 =C2=A0 (1 << 6) =C2=A0 =C2=A0 =C2=A0=
+ =C2=A0/* 34xxES1 only */
+>> =C2=A0#define CK_3430ES2PLUS (1 << 7) =C2=A0 =C2=A0 =C2=A0 =C2=A0/* =
+34xxES2, ES3, non-Sitara 35xx only */
+>> -#define CK_3505 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=
+=A0(1 << 8)
+>> =C2=A0#define CK_3517 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0=
+ =C2=A0(1 << 9)
+> If this is the only flag remaining, should it better be renamed to CK=
+_35XX?
 
-Yes, that's better.   I wrote OMAP4-class SoCs, I meant OMAP4-class
-PRCM, so the updated changelog looks good.  Thanks.
-
-Also, the rest of your changes to the series look good to me.
-
-Thanks,
+That happens later in the series.
 
 Kevin
-
-> From: Kevin Hilman <khilman@ti.com>
-> Date: Fri, 27 Apr 2012 22:25:59 -0600
-> Subject: [PATCH 1/6] ARM: OMAP4: hwmod: rename _enable_module to
->  _omap4_enable_module()
->
-> _enable_module is specific to SoCs with PRCM interfaces similar to
-> that of the OMAP4, so rename it to be consistent with the
-> corresponding _omap4_disable_module.
->
-> Signed-off-by: Kevin Hilman <khilman@ti.com>
-> [paul@pwsan.com: tweaked commit message]
-> Signed-off-by: Paul Walmsley <paul@pwsan.com>
-> ---
->  arch/arm/mach-omap2/omap_hwmod.c |   10 +++++-----
->  1 file changed, 5 insertions(+), 5 deletions(-)
->
-> diff --git a/arch/arm/mach-omap2/omap_hwmod.c b/arch/arm/mach-omap2/omap_hwmod.c
-> index bf86f7e..939032a 100644
-> --- a/arch/arm/mach-omap2/omap_hwmod.c
-> +++ b/arch/arm/mach-omap2/omap_hwmod.c
-> @@ -771,13 +771,13 @@ static void _disable_optional_clocks(struct omap_hwmod *oh)
->  }
->  
->  /**
-> - * _enable_module - enable CLKCTRL modulemode on OMAP4
-> + * _omap4_enable_module - enable CLKCTRL modulemode on OMAP4
->   * @oh: struct omap_hwmod *
->   *
->   * Enables the PRCM module mode related to the hwmod @oh.
->   * No return value.
->   */
-> -static void _enable_module(struct omap_hwmod *oh)
-> +static void _omap4_enable_module(struct omap_hwmod *oh)
->  {
->  	/* The module mode does not exist prior OMAP4 */
->  	if (cpu_is_omap24xx() || cpu_is_omap34xx())
-> @@ -786,8 +786,8 @@ static void _enable_module(struct omap_hwmod *oh)
->  	if (!oh->clkdm || !oh->prcm.omap4.modulemode)
->  		return;
->  
-> -	pr_debug("omap_hwmod: %s: _enable_module: %d\n",
-> -		 oh->name, oh->prcm.omap4.modulemode);
-> +	pr_debug("omap_hwmod: %s: %s: %d\n",
-> +		 oh->name, __func__, oh->prcm.omap4.modulemode);
->  
->  	omap4_cminst_module_enable(oh->prcm.omap4.modulemode,
->  				   oh->clkdm->prcm_partition,
-> @@ -1814,7 +1814,7 @@ static int _enable(struct omap_hwmod *oh)
->  	}
->  
->  	_enable_clocks(oh);
-> -	_enable_module(oh);
-> +	_omap4_enable_module(oh);
->  
->  	r = _wait_target_ready(oh);
->  	if (!r) {
+--
+To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
