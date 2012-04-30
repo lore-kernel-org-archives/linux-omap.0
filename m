@@ -1,105 +1,91 @@
-From: NeilBrown <neilb@suse.de>
-Subject: Re: [PATCH 3/6] twl4030_charger: allow charging whenever VBUS is
- present.
-Date: Mon, 30 Apr 2012 09:34:30 +1000
-Message-ID: <20120430093430.17efed8a@notabene.brown>
-References: <20120425072931.20124.56635.stgit@notabene.brown>
-	<20120425073310.20124.15112.stgit@notabene.brown>
-	<CANOLnOO2kkyPUrRJiF-EX6NddG746gWvJ_fZrZPr0TC6DkbH9g@mail.gmail.com>
+From: "J, KEERTHY" <j-keerthy@ti.com>
+Subject: Re: [PATCH V3 00/10] PM: Create the AVS(Adaptive Voltage Scaling)
+Date: Mon, 30 Apr 2012 09:55:26 +0530
+Message-ID: <CAJ6a13ZFj47nps1teNHyE3FyzZOUBx9HDOL-3_CNC+_vdbs6ag@mail.gmail.com>
+References: <1335462041-4949-1-git-send-email-j-keerthy@ti.com>
+	<20120426191159.GA9415@sirena.org.uk>
+	<CAJ6a13a6WN9h1QZynpEOf-R6RXwWBZ2eOPkTeNc15JX_YfAz_w@mail.gmail.com>
+	<20120427175657.GP18260@opensource.wolfsonmicro.com>
+	<87397o3n4y.fsf@ti.com>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=PGP-SHA1;
- boundary="Sig_/IgZlEJprE52JgbA66Ex.pb0"; protocol="application/pgp-signature"
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <CANOLnOO2kkyPUrRJiF-EX6NddG746gWvJ_fZrZPr0TC6DkbH9g@mail.gmail.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Grazvydas Ignotas <notasas@gmail.com>
-Cc: Samuel Ortiz <sameo@linux.intel.com>, Felipe Balbi <balbi@ti.com>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, linux-kernel@vger.kernel.org, linux-usb@vger.kernel.org, linux-omap@vger.kernel.org
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from na3sys009aog130.obsmtp.com ([74.125.149.143]:52051 "EHLO
+	na3sys009aog130.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1751205Ab2D3EZ1 convert rfc822-to-8bit
+	(ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Mon, 30 Apr 2012 00:25:27 -0400
+Received: by obcni5 with SMTP id ni5so4574854obc.13
+        for <linux-omap@vger.kernel.org>; Sun, 29 Apr 2012 21:25:26 -0700 (PDT)
+In-Reply-To: <87397o3n4y.fsf@ti.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Kevin Hilman <khilman@ti.com>
+Cc: Mark Brown <broonie@opensource.wolfsonmicro.com>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, rjw@sisk.pl, linux-kernel@vger.kernel.org, linux-pm@lists.linux-foundation.org, j-pihet@ti.com
 
---Sig_/IgZlEJprE52JgbA66Ex.pb0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: quoted-printable
+On Sat, Apr 28, 2012 at 2:31 AM, Kevin Hilman <khilman@ti.com> wrote:
+> Hi Mark,
+>
+> Mark Brown <broonie@opensource.wolfsonmicro.com> writes:
+>
+>> On Fri, Apr 27, 2012 at 11:09:10AM +0530, J, KEERTHY wrote:
+>>
+>>> Devfreq and cpufreq are related to dynamic frequency/voltage switch=
+ing between
+>>> pre defined Operating Performance Points or the OPPs. Every OPP bei=
+ng
+>>> a voltage/frequency pair. Smartreflex is a different
+>>> power management technique.
+>>
+>> But presumably these things should integrate somehow - for example,
+>> should devfreq and cpufreq be providing inputs into what AVS is doin=
+g,
+>> and if so how?
+>
+> The way it is currently designed, cpufreq/devfreq/regulator layers do=
+n't
+> need to know about AVS.
+>
+> The higher-level layers only know about the "nominal" voltage. =A0AVS
+> hardware does automatic, adaptive, micro-adjustments around that nomi=
+nal
+> voltage, and these micro-adjustments are managed by the AVS hardware
+> sending commands to the PMIC. =A0(specifically, on OMAP, the AVS sens=
+ors
+> provide inputs to the voltage processor (VP) which provide inputs to =
+the
+> voltage controller (VC) which sends commands to the PMIC[1].)
+>
+> The driver proposed here is primarily for initializing the various
+> parameters/sensitivity/etc. of the AVS hardware, but the actual volta=
+ge
+> adjustments are done in hardware by VC/VP.
+>
+> The only thing the higher-level layers might potentially need to do t=
+o
+> enable/disable AVS around transitions (e.g. when changing OPP, AVS is
+> disabled before changing OPP and only re-enabled when the new nominal
+> voltage has been acheived.)
+>
+> On OMAP, we handle this inside the OMAP-specific voltage layer which =
+is
+> called by the regulator framework, so even the regulators do not need
+> any knowledge of AVS.
+>
+> Kevin
+>
+> [1] Figure 3-76 in OMAP4430 ES2.1 Public TRM vAD provides a
+> =A0 =A0detailed diagram:
+> =A0 =A0http://www.ti.com/pdfs/wtbu/OMAP4430_ES2.x_PUBLIC_TRM_vAD.zip
 
-On Wed, 25 Apr 2012 14:33:25 +0300 Grazvydas Ignotas <notasas@gmail.com>
-wrote:
+Thanks for the detailed answer Kevin.
 
-> On Wed, Apr 25, 2012 at 10:33 AM, NeilBrown <neilb@suse.de> wrote:
-> > We currently refuse to charge if the USB ID pin is grounded, even
-> > though VBUS might be present.
-> > However some chargers do pull the ID pin low through a resistor which
-> > might be as low as 47Kohm (openmoko charger).
-> >
-> > The documentation is unclear but some experimental evidence suggests
-> > that when the charge pump provides VBUS that doesn't get reflected in
-> > HW_CONDITIONS, so we should be safe to ignore the ID pin.
->=20
-> On pandora I see the opposite, STS_VBUS is set regardless of who
-> drives it, so this will break pandora..
-
-OK... I guess this needs more thought.
-I'll withdraw this patch and 6/6 for now.
-The rest should be good to go.  Maybe I'll resend them an include Anton
-Vorontsov..
-
-Thanks,
-NeilBrown
-
->=20
-> >
-> > Signed-off-by: NeilBrown <neilb@suse.de>
-> > ---
-> >
-> > =C2=A0drivers/power/twl4030_charger.c | =C2=A0 =C2=A06 +-----
-> > =C2=A01 file changed, 1 insertion(+), 5 deletions(-)
-> >
-> > diff --git a/drivers/power/twl4030_charger.c b/drivers/power/twl4030_ch=
-arger.c
-> > index 0511610..684662a 100644
-> > --- a/drivers/power/twl4030_charger.c
-> > +++ b/drivers/power/twl4030_charger.c
-> > @@ -155,11 +155,7 @@ static int twl4030_bci_have_vbus(struct twl4030_bc=
-i *bci)
-> >
-> > =C2=A0 =C2=A0 =C2=A0 =C2=A0dev_dbg(bci->dev, "check_vbus: HW_CONDITIONS=
- %02x\n", hwsts);
-> >
-> > - =C2=A0 =C2=A0 =C2=A0 /* in case we also have STS_USB_ID, VBUS is driv=
-en by TWL itself */
-> > - =C2=A0 =C2=A0 =C2=A0 if ((hwsts & TWL4030_STS_VBUS) && !(hwsts & TWL4=
-030_STS_USB_ID))
-> > - =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 return 1;
-> > -
-> > - =C2=A0 =C2=A0 =C2=A0 return 0;
-> > + =C2=A0 =C2=A0 =C2=A0 return (hwsts & TWL4030_STS_VBUS);
-> > =C2=A0}
-> >
-> > =C2=A0/*
-> >
-> >
->=20
->=20
-
-
---Sig_/IgZlEJprE52JgbA66Ex.pb0
-Content-Type: application/pgp-signature; name=signature.asc
-Content-Disposition: attachment; filename=signature.asc
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v2.0.18 (GNU/Linux)
-
-iQIVAwUBT53QBjnsnt1WYoG5AQJIMhAAnujJM2yR8TpVVDkyKYA4Q2vkXM7wDVv8
-nR2vuAUxLDQ4URBwylFbvniYnzLEPn/NJ9hI1eBOakVr+sCuoJFpoJsw040ln5+2
-lk+QWEPp05kh9inEp0+/Du15eJ7IUrYmhdqbXHqeSmzz7VgihY2j+JDvhX1tR8W+
-e0zYJHZ+CWauCW1RnLUrBpCNu1JFBeXJTTk7ivxb87CocDjMbiJMdiqJqhwUj7gj
-gt+thlk7NxV4wJ/5WiqFiw7EMV4gCqsxTXqhBZsrWhklbuOjbh9YwvifDLjqWgYY
-gGLZy+ib6SZugb95BaDezLdj/7ThRtvTjeOVlad0YxphGm+0eFiRyxTzHwuAK4s8
-QlVeY1yjxaa+tSGxSmbRo0LKfBDwEl4IAEfCoIoz9oO+NPt6bKftKoZI1Pcty+qt
-0Xj2NxQ52hja0ksu06hGnwza0SdDer/O8ILq84g80hVpWcOAhuV7cDWH01Hgg0EV
-za9tkhwtPn5cXKUyUiVOH1sPsyJ5iVhDV8Lp4uPIhi6d9bEvblAoLQHU4cg5bMSg
-P8G8iitIPtJazSBzrJWVXK7qe4cu8/RKIb+yQpD32QNC8ekXoxtpoYmNxDK6844/
-1Jt70125lKXsQxrxi/3nmo+i6l8uczDMPtO470Tf5ikIDolQkYgNpSbuELrF3KVB
-bkM0GB4LQoA=
-=VsrG
------END PGP SIGNATURE-----
-
---Sig_/IgZlEJprE52JgbA66Ex.pb0--
+--=20
+Regards and Thanks,
+Keerthy
+--
+To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
