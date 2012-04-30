@@ -1,12 +1,12 @@
 From: "Mark A. Greer" <mgreer@animalcreek.com>
-Subject: [PATCH] arm: omap: Use only valid power domain states
-Date: Mon, 30 Apr 2012 14:25:26 -0700
-Message-ID: <1335821126-12994-1-git-send-email-mgreer@animalcreek.com>
+Subject: [PATCH] arm: omap3: am35x: Set proper powerdomain states
+Date: Mon, 30 Apr 2012 14:26:48 -0700
+Message-ID: <1335821208-13098-1-git-send-email-mgreer@animalcreek.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail20.dotsterhost.com ([66.11.232.73]:35851 "EHLO
+Received: from mail20.dotsterhost.com ([66.11.232.73]:38643 "EHLO
 	mail20.dotsterhost.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756418Ab2D3VZe (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 30 Apr 2012 17:25:34 -0400
+	with ESMTP id S1756418Ab2D3V1B (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 30 Apr 2012 17:27:01 -0400
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
@@ -14,169 +14,220 @@ Cc: khilman@ti.com, paul@pwsan.com, "Mark A. Greer" <mgreer@animalcreek.com>
 
 From: "Mark A. Greer" <mgreer@animalcreek.com>
 
-Some parts of the OMAP code assume that all power
-domains support certain states (e.g., RET & OFF).
-This isn't always true (e.g., the am35x family of
-SoC's) so those assumptions need to be removed.
-
-Remove those assumptions by looking up the deepest
-state that a power domain can be in whereever its
-being blindly set.  The 'max()' of the deepest
-state and what the code formerly wanted to set it
-to, is the correct state.  If the code formerly
-wanted to set it to PWRDM_POWER_OFF, then the
-deepest possible state will be used (i.e., no
-need to perform the 'max()').
-
-The code still assumes that ON is a valid state.
+The am35x family of SoCs only support the PWRSTS_ON
+state so create a new set of powerdomain structures
+that ensure that only the ON state is entered.
 
 Signed-off-by: Mark A. Greer <mgreer@animalcreek.com>
 ---
 
 These patches apply on top of Kevin's patch series,
-      "[PATCH/RFT 0/8] ARM: OMAP: remove IP checks from SoC family detection"
+    "[PATCH/RFT 0/8] ARM: OMAP: remove IP checks from SoC family detection"
 
 Tested on an am3517 evm and am37x evm.
 
- arch/arm/mach-omap2/cpuidle34xx.c |   19 +++++++++++++------
- arch/arm/mach-omap2/pm34xx.c      |   15 +++++++++------
- arch/arm/mach-omap2/powerdomain.c |   25 +++++++++++++++++++++++++
- arch/arm/mach-omap2/powerdomain.h |    2 ++
- 4 files changed, 49 insertions(+), 12 deletions(-)
+ arch/arm/mach-omap2/powerdomains3xxx_data.c |  136 ++++++++++++++++++++++++---
+ 1 file changed, 124 insertions(+), 12 deletions(-)
 
-diff --git a/arch/arm/mach-omap2/cpuidle34xx.c b/arch/arm/mach-omap2/cpuidle34xx.c
-index 5358664..2c91711 100644
---- a/arch/arm/mach-omap2/cpuidle34xx.c
-+++ b/arch/arm/mach-omap2/cpuidle34xx.c
-@@ -175,19 +175,25 @@ static int next_valid_state(struct cpuidle_device *dev,
- 	struct cpuidle_state_usage *curr_usage = &dev->states_usage[index];
- 	struct cpuidle_state *curr = &drv->states[index];
- 	struct omap3_idle_statedata *cx = cpuidle_get_statedata(curr_usage);
--	u32 mpu_deepest_state = PWRDM_POWER_RET;
--	u32 core_deepest_state = PWRDM_POWER_RET;
-+	u32 mpu_deepest_state, mpu_deepest_possible;
-+	u32 core_deepest_state, core_deepest_possible;
- 	int next_index = -1;
+diff --git a/arch/arm/mach-omap2/powerdomains3xxx_data.c b/arch/arm/mach-omap2/powerdomains3xxx_data.c
+index fb0a0a6..6ec06ad 100644
+--- a/arch/arm/mach-omap2/powerdomains3xxx_data.c
++++ b/arch/arm/mach-omap2/powerdomains3xxx_data.c
+@@ -71,6 +71,22 @@ static struct powerdomain mpu_3xxx_pwrdm = {
+ 	.voltdm           = { .name = "mpu_iva" },
+ };
  
-+	mpu_deepest_possible = pwrdm_get_deepest_state(mpu_pd);
-+	mpu_deepest_state = max_t(u32, mpu_deepest_possible, PWRDM_POWER_RET);
++static struct powerdomain mpu_am35x_pwrdm = {
++	.name		  = "mpu_pwrdm",
++	.prcm_offs	  = MPU_MOD,
++	.pwrsts		  = PWRSTS_ON,
++	.pwrsts_logic_ret = PWRSTS_ON,
++	.flags		  = PWRDM_HAS_MPU_QUIRK,
++	.banks		  = 1,
++	.pwrsts_mem_ret	  = {
++		[0] = PWRSTS_ON,
++	},
++	.pwrsts_mem_on	  = {
++		[0] = PWRSTS_ON,
++	},
++	.voltdm           = { .name = "mpu_iva" },
++};
 +
-+	core_deepest_possible = pwrdm_get_deepest_state(core_pd);
-+	core_deepest_state = max_t(u32, core_deepest_possible, PWRDM_POWER_RET);
-+
- 	if (enable_off_mode) {
--		mpu_deepest_state = PWRDM_POWER_OFF;
-+		mpu_deepest_state = mpu_deepest_possible;
- 		/*
- 		 * Erratum i583: valable for ES rev < Es1.2 on 3630.
- 		 * CORE OFF mode is not supported in a stable form, restrict
- 		 * instead the CORE state to RET.
- 		 */
- 		if (!IS_PM34XX_ERRATUM(PM_SDRC_WAKEUP_ERRATUM_i583))
--			core_deepest_state = PWRDM_POWER_OFF;
-+			core_deepest_state = core_deepest_possible;
- 	}
+ /*
+  * The USBTLL Save-and-Restore mechanism is broken on
+  * 3430s up to ES3.0 and 3630ES1.0. Hence this feature
+@@ -120,6 +136,23 @@ static struct powerdomain core_3xxx_es3_1_pwrdm = {
+ 	.voltdm           = { .name = "core" },
+ };
  
- 	/* Check if current state is valid */
-@@ -422,8 +428,9 @@ int __init omap3_idle_init(void)
- 		pr_warn("%s: core off state C7 disabled due to i583\n",
- 			__func__);
- 	}
--	cx->mpu_state = PWRDM_POWER_OFF;
--	cx->core_state = PWRDM_POWER_OFF;
++static struct powerdomain core_am35x_pwrdm = {
++	.name		  = "core_pwrdm",
++	.prcm_offs	  = CORE_MOD,
++	.pwrsts		  = PWRSTS_ON,
++	.pwrsts_logic_ret = PWRSTS_ON,
++	.banks		  = 2,
++	.pwrsts_mem_ret	  = {
++		[0] = PWRSTS_ON,	 /* MEM1RETSTATE */
++		[1] = PWRSTS_ON,	 /* MEM2RETSTATE */
++	},
++	.pwrsts_mem_on	  = {
++		[0] = PWRSTS_ON, /* MEM1ONSTATE */
++		[1] = PWRSTS_ON, /* MEM2ONSTATE */
++	},
++	.voltdm           = { .name = "core" },
++};
 +
-+	cx->mpu_state = pwrdm_get_deepest_state(mpu_pd);
-+	cx->core_state = pwrdm_get_deepest_state(core_pd);
+ static struct powerdomain dss_pwrdm = {
+ 	.name		  = "dss_pwrdm",
+ 	.prcm_offs	  = OMAP3430_DSS_MOD,
+@@ -135,6 +168,21 @@ static struct powerdomain dss_pwrdm = {
+ 	.voltdm           = { .name = "core" },
+ };
  
- 	drv->state_count = OMAP3_NUM_STATES;
- 	cpuidle_register_driver(&omap3_idle_driver);
-diff --git a/arch/arm/mach-omap2/pm34xx.c b/arch/arm/mach-omap2/pm34xx.c
-index ec92676..40d8d07 100644
---- a/arch/arm/mach-omap2/pm34xx.c
-+++ b/arch/arm/mach-omap2/pm34xx.c
-@@ -614,12 +614,11 @@ void omap3_pm_off_mode_enable(int enable)
- 	struct power_state *pwrst;
- 	u32 state;
- 
--	if (enable)
--		state = PWRDM_POWER_OFF;
--	else
--		state = PWRDM_POWER_RET;
--
- 	list_for_each_entry(pwrst, &pwrst_list, node) {
-+		state = pwrdm_get_deepest_state(pwrst->pwrdm);
-+		if (!enable)
-+			state = max_t(u32, state, PWRDM_POWER_RET);
++static struct powerdomain dss_am35x_pwrdm = {
++	.name		  = "dss_pwrdm",
++	.prcm_offs	  = OMAP3430_DSS_MOD,
++	.pwrsts		  = PWRSTS_ON,
++	.pwrsts_logic_ret = PWRSTS_ON,
++	.banks		  = 1,
++	.pwrsts_mem_ret	  = {
++		[0] = PWRSTS_ON, /* MEMRETSTATE */
++	},
++	.pwrsts_mem_on	  = {
++		[0] = PWRSTS_ON,  /* MEMONSTATE */
++	},
++	.voltdm           = { .name = "core" },
++};
 +
- 		if (IS_PM34XX_ERRATUM(PM_SDRC_WAKEUP_ERRATUM_i583) &&
- 				pwrst->pwrdm == core_pwrdm &&
- 				state == PWRDM_POWER_OFF) {
-@@ -660,6 +659,7 @@ int omap3_pm_set_suspend_state(struct powerdomain *pwrdm, int state)
- static int __init pwrdms_setup(struct powerdomain *pwrdm, void *unused)
+ /*
+  * Although the 34XX TRM Rev K Table 4-371 notes that retention is a
+  * possible SGX powerstate, the SGX device itself does not support
+@@ -156,6 +204,21 @@ static struct powerdomain sgx_pwrdm = {
+ 	.voltdm           = { .name = "core" },
+ };
+ 
++static struct powerdomain sgx_am35x_pwrdm = {
++	.name		  = "sgx_pwrdm",
++	.prcm_offs	  = OMAP3430ES2_SGX_MOD,
++	.pwrsts		  = PWRSTS_ON,
++	.pwrsts_logic_ret = PWRSTS_ON,
++	.banks		  = 1,
++	.pwrsts_mem_ret	  = {
++		[0] = PWRSTS_ON, /* MEMRETSTATE */
++	},
++	.pwrsts_mem_on	  = {
++		[0] = PWRSTS_ON,  /* MEMONSTATE */
++	},
++	.voltdm           = { .name = "core" },
++};
++
+ static struct powerdomain cam_pwrdm = {
+ 	.name		  = "cam_pwrdm",
+ 	.prcm_offs	  = OMAP3430_CAM_MOD,
+@@ -186,6 +249,21 @@ static struct powerdomain per_pwrdm = {
+ 	.voltdm           = { .name = "core" },
+ };
+ 
++static struct powerdomain per_am35x_pwrdm = {
++	.name		  = "per_pwrdm",
++	.prcm_offs	  = OMAP3430_PER_MOD,
++	.pwrsts		  = PWRSTS_ON,
++	.pwrsts_logic_ret = PWRSTS_ON,
++	.banks		  = 1,
++	.pwrsts_mem_ret	  = {
++		[0] = PWRSTS_ON, /* MEMRETSTATE */
++	},
++	.pwrsts_mem_on	  = {
++		[0] = PWRSTS_ON,  /* MEMONSTATE */
++	},
++	.voltdm           = { .name = "core" },
++};
++
+ static struct powerdomain emu_pwrdm = {
+ 	.name		= "emu_pwrdm",
+ 	.prcm_offs	= OMAP3430_EMU_MOD,
+@@ -200,6 +278,14 @@ static struct powerdomain neon_pwrdm = {
+ 	.voltdm           = { .name = "mpu_iva" },
+ };
+ 
++static struct powerdomain neon_am35x_pwrdm = {
++	.name		  = "neon_pwrdm",
++	.prcm_offs	  = OMAP3430_NEON_MOD,
++	.pwrsts		  = PWRSTS_ON,
++	.pwrsts_logic_ret = PWRSTS_ON,
++	.voltdm           = { .name = "mpu_iva" },
++};
++
+ static struct powerdomain usbhost_pwrdm = {
+ 	.name		  = "usbhost_pwrdm",
+ 	.prcm_offs	  = OMAP3430ES2_USBHOST_MOD,
+@@ -293,6 +379,22 @@ static struct powerdomain *powerdomains_omap3430es3_1plus[] __initdata = {
+ 	NULL
+ };
+ 
++static struct powerdomain *powerdomains_am35x[] __initdata = {
++	&wkup_omap2_pwrdm,
++	&mpu_am35x_pwrdm,
++	&neon_am35x_pwrdm,
++	&core_am35x_pwrdm,
++	&sgx_am35x_pwrdm,
++	&dss_am35x_pwrdm,
++	&per_am35x_pwrdm,
++	&emu_pwrdm,
++	&dpll1_pwrdm,
++	&dpll3_pwrdm,
++	&dpll4_pwrdm,
++	&dpll5_pwrdm,
++	NULL
++};
++
+ void __init omap3xxx_powerdomains_init(void)
  {
- 	struct power_state *pwrst;
-+	u32 state;
+ 	unsigned int rev;
+@@ -301,21 +403,31 @@ void __init omap3xxx_powerdomains_init(void)
+ 		return;
  
- 	if (!pwrdm->pwrsts)
- 		return 0;
-@@ -668,7 +668,10 @@ static int __init pwrdms_setup(struct powerdomain *pwrdm, void *unused)
- 	if (!pwrst)
- 		return -ENOMEM;
- 	pwrst->pwrdm = pwrdm;
--	pwrst->next_state = PWRDM_POWER_RET;
+ 	pwrdm_register_platform_funcs(&omap3_pwrdm_operations);
+-	pwrdm_register_pwrdms(powerdomains_omap3430_common);
+ 
+ 	rev = omap_rev();
+ 
+-	if (rev == OMAP3430_REV_ES1_0)
+-		pwrdm_register_pwrdms(powerdomains_omap3430es1);
+-	else if (rev == OMAP3430_REV_ES2_0 || rev == OMAP3430_REV_ES2_1 ||
+-		 rev == OMAP3430_REV_ES3_0 || rev == OMAP3630_REV_ES1_0)
+-		pwrdm_register_pwrdms(powerdomains_omap3430es2_es3_0);
+-	else if (rev == OMAP3430_REV_ES3_1 || rev == OMAP3430_REV_ES3_1_2 ||
+-		 rev == AM35XX_REV_ES1_0 || rev == AM35XX_REV_ES1_1 ||
+-		 rev == OMAP3630_REV_ES1_1 || rev == OMAP3630_REV_ES1_2)
+-		pwrdm_register_pwrdms(powerdomains_omap3430es3_1plus);
+-	else
+-		WARN(1, "OMAP3 powerdomain init: unknown chip type\n");
++	if (rev == AM35XX_REV_ES1_0 || rev == AM35XX_REV_ES1_1) {
++		pwrdm_register_pwrdms(powerdomains_am35x);
++	} else {
++		pwrdm_register_pwrdms(powerdomains_omap3430_common);
 +
-+	state = pwrdm_get_deepest_state(pwrdm);
-+	pwrst->next_state = max_t(u32, state, PWRDM_POWER_RET);
-+
- 	list_add(&pwrst->node, &pwrst_list);
++		if (rev == OMAP3430_REV_ES1_0)
++			pwrdm_register_pwrdms(powerdomains_omap3430es1);
++		else if (rev == OMAP3430_REV_ES2_0 ||
++			 rev == OMAP3430_REV_ES2_1 ||
++			 rev == OMAP3430_REV_ES3_0 ||
++			 rev == OMAP3630_REV_ES1_0)
++			pwrdm_register_pwrdms(powerdomains_omap3430es2_es3_0);
++		else if (rev == OMAP3430_REV_ES3_1 ||
++			 rev == OMAP3430_REV_ES3_1_2 ||
++			 rev == AM35XX_REV_ES1_0 ||
++			 rev == AM35XX_REV_ES1_1 ||
++			 rev == OMAP3630_REV_ES1_1 ||
++			 rev == OMAP3630_REV_ES1_2)
++			pwrdm_register_pwrdms(powerdomains_omap3430es3_1plus);
++		else
++			WARN(1, "OMAP3 powerdomain init: unknown chip type\n");
++	}
  
- 	if (pwrdm_has_hdwr_sar(pwrdm))
-diff --git a/arch/arm/mach-omap2/powerdomain.c b/arch/arm/mach-omap2/powerdomain.c
-index 96ad3dbe..9c80c19 100644
---- a/arch/arm/mach-omap2/powerdomain.c
-+++ b/arch/arm/mach-omap2/powerdomain.c
-@@ -1078,3 +1078,28 @@ bool pwrdm_can_ever_lose_context(struct powerdomain *pwrdm)
- 
- 	return 0;
+ 	pwrdm_complete_init();
  }
-+
-+/**
-+ * pwrdm_get_deepest_state - Get deepest valid state domain can enter
-+ * @pwrdm: struct powerdomain *
-+ *
-+ * Find and return the deepest valid state a power domain can be in.
-+ * Returns the deepest state that @pwrdm can enter.
-+ */
-+u32 pwrdm_get_deepest_state(struct powerdomain *pwrdm)
-+{
-+	u32 valid_states, deepest_state;
-+
-+	valid_states = pwrdm->pwrsts;
-+
-+	if (valid_states & PWRSTS_OFF)
-+		deepest_state = PWRDM_POWER_OFF;
-+	else if (valid_states & PWRSTS_RET)
-+		deepest_state = PWRDM_POWER_RET;
-+	else if (valid_states & PWRSTS_INACTIVE)
-+		deepest_state = PWRDM_POWER_INACTIVE;
-+	else
-+		deepest_state = PWRDM_POWER_ON;
-+
-+	return deepest_state;
-+}
-diff --git a/arch/arm/mach-omap2/powerdomain.h b/arch/arm/mach-omap2/powerdomain.h
-index 0d72a8a..9688ff1 100644
---- a/arch/arm/mach-omap2/powerdomain.h
-+++ b/arch/arm/mach-omap2/powerdomain.h
-@@ -220,6 +220,8 @@ int pwrdm_set_lowpwrstchange(struct powerdomain *pwrdm);
- int pwrdm_get_context_loss_count(struct powerdomain *pwrdm);
- bool pwrdm_can_ever_lose_context(struct powerdomain *pwrdm);
- 
-+u32 pwrdm_get_deepest_state(struct powerdomain *pwrdm);
-+
- extern void omap242x_powerdomains_init(void);
- extern void omap243x_powerdomains_init(void);
- extern void omap3xxx_powerdomains_init(void);
 -- 
 1.7.9.4
 
