@@ -1,257 +1,182 @@
-From: Jon Hunter <jon-hunter@ti.com>
-Subject: [PATCH V3 2/2] of: selftest/dma: Add selftest for new DT DMA
-Date: Mon, 30 Apr 2012 16:20:08 -0500
-Message-ID: <1335820808-28806-1-git-send-email-jon-hunter@ti.com>
-Mime-Version: 1.0
-Content-Type: text/plain
+From: "Mark A. Greer" <mgreer@animalcreek.com>
+Subject: [PATCH] arm: omap: Use only valid power domain states
+Date: Mon, 30 Apr 2012 14:25:26 -0700
+Message-ID: <1335821126-12994-1-git-send-email-mgreer@animalcreek.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from bear.ext.ti.com ([192.94.94.41]:57070 "EHLO bear.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1756967Ab2D3VU3 (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Mon, 30 Apr 2012 17:20:29 -0400
+Received: from mail20.dotsterhost.com ([66.11.232.73]:35851 "EHLO
+	mail20.dotsterhost.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756418Ab2D3VZe (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 30 Apr 2012 17:25:34 -0400
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: device-tree <devicetree-discuss@lists.ozlabs.org>
-Cc: linux-omap <linux-omap@vger.kernel.org>, linux-arm <linux-arm-kernel@lists.infradead.org>, Jon Hunter <jon-hunter@ti.com>, Nicolas Ferre <nicolas.ferre@atmel.com>, Benoit Cousson <b-cousson@ti.com>, Stephen Warren <swarren@nvidia.com>, Grant Likely <grant.likely@secretlab.ca>, Russell King <linux@arm.linux.org.uk>, Rob Herring <rob.herring@calxeda.com>, Arnd Bergmann <arnd@arndb.de>
+To: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+Cc: khilman@ti.com, paul@pwsan.com, "Mark A. Greer" <mgreer@animalcreek.com>
 
-From: Jon Hunter <jon-hunter@ti.com>
+From: "Mark A. Greer" <mgreer@animalcreek.com>
 
-These selftests are covering the new DT DMA helpers for both legacy controllers
-(not supporting DMA Engine) and controllers supporting DMA Engine. They will
-test both error and normal cases.
+Some parts of the OMAP code assume that all power
+domains support certain states (e.g., RET & OFF).
+This isn't always true (e.g., the am35x family of
+SoC's) so those assumptions need to be removed.
 
-A dummy DMA engine filter function is also provided to show how this is used
-when registering a new DMA controller if the driver uses DMA engine.
+Remove those assumptions by looking up the deepest
+state that a power domain can be in whereever its
+being blindly set.  The 'max()' of the deepest
+state and what the code formerly wanted to set it
+to, is the correct state.  If the code formerly
+wanted to set it to PWRDM_POWER_OFF, then the
+deepest possible state will be used (i.e., no
+need to perform the 'max()').
 
-Cc: Nicolas Ferre <nicolas.ferre@atmel.com>
-Cc: Benoit Cousson <b-cousson@ti.com>
-Cc: Stephen Warren <swarren@nvidia.com>
-Cc: Grant Likely <grant.likely@secretlab.ca>
-Cc: Russell King <linux@arm.linux.org.uk>
-Cc: Rob Herring <rob.herring@calxeda.com>
-Cc: Arnd Bergmann <arnd@arndb.de>
-Signed-off-by: Jon Hunter <jon-hunter@ti.com>
+The code still assumes that ON is a valid state.
+
+Signed-off-by: Mark A. Greer <mgreer@animalcreek.com>
 ---
- arch/arm/boot/dts/at91sam9m10g45ek.dts     |    2 +
- arch/arm/boot/dts/omap4-panda.dts          |    2 +
- arch/arm/boot/dts/testcases/tests-dma.dtsi |   32 ++++++++
- arch/arm/boot/dts/testcases/tests.dtsi     |    1 +
- drivers/of/selftest.c                      |  118 ++++++++++++++++++++++++++++
- 5 files changed, 155 insertions(+), 0 deletions(-)
- create mode 100644 arch/arm/boot/dts/testcases/tests-dma.dtsi
 
-diff --git a/arch/arm/boot/dts/at91sam9m10g45ek.dts b/arch/arm/boot/dts/at91sam9m10g45ek.dts
-index a3633bd..4b3c942 100644
---- a/arch/arm/boot/dts/at91sam9m10g45ek.dts
-+++ b/arch/arm/boot/dts/at91sam9m10g45ek.dts
-@@ -154,3 +154,5 @@
- 		};
- 	};
- };
-+
-+/include/ "testcases/tests.dtsi"
-diff --git a/arch/arm/boot/dts/omap4-panda.dts b/arch/arm/boot/dts/omap4-panda.dts
-index ea6f5bb..a79d637 100644
---- a/arch/arm/boot/dts/omap4-panda.dts
-+++ b/arch/arm/boot/dts/omap4-panda.dts
-@@ -74,3 +74,5 @@
- 	ti,non-removable;
- 	ti,bus-width = <4>;
- };
-+
-+/include/ "testcases/tests.dtsi"
-diff --git a/arch/arm/boot/dts/testcases/tests-dma.dtsi b/arch/arm/boot/dts/testcases/tests-dma.dtsi
-new file mode 100644
-index 0000000..a75d155
---- /dev/null
-+++ b/arch/arm/boot/dts/testcases/tests-dma.dtsi
-@@ -0,0 +1,32 @@
-+
-+/ {
-+	testcase-data {
-+		dma-tests {
-+			testdmac0: test-dma-controller0 {
-+				#dma-cells = <2>;
-+			};
-+
-+			testdmac1: test-dma-controller1 {
-+				#dma-cells = <2>;
-+			};
-+
-+			/* wrong number of cells */
-+			testdmac2: test-dma-controller2 {
-+				#dma-cells = <1>;
-+			};
-+
-+			dma-slave-a {
-+				dma = <&testdmac0 42 1>;
-+			};
-+
-+			/* wrong number of values */
-+			dma-slave-b {
-+				dma = <&testdmac1 24>;
-+			};
-+
-+			dma-slave-c {
-+				dma = <&testdmac1 24 2>;
-+			};
-+		};
-+	};
-+};
-diff --git a/arch/arm/boot/dts/testcases/tests.dtsi b/arch/arm/boot/dts/testcases/tests.dtsi
-index a7c5067..e3afb2b 100644
---- a/arch/arm/boot/dts/testcases/tests.dtsi
-+++ b/arch/arm/boot/dts/testcases/tests.dtsi
-@@ -1 +1,2 @@
- /include/ "tests-phandle.dtsi"
-+/include/ "tests-dma.dtsi"
-diff --git a/drivers/of/selftest.c b/drivers/of/selftest.c
-index f24ffd7..65789691 100644
---- a/drivers/of/selftest.c
-+++ b/drivers/of/selftest.c
-@@ -9,10 +9,12 @@
- #include <linux/errno.h>
- #include <linux/module.h>
- #include <linux/of.h>
-+#include <linux/of_dma.h>
- #include <linux/list.h>
- #include <linux/mutex.h>
- #include <linux/slab.h>
- #include <linux/device.h>
-+#include <linux/dmaengine.h>
+These patches apply on top of Kevin's patch series,
+      "[PATCH/RFT 0/8] ARM: OMAP: remove IP checks from SoC family detection"
+
+Tested on an am3517 evm and am37x evm.
+
+ arch/arm/mach-omap2/cpuidle34xx.c |   19 +++++++++++++------
+ arch/arm/mach-omap2/pm34xx.c      |   15 +++++++++------
+ arch/arm/mach-omap2/powerdomain.c |   25 +++++++++++++++++++++++++
+ arch/arm/mach-omap2/powerdomain.h |    2 ++
+ 4 files changed, 49 insertions(+), 12 deletions(-)
+
+diff --git a/arch/arm/mach-omap2/cpuidle34xx.c b/arch/arm/mach-omap2/cpuidle34xx.c
+index 5358664..2c91711 100644
+--- a/arch/arm/mach-omap2/cpuidle34xx.c
++++ b/arch/arm/mach-omap2/cpuidle34xx.c
+@@ -175,19 +175,25 @@ static int next_valid_state(struct cpuidle_device *dev,
+ 	struct cpuidle_state_usage *curr_usage = &dev->states_usage[index];
+ 	struct cpuidle_state *curr = &drv->states[index];
+ 	struct omap3_idle_statedata *cx = cpuidle_get_statedata(curr_usage);
+-	u32 mpu_deepest_state = PWRDM_POWER_RET;
+-	u32 core_deepest_state = PWRDM_POWER_RET;
++	u32 mpu_deepest_state, mpu_deepest_possible;
++	u32 core_deepest_state, core_deepest_possible;
+ 	int next_index = -1;
  
- static bool selftest_passed = true;
- #define selftest(result, fmt, ...) { \
-@@ -148,6 +150,121 @@ static void __init of_selftest_property_match_string(void)
- 	selftest(rc == -EILSEQ, "unterminated string; rc=%i", rc);
- }
++	mpu_deepest_possible = pwrdm_get_deepest_state(mpu_pd);
++	mpu_deepest_state = max_t(u32, mpu_deepest_possible, PWRDM_POWER_RET);
++
++	core_deepest_possible = pwrdm_get_deepest_state(core_pd);
++	core_deepest_state = max_t(u32, core_deepest_possible, PWRDM_POWER_RET);
++
+ 	if (enable_off_mode) {
+-		mpu_deepest_state = PWRDM_POWER_OFF;
++		mpu_deepest_state = mpu_deepest_possible;
+ 		/*
+ 		 * Erratum i583: valable for ES rev < Es1.2 on 3630.
+ 		 * CORE OFF mode is not supported in a stable form, restrict
+ 		 * instead the CORE state to RET.
+ 		 */
+ 		if (!IS_PM34XX_ERRATUM(PM_SDRC_WAKEUP_ERRATUM_i583))
+-			core_deepest_state = PWRDM_POWER_OFF;
++			core_deepest_state = core_deepest_possible;
+ 	}
  
+ 	/* Check if current state is valid */
+@@ -422,8 +428,9 @@ int __init omap3_idle_init(void)
+ 		pr_warn("%s: core off state C7 disabled due to i583\n",
+ 			__func__);
+ 	}
+-	cx->mpu_state = PWRDM_POWER_OFF;
+-	cx->core_state = PWRDM_POWER_OFF;
 +
-+static bool selftest_dma_filter_fn(struct dma_chan *chan, void *param)
-+{
-+	return true;
-+}
++	cx->mpu_state = pwrdm_get_deepest_state(mpu_pd);
++	cx->core_state = pwrdm_get_deepest_state(core_pd);
+ 
+ 	drv->state_count = OMAP3_NUM_STATES;
+ 	cpuidle_register_driver(&omap3_idle_driver);
+diff --git a/arch/arm/mach-omap2/pm34xx.c b/arch/arm/mach-omap2/pm34xx.c
+index ec92676..40d8d07 100644
+--- a/arch/arm/mach-omap2/pm34xx.c
++++ b/arch/arm/mach-omap2/pm34xx.c
+@@ -614,12 +614,11 @@ void omap3_pm_off_mode_enable(int enable)
+ 	struct power_state *pwrst;
+ 	u32 state;
+ 
+-	if (enable)
+-		state = PWRDM_POWER_OFF;
+-	else
+-		state = PWRDM_POWER_RET;
+-
+ 	list_for_each_entry(pwrst, &pwrst_list, node) {
++		state = pwrdm_get_deepest_state(pwrst->pwrdm);
++		if (!enable)
++			state = max_t(u32, state, PWRDM_POWER_RET);
 +
-+static void __init of_selftest_dma(void)
-+{
-+	struct device_node *dma_controller_np;
-+	struct device_node *dma_slave_np;
-+	struct of_dma_channel_info info;
-+	dma_cap_mask_t mask;
-+	int rc;
-+
-+	pr_info("start\n");
-+	dma_controller_np = of_find_node_by_path(
-+		"/testcase-data/dma-tests/test-dma-controller0");
-+	dma_slave_np = of_find_node_by_path(
-+		"/testcase-data/dma-tests/dma-slave-a");
-+	if (!dma_controller_np || !dma_slave_np) {
-+		pr_err("No testcase data in device tree\n");
-+		return;
-+	}
-+
-+	/* wrong usage: DMA controller not registered yet! */
-+	rc = of_get_dma_channel_info(dma_slave_np, DMA_MEM_TO_DEV, &info);
-+	selftest(rc == -ENODEV,
-+		"selftest DMA slave request expected:-ENODEV got:%i\n", rc);
-+
-+	/* test legacy DMA controller registration with no filter function */
-+	rc = of_dma_controller_register(dma_controller_np, NULL, NULL);
-+	selftest(rc == 0, "selftest DMA controller not found: got:%i\n", rc);
-+
-+	/* wrong usage and error code tests */
-+	rc = of_get_dma_channel_info(dma_slave_np, DMA_MEM_TO_MEM, &info);
-+	selftest(rc == -EINVAL,
-+		"selftest DMA slave request expected:-EINVAL got:%i\n", rc);
-+
-+	rc = of_get_dma_channel_info(dma_slave_np, DMA_MEM_TO_DEV, NULL);
-+	selftest(rc == -EINVAL,
-+		"selftest DMA slave request expected:-EINVAL got:%i\n", rc);
-+
-+	/* proper use of the API */
-+	rc = of_get_dma_channel_info(dma_slave_np, DMA_MEM_TO_DEV, &info);
-+	selftest(rc == 0, "selftest DMA slave request error: got:%i\n", rc);
-+	selftest(info.dma_channel == 42,
-+		"selftest DMA slave request line expected:42 got:%i\n",
-+		info.dma_channel);
-+
-+	of_dma_controller_free(dma_controller_np);
-+
-+	/* wrong usage: DMA controller not registered anymore! */
-+	rc = of_get_dma_channel_info(dma_slave_np, DMA_MEM_TO_DEV, &info);
-+	selftest(rc == -ENODEV,
-+		"selftest DMA slave request expected:-ENODEV got:%i\n", rc);
-+
-+	/* use with a two values DMA request specification */
-+	dma_controller_np = of_find_node_by_path(
-+		"/testcase-data/dma-tests/test-dma-controller1");
-+	dma_slave_np = of_find_node_by_path(
-+		"/testcase-data/dma-tests/dma-slave-b");
-+	if (!dma_controller_np || !dma_slave_np) {
-+		pr_err("No testcase data in device tree\n");
-+		return;
-+	}
-+
-+	dma_cap_zero(mask);
-+	dma_cap_set(DMA_SLAVE, mask);
-+
-+	/* DMA controller registration using DMA Engine filter function */
-+	rc = of_dma_controller_register(dma_controller_np, &mask,
-+		selftest_dma_filter_fn);
-+	selftest(rc == 0, "selftest DMA controller not found: got:%i\n", rc);
-+
-+	/* wrong number of cells */
-+	rc = of_get_dma_channel_info(dma_slave_np, DMA_MEM_TO_MEM, &info);
-+	selftest(rc == -EINVAL,
-+		"selftest DMA slave request expected:-EINVAL got:%i\n", rc);
-+
-+	dma_slave_np = of_find_node_by_path(
-+		"/testcase-data/dma-tests/dma-slave-c");
-+	if (!dma_slave_np) {
-+		pr_err("No dma-slave-c data in device tree\n");
-+		return;
-+	}
-+
-+	/* proper use of the API */
-+	rc = of_get_dma_channel_info(dma_slave_np, DMA_DEV_TO_MEM, &info);
-+	selftest(rc == 0, "selftest DMA slave request error: got:%i\n", rc);
-+	selftest(info.dma_channel == 24,
-+		"selftest DMA slave request line expected:24 got:%i\n",
-+		info.dma_channel);
-+	selftest(info.dma_filter_func == selftest_dma_filter_fn,
-+		"selftest DMA slave filter function expected:0x%x got:0x%x\n",
-+		(u32)selftest_dma_filter_fn, (u32)info.dma_filter_func);
-+
-+	of_dma_controller_free(dma_controller_np);
-+
-+	/* use with a two values DMA request specification */
-+	dma_controller_np = of_find_node_by_path(
-+		"/testcase-data/dma-tests/test-dma-controller2");
-+	if (!dma_controller_np) {
-+		pr_err("No testcase data in device tree\n");
-+		return;
-+	}
-+
-+	/* wrong number of cells */
-+	rc = of_dma_controller_register(dma_controller_np, NULL,
-+		selftest_dma_filter_fn);
-+	selftest(rc == -EINVAL, "selftest DMA controller not found: got:%i\n",
-+		rc);
-+
-+	pr_info("end - %s\n", selftest_passed ? "PASS" : "FAIL");
-+}
-+
- static int __init of_selftest(void)
+ 		if (IS_PM34XX_ERRATUM(PM_SDRC_WAKEUP_ERRATUM_i583) &&
+ 				pwrst->pwrdm == core_pwrdm &&
+ 				state == PWRDM_POWER_OFF) {
+@@ -660,6 +659,7 @@ int omap3_pm_set_suspend_state(struct powerdomain *pwrdm, int state)
+ static int __init pwrdms_setup(struct powerdomain *pwrdm, void *unused)
  {
- 	struct device_node *np;
-@@ -162,6 +279,7 @@ static int __init of_selftest(void)
- 	pr_info("start of selftest - you will see error messages\n");
- 	of_selftest_parse_phandle_with_args();
- 	of_selftest_property_match_string();
-+	of_selftest_dma();
- 	pr_info("end of selftest - %s\n", selftest_passed ? "PASS" : "FAIL");
+ 	struct power_state *pwrst;
++	u32 state;
+ 
+ 	if (!pwrdm->pwrsts)
+ 		return 0;
+@@ -668,7 +668,10 @@ static int __init pwrdms_setup(struct powerdomain *pwrdm, void *unused)
+ 	if (!pwrst)
+ 		return -ENOMEM;
+ 	pwrst->pwrdm = pwrdm;
+-	pwrst->next_state = PWRDM_POWER_RET;
++
++	state = pwrdm_get_deepest_state(pwrdm);
++	pwrst->next_state = max_t(u32, state, PWRDM_POWER_RET);
++
+ 	list_add(&pwrst->node, &pwrst_list);
+ 
+ 	if (pwrdm_has_hdwr_sar(pwrdm))
+diff --git a/arch/arm/mach-omap2/powerdomain.c b/arch/arm/mach-omap2/powerdomain.c
+index 96ad3dbe..9c80c19 100644
+--- a/arch/arm/mach-omap2/powerdomain.c
++++ b/arch/arm/mach-omap2/powerdomain.c
+@@ -1078,3 +1078,28 @@ bool pwrdm_can_ever_lose_context(struct powerdomain *pwrdm)
+ 
  	return 0;
  }
++
++/**
++ * pwrdm_get_deepest_state - Get deepest valid state domain can enter
++ * @pwrdm: struct powerdomain *
++ *
++ * Find and return the deepest valid state a power domain can be in.
++ * Returns the deepest state that @pwrdm can enter.
++ */
++u32 pwrdm_get_deepest_state(struct powerdomain *pwrdm)
++{
++	u32 valid_states, deepest_state;
++
++	valid_states = pwrdm->pwrsts;
++
++	if (valid_states & PWRSTS_OFF)
++		deepest_state = PWRDM_POWER_OFF;
++	else if (valid_states & PWRSTS_RET)
++		deepest_state = PWRDM_POWER_RET;
++	else if (valid_states & PWRSTS_INACTIVE)
++		deepest_state = PWRDM_POWER_INACTIVE;
++	else
++		deepest_state = PWRDM_POWER_ON;
++
++	return deepest_state;
++}
+diff --git a/arch/arm/mach-omap2/powerdomain.h b/arch/arm/mach-omap2/powerdomain.h
+index 0d72a8a..9688ff1 100644
+--- a/arch/arm/mach-omap2/powerdomain.h
++++ b/arch/arm/mach-omap2/powerdomain.h
+@@ -220,6 +220,8 @@ int pwrdm_set_lowpwrstchange(struct powerdomain *pwrdm);
+ int pwrdm_get_context_loss_count(struct powerdomain *pwrdm);
+ bool pwrdm_can_ever_lose_context(struct powerdomain *pwrdm);
+ 
++u32 pwrdm_get_deepest_state(struct powerdomain *pwrdm);
++
+ extern void omap242x_powerdomains_init(void);
+ extern void omap243x_powerdomains_init(void);
+ extern void omap3xxx_powerdomains_init(void);
 -- 
-1.7.5.4
+1.7.9.4
 
