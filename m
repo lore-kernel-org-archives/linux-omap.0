@@ -1,41 +1,47 @@
-From: Kevin Hilman <khilman@ti.com>
-Subject: Re: [PATCH 2/2] ARM: OMAP: PM: remove the latency related functions from the API
-Date: Mon, 30 Apr 2012 16:08:58 -0700
-Message-ID: <87lilclsvp.fsf@ti.com>
-References: <1334757314-29325-1-git-send-email-j-pihet@ti.com>
-	<1334757314-29325-3-git-send-email-j-pihet@ti.com>
+From: "Mark A. Greer" <mgreer@animalcreek.com>
+Subject: Re: Stable version and repository loc
+Date: Mon, 30 Apr 2012 16:10:11 -0700
+Message-ID: <20120430231011.GD19256@animalcreek.com>
+References: <565579833.8864.1335810041069.JavaMail.vpopmail@webmail.networksolutionsemail.com>
+ <20120430194417.GE3739@atomide.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aog118.obsmtp.com ([74.125.149.244]:40490 "EHLO
-	na3sys009aog118.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1756924Ab2D3XJB (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>);
-	Mon, 30 Apr 2012 19:09:01 -0400
-Received: by daev18 with SMTP id v18so5628488dae.6
-        for <linux-omap@vger.kernel.org>; Mon, 30 Apr 2012 16:09:00 -0700 (PDT)
-In-Reply-To: <1334757314-29325-3-git-send-email-j-pihet@ti.com> (jean pihet's
-	message of "Wed, 18 Apr 2012 15:55:14 +0200")
+Received: from mail20.dotsterhost.com ([66.11.232.73]:52773 "EHLO
+	mail20.dotsterhost.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756932Ab2D3XKM (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 30 Apr 2012 19:10:12 -0400
+Content-Disposition: inline
+In-Reply-To: <20120430194417.GE3739@atomide.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: jean.pihet@newoldbits.com
-Cc: linux-omap@vger.kernel.org, paul@pwsan.com, b-cousson@ti.com, linux-arm-kernel@lists.infradead.org, Jean Pihet <j-pihet@ti.com>
+To: Tony Lindgren <tony@atomide.com>
+Cc: "alan@alanlee.org" <alan@alanlee.org>, linux-omap@vger.kernel.org
 
-jean.pihet@newoldbits.com writes:
+On Mon, Apr 30, 2012 at 12:44:17PM -0700, Tony Lindgren wrote:
+> Hi,
+> 
+> * alan@alanlee.org <alan@alanlee.org> [120430 11:24]:
+> > 
+> > What is the latest version of the Linux kernel OMAP tree that is considered
+> > stable?  I'm in the middle of bringing up a bare-metal roll of Linux on a
+> > derivative of the AM3517 family (Jacinto 3) on a commercial automotive radio.
+> >  I'm new to Linux on OMAP but old to Linux kernel development itself (since
+> > pre-1.0).  It appears the latest PSP from TI contains a version of 2.6.37 but
+> > it's main line cousin is more than a year old now.  And from lurking here on the
+> > very active Linux OMAP list, that's likely a enormous number of changes.  I'm
+> > just looking for the most current stable starting point and working up from
+> > there as technical problems dictate.
+> 
+> The stable version is most recent mainline Linux kernel tree, that is
+> v3.3 currently. All the other branches are development branches for the
+> upcoming merge window, or some legacy patches that we still carry around
+> that are not ready to be merged yet.
 
-> From: Jean Pihet <j-pihet@ti.com>
->
-> Remove the following functions from the OMAP PM API:
->  omap_pm_set_max_mpu_wakeup_lat
->  omap_pm_set_max_dev_wakeup_lat
->  omap_pm_set_max_sdma_lat
-> and updated the kernel Documentation accordingly.
->
-> The generic per-device PM QoS functions shall be used instead of the
-> OMAP PM API, cf. include/linux/pm_qos.h and
-> Documentation/power/pm_qos_interface.txt.
->
-> Signed-off-by: Jean Pihet <j-pihet@ti.com>
+Alan, you should be aware that there are some issues with am35x support.
+They are being worked on but aren't there yet.  To get by for now, make
+sure you add 'nohlt' to your kernel cmdline and do not enable
+CONFIG_CPU_IDLE.  If you want to suspend/resume (i.e., suspend-to-RAM),
+you will have more issues so avoid doing that if you can.
 
-Acked-by: Kevin Hilman <khilman@ti.com>
-
+Mark
