@@ -1,87 +1,323 @@
-From: Tarun Kanti DebBarma <tarun.kanti@ti.com>
-Subject: [PATCH v2] gpio/omap: fix incorrect initialization of omap_gpio_mod_init
-Date: Mon, 30 Apr 2012 12:50:12 +0530
-Message-ID: <1335770412-1344-1-git-send-email-tarun.kanti@ti.com>
+From: Peter Ujfalusi <peter.ujfalusi@ti.com>
+Subject: Re: Audio support on OMAP 3430LDP or 4430SDP boards
+Date: Mon, 30 Apr 2012 10:26:45 +0300
+Message-ID: <4F9E3EB5.8030104@ti.com>
+References: <20120427135802.GA28062@n2100.arm.linux.org.uk> <CAPo=G1ze3Yfr5FyQG_nByT3b5k=+Ux+6aupg=dD1Qe-Zx1RiqQ@mail.gmail.com> <20120427160445.GC28062@n2100.arm.linux.org.uk> <CAPo=G1xJj_mJAETqtxWdugYhP0LV=0XrMLeFGtkOBJZAi3Jy1A@mail.gmail.com> <20120427165032.GD28062@n2100.arm.linux.org.uk> <CAPo=G1yiX1644Cwkdnt7Ff7+yYbJQw5mnEbwd0txw-Wj_YdV7Q@mail.gmail.com> <20120427171933.GE28062@n2100.arm.linux.org.uk> <CAPo=G1wDANyQ5ARyerizp6oA=Wyc7s_to7zfz-n4GdZ20tfX4g@mail.gmail.com> <20120427183116.GF28062@n2100.arm.linux.org.uk> <20120427193129.GA3951@n2100.arm.linux.org.uk> <20120429203525.GA4618@n2100.arm.linux.org.uk>
 Mime-Version: 1.0
-Content-Type: text/plain
+Content-Type: multipart/mixed;
+ boundary="------------040501090904060801040400"
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from devils.ext.ti.com ([198.47.26.153]:48855 "EHLO
-	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751131Ab2D3HUV (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 30 Apr 2012 03:20:21 -0400
+Received: from na3sys009aog137.obsmtp.com ([74.125.149.18]:38049 "EHLO
+	na3sys009aog137.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1751226Ab2D3HdY (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>);
+	Mon, 30 Apr 2012 03:33:24 -0400
+Received: by lbbgk15 with SMTP id gk15so1004174lbb.18
+        for <linux-omap@vger.kernel.org>; Mon, 30 Apr 2012 00:33:21 -0700 (PDT)
+In-Reply-To: <20120429203525.GA4618@n2100.arm.linux.org.uk>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: linux-omap@vger.kernel.org
-Cc: linux-arm-kernel@lists.infradead.org, Tarun Kanti DebBarma <tarun.kanti@ti.com>
+To: Russell King - ARM Linux <linux@arm.linux.org.uk>
+Cc: linux-omap@vger.kernel.org, Santosh Shilimkar <santosh.shilimkar@ti.com>, Liam Girdwood <lrg@ti.com>
 
-Initialization of irqenable, irqstatus registers is the common
-operation done in this function for all OMAP platforms, viz. OMAP1,
-OMAP2+. The latter _gpio_rmw()'s which supposedly got introduced
-wrongly to take care of OMAP2+ platforms were overwriting initially
-programmed OMAP1 value breaking functionality on OMAP1.
-Somehow incorrect assumption was made that each _gpio_rmw()'s were
-mutually exclusive. On close observation it is found that the first
-_gpio_rmw() which is supposedly done to take care of OMAP1 platform
-is generic enough and takes care of OMAP2+ platform as well.
-Therefore remove the latter _gpio_rmw() to irqenable as they are
-redundant now.
+This is a multi-part message in MIME format.
+--------------040501090904060801040400
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 8bit
 
-Writing to ctrl and debounce_en registers for OMAP2+ platforms are
-modified to match the original(pre-cleanup) code where the registers
-are initialized with 0. In the cleanup series since we are using
-_gpio_rmw(reg, 0, 1), instead of __raw_writel(), we are just reading
-and writing the same values to ctrl and debounce_en. This is not an
-issue for debounce_en register because it has 0x0 as the default value.
-But in the case of ctrl register the default value is 0x2 (GATINGRATIO
- = 0x1) so that we end up writing 0x2 instead of intended 0 value.
-Therefore changing back to __raw_writel() as this is sufficient for
-this case besides simpler to understand.
+On 04/29/2012 11:35 PM, Russell King - ARM Linux wrote:
+> Please can someone at TI take a current mainline kernel, build it, and
+> test out audio support on the 4430SDP - specifically output through the
+> headset jack into a line input, and report when it works.  Thanks.
 
-Also, change irqstatus initalization logic that avoids comparison
-with bool, besides making it fit in a single line.
+Try to use my attached aconf for SDP4430 to configure the HS playback.
+Note that the HS is not a line out, so on your line-in device it will
+cause distortion. If you have a headset/headphone you will have better
+quality.
+alsactl -f blaze.aconf restore
 
-Cc: stable@vger.kernel.org
-Cc: Tony Lindgren <tony@atomide.com>
-Cc: Kevin Hilman <khilman@ti.com>
-Cc: Santosh Shilimkar <santosh.shilimkar@ti.com>
-Cc: Grant Likely <grant.likely@secretlab.ca>
-Reported-by: Janusz Krzysztofik <jkrzyszt@tis.icnet.pl>
-Signed-off-by: Tarun Kanti DebBarma <tarun.kanti@ti.com>
----
-v2:
-Avoid irqstatus initialization sequence change.
-Use __raw_writel() to update debounce_en and ctrl registers.
-Update changelog to elaborate how redundant _gpio_rmw() got added.
+To play samples with aplay:
+aplay -Dplughw:0,0 <wav file>
+The sample format fot Legacy McPDM is S32_LE, 96KHz, 24bit (32 bit
+sample with 24 LSB).
 
- drivers/gpio/gpio-omap.c |    9 +++------
- 1 files changed, 3 insertions(+), 6 deletions(-)
+The slow pace audio playback is because at this point we do not have the
+full audio stack up. The AESS IP does not have driver. You need to
+disable CONFIG_OMAP_RESET_CLOCKS. This will fic the audio playback speed.
 
-diff --git a/drivers/gpio/gpio-omap.c b/drivers/gpio/gpio-omap.c
-index 59a4af1..9b71f04 100644
---- a/drivers/gpio/gpio-omap.c
-+++ b/drivers/gpio/gpio-omap.c
-@@ -957,18 +957,15 @@ static void omap_gpio_mod_init(struct gpio_bank *bank)
- 	}
- 
- 	_gpio_rmw(base, bank->regs->irqenable, l, bank->regs->irqenable_inv);
--	_gpio_rmw(base, bank->regs->irqstatus, l,
--					bank->regs->irqenable_inv == false);
--	_gpio_rmw(base, bank->regs->irqenable, l, bank->regs->debounce_en != 0);
--	_gpio_rmw(base, bank->regs->irqenable, l, bank->regs->ctrl != 0);
-+	_gpio_rmw(base, bank->regs->irqstatus, l, !bank->regs->irqenable_inv);
- 	if (bank->regs->debounce_en)
--		_gpio_rmw(base, bank->regs->debounce_en, 0, 1);
-+		__raw_writel(0, base + bank->regs->debounce_en);
- 
- 	/* Save OE default value (0xffffffff) in the context */
- 	bank->context.oe = __raw_readl(bank->base + bank->regs->direction);
- 	 /* Initialize interface clk ungated, module enabled */
- 	if (bank->regs->ctrl)
--		_gpio_rmw(base, bank->regs->ctrl, 0, 1);
-+		__raw_writel(0, base + bank->regs->ctrl);
- }
- 
- static __devinit void
+As for the basic usage:
+We support up to 5 channel playback on OMAP4 in Legacy mode:
+channel 1/2 (stereo): Headset, earpiece
+channel 3/4: Handsfree/Line out
+channel 5: Vibra
+
+So with stereo sample you can only play to the Headset/Earpiece.
+You need to have 5 channel audio, and valid data on channel 5 to be able
+to drive the vibra.
+
 -- 
-1.7.0.4
+Péter
 
+--------------040501090904060801040400
+Content-Type: text/plain; charset=UTF-8;
+ name="blaze.aconf"
+Content-Transfer-Encoding: 7bit
+Content-Disposition: attachment;
+ filename="blaze.aconf"
+
+state.SDP4430 {
+	control.1 {
+		iface MIXER
+		name 'Capture Preamplifier Volume'
+		value.0 1
+		value.1 1
+		comment {
+			access 'read write'
+			type INTEGER
+			count 2
+			range '0 - 1'
+			dbmin -600
+			dbmax 0
+			dbvalue.0 0
+			dbvalue.1 0
+		}
+	}
+	control.2 {
+		iface MIXER
+		name 'Capture Volume'
+		value.0 1
+		value.1 1
+		comment {
+			access 'read write'
+			type INTEGER
+			count 2
+			range '0 - 4'
+			dbmin 600
+			dbmax 3000
+			dbvalue.0 1200
+			dbvalue.1 1200
+		}
+	}
+	control.3 {
+		iface MIXER
+		name 'Aux FM Volume'
+		value.0 3
+		value.1 3
+		comment {
+			access 'read write'
+			type INTEGER
+			count 2
+			range '0 - 7'
+			dbmin -1800
+			dbmax 2400
+			dbvalue.0 0
+			dbvalue.1 0
+		}
+	}
+	control.4 {
+		iface MIXER
+		name 'Headset Playback Volume'
+		value.0 13
+		value.1 13
+		comment {
+			access 'read write'
+			type INTEGER
+			count 2
+			range '0 - 15'
+			dbmin -3000
+			dbmax 0
+			dbvalue.0 -400
+			dbvalue.1 -400
+		}
+	}
+	control.5 {
+		iface MIXER
+		name 'Handsfree Playback Volume'
+		value.0 4
+		value.1 4
+		comment {
+			access 'read write'
+			type INTEGER
+			count 2
+			range '0 - 29'
+			dbmin -5200
+			dbmax 600
+			dbvalue.0 -4400
+			dbvalue.1 -4400
+		}
+	}
+	control.6 {
+		iface MIXER
+		name 'Earphone Playback Volume'
+		value 2
+		comment {
+			access 'read write'
+			type INTEGER
+			count 1
+			range '0 - 15'
+			dbmin -2400
+			dbmax 600
+			dbvalue.0 -2000
+		}
+	}
+	control.7 {
+		iface MIXER
+		name 'Headset Power Mode'
+		value High-Perfomance
+		comment {
+			access 'read write'
+			type ENUMERATED
+			count 1
+			item.0 Low-Power
+			item.1 High-Perfomance
+		}
+	}
+	control.8 {
+		iface MIXER
+		name 'PLL Selection'
+		value High-Perfomance
+		comment {
+			access 'read write'
+			type ENUMERATED
+			count 1
+			item.0 Low-Power
+			item.1 High-Perfomance
+		}
+	}
+	control.9 {
+		iface MIXER
+		name 'AUXR Playback Switch'
+		value false
+		comment {
+			access 'read write'
+			type BOOLEAN
+			count 1
+		}
+	}
+	control.10 {
+		iface MIXER
+		name 'AUXL Playback Switch'
+		value false
+		comment {
+			access 'read write'
+			type BOOLEAN
+			count 1
+		}
+	}
+	control.11 {
+		iface MIXER
+		name 'Earphone Playback Switch'
+		value false
+		comment {
+			access 'read write'
+			type BOOLEAN
+			count 1
+		}
+	}
+	control.12 {
+		iface MIXER
+		name 'Vibra Right Playback'
+		value 'Input FF'
+		comment {
+			access 'read write'
+			type ENUMERATED
+			count 1
+			item.0 'Input FF'
+			item.1 'Audio PDM'
+		}
+	}
+	control.13 {
+		iface MIXER
+		name 'Vibra Left Playback'
+		value 'Input FF'
+		comment {
+			access 'read write'
+			type ENUMERATED
+			count 1
+			item.0 'Input FF'
+			item.1 'Audio PDM'
+		}
+	}
+	control.14 {
+		iface MIXER
+		name 'Headset Right Playback'
+		value 'HS DAC'
+		comment {
+			access 'read write'
+			type ENUMERATED
+			count 1
+			item.0 Off
+			item.1 'HS DAC'
+			item.2 'Line-In amp'
+		}
+	}
+	control.15 {
+		iface MIXER
+		name 'Headset Left Playback'
+		value 'HS DAC'
+		comment {
+			access 'read write'
+			type ENUMERATED
+			count 1
+			item.0 Off
+			item.1 'HS DAC'
+			item.2 'Line-In amp'
+		}
+	}
+	control.16 {
+		iface MIXER
+		name 'Handsfree Right Playback'
+		value Off
+		comment {
+			access 'read write'
+			type ENUMERATED
+			count 1
+			item.0 Off
+			item.1 'HF DAC'
+			item.2 'Line-In amp'
+		}
+	}
+	control.17 {
+		iface MIXER
+		name 'Handsfree Left Playback'
+		value Off
+		comment {
+			access 'read write'
+			type ENUMERATED
+			count 1
+			item.0 Off
+			item.1 'HF DAC'
+			item.2 'Line-In amp'
+		}
+	}
+	control.18 {
+		iface MIXER
+		name 'Analog Right Capture Route'
+		value Off
+		comment {
+			access 'read write'
+			type ENUMERATED
+			count 1
+			item.0 'Headset Mic'
+			item.1 'Sub Mic'
+			item.2 'Aux/FM Right'
+			item.3 Off
+		}
+	}
+	control.19 {
+		iface MIXER
+		name 'Analog Left Capture Route'
+		value Off
+		comment {
+			access 'read write'
+			type ENUMERATED
+			count 1
+			item.0 'Headset Mic'
+			item.1 'Main Mic'
+			item.2 'Aux/FM Left'
+			item.3 Off
+		}
+	}
+}
+
+--------------040501090904060801040400--
