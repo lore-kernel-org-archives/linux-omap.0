@@ -1,265 +1,31 @@
 From: Paul Walmsley <paul@pwsan.com>
-Subject: Re: [PATCH 2/6] ARM: OMAP2+: hwmod: use init-time function ptrs for
- enable/disable module
-Date: Mon, 30 Apr 2012 08:28:51 -0600 (MDT)
-Message-ID: <alpine.DEB.2.00.1204300822310.10308@utopia.booyaka.com>
-References: <1335557140-10854-1-git-send-email-khilman@ti.com> <1335557140-10854-3-git-send-email-khilman@ti.com>
+Subject: Re: [PATCH 3/6] ARM: OMAP4: hwmod: drop extra cpu_is check from
+ _wait_target_disable()
+Date: Mon, 30 Apr 2012 08:29:19 -0600 (MDT)
+Message-ID: <alpine.DEB.2.00.1204300828560.10308@utopia.booyaka.com>
+References: <1335557140-10854-1-git-send-email-khilman@ti.com> <1335557140-10854-4-git-send-email-khilman@ti.com>
 Mime-Version: 1.0
 Content-Type: TEXT/PLAIN; charset=US-ASCII
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from utopia.booyaka.com ([72.9.107.138]:46956 "EHLO
+Received: from utopia.booyaka.com ([72.9.107.138]:46961 "EHLO
 	utopia.booyaka.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752670Ab2D3O2w (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 30 Apr 2012 10:28:52 -0400
-In-Reply-To: <1335557140-10854-3-git-send-email-khilman@ti.com>
+	with ESMTP id S1752670Ab2D3O3T (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 30 Apr 2012 10:29:19 -0400
+In-Reply-To: <1335557140-10854-4-git-send-email-khilman@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: Kevin Hilman <khilman@ti.com>
 Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 
-Hi Kevin,
-
 On Fri, 27 Apr 2012, Kevin Hilman wrote:
 
-> The enable/disable module functions are specific to SoCs with
-> OMAP4-class PRCM.  Rather than use cpu_is* checks at runtime inside
-> the enable/disable module functions, use cpu_is at init time to
-> initialize function pointers only for SoCs that need them.
-> 
-> NOTE: the cpu_is* check for _enable_module was different than
->       the one for _disable_module, and this patch uses
->       cpu_is_omap44xx() for both.
+> _omap4_wait_target_disable() is called only from inside _omap4_disable_module()
+> which is already protected by SoC specific checks.  Remove the cpu_is check
+> here.
 > 
 > Signed-off-by: Kevin Hilman <khilman@ti.com>
 
-Since these function pointers are common to all of the hwmods on the 
-currently-booted SoC, they've been moved off into a separate structure, 
-used by a file static variable (for omap_hwmod.c).  This should conserve 
-some memory and cache.  Also moved the initialization of these pointers 
-off to an init function that is called once during kernel init, before any 
-hwmods are registered.  Please let me know if you have any comments.
+Looks good to me.
 
 
 - Paul
-
-From: Kevin Hilman <khilman@ti.com>
-Date: Fri, 27 Apr 2012 13:05:36 -0700
-Subject: [PATCH 2/6] ARM: OMAP2+: hwmod: use init-time function ptrs for
- enable/disable module
-
-The enable/disable module functions are specific to SoCs with
-OMAP4-class PRCM.  Rather than use cpu_is* checks at runtime inside
-the enable/disable module functions, use cpu_is at init time to
-initialize function pointers only for SoCs that need them.
-
-NOTE: the cpu_is* check for _enable_module was different than
-      the one for _disable_module, and this patch uses
-      cpu_is_omap44xx() for both.
-
-Signed-off-by: Kevin Hilman <khilman@ti.com>
-[paul@pwsan.com: moved soc_ops function pointers to be per-kernel rather than
- per-hwmod since they do not vary by hwmod; added kerneldoc]
-Signed-off-by: Paul Walmsley <paul@pwsan.com>
----
- arch/arm/mach-omap2/omap_hwmod.c             |   62 +++++++++++++++++++++-----
- arch/arm/mach-omap2/omap_hwmod_2420_data.c   |    1 +
- arch/arm/mach-omap2/omap_hwmod_2430_data.c   |    1 +
- arch/arm/mach-omap2/omap_hwmod_3xxx_data.c   |    2 +
- arch/arm/mach-omap2/omap_hwmod_44xx_data.c   |    1 +
- arch/arm/plat-omap/include/plat/omap_hwmod.h |    2 +
- 6 files changed, 57 insertions(+), 12 deletions(-)
-
-diff --git a/arch/arm/mach-omap2/omap_hwmod.c b/arch/arm/mach-omap2/omap_hwmod.c
-index 939032a..634a798 100644
---- a/arch/arm/mach-omap2/omap_hwmod.c
-+++ b/arch/arm/mach-omap2/omap_hwmod.c
-@@ -166,6 +166,23 @@
-  */
- #define LINKS_PER_OCP_IF		2
- 
-+/**
-+ * struct omap_hwmod_soc_ops - fn ptrs for some SoC-specific operations
-+ * @enable_module: function to enable a module (via MODULEMODE)
-+ * @disable_module: function to disable a module (via MODULEMODE)
-+ *
-+ * XXX Eventually this functionality will be hidden inside the PRM/CM
-+ * device drivers.  Until then, this should avoid huge blocks of cpu_is_*()
-+ * conditionals in this code.
-+ */
-+struct omap_hwmod_soc_ops {
-+	void (*enable_module)(struct omap_hwmod *oh);
-+	int (*disable_module)(struct omap_hwmod *oh);
-+};
-+
-+/* soc_ops: adapts the omap_hwmod code to the currently-booted SoC */
-+static struct omap_hwmod_soc_ops soc_ops;
-+
- /* omap_hwmod_list contains all registered struct omap_hwmods */
- static LIST_HEAD(omap_hwmod_list);
- 
-@@ -186,6 +203,9 @@ static struct omap_hwmod_link *linkspace;
-  */
- static unsigned short free_ls, max_ls, ls_supp;
- 
-+/* inited: set to true once the hwmod code is initialized */
-+static bool inited;
-+
- /* Private functions */
- 
- /**
-@@ -779,10 +799,6 @@ static void _disable_optional_clocks(struct omap_hwmod *oh)
-  */
- static void _omap4_enable_module(struct omap_hwmod *oh)
- {
--	/* The module mode does not exist prior OMAP4 */
--	if (cpu_is_omap24xx() || cpu_is_omap34xx())
--		return;
--
- 	if (!oh->clkdm || !oh->prcm.omap4.modulemode)
- 		return;
- 
-@@ -1571,10 +1587,6 @@ static int _omap4_disable_module(struct omap_hwmod *oh)
- {
- 	int v;
- 
--	/* The module mode does not exist prior OMAP4 */
--	if (!cpu_is_omap44xx())
--		return -EINVAL;
--
- 	if (!oh->clkdm || !oh->prcm.omap4.modulemode)
- 		return -EINVAL;
- 
-@@ -1814,7 +1826,8 @@ static int _enable(struct omap_hwmod *oh)
- 	}
- 
- 	_enable_clocks(oh);
--	_omap4_enable_module(oh);
-+	if (soc_ops.enable_module)
-+		soc_ops.enable_module(oh);
- 
- 	r = _wait_target_ready(oh);
- 	if (!r) {
-@@ -1870,7 +1883,8 @@ static int _idle(struct omap_hwmod *oh)
- 		_idle_sysc(oh);
- 	_del_initiator_dep(oh, mpu_oh);
- 
--	_omap4_disable_module(oh);
-+	if (soc_ops.disable_module)
-+		soc_ops.disable_module(oh);
- 
- 	/*
- 	 * The module must be in idle mode before disabling any parents
-@@ -1975,7 +1989,8 @@ static int _shutdown(struct omap_hwmod *oh)
- 	if (oh->_state == _HWMOD_STATE_ENABLED) {
- 		_del_initiator_dep(oh, mpu_oh);
- 		/* XXX what about the other system initiators here? dma, dsp */
--		_omap4_disable_module(oh);
-+		if (soc_ops.disable_module)
-+			soc_ops.disable_module(oh);
- 		_disable_clocks(oh);
- 		if (oh->clkdm)
- 			clkdm_hwmod_disable(oh->clkdm, oh);
-@@ -2563,12 +2578,18 @@ int omap_hwmod_for_each(int (*fn)(struct omap_hwmod *oh, void *data),
-  *
-  * Intended to be called early in boot before the clock framework is
-  * initialized.  If @ois is not null, will register all omap_hwmods
-- * listed in @ois that are valid for this chip.  Returns 0.
-+ * listed in @ois that are valid for this chip.  Returns -EINVAL if
-+ * omap_hwmod_init() hasn't been called before calling this function,
-+ * -ENOMEM if the link memory area can't be allocated, or 0 upon
-+ * success.
-  */
- int __init omap_hwmod_register_links(struct omap_hwmod_ocp_if **ois)
- {
- 	int r, i;
- 
-+	if (!inited)
-+		return -EINVAL;
-+
- 	if (!ois)
- 		return 0;
- 
-@@ -3401,3 +3422,20 @@ int omap_hwmod_pad_route_irq(struct omap_hwmod *oh, int pad_idx, int irq_idx)
- 
- 	return 0;
- }
-+
-+/**
-+ * omap_hwmod_init - initialize the hwmod code
-+ *
-+ * Sets up some function pointers needed by the hwmod code to operate on the
-+ * currently-booted SoC.  Intended to be called once during kernel init
-+ * before any hwmods are registered.  No return value.
-+ */
-+void __init omap_hwmod_init(void)
-+{
-+	if (cpu_is_omap44xx()) {
-+		soc_ops.enable_module = _omap4_enable_module;
-+		soc_ops.disable_module = _omap4_disable_module;
-+	}
-+
-+	inited = true;
-+}
-diff --git a/arch/arm/mach-omap2/omap_hwmod_2420_data.c b/arch/arm/mach-omap2/omap_hwmod_2420_data.c
-index 2c087ff..f30a219 100644
---- a/arch/arm/mach-omap2/omap_hwmod_2420_data.c
-+++ b/arch/arm/mach-omap2/omap_hwmod_2420_data.c
-@@ -473,5 +473,6 @@ static struct omap_hwmod_ocp_if *omap2420_hwmod_ocp_ifs[] __initdata = {
- 
- int __init omap2420_hwmod_init(void)
- {
-+	omap_hwmod_init();
- 	return omap_hwmod_register_links(omap2420_hwmod_ocp_ifs);
- }
-diff --git a/arch/arm/mach-omap2/omap_hwmod_2430_data.c b/arch/arm/mach-omap2/omap_hwmod_2430_data.c
-index 71d9f88..2e561ff 100644
---- a/arch/arm/mach-omap2/omap_hwmod_2430_data.c
-+++ b/arch/arm/mach-omap2/omap_hwmod_2430_data.c
-@@ -891,5 +891,6 @@ static struct omap_hwmod_ocp_if *omap2430_hwmod_ocp_ifs[] __initdata = {
- 
- int __init omap2430_hwmod_init(void)
- {
-+	omap_hwmod_init();
- 	return omap_hwmod_register_links(omap2430_hwmod_ocp_ifs);
- }
-diff --git a/arch/arm/mach-omap2/omap_hwmod_3xxx_data.c b/arch/arm/mach-omap2/omap_hwmod_3xxx_data.c
-index 0c65079..34fc5bd 100644
---- a/arch/arm/mach-omap2/omap_hwmod_3xxx_data.c
-+++ b/arch/arm/mach-omap2/omap_hwmod_3xxx_data.c
-@@ -3201,6 +3201,8 @@ int __init omap3xxx_hwmod_init(void)
- 	struct omap_hwmod_ocp_if **h = NULL;
- 	unsigned int rev;
- 
-+	omap_hwmod_init();
-+
- 	/* Register hwmod links common to all OMAP3 */
- 	r = omap_hwmod_register_links(omap3xxx_hwmod_ocp_ifs);
- 	if (r < 0)
-diff --git a/arch/arm/mach-omap2/omap_hwmod_44xx_data.c b/arch/arm/mach-omap2/omap_hwmod_44xx_data.c
-index 0d91dec..4b436b7 100644
---- a/arch/arm/mach-omap2/omap_hwmod_44xx_data.c
-+++ b/arch/arm/mach-omap2/omap_hwmod_44xx_data.c
-@@ -4796,6 +4796,7 @@ static struct omap_hwmod_ocp_if *omap44xx_hwmod_ocp_ifs[] __initdata = {
- 
- int __init omap44xx_hwmod_init(void)
- {
-+	omap_hwmod_init();
- 	return omap_hwmod_register_links(omap44xx_hwmod_ocp_ifs);
- }
- 
-diff --git a/arch/arm/plat-omap/include/plat/omap_hwmod.h b/arch/arm/plat-omap/include/plat/omap_hwmod.h
-index 14dde32..d2f3ee4 100644
---- a/arch/arm/plat-omap/include/plat/omap_hwmod.h
-+++ b/arch/arm/plat-omap/include/plat/omap_hwmod.h
-@@ -628,6 +628,8 @@ int omap_hwmod_no_setup_reset(struct omap_hwmod *oh);
- 
- int omap_hwmod_pad_route_irq(struct omap_hwmod *oh, int pad_idx, int irq_idx);
- 
-+extern void __init omap_hwmod_init(void);
-+
- /*
-  * Chip variant-specific hwmod init routines - XXX should be converted
-  * to use initcalls once the initial boot ordering is straightened out
--- 
-1.7.10
-
