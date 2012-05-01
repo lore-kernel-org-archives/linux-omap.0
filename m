@@ -1,160 +1,95 @@
 From: Afzal Mohammed <afzal@ti.com>
-Subject: [PATCH v4 38/39] OMAP3: igep0020: Add support for Micron NAND Flash storage memory
-Date: Tue, 1 May 2012 17:53:52 +0530
-Message-ID: <0f754cf7506640a0dc02f1a1e07d7b9b5c4c7769.1335874494.git.afzal@ti.com>
+Subject: [PATCH v4 39/39] ARM: OMAP2+: board igep0020: gpmc driver adaptation
+Date: Tue, 1 May 2012 17:53:58 +0530
+Message-ID: <12d7c132864777da63e4f18f5070278275331750.1335874494.git.afzal@ti.com>
 References: <cover.1335874494.git.afzal@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from arroyo.ext.ti.com ([192.94.94.40]:33908 "EHLO arroyo.ext.ti.com"
+Received: from bear.ext.ti.com ([192.94.94.41]:60564 "EHLO bear.ext.ti.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1757997Ab2EAMk7 (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Tue, 1 May 2012 08:40:59 -0400
+	id S1757998Ab2EAMlF (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Tue, 1 May 2012 08:41:05 -0400
 In-Reply-To: <cover.1335874494.git.afzal@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: tony@atomide.com, linux@arm.linux.org.uk, khilman@ti.com, balbi@ti.com, dwmw2@infradead.org, kyungmin.park@samsung.com, gregkh@linuxfoundation.org, nm@ti.com, grinberg@compulab.co.il, notasas@gmail.com, artem.bityutskiy@linux.intel.com, vimal.newwork@gmail.com, dbaryshkov@gmail.com, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-usb@vger.kernel.org, linux-mtd@lists.infradead.org
-Cc: Javier Martinez Canillas <javier@dowhile0.org>, Afzal Mohammed <afzal@ti.com>
+Cc: Afzal Mohammed <afzal@ti.com>
 
-From: Javier Martinez Canillas <javier@dowhile0.org>
+gpmc code has been converted to driver. Modify the board
+code to provide gpmc driver with required information.
 
-IGEP-based boards can have two different flash memories, a OneNAND or
-a NAND device. The boot configuration pins (sys_boot) are used to
-specify which memory is available.
-
-Also, this patch removes unnecesary code for registering the OneNAND.
-
-afzal@ti.com: Update to use modified board_nand_init
-
-Signed-off-by: Javier Martinez Canillas <javier@dowhile0.org>
 Signed-off-by: Afzal Mohammed <afzal@ti.com>
-
-fixup: igep
 ---
- arch/arm/mach-omap2/board-igep0020.c |   75 ++++++++++++++--------------------
- 1 file changed, 31 insertions(+), 44 deletions(-)
+ arch/arm/mach-omap2/board-igep0020.c |   32 ++++++++++++++++++++++++++++----
+ 1 file changed, 28 insertions(+), 4 deletions(-)
 
 diff --git a/arch/arm/mach-omap2/board-igep0020.c b/arch/arm/mach-omap2/board-igep0020.c
-index 930c0d3..6d171ca 100644
+index 6d171ca..91de8ce 100644
 --- a/arch/arm/mach-omap2/board-igep0020.c
 +++ b/arch/arm/mach-omap2/board-igep0020.c
-@@ -24,6 +24,8 @@
- #include <linux/i2c/twl.h>
- #include <linux/mmc/host.h>
+@@ -36,6 +36,7 @@
+ #include <video/omapdss.h>
+ #include <video/omap-panel-dvi.h>
+ #include <plat/onenand.h>
++#include <plat/nand.h>
  
-+#include <linux/mtd/nand.h>
-+
- #include <asm/mach-types.h>
- #include <asm/mach/arch.h>
- 
-@@ -39,6 +41,8 @@
+ #include "mux.h"
  #include "hsmmc.h"
- #include "sdram-numonyx-m65kxxxxam.h"
- #include "common-board-devices.h"
-+#include "board-flash.h"
-+#include "control.h"
- 
- #define IGEP2_SMSC911X_CS       5
- #define IGEP2_SMSC911X_GPIO     176
-@@ -60,6 +64,10 @@
- #define IGEP3_GPIO_LED1_RED	16
- #define IGEP3_GPIO_USBH_NRESET  183
- 
-+#define IGEP_SYSBOOT_MASK           0x1f
-+#define IGEP_SYSBOOT_NAND           0x0f
-+#define IGEP_SYSBOOT_ONENAND        0x10
-+
- /*
-  * IGEP2 Hardware Revision Table
-  *
-@@ -110,8 +118,10 @@ static void __init igep2_get_revision(void)
+@@ -118,6 +119,13 @@ static void __init igep2_get_revision(void)
  	gpio_free(IGEP2_GPIO_LED1_RED);
  }
  
--#if defined(CONFIG_MTD_ONENAND_OMAP2) || \
--	defined(CONFIG_MTD_ONENAND_OMAP2_MODULE)
-+#if defined(CONFIG_MTD_ONENAND_OMAP2) ||		\
-+	defined(CONFIG_MTD_ONENAND_OMAP2_MODULE) ||	\
-+	defined(CONFIG_MTD_NAND_OMAP2) ||		\
-+	defined(CONFIG_MTD_NAND_OMAP2_MODULE)
- 
- #define ONENAND_MAP             0x20000000
- 
-@@ -123,7 +133,7 @@ static void __init igep2_get_revision(void)
-  * So MTD regards it as 4KiB page size and 256KiB block size 64*(2*2048)
-  */
- 
--static struct mtd_partition igep_onenand_partitions[] = {
-+static struct mtd_partition igep_flash_partitions[] = {
- 	{
- 		.name           = "X-Loader",
- 		.offset         = 0,
-@@ -151,50 +161,27 @@ static struct mtd_partition igep_onenand_partitions[] = {
- 	},
- };
- 
--static struct omap_onenand_platform_data igep_onenand_data = {
--	.parts = igep_onenand_partitions,
--	.nr_parts = ARRAY_SIZE(igep_onenand_partitions),
--	.dma_channel	= -1,	/* disable DMA in OMAP OneNAND driver */
--};
--
--static struct platform_device igep_onenand_device = {
--	.name		= "omap2-onenand",
--	.id		= -1,
--	.dev = {
--		.platform_data = &igep_onenand_data,
--	},
--};
-+static inline u32 igep_get_sysboot_value(void)
-+{
-+	return omap_ctrl_readl(OMAP343X_CONTROL_STATUS) & IGEP_SYSBOOT_MASK;
-+}
- 
- static void __init igep_flash_init(void)
- {
--	u8 cs = 0;
--	u8 onenandcs = GPMC_CS_NUM + 1;
--
--	for (cs = 0; cs < GPMC_CS_NUM; cs++) {
--		u32 ret;
--		ret = gpmc_cs_read_reg(cs, GPMC_CS_CONFIG1);
--
--		/* Check if NAND/oneNAND is configured */
--		if ((ret & 0xC00) == 0x800)
--			/* NAND found */
--			pr_err("IGEP: Unsupported NAND found\n");
--		else {
--			ret = gpmc_cs_read_reg(cs, GPMC_CS_CONFIG7);
--			if ((ret & 0x3F) == (ONENAND_MAP >> 24))
--				/* ONENAND found */
--				onenandcs = cs;
--		}
--	}
--
--	if (onenandcs > GPMC_CS_NUM) {
--		pr_err("IGEP: Unable to find configuration in GPMC\n");
--		return;
--	}
--
--	igep_onenand_data.cs = onenandcs;
--
--	if (platform_device_register(&igep_onenand_device) < 0)
--		pr_err("IGEP: Unable to register OneNAND device\n");
-+	u32 mux;
-+	mux = igep_get_sysboot_value();
++static struct gpmc_device_pdata *gpmc_device_data[2];
++static struct gpmc_device_pdata **gpmc_cur = gpmc_device_data;
 +
-+	if (mux == IGEP_SYSBOOT_NAND) {
-+		pr_info("IGEP: initializing NAND memory device\n");
-+		board_nand_init(igep_flash_partitions,
-+				ARRAY_SIZE(igep_flash_partitions),
-+				0, NAND_BUSWIDTH_16, NULL);
-+	} else if (mux == IGEP_SYSBOOT_ONENAND) {
-+		pr_info("IGEP: initializing OneNAND memory device\n");
-+		board_onenand_init(igep_flash_partitions,
-+				   ARRAY_SIZE(igep_flash_partitions), 0);
-+	} else
-+		pr_err("IGEP: Flash: unsupported sysboot sequence found\n");
++static struct gpmc_pdata gpmc_data = {
++	.device_pdata = gpmc_device_data,
++};
++
+ #if defined(CONFIG_MTD_ONENAND_OMAP2) ||		\
+ 	defined(CONFIG_MTD_ONENAND_OMAP2_MODULE) ||	\
+ 	defined(CONFIG_MTD_NAND_OMAP2) ||		\
+@@ -172,14 +180,26 @@ static void __init igep_flash_init(void)
+ 	mux = igep_get_sysboot_value();
+ 
+ 	if (mux == IGEP_SYSBOOT_NAND) {
++		struct omap_nand_platform_data *nand_data;
++
+ 		pr_info("IGEP: initializing NAND memory device\n");
+-		board_nand_init(igep_flash_partitions,
++		nand_data = board_nand_init(igep_flash_partitions,
+ 				ARRAY_SIZE(igep_flash_partitions),
+-				0, NAND_BUSWIDTH_16, NULL);
++				0, NAND_BUSWIDTH_16, nand_default_timings);
++		if (nand_data != NULL) {
++			*gpmc_cur++ = gpmc_nand_init(nand_data);
++			gpmc_data.num_device++;
++		}
+ 	} else if (mux == IGEP_SYSBOOT_ONENAND) {
++		struct omap_onenand_platform_data *onenand_data;
++
+ 		pr_info("IGEP: initializing OneNAND memory device\n");
+-		board_onenand_init(igep_flash_partitions,
++		onenand_data = board_onenand_init(igep_flash_partitions,
+ 				   ARRAY_SIZE(igep_flash_partitions), 0);
++		if (onenand_data != NULL) {
++			*gpmc_cur++ = gpmc_onenand_init(onenand_data);
++			gpmc_data.num_device++;
++		}
+ 	} else
+ 		pr_err("IGEP: Flash: unsupported sysboot sequence found\n");
+ }
+@@ -202,7 +222,11 @@ static struct omap_smsc911x_platform_data smsc911x_cfg = {
+ 
+ static inline void __init igep2_init_smsc911x(void)
+ {
+-	gpmc_smsc911x_init(&smsc911x_cfg);
++	*gpmc_cur = gpmc_smsc911x_init(&smsc911x_cfg);
++	if (*gpmc_cur)
++		gpmc_data.num_device++, gpmc_cur++;
++	else
++		pr_err("error: gpmc smsc911x setup\n");
  }
  
  #else
