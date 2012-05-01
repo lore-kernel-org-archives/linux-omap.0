@@ -1,111 +1,182 @@
-From: Afzal Mohammed <afzal-l0cyMroinI0@public.gmane.org>
-Subject: [PATCH 15/39] mtd: nand: omap2: obtain memory from resource
-Date: Tue, 1 May 2012 17:37:53 +0530
-Message-ID: <fe6880b4c4153bb9792d5776bfbf859353b492ac.1335873032.git.afzal@ti.com>
+From: Afzal Mohammed <afzal@ti.com>
+Subject: [PATCH 16/39] mtd: nand: omap2: use gpmc provided irqs
+Date: Tue, 1 May 2012 17:38:00 +0530
+Message-ID: <4daa1ee2ac50834e6d2705562ef76f405bf6ee4d.1335873032.git.afzal@ti.com>
 References: <cover.1335873032.git.afzal@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
-Return-path: <linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <cover.1335873032.git.afzal-l0cyMroinI0@public.gmane.org>
-Sender: linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org, linux-lFZ/pmaqli7XmaaqVzeoHQ@public.gmane.org, khilman-l0cyMroinI0@public.gmane.org, balbi-l0cyMroinI0@public.gmane.org, dwmw2-wEGCiKHe2LqWVfeAwA7xHQ@public.gmane.org, kyungmin.park-Sze3O3UU22JBDgjK7y7TUQ@public.gmane.org, gregkh-hQyY1W1yCW8ekmWlsbkhG0B+6BGkLq7r@public.gmane.org, nm-l0cyMroinI0@public.gmane.org, grinberg-UTxiZqZC01RS1MOuV/RT9w@public.gmane.org, notasas-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org, artem.bityutskiy-VuQAYsv1563Yd54FQh9/CA@public.gmane.org, vimal.newwork-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org, dbaryshkov-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-mtd-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org
-Cc: Afzal Mohammed <afzal-l0cyMroinI0@public.gmane.org>
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from bear.ext.ti.com ([192.94.94.41]:59706 "EHLO bear.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1753154Ab2EAMZH (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Tue, 1 May 2012 08:25:07 -0400
+In-Reply-To: <cover.1335873032.git.afzal@ti.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: tony@atomide.com, linux@arm.linux.org.uk, khilman@ti.com, balbi@ti.com, dwmw2@infradead.org, kyungmin.park@samsung.com, gregkh@linuxfoundation.org, nm@ti.com, grinberg@compulab.co.il, notasas@gmail.com, artem.bityutskiy@linux.intel.com, vimal.newwork@gmail.com, dbaryshkov@gmail.com, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-usb@vger.kernel.org, linux-mtd@lists.infradead.org
+Cc: Afzal Mohammed <afzal@ti.com>
 
-gpmc being converted to driver, provides drivers
-of peripheral connected memory space used by the
-peripheral as memory resource.
+GPMC driver provides it's clientsd with interrupts that can be used
+through struct resource. Make use of it for irq mode functionality.
 
-Modify nand omap driver to obtain memory detials
-from resource structure.
-
-Signed-off-by: Afzal Mohammed <afzal-l0cyMroinI0@public.gmane.org>
+Signed-off-by: Afzal Mohammed <afzal@ti.com>
 ---
- arch/arm/plat-omap/include/plat/nand.h |    1 -
- drivers/mtd/nand/omap2.c               |   20 ++++++++++++++------
- 2 files changed, 14 insertions(+), 7 deletions(-)
+ drivers/mtd/nand/omap2.c |   67 +++++++++++++++++++++++++++++-----------------
+ 1 file changed, 42 insertions(+), 25 deletions(-)
 
-diff --git a/arch/arm/plat-omap/include/plat/nand.h b/arch/arm/plat-omap/include/plat/nand.h
-index 30c61c9..570c4f4 100644
---- a/arch/arm/plat-omap/include/plat/nand.h
-+++ b/arch/arm/plat-omap/include/plat/nand.h
-@@ -26,7 +26,6 @@ struct omap_nand_platform_data {
- 	bool			dev_ready;
- 	int			gpmc_irq;
- 	enum nand_io		xfer_type;
--	unsigned long		phys_base;
- 	int			devsize;
- 	enum omap_ecc           ecc_opt;
- 	struct gpmc_nand_regs	reg;
 diff --git a/drivers/mtd/nand/omap2.c b/drivers/mtd/nand/omap2.c
-index c2b0bba..be4b321 100644
+index be4b321..440536b 100644
 --- a/drivers/mtd/nand/omap2.c
 +++ b/drivers/mtd/nand/omap2.c
-@@ -118,6 +118,7 @@ struct omap_nand_info {
- 
- 	int				gpmc_cs;
- 	unsigned long			phys_base;
-+	unsigned long			mem_size;
+@@ -121,7 +121,8 @@ struct omap_nand_info {
+ 	unsigned long			mem_size;
  	struct completion		comp;
  	int				dma_ch;
- 	int				gpmc_irq;
-@@ -931,6 +932,7 @@ static int __devinit omap_nand_probe(struct platform_device *pdev)
- 	struct omap_nand_platform_data	*pdata;
- 	int				err;
- 	int				i, offset;
-+	struct resource			*res;
+-	int				gpmc_irq;
++	int				gpmc_irq_fifo;
++	int				gpmc_irq_count;
+ 	enum {
+ 		OMAP_NAND_IO_READ = 0,	/* read */
+ 		OMAP_NAND_IO_WRITE,	/* write */
+@@ -472,13 +473,11 @@ static irqreturn_t omap_nand_irq(int this_irq, void *dev)
+ {
+ 	struct omap_nand_info *info = (struct omap_nand_info *) dev;
+ 	u32 bytes;
+-	u32 irq_stat;
  
- 	pdata = pdev->dev.platform_data;
- 	if (pdata == NULL) {
-@@ -950,7 +952,6 @@ static int __devinit omap_nand_probe(struct platform_device *pdev)
- 	info->pdev = pdev;
+-	irq_stat = gpmc_read_status(GPMC_GET_IRQ_STATUS);
+ 	bytes = gpmc_read_status(GPMC_PREFETCH_FIFO_CNT);
+ 	bytes = bytes  & 0xFFFC; /* io in multiple of 4 bytes */
+ 	if (info->iomode == OMAP_NAND_IO_WRITE) { /* checks for write io */
+-		if (irq_stat & 0x2)
++		if (this_irq == info->gpmc_irq_count)
+ 			goto done;
  
- 	info->gpmc_cs		= pdata->cs;
--	info->phys_base		= pdata->phys_base;
+ 		if (info->buf_len && (info->buf_len < bytes))
+@@ -495,20 +494,17 @@ static irqreturn_t omap_nand_irq(int this_irq, void *dev)
+ 						(u32 *)info->buf, bytes >> 2);
+ 		info->buf = info->buf + bytes;
  
- 	info->mtd.priv		= &info->nand;
- 	info->mtd.name		= dev_name(&pdev->dev);
-@@ -959,16 +960,23 @@ static int __devinit omap_nand_probe(struct platform_device *pdev)
- 	info->nand.options	= pdata->devsize;
- 	info->nand.options	|= NAND_SKIP_BBTSCAN;
+-		if (irq_stat & 0x2)
++		if (this_irq == info->gpmc_irq_count)
+ 			goto done;
+ 	}
+-	gpmc_cs_configure(info->gpmc_cs, GPMC_SET_IRQ_STATUS, irq_stat);
  
--	/* NAND write protect off */
--	gpmc_cs_configure(info->gpmc_cs, GPMC_CONFIG_WP, 0);
-+	res = platform_get_resource(pdev, IORESOURCE_MEM, 0);
-+	if (res == NULL) {
-+		err = -EINVAL;
-+		dev_err(&pdev->dev, "error getting memory resource\n");
-+		goto out_free_info;
-+	}
+ 	return IRQ_HANDLED;
+ 
+ done:
+ 	complete(&info->comp);
+-	/* disable irq */
+-	gpmc_cs_configure(info->gpmc_cs, GPMC_ENABLE_IRQ, 0);
+ 
+-	/* clear status */
+-	gpmc_cs_configure(info->gpmc_cs, GPMC_SET_IRQ_STATUS, irq_stat);
++	disable_irq_nosync(info->gpmc_irq_fifo);
++	disable_irq_nosync(info->gpmc_irq_count);
+ 
+ 	return IRQ_HANDLED;
+ }
+@@ -542,9 +538,9 @@ static void omap_read_buf_irq_pref(struct mtd_info *mtd, u_char *buf, int len)
+ 		goto out_copy;
+ 
+ 	info->buf_len = len;
+-	/* enable irq */
+-	gpmc_cs_configure(info->gpmc_cs, GPMC_ENABLE_IRQ,
+-		(GPMC_IRQ_FIFOEVENTENABLE | GPMC_IRQ_COUNT_EVENT));
 +
-+	info->phys_base = res->start;
-+	info->mem_size = resource_size(res);
++	enable_irq(info->gpmc_irq_count);
++	enable_irq(info->gpmc_irq_fifo);
  
--	if (!request_mem_region(info->phys_base, NAND_IO_SIZE,
-+	if (!request_mem_region(info->phys_base, info->mem_size,
- 				pdev->dev.driver->name)) {
- 		err = -EBUSY;
- 		goto out_free_info;
+ 	/* waiting for read to complete */
+ 	wait_for_completion(&info->comp);
+@@ -591,12 +587,13 @@ static void omap_write_buf_irq_pref(struct mtd_info *mtd,
+ 		goto out_copy;
+ 
+ 	info->buf_len = len;
+-	/* enable irq */
+-	gpmc_cs_configure(info->gpmc_cs, GPMC_ENABLE_IRQ,
+-			(GPMC_IRQ_FIFOEVENTENABLE | GPMC_IRQ_COUNT_EVENT));
++
++	enable_irq(info->gpmc_irq_count);
++	enable_irq(info->gpmc_irq_fifo);
+ 
+ 	/* waiting for write to complete */
+ 	wait_for_completion(&info->comp);
++
+ 	/* wait for data to flushed-out before reset the prefetch */
+ 	tim = 0;
+ 	limit = (loops_per_jiffy *  msecs_to_jiffies(OMAP_NAND_TIMEOUT_MS));
+@@ -982,6 +979,14 @@ static int __devinit omap_nand_probe(struct platform_device *pdev)
+ 		goto out_release_mem_region;
  	}
  
--	info->nand.IO_ADDR_R = ioremap(info->phys_base, NAND_IO_SIZE);
-+	info->nand.IO_ADDR_R = ioremap(info->phys_base, info->mem_size);
- 	if (!info->nand.IO_ADDR_R) {
- 		err = -ENOMEM;
- 		goto out_release_mem_region;
-@@ -1110,7 +1118,7 @@ static int __devinit omap_nand_probe(struct platform_device *pdev)
++	info->gpmc_irq_fifo = platform_get_irq(pdev, 0);
++	if (info->gpmc_irq_fifo == -ENXIO)
++		dev_warn(&pdev->dev, "error getting FIFO IRQ\n");
++
++	info->gpmc_irq_count = platform_get_irq(pdev, 1);
++	if (info->gpmc_irq_fifo == -ENXIO)
++		dev_warn(&pdev->dev, "error getting TERMINALCOUNT IRQ\n");
++
+ 	info->nand.controller = &info->controller;
+ 
+ 	info->nand.IO_ADDR_W = info->nand.IO_ADDR_R;
+@@ -1037,17 +1042,24 @@ static int __devinit omap_nand_probe(struct platform_device *pdev)
+ 		break;
+ 
+ 	case NAND_OMAP_PREFETCH_IRQ:
+-		err = request_irq(pdata->gpmc_irq,
+-				omap_nand_irq, IRQF_SHARED, "gpmc-nand", info);
++		err = request_irq(info->gpmc_irq_fifo,	omap_nand_irq,
++					IRQF_SHARED, "gpmc-nand-fifo", info);
+ 		if (err) {
+ 			dev_err(&pdev->dev, "requesting irq(%d) error:%d",
+-							pdata->gpmc_irq, err);
++						info->gpmc_irq_fifo, err);
+ 			goto out_release_mem_region;
+-		} else {
+-			info->gpmc_irq	     = pdata->gpmc_irq;
+-			info->nand.read_buf  = omap_read_buf_irq_pref;
+-			info->nand.write_buf = omap_write_buf_irq_pref;
+ 		}
++		err = request_irq(info->gpmc_irq_count,	omap_nand_irq,
++					IRQF_SHARED, "gpmc-nand-count", info);
++		if (err) {
++			dev_err(&pdev->dev, "requesting irq(%d) error:%d",
++						info->gpmc_irq_count, err);
++			goto out_free_irq_gpmc_fifo;
++		}
++
++		info->nand.read_buf  = omap_read_buf_irq_pref;
++		info->nand.write_buf = omap_write_buf_irq_pref;
++
+ 		break;
+ 
+ 	default:
+@@ -1117,6 +1129,8 @@ static int __devinit omap_nand_probe(struct platform_device *pdev)
+ 
  	return 0;
  
++out_free_irq_gpmc_fifo:
++	free_irq(info->gpmc_irq_fifo, info);
  out_release_mem_region:
--	release_mem_region(info->phys_base, NAND_IO_SIZE);
-+	release_mem_region(info->phys_base, info->mem_size);
+ 	release_mem_region(info->phys_base, info->mem_size);
  out_free_info:
- 	kfree(info);
+@@ -1135,8 +1149,11 @@ static int omap_nand_remove(struct platform_device *pdev)
+ 	if (info->dma_ch != -1)
+ 		omap_free_dma(info->dma_ch);
  
+-	if (info->gpmc_irq)
+-		free_irq(info->gpmc_irq, info);
++	if (info->gpmc_irq_fifo > 0)
++		free_irq(info->gpmc_irq_fifo, info);
++
++	if (info->gpmc_irq_count > 0)
++		free_irq(info->gpmc_irq_count, info);
+ 
+ 	/* Release NAND device, its internal structures and partitions */
+ 	nand_release(&info->mtd);
 -- 
 1.7.10
 
---
-To unsubscribe from this list: send the line "unsubscribe linux-usb" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
