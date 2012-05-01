@@ -1,185 +1,111 @@
-From: Afzal Mohammed <afzal@ti.com>
-Subject: [PATCH 14/39] ARM: OMAP2xxx: hwmod data: add gpmc
-Date: Tue, 1 May 2012 17:37:46 +0530
-Message-ID: <3a2e4c8f26e4a0c5e4139f4530c021d2a43a07ca.1335873032.git.afzal@ti.com>
+From: Afzal Mohammed <afzal-l0cyMroinI0@public.gmane.org>
+Subject: [PATCH 15/39] mtd: nand: omap2: obtain memory from resource
+Date: Tue, 1 May 2012 17:37:53 +0530
+Message-ID: <fe6880b4c4153bb9792d5776bfbf859353b492ac.1335873032.git.afzal@ti.com>
 References: <cover.1335873032.git.afzal@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from bear.ext.ti.com ([192.94.94.41]:59682 "EHLO bear.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1755533Ab2EAMYw (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Tue, 1 May 2012 08:24:52 -0400
-In-Reply-To: <cover.1335873032.git.afzal@ti.com>
-Sender: linux-omap-owner@vger.kernel.org
+Return-path: <linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <cover.1335873032.git.afzal-l0cyMroinI0@public.gmane.org>
+Sender: linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org, linux-lFZ/pmaqli7XmaaqVzeoHQ@public.gmane.org, khilman-l0cyMroinI0@public.gmane.org, balbi-l0cyMroinI0@public.gmane.org, dwmw2-wEGCiKHe2LqWVfeAwA7xHQ@public.gmane.org, kyungmin.park-Sze3O3UU22JBDgjK7y7TUQ@public.gmane.org, gregkh-hQyY1W1yCW8ekmWlsbkhG0B+6BGkLq7r@public.gmane.org, nm-l0cyMroinI0@public.gmane.org, grinberg-UTxiZqZC01RS1MOuV/RT9w@public.gmane.org, notasas-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org, artem.bityutskiy-VuQAYsv1563Yd54FQh9/CA@public.gmane.org, vimal.newwork-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org, dbaryshkov-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-mtd-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org
+Cc: Afzal Mohammed <afzal-l0cyMroinI0@public.gmane.org>
 List-Id: linux-omap@vger.kernel.org
-To: tony@atomide.com, linux@arm.linux.org.uk, khilman@ti.com, balbi@ti.com, dwmw2@infradead.org, kyungmin.park@samsung.com, gregkh@linuxfoundation.org, nm@ti.com, grinberg@compulab.co.il, notasas@gmail.com, artem.bityutskiy@linux.intel.com, vimal.newwork@gmail.com, dbaryshkov@gmail.com, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-usb@vger.kernel.org, linux-mtd@lists.infradead.org
-Cc: Afzal Mohammed <afzal@ti.com>
 
-Add gpmc hwmod and associated interconnect data
+gpmc being converted to driver, provides drivers
+of peripheral connected memory space used by the
+peripheral as memory resource.
 
-Signed-off-by: Afzal Mohammed <afzal@ti.com>
+Modify nand omap driver to obtain memory detials
+from resource structure.
+
+Signed-off-by: Afzal Mohammed <afzal-l0cyMroinI0@public.gmane.org>
 ---
- arch/arm/mach-omap2/omap_hwmod_2420_data.c         |   18 +++++++++
- arch/arm/mach-omap2/omap_hwmod_2430_data.c         |   18 +++++++++
- arch/arm/mach-omap2/omap_hwmod_2xxx_ipblock_data.c |   41 ++++++++++++++++++++
- arch/arm/mach-omap2/omap_hwmod_common_data.h       |    1 +
- arch/arm/mach-omap2/prcm-common.h                  |    2 +
- 5 files changed, 80 insertions(+)
+ arch/arm/plat-omap/include/plat/nand.h |    1 -
+ drivers/mtd/nand/omap2.c               |   20 ++++++++++++++------
+ 2 files changed, 14 insertions(+), 7 deletions(-)
 
-diff --git a/arch/arm/mach-omap2/omap_hwmod_2420_data.c b/arch/arm/mach-omap2/omap_hwmod_2420_data.c
-index 2c087ff..55c8c7b 100644
---- a/arch/arm/mach-omap2/omap_hwmod_2420_data.c
-+++ b/arch/arm/mach-omap2/omap_hwmod_2420_data.c
-@@ -428,6 +428,23 @@ static struct omap_hwmod_ocp_if omap2420_l4_core__mcbsp2 = {
- 	.user		= OCP_USER_MPU | OCP_USER_SDMA,
- };
+diff --git a/arch/arm/plat-omap/include/plat/nand.h b/arch/arm/plat-omap/include/plat/nand.h
+index 30c61c9..570c4f4 100644
+--- a/arch/arm/plat-omap/include/plat/nand.h
++++ b/arch/arm/plat-omap/include/plat/nand.h
+@@ -26,7 +26,6 @@ struct omap_nand_platform_data {
+ 	bool			dev_ready;
+ 	int			gpmc_irq;
+ 	enum nand_io		xfer_type;
+-	unsigned long		phys_base;
+ 	int			devsize;
+ 	enum omap_ecc           ecc_opt;
+ 	struct gpmc_nand_regs	reg;
+diff --git a/drivers/mtd/nand/omap2.c b/drivers/mtd/nand/omap2.c
+index c2b0bba..be4b321 100644
+--- a/drivers/mtd/nand/omap2.c
++++ b/drivers/mtd/nand/omap2.c
+@@ -118,6 +118,7 @@ struct omap_nand_info {
  
-+static struct omap_hwmod_addr_space omap2420_gpmc_addrs[] = {
-+	{
-+		.pa_start	= 0x6800A000,
-+		.pa_end		= 0x6800AFFF,
-+		.flags		= ADDR_TYPE_RT
-+	},
-+	{ }
-+};
-+
-+static struct omap_hwmod_ocp_if omap2420_l3__gpmc = {
-+	.master		= &omap2xxx_l3_main_hwmod,
-+	.slave		= &omap2xxx_gpmc_hwmod,
-+	.clk		= "core_l3_ck",
-+	.addr		= omap2420_gpmc_addrs,
-+	.user		= OCP_USER_MPU | OCP_USER_SDMA,
-+};
-+
- static struct omap_hwmod_ocp_if *omap2420_hwmod_ocp_ifs[] __initdata = {
- 	&omap2xxx_l3_main__l4_core,
- 	&omap2xxx_mpu__l3_main,
-@@ -468,6 +485,7 @@ static struct omap_hwmod_ocp_if *omap2420_hwmod_ocp_ifs[] __initdata = {
- 	&omap2420_l4_core__mailbox,
- 	&omap2420_l4_core__mcbsp1,
- 	&omap2420_l4_core__mcbsp2,
-+	&omap2420_l3__gpmc,
- 	NULL,
- };
+ 	int				gpmc_cs;
+ 	unsigned long			phys_base;
++	unsigned long			mem_size;
+ 	struct completion		comp;
+ 	int				dma_ch;
+ 	int				gpmc_irq;
+@@ -931,6 +932,7 @@ static int __devinit omap_nand_probe(struct platform_device *pdev)
+ 	struct omap_nand_platform_data	*pdata;
+ 	int				err;
+ 	int				i, offset;
++	struct resource			*res;
  
-diff --git a/arch/arm/mach-omap2/omap_hwmod_2430_data.c b/arch/arm/mach-omap2/omap_hwmod_2430_data.c
-index 71d9f88..dd224cca 100644
---- a/arch/arm/mach-omap2/omap_hwmod_2430_data.c
-+++ b/arch/arm/mach-omap2/omap_hwmod_2430_data.c
-@@ -838,6 +838,23 @@ static struct omap_hwmod_ocp_if omap2430_l4_core__mcbsp5 = {
- 	.user		= OCP_USER_MPU | OCP_USER_SDMA,
- };
+ 	pdata = pdev->dev.platform_data;
+ 	if (pdata == NULL) {
+@@ -950,7 +952,6 @@ static int __devinit omap_nand_probe(struct platform_device *pdev)
+ 	info->pdev = pdev;
  
-+static struct omap_hwmod_addr_space omap2430_gpmc_addrs[] = {
-+	{
-+		.pa_start	= 0x6E000000,
-+		.pa_end		= 0x6E000FFF,
-+		.flags		= ADDR_TYPE_RT
-+	},
-+	{ }
-+};
-+
-+static struct omap_hwmod_ocp_if omap2430_l3__gpmc = {
-+	.master		= &omap2xxx_l3_main_hwmod,
-+	.slave		= &omap2xxx_gpmc_hwmod,
-+	.clk		= "core_l3_ck",
-+	.addr		= omap2430_gpmc_addrs,
-+	.user		= OCP_USER_MPU | OCP_USER_SDMA,
-+};
-+
- static struct omap_hwmod_ocp_if *omap2430_hwmod_ocp_ifs[] __initdata = {
- 	&omap2xxx_l3_main__l4_core,
- 	&omap2xxx_mpu__l3_main,
-@@ -886,6 +903,7 @@ static struct omap_hwmod_ocp_if *omap2430_hwmod_ocp_ifs[] __initdata = {
- 	&omap2430_l4_core__mcbsp3,
- 	&omap2430_l4_core__mcbsp4,
- 	&omap2430_l4_core__mcbsp5,
-+	&omap2430_l3__gpmc,
- 	NULL,
- };
+ 	info->gpmc_cs		= pdata->cs;
+-	info->phys_base		= pdata->phys_base;
  
-diff --git a/arch/arm/mach-omap2/omap_hwmod_2xxx_ipblock_data.c b/arch/arm/mach-omap2/omap_hwmod_2xxx_ipblock_data.c
-index 45aaa07..e75da40 100644
---- a/arch/arm/mach-omap2/omap_hwmod_2xxx_ipblock_data.c
-+++ b/arch/arm/mach-omap2/omap_hwmod_2xxx_ipblock_data.c
-@@ -175,6 +175,26 @@ struct omap_hwmod_class omap2xxx_mcspi_class = {
- };
+ 	info->mtd.priv		= &info->nand;
+ 	info->mtd.name		= dev_name(&pdev->dev);
+@@ -959,16 +960,23 @@ static int __devinit omap_nand_probe(struct platform_device *pdev)
+ 	info->nand.options	= pdata->devsize;
+ 	info->nand.options	|= NAND_SKIP_BBTSCAN;
  
- /*
-+ * 'gpmc' class
-+ * general purpose memory controller
-+ */
+-	/* NAND write protect off */
+-	gpmc_cs_configure(info->gpmc_cs, GPMC_CONFIG_WP, 0);
++	res = platform_get_resource(pdev, IORESOURCE_MEM, 0);
++	if (res == NULL) {
++		err = -EINVAL;
++		dev_err(&pdev->dev, "error getting memory resource\n");
++		goto out_free_info;
++	}
 +
-+static struct omap_hwmod_class_sysconfig omap2xxx_gpmc_sysc = {
-+	.rev_offs	= 0x0000,
-+	.sysc_offs	= 0x0010,
-+	.syss_offs	= 0x0014,
-+	.sysc_flags	= (SYSC_HAS_AUTOIDLE | SYSC_HAS_SIDLEMODE |
-+			   SYSC_HAS_SOFTRESET | SYSS_HAS_RESET_STATUS),
-+	.idlemodes	= (SIDLE_FORCE | SIDLE_NO | SIDLE_SMART),
-+	.sysc_fields	= &omap_hwmod_sysc_type1,
-+};
-+
-+static struct omap_hwmod_class omap2xxx_gpmc_hwmod_class = {
-+	.name	= "gpmc",
-+	.sysc	= &omap2xxx_gpmc_sysc,
-+};
-+
-+/*
-  * IP blocks
-  */
++	info->phys_base = res->start;
++	info->mem_size = resource_size(res);
  
-@@ -732,3 +752,24 @@ struct omap_hwmod omap2xxx_mcspi2_hwmod = {
- 	.class		= &omap2xxx_mcspi_class,
- 	.dev_attr	= &omap_mcspi2_dev_attr,
- };
-+
-+/* gpmc */
-+static struct omap_hwmod_irq_info omap2xxx_gpmc_irqs[] = {
-+	{ .irq = 20 },
-+	{ .irq = -1 }
-+};
-+
-+struct omap_hwmod omap2xxx_gpmc_hwmod = {
-+	.name		= "gpmc",
-+	.class		= &omap2xxx_gpmc_hwmod_class,
-+	.mpu_irqs	= omap2xxx_gpmc_irqs,
-+	.main_clk	= "gpmc_fck",
-+	.flags		= HWMOD_INIT_NO_IDLE | HWMOD_INIT_NO_RESET,
-+	.prcm		= {
-+		.omap2	= {
-+			.prcm_reg_id = 3,
-+			.module_bit = OMAP24XX_EN_GPMC_MASK,
-+			.module_offs = CORE_MOD,
-+		},
-+	},
-+};
-diff --git a/arch/arm/mach-omap2/omap_hwmod_common_data.h b/arch/arm/mach-omap2/omap_hwmod_common_data.h
-index 7aa9156..63e0134 100644
---- a/arch/arm/mach-omap2/omap_hwmod_common_data.h
-+++ b/arch/arm/mach-omap2/omap_hwmod_common_data.h
-@@ -74,6 +74,7 @@ extern struct omap_hwmod omap2xxx_gpio3_hwmod;
- extern struct omap_hwmod omap2xxx_gpio4_hwmod;
- extern struct omap_hwmod omap2xxx_mcspi1_hwmod;
- extern struct omap_hwmod omap2xxx_mcspi2_hwmod;
-+extern struct omap_hwmod omap2xxx_gpmc_hwmod;
+-	if (!request_mem_region(info->phys_base, NAND_IO_SIZE,
++	if (!request_mem_region(info->phys_base, info->mem_size,
+ 				pdev->dev.driver->name)) {
+ 		err = -EBUSY;
+ 		goto out_free_info;
+ 	}
  
- /* Common interface data across OMAP2xxx */
- extern struct omap_hwmod_ocp_if omap2xxx_l3_main__l4_core;
-diff --git a/arch/arm/mach-omap2/prcm-common.h b/arch/arm/mach-omap2/prcm-common.h
-index 5aa5435..48c722a 100644
---- a/arch/arm/mach-omap2/prcm-common.h
-+++ b/arch/arm/mach-omap2/prcm-common.h
-@@ -109,6 +109,8 @@
- #define OMAP2430_EN_MDM_INTC_MASK			(1 << 11)
- #define OMAP2430_EN_USBHS_SHIFT				6
- #define OMAP2430_EN_USBHS_MASK				(1 << 6)
-+#define OMAP24XX_EN_GPMC_SHIFT				1
-+#define OMAP24XX_EN_GPMC_MASK				(1 << 1)
+-	info->nand.IO_ADDR_R = ioremap(info->phys_base, NAND_IO_SIZE);
++	info->nand.IO_ADDR_R = ioremap(info->phys_base, info->mem_size);
+ 	if (!info->nand.IO_ADDR_R) {
+ 		err = -ENOMEM;
+ 		goto out_release_mem_region;
+@@ -1110,7 +1118,7 @@ static int __devinit omap_nand_probe(struct platform_device *pdev)
+ 	return 0;
  
- /* CM_IDLEST1_CORE, PM_WKST1_CORE shared bits */
- #define OMAP2420_ST_MMC_SHIFT				26
+ out_release_mem_region:
+-	release_mem_region(info->phys_base, NAND_IO_SIZE);
++	release_mem_region(info->phys_base, info->mem_size);
+ out_free_info:
+ 	kfree(info);
+ 
 -- 
 1.7.10
 
+--
+To unsubscribe from this list: send the line "unsubscribe linux-usb" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
