@@ -1,15 +1,15 @@
 From: Afzal Mohammed <afzal@ti.com>
-Subject: [PATCH 33/39] ARM: OMAP2+: board omap4pcm049: gpmc driver adaptation
-Date: Tue, 1 May 2012 17:40:00 +0530
-Message-ID: <5defad2fdc7a94ccb4275b544a8396c18aa46093.1335873032.git.afzal@ti.com>
+Subject: [PATCH 34/39] ARM: OMAP2+: board overo: gpmc driver adaptation
+Date: Tue, 1 May 2012 17:40:08 +0530
+Message-ID: <b110c0f582a8b629bc32c557ea287c4a8b4fe4d6.1335873032.git.afzal@ti.com>
 References: <cover.1335873032.git.afzal@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from comal.ext.ti.com ([198.47.26.152]:42958 "EHLO comal.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1757122Ab2EAM1G (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Tue, 1 May 2012 08:27:06 -0400
+Received: from devils.ext.ti.com ([198.47.26.153]:37442 "EHLO
+	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1757122Ab2EAM1N (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 1 May 2012 08:27:13 -0400
 In-Reply-To: <cover.1335873032.git.afzal@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
@@ -21,47 +21,75 @@ code to provide gpmc driver with required information.
 
 Signed-off-by: Afzal Mohammed <afzal@ti.com>
 ---
- arch/arm/mach-omap2/board-omap4pcm049.c |   13 ++++++++++++-
- 1 file changed, 12 insertions(+), 1 deletion(-)
+ arch/arm/mach-omap2/board-overo.c |   29 ++++++++++++++++++++++++++---
+ 1 file changed, 26 insertions(+), 3 deletions(-)
 
-diff --git a/arch/arm/mach-omap2/board-omap4pcm049.c b/arch/arm/mach-omap2/board-omap4pcm049.c
-index 81de7d5..b4ead86 100644
---- a/arch/arm/mach-omap2/board-omap4pcm049.c
-+++ b/arch/arm/mach-omap2/board-omap4pcm049.c
-@@ -130,6 +130,12 @@ static struct omap2_hsmmc_info mmc[] = {
- 	}, {}	/* Terminator */
- };
+diff --git a/arch/arm/mach-omap2/board-overo.c b/arch/arm/mach-omap2/board-overo.c
+index e08479a..fa0197e 100644
+--- a/arch/arm/mach-omap2/board-overo.c
++++ b/arch/arm/mach-omap2/board-overo.c
+@@ -72,6 +72,13 @@
+ #define OVERO_SMSC911X2_CS     4
+ #define OVERO_SMSC911X2_GPIO   65
  
-+static struct gpmc_device_pdata *gpmc_device_data[1];
++static struct gpmc_device_pdata *gpmc_device_data[3];
++static struct gpmc_device_pdata **gpmc_cur = gpmc_device_data;
 +
 +static struct gpmc_pdata gpmc_data = {
 +	.device_pdata = gpmc_device_data,
 +};
 +
- #if defined(CONFIG_SMSC911X) || defined(CONFIG_SMSC911X_MODULE)
- static struct regulator_consumer_supply dummy_supplies[] = {
- 	REGULATOR_SUPPLY("vddvario", "smsc911x.0"),
-@@ -147,7 +153,11 @@ static inline void __init pcm049_init_smsc911x(void)
+ #if defined(CONFIG_TOUCHSCREEN_ADS7846) || \
+ 	defined(CONFIG_TOUCHSCREEN_ADS7846_MODULE)
+ 
+@@ -137,8 +144,16 @@ static struct omap_smsc911x_platform_data smsc911x2_cfg = {
+ 
+ static void __init overo_init_smsc911x(void)
  {
- 	omap_mux_init_gpio(OMAP4_PCM049_ETH_GPIO_IRQ, OMAP_PIN_INPUT);
- 	regulator_register_fixed(0, dummy_supplies, ARRAY_SIZE(dummy_supplies));
--	gpmc_smsc911x_init(&board_smsc911x_data);
-+	*gpmc_device_data = gpmc_smsc911x_init(&board_smsc911x_data);
-+	if (*gpmc_device_data)
-+		gpmc_data.num_device++;
+-	gpmc_smsc911x_init(&smsc911x_cfg);
+-	gpmc_smsc911x_init(&smsc911x2_cfg);
++	*gpmc_cur = gpmc_smsc911x_init(&smsc911x_cfg);
++	if (*gpmc_cur)
++		gpmc_data.num_device++, gpmc_cur++;
 +	else
-+		pr_err("error: unable to initilaize gpmc smsc911x\n");
++		pr_err("error: %s: smsc911x instance 1 setup\n", __func__);
++	*gpmc_cur = gpmc_smsc911x_init(&smsc911x2_cfg);
++	if (*gpmc_cur)
++		gpmc_data.num_device++, gpmc_cur++;
++	else
++		pr_err("error: %s: smsc911x instance 1 setup\n", __func__);
  }
+ 
  #else
- static inline void __init pcm049_init_smsc911x(void) { return; }
-@@ -562,6 +572,7 @@ static void __init pcm049_init(void)
- 	pm_power_off = pcm049_power_off;
- 	omap4_mux_init(board_mux, NULL, OMAP_PACKAGE_CBS);
- 	pcm049_init_smsc911x();
+@@ -509,6 +524,7 @@ static struct regulator_consumer_supply dummy_supplies[] = {
+ static void __init overo_init(void)
+ {
+ 	int ret;
++	struct omap_nand_platform_data *nand_data;
+ 
+ 	regulator_register_fixed(0, dummy_supplies, ARRAY_SIZE(dummy_supplies));
+ 	omap3_mux_init(board_mux, OMAP_PACKAGE_CBB);
+@@ -518,12 +534,19 @@ static void __init overo_init(void)
+ 	omap_serial_init();
+ 	omap_sdrc_init(mt46h32m32lf6_sdrc_params,
+ 				  mt46h32m32lf6_sdrc_params);
+-	board_nand_init(overo_nand_partitions,
++
++	nand_data = board_nand_init(overo_nand_partitions,
+ 		ARRAY_SIZE(overo_nand_partitions), GPMC_CS_NUM, 0, NULL);
++	if (nand_data != NULL) {
++		*gpmc_cur++ = gpmc_nand_init(nand_data);
++		gpmc_data.num_device++;
++	}
++
+ 	usb_musb_init(NULL);
+ 	usbhs_init(&usbhs_bdata);
+ 	overo_spi_init();
+ 	overo_init_smsc911x();
 +	omap_init_gpmc(&gpmc_data);
- 	pcm049_i2c_init();
- 	platform_add_devices(pcm049_devices, ARRAY_SIZE(pcm049_devices));
- 	board_serial_init();
+ 	overo_display_init();
+ 	overo_init_led();
+ 	overo_init_keys();
 -- 
 1.7.10
 
