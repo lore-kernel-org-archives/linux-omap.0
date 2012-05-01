@@ -1,133 +1,136 @@
-From: Afzal Mohammed <afzal@ti.com>
-Subject: [PATCH 37/39] ARM: OMAP2+: board zoom-debugboard: gpmc driver adaptation
-Date: Tue, 1 May 2012 17:40:30 +0530
-Message-ID: <7c68bdb43ff3d41568f993609239487792399d82.1335873032.git.afzal@ti.com>
+From: Afzal Mohammed <afzal-l0cyMroinI0@public.gmane.org>
+Subject: [PATCH 38/39] OMAP3: igep0020: Add support for Micron NAND Flash storage memory
+Date: Tue, 1 May 2012 17:40:37 +0530
+Message-ID: <0f754cf7506640a0dc02f1a1e07d7b9b5c4c7769.1335873032.git.afzal@ti.com>
 References: <cover.1335873032.git.afzal@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from comal.ext.ti.com ([198.47.26.152]:42991 "EHLO comal.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1755901Ab2EAM1g (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Tue, 1 May 2012 08:27:36 -0400
-In-Reply-To: <cover.1335873032.git.afzal@ti.com>
-Sender: linux-omap-owner@vger.kernel.org
+Return-path: <linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <cover.1335873032.git.afzal-l0cyMroinI0@public.gmane.org>
+Sender: linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org, linux-lFZ/pmaqli7XmaaqVzeoHQ@public.gmane.org, khilman-l0cyMroinI0@public.gmane.org, balbi-l0cyMroinI0@public.gmane.org, dwmw2-wEGCiKHe2LqWVfeAwA7xHQ@public.gmane.org, kyungmin.park-Sze3O3UU22JBDgjK7y7TUQ@public.gmane.org, gregkh-hQyY1W1yCW8ekmWlsbkhG0B+6BGkLq7r@public.gmane.org, nm-l0cyMroinI0@public.gmane.org, grinberg-UTxiZqZC01RS1MOuV/RT9w@public.gmane.org, notasas-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org, artem.bityutskiy-VuQAYsv1563Yd54FQh9/CA@public.gmane.org, vimal.newwork-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org, dbaryshkov-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-mtd-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org
+Cc: Javier Martinez Canillas <javier-0uQlZySMnqxg9hUCZPvPmw@public.gmane.org>, Afzal Mohammed <afzal-l0cyMroinI0@public.gmane.org>
 List-Id: linux-omap@vger.kernel.org
-To: tony@atomide.com, linux@arm.linux.org.uk, khilman@ti.com, balbi@ti.com, dwmw2@infradead.org, kyungmin.park@samsung.com, gregkh@linuxfoundation.org, nm@ti.com, grinberg@compulab.co.il, notasas@gmail.com, artem.bityutskiy@linux.intel.com, vimal.newwork@gmail.com, dbaryshkov@gmail.com, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-usb@vger.kernel.org, linux-mtd@lists.infradead.org
-Cc: Afzal Mohammed <afzal@ti.com>
 
-gpmc code has been converted to driver. Modify the board
-code to provide gpmc driver with required information.
+From: Javier Martinez Canillas <javier-0uQlZySMnqxg9hUCZPvPmw@public.gmane.org>
 
-Signed-off-by: Afzal Mohammed <afzal@ti.com>
+IGEP-based boards can have two different flash memories, a OneNAND or
+a NAND device. The boot configuration pins (sys_boot) are used to
+specify which memory is available.
+
+Also, this patch removes unnecesary code for registering the OneNAND.
+
+afzal-l0cyMroinI0@public.gmane.org: Update to use modified board_nand_init
+
+Signed-off-by: Javier Martinez Canillas <javier-0uQlZySMnqxg9hUCZPvPmw@public.gmane.org>
+Signed-off-by: Afzal Mohammed <afzal-l0cyMroinI0@public.gmane.org>
+
+fixup: igep
 ---
- arch/arm/mach-omap2/board-zoom-debugboard.c |   47 +++++++++++++++------------
- 1 file changed, 27 insertions(+), 20 deletions(-)
+ arch/arm/mach-omap2/board-igep0020.c |   75 ++++++++++++++--------------------
+ 1 file changed, 31 insertions(+), 44 deletions(-)
 
-diff --git a/arch/arm/mach-omap2/board-zoom-debugboard.c b/arch/arm/mach-omap2/board-zoom-debugboard.c
-index f64f441..dae7df2 100644
---- a/arch/arm/mach-omap2/board-zoom-debugboard.c
-+++ b/arch/arm/mach-omap2/board-zoom-debugboard.c
-@@ -31,6 +31,13 @@
- #define DEBUG_BASE		0x08000000
- #define ZOOM_ETHR_START	DEBUG_BASE
+diff --git a/arch/arm/mach-omap2/board-igep0020.c b/arch/arm/mach-omap2/board-igep0020.c
+index 930c0d3..6d171ca 100644
+--- a/arch/arm/mach-omap2/board-igep0020.c
++++ b/arch/arm/mach-omap2/board-igep0020.c
+@@ -24,6 +24,8 @@
+ #include <linux/i2c/twl.h>
+ #include <linux/mmc/host.h>
  
-+static struct gpmc_device_pdata *gpmc_device_data[2];
-+static struct gpmc_device_pdata **gpmc_cur = gpmc_device_data;
++#include <linux/mtd/nand.h>
 +
-+static struct gpmc_pdata gpmc_data = {
-+	.device_pdata = gpmc_device_data,
-+};
-+
- static struct omap_smsc911x_platform_data zoom_smsc911x_cfg = {
- 	.cs             = ZOOM_SMSC911X_CS,
- 	.gpio_irq       = ZOOM_SMSC911X_GPIO,
-@@ -40,7 +47,11 @@ static struct omap_smsc911x_platform_data zoom_smsc911x_cfg = {
+ #include <asm/mach-types.h>
+ #include <asm/mach/arch.h>
  
- static inline void __init zoom_init_smsc911x(void)
- {
--	gpmc_smsc911x_init(&zoom_smsc911x_cfg);
-+	*gpmc_cur = gpmc_smsc911x_init(&zoom_smsc911x_cfg);
-+	if (*gpmc_cur)
-+		gpmc_data.num_device++, gpmc_cur++;
-+	else
-+		pr_err("error: %s: gpmc smsc911x setup\n", __func__);
+@@ -39,6 +41,8 @@
+ #include "hsmmc.h"
+ #include "sdram-numonyx-m65kxxxxam.h"
+ #include "common-board-devices.h"
++#include "board-flash.h"
++#include "control.h"
+ 
+ #define IGEP2_SMSC911X_CS       5
+ #define IGEP2_SMSC911X_GPIO     176
+@@ -60,6 +64,10 @@
+ #define IGEP3_GPIO_LED1_RED	16
+ #define IGEP3_GPIO_USBH_NRESET  183
+ 
++#define IGEP_SYSBOOT_MASK           0x1f
++#define IGEP_SYSBOOT_NAND           0x0f
++#define IGEP_SYSBOOT_ONENAND        0x10
++
+ /*
+  * IGEP2 Hardware Revision Table
+  *
+@@ -110,8 +118,10 @@ static void __init igep2_get_revision(void)
+ 	gpio_free(IGEP2_GPIO_LED1_RED);
  }
  
- static struct plat_serial8250_port serial_platform_data[] = {
-@@ -56,18 +67,22 @@ static struct plat_serial8250_port serial_platform_data[] = {
- 	}
+-#if defined(CONFIG_MTD_ONENAND_OMAP2) || \
+-	defined(CONFIG_MTD_ONENAND_OMAP2_MODULE)
++#if defined(CONFIG_MTD_ONENAND_OMAP2) ||		\
++	defined(CONFIG_MTD_ONENAND_OMAP2_MODULE) ||	\
++	defined(CONFIG_MTD_NAND_OMAP2) ||		\
++	defined(CONFIG_MTD_NAND_OMAP2_MODULE)
+ 
+ #define ONENAND_MAP             0x20000000
+ 
+@@ -123,7 +133,7 @@ static void __init igep2_get_revision(void)
+  * So MTD regards it as 4KiB page size and 256KiB block size 64*(2*2048)
+  */
+ 
+-static struct mtd_partition igep_onenand_partitions[] = {
++static struct mtd_partition igep_flash_partitions[] = {
+ 	{
+ 		.name           = "X-Loader",
+ 		.offset         = 0,
+@@ -151,50 +161,27 @@ static struct mtd_partition igep_onenand_partitions[] = {
+ 	},
  };
  
--static struct platform_device zoom_debugboard_serial_device = {
-+static struct gpmc_cs_data zoom_debugboard_gpmc_cs_serial_data = {
-+	.cs		= ZOOM_QUADUART_CS,
-+	.mem_size	= SZ_1M,
-+};
-+
-+static struct gpmc_device_pdata zoom_debugboard_gpmc_serial_data = {
- 	.name			= "serial8250",
- 	.id			= PLAT8250_DEV_PLATFORM,
--	.dev			= {
--		.platform_data	= serial_platform_data,
--	},
-+	.pdata			= serial_platform_data,
-+	.pdata_size		= sizeof(serial_platform_data),
-+	.cs_data		= &zoom_debugboard_gpmc_cs_serial_data,
-+	.num_cs			= 1,
- };
- 
- static inline void __init zoom_init_quaduart(void)
- {
--	int quart_cs;
--	unsigned long cs_mem_base;
- 	int quart_gpio = 0;
- 
- 	if (gpio_request_one(ZOOM_QUADUART_RST_GPIO,
-@@ -78,14 +93,6 @@ static inline void __init zoom_init_quaduart(void)
- 		return;
- 	}
- 
--	quart_cs = ZOOM_QUADUART_CS;
+-static struct omap_onenand_platform_data igep_onenand_data = {
+-	.parts = igep_onenand_partitions,
+-	.nr_parts = ARRAY_SIZE(igep_onenand_partitions),
+-	.dma_channel	= -1,	/* disable DMA in OMAP OneNAND driver */
+-};
 -
--	if (gpmc_cs_request(quart_cs, SZ_1M, &cs_mem_base) < 0) {
--		printk(KERN_ERR "Failed to request GPMC mem"
--				"for Quad UART(TL16CP754C)\n");
+-static struct platform_device igep_onenand_device = {
+-	.name		= "omap2-onenand",
+-	.id		= -1,
+-	.dev = {
+-		.platform_data = &igep_onenand_data,
+-	},
+-};
++static inline u32 igep_get_sysboot_value(void)
++{
++	return omap_ctrl_readl(OMAP343X_CONTROL_STATUS) & IGEP_SYSBOOT_MASK;
++}
+ 
+ static void __init igep_flash_init(void)
+ {
+-	u8 cs = 0;
+-	u8 onenandcs = GPMC_CS_NUM + 1;
+-
+-	for (cs = 0; cs < GPMC_CS_NUM; cs++) {
+-		u32 ret;
+-		ret = gpmc_cs_read_reg(cs, GPMC_CS_CONFIG1);
+-
+-		/* Check if NAND/oneNAND is configured */
+-		if ((ret & 0xC00) == 0x800)
+-			/* NAND found */
+-			pr_err("IGEP: Unsupported NAND found\n");
+-		else {
+-			ret = gpmc_cs_read_reg(cs, GPMC_CS_CONFIG7);
+-			if ((ret & 0x3F) == (ONENAND_MAP >> 24))
+-				/* ONENAND found */
+-				onenandcs = cs;
+-		}
+-	}
+-
+-	if (onenandcs > GPMC_CS_NUM) {
+-		pr_err("IGEP: Unable to find configuration in GPMC\n");
 -		return;
 -	}
 -
- 	quart_gpio = ZOOM_QUADUART_GPIO;
- 
- 	if (gpio_request_one(quart_gpio, GPIOF_IN, "TL16CP754C GPIO") < 0)
-@@ -93,6 +100,9 @@ static inline void __init zoom_init_quaduart(void)
- 								quart_gpio);
- 
- 	serial_platform_data[0].irq = gpio_to_irq(102);
-+
-+	*gpmc_cur++ = &zoom_debugboard_gpmc_serial_data;
-+	gpmc_data.num_device++;
- }
- 
- static inline int omap_zoom_debugboard_detect(void)
-@@ -116,10 +126,6 @@ static inline int omap_zoom_debugboard_detect(void)
- 	return ret;
- }
- 
--static struct platform_device *zoom_devices[] __initdata = {
--	&zoom_debugboard_serial_device,
--};
--
- static struct regulator_consumer_supply dummy_supplies[] = {
- 	REGULATOR_SUPPLY("vddvario", "smsc911x.0"),
- 	REGULATOR_SUPPLY("vdd33a", "smsc911x.0"),
-@@ -133,5 +139,6 @@ int __init zoom_debugboard_init(void)
- 	regulator_register_fixed(0, dummy_supplies, ARRAY_SIZE(dummy_supplies));
- 	zoom_init_smsc911x();
- 	zoom_init_quaduart();
--	return platform_add_devices(zoom_devices, ARRAY_SIZE(zoom_devices));
-+	omap_init_gpmc(&gpmc_data);
-+	return 0;
- }
--- 
-1.7.10
-
+-	igep_onenand_data.cs = onenandcs;
