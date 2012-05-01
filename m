@@ -1,278 +1,322 @@
 From: Afzal Mohammed <afzal@ti.com>
-Subject: [PATCH v4 11/39] ARM: OMAP2+: gpmc-smc91x: Adapt to use gpmc driver
-Date: Tue, 1 May 2012 17:50:54 +0530
-Message-ID: <95dd1a02da8ab95f2c20b19f75b0538d553b9c1c.1335874494.git.afzal@ti.com>
+Subject: [PATCH v4 12/39] ARM: OMAP2+: gpmc-tusb6010: Adapt to gpmc driver
+Date: Tue, 1 May 2012 17:51:01 +0530
+Message-ID: <9d28cfec31eac2b7975e34c37aad884c75c3cdac.1335874494.git.afzal@ti.com>
 References: <cover.1335874494.git.afzal@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from devils.ext.ti.com ([198.47.26.153]:37974 "EHLO
-	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756326Ab2EAMiG (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 1 May 2012 08:38:06 -0400
+Received: from comal.ext.ti.com ([198.47.26.152]:43535 "EHLO comal.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1756326Ab2EAMiM (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Tue, 1 May 2012 08:38:12 -0400
 In-Reply-To: <cover.1335874494.git.afzal@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: tony@atomide.com, linux@arm.linux.org.uk, khilman@ti.com, balbi@ti.com, dwmw2@infradead.org, kyungmin.park@samsung.com, gregkh@linuxfoundation.org, nm@ti.com, grinberg@compulab.co.il, notasas@gmail.com, artem.bityutskiy@linux.intel.com, vimal.newwork@gmail.com, dbaryshkov@gmail.com, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-usb@vger.kernel.org, linux-mtd@lists.infradead.org
 Cc: Afzal Mohammed <afzal@ti.com>
 
-Currently gpmc is configured in platform for smc91x. As configuring
+Currently gpmc is configured in platform for tusb6010. As configuring
 gpmc has been moved to gpmc driver, populate details needed for the
 driver to configure gpmc. gpmc driver would configure based on this
 information.
 
 Signed-off-by: Afzal Mohammed <afzal@ti.com>
 ---
- arch/arm/mach-omap2/board-2430sdp.c           |    2 +-
- arch/arm/mach-omap2/board-3430sdp.c           |    1 +
- arch/arm/mach-omap2/board-3630sdp.c           |    1 +
- arch/arm/mach-omap2/gpmc-smc91x.c             |   87 +++++++++++--------------
- arch/arm/plat-omap/include/plat/gpmc-smc91x.h |   10 ++-
- 5 files changed, 47 insertions(+), 54 deletions(-)
+ arch/arm/mach-omap2/usb-tusb6010.c |  177 ++++++++++++++----------------------
+ include/linux/usb/musb.h           |    4 +-
+ 2 files changed, 70 insertions(+), 111 deletions(-)
 
-diff --git a/arch/arm/mach-omap2/board-2430sdp.c b/arch/arm/mach-omap2/board-2430sdp.c
-index e658f83..68679a8 100644
---- a/arch/arm/mach-omap2/board-2430sdp.c
-+++ b/arch/arm/mach-omap2/board-2430sdp.c
-@@ -175,7 +175,7 @@ static struct omap_smc91x_platform_data board_smc91x_data = {
- 	.gpio_irq	= 149,
- 	.flags		= GPMC_MUX_ADD_DATA | GPMC_TIMINGS_SMC91C96 |
- 				IORESOURCE_IRQ_LOWLEVEL,
--
-+	.skip_timing	= true,
- };
+diff --git a/arch/arm/mach-omap2/usb-tusb6010.c b/arch/arm/mach-omap2/usb-tusb6010.c
+index db84a46..d7817d2 100644
+--- a/arch/arm/mach-omap2/usb-tusb6010.c
++++ b/arch/arm/mach-omap2/usb-tusb6010.c
+@@ -22,6 +22,24 @@
  
- static void __init board_smc91x_init(void)
-diff --git a/arch/arm/mach-omap2/board-3430sdp.c b/arch/arm/mach-omap2/board-3430sdp.c
-index ac2e398..367a466 100644
---- a/arch/arm/mach-omap2/board-3430sdp.c
-+++ b/arch/arm/mach-omap2/board-3430sdp.c
-@@ -434,6 +434,7 @@ static struct omap_smc91x_platform_data board_smc91x_data = {
- 	.cs		= 3,
- 	.flags		= GPMC_MUX_ADD_DATA | GPMC_TIMINGS_SMC91C96 |
- 				IORESOURCE_IRQ_LOWLEVEL,
-+	.skip_timing	= true,
- };
+ #include "mux.h"
  
- static void __init board_smc91x_init(void)
-diff --git a/arch/arm/mach-omap2/board-3630sdp.c b/arch/arm/mach-omap2/board-3630sdp.c
-index 74195b7..143e47f 100644
---- a/arch/arm/mach-omap2/board-3630sdp.c
-+++ b/arch/arm/mach-omap2/board-3630sdp.c
-@@ -32,6 +32,7 @@
- static struct omap_smc91x_platform_data board_smc91x_data = {
- 	.cs             = 3,
- 	.flags          = GPMC_MUX_ADD_DATA | IORESOURCE_IRQ_LOWLEVEL,
-+	.skip_timing	= true,
- };
- 
- static void __init board_smc91x_init(void)
-diff --git a/arch/arm/mach-omap2/gpmc-smc91x.c b/arch/arm/mach-omap2/gpmc-smc91x.c
-index ba10c24..9389df1 100644
---- a/arch/arm/mach-omap2/gpmc-smc91x.c
-+++ b/arch/arm/mach-omap2/gpmc-smc91x.c
-@@ -23,13 +23,8 @@
- 
- static struct omap_smc91x_platform_data *gpmc_cfg;
- 
--static struct resource gpmc_smc91x_resources[] = {
--	[0] = {
--		.flags		= IORESOURCE_MEM,
--	},
--	[1] = {
--		.flags		= IORESOURCE_IRQ,
--	},
-+static struct resource gpmc_smc91x_resource = {
-+	.flags		= IORESOURCE_IRQ,
- };
- 
- static struct smc91x_platdata gpmc_smc91x_info = {
-@@ -38,14 +33,17 @@ static struct smc91x_platdata gpmc_smc91x_info = {
- 	.ledb	= RPC_LED_TX_RX,
- };
- 
--static struct platform_device gpmc_smc91x_device = {
-+static struct gpmc_cs_data gpmc_smc91x_cs_data;
++static struct resource tusb_resources = {
++	.name	= "mc",
++	.flags	= IORESOURCE_IRQ,
++};
 +
-+static struct gpmc_device_pdata gpmc_smc91x_data = {
- 	.name		= "smc91x",
- 	.id		= -1,
--	.dev		= {
--		.platform_data = &gpmc_smc91x_info,
--	},
--	.num_resources	= ARRAY_SIZE(gpmc_smc91x_resources),
--	.resource	= gpmc_smc91x_resources,
-+	.pdata		= &gpmc_smc91x_info,
-+	.pdata_size	= sizeof(gpmc_smc91x_info),
-+	.per_res	= &gpmc_smc91x_resource,
++#define	TUSB_GPMC_CS_ASYNC_IDX	1
++#define	TUSB_GPMC_CS_SYNC_IDX	2
++#define	TUSB_GPMC_CS_NUM	2
++
++static struct gpmc_cs_data gpmc_tusb_cs_data[TUSB_GPMC_CS_NUM];
++
++static struct gpmc_device_pdata gpmc_tusb_data = {
++	.name		= "musb-tusb",
++	.id		= -1,
++	.per_res	= &tusb_resources,
 +	.per_res_cnt	= 1,
-+	.cs_data	= &gpmc_smc91x_cs_data,
-+	.num_cs		= 1,
- };
++};
++
+ static u8		async_cs, sync_cs;
+ static unsigned		refclk_psec;
  
- /*
-@@ -54,9 +52,10 @@ static struct platform_device gpmc_smc91x_device = {
-  * http://www.smsc.com/main/catalog/lan91c96.html
-  * REVISIT: Level shifters can add at least to the access latency.
-  */
--static int smc91c96_gpmc_retime(void)
-+static void smc91c96_gpmc_retime(void)
+@@ -51,9 +69,9 @@ next_clk(unsigned t1_NS, unsigned t2_ps, unsigned fclk_ps)
+ 
+ /* NOTE:  timings are from tusb 6010 datasheet Rev 1.8, 12-Sept 2006 */
+ 
+-static int tusb_set_async_mode(unsigned sysclk_ps, unsigned fclk_ps)
++static void tusb_set_async_mode(unsigned sysclk_ps, unsigned fclk_ps)
  {
--	struct gpmc_timings t;
-+	/* GPMC timing configuration after this function dies, hence static */
+-	struct gpmc_timings	t;
 +	static struct gpmc_timings t;
- 	const int t3 = 10;	/* Figure 12.2 read and 12.4 write */
- 	const int t4_r = 20;	/* Figure 12.2 read */
- 	const int t4_w = 5;	/* Figure 12.4 write */
-@@ -65,7 +64,6 @@ static int smc91c96_gpmc_retime(void)
- 	const int t7 = 5;	/* Figure 12.4 write */
- 	const int t8 = 5;	/* Figure 12.4 write */
- 	const int t20 = 185;	/* Figure 12.2 read and 12.4 write */
--	u32 l;
+ 	unsigned		t_acsnh_advnh = sysclk_ps + 3000;
+ 	unsigned		tmp;
  
- 	memset(&t, 0, sizeof(t));
+@@ -106,12 +124,12 @@ static int tusb_set_async_mode(unsigned sysclk_ps, unsigned fclk_ps)
+ 	tmp = t.cs_wr_off * 1000 + 7000 /* t_acsn_rdy_z */;
+ 	t.wr_cycle = next_clk(t.cs_wr_off, tmp, fclk_ps);
  
-@@ -93,16 +91,17 @@ static int smc91c96_gpmc_retime(void)
- 	t.cs_wr_off = t.we_off + t4_w;
- 	t.wr_cycle = t20 - t.we_on;
- 
--	l = GPMC_CONFIG1_DEVICESIZE_16;
-+	gpmc_smc91x_cs_data.have_config = true;
-+	gpmc_smc91x_cs_data.config = GPMC_DEVICESIZE_16;
- 	if (gpmc_cfg->flags & GPMC_MUX_ADD_DATA)
--		l |= GPMC_CONFIG1_MUXADDDATA;
-+		gpmc_smc91x_cs_data.config |= GPMC_MUXADDDATA;
- 	if (gpmc_cfg->flags & GPMC_READ_MON)
--		l |= GPMC_CONFIG1_WAIT_READ_MON;
-+		gpmc_smc91x_cs_data.config |= GPMC_WAIT_READ_MON;
- 	if (gpmc_cfg->flags & GPMC_WRITE_MON)
--		l |= GPMC_CONFIG1_WAIT_WRITE_MON;
-+		gpmc_smc91x_cs_data.config |= GPMC_WAIT_WRITE_MON;
-+	/* waitpin macros in GPMC header file has to be used by platforms */
- 	if (gpmc_cfg->wait_pin)
--		l |= GPMC_CONFIG1_WAIT_PIN_SEL(gpmc_cfg->wait_pin);
--	gpmc_cs_write_reg(gpmc_cfg->cs, GPMC_CS_CONFIG1, l);
-+		gpmc_smc91x_cs_data.config |= gpmc_cfg->wait_pin;
- 
- 	/*
- 	 * FIXME: Calculate the address and data bus muxed timings.
-@@ -111,10 +110,10 @@ static int smc91c96_gpmc_retime(void)
- 	 * FPGA in between smc91x and omap as the timings are different
- 	 * from above?
- 	 */
--	if (gpmc_cfg->flags & GPMC_MUX_ADD_DATA)
--		return 0;
-+	if (gpmc_cfg->skip_timing)
-+		return;
- 
--	return gpmc_cs_set_timings(gpmc_cfg->cs, &t);
-+	gpmc_smc91x_cs_data.timing = &t;
+-	return gpmc_cs_set_timings(async_cs, &t);
++	gpmc_tusb_cs_data[TUSB_GPMC_CS_ASYNC_IDX].timing = &t;
  }
  
- /*
-@@ -122,9 +121,9 @@ static int smc91c96_gpmc_retime(void)
-  * assume that pin multiplexing is done in the board-*.c file,
-  * or in the bootloader.
-  */
--void __init gpmc_smc91x_init(struct omap_smc91x_platform_data *board_data)
-+__init struct gpmc_device_pdata *
-+gpmc_smc91x_init(struct omap_smc91x_platform_data *board_data)
+ static int tusb_set_sync_mode(unsigned sysclk_ps, unsigned fclk_ps)
  {
--	unsigned long cs_mem_base;
- 	int ret;
+-	struct gpmc_timings	t;
++	static struct gpmc_timings t;
+ 	unsigned		t_scsnh_advnh = sysclk_ps + 3000;
+ 	unsigned		tmp;
  
- 	gpmc_cfg = board_data;
-@@ -132,25 +131,19 @@ void __init gpmc_smc91x_init(struct omap_smc91x_platform_data *board_data)
- 	if (gpmc_cfg->flags & GPMC_TIMINGS_SMC91C96)
- 		gpmc_cfg->retime = smc91c96_gpmc_retime;
+@@ -174,71 +192,30 @@ static int tusb_set_sync_mode(unsigned sysclk_ps, unsigned fclk_ps)
+ 	tmp = t.cs_wr_off * 1000 + 7000 /* t_scsn_rdy_z */;
+ 	t.wr_cycle = next_clk(t.cs_wr_off, tmp, fclk_ps);
  
--	if (gpmc_cs_request(gpmc_cfg->cs, SZ_16M, &cs_mem_base) < 0) {
--		printk(KERN_ERR "Failed to request GPMC mem for smc91x\n");
--		return;
+-	return gpmc_cs_set_timings(sync_cs, &t);
++	gpmc_tusb_cs_data[TUSB_GPMC_CS_SYNC_IDX].timing = &t;
++
++	return 0;
+ }
+ 
+ extern unsigned long gpmc_get_fclk_period(void);
+ 
+ /* tusb driver calls this when it changes the chip's clocking */
+-int tusb6010_platform_retime(unsigned is_refclk)
++static int tusb6010_platform_retime(unsigned is_refclk)
+ {
+-	static const char	error[] =
+-		KERN_ERR "tusb6010 %s retime error %d\n";
+-
+ 	unsigned	fclk_ps = gpmc_get_fclk_period();
+ 	unsigned	sysclk_ps;
+-	int		status;
+ 
+ 	if (!refclk_psec || fclk_ps == 0)
+ 		return -ENODEV;
+ 
+ 	sysclk_ps = is_refclk ? refclk_psec : TUSB6010_OSCCLK_60;
+ 
+-	status = tusb_set_async_mode(sysclk_ps, fclk_ps);
+-	if (status < 0) {
+-		printk(error, "async", status);
+-		goto done;
 -	}
-+	gpmc_smc91x_cs_data.cs		= gpmc_cfg->cs;
-+	gpmc_smc91x_cs_data.mem_offset	= 0x300;
-+	gpmc_smc91x_cs_data.mem_size	= 0x10;
+-	status = tusb_set_sync_mode(sysclk_ps, fclk_ps);
+-	if (status < 0)
+-		printk(error, "sync", status);
+-done:
+-	return status;
++	tusb_set_async_mode(sysclk_ps, fclk_ps);
++	return tusb_set_sync_mode(sysclk_ps, fclk_ps);
+ }
+-EXPORT_SYMBOL_GPL(tusb6010_platform_retime);
+-
+-static struct resource tusb_resources[] = {
+-	/* Order is significant!  The start/end fields
+-	 * are updated during setup..
+-	 */
+-	{ /* Asynchronous access */
+-		.flags	= IORESOURCE_MEM,
+-	},
+-	{ /* Synchronous access */
+-		.flags	= IORESOURCE_MEM,
+-	},
+-	{ /* IRQ */
+-		.name	= "mc",
+-		.flags	= IORESOURCE_IRQ,
+-	},
+-};
+-
+-static u64 tusb_dmamask = ~(u32)0;
+-
+-static struct platform_device tusb_device = {
+-	.name		= "musb-tusb",
+-	.id		= -1,
+-	.dev = {
+-		.dma_mask		= &tusb_dmamask,
+-		.coherent_dma_mask	= 0xffffffff,
+-	},
+-	.num_resources	= ARRAY_SIZE(tusb_resources),
+-	.resource	= tusb_resources,
+-};
+-
  
--	gpmc_smc91x_resources[0].start = cs_mem_base + 0x300;
--	gpmc_smc91x_resources[0].end = cs_mem_base + 0x30f;
--	gpmc_smc91x_resources[1].flags |= (gpmc_cfg->flags & IRQF_TRIGGER_MASK);
-+	gpmc_smc91x_resource.flags |= (gpmc_cfg->flags & IRQF_TRIGGER_MASK);
+ /* this may be called only from board-*.c setup code */
+-int __init
++__init struct gpmc_device_pdata *
+ tusb6010_setup_interface(struct musb_hdrc_platform_data *data,
+ 		unsigned ps_refclk, unsigned waitpin,
+ 		unsigned async, unsigned sync,
+@@ -249,82 +226,72 @@ tusb6010_setup_interface(struct musb_hdrc_platform_data *data,
+ 		KERN_ERR "tusb6010 init error %d, %d\n";
  
--	if (gpmc_cfg->retime) {
--		ret = gpmc_cfg->retime();
--		if (ret != 0)
--			goto free1;
+ 	/* ASYNC region, primarily for PIO */
+-	status = gpmc_cs_request(async, SZ_16M, (unsigned long *)
+-				&tusb_resources[0].start);
+-	if (status < 0) {
+-		printk(error, 1, status);
+-		return status;
 -	}
-+	if (gpmc_cfg->retime)
-+		gpmc_cfg->retime();
+-	tusb_resources[0].end = tusb_resources[0].start + 0x9ff;
++	gpmc_tusb_cs_data[TUSB_GPMC_CS_ASYNC_IDX].cs		= async;
++	gpmc_tusb_cs_data[TUSB_GPMC_CS_ASYNC_IDX].mem_size	= 0x1000;
++
+ 	async_cs = async;
+-	gpmc_cs_write_reg(async, GPMC_CS_CONFIG1,
+-			  GPMC_CONFIG1_PAGE_LEN(2)
+-			| GPMC_CONFIG1_WAIT_READ_MON
+-			| GPMC_CONFIG1_WAIT_WRITE_MON
+-			| GPMC_CONFIG1_WAIT_PIN_SEL(waitpin)
+-			| GPMC_CONFIG1_READTYPE_ASYNC
+-			| GPMC_CONFIG1_WRITETYPE_ASYNC
+-			| GPMC_CONFIG1_DEVICESIZE_16
+-			| GPMC_CONFIG1_DEVICETYPE_NOR
+-			| GPMC_CONFIG1_MUXADDDATA);
  
- 	if (gpio_request_one(gpmc_cfg->gpio_irq, GPIOF_IN, "SMC91X irq") < 0)
--		goto free1;
++	gpmc_tusb_cs_data[TUSB_GPMC_CS_ASYNC_IDX].have_config = true;
++	gpmc_tusb_cs_data[TUSB_GPMC_CS_ASYNC_IDX].config = GPMC_DEVICESIZE_16 |
++						GPMC_WAIT_READ_MON |
++						GPMC_WAIT_WRITE_MON |
++						GPMC_READTYPE_ASYNC |
++						GPMC_WRITETYPE_ASYNC |
++						GPMC_DEVICETYPE_NOR |
++						GPMC_MUXADDDATA |
++						GPMC_PAGE_LEN_16 |
++						waitpin;
+ 
+ 	/* SYNC region, primarily for DMA */
+-	status = gpmc_cs_request(sync, SZ_16M, (unsigned long *)
+-				&tusb_resources[1].start);
+-	if (status < 0) {
+-		printk(error, 2, status);
+-		return status;
+-	}
+-	tusb_resources[1].end = tusb_resources[1].start + 0x9ff;
++	gpmc_tusb_cs_data[TUSB_GPMC_CS_SYNC_IDX].cs		= sync;
++	gpmc_tusb_cs_data[TUSB_GPMC_CS_SYNC_IDX].mem_size	= 0x1000;
++
+ 	sync_cs = sync;
+-	gpmc_cs_write_reg(sync, GPMC_CS_CONFIG1,
+-			  GPMC_CONFIG1_READMULTIPLE_SUPP
+-			| GPMC_CONFIG1_READTYPE_SYNC
+-			| GPMC_CONFIG1_WRITEMULTIPLE_SUPP
+-			| GPMC_CONFIG1_WRITETYPE_SYNC
+-			| GPMC_CONFIG1_CLKACTIVATIONTIME(1)
+-			| GPMC_CONFIG1_PAGE_LEN(2)
+-			| GPMC_CONFIG1_WAIT_READ_MON
+-			| GPMC_CONFIG1_WAIT_WRITE_MON
+-			| GPMC_CONFIG1_WAIT_PIN_SEL(waitpin)
+-			| GPMC_CONFIG1_DEVICESIZE_16
+-			| GPMC_CONFIG1_DEVICETYPE_NOR
+-			| GPMC_CONFIG1_MUXADDDATA
+-			/* fclk divider gets set later */
+-			);
++
++	gpmc_tusb_cs_data[TUSB_GPMC_CS_SYNC_IDX].have_config = true;
++	/* fclk divider gets set later */
++	gpmc_tusb_cs_data[TUSB_GPMC_CS_SYNC_IDX].config = GPMC_DEVICESIZE_16 |
++						GPMC_WAIT_READ_MON |
++						GPMC_WAIT_WRITE_MON |
++						GPMC_READTYPE_SYNC |
++						GPMC_WRITETYPE_SYNC |
++						GPMC_DEVICETYPE_NOR |
++						GPMC_MUXADDDATA |
++						GPMC_PAGE_LEN_16 |
++						GPMC_CLOCKACTIVATION_TIME_1 |
++						GPMC_READMULTIPLE |
++						GPMC_WRITEMULTIPLE |
++						waitpin;
+ 
+ 	/* IRQ */
+ 	status = gpio_request_one(irq, GPIOF_IN, "TUSB6010 irq");
+ 	if (status < 0) {
+ 		printk(error, 3, status);
+-		return status;
 +		return NULL;
+ 	}
+-	tusb_resources[2].start = irq + IH_GPIO_BASE;
++	tusb_resources.start = irq + IH_GPIO_BASE;
  
--	gpmc_smc91x_resources[1].start = gpio_to_irq(gpmc_cfg->gpio_irq);
-+	gpmc_smc91x_resource.start = gpio_to_irq(gpmc_cfg->gpio_irq);
- 
- 	if (gpmc_cfg->gpio_pwrdwn) {
- 		ret = gpio_request_one(gpmc_cfg->gpio_pwrdwn,
-@@ -170,21 +163,15 @@ void __init gpmc_smc91x_init(struct omap_smc91x_platform_data *board_data)
- 		gpio_set_value(gpmc_cfg->gpio_reset, 0);
+ 	/* set up memory timings ... can speed them up later */
+ 	if (!ps_refclk) {
+ 		printk(error, 4, status);
+-		return -ENODEV;
++		return NULL;
+ 	}
+ 	refclk_psec = ps_refclk;
+ 	status = tusb6010_platform_retime(1);
+ 	if (status < 0) {
+ 		printk(error, 5, status);
+-		return status;
++		return NULL;
  	}
  
--	if (platform_device_register(&gpmc_smc91x_device) < 0) {
--		printk(KERN_ERR "Unable to register smc91x device\n");
--		gpio_free(gpmc_cfg->gpio_reset);
--		goto free3;
+-	/* finish device setup ... */
+ 	if (!data) {
+ 		printk(error, 6, status);
+-		return -ENODEV;
++		return NULL;
+ 	}
+-	tusb_device.dev.platform_data = data;
++	gpmc_tusb_data.pdata = data;
++	gpmc_tusb_data.pdata_size = sizeof(*data);
+ 
+ 	/* REVISIT let the driver know what DMA channels work */
+-	if (!dmachan)
+-		tusb_device.dev.dma_mask = NULL;
+-	else {
++	if (dmachan) {
+ 		/* assume OMAP 2420 ES2.0 and later */
+ 		if (dmachan & (1 << 0))
+ 			omap_mux_init_signal("sys_ndmareq0", 0);
+@@ -340,11 +307,5 @@ tusb6010_setup_interface(struct musb_hdrc_platform_data *data,
+ 			omap_mux_init_signal("sys_ndmareq5", 0);
+ 	}
+ 
+-	/* so far so good ... register the device */
+-	status = platform_device_register(&tusb_device);
+-	if (status < 0) {
+-		printk(error, 7, status);
+-		return status;
 -	}
+-	return 0;
++	return &gpmc_tusb_data;
+ }
+diff --git a/include/linux/usb/musb.h b/include/linux/usb/musb.h
+index eb50525..a7de510 100644
+--- a/include/linux/usb/musb.h
++++ b/include/linux/usb/musb.h
+@@ -139,14 +139,12 @@ struct musb_hdrc_platform_data {
+ 
+ #ifdef	CONFIG_ARCH_OMAP2
+ 
+-extern int __init tusb6010_setup_interface(
++extern __init struct gpmc_device_pdata *tusb6010_setup_interface(
+ 		struct musb_hdrc_platform_data *data,
+ 		unsigned ps_refclk, unsigned waitpin,
+ 		unsigned async_cs, unsigned sync_cs,
+ 		unsigned irq, unsigned dmachan);
+ 
+-extern int tusb6010_platform_retime(unsigned is_refclk);
 -
--	return;
-+	return &gpmc_smc91x_data;
+ #endif	/* OMAP2 */
  
- free3:
- 	if (gpmc_cfg->gpio_pwrdwn)
- 		gpio_free(gpmc_cfg->gpio_pwrdwn);
- free2:
- 	gpio_free(gpmc_cfg->gpio_irq);
--free1:
--	gpmc_cs_free(gpmc_cfg->cs);
- 
- 	printk(KERN_ERR "Could not initialize smc91x\n");
-+
-+	return NULL;
- }
-diff --git a/arch/arm/plat-omap/include/plat/gpmc-smc91x.h b/arch/arm/plat-omap/include/plat/gpmc-smc91x.h
-index b64fbee..f3a01b1 100644
---- a/arch/arm/plat-omap/include/plat/gpmc-smc91x.h
-+++ b/arch/arm/plat-omap/include/plat/gpmc-smc91x.h
-@@ -22,20 +22,24 @@ struct omap_smc91x_platform_data {
- 	int	gpio_reset;
- 	int	wait_pin;	/* Optional GPMC_CONFIG1_WAITPINSELECT */
- 	u32	flags;
--	int	(*retime)(void);
-+	bool	skip_timing;
-+	void	(*retime)(void);
- };
- 
- #if defined(CONFIG_SMC91X) || \
- 	defined(CONFIG_SMC91X_MODULE)
- 
--extern void gpmc_smc91x_init(struct omap_smc91x_platform_data *d);
-+extern struct gpmc_device_pdata *
-+gpmc_smc91x_init(struct omap_smc91x_platform_data *d);
- 
- #else
- 
- #define board_smc91x_data	NULL
- 
--static inline void gpmc_smc91x_init(struct omap_smc91x_platform_data *d)
-+static inline struct gpmc_device_pdata *
-+gpmc_smc91x_init(struct omap_smc91x_platform_data *d)
- {
-+	return NULL;
- }
- 
- #endif
+ #endif /* __LINUX_USB_MUSB_H */
 -- 
 1.7.10
 
