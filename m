@@ -1,15 +1,15 @@
 From: Afzal Mohammed <afzal@ti.com>
-Subject: [PATCH v4 25/39] ARM: OMAP2+: board 2430sdp: gpmc driver adaptation
-Date: Tue, 1 May 2012 17:52:27 +0530
-Message-ID: <ee9b21e9616dce9479b9c50f2428c9f74bcf85bf.1335874494.git.afzal@ti.com>
+Subject: [PATCH v4 26/39] ARM: OMAP2+: board cm-t3517: gpmc driver adaptation
+Date: Tue, 1 May 2012 17:52:34 +0530
+Message-ID: <7f80bf399fddaadda68f6d6a4f521f9ba25d7f88.1335874494.git.afzal@ti.com>
 References: <cover.1335874494.git.afzal@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from comal.ext.ti.com ([198.47.26.152]:43616 "EHLO comal.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1757326Ab2EAMjg (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Tue, 1 May 2012 08:39:36 -0400
+Received: from devils.ext.ti.com ([198.47.26.153]:38063 "EHLO
+	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1757326Ab2EAMjm (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 1 May 2012 08:39:42 -0400
 In-Reply-To: <cover.1335874494.git.afzal@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
@@ -21,96 +21,44 @@ code to provide gpmc driver with required information.
 
 Signed-off-by: Afzal Mohammed <afzal@ti.com>
 ---
- arch/arm/mach-omap2/board-2430sdp.c |   42 +++++++++++++++++++++--------------
- 1 file changed, 25 insertions(+), 17 deletions(-)
+ arch/arm/mach-omap2/board-cm-t3517.c |   10 ++++++++--
+ 1 file changed, 8 insertions(+), 2 deletions(-)
 
-diff --git a/arch/arm/mach-omap2/board-2430sdp.c b/arch/arm/mach-omap2/board-2430sdp.c
-index 68679a8..d94ada4 100644
---- a/arch/arm/mach-omap2/board-2430sdp.c
-+++ b/arch/arm/mach-omap2/board-2430sdp.c
-@@ -46,9 +46,16 @@
- #include "hsmmc.h"
- #include "common-board-devices.h"
+diff --git a/arch/arm/mach-omap2/board-cm-t3517.c b/arch/arm/mach-omap2/board-cm-t3517.c
+index 9e66e16..6aa6b4a 100644
+--- a/arch/arm/mach-omap2/board-cm-t3517.c
++++ b/arch/arm/mach-omap2/board-cm-t3517.c
+@@ -234,6 +234,11 @@ static struct mtd_partition cm_t3517_nand_partitions[] = {
+ 	},
+ };
  
--#define SDP2430_CS0_BASE	0x04000000
-+#define SDP2430_FLASH_CS		0
- #define SECONDARY_LCD_GPIO		147
- 
-+static struct gpmc_device_pdata *gpmc_device_data[2];
-+static struct gpmc_device_pdata **gpmc_cur = gpmc_device_data;
++static struct gpmc_device_pdata *gpmc_device_data[1];
 +
 +static struct gpmc_pdata gpmc_data = {
 +	.device_pdata = gpmc_device_data,
 +};
-+
- static struct mtd_partition sdp2430_partitions[] = {
- 	/* bootloader (U-Boot, etc) in first sector */
- 	{
-@@ -86,24 +93,18 @@ static struct physmap_flash_data sdp2430_flash_data = {
- 	.nr_parts	= ARRAY_SIZE(sdp2430_partitions),
- };
+ static struct omap_nand_platform_data cm_t3517_nand_data = {
+ 	.parts			= cm_t3517_nand_partitions,
+ 	.nr_parts		= ARRAY_SIZE(cm_t3517_nand_partitions),
+@@ -242,8 +247,8 @@ static struct omap_nand_platform_data cm_t3517_nand_data = {
  
--static struct resource sdp2430_flash_resource = {
--	.start		= SDP2430_CS0_BASE,
--	.end		= SDP2430_CS0_BASE + SZ_64M - 1,
--	.flags		= IORESOURCE_MEM,
-+static struct gpmc_cs_data sdp2430_gpmc_cs_flash_data = {
-+	.cs		= SDP2430_FLASH_CS,
-+	.mem_size	= SZ_64M,
- };
- 
--static struct platform_device sdp2430_flash_device = {
-+static struct gpmc_device_pdata sdp2430_gpmc_flash_device = {
- 	.name		= "physmap-flash",
- 	.id		= 0,
--	.dev = {
--		.platform_data	= &sdp2430_flash_data,
--	},
--	.num_resources	= 1,
--	.resource	= &sdp2430_flash_resource,
--};
--
--static struct platform_device *sdp2430_devices[] __initdata = {
--	&sdp2430_flash_device,
-+	.pdata		= &sdp2430_flash_data,
-+	.pdata_size	= sizeof(sdp2430_flash_data),
-+	.cs_data	= &sdp2430_gpmc_cs_flash_data,
-+	.num_cs		= 1,
- };
- 
- /* LCD */
-@@ -181,7 +182,11 @@ static struct omap_smc91x_platform_data board_smc91x_data = {
- static void __init board_smc91x_init(void)
+ static void __init cm_t3517_init_nand(void)
  {
- 	omap_mux_init_gpio(149, OMAP_PIN_INPUT);
--	gpmc_smc91x_init(&board_smc91x_data);
-+	*gpmc_cur = gpmc_smc91x_init(&board_smc91x_data);
-+	if (*gpmc_cur)
-+		gpmc_data.num_device++, gpmc_cur++;
-+	else
-+		pr_err("error: unable to initilaize gpmc smsc911x\n");
- }
- 
- #else
-@@ -276,7 +281,9 @@ static void __init omap_2430sdp_init(void)
- 
- 	omap2430_i2c_init();
- 
--	platform_add_devices(sdp2430_devices, ARRAY_SIZE(sdp2430_devices));
-+	*gpmc_cur++ = &sdp2430_gpmc_flash_device;
+-	if (gpmc_nand_init(&cm_t3517_nand_data) < 0)
+-		pr_err("CM-T3517: NAND initialization failed\n");
++	*gpmc_device_data = gpmc_nand_init(&cm_t3517_nand_data);
 +	gpmc_data.num_device++;
-+
- 	omap_serial_init();
- 	omap_sdrc_init(NULL, NULL);
- 	omap_hsmmc_init(mmc);
-@@ -286,6 +293,7 @@ static void __init omap_2430sdp_init(void)
- 	usb_musb_init(NULL);
- 
- 	board_smc91x_init();
+ }
+ #else
+ static inline void cm_t3517_init_nand(void) {}
+@@ -289,6 +294,7 @@ static void __init cm_t3517_init(void)
+ 	omap_board_config_size = ARRAY_SIZE(cm_t3517_config);
+ 	cm_t3517_init_leds();
+ 	cm_t3517_init_nand();
 +	omap_init_gpmc(&gpmc_data);
- 
- 	/* Turn off secondary LCD backlight */
- 	gpio_request_one(SECONDARY_LCD_GPIO, GPIOF_OUT_INIT_LOW,
+ 	cm_t3517_init_rtc();
+ 	cm_t3517_init_usbh();
+ 	cm_t3517_init_hecc();
 -- 
 1.7.10
 
