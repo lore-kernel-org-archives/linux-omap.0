@@ -1,127 +1,135 @@
-From: Kevin Hilman <khilman@ti.com>
-Subject: Re: OMAP3EVM not booting on l-o master
-Date: Tue, 01 May 2012 07:08:00 -0700
-Message-ID: <87y5pchu4f.fsf@ti.com>
-References: <C8443D0743D26F4388EA172BF4E2A7A9317C3A03@DBDE01.ent.ti.com>
-	<C8443D0743D26F4388EA172BF4E2A7A9317C3B18@DBDE01.ent.ti.com>
-	<alpine.DEB.2.00.1204050330380.10302@utopia.booyaka.com>
-	<alpine.DEB.2.00.1204050403460.10302@utopia.booyaka.com>
-	<C8443D0743D26F4388EA172BF4E2A7A9317C4B44@DBDE01.ent.ti.com>
-	<alpine.DEB.2.00.1204051303000.10302@utopia.booyaka.com>
-	<C8443D0743D26F4388EA172BF4E2A7A9317C5DB6@DBDE01.ent.ti.com>
-	<alpine.DEB.2.00.1204060111400.10302@utopia.booyaka.com>
-	<C8443D0743D26F4388EA172BF4E2A7A9317C5EEF@DBDE01.ent.ti.com>
-	<1335173044.2149.64.camel@sokoban> <87obqhawig.fsf@ti.com>
-	<1335532591.2149.163.camel@sokoban> <87fwbowyuu.fsf@ti.com>
-	<1335790016.2149.185.camel@sokoban> <87vckht0lf.fsf@ti.com>
-	<C8443D0743D26F4388EA172BF4E2A7A93E97C988@DBDE01.ent.ti.com>
+From: Jean Pihet <jean.pihet@newoldbits.com>
+Subject: Re: PM related performance degradation on OMAP3
+Date: Tue, 1 May 2012 16:10:44 +0200
+Message-ID: <CAORVsuXX9c+8-uJ1e1U920_jy0MK53jmCu+hXhHaXapHArMeLg@mail.gmail.com>
+References: <CANOLnOP5gq4Vtt00SgRNW-3GZDWk0sukBgJx4V6rkMLL+b6G-w@mail.gmail.com>
+	<877gxobudk.fsf@ti.com>
+	<CANOLnOPbHBshCdbmSOjYdubWqUivrVpR-+eaayu=v4Yy6yKdsQ@mail.gmail.com>
+	<87ehrtn6na.fsf@ti.com>
+	<CANOLnOM_-yhr-j=UO3ynJ6HyJxzd_2FshPMXMLpcBcOB0mL7Qw@mail.gmail.com>
+	<87y5puwhus.fsf@ti.com>
+	<CAORVsuWP72dHFSBhX=Kux7GEk33qQgR74a74FFwzA8uniSabAQ@mail.gmail.com>
+	<877gx5dwz2.fsf@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aog125.obsmtp.com ([74.125.149.153]:49986 "EHLO
-	na3sys009aog125.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752959Ab2EAOIG (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 1 May 2012 10:08:06 -0400
-Received: by ghrr14 with SMTP id r14so2969864ghr.4
-        for <linux-omap@vger.kernel.org>; Tue, 01 May 2012 07:08:03 -0700 (PDT)
-In-Reply-To: <C8443D0743D26F4388EA172BF4E2A7A93E97C988@DBDE01.ent.ti.com>
-	(Afzal Mohammed's message of "Tue, 1 May 2012 12:55:25 +0000")
+Received: from mail-vb0-f46.google.com ([209.85.212.46]:49023 "EHLO
+	mail-vb0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753637Ab2EAOKp convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 1 May 2012 10:10:45 -0400
+Received: by vbbff1 with SMTP id ff1so2768524vbb.19
+        for <linux-omap@vger.kernel.org>; Tue, 01 May 2012 07:10:44 -0700 (PDT)
+In-Reply-To: <877gx5dwz2.fsf@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "Mohammed, Afzal" <afzal@ti.com>
-Cc: "Kristo, Tero" <t-kristo@ti.com>, Paul Walmsley <paul@pwsan.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
+To: Kevin Hilman <khilman@ti.com>
+Cc: Grazvydas Ignotas <notasas@gmail.com>, linux-omap@vger.kernel.org, Paul Walmsley <paul@pwsan.com>
 
-"Mohammed, Afzal" <afzal@ti.com> writes:
+HI Kevin, Grazvydas,
 
-> Hi Kevin,
+On Tue, Apr 24, 2012 at 4:29 PM, Kevin Hilman <khilman@ti.com> wrote:
+> Jean Pihet <jean.pihet@newoldbits.com> writes:
 >
-> On Tue, May 01, 2012 at 02:10:28, Hilman, Kevin wrote:
->> 
->> Afzal, care to give this one a test as well?  It should have the same
->> result but is a more targetted fix.  With and ack from Tero and a
->> Tested-by from you, I'll post this to the list and and queue it up for
->> v3.5.
+>> Hi Grazvydas, Kevin,
+>>
+>> I did some gather some performance measurements and statistics using
+>> custom tracepoints in __omap3_enter_idle.
+I posted the patches for the power domains registers cache, cf.
+http://marc.info/?l=3Dlinux-omap&m=3D133587781712039&w=3D2.
+
+>> All the details are at
+>> http://www.omappedia.org/wiki/Power_Management_Device_Latencies_Meas=
+urement#C1_performance_problem:_analysis
+I updated the page with the measurements results with Kevin's patches
+and the registers cache patches.
+
+The results are showing that:
+- the registers cache optimizes the low power mode transitions, but is
+not sufficient to obtain a big gain. A few unused domains are
+transitioning, which causes a big penalty in the idle path.
+- khilman's optimizations are really helpful. Furthermore it optimizes
+farther the registers cache statistics accesses.
+- the average time in idle now drops to 246us, which is still very
+large for a cpu intensive C-state. For information with PM disabled
+the average time in idle is 113us.
+
+Regards,
+Jean
+
+>> .
 >
-> Over what commit id, should this patch be applied ?, unable to apply it over
-> "297624c ARM: OMAP3: PM: Remove IO Daisychain control from cpuidle", the
-> one that I tested your previous patch.
-
-Oops, my fault.
-
-Below is a version that applies on top of the IO chain branch currently
-in Paul's tree[1].
-
-Kevin
-
-[1] git://git.pwsan.com/linux-2.6 io_chain_devel_3.5
-
-
->From d94f04eea40686cd9db8e9dbd8dbf3c02edca07f Mon Sep 17 00:00:00 2001
-From: Kevin Hilman <khilman@ti.com>
-Date: Tue, 1 May 2012 07:06:42 -0700
-Subject: [PATCH] ARM: OMAP3: PM: leave PRCM interrupts disabled until
- explicitly enabled.
-
-By default, request_irq() will auto-enable the requested IRQ.
-
-For PRCM interrupts, we may want to avoid that until the PM core code
-is fully ready to handle the interrupts.  This is particularily true
-for IO pad interrupts on OMAP3, which are shared between the hwmod
-core and the PRM core.
-
-In order to avoid PRCM IO-chain interrupts until the PM core is ready
-to handle them, ready, set the IRQ_NOAUTOEN flag for the PRCM IO-chain
-interrupt,  which means it will remain disabled after request_irq().
-
-Then, explicitly enable the PRCM interrupts after the request_irq() in
-the PM core (but not in the hwmod core.)
-
-Special thanks to Tero Kristo for suggesting to isolate the fix to
-only the IO-chain interrupt on OMAP3 instead of all PRCM interrupts.
-
-Cc: Tero Kristo <t-kristo@ti.com>
-Cc: Paul Walmsley <paul@pwsan.com>
-Signed-off-by: Kevin Hilman <khilman@ti.com>
----
- arch/arm/mach-omap2/pm34xx.c       |    1 +
- arch/arm/mach-omap2/prm2xxx_3xxx.c |   10 ++++++++--
- 2 files changed, 9 insertions(+), 2 deletions(-)
-
-diff --git a/arch/arm/mach-omap2/pm34xx.c b/arch/arm/mach-omap2/pm34xx.c
-index 3e6b564..745a151 100644
---- a/arch/arm/mach-omap2/pm34xx.c
-+++ b/arch/arm/mach-omap2/pm34xx.c
-@@ -685,6 +685,7 @@ static int __init omap3_pm_init(void)
- 	ret = request_irq(omap_prcm_event_to_irq("io"),
- 		_prcm_int_handle_io, IRQF_SHARED | IRQF_NO_SUSPEND, "pm_io",
- 		omap3_pm_init);
-+	enable_irq(omap_prcm_event_to_irq("io"));
- 
- 	if (ret) {
- 		pr_err("pm: Failed to request pm_io irq\n");
-diff --git a/arch/arm/mach-omap2/prm2xxx_3xxx.c b/arch/arm/mach-omap2/prm2xxx_3xxx.c
-index 1471a33..a8c6bd8 100644
---- a/arch/arm/mach-omap2/prm2xxx_3xxx.c
-+++ b/arch/arm/mach-omap2/prm2xxx_3xxx.c
-@@ -350,10 +350,16 @@ static void __init omap3xxx_prm_enable_io_wakeup(void)
- 
- static int __init omap3xxx_prcm_init(void)
- {
-+	int ret = 0;
-+
- 	if (cpu_is_omap34xx()) {
- 		omap3xxx_prm_enable_io_wakeup();
--		return omap_prcm_register_chain_handler(&omap3_prcm_irq_setup);
-+		ret = omap_prcm_register_chain_handler(&omap3_prcm_irq_setup);
-+		if (!ret)
-+			irq_set_status_flags(omap_prcm_event_to_irq("io"),
-+					     IRQ_NOAUTOEN);
- 	}
--	return 0;
-+
-+	return ret;
- }
- subsys_initcall(omap3xxx_prcm_init);
--- 
-1.7.9.2
-
+> This is great, thanks.
+>
+> [...]
+>
+>> Here are the results (BW in MB/s) on Beagleboard:
+>> - 4.7: without using DMA,
+>>
+>> - Using DMA
+>> =A0 2.1: [0]
+>> =A0 2.1: [1] only C1
+>> =A0 2.6: [1]+[2] no pre_ post_
+>> =A0 2.3: [1]+[5] no pwrdm_for_each_clkdm
+>> =A0 2.8: [1]+[5]+[2]
+>> =A0 3.1: [1]+[5]+[6] no omap_sram_idle
+>> =A0 3.1: No IDLE, no omap_sram_idle, all pwrdms to ON
+>>
+>> So indeed this shows there is some serious performance issue with th=
+e
+>> C1 C-state.
+>
+> Yes, this confirms what both Grazvytas and I are seeing as well.
+>
+> [...]
+>
+>> From the list of contributors, the main ones are:
+>> =A0 =A0 (140us) pwrdm_pre_transition and pwrdm_post_transition,
+>
+> See the series I just posted to address this one:
+> [PATCH/RFT 0/3] ARM: OMAP: PM: reduce overhead of pwrdm pre/post tran=
+sitions
+>
+>> =A0 =A0 (105us) omap2_gpio_prepare_for_idle and
+>> omap2_gpio_resume_after_idle. This could be avoided if PER stays ON =
+in
+>> the latency-critical C-states,
+>> =A0 =A0 (78us) pwrdm_for_each_clkdm(mpu, core, deny_idle/allow_idle)=
+,
+>> =A0 =A0 (33us estimated) omap_set_pwrdm_state(mpu, core, neon),
+>> =A0 =A0 (11 us) clkdm_allow_idle(mpu). Is this needed?
+>
+> In that same series, I removed this as it appears to be a remnant of =
+a
+> code move (c.f. patch 3 in above series.)
+>
+>> Here are a few questions and suggestions:
+>> - In case of latency critical C-states could the high-latency code b=
+e
+>> bypassed in favor of a much simpler version? Pushing the concept a b=
+it
+>> farther one could have a C1 state that just relaxes the cpu (no WFI)=
+,
+>> a C2 state which bypasses a lot of code in __omap3_enter_idle, and t=
+he
+>> rest of the C-states as we have today,
+>
+> I was thinking a "WFI only" state, with *all* powerdomains staying on=
+ is
+> probably sufficient for C1. =A0Do you see the enter/exit latency from=
+ that
+> as even being too hight?
+>
+>> - Is it needed to iterate through all the power and clock domains in
+>> order to keep them active?
+>
+> No. =A0My series above starts to addresses this, but I think Tero's
+> use-counting series is the final solution since this should really be
+> done when we know the powerdomains are transitioning.
+>
+> Kevin
+--
+To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
