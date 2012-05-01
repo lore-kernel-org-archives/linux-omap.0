@@ -1,15 +1,15 @@
 From: Afzal Mohammed <afzal@ti.com>
-Subject: [PATCH v4 31/39] ARM: OMAP2+: board omap3pandora: gpmc driver adaptation
-Date: Tue, 1 May 2012 17:53:06 +0530
-Message-ID: <84e89d05d2218d8c788a4bc92a81f7a45d66a8ab.1335874494.git.afzal@ti.com>
+Subject: [PATCH v4 32/39] ARM: OMAP2+: board omap3stalker: gpmc driver adaptation
+Date: Tue, 1 May 2012 17:53:12 +0530
+Message-ID: <35ff5cf81c4a3049d8de3112b1a403c04e62916f.1335874494.git.afzal@ti.com>
 References: <cover.1335874494.git.afzal@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from comal.ext.ti.com ([198.47.26.152]:43681 "EHLO comal.ext.ti.com"
+Received: from comal.ext.ti.com ([198.47.26.152]:43695 "EHLO comal.ext.ti.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1755911Ab2EAMkP (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Tue, 1 May 2012 08:40:15 -0400
+	id S1757961Ab2EAMkX (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Tue, 1 May 2012 08:40:23 -0400
 In-Reply-To: <cover.1335874494.git.afzal@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
@@ -21,16 +21,16 @@ code to provide gpmc driver with required information.
 
 Signed-off-by: Afzal Mohammed <afzal@ti.com>
 ---
- arch/arm/mach-omap2/board-omap3pandora.c |   11 +++++++++--
- 1 file changed, 9 insertions(+), 2 deletions(-)
+ arch/arm/mach-omap2/board-omap3stalker.c |   13 ++++++++++++-
+ 1 file changed, 12 insertions(+), 1 deletion(-)
 
-diff --git a/arch/arm/mach-omap2/board-omap3pandora.c b/arch/arm/mach-omap2/board-omap3pandora.c
-index 33d995d..25b2de6 100644
---- a/arch/arm/mach-omap2/board-omap3pandora.c
-+++ b/arch/arm/mach-omap2/board-omap3pandora.c
-@@ -57,6 +57,12 @@
- #define PANDORA_WIFI_NRESET_GPIO	23
- #define OMAP3_PANDORA_TS_GPIO		94
+diff --git a/arch/arm/mach-omap2/board-omap3stalker.c b/arch/arm/mach-omap2/board-omap3stalker.c
+index 4dffc95..5e92d54 100644
+--- a/arch/arm/mach-omap2/board-omap3stalker.c
++++ b/arch/arm/mach-omap2/board-omap3stalker.c
+@@ -56,6 +56,12 @@
+ #include "hsmmc.h"
+ #include "common-board-devices.h"
  
 +static struct gpmc_device_pdata *gpmc_device_data[1];
 +
@@ -38,21 +38,30 @@ index 33d995d..25b2de6 100644
 +	.device_pdata = gpmc_device_data,
 +};
 +
- static struct mtd_partition omap3pandora_nand_partitions[] = {
- 	{
- 		.name           = "xloader",
-@@ -607,8 +613,9 @@ static void __init omap3pandora_init(void)
- 	omap_ads7846_init(1, OMAP3_PANDORA_TS_GPIO, 0, NULL);
- 	usbhs_init(&usbhs_bdata);
- 	usb_musb_init(NULL);
--	gpmc_nand_init(&pandora_nand_data);
--
-+	*gpmc_device_data = gpmc_nand_init(&pandora_nand_data);
-+	gpmc_data.num_device++;
+ #if defined(CONFIG_SMSC911X) || defined(CONFIG_SMSC911X_MODULE)
+ #include <plat/gpmc-smsc911x.h>
+ 
+@@ -74,7 +80,11 @@ static struct omap_smsc911x_platform_data smsc911x_cfg = {
+ static inline void __init omap3stalker_init_eth(void)
+ {
+ 	omap_mux_init_gpio(19, OMAP_PIN_INPUT_PULLUP);
+-	gpmc_smsc911x_init(&smsc911x_cfg);
++	*gpmc_device_data = gpmc_smsc911x_init(&smsc911x_cfg);
++	if (*gpmc_device_data)
++		gpmc_data.num_device++;
++	else
++		pr_err("error: unable to initilaize gpmc smsc911x\n");
+ }
+ 
+ #else
+@@ -443,6 +453,7 @@ static void __init omap3_stalker_init(void)
+ 	omap_mux_init_gpio(18, OMAP_PIN_INPUT_PULLUP);
+ 
+ 	omap3stalker_init_eth();
 +	omap_init_gpmc(&gpmc_data);
- 	/* Ensure SDRC pins are mux'd for self-refresh */
- 	omap_mux_init_signal("sdrc_cke0", OMAP_PIN_OUTPUT);
- 	omap_mux_init_signal("sdrc_cke1", OMAP_PIN_OUTPUT);
+ 	omap3_stalker_display_init();
+ /* Ensure SDRC pins are mux'd for self-refresh */
+ 	omap_mux_init_signal("sdr_cke0", OMAP_PIN_OUTPUT);
 -- 
 1.7.10
 
