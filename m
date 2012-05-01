@@ -1,7 +1,7 @@
 From: Afzal Mohammed <afzal-l0cyMroinI0@public.gmane.org>
-Subject: [PATCH v4 29/39] ARM: OMAP2+: board n8x0: gpmc driver adaptation
-Date: Tue, 1 May 2012 17:52:53 +0530
-Message-ID: <afbabad89b7e0b303cbd6c92dd8661531041e390.1335874494.git.afzal@ti.com>
+Subject: [PATCH v4 30/39] ARM: OMAP2+: board omap3logic: gpmc driver adaptation
+Date: Tue, 1 May 2012 17:53:00 +0530
+Message-ID: <e040c11706547d01fb2744246d83c0cba30003ef.1335874494.git.afzal@ti.com>
 References: <cover.1335874494.git.afzal@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
@@ -17,61 +17,47 @@ code to provide gpmc driver with required information.
 
 Signed-off-by: Afzal Mohammed <afzal-l0cyMroinI0@public.gmane.org>
 ---
- arch/arm/mach-omap2/board-n8x0.c |   18 +++++++++++++++---
- 1 file changed, 15 insertions(+), 3 deletions(-)
+ arch/arm/mach-omap2/board-omap3logic.c |   13 ++++++++++++-
+ 1 file changed, 12 insertions(+), 1 deletion(-)
 
-diff --git a/arch/arm/mach-omap2/board-n8x0.c b/arch/arm/mach-omap2/board-n8x0.c
-index 94f6077..d3d866a 100644
---- a/arch/arm/mach-omap2/board-n8x0.c
-+++ b/arch/arm/mach-omap2/board-n8x0.c
-@@ -36,6 +36,7 @@
- #include <plat/onenand.h>
- #include <plat/mmc.h>
- #include <plat/serial.h>
-+#include <plat/gpmc.h>
+diff --git a/arch/arm/mach-omap2/board-omap3logic.c b/arch/arm/mach-omap2/board-omap3logic.c
+index 9b3c141..9867fc8 100644
+--- a/arch/arm/mach-omap2/board-omap3logic.c
++++ b/arch/arm/mach-omap2/board-omap3logic.c
+@@ -55,6 +55,12 @@
+ #define OMAP3_TORPEDO_MMC_GPIO_CD		127
+ #define OMAP3_TORPEDO_SMSC911X_GPIO_IRQ		129
  
- #include "mux.h"
- 
-@@ -45,6 +46,13 @@
- #define TUSB6010_GPIO_ENABLE	0
- #define TUSB6010_DMACHAN	0x3f
- 
-+static struct gpmc_device_pdata *gpmc_device_data[2];
-+static struct gpmc_device_pdata **gpmc_cur = gpmc_device_data;
++static struct gpmc_device_pdata *gpmc_device_data[1];
 +
 +static struct gpmc_pdata gpmc_data = {
 +	.device_pdata = gpmc_device_data,
 +};
 +
- #if defined(CONFIG_USB_MUSB_TUSB6010) || defined(CONFIG_USB_MUSB_TUSB6010_MODULE)
- /*
-  * Enable or disable power to TUSB6010. When enabling, turn on 3.3 V and
-@@ -114,10 +122,12 @@ static void __init n8x0_usb_init(void)
+ static struct regulator_consumer_supply omap3logic_vmmc1_supply[] = {
+ 	REGULATOR_SUPPLY("vmmc", "omap_hsmmc.0"),
+ };
+@@ -180,7 +186,11 @@ static inline void __init board_smsc911x_init(void)
+ 		return;
  	}
- 	tusb_set_power(0);
  
--	ret = tusb6010_setup_interface(&tusb_data, TUSB6010_REFCLK_19, 2,
-+	*gpmc_cur = tusb6010_setup_interface(&tusb_data, TUSB6010_REFCLK_19, 2,
- 					TUSB6010_ASYNC_CS, TUSB6010_SYNC_CS,
- 					TUSB6010_GPIO_INT, TUSB6010_DMACHAN);
--	if (ret != 0)
-+	if (*gpmc_cur)
-+		gpmc_data.num_device++, gpmc_cur++;
+-	gpmc_smsc911x_init(&board_smsc911x_data);
++	*gpmc_device_data = gpmc_smsc911x_init(&board_smsc911x_data);
++	if (*gpmc_device_data)
++		gpmc_data.num_device++;
 +	else
- 		goto err;
- 
- 	printk(announce);
-@@ -785,7 +795,9 @@ static void __init n8x0_init_machine(void)
- 					ARRAY_SIZE(n810_i2c_board_info_2));
- 	board_serial_init();
- 	omap_sdrc_init(NULL, NULL);
--	gpmc_onenand_init(board_onenand_data);
-+	*gpmc_cur++ = gpmc_onenand_init(board_onenand_data);
-+	gpmc_data.num_device++;
-+	omap_init_gpmc(&gpmc_data);
- 	n8x0_mmc_init();
- 	n8x0_usb_init();
++		pr_err("error: unable to initilaize gpmc smsc911x\n");
  }
+ 
+ #ifdef CONFIG_OMAP_MUX
+@@ -204,6 +214,7 @@ static void __init omap3logic_init(void)
+ 	omap_sdrc_init(NULL, NULL);
+ 	board_mmc_init();
+ 	board_smsc911x_init();
++	omap_init_gpmc(&gpmc_data);
+ 
+ 	/* Ensure SDRC pins are mux'd for self-refresh */
+ 	omap_mux_init_signal("sdrc_cke0", OMAP_PIN_OUTPUT);
 -- 
 1.7.10
 
