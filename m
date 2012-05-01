@@ -1,17 +1,17 @@
 From: Jon Hunter <jon-hunter@ti.com>
-Subject: Re: [PATCH v4 02/39] ARM: OMAP2+: gpmc: Adapt to HWMOD
-Date: Tue, 1 May 2012 15:41:48 -0500
-Message-ID: <4FA04A8C.4050703@ti.com>
-References: <cover.1335874494.git.afzal@ti.com> <e0cf9678cb9a44d2a16401383ab8496eb825c291.1335874494.git.afzal@ti.com>
+Subject: Re: [PATCH v4 04/39] ARM: OMAP2+: gpmc: Acquire NAND CS value
+Date: Tue, 1 May 2012 16:16:02 -0500
+Message-ID: <4FA05292.7030902@ti.com>
+References: <cover.1335874494.git.afzal@ti.com> <10220de398d22fad5de783d8f58fc55ebac85338.1335874494.git.afzal@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="ISO-8859-1"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from comal.ext.ti.com ([198.47.26.152]:42781 "EHLO comal.ext.ti.com"
+Received: from bear.ext.ti.com ([192.94.94.41]:59898 "EHLO bear.ext.ti.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751361Ab2EAUmL (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Tue, 1 May 2012 16:42:11 -0400
-In-Reply-To: <e0cf9678cb9a44d2a16401383ab8496eb825c291.1335874494.git.afzal@ti.com>
+	id S1753750Ab2EAVQ2 (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Tue, 1 May 2012 17:16:28 -0400
+In-Reply-To: <10220de398d22fad5de783d8f58fc55ebac85338.1335874494.git.afzal@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: Afzal Mohammed <afzal@ti.com>
@@ -19,105 +19,70 @@ Cc: tony@atomide.com, linux@arm.linux.org.uk, khilman@ti.com, balbi@ti.com, dwmw
 
 Hi Afzal,
 
-On 05/01/2012 07:19 AM, Afzal Mohammed wrote:
-> Create API for platforms to adapt gpmc to HWMOD
-> 
+On 05/01/2012 07:20 AM, Afzal Mohammed wrote:
+> Some boards depend on bootloader to update chip select value for NAND.
+> It is felt that Kernel should not depend on bootloader to get CS, as
+> for a particular board CS is hardwired and is fixed, hence this can
+> directly be updated in Kernel. But as CS value for boards that depend
+> on this behaviour is not available, educate gpmc driver to acquire
+> chip select value for NAND. this ideally should be removed once CS
+> for those boards are available.
+
+Do you know how many boards require this? If so which are those boards?
+
 > Signed-off-by: Afzal Mohammed <afzal@ti.com>
 > ---
->  arch/arm/mach-omap2/gpmc.c             |   52 +++++++++++++++++++++++---------
->  arch/arm/plat-omap/include/plat/gpmc.h |    1 +
->  2 files changed, 38 insertions(+), 15 deletions(-)
+>  arch/arm/mach-omap2/gpmc.c |   32 +++++++++++++++++++++++++++++++-
+>  1 file changed, 31 insertions(+), 1 deletion(-)
 > 
 > diff --git a/arch/arm/mach-omap2/gpmc.c b/arch/arm/mach-omap2/gpmc.c
-> index 12916f3..c8d07bb 100644
+> index 657ce95..ecd3384 100644
 > --- a/arch/arm/mach-omap2/gpmc.c
 > +++ b/arch/arm/mach-omap2/gpmc.c
-> @@ -33,6 +33,8 @@
->  
->  #include <plat/sdrc.h>
->  
-> +#include <plat/omap_device.h>
-> +
->  /* GPMC register offsets */
->  #define GPMC_REVISION		0x00
->  #define GPMC_SYSCONFIG		0x10
-> @@ -276,6 +278,31 @@ unsigned int gpmc_round_ns_to_ticks(unsigned int time_ns)
->  	return ticks * gpmc_get_fclk_period() / 1000;
+> @@ -892,6 +892,30 @@ static int __init gpmc_init(void)
 >  }
+>  postcore_initcall(gpmc_init);
 >  
-> +int __init omap_init_gpmc(struct gpmc_pdata *pdata)
+> +static __devinit int gpmc_acquire_nand_cs(struct gpmc *gpmc,
+> +					struct gpmc_device_pdata *gdp)
 > +{
-> +	struct omap_hwmod *oh;
-> +	struct platform_device *pdev;
-> +	char *name = "omap-gpmc";
-> +	char *oh_name = "gpmc";
+> +	int cs = 0;
+> +	struct omap_nand_platform_data *nand = gdp->pdata;
 > +
-> +	pdata->clk_prd = gpmc_get_fclk_period();
-
-Does this need to be done here? May be this should be done in the probe
-function. You could store the handle to the main clk in the pdata.
-
+> +	if ((nand->cs >= 0) && (nand->cs < GPMC_CS_NUM))
+> +		return 0;
 > +
-> +	oh = omap_hwmod_lookup(oh_name);
-> +	if (!oh) {
-> +		pr_err("Could not look up %s\n", oh_name);
-> +		return -ENODEV;
+> +	while (cs < GPMC_CS_NUM) {
+> +		u32 l = gpmc_cs_read_reg(cs, GPMC_CS_CONFIG1);
+> +
+> +		if ((l & GPMC_CONFIG1_DEVICETYPE(~0)) ==
+> +				GPMC_CONFIG1_DEVICETYPE_NAND) {
+> +			dev_info(gpmc->dev, "found NAND on CS: %d\n", cs);
+> +			nand->cs = cs;
+> +			gdp->cs_data->cs = cs;
+> +			return 0;
+> +		}
+> +		cs++;
 > +	}
-> +
-> +	pdev = omap_device_build(name, -1, oh, pdata,
-> +					sizeof(*pdata), NULL, 0, 0);
-> +	if (IS_ERR(pdev)) {
-> +		WARN(1, "Can't build omap_device for %s:%s.\n",
-> +						name, oh->name);
-> +		return PTR_ERR(pdev);
-> +	}
-> +
-> +	return 0;
+> +	return -ENODEV;
 > +}
->  #ifdef DEBUG
->  static int set_gpmc_timing_reg(int cs, int reg, int st_bit, int end_bit,
->  			       int time, const char *name)
-> @@ -843,24 +870,19 @@ static __devinit void gpmc_mem_init(void)
->  
->  static int __init gpmc_init(void)
+> +
+>  static __devinit void gpmc_update_nand_reg(struct gpmc *gpmc,
+>  				struct omap_nand_platform_data *nand)
 >  {
-> -	int ret = -EINVAL;
-> -	char *ck = NULL;
-> -
-> -	if (cpu_is_omap24xx()) {
-> -		ck = "core_l3_ck";
-> -	} else if (cpu_is_omap34xx()) {
-> -		ck = "gpmc_fck";
-> -	} else if (cpu_is_omap44xx()) {
-> -		ck = "gpmc_ck";
-> -	}
-> +	char *oh_name = "gpmc";
-> +	struct omap_hwmod *oh;
+> @@ -1450,8 +1474,14 @@ static __devinit int gpmc_probe(struct platform_device *pdev)
 >  
-> -	if (WARN_ON(!ck))
-> -		return ret;
-> +	oh = omap_hwmod_lookup(oh_name);
-> +	if (!oh) {
-> +		pr_err("Could not look up %s\n", oh_name);
-> +		return -ENODEV;
-> +	}
->  
-> -	gpmc_l3_clk = clk_get(NULL, ck);
-> +	gpmc_l3_clk = clk_get(NULL, oh->main_clk);
->  	if (IS_ERR(gpmc_l3_clk)) {
-> -		printk(KERN_ERR "Could not get GPMC clock %s\n", ck);
-> -		BUG();
-> +		pr_err("error: clk_get on %s\n", oh->main_clk);
-> +		return -EINVAL;
->  	}
->  
->  	clk_enable(gpmc_l3_clk);
+>  	for (i = 0, gdq = gp->device_pdata, gd = gpmc->device;
+>  			(i < gp->num_device) && (*gdq); i++, gdq++) {
+> -		if ((*gdq)->is_nand)
+> +		if ((*gdq)->is_nand) {
+> +			ret = gpmc_acquire_nand_cs(gpmc, *gdq);
+> +			if (IS_ERR_VALUE(ret)) {
+> +				dev_err(gpmc->dev, "CS error: %d\n", ret);
+> +				continue;
+> +			}
 
-I would have thought we should be able to remove the gpmc_init function
-completely by now. Most of the code should be moved to the probe function.
-
-Also now with hwmod in place, we should be able to remove the
-clk_enable/disable functions and use the pm_runtime APIs instead.
+Should this code be marked with a FIXME?
 
 Cheers
 Jon
