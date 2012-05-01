@@ -1,32 +1,36 @@
-From: Afzal Mohammed <afzal-l0cyMroinI0@public.gmane.org>
-Subject: [PATCH v4 30/39] ARM: OMAP2+: board omap3logic: gpmc driver adaptation
-Date: Tue, 1 May 2012 17:53:00 +0530
-Message-ID: <e040c11706547d01fb2744246d83c0cba30003ef.1335874494.git.afzal@ti.com>
+From: Afzal Mohammed <afzal@ti.com>
+Subject: [PATCH v4 31/39] ARM: OMAP2+: board omap3pandora: gpmc driver adaptation
+Date: Tue, 1 May 2012 17:53:06 +0530
+Message-ID: <84e89d05d2218d8c788a4bc92a81f7a45d66a8ab.1335874494.git.afzal@ti.com>
 References: <cover.1335874494.git.afzal@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
-Return-path: <linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <cover.1335874494.git.afzal-l0cyMroinI0@public.gmane.org>
-Sender: linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org, linux-lFZ/pmaqli7XmaaqVzeoHQ@public.gmane.org, khilman-l0cyMroinI0@public.gmane.org, balbi-l0cyMroinI0@public.gmane.org, dwmw2-wEGCiKHe2LqWVfeAwA7xHQ@public.gmane.org, kyungmin.park-Sze3O3UU22JBDgjK7y7TUQ@public.gmane.org, gregkh-hQyY1W1yCW8ekmWlsbkhG0B+6BGkLq7r@public.gmane.org, nm-l0cyMroinI0@public.gmane.org, grinberg-UTxiZqZC01RS1MOuV/RT9w@public.gmane.org, notasas-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org, artem.bityutskiy-VuQAYsv1563Yd54FQh9/CA@public.gmane.org, vimal.newwork-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org, dbaryshkov-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-mtd-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org
-Cc: Afzal Mohammed <afzal-l0cyMroinI0@public.gmane.org>
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from comal.ext.ti.com ([198.47.26.152]:43681 "EHLO comal.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1755911Ab2EAMkP (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Tue, 1 May 2012 08:40:15 -0400
+In-Reply-To: <cover.1335874494.git.afzal@ti.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: tony@atomide.com, linux@arm.linux.org.uk, khilman@ti.com, balbi@ti.com, dwmw2@infradead.org, kyungmin.park@samsung.com, gregkh@linuxfoundation.org, nm@ti.com, grinberg@compulab.co.il, notasas@gmail.com, artem.bityutskiy@linux.intel.com, vimal.newwork@gmail.com, dbaryshkov@gmail.com, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-usb@vger.kernel.org, linux-mtd@lists.infradead.org
+Cc: Afzal Mohammed <afzal@ti.com>
 
 gpmc code has been converted to driver. Modify the board
 code to provide gpmc driver with required information.
 
-Signed-off-by: Afzal Mohammed <afzal-l0cyMroinI0@public.gmane.org>
+Signed-off-by: Afzal Mohammed <afzal@ti.com>
 ---
- arch/arm/mach-omap2/board-omap3logic.c |   13 ++++++++++++-
- 1 file changed, 12 insertions(+), 1 deletion(-)
+ arch/arm/mach-omap2/board-omap3pandora.c |   11 +++++++++--
+ 1 file changed, 9 insertions(+), 2 deletions(-)
 
-diff --git a/arch/arm/mach-omap2/board-omap3logic.c b/arch/arm/mach-omap2/board-omap3logic.c
-index 9b3c141..9867fc8 100644
---- a/arch/arm/mach-omap2/board-omap3logic.c
-+++ b/arch/arm/mach-omap2/board-omap3logic.c
-@@ -55,6 +55,12 @@
- #define OMAP3_TORPEDO_MMC_GPIO_CD		127
- #define OMAP3_TORPEDO_SMSC911X_GPIO_IRQ		129
+diff --git a/arch/arm/mach-omap2/board-omap3pandora.c b/arch/arm/mach-omap2/board-omap3pandora.c
+index 33d995d..25b2de6 100644
+--- a/arch/arm/mach-omap2/board-omap3pandora.c
++++ b/arch/arm/mach-omap2/board-omap3pandora.c
+@@ -57,6 +57,12 @@
+ #define PANDORA_WIFI_NRESET_GPIO	23
+ #define OMAP3_PANDORA_TS_GPIO		94
  
 +static struct gpmc_device_pdata *gpmc_device_data[1];
 +
@@ -34,34 +38,21 @@ index 9b3c141..9867fc8 100644
 +	.device_pdata = gpmc_device_data,
 +};
 +
- static struct regulator_consumer_supply omap3logic_vmmc1_supply[] = {
- 	REGULATOR_SUPPLY("vmmc", "omap_hsmmc.0"),
- };
-@@ -180,7 +186,11 @@ static inline void __init board_smsc911x_init(void)
- 		return;
- 	}
- 
--	gpmc_smsc911x_init(&board_smsc911x_data);
-+	*gpmc_device_data = gpmc_smsc911x_init(&board_smsc911x_data);
-+	if (*gpmc_device_data)
-+		gpmc_data.num_device++;
-+	else
-+		pr_err("error: unable to initilaize gpmc smsc911x\n");
- }
- 
- #ifdef CONFIG_OMAP_MUX
-@@ -204,6 +214,7 @@ static void __init omap3logic_init(void)
- 	omap_sdrc_init(NULL, NULL);
- 	board_mmc_init();
- 	board_smsc911x_init();
+ static struct mtd_partition omap3pandora_nand_partitions[] = {
+ 	{
+ 		.name           = "xloader",
+@@ -607,8 +613,9 @@ static void __init omap3pandora_init(void)
+ 	omap_ads7846_init(1, OMAP3_PANDORA_TS_GPIO, 0, NULL);
+ 	usbhs_init(&usbhs_bdata);
+ 	usb_musb_init(NULL);
+-	gpmc_nand_init(&pandora_nand_data);
+-
++	*gpmc_device_data = gpmc_nand_init(&pandora_nand_data);
++	gpmc_data.num_device++;
 +	omap_init_gpmc(&gpmc_data);
- 
  	/* Ensure SDRC pins are mux'd for self-refresh */
  	omap_mux_init_signal("sdrc_cke0", OMAP_PIN_OUTPUT);
+ 	omap_mux_init_signal("sdrc_cke1", OMAP_PIN_OUTPUT);
 -- 
 1.7.10
 
---
-To unsubscribe from this list: send the line "unsubscribe linux-usb" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
