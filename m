@@ -1,14 +1,16 @@
 From: jean.pihet@newoldbits.com
-Subject: [PATCH 0/5] ARM: OMAP2+: PM: implement a caching mechanism on the power domains state registers
-Date: Tue,  1 May 2012 15:07:38 +0200
-Message-ID: <1335877663-32649-1-git-send-email-j-pihet@ti.com>
+Subject: [PATCH 4/5] ARM: OMAP2+: PM: use the power domains registers cache invalidate API
+Date: Tue,  1 May 2012 15:07:42 +0200
+Message-ID: <1335877663-32649-5-git-send-email-j-pihet@ti.com>
+References: <1335877663-32649-1-git-send-email-j-pihet@ti.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
 Received: from mail-wg0-f44.google.com ([74.125.82.44]:45236 "EHLO
 	mail-wg0-f44.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753303Ab2EANIK (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 1 May 2012 09:08:10 -0400
-Received: by wgbdr13 with SMTP id dr13so1464892wgb.1
-        for <linux-omap@vger.kernel.org>; Tue, 01 May 2012 06:08:08 -0700 (PDT)
+	with ESMTP id S1756080Ab2EANIP (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 1 May 2012 09:08:15 -0400
+Received: by mail-wg0-f44.google.com with SMTP id dr13so1464892wgb.1
+        for <linux-omap@vger.kernel.org>; Tue, 01 May 2012 06:08:14 -0700 (PDT)
+In-Reply-To: <1335877663-32649-1-git-send-email-j-pihet@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: linux-omap@vger.kernel.org, khilman@ti.com, linux-arm-kernel@lists.infradead.org, santosh.shilimkar@ti.com
@@ -16,51 +18,55 @@ Cc: Jean Pihet <j-pihet@ti.com>
 
 From: Jean Pihet <j-pihet@ti.com>
 
-The OMAP3 PRCM registers accesses are known to be slow, with a PRCM register
-read taking up to 12-14us depending on the OPP.
+The power domains registers cache is partially invalidated when clearing
+the previous power states and after coming back from the low power mode,
+i.e. after the return from the low level WFI instruction.
 
-This patch adds a caching mechanism on the power domains state registers.
-When the cache is cold or has been invalidated a register access is
-performed, otherwise the register value is retrieved from the registers
-cache.
-The API is made of read and write functions for fields in the cache, as well
-as an invalidate and helper functions to invalidate parts of the cache
-contents (i.e. previous, current power states and all fields in the cache).
-The power domain code is converted to use the API to read and write the
-previous, current and next states for the power domains states, logical
-and memory states.
-The PM debug code also uses the caching API instead of the internal
-pwrdm->state variable.
+Note: this invalidate use scheme is optimized for performance, the states
+returned by the state read functions might not reflect the real state if
+the power domains registers have not been changed using the API or have
+not been changed by the operating system (e.g. the ROM code in case of
+secure code execution).
 
-Using the caching mechanism optimizes the performance of the system in the
-transitions to and from the low power states.
+Signed-off-by: Jean Pihet <j-pihet@ti.com>
+---
+ arch/arm/mach-omap2/pm34xx.c      |    6 ++++++
+ arch/arm/mach-omap2/powerdomain.c |    4 +++-
+ 2 files changed, 9 insertions(+), 1 deletions(-)
 
-Tested on Beagleboard using cpuidle in RET and OFF modes.
-
-Based on the linux-omap git tree (3.4.0-rc2) [1] with the changes for the
-functional power states [2] and the per-device PM QoS support for OMAP [3].
-
-[1] git://git.kernel.org/pub/scm/linux/kernel/git/tmlind/linux-omap.git
-[2] http://marc.info/?l=linux-omap&m=133475291911194&w=2
-[3] http://marc.info/?l=linux-omap&m=133475685213067&w=2
-
-
-Jean Pihet (5):
-  ARM: OMAP2+: PM: implement a caching mechanism on the power domains
-    state registers
-  ARM: OMAP2+: PM: use the power domains registers cache for the power
-    states
-  ARM: OMAP2+: PM: use the power domains registers cache for the logic
-    and mem states
-  ARM: OMAP2+: PM: use the power domains registers cache invalidate API
-  ARM: OMAP2+: PM debug: use the power domains registers caching API
-
- arch/arm/mach-omap2/pm-debug.c    |   16 ++-
- arch/arm/mach-omap2/pm34xx.c      |    6 +
- arch/arm/mach-omap2/powerdomain.c |  272 ++++++++++++++++++++++++++++++++-----
- arch/arm/mach-omap2/powerdomain.h |   45 ++++++-
- 4 files changed, 297 insertions(+), 42 deletions(-)
-
+diff --git a/arch/arm/mach-omap2/pm34xx.c b/arch/arm/mach-omap2/pm34xx.c
+index ed73ffc..a222f517 100644
+--- a/arch/arm/mach-omap2/pm34xx.c
++++ b/arch/arm/mach-omap2/pm34xx.c
+@@ -353,6 +353,12 @@ void omap_sram_idle(void)
+ 	else
+ 		omap34xx_do_sram_idle(save_state);
+ 
++	/*
++	 * Invalidate the current states from the regs cache
++	 * for all power domains
++	 */
++	pwrdm_invalidate_regs_cache_fields_current(NULL);
++
+ 	/* Restore normal SDRC POWER settings */
+ 	if (cpu_is_omap3430() && omap_rev() >= OMAP3430_REV_ES3_0 &&
+ 	    (omap_type() == OMAP2_DEVICE_TYPE_EMU ||
+diff --git a/arch/arm/mach-omap2/powerdomain.c b/arch/arm/mach-omap2/powerdomain.c
+index 9800b2b..0b9259b 100644
+--- a/arch/arm/mach-omap2/powerdomain.c
++++ b/arch/arm/mach-omap2/powerdomain.c
+@@ -1324,8 +1324,10 @@ int pwrdm_clear_all_prev_pwrst(struct powerdomain *pwrdm)
+ 	pr_debug("powerdomain: clearing previous power state reg for %s\n",
+ 		 pwrdm->name);
+ 
+-	if (arch_pwrdm && arch_pwrdm->pwrdm_clear_all_prev_pwrst)
++	if (arch_pwrdm && arch_pwrdm->pwrdm_clear_all_prev_pwrst) {
+ 		ret = arch_pwrdm->pwrdm_clear_all_prev_pwrst(pwrdm);
++		pwrdm_invalidate_regs_cache_fields_prev(pwrdm);
++	}
+ 
+ 	return ret;
+ }
 -- 
 1.7.7.6
 
