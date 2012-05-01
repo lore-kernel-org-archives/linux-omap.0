@@ -1,111 +1,75 @@
-From: Afzal Mohammed <afzal-l0cyMroinI0@public.gmane.org>
-Subject: [PATCH v4 18/39] mtd: onenand: omap: obtain memory from resource
-Date: Tue, 1 May 2012 17:51:43 +0530
-Message-ID: <0566ad486a0127288f8670b415249c008780c5ce.1335874494.git.afzal@ti.com>
+From: Afzal Mohammed <afzal@ti.com>
+Subject: [PATCH v4 19/39] ARM: OMAP2+: board omap3evm: gpmc driver adaptation
+Date: Tue, 1 May 2012 17:51:49 +0530
+Message-ID: <8e2ba4d68c6419c71c77d029cfc808172ea6ccd9.1335874494.git.afzal@ti.com>
 References: <cover.1335874494.git.afzal@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
-Return-path: <linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <cover.1335874494.git.afzal-l0cyMroinI0@public.gmane.org>
-Sender: linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org, linux-lFZ/pmaqli7XmaaqVzeoHQ@public.gmane.org, khilman-l0cyMroinI0@public.gmane.org, balbi-l0cyMroinI0@public.gmane.org, dwmw2-wEGCiKHe2LqWVfeAwA7xHQ@public.gmane.org, kyungmin.park-Sze3O3UU22JBDgjK7y7TUQ@public.gmane.org, gregkh-hQyY1W1yCW8ekmWlsbkhG0B+6BGkLq7r@public.gmane.org, nm-l0cyMroinI0@public.gmane.org, grinberg-UTxiZqZC01RS1MOuV/RT9w@public.gmane.org, notasas-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org, artem.bityutskiy-VuQAYsv1563Yd54FQh9/CA@public.gmane.org, vimal.newwork-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org, dbaryshkov-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-mtd-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org
-Cc: Afzal Mohammed <afzal-l0cyMroinI0@public.gmane.org>
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from arroyo.ext.ti.com ([192.94.94.40]:33769 "EHLO arroyo.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1757790Ab2EAMiz (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Tue, 1 May 2012 08:38:55 -0400
+In-Reply-To: <cover.1335874494.git.afzal@ti.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: tony@atomide.com, linux@arm.linux.org.uk, khilman@ti.com, balbi@ti.com, dwmw2@infradead.org, kyungmin.park@samsung.com, gregkh@linuxfoundation.org, nm@ti.com, grinberg@compulab.co.il, notasas@gmail.com, artem.bityutskiy@linux.intel.com, vimal.newwork@gmail.com, dbaryshkov@gmail.com, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-usb@vger.kernel.org, linux-mtd@lists.infradead.org
+Cc: Afzal Mohammed <afzal@ti.com>
 
-gpmc being converted to driver, provides drivers of peripheral
-connected memory space used by the peripheral as memory resource.
-Modify nand omap driver to obtain memory detials from resource
-structure. And so remove usage of gpmc exported symbols.
+gpmc code has been converted to driver. Modify the board
+code to provide gpmc driver with required information
 
-Signed-off-by: Afzal Mohammed <afzal-l0cyMroinI0@public.gmane.org>
+Signed-off-by: Afzal Mohammed <afzal@ti.com>
 ---
- drivers/mtd/onenand/omap2.c |   29 ++++++++++++++++-------------
- 1 file changed, 16 insertions(+), 13 deletions(-)
+ arch/arm/mach-omap2/board-omap3evm.c |   14 +++++++++++++-
+ 1 file changed, 13 insertions(+), 1 deletion(-)
 
-diff --git a/drivers/mtd/onenand/omap2.c b/drivers/mtd/onenand/omap2.c
-index 398a827..3ff893d 100644
---- a/drivers/mtd/onenand/omap2.c
-+++ b/drivers/mtd/onenand/omap2.c
-@@ -48,13 +48,13 @@
+diff --git a/arch/arm/mach-omap2/board-omap3evm.c b/arch/arm/mach-omap2/board-omap3evm.c
+index fd1b481..b00765e 100644
+--- a/arch/arm/mach-omap2/board-omap3evm.c
++++ b/arch/arm/mach-omap2/board-omap3evm.c
+@@ -43,6 +43,7 @@
  
- #define DRIVER_NAME "omap2-onenand"
- 
--#define ONENAND_IO_SIZE		SZ_128K
- #define ONENAND_BUFRAM_SIZE	(1024 * 5)
- 
- struct omap2_onenand {
- 	struct platform_device *pdev;
- 	int gpmc_cs;
- 	unsigned long phys_base;
-+	unsigned int mem_size;
- 	int gpio_irq;
- 	struct mtd_info mtd;
- 	struct onenand_chip onenand;
-@@ -626,6 +626,7 @@ static int __devinit omap2_onenand_probe(struct platform_device *pdev)
- 	struct omap2_onenand *c;
- 	struct onenand_chip *this;
- 	int r;
-+	struct resource *res;
- 
- 	pdata = pdev->dev.platform_data;
- 	if (pdata == NULL) {
-@@ -647,20 +648,24 @@ static int __devinit omap2_onenand_probe(struct platform_device *pdev)
- 		c->gpio_irq = 0;
+ #include <plat/board.h>
+ #include <plat/usb.h>
++#include <plat/gpmc.h>
+ #include "common.h"
+ #include <plat/mcspi.h>
+ #include <video/omapdss.h>
+@@ -102,6 +103,12 @@ static void __init omap3_evm_get_revision(void)
  	}
+ }
  
--	r = gpmc_cs_request(c->gpmc_cs, ONENAND_IO_SIZE, &c->phys_base);
--	if (r < 0) {
--		dev_err(&pdev->dev, "Cannot request GPMC CS\n");
-+	res = platform_get_resource(pdev, IORESOURCE_MEM, 0);
-+	if (res == NULL) {
-+		r = -EINVAL;
-+		dev_err(&pdev->dev, "error getting memory resource\n");
- 		goto err_kfree;
- 	}
- 
--	if (request_mem_region(c->phys_base, ONENAND_IO_SIZE,
-+	c->phys_base = res->start;
-+	c->mem_size = resource_size(res);
++static struct gpmc_device_pdata *gpmc_device_data[1];
 +
-+	if (request_mem_region(c->phys_base, c->mem_size,
- 			       pdev->dev.driver->name) == NULL) {
--		dev_err(&pdev->dev, "Cannot reserve memory region at 0x%08lx, "
--			"size: 0x%x\n",	c->phys_base, ONENAND_IO_SIZE);
-+		dev_err(&pdev->dev, "Cannot reserve memory region at 0x%08lx, size: 0x%x\n",
-+						c->phys_base, c->mem_size);
- 		r = -EBUSY;
--		goto err_free_cs;
-+		goto err_kfree;
- 	}
--	c->onenand.base = ioremap(c->phys_base, ONENAND_IO_SIZE);
-+	c->onenand.base = ioremap(c->phys_base, c->mem_size);
- 	if (c->onenand.base == NULL) {
- 		r = -ENOMEM;
- 		goto err_release_mem_region;
-@@ -776,9 +781,7 @@ err_release_gpio:
- err_iounmap:
- 	iounmap(c->onenand.base);
- err_release_mem_region:
--	release_mem_region(c->phys_base, ONENAND_IO_SIZE);
--err_free_cs:
--	gpmc_cs_free(c->gpmc_cs);
-+	release_mem_region(c->phys_base, c->mem_size);
- err_kfree:
- 	kfree(c);
++static struct gpmc_pdata gpmc_data = {
++	.device_pdata = gpmc_device_data,
++};
++
+ #if defined(CONFIG_SMSC911X) || defined(CONFIG_SMSC911X_MODULE)
+ #include <plat/gpmc-smsc911x.h>
  
-@@ -800,7 +803,7 @@ static int __devexit omap2_onenand_remove(struct platform_device *pdev)
- 		gpio_free(c->gpio_irq);
+@@ -122,7 +129,11 @@ static inline void __init omap3evm_init_smsc911x(void)
+ 			smsc911x_cfg.gpio_reset = OMAP3EVM_GEN2_ETHR_GPIO_RST;
  	}
- 	iounmap(c->onenand.base);
--	release_mem_region(c->phys_base, ONENAND_IO_SIZE);
-+	release_mem_region(c->phys_base, c->mem_size);
- 	gpmc_cs_free(c->gpmc_cs);
- 	kfree(c);
  
+-	gpmc_smsc911x_init(&smsc911x_cfg);
++	*gpmc_device_data = gpmc_smsc911x_init(&smsc911x_cfg);
++	if (*gpmc_device_data)
++		gpmc_data.num_device++;
++	else
++		pr_err("error: unable to initilaize gpmc smsc911x\n");
+ }
+ 
+ #else
+@@ -679,6 +690,7 @@ static void __init omap3_evm_init(void)
+ 	usbhs_init(&usbhs_bdata);
+ 	omap_ads7846_init(1, OMAP3_EVM_TS_GPIO, 310, NULL);
+ 	omap3evm_init_smsc911x();
++	omap_init_gpmc(&gpmc_data);
+ 	omap3_evm_display_init();
+ 	omap3_evm_wl12xx_init();
+ }
 -- 
 1.7.10
 
---
-To unsubscribe from this list: send the line "unsubscribe linux-usb" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
