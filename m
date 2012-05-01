@@ -1,54 +1,109 @@
-From: "Mohammed, Afzal" <afzal@ti.com>
-Subject: RE: OMAP3EVM not booting on l-o master
-Date: Tue, 1 May 2012 12:55:25 +0000
-Message-ID: <C8443D0743D26F4388EA172BF4E2A7A93E97C988@DBDE01.ent.ti.com>
-References: <C8443D0743D26F4388EA172BF4E2A7A9317C3A03@DBDE01.ent.ti.com>
-	<C8443D0743D26F4388EA172BF4E2A7A9317C3B18@DBDE01.ent.ti.com>
-	<alpine.DEB.2.00.1204050330380.10302@utopia.booyaka.com>
-	<alpine.DEB.2.00.1204050403460.10302@utopia.booyaka.com>
-	<C8443D0743D26F4388EA172BF4E2A7A9317C4B44@DBDE01.ent.ti.com>
-	<alpine.DEB.2.00.1204051303000.10302@utopia.booyaka.com>
-	<C8443D0743D26F4388EA172BF4E2A7A9317C5DB6@DBDE01.ent.ti.com>
-	<alpine.DEB.2.00.1204060111400.10302@utopia.booyaka.com>
-	<C8443D0743D26F4388EA172BF4E2A7A9317C5EEF@DBDE01.ent.ti.com>
-	<1335173044.2149.64.camel@sokoban> <87obqhawig.fsf@ti.com>
-	<1335532591.2149.163.camel@sokoban> <87fwbowyuu.fsf@ti.com>
-	<1335790016.2149.185.camel@sokoban> <87vckht0lf.fsf@ti.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
+From: jean.pihet@newoldbits.com
+Subject: [PATCH 2/5] ARM: OMAP2+: PM: use the power domains registers cache for the power states
+Date: Tue,  1 May 2012 15:07:40 +0200
+Message-ID: <1335877663-32649-3-git-send-email-j-pihet@ti.com>
+References: <1335877663-32649-1-git-send-email-j-pihet@ti.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from bear.ext.ti.com ([192.94.94.41]:32917 "EHLO bear.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751243Ab2EAMzc convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 1 May 2012 08:55:32 -0400
-In-Reply-To: <87vckht0lf.fsf@ti.com>
-Content-Language: en-US
+Received: from mail-wi0-f172.google.com ([209.85.212.172]:45379 "EHLO
+	mail-wi0-f172.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756080Ab2EANIN (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 1 May 2012 09:08:13 -0400
+Received: by wibhj6 with SMTP id hj6so3712963wib.1
+        for <linux-omap@vger.kernel.org>; Tue, 01 May 2012 06:08:11 -0700 (PDT)
+In-Reply-To: <1335877663-32649-1-git-send-email-j-pihet@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "Hilman, Kevin" <khilman@ti.com>, "Kristo, Tero" <t-kristo@ti.com>
-Cc: Paul Walmsley <paul@pwsan.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
+To: linux-omap@vger.kernel.org, khilman@ti.com, linux-arm-kernel@lists.infradead.org, santosh.shilimkar@ti.com
+Cc: Jean Pihet <j-pihet@ti.com>
 
-Hi Kevin,
+From: Jean Pihet <j-pihet@ti.com>
 
-On Tue, May 01, 2012 at 02:10:28, Hilman, Kevin wrote:
-> 
-> Afzal, care to give this one a test as well?  It should have the same
-> result but is a more targetted fix.  With and ack from Tero and a
-> Tested-by from you, I'll post this to the list and and queue it up for
-> v3.5.
+Use the caching API for the previous, current and next power domains states.
 
-Over what commit id, should this patch be applied ?, unable to apply it over
-"297624c ARM: OMAP3: PM: Remove IO Daisychain control from cpuidle", the
-one that I tested your previous patch.
+Signed-off-by: Jean Pihet <j-pihet@ti.com>
+---
+ arch/arm/mach-omap2/powerdomain.c |   32 ++++++++++++++++++++++++++------
+ 1 files changed, 26 insertions(+), 6 deletions(-)
 
-Regards
-Afzal
+diff --git a/arch/arm/mach-omap2/powerdomain.c b/arch/arm/mach-omap2/powerdomain.c
+index 18e1ffc..2058e27 100644
+--- a/arch/arm/mach-omap2/powerdomain.c
++++ b/arch/arm/mach-omap2/powerdomain.c
+@@ -854,6 +854,8 @@ int pwrdm_set_next_pwrst(struct powerdomain *pwrdm, u8 pwrst)
+ 					  smp_processor_id());
+ 		/* Program the pwrdm desired target state */
+ 		ret = arch_pwrdm->pwrdm_set_next_pwrst(pwrdm, pwrst);
++		if (!ret)
++			pwrdm_cache_write(pwrdm, PWRDM_CACHE_NEXT_PWRST, pwrst);
+ 	}
+ 
+ 	return ret;
+@@ -869,13 +871,19 @@ int pwrdm_set_next_pwrst(struct powerdomain *pwrdm, u8 pwrst)
+  */
+ int pwrdm_read_next_pwrst(struct powerdomain *pwrdm)
+ {
+-	int ret = -EINVAL;
++	int pwrst, ret = -EINVAL;
+ 
+ 	if (!pwrdm)
+ 		return -EINVAL;
+ 
+-	if (arch_pwrdm && arch_pwrdm->pwrdm_read_next_pwrst)
++	if (!pwrdm_cache_read(pwrdm, PWRDM_CACHE_NEXT_PWRST, &pwrst))
++		return pwrst;
++
++	if (arch_pwrdm && arch_pwrdm->pwrdm_read_next_pwrst) {
+ 		ret = arch_pwrdm->pwrdm_read_next_pwrst(pwrdm);
++		if (ret >= 0)
++			pwrdm_cache_write(pwrdm, PWRDM_CACHE_NEXT_PWRST, ret);
++	}
+ 
+ 	return ret;
+ }
+@@ -906,13 +914,19 @@ int pwrdm_read_next_func_pwrst(struct powerdomain *pwrdm)
+  */
+ int pwrdm_read_pwrst(struct powerdomain *pwrdm)
+ {
+-	int ret = -EINVAL;
++	int pwrst, ret = -EINVAL;
+ 
+ 	if (!pwrdm)
+ 		return -EINVAL;
+ 
+-	if (arch_pwrdm && arch_pwrdm->pwrdm_read_pwrst)
++	if (!pwrdm_cache_read(pwrdm, PWRDM_CACHE_PWRST, &pwrst))
++		return pwrst;
++
++	if (arch_pwrdm && arch_pwrdm->pwrdm_read_pwrst) {
+ 		ret = arch_pwrdm->pwrdm_read_pwrst(pwrdm);
++		if (ret >= 0)
++			pwrdm_cache_write(pwrdm, PWRDM_CACHE_PWRST, ret);
++	}
+ 
+ 	return ret;
+ }
+@@ -943,13 +957,19 @@ int pwrdm_read_func_pwrst(struct powerdomain *pwrdm)
+  */
+ int pwrdm_read_prev_pwrst(struct powerdomain *pwrdm)
+ {
+-	int ret = -EINVAL;
++	int pwrst, ret = -EINVAL;
+ 
+ 	if (!pwrdm)
+ 		return -EINVAL;
+ 
+-	if (arch_pwrdm && arch_pwrdm->pwrdm_read_prev_pwrst)
++	if (!pwrdm_cache_read(pwrdm, PWRDM_CACHE_PREV_PWRST, &pwrst))
++		return pwrst;
++
++	if (arch_pwrdm && arch_pwrdm->pwrdm_read_prev_pwrst) {
+ 		ret = arch_pwrdm->pwrdm_read_prev_pwrst(pwrdm);
++		if (ret >= 0)
++			pwrdm_cache_write(pwrdm, PWRDM_CACHE_PREV_PWRST, ret);
++	}
+ 
+ 	return ret;
+ }
+-- 
+1.7.7.6
 
-
-> 
-> From 274ded7fbe573bbbe45db80bdc1989272077c011 Mon Sep 17 00:00:00 2001
-> From: Kevin Hilman <khilman@ti.com>
-> Date: Fri, 27 Apr 2012 16:05:51 -0700
-> Subject: [PATCH] ARM: OMAP3: PM: leave PRCM interrupts disabled until
->  explicitly enabled.
