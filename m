@@ -1,225 +1,162 @@
 From: Afzal Mohammed <afzal@ti.com>
-Subject: [PATCH 09/39] ARM: OMAP2+: flash: Adapt to gpmc driver
-Date: Tue, 1 May 2012 17:37:10 +0530
-Message-ID: <4ced8b708a263c7f50f6f684b47ab130bb773ba0.1335873032.git.afzal@ti.com>
+Subject: [PATCH 10/39] ARM: OMAP2+: gpmc-smsc911x: Adapt to use gpmc driver
+Date: Tue, 1 May 2012 17:37:17 +0530
+Message-ID: <de9825de7b99d864a7619e1ad9b568bf5d7e311b.1335873032.git.afzal@ti.com>
 References: <cover.1335873032.git.afzal@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from devils.ext.ti.com ([198.47.26.153]:37226 "EHLO
-	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754764Ab2EAMYS (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 1 May 2012 08:24:18 -0400
+Received: from comal.ext.ti.com ([198.47.26.152]:42734 "EHLO comal.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1754764Ab2EAMYV (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Tue, 1 May 2012 08:24:21 -0400
 In-Reply-To: <cover.1335873032.git.afzal@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: tony@atomide.com, linux@arm.linux.org.uk, khilman@ti.com, balbi@ti.com, dwmw2@infradead.org, kyungmin.park@samsung.com, gregkh@linuxfoundation.org, nm@ti.com, grinberg@compulab.co.il, notasas@gmail.com, artem.bityutskiy@linux.intel.com, vimal.newwork@gmail.com, dbaryshkov@gmail.com, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-usb@vger.kernel.org, linux-mtd@lists.infradead.org
 Cc: Afzal Mohammed <afzal@ti.com>
 
-gpmc driver has been converted to driver. Modify board_flash_init
-so that it can setup gpmc driver platform details for boards
+gpmc has been converted to driver. And all gpmc related
+configuration would be done by gpmc driver. Provide
+gpmc driver with sufficient information so that it can
+configure.
 
 Signed-off-by: Afzal Mohammed <afzal@ti.com>
 ---
- arch/arm/mach-omap2/board-3430sdp.c |    2 +-
- arch/arm/mach-omap2/board-3630sdp.c |    3 +-
- arch/arm/mach-omap2/board-flash.c   |   89 +++++++++++++++++++----------------
- arch/arm/mach-omap2/board-flash.h   |   11 +++--
- 4 files changed, 58 insertions(+), 47 deletions(-)
+ arch/arm/mach-omap2/gpmc-smsc911x.c             |   59 ++++++++++++-----------
+ arch/arm/plat-omap/include/plat/gpmc-smsc911x.h |    9 +++-
+ 2 files changed, 39 insertions(+), 29 deletions(-)
 
-diff --git a/arch/arm/mach-omap2/board-3430sdp.c b/arch/arm/mach-omap2/board-3430sdp.c
-index da75f23..ac2e398 100644
---- a/arch/arm/mach-omap2/board-3430sdp.c
-+++ b/arch/arm/mach-omap2/board-3430sdp.c
-@@ -620,7 +620,7 @@ static void __init omap_3430sdp_init(void)
- 	omap_sdrc_init(hyb18m512160af6_sdrc_params, NULL);
- 	usb_musb_init(NULL);
- 	board_smc91x_init();
--	board_flash_init(sdp_flash_partitions, chip_sel_3430, 0);
-+	board_flash_init(sdp_flash_partitions, chip_sel_3430, 0, NULL);
- 	sdp3430_display_init();
- 	enable_board_wakeup_source();
- 	usbhs_init(&usbhs_bdata);
-diff --git a/arch/arm/mach-omap2/board-3630sdp.c b/arch/arm/mach-omap2/board-3630sdp.c
-index 6ef350d..74195b7 100644
---- a/arch/arm/mach-omap2/board-3630sdp.c
-+++ b/arch/arm/mach-omap2/board-3630sdp.c
-@@ -204,7 +204,8 @@ static void __init omap_sdp_init(void)
- 				  h8mbx00u0mer0em_sdrc_params);
- 	zoom_display_init();
- 	board_smc91x_init();
--	board_flash_init(sdp_flash_partitions, chip_sel_sdp, NAND_BUSWIDTH_16);
-+	board_flash_init(sdp_flash_partitions, chip_sel_sdp,
-+		NAND_BUSWIDTH_16, NULL);
- 	enable_board_wakeup_source();
- 	usbhs_init(&usbhs_bdata);
- }
-diff --git a/arch/arm/mach-omap2/board-flash.c b/arch/arm/mach-omap2/board-flash.c
-index 8727c05..8deead9 100644
---- a/arch/arm/mach-omap2/board-flash.c
-+++ b/arch/arm/mach-omap2/board-flash.c
-@@ -39,46 +39,33 @@ static struct physmap_flash_data board_nor_data = {
- 	.width		= 2,
- };
+diff --git a/arch/arm/mach-omap2/gpmc-smsc911x.c b/arch/arm/mach-omap2/gpmc-smsc911x.c
+index b6c77be..2c89685 100644
+--- a/arch/arm/mach-omap2/gpmc-smsc911x.c
++++ b/arch/arm/mach-omap2/gpmc-smsc911x.c
+@@ -24,13 +24,8 @@
+ #include <plat/gpmc.h>
+ #include <plat/gpmc-smsc911x.h>
  
--static struct resource board_nor_resource = {
--	.flags		= IORESOURCE_MEM,
-+static struct gpmc_cs_data gpmc_nor_cs_data = {
- };
- 
--static struct platform_device board_nor_device = {
-+static struct gpmc_device_pdata gpmc_nor_data = {
- 	.name		= "physmap-flash",
- 	.id		= 0,
--	.dev		= {
--			.platform_data = &board_nor_data,
+-static struct resource gpmc_smsc911x_resources[] = {
+-	[0] = {
+-		.flags		= IORESOURCE_MEM,
 -	},
--	.num_resources	= 1,
--	.resource	= &board_nor_resource,
-+	.cs_data	= &gpmc_nor_cs_data,
-+	.num_cs		= 1,
+-	[1] = {
+-		.flags		= IORESOURCE_IRQ | IORESOURCE_IRQ_LOWLEVEL,
+-	},
++static struct resource gpmc_smsc911x_resources = {
++	.flags		= IORESOURCE_IRQ | IORESOURCE_IRQ_LOWLEVEL,
  };
  
--static void
--__init board_nor_init(struct mtd_partition *nor_parts, u8 nr_parts, u8 cs)
-+static __init struct gpmc_device_pdata *
-+gpmc_nor_init(struct mtd_partition *nor_parts, u8 nr_parts, u8 cs)
- {
--	int err;
--
- 	board_nor_data.parts	= nor_parts;
- 	board_nor_data.nr_parts	= nr_parts;
- 
--	/* Configure start address and size of NOR device */
--	if (omap_rev() >= OMAP3430_REV_ES1_0) {
--		err = gpmc_cs_request(cs, FLASH_SIZE_SDPV2 - 1,
--				(unsigned long *)&board_nor_resource.start);
--		board_nor_resource.end = board_nor_resource.start
--					+ FLASH_SIZE_SDPV2 - 1;
--	} else {
--		err = gpmc_cs_request(cs, FLASH_SIZE_SDPV1 - 1,
--				(unsigned long *)&board_nor_resource.start);
--		board_nor_resource.end = board_nor_resource.start
--					+ FLASH_SIZE_SDPV1 - 1;
--	}
--	if (err < 0) {
--		pr_err("NOR: Can't request GPMC CS\n");
--		return;
--	}
--	if (platform_device_register(&board_nor_device) < 0)
--		pr_err("Unable to register NOR device\n");
-+	gpmc_nor_cs_data.cs	= cs;
-+
-+	if (omap_rev() >= OMAP3430_REV_ES1_0)
-+		gpmc_nor_cs_data.mem_size = FLASH_SIZE_SDPV2;
-+	else
-+		gpmc_nor_cs_data.mem_size = FLASH_SIZE_SDPV1;
-+
-+	gpmc_nor_data.pdata = &board_nor_data;
-+	gpmc_nor_data.pdata_size = sizeof(board_nor_data);
-+
-+	return &gpmc_nor_data;
- }
- 
- #if defined(CONFIG_MTD_ONENAND_OMAP2) || \
-@@ -183,8 +170,11 @@ unmap:
-  *
-  * @return - void.
+ static struct smsc911x_platform_config gpmc_smsc911x_config = {
+@@ -44,26 +39,42 @@ static struct smsc911x_platform_config gpmc_smsc911x_config = {
+  * assume that pin multiplexing is done in the board-*.c file,
+  * or in the bootloader.
   */
--void __init board_flash_init(struct flash_partitions partition_info[],
--			char chip_sel_board[][GPMC_CS_NUM], int nand_type)
-+__init struct gpmc_device_pdata **board_flash_init(
-+				struct flash_partitions partition_info[],
-+				char chip_sel_board[][GPMC_CS_NUM],
-+				int nand_type,
-+				struct gpmc_device_pdata **gpmc_data)
+-void __init gpmc_smsc911x_init(struct omap_smsc911x_platform_data *gpmc_cfg)
++__init struct gpmc_device_pdata *
++gpmc_smsc911x_init(struct omap_smsc911x_platform_data *gpmc_cfg)
  {
- 	u8		cs = 0;
- 	u8		norcs = GPMC_CS_NUM + 1;
-@@ -193,13 +183,18 @@ void __init board_flash_init(struct flash_partitions partition_info[],
- 	u8		idx;
- 	unsigned char	*config_sel = NULL;
+-	struct platform_device *pdev;
+-	unsigned long cs_mem_base;
+ 	int ret;
++	struct gpmc_device_pdata *gpmc_pdev;
++	struct gpmc_cs_data *gpmc_cs;
  
-+	if (gpmc_data == NULL) {
-+		pr_err("%s: NULL arguement passed\n", __func__);
-+		return NULL;
-+	}
-+
- 	/* REVISIT: Is this return correct idx for 2430 SDP?
- 	 * for which cs configuration matches for 2430 SDP?
- 	 */
- 	idx = get_gpmc0_type();
- 	if (idx >= MAX_SUPPORTED_GPMC_CONFIG) {
- 		pr_err("%s: Invalid chip select: %d\n", __func__, cs);
+-	if (gpmc_cs_request(gpmc_cfg->cs, SZ_16M, &cs_mem_base) < 0) {
+-		pr_err("Failed to request GPMC mem region\n");
 -		return;
-+		return gpmc_data;
++	gpmc_pdev = kzalloc(sizeof(*gpmc_pdev), GFP_KERNEL);
++	if (gpmc_pdev == NULL)
++		return gpmc_pdev;
++
++	gpmc_cs = kzalloc(sizeof(*gpmc_cs), GFP_KERNEL);
++	if (gpmc_pdev == NULL) {
++		kfree(gpmc_pdev);
++		return NULL;
  	}
- 	config_sel = (unsigned char *)(chip_sel_board[idx]);
  
-@@ -224,19 +219,31 @@ void __init board_flash_init(struct flash_partitions partition_info[],
- 	if (norcs > GPMC_CS_NUM)
- 		pr_err("NOR: Unable to find configuration in GPMC\n");
- 	else
--		board_nor_init(partition_info[0].parts,
-+		*gpmc_data++ = gpmc_nor_init(partition_info[0].parts,
- 				partition_info[0].nr_parts, norcs);
+-	gpmc_smsc911x_resources[0].start = cs_mem_base + 0x0;
+-	gpmc_smsc911x_resources[0].end = cs_mem_base + 0xff;
++	gpmc_pdev->cs_data = gpmc_cs;
++	gpmc_pdev->num_cs = 1;
++	gpmc_pdev->name = "smsc911x";
++	gpmc_pdev->id = gpmc_cfg->id;
++	gpmc_pdev->pdata = &gpmc_smsc911x_config;
++	gpmc_pdev->pdata_size = sizeof(gpmc_smsc911x_config);
++
++	gpmc_cs->cs = gpmc_cfg->cs;
++	gpmc_cs->mem_size = 0x100;
++
++	gpmc_pdev->per_res = &gpmc_smsc911x_resources;
++	gpmc_pdev->per_res_cnt = 1;
  
- 	if (onenandcs > GPMC_CS_NUM)
- 		pr_err("OneNAND: Unable to find configuration in GPMC\n");
--	else
--		board_onenand_init(partition_info[1].parts,
--					partition_info[1].nr_parts, onenandcs);
-+	else {
-+		struct omap_onenand_platform_data *onenand_data;
-+
-+		onenand_data = board_onenand_init(partition_info[1].parts,
-+				partition_info[1].nr_parts, onenandcs);
-+		if (onenand_data != NULL)
-+			*gpmc_data++ = gpmc_onenand_init(onenand_data);
-+	}
+ 	if (gpio_request_one(gpmc_cfg->gpio_irq, GPIOF_IN, "smsc911x irq")) {
+ 		pr_err("Failed to request IRQ GPIO%d\n", gpmc_cfg->gpio_irq);
+ 		goto free1;
+ 	}
  
- 	if (nandcs > GPMC_CS_NUM)
- 		pr_err("NAND: Unable to find configuration in GPMC\n");
--	else
--		board_nand_init(partition_info[2].parts,
--			partition_info[2].nr_parts, nandcs,
--			nand_type, nand_default_timings);
-+	else {
-+		struct omap_nand_platform_data *nand_data;
+-	gpmc_smsc911x_resources[1].start = gpio_to_irq(gpmc_cfg->gpio_irq);
++	gpmc_smsc911x_resources.start = gpio_to_irq(gpmc_cfg->gpio_irq);
+ 
+ 	if (gpio_is_valid(gpmc_cfg->gpio_reset)) {
+ 		ret = gpio_request_one(gpmc_cfg->gpio_reset,
+@@ -81,21 +92,15 @@ void __init gpmc_smsc911x_init(struct omap_smsc911x_platform_data *gpmc_cfg)
+ 
+ 	gpmc_smsc911x_config.flags = gpmc_cfg->flags ? : SMSC911X_USE_16BIT;
+ 
+-	pdev = platform_device_register_resndata(NULL, "smsc911x", gpmc_cfg->id,
+-		 gpmc_smsc911x_resources, ARRAY_SIZE(gpmc_smsc911x_resources),
+-		 &gpmc_smsc911x_config, sizeof(gpmc_smsc911x_config));
+-	if (!pdev) {
+-		pr_err("Unable to register platform device\n");
+-		gpio_free(gpmc_cfg->gpio_reset);
+-		goto free2;
+-	}
+-
+-	return;
++	return gpmc_pdev;
+ 
+ free2:
+ 	gpio_free(gpmc_cfg->gpio_irq);
+ free1:
+-	gpmc_cs_free(gpmc_cfg->cs);
++	kfree(gpmc_cs);
++	kfree(gpmc_pdev);
+ 
+ 	pr_err("Could not initialize smsc911x device\n");
 +
-+		nand_data = board_nand_init(partition_info[2].parts,
-+				partition_info[2].nr_parts, nandcs,
-+				nand_type, nand_default_timings);
-+		if (nand_data != NULL)
-+			*gpmc_data++ = gpmc_nand_init(nand_data);
-+	}
-+
-+	return gpmc_data;
++	return NULL;
  }
-diff --git a/arch/arm/mach-omap2/board-flash.h b/arch/arm/mach-omap2/board-flash.h
-index 75ba49f..4dd733d 100644
---- a/arch/arm/mach-omap2/board-flash.h
-+++ b/arch/arm/mach-omap2/board-flash.h
-@@ -28,12 +28,15 @@ struct flash_partitions {
- 		defined(CONFIG_MTD_NAND_OMAP2_MODULE) || \
- 		defined(CONFIG_MTD_ONENAND_OMAP2) || \
- 		defined(CONFIG_MTD_ONENAND_OMAP2_MODULE)
--extern void board_flash_init(struct flash_partitions [],
--				char chip_sel[][GPMC_CS_NUM], int nand_type);
-+extern struct gpmc_device_pdata **board_flash_init(
-+		struct flash_partitions [], char chip_sel[][GPMC_CS_NUM],
-+		int nand_type, struct gpmc_device_pdata **gpmc_data);
+diff --git a/arch/arm/plat-omap/include/plat/gpmc-smsc911x.h b/arch/arm/plat-omap/include/plat/gpmc-smsc911x.h
+index ea6c9c8..66dc7f1 100644
+--- a/arch/arm/plat-omap/include/plat/gpmc-smsc911x.h
++++ b/arch/arm/plat-omap/include/plat/gpmc-smsc911x.h
+@@ -11,6 +11,8 @@
+  * published by the Free Software Foundation.
+  */
+ 
++#include<plat/gpmc.h>
++
+ #ifndef __ASM_ARCH_OMAP_GPMC_SMSC911X_H__
+ 
+ struct omap_smsc911x_platform_data {
+@@ -23,12 +25,15 @@ struct omap_smsc911x_platform_data {
+ 
+ #if defined(CONFIG_SMSC911X) || defined(CONFIG_SMSC911X_MODULE)
+ 
+-extern void gpmc_smsc911x_init(struct omap_smsc911x_platform_data *d);
++extern struct gpmc_device_pdata *
++gpmc_smsc911x_init(struct omap_smsc911x_platform_data *d);
+ 
  #else
--static inline void board_flash_init(struct flash_partitions part[],
--				char chip_sel[][GPMC_CS_NUM], int nand_type)
-+static inline struct gpmc_device_pdata **board_flash_init(
-+	struct flash_partitions part[], char chip_sel[][GPMC_CS_NUM],
-+	int nand_type, struct gpmc_device_pdata **gpmc_data)
+ 
+-static inline void gpmc_smsc911x_init(struct omap_smsc911x_platform_data *d)
++static inline struct gpmc_device_pdata *
++gpmc_smsc911x_init(struct omap_smsc911x_platform_data *d)
  {
 +	return NULL;
  }
- #endif
  
+ #endif
 -- 
 1.7.10
 
