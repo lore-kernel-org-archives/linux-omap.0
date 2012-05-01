@@ -1,79 +1,69 @@
-From: Daniel Lezcano <daniel.lezcano@linaro.org>
-Subject: Re: [PATCH 00/18][V3] ARM: OMAP3/4 : cpuidle34xx and cpuidle44xx
- cleanups
-Date: Tue, 01 May 2012 12:20:32 +0200
-Message-ID: <4F9FB8F0.80901@linaro.org>
-References: <1335276339-11135-1-git-send-email-daniel.lezcano@linaro.org> <4F98740F.1020402@linaro.org> <87vckgltdg.fsf@ti.com> <4F9F9BC1.9020908@linaro.org> <CAMQu2gzK=u1kkbv9nzRyO3xbqVhZkf0KP=ceCyNteSituBZPrg@mail.gmail.com>
+From: Pavel Machek <pavel@ucw.cz>
+Subject: Re: [PATCH] arm: omap: add minimal support for Nokia RM-696
+Date: Tue, 1 May 2012 12:48:02 +0200
+Message-ID: <20120501104801.GA23559@elf.ucw.cz>
+References: <1330967337-9634-1-git-send-email-aaro.koskinen@nokia.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8;
-	format=flowed
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-ee0-f46.google.com ([74.125.83.46]:46046 "EHLO
-	mail-ee0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754428Ab2EAKUc (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 1 May 2012 06:20:32 -0400
-Received: by eekc41 with SMTP id c41so891060eek.19
-        for <linux-omap@vger.kernel.org>; Tue, 01 May 2012 03:20:31 -0700 (PDT)
-In-Reply-To: <CAMQu2gzK=u1kkbv9nzRyO3xbqVhZkf0KP=ceCyNteSituBZPrg@mail.gmail.com>
+Received: from atrey.karlin.mff.cuni.cz ([195.113.26.193]:38353 "EHLO
+	atrey.karlin.mff.cuni.cz" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755187Ab2EAKr4 (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 1 May 2012 06:47:56 -0400
+Content-Disposition: inline
+In-Reply-To: <1330967337-9634-1-git-send-email-aaro.koskinen@nokia.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "Shilimkar, Santosh" <santosh.shilimkar@ti.com>
-Cc: Daniel Lezcano <daniel.lezcano@linaro.org>, Kevin Hilman <khilman@ti.com>, linaro-dev@lists.linaro.org, patches@linaro.org, tony@atomide.com, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+To: Aaro Koskinen <aaro.koskinen@nokia.com>
+Cc: tony@atomide.com, linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org
 
-On 05/01/2012 11:55 AM, Shilimkar, Santosh wrote:
-> On May 1, 2012 1:46 PM, "Daniel Lezcano"<daniel.lezcano@linaro.org>  =
-wrote:
->> On 05/01/2012 12:58 AM, Kevin Hilman wrote:
->>> Daniel Lezcano<daniel.lezcano@linaro.org>   writes:
->>>
->>>> On 04/24/2012 04:05 PM, Daniel Lezcano wrote:
->>>>> This patchset makes some cleanup on these cpuidle drivers
->>>>> and consolidate the code across both architecture.
->>>>>
->>>>> Tested on OMAP3 (igepV2).
->>>>> Partially tested on OMAP4 (pandaboard), without offlining the cpu=
-1.
->>>
->>> Without offlining CPU1, none of this code is executed.  Can you tes=
-t
->>> with CPU1 offlined?
->>
->> Unfortunately my OMAP4 board burned :/ I am waiting for a new one.
->> Rob tested the series but when he unplugged the cpu1, the kernel pan=
-ics
-> for another reason. I guess the problem should have been fixed since =
-the
-> last testing.
->>   Rob ? Do you mind the test the series again, the problem you were =
-facing
-> when unplugging the cpu1 may have been fixed.
-> Have already tested this series on omap4 with cpu offline as well as =
-with
-> couple idle series on top of it.
-> I haven't finished omap3 testing and hence not reported yet. Omap4
-> continies to work with subject series.
+Hi!
 
-Great !
+> Add minimal support for Nokia RM-696 board.
+> 
+> Signed-off-by: Aaro Koskinen <aaro.koskinen@nokia.com>
+> ---
+> 
+> 	The patch is based & boot-tested with 3.3-rc6.
+> 
+> 
+>  arch/arm/mach-omap2/Kconfig                  |    3 ++-
+>  arch/arm/mach-omap2/board-rm680.c            |   14 +++++++++++++-
+>  arch/arm/plat-omap/include/plat/uncompress.h |    1 +
+>  3 files changed, 16 insertions(+), 2 deletions(-)
+> 
+> diff --git a/arch/arm/mach-omap2/Kconfig b/arch/arm/mach-omap2/Kconfig
+> index e20c8ab..b740c2e 100644
+> --- a/arch/arm/mach-omap2/Kconfig
+> +++ b/arch/arm/mach-omap2/Kconfig
+> @@ -245,10 +245,11 @@ config MACH_NOKIA_N8X0
+>  	select MACH_NOKIA_N810_WIMAX
+>  
+>  config MACH_NOKIA_RM680
+> -	bool "Nokia RM-680 board"
+> +	bool "Nokia RM-680/696 board"
+>  	depends on ARCH_OMAP3
+>  	default y
+>  	select OMAP_PACKAGE_CBB
+> +	select MACH_NOKIA_RM696
+>
 
-I tested it on omap3 igepv2 board and it works fine too.
+AFAICT, this is nokia N9. At least help text should state that...
 
-Thanks for testing
+>  config MACH_NOKIA_RX51
+>  	bool "Nokia RX-51 board"
+> diff --git a/arch/arm/mach-omap2/board-rm680.c b/arch/arm/mach-omap2/board-rm680.c
+> index 8678b38..094473e 100644
+> --- a/arch/arm/mach-omap2/board-rm680.c
+> +++ b/arch/arm/mach-omap2/board-rm680.c
+> @@ -1,5 +1,5 @@
+>  /*
+> - * Board support file for Nokia RM-680.
+> + * Board support file for Nokia RM-680/696.
+>   *
 
--- Daniel.
+And a comment.
 
-
---=20
-  <http://www.linaro.org/>  Linaro.org =E2=94=82 Open source software f=
-or ARM SoCs
-
-=46ollow Linaro:<http://www.facebook.com/pages/Linaro>  Facebook |
-<http://twitter.com/#!/linaroorg>  Twitter |
-<http://www.linaro.org/linaro-blog/>  Blog
-
-
---
-To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+-- 
+(english) http://www.livejournal.com/~pavelmachek
+(cesky, pictures) http://atrey.karlin.mff.cuni.cz/~pavel/picture/horses/blog.html
