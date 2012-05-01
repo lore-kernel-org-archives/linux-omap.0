@@ -1,15 +1,15 @@
 From: Afzal Mohammed <afzal@ti.com>
-Subject: [PATCH v4 23/39] ARM: OMAP2+: board 3630sdp: gpmc driver adaptation
-Date: Tue, 1 May 2012 17:52:15 +0530
-Message-ID: <7762bf10ee38177a070b84e8e42f7853e48f569b.1335874494.git.afzal@ti.com>
+Subject: [PATCH v4 24/39] ARM: OMAP2+: board 3430sdp: gpmc driver adaptation
+Date: Tue, 1 May 2012 17:52:21 +0530
+Message-ID: <e00849b862393d44ff8a322c1a5513cb472d8248.1335874494.git.afzal@ti.com>
 References: <cover.1335874494.git.afzal@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from bear.ext.ti.com ([192.94.94.41]:60468 "EHLO bear.ext.ti.com"
+Received: from arroyo.ext.ti.com ([192.94.94.40]:33814 "EHLO arroyo.ext.ti.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1757888Ab2EAMjY (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Tue, 1 May 2012 08:39:24 -0400
+	id S1757888Ab2EAMjb (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Tue, 1 May 2012 08:39:31 -0400
 In-Reply-To: <cover.1335874494.git.afzal@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
@@ -21,16 +21,16 @@ code to provide gpmc driver with required information.
 
 Signed-off-by: Afzal Mohammed <afzal@ti.com>
 ---
- arch/arm/mach-omap2/board-3630sdp.c |   23 +++++++++++++++++++----
- 1 file changed, 19 insertions(+), 4 deletions(-)
+ arch/arm/mach-omap2/board-3430sdp.c |   17 +++++++++++++++--
+ 1 file changed, 15 insertions(+), 2 deletions(-)
 
-diff --git a/arch/arm/mach-omap2/board-3630sdp.c b/arch/arm/mach-omap2/board-3630sdp.c
-index 143e47f..4e0298a 100644
---- a/arch/arm/mach-omap2/board-3630sdp.c
-+++ b/arch/arm/mach-omap2/board-3630sdp.c
-@@ -27,18 +27,29 @@
- #include "mux.h"
- #include "sdram-hynix-h8mbx00u0mer-0em.h"
+diff --git a/arch/arm/mach-omap2/board-3430sdp.c b/arch/arm/mach-omap2/board-3430sdp.c
+index 367a466..cea5ca5 100644
+--- a/arch/arm/mach-omap2/board-3430sdp.c
++++ b/arch/arm/mach-omap2/board-3430sdp.c
+@@ -59,6 +59,12 @@
+ 
+ #define TWL4030_MSECURE_GPIO 22
  
 +static struct gpmc_device_pdata *gpmc_device_data[4];
 +static struct gpmc_device_pdata **gpmc_cur = gpmc_device_data;
@@ -38,19 +38,13 @@ index 143e47f..4e0298a 100644
 +static struct gpmc_pdata gpmc_data = {
 +	.device_pdata = gpmc_device_data,
 +};
-+
- #if defined(CONFIG_SMC91X) || defined(CONFIG_SMC91X_MODULE)
+ static uint32_t board_keymap[] = {
+ 	KEY(0, 0, KEY_LEFT),
+ 	KEY(0, 1, KEY_RIGHT),
+@@ -444,7 +450,11 @@ static void __init board_smc91x_init(void)
+ 	else
+ 		board_smc91x_data.gpio_irq = 29;
  
- static struct omap_smc91x_platform_data board_smc91x_data = {
- 	.cs             = 3,
- 	.flags          = GPMC_MUX_ADD_DATA | IORESOURCE_IRQ_LOWLEVEL,
- 	.skip_timing	= true,
-+	.gpio_irq	= 158,
- };
- 
- static void __init board_smc91x_init(void)
- {
--	board_smc91x_data.gpio_irq = 158;
 -	gpmc_smc91x_init(&board_smc91x_data);
 +	*gpmc_cur = gpmc_smc91x_init(&board_smc91x_data);
 +	if (*gpmc_cur)
@@ -60,22 +54,18 @@ index 143e47f..4e0298a 100644
  }
  
  #else
-@@ -204,9 +215,13 @@ static void __init omap_sdp_init(void)
- 	omap_sdrc_init(h8mbx00u0mer0em_sdrc_params,
- 				  h8mbx00u0mer0em_sdrc_params);
- 	zoom_display_init();
-+
+@@ -621,7 +631,10 @@ static void __init omap_3430sdp_init(void)
+ 	omap_sdrc_init(hyb18m512160af6_sdrc_params, NULL);
+ 	usb_musb_init(NULL);
  	board_smc91x_init();
--	board_flash_init(sdp_flash_partitions, chip_sel_sdp,
--		NAND_BUSWIDTH_16, NULL);
+-	board_flash_init(sdp_flash_partitions, chip_sel_3430, 0, NULL);
 +	gpmc_data.num_device += board_flash_init(sdp_flash_partitions,
-+					chip_sel_sdp, NAND_BUSWIDTH_16,
-+					gpmc_cur) - gpmc_cur;
++					chip_sel_3430, 0, gpmc_cur) - gpmc_cur;
 +	omap_init_gpmc(&gpmc_data);
 +
+ 	sdp3430_display_init();
  	enable_board_wakeup_source();
  	usbhs_init(&usbhs_bdata);
- }
 -- 
 1.7.10
 
