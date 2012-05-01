@@ -1,15 +1,15 @@
 From: jean.pihet@newoldbits.com
-Subject: [PATCH 4/5] ARM: OMAP2+: PM: use the power domains registers cache invalidate API
-Date: Tue,  1 May 2012 15:07:42 +0200
-Message-ID: <1335877663-32649-5-git-send-email-j-pihet@ti.com>
+Subject: [PATCH 5/5] ARM: OMAP2+: PM debug: use the power domains registers caching API
+Date: Tue,  1 May 2012 15:07:43 +0200
+Message-ID: <1335877663-32649-6-git-send-email-j-pihet@ti.com>
 References: <1335877663-32649-1-git-send-email-j-pihet@ti.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
 Received: from mail-wg0-f44.google.com ([74.125.82.44]:45236 "EHLO
 	mail-wg0-f44.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756080Ab2EANIP (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 1 May 2012 09:08:15 -0400
+	with ESMTP id S1756639Ab2EANIQ (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 1 May 2012 09:08:16 -0400
 Received: by mail-wg0-f44.google.com with SMTP id dr13so1464892wgb.1
-        for <linux-omap@vger.kernel.org>; Tue, 01 May 2012 06:08:14 -0700 (PDT)
+        for <linux-omap@vger.kernel.org>; Tue, 01 May 2012 06:08:15 -0700 (PDT)
 In-Reply-To: <1335877663-32649-1-git-send-email-j-pihet@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
@@ -18,55 +18,70 @@ Cc: Jean Pihet <j-pihet@ti.com>
 
 From: Jean Pihet <j-pihet@ti.com>
 
-The power domains registers cache is partially invalidated when clearing
-the previous power states and after coming back from the low power mode,
-i.e. after the return from the low level WFI instruction.
+Use the caching API instead of using the internal pwrdm->state field
+for PM debug statistics display.
 
-Note: this invalidate use scheme is optimized for performance, the states
-returned by the state read functions might not reflect the real state if
-the power domains registers have not been changed using the API or have
-not been changed by the operating system (e.g. the ROM code in case of
-secure code execution).
+Note: some power domains states mismatch messages can be printed out with
+the power domains states statstics, indicating that the power domains are
+not controlled by any driver or that the invalidate API is not correctly
+used.
 
 Signed-off-by: Jean Pihet <j-pihet@ti.com>
 ---
- arch/arm/mach-omap2/pm34xx.c      |    6 ++++++
- arch/arm/mach-omap2/powerdomain.c |    4 +++-
- 2 files changed, 9 insertions(+), 1 deletions(-)
+ arch/arm/mach-omap2/pm-debug.c |   16 +++++++++-------
+ 1 files changed, 9 insertions(+), 7 deletions(-)
 
-diff --git a/arch/arm/mach-omap2/pm34xx.c b/arch/arm/mach-omap2/pm34xx.c
-index ed73ffc..a222f517 100644
---- a/arch/arm/mach-omap2/pm34xx.c
-+++ b/arch/arm/mach-omap2/pm34xx.c
-@@ -353,6 +353,12 @@ void omap_sram_idle(void)
- 	else
- 		omap34xx_do_sram_idle(save_state);
+diff --git a/arch/arm/mach-omap2/pm-debug.c b/arch/arm/mach-omap2/pm-debug.c
+index 13c00fb..ed9846e 100644
+--- a/arch/arm/mach-omap2/pm-debug.c
++++ b/arch/arm/mach-omap2/pm-debug.c
+@@ -96,19 +96,20 @@ static int clkdm_dbg_show_counter(struct clockdomain *clkdm, void *user)
+ static int pwrdm_dbg_show_counter(struct powerdomain *pwrdm, void *user)
+ {
+ 	struct seq_file *s = (struct seq_file *)user;
+-	int i;
++	int i, pwrst;
  
-+	/*
-+	 * Invalidate the current states from the regs cache
-+	 * for all power domains
-+	 */
-+	pwrdm_invalidate_regs_cache_fields_current(NULL);
-+
- 	/* Restore normal SDRC POWER settings */
- 	if (cpu_is_omap3430() && omap_rev() >= OMAP3430_REV_ES3_0 &&
- 	    (omap_type() == OMAP2_DEVICE_TYPE_EMU ||
-diff --git a/arch/arm/mach-omap2/powerdomain.c b/arch/arm/mach-omap2/powerdomain.c
-index 9800b2b..0b9259b 100644
---- a/arch/arm/mach-omap2/powerdomain.c
-+++ b/arch/arm/mach-omap2/powerdomain.c
-@@ -1324,8 +1324,10 @@ int pwrdm_clear_all_prev_pwrst(struct powerdomain *pwrdm)
- 	pr_debug("powerdomain: clearing previous power state reg for %s\n",
- 		 pwrdm->name);
+ 	if (strcmp(pwrdm->name, "emu_pwrdm") == 0 ||
+ 		strcmp(pwrdm->name, "wkup_pwrdm") == 0 ||
+ 		strncmp(pwrdm->name, "dpll", 4) == 0)
+ 		return 0;
  
--	if (arch_pwrdm && arch_pwrdm->pwrdm_clear_all_prev_pwrst)
-+	if (arch_pwrdm && arch_pwrdm->pwrdm_clear_all_prev_pwrst) {
- 		ret = arch_pwrdm->pwrdm_clear_all_prev_pwrst(pwrdm);
-+		pwrdm_invalidate_regs_cache_fields_prev(pwrdm);
-+	}
+-	if (pwrdm->state != pwrdm_read_func_pwrst(pwrdm))
+-		printk(KERN_ERR "pwrdm state mismatch(%s) %d != %d\n",
+-		       pwrdm->name, pwrdm->state, pwrdm_read_func_pwrst(pwrdm));
++	pwrst = pwrdm_read_func_pwrst(pwrdm);
++	if (pwrdm->state != pwrst)
++		printk(KERN_ERR "pwrdm state mismatch(%s): last saved %d != current %d\n",
++		       pwrdm->name, pwrdm->state, pwrst);
  
- 	return ret;
- }
+ 	seq_printf(s, "%s (%s)", pwrdm->name,
+-			pwrdm_state_names[pwrdm->state]);
++			pwrdm_state_names[pwrst]);
+ 	for (i = 0; i < PWRDM_MAX_FUNC_PWRSTS; i++)
+ 		seq_printf(s, ",%s:%d", pwrdm_state_names[i],
+ 			pwrdm->state_counter[i]);
+@@ -126,7 +127,7 @@ static int pwrdm_dbg_show_counter(struct powerdomain *pwrdm, void *user)
+ static int pwrdm_dbg_show_timer(struct powerdomain *pwrdm, void *user)
+ {
+ 	struct seq_file *s = (struct seq_file *)user;
+-	int i;
++	int i, pwrst;
+ 
+ 	if (strcmp(pwrdm->name, "emu_pwrdm") == 0 ||
+ 		strcmp(pwrdm->name, "wkup_pwrdm") == 0 ||
+@@ -134,9 +135,10 @@ static int pwrdm_dbg_show_timer(struct powerdomain *pwrdm, void *user)
+ 		return 0;
+ 
+ 	pwrdm_state_switch(pwrdm);
++	pwrst = pwrdm_read_func_pwrst(pwrdm);
+ 
+ 	seq_printf(s, "%s (%s)", pwrdm->name,
+-		pwrdm_state_names[pwrdm->state]);
++		pwrdm_state_names[pwrst]);
+ 
+ 	for (i = 0; i < PWRDM_MAX_FUNC_PWRSTS; i++)
+ 		seq_printf(s, ",%s:%lld", pwrdm_state_names[i],
 -- 
 1.7.7.6
 
