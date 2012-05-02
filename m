@@ -1,64 +1,46 @@
 From: Santosh Shilimkar <santosh.shilimkar@ti.com>
-Subject: [PATCH 0/7] ARM: OMAP2+: Misc cleanup
-Date: Wed, 2 May 2012 15:18:06 +0530
-Message-ID: <1335952093-12541-1-git-send-email-santosh.shilimkar@ti.com>
+Subject: [PATCH 1/7] ARM: OMAP4: Don't compile cm2xxx_3xxx.c for OMAP4 only builds.
+Date: Wed, 2 May 2012 15:18:07 +0530
+Message-ID: <1335952093-12541-2-git-send-email-santosh.shilimkar@ti.com>
+References: <1335952093-12541-1-git-send-email-santosh.shilimkar@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from devils.ext.ti.com ([198.47.26.153]:42379 "EHLO
+Received: from devils.ext.ti.com ([198.47.26.153]:42383 "EHLO
 	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750807Ab2EBJs0 (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 2 May 2012 05:48:26 -0400
+	with ESMTP id S1750807Ab2EBJs1 (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 2 May 2012 05:48:27 -0400
+In-Reply-To: <1335952093-12541-1-git-send-email-santosh.shilimkar@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: linux-omap@vger.kernel.org
-Cc: linux-arm-kernel@lists.infradead.org, tony@atomide.com, Santosh Shilimkar <santosh.shilimkar@ti.com>
+Cc: linux-arm-kernel@lists.infradead.org, tony@atomide.com, Santosh Shilimkar <santosh.shilimkar@ti.com>, Paul Walmsley <paul@pwsan.com>
 
-This series has some miscellianeous clean up patches which help to add future
-OMAP2+ device support with bit less changes. It is a preparatory series for
-adding minimal OMAP5 support.
+Since OMAP4 code base now makes use of OMAP4 specific PRCM functions,
+cm2xxx_3xxx.c need not be compiled for OMAP4 only builds.
 
-Boot tested on below platforms:
-- OMAP2430 SDP
-- OMAP3430 SDP
-- OMAP4430 SDP
+Signed-off-by: Santosh Shilimkar <santosh.shilimkar@ti.com>
+Cc: Paul Walmsley <paul@pwsan.com>
+---
+ arch/arm/mach-omap2/Makefile |    5 +----
+ 1 files changed, 1 insertions(+), 4 deletions(-)
 
-Thanks for Tony and Benoit for these suggestions.
-
-The following changes since commit 69964ea4c7b68c9399f7977aa5b9aa6539a6a98a:
-
-  Linux 3.4-rc5 (2012-04-29 15:19:10 -0700)
-
-are available in the git repository at:
-  git://gitorious.org/omap-sw-develoment/linux-omap-dev.git for_3.5/omap_misc_cleanup
-
-R Sricharan (1):
-  ARM: OMAP4+: Add prm and cm base init function.
-
-Santosh Shilimkar (6):
-  ARM: OMAP4: Don't compile cm2xxx_3xxx.c for OMAP4 only builds.
-  ARM: OMAP2+: Clean up wrapping multiple objects in Makefile
-  ARM: OMAP4: Remove un-used WakeupGen register defines.
-  ARM: OMAP: dma: Make use of cpu_class_is_omap2() to avoid future
-    patching.
-  ARM: All OMAP2PLUS machines use omap2 directory so just add one entry
-  ARM: OMAP4: Reduce the static IO mapping
-
- arch/arm/Makefile                                 |    4 +-
- arch/arm/mach-omap2/Makefile                      |  163 ++++++++++-----------
- arch/arm/mach-omap2/cminst44xx.c                  |   28 +++--
- arch/arm/mach-omap2/common.c                      |    1 +
- arch/arm/mach-omap2/common.h                      |    1 +
- arch/arm/mach-omap2/dma.c                         |    2 +-
- arch/arm/mach-omap2/include/mach/omap-wakeupgen.h |    8 -
- arch/arm/mach-omap2/io.c                          |   30 ----
- arch/arm/mach-omap2/iomap.h                       |   28 ----
- arch/arm/mach-omap2/prcm-common.h                 |   13 ++
- arch/arm/mach-omap2/prcm.c                        |    8 +
- arch/arm/mach-omap2/prminst44xx.c                 |   27 ++--
- arch/arm/plat-omap/dma.c                          |    4 +-
- 13 files changed, 139 insertions(+), 178 deletions(-)
-
+diff --git a/arch/arm/mach-omap2/Makefile b/arch/arm/mach-omap2/Makefile
+index 49f92bc..56ed62e 100644
+--- a/arch/arm/mach-omap2/Makefile
++++ b/arch/arm/mach-omap2/Makefile
+@@ -86,10 +86,7 @@ obj-y					+= prm_common.o
+ obj-$(CONFIG_ARCH_OMAP2)		+= prcm.o cm2xxx_3xxx.o prm2xxx_3xxx.o
+ obj-$(CONFIG_ARCH_OMAP3)		+= prcm.o cm2xxx_3xxx.o prm2xxx_3xxx.o \
+ 					   vc3xxx_data.o vp3xxx_data.o
+-# XXX The presence of cm2xxx_3xxx.o on the line below is temporary and
+-# will be removed once the OMAP4 part of the codebase is converted to
+-# use OMAP4-specific PRCM functions.
+-obj-$(CONFIG_ARCH_OMAP4)		+= prcm.o cm2xxx_3xxx.o cminst44xx.o \
++obj-$(CONFIG_ARCH_OMAP4)		+= prcm.o cminst44xx.o \
+ 					   cm44xx.o prcm_mpu44xx.o \
+ 					   prminst44xx.o vc44xx_data.o \
+ 					   vp44xx_data.o prm44xx.o
 -- 
 1.7.5.4
 
