@@ -1,65 +1,70 @@
-From: Paul Walmsley <paul@pwsan.com>
-Subject: RE: [PATCH-V4 0/4] ARM: OMAP2+: Add voltagedomain, powerdomain &
- PRM support for AM33XX device
-Date: Wed, 2 May 2012 03:09:12 -0600 (MDT)
-Message-ID: <alpine.DEB.2.00.1205020255150.19695@utopia.booyaka.com>
-References: <1333123435-27186-1-git-send-email-hvaibhav@ti.com> <alpine.DEB.2.00.1204120207420.29473@utopia.booyaka.com> <79CD15C6BA57404B839C016229A409A83E9EA07A@DBDE01.ent.ti.com> <20120418231837.GT21106@atomide.com> <79CD15C6BA57404B839C016229A409A83E9F9C2D@DBDE01.ent.ti.com>
- <20120426184312.GY3739@atomide.com> <79CD15C6BA57404B839C016229A409A83E9FF9EA@DBDE01.ent.ti.com> <20120426190524.GZ3739@atomide.com> <79CD15C6BA57404B839C016229A409A83EA008E5@DBDE01.ent.ti.com>
+From: Tero Kristo <t-kristo@ti.com>
+Subject: RE: [PATCHv4 6/8] ARM: OMAP4: PM: support
+ ret_logic/mem_off_counters
+Date: Wed, 2 May 2012 12:20:21 +0300
+Message-ID: <1335950421.2149.189.camel@sokoban>
+References: <1334913591-26312-1-git-send-email-t-kristo@ti.com>
+	 <1334913591-26312-7-git-send-email-t-kristo@ti.com>
+	 <B5906170F1614E41A8A28DE3B8D121433EA6A33C@DBDE01.ent.ti.com>
+Reply-To: <t-kristo@ti.com>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from utopia.booyaka.com ([72.9.107.138]:57759 "EHLO
-	utopia.booyaka.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755500Ab2EBJJM (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 2 May 2012 05:09:12 -0400
-In-Reply-To: <79CD15C6BA57404B839C016229A409A83EA008E5@DBDE01.ent.ti.com>
+Received: from comal.ext.ti.com ([198.47.26.152]:48658 "EHLO comal.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1750988Ab2EBJU3 (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Wed, 2 May 2012 05:20:29 -0400
+In-Reply-To: <B5906170F1614E41A8A28DE3B8D121433EA6A33C@DBDE01.ent.ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "Hiremath, Vaibhav" <hvaibhav@ti.com>
-Cc: Tony Lindgren <tony@atomide.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "Hilman, Kevin" <khilman@ti.com>, "Nayak, Rajendra" <rnayak@ti.com>, "Cousson, Benoit" <b-cousson@ti.com>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>
+To: "Bedia, Vaibhav" <vaibhav.bedia@ti.com>
+Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "Hilman, Kevin" <khilman@ti.com>, "paul@pwsan.com" <paul@pwsan.com>, "Nayak, Rajendra" <rnayak@ti.com>, Axel Haslam <axelhaslam@gmail.com>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>
 
-On Fri, 27 Apr 2012, Hiremath, Vaibhav wrote:
-
-> I will be waiting for your comment and conformation on, which family AM33xx 
-> device should fall in? Please refer to the mail-chain -
+On Wed, 2012-05-02 at 10:45 +0200, Bedia, Vaibhav wrote:
+> Hi Tero,
 > 
-> http://www.mail-archive.com/linux-omap@vger.kernel.org/msg67275.html
+> On Fri, Apr 20, 2012 at 14:49:49, Kristo, Tero wrote:
+> > From: Axel Haslam <axelhaslam@gmail.com>
+> > 
+> > On OMAP4, there is no support to read previous logic state
+> > or previous memory state achieved when a power domain transitions
+> > to RET. Instead there are module level context registers.
+> > 
+> > In order to support the powerdomain level logic/mem_off_counters
+> > on OMAP4, instead use the previous power state achieved (RET) and
+> > the *programmed* logic/mem RET state to derive if a powerdomain lost
+> > logic or did not.
+> > 
+> > If the powerdomain is programmed to enter RET state and lose logic
+> > in RET state, knowing that the powerdomain entered RET is good enough
+> > to derive that the logic was lost as well, in such cases.
+> > 
+> 
+> Unfortunately this won't scale for AM33xx devices :(
+> It neither has module level context registers nor previous logic/memory state
+> registers in PRCM. 
+> 
+> At a top level, there's a Cortex-M3 (CM3) to assist the low power state transitions
+> and the indication of successful transition to a low power states is handled as part
+> of the IPC mechanism between the MPU (A8) and CM3 which is s/w defined.
+> 
+> Since the various APIs like omap_hwmod_get_context_loss_context() and friends are
+> necessary to have correct context saves and restores in drivers we'll need
+> to add another API for AM33xx which basically builds on the IPC mechanism
+> and updates the counters.
+> 
+> So, instead of the fallback mechanism that is currently in place, can the
+> implementation for updating the logic/mem counters be converted to make use of
+> function pointers. When AM33xx PM support comes in, we can just define
+> a custom function and not pollute the code with cpu_is_* checks.
 
-This decision turns out to be pretty important; it certainly affects the 
-AM33xx PRM/CM/clockdomain/powerdomain patches that I've been looking at.
+I think that should be fine. We can add arch_hwmod struct or such
+(similar to arch_clkdm / arch_pwrdm) if need be. However, I think we
+should just expand the support towards that way once we can implement
+the am33xx support properly with a separate patch. I guess this doesn't
+break anything on am33xx currently, right?
 
-Here is my suggestion, based on our previous practice.  I am not so 
-sure that it is the best way, but it seems pretty reasonable"
-
-Using CONFIG_ARCH_OMAP3 for CONFIG_ARCH_OMAPAM33XX doesn't make sense, as 
-far as I can tell.  The main area of similarity between the other 
-CONFIG_ARCH_OMAP3 and AM33xx is the Cortex-A8.  And even that MPU 
-subsystem is quite different between, say, the 3430/3630 and the AM33xx.  
-Most of the AM33xx is quite different from the 3430/3630: OMAP4-style PRCM 
-interface, OMAP4-style interconnect, etc.  Plus, most of the 
-CONFIG_ARCH_OMAP3 code in our codebase is very 3430/3630-specific, like 
-the PM code.
-
-This would seem to suggest that we should use CONFIG_ARCH_OMAP4.  But that 
-option currently assumes an OMAP4-style MPU subsystem: SMP Cortex-A9, 
-PL310, etc.  None of that is true for AM335x.
-
-So first we have to decide whether the CONFIG_ARCH_OMAP* options should 
-have a strong dependency on the MPU type, as they currently do; or whether 
-they should focus on the way the SoC is integrated.
-
-If we take the former option, then we should add a new 
-CONFIG_ARCH_OMAPAM33XX Kconfig option to arch/arm/Makefile, at the same 
-level as CONFIG_ARCH_OMAP1/2/3/4.  Similarly, we should add a 
-CONFIG_ARCH_OMAPTI81XX Kconfig option.
-
-However, if we take the second option, then we can probably shoehorn the 
-AM33XX and the TI81xx chips into CONFIG_ARCH_OMAP4.
-
-Either way, it would be good to get AM33xx and TI81xx out of 
-CONFIG_ARCH_OMAP3, since keeping them there will require lots of 
-changes across the codebase to stop using CONFIG_ARCH_OMAP3 and use the 
-CONFIG_SOC_* Kconfig options instead.
+-Tero
 
 
-- Paul
