@@ -1,60 +1,81 @@
-From: NeilBrown <neilb@suse.de>
-Subject: Re: [PATCH 2/2] ARM: omap_hdq: use wait_event_timeout to wait for
- read to complete.
-Date: Wed, 2 May 2012 16:27:22 +1000
-Message-ID: <20120502162722.2592421f@notabene.brown>
-References: <20120425124153.2afa318b@notabene.brown>
-	<20120501214219.GB15560@ioremap.net>
+From: Greg KH <gregkh@linuxfoundation.org>
+Subject: Re: [PATCH v5 0/7] Add TI EMIF SDRAM controller driver
+Date: Tue, 1 May 2012 22:16:23 -0700
+Message-ID: <20120502051623.GA23705@kroah.com>
+References: <y>
+ <1335529449-28046-1-git-send-email-santosh.shilimkar@ti.com>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=PGP-SHA1;
- boundary="Sig_/SgbCGLDWKtR50uByREKpLXv"; protocol="application/pgp-signature"
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20120501214219.GB15560@ioremap.net>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Evgeniy Polyakov <zbr@ioremap.net>
-Cc: linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from mail-pb0-f46.google.com ([209.85.160.46]:36155 "EHLO
+	mail-pb0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754419Ab2EBGmq (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 2 May 2012 02:42:46 -0400
+Received: by mail-pb0-f46.google.com with SMTP id rp8so640688pbb.19
+        for <linux-omap@vger.kernel.org>; Tue, 01 May 2012 23:42:45 -0700 (PDT)
+Content-Disposition: inline
+In-Reply-To: <1335529449-28046-1-git-send-email-santosh.shilimkar@ti.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Santosh Shilimkar <santosh.shilimkar@ti.com>
+Cc: linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 
---Sig_/SgbCGLDWKtR50uByREKpLXv
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: quoted-printable
+On Fri, Apr 27, 2012 at 05:54:02PM +0530, Santosh Shilimkar wrote:
+> Add a driver for the EMIF SDRAM controller used in Texas Instrument SoCs
+> 
+> EMIF is an SDRAM controller that supports, based on its revision,
+> one or more of LPDDR2/DDR2/DDR3 protocols.This driver adds support
+> for LPDDR2.
+> 
+> The driver supports the following features:
+> - Calculates the DDR AC timing parameters to be set in EMIF
+>   registers using data from the device data-sheets and based
+>   on the DDR frequency. If data from data-sheets is not available
+>   default timing values from the JEDEC spec are used. These
+>   will be safe, but not necessarily optimal
+> - API for changing timings during DVFS or at boot-up
+> - Temperature alert configuration and handling of temperature
+>   alerts, if any for LPDDR2 devices
+>   * temperature alert is based on periodic polling of MR4 mode
+>     register in DDR devices automatically performed by hardware
+>   * timings are de-rated and brought back to nominal when
+>     temperature raises and falls respectively
+> - Cache of calculated register values to avoid re-calculating
+>   them
+> 
+> The driver will need some minor updates when it is eventually
+> integrated with Dynamic Voltage and Frequency Scaling (DVFS).
+> This can not be done now as DVFS support is not available in
+> the mainline yet.
+> 
+> Discussions with Santosh Shilimkar <santosh.shilimkar@ti.com>
+> were immensely helpful in shaping up the interfaces. Vibhore Vardhan
+> <vvardhan@gmail.com> did the initial code snippet for thermal
+> handling.
+> 
+> Testing: 
+> - The driver is tested on OMAP4430 SDP.
+> - The driver in a slightly adapted form is also tested on OMAP5.
+> - Since mainline kernel doesn't have DVFS support yet,
+>   testing was done using a test module.
+> - Temperature alert handling was tested with simulated interrupts
+>   and faked temperature values as testing all cases in real-life
+>   scenarios is difficult.
+> - Tested the driver as a module
+> 
+> Cc: Greg KH <greg@kroah.com>
 
-On Wed, 2 May 2012 01:42:19 +0400 Evgeniy Polyakov <zbr@ioremap.net> wrote:
+This all looks good to me now, thanks for reworking this.
 
-> On Wed, Apr 25, 2012 at 12:41:53PM +1000, NeilBrown (neilb@suse.de) wrote:
-> > There is no gain in having a loop - there is no risk of missing the
-> > interrupt with wait_event_timeout.
-> >=20
-> > Signed-off-by: NeilBrown <neilb@suse.de>
->=20
-> Both patches look good, thank you
-> Feel free to add my ack if needed
->=20
+So, do you want me to take this through my "driver" tree to get to Linus
+for 3.5, or do you want it to go through somewhere else?
 
-Thanks.  I'll add that and resent to GregKH.
+If somewhere else, that's fine with me, consider this an:
+	Acked-by: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
 
-NeilBrown
+If you want me to take it, just let me know, whichever you prefer is
+fine with me.
 
---Sig_/SgbCGLDWKtR50uByREKpLXv
-Content-Type: application/pgp-signature; name=signature.asc
-Content-Disposition: attachment; filename=signature.asc
+thanks,
 
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v2.0.18 (GNU/Linux)
-
-iQIVAwUBT6DTyjnsnt1WYoG5AQLTWQ/9G+mBBvex7OsrePrFEjnJGH5GSc5jiDKt
-dhLLLqukLWUOjr4PDW9gpFm1BJDRFeOcwAEaAvRWQu9oTi4EKYDIlMjkIo3tJ3wS
-aInXLeoysrF+kd/NL0v+tBUzDRy9EswylMhRwe/pdiCx/TBdGTWp1pqnmXzWBK8c
-THrmAk3CamUe0Wp3GHHBpj7z9kcSeURkZ8XfSxjnyZ7e4nsB+DkCE3FfdGVBitJI
-l/OZYuichxEMah2EFyk/vefsrJ8hYKvZ8vIQHn3JLmz6qADHp2UtCCeRVTRSSzD1
-kgwAIOdHx/Wh4sN0pImCg2TV2iBUKFFHKKAtMpw7LqOa4jJ2DG3nNeSrumkr5T92
-ZnawWM1UPm2OYrpG66RKJdof36p/alPfycVCStziGnytLoJ2TymGH4NzmcKda+h7
-O22gWucMvnGUgCkKhZgBAptYPv112RWIrvlHKjFyHOPhK0cdYnFUw/CPT7YPvE2b
-6tkn7tVnN7ERdikJvhGSYSKrZfIzArBpKSsAUkme4cxB+VdjB9LY2vrh4/bI/CWY
-WNiDUWZwzUStDRKz7VrhQcUyP9dpnXuioQmavL1487qNRgbWs0mYbTC/p3bzREJE
-8ERkiHz4w/87O7T5eHYpAUyRXeN3vKfNehPNR8ihkUa4KB9nrqxB7R3PMcsZuFO7
-1CtzNtI5iK8=
-=fJCe
------END PGP SIGNATURE-----
-
---Sig_/SgbCGLDWKtR50uByREKpLXv--
+greg k-h
