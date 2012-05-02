@@ -1,35 +1,60 @@
-From: Paul Walmsley <paul@pwsan.com>
-Subject: Re: OMAP3EVM not booting on l-o master
-Date: Wed, 2 May 2012 02:45:34 -0600 (MDT)
-Message-ID: <alpine.DEB.2.00.1205020242420.19695@utopia.booyaka.com>
-References: <C8443D0743D26F4388EA172BF4E2A7A9317C3A03@DBDE01.ent.ti.com> <C8443D0743D26F4388EA172BF4E2A7A9317C3B18@DBDE01.ent.ti.com> <alpine.DEB.2.00.1204050330380.10302@utopia.booyaka.com> <alpine.DEB.2.00.1204050403460.10302@utopia.booyaka.com>
- <C8443D0743D26F4388EA172BF4E2A7A9317C4B44@DBDE01.ent.ti.com> <alpine.DEB.2.00.1204051303000.10302@utopia.booyaka.com> <C8443D0743D26F4388EA172BF4E2A7A9317C5DB6@DBDE01.ent.ti.com> <alpine.DEB.2.00.1204060111400.10302@utopia.booyaka.com>
- <C8443D0743D26F4388EA172BF4E2A7A9317C5EEF@DBDE01.ent.ti.com> <1335173044.2149.64.camel@sokoban> <87obqhawig.fsf@ti.com> <1335532591.2149.163.camel@sokoban> <87fwbowyuu.fsf@ti.com> <1335790016.2149.185.camel@sokoban> <87vckht0lf.fsf@ti.com>
+From: "Bedia, Vaibhav" <vaibhav.bedia@ti.com>
+Subject: RE: [PATCHv4 6/8] ARM: OMAP4: PM: support ret_logic/mem_off_counters
+Date: Wed, 2 May 2012 08:45:32 +0000
+Message-ID: <B5906170F1614E41A8A28DE3B8D121433EA6A33C@DBDE01.ent.ti.com>
+References: <1334913591-26312-1-git-send-email-t-kristo@ti.com>
+ <1334913591-26312-7-git-send-email-t-kristo@ti.com>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from utopia.booyaka.com ([72.9.107.138]:57544 "EHLO
-	utopia.booyaka.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755325Ab2EBIpf (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 2 May 2012 04:45:35 -0400
-In-Reply-To: <87vckht0lf.fsf@ti.com>
+Received: from arroyo.ext.ti.com ([192.94.94.40]:60474 "EHLO arroyo.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1755807Ab2EBIpl convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 2 May 2012 04:45:41 -0400
+In-Reply-To: <1334913591-26312-7-git-send-email-t-kristo@ti.com>
+Content-Language: en-US
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Kevin Hilman <khilman@ti.com>
-Cc: "linux-omap\\@vger.kernel.org" <linux-omap@vger.kernel.org>
+To: "Kristo, Tero" <t-kristo@ti.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "Hilman, Kevin" <khilman@ti.com>, "paul@pwsan.com" <paul@pwsan.com>
+Cc: "Nayak, Rajendra" <rnayak@ti.com>, Axel Haslam <axelhaslam@gmail.com>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>
 
+Hi Tero,
 
-Hi Kevin,
+On Fri, Apr 20, 2012 at 14:49:49, Kristo, Tero wrote:
+> From: Axel Haslam <axelhaslam@gmail.com>
+> 
+> On OMAP4, there is no support to read previous logic state
+> or previous memory state achieved when a power domain transitions
+> to RET. Instead there are module level context registers.
+> 
+> In order to support the powerdomain level logic/mem_off_counters
+> on OMAP4, instead use the previous power state achieved (RET) and
+> the *programmed* logic/mem RET state to derive if a powerdomain lost
+> logic or did not.
+> 
+> If the powerdomain is programmed to enter RET state and lose logic
+> in RET state, knowing that the powerdomain entered RET is good enough
+> to derive that the logic was lost as well, in such cases.
+> 
 
-> Afzal, care to give this one a test as well?  It should have the same
-> result but is a more targetted fix.  With and ack from Tero and a
-> Tested-by from you, I'll post this to the list and and queue it up for
-> v3.5.
+Unfortunately this won't scale for AM33xx devices :(
+It neither has module level context registers nor previous logic/memory state
+registers in PRCM. 
 
-just checking on this one to discuss how we should handle the 
-io_chain_devel_3.5 branch on my git tree, which would depend on this 
-patch... this is a tricky series since it touches PM, PRM, and hwmod 
-code...
+At a top level, there's a Cortex-M3 (CM3) to assist the low power state transitions
+and the indication of successful transition to a low power states is handled as part
+of the IPC mechanism between the MPU (A8) and CM3 which is s/w defined.
 
+Since the various APIs like omap_hwmod_get_context_loss_context() and friends are
+necessary to have correct context saves and restores in drivers we'll need
+to add another API for AM33xx which basically builds on the IPC mechanism
+and updates the counters.
 
-- Paul
+So, instead of the fallback mechanism that is currently in place, can the
+implementation for updating the logic/mem counters be converted to make use of
+function pointers. When AM33xx PM support comes in, we can just define
+a custom function and not pollute the code with cpu_is_* checks.
+
+Regards,
+Vaibhav
