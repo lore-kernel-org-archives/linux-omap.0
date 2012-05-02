@@ -1,84 +1,58 @@
-From: Greg KH <gregkh@linuxfoundation.org>
-Subject: Re: [PATCH v5 0/7] Add TI EMIF SDRAM controller driver
-Date: Wed, 2 May 2012 11:03:22 -0700
-Message-ID: <20120502180322.GA28837@kroah.com>
-References: <y>
- <1335529449-28046-1-git-send-email-santosh.shilimkar@ti.com>
- <20120502051623.GA23705@kroah.com>
- <4FA0D930.3080806@ti.com>
+From: Jon Hunter <jon-hunter@ti.com>
+Subject: [PATCH] ARM: OMAP2PLUS: Enable HIGHMEM
+Date: Wed, 2 May 2012 13:28:47 -0500
+Message-ID: <1335983327-14561-1-git-send-email-jon-hunter@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-kernel-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <4FA0D930.3080806@ti.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Santosh Shilimkar <santosh.shilimkar@ti.com>
-Cc: linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+Content-Type: text/plain
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from arroyo.ext.ti.com ([192.94.94.40]:60871 "EHLO arroyo.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1755871Ab2EBS2z (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Wed, 2 May 2012 14:28:55 -0400
+Received: from dlelxv30.itg.ti.com ([172.17.2.17])
+	by arroyo.ext.ti.com (8.13.7/8.13.7) with ESMTP id q42ISsZf016950
+	for <linux-omap@vger.kernel.org>; Wed, 2 May 2012 13:28:54 -0500
+Received: from DFLE70.ent.ti.com (dfle70.ent.ti.com [128.247.5.40])
+	by dlelxv30.itg.ti.com (8.13.8/8.13.8) with ESMTP id q42ISsw3005315
+	for <linux-omap@vger.kernel.org>; Wed, 2 May 2012 13:28:54 -0500
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: linux-omap <linux-omap@vger.kernel.org>
+Cc: Santosh Shilimkar <santosh.shilimkar@ti.com>, Jon Hunter <jon-hunter@ti.com>
 
-On Wed, May 02, 2012 at 12:20:24PM +0530, Santosh Shilimkar wrote:
-> Greg,
-> 
-> On Wednesday 02 May 2012 10:46 AM, Greg KH wrote:
-> > On Fri, Apr 27, 2012 at 05:54:02PM +0530, Santosh Shilimkar wrote:
-> >> Add a driver for the EMIF SDRAM controller used in Texas Instrument SoCs
-> >>
-> >> EMIF is an SDRAM controller that supports, based on its revision,
-> >> one or more of LPDDR2/DDR2/DDR3 protocols.This driver adds support
-> >> for LPDDR2.
-> >>
-> >> The driver supports the following features:
-> >> - Calculates the DDR AC timing parameters to be set in EMIF
-> >>   registers using data from the device data-sheets and based
-> >>   on the DDR frequency. If data from data-sheets is not available
-> >>   default timing values from the JEDEC spec are used. These
-> >>   will be safe, but not necessarily optimal
-> >> - API for changing timings during DVFS or at boot-up
-> >> - Temperature alert configuration and handling of temperature
-> >>   alerts, if any for LPDDR2 devices
-> >>   * temperature alert is based on periodic polling of MR4 mode
-> >>     register in DDR devices automatically performed by hardware
-> >>   * timings are de-rated and brought back to nominal when
-> >>     temperature raises and falls respectively
-> >> - Cache of calculated register values to avoid re-calculating
-> >>   them
-> >>
-> >> The driver will need some minor updates when it is eventually
-> >> integrated with Dynamic Voltage and Frequency Scaling (DVFS).
-> >> This can not be done now as DVFS support is not available in
-> >> the mainline yet.
-> >>
-> >> Discussions with Santosh Shilimkar <santosh.shilimkar@ti.com>
-> >> were immensely helpful in shaping up the interfaces. Vibhore Vardhan
-> >> <vvardhan@gmail.com> did the initial code snippet for thermal
-> >> handling.
-> >>
-> >> Testing: 
-> >> - The driver is tested on OMAP4430 SDP.
-> >> - The driver in a slightly adapted form is also tested on OMAP5.
-> >> - Since mainline kernel doesn't have DVFS support yet,
-> >>   testing was done using a test module.
-> >> - Temperature alert handling was tested with simulated interrupts
-> >>   and faked temperature values as testing all cases in real-life
-> >>   scenarios is difficult.
-> >> - Tested the driver as a module
-> >>
-> >> Cc: Greg KH <greg@kroah.com>
-> > 
-> > This all looks good to me now, thanks for reworking this.
-> > 
-> > So, do you want me to take this through my "driver" tree to get to Linus
-> > for 3.5, or do you want it to go through somewhere else?
-> > 
-> > If somewhere else, that's fine with me, consider this an:
-> > 	Acked-by: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
-> > 
-> > If you want me to take it, just let me know, whichever you prefer is
-> > fine with me.
-> > 
-> Can you take this one through your 3.5 driver tree please ?
-> Thanks for help.
+From: Santosh Shilimkar <santosh.shilimkar@ti.com>
 
-Ok, all now applied.
+HIGMEM support in kernel is quite mature now and we have boards
+like ZOOM, PANDA, SDP where 1 GB memories are installed. With
+HIGHMEM disabled not all of the 1GB of RAM (only ~700MB) can be
+accessed. Hence, enable HIGMEM to make use of the entire memory.
 
-greg k-h
+On the boards which doesn't have more than 768 MB memory, all
+the memory is directly mapped in "lowmem" and highmem isn't
+exercised. Hence, there should be no impact by enabling HIGHMEM
+for boards that do not need it.
+
+Tested on OMAP4460 Panda-ES.
+
+Signed-off-by: Santosh Shilimkar <santosh.shilimkar@ti.com>
+Signed-off-by: Jon Hunter <jon-hunter@ti.com>
+Tested-by: Jon Hunter <jon-hunter@ti.com>
+---
+ arch/arm/mach-omap2/Kconfig |    1 +
+ 1 files changed, 1 insertions(+), 0 deletions(-)
+
+diff --git a/arch/arm/mach-omap2/Kconfig b/arch/arm/mach-omap2/Kconfig
+index 8141b76..964ee67 100644
+--- a/arch/arm/mach-omap2/Kconfig
++++ b/arch/arm/mach-omap2/Kconfig
+@@ -17,6 +17,7 @@ config ARCH_OMAP2PLUS_TYPICAL
+ 	select MENELAUS if ARCH_OMAP2
+ 	select TWL4030_CORE if ARCH_OMAP3 || ARCH_OMAP4
+ 	select TWL4030_POWER if ARCH_OMAP3 || ARCH_OMAP4
++	select HIGHMEM
+ 	help
+ 	  Compile a kernel suitable for booting most boards
+ 
+-- 
+1.7.5.4
+
