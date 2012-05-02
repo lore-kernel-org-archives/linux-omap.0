@@ -1,63 +1,74 @@
-From: Shubhrajyoti D <shubhrajyoti@ti.com>
-Subject: [PATCHv9 00/10] I2C fixes
-Date: Wed, 2 May 2012 20:02:05 +0530
-Message-ID: <1335969135-20858-1-git-send-email-shubhrajyoti@ti.com>
+From: Shubhrajyoti D <shubhrajyoti-l0cyMroinI0@public.gmane.org>
+Subject: [PATCHv9 10/10] I2C: OMAP: Rename the 1p153 to the erratum id i462
+Date: Wed, 2 May 2012 20:02:15 +0530
+Message-ID: <1335969135-20858-11-git-send-email-shubhrajyoti@ti.com>
+References: <1335969135-20858-1-git-send-email-shubhrajyoti@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from comal.ext.ti.com ([198.47.26.152]:35506 "EHLO comal.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1755263Ab2EBOdV (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Wed, 2 May 2012 10:33:21 -0400
-Sender: linux-omap-owner@vger.kernel.org
+Return-path: <linux-i2c-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <1335969135-20858-1-git-send-email-shubhrajyoti-l0cyMroinI0@public.gmane.org>
+Sender: linux-i2c-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Cc: linux-i2c-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, ben-linux-elnMNo+KYs3YtjvyW6yDsg@public.gmane.org, tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org, w.sang-bIcnvbaLZ9MEGnE8C9+IrQ@public.gmane.org, Shubhrajyoti D <shubhrajyoti-l0cyMroinI0@public.gmane.org>, Jon Hunter <jon-hunter-l0cyMroinI0@public.gmane.org>
 List-Id: linux-omap@vger.kernel.org
-To: linux-omap@vger.kernel.org
-Cc: linux-i2c@vger.kernel.org, linux-arm-kernel@lists.infradead.org, ben-linux@fluff.org, tony@atomide.com, w.sang@pengutronix.de, Shubhrajyoti D <shubhrajyoti@ti.com>
 
+The section number in the recent errata document has changed.
+Rename the erratum 1p153 to the unique id i462 instead, so that
+it is easier to reference. Also change the function name and comments
+to reflect the same.
 
-The patch series does the following
+Cc: Jon Hunter <jon-hunter-l0cyMroinI0@public.gmane.org>
+Signed-off-by: Shubhrajyoti D <shubhrajyoti-l0cyMroinI0@public.gmane.org>
+---
+ drivers/i2c/busses/i2c-omap.c |   12 ++++++------
+ 1 files changed, 6 insertions(+), 6 deletions(-)
 
-- Warn fixes if CONFIG_PM_RUNTIME is not selected.
-- In case of i2c remove register access was done without any
- get_sync fix the same.
-- Folds a patch from Tasslehoff to prevent any merge conflicts.
-- Prevents the XDUF flag to be set if the underflow condition is not met.
-- As per discussion in [1] .Adds a patch to rename the 1p153 errata and
- use the unique id instead as the section number in the recent errata
- docs has changed.
-
-v9:
-Fix the comments from Wolfram Sang
-
-[1] http://www.spinics.net/lists/linux-i2c/msg07607.html
-
-Tested on omap4sdp and omap3sdp.
-
-The following changes since commit b821861b905a79f71746945237968c3382d99adc:
-
-  Merge tag 'ktest-for-v3.4-rc5' of git://git.kernel.org/pub/scm/linux/kernel/git/rostedt/linux-ktest (2012-05-01 19:43:34 -0700)
-
-are available in the git repository at:
-
-  git://gitorious.org/linus-tree/linus-tree.git i2c_omap-fixes
-
-Shubhrajyoti D (9):
-      I2C: OMAP: make omap_i2c_unidle/idle functions depend on CONFIG_PM_RUNTIME
-      I2C: OMAP: Fix the mismatch of pm_runtime enable and disable
-      I2C: OMAP: Fix the interrupt clearing in OMAP4
-      I2C: OMAP: Prevent the register access after pm_runtime_put in probe
-      I2C: OMAP: Don't check if wait_for_completion_timeout() returns less than zero
-      I2C: OMAP: Fix the crash in i2c remove
-      I2C: OMAP: Handle error check for pm runtime
-      I2C: OMAP: Do not set the XUDF(Transmit underflow) if the underflow is not reached
-      I2C: OMAP: Rename the 1p153 to the erratum id i462
-
-Tasslehoff Kjappfot (1):
-      I2C: OMAP: prevent the overwrite of the errata flags
-
- drivers/i2c/busses/i2c-omap.c |  127 ++++++++++++++++++++---------------------
- 1 files changed, 62 insertions(+), 65 deletions(-)
-
+diff --git a/drivers/i2c/busses/i2c-omap.c b/drivers/i2c/busses/i2c-omap.c
+index c0aa16b..0f536b2 100644
+--- a/drivers/i2c/busses/i2c-omap.c
++++ b/drivers/i2c/busses/i2c-omap.c
+@@ -173,7 +173,7 @@ enum {
+ 
+ /* Errata definitions */
+ #define I2C_OMAP_ERRATA_I207		(1 << 0)
+-#define I2C_OMAP3_1P153			(1 << 1)
++#define I2C_OMAP_ERRATA_I462		(1 << 1)
+ 
+ struct omap_i2c_dev {
+ 	struct device		*dev;
+@@ -718,11 +718,11 @@ omap_i2c_omap1_isr(int this_irq, void *dev_id)
+ #endif
+ 
+ /*
+- * OMAP3430 Errata 1.153: When an XRDY/XDR is hit, wait for XUDF before writing
++ * OMAP3430 Errata i462: When an XRDY/XDR is hit, wait for XUDF before writing
+  * data to DATA_REG. Otherwise some data bytes can be lost while transferring
+  * them from the memory to the I2C interface.
+  */
+-static int errata_omap3_1p153(struct omap_i2c_dev *dev, u16 *stat, int *err)
++static int errata_omap3_i462(struct omap_i2c_dev *dev, u16 *stat, int *err)
+ {
+ 	unsigned long timeout = 10000;
+ 
+@@ -881,8 +881,8 @@ complete:
+ 					break;
+ 				}
+ 
+-				if ((dev->errata & I2C_OMAP3_1P153) &&
+-				    errata_omap3_1p153(dev, &stat, &err))
++				if ((dev->errata & I2C_OMAP_ERRATA_I462) &&
++				    errata_omap3_i462(dev, &stat, &err))
+ 					goto complete;
+ 
+ 				omap_i2c_write_reg(dev, OMAP_I2C_DATA_REG, w);
+@@ -1020,7 +1020,7 @@ omap_i2c_probe(struct platform_device *pdev)
+ 		dev->errata |= I2C_OMAP_ERRATA_I207;
+ 
+ 	if (dev->rev <= OMAP_I2C_REV_ON_3430)
+-		dev->errata |= I2C_OMAP3_1P153;
++		dev->errata |= I2C_OMAP_ERRATA_I462;
+ 
+ 	if (!(dev->flags & OMAP_I2C_FLAG_NO_FIFO)) {
+ 		u16 s;
 -- 
 1.7.5.4
-
