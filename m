@@ -1,85 +1,147 @@
-From: Jon Hunter <jon-hunter@ti.com>
-Subject: Re: [PATCH-V6 0/3] ARM: OMAP: Make OMAP clocksource source selection
- runtime
-Date: Wed, 2 May 2012 14:56:18 -0500
-Message-ID: <4FA19162.5040102@ti.com>
+From: Kevin Hilman <khilman@ti.com>
+Subject: Re: [PATCH-V6 1/3] ARM: OMAP1: FIX: check possible error condition in timer_init
+Date: Wed, 02 May 2012 13:08:09 -0700
+Message-ID: <87y5pafis6.fsf@ti.com>
 References: <1335967014-11937-1-git-send-email-hvaibhav@ti.com>
+	<1335967014-11937-2-git-send-email-hvaibhav@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="ISO-8859-1"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from devils.ext.ti.com ([198.47.26.153]:45410 "EHLO
-	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756181Ab2EBT4X (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 2 May 2012 15:56:23 -0400
-In-Reply-To: <1335967014-11937-1-git-send-email-hvaibhav@ti.com>
+Received: from na3sys009aog129.obsmtp.com ([74.125.149.142]:39150 "EHLO
+	na3sys009aog129.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1756288Ab2EBUIP (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 2 May 2012 16:08:15 -0400
+Received: by pbbrq2 with SMTP id rq2so1343283pbb.6
+        for <linux-omap@vger.kernel.org>; Wed, 02 May 2012 13:08:14 -0700 (PDT)
+In-Reply-To: <1335967014-11937-2-git-send-email-hvaibhav@ti.com> (Vaibhav
+	Hiremath's message of "Wed, 2 May 2012 19:26:52 +0530")
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: Vaibhav Hiremath <hvaibhav@ti.com>
-Cc: linux-omap@vger.kernel.org, khilman@ti.com, paul@pwsan.com, b-cousson@ti.com, tony@atomide.com, santosh.shilimkar@ti.com, linux-arm-kernel@lists.infradead.org
+Cc: linux-omap@vger.kernel.org, tony@atomide.com, paul@pwsan.com, santosh.shilimkar@ti.com, b-cousson@ti.com, linux-arm-kernel@lists.infradead.org
 
-Hi Vaibhav,
+Vaibhav Hiremath <hvaibhav@ti.com> writes:
 
-On 05/02/2012 08:56 AM, Vaibhav Hiremath wrote:
-> Current OMAP code supports couple of clocksource options based
-> on compilation flag (CONFIG_OMAP_32K_TIMER). The 32KHz sync-timer
-> and a gptimer which can run on 32KHz or system clock (e.g 38.4 MHz)
-> 
-> This patch series cleans up the existing 32k-sync timer implementation,
-> movind SoC init code to respective files (mach-omap1/timer32k.c and
-> mach-omap2/timer.c) and uses kernel parameter to override the default
-> clocksource of "counter_32k", also in order to support some OMAP based
-> derivative SoCs like AM33XX which doesn't have 32K sync-timer hardware IP,
-> adds hwmod lookup for omap2+ devices, and if lookup fails then
-> fall back to gp-timer.
-> 
-> if(use_gptimer_clksrc == true)
-> 	gptimer clocksource init;
-> else if (counter_32 init == false)
-> 	/* Fallback to gptimer */
-> 	gptimer clocksource init(;
-> 
-> With this, we should be able to support multi-omap boot
-> including devices with/without 32k-sync timer.
-> 
-> This patch-series has been boot tested on AM37xEVM platform, it
-> would be helpful if somebody help me to validate it on OMAP1/2
-> platforms.
-> 
-> The patches are also available at (based on linux-omap/master) -
-> https://github.com/hvaibhav/am335x-linux   32ksync-timer-cleanup
+> OMAP1, omap_32k_timer_init() function always returns "true",
+> irrespective of whether error occurred while initializing 32k sync
+> counter as a kernel clocksource or not and execution will never
+> fallback to mpu_timer clocksource init code.
+>
+> This patch adds check for return value from function
+> omap_init_clocksource_32k(), and fallback to omap_mpu_timer_init()
+> in case of failure/error from omap_init_clocksource_32k().
+>
+> Signed-off-by: Vaibhav Hiremath <hvaibhav@ti.com>
+> Cc: Tony Lindgren <tony@atomide.com>
+> Cc: Kevin Hilman <khilman@ti.com>
+> Cc: Paul Walmsley <paul@pwsan.com>
+> Cc: Benoit Cousson <b-cousson@ti.com>
+> ---
+> This is new patch addition compared to original series (<=V5).
+>
+> Also, note that, this patch is only compile tested, since
+> I do not have omap1 board with me to validate it.
+> Kevin, can you help me to validate it.
 
-I was testing on OMAP4 and I found that the gptimer was always being set by default. I noticed that currently the HWMOD for counter_32k on OMAP4 is commented and hence was not being found. Please can you include the following with your series?
+I boot tested on OMAP1 (5912/OSK) with 32k timer and MPU timer
+Kconfigs.  Works fine, but needs small change below for compile warnings.
 
-Cheers
-Jon
+Otherwise, looks good.
 
->From 2a213a6d5f5894bc1c5262f2724508eaef21c7a5 Mon Sep 17 00:00:00 2001
-From: Jon Hunter <jon-hunter@ti.com>
-Date: Wed, 2 May 2012 14:45:03 -0500
-Subject: [PATCH] ARM: OMAP4: Enable counter_32k HWMOD for OMAP4 devices
+Acked-by: Kevin Hilman <khilman@ti.com>
 
-HWMOD is being used to determine if the 32k sync timer is present in order
-to use the timer as the clocksource for the kernel. Enable the counter_32k
-HWMOD for OMAP4 devices so that the 32k sync timer will be used by default.
+>  arch/arm/mach-omap1/common.h   |   10 +++++++++-
+>  arch/arm/mach-omap1/time.c     |   16 +---------------
+>  arch/arm/mach-omap1/timer32k.c |   13 +++++++++----
+>  3 files changed, 19 insertions(+), 20 deletions(-)
+>
+> diff --git a/arch/arm/mach-omap1/common.h b/arch/arm/mach-omap1/common.h
+> index 8cc616e..e8c9ad3 100644
+> --- a/arch/arm/mach-omap1/common.h
+> +++ b/arch/arm/mach-omap1/common.h
+> @@ -63,7 +63,15 @@ extern void omap1_nand_cmd_ctl(struct mtd_info *mtd, int cmd,
+>  			       unsigned int ctrl);
+>
+>  extern struct sys_timer omap1_timer;
+> -extern bool omap_32k_timer_init(void);
+> +
+> +#ifdef CONFIG_OMAP_32K_TIMER
+> +extern int omap_32k_timer_init(void);
+> +#else
+> +static int __init omap_32k_timer_init(void)
 
-Signed-off-by: Jon Hunter <jon-hunter@ti.com>
----
- arch/arm/mach-omap2/omap_hwmod_44xx_data.c |    2 +-
- 1 files changed, 1 insertions(+), 1 deletions(-)
+This needs to be inline.   Compile test on OMAP1 with
+CONFIG_OMAP_32K_TIMER=n to see why.
 
-diff --git a/arch/arm/mach-omap2/omap_hwmod_44xx_data.c b/arch/arm/mach-omap2/omap_hwmod_44xx_data.c
-index 6abc757..f0455d0 100644
---- a/arch/arm/mach-omap2/omap_hwmod_44xx_data.c
-+++ b/arch/arm/mach-omap2/omap_hwmod_44xx_data.c
-@@ -5561,7 +5561,7 @@ static __initdata struct omap_hwmod *omap44xx_hwmods[] = {
- 	&omap44xx_bandgap_hwmod,
- 
- 	/* counter class */
--/*	&omap44xx_counter_32k_hwmod, */
-+	&omap44xx_counter_32k_hwmod,
- 
- 	/* dma class */
- 	&omap44xx_dma_system_hwmod,
--- 
-1.7.5.4
+> +{
+> +	return -ENODEV;
+> +}
+> +#endif
+>
+>  extern u32 omap_irq_flags;
+>
+> diff --git a/arch/arm/mach-omap1/time.c b/arch/arm/mach-omap1/time.c
+> index 4d8dd9a..4062480 100644
+> --- a/arch/arm/mach-omap1/time.c
+> +++ b/arch/arm/mach-omap1/time.c
+> @@ -232,20 +232,6 @@ static inline void omap_mpu_timer_init(void)
+>  }
+>  #endif	/* CONFIG_OMAP_MPU_TIMER */
+>
+> -static inline int omap_32k_timer_usable(void)
+> -{
+> -	int res = false;
+> -
+> -	if (cpu_is_omap730() || cpu_is_omap15xx())
+> -		return res;
+> -
+> -#ifdef CONFIG_OMAP_32K_TIMER
+> -	res = omap_32k_timer_init();
+> -#endif
+> -
+> -	return res;
+> -}
+> -
+>  /*
+>   * ---------------------------------------------------------------------------
+>   * Timer initialization
+> @@ -253,7 +239,7 @@ static inline int omap_32k_timer_usable(void)
+>   */
+>  static void __init omap1_timer_init(void)
+>  {
+> -	if (!omap_32k_timer_usable())
+> +	if (omap_32k_timer_init() != 0)
+>  		omap_mpu_timer_init();
+>  }
+>
+> diff --git a/arch/arm/mach-omap1/timer32k.c b/arch/arm/mach-omap1/timer32k.c
+> index 325b9a0..e3613a8 100644
+> --- a/arch/arm/mach-omap1/timer32k.c
+> +++ b/arch/arm/mach-omap1/timer32k.c
+> @@ -182,10 +182,15 @@ static __init void omap_init_32k_timer(void)
+>   * Timer initialization
+>   * ---------------------------------------------------------------------------
+>   */
+> -bool __init omap_32k_timer_init(void)
+> +int __init omap_32k_timer_init(void)
+>  {
+> -	omap_init_clocksource_32k();
+> -	omap_init_32k_timer();
+> +	int ret = -ENODEV;
+>
+> -	return true;
+> +	if (cpu_is_omap16xx())
+> +		ret = omap_init_clocksource_32k();
+> +
+> +	if (!ret)
+> +		omap_init_32k_timer();
+> +
+> +	return ret;
+>  }
+> --
+> 1.7.0.4
+>
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-omap" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
