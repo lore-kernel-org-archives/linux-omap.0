@@ -1,148 +1,102 @@
-From: Peter Ujfalusi <peter.ujfalusi@ti.com>
-Subject: [PATCH] MFD: twl6040: Add regulator support for VIO, V2V1 supplies
-Date: Wed,  2 May 2012 16:54:42 +0300
-Message-ID: <1335966882-19897-1-git-send-email-peter.ujfalusi@ti.com>
-Return-path: <linux-kernel-owner@vger.kernel.org>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Samuel Ortiz <sameo@linux.intel.com>
-Cc: linux-kernel@vger.kernel.org, Mark Brown <broonie@opensource.wolfsonmicro.com>, linux-omap@vger.kernel.org
+From: Vaibhav Hiremath <hvaibhav@ti.com>
+Subject: [PATCH-V6 0/3] ARM: OMAP: Make OMAP clocksource source selection runtime
+Date: Wed, 2 May 2012 19:26:51 +0530
+Message-ID: <1335967014-11937-1-git-send-email-hvaibhav@ti.com>
+Mime-Version: 1.0
+Content-Type: text/plain
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from comal.ext.ti.com ([198.47.26.152]:33639 "EHLO comal.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752243Ab2EBODf (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Wed, 2 May 2012 10:03:35 -0400
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: linux-omap@vger.kernel.org
+Cc: tony@atomide.com, khilman@ti.com, paul@pwsan.com, santosh.shilimkar@ti.com, b-cousson@ti.com, linux-arm-kernel@lists.infradead.org, Vaibhav Hiremath <hvaibhav@ti.com>
 
-twl6040 has three power supply source:
-VBAT needs to be connected to VBAT, VIO, and V2V1.
-Add regulator support for the VIO, V2V1 supplies.
-Initially handle the two supply together with bulk commands.
+Current OMAP code supports couple of clocksource options based
+on compilation flag (CONFIG_OMAP_32K_TIMER). The 32KHz sync-timer
+and a gptimer which can run on 32KHz or system clock (e.g 38.4 MHz)
 
-Signed-off-by: Peter Ujfalusi <peter.ujfalusi@ti.com>
-Reviewed-by: Mark Brown <broonie@opensource.wolfsonmicro.com>
----
- drivers/mfd/twl6040-core.c  |   33 +++++++++++++++++++++++++++++----
- include/linux/mfd/twl6040.h |    2 ++
- 2 files changed, 31 insertions(+), 4 deletions(-)
+This patch series cleans up the existing 32k-sync timer implementation,
+movind SoC init code to respective files (mach-omap1/timer32k.c and
+mach-omap2/timer.c) and uses kernel parameter to override the default
+clocksource of "counter_32k", also in order to support some OMAP based
+derivative SoCs like AM33XX which doesn't have 32K sync-timer hardware IP,
+adds hwmod lookup for omap2+ devices, and if lookup fails then
+fall back to gp-timer.
 
-Hi Samuel,
+if(use_gptimer_clksrc == true)
+	gptimer clocksource init;
+else if (counter_32 init == false)
+	/* Fallback to gptimer */
+	gptimer clocksource init(;
 
-The runtime dependencies for this patch has been sent to linux-omap list:
-http://marc.info/?l=linux-omap&m=133596645010228&w=2
-http://marc.info/?l=linux-omap&m=133596645610232&w=2
-http://marc.info/?l=linux-omap&m=133596644310224&w=2
-http://marc.info/?l=linux-omap&m=133596643310220&w=2
+With this, we should be able to support multi-omap boot
+including devices with/without 32k-sync timer.
 
-Alone this patch does not cause compile time regression but in runtime it needs
-the arch/arm/mach-omap2 patches.
-I try to avoid cross tree issues as much as I can and I'm happy if these will
-come together in linux-next (and finally in 3.5).
+This patch-series has been boot tested on AM37xEVM platform, it
+would be helpful if somebody help me to validate it on OMAP1/2
+platforms.
 
-Regards,
-Peter
+The patches are also available at (based on linux-omap/master) -
+https://github.com/hvaibhav/am335x-linux   32ksync-timer-cleanup
 
-diff --git a/drivers/mfd/twl6040-core.c b/drivers/mfd/twl6040-core.c
-index 493f4a6..7a92d95 100644
---- a/drivers/mfd/twl6040-core.c
-+++ b/drivers/mfd/twl6040-core.c
-@@ -27,6 +27,7 @@
- #include <linux/types.h>
- #include <linux/slab.h>
- #include <linux/kernel.h>
-+#include <linux/err.h>
- #include <linux/platform_device.h>
- #include <linux/gpio.h>
- #include <linux/delay.h>
-@@ -35,8 +36,10 @@
- #include <linux/err.h>
- #include <linux/mfd/core.h>
- #include <linux/mfd/twl6040.h>
-+#include <linux/regulator/consumer.h>
- 
- #define VIBRACTRL_MEMBER(reg) ((reg == TWL6040_REG_VIBCTLL) ? 0 : 1)
-+#define TWL6040_NUM_SUPPLIES	(2)
- 
- int twl6040_reg_read(struct twl6040 *twl6040, unsigned int reg)
- {
-@@ -532,6 +535,21 @@ static int __devinit twl6040_probe(struct i2c_client *client,
- 
- 	i2c_set_clientdata(client, twl6040);
- 
-+	twl6040->supplies[0].supply = "vio";
-+	twl6040->supplies[1].supply = "v2v1";
-+	ret = regulator_bulk_get(&client->dev, TWL6040_NUM_SUPPLIES,
-+				 twl6040->supplies);
-+	if (ret != 0) {
-+		dev_err(&client->dev, "Failed to get supplies: %d\n", ret);
-+		goto regulator_get_err;
-+	}
-+
-+	ret = regulator_bulk_enable(TWL6040_NUM_SUPPLIES, twl6040->supplies);
-+	if (ret != 0) {
-+		dev_err(&client->dev, "Failed to enable supplies: %d\n", ret);
-+		goto power_err;
-+	}
-+
- 	twl6040->dev = &client->dev;
- 	twl6040->irq = client->irq;
- 	twl6040->irq_base = pdata->irq_base;
-@@ -552,13 +570,13 @@ static int __devinit twl6040_probe(struct i2c_client *client,
- 		ret = gpio_request_one(twl6040->audpwron, GPIOF_OUT_INIT_LOW,
- 				       "audpwron");
- 		if (ret)
--			goto gpio1_err;
-+			goto gpio_err;
- 	}
- 
- 	/* codec interrupt */
- 	ret = twl6040_irq_init(twl6040);
- 	if (ret)
--		goto gpio2_err;
-+		goto irq_init_err;
- 
- 	ret = request_threaded_irq(twl6040->irq_base + TWL6040_IRQ_READY,
- 				   NULL, twl6040_naudint_handler, 0,
-@@ -618,10 +636,14 @@ mfd_err:
- 	free_irq(twl6040->irq_base + TWL6040_IRQ_READY, twl6040);
- irq_err:
- 	twl6040_irq_exit(twl6040);
--gpio2_err:
-+irq_init_err:
- 	if (gpio_is_valid(twl6040->audpwron))
- 		gpio_free(twl6040->audpwron);
--gpio1_err:
-+gpio_err:
-+	regulator_bulk_disable(TWL6040_NUM_SUPPLIES, twl6040->supplies);
-+power_err:
-+	regulator_bulk_free(TWL6040_NUM_SUPPLIES, twl6040->supplies);
-+regulator_get_err:
- 	i2c_set_clientdata(client, NULL);
- err:
- 	return ret;
-@@ -643,6 +665,9 @@ static int __devexit twl6040_remove(struct i2c_client *client)
- 	mfd_remove_devices(&client->dev);
- 	i2c_set_clientdata(client, NULL);
- 
-+	regulator_bulk_disable(TWL6040_NUM_SUPPLIES, twl6040->supplies);
-+	regulator_bulk_free(TWL6040_NUM_SUPPLIES, twl6040->supplies);
-+
- 	return 0;
- }
- 
-diff --git a/include/linux/mfd/twl6040.h b/include/linux/mfd/twl6040.h
-index b15b5f0..6659487 100644
---- a/include/linux/mfd/twl6040.h
-+++ b/include/linux/mfd/twl6040.h
-@@ -27,6 +27,7 @@
- 
- #include <linux/interrupt.h>
- #include <linux/mfd/core.h>
-+#include <linux/regulator/consumer.h>
- 
- #define TWL6040_REG_ASICID		0x01
- #define TWL6040_REG_ASICREV		0x02
-@@ -203,6 +204,7 @@ struct regmap;
- struct twl6040 {
- 	struct device *dev;
- 	struct regmap *regmap;
-+	struct regulator_bulk_data supplies[2]; /* supplies for vio, v2v1 */
- 	struct mutex mutex;
- 	struct mutex io_mutex;
- 	struct mutex irq_mutex;
--- 
-1.7.8.6
+History:
+========
+Changes from V5:
+http://www.mail-archive.com/linux-omap@vger.kernel.org/msg67163.html
+	- 2 of the original patch-series (1/3 and 2/3) has already been
+	  accepted and queued by Paul, so removing them.
+	  Also, add 2 new patches,
+		- OMAP2 timer32k cleanup, check for return values.
+		- Changed name of system timers, "gp timer" => "gp_timer".
+	- Moved SoC specific init code to respective files
+	  (mach-omap1/timer32k.c and mach-omap2/timer.c)
+
+Changes from V4:
+http://www.mail-archive.com/linux-omap@vger.kernel.org/msg67019.html
+	- Fix the possible bug, leftover the cnt addr argument to
+	  clocksource_mmio_init().
+
+Changes from V3:
+http://www.mail-archive.com/linux-omap@vger.kernel.org/msg66462.html
+	- Fixed all review comments from Kevin H
+		* Moved counter_32k CR register offset handling to
+		  counter_32k.c file, so now, calling funtion don't have
+		  to maintain or add offset to base addr.
+		* Added comment for function omap_init_clocksource_32k()
+		* Used resource_size() for calculate size
+		* Convert WARN_ON to pr_warn
+
+Changes from V2:
+http://lists.infradead.org/pipermail/linux-arm-kernel/2012-March/092037.html
+	- Added early_param support to read clocksource selection
+	  from user through kernel parameter ("clocksource=")
+	- Converted to ocp_if changes from Paul
+
+Changes from V1:
+http://lists.infradead.org/pipermail/linux-arm-kernel/2012-January/081037.html
+	- Based on Tony's comment, added pbase & size argument to
+	  omap_init_clocksource_32k(), to avoid cpu_is_xxx() check.
+	- Added commit description based on discussion on list
+	  (Thanks to Santosh here)
+	- Reorder patch sequence
+
+
+
+
+Vaibhav Hiremath (3):
+  ARM: OMAP1: FIX: check possible error condition in timer_init
+  ARM: OMAP2+: Replace space=>underscore in the name field of system
+    timers
+  ARM: OMAP: Make OMAP clocksource source selection using kernel param
+
+ arch/arm/mach-omap1/common.h             |   10 ++-
+ arch/arm/mach-omap1/time.c               |   16 +----
+ arch/arm/mach-omap1/timer32k.c           |   28 ++++++-
+ arch/arm/mach-omap2/timer.c              |  118 +++++++++++++++++++++++------
+ arch/arm/plat-omap/counter_32k.c         |   91 ++++++++++-------------
+ arch/arm/plat-omap/include/plat/common.h |    2 +-
+ 6 files changed, 167 insertions(+), 98 deletions(-)
+
