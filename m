@@ -1,81 +1,79 @@
-From: Greg KH <gregkh@linuxfoundation.org>
+From: Santosh Shilimkar <santosh.shilimkar@ti.com>
 Subject: Re: [PATCH v5 0/7] Add TI EMIF SDRAM controller driver
-Date: Tue, 1 May 2012 22:16:23 -0700
-Message-ID: <20120502051623.GA23705@kroah.com>
-References: <y>
- <1335529449-28046-1-git-send-email-santosh.shilimkar@ti.com>
+Date: Wed, 02 May 2012 12:20:24 +0530
+Message-ID: <4FA0D930.3080806@ti.com>
+References: <y> <1335529449-28046-1-git-send-email-santosh.shilimkar@ti.com> <20120502051623.GA23705@kroah.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-pb0-f46.google.com ([209.85.160.46]:36155 "EHLO
-	mail-pb0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754419Ab2EBGmq (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 2 May 2012 02:42:46 -0400
-Received: by mail-pb0-f46.google.com with SMTP id rp8so640688pbb.19
-        for <linux-omap@vger.kernel.org>; Tue, 01 May 2012 23:42:45 -0700 (PDT)
-Content-Disposition: inline
-In-Reply-To: <1335529449-28046-1-git-send-email-santosh.shilimkar@ti.com>
-Sender: linux-omap-owner@vger.kernel.org
-List-Id: linux-omap@vger.kernel.org
-To: Santosh Shilimkar <santosh.shilimkar@ti.com>
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <20120502051623.GA23705@kroah.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Greg KH <gregkh@linuxfoundation.org>
 Cc: linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+List-Id: linux-omap@vger.kernel.org
 
-On Fri, Apr 27, 2012 at 05:54:02PM +0530, Santosh Shilimkar wrote:
-> Add a driver for the EMIF SDRAM controller used in Texas Instrument SoCs
+Greg,
+
+On Wednesday 02 May 2012 10:46 AM, Greg KH wrote:
+> On Fri, Apr 27, 2012 at 05:54:02PM +0530, Santosh Shilimkar wrote:
+>> Add a driver for the EMIF SDRAM controller used in Texas Instrument SoCs
+>>
+>> EMIF is an SDRAM controller that supports, based on its revision,
+>> one or more of LPDDR2/DDR2/DDR3 protocols.This driver adds support
+>> for LPDDR2.
+>>
+>> The driver supports the following features:
+>> - Calculates the DDR AC timing parameters to be set in EMIF
+>>   registers using data from the device data-sheets and based
+>>   on the DDR frequency. If data from data-sheets is not available
+>>   default timing values from the JEDEC spec are used. These
+>>   will be safe, but not necessarily optimal
+>> - API for changing timings during DVFS or at boot-up
+>> - Temperature alert configuration and handling of temperature
+>>   alerts, if any for LPDDR2 devices
+>>   * temperature alert is based on periodic polling of MR4 mode
+>>     register in DDR devices automatically performed by hardware
+>>   * timings are de-rated and brought back to nominal when
+>>     temperature raises and falls respectively
+>> - Cache of calculated register values to avoid re-calculating
+>>   them
+>>
+>> The driver will need some minor updates when it is eventually
+>> integrated with Dynamic Voltage and Frequency Scaling (DVFS).
+>> This can not be done now as DVFS support is not available in
+>> the mainline yet.
+>>
+>> Discussions with Santosh Shilimkar <santosh.shilimkar@ti.com>
+>> were immensely helpful in shaping up the interfaces. Vibhore Vardhan
+>> <vvardhan@gmail.com> did the initial code snippet for thermal
+>> handling.
+>>
+>> Testing: 
+>> - The driver is tested on OMAP4430 SDP.
+>> - The driver in a slightly adapted form is also tested on OMAP5.
+>> - Since mainline kernel doesn't have DVFS support yet,
+>>   testing was done using a test module.
+>> - Temperature alert handling was tested with simulated interrupts
+>>   and faked temperature values as testing all cases in real-life
+>>   scenarios is difficult.
+>> - Tested the driver as a module
+>>
+>> Cc: Greg KH <greg@kroah.com>
 > 
-> EMIF is an SDRAM controller that supports, based on its revision,
-> one or more of LPDDR2/DDR2/DDR3 protocols.This driver adds support
-> for LPDDR2.
+> This all looks good to me now, thanks for reworking this.
 > 
-> The driver supports the following features:
-> - Calculates the DDR AC timing parameters to be set in EMIF
->   registers using data from the device data-sheets and based
->   on the DDR frequency. If data from data-sheets is not available
->   default timing values from the JEDEC spec are used. These
->   will be safe, but not necessarily optimal
-> - API for changing timings during DVFS or at boot-up
-> - Temperature alert configuration and handling of temperature
->   alerts, if any for LPDDR2 devices
->   * temperature alert is based on periodic polling of MR4 mode
->     register in DDR devices automatically performed by hardware
->   * timings are de-rated and brought back to nominal when
->     temperature raises and falls respectively
-> - Cache of calculated register values to avoid re-calculating
->   them
+> So, do you want me to take this through my "driver" tree to get to Linus
+> for 3.5, or do you want it to go through somewhere else?
 > 
-> The driver will need some minor updates when it is eventually
-> integrated with Dynamic Voltage and Frequency Scaling (DVFS).
-> This can not be done now as DVFS support is not available in
-> the mainline yet.
+> If somewhere else, that's fine with me, consider this an:
+> 	Acked-by: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
 > 
-> Discussions with Santosh Shilimkar <santosh.shilimkar@ti.com>
-> were immensely helpful in shaping up the interfaces. Vibhore Vardhan
-> <vvardhan@gmail.com> did the initial code snippet for thermal
-> handling.
+> If you want me to take it, just let me know, whichever you prefer is
+> fine with me.
 > 
-> Testing: 
-> - The driver is tested on OMAP4430 SDP.
-> - The driver in a slightly adapted form is also tested on OMAP5.
-> - Since mainline kernel doesn't have DVFS support yet,
->   testing was done using a test module.
-> - Temperature alert handling was tested with simulated interrupts
->   and faked temperature values as testing all cases in real-life
->   scenarios is difficult.
-> - Tested the driver as a module
-> 
-> Cc: Greg KH <greg@kroah.com>
+Can you take this one through your 3.5 driver tree please ?
+Thanks for help.
 
-This all looks good to me now, thanks for reworking this.
-
-So, do you want me to take this through my "driver" tree to get to Linus
-for 3.5, or do you want it to go through somewhere else?
-
-If somewhere else, that's fine with me, consider this an:
-	Acked-by: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
-
-If you want me to take it, just let me know, whichever you prefer is
-fine with me.
-
-thanks,
-
-greg k-h
+Regards
+Santosh
