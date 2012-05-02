@@ -1,67 +1,45 @@
-From: "Bedia, Vaibhav" <vaibhav.bedia@ti.com>
-Subject: RE: [PATCHv4 6/8] ARM: OMAP4: PM: support ret_logic/mem_off_counters
-Date: Wed, 2 May 2012 09:55:23 +0000
-Message-ID: <B5906170F1614E41A8A28DE3B8D121433EA6B593@DBDE01.ent.ti.com>
-References: <1334913591-26312-1-git-send-email-t-kristo@ti.com>
-	 <1334913591-26312-7-git-send-email-t-kristo@ti.com>
-	 <B5906170F1614E41A8A28DE3B8D121433EA6A33C@DBDE01.ent.ti.com>
- <1335950421.2149.189.camel@sokoban>
+From: Russell King - ARM Linux <linux@arm.linux.org.uk>
+Subject: Re: [PATCH 2/7] ARM: OMAP2+: Clean up wrapping multiple objects in
+	Makefile
+Date: Wed, 2 May 2012 10:56:12 +0100
+Message-ID: <20120502095612.GG25053@n2100.arm.linux.org.uk>
+References: <1335952093-12541-1-git-send-email-santosh.shilimkar@ti.com> <1335952093-12541-3-git-send-email-santosh.shilimkar@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from comal.ext.ti.com ([198.47.26.152]:50328 "EHLO comal.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1750924Ab2EBJza (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Wed, 2 May 2012 05:55:30 -0400
-In-Reply-To: <1335950421.2149.189.camel@sokoban>
-Content-Language: en-US
+Received: from caramon.arm.linux.org.uk ([78.32.30.218]:46755 "EHLO
+	caramon.arm.linux.org.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751057Ab2EBJ4V (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 2 May 2012 05:56:21 -0400
+Content-Disposition: inline
+In-Reply-To: <1335952093-12541-3-git-send-email-santosh.shilimkar@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "Kristo, Tero" <t-kristo@ti.com>
-Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "Hilman, Kevin" <khilman@ti.com>, "paul@pwsan.com" <paul@pwsan.com>, "Nayak, Rajendra" <rnayak@ti.com>, Axel Haslam <axelhaslam@gmail.com>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>
+To: Santosh Shilimkar <santosh.shilimkar@ti.com>
+Cc: linux-omap@vger.kernel.org, tony@atomide.com, linux-arm-kernel@lists.infradead.org
 
-T24gV2VkLCBNYXkgMDIsIDIwMTIgYXQgMTQ6NTA6MjEsIEtyaXN0bywgVGVybyB3cm90ZToNCj4g
-T24gV2VkLCAyMDEyLTA1LTAyIGF0IDEwOjQ1ICswMjAwLCBCZWRpYSwgVmFpYmhhdiB3cm90ZToN
-Cj4gPiBIaSBUZXJvLA0KPiA+IA0KPiA+IE9uIEZyaSwgQXByIDIwLCAyMDEyIGF0IDE0OjQ5OjQ5
-LCBLcmlzdG8sIFRlcm8gd3JvdGU6DQo+ID4gPiBGcm9tOiBBeGVsIEhhc2xhbSA8YXhlbGhhc2xh
-bUBnbWFpbC5jb20+DQo+ID4gPiANCj4gPiA+IE9uIE9NQVA0LCB0aGVyZSBpcyBubyBzdXBwb3J0
-IHRvIHJlYWQgcHJldmlvdXMgbG9naWMgc3RhdGUNCj4gPiA+IG9yIHByZXZpb3VzIG1lbW9yeSBz
-dGF0ZSBhY2hpZXZlZCB3aGVuIGEgcG93ZXIgZG9tYWluIHRyYW5zaXRpb25zDQo+ID4gPiB0byBS
-RVQuIEluc3RlYWQgdGhlcmUgYXJlIG1vZHVsZSBsZXZlbCBjb250ZXh0IHJlZ2lzdGVycy4NCj4g
-PiA+IA0KPiA+ID4gSW4gb3JkZXIgdG8gc3VwcG9ydCB0aGUgcG93ZXJkb21haW4gbGV2ZWwgbG9n
-aWMvbWVtX29mZl9jb3VudGVycw0KPiA+ID4gb24gT01BUDQsIGluc3RlYWQgdXNlIHRoZSBwcmV2
-aW91cyBwb3dlciBzdGF0ZSBhY2hpZXZlZCAoUkVUKSBhbmQNCj4gPiA+IHRoZSAqcHJvZ3JhbW1l
-ZCogbG9naWMvbWVtIFJFVCBzdGF0ZSB0byBkZXJpdmUgaWYgYSBwb3dlcmRvbWFpbiBsb3N0DQo+
-ID4gPiBsb2dpYyBvciBkaWQgbm90Lg0KPiA+ID4gDQo+ID4gPiBJZiB0aGUgcG93ZXJkb21haW4g
-aXMgcHJvZ3JhbW1lZCB0byBlbnRlciBSRVQgc3RhdGUgYW5kIGxvc2UgbG9naWMNCj4gPiA+IGlu
-IFJFVCBzdGF0ZSwga25vd2luZyB0aGF0IHRoZSBwb3dlcmRvbWFpbiBlbnRlcmVkIFJFVCBpcyBn
-b29kIGVub3VnaA0KPiA+ID4gdG8gZGVyaXZlIHRoYXQgdGhlIGxvZ2ljIHdhcyBsb3N0IGFzIHdl
-bGwsIGluIHN1Y2ggY2FzZXMuDQo+ID4gPiANCj4gPiANCj4gPiBVbmZvcnR1bmF0ZWx5IHRoaXMg
-d29uJ3Qgc2NhbGUgZm9yIEFNMzN4eCBkZXZpY2VzIDooDQo+ID4gSXQgbmVpdGhlciBoYXMgbW9k
-dWxlIGxldmVsIGNvbnRleHQgcmVnaXN0ZXJzIG5vciBwcmV2aW91cyBsb2dpYy9tZW1vcnkgc3Rh
-dGUNCj4gPiByZWdpc3RlcnMgaW4gUFJDTS4gDQo+ID4gDQo+ID4gQXQgYSB0b3AgbGV2ZWwsIHRo
-ZXJlJ3MgYSBDb3J0ZXgtTTMgKENNMykgdG8gYXNzaXN0IHRoZSBsb3cgcG93ZXIgc3RhdGUgdHJh
-bnNpdGlvbnMNCj4gPiBhbmQgdGhlIGluZGljYXRpb24gb2Ygc3VjY2Vzc2Z1bCB0cmFuc2l0aW9u
-IHRvIGEgbG93IHBvd2VyIHN0YXRlcyBpcyBoYW5kbGVkIGFzIHBhcnQNCj4gPiBvZiB0aGUgSVBD
-IG1lY2hhbmlzbSBiZXR3ZWVuIHRoZSBNUFUgKEE4KSBhbmQgQ00zIHdoaWNoIGlzIHMvdyBkZWZp
-bmVkLg0KPiA+IA0KPiA+IFNpbmNlIHRoZSB2YXJpb3VzIEFQSXMgbGlrZSBvbWFwX2h3bW9kX2dl
-dF9jb250ZXh0X2xvc3NfY29udGV4dCgpIGFuZCBmcmllbmRzIGFyZQ0KPiA+IG5lY2Vzc2FyeSB0
-byBoYXZlIGNvcnJlY3QgY29udGV4dCBzYXZlcyBhbmQgcmVzdG9yZXMgaW4gZHJpdmVycyB3ZSds
-bCBuZWVkDQo+ID4gdG8gYWRkIGFub3RoZXIgQVBJIGZvciBBTTMzeHggd2hpY2ggYmFzaWNhbGx5
-IGJ1aWxkcyBvbiB0aGUgSVBDIG1lY2hhbmlzbQ0KPiA+IGFuZCB1cGRhdGVzIHRoZSBjb3VudGVy
-cy4NCj4gPiANCj4gPiBTbywgaW5zdGVhZCBvZiB0aGUgZmFsbGJhY2sgbWVjaGFuaXNtIHRoYXQg
-aXMgY3VycmVudGx5IGluIHBsYWNlLCBjYW4gdGhlDQo+ID4gaW1wbGVtZW50YXRpb24gZm9yIHVw
-ZGF0aW5nIHRoZSBsb2dpYy9tZW0gY291bnRlcnMgYmUgY29udmVydGVkIHRvIG1ha2UgdXNlIG9m
-DQo+ID4gZnVuY3Rpb24gcG9pbnRlcnMuIFdoZW4gQU0zM3h4IFBNIHN1cHBvcnQgY29tZXMgaW4s
-IHdlIGNhbiBqdXN0IGRlZmluZQ0KPiA+IGEgY3VzdG9tIGZ1bmN0aW9uIGFuZCBub3QgcG9sbHV0
-ZSB0aGUgY29kZSB3aXRoIGNwdV9pc18qIGNoZWNrcy4NCj4gDQo+IEkgdGhpbmsgdGhhdCBzaG91
-bGQgYmUgZmluZS4gV2UgY2FuIGFkZCBhcmNoX2h3bW9kIHN0cnVjdCBvciBzdWNoDQo+IChzaW1p
-bGFyIHRvIGFyY2hfY2xrZG0gLyBhcmNoX3B3cmRtKSBpZiBuZWVkIGJlLiBIb3dldmVyLCBJIHRo
-aW5rIHdlDQo+IHNob3VsZCBqdXN0IGV4cGFuZCB0aGUgc3VwcG9ydCB0b3dhcmRzIHRoYXQgd2F5
-IG9uY2Ugd2UgY2FuIGltcGxlbWVudA0KPiB0aGUgYW0zM3h4IHN1cHBvcnQgcHJvcGVybHkgd2l0
-aCBhIHNlcGFyYXRlIHBhdGNoLiBJIGd1ZXNzIHRoaXMgZG9lc24ndA0KPiBicmVhayBhbnl0aGlu
-ZyBvbiBhbTMzeHggY3VycmVudGx5LCByaWdodD8NCj4gDQoNCkl0IGRvZXNuJ3QgYnJlYWsgYW55
-dGhpbmcgcmlnaHQgbm93IGJ1dCBzaW5jZSB3ZSBrbm93IHRoaXMgZG9lc24ndCBzY2FsZQ0KdGhh
-dCB3b3VsZCBiZSBzYXZlIHNvbWUgYWRkaXRpb25hbCByb3VuZCBvZiB2YWxpZGF0aW9uIG9uIE9N
-QVAzLzQNCmxhdGVyIG9uLg0KDQotVmFpYmhhdg0K
+On Wed, May 02, 2012 at 03:18:08PM +0530, Santosh Shilimkar wrote:
+> Signed-off-by: Santosh Shilimkar <santosh.shilimkar@ti.com>
+> ---
+>  arch/arm/mach-omap2/Makefile |  160 ++++++++++++++++++++---------------------
+>  1 files changed, 78 insertions(+), 82 deletions(-)
+> 
+> diff --git a/arch/arm/mach-omap2/Makefile b/arch/arm/mach-omap2/Makefile
+> index 56ed62e..669e2b1 100644
+> --- a/arch/arm/mach-omap2/Makefile
+> +++ b/arch/arm/mach-omap2/Makefile
+> @@ -24,10 +24,11 @@ endif
+>  obj-$(CONFIG_TWL4030_CORE) += omap_twl.o
+>  
+>  # SMP support ONLY available for OMAP4
+> +
+>  obj-$(CONFIG_SMP)			+= omap-smp.o omap-headsmp.o
+>  obj-$(CONFIG_HOTPLUG_CPU)		+= omap-hotplug.o
+> -obj-$(CONFIG_ARCH_OMAP4)		+= omap4-common.o omap-wakeupgen.o \
+> -					   sleep44xx.o
+> +obj-$(CONFIG_ARCH_OMAP4)		+= omap4-common.o omap-wakeupgen.o
+> +obj-$(CONFIG_ARCH_OMAP4)		+= sleep44xx.o
+
+Using \ in makefiles really isn't a problem.  I don't think this is something
+which we need to do, and it just creates additional changes where none is
+required.
