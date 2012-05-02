@@ -1,65 +1,127 @@
-From: Koen Kooi <koen-QLwJDigV5abLmq1fohREcCpxlwaOVQ5f@public.gmane.org>
-Subject: Re: [PATCH RESEND] ARM: OMAP3: USB: Fix the EHCI ULPI PHY reset issue
-Date: Wed, 2 May 2012 12:50:12 +0200
-Message-ID: <A53CAEEE-E425-46B7-8E7B-B4AFB163ECAC@dominion.thruhere.net>
-References: <1332139367-1302-1-git-send-email-keshava_mgowda@ti.com> <CAMrsUdKnL+kSRQXi=X0d1S2fZM5sGpmYqzKnp0TPpjCKVujuaw@mail.gmail.com> <CA+Bv8XZeCTV2kr_d7dEAeEthwD0TkNZPiEV5m-iOFjoX7xur9Q@mail.gmail.com> <CAMrsUdL18b2Ox3CkzuNjQQW1JT1+-SAso67EkrwE-BTJbavYPA@mail.gmail.com>
-Mime-Version: 1.0 (Apple Message framework v1257)
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7BIT
-Return-path: <linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <CAMrsUdL18b2Ox3CkzuNjQQW1JT1+-SAso67EkrwE-BTJbavYPA-JsoAwUIsXosN+BqQ9rBEUg@public.gmane.org>
-Sender: linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: "Raja, Govindraj" <govindraj.raja-l0cyMroinI0@public.gmane.org>
-Cc: Russ Dill <Russ.Dill-l0cyMroinI0@public.gmane.org>, Keshava Munegowda <keshava_mgowda-l0cyMroinI0@public.gmane.org>, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, balbi-l0cyMroinI0@public.gmane.org, sameo-VuQAYsv1563Yd54FQh9/CA@public.gmane.org, parthab-PpE0FKYn9XJWk0Htik3J/w@public.gmane.org
+From: "Bedia, Vaibhav" <vaibhav.bedia@ti.com>
+Subject: RE: [PATCH 01/19] ARM: OMAP4: PM: save/restore all DPLL settings in
+ OFF mode
+Date: Wed, 2 May 2012 10:55:24 +0000
+Message-ID: <B5906170F1614E41A8A28DE3B8D121433EA6C848@DBDE01.ent.ti.com>
+References: <1334914432-26456-1-git-send-email-t-kristo@ti.com>
+ <1334914432-26456-2-git-send-email-t-kristo@ti.com>
+ <B5906170F1614E41A8A28DE3B8D121433EA6B68E@DBDE01.ent.ti.com>
+ <CAMQu2gwCstL6eF92_QBDYZaA5xwxD9a+YWRVxdghA5WVkp4PEQ@mail.gmail.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=iso-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from comal.ext.ti.com ([198.47.26.152]:52645 "EHLO comal.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1753423Ab2EBKze convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 2 May 2012 06:55:34 -0400
+In-Reply-To: <CAMQu2gwCstL6eF92_QBDYZaA5xwxD9a+YWRVxdghA5WVkp4PEQ@mail.gmail.com>
+Content-Language: en-US
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: "Shilimkar, Santosh" <santosh.shilimkar@ti.com>
+Cc: "Kristo, Tero" <t-kristo@ti.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "Hilman, Kevin" <khilman@ti.com>, "paul@pwsan.com" <paul@pwsan.com>, "Menon, Nishanth" <nm@ti.com>, "Nayak, Rajendra" <rnayak@ti.com>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>
+
+On Wed, May 02, 2012 at 15:48:01, Shilimkar, Santosh wrote:
+> On Wed, May 2, 2012 at 3:40 PM, Bedia, Vaibhav <vaibhav.bedia@ti.com>=
+ wrote:
+> > Hi Tero,
+> >
+> > On Fri, Apr 20, 2012 at 15:03:34, Kristo, Tero wrote:
+> >> From: Rajendra Nayak <rnayak@ti.com>
+> >>
+> >> SAR/ROM code restores only CORE DPLL to its original state
+> >> post wakeup from OFF mode.
+> >> The rest of the DPLL's in OMAP4 platform (MPU/IVA/ABE/USB/PER)
+> >> are saved and restored here during an OFF transition.
+> >>
+> >
+> > Most of the registers being saved and restored in the various
+> > patches look to be contiguous. So, instead of a long list of these
+> > contiguous registers how about having a generic API for backup and
+> > restore of the registers contents based on the memory address range=
+?
+> >
+> > Most of the registers which require save and restore are either par=
+t
+> > of PRM, CM or Control. The PRM or CM instance could be passed as th=
+e
+> > base and the save/restore API could work around that.
+> >
+> > One downside is that there are some read-only registers in between =
+but
+> > I don't see any simple way of avoiding save and restore of those. B=
+TW,
+> > as per the TRM that I have, this patch is also doing save and resto=
+re
+> > of some read-only registers.
+> >
+> You should never write to read-only registers since the behavior is
+> undefined.
+
+I was afraid of that. If all the read-only registers were clubbed toget=
+her
+a lot of code could have been removed. Looking more closely at the TRM
+I guess we can't really ask design folks to club those read-only regist=
+ers
+in the future. So scratch this.
+
+>=20
+> [...]
+> >> +void omap4_dpll_resume_off(void)
+> >> +{
+> >> + =A0 =A0 u32 i;
+> >> + =A0 =A0 struct omap4_dpll_regs *dpll_reg =3D dpll_regs;
+> >> +
+> >> + =A0 =A0 for (i =3D 0; i < ARRAY_SIZE(dpll_regs); i++, dpll_reg++=
+) {
+> >> + =A0 =A0 =A0 =A0 =A0 =A0 omap4_dpll_restore_reg(dpll_reg, &dpll_r=
+eg->clksel);
+> >> + =A0 =A0 =A0 =A0 =A0 =A0 omap4_dpll_restore_reg(dpll_reg, &dpll_r=
+eg->div_m2);
+> >> + =A0 =A0 =A0 =A0 =A0 =A0 omap4_dpll_restore_reg(dpll_reg, &dpll_r=
+eg->div_m3);
+> >> + =A0 =A0 =A0 =A0 =A0 =A0 omap4_dpll_restore_reg(dpll_reg, &dpll_r=
+eg->div_m4);
+> >> + =A0 =A0 =A0 =A0 =A0 =A0 omap4_dpll_restore_reg(dpll_reg, &dpll_r=
+eg->div_m5);
+> >> + =A0 =A0 =A0 =A0 =A0 =A0 omap4_dpll_restore_reg(dpll_reg, &dpll_r=
+eg->div_m6);
+> >> + =A0 =A0 =A0 =A0 =A0 =A0 omap4_dpll_restore_reg(dpll_reg, &dpll_r=
+eg->div_m7);
+> >> + =A0 =A0 =A0 =A0 =A0 =A0 omap4_dpll_restore_reg(dpll_reg, &dpll_r=
+eg->clkdcoldo);
+> >> +
+> >> + =A0 =A0 =A0 =A0 =A0 =A0 /* Restore clkmode after the above regis=
+ters are restored */
+> >> + =A0 =A0 =A0 =A0 =A0 =A0 omap4_dpll_restore_reg(dpll_reg, &dpll_r=
+eg->clkmode);
+> >> +
+> >> + =A0 =A0 =A0 =A0 =A0 =A0 omap4_wait_dpll_lock(dpll_reg);
+> >> +
+> >> + =A0 =A0 =A0 =A0 =A0 =A0 /* Restore autoidle settings after the d=
+pll is locked */
+> >> + =A0 =A0 =A0 =A0 =A0 =A0 omap4_dpll_restore_reg(dpll_reg, &dpll_r=
+eg->autoidle);
+> >> + =A0 =A0 }
+> >> +}
+> >
+> > If this function is placed in SRAM and PER PLL restored just after =
+MPU
+> > won't the exit latency be further optimized?
+> >
+> How ?
+> SRAM is sower memory than DDR so I don't see how it
+> will reduce latency.
+>=20
+
+I am just guessing if that's indeed the case ;)=20
+Haven't done any measurements to really check if that's indeed the case=
+ though.
 
 
-Op 2 mei 2012, om 12:38 heeft Raja, Govindraj het volgende geschreven:
-
-> On Wed, May 2, 2012 at 2:17 PM, Russ Dill <Russ.Dill-l0cyMroinI0@public.gmane.org> wrote:
->> On Mon, Mar 19, 2012 at 6:34 AM, Raja, Govindraj <govindraj.raja-l0cyMroinI0@public.gmane.org> wrote:
->>> On Mon, Mar 19, 2012 at 12:12 PM, Keshava Munegowda
->>> <keshava_mgowda-l0cyMroinI0@public.gmane.org> wrote:
->>>> From: Keshava Munegowda <Keshava_mgowda-l0cyMroinI0@public.gmane.org>
->>>> 
->>>> It is observed that the echi ports of 3430 sdp board
->>>> are not working due to the random timing of programming
->>>> the associated GPIOs of the ULPI PHYs of the EHCI for reset.
->>>> If the PHYs are reset at during usbhs core driver, host ports will
->>>> not work because EHCI driver is loaded after the resetting PHYs.
->>>> The PHYs should be in reset state while initializing the EHCI
->>>> controller.
->>>> The code which does the GPIO pins associated with the PHYs
->>>> are programmed to reset is moved from the USB host core driver
->>>> to EHCI driver.
->>> 
->>> I tested on beagle xm where gpio nreset is requested from
->>> board file.
->>> (Basic enumertaion after gpio nreset seems to work fine,
->>> Hub and smsc lan chip get detected afetr boot up)
->>> 
->> 
->> What base did you test this on top of? my xM is failing USB-wise when
->> I apply this on v3.3.3 (with the UART mux fix patch) and where it is
->> applied within master (3.4-rc4, again, with the UART mux fix patch).
->> Additionally, reverting this patch from 3.4-rc5 causes rc5 to work
->> properly.
->> 
-> 
-> Works for me be on 3.4-rc5 Beagle-XM even without reverting the patch
-> 
-> Logs as in here [1].
-
->From your log:
-
-[    1.705291] ehci_hcd: USB 2.0 'Enhanced' Host Controller (EHCI) Driver
-[    3.726593] ehci-omap ehci-omap.0: OMAP-EHCI Host Controller
-
-Why is the ehci stuff taking more than 2 seconds?
-
-regards,
-
-Koen--
-To unsubscribe from this list: send the line "unsubscribe linux-usb" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+--
+To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
+n
+the body of a message to majordomo@vger.kernel.org
 More majordomo info at  http://vger.kernel.org/majordomo-info.html
