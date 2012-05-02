@@ -1,116 +1,44 @@
 From: Sergio Aguirre <saaguirre@ti.com>
-Subject: [PATCH v3 00/10] v4l2: OMAP4 ISS driver + Sensor + Board support
-Date: Wed,  2 May 2012 10:15:39 -0500
-Message-ID: <1335971749-21258-1-git-send-email-saaguirre@ti.com>
-Return-path: <linux-media-owner@vger.kernel.org>
-Sender: linux-media-owner@vger.kernel.org
+Subject: [PATCH v3 01/10] mfd: twl6040: Fix wrong TWL6040_GPO3 bitfield value
+Date: Wed,  2 May 2012 10:15:40 -0500
+Message-ID: <1335971749-21258-2-git-send-email-saaguirre@ti.com>
+References: <1335971749-21258-1-git-send-email-saaguirre@ti.com>
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from na3sys009aog103.obsmtp.com ([74.125.149.71]:49982 "EHLO
+	na3sys009aog103.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1754281Ab2EBPQE (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 2 May 2012 11:16:04 -0400
+Received: by obceq6 with SMTP id eq6so1538352obc.37
+        for <linux-omap@vger.kernel.org>; Wed, 02 May 2012 08:16:01 -0700 (PDT)
+In-Reply-To: <1335971749-21258-1-git-send-email-saaguirre@ti.com>
+Sender: linux-omap-owner@vger.kernel.org
+List-Id: linux-omap@vger.kernel.org
 To: linux-media@vger.kernel.org
 Cc: linux-omap@vger.kernel.org, Sergio Aguirre <saaguirre@ti.com>
-List-Id: linux-omap@vger.kernel.org
 
-Hi everyone,
+The define should be the result of 1 << Bit number.
 
-It's been a long time since last version (5 months)! :)
+Bit number for GPOCTL.GPO3 field is 2, which results
+in 0x4 value.
 
-This is the third version of the OMAP4 ISS driver,
-which uses Media Controller and videobuf2 frameworks.
+Signed-off-by: Sergio Aguirre <saaguirre@ti.com>
+---
+ include/linux/mfd/twl6040.h |    2 +-
+ 1 files changed, 1 insertions(+), 1 deletions(-)
 
-This patchset should apply cleanly on top of v3.4-rc5 kernel tag.
-
-This driver attempts to provide an fully open source solution to
-control the OMAP4 Imaging SubSystem (a.k.a. ISS).
-
-Starts with just CSI2-A/B interface support, and pretends to be
-ready for expansion to add support to the many ISS block modules
-as possible.
-
-Please see newly added documentation for more details:
-
-Documentation/video4linux/omap4_camera.txt
-
-Any comments/complaints are welcome. :)
-
-Changes since v2:
-- Supports CSI2B now!
-- Add support for RAW8.
-- Usage of V4L2_CID_PIXEL_RATE, instead of dphy configuration in boardfile
-  (similar to omap3isp)
-- Removes save/restore support for now, as it is broken.
-- Attend several comments form Sakari Ailus (Thanks Sakari!)
-- Populate hw_revision in media_dev struct.
-- Ported several fixes pushed for omap3isp (Thanks Laurent!)
-- Use module_platform_driver.
-- Use proposed generic v4l2_subdev_link_validate.
-- Move OMAP4_CTRL_MODULE_PAD_CORE_CONTROL_CAMERA_RX handle to omap4iss code,
-  instead of board file.
-
-Changes since v1:
-- Simplification of auxclk handlign in board files
-- Use of HWMOD declaration for assisted platform_device creation.
-- Videobuf2 migration (Removal of custom iss_queue buffer handling driver)
-
-Regards,
-Sergio
-
-Sergio Aguirre (10):
-  mfd: twl6040: Fix wrong TWL6040_GPO3 bitfield value
-  OMAP4: hwmod: Include CSI2A/B and CSIPHY1/2 memory sections
-  OMAP4: Add base addresses for ISS
-  v4l: Add support for omap4iss driver
-  v4l: Add support for ov5640 sensor
-  v4l: Add support for ov5650 sensor
-  arm: omap4430sdp: Add support for omap4iss camera
-  arm: omap4panda: Add support for omap4iss camera
-  omap2plus: Add support for omap4iss camera
-  arm: Add support for CMA for omap4iss driver
-
- Documentation/video4linux/omap4_camera.txt    |   64 ++
- arch/arm/configs/omap2plus_defconfig          |    2 +
- arch/arm/mach-omap2/Kconfig                   |   32 +
- arch/arm/mach-omap2/Makefile                  |    3 +
- arch/arm/mach-omap2/board-4430sdp-camera.c    |  415 ++++++++
- arch/arm/mach-omap2/board-4430sdp.c           |   20 +
- arch/arm/mach-omap2/board-omap4panda-camera.c |  209 ++++
- arch/arm/mach-omap2/devices.c                 |   40 +
- arch/arm/mach-omap2/devices.h                 |    4 +
- arch/arm/mach-omap2/omap_hwmod_44xx_data.c    |   22 +-
- drivers/media/video/Kconfig                   |   25 +
- drivers/media/video/Makefile                  |    3 +
- drivers/media/video/omap4iss/Makefile         |    6 +
- drivers/media/video/omap4iss/iss.c            | 1159 +++++++++++++++++++++
- drivers/media/video/omap4iss/iss.h            |  121 +++
- drivers/media/video/omap4iss/iss_csi2.c       | 1368 +++++++++++++++++++++++++
- drivers/media/video/omap4iss/iss_csi2.h       |  155 +++
- drivers/media/video/omap4iss/iss_csiphy.c     |  281 +++++
- drivers/media/video/omap4iss/iss_csiphy.h     |   51 +
- drivers/media/video/omap4iss/iss_regs.h       |  244 +++++
- drivers/media/video/omap4iss/iss_video.c      | 1123 ++++++++++++++++++++
- drivers/media/video/omap4iss/iss_video.h      |  201 ++++
- drivers/media/video/ov5640.c                  |  948 +++++++++++++++++
- drivers/media/video/ov5650.c                  |  733 +++++++++++++
- include/linux/mfd/twl6040.h                   |    2 +-
- include/media/omap4iss.h                      |   65 ++
- include/media/ov5640.h                        |   10 +
- include/media/ov5650.h                        |   10 +
- 28 files changed, 7314 insertions(+), 2 deletions(-)
- create mode 100644 Documentation/video4linux/omap4_camera.txt
- create mode 100644 arch/arm/mach-omap2/board-4430sdp-camera.c
- create mode 100644 arch/arm/mach-omap2/board-omap4panda-camera.c
- create mode 100644 drivers/media/video/omap4iss/Makefile
- create mode 100644 drivers/media/video/omap4iss/iss.c
- create mode 100644 drivers/media/video/omap4iss/iss.h
- create mode 100644 drivers/media/video/omap4iss/iss_csi2.c
- create mode 100644 drivers/media/video/omap4iss/iss_csi2.h
- create mode 100644 drivers/media/video/omap4iss/iss_csiphy.c
- create mode 100644 drivers/media/video/omap4iss/iss_csiphy.h
- create mode 100644 drivers/media/video/omap4iss/iss_regs.h
- create mode 100644 drivers/media/video/omap4iss/iss_video.c
- create mode 100644 drivers/media/video/omap4iss/iss_video.h
- create mode 100644 drivers/media/video/ov5640.c
- create mode 100644 drivers/media/video/ov5650.c
- create mode 100644 include/media/omap4iss.h
- create mode 100644 include/media/ov5640.h
- create mode 100644 include/media/ov5650.h
-
+diff --git a/include/linux/mfd/twl6040.h b/include/linux/mfd/twl6040.h
+index b15b5f0..df86c14 100644
+--- a/include/linux/mfd/twl6040.h
++++ b/include/linux/mfd/twl6040.h
+@@ -142,7 +142,7 @@
+ 
+ #define TWL6040_GPO1			0x01
+ #define TWL6040_GPO2			0x02
+-#define TWL6040_GPO3			0x03
++#define TWL6040_GPO3			0x04
+ 
+ /* ACCCTL (0x2D) fields */
+ 
 -- 
 1.7.5.4
+
