@@ -1,249 +1,108 @@
-From: Jean Pihet <jean.pihet@newoldbits.com>
-Subject: Re: PM related performance degradation on OMAP3
-Date: Wed, 2 May 2012 21:46:40 +0200
-Message-ID: <CAORVsuV811jk7MsjyA4xKSbo+baU2z+eNjKqkA1ZH+3r+aiONg@mail.gmail.com>
-References: <CANOLnOP5gq4Vtt00SgRNW-3GZDWk0sukBgJx4V6rkMLL+b6G-w@mail.gmail.com>
-	<877gxobudk.fsf@ti.com>
-	<CANOLnOPbHBshCdbmSOjYdubWqUivrVpR-+eaayu=v4Yy6yKdsQ@mail.gmail.com>
-	<87ehrtn6na.fsf@ti.com>
-	<CANOLnOM_-yhr-j=UO3ynJ6HyJxzd_2FshPMXMLpcBcOB0mL7Qw@mail.gmail.com>
-	<87y5puwhus.fsf@ti.com>
-	<CAORVsuWP72dHFSBhX=Kux7GEk33qQgR74a74FFwzA8uniSabAQ@mail.gmail.com>
-	<877gx5dwz2.fsf@ti.com>
-	<CAORVsuXX9c+8-uJ1e1U920_jy0MK53jmCu+hXhHaXapHArMeLg@mail.gmail.com>
-	<87txzzhkvh.fsf@ti.com>
+From: Sakari Ailus <sakari.ailus@iki.fi>
+Subject: Re: [PATCH v3 07/10] arm: omap4430sdp: Add support for omap4iss
+ camera
+Date: Wed, 2 May 2012 22:47:00 +0300
+Message-ID: <20120502194700.GF852@valkosipuli.localdomain>
+References: <1335971749-21258-1-git-send-email-saaguirre@ti.com>
+ <1335971749-21258-8-git-send-email-saaguirre@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-vb0-f46.google.com ([209.85.212.46]:64617 "EHLO
-	mail-vb0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756209Ab2EBTqm convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 2 May 2012 15:46:42 -0400
-Received: by vbbff1 with SMTP id ff1so750292vbb.19
-        for <linux-omap@vger.kernel.org>; Wed, 02 May 2012 12:46:41 -0700 (PDT)
-In-Reply-To: <87txzzhkvh.fsf@ti.com>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-media-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <1335971749-21258-8-git-send-email-saaguirre@ti.com>
+Sender: linux-media-owner@vger.kernel.org
+To: Sergio Aguirre <saaguirre@ti.com>
+Cc: linux-media@vger.kernel.org, linux-omap@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Kevin Hilman <khilman@ti.com>
-Cc: Grazvydas Ignotas <notasas@gmail.com>, linux-omap@vger.kernel.org, Paul Walmsley <paul@pwsan.com>
 
-On Tue, May 1, 2012 at 7:27 PM, Kevin Hilman <khilman@ti.com> wrote:
-> Jean Pihet <jean.pihet@newoldbits.com> writes:
->
->> HI Kevin, Grazvydas,
->>
->> On Tue, Apr 24, 2012 at 4:29 PM, Kevin Hilman <khilman@ti.com> wrote=
-:
->>> Jean Pihet <jean.pihet@newoldbits.com> writes:
->>>
->>>> Hi Grazvydas, Kevin,
->>>>
->>>> I did some gather some performance measurements and statistics usi=
-ng
->>>> custom tracepoints in __omap3_enter_idle.
->> I posted the patches for the power domains registers cache, cf.
->> http://marc.info/?l=3Dlinux-omap&m=3D133587781712039&w=3D2.
->>
->>>> All the details are at
->>>> http://www.omappedia.org/wiki/Power_Management_Device_Latencies_Me=
-asurement#C1_performance_problem:_analysis
->> I updated the page with the measurements results with Kevin's patche=
-s
->> and the registers cache patches.
->>
->> The results are showing that:
->> - the registers cache optimizes the low power mode transitions, but =
-is
->> not sufficient to obtain a big gain. A few unused domains are
->> transitioning, which causes a big penalty in the idle path.
->
-> PER is the one that seems to be causing the most latency.
->
-> Can you try do your measurements using hack below which makes sure th=
-at
-> PER isn't any deeper than CORE?
 
-Indeed your patch brings significant improvements, cf. wiki page at
-http://www.omappedia.org/wiki/Power_Management_Device_Latencies_Measure=
-ment#C1_performance_problem:_analysis
-for detailed information.
-Here below is the reworked patch, more suited for inclusion in mainline=
- [1]
+Hi Sergio,
 
-I have another optimisation -in proof of concept state- that brings
-another significant improvement. It is about allowing/disabling idle
-for only 1 clkdm in a pwrdm and not iterate through all the clkdms.
-This still needs some rework though. Cf. patch [2]
+Thanks for the patches!!
 
-Patches [1] and [2] on top of the registers cache and the
-optimisations in pre/post_transition bring the performance close to
-the performance for the non cpuidle case (3.0MB/s compared to 3.1MB/s
-on Beagleboard).
+On Wed, May 02, 2012 at 10:15:46AM -0500, Sergio Aguirre wrote:
+...
+> +static int sdp4430_ov_cam1_power(struct v4l2_subdev *subdev, int on)
+> +{
+> +	struct device *dev = subdev->v4l2_dev->dev;
+> +	int ret;
+> +
+> +	if (on) {
+> +		if (!regulator_is_enabled(sdp4430_cam2pwr_reg)) {
+> +			ret = regulator_enable(sdp4430_cam2pwr_reg);
+> +			if (ret) {
+> +				dev_err(dev,
+> +					"Error in enabling sensor power regulator 'cam2pwr'\n");
+> +				return ret;
+> +			}
+> +
+> +			msleep(50);
+> +		}
+> +
+> +		gpio_set_value(OMAP4430SDP_GPIO_CAM_PDN_B, 1);
+> +		msleep(10);
+> +		ret = clk_enable(sdp4430_cam1_aux_clk); /* Enable XCLK */
+> +		if (ret) {
+> +			dev_err(dev,
+> +				"Error in clk_enable() in %s(%d)\n",
+> +				__func__, on);
+> +			gpio_set_value(OMAP4430SDP_GPIO_CAM_PDN_B, 0);
+> +			return ret;
+> +		}
+> +		msleep(10);
+> +	} else {
+> +		clk_disable(sdp4430_cam1_aux_clk);
+> +		msleep(1);
+> +		gpio_set_value(OMAP4430SDP_GPIO_CAM_PDN_B, 0);
+> +		if (regulator_is_enabled(sdp4430_cam2pwr_reg)) {
+> +			ret = regulator_disable(sdp4430_cam2pwr_reg);
+> +			if (ret) {
+> +				dev_err(dev,
+> +					"Error in disabling sensor power regulator 'cam2pwr'\n");
+> +				return ret;
+> +			}
+> +		}
+> +	}
+> +
+> +	return 0;
+> +}
 
-What do you think?
+Isn't this something that should be part of the sensor driver? There's
+nothing in the above code that would be board specific, except the names of
+the clocks, regulators and GPIOs. The sensor driver could hold the names
+instead; this would be also compatible with the device tree.
 
-Regards,
-Jean
+It should be possible to have s_power() callback NULL, too.
 
----
-[1]
-diff --git a/arch/arm/mach-omap2/cpuidle34xx.c
-b/arch/arm/mach-omap2/cpuidle34xx.c
-index e406d7b..572b605 100644
-+++ b/arch/arm/mach-omap2/cpuidle34xx.c
-@@ -279,32 +279,36 @@ static int omap3_enter_idle_bm(struct cpuidle_dev=
-ice *dev,
-	int ret;
+> +static int sdp4430_ov_cam2_power(struct v4l2_subdev *subdev, int on)
+> +{
+> +	struct device *dev = subdev->v4l2_dev->dev;
+> +	int ret;
+> +
+> +	if (on) {
+> +		u8 gpoctl = 0;
+> +
+> +		ret = regulator_enable(sdp4430_cam2pwr_reg);
+> +		if (ret) {
+> +			dev_err(dev,
+> +				"Error in enabling sensor power regulator 'cam2pwr'\n");
+> +			return ret;
+> +		}
+> +
+> +		msleep(50);
+> +
+> +		if (twl_i2c_read_u8(TWL_MODULE_AUDIO_VOICE, &gpoctl,
+> +				    TWL6040_REG_GPOCTL))
+> +			return -ENODEV;
+> +		if (twl_i2c_write_u8(TWL_MODULE_AUDIO_VOICE,
+> +				     gpoctl | TWL6040_GPO3,
+> +				     TWL6040_REG_GPOCTL))
+> +			return -ENODEV;
 
-	/*
--	 * Prevent idle completely if CAM is active.
-+	 * Use only C1 if CAM is active.
-	 * CAM does not have wakeup capability in OMAP3.
-	 */
--	if (pwrdm_read_func_pwrst(cam_pd) =3D=3D PWRDM_FUNC_PWRST_ON) {
-+	if (pwrdm_read_func_pwrst(cam_pd) =3D=3D PWRDM_FUNC_PWRST_ON)
-		new_state_idx =3D drv->safe_state_index;
--		goto select_state;
--	}
--
--	new_state_idx =3D next_valid_state(dev, drv, index);
-+	else
-+		new_state_idx =3D next_valid_state(dev, drv, index);
+The above piece of code looks quite interesting. What does it do?
 
--	/*
--	 * Prevent PER off if CORE is not in retention or off as this
--	 * would disable PER wakeups completely.
--	 */
-+	/* Program PER state */
-	cx =3D cpuidle_get_statedata(&dev->states_usage[new_state_idx]);
-	core_next_state =3D cx->core_state;
--	per_next_state =3D per_saved_state =3D pwrdm_read_next_func_pwrst(per=
-_pd);
--	if ((per_next_state =3D=3D PWRDM_FUNC_PWRST_OFF) &&
--	    (core_next_state > PWRDM_FUNC_PWRST_CSWR))
--		per_next_state =3D PWRDM_FUNC_PWRST_CSWR;
-+	if (new_state_idx =3D=3D 0) {
-+		/* In C1 do not allow PER state lower than CORE state */
-+		per_next_state =3D core_next_state;
-+	} else {
-+		/*
-+		 * Prevent PER off if CORE is not in RETention or OFF as this
-+		 * would disable PER wakeups completely.
-+		 */
-+		per_next_state =3D per_saved_state =3D
-+				pwrdm_read_next_func_pwrst(per_pd);
-+		if ((per_next_state =3D=3D PWRDM_FUNC_PWRST_OFF) &&
-+		    (core_next_state > PWRDM_FUNC_PWRST_CSWR))
-+			per_next_state =3D PWRDM_FUNC_PWRST_CSWR;
-+	}
+Kind regards,
 
-	/* Are we changing PER target state? */
-	if (per_next_state !=3D per_saved_state)
-		omap_set_pwrdm_state(per_pd, per_next_state);
-
--select_state:
-	ret =3D omap3_enter_idle(dev, drv, new_state_idx);
-
-	/* Restore original PER state if it was modified */
-@@ -390,7 +394,6 @@ int __init omap3_idle_init(void)
-
-	/* C1 . MPU WFI + Core active */
-	_fill_cstate(drv, 0, "MPU ON + CORE ON");
--	(&drv->states[0])->enter =3D omap3_enter_idle;
-	drv->safe_state_index =3D 0;
-	cx =3D _fill_cstate_usage(dev, 0);
-	cx->valid =3D 1;	/* C1 is always valid */
-
-[2]
-diff --git a/arch/arm/mach-omap2/cpuidle34xx.c
-b/arch/arm/mach-omap2/cpuidle34xx.c
-index e406d7b..6aa3c75 100644
---- a/arch/arm/mach-omap2/cpuidle34xx.c
-+++ b/arch/arm/mach-omap2/cpuidle34xx.c
-@@ -118,8 +118,10 @@ static int __omap3_enter_idle(struct cpuidle_devic=
-e *dev,
-
- 	/* Deny idle for C1 */
- 	if (index =3D=3D 0) {
--		pwrdm_for_each_clkdm(mpu_pd, _cpuidle_deny_idle);
--		pwrdm_for_each_clkdm(core_pd, _cpuidle_deny_idle);
-+		//pwrdm_for_each_clkdm(mpu_pd, _cpuidle_deny_idle);
-+		clkdm_deny_idle(mpu_pd->pwrdm_clkdms[0]);
-+		//pwrdm_for_each_clkdm(core_pd, _cpuidle_deny_idle);
-+		clkdm_deny_idle(core_pd->pwrdm_clkdms[0]);
- 	}
-
- 	/*
-@@ -141,8 +143,10 @@ static int __omap3_enter_idle(struct cpuidle_devic=
-e *dev,
-
- 	/* Re-allow idle for C1 */
- 	if (index =3D=3D 0) {
--		pwrdm_for_each_clkdm(mpu_pd, _cpuidle_allow_idle);
--		pwrdm_for_each_clkdm(core_pd, _cpuidle_allow_idle);
-+		//pwrdm_for_each_clkdm(mpu_pd, _cpuidle_allow_idle);
-+		clkdm_allow_idle(mpu_pd->pwrdm_clkdms[0]);
-+		//pwrdm_for_each_clkdm(core_pd, _cpuidle_allow_idle);
-+		clkdm_allow_idle(core_pd->pwrdm_clkdms[0]);
- 	}
-
- return_sleep_time:
-
->
-> Kevin
->
-> From bb2f67ed93dc83c645080e293d315d383c23c0c6 Mon Sep 17 00:00:00 200=
-1
-> From: Kevin Hilman <khilman@ti.com>
-> Date: Mon, 16 Apr 2012 17:53:14 -0700
-> Subject: [PATCH] cpuidle34xx: per follows core, C1 use _bm
->
-> ---
-> =A0arch/arm/mach-omap2/cpuidle34xx.c | =A0 =A09 +++++----
-> =A01 file changed, 5 insertions(+), 4 deletions(-)
->
-> diff --git a/arch/arm/mach-omap2/cpuidle34xx.c b/arch/arm/mach-omap2/=
-cpuidle34xx.c
-> index 374708d..00400ad 100644
-> --- a/arch/arm/mach-omap2/cpuidle34xx.c
-> +++ b/arch/arm/mach-omap2/cpuidle34xx.c
-> @@ -278,9 +278,11 @@ static int omap3_enter_idle_bm(struct cpuidle_de=
-vice *dev,
-> =A0 =A0 =A0 =A0cx =3D cpuidle_get_statedata(&dev->states_usage[index]=
-);
-> =A0 =A0 =A0 =A0core_next_state =3D cx->core_state;
-> =A0 =A0 =A0 =A0per_next_state =3D per_saved_state =3D pwrdm_read_next=
-_pwrst(per_pd);
-> - =A0 =A0 =A0 if ((per_next_state =3D=3D PWRDM_POWER_OFF) &&
-> - =A0 =A0 =A0 =A0 =A0 (core_next_state > PWRDM_POWER_RET))
-> - =A0 =A0 =A0 =A0 =A0 =A0 =A0 per_next_state =3D PWRDM_POWER_RET;
-> + =A0 =A0 =A0 /* if ((per_next_state =3D=3D PWRDM_POWER_OFF) && */
-> + =A0 =A0 =A0 /* =A0 =A0 (core_next_state > PWRDM_POWER_RET)) */
-> + =A0 =A0 =A0 /* =A0 =A0 =A0per_next_state =3D PWRDM_POWER_RET; */
-> + =A0 =A0 =A0 if (per_next_state < core_next_state)
-> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 per_next_state =3D core_next_state;
->
-> =A0 =A0 =A0 =A0/* Are we changing PER target state? */
-> =A0 =A0 =A0 =A0if (per_next_state !=3D per_saved_state)
-> @@ -374,7 +376,6 @@ int __init omap3_idle_init(void)
->
-> =A0 =A0 =A0 =A0/* C1 . MPU WFI + Core active */
-> =A0 =A0 =A0 =A0_fill_cstate(drv, 0, "MPU ON + CORE ON");
-> - =A0 =A0 =A0 (&drv->states[0])->enter =3D omap3_enter_idle;
-> =A0 =A0 =A0 =A0drv->safe_state_index =3D 0;
-> =A0 =A0 =A0 =A0cx =3D _fill_cstate_usage(dev, 0);
-> =A0 =A0 =A0 =A0cx->valid =3D 1; =A0/* C1 is always valid */
-> --
-> 1.7.9.2
->
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-omap"=
- in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at =A0http://vger.kernel.org/majordomo-info.html
---
-To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+-- 
+Sakari Ailus
+e-mail: sakari.ailus@iki.fi	jabber/XMPP/Gmail: sailus@retiisi.org.uk
