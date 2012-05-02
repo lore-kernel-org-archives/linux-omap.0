@@ -1,83 +1,96 @@
 From: Afzal Mohammed <afzal@ti.com>
-Subject: [PATCH v4-alt 4/6] ARM: OMAP2+: gpmc: driver migration hack
-Date: Wed, 2 May 2012 14:16:25 +0530
-Message-ID: <7c79c607c4ce8946f67fff385d725bfe322849da.1335941444.git.afzal@ti.com>
+Subject: [PATCH v4-alt 6/6] ARM: OMAP2+: board omap3evm: gpmc driver adaptation
+Date: Wed, 2 May 2012 14:16:39 +0530
+Message-ID: <cd165db10a6aa14836e2e66c1476a27b84b5cedd.1335941444.git.afzal@ti.com>
 References: <cover.1335941443.git.afzal@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from comal.ext.ti.com ([198.47.26.152]:47731 "EHLO comal.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1755715Ab2EBJDK (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Wed, 2 May 2012 05:03:10 -0400
+Received: from devils.ext.ti.com ([198.47.26.153]:40248 "EHLO
+	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755843Ab2EBJDY (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 2 May 2012 05:03:24 -0400
 In-Reply-To: <cover.1335941443.git.afzal@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: tony@atomide.com
 Cc: linux-omap@vger.kernel.org, Afzal Mohammed <afzal@ti.com>
 
-This has been made for migrating boards one by one so that
-old & new interface can coexist. As a board is migrated to
-new interface, return from gpmc_driver_migration w/o doing
-anything; add a machine_is_ check for that board to return
+gpmc code has been converted to driver. Modify the board
+code to provide gpmc driver with required information
+
+Note: This uses new interface for initializing smsc911x,
+old interface should be removed once all boards are
+converted to use new interface. So also machine_is_
+check in gpmc.c as well as the patch,
+"ARM: OMAP2+: gpmc: driver migration hack"
 
 Signed-off-by: Afzal Mohammed <afzal@ti.com>
 ---
- arch/arm/mach-omap2/gpmc.c |   27 +++++++++++++++++++++++++--
- 1 file changed, 25 insertions(+), 2 deletions(-)
+ arch/arm/mach-omap2/board-omap3evm.c |   14 +++++++++++++-
+ arch/arm/mach-omap2/gpmc.c           |    3 +++
+ 2 files changed, 16 insertions(+), 1 deletion(-)
 
-diff --git a/arch/arm/mach-omap2/gpmc.c b/arch/arm/mach-omap2/gpmc.c
-index c8d07bb..4dcc141 100644
---- a/arch/arm/mach-omap2/gpmc.c
-+++ b/arch/arm/mach-omap2/gpmc.c
-@@ -868,6 +868,18 @@ static __devinit void gpmc_mem_init(void)
+diff --git a/arch/arm/mach-omap2/board-omap3evm.c b/arch/arm/mach-omap2/board-omap3evm.c
+index fd1b481..7c83c45 100644
+--- a/arch/arm/mach-omap2/board-omap3evm.c
++++ b/arch/arm/mach-omap2/board-omap3evm.c
+@@ -43,6 +43,7 @@
+ 
+ #include <plat/board.h>
+ #include <plat/usb.h>
++#include <plat/gpmc.h>
+ #include "common.h"
+ #include <plat/mcspi.h>
+ #include <video/omapdss.h>
+@@ -102,6 +103,12 @@ static void __init omap3_evm_get_revision(void)
  	}
  }
  
-+static void gpmc_driver_migration(void)
-+{
-+	static struct gpmc_device_pdata *gpmc_device_data[1];
-+	static struct gpmc_pdata gpmc_data = {
-+		.device_pdata	= gpmc_device_data,
-+	};
++static struct gpmc_device_pdata *gpmc_device_data[1];
 +
-+	omap_init_gpmc(&gpmc_data);
-+}
++static struct gpmc_pdata gpmc_data = {
++	.device_pdata = gpmc_device_data,
++};
 +
-+static int gpmc_module_init(void);
-+
- static int __init gpmc_init(void)
- {
- 	char *oh_name = "gpmc";
-@@ -887,7 +899,9 @@ static int __init gpmc_init(void)
+ #if defined(CONFIG_SMSC911X) || defined(CONFIG_SMSC911X_MODULE)
+ #include <plat/gpmc-smsc911x.h>
  
- 	clk_enable(gpmc_l3_clk);
+@@ -122,7 +129,11 @@ static inline void __init omap3evm_init_smsc911x(void)
+ 			smsc911x_cfg.gpio_reset = OMAP3EVM_GEN2_ETHR_GPIO_RST;
+ 	}
  
--	return 0;
-+	gpmc_driver_migration();
-+
-+	return gpmc_module_init();
+-	gpmc_smsc911x_init(&smsc911x_cfg);
++	*gpmc_device_data = gpmc_smsc911x_init_new(&smsc911x_cfg);
++	if (*gpmc_device_data)
++		gpmc_data.num_device++;
++	else
++		pr_err("error: unable to initilaize gpmc smsc911x\n");
  }
- postcore_initcall(gpmc_init);
  
-@@ -1484,7 +1498,16 @@ static struct platform_driver gpmc_driver = {
- 	},
- };
+ #else
+@@ -679,6 +690,7 @@ static void __init omap3_evm_init(void)
+ 	usbhs_init(&usbhs_bdata);
+ 	omap_ads7846_init(1, OMAP3_EVM_TS_GPIO, 310, NULL);
+ 	omap3evm_init_smsc911x();
++	omap_init_gpmc(&gpmc_data);
+ 	omap3_evm_display_init();
+ 	omap3_evm_wl12xx_init();
+ }
+diff --git a/arch/arm/mach-omap2/gpmc.c b/arch/arm/mach-omap2/gpmc.c
+index 4dcc141..eb7580d 100644
+--- a/arch/arm/mach-omap2/gpmc.c
++++ b/arch/arm/mach-omap2/gpmc.c
+@@ -875,6 +875,9 @@ static void gpmc_driver_migration(void)
+ 		.device_pdata	= gpmc_device_data,
+ 	};
  
--module_platform_driver(gpmc_driver);
-+static __init int gpmc_module_init(void)
-+{
-+	return platform_driver_register(&gpmc_driver);
-+}
++	if (machine_is_omap3evm())
++		return;
 +
-+static __exit void gpmc_tmp_exit(void)
-+{
-+	platform_driver_unregister(&gpmc_driver);
-+}
-+module_exit(gpmc_tmp_exit);
+ 	omap_init_gpmc(&gpmc_data);
+ }
  
- #ifdef CONFIG_ARCH_OMAP3
- static struct omap3_gpmc_regs gpmc_context;
 -- 
 1.7.10
 
