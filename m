@@ -1,7 +1,7 @@
 From: Shubhrajyoti D <shubhrajyoti-l0cyMroinI0@public.gmane.org>
-Subject: [PATCHv9 09/10] I2C: OMAP: Do not set the XUDF(Transmit underflow) if the underflow is not reached
-Date: Wed, 2 May 2012 20:02:14 +0530
-Message-ID: <1335969135-20858-10-git-send-email-shubhrajyoti@ti.com>
+Subject: [PATCHv9 05/10] I2C: OMAP: Don't check if wait_for_completion_timeout() returns less than zero
+Date: Wed, 2 May 2012 20:02:10 +0530
+Message-ID: <1335969135-20858-6-git-send-email-shubhrajyoti@ti.com>
 References: <1335969135-20858-1-git-send-email-shubhrajyoti@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
@@ -9,39 +9,54 @@ Return-path: <linux-i2c-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 In-Reply-To: <1335969135-20858-1-git-send-email-shubhrajyoti-l0cyMroinI0@public.gmane.org>
 Sender: linux-i2c-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 To: linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-Cc: linux-i2c-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, ben-linux-elnMNo+KYs3YtjvyW6yDsg@public.gmane.org, tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org, w.sang-bIcnvbaLZ9MEGnE8C9+IrQ@public.gmane.org, Shubhrajyoti D <shubhrajyoti-l0cyMroinI0@public.gmane.org>, Alexander Shishkin <virtuoso-0lOfPCoBze7YtjvyW6yDsg@public.gmane.org>
+Cc: linux-i2c-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, ben-linux-elnMNo+KYs3YtjvyW6yDsg@public.gmane.org, tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org, w.sang-bIcnvbaLZ9MEGnE8C9+IrQ@public.gmane.org, Shubhrajyoti D <shubhrajyoti-l0cyMroinI0@public.gmane.org>, Jon Hunter <jon-hunter-l0cyMroinI0@public.gmane.org>
 List-Id: linux-omap@vger.kernel.org
 
-Currently in the 1.153 errata handling while waiting for transmitter
-underflow if NACK is got the XUDF(Transmit underflow) flag is also set.
-The flag is set after wait for the condition is over.
+By definition, wait_for_completion_timeout() returns an unsigned value and
+therefore, it is not necessary to check if the return value is less than zero
+as this is not possible.
 
-Cc: Alexander Shishkin <virtuoso-0lOfPCoBze7YtjvyW6yDsg@public.gmane.org>
-Acked-by: Moiz Sonasath <m-sonasath-l0cyMroinI0@public.gmane.org>
+This is based on a patch from Jon Hunter <jon-hunter-l0cyMroinI0@public.gmane.org>
+Changes from his patch
+- Declare a long as the wait_for_completion_timeout returns long.
+
+Original patch is
+http://git.omapzoom.org/?p=kernel/omap.git;a=commitdiff;h=ea02cece7b0000bc736e60c4188a11aaa74bc6e6
+
+Signed-off-by: Jon Hunter <jon-hunter-l0cyMroinI0@public.gmane.org>
 Signed-off-by: Shubhrajyoti D <shubhrajyoti-l0cyMroinI0@public.gmane.org>
 ---
- drivers/i2c/busses/i2c-omap.c |    2 +-
- 1 files changed, 1 insertions(+), 1 deletions(-)
+ drivers/i2c/busses/i2c-omap.c |   10 ++++------
+ 1 files changed, 4 insertions(+), 6 deletions(-)
 
 diff --git a/drivers/i2c/busses/i2c-omap.c b/drivers/i2c/busses/i2c-omap.c
-index 43b0efb..c0aa16b 100644
+index 1777d79..fec8d5c 100644
 --- a/drivers/i2c/busses/i2c-omap.c
 +++ b/drivers/i2c/busses/i2c-omap.c
-@@ -730,7 +730,6 @@ static int errata_omap3_1p153(struct omap_i2c_dev *dev, u16 *stat, int *err)
- 		if (*stat & (OMAP_I2C_STAT_NACK | OMAP_I2C_STAT_AL)) {
- 			omap_i2c_ack_stat(dev, *stat & (OMAP_I2C_STAT_XRDY |
- 							OMAP_I2C_STAT_XDR));
--			*err |= OMAP_I2C_STAT_XUDF;
- 			return -ETIMEDOUT;
- 		}
+@@ -473,7 +473,7 @@ static int omap_i2c_xfer_msg(struct i2c_adapter *adap,
+ 			     struct i2c_msg *msg, int stop)
+ {
+ 	struct omap_i2c_dev *dev = i2c_get_adapdata(adap);
+-	int r;
++	unsigned long timeout;
+ 	u16 w;
  
-@@ -743,6 +742,7 @@ static int errata_omap3_1p153(struct omap_i2c_dev *dev, u16 *stat, int *err)
- 		return 0;
- 	}
- 
-+	*err |= OMAP_I2C_STAT_XUDF;
- 	return 0;
- }
- 
+ 	dev_dbg(dev->dev, "addr: 0x%04x, len: %d, flags: 0x%x, stop: %d\n",
+@@ -541,12 +541,10 @@ static int omap_i2c_xfer_msg(struct i2c_adapter *adap,
+ 	 * REVISIT: We should abort the transfer on signals, but the bus goes
+ 	 * into arbitration and we're currently unable to recover from it.
+ 	 */
+-	r = wait_for_completion_timeout(&dev->cmd_complete,
+-					OMAP_I2C_TIMEOUT);
++	timeout = wait_for_completion_timeout(&dev->cmd_complete,
++						OMAP_I2C_TIMEOUT);
+ 	dev->buf_len = 0;
+-	if (r < 0)
+-		return r;
+-	if (r == 0) {
++	if (timeout == 0) {
+ 		dev_err(dev->dev, "controller timed out\n");
+ 		omap_i2c_init(dev);
+ 		return -ETIMEDOUT;
 -- 
 1.7.5.4
