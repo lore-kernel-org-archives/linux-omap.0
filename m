@@ -1,56 +1,63 @@
 From: Shubhrajyoti D <shubhrajyoti@ti.com>
-Subject: [PATCHv9 03/10] I2C: OMAP: Fix the interrupt clearing in OMAP4
-Date: Wed, 2 May 2012 20:02:08 +0530
-Message-ID: <1335969135-20858-4-git-send-email-shubhrajyoti@ti.com>
-References: <1335969135-20858-1-git-send-email-shubhrajyoti@ti.com>
+Subject: [PATCHv9 00/10] I2C fixes
+Date: Wed, 2 May 2012 20:02:05 +0530
+Message-ID: <1335969135-20858-1-git-send-email-shubhrajyoti@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from bear.ext.ti.com ([192.94.94.41]:49949 "EHLO bear.ext.ti.com"
+Received: from comal.ext.ti.com ([198.47.26.152]:35506 "EHLO comal.ext.ti.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754576Ab2EBOdT (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Wed, 2 May 2012 10:33:19 -0400
-In-Reply-To: <1335969135-20858-1-git-send-email-shubhrajyoti@ti.com>
+	id S1755263Ab2EBOdV (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Wed, 2 May 2012 10:33:21 -0400
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: linux-omap@vger.kernel.org
-Cc: linux-i2c@vger.kernel.org, linux-arm-kernel@lists.infradead.org, ben-linux@fluff.org, tony@atomide.com, w.sang@pengutronix.de, Shubhrajyoti D <shubhrajyoti@ti.com>, Vikram Pandita <vikram.pandita@ti.com>
+Cc: linux-i2c@vger.kernel.org, linux-arm-kernel@lists.infradead.org, ben-linux@fluff.org, tony@atomide.com, w.sang@pengutronix.de, Shubhrajyoti D <shubhrajyoti@ti.com>
 
-On OMAP4 we were writing 1 to IRQENABLE_CLR which cleared only
-the arbitration lost interrupt. The patch intends to fix the same by writing 0
-to the IE register clearing all interrupts.
 
-This is based on the work done by Vikram Pandita <vikram.pandita@ti.com>.
+The patch series does the following
 
-The  changes from the original patch ...
--  Does not use the IRQENABLE_CLR register to clear as it is not mentioned
-  to be legacy register IRQENABLE_CLR helps in  atomically
-  setting/clearing specific interrupts, instead use the OMAP_I2C_IE_REG as we
-  are clearing all interrupts.
+- Warn fixes if CONFIG_PM_RUNTIME is not selected.
+- In case of i2c remove register access was done without any
+ get_sync fix the same.
+- Folds a patch from Tasslehoff to prevent any merge conflicts.
+- Prevents the XDUF flag to be set if the underflow condition is not met.
+- As per discussion in [1] .Adds a patch to rename the 1p153 errata and
+ use the unique id instead as the section number in the recent errata
+ docs has changed.
 
-Cc: Vikram Pandita <vikram.pandita@ti.com>
-Signed-off-by: Shubhrajyoti D <shubhrajyoti@ti.com>
----
- drivers/i2c/busses/i2c-omap.c |    6 ++----
- 1 files changed, 2 insertions(+), 4 deletions(-)
+v9:
+Fix the comments from Wolfram Sang
 
-diff --git a/drivers/i2c/busses/i2c-omap.c b/drivers/i2c/busses/i2c-omap.c
-index c851672..bf07ffd 100644
---- a/drivers/i2c/busses/i2c-omap.c
-+++ b/drivers/i2c/busses/i2c-omap.c
-@@ -1127,10 +1127,8 @@ static int omap_i2c_runtime_suspend(struct device *dev)
- 	u16 iv;
- 
- 	_dev->iestate = omap_i2c_read_reg(_dev, OMAP_I2C_IE_REG);
--	if (_dev->dtrev == OMAP_I2C_IP_VERSION_2)
--		omap_i2c_write_reg(_dev, OMAP_I2C_IP_V2_IRQENABLE_CLR, 1);
--	else
--		omap_i2c_write_reg(_dev, OMAP_I2C_IE_REG, 0);
-+
-+	omap_i2c_write_reg(_dev, OMAP_I2C_IE_REG, 0);
- 
- 	if (_dev->rev < OMAP_I2C_OMAP1_REV_2) {
- 		iv = omap_i2c_read_reg(_dev, OMAP_I2C_IV_REG); /* Read clears */
+[1] http://www.spinics.net/lists/linux-i2c/msg07607.html
+
+Tested on omap4sdp and omap3sdp.
+
+The following changes since commit b821861b905a79f71746945237968c3382d99adc:
+
+  Merge tag 'ktest-for-v3.4-rc5' of git://git.kernel.org/pub/scm/linux/kernel/git/rostedt/linux-ktest (2012-05-01 19:43:34 -0700)
+
+are available in the git repository at:
+
+  git://gitorious.org/linus-tree/linus-tree.git i2c_omap-fixes
+
+Shubhrajyoti D (9):
+      I2C: OMAP: make omap_i2c_unidle/idle functions depend on CONFIG_PM_RUNTIME
+      I2C: OMAP: Fix the mismatch of pm_runtime enable and disable
+      I2C: OMAP: Fix the interrupt clearing in OMAP4
+      I2C: OMAP: Prevent the register access after pm_runtime_put in probe
+      I2C: OMAP: Don't check if wait_for_completion_timeout() returns less than zero
+      I2C: OMAP: Fix the crash in i2c remove
+      I2C: OMAP: Handle error check for pm runtime
+      I2C: OMAP: Do not set the XUDF(Transmit underflow) if the underflow is not reached
+      I2C: OMAP: Rename the 1p153 to the erratum id i462
+
+Tasslehoff Kjappfot (1):
+      I2C: OMAP: prevent the overwrite of the errata flags
+
+ drivers/i2c/busses/i2c-omap.c |  127 ++++++++++++++++++++---------------------
+ 1 files changed, 62 insertions(+), 65 deletions(-)
+
 -- 
 1.7.5.4
 
