@@ -1,102 +1,126 @@
 From: Vaibhav Hiremath <hvaibhav@ti.com>
-Subject: [PATCH-V6 0/3] ARM: OMAP: Make OMAP clocksource source selection runtime
-Date: Wed, 2 May 2012 19:26:51 +0530
-Message-ID: <1335967014-11937-1-git-send-email-hvaibhav@ti.com>
+Subject: [PATCH-V6 1/3] ARM: OMAP1: FIX: check possible error condition in timer_init
+Date: Wed, 2 May 2012 19:26:52 +0530
+Message-ID: <1335967014-11937-2-git-send-email-hvaibhav@ti.com>
+References: <1335967014-11937-1-git-send-email-hvaibhav@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from comal.ext.ti.com ([198.47.26.152]:33639 "EHLO comal.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752243Ab2EBODf (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Wed, 2 May 2012 10:03:35 -0400
+Received: from devils.ext.ti.com ([198.47.26.153]:54087 "EHLO
+	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752382Ab2EBODj (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 2 May 2012 10:03:39 -0400
+In-Reply-To: <1335967014-11937-1-git-send-email-hvaibhav@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: linux-omap@vger.kernel.org
 Cc: tony@atomide.com, khilman@ti.com, paul@pwsan.com, santosh.shilimkar@ti.com, b-cousson@ti.com, linux-arm-kernel@lists.infradead.org, Vaibhav Hiremath <hvaibhav@ti.com>
 
-Current OMAP code supports couple of clocksource options based
-on compilation flag (CONFIG_OMAP_32K_TIMER). The 32KHz sync-timer
-and a gptimer which can run on 32KHz or system clock (e.g 38.4 MHz)
+OMAP1, omap_32k_timer_init() function always returns "true",
+irrespective of whether error occurred while initializing 32k sync
+counter as a kernel clocksource or not and execution will never
+fallback to mpu_timer clocksource init code.
 
-This patch series cleans up the existing 32k-sync timer implementation,
-movind SoC init code to respective files (mach-omap1/timer32k.c and
-mach-omap2/timer.c) and uses kernel parameter to override the default
-clocksource of "counter_32k", also in order to support some OMAP based
-derivative SoCs like AM33XX which doesn't have 32K sync-timer hardware IP,
-adds hwmod lookup for omap2+ devices, and if lookup fails then
-fall back to gp-timer.
+This patch adds check for return value from function
+omap_init_clocksource_32k(), and fallback to omap_mpu_timer_init()
+in case of failure/error from omap_init_clocksource_32k().
 
-if(use_gptimer_clksrc == true)
-	gptimer clocksource init;
-else if (counter_32 init == false)
-	/* Fallback to gptimer */
-	gptimer clocksource init(;
+Signed-off-by: Vaibhav Hiremath <hvaibhav@ti.com>
+Cc: Tony Lindgren <tony@atomide.com>
+Cc: Kevin Hilman <khilman@ti.com>
+Cc: Paul Walmsley <paul@pwsan.com>
+Cc: Benoit Cousson <b-cousson@ti.com>
+---
+This is new patch addition compared to original series (<=V5).
 
-With this, we should be able to support multi-omap boot
-including devices with/without 32k-sync timer.
+Also, note that, this patch is only compile tested, since
+I do not have omap1 board with me to validate it.
+Kevin, can you help me to validate it.
 
-This patch-series has been boot tested on AM37xEVM platform, it
-would be helpful if somebody help me to validate it on OMAP1/2
-platforms.
+ arch/arm/mach-omap1/common.h   |   10 +++++++++-
+ arch/arm/mach-omap1/time.c     |   16 +---------------
+ arch/arm/mach-omap1/timer32k.c |   13 +++++++++----
+ 3 files changed, 19 insertions(+), 20 deletions(-)
 
-The patches are also available at (based on linux-omap/master) -
-https://github.com/hvaibhav/am335x-linux   32ksync-timer-cleanup
+diff --git a/arch/arm/mach-omap1/common.h b/arch/arm/mach-omap1/common.h
+index 8cc616e..e8c9ad3 100644
+--- a/arch/arm/mach-omap1/common.h
++++ b/arch/arm/mach-omap1/common.h
+@@ -63,7 +63,15 @@ extern void omap1_nand_cmd_ctl(struct mtd_info *mtd, int cmd,
+ 			       unsigned int ctrl);
 
-History:
-========
-Changes from V5:
-http://www.mail-archive.com/linux-omap@vger.kernel.org/msg67163.html
-	- 2 of the original patch-series (1/3 and 2/3) has already been
-	  accepted and queued by Paul, so removing them.
-	  Also, add 2 new patches,
-		- OMAP2 timer32k cleanup, check for return values.
-		- Changed name of system timers, "gp timer" => "gp_timer".
-	- Moved SoC specific init code to respective files
-	  (mach-omap1/timer32k.c and mach-omap2/timer.c)
+ extern struct sys_timer omap1_timer;
+-extern bool omap_32k_timer_init(void);
++
++#ifdef CONFIG_OMAP_32K_TIMER
++extern int omap_32k_timer_init(void);
++#else
++static int __init omap_32k_timer_init(void)
++{
++	return -ENODEV;
++}
++#endif
 
-Changes from V4:
-http://www.mail-archive.com/linux-omap@vger.kernel.org/msg67019.html
-	- Fix the possible bug, leftover the cnt addr argument to
-	  clocksource_mmio_init().
+ extern u32 omap_irq_flags;
 
-Changes from V3:
-http://www.mail-archive.com/linux-omap@vger.kernel.org/msg66462.html
-	- Fixed all review comments from Kevin H
-		* Moved counter_32k CR register offset handling to
-		  counter_32k.c file, so now, calling funtion don't have
-		  to maintain or add offset to base addr.
-		* Added comment for function omap_init_clocksource_32k()
-		* Used resource_size() for calculate size
-		* Convert WARN_ON to pr_warn
+diff --git a/arch/arm/mach-omap1/time.c b/arch/arm/mach-omap1/time.c
+index 4d8dd9a..4062480 100644
+--- a/arch/arm/mach-omap1/time.c
++++ b/arch/arm/mach-omap1/time.c
+@@ -232,20 +232,6 @@ static inline void omap_mpu_timer_init(void)
+ }
+ #endif	/* CONFIG_OMAP_MPU_TIMER */
 
-Changes from V2:
-http://lists.infradead.org/pipermail/linux-arm-kernel/2012-March/092037.html
-	- Added early_param support to read clocksource selection
-	  from user through kernel parameter ("clocksource=")
-	- Converted to ocp_if changes from Paul
+-static inline int omap_32k_timer_usable(void)
+-{
+-	int res = false;
+-
+-	if (cpu_is_omap730() || cpu_is_omap15xx())
+-		return res;
+-
+-#ifdef CONFIG_OMAP_32K_TIMER
+-	res = omap_32k_timer_init();
+-#endif
+-
+-	return res;
+-}
+-
+ /*
+  * ---------------------------------------------------------------------------
+  * Timer initialization
+@@ -253,7 +239,7 @@ static inline int omap_32k_timer_usable(void)
+  */
+ static void __init omap1_timer_init(void)
+ {
+-	if (!omap_32k_timer_usable())
++	if (omap_32k_timer_init() != 0)
+ 		omap_mpu_timer_init();
+ }
 
-Changes from V1:
-http://lists.infradead.org/pipermail/linux-arm-kernel/2012-January/081037.html
-	- Based on Tony's comment, added pbase & size argument to
-	  omap_init_clocksource_32k(), to avoid cpu_is_xxx() check.
-	- Added commit description based on discussion on list
-	  (Thanks to Santosh here)
-	- Reorder patch sequence
+diff --git a/arch/arm/mach-omap1/timer32k.c b/arch/arm/mach-omap1/timer32k.c
+index 325b9a0..e3613a8 100644
+--- a/arch/arm/mach-omap1/timer32k.c
++++ b/arch/arm/mach-omap1/timer32k.c
+@@ -182,10 +182,15 @@ static __init void omap_init_32k_timer(void)
+  * Timer initialization
+  * ---------------------------------------------------------------------------
+  */
+-bool __init omap_32k_timer_init(void)
++int __init omap_32k_timer_init(void)
+ {
+-	omap_init_clocksource_32k();
+-	omap_init_32k_timer();
++	int ret = -ENODEV;
 
-
-
-
-Vaibhav Hiremath (3):
-  ARM: OMAP1: FIX: check possible error condition in timer_init
-  ARM: OMAP2+: Replace space=>underscore in the name field of system
-    timers
-  ARM: OMAP: Make OMAP clocksource source selection using kernel param
-
- arch/arm/mach-omap1/common.h             |   10 ++-
- arch/arm/mach-omap1/time.c               |   16 +----
- arch/arm/mach-omap1/timer32k.c           |   28 ++++++-
- arch/arm/mach-omap2/timer.c              |  118 +++++++++++++++++++++++------
- arch/arm/plat-omap/counter_32k.c         |   91 ++++++++++-------------
- arch/arm/plat-omap/include/plat/common.h |    2 +-
- 6 files changed, 167 insertions(+), 98 deletions(-)
+-	return true;
++	if (cpu_is_omap16xx())
++		ret = omap_init_clocksource_32k();
++
++	if (!ret)
++		omap_init_32k_timer();
++
++	return ret;
+ }
+--
+1.7.0.4
 
