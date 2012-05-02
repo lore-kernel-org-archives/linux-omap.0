@@ -1,105 +1,136 @@
 From: Afzal Mohammed <afzal@ti.com>
-Subject: [PATCH v4-alt 3/6] ARM: OMAP3: hwmod data: add gpmc
-Date: Wed, 2 May 2012 14:16:19 +0530
-Message-ID: <99ffbbcc634022ed3c781c37e03989f1d898003e.1335941444.git.afzal@ti.com>
+Subject: [PATCH v4-alt 5/6] ARM: OMAP2+: gpmc-smsc911x: Add helper for driver conversion
+Date: Wed, 2 May 2012 14:16:31 +0530
+Message-ID: <634923a1c4fb2bf0d909191a6b3425249df4b535.1335941444.git.afzal@ti.com>
 References: <cover.1335941443.git.afzal@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from bear.ext.ti.com ([192.94.94.41]:34147 "EHLO bear.ext.ti.com"
+Received: from bear.ext.ti.com ([192.94.94.41]:34157 "EHLO bear.ext.ti.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1755500Ab2EBJDJ (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Wed, 2 May 2012 05:03:09 -0400
+	id S1755843Ab2EBJDQ (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Wed, 2 May 2012 05:03:16 -0400
 In-Reply-To: <cover.1335941443.git.afzal@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: tony@atomide.com
 Cc: linux-omap@vger.kernel.org, Afzal Mohammed <afzal@ti.com>
 
-Add gpmc hwmod and associated interconnect data
+New interface for working with gpmc driver has been added
+without modifying the existing interface. Latter has been kept
+for migrating boards one by one, once all boards are migrated
+to use the new interace, old interface to be deleted along with
+renaming of new interface to old one
 
 Signed-off-by: Afzal Mohammed <afzal@ti.com>
 ---
- arch/arm/mach-omap2/omap_hwmod_3xxx_data.c |   52 ++++++++++++++++++++++++++++
- 1 file changed, 52 insertions(+)
+ arch/arm/mach-omap2/gpmc-smsc911x.c             |   70 +++++++++++++++++++++++
+ arch/arm/plat-omap/include/plat/gpmc-smsc911x.h |    9 +++
+ 2 files changed, 79 insertions(+)
 
-diff --git a/arch/arm/mach-omap2/omap_hwmod_3xxx_data.c b/arch/arm/mach-omap2/omap_hwmod_3xxx_data.c
-index 0c65079..4da8394 100644
---- a/arch/arm/mach-omap2/omap_hwmod_3xxx_data.c
-+++ b/arch/arm/mach-omap2/omap_hwmod_3xxx_data.c
-@@ -1981,6 +1981,40 @@ static struct omap_hwmod omap3xxx_usb_tll_hs_hwmod = {
- };
+diff --git a/arch/arm/mach-omap2/gpmc-smsc911x.c b/arch/arm/mach-omap2/gpmc-smsc911x.c
+index b6c77be..3b33b48 100644
+--- a/arch/arm/mach-omap2/gpmc-smsc911x.c
++++ b/arch/arm/mach-omap2/gpmc-smsc911x.c
+@@ -99,3 +99,73 @@ free1:
  
- /*
-+ * 'gpmc' class
-+ * general purpose memory controller
-+ */
+ 	pr_err("Could not initialize smsc911x device\n");
+ }
 +
-+static struct omap_hwmod_class_sysconfig omap3xxx_gpmc_sysc = {
-+	.rev_offs	= 0x0000,
-+	.sysc_offs	= 0x0010,
-+	.syss_offs	= 0x0014,
-+	.sysc_flags	= (SYSC_HAS_AUTOIDLE | SYSC_HAS_SIDLEMODE |
-+			   SYSC_HAS_SOFTRESET | SYSS_HAS_RESET_STATUS),
-+	.idlemodes	= (SIDLE_FORCE | SIDLE_NO | SIDLE_SMART),
-+	.sysc_fields	= &omap_hwmod_sysc_type1,
++static struct resource gpmc_smsc911x_resources_new = {
++	.flags		= IORESOURCE_IRQ | IORESOURCE_IRQ_LOWLEVEL,
 +};
 +
-+static struct omap_hwmod_class omap3xxx_gpmc_hwmod_class = {
-+	.name	= "gpmc",
-+	.sysc	= &omap3xxx_gpmc_sysc,
-+};
++__init struct gpmc_device_pdata *
++gpmc_smsc911x_init_new(struct omap_smsc911x_platform_data *gpmc_cfg)
++{
++	int ret;
++	struct gpmc_device_pdata *gpmc_pdev;
++	struct gpmc_cs_data *gpmc_cs;
 +
-+static struct omap_hwmod_irq_info omap3xxx_gpmc_irqs[] = {
-+	{ .irq = 20 },
-+	{ .irq = -1 }
-+};
++	gpmc_pdev = kzalloc(sizeof(*gpmc_pdev), GFP_KERNEL);
++	if (gpmc_pdev == NULL)
++		return gpmc_pdev;
 +
-+static struct omap_hwmod omap3xxx_gpmc_hwmod = {
-+	.name		= "gpmc",
-+	.class		= &omap3xxx_gpmc_hwmod_class,
-+	.clkdm_name	= "l3_init_clkdm",
-+	.mpu_irqs	= omap3xxx_gpmc_irqs,
-+	.main_clk	= "gpmc_fck",
-+	.flags		= HWMOD_INIT_NO_IDLE | HWMOD_INIT_NO_RESET,
-+};
++	gpmc_cs = kzalloc(sizeof(*gpmc_cs), GFP_KERNEL);
++	if (gpmc_pdev == NULL) {
++		kfree(gpmc_pdev);
++		return NULL;
++	}
 +
-+/*
-  * interfaces
-  */
++	gpmc_pdev->cs_data = gpmc_cs;
++	gpmc_pdev->num_cs = 1;
++	gpmc_pdev->name = "smsc911x";
++	gpmc_pdev->id = gpmc_cfg->id;
++	gpmc_pdev->pdata = &gpmc_smsc911x_config;
++	gpmc_pdev->pdata_size = sizeof(gpmc_smsc911x_config);
++
++	gpmc_cs->cs = gpmc_cfg->cs;
++	gpmc_cs->mem_size = 0x100;
++
++	gpmc_pdev->per_res = &gpmc_smsc911x_resources_new;
++	gpmc_pdev->per_res_cnt = 1;
++
++	if (gpio_request_one(gpmc_cfg->gpio_irq, GPIOF_IN, "smsc911x irq")) {
++		pr_err("Failed to request IRQ GPIO%d\n", gpmc_cfg->gpio_irq);
++		goto free1;
++	}
++
++	gpmc_smsc911x_resources_new.start = gpio_to_irq(gpmc_cfg->gpio_irq);
++
++	if (gpio_is_valid(gpmc_cfg->gpio_reset)) {
++		ret = gpio_request_one(gpmc_cfg->gpio_reset,
++				       GPIOF_OUT_INIT_HIGH, "smsc911x reset");
++		if (ret) {
++			pr_err("Failed to request reset GPIO%d\n",
++			       gpmc_cfg->gpio_reset);
++			goto free2;
++		}
++
++		gpio_set_value(gpmc_cfg->gpio_reset, 0);
++		msleep(100);
++		gpio_set_value(gpmc_cfg->gpio_reset, 1);
++	}
++
++	gpmc_smsc911x_config.flags = gpmc_cfg->flags ? : SMSC911X_USE_16BIT;
++
++	return gpmc_pdev;
++
++free2:
++	gpio_free(gpmc_cfg->gpio_irq);
++free1:
++	kfree(gpmc_cs);
++	kfree(gpmc_pdev);
++
++	pr_err("Could not initialize smsc911x device\n");
++
++	return NULL;
++}
+diff --git a/arch/arm/plat-omap/include/plat/gpmc-smsc911x.h b/arch/arm/plat-omap/include/plat/gpmc-smsc911x.h
+index ea6c9c8..2e28e52 100644
+--- a/arch/arm/plat-omap/include/plat/gpmc-smsc911x.h
++++ b/arch/arm/plat-omap/include/plat/gpmc-smsc911x.h
+@@ -25,11 +25,20 @@ struct omap_smsc911x_platform_data {
  
-@@ -3059,6 +3093,23 @@ static struct omap_hwmod_ocp_if omap3xxx_l4_core__usb_tll_hs = {
- 	.user		= OCP_USER_MPU | OCP_USER_SDMA,
- };
+ extern void gpmc_smsc911x_init(struct omap_smsc911x_platform_data *d);
  
-+static struct omap_hwmod_addr_space omap3xxx_gpmc_addrs[] = {
-+	{
-+		.pa_start	= 0x6E000000,
-+		.pa_end		= 0x6E000FFF,
-+		.flags		= ADDR_TYPE_RT
-+	},
-+	{ }
-+};
++extern struct gpmc_device_pdata *
++gpmc_smsc911x_init_new(struct omap_smsc911x_platform_data *d);
 +
-+static struct omap_hwmod_ocp_if omap3xxx_l3_main__gpmc = {
-+	.master		= &omap3xxx_l3_main_hwmod,
-+	.slave		= &omap3xxx_gpmc_hwmod,
-+	.clk		= "core_l3_ick",
-+	.addr		= omap3xxx_gpmc_addrs,
-+	.user		= OCP_USER_MPU | OCP_USER_SDMA,
-+};
-+
- static struct omap_hwmod_ocp_if *omap3xxx_hwmod_ocp_ifs[] __initdata = {
- 	&omap3xxx_l3_main__l4_core,
- 	&omap3xxx_l3_main__l4_per,
-@@ -3103,6 +3154,7 @@ static struct omap_hwmod_ocp_if *omap3xxx_hwmod_ocp_ifs[] __initdata = {
- 	&omap34xx_l4_core__mcspi2,
- 	&omap34xx_l4_core__mcspi3,
- 	&omap34xx_l4_core__mcspi4,
-+	&omap3xxx_l3_main__gpmc,
- 	NULL,
- };
+ #else
  
+ static inline void gpmc_smsc911x_init(struct omap_smsc911x_platform_data *d)
+ {
+ }
+ 
++static inline struct gpmc_device_pdata *
++gpmc_smsc911x_init_new(struct omap_smsc911x_platform_data *d)
++{
++	return NULL;
++}
++
+ #endif
+ #endif
 -- 
 1.7.10
 
