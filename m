@@ -1,426 +1,277 @@
 From: R Sricharan <r.sricharan@ti.com>
-Subject: [PATCH 08/13] ARM: OMAP5: Add the WakeupGen IP updates.
-Date: Thu, 3 May 2012 12:56:17 +0530
-Message-ID: <1336029982-31898-9-git-send-email-r.sricharan@ti.com>
+Subject: [PATCH 11/13] arm/dts: OMAP5: Add omap5 dts files
+Date: Thu, 3 May 2012 12:56:20 +0530
+Message-ID: <1336029982-31898-12-git-send-email-r.sricharan@ti.com>
 References: <1336029982-31898-1-git-send-email-r.sricharan@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from devils.ext.ti.com ([198.47.26.153]:46880 "EHLO
+Received: from devils.ext.ti.com ([198.47.26.153]:46876 "EHLO
 	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755642Ab2ECH0l (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 3 May 2012 03:26:41 -0400
+	with ESMTP id S1755348Ab2ECH0i (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 3 May 2012 03:26:38 -0400
 In-Reply-To: <1336029982-31898-1-git-send-email-r.sricharan@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: linux-omap@vger.kernel.org
 Cc: linux-arm-kernel@lists.infradead.org, santosh.shilimkar@ti.com, tony@atomide.com, b-cousson@ti.com, r.sricharan@ti.com
 
-From: Santosh Shilimkar <santosh.shilimkar@ti.com>
+Adding the minimum device tree files required for
+OMAP5 to boot.
 
-OMAP4 and OMAP5 share same WakeupGen IP with below few udpates on OMAP5.
-- Additional 32 interrupt support is added w.r.t OMAP4 design.
-- The AUX CORE boot registers are now made accessible from non-secure SW.
-- SAR offset are changed and PTMSYNC* registers are removed from SAR.
-
-Patch updates the WakeupGen code accordingly.
-
-Signed-off-by: Santosh Shilimkar <santosh.shilimkar@ti.com>
 Signed-off-by: R Sricharan <r.sricharan@ti.com>
 ---
- arch/arm/mach-omap2/include/mach/omap-wakeupgen.h |    6 +
- arch/arm/mach-omap2/omap-hotplug.c                |   24 ++++-
- arch/arm/mach-omap2/omap-smp.c                    |   19 +++-
- arch/arm/mach-omap2/omap-wakeupgen.c              |  110 +++++++++++++++-----
- arch/arm/mach-omap2/omap4-sar-layout.h            |   12 ++-
- 5 files changed, 135 insertions(+), 36 deletions(-)
+ .../devicetree/bindings/arm/omap/omap.txt          |    3 +
+ arch/arm/boot/dts/omap5-evm.dts                    |   20 ++
+ arch/arm/boot/dts/omap5.dtsi                       |  201 ++++++++++++++++++++
+ 3 files changed, 224 insertions(+), 0 deletions(-)
+ create mode 100644 arch/arm/boot/dts/omap5-evm.dts
+ create mode 100644 arch/arm/boot/dts/omap5.dtsi
 
-diff --git a/arch/arm/mach-omap2/include/mach/omap-wakeupgen.h b/arch/arm/mach-omap2/include/mach/omap-wakeupgen.h
-index 548de90..4d700bc 100644
---- a/arch/arm/mach-omap2/include/mach/omap-wakeupgen.h
-+++ b/arch/arm/mach-omap2/include/mach/omap-wakeupgen.h
-@@ -11,15 +11,20 @@
- #ifndef OMAP_ARCH_WAKEUPGEN_H
- #define OMAP_ARCH_WAKEUPGEN_H
+diff --git a/Documentation/devicetree/bindings/arm/omap/omap.txt b/Documentation/devicetree/bindings/arm/omap/omap.txt
+index e78e8bc..3d450f6 100644
+--- a/Documentation/devicetree/bindings/arm/omap/omap.txt
++++ b/Documentation/devicetree/bindings/arm/omap/omap.txt
+@@ -47,3 +47,6 @@ Boards:
  
-+/* OMAP4 and OMAP5 has same base address */
-+#define OMAP_WKUPGEN_BASE			0x48281000
+ - AM335X EVM : Software Developement Board for AM335x
+   compatible = "ti,am335x-evm", "ti,am33xx", "ti,omap3"
 +
- #define OMAP_WKG_CONTROL_0			0x00
- #define OMAP_WKG_ENB_A_0			0x10
- #define OMAP_WKG_ENB_B_0			0x14
- #define OMAP_WKG_ENB_C_0			0x18
- #define OMAP_WKG_ENB_D_0			0x1c
-+#define OMAP_WKG_ENB_E_0			0x20
- #define OMAP_WKG_ENB_A_1			0x410
- #define OMAP_WKG_ENB_B_1			0x414
- #define OMAP_WKG_ENB_C_1			0x418
- #define OMAP_WKG_ENB_D_1			0x41c
-+#define OMAP_WKG_ENB_E_1			0x420
- #define OMAP_AUX_CORE_BOOT_0			0x800
- #define OMAP_AUX_CORE_BOOT_1			0x804
- #define OMAP_PTMSYNCREQ_MASK			0xc00
-@@ -28,4 +33,5 @@
- #define OMAP_TIMESTAMPCYCLEHI			0xc0c
- 
- extern int __init omap_wakeupgen_init(void);
-+extern void __iomem *omap_get_wakeupgen_base(void);
- #endif
-diff --git a/arch/arm/mach-omap2/omap-hotplug.c b/arch/arm/mach-omap2/omap-hotplug.c
-index 56c345b..052303c 100644
---- a/arch/arm/mach-omap2/omap-hotplug.c
-+++ b/arch/arm/mach-omap2/omap-hotplug.c
-@@ -17,8 +17,10 @@
- #include <linux/kernel.h>
- #include <linux/errno.h>
- #include <linux/smp.h>
-+#include <linux/io.h>
- 
- #include <asm/cacheflush.h>
-+#include <mach/omap-wakeupgen.h>
- 
- #include "common.h"
- 
-@@ -35,7 +37,8 @@ int platform_cpu_kill(unsigned int cpu)
-  */
- void __ref platform_cpu_die(unsigned int cpu)
- {
--	unsigned int this_cpu;
-+	unsigned int boot_cpu = 0;
-+	void __iomem *base = omap_get_wakeupgen_base();
- 
- 	flush_cache_all();
- 	dsb();
-@@ -43,16 +46,27 @@ void __ref platform_cpu_die(unsigned int cpu)
- 	/*
- 	 * we're ready for shutdown now, so do it
- 	 */
--	if (omap_modify_auxcoreboot0(0x0, 0x200) != 0x0)
--		pr_err("Secure clear status failed\n");
-+	if (cpu_is_omap44xx()) {
-+		if (omap_modify_auxcoreboot0(0x0, 0x200) != 0x0)
-+			pr_err("Secure clear status failed\n");
-+	} else {
-+		__raw_writel(0, base + OMAP_AUX_CORE_BOOT_0);
-+	}
++- OMAP5 EVM : Evaluation Module
++  compatible = "ti,omap5-evm", "ti,omap5"
+diff --git a/arch/arm/boot/dts/omap5-evm.dts b/arch/arm/boot/dts/omap5-evm.dts
+new file mode 100644
+index 0000000..200c39a
+--- /dev/null
++++ b/arch/arm/boot/dts/omap5-evm.dts
+@@ -0,0 +1,20 @@
++/*
++ * Copyright (C) 2012 Texas Instruments Incorporated - http://www.ti.com/
++ *
++ * This program is free software; you can redistribute it and/or modify
++ * it under the terms of the GNU General Public License version 2 as
++ * published by the Free Software Foundation.
++ */
++/dts-v1/;
 +
- 
- 	for (;;) {
- 		/*
- 		 * Enter into low power state
- 		 */
- 		omap4_hotplug_cpu(cpu, PWRDM_POWER_OFF);
--		this_cpu = smp_processor_id();
--		if (omap_read_auxcoreboot0() == this_cpu) {
++/include/ "omap5.dtsi"
 +
-+		if (cpu_is_omap44xx())
-+			boot_cpu = omap_read_auxcoreboot0();
-+		else
-+			boot_cpu =
-+				__raw_readl(base + OMAP_AUX_CORE_BOOT_0) >> 5;
++/ {
++	model = "TI OMAP5 EVM board";
++	compatible = "ti,omap5-evm", "ti,omap5";
 +
-+		if (boot_cpu == smp_processor_id()) {
- 			/*
- 			 * OK, proper wakeup, we're done
- 			 */
-diff --git a/arch/arm/mach-omap2/omap-smp.c b/arch/arm/mach-omap2/omap-smp.c
-index deffbf1..151fd5b 100644
---- a/arch/arm/mach-omap2/omap-smp.c
-+++ b/arch/arm/mach-omap2/omap-smp.c
-@@ -26,6 +26,8 @@
- 
- #include <mach/hardware.h>
- #include <mach/omap-secure.h>
-+#include <mach/omap-wakeupgen.h>
-+#include <asm/cputype.h>
- 
- #include "iomap.h"
- #include "common.h"
-@@ -73,6 +75,8 @@ int __cpuinit boot_secondary(unsigned int cpu, struct task_struct *idle)
- {
- 	static struct clockdomain *cpu1_clkdm;
- 	static bool booted;
-+	void __iomem *base = omap_get_wakeupgen_base();
-+
- 	/*
- 	 * Set synchronisation state between this boot processor
- 	 * and the secondary one
-@@ -85,7 +89,11 @@ int __cpuinit boot_secondary(unsigned int cpu, struct task_struct *idle)
- 	 * the AuxCoreBoot1 register is updated with cpu state
- 	 * A barrier is added to ensure that write buffer is drained
- 	 */
--	omap_modify_auxcoreboot0(0x200, 0xfffffdff);
-+	if (cpu_is_omap44xx())
-+		omap_modify_auxcoreboot0(0x200, 0xfffffdff);
-+	else
-+		__raw_writel(0x20, base + OMAP_AUX_CORE_BOOT_0);
-+
- 	flush_cache_all();
- 	smp_wmb();
- 
-@@ -124,13 +132,20 @@ int __cpuinit boot_secondary(unsigned int cpu, struct task_struct *idle)
- 
- static void __init wakeup_secondary(void)
- {
-+	void __iomem *base = omap_get_wakeupgen_base();
-+
- 	/*
- 	 * Write the address of secondary startup routine into the
- 	 * AuxCoreBoot1 where ROM code will jump and start executing
- 	 * on secondary core once out of WFE
- 	 * A barrier is added to ensure that write buffer is drained
- 	 */
--	omap_auxcoreboot_addr(virt_to_phys(omap_secondary_startup));
-+	if (cpu_is_omap44xx())
-+		omap_auxcoreboot_addr(virt_to_phys(omap_secondary_startup));
-+	else
-+		__raw_writel(virt_to_phys(omap5_secondary_startup),
-+						base + OMAP_AUX_CORE_BOOT_1);
-+
- 	smp_wmb();
- 
- 	/*
-diff --git a/arch/arm/mach-omap2/omap-wakeupgen.c b/arch/arm/mach-omap2/omap-wakeupgen.c
-index 42cd7fb..444cf12 100644
---- a/arch/arm/mach-omap2/omap-wakeupgen.c
-+++ b/arch/arm/mach-omap2/omap-wakeupgen.c
-@@ -33,18 +33,22 @@
- #include "omap4-sar-layout.h"
- #include "common.h"
- 
--#define NR_REG_BANKS		4
--#define MAX_IRQS		128
-+#define MAX_NR_REG_BANKS	5
-+#define MAX_IRQS		160
- #define WKG_MASK_ALL		0x00000000
- #define WKG_UNMASK_ALL		0xffffffff
- #define CPU_ENA_OFFSET		0x400
- #define CPU0_ID			0x0
- #define CPU1_ID			0x1
-+#define OMAP4_NR_BANKS		4
-+#define OMAP4_NR_IRQS		128
- 
- static void __iomem *wakeupgen_base;
- static void __iomem *sar_base;
- static DEFINE_SPINLOCK(wakeupgen_lock);
- static unsigned int irq_target_cpu[NR_IRQS];
-+static unsigned int irq_banks = MAX_NR_REG_BANKS;
-+static unsigned int max_irqs = MAX_IRQS;
- 
- /*
-  * Static helper functions.
-@@ -146,13 +150,13 @@ static void wakeupgen_unmask(struct irq_data *d)
- }
- 
- #ifdef CONFIG_HOTPLUG_CPU
--static DEFINE_PER_CPU(u32 [NR_REG_BANKS], irqmasks);
-+static DEFINE_PER_CPU(u32 [MAX_NR_REG_BANKS], irqmasks);
- 
- static void _wakeupgen_save_masks(unsigned int cpu)
- {
- 	u8 i;
- 
--	for (i = 0; i < NR_REG_BANKS; i++)
-+	for (i = 0; i < irq_banks; i++)
- 		per_cpu(irqmasks, cpu)[i] = wakeupgen_readl(i, cpu);
- }
- 
-@@ -160,7 +164,7 @@ static void _wakeupgen_restore_masks(unsigned int cpu)
- {
- 	u8 i;
- 
--	for (i = 0; i < NR_REG_BANKS; i++)
-+	for (i = 0; i < irq_banks; i++)
- 		wakeupgen_writel(per_cpu(irqmasks, cpu)[i], i, cpu);
- }
- 
-@@ -168,7 +172,7 @@ static void _wakeupgen_set_all(unsigned int cpu, unsigned int reg)
- {
- 	u8 i;
- 
--	for (i = 0; i < NR_REG_BANKS; i++)
-+	for (i = 0; i < irq_banks; i++)
- 		wakeupgen_writel(reg, i, cpu);
- }
- 
-@@ -196,25 +200,11 @@ static void wakeupgen_irqmask_all(unsigned int cpu, unsigned int set)
- #endif
- 
- #ifdef CONFIG_CPU_PM
--/*
-- * Save WakeupGen interrupt context in SAR BANK3. Restore is done by
-- * ROM code. WakeupGen IP is integrated along with GIC to manage the
-- * interrupt wakeups from CPU low power states. It manages
-- * masking/unmasking of Shared peripheral interrupts(SPI). So the
-- * interrupt enable/disable control should be in sync and consistent
-- * at WakeupGen and GIC so that interrupts are not lost.
-- */
--static void irq_save_context(void)
-+static inline void omap4_irq_save_context(void)
- {
- 	u32 i, val;
- 
--	if (omap_rev() == OMAP4430_REV_ES1_0)
--		return;
--
--	if (!sar_base)
--		sar_base = omap4_get_sar_ram_base();
--
--	for (i = 0; i < NR_REG_BANKS; i++) {
-+	for (i = 0; i < irq_banks; i++) {
- 		/* Save the CPUx interrupt mask for IRQ 0 to 127 */
- 		val = wakeupgen_readl(i, 0);
- 		sar_writel(val, WAKEUPGENENB_OFFSET_CPU0, i);
-@@ -254,6 +244,53 @@ static void irq_save_context(void)
- 	val = __raw_readl(sar_base + SAR_BACKUP_STATUS_OFFSET);
- 	val |= SAR_BACKUP_STATUS_WAKEUPGEN;
- 	__raw_writel(val, sar_base + SAR_BACKUP_STATUS_OFFSET);
-+
-+}
-+
-+static inline void omap5_irq_save_context(void)
-+{
-+	u32 i, val;
-+
-+	for (i = 0; i < irq_banks; i++) {
-+		/* Save the CPUx interrupt mask for IRQ 0 to 159 */
-+		val = wakeupgen_readl(i, 0);
-+		sar_writel(val, OMAP5_WAKEUPGENENB_OFFSET_CPU0, i);
-+		val = wakeupgen_readl(i, 1);
-+		sar_writel(val, OMAP5_WAKEUPGENENB_OFFSET_CPU1, i);
-+		sar_writel(0x0, OMAP5_WAKEUPGENENB_SECURE_OFFSET_CPU0, i);
-+		sar_writel(0x0, OMAP5_WAKEUPGENENB_SECURE_OFFSET_CPU1, i);
-+	}
-+
-+	/* Save AuxBoot* registers */
-+	val = __raw_readl(wakeupgen_base + OMAP_AUX_CORE_BOOT_0);
-+	__raw_writel(val, sar_base + OMAP5_AUXCOREBOOT0_OFFSET);
-+	val = __raw_readl(wakeupgen_base + OMAP_AUX_CORE_BOOT_0);
-+	__raw_writel(val, sar_base + OMAP5_AUXCOREBOOT1_OFFSET);
-+
-+	/* Set the Backup Bit Mask status */
-+	val = __raw_readl(sar_base + OMAP5_SAR_BACKUP_STATUS_OFFSET);
-+	val |= SAR_BACKUP_STATUS_WAKEUPGEN;
-+	__raw_writel(val, sar_base + OMAP5_SAR_BACKUP_STATUS_OFFSET);
-+
-+}
++	memory {
++		device_type = "memory";
++		reg = <0x80000000 0x40000000>; /* 1 GB */
++	};
++};
+diff --git a/arch/arm/boot/dts/omap5.dtsi b/arch/arm/boot/dts/omap5.dtsi
+new file mode 100644
+index 0000000..b50c28d
+--- /dev/null
++++ b/arch/arm/boot/dts/omap5.dtsi
+@@ -0,0 +1,201 @@
++/*
++ * Copyright (C) 2012 Texas Instruments Incorporated - http://www.ti.com/
++ *
++ * This program is free software; you can redistribute it and/or modify
++ * it under the terms of the GNU General Public License version 2 as
++ * published by the Free Software Foundation.
++ * Based on "omap4.dtsi"
++ */
 +
 +/*
-+ * Save WakeupGen interrupt context in SAR BANK3. Restore is done by
-+ * ROM code. WakeupGen IP is integrated along with GIC to manage the
-+ * interrupt wakeups from CPU low power states. It manages
-+ * masking/unmasking of Shared peripheral interrupts(SPI). So the
-+ * interrupt enable/disable control should be in sync and consistent
-+ * at WakeupGen and GIC so that interrupts are not lost.
++ * Carveout for multimedia usecases
++ * It should be the last 48MB of the first 512MB memory part
++ * In theory, it should not even exist. That zone should be reserved
++ * dynamically during the .reserve callback.
 + */
-+static void irq_save_context(void)
-+{
-+	if (!sar_base)
-+		sar_base = omap4_get_sar_ram_base();
++/memreserve/ 0x9d000000 0x03000000;
 +
-+	if (cpu_is_omap54xx())
-+		omap5_irq_save_context();
-+	else
-+		omap4_irq_save_context();
- }
- 
- /*
-@@ -262,9 +299,14 @@ static void irq_save_context(void)
- void irq_sar_clear(void)
- {
- 	u32 val;
--	val = __raw_readl(sar_base + SAR_BACKUP_STATUS_OFFSET);
-+	u32 offset = SAR_BACKUP_STATUS_OFFSET;
++/include/ "skeleton.dtsi"
 +
-+	if (cpu_is_omap54xx())
-+		offset = OMAP5_SAR_BACKUP_STATUS_OFFSET;
++/ {
++	compatible = "ti,omap5";
++	interrupt-parent = <&gic>;
 +
-+	val = __raw_readl(sar_base + offset);
- 	val &= ~SAR_BACKUP_STATUS_WAKEUPGEN;
--	__raw_writel(val, sar_base + SAR_BACKUP_STATUS_OFFSET);
-+	__raw_writel(val, sar_base + offset);
- }
- 
- /*
-@@ -336,13 +378,20 @@ static struct notifier_block irq_notifier_block = {
- 
- static void __init irq_pm_init(void)
- {
--	cpu_pm_register_notifier(&irq_notifier_block);
-+	/* FIXME: Remove this when MPU OSWR support is added */
-+	if (!cpu_is_omap54xx())
-+		cpu_pm_register_notifier(&irq_notifier_block);
- }
- #else
- static void __init irq_pm_init(void)
- {}
- #endif
- 
-+void __iomem *omap_get_wakeupgen_base(void)
-+{
-+	return wakeupgen_base;
-+}
++	aliases {
++		serial0 = &uart1;
++		serial1 = &uart2;
++		serial2 = &uart3;
++		serial3 = &uart4;
++		serial4 = &uart5;
++		serial5 = &uart6;
++	};
 +
- /*
-  * Initialise the wakeupgen module.
-  */
-@@ -358,12 +407,17 @@ int __init omap_wakeupgen_init(void)
- 	}
- 
- 	/* Static mapping, never released */
--	wakeupgen_base = ioremap(OMAP44XX_WKUPGEN_BASE, SZ_4K);
-+	wakeupgen_base = ioremap(OMAP_WKUPGEN_BASE, SZ_4K);
- 	if (WARN_ON(!wakeupgen_base))
- 		return -ENOMEM;
- 
-+	if (cpu_is_omap44xx()) {
-+		irq_banks = OMAP4_NR_BANKS;
-+		max_irqs = OMAP4_NR_IRQS;
-+	}
++	cpus {
++		cpu@0 {
++			compatible = "arm,cortex-a15";
++		};
++		cpu@1 {
++			compatible = "arm,cortex-a15";
++		};
++	};
 +
- 	/* Clear all IRQ bitmasks at wakeupGen level */
--	for (i = 0; i < NR_REG_BANKS; i++) {
-+	for (i = 0; i < irq_banks; i++) {
- 		wakeupgen_writel(0, i, CPU0_ID);
- 		wakeupgen_writel(0, i, CPU1_ID);
- 	}
-@@ -382,7 +436,7 @@ int __init omap_wakeupgen_init(void)
- 	 */
- 
- 	/* Associate all the IRQs to boot CPU like GIC init does. */
--	for (i = 0; i < NR_IRQS; i++)
-+	for (i = 0; i < max_irqs; i++)
- 		irq_target_cpu[i] = boot_cpu;
- 
- 	irq_hotplug_init();
-diff --git a/arch/arm/mach-omap2/omap4-sar-layout.h b/arch/arm/mach-omap2/omap4-sar-layout.h
-index fe5b545..e170fe8 100644
---- a/arch/arm/mach-omap2/omap4-sar-layout.h
-+++ b/arch/arm/mach-omap2/omap4-sar-layout.h
-@@ -12,7 +12,7 @@
- #define OMAP_ARCH_OMAP4_SAR_LAYOUT_H
- 
- /*
-- * SAR BANK offsets from base address OMAP44XX_SAR_RAM_BASE
-+ * SAR BANK offsets from base address OMAP44XX/54XX_SAR_RAM_BASE
-  */
- #define SAR_BANK1_OFFSET		0x0000
- #define SAR_BANK2_OFFSET		0x1000
-@@ -47,4 +47,14 @@
- #define PTMSYNCREQ_EN_OFFSET			(SAR_BANK3_OFFSET + 0x6d0)
- #define SAR_BACKUP_STATUS_WAKEUPGEN		0x10
- 
-+/* WakeUpGen save restore offset from OMAP54XX_SAR_RAM_BASE */
-+#define OMAP5_WAKEUPGENENB_OFFSET_CPU0		(SAR_BANK3_OFFSET + 0x8d4)
-+#define OMAP5_WAKEUPGENENB_SECURE_OFFSET_CPU0	(SAR_BANK3_OFFSET + 0x8e8)
-+#define OMAP5_WAKEUPGENENB_OFFSET_CPU1		(SAR_BANK3_OFFSET + 0x8fc)
-+#define OMAP5_WAKEUPGENENB_SECURE_OFFSET_CPU1	(SAR_BANK3_OFFSET + 0x910)
-+#define OMAP5_AUXCOREBOOT0_OFFSET		(SAR_BANK3_OFFSET + 0x924)
-+#define OMAP5_AUXCOREBOOT1_OFFSET		(SAR_BANK3_OFFSET + 0x928)
-+#define OMAP5_AMBA_IF_MODE_OFFSET		(SAR_BANK3_OFFSET + 0x92c)
-+#define OMAP5_SAR_BACKUP_STATUS_OFFSET		(SAR_BANK3_OFFSET + 0x800)
++	/*
++	 * The soc node represents the soc top level view. It is uses for IPs
++	 * that are not memory mapped in the MPU view or for the MPU itself.
++	 */
++	soc {
++		compatible = "ti,omap-infra";
++		mpu {
++			compatible = "ti,omap5-mpu";
++			ti,hwmods = "mpu";
++		};
++	};
 +
- #endif
++	/*
++	 * XXX: Use a flat representation of the OMAP4 interconnect.
++	 * The real OMAP interconnect network is quite complex.
++	 *
++	 * MPU -+-- MPU_PRIVATE - GIC, L2
++	 *      |
++	 *      +----------------+----------+
++	 *      |                |          |
++	 *      +            +- EMIF - DDR  |
++	 *      |            |              |
++	 *      |            +     +--------+
++	 *      |            |     |
++	 *      |            +- L4_ABE - AESS, MCBSP, TIMERs...
++	 *      |            |
++	 *      +- L3_MAIN --+- L4_CORE - IPs...
++	 *                   |
++	 *                   +- L4_PER - IPs...
++	 *                   |
++	 *
++	 * Since that will not bring real advantage to represent that in DT for
++	 * the moment, just use a fake OCP bus entry to represent the whole bus
++	 * hierarchy.
++	 */
++	ocp {
++		compatible = "ti,omap4-l3-noc", "simple-bus";
++		#address-cells = <1>;
++		#size-cells = <1>;
++		ranges;
++		ti,hwmods = "l3_main_1", "l3_main_2", "l3_main_3";
++
++		gic: interrupt-controller@48211000 {
++			compatible = "arm,cortex-a15-gic";
++			interrupt-controller;
++			#interrupt-cells = <3>;
++			reg = <0x48211000 0x1000>,
++			      <0x48212000 0x1000>;
++		};
++
++		gpio1: gpio@4ae10000 {
++			compatible = "ti,omap4-gpio";
++			ti,hwmods = "gpio1";
++			gpio-controller;
++			#gpio-cells = <2>;
++			interrupt-controller;
++			#interrupt-cells = <1>;
++		};
++
++		gpio2: gpio@48055000 {
++			compatible = "ti,omap4-gpio";
++			ti,hwmods = "gpio2";
++			gpio-controller;
++			#gpio-cells = <2>;
++			interrupt-controller;
++			#interrupt-cells = <1>;
++		};
++
++		gpio3: gpio@48057000 {
++			compatible = "ti,omap4-gpio";
++			ti,hwmods = "gpio3";
++			gpio-controller;
++			#gpio-cells = <2>;
++			interrupt-controller;
++			#interrupt-cells = <1>;
++		};
++
++		gpio4: gpio@48059000 {
++			compatible = "ti,omap4-gpio";
++			ti,hwmods = "gpio4";
++			gpio-controller;
++			#gpio-cells = <2>;
++			interrupt-controller;
++			#interrupt-cells = <1>;
++		};
++
++		gpio5: gpio@4805b000 {
++			compatible = "ti,omap4-gpio";
++			ti,hwmods = "gpio5";
++			gpio-controller;
++			#gpio-cells = <2>;
++			interrupt-controller;
++			#interrupt-cells = <1>;
++		};
++
++		gpio6: gpio@4805d000 {
++			compatible = "ti,omap4-gpio";
++			ti,hwmods = "gpio6";
++			gpio-controller;
++			#gpio-cells = <2>;
++			interrupt-controller;
++			#interrupt-cells = <1>;
++		};
++
++		gpio7: gpio@48051000 {
++			compatible = "ti,omap4-gpio";
++			ti,hwmods = "gpio7";
++			gpio-controller;
++			#gpio-cells = <2>;
++			interrupt-controller;
++			#interrupt-cells = <1>;
++		};
++
++		gpio8: gpio@48053000 {
++			compatible = "ti,omap4-gpio";
++			ti,hwmods = "gpio8";
++			gpio-controller;
++			#gpio-cells = <2>;
++			interrupt-controller;
++			#interrupt-cells = <1>;
++		};
++
++		uart1: serial@4806a000 {
++			compatible = "ti,omap4-uart";
++			ti,hwmods = "uart1";
++			clock-frequency = <48000000>;
++		};
++
++		uart2: serial@4806c000 {
++			compatible = "ti,omap4-uart";
++			ti,hwmods = "uart2";
++			clock-frequency = <48000000>;
++		};
++
++		uart3: serial@48020000 {
++			compatible = "ti,omap4-uart";
++			ti,hwmods = "uart3";
++			clock-frequency = <48000000>;
++		};
++
++		uart4: serial@4806e000 {
++			compatible = "ti,omap4-uart";
++			ti,hwmods = "uart4";
++			clock-frequency = <48000000>;
++		};
++
++		uart5: serial@48066000 {
++			compatible = "ti,omap5-uart";
++			ti,hwmods = "uart5";
++			clock-frequency = <48000000>;
++		};
++
++		uart6: serial@48068000 {
++			compatible = "ti,omap6-uart";
++			ti,hwmods = "uart6";
++			clock-frequency = <48000000>;
++		};
++	};
++};
++
 -- 
 1.7.1
 
