@@ -1,48 +1,56 @@
 From: Tomi Valkeinen <tomi.valkeinen@ti.com>
-Subject: Re: Problems with 3.4-rc5
-Date: Thu, 03 May 2012 16:07:22 +0300
-Message-ID: <1336050442.14378.10.camel@deskari>
-References: <WC20120502115251.8503FF@terrafix.co.uk>
-	 <4FA12775.1090206@ti.com> <WC20120502124638.320406@terrafix.co.uk>
-	 <1336033721.14378.2.camel@deskari> <WC20120503084938.900446@terrafix.co.uk>
+Subject: Re: [PATCH 1/4] OMAP: DSS2: Remove suspicous and unused TAAL
+ regulator API usage
+Date: Thu, 03 May 2012 16:11:00 +0300
+Message-ID: <1336050660.14378.12.camel@deskari>
+References: <1336042634-28486-1-git-send-email-broonie@opensource.wolfsonmicro.com>
 Mime-Version: 1.0
 Content-Type: multipart/signed; micalg="pgp-sha1"; protocol="application/pgp-signature";
-	boundary="=-BUONxa7y40BKcmfMC1Qe"
+	boundary="=-fFcRtc9waKDrVOqUOSQz"
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aog105.obsmtp.com ([74.125.149.75]:50839 "EHLO
-	na3sys009aog105.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751959Ab2ECNH1 (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 3 May 2012 09:07:27 -0400
-Received: by lbon10 with SMTP id n10so2248474lbo.27
-        for <linux-omap@vger.kernel.org>; Thu, 03 May 2012 06:07:24 -0700 (PDT)
-In-Reply-To: <WC20120503084938.900446@terrafix.co.uk>
+Received: from na3sys009aog107.obsmtp.com ([74.125.149.197]:33159 "EHLO
+	na3sys009aog107.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1753382Ab2ECNLF (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 3 May 2012 09:11:05 -0400
+Received: by lahi5 with SMTP id i5so2100313lah.39
+        for <linux-omap@vger.kernel.org>; Thu, 03 May 2012 06:11:03 -0700 (PDT)
+In-Reply-To: <1336042634-28486-1-git-send-email-broonie@opensource.wolfsonmicro.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Joe Woodward <jw@terrafix.co.uk>
-Cc: Archit Taneja <a0393947@ti.com>, linux-omap@vger.kernel.org
+To: Mark Brown <broonie@opensource.wolfsonmicro.com>
+Cc: Florian Tobias Schandinat <FlorianSchandinat@gmx.de>, linux-fbdev@vger.kernel.org, linux-omap@vger.kernel.org
 
 
---=-BUONxa7y40BKcmfMC1Qe
+--=-fFcRtc9waKDrVOqUOSQz
 Content-Type: text/plain; charset="UTF-8"
 Content-Transfer-Encoding: quoted-printable
 
-On Thu, 2012-05-03 at 09:49 +0100, Joe Woodward wrote:
+Hi,
 
-> Both patches together results in slightly different behaviour, the displa=
-y is still broken-=20
-> it flickers on and off with occassional underflows before breaking comple=
-tely.
+On Thu, 2012-05-03 at 11:57 +0100, Mark Brown wrote:
+> The TAAL driver contains some regulator support which is currently unused
+> (the code is there but the one panel supported by the driver doesn't have
+> any regulators provided). This code mostly looks like an open coded
+> version of the regulator core bulk API.
+>=20
+> The only additional feature is that a voltage range can be set once when
+> the device is opened, though this is never varied at runtime. The general
+> expectation is that if the device is not actively managing the voltage of
+> the device (eg, doing DVFS) then any configuration will be done using the
+> constraints rather than by drivers, saving them code and ensuring that
+> they work well with systems where the voltage is not configurable.
+>=20
+> If systems are added needing regulator support this can be added back in,
+> though it should be based on core features rather than open coding things=
+.
 
-Beagle works fine for me with omap2plus based config, and I think overo
-also although I can't test it now as I broke my micro mmc adapter.
-
-Can you send your panel definition? Any other things that could affect
-display? Do you have PM enabled? Can you share your kernel config?
+I've already applied this and the three other patches that you sent in
+March to my omapdss tree. Have there been any changes?
 
  Tomi
 
 
---=-BUONxa7y40BKcmfMC1Qe
+--=-fFcRtc9waKDrVOqUOSQz
 Content-Type: application/pgp-signature; name="signature.asc"
 Content-Description: This is a digitally signed message part
 Content-Transfer-Encoding: 7bit
@@ -50,20 +58,20 @@ Content-Transfer-Encoding: 7bit
 -----BEGIN PGP SIGNATURE-----
 Version: GnuPG v1.4.11 (GNU/Linux)
 
-iQIcBAABAgAGBQJPooMKAAoJEPo9qoy8lh71HzcQALItzzFxGZ+eUPgbmARkt3DL
-+aOL4WqTeqc8G28siPr7glqcfPY9O+H+5+pamki1ahBbs2Pc9n4GiBqX9O+EsNp1
-GUdOxHfCRUUe0Jz2yVv2lgslYz2aRU57koL8b7LwhPJPXh7S4sZjs871wW2WAqZI
-RktswJZjoijlRzN1iOXMb58ILkMZkFPgB+qrSLPgaA8u3+fsLEGONpqGRF+9TDp2
-VIH0iH8am/9O1DeEt5vI6pwW++Ewnkbjan9WZGDm/WcEyDsbRxlthaaJpxYGV4BG
-ifGKDuoaNrGIc4advbKwO3J5Xj4EiUxPlqAz9MPU0xJ+Au32vb10wQ2ygDAUa36t
-Eig2QQZMXTNgKlF/kV4mEkJSJ7eG+9glNHJsgFTQYPTjmydiFo+QHn5kcSPbbtBr
-IR70RMRFI7SELGPnupOEybp/GZgxwMFL/LlBCHVS4n55VELm1aHFQ1jR1n7eUTZE
-8o+tsc+HALe308OxI5OBkbQxkaj8w1H/eZJx8BOXhdKaAa3NVmfEpVYQW1BcdYKX
-GiYQovgAHhyL9EE3f7XBeUktYYjq7aaL40jzKZLYEEbDdBeknhH/Bj/q3Hrs1z6G
-F7HYDigR+WIt9FLG7+IuI8sopYUZO7GFBFEB0vLTdnwnDPFw1MQPI0ouepTzRPxb
-hU0+e1Ldhbk5QdN3KN+B
-=6U4H
+iQIcBAABAgAGBQJPooPkAAoJEPo9qoy8lh71Sb0P/RtrMpoEocvw8FUm0H2H2Tkk
+DT1QNRLXWZVFrB7KiQC8ZhOsnwhQIgOnIKxxiANV3LjW+QRLXSYsmb6or6koQQrh
+IGNs3wQAZchQ9UAWO83My0E33yPgmDV33VYc8KurZsxnLnTiGq/RUZ4m4NgkzZ/f
+j58zUCXEVMQKX4wgGb1Ucf5oTmtQXrHQakBfBfVlHLeWE7X2FoNqD6Plh4770Asn
+WM1zw2UL3h95hl8VaVL3S5K4q5VslyAp6j7Q7Fe7eCpburDc/Fb2Mj+HTz4cQ+vg
+4sD5ef696Vw4bZqh+9e8CWplrpNYzudZAX+bTFt6SqxL3ljgTrSP1AE67n1KVUtl
+6mfyFAiRZomH/J9DKA3LIEuoKbhH+Y+cYFFJM0UezNz55TOZdtQQr01HoRepK8ne
+XXV5Pr6YDiWbCzVh4HDalLiUYjcYUih6otAImLl+M+mvzbYFGT5H4V28XelDM3Wd
+HYW3I3Vquznmfltk+hIeK8cxTDorf7EvL41+NrwK1o2e0jP404JSma/lSE/jx+2s
+l4RwVFeFWdKjfBdyJ/2nyW+0vkX7rbMJv54JncO+fIiVEW4aMXHIk0sG6Pb/ua8P
+DCcDSHMXiIa1Z9jLzEJFPD5LkVwRECGaNvb25jsgD7/45+tj3ncc6EsXTOsJlVOy
+o85PGPU9R3kT23GFsMsx
+=Egr6
 -----END PGP SIGNATURE-----
 
---=-BUONxa7y40BKcmfMC1Qe--
+--=-fFcRtc9waKDrVOqUOSQz--
 
