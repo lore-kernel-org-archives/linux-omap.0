@@ -1,48 +1,163 @@
-From: "Bedia, Vaibhav" <vaibhav.bedia@ti.com>
-Subject: RE: [PATCH] net: davinci_emac: Add pre_open, post_stop platform
- callbacks
-Date: Thu, 3 May 2012 10:44:44 +0000
-Message-ID: <B5906170F1614E41A8A28DE3B8D121433EA72820@DBDE01.ent.ti.com>
-References: <20120502234718.GA5432@animalcreek.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
-Return-path: <netdev-owner@vger.kernel.org>
-In-Reply-To: <20120502234718.GA5432@animalcreek.com>
-Content-Language: en-US
-Sender: netdev-owner@vger.kernel.org
-To: "Mark A. Greer" <mgreer@animalcreek.com>, "netdev@vger.kernel.org" <netdev@vger.kernel.org>
-Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>
+From: Mark Brown <broonie@opensource.wolfsonmicro.com>
+Subject: [PATCH 1/4] OMAP: DSS2: Remove suspicous and unused TAAL regulator API usage
+Date: Thu,  3 May 2012 11:57:11 +0100
+Message-ID: <1336042634-28486-1-git-send-email-broonie@opensource.wolfsonmicro.com>
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from opensource.wolfsonmicro.com ([80.75.67.52]:39064 "EHLO
+	opensource.wolfsonmicro.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1756932Ab2ECK5X (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 3 May 2012 06:57:23 -0400
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Tomi Valkeinen <tomi.valkeinen@ti.com>, Florian Tobias Schandinat <FlorianSchandinat@gmx.de>
+Cc: linux-fbdev@vger.kernel.org, linux-omap@vger.kernel.org, Mark Brown <broonie@opensource.wolfsonmicro.com>
 
-On Thu, May 03, 2012 at 05:17:18, Mark A. Greer wrote:
-> From: "Mark A. Greer" <mgreer@animalcreek.com>
-> 
-> The davinci EMAC driver has been incorporated into the am35x
-> family of SoC's which is OMAP-based.  The incorporation is
-> incomplete in that the EMAC cannot unblock the [ARM] core if
-> its blocked on a 'wfi' instruction.  This is an issue with
-> the cpu_idle code because it has the core execute a 'wfi'
-> instruction.
-> 
-> To work around this issue, add platform data callbacks which
-> are called at the beginning of the open routine and at the
-> end of the stop routine of the davinci_emac driver.  The
-> callbacks allow the platform code to issue disable_hlt() and
-> enable_hlt() calls appropriately.  Calling disable_hlt()
-> prevents cpu_idle from issuing the 'wfi' instruction.
-> 
-> It is not sufficient to simply call disable_hlt() when
-> there is an EMAC present because it could be present but
-> not actually used in which case, we do want the 'wfi' to
-> be executed.
-> 
+The TAAL driver contains some regulator support which is currently unused
+(the code is there but the one panel supported by the driver doesn't have
+any regulators provided). This code mostly looks like an open coded
+version of the regulator core bulk API.
 
-Are you trying to say that if ARM executes _just_ wfi and _absolutely
-nothing else_ is done in the OMAP PM code, EMAC stops working?
+The only additional feature is that a voltage range can be set once when
+the device is opened, though this is never varied at runtime. The general
+expectation is that if the device is not actively managing the voltage of
+the device (eg, doing DVFS) then any configuration will be done using the
+constraints rather than by drivers, saving them code and ensuring that
+they work well with systems where the voltage is not configurable.
 
-However, if this is indeed the case, then probably a better solution would be
-to invoke disable_hlt() from the board file when EMAC support is compiled in.
+If systems are added needing regulator support this can be added back in,
+though it should be based on core features rather than open coding things.
 
-Regards,
-Vaibhav
+Signed-off-by: Mark Brown <broonie@opensource.wolfsonmicro.com>
+---
+ drivers/video/omap2/displays/panel-taal.c |   80 -----------------------------
+ 1 file changed, 80 deletions(-)
+
+diff --git a/drivers/video/omap2/displays/panel-taal.c b/drivers/video/omap2/displays/panel-taal.c
+index 0f21fa5..72d6307 100644
+--- a/drivers/video/omap2/displays/panel-taal.c
++++ b/drivers/video/omap2/displays/panel-taal.c
+@@ -30,7 +30,6 @@
+ #include <linux/gpio.h>
+ #include <linux/workqueue.h>
+ #include <linux/slab.h>
+-#include <linux/regulator/consumer.h>
+ #include <linux/mutex.h>
+ 
+ #include <video/omapdss.h>
+@@ -55,73 +54,6 @@ static int _taal_enable_te(struct omap_dss_device *dssdev, bool enable);
+ 
+ static int taal_panel_reset(struct omap_dss_device *dssdev);
+ 
+-struct panel_regulator {
+-	struct regulator *regulator;
+-	const char *name;
+-	int min_uV;
+-	int max_uV;
+-};
+-
+-static void free_regulators(struct panel_regulator *regulators, int n)
+-{
+-	int i;
+-
+-	for (i = 0; i < n; i++) {
+-		/* disable/put in reverse order */
+-		regulator_disable(regulators[n - i - 1].regulator);
+-		regulator_put(regulators[n - i - 1].regulator);
+-	}
+-}
+-
+-static int init_regulators(struct omap_dss_device *dssdev,
+-			struct panel_regulator *regulators, int n)
+-{
+-	int r, i, v;
+-
+-	for (i = 0; i < n; i++) {
+-		struct regulator *reg;
+-
+-		reg = regulator_get(&dssdev->dev, regulators[i].name);
+-		if (IS_ERR(reg)) {
+-			dev_err(&dssdev->dev, "failed to get regulator %s\n",
+-				regulators[i].name);
+-			r = PTR_ERR(reg);
+-			goto err;
+-		}
+-
+-		/* FIXME: better handling of fixed vs. variable regulators */
+-		v = regulator_get_voltage(reg);
+-		if (v < regulators[i].min_uV || v > regulators[i].max_uV) {
+-			r = regulator_set_voltage(reg, regulators[i].min_uV,
+-						regulators[i].max_uV);
+-			if (r) {
+-				dev_err(&dssdev->dev,
+-					"failed to set regulator %s voltage\n",
+-					regulators[i].name);
+-				regulator_put(reg);
+-				goto err;
+-			}
+-		}
+-
+-		r = regulator_enable(reg);
+-		if (r) {
+-			dev_err(&dssdev->dev, "failed to enable regulator %s\n",
+-				regulators[i].name);
+-			regulator_put(reg);
+-			goto err;
+-		}
+-
+-		regulators[i].regulator = reg;
+-	}
+-
+-	return 0;
+-
+-err:
+-	free_regulators(regulators, i);
+-
+-	return r;
+-}
+-
+ /**
+  * struct panel_config - panel configuration
+  * @name: panel name
+@@ -150,8 +82,6 @@ struct panel_config {
+ 		unsigned int low;
+ 	} reset_sequence;
+ 
+-	struct panel_regulator *regulators;
+-	int num_regulators;
+ };
+ 
+ enum {
+@@ -977,11 +907,6 @@ static int taal_probe(struct omap_dss_device *dssdev)
+ 
+ 	atomic_set(&td->do_update, 0);
+ 
+-	r = init_regulators(dssdev, panel_config->regulators,
+-			panel_config->num_regulators);
+-	if (r)
+-		goto err_reg;
+-
+ 	td->workqueue = create_singlethread_workqueue("taal_esd");
+ 	if (td->workqueue == NULL) {
+ 		dev_err(&dssdev->dev, "can't create ESD workqueue\n");
+@@ -1075,8 +1000,6 @@ err_gpio:
+ err_bl:
+ 	destroy_workqueue(td->workqueue);
+ err_wq:
+-	free_regulators(panel_config->regulators, panel_config->num_regulators);
+-err_reg:
+ 	kfree(td);
+ err:
+ 	return r;
+@@ -1113,9 +1036,6 @@ static void __exit taal_remove(struct omap_dss_device *dssdev)
+ 	/* reset, to be sure that the panel is in a valid state */
+ 	taal_hw_reset(dssdev);
+ 
+-	free_regulators(td->panel_config->regulators,
+-			td->panel_config->num_regulators);
+-
+ 	kfree(td);
+ }
+ 
+-- 
+1.7.10
+
