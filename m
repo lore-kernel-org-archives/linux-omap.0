@@ -1,107 +1,60 @@
-From: "Shilimkar, Santosh" <santosh.shilimkar@ti.com>
-Subject: Re: [PATCH v5 0/7] Add TI EMIF SDRAM controller driver
-Date: Thu, 3 May 2012 11:45:37 +0530
-Message-ID: <CAMQu2gzBjnuc=zZ+Ug+YW+ViQFr25YuWFHBL5iXQDJ_7dPtAOg@mail.gmail.com>
-References: <1335529449-28046-1-git-send-email-santosh.shilimkar@ti.com>
- <20120502051623.GA23705@kroah.com> <4FA0D930.3080806@ti.com> <20120502180322.GA28837@kroah.com>
+From: "Bedia, Vaibhav" <vaibhav.bedia@ti.com>
+Subject: RE: [PATCH 2/5] ARM: OMAP2+: PM: use the power domains registers
+ cache for the power states
+Date: Thu, 3 May 2012 06:38:34 +0000
+Message-ID: <B5906170F1614E41A8A28DE3B8D121433EA71233@DBDE01.ent.ti.com>
+References: <1335877663-32649-1-git-send-email-j-pihet@ti.com>
+ <1335877663-32649-3-git-send-email-j-pihet@ti.com> <4FA00343.3020704@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aog107.obsmtp.com ([74.125.149.197]:59680 "EHLO
-	na3sys009aog107.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1750804Ab2ECGQA convert rfc822-to-8bit
-	(ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Thu, 3 May 2012 02:16:00 -0400
-Received: by qabj40 with SMTP id j40so9989qab.1
-        for <linux-omap@vger.kernel.org>; Wed, 02 May 2012 23:15:59 -0700 (PDT)
-In-Reply-To: <20120502180322.GA28837@kroah.com>
+Received: from arroyo.ext.ti.com ([192.94.94.40]:33092 "EHLO arroyo.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1753158Ab2ECGip convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 3 May 2012 02:38:45 -0400
+In-Reply-To: <4FA00343.3020704@ti.com>
+Content-Language: en-US
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Greg KH <gregkh@linuxfoundation.org>
-Cc: linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+To: "Hunter, Jon" <jon-hunter@ti.com>, "jean.pihet@newoldbits.com" <jean.pihet@newoldbits.com>
+Cc: "Hilman, Kevin" <khilman@ti.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "Shilimkar, Santosh" <santosh.shilimkar@ti.com>, "Pihet-XID, Jean" <j-pihet@ti.com>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>
 
-On Wed, May 2, 2012 at 11:33 PM, Greg KH <gregkh@linuxfoundation.org> w=
-rote:
-> On Wed, May 02, 2012 at 12:20:24PM +0530, Santosh Shilimkar wrote:
->> Greg,
->>
->> On Wednesday 02 May 2012 10:46 AM, Greg KH wrote:
->> > On Fri, Apr 27, 2012 at 05:54:02PM +0530, Santosh Shilimkar wrote:
->> >> Add a driver for the EMIF SDRAM controller used in Texas Instrume=
-nt SoCs
->> >>
->> >> EMIF is an SDRAM controller that supports, based on its revision,
->> >> one or more of LPDDR2/DDR2/DDR3 protocols.This driver adds suppor=
-t
->> >> for LPDDR2.
->> >>
->> >> The driver supports the following features:
->> >> - Calculates the DDR AC timing parameters to be set in EMIF
->> >> =A0 registers using data from the device data-sheets and based
->> >> =A0 on the DDR frequency. If data from data-sheets is not availab=
-le
->> >> =A0 default timing values from the JEDEC spec are used. These
->> >> =A0 will be safe, but not necessarily optimal
->> >> - API for changing timings during DVFS or at boot-up
->> >> - Temperature alert configuration and handling of temperature
->> >> =A0 alerts, if any for LPDDR2 devices
->> >> =A0 * temperature alert is based on periodic polling of MR4 mode
->> >> =A0 =A0 register in DDR devices automatically performed by hardwa=
-re
->> >> =A0 * timings are de-rated and brought back to nominal when
->> >> =A0 =A0 temperature raises and falls respectively
->> >> - Cache of calculated register values to avoid re-calculating
->> >> =A0 them
->> >>
->> >> The driver will need some minor updates when it is eventually
->> >> integrated with Dynamic Voltage and Frequency Scaling (DVFS).
->> >> This can not be done now as DVFS support is not available in
->> >> the mainline yet.
->> >>
->> >> Discussions with Santosh Shilimkar <santosh.shilimkar@ti.com>
->> >> were immensely helpful in shaping up the interfaces. Vibhore Vard=
-han
->> >> <vvardhan@gmail.com> did the initial code snippet for thermal
->> >> handling.
->> >>
->> >> Testing:
->> >> - The driver is tested on OMAP4430 SDP.
->> >> - The driver in a slightly adapted form is also tested on OMAP5.
->> >> - Since mainline kernel doesn't have DVFS support yet,
->> >> =A0 testing was done using a test module.
->> >> - Temperature alert handling was tested with simulated interrupts
->> >> =A0 and faked temperature values as testing all cases in real-lif=
-e
->> >> =A0 scenarios is difficult.
->> >> - Tested the driver as a module
->> >>
->> >> Cc: Greg KH <greg@kroah.com>
->> >
->> > This all looks good to me now, thanks for reworking this.
->> >
->> > So, do you want me to take this through my "driver" tree to get to=
- Linus
->> > for 3.5, or do you want it to go through somewhere else?
->> >
->> > If somewhere else, that's fine with me, consider this an:
->> > =A0 =A0 Acked-by: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
->> >
->> > If you want me to take it, just let me know, whichever you prefer =
-is
->> > fine with me.
->> >
->> Can you take this one through your 3.5 driver tree please ?
->> Thanks for help.
->
-> Ok, all now applied.
->
-Thanks !!
+On Tue, May 01, 2012 at 21:07:39, Hunter, Jon wrote:
+[...]
+> >  int pwrdm_read_pwrst(struct powerdomain *pwrdm)
+> >  {
+> > -	int ret = -EINVAL;
+> > +	int pwrst, ret = -EINVAL;
+> >  
+> >  	if (!pwrdm)
+> >  		return -EINVAL;
+> >  
+> > -	if (arch_pwrdm && arch_pwrdm->pwrdm_read_pwrst)
+> > +	if (!pwrdm_cache_read(pwrdm, PWRDM_CACHE_PWRST, &pwrst))
+> > +		return pwrst;
+> > +
+> > +	if (arch_pwrdm && arch_pwrdm->pwrdm_read_pwrst) {
+> >  		ret = arch_pwrdm->pwrdm_read_pwrst(pwrdm);
+> > +		if (ret >= 0)
+> > +			pwrdm_cache_write(pwrdm, PWRDM_CACHE_PWRST, ret);
+> > +	}
+> 
+> Do we really want to use the cache for the current state? This is
+> updated by hardware. In the above it appears that once we have read it
+> once we will just return this value until the cache is invalidated.
+> Makes me a little nervous.
+> 
 
-Regards
-Santosh
---
-To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+I echo the concern here. If a powerdomain transition occurs when h/w conditions
+are met, the cached values will go out of sync and this may lead to unexpected
+behavior wherever this API is being used.
+
+As Jon pointed out in another patch, the registers which can be updated by h/w should
+be handled differently.
+
+Just a wild thought, can PRCM_MPU_IRQ ([4]TRANSITION_EN) be used as a trigger to update
+the cache if the transition happened under s/w control?
+
+Regards,
+Vaibhav
