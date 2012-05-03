@@ -1,378 +1,196 @@
 From: Tomi Valkeinen <tomi.valkeinen@ti.com>
-Subject: [PATCH 14/25] OMAPDSS: remove uses of dss_runtime_get/put
-Date: Thu,  3 May 2012 16:57:50 +0300
-Message-ID: <1336053481-25433-15-git-send-email-tomi.valkeinen@ti.com>
+Subject: [PATCH 05/25] OMAPDSS: TFP410: pdata rewrite
+Date: Thu,  3 May 2012 16:57:41 +0300
+Message-ID: <1336053481-25433-6-git-send-email-tomi.valkeinen@ti.com>
 References: <1336053481-25433-1-git-send-email-tomi.valkeinen@ti.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aog126.obsmtp.com ([74.125.149.155]:34165 "EHLO
-	na3sys009aog126.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1756185Ab2ECN6n (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 3 May 2012 09:58:43 -0400
-Received: by lbom4 with SMTP id m4so1523880lbo.2
-        for <linux-omap@vger.kernel.org>; Thu, 03 May 2012 06:58:40 -0700 (PDT)
+Received: from na3sys009aog133.obsmtp.com ([74.125.149.82]:38111 "EHLO
+	na3sys009aog133.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1756084Ab2ECN60 (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 3 May 2012 09:58:26 -0400
+Received: by lbbgj10 with SMTP id gj10so1578731lbb.23
+        for <linux-omap@vger.kernel.org>; Thu, 03 May 2012 06:58:23 -0700 (PDT)
 In-Reply-To: <1336053481-25433-1-git-send-email-tomi.valkeinen@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: linux-omap@vger.kernel.org, linux-fbdev@vger.kernel.org
 Cc: archit@ti.com, Tomi Valkeinen <tomi.valkeinen@ti.com>
 
-Now that the omapdss_core device is the parent for all other dss
-devices, we don't need to use the dss_runtime_get/put anymore. Instead,
-enabling omapdss_core will happen automatically when a child device is
-enabled.
+To ease device tree adaptation in the future, rewrite TFP410 platform
+data handling to be done inside probe(), so that probe() is the only
+place where we need to handle the DT/pdata choice.
 
 Signed-off-by: Tomi Valkeinen <tomi.valkeinen@ti.com>
 ---
- drivers/video/omap2/dss/dispc.c |    7 -------
- drivers/video/omap2/dss/dpi.c   |   16 +---------------
- drivers/video/omap2/dss/dsi.c   |   12 +-----------
- drivers/video/omap2/dss/dss.c   |    7 +++++--
- drivers/video/omap2/dss/dss.h   |    3 ---
- drivers/video/omap2/dss/hdmi.c  |   34 ++--------------------------------
- drivers/video/omap2/dss/rfbi.c  |   12 +-----------
- drivers/video/omap2/dss/sdi.c   |    7 -------
- drivers/video/omap2/dss/venc.c  |   12 +-----------
- 9 files changed, 11 insertions(+), 99 deletions(-)
+ drivers/video/omap2/displays/panel-tfp410.c |   72 ++++++++++++++-------------
+ 1 file changed, 38 insertions(+), 34 deletions(-)
 
-diff --git a/drivers/video/omap2/dss/dispc.c b/drivers/video/omap2/dss/dispc.c
-index 68aa566..1cccd4c 100644
---- a/drivers/video/omap2/dss/dispc.c
-+++ b/drivers/video/omap2/dss/dispc.c
-@@ -3596,19 +3596,12 @@ static int omap_dispchw_remove(struct platform_device *pdev)
- static int dispc_runtime_suspend(struct device *dev)
+diff --git a/drivers/video/omap2/displays/panel-tfp410.c b/drivers/video/omap2/displays/panel-tfp410.c
+index 52637fa..f03964e 100644
+--- a/drivers/video/omap2/displays/panel-tfp410.c
++++ b/drivers/video/omap2/displays/panel-tfp410.c
+@@ -47,13 +47,9 @@ struct panel_drv_data {
+ 	struct mutex lock;
+ 
+ 	int pd_gpio;
+-};
+ 
+-static inline struct tfp410_platform_data
+-*get_pdata(const struct omap_dss_device *dssdev)
+-{
+-	return dssdev->data;
+-}
++	struct i2c_adapter *i2c_adapter;
++};
+ 
+ static int tfp410_power_on(struct omap_dss_device *dssdev)
  {
- 	dispc_save_context();
--	dss_runtime_put();
+@@ -90,11 +86,11 @@ static void tfp410_power_off(struct omap_dss_device *dssdev)
  
- 	return 0;
- }
- 
- static int dispc_runtime_resume(struct device *dev)
+ static int tfp410_probe(struct omap_dss_device *dssdev)
  {
--	int r;
--
--	r = dss_runtime_get();
--	if (r < 0)
--		return r;
--
- 	dispc_restore_context();
- 
- 	return 0;
-diff --git a/drivers/video/omap2/dss/dpi.c b/drivers/video/omap2/dss/dpi.c
-index f4398fd..d7a433b 100644
---- a/drivers/video/omap2/dss/dpi.c
-+++ b/drivers/video/omap2/dss/dpi.c
-@@ -202,10 +202,6 @@ int omapdss_dpi_display_enable(struct omap_dss_device *dssdev)
- 			goto err_reg_enable;
- 	}
- 
--	r = dss_runtime_get();
--	if (r)
--		goto err_get_dss;
--
- 	r = dispc_runtime_get();
- 	if (r)
- 		goto err_get_dispc;
-@@ -244,8 +240,6 @@ err_dsi_pll_init:
- err_get_dsi:
- 	dispc_runtime_put();
- err_get_dispc:
--	dss_runtime_put();
--err_get_dss:
- 	if (cpu_is_omap34xx())
- 		regulator_disable(dpi.vdds_dsi_reg);
- err_reg_enable:
-@@ -266,7 +260,6 @@ void omapdss_dpi_display_disable(struct omap_dss_device *dssdev)
- 	}
- 
- 	dispc_runtime_put();
--	dss_runtime_put();
- 
- 	if (cpu_is_omap34xx())
- 		regulator_disable(dpi.vdds_dsi_reg);
-@@ -283,21 +276,14 @@ void dpi_set_timings(struct omap_dss_device *dssdev,
- 	DSSDBG("dpi_set_timings\n");
- 	dssdev->panel.timings = *timings;
- 	if (dssdev->state == OMAP_DSS_DISPLAY_ACTIVE) {
--		r = dss_runtime_get();
--		if (r)
--			return;
--
- 		r = dispc_runtime_get();
--		if (r) {
--			dss_runtime_put();
-+		if (r)
- 			return;
--		}
- 
- 		dpi_set_mode(dssdev);
- 		dispc_mgr_go(dssdev->manager->id);
- 
- 		dispc_runtime_put();
--		dss_runtime_put();
- 	}
- }
- EXPORT_SYMBOL(dpi_set_timings);
-diff --git a/drivers/video/omap2/dss/dsi.c b/drivers/video/omap2/dss/dsi.c
-index 45ba9e7..c365942 100644
---- a/drivers/video/omap2/dss/dsi.c
-+++ b/drivers/video/omap2/dss/dsi.c
-@@ -4769,7 +4769,6 @@ static int omap_dsihw_remove(struct platform_device *dsidev)
- static int dsi_runtime_suspend(struct device *dev)
- {
- 	dispc_runtime_put();
--	dss_runtime_put();
- 
- 	return 0;
- }
-@@ -4778,20 +4777,11 @@ static int dsi_runtime_resume(struct device *dev)
- {
+-	struct tfp410_platform_data *pdata = get_pdata(dssdev);
+ 	struct panel_drv_data *ddata;
  	int r;
++	int i2c_bus_num;
  
--	r = dss_runtime_get();
--	if (r)
--		goto err_get_dss;
--
- 	r = dispc_runtime_get();
- 	if (r)
--		goto err_get_dispc;
-+		return r;
+-	ddata = kzalloc(sizeof(*ddata), GFP_KERNEL);
++	ddata = devm_kzalloc(&dssdev->dev, sizeof(*ddata), GFP_KERNEL);
+ 	if (!ddata)
+ 		return -ENOMEM;
  
- 	return 0;
--
--err_get_dispc:
--	dss_runtime_put();
--err_get_dss:
--	return r;
- }
+@@ -104,10 +100,15 @@ static int tfp410_probe(struct omap_dss_device *dssdev)
+ 	ddata->dssdev = dssdev;
+ 	mutex_init(&ddata->lock);
  
- static const struct dev_pm_ops dsi_pm_ops = {
-diff --git a/drivers/video/omap2/dss/dss.c b/drivers/video/omap2/dss/dss.c
-index 17a1927..06fb5dc 100644
---- a/drivers/video/omap2/dss/dss.c
-+++ b/drivers/video/omap2/dss/dss.c
-@@ -62,6 +62,9 @@ struct dss_reg {
- #define REG_FLD_MOD(idx, val, start, end) \
- 	dss_write_reg(idx, FLD_MOD(dss_read_reg(idx), val, start, end))
- 
-+static int dss_runtime_get(void);
-+static void dss_runtime_put(void);
+-	if (pdata)
++	if (dssdev->data) {
++		struct tfp410_platform_data *pdata = dssdev->data;
 +
- static struct {
- 	struct platform_device *pdev;
- 	void __iomem    *base;
-@@ -706,7 +709,7 @@ static void dss_put_clocks(void)
- 	clk_put(dss.dss_clk);
- }
+ 		ddata->pd_gpio = pdata->power_down_gpio;
+-	else
++		i2c_bus_num = pdata->i2c_bus_num;
++	} else {
+ 		ddata->pd_gpio = -1;
++		i2c_bus_num = -1;
++	}
  
--int dss_runtime_get(void)
-+static int dss_runtime_get(void)
- {
- 	int r;
+ 	if (gpio_is_valid(ddata->pd_gpio)) {
+ 		r = gpio_request_one(ddata->pd_gpio, GPIOF_OUT_INIT_LOW,
+@@ -115,13 +116,31 @@ static int tfp410_probe(struct omap_dss_device *dssdev)
+ 		if (r) {
+ 			dev_err(&dssdev->dev, "Failed to request PD GPIO %d\n",
+ 					ddata->pd_gpio);
+-			ddata->pd_gpio = -1;
++			return r;
+ 		}
+ 	}
  
-@@ -717,7 +720,7 @@ int dss_runtime_get(void)
- 	return r < 0 ? r : 0;
- }
- 
--void dss_runtime_put(void)
-+static void dss_runtime_put(void)
- {
- 	int r;
- 
-diff --git a/drivers/video/omap2/dss/dss.h b/drivers/video/omap2/dss/dss.h
-index 4373b15..b53b2e6 100644
---- a/drivers/video/omap2/dss/dss.h
-+++ b/drivers/video/omap2/dss/dss.h
-@@ -228,9 +228,6 @@ int dss_ovl_check(struct omap_overlay *ovl,
- int dss_init_platform_driver(void);
- void dss_uninit_platform_driver(void);
- 
--int dss_runtime_get(void);
--void dss_runtime_put(void);
--
- void dss_select_hdmi_venc_clk_source(enum dss_hdmi_venc_clk_source_select);
- enum dss_hdmi_venc_clk_source_select dss_get_hdmi_venc_clk_source(void);
- const char *dss_get_generic_clk_source_name(enum omap_dss_clk_source clk_src);
-diff --git a/drivers/video/omap2/dss/hdmi.c b/drivers/video/omap2/dss/hdmi.c
-index 35580b1..bfbe811 100644
---- a/drivers/video/omap2/dss/hdmi.c
-+++ b/drivers/video/omap2/dss/hdmi.c
-@@ -129,25 +129,12 @@ static int hdmi_runtime_get(void)
- 
- 	DSSDBG("hdmi_runtime_get\n");
- 
--	/*
--	 * HACK: Add dss_runtime_get() to ensure DSS clock domain is enabled.
--	 * This should be removed later.
--	 */
--	r = dss_runtime_get();
--	if (r < 0)
--		goto err_get_dss;
--
- 	r = pm_runtime_get_sync(&hdmi.pdev->dev);
- 	WARN_ON(r < 0);
- 	if (r < 0)
--		goto err_get_hdmi;
-+		return r;
++	if (i2c_bus_num != -1) {
++		struct i2c_adapter *adapter;
++
++		adapter = i2c_get_adapter(i2c_bus_num);
++		if (!adapter) {
++			dev_err(&dssdev->dev, "Failed to get I2C adapter, bus %d\n",
++					i2c_bus_num);
++			r = -EINVAL;
++			goto err_i2c;
++		}
++
++		ddata->i2c_adapter = adapter;
++	}
++
+ 	dev_set_drvdata(&dssdev->dev, ddata);
  
  	return 0;
++err_i2c:
++	if (gpio_is_valid(ddata->pd_gpio))
++		gpio_free(ddata->pd_gpio);
++	return r;
+ }
+ 
+ static void __exit tfp410_remove(struct omap_dss_device *dssdev)
+@@ -130,14 +149,15 @@ static void __exit tfp410_remove(struct omap_dss_device *dssdev)
+ 
+ 	mutex_lock(&ddata->lock);
+ 
++	if (ddata->i2c_adapter)
++		i2c_put_adapter(ddata->i2c_adapter);
++
+ 	if (gpio_is_valid(ddata->pd_gpio))
+ 		gpio_free(ddata->pd_gpio);
+ 
+ 	dev_set_drvdata(&dssdev->dev, NULL);
+ 
+ 	mutex_unlock(&ddata->lock);
 -
--err_get_hdmi:
--	dss_runtime_put();
--err_get_dss:
--	return r;
+-	kfree(ddata);
  }
  
- static void hdmi_runtime_put(void)
-@@ -158,12 +145,6 @@ static void hdmi_runtime_put(void)
- 
- 	r = pm_runtime_put_sync(&hdmi.pdev->dev);
- 	WARN_ON(r < 0);
--
--	/*
--	 * HACK: This is added to complement the dss_runtime_get() call in
--	 * hdmi_runtime_get(). This should be removed later.
--	 */
--	dss_runtime_put();
- }
- 
- int hdmi_init_display(struct omap_dss_device *dssdev)
-@@ -864,7 +845,6 @@ static int hdmi_runtime_suspend(struct device *dev)
- 	clk_disable(hdmi.sys_clk);
- 
- 	dispc_runtime_put();
--	dss_runtime_put();
- 
- 	return 0;
- }
-@@ -873,23 +853,13 @@ static int hdmi_runtime_resume(struct device *dev)
+ static int tfp410_enable(struct omap_dss_device *dssdev)
+@@ -269,27 +289,17 @@ static int tfp410_read_edid(struct omap_dss_device *dssdev,
+ 		u8 *edid, int len)
  {
- 	int r;
+ 	struct panel_drv_data *ddata = dev_get_drvdata(&dssdev->dev);
+-	struct tfp410_platform_data *pdata = get_pdata(dssdev);
+-	struct i2c_adapter *adapter;
+ 	int r, l, bytes_read;
  
--	r = dss_runtime_get();
--	if (r < 0)
--		goto err_get_dss;
+ 	mutex_lock(&ddata->lock);
+ 
+-	if (pdata->i2c_bus_num == 0) {
++	if (!ddata->i2c_adapter) {
+ 		r = -ENODEV;
+ 		goto err;
+ 	}
+ 
+-	adapter = i2c_get_adapter(pdata->i2c_bus_num);
+-	if (!adapter) {
+-		dev_err(&dssdev->dev, "Failed to get I2C adapter, bus %d\n",
+-				pdata->i2c_bus_num);
+-		r = -EINVAL;
+-		goto err;
+-	}
 -
- 	r = dispc_runtime_get();
- 	if (r < 0)
--		goto err_get_dispc;
--
-+		return r;
- 
- 	clk_enable(hdmi.sys_clk);
- 
- 	return 0;
--
--err_get_dispc:
--	dss_runtime_put();
--err_get_dss:
--	return r;
- }
- 
- static const struct dev_pm_ops hdmi_pm_ops = {
-diff --git a/drivers/video/omap2/dss/rfbi.c b/drivers/video/omap2/dss/rfbi.c
-index 39aac0b..01fd9e7 100644
---- a/drivers/video/omap2/dss/rfbi.c
-+++ b/drivers/video/omap2/dss/rfbi.c
-@@ -992,7 +992,6 @@ static int omap_rfbihw_remove(struct platform_device *pdev)
- static int rfbi_runtime_suspend(struct device *dev)
- {
- 	dispc_runtime_put();
--	dss_runtime_put();
- 
- 	return 0;
- }
-@@ -1001,20 +1000,11 @@ static int rfbi_runtime_resume(struct device *dev)
- {
- 	int r;
- 
--	r = dss_runtime_get();
--	if (r < 0)
--		goto err_get_dss;
--
- 	r = dispc_runtime_get();
- 	if (r < 0)
--		goto err_get_dispc;
-+		return r;
- 
- 	return 0;
--
--err_get_dispc:
--	dss_runtime_put();
--err_get_dss:
--	return r;
- }
- 
- static const struct dev_pm_ops rfbi_pm_ops = {
-diff --git a/drivers/video/omap2/dss/sdi.c b/drivers/video/omap2/dss/sdi.c
-index a047f44..90a1955 100644
---- a/drivers/video/omap2/dss/sdi.c
-+++ b/drivers/video/omap2/dss/sdi.c
-@@ -72,10 +72,6 @@ int omapdss_sdi_display_enable(struct omap_dss_device *dssdev)
+ 	l = min(EDID_LENGTH, len);
+-	r = tfp410_ddc_read(adapter, edid, l, 0);
++	r = tfp410_ddc_read(ddata->i2c_adapter, edid, l, 0);
  	if (r)
- 		goto err_reg_enable;
+ 		goto err;
  
--	r = dss_runtime_get();
--	if (r)
--		goto err_get_dss;
--
- 	r = dispc_runtime_get();
- 	if (r)
- 		goto err_get_dispc;
-@@ -138,8 +134,6 @@ err_set_dss_clock_div:
- err_calc_clock_div:
- 	dispc_runtime_put();
- err_get_dispc:
--	dss_runtime_put();
--err_get_dss:
- 	regulator_disable(sdi.vdds_sdi_reg);
- err_reg_enable:
- 	omap_dss_stop_device(dssdev);
-@@ -155,7 +149,6 @@ void omapdss_sdi_display_disable(struct omap_dss_device *dssdev)
- 	dss_sdi_disable();
+@@ -299,7 +309,7 @@ static int tfp410_read_edid(struct omap_dss_device *dssdev,
+ 	if (len > EDID_LENGTH && edid[0x7e] > 0) {
+ 		l = min(EDID_LENGTH, len - EDID_LENGTH);
  
- 	dispc_runtime_put();
--	dss_runtime_put();
- 
- 	regulator_disable(sdi.vdds_sdi_reg);
- 
-diff --git a/drivers/video/omap2/dss/venc.c b/drivers/video/omap2/dss/venc.c
-index 7b0e8ed..9f13748 100644
---- a/drivers/video/omap2/dss/venc.c
-+++ b/drivers/video/omap2/dss/venc.c
-@@ -851,7 +851,6 @@ static int venc_runtime_suspend(struct device *dev)
- 		clk_disable(venc.tv_dac_clk);
- 
- 	dispc_runtime_put();
--	dss_runtime_put();
- 
- 	return 0;
- }
-@@ -860,23 +859,14 @@ static int venc_runtime_resume(struct device *dev)
+-		r = tfp410_ddc_read(adapter, edid + EDID_LENGTH,
++		r = tfp410_ddc_read(ddata->i2c_adapter, edid + EDID_LENGTH,
+ 				l, EDID_LENGTH);
+ 		if (r)
+ 			goto err;
+@@ -319,21 +329,15 @@ err:
+ static bool tfp410_detect(struct omap_dss_device *dssdev)
  {
+ 	struct panel_drv_data *ddata = dev_get_drvdata(&dssdev->dev);
+-	struct tfp410_platform_data *pdata = get_pdata(dssdev);
+-	struct i2c_adapter *adapter;
+ 	unsigned char out;
  	int r;
  
--	r = dss_runtime_get();
--	if (r < 0)
--		goto err_get_dss;
+ 	mutex_lock(&ddata->lock);
+ 
+-	if (pdata->i2c_bus_num == 0)
+-		goto out;
 -
- 	r = dispc_runtime_get();
- 	if (r < 0)
--		goto err_get_dispc;
-+		return r;
+-	adapter = i2c_get_adapter(pdata->i2c_bus_num);
+-	if (!adapter)
++	if (!ddata->i2c_adapter)
+ 		goto out;
  
- 	if (venc.tv_dac_clk)
- 		clk_enable(venc.tv_dac_clk);
+-	r = tfp410_ddc_read(adapter, &out, 1, 0);
++	r = tfp410_ddc_read(ddata->i2c_adapter, &out, 1, 0);
  
- 	return 0;
--
--err_get_dispc:
--	dss_runtime_put();
--err_get_dss:
--	return r;
- }
+ 	mutex_unlock(&ddata->lock);
  
- static const struct dev_pm_ops venc_pm_ops = {
 -- 
 1.7.9.5
 
