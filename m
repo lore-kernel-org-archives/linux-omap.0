@@ -1,38 +1,42 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH-V5 2/3] arm:omap:am33xx: Add AM335XEVM machine support
-Date: Thu, 3 May 2012 12:37:32 -0700
-Message-ID: <20120503193732.GG5140@atomide.com>
-References: <hvaibhav@ti.com>
- <1322808204-12878-3-git-send-email-hvaibhav@ti.com>
- <alpine.DEB.2.00.1205020317151.19695@utopia.booyaka.com>
- <79CD15C6BA57404B839C016229A409A83EA10A64@DBDE01.ent.ti.com>
- <20120503155717.GE5140@atomide.com>
- <79CD15C6BA57404B839C016229A409A83EA1348F@DBDE01.ent.ti.com>
+From: Kevin Hilman <khilman@ti.com>
+Subject: Re: [PATCH 11/18][V3] ARM: OMAP3: cpuidle - remove the 'valid' field
+Date: Thu, 03 May 2012 13:19:29 -0700
+Message-ID: <87r4v1kofi.fsf@ti.com>
+References: <1335276339-11135-1-git-send-email-daniel.lezcano@linaro.org>
+	<1335276339-11135-12-git-send-email-daniel.lezcano@linaro.org>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-02-ewr.mailhop.org ([204.13.248.72]:48109 "EHLO
-	mho-02-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751933Ab2ECThi (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 3 May 2012 15:37:38 -0400
-Content-Disposition: inline
-In-Reply-To: <79CD15C6BA57404B839C016229A409A83EA1348F@DBDE01.ent.ti.com>
+Received: from na3sys009aog102.obsmtp.com ([74.125.149.69]:45904 "EHLO
+	na3sys009aog102.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1758338Ab2ECUT1 (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 3 May 2012 16:19:27 -0400
+Received: by dajz8 with SMTP id z8so2069704daj.16
+        for <linux-omap@vger.kernel.org>; Thu, 03 May 2012 13:19:26 -0700 (PDT)
+In-Reply-To: <1335276339-11135-12-git-send-email-daniel.lezcano@linaro.org>
+	(Daniel Lezcano's message of "Tue, 24 Apr 2012 16:05:32 +0200")
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "Hiremath, Vaibhav" <hvaibhav@ti.com>
-Cc: Paul Walmsley <paul@pwsan.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "Hilman, Kevin" <khilman@ti.com>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, "Mohammed, Afzal" <afzal@ti.com>
+To: Daniel Lezcano <daniel.lezcano@linaro.org>
+Cc: santosh.shilimkar@ti.com, jean.pihet@newoldbits.com, tony@atomide.com, linux-omap@vger.kernel.org, linaro-dev@lists.linaro.org, linux-arm-kernel@lists.infradead.org, patches@linaro.org
 
-* Hiremath, Vaibhav <hvaibhav@ti.com> [120503 09:45]:
-> 
-> What about cpu_is_omap34xx() true for am33xx? Should we follow it?
+Daniel Lezcano <daniel.lezcano@linaro.org> writes:
 
-Well are there components that could be used as is with that?
-If not, then it probably does not make sense.
+> With the previous changes all the states are valid, except
+> the last state which can be handled by decreasing the number
+> of states.
 
-BTW, you should post your patches on top of the clean-up patches
-Santosh posted as that already leaves out some cpu_is_omapxxxx
-checks. That's the "ARM: OMAP2+: Misc cleanup" thread.
+I don't think this changelog is valid anymore as you're not doing
+anything to decrease the number of states.
 
-Regards,
+I updated the changelog locally to this:
 
-Tony
+ARM: OMAP3: cpuidle - remove the 'valid' field
+
+With the previous changes all the states are valid, except the last
+state which is now handled at runtime by next_valid_state() based on
+the errata flags.
+
+Any problems with that?
+
+Kevin
