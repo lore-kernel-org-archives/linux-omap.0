@@ -1,301 +1,364 @@
 From: Tomi Valkeinen <tomi.valkeinen@ti.com>
-Subject: [PATCH 22/25] OMAPDSS: init omap_dss_devices internally
-Date: Thu,  3 May 2012 16:57:58 +0300
-Message-ID: <1336053481-25433-23-git-send-email-tomi.valkeinen@ti.com>
+Subject: [PATCH 25/25] OMAPDSS: separate pdata based initialization
+Date: Thu,  3 May 2012 16:58:01 +0300
+Message-ID: <1336053481-25433-26-git-send-email-tomi.valkeinen@ti.com>
 References: <1336053481-25433-1-git-send-email-tomi.valkeinen@ti.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aog113.obsmtp.com ([74.125.149.209]:36575 "EHLO
-	na3sys009aog113.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1756286Ab2ECN65 (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 3 May 2012 09:58:57 -0400
-Received: by lboj14 with SMTP id j14so969962lbo.21
-        for <linux-omap@vger.kernel.org>; Thu, 03 May 2012 06:58:54 -0700 (PDT)
+Received: from na3sys009aog133.obsmtp.com ([74.125.149.82]:55470 "EHLO
+	na3sys009aog133.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1756461Ab2ECN7H (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 3 May 2012 09:59:07 -0400
+Received: by lagu2 with SMTP id u2so1700604lag.35
+        for <linux-omap@vger.kernel.org>; Thu, 03 May 2012 06:58:59 -0700 (PDT)
 In-Reply-To: <1336053481-25433-1-git-send-email-tomi.valkeinen@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: linux-omap@vger.kernel.org, linux-fbdev@vger.kernel.org
 Cc: archit@ti.com, Tomi Valkeinen <tomi.valkeinen@ti.com>
 
-Now that each output driver creates their own display devices, the
-output drivers can also initialize those devices.
+Move the platform-data based display device initialization into a
+separate function, so that we may later add of-based initialization.
 
 Signed-off-by: Tomi Valkeinen <tomi.valkeinen@ti.com>
 ---
- drivers/video/omap2/dss/display.c |   40 -------------------------------------
- drivers/video/omap2/dss/dpi.c     |    8 +++++++-
- drivers/video/omap2/dss/dsi.c     |    8 +++++++-
- drivers/video/omap2/dss/dss.h     |   10 ----------
- drivers/video/omap2/dss/hdmi.c    |    8 +++++++-
- drivers/video/omap2/dss/rfbi.c    |    8 +++++++-
- drivers/video/omap2/dss/sdi.c     |    8 +++++++-
- drivers/video/omap2/dss/venc.c    |    8 +++++++-
- 8 files changed, 42 insertions(+), 56 deletions(-)
+ drivers/video/omap2/dss/dpi.c  |    7 +++++-
+ drivers/video/omap2/dss/dsi.c  |   50 +++++++++++++++++++++++-----------------
+ drivers/video/omap2/dss/hdmi.c |   46 +++++++++++++++++++++---------------
+ drivers/video/omap2/dss/rfbi.c |   45 +++++++++++++++++++++---------------
+ drivers/video/omap2/dss/sdi.c  |    7 +++++-
+ drivers/video/omap2/dss/venc.c |   45 +++++++++++++++++++++---------------
+ 6 files changed, 120 insertions(+), 80 deletions(-)
 
-diff --git a/drivers/video/omap2/dss/display.c b/drivers/video/omap2/dss/display.c
-index e688d10..faf7d91 100644
---- a/drivers/video/omap2/dss/display.c
-+++ b/drivers/video/omap2/dss/display.c
-@@ -359,46 +359,6 @@ void dss_init_device(struct platform_device *pdev,
- 	int i;
- 	int r;
- 
--	switch (dssdev->type) {
--#ifdef CONFIG_OMAP2_DSS_DPI
--	case OMAP_DISPLAY_TYPE_DPI:
--		r = dpi_init_display(dssdev);
--		break;
--#endif
--#ifdef CONFIG_OMAP2_DSS_RFBI
--	case OMAP_DISPLAY_TYPE_DBI:
--		r = rfbi_init_display(dssdev);
--		break;
--#endif
--#ifdef CONFIG_OMAP2_DSS_VENC
--	case OMAP_DISPLAY_TYPE_VENC:
--		r = venc_init_display(dssdev);
--		break;
--#endif
--#ifdef CONFIG_OMAP2_DSS_SDI
--	case OMAP_DISPLAY_TYPE_SDI:
--		r = sdi_init_display(dssdev);
--		break;
--#endif
--#ifdef CONFIG_OMAP2_DSS_DSI
--	case OMAP_DISPLAY_TYPE_DSI:
--		r = dsi_init_display(dssdev);
--		break;
--#endif
--	case OMAP_DISPLAY_TYPE_HDMI:
--		r = hdmi_init_display(dssdev);
--		break;
--	default:
--		DSSERR("Support for display '%s' not compiled in.\n",
--				dssdev->name);
--		return;
--	}
--
--	if (r) {
--		DSSERR("failed to init display %s\n", dssdev->name);
--		return;
--	}
--
- 	/* create device sysfs files */
- 	i = 0;
- 	while ((attr = display_sysfs_attrs[i++]) != NULL) {
 diff --git a/drivers/video/omap2/dss/dpi.c b/drivers/video/omap2/dss/dpi.c
-index 631953b..4f8defe 100644
+index 4f8defe..835e106 100644
 --- a/drivers/video/omap2/dss/dpi.c
 +++ b/drivers/video/omap2/dss/dpi.c
-@@ -338,7 +338,7 @@ int dpi_check_timings(struct omap_dss_device *dssdev,
+@@ -364,7 +364,7 @@ static int __init dpi_init_display(struct omap_dss_device *dssdev)
+ 	return 0;
  }
- EXPORT_SYMBOL(dpi_check_timings);
  
--int dpi_init_display(struct omap_dss_device *dssdev)
-+static int __init dpi_init_display(struct omap_dss_device *dssdev)
+-static int __init omap_dpi_probe(struct platform_device *pdev)
++static void __init dpi_probe_pdata(struct platform_device *pdev)
  {
- 	DSSDBG("init_display\n");
- 
-@@ -375,6 +375,12 @@ static int __init omap_dpi_probe(struct platform_device *pdev)
- 		if (dssdev->type != OMAP_DISPLAY_TYPE_DPI)
- 			continue;
- 
-+		r = dpi_init_display(dssdev);
-+		if (r) {
-+			DSSERR("device %s init failed: %d\n", dssdev->name, r);
-+			continue;
-+		}
-+
- 		r = omap_dss_register_device(dssdev, &pdev->dev);
- 		if (r)
+ 	struct omap_dss_board_info *pdata = pdev->dev.platform_data;
+ 	int i, r;
+@@ -386,6 +386,11 @@ static int __init omap_dpi_probe(struct platform_device *pdev)
  			DSSERR("device %s register failed: %d\n",
+ 					dssdev->name, r);
+ 	}
++}
++
++static int __init omap_dpi_probe(struct platform_device *pdev)
++{
++	dpi_probe_pdata(pdev);
+ 
+ 	return 0;
+ }
 diff --git a/drivers/video/omap2/dss/dsi.c b/drivers/video/omap2/dss/dsi.c
-index 0ff1e63..49b83a4 100644
+index ce964dd..429d918 100644
 --- a/drivers/video/omap2/dss/dsi.c
 +++ b/drivers/video/omap2/dss/dsi.c
-@@ -4456,7 +4456,7 @@ int omapdss_dsi_enable_te(struct omap_dss_device *dssdev, bool enable)
+@@ -4607,6 +4607,34 @@ static void dsi_put_clocks(struct platform_device *dsidev)
+ 		clk_put(dsi->sys_clk);
  }
- EXPORT_SYMBOL(omapdss_dsi_enable_te);
  
--int dsi_init_display(struct omap_dss_device *dssdev)
-+static int __init dsi_init_display(struct omap_dss_device *dssdev)
- {
- 	struct platform_device *dsidev = dsi_get_dsidev_from_dssdev(dssdev);
- 	struct dsi_data *dsi = dsi_get_dsidrv_data(dsidev);
-@@ -4712,6 +4712,12 @@ static int __init omap_dsihw_probe(struct platform_device *dsidev)
- 		if (dssdev->phy.dsi.module != dsi_module)
- 			continue;
- 
++static void __init dsi_probe_pdata(struct platform_device *dsidev)
++{
++	struct dsi_data *dsi = dsi_get_dsidrv_data(dsidev);
++	struct omap_dss_board_info *pdata = dsidev->dev.platform_data;
++	int i, r;
++
++	for (i = 0; i < pdata->num_devices; ++i) {
++		struct omap_dss_device *dssdev = pdata->devices[i];
++
++		if (dssdev->type != OMAP_DISPLAY_TYPE_DSI)
++			continue;
++
++		if (dssdev->phy.dsi.module != dsi->module_id)
++			continue;
++
 +		r = dsi_init_display(dssdev);
 +		if (r) {
 +			DSSERR("device %s init failed: %d\n", dssdev->name, r);
 +			continue;
 +		}
 +
- 		r = omap_dss_register_device(dssdev, &dsidev->dev);
- 		if (r)
- 			DSSERR("device %s register failed: %d\n",
-diff --git a/drivers/video/omap2/dss/dss.h b/drivers/video/omap2/dss/dss.h
-index 828f669..c0a1532 100644
---- a/drivers/video/omap2/dss/dss.h
-+++ b/drivers/video/omap2/dss/dss.h
-@@ -270,7 +270,6 @@ int dss_calc_clock_div(bool is_tft, unsigned long req_pck,
- /* SDI */
- int sdi_init_platform_driver(void) __init;
- void sdi_uninit_platform_driver(void) __exit;
--int sdi_init_display(struct omap_dss_device *display);
- 
- /* DSI */
- #ifdef CONFIG_OMAP2_DSS_DSI
-@@ -286,7 +285,6 @@ void dsi_runtime_put(struct platform_device *dsidev);
- 
- void dsi_dump_clocks(struct seq_file *s);
- 
--int dsi_init_display(struct omap_dss_device *display);
- void dsi_irq_handler(void);
- u8 dsi_get_pixel_size(enum omap_dss_dsi_pixel_format fmt);
- 
-@@ -361,7 +359,6 @@ static inline struct platform_device *dsi_get_dsidev_from_id(int module)
- /* DPI */
- int dpi_init_platform_driver(void) __init;
- void dpi_uninit_platform_driver(void) __exit;
--int dpi_init_display(struct omap_dss_device *dssdev);
- 
- /* DISPC */
- int dispc_init_platform_driver(void) __init;
-@@ -432,7 +429,6 @@ void dispc_mgr_setup(enum omap_channel channel,
- #ifdef CONFIG_OMAP2_DSS_VENC
- int venc_init_platform_driver(void) __init;
- void venc_uninit_platform_driver(void) __exit;
--int venc_init_display(struct omap_dss_device *display);
- unsigned long venc_get_pixel_clock(void);
- #else
- static inline unsigned long venc_get_pixel_clock(void)
-@@ -446,13 +442,8 @@ static inline unsigned long venc_get_pixel_clock(void)
- #ifdef CONFIG_OMAP4_DSS_HDMI
- int hdmi_init_platform_driver(void) __init;
- void hdmi_uninit_platform_driver(void) __exit;
--int hdmi_init_display(struct omap_dss_device *dssdev);
- unsigned long hdmi_get_pixel_clock(void);
- #else
--static inline int hdmi_init_display(struct omap_dss_device *dssdev)
--{
--	return 0;
--}
- static inline unsigned long hdmi_get_pixel_clock(void)
++		r = omap_dss_register_device(dssdev, &dsidev->dev);
++		if (r)
++			DSSERR("device %s register failed: %d\n",
++					dssdev->name, r);
++	}
++}
++
+ /* DSI1 HW IP initialisation */
+ static int __init omap_dsihw_probe(struct platform_device *dsidev)
  {
- 	WARN("%s: HDMI not compiled in, returning pclk as 0\n", __func__);
-@@ -472,7 +463,6 @@ void hdmi_panel_exit(void);
- /* RFBI */
- int rfbi_init_platform_driver(void) __init;
- void rfbi_uninit_platform_driver(void) __exit;
--int rfbi_init_display(struct omap_dss_device *display);
+@@ -4614,7 +4642,6 @@ static int __init omap_dsihw_probe(struct platform_device *dsidev)
+ 	int r, i;
+ 	struct resource *dsi_mem;
+ 	struct dsi_data *dsi;
+-	struct omap_dss_board_info *pdata = dsidev->dev.platform_data;
  
+ 	dsi = devm_kzalloc(&dsidev->dev, sizeof(*dsi), GFP_KERNEL);
+ 	if (!dsi)
+@@ -4702,26 +4729,7 @@ static int __init omap_dsihw_probe(struct platform_device *dsidev)
+ 	else
+ 		dsi->num_lanes_supported = 3;
  
- #ifdef CONFIG_OMAP2_DSS_COLLECT_IRQ_STATS
+-	for (i = 0; i < pdata->num_devices; ++i) {
+-		struct omap_dss_device *dssdev = pdata->devices[i];
+-
+-		if (dssdev->type != OMAP_DISPLAY_TYPE_DSI)
+-			continue;
+-
+-		if (dssdev->phy.dsi.module != dsi->module_id)
+-			continue;
+-
+-		r = dsi_init_display(dssdev);
+-		if (r) {
+-			DSSERR("device %s init failed: %d\n", dssdev->name, r);
+-			continue;
+-		}
+-
+-		r = omap_dss_register_device(dssdev, &dsidev->dev);
+-		if (r)
+-			DSSERR("device %s register failed: %d\n",
+-				dssdev->name, r);
+-	}
++	dsi_probe_pdata(dsidev);
+ 
+ 	dsi_runtime_put(dsidev);
+ 
 diff --git a/drivers/video/omap2/dss/hdmi.c b/drivers/video/omap2/dss/hdmi.c
-index 28ce057..8b3ac6e 100644
+index 8b3ac6e..1b06df2 100644
 --- a/drivers/video/omap2/dss/hdmi.c
 +++ b/drivers/video/omap2/dss/hdmi.c
-@@ -147,7 +147,7 @@ static void hdmi_runtime_put(void)
- 	WARN_ON(r < 0);
+@@ -769,12 +769,36 @@ static void hdmi_put_clocks(void)
+ 		clk_put(hdmi.sys_clk);
  }
  
--int hdmi_init_display(struct omap_dss_device *dssdev)
-+static int __init hdmi_init_display(struct omap_dss_device *dssdev)
- {
- 	DSSDBG("init_display\n");
- 
-@@ -817,6 +817,12 @@ static int __init omapdss_hdmihw_probe(struct platform_device *pdev)
- 		if (dssdev->type != OMAP_DISPLAY_TYPE_HDMI)
- 			continue;
- 
++static void __init hdmi_probe_pdata(struct platform_device *pdev)
++{
++	struct omap_dss_board_info *pdata = pdev->dev.platform_data;
++	int r, i;
++
++	for (i = 0; i < pdata->num_devices; ++i) {
++		struct omap_dss_device *dssdev = pdata->devices[i];
++		struct omap_dss_hdmi_data *priv = dssdev->data;
++
++		if (dssdev->type != OMAP_DISPLAY_TYPE_HDMI)
++			continue;
++
 +		r = hdmi_init_display(dssdev);
 +		if (r) {
 +			DSSERR("device %s init failed: %d\n", dssdev->name, r);
 +			continue;
 +		}
 +
- 		r = omap_dss_register_device(dssdev, &pdev->dev);
- 		if (r)
- 			DSSERR("device %s register failed: %d\n",
++		r = omap_dss_register_device(dssdev, &pdev->dev);
++		if (r)
++			DSSERR("device %s register failed: %d\n",
++					dssdev->name, r);
++	}
++}
++
+ /* HDMI HW IP initialisation */
+ static int __init omapdss_hdmihw_probe(struct platform_device *pdev)
+ {
+-	struct omap_dss_board_info *pdata = pdev->dev.platform_data;
+ 	struct resource *hdmi_mem;
+-	int r, i;
++	int r;
+ 
+ 	hdmi.pdev = pdev;
+ 
+@@ -811,23 +835,7 @@ static int __init omapdss_hdmihw_probe(struct platform_device *pdev)
+ 
+ 	dss_debugfs_create_file("hdmi", hdmi_dump_regs);
+ 
+-	for (i = 0; i < pdata->num_devices; ++i) {
+-		struct omap_dss_device *dssdev = pdata->devices[i];
+-
+-		if (dssdev->type != OMAP_DISPLAY_TYPE_HDMI)
+-			continue;
+-
+-		r = hdmi_init_display(dssdev);
+-		if (r) {
+-			DSSERR("device %s init failed: %d\n", dssdev->name, r);
+-			continue;
+-		}
+-
+-		r = omap_dss_register_device(dssdev, &pdev->dev);
+-		if (r)
+-			DSSERR("device %s register failed: %d\n",
+-					dssdev->name, r);
+-	}
++	hdmi_probe_pdata(pdev);
+ 
+ #if defined(CONFIG_SND_OMAP_SOC_OMAP4_HDMI) || \
+ 	defined(CONFIG_SND_OMAP_SOC_OMAP4_HDMI_MODULE)
 diff --git a/drivers/video/omap2/dss/rfbi.c b/drivers/video/omap2/dss/rfbi.c
-index d0d24a0..a5d38a3 100644
+index a5d38a3..8ea266f 100644
 --- a/drivers/video/omap2/dss/rfbi.c
 +++ b/drivers/video/omap2/dss/rfbi.c
-@@ -920,7 +920,7 @@ void omapdss_rfbi_display_disable(struct omap_dss_device *dssdev)
+@@ -927,14 +927,37 @@ static int __init rfbi_init_display(struct omap_dss_device *dssdev)
+ 	return 0;
  }
- EXPORT_SYMBOL(omapdss_rfbi_display_disable);
  
--int rfbi_init_display(struct omap_dss_device *dssdev)
-+static int __init rfbi_init_display(struct omap_dss_device *dssdev)
- {
- 	rfbi.dssdev[dssdev->phy.rfbi.channel] = dssdev;
- 	dssdev->caps = OMAP_DSS_DISPLAY_CAP_MANUAL_UPDATE;
-@@ -985,6 +985,12 @@ static int __init omap_rfbihw_probe(struct platform_device *pdev)
- 		if (dssdev->type != OMAP_DISPLAY_TYPE_DBI)
- 			continue;
- 
++static void __init rfbi_probe_pdata(struct platform_device *pdev)
++{
++	struct omap_dss_board_info *pdata = pdev->dev.platform_data;
++	int i, r;
++
++	for (i = 0; i < pdata->num_devices; ++i) {
++		struct omap_dss_device *dssdev = pdata->devices[i];
++
++		if (dssdev->type != OMAP_DISPLAY_TYPE_DBI)
++			continue;
++
 +		r = rfbi_init_display(dssdev);
 +		if (r) {
 +			DSSERR("device %s init failed: %d\n", dssdev->name, r);
 +			continue;
 +		}
 +
- 		r = omap_dss_register_device(dssdev, &pdev->dev);
- 		if (r)
- 			DSSERR("device %s register failed: %d\n",
++		r = omap_dss_register_device(dssdev, &pdev->dev);
++		if (r)
++			DSSERR("device %s register failed: %d\n",
++				dssdev->name, r);
++	}
++}
++
+ /* RFBI HW IP initialisation */
+ static int __init omap_rfbihw_probe(struct platform_device *pdev)
+ {
+-	struct omap_dss_board_info *pdata = pdev->dev.platform_data;
+ 	u32 rev;
+ 	struct resource *rfbi_mem;
+ 	struct clk *clk;
+-	int r, i;
++	int r;
+ 
+ 	rfbi.pdev = pdev;
+ 
+@@ -979,23 +1002,7 @@ static int __init omap_rfbihw_probe(struct platform_device *pdev)
+ 
+ 	dss_debugfs_create_file("rfbi", rfbi_dump_regs);
+ 
+-	for (i = 0; i < pdata->num_devices; ++i) {
+-		struct omap_dss_device *dssdev = pdata->devices[i];
+-
+-		if (dssdev->type != OMAP_DISPLAY_TYPE_DBI)
+-			continue;
+-
+-		r = rfbi_init_display(dssdev);
+-		if (r) {
+-			DSSERR("device %s init failed: %d\n", dssdev->name, r);
+-			continue;
+-		}
+-
+-		r = omap_dss_register_device(dssdev, &pdev->dev);
+-		if (r)
+-			DSSERR("device %s register failed: %d\n",
+-				dssdev->name, r);
+-	}
++	rfbi_probe_pdata(pdev);
+ 
+ 	return 0;
+ 
 diff --git a/drivers/video/omap2/dss/sdi.c b/drivers/video/omap2/dss/sdi.c
-index bf48fb4..5d0785b 100644
+index 5d0785b..c322335 100644
 --- a/drivers/video/omap2/dss/sdi.c
 +++ b/drivers/video/omap2/dss/sdi.c
-@@ -156,7 +156,7 @@ void omapdss_sdi_display_disable(struct omap_dss_device *dssdev)
+@@ -176,7 +176,7 @@ static int __init sdi_init_display(struct omap_dss_device *dssdev)
+ 	return 0;
  }
- EXPORT_SYMBOL(omapdss_sdi_display_disable);
  
--int sdi_init_display(struct omap_dss_device *dssdev)
-+static int __init sdi_init_display(struct omap_dss_device *dssdev)
+-static int __init omap_sdi_probe(struct platform_device *pdev)
++static void __init sdi_probe_pdata(struct platform_device *pdev)
  {
- 	DSSDBG("SDI init\n");
- 
-@@ -187,6 +187,12 @@ static int __init omap_sdi_probe(struct platform_device *pdev)
- 		if (dssdev->type != OMAP_DISPLAY_TYPE_SDI)
- 			continue;
- 
-+		r = sdi_init_display(dssdev);
-+		if (r) {
-+			DSSERR("device %s init failed: %d\n", dssdev->name, r);
-+			continue;
-+		}
-+
- 		r = omap_dss_register_device(dssdev, &pdev->dev);
- 		if (r)
+ 	struct omap_dss_board_info *pdata = pdev->dev.platform_data;
+ 	int i, r;
+@@ -198,6 +198,11 @@ static int __init omap_sdi_probe(struct platform_device *pdev)
  			DSSERR("device %s register failed: %d\n",
+ 					dssdev->name, r);
+ 	}
++}
++
++static int __init omap_sdi_probe(struct platform_device *pdev)
++{
++	sdi_probe_pdata(pdev);
+ 
+ 	return 0;
+ }
 diff --git a/drivers/video/omap2/dss/venc.c b/drivers/video/omap2/dss/venc.c
-index 646903a..4d3128a 100644
+index 4d3128a..2c0747b 100644
 --- a/drivers/video/omap2/dss/venc.c
 +++ b/drivers/video/omap2/dss/venc.c
-@@ -673,7 +673,7 @@ static struct omap_dss_driver venc_driver = {
- };
- /* driver end */
+@@ -777,13 +777,36 @@ static void venc_put_clocks(void)
+ 		clk_put(venc.tv_dac_clk);
+ }
  
--int venc_init_display(struct omap_dss_device *dssdev)
-+static int __init venc_init_display(struct omap_dss_device *dssdev)
- {
- 	DSSDBG("init_display\n");
- 
-@@ -831,6 +831,12 @@ static int __init omap_venchw_probe(struct platform_device *pdev)
- 		if (dssdev->type != OMAP_DISPLAY_TYPE_VENC)
- 			continue;
- 
++static void __init venc_probe_pdata(struct platform_device *pdev)
++{
++	struct omap_dss_board_info *pdata = pdev->dev.platform_data;
++	int r, i;
++
++	for (i = 0; i < pdata->num_devices; ++i) {
++		struct omap_dss_device *dssdev = pdata->devices[i];
++
++		if (dssdev->type != OMAP_DISPLAY_TYPE_VENC)
++			continue;
++
 +		r = venc_init_display(dssdev);
 +		if (r) {
 +			DSSERR("device %s init failed: %d\n", dssdev->name, r);
 +			continue;
 +		}
 +
- 		r = omap_dss_register_device(dssdev, &pdev->dev);
- 		if (r)
- 			DSSERR("device %s register failed: %d\n",
++		r = omap_dss_register_device(dssdev, &pdev->dev);
++		if (r)
++			DSSERR("device %s register failed: %d\n",
++					dssdev->name, r);
++	}
++}
++
+ /* VENC HW IP initialisation */
+ static int __init omap_venchw_probe(struct platform_device *pdev)
+ {
+-	struct omap_dss_board_info *pdata = pdev->dev.platform_data;
+ 	u8 rev_id;
+ 	struct resource *venc_mem;
+-	int r, i;
++	int r;
+ 
+ 	venc.pdev = pdev;
+ 
+@@ -825,23 +848,7 @@ static int __init omap_venchw_probe(struct platform_device *pdev)
+ 
+ 	dss_debugfs_create_file("venc", venc_dump_regs);
+ 
+-	for (i = 0; i < pdata->num_devices; ++i) {
+-		struct omap_dss_device *dssdev = pdata->devices[i];
+-
+-		if (dssdev->type != OMAP_DISPLAY_TYPE_VENC)
+-			continue;
+-
+-		r = venc_init_display(dssdev);
+-		if (r) {
+-			DSSERR("device %s init failed: %d\n", dssdev->name, r);
+-			continue;
+-		}
+-
+-		r = omap_dss_register_device(dssdev, &pdev->dev);
+-		if (r)
+-			DSSERR("device %s register failed: %d\n",
+-					dssdev->name, r);
+-	}
++	venc_probe_pdata(pdev);
+ 
+ 	return 0;
+ 
 -- 
 1.7.9.5
 
