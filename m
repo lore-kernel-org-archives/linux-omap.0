@@ -1,68 +1,106 @@
-From: Felipe Balbi <balbi@ti.com>
-Subject: Re: [PATCH] omap-usb-host: include <plat/cpu.h>
-Date: Thu, 3 May 2012 10:50:44 +0300
-Message-ID: <20120503075042.GH20043@arwen.pp.htv.fi>
-References: <4FA1467C.8030005@suse.com>
-Reply-To: balbi@ti.com
+From: Vaibhav Hiremath <hvaibhav@ti.com>
+Subject: [PATCH-V7 0/3] ARM: OMAP: Make OMAP clocksource source selection runtime
+Date: Thu, 3 May 2012 13:28:58 +0530
+Message-ID: <1336031941-23651-1-git-send-email-hvaibhav@ti.com>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="EemXnrF2ob+xzFeB"
+Content-Type: text/plain
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aog133.obsmtp.com ([74.125.149.82]:34407 "EHLO
-	na3sys009aog133.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751391Ab2ECHwM (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 3 May 2012 03:52:12 -0400
-Received: by lbgc1 with SMTP id c1so2379095lbg.1
-        for <linux-omap@vger.kernel.org>; Thu, 03 May 2012 00:52:10 -0700 (PDT)
-Content-Disposition: inline
-In-Reply-To: <4FA1467C.8030005@suse.com>
+Received: from devils.ext.ti.com ([198.47.26.153]:48361 "EHLO
+	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753243Ab2ECH7N (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 3 May 2012 03:59:13 -0400
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Jeff Mahoney <jeffm@suse.com>
-Cc: linux-omap@vger.kernel.org, Guillaume GARDET <guillaume.gardet@opensuse.org>
+To: linux-omap@vger.kernel.org
+Cc: tony@atomide.com, khilman@ti.com, paul@pwsan.com, santosh.shilimkar@ti.com, b-cousson@ti.com, linux-arm-kernel@lists.infradead.org, Vaibhav Hiremath <hvaibhav@ti.com>
+
+Current OMAP code supports couple of clocksource options based
+on compilation flag (CONFIG_OMAP_32K_TIMER). The 32KHz sync-timer
+and a gptimer which can run on 32KHz or system clock (e.g 38.4 MHz)
+
+This patch series cleans up the existing 32k-sync timer implementation,
+movind SoC init code to respective files (mach-omap1/timer32k.c and
+mach-omap2/timer.c) and uses kernel parameter to override the default
+clocksource of "counter_32k", also in order to support some OMAP based
+derivative SoCs like AM33XX which doesn't have 32K sync-timer hardware IP,
+adds hwmod lookup for omap2+ devices, and if lookup fails then
+fall back to gp-timer.
+
+if(use_gptimer_clksrc == true)
+	gptimer clocksource init;
+else if (counter_32 init == false)
+	/* Fallback to gptimer */
+	gptimer clocksource init(;
+
+With this, we should be able to support multi-omap boot
+including devices with/without 32k-sync timer.
+
+This patch-series has been boot tested on AM37xEVM platform, it
+would be helpful if somebody help me to validate it on OMAP1/2
+platforms.
+
+The patches are also available at (based on linux-omap/master) -
+https://github.com/hvaibhav/am335x-linux   32ksync-timer-cleanup
+
+History:
+========
+Changes from V6:
+http://www.mail-archive.com/linux-omap@vger.kernel.org/msg67623.html
+	- Changed Patch2/3 descrption to add affected kernel parameter
+	- Warning Fix: Added missing inline prefix to omap_32k_timer_init()
+	- Added Acked-by and Tested-by from Kevin Hilman
+
+Changes from V5:
+http://www.mail-archive.com/linux-omap@vger.kernel.org/msg67163.html
+	- 2 of the original patch-series (1/3 and 2/3) has already been
+	  accepted and queued by Paul, so removing them.
+	  Also, add 2 new patches,
+		- OMAP2 timer32k cleanup, check for return values.
+		- Changed name of system timers, "gp timer" => "gp_timer".
+	- Moved SoC specific init code to respective files
+	  (mach-omap1/timer32k.c and mach-omap2/timer.c)
+
+Changes from V4:
+http://www.mail-archive.com/linux-omap@vger.kernel.org/msg67019.html
+	- Fix the possible bug, leftover the cnt addr argument to
+	  clocksource_mmio_init().
+
+Changes from V3:
+http://www.mail-archive.com/linux-omap@vger.kernel.org/msg66462.html
+	- Fixed all review comments from Kevin H
+		* Moved counter_32k CR register offset handling to
+		  counter_32k.c file, so now, calling funtion don't have
+		  to maintain or add offset to base addr.
+		* Added comment for function omap_init_clocksource_32k()
+		* Used resource_size() for calculate size
+		* Convert WARN_ON to pr_warn
+
+Changes from V2:
+http://lists.infradead.org/pipermail/linux-arm-kernel/2012-March/092037.html
+	- Added early_param support to read clocksource selection
+	  from user through kernel parameter ("clocksource=")
+	- Converted to ocp_if changes from Paul
+
+Changes from V1:
+http://lists.infradead.org/pipermail/linux-arm-kernel/2012-January/081037.html
+	- Based on Tony's comment, added pbase & size argument to
+	  omap_init_clocksource_32k(), to avoid cpu_is_xxx() check.
+	- Added commit description based on discussion on list
+	  (Thanks to Santosh here)
+	- Reorder patch sequence
 
 
---EemXnrF2ob+xzFeB
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
+Vaibhav Hiremath (3):
+  ARM: OMAP1: FIX: check possible error condition in timer_init
+  ARM: OMAP2+: Replace space=>underscore in the name field of system
+    timers
+  ARM: OMAP: Make OMAP clocksource source selection using kernel param
 
-Hi,
+ arch/arm/mach-omap1/common.h             |   10 ++-
+ arch/arm/mach-omap1/time.c               |   16 +----
+ arch/arm/mach-omap1/timer32k.c           |   28 ++++++-
+ arch/arm/mach-omap2/timer.c              |  118 +++++++++++++++++++++++------
+ arch/arm/plat-omap/counter_32k.c         |   91 ++++++++++-------------
+ arch/arm/plat-omap/include/plat/common.h |    2 +-
+ 6 files changed, 167 insertions(+), 98 deletions(-)
 
-On Wed, May 02, 2012 at 10:36:44AM -0400, Jeff Mahoney wrote:
-> omap-usb-host calls cpu_is_omap3430, which is defined in plat/cpu.h.
->=20
-> Reported-by: Guillaume GARDET <guillaume.gardet@opensuse.org>
-> Signed-off-by: Jeff Mahoney <jeffm@suse.com>
-
-this looks right to me, though a driver shouldn't be using cpu_is_***
-macros. Still, that patch can come later, this is needed now.
-
-Acked-by: Felipe Balbi <balbi@ti.com>
-
---=20
-balbi
-
---EemXnrF2ob+xzFeB
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: Digital signature
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.4.12 (GNU/Linux)
-
-iQIcBAEBAgAGBQJPojjSAAoJEIaOsuA1yqREhHQQAIKWHpxJ717qy57Jo4yjdMF4
-7T0IMiva5v2lsn5p074L4iPOOvpctGuWT9BokwwK61NXH40fBTiybxhV2BySzsPa
-6RroFthE7b9kwChtKflMRcrwxijOok0cSD/YdVqUEhdQgKxZy45k4mHYZpt7PA21
-/uOuobvdth3gk6G+m21mquYCCGwXFAt/4jcPxKA3+bvMU1Lnf4wGQfPUH2uey9hx
-uWZqmEN1F7cRBYzdG76SYQRjdnq9j6XN7l6VrUi/XpgeAELToY80vVIG/FlgVA81
-JJTTG8ujgl0RLVDk3X/Q+pKCDkCFPV7iiqh2VofuFAxH4pC4DUCGqF5wdzDuYVe8
-hFEX03sgK8+WS3Ozr6Rm4XCyvF0g+4DS7cC5H9j97knl0uE8wVIweWkccWyg1U1C
-dlkEvWP8hUN5TRvx2r6lxc0ZRGg8ABqsNoXaRsW+LKsG+kEsM9FKDDHMs15fdT63
-hpN/7wUZN68BH0o4fmSmo+pWV+4ufBU7WBAn+dhL3b0oDv0Yov3eepPJ8Di2iKLi
-8iYAC0gD/CoFPfg5hBc+/KjRTbBWe3WDNa697jyz5KomlGEvbFYAZk0Ev8v/uen9
-mF02sFvGX6UGp+arCVkSErIoZexVpSIFvWpdf+gNGs2dljW7VIJW7DjPklAbdWuD
-41LvCAFj2bQpBriYAIGD
-=euua
------END PGP SIGNATURE-----
-
---EemXnrF2ob+xzFeB--
