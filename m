@@ -1,65 +1,169 @@
-From: Santosh Shilimkar <santosh.shilimkar@ti.com>
-Subject: Re: [PATCH 0/8] gpio/omap: remaining cleanups and fix
-Date: Thu, 03 May 2012 16:47:44 +0530
-Message-ID: <4FA26958.4010304@ti.com>
-References: <1335536018-16004-1-git-send-email-tarun.kanti@ti.com>
+From: "Aguirre, Sergio" <saaguirre@ti.com>
+Subject: Re: [PATCH v3 07/10] arm: omap4430sdp: Add support for omap4iss camera
+Date: Thu, 3 May 2012 07:03:54 -0500
+Message-ID: <CAKnK67S5zZW0HAUYrg4ZqudiQqcOY+kbZeDeQ1OGU+s+cShBDQ@mail.gmail.com>
+References: <1335971749-21258-1-git-send-email-saaguirre@ti.com>
+ <1335971749-21258-8-git-send-email-saaguirre@ti.com> <20120502194700.GF852@valkosipuli.localdomain>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aog102.obsmtp.com ([74.125.149.69]:47889 "EHLO
-	na3sys009aog102.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755522Ab2ECLRu (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 3 May 2012 07:17:50 -0400
-Received: by obceq6 with SMTP id eq6so2921453obc.23
-        for <linux-omap@vger.kernel.org>; Thu, 03 May 2012 04:17:49 -0700 (PDT)
-In-Reply-To: <1335536018-16004-1-git-send-email-tarun.kanti@ti.com>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Return-path: <linux-media-owner@vger.kernel.org>
+In-Reply-To: <20120502194700.GF852@valkosipuli.localdomain>
+Sender: linux-media-owner@vger.kernel.org
+To: Sakari Ailus <sakari.ailus@iki.fi>
+Cc: linux-media@vger.kernel.org, linux-omap@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Tarun Kanti DebBarma <tarun.kanti@ti.com>
-Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Kevin Hilman <khilman@ti.com>, Tony Lindgren <tony@atomide.com>, "Cousson, Benoit" <b-cousson@ti.com>, Grant Likely <grant.likely@secretlab.ca>
 
-Tarun,
+Hi Sakari,
 
-On Friday 27 April 2012 07:43 PM, Tarun Kanti DebBarma wrote:
-> Here are the remaining cleanup patches. There are broadly
-> two categories of cleanups.
-> 
-> Cat-1: Those missed while introducing new feature like SPARSE_IRQ
->        handling and DT support; use edge/level handlers from
->        generic IRQ framework.
-> 
-> Cat-2: Removal of redundant fields from struct gpio_bank{} as a
->        result of they being already covered by members within
->        context field of struct gpio_bank{}.
-> 
-> Reference: git://git.kernel.org/pub/scm/linux/kernel/git/torvalds/linux-2.6.git
-> Commit: 66f75a5d028beaf67c931435fdc3e7823125730c (Linux 3.4-rc4)
-> 
-> Series is available for reference here:
-> git://gitorious.org/~tarunkanti/omap-sw-develoment/tarunkantis-linux-omap-dev.git for_3.5/gpio_more_cleanup_fixes
-> 
-> Test info:
-> OMAP2+ platforms: OMAP2430SDP, OMAP3430SDP, OMAP4430SDP
-> OMAP1: Bootup test on OMAP1710SDP.
-> 
-> Cc: Kevin Hilman <khilman@ti.com>
-> Cc: Tony Lindgren <tony@atomide.com>
-> Cc: Santosh Shilimkar <santosh.shilimkar@ti.com>
-> Cc: Cousson, Benoit <b-cousson@ti.com>
-> Cc: Grant Likely <grant.likely@secretlab.ca>
-> Tarun Kanti DebBarma (8):
->   gpio/omap: remove virtual_irq_start variable
->   gpio/omap: remove saved_fallingdetect, saved_risingdetect
->   gpio/omap: remove suspend_wakeup field from struct gpio_bank
->   gpio/omap: remove saved_wakeup field from struct gpio_bank
->   gpio/omap: remove retrigger variable in gpio_irq_handler
->   gpio/omap: remove suspend/resume callbacks
->   gpio/omap: remove cpu_is_omapxxxx() checks from *_runtime_resume()
->   gpio/omap: fix missing check in *_runtime_suspend()
-> 
-I have reviewed the remaining 3 patches from this series.
-Thanks.
+Thanks for reviewing.
 
-Regards
-santosh
+On Wed, May 2, 2012 at 2:47 PM, Sakari Ailus <sakari.ailus@iki.fi> wrot=
+e:
+>
+> Hi Sergio,
+>
+> Thanks for the patches!!
+>
+> On Wed, May 02, 2012 at 10:15:46AM -0500, Sergio Aguirre wrote:
+> ...
+>> +static int sdp4430_ov_cam1_power(struct v4l2_subdev *subdev, int on=
+)
+>> +{
+>> + =A0 =A0 struct device *dev =3D subdev->v4l2_dev->dev;
+>> + =A0 =A0 int ret;
+>> +
+>> + =A0 =A0 if (on) {
+>> + =A0 =A0 =A0 =A0 =A0 =A0 if (!regulator_is_enabled(sdp4430_cam2pwr_=
+reg)) {
+>> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 ret =3D regulator_enable(s=
+dp4430_cam2pwr_reg);
+>> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 if (ret) {
+>> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 dev_err(de=
+v,
+>> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0=
+ =A0 "Error in enabling sensor power regulator 'cam2pwr'\n");
+>> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 return ret=
+;
+>> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 }
+>> +
+>> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 msleep(50);
+>> + =A0 =A0 =A0 =A0 =A0 =A0 }
+>> +
+>> + =A0 =A0 =A0 =A0 =A0 =A0 gpio_set_value(OMAP4430SDP_GPIO_CAM_PDN_B,=
+ 1);
+>> + =A0 =A0 =A0 =A0 =A0 =A0 msleep(10);
+>> + =A0 =A0 =A0 =A0 =A0 =A0 ret =3D clk_enable(sdp4430_cam1_aux_clk); =
+/* Enable XCLK */
+>> + =A0 =A0 =A0 =A0 =A0 =A0 if (ret) {
+>> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 dev_err(dev,
+>> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 "Error in =
+clk_enable() in %s(%d)\n",
+>> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 __func__, =
+on);
+>> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 gpio_set_value(OMAP4430SDP=
+_GPIO_CAM_PDN_B, 0);
+>> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 return ret;
+>> + =A0 =A0 =A0 =A0 =A0 =A0 }
+>> + =A0 =A0 =A0 =A0 =A0 =A0 msleep(10);
+>> + =A0 =A0 } else {
+>> + =A0 =A0 =A0 =A0 =A0 =A0 clk_disable(sdp4430_cam1_aux_clk);
+>> + =A0 =A0 =A0 =A0 =A0 =A0 msleep(1);
+>> + =A0 =A0 =A0 =A0 =A0 =A0 gpio_set_value(OMAP4430SDP_GPIO_CAM_PDN_B,=
+ 0);
+>> + =A0 =A0 =A0 =A0 =A0 =A0 if (regulator_is_enabled(sdp4430_cam2pwr_r=
+eg)) {
+>> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 ret =3D regulator_disable(=
+sdp4430_cam2pwr_reg);
+>> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 if (ret) {
+>> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 dev_err(de=
+v,
+>> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0=
+ =A0 "Error in disabling sensor power regulator 'cam2pwr'\n");
+>> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 return ret=
+;
+>> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 }
+>> + =A0 =A0 =A0 =A0 =A0 =A0 }
+>> + =A0 =A0 }
+>> +
+>> + =A0 =A0 return 0;
+>> +}
+>
+> Isn't this something that should be part of the sensor driver? There'=
+s
+> nothing in the above code that would be board specific, except the na=
+mes of
+> the clocks, regulators and GPIOs. The sensor driver could hold the na=
+mes
+> instead; this would be also compatible with the device tree.
+
+Agreed. I see what you mean...
+
+I'll take care of that.
+
+>
+> It should be possible to have s_power() callback NULL, too.
+>
+>> +static int sdp4430_ov_cam2_power(struct v4l2_subdev *subdev, int on=
+)
+>> +{
+>> + =A0 =A0 struct device *dev =3D subdev->v4l2_dev->dev;
+>> + =A0 =A0 int ret;
+>> +
+>> + =A0 =A0 if (on) {
+>> + =A0 =A0 =A0 =A0 =A0 =A0 u8 gpoctl =3D 0;
+>> +
+>> + =A0 =A0 =A0 =A0 =A0 =A0 ret =3D regulator_enable(sdp4430_cam2pwr_r=
+eg);
+>> + =A0 =A0 =A0 =A0 =A0 =A0 if (ret) {
+>> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 dev_err(dev,
+>> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 "Error in =
+enabling sensor power regulator 'cam2pwr'\n");
+>> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 return ret;
+>> + =A0 =A0 =A0 =A0 =A0 =A0 }
+>> +
+>> + =A0 =A0 =A0 =A0 =A0 =A0 msleep(50);
+>> +
+>> + =A0 =A0 =A0 =A0 =A0 =A0 if (twl_i2c_read_u8(TWL_MODULE_AUDIO_VOICE=
+, &gpoctl,
+>> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 TW=
+L6040_REG_GPOCTL))
+>> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 return -ENODEV;
+>> + =A0 =A0 =A0 =A0 =A0 =A0 if (twl_i2c_write_u8(TWL_MODULE_AUDIO_VOIC=
+E,
+>> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0=
+gpoctl | TWL6040_GPO3,
+>> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0=
+TWL6040_REG_GPOCTL))
+>> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 return -ENODEV;
+>
+> The above piece of code looks quite interesting. What does it do?
+
+Well, this is because the camera adapter board in 4430SDP has 3
+sensors actually:
+
+- 1 Sony IMX060 12.1 MP sensor
+- 2 OmniVision OV5650 sensors
+
+And there's 3 wideband analog switches, like this:
+
+http://www.analog.com/static/imported-files/data_sheets/ADG936_936R.pdf
+
+That basically select either IMX060 or OV5650 for CSI2A input.
+
+So, this commands are because the TWL6040 chip has a GPO pin to toggle
+this, instead
+of an OMAP GPIO (Don't ask me why :) )
+
+Anyways... I see your point, maybe this should be explained better
+through a comment.
+
+Regards,
+Sergio
+>
+> Kind regards,
+>
+> --
+> Sakari Ailus
+> e-mail: sakari.ailus@iki.fi =A0 =A0 jabber/XMPP/Gmail: sailus@retiisi=
+=2Eorg.uk
