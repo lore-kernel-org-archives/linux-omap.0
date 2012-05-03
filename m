@@ -1,43 +1,55 @@
-From: Tero Kristo <t-kristo@ti.com>
-Subject: Re: [PATCHv4 8/8] ARM: OMAP4: PM: Added option for enabling OSWR
-Date: Thu, 3 May 2012 19:14:03 +0300
-Message-ID: <1336061643.2149.213.camel@sokoban>
-References: <1334913591-26312-1-git-send-email-t-kristo@ti.com>
-	 <1334913591-26312-9-git-send-email-t-kristo@ti.com>
-	 <CAORVsuWVMa-_T4JuXTwT6sePhp0mPoE9U_xhwA28AULveeiM+w@mail.gmail.com>
-Reply-To: <t-kristo@ti.com>
+From: "S, Venkatraman" <svenkatr@ti.com>
+Subject: Re: [PATCH v2 06/16] block: treat DMPG and SWAPIN requests as special
+Date: Thu, 3 May 2012 21:52:32 +0530
+Message-ID: <CANfBPZ-V86XfnA8CXVsupvWkfnXPC7upCqAFsx8+_2Ta5zTabA@mail.gmail.com>
+References: <1336054995-22988-1-git-send-email-svenkatr@ti.com>
+ <1336054995-22988-7-git-send-email-svenkatr@ti.com> <x49fwbhl48d.fsf@segfault.boston.devel.redhat.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from devils.ext.ti.com ([198.47.26.153]:45618 "EHLO
-	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755761Ab2ECQOK (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 3 May 2012 12:14:10 -0400
-In-Reply-To: <CAORVsuWVMa-_T4JuXTwT6sePhp0mPoE9U_xhwA28AULveeiM+w@mail.gmail.com>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Return-path: <linux-mmc-owner@vger.kernel.org>
+In-Reply-To: <x49fwbhl48d.fsf@segfault.boston.devel.redhat.com>
+Sender: linux-mmc-owner@vger.kernel.org
+To: Jeff Moyer <jmoyer@redhat.com>
+Cc: linux-mmc@vger.kernel.org, cjb@laptop.org, linux-mm@kvack.org, linux-fsdevel@vger.kernel.org, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org, arnd.bergmann@linaro.org, alex.lemberg@sandisk.com, ilan.smith@sandisk.com, lporzio@micron.com, rmk+kernel@arm.linux.org.uk
 List-Id: linux-omap@vger.kernel.org
-To: Jean Pihet <jean.pihet@newoldbits.com>
-Cc: linux-omap@vger.kernel.org, khilman@ti.com, paul@pwsan.com, linux-arm-kernel@lists.infradead.org
+
+On Thu, May 3, 2012 at 8:08 PM, Jeff Moyer <jmoyer@redhat.com> wrote:
+> Venkatraman S <svenkatr@ti.com> writes:
+>
+>> From: Ilan Smith <ilan.smith@sandisk.com>
+>>
+>> When exp_swapin and exp_dmpg are set, treat read requests
+>> marked with DMPG and SWAPIN as high priority and move to
+>> the front of the queue.
+>>
+> [...]
+>> + =A0 =A0 if (bio_swapin(bio) && blk_queue_exp_swapin(q)) {
+>> + =A0 =A0 =A0 =A0 =A0 =A0 spin_lock_irq(q->queue_lock);
+>> + =A0 =A0 =A0 =A0 =A0 =A0 where =3D ELEVATOR_INSERT_FLUSH;
+>> + =A0 =A0 =A0 =A0 =A0 =A0 goto get_rq;
+>> + =A0 =A0 }
+>> +
+>> + =A0 =A0 if (bio_dmpg(bio) && blk_queue_exp_dmpg(q)) {
+>> + =A0 =A0 =A0 =A0 =A0 =A0 spin_lock_irq(q->queue_lock);
+>> + =A0 =A0 =A0 =A0 =A0 =A0 where =3D ELEVATOR_INSERT_FLUSH;
+>> + =A0 =A0 =A0 =A0 =A0 =A0 goto get_rq;
+>
+> Is ELEVATOR_INSERT_FRONT not good enough? =A0It seems wrong to use _F=
+LUSH,
+> here. =A0If the semantics of ELEVATOR_INSERT_FLUSH are really what is
+> required, then perhaps we need to have another think about the naming=
+ of
+> these flags.
+>
+Actually - yes, ELEVATOR_INSERT_FRONT would do as well. In the
+previous version of MMC stack,
+we needed the _FLUSH to trigger the write operation that was to be
+preempted, to check that
+it actually works.
 
 
-<clip>
-
-> > @@ -274,8 +278,16 @@ static int __init pm_dbg_init(void)
-> >
-> >        pwrdm_for_each(pwrdms_setup, (void *)d);
-> >
-> > -       (void) debugfs_create_file("enable_off_mode", S_IRUGO | S_IWUSR, d,
-> > -                                  &enable_off_mode, &pm_dbg_option_fops);
-> > +       if (cpu_is_omap34xx())
-> > +               (void) debugfs_create_file("enable_off_mode",
-> > +                       S_IRUGO | S_IWUSR, d, &enable_off_mode,
-> > +                       &pm_dbg_option_fops);
-> Is the enable_off_mode entry needed on other OMAP platorms (OMAP<3)?
-
-Actually I am not sure, I've never used OMAP2. It looks like at least
-the kernel does not support off-mode for OMAP2, but according to TRM it
-might be possible to support it on HW.
-
--Tero
-
+> Cheers,
+> Jeff
+>
+> --
