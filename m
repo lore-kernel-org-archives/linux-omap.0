@@ -1,65 +1,71 @@
-From: "Mark A. Greer" <mgreer@animalcreek.com>
-Subject: Re: [PATCH] net: davinci_emac: Add pre_open, post_stop platform
- callbacks
-Date: Thu, 3 May 2012 11:46:32 -0700
-Message-ID: <20120503184632.GA28089@animalcreek.com>
-References: <20120502234718.GA5432@animalcreek.com>
- <B5906170F1614E41A8A28DE3B8D121433EA72820@DBDE01.ent.ti.com>
- <20120503160917.GA11310@animalcreek.com>
- <B5906170F1614E41A8A28DE3B8D121433EA73591@DBDE01.ent.ti.com>
+From: Russ Dill <Russ.Dill-l0cyMroinI0@public.gmane.org>
+Subject: Re: [PATCH RESEND] ARM: OMAP3: USB: Fix the EHCI ULPI PHY reset issue
+Date: Thu, 3 May 2012 12:08:30 -0700
+Message-ID: <CA+Bv8XYodOf_TKR6__aP=p8L7ruKhn6imWnOEbN+3UsBWPmoiw@mail.gmail.com>
+References: <1332139367-1302-1-git-send-email-keshava_mgowda@ti.com>
+	<CAMrsUdKnL+kSRQXi=X0d1S2fZM5sGpmYqzKnp0TPpjCKVujuaw@mail.gmail.com>
+	<CA+Bv8XZeCTV2kr_d7dEAeEthwD0TkNZPiEV5m-iOFjoX7xur9Q@mail.gmail.com>
+	<CAMrsUdL18b2Ox3CkzuNjQQW1JT1+-SAso67EkrwE-BTJbavYPA@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <netdev-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <B5906170F1614E41A8A28DE3B8D121433EA73591@DBDE01.ent.ti.com>
-Sender: netdev-owner@vger.kernel.org
-To: "Bedia, Vaibhav" <vaibhav.bedia@ti.com>
-Cc: "netdev@vger.kernel.org" <netdev@vger.kernel.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>
+Content-Type: text/plain; charset=UTF-8
+Return-path: <linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <CAMrsUdL18b2Ox3CkzuNjQQW1JT1+-SAso67EkrwE-BTJbavYPA-JsoAwUIsXosN+BqQ9rBEUg@public.gmane.org>
+Sender: linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: "Raja, Govindraj" <govindraj.raja-l0cyMroinI0@public.gmane.org>
+Cc: Keshava Munegowda <keshava_mgowda-l0cyMroinI0@public.gmane.org>, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, balbi-l0cyMroinI0@public.gmane.org, sameo-VuQAYsv1563Yd54FQh9/CA@public.gmane.org, parthab-PpE0FKYn9XJWk0Htik3J/w@public.gmane.org
 List-Id: linux-omap@vger.kernel.org
 
-On Thu, May 03, 2012 at 06:21:27PM +0000, Bedia, Vaibhav wrote:
-> On Thu, May 03, 2012 at 21:39:18, Mark A. Greer wrote:
-> > On Thu, May 03, 2012 at 10:44:44AM +0000, Bedia, Vaibhav wrote:
-> > > On Thu, May 03, 2012 at 05:17:18, Mark A. Greer wrote:
-> > > > From: "Mark A. Greer" <mgreer@animalcreek.com>
-> > > > 
-> > > > The davinci EMAC driver has been incorporated into the am35x
-> > > > family of SoC's which is OMAP-based.  The incorporation is
-> > > > incomplete in that the EMAC cannot unblock the [ARM] core if
-> > > > its blocked on a 'wfi' instruction.  This is an issue with
-> > > > the cpu_idle code because it has the core execute a 'wfi'
-> > > > instruction.
-> > > > 
-> > > > To work around this issue, add platform data callbacks which
-> > > > are called at the beginning of the open routine and at the
-> > > > end of the stop routine of the davinci_emac driver.  The
-> > > > callbacks allow the platform code to issue disable_hlt() and
-> > > > enable_hlt() calls appropriately.  Calling disable_hlt()
-> > > > prevents cpu_idle from issuing the 'wfi' instruction.
-> > > > 
-> > > > It is not sufficient to simply call disable_hlt() when
-> > > > there is an EMAC present because it could be present but
-> > > > not actually used in which case, we do want the 'wfi' to
-> > > > be executed.
-> > > > 
-> > > 
-> > > Are you trying to say that if ARM executes _just_ wfi and _absolutely
-> > > nothing else_ is done in the OMAP PM code, EMAC stops working?
-> > 
-> > No, I'm saying the EMAC can't wake the core from the wfi so if nothing
-> > else happens in the system, its effectively hung.  If something else
-> > does happen in the system (e.g., a timer expires), the the system is
-> > extremely slow because because its only waking up when a timer (or
-> > something else wakes it up--but not net traffic).  This is very apparent
-> > when using an nfs-mounted rootfs. It doesn't hang but its extremely
-> > slow because occasionally something else wakes up the core but it
-> > spends most of its time stuck in the wfi when it should be handling
-> > net/nfs traffic.
-> > 
-> 
-> So, if I understood this correctly, it's effectively like blocking a low power
-> state transition (here wfi execution) when EMAC is active?
+On Wed, May 2, 2012 at 3:38 AM, Raja, Govindraj <govindraj.raja-l0cyMroinI0@public.gmane.org> wrote:
+> On Wed, May 2, 2012 at 2:17 PM, Russ Dill <Russ.Dill-l0cyMroinI0@public.gmane.org> wrote:
+>> On Mon, Mar 19, 2012 at 6:34 AM, Raja, Govindraj <govindraj.raja-l0cyMroinI0@public.gmane.org> wrote:
+>>> On Mon, Mar 19, 2012 at 12:12 PM, Keshava Munegowda
+>>> <keshava_mgowda-l0cyMroinI0@public.gmane.org> wrote:
+>>>> From: Keshava Munegowda <Keshava_mgowda-l0cyMroinI0@public.gmane.org>
+>>>>
+>>>> It is observed that the echi ports of 3430 sdp board
+>>>> are not working due to the random timing of programming
+>>>> the associated GPIOs of the ULPI PHYs of the EHCI for reset.
+>>>> If the PHYs are reset at during usbhs core driver, host ports will
+>>>> not work because EHCI driver is loaded after the resetting PHYs.
+>>>> The PHYs should be in reset state while initializing the EHCI
+>>>> controller.
+>>>> The code which does the GPIO pins associated with the PHYs
+>>>> are programmed to reset is moved from the USB host core driver
+>>>> to EHCI driver.
+>>>
+>>> I tested on beagle xm where gpio nreset is requested from
+>>> board file.
+>>> (Basic enumertaion after gpio nreset seems to work fine,
+>>> Hub and smsc lan chip get detected afetr boot up)
+>>>
+>>
+>> What base did you test this on top of? my xM is failing USB-wise when
+>> I apply this on v3.3.3 (with the UART mux fix patch) and where it is
+>> applied within master (3.4-rc4, again, with the UART mux fix patch).
+>> Additionally, reverting this patch from 3.4-rc5 causes rc5 to work
+>> properly.
+>>
+>
+> Works for me be on 3.4-rc5 Beagle-XM even without reverting the patch
+>
+> Logs as in here [1].
+>
+> --
+> Thanks,
+> Govindraj.R
+>
+> [1]:
+> http://pastebin.pandaboard.org/index.php/view/20343533
 
-Assuming "it" is my patch, correct.
+I've tracked down the difference. I'm loading my uEnv.txt and uImage
+in u-boot from the network which means initializing USB. You are
+loading straight from MMC. If I switch to loading straight from MMC
+everything works.
 
-Mark
+Can everyone do a 'usb start' in u-boot before booting and re-test?
+I'm pretty sure this is a regression, but the bug could be a strange
+u-boot/kernel interaction.
+--
+To unsubscribe from this list: send the line "unsubscribe linux-usb" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
