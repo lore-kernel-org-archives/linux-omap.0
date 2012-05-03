@@ -1,195 +1,112 @@
 From: Tomi Valkeinen <tomi.valkeinen@ti.com>
-Subject: [PATCH 05/25] OMAPDSS: TFP410: pdata rewrite
-Date: Thu,  3 May 2012 16:57:41 +0300
-Message-ID: <1336053481-25433-6-git-send-email-tomi.valkeinen@ti.com>
+Subject: [PATCH 12/25] OMAPDSS: create DPI & SDI devices
+Date: Thu,  3 May 2012 16:57:48 +0300
+Message-ID: <1336053481-25433-13-git-send-email-tomi.valkeinen@ti.com>
 References: <1336053481-25433-1-git-send-email-tomi.valkeinen@ti.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aog133.obsmtp.com ([74.125.149.82]:38111 "EHLO
-	na3sys009aog133.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1756084Ab2ECN60 (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 3 May 2012 09:58:26 -0400
-Received: by lbbgj10 with SMTP id gj10so1578731lbb.23
-        for <linux-omap@vger.kernel.org>; Thu, 03 May 2012 06:58:23 -0700 (PDT)
+Received: from na3sys009aog120.obsmtp.com ([74.125.149.140]:42173 "EHLO
+	na3sys009aog120.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1755730Ab2ECN6j (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 3 May 2012 09:58:39 -0400
+Received: by lagu2 with SMTP id u2so1275700lag.7
+        for <linux-omap@vger.kernel.org>; Thu, 03 May 2012 06:58:36 -0700 (PDT)
 In-Reply-To: <1336053481-25433-1-git-send-email-tomi.valkeinen@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: linux-omap@vger.kernel.org, linux-fbdev@vger.kernel.org
 Cc: archit@ti.com, Tomi Valkeinen <tomi.valkeinen@ti.com>
 
-To ease device tree adaptation in the future, rewrite TFP410 platform
-data handling to be done inside probe(), so that probe() is the only
-place where we need to handle the DT/pdata choice.
+We currently have separate device/driver for each DSS HW module. The DPI
+and SDI outputs are more or less parts of the DSS or DISPC hardware
+modules, but in SW it makes sense to represent them as device/driver
+pairs similarly to all the other outputs. This also makes sense for
+device tree, as each node under dss will be a platform device, and
+handling DPI & SDI somehow differently than the rest would just make the
+code more complex.
+
+This patch modifies arch/arm/mach-omap2/display.c to create platform
+devices for DPI and SDI, and later patches will implement driver for
+them.
 
 Signed-off-by: Tomi Valkeinen <tomi.valkeinen@ti.com>
 ---
- drivers/video/omap2/displays/panel-tfp410.c |   72 ++++++++++++++-------------
- 1 file changed, 38 insertions(+), 34 deletions(-)
+ arch/arm/mach-omap2/display.c |   57 +++++++++++++++++++++++++++++++++++++++++
+ 1 file changed, 57 insertions(+)
 
-diff --git a/drivers/video/omap2/displays/panel-tfp410.c b/drivers/video/omap2/displays/panel-tfp410.c
-index 52637fa..f03964e 100644
---- a/drivers/video/omap2/displays/panel-tfp410.c
-+++ b/drivers/video/omap2/displays/panel-tfp410.c
-@@ -47,13 +47,9 @@ struct panel_drv_data {
- 	struct mutex lock;
+diff --git a/arch/arm/mach-omap2/display.c b/arch/arm/mach-omap2/display.c
+index 46d2a98..2c05a60 100644
+--- a/arch/arm/mach-omap2/display.c
++++ b/arch/arm/mach-omap2/display.c
+@@ -243,6 +243,46 @@ err:
+ 	return ERR_PTR(r);
+ }
  
- 	int pd_gpio;
--};
- 
--static inline struct tfp410_platform_data
--*get_pdata(const struct omap_dss_device *dssdev)
--{
--	return dssdev->data;
--}
-+	struct i2c_adapter *i2c_adapter;
-+};
- 
- static int tfp410_power_on(struct omap_dss_device *dssdev)
- {
-@@ -90,11 +86,11 @@ static void tfp410_power_off(struct omap_dss_device *dssdev)
- 
- static int tfp410_probe(struct omap_dss_device *dssdev)
- {
--	struct tfp410_platform_data *pdata = get_pdata(dssdev);
- 	struct panel_drv_data *ddata;
- 	int r;
-+	int i2c_bus_num;
- 
--	ddata = kzalloc(sizeof(*ddata), GFP_KERNEL);
-+	ddata = devm_kzalloc(&dssdev->dev, sizeof(*ddata), GFP_KERNEL);
- 	if (!ddata)
- 		return -ENOMEM;
- 
-@@ -104,10 +100,15 @@ static int tfp410_probe(struct omap_dss_device *dssdev)
- 	ddata->dssdev = dssdev;
- 	mutex_init(&ddata->lock);
- 
--	if (pdata)
-+	if (dssdev->data) {
-+		struct tfp410_platform_data *pdata = dssdev->data;
++static struct platform_device *create_simple_dss_pdev(const char *pdev_name,
++		int pdev_id, void *pdata, int pdata_len,
++		struct platform_device *parent)
++{
++	struct platform_device *pdev;
++	int r;
 +
- 		ddata->pd_gpio = pdata->power_down_gpio;
--	else
-+		i2c_bus_num = pdata->i2c_bus_num;
-+	} else {
- 		ddata->pd_gpio = -1;
-+		i2c_bus_num = -1;
++	pdev = platform_device_alloc(pdev_name, pdev_id);
++	if (!pdev) {
++		pr_err("Could not create pdev for %s\n", pdev_name);
++		r = -ENOMEM;
++		goto err;
 +	}
- 
- 	if (gpio_is_valid(ddata->pd_gpio)) {
- 		r = gpio_request_one(ddata->pd_gpio, GPIOF_OUT_INIT_LOW,
-@@ -115,13 +116,31 @@ static int tfp410_probe(struct omap_dss_device *dssdev)
- 		if (r) {
- 			dev_err(&dssdev->dev, "Failed to request PD GPIO %d\n",
- 					ddata->pd_gpio);
--			ddata->pd_gpio = -1;
-+			return r;
- 		}
++
++	if (parent != NULL)
++		pdev->dev.parent = &parent->dev;
++
++	if (pdev->id != -1)
++		dev_set_name(&pdev->dev, "%s.%d", pdev->name, pdev->id);
++	else
++		dev_set_name(&pdev->dev, "%s", pdev->name);
++
++	r = platform_device_add_data(pdev, pdata, pdata_len);
++	if (r) {
++		pr_err("Could not set pdata for %s\n", pdev_name);
++		goto err;
++	}
++
++	r = omap_device_register(pdev);
++	if (r) {
++		pr_err("Could not register omap_device for %s\n", pdev_name);
++		goto err;
++	}
++
++	return pdev;
++
++err:
++	return ERR_PTR(r);
++}
++
+ int __init omap_display_init(struct omap_dss_board_info *board_data)
+ {
+ 	int r = 0;
+@@ -299,6 +339,23 @@ int __init omap_display_init(struct omap_dss_board_info *board_data)
+ 			dss_pdev = pdev;
  	}
  
-+	if (i2c_bus_num != -1) {
-+		struct i2c_adapter *adapter;
++	/* Create devices for DPI and SDI */
 +
-+		adapter = i2c_get_adapter(i2c_bus_num);
-+		if (!adapter) {
-+			dev_err(&dssdev->dev, "Failed to get I2C adapter, bus %d\n",
-+					i2c_bus_num);
-+			r = -EINVAL;
-+			goto err_i2c;
++	pdev = create_simple_dss_pdev("omapdss_dpi", -1, NULL, 0, dss_pdev);
++	if (IS_ERR(pdev)) {
++		pr_err("Could not build platform_device for omapdss_dpi\n");
++		return PTR_ERR(pdev);
++	}
++
++	if (cpu_is_omap34xx()) {
++		pdev = create_simple_dss_pdev("omapdss_sdi", -1, NULL, 0,
++				dss_pdev);
++		if (IS_ERR(pdev)) {
++			pr_err("Could not build platform_device for omapdss_sdi\n");
++			return PTR_ERR(pdev);
 +		}
-+
-+		ddata->i2c_adapter = adapter;
 +	}
 +
- 	dev_set_drvdata(&dssdev->dev, ddata);
- 
  	return 0;
-+err_i2c:
-+	if (gpio_is_valid(ddata->pd_gpio))
-+		gpio_free(ddata->pd_gpio);
-+	return r;
  }
- 
- static void __exit tfp410_remove(struct omap_dss_device *dssdev)
-@@ -130,14 +149,15 @@ static void __exit tfp410_remove(struct omap_dss_device *dssdev)
- 
- 	mutex_lock(&ddata->lock);
- 
-+	if (ddata->i2c_adapter)
-+		i2c_put_adapter(ddata->i2c_adapter);
-+
- 	if (gpio_is_valid(ddata->pd_gpio))
- 		gpio_free(ddata->pd_gpio);
- 
- 	dev_set_drvdata(&dssdev->dev, NULL);
- 
- 	mutex_unlock(&ddata->lock);
--
--	kfree(ddata);
- }
- 
- static int tfp410_enable(struct omap_dss_device *dssdev)
-@@ -269,27 +289,17 @@ static int tfp410_read_edid(struct omap_dss_device *dssdev,
- 		u8 *edid, int len)
- {
- 	struct panel_drv_data *ddata = dev_get_drvdata(&dssdev->dev);
--	struct tfp410_platform_data *pdata = get_pdata(dssdev);
--	struct i2c_adapter *adapter;
- 	int r, l, bytes_read;
- 
- 	mutex_lock(&ddata->lock);
- 
--	if (pdata->i2c_bus_num == 0) {
-+	if (!ddata->i2c_adapter) {
- 		r = -ENODEV;
- 		goto err;
- 	}
- 
--	adapter = i2c_get_adapter(pdata->i2c_bus_num);
--	if (!adapter) {
--		dev_err(&dssdev->dev, "Failed to get I2C adapter, bus %d\n",
--				pdata->i2c_bus_num);
--		r = -EINVAL;
--		goto err;
--	}
--
- 	l = min(EDID_LENGTH, len);
--	r = tfp410_ddc_read(adapter, edid, l, 0);
-+	r = tfp410_ddc_read(ddata->i2c_adapter, edid, l, 0);
- 	if (r)
- 		goto err;
- 
-@@ -299,7 +309,7 @@ static int tfp410_read_edid(struct omap_dss_device *dssdev,
- 	if (len > EDID_LENGTH && edid[0x7e] > 0) {
- 		l = min(EDID_LENGTH, len - EDID_LENGTH);
- 
--		r = tfp410_ddc_read(adapter, edid + EDID_LENGTH,
-+		r = tfp410_ddc_read(ddata->i2c_adapter, edid + EDID_LENGTH,
- 				l, EDID_LENGTH);
- 		if (r)
- 			goto err;
-@@ -319,21 +329,15 @@ err:
- static bool tfp410_detect(struct omap_dss_device *dssdev)
- {
- 	struct panel_drv_data *ddata = dev_get_drvdata(&dssdev->dev);
--	struct tfp410_platform_data *pdata = get_pdata(dssdev);
--	struct i2c_adapter *adapter;
- 	unsigned char out;
- 	int r;
- 
- 	mutex_lock(&ddata->lock);
- 
--	if (pdata->i2c_bus_num == 0)
--		goto out;
--
--	adapter = i2c_get_adapter(pdata->i2c_bus_num);
--	if (!adapter)
-+	if (!ddata->i2c_adapter)
- 		goto out;
- 
--	r = tfp410_ddc_read(adapter, &out, 1, 0);
-+	r = tfp410_ddc_read(ddata->i2c_adapter, &out, 1, 0);
- 
- 	mutex_unlock(&ddata->lock);
  
 -- 
 1.7.9.5
