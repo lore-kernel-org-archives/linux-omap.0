@@ -1,36 +1,137 @@
-From: "Mohammed, Afzal" <afzal@ti.com>
-Subject: RE: [PATCH v4 06/39] ARM: OMAP2+: onenand: return value in init
- function
-Date: Thu, 3 May 2012 08:54:08 +0000
-Message-ID: <C8443D0743D26F4388EA172BF4E2A7A93E982A0E@DBDE01.ent.ti.com>
-References: <cover.1335874494.git.afzal@ti.com>
- <91c09cb6a6cb5e87acdcc3f6100a87b4c2a3dd41.1335874494.git.afzal@ti.com>
- <4FA01421.9080808@mvista.com>
+From: Archit Taneja <a0393947@ti.com>
+Subject: Re: Problems with 3.4-rc5
+Date: Thu, 3 May 2012 15:32:13 +0530
+Message-ID: <4FA257A5.1010902@ti.com>
+References: <WC20120502115251.8503FF@terrafix.co.uk> <4FA12775.1090206@ti.com> <WC20120502124638.320406@terrafix.co.uk> <1336033721.14378.2.camel@deskari> <WC20120503084938.900446@terrafix.co.uk>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
+Content-Type: text/plain; charset="ISO-8859-1"; format=flowed
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from devils.ext.ti.com ([198.47.26.153]:51004 "EHLO
-	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752627Ab2ECIy3 convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 3 May 2012 04:54:29 -0400
-In-Reply-To: <4FA01421.9080808@mvista.com>
-Content-Language: en-US
+Received: from arroyo.ext.ti.com ([192.94.94.40]:42058 "EHLO arroyo.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1754741Ab2ECKDo (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Thu, 3 May 2012 06:03:44 -0400
+In-Reply-To: <WC20120503084938.900446@terrafix.co.uk>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Sergei Shtylyov <sshtylyov@mvista.com>
-Cc: "tony@atomide.com" <tony@atomide.com>, "linux@arm.linux.org.uk" <linux@arm.linux.org.uk>, "Hilman, Kevin" <khilman@ti.com>, "Balbi, Felipe" <balbi@ti.com>, "dwmw2@infradead.org" <dwmw2@infradead.org>, "kyungmin.park@samsung.com" <kyungmin.park@samsung.com>, "gregkh@linuxfoundation.org" <gregkh@linuxfoundation.org>, "Menon, Nishanth" <nm@ti.com>, "grinberg@compulab.co.il" <grinberg@compulab.co.il>, "notasas@gmail.com" <notasas@gmail.com>, "artem.bityutskiy@linux.intel.com" <artem.bityutskiy@linux.intel.com>, "vimal.newwork@gmail.com" <vimal.newwork@gmail.com>, "dbaryshkov@gmail.com" <dbaryshkov@gmail.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, "linux-usb@vger.kernel.org" <linux-usb@vger.kernel.org>, "linux-mtd@lists.infradead.org" <linux-mtd@lists.infradead.org>
+To: Joe Woodward <jw@terrafix.co.uk>
+Cc: Tomi Valkeinen <tomi.valkeinen@ti.com>, linux-omap@vger.kernel.org
 
-Hi Sergei,
+On Thursday 03 May 2012 02:19 PM, Joe Woodward wrote:
+> -----Original Message-----
+> From: Tomi Valkeinen<tomi.valkeinen@ti.com>
+> To: Joe Woodward<jw@terrafix.co.uk>
+> Cc: Archit Taneja<a0393947@ti.com>, linux-omap@vger.kernel.org
+> Date: Thu, 03 May 2012 11:28:41 +0300
+> Subject: Re: Problems with 3.4-rc5
+>
+>> On Wed, 2012-05-02 at 13:46 +0100, Joe Woodward wrote:
+>>
+>>>>> Secondly, I get the following when booted:
+>>>>> ...
+>>>>> [    4.701232] devtmpfs: mounted
+>>>>> [    4.704772] Freeing init memory: 168K
+>>>>> [    4.827301] omapdss DISPC error: FIFO UNDERFLOW on gfx,
+>> disabling
+>>>> the overlay
+>>>>> ...
+>>>>>
+>>>>
+>>>> Could you add some dss debug prints? You can add "omapdss.debug=1
+>>>> debug"
+>>>> in the bootargs to get that.
+>>>>
+>>>> There was a feature called fifo merge added in 3.4, this might lead
+>> to
+>>>> underflow, we had tested this using a DVI monitor on beagle but
+>> didn't
+>>>> see any underflows.
+>>>>
+>>>> Are you trying this out on 3.4 for the first time? What was the
+>> last
+>>>> kernel revision on which you tested this and didn't see any issues?
+>>
+>> Can you try the following changes (separately):
+>>
+>>
+>> diff --git a/drivers/video/omap2/dss/dispc.c
+>> b/drivers/video/omap2/dss/dispc.c
+>> index ee30937..aca4eb1 100644
+>> --- a/drivers/video/omap2/dss/dispc.c
+>> +++ b/drivers/video/omap2/dss/dispc.c
+>> @@ -1091,13 +1091,8 @@ void dispc_ovl_compute_fifo_thresholds(enum
+>> omap_plane plane,
+>>   	 * combined fifo size
+>>   	 */
+>>
+>> -	if (dss_has_feature(FEAT_OMAP3_DSI_FIFO_BUG)) {
+>> -		*fifo_low = ovl_fifo_size - burst_size * 2;
+>> -		*fifo_high = total_fifo_size - burst_size;
+>> -	} else {
+>> -		*fifo_low = ovl_fifo_size - burst_size;
+>> -		*fifo_high = total_fifo_size - buf_unit;
+>> -	}
+>> +	*fifo_low = ovl_fifo_size - burst_size;
+>> +	*fifo_high = total_fifo_size - buf_unit;
+>>   }
+>>
+>>   static void dispc_ovl_set_fir(enum omap_plane plane,
+>>
+>> ---
+>
+> The above patch fixes the problem (I no longer see any underflows).
 
-On Tue, May 01, 2012 at 22:19:37, Sergei Shtylyov wrote:
-> > +
-> > +#if defined(CONFIG_MTD_ONENAND_OMAP2) || \
-> > +		defined(CONFIG_MTD_ONENAND_OMAP2_MODULE)
-> 
->     You can use IS_ENABLED(CONFIG_MTD_ONENAND_OMAP2) instead these two.
+Tomi,
 
-Thanks for educating me.
+Before FIFO merge was added, the special fifo_low/high calculation was 
+only done for DSI on OMAP3, now it seems to be done on OMAP3 and for all 
+interfaces. Maybe this is the difference between 3.3.
 
-Regards
-Afzal
+>
+>
+>>
+>> diff --git a/drivers/video/omap2/dss/dispc.c
+>> b/drivers/video/omap2/dss/dispc.c
+>> index ee30937..d63f1a3 100644
+>> --- a/drivers/video/omap2/dss/dispc.c
+>> +++ b/drivers/video/omap2/dss/dispc.c
+>> @@ -1077,13 +1077,7 @@ void dispc_ovl_compute_fifo_thresholds(enum
+>> omap_plane plane,
+>>   	burst_size = dispc_ovl_get_burst_size(plane);
+>>   	ovl_fifo_size = dispc_ovl_get_fifo_size(plane);
+>>
+>> -	if (use_fifomerge) {
+>> -		total_fifo_size = 0;
+>> -		for (i = 0; i<  omap_dss_get_num_overlays(); ++i)
+>> -			total_fifo_size += dispc_ovl_get_fifo_size(i);
+>> -	} else {
+>> -		total_fifo_size = ovl_fifo_size;
+>> -	}
+>> +	total_fifo_size = ovl_fifo_size;
+>>
+>>   	/*
+>>   	 * We use the same low threshold for both fifomerge and non-fifomerge
+>>
+>
+> The above patch has no effect (I still see underflows).
+>
+> Both patches together results in slightly different behaviour, the display is still broken-
+> it flickers on and off with occassional underflows before breaking completely.
+
+With both the patches combined, we are configuring DSS with FIFO merge 
+enabled, but configuring thresholds normally and not utilising the large 
+FIFO. Getting underflows with this is strange, because it's more or less 
+similar to what it was on 3.3 without FIFO merge.
+
+Archit
+
+>
+> Cheers,
+> Joe
+>
+>>   Tomi
+>>
+>
+>
+>
+
