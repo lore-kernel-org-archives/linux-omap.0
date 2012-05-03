@@ -1,64 +1,65 @@
-From: "Hiremath, Vaibhav" <hvaibhav@ti.com>
-Subject: RE: [PATCH-V5 2/3] arm:omap:am33xx: Add AM335XEVM machine support
-Date: Thu, 3 May 2012 16:41:44 +0000
-Message-ID: <79CD15C6BA57404B839C016229A409A83EA1348F@DBDE01.ent.ti.com>
-References: <hvaibhav@ti.com>
- <1322808204-12878-3-git-send-email-hvaibhav@ti.com>
- <alpine.DEB.2.00.1205020317151.19695@utopia.booyaka.com>
- <79CD15C6BA57404B839C016229A409A83EA10A64@DBDE01.ent.ti.com>
- <20120503155717.GE5140@atomide.com>
+From: Kevin Hilman <khilman@deeprootsystems.com>
+Subject: Re: [PATCH] ARM: OMAP2+: watchdog: fix !PM boot crash, disarm timer
+ after hwmod reset
+Date: Thu, 03 May 2012 11:19:52 -0700
+Message-ID: <4FA2CC48.8020302@deeprootsystems.com>
+References: <1334353873-15972-1-git-send-email-khilman@ti.com> <alpine.DEB.2.00.1204201451510.11306@utopia.booyaka.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from bear.ext.ti.com ([192.94.94.41]:39834 "EHLO bear.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752286Ab2ECQlx convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 3 May 2012 12:41:53 -0400
-In-Reply-To: <20120503155717.GE5140@atomide.com>
-Content-Language: en-US
+Received: from mail-pz0-f46.google.com ([209.85.210.46]:45100 "EHLO
+	mail-pz0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753784Ab2ECSTt (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 3 May 2012 14:19:49 -0400
+Received: by dady13 with SMTP id y13so2154213dad.5
+        for <linux-omap@vger.kernel.org>; Thu, 03 May 2012 11:19:48 -0700 (PDT)
+In-Reply-To: <alpine.DEB.2.00.1204201451510.11306@utopia.booyaka.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Tony Lindgren <tony@atomide.com>
-Cc: Paul Walmsley <paul@pwsan.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "Hilman, Kevin" <khilman@ti.com>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, "Mohammed, Afzal" <afzal@ti.com>
+To: Paul Walmsley <paul@pwsan.com>
+Cc: Kevin Hilman <khilman@ti.com>, Tony Lindgren <tony@atomide.com>, linux-omap@vger.kernel.org, santosh.shilimkar@ti.com, linux-arm-kernel@lists.infradead.org
 
-On Thu, May 03, 2012 at 21:27:18, Tony Lindgren wrote:
-> Hi,
-> 
-> * Hiremath, Vaibhav <hvaibhav@ti.com> [120502 02:37]:
-> > On Wed, May 02, 2012 at 14:53:24, Paul Walmsley wrote:
-> > > Hi
-> > > 
-> > > On Fri, 2 Dec 2011, hvaibhav@ti.com wrote:
-> > > 
-> > > > From: Afzal Mohammed <afzal@ti.com>
-> > > > 
-> > > > This patch adds minimal support for AM335X EVM.
-> > > > The approach taken here is to add AM335X EVM support
-> > > > to AM3517EVM, considering the fact that with device tree
-> > > > developement we will get rid of board-*.c.
-> > > > 
-> > > > Signed-off-by: Afzal Mohammed <afzal@ti.com>
-> > > > Signed-off-by: Vaibhav Hiremath <hvaibhav@ti.com>
-> > > > Reviewed-by: Kevin Hilman <khilman@ti.com>
-> > > 
-> > > I realize people may not necessarily like this, but I think that the 
-> > > AM33xx EVM needs its own board file.  This is because it really has 
-> > > nothing to do with the AM3517EVM.  Also, the AM3517EVM depends on 
-> > > CONFIG_ARCH_OMAP3, but the AM33xx EVM should not: it should depend on 
-> > > either CONFIG_ARCH_OMAPAM33XX, or CONFIG_ARCH_OMAP4.
-> 
-> I guess adding CONFIG_SOC_AM33XX makes sense if it does not share anything
-> except core with omap3. And the SOC is independent of the core selected,
-> there is no dependency between SoC and the core.
-> 
-> Note that we have CONFIG_ARCH_OMAP2PLUS, all the other ones should be just
-> CONFIG_SOC_XXX. As all omap3 omap4 and am33xx are v7, there's no need to
-> compile with different flags either.
->  
+Hi Paul,
 
-What about cpu_is_omap34xx() true for am33xx? Should we follow it?
+On 04/20/2012 01:59 PM, Paul Walmsley wrote:
+
+[...]
+
+> This looks great, looks like it will finally fix this longstanding bug.  I
+> think Santosh hit it too a long time ago, so I suspect he will be happy
+> too.
+>
+> One comment: I think that omap2_wd_timer_reset() needs to be updated in
+> light of commit 3c55c1baffa5f719eb2ae9729088bc867f972f53 ("ARM: OMAP2+:
+> hwmod: Revert "ARM: OMAP2+: hwmod: Make omap_hwmod_softreset wait for
+> reset status"").  I did this here.  It's passed basic build testing but
+> haven't tried booting it yet.  Care to take a look and see if you have any
+> comments?  It's also available in the 'hwmod_devel_a_3.5' branch of
+> git://git.pwsan.com/linux-2.6
+
+I just noticed a compile warning with your updated version:
+
+/work/kernel/omap/pm/arch/arm/mach-omap2/wd_timer.c: In function 
+'omap2_wd_timer_reset':
+/work/kernel/omap/pm/arch/arm/mach-omap2/wd_timer.c:78:6: warning: 
+unused variable 'v' [-Wunused-variable]
+
+The diff below on top of your patch fixes it.
+
+Kevin
 
 
-Thanks,
-Vaibhav
+diff --git a/arch/arm/mach-omap2/wd_timer.c b/arch/arm/mach-omap2/wd_timer.c
+index fcbb663..b2f1c67 100644
+--- a/arch/arm/mach-omap2/wd_timer.c
++++ b/arch/arm/mach-omap2/wd_timer.c
+@@ -75,7 +75,6 @@ int omap2_wd_timer_disable(struct omap_hwmod *oh)
+   */
+  int omap2_wd_timer_reset(struct omap_hwmod *oh)
+  {
+-	u32 v;
+  	int c = 0;
+
+  	/* Write to the SOFTRESET bit */
+
