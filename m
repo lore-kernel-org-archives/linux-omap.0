@@ -1,42 +1,51 @@
-From: Kevin Hilman <khilman@ti.com>
-Subject: Re: [PATCH 11/18][V3] ARM: OMAP3: cpuidle - remove the 'valid' field
-Date: Thu, 03 May 2012 13:19:29 -0700
-Message-ID: <87r4v1kofi.fsf@ti.com>
-References: <1335276339-11135-1-git-send-email-daniel.lezcano@linaro.org>
-	<1335276339-11135-12-git-send-email-daniel.lezcano@linaro.org>
+From: Ben Hutchings <bhutchings@solarflare.com>
+Subject: RE: [PATCH] net: davinci_emac: Add pre_open, post_stop platform
+ callbacks
+Date: Thu, 3 May 2012 21:22:22 +0100
+Message-ID: <1336076542.2998.23.camel@bwh-desktop.uk.solarflarecom.com>
+References: <20120502234718.GA5432@animalcreek.com>
+	 <B5906170F1614E41A8A28DE3B8D121433EA72820@DBDE01.ent.ti.com>
+	 <20120503160917.GA11310@animalcreek.com>
+	 <B5906170F1614E41A8A28DE3B8D121433EA73591@DBDE01.ent.ti.com>
+	 <20120503184632.GA28089@animalcreek.com>
+	 <B5906170F1614E41A8A28DE3B8D121433EA7366B@DBDE01.ent.ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aog102.obsmtp.com ([74.125.149.69]:45904 "EHLO
-	na3sys009aog102.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1758338Ab2ECUT1 (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 3 May 2012 16:19:27 -0400
-Received: by dajz8 with SMTP id z8so2069704daj.16
-        for <linux-omap@vger.kernel.org>; Thu, 03 May 2012 13:19:26 -0700 (PDT)
-In-Reply-To: <1335276339-11135-12-git-send-email-daniel.lezcano@linaro.org>
-	(Daniel Lezcano's message of "Tue, 24 Apr 2012 16:05:32 +0200")
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: 7bit
+Return-path: <netdev-owner@vger.kernel.org>
+In-Reply-To: <B5906170F1614E41A8A28DE3B8D121433EA7366B@DBDE01.ent.ti.com>
+Sender: netdev-owner@vger.kernel.org
+To: "Bedia, Vaibhav" <vaibhav.bedia@ti.com>
+Cc: "Mark A. Greer" <mgreer@animalcreek.com>, "netdev@vger.kernel.org" <netdev@vger.kernel.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>
 List-Id: linux-omap@vger.kernel.org
-To: Daniel Lezcano <daniel.lezcano@linaro.org>
-Cc: santosh.shilimkar@ti.com, jean.pihet@newoldbits.com, tony@atomide.com, linux-omap@vger.kernel.org, linaro-dev@lists.linaro.org, linux-arm-kernel@lists.infradead.org, patches@linaro.org
 
-Daniel Lezcano <daniel.lezcano@linaro.org> writes:
+On Thu, 2012-05-03 at 19:25 +0000, Bedia, Vaibhav wrote:
+> On Fri, May 04, 2012 at 00:16:32, Mark A. Greer wrote:
+> [...]
+> > > 
+> > > So, if I understood this correctly, it's effectively like blocking a low power
+> > > state transition (here wfi execution) when EMAC is active?
+> > 
+> > Assuming "it" is my patch, correct.
+> > 
+> 
+> Recently I was thinking about how to get certain drivers to disallow some or all
+> low power states and to me this also seems to fall in a similar category.
+> 
+> One of the suggestions that I got was to check if the 'wakeup' entry associated with
+> the device under sysfs could be leveraged for this. The PM code could maintain
+> a whitelist (or blacklist) of devices and it decides the low power state to enter
+> based on the 'wakeup' entries associated with these devices. In this particular case,
+> maybe the driver could simply set this entry to non-wakeup capable when necessary and
+> then let the PM code take care of skipping the wfi execution.
+> 
+> Thoughts/brickbats welcome :)
 
-> With the previous changes all the states are valid, except
-> the last state which can be handled by decreasing the number
-> of states.
+You can maybe (ab)use the pm_qos mechanism for this.
 
-I don't think this changelog is valid anymore as you're not doing
-anything to decrease the number of states.
+Ben.
 
-I updated the changelog locally to this:
-
-ARM: OMAP3: cpuidle - remove the 'valid' field
-
-With the previous changes all the states are valid, except the last
-state which is now handled at runtime by next_valid_state() based on
-the errata flags.
-
-Any problems with that?
-
-Kevin
+-- 
+Ben Hutchings, Staff Engineer, Solarflare
+Not speaking for my employer; that's the marketing department's job.
+They asked us to note that Solarflare product names are trademarked.
