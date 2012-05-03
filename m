@@ -1,65 +1,69 @@
-From: Kevin Hilman <khilman@deeprootsystems.com>
-Subject: Re: [PATCH] ARM: OMAP2+: watchdog: fix !PM boot crash, disarm timer
- after hwmod reset
-Date: Thu, 03 May 2012 11:19:52 -0700
-Message-ID: <4FA2CC48.8020302@deeprootsystems.com>
-References: <1334353873-15972-1-git-send-email-khilman@ti.com> <alpine.DEB.2.00.1204201451510.11306@utopia.booyaka.com>
+From: Jon Hunter <jon-hunter@ti.com>
+Subject: Re: [PATCH-V6 0/3] ARM: OMAP: Make OMAP clocksource source selection
+ runtime
+Date: Thu, 3 May 2012 13:19:41 -0500
+Message-ID: <4FA2CC3D.8000804@ti.com>
+References: <1335967014-11937-1-git-send-email-hvaibhav@ti.com> <4FA19162.5040102@ti.com> <79CD15C6BA57404B839C016229A409A83EA11F12@DBDE01.ent.ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Type: text/plain; charset="ISO-8859-1"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-pz0-f46.google.com ([209.85.210.46]:45100 "EHLO
-	mail-pz0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753784Ab2ECSTt (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 3 May 2012 14:19:49 -0400
-Received: by dady13 with SMTP id y13so2154213dad.5
-        for <linux-omap@vger.kernel.org>; Thu, 03 May 2012 11:19:48 -0700 (PDT)
-In-Reply-To: <alpine.DEB.2.00.1204201451510.11306@utopia.booyaka.com>
+Received: from bear.ext.ti.com ([192.94.94.41]:45208 "EHLO bear.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1754345Ab2ECSTt (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Thu, 3 May 2012 14:19:49 -0400
+In-Reply-To: <79CD15C6BA57404B839C016229A409A83EA11F12@DBDE01.ent.ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Paul Walmsley <paul@pwsan.com>
-Cc: Kevin Hilman <khilman@ti.com>, Tony Lindgren <tony@atomide.com>, linux-omap@vger.kernel.org, santosh.shilimkar@ti.com, linux-arm-kernel@lists.infradead.org
+To: "Hiremath, Vaibhav" <hvaibhav@ti.com>
+Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "Hilman, Kevin" <khilman@ti.com>, "paul@pwsan.com" <paul@pwsan.com>, "Cousson, Benoit" <b-cousson@ti.com>, "tony@atomide.com" <tony@atomide.com>, "Shilimkar, Santosh" <santosh.shilimkar@ti.com>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>
 
-Hi Paul,
+Hi Vaibhav,
 
-On 04/20/2012 01:59 PM, Paul Walmsley wrote:
+On 05/03/2012 12:07 AM, Hiremath, Vaibhav wrote:
+> On Thu, May 03, 2012 at 01:26:18, Hunter, Jon wrote:
+>> Hi Vaibhav,
+>>
+>> On 05/02/2012 08:56 AM, Vaibhav Hiremath wrote:
+>>> Current OMAP code supports couple of clocksource options based
+>>> on compilation flag (CONFIG_OMAP_32K_TIMER). The 32KHz sync-timer
+>>> and a gptimer which can run on 32KHz or system clock (e.g 38.4 MHz)
+>>>
+>>> This patch series cleans up the existing 32k-sync timer implementation,
+>>> movind SoC init code to respective files (mach-omap1/timer32k.c and
+>>> mach-omap2/timer.c) and uses kernel parameter to override the default
+>>> clocksource of "counter_32k", also in order to support some OMAP based
+>>> derivative SoCs like AM33XX which doesn't have 32K sync-timer hardware IP,
+>>> adds hwmod lookup for omap2+ devices, and if lookup fails then
+>>> fall back to gp-timer.
+>>>
+>>> if(use_gptimer_clksrc == true)
+>>> 	gptimer clocksource init;
+>>> else if (counter_32 init == false)
+>>> 	/* Fallback to gptimer */
+>>> 	gptimer clocksource init(;
+>>>
+>>> With this, we should be able to support multi-omap boot
+>>> including devices with/without 32k-sync timer.
+>>>
+>>> This patch-series has been boot tested on AM37xEVM platform, it
+>>> would be helpful if somebody help me to validate it on OMAP1/2
+>>> platforms.
+>>>
+>>> The patches are also available at (based on linux-omap/master) -
+>>> https://github.com/hvaibhav/am335x-linux   32ksync-timer-cleanup
+>>
+>> I was testing on OMAP4 and I found that the gptimer was always being set by default. I noticed that currently the HWMOD for counter_32k on OMAP4 is commented and hence was not being found. Please can you include the following with your series?
+>>
+> 
+> The 32kcounter hwmod entry is already enabled in linux-omap/master branch.
+> 
+> Your baseline looks pretty old to me, are you not using linux-omap/master?
 
-[...]
+Ha! My "old" baseline is the latest mainline kernel ;-)
 
-> This looks great, looks like it will finally fix this longstanding bug.  I
-> think Santosh hit it too a long time ago, so I suspect he will be happy
-> too.
->
-> One comment: I think that omap2_wd_timer_reset() needs to be updated in
-> light of commit 3c55c1baffa5f719eb2ae9729088bc867f972f53 ("ARM: OMAP2+:
-> hwmod: Revert "ARM: OMAP2+: hwmod: Make omap_hwmod_softreset wait for
-> reset status"").  I did this here.  It's passed basic build testing but
-> haven't tried booting it yet.  Care to take a look and see if you have any
-> comments?  It's also available in the 'hwmod_devel_a_3.5' branch of
-> git://git.pwsan.com/linux-2.6
+I guess this is a bit out-dated in terms of omap now. Sorry I missed
+that fact your patches were on top of the omap kernel in the changelog.
 
-I just noticed a compile warning with your updated version:
-
-/work/kernel/omap/pm/arch/arm/mach-omap2/wd_timer.c: In function 
-'omap2_wd_timer_reset':
-/work/kernel/omap/pm/arch/arm/mach-omap2/wd_timer.c:78:6: warning: 
-unused variable 'v' [-Wunused-variable]
-
-The diff below on top of your patch fixes it.
-
-Kevin
-
-
-diff --git a/arch/arm/mach-omap2/wd_timer.c b/arch/arm/mach-omap2/wd_timer.c
-index fcbb663..b2f1c67 100644
---- a/arch/arm/mach-omap2/wd_timer.c
-+++ b/arch/arm/mach-omap2/wd_timer.c
-@@ -75,7 +75,6 @@ int omap2_wd_timer_disable(struct omap_hwmod *oh)
-   */
-  int omap2_wd_timer_reset(struct omap_hwmod *oh)
-  {
--	u32 v;
-  	int c = 0;
-
-  	/* Write to the SOFTRESET bit */
-
+Cheers
+Jon
