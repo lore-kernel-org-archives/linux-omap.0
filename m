@@ -1,61 +1,49 @@
-From: Daniel Lezcano <daniel.lezcano@linaro.org>
-Subject: Re: [PATCH 11/18][V3] ARM: OMAP3: cpuidle - remove the 'valid' field
-Date: Thu, 03 May 2012 22:29:00 +0200
-Message-ID: <4FA2EA8C.90207@linaro.org>
-References: <1335276339-11135-1-git-send-email-daniel.lezcano@linaro.org> <1335276339-11135-12-git-send-email-daniel.lezcano@linaro.org> <87r4v1kofi.fsf@ti.com>
+From: Kevin Hilman <khilman@ti.com>
+Subject: Re: [PATCH 17/18][V3] ARM: OMAP3/4: consolidate cpuidle Makefile
+Date: Thu, 03 May 2012 13:34:14 -0700
+Message-ID: <87wr4tj96h.fsf@ti.com>
+References: <1335276339-11135-1-git-send-email-daniel.lezcano@linaro.org>
+	<1335276339-11135-18-git-send-email-daniel.lezcano@linaro.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8;
-	format=flowed
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-ee0-f46.google.com ([74.125.83.46]:43260 "EHLO
-	mail-ee0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753006Ab2ECU3D (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 3 May 2012 16:29:03 -0400
-Received: by eekc41 with SMTP id c41so650032eek.19
-        for <linux-omap@vger.kernel.org>; Thu, 03 May 2012 13:29:02 -0700 (PDT)
-In-Reply-To: <87r4v1kofi.fsf@ti.com>
+Received: from na3sys009aog118.obsmtp.com ([74.125.149.244]:36880 "EHLO
+	na3sys009aog118.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1753205Ab2ECUeM (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 3 May 2012 16:34:12 -0400
+Received: by dakp5 with SMTP id p5so2675972dak.14
+        for <linux-omap@vger.kernel.org>; Thu, 03 May 2012 13:34:11 -0700 (PDT)
+In-Reply-To: <1335276339-11135-18-git-send-email-daniel.lezcano@linaro.org>
+	(Daniel Lezcano's message of "Tue, 24 Apr 2012 16:05:38 +0200")
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Kevin Hilman <khilman@ti.com>
-Cc: linaro-dev@lists.linaro.org, patches@linaro.org, tony@atomide.com, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+To: Daniel Lezcano <daniel.lezcano@linaro.org>
+Cc: santosh.shilimkar@ti.com, jean.pihet@newoldbits.com, tony@atomide.com, linux-omap@vger.kernel.org, linaro-dev@lists.linaro.org, linux-arm-kernel@lists.infradead.org, patches@linaro.org
 
-On 05/03/2012 10:19 PM, Kevin Hilman wrote:
-> Daniel Lezcano<daniel.lezcano@linaro.org>  writes:
+Daniel Lezcano <daniel.lezcano@linaro.org> writes:
+
+> Define a CPU_IDLE section in the makefile, declare the functions in
+> the header files conforming to the kernel coding rules and remove the
+> 'define's in the C files.
 >
->> With the previous changes all the states are valid, except
->> the last state which can be handled by decreasing the number
->> of states.
-> I don't think this changelog is valid anymore as you're not doing
-> anything to decrease the number of states.
->
-> I updated the changelog locally to this:
->
-> ARM: OMAP3: cpuidle - remove the 'valid' field
->
-> With the previous changes all the states are valid, except the last
-> state which is now handled at runtime by next_valid_state() based on
-> the errata flags.
->
-> Any problems with that?
+> Signed-off-by: Daniel Lezcano <daniel.lezcano@linaro.org>
+> Reviewed-by: Jean Pihet <j-pihet@ti.com>
 
-No problem :)
+This patch breaks compilation for the !CONFIG_PM case:
 
-Thanks for fixing the Changelog.
+   arch/arm/mach-omap2/built-in.o: In function `__omap3_enter_idle':
+   /work/kernel/omap/pm/arch/arm/mach-omap2/cpuidle34xx.c:121: undefined reference to `omap_sram_idle'
 
--- Daniel
+Since you moved this stuff out of a CONFIG_PM conditional part of the
+Makefile, it broke because pm34xx.c is still compiled conditionally on
+CONFIG_PM.
 
---=20
-  <http://www.linaro.org/>  Linaro.org =E2=94=82 Open source software f=
-or ARM SoCs
+When changing Makefile/Kconfig dependencies like this, please
+be sure to at least compile test with the various options
+enabled/disabled.
 
-=46ollow Linaro:<http://www.facebook.com/pages/Linaro>  Facebook |
-<http://twitter.com/#!/linaroorg>  Twitter |
-<http://www.linaro.org/linaro-blog/>  Blog
+For now, I've dropped this patch from the series.  Feel free to
+update/retest/resend since the idea is fine.
 
+Kevin
 
---
-To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
