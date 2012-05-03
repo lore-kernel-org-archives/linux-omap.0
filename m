@@ -1,102 +1,61 @@
-From: Kevin Hilman <khilman@ti.com>
-Subject: Re: [PATCH 18/18][V3] ARM: OMAP3: cpuidle - set global variables static
-Date: Thu, 03 May 2012 13:26:40 -0700
-Message-ID: <878vh9ko3j.fsf@ti.com>
-References: <1335276339-11135-1-git-send-email-daniel.lezcano@linaro.org>
-	<1335276339-11135-19-git-send-email-daniel.lezcano@linaro.org>
+From: Daniel Lezcano <daniel.lezcano@linaro.org>
+Subject: Re: [PATCH 11/18][V3] ARM: OMAP3: cpuidle - remove the 'valid' field
+Date: Thu, 03 May 2012 22:29:00 +0200
+Message-ID: <4FA2EA8C.90207@linaro.org>
+References: <1335276339-11135-1-git-send-email-daniel.lezcano@linaro.org> <1335276339-11135-12-git-send-email-daniel.lezcano@linaro.org> <87r4v1kofi.fsf@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=UTF-8;
+	format=flowed
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aog103.obsmtp.com ([74.125.149.71]:59104 "EHLO
-	na3sys009aog103.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753530Ab2ECU0j (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 3 May 2012 16:26:39 -0400
-Received: by pbbrp16 with SMTP id rp16so2638349pbb.10
-        for <linux-omap@vger.kernel.org>; Thu, 03 May 2012 13:26:38 -0700 (PDT)
-In-Reply-To: <1335276339-11135-19-git-send-email-daniel.lezcano@linaro.org>
-	(Daniel Lezcano's message of "Tue, 24 Apr 2012 16:05:39 +0200")
+Received: from mail-ee0-f46.google.com ([74.125.83.46]:43260 "EHLO
+	mail-ee0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753006Ab2ECU3D (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 3 May 2012 16:29:03 -0400
+Received: by eekc41 with SMTP id c41so650032eek.19
+        for <linux-omap@vger.kernel.org>; Thu, 03 May 2012 13:29:02 -0700 (PDT)
+In-Reply-To: <87r4v1kofi.fsf@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Daniel Lezcano <daniel.lezcano@linaro.org>
-Cc: santosh.shilimkar@ti.com, jean.pihet@newoldbits.com, tony@atomide.com, linux-omap@vger.kernel.org, linaro-dev@lists.linaro.org, linux-arm-kernel@lists.infradead.org, patches@linaro.org
+To: Kevin Hilman <khilman@ti.com>
+Cc: linaro-dev@lists.linaro.org, patches@linaro.org, tony@atomide.com, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 
-Daniel Lezcano <daniel.lezcano@linaro.org> writes:
-
-> and check the powerdomain lookup is successful.
+On 05/03/2012 10:19 PM, Kevin Hilman wrote:
+> Daniel Lezcano<daniel.lezcano@linaro.org>  writes:
 >
-> Signed-off-by: Daniel Lezcano <daniel.lezcano@linaro.org>
-> Reviewed-by: Jean Pihet <j-pihet@ti.com>
-> ---
->  arch/arm/mach-omap2/cpuidle34xx.c |    5 ++++-
->  1 files changed, 4 insertions(+), 1 deletions(-)
+>> With the previous changes all the states are valid, except
+>> the last state which can be handled by decreasing the number
+>> of states.
+> I don't think this changelog is valid anymore as you're not doing
+> anything to decrease the number of states.
 >
-> diff --git a/arch/arm/mach-omap2/cpuidle34xx.c b/arch/arm/mach-omap2/cpuidle34xx.c
-> index 0d28596..116a0d8 100644
-> --- a/arch/arm/mach-omap2/cpuidle34xx.c
-> +++ b/arch/arm/mach-omap2/cpuidle34xx.c
-> @@ -73,7 +73,7 @@ static struct omap3_idle_statedata omap3_idle_data[] = {
->  	},
->  };
->  
-> -struct powerdomain *mpu_pd, *core_pd, *per_pd, *cam_pd;
-> +static struct powerdomain *mpu_pd, *core_pd, *per_pd, *cam_pd;
->  
->  static int _cpuidle_allow_idle(struct powerdomain *pwrdm,
->  				struct clockdomain *clkdm)
-> @@ -252,6 +252,9 @@ static int omap3_enter_idle_bm(struct cpuidle_device *dev,
->  	 *        its own code.
->  	 */
->  
-> +	if (!mpu_pd || !core_pd || !per_pd || !cam_pd)
-> +		return -ENODEV;
-> +
+> I updated the changelog locally to this:
+>
+> ARM: OMAP3: cpuidle - remove the 'valid' field
+>
+> With the previous changes all the states are valid, except the last
+> state which is now handled at runtime by next_valid_state() based on
+> the errata flags.
+>
+> Any problems with that?
 
-Why check here?  cam_pd is actually used just above this code.
+No problem :)
 
-Also, this is in the fast path.  This should just be checked once at
-init time instead of every idle path.
+Thanks for fixing the Changelog.
 
-For those reasons, I've dropped this part of the patch (updated patch
-below.)
+-- Daniel
 
-If desired, you can send an additional patch that adds this error
-checking at init time and then refuses to register the driver if any of
-the pwrdms don't exist.
+--=20
+  <http://www.linaro.org/>  Linaro.org =E2=94=82 Open source software f=
+or ARM SoCs
 
-Kevin
+=46ollow Linaro:<http://www.facebook.com/pages/Linaro>  Facebook |
+<http://twitter.com/#!/linaroorg>  Twitter |
+<http://www.linaro.org/linaro-blog/>  Blog
 
 
->From 7870c78d0343ab39050bec01d88cdb19245fdaa9 Mon Sep 17 00:00:00 2001
-From: Daniel Lezcano <daniel.lezcano@linaro.org>
-Date: Tue, 24 Apr 2012 16:05:39 +0200
-Subject: [PATCH] ARM: OMAP3: cpuidle - set global variables static
-
-struct powerdomain varialbes are all file local, make them static.
-
-Signed-off-by: Daniel Lezcano <daniel.lezcano@linaro.org>
-Reviewed-by: Jean Pihet <j-pihet@ti.com>
-Reviewed-by: Santosh Shilimkar <santosh.shilimkar@ti.com>
-Tested-by: Santosh Shilimkar <santosh.shilimkar@ti.com>
-Tested-by: Kevin Hilman <khilman@ti.com>
-[khilman@ti.com: update changelog, drop error check in fast path]
-Signed-off-by: Kevin Hilman <khilman@ti.com>
----
- arch/arm/mach-omap2/cpuidle34xx.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
-
-diff --git a/arch/arm/mach-omap2/cpuidle34xx.c b/arch/arm/mach-omap2/cpuidle34xx.c
-index 0d28596..9429c65 100644
---- a/arch/arm/mach-omap2/cpuidle34xx.c
-+++ b/arch/arm/mach-omap2/cpuidle34xx.c
-@@ -73,7 +73,7 @@ static struct omap3_idle_statedata omap3_idle_data[] = {
- 	},
- };
- 
--struct powerdomain *mpu_pd, *core_pd, *per_pd, *cam_pd;
-+static struct powerdomain *mpu_pd, *core_pd, *per_pd, *cam_pd;
- 
- static int _cpuidle_allow_idle(struct powerdomain *pwrdm,
- 				struct clockdomain *clkdm)
--- 
-1.7.9.2
-
+--
+To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
