@@ -1,45 +1,118 @@
-From: "Mohammed, Afzal" <afzal@ti.com>
-Subject: RE: [PATCH v4 04/39] ARM: OMAP2+: gpmc: Acquire NAND CS value
-Date: Thu, 3 May 2012 08:42:11 +0000
-Message-ID: <C8443D0743D26F4388EA172BF4E2A7A93E9829B0@DBDE01.ent.ti.com>
-References: <cover.1335874494.git.afzal@ti.com>
- <10220de398d22fad5de783d8f58fc55ebac85338.1335874494.git.afzal@ti.com>
- <4FA05292.7030902@ti.com>
+From: "Joe Woodward" <jw@terrafix.co.uk>
+Subject: Re: Problems with 3.4-rc5
+Date: Thu, 03 May 2012 09:49:38 +0100
+Message-ID: <WC20120503084938.900446@terrafix.co.uk>
+References: <WC20120502115251.8503FF@terrafix.co.uk> <4FA12775.1090206@ti.com> <WC20120502124638.320406@terrafix.co.uk> <1336033721.14378.2.camel@deskari>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from arroyo.ext.ti.com ([192.94.94.40]:38614 "EHLO arroyo.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754619Ab2ECImf convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 3 May 2012 04:42:35 -0400
-In-Reply-To: <4FA05292.7030902@ti.com>
-Content-Language: en-US
+Received: from smtp3.keele.netcentral.co.uk ([212.57.235.197]:45998 "EHLO
+	smtp3.keele.netcentral.co.uk" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1754573Ab2ECIuE (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 3 May 2012 04:50:04 -0400
+In-Reply-To: <1336033721.14378.2.camel@deskari>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "Hunter, Jon" <jon-hunter@ti.com>
-Cc: "tony@atomide.com" <tony@atomide.com>, "linux@arm.linux.org.uk" <linux@arm.linux.org.uk>, "Hilman, Kevin" <khilman@ti.com>, "Balbi, Felipe" <balbi@ti.com>, "dwmw2@infradead.org" <dwmw2@infradead.org>, "kyungmin.park@samsung.com" <kyungmin.park@samsung.com>, "gregkh@linuxfoundation.org" <gregkh@linuxfoundation.org>, "Menon, Nishanth" <nm@ti.com>, "grinberg@compulab.co.il" <grinberg@compulab.co.il>, "notasas@gmail.com" <notasas@gmail.com>, "artem.bityutskiy@linux.intel.com" <artem.bityutskiy@linux.intel.com>, "vimal.newwork@gmail.com" <vimal.newwork@gmail.com>, "dbaryshkov@gmail.com" <dbaryshkov@gmail.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, "linux-usb@vger.kernel.org" <linux-usb@vger.kernel.org>, "linux-mtd@lists.infradead.org" <linux-mtd@lists.infradead.org>
+To: Tomi Valkeinen <tomi.valkeinen@ti.com>
+Cc: Archit Taneja <a0393947@ti.com>, linux-omap@vger.kernel.org
 
-Hi Jon,
+-----Original Message-----
+From: Tomi Valkeinen <tomi.valkeinen@ti.com>
+To: Joe Woodward <jw@terrafix.co.uk>
+Cc: Archit Taneja <a0393947@ti.com>, linux-omap@vger.kernel.org
+Date: Thu, 03 May 2012 11:28:41 +0300
+Subject: Re: Problems with 3.4-rc5
 
-On Wed, May 02, 2012 at 02:46:02, Hunter, Jon wrote:
-> > Some boards depend on bootloader to update chip select value for NAND.
-> > It is felt that Kernel should not depend on bootloader to get CS, as
-> > for a particular board CS is hardwired and is fixed, hence this can
-> > directly be updated in Kernel. But as CS value for boards that depend
-> > on this behaviour is not available, educate gpmc driver to acquire
-> > chip select value for NAND. this ideally should be removed once CS
-> > for those boards are available.
+> On Wed, 2012-05-02 at 13:46 +0100, Joe Woodward wrote:
 > 
-> Do you know how many boards require this? If so which are those boards?
+> > > > Secondly, I get the following when booted:
+> > > > ...
+> > > > [    4.701232] devtmpfs: mounted
+> > > > [    4.704772] Freeing init memory: 168K
+> > > > [    4.827301] omapdss DISPC error: FIFO UNDERFLOW on gfx,
+> disabling
+> > > the overlay
+> > > > ...
+> > > >
+> > > 
+> > > Could you add some dss debug prints? You can add "omapdss.debug=1
+> > > debug" 
+> > > in the bootargs to get that.
+> > > 
+> > > There was a feature called fifo merge added in 3.4, this might lead
+> to 
+> > > underflow, we had tested this using a DVI monitor on beagle but
+> didn't 
+> > > see any underflows.
+> > > 
+> > > Are you trying this out on 3.4 for the first time? What was the
+> last 
+> > > kernel revision on which you tested this and didn't see any issues?
+> 
+> Can you try the following changes (separately):
+> 
+> 
+> diff --git a/drivers/video/omap2/dss/dispc.c
+> b/drivers/video/omap2/dss/dispc.c
+> index ee30937..aca4eb1 100644
+> --- a/drivers/video/omap2/dss/dispc.c
+> +++ b/drivers/video/omap2/dss/dispc.c
+> @@ -1091,13 +1091,8 @@ void dispc_ovl_compute_fifo_thresholds(enum
+> omap_plane plane,
+>  	 * combined fifo size
+>  	 */
+>  
+> -	if (dss_has_feature(FEAT_OMAP3_DSI_FIFO_BUG)) {
+> -		*fifo_low = ovl_fifo_size - burst_size * 2;
+> -		*fifo_high = total_fifo_size - burst_size;
+> -	} else {
+> -		*fifo_low = ovl_fifo_size - burst_size;
+> -		*fifo_high = total_fifo_size - buf_unit;
+> -	}
+> +	*fifo_low = ovl_fifo_size - burst_size;
+> +	*fifo_high = total_fifo_size - buf_unit;
+>  }
+>  
+>  static void dispc_ovl_set_fir(enum omap_plane plane,
+> 
+> ---
 
-devkit8000, beagle board, omap3touchbook, overo.
+The above patch fixes the problem (I no longer see any underflows).
 
-Beagle board, found out to be zero.
 
-> Should this code be marked with a FIXME?
+> 
+> diff --git a/drivers/video/omap2/dss/dispc.c
+> b/drivers/video/omap2/dss/dispc.c
+> index ee30937..d63f1a3 100644
+> --- a/drivers/video/omap2/dss/dispc.c
+> +++ b/drivers/video/omap2/dss/dispc.c
+> @@ -1077,13 +1077,7 @@ void dispc_ovl_compute_fifo_thresholds(enum
+> omap_plane plane,
+>  	burst_size = dispc_ovl_get_burst_size(plane);
+>  	ovl_fifo_size = dispc_ovl_get_fifo_size(plane);
+>  
+> -	if (use_fifomerge) {
+> -		total_fifo_size = 0;
+> -		for (i = 0; i < omap_dss_get_num_overlays(); ++i)
+> -			total_fifo_size += dispc_ovl_get_fifo_size(i);
+> -	} else {
+> -		total_fifo_size = ovl_fifo_size;
+> -	}
+> +	total_fifo_size = ovl_fifo_size;
+>  
+>  	/*
+>  	 * We use the same low threshold for both fifomerge and non-fifomerge
+> 
 
-Will let Tony decide it.
+The above patch has no effect (I still see underflows).
 
-Regards
-Afzal
+Both patches together results in slightly different behaviour, the display is still broken- 
+it flickers on and off with occassional underflows before breaking completely.
+
+Cheers,
+Joe
+
+>  Tomi
+> 
+
+
