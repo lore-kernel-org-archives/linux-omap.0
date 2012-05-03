@@ -1,67 +1,148 @@
-From: Mark Brown <broonie@opensource.wolfsonmicro.com>
-Subject: Re: [PATCH 1/4] OMAP: DSS2: Remove suspicous and unused TAAL
- regulator API usage
-Date: Thu, 3 May 2012 14:39:53 +0100
-Message-ID: <20120503133952.GH3955@opensource.wolfsonmicro.com>
-References: <1336042634-28486-1-git-send-email-broonie@opensource.wolfsonmicro.com>
- <1336050660.14378.12.camel@deskari>
- <20120503132130.GF3955@opensource.wolfsonmicro.com>
- <1336051407.14378.13.camel@deskari>
-Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="TKYYegg/GYAC5JIZ"
+From: Tomi Valkeinen <tomi.valkeinen@ti.com>
+Subject: [PATCH 01/25] OMAPDSS: panel-dvi: add PD gpio handling
+Date: Thu,  3 May 2012 16:57:37 +0300
+Message-ID: <1336053481-25433-2-git-send-email-tomi.valkeinen@ti.com>
+References: <1336053481-25433-1-git-send-email-tomi.valkeinen@ti.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from opensource.wolfsonmicro.com ([80.75.67.52]:58180 "EHLO
-	opensource.wolfsonmicro.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752191Ab2ECNjz (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 3 May 2012 09:39:55 -0400
-Content-Disposition: inline
-In-Reply-To: <1336051407.14378.13.camel@deskari>
+Received: from na3sys009aog113.obsmtp.com ([74.125.149.209]:52490 "EHLO
+	na3sys009aog113.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1755883Ab2ECN6T (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 3 May 2012 09:58:19 -0400
+Received: by lahc1 with SMTP id c1so1378311lah.26
+        for <linux-omap@vger.kernel.org>; Thu, 03 May 2012 06:58:16 -0700 (PDT)
+In-Reply-To: <1336053481-25433-1-git-send-email-tomi.valkeinen@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Tomi Valkeinen <tomi.valkeinen@ti.com>
-Cc: Florian Tobias Schandinat <FlorianSchandinat@gmx.de>, linux-fbdev@vger.kernel.org, linux-omap@vger.kernel.org
+To: linux-omap@vger.kernel.org, linux-fbdev@vger.kernel.org
+Cc: archit@ti.com, Tomi Valkeinen <tomi.valkeinen@ti.com>
 
+The driver for the TFP410 chip should handle the power-down signal of
+the chip, instead of the current way of handling it in the board files.
 
---TKYYegg/GYAC5JIZ
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
+This patch adds power_down_gpio into the device's platform data, and
+adds the necessary code in the driver to request and handle the GPIO.
 
-On Thu, May 03, 2012 at 04:23:27PM +0300, Tomi Valkeinen wrote:
-> On Thu, 2012-05-03 at 14:21 +0100, Mark Brown wrote:
-> > On Thu, May 03, 2012 at 04:11:00PM +0300, Tomi Valkeinen wrote:
+Signed-off-by: Tomi Valkeinen <tomi.valkeinen@ti.com>
+---
+ drivers/video/omap2/displays/panel-dvi.c |   31 ++++++++++++++++++++++++++++++
+ include/video/omap-panel-dvi.h           |    2 ++
+ 2 files changed, 33 insertions(+)
 
-> > > I've already applied this and the three other patches that you sent in
-> > > March to my omapdss tree. Have there been any changes?
+diff --git a/drivers/video/omap2/displays/panel-dvi.c b/drivers/video/omap2/displays/panel-dvi.c
+index 03eb14a..876b798 100644
+--- a/drivers/video/omap2/displays/panel-dvi.c
++++ b/drivers/video/omap2/displays/panel-dvi.c
+@@ -21,6 +21,7 @@
+ #include <linux/slab.h>
+ #include <video/omapdss.h>
+ #include <linux/i2c.h>
++#include <linux/gpio.h>
+ #include <drm/drm_edid.h>
+ 
+ #include <video/omap-panel-dvi.h>
+@@ -44,6 +45,8 @@ struct panel_drv_data {
+ 	struct omap_dss_device *dssdev;
+ 
+ 	struct mutex lock;
++
++	int pd_gpio;
+ };
+ 
+ static inline struct panel_dvi_platform_data
+@@ -54,6 +57,7 @@ static inline struct panel_dvi_platform_data
+ 
+ static int panel_dvi_power_on(struct omap_dss_device *dssdev)
+ {
++	struct panel_drv_data *ddata = dev_get_drvdata(&dssdev->dev);
+ 	struct panel_dvi_platform_data *pdata = get_pdata(dssdev);
+ 	int r;
+ 
+@@ -70,6 +74,9 @@ static int panel_dvi_power_on(struct omap_dss_device *dssdev)
+ 			goto err1;
+ 	}
+ 
++	if (gpio_is_valid(ddata->pd_gpio))
++		gpio_set_value(ddata->pd_gpio, 1);
++
+ 	return 0;
+ err1:
+ 	omapdss_dpi_display_disable(dssdev);
+@@ -79,11 +86,15 @@ err0:
+ 
+ static void panel_dvi_power_off(struct omap_dss_device *dssdev)
+ {
++	struct panel_drv_data *ddata = dev_get_drvdata(&dssdev->dev);
+ 	struct panel_dvi_platform_data *pdata = get_pdata(dssdev);
+ 
+ 	if (dssdev->state != OMAP_DSS_DISPLAY_ACTIVE)
+ 		return;
+ 
++	if (gpio_is_valid(ddata->pd_gpio))
++		gpio_set_value(ddata->pd_gpio, 0);
++
+ 	if (pdata->platform_disable)
+ 		pdata->platform_disable(dssdev);
+ 
+@@ -92,7 +103,9 @@ static void panel_dvi_power_off(struct omap_dss_device *dssdev)
+ 
+ static int panel_dvi_probe(struct omap_dss_device *dssdev)
+ {
++	struct panel_dvi_platform_data *pdata = get_pdata(dssdev);
+ 	struct panel_drv_data *ddata;
++	int r;
+ 
+ 	ddata = kzalloc(sizeof(*ddata), GFP_KERNEL);
+ 	if (!ddata)
+@@ -104,6 +117,21 @@ static int panel_dvi_probe(struct omap_dss_device *dssdev)
+ 	ddata->dssdev = dssdev;
+ 	mutex_init(&ddata->lock);
+ 
++	if (pdata)
++		ddata->pd_gpio = pdata->power_down_gpio;
++	else
++		ddata->pd_gpio = -1;
++
++	if (gpio_is_valid(ddata->pd_gpio)) {
++		r = gpio_request_one(ddata->pd_gpio, GPIOF_OUT_INIT_LOW,
++				"tfp410 pd");
++		if (r) {
++			dev_err(&dssdev->dev, "Failed to request PD GPIO %d\n",
++					ddata->pd_gpio);
++			ddata->pd_gpio = -1;
++		}
++	}
++
+ 	dev_set_drvdata(&dssdev->dev, ddata);
+ 
+ 	return 0;
+@@ -115,6 +143,9 @@ static void __exit panel_dvi_remove(struct omap_dss_device *dssdev)
+ 
+ 	mutex_lock(&ddata->lock);
+ 
++	if (gpio_is_valid(ddata->pd_gpio))
++		gpio_free(ddata->pd_gpio);
++
+ 	dev_set_drvdata(&dssdev->dev, NULL);
+ 
+ 	mutex_unlock(&ddata->lock);
+diff --git a/include/video/omap-panel-dvi.h b/include/video/omap-panel-dvi.h
+index 87ad567b..4ad41fc 100644
+--- a/include/video/omap-panel-dvi.h
++++ b/include/video/omap-panel-dvi.h
+@@ -27,11 +27,13 @@ struct omap_dss_device;
+  * @platform_enable: platform specific panel enable function
+  * @platform_disable: platform specific panel disable function
+  * @i2c_bus_num: i2c bus id for the panel
++ * @power_down_gpio: gpio number for PD pin (or -1 if not available)
+  */
+ struct panel_dvi_platform_data {
+ 	int (*platform_enable)(struct omap_dss_device *dssdev);
+ 	void (*platform_disable)(struct omap_dss_device *dssdev);
+ 	u16 i2c_bus_num;
++	int power_down_gpio;
+ };
+ 
+ #endif /* __OMAP_PANEL_DVI_H */
+-- 
+1.7.9.5
 
-> > No, it's a resend - if you've applied these changes they're not showing
-> > up in -next.
-
-> Yes, I seem to have forgotten to update my for-next branch. I'll do it
-> right away.
-
-Great, thanks!
-
---TKYYegg/GYAC5JIZ
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: Digital signature
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.4.12 (GNU/Linux)
-
-iQIcBAEBAgAGBQJPooqUAAoJEBus8iNuMP3dYU8P/A7JHl3cA+E+EZ4+NksNGxGQ
-N7sn29LV/gFlPn1/CE2qpfysrNyZtGTESfi0BUMOtFxo16jMHpPNO+0Tu4CYkf5g
-5mHPdRAmAdX9XlI7CsnG7MtqMD4UpeZ+LCgZ1M7LO+C+TQnrgHAvsfolj/FMZloz
-HfrJVQ9X+6PjiYc+VDLrUqbOX0I73FnxV+4ZRZuklE0sgj27IynOKipHcMRymi5c
-kUTK9kMAhmzNig+0Xo2BJQ3gH4dazanIqHjqXt+igzSaXtWd2T+yfWhk/vVq4EDS
-C9no6MAWKcb0wu4VAAHUSWxthFDQKluT4YOGAXVe8wUvqP5CyS7Mc0bbFvIuSBAc
-JJamgWurlPxNq1dJsIA0HwDn/bQ6FnstSIq6udlLLJeo9vNpvEUp0L8GORY4nWhs
-zGlximWveWs/4W8To96ANjTW8clhVnxTL7RLpxKJtrQbC0AEkrN9bHcvsdGjp3Pu
-VZhylS4YbCXJ6kYtNuOt9ggl6Ftz36aOyLRUhcs52PLehy28yOdSfebZVq/b7qOl
-J35fh6h/oCTYIA+zBdLCjz6G1wPl7jxNB6YDp/O8wGC4N0CAFZFBF/0lfO9eddMU
-pwtFWVyuuqxP47rfNqg9gk4Rkh3w7YgPNs5aSC192fP0NN9f0EjpJcplGhT459g9
-EUJlyoB/wbRiFMumERlp
-=ak7c
------END PGP SIGNATURE-----
-
---TKYYegg/GYAC5JIZ--
