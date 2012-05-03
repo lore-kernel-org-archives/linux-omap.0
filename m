@@ -1,64 +1,43 @@
-From: "Mark A. Greer" <mgreer@animalcreek.com>
-Subject: Re: [PATCH] net: davinci_emac: Add pre_open, post_stop platform
- callbacks
-Date: Thu, 3 May 2012 09:09:18 -0700
-Message-ID: <20120503160917.GA11310@animalcreek.com>
-References: <20120502234718.GA5432@animalcreek.com>
- <B5906170F1614E41A8A28DE3B8D121433EA72820@DBDE01.ent.ti.com>
+From: Tero Kristo <t-kristo@ti.com>
+Subject: Re: [PATCHv4 8/8] ARM: OMAP4: PM: Added option for enabling OSWR
+Date: Thu, 3 May 2012 19:14:03 +0300
+Message-ID: <1336061643.2149.213.camel@sokoban>
+References: <1334913591-26312-1-git-send-email-t-kristo@ti.com>
+	 <1334913591-26312-9-git-send-email-t-kristo@ti.com>
+	 <CAORVsuWVMa-_T4JuXTwT6sePhp0mPoE9U_xhwA28AULveeiM+w@mail.gmail.com>
+Reply-To: <t-kristo@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail20.dotsterhost.com ([66.11.232.73]:60182 "EHLO
-	mail20.dotsterhost.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755761Ab2ECQJT (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 3 May 2012 12:09:19 -0400
-Content-Disposition: inline
-In-Reply-To: <B5906170F1614E41A8A28DE3B8D121433EA72820@DBDE01.ent.ti.com>
+Received: from devils.ext.ti.com ([198.47.26.153]:45618 "EHLO
+	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755761Ab2ECQOK (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 3 May 2012 12:14:10 -0400
+In-Reply-To: <CAORVsuWVMa-_T4JuXTwT6sePhp0mPoE9U_xhwA28AULveeiM+w@mail.gmail.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "Bedia, Vaibhav" <vaibhav.bedia@ti.com>
-Cc: "netdev@vger.kernel.org" <netdev@vger.kernel.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>
+To: Jean Pihet <jean.pihet@newoldbits.com>
+Cc: linux-omap@vger.kernel.org, khilman@ti.com, paul@pwsan.com, linux-arm-kernel@lists.infradead.org
 
-On Thu, May 03, 2012 at 10:44:44AM +0000, Bedia, Vaibhav wrote:
-> On Thu, May 03, 2012 at 05:17:18, Mark A. Greer wrote:
-> > From: "Mark A. Greer" <mgreer@animalcreek.com>
-> > 
-> > The davinci EMAC driver has been incorporated into the am35x
-> > family of SoC's which is OMAP-based.  The incorporation is
-> > incomplete in that the EMAC cannot unblock the [ARM] core if
-> > its blocked on a 'wfi' instruction.  This is an issue with
-> > the cpu_idle code because it has the core execute a 'wfi'
-> > instruction.
-> > 
-> > To work around this issue, add platform data callbacks which
-> > are called at the beginning of the open routine and at the
-> > end of the stop routine of the davinci_emac driver.  The
-> > callbacks allow the platform code to issue disable_hlt() and
-> > enable_hlt() calls appropriately.  Calling disable_hlt()
-> > prevents cpu_idle from issuing the 'wfi' instruction.
-> > 
-> > It is not sufficient to simply call disable_hlt() when
-> > there is an EMAC present because it could be present but
-> > not actually used in which case, we do want the 'wfi' to
-> > be executed.
-> > 
-> 
-> Are you trying to say that if ARM executes _just_ wfi and _absolutely
-> nothing else_ is done in the OMAP PM code, EMAC stops working?
 
-No, I'm saying the EMAC can't wake the core from the wfi so if nothing
-else happens in the system, its effectively hung.  If something else
-does happen in the system (e.g., a timer expires), the the system is
-extremely slow because because its only waking up when a timer (or
-something else wakes it up--but not net traffic).  This is very apparent
-when using an nfs-mounted rootfs. It doesn't hang but its extremely
-slow because occasionally something else wakes up the core but it
-spends most of its time stuck in the wfi when it should be handling
-net/nfs traffic.
+<clip>
 
-> However, if this is indeed the case, then probably a better solution would be
-> to invoke disable_hlt() from the board file when EMAC support is compiled in.
+> > @@ -274,8 +278,16 @@ static int __init pm_dbg_init(void)
+> >
+> >        pwrdm_for_each(pwrdms_setup, (void *)d);
+> >
+> > -       (void) debugfs_create_file("enable_off_mode", S_IRUGO | S_IWUSR, d,
+> > -                                  &enable_off_mode, &pm_dbg_option_fops);
+> > +       if (cpu_is_omap34xx())
+> > +               (void) debugfs_create_file("enable_off_mode",
+> > +                       S_IRUGO | S_IWUSR, d, &enable_off_mode,
+> > +                       &pm_dbg_option_fops);
+> Is the enable_off_mode entry needed on other OMAP platorms (OMAP<3)?
 
-Kevin addressed this one.  Thanks Kevin.
+Actually I am not sure, I've never used OMAP2. It looks like at least
+the kernel does not support off-mode for OMAP2, but according to TRM it
+might be possible to support it on HW.
 
-Mark
+-Tero
+
