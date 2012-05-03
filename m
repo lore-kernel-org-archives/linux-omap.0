@@ -1,137 +1,48 @@
-From: Archit Taneja <a0393947@ti.com>
-Subject: Re: Problems with 3.4-rc5
-Date: Thu, 3 May 2012 15:32:13 +0530
-Message-ID: <4FA257A5.1010902@ti.com>
-References: <WC20120502115251.8503FF@terrafix.co.uk> <4FA12775.1090206@ti.com> <WC20120502124638.320406@terrafix.co.uk> <1336033721.14378.2.camel@deskari> <WC20120503084938.900446@terrafix.co.uk>
+From: "Bedia, Vaibhav" <vaibhav.bedia@ti.com>
+Subject: RE: [PATCH] net: davinci_emac: Add pre_open, post_stop platform
+ callbacks
+Date: Thu, 3 May 2012 10:44:44 +0000
+Message-ID: <B5906170F1614E41A8A28DE3B8D121433EA72820@DBDE01.ent.ti.com>
+References: <20120502234718.GA5432@animalcreek.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="ISO-8859-1"; format=flowed
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from arroyo.ext.ti.com ([192.94.94.40]:42058 "EHLO arroyo.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754741Ab2ECKDo (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Thu, 3 May 2012 06:03:44 -0400
-In-Reply-To: <WC20120503084938.900446@terrafix.co.uk>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
+Return-path: <netdev-owner@vger.kernel.org>
+In-Reply-To: <20120502234718.GA5432@animalcreek.com>
+Content-Language: en-US
+Sender: netdev-owner@vger.kernel.org
+To: "Mark A. Greer" <mgreer@animalcreek.com>, "netdev@vger.kernel.org" <netdev@vger.kernel.org>
+Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>
 List-Id: linux-omap@vger.kernel.org
-To: Joe Woodward <jw@terrafix.co.uk>
-Cc: Tomi Valkeinen <tomi.valkeinen@ti.com>, linux-omap@vger.kernel.org
 
-On Thursday 03 May 2012 02:19 PM, Joe Woodward wrote:
-> -----Original Message-----
-> From: Tomi Valkeinen<tomi.valkeinen@ti.com>
-> To: Joe Woodward<jw@terrafix.co.uk>
-> Cc: Archit Taneja<a0393947@ti.com>, linux-omap@vger.kernel.org
-> Date: Thu, 03 May 2012 11:28:41 +0300
-> Subject: Re: Problems with 3.4-rc5
->
->> On Wed, 2012-05-02 at 13:46 +0100, Joe Woodward wrote:
->>
->>>>> Secondly, I get the following when booted:
->>>>> ...
->>>>> [    4.701232] devtmpfs: mounted
->>>>> [    4.704772] Freeing init memory: 168K
->>>>> [    4.827301] omapdss DISPC error: FIFO UNDERFLOW on gfx,
->> disabling
->>>> the overlay
->>>>> ...
->>>>>
->>>>
->>>> Could you add some dss debug prints? You can add "omapdss.debug=1
->>>> debug"
->>>> in the bootargs to get that.
->>>>
->>>> There was a feature called fifo merge added in 3.4, this might lead
->> to
->>>> underflow, we had tested this using a DVI monitor on beagle but
->> didn't
->>>> see any underflows.
->>>>
->>>> Are you trying this out on 3.4 for the first time? What was the
->> last
->>>> kernel revision on which you tested this and didn't see any issues?
->>
->> Can you try the following changes (separately):
->>
->>
->> diff --git a/drivers/video/omap2/dss/dispc.c
->> b/drivers/video/omap2/dss/dispc.c
->> index ee30937..aca4eb1 100644
->> --- a/drivers/video/omap2/dss/dispc.c
->> +++ b/drivers/video/omap2/dss/dispc.c
->> @@ -1091,13 +1091,8 @@ void dispc_ovl_compute_fifo_thresholds(enum
->> omap_plane plane,
->>   	 * combined fifo size
->>   	 */
->>
->> -	if (dss_has_feature(FEAT_OMAP3_DSI_FIFO_BUG)) {
->> -		*fifo_low = ovl_fifo_size - burst_size * 2;
->> -		*fifo_high = total_fifo_size - burst_size;
->> -	} else {
->> -		*fifo_low = ovl_fifo_size - burst_size;
->> -		*fifo_high = total_fifo_size - buf_unit;
->> -	}
->> +	*fifo_low = ovl_fifo_size - burst_size;
->> +	*fifo_high = total_fifo_size - buf_unit;
->>   }
->>
->>   static void dispc_ovl_set_fir(enum omap_plane plane,
->>
->> ---
->
-> The above patch fixes the problem (I no longer see any underflows).
+On Thu, May 03, 2012 at 05:17:18, Mark A. Greer wrote:
+> From: "Mark A. Greer" <mgreer@animalcreek.com>
+> 
+> The davinci EMAC driver has been incorporated into the am35x
+> family of SoC's which is OMAP-based.  The incorporation is
+> incomplete in that the EMAC cannot unblock the [ARM] core if
+> its blocked on a 'wfi' instruction.  This is an issue with
+> the cpu_idle code because it has the core execute a 'wfi'
+> instruction.
+> 
+> To work around this issue, add platform data callbacks which
+> are called at the beginning of the open routine and at the
+> end of the stop routine of the davinci_emac driver.  The
+> callbacks allow the platform code to issue disable_hlt() and
+> enable_hlt() calls appropriately.  Calling disable_hlt()
+> prevents cpu_idle from issuing the 'wfi' instruction.
+> 
+> It is not sufficient to simply call disable_hlt() when
+> there is an EMAC present because it could be present but
+> not actually used in which case, we do want the 'wfi' to
+> be executed.
+> 
 
-Tomi,
+Are you trying to say that if ARM executes _just_ wfi and _absolutely
+nothing else_ is done in the OMAP PM code, EMAC stops working?
 
-Before FIFO merge was added, the special fifo_low/high calculation was 
-only done for DSI on OMAP3, now it seems to be done on OMAP3 and for all 
-interfaces. Maybe this is the difference between 3.3.
+However, if this is indeed the case, then probably a better solution would be
+to invoke disable_hlt() from the board file when EMAC support is compiled in.
 
->
->
->>
->> diff --git a/drivers/video/omap2/dss/dispc.c
->> b/drivers/video/omap2/dss/dispc.c
->> index ee30937..d63f1a3 100644
->> --- a/drivers/video/omap2/dss/dispc.c
->> +++ b/drivers/video/omap2/dss/dispc.c
->> @@ -1077,13 +1077,7 @@ void dispc_ovl_compute_fifo_thresholds(enum
->> omap_plane plane,
->>   	burst_size = dispc_ovl_get_burst_size(plane);
->>   	ovl_fifo_size = dispc_ovl_get_fifo_size(plane);
->>
->> -	if (use_fifomerge) {
->> -		total_fifo_size = 0;
->> -		for (i = 0; i<  omap_dss_get_num_overlays(); ++i)
->> -			total_fifo_size += dispc_ovl_get_fifo_size(i);
->> -	} else {
->> -		total_fifo_size = ovl_fifo_size;
->> -	}
->> +	total_fifo_size = ovl_fifo_size;
->>
->>   	/*
->>   	 * We use the same low threshold for both fifomerge and non-fifomerge
->>
->
-> The above patch has no effect (I still see underflows).
->
-> Both patches together results in slightly different behaviour, the display is still broken-
-> it flickers on and off with occassional underflows before breaking completely.
-
-With both the patches combined, we are configuring DSS with FIFO merge 
-enabled, but configuring thresholds normally and not utilising the large 
-FIFO. Getting underflows with this is strange, because it's more or less 
-similar to what it was on 3.3 without FIFO merge.
-
-Archit
-
->
-> Cheers,
-> Joe
->
->>   Tomi
->>
->
->
->
-
+Regards,
+Vaibhav
