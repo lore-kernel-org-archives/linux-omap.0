@@ -1,210 +1,130 @@
-From: "Mohammed, Afzal" <afzal-l0cyMroinI0@public.gmane.org>
-Subject: RE: [PATCH v4 01/39] ARM: OMAP2+: gpmc: driver conversion
-Date: Thu, 3 May 2012 08:23:51 +0000
-Message-ID: <C8443D0743D26F4388EA172BF4E2A7A93E982967@DBDE01.ent.ti.com>
-References: <cover.1335874494.git.afzal@ti.com>
- <363273a9ef82d6836197929157aa9a8eb8f5171a.1335874494.git.afzal@ti.com>
- <4FA022FC.5040703@ti.com>
+From: Tomi Valkeinen <tomi.valkeinen@ti.com>
+Subject: Re: Problems with 3.4-rc5
+Date: Thu, 03 May 2012 11:28:41 +0300
+Message-ID: <1336033721.14378.2.camel@deskari>
+References: <WC20120502115251.8503FF@terrafix.co.uk>
+	 <4FA12775.1090206@ti.com> <WC20120502124638.320406@terrafix.co.uk>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
-Return-path: <linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <4FA022FC.5040703-l0cyMroinI0@public.gmane.org>
-Content-Language: en-US
-Sender: linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: "Hunter, Jon" <jon-hunter-l0cyMroinI0@public.gmane.org>
-Cc: "tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org" <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>, "linux-lFZ/pmaqli7XmaaqVzeoHQ@public.gmane.org" <linux-lFZ/pmaqli7XmaaqVzeoHQ@public.gmane.org>, "Hilman, Kevin" <khilman-l0cyMroinI0@public.gmane.org>, "Balbi, Felipe" <balbi-l0cyMroinI0@public.gmane.org>, "dwmw2-wEGCiKHe2LqWVfeAwA7xHQ@public.gmane.org" <dwmw2-wEGCiKHe2LqWVfeAwA7xHQ@public.gmane.org>, "kyungmin.park-Sze3O3UU22JBDgjK7y7TUQ@public.gmane.org" <kyungmin.park-Sze3O3UU22JBDgjK7y7TUQ@public.gmane.org>, "gregkh-hQyY1W1yCW8ekmWlsbkhG0B+6BGkLq7r@public.gmane.org" <gregkh-hQyY1W1yCW8ekmWlsbkhG0B+6BGkLq7r@public.gmane.org>, "Menon, Nishanth" <nm-l0cyMroinI0@public.gmane.org>, "grinberg-UTxiZqZC01RS1MOuV/RT9w@public.gmane.org" <grinberg-UTxiZqZC01RS1MOuV/RT9w@public.gmane.org>, "notasas-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org" <notasas-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, "artem.bityutskiy-VuQAYsv1563Yd54FQh9/CA@public.gmane.org" <artem.bityutskiy-VuQAYsv1563Yd54FQh9/CA@public.gmane.org>, "vimal.newwork-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org" <vimal.newwork-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, "dbaryshkov-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org" <dbaryshkov-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, "linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org" <linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org>, "linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "linux-mtd-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org" <linux-mtd-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org>, Hire
+Content-Type: multipart/signed; micalg="pgp-sha1"; protocol="application/pgp-signature";
+	boundary="=-y6vxQe/0J0ohNKpamv8E"
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from na3sys009aog135.obsmtp.com ([74.125.149.84]:34801 "EHLO
+	na3sys009aog135.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1752720Ab2ECI2v (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 3 May 2012 04:28:51 -0400
+Received: by lboj14 with SMTP id j14so477079lbo.7
+        for <linux-omap@vger.kernel.org>; Thu, 03 May 2012 01:28:48 -0700 (PDT)
+In-Reply-To: <WC20120502124638.320406@terrafix.co.uk>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-
-Hi Jon,
-
-On Tue, May 01, 2012 at 23:23:00, Hunter, Jon wrote:
-> Hi Afzal,
-> 
-> Looks good! Some minor comments ...
-
-Thanks
-
-> > +#define	GPMC_WAITPIN_IDX0			0x0
-> > +#define	GPMC_WAITPIN_IDX1			0x1
-> > +#define	GPMC_WAITPIN_IDX2			0x2
-> > +#define	GPMC_WAITPIN_IDX3			0x3
-> > +#define	GPMC_NR_WAITPIN				0x4
-> 
-> How about an enum here? Also OMAP4 only have 3 wait pins and so the
-> number is device dependent.
-
-Ok
-
-> 
-> >  #define GPMC_MEM_START		0x00000000
-> >  #define GPMC_MEM_END		0x3FFFFFFF
-> >  #define BOOT_ROM_SPACE		0x100000	/* 1MB */
-> > @@ -64,6 +106,55 @@
-> >  #define ENABLE_PREFETCH		(0x1 << 7)
-> >  #define DMA_MPU_MODE		2
-> >  
-> > +#define	DRIVER_NAME	"omap-gpmc"
-> > +
-> > +#define	GPMC_NR_IRQ		2
-> 
-> Why has this been changed to 2? It was 6 in the previous version. As we
-> discussed before the number of IRQs should be detected based upon GPMC
-> IP version.
-
-As mentioned in the cover letter,
-
-"Additional features that currently boards in mainline does not make
-use of like, waitpin interrupt handling, changes to leverage revision
-6 IP differences has not been incorporated."
-
-Priority in this series is to convert into a driver, get all boards working
-on mainline. Once all boards are working with gpmc driver, these features
-which are not required for currently supported boards can be added later.
-
-> > +struct gpmc_device {
-> > +	char			*name;
-> > +	int			id;
-> > +	void			*pdata;
-> > +	unsigned		pdata_size;
-> > +	struct resource		*per_res;
-> > +	unsigned		per_res_cnt;
-> > +	struct resource		*gpmc_res;
-> > +	unsigned		gpmc_res_cnt;
-> > +	bool			have_waitpin;
-> > +	unsigned		waitpin;
-> > +	int			waitpin_polarity;
-> 
-> I think that it make more sense to have the wait-pin information part of
-> the gpmc_cs_data structure for the following reasons ...
-
-Waitpin information is indeed a part of cs as far as boards are concerned,
-it is only that it gets propogated to device
-
-> 
-> 1. If a device can use multiple CS, then it could use multiple wait signals.
-> 2. Eventually, all board information needs to move to device tree. By
-> having it in the pdata it will be easier to migrate to device tree.
-> 
-> It may be nice to have "have_waitpin" be an integer too, that indicates
-> if wait is used for both read and write or just one or the other.
-> 
-> Also, any reason why waitpin_polarity is an int? I see you define LOW as
-> -1, but I not sure why LOW cannot be 0 as 0 is programmed into the
-> register for an active low wait signal.
-
-Only intention is not to alter default waitpin polarity value, i.e. if
-any board does make use of it w/o knowledge of Kernel, I don't want to
-break it, there may be an argument saying that the board code is buggy,
-while if some board does so, it is, but don't want to break working one.
-
-Here unless user explicitly set the flag, it does nothing on polarity
-
-> > +	if (idx != ~0x0) {
-> > +		if (gd->have_waitpin) {
-> > +			if (gd->waitpin != idx ||
-> > +					gd->waitpin_polarity != polarity) {
-> > +				dev_err(gpmc->dev, "error: conflict: waitpin %u with polarity %d on device %s.%d\n",
-> > +					gd->waitpin, gd->waitpin_polarity,
-> > +					gd->name, gd->id);
-> > +				return -EBUSY;
-> > +			}
-> > +		} else {
-> > +			gd->have_waitpin = true;
-> > +			gd->waitpin = idx;
-> > +			gd->waitpin_polarity = polarity;
-> > +		}
-> 
-> I am not sure about the above code. What happens if a device has
-> multiple CS signals and uses multiple wait signals?
-> 
-> I am also not sure why gpmc_setup_cs_waitpin and gpmc_setup_waitpin
-> cannot be combined. I think that it would be a fair assumption to make
-> that anyone using the waitpin does so inconjunction with the CS (I think
-> that they would have too).
-> 
-> However, if there is a reason for splitting it up this way please
-> explain why.
-
-Initially it was done per CS, the problem happened while trying to
-convert tusb6010. It had multiple CS, but using same waitpin. Problem
-with incorporating this onto CS is we have to sacrifice on wait pin
-conflict prevention capability. The code now handles case of wait pin
-conflict per device, the code can be extended to have multiple
-wait pin per device also. But I prefer to defer it to later, not as
-part of this series, as this feature what you asking for is not required
-for any of the existing boards. I can add it in this series if there is
-a strong opinion in the community for the same in this series.
-
-Policy that is being followed here is first sit, then straighten legs, ;)
-
-> > +static int gpmc_setup_cs_nonres(struct gpmc *gpmc,
-> > +			struct gpmc_device *gd, struct gpmc_cs_data *cs)
-> 
-> The name of this function is not 100% clear to me. What do you mean by
-> "nonres"?
-
-It means anything other than resources like memory & irq, happened for
-want of better name, if you have one, name it, will put it.
-
-> > +int gpmc_cs_reconfigure(char *name, int id, struct gpmc_cs_data *cs)
-> 
-> What scenario is this function used in? May be worth adding a comment
-> about the function.
-
-Ok, it was required for OneNAND, as it needs to reconfigure
-
-> > +	for (i = 0, n = gdp->num_cs, cs = gdp->cs_data;
-> > +				i < gdp->num_cs; i++, cs++)
-> > +		n += hweight32(cs->irq_config);
-> 
-> As you know I am not a fan of these overloaded for-loops as I find them
-> hard to read ;-)
-> 
-> Why not ...
-> 
-> n = gdp->num_cs;
-> cs = gdp->cs_data;
+To: Joe Woodward <jw@terrafix.co.uk>
+Cc: Archit Taneja <a0393947@ti.com>, linux-omap@vger.kernel.org
 
 
-Well, you also know that I am big fan of it; difference of opinion,
-my preference is to keep loop control statements together with "for",
-unless there is a cry from community that it should not be this way.
-I believe that it is not that much unreadable.
+--=-y6vxQe/0J0ohNKpamv8E
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: quoted-printable
 
-> > +	for (i = 0, gdq = gp->device_pdata, gd = gpmc->device;
-> > +			(i < gp->num_device) && (*gdq); i++, gdq++) {
-> 
-> You have num_devices now and so do you really need the "&& (*gdq)"?
-> Seems redundant.
+On Wed, 2012-05-02 at 13:46 +0100, Joe Woodward wrote:
 
-num_device is something that I never wanted to add, was happy with,
-NULL entry termination, only because of your repeated comments,
-I added this. And this additional check now prevents NULL dereference.
+> > > Secondly, I get the following when booted:
+> > > ...
+> > > [    4.701232] devtmpfs: mounted
+> > > [    4.704772] Freeing init memory: 168K
+> > > [    4.827301] omapdss DISPC error: FIFO UNDERFLOW on gfx, disabling
+> > the overlay
+> > > ...
+> > >
+> >=20
+> > Could you add some dss debug prints? You can add "omapdss.debug=3D1
+> > debug"=20
+> > in the bootargs to get that.
+> >=20
+> > There was a feature called fifo merge added in 3.4, this might lead to=
+=20
+> > underflow, we had tested this using a DVI monitor on beagle but didn't=
+=20
+> > see any underflows.
+> >=20
+> > Are you trying this out on 3.4 for the first time? What was the last=
+=20
+> > kernel revision on which you tested this and didn't see any issues?
 
-> > +	gpmc_setup_writeprotect(gpmc);
-> 
-> Write protect is a pin and there is only one. Like the waitpins and CS
-> signals this needs to be associated with a device. It would make sense
-> that this is associated with the cs data.
-
-As far as platform are concerned, it is associated with cs, it is only
-that while configuring CS, it is propagated such that it is done once.
+Can you try the following changes (separately):
 
 
-> > +#define	GPMC_READTYPE_ASYNC		BIT(30)
-> > +#define	GPMC_WRITETYPE_ASYNC		BIT(31)
-> > +
-> 
-> Please keep in mind that eventually this has to all be moved into device
-> tree and so at that point these configuration flags will have to be
-> re-worked. However, just a FYI.
+diff --git a/drivers/video/omap2/dss/dispc.c b/drivers/video/omap2/dss/disp=
+c.c
+index ee30937..aca4eb1 100644
+--- a/drivers/video/omap2/dss/dispc.c
++++ b/drivers/video/omap2/dss/dispc.c
+@@ -1091,13 +1091,8 @@ void dispc_ovl_compute_fifo_thresholds(enum omap_pla=
+ne plane,
+ 	 * combined fifo size
+ 	 */
+=20
+-	if (dss_has_feature(FEAT_OMAP3_DSI_FIFO_BUG)) {
+-		*fifo_low =3D ovl_fifo_size - burst_size * 2;
+-		*fifo_high =3D total_fifo_size - burst_size;
+-	} else {
+-		*fifo_low =3D ovl_fifo_size - burst_size;
+-		*fifo_high =3D total_fifo_size - buf_unit;
+-	}
++	*fifo_low =3D ovl_fifo_size - burst_size;
++	*fifo_high =3D total_fifo_size - buf_unit;
+ }
+=20
+ static void dispc_ovl_set_fir(enum omap_plane plane,
 
-On device tree matters, my mind is next to blank, thanks for mentioning it.
+---
 
-Regards
-Afzal
---
-To unsubscribe from this list: send the line "unsubscribe linux-usb" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+diff --git a/drivers/video/omap2/dss/dispc.c b/drivers/video/omap2/dss/disp=
+c.c
+index ee30937..d63f1a3 100644
+--- a/drivers/video/omap2/dss/dispc.c
++++ b/drivers/video/omap2/dss/dispc.c
+@@ -1077,13 +1077,7 @@ void dispc_ovl_compute_fifo_thresholds(enum omap_pla=
+ne plane,
+ 	burst_size =3D dispc_ovl_get_burst_size(plane);
+ 	ovl_fifo_size =3D dispc_ovl_get_fifo_size(plane);
+=20
+-	if (use_fifomerge) {
+-		total_fifo_size =3D 0;
+-		for (i =3D 0; i < omap_dss_get_num_overlays(); ++i)
+-			total_fifo_size +=3D dispc_ovl_get_fifo_size(i);
+-	} else {
+-		total_fifo_size =3D ovl_fifo_size;
+-	}
++	total_fifo_size =3D ovl_fifo_size;
+=20
+ 	/*
+ 	 * We use the same low threshold for both fifomerge and non-fifomerge
+
+ Tomi
+
+
+--=-y6vxQe/0J0ohNKpamv8E
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: This is a digitally signed message part
+Content-Transfer-Encoding: 7bit
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.4.11 (GNU/Linux)
+
+iQIcBAABAgAGBQJPokG5AAoJEPo9qoy8lh71vw8P+gOdgrE2hx6ff4xgslxVdcxm
+Zxll1h4ouL27RkJ4et7MkKjD7MsQf/aRmzFHSnEViTPvXgHGdH4tqtBILI7E/snN
+4f2bbf9rOpUGXvfgtEmy6tqmAhfUR+7xraajffsTMFM5PNe7ftl74BFLRjRw+C1s
+qm7XIBKGEgj79NxvI292IBTqErPp81MBXy9emyPcbNuYJyB7MjhC3/kblvaLblNP
+GepXAcZTl+wTuXs4XsmzSngxJf2RW4UQALvAMp2800D4+ol3Bv6XkFdVS/9MVNC2
++5bwuuzt9h8p4Y2OKMGY2yQy7NZP8o4fd0NNR0FCquXbx9GIdI/t1VJ0NKTFQrxJ
+aZdZ2Amn/leOykuA1FVTcTlDgMx1Duiz52DN5e5Fy6VqvO7zk1PYsYzz/vHH5/EL
+gu9FZYQBo5X1DCzvcbamJgXgZRIDXKK/oO5tfhuhqWv8yT02/yW+vaClzORAfNbP
+yAZRMVeQhXU5R6qJ30SxlonIY327Q6tzm06V3xaaqaVRAG8kRCzSaEg1KAf/qpAe
+X23Ki494SB/uJCN+cBYvBUEO0BemHVt1GYL2NptjexX5xRu5UtbxiN54HdEcLXci
+JVkxBAjusccgoCmFYqf+VoKIUgqJR2LBqrf3F+holWEX/QcivxIWELLnztnSIJ17
+rROwOrc7lUuo3Nj7N5he
+=Ojz+
+-----END PGP SIGNATURE-----
+
+--=-y6vxQe/0J0ohNKpamv8E--
+
