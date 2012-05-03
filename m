@@ -1,87 +1,64 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH-V5 2/3] arm:omap:am33xx: Add AM335XEVM machine support
-Date: Thu, 3 May 2012 08:57:18 -0700
-Message-ID: <20120503155717.GE5140@atomide.com>
-References: <hvaibhav@ti.com>
- <1322808204-12878-3-git-send-email-hvaibhav@ti.com>
- <alpine.DEB.2.00.1205020317151.19695@utopia.booyaka.com>
- <79CD15C6BA57404B839C016229A409A83EA10A64@DBDE01.ent.ti.com>
+From: "Mark A. Greer" <mgreer@animalcreek.com>
+Subject: Re: [PATCH] net: davinci_emac: Add pre_open, post_stop platform
+ callbacks
+Date: Thu, 3 May 2012 09:09:18 -0700
+Message-ID: <20120503160917.GA11310@animalcreek.com>
+References: <20120502234718.GA5432@animalcreek.com>
+ <B5906170F1614E41A8A28DE3B8D121433EA72820@DBDE01.ent.ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-01-ewr.mailhop.org ([204.13.248.71]:52010 "EHLO
-	mho-01-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753273Ab2ECP5V (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 3 May 2012 11:57:21 -0400
+Received: from mail20.dotsterhost.com ([66.11.232.73]:60182 "EHLO
+	mail20.dotsterhost.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755761Ab2ECQJT (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 3 May 2012 12:09:19 -0400
 Content-Disposition: inline
-In-Reply-To: <79CD15C6BA57404B839C016229A409A83EA10A64@DBDE01.ent.ti.com>
+In-Reply-To: <B5906170F1614E41A8A28DE3B8D121433EA72820@DBDE01.ent.ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "Hiremath, Vaibhav" <hvaibhav@ti.com>
-Cc: Paul Walmsley <paul@pwsan.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "Hilman, Kevin" <khilman@ti.com>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, "Mohammed, Afzal" <afzal@ti.com>
+To: "Bedia, Vaibhav" <vaibhav.bedia@ti.com>
+Cc: "netdev@vger.kernel.org" <netdev@vger.kernel.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>
 
-Hi,
-
-* Hiremath, Vaibhav <hvaibhav@ti.com> [120502 02:37]:
-> On Wed, May 02, 2012 at 14:53:24, Paul Walmsley wrote:
-> > Hi
+On Thu, May 03, 2012 at 10:44:44AM +0000, Bedia, Vaibhav wrote:
+> On Thu, May 03, 2012 at 05:17:18, Mark A. Greer wrote:
+> > From: "Mark A. Greer" <mgreer@animalcreek.com>
 > > 
-> > On Fri, 2 Dec 2011, hvaibhav@ti.com wrote:
+> > The davinci EMAC driver has been incorporated into the am35x
+> > family of SoC's which is OMAP-based.  The incorporation is
+> > incomplete in that the EMAC cannot unblock the [ARM] core if
+> > its blocked on a 'wfi' instruction.  This is an issue with
+> > the cpu_idle code because it has the core execute a 'wfi'
+> > instruction.
 > > 
-> > > From: Afzal Mohammed <afzal@ti.com>
-> > > 
-> > > This patch adds minimal support for AM335X EVM.
-> > > The approach taken here is to add AM335X EVM support
-> > > to AM3517EVM, considering the fact that with device tree
-> > > developement we will get rid of board-*.c.
-> > > 
-> > > Signed-off-by: Afzal Mohammed <afzal@ti.com>
-> > > Signed-off-by: Vaibhav Hiremath <hvaibhav@ti.com>
-> > > Reviewed-by: Kevin Hilman <khilman@ti.com>
+> > To work around this issue, add platform data callbacks which
+> > are called at the beginning of the open routine and at the
+> > end of the stop routine of the davinci_emac driver.  The
+> > callbacks allow the platform code to issue disable_hlt() and
+> > enable_hlt() calls appropriately.  Calling disable_hlt()
+> > prevents cpu_idle from issuing the 'wfi' instruction.
 > > 
-> > I realize people may not necessarily like this, but I think that the 
-> > AM33xx EVM needs its own board file.  This is because it really has 
-> > nothing to do with the AM3517EVM.  Also, the AM3517EVM depends on 
-> > CONFIG_ARCH_OMAP3, but the AM33xx EVM should not: it should depend on 
-> > either CONFIG_ARCH_OMAPAM33XX, or CONFIG_ARCH_OMAP4.
-
-I guess adding CONFIG_SOC_AM33XX makes sense if it does not share anything
-except core with omap3. And the SOC is independent of the core selected,
-there is no dependency between SoC and the core.
-
-Note that we have CONFIG_ARCH_OMAP2PLUS, all the other ones should be just
-CONFIG_SOC_XXX. As all omap3 omap4 and am33xx are v7, there's no need to
-compile with different flags either.
- 
-> > So the following modification of this patch opts for the former Kconfig 
-> > option, CONFIG_ARCH_OMAPAM33XX.  It also adds a new, minimal board file 
-> > for the AM33xx EVM.  
-
-Sorry, no more new board files. Please make it device tree only then.
-
-> > If, on the other hand, people want to use CONFIG_ARCH_OMAP4 instead for 
-> > the AM33xx, then we could potentially add the new machine record into 
-> > board-omap4panda.c.  Although even then, if political considerations were 
-> > set aside, the best technical decision would probably be to create a 
-> > separate board file, since the boards don't have much in common.
+> > It is not sufficient to simply call disable_hlt() when
+> > there is an EMAC present because it could be present but
+> > not actually used in which case, we do want the 'wfi' to
+> > be executed.
 > > 
-> > 
-> Paul,
-> I completely agree with all of your comments, let Tony comment and conform 
-> on this. 
-> If you go back to history, that was our initial proposal, to create
-> separate Kconfig option for AM33XX.
 > 
-> Tony,
-> 
-> Can you please comment on this discussion? This is very important, since 
-> lots of patches (accepted or about to accept) are dependent on this. The 
-> early we can conclude on this, early I can rework on the patches and 
-> resubmit them.
+> Are you trying to say that if ARM executes _just_ wfi and _absolutely
+> nothing else_ is done in the OMAP PM code, EMAC stops working?
 
-Yes, please do. Also note that if this means sprinkling tons of cpu_is_omapxxx
-all over the code, we need to find a cleaner solution.
+No, I'm saying the EMAC can't wake the core from the wfi so if nothing
+else happens in the system, its effectively hung.  If something else
+does happen in the system (e.g., a timer expires), the the system is
+extremely slow because because its only waking up when a timer (or
+something else wakes it up--but not net traffic).  This is very apparent
+when using an nfs-mounted rootfs. It doesn't hang but its extremely
+slow because occasionally something else wakes up the core but it
+spends most of its time stuck in the wfi when it should be handling
+net/nfs traffic.
 
-Regards,
+> However, if this is indeed the case, then probably a better solution would be
+> to invoke disable_hlt() from the board file when EMAC support is compiled in.
 
-Tony
+Kevin addressed this one.  Thanks Kevin.
+
+Mark
