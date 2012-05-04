@@ -1,139 +1,337 @@
-From: NeilBrown <neilb@suse.de>
-Subject: Re: [PATCH 2/3] IRQ: allow check_wakeup_irqs to notice
- level-triggered interrupts.
-Date: Fri, 4 May 2012 15:12:21 +1000
-Message-ID: <20120504151221.6998d4e5@notabene.brown>
-References: <20120425025637.7832.14013.stgit@notabene.brown>
-	<20120425030524.7832.85239.stgit@notabene.brown>
-	<alpine.LFD.2.02.1204251018530.2542@ionos>
-	<20120425193916.0db1b4b1@notabene.brown>
-	<alpine.LFD.2.02.1204251402360.2542@ionos>
+From: Archit Taneja <a0393947@ti.com>
+Subject: Re: [PATCH 08/25] OMAPDSS: clean up the omapdss platform data mess
+Date: Fri, 4 May 2012 11:02:02 +0530
+Message-ID: <4FA369D2.1070809@ti.com>
+References: <1336053481-25433-1-git-send-email-tomi.valkeinen@ti.com> <1336053481-25433-9-git-send-email-tomi.valkeinen@ti.com>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=PGP-SHA1;
- boundary="Sig_/M_Mnyl1jqY=ZXVnt32A/Lrt"; protocol="application/pgp-signature"
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <alpine.LFD.2.02.1204251402360.2542@ionos>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Thomas Gleixner <tglx@linutronix.de>
-Cc: Tony Lindgren <tony@atomide.com>, Russell King <linux@arm.linux.org.uk>, Samuel Ortiz <sameo@linux.intel.com>, "Rafael J. Wysocki" <rjw@sisk.pl>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org, linux-pm@vger.kernel.org
+Content-Type: text/plain; charset="ISO-8859-1"; format=flowed
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from comal.ext.ti.com ([198.47.26.152]:33157 "EHLO comal.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751570Ab2EDFcm (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Fri, 4 May 2012 01:32:42 -0400
+In-Reply-To: <1336053481-25433-9-git-send-email-tomi.valkeinen@ti.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Tomi Valkeinen <tomi.valkeinen@ti.com>
+Cc: linux-omap@vger.kernel.org, linux-fbdev@vger.kernel.org
 
---Sig_/M_Mnyl1jqY=ZXVnt32A/Lrt
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: quoted-printable
+Hi,
 
-On Wed, 25 Apr 2012 14:54:54 +0200 (CEST) Thomas Gleixner
-<tglx@linutronix.de> wrote:
+On Thursday 03 May 2012 07:27 PM, Tomi Valkeinen wrote:
+> The omapdss pdata handling is a mess. This is more evident when trying
+> to use device tree for DSS, as we don't have platform data anymore in
+> that case. This patch cleans the pdata handling by:
+>
+> - Remove struct omap_display_platform_data. It was used just as a
+>    wrapper for struct omap_dss_board_info.
+> - Pass the platform data only to omapdss device. The drivers for omap
+>    dss hwmods do not need the platform data. This should also work better
+>    for DT, as we can create omapdss device programmatically in generic omap
+>    boot code, and thus we can pass the pdata to it.
+> - Create dss functions for get_ctx_loss_count and dsi_enable/disable_pads
+>    that the dss hwmod drivers can call.
+>
+> Signed-off-by: Tomi Valkeinen<tomi.valkeinen@ti.com>
+> ---
+>   arch/arm/mach-omap2/display.c   |   39 +++++++++++++++++++--------------------
+>   drivers/video/omap2/dss/core.c  |   35 +++++++++++++++++++++++++++++++++++
+>   drivers/video/omap2/dss/dispc.c |   21 ++-------------------
+>   drivers/video/omap2/dss/dsi.c   |   17 +++--------------
+>   drivers/video/omap2/dss/dss.h   |    3 +++
+>   drivers/video/omap2/dss/hdmi.c  |    2 --
+>   include/video/omapdss.h         |    5 -----
+>   7 files changed, 62 insertions(+), 60 deletions(-)
+>
+> diff --git a/arch/arm/mach-omap2/display.c b/arch/arm/mach-omap2/display.c
+> index 60cded4..07232fd 100644
+> --- a/arch/arm/mach-omap2/display.c
+> +++ b/arch/arm/mach-omap2/display.c
+> @@ -191,10 +191,24 @@ int __init omap_display_init(struct omap_dss_board_info *board_data)
+>   	struct omap_hwmod *oh;
+>   	struct platform_device *pdev;
+>   	int i, oh_count;
+> -	struct omap_display_platform_data pdata;
+>   	const struct omap_dss_hwmod_data *curr_dss_hwmod;
+>
+> -	memset(&pdata, 0, sizeof(pdata));
+> +	/* create omapdss device */
+> +
+> +	board_data->dsi_enable_pads = omap_dsi_enable_pads;
+> +	board_data->dsi_disable_pads = omap_dsi_disable_pads;
+> +	board_data->get_context_loss_count = omap_pm_get_dev_context_loss_count;
+> +	board_data->set_min_bus_tput = omap_dss_set_min_bus_tput;
+> +
+> +	omap_display_device.dev.platform_data = board_data;
+> +
+> +	r = platform_device_register(&omap_display_device);
+> +	if (r<  0) {
+> +		pr_err("Unable to register omapdss device\n");
+> +		return r;
+> +	}
 
-> Why not simply managing the pending bit for level irqs ?
->=20
+After this patch, the "omapdss" platform device is registered before the 
+other dss platform devices. This would change the sequence of probes of 
+these devices. Was this intentional?
 
-Hi Thomas,
- thanks again for the patch.  I finally made time to test it and it works as
-expected.  I've included it below with a change-log entry and tested-by:
-in case that helps.
+Archit
 
-Thanks,
-NeilBrown
+> +
+> +	/* create devices for dss hwmods */
+>
+>   	if (cpu_is_omap24xx()) {
+>   		curr_dss_hwmod = omap2_dss_hwmod_data;
+> @@ -207,16 +221,6 @@ int __init omap_display_init(struct omap_dss_board_info *board_data)
+>   		oh_count = ARRAY_SIZE(omap4_dss_hwmod_data);
+>   	}
+>
+> -	if (board_data->dsi_enable_pads == NULL)
+> -		board_data->dsi_enable_pads = omap_dsi_enable_pads;
+> -	if (board_data->dsi_disable_pads == NULL)
+> -		board_data->dsi_disable_pads = omap_dsi_disable_pads;
+> -
+> -	pdata.board_data = board_data;
+> -	pdata.board_data->get_context_loss_count =
+> -		omap_pm_get_dev_context_loss_count;
+> -	pdata.board_data->set_min_bus_tput = omap_dss_set_min_bus_tput;
+> -
+>   	for (i = 0; i<  oh_count; i++) {
+>   		oh = omap_hwmod_lookup(curr_dss_hwmod[i].oh_name);
+>   		if (!oh) {
+> @@ -226,21 +230,16 @@ int __init omap_display_init(struct omap_dss_board_info *board_data)
+>   		}
+>
+>   		pdev = omap_device_build(curr_dss_hwmod[i].dev_name,
+> -				curr_dss_hwmod[i].id, oh,&pdata,
+> -				sizeof(struct omap_display_platform_data),
+> +				curr_dss_hwmod[i].id, oh,
+> +				NULL, 0,
+>   				NULL, 0, 0);
+>
+>   		if (WARN((IS_ERR(pdev)), "Could not build omap_device for %s\n",
+>   				curr_dss_hwmod[i].oh_name))
+>   			return -ENODEV;
+>   	}
+> -	omap_display_device.dev.platform_data = board_data;
+>
+> -	r = platform_device_register(&omap_display_device);
+> -	if (r<  0)
+> -		printk(KERN_ERR "Unable to register OMAP-Display device\n");
+> -
+> -	return r;
+> +	return 0;
+>   }
+>
+>   static void dispc_disable_outputs(void)
+> diff --git a/drivers/video/omap2/dss/core.c b/drivers/video/omap2/dss/core.c
+> index 64cb8aa..b37b6f4 100644
+> --- a/drivers/video/omap2/dss/core.c
+> +++ b/drivers/video/omap2/dss/core.c
+> @@ -87,6 +87,41 @@ struct regulator *dss_get_vdds_sdi(void)
+>   	return reg;
+>   }
+>
+> +int dss_get_ctx_loss_count(struct device *dev)
+> +{
+> +	struct omap_dss_board_info *board_data = core.pdev->dev.platform_data;
+> +	int cnt;
+> +
+> +	if (!board_data->get_context_loss_count)
+> +		return -ENOENT;
+> +
+> +	cnt = board_data->get_context_loss_count(dev);
+> +
+> +	WARN_ONCE(cnt<  0, "get_context_loss_count failed: %d\n", cnt);
+> +
+> +	return cnt;
+> +}
+> +
+> +int dss_dsi_enable_pads(int dsi_id, unsigned lane_mask)
+> +{
+> +	struct omap_dss_board_info *board_data = core.pdev->dev.platform_data;
+> +
+> +	if (!board_data->dsi_enable_pads)
+> +		return -ENOENT;
+> +
+> +	return board_data->dsi_enable_pads(dsi_id, lane_mask);
+> +}
+> +
+> +void dss_dsi_disable_pads(int dsi_id, unsigned lane_mask)
+> +{
+> +	struct omap_dss_board_info *board_data = core.pdev->dev.platform_data;
+> +
+> +	if (!board_data->dsi_enable_pads)
+> +		return;
+> +
+> +	return board_data->dsi_disable_pads(dsi_id, lane_mask);
+> +}
+> +
+>   int dss_set_min_bus_tput(struct device *dev, unsigned long tput)
+>   {
+>   	struct omap_dss_board_info *pdata = core.pdev->dev.platform_data;
+> diff --git a/drivers/video/omap2/dss/dispc.c b/drivers/video/omap2/dss/dispc.c
+> index 49015b8..262ed29 100644
+> --- a/drivers/video/omap2/dss/dispc.c
+> +++ b/drivers/video/omap2/dss/dispc.c
+> @@ -131,23 +131,6 @@ static inline u32 dispc_read_reg(const u16 idx)
+>   	return __raw_readl(dispc.base + idx);
+>   }
+>
+> -static int dispc_get_ctx_loss_count(void)
+> -{
+> -	struct device *dev =&dispc.pdev->dev;
+> -	struct omap_display_platform_data *pdata = dev->platform_data;
+> -	struct omap_dss_board_info *board_data = pdata->board_data;
+> -	int cnt;
+> -
+> -	if (!board_data->get_context_loss_count)
+> -		return -ENOENT;
+> -
+> -	cnt = board_data->get_context_loss_count(dev);
+> -
+> -	WARN_ONCE(cnt<  0, "get_context_loss_count failed: %d\n", cnt);
+> -
+> -	return cnt;
+> -}
+> -
+>   #define SR(reg) \
+>   	dispc.ctx[DISPC_##reg / sizeof(u32)] = dispc_read_reg(DISPC_##reg)
+>   #define RR(reg) \
+> @@ -251,7 +234,7 @@ static void dispc_save_context(void)
+>   	if (dss_has_feature(FEAT_CORE_CLK_DIV))
+>   		SR(DIVISOR);
+>
+> -	dispc.ctx_loss_cnt = dispc_get_ctx_loss_count();
+> +	dispc.ctx_loss_cnt = dss_get_ctx_loss_count(&dispc.pdev->dev);
+>   	dispc.ctx_valid = true;
+>
+>   	DSSDBG("context saved, ctx_loss_count %d\n", dispc.ctx_loss_cnt);
+> @@ -266,7 +249,7 @@ static void dispc_restore_context(void)
+>   	if (!dispc.ctx_valid)
+>   		return;
+>
+> -	ctx = dispc_get_ctx_loss_count();
+> +	ctx = dss_get_ctx_loss_count(&dispc.pdev->dev);
+>
+>   	if (ctx>= 0&&  ctx == dispc.ctx_loss_cnt)
+>   		return;
+> diff --git a/drivers/video/omap2/dss/dsi.c b/drivers/video/omap2/dss/dsi.c
+> index f6ecc3a..a5a8316 100644
+> --- a/drivers/video/omap2/dss/dsi.c
+> +++ b/drivers/video/omap2/dss/dsi.c
+> @@ -261,9 +261,6 @@ struct dsi_data {
+>   	struct clk *dss_clk;
+>   	struct clk *sys_clk;
+>
+> -	int (*enable_pads)(int dsi_id, unsigned lane_mask);
+> -	void (*disable_pads)(int dsi_id, unsigned lane_mask);
+> -
+>   	struct dsi_clock_info current_cinfo;
+>
+>   	bool vdds_dsi_enabled;
+> @@ -2365,7 +2362,7 @@ static int dsi_cio_init(struct omap_dss_device *dssdev)
+>
+>   	DSSDBGF();
+>
+> -	r = dsi->enable_pads(dsi_get_dsidev_id(dsidev), dsi_get_lane_mask(dssdev));
+> +	r = dss_dsi_enable_pads(dsi_get_dsidev_id(dsidev), dsi_get_lane_mask(dssdev));
+>   	if (r)
+>   		return r;
+>
+> @@ -2475,21 +2472,20 @@ err_cio_pwr:
+>   		dsi_cio_disable_lane_override(dsidev);
+>   err_scp_clk_dom:
+>   	dsi_disable_scp_clk(dsidev);
+> -	dsi->disable_pads(dsi_get_dsidev_id(dsidev), dsi_get_lane_mask(dssdev));
+> +	dss_dsi_disable_pads(dsi_get_dsidev_id(dsidev), dsi_get_lane_mask(dssdev));
+>   	return r;
+>   }
+>
+>   static void dsi_cio_uninit(struct omap_dss_device *dssdev)
+>   {
+>   	struct platform_device *dsidev = dsi_get_dsidev_from_dssdev(dssdev);
+> -	struct dsi_data *dsi = dsi_get_dsidrv_data(dsidev);
+>
+>   	/* DDR_CLK_ALWAYS_ON */
+>   	REG_FLD_MOD(dsidev, DSI_CLK_CTRL, 0, 13, 13);
+>
+>   	dsi_cio_power(dsidev, DSI_COMPLEXIO_POWER_OFF);
+>   	dsi_disable_scp_clk(dsidev);
+> -	dsi->disable_pads(dsi_get_dsidev_id(dsidev), dsi_get_lane_mask(dssdev));
+> +	dss_dsi_disable_pads(dsi_get_dsidev_id(dsidev), dsi_get_lane_mask(dssdev));
+>   }
+>
+>   static void dsi_config_tx_fifo(struct platform_device *dsidev,
+> @@ -4647,8 +4643,6 @@ static void dsi_put_clocks(struct platform_device *dsidev)
+>   /* DSI1 HW IP initialisation */
+>   static int omap_dsihw_probe(struct platform_device *dsidev)
+>   {
+> -	struct omap_display_platform_data *dss_plat_data;
+> -	struct omap_dss_board_info *board_info;
+>   	u32 rev;
+>   	int r, i, dsi_module = dsi_get_dsidev_id(dsidev);
+>   	struct resource *dsi_mem;
+> @@ -4662,11 +4656,6 @@ static int omap_dsihw_probe(struct platform_device *dsidev)
+>   	dsi_pdev_map[dsi_module] = dsidev;
+>   	dev_set_drvdata(&dsidev->dev, dsi);
+>
+> -	dss_plat_data = dsidev->dev.platform_data;
+> -	board_info = dss_plat_data->board_data;
+> -	dsi->enable_pads = board_info->dsi_enable_pads;
+> -	dsi->disable_pads = board_info->dsi_disable_pads;
+> -
+>   	spin_lock_init(&dsi->irq_lock);
+>   	spin_lock_init(&dsi->errors_lock);
+>   	dsi->errors = 0;
+> diff --git a/drivers/video/omap2/dss/dss.h b/drivers/video/omap2/dss/dss.h
+> index 5ca67f1..bb3079d 100644
+> --- a/drivers/video/omap2/dss/dss.h
+> +++ b/drivers/video/omap2/dss/dss.h
+> @@ -159,6 +159,9 @@ struct platform_device;
+>   struct bus_type *dss_get_bus(void);
+>   struct regulator *dss_get_vdds_dsi(void);
+>   struct regulator *dss_get_vdds_sdi(void);
+> +int dss_get_ctx_loss_count(struct device *dev);
+> +int dss_dsi_enable_pads(int dsi_id, unsigned lane_mask);
+> +void dss_dsi_disable_pads(int dsi_id, unsigned lane_mask);
+>   int dss_set_min_bus_tput(struct device *dev, unsigned long tput);
+>
+>   /* apply */
+> diff --git a/drivers/video/omap2/dss/hdmi.c b/drivers/video/omap2/dss/hdmi.c
+> index 56f6e9c..2321b75 100644
+> --- a/drivers/video/omap2/dss/hdmi.c
+> +++ b/drivers/video/omap2/dss/hdmi.c
+> @@ -63,7 +63,6 @@
+>
+>   static struct {
+>   	struct mutex lock;
+> -	struct omap_display_platform_data *pdata;
+>   	struct platform_device *pdev;
+>   	struct hdmi_ip_data ip_data;
+>
+> @@ -795,7 +794,6 @@ static int omapdss_hdmihw_probe(struct platform_device *pdev)
+>   	struct resource *hdmi_mem;
+>   	int r;
+>
+> -	hdmi.pdata = pdev->dev.platform_data;
+>   	hdmi.pdev = pdev;
+>
+>   	mutex_init(&hdmi.lock);
+> diff --git a/include/video/omapdss.h b/include/video/omapdss.h
+> index 5f36ddd..49e7073 100644
+> --- a/include/video/omapdss.h
+> +++ b/include/video/omapdss.h
+> @@ -317,11 +317,6 @@ extern int omap_display_init(struct omap_dss_board_info *board_data);
+>   /* HDMI mux init*/
+>   extern int omap_hdmi_init(enum omap_hdmi_flags flags);
+>
+> -struct omap_display_platform_data {
+> -	struct omap_dss_board_info *board_data;
+> -	/* TODO: Additional members to be added when PM is considered */
+> -};
+> -
+>   struct omap_video_timings {
+>   	/* Unit: pixels */
+>   	u16 x_res;
 
-
-From: Thomas Gleixner <tglx@linutronix.de>
-Date: Wed, 25 Apr 2012 12:54:54 +0200
-Subject: [PATCH] IRQ: allow check_wakeup_irqs to notice level-triggered int=
-errupts.
-
-Level triggered interrupts do not cause IRQS_PENDING to be set when
-they fire-while-disabled as the 'pending' state is always present in
-the level - they automatically refire where re-enabled.
-
-However the IRQS_PENDING flag is also used to abort a suspend cycle -
-if any 'is_wakeup_set' interrupt is PENDING, check_wakeup_irqs() will
-cause suspend to abort. Without IRQS_PENDING, suspend won't abort.
-
-Consequently, level-triggered interrupts that fire during the 'noirq'
-phase of suspend do not currently abort suspend.
-
-So set IRQS_PENDING even for level triggered interrupts, and make sure
-to clear the flag in check_irq_resend.
-
-Also: in check_wakeup_irqs, ignore 'is_wakeup' interrupts that were
-already disabled before suspend_device_irqs() disabled them further.
-
-Tested-by: NeilBrown <neilb@suse.de>
-
-diff --git a/kernel/irq/chip.c b/kernel/irq/chip.c
-index 6080f6b..741f836 100644
---- a/kernel/irq/chip.c
-+++ b/kernel/irq/chip.c
-@@ -379,8 +379,10 @@ handle_level_irq(unsigned int irq, struct irq_desc *de=
-sc)
- 	 * If its disabled or no action available
- 	 * keep it masked and get out of here
- 	 */
--	if (unlikely(!desc->action || irqd_irq_disabled(&desc->irq_data)))
-+	if (unlikely(!desc->action || irqd_irq_disabled(&desc->irq_data))) {
-+		desc->istate |=3D IRQS_PENDING;
- 		goto out_unlock;
-+	}
-=20
- 	handle_irq_event(desc);
-=20
-diff --git a/kernel/irq/pm.c b/kernel/irq/pm.c
-index 15e53b1..b858ce3 100644
---- a/kernel/irq/pm.c
-+++ b/kernel/irq/pm.c
-@@ -103,7 +103,8 @@ int check_wakeup_irqs(void)
- 	int irq;
-=20
- 	for_each_irq_desc(irq, desc) {
--		if (irqd_is_wakeup_set(&desc->irq_data)) {
-+		if (desc->depth =3D=3D 1 &&
-+		    irqd_is_wakeup_set(&desc->irq_data)) {
- 			if (desc->istate & IRQS_PENDING)
- 				return -EBUSY;
- 			continue;
-diff --git a/kernel/irq/resend.c b/kernel/irq/resend.c
-index 14dd576..6454db7 100644
---- a/kernel/irq/resend.c
-+++ b/kernel/irq/resend.c
-@@ -58,10 +58,13 @@ void check_irq_resend(struct irq_desc *desc, unsigned i=
-nt irq)
- 	/*
- 	 * We do not resend level type interrupts. Level type
- 	 * interrupts are resent by hardware when they are still
--	 * active.
-+	 * active. Clear the pending bit so suspend/resume does not
-+	 * get confused.
- 	 */
--	if (irq_settings_is_level(desc))
-+	if (irq_settings_is_level(desc)) {
-+		desc->istate &=3D ~IRQS_PENDING;
- 		return;
-+	}
- 	if (desc->istate & IRQS_REPLAY)
- 		return;
- 	if (desc->istate & IRQS_PENDING) {
-
---Sig_/M_Mnyl1jqY=ZXVnt32A/Lrt
-Content-Type: application/pgp-signature; name=signature.asc
-Content-Disposition: attachment; filename=signature.asc
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v2.0.18 (GNU/Linux)
-
-iQIVAwUBT6NlNTnsnt1WYoG5AQKhfw//a54qUJOTLtno4QY2fcBxkWmTVCr4c6KV
-v0E3A6m9Xu1ZNExN5Tn6xYDU13eDKrlPm9+k+o/YxajppPnDUrfzKST0QnBSLn5w
-cjLtPl6eDK31akteANJ+UgmZ0lfCXOAEeqNUXAMKZ/yjuzaaMKlLWtsJjANI/zaK
-Y9ux2qbH7auNtFMLLWx8m1q45kvDH89OlzYeZPn0pg1PgITzHrsrDzHZE4GMcocd
-ZB8vEu9fuZhrLEUtgWfWXXTrys1e0CJ+m939TKXpCeRjGbYDyv0vG/D7zGCf9GQr
-0XfRZgWhAINAkVq7tldhKaNCFZxUyg7ppwu61qDPpKIBkcIQfPAXcZmBtc0dQAhn
-+GmUMkphQyhdk+4sj4hD5rUr38FzfbCAgqk59nhO/nZU/E3N1Mnh6XyQaRc3LRId
-vZYVbwcmPIptvbyUWuSE75S+jF8YKhDH1o/gCdLVLYb37DAsHU4aFL+bvpgKGmpF
-EsEWP89/uK8+vbVDHXOsP7ahQeY4+z+1Rs8Gzp6Y9I3XSxU4Gs9GeBm77XW3NCzY
-3SvjRp4kn2psqz8FFfCjWMYYxmZ4lcogldsF/4e/OnB0gP7spvSPcedVfok94Yek
-vgZQnitxqjJoXBoh7E0W9Z4wz+8enS9hMXTeh/V8qhaqQOnXx6vDl9aRTsw4OBR6
-DKGsdt+j2hg=
-=5Na3
------END PGP SIGNATURE-----
-
---Sig_/M_Mnyl1jqY=ZXVnt32A/Lrt--
