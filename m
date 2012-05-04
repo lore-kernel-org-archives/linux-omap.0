@@ -1,107 +1,224 @@
-From: "Mark A. Greer" <mgreer@animalcreek.com>
-Subject: Re: [PATCH] net: davinci_emac: Add pre_open, post_stop platform
- callbacks
-Date: Fri, 4 May 2012 11:48:00 -0700
-Message-ID: <20120504184800.GC28910@animalcreek.com>
-References: <20120502234718.GA5432@animalcreek.com>
- <87y5p7c2v6.fsf@ti.com>
+From: Stephen Warren <swarren@wwwdotorg.org>
+Subject: Re: [PATCH] pinctrl: Add generic pinctrl-simple driver that supports
+ omap2+ padconf
+Date: Fri, 04 May 2012 12:55:45 -0600
+Message-ID: <4FA42631.6060304@wwwdotorg.org>
+References: <20120502172401.GG3739@atomide.com> <20120503065131.GA3738@game.jcrosoft.org> <20120503152708.GC5140@atomide.com> <4FA30805.5050804@wwwdotorg.org> <20120504044305.GD7788@game.jcrosoft.org> <20120504150342.GI5140@atomide.com> <20120504153251.GE7788@game.jcrosoft.org> <20120504163420.GA5613@atomide.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail20.dotsterhost.com ([66.11.232.73]:51804 "EHLO
-	mail20.dotsterhost.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752131Ab2EDSsB (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 4 May 2012 14:48:01 -0400
-Content-Disposition: inline
-In-Reply-To: <87y5p7c2v6.fsf@ti.com>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <20120504163420.GA5613@atomide.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Tony Lindgren <tony@atomide.com>
+Cc: Jean-Christophe PLAGNIOL-VILLARD <plagnioj@jcrosoft.com>, Linus Walleij <linus.walleij@linaro.org>, linux-omap@vger.kernel.org, Stephen Warren <swarren@nvidia.com>, linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 List-Id: linux-omap@vger.kernel.org
-To: Kevin Hilman <khilman@ti.com>
-Cc: "Bedia, Vaibhav" <vaibhav.bedia@ti.com>, nsekhar@ti.com, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 
-On Fri, May 04, 2012 at 09:44:45AM -0700, Kevin Hilman wrote:
-> Hi Mark,
+On 05/04/2012 10:34 AM, Tony Lindgren wrote:
+> * Jean-Christophe PLAGNIOL-VILLARD <plagnioj@jcrosoft.com> [120504 08:58]:
+>> On 08:03 Fri 04 May     , Tony Lindgren wrote:
+>>>>
+>>>> so I was thinking to do like on gpio
+>>>>
+>>>> uart {
+>>>> 	pin = < &pioA 12 {pararms} >
+>>>>
+>>>> }
+>>>
+>>> Hmm I assume the "12" above the gpio number?
+>> no pin number in the bank because it could not be gpio
+> 
+> Yes OK, but pin number 12 in the gpio bank, not in the mux register.
+> Got it.
 
-Hi Kevin.
+I'd prefer to avoid any references to GPIOs here; not all muxable pins
+are GPIOs and not all GPIOs are muxable pins. Lets keep the two concepts
+independent.
 
-> "Mark A. Greer" <mgreer@animalcreek.com> writes:
+>> 	pioD: gpio@fffff800 {
+>> 		compatible = "atmel,at91rm9200-gpio";
+>> 		reg = <0xfffff800 0x100>;
+>> 		interrupts = <5 4>;
+>> 		#gpio-cells = <2>;
+>> 		gpio-controller;
+>> 		interrupt-controller;
+>> 	};
+>>
+>> 	pioE: gpio@fffffa00 {
+>> 		compatible = "atmel,at91rm9200-gpio";
+>> 		reg = <0xfffffa00 0x100>;
+>> 		interrupts = <5 4>;
+>> 		#gpio-cells = <2>;
+>> 		gpio-controller;
+>> 		interrupt-controller;
+>> 	};
+>>
+>> 	dbgu {
+>> 		pins = < &pioB 12 0 0
+>> 			 &pioB 13 0 2 >;
+>> 	/* with macro */
+>> 		pins = < &pioB 12 MUX_A NO_PULL_UP
+>> 			 &pioB 13 MUX_A PULL_UP >;
+>> 	};
 > 
-> [...]
-> 
-> > To work around this issue, add platform data callbacks which
-> > are called at the beginning of the open routine and at the
-> > end of the stop routine of the davinci_emac driver.  The
-> > callbacks allow the platform code to issue disable_hlt() and
-> > enable_hlt() calls appropriately.  Calling disable_hlt()
-> > prevents cpu_idle from issuing the 'wfi' instruction.
-> 
-> OK, I'm feeling rather dumb for not thinking of this before and
-> suggesting that you use pdata callbacks.  But there is a better
-> solution: runtime PM.
-> 
-> I hadn't noticed before that since this driver comes from davinci, it
-> uses the clock API and not runtime PM which all OMAP drivers have been
-> (or are being) converted to.
-> 
-> If we replace the clock API usage in this driver with proper runtime PM
-> usage, we can make this work. Basically, clk_enable() turns into
-> pm_runtime_get_sync() and clk_disable() turns into pm_runtime_put().
-> With that, the OMAP PM core will get callbacks whenever the device is
-> [not] needed and we can use device-specific hooks to call
-> disable_hlt/enable_hlt.
-> 
-> The only catch though is that in order for this driver to be converted
-> to runtime PM and still work on davinci devices, the davinci kernel
-> needs to grow runtime PM support.   I belive Sekhar is already looking
-> into this, and OMAP1 (mach-omap1/pm_bus.c) will be a good example of how
-> to get a basic runtime PM implementation working for davinci which just
-> does basic clock management.
-> 
-> Having worked on the guts of runtime PM for OMAP, I know it pretty well
-> (which is all the more embarrasing that I didn't think of suggesting it
-> sooner.)  So, let me know how I can help.
-> 
-> As a quick hack to test my idea will help, you can try simply calling
-> disable_hlt() after clk_enable() and enable_hlt() after clk_disable() in
-> teh davinci_emac driver.  That will effectively be what happens after a
-> runtime PM conversion with device-specific hooks.  The (not even compile
-> tested) patch below does this.  For starters, can you tell me if this
-> results in "normal" performance on the EMAC?
+> I could change to use this too no problem. The only concern I have is
+> that is "&pioB 12" immutable for all gpio controllers?
 
-No worries.  I thought of pm_runtime before embarking on this patch,
-actually.  I explained why I did this patch anyaway in another email--
-our emails crossed in the ether.
+You mean is the number of cells used to specify a GPIO the same
+everywhere? No. It's defined by #gpio-cells in the GPIO controller node.
 
-> diff --git a/drivers/net/ethernet/ti/davinci_emac.c b/drivers/net/ethernet/ti/davinci_emac.c
-> index 174a334..c92bc28 100644
-> --- a/drivers/net/ethernet/ti/davinci_emac.c
-> +++ b/drivers/net/ethernet/ti/davinci_emac.c
-> @@ -1909,6 +1909,7 @@ static int __devinit davinci_emac_probe(struct platform_device *pdev)
->  	netif_napi_add(ndev, &priv->napi, emac_poll, EMAC_POLL_WEIGHT);
+But again, the GPIO binding shouldn't be related to the pinctrl binding
+directly.
+
+> Grepping the *.dts* files, at least exynos is using the following
+> for gpios:
+> 
+> gpios = <&gpx2 0 0 0 2>;
+> 
+> If we can conclude that phandle to the gpio controller instance and
+> the register offset is always enough here, then I'm OK changing to
+> that format. It would actually save some parsing in most cases.
 >  
->  	clk_enable(emac_clk);
-> +	disable_hlt();
->  
->  	/* register the network device */
->  	SET_NETDEV_DEV(ndev, &pdev->dev);
-> @@ -1929,6 +1930,7 @@ static int __devinit davinci_emac_probe(struct platform_device *pdev)
->  
->  netdev_reg_err:
->  	clk_disable(emac_clk);
-> +	enable_hlt();
->  no_irq_res:
->  	if (priv->txchan)
->  		cpdma_chan_destroy(priv->txchan);
-> @@ -1979,6 +1981,7 @@ static int __devexit davinci_emac_remove(struct platform_device *pdev)
->  
->  	clk_disable(emac_clk);
->  	clk_put(emac_clk);
-> +	enable_hlt();
->  
->  	return 0;
->  }
+>> 	/* and also the notion of linked group
+>> 	 * as on uart of network you have often the same subset of pin use.
+>> 	 *
+>> 	 * As example on uart rxd/txd is use for the group without rts/cts
+>> 	 * and the one with it
+>> 	 * on ethernet the RMII pin are use also on MII
+>> 	 */
+>>
+>> 	uart0_rxd_txd {
+>> 		pins = < &pioB 19 MUX_A PULL_UP		/* rxd */
+>> 			 &pioB 18 MUX_A NO_PULL_UP >;	/* txd */
+>> 	};
 
-Yes, this works (it essentially does what my patches do except I did the
-calls in open/stop instead of probe/remove :).
+I don't really see how that DT format represents pins, functions, and
+nodes directly, and separately from which of those a board chooses to
+use. I think this binding and the one Tony originally proposed are
+eseentially semantically identical.
 
-Mark
+Going back to my idea of separating SoC and board configurations, if we
+did that, I'd expect to see something more like:
+
+soc.dtsi or board.dts:
+
+This is the data that the pin controller driver needs to export to
+pinctrl core. This can be completely enumerated in the soc.dtsi, or
+perhaps for uncommonly used pins/groups/functions, only included in the
+board.dts that actually uses it to cut down on soc.dtsi's size:
+
+This data is not needed for SoCs whose pinctrl drivers include it in
+their driver file instead of DT.
+
+/ {
+    pinctrl@... {
+        pins {
+            uart1_rx_pin: uart1_rx {
+                /* register to program the pin if per-pin muxing*/
+                reg = ...;
+                name = "UART1_RX";
+                ...;
+            }
+            uart1_tx_pin: uart1_tx {
+                reg = ...;
+                name = "UART1_TX";
+                ...;
+            }
+            uart2_rx_pin: uart2_rx {
+                reg = ...;
+                name = "UART2_RX";
+                ...;
+            }
+            uart2_tx_pin: uart2_tx {
+                reg = ...;
+                name = "UART2_TX";
+                ...;
+            }
+        };
+        pingroups {
+            uart1_pg: uart1 {
+                /* register to program the group, if per-grouop muxing */
+                reg = ...;
+                pins = <&pin_uart1_rx &pin_uart1_tx>;
+            }
+            uart2_pg: uart2 {
+                pins = <&pin_uart2_rx &pin_uart2_tx>;
+            }
+        };
+        functions {
+            uart1_func: uart1 {
+                selectable-on = <&uart1_pg 0>; /* where, mux value */
+            };
+            uart2_func: uart2 {
+                selectable-on = <&uart2_pg 0>;
+            };
+            spi_func: spi {
+                selectable-on = <&uart1_pg 1 &uart2_pg 1>;
+            };
+    };
+
+soc.dtsi or board.dts:
+
+This is part of the data used to construct the mapping table. Common
+options for function X on pin/pingroup Y can be included in soc.dtsi to
+reduce duplication in board files. Uncommon options can be included
+directly in the board.dts that uses them, to avoid bloating soc.dtsi:
+
+This data is needed irrespective of whether a SoC pinctrl driver stores
+the pin/function/group information in DT or in the driver itself.
+
+/ {
+    pinctrl@... {
+        uart1_uart1 {
+            muxing = <&uart1_pg &uart1_func>;
+            ... other pinconfig stuff perhaps;
+        }
+        spi1_uart2 {
+            muxing = <&uart2_pg &uart2_func>;
+            ... other pinconfig stuff perhaps;
+        }
+    }
+};
+
+board.dts:
+
+Finally, each board defines which of the muxing options to actually use.
+
+This data is needed irrespective of whether a SoC pinctrl driver stores
+the pin/function/group information in DT or in the driver itself.
+
+/ {
+    uart@... {
+        pinctrl-names = "default";
+        pinctrl-0 = <&uart1_uart1>;
+    };
+    spi@... {
+        pinctrl-names = "default";
+        pinctrl-0 = <&spi1_uart2>;
+    };
+};
+
+>> 	uart0_rts_cts {
+>> 		groups = < &uart0_rxd_txd >;
+>> 		pins = < &pioB 17 MUX_B NO_PULL_UP	/* rts */
+>> 			 &pioB 15 MUX_B NO_PULL_UP >;	/* cts */
+>> 	};
+>>
+>> 	uart0_rts_cts_external_pull_up {
+>> 		groups = < &uart0_rts_cts >;
+>> 		gpios = <&pioC 1 0>;
+>> 	};
+>> };
+>>
+>> The idea is to avoid duplication the xlate for pins will be driver specific
+>> with maybe a common implementation
+>>
+>> the 3 or 4 first fix as done on gpio
+> 
+> Yeah sounds doable to me, but can probably be added later?
+> 
+> Regarding grouping, basically for most cases it makes sense to have
+> three states: default, active, idle instead of just active and idle.
+
+The set of state names should be determined by the client driver, not
+the pinctrl core or driver binding, any pinctrl code.
