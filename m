@@ -1,103 +1,242 @@
 From: Ricardo Neri <ricardo.neri@ti.com>
-Subject: [PATCH v2 08/14] OMAPDSS: HDMI: OMAP4: Expand configuration for IEC-60958 audio
-Date: Thu, 3 May 2012 20:44:02 -0500
-Message-ID: <1336095848-6923-9-git-send-email-ricardo.neri@ti.com>
+Subject: [PATCH v2 14/14] OMAPDSS: HDMI: Implement DSS driver interface for audio
+Date: Thu, 3 May 2012 20:44:08 -0500
+Message-ID: <1336095848-6923-15-git-send-email-ricardo.neri@ti.com>
 References: <1336095848-6923-1-git-send-email-ricardo.neri@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from bear.ext.ti.com ([192.94.94.41]:37430 "EHLO bear.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1755795Ab2EDBob (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Thu, 3 May 2012 21:44:31 -0400
+Received: from devils.ext.ti.com ([198.47.26.153]:44594 "EHLO
+	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1759212Ab2EDBod (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 3 May 2012 21:44:33 -0400
 In-Reply-To: <1336095848-6923-1-git-send-email-ricardo.neri@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: tomi.valkeinen@ti.com, mythripk@ti.com
 Cc: s-chereau@ti.com, x0055901@ti.com, vaibhav.bedia@ti.com, s-guiriec@ti.com, lrg@ti.com, peter.ujfalusi@ti.com, agraf@suse.de, research@ottomaneng.com, linux-omap@vger.kernel.org, alsa-devel@alsa-project.org, Ricardo Neri <ricardo.neri@ti.com>
 
-Utilize a snd_aes_iec958 struct to write the parameters of the IEC-60958
-channel status word into the HDMI IP registers. Hence, the user of the
-driver has full control of what parameters are written in the word.
+Implement the DSS device driver audio support interface in the HDMI
+panel driver and generic driver. The implementation relies on the
+IP-specific functions that are defined at DSS probe time.
 
-Also, some of the parameters of the I2S structure have been removed
-as they are actually IEC-60958 parameters.
+At the moment, a hardirq-safe spinlock is used to protect the audio
+functions. This is because such functions might be called while
+holding a lock (this especially true for audio_start/stop). For the
+rest of the audio functions, a mutex could be used in the future as
+the enablement of resources might take too much time.
 
 Signed-off-by: Ricardo Neri <ricardo.neri@ti.com>
 ---
- drivers/video/omap2/dss/ti_hdmi_4xxx_ip.c |   29 +++++++++++++++++++----------
- drivers/video/omap2/dss/ti_hdmi_4xxx_ip.h |    4 +---
- 2 files changed, 20 insertions(+), 13 deletions(-)
+ drivers/video/omap2/dss/dss.h        |    8 +++
+ drivers/video/omap2/dss/hdmi.c       |   42 ++++++++++++++
+ drivers/video/omap2/dss/hdmi_panel.c |  100 ++++++++++++++++++++++++++++++++++
+ 3 files changed, 150 insertions(+), 0 deletions(-)
 
-diff --git a/drivers/video/omap2/dss/ti_hdmi_4xxx_ip.c b/drivers/video/omap2/dss/ti_hdmi_4xxx_ip.c
-index cbda730..9c3dfd4 100644
---- a/drivers/video/omap2/dss/ti_hdmi_4xxx_ip.c
-+++ b/drivers/video/omap2/dss/ti_hdmi_4xxx_ip.c
-@@ -1114,10 +1114,25 @@ void hdmi_core_audio_config(struct hdmi_ip_data *ip_data,
- 	REG_FLD_MOD(av_base, HDMI_CORE_AV_SPDIF_CTRL,
- 						cfg->fs_override, 1, 1);
+diff --git a/drivers/video/omap2/dss/dss.h b/drivers/video/omap2/dss/dss.h
+index d4b3dff..ec4aa14 100644
+--- a/drivers/video/omap2/dss/dss.h
++++ b/drivers/video/omap2/dss/dss.h
+@@ -514,6 +514,14 @@ int omapdss_hdmi_read_edid(u8 *buf, int len);
+ bool omapdss_hdmi_detect(void);
+ int hdmi_panel_init(void);
+ void hdmi_panel_exit(void);
++#ifdef CONFIG_OMAP4_DSS_HDMI_AUDIO
++int hdmi_audio_enable(void);
++void hdmi_audio_disable(void);
++int hdmi_audio_start(void);
++void hdmi_audio_stop(void);
++bool hdmi_mode_has_audio(void);
++int hdmi_audio_config(struct omap_dss_audio *audio);
++#endif
  
--	/* I2S parameters */
--	REG_FLD_MOD(av_base, HDMI_CORE_AV_I2S_CHST4,
--						cfg->freq_sample, 3, 0);
--
-+	/*
-+	 * Set IEC-60958-3 channel status word. It is passed to the IP
-+	 * just as it is received. The user of the driver is responsible
-+	 * for its contents.
-+	 */
-+	hdmi_write_reg(av_base, HDMI_CORE_AV_I2S_CHST0,
-+		       cfg->iec60958_cfg->status[0]);
-+	hdmi_write_reg(av_base, HDMI_CORE_AV_I2S_CHST1,
-+		       cfg->iec60958_cfg->status[1]);
-+	hdmi_write_reg(av_base, HDMI_CORE_AV_I2S_CHST2,
-+		       cfg->iec60958_cfg->status[2]);
-+	/* yes, this is correct: status[3] goes to CHST4 register */
-+	hdmi_write_reg(av_base, HDMI_CORE_AV_I2S_CHST4,
-+		       cfg->iec60958_cfg->status[3]);
-+	/* yes, this is correct: status[4] goes to CHST5 register */
-+	hdmi_write_reg(av_base, HDMI_CORE_AV_I2S_CHST5,
-+		       cfg->iec60958_cfg->status[4]);
+ /* RFBI */
+ #ifdef CONFIG_OMAP2_DSS_RFBI
+diff --git a/drivers/video/omap2/dss/hdmi.c b/drivers/video/omap2/dss/hdmi.c
+index aee0acf..388301e 100644
+--- a/drivers/video/omap2/dss/hdmi.c
++++ b/drivers/video/omap2/dss/hdmi.c
+@@ -673,6 +673,48 @@ int hdmi_compute_acr(u32 sample_freq, u32 *n, u32 *cts)
+ 
+ 	return 0;
+ }
 +
-+	/* set I2S parameters */
- 	r = hdmi_read_reg(av_base, HDMI_CORE_AV_I2S_IN_CTRL);
- 	r = FLD_MOD(r, cfg->i2s_cfg.sck_edge_mode, 6, 6);
- 	r = FLD_MOD(r, cfg->i2s_cfg.vbit, 4, 4);
-@@ -1126,12 +1141,6 @@ void hdmi_core_audio_config(struct hdmi_ip_data *ip_data,
- 	r = FLD_MOD(r, cfg->i2s_cfg.shift, 0, 0);
- 	hdmi_write_reg(av_base, HDMI_CORE_AV_I2S_IN_CTRL, r);
++int hdmi_audio_enable(void)
++{
++	DSSDBG("audio_enable\n");
++
++	return hdmi.ip_data.ops->audio_enable(&hdmi.ip_data);
++}
++
++void hdmi_audio_disable(void)
++{
++	DSSDBG("audio_disable\n");
++
++	hdmi.ip_data.ops->audio_disable(&hdmi.ip_data);
++}
++
++int hdmi_audio_start(void)
++{
++	DSSDBG("audio_start\n");
++
++	return hdmi.ip_data.ops->audio_start(&hdmi.ip_data);
++}
++
++void hdmi_audio_stop(void)
++{
++	DSSDBG("audio_stop\n");
++
++	hdmi.ip_data.ops->audio_stop(&hdmi.ip_data);
++}
++
++bool hdmi_mode_has_audio(void)
++{
++	if (hdmi.ip_data.cfg.cm.mode == HDMI_HDMI)
++		return true;
++	else
++		return false;
++}
++
++int hdmi_audio_config(struct omap_dss_audio *audio)
++{
++	return hdmi.ip_data.ops->audio_config(&hdmi.ip_data, audio);
++}
++
+ #endif
  
--	r = hdmi_read_reg(av_base, HDMI_CORE_AV_I2S_CHST5);
--	r = FLD_MOD(r, cfg->freq_sample, 7, 4);
--	r = FLD_MOD(r, cfg->i2s_cfg.word_length, 3, 1);
--	r = FLD_MOD(r, cfg->i2s_cfg.word_max_length, 0, 0);
--	hdmi_write_reg(av_base, HDMI_CORE_AV_I2S_CHST5, r);
--
- 	REG_FLD_MOD(av_base, HDMI_CORE_AV_I2S_IN_LEN,
- 			cfg->i2s_cfg.in_length_bits, 3, 0);
+ /* HDMI HW IP initialisation */
+diff --git a/drivers/video/omap2/dss/hdmi_panel.c b/drivers/video/omap2/dss/hdmi_panel.c
+index 5e215d6..8c17daa 100644
+--- a/drivers/video/omap2/dss/hdmi_panel.c
++++ b/drivers/video/omap2/dss/hdmi_panel.c
+@@ -32,6 +32,10 @@
+ static struct {
+ 	/* This protects the panel ops, mainly when accessing the HDMI IP. */
+ 	struct mutex lock;
++#if defined(CONFIG_OMAP4_DSS_HDMI_AUDIO)
++	/* This protects the audio ops, specifically. */
++	spinlock_t audio_lock;
++#endif
+ } hdmi;
  
-diff --git a/drivers/video/omap2/dss/ti_hdmi_4xxx_ip.h b/drivers/video/omap2/dss/ti_hdmi_4xxx_ip.h
-index 5d6e37a..4fd4f35 100644
---- a/drivers/video/omap2/dss/ti_hdmi_4xxx_ip.h
-+++ b/drivers/video/omap2/dss/ti_hdmi_4xxx_ip.h
-@@ -412,8 +412,6 @@ struct hdmi_audio_dma {
- };
  
- struct hdmi_core_audio_i2s_config {
--	u8 word_max_length;
--	u8 word_length;
- 	u8 in_length_bits;
- 	u8 justification;
- 	u8 sck_edge_mode;
-@@ -425,7 +423,7 @@ struct hdmi_core_audio_i2s_config {
+@@ -223,6 +227,90 @@ err:
+ 	return r;
+ }
  
- struct hdmi_core_audio_config {
- 	struct hdmi_core_audio_i2s_config	i2s_cfg;
--	u32					freq_sample;
-+	struct snd_aes_iec958			*iec60958_cfg;
- 	bool					fs_override;
- 	u32					n;
- 	u32					cts;
++#if defined(CONFIG_OMAP4_DSS_HDMI_AUDIO)
++static int hdmi_panel_audio_enable(struct omap_dss_device *dssdev)
++{
++	unsigned long flags;
++	int r;
++
++	spin_lock_irqsave(&hdmi.audio_lock, flags);
++
++	r = hdmi_audio_enable();
++
++	spin_unlock_irqrestore(&hdmi.audio_lock, flags);
++	return r;
++}
++
++static void hdmi_panel_audio_disable(struct omap_dss_device *dssdev)
++{
++	unsigned long flags;
++
++	spin_lock_irqsave(&hdmi.audio_lock, flags);
++
++	hdmi_audio_disable();
++
++	spin_unlock_irqrestore(&hdmi.audio_lock, flags);
++}
++
++static int hdmi_panel_audio_start(struct omap_dss_device *dssdev)
++{
++	unsigned long flags;
++	int r;
++
++	spin_lock_irqsave(&hdmi.audio_lock, flags);
++
++	r = hdmi_audio_start();
++
++	spin_unlock_irqrestore(&hdmi.audio_lock, flags);
++	return r;
++}
++
++static void hdmi_panel_audio_stop(struct omap_dss_device *dssdev)
++{
++	unsigned long flags;
++
++	spin_lock_irqsave(&hdmi.audio_lock, flags);
++
++	hdmi_audio_stop();
++
++	spin_unlock_irqrestore(&hdmi.audio_lock, flags);
++}
++
++static bool hdmi_panel_audio_supported(struct omap_dss_device *dssdev)
++{
++	unsigned long flags;
++	bool r = false;
++
++	spin_lock_irqsave(&hdmi.audio_lock, flags);
++
++	if (dssdev->state != OMAP_DSS_DISPLAY_ACTIVE)
++		goto err;
++
++	if (!hdmi_mode_has_audio())
++		goto err;
++
++	r = true;
++err:
++	spin_unlock_irqrestore(&hdmi.audio_lock, flags);
++	return r;
++}
++
++static int hdmi_panel_audio_config(struct omap_dss_device *dssdev,
++		struct omap_dss_audio *audio)
++{
++	unsigned long flags;
++	int r;
++
++	spin_lock_irqsave(&hdmi.audio_lock, flags);
++
++	r = hdmi_audio_config(audio);
++
++	spin_unlock_irqrestore(&hdmi.audio_lock, flags);
++	return r;
++}
++
++#endif
++
+ static struct omap_dss_driver hdmi_driver = {
+ 	.probe		= hdmi_panel_probe,
+ 	.remove		= hdmi_panel_remove,
+@@ -235,6 +323,14 @@ static struct omap_dss_driver hdmi_driver = {
+ 	.check_timings	= hdmi_check_timings,
+ 	.read_edid	= hdmi_read_edid,
+ 	.detect		= hdmi_detect,
++#if defined(CONFIG_OMAP4_DSS_HDMI_AUDIO)
++	.audio_enable	= hdmi_panel_audio_enable,
++	.audio_disable	= hdmi_panel_audio_disable,
++	.audio_start	= hdmi_panel_audio_start,
++	.audio_stop	= hdmi_panel_audio_stop,
++	.audio_supported	= hdmi_panel_audio_supported,
++	.audio_config	= hdmi_panel_audio_config,
++#endif
+ 	.driver			= {
+ 		.name   = "hdmi_panel",
+ 		.owner  = THIS_MODULE,
+@@ -245,6 +341,10 @@ int hdmi_panel_init(void)
+ {
+ 	mutex_init(&hdmi.lock);
+ 
++#if defined(CONFIG_OMAP4_DSS_HDMI_AUDIO)
++	spin_lock_init(&hdmi.audio_lock);
++#endif
++
+ 	omap_dss_register_driver(&hdmi_driver);
+ 
+ 	return 0;
 -- 
 1.7.5.4
 
