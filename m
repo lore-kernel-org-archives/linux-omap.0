@@ -1,242 +1,319 @@
 From: Ricardo Neri <ricardo.neri@ti.com>
-Subject: [PATCH v2 14/14] OMAPDSS: HDMI: Implement DSS driver interface for audio
-Date: Thu, 3 May 2012 20:44:08 -0500
-Message-ID: <1336095848-6923-15-git-send-email-ricardo.neri@ti.com>
+Subject: [PATCH v2 03/14] OMAPDSS: HDMI: Remove ASoC codec
+Date: Thu, 3 May 2012 20:43:57 -0500
+Message-ID: <1336095848-6923-4-git-send-email-ricardo.neri@ti.com>
 References: <1336095848-6923-1-git-send-email-ricardo.neri@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from devils.ext.ti.com ([198.47.26.153]:44594 "EHLO
-	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1759212Ab2EDBod (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 3 May 2012 21:44:33 -0400
+Received: from bear.ext.ti.com ([192.94.94.41]:37434 "EHLO bear.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1756922Ab2EDBob (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Thu, 3 May 2012 21:44:31 -0400
 In-Reply-To: <1336095848-6923-1-git-send-email-ricardo.neri@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: tomi.valkeinen@ti.com, mythripk@ti.com
 Cc: s-chereau@ti.com, x0055901@ti.com, vaibhav.bedia@ti.com, s-guiriec@ti.com, lrg@ti.com, peter.ujfalusi@ti.com, agraf@suse.de, research@ottomaneng.com, linux-omap@vger.kernel.org, alsa-devel@alsa-project.org, Ricardo Neri <ricardo.neri@ti.com>
 
-Implement the DSS device driver audio support interface in the HDMI
-panel driver and generic driver. The implementation relies on the
-IP-specific functions that are defined at DSS probe time.
+Remove the ASoC OMAP HDMI audio codec. The goal of removing the codec
+is to, in subsequent patches, give way to the implementation of the HDMI
+audio support using the DSS device driver audio interface. This
+approach will expose the HDMI audio functionality to any interested entity.
 
-At the moment, a hardirq-safe spinlock is used to protect the audio
-functions. This is because such functions might be called while
-holding a lock (this especially true for audio_start/stop). For the
-rest of the audio functions, a mutex could be used in the future as
-the enablement of resources might take too much time.
+In a separate patch, ASoC will use this new approach to expose HDMI audio
+to ALSA.
 
 Signed-off-by: Ricardo Neri <ricardo.neri@ti.com>
 ---
- drivers/video/omap2/dss/dss.h        |    8 +++
- drivers/video/omap2/dss/hdmi.c       |   42 ++++++++++++++
- drivers/video/omap2/dss/hdmi_panel.c |  100 ++++++++++++++++++++++++++++++++++
- 3 files changed, 150 insertions(+), 0 deletions(-)
+ drivers/video/omap2/dss/hdmi.c            |  236 -----------------------------
+ drivers/video/omap2/dss/ti_hdmi_4xxx_ip.h |    5 -
+ 2 files changed, 0 insertions(+), 241 deletions(-)
 
-diff --git a/drivers/video/omap2/dss/dss.h b/drivers/video/omap2/dss/dss.h
-index d4b3dff..ec4aa14 100644
---- a/drivers/video/omap2/dss/dss.h
-+++ b/drivers/video/omap2/dss/dss.h
-@@ -514,6 +514,14 @@ int omapdss_hdmi_read_edid(u8 *buf, int len);
- bool omapdss_hdmi_detect(void);
- int hdmi_panel_init(void);
- void hdmi_panel_exit(void);
-+#ifdef CONFIG_OMAP4_DSS_HDMI_AUDIO
-+int hdmi_audio_enable(void);
-+void hdmi_audio_disable(void);
-+int hdmi_audio_start(void);
-+void hdmi_audio_stop(void);
-+bool hdmi_mode_has_audio(void);
-+int hdmi_audio_config(struct omap_dss_audio *audio);
-+#endif
- 
- /* RFBI */
- #ifdef CONFIG_OMAP2_DSS_RFBI
 diff --git a/drivers/video/omap2/dss/hdmi.c b/drivers/video/omap2/dss/hdmi.c
-index aee0acf..388301e 100644
+index 159aa66..11d6ca8 100644
 --- a/drivers/video/omap2/dss/hdmi.c
 +++ b/drivers/video/omap2/dss/hdmi.c
-@@ -673,6 +673,48 @@ int hdmi_compute_acr(u32 sample_freq, u32 *n, u32 *cts)
+@@ -33,12 +33,6 @@
+ #include <linux/pm_runtime.h>
+ #include <linux/clk.h>
+ #include <video/omapdss.h>
+-#if defined(CONFIG_SND_OMAP_SOC_OMAP4_HDMI) || \
+-	defined(CONFIG_SND_OMAP_SOC_OMAP4_HDMI_MODULE)
+-#include <sound/soc.h>
+-#include <sound/pcm_params.h>
+-#include "ti_hdmi_4xxx_ip.h"
+-#endif
  
- 	return 0;
- }
-+
-+int hdmi_audio_enable(void)
-+{
-+	DSSDBG("audio_enable\n");
-+
-+	return hdmi.ip_data.ops->audio_enable(&hdmi.ip_data);
-+}
-+
-+void hdmi_audio_disable(void)
-+{
-+	DSSDBG("audio_disable\n");
-+
-+	hdmi.ip_data.ops->audio_disable(&hdmi.ip_data);
-+}
-+
-+int hdmi_audio_start(void)
-+{
-+	DSSDBG("audio_start\n");
-+
-+	return hdmi.ip_data.ops->audio_start(&hdmi.ip_data);
-+}
-+
-+void hdmi_audio_stop(void)
-+{
-+	DSSDBG("audio_stop\n");
-+
-+	hdmi.ip_data.ops->audio_stop(&hdmi.ip_data);
-+}
-+
-+bool hdmi_mode_has_audio(void)
-+{
-+	if (hdmi.ip_data.cfg.cm.mode == HDMI_HDMI)
-+		return true;
-+	else
-+		return false;
-+}
-+
-+int hdmi_audio_config(struct omap_dss_audio *audio)
-+{
-+	return hdmi.ip_data.ops->audio_config(&hdmi.ip_data, audio);
-+}
-+
- #endif
- 
- /* HDMI HW IP initialisation */
-diff --git a/drivers/video/omap2/dss/hdmi_panel.c b/drivers/video/omap2/dss/hdmi_panel.c
-index 5e215d6..8c17daa 100644
---- a/drivers/video/omap2/dss/hdmi_panel.c
-+++ b/drivers/video/omap2/dss/hdmi_panel.c
-@@ -32,6 +32,10 @@
- static struct {
- 	/* This protects the panel ops, mainly when accessing the HDMI IP. */
- 	struct mutex lock;
-+#if defined(CONFIG_OMAP4_DSS_HDMI_AUDIO)
-+	/* This protects the audio ops, specifically. */
-+	spinlock_t audio_lock;
-+#endif
- } hdmi;
- 
- 
-@@ -223,6 +227,90 @@ err:
- 	return r;
+ #include "ti_hdmi.h"
+ #include "dss.h"
+@@ -558,220 +552,6 @@ void omapdss_hdmi_display_disable(struct omap_dss_device *dssdev)
+ 	mutex_unlock(&hdmi.lock);
  }
  
-+#if defined(CONFIG_OMAP4_DSS_HDMI_AUDIO)
-+static int hdmi_panel_audio_enable(struct omap_dss_device *dssdev)
-+{
-+	unsigned long flags;
-+	int r;
-+
-+	spin_lock_irqsave(&hdmi.audio_lock, flags);
-+
-+	r = hdmi_audio_enable();
-+
-+	spin_unlock_irqrestore(&hdmi.audio_lock, flags);
-+	return r;
-+}
-+
-+static void hdmi_panel_audio_disable(struct omap_dss_device *dssdev)
-+{
-+	unsigned long flags;
-+
-+	spin_lock_irqsave(&hdmi.audio_lock, flags);
-+
-+	hdmi_audio_disable();
-+
-+	spin_unlock_irqrestore(&hdmi.audio_lock, flags);
-+}
-+
-+static int hdmi_panel_audio_start(struct omap_dss_device *dssdev)
-+{
-+	unsigned long flags;
-+	int r;
-+
-+	spin_lock_irqsave(&hdmi.audio_lock, flags);
-+
-+	r = hdmi_audio_start();
-+
-+	spin_unlock_irqrestore(&hdmi.audio_lock, flags);
-+	return r;
-+}
-+
-+static void hdmi_panel_audio_stop(struct omap_dss_device *dssdev)
-+{
-+	unsigned long flags;
-+
-+	spin_lock_irqsave(&hdmi.audio_lock, flags);
-+
-+	hdmi_audio_stop();
-+
-+	spin_unlock_irqrestore(&hdmi.audio_lock, flags);
-+}
-+
-+static bool hdmi_panel_audio_supported(struct omap_dss_device *dssdev)
-+{
-+	unsigned long flags;
-+	bool r = false;
-+
-+	spin_lock_irqsave(&hdmi.audio_lock, flags);
-+
-+	if (dssdev->state != OMAP_DSS_DISPLAY_ACTIVE)
-+		goto err;
-+
-+	if (!hdmi_mode_has_audio())
-+		goto err;
-+
-+	r = true;
-+err:
-+	spin_unlock_irqrestore(&hdmi.audio_lock, flags);
-+	return r;
-+}
-+
-+static int hdmi_panel_audio_config(struct omap_dss_device *dssdev,
-+		struct omap_dss_audio *audio)
-+{
-+	unsigned long flags;
-+	int r;
-+
-+	spin_lock_irqsave(&hdmi.audio_lock, flags);
-+
-+	r = hdmi_audio_config(audio);
-+
-+	spin_unlock_irqrestore(&hdmi.audio_lock, flags);
-+	return r;
-+}
-+
-+#endif
-+
- static struct omap_dss_driver hdmi_driver = {
- 	.probe		= hdmi_panel_probe,
- 	.remove		= hdmi_panel_remove,
-@@ -235,6 +323,14 @@ static struct omap_dss_driver hdmi_driver = {
- 	.check_timings	= hdmi_check_timings,
- 	.read_edid	= hdmi_read_edid,
- 	.detect		= hdmi_detect,
-+#if defined(CONFIG_OMAP4_DSS_HDMI_AUDIO)
-+	.audio_enable	= hdmi_panel_audio_enable,
-+	.audio_disable	= hdmi_panel_audio_disable,
-+	.audio_start	= hdmi_panel_audio_start,
-+	.audio_stop	= hdmi_panel_audio_stop,
-+	.audio_supported	= hdmi_panel_audio_supported,
-+	.audio_config	= hdmi_panel_audio_config,
-+#endif
- 	.driver			= {
- 		.name   = "hdmi_panel",
- 		.owner  = THIS_MODULE,
-@@ -245,6 +341,10 @@ int hdmi_panel_init(void)
+-#if defined(CONFIG_SND_OMAP_SOC_OMAP4_HDMI) || \
+-	defined(CONFIG_SND_OMAP_SOC_OMAP4_HDMI_MODULE)
+-
+-static int hdmi_audio_trigger(struct snd_pcm_substream *substream, int cmd,
+-				struct snd_soc_dai *dai)
+-{
+-	struct snd_soc_pcm_runtime *rtd = substream->private_data;
+-	struct snd_soc_codec *codec = rtd->codec;
+-	struct platform_device *pdev = to_platform_device(codec->dev);
+-	struct hdmi_ip_data *ip_data = snd_soc_codec_get_drvdata(codec);
+-	int err = 0;
+-
+-	if (!(ip_data->ops) && !(ip_data->ops->audio_enable)) {
+-		dev_err(&pdev->dev, "Cannot enable/disable audio\n");
+-		return -ENODEV;
+-	}
+-
+-	switch (cmd) {
+-	case SNDRV_PCM_TRIGGER_START:
+-	case SNDRV_PCM_TRIGGER_RESUME:
+-	case SNDRV_PCM_TRIGGER_PAUSE_RELEASE:
+-		ip_data->ops->audio_enable(ip_data);
+-		break;
+-	case SNDRV_PCM_TRIGGER_STOP:
+-	case SNDRV_PCM_TRIGGER_SUSPEND:
+-	case SNDRV_PCM_TRIGGER_PAUSE_PUSH:
+-		ip_data->ops->audio_disable(ip_data);
+-		break;
+-	default:
+-		err = -EINVAL;
+-	}
+-	return err;
+-}
+-
+-static int hdmi_audio_hw_params(struct snd_pcm_substream *substream,
+-				    struct snd_pcm_hw_params *params,
+-				    struct snd_soc_dai *dai)
+-{
+-	struct snd_soc_pcm_runtime *rtd = substream->private_data;
+-	struct snd_soc_codec *codec = rtd->codec;
+-	struct hdmi_ip_data *ip_data = snd_soc_codec_get_drvdata(codec);
+-	struct hdmi_audio_format audio_format;
+-	struct hdmi_audio_dma audio_dma;
+-	struct hdmi_core_audio_config core_cfg;
+-	struct hdmi_core_infoframe_audio aud_if_cfg;
+-	int err, n, cts;
+-	enum hdmi_core_audio_sample_freq sample_freq;
+-
+-	switch (params_format(params)) {
+-	case SNDRV_PCM_FORMAT_S16_LE:
+-		core_cfg.i2s_cfg.word_max_length =
+-			HDMI_AUDIO_I2S_MAX_WORD_20BITS;
+-		core_cfg.i2s_cfg.word_length = HDMI_AUDIO_I2S_CHST_WORD_16_BITS;
+-		core_cfg.i2s_cfg.in_length_bits =
+-			HDMI_AUDIO_I2S_INPUT_LENGTH_16;
+-		core_cfg.i2s_cfg.justification = HDMI_AUDIO_JUSTIFY_LEFT;
+-		audio_format.samples_per_word = HDMI_AUDIO_ONEWORD_TWOSAMPLES;
+-		audio_format.sample_size = HDMI_AUDIO_SAMPLE_16BITS;
+-		audio_format.justification = HDMI_AUDIO_JUSTIFY_LEFT;
+-		audio_dma.transfer_size = 0x10;
+-		break;
+-	case SNDRV_PCM_FORMAT_S24_LE:
+-		core_cfg.i2s_cfg.word_max_length =
+-			HDMI_AUDIO_I2S_MAX_WORD_24BITS;
+-		core_cfg.i2s_cfg.word_length = HDMI_AUDIO_I2S_CHST_WORD_24_BITS;
+-		core_cfg.i2s_cfg.in_length_bits =
+-			HDMI_AUDIO_I2S_INPUT_LENGTH_24;
+-		audio_format.samples_per_word = HDMI_AUDIO_ONEWORD_ONESAMPLE;
+-		audio_format.sample_size = HDMI_AUDIO_SAMPLE_24BITS;
+-		audio_format.justification = HDMI_AUDIO_JUSTIFY_RIGHT;
+-		core_cfg.i2s_cfg.justification = HDMI_AUDIO_JUSTIFY_RIGHT;
+-		audio_dma.transfer_size = 0x20;
+-		break;
+-	default:
+-		return -EINVAL;
+-	}
+-
+-	switch (params_rate(params)) {
+-	case 32000:
+-		sample_freq = HDMI_AUDIO_FS_32000;
+-		break;
+-	case 44100:
+-		sample_freq = HDMI_AUDIO_FS_44100;
+-		break;
+-	case 48000:
+-		sample_freq = HDMI_AUDIO_FS_48000;
+-		break;
+-	default:
+-		return -EINVAL;
+-	}
+-
+-	err = hdmi_config_audio_acr(ip_data, params_rate(params), &n, &cts);
+-	if (err < 0)
+-		return err;
+-
+-	/* Audio wrapper config */
+-	audio_format.stereo_channels = HDMI_AUDIO_STEREO_ONECHANNEL;
+-	audio_format.active_chnnls_msk = 0x03;
+-	audio_format.type = HDMI_AUDIO_TYPE_LPCM;
+-	audio_format.sample_order = HDMI_AUDIO_SAMPLE_LEFT_FIRST;
+-	/* Disable start/stop signals of IEC 60958 blocks */
+-	audio_format.en_sig_blk_strt_end = HDMI_AUDIO_BLOCK_SIG_STARTEND_OFF;
+-
+-	audio_dma.block_size = 0xC0;
+-	audio_dma.mode = HDMI_AUDIO_TRANSF_DMA;
+-	audio_dma.fifo_threshold = 0x20; /* in number of samples */
+-
+-	hdmi_wp_audio_config_dma(ip_data, &audio_dma);
+-	hdmi_wp_audio_config_format(ip_data, &audio_format);
+-
+-	/*
+-	 * I2S config
+-	 */
+-	core_cfg.i2s_cfg.en_high_bitrate_aud = false;
+-	/* Only used with high bitrate audio */
+-	core_cfg.i2s_cfg.cbit_order = false;
+-	/* Serial data and word select should change on sck rising edge */
+-	core_cfg.i2s_cfg.sck_edge_mode = HDMI_AUDIO_I2S_SCK_EDGE_RISING;
+-	core_cfg.i2s_cfg.vbit = HDMI_AUDIO_I2S_VBIT_FOR_PCM;
+-	/* Set I2S word select polarity */
+-	core_cfg.i2s_cfg.ws_polarity = HDMI_AUDIO_I2S_WS_POLARITY_LOW_IS_LEFT;
+-	core_cfg.i2s_cfg.direction = HDMI_AUDIO_I2S_MSB_SHIFTED_FIRST;
+-	/* Set serial data to word select shift. See Phillips spec. */
+-	core_cfg.i2s_cfg.shift = HDMI_AUDIO_I2S_FIRST_BIT_SHIFT;
+-	/* Enable one of the four available serial data channels */
+-	core_cfg.i2s_cfg.active_sds = HDMI_AUDIO_I2S_SD0_EN;
+-
+-	/* Core audio config */
+-	core_cfg.freq_sample = sample_freq;
+-	core_cfg.n = n;
+-	core_cfg.cts = cts;
+-	if (dss_has_feature(FEAT_HDMI_CTS_SWMODE)) {
+-		core_cfg.aud_par_busclk = 0;
+-		core_cfg.cts_mode = HDMI_AUDIO_CTS_MODE_SW;
+-		core_cfg.use_mclk = dss_has_feature(FEAT_HDMI_AUDIO_USE_MCLK);
+-	} else {
+-		core_cfg.aud_par_busclk = (((128 * 31) - 1) << 8);
+-		core_cfg.cts_mode = HDMI_AUDIO_CTS_MODE_HW;
+-		core_cfg.use_mclk = true;
+-	}
+-
+-	if (core_cfg.use_mclk)
+-		core_cfg.mclk_mode = HDMI_AUDIO_MCLK_128FS;
+-	core_cfg.layout = HDMI_AUDIO_LAYOUT_2CH;
+-	core_cfg.en_spdif = false;
+-	/* Use sample frequency from channel status word */
+-	core_cfg.fs_override = true;
+-	/* Enable ACR packets */
+-	core_cfg.en_acr_pkt = true;
+-	/* Disable direct streaming digital audio */
+-	core_cfg.en_dsd_audio = false;
+-	/* Use parallel audio interface */
+-	core_cfg.en_parallel_aud_input = true;
+-
+-	hdmi_core_audio_config(ip_data, &core_cfg);
+-
+-	/*
+-	 * Configure packet
+-	 * info frame audio see doc CEA861-D page 74
+-	 */
+-	aud_if_cfg.db1_coding_type = HDMI_INFOFRAME_AUDIO_DB1CT_FROM_STREAM;
+-	aud_if_cfg.db1_channel_count = 2;
+-	aud_if_cfg.db2_sample_freq = HDMI_INFOFRAME_AUDIO_DB2SF_FROM_STREAM;
+-	aud_if_cfg.db2_sample_size = HDMI_INFOFRAME_AUDIO_DB2SS_FROM_STREAM;
+-	aud_if_cfg.db4_channel_alloc = 0x00;
+-	aud_if_cfg.db5_downmix_inh = false;
+-	aud_if_cfg.db5_lsv = 0;
+-
+-	hdmi_core_audio_infoframe_config(ip_data, &aud_if_cfg);
+-	return 0;
+-}
+-
+-static int hdmi_audio_startup(struct snd_pcm_substream *substream,
+-				  struct snd_soc_dai *dai)
+-{
+-	if (!hdmi.ip_data.cfg.cm.mode) {
+-		pr_err("Current video settings do not support audio.\n");
+-		return -EIO;
+-	}
+-	return 0;
+-}
+-
+-static int hdmi_audio_codec_probe(struct snd_soc_codec *codec)
+-{
+-	struct hdmi_ip_data *priv = &hdmi.ip_data;
+-
+-	snd_soc_codec_set_drvdata(codec, priv);
+-	return 0;
+-}
+-
+-static struct snd_soc_codec_driver hdmi_audio_codec_drv = {
+-	.probe = hdmi_audio_codec_probe,
+-};
+-
+-static struct snd_soc_dai_ops hdmi_audio_codec_ops = {
+-	.hw_params = hdmi_audio_hw_params,
+-	.trigger = hdmi_audio_trigger,
+-	.startup = hdmi_audio_startup,
+-};
+-
+-static struct snd_soc_dai_driver hdmi_codec_dai_drv = {
+-		.name = "hdmi-audio-codec",
+-		.playback = {
+-			.channels_min = 2,
+-			.channels_max = 2,
+-			.rates = SNDRV_PCM_RATE_32000 |
+-				SNDRV_PCM_RATE_44100 | SNDRV_PCM_RATE_48000,
+-			.formats = SNDRV_PCM_FMTBIT_S16_LE |
+-				SNDRV_PCM_FMTBIT_S24_LE,
+-		},
+-		.ops = &hdmi_audio_codec_ops,
+-};
+-#endif
+-
+ static int hdmi_get_clocks(struct platform_device *pdev)
  {
- 	mutex_init(&hdmi.lock);
+ 	struct clk *clk;
+@@ -833,17 +613,6 @@ static int omapdss_hdmihw_probe(struct platform_device *pdev)
  
-+#if defined(CONFIG_OMAP4_DSS_HDMI_AUDIO)
-+	spin_lock_init(&hdmi.audio_lock);
-+#endif
-+
- 	omap_dss_register_driver(&hdmi_driver);
+ 	hdmi_panel_init();
  
+-#if defined(CONFIG_SND_OMAP_SOC_OMAP4_HDMI) || \
+-	defined(CONFIG_SND_OMAP_SOC_OMAP4_HDMI_MODULE)
+-
+-	/* Register ASoC codec DAI */
+-	r = snd_soc_register_codec(&pdev->dev, &hdmi_audio_codec_drv,
+-					&hdmi_codec_dai_drv, 1);
+-	if (r) {
+-		DSSERR("can't register ASoC HDMI audio codec\n");
+-		return r;
+-	}
+-#endif
  	return 0;
+ }
+ 
+@@ -851,11 +620,6 @@ static int omapdss_hdmihw_remove(struct platform_device *pdev)
+ {
+ 	hdmi_panel_exit();
+ 
+-#if defined(CONFIG_SND_OMAP_SOC_OMAP4_HDMI) || \
+-	defined(CONFIG_SND_OMAP_SOC_OMAP4_HDMI_MODULE)
+-	snd_soc_unregister_codec(&pdev->dev);
+-#endif
+-
+ 	pm_runtime_disable(&pdev->dev);
+ 
+ 	hdmi_put_clocks();
+diff --git a/drivers/video/omap2/dss/ti_hdmi_4xxx_ip.h b/drivers/video/omap2/dss/ti_hdmi_4xxx_ip.h
+index a14d1a0..a5f28af 100644
+--- a/drivers/video/omap2/dss/ti_hdmi_4xxx_ip.h
++++ b/drivers/video/omap2/dss/ti_hdmi_4xxx_ip.h
+@@ -24,11 +24,6 @@
+ #include <linux/string.h>
+ #include <video/omapdss.h>
+ #include "ti_hdmi.h"
+-#if defined(CONFIG_SND_OMAP_SOC_OMAP4_HDMI) || \
+-	defined(CONFIG_SND_OMAP_SOC_OMAP4_HDMI_MODULE)
+-#include <sound/soc.h>
+-#include <sound/pcm_params.h>
+-#endif
+ 
+ /* HDMI Wrapper */
+ 
 -- 
 1.7.5.4
 
