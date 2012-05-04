@@ -1,71 +1,77 @@
 From: Tony Lindgren <tony@atomide.com>
-Subject: Re: Incorrect Register Offsets in OMAP Mailbox
-Date: Fri, 4 May 2012 11:07:37 -0700
-Message-ID: <20120504180737.GK5613@atomide.com>
-References: <4F3165F0.2010306@gmail.com>
- <20120305193417.GL12083@atomide.com>
- <4F58682A.7010908@gmail.com>
+Subject: Re: [PATCH] arm: omap: add minimal support for Nokia RM-696
+Date: Fri, 4 May 2012 11:11:05 -0700
+Message-ID: <20120504181105.GL5613@atomide.com>
+References: <1330967337-9634-1-git-send-email-aaro.koskinen@nokia.com>
+ <20120501104801.GA23559@elf.ucw.cz>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-02-ewr.mailhop.org ([204.13.248.72]:26416 "EHLO
+Received: from mho-02-ewr.mailhop.org ([204.13.248.72]:31164 "EHLO
 	mho-02-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752517Ab2EDSHj (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 4 May 2012 14:07:39 -0400
+	with ESMTP id S1752517Ab2EDSLM (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 4 May 2012 14:11:12 -0400
 Content-Disposition: inline
-In-Reply-To: <4F58682A.7010908@gmail.com>
+In-Reply-To: <20120501104801.GA23559@elf.ucw.cz>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Henry Chan <enli.chan@gmail.com>
-Cc: linux-omap@vger.kernel.org
+To: Pavel Machek <pavel@ucw.cz>
+Cc: Aaro Koskinen <aaro.koskinen@nokia.com>, linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org
 
-* Henry Chan <enli.chan@gmail.com> [120307 23:33]:
-> Sorry about that. Kind of new at this.
-> -H
+Hi Pavel,
+
+* Pavel Machek <pavel@ucw.cz> [120501 03:51]:
+> Hi!
 > 
-> Signed-off-by: Henry Chan <enli.chan@gmail.com>
+> > Add minimal support for Nokia RM-696 board.
+> > 
+> > Signed-off-by: Aaro Koskinen <aaro.koskinen@nokia.com>
+> > ---
+> > 
+> > 	The patch is based & boot-tested with 3.3-rc6.
+> > 
+> > 
+> >  arch/arm/mach-omap2/Kconfig                  |    3 ++-
+> >  arch/arm/mach-omap2/board-rm680.c            |   14 +++++++++++++-
+> >  arch/arm/plat-omap/include/plat/uncompress.h |    1 +
+> >  3 files changed, 16 insertions(+), 2 deletions(-)
+> > 
+> > diff --git a/arch/arm/mach-omap2/Kconfig b/arch/arm/mach-omap2/Kconfig
+> > index e20c8ab..b740c2e 100644
+> > --- a/arch/arm/mach-omap2/Kconfig
+> > +++ b/arch/arm/mach-omap2/Kconfig
+> > @@ -245,10 +245,11 @@ config MACH_NOKIA_N8X0
+> >  	select MACH_NOKIA_N810_WIMAX
+> >  
+> >  config MACH_NOKIA_RM680
+> > -	bool "Nokia RM-680 board"
+> > +	bool "Nokia RM-680/696 board"
+> >  	depends on ARCH_OMAP3
+> >  	default y
+> >  	select OMAP_PACKAGE_CBB
+> > +	select MACH_NOKIA_RM696
+> >
+> 
+> AFAICT, this is nokia N9. At least help text should state that...
+> 
+> >  config MACH_NOKIA_RX51
+> >  	bool "Nokia RX-51 board"
+> > diff --git a/arch/arm/mach-omap2/board-rm680.c b/arch/arm/mach-omap2/board-rm680.c
+> > index 8678b38..094473e 100644
+> > --- a/arch/arm/mach-omap2/board-rm680.c
+> > +++ b/arch/arm/mach-omap2/board-rm680.c
+> > @@ -1,5 +1,5 @@
+> >  /*
+> > - * Board support file for Nokia RM-680.
+> > + * Board support file for Nokia RM-680/696.
+> >   *
+> 
+> And a comment.
 
-Thanks, applying this finally into fixes-non-critical.
+Sorry this is already in mainline tree as commit
+63fc5f3bb3d0ca9ab4767a801b518aa6335f87ad.
+
+Care to do a follow-up patch to add some N9 comments to Kconfig and
+board-rm680.c?
 
 Tony
- 
-> On 03/05/12 11:34, Tony Lindgren wrote:
-> > Hi Henry,
-> > 
-> > * Henry Chan <enli.chan@gmail.com> [120207 09:25]:
-> >> Hi,
-> >>
-> >> Looks like the register offsets are incorrect in the OMAP mailbox code
-> >> (arch/arm/mach-omap2/mailbox.c) for the OMAP4_MAILBOX_IRQ* macros. The
-> >> discrepancy is with p.224 of TI document SPRUGX9 and p3891 of SWPU231K.
-> >> Patch attached.
-> >>
-> >> My hardware hasn't come in yet, so I would appreciate it if anyone can
-> >> share their experience using this code.
-> > 
-> > Can you please reply with your Signed-off-by, it's missing from the
-> > patch.
-> > 
-> > Thanks,
-> > 
-> > Tony
-> > 
-> >> --- a/arch/arm/mach-omap2/mailbox.c
-> >> +++ b/arch/arm/mach-omap2/mailbox.c
-> >> @@ -26,9 +26,9 @@
-> >>  #define MAILBOX_IRQSTATUS(u)		(0x100 + 8 * (u))
-> >>  #define MAILBOX_IRQENABLE(u)		(0x104 + 8 * (u))
-> >>  
-> >> -#define OMAP4_MAILBOX_IRQSTATUS(u)	(0x104 + 10 * (u))
-> >> -#define OMAP4_MAILBOX_IRQENABLE(u)	(0x108 + 10 * (u))
-> >> -#define OMAP4_MAILBOX_IRQENABLE_CLR(u)	(0x10c + 10 * (u))
-> >> +#define OMAP4_MAILBOX_IRQSTATUS(u)	(0x104 + 0x10 * (u))
-> >> +#define OMAP4_MAILBOX_IRQENABLE(u)	(0x108 + 0x10 * (u))
-> >> +#define OMAP4_MAILBOX_IRQENABLE_CLR(u)	(0x10c + 0x10 * (u))
-> >>  
-> >>  #define MAILBOX_IRQ_NEWMSG(m)		(1 << (2 * (m)))
-> >>  #define MAILBOX_IRQ_NOTFULL(m)		(1 << (2 * (m) + 1))
-> >>
-> > 
-> -- 
-> Henry Chan
