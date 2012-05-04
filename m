@@ -1,97 +1,119 @@
-From: Archit Taneja <a0393947@ti.com>
-Subject: Re: [PATCH 24/25] OMAPDSS: DSI: improve DSI module id handling
-Date: Fri, 4 May 2012 15:35:24 +0530
-Message-ID: <4FA3A9E4.3040802@ti.com>
-References: <1336053481-25433-1-git-send-email-tomi.valkeinen@ti.com>  <1336053481-25433-25-git-send-email-tomi.valkeinen@ti.com>  <4FA39CBB.6010500@ti.com> <1336125229.2701.30.camel@deskari>
+From: "J, KEERTHY" <j-keerthy@ti.com>
+Subject: Re: [PATCH V3 04/10] ARM: OMAP3: hwmod: rename the smartreflex entries
+Date: Fri, 4 May 2012 15:41:34 +0530
+Message-ID: <CAJ6a13ZSWSa_RpGB9NxtfyChUba9NGivGogpsfyk7oT9pNayjg@mail.gmail.com>
+References: <1335462041-4949-1-git-send-email-j-keerthy@ti.com>
+	<1335462041-4949-5-git-send-email-j-keerthy@ti.com>
+	<331ABD5ECB02734CA317220B2BBEABC13E9B1AA2@DBDE01.ent.ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"; format=flowed
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from arroyo.ext.ti.com ([192.94.94.40]:50051 "EHLO arroyo.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754590Ab2EDKGG (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Fri, 4 May 2012 06:06:06 -0400
-In-Reply-To: <1336125229.2701.30.camel@deskari>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <331ABD5ECB02734CA317220B2BBEABC13E9B1AA2@DBDE01.ent.ti.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: "AnilKumar, Chimata" <anilkumar@ti.com>
+Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, "Hilman, Kevin" <khilman@ti.com>, "rjw@sisk.pl" <rjw@sisk.pl>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-pm@lists.linux-foundation.org" <linux-pm@lists.linux-foundation.org>, "Pihet-XID, Jean" <j-pihet@ti.com>
 List-Id: linux-omap@vger.kernel.org
-To: Tomi Valkeinen <tomi.valkeinen@ti.com>
-Cc: linux-omap@vger.kernel.org, linux-fbdev@vger.kernel.org
 
-On Friday 04 May 2012 03:23 PM, Tomi Valkeinen wrote:
-> On Fri, 2012-05-04 at 14:39 +0530, Archit Taneja wrote:
->> On Thursday 03 May 2012 07:28 PM, Tomi Valkeinen wrote:
->>> We currently use the id of the dsi platform device (dsidev->id) as the
->>> DSI hardware module ID. This works because we assign the ID manually in
->>> arch/arm/mach-omap2/display.c at boot time.
->>>
->>> However, with device tree the platform device IDs are automatically
->>> assigned to an arbitrary number, and we can't use it.
+Hi AnilKumar,
+
+Thanks for reviewing.
+
+On Fri, May 4, 2012 at 2:00 PM, AnilKumar, Chimata <anilkumar@ti.com> w=
+rote:
+> On Thu, Apr 26, 2012 at 23:10:35, J, KEERTHY wrote:
+>> From: Jean Pihet <j-pihet@ti.com>
 >>
->> If this number is arbitrary we would need to change the "dsi_pdev_map"
->> approach of mapping a dsi module and it's corresponding platform device.
->> Currently dsi_pdev_map is:
+>> Change the name field value to better reflect the smartreflex
+>> integration in the system.
 >>
->> static struct platform_device *dsi_pdev_map[MAX_NUM_DSI];
+>> Signed-off-by: Jean Pihet <j-pihet@ti.com>
+>> Signed-off-by: J Keerthy <j-keerthy@ti.com>
+>> ---
+>> =A0arch/arm/mach-omap2/omap_hwmod_3xxx_data.c | =A0 =A08 ++++----
+>> =A0arch/arm/mach-omap2/smartreflex.c =A0 =A0 =A0 =A0 =A0| =A0 =A02 +=
+-
+>> =A02 files changed, 5 insertions(+), 5 deletions(-)
 >>
->> So we either need to increase the array size to take larger arbitrary
->> numbers, or do something else.
+>> diff --git a/arch/arm/mach-omap2/omap_hwmod_3xxx_data.c b/arch/arm/m=
+ach-omap2/omap_hwmod_3xxx_data.c
+>> index 144d118..15907b0 100644
+>> --- a/arch/arm/mach-omap2/omap_hwmod_3xxx_data.c
+>> +++ b/arch/arm/mach-omap2/omap_hwmod_3xxx_data.c
+>> @@ -1324,7 +1324,7 @@ static struct omap_hwmod_irq_info omap3_smartr=
+eflex_mpu_irqs[] =3D {
+>> =A0};
 >>
->> We would also need to fix the usage of dsi_get_dsidev_from_id(), as
->> right now we manually pass 0 and 1 to it only, for example:
+>> =A0static struct omap_hwmod omap34xx_sr1_hwmod =3D {
+>> - =A0 =A0 .name =A0 =A0 =A0 =A0 =A0 =3D "sr1",
+>> + =A0 =A0 .name =A0 =A0 =A0 =A0 =A0 =3D "smartreflex_mpu_iva",
+>> =A0 =A0 =A0 .class =A0 =A0 =A0 =A0 =A0=3D &omap34xx_smartreflex_hwmo=
+d_class,
+>> =A0 =A0 =A0 .main_clk =A0 =A0 =A0 =3D "sr1_fck",
+>> =A0 =A0 =A0 .prcm =A0 =A0 =A0 =A0 =A0 =3D {
+>> @@ -1342,7 +1342,7 @@ static struct omap_hwmod omap34xx_sr1_hwmod =3D=
+ {
+>> =A0};
 >>
->> static void dsi1_dump_irqs(struct seq_file *s)
->> {
->>           struct platform_device *dsidev = dsi_get_dsidev_from_id(0);
+>> =A0static struct omap_hwmod omap36xx_sr1_hwmod =3D {
+>> - =A0 =A0 .name =A0 =A0 =A0 =A0 =A0 =3D "sr1",
+>> + =A0 =A0 .name =A0 =A0 =A0 =A0 =A0 =3D "smartreflex_mpu_iva",
+>> =A0 =A0 =A0 .class =A0 =A0 =A0 =A0 =A0=3D &omap36xx_smartreflex_hwmo=
+d_class,
+>> =A0 =A0 =A0 .main_clk =A0 =A0 =A0 =3D "sr1_fck",
+>> =A0 =A0 =A0 .prcm =A0 =A0 =A0 =A0 =A0 =3D {
+>> @@ -1369,7 +1369,7 @@ static struct omap_hwmod_irq_info omap3_smartr=
+eflex_core_irqs[] =3D {
+>> =A0};
 >>
->>           dsi_dump_dsidev_irqs(dsidev, s);
->> }
+>> =A0static struct omap_hwmod omap34xx_sr2_hwmod =3D {
+>> - =A0 =A0 .name =A0 =A0 =A0 =A0 =A0 =3D "sr2",
+>> + =A0 =A0 .name =A0 =A0 =A0 =A0 =A0 =3D "smartreflex_core",
+>> =A0 =A0 =A0 .class =A0 =A0 =A0 =A0 =A0=3D &omap34xx_smartreflex_hwmo=
+d_class,
+>> =A0 =A0 =A0 .main_clk =A0 =A0 =A0 =3D "sr2_fck",
+>> =A0 =A0 =A0 .prcm =A0 =A0 =A0 =A0 =A0 =3D {
+>> @@ -1387,7 +1387,7 @@ static struct omap_hwmod omap34xx_sr2_hwmod =3D=
+ {
+>> =A0};
 >>
->> The immediate solution that comes to mind is to maintain 2 id's, one
->> which is sequential, and the other which the DT has created, and keep an
->> array to map these. But this seems messy!
+>> =A0static struct omap_hwmod omap36xx_sr2_hwmod =3D {
+>> - =A0 =A0 .name =A0 =A0 =A0 =A0 =A0 =3D "sr2",
+>> + =A0 =A0 .name =A0 =A0 =A0 =A0 =A0 =3D "smartreflex_core",
+>> =A0 =A0 =A0 .class =A0 =A0 =A0 =A0 =A0=3D &omap36xx_smartreflex_hwmo=
+d_class,
+>> =A0 =A0 =A0 .main_clk =A0 =A0 =A0 =3D "sr2_fck",
+>> =A0 =A0 =A0 .prcm =A0 =A0 =A0 =A0 =A0 =3D {
+>> diff --git a/arch/arm/mach-omap2/smartreflex.c b/arch/arm/mach-omap2=
+/smartreflex.c
+>> index 2edd1e2..d859277 100644
+>> --- a/arch/arm/mach-omap2/smartreflex.c
+>> +++ b/arch/arm/mach-omap2/smartreflex.c
+>> @@ -183,7 +183,7 @@ static void sr_set_regfields(struct omap_sr *sr)
+>> =A0 =A0 =A0 =A0 =A0 =A0 =A0 sr->err_weight =3D OMAP3430_SR_ERRWEIGHT=
+;
+>> =A0 =A0 =A0 =A0 =A0 =A0 =A0 sr->err_maxlimit =3D OMAP3430_SR_ERRMAXL=
+IMIT;
+>> =A0 =A0 =A0 =A0 =A0 =A0 =A0 sr->accum_data =3D OMAP3430_SR_ACCUMDATA=
+;
+>> - =A0 =A0 =A0 =A0 =A0 =A0 if (!(strcmp(sr->name, "sr1"))) {
+>> + =A0 =A0 =A0 =A0 =A0 =A0 if (!(strcmp(sr->name, "smartreflex_mpu_iv=
+a"))) {
 >
-> This is only a problem with device tree, and I solved it so that I pass
-> a DSI module ID in the device tree data. So, with old pdata way I
-> initialize dsi->module_id from the pdev->id, but with DT I initialize
-> dsi->module_id from the DT data.
-
-Oh ok, so the code which decides how dsi->module_id is initialised(from 
-DT or pdata) is not in this series right? And it would come later? Right 
-now it's just set to dsidev->id in probe.
-
->
-> So basically we remove the use of pdev->id in this patch, and add
-> dsi->module_id field, which needs to be initialized to 0 or 1, depending
-> on the corresponding HW module. We just happen to use the pdev->id to
-> initialize it when using the old pdata method, as we know it tells the
-> right id. But we could initialize it from any other source.
-
-Right, I get it now.
-
->
-> This allows us to keep the 0 and 1 DSI IDs, and I think we need those
-> anyway. Some parts of the code could work fine with arbitrary ID, as
-> long as a pdev can be linked to/from this ID. However, there are things
-> where we must have the ID, like configuring the clock source settings in
-> dss_core, where we set a certain bit for DSI module 0, and certain bit
-> for module 1.
->
-> Perhaps even those could be handled without explicit ID of 0 or 1, but
-> that doesn't sound trivial and I didn't want to start tackling that in
-> this series.
->
-> I wish there was a way to get the module ID from the HW registers
-> somehow. Then we wouldn't need to pass the ID via SW, which doesn't feel
-> very correct. At least with DT it's a bit wrong, in my opinion, but best
-> I could come up with.
-
-We could derive it via a parameter like number of lanes or something 
-similar through DSI_GNQ, but that doesn't seem very nice, and may not be 
-usable on future OMAPs.
-
-Archit
-
->
->   Tomi
+> What if voltage rail is different for mpu and iva? I have seen some d=
+evices
+> supports SmartReflex have different voltage rails for mpu and iva.
 >
 
+I get the point. OMAP3 iva and mpu have a common rail. OMAP4 onwards
+even we have different rails for mpu and iva. I will enhance the checks=
+ here.
+
+> Regards
+> AnilKumar
+
+
+
+--=20
+Regards and Thanks,
+Keerthy
