@@ -1,137 +1,183 @@
 From: Ricardo Neri <ricardo.neri@ti.com>
-Subject: [PATCH v2 02/14] OMAPDSS: HDMI: Split video_enable into video_enable/disable
-Date: Thu, 3 May 2012 20:43:56 -0500
-Message-ID: <1336095848-6923-3-git-send-email-ricardo.neri@ti.com>
+Subject: [PATCH v2 09/14] OMAPDSS: HDMI: Relocate N/CTS calculation
+Date: Thu, 3 May 2012 20:44:03 -0500
+Message-ID: <1336095848-6923-10-git-send-email-ricardo.neri@ti.com>
 References: <1336095848-6923-1-git-send-email-ricardo.neri@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from bear.ext.ti.com ([192.94.94.41]:37429 "EHLO bear.ext.ti.com"
+Received: from comal.ext.ti.com ([198.47.26.152]:52862 "EHLO comal.ext.ti.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1755207Ab2EDBoa (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Thu, 3 May 2012 21:44:30 -0400
+	id S1755207Ab2EDBoc (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Thu, 3 May 2012 21:44:32 -0400
 In-Reply-To: <1336095848-6923-1-git-send-email-ricardo.neri@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: tomi.valkeinen@ti.com, mythripk@ti.com
 Cc: s-chereau@ti.com, x0055901@ti.com, vaibhav.bedia@ti.com, s-guiriec@ti.com, lrg@ti.com, peter.ujfalusi@ti.com, agraf@suse.de, research@ottomaneng.com, linux-omap@vger.kernel.org, alsa-devel@alsa-project.org, Ricardo Neri <ricardo.neri@ti.com>
 
-To improve readability, split the video_enable HDMI IP operation
-into two separate functions for enabling and disabling video.
-The video_enable function is also modified to return an error value.
+The N and CTS parameters are relevant to all HDMI implementations and
+not specific to a given IP. Hence, the calculation is relocated
+into the generic HDMI driver.
 
-While there, update these operations for the OMAP4 IP accordingly.
+Also, deep color is not queried but it is still considered in the
+calculation of N. This is to be changed when deep color functionality is
+implemented in the driver.
 
 Signed-off-by: Ricardo Neri <ricardo.neri@ti.com>
 ---
- drivers/video/omap2/dss/dss_features.c    |    1 +
- drivers/video/omap2/dss/hdmi.c            |   11 +++++++----
- drivers/video/omap2/dss/ti_hdmi.h         |    7 +++++--
- drivers/video/omap2/dss/ti_hdmi_4xxx_ip.c |   10 ++++++++--
- 4 files changed, 21 insertions(+), 8 deletions(-)
+ drivers/video/omap2/dss/hdmi.c            |   42 +++++++++++++++++++++
+ drivers/video/omap2/dss/ti_hdmi.h         |    1 +
+ drivers/video/omap2/dss/ti_hdmi_4xxx_ip.c |   57 -----------------------------
+ drivers/video/omap2/dss/ti_hdmi_4xxx_ip.h |    2 -
+ 4 files changed, 43 insertions(+), 59 deletions(-)
 
-diff --git a/drivers/video/omap2/dss/dss_features.c b/drivers/video/omap2/dss/dss_features.c
-index 52fbc72..c677095 100644
---- a/drivers/video/omap2/dss/dss_features.c
-+++ b/drivers/video/omap2/dss/dss_features.c
-@@ -562,6 +562,7 @@ static const struct ti_hdmi_ip_ops omap4_hdmi_functions = {
- 	.pll_enable		=	ti_hdmi_4xxx_pll_enable,
- 	.pll_disable		=	ti_hdmi_4xxx_pll_disable,
- 	.video_enable		=	ti_hdmi_4xxx_wp_video_start,
-+	.video_disable		=	ti_hdmi_4xxx_wp_video_stop,
- 	.dump_wrapper		=	ti_hdmi_4xxx_wp_dump,
- 	.dump_core		=	ti_hdmi_4xxx_core_dump,
- 	.dump_pll		=	ti_hdmi_4xxx_pll_dump,
 diff --git a/drivers/video/omap2/dss/hdmi.c b/drivers/video/omap2/dss/hdmi.c
-index 9a8b32c..159aa66 100644
+index 11d6ca8..2a810b7 100644
 --- a/drivers/video/omap2/dss/hdmi.c
 +++ b/drivers/video/omap2/dss/hdmi.c
-@@ -344,7 +344,7 @@ static int hdmi_power_on(struct omap_dss_device *dssdev)
- 
- 	hdmi_compute_pll(dssdev, phy, &hdmi.ip_data.pll_data);
- 
--	hdmi.ip_data.ops->video_enable(&hdmi.ip_data, 0);
-+	hdmi.ip_data.ops->video_disable(&hdmi.ip_data);
- 
- 	/* config the PLL and PHY hdmi_set_pll_pwrfirst */
- 	r = hdmi.ip_data.ops->pll_enable(&hdmi.ip_data);
-@@ -379,7 +379,9 @@ static int hdmi_power_on(struct omap_dss_device *dssdev)
- 	dispc_set_digit_size(dssdev->panel.timings.x_res,
- 			dssdev->panel.timings.y_res);
- 
--	hdmi.ip_data.ops->video_enable(&hdmi.ip_data, 1);
-+	r = hdmi.ip_data.ops->video_enable(&hdmi.ip_data);
-+	if (r)
-+		goto err_vid_enable;
- 
- 	r = dss_mgr_enable(dssdev->manager);
- 	if (r)
-@@ -388,7 +390,8 @@ static int hdmi_power_on(struct omap_dss_device *dssdev)
- 	return 0;
- 
- err_mgr_enable:
--	hdmi.ip_data.ops->video_enable(&hdmi.ip_data, 0);
-+	hdmi.ip_data.ops->video_disable(&hdmi.ip_data);
-+err_vid_enable:
- 	hdmi.ip_data.ops->phy_disable(&hdmi.ip_data);
- 	hdmi.ip_data.ops->pll_disable(&hdmi.ip_data);
- err:
-@@ -400,7 +403,7 @@ static void hdmi_power_off(struct omap_dss_device *dssdev)
- {
- 	dss_mgr_disable(dssdev->manager);
- 
--	hdmi.ip_data.ops->video_enable(&hdmi.ip_data, 0);
-+	hdmi.ip_data.ops->video_disable(&hdmi.ip_data);
- 	hdmi.ip_data.ops->phy_disable(&hdmi.ip_data);
- 	hdmi.ip_data.ops->pll_disable(&hdmi.ip_data);
- 	hdmi_runtime_put();
-diff --git a/drivers/video/omap2/dss/ti_hdmi.h b/drivers/video/omap2/dss/ti_hdmi.h
-index 88fdc1c..4c84a9c 100644
---- a/drivers/video/omap2/dss/ti_hdmi.h
-+++ b/drivers/video/omap2/dss/ti_hdmi.h
-@@ -96,7 +96,9 @@ struct ti_hdmi_ip_ops {
- 
- 	void (*pll_disable)(struct hdmi_ip_data *ip_data);
- 
--	void (*video_enable)(struct hdmi_ip_data *ip_data, bool start);
-+	int (*video_enable)(struct hdmi_ip_data *ip_data);
-+
-+	void (*video_disable)(struct hdmi_ip_data *ip_data);
- 
- 	void (*dump_wrapper)(struct hdmi_ip_data *ip_data, struct seq_file *s);
- 
-@@ -175,7 +177,8 @@ int ti_hdmi_4xxx_phy_enable(struct hdmi_ip_data *ip_data);
- void ti_hdmi_4xxx_phy_disable(struct hdmi_ip_data *ip_data);
- int ti_hdmi_4xxx_read_edid(struct hdmi_ip_data *ip_data, u8 *edid, int len);
- bool ti_hdmi_4xxx_detect(struct hdmi_ip_data *ip_data);
--void ti_hdmi_4xxx_wp_video_start(struct hdmi_ip_data *ip_data, bool start);
-+int ti_hdmi_4xxx_wp_video_start(struct hdmi_ip_data *ip_data);
-+void ti_hdmi_4xxx_wp_video_stop(struct hdmi_ip_data *ip_data);
- int ti_hdmi_4xxx_pll_enable(struct hdmi_ip_data *ip_data);
- void ti_hdmi_4xxx_pll_disable(struct hdmi_ip_data *ip_data);
- void ti_hdmi_4xxx_basic_configure(struct hdmi_ip_data *ip_data);
-diff --git a/drivers/video/omap2/dss/ti_hdmi_4xxx_ip.c b/drivers/video/omap2/dss/ti_hdmi_4xxx_ip.c
-index b25b519..aa18163 100644
---- a/drivers/video/omap2/dss/ti_hdmi_4xxx_ip.c
-+++ b/drivers/video/omap2/dss/ti_hdmi_4xxx_ip.c
-@@ -699,9 +699,15 @@ static void hdmi_wp_init(struct omap_video_timings *timings,
- 
+@@ -573,6 +573,48 @@ static void hdmi_put_clocks(void)
+ 		clk_put(hdmi.sys_clk);
  }
  
--void ti_hdmi_4xxx_wp_video_start(struct hdmi_ip_data *ip_data, bool start)
-+int ti_hdmi_4xxx_wp_video_start(struct hdmi_ip_data *ip_data)
- {
--	REG_FLD_MOD(hdmi_wp_base(ip_data), HDMI_WP_VIDEO_CFG, start, 31, 31);
-+	REG_FLD_MOD(hdmi_wp_base(ip_data), HDMI_WP_VIDEO_CFG, true, 31, 31);
++#if defined(CONFIG_OMAP4_DSS_HDMI_AUDIO)
++int hdmi_compute_acr(u32 sample_freq, u32 *n, u32 *cts)
++{
++	u32 deep_color;
++	u32 pclk = hdmi.ip_data.cfg.timings.pixel_clock;
++
++	if (n == NULL || cts == NULL)
++		return -EINVAL;
++
++	/* TODO: When implemented, query deep color mode here. */
++	deep_color = 100;
++
++	switch (sample_freq) {
++	case 32000:
++		if ((deep_color == 125) && ((pclk == 54054) ||
++					    (pclk == 74250)))
++			*n = 8192;
++		else
++			*n = 4096;
++		break;
++	case 44100:
++		*n = 6272;
++		break;
++	case 48000:
++		if ((deep_color == 125) && ((pclk == 54054) ||
++					    (pclk == 74250)))
++			*n = 8192;
++		else
++			*n = 6144;
++		break;
++	default:
++		*n = 0;
++		return -EINVAL;
++	}
++
++	/* Calculate CTS. See HDMI 1.3a or 1.4a specifications */
++	*cts = pclk * (*n / 128) * deep_color / (sample_freq / 10);
++
 +	return 0;
 +}
++#endif
 +
-+void ti_hdmi_4xxx_wp_video_stop(struct hdmi_ip_data *ip_data)
-+{
-+	REG_FLD_MOD(hdmi_wp_base(ip_data), HDMI_WP_VIDEO_CFG, false, 31, 31);
+ /* HDMI HW IP initialisation */
+ static int omapdss_hdmihw_probe(struct platform_device *pdev)
+ {
+diff --git a/drivers/video/omap2/dss/ti_hdmi.h b/drivers/video/omap2/dss/ti_hdmi.h
+index 6aedb89..852a803 100644
+--- a/drivers/video/omap2/dss/ti_hdmi.h
++++ b/drivers/video/omap2/dss/ti_hdmi.h
+@@ -190,6 +190,7 @@ void ti_hdmi_4xxx_pll_dump(struct hdmi_ip_data *ip_data, struct seq_file *s);
+ void ti_hdmi_4xxx_core_dump(struct hdmi_ip_data *ip_data, struct seq_file *s);
+ void ti_hdmi_4xxx_phy_dump(struct hdmi_ip_data *ip_data, struct seq_file *s);
+ #if defined(CONFIG_OMAP4_DSS_HDMI_AUDIO)
++int hdmi_compute_acr(u32 sample_freq, u32 *n, u32 *cts);
+ int ti_hdmi_4xxx_wp_audio_enable(struct hdmi_ip_data *ip_data);
+ void ti_hdmi_4xxx_wp_audio_disable(struct hdmi_ip_data *ip_data);
+ int ti_hdmi_4xxx_audio_start(struct hdmi_ip_data *ip_data);
+diff --git a/drivers/video/omap2/dss/ti_hdmi_4xxx_ip.c b/drivers/video/omap2/dss/ti_hdmi_4xxx_ip.c
+index 9c3dfd4..5612534 100644
+--- a/drivers/video/omap2/dss/ti_hdmi_4xxx_ip.c
++++ b/drivers/video/omap2/dss/ti_hdmi_4xxx_ip.c
+@@ -1204,63 +1204,6 @@ void hdmi_core_audio_infoframe_config(struct hdmi_ip_data *ip_data,
+ 	 */
  }
  
- static void hdmi_wp_video_init_format(struct hdmi_video_format *video_fmt,
+-int hdmi_config_audio_acr(struct hdmi_ip_data *ip_data,
+-				u32 sample_freq, u32 *n, u32 *cts)
+-{
+-	u32 r;
+-	u32 deep_color = 0;
+-	u32 pclk = ip_data->cfg.timings.pixel_clock;
+-
+-	if (n == NULL || cts == NULL)
+-		return -EINVAL;
+-	/*
+-	 * Obtain current deep color configuration. This needed
+-	 * to calculate the TMDS clock based on the pixel clock.
+-	 */
+-	r = REG_GET(hdmi_wp_base(ip_data), HDMI_WP_VIDEO_CFG, 1, 0);
+-	switch (r) {
+-	case 1: /* No deep color selected */
+-		deep_color = 100;
+-		break;
+-	case 2: /* 10-bit deep color selected */
+-		deep_color = 125;
+-		break;
+-	case 3: /* 12-bit deep color selected */
+-		deep_color = 150;
+-		break;
+-	default:
+-		return -EINVAL;
+-	}
+-
+-	switch (sample_freq) {
+-	case 32000:
+-		if ((deep_color == 125) && ((pclk == 54054)
+-				|| (pclk == 74250)))
+-			*n = 8192;
+-		else
+-			*n = 4096;
+-		break;
+-	case 44100:
+-		*n = 6272;
+-		break;
+-	case 48000:
+-		if ((deep_color == 125) && ((pclk == 54054)
+-				|| (pclk == 74250)))
+-			*n = 8192;
+-		else
+-			*n = 6144;
+-		break;
+-	default:
+-		*n = 0;
+-		return -EINVAL;
+-	}
+-
+-	/* Calculate CTS. See HDMI 1.3a or 1.4a specifications */
+-	*cts = pclk * (*n / 128) * deep_color / (sample_freq / 10);
+-
+-	return 0;
+-}
+-
+ int ti_hdmi_4xxx_wp_audio_enable(struct hdmi_ip_data *ip_data)
+ {
+ 	REG_FLD_MOD(hdmi_wp_base(ip_data),
+diff --git a/drivers/video/omap2/dss/ti_hdmi_4xxx_ip.h b/drivers/video/omap2/dss/ti_hdmi_4xxx_ip.h
+index 4fd4f35..7199c19 100644
+--- a/drivers/video/omap2/dss/ti_hdmi_4xxx_ip.h
++++ b/drivers/video/omap2/dss/ti_hdmi_4xxx_ip.h
+@@ -439,8 +439,6 @@ struct hdmi_core_audio_config {
+ };
+ 
+ #if defined(CONFIG_OMAP4_DSS_HDMI_AUDIO)
+-int hdmi_config_audio_acr(struct hdmi_ip_data *ip_data,
+-				u32 sample_freq, u32 *n, u32 *cts);
+ void hdmi_core_audio_infoframe_config(struct hdmi_ip_data *ip_data,
+ 		struct snd_cea_861_aud_if *info_aud);
+ void hdmi_core_audio_config(struct hdmi_ip_data *ip_data,
 -- 
 1.7.5.4
 
