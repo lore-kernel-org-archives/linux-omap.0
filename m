@@ -1,64 +1,50 @@
-From: "Hiremath, Vaibhav" <hvaibhav@ti.com>
-Subject: RE: [PATCH-V5 2/3] arm:omap:am33xx: Add AM335XEVM machine support
-Date: Fri, 4 May 2012 06:28:19 +0000
-Message-ID: <79CD15C6BA57404B839C016229A409A83EA14183@DBDE01.ent.ti.com>
-References: <hvaibhav@ti.com>
- <1322808204-12878-3-git-send-email-hvaibhav@ti.com>
- <alpine.DEB.2.00.1205020317151.19695@utopia.booyaka.com>
- <79CD15C6BA57404B839C016229A409A83EA10A64@DBDE01.ent.ti.com>
- <20120503155717.GE5140@atomide.com>
+From: Santosh Shilimkar <santosh.shilimkar@ti.com>
+Subject: Re: [PATCH v5 0/7] Add TI EMIF SDRAM controller driver
+Date: Fri, 04 May 2012 12:02:01 +0530
+Message-ID: <4FA377E1.9060008@ti.com>
+References: <1335529449-28046-1-git-send-email-santosh.shilimkar@ti.com> <CAP=VYLrCTOb9Qtz_HU5976cew_FR=qN6=x=_nD48ZprTcCjoUg@mail.gmail.com> <20120504000312.GB32225@kroah.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from devils.ext.ti.com ([198.47.26.153]:55160 "EHLO
-	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751808Ab2EDG2Z convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 4 May 2012 02:28:25 -0400
-In-Reply-To: <20120503155717.GE5140@atomide.com>
-Content-Language: en-US
+Received: from na3sys009aog124.obsmtp.com ([74.125.149.151]:50839 "EHLO
+	na3sys009aog124.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1751859Ab2EDGcJ (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 4 May 2012 02:32:09 -0400
+Received: by obbup16 with SMTP id up16so5859659obb.39
+        for <linux-omap@vger.kernel.org>; Thu, 03 May 2012 23:32:07 -0700 (PDT)
+In-Reply-To: <20120504000312.GB32225@kroah.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Tony Lindgren <tony@atomide.com>
-Cc: Paul Walmsley <paul@pwsan.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "Hilman, Kevin" <khilman@ti.com>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, "Mohammed, Afzal" <afzal@ti.com>
+To: Greg KH <greg@kroah.com>
+Cc: Paul Gortmaker <paul.gortmaker@windriver.com>, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 
-On Thu, May 03, 2012 at 21:27:18, Tony Lindgren wrote:
-> Hi,
-> 
-> * Hiremath, Vaibhav <hvaibhav@ti.com> [120502 02:37]:
-> > On Wed, May 02, 2012 at 14:53:24, Paul Walmsley wrote:
-> > > Hi
-> > > 
-> > > On Fri, 2 Dec 2011, hvaibhav@ti.com wrote:
-> > > 
-> > > > From: Afzal Mohammed <afzal@ti.com>
-> > > > 
-> > > > This patch adds minimal support for AM335X EVM.
-> > > > The approach taken here is to add AM335X EVM support
-> > > > to AM3517EVM, considering the fact that with device tree
-> > > > developement we will get rid of board-*.c.
-> > > > 
-> > > > Signed-off-by: Afzal Mohammed <afzal@ti.com>
-> > > > Signed-off-by: Vaibhav Hiremath <hvaibhav@ti.com>
-> > > > Reviewed-by: Kevin Hilman <khilman@ti.com>
-> > > 
-> > > I realize people may not necessarily like this, but I think that the 
-> > > AM33xx EVM needs its own board file.  This is because it really has 
-> > > nothing to do with the AM3517EVM.  Also, the AM3517EVM depends on 
-> > > CONFIG_ARCH_OMAP3, but the AM33xx EVM should not: it should depend on 
-> > > either CONFIG_ARCH_OMAPAM33XX, or CONFIG_ARCH_OMAP4.
-> 
-> I guess adding CONFIG_SOC_AM33XX makes sense if it does not share anything
-> except core with omap3. And the SOC is independent of the core selected,
-> there is no dependency between SoC and the core.
-> 
-> Note that we have CONFIG_ARCH_OMAP2PLUS, all the other ones should be just
-> CONFIG_SOC_XXX. As all omap3 omap4 and am33xx are v7, there's no need to
-> compile with different flags either.
->  
+On Friday 04 May 2012 05:33 AM, Greg KH wrote:
+> On Thu, May 03, 2012 at 06:38:23PM -0400, Paul Gortmaker wrote:
+>> On Fri, Apr 27, 2012 at 8:24 AM, Santosh Shilimkar
+>> <santosh.shilimkar@ti.com> wrote:
+>>> Add a driver for the EMIF SDRAM controller used in Texas Instrument SoCs
+>>
+>> Hi Santosh,
+>>
+>> Can you send Greg a patch that adds proper dependencies to the Kconfig?
+>> I was going to simply add an ARM dependency, but perhaps you want to
+>> restrict it further to a subset of OMAP platforms?
+>>
+Thanks Paul for reporting the issue.
 
-But still we do have ARCH_OMAP2, ARCH_OMAP3 and ARCH_OMAP4? And that's where, 
-we have issues for adding new devices like AM33xx and TI81xx.
+>> At the moment it is causing build failures in other architectures.
+>>
+>> http://kisskb.ellerman.id.au/kisskb/buildresult/6243036/
+> 
+> I think there's a config option for readl/writel, but yes, ARM would
+> probably be fine as well.
+> 
+Just send a patch [1] to Greg. EMIF driver build is restricted to
+ARCH_OMAP2PLUS for now and can be extended later if any other
+non OMAP architecture start using it.
 
-Thanks,
-Vaibhav
+Regards
+Santosh
+
+[1] https://lkml.org/lkml/2012/5/4/22
