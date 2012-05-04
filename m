@@ -1,131 +1,38 @@
-From: Jon Hunter <jon-hunter-l0cyMroinI0@public.gmane.org>
-Subject: Re: [PATCH v4 01/39] ARM: OMAP2+: gpmc: driver conversion
-Date: Fri, 4 May 2012 11:27:10 -0500
-Message-ID: <4FA4035E.6020308@ti.com>
-References: <cover.1335874494.git.afzal@ti.com> <363273a9ef82d6836197929157aa9a8eb8f5171a.1335874494.git.afzal@ti.com>
+From: Kevin Hilman <khilman@ti.com>
+Subject: Re: ttyO2 broken on IGEPv2 on 3.3, 3.4-rc5 or arm-soc/for-next, working on 3.2
+Date: Fri, 04 May 2012 09:27:35 -0700
+Message-ID: <87397fewso.fsf@ti.com>
+References: <20120504155255.140b4e3f@skate>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="ISO-8859-1"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <363273a9ef82d6836197929157aa9a8eb8f5171a.1335874494.git.afzal-l0cyMroinI0@public.gmane.org>
-Sender: linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Afzal Mohammed <afzal-l0cyMroinI0@public.gmane.org>
-Cc: tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org, linux-lFZ/pmaqli7XmaaqVzeoHQ@public.gmane.org, khilman-l0cyMroinI0@public.gmane.org, balbi-l0cyMroinI0@public.gmane.org, dwmw2-wEGCiKHe2LqWVfeAwA7xHQ@public.gmane.org, kyungmin.park-Sze3O3UU22JBDgjK7y7TUQ@public.gmane.org, gregkh-hQyY1W1yCW8ekmWlsbkhG0B+6BGkLq7r@public.gmane.org, nm-l0cyMroinI0@public.gmane.org, grinberg-UTxiZqZC01RS1MOuV/RT9w@public.gmane.org, notasas-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org, artem.bityutskiy-VuQAYsv1563Yd54FQh9/CA@public.gmane.org, vimal.newwork-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org, dbaryshkov-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-mtd-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, Vaibhav Hiremath <hvaibhav-l0cyMroinI0@public.gmane.org>
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from na3sys009aog109.obsmtp.com ([74.125.149.201]:36163 "EHLO
+	na3sys009aog109.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1751958Ab2EDQ1m (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 4 May 2012 12:27:42 -0400
+Received: by pbbrp8 with SMTP id rp8so4034269pbb.19
+        for <linux-omap@vger.kernel.org>; Fri, 04 May 2012 09:27:33 -0700 (PDT)
+In-Reply-To: <20120504155255.140b4e3f@skate> (Thomas Petazzoni's message of
+	"Fri, 4 May 2012 15:52:55 +0200")
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Thomas Petazzoni <thomas.petazzoni@free-electrons.com>
+Cc: linux-omap@vger.kernel.org, Enric Balletbo i Serra <eballetbo@iseebcn.com>
 
-Hi Afzal,
+Hi Thomas,
 
-On 05/01/2012 07:19 AM, Afzal Mohammed wrote:
+Thomas Petazzoni <thomas.petazzoni@free-electrons.com> writes:
 
-[...]
+> I have an IGEPv2 revision 6 board, which uses the DM3730 OMAP3. With
+> 3.2 omap2plus_defconfig, the system boots fine and have a working shell
+> on ttyO2. On either 3.3, 3.4-rc5 or arm-soc/for-next from Arnd, the
+> system boots all the way up to showing the shell prompt, but I can't
+> type any character, as if UART RX was broken.
 
-> +static int gpmc_setup_cs_waitpin(struct gpmc *gpmc, struct gpmc_device *gd,
-> +						unsigned cs, unsigned conf)
-> +{
-> +	u32 l = gpmc_cs_read_reg(cs, GPMC_CS_CONFIG1);
-> +	unsigned idx = ~0x0;
-> +	int polarity = 0;
->  
-> -	l = gpmc_read_reg(GPMC_REVISION);
-> -	printk(KERN_INFO "GPMC revision %d.%d\n", (l >> 4) & 0x0f, l & 0x0f);
-> -	/* Set smart idle mode and automatic L3 clock gating */
-> -	l = gpmc_read_reg(GPMC_SYSCONFIG);
-> -	l &= 0x03 << 3;
-> -	l |= (0x02 << 3) | (1 << 0);
-> -	gpmc_write_reg(GPMC_SYSCONFIG, l);
-> -	gpmc_mem_init();
-> +	switch (conf & GPMC_WAITPIN_MASK) {
-> +	case GPMC_WAITPIN_0:
-> +		idx =  GPMC_WAITPIN_IDX0;
-> +		break;
-> +	case GPMC_WAITPIN_1:
-> +		idx =  GPMC_WAITPIN_IDX1;
-> +		break;
-> +	case GPMC_WAITPIN_2:
-> +		idx =  GPMC_WAITPIN_IDX2;
-> +		break;
-> +	case GPMC_WAITPIN_3:
-> +		idx =  GPMC_WAITPIN_IDX3;
-> +		break;
-> +	/* no waitpin */
-> +	case 0:
-> +		break;
-> +	default:
-> +		dev_err(gpmc->dev, "multiple waitpins selected on CS:%u\n", cs);
-> +		return -EINVAL;
-> +		break;
-> +	}
+On v3.4-rc, can you see if reverting bce492c04ba8fc66a4ea0a52b181ba255daaaf54
+has any effect?
 
-Why not combined case 0 and default? Both are invalid configurations so
-just report invalid selection.
+That patch had some unfortunate side effects, but I haven't seen the
+problem you see, so I'm not sure if it's related.
 
->  
-> -	/* initalize the irq_chained */
-> -	irq = OMAP_GPMC_IRQ_BASE;
-> -	for (cs = 0; cs < GPMC_CS_NUM; cs++) {
-> -		irq_set_chip_and_handler(irq, &dummy_irq_chip,
-> -						handle_simple_irq);
-> -		set_irq_flags(irq, IRQF_VALID);
-> -		irq++;
-> +	switch (conf & GPMC_WAITPIN_POLARITY_MASK) {
-> +	case GPMC_WAITPIN_ACTIVE_LOW:
-> +		polarity = LOW;
-> +		break;
-> +	case GPMC_WAITPIN_ACTIVE_HIGH:
-> +		polarity = HIGH;
-> +		break;
-> +	/* no waitpin */
-> +	case 0:
-> +		break;
-> +	default:
-> +		dev_err(gpmc->dev, "waitpin polarity set to low & high\n");
-> +		return -EINVAL;
-> +		break;
->  	}
-
-Again, combine case 0 and default as these are invalid.
-
->  
-> -	ret = request_irq(gpmc_irq, gpmc_handle_irq, IRQF_SHARED, "gpmc", NULL);
-> -	if (ret)
-> -		pr_err("gpmc: irq-%d could not claim: err %d\n",
-> -						gpmc_irq, ret);
-> -	return ret;
-> +	if (idx != ~0x0) {
-
-If you combine the above cases, then you can drop the idx test here.
-
-> +		if (gd->have_waitpin) {
-> +			if (gd->waitpin != idx ||
-> +					gd->waitpin_polarity != polarity) {
-> +				dev_err(gpmc->dev, "error: conflict: waitpin %u with polarity %d on device %s.%d\n",
-> +					gd->waitpin, gd->waitpin_polarity,
-> +					gd->name, gd->id);
-> +				return -EBUSY;
-> +			}
-> +		} else {
-
-Don't need the else as you are going to return in the above.
-
-> +			gd->have_waitpin = true;
-> +			gd->waitpin = idx;
-> +			gd->waitpin_polarity = polarity;
-> +		}
-> +
-> +		l &= ~GPMC_CONFIG1_WAIT_PIN_SEL_MASK;
-> +		l |= GPMC_CONFIG1_WAIT_PIN_SEL(idx);
-> +		gpmc_cs_write_reg(cs, GPMC_CS_CONFIG1, l);
-> +	} else if (polarity) {
-> +		dev_err(gpmc->dev, "error: waitpin polarity specified with out wait pin number on device %s.%d\n",
-> +							gd->name, gd->id);
-> +		return -EINVAL;
-
-Drop this else-if. The above switch statements will report the bad
-configuration. This seems a bit redundant.
-
-Cheers
-Jon
---
-To unsubscribe from this list: send the line "unsubscribe linux-usb" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Kevin
