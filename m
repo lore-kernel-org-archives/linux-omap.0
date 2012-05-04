@@ -1,53 +1,65 @@
-From: Kevin Hilman <khilman@ti.com>
-Subject: Re: [PATCH 1/2] ARM: OMAP3: cpuidle - check the powerdomain lookup
-Date: Fri, 04 May 2012 14:23:21 -0700
-Message-ID: <87k40r8wty.fsf@ti.com>
-References: <1336151921-9485-1-git-send-email-daniel.lezcano@linaro.org>
-	<1336151921-9485-2-git-send-email-daniel.lezcano@linaro.org>
+From: "Mark A. Greer" <mgreer@animalcreek.com>
+Subject: Re: [PATCH] net: davinci_emac: Add pre_open, post_stop platform
+ callbacks
+Date: Fri, 4 May 2012 14:47:52 -0700
+Message-ID: <20120504214752.GA9827@animalcreek.com>
+References: <20120503160917.GA11310@animalcreek.com>
+ <B5906170F1614E41A8A28DE3B8D121433EA73591@DBDE01.ent.ti.com>
+ <20120503184632.GA28089@animalcreek.com>
+ <B5906170F1614E41A8A28DE3B8D121433EA7366B@DBDE01.ent.ti.com>
+ <1336076542.2998.23.camel@bwh-desktop.uk.solarflarecom.com>
+ <87ehr1gdcv.fsf@ti.com>
+ <B5906170F1614E41A8A28DE3B8D121433EA81B04@DBDE01.ent.ti.com>
+ <87fwbgdnlp.fsf@ti.com>
+ <20120504182938.GB28910@animalcreek.com>
+ <87397faccs.fsf@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aog118.obsmtp.com ([74.125.149.244]:41569 "EHLO
-	na3sys009aog118.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755132Ab2EDVXV (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 4 May 2012 17:23:21 -0400
-Received: by pbbrr4 with SMTP id rr4so4674724pbb.23
-        for <linux-omap@vger.kernel.org>; Fri, 04 May 2012 14:23:16 -0700 (PDT)
-In-Reply-To: <1336151921-9485-2-git-send-email-daniel.lezcano@linaro.org>
-	(Daniel Lezcano's message of "Fri, 4 May 2012 19:18:40 +0200")
+Received: from mail20.dotsterhost.com ([66.11.232.73]:41897 "EHLO
+	mail20.dotsterhost.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752129Ab2EDVrx (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 4 May 2012 17:47:53 -0400
+Content-Disposition: inline
+In-Reply-To: <87397faccs.fsf@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Daniel Lezcano <daniel.lezcano@linaro.org>
-Cc: santosh.shilimkar@ti.com, jean.pihet@newoldbits.com, tony@atomide.com, linux-omap@vger.kernel.org, linaro-dev@lists.linaro.org, linux-arm-kernel@lists.infradead.org, patches@linaro.org
+To: Kevin Hilman <khilman@ti.com>
+Cc: "Bedia, Vaibhav" <vaibhav.bedia@ti.com>, nsekhar@ti.com, Ben Hutchings <bhutchings@solarflare.com>, "netdev@vger.kernel.org" <netdev@vger.kernel.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>
 
-Daniel Lezcano <daniel.lezcano@linaro.org> writes:
+On Fri, May 04, 2012 at 02:02:43PM -0700, Kevin Hilman wrote:
+> "Mark A. Greer" <mgreer@animalcreek.com> writes:
+> 
+> > On Fri, May 04, 2012 at 07:31:30AM -0700, Kevin Hilman wrote:
+> 
+> [...]
+> 
+> >> Come to think of it, the right solution here is probably to use runtime
+> >> PM.  We could then to add some custom hooks for davinci_emac in the
+> >> device code to use enable_hlt/disable_hlt based on activity.
+> >
+> > That was my first thought, actually, but that only works if its
+> > okay for the driver to call enable_hlt/disable_hlt directly (i.e.,
+> > have runtime_suspend() call enable_hlt() and runtime_resume() call
+> > disable_hlt()).  However, I assumed it would _not_ be acceptable for
+> > the driver to issue those calls directly.  
+> 
+> I agree.
+> 
+> > Its a platform-specific issue that we shouldn't be polluting the
+> > driver with and there are currently no drivers that call them under
+> > the drivers directory.
+> 
+> Using runtime PM we don't have to have any platform specific calls in
+> the driver.  We handle it inside the platform-specific runtime PM
+> implementation.
 
-> At init time, check the powerdomains lookup is successful otherwise
-> exit the cpuidle driver init function with -ENODEV like what is done for the
-> omap3 cpuidle driver.
->
-> Signed-off-by: Daniel Lezcano <daniel.lezcano@linaro.org>
-> Reviewed-by: Jean Pihet <j-pihet@ti.com>
+FYI, with some further discussion via IRC, I'm going to implement what
+Kevin has laid out here.  There is a dependency on davinci adding support
+too but I'll coordinate with the people/person doing that.
 
-Thanks, applying to my for_3.5/cleanup/omap-cpuidle branch.
+Please disregard this patch.
 
-Kevin
+Thanks for the help everyone.
 
-> ---
->  arch/arm/mach-omap2/cpuidle34xx.c |    3 +++
->  1 files changed, 3 insertions(+), 0 deletions(-)
->
-> diff --git a/arch/arm/mach-omap2/cpuidle34xx.c b/arch/arm/mach-omap2/cpuidle34xx.c
-> index f682e17..207bc1c 100644
-> --- a/arch/arm/mach-omap2/cpuidle34xx.c
-> +++ b/arch/arm/mach-omap2/cpuidle34xx.c
-> @@ -363,6 +363,9 @@ int __init omap3_idle_init(void)
->  	per_pd = pwrdm_lookup("per_pwrdm");
->  	cam_pd = pwrdm_lookup("cam_pwrdm");
->  
-> +	if (!mpu_pd || !core_pd || !per_pd || !cam_pd)
-> +		return -ENODEV;
-> +
->  	cpuidle_register_driver(&omap3_idle_driver);
->  
->  	dev = &per_cpu(omap3_idle_dev, smp_processor_id());
+Mark
