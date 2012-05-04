@@ -1,183 +1,103 @@
 From: Ricardo Neri <ricardo.neri@ti.com>
-Subject: [PATCH v2 09/14] OMAPDSS: HDMI: Relocate N/CTS calculation
-Date: Thu, 3 May 2012 20:44:03 -0500
-Message-ID: <1336095848-6923-10-git-send-email-ricardo.neri@ti.com>
+Subject: [PATCH v2 08/14] OMAPDSS: HDMI: OMAP4: Expand configuration for IEC-60958 audio
+Date: Thu, 3 May 2012 20:44:02 -0500
+Message-ID: <1336095848-6923-9-git-send-email-ricardo.neri@ti.com>
 References: <1336095848-6923-1-git-send-email-ricardo.neri@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from comal.ext.ti.com ([198.47.26.152]:52862 "EHLO comal.ext.ti.com"
+Received: from bear.ext.ti.com ([192.94.94.41]:37430 "EHLO bear.ext.ti.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1755207Ab2EDBoc (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Thu, 3 May 2012 21:44:32 -0400
+	id S1755795Ab2EDBob (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Thu, 3 May 2012 21:44:31 -0400
 In-Reply-To: <1336095848-6923-1-git-send-email-ricardo.neri@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: tomi.valkeinen@ti.com, mythripk@ti.com
 Cc: s-chereau@ti.com, x0055901@ti.com, vaibhav.bedia@ti.com, s-guiriec@ti.com, lrg@ti.com, peter.ujfalusi@ti.com, agraf@suse.de, research@ottomaneng.com, linux-omap@vger.kernel.org, alsa-devel@alsa-project.org, Ricardo Neri <ricardo.neri@ti.com>
 
-The N and CTS parameters are relevant to all HDMI implementations and
-not specific to a given IP. Hence, the calculation is relocated
-into the generic HDMI driver.
+Utilize a snd_aes_iec958 struct to write the parameters of the IEC-60958
+channel status word into the HDMI IP registers. Hence, the user of the
+driver has full control of what parameters are written in the word.
 
-Also, deep color is not queried but it is still considered in the
-calculation of N. This is to be changed when deep color functionality is
-implemented in the driver.
+Also, some of the parameters of the I2S structure have been removed
+as they are actually IEC-60958 parameters.
 
 Signed-off-by: Ricardo Neri <ricardo.neri@ti.com>
 ---
- drivers/video/omap2/dss/hdmi.c            |   42 +++++++++++++++++++++
- drivers/video/omap2/dss/ti_hdmi.h         |    1 +
- drivers/video/omap2/dss/ti_hdmi_4xxx_ip.c |   57 -----------------------------
- drivers/video/omap2/dss/ti_hdmi_4xxx_ip.h |    2 -
- 4 files changed, 43 insertions(+), 59 deletions(-)
+ drivers/video/omap2/dss/ti_hdmi_4xxx_ip.c |   29 +++++++++++++++++++----------
+ drivers/video/omap2/dss/ti_hdmi_4xxx_ip.h |    4 +---
+ 2 files changed, 20 insertions(+), 13 deletions(-)
 
-diff --git a/drivers/video/omap2/dss/hdmi.c b/drivers/video/omap2/dss/hdmi.c
-index 11d6ca8..2a810b7 100644
---- a/drivers/video/omap2/dss/hdmi.c
-+++ b/drivers/video/omap2/dss/hdmi.c
-@@ -573,6 +573,48 @@ static void hdmi_put_clocks(void)
- 		clk_put(hdmi.sys_clk);
- }
- 
-+#if defined(CONFIG_OMAP4_DSS_HDMI_AUDIO)
-+int hdmi_compute_acr(u32 sample_freq, u32 *n, u32 *cts)
-+{
-+	u32 deep_color;
-+	u32 pclk = hdmi.ip_data.cfg.timings.pixel_clock;
-+
-+	if (n == NULL || cts == NULL)
-+		return -EINVAL;
-+
-+	/* TODO: When implemented, query deep color mode here. */
-+	deep_color = 100;
-+
-+	switch (sample_freq) {
-+	case 32000:
-+		if ((deep_color == 125) && ((pclk == 54054) ||
-+					    (pclk == 74250)))
-+			*n = 8192;
-+		else
-+			*n = 4096;
-+		break;
-+	case 44100:
-+		*n = 6272;
-+		break;
-+	case 48000:
-+		if ((deep_color == 125) && ((pclk == 54054) ||
-+					    (pclk == 74250)))
-+			*n = 8192;
-+		else
-+			*n = 6144;
-+		break;
-+	default:
-+		*n = 0;
-+		return -EINVAL;
-+	}
-+
-+	/* Calculate CTS. See HDMI 1.3a or 1.4a specifications */
-+	*cts = pclk * (*n / 128) * deep_color / (sample_freq / 10);
-+
-+	return 0;
-+}
-+#endif
-+
- /* HDMI HW IP initialisation */
- static int omapdss_hdmihw_probe(struct platform_device *pdev)
- {
-diff --git a/drivers/video/omap2/dss/ti_hdmi.h b/drivers/video/omap2/dss/ti_hdmi.h
-index 6aedb89..852a803 100644
---- a/drivers/video/omap2/dss/ti_hdmi.h
-+++ b/drivers/video/omap2/dss/ti_hdmi.h
-@@ -190,6 +190,7 @@ void ti_hdmi_4xxx_pll_dump(struct hdmi_ip_data *ip_data, struct seq_file *s);
- void ti_hdmi_4xxx_core_dump(struct hdmi_ip_data *ip_data, struct seq_file *s);
- void ti_hdmi_4xxx_phy_dump(struct hdmi_ip_data *ip_data, struct seq_file *s);
- #if defined(CONFIG_OMAP4_DSS_HDMI_AUDIO)
-+int hdmi_compute_acr(u32 sample_freq, u32 *n, u32 *cts);
- int ti_hdmi_4xxx_wp_audio_enable(struct hdmi_ip_data *ip_data);
- void ti_hdmi_4xxx_wp_audio_disable(struct hdmi_ip_data *ip_data);
- int ti_hdmi_4xxx_audio_start(struct hdmi_ip_data *ip_data);
 diff --git a/drivers/video/omap2/dss/ti_hdmi_4xxx_ip.c b/drivers/video/omap2/dss/ti_hdmi_4xxx_ip.c
-index 9c3dfd4..5612534 100644
+index cbda730..9c3dfd4 100644
 --- a/drivers/video/omap2/dss/ti_hdmi_4xxx_ip.c
 +++ b/drivers/video/omap2/dss/ti_hdmi_4xxx_ip.c
-@@ -1204,63 +1204,6 @@ void hdmi_core_audio_infoframe_config(struct hdmi_ip_data *ip_data,
- 	 */
- }
+@@ -1114,10 +1114,25 @@ void hdmi_core_audio_config(struct hdmi_ip_data *ip_data,
+ 	REG_FLD_MOD(av_base, HDMI_CORE_AV_SPDIF_CTRL,
+ 						cfg->fs_override, 1, 1);
  
--int hdmi_config_audio_acr(struct hdmi_ip_data *ip_data,
--				u32 sample_freq, u32 *n, u32 *cts)
--{
--	u32 r;
--	u32 deep_color = 0;
--	u32 pclk = ip_data->cfg.timings.pixel_clock;
+-	/* I2S parameters */
+-	REG_FLD_MOD(av_base, HDMI_CORE_AV_I2S_CHST4,
+-						cfg->freq_sample, 3, 0);
 -
--	if (n == NULL || cts == NULL)
--		return -EINVAL;
--	/*
--	 * Obtain current deep color configuration. This needed
--	 * to calculate the TMDS clock based on the pixel clock.
--	 */
--	r = REG_GET(hdmi_wp_base(ip_data), HDMI_WP_VIDEO_CFG, 1, 0);
--	switch (r) {
--	case 1: /* No deep color selected */
--		deep_color = 100;
--		break;
--	case 2: /* 10-bit deep color selected */
--		deep_color = 125;
--		break;
--	case 3: /* 12-bit deep color selected */
--		deep_color = 150;
--		break;
--	default:
--		return -EINVAL;
--	}
++	/*
++	 * Set IEC-60958-3 channel status word. It is passed to the IP
++	 * just as it is received. The user of the driver is responsible
++	 * for its contents.
++	 */
++	hdmi_write_reg(av_base, HDMI_CORE_AV_I2S_CHST0,
++		       cfg->iec60958_cfg->status[0]);
++	hdmi_write_reg(av_base, HDMI_CORE_AV_I2S_CHST1,
++		       cfg->iec60958_cfg->status[1]);
++	hdmi_write_reg(av_base, HDMI_CORE_AV_I2S_CHST2,
++		       cfg->iec60958_cfg->status[2]);
++	/* yes, this is correct: status[3] goes to CHST4 register */
++	hdmi_write_reg(av_base, HDMI_CORE_AV_I2S_CHST4,
++		       cfg->iec60958_cfg->status[3]);
++	/* yes, this is correct: status[4] goes to CHST5 register */
++	hdmi_write_reg(av_base, HDMI_CORE_AV_I2S_CHST5,
++		       cfg->iec60958_cfg->status[4]);
++
++	/* set I2S parameters */
+ 	r = hdmi_read_reg(av_base, HDMI_CORE_AV_I2S_IN_CTRL);
+ 	r = FLD_MOD(r, cfg->i2s_cfg.sck_edge_mode, 6, 6);
+ 	r = FLD_MOD(r, cfg->i2s_cfg.vbit, 4, 4);
+@@ -1126,12 +1141,6 @@ void hdmi_core_audio_config(struct hdmi_ip_data *ip_data,
+ 	r = FLD_MOD(r, cfg->i2s_cfg.shift, 0, 0);
+ 	hdmi_write_reg(av_base, HDMI_CORE_AV_I2S_IN_CTRL, r);
+ 
+-	r = hdmi_read_reg(av_base, HDMI_CORE_AV_I2S_CHST5);
+-	r = FLD_MOD(r, cfg->freq_sample, 7, 4);
+-	r = FLD_MOD(r, cfg->i2s_cfg.word_length, 3, 1);
+-	r = FLD_MOD(r, cfg->i2s_cfg.word_max_length, 0, 0);
+-	hdmi_write_reg(av_base, HDMI_CORE_AV_I2S_CHST5, r);
 -
--	switch (sample_freq) {
--	case 32000:
--		if ((deep_color == 125) && ((pclk == 54054)
--				|| (pclk == 74250)))
--			*n = 8192;
--		else
--			*n = 4096;
--		break;
--	case 44100:
--		*n = 6272;
--		break;
--	case 48000:
--		if ((deep_color == 125) && ((pclk == 54054)
--				|| (pclk == 74250)))
--			*n = 8192;
--		else
--			*n = 6144;
--		break;
--	default:
--		*n = 0;
--		return -EINVAL;
--	}
--
--	/* Calculate CTS. See HDMI 1.3a or 1.4a specifications */
--	*cts = pclk * (*n / 128) * deep_color / (sample_freq / 10);
--
--	return 0;
--}
--
- int ti_hdmi_4xxx_wp_audio_enable(struct hdmi_ip_data *ip_data)
- {
- 	REG_FLD_MOD(hdmi_wp_base(ip_data),
+ 	REG_FLD_MOD(av_base, HDMI_CORE_AV_I2S_IN_LEN,
+ 			cfg->i2s_cfg.in_length_bits, 3, 0);
+ 
 diff --git a/drivers/video/omap2/dss/ti_hdmi_4xxx_ip.h b/drivers/video/omap2/dss/ti_hdmi_4xxx_ip.h
-index 4fd4f35..7199c19 100644
+index 5d6e37a..4fd4f35 100644
 --- a/drivers/video/omap2/dss/ti_hdmi_4xxx_ip.h
 +++ b/drivers/video/omap2/dss/ti_hdmi_4xxx_ip.h
-@@ -439,8 +439,6 @@ struct hdmi_core_audio_config {
+@@ -412,8 +412,6 @@ struct hdmi_audio_dma {
  };
  
- #if defined(CONFIG_OMAP4_DSS_HDMI_AUDIO)
--int hdmi_config_audio_acr(struct hdmi_ip_data *ip_data,
--				u32 sample_freq, u32 *n, u32 *cts);
- void hdmi_core_audio_infoframe_config(struct hdmi_ip_data *ip_data,
- 		struct snd_cea_861_aud_if *info_aud);
- void hdmi_core_audio_config(struct hdmi_ip_data *ip_data,
+ struct hdmi_core_audio_i2s_config {
+-	u8 word_max_length;
+-	u8 word_length;
+ 	u8 in_length_bits;
+ 	u8 justification;
+ 	u8 sck_edge_mode;
+@@ -425,7 +423,7 @@ struct hdmi_core_audio_i2s_config {
+ 
+ struct hdmi_core_audio_config {
+ 	struct hdmi_core_audio_i2s_config	i2s_cfg;
+-	u32					freq_sample;
++	struct snd_aes_iec958			*iec60958_cfg;
+ 	bool					fs_override;
+ 	u32					n;
+ 	u32					cts;
 -- 
 1.7.5.4
 
