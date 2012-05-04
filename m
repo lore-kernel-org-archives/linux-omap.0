@@ -1,42 +1,165 @@
 From: Daniel Lezcano <daniel.lezcano@linaro.org>
-Subject: [PATCH 0/2] ARM: OMAP3/4: cpuidle - misc fixes
-Date: Fri,  4 May 2012 19:18:39 +0200
-Message-ID: <1336151921-9485-1-git-send-email-daniel.lezcano@linaro.org>
+Subject: [PATCH 2/2] ARM: OMAP3/4: consolidate cpuidle Makefile
+Date: Fri,  4 May 2012 19:18:41 +0200
+Message-ID: <1336151921-9485-3-git-send-email-daniel.lezcano@linaro.org>
+References: <1336151921-9485-1-git-send-email-daniel.lezcano@linaro.org>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-wi0-f170.google.com ([209.85.212.170]:40229 "EHLO
-	mail-wi0-f170.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754297Ab2EDRSo (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 4 May 2012 13:18:44 -0400
-Received: by wibhm4 with SMTP id hm4so1083694wib.1
-        for <linux-omap@vger.kernel.org>; Fri, 04 May 2012 10:18:43 -0700 (PDT)
+Received: from mail-wi0-f178.google.com ([209.85.212.178]:48698 "EHLO
+	mail-wi0-f178.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754297Ab2EDRSs (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 4 May 2012 13:18:48 -0400
+Received: by wibhr7 with SMTP id hr7so1597662wib.1
+        for <linux-omap@vger.kernel.org>; Fri, 04 May 2012 10:18:47 -0700 (PDT)
+In-Reply-To: <1336151921-9485-1-git-send-email-daniel.lezcano@linaro.org>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: khilman@ti.com
 Cc: santosh.shilimkar@ti.com, jean.pihet@newoldbits.com, tony@atomide.com, linux-omap@vger.kernel.org, linaro-dev@lists.linaro.org, linux-arm-kernel@lists.infradead.org, patches@linaro.org
 
-These two patches are coming from the series I previously
-sent for the cpuidle OMAP3/4 cleanups.
+Define a CPU_IDLE section in the makefile, declare the functions in
+the header files conforming to the kernel coding rules and remove the
+'define's in the C files.
 
-The first one, move the powerdomain lookup check in the init
-function, the second one fix the linkage error, when the
-CONFIG_PM is not set while CONFIG_CPU_IDLE is. Omap's Kconfig
-has been modified to select CONFIG_PM when CONFIG_CPU_IDLE is
-set.
+CONFIG_PM is enabled when CPU_IDLE is enabled because the cpuidle drivers
+use some functions from the pm subsystem.
 
-I compiled with different options but I was not able to boot
-my board because the kernel panics for another reason.
-
-Daniel Lezcano (2):
-  ARM: OMAP3: cpuidle - check the powerdomain lookup
-  ARM: OMAP3/4: consolidate cpuidle Makefile
-
+Signed-off-by: Daniel Lezcano <daniel.lezcano@linaro.org>
+Reviewed-by: Jean Pihet <j-pihet@ti.com>
+---
  arch/arm/mach-omap2/Kconfig       |    2 ++
  arch/arm/mach-omap2/Makefile      |   11 +++++++----
- arch/arm/mach-omap2/cpuidle34xx.c |   11 +++--------
+ arch/arm/mach-omap2/cpuidle34xx.c |    8 --------
  arch/arm/mach-omap2/cpuidle44xx.c |    8 --------
  arch/arm/mach-omap2/pm.h          |   17 +++++++++++++++--
- 5 files changed, 27 insertions(+), 22 deletions(-)
+ 5 files changed, 24 insertions(+), 22 deletions(-)
 
+diff --git a/arch/arm/mach-omap2/Kconfig b/arch/arm/mach-omap2/Kconfig
+index 8141b76..42f6b89 100644
+--- a/arch/arm/mach-omap2/Kconfig
++++ b/arch/arm/mach-omap2/Kconfig
+@@ -34,6 +34,7 @@ config ARCH_OMAP3
+ 	select CPU_V7
+ 	select USB_ARCH_HAS_EHCI if USB_SUPPORT
+ 	select ARCH_HAS_OPP
++	select PM if CPU_IDLE
+ 	select PM_OPP if PM
+ 	select ARM_CPU_SUSPEND if PM
+ 	select MULTI_IRQ_HANDLER
+@@ -51,6 +52,7 @@ config ARCH_OMAP4
+ 	select PL310_ERRATA_727915
+ 	select ARM_ERRATA_720789
+ 	select ARCH_HAS_OPP
++	select PM if CPU_IDLE
+ 	select PM_OPP if PM
+ 	select USB_ARCH_HAS_EHCI if USB_SUPPORT
+ 	select ARM_CPU_SUSPEND if PM
+diff --git a/arch/arm/mach-omap2/Makefile b/arch/arm/mach-omap2/Makefile
+index 49f92bc..f46c735 100644
+--- a/arch/arm/mach-omap2/Makefile
++++ b/arch/arm/mach-omap2/Makefile
+@@ -64,10 +64,8 @@ endif
+ ifeq ($(CONFIG_PM),y)
+ obj-$(CONFIG_ARCH_OMAP2)		+= pm24xx.o
+ obj-$(CONFIG_ARCH_OMAP2)		+= sleep24xx.o
+-obj-$(CONFIG_ARCH_OMAP3)		+= pm34xx.o sleep34xx.o \
+-					   cpuidle34xx.o
+-obj-$(CONFIG_ARCH_OMAP4)		+= pm44xx.o omap-mpuss-lowpower.o \
+-					   cpuidle44xx.o
++obj-$(CONFIG_ARCH_OMAP3)		+= pm34xx.o sleep34xx.o
++obj-$(CONFIG_ARCH_OMAP4)		+= pm44xx.o omap-mpuss-lowpower.o
+ obj-$(CONFIG_PM_DEBUG)			+= pm-debug.o
+ obj-$(CONFIG_OMAP_SMARTREFLEX)          += sr_device.o smartreflex.o
+ obj-$(CONFIG_OMAP_SMARTREFLEX_CLASS3)	+= smartreflex-class3.o
+@@ -81,6 +79,11 @@ endif
+ 
+ endif
+ 
++ifeq ($(CONFIG_CPU_IDLE),y)
++obj-$(CONFIG_ARCH_OMAP3)                += cpuidle34xx.o
++obj-$(CONFIG_ARCH_OMAP4)                += cpuidle44xx.o
++endif
++
+ # PRCM
+ obj-y					+= prm_common.o
+ obj-$(CONFIG_ARCH_OMAP2)		+= prcm.o cm2xxx_3xxx.o prm2xxx_3xxx.o
+diff --git a/arch/arm/mach-omap2/cpuidle34xx.c b/arch/arm/mach-omap2/cpuidle34xx.c
+index 207bc1c..3134452 100644
+--- a/arch/arm/mach-omap2/cpuidle34xx.c
++++ b/arch/arm/mach-omap2/cpuidle34xx.c
+@@ -36,8 +36,6 @@
+ #include "control.h"
+ #include "common.h"
+ 
+-#ifdef CONFIG_CPU_IDLE
+-
+ /* Mach specific information to be recorded in the C-state driver_data */
+ struct omap3_idle_statedata {
+ 	u32 mpu_state;
+@@ -379,9 +377,3 @@ int __init omap3_idle_init(void)
+ 
+ 	return 0;
+ }
+-#else
+-int __init omap3_idle_init(void)
+-{
+-	return 0;
+-}
+-#endif /* CONFIG_CPU_IDLE */
+diff --git a/arch/arm/mach-omap2/cpuidle44xx.c b/arch/arm/mach-omap2/cpuidle44xx.c
+index be1617c..02d15bb 100644
+--- a/arch/arm/mach-omap2/cpuidle44xx.c
++++ b/arch/arm/mach-omap2/cpuidle44xx.c
+@@ -22,8 +22,6 @@
+ #include "pm.h"
+ #include "prm.h"
+ 
+-#ifdef CONFIG_CPU_IDLE
+-
+ /* Machine specific information */
+ struct omap4_idle_statedata {
+ 	u32 cpu_state;
+@@ -199,9 +197,3 @@ int __init omap4_idle_init(void)
+ 
+ 	return 0;
+ }
+-#else
+-int __init omap4_idle_init(void)
+-{
+-	return 0;
+-}
+-#endif /* CONFIG_CPU_IDLE */
+diff --git a/arch/arm/mach-omap2/pm.h b/arch/arm/mach-omap2/pm.h
+index 7856489..ab04d3b 100644
+--- a/arch/arm/mach-omap2/pm.h
++++ b/arch/arm/mach-omap2/pm.h
+@@ -15,12 +15,25 @@
+ 
+ #include "powerdomain.h"
+ 
++#ifdef CONFIG_CPU_IDLE
++extern int __init omap3_idle_init(void);
++extern int __init omap4_idle_init(void);
++#else
++static inline int omap3_idle_init(void)
++{
++	return 0;
++}
++
++static inline int omap4_idle_init(void)
++{
++	return 0;
++}
++#endif
++
+ extern void *omap3_secure_ram_storage;
+ extern void omap3_pm_off_mode_enable(int);
+ extern void omap_sram_idle(void);
+ extern int omap_set_pwrdm_state(struct powerdomain *pwrdm, u32 state);
+-extern int omap3_idle_init(void);
+-extern int omap4_idle_init(void);
+ extern int omap_pm_clkdms_setup(struct clockdomain *clkdm, void *unused);
+ extern int (*omap_pm_suspend)(void);
+ 
 -- 
 1.7.5.4
 
