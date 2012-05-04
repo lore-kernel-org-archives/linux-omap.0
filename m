@@ -1,108 +1,59 @@
-From: Kevin Hilman <khilman@ti.com>
-Subject: Re: [PATCH 4/7] ARM: OMAP: dma: Make use of cpu_class_is_omap2() to avoid future patching.
-Date: Fri, 04 May 2012 09:46:17 -0700
-Message-ID: <87txzvc2sm.fsf@ti.com>
-References: <1335952093-12541-1-git-send-email-santosh.shilimkar@ti.com>
-	<1335952093-12541-5-git-send-email-santosh.shilimkar@ti.com>
-	<8762cdgcmu.fsf@ti.com>
-	<CAMQu2gxjEFK3p9CZ0i3ACWTGTQSM6ywMCWUQJg7PMyh2avvL=w@mail.gmail.com>
+From: Tony Lindgren <tony@atomide.com>
+Subject: Re: [PATCH] omap: dma: Clear status registers on enable/disable
+ irq.
+Date: Fri, 4 May 2012 09:51:46 -0700
+Message-ID: <20120504165146.GB5613@atomide.com>
+References: <1334954578-10478-1-git-send-email-oleg.matcovschi@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aog104.obsmtp.com ([74.125.149.73]:58672 "EHLO
-	na3sys009aog104.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754009Ab2EDQqR convert rfc822-to-8bit
-	(ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Fri, 4 May 2012 12:46:17 -0400
-Received: by pbbrq13 with SMTP id rq13so4368493pbb.36
-        for <linux-omap@vger.kernel.org>; Fri, 04 May 2012 09:46:14 -0700 (PDT)
-In-Reply-To: <CAMQu2gxjEFK3p9CZ0i3ACWTGTQSM6ywMCWUQJg7PMyh2avvL=w@mail.gmail.com>
-	(Santosh Shilimkar's message of "Fri, 4 May 2012 12:34:23 +0530")
+Received: from mho-01-ewr.mailhop.org ([204.13.248.71]:37249 "EHLO
+	mho-01-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751996Ab2EDQvu (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 4 May 2012 12:51:50 -0400
+Content-Disposition: inline
+In-Reply-To: <1334954578-10478-1-git-send-email-oleg.matcovschi@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "Shilimkar, Santosh" <santosh.shilimkar@ti.com>
-Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, tony@atomide.com
+To: Oleg Matcovschi <oleg.matcovschi@ti.com>
+Cc: linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux@arm.linux.org.uk, Janusz Krzysztofik <jkrzyszt@tis.icnet.pl>, Jarkko Nikula <jarkko.nikula@bitmer.com>, Peter Ujfalusi <peter.ujfalusi@ti.com>
 
-"Shilimkar, Santosh" <santosh.shilimkar@ti.com> writes:
+Hi,
 
-> On Fri, May 4, 2012 at 3:17 AM, Kevin Hilman <khilman@ti.com> wrote:
->> Santosh Shilimkar <santosh.shilimkar@ti.com> writes:
->>
->>> cpu_class_is_omap2() contains all OMAP2+ devices. So update the DMA=
- code
->>> cpu checks accordingly so that there is no need to patch
->>> the file for any future OMAP2+ devices.
->>>
->>> In long run, all these attributes should come from hwmod dev_attr b=
-ased
->>> on DMA IP version.
->>>
->>> Signed-off-by: Santosh Shilimkar <santosh.shilimkar@ti.com>
->>> ---
->>> =C2=A0arch/arm/mach-omap2/dma.c | =C2=A0 =C2=A02 +-
->>> =C2=A0arch/arm/plat-omap/dma.c =C2=A0| =C2=A0 =C2=A04 ++--
->>> =C2=A02 files changed, 3 insertions(+), 3 deletions(-)
->>>
->>> diff --git a/arch/arm/mach-omap2/dma.c b/arch/arm/mach-omap2/dma.c
->>> index b19d849..2750bb9 100644
->>> --- a/arch/arm/mach-omap2/dma.c
->>> +++ b/arch/arm/mach-omap2/dma.c
->>> @@ -227,7 +227,7 @@ static int __init omap2_system_dma_init_dev(str=
-uct omap_hwmod *oh, void *unused)
->>>
->>> =C2=A0 =C2=A0 =C2=A0 dma_stride =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =
-=C2=A0 =C2=A0=3D OMAP2_DMA_STRIDE;
->>> =C2=A0 =C2=A0 =C2=A0 dma_common_ch_start =C2=A0 =C2=A0 =3D CSDP;
->>> - =C2=A0 =C2=A0 if (cpu_is_omap3630() || cpu_is_omap44xx())
->>> + =C2=A0 =C2=A0 if (omap_rev() >=3D OMAP3630_REV_ES1_0)
->>
->> It's not obvious (at least to me) that this is equivalent.
->>
->> For example, this will now be true on the TI81xx devices.
->>
-> I see your point.
-> On second thought, i decided to drop this hunk from the patch since
-> the availability of the dma descriptor feature can be read from dma
-> capability register. Will post another patch for it and also add it t=
-o
-> the clean-up series.
->
-> Updated $subject patch in the end of email.
->
-> Regards
-> Santosh
->
-> From e42966bc56b1603e033b5b259564ae149b11a5d9 Mon Sep 17 00:00:00 200=
-1
-> From: Santosh Shilimkar <santosh.shilimkar@ti.com>
-> Date: Sat, 28 Apr 2012 20:19:10 +0530
-> Subject: [PATCH 4/7] ARM: OMAP: dma: Make use of cpu_class_is_omap2()=
- to
->  avoid future patching.
->
-> cpu_class_is_omap2() contains all OMAP2+ devices. So update the DMA c=
-ode
-> cpu checks accordingly so that there is no need to patch
-> the file for any future OMAP2+ devices.
->
-> In long run, all these attributes should come from hwmod dev_attr bas=
-ed
-> on DMA IP version.
->
-> Signed-off-by: Santosh Shilimkar <santosh.shilimkar@ti.com>
-> ---
-> Dropped the hunk for descriptor feature check based on OMAP cpu
-> version since it can be handled with DMA hardware capability
-> register read.
+* Oleg Matcovschi <oleg.matcovschi@ti.com> [120420 13:49]:
+> Use omap_disable_channel_irq() function instead of directly accessing CICR.
+> The omap_disable_chanel_irq() function clears pending interrupts
+> and disables interrupt on channel.
+> Functions omap2_enable_irq_lch()/omap2_disable_irq_lch() clear interrupt
+> status register.
 
-Right, this looks better.
+This seems like a nice fix to me. As it affects all omaps, I'd like to
+see some tested-by from Janusz/Jarkko/Peter. Can you guys give it a try
+with some audio tests?
 
-Thanks,
+Also one comment below.
+ 
+> @@ -575,10 +573,15 @@ static inline void omap_enable_channel_irq(int lch)
+>  	p->dma_write(dma_chan[lch].enabled_irqs, CICR, lch);
+>  }
+>  
+> -static void omap_disable_channel_irq(int lch)
+> +static inline void omap_disable_channel_irq(int lch)
+>  {
+> -	if (cpu_class_is_omap2())
+> -		p->dma_write(0, CICR, lch);
+> +	/* disable channel interrupts */
+> +	p->dma_write(0, CICR, lch);
+> +	/* Clear CSR */
+> +	if (cpu_class_is_omap1())
+> +		p->dma_read(CSR, lch);
+> +	else if (cpu_class_is_omap2())
+> +		p->dma_write(OMAP2_DMA_CSR_CLEAR_MASK, CSR, lch);
+>  }
 
-Kevin
---
-To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+You can leave out the else if cpu_class_is_omap2 and replace it
+with just else above.
+
+Regards,
+
+Tony 
