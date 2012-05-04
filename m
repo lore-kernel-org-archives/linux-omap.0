@@ -1,94 +1,63 @@
-From: Stephen Warren <swarren@wwwdotorg.org>
-Subject: Re: [PATCH V3 1/2] of: Add generic device tree DMA helpers
-Date: Fri, 04 May 2012 12:21:50 -0600
-Message-ID: <4FA41E3E.3020303@wwwdotorg.org>
-References: <1335820679-28721-1-git-send-email-jon-hunter@ti.com> <4FA30604.1030401@wwwdotorg.org> <4FA3F08D.7030603@ti.com>
+From: "Mark A. Greer" <mgreer@animalcreek.com>
+Subject: Re: [PATCH] net: davinci_emac: Add pre_open, post_stop platform
+ callbacks
+Date: Fri, 4 May 2012 11:29:38 -0700
+Message-ID: <20120504182938.GB28910@animalcreek.com>
+References: <20120502234718.GA5432@animalcreek.com>
+ <B5906170F1614E41A8A28DE3B8D121433EA72820@DBDE01.ent.ti.com>
+ <20120503160917.GA11310@animalcreek.com>
+ <B5906170F1614E41A8A28DE3B8D121433EA73591@DBDE01.ent.ti.com>
+ <20120503184632.GA28089@animalcreek.com>
+ <B5906170F1614E41A8A28DE3B8D121433EA7366B@DBDE01.ent.ti.com>
+ <1336076542.2998.23.camel@bwh-desktop.uk.solarflarecom.com>
+ <87ehr1gdcv.fsf@ti.com>
+ <B5906170F1614E41A8A28DE3B8D121433EA81B04@DBDE01.ent.ti.com>
+ <87fwbgdnlp.fsf@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from avon.wwwdotorg.org ([70.85.31.133]:49190 "EHLO
-	avon.wwwdotorg.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753945Ab2EDSVz (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 4 May 2012 14:21:55 -0400
-In-Reply-To: <4FA3F08D.7030603@ti.com>
+Received: from mail20.dotsterhost.com ([66.11.232.73]:48691 "EHLO
+	mail20.dotsterhost.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1759328Ab2EDS3j (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 4 May 2012 14:29:39 -0400
+Content-Disposition: inline
+In-Reply-To: <87fwbgdnlp.fsf@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Jon Hunter <jon-hunter@ti.com>
-Cc: device-tree <devicetree-discuss@lists.ozlabs.org>, Stephen Warren <swarren@nvidia.com>, Benoit Cousson <b-cousson@ti.com>, Arnd Bergmann <arnd@arndb.de>, Nicolas Ferre <nicolas.ferre@atmel.com>, Rob Herring <rob.herring@calxeda.com>, Grant Likely <grant.likely@secretlab.ca>, Russell King <linux@arm.linux.org.uk>, linux-omap <linux-omap@vger.kernel.org>, linux-arm <linux-arm-kernel@lists.infradead.org>
+To: Kevin Hilman <khilman@ti.com>
+Cc: "Bedia, Vaibhav" <vaibhav.bedia@ti.com>, nsekhar@ti.com, Ben Hutchings <bhutchings@solarflare.com>, "netdev@vger.kernel.org" <netdev@vger.kernel.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>
 
-On 05/04/2012 09:06 AM, Jon Hunter wrote:
-> Hi Stephen,
+On Fri, May 04, 2012 at 07:31:30AM -0700, Kevin Hilman wrote:
+> "Bedia, Vaibhav" <vaibhav.bedia@ti.com> writes:
+
+Hi Kevin.
+
+> > If it does, perhaps there should some other mechanism for letting
+> > users control the system behavior.
 > 
-> On 05/03/2012 05:26 PM, Stephen Warren wrote:
->> On 04/30/2012 03:17 PM, Jon Hunter wrote:
->>> From: Jon Hunter <jon-hunter@ti.com>
->>>
->>> This is based upon the work by Benoit Cousson [1] and Nicolas Ferre [2]
->>> to add some basic helpers to retrieve a DMA controller device_node and the
->>> DMA request/channel information.
-...
->>> +
->>> +	sdma: dmaengine@48000000 {
->>> +		compatible = "ti,omap4-sdma"
->>> +		reg = <0x48000000 0x1000>;
->>> +		interrupts = <4>;
->>> +		#dma-cells = <2>;
->>> +		#dma-channels = <32>;
->>> +		#dma-requests = <127>;
->>> +	};
->>> +
->>> +
->>> +* DMA client
->>> +
->>> +Client drivers should specify the DMA property using a phandle to the controller
->>> +followed by the number of DMA request/channel and the transfer type of the
->>
->> What exactly is "request/channel"? Is it a request ID, a channel ID,
->> both packed into a single integer (which bits are used for each field),
->> etc.?
-> 
-> The thought here was that some DMAs may distinguish between devices by a
-> request ID or a channel ID or both. In the case of say an OMAP4, we have
-> 32 channels and 127 request IDs. From a h/w perspective we need to know
-> both. Each of the 32 channels can be programmed to use any one of the
-> 127 h/w request signals.
+> Come to think of it, the right solution here is probably to use runtime
+> PM.  We could then to add some custom hooks for davinci_emac in the
+> device code to use enable_hlt/disable_hlt based on activity.
 
->From a HW perspective, do you actually need to know both? I think the HW
-description must specify the request ID, but because any channel can be
-programmed to any request ID, you don't actually care about the channel
-ID; it can be dynamically allocated by the DMA driver when the client
-driver calls dma_request_channel().
+That was my first thought, actually, but that only works if its
+okay for the driver to call enable_hlt/disable_hlt directly (i.e.,
+have runtime_suspend() call enable_hlt() and runtime_resume() call
+disable_hlt()).  However, I assumed it would _not_ be acceptable for
+the driver to issue those calls directly.  Its a platform-specific
+issue that we shouldn't be polluting the driver with and there are
+currently no drivers that call them under the drivers directory.
 
-Actually, you say the following below, so I guess you already agree here:
+If its not okay to call enable_hlt/disable_hlt directly, then we still
+need callback hooks to the plaform code (i.e., some version of this
+patch).
 
-> Yes this is the same as OMAPs SDMA. In the case of such DMA controllers
-> you only really care about the request ID and total number of channels
-> that are available to you.
+> In order to do that though, the davinci_emac driver needs to be runtime
+> PM converted.
 
-...
->> This is why I think DMA controller should specify the format of their
->> own DMA specifier in DT, and why they should provide an xlate function
->> to parse that.
-> 
-> Ok fair enough. However, it seems that at a minimum we could provide one
-> or two xlate functions in the generic binding for people to use. One
-> could be the DMA engine xlate binding and another could be the simple
-> xlate binding Nicolas proposed for a DMA controller that returns a
-> single channel/request ID.
->
-> However, at the same time, may be people would prefer that devices such
-> as tegra, omap, at91, etc, offer their own xlate function for DMA
-> engine. I am not sure, but we could go either way.
+We probably should pm_runtime-ize the driver either way but we need
+to resolve the question of whether its okay for the driver to call
+enable_hlt/disable_hlt directly or not.  If it is okay, we call them
+in runtime_suspend/resume.  If it isn't okay, then we still need 
+platform callback hooks.
 
-I'd expect the bindings to be written to allow the individual DMA
-controllers to have complete control over the meaning of the DMA specifier.
-
-That said, I would certainly expect some common patterns to emerge, such
-as a single cell to specify the DMA channel ID, or a single cell to
-specify the DMA request/selector ID. We should certainly make sure that
-where different controllers need the same information, they use the same
-way to represent it, and use common utility code to implement the xlate
-functionality. We could perhaps even write these common cases into the
-core DMA bindings as examples to help ensure uniformity. However, we
-just need to do this in a way that allows other cases too.
+Mark
