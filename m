@@ -1,132 +1,139 @@
-From: "J, KEERTHY" <j-keerthy@ti.com>
-Subject: Re: [PATCH V3 00/10] PM: Create the AVS(Adaptive Voltage Scaling)
-Date: Fri, 4 May 2012 10:35:45 +0530
-Message-ID: <CAJ6a13Z0omMwmuSDcZtJbUgTEoVu-ExiRVUw=dsitsjKfzi4Kg@mail.gmail.com>
-References: <1335462041-4949-1-git-send-email-j-keerthy@ti.com>
-	<20120426191159.GA9415@sirena.org.uk>
-	<CAJ6a13a6WN9h1QZynpEOf-R6RXwWBZ2eOPkTeNc15JX_YfAz_w@mail.gmail.com>
-	<20120427175657.GP18260@opensource.wolfsonmicro.com>
-	<87397o3n4y.fsf@ti.com>
-	<20120430095429.GB3170@opensource.wolfsonmicro.com>
-	<87wr4wriq3.fsf@ti.com>
-	<CAJ6a13ZBwZn20ObD2hy=xna8oFoKtdczYNxyWACJZoJkhKhsUQ@mail.gmail.com>
+From: NeilBrown <neilb@suse.de>
+Subject: Re: [PATCH 2/3] IRQ: allow check_wakeup_irqs to notice
+ level-triggered interrupts.
+Date: Fri, 4 May 2012 15:12:21 +1000
+Message-ID: <20120504151221.6998d4e5@notabene.brown>
+References: <20120425025637.7832.14013.stgit@notabene.brown>
+	<20120425030524.7832.85239.stgit@notabene.brown>
+	<alpine.LFD.2.02.1204251018530.2542@ionos>
+	<20120425193916.0db1b4b1@notabene.brown>
+	<alpine.LFD.2.02.1204251402360.2542@ionos>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aog102.obsmtp.com ([74.125.149.69]:47863 "EHLO
-	na3sys009aog102.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751032Ab2EDFFq convert rfc822-to-8bit
-	(ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Fri, 4 May 2012 01:05:46 -0400
-Received: by obbuo13 with SMTP id uo13so3750373obb.29
-        for <linux-omap@vger.kernel.org>; Thu, 03 May 2012 22:05:45 -0700 (PDT)
-In-Reply-To: <CAJ6a13ZBwZn20ObD2hy=xna8oFoKtdczYNxyWACJZoJkhKhsUQ@mail.gmail.com>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: multipart/signed; micalg=PGP-SHA1;
+ boundary="Sig_/M_Mnyl1jqY=ZXVnt32A/Lrt"; protocol="application/pgp-signature"
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <alpine.LFD.2.02.1204251402360.2542@ionos>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Thomas Gleixner <tglx@linutronix.de>
+Cc: Tony Lindgren <tony@atomide.com>, Russell King <linux@arm.linux.org.uk>, Samuel Ortiz <sameo@linux.intel.com>, "Rafael J. Wysocki" <rjw@sisk.pl>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org, linux-pm@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Kevin Hilman <khilman@ti.com>
-Cc: Mark Brown <broonie@opensource.wolfsonmicro.com>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, rjw@sisk.pl, linux-kernel@vger.kernel.org, linux-pm@lists.linux-foundation.org, j-pihet@ti.com, durgadoss.r@intel.com
 
-On Wed, May 2, 2012 at 10:34 AM, J, KEERTHY <j-keerthy@ti.com> wrote:
-> On Tue, May 1, 2012 at 3:21 AM, Kevin Hilman <khilman@ti.com> wrote:
->> Mark Brown <broonie@opensource.wolfsonmicro.com> writes:
->>
->>> On Fri, Apr 27, 2012 at 02:01:17PM -0700, Kevin Hilman wrote:
->>>> Mark Brown <broonie@opensource.wolfsonmicro.com> writes:
->>>
->>>> > But presumably these things should integrate somehow - for examp=
-le,
->>>> > should devfreq and cpufreq be providing inputs into what AVS is =
-doing,
->>>> > and if so how?
->>>
->>>> The way it is currently designed, cpufreq/devfreq/regulator layers=
- don't
->>>> need to know about AVS.
->>>
->>> Yes, and that was a part of my concern, but see below.
->>>
->>>> The higher-level layers only know about the "nominal" voltage. =A0=
-AVS
->>>> hardware does automatic, adaptive, micro-adjustments around that n=
-ominal
->>>> voltage, and these micro-adjustments are managed by the AVS hardwa=
-re
->>>> sending commands to the PMIC. =A0(specifically, on OMAP, the AVS s=
-ensors
->>>> provide inputs to the voltage processor (VP) which provide inputs =
-to the
->>>> voltage controller (VC) which sends commands to the PMIC[1].)
->>>
->>> Right, that's what I'd understood it to be.
->>>
->>>> The driver proposed here is primarily for initializing the various
->>>> parameters/sensitivity/etc. of the AVS hardware, but the actual vo=
-ltage
->>>> adjustments are done in hardware by VC/VP.
->>>
->>> It's not just a driver, though - it's also creating this power/avs
->>> thing, though now I look at the code rather than just its shape the=
-re's
->>> not actually an abstraction being added here, it's mostly just stra=
-ight
->>> code motion of the arch/arm code that's there already. =A0The chang=
-elog
->>> and the shape of the code make it sound like this is intended to be
->>> somewhat generic when really it's providing some OMAP specific tuni=
-ng
->>> for the device which is much less of a concern.
->>>
->>> I guess for now it's probably OK to just clarify in the documentati=
-on
->>> and say that whoever adds the second driver has to work on making t=
-his
->>> generic :)
->>
->> Agreed.
->>
->> In a different thread (which I can't seem to find now) we discussed =
-this
->> as well, so it just sounds like the changelog should clarify this a =
-bit
->> better.
->
-> Kevin/Mark,
->
-> Thanks for the feedback. I will add more documentation
-> to clarify this aspect. Please let me know if there are any more
-> things to be taken care of in this patch set.
+--Sig_/M_Mnyl1jqY=ZXVnt32A/Lrt
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: quoted-printable
 
-Hello Kevin,
+On Wed, 25 Apr 2012 14:54:54 +0200 (CEST) Thomas Gleixner
+<tglx@linutronix.de> wrote:
 
-A gentle ping on this series. Any comments on this?
+> Why not simply managing the pending bit for level irqs ?
+>=20
 
->
->>
->> Kevin
->>
->>> This does also sound rather like it's in a similar area to the curr=
-ent
->>> management work which Durgadoss R (CCed) was working on, though wit=
-h a
->>> slightly different application and in the OMAP case it's pretty muc=
-h all
->>> hidden in the external processor.
->>
->
->
->
-> --
-> Regards and Thanks,
-> Keerthy
+Hi Thomas,
+ thanks again for the patch.  I finally made time to test it and it works as
+expected.  I've included it below with a change-log entry and tested-by:
+in case that helps.
+
+Thanks,
+NeilBrown
 
 
+From: Thomas Gleixner <tglx@linutronix.de>
+Date: Wed, 25 Apr 2012 12:54:54 +0200
+Subject: [PATCH] IRQ: allow check_wakeup_irqs to notice level-triggered int=
+errupts.
 
---=20
-Regards and Thanks,
-Keerthy
---
-To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Level triggered interrupts do not cause IRQS_PENDING to be set when
+they fire-while-disabled as the 'pending' state is always present in
+the level - they automatically refire where re-enabled.
+
+However the IRQS_PENDING flag is also used to abort a suspend cycle -
+if any 'is_wakeup_set' interrupt is PENDING, check_wakeup_irqs() will
+cause suspend to abort. Without IRQS_PENDING, suspend won't abort.
+
+Consequently, level-triggered interrupts that fire during the 'noirq'
+phase of suspend do not currently abort suspend.
+
+So set IRQS_PENDING even for level triggered interrupts, and make sure
+to clear the flag in check_irq_resend.
+
+Also: in check_wakeup_irqs, ignore 'is_wakeup' interrupts that were
+already disabled before suspend_device_irqs() disabled them further.
+
+Tested-by: NeilBrown <neilb@suse.de>
+
+diff --git a/kernel/irq/chip.c b/kernel/irq/chip.c
+index 6080f6b..741f836 100644
+--- a/kernel/irq/chip.c
++++ b/kernel/irq/chip.c
+@@ -379,8 +379,10 @@ handle_level_irq(unsigned int irq, struct irq_desc *de=
+sc)
+ 	 * If its disabled or no action available
+ 	 * keep it masked and get out of here
+ 	 */
+-	if (unlikely(!desc->action || irqd_irq_disabled(&desc->irq_data)))
++	if (unlikely(!desc->action || irqd_irq_disabled(&desc->irq_data))) {
++		desc->istate |=3D IRQS_PENDING;
+ 		goto out_unlock;
++	}
+=20
+ 	handle_irq_event(desc);
+=20
+diff --git a/kernel/irq/pm.c b/kernel/irq/pm.c
+index 15e53b1..b858ce3 100644
+--- a/kernel/irq/pm.c
++++ b/kernel/irq/pm.c
+@@ -103,7 +103,8 @@ int check_wakeup_irqs(void)
+ 	int irq;
+=20
+ 	for_each_irq_desc(irq, desc) {
+-		if (irqd_is_wakeup_set(&desc->irq_data)) {
++		if (desc->depth =3D=3D 1 &&
++		    irqd_is_wakeup_set(&desc->irq_data)) {
+ 			if (desc->istate & IRQS_PENDING)
+ 				return -EBUSY;
+ 			continue;
+diff --git a/kernel/irq/resend.c b/kernel/irq/resend.c
+index 14dd576..6454db7 100644
+--- a/kernel/irq/resend.c
++++ b/kernel/irq/resend.c
+@@ -58,10 +58,13 @@ void check_irq_resend(struct irq_desc *desc, unsigned i=
+nt irq)
+ 	/*
+ 	 * We do not resend level type interrupts. Level type
+ 	 * interrupts are resent by hardware when they are still
+-	 * active.
++	 * active. Clear the pending bit so suspend/resume does not
++	 * get confused.
+ 	 */
+-	if (irq_settings_is_level(desc))
++	if (irq_settings_is_level(desc)) {
++		desc->istate &=3D ~IRQS_PENDING;
+ 		return;
++	}
+ 	if (desc->istate & IRQS_REPLAY)
+ 		return;
+ 	if (desc->istate & IRQS_PENDING) {
+
+--Sig_/M_Mnyl1jqY=ZXVnt32A/Lrt
+Content-Type: application/pgp-signature; name=signature.asc
+Content-Disposition: attachment; filename=signature.asc
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v2.0.18 (GNU/Linux)
+
+iQIVAwUBT6NlNTnsnt1WYoG5AQKhfw//a54qUJOTLtno4QY2fcBxkWmTVCr4c6KV
+v0E3A6m9Xu1ZNExN5Tn6xYDU13eDKrlPm9+k+o/YxajppPnDUrfzKST0QnBSLn5w
+cjLtPl6eDK31akteANJ+UgmZ0lfCXOAEeqNUXAMKZ/yjuzaaMKlLWtsJjANI/zaK
+Y9ux2qbH7auNtFMLLWx8m1q45kvDH89OlzYeZPn0pg1PgITzHrsrDzHZE4GMcocd
+ZB8vEu9fuZhrLEUtgWfWXXTrys1e0CJ+m939TKXpCeRjGbYDyv0vG/D7zGCf9GQr
+0XfRZgWhAINAkVq7tldhKaNCFZxUyg7ppwu61qDPpKIBkcIQfPAXcZmBtc0dQAhn
++GmUMkphQyhdk+4sj4hD5rUr38FzfbCAgqk59nhO/nZU/E3N1Mnh6XyQaRc3LRId
+vZYVbwcmPIptvbyUWuSE75S+jF8YKhDH1o/gCdLVLYb37DAsHU4aFL+bvpgKGmpF
+EsEWP89/uK8+vbVDHXOsP7ahQeY4+z+1Rs8Gzp6Y9I3XSxU4Gs9GeBm77XW3NCzY
+3SvjRp4kn2psqz8FFfCjWMYYxmZ4lcogldsF/4e/OnB0gP7spvSPcedVfok94Yek
+vgZQnitxqjJoXBoh7E0W9Z4wz+8enS9hMXTeh/V8qhaqQOnXx6vDl9aRTsw4OBR6
+DKGsdt+j2hg=
+=5Na3
+-----END PGP SIGNATURE-----
+
+--Sig_/M_Mnyl1jqY=ZXVnt32A/Lrt--
