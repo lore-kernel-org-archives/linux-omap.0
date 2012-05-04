@@ -1,59 +1,69 @@
 From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH] omap: dma: Clear status registers on enable/disable
- irq.
-Date: Fri, 4 May 2012 09:51:46 -0700
-Message-ID: <20120504165146.GB5613@atomide.com>
-References: <1334954578-10478-1-git-send-email-oleg.matcovschi@ti.com>
+Subject: Re: [PATCH 3.4-rc4] ARM: OMAP1: Amstrad Delta: Fix wrong IRQ base
+ in FIQ handler
+Date: Fri, 4 May 2012 09:59:49 -0700
+Message-ID: <20120504165948.GC5613@atomide.com>
+References: <1335806769-23711-1-git-send-email-jkrzyszt@tis.icnet.pl>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-01-ewr.mailhop.org ([204.13.248.71]:37249 "EHLO
-	mho-01-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751996Ab2EDQvu (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 4 May 2012 12:51:50 -0400
+Return-path: <linux-kernel-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <1334954578-10478-1-git-send-email-oleg.matcovschi@ti.com>
-Sender: linux-omap-owner@vger.kernel.org
+In-Reply-To: <1335806769-23711-1-git-send-email-jkrzyszt@tis.icnet.pl>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Janusz Krzysztofik <jkrzyszt@tis.icnet.pl>
+Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Oleg Matcovschi <oleg.matcovschi@ti.com>
-Cc: linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux@arm.linux.org.uk, Janusz Krzysztofik <jkrzyszt@tis.icnet.pl>, Jarkko Nikula <jarkko.nikula@bitmer.com>, Peter Ujfalusi <peter.ujfalusi@ti.com>
 
-Hi,
+* Janusz Krzysztofik <jkrzyszt@tis.icnet.pl> [120430 10:30]:
+> Commit 384ebe1c2849160d040df3e68634ec506f13d9ff, "gpio/omap: Add DT
+> support to GPIO driver", introduced dynamic IRQ numbering of OMAP GPIO
+> interrupts, breaking all IH_GPIO_BASE based IRQ number calculations.
+> This issue was corrected in the OMAP GPIO driver and the related header
+> file with commit 25db711df3258d125dc1209800317e5c0ef3c870, "gpio/omap:
+> Fix IRQ handling for SPARSE_IRQ".
+> 
+> However, the Amstrad Delta FIQ handler, which replaces the gpio-omap
+> driver in serving GPIO interrupts on this board, still uses that
+> outdated method. Fix it.
 
-* Oleg Matcovschi <oleg.matcovschi@ti.com> [120420 13:49]:
-> Use omap_disable_channel_irq() function instead of directly accessing CICR.
-> The omap_disable_chanel_irq() function clears pending interrupts
-> and disables interrupt on channel.
-> Functions omap2_enable_irq_lch()/omap2_disable_irq_lch() clear interrupt
-> status register.
-
-This seems like a nice fix to me. As it affects all omaps, I'd like to
-see some tested-by from Janusz/Jarkko/Peter. Can you guys give it a try
-with some audio tests?
-
-Also one comment below.
+Thanks applying into fixes.
  
-> @@ -575,10 +573,15 @@ static inline void omap_enable_channel_irq(int lch)
->  	p->dma_write(dma_chan[lch].enabled_irqs, CICR, lch);
->  }
->  
-> -static void omap_disable_channel_irq(int lch)
-> +static inline void omap_disable_channel_irq(int lch)
->  {
-> -	if (cpu_class_is_omap2())
-> -		p->dma_write(0, CICR, lch);
-> +	/* disable channel interrupts */
-> +	p->dma_write(0, CICR, lch);
-> +	/* Clear CSR */
-> +	if (cpu_class_is_omap1())
-> +		p->dma_read(CSR, lch);
-> +	else if (cpu_class_is_omap2())
-> +		p->dma_write(OMAP2_DMA_CSR_CLEAR_MASK, CSR, lch);
->  }
+> Created and tested against linux-3.4-rc4.
 
-You can leave out the else if cpu_class_is_omap2 and replace it
-with just else above.
+I've dropped this last line as that's pretty obvious from the commit alone.
+You can put extra comments like that could between some "---" lines:
+---
+This is based on -rc4...
+---
+So they get ignored when the patch gets applied. What is important,
+is what it was tested on, so saying "Tested on ams delta" would be
+more meaningful, although I guess that too is pretty obvious in this
+case :)
 
 Regards,
 
-Tony 
+Tony
+
+
+ 
+> Signed-off-by: Janusz Krzysztofik <jkrzyszt@tis.icnet.pl>
+> ---
+>  arch/arm/mach-omap1/ams-delta-fiq.c |    2 +-
+>  1 files changed, 1 insertions(+), 1 deletions(-)
+> 
+> diff --git a/arch/arm/mach-omap1/ams-delta-fiq.c b/arch/arm/mach-omap1/ams-delta-fiq.c
+> index fcce7ff..cfd98b1 100644
+> --- a/arch/arm/mach-omap1/ams-delta-fiq.c
+> +++ b/arch/arm/mach-omap1/ams-delta-fiq.c
+> @@ -48,7 +48,7 @@ static irqreturn_t deferred_fiq(int irq, void *dev_id)
+>  	struct irq_chip *irq_chip = NULL;
+>  	int gpio, irq_num, fiq_count;
+>  
+> -	irq_desc = irq_to_desc(IH_GPIO_BASE);
+> +	irq_desc = irq_to_desc(gpio_to_irq(AMS_DELTA_GPIO_PIN_KEYBRD_CLK));
+>  	if (irq_desc)
+>  		irq_chip = irq_desc->irq_data.chip;
+>  
+> -- 
+> 1.7.3.4
+> 
