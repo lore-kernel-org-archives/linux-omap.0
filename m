@@ -1,29 +1,35 @@
 From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH v2] arm: omap: fix trivial warnings for dspbridge
-Date: Fri, 4 May 2012 10:31:24 -0700
-Message-ID: <20120504173124.GF5613@atomide.com>
-References: <1335191549-1047-1-git-send-email-felipe.contreras@gmail.com>
+Subject: Re: [PATCH] OMAP: igep0020: fix smsc911x dummy regulator id
+Date: Fri, 4 May 2012 10:33:25 -0700
+Message-ID: <20120504173325.GG5613@atomide.com>
+References: <1335806408-614-1-git-send-email-ebutera@users.sourceforge.net>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-01-ewr.mailhop.org ([204.13.248.71]:10060 "EHLO
+Received: from mho-01-ewr.mailhop.org ([204.13.248.71]:11827 "EHLO
 	mho-01-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753094Ab2EDRb1 (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 4 May 2012 13:31:27 -0400
+	with ESMTP id S1750807Ab2EDRd1 (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 4 May 2012 13:33:27 -0400
 Content-Disposition: inline
-In-Reply-To: <1335191549-1047-1-git-send-email-felipe.contreras@gmail.com>
+In-Reply-To: <1335806408-614-1-git-send-email-ebutera@users.sourceforge.net>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Felipe Contreras <felipe.contreras@gmail.com>
-Cc: linux-omap@vger.kernel.org, Russell King <linux@arm.linux.org.uk>, Jiri Kosina <trivial@kernel.org>, linux-arm-kernel@lists.infradead.org, Omar Ramirez Luna <omar.ramirez@ti.com>
+To: Enrico <ebutera@users.sourceforge.net>
+Cc: linux-omap@vger.kernel.org, Enrico Butera <ebutera@users.berlios.de>
 
-* Felipe Contreras <felipe.contreras@gmail.com> [120423 07:36]:
-> arch/arm/plat-omap/devices.c: In function 'omap_dsp_reserve_sdram_memblock':
-> arch/arm/plat-omap/devices.c:170: warning: format '%x' expects type 'unsigned int', but argument 3 has type 'phys_addr_t'
-> arch/arm/mach-omap2/dsp.c: In function 'omap_dsp_init':
-> arch/arm/mach-omap2/dsp.c:60: warning: format '%x' expects type 'unsigned int', but argument 3 has type 'phys_addr_t'
-> arch/arm/mach-omap2/dsp.c:60: warning: format '%x' expects type 'unsigned int', but argument 4 has type 'phys_addr_t'
+* Enrico <ebutera@users.sourceforge.net> [120430 10:23]:
+> From: Enrico Butera <ebutera@users.berlios.de>
+> 
+> Using id 0 causes errors at boot:
+> 
+> WARNING: at fs/sysfs/dir.c:508 sysfs_add_one+0x9c/0xac()
+> sysfs: cannot create duplicate filename '/devices/platform/reg-fixed-voltage.0'
+> 
+> Fix it by using a random (not-already-used) id, as suggested
+> by Tony Lindgren.
 
-Thanks I'll apply this into fixes-non-critical.
+Thanks applying into fixes.
+
+Regards,
 
 Tony
