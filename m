@@ -1,16 +1,16 @@
 From: Jon Hunter <jon-hunter@ti.com>
 Subject: Re: [PATCH V3 1/2] of: Add generic device tree DMA helpers
-Date: Fri, 4 May 2012 10:17:28 -0500
-Message-ID: <4FA3F308.6030900@ti.com>
+Date: Fri, 4 May 2012 10:22:01 -0500
+Message-ID: <4FA3F419.5050707@ti.com>
 References: <1335820679-28721-1-git-send-email-jon-hunter@ti.com> <CAJe_Zhe-SqDMDGOhrYZtBBJnCYqLR0H07cPKzG4SyUxiLrgFnQ@mail.gmail.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="ISO-8859-1"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from comal.ext.ti.com ([198.47.26.152]:33462 "EHLO comal.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1750866Ab2EDPRt (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Fri, 4 May 2012 11:17:49 -0400
+Received: from devils.ext.ti.com ([198.47.26.153]:53740 "EHLO
+	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751035Ab2EDPW0 (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 4 May 2012 11:22:26 -0400
 In-Reply-To: <CAJe_Zhe-SqDMDGOhrYZtBBJnCYqLR0H07cPKzG4SyUxiLrgFnQ@mail.gmail.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
