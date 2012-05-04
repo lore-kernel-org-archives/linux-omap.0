@@ -1,50 +1,48 @@
-From: Thomas Petazzoni <thomas.petazzoni@free-electrons.com>
-Subject: Re: [PATCH 01/11] OMAP2+: Add SoC specific map_io functions
-Date: Fri, 4 May 2012 17:59:42 +0200
-Message-ID: <20120504175942.5ceb8e91@skate>
-References: <1316809399-19579-1-git-send-email-b-cousson@ti.com>
-	<1316809399-19579-2-git-send-email-b-cousson@ti.com>
+From: Thomas Gleixner <tglx@linutronix.de>
+Subject: Re: [PATCH 2/3] IRQ: allow check_wakeup_irqs to notice level-triggered
+ interrupts.
+Date: Fri, 4 May 2012 18:01:22 +0200 (CEST)
+Message-ID: <alpine.LFD.2.02.1205041759540.6271@ionos>
+References: <20120425025637.7832.14013.stgit@notabene.brown> <20120425030524.7832.85239.stgit@notabene.brown> <alpine.LFD.2.02.1204251018530.2542@ionos> <20120425193916.0db1b4b1@notabene.brown> <alpine.LFD.2.02.1204251402360.2542@ionos>
+ <20120504151221.6998d4e5@notabene.brown>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail.free-electrons.com ([88.190.12.23]:54942 "EHLO
-	mail.free-electrons.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751182Ab2EDP7z convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 4 May 2012 11:59:55 -0400
-In-Reply-To: <1316809399-19579-2-git-send-email-b-cousson@ti.com>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: TEXT/PLAIN; charset=US-ASCII
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <20120504151221.6998d4e5@notabene.brown>
+Sender: linux-kernel-owner@vger.kernel.org
+To: NeilBrown <neilb@suse.de>
+Cc: Tony Lindgren <tony@atomide.com>, Russell King <linux@arm.linux.org.uk>, Samuel Ortiz <sameo@linux.intel.com>, "Rafael J. Wysocki" <rjw@sisk.pl>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org, linux-pm@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Benoit Cousson <b-cousson@ti.com>
-Cc: tony@atomide.com, grant.likely@secretlab.ca, khilman@ti.com, paul@pwsan.com, devicetree-discuss@lists.ozlabs.org, rnayak@ti.com, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 
-Hello Benoit,
+Neil,
 
-Le Fri, 23 Sep 2011 22:23:09 +0200,
-Benoit Cousson <b-cousson@ti.com> a =C3=A9crit :
+On Fri, 4 May 2012, NeilBrown wrote:
 
-> Add SoC specific map_io function to be used by the generic DT
-> board file. This is an intermediate step before having some
-> generic DT aware map_io function.
->=20
-> Signed-off-by: Benoit Cousson <b-cousson@ti.com>
-> Cc: Tony Lindgren <tony@atomide.com>
+> On Wed, 25 Apr 2012 14:54:54 +0200 (CEST) Thomas Gleixner
+> <tglx@linutronix.de> wrote:
+> 
+> > Why not simply managing the pending bit for level irqs ?
+> > 
+> 
+> Hi Thomas,
+>  thanks again for the patch.  I finally made time to test it and it works as
+> expected.  I've included it below with a change-log entry and tested-by:
+> in case that helps.
 
-Do you know if some progress has been made on having a generic DT aware
-map_io function, or is the per-SoC ->map_io() function still the
-recommended way of handling SoC having different requirements of static
-mappings at boot time?
+thanks for testing. The changelog is great. You know how to make the
+live of lazy buggers easier :)
+  
+>  	for_each_irq_desc(irq, desc) {
+> -		if (irqd_is_wakeup_set(&desc->irq_data)) {
+> +		if (desc->depth == 1 &&
+> +		    irqd_is_wakeup_set(&desc->irq_data)) {
+>  			if (desc->istate & IRQS_PENDING)
+>  				return -EBUSY;
+>  			continue;
 
-Regards,
+I split that part into a separate patch, as it's really a different
+issue.
 
-Thomas
---=20
-Thomas Petazzoni, Free Electrons
-Kernel, drivers, real-time and embedded Linux
-development, consulting, training and support.
-http://free-electrons.com
---
-To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Thanks,
+
+	tglx
