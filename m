@@ -1,128 +1,73 @@
-From: Jean-Christophe PLAGNIOL-VILLARD <plagnioj@jcrosoft.com>
-Subject: Re: [PATCH] pinctrl: Add generic pinctrl-simple driver that
- supports omap2+ padconf
-Date: Fri, 4 May 2012 18:38:07 +0200
-Message-ID: <20120504163807.GG7788@game.jcrosoft.org>
-References: <20120502172401.GG3739@atomide.com>
- <20120503065131.GA3738@game.jcrosoft.org>
- <20120503152708.GC5140@atomide.com>
- <4FA30805.5050804@wwwdotorg.org>
- <20120504044305.GD7788@game.jcrosoft.org>
- <20120504150342.GI5140@atomide.com>
- <20120504153251.GE7788@game.jcrosoft.org>
- <20120504163420.GA5613@atomide.com>
+From: Tony Lindgren <tony@atomide.com>
+Subject: Re: [PATCH v3.4-rc3] MTD: NAND: ams-delta: Fix
+ request_mem_region() failure
+Date: Fri, 4 May 2012 10:11:25 -0700
+Message-ID: <20120504171125.GD5613@atomide.com>
+References: <1334670557-25640-1-git-send-email-jkrzyszt@tis.icnet.pl>
+ <1587089.0XMyH6e1Ic@acer>
+ <1335417678.2290.7.camel@koala>
+ <1520744.9xCxNUdyzk@acer>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-kernel-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <20120504163420.GA5613@atomide.com>
+In-Reply-To: <1520744.9xCxNUdyzk@acer>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Tony Lindgren <tony@atomide.com>
-Cc: Stephen Warren <swarren@wwwdotorg.org>, Linus Walleij <linus.walleij@linaro.org>, linux-omap@vger.kernel.org, Stephen Warren <swarren@nvidia.com>, linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+To: Janusz Krzysztofik <jkrzyszt@tis.icnet.pl>
+Cc: dedekind1@gmail.com, David Woodhouse <dwmw2@infradead.org>, Artem Bityutskiy <Artem.Bityutskiy@linux.intel.com>, linux-kernel@vger.kernel.org, linux-mtd@lists.infradead.org, linux-omap@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-On 09:34 Fri 04 May     , Tony Lindgren wrote:
-> * Jean-Christophe PLAGNIOL-VILLARD <plagnioj@jcrosoft.com> [120504 08:58]:
-> > On 08:03 Fri 04 May     , Tony Lindgren wrote:
-> > > > 
-> > > > so I was thinking to do like on gpio
-> > > > 
-> > > > uart {
-> > > > 	pin = < &pioA 12 {pararms} >
-> > > > 
-> > > > }
-> > > 
-> > > Hmm I assume the "12" above the gpio number?
-> > no pin number in the bank because it could not be gpio
-> 
-> Yes OK, but pin number 12 in the gpio bank, not in the mux register.
-> Got it.
->  
-> > 	pioD: gpio@fffff800 {
-> > 		compatible = "atmel,at91rm9200-gpio";
-> > 		reg = <0xfffff800 0x100>;
-> > 		interrupts = <5 4>;
-> > 		#gpio-cells = <2>;
-> > 		gpio-controller;
-> > 		interrupt-controller;
-> > 	};
-> > 
-> > 	pioE: gpio@fffffa00 {
-> > 		compatible = "atmel,at91rm9200-gpio";
-> > 		reg = <0xfffffa00 0x100>;
-> > 		interrupts = <5 4>;
-> > 		#gpio-cells = <2>;
-> > 		gpio-controller;
-> > 		interrupt-controller;
-> > 	};
-> > 
-> > 	dbgu {
-> > 		pins = < &pioB 12 0 0
-> > 			 &pioB 13 0 2 >;
-> > 	/* with macro */
-> > 		pins = < &pioB 12 MUX_A NO_PULL_UP
-> > 			 &pioB 13 MUX_A PULL_UP >;
-> > 	};
-> 
-> I could change to use this too no problem. The only concern I have is
-> that is "&pioB 12" immutable for all gpio controllers?
-> 
-> Grepping the *.dts* files, at least exynos is using the following
-> for gpios:
-> 
-> gpios = <&gpx2 0 0 0 2>;
-> 
-> If we can conclude that phandle to the gpio controller instance and
-> the register offset is always enough here, then I'm OK changing to
-> that format. It would actually save some parsing in most cases.
-I would said yes but we could use the same notion to create pin-bank
+Hi,
 
-the idea is to refer to the bank and then the pin inside
-
-after if a driver need more argumement as on exynos they will have to
-implement their own xlate
-
-as we did on at91 for the irq xlate
->  
-> > 	/* and also the notion of linked group
-> > 	 * as on uart of network you have often the same subset of pin use.
-> > 	 *
-> > 	 * As example on uart rxd/txd is use for the group without rts/cts
-> > 	 * and the one with it
-> > 	 * on ethernet the RMII pin are use also on MII
-> > 	 */
+* Janusz Krzysztofik <jkrzyszt@tis.icnet.pl> [120430 11:15]:
+> Dnia czwartek, 26 kwietnia 2012 08:20:59 Artem Bityutskiy pisze:
+> > On Wed, 2012-04-25 at 19:01 +0200, Janusz Krzysztofik wrote:
+> > > Both drivers use separate subsets of registers that belong to the 
+> OMAP1 
+> > > MPU I/O device, but are used for controlling different sets of I/O 
+> pins. 
+> > > The NAND driver reads/writes the folowing registers:
+> > > - OMAP_MPUIO_INPUT_LATCH,
+> > > - OMAP_MPUIO_OUTPUT,
+> > > - OMAP_MPUIO_IO_CNTL,
+> > > while the keypad driver - the following:
+> > > - OMAP_MPUIO_KBR_LATCH,
+> > > - OMAP_MPUIO_KBC,
+> > > - OMAP_MPUIO_KBD_MASKIT
+> > > - OMAP_MPUIO_GPIO_DEBOUNCING.
+> > > Both subsets are non-overlapping, and we rely on the drivers being 
+> free 
+> > > of bugs and doing their job correctly, not stepping on each others' 
+> > > feet, I guess.
 > > 
-> > 	uart0_rxd_txd {
-> > 		pins = < &pioB 19 MUX_A PULL_UP		/* rxd */
-> > 			 &pioB 18 MUX_A NO_PULL_UP >;	/* txd */
-> > 	};
+> > First of all, I think this information should be in the commit 
+> message.
+> > Also, some sort of comment in the driver code would be nice.
 > > 
-> > 	uart0_rts_cts {
-> > 		groups = < &uart0_rxd_txd >;
-> > 		pins = < &pioB 17 MUX_B NO_PULL_UP	/* rts */
-> > 			 &pioB 15 MUX_B NO_PULL_UP >;	/* cts */
-> > 	};
+> > If locking the memory region is too coarse approach, the should have a
+> > small separate omap-specific MPUIO subsystem which will be used by
+> > drivers to access MPUIO?
 > > 
-> > 	uart0_rts_cts_external_pull_up {
-> > 		groups = < &uart0_rts_cts >;
-> > 		gpios = <&pioC 1 0>;
-> > 	};
-> > };
+> > Another question - should request_mem_region() be also removed from 
+> the
+> > omap-gpio driver then? I think it is more sensible to put a comment
+> > there that it is sharing MPIO with other drivers,  instead of having 
+> an
+> > illusion of exclusive memory region ownership.
 > > 
-> > The idea is to avoid duplication the xlate for pins will be driver specific
-> > with maybe a common implementation
-> > 
-> > the 3 or 4 first fix as done on gpio
+> > But this is up to the OMAP community - I can take this patch to my
+> > l2-mtd tree if you get an ack from Tony or other OMAP guys.
 > 
-> Yeah sounds doable to me, but can probably be added later?
-for the sub-group stuff yes agreed
-> 
-> Regarding grouping, basically for most cases it makes sense to have
-> three states: default, active, idle instead of just active and idle.
-> The reason is that for most cases the default pins only need to be
-> set once for each devices. Only few pins need to toggle between
-> active and idle states.
-yeah agreed
+> Tony,
+> Would I get your Ack for this fix if I extend the commit message as Artem 
+> suggested? If not, what do you think should be a correct way to fix the 
+> regression?
 
-Best Regards,
-J.
+Well how about adding some exported functions to drivers/gpio/gpio_omap.c
+like omap_mpuio_latch?
+
+For the regression fix, if you guys want to do what Janusz is suggesting,
+then assuming the patch description also contains some decent long term
+plan to properly fix it:
+
+Acked-by: Tony Lindgren <tony@atomide.com>
