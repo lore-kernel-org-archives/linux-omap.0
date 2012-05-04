@@ -1,200 +1,97 @@
-From: Stephen Warren <swarren@wwwdotorg.org>
-Subject: Re: [PATCH] pinctrl: Add generic pinctrl-simple driver that supports
- omap2+ padconf
-Date: Fri, 04 May 2012 13:23:43 -0600
-Message-ID: <4FA42CBF.8010906@wwwdotorg.org>
-References: <20120502172401.GG3739@atomide.com>
+From: Janusz Krzysztofik <jkrzyszt@tis.icnet.pl>
+Subject: Re: [PATCH v3.4-rc3] MTD: NAND: ams-delta: Fix request_mem_region() failure
+Date: Fri, 04 May 2012 21:23:07 +0200
+Message-ID: <20564014.WxNq7urlj7@acer>
+References: <1334670557-25640-1-git-send-email-jkrzyszt@tis.icnet.pl> <1520744.9xCxNUdyzk@acer> <20120504171125.GD5613@atomide.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20120502172401.GG3739@atomide.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Tony Lindgren <tony@atomide.com>
-Cc: Linus Walleij <linus.walleij@linaro.org>, linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org, Stephen Warren <swarren@nvidia.com>
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 7Bit
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from d1.icnet.pl ([212.160.220.21]:54500 "EHLO d1.icnet.pl"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1759494Ab2EDTZo (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Fri, 4 May 2012 15:25:44 -0400
+In-Reply-To: <20120504171125.GD5613@atomide.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Tony Lindgren <tony@atomide.com>
+Cc: dedekind1@gmail.com, David Woodhouse <dwmw2@infradead.org>, Artem Bityutskiy <Artem.Bityutskiy@linux.intel.com>, linux-kernel@vger.kernel.org, linux-mtd@lists.infradead.org, linux-omap@vger.kernel.org
 
-On 05/02/2012 11:24 AM, Tony Lindgren wrote:
-> Add simple pinctrl driver using device tree data.
+On Fri, 4 May 2012 10:11:25 Tony Lindgren wrote:
+> Hi,
 > 
-> Currently this driver only works on omap2+ series of
-> processors, where there is either an 8 or 16-bit padconf
-> register for each pin. Support for other similar pinmux
-> controllers could be added.
+> * Janusz Krzysztofik <jkrzyszt@tis.icnet.pl> [120430 11:15]:
+> > Dnia czwartek, 26 kwietnia 2012 08:20:59 Artem Bityutskiy pisze:
+> > > On Wed, 2012-04-25 at 19:01 +0200, Janusz Krzysztofik wrote:
+> > > > Both drivers use separate subsets of registers that belong to 
+the 
+> > OMAP1 
+> > > > MPU I/O device, but are used for controlling different sets of 
+I/O 
+> > pins. 
+> > > > The NAND driver reads/writes the folowing registers:
+> > > > - OMAP_MPUIO_INPUT_LATCH,
+> > > > - OMAP_MPUIO_OUTPUT,
+> > > > - OMAP_MPUIO_IO_CNTL,
+> > > > while the keypad driver - the following:
+> > > > - OMAP_MPUIO_KBR_LATCH,
+> > > > - OMAP_MPUIO_KBC,
+> > > > - OMAP_MPUIO_KBD_MASKIT
+> > > > - OMAP_MPUIO_GPIO_DEBOUNCING.
+> > > > Both subsets are non-overlapping, and we rely on the drivers 
+being 
+> > free 
+> > > > of bugs and doing their job correctly, not stepping on each 
+others' 
+> > > > feet, I guess.
+> > > 
+> > > First of all, I think this information should be in the commit 
+> > message.
+> > > Also, some sort of comment in the driver code would be nice.
+> > > 
+> > > If locking the memory region is too coarse approach, the should 
+have a
+> > > small separate omap-specific MPUIO subsystem which will be used by
+> > > drivers to access MPUIO?
+> > > 
+> > > Another question - should request_mem_region() be also removed 
+from 
+> > the
+> > > omap-gpio driver then? I think it is more sensible to put a 
+comment
+> > > there that it is sharing MPIO with other drivers,  instead of 
+having 
+> > an
+> > > illusion of exclusive memory region ownership.
+> > > 
+> > > But this is up to the OMAP community - I can take this patch to my
+> > > l2-mtd tree if you get an ack from Tony or other OMAP guys.
+> > 
+> > Tony,
+> > Would I get your Ack for this fix if I extend the commit message as 
+Artem 
+> > suggested? If not, what do you think should be a correct way to fix 
+the 
+> > regression?
 > 
-> Note that this patch does not yet support pinconf_ops
-> or GPIO. Further.
+> Well how about adding some exported functions to 
+drivers/gpio/gpio_omap.c
+> like omap_mpuio_latch?
 > 
-> Signed-off-by: Tony Lindgren <tony@atomide.com>
-> ---
-> Here's this one finally updated to use the common pinctrl bindings.
-> That sure cleaned up a bunch of the nasty things in this driver :)
-> Nice job Stephen!
+> For the regression fix, if you guys want to do what Janusz is 
+suggesting,
+> then assuming the patch description also contains some decent long 
+term
+> plan to properly fix it:
+> 
+> Acked-by: Tony Lindgren <tony@atomide.com>
 
-Thanks.
+Thanks. Now that we know you prefer to keep the memory requested from 
+inside the gpio-omap, which I was about to suggest to drop back as an 
+alternative fix, I'll try to cook a new description for my patch, and 
+perhaps add a comment replacing the request_mem_region function removed 
+from the ams-delta NAND driver, in order to satisfy both yours and 
+Artem's comments in a few days.
 
-> diff --git a/Documentation/devicetree/bindings/pinctrl/pinctrl-simple.txt b/Documentation/devicetree/bindings/pinctrl/pinctrl-simple.txt
-
-> +Required properties:
-> +- compatible :  one of:
-> +	- "pinctrl-simple"
-> +	- "ti,omap2420-padconf"
-> +	- "ti,omap2430-padconf"
-> +	- "ti,omap3-padconf"
-> +	- "ti,omap4-padconf"
-
-I'm in two minds about this.
-
-If this is truly intended to be generic, I would not document any of the
-ti compatible values here. Instead, I'd create a binding document for
-the TI controllers that basically just says "this uses the bindings in
-pinctrl-simple.txt, with the following additions", and list the
-compatible values as an addition.
-
-On the other hand, I worry about whether using "pinctrl-simple" here as
-the compatible value is going to cause issues:
-
-Certainly, this is a pretty simple driver, and most likely reasonably
-generic an applicable to many SoCs. However, it doesn't cover a bunch of
-cases that I'd still consider "simple". For example, what if each pin
-has a separate mux and pinconf register? There are probably many such
-small cases that would add up to something more complex. to cover those
-cases, will we be able to extend pinctrl-simple to cover them, and
-continue to be backwards compatible, or will we need to create a
-binding/driver for pinctrl-simple-1, pinctrl-simple-2, pinctrl-simple-3
-each of which covers some different, yet still simple, configuration?
-
-To resolve this, perhaps it would be best to rework this binding and
-driver as a set of utility code that other bindings and drivers can
-build upon, rather than making it a standalone directly usable driver
-and binding.
-
-Honestly, I'm not really sure which way to go here.
-
-> +- reg : offset and length of the register set for the mux registers
-> +- #pinctrl-cells : width of the pinctrl array, currently only 2 is supported
-> +- pinctrl-simple,register-width : pinmux register access width
-> +- pinctrl-simple,function-mask : mask of allowed pinmux function bits
-> +- pinctrl-simple,function-off : function off mode for disabled state
-> +- pinctrl-simple,pinconf-mask : mask of allowed pinconf bits
-> +
-> +This driver uses the common pinctrl bindings as specified in
-> +pinctrl-bindings.txt document in this directory. The common bindings are used
-> +to specify the client device states using pinctrl-0 and pinctrl-names entries.
-
-I think just remove the second sentence there; it's implicit given the
-first.
-
-> +/* board specific .dts file, such as omap4-sdp.dts */
-> +&omap4_pmx_core {
-> +
-> +	/*
-> +	 * map all board specific static pins enabled by the pinctrl driver
-> +	 * itself during the boot (or just set them up in the bootloader)
-> +	 */
-> +	pinctrl-names = "default";
-> +	pinctrl-0 = <&board_pins>;
-> +
-> +	board_pins: pinmux_board_pins {
-> +		board_static_pins {
-
-I'd like to see a little more explanation of the node structure here.
-I.e. what does each node represent, why are there two levels of nodes, etc.
-
-Given that the "pinctrl-simple,cells" can specify both mux function and
-pin configuration for each pin, i.e. everything you need to, I don't see
-why you'd ever need two levels of nodes here. I'd expect each "pin
-configuration node" (in pinctrl core bindings terminology) to be a
-single level:
-
-node {
-    pinctrl-simple,cells = <...>;
-};
-
-where node is what's references in the pinctrl-0 property by pinctrl
-client drivers.
-
-> +			pinctrl-simple,cells = <
-
-"cells" here doesn't seem like the right word. Perhaps "pins" or
-"configuration"? "Cell"s to me seems semi-reserved for binding cell
-count description, like #gpio-cells, #address-cells, etc.
-
-Also, there's nothing in the free-form text part of this binding
-document that says describes the set of properties that need to exist in
-these "pin configuration nodes", nor what their content is.
-
-> +				0x6c 0xf	/* CSI21_DX3 OMAP_PIN_OUTPUT | OMAP_MUX_MODE7 */
-> +				0x6e 0xf	/* CSI21_DY3 OMAP_PIN_OUTPUT | OMAP_MUX_MODE7 */
-> +				0x70 0xf	/* CSI21_DX4 OMAP_PIN_OUTPUT | OMAP_MUX_MODE7 */
-> +				0x72 0xf	/* CSI21_DY4 OMAP_PIN_OUTPUT | OMAP_MUX_MODE7 */
-> +			>;
-> +		};
-> +	};
-> +
-> +
-> +	/* map all uart2 pins as a single function */
-> +	uart2_pins: pinmux_uart2_pins {
-> +		uart2_pins {
-> +			pinctrl-simple,cells = <
-> +				0xd8 0x118	/* UART2_CTS OMAP_PIN_INPUT_PULLUP | OMAP_MUX_MODE0 */
-> +				0xda 0		/* UART2_RTS OMAP_PIN_OUTPUT | OMAP_MUX_MODE0 */
-> +				0xdc 0x118	/* UART2_RX OMAP_PIN_INPUT_PULLUP | OMAP_MUX_MODE0 */
-> +				0xde 0		/* UART2_TX OMAP_PIN_OUTPUT | OMAP_MUX_MODE0 */
-> +			>;
-> +		};
-> +	};
-> +
-> +	/* map all uart3 pins as separate functions */
-> +	uart3_pins: pinmux_uart3_pins {
-
->From a binding perspective, I don't see why you'd want to allow two cases:
-
-1) One node with multiple entries in pinctrl-simple,cells
-2) Multiple nodes each with a single entry in pinctrl-simple,cells
-
-Why not only allow (1)?
-
-> +		uart3_cts_rctx.uart3_cts_rctx {
-> +			pinctrl-simple,cells = <0x100 0x118>;	/* OMAP_PIN_INPUT_PULLUP | OMAP_MUX_MODE0 */
-> +             };
-> +
-> +		uart3_rts_sd.uart3_rts_sd {
-> +			pinctrl-simple,cells = <0x102 0>;	/* OMAP_PIN_OUTPUT | OMAP_MUX_MODE0 */
-> +		};
-> +
-> +		uart3_rx_irrx.uart3_rx_irrx {
-> +			pinctrl-simple,cells = <0x104 0x100>;	/* OMAP_PIN_INPUT | OMAP_MUX_MODE0 */
-> +		};
-> +
-> +		uart3_tx_irtx.uart3_tx_irtx {
-> +			pinctrl-simple,cells = <0x106 0>;	/* OMAP_PIN_OUTPUT | OMAP_MUX_MODE0 */
-> +		};
-> +	};
-> +};
-
-> diff --git a/drivers/pinctrl/pinctrl-simple.c b/drivers/pinctrl/pinctrl-simple.c
-
-> +struct pcs_device {
-...
-> +	unsigned (*read)(void __iomem *reg);
-> +	void (*write)(unsigned val, void __iomem *reg);
-> +};
-
-Why not use regmap instead of writing your own:
-
-> +static unsigned __maybe_unused pcs_readb(void __iomem *reg)
-> +static unsigned __maybe_unused pcs_readw(void __iomem *reg)
-...
-
-regmap recently gained support for memory-mapped IO, so should work for
-this. Also, using regmap might allow this binding/driver to be easily
-extended to support e.g. I2C-/SPI-based pin controller hardware, since
-regmap would handle all the IO details for you.
-
-Supporting these different IO modes might require a little more thought
-though. For example, an I2C device's reg refers to its location on the
-parent bus, rather than the address of the registers within the device.
-We'd probably need to augment parent busses with some method for child
-devices to acquire a regmap object for their own IO in order to hide
-this from drivers.
+Regards,
+Janusz
