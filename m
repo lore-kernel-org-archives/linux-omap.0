@@ -1,51 +1,71 @@
 From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH] ARM: OMAP2+: dma: Define dma capabilities register
- bitfields and use them.
-Date: Fri, 4 May 2012 10:53:54 -0700
-Message-ID: <20120504175353.GJ5613@atomide.com>
-References: <1336116582-11099-1-git-send-email-r.sricharan@ti.com>
- <CAMQu2gzDgPQwrv4oRCeUKEeYq4Tpu=X=SBSFjKzeTb7TzDsb9A@mail.gmail.com>
+Subject: Re: Incorrect Register Offsets in OMAP Mailbox
+Date: Fri, 4 May 2012 11:07:37 -0700
+Message-ID: <20120504180737.GK5613@atomide.com>
+References: <4F3165F0.2010306@gmail.com>
+ <20120305193417.GL12083@atomide.com>
+ <4F58682A.7010908@gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-02-ewr.mailhop.org ([204.13.248.72]:62246 "EHLO
+Received: from mho-02-ewr.mailhop.org ([204.13.248.72]:26416 "EHLO
 	mho-02-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753025Ab2EDRx4 (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 4 May 2012 13:53:56 -0400
+	with ESMTP id S1752517Ab2EDSHj (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 4 May 2012 14:07:39 -0400
 Content-Disposition: inline
-In-Reply-To: <CAMQu2gzDgPQwrv4oRCeUKEeYq4Tpu=X=SBSFjKzeTb7TzDsb9A@mail.gmail.com>
+In-Reply-To: <4F58682A.7010908@gmail.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "Shilimkar, Santosh" <santosh.shilimkar@ti.com>
-Cc: R Sricharan <r.sricharan@ti.com>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+To: Henry Chan <enli.chan@gmail.com>
+Cc: linux-omap@vger.kernel.org
 
-* Shilimkar, Santosh <santosh.shilimkar@ti.com> [120504 00:37]:
-> On Fri, May 4, 2012 at 12:59 PM, R Sricharan <r.sricharan@ti.com> wro=
-te:
-> > The system dma module has capabiities register indicating
-> > the support for descriptor loading, constant fill, etc.
-> > Use this instead of OMAP revision check to identify the features
-> > supported runtime.
-> >
-> > This avoids patching the code for feature SOCs which has
-> > those capabilities.
-> >
-> > Signed-off-by: R Sricharan <r.sricharan@ti.com>
-> > ---
-> > =C2=A0arch/arm/mach-omap2/dma.c =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =
-=C2=A0 | =C2=A0 11 +++++++----
-> > =C2=A0arch/arm/plat-omap/include/plat/dma.h | =C2=A0 =C2=A05 +++++
-> > =C2=A02 files changed, 12 insertions(+), 4 deletions(-)
-> >
-> Looks fine. Will add it to my clean-up series if no has
-> any objection on the patch.
+* Henry Chan <enli.chan@gmail.com> [120307 23:33]:
+> Sorry about that. Kind of new at this.
+> -H
+> 
+> Signed-off-by: Henry Chan <enli.chan@gmail.com>
 
-Yes this is nice.
+Thanks, applying this finally into fixes-non-critical.
 
 Tony
---
-To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+ 
+> On 03/05/12 11:34, Tony Lindgren wrote:
+> > Hi Henry,
+> > 
+> > * Henry Chan <enli.chan@gmail.com> [120207 09:25]:
+> >> Hi,
+> >>
+> >> Looks like the register offsets are incorrect in the OMAP mailbox code
+> >> (arch/arm/mach-omap2/mailbox.c) for the OMAP4_MAILBOX_IRQ* macros. The
+> >> discrepancy is with p.224 of TI document SPRUGX9 and p3891 of SWPU231K.
+> >> Patch attached.
+> >>
+> >> My hardware hasn't come in yet, so I would appreciate it if anyone can
+> >> share their experience using this code.
+> > 
+> > Can you please reply with your Signed-off-by, it's missing from the
+> > patch.
+> > 
+> > Thanks,
+> > 
+> > Tony
+> > 
+> >> --- a/arch/arm/mach-omap2/mailbox.c
+> >> +++ b/arch/arm/mach-omap2/mailbox.c
+> >> @@ -26,9 +26,9 @@
+> >>  #define MAILBOX_IRQSTATUS(u)		(0x100 + 8 * (u))
+> >>  #define MAILBOX_IRQENABLE(u)		(0x104 + 8 * (u))
+> >>  
+> >> -#define OMAP4_MAILBOX_IRQSTATUS(u)	(0x104 + 10 * (u))
+> >> -#define OMAP4_MAILBOX_IRQENABLE(u)	(0x108 + 10 * (u))
+> >> -#define OMAP4_MAILBOX_IRQENABLE_CLR(u)	(0x10c + 10 * (u))
+> >> +#define OMAP4_MAILBOX_IRQSTATUS(u)	(0x104 + 0x10 * (u))
+> >> +#define OMAP4_MAILBOX_IRQENABLE(u)	(0x108 + 0x10 * (u))
+> >> +#define OMAP4_MAILBOX_IRQENABLE_CLR(u)	(0x10c + 0x10 * (u))
+> >>  
+> >>  #define MAILBOX_IRQ_NEWMSG(m)		(1 << (2 * (m)))
+> >>  #define MAILBOX_IRQ_NOTFULL(m)		(1 << (2 * (m) + 1))
+> >>
+> > 
+> -- 
+> Henry Chan
