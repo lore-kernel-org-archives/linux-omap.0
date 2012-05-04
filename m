@@ -1,47 +1,51 @@
 From: Tony Lindgren <tony@atomide.com>
-Subject: Re: ttyO2 broken on IGEPv2 on 3.3, 3.4-rc5 or arm-soc/for-next,
- working on 3.2
-Date: Fri, 4 May 2012 10:51:25 -0700
-Message-ID: <20120504175124.GI5613@atomide.com>
-References: <20120504155255.140b4e3f@skate>
- <87397fewso.fsf@ti.com>
+Subject: Re: [PATCH] ARM: OMAP2+: dma: Define dma capabilities register
+ bitfields and use them.
+Date: Fri, 4 May 2012 10:53:54 -0700
+Message-ID: <20120504175353.GJ5613@atomide.com>
+References: <1336116582-11099-1-git-send-email-r.sricharan@ti.com>
+ <CAMQu2gzDgPQwrv4oRCeUKEeYq4Tpu=X=SBSFjKzeTb7TzDsb9A@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-01-ewr.mailhop.org ([204.13.248.71]:25644 "EHLO
-	mho-01-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753038Ab2EDRv3 (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 4 May 2012 13:51:29 -0400
+Received: from mho-02-ewr.mailhop.org ([204.13.248.72]:62246 "EHLO
+	mho-02-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753025Ab2EDRx4 (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 4 May 2012 13:53:56 -0400
 Content-Disposition: inline
-In-Reply-To: <87397fewso.fsf@ti.com>
+In-Reply-To: <CAMQu2gzDgPQwrv4oRCeUKEeYq4Tpu=X=SBSFjKzeTb7TzDsb9A@mail.gmail.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Kevin Hilman <khilman@ti.com>
-Cc: Thomas Petazzoni <thomas.petazzoni@free-electrons.com>, linux-omap@vger.kernel.org, Enric Balletbo i Serra <eballetbo@iseebcn.com>
+To: "Shilimkar, Santosh" <santosh.shilimkar@ti.com>
+Cc: R Sricharan <r.sricharan@ti.com>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 
-* Kevin Hilman <khilman@ti.com> [120504 09:31]:
-> Hi Thomas,
-> 
-> Thomas Petazzoni <thomas.petazzoni@free-electrons.com> writes:
-> 
-> > I have an IGEPv2 revision 6 board, which uses the DM3730 OMAP3. With
-> > 3.2 omap2plus_defconfig, the system boots fine and have a working shell
-> > on ttyO2. On either 3.3, 3.4-rc5 or arm-soc/for-next from Arnd, the
-> > system boots all the way up to showing the shell prompt, but I can't
-> > type any character, as if UART RX was broken.
-> 
-> On v3.4-rc, can you see if reverting bce492c04ba8fc66a4ea0a52b181ba255daaaf54
-> has any effect?
-> 
-> That patch had some unfortunate side effects, but I haven't seen the
-> problem you see, so I'm not sure if it's related.
+* Shilimkar, Santosh <santosh.shilimkar@ti.com> [120504 00:37]:
+> On Fri, May 4, 2012 at 12:59 PM, R Sricharan <r.sricharan@ti.com> wro=
+te:
+> > The system dma module has capabiities register indicating
+> > the support for descriptor loading, constant fill, etc.
+> > Use this instead of OMAP revision check to identify the features
+> > supported runtime.
+> >
+> > This avoids patching the code for feature SOCs which has
+> > those capabilities.
+> >
+> > Signed-off-by: R Sricharan <r.sricharan@ti.com>
+> > ---
+> > =C2=A0arch/arm/mach-omap2/dma.c =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =
+=C2=A0 | =C2=A0 11 +++++++----
+> > =C2=A0arch/arm/plat-omap/include/plat/dma.h | =C2=A0 =C2=A05 +++++
+> > =C2=A02 files changed, 12 insertions(+), 4 deletions(-)
+> >
+> Looks fine. Will add it to my clean-up series if no has
+> any objection on the patch.
 
-Reverting bce492c04ba8fc66a4ea0a52b181ba255daaaf54 is a broken solution
-like you mentioned. But if it helps, then the proper fix is to add muxing
-to board-*.c files for the uart pins and use omap_serial_init_port
-for each uart instead of omap_serial_init. That should fix the wake-up
-issues too.
-
-Regards,
+Yes this is nice.
 
 Tony
+--
+To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
