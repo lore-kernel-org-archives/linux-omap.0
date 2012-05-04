@@ -1,81 +1,224 @@
-From: Jon Hunter <jon-hunter@ti.com>
-Subject: Re: oprofile and ARM A9 hardware counter
-Date: Fri, 4 May 2012 17:17:36 -0500
-Message-ID: <4FA45580.8070802@ti.com>
-References: <20120403092524.GD17741@mudshark.cambridge.arm.com> <CAMQu2gxE2STYxUGinzstX6W8jyofH829A__NQBjwLqZd9cqy=w@mail.gmail.com> <20120403094749.GH17741@mudshark.cambridge.arm.com> <CAMQu2gyFirtVTWpMu4G_qG5sq33J-_s_o2JhVAdrUf7P3qJ3AA@mail.gmail.com> <20120403123444.GL17741@mudshark.cambridge.arm.com> <878vicsxef.fsf@ti.com> <20120403160706.GP17741@mudshark.cambridge.arm.com> <87ehs4pfw4.fsf@ti.com> <alpine.DEB.2.00.1204031727380.8000@utopia.booyaka.com> <20120404111524.GF32505@mudshark.cambridge.arm.com> <20120426180719.GC20186@mudshark.cambridge.arm.com>
+From: Tony Lindgren <tony@atomide.com>
+Subject: Re: [PATCH 02/13] ARM: OMAP5: Add minimal support for OMAP5430 SOC
+Date: Fri, 4 May 2012 15:39:33 -0700
+Message-ID: <20120504223933.GX5613@atomide.com>
+References: <1336029982-31898-1-git-send-email-r.sricharan@ti.com>
+ <1336029982-31898-3-git-send-email-r.sricharan@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="ISO-8859-1"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from arroyo.ext.ti.com ([192.94.94.40]:59449 "EHLO arroyo.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1759941Ab2EDWSN (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Fri, 4 May 2012 18:18:13 -0400
-In-Reply-To: <20120426180719.GC20186@mudshark.cambridge.arm.com>
+Received: from mho-01-ewr.mailhop.org ([204.13.248.71]:47014 "EHLO
+	mho-01-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1760476Ab2EDWjg (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 4 May 2012 18:39:36 -0400
+Content-Disposition: inline
+In-Reply-To: <1336029982-31898-3-git-send-email-r.sricharan@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Will Deacon <will.deacon@arm.com>
-Cc: Paul Walmsley <paul@pwsan.com>, Kevin Hilman <khilman@ti.com>, Benoit Cousson <b-cousson@ti.com>, Ming Lei <ming.lei@canonical.com>, Maynard Johnson <maynardj@us.ibm.com>, "Shilimkar\\, Santosh" <santosh.shilimkar@ti.com>, "oprofile-list\\@lists.sourceforge.net" <oprofile-list@lists.sourceforge.net>, Lik Lik <lik88888@gmail.com>, "eranian\\@gmail.com" <eranian@gmail.com>, "linux-omap\\@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-arm-kernel\\@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>
+To: R Sricharan <r.sricharan@ti.com>
+Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, santosh.shilimkar@ti.com, b-cousson@ti.com
 
-Hi Will,
+* R Sricharan <r.sricharan@ti.com> [120503 00:30]:
+> --- a/arch/arm/mach-omap2/Makefile
+> +++ b/arch/arm/mach-omap2/Makefile
+> @@ -16,6 +16,7 @@ secure-common				= omap-smc.o omap-secure.o
+>  obj-$(CONFIG_ARCH_OMAP2) += $(omap-2-3-common) $(hwmod-common)
+>  obj-$(CONFIG_ARCH_OMAP3) += $(omap-2-3-common) $(hwmod-common) $(secure-common)
+>  obj-$(CONFIG_ARCH_OMAP4) += prm44xx.o $(hwmod-common) $(secure-common)
+> +obj-$(CONFIG_ARCH_OMAP5) += prm44xx.o $(hwmod-common) $(secure-common)
+>  
+>  ifneq ($(CONFIG_SND_OMAP_SOC_MCBSP),)
+>  obj-y += mcbsp.o
+> @@ -27,8 +28,10 @@ obj-$(CONFIG_TWL4030_CORE) += omap_twl.o
+>  
+>  obj-$(CONFIG_SMP)			+= omap-smp.o omap-headsmp.o
+>  obj-$(CONFIG_HOTPLUG_CPU)		+= omap-hotplug.o
+> -obj-$(CONFIG_ARCH_OMAP4)		+= omap4-common.o omap-wakeupgen.o
+> -obj-$(CONFIG_ARCH_OMAP4)		+= sleep44xx.o
+> +omap-4-5-common				=  omap4-common.o omap-wakeupgen.o \
+> +					   sleep44xx.o		
+> +obj-$(CONFIG_ARCH_OMAP4)		+= $(omap-4-5-common)
+> +obj-$(CONFIG_ARCH_OMAP5)                += $(omap-4-5-common)
+>  
+>  plus_sec := $(call as-instr,.arch_extension sec,+sec)
+>  AFLAGS_omap-headsmp.o			:=-Wa,-march=armv7-a$(plus_sec)
+> @@ -68,6 +71,7 @@ obj-$(CONFIG_ARCH_OMAP2)		+= sleep24xx.o
+>  obj-$(CONFIG_ARCH_OMAP3)		+= pm34xx.o sleep34xx.o
+>  obj-$(CONFIG_ARCH_OMAP3)		+= cpuidle34xx.o
+>  obj-$(CONFIG_ARCH_OMAP4)		+= pm44xx.o omap-mpuss-lowpower.o
+> +obj-$(CONFIG_ARCH_OMAP5)		+= omap-mpuss-lowpower.o
+>  obj-$(CONFIG_ARCH_OMAP4)		+= cpuidle44xx.o
+>  obj-$(CONFIG_PM_DEBUG)			+= pm-debug.o
+>  obj-$(CONFIG_OMAP_SMARTREFLEX)          += sr_device.o smartreflex.o
+> @@ -87,9 +91,11 @@ obj-y					+= prm_common.o
+>  obj-$(CONFIG_ARCH_OMAP2)		+= prcm.o cm2xxx_3xxx.o prm2xxx_3xxx.o
+>  obj-$(CONFIG_ARCH_OMAP3)		+= prcm.o cm2xxx_3xxx.o prm2xxx_3xxx.o
+>  obj-$(CONFIG_ARCH_OMAP3)		+= vc3xxx_data.o vp3xxx_data.o
+> -obj-$(CONFIG_ARCH_OMAP4)		+= prcm.o cminst44xx.o cm44xx.o
+> -obj-$(CONFIG_ARCH_OMAP4)		+= prcm_mpu44xx.o prminst44xx.o
+> -obj-$(CONFIG_ARCH_OMAP4)		+= vc44xx_data.o vp44xx_data.o prm44xx.o
+> +omap-prcm-4-5-common			=  prcm.o cminst44xx.o cm44xx.o \
+> +					   prcm_mpu44xx.o prminst44xx.o \
+> +					   vc44xx_data.o vp44xx_data.o
+> +obj-$(CONFIG_ARCH_OMAP4)		+= $(omap-prcm-4-5-common) prm44xx.o
+> +obj-$(CONFIG_ARCH_OMAP5)                += $(omap-prcm-4-5-common)
+>  
+>  # OMAP voltage domains
+>  voltagedomain-common			:= voltage.o vc.o vp.o
+> @@ -99,6 +105,7 @@ obj-$(CONFIG_ARCH_OMAP3)		+= $(voltagedomain-common)
+>  obj-$(CONFIG_ARCH_OMAP3)		+= voltagedomains3xxx_data.o
+>  obj-$(CONFIG_ARCH_OMAP4)		+= $(voltagedomain-common)
+>  obj-$(CONFIG_ARCH_OMAP4)		+= voltagedomains44xx_data.o
+> +obj-$(CONFIG_ARCH_OMAP5)		+= $(voltagedomain-common)
+>  
+>  # OMAP powerdomain framework
+>  powerdomain-common			+= powerdomain.o powerdomain-common.o
+> @@ -113,6 +120,7 @@ obj-$(CONFIG_ARCH_OMAP3)		+= powerdomains2xxx_3xxx_data.o
+>  obj-$(CONFIG_ARCH_OMAP4)		+= $(powerdomain-common)
+>  obj-$(CONFIG_ARCH_OMAP4)		+= powerdomain44xx.o
+>  obj-$(CONFIG_ARCH_OMAP4)		+= powerdomains44xx_data.o
+> +obj-$(CONFIG_ARCH_OMAP5)                += $(powerdomain-common) powerdomain44xx.o
+>  
+>  # PRCM clockdomain control
+>  obj-$(CONFIG_ARCH_OMAP2)		+= clockdomain.o
+> @@ -124,9 +132,11 @@ obj-$(CONFIG_ARCH_OMAP3)		+= clockdomain.o
+>  obj-$(CONFIG_ARCH_OMAP3)		+= clockdomain2xxx_3xxx.o
+>  obj-$(CONFIG_ARCH_OMAP3)		+= clockdomains2xxx_3xxx_data.o
+>  obj-$(CONFIG_ARCH_OMAP3)		+= clockdomains3xxx_data.o
+> -obj-$(CONFIG_ARCH_OMAP4)		+= clockdomain.o
+> -obj-$(CONFIG_ARCH_OMAP4)		+= clockdomain44xx.o
+> +omap-clock-4-5-common			= clockdomain.o \
+> +					  clockdomain44xx.o
+> +obj-$(CONFIG_ARCH_OMAP4)		+= $(omap-clock-4-5-common)
+>  obj-$(CONFIG_ARCH_OMAP4)		+= clockdomains44xx_data.o
+> +obj-$(CONFIG_ARCH_OMAP5)		+= $(omap-clock-4-5-common)
+>  
+>  # Clock framework
+>  obj-$(CONFIG_ARCH_OMAP2)		+= $(clock-common) clock2xxx.o
+> @@ -144,6 +154,8 @@ obj-$(CONFIG_ARCH_OMAP3)		+= dpll3xxx.o clock3xxx_data.o
+>  obj-$(CONFIG_ARCH_OMAP3)		+= clkt_iclk.o
+>  obj-$(CONFIG_ARCH_OMAP4)		+= $(clock-common) clock44xx_data.o
+>  obj-$(CONFIG_ARCH_OMAP4)		+= dpll3xxx.o dpll44xx.o
+> +obj-$(CONFIG_ARCH_OMAP5)		+= $(clock-common)
+> +obj-$(CONFIG_ARCH_OMAP5)		+= dpll3xxx.o dpll44xx.o
+>  
+>  # OMAP2 clock rate set data (old "OPP" data)
+>  obj-$(CONFIG_SOC_OMAP2420)		+= opp2420_data.o
 
-On 04/26/2012 01:07 PM, Will Deacon wrote:
-> On Wed, Apr 04, 2012 at 12:15:24PM +0100, Will Deacon wrote:
->> On Wed, Apr 04, 2012 at 12:29:49AM +0100, Paul Walmsley wrote:
->>>
->>> Part of the problem is that the clockdomain data for the emu_sys 
->>> clockdomain is wrong.  Here's something to try to fix it.  It might just 
->>> be enough to get it to work.
->>
->> Hmm, doesn't seem to work but I do see the following in dmesg when I try to
->> use perf:
->>
->>  powerdomain: waited too long for powerdomain emu_pwrdm to complete transition
->>
->> which is new with your patch.
-> 
-> Sorry to nag, but does anybody have a clue where to go from here? I can
-> start digging in the OMAP PM code, but it's all new territory for me.
+OK this seems to be based on Santosh' Makefile cleanup.
 
-I did a little playing around with this today and I think that I have figured out why this was not working (see below). Please can you try the following patch? I tried this on top of your series for perf/omap4. 
+> diff --git a/arch/arm/mach-omap2/clock.c b/arch/arm/mach-omap2/clock.c
+> index d9f4931..c589bb8 100644
+> --- a/arch/arm/mach-omap2/clock.c
+> +++ b/arch/arm/mach-omap2/clock.c
+> @@ -400,7 +400,8 @@ int omap2_clk_set_parent(struct clk *clk, struct clk *new_parent)
+>  
+>  /* OMAP3/4 non-CORE DPLL clkops */
+>  
+> -#if defined(CONFIG_ARCH_OMAP3) || defined(CONFIG_ARCH_OMAP4)
+> +#if defined(CONFIG_ARCH_OMAP3) || defined(CONFIG_ARCH_OMAP4) || \
+> +				defined(CONFIG_ARCH_OMAP5)
+>  
 
-Paul, FYI. If this works for Will then I can re-base on top of the latest linux-omap and submit to the mailing list.
+How about we add CONFIG_SOC_OMAP3PLUS in the clean-up series?
+Then this becomes just:
 
-Also, the above error about the emu_pwrdm is odd too. I noticed that the emu_pwrdm is always in the transitioning state. And when I say always, I mean that even if I check the power domain state while u-boot is running it is in the transitioning state. So even before the kernel starts. 
+#ifdef CONFIG_SOC_OMAP3PLUS
 
-Cheers
-Jon 
+> --- a/arch/arm/mach-omap2/cminst44xx.h
+> +++ b/arch/arm/mach-omap2/cminst44xx.h
+> @@ -19,7 +19,7 @@ extern void omap4_cminst_clkdm_force_wakeup(u8 part, s16 inst, u16 cdoffs);
+>  
+>  extern int omap4_cminst_wait_module_ready(u8 part, u16 inst, s16 cdoffs, u16 clkctrl_offs);
+>  
+> -# ifdef CONFIG_ARCH_OMAP4
+> +#if defined(CONFIG_ARCH_OMAP4) || defined(CONFIG_ARCH_OMAP5)
+>  extern int omap4_cminst_wait_module_idle(u8 part, u16 inst, s16 cdoffs,
+>  					 u16 clkctrl_offs);
 
->From 9137ff9c1b382232de7443db0b51b7555846fb62 Mon Sep 17 00:00:00 2001
-From: Jon Hunter <jon-hunter@ti.com>
-Date: Fri, 4 May 2012 16:48:45 -0500
-Subject: [PATCH] ARM: OMAP4: Disable auto enable for EMU CLKDM
+And this would be:
 
-The flag CLKDM_CAN_HWSUP allows the clock-domain to automatically transition
-to the enabled and disabled state. This means that as soon as we force a
-software wake-up on the clock domain, the clock domain will be allowed to idle
-and put back into the hardware auto state. For the EMU clock domain this is not
-what we want. We want to keep the clock domain in the software wakeup state
-while the clock domain is being used and put it back in to the hardware auto
-state when we have finished using the clock domain.
+#ifdef CONFIG_SOC_OMAP4PLUS
 
-Signed-off-by: Jon Hunter <jon-hunter@ti.com>
----
- arch/arm/mach-omap2/clockdomains44xx_data.c |    2 +-
- 1 files changed, 1 insertions(+), 1 deletions(-)
+> diff --git a/arch/arm/mach-omap2/common.h b/arch/arm/mach-omap2/common.h
+> index 0672fc5..797dda7 100644
+> --- a/arch/arm/mach-omap2/common.h
+> +++ b/arch/arm/mach-omap2/common.h
+> @@ -78,6 +78,14 @@ static inline void omap44xx_map_common_io(void)
+>  }
+>  #endif
+>  
+> +#ifdef CONFIG_ARCH_OMAP5
+> +extern void omap5_map_common_io(void);
+> +#else
+> +static inline void omap5_map_common_io(void)
+> +{
+> +}
+> +#endif
+> +
+>  extern void omap2_init_common_infrastructure(void);
 
-diff --git a/arch/arm/mach-omap2/clockdomains44xx_data.c b/arch/arm/mach-omap2/clockdomains44xx_data.c
-index 9299ac2..dd2cd96 100644
---- a/arch/arm/mach-omap2/clockdomains44xx_data.c
-+++ b/arch/arm/mach-omap2/clockdomains44xx_data.c
-@@ -390,7 +390,7 @@ static struct clockdomain emu_sys_44xx_clkdm = {
- 	.prcm_partition	  = OMAP4430_PRM_PARTITION,
- 	.cm_inst	  = OMAP4430_PRM_EMU_CM_INST,
- 	.clkdm_offs	  = OMAP4430_PRM_EMU_CM_EMU_CDOFFS,
--	.flags		  = CLKDM_CAN_HWSUP,
-+	.flags		  = CLKDM_CAN_FORCE_WAKEUP | CLKDM_CAN_DISABLE_AUTO,
- };
- 
- static struct clockdomain l3_dma_44xx_clkdm = {
--- 
-1.7.5.4
+Also, please change the whole series to use CONFIG_SOC_OMAP5 instead
+of CONFIG_ARCH_OMAP5. CONFIG_ARCH_OMAPXXXX stuff will go away except
+for CONFIG_ARCH_OMAP2PLUS. Sorry forgot to mention that earlier.
+  
+> --- a/arch/arm/mach-omap2/prm2xxx_3xxx.h
+> +++ b/arch/arm/mach-omap2/prm2xxx_3xxx.h
+> @@ -232,8 +232,9 @@
+>   * Stub omap2xxx/omap3xxx functions so that common files
+>   * continue to build when custom builds are used
+>   */
+> -#if defined(CONFIG_ARCH_OMAP4) && !(defined(CONFIG_ARCH_OMAP2) ||	\
+> -					defined(CONFIG_ARCH_OMAP3))
+> +#if (defined(CONFIG_ARCH_OMAP5) || defined(CONFIG_ARCH_OMAP4)) && \
+> +		!(defined(CONFIG_ARCH_OMAP2) || defined(CONFIG_ARCH_OMAP3))
+> +
+>  static inline u32 omap2_prm_read_mod_reg(s16 module, u16 idx)
+>  {
+>  	WARN(1, "prm: omap2xxx/omap3xxx specific function and "
+
+Maybe these functions could be just set up as __weak to avoid the
+ifdeffery?
+
+> --- a/arch/arm/plat-omap/include/plat/clkdev_omap.h
+> +++ b/arch/arm/plat-omap/include/plat/clkdev_omap.h
+> @@ -40,6 +40,7 @@ struct omap_clk {
+>  #define CK_443X		(1 << 11)
+>  #define CK_TI816X	(1 << 12)
+>  #define CK_446X		(1 << 13)
+> +#define CK_54XX		(1 << 14)
+>  #define CK_1710		(1 << 15)	/* 1710 extra for rate selection */
+>  
+>  
+
+Are we going to have to patch tons of existing clocks just to add
+CK_54XX? If so, we should init clocks using SoC specific lists instead.
+
+> diff --git a/arch/arm/plat-omap/include/plat/clock.h b/arch/arm/plat-omap/include/plat/clock.h
+> index d0ef57c..41858f4 100644
+> --- a/arch/arm/plat-omap/include/plat/clock.h
+> +++ b/arch/arm/plat-omap/include/plat/clock.h
+> @@ -61,6 +61,7 @@ struct clkops {
+>  #define RATE_IN_4460		(1 << 7)
+>  #define RATE_IN_AM33XX		(1 << 8)
+>  #define RATE_IN_TI814X		(1 << 9)
+> +#define RATE_IN_54XX		(1 << 10)
+
+This too may have similar issues, but I guess that's really a different
+patch series to sort out..
+  
+> @@ -156,7 +157,8 @@ struct dpll_data {
+>  	u8			min_divider;
+>  	u16			max_divider;
+>  	u8			modes;
+> -#if defined(CONFIG_ARCH_OMAP3) || defined(CONFIG_ARCH_OMAP4)
+> +#if defined(CONFIG_ARCH_OMAP3) || defined(CONFIG_ARCH_OMAP4) \
+> +		|| defined(CONFIG_ARCH_OMAP5)
+>  	void __iomem		*autoidle_reg;
+>  	void __iomem		*idlest_reg;
+>  	u32			autoidle_mask;
+
+
+#ifdef CONFIG_SOC_OMAP3PLUS could be used here too
+
+Tony
