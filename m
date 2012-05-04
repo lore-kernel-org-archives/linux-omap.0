@@ -1,141 +1,130 @@
-From: Kevin Hilman <khilman@ti.com>
-Subject: Re: [PATCH] net: davinci_emac: Add pre_open, post_stop platform callbacks
-Date: Fri, 04 May 2012 07:31:30 -0700
-Message-ID: <87fwbgdnlp.fsf@ti.com>
-References: <20120502234718.GA5432@animalcreek.com>
-	<B5906170F1614E41A8A28DE3B8D121433EA72820@DBDE01.ent.ti.com>
-	<20120503160917.GA11310@animalcreek.com>
-	<B5906170F1614E41A8A28DE3B8D121433EA73591@DBDE01.ent.ti.com>
-	<20120503184632.GA28089@animalcreek.com>
-	<B5906170F1614E41A8A28DE3B8D121433EA7366B@DBDE01.ent.ti.com>
-	<1336076542.2998.23.camel@bwh-desktop.uk.solarflarecom.com>
-	<87ehr1gdcv.fsf@ti.com>
-	<B5906170F1614E41A8A28DE3B8D121433EA81B04@DBDE01.ent.ti.com>
+From: Tomi Valkeinen <tomi.valkeinen@ti.com>
+Subject: v3.4-rc4 DSS PM problem (Was: Re: Problems with 3.4-rc5)
+Date: Fri, 04 May 2012 17:54:41 +0300
+Message-ID: <1336143281.2552.21.camel@deskari>
+References: <WC20120502115251.8503FF@terrafix.co.uk>
+	 <4FA12775.1090206@ti.com> <WC20120502124638.320406@terrafix.co.uk>
+	 <1336033721.14378.2.camel@deskari> <WC20120503084938.900446@terrafix.co.uk>
+	 <1336050442.14378.10.camel@deskari>
+	 <WC20120504091902.970499@terrafix.co.uk> <1336139415.2552.4.camel@deskari>
+	 <1336140072.2552.6.camel@deskari> <WC20120504140943.7604D0@terrafix.co.uk>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: multipart/signed; micalg="pgp-sha1"; protocol="application/pgp-signature";
+	boundary="=-7jmeFmcVL17SjLQNpfwC"
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aog104.obsmtp.com ([74.125.149.73]:55680 "EHLO
-	na3sys009aog104.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753411Ab2EDOb1 (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 4 May 2012 10:31:27 -0400
-Received: by dadz9 with SMTP id z9so3920690dad.11
-        for <linux-omap@vger.kernel.org>; Fri, 04 May 2012 07:31:26 -0700 (PDT)
-In-Reply-To: <B5906170F1614E41A8A28DE3B8D121433EA81B04@DBDE01.ent.ti.com>
-	(Vaibhav Bedia's message of "Fri, 4 May 2012 13:55:58 +0000")
+Received: from na3sys009aog137.obsmtp.com ([74.125.149.18]:48379 "EHLO
+	na3sys009aog137.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1753641Ab2EDOyr (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 4 May 2012 10:54:47 -0400
+Received: by lagy4 with SMTP id y4so2612925lag.36
+        for <linux-omap@vger.kernel.org>; Fri, 04 May 2012 07:54:44 -0700 (PDT)
+In-Reply-To: <WC20120504140943.7604D0@terrafix.co.uk>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "Bedia, Vaibhav" <vaibhav.bedia@ti.com>, nsekhar@ti.com
-Cc: Ben Hutchings <bhutchings@solarflare.com>, "Mark A. Greer" <mgreer@animalcreek.com>, "netdev@vger.kernel.org" <netdev@vger.kernel.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>
-
-+Sekhar
-
-"Bedia, Vaibhav" <vaibhav.bedia@ti.com> writes:
-
-> Hi Kevin,
->
-> On Fri, May 04, 2012 at 03:02:16, Hilman, Kevin wrote:
->> Ben Hutchings <bhutchings@solarflare.com> writes:
->> 
->> > On Thu, 2012-05-03 at 19:25 +0000, Bedia, Vaibhav wrote:
->> >> On Fri, May 04, 2012 at 00:16:32, Mark A. Greer wrote:
->> >> [...]
->> >> > > 
->> >> > > So, if I understood this correctly, it's effectively like blocking a low power
->> >> > > state transition (here wfi execution) when EMAC is active?
->> >> > 
->> >> > Assuming "it" is my patch, correct.
->> >> > 
->> >> 
->> >> Recently I was thinking about how to get certain drivers to disallow some or all
->> >> low power states and to me this also seems to fall in a similar category.
->> >> 
->> >> One of the suggestions that I got was to check if the 'wakeup' entry associated with
->> >> the device under sysfs could be leveraged for this. The PM code could maintain
->> >> a whitelist (or blacklist) of devices and it decides the low power state to enter
->> >> based on the 'wakeup' entries associated with these devices. In this particular case,
->> >> maybe the driver could simply set this entry to non-wakeup capable when necessary and
->> >> then let the PM code take care of skipping the wfi execution.
->> >> 
->> >> Thoughts/brickbats welcome :)
->> >
->> > You can maybe (ab)use the pm_qos mechanism for this.
->> 
->> I thought of using this too, but it doesn't actually solve the problem:
->> 
->> Using PM QoS, you can avoid hitting the deeper idle states by setting a
->> very low wakeup latency.  However, on ARM platforms, even the shallowest
->> idle states use the WFI instruction, and the EMAC would still not be
->> able to wake the system from WFI.  A possibility would be define the
->> shallowest idle state to be one that doesn't call WFI and just does
->> cpu_relax().  However, that would only work for CPUidle since PM QoS
->> constraints are only checked by CPUidle.  So, a non-CPUidle kernel would
->> still have this bug. :(
->> 
->> Ultimately, this is just broken HW.  This network HW was bolted onto an
->> existing SoC without consideration for wakeup capabilities.  The result
->> is that any use of this device with networking has to completely disable
->> SoC power management.
->> 
->
-> I was checking with internally with some folks on the issue being addressed
-> in this patch and unfortunately no one seems to be aware of this :(
-
-Do you mean they are not aware that the EMAC cannot wakeup th SoC, or
-they are not aware that having a device that cannot wakup the SoC has
-such an impact on Linux.
-
-> Mark mentioned nfs mounted rootfs being slow but in my limited testing I
-> didn't observe this on an AM3517 board. I am yet to go through the PSP code
-> to be fully sure that wfi instruction is indeed being executed but I wanted
-> to check if I need to do something specific to reproduce this at my end.
-
-Based on my discussion with Mark, I suspect that the kernel you're using
-is simply not going idle.
-
-> Irrespective of the above problem being present in the h/w, I feel the approach
-> of adding platform callbacks for blocking deeper idle states will create problems
-> when this is required for multiple peripherals. 
-
-I agree.  If we have to do this for multiple peripherals, the curren
-approach it will become unwieldy.
-
-> I agree that the default behavior should be to support the deepest
-> idle state based on the peripherals being used but IMO the user should
-> have the flexibility to change this behavior if he wishes to do so.
-
-Well, we always have the option of booting with 'nohlt' on the
-commandline.
-
-Since nobody seems to have thought about idle power management in the HW
-design, maybe we shouldn't break our backs to hack around the
-HW brokenness.
-
-Personally, I'm perfectly OK leaving the default behavior of
-sluggish/unresponsive devices that are not wakeup capable.  The only fix
-is to not sleep, and that can be accomplished on the cmdline using
-nohlt (at the expense of some energy savings.)
-
-> I don't know whether the usage of the 'wakeup' entries for giving this
-> control to users qualifies as an abuse of the infrastructure. 
-
-It does.
-
-> If it does, perhaps there should some other mechanism for letting
-> users control the system behavior.
-
-Come to think of it, the right solution here is probably to use runtime
-PM.  We could then to add some custom hooks for davinci_emac in the
-device code to use enable_hlt/disable_hlt based on activity.
-
-In order to do that though, the davinci_emac driver needs to be runtime
-PM converted.
-
-Kevin
+To: Joe Woodward <jw@terrafix.co.uk>, Paul Walmsley <paul@pwsan.com>, khilman@ti.com
+Cc: Archit Taneja <a0393947@ti.com>, linux-omap@vger.kernel.org
 
 
+--=-7jmeFmcVL17SjLQNpfwC
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: quoted-printable
+
+Hi Kevin, Paul,
+
+On Fri, 2012-05-04 at 15:09 +0100, Joe Woodward wrote:
+
+> > > Ok, I can replicate it now. It seems to be somehow PM related. I
+> > > normally have USB gadget stuff compiled into kernel so that I can
+> > boot
+> > > via nfsroot with usb. After disabling USB support from the kernel, I
+> > can
+> > > see synclosts.
+> > >=20
+> > > I have no idea yet what could be causing this. I've also tried adding
+> > > the couple of DSS patches which are in queue for next merge window,
+> > that
+> > > force OPP100 when DSS is enabled. They don't seem to help.
+> >=20
+> > Also, at least on my setup, the sync lost doesn't happen very quickly
+> > after starting the video output, but (I think) only when the system
+> > starts to idle. My init scripts generate keys for sshd and some other
+> > stuff, and no sync lost there, only just before the shell prompt do I
+> > get a sync lost.
+> >=20
+> >  Tomi
+> >=20
+>=20
+> That sounds like the same as I'm seeing. It seems that the sync lost jump=
+s=20
+> around a bit, from almost immediately (when the graphics are enabled), to=
+=20
+> up to 3 or 4 seconds later (still just before the shell prompt).
+>=20
+> I'm assuming that setting the FIFO low and high points fixes your sync lo=
+sts=20
+> as well (as in the first patch you sent)?
+>=20
+> I've also noted that doing things in different orders can sometimes fix t=
+he=20
+> sync lost (such as disabling or enabling DVI output), but this all seems =
+a bit=20
+> random.
+>=20
+> I'm just glad someone else has been able to replicate the problem :p
+
+Kevin, Paul, there seems to be a problem with DSS on v3.4-rc4 running on
+omap3, causing DSS losing sync. I didn't notice this earlier as I have
+USB gadget compiled into my kernel. Removing USB support from the kernel
+causes the problem to appear, which more or less hints at a PM related
+issue.
+
+I don't see the problem with v3.3, but as there has been a lot of DSS
+changes also, it could as well be a DSS change that has triggered the
+problem.
+
+It also looks that the sync lost happens when the system idles a bit. I
+compared count and time files in debugfs/pm_debug/ for both working
+(i.e. usb compiled in) and non-working cases, but they seem similar for
+the relevant parts. core_pwrdm is always ON, mpu_pwrdm has both RET and
+ON states, dss_pwrdm both RET and ON states (identical counts).
+
+Do you have anything in mind related to PM that has changed for v3.4
+which could affect DSS? Any idea what effect USB gadget has? My
+understanding is that it keeps usbhost_pwrdm forcibly alive, maybe also
+something else, but I'm not sure why it would affect DSS.
+
+I also tested with my DSS OPP100 patches, which try to force OPP100 when
+DSS is enabled by adding a PM constraint for bus tput of 1000000000, but
+it doesn't seem to have any effect. And, I guess, the constraint affects
+only core_pwrdm, and as seen it's anyway always on in both cases.
+
+Any debugging ideas are welcome.
+
+ Tomi
 
 
+--=-7jmeFmcVL17SjLQNpfwC
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: This is a digitally signed message part
+Content-Transfer-Encoding: 7bit
 
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.4.11 (GNU/Linux)
 
+iQIcBAABAgAGBQJPo+2xAAoJEPo9qoy8lh71n8AP/3WbuCBhw1OYdhwJswBpxywH
+qIO3gKldQ8aTAOE37kp6I7PdjJD/ZjoyYaC8KO5fuJO3P7n92hLvcAKnYs4oh2lW
+OgQX8qx8555z163Ysn3zinXVMZ3Y0HKf+QmAXFBXS4/hxIWg8EuPy083Pk8wMHpW
+mnD0QMQCU5M8tVEDG0xzyH/yfKcTOpIxdeih+otBRT+QSn83ZnBzbRm6RmRs5/At
+MCEAFJWeTgFHbiAqrJguuYMcKYy5GgtYrhBa6TAab84+pNmpUqgV50mNwrM8eY7y
+jO2jUMFHJX+R+ZpzYBX3HwVtlgvJHWMDFf07puLX06dwpaZ0qxGNQixkwf8u3A/O
+FD33x8CNxWOsEx5Wzqi2kLFw/aKdH5QYsZxCNv7Z4XinmVrN4Q6f0l0bXhRLnvPu
+hIglZPWev8sEU1lCgjC3ningaEtpYd2hkfedJtc0P6KunwuC0+zy2KGR23rLs0t9
+L42dvu9XazEiAt9Q8Q/IblNbD6e6MDMy2nghdLplHIesK4J/KP3srPjxtJUYZ6pp
+u3uJ84sFiS+Mj+H/NG61+/ByEreXK7fFZah1lCWGcafgagp0+yNxxcLHafWhH7IB
+85gUn+l619pKohbDHxq/Sd2FEIUIMyrrGaOgZm2lh+oa0IDGLToynh05GjzGNoE2
+Ay+qtRuf7wtU4162ndVW
+=6wjI
+-----END PGP SIGNATURE-----
 
+--=-7jmeFmcVL17SjLQNpfwC--
 
