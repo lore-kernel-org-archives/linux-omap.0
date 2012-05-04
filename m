@@ -1,126 +1,121 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH] pinctrl: Add generic pinctrl-simple driver that
- supports omap2+ padconf
-Date: Fri, 4 May 2012 09:34:20 -0700
-Message-ID: <20120504163420.GA5613@atomide.com>
-References: <20120502172401.GG3739@atomide.com>
- <20120503065131.GA3738@game.jcrosoft.org>
- <20120503152708.GC5140@atomide.com>
- <4FA30805.5050804@wwwdotorg.org>
- <20120504044305.GD7788@game.jcrosoft.org>
- <20120504150342.GI5140@atomide.com>
- <20120504153251.GE7788@game.jcrosoft.org>
+From: "Mark A. Greer" <mgreer@animalcreek.com>
+Subject: Re: [PATCH] net: davinci_emac: Add pre_open, post_stop platform
+ callbacks
+Date: Fri, 4 May 2012 09:35:57 -0700
+Message-ID: <20120504163557.GA28910@animalcreek.com>
+References: <20120502234718.GA5432@animalcreek.com>
+ <B5906170F1614E41A8A28DE3B8D121433EA72820@DBDE01.ent.ti.com>
+ <20120503160917.GA11310@animalcreek.com>
+ <B5906170F1614E41A8A28DE3B8D121433EA73591@DBDE01.ent.ti.com>
+ <20120503184632.GA28089@animalcreek.com>
+ <B5906170F1614E41A8A28DE3B8D121433EA7366B@DBDE01.ent.ti.com>
+ <1336076542.2998.23.camel@bwh-desktop.uk.solarflarecom.com>
+ <87ehr1gdcv.fsf@ti.com>
+ <B5906170F1614E41A8A28DE3B8D121433EA81B04@DBDE01.ent.ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-02-ewr.mailhop.org ([204.13.248.72]:54290 "EHLO
-	mho-02-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751182Ab2EDQe0 (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 4 May 2012 12:34:26 -0400
+Received: from mail20.dotsterhost.com ([66.11.232.73]:44621 "EHLO
+	mail20.dotsterhost.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1759020Ab2EDQf7 (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 4 May 2012 12:35:59 -0400
 Content-Disposition: inline
-In-Reply-To: <20120504153251.GE7788@game.jcrosoft.org>
+In-Reply-To: <B5906170F1614E41A8A28DE3B8D121433EA81B04@DBDE01.ent.ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Jean-Christophe PLAGNIOL-VILLARD <plagnioj@jcrosoft.com>
-Cc: Stephen Warren <swarren@wwwdotorg.org>, Linus Walleij <linus.walleij@linaro.org>, linux-omap@vger.kernel.org, Stephen Warren <swarren@nvidia.com>, linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+To: "Bedia, Vaibhav" <vaibhav.bedia@ti.com>
+Cc: "Hilman, Kevin" <khilman@ti.com>, Ben Hutchings <bhutchings@solarflare.com>, "netdev@vger.kernel.org" <netdev@vger.kernel.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>
 
-* Jean-Christophe PLAGNIOL-VILLARD <plagnioj@jcrosoft.com> [120504 08:58]:
-> On 08:03 Fri 04 May     , Tony Lindgren wrote:
-> > > 
-> > > so I was thinking to do like on gpio
-> > > 
-> > > uart {
-> > > 	pin = < &pioA 12 {pararms} >
-> > > 
-> > > }
+On Fri, May 04, 2012 at 01:55:58PM +0000, Bedia, Vaibhav wrote:
+
+Hi Vaibhav.
+
+> Hi Kevin,
+> 
+> On Fri, May 04, 2012 at 03:02:16, Hilman, Kevin wrote:
+> > Ben Hutchings <bhutchings@solarflare.com> writes:
 > > 
-> > Hmm I assume the "12" above the gpio number?
-> no pin number in the bank because it could not be gpio
-
-Yes OK, but pin number 12 in the gpio bank, not in the mux register.
-Got it.
- 
-> 	pioD: gpio@fffff800 {
-> 		compatible = "atmel,at91rm9200-gpio";
-> 		reg = <0xfffff800 0x100>;
-> 		interrupts = <5 4>;
-> 		#gpio-cells = <2>;
-> 		gpio-controller;
-> 		interrupt-controller;
-> 	};
+> > > On Thu, 2012-05-03 at 19:25 +0000, Bedia, Vaibhav wrote:
+> > >> On Fri, May 04, 2012 at 00:16:32, Mark A. Greer wrote:
+> > >> [...]
+> > >> > > 
+> > >> > > So, if I understood this correctly, it's effectively like blocking a low power
+> > >> > > state transition (here wfi execution) when EMAC is active?
+> > >> > 
+> > >> > Assuming "it" is my patch, correct.
+> > >> > 
+> > >> 
+> > >> Recently I was thinking about how to get certain drivers to disallow some or all
+> > >> low power states and to me this also seems to fall in a similar category.
+> > >> 
+> > >> One of the suggestions that I got was to check if the 'wakeup' entry associated with
+> > >> the device under sysfs could be leveraged for this. The PM code could maintain
+> > >> a whitelist (or blacklist) of devices and it decides the low power state to enter
+> > >> based on the 'wakeup' entries associated with these devices. In this particular case,
+> > >> maybe the driver could simply set this entry to non-wakeup capable when necessary and
+> > >> then let the PM code take care of skipping the wfi execution.
+> > >> 
+> > >> Thoughts/brickbats welcome :)
+> > >
+> > > You can maybe (ab)use the pm_qos mechanism for this.
+> > 
+> > I thought of using this too, but it doesn't actually solve the problem:
+> > 
+> > Using PM QoS, you can avoid hitting the deeper idle states by setting a
+> > very low wakeup latency.  However, on ARM platforms, even the shallowest
+> > idle states use the WFI instruction, and the EMAC would still not be
+> > able to wake the system from WFI.  A possibility would be define the
+> > shallowest idle state to be one that doesn't call WFI and just does
+> > cpu_relax().  However, that would only work for CPUidle since PM QoS
+> > constraints are only checked by CPUidle.  So, a non-CPUidle kernel would
+> > still have this bug. :(
+> > 
+> > Ultimately, this is just broken HW.  This network HW was bolted onto an
+> > existing SoC without consideration for wakeup capabilities.  The result
+> > is that any use of this device with networking has to completely disable
+> > SoC power management.
+> > 
 > 
-> 	pioE: gpio@fffffa00 {
-> 		compatible = "atmel,at91rm9200-gpio";
-> 		reg = <0xfffffa00 0x100>;
-> 		interrupts = <5 4>;
-> 		#gpio-cells = <2>;
-> 		gpio-controller;
-> 		interrupt-controller;
-> 	};
-> 
-> 	dbgu {
-> 		pins = < &pioB 12 0 0
-> 			 &pioB 13 0 2 >;
-> 	/* with macro */
-> 		pins = < &pioB 12 MUX_A NO_PULL_UP
-> 			 &pioB 13 MUX_A PULL_UP >;
-> 	};
+> I was checking with internally with some folks on the issue being addressed
+> in this patch and unfortunately no one seems to be aware of this :(
 
-I could change to use this too no problem. The only concern I have is
-that is "&pioB 12" immutable for all gpio controllers?
+This is from the TI hardware engineer that I talked to after spending many
+hours trying to get the EMAC to wake up the system.  It was a private
+conversation so I won't share his name/email here.  If you want to contact
+him, please reach me privately.
 
-Grepping the *.dts* files, at least exynos is using the following
-for gpios:
+"No, AM35x can't be waken up from CPGMAC. If customer need to wake AM35x
+ up from Ethernet, a wake up interrupt signal from Ethernet phy should be
+ connected to one of wakeup capable GPIO pins."
 
-gpios = <&gpx2 0 0 0 2>;
+> Mark mentioned nfs mounted rootfs being slow but in my limited testing I
+> didn't observe this on an AM3517 board. I am yet to go through the PSP code
+> to be fully sure that wfi instruction is indeed being executed but I wanted
+> to check if I need to do something specific to reproduce this at my end.
 
-If we can conclude that phandle to the gpio controller instance and
-the register offset is always enough here, then I'm OK changing to
-that format. It would actually save some parsing in most cases.
- 
-> 	/* and also the notion of linked group
-> 	 * as on uart of network you have often the same subset of pin use.
-> 	 *
-> 	 * As example on uart rxd/txd is use for the group without rts/cts
-> 	 * and the one with it
-> 	 * on ethernet the RMII pin are use also on MII
-> 	 */
-> 
-> 	uart0_rxd_txd {
-> 		pins = < &pioB 19 MUX_A PULL_UP		/* rxd */
-> 			 &pioB 18 MUX_A NO_PULL_UP >;	/* txd */
-> 	};
-> 
-> 	uart0_rts_cts {
-> 		groups = < &uart0_rxd_txd >;
-> 		pins = < &pioB 17 MUX_B NO_PULL_UP	/* rts */
-> 			 &pioB 15 MUX_B NO_PULL_UP >;	/* cts */
-> 	};
-> 
-> 	uart0_rts_cts_external_pull_up {
-> 		groups = < &uart0_rts_cts >;
-> 		gpios = <&pioC 1 0>;
-> 	};
-> };
-> 
-> The idea is to avoid duplication the xlate for pins will be driver specific
-> with maybe a common implementation
-> 
-> the 3 or 4 first fix as done on gpio
+When you go through the PSP code, look for the definition & use of
+omap3_can_sleep().  That routine returns '0' when either cpu_is_omap3505()
+or cpu_is_omap3517() ruturns true (among other conditions).  You will see
+that its used in omap3_pm_idle() to exit early so pm_idle never executes
+the wfi.
 
-Yeah sounds doable to me, but can probably be added later?
+I expect that you don't have CONFIG_CPU_IDLE enabled, so cpuidle has no
+opportunity to execute a wfi.  If it is enabled, omap3_can_sleep() is
+used in omap3_idle_bm_check() which is used in omap3_enter_idle_bm()
+so the wfi won't be executed when omap3_enter_idle_bm() is called.
+omap3_enter_idle() isn't called (in my testing--the code is very
+different from current k.o.) so it doesn't execute the wfi either.
 
-Regarding grouping, basically for most cases it makes sense to have
-three states: default, active, idle instead of just active and idle.
-The reason is that for most cases the default pins only need to be
-set once for each devices. Only few pins need to toggle between
-active and idle states.
+Therefore, you don't see an issue when running PSP code.
 
-For example, omap2 uart needs to toggle rx pin to gpio input everytime
-it hits idle to provide wake-up events. Other pins do not need to change.
-As this is done all the time, the active and idle toggling should be kept
-to minimum.
+> Irrespective of the above problem being present in the h/w, I feel the approach
+> of adding platform callbacks for blocking deeper idle states will create problems
+> when this is required for multiple peripherals. I agree that the default behavior
+> should be to support the deepest idle state based on the peripherals being used but
+> IMO the user should have the flexibility to change this behavior if he wishes
+> to do so. 
 
-Regards,
+I agree but hopefully this doesn't become common.  The real issue is a
+missing hardware feature that--again, hopefully--won't become common.
 
-Tony
+Mark
