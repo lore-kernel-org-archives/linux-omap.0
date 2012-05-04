@@ -1,70 +1,51 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH 12/13] ARM: OMAP5: Add the build support
-Date: Fri, 4 May 2012 15:58:58 -0700
-Message-ID: <20120504225857.GB5613@atomide.com>
-References: <1336029982-31898-1-git-send-email-r.sricharan@ti.com>
- <1336029982-31898-13-git-send-email-r.sricharan@ti.com>
+From: Kevin Hilman <khilman@ti.com>
+Subject: Re: ttyO2 broken on IGEPv2 on 3.3, 3.4-rc5 or arm-soc/for-next, working on 3.2
+Date: Fri, 04 May 2012 16:46:32 -0700
+Message-ID: <878vh78q7b.fsf@ti.com>
+References: <20120504155255.140b4e3f@skate> <87397fewso.fsf@ti.com>
+	<20120504175124.GI5613@atomide.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-02-ewr.mailhop.org ([204.13.248.72]:34762 "EHLO
-	mho-02-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754606Ab2EDW7A (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 4 May 2012 18:59:00 -0400
-Content-Disposition: inline
-In-Reply-To: <1336029982-31898-13-git-send-email-r.sricharan@ti.com>
+Received: from na3sys009aog128.obsmtp.com ([74.125.149.141]:50460 "EHLO
+	na3sys009aog128.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1756794Ab2EDXq2 (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 4 May 2012 19:46:28 -0400
+Received: by pbbrr13 with SMTP id rr13so5396333pbb.40
+        for <linux-omap@vger.kernel.org>; Fri, 04 May 2012 16:46:27 -0700 (PDT)
+In-Reply-To: <20120504175124.GI5613@atomide.com> (Tony Lindgren's message of
+	"Fri, 4 May 2012 10:51:25 -0700")
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: R Sricharan <r.sricharan@ti.com>
-Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, santosh.shilimkar@ti.com, b-cousson@ti.com
+To: Tony Lindgren <tony@atomide.com>
+Cc: Thomas Petazzoni <thomas.petazzoni@free-electrons.com>, linux-omap@vger.kernel.org, Enric Balletbo i Serra <eballetbo@iseebcn.com>
 
-* R Sricharan <r.sricharan@ti.com> [120503 00:30]:
-> --- a/arch/arm/mach-omap2/Kconfig
-> +++ b/arch/arm/mach-omap2/Kconfig
-> @@ -9,7 +9,7 @@ config ARCH_OMAP2PLUS_TYPICAL
->  	select REGULATOR
->  	select PM_RUNTIME
->  	select VFP
-> -	select NEON if ARCH_OMAP3 || ARCH_OMAP4
-> +	select NEON if ARCH_OMAP3 || ARCH_OMAP4 || ARCH_OMAP5
->  	select SERIAL_OMAP
->  	select SERIAL_OMAP_CONSOLE
->  	select I2C
+Tony Lindgren <tony@atomide.com> writes:
 
-If we add CONFIG_SOC_OMAP3PLUS and CONFIG_SOC_OMAP4PLUS, then
-this becomes more future proof with select NEON if SOC_OMAP3PLUS.
+> * Kevin Hilman <khilman@ti.com> [120504 09:31]:
+>> Hi Thomas,
+>> 
+>> Thomas Petazzoni <thomas.petazzoni@free-electrons.com> writes:
+>> 
+>> > I have an IGEPv2 revision 6 board, which uses the DM3730 OMAP3. With
+>> > 3.2 omap2plus_defconfig, the system boots fine and have a working shell
+>> > on ttyO2. On either 3.3, 3.4-rc5 or arm-soc/for-next from Arnd, the
+>> > system boots all the way up to showing the shell prompt, but I can't
+>> > type any character, as if UART RX was broken.
+>> 
+>> On v3.4-rc, can you see if reverting bce492c04ba8fc66a4ea0a52b181ba255daaaf54
+>> has any effect?
+>> 
+>> That patch had some unfortunate side effects, but I haven't seen the
+>> problem you see, so I'm not sure if it's related.
+>
+> Reverting bce492c04ba8fc66a4ea0a52b181ba255daaaf54 is a broken solution
+> like you mentioned. But if it helps, then the proper fix is to add muxing
+> to board-*.c files for the uart pins and use omap_serial_init_port
+> for each uart instead of omap_serial_init. That should fix the wake-up
+> issues too.
 
-> @@ -55,6 +55,13 @@ config ARCH_OMAP4
->  	select USB_ARCH_HAS_EHCI if USB_SUPPORT
->  	select ARM_CPU_SUSPEND if PM
->  
-> +config ARCH_OMAP5
-> +	bool "TI OMAP5"
-> +	depends on ARCH_OMAP2PLUS
-> +	select CPU_V7
-> +	select ARM_GIC
-> +	select HAVE_SMP
+I agree on the final solution, but just wanted to see if the missing mux
+(and thus disabled runtime PM) is what's causing the problem.
 
-No need to have depends on ARCH_OMAP2PLUS, it's all inside
-if ARCH_OMAP2PLUS anyways. I removed those already once, but that
-had to be reverted because the patch was doing other things too
-that did not work out too well..
-
-> @@ -343,6 +350,10 @@ config MACH_OMAP4_PANDA
->  	select OMAP_PACKAGE_CBS
->  	select REGULATOR_FIXED_VOLTAGE if REGULATOR
->  
-> +config MACH_OMAP5_SEVM
-> +	bool "OMAP5 sevm Board"
-> +	depends on ARCH_OMAP5
-> +
->  config OMAP3_EMU
->  	bool "OMAP3 debugging peripherals"
->  	depends on ARCH_OMAP3
-
-No need for it here either. Actually, I think this whole chunk
-can be now left out since it's DT based?
-
-Regards,
-
-Tony
+Kevin
