@@ -1,128 +1,132 @@
-From: Jean-Christophe PLAGNIOL-VILLARD <plagnioj@jcrosoft.com>
-Subject: Re: [PATCH] pinctrl: Add generic pinctrl-simple driver that
- supports omap2+ padconf
-Date: Fri, 4 May 2012 06:43:05 +0200
-Message-ID: <20120504044305.GD7788@game.jcrosoft.org>
-References: <20120502172401.GG3739@atomide.com>
- <20120503065131.GA3738@game.jcrosoft.org>
- <20120503152708.GC5140@atomide.com>
- <4FA30805.5050804@wwwdotorg.org>
+From: "J, KEERTHY" <j-keerthy@ti.com>
+Subject: Re: [PATCH V3 00/10] PM: Create the AVS(Adaptive Voltage Scaling)
+Date: Fri, 4 May 2012 10:35:45 +0530
+Message-ID: <CAJ6a13Z0omMwmuSDcZtJbUgTEoVu-ExiRVUw=dsitsjKfzi4Kg@mail.gmail.com>
+References: <1335462041-4949-1-git-send-email-j-keerthy@ti.com>
+	<20120426191159.GA9415@sirena.org.uk>
+	<CAJ6a13a6WN9h1QZynpEOf-R6RXwWBZ2eOPkTeNc15JX_YfAz_w@mail.gmail.com>
+	<20120427175657.GP18260@opensource.wolfsonmicro.com>
+	<87397o3n4y.fsf@ti.com>
+	<20120430095429.GB3170@opensource.wolfsonmicro.com>
+	<87wr4wriq3.fsf@ti.com>
+	<CAJ6a13ZBwZn20ObD2hy=xna8oFoKtdczYNxyWACJZoJkhKhsUQ@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mo4.mail-out.ovh.net ([178.32.228.4]:58453 "EHLO
-	mo4.mail-out.ovh.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751006Ab2EDFEq (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 4 May 2012 01:04:46 -0400
-Received: from mail97.ha.ovh.net (b7.ovh.net [213.186.33.57])
-	by mo4.mail-out.ovh.net (Postfix) with SMTP id F209B104E0B3
-	for <linux-omap@vger.kernel.org>; Fri,  4 May 2012 07:06:10 +0200 (CEST)
-Content-Disposition: inline
-In-Reply-To: <4FA30805.5050804@wwwdotorg.org>
+Received: from na3sys009aog102.obsmtp.com ([74.125.149.69]:47863 "EHLO
+	na3sys009aog102.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1751032Ab2EDFFq convert rfc822-to-8bit
+	(ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Fri, 4 May 2012 01:05:46 -0400
+Received: by obbuo13 with SMTP id uo13so3750373obb.29
+        for <linux-omap@vger.kernel.org>; Thu, 03 May 2012 22:05:45 -0700 (PDT)
+In-Reply-To: <CAJ6a13ZBwZn20ObD2hy=xna8oFoKtdczYNxyWACJZoJkhKhsUQ@mail.gmail.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Stephen Warren <swarren@wwwdotorg.org>
-Cc: Tony Lindgren <tony@atomide.com>, Linus Walleij <linus.walleij@linaro.org>, linux-omap@vger.kernel.org, Stephen Warren <swarren@nvidia.com>, linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+To: Kevin Hilman <khilman@ti.com>
+Cc: Mark Brown <broonie@opensource.wolfsonmicro.com>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, rjw@sisk.pl, linux-kernel@vger.kernel.org, linux-pm@lists.linux-foundation.org, j-pihet@ti.com, durgadoss.r@intel.com
 
-On 16:34 Thu 03 May     , Stephen Warren wrote:
-> On 05/03/2012 09:27 AM, Tony Lindgren wrote:
-> > Hi,
-> > 
-> > * Jean-Christophe PLAGNIOL-VILLARD <plagnioj@jcrosoft.com> [120503 00:16]:
-> >>
-> >> 	I really like it
-> >>
-> >> 	I was working on something simillar
-> >>
-> >> 	but can we split the group management so we can use it on other
-> >> 	bindings
-> > 
-> > Hmm I'm not sure I follow on the group management splitting, can you specify
-> > what you have in mind here?
-> > 
-> > If you mean moving more things into pinctrl fwk, then yeah I'd assume that
-> > will happen eventually and drivers like this will end up becoming more minimal.
-> 
-> Jean-Christophe, forgive me if I'm putting words in your mouth, but I
-> assume the following is what you mean:
-> 
-> There are two pieces of data required by the pinctrl subsystem:
-> 
-> a) The set of pins, functions, and groups that exist.
-> 
-> b) The specific function to select for each pin/group on a given board.
-> 
-> Item (a) can be represented in the pinctrl driver (e.g. as in the Tegra
-> driver), or can be represented in device tree in order to avoid large
-> tables in the driver.
-> 
-> Item (b) has to be represented in device tree, since the whole point is
-> that it's board-specific.
-> 
-> For all DT bindings I've seen that choose to represent (a) in the DT
-> rather than in the driver, the DT represents (b) directly, and (a) is
-> implicitly extracted/created based on (a).
-> 
-> When I was first thinking about DT bindings for pinctrl, I had hoped
-> that even if (a) was represented in DT, the DT nodes/properties for (a)
-> and (b) would be entirely separate, so that the binding for (b) could be
-> completely common across all SoCs, even though the binding for (a) would
-> perhaps be different across SoCs (if it existed at all).
-> 
-> So, perhaps Jean-Christophe is talking about splitting up (a) and (b) in
-> device tree?
-> 
-> Or perhaps Jean-Christophe only refers to the code that creates the
-> group and function definitions from (b), and not the actual DT binding
-> itself?
-yes you are right Stephen
-I was thinking of both but the second could be a first step
+On Wed, May 2, 2012 at 10:34 AM, J, KEERTHY <j-keerthy@ti.com> wrote:
+> On Tue, May 1, 2012 at 3:21 AM, Kevin Hilman <khilman@ti.com> wrote:
+>> Mark Brown <broonie@opensource.wolfsonmicro.com> writes:
+>>
+>>> On Fri, Apr 27, 2012 at 02:01:17PM -0700, Kevin Hilman wrote:
+>>>> Mark Brown <broonie@opensource.wolfsonmicro.com> writes:
+>>>
+>>>> > But presumably these things should integrate somehow - for examp=
+le,
+>>>> > should devfreq and cpufreq be providing inputs into what AVS is =
+doing,
+>>>> > and if so how?
+>>>
+>>>> The way it is currently designed, cpufreq/devfreq/regulator layers=
+ don't
+>>>> need to know about AVS.
+>>>
+>>> Yes, and that was a part of my concern, but see below.
+>>>
+>>>> The higher-level layers only know about the "nominal" voltage. =A0=
+AVS
+>>>> hardware does automatic, adaptive, micro-adjustments around that n=
+ominal
+>>>> voltage, and these micro-adjustments are managed by the AVS hardwa=
+re
+>>>> sending commands to the PMIC. =A0(specifically, on OMAP, the AVS s=
+ensors
+>>>> provide inputs to the voltage processor (VP) which provide inputs =
+to the
+>>>> voltage controller (VC) which sends commands to the PMIC[1].)
+>>>
+>>> Right, that's what I'd understood it to be.
+>>>
+>>>> The driver proposed here is primarily for initializing the various
+>>>> parameters/sensitivity/etc. of the AVS hardware, but the actual vo=
+ltage
+>>>> adjustments are done in hardware by VC/VP.
+>>>
+>>> It's not just a driver, though - it's also creating this power/avs
+>>> thing, though now I look at the code rather than just its shape the=
+re's
+>>> not actually an abstraction being added here, it's mostly just stra=
+ight
+>>> code motion of the arch/arm code that's there already. =A0The chang=
+elog
+>>> and the shape of the code make it sound like this is intended to be
+>>> somewhat generic when really it's providing some OMAP specific tuni=
+ng
+>>> for the device which is much less of a concern.
+>>>
+>>> I guess for now it's probably OK to just clarify in the documentati=
+on
+>>> and say that whoever adds the second driver has to work on making t=
+his
+>>> generic :)
+>>
+>> Agreed.
+>>
+>> In a different thread (which I can't seem to find now) we discussed =
+this
+>> as well, so it just sounds like the changelog should clarify this a =
+bit
+>> better.
+>
+> Kevin/Mark,
+>
+> Thanks for the feedback. I will add more documentation
+> to clarify this aspect. Please let me know if there are any more
+> things to be taken care of in this patch set.
 
-today we tend all to represent the group of pin in DT
+Hello Kevin,
 
-for TI, IM, MXC, at91, ST and others
+A gentle ping on this series. Any comments on this?
 
-the way to represend the groups are exactly the same
+>
+>>
+>> Kevin
+>>
+>>> This does also sound rather like it's in a similar area to the curr=
+ent
+>>> management work which Durgadoss R (CCed) was working on, though wit=
+h a
+>>> slightly different application and in the OMAP case it's pretty muc=
+h all
+>>> hidden in the external processor.
+>>
+>
+>
+>
+> --
+> Regards and Thanks,
+> Keerthy
 
-a group is a node with a set on pin
 
-uart {
- pincfg......
-}
 
-and the group is uart
-
-so we do need to have a common way to handle it in c
-
-the code propose by Tony is really what I'm working on to acheive this
-
-In my mind in the driver we do not have to care how to list
-register/unregister the group. We just need to be able to do this
-
-pinctrl_register_group(...)
-
-or 
-
-pinctrl_unregistewr_group(...)
-
-On at91 we have this type of controller
-
-one pin can have multiple function and each function can be on different pin
-and we need to program and represent each of them one by one
-
-And each pin have different parameter
-
-so I was thinking to do like on gpio
-
-uart {
-	pin = < &pioA 12 {pararms} >
-
-}
-
-and use macro as basicaly we are just this
-
-and this can be applied to tegra too as you will just refer the pin in this hw
-pin block
-
-Best Regards,
-J.
+--=20
+Regards and Thanks,
+Keerthy
+--
+To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
