@@ -1,159 +1,84 @@
-From: Archit Taneja <a0393947@ti.com>
-Subject: Re: [PATCH 11/25] OMAPDSS: create custom pdevs for DSS omap_devices
-Date: Fri, 4 May 2012 13:47:21 +0530
-Message-ID: <4FA39091.8010007@ti.com>
-References: <1336053481-25433-1-git-send-email-tomi.valkeinen@ti.com> <1336053481-25433-12-git-send-email-tomi.valkeinen@ti.com>
+From: "AnilKumar, Chimata" <anilkumar@ti.com>
+Subject: RE: [PATCH V3 00/10] PM: Create the AVS(Adaptive Voltage Scaling)
+Date: Fri, 4 May 2012 08:21:28 +0000
+Message-ID: <331ABD5ECB02734CA317220B2BBEABC13E9B1A67@DBDE01.ent.ti.com>
+References: <1335462041-4949-1-git-send-email-j-keerthy@ti.com>
+	<20120426191159.GA9415@sirena.org.uk>
+	<CAJ6a13a6WN9h1QZynpEOf-R6RXwWBZ2eOPkTeNc15JX_YfAz_w@mail.gmail.com>
+	<20120427175657.GP18260@opensource.wolfsonmicro.com> <87397o3n4y.fsf@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="ISO-8859-1"; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from bear.ext.ti.com ([192.94.94.41]:52992 "EHLO bear.ext.ti.com"
+Received: from comal.ext.ti.com ([198.47.26.152]:39959 "EHLO comal.ext.ti.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752313Ab2EDISC (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Fri, 4 May 2012 04:18:02 -0400
-In-Reply-To: <1336053481-25433-12-git-send-email-tomi.valkeinen@ti.com>
+	id S1752771Ab2EDIVo convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 4 May 2012 04:21:44 -0400
+In-Reply-To: <87397o3n4y.fsf@ti.com>
+Content-Language: en-US
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Tomi Valkeinen <tomi.valkeinen@ti.com>
-Cc: linux-omap@vger.kernel.org, linux-fbdev@vger.kernel.org
+To: "Hilman, Kevin" <khilman@ti.com>, Mark Brown <broonie@opensource.wolfsonmicro.com>
+Cc: "J, KEERTHY" <j-keerthy@ti.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, "rjw@sisk.pl" <rjw@sisk.pl>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-pm@lists.linux-foundation.org" <linux-pm@lists.linux-foundation.org>, "Pihet-XID, Jean" <j-pihet@ti.com>
 
-On Thursday 03 May 2012 07:27 PM, Tomi Valkeinen wrote:
-> Instead of using omap_device_build() to create the omap_devices for DSS
-> hwmods, create them with a custom function. This will allow us to create
-> a parent-child hierarchy for the devices so that the omapdss_core device
-> is parent for the rest of the dss hwmod devices.
->
-> Signed-off-by: Tomi Valkeinen<tomi.valkeinen@ti.com>
-> ---
->   arch/arm/mach-omap2/display.c |   88 ++++++++++++++++++++++++++++++++++-------
->   1 file changed, 74 insertions(+), 14 deletions(-)
->
-> diff --git a/arch/arm/mach-omap2/display.c b/arch/arm/mach-omap2/display.c
-> index 07232fd..46d2a98 100644
-> --- a/arch/arm/mach-omap2/display.c
-> +++ b/arch/arm/mach-omap2/display.c
-> @@ -185,13 +185,71 @@ static int omap_dss_set_min_bus_tput(struct device *dev, unsigned long tput)
->   	return omap_pm_set_min_bus_tput(dev, OCP_INITIATOR_AGENT, tput);
->   }
->
-> +static struct platform_device *create_dss_pdev(const char *pdev_name,
-> +		int pdev_id, const char *oh_name, void *pdata, int pdata_len,
-> +		struct platform_device *parent)
-> +{
-> +	struct platform_device *pdev;
-> +	struct omap_device *od;
-> +	struct omap_hwmod *ohs[1];
-> +	struct omap_hwmod *oh;
-> +	int r;
-> +
-> +	oh = omap_hwmod_lookup(oh_name);
-> +	if (!oh) {
-> +		pr_err("Could not look up %s\n", oh_name);
-> +		r = -ENODEV;
-> +		goto err;
-> +	}
-> +
-> +	pdev = platform_device_alloc(pdev_name, pdev_id);
-> +	if (!pdev) {
-> +		pr_err("Could not create pdev for %s\n", pdev_name);
-> +		r = -ENOMEM;
-> +		goto err;
-> +	}
-> +
-> +	if (parent != NULL)
-> +		pdev->dev.parent =&parent->dev;
-> +
-> +	if (pdev->id != -1)
-> +		dev_set_name(&pdev->dev, "%s.%d", pdev->name, pdev->id);
-> +	else
-> +		dev_set_name(&pdev->dev, "%s", pdev->name);
-> +
-> +	ohs[0] = oh;
-> +	od = omap_device_alloc(pdev, ohs, 1, NULL, 0);
-> +	if (!od) {
-> +		pr_err("Could not alloc omap_device for %s\n", pdev_name);
-> +		r = -ENOMEM;
-> +		goto err;
-> +	}
-> +
-> +	r = platform_device_add_data(pdev, pdata, pdata_len);
-> +	if (r) {
-> +		pr_err("Could not set pdata for %s\n", pdev_name);
-> +		goto err;
-> +	}
-> +
-> +	r = omap_device_register(pdev);
-> +	if (r) {
-> +		pr_err("Could not register omap_device for %s\n", pdev_name);
-> +		goto err;
-> +	}
-> +
-> +	return pdev;
-> +
-> +err:
-> +	return ERR_PTR(r);
-> +}
-> +
->   int __init omap_display_init(struct omap_dss_board_info *board_data)
->   {
->   	int r = 0;
-> -	struct omap_hwmod *oh;
->   	struct platform_device *pdev;
->   	int i, oh_count;
->   	const struct omap_dss_hwmod_data *curr_dss_hwmod;
-> +	struct platform_device *dss_pdev;
->
->   	/* create omapdss device */
->
-> @@ -221,22 +279,24 @@ int __init omap_display_init(struct omap_dss_board_info *board_data)
->   		oh_count = ARRAY_SIZE(omap4_dss_hwmod_data);
->   	}
->
-> -	for (i = 0; i<  oh_count; i++) {
-> -		oh = omap_hwmod_lookup(curr_dss_hwmod[i].oh_name);
-> -		if (!oh) {
-> -			pr_err("Could not look up %s\n",
-> -				curr_dss_hwmod[i].oh_name);
-> -			return -ENODEV;
-> -		}
-> +	dss_pdev = NULL;
->
-> -		pdev = omap_device_build(curr_dss_hwmod[i].dev_name,
-> -				curr_dss_hwmod[i].id, oh,
-> +	for (i = 0; i<  oh_count; i++) {
-> +		pdev = create_dss_pdev(curr_dss_hwmod[i].dev_name,
-> +				curr_dss_hwmod[i].id,
-> +				curr_dss_hwmod[i].oh_name,
->   				NULL, 0,
-> -				NULL, 0, 0);
-> +				dss_pdev);
-> +
-> +		if (IS_ERR(pdev)) {
-> +			pr_err("Could not build omap_device for %s\n",
-> +					curr_dss_hwmod[i].oh_name);
-> +
-> +			return PTR_ERR(pdev);
-> +		}
->
-> -		if (WARN((IS_ERR(pdev)), "Could not build omap_device for %s\n",
-> -				curr_dss_hwmod[i].oh_name))
-> -			return -ENODEV;
-> +		if (i == 0)
-> +			dss_pdev = pdev;
+On Sat, Apr 28, 2012 at 02:31:17, Hilman, Kevin wrote:
+> Hi Mark,
+> 
+> Mark Brown <broonie@opensource.wolfsonmicro.com> writes:
+> 
+> > On Fri, Apr 27, 2012 at 11:09:10AM +0530, J, KEERTHY wrote:
+> >
+> >> Devfreq and cpufreq are related to dynamic frequency/voltage switching between
+> >> pre defined Operating Performance Points or the OPPs. Every OPP being
+> >> a voltage/frequency pair. Smartreflex is a different
+> >> power management technique.
+> >
+> > But presumably these things should integrate somehow - for example,
+> > should devfreq and cpufreq be providing inputs into what AVS is doing,
+> > and if so how?
+> 
+> The way it is currently designed, cpufreq/devfreq/regulator layers don't
+> need to know about AVS.
+> 
+> The higher-level layers only know about the "nominal" voltage.  AVS
+> hardware does automatic, adaptive, micro-adjustments around that nominal
+> voltage, and these micro-adjustments are managed by the AVS hardware
+> sending commands to the PMIC.  (specifically, on OMAP, the AVS sensors
+> provide inputs to the voltage processor (VP) which provide inputs to the
+> voltage controller (VC) which sends commands to the PMIC[1].)
+> 
+> The driver proposed here is primarily for initializing the various
+> parameters/sensitivity/etc. of the AVS hardware, but the actual voltage
+> adjustments are done in hardware by VC/VP.
+> 
+> The only thing the higher-level layers might potentially need to do to
+> enable/disable AVS around transitions (e.g. when changing OPP, AVS is
+> disabled before changing OPP and only re-enabled when the new nominal
+> voltage has been acheived.)
+> 
+> On OMAP, we handle this inside the OMAP-specific voltage layer which is
+> called by the regulator framework, so even the regulators do not need
+> any knowledge of AVS.
 
-The above line is a bit tricky to understand, maybe something like this 
-may explain the parent-child setting better:
+Kevin,
 
-		if (!strcmp(curr_dss_hwmod[i].oh_name, "dss_core"))
-			dss_pdev = pdev;
+I want to point out some cases of SR implementation where this may not
+be true.
 
-I had another general question about the parent-child series. What is 
-the use of the platform device omap_display_device (with the name 
-"omapdss"). Is it just a way to get the board data?
+Devices like DM8168, DM8148 and AM335X use Class 2B implementation of SR.
 
-Archit
+Under this, SR module issues an interrupt to ARM when there is a need to
+change the voltage based on temperature changes, ageing etc.
 
->   	}
->
->   	return 0;
+Once the interrupt arrives, kernel needs to adjust voltage using regulator API.
+The voltage change is a micro adjustment as in other SR classes.
 
+The SR class 2B implementation on these devices does not exist in mainline.
+I can point to some public repositories if you are interested in taking a look at
+the current code.
+
+Implementation of this SR method is must on at least the DM8168 device and
+I know some customers who are using it on their production systems.
+
+Regards
+AnilKumar
