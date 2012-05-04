@@ -1,54 +1,68 @@
 From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH 4/7] ARM: OMAP2: Add MMC hwmod data for 2420
-Date: Fri, 4 May 2012 12:49:10 -0700
-Message-ID: <20120504194910.GS5613@atomide.com>
-References: <20120424000607.17783.81686.stgit@muffinssi.local>
- <20120424000832.17783.21327.stgit@muffinssi.local>
- <alpine.DEB.2.00.1205021840160.19695@utopia.booyaka.com>
- <alpine.DEB.2.00.1205021844280.19695@utopia.booyaka.com>
+Subject: Re: [PATCH-V5 2/3] arm:omap:am33xx: Add AM335XEVM machine support
+Date: Fri, 4 May 2012 13:00:24 -0700
+Message-ID: <20120504200024.GT5613@atomide.com>
+References: <hvaibhav@ti.com>
+ <1322808204-12878-3-git-send-email-hvaibhav@ti.com>
+ <alpine.DEB.2.00.1205020317151.19695@utopia.booyaka.com>
+ <79CD15C6BA57404B839C016229A409A83EA10A64@DBDE01.ent.ti.com>
+ <20120503155717.GE5140@atomide.com>
+ <79CD15C6BA57404B839C016229A409A83EA14183@DBDE01.ent.ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-02-ewr.mailhop.org ([204.13.248.72]:25155 "EHLO
-	mho-02-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754334Ab2EDTtN (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 4 May 2012 15:49:13 -0400
+Received: from mho-01-ewr.mailhop.org ([204.13.248.71]:15195 "EHLO
+	mho-01-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754051Ab2EDUA1 (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 4 May 2012 16:00:27 -0400
 Content-Disposition: inline
-In-Reply-To: <alpine.DEB.2.00.1205021844280.19695@utopia.booyaka.com>
+In-Reply-To: <79CD15C6BA57404B839C016229A409A83EA14183@DBDE01.ent.ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Paul Walmsley <paul@pwsan.com>
-Cc: linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org, Benoit Cousson <b-cousson@ti.com>
+To: "Hiremath, Vaibhav" <hvaibhav@ti.com>
+Cc: Paul Walmsley <paul@pwsan.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "Hilman, Kevin" <khilman@ti.com>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, "Mohammed, Afzal" <afzal@ti.com>
 
-* Paul Walmsley <paul@pwsan.com> [120502 18:05]:
-> On Wed, 2 May 2012, Paul Walmsley wrote:
-> 
-> > Hi Tony,
+* Hiremath, Vaibhav <hvaibhav@ti.com> [120503 23:31]:
+> On Thu, May 03, 2012 at 21:27:18, Tony Lindgren wrote:
+> > Hi,
 > > 
-> > On Mon, 23 Apr 2012, Tony Lindgren wrote:
+> > * Hiremath, Vaibhav <hvaibhav@ti.com> [120502 02:37]:
+> > > On Wed, May 02, 2012 at 14:53:24, Paul Walmsley wrote:
+> > > > Hi
+> > > > 
+> > > > On Fri, 2 Dec 2011, hvaibhav@ti.com wrote:
+> > > > 
+> > > > > From: Afzal Mohammed <afzal@ti.com>
+> > > > > 
+> > > > > This patch adds minimal support for AM335X EVM.
+> > > > > The approach taken here is to add AM335X EVM support
+> > > > > to AM3517EVM, considering the fact that with device tree
+> > > > > developement we will get rid of board-*.c.
+> > > > > 
+> > > > > Signed-off-by: Afzal Mohammed <afzal@ti.com>
+> > > > > Signed-off-by: Vaibhav Hiremath <hvaibhav@ti.com>
+> > > > > Reviewed-by: Kevin Hilman <khilman@ti.com>
+> > > > 
+> > > > I realize people may not necessarily like this, but I think that the 
+> > > > AM33xx EVM needs its own board file.  This is because it really has 
+> > > > nothing to do with the AM3517EVM.  Also, the AM3517EVM depends on 
+> > > > CONFIG_ARCH_OMAP3, but the AM33xx EVM should not: it should depend on 
+> > > > either CONFIG_ARCH_OMAPAM33XX, or CONFIG_ARCH_OMAP4.
 > > 
-> > > Add MMC for 2420 so we can pass the DMA request lines the same
-> > > way as we already do on omap2430 and later.
-> > > 
-> > > Cc: Benoit Cousson <b-cousson@ti.com>
-> > > Cc: Paul Walmsley <paul@pwsan.com>
-> > > Signed-off-by: Tony Lindgren <tony@atomide.com>
+> > I guess adding CONFIG_SOC_AM33XX makes sense if it does not share anything
+> > except core with omap3. And the SOC is independent of the core selected,
+> > there is no dependency between SoC and the core.
 > > 
-> > Made a few changes here so that it applies on the omap-devel-a-for-3.5 tag 
-> > that you pulled in.  Also changed the 2420 MMC class name to "msdi" and 
-> > the hwmod name to "msdi1" -- this is the IP block name that is listed in 
-> > the 2420 TRM Rev. X Table 26-9 "Instance Summary".  It also is convenient 
-> > for us, because the 2420 MMC driver is different than the 2430+ HSMMC 
-> > driver, so we can just probe all of the hwmods of class "msdi" to register 
-> > the 2420 MMC :-)
+> > Note that we have CONFIG_ARCH_OMAP2PLUS, all the other ones should be just
+> > CONFIG_SOC_XXX. As all omap3 omap4 and am33xx are v7, there's no need to
+> > compile with different flags either.
+> >  
 > 
-> Also, forgot to mention that a struct omap_hwmod_class_sysconfig record 
-> was added here too, based on the info in the 2420 TRM.
-> 
-> The updated patch is below.  Have queued it in a hwmod data update branch 
-> here along with some other hwmod data updates.  Will send a pull request 
-> after testing is finished here...
+> But still we do have ARCH_OMAP2, ARCH_OMAP3 and ARCH_OMAP4? And that's where, 
+> we have issues for adding new devices like AM33xx and TI81xx.
 
-OK
+Those will be going away, but doing it has not been done because of the amount
+of churn it creates. But if we add #define CONFIG_ARCH_OMAP3 CONFIG_SOC_OMAP3
+we can do it piecemeal along with other cleanups.
 
-Tony 
+Tony
