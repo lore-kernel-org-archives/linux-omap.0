@@ -1,139 +1,94 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH] omap3_beagle: init uart2 for beagle rev AX/BX only
-Date: Fri, 4 May 2012 11:18:08 -0700
-Message-ID: <20120504181808.GM5613@atomide.com>
-References: <1331024711-23578-1-git-send-email-govindraj.raja@ti.com>
+From: Stephen Warren <swarren@wwwdotorg.org>
+Subject: Re: [PATCH V3 1/2] of: Add generic device tree DMA helpers
+Date: Fri, 04 May 2012 12:21:50 -0600
+Message-ID: <4FA41E3E.3020303@wwwdotorg.org>
+References: <1335820679-28721-1-git-send-email-jon-hunter@ti.com> <4FA30604.1030401@wwwdotorg.org> <4FA3F08D.7030603@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-01-ewr.mailhop.org ([204.13.248.71]:46053 "EHLO
-	mho-01-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752693Ab2EDSSM (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 4 May 2012 14:18:12 -0400
-Content-Disposition: inline
-In-Reply-To: <1331024711-23578-1-git-send-email-govindraj.raja@ti.com>
+Received: from avon.wwwdotorg.org ([70.85.31.133]:49190 "EHLO
+	avon.wwwdotorg.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753945Ab2EDSVz (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 4 May 2012 14:21:55 -0400
+In-Reply-To: <4FA3F08D.7030603@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "Govindraj.R" <govindraj.raja@ti.com>
-Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Peter Ujfalusi <peter.ujfalusi@ti.com>, Robert Nelson <robertcnelson@gmail.com>, Kevin Hilman <khilman@ti.com>, Koen Kooi <koen@dominion.thruhere.net>
+To: Jon Hunter <jon-hunter@ti.com>
+Cc: device-tree <devicetree-discuss@lists.ozlabs.org>, Stephen Warren <swarren@nvidia.com>, Benoit Cousson <b-cousson@ti.com>, Arnd Bergmann <arnd@arndb.de>, Nicolas Ferre <nicolas.ferre@atmel.com>, Rob Herring <rob.herring@calxeda.com>, Grant Likely <grant.likely@secretlab.ca>, Russell King <linux@arm.linux.org.uk>, linux-omap <linux-omap@vger.kernel.org>, linux-arm <linux-arm-kernel@lists.infradead.org>
 
-Hi,
-
-Looking at this again..
-
-* Govindraj.R <govindraj.raja@ti.com> [120306 00:34]:
-> From: "Govindraj.R" <govindraj.raja@ti.com>
+On 05/04/2012 09:06 AM, Jon Hunter wrote:
+> Hi Stephen,
 > 
-> All beagle boards rev > AX/BX have external usb hubs connected to ehci
-> interface, external hub/peripheral uses a nreset sequence for which
-> uart2_rx.gpio_147 pin in mux mode4(USB2HS_nRST) is used on all beagle
-> boards expect rev Ax/BX.
-> (Reference to all beagle boards rev schematics:
-> http://beagleboard.org/hardware/design)
+> On 05/03/2012 05:26 PM, Stephen Warren wrote:
+>> On 04/30/2012 03:17 PM, Jon Hunter wrote:
+>>> From: Jon Hunter <jon-hunter@ti.com>
+>>>
+>>> This is based upon the work by Benoit Cousson [1] and Nicolas Ferre [2]
+>>> to add some basic helpers to retrieve a DMA controller device_node and the
+>>> DMA request/channel information.
+...
+>>> +
+>>> +	sdma: dmaengine@48000000 {
+>>> +		compatible = "ti,omap4-sdma"
+>>> +		reg = <0x48000000 0x1000>;
+>>> +		interrupts = <4>;
+>>> +		#dma-cells = <2>;
+>>> +		#dma-channels = <32>;
+>>> +		#dma-requests = <127>;
+>>> +	};
+>>> +
+>>> +
+>>> +* DMA client
+>>> +
+>>> +Client drivers should specify the DMA property using a phandle to the controller
+>>> +followed by the number of DMA request/channel and the transfer type of the
+>>
+>> What exactly is "request/channel"? Is it a request ID, a channel ID,
+>> both packed into a single integer (which bits are used for each field),
+>> etc.?
 > 
-> Initialising uart2 will lead to serial init taking over uart2_rx pin
-> so init uart2_rx pin mux only for Beagle AX/BX rev boards.
-> Dont init uart2 for all other boards allowing usb_ehci functionality.
+> The thought here was that some DMAs may distinguish between devices by a
+> request ID or a channel ID or both. In the case of say an OMAP4, we have
+> 32 channels and 127 request IDs. From a h/w perspective we need to know
+> both. Each of the 32 channels can be programmed to use any one of the
+> 127 h/w request signals.
 
-OK so the above got fixed for the muxing part with commit
-bce492c04ba8fc66a4ea0a52b181ba255daaaf54.
- 
-> To initialise individual uart port by id utilise and modify the existing
-> available func. omap_serial_board_init.
+>From a HW perspective, do you actually need to know both? I think the HW
+description must specify the request ID, but because any channel can be
+programmed to any request ID, you don't actually care about the channel
+ID; it can be dynamically allocated by the DMA driver when the client
+driver calls dma_request_channel().
 
-This makes sense as board specific fixes.
- 
-> --- a/arch/arm/mach-omap2/board-omap3beagle.c
-> +++ b/arch/arm/mach-omap2/board-omap3beagle.c
-> @@ -126,6 +126,7 @@ static void __init omap3_beagle_init_rev(void)
->  		beagle_config.mmc1_gpio_wp = 29;
->  		beagle_config.reset_gpio = 170;
->  		beagle_config.usr_button_gpio = 7;
-> +		omap_serial_board_init(NULL, 1);
->  		break;
->  	case 6:
->  		printk(KERN_INFO "OMAP3 Beagle Rev: C1/C2/C3\n");
-> @@ -528,7 +529,10 @@ static void __init omap3_beagle_init(void)
->  	platform_add_devices(omap3_beagle_devices,
->  			ARRAY_SIZE(omap3_beagle_devices));
->  	omap_display_init(&beagle_dss_data);
-> -	omap_serial_init();
-> +	omap_serial_board_init(NULL, 0);
-> +	omap_serial_board_init(NULL, 2);
-> +	omap_serial_board_init(NULL, 3);
-> +
->  	omap_sdrc_init(mt46h32m32lf6_sdrc_params,
->  				  mt46h32m32lf6_sdrc_params);
->  
+Actually, you say the following below, so I guess you already agree here:
 
-So this still looks valid, except now you also add the muxing for the
-uart pins instead of NULL? Note that you could define OMAP3_UART1_DEFAULT_PINS
-etc in some header.
+> Yes this is the same as OMAPs SDMA. In the case of such DMA controllers
+> you only really care about the request ID and total number of channels
+> that are available to you.
 
-> --- a/arch/arm/mach-omap2/serial.c
-> +++ b/arch/arm/mach-omap2/serial.c
-> @@ -393,30 +393,32 @@ void __init omap_serial_init_port(struct omap_board_data *bdata,
->  /**
->   * omap_serial_board_init() - initialize all supported serial ports
->   * @info: platform specific data pointer
-> + * @port_id: uart port number to be initialised
->   *
-> - * Initializes all available UARTs as serial ports. Platforms
-> + * Initializes individual UARTs as serial ports. Platforms
->   * can call this function when they want to have default behaviour
-> - * for serial ports (e.g initialize them all as serial ports).
-> + * for serial ports (e.g initialize individual serial ports based on port id).
->   */
-> -void __init omap_serial_board_init(struct omap_uart_port_info *info)
-> +void __init omap_serial_board_init(struct omap_uart_port_info *info, u8 port_id)
->  {
->  	struct omap_uart_state *uart;
->  	struct omap_board_data bdata;
->  
-> -	list_for_each_entry(uart, &uart_list, node) {
-> -		bdata.id = uart->num;
-> -		bdata.flags = 0;
-> -		bdata.pads = NULL;
-> -		bdata.pads_cnt = 0;
-> -
-> -		if (cpu_is_omap44xx() || cpu_is_omap34xx())
-> -			omap_serial_fill_default_pads(&bdata);
-> -
-> -		if (!info)
-> -			omap_serial_init_port(&bdata, NULL);
-> -		else
-> -			omap_serial_init_port(&bdata, &info[uart->num]);
-> -	}
-> +	list_for_each_entry(uart, &uart_list, node)
-> +		if (uart->num == port_id) {
-> +			bdata.id = uart->num;
-> +			bdata.flags = 0;
-> +			bdata.pads = NULL;
-> +			bdata.pads_cnt = 0;
-> +
-> +			if (!cpu_is_omap24xx())
-> +				omap_serial_fill_default_pads(&bdata);
-> +
-> +			if (!info)
-> +				omap_serial_init_port(&bdata, NULL);
-> +			else
-> +				omap_serial_init_port(&bdata, info);
-> +		}
->  }
-> @@ -428,5 +430,8 @@ void __init omap_serial_board_init(struct omap_uart_port_info *info)
->   */
->  void __init omap_serial_init(void)
->  {
-> -	omap_serial_board_init(NULL);
-> +	struct omap_uart_state *uart;
-> +
-> +	list_for_each_entry(uart, &uart_list, node)
-> +		omap_serial_board_init(NULL, uart->num);
->  }
+...
+>> This is why I think DMA controller should specify the format of their
+>> own DMA specifier in DT, and why they should provide an xlate function
+>> to parse that.
+> 
+> Ok fair enough. However, it seems that at a minimum we could provide one
+> or two xlate functions in the generic binding for people to use. One
+> could be the DMA engine xlate binding and another could be the simple
+> xlate binding Nicolas proposed for a DMA controller that returns a
+> single channel/request ID.
+>
+> However, at the same time, may be people would prefer that devices such
+> as tegra, omap, at91, etc, offer their own xlate function for DMA
+> engine. I am not sure, but we could go either way.
 
-Is this fix still needed? If so, it should probably be a separate fix
-with it's own description.  
+I'd expect the bindings to be written to allow the individual DMA
+controllers to have complete control over the meaning of the DMA specifier.
 
-Regards,
-
-Tony
+That said, I would certainly expect some common patterns to emerge, such
+as a single cell to specify the DMA channel ID, or a single cell to
+specify the DMA request/selector ID. We should certainly make sure that
+where different controllers need the same information, they use the same
+way to represent it, and use common utility code to implement the xlate
+functionality. We could perhaps even write these common cases into the
+core DMA bindings as examples to help ensure uniformity. However, we
+just need to do this in a way that allows other cases too.
