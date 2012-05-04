@@ -1,77 +1,139 @@
 From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH] arm: omap: add minimal support for Nokia RM-696
-Date: Fri, 4 May 2012 11:11:05 -0700
-Message-ID: <20120504181105.GL5613@atomide.com>
-References: <1330967337-9634-1-git-send-email-aaro.koskinen@nokia.com>
- <20120501104801.GA23559@elf.ucw.cz>
+Subject: Re: [PATCH] omap3_beagle: init uart2 for beagle rev AX/BX only
+Date: Fri, 4 May 2012 11:18:08 -0700
+Message-ID: <20120504181808.GM5613@atomide.com>
+References: <1331024711-23578-1-git-send-email-govindraj.raja@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-02-ewr.mailhop.org ([204.13.248.72]:31164 "EHLO
-	mho-02-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752517Ab2EDSLM (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 4 May 2012 14:11:12 -0400
+Received: from mho-01-ewr.mailhop.org ([204.13.248.71]:46053 "EHLO
+	mho-01-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752693Ab2EDSSM (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 4 May 2012 14:18:12 -0400
 Content-Disposition: inline
-In-Reply-To: <20120501104801.GA23559@elf.ucw.cz>
+In-Reply-To: <1331024711-23578-1-git-send-email-govindraj.raja@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Pavel Machek <pavel@ucw.cz>
-Cc: Aaro Koskinen <aaro.koskinen@nokia.com>, linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org
+To: "Govindraj.R" <govindraj.raja@ti.com>
+Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Peter Ujfalusi <peter.ujfalusi@ti.com>, Robert Nelson <robertcnelson@gmail.com>, Kevin Hilman <khilman@ti.com>, Koen Kooi <koen@dominion.thruhere.net>
 
-Hi Pavel,
+Hi,
 
-* Pavel Machek <pavel@ucw.cz> [120501 03:51]:
-> Hi!
-> 
-> > Add minimal support for Nokia RM-696 board.
-> > 
-> > Signed-off-by: Aaro Koskinen <aaro.koskinen@nokia.com>
-> > ---
-> > 
-> > 	The patch is based & boot-tested with 3.3-rc6.
-> > 
-> > 
-> >  arch/arm/mach-omap2/Kconfig                  |    3 ++-
-> >  arch/arm/mach-omap2/board-rm680.c            |   14 +++++++++++++-
-> >  arch/arm/plat-omap/include/plat/uncompress.h |    1 +
-> >  3 files changed, 16 insertions(+), 2 deletions(-)
-> > 
-> > diff --git a/arch/arm/mach-omap2/Kconfig b/arch/arm/mach-omap2/Kconfig
-> > index e20c8ab..b740c2e 100644
-> > --- a/arch/arm/mach-omap2/Kconfig
-> > +++ b/arch/arm/mach-omap2/Kconfig
-> > @@ -245,10 +245,11 @@ config MACH_NOKIA_N8X0
-> >  	select MACH_NOKIA_N810_WIMAX
-> >  
-> >  config MACH_NOKIA_RM680
-> > -	bool "Nokia RM-680 board"
-> > +	bool "Nokia RM-680/696 board"
-> >  	depends on ARCH_OMAP3
-> >  	default y
-> >  	select OMAP_PACKAGE_CBB
-> > +	select MACH_NOKIA_RM696
-> >
-> 
-> AFAICT, this is nokia N9. At least help text should state that...
-> 
-> >  config MACH_NOKIA_RX51
-> >  	bool "Nokia RX-51 board"
-> > diff --git a/arch/arm/mach-omap2/board-rm680.c b/arch/arm/mach-omap2/board-rm680.c
-> > index 8678b38..094473e 100644
-> > --- a/arch/arm/mach-omap2/board-rm680.c
-> > +++ b/arch/arm/mach-omap2/board-rm680.c
-> > @@ -1,5 +1,5 @@
-> >  /*
-> > - * Board support file for Nokia RM-680.
-> > + * Board support file for Nokia RM-680/696.
-> >   *
-> 
-> And a comment.
+Looking at this again..
 
-Sorry this is already in mainline tree as commit
-63fc5f3bb3d0ca9ab4767a801b518aa6335f87ad.
+* Govindraj.R <govindraj.raja@ti.com> [120306 00:34]:
+> From: "Govindraj.R" <govindraj.raja@ti.com>
+> 
+> All beagle boards rev > AX/BX have external usb hubs connected to ehci
+> interface, external hub/peripheral uses a nreset sequence for which
+> uart2_rx.gpio_147 pin in mux mode4(USB2HS_nRST) is used on all beagle
+> boards expect rev Ax/BX.
+> (Reference to all beagle boards rev schematics:
+> http://beagleboard.org/hardware/design)
+> 
+> Initialising uart2 will lead to serial init taking over uart2_rx pin
+> so init uart2_rx pin mux only for Beagle AX/BX rev boards.
+> Dont init uart2 for all other boards allowing usb_ehci functionality.
 
-Care to do a follow-up patch to add some N9 comments to Kconfig and
-board-rm680.c?
+OK so the above got fixed for the muxing part with commit
+bce492c04ba8fc66a4ea0a52b181ba255daaaf54.
+ 
+> To initialise individual uart port by id utilise and modify the existing
+> available func. omap_serial_board_init.
+
+This makes sense as board specific fixes.
+ 
+> --- a/arch/arm/mach-omap2/board-omap3beagle.c
+> +++ b/arch/arm/mach-omap2/board-omap3beagle.c
+> @@ -126,6 +126,7 @@ static void __init omap3_beagle_init_rev(void)
+>  		beagle_config.mmc1_gpio_wp = 29;
+>  		beagle_config.reset_gpio = 170;
+>  		beagle_config.usr_button_gpio = 7;
+> +		omap_serial_board_init(NULL, 1);
+>  		break;
+>  	case 6:
+>  		printk(KERN_INFO "OMAP3 Beagle Rev: C1/C2/C3\n");
+> @@ -528,7 +529,10 @@ static void __init omap3_beagle_init(void)
+>  	platform_add_devices(omap3_beagle_devices,
+>  			ARRAY_SIZE(omap3_beagle_devices));
+>  	omap_display_init(&beagle_dss_data);
+> -	omap_serial_init();
+> +	omap_serial_board_init(NULL, 0);
+> +	omap_serial_board_init(NULL, 2);
+> +	omap_serial_board_init(NULL, 3);
+> +
+>  	omap_sdrc_init(mt46h32m32lf6_sdrc_params,
+>  				  mt46h32m32lf6_sdrc_params);
+>  
+
+So this still looks valid, except now you also add the muxing for the
+uart pins instead of NULL? Note that you could define OMAP3_UART1_DEFAULT_PINS
+etc in some header.
+
+> --- a/arch/arm/mach-omap2/serial.c
+> +++ b/arch/arm/mach-omap2/serial.c
+> @@ -393,30 +393,32 @@ void __init omap_serial_init_port(struct omap_board_data *bdata,
+>  /**
+>   * omap_serial_board_init() - initialize all supported serial ports
+>   * @info: platform specific data pointer
+> + * @port_id: uart port number to be initialised
+>   *
+> - * Initializes all available UARTs as serial ports. Platforms
+> + * Initializes individual UARTs as serial ports. Platforms
+>   * can call this function when they want to have default behaviour
+> - * for serial ports (e.g initialize them all as serial ports).
+> + * for serial ports (e.g initialize individual serial ports based on port id).
+>   */
+> -void __init omap_serial_board_init(struct omap_uart_port_info *info)
+> +void __init omap_serial_board_init(struct omap_uart_port_info *info, u8 port_id)
+>  {
+>  	struct omap_uart_state *uart;
+>  	struct omap_board_data bdata;
+>  
+> -	list_for_each_entry(uart, &uart_list, node) {
+> -		bdata.id = uart->num;
+> -		bdata.flags = 0;
+> -		bdata.pads = NULL;
+> -		bdata.pads_cnt = 0;
+> -
+> -		if (cpu_is_omap44xx() || cpu_is_omap34xx())
+> -			omap_serial_fill_default_pads(&bdata);
+> -
+> -		if (!info)
+> -			omap_serial_init_port(&bdata, NULL);
+> -		else
+> -			omap_serial_init_port(&bdata, &info[uart->num]);
+> -	}
+> +	list_for_each_entry(uart, &uart_list, node)
+> +		if (uart->num == port_id) {
+> +			bdata.id = uart->num;
+> +			bdata.flags = 0;
+> +			bdata.pads = NULL;
+> +			bdata.pads_cnt = 0;
+> +
+> +			if (!cpu_is_omap24xx())
+> +				omap_serial_fill_default_pads(&bdata);
+> +
+> +			if (!info)
+> +				omap_serial_init_port(&bdata, NULL);
+> +			else
+> +				omap_serial_init_port(&bdata, info);
+> +		}
+>  }
+> @@ -428,5 +430,8 @@ void __init omap_serial_board_init(struct omap_uart_port_info *info)
+>   */
+>  void __init omap_serial_init(void)
+>  {
+> -	omap_serial_board_init(NULL);
+> +	struct omap_uart_state *uart;
+> +
+> +	list_for_each_entry(uart, &uart_list, node)
+> +		omap_serial_board_init(NULL, uart->num);
+>  }
+
+Is this fix still needed? If so, it should probably be a separate fix
+with it's own description.  
+
+Regards,
 
 Tony
