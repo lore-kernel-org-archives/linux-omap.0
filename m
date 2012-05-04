@@ -1,161 +1,54 @@
-From: Archit Taneja <a0393947@ti.com>
-Subject: Re: [PATCH 11/25] OMAPDSS: create custom pdevs for DSS omap_devices
-Date: Fri, 4 May 2012 11:33:37 +0530
-Message-ID: <4FA37139.9020501@ti.com>
-References: <1336053481-25433-1-git-send-email-tomi.valkeinen@ti.com> <1336053481-25433-12-git-send-email-tomi.valkeinen@ti.com>
+From: "Hiremath, Vaibhav" <hvaibhav@ti.com>
+Subject: RE: [PATCH-V5 2/3] arm:omap:am33xx: Add AM335XEVM machine support
+Date: Fri, 4 May 2012 06:14:00 +0000
+Message-ID: <79CD15C6BA57404B839C016229A409A83EA1411F@DBDE01.ent.ti.com>
+References: <hvaibhav@ti.com>
+ <1322808204-12878-3-git-send-email-hvaibhav@ti.com>
+ <alpine.DEB.2.00.1205020317151.19695@utopia.booyaka.com>
+ <79CD15C6BA57404B839C016229A409A83EA10A64@DBDE01.ent.ti.com>
+ <20120503155717.GE5140@atomide.com>
+ <79CD15C6BA57404B839C016229A409A83EA1348F@DBDE01.ent.ti.com>
+ <20120503193732.GG5140@atomide.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="ISO-8859-1"; format=flowed
+Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from bear.ext.ti.com ([192.94.94.41]:47508 "EHLO bear.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751625Ab2EDGEQ (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Fri, 4 May 2012 02:04:16 -0400
-In-Reply-To: <1336053481-25433-12-git-send-email-tomi.valkeinen@ti.com>
-Sender: linux-omap-owner@vger.kernel.org
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
+In-Reply-To: <20120503193732.GG5140@atomide.com>
+Content-Language: en-US
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
+List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
+List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
+Sender: linux-arm-kernel-bounces@lists.infradead.org
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
+To: Tony Lindgren <tony@atomide.com>
+Cc: "Hilman, Kevin" <khilman@ti.com>, Paul Walmsley <paul@pwsan.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "Mohammed,
+ Afzal" <afzal@ti.com>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>
 List-Id: linux-omap@vger.kernel.org
-To: Tomi Valkeinen <tomi.valkeinen@ti.com>
-Cc: linux-omap@vger.kernel.org, linux-fbdev@vger.kernel.org
 
-Hi,
+On Fri, May 04, 2012 at 01:07:32, Tony Lindgren wrote:
+> * Hiremath, Vaibhav <hvaibhav@ti.com> [120503 09:45]:
+> > 
+> > What about cpu_is_omap34xx() true for am33xx? Should we follow it?
+> 
+> Well are there components that could be used as is with that?
+> If not, then it probably does not make sense.
+> 
 
-On Thursday 03 May 2012 07:27 PM, Tomi Valkeinen wrote:
-> Instead of using omap_device_build() to create the omap_devices for DSS
-> hwmods, create them with a custom function. This will allow us to create
-> a parent-child hierarchy for the devices so that the omapdss_core device
-> is parent for the rest of the dss hwmod devices.
->
-> Signed-off-by: Tomi Valkeinen<tomi.valkeinen@ti.com>
-> ---
->   arch/arm/mach-omap2/display.c |   88 ++++++++++++++++++++++++++++++++++-------
->   1 file changed, 74 insertions(+), 14 deletions(-)
->
-> diff --git a/arch/arm/mach-omap2/display.c b/arch/arm/mach-omap2/display.c
-> index 07232fd..46d2a98 100644
-> --- a/arch/arm/mach-omap2/display.c
-> +++ b/arch/arm/mach-omap2/display.c
-> @@ -185,13 +185,71 @@ static int omap_dss_set_min_bus_tput(struct device *dev, unsigned long tput)
->   	return omap_pm_set_min_bus_tput(dev, OCP_INITIATOR_AGENT, tput);
->   }
->
-> +static struct platform_device *create_dss_pdev(const char *pdev_name,
-> +		int pdev_id, const char *oh_name, void *pdata, int pdata_len,
-> +		struct platform_device *parent)
+I am also in favor of not following cpu_is_omap34xx() for am33xx, but what about ARCH_OMAP?
+I don't see that you are in agreement in creating ARCH_OMAPAM33XX. 
+Does it make sense to say that, for am33xx, cpu_is_omap34xx() is false, but still it is under ARCH_OMAP3?
 
-This function looks quite generic, it's like omap_device_build() but 
-with a parent associated. omap_device_build() seems to be a special case 
-of this function with parent passed as null. Won't this
-function be needed by other devices too?
 
-Maybe we could modify omap_device_build_ss() to take a parent argument, 
-and make a function called omap_device_build_parent(), where both 
-omap_device_build() and omap_device_build_parent() call 
-omap_device_build_ss()?
+> BTW, you should post your patches on top of the clean-up patches
+> Santosh posted as that already leaves out some cpu_is_omapxxxx
+> checks. That's the "ARM: OMAP2+: Misc cleanup" thread.
+> 
 
-Archit
+Ok. I will do that.
 
-> +{
-> +	struct platform_device *pdev;
-> +	struct omap_device *od;
-> +	struct omap_hwmod *ohs[1];
-> +	struct omap_hwmod *oh;
-> +	int r;
-> +
-> +	oh = omap_hwmod_lookup(oh_name);
-> +	if (!oh) {
-> +		pr_err("Could not look up %s\n", oh_name);
-> +		r = -ENODEV;
-> +		goto err;
-> +	}
-> +
-> +	pdev = platform_device_alloc(pdev_name, pdev_id);
-> +	if (!pdev) {
-> +		pr_err("Could not create pdev for %s\n", pdev_name);
-> +		r = -ENOMEM;
-> +		goto err;
-> +	}
-> +
-> +	if (parent != NULL)
-> +		pdev->dev.parent =&parent->dev;
-> +
-> +	if (pdev->id != -1)
-> +		dev_set_name(&pdev->dev, "%s.%d", pdev->name, pdev->id);
-> +	else
-> +		dev_set_name(&pdev->dev, "%s", pdev->name);
-> +
-> +	ohs[0] = oh;
-> +	od = omap_device_alloc(pdev, ohs, 1, NULL, 0);
-> +	if (!od) {
-> +		pr_err("Could not alloc omap_device for %s\n", pdev_name);
-> +		r = -ENOMEM;
-> +		goto err;
-> +	}
-> +
-> +	r = platform_device_add_data(pdev, pdata, pdata_len);
-> +	if (r) {
-> +		pr_err("Could not set pdata for %s\n", pdev_name);
-> +		goto err;
-> +	}
-> +
-> +	r = omap_device_register(pdev);
-> +	if (r) {
-> +		pr_err("Could not register omap_device for %s\n", pdev_name);
-> +		goto err;
-> +	}
-> +
-> +	return pdev;
-> +
-> +err:
-> +	return ERR_PTR(r);
-> +}
-> +
->   int __init omap_display_init(struct omap_dss_board_info *board_data)
->   {
->   	int r = 0;
-> -	struct omap_hwmod *oh;
->   	struct platform_device *pdev;
->   	int i, oh_count;
->   	const struct omap_dss_hwmod_data *curr_dss_hwmod;
-> +	struct platform_device *dss_pdev;
->
->   	/* create omapdss device */
->
-> @@ -221,22 +279,24 @@ int __init omap_display_init(struct omap_dss_board_info *board_data)
->   		oh_count = ARRAY_SIZE(omap4_dss_hwmod_data);
->   	}
->
-> -	for (i = 0; i<  oh_count; i++) {
-> -		oh = omap_hwmod_lookup(curr_dss_hwmod[i].oh_name);
-> -		if (!oh) {
-> -			pr_err("Could not look up %s\n",
-> -				curr_dss_hwmod[i].oh_name);
-> -			return -ENODEV;
-> -		}
-> +	dss_pdev = NULL;
->
-> -		pdev = omap_device_build(curr_dss_hwmod[i].dev_name,
-> -				curr_dss_hwmod[i].id, oh,
-> +	for (i = 0; i<  oh_count; i++) {
-> +		pdev = create_dss_pdev(curr_dss_hwmod[i].dev_name,
-> +				curr_dss_hwmod[i].id,
-> +				curr_dss_hwmod[i].oh_name,
->   				NULL, 0,
-> -				NULL, 0, 0);
-> +				dss_pdev);
-> +
-> +		if (IS_ERR(pdev)) {
-> +			pr_err("Could not build omap_device for %s\n",
-> +					curr_dss_hwmod[i].oh_name);
-> +
-> +			return PTR_ERR(pdev);
-> +		}
->
-> -		if (WARN((IS_ERR(pdev)), "Could not build omap_device for %s\n",
-> -				curr_dss_hwmod[i].oh_name))
-> -			return -ENODEV;
-> +		if (i == 0)
-> +			dss_pdev = pdev;
->   	}
->
->   	return 0;
-
+Thanks,
+Vaibhav
