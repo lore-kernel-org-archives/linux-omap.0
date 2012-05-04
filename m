@@ -1,78 +1,50 @@
-From: R Sricharan <r.sricharan@ti.com>
-Subject: [PATCH] ARM: OMAP2+: dma: Define dma capabilities register bitfields and use them.
-Date: Fri, 4 May 2012 12:59:42 +0530
-Message-ID: <1336116582-11099-1-git-send-email-r.sricharan@ti.com>
+From: "Shilimkar, Santosh" <santosh.shilimkar@ti.com>
+Subject: Re: [PATCH] ARM: OMAP2+: dma: Define dma capabilities register
+ bitfields and use them.
+Date: Fri, 4 May 2012 13:02:48 +0530
+Message-ID: <CAMQu2gzDgPQwrv4oRCeUKEeYq4Tpu=X=SBSFjKzeTb7TzDsb9A@mail.gmail.com>
+References: <1336116582-11099-1-git-send-email-r.sricharan@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from bear.ext.ti.com ([192.94.94.41]:50973 "EHLO bear.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751375Ab2EDH3t (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Fri, 4 May 2012 03:29:49 -0400
+Received: from na3sys009aog121.obsmtp.com ([74.125.149.145]:44443 "EHLO
+	na3sys009aog121.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1753368Ab2EDHdK convert rfc822-to-8bit
+	(ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Fri, 4 May 2012 03:33:10 -0400
+Received: by qadz3 with SMTP id z3so936426qad.17
+        for <linux-omap@vger.kernel.org>; Fri, 04 May 2012 00:33:08 -0700 (PDT)
+In-Reply-To: <1336116582-11099-1-git-send-email-r.sricharan@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
-Cc: santosh.shilimkar@ti.com, r.sricharan@ti.com
+To: R Sricharan <r.sricharan@ti.com>
+Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 
-The system dma module has capabiities register indicating
-the support for descriptor loading, constant fill, etc.
-Use this instead of OMAP revision check to identify the features
-supported runtime.
+On Fri, May 4, 2012 at 12:59 PM, R Sricharan <r.sricharan@ti.com> wrote=
+:
+> The system dma module has capabiities register indicating
+> the support for descriptor loading, constant fill, etc.
+> Use this instead of OMAP revision check to identify the features
+> supported runtime.
+>
+> This avoids patching the code for feature SOCs which has
+> those capabilities.
+>
+> Signed-off-by: R Sricharan <r.sricharan@ti.com>
+> ---
+> =A0arch/arm/mach-omap2/dma.c =A0 =A0 =A0 =A0 =A0 =A0 | =A0 11 +++++++=
+----
+> =A0arch/arm/plat-omap/include/plat/dma.h | =A0 =A05 +++++
+> =A02 files changed, 12 insertions(+), 4 deletions(-)
+>
+Looks fine. Will add it to my clean-up series if no has
+any objection on the patch.
 
-This avoids patching the code for feature SOCs which has
-those capabilities.
-
-Signed-off-by: R Sricharan <r.sricharan@ti.com>
----
- arch/arm/mach-omap2/dma.c             |   11 +++++++----
- arch/arm/plat-omap/include/plat/dma.h |    5 +++++
- 2 files changed, 12 insertions(+), 4 deletions(-)
-
-diff --git a/arch/arm/mach-omap2/dma.c b/arch/arm/mach-omap2/dma.c
-index b19d849..ff75abe 100644
---- a/arch/arm/mach-omap2/dma.c
-+++ b/arch/arm/mach-omap2/dma.c
-@@ -227,10 +227,6 @@ static int __init omap2_system_dma_init_dev(struct omap_hwmod *oh, void *unused)
- 
- 	dma_stride		= OMAP2_DMA_STRIDE;
- 	dma_common_ch_start	= CSDP;
--	if (cpu_is_omap3630() || cpu_is_omap44xx())
--		dma_common_ch_end = CCDN;
--	else
--		dma_common_ch_end = CCFN;
- 
- 	p = kzalloc(sizeof(struct omap_system_dma_plat_info), GFP_KERNEL);
- 	if (!p) {
-@@ -277,6 +273,13 @@ static int __init omap2_system_dma_init_dev(struct omap_hwmod *oh, void *unused)
- 		dev_err(&pdev->dev, "%s: kzalloc fail\n", __func__);
- 		return -ENOMEM;
- 	}
-+
-+	/* Check the capabilities register for descriptor loading feature */
-+	if (dma_read(CAPS_0, 0) & DMA_HAS_DESCRIPTOR_CAPS)
-+		dma_common_ch_end = CCDN;
-+	else
-+		dma_common_ch_end = CCFN;
-+
- 	return 0;
- }
- 
-diff --git a/arch/arm/plat-omap/include/plat/dma.h b/arch/arm/plat-omap/include/plat/dma.h
-index dc562a5..7742204 100644
---- a/arch/arm/plat-omap/include/plat/dma.h
-+++ b/arch/arm/plat-omap/include/plat/dma.h
-@@ -312,6 +312,11 @@
- #define CLEAR_CSR_ON_READ		BIT(0xC)
- #define IS_WORD_16			BIT(0xD)
- 
-+/* Defines for DMA Capabilities */
-+#define DMA_HAS_TRANSPARENT_CAPS	(0x1 << 18)
-+#define DMA_HAS_CONSTANT_FILL_CAPS	(0x1 << 19)
-+#define DMA_HAS_DESCRIPTOR_CAPS		(0x3 << 20)
-+
- enum omap_reg_offsets {
- 
- GCR,		GSCR,		GRST1,		HW_ID,
--- 
-1.7.1
-
+Regards
+Santosh
+--
+To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
