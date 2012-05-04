@@ -1,83 +1,161 @@
-From: Igor Grinberg <grinberg-UTxiZqZC01RS1MOuV/RT9w@public.gmane.org>
-Subject: Re: [PATCH RESEND] ARM: OMAP3: USB: Fix the EHCI ULPI PHY reset issue
-Date: Fri, 04 May 2012 09:03:02 +0300
-Message-ID: <4FA37116.4020608@compulab.co.il>
-References: <1332139367-1302-1-git-send-email-keshava_mgowda@ti.com> <CAMrsUdKnL+kSRQXi=X0d1S2fZM5sGpmYqzKnp0TPpjCKVujuaw@mail.gmail.com> <CA+Bv8XZeCTV2kr_d7dEAeEthwD0TkNZPiEV5m-iOFjoX7xur9Q@mail.gmail.com> <CAMrsUdL18b2Ox3CkzuNjQQW1JT1+-SAso67EkrwE-BTJbavYPA@mail.gmail.com> <CA+Bv8XYodOf_TKR6__aP=p8L7ruKhn6imWnOEbN+3UsBWPmoiw@mail.gmail.com>
+From: Archit Taneja <a0393947@ti.com>
+Subject: Re: [PATCH 11/25] OMAPDSS: create custom pdevs for DSS omap_devices
+Date: Fri, 4 May 2012 11:33:37 +0530
+Message-ID: <4FA37139.9020501@ti.com>
+References: <1336053481-25433-1-git-send-email-tomi.valkeinen@ti.com> <1336053481-25433-12-git-send-email-tomi.valkeinen@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
+Content-Type: text/plain; charset="ISO-8859-1"; format=flowed
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <CA+Bv8XYodOf_TKR6__aP=p8L7ruKhn6imWnOEbN+3UsBWPmoiw-JsoAwUIsXosN+BqQ9rBEUg@public.gmane.org>
-Sender: linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Russ Dill <Russ.Dill-l0cyMroinI0@public.gmane.org>
-Cc: "Raja, Govindraj" <govindraj.raja-l0cyMroinI0@public.gmane.org>, Keshava Munegowda <keshava_mgowda-l0cyMroinI0@public.gmane.org>, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, balbi-l0cyMroinI0@public.gmane.org, sameo-VuQAYsv1563Yd54FQh9/CA@public.gmane.org, parthab-PpE0FKYn9XJWk0Htik3J/w@public.gmane.org
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from bear.ext.ti.com ([192.94.94.41]:47508 "EHLO bear.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751625Ab2EDGEQ (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Fri, 4 May 2012 02:04:16 -0400
+In-Reply-To: <1336053481-25433-12-git-send-email-tomi.valkeinen@ti.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Tomi Valkeinen <tomi.valkeinen@ti.com>
+Cc: linux-omap@vger.kernel.org, linux-fbdev@vger.kernel.org
 
-Hi Russ,
+Hi,
 
-On 05/03/12 22:08, Russ Dill wrote:
-> On Wed, May 2, 2012 at 3:38 AM, Raja, Govindraj <govindraj.raja-l0cyMroinI0@public.gmane.org> wrote:
->> On Wed, May 2, 2012 at 2:17 PM, Russ Dill <Russ.Dill-l0cyMroinI0@public.gmane.org> wrote:
->>> On Mon, Mar 19, 2012 at 6:34 AM, Raja, Govindraj <govindraj.raja-l0cyMroinI0@public.gmane.org> wrote:
->>>> On Mon, Mar 19, 2012 at 12:12 PM, Keshava Munegowda
->>>> <keshava_mgowda-l0cyMroinI0@public.gmane.org> wrote:
->>>>> From: Keshava Munegowda <Keshava_mgowda-l0cyMroinI0@public.gmane.org>
->>>>>
->>>>> It is observed that the echi ports of 3430 sdp board
->>>>> are not working due to the random timing of programming
->>>>> the associated GPIOs of the ULPI PHYs of the EHCI for reset.
->>>>> If the PHYs are reset at during usbhs core driver, host ports will
->>>>> not work because EHCI driver is loaded after the resetting PHYs.
->>>>> The PHYs should be in reset state while initializing the EHCI
->>>>> controller.
->>>>> The code which does the GPIO pins associated with the PHYs
->>>>> are programmed to reset is moved from the USB host core driver
->>>>> to EHCI driver.
->>>>
->>>> I tested on beagle xm where gpio nreset is requested from
->>>> board file.
->>>> (Basic enumertaion after gpio nreset seems to work fine,
->>>> Hub and smsc lan chip get detected afetr boot up)
->>>>
->>>
->>> What base did you test this on top of? my xM is failing USB-wise when
->>> I apply this on v3.3.3 (with the UART mux fix patch) and where it is
->>> applied within master (3.4-rc4, again, with the UART mux fix patch).
->>> Additionally, reverting this patch from 3.4-rc5 causes rc5 to work
->>> properly.
->>>
->>
->> Works for me be on 3.4-rc5 Beagle-XM even without reverting the patch
->>
->> Logs as in here [1].
->>
->> --
->> Thanks,
->> Govindraj.R
->>
->> [1]:
->> http://pastebin.pandaboard.org/index.php/view/20343533
-> 
-> I've tracked down the difference. I'm loading my uEnv.txt and uImage
-> in u-boot from the network which means initializing USB. You are
-> loading straight from MMC. If I switch to loading straight from MMC
-> everything works.
-> 
-> Can everyone do a 'usb start' in u-boot before booting and re-test?
-> I'm pretty sure this is a regression, but the bug could be a strange
-> u-boot/kernel interaction.
+On Thursday 03 May 2012 07:27 PM, Tomi Valkeinen wrote:
+> Instead of using omap_device_build() to create the omap_devices for DSS
+> hwmods, create them with a custom function. This will allow us to create
+> a parent-child hierarchy for the devices so that the omapdss_core device
+> is parent for the rest of the dss hwmod devices.
+>
+> Signed-off-by: Tomi Valkeinen<tomi.valkeinen@ti.com>
+> ---
+>   arch/arm/mach-omap2/display.c |   88 ++++++++++++++++++++++++++++++++++-------
+>   1 file changed, 74 insertions(+), 14 deletions(-)
+>
+> diff --git a/arch/arm/mach-omap2/display.c b/arch/arm/mach-omap2/display.c
+> index 07232fd..46d2a98 100644
+> --- a/arch/arm/mach-omap2/display.c
+> +++ b/arch/arm/mach-omap2/display.c
+> @@ -185,13 +185,71 @@ static int omap_dss_set_min_bus_tput(struct device *dev, unsigned long tput)
+>   	return omap_pm_set_min_bus_tput(dev, OCP_INITIATOR_AGENT, tput);
+>   }
+>
+> +static struct platform_device *create_dss_pdev(const char *pdev_name,
+> +		int pdev_id, const char *oh_name, void *pdata, int pdata_len,
+> +		struct platform_device *parent)
 
-Probably, kernel code does not reinitialize EHCI correctly if it was already enabled?
-Can you try the below sequence:
-usb start
-usb stop
-boot Linux
-?
+This function looks quite generic, it's like omap_device_build() but 
+with a parent associated. omap_device_build() seems to be a special case 
+of this function with parent passed as null. Won't this
+function be needed by other devices too?
 
--- 
-Regards,
-Igor.
---
-To unsubscribe from this list: send the line "unsubscribe linux-usb" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Maybe we could modify omap_device_build_ss() to take a parent argument, 
+and make a function called omap_device_build_parent(), where both 
+omap_device_build() and omap_device_build_parent() call 
+omap_device_build_ss()?
+
+Archit
+
+> +{
+> +	struct platform_device *pdev;
+> +	struct omap_device *od;
+> +	struct omap_hwmod *ohs[1];
+> +	struct omap_hwmod *oh;
+> +	int r;
+> +
+> +	oh = omap_hwmod_lookup(oh_name);
+> +	if (!oh) {
+> +		pr_err("Could not look up %s\n", oh_name);
+> +		r = -ENODEV;
+> +		goto err;
+> +	}
+> +
+> +	pdev = platform_device_alloc(pdev_name, pdev_id);
+> +	if (!pdev) {
+> +		pr_err("Could not create pdev for %s\n", pdev_name);
+> +		r = -ENOMEM;
+> +		goto err;
+> +	}
+> +
+> +	if (parent != NULL)
+> +		pdev->dev.parent =&parent->dev;
+> +
+> +	if (pdev->id != -1)
+> +		dev_set_name(&pdev->dev, "%s.%d", pdev->name, pdev->id);
+> +	else
+> +		dev_set_name(&pdev->dev, "%s", pdev->name);
+> +
+> +	ohs[0] = oh;
+> +	od = omap_device_alloc(pdev, ohs, 1, NULL, 0);
+> +	if (!od) {
+> +		pr_err("Could not alloc omap_device for %s\n", pdev_name);
+> +		r = -ENOMEM;
+> +		goto err;
+> +	}
+> +
+> +	r = platform_device_add_data(pdev, pdata, pdata_len);
+> +	if (r) {
+> +		pr_err("Could not set pdata for %s\n", pdev_name);
+> +		goto err;
+> +	}
+> +
+> +	r = omap_device_register(pdev);
+> +	if (r) {
+> +		pr_err("Could not register omap_device for %s\n", pdev_name);
+> +		goto err;
+> +	}
+> +
+> +	return pdev;
+> +
+> +err:
+> +	return ERR_PTR(r);
+> +}
+> +
+>   int __init omap_display_init(struct omap_dss_board_info *board_data)
+>   {
+>   	int r = 0;
+> -	struct omap_hwmod *oh;
+>   	struct platform_device *pdev;
+>   	int i, oh_count;
+>   	const struct omap_dss_hwmod_data *curr_dss_hwmod;
+> +	struct platform_device *dss_pdev;
+>
+>   	/* create omapdss device */
+>
+> @@ -221,22 +279,24 @@ int __init omap_display_init(struct omap_dss_board_info *board_data)
+>   		oh_count = ARRAY_SIZE(omap4_dss_hwmod_data);
+>   	}
+>
+> -	for (i = 0; i<  oh_count; i++) {
+> -		oh = omap_hwmod_lookup(curr_dss_hwmod[i].oh_name);
+> -		if (!oh) {
+> -			pr_err("Could not look up %s\n",
+> -				curr_dss_hwmod[i].oh_name);
+> -			return -ENODEV;
+> -		}
+> +	dss_pdev = NULL;
+>
+> -		pdev = omap_device_build(curr_dss_hwmod[i].dev_name,
+> -				curr_dss_hwmod[i].id, oh,
+> +	for (i = 0; i<  oh_count; i++) {
+> +		pdev = create_dss_pdev(curr_dss_hwmod[i].dev_name,
+> +				curr_dss_hwmod[i].id,
+> +				curr_dss_hwmod[i].oh_name,
+>   				NULL, 0,
+> -				NULL, 0, 0);
+> +				dss_pdev);
+> +
+> +		if (IS_ERR(pdev)) {
+> +			pr_err("Could not build omap_device for %s\n",
+> +					curr_dss_hwmod[i].oh_name);
+> +
+> +			return PTR_ERR(pdev);
+> +		}
+>
+> -		if (WARN((IS_ERR(pdev)), "Could not build omap_device for %s\n",
+> -				curr_dss_hwmod[i].oh_name))
+> -			return -ENODEV;
+> +		if (i == 0)
+> +			dss_pdev = pdev;
+>   	}
+>
+>   	return 0;
+
