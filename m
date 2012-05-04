@@ -1,205 +1,128 @@
-From: "Aguirre, Sergio" <saaguirre@ti.com>
-Subject: Re: [PATCH v3 07/10] arm: omap4430sdp: Add support for omap4iss camera
-Date: Thu, 3 May 2012 22:20:47 -0500
-Message-ID: <CAKnK67SZGES33T02Ki3imZi20OKRSRe+u9nONsq2KoEGVz4_0w@mail.gmail.com>
-References: <1335971749-21258-1-git-send-email-saaguirre@ti.com>
- <1335971749-21258-8-git-send-email-saaguirre@ti.com> <20120502194700.GF852@valkosipuli.localdomain>
- <CAKnK67S5zZW0HAUYrg4ZqudiQqcOY+kbZeDeQ1OGU+s+cShBDQ@mail.gmail.com>
+From: Jean-Christophe PLAGNIOL-VILLARD <plagnioj@jcrosoft.com>
+Subject: Re: [PATCH] pinctrl: Add generic pinctrl-simple driver that
+ supports omap2+ padconf
+Date: Fri, 4 May 2012 06:43:05 +0200
+Message-ID: <20120504044305.GD7788@game.jcrosoft.org>
+References: <20120502172401.GG3739@atomide.com>
+ <20120503065131.GA3738@game.jcrosoft.org>
+ <20120503152708.GC5140@atomide.com>
+ <4FA30805.5050804@wwwdotorg.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aog125.obsmtp.com ([74.125.149.153]:56747 "EHLO
-	na3sys009aog125.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754650Ab2EDDVJ convert rfc822-to-8bit
-	(ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Thu, 3 May 2012 23:21:09 -0400
-Received: by qcso7 with SMTP id o7so1974988qcs.34
-        for <linux-omap@vger.kernel.org>; Thu, 03 May 2012 20:21:08 -0700 (PDT)
-In-Reply-To: <CAKnK67S5zZW0HAUYrg4ZqudiQqcOY+kbZeDeQ1OGU+s+cShBDQ@mail.gmail.com>
+Received: from mo4.mail-out.ovh.net ([178.32.228.4]:58453 "EHLO
+	mo4.mail-out.ovh.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751006Ab2EDFEq (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 4 May 2012 01:04:46 -0400
+Received: from mail97.ha.ovh.net (b7.ovh.net [213.186.33.57])
+	by mo4.mail-out.ovh.net (Postfix) with SMTP id F209B104E0B3
+	for <linux-omap@vger.kernel.org>; Fri,  4 May 2012 07:06:10 +0200 (CEST)
+Content-Disposition: inline
+In-Reply-To: <4FA30805.5050804@wwwdotorg.org>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Sakari Ailus <sakari.ailus@iki.fi>
-Cc: linux-media@vger.kernel.org, linux-omap@vger.kernel.org
+To: Stephen Warren <swarren@wwwdotorg.org>
+Cc: Tony Lindgren <tony@atomide.com>, Linus Walleij <linus.walleij@linaro.org>, linux-omap@vger.kernel.org, Stephen Warren <swarren@nvidia.com>, linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 
-Hi Sakari,
+On 16:34 Thu 03 May     , Stephen Warren wrote:
+> On 05/03/2012 09:27 AM, Tony Lindgren wrote:
+> > Hi,
+> > 
+> > * Jean-Christophe PLAGNIOL-VILLARD <plagnioj@jcrosoft.com> [120503 00:16]:
+> >>
+> >> 	I really like it
+> >>
+> >> 	I was working on something simillar
+> >>
+> >> 	but can we split the group management so we can use it on other
+> >> 	bindings
+> > 
+> > Hmm I'm not sure I follow on the group management splitting, can you specify
+> > what you have in mind here?
+> > 
+> > If you mean moving more things into pinctrl fwk, then yeah I'd assume that
+> > will happen eventually and drivers like this will end up becoming more minimal.
+> 
+> Jean-Christophe, forgive me if I'm putting words in your mouth, but I
+> assume the following is what you mean:
+> 
+> There are two pieces of data required by the pinctrl subsystem:
+> 
+> a) The set of pins, functions, and groups that exist.
+> 
+> b) The specific function to select for each pin/group on a given board.
+> 
+> Item (a) can be represented in the pinctrl driver (e.g. as in the Tegra
+> driver), or can be represented in device tree in order to avoid large
+> tables in the driver.
+> 
+> Item (b) has to be represented in device tree, since the whole point is
+> that it's board-specific.
+> 
+> For all DT bindings I've seen that choose to represent (a) in the DT
+> rather than in the driver, the DT represents (b) directly, and (a) is
+> implicitly extracted/created based on (a).
+> 
+> When I was first thinking about DT bindings for pinctrl, I had hoped
+> that even if (a) was represented in DT, the DT nodes/properties for (a)
+> and (b) would be entirely separate, so that the binding for (b) could be
+> completely common across all SoCs, even though the binding for (a) would
+> perhaps be different across SoCs (if it existed at all).
+> 
+> So, perhaps Jean-Christophe is talking about splitting up (a) and (b) in
+> device tree?
+> 
+> Or perhaps Jean-Christophe only refers to the code that creates the
+> group and function definitions from (b), and not the actual DT binding
+> itself?
+yes you are right Stephen
+I was thinking of both but the second could be a first step
 
-On Thu, May 3, 2012 at 7:03 AM, Aguirre, Sergio <saaguirre@ti.com> wrot=
-e:
-> Hi Sakari,
->
-> Thanks for reviewing.
->
-> On Wed, May 2, 2012 at 2:47 PM, Sakari Ailus <sakari.ailus@iki.fi> wr=
-ote:
->>
->> Hi Sergio,
->>
->> Thanks for the patches!!
->>
->> On Wed, May 02, 2012 at 10:15:46AM -0500, Sergio Aguirre wrote:
->> ...
->>> +static int sdp4430_ov_cam1_power(struct v4l2_subdev *subdev, int o=
-n)
->>> +{
->>> + =A0 =A0 struct device *dev =3D subdev->v4l2_dev->dev;
->>> + =A0 =A0 int ret;
->>> +
->>> + =A0 =A0 if (on) {
->>> + =A0 =A0 =A0 =A0 =A0 =A0 if (!regulator_is_enabled(sdp4430_cam2pwr=
-_reg)) {
->>> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 ret =3D regulator_enable(=
-sdp4430_cam2pwr_reg);
->>> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 if (ret) {
->>> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 dev_err(d=
-ev,
->>> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0=
- =A0 "Error in enabling sensor power regulator 'cam2pwr'\n");
->>> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 return re=
-t;
->>> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 }
->>> +
->>> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 msleep(50);
->>> + =A0 =A0 =A0 =A0 =A0 =A0 }
->>> +
->>> + =A0 =A0 =A0 =A0 =A0 =A0 gpio_set_value(OMAP4430SDP_GPIO_CAM_PDN_B=
-, 1);
->>> + =A0 =A0 =A0 =A0 =A0 =A0 msleep(10);
->>> + =A0 =A0 =A0 =A0 =A0 =A0 ret =3D clk_enable(sdp4430_cam1_aux_clk);=
- /* Enable XCLK */
->>> + =A0 =A0 =A0 =A0 =A0 =A0 if (ret) {
->>> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 dev_err(dev,
->>> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 "Error in=
- clk_enable() in %s(%d)\n",
->>> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 __func__,=
- on);
->>> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 gpio_set_value(OMAP4430SD=
-P_GPIO_CAM_PDN_B, 0);
->>> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 return ret;
->>> + =A0 =A0 =A0 =A0 =A0 =A0 }
->>> + =A0 =A0 =A0 =A0 =A0 =A0 msleep(10);
->>> + =A0 =A0 } else {
->>> + =A0 =A0 =A0 =A0 =A0 =A0 clk_disable(sdp4430_cam1_aux_clk);
->>> + =A0 =A0 =A0 =A0 =A0 =A0 msleep(1);
->>> + =A0 =A0 =A0 =A0 =A0 =A0 gpio_set_value(OMAP4430SDP_GPIO_CAM_PDN_B=
-, 0);
->>> + =A0 =A0 =A0 =A0 =A0 =A0 if (regulator_is_enabled(sdp4430_cam2pwr_=
-reg)) {
->>> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 ret =3D regulator_disable=
-(sdp4430_cam2pwr_reg);
->>> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 if (ret) {
->>> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 dev_err(d=
-ev,
->>> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0=
- =A0 "Error in disabling sensor power regulator 'cam2pwr'\n");
->>> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 return re=
-t;
->>> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 }
->>> + =A0 =A0 =A0 =A0 =A0 =A0 }
->>> + =A0 =A0 }
->>> +
->>> + =A0 =A0 return 0;
->>> +}
->>
->> Isn't this something that should be part of the sensor driver? There=
-'s
->> nothing in the above code that would be board specific, except the n=
-ames of
->> the clocks, regulators and GPIOs. The sensor driver could hold the n=
-ames
->> instead; this would be also compatible with the device tree.
->
-> Agreed. I see what you mean...
->
-> I'll take care of that.
+today we tend all to represent the group of pin in DT
 
-Can you please check out these patches?
+for TI, IM, MXC, at91, ST and others
 
-1. http://gitorious.org/omap4-v4l2-camera/omap4-v4l2-camera/commit/cb6c=
-10d58053180364461e6bc8d30d1ec87e6e22
-2. http://gitorious.org/omap4-v4l2-camera/omap4-v4l2-camera/commit/6732=
-e0db25c6647b34ef8f01c244a49a1fd6b45d
-3. http://gitorious.org/omap4-v4l2-camera/omap4-v4l2-camera/commit/d61c=
-4e3142dc9cae972f9128fe73d986838c0ca1
-4. http://gitorious.org/omap4-v4l2-camera/omap4-v4l2-camera/commit/e83f=
-36001c7f7cbe184ad094d9b0c95c39e5028f
+the way to represend the groups are exactly the same
 
-I want to see if I got your point properly...
+a group is a node with a set on pin
 
-Regards,
-Sergio
+uart {
+ pincfg......
+}
 
->
->>
->> It should be possible to have s_power() callback NULL, too.
->>
->>> +static int sdp4430_ov_cam2_power(struct v4l2_subdev *subdev, int o=
-n)
->>> +{
->>> + =A0 =A0 struct device *dev =3D subdev->v4l2_dev->dev;
->>> + =A0 =A0 int ret;
->>> +
->>> + =A0 =A0 if (on) {
->>> + =A0 =A0 =A0 =A0 =A0 =A0 u8 gpoctl =3D 0;
->>> +
->>> + =A0 =A0 =A0 =A0 =A0 =A0 ret =3D regulator_enable(sdp4430_cam2pwr_=
-reg);
->>> + =A0 =A0 =A0 =A0 =A0 =A0 if (ret) {
->>> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 dev_err(dev,
->>> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 "Error in=
- enabling sensor power regulator 'cam2pwr'\n");
->>> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 return ret;
->>> + =A0 =A0 =A0 =A0 =A0 =A0 }
->>> +
->>> + =A0 =A0 =A0 =A0 =A0 =A0 msleep(50);
->>> +
->>> + =A0 =A0 =A0 =A0 =A0 =A0 if (twl_i2c_read_u8(TWL_MODULE_AUDIO_VOIC=
-E, &gpoctl,
->>> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 T=
-WL6040_REG_GPOCTL))
->>> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 return -ENODEV;
->>> + =A0 =A0 =A0 =A0 =A0 =A0 if (twl_i2c_write_u8(TWL_MODULE_AUDIO_VOI=
-CE,
->>> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0=
-gpoctl | TWL6040_GPO3,
->>> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0=
-TWL6040_REG_GPOCTL))
->>> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 return -ENODEV;
->>
->> The above piece of code looks quite interesting. What does it do?
->
-> Well, this is because the camera adapter board in 4430SDP has 3
-> sensors actually:
->
-> - 1 Sony IMX060 12.1 MP sensor
-> - 2 OmniVision OV5650 sensors
->
-> And there's 3 wideband analog switches, like this:
->
-> http://www.analog.com/static/imported-files/data_sheets/ADG936_936R.p=
-df
->
-> That basically select either IMX060 or OV5650 for CSI2A input.
->
-> So, this commands are because the TWL6040 chip has a GPO pin to toggl=
-e
-> this, instead
-> of an OMAP GPIO (Don't ask me why :) )
->
-> Anyways... I see your point, maybe this should be explained better
-> through a comment.
->
-> Regards,
-> Sergio
->>
->> Kind regards,
->>
->> --
->> Sakari Ailus
->> e-mail: sakari.ailus@iki.fi =A0 =A0 jabber/XMPP/Gmail: sailus@retiis=
-i.org.uk
---
-To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+and the group is uart
+
+so we do need to have a common way to handle it in c
+
+the code propose by Tony is really what I'm working on to acheive this
+
+In my mind in the driver we do not have to care how to list
+register/unregister the group. We just need to be able to do this
+
+pinctrl_register_group(...)
+
+or 
+
+pinctrl_unregistewr_group(...)
+
+On at91 we have this type of controller
+
+one pin can have multiple function and each function can be on different pin
+and we need to program and represent each of them one by one
+
+And each pin have different parameter
+
+so I was thinking to do like on gpio
+
+uart {
+	pin = < &pioA 12 {pararms} >
+
+}
+
+and use macro as basicaly we are just this
+
+and this can be applied to tegra too as you will just refer the pin in this hw
+pin block
+
+Best Regards,
+J.
