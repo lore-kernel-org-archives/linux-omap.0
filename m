@@ -1,50 +1,58 @@
-From: Santosh Shilimkar <santosh.shilimkar@ti.com>
-Subject: Re: [PATCH v5 0/7] Add TI EMIF SDRAM controller driver
-Date: Fri, 04 May 2012 12:02:01 +0530
-Message-ID: <4FA377E1.9060008@ti.com>
-References: <1335529449-28046-1-git-send-email-santosh.shilimkar@ti.com> <CAP=VYLrCTOb9Qtz_HU5976cew_FR=qN6=x=_nD48ZprTcCjoUg@mail.gmail.com> <20120504000312.GB32225@kroah.com>
+From: Paul Walmsley <paul@pwsan.com>
+Subject: Re: [PATCH 2/2] ARM: OMAP4: DSS hwmods: Add OCPIF_SWSUP_IDLE to all
+ DSS L3 slave interfaces
+Date: Fri, 4 May 2012 00:39:12 -0600 (MDT)
+Message-ID: <alpine.DEB.2.00.1205040038510.20926@utopia.booyaka.com>
+References: <1334304116-18872-1-git-send-email-archit@ti.com> <1334304116-18872-3-git-send-email-archit@ti.com> <4F87E72A.2050104@ti.com> <4F87E924.5040601@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aog124.obsmtp.com ([74.125.149.151]:50839 "EHLO
-	na3sys009aog124.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751859Ab2EDGcJ (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 4 May 2012 02:32:09 -0400
-Received: by obbup16 with SMTP id up16so5859659obb.39
-        for <linux-omap@vger.kernel.org>; Thu, 03 May 2012 23:32:07 -0700 (PDT)
-In-Reply-To: <20120504000312.GB32225@kroah.com>
+Received: from utopia.booyaka.com ([72.9.107.138]:43403 "EHLO
+	utopia.booyaka.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752026Ab2EDGjN (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 4 May 2012 02:39:13 -0400
+In-Reply-To: <4F87E924.5040601@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Greg KH <greg@kroah.com>
-Cc: Paul Gortmaker <paul.gortmaker@windriver.com>, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+To: Archit Taneja <a0393947@ti.com>
+Cc: "Cousson, Benoit" <b-cousson@ti.com>, tomi.valkeinen@ti.com, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 
-On Friday 04 May 2012 05:33 AM, Greg KH wrote:
-> On Thu, May 03, 2012 at 06:38:23PM -0400, Paul Gortmaker wrote:
->> On Fri, Apr 27, 2012 at 8:24 AM, Santosh Shilimkar
->> <santosh.shilimkar@ti.com> wrote:
->>> Add a driver for the EMIF SDRAM controller used in Texas Instrument SoCs
->>
->> Hi Santosh,
->>
->> Can you send Greg a patch that adds proper dependencies to the Kconfig?
->> I was going to simply add an ARM dependency, but perhaps you want to
->> restrict it further to a subset of OMAP platforms?
->>
-Thanks Paul for reporting the issue.
+Hi Archit,
 
->> At the moment it is causing build failures in other architectures.
->>
->> http://kisskb.ellerman.id.au/kisskb/buildresult/6243036/
+On Fri, 13 Apr 2012, Archit Taneja wrote:
+
+> On Friday 13 April 2012 02:13 PM, Cousson, Benoit wrote:
+> > On 4/13/2012 10:01 AM, Archit Taneja wrote:
+> > > The clock for all DSS L3 slave interfaces had been recently changed to
+> > > "dss_fck" from "l3_div_ck". "dss_fck" is an optional clock in DSS
+> > > clock domain
+> > > which can't autoidle when enabled.
+> > > 
+> > > Add OCPIF_SWSUP_IDLE flag to all the L3 slave interfaces used by DSS
+> > > hwmods so
+> > > that clock is explicitly enabled and disabled by software. Without this,
+> > > "dss_fck" would be left as enabled and the OMAP4 device won't idle
+> > > even when
+> > > DSS is not in use.
+> > 
+> > Yeah, that was done on purpose with Tomi knowning well that limitation.
+> > 
+> > The issue was mainly due to the lack of proper parent / child
+> > relationship between the DSS (the whole subsystem) and the DSS children
+> > at that time.
+> > 
+> > I think that Tomi posted a series to fix that for 3.4. So if we ensure
+> > that every DSS IPs are children of the DSS, then pm_runtime will always
+> > ensure that the DSS will be enabled each time a submodule is used.
+> > 
+> > So the right fix is to put back the proper iclk (l3_div) to the DSS
+> > instead of the dss_fck.
 > 
-> I think there's a config option for readl/writel, but yes, ARM would
-> probably be fine as well.
-> 
-Just send a patch [1] to Greg. EMIF driver build is restricted to
-ARCH_OMAP2PLUS for now and can be extended later if any other
-non OMAP architecture start using it.
+> Ok, I get it now. Tomi's patch series ensured the parent-child 
+> dependency, but they didn't switch the iclks back to l3_div, I guess 
+> that should be a part of the series too.
 
-Regards
-Santosh
+Just checking on this one.  Does this patch need to be updated ?
 
-[1] https://lkml.org/lkml/2012/5/4/22
+
+- Paul
