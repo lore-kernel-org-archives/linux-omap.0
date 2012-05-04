@@ -1,65 +1,221 @@
-From: "Mark A. Greer" <mgreer@animalcreek.com>
-Subject: Re: [PATCH] net: davinci_emac: Add pre_open, post_stop platform
- callbacks
-Date: Fri, 4 May 2012 14:47:52 -0700
-Message-ID: <20120504214752.GA9827@animalcreek.com>
-References: <20120503160917.GA11310@animalcreek.com>
- <B5906170F1614E41A8A28DE3B8D121433EA73591@DBDE01.ent.ti.com>
- <20120503184632.GA28089@animalcreek.com>
- <B5906170F1614E41A8A28DE3B8D121433EA7366B@DBDE01.ent.ti.com>
- <1336076542.2998.23.camel@bwh-desktop.uk.solarflarecom.com>
- <87ehr1gdcv.fsf@ti.com>
- <B5906170F1614E41A8A28DE3B8D121433EA81B04@DBDE01.ent.ti.com>
- <87fwbgdnlp.fsf@ti.com>
- <20120504182938.GB28910@animalcreek.com>
- <87397faccs.fsf@ti.com>
+From: Tony Lindgren <tony@atomide.com>
+Subject: Re: [PATCH] pinctrl: Add generic pinctrl-simple driver that
+ supports omap2+ padconf
+Date: Fri, 4 May 2012 14:57:59 -0700
+Message-ID: <20120504215758.GV5613@atomide.com>
+References: <20120502172401.GG3739@atomide.com>
+ <4FA42CBF.8010906@wwwdotorg.org>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail20.dotsterhost.com ([66.11.232.73]:41897 "EHLO
-	mail20.dotsterhost.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752129Ab2EDVrx (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 4 May 2012 17:47:53 -0400
+Received: from mho-01-ewr.mailhop.org ([204.13.248.71]:29291 "EHLO
+	mho-01-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752952Ab2EDV6E (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 4 May 2012 17:58:04 -0400
 Content-Disposition: inline
-In-Reply-To: <87397faccs.fsf@ti.com>
+In-Reply-To: <4FA42CBF.8010906@wwwdotorg.org>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Kevin Hilman <khilman@ti.com>
-Cc: "Bedia, Vaibhav" <vaibhav.bedia@ti.com>, nsekhar@ti.com, Ben Hutchings <bhutchings@solarflare.com>, "netdev@vger.kernel.org" <netdev@vger.kernel.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>
+To: Stephen Warren <swarren@wwwdotorg.org>
+Cc: Linus Walleij <linus.walleij@linaro.org>, linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org, Stephen Warren <swarren@nvidia.com>
 
-On Fri, May 04, 2012 at 02:02:43PM -0700, Kevin Hilman wrote:
-> "Mark A. Greer" <mgreer@animalcreek.com> writes:
+* Stephen Warren <swarren@wwwdotorg.org> [120504 12:27]:
+> On 05/02/2012 11:24 AM, Tony Lindgren wrote:
 > 
-> > On Fri, May 04, 2012 at 07:31:30AM -0700, Kevin Hilman wrote:
+> > diff --git a/Documentation/devicetree/bindings/pinctrl/pinctrl-simple.txt b/Documentation/devicetree/bindings/pinctrl/pinctrl-simple.txt
 > 
-> [...]
+> > +Required properties:
+> > +- compatible :  one of:
+> > +	- "pinctrl-simple"
+> > +	- "ti,omap2420-padconf"
+> > +	- "ti,omap2430-padconf"
+> > +	- "ti,omap3-padconf"
+> > +	- "ti,omap4-padconf"
 > 
-> >> Come to think of it, the right solution here is probably to use runtime
-> >> PM.  We could then to add some custom hooks for davinci_emac in the
-> >> device code to use enable_hlt/disable_hlt based on activity.
-> >
-> > That was my first thought, actually, but that only works if its
-> > okay for the driver to call enable_hlt/disable_hlt directly (i.e.,
-> > have runtime_suspend() call enable_hlt() and runtime_resume() call
-> > disable_hlt()).  However, I assumed it would _not_ be acceptable for
-> > the driver to issue those calls directly.  
+> I'm in two minds about this.
 > 
-> I agree.
-> 
-> > Its a platform-specific issue that we shouldn't be polluting the
-> > driver with and there are currently no drivers that call them under
-> > the drivers directory.
-> 
-> Using runtime PM we don't have to have any platform specific calls in
-> the driver.  We handle it inside the platform-specific runtime PM
-> implementation.
+> If this is truly intended to be generic, I would not document any of the
+> ti compatible values here. Instead, I'd create a binding document for
+> the TI controllers that basically just says "this uses the bindings in
+> pinctrl-simple.txt, with the following additions", and list the
+> compatible values as an addition.
 
-FYI, with some further discussion via IRC, I'm going to implement what
-Kevin has laid out here.  There is a dependency on davinci adding support
-too but I'll coordinate with the people/person doing that.
+Hmm sure makes sense. I'll move the TI specific stuff into a separate
+doc.
+ 
+> On the other hand, I worry about whether using "pinctrl-simple" here as
+> the compatible value is going to cause issues:
+> 
+> Certainly, this is a pretty simple driver, and most likely reasonably
+> generic an applicable to many SoCs. However, it doesn't cover a bunch of
+> cases that I'd still consider "simple". For example, what if each pin
+> has a separate mux and pinconf register? There are probably many such
+> small cases that would add up to something more complex. to cover those
+> cases, will we be able to extend pinctrl-simple to cover them, and
+> continue to be backwards compatible, or will we need to create a
+> binding/driver for pinctrl-simple-1, pinctrl-simple-2, pinctrl-simple-3
+> each of which covers some different, yet still simple, configuration?
 
-Please disregard this patch.
+Yes getting the binding right is the critical part here, everything else
+can be added as needed. I was thinking about using separate properties
+for auxilary registers, but now thinking about it a bit more, it may not
+be sufficient.
 
-Thanks for the help everyone.
+How about we make some of these properties into arrays? For example:
 
-Mark
+#pinctrl-cells = 6;
+pinctrl-simple,function-mask = <0x0000ffff 0x0000ffff 0xffff0000>;
+pinctrl-simple,function-off = <0x7 0x7 0x70000>;
+pinctrl-simple,pinconf-mask = <0xffff0000 0xffff0000 0x0000ffff>;
+
+Then for handling the set/clear bits case of registers, we could do that
+automatically if both masks are 0 for some registers. We actually have
+that for some omap1 where there are three registers per mux with bits
+to set or clear. And these bits are not the same across all registers..
+
+> To resolve this, perhaps it would be best to rework this binding and
+> driver as a set of utility code that other bindings and drivers can
+> build upon, rather than making it a standalone directly usable driver
+> and binding.
+> 
+> Honestly, I'm not really sure which way to go here.
+
+Sure that's doable, but sounds like that can be also done later after
+the binding is agreed on.
+
+> > +- reg : offset and length of the register set for the mux registers
+> > +- #pinctrl-cells : width of the pinctrl array, currently only 2 is supported
+> > +- pinctrl-simple,register-width : pinmux register access width
+> > +- pinctrl-simple,function-mask : mask of allowed pinmux function bits
+> > +- pinctrl-simple,function-off : function off mode for disabled state
+> > +- pinctrl-simple,pinconf-mask : mask of allowed pinconf bits
+> > +
+> > +This driver uses the common pinctrl bindings as specified in
+> > +pinctrl-bindings.txt document in this directory. The common bindings are used
+> > +to specify the client device states using pinctrl-0 and pinctrl-names entries.
+> 
+> I think just remove the second sentence there; it's implicit given the
+> first.
+
+Sure.
+ 
+> > +/* board specific .dts file, such as omap4-sdp.dts */
+> > +&omap4_pmx_core {
+> > +
+> > +	/*
+> > +	 * map all board specific static pins enabled by the pinctrl driver
+> > +	 * itself during the boot (or just set them up in the bootloader)
+> > +	 */
+> > +	pinctrl-names = "default";
+> > +	pinctrl-0 = <&board_pins>;
+> > +
+> > +	board_pins: pinmux_board_pins {
+> > +		board_static_pins {
+> 
+> I'd like to see a little more explanation of the node structure here.
+> I.e. what does each node represent, why are there two levels of nodes, etc.
+> 
+> Given that the "pinctrl-simple,cells" can specify both mux function and
+> pin configuration for each pin, i.e. everything you need to, I don't see
+> why you'd ever need two levels of nodes here. I'd expect each "pin
+> configuration node" (in pinctrl core bindings terminology) to be a
+> single level:
+> 
+> node {
+>     pinctrl-simple,cells = <...>;
+> };
+> 
+> where node is what's references in the pinctrl-0 property by pinctrl
+> client drivers.
+
+Good point, it seems we can remove the subnodes for the cases where we
+parse multiple registers in one entry. Two levels of nodes are needed for
+the cases where we need to specify GPIO for a pin.
+ 
+> > +			pinctrl-simple,cells = <
+> 
+> "cells" here doesn't seem like the right word. Perhaps "pins" or
+> "configuration"? "Cell"s to me seems semi-reserved for binding cell
+> count description, like #gpio-cells, #address-cells, etc.
+
+Sure, "pins" works just as well here, it's shorter than "configuration".
+ 
+> Also, there's nothing in the free-form text part of this binding
+> document that says describes the set of properties that need to exist in
+> these "pin configuration nodes", nor what their content is.
+
+Will add.
+ 
+> > +				0x6c 0xf	/* CSI21_DX3 OMAP_PIN_OUTPUT | OMAP_MUX_MODE7 */
+> > +				0x6e 0xf	/* CSI21_DY3 OMAP_PIN_OUTPUT | OMAP_MUX_MODE7 */
+> > +				0x70 0xf	/* CSI21_DX4 OMAP_PIN_OUTPUT | OMAP_MUX_MODE7 */
+> > +				0x72 0xf	/* CSI21_DY4 OMAP_PIN_OUTPUT | OMAP_MUX_MODE7 */
+> > +			>;
+> > +		};
+> > +	};
+> > +
+> > +
+> > +	/* map all uart2 pins as a single function */
+> > +	uart2_pins: pinmux_uart2_pins {
+> > +		uart2_pins {
+> > +			pinctrl-simple,cells = <
+> > +				0xd8 0x118	/* UART2_CTS OMAP_PIN_INPUT_PULLUP | OMAP_MUX_MODE0 */
+> > +				0xda 0		/* UART2_RTS OMAP_PIN_OUTPUT | OMAP_MUX_MODE0 */
+> > +				0xdc 0x118	/* UART2_RX OMAP_PIN_INPUT_PULLUP | OMAP_MUX_MODE0 */
+> > +				0xde 0		/* UART2_TX OMAP_PIN_OUTPUT | OMAP_MUX_MODE0 */
+> > +			>;
+> > +		};
+> > +	};
+> > +
+> > +	/* map all uart3 pins as separate functions */
+> > +	uart3_pins: pinmux_uart3_pins {
+> 
+> From a binding perspective, I don't see why you'd want to allow two cases:
+> 
+> 1) One node with multiple entries in pinctrl-simple,cells
+> 2) Multiple nodes each with a single entry in pinctrl-simple,cells
+> 
+> Why not only allow (1)?
+
+Because we need to specify GPIO for some pins. There may be additional flags
+too, we do have external DMA request lines for few pins available.. I'm not
+saying pinctrl fwk should know about that, but it's a similar mapping of pins
+to GPIO lines.
+
+We don't want to do (2) only because it makes things slower. Typically
+a board would mux most pins (could be a few hundred) as a single type (1)
+entry, and then have some driver specific type (2) entries.
+ 
+> > diff --git a/drivers/pinctrl/pinctrl-simple.c b/drivers/pinctrl/pinctrl-simple.c
+> 
+> > +struct pcs_device {
+> ...
+> > +	unsigned (*read)(void __iomem *reg);
+> > +	void (*write)(unsigned val, void __iomem *reg);
+> > +};
+> 
+> Why not use regmap instead of writing your own:
+> 
+> > +static unsigned __maybe_unused pcs_readb(void __iomem *reg)
+> > +static unsigned __maybe_unused pcs_readw(void __iomem *reg)
+> ...
+> 
+> regmap recently gained support for memory-mapped IO, so should work for
+> this. Also, using regmap might allow this binding/driver to be easily
+> extended to support e.g. I2C-/SPI-based pin controller hardware, since
+> regmap would handle all the IO details for you.
+
+Cool, will take a look.
+ 
+> Supporting these different IO modes might require a little more thought
+> though. For example, an I2C device's reg refers to its location on the
+> parent bus, rather than the address of the registers within the device.
+> We'd probably need to augment parent busses with some method for child
+> devices to acquire a regmap object for their own IO in order to hide
+> this from drivers.
+
+Yeah that could be added later.
+
+Regards,
+
+Tony
