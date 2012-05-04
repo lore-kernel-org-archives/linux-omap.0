@@ -1,313 +1,472 @@
 From: Tero Kristo <t-kristo@ti.com>
-Subject: [PATCH 2/3] ARM: OMAP3+: PM: introduce a central pmic control
-Date: Fri, 4 May 2012 16:57:21 +0300
-Message-ID: <1336139842-845-3-git-send-email-t-kristo@ti.com>
+Subject: [PATCH 3/3] ARM: OMAP2+ PM: Add support for TPS62361
+Date: Fri, 4 May 2012 16:57:22 +0300
+Message-ID: <1336139842-845-4-git-send-email-t-kristo@ti.com>
 References: <1336139842-845-1-git-send-email-t-kristo@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from devils.ext.ti.com ([198.47.26.153]:48439 "EHLO
-	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1757372Ab2EDN5h (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 4 May 2012 09:57:37 -0400
+Received: from bear.ext.ti.com ([192.94.94.41]:40998 "EHLO bear.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1757372Ab2EDN5k (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Fri, 4 May 2012 09:57:40 -0400
 In-Reply-To: <1336139842-845-1-git-send-email-t-kristo@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: linux-omap@vger.kernel.org, khilman@ti.com
-Cc: linux-arm-kernel@lists.infradead.org, Nishanth Menon <nm@ti.com>
+Cc: linux-arm-kernel@lists.infradead.org, Vishwanath BS <vishwanath.bs@ti.com>, Nishanth Menon <nm@ti.com>
 
-From: Nishanth Menon <nm@ti.com>
+From: Vishwanath BS <vishwanath.bs@ti.com>
 
-Since we are starting to use multiple PMICs in various combinations,
-use the existing .omap_chip = OMAP_CHIP_INIT() to mark the
-structures we are interested in using per OMAP device we
-are currently running on. This mapping is based on the default
-device recommendations from TI. Boards using custom PMICs now
-have an opportunity to register their own custom mapping.
+TPS62361 is a new PMIC used with OMAP4460 on SDP4430 platform
+and panda board ES to supply MPU VDD.
+Rest of the VDDs continue to be supplied via TWL6030.
 
-With this we no longer need omap4_twl_init and omap3_twl_int
-instead we introduce a registration mechanism which is PMIC
-generic and move twl implementation to use the same. This allows
-for future OMAP4460 support where there is a mixture of
-PMIC combinations used.
+As part of this, the following have been moved to common
+location in voltage.h
+OMAP4_VP_CONFIG_ERROROFFSET, OMAP4_VP_VSTEPMIN_VSTEPMIN,
+OMAP4_VP_VSTEPMAX_VSTEPMAX, OMAP4_VP_VLIMITTO_TIMEOUT_US
 
+[nm@ti.com: cleaned up TPS to handle board variations]
 Signed-off-by: Nishanth Menon <nm@ti.com>
-[t-kristo@ti.com: moved code under twl-common, other minor cleanups]
+Signed-off-by: Vishwanath BS <vishwanath.bs@ti.com>
+[t-kristo@ti.com: minor cleanup, added panda board support]
 Signed-off-by: Tero Kristo <t-kristo@ti.com>
 ---
- arch/arm/mach-omap2/omap_twl.c   |   81 ++++++++++++++++++++++----------------
- arch/arm/mach-omap2/pm.h         |    9 +---
- arch/arm/mach-omap2/twl-common.c |   55 +++++++++++++++++++++++++-
- arch/arm/mach-omap2/twl-common.h |   27 +++++++++++++
- 4 files changed, 129 insertions(+), 43 deletions(-)
+ arch/arm/mach-omap2/Kconfig            |    9 ++
+ arch/arm/mach-omap2/Makefile           |    1 +
+ arch/arm/mach-omap2/board-4430sdp.c    |   10 ++
+ arch/arm/mach-omap2/board-omap4panda.c |    8 +
+ arch/arm/mach-omap2/omap_tps6236x.c    |  247 ++++++++++++++++++++++++++++++++
+ arch/arm/mach-omap2/omap_twl.c         |    5 -
+ arch/arm/mach-omap2/twl-common.c       |    1 +
+ arch/arm/mach-omap2/twl-common.h       |   16 ++
+ arch/arm/mach-omap2/voltage.h          |    5 +
+ 9 files changed, 297 insertions(+), 5 deletions(-)
+ create mode 100644 arch/arm/mach-omap2/omap_tps6236x.c
 
-diff --git a/arch/arm/mach-omap2/omap_twl.c b/arch/arm/mach-omap2/omap_twl.c
-index 7830eae..c8e418e 100644
---- a/arch/arm/mach-omap2/omap_twl.c
-+++ b/arch/arm/mach-omap2/omap_twl.c
-@@ -19,8 +19,8 @@
- #include <linux/i2c/twl.h>
+diff --git a/arch/arm/mach-omap2/Kconfig b/arch/arm/mach-omap2/Kconfig
+index 8141b76..a147f00 100644
+--- a/arch/arm/mach-omap2/Kconfig
++++ b/arch/arm/mach-omap2/Kconfig
+@@ -334,6 +334,7 @@ config MACH_OMAP_4430SDP
+ 	select OMAP_PACKAGE_CBL
+ 	select OMAP_PACKAGE_CBS
+ 	select REGULATOR_FIXED_VOLTAGE if REGULATOR
++	select OMAP_TPS6236X
  
- #include "voltage.h"
--
- #include "pm.h"
+ config MACH_OMAP4_PANDA
+ 	bool "OMAP4 Panda Board"
+@@ -342,6 +343,7 @@ config MACH_OMAP4_PANDA
+ 	select OMAP_PACKAGE_CBL
+ 	select OMAP_PACKAGE_CBS
+ 	select REGULATOR_FIXED_VOLTAGE if REGULATOR
++	select OMAP_TPS6236X
+ 
+ config OMAP3_EMU
+ 	bool "OMAP3 debugging peripherals"
+@@ -384,6 +386,13 @@ config OMAP4_ERRATA_I688
+ 	  In MPU case, L3 T2ASYNC FIFO and DDR T2ASYNC FIFO needs to be drained.
+ 	  IO barrier ensure that there is no synchronisation loss on initiators
+ 	  operating on both interconnect port simultaneously.
++
++config OMAP_TPS6236X
++	bool "OMAP4 support for TPS6236X power IC"
++	help
++	  TPS62361 is a PMIC used with OMAP4460 to supply MPU VDD voltage.
++	  Rest of the VDDs continue to be supplied via TWL6030.
++
+ endmenu
+ 
+ endif
+diff --git a/arch/arm/mach-omap2/Makefile b/arch/arm/mach-omap2/Makefile
+index 49f92bc..58861a2 100644
+--- a/arch/arm/mach-omap2/Makefile
++++ b/arch/arm/mach-omap2/Makefile
+@@ -22,6 +22,7 @@ obj-y += mcbsp.o
+ endif
+ 
+ obj-$(CONFIG_TWL4030_CORE) += omap_twl.o
++obj-$(CONFIG_OMAP_TPS6236X) += omap_tps6236x.o
+ 
+ # SMP support ONLY available for OMAP4
+ obj-$(CONFIG_SMP)			+= omap-smp.o omap-headsmp.o
+diff --git a/arch/arm/mach-omap2/board-4430sdp.c b/arch/arm/mach-omap2/board-4430sdp.c
+index a39fc4b..58fbf64 100644
+--- a/arch/arm/mach-omap2/board-4430sdp.c
++++ b/arch/arm/mach-omap2/board-4430sdp.c
+@@ -63,6 +63,8 @@
+ #define GPIO_WIFI_PMENA		54
+ #define GPIO_WIFI_IRQ		53
+ 
++#define TPS62361_GPIO   7
++
+ static const int sdp4430_keymap[] = {
+ 	KEY(0, 0, KEY_E),
+ 	KEY(0, 1, KEY_R),
+@@ -958,6 +960,14 @@ static void __init omap_4430sdp_init(void)
+ 		pr_err("Keypad initialization failed: %d\n", status);
+ 
+ 	omap_4430sdp_display_init();
++
++	if (cpu_is_omap446x()) {
++		/* Vsel0 = gpio, vsel1 = gnd */
++		status = omap_tps6236x_board_setup(true, TPS62361_GPIO, -1,
++					OMAP_PIN_OFF_OUTPUT_HIGH, -1);
++		if (status)
++			pr_err("TPS62361 initialization failed: %d\n", status);
++	}
+ }
+ 
+ MACHINE_START(OMAP_4430SDP, "OMAP4430 4430SDP board")
+diff --git a/arch/arm/mach-omap2/board-omap4panda.c b/arch/arm/mach-omap2/board-omap4panda.c
+index d8c0e89..5b5a6bc 100644
+--- a/arch/arm/mach-omap2/board-omap4panda.c
++++ b/arch/arm/mach-omap2/board-omap4panda.c
+@@ -55,6 +55,7 @@
+ #define HDMI_GPIO_CT_CP_HPD 60 /* HPD mode enable/disable */
+ #define HDMI_GPIO_LS_OE 41 /* Level shifter for HDMI */
+ #define HDMI_GPIO_HPD  63 /* Hotplug detect */
++#define TPS62361_GPIO 7 /* Vsel0 control for TPS62361 */
+ 
+ /* wl127x BT, FM, GPS connectivity chip */
+ static int wl1271_gpios[] = {46, -1, -1};
+@@ -572,6 +573,13 @@ static void __init omap4_panda_init(void)
+ 	omap4_ehci_init();
+ 	usb_musb_init(&musb_board_data);
+ 	omap4_panda_display_init();
++	if (cpu_is_omap446x()) {
++		/* vsel0 = gpio, vsel1 = gnd */
++		ret = omap_tps6236x_board_setup(true, TPS62361_GPIO, -1,
++				OMAP_PIN_OFF_OUTPUT_HIGH, -1);
++		if (ret)
++			pr_err("TPS62361 initialization failed: %d\n", ret);
++	}
+ }
+ 
+ MACHINE_START(OMAP4_PANDA, "OMAP4 Panda board")
+diff --git a/arch/arm/mach-omap2/omap_tps6236x.c b/arch/arm/mach-omap2/omap_tps6236x.c
+new file mode 100644
+index 0000000..84b07c2
+--- /dev/null
++++ b/arch/arm/mach-omap2/omap_tps6236x.c
+@@ -0,0 +1,247 @@
++/*
++ * OMAP and TPS6236x specific initialization
++ *
++ * Copyright (C) 2011 Texas Instruments Incorporated - http://www.ti.com/
++ * Vishwanath BS
++ * Nishanth Menon
++ *
++ * This program is free software; you can redistribute it and/or modify
++ * it under the terms of the GNU General Public License version 2 as
++ * published by the Free Software Foundation.
++ */
++
++#include <linux/init.h>
++#include <linux/kernel.h>
++#include <linux/gpio.h>
++#include <linux/i2c/twl.h>
++
++#include "pm.h"
++#include "vc.h"
++#include "mux.h"
 +#include "twl-common.h"
- 
- #define OMAP3_SRI2C_SLAVE_ADDR		0x12
- #define OMAP3_VDD_MPU_SR_CONTROL_REG	0x00
-@@ -170,7 +170,7 @@ static struct omap_voltdm_pmic omap3_core_pmic = {
- 	.uv_to_vsel		= twl4030_uv_to_vsel,
- };
- 
--static struct omap_voltdm_pmic omap4_mpu_pmic = {
-+static struct omap_voltdm_pmic twl6030_vcore1_pmic = {
- 	.slew_rate		= 4000,
- 	.step_size		= 12660,
- 	.vp_erroroffset		= OMAP4_VP_CONFIG_ERROROFFSET,
-@@ -187,7 +187,7 @@ static struct omap_voltdm_pmic omap4_mpu_pmic = {
- 	.uv_to_vsel		= twl6030_uv_to_vsel,
- };
- 
--static struct omap_voltdm_pmic omap4_iva_pmic = {
-+static struct omap_voltdm_pmic twl6030_vcore2_pmic = {
- 	.slew_rate		= 4000,
- 	.step_size		= 12660,
- 	.vp_erroroffset		= OMAP4_VP_CONFIG_ERROROFFSET,
-@@ -204,7 +204,7 @@ static struct omap_voltdm_pmic omap4_iva_pmic = {
- 	.uv_to_vsel		= twl6030_uv_to_vsel,
- };
- 
--static struct omap_voltdm_pmic omap4_core_pmic = {
-+static struct omap_voltdm_pmic twl6030_vcore3_pmic = {
- 	.slew_rate		= 4000,
- 	.step_size		= 12660,
- 	.startup_time		= 500,
-@@ -222,31 +222,9 @@ static struct omap_voltdm_pmic omap4_core_pmic = {
- 	.uv_to_vsel		= twl6030_uv_to_vsel,
- };
- 
--int __init omap4_twl_init(void)
-+static int __init twl_set_sr(struct voltagedomain *voltdm)
- {
--	struct voltagedomain *voltdm;
--
--	if (!cpu_is_omap44xx())
--		return -ENODEV;
--
--	voltdm = voltdm_lookup("mpu");
--	omap_voltage_register_pmic(voltdm, &omap4_mpu_pmic);
--
--	voltdm = voltdm_lookup("iva");
--	omap_voltage_register_pmic(voltdm, &omap4_iva_pmic);
--
--	voltdm = voltdm_lookup("core");
--	omap_voltage_register_pmic(voltdm, &omap4_core_pmic);
--
--	return 0;
--}
--
--int __init omap3_twl_init(void)
--{
--	struct voltagedomain *voltdm;
--
--	if (!cpu_is_omap34xx())
--		return -ENODEV;
-+	int r = 0;
- 
- 	/*
- 	 * The smartreflex bit on twl4030 specifies if the setting of voltage
-@@ -258,15 +236,50 @@ int __init omap3_twl_init(void)
- 	 * voltage scaling will not function on TWL over I2C_SR.
- 	 */
- 	if (!twl_sr_enable_autoinit)
--		omap3_twl_set_sr_bit(true);
-+		r = omap3_twl_set_sr_bit(true);
- 
--	voltdm = voltdm_lookup("mpu_iva");
--	omap_voltage_register_pmic(voltdm, &omap3_mpu_pmic);
++
++/* Voltage limits supported */
++#define MIN_VOLTAGE_TPS62360_62_UV	770000
++#define MAX_VOLTAGE_TPS62360_62_UV	1400000
++
++#define MIN_VOLTAGE_TPS62361_UV		500000
++#define MAX_VOLTAGE_TPS62361_UV		1770000
++
++#define MAX_VOLTAGE_RAMP_TPS6236X_UV	32000
++
++/*
++ * This is the voltage delta between 2 values in voltage register.
++ * when switching voltage V1 to V2, TPS62361 can ramp up or down
++ * initially with step sizes of 20mV with a last step of 10mV.
++ * In the case of TPS6236[0|2], it is a constant 10mV steps
++ * we choose the 10mV step for linearity when SR is configured.
++ */
++#define STEP_SIZE_TPS6236X		10000
++
++/* I2C access parameters */
++#define I2C_TPS6236X_SLAVE_ADDR		0x60
++
++#define DEF_SET_REG(VSEL0, VSEL1)	(((VSEL1) << 1 | (VSEL0) << 0) & 0x3)
++#define REG_TPS6236X_SET_0		0x00
++#define REG_TPS6236X_SET_1		0x01
++#define REG_TPS6236X_SET_2		0x02
++#define REG_TPS6236X_SET_3		0x03
++#define REG_TPS6236X_CTRL		0x04
++#define REG_TPS6236X_TEMP		0x05
++#define REG_TPS6236X_RAMP_CTRL		0x06
++#define REG_TPS6236X_CHIP_ID0		0x08
++#define REG_TPS6236X_CHIP_ID1		0x09
++
++#define MODE_TPS6236X_AUTO_PFM_PWM	0x00
++#define MODE_TPS6236X_FORCE_PWM		BIT(7)
++
++/* We use Auto PFM/PWM mode currently seems to have the best trade off */
++#define VOLTAGE_PFM_MODE_VAL		MODE_TPS6236X_AUTO_PFM_PWM
++
++#define REG_TPS6236X_RAMP_CTRL_RMP_MASK	(0x7 << 5)
++#define REG_TPS6236X_RAMP_CTRL_EN_DISC	BIT(2)
++#define REG_TPS6236X_RAMP_CTRL_RAMP_PFM	BIT(1)
++
++#define REG_TPS6236X_CTRL_PD_EN		BIT(7)
++#define REG_TPS6236X_CTRL_PD_VSEL0	BIT(6)
++#define REG_TPS6236X_CTRL_PD_VSEL1	BIT(5)
++
++/* TWL usage */
++#define TWL6030_REG_SYSEN_CFG_GRP			0xB3
++#define TWL6030_BIT_APE_GRP				BIT(0)
++
++/* Which register do we use by default? */
++static int __initdata default_reg = -1;
++
++/* Do we need to setup internal pullups? */
++static int __initdata pd_vsel0 = -1;
++static int __initdata pd_vsel1 = -1;
++
++static int __init _bd_setup(char *name, int gpio_vsel, int *pull, int *pd_vsel)
++{
++	int pull_dir;
++	int r;
++
++	if (gpio_vsel == -1) {
++		if (*pull != -1) {
++			*pd_vsel = (*pull == OMAP_PIN_OFF_OUTPUT_HIGH);
++			*pull = *pd_vsel;
++		} else {
++			*pull = 0;
++		}
++		return 0;
++	}
++
++	/* if we have a pull gpio, with bad dir, pull low */
++	if (*pull == -1 || (*pull != OMAP_PIN_OFF_OUTPUT_HIGH &&
++				*pull != OMAP_PIN_OFF_OUTPUT_LOW))
++		*pull = OMAP_PIN_OFF_OUTPUT_LOW;
++
++	r = omap_mux_init_gpio(gpio_vsel, *pull);
++	if (r) {
++		pr_err("%s: unable to mux gpio%d=%d\n", __func__,
++			gpio_vsel, r);
++		goto out;
++	}
++
++	pull_dir = (*pull == OMAP_PIN_OFF_OUTPUT_HIGH);
++	*pull = pull_dir;
++
++	r = gpio_request(gpio_vsel, name);
++	if (r) {
++		pr_err("%s: unable to req gpio%d=%d\n", __func__,
++			gpio_vsel, r);
++		goto out;
++	}
++	r = gpio_direction_output(gpio_vsel, pull_dir);
++	if (r) {
++		pr_err("%s: unable to pull[%d] gpio%d=%d\n", __func__,
++			gpio_vsel, pull_dir, r);
++		gpio_free(gpio_vsel);
++		goto out;
++	}
++out:
 +	return r;
 +}
- 
--	voltdm = voltdm_lookup("core");
--	omap_voltage_register_pmic(voltdm, &omap3_core_pmic);
-+static __initdata struct omap_pmic_map omap_twl_map[] = {
-+	{
-+		.name = "mpu_iva",
-+		.cpu = PMIC_CPU_OMAP3,
-+		.pmic_data = &omap3_mpu_pmic,
-+		.special_action = twl_set_sr,
-+	},
-+	{
-+		.name = "core",
-+		.cpu = PMIC_CPU_OMAP3,
-+		.pmic_data = &omap3_core_pmic,
-+	},
++
++static unsigned long tps6236x_vsel_to_uv(const u8 vsel);
++static u8 tps6236x_uv_to_vsel(unsigned long uv);
++
++static struct omap_voltdm_pmic omap4_mpu_pmic = {
++	.slew_rate		= 8000,
++	.step_size		= STEP_SIZE_TPS6236X,
++	.startup_time		= 1000,
++	.shutdown_time		= 1,
++	.vddmin			= MIN_VOLTAGE_TPS62361_UV,
++	.vddmax			= MAX_VOLTAGE_TPS62361_UV,
++	.volt_setup_time	= 0,
++	.vp_erroroffset		= OMAP4_VP_CONFIG_ERROROFFSET,
++	.vp_vstepmin		= OMAP4_VP_VSTEPMIN_VSTEPMIN,
++	.vp_vstepmax		= OMAP4_VP_VSTEPMAX_VSTEPMAX,
++	.vp_timeout_us		= OMAP4_VP_VLIMITTO_TIMEOUT_US,
++	.i2c_slave_addr		= I2C_TPS6236X_SLAVE_ADDR,
++	.volt_reg_addr		= REG_TPS6236X_SET_0,
++	.cmd_reg_addr		= REG_TPS6236X_SET_0,
++	.i2c_high_speed		= true,
++	.vsel_to_uv		= tps6236x_vsel_to_uv,
++	.uv_to_vsel		= tps6236x_uv_to_vsel,
++};
++
++static unsigned long tps6236x_vsel_to_uv(const u8 vsel)
++{
++	return omap4_mpu_pmic.vddmin +
++		(STEP_SIZE_TPS6236X * (vsel & ~VOLTAGE_PFM_MODE_VAL));
++}
++
++static u8 tps6236x_uv_to_vsel(unsigned long uv)
++{
++	if (!uv)
++		return 0;
++
++	/* Round off requests to limits */
++	if (uv > omap4_mpu_pmic.vddmax) {
++		pr_err("%s:Request for overvoltage[%ld] than supported[%u]\n",
++				__func__, uv, omap4_mpu_pmic.vddmax);
++		uv = omap4_mpu_pmic.vddmax;
++	}
++	if (uv < omap4_mpu_pmic.vddmin) {
++		pr_err("%s:Request for undervoltage[%ld] than supported[%u]\n",
++				__func__, uv, omap4_mpu_pmic.vddmin);
++		uv = omap4_mpu_pmic.vddmin;
++	}
++	return DIV_ROUND_UP(uv - omap4_mpu_pmic.vddmin, STEP_SIZE_TPS6236X) |
++			VOLTAGE_PFM_MODE_VAL;
++}
++
++static __initdata struct omap_pmic_map omap_tps_map[] = {
 +	{
 +		.name = "mpu",
-+		.cpu = PMIC_CPU_OMAP4430,
-+		.pmic_data = &twl6030_vcore1_pmic,
-+	},
-+	{
-+		.name = "core",
-+		.cpu = PMIC_CPU_OMAP4430,
-+		.pmic_data = &twl6030_vcore3_pmic,
-+	},
-+	{
-+		.name = "core",
 +		.cpu = PMIC_CPU_OMAP4460,
-+		.pmic_data = &twl6030_vcore1_pmic,
-+	},
-+	{
-+		.name = "iva",
-+		.cpu = PMIC_CPU_OMAP44XX,
-+		.pmic_data = &twl6030_vcore2_pmic,
++		.pmic_data = &omap4_mpu_pmic,
 +	},
 +	/* Terminator */
 +	{ .name = NULL, .pmic_data = NULL},
 +};
- 
--	return 0;
-+int __init omap_twl_init(void)
++
++int __init omap_tps6236x_init(void)
 +{
-+	return omap_pmic_register_data(omap_twl_map);
- }
- 
- /**
-diff --git a/arch/arm/mach-omap2/pm.h b/arch/arm/mach-omap2/pm.h
-index 3d55926..afea204 100644
---- a/arch/arm/mach-omap2/pm.h
-+++ b/arch/arm/mach-omap2/pm.h
-@@ -128,15 +128,10 @@ static inline void omap_enable_smartreflex_on_init(void) {}
- #endif
- 
- #ifdef CONFIG_TWL4030_CORE
--extern int omap3_twl_init(void);
--extern int omap4_twl_init(void);
-+extern int omap_twl_init(void);
- extern int omap3_twl_set_sr_bit(bool enable);
- #else
--static inline int omap3_twl_init(void)
--{
--	return -EINVAL;
--}
--static inline int omap4_twl_init(void)
-+static inline int omap_twl_init(void)
- {
- 	return -EINVAL;
- }
-diff --git a/arch/arm/mach-omap2/twl-common.c b/arch/arm/mach-omap2/twl-common.c
-index 9120a4f..2588e04 100644
---- a/arch/arm/mach-omap2/twl-common.c
-+++ b/arch/arm/mach-omap2/twl-common.c
-@@ -77,8 +77,7 @@ void __init omap_pmic_late_init(void)
- 	if (!pmic_i2c_board_info.irq)
- 		return;
- 
--	omap3_twl_init();
--	omap4_twl_init();
-+	omap_twl_init();
- }
- 
- #if defined(CONFIG_ARCH_OMAP3)
-@@ -481,3 +480,55 @@ void __init omap4_pmic_get_config(struct twl4030_platform_data *pmic_data,
- 		pmic_data->clk32kg = &omap4_clk32kg_idata;
- }
- #endif /* CONFIG_ARCH_OMAP4 */
++	struct omap_pmic_map *map;
 +
-+/**
-+ * omap_pmic_register_data() - Register the PMIC information to OMAP mapping
-+ * @omap_pmic_maps:    array ending with a empty element representing the maps
-+ */
-+int __init omap_pmic_register_data(struct omap_pmic_map *map)
-+{
-+	struct voltagedomain *voltdm;
-+	int r;
++	/* Without registers, I wont proceed */
++	if (default_reg == -1)
++		return -EINVAL;
 +
-+	if (!map)
-+		return 0;
++	map = omap_tps_map;
 +
++	/* setup all the pmic's voltage addresses to the default one */
 +	while (map->name) {
-+		if (cpu_is_omap34xx() && !(map->cpu & PMIC_CPU_OMAP3))
-+			goto next;
-+
-+		if (cpu_is_omap443x() && !(map->cpu & PMIC_CPU_OMAP4430))
-+			goto next;
-+
-+		if (cpu_is_omap446x() && !(map->cpu & PMIC_CPU_OMAP4460))
-+			goto next;
-+
-+		voltdm = voltdm_lookup(map->name);
-+		if (IS_ERR_OR_NULL(voltdm)) {
-+			pr_err("%s: unable to find map %s\n", __func__,
-+				map->name);
-+			goto next;
-+		}
-+		if (IS_ERR_OR_NULL(map->pmic_data)) {
-+			pr_warning("%s: domain[%s] has no pmic data\n",
-+					__func__, map->name);
-+			goto next;
-+		}
-+
-+		r = omap_voltage_register_pmic(voltdm, map->pmic_data);
-+		if (r) {
-+			pr_warning("%s: domain[%s] register returned %d\n",
-+					__func__, map->name, r);
-+			goto next;
-+		}
-+		if (map->special_action) {
-+			r = map->special_action(voltdm);
-+			WARN(r, "%s: domain[%s] action returned %d\n", __func__,
-+				map->name, r);
-+		}
-+next:
++		map->pmic_data->volt_reg_addr = default_reg;
++		map->pmic_data->cmd_reg_addr = default_reg;
 +		map++;
 +	}
 +
-+	return 0;
++	return omap_pmic_register_data(omap_tps_map);
 +}
++
++/**
++ * omap_tps6236x_board_setup() - provide the board config for TPS connect
++ * @use_62361:	Do we use TPS62361 variant?
++ * @gpio_vsel0:	If using GPIO to control VSEL0, provide gpio number, else -1
++ * @gpio_vsel1:	If using GPIO to control VSEL1, provide gpio number, else -1
++ * @pull0:	If using GPIO, provide mux mode OMAP_PIN_OFF_OUTPUT_[HIGH|LOW]
++ *		else provide any internal pull required, -1 if unused.
++ * @pull1:	If using GPIO, provide mux mode OMAP_PIN_OFF_OUTPUT_[HIGH|LOW]
++ *		else provide any internal pull required, -1 if unused.
++ *
++ * TPS6236x variants of PMIC can be hooked in numerous combinations on to the
++ * board. Some platforms can choose to hardwire and save on a GPIO for other
++ * uses, while others may hook a single line for GPIO control and may ground
++ * the other line. support these configurations.
++ *
++ * WARNING: for platforms using GPIO, be careful to provide MUX setting
++ * considering OFF mode configuration as well.
++ */
++int __init omap_tps6236x_board_setup(bool use_62361, int gpio_vsel0,
++		int gpio_vsel1, int pull0, int pull1)
++{
++	int r;
++
++	r = _bd_setup("tps6236x_vsel0", gpio_vsel0, &pull0, &pd_vsel0);
++	if (r)
++		goto out;
++	r = _bd_setup("tps6236x_vsel1", gpio_vsel1, &pull1, &pd_vsel1);
++	if (r) {
++		if (gpio_vsel0 != -1)
++			gpio_free(gpio_vsel0);
++		goto out;
++	}
++
++	default_reg = ((pull1 & 0x1) << 1) | (pull0 & 0x1);
++
++	if (!use_62361) {
++		omap4_mpu_pmic.vddmin = MIN_VOLTAGE_TPS62360_62_UV;
++		omap4_mpu_pmic.vddmax = MAX_VOLTAGE_TPS62360_62_UV;
++	}
++out:
++	return r;
++}
+diff --git a/arch/arm/mach-omap2/omap_twl.c b/arch/arm/mach-omap2/omap_twl.c
+index c8e418e..fef14df 100644
+--- a/arch/arm/mach-omap2/omap_twl.c
++++ b/arch/arm/mach-omap2/omap_twl.c
+@@ -38,11 +38,6 @@
+ #define OMAP4_VDD_CORE_SR_VOLT_REG	0x61
+ #define OMAP4_VDD_CORE_SR_CMD_REG	0x62
+ 
+-#define OMAP4_VP_CONFIG_ERROROFFSET	0x00
+-#define OMAP4_VP_VSTEPMIN_VSTEPMIN	0x01
+-#define OMAP4_VP_VSTEPMAX_VSTEPMAX	0x04
+-#define OMAP4_VP_VLIMITTO_TIMEOUT_US	200
+-
+ static bool is_offset_valid;
+ static u8 smps_offset;
+ /*
+diff --git a/arch/arm/mach-omap2/twl-common.c b/arch/arm/mach-omap2/twl-common.c
+index 2588e04..ec802d8 100644
+--- a/arch/arm/mach-omap2/twl-common.c
++++ b/arch/arm/mach-omap2/twl-common.c
+@@ -78,6 +78,7 @@ void __init omap_pmic_late_init(void)
+ 		return;
+ 
+ 	omap_twl_init();
++	omap_tps6236x_init();
+ }
+ 
+ #if defined(CONFIG_ARCH_OMAP3)
 diff --git a/arch/arm/mach-omap2/twl-common.h b/arch/arm/mach-omap2/twl-common.h
-index 275dde8..2f805a3 100644
+index 2f805a3..0655efc 100644
 --- a/arch/arm/mach-omap2/twl-common.h
 +++ b/arch/arm/mach-omap2/twl-common.h
-@@ -2,6 +2,7 @@
- #define __OMAP_PMIC_COMMON__
+@@ -86,4 +86,20 @@ struct omap_pmic_map {
+ extern int omap_pmic_register_data(struct omap_pmic_map *map);
+ extern void omap_pmic_data_init(void);
  
- #include <plat/irqs.h>
-+#include "voltage.h"
- 
- #define TWL_COMMON_PDATA_USB		(1 << 0)
- #define TWL_COMMON_PDATA_BCI		(1 << 1)
-@@ -59,4 +60,30 @@ void omap3_pmic_get_config(struct twl4030_platform_data *pmic_data,
- void omap4_pmic_get_config(struct twl4030_platform_data *pmic_data,
- 			   u32 pdata_flags, u32 regulators_flags);
- 
-+/**
-+ * struct omap_pmic_map - Describe the OMAP PMIC data for OMAP
-+ * @name:		name of the voltage domain
-+ * @pmic_data:		pmic data associated with it
-+ * @cpu:		CPUs this PMIC data is valid for
-+ * @special_action:	callback for any specific action to take for that map
-+ *
-+ * Since we support multiple PMICs each potentially functioning on multiple
-+ * OMAP devices, we describe the parameters in a map allowing us to reuse the
-+ * data as necessary.
-+ */
-+struct omap_pmic_map {
-+	char			*name;
-+	struct omap_voltdm_pmic	*pmic_data;
-+	u32			cpu;
-+	int			(*special_action)(struct voltagedomain *);
-+};
-+
-+#define PMIC_CPU_OMAP3		(1 << 0)
-+#define PMIC_CPU_OMAP4430	(1 << 1)
-+#define PMIC_CPU_OMAP4460	(1 << 2)
-+#define PMIC_CPU_OMAP44XX	(PMIC_CPU_OMAP4430 | PMIC_CPU_OMAP4460)
-+
-+extern int omap_pmic_register_data(struct omap_pmic_map *map);
-+extern void omap_pmic_data_init(void);
++#ifdef CONFIG_OMAP_TPS6236X
++extern int omap_tps6236x_board_setup(bool use_62361, int gpio_vsel0,
++			int gpio_vsel1, int pull0, int pull1);
++extern int omap_tps6236x_init(void);
++#else
++static inline int omap_tps6236x_board_setup(bool use_62361, int gpio_vsel0,
++			int gpio_vsel1, int pull0, int pull1)
++{
++	return -EINVAL;
++}
++static inline int omap_tps6236x_init(void)
++{
++	return -EINVAL;
++}
++#endif
 +
  #endif /* __OMAP_PMIC_COMMON__ */
+diff --git a/arch/arm/mach-omap2/voltage.h b/arch/arm/mach-omap2/voltage.h
+index 54b959c..ac68a0e 100644
+--- a/arch/arm/mach-omap2/voltage.h
++++ b/arch/arm/mach-omap2/voltage.h
+@@ -138,6 +138,11 @@ struct omap_volt_data {
+ #define OMAP4_VP_CORE_VLIMITTO_VDDMIN	830000
+ #define OMAP4_VP_CORE_VLIMITTO_VDDMAX	1200000
+ 
++#define OMAP4_VP_CONFIG_ERROROFFSET	0x00
++#define OMAP4_VP_VSTEPMIN_VSTEPMIN	0x01
++#define OMAP4_VP_VSTEPMAX_VSTEPMAX	0x04
++#define OMAP4_VP_VLIMITTO_TIMEOUT_US	200
++
+ /**
+  * struct omap_voltdm_pmic - PMIC specific data required by voltage driver.
+  * @slew_rate:	PMIC slew rate (in uv/us)
 -- 
 1.7.4.1
 
