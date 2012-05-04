@@ -1,224 +1,135 @@
-From: Stephen Warren <swarren@wwwdotorg.org>
-Subject: Re: [PATCH] pinctrl: Add generic pinctrl-simple driver that supports
- omap2+ padconf
-Date: Fri, 04 May 2012 12:55:45 -0600
-Message-ID: <4FA42631.6060304@wwwdotorg.org>
-References: <20120502172401.GG3739@atomide.com> <20120503065131.GA3738@game.jcrosoft.org> <20120503152708.GC5140@atomide.com> <4FA30805.5050804@wwwdotorg.org> <20120504044305.GD7788@game.jcrosoft.org> <20120504150342.GI5140@atomide.com> <20120504153251.GE7788@game.jcrosoft.org> <20120504163420.GA5613@atomide.com>
+From: Jassi Brar <jaswinder.singh@linaro.org>
+Subject: Re: [PATCH V3 1/2] of: Add generic device tree DMA helpers
+Date: Sat, 5 May 2012 00:31:49 +0530
+Message-ID: <CAJe_ZhfFhZVG4gyaaVUgeQedJiSE=zj9nE28XCNH9DkPVgqj=A@mail.gmail.com>
+References: <1335820679-28721-1-git-send-email-jon-hunter@ti.com>
+	<CAJe_Zhe-SqDMDGOhrYZtBBJnCYqLR0H07cPKzG4SyUxiLrgFnQ@mail.gmail.com>
+	<4FA3F308.6030900@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20120504163420.GA5613@atomide.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Tony Lindgren <tony@atomide.com>
-Cc: Jean-Christophe PLAGNIOL-VILLARD <plagnioj@jcrosoft.com>, Linus Walleij <linus.walleij@linaro.org>, linux-omap@vger.kernel.org, Stephen Warren <swarren@nvidia.com>, linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from mail-lb0-f174.google.com ([209.85.217.174]:35030 "EHLO
+	mail-lb0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753601Ab2EDTBv convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 4 May 2012 15:01:51 -0400
+Received: by lbbgm6 with SMTP id gm6so2257460lbb.19
+        for <linux-omap@vger.kernel.org>; Fri, 04 May 2012 12:01:50 -0700 (PDT)
+In-Reply-To: <4FA3F308.6030900@ti.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Jon Hunter <jon-hunter@ti.com>
+Cc: device-tree <devicetree-discuss@lists.ozlabs.org>, Stephen Warren <swarren@nvidia.com>, Benoit Cousson <b-cousson@ti.com>, Arnd Bergmann <arnd@arndb.de>, Nicolas Ferre <nicolas.ferre@atmel.com>, Rob Herring <rob.herring@calxeda.com>, Grant Likely <grant.likely@secretlab.ca>, Russell King <linux@arm.linux.org.uk>, linux-omap <linux-omap@vger.kernel.org>, linux-arm <linux-arm-kernel@lists.infradead.org>
 
-On 05/04/2012 10:34 AM, Tony Lindgren wrote:
-> * Jean-Christophe PLAGNIOL-VILLARD <plagnioj@jcrosoft.com> [120504 08:58]:
->> On 08:03 Fri 04 May     , Tony Lindgren wrote:
->>>>
->>>> so I was thinking to do like on gpio
->>>>
->>>> uart {
->>>> 	pin = < &pioA 12 {pararms} >
->>>>
->>>> }
+On 4 May 2012 20:47, Jon Hunter <jon-hunter@ti.com> wrote:
+> Hi Jassi,
+>
+> On 05/04/2012 01:56 AM, Jassi Brar wrote:
+>> On 1 May 2012 02:47, Jon Hunter <jon-hunter@ti.com> wrote:
+>>> From: Jon Hunter <jon-hunter@ti.com>
 >>>
->>> Hmm I assume the "12" above the gpio number?
->> no pin number in the bank because it could not be gpio
-> 
-> Yes OK, but pin number 12 in the gpio bank, not in the mux register.
-> Got it.
-
-I'd prefer to avoid any references to GPIOs here; not all muxable pins
-are GPIOs and not all GPIOs are muxable pins. Lets keep the two concepts
-independent.
-
->> 	pioD: gpio@fffff800 {
->> 		compatible = "atmel,at91rm9200-gpio";
->> 		reg = <0xfffff800 0x100>;
->> 		interrupts = <5 4>;
->> 		#gpio-cells = <2>;
->> 		gpio-controller;
->> 		interrupt-controller;
->> 	};
+>>> This is based upon the work by Benoit Cousson [1] and Nicolas Ferre=
+ [2]
+>>> to add some basic helpers to retrieve a DMA controller device_node =
+and the
+>>> DMA request/channel information.
+>>>
+>>> Aim of DMA helpers
+>>> - The purpose of device-tree (as far as I understand), is to descri=
+be the
+>>> =A0capabilites of the hardware. Thinking about DMA controllers pure=
+ly from the
+>>> =A0context of the hardware to begin with, we can describe a device =
+in terms of
+>>> =A0a DMA controller as follows ...
+>>> =A0 =A0 =A0 =A01. Number of DMA controllers
+>>> =A0 =A0 =A0 =A02. Number of channels (maybe physical or logical)
+>>> =A0 =A0 =A0 =A03. Mapping of DMA requests signals to DMA controller
+>>> =A0 =A0 =A0 =A04. Number of DMA interrupts
+>>> =A0 =A0 =A0 =A05. Mapping of DMA interrupts to channels
+>>> - With the above in mind the aim of the DT DMA helper functions is =
+to extract
+>>> =A0the above information from the DT and provide to the appropriate=
+ driver.
+>>> =A0However, due to the vast number of DMA controllers and not all a=
+re using a
+>>> =A0common driver (such as DMA Engine) it has been seen that this is=
+ not a
+>>> =A0trivial task.
+>>>
+>> Sorry for being slow, but so far I thought DT is only to provide _h/=
+w_
+>> specific info
+>> to the _controller_ drivers. It was not supposed to provide any info
+>> pertaining to
+>> some API (dmaengine in this case).
 >>
->> 	pioE: gpio@fffffa00 {
->> 		compatible = "atmel,at91rm9200-gpio";
->> 		reg = <0xfffffa00 0x100>;
->> 		interrupts = <5 4>;
->> 		#gpio-cells = <2>;
->> 		gpio-controller;
->> 		interrupt-controller;
->> 	};
+>> And I believe this is one of few situations where we are better off
+>> not generalizing
+>> the interface - pass controller specific info in the controller
+>> driver's specified format.
+>> Generalizing only seems to complicate things here, when we anyway ha=
+ve machine
+>> specific dtb, which could always have clients requesting and the
+>> controllers given
+>> dma's info in controller driver's specific format.
 >>
->> 	dbgu {
->> 		pins = < &pioB 12 0 0
->> 			 &pioB 13 0 2 >;
->> 	/* with macro */
->> 		pins = < &pioB 12 MUX_A NO_PULL_UP
->> 			 &pioB 13 MUX_A PULL_UP >;
->> 	};
-> 
-> I could change to use this too no problem. The only concern I have is
-> that is "&pioB 12" immutable for all gpio controllers?
+>> Perhaps I am overlooking the need to generalize. If you think so, pl=
+ease help me
+>> understand by pointing out some use case for it.
+>
+> No not really, your points are valid. From reading the previous
+> discussions one of the items that was clearly lacking was the ability=
+ to
+> represent and identify a device having more than one DMA controller. =
+In
+> other words, when you request the DMA resource, how do you identify
+> which DMA controller in the system that resource belongs too. With DM=
+A
+> engine there are ways we can do this.
+>
+Well, if we really can't have dmac drivers make 'intelligent' runtime d=
+ecision
+of request mapping on more than one capable controllers, we still can
+make it simpler than the proposed scheme.
 
-You mean is the number of cells used to specify a GPIO the same
-everywhere? No. It's defined by #gpio-cells in the GPIO controller node.
++       i2c1: i2c@1 {
++               ...
++               dma =3D <&sdma 2 1 &sdma 3 2>;
++               ...
++       };
+>
+I see this requires a client driver to specify a particular req_line on=
+ a
+particular dma controller. I am not sure if this is most optimal.
 
-But again, the GPIO binding shouldn't be related to the pinctrl binding
-directly.
+I think such client->req_line map should be provided to the dmac contro=
+ller
+driver via its dt node in some format. The dmac driver could then popul=
+ate
+a dma_chan, or similar, only for that req_line and not for the unused o=
+ne
+which otherwise could also have served the same client.
 
-> Grepping the *.dts* files, at least exynos is using the following
-> for gpios:
-> 
-> gpios = <&gpx2 0 0 0 2>;
-> 
-> If we can conclude that phandle to the gpio controller instance and
-> the register offset is always enough here, then I'm OK changing to
-> that format. It would actually save some parsing in most cases.
->  
->> 	/* and also the notion of linked group
->> 	 * as on uart of network you have often the same subset of pin use.
->> 	 *
->> 	 * As example on uart rxd/txd is use for the group without rts/cts
->> 	 * and the one with it
->> 	 * on ethernet the RMII pin are use also on MII
->> 	 */
->>
->> 	uart0_rxd_txd {
->> 		pins = < &pioB 19 MUX_A PULL_UP		/* rxd */
->> 			 &pioB 18 MUX_A NO_PULL_UP >;	/* txd */
->> 	};
+Ideally the I2C driver should simply ask, say, a channel for TX and ano=
+ther
+for RX, everything else should already be setup via dmac's dt nodes.
 
-I don't really see how that DT format represents pins, functions, and
-nodes directly, and separately from which of those a board chooses to
-use. I think this binding and the one Tony originally proposed are
-eseentially semantically identical.
+Channel properties like duplex, priority etc specified in client's dt n=
+ode
+doesn't seem really necessary - the client's driver is able to adjust
+according to the capability of the channel the dmaengine api is able
+to provide and the client driver can't really do anything if it saw "tx=
+rx"
+specified in it's dt node while it doesn't yet support full-duplex (say=
+).
 
-Going back to my idea of separating SoC and board configurations, if we
-did that, I'd expect to see something more like:
-
-soc.dtsi or board.dts:
-
-This is the data that the pin controller driver needs to export to
-pinctrl core. This can be completely enumerated in the soc.dtsi, or
-perhaps for uncommonly used pins/groups/functions, only included in the
-board.dts that actually uses it to cut down on soc.dtsi's size:
-
-This data is not needed for SoCs whose pinctrl drivers include it in
-their driver file instead of DT.
-
-/ {
-    pinctrl@... {
-        pins {
-            uart1_rx_pin: uart1_rx {
-                /* register to program the pin if per-pin muxing*/
-                reg = ...;
-                name = "UART1_RX";
-                ...;
-            }
-            uart1_tx_pin: uart1_tx {
-                reg = ...;
-                name = "UART1_TX";
-                ...;
-            }
-            uart2_rx_pin: uart2_rx {
-                reg = ...;
-                name = "UART2_RX";
-                ...;
-            }
-            uart2_tx_pin: uart2_tx {
-                reg = ...;
-                name = "UART2_TX";
-                ...;
-            }
-        };
-        pingroups {
-            uart1_pg: uart1 {
-                /* register to program the group, if per-grouop muxing */
-                reg = ...;
-                pins = <&pin_uart1_rx &pin_uart1_tx>;
-            }
-            uart2_pg: uart2 {
-                pins = <&pin_uart2_rx &pin_uart2_tx>;
-            }
-        };
-        functions {
-            uart1_func: uart1 {
-                selectable-on = <&uart1_pg 0>; /* where, mux value */
-            };
-            uart2_func: uart2 {
-                selectable-on = <&uart2_pg 0>;
-            };
-            spi_func: spi {
-                selectable-on = <&uart1_pg 1 &uart2_pg 1>;
-            };
-    };
-
-soc.dtsi or board.dts:
-
-This is part of the data used to construct the mapping table. Common
-options for function X on pin/pingroup Y can be included in soc.dtsi to
-reduce duplication in board files. Uncommon options can be included
-directly in the board.dts that uses them, to avoid bloating soc.dtsi:
-
-This data is needed irrespective of whether a SoC pinctrl driver stores
-the pin/function/group information in DT or in the driver itself.
-
-/ {
-    pinctrl@... {
-        uart1_uart1 {
-            muxing = <&uart1_pg &uart1_func>;
-            ... other pinconfig stuff perhaps;
-        }
-        spi1_uart2 {
-            muxing = <&uart2_pg &uart2_func>;
-            ... other pinconfig stuff perhaps;
-        }
-    }
-};
-
-board.dts:
-
-Finally, each board defines which of the muxing options to actually use.
-
-This data is needed irrespective of whether a SoC pinctrl driver stores
-the pin/function/group information in DT or in the driver itself.
-
-/ {
-    uart@... {
-        pinctrl-names = "default";
-        pinctrl-0 = <&uart1_uart1>;
-    };
-    spi@... {
-        pinctrl-names = "default";
-        pinctrl-0 = <&spi1_uart2>;
-    };
-};
-
->> 	uart0_rts_cts {
->> 		groups = < &uart0_rxd_txd >;
->> 		pins = < &pioB 17 MUX_B NO_PULL_UP	/* rts */
->> 			 &pioB 15 MUX_B NO_PULL_UP >;	/* cts */
->> 	};
->>
->> 	uart0_rts_cts_external_pull_up {
->> 		groups = < &uart0_rts_cts >;
->> 		gpios = <&pioC 1 0>;
->> 	};
->> };
->>
->> The idea is to avoid duplication the xlate for pins will be driver specific
->> with maybe a common implementation
->>
->> the 3 or 4 first fix as done on gpio
-> 
-> Yeah sounds doable to me, but can probably be added later?
-> 
-> Regarding grouping, basically for most cases it makes sense to have
-> three states: default, active, idle instead of just active and idle.
-
-The set of state names should be determined by the client driver, not
-the pinctrl core or driver binding, any pinctrl code.
+Having spilled my guts and realizing the fact that the Maradonas and Pe=
+les
+of the game seem to have already bought the scheme, I am afraid it only
+points to my not yet diagnosed adhd  :o
+--
+To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
