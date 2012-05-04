@@ -1,54 +1,64 @@
 From: "Hiremath, Vaibhav" <hvaibhav@ti.com>
 Subject: RE: [PATCH-V5 2/3] arm:omap:am33xx: Add AM335XEVM machine support
-Date: Fri, 4 May 2012 06:14:00 +0000
-Message-ID: <79CD15C6BA57404B839C016229A409A83EA1411F@DBDE01.ent.ti.com>
+Date: Fri, 4 May 2012 06:28:19 +0000
+Message-ID: <79CD15C6BA57404B839C016229A409A83EA14183@DBDE01.ent.ti.com>
 References: <hvaibhav@ti.com>
  <1322808204-12878-3-git-send-email-hvaibhav@ti.com>
  <alpine.DEB.2.00.1205020317151.19695@utopia.booyaka.com>
  <79CD15C6BA57404B839C016229A409A83EA10A64@DBDE01.ent.ti.com>
  <20120503155717.GE5140@atomide.com>
- <79CD15C6BA57404B839C016229A409A83EA1348F@DBDE01.ent.ti.com>
- <20120503193732.GG5140@atomide.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-In-Reply-To: <20120503193732.GG5140@atomide.com>
+Content-Transfer-Encoding: 8BIT
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from devils.ext.ti.com ([198.47.26.153]:55160 "EHLO
+	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751808Ab2EDG2Z convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 4 May 2012 02:28:25 -0400
+In-Reply-To: <20120503155717.GE5140@atomide.com>
 Content-Language: en-US
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: linux-arm-kernel-bounces@lists.infradead.org
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: Tony Lindgren <tony@atomide.com>
-Cc: "Hilman, Kevin" <khilman@ti.com>, Paul Walmsley <paul@pwsan.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "Mohammed,
- Afzal" <afzal@ti.com>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Tony Lindgren <tony@atomide.com>
+Cc: Paul Walmsley <paul@pwsan.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "Hilman, Kevin" <khilman@ti.com>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, "Mohammed, Afzal" <afzal@ti.com>
 
-On Fri, May 04, 2012 at 01:07:32, Tony Lindgren wrote:
-> * Hiremath, Vaibhav <hvaibhav@ti.com> [120503 09:45]:
-> > 
-> > What about cpu_is_omap34xx() true for am33xx? Should we follow it?
+On Thu, May 03, 2012 at 21:27:18, Tony Lindgren wrote:
+> Hi,
 > 
-> Well are there components that could be used as is with that?
-> If not, then it probably does not make sense.
+> * Hiremath, Vaibhav <hvaibhav@ti.com> [120502 02:37]:
+> > On Wed, May 02, 2012 at 14:53:24, Paul Walmsley wrote:
+> > > Hi
+> > > 
+> > > On Fri, 2 Dec 2011, hvaibhav@ti.com wrote:
+> > > 
+> > > > From: Afzal Mohammed <afzal@ti.com>
+> > > > 
+> > > > This patch adds minimal support for AM335X EVM.
+> > > > The approach taken here is to add AM335X EVM support
+> > > > to AM3517EVM, considering the fact that with device tree
+> > > > developement we will get rid of board-*.c.
+> > > > 
+> > > > Signed-off-by: Afzal Mohammed <afzal@ti.com>
+> > > > Signed-off-by: Vaibhav Hiremath <hvaibhav@ti.com>
+> > > > Reviewed-by: Kevin Hilman <khilman@ti.com>
+> > > 
+> > > I realize people may not necessarily like this, but I think that the 
+> > > AM33xx EVM needs its own board file.  This is because it really has 
+> > > nothing to do with the AM3517EVM.  Also, the AM3517EVM depends on 
+> > > CONFIG_ARCH_OMAP3, but the AM33xx EVM should not: it should depend on 
+> > > either CONFIG_ARCH_OMAPAM33XX, or CONFIG_ARCH_OMAP4.
 > 
-
-I am also in favor of not following cpu_is_omap34xx() for am33xx, but what about ARCH_OMAP?
-I don't see that you are in agreement in creating ARCH_OMAPAM33XX. 
-Does it make sense to say that, for am33xx, cpu_is_omap34xx() is false, but still it is under ARCH_OMAP3?
-
-
-> BTW, you should post your patches on top of the clean-up patches
-> Santosh posted as that already leaves out some cpu_is_omapxxxx
-> checks. That's the "ARM: OMAP2+: Misc cleanup" thread.
+> I guess adding CONFIG_SOC_AM33XX makes sense if it does not share anything
+> except core with omap3. And the SOC is independent of the core selected,
+> there is no dependency between SoC and the core.
 > 
+> Note that we have CONFIG_ARCH_OMAP2PLUS, all the other ones should be just
+> CONFIG_SOC_XXX. As all omap3 omap4 and am33xx are v7, there's no need to
+> compile with different flags either.
+>  
 
-Ok. I will do that.
+But still we do have ARCH_OMAP2, ARCH_OMAP3 and ARCH_OMAP4? And that's where, 
+we have issues for adding new devices like AM33xx and TI81xx.
 
 Thanks,
 Vaibhav
