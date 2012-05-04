@@ -1,44 +1,313 @@
 From: Tero Kristo <t-kristo@ti.com>
-Subject: [PATCH 1/3] ARM: OMAP4: VC: fix I2C timing
-Date: Fri, 4 May 2012 16:57:20 +0300
-Message-ID: <1336139842-845-2-git-send-email-t-kristo@ti.com>
+Subject: [PATCH 2/3] ARM: OMAP3+: PM: introduce a central pmic control
+Date: Fri, 4 May 2012 16:57:21 +0300
+Message-ID: <1336139842-845-3-git-send-email-t-kristo@ti.com>
 References: <1336139842-845-1-git-send-email-t-kristo@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from arroyo.ext.ti.com ([192.94.94.40]:32784 "EHLO arroyo.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1757372Ab2EDN5e (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Fri, 4 May 2012 09:57:34 -0400
+Received: from devils.ext.ti.com ([198.47.26.153]:48439 "EHLO
+	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1757372Ab2EDN5h (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 4 May 2012 09:57:37 -0400
 In-Reply-To: <1336139842-845-1-git-send-email-t-kristo@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: linux-omap@vger.kernel.org, khilman@ti.com
-Cc: linux-arm-kernel@lists.infradead.org
+Cc: linux-arm-kernel@lists.infradead.org, Nishanth Menon <nm@ti.com>
 
-Current I2C timing parameters do not work with Panda board at least.
-Parameters updated based on TI recommendation.
+From: Nishanth Menon <nm@ti.com>
 
+Since we are starting to use multiple PMICs in various combinations,
+use the existing .omap_chip = OMAP_CHIP_INIT() to mark the
+structures we are interested in using per OMAP device we
+are currently running on. This mapping is based on the default
+device recommendations from TI. Boards using custom PMICs now
+have an opportunity to register their own custom mapping.
+
+With this we no longer need omap4_twl_init and omap3_twl_int
+instead we introduce a registration mechanism which is PMIC
+generic and move twl implementation to use the same. This allows
+for future OMAP4460 support where there is a mixture of
+PMIC combinations used.
+
+Signed-off-by: Nishanth Menon <nm@ti.com>
+[t-kristo@ti.com: moved code under twl-common, other minor cleanups]
 Signed-off-by: Tero Kristo <t-kristo@ti.com>
 ---
- arch/arm/mach-omap2/vc.c |    4 +++-
- 1 files changed, 3 insertions(+), 1 deletions(-)
+ arch/arm/mach-omap2/omap_twl.c   |   81 ++++++++++++++++++++++----------------
+ arch/arm/mach-omap2/pm.h         |    9 +---
+ arch/arm/mach-omap2/twl-common.c |   55 +++++++++++++++++++++++++-
+ arch/arm/mach-omap2/twl-common.h |   27 +++++++++++++
+ 4 files changed, 129 insertions(+), 43 deletions(-)
 
-diff --git a/arch/arm/mach-omap2/vc.c b/arch/arm/mach-omap2/vc.c
-index 1fd976e..a731400 100644
---- a/arch/arm/mach-omap2/vc.c
-+++ b/arch/arm/mach-omap2/vc.c
-@@ -585,7 +585,9 @@ static void __init omap4_vc_init_channel(struct voltagedomain *voltdm)
- 	omap4_set_timings(voltdm, true);
+diff --git a/arch/arm/mach-omap2/omap_twl.c b/arch/arm/mach-omap2/omap_twl.c
+index 7830eae..c8e418e 100644
+--- a/arch/arm/mach-omap2/omap_twl.c
++++ b/arch/arm/mach-omap2/omap_twl.c
+@@ -19,8 +19,8 @@
+ #include <linux/i2c/twl.h>
  
- 	/* XXX These are magic numbers and do not belong! */
--	vc_val = (0x60 << OMAP4430_SCLL_SHIFT | 0x26 << OMAP4430_SCLH_SHIFT);
-+	vc_val = (0x28 << OMAP4430_SCLL_SHIFT | 0x2c << OMAP4430_SCLH_SHIFT);
-+	vc_val |= (0x0b << OMAP4430_HSSCLL_SHIFT);
-+	vc_val |= (0x0 << OMAP4430_HSSCLH_SHIFT);
- 	voltdm->write(vc_val, OMAP4_PRM_VC_CFG_I2C_CLK_OFFSET);
+ #include "voltage.h"
+-
+ #include "pm.h"
++#include "twl-common.h"
+ 
+ #define OMAP3_SRI2C_SLAVE_ADDR		0x12
+ #define OMAP3_VDD_MPU_SR_CONTROL_REG	0x00
+@@ -170,7 +170,7 @@ static struct omap_voltdm_pmic omap3_core_pmic = {
+ 	.uv_to_vsel		= twl4030_uv_to_vsel,
+ };
+ 
+-static struct omap_voltdm_pmic omap4_mpu_pmic = {
++static struct omap_voltdm_pmic twl6030_vcore1_pmic = {
+ 	.slew_rate		= 4000,
+ 	.step_size		= 12660,
+ 	.vp_erroroffset		= OMAP4_VP_CONFIG_ERROROFFSET,
+@@ -187,7 +187,7 @@ static struct omap_voltdm_pmic omap4_mpu_pmic = {
+ 	.uv_to_vsel		= twl6030_uv_to_vsel,
+ };
+ 
+-static struct omap_voltdm_pmic omap4_iva_pmic = {
++static struct omap_voltdm_pmic twl6030_vcore2_pmic = {
+ 	.slew_rate		= 4000,
+ 	.step_size		= 12660,
+ 	.vp_erroroffset		= OMAP4_VP_CONFIG_ERROROFFSET,
+@@ -204,7 +204,7 @@ static struct omap_voltdm_pmic omap4_iva_pmic = {
+ 	.uv_to_vsel		= twl6030_uv_to_vsel,
+ };
+ 
+-static struct omap_voltdm_pmic omap4_core_pmic = {
++static struct omap_voltdm_pmic twl6030_vcore3_pmic = {
+ 	.slew_rate		= 4000,
+ 	.step_size		= 12660,
+ 	.startup_time		= 500,
+@@ -222,31 +222,9 @@ static struct omap_voltdm_pmic omap4_core_pmic = {
+ 	.uv_to_vsel		= twl6030_uv_to_vsel,
+ };
+ 
+-int __init omap4_twl_init(void)
++static int __init twl_set_sr(struct voltagedomain *voltdm)
+ {
+-	struct voltagedomain *voltdm;
+-
+-	if (!cpu_is_omap44xx())
+-		return -ENODEV;
+-
+-	voltdm = voltdm_lookup("mpu");
+-	omap_voltage_register_pmic(voltdm, &omap4_mpu_pmic);
+-
+-	voltdm = voltdm_lookup("iva");
+-	omap_voltage_register_pmic(voltdm, &omap4_iva_pmic);
+-
+-	voltdm = voltdm_lookup("core");
+-	omap_voltage_register_pmic(voltdm, &omap4_core_pmic);
+-
+-	return 0;
+-}
+-
+-int __init omap3_twl_init(void)
+-{
+-	struct voltagedomain *voltdm;
+-
+-	if (!cpu_is_omap34xx())
+-		return -ENODEV;
++	int r = 0;
+ 
+ 	/*
+ 	 * The smartreflex bit on twl4030 specifies if the setting of voltage
+@@ -258,15 +236,50 @@ int __init omap3_twl_init(void)
+ 	 * voltage scaling will not function on TWL over I2C_SR.
+ 	 */
+ 	if (!twl_sr_enable_autoinit)
+-		omap3_twl_set_sr_bit(true);
++		r = omap3_twl_set_sr_bit(true);
+ 
+-	voltdm = voltdm_lookup("mpu_iva");
+-	omap_voltage_register_pmic(voltdm, &omap3_mpu_pmic);
++	return r;
++}
+ 
+-	voltdm = voltdm_lookup("core");
+-	omap_voltage_register_pmic(voltdm, &omap3_core_pmic);
++static __initdata struct omap_pmic_map omap_twl_map[] = {
++	{
++		.name = "mpu_iva",
++		.cpu = PMIC_CPU_OMAP3,
++		.pmic_data = &omap3_mpu_pmic,
++		.special_action = twl_set_sr,
++	},
++	{
++		.name = "core",
++		.cpu = PMIC_CPU_OMAP3,
++		.pmic_data = &omap3_core_pmic,
++	},
++	{
++		.name = "mpu",
++		.cpu = PMIC_CPU_OMAP4430,
++		.pmic_data = &twl6030_vcore1_pmic,
++	},
++	{
++		.name = "core",
++		.cpu = PMIC_CPU_OMAP4430,
++		.pmic_data = &twl6030_vcore3_pmic,
++	},
++	{
++		.name = "core",
++		.cpu = PMIC_CPU_OMAP4460,
++		.pmic_data = &twl6030_vcore1_pmic,
++	},
++	{
++		.name = "iva",
++		.cpu = PMIC_CPU_OMAP44XX,
++		.pmic_data = &twl6030_vcore2_pmic,
++	},
++	/* Terminator */
++	{ .name = NULL, .pmic_data = NULL},
++};
+ 
+-	return 0;
++int __init omap_twl_init(void)
++{
++	return omap_pmic_register_data(omap_twl_map);
  }
  
+ /**
+diff --git a/arch/arm/mach-omap2/pm.h b/arch/arm/mach-omap2/pm.h
+index 3d55926..afea204 100644
+--- a/arch/arm/mach-omap2/pm.h
++++ b/arch/arm/mach-omap2/pm.h
+@@ -128,15 +128,10 @@ static inline void omap_enable_smartreflex_on_init(void) {}
+ #endif
+ 
+ #ifdef CONFIG_TWL4030_CORE
+-extern int omap3_twl_init(void);
+-extern int omap4_twl_init(void);
++extern int omap_twl_init(void);
+ extern int omap3_twl_set_sr_bit(bool enable);
+ #else
+-static inline int omap3_twl_init(void)
+-{
+-	return -EINVAL;
+-}
+-static inline int omap4_twl_init(void)
++static inline int omap_twl_init(void)
+ {
+ 	return -EINVAL;
+ }
+diff --git a/arch/arm/mach-omap2/twl-common.c b/arch/arm/mach-omap2/twl-common.c
+index 9120a4f..2588e04 100644
+--- a/arch/arm/mach-omap2/twl-common.c
++++ b/arch/arm/mach-omap2/twl-common.c
+@@ -77,8 +77,7 @@ void __init omap_pmic_late_init(void)
+ 	if (!pmic_i2c_board_info.irq)
+ 		return;
+ 
+-	omap3_twl_init();
+-	omap4_twl_init();
++	omap_twl_init();
+ }
+ 
+ #if defined(CONFIG_ARCH_OMAP3)
+@@ -481,3 +480,55 @@ void __init omap4_pmic_get_config(struct twl4030_platform_data *pmic_data,
+ 		pmic_data->clk32kg = &omap4_clk32kg_idata;
+ }
+ #endif /* CONFIG_ARCH_OMAP4 */
++
++/**
++ * omap_pmic_register_data() - Register the PMIC information to OMAP mapping
++ * @omap_pmic_maps:    array ending with a empty element representing the maps
++ */
++int __init omap_pmic_register_data(struct omap_pmic_map *map)
++{
++	struct voltagedomain *voltdm;
++	int r;
++
++	if (!map)
++		return 0;
++
++	while (map->name) {
++		if (cpu_is_omap34xx() && !(map->cpu & PMIC_CPU_OMAP3))
++			goto next;
++
++		if (cpu_is_omap443x() && !(map->cpu & PMIC_CPU_OMAP4430))
++			goto next;
++
++		if (cpu_is_omap446x() && !(map->cpu & PMIC_CPU_OMAP4460))
++			goto next;
++
++		voltdm = voltdm_lookup(map->name);
++		if (IS_ERR_OR_NULL(voltdm)) {
++			pr_err("%s: unable to find map %s\n", __func__,
++				map->name);
++			goto next;
++		}
++		if (IS_ERR_OR_NULL(map->pmic_data)) {
++			pr_warning("%s: domain[%s] has no pmic data\n",
++					__func__, map->name);
++			goto next;
++		}
++
++		r = omap_voltage_register_pmic(voltdm, map->pmic_data);
++		if (r) {
++			pr_warning("%s: domain[%s] register returned %d\n",
++					__func__, map->name, r);
++			goto next;
++		}
++		if (map->special_action) {
++			r = map->special_action(voltdm);
++			WARN(r, "%s: domain[%s] action returned %d\n", __func__,
++				map->name, r);
++		}
++next:
++		map++;
++	}
++
++	return 0;
++}
+diff --git a/arch/arm/mach-omap2/twl-common.h b/arch/arm/mach-omap2/twl-common.h
+index 275dde8..2f805a3 100644
+--- a/arch/arm/mach-omap2/twl-common.h
++++ b/arch/arm/mach-omap2/twl-common.h
+@@ -2,6 +2,7 @@
+ #define __OMAP_PMIC_COMMON__
+ 
+ #include <plat/irqs.h>
++#include "voltage.h"
+ 
+ #define TWL_COMMON_PDATA_USB		(1 << 0)
+ #define TWL_COMMON_PDATA_BCI		(1 << 1)
+@@ -59,4 +60,30 @@ void omap3_pmic_get_config(struct twl4030_platform_data *pmic_data,
+ void omap4_pmic_get_config(struct twl4030_platform_data *pmic_data,
+ 			   u32 pdata_flags, u32 regulators_flags);
+ 
++/**
++ * struct omap_pmic_map - Describe the OMAP PMIC data for OMAP
++ * @name:		name of the voltage domain
++ * @pmic_data:		pmic data associated with it
++ * @cpu:		CPUs this PMIC data is valid for
++ * @special_action:	callback for any specific action to take for that map
++ *
++ * Since we support multiple PMICs each potentially functioning on multiple
++ * OMAP devices, we describe the parameters in a map allowing us to reuse the
++ * data as necessary.
++ */
++struct omap_pmic_map {
++	char			*name;
++	struct omap_voltdm_pmic	*pmic_data;
++	u32			cpu;
++	int			(*special_action)(struct voltagedomain *);
++};
++
++#define PMIC_CPU_OMAP3		(1 << 0)
++#define PMIC_CPU_OMAP4430	(1 << 1)
++#define PMIC_CPU_OMAP4460	(1 << 2)
++#define PMIC_CPU_OMAP44XX	(PMIC_CPU_OMAP4430 | PMIC_CPU_OMAP4460)
++
++extern int omap_pmic_register_data(struct omap_pmic_map *map);
++extern void omap_pmic_data_init(void);
++
+ #endif /* __OMAP_PMIC_COMMON__ */
 -- 
 1.7.4.1
 
