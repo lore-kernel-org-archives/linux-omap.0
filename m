@@ -1,77 +1,53 @@
-From: Grazvydas Ignotas <notasas@gmail.com>
-Subject: Re: GPIO debounce problems on 3.2
-Date: Sat, 5 May 2012 00:17:03 +0300
-Message-ID: <CANOLnOML0GkvTYabdoMXC-Z=rENp=W_zEP0BS=emxqyRGZj8UA@mail.gmail.com>
-References: <CANOLnOOKSC72MsteqE_+F4Q3MUZCJBfDebe7kKHoLsDAxr5y0g@mail.gmail.com>
-	<87obtlrniz.fsf@ti.com>
-	<CANOLnOM-kaHv=Dm2-6xowK4Z_BJuRopj-25M1HeyJsiYgXp7tA@mail.gmail.com>
-	<87obtkpyna.fsf@ti.com>
-	<alpine.DEB.2.00.1201301628440.17726@utopia.booyaka.com>
-	<CANOLnOM5VYOQOngF-T=5-CM-J2JzXVEnSaYbDjTQ8P=z9XSSAw@mail.gmail.com>
-	<alpine.DEB.2.00.1201301835430.10061@utopia.booyaka.com>
-	<CANOLnONK_hhzpCuu4xANrMns6eEesnW-5KR6kOSo3AbBwG3twA@mail.gmail.com>
-	<CANOLnOMzkNSr5hFbASCWaT6PkBSYQhqMxXmjBfU0tm0GTv=yYA@mail.gmail.com>
-	<alpine.DEB.2.00.1201312254150.10061@utopia.booyaka.com>
-	<alpine.DEB.2.00.1201312305190.10061@utopia.booyaka.com>
-	<CANOLnOMmcztNH+fUzrQxjK5nVVEaAtLi=7ww+dPm0AXEv09qUA@mail.gmail.com>
-	<alpine.DEB.2.00.1202011138400.10541@utopia.booyaka.com>
+From: Kevin Hilman <khilman@ti.com>
+Subject: Re: [PATCH 1/2] ARM: OMAP3: cpuidle - check the powerdomain lookup
+Date: Fri, 04 May 2012 14:23:21 -0700
+Message-ID: <87k40r8wty.fsf@ti.com>
+References: <1336151921-9485-1-git-send-email-daniel.lezcano@linaro.org>
+	<1336151921-9485-2-git-send-email-daniel.lezcano@linaro.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-yx0-f174.google.com ([209.85.213.174]:59245 "EHLO
-	mail-yx0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932216Ab2EDVRF convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 4 May 2012 17:17:05 -0400
-Received: by yenm10 with SMTP id m10so2721226yen.19
-        for <linux-omap@vger.kernel.org>; Fri, 04 May 2012 14:17:04 -0700 (PDT)
-In-Reply-To: <alpine.DEB.2.00.1202011138400.10541@utopia.booyaka.com>
+Received: from na3sys009aog118.obsmtp.com ([74.125.149.244]:41569 "EHLO
+	na3sys009aog118.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1755132Ab2EDVXV (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 4 May 2012 17:23:21 -0400
+Received: by pbbrr4 with SMTP id rr4so4674724pbb.23
+        for <linux-omap@vger.kernel.org>; Fri, 04 May 2012 14:23:16 -0700 (PDT)
+In-Reply-To: <1336151921-9485-2-git-send-email-daniel.lezcano@linaro.org>
+	(Daniel Lezcano's message of "Fri, 4 May 2012 19:18:40 +0200")
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Paul Walmsley <paul@pwsan.com>
-Cc: Kevin Hilman <khilman@ti.com>, linux-omap@vger.kernel.org
+To: Daniel Lezcano <daniel.lezcano@linaro.org>
+Cc: santosh.shilimkar@ti.com, jean.pihet@newoldbits.com, tony@atomide.com, linux-omap@vger.kernel.org, linaro-dev@lists.linaro.org, linux-arm-kernel@lists.infradead.org, patches@linaro.org
 
-On Wed, Feb 1, 2012 at 8:41 PM, Paul Walmsley <paul@pwsan.com> wrote:
-> On Wed, 1 Feb 2012, Grazvydas Ignotas wrote:
+Daniel Lezcano <daniel.lezcano@linaro.org> writes:
+
+> At init time, check the powerdomains lookup is successful otherwise
+> exit the cpuidle driver init function with -ENODEV like what is done for the
+> omap3 cpuidle driver.
 >
->> On Wed, Feb 1, 2012 at 8:06 AM, Paul Walmsley <paul@pwsan.com> wrote=
-:
->> > On Tue, 31 Jan 2012, Paul Walmsley wrote:
->> >
->> >> Well, whether it's in or out of idle, I'll bet the DEBOUNCENABLE
->> >> bits are still set to 1 while the debounce clock is off :-(
->> >
->> > Along these lines, you might try patching omap2_gpio_prepare_for_i=
-dle() to
->> > turn off the DEBOUNCENABLE bits?
->>
->> Yes that helps. I guess I'll carry this in pandora tree, at least
->> we'll have debounce while more demanding programs/games are running.
+> Signed-off-by: Daniel Lezcano <daniel.lezcano@linaro.org>
+> Reviewed-by: Jean Pihet <j-pihet@ti.com>
+
+Thanks, applying to my for_3.5/cleanup/omap-cpuidle branch.
+
+Kevin
+
+> ---
+>  arch/arm/mach-omap2/cpuidle34xx.c |    3 +++
+>  1 files changed, 3 insertions(+), 0 deletions(-)
 >
-> Yep definitely. =C2=A0When only I/O wakeups can occur on those GPIO l=
-ines (when
-> CORE/PER is in a low-power state), they are intrinsically debounced :=
--)
-> So it should be fine. =C2=A0You are re-enabling the DEBOUNCENABLE bit=
-s in
-> omap2_gpio_resume_after_idle() I assume? =C2=A0If so, that should be =
-a good
-> workaround for mainline too.
-
-To follow up on this, it appears clearing DEBOUNCENABLE in
-omap2_gpio_prepare_for_idle (or omap_gpio_runtime_suspend in 3.4) and
-reenabling on resume causes some sort of irq storm, I get ~50 irqs on
-key press/release for given GPIO, which causes CPU usage spikes, but
-no duplicate input events, curiously. Obviously this is not good for
-UIs and games, so I have nothing left but to disable hardware debounce
-now :(
-
-
-
---=20
-Gra=C5=BEvydas
---
-To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> diff --git a/arch/arm/mach-omap2/cpuidle34xx.c b/arch/arm/mach-omap2/cpuidle34xx.c
+> index f682e17..207bc1c 100644
+> --- a/arch/arm/mach-omap2/cpuidle34xx.c
+> +++ b/arch/arm/mach-omap2/cpuidle34xx.c
+> @@ -363,6 +363,9 @@ int __init omap3_idle_init(void)
+>  	per_pd = pwrdm_lookup("per_pwrdm");
+>  	cam_pd = pwrdm_lookup("cam_pwrdm");
+>  
+> +	if (!mpu_pd || !core_pd || !per_pd || !cam_pd)
+> +		return -ENODEV;
+> +
+>  	cpuidle_register_driver(&omap3_idle_driver);
+>  
+>  	dev = &per_cpu(omap3_idle_dev, smp_processor_id());
