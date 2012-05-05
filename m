@@ -1,188 +1,81 @@
-From: Jean-Christophe PLAGNIOL-VILLARD <plagnioj@jcrosoft.com>
-Subject: Re: [PATCH] pinctrl: Add generic pinctrl-simple driver that
- supports omap2+ padconf
-Date: Sat, 5 May 2012 04:04:14 +0200
-Message-ID: <20120505020414.GJ7788@game.jcrosoft.org>
-References: <20120502172401.GG3739@atomide.com>
- <20120503065131.GA3738@game.jcrosoft.org>
- <20120503152708.GC5140@atomide.com>
- <4FA30805.5050804@wwwdotorg.org>
- <20120504044305.GD7788@game.jcrosoft.org>
- <20120504150342.GI5140@atomide.com>
- <20120504153251.GE7788@game.jcrosoft.org>
- <20120504163420.GA5613@atomide.com>
- <4FA42631.6060304@wwwdotorg.org>
+From: Anton Vorontsov <cbouatmailru-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+Subject: Re: [PATCH 0/6] twl4030: Various fixes for charing-from-USB
+Date: Sat, 5 May 2012 03:49:10 -0700
+Message-ID: <20120505104910.GA19590@lizard>
+References: <20120425072931.20124.56635.stgit@notabene.brown>
+ <CANOLnOOQDxu-P=yTN6159XJANq-_FSCtZ4rBt69NSCPjLz1Rjw@mail.gmail.com>
+ <20120430093002.472dfdde@notabene.brown>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-kernel-owner@vger.kernel.org>
+Content-Type: text/plain; charset=utf-8
+Return-path: <linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 Content-Disposition: inline
-In-Reply-To: <4FA42631.6060304@wwwdotorg.org>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Stephen Warren <swarren@wwwdotorg.org>
-Cc: Tony Lindgren <tony@atomide.com>, Linus Walleij <linus.walleij@linaro.org>, linux-omap@vger.kernel.org, Stephen Warren <swarren@nvidia.com>, linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+In-Reply-To: <20120430093002.472dfdde-wvvUuzkyo1EYVZTmpyfIwg@public.gmane.org>
+Sender: linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: NeilBrown <neilb-l3A5Bk7waGM@public.gmane.org>
+Cc: Grazvydas Ignotas <notasas-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Samuel Ortiz <sameo-VuQAYsv1563Yd54FQh9/CA@public.gmane.org>, Felipe Balbi <balbi-l0cyMroinI0@public.gmane.org>, Greg Kroah-Hartman <gregkh-hQyY1W1yCW8ekmWlsbkhG0B+6BGkLq7r@public.gmane.org>, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-omap@vger.kernel.org
 
-On 12:55 Fri 04 May     , Stephen Warren wrote:
-> On 05/04/2012 10:34 AM, Tony Lindgren wrote:
-> > * Jean-Christophe PLAGNIOL-VILLARD <plagnioj@jcrosoft.com> [120504 08:58]:
-> >> On 08:03 Fri 04 May     , Tony Lindgren wrote:
-> >>>>
-> >>>> so I was thinking to do like on gpio
-> >>>>
-> >>>> uart {
-> >>>> 	pin = < &pioA 12 {pararms} >
-> >>>>
-> >>>> }
-> >>>
-> >>> Hmm I assume the "12" above the gpio number?
-> >> no pin number in the bank because it could not be gpio
+On Mon, Apr 30, 2012 at 09:30:02AM +1000, NeilBrown wrote:
+> > > Following are a collection of patches that I've need using for a while
+> > > to make sure the charge-from-usb on my GTA04 works.
+> > > Hopefully I've included the right people in the recipient list :-)
 > > 
-> > Yes OK, but pin number 12 in the gpio bank, not in the mux register.
-> > Got it.
-> 
-> I'd prefer to avoid any references to GPIOs here; not all muxable pins
-> are GPIOs and not all GPIOs are muxable pins. Lets keep the two concepts
-> independent.
-my idea was to have a phandle pinctrl specific to represent the bank
-and use it in the same way as done on gpio
-> 
-> >> 	pioD: gpio@fffff800 {
-> >> 		compatible = "atmel,at91rm9200-gpio";
-> >> 		reg = <0xfffff800 0x100>;
-> >> 		interrupts = <5 4>;
-> >> 		#gpio-cells = <2>;
-> >> 		gpio-controller;
-> >> 		interrupt-controller;
-> >> 	};
-> >>
-> >> 	pioE: gpio@fffffa00 {
-> >> 		compatible = "atmel,at91rm9200-gpio";
-> >> 		reg = <0xfffffa00 0x100>;
-> >> 		interrupts = <5 4>;
-> >> 		#gpio-cells = <2>;
-> >> 		gpio-controller;
-> >> 		interrupt-controller;
-> >> 	};
-> >>
-> >> 	dbgu {
-> >> 		pins = < &pioB 12 0 0
-> >> 			 &pioB 13 0 2 >;
-> >> 	/* with macro */
-> >> 		pins = < &pioB 12 MUX_A NO_PULL_UP
-> >> 			 &pioB 13 MUX_A PULL_UP >;
-> >> 	};
+> > You missed the power supply maintainers - ./scripts/get_maintainer.pl
+> > is usually good at finding the right people, although their
+> > MAINTAINERS entry could be better I guess..
 > > 
-> > I could change to use this too no problem. The only concern I have is
-> > that is "&pioB 12" immutable for all gpio controllers?
-> 
-> You mean is the number of cells used to specify a GPIO the same
-> everywhere? No. It's defined by #gpio-cells in the GPIO controller node.
-> 
-> But again, the GPIO binding shouldn't be related to the pinctrl binding
-> directly.
-> 
-> > Grepping the *.dts* files, at least exynos is using the following
-> > for gpios:
 > > 
-> > gpios = <&gpx2 0 0 0 2>;
-> > 
-> > If we can conclude that phandle to the gpio controller instance and
-> > the register offset is always enough here, then I'm OK changing to
-> > that format. It would actually save some parsing in most cases.
-> >  
-> >> 	/* and also the notion of linked group
-> >> 	 * as on uart of network you have often the same subset of pin use.
-> >> 	 *
-> >> 	 * As example on uart rxd/txd is use for the group without rts/cts
-> >> 	 * and the one with it
-> >> 	 * on ethernet the RMII pin are use also on MII
-> >> 	 */
-> >>
-> >> 	uart0_rxd_txd {
-> >> 		pins = < &pioB 19 MUX_A PULL_UP		/* rxd */
-> >> 			 &pioB 18 MUX_A NO_PULL_UP >;	/* txd */
-> >> 	};
 > 
-> I don't really see how that DT format represents pins, functions, and
-> nodes directly, and separately from which of those a board chooses to
-> use. I think this binding and the one Tony originally proposed are
-> eseentially semantically identical.
+> I guess you mean:
 > 
-> Going back to my idea of separating SoC and board configurations, if we
-> did that, I'd expect to see something more like:
+> POWER SUPPLY CLASS/SUBSYSTEM and DRIVERS
+> M:	Anton Vorontsov <cbou-JGs/UdohzUI@public.gmane.org>
+> M:	David Woodhouse <dwmw2-wEGCiKHe2LqWVfeAwA7xHQ@public.gmane.org>
+> T:	git git://git.infradead.org/battery-2.6.git
+> S:	Maintained
+> F:	include/linux/power_supply.h
+> F:	drivers/power/power_supply*
 > 
-> soc.dtsi or board.dts:
 > 
-> This is the data that the pin controller driver needs to export to
-> pinctrl core. This can be completely enumerated in the soc.dtsi, or
-> perhaps for uncommonly used pins/groups/functions, only included in the
-> board.dts that actually uses it to cut down on soc.dtsi's size:
-> 
-> This data is not needed for SoCs whose pinctrl drivers include it in
-> their driver file instead of DT.
-I agree on at91 I propose exactly this but get the following comment tat we
-are going to have too much node.
+> get_maintainer.pl didn't find them.  The F: line seems to say they aren't
+> interested in individual drivers...
 
-so the idea I propoose with the pins array is to avoid this issue
+This is a 'bug', of course. :-) Thanks for the report.
 
-my first bindings on at91
+This is what I've just applied:
 
-functions {
-};
+- - - -
+MAINTAINERS: Fix 'F' entry for the power supply class
 
-1) we describe one functin per pin
+For some reason the maintainers file only specifies power
+supply core files.
 
-functions {
-	rxd_pb12 {
-		atmel,pin-id = <&pioB 12>;
-		atmel,mux = <0>;
-	};
+We're surely interested in individual drivers as well, so fix
+the entry.
 
-	txd_pb13 {
-		atmel,pin-id = <&piaB 13>;
-		atmel,pull = <2>;
-		atmel,mux = <0>;
-	};
+Reported-by: NeilBrown <neilb-l3A5Bk7waGM@public.gmane.org>
+Signed-off-by: Anton Vorontsov <cbouatmailru-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+---
+ MAINTAINERS |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-	txd0_pb19 {
-		atmel,pin-id = <&pioB 19>;
-		atmel,pull = <2>;
-		atmel,mux = <0>;
-	};
+diff --git a/MAINTAINERS b/MAINTAINERS
+index bb76fc4..3766f6a 100644
+--- a/MAINTAINERS
++++ b/MAINTAINERS
+@@ -5290,7 +5290,7 @@ M:	David Woodhouse <dwmw2-wEGCiKHe2LqWVfeAwA7xHQ@public.gmane.org>
+ T:	git git://git.infradead.org/battery-2.6.git
+ S:	Maintained
+ F:	include/linux/power_supply.h
+-F:	drivers/power/power_supply*
++F:	drivers/power/
+ 
+ PNP SUPPORT
+ M:	Adam Belay <abelay-3s7WtUTddSA@public.gmane.org>
+-- 
+1.7.9.2
 
-	rxd0_pb18 {
-		atmel,pin-id = <&pioB 18>;
-		atmel,mux = <0>;
-	};
-
-	rts0_pb17 {
-		atmel,pin-id = <&pioB 17>;
-		atmel,mux = <1>;
-	};
-
-	cts0_pb15 {
-		atmel,pin-id = <&pioB 15>;
-		atmel,mux = <1>;
-	};
-};
-
-groups {
-	dbgu {
-		pinctrl,functions = <
-			&rxd_pb12 &txd_pb13 >;
-	};
-
-	uart0_rxd_txd {
-		pinctrl,functions = <
-			&rxd0_pb18 &txd0_pb19 >;
-	};
-
-	uart0_rts_cts {
-		pinctrl,functions = <
-			&rxd0_pb18 &txd0_pb19
-			&rts0_pb17 &cts0_pb15 >;
-	};
-};
-
-Best Regards,
-J.
+--
+To unsubscribe from this list: send the line "unsubscribe linux-usb" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
