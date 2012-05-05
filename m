@@ -1,72 +1,88 @@
-From: Anton Vorontsov <cbouatmailru-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
-Subject: Re: [PATCH 0/6] twl4030: Various fixes for charing-from-USB
-Date: Sat, 5 May 2012 03:52:49 -0700
-Message-ID: <20120505105249.GA20875@lizard>
-References: <20120425072931.20124.56635.stgit@notabene.brown>
- <CANOLnOOQDxu-P=yTN6159XJANq-_FSCtZ4rBt69NSCPjLz1Rjw@mail.gmail.com>
- <20120430093002.472dfdde@notabene.brown>
- <20120505104910.GA19590@lizard>
+From: Jassi Brar <jaswinder.singh@linaro.org>
+Subject: Re: [PATCH V3 1/2] of: Add generic device tree DMA helpers
+Date: Sat, 5 May 2012 22:40:58 +0530
+Message-ID: <CAJe_Zhe8jYd1j=ti6FvqxXL7i5mbgf0jqb-84sFMTeUqyAonpw@mail.gmail.com>
+References: <1335820679-28721-1-git-send-email-jon-hunter@ti.com>
+	<4FA3F308.6030900@ti.com>
+	<CAJe_ZhfFhZVG4gyaaVUgeQedJiSE=zj9nE28XCNH9DkPVgqj=A@mail.gmail.com>
+	<201205041923.07620.arnd@arndb.de>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Return-path: <linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <20120505104910.GA19590@lizard>
-Sender: linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: NeilBrown <neilb-l3A5Bk7waGM@public.gmane.org>
-Cc: Grazvydas Ignotas <notasas-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Samuel Ortiz <sameo-VuQAYsv1563Yd54FQh9/CA@public.gmane.org>, Felipe Balbi <balbi-l0cyMroinI0@public.gmane.org>, Greg Kroah-Hartman <gregkh-hQyY1W1yCW8ekmWlsbkhG0B+6BGkLq7r@public.gmane.org>, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Content-Type: text/plain; charset=ISO-8859-1
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from mail-lb0-f174.google.com ([209.85.217.174]:64480 "EHLO
+	mail-lb0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1757305Ab2EERLA (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Sat, 5 May 2012 13:11:00 -0400
+Received: by lbbgm6 with SMTP id gm6so2675887lbb.19
+        for <linux-omap@vger.kernel.org>; Sat, 05 May 2012 10:10:59 -0700 (PDT)
+In-Reply-To: <201205041923.07620.arnd@arndb.de>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Arnd Bergmann <arnd@arndb.de>
+Cc: Jon Hunter <jon-hunter@ti.com>, device-tree <devicetree-discuss@lists.ozlabs.org>, Stephen Warren <swarren@nvidia.com>, Benoit Cousson <b-cousson@ti.com>, Nicolas Ferre <nicolas.ferre@atmel.com>, Rob Herring <rob.herring@calxeda.com>, Grant Likely <grant.likely@secretlab.ca>, Russell King <linux@arm.linux.org.uk>, linux-omap <linux-omap@vger.kernel.org>, linux-arm <linux-arm-kernel@lists.infradead.org>
 
-On Sat, May 05, 2012 at 03:49:10AM -0700, Anton Vorontsov wrote:
-> On Mon, Apr 30, 2012 at 09:30:02AM +1000, NeilBrown wrote:
-> > > > Following are a collection of patches that I've need using for a while
-> > > > to make sure the charge-from-usb on my GTA04 works.
-> > > > Hopefully I've included the right people in the recipient list :-)
-> > > 
-> > > You missed the power supply maintainers - ./scripts/get_maintainer.pl
-> > > is usually good at finding the right people, although their
-> > > MAINTAINERS entry could be better I guess..
-> > > 
-> > > 
-> > 
-> > I guess you mean:
-> > 
-> > POWER SUPPLY CLASS/SUBSYSTEM and DRIVERS
-> > M:	Anton Vorontsov <cbou-JGs/UdohzUI@public.gmane.org>
-> > M:	David Woodhouse <dwmw2-wEGCiKHe2LqWVfeAwA7xHQ@public.gmane.org>
-> > T:	git git://git.infradead.org/battery-2.6.git
-> > S:	Maintained
-> > F:	include/linux/power_supply.h
-> > F:	drivers/power/power_supply*
-> > 
-> > 
-> > get_maintainer.pl didn't find them.  The F: line seems to say they aren't
-> > interested in individual drivers...
-> 
-> This is a 'bug', of course. :-) Thanks for the report.
-> 
-> This is what I've just applied:
-> 
-> - - - -
-> MAINTAINERS: Fix 'F' entry for the power supply class
-> 
-> For some reason the maintainers file only specifies power
-> supply core files.
-> 
-> We're surely interested in individual drivers as well, so fix
-> the entry.
-> 
-> Reported-by: NeilBrown <neilb-l3A5Bk7waGM@public.gmane.org>
+On 5 May 2012 00:53, Arnd Bergmann <arnd@arndb.de> wrote:
+> On Friday 04 May 2012, Jassi Brar wrote:
+>> I see this requires a client driver to specify a particular req_line on a
+>> particular dma controller. I am not sure if this is most optimal.
+>>
+>> I think such client->req_line map should be provided to the dmac controller
+>> driver via its dt node in some format. The dmac driver could then populate
+>> a dma_chan, or similar, only for that req_line and not for the unused one
+>> which otherwise could also have served the same client.
+>>
+>> Ideally the I2C driver should simply ask, say, a channel for TX and another
+>> for RX, everything else should already be setup via dmac's dt nodes.
+>
+> If I understand you correctly, you think we can generalize the dma-request
+> data in a way that we don't need to pass a specific dma engine phandle.
+> I very much doubt this is possible, given how different the requirements
+> are for each of the engines we support. You really need to pass a specific
+> phandle so that we can find the code that can interpret the data in a
+> meaningful way.
+>
+Hmm... there ought to be a way by which a client is handed a random 'token'
+via its dt node and similarly the dmac informed which channel (and with what
+capabilities) to allocate should it see a request coming with that token.
 
-Oh, Grazvydas Ignotas noticed this too. I added
-Reported-by: Grazvydas Ignotas <notasas-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org> as well.
-Just to be precise. ;-)
+That way dmac and client drivers using DT could do away with the filter_fn.
 
-Thanks folks,
+Roughly speaking (I am not very well versed with DT syntax)
 
--- 
-Anton Vorontsov
-Email: cbouatmailru-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org
---
-To unsubscribe from this list: send the line "unsubscribe linux-usb" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Client Node:-
+
+mmc1: mmc@13002000 {
+        ...
+        dma_tx = <891>   //some platform-wide unique value
+        dma_rx = <927>   //some platform-wide unique value
+        ...
+ };
+
+
+Say the PL330 chapter of SoC's trm specifies that "channel_id" for
+MMC1_TX is 7 and MMC1_RX is 8 on second instance of PL330.
+
+DMAC's Node:-
+
+pdma2: pdma@10800000 {
+         .......
+        dma_map = <891, 7>,       //Map mmc1_tx onto i/f 7
+                              <927, 8>,      //Map mmc1_rx onto i/f 8
+                              <487, 9>,      // Map other dma clients
+                                    .......
+};
+
+The dma_map could also encode features like duplex, priority etc
+depending on the needs of the client and capability of the dmac.
+(The "channel_id" could very well be an composite value specifying
+more than one parameter.... basically a value private to the dmac driver)
+
+As a positive side effect, the dmac controller could populate channels only
+for which some client exists on the machine.
+
+Also the decision to map a client onto one of two or more supporting dmacs
+is made here - token 927 wouldn't appear in dma_map of pdma1 even
+if it also could do RX for MMC1.
+
+The solution seems so simple that I am already cringing at the thought
+of having overlooked something fundamental. Please clarify :)
