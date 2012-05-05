@@ -1,51 +1,188 @@
-From: Kevin Hilman <khilman@ti.com>
-Subject: Re: ttyO2 broken on IGEPv2 on 3.3, 3.4-rc5 or arm-soc/for-next, working on 3.2
-Date: Fri, 04 May 2012 16:46:32 -0700
-Message-ID: <878vh78q7b.fsf@ti.com>
-References: <20120504155255.140b4e3f@skate> <87397fewso.fsf@ti.com>
-	<20120504175124.GI5613@atomide.com>
+From: Jean-Christophe PLAGNIOL-VILLARD <plagnioj@jcrosoft.com>
+Subject: Re: [PATCH] pinctrl: Add generic pinctrl-simple driver that
+ supports omap2+ padconf
+Date: Sat, 5 May 2012 04:04:14 +0200
+Message-ID: <20120505020414.GJ7788@game.jcrosoft.org>
+References: <20120502172401.GG3739@atomide.com>
+ <20120503065131.GA3738@game.jcrosoft.org>
+ <20120503152708.GC5140@atomide.com>
+ <4FA30805.5050804@wwwdotorg.org>
+ <20120504044305.GD7788@game.jcrosoft.org>
+ <20120504150342.GI5140@atomide.com>
+ <20120504153251.GE7788@game.jcrosoft.org>
+ <20120504163420.GA5613@atomide.com>
+ <4FA42631.6060304@wwwdotorg.org>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aog128.obsmtp.com ([74.125.149.141]:50460 "EHLO
-	na3sys009aog128.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1756794Ab2EDXq2 (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 4 May 2012 19:46:28 -0400
-Received: by pbbrr13 with SMTP id rr13so5396333pbb.40
-        for <linux-omap@vger.kernel.org>; Fri, 04 May 2012 16:46:27 -0700 (PDT)
-In-Reply-To: <20120504175124.GI5613@atomide.com> (Tony Lindgren's message of
-	"Fri, 4 May 2012 10:51:25 -0700")
-Sender: linux-omap-owner@vger.kernel.org
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <4FA42631.6060304@wwwdotorg.org>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Stephen Warren <swarren@wwwdotorg.org>
+Cc: Tony Lindgren <tony@atomide.com>, Linus Walleij <linus.walleij@linaro.org>, linux-omap@vger.kernel.org, Stephen Warren <swarren@nvidia.com>, linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 List-Id: linux-omap@vger.kernel.org
-To: Tony Lindgren <tony@atomide.com>
-Cc: Thomas Petazzoni <thomas.petazzoni@free-electrons.com>, linux-omap@vger.kernel.org, Enric Balletbo i Serra <eballetbo@iseebcn.com>
 
-Tony Lindgren <tony@atomide.com> writes:
+On 12:55 Fri 04 May     , Stephen Warren wrote:
+> On 05/04/2012 10:34 AM, Tony Lindgren wrote:
+> > * Jean-Christophe PLAGNIOL-VILLARD <plagnioj@jcrosoft.com> [120504 08:58]:
+> >> On 08:03 Fri 04 May     , Tony Lindgren wrote:
+> >>>>
+> >>>> so I was thinking to do like on gpio
+> >>>>
+> >>>> uart {
+> >>>> 	pin = < &pioA 12 {pararms} >
+> >>>>
+> >>>> }
+> >>>
+> >>> Hmm I assume the "12" above the gpio number?
+> >> no pin number in the bank because it could not be gpio
+> > 
+> > Yes OK, but pin number 12 in the gpio bank, not in the mux register.
+> > Got it.
+> 
+> I'd prefer to avoid any references to GPIOs here; not all muxable pins
+> are GPIOs and not all GPIOs are muxable pins. Lets keep the two concepts
+> independent.
+my idea was to have a phandle pinctrl specific to represent the bank
+and use it in the same way as done on gpio
+> 
+> >> 	pioD: gpio@fffff800 {
+> >> 		compatible = "atmel,at91rm9200-gpio";
+> >> 		reg = <0xfffff800 0x100>;
+> >> 		interrupts = <5 4>;
+> >> 		#gpio-cells = <2>;
+> >> 		gpio-controller;
+> >> 		interrupt-controller;
+> >> 	};
+> >>
+> >> 	pioE: gpio@fffffa00 {
+> >> 		compatible = "atmel,at91rm9200-gpio";
+> >> 		reg = <0xfffffa00 0x100>;
+> >> 		interrupts = <5 4>;
+> >> 		#gpio-cells = <2>;
+> >> 		gpio-controller;
+> >> 		interrupt-controller;
+> >> 	};
+> >>
+> >> 	dbgu {
+> >> 		pins = < &pioB 12 0 0
+> >> 			 &pioB 13 0 2 >;
+> >> 	/* with macro */
+> >> 		pins = < &pioB 12 MUX_A NO_PULL_UP
+> >> 			 &pioB 13 MUX_A PULL_UP >;
+> >> 	};
+> > 
+> > I could change to use this too no problem. The only concern I have is
+> > that is "&pioB 12" immutable for all gpio controllers?
+> 
+> You mean is the number of cells used to specify a GPIO the same
+> everywhere? No. It's defined by #gpio-cells in the GPIO controller node.
+> 
+> But again, the GPIO binding shouldn't be related to the pinctrl binding
+> directly.
+> 
+> > Grepping the *.dts* files, at least exynos is using the following
+> > for gpios:
+> > 
+> > gpios = <&gpx2 0 0 0 2>;
+> > 
+> > If we can conclude that phandle to the gpio controller instance and
+> > the register offset is always enough here, then I'm OK changing to
+> > that format. It would actually save some parsing in most cases.
+> >  
+> >> 	/* and also the notion of linked group
+> >> 	 * as on uart of network you have often the same subset of pin use.
+> >> 	 *
+> >> 	 * As example on uart rxd/txd is use for the group without rts/cts
+> >> 	 * and the one with it
+> >> 	 * on ethernet the RMII pin are use also on MII
+> >> 	 */
+> >>
+> >> 	uart0_rxd_txd {
+> >> 		pins = < &pioB 19 MUX_A PULL_UP		/* rxd */
+> >> 			 &pioB 18 MUX_A NO_PULL_UP >;	/* txd */
+> >> 	};
+> 
+> I don't really see how that DT format represents pins, functions, and
+> nodes directly, and separately from which of those a board chooses to
+> use. I think this binding and the one Tony originally proposed are
+> eseentially semantically identical.
+> 
+> Going back to my idea of separating SoC and board configurations, if we
+> did that, I'd expect to see something more like:
+> 
+> soc.dtsi or board.dts:
+> 
+> This is the data that the pin controller driver needs to export to
+> pinctrl core. This can be completely enumerated in the soc.dtsi, or
+> perhaps for uncommonly used pins/groups/functions, only included in the
+> board.dts that actually uses it to cut down on soc.dtsi's size:
+> 
+> This data is not needed for SoCs whose pinctrl drivers include it in
+> their driver file instead of DT.
+I agree on at91 I propose exactly this but get the following comment tat we
+are going to have too much node.
 
-> * Kevin Hilman <khilman@ti.com> [120504 09:31]:
->> Hi Thomas,
->> 
->> Thomas Petazzoni <thomas.petazzoni@free-electrons.com> writes:
->> 
->> > I have an IGEPv2 revision 6 board, which uses the DM3730 OMAP3. With
->> > 3.2 omap2plus_defconfig, the system boots fine and have a working shell
->> > on ttyO2. On either 3.3, 3.4-rc5 or arm-soc/for-next from Arnd, the
->> > system boots all the way up to showing the shell prompt, but I can't
->> > type any character, as if UART RX was broken.
->> 
->> On v3.4-rc, can you see if reverting bce492c04ba8fc66a4ea0a52b181ba255daaaf54
->> has any effect?
->> 
->> That patch had some unfortunate side effects, but I haven't seen the
->> problem you see, so I'm not sure if it's related.
->
-> Reverting bce492c04ba8fc66a4ea0a52b181ba255daaaf54 is a broken solution
-> like you mentioned. But if it helps, then the proper fix is to add muxing
-> to board-*.c files for the uart pins and use omap_serial_init_port
-> for each uart instead of omap_serial_init. That should fix the wake-up
-> issues too.
+so the idea I propoose with the pins array is to avoid this issue
 
-I agree on the final solution, but just wanted to see if the missing mux
-(and thus disabled runtime PM) is what's causing the problem.
+my first bindings on at91
 
-Kevin
+functions {
+};
+
+1) we describe one functin per pin
+
+functions {
+	rxd_pb12 {
+		atmel,pin-id = <&pioB 12>;
+		atmel,mux = <0>;
+	};
+
+	txd_pb13 {
+		atmel,pin-id = <&piaB 13>;
+		atmel,pull = <2>;
+		atmel,mux = <0>;
+	};
+
+	txd0_pb19 {
+		atmel,pin-id = <&pioB 19>;
+		atmel,pull = <2>;
+		atmel,mux = <0>;
+	};
+
+	rxd0_pb18 {
+		atmel,pin-id = <&pioB 18>;
+		atmel,mux = <0>;
+	};
+
+	rts0_pb17 {
+		atmel,pin-id = <&pioB 17>;
+		atmel,mux = <1>;
+	};
+
+	cts0_pb15 {
+		atmel,pin-id = <&pioB 15>;
+		atmel,mux = <1>;
+	};
+};
+
+groups {
+	dbgu {
+		pinctrl,functions = <
+			&rxd_pb12 &txd_pb13 >;
+	};
+
+	uart0_rxd_txd {
+		pinctrl,functions = <
+			&rxd0_pb18 &txd0_pb19 >;
+	};
+
+	uart0_rts_cts {
+		pinctrl,functions = <
+			&rxd0_pb18 &txd0_pb19
+			&rts0_pb17 &cts0_pb15 >;
+	};
+};
+
+Best Regards,
+J.
