@@ -1,92 +1,67 @@
-From: Ohad Ben-Cohen <ohad@wizery.com>
-Subject: Re: [PATCH v2 1/3] omap: mailbox: enable mailbox irq per instance
-Date: Sun, 6 May 2012 19:00:00 +0300
-Message-ID: <CAK=WgbY3OaDH9ziavrXG4oM1ztO3mTmL_eoLPOzCHHKQpHn20w@mail.gmail.com>
-References: <1334360392-1494-1-git-send-email-jgutierrez@ti.com> <1334360392-1494-2-git-send-email-jgutierrez@ti.com>
+From: Dave Chinner <david@fromorbit.com>
+Subject: Re: [PATCH v2 01/16] FS: Added demand paging markers to filesystem
+Date: Mon, 7 May 2012 09:31:17 +1000
+Message-ID: <20120506233117.GU5091@dastard>
+References: <1336054995-22988-1-git-send-email-svenkatr@ti.com>
+ <1336054995-22988-2-git-send-email-svenkatr@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-yx0-f174.google.com ([209.85.213.174]:57929 "EHLO
-	mail-yx0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752380Ab2EFQAV convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Sun, 6 May 2012 12:00:21 -0400
-Received: by yenm10 with SMTP id m10so3205270yen.19
-        for <linux-omap@vger.kernel.org>; Sun, 06 May 2012 09:00:20 -0700 (PDT)
-In-Reply-To: <1334360392-1494-2-git-send-email-jgutierrez@ti.com>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset=us-ascii
+Return-path: <owner-linux-mm@kvack.org>
+Content-Disposition: inline
+In-Reply-To: <1336054995-22988-2-git-send-email-svenkatr@ti.com>
+Sender: owner-linux-mm@kvack.org
+To: Venkatraman S <svenkatr@ti.com>
+Cc: linux-mmc@vger.kernel.org, cjb@laptop.org, linux-mm@kvack.org, linux-fsdevel@vger.kernel.org, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org, arnd.bergmann@linaro.org, alex.lemberg@sandisk.com, ilan.smith@sandisk.com, lporzio@micron.com, rmk+kernel@arm.linux.org.uk
 List-Id: linux-omap@vger.kernel.org
-To: Juan Gutierrez <jgutierrez@ti.com>
-Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Suman Anna <s-anna@ti.com>
 
-Hi Juan,
+On Thu, May 03, 2012 at 07:53:00PM +0530, Venkatraman S wrote:
+> From: Ilan Smith <ilan.smith@sandisk.com>
+> 
+> Add attribute to identify demand paging requests.
+> Mark readpages with demand paging attribute.
+> 
+> Signed-off-by: Ilan Smith <ilan.smith@sandisk.com>
+> Signed-off-by: Alex Lemberg <alex.lemberg@sandisk.com>
+> Signed-off-by: Venkatraman S <svenkatr@ti.com>
+> ---
+>  fs/mpage.c                |    2 ++
+>  include/linux/bio.h       |    7 +++++++
+>  include/linux/blk_types.h |    2 ++
+>  3 files changed, 11 insertions(+)
+> 
+> diff --git a/fs/mpage.c b/fs/mpage.c
+> index 0face1c..8b144f5 100644
+> --- a/fs/mpage.c
+> +++ b/fs/mpage.c
+> @@ -386,6 +386,8 @@ mpage_readpages(struct address_space *mapping, struct list_head *pages,
+>  					&last_block_in_bio, &map_bh,
+>  					&first_logical_block,
+>  					get_block);
+> +			if (bio)
+> +				bio->bi_rw |= REQ_RW_DMPG;
 
-On Sat, Apr 14, 2012 at 2:39 AM, Juan Gutierrez <jgutierrez@ti.com> wro=
-te:
-> The machine-specific omap2_mbox_startup is called only once
-> to initialize the whole mbox module. Enabling mbox irq at
-> startup is only enabling the irq of the very first mailbox
-> instance created.
->
-> The enable_irq function should be called every time a
-> new mbox instance is created,
+Have you thought about the potential for DOSing a machine
+with this? That is, user data reads can now preempt writes of any
+kind, effectively stalling writeback and memory reclaim which will
+lead to OOM situations. Or, alternatively, journal flushing will get
+stalled and no new modifications can take place until the read
+stream stops.
 
-s/created/opened/
+This really seems like functionality that belongs in an IO
+scheduler so that write starvation can be avoided, not in high-level
+data read paths where we have no clue about anything else going on
+in the IO subsystem....
 
-> in the generic platform mailbox layer.
+Cheers,
 
-This patch removes an omap2-specific code and then adds it to the
-"generic" layer, which also deals with omap1.
+Dave.
+-- 
+Dave Chinner
+david@fromorbit.com
 
-Are we sure it's ok ?
-
-OMAP1 doesn't seem to enable its irq at this point: it doesn't even
-have a ->startup() handler (which actually somewhat implies it's been
-anyway broken for a long time now: omap_mbox_startup() seem to
-unhappily bail out if it doesn't find a machine-specific ->startup()
-handler).
-
-> diff --git a/arch/arm/plat-omap/mailbox.c b/arch/arm/plat-omap/mailbo=
-x.c
-> index ad32621..ebc1ba5 100644
-> --- a/arch/arm/plat-omap/mailbox.c
-> +++ b/arch/arm/plat-omap/mailbox.c
-> @@ -282,6 +282,8 @@ static int omap_mbox_startup(struct omap_mbox *mb=
-ox)
-> =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0}
-> =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0mbox->rxq =3D mq;
-> =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0mq->mbox =3D mbox;
-> +
-> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 mbox->ops->enable_irq(mbox, IRQ_RX);
-
-Might be nicer to use omap_mbox_enable_irq() here instead of reaching
-out for the internal ops.
-
-It also looks like there's a race here: omap_mbox_get() registers the
-notifier_block only after omap_mbox_startup() returns, which probably
-means there's a small window where an interrupt can be received
-without us invoking the user's notifier callback.
-
-This isn't related to your patch of course, but since you're touching
-this area, it might be nice if you can fix it (i.e. simply by
-registering the notifier_block before enabling the mbox's irq).
-
-> =A0 =A0 =A0 =A0}
-> =A0 =A0 =A0 =A0mutex_unlock(&mbox_configured_lock);
-> =A0 =A0 =A0 =A0return 0;
-> @@ -305,6 +307,7 @@ static void omap_mbox_fini(struct omap_mbox *mbox=
-)
-> =A0 =A0 =A0 =A0mutex_lock(&mbox_configured_lock);
->
-> =A0 =A0 =A0 =A0if (!--mbox->use_count) {
-> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 mbox->ops->disable_irq(mbox, IRQ_RX);
-
-omap_mbox_disable_irq() ?
-
-Thanks,
-Ohad.
 --
-To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+To unsubscribe, send a message with 'unsubscribe linux-mm' in
+the body to majordomo@kvack.org.  For more info on Linux MM,
+see: http://www.linux-mm.org/ .
+Fight unfair telecom internet charges in Canada: sign http://stopthemeter.ca/
+Don't email: <a href=mailto:"dont@kvack.org"> email@kvack.org </a>
