@@ -1,116 +1,136 @@
-From: Igor Grinberg <grinberg@compulab.co.il>
-Subject: Re: [PATCH] ARM: OMAP: USB: fix warning on EHCI PHY reset path
-Date: Sun, 06 May 2012 09:25:05 +0300
-Message-ID: <4FA61941.5080603@compulab.co.il>
-References: <4F901CCC.9000703@compulab.co.il> <Pine.LNX.4.44L0.1204191059581.2070-100000@iolanthe.rowland.org> <20120420115728.GF12830@arwen.pp.htv.fi>
+From: "R, Sricharan" <r.sricharan@ti.com>
+Subject: Re: [PATCH 02/13] ARM: OMAP5: Add minimal support for OMAP5430 SOC
+Date: Sun, 6 May 2012 13:06:25 +0530
+Message-ID: <CAJ7qFSfkHGF7ehanZP=hyZ27HqSp1ONsT0tUV-wpLne9B4DEaQ@mail.gmail.com>
+References: <1336029982-31898-1-git-send-email-r.sricharan@ti.com>
+	<1336029982-31898-3-git-send-email-r.sricharan@ti.com>
+	<20120504223933.GX5613@atomide.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from 50.23.254.54-static.reverse.softlayer.com ([50.23.254.54]:56774
-	"EHLO softlayer.compulab.co.il" rhost-flags-OK-OK-OK-FAIL)
-	by vger.kernel.org with ESMTP id S1751220Ab2EFGZM (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Sun, 6 May 2012 02:25:12 -0400
-In-Reply-To: <20120420115728.GF12830@arwen.pp.htv.fi>
+Received: from na3sys009aog114.obsmtp.com ([74.125.149.211]:45293 "EHLO
+	na3sys009aog114.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1751611Ab2EFHg2 convert rfc822-to-8bit
+	(ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Sun, 6 May 2012 03:36:28 -0400
+Received: by lbbgm6 with SMTP id gm6so4116026lbb.33
+        for <linux-omap@vger.kernel.org>; Sun, 06 May 2012 00:36:25 -0700 (PDT)
+In-Reply-To: <20120504223933.GX5613@atomide.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: balbi@ti.com, Alan Stern <stern@rowland.harvard.edu>
-Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>, Keshava Munegowda <Keshava_mgowda@ti.com>, linux-usb@vger.kernel.org, linux-omap@vger.kernel.org, Samuel Ortiz <sameo@linux.intel.com>
+To: Tony Lindgren <tony@atomide.com>
+Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, santosh.shilimkar@ti.com, b-cousson@ti.com
 
------BEGIN PGP SIGNED MESSAGE-----
-Hash: SHA1
-
-Hi Alan,
-
-
-On 04/20/12 14:57, Felipe Balbi wrote:
-> On Thu, Apr 19, 2012 at 11:01:16AM -0400, Alan Stern wrote:
->> On Thu, 19 Apr 2012, Igor Grinberg wrote:
->>
->>> ping
->>>
->>> Alan, Felipe,
->>> Can this go into 3.5?
->>
->> It's okay with me.
->>
->> Acked-by: Alan Stern <stern@rowland.harvard.edu>
-> 
-> Also fine from my side:
-> 
-> Acked-by: Felipe Balbi <balbi@ti.com>
-> 
->>> The dependency patch has already reached Samuel's tree,
->>> what would be the best way to apply this one?
->>> Should I ask Samuel to apply this one also (after having your acks)
->>> via his tree, to reduce possible merge failures/conflicts?
->>
->> Sure, go ahead.
-
-Sorry, for being jumpy...
-Samuel has not answered yet (it has been more then two weeks already)
-and I'd like this to go into 3.5.
-Also, the dependency patch is already in Linus' tree. It has been merged with
-fixes (I thought it will happen only during the merge window...).
-
-Can you, please take this one?
-
-Thanks
+Hi Tony,
+[snip]
+> OK this seems to be based on Santosh' Makefile cleanup.
+>
+ yes..
 
 >>
->>> On 03/27/12 16:08, Igor Grinberg wrote:
->>>> When PHY reset pin is connected to a GPIO on external GPIO chip
->>>> (e.g. I2C), we should not call the gpio_set_value() function, but
->>>> gpio_set_value_cansleep().
->>>>
->>>> Signed-off-by: Igor Grinberg <grinberg@compulab.co.il>
->>>> ---
->>>> This patch depends on the patch from Keshava [1]:
->>>> ARM: OMAP3: USB: Fix the EHCI ULPI PHY reset issue
->>>>
->>>> [1] http://www.spinics.net/lists/linux-omap/msg66774.html
->>>>
->>>>  drivers/usb/host/ehci-omap.c |    4 ++--
->>>>  1 files changed, 2 insertions(+), 2 deletions(-)
->>>>
->>>> diff --git a/drivers/usb/host/ehci-omap.c b/drivers/usb/host/ehci-omap.c
->>>> index 5c78f9e..26e9241 100644
->>>> --- a/drivers/usb/host/ehci-omap.c
->>>> +++ b/drivers/usb/host/ehci-omap.c
->>>> @@ -258,10 +258,10 @@ static int ehci_hcd_omap_probe(struct platform_device *pdev)
->>>>  		udelay(10);
->>>>  
->>>>  		if (gpio_is_valid(pdata->reset_gpio_port[0]))
->>>> -			gpio_set_value(pdata->reset_gpio_port[0], 1);
->>>> +			gpio_set_value_cansleep(pdata->reset_gpio_port[0], 1);
->>>>  
->>>>  		if (gpio_is_valid(pdata->reset_gpio_port[1]))
->>>> -			gpio_set_value(pdata->reset_gpio_port[1], 1);
->>>> +			gpio_set_value_cansleep(pdata->reset_gpio_port[1], 1);
->>>>  	}
->>>>  
->>>>  	return 0;
+>> -#if defined(CONFIG_ARCH_OMAP3) || defined(CONFIG_ARCH_OMAP4)
+>> +#if defined(CONFIG_ARCH_OMAP3) || defined(CONFIG_ARCH_OMAP4) || \
+>> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 defined(CO=
+NFIG_ARCH_OMAP5)
 >>
-> 
+>
+> How about we add CONFIG_SOC_OMAP3PLUS in the clean-up series?
+> Then this becomes just:
+>
+> #ifdef CONFIG_SOC_OMAP3PLUS
+>
+ Ok, thanks for the example later. I will do a cleanup patch and
+rebase this one.
 
-- -- 
-Regards,
-Igor.
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v2.0.17 (GNU/Linux)
-Comment: Using GnuPG with Mozilla - http://enigmail.mozdev.org/
 
-iQIcBAEBAgAGBQJPphlAAAoJEBDE8YO64EfaejYP/0cjyLNgGzxeWJy9X5Q34C8S
-UIvAb6bHQrYxIqpdZ8vctPI1vnXgHvaWAdUg24Y5IWY+TPCvr6NWv5PGfMe7zAD6
-YHF6T7Yakn1C9geuPMCUNR0KRdd4EEN5YSXEu+ILr/xa7Bp2IzFvtThD8rqLeLWi
-8z411WT/eCpGdk2Y6WPw41AWW1YyfEaFwPz49w6siypyw032tB32zIghaYzy2C8W
-QtAUAbpBSw627tHRVPeVAqfQIK6plLoyCP9ql1FtaDbx/BwYlgALJv/1NrAgqtCe
-8Kd6vfkEfZiUhsG2uO4cx9QwY2gKTu285mpMQe0824rWUSFd8s/JS3HdYhPxIZOb
-HKjcYT4T9N0ZSJyPx0SqCOvP5wLPySSc2g37PdOis7+awH2a0HGIsoZJgXTkWbR/
-giLmvaOvKoTjsSsPRCUBKuU4eRPlK2k7tm4eobo/7VAJnhrD0IGAWn4vH981PE1h
-eM4b9TwAxC4s2xUdxe/v5e+zF0wqtBvfWjultQw9OvKskZfroPspdzhuzhrt86P6
-Ecedu+moMNG00zFuoEgPZYY7h/de+8gPFp+jZfuWNDQSLwDmRpZINLcAB2VEnY8G
-YrTN6lmaH00Fy8EVAqOhh7wnIB192myVo6axiGKwSbus3E91YboKYoTLEjArJEF7
-DE5AB9sKxnZQpzihpwAt
-=OFXi
------END PGP SIGNATURE-----
+>> -# ifdef CONFIG_ARCH_OMAP4
+>> +#if defined(CONFIG_ARCH_OMAP4) || defined(CONFIG_ARCH_OMAP5)
+>> =A0extern int omap4_cminst_wait_module_idle(u8 part, u16 inst, s16 c=
+doffs,
+>> =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =
+=A0 =A0 =A0u16 clkctrl_offs);
+>
+> And this would be:
+>
+> #ifdef CONFIG_SOC_OMAP4PLUS
+>
+ ok..
+
+>
+> Also, please change the whole series to use CONFIG_SOC_OMAP5 instead
+> of CONFIG_ARCH_OMAP5. CONFIG_ARCH_OMAPXXXX stuff will go away except
+> for CONFIG_ARCH_OMAP2PLUS. Sorry forgot to mention that earlier.
+>
+ ok. sure. will change this.
+
+
+>> -#if defined(CONFIG_ARCH_OMAP4) && !(defined(CONFIG_ARCH_OMAP2) || =A0=
+ =A0\
+>> - =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0=
+ =A0 defined(CONFIG_ARCH_OMAP3))
+>> +#if (defined(CONFIG_ARCH_OMAP5) || defined(CONFIG_ARCH_OMAP4)) && \
+>> + =A0 =A0 =A0 =A0 =A0 =A0 !(defined(CONFIG_ARCH_OMAP2) || defined(CO=
+NFIG_ARCH_OMAP3))
+>> +
+>> =A0static inline u32 omap2_prm_read_mod_reg(s16 module, u16 idx)
+>> =A0{
+>> =A0 =A0 =A0 WARN(1, "prm: omap2xxx/omap3xxx specific function and "
+>
+> Maybe these functions could be just set up as __weak to avoid the
+> ifdeffery?
+>
+ sorry to understand,
+ you mean make this weak and have a strong override for OMAP2 ?
+
+>> =A0#define CK_443X =A0 =A0 =A0 =A0 =A0 =A0 =A0(1 << 11)
+>> =A0#define CK_TI816X =A0 =A0(1 << 12)
+>> =A0#define CK_446X =A0 =A0 =A0 =A0 =A0 =A0 =A0(1 << 13)
+>> +#define CK_54XX =A0 =A0 =A0 =A0 =A0 =A0 =A0(1 << 14)
+>> =A0#define CK_1710 =A0 =A0 =A0 =A0 =A0 =A0 =A0(1 << 15) =A0 =A0 =A0 =
+/* 1710 extra for rate selection */
+>>
+>>
+>
+> Are we going to have to patch tons of existing clocks just to add
+> CK_54XX? If so, we should init clocks using SoC specific lists instea=
+d.
+>
+
+>> diff --git a/arch/arm/plat-omap/include/plat/clock.h b/arch/arm/plat=
+-omap/include/plat/clock.h
+>> index d0ef57c..41858f4 100644
+>> --- a/arch/arm/plat-omap/include/plat/clock.h
+>> +++ b/arch/arm/plat-omap/include/plat/clock.h
+>> @@ -61,6 +61,7 @@ struct clkops {
+>> =A0#define RATE_IN_4460 =A0 =A0 =A0 =A0 (1 << 7)
+>> =A0#define RATE_IN_AM33XX =A0 =A0 =A0 =A0 =A0 =A0 =A0 (1 << 8)
+>> =A0#define RATE_IN_TI814X =A0 =A0 =A0 =A0 =A0 =A0 =A0 (1 << 9)
+>> +#define RATE_IN_54XX =A0 =A0 =A0 =A0 (1 << 10)
+>
+> This too may have similar issues, but I guess that's really a differe=
+nt
+> patch series to sort out..
+>
+ ok. agree
+
+>> -#if defined(CONFIG_ARCH_OMAP3) || defined(CONFIG_ARCH_OMAP4)
+>> +#if defined(CONFIG_ARCH_OMAP3) || defined(CONFIG_ARCH_OMAP4) \
+>> + =A0 =A0 =A0 =A0 =A0 =A0 || defined(CONFIG_ARCH_OMAP5)
+>> =A0 =A0 =A0 void __iomem =A0 =A0 =A0 =A0 =A0 =A0*autoidle_reg;
+>> =A0 =A0 =A0 void __iomem =A0 =A0 =A0 =A0 =A0 =A0*idlest_reg;
+>> =A0 =A0 =A0 u32 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 autoidle_mas=
+k;
+>
+>
+> #ifdef CONFIG_SOC_OMAP3PLUS could be used here too
+>
+ ok..
+
+Thanks,
+ Sricharan
+--
+To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
