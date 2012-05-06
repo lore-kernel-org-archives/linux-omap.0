@@ -1,43 +1,59 @@
-From: Grazvydas Ignotas <notasas@gmail.com>
-Subject: [PATCH] ARM: OMAP2+: remove incorrect irq_chip ack field
-Date: Sun,  6 May 2012 02:56:52 +0300
-Message-ID: <1336262212-4455-1-git-send-email-notasas@gmail.com>
+From: Paul Walmsley <paul@pwsan.com>
+Subject: Re: [PATCH v4-alt 3/6] ARM: OMAP3: hwmod data: add gpmc
+Date: Sat, 5 May 2012 20:04:07 -0600 (MDT)
+Message-ID: <alpine.DEB.2.00.1205051949290.20926@utopia.booyaka.com>
+References: <cover.1335941443.git.afzal@ti.com> <99ffbbcc634022ed3c781c37e03989f1d898003e.1335941444.git.afzal@ti.com>
+Mime-Version: 1.0
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-wg0-f44.google.com ([74.125.82.44]:42624 "EHLO
-	mail-wg0-f44.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752227Ab2EEX47 (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Sat, 5 May 2012 19:56:59 -0400
-Received: by wgbdr13 with SMTP id dr13so3783998wgb.1
-        for <linux-omap@vger.kernel.org>; Sat, 05 May 2012 16:56:58 -0700 (PDT)
+Received: from utopia.booyaka.com ([72.9.107.138]:40203 "EHLO
+	utopia.booyaka.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752704Ab2EFCEI (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Sat, 5 May 2012 22:04:08 -0400
+In-Reply-To: <99ffbbcc634022ed3c781c37e03989f1d898003e.1335941444.git.afzal@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: linux-omap@vger.kernel.org
-Cc: linux-arm-kernel@lists.infradead.org, Tony Lindgren <tony@atomide.com>, Grazvydas Ignotas <notasas@gmail.com>
+To: Afzal Mohammed <afzal@ti.com>
+Cc: tony@atomide.com, linux-omap@vger.kernel.org
 
-Each irq_chip for the main interrupt controller has offsets set for irq
-masking registers, which added to respective base results in a pointer
-to appropriate hardware register. However this is not correct for
-INTC_CONTROL as there is only one INTC_CONTROL register. This does not
-cause problems because generic ack code is never called, but remove
-this assignment to avoid confusion.
+Hello Afzal
 
-Signed-off-by: Grazvydas Ignotas <notasas@gmail.com>
----
- arch/arm/mach-omap2/irq.c |    1 -
- 1 files changed, 0 insertions(+), 1 deletions(-)
+a few comments
 
-diff --git a/arch/arm/mach-omap2/irq.c b/arch/arm/mach-omap2/irq.c
-index 65f0d25..c11e8a8 100644
---- a/arch/arm/mach-omap2/irq.c
-+++ b/arch/arm/mach-omap2/irq.c
-@@ -149,7 +149,6 @@ omap_alloc_gc(void __iomem *base, unsigned int irq_start, unsigned int num)
- 	ct->chip.irq_mask = irq_gc_mask_disable_reg;
- 	ct->chip.irq_unmask = irq_gc_unmask_enable_reg;
- 
--	ct->regs.ack = INTC_CONTROL;
- 	ct->regs.enable = INTC_MIR_CLEAR0;
- 	ct->regs.disable = INTC_MIR_SET0;
- 	irq_setup_generic_chip(gc, IRQ_MSK(num), IRQ_GC_INIT_MASK_CACHE,
--- 
-1.7.0.4
+On Wed, 2 May 2012, Afzal Mohammed wrote:
 
+> Add gpmc hwmod and associated interconnect data
+> 
+> Signed-off-by: Afzal Mohammed <afzal@ti.com>
+
+Did you notice the warning that this patch generates on boot?
+
+omap_hwmod: gpmc: cannot be enabled for reset (3)
+
+The HWMOD_NO_IDLEST hwmod flag is needed, since there is no GPMC IDLEST 
+bit.
+
+...
+
+Also, the OMAP2xxx GPMC hwmod data is missing.  It can be combined 
+with this patch.
+
+...
+
+Also:
+
+> +static struct omap_hwmod omap3xxx_gpmc_hwmod = {
+> +	.name		= "gpmc",
+> +	.class		= &omap3xxx_gpmc_hwmod_class,
+> +	.clkdm_name	= "l3_init_clkdm",
+> +	.mpu_irqs	= omap3xxx_gpmc_irqs,
+> +	.main_clk	= "gpmc_fck",
+> +	.flags		= HWMOD_INIT_NO_IDLE | HWMOD_INIT_NO_RESET,
+> +};
+
+Is there some reason why you are setting the HWMOD_INIT_NO_RESET flag 
+here?  Seems to me that the kernel should not rely on the bootloader GPMC 
+configuration, but should use a configuration from the board file or DT.
+
+
+- Paul
