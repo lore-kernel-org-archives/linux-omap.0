@@ -1,121 +1,72 @@
-From: "Mohammed, Afzal" <afzal-l0cyMroinI0@public.gmane.org>
-Subject: RE: [PATCH v4 01/39] ARM: OMAP2+: gpmc: driver conversion
-Date: Mon, 7 May 2012 11:01:02 +0000
-Message-ID: <C8443D0743D26F4388EA172BF4E2A7A93E987147@DBDE01.ent.ti.com>
-References: <cover.1335874494.git.afzal@ti.com>
- <363273a9ef82d6836197929157aa9a8eb8f5171a.1335874494.git.afzal@ti.com>
- <4FA4035E.6020308@ti.com>
+From: Archit Taneja <a0393947@ti.com>
+Subject: Re: [PATCH RESEND] ARM: OMAP: Revert "ARM: OMAP: ctrl: Fix CONTROL_DSIPHY
+ register fields"
+Date: Mon, 7 May 2012 16:31:29 +0530
+Message-ID: <4FA7AB89.5010904@ti.com>
+References: <1334837356-2440-1-git-send-email-archit@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
-Return-path: <linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <4FA4035E.6020308-l0cyMroinI0@public.gmane.org>
-Content-Language: en-US
-Sender: linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: "Hunter, Jon" <jon-hunter-l0cyMroinI0@public.gmane.org>
-Cc: "tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org" <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>, "linux-lFZ/pmaqli7XmaaqVzeoHQ@public.gmane.org" <linux-lFZ/pmaqli7XmaaqVzeoHQ@public.gmane.org>, "Hilman, Kevin" <khilman-l0cyMroinI0@public.gmane.org>, "Balbi, Felipe" <balbi-l0cyMroinI0@public.gmane.org>, "dwmw2-wEGCiKHe2LqWVfeAwA7xHQ@public.gmane.org" <dwmw2-wEGCiKHe2LqWVfeAwA7xHQ@public.gmane.org>, "kyungmin.park-Sze3O3UU22JBDgjK7y7TUQ@public.gmane.org" <kyungmin.park-Sze3O3UU22JBDgjK7y7TUQ@public.gmane.org>, "gregkh-hQyY1W1yCW8ekmWlsbkhG0B+6BGkLq7r@public.gmane.org" <gregkh-hQyY1W1yCW8ekmWlsbkhG0B+6BGkLq7r@public.gmane.org>, "Menon, Nishanth" <nm-l0cyMroinI0@public.gmane.org>, "grinberg-UTxiZqZC01RS1MOuV/RT9w@public.gmane.org" <grinberg-UTxiZqZC01RS1MOuV/RT9w@public.gmane.org>, "notasas-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org" <notasas-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, "artem.bityutskiy-VuQAYsv1563Yd54FQh9/CA@public.gmane.org" <artem.bityutskiy-VuQAYsv1563Yd54FQh9/CA@public.gmane.org>, "vimal.newwork-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org" <vimal.newwork-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, "dbaryshkov-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org" <dbaryshkov-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, "linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org" <linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org>, "linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "linux-mtd-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org" <linux-mtd-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org>, Hire
+Content-Type: text/plain; charset="ISO-8859-1"; format=flowed
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from comal.ext.ti.com ([198.47.26.152]:57707 "EHLO comal.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1755880Ab2EGLCR (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Mon, 7 May 2012 07:02:17 -0400
+In-Reply-To: <1334837356-2440-1-git-send-email-archit@ti.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: tony@atomide.com, paul@pwsan.com
+Cc: tomi.valkeinen@ti.com, linux@arm.linux.org.uk, linux-omap@vger.kernel.org, santosh.shilimkar@ti.com, b-cousson@ti.com, stable@vger.kernel.org
 
-Hi Jon,
+Hi Tony, Paul,
 
-On Fri, May 04, 2012 at 21:57:10, Hunter, Jon wrote:
-> > -	gpmc_write_reg(GPMC_SYSCONFIG, l);
-> > -	gpmc_mem_init();
-> > +	switch (conf & GPMC_WAITPIN_MASK) {
-> > +	case GPMC_WAITPIN_0:
-> > +		idx =  GPMC_WAITPIN_IDX0;
-> > +		break;
-> > +	case GPMC_WAITPIN_1:
-> > +		idx =  GPMC_WAITPIN_IDX1;
-> > +		break;
-> > +	case GPMC_WAITPIN_2:
-> > +		idx =  GPMC_WAITPIN_IDX2;
-> > +		break;
-> > +	case GPMC_WAITPIN_3:
-> > +		idx =  GPMC_WAITPIN_IDX3;
-> > +		break;
-> > +	/* no waitpin */
-> > +	case 0:
-> > +		break;
-> > +	default:
-> > +		dev_err(gpmc->dev, "multiple waitpins selected on CS:%u\n", cs);
-> > +		return -EINVAL;
-> > +		break;
-> > +	}
-> 
-> Why not combined case 0 and default? Both are invalid configurations so
-> just report invalid selection.
+Could you please consider this patch for the next -rc cycle, it fixes 
+contention errors seen on the DSI panel on OMAP4 SDP.
 
-Case 0 is not invalid, a case where waitpin is not used, default refers
-to when a user selects multiple waitpins wrongly.
+Thanks,
+Archit
 
-> 
-> >  
-> > -	/* initalize the irq_chained */
-> > -	irq = OMAP_GPMC_IRQ_BASE;
-> > -	for (cs = 0; cs < GPMC_CS_NUM; cs++) {
-> > -		irq_set_chip_and_handler(irq, &dummy_irq_chip,
-> > -						handle_simple_irq);
-> > -		set_irq_flags(irq, IRQF_VALID);
-> > -		irq++;
-> > +	switch (conf & GPMC_WAITPIN_POLARITY_MASK) {
-> > +	case GPMC_WAITPIN_ACTIVE_LOW:
-> > +		polarity = LOW;
-> > +		break;
-> > +	case GPMC_WAITPIN_ACTIVE_HIGH:
-> > +		polarity = HIGH;
-> > +		break;
-> > +	/* no waitpin */
-> > +	case 0:
-> > +		break;
-> > +	default:
-> > +		dev_err(gpmc->dev, "waitpin polarity set to low & high\n");
-> > +		return -EINVAL;
-> > +		break;
-> >  	}
-> 
-> Again, combine case 0 and default as these are invalid.
+On Thursday 19 April 2012 05:39 PM, Archit Taneja wrote:
+> This reverts commit 46f8c3c7e95c0d30d95911e7975ddc4f93b3e237.
+>
+> The commit above swapped the DSI1_PPID and DSI2_PPID register fields in
+> CONTROL_DSIPHY to be in sync with the newer public OMAP TRMs(after version V).
+>
+> With this commit, contention errors were reported on DSI lanes some OMAP4 SDPs.
+> After probing the DSI lanes on OMAP4 SDP, it was seen that setting bits in the
+> DSI2_PPID field was pulling up voltage on DSI1 lanes, and DSI1_PPID field was
+> pulling up voltage on DSI2 lanes.
+>
+> This proves that the current version of OMAP4 TRM is incorrect, swap the
+> position of register fields according to the older TRM versions as they were
+> correct.
+>
+> Cc: stable@vger.kernel.org # v3.2+
+> Acked-by: Tomi Valkeinen<tomi.valkeinen@ti.com>
+> Signed-off-by: Archit Taneja<archit@ti.com>
+> ---
+> Note: Resend with stable kernel list added in cc
+>
+>   .../include/mach/ctrl_module_pad_core_44xx.h       |    8 ++++----
+>   1 files changed, 4 insertions(+), 4 deletions(-)
+>
+> diff --git a/arch/arm/mach-omap2/include/mach/ctrl_module_pad_core_44xx.h b/arch/arm/mach-omap2/include/mach/ctrl_module_pad_core_44xx.h
+> index 1e2d332..c88420d 100644
+> --- a/arch/arm/mach-omap2/include/mach/ctrl_module_pad_core_44xx.h
+> +++ b/arch/arm/mach-omap2/include/mach/ctrl_module_pad_core_44xx.h
+> @@ -941,10 +941,10 @@
+>   #define OMAP4_DSI2_LANEENABLE_MASK				(0x7<<  29)
+>   #define OMAP4_DSI1_LANEENABLE_SHIFT				24
+>   #define OMAP4_DSI1_LANEENABLE_MASK				(0x1f<<  24)
+> -#define OMAP4_DSI2_PIPD_SHIFT					19
+> -#define OMAP4_DSI2_PIPD_MASK					(0x1f<<  19)
+> -#define OMAP4_DSI1_PIPD_SHIFT					14
+> -#define OMAP4_DSI1_PIPD_MASK					(0x1f<<  14)
+> +#define OMAP4_DSI1_PIPD_SHIFT					19
+> +#define OMAP4_DSI1_PIPD_MASK					(0x1f<<  19)
+> +#define OMAP4_DSI2_PIPD_SHIFT					14
+> +#define OMAP4_DSI2_PIPD_MASK					(0x1f<<  14)
+>
+>   /* CONTROL_MCBSPLP */
+>   #define OMAP4_ALBCTRLRX_FSX_SHIFT				31
 
-Similar to above
-
-> 
-> > +		if (gd->have_waitpin) {
-> > +			if (gd->waitpin != idx ||
-> > +					gd->waitpin_polarity != polarity) {
-> > +				dev_err(gpmc->dev, "error: conflict: waitpin %u with polarity %d on device %s.%d\n",
-> > +					gd->waitpin, gd->waitpin_polarity,
-> > +					gd->name, gd->id);
-> > +				return -EBUSY;
-> > +			}
-> > +		} else {
-> 
-> Don't need the else as you are going to return in the above.
-
-Not always, only in case of error
-
-> 
-> > +			gd->have_waitpin = true;
-> > +			gd->waitpin = idx;
-> > +			gd->waitpin_polarity = polarity;
-> > +		}
-> > +
-> > +		l &= ~GPMC_CONFIG1_WAIT_PIN_SEL_MASK;
-> > +		l |= GPMC_CONFIG1_WAIT_PIN_SEL(idx);
-> > +		gpmc_cs_write_reg(cs, GPMC_CS_CONFIG1, l);
-> > +	} else if (polarity) {
-> > +		dev_err(gpmc->dev, "error: waitpin polarity specified with out wait pin number on device %s.%d\n",
-> > +							gd->name, gd->id);
-> > +		return -EINVAL;
-> 
-> Drop this else-if. The above switch statements will report the bad
-> configuration. This seems a bit redundant.
-
-This is required as switch statements will not report error if polarity
-is specified, w/o waitpin to be used.
-
-Regards
-Afzal
---
-To unsubscribe from this list: send the line "unsubscribe linux-usb" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
