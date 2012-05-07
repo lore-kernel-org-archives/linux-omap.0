@@ -1,72 +1,43 @@
-From: Archit Taneja <a0393947@ti.com>
-Subject: Re: [PATCH RESEND] ARM: OMAP: Revert "ARM: OMAP: ctrl: Fix CONTROL_DSIPHY
- register fields"
-Date: Mon, 7 May 2012 16:31:29 +0530
-Message-ID: <4FA7AB89.5010904@ti.com>
-References: <1334837356-2440-1-git-send-email-archit@ti.com>
+From: "Mohammed, Afzal" <afzal@ti.com>
+Subject: RE: [PATCH v4 02/39] ARM: OMAP2+: gpmc: Adapt to HWMOD
+Date: Mon, 7 May 2012 11:02:09 +0000
+Message-ID: <C8443D0743D26F4388EA172BF4E2A7A93E987159@DBDE01.ent.ti.com>
+References: <cover.1335874494.git.afzal@ti.com>
+ <e0cf9678cb9a44d2a16401383ab8496eb825c291.1335874494.git.afzal@ti.com>
+ <4FA04A8C.4050703@ti.com>
+ <C8443D0743D26F4388EA172BF4E2A7A93E98299B@DBDE01.ent.ti.com>
+ <4FA4041D.9010000@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="ISO-8859-1"; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from comal.ext.ti.com ([198.47.26.152]:57707 "EHLO comal.ext.ti.com"
+Received: from bear.ext.ti.com ([192.94.94.41]:39223 "EHLO bear.ext.ti.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1755880Ab2EGLCR (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Mon, 7 May 2012 07:02:17 -0400
-In-Reply-To: <1334837356-2440-1-git-send-email-archit@ti.com>
+	id S1755434Ab2EGLC0 convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 7 May 2012 07:02:26 -0400
+In-Reply-To: <4FA4041D.9010000@ti.com>
+Content-Language: en-US
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: tony@atomide.com, paul@pwsan.com
-Cc: tomi.valkeinen@ti.com, linux@arm.linux.org.uk, linux-omap@vger.kernel.org, santosh.shilimkar@ti.com, b-cousson@ti.com, stable@vger.kernel.org
+To: "Hunter, Jon" <jon-hunter@ti.com>
+Cc: "tony@atomide.com" <tony@atomide.com>, "linux@arm.linux.org.uk" <linux@arm.linux.org.uk>, "Hilman, Kevin" <khilman@ti.com>, "Balbi, Felipe" <balbi@ti.com>, "dwmw2@infradead.org" <dwmw2@infradead.org>, "kyungmin.park@samsung.com" <kyungmin.park@samsung.com>, "gregkh@linuxfoundation.org" <gregkh@linuxfoundation.org>, "Menon, Nishanth" <nm@ti.com>, "grinberg@compulab.co.il" <grinberg@compulab.co.il>, "notasas@gmail.com" <notasas@gmail.com>, "artem.bityutskiy@linux.intel.com" <artem.bityutskiy@linux.intel.com>, "vimal.newwork@gmail.com" <vimal.newwork@gmail.com>, "dbaryshkov@gmail.com" <dbaryshkov@gmail.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, "linux-usb@vger.kernel.org" <linux-usb@vger.kernel.org>, "linux-mtd@lists.infradead.org" <linux-mtd@lists.infradead.org>
 
-Hi Tony, Paul,
+Hi Jon,
 
-Could you please consider this patch for the next -rc cycle, it fixes 
-contention errors seen on the DSI panel on OMAP4 SDP.
+On Fri, May 04, 2012 at 22:00:21, Hunter, Jon wrote:
+> >>> +
+> >>> +	pdata->clk_prd = gpmc_get_fclk_period();
+> >>
+> >> Does this need to be done here? May be this should be done in the probe
+> >> function. You could store the handle to the main clk in the pdata.
+> > 
+> > This is done so that migration of gpmc driver to the drivers folder
+> > would be smooth, remember that this function will still live here.
+> 
+> Sure, but why call this here?
 
-Thanks,
-Archit
+Clk_prd is a platform data passed to the driver, so platform code
+updates it, where else can it be done ?
 
-On Thursday 19 April 2012 05:39 PM, Archit Taneja wrote:
-> This reverts commit 46f8c3c7e95c0d30d95911e7975ddc4f93b3e237.
->
-> The commit above swapped the DSI1_PPID and DSI2_PPID register fields in
-> CONTROL_DSIPHY to be in sync with the newer public OMAP TRMs(after version V).
->
-> With this commit, contention errors were reported on DSI lanes some OMAP4 SDPs.
-> After probing the DSI lanes on OMAP4 SDP, it was seen that setting bits in the
-> DSI2_PPID field was pulling up voltage on DSI1 lanes, and DSI1_PPID field was
-> pulling up voltage on DSI2 lanes.
->
-> This proves that the current version of OMAP4 TRM is incorrect, swap the
-> position of register fields according to the older TRM versions as they were
-> correct.
->
-> Cc: stable@vger.kernel.org # v3.2+
-> Acked-by: Tomi Valkeinen<tomi.valkeinen@ti.com>
-> Signed-off-by: Archit Taneja<archit@ti.com>
-> ---
-> Note: Resend with stable kernel list added in cc
->
->   .../include/mach/ctrl_module_pad_core_44xx.h       |    8 ++++----
->   1 files changed, 4 insertions(+), 4 deletions(-)
->
-> diff --git a/arch/arm/mach-omap2/include/mach/ctrl_module_pad_core_44xx.h b/arch/arm/mach-omap2/include/mach/ctrl_module_pad_core_44xx.h
-> index 1e2d332..c88420d 100644
-> --- a/arch/arm/mach-omap2/include/mach/ctrl_module_pad_core_44xx.h
-> +++ b/arch/arm/mach-omap2/include/mach/ctrl_module_pad_core_44xx.h
-> @@ -941,10 +941,10 @@
->   #define OMAP4_DSI2_LANEENABLE_MASK				(0x7<<  29)
->   #define OMAP4_DSI1_LANEENABLE_SHIFT				24
->   #define OMAP4_DSI1_LANEENABLE_MASK				(0x1f<<  24)
-> -#define OMAP4_DSI2_PIPD_SHIFT					19
-> -#define OMAP4_DSI2_PIPD_MASK					(0x1f<<  19)
-> -#define OMAP4_DSI1_PIPD_SHIFT					14
-> -#define OMAP4_DSI1_PIPD_MASK					(0x1f<<  14)
-> +#define OMAP4_DSI1_PIPD_SHIFT					19
-> +#define OMAP4_DSI1_PIPD_MASK					(0x1f<<  19)
-> +#define OMAP4_DSI2_PIPD_SHIFT					14
-> +#define OMAP4_DSI2_PIPD_MASK					(0x1f<<  14)
->
->   /* CONTROL_MCBSPLP */
->   #define OMAP4_ALBCTRLRX_FSX_SHIFT				31
-
+Regards
+Afzal
