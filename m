@@ -1,113 +1,82 @@
-From: Archit Taneja <archit@ti.com>
-Subject: [PATCH 6/6] OMAPDSS: DISPC: Remove Fake VSYNC support
-Date: Mon, 7 May 2012 16:51:36 +0530
-Message-ID: <1336389696-21636-7-git-send-email-archit@ti.com>
-References: <1336389696-21636-1-git-send-email-archit@ti.com>
+From: Tomi Valkeinen <tomi.valkeinen@ti.com>
+Subject: Re: [PATCH v2 14/14] OMAPDSS: HDMI: Implement DSS driver interface
+ for audio
+Date: Mon, 07 May 2012 14:43:06 +0300
+Message-ID: <1336390986.2667.8.camel@deskari>
+References: <1336095848-6923-1-git-send-email-ricardo.neri@ti.com>
+	 <1336095848-6923-15-git-send-email-ricardo.neri@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain
+Content-Type: multipart/signed; micalg="pgp-sha1"; protocol="application/pgp-signature";
+	boundary="=-T8XEqQRkVahlSC0Ti6vQ"
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from devils.ext.ti.com ([198.47.26.153]:46613 "EHLO
-	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755567Ab2EGLWp (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 7 May 2012 07:22:45 -0400
-In-Reply-To: <1336389696-21636-1-git-send-email-archit@ti.com>
+Received: from na3sys009aog136.obsmtp.com ([74.125.149.85]:54793 "EHLO
+	na3sys009aog136.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1755941Ab2EGLnR (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 7 May 2012 07:43:17 -0400
+Received: by laap9 with SMTP id p9so742806laa.8
+        for <linux-omap@vger.kernel.org>; Mon, 07 May 2012 04:43:14 -0700 (PDT)
+In-Reply-To: <1336095848-6923-15-git-send-email-ricardo.neri@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: tomi.valkeinen@ti.com
-Cc: linux-omap@vger.kernel.org, linux-fbdev@vger.kernel.org, Archit Taneja <archit@ti.com>
+To: Ricardo Neri <ricardo.neri@ti.com>
+Cc: mythripk@ti.com, s-chereau@ti.com, x0055901@ti.com, vaibhav.bedia@ti.com, s-guiriec@ti.com, lrg@ti.com, peter.ujfalusi@ti.com, agraf@suse.de, research@ottomaneng.com, linux-omap@vger.kernel.org, alsa-devel@alsa-project.org
 
-Fake VSYNC support is a hack and has some bugs in it. It isn't used by any user
-of DSS. Remove Fake VSYNC support. For DSI command mode and RFBI panels, a user
-of DSS should wait for the completion of a frame by using the panel driver's
-sync op.
 
-Signed-off-by: Archit Taneja <archit@ti.com>
----
- drivers/video/omap2/dss/Kconfig |    9 ---------
- drivers/video/omap2/dss/dispc.c |   21 ---------------------
- drivers/video/omap2/dss/dsi.c   |    4 ----
- drivers/video/omap2/dss/dss.h   |    1 -
- 4 files changed, 0 insertions(+), 35 deletions(-)
+--=-T8XEqQRkVahlSC0Ti6vQ
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: quoted-printable
 
-diff --git a/drivers/video/omap2/dss/Kconfig b/drivers/video/omap2/dss/Kconfig
-index 7be7c06..9aaf324 100644
---- a/drivers/video/omap2/dss/Kconfig
-+++ b/drivers/video/omap2/dss/Kconfig
-@@ -90,15 +90,6 @@ config OMAP2_DSS_DSI
- 
- 	  See http://www.mipi.org/ for DSI spesifications.
- 
--config OMAP2_DSS_FAKE_VSYNC
--	bool "Fake VSYNC irq from manual update displays"
--	default n
--	help
--	  If this is selected, DSI will generate a fake DISPC VSYNC interrupt
--	  when DSI has sent a frame. This is only needed with DSI or RFBI
--	  displays using manual mode, and you want VSYNC to, for example,
--	  time animation.
--
- config OMAP2_DSS_MIN_FCK_PER_PCK
- 	int "Minimum FCK/PCK ratio (for scaling)"
- 	range 0 32
-diff --git a/drivers/video/omap2/dss/dispc.c b/drivers/video/omap2/dss/dispc.c
-index ef131cd..89d54c5 100644
---- a/drivers/video/omap2/dss/dispc.c
-+++ b/drivers/video/omap2/dss/dispc.c
-@@ -3443,27 +3443,6 @@ int omap_dispc_wait_for_irq_interruptible_timeout(u32 irqmask,
- 	return 0;
- }
- 
--#ifdef CONFIG_OMAP2_DSS_FAKE_VSYNC
--void dispc_fake_vsync_irq(void)
--{
--	u32 irqstatus = DISPC_IRQ_VSYNC;
--	int i;
--
--	WARN_ON(!in_interrupt());
--
--	for (i = 0; i < DISPC_MAX_NR_ISRS; i++) {
--		struct omap_dispc_isr_data *isr_data;
--		isr_data = &dispc.registered_isr[i];
--
--		if (!isr_data->isr)
--			continue;
--
--		if (isr_data->mask & irqstatus)
--			isr_data->isr(isr_data->arg, irqstatus);
--	}
--}
--#endif
--
- static void _omap_dispc_initialize_irq(void)
- {
- 	unsigned long flags;
-diff --git a/drivers/video/omap2/dss/dsi.c b/drivers/video/omap2/dss/dsi.c
-index db73598..95bc996 100644
---- a/drivers/video/omap2/dss/dsi.c
-+++ b/drivers/video/omap2/dss/dsi.c
-@@ -4152,10 +4152,6 @@ static void dsi_framedone_irq_callback(void *data, u32 mask)
- 	__cancel_delayed_work(&dsi->framedone_timeout_work);
- 
- 	dsi_handle_framedone(dsidev, 0);
--
--#ifdef CONFIG_OMAP2_DSS_FAKE_VSYNC
--	dispc_fake_vsync_irq();
--#endif
- }
- 
- int omap_dsi_update(struct omap_dss_device *dssdev, int channel,
-diff --git a/drivers/video/omap2/dss/dss.h b/drivers/video/omap2/dss/dss.h
-index f2a51c6..6699197 100644
---- a/drivers/video/omap2/dss/dss.h
-+++ b/drivers/video/omap2/dss/dss.h
-@@ -399,7 +399,6 @@ void dispc_dump_clocks(struct seq_file *s);
- void dispc_dump_irqs(struct seq_file *s);
- void dispc_dump_regs(struct seq_file *s);
- void dispc_irq_handler(void);
--void dispc_fake_vsync_irq(void);
- 
- int dispc_runtime_get(void);
- void dispc_runtime_put(void);
--- 
-1.7.5.4
+Hi,
+
+On Thu, 2012-05-03 at 20:44 -0500, Ricardo Neri wrote:
+> Implement the DSS device driver audio support interface in the HDMI
+> panel driver and generic driver. The implementation relies on the
+> IP-specific functions that are defined at DSS probe time.
+>=20
+> At the moment, a hardirq-safe spinlock is used to protect the audio
+> functions. This is because such functions might be called while
+> holding a lock (this especially true for audio_start/stop). For the
+> rest of the audio functions, a mutex could be used in the future as
+> the enablement of resources might take too much time.
+
+The series looks good, except locking. Granted, the locking in omapdss
+is a bit bad generally also, but here I think it's a bit more broken.
+
+For example, hdmi_panel.c:hdmi_panel_audio_supported() takes the audio
+lock, and then uses variables like dssdev->state, and the hdmi video
+mode. However, the video functions do not use audio lock, so effectively
+the lock doesn't protect at all.
+
+I'm not sure how to fix it, though. I think this shows the shortcomings
+of the current locking strategy (or lack of =3D). What if the audio
+functions that can sleep would take the hdmi panel's mutex, and also the
+audio spinlock? That would at least fix some of the cases.
+
+ Tomi
+
+
+--=-T8XEqQRkVahlSC0Ti6vQ
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: This is a digitally signed message part
+Content-Transfer-Encoding: 7bit
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.4.11 (GNU/Linux)
+
+iQIcBAABAgAGBQJPp7VKAAoJEPo9qoy8lh71KnkQAK6rBU9QVL3YfiU/+KOBfNq9
+3EKNuJSpEdpScCDlUUTimLZNihXQ9Soj60JfG3zCSe2Dx1AAMcuLqExWpROnsDvB
+lR1PnI4kUOSKMP+UX8OCM4e4tvKnXRs5FLrOROHeshJpCJmhdJISnpCubEKCHGTG
+8MSiI4ja5lOC+Hxba1XMM6lT3WPJ15iC3Nj/ZxW5VMiyOBvSNnMdFpmFCSpmL8Mv
+4y2fc/xgvKg8uhHrKMVs19QW3w+mOk0T7JXYN2ry/orDygMTq9VizU5OVwVfF7AC
+u9cFiFJ/8boV9YPMqu97Bd2ZxpjGACiCRH3zXnbyU4MlWqR06mctfe+O7uzONec1
+d5O2WlVfys6SokzVWsyBqXpI6pOc/olgaD8iZ3tQqYa1EDQcyjgG9wWyuxsUUnw/
+MBCZPMq+iqZOyAHRI0F48o7RCntiZLQqhAuC/+hmLAaOYxDmGpvTj/NQ1xb+Bw8O
+Q3X/BML0BkoJiZDVKOe/RUYI77NVsT75zLPCaSOW9/TNqCU99HVyen/yWadPkQg1
+qE/9pumrpm8+E77yleN2I0DLwHKk6nRHhiHVd6dYfoLWtPGIU2MN7OzypXOPCc8E
+aYo8lchkT1VeYL1koZqhvstd5Mv+Q7Wq2ya+t4+HaBu1szFUIO0sFG5+OTKANRfq
+09mwsLh1wFAWm6x48dkZ
+=zznh
+-----END PGP SIGNATURE-----
+
+--=-T8XEqQRkVahlSC0Ti6vQ--
 
