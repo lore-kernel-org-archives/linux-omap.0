@@ -1,185 +1,82 @@
-From: "Cousson, Benoit" <b-cousson@ti.com>
-Subject: Re: [PATCH 10/13] ARM: OMAP5: board-generic: Add device tree support.
-Date: Mon, 7 May 2012 15:27:29 +0200
-Message-ID: <4FA7CDC1.9050301@ti.com>
-References: <1336029982-31898-1-git-send-email-r.sricharan@ti.com> <1336029982-31898-11-git-send-email-r.sricharan@ti.com>
+From: Santosh Shilimkar <santosh.shilimkar@ti.com>
+Subject: [PATCH] ARM: decompressor: Fix mmu mapping for non-DRAM address space.
+Date: Mon, 7 May 2012 19:12:29 +0530
+Message-ID: <1336398149-26153-1-git-send-email-santosh.shilimkar@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="ISO-8859-1"; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from comal.ext.ti.com ([198.47.26.152]:36151 "EHLO comal.ext.ti.com"
+Received: from bear.ext.ti.com ([192.94.94.41]:47092 "EHLO bear.ext.ti.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753449Ab2EGN1f (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Mon, 7 May 2012 09:27:35 -0400
-In-Reply-To: <1336029982-31898-11-git-send-email-r.sricharan@ti.com>
+	id S1754612Ab2EGNmw (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Mon, 7 May 2012 09:42:52 -0400
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: R Sricharan <r.sricharan@ti.com>
-Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, santosh.shilimkar@ti.com, tony@atomide.com
+To: linux-arm-kernel@lists.infradead.org
+Cc: linux-omap@vger.kernel.org, R Sricharan <r.sricharan@ti.com>, Santosh Shilimkar <santosh.shilimkar@ti.com>, Russell King <linux@arm.linux.org.uk>, Catalin Marinas <catalin.marinas@arm.com>
 
-Hi Sricharan,
+From: R Sricharan <r.sricharan@ti.com>
 
-On 5/3/2012 9:26 AM, R Sricharan wrote:
-> Adding the minimal support for OMAP5 soc with device tree.
+ARM decompressor code setups entire 4GB address space pages.
+Out of the 4GB, about 256MB are setup with normal memory attributes
+for needed DRAM and the rest of the address space as Strongly ordered.
 
-You should probably split that patch since you are doing several things 
-that are not OMAP5 related.
+But since all the sections are mapped in DOMAIN0(Manager), processor
+like Cortex-A15, can speculatively prefetch from non-DRAM read sensitive
+areas even in the presence of XN(Non-executable). This is because XN
+attribute is ignored when domain is Manager.
 
-Do a patch that move the omap_init_irq into the INTC and GIC code first.
+This can lead to accesses to non-accessible address regions leading
+to various interconnect violations. The issue is observed on OMAP5.
 
-Then, you can add a patch to add the OMAP5_DT machine entry.
+This patch tries to fix the issue by ensuring that non-DRAM region
+is marked as a client domain so that XN attribute is effective.
 
-> Signed-off-by: R Sricharan<r.sricharan@ti.com>
-> ---
->   arch/arm/mach-omap2/board-generic.c |   39 +++++++++++++++++++++-------------
->   arch/arm/mach-omap2/common.h        |    2 +
->   arch/arm/mach-omap2/irq.c           |   11 +++++++++
->   arch/arm/mach-omap2/omap4-common.c  |   14 ++++++++++++
->   4 files changed, 51 insertions(+), 15 deletions(-)
->
-> diff --git a/arch/arm/mach-omap2/board-generic.c b/arch/arm/mach-omap2/board-generic.c
-> index 098d183..0dd9e3f 100644
-> --- a/arch/arm/mach-omap2/board-generic.c
-> +++ b/arch/arm/mach-omap2/board-generic.c
-> @@ -20,6 +20,7 @@
->   #include<mach/hardware.h>
->   #include<asm/hardware/gic.h>
->   #include<asm/mach/arch.h>
-> +#include<mach/omap-wakeupgen.h>
->
->   #include<plat/board.h>
->   #include "common.h"
-> @@ -32,17 +33,6 @@
->   #define gic_of_init		NULL
->   #endif
->
-> -static struct of_device_id irq_match[] __initdata = {
-> -	{ .compatible = "ti,omap2-intc", .data = omap_intc_of_init, },
-> -	{ .compatible = "arm,cortex-a9-gic", .data = gic_of_init, },
-> -	{ }
-> -};
-> -
-> -static void __init omap_init_irq(void)
-> -{
-> -	of_irq_init(irq_match);
-> -}
-> -
->   static struct of_device_id omap_dt_match_table[] __initdata = {
->   	{ .compatible = "simple-bus", },
->   	{ .compatible = "ti,omap-infra", },
-> @@ -66,7 +56,7 @@ DT_MACHINE_START(OMAP242X_DT, "Generic OMAP2420 (Flattened Device Tree)")
->   	.reserve	= omap_reserve,
->   	.map_io		= omap242x_map_io,
->   	.init_early	= omap2420_init_early,
-> -	.init_irq	= omap_init_irq,
-> +	.init_irq	= omap_of_init_irq,
->   	.handle_irq	= omap2_intc_handle_irq,
->   	.init_machine	= omap_generic_init,
->   	.timer		=&omap2_timer,
-> @@ -85,7 +75,7 @@ DT_MACHINE_START(OMAP243X_DT, "Generic OMAP2430 (Flattened Device Tree)")
->   	.reserve	= omap_reserve,
->   	.map_io		= omap243x_map_io,
->   	.init_early	= omap2430_init_early,
-> -	.init_irq	= omap_init_irq,
-> +	.init_irq	= omap_of_init_irq,
->   	.handle_irq	= omap2_intc_handle_irq,
->   	.init_machine	= omap_generic_init,
->   	.timer		=&omap2_timer,
-> @@ -120,7 +110,7 @@ DT_MACHINE_START(OMAP3_DT, "Generic OMAP3 (Flattened Device Tree)")
->   	.reserve	= omap_reserve,
->   	.map_io		= omap3_map_io,
->   	.init_early	= omap3430_init_early,
-> -	.init_irq	= omap_init_irq,
-> +	.init_irq	= omap_of_init_irq,
->   	.handle_irq	= omap3_intc_handle_irq,
->   	.init_machine	= omap3_init,
->   	.timer		=&omap3_timer,
-> @@ -155,7 +145,7 @@ DT_MACHINE_START(OMAP4_DT, "Generic OMAP4 (Flattened Device Tree)")
->   	.reserve	= omap_reserve,
->   	.map_io		= omap4_map_io,
->   	.init_early	= omap4430_init_early,
-> -	.init_irq	= omap_init_irq,
-> +	.init_irq	= omap_gic_of_init,
->   	.handle_irq	= gic_handle_irq,
->   	.init_machine	= omap4_init,
->   	.timer		=&omap4_timer,
-> @@ -163,3 +153,22 @@ DT_MACHINE_START(OMAP4_DT, "Generic OMAP4 (Flattened Device Tree)")
->   	.restart	= omap_prcm_restart,
->   MACHINE_END
->   #endif
-> +
-> +#ifdef CONFIG_ARCH_OMAP5
-> +static const char *omap5_boards_compat[] __initdata = {
-> +	"ti,omap5",
-> +	NULL,
-> +};
-> +
-> +DT_MACHINE_START(OMAP5_DT, "Generic OMAP5 (Flattened Device Tree)")
-> +	.reserve	= omap_reserve,
-> +	.map_io		= omap5_map_io,
-> +	.init_early	= omap5_init_early,
-> +	.init_irq	= omap_gic_of_init,
-> +	.handle_irq	= gic_handle_irq,
-> +	.init_machine	= omap_generic_init,
-> +	.timer		=&omap5_timer,
-> +	.dt_compat	= omap5_boards_compat,
-> +	.restart	= omap_prcm_restart,
-> +MACHINE_END
-> +#endif
-> diff --git a/arch/arm/mach-omap2/common.h b/arch/arm/mach-omap2/common.h
-> index 0771d22..e66859d 100644
-> --- a/arch/arm/mach-omap2/common.h
-> +++ b/arch/arm/mach-omap2/common.h
-> @@ -185,6 +185,8 @@ void omap3_intc_prepare_idle(void);
->   void omap3_intc_resume_idle(void);
->   void omap2_intc_handle_irq(struct pt_regs *regs);
->   void omap3_intc_handle_irq(struct pt_regs *regs);
-> +void omap_of_init_irq(void);
+A better alternative is to not map un-used regions but since the
+decompressor code is generic, there might be many exceptions
+for the devices used like debug console etc.
 
-In order to be consistent with the GIC function and even the previous 
-ones, you should name the exported one:
+Signed-off-by: R Sricharan <r.sricharan@ti.com>
+Signed-off-by: Santosh Shilimkar <santosh.shilimkar@ti.com>
+Cc: Russell King <linux@arm.linux.org.uk>
+Cc: Catalin Marinas <catalin.marinas@arm.com>
+---
+ arch/arm/boot/compressed/head.S |    7 ++++++-
+ 1 files changed, 6 insertions(+), 1 deletions(-)
 
-+void omap_intc_of_init(void);
+diff --git a/arch/arm/boot/compressed/head.S b/arch/arm/boot/compressed/head.S
+index dc7e8ce..4dc799b 100644
+--- a/arch/arm/boot/compressed/head.S
++++ b/arch/arm/boot/compressed/head.S
+@@ -578,7 +578,7 @@ __setup_mmu:	sub	r3, r4, #16384		@ Page directory size
+ 		mov	r9, r0, lsr #18
+ 		mov	r9, r9, lsl #18		@ start of RAM
+ 		add	r10, r9, #0x10000000	@ a reasonable RAM size
+-		mov	r1, #0x12
++		mov	r1, #0x32		@ set domain1, XN, valid
+ 		orr	r1, r1, #3 << 10
+ 		add	r2, r3, #16384
+ 1:		cmp	r1, r9			@ if virt > start of RAM
+@@ -587,8 +587,10 @@ __setup_mmu:	sub	r3, r4, #16384		@ Page directory size
+ #else
+ 		orrhs	r1, r1, #0x0c		@ set cacheable, bufferable
+ #endif
++		bichs	r1, r1, #0x20		@ set domain0 for DRAM
+ 		cmp	r1, r10			@ if virt > end of RAM
+ 		bichs	r1, r1, #0x0c		@ clear cacheable, bufferable
++		orrhs	r1, r1, #0x20		@ set domain1
+ 		str	r1, [r0], #4		@ 1:1 mapping
+ 		add	r1, r1, #1048576
+ 		teq	r0, r2
+@@ -658,6 +660,9 @@ __armv7_mmu_cache_on:
+ 		movne	r1, #-1
+ 		mcrne	p15, 0, r3, c2, c0, 0	@ load page table pointer
+ 		mcrne	p15, 0, r1, c3, c0, 0	@ load domain access control
++		bic	r1, r1, #0xc
++		orr	r1, r1, #0x4
++		mcr	p15, 0, r1, c3, c0, 0   @ set domain1 as client
+ #endif
+ 		mcr	p15, 0, r0, c7, c5, 4	@ ISB
+ 		mcr	p15, 0, r0, c1, c0, 0	@ load control register
+-- 
+1.7.5.4
 
-> +void omap_gic_of_init(void);
->
->   #ifdef CONFIG_CACHE_L2X0
->   extern void __iomem *omap4_get_l2cache_base(void);
-> diff --git a/arch/arm/mach-omap2/irq.c b/arch/arm/mach-omap2/irq.c
-> index 65f0d25..d316c68 100644
-> --- a/arch/arm/mach-omap2/irq.c
-> +++ b/arch/arm/mach-omap2/irq.c
-> @@ -21,6 +21,7 @@
->   #include<linux/irqdomain.h>
->   #include<linux/of.h>
->   #include<linux/of_address.h>
-> +#include<linux/of_irq.h>
->
->   #include<mach/hardware.h>
->
-> @@ -279,6 +280,16 @@ int __init omap_intc_of_init(struct device_node *node,
-
-And thus rename that one that become a private function without the 
-omap_ prefix.
-
->   	return 0;
->   }
->
-> +static struct of_device_id irq_match[] __initdata = {
-> +	{ .compatible = "ti,omap2-intc", .data = omap_intc_of_init, },
-
-+	{ .compatible = "ti,omap2-intc", .data = intc_of_init, },
-
-> +	{ }
-> +};
-> +
-> +void __init omap_of_init_irq(void)
-
-+void __init omap_intc_of_init(void)
-
-> +{
-> +	of_irq_init(irq_match);
-> +}
-
-Regards,
-Benoit
