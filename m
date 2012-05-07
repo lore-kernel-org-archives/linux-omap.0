@@ -1,46 +1,50 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH 0/9] omap randconfig fixes for v3.3
-Date: Mon, 7 May 2012 12:07:17 -0700
-Message-ID: <20120507190716.GI5088@atomide.com>
-References: <1332522836-29517-1-git-send-email-mathieu.poirier@linaro.org>
- <20120329172802.GX9859@atomide.com>
+From: Paul Walmsley <paul@pwsan.com>
+Subject: Re: [PATCH 02/13] ARM: OMAP5: Add minimal support for OMAP5430 SOC
+Date: Mon, 7 May 2012 13:07:39 -0600 (MDT)
+Message-ID: <alpine.DEB.2.00.1205071259090.9984@utopia.booyaka.com>
+References: <1336029982-31898-1-git-send-email-r.sricharan@ti.com> <1336029982-31898-3-git-send-email-r.sricharan@ti.com> <20120504223933.GX5613@atomide.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-01-ewr.mailhop.org ([204.13.248.71]:57779 "EHLO
-	mho-01-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1757592Ab2EGTHT (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 7 May 2012 15:07:19 -0400
-Content-Disposition: inline
-In-Reply-To: <20120329172802.GX9859@atomide.com>
+Received: from utopia.booyaka.com ([72.9.107.138]:47082 "EHLO
+	utopia.booyaka.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1757675Ab2EGTHk (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 7 May 2012 15:07:40 -0400
+In-Reply-To: <20120504223933.GX5613@atomide.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: mathieu.poirier@linaro.org
-Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org, arnd@arndb.de
+To: Tony Lindgren <tony@atomide.com>
+Cc: R Sricharan <r.sricharan@ti.com>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, santosh.shilimkar@ti.com, b-cousson@ti.com
 
-* Tony Lindgren <tony@atomide.com> [120329 10:31]:
-> Mathieu,
-> 
-> * mathieu.poirier@linaro.org <mathieu.poirier@linaro.org> [120323 10:16]:
-> > From: "Arnd Bergmann" <arnd@arndb.de>
-> > 
-> > The following is a set of patches that have been sent
-> > out during the 3.1 cycle that were not acked or merged.
-> > 
-> > Sending again for completeness.  
-> > 
-> > Tony, please pull if there are no objections:
-> > 
-> > The following changes since commit c16fa4f2ad19908a47c63d8fa436a1178438c7e7:
-> 
-> Can you please drop the already fixed ones and post
-> a new pull request?
-> 
-> It seems that these should merge fine to current mainline
-> if based on v3.3. If not, then maybe use the linux-omap fixes
-> branch as the base that I've just pushed at commit 2533c2cf.
+Hi,
 
-Ping, any news on updating the pull request for the remaining
-comments?
+On Fri, 4 May 2012, Tony Lindgren wrote:
 
-Tony
+> How about we add CONFIG_SOC_OMAP3PLUS in the clean-up series?
+> Then this becomes just:
+> 
+> #ifdef CONFIG_SOC_OMAP3PLUS
+
+We might want to consider having separate CONFIG_SOC_* values for each 
+SoC.  So rather than CONFIG_SOC_OMAP3PLUS, we'd have CONFIG_SOC_OMAP3430, 
+CONFIG_SOC_OMAP3630, etc.
+
+This would be for two main reasons.  One is that Kconfig options like 
+CONFIG_SOC_OMAP3PLUS don't have much meaning.  It is really unclear to me 
+what SoCs would be included in CONFIG_SOC_OMAP3PLUS, since some of them 
+differ so radically -- different interconnects, different power and system 
+management IP blocks, different CPU subsystems, different RAM controllers, 
+etc.  The advantage of using SoC-specific Kconfig options, from this point 
+of view, is that it is easy to know what they mean.  Then those 
+SoC-specific Kconfig options can select the appropriate SoC-independent 
+interconnect driver, PRCM drivers, CPU options, etc.
+
+The other motivation would be to support device manufacturers who only 
+wish to build a kernel for the single device that they are shipping.  In 
+terms of kernels shipped, this is probably the most popular use-case. With 
+something like CONFIG_SOC_OMAPAM33XX, they can avoid building quite a bit 
+of code and data (and potentially bugs) that are not needed for their 
+specific device.
+
+
+- Paul
