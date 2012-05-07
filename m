@@ -1,67 +1,57 @@
 From: Archit Taneja <archit@ti.com>
-Subject: [PATCH 1/6] OMAPDSS: DPI/HDMI: Apply manager timings even if panel is disabled
-Date: Mon, 7 May 2012 16:51:31 +0530
-Message-ID: <1336389696-21636-2-git-send-email-archit@ti.com>
+Subject: [PATCH 3/6] OMAPDSS: DISPC: Remove omap_dss_device pointer usage from dispc_mgr_pclk_rate()
+Date: Mon, 7 May 2012 16:51:33 +0530
+Message-ID: <1336389696-21636-4-git-send-email-archit@ti.com>
 References: <1336389696-21636-1-git-send-email-archit@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from devils.ext.ti.com ([198.47.26.153]:46597 "EHLO
-	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755567Ab2EGLWY (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 7 May 2012 07:22:24 -0400
+Received: from bear.ext.ti.com ([192.94.94.41]:39941 "EHLO bear.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1755567Ab2EGLWd (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Mon, 7 May 2012 07:22:33 -0400
 In-Reply-To: <1336389696-21636-1-git-send-email-archit@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: tomi.valkeinen@ti.com
 Cc: linux-omap@vger.kernel.org, linux-fbdev@vger.kernel.org, Archit Taneja <archit@ti.com>
 
-The HDMI and DPI interfaces use their 'set_timing' functions to take in a new
-set of timings. If the panel is disabled, they do not disable and re-enable
-the interface. Currently, the manager timings are applied in hdmi_power_on()
-and dpi_set_mode() respectively, these are not called by set_timings if the
-panel is disabled.
+The pixel clock rate for the TV manager is calculated by checking the device
+type connected to the manager, and then requesting the VENC/HDMI interface for
+the pixel clock rate.
 
-When checking overlay and manager data, the DSS driver uses the last applied
-manager timings, and not the timings stored in omap_dss_device struct. Hence,
-there is a need to apply the new manager timings even if the panel is disabled.
-
-Apply the manager timings if the panel is disabled. Eventually, there should be
-one common place where the timings are applied independent of the state of the
-panel.
+Remove the use of omap_dss_device pointer from here by checking which interface
+generates the pixel clock by reading the DSS_CTRL.VENC_HDMI_SWITCH bit.
 
 Signed-off-by: Archit Taneja <archit@ti.com>
 ---
- drivers/video/omap2/dss/dpi.c  |    2 ++
- drivers/video/omap2/dss/hdmi.c |    2 ++
- 2 files changed, 4 insertions(+), 0 deletions(-)
+ drivers/video/omap2/dss/dispc.c |   11 ++++++-----
+ 1 files changed, 6 insertions(+), 5 deletions(-)
 
-diff --git a/drivers/video/omap2/dss/dpi.c b/drivers/video/omap2/dss/dpi.c
-index 8127f46..1650050 100644
---- a/drivers/video/omap2/dss/dpi.c
-+++ b/drivers/video/omap2/dss/dpi.c
-@@ -298,6 +298,8 @@ void dpi_set_timings(struct omap_dss_device *dssdev,
+diff --git a/drivers/video/omap2/dss/dispc.c b/drivers/video/omap2/dss/dispc.c
+index 49015b8..c198cc8 100644
+--- a/drivers/video/omap2/dss/dispc.c
++++ b/drivers/video/omap2/dss/dispc.c
+@@ -2643,13 +2643,14 @@ unsigned long dispc_mgr_pclk_rate(enum omap_channel channel)
  
- 		dispc_runtime_put();
- 		dss_runtime_put();
-+	} else {
-+		dss_mgr_set_timings(dssdev->manager, timings);
- 	}
- }
- EXPORT_SYMBOL(dpi_set_timings);
-diff --git a/drivers/video/omap2/dss/hdmi.c b/drivers/video/omap2/dss/hdmi.c
-index 8d4ff8c..32ad712 100644
---- a/drivers/video/omap2/dss/hdmi.c
-+++ b/drivers/video/omap2/dss/hdmi.c
-@@ -435,6 +435,8 @@ void omapdss_hdmi_display_set_timing(struct omap_dss_device *dssdev)
- 		r = hdmi_power_on(dssdev);
- 		if (r)
- 			DSSERR("failed to power on device\n");
-+	} else {
-+		dss_mgr_set_timings(dssdev->manager, &dssdev->panel.timings);
- 	}
- }
+ 		return r / pcd;
+ 	} else {
+-		struct omap_dss_device *dssdev =
+-			dispc_mgr_get_device(channel);
++		enum dss_hdmi_venc_clk_source_select source;
  
+-		switch (dssdev->type) {
+-		case OMAP_DISPLAY_TYPE_VENC:
++		source = dss_get_hdmi_venc_clk_source();
++
++		switch (source) {
++		case DSS_VENC_TV_CLK:
+ 			return venc_get_pixel_clock();
+-		case OMAP_DISPLAY_TYPE_HDMI:
++		case DSS_HDMI_M_PCLK:
+ 			return hdmi_get_pixel_clock();
+ 		default:
+ 			BUG();
 -- 
 1.7.5.4
 
