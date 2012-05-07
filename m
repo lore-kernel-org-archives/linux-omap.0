@@ -1,55 +1,40 @@
-From: Igor Grinberg <grinberg@compulab.co.il>
-Subject: Re: [PATCH] ARM: OMAP: USB: fix warning on EHCI PHY reset path
-Date: Mon, 07 May 2012 17:27:50 +0300
-Message-ID: <4FA7DBE6.3060809@compulab.co.il>
-References: <Pine.LNX.4.44L0.1205071003240.1602-100000@iolanthe.rowland.org>
+From: "Menon, Nishanth" <nm@ti.com>
+Subject: Re: [PATCH 3/3] ARM: OMAP2+ PM: Add support for TPS62361
+Date: Mon, 7 May 2012 09:32:19 -0500
+Message-ID: <CAOMWX4foaNJxRqeun-i0XmupmrNPz17DaB11MD4AKUvxu_6o_g@mail.gmail.com>
+References: <1336139842-845-1-git-send-email-t-kristo@ti.com>
+ <1336139842-845-4-git-send-email-t-kristo@ti.com> <20120504220046.GA20795@senorita.am.dhcp.ti.com>
+ <1336376299.2149.249.camel@sokoban>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from 50.23.254.54-static.reverse.softlayer.com ([50.23.254.54]:42548
-	"EHLO softlayer.compulab.co.il" rhost-flags-OK-OK-OK-FAIL)
-	by vger.kernel.org with ESMTP id S1756676Ab2EGO17 (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 7 May 2012 10:27:59 -0400
-In-Reply-To: <Pine.LNX.4.44L0.1205071003240.1602-100000@iolanthe.rowland.org>
+Received: from na3sys009aog105.obsmtp.com ([74.125.149.75]:34554 "EHLO
+	na3sys009aog105.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1756099Ab2EGOcm (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 7 May 2012 10:32:42 -0400
+Received: by wgbfm10 with SMTP id fm10so5228175wgb.34
+        for <linux-omap@vger.kernel.org>; Mon, 07 May 2012 07:32:40 -0700 (PDT)
+In-Reply-To: <1336376299.2149.249.camel@sokoban>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Alan Stern <stern@rowland.harvard.edu>
-Cc: balbi@ti.com, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, Keshava Munegowda <Keshava_mgowda@ti.com>, linux-usb@vger.kernel.org, linux-omap@vger.kernel.org, Samuel Ortiz <sameo@linux.intel.com>
+To: t-kristo@ti.com
+Cc: linux-omap@vger.kernel.org, khilman@ti.com, linux-arm-kernel@lists.infradead.org, Vishwanath BS <vishwanath.bs@ti.com>
 
-On 05/07/12 17:04, Alan Stern wrote:
-> On Sun, 6 May 2012, Igor Grinberg wrote:
-> 
->> Hi Alan,
-> 
-> ...
-> 
->> Sorry, for being jumpy...
->> Samuel has not answered yet (it has been more then two weeks already)
->> and I'd like this to go into 3.5.
->> Also, the dependency patch is already in Linus' tree. It has been merged with
->> fixes (I thought it will happen only during the merge window...).
->>
->> Can you, please take this one?
-> 
-> No, I can't, sorry.  It has to be accepted by Greg KH.
+On Mon, May 7, 2012 at 2:38 AM, Tero Kristo <t-kristo@ti.com> wrote:
+>
+>> One more point to consider is that with this - we *should* disable
+>> VCORE3 and VMEM else we can have weird behavior such as those seen
+>> by pandaboard-ES early adopters.
+>
+> In what case are we seeing such? If the regulators should be disabled,
+> maybe we should do it already in bootloader.
+We deal with tons of bootloaders - each platform tends to have their
+own custom bootloaders. kernel should always assume bootloader guys
+screw up and it is upto kernel to ensure that it keeps the platform
+stable at all points of time. TWL6030 does detect short if any
+LDO/SMPS is not connected but switched on. so it is necessary to
+ensure on 4460 that VCORE3 and VMEM are completely switched off in
+kernel no matter what the heck the bootloader decides to do.
 
-Hmm... I don't mind it be that way, but I'd like to understand:
-
-# scripts/get_maintainer.pl -f drivers/usb/host/ehci-omap.c
-Alan Stern <stern@rowland.harvard.edu> (maintainer:USB EHCI DRIVER)
-Felipe Balbi <balbi@ti.com> (maintainer:OMAP USB SUPPORT)
-Greg Kroah-Hartman <gregkh@suse.de> (supporter:USB SUBSYSTEM)
-linux-usb@vger.kernel.org (open list:USB EHCI DRIVER)
-linux-omap@vger.kernel.org (open list:OMAP USB SUPPORT)
-linux-kernel@vger.kernel.org (open list)
-
-This makes you the USB EHCI maintainer, right?
-I just want to understand...
-Do you need also ack from Greg to take something to your tree
-for being applied in the next merge window?
-
-
--- 
 Regards,
-Igor.
+Nishanth Menon
