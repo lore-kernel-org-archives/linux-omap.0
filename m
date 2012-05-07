@@ -1,73 +1,61 @@
-From: Santosh Shilimkar <santosh.shilimkar@ti.com>
-Subject: Re: [PATCH 00/13] ARM: OMAP5: Add minimal OMAP5 SOC support
-Date: Mon, 07 May 2012 15:19:31 +0530
-Message-ID: <4FA79AAB.5050503@ti.com>
-References: <1336029982-31898-1-git-send-email-r.sricharan@ti.com>
+From: "Cousson, Benoit" <b-cousson@ti.com>
+Subject: Re: [PATCH-V4 0/4] ARM: OMAP2+: Add voltagedomain, powerdomain &
+ PRM support for AM33XX device
+Date: Mon, 7 May 2012 12:32:48 +0200
+Message-ID: <4FA7A4D0.80006@ti.com>
+References: <1333123435-27186-1-git-send-email-hvaibhav@ti.com> <alpine.DEB.2.00.1204120207420.29473@utopia.booyaka.com> <79CD15C6BA57404B839C016229A409A83E9EA07A@DBDE01.ent.ti.com> <20120418231837.GT21106@atomide.com> <79CD15C6BA57404B839C016229A409A83E9F9C2D@DBDE01.ent.ti.com> <20120426184312.GY3739@atomide.com> <79CD15C6BA57404B839C016229A409A83E9FF9EA@DBDE01.ent.ti.com> <20120426190524.GZ3739@atomide.com> <79CD15C6BA57404B839C016229A409A83EA008E5@DBDE01.ent.ti.com> <alpine.DEB.2.00.1205020255150.19695@utopia.booyaka.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
+Content-Type: text/plain; charset="ISO-8859-1"; format=flowed
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aog131.obsmtp.com ([74.125.149.247]:48293 "EHLO
-	na3sys009aog131.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755668Ab2EGJth (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 7 May 2012 05:49:37 -0400
-Received: by obcni5 with SMTP id ni5so9924773obc.41
-        for <linux-omap@vger.kernel.org>; Mon, 07 May 2012 02:49:36 -0700 (PDT)
-In-Reply-To: <1336029982-31898-1-git-send-email-r.sricharan@ti.com>
+Received: from comal.ext.ti.com ([198.47.26.152]:56274 "EHLO comal.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1756116Ab2EGKc4 (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Mon, 7 May 2012 06:32:56 -0400
+In-Reply-To: <alpine.DEB.2.00.1205020255150.19695@utopia.booyaka.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: tony@atomide.com
-Cc: R Sricharan <r.sricharan@ti.com>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, b-cousson@ti.com
+To: Paul Walmsley <paul@pwsan.com>
+Cc: "Hiremath, Vaibhav" <hvaibhav@ti.com>, Tony Lindgren <tony@atomide.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "Hilman, Kevin" <khilman@ti.com>, "Nayak, Rajendra" <rnayak@ti.com>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>
 
-Tony,
+Hi Paul,
 
-On Thursday 03 May 2012 12:56 PM, R Sricharan wrote:
-> The series adds minimal OMAP5 support.
-> OMAP5430 has a dual core Cortex-A15 based MPU subsystem with 2MB
-> L2 cache. The SOC has many compatible blocks with OMAP4 SOCS and
-> hence large part of the peripherals are re-used.
-> 
-> OMAP5432 is another variant of OMAP5430, with a
-> memory controller supporting DDR3 and SATA.
-> 
-> Series is generated against the 3.4-rc5. This has been rebased on
-> top of the OMAP2+ cleanup series [1]
-> 
-> To get the boot working with omap2plus_defconfig,
-> OMAP5 hwmod/clock/prm/cm database needs to be added.
-> The data and the integrated tree are available in the
-> below git repository
-> 
-> OMAP5_DATA:
-> git://gitorious.org/omap-sw-develoment/linux-omap-dev.git
->  omap5_data
-> 
-> OMAP5_INTEGRATED:
-> git://gitorious.org/omap-sw-develoment/linux-omap-dev.git
->  omap5_dt_integrated
-> 
-> The series is boot tested on OMAP5430 ES1.0.
-> OMAP2/3/4 build and boot is tested as well to avoid any breakage
-> because of the series.
-> 
-> Patch "TEMP: ARM: OMAP5: Add cpu_is_omap54xx() checks" is temporary and
-> can be dropped once rebased against [2]
-> 
-> Patch "TEMP: ARM: OMAP5: Update the base address of the 32k-counter" is
-> temporary and can be dropped once rebased against [3]
-> 
-> 
-> [1] http://www.spinics.net/lists/linux-omap/msg69233.html
-> [2] http://www.spinics.net/lists/linux-omap/msg69013.html
-> [3] http://www.mail-archive.com/linux-omap@vger.kernel.org/msg67166.html
-> 
-Do you have a branch where above dependencies are merged ?
-How do you suggest to go about updating this series so
-that above dependencies plus DT support(3.3 based branch
-in arm-soc tree and needs to be updated against 3.4) is
-base tree for the patchset.
+On 5/2/2012 11:09 AM, Paul Walmsley wrote:
+> On Fri, 27 Apr 2012, Hiremath, Vaibhav wrote:
+>
+>> I will be waiting for your comment and conformation on, which family AM33xx
+>> device should fall in? Please refer to the mail-chain -
+>>
+>> http://www.mail-archive.com/linux-omap@vger.kernel.org/msg67275.html
+>
+> This decision turns out to be pretty important; it certainly affects the
+> AM33xx PRM/CM/clockdomain/powerdomain patches that I've been looking at.
+>
+> Here is my suggestion, based on our previous practice.  I am not so
+> sure that it is the best way, but it seems pretty reasonable"
+>
+> Using CONFIG_ARCH_OMAP3 for CONFIG_ARCH_OMAPAM33XX doesn't make sense, as
+> far as I can tell.  The main area of similarity between the other
+> CONFIG_ARCH_OMAP3 and AM33xx is the Cortex-A8.  And even that MPU
+> subsystem is quite different between, say, the 3430/3630 and the AM33xx.
+> Most of the AM33xx is quite different from the 3430/3630: OMAP4-style PRCM
+> interface, OMAP4-style interconnect, etc.  Plus, most of the
+> CONFIG_ARCH_OMAP3 code in our codebase is very 3430/3630-specific, like
+> the PM code.
+>
+> This would seem to suggest that we should use CONFIG_ARCH_OMAP4.  But that
+> option currently assumes an OMAP4-style MPU subsystem: SMP Cortex-A9,
+> PL310, etc.  None of that is true for AM335x.
+>
+> So first we have to decide whether the CONFIG_ARCH_OMAP* options should
+> have a strong dependency on the MPU type, as they currently do; or whether
+> they should focus on the way the SoC is integrated.
 
-Regards
-Santosh
+I think as well that these devices should be considered as part of the 
+OMAP4 family.
+The CPU type should not be the parameter that decide the OMAP family, it 
+is just an IP, that can change on some variant, whereas the whole PRCM 
+infrastructure / interconnect is mostly the same.
 
-
+Regards,
+Benoit
