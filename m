@@ -1,51 +1,54 @@
-From: Guillaume Gardet <guillaume.gardet@free.fr>
-Subject: Re: [PATCH] omap-usb-host: include <plat/cpu.h>
-Date: Mon, 07 May 2012 14:02:19 +0200
-Message-ID: <4FA7B9CB.9000608@free.fr>
-References: <4FA1467C.8030005@suse.com> <20120503075042.GH20043@arwen.pp.htv.fi>
-Reply-To: guillaume.gardet@free.fr
+From: Samuel Ortiz <sameo-VuQAYsv1563Yd54FQh9/CA@public.gmane.org>
+Subject: Re: [PATCH] ARM: OMAP: USB: fix warning on EHCI PHY reset path
+Date: Mon, 7 May 2012 14:17:20 +0200
+Message-ID: <20120507121720.GA25020@sortiz-mobl>
+References: <4F901CCC.9000703@compulab.co.il>
+ <Pine.LNX.4.44L0.1204191059581.2070-100000@iolanthe.rowland.org>
+ <20120420115728.GF12830@arwen.pp.htv.fi>
+ <4FA61941.5080603@compulab.co.il>
+ <20120507080907.GB3229@sortiz-mobl>
+ <4FA7B61B.3020604@compulab.co.il>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1;
-	format=flowed
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from fb1.tech.numericable.fr ([82.216.111.51]:53516 "EHLO
-	fb1.tech.numericable.fr" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756112Ab2EGMDE (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 7 May 2012 08:03:04 -0400
-Received: from smtp7.tech.numericable.fr (smtp7.nc.sdv.fr [10.0.0.118])
-	by fb1.tech.numericable.fr (Postfix) with ESMTP id 19E219EE43
-	for <linux-omap@vger.kernel.org>; Mon,  7 May 2012 14:03:03 +0200 (CEST)
-In-Reply-To: <20120503075042.GH20043@arwen.pp.htv.fi>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Content-Disposition: inline
+In-Reply-To: <4FA7B61B.3020604-UTxiZqZC01RS1MOuV/RT9w@public.gmane.org>
+Sender: linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Igor Grinberg <grinberg-UTxiZqZC01RS1MOuV/RT9w@public.gmane.org>
+Cc: balbi-l0cyMroinI0@public.gmane.org, Alan Stern <stern-nwvwT67g6+6dFdvTe/nMLpVzexx5G7lz@public.gmane.org>, Greg Kroah-Hartman <gregkh-hQyY1W1yCW8ekmWlsbkhG0B+6BGkLq7r@public.gmane.org>, Keshava Munegowda <Keshava_mgowda-l0cyMroinI0@public.gmane.org>, linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-omap@vger.kernel.org
-To: balbi@ti.com
-Cc: Jeff Mahoney <jeffm@suse.com>, linux-omap@vger.kernel.org, Guillaume GARDET <guillaume.gardet@opensuse.org>
 
-Hi,
+Hi Igor,
 
-Le 03/05/2012 09:50, Felipe Balbi a =E9crit :
-> Hi,
->
-> On Wed, May 02, 2012 at 10:36:44AM -0400, Jeff Mahoney wrote:
->> omap-usb-host calls cpu_is_omap3430, which is defined in plat/cpu.h.
->>
->> Reported-by: Guillaume GARDET<guillaume.gardet@opensuse.org>
->> Signed-off-by: Jeff Mahoney<jeffm@suse.com>
-> this looks right to me, though a driver shouldn't be using cpu_is_***
-> macros. Still, that patch can come later, this is needed now.
->
-> Acked-by: Felipe Balbi<balbi@ti.com>
->
+On Mon, May 07, 2012 at 02:46:35PM +0300, Igor Grinberg wrote:
+> Hi Samuel,
+> 
+> On 05/07/12 11:09, Samuel Ortiz wrote:
+> > Hi Igor,
+> > 
+> > On Sun, May 06, 2012 at 09:25:05AM +0300, Igor Grinberg wrote:
+> >> Sorry, for being jumpy...
+> >> Samuel has not answered yet (it has been more then two weeks already)
+> > Sorry about that.
+> > 
+> >> and I'd like this to go into 3.5.
+> > Then you may need a better changelog explaining how this fixes a regression,
+> > runtime crash or build failure.
+> 
+> Well, I did not say it is a regression. In fact it is not.
+> I just finally sent a fix to eliminate a runtime warning which was there
+> for a long time and can be seen on specific configurations.
+> That is why, I want it into 3.5 during the merge window
+Sorry, I misread that part. Getting that one for the next merge window is just
+fine.
 
-It seems it have been added in mainline:
-http://git.kernel.org/?p=3Dlinux/kernel/git/torvalds/linux-2.6.git;a=3D=
-commitdiff;h=3D13176a89e1c4a0011bd9f576730b0338ecb619ff
+Cheers,
+Samuel.
 
-Guillaume
-
+-- 
+Intel Open Source Technology Centre
+http://oss.intel.com/
 --
-To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
-n
-the body of a message to majordomo@vger.kernel.org
+To unsubscribe from this list: send the line "unsubscribe linux-usb" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 More majordomo info at  http://vger.kernel.org/majordomo-info.html
