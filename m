@@ -1,32 +1,81 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [GIT PULL] ARM: OMAP: PM: CPUidle cleanup for v3.5
-Date: Mon, 7 May 2012 15:08:41 -0700
-Message-ID: <20120507220840.GM5088@atomide.com>
-References: <87d36f50n0.fsf@ti.com>
+From: "Gutierrez, Juan" <jgutierrez@ti.com>
+Subject: Re: [PATCH v2 1/3] omap: mailbox: enable mailbox irq per instance
+Date: Mon, 7 May 2012 17:09:16 -0500
+Message-ID: <CADVn9RHc4b+hLth5j-1Jr+dv2ePB8W1pGAgQiBSgFKuDycG8pA@mail.gmail.com>
+References: <1334360392-1494-1-git-send-email-jgutierrez@ti.com>
+ <1334360392-1494-2-git-send-email-jgutierrez@ti.com>
+ <CAK=WgbY3OaDH9ziavrXG4oM1ztO3mTmL_eoLPOzCHHKQpHn20w@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-02-ewr.mailhop.org ([204.13.248.72]:54993 "EHLO
-	mho-02-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753142Ab2EGWIo (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 7 May 2012 18:08:44 -0400
-Content-Disposition: inline
-In-Reply-To: <87d36f50n0.fsf@ti.com>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
+In-Reply-To: <CAK=WgbY3OaDH9ziavrXG4oM1ztO3mTmL_eoLPOzCHHKQpHn20w@mail.gmail.com>
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
+List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
+List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
+Sender: linux-arm-kernel-bounces@lists.infradead.org
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
+To: Ohad Ben-Cohen <ohad@wizery.com>
+Cc: Suman Anna <s-anna@ti.com>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 List-Id: linux-omap@vger.kernel.org
-To: Kevin Hilman <khilman@ti.com>
-Cc: linux-omap <linux-omap@vger.kernel.org>, linux-arm-kernel <linux-arm-kernel@lists.infradead.org>, Daniel Lezcano <daniel.lezcano@linaro.org>, Jean Pihet <jean.pihet@swing.be>, Santosh Shilimkar <santosh.shilimkar@ti.com>
 
-* Kevin Hilman <khilman@ti.com> [120507 11:07]:
-> Tony,
-> 
-> Please pull the following cleanup/consolidation of the OMAP CPUidle
-> code.  It's been reviewed and tested by Jean, Santosh and myself on
-> OMAP3/4.
-> 
-> Special thanks to Daniel Lezcano for this nice cleanup and
-> consolidation.
-
-Thanks pulling into cleanup-cpuidle.
-
-Tony
+SGkgT2hhZAoKT24gU3VuLCBNYXkgNiwgMjAxMiBhdCAxMTowMCBBTSwgT2hhZCBCZW4tQ29oZW4g
+PG9oYWRAd2l6ZXJ5LmNvbT4gd3JvdGU6Cj4gSGkgSnVhbiwKPgo+IE9uIFNhdCwgQXByIDE0LCAy
+MDEyIGF0IDI6MzkgQU0sIEp1YW4gR3V0aWVycmV6IDxqZ3V0aWVycmV6QHRpLmNvbT4gd3JvdGU6
+Cj4+IFRoZSBtYWNoaW5lLXNwZWNpZmljIG9tYXAyX21ib3hfc3RhcnR1cCBpcyBjYWxsZWQgb25s
+eSBvbmNlCj4+IHRvIGluaXRpYWxpemUgdGhlIHdob2xlIG1ib3ggbW9kdWxlLiBFbmFibGluZyBt
+Ym94IGlycSBhdAo+PiBzdGFydHVwIGlzIG9ubHkgZW5hYmxpbmcgdGhlIGlycSBvZiB0aGUgdmVy
+eSBmaXJzdCBtYWlsYm94Cj4+IGluc3RhbmNlIGNyZWF0ZWQuCj4+Cj4+IFRoZSBlbmFibGVfaXJx
+IGZ1bmN0aW9uIHNob3VsZCBiZSBjYWxsZWQgZXZlcnkgdGltZSBhCj4+IG5ldyBtYm94IGluc3Rh
+bmNlIGlzIGNyZWF0ZWQsCj4KPiBzL2NyZWF0ZWQvb3BlbmVkLwo+Cj4+IGluIHRoZSBnZW5lcmlj
+IHBsYXRmb3JtIG1haWxib3ggbGF5ZXIuCj4KPiBUaGlzIHBhdGNoIHJlbW92ZXMgYW4gb21hcDIt
+c3BlY2lmaWMgY29kZSBhbmQgdGhlbiBhZGRzIGl0IHRvIHRoZQo+ICJnZW5lcmljIiBsYXllciwg
+d2hpY2ggYWxzbyBkZWFscyB3aXRoIG9tYXAxLgo+Cj4gQXJlIHdlIHN1cmUgaXQncyBvayA/Cj4K
+PiBPTUFQMSBkb2Vzbid0IHNlZW0gdG8gZW5hYmxlIGl0cyBpcnEgYXQgdGhpcyBwb2ludDogaXQg
+ZG9lc24ndCBldmVuCj4gaGF2ZSBhIC0+c3RhcnR1cCgpIGhhbmRsZXIgKHdoaWNoIGFjdHVhbGx5
+IHNvbWV3aGF0IGltcGxpZXMgaXQncyBiZWVuCj4gYW55d2F5IGJyb2tlbiBmb3IgYSBsb25nIHRp
+bWUgbm93OiBvbWFwX21ib3hfc3RhcnR1cCgpIHNlZW0gdG8KPiB1bmhhcHBpbHkgYmFpbCBvdXQg
+aWYgaXQgZG9lc24ndCBmaW5kIGEgbWFjaGluZS1zcGVjaWZpYyAtPnN0YXJ0dXAoKQo+IGhhbmRs
+ZXIpLgo+CgpJbiB0aGUgSVNSIHRoZSBtYm94IHF1ZXVlIGFyZSB1c2VkLiBJZiB0aGV5IGFyZSBu
+b3QgcmVhZHkgYSBjcmFzaCBtaWdodCBoYXBwZW4uClNvIGVuYWJsaW5nX2lycSBzaG91bGQgYmUg
+Y2FsbGVkIGFmdGVyIG1ib3ggcXVldWUgYWxsb2NhdGlvbiBhbmQgYWZ0ZXIKSVNSIHJlZ2lzdHJh
+dGlvbi4KU28gSSB0aGluayBmb3Igc3VyZSBzdGFydHVwIGlzIG5vdCB0aGUgcmlnaHQgcGxhY2Uu
+IEJlc2lkZXMgdGhhdCwgaXRzCnJlZmVyZW5jZSBjb3VudGVyIGlzCnByZXZlbnRpbmcgb3RoZXIg
+bWJveCBpbnN0YW5jZXMgdG8gZW5hYmxlIGlycSdzLgoKU3RhcnR1cCBpdCBpcyBub3cgb25seSB1
+c2VkIHRvIGVuYWJsZSBwbSBydW50aW1lIG9mIHRoZSB3aG9sZSBtYm94IG1vZHVsZS4KCkkgdGhp
+bmssIGlmIHJlcXVlc3RfaXJxIGlzIGNhbGxlZCBmcm9tIHRoZSBnZW5lcmljIGxheWVyLCBpdCBp
+cyBraW5kCm9mIGxvZ2ljYWwgdG8gZW5hYmxlX2lycQpuZXh0IHRvIGl0LgoKCj4+IGRpZmYgLS1n
+aXQgYS9hcmNoL2FybS9wbGF0LW9tYXAvbWFpbGJveC5jIGIvYXJjaC9hcm0vcGxhdC1vbWFwL21h
+aWxib3guYwo+PiBpbmRleCBhZDMyNjIxLi5lYmMxYmE1IDEwMDY0NAo+PiAtLS0gYS9hcmNoL2Fy
+bS9wbGF0LW9tYXAvbWFpbGJveC5jCj4+ICsrKyBiL2FyY2gvYXJtL3BsYXQtb21hcC9tYWlsYm94
+LmMKPj4gQEAgLTI4Miw2ICsyODIsOCBAQCBzdGF0aWMgaW50IG9tYXBfbWJveF9zdGFydHVwKHN0
+cnVjdCBvbWFwX21ib3ggKm1ib3gpCj4+IMKgIMKgIMKgIMKgIMKgIMKgIMKgIMKgfQo+PiDCoCDC
+oCDCoCDCoCDCoCDCoCDCoCDCoG1ib3gtPnJ4cSA9IG1xOwo+PiDCoCDCoCDCoCDCoCDCoCDCoCDC
+oCDCoG1xLT5tYm94ID0gbWJveDsKPj4gKwo+PiArIMKgIMKgIMKgIMKgIMKgIMKgIMKgIG1ib3gt
+Pm9wcy0+ZW5hYmxlX2lycShtYm94LCBJUlFfUlgpOwo+Cj4gTWlnaHQgYmUgbmljZXIgdG8gdXNl
+IG9tYXBfbWJveF9lbmFibGVfaXJxKCkgaGVyZSBpbnN0ZWFkIG9mIHJlYWNoaW5nCj4gb3V0IGZv
+ciB0aGUgaW50ZXJuYWwgb3BzLgo+Ck9rLCB5ZXMgSSB3aWxsIHVzZSBvbWFwX21ib3hfZW5hYmxl
+X2lycQoKPiBJdCBhbHNvIGxvb2tzIGxpa2UgdGhlcmUncyBhIHJhY2UgaGVyZTogb21hcF9tYm94
+X2dldCgpIHJlZ2lzdGVycyB0aGUKPiBub3RpZmllcl9ibG9jayBvbmx5IGFmdGVyIG9tYXBfbWJv
+eF9zdGFydHVwKCkgcmV0dXJucywgd2hpY2ggcHJvYmFibHkKPiBtZWFucyB0aGVyZSdzIGEgc21h
+bGwgd2luZG93IHdoZXJlIGFuIGludGVycnVwdCBjYW4gYmUgcmVjZWl2ZWQKPiB3aXRob3V0IHVz
+IGludm9raW5nIHRoZSB1c2VyJ3Mgbm90aWZpZXIgY2FsbGJhY2suCj4KPiBUaGlzIGlzbid0IHJl
+bGF0ZWQgdG8geW91ciBwYXRjaCBvZiBjb3Vyc2UsIGJ1dCBzaW5jZSB5b3UncmUgdG91Y2hpbmcK
+PiB0aGlzIGFyZWEsIGl0IG1pZ2h0IGJlIG5pY2UgaWYgeW91IGNhbiBmaXggaXQgKGkuZS4gc2lt
+cGx5IGJ5Cj4gcmVnaXN0ZXJpbmcgdGhlIG5vdGlmaWVyX2Jsb2NrIGJlZm9yZSBlbmFibGluZyB0
+aGUgbWJveCdzIGlycSkuCj4KT2sgSSBjYW4gaW5jbHVkZSB0aGlzIGZpeC4KCj4+IMKgIMKgIMKg
+IMKgfQo+PiDCoCDCoCDCoCDCoG11dGV4X3VubG9jaygmbWJveF9jb25maWd1cmVkX2xvY2spOwo+
+PiDCoCDCoCDCoCDCoHJldHVybiAwOwo+PiBAQCAtMzA1LDYgKzMwNyw3IEBAIHN0YXRpYyB2b2lk
+IG9tYXBfbWJveF9maW5pKHN0cnVjdCBvbWFwX21ib3ggKm1ib3gpCj4+IMKgIMKgIMKgIMKgbXV0
+ZXhfbG9jaygmbWJveF9jb25maWd1cmVkX2xvY2spOwo+Pgo+PiDCoCDCoCDCoCDCoGlmICghLS1t
+Ym94LT51c2VfY291bnQpIHsKPj4gKyDCoCDCoCDCoCDCoCDCoCDCoCDCoCBtYm94LT5vcHMtPmRp
+c2FibGVfaXJxKG1ib3gsIElSUV9SWCk7Cj4KPiBvbWFwX21ib3hfZGlzYWJsZV9pcnEoKSA/Cj4K
+T2sKCj4gVGhhbmtzLAo+IE9oYWQuCgoKCi0tIApUaGFua3MKCmp1YW4gZ3V0aWVycmV6CgpfX19f
+X19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fXwpsaW51eC1hcm0ta2Vy
+bmVsIG1haWxpbmcgbGlzdApsaW51eC1hcm0ta2VybmVsQGxpc3RzLmluZnJhZGVhZC5vcmcKaHR0
+cDovL2xpc3RzLmluZnJhZGVhZC5vcmcvbWFpbG1hbi9saXN0aW5mby9saW51eC1hcm0ta2VybmVs
+Cg==
