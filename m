@@ -1,94 +1,102 @@
 From: Kevin Hilman <khilman@ti.com>
-Subject: Re: [PATCH V3 04/10] ARM: OMAP3: hwmod: rename the smartreflex entries
-Date: Mon, 07 May 2012 16:39:53 -0700
-Message-ID: <87d36fzhkm.fsf@ti.com>
+Subject: Re: [PATCH V3 00/10] PM: Create the AVS(Adaptive Voltage Scaling)
+Date: Mon, 07 May 2012 16:48:41 -0700
+Message-ID: <87mx5jy2li.fsf@ti.com>
 References: <1335462041-4949-1-git-send-email-j-keerthy@ti.com>
- <1335462041-4949-5-git-send-email-j-keerthy@ti.com>
- <331ABD5ECB02734CA317220B2BBEABC13E9B1AA2@DBDE01.ent.ti.com>
- <CAJ6a13ZSWSa_RpGB9NxtfyChUba9NGivGogpsfyk7oT9pNayjg@mail.gmail.com>
+	<20120426191159.GA9415@sirena.org.uk>
+	<CAJ6a13a6WN9h1QZynpEOf-R6RXwWBZ2eOPkTeNc15JX_YfAz_w@mail.gmail.com>
+	<20120427175657.GP18260@opensource.wolfsonmicro.com>
+	<87397o3n4y.fsf@ti.com>
+	<331ABD5ECB02734CA317220B2BBEABC13E9B1A67@DBDE01.ent.ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-In-Reply-To: <CAJ6a13ZSWSa_RpGB9NxtfyChUba9NGivGogpsfyk7oT9pNayjg@mail.gmail.com>
- (KEERTHY J.'s message of "Fri, 4 May 2012 15:41:34 +0530")
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: linux-arm-kernel-bounces@lists.infradead.org
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: "J, KEERTHY" <j-keerthy@ti.com>
-Cc: "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "rjw@sisk.pl" <rjw@sisk.pl>, "AnilKumar, Chimata" <anilkumar@ti.com>, "linux-pm@lists.linux-foundation.org" <linux-pm@lists.linux-foundation.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "Pihet-XID,
- Jean" <j-pihet@ti.com>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <331ABD5ECB02734CA317220B2BBEABC13E9B1A67@DBDE01.ent.ti.com>
+	(Chimata AnilKumar's message of "Fri, 4 May 2012 08:21:28 +0000")
+Sender: linux-kernel-owner@vger.kernel.org
+To: "AnilKumar, Chimata" <anilkumar@ti.com>
+Cc: Mark Brown <broonie@opensource.wolfsonmicro.com>, "J, KEERTHY" <j-keerthy@ti.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, "rjw@sisk.pl" <rjw@sisk.pl>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-pm@lists.linux-foundation.org" <linux-pm@lists.linux-foundation.org>, "Pihet-XID, Jean" <j-pihet@ti.com>
 List-Id: linux-omap@vger.kernel.org
 
-IkosIEtFRVJUSFkiIDxqLWtlZXJ0aHlAdGkuY29tPiB3cml0ZXM6Cgo+IEhpIEFuaWxLdW1hciwK
-Pgo+IFRoYW5rcyBmb3IgcmV2aWV3aW5nLgo+Cj4gT24gRnJpLCBNYXkgNCwgMjAxMiBhdCAyOjAw
-IFBNLCBBbmlsS3VtYXIsIENoaW1hdGEgPGFuaWxrdW1hckB0aS5jb20+IHdyb3RlOgo+PiBPbiBU
-aHUsIEFwciAyNiwgMjAxMiBhdCAyMzoxMDozNSwgSiwgS0VFUlRIWSB3cm90ZToKPj4+IEZyb206
-IEplYW4gUGloZXQgPGotcGloZXRAdGkuY29tPgo+Pj4KPj4+IENoYW5nZSB0aGUgbmFtZSBmaWVs
-ZCB2YWx1ZSB0byBiZXR0ZXIgcmVmbGVjdCB0aGUgc21hcnRyZWZsZXgKPj4+IGludGVncmF0aW9u
-IGluIHRoZSBzeXN0ZW0uCj4+Pgo+Pj4gU2lnbmVkLW9mZi1ieTogSmVhbiBQaWhldCA8ai1waWhl
-dEB0aS5jb20+Cj4+PiBTaWduZWQtb2ZmLWJ5OiBKIEtlZXJ0aHkgPGota2VlcnRoeUB0aS5jb20+
-Cj4+PiAtLS0KPj4+IMKgYXJjaC9hcm0vbWFjaC1vbWFwMi9vbWFwX2h3bW9kXzN4eHhfZGF0YS5j
-IHwgwqAgwqA4ICsrKystLS0tCj4+PiDCoGFyY2gvYXJtL21hY2gtb21hcDIvc21hcnRyZWZsZXgu
-YyDCoCDCoCDCoCDCoCDCoHwgwqAgwqAyICstCj4+PiDCoDIgZmlsZXMgY2hhbmdlZCwgNSBpbnNl
-cnRpb25zKCspLCA1IGRlbGV0aW9ucygtKQo+Pj4KPj4+IGRpZmYgLS1naXQgYS9hcmNoL2FybS9t
-YWNoLW9tYXAyL29tYXBfaHdtb2RfM3h4eF9kYXRhLmMgYi9hcmNoL2FybS9tYWNoLW9tYXAyL29t
-YXBfaHdtb2RfM3h4eF9kYXRhLmMKPj4+IGluZGV4IDE0NGQxMTguLjE1OTA3YjAgMTAwNjQ0Cj4+
-PiAtLS0gYS9hcmNoL2FybS9tYWNoLW9tYXAyL29tYXBfaHdtb2RfM3h4eF9kYXRhLmMKPj4+ICsr
-KyBiL2FyY2gvYXJtL21hY2gtb21hcDIvb21hcF9od21vZF8zeHh4X2RhdGEuYwo+Pj4gQEAgLTEz
-MjQsNyArMTMyNCw3IEBAIHN0YXRpYyBzdHJ1Y3Qgb21hcF9od21vZF9pcnFfaW5mbyBvbWFwM19z
-bWFydHJlZmxleF9tcHVfaXJxc1tdID0gewo+Pj4gwqB9Owo+Pj4KPj4+IMKgc3RhdGljIHN0cnVj
-dCBvbWFwX2h3bW9kIG9tYXAzNHh4X3NyMV9od21vZCA9IHsKPj4+IC0gwqAgwqAgLm5hbWUgwqAg
-wqAgwqAgwqAgwqAgPSAic3IxIiwKPj4+ICsgwqAgwqAgLm5hbWUgwqAgwqAgwqAgwqAgwqAgPSAi
-c21hcnRyZWZsZXhfbXB1X2l2YSIsCj4+PiDCoCDCoCDCoCAuY2xhc3MgwqAgwqAgwqAgwqAgwqA9
-ICZvbWFwMzR4eF9zbWFydHJlZmxleF9od21vZF9jbGFzcywKPj4+IMKgIMKgIMKgIC5tYWluX2Ns
-ayDCoCDCoCDCoCA9ICJzcjFfZmNrIiwKPj4+IMKgIMKgIMKgIC5wcmNtIMKgIMKgIMKgIMKgIMKg
-ID0gewo+Pj4gQEAgLTEzNDIsNyArMTM0Miw3IEBAIHN0YXRpYyBzdHJ1Y3Qgb21hcF9od21vZCBv
-bWFwMzR4eF9zcjFfaHdtb2QgPSB7Cj4+PiDCoH07Cj4+Pgo+Pj4gwqBzdGF0aWMgc3RydWN0IG9t
-YXBfaHdtb2Qgb21hcDM2eHhfc3IxX2h3bW9kID0gewo+Pj4gLSDCoCDCoCAubmFtZSDCoCDCoCDC
-oCDCoCDCoCA9ICJzcjEiLAo+Pj4gKyDCoCDCoCAubmFtZSDCoCDCoCDCoCDCoCDCoCA9ICJzbWFy
-dHJlZmxleF9tcHVfaXZhIiwKPj4+IMKgIMKgIMKgIC5jbGFzcyDCoCDCoCDCoCDCoCDCoD0gJm9t
-YXAzNnh4X3NtYXJ0cmVmbGV4X2h3bW9kX2NsYXNzLAo+Pj4gwqAgwqAgwqAgLm1haW5fY2xrIMKg
-IMKgIMKgID0gInNyMV9mY2siLAo+Pj4gwqAgwqAgwqAgLnByY20gwqAgwqAgwqAgwqAgwqAgPSB7
-Cj4+PiBAQCAtMTM2OSw3ICsxMzY5LDcgQEAgc3RhdGljIHN0cnVjdCBvbWFwX2h3bW9kX2lycV9p
-bmZvIG9tYXAzX3NtYXJ0cmVmbGV4X2NvcmVfaXJxc1tdID0gewo+Pj4gwqB9Owo+Pj4KPj4+IMKg
-c3RhdGljIHN0cnVjdCBvbWFwX2h3bW9kIG9tYXAzNHh4X3NyMl9od21vZCA9IHsKPj4+IC0gwqAg
-wqAgLm5hbWUgwqAgwqAgwqAgwqAgwqAgPSAic3IyIiwKPj4+ICsgwqAgwqAgLm5hbWUgwqAgwqAg
-wqAgwqAgwqAgPSAic21hcnRyZWZsZXhfY29yZSIsCj4+PiDCoCDCoCDCoCAuY2xhc3MgwqAgwqAg
-wqAgwqAgwqA9ICZvbWFwMzR4eF9zbWFydHJlZmxleF9od21vZF9jbGFzcywKPj4+IMKgIMKgIMKg
-IC5tYWluX2NsayDCoCDCoCDCoCA9ICJzcjJfZmNrIiwKPj4+IMKgIMKgIMKgIC5wcmNtIMKgIMKg
-IMKgIMKgIMKgID0gewo+Pj4gQEAgLTEzODcsNyArMTM4Nyw3IEBAIHN0YXRpYyBzdHJ1Y3Qgb21h
-cF9od21vZCBvbWFwMzR4eF9zcjJfaHdtb2QgPSB7Cj4+PiDCoH07Cj4+Pgo+Pj4gwqBzdGF0aWMg
-c3RydWN0IG9tYXBfaHdtb2Qgb21hcDM2eHhfc3IyX2h3bW9kID0gewo+Pj4gLSDCoCDCoCAubmFt
-ZSDCoCDCoCDCoCDCoCDCoCA9ICJzcjIiLAo+Pj4gKyDCoCDCoCAubmFtZSDCoCDCoCDCoCDCoCDC
-oCA9ICJzbWFydHJlZmxleF9jb3JlIiwKPj4+IMKgIMKgIMKgIC5jbGFzcyDCoCDCoCDCoCDCoCDC
-oD0gJm9tYXAzNnh4X3NtYXJ0cmVmbGV4X2h3bW9kX2NsYXNzLAo+Pj4gwqAgwqAgwqAgLm1haW5f
-Y2xrIMKgIMKgIMKgID0gInNyMl9mY2siLAo+Pj4gwqAgwqAgwqAgLnByY20gwqAgwqAgwqAgwqAg
-wqAgPSB7Cj4+PiBkaWZmIC0tZ2l0IGEvYXJjaC9hcm0vbWFjaC1vbWFwMi9zbWFydHJlZmxleC5j
-IGIvYXJjaC9hcm0vbWFjaC1vbWFwMi9zbWFydHJlZmxleC5jCj4+PiBpbmRleCAyZWRkMWUyLi5k
-ODU5Mjc3IDEwMDY0NAo+Pj4gLS0tIGEvYXJjaC9hcm0vbWFjaC1vbWFwMi9zbWFydHJlZmxleC5j
-Cj4+PiArKysgYi9hcmNoL2FybS9tYWNoLW9tYXAyL3NtYXJ0cmVmbGV4LmMKPj4+IEBAIC0xODMs
-NyArMTgzLDcgQEAgc3RhdGljIHZvaWQgc3Jfc2V0X3JlZ2ZpZWxkcyhzdHJ1Y3Qgb21hcF9zciAq
-c3IpCj4+PiDCoCDCoCDCoCDCoCDCoCDCoCDCoCBzci0+ZXJyX3dlaWdodCA9IE9NQVAzNDMwX1NS
-X0VSUldFSUdIVDsKPj4+IMKgIMKgIMKgIMKgIMKgIMKgIMKgIHNyLT5lcnJfbWF4bGltaXQgPSBP
-TUFQMzQzMF9TUl9FUlJNQVhMSU1JVDsKPj4+IMKgIMKgIMKgIMKgIMKgIMKgIMKgIHNyLT5hY2N1
-bV9kYXRhID0gT01BUDM0MzBfU1JfQUNDVU1EQVRBOwo+Pj4gLSDCoCDCoCDCoCDCoCDCoCDCoCBp
-ZiAoIShzdHJjbXAoc3ItPm5hbWUsICJzcjEiKSkpIHsKPj4+ICsgwqAgwqAgwqAgwqAgwqAgwqAg
-aWYgKCEoc3RyY21wKHNyLT5uYW1lLCAic21hcnRyZWZsZXhfbXB1X2l2YSIpKSkgewo+Pgo+PiBX
-aGF0IGlmIHZvbHRhZ2UgcmFpbCBpcyBkaWZmZXJlbnQgZm9yIG1wdSBhbmQgaXZhPyBJIGhhdmUg
-c2VlbiBzb21lIGRldmljZXMKPj4gc3VwcG9ydHMgU21hcnRSZWZsZXggaGF2ZSBkaWZmZXJlbnQg
-dm9sdGFnZSByYWlscyBmb3IgbXB1IGFuZCBpdmEuCj4+Cj4KPiBJIGdldCB0aGUgcG9pbnQuIE9N
-QVAzIGl2YSBhbmQgbXB1IGhhdmUgYSBjb21tb24gcmFpbC4gT01BUDQgb253YXJkcwo+IGV2ZW4g
-d2UgaGF2ZSBkaWZmZXJlbnQgcmFpbHMgZm9yIG1wdSBhbmQgaXZhLiBJIHdpbGwgZW5oYW5jZSB0
-aGUgY2hlY2tzIGhlcmUuCgpSYXRoZXIgdGhhbiBlbmhhbmNpbmcgdGhlIGNoZWNrcywgdGhpcyBT
-b0Mgc3BlY2lmaWMgZGF0YSBzaG91bGQgcHJvYmFibHkKanVzdCBiZSBtYWRlIHBhcnQgb2YgdGhl
-IFNvQyBzcGVjaWZpYyBod21vZCBkZXZfYXR0ci4KCktldmluCgoKX19fX19fX19fX19fX19fX19f
-X19fX19fX19fX19fX19fX19fX19fX19fX19fX18KbGludXgtYXJtLWtlcm5lbCBtYWlsaW5nIGxp
-c3QKbGludXgtYXJtLWtlcm5lbEBsaXN0cy5pbmZyYWRlYWQub3JnCmh0dHA6Ly9saXN0cy5pbmZy
-YWRlYWQub3JnL21haWxtYW4vbGlzdGluZm8vbGludXgtYXJtLWtlcm5lbAo=
+"AnilKumar, Chimata" <anilkumar@ti.com> writes:
+
+> On Sat, Apr 28, 2012 at 02:31:17, Hilman, Kevin wrote:
+>> Hi Mark,
+>> 
+>> Mark Brown <broonie@opensource.wolfsonmicro.com> writes:
+>> 
+>> > On Fri, Apr 27, 2012 at 11:09:10AM +0530, J, KEERTHY wrote:
+>> >
+>> >> Devfreq and cpufreq are related to dynamic frequency/voltage switching between
+>> >> pre defined Operating Performance Points or the OPPs. Every OPP being
+>> >> a voltage/frequency pair. Smartreflex is a different
+>> >> power management technique.
+>> >
+>> > But presumably these things should integrate somehow - for example,
+>> > should devfreq and cpufreq be providing inputs into what AVS is doing,
+>> > and if so how?
+>> 
+>> The way it is currently designed, cpufreq/devfreq/regulator layers don't
+>> need to know about AVS.
+>> 
+>> The higher-level layers only know about the "nominal" voltage.  AVS
+>> hardware does automatic, adaptive, micro-adjustments around that nominal
+>> voltage, and these micro-adjustments are managed by the AVS hardware
+>> sending commands to the PMIC.  (specifically, on OMAP, the AVS sensors
+>> provide inputs to the voltage processor (VP) which provide inputs to the
+>> voltage controller (VC) which sends commands to the PMIC[1].)
+>> 
+>> The driver proposed here is primarily for initializing the various
+>> parameters/sensitivity/etc. of the AVS hardware, but the actual voltage
+>> adjustments are done in hardware by VC/VP.
+>> 
+>> The only thing the higher-level layers might potentially need to do to
+>> enable/disable AVS around transitions (e.g. when changing OPP, AVS is
+>> disabled before changing OPP and only re-enabled when the new nominal
+>> voltage has been acheived.)
+>> 
+>> On OMAP, we handle this inside the OMAP-specific voltage layer which is
+>> called by the regulator framework, so even the regulators do not need
+>> any knowledge of AVS.
+>
+> Kevin,
+>
+> I want to point out some cases of SR implementation where this may not
+> be true.
+>
+> Devices like DM8168, DM8148 and AM335X use Class 2B implementation of SR.
+>
+> Under this, SR module issues an interrupt to ARM when there is a need to
+> change the voltage based on temperature changes, ageing etc.
+>
+> Once the interrupt arrives, kernel needs to adjust voltage using regulator API.
+> The voltage change is a micro adjustment as in other SR classes.
+
+That can easily be handled writing a plugin specific to class 2B.  This
+driver was designed so plugins for other classes can be supported.  
+
+Sure, we might need some enhancements for other classes (we already know
+that we will for class 1 support.)  However, the purpose of this series
+is to do the cleanups necessary for the driver to move to drivers/*.
+
+Support for additional classes can be added after the driver is moved
+if/when folks are motivated to post that support upstream.
+
+> The SR class 2B implementation on these devices does not exist in mainline.
+> I can point to some public repositories if you are interested in taking a look at
+> the current code.
+
+No thanks.  We can discuss it when you post support for it to mainline.
+
+Kevin
+
+> Implementation of this SR method is must on at least the DM8168 device and
+> I know some customers who are using it on their production systems.
+>
+> Regards
+> AnilKumar
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-kernel" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> Please read the FAQ at  http://www.tux.org/lkml/
