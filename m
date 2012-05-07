@@ -1,49 +1,107 @@
 From: Tony Lindgren <tony@atomide.com>
-Subject: [GIT PULL] omap fixes for v3.4-rc6
-Date: Mon, 7 May 2012 15:36:33 -0700
-Message-ID: <20120507223632.GP5088@atomide.com>
+Subject: [GIT PULL 1/5] omap sparse cleanup for v3.5 merge window
+Date: Mon, 7 May 2012 15:38:42 -0700
+Message-ID: <34600.5473206334$1336430331@news.gmane.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-01-ewr.mailhop.org ([204.13.248.71]:43446 "EHLO
-	mho-01-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753340Ab2EGWgh (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 7 May 2012 18:36:37 -0400
+Received: from mho-02-ewr.mailhop.org ([204.13.248.72]:35096 "EHLO
+	mho-02-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756814Ab2EGWiq (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 7 May 2012 18:38:46 -0400
 Content-Disposition: inline
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: Arnd Bergmann <arnd@arndb.de>, Olof Johansson <olof@lixom.net>
-Cc: linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org
+Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 
-The following changes since commit 69964ea4c7b68c9399f7977aa5b9aa6539a6a98a:
+The following changes since commit e816b57a337ea3b755de72bec38c10c864f23015:
 
-  Linux 3.4-rc5 (2012-04-29 15:19:10 -0700)
+  Linux 3.4-rc3 (2012-04-15 18:28:29 -0700)
 
 are available in the git repository at:
 
-  git://git.kernel.org/pub/scm/linux/kernel/git/tmlind/linux-omap tags/omap-fixes-for-v3.4-rc6
+  git://git.kernel.org/pub/scm/linux/kernel/git/tmlind/linux-omap tags/omap-cleanup-sparse-for-v3.5
 
-for you to fetch changes up to 4d975027cc327d4486bb74b6908e874f2fee8c47:
+for you to fetch changes up to 09f45b83109cb8e23a06d5efb1096a08a9545974:
 
-  ARM: OMAP: igep0020: Specify the VPLL2 regulator unconditionally (2012-05-04 12:45:21 -0700)
-
-----------------------------------------------------------------
-Few more regression fixes that are mostly board specific
+  Merge tag 'omap-cleanup-a2-for-3.5' of git://git.kernel.org/pub/scm/linux/kernel/git/pjw/omap-pending into cleanup-sparse (2012-04-18 10:09:26 -0700)
 
 ----------------------------------------------------------------
-Archit Taneja (1):
-      ARM: OMAP: Revert "ARM: OMAP: ctrl: Fix CONTROL_DSIPHY register fields"
 
-Enrico Butera (1):
-      ARM: OMAP: igep0020: fix smsc911x dummy regulator id
+Sparse and cppcheck warning fixes
 
-Janusz Krzysztofik (1):
-      ARM: OMAP1: Amstrad Delta: Fix wrong IRQ base in FIQ handler
+----------------------------------------------------------------
+Paul Walmsley (11):
+      ARM: OMAP2+: declare file-local functions as static
+      ARM: OMAP: add includes for missing prototypes
+      ARM: OMAP1: OCPI: move to mach-omap1/
+      ARM: OMAP1: OHCI: use platform_data fn ptr to enable OCPI bus
+      ARM: OMAP2+: GPMC: resolve type-conversion warning from sparse
+      ARM: OMAP: fix 'using plain integer as NULL pointer' sparse warnings
+      ARM: OMAP: OCM RAM: use memset_io() when clearing SRAM
+      ARM: OMAP: DMA: use constant array maximum, drop some LCD DMA code
+      ARM: OMAP: USB: remove unnecessary sideways include
+      ARM: OMAP1: board files: deduplicate and clean some NAND-related code
+      ARM: OMAP2+: clean up some cppcheck warnings
 
-Laurent Pinchart (1):
-      ARM: OMAP: igep0020: Specify the VPLL2 regulator unconditionally
+Tony Lindgren (1):
+      Merge tag 'omap-cleanup-a2-for-3.5' of git://git.kernel.org/.../pjw/omap-pending into cleanup-sparse
 
- arch/arm/mach-omap1/ams-delta-fiq.c                |    2 +-
- arch/arm/mach-omap2/board-igep0020.c               |   12 ++++++------
- .../include/mach/ctrl_module_pad_core_44xx.h       |    8 ++++----
- 3 files changed, 11 insertions(+), 11 deletions(-)
+ arch/arm/mach-omap1/Makefile                 |   13 ++++++---
+ arch/arm/mach-omap1/ams-delta-fiq.c          |    2 +-
+ arch/arm/mach-omap1/board-fsample.c          |   16 +----------
+ arch/arm/mach-omap1/board-h2.c               |   17 +-----------
+ arch/arm/mach-omap1/board-h3.c               |   16 +----------
+ arch/arm/mach-omap1/board-nand.c             |   37 ++++++++++++++++++++++++++
+ arch/arm/mach-omap1/board-palmz71.c          |    4 +--
+ arch/arm/mach-omap1/board-perseus2.c         |   16 +----------
+ arch/arm/mach-omap1/clock.c                  |    3 +--
+ arch/arm/mach-omap1/common.h                 |   11 +++++++-
+ arch/arm/mach-omap1/fpga.c                   |    2 +-
+ arch/arm/mach-omap1/id.c                     |    2 ++
+ arch/arm/mach-omap1/io.c                     |    3 +--
+ arch/arm/mach-omap1/irq.c                    |    2 ++
+ arch/arm/mach-omap1/lcd_dma.c                |    7 +----
+ arch/arm/{plat-omap => mach-omap1}/ocpi.c    |    7 +++--
+ arch/arm/mach-omap1/pm.c                     |    9 +++----
+ arch/arm/mach-omap1/reset.c                  |    2 ++
+ arch/arm/mach-omap1/timer.c                  |    3 +--
+ arch/arm/mach-omap1/usb.c                    |    3 +++
+ arch/arm/mach-omap2/am35xx-emac.c            |   37 ++++++++++++--------------
+ arch/arm/mach-omap2/board-omap3evm.c         |    8 +++---
+ arch/arm/mach-omap2/board-omap4panda.c       |    8 +++---
+ arch/arm/mach-omap2/board-rx51-peripherals.c |    4 +--
+ arch/arm/mach-omap2/board-zoom-display.c     |    1 +
+ arch/arm/mach-omap2/common.h                 |    2 --
+ arch/arm/mach-omap2/devices.c                |    7 +++--
+ arch/arm/mach-omap2/gpio.c                   |    2 +-
+ arch/arm/mach-omap2/gpmc-onenand.c           |    3 +--
+ arch/arm/mach-omap2/gpmc.c                   |    3 +--
+ arch/arm/mach-omap2/hwspinlock.c             |    2 +-
+ arch/arm/mach-omap2/io.c                     |    1 +
+ arch/arm/mach-omap2/irq.c                    |    3 ++-
+ arch/arm/mach-omap2/mux.c                    |    2 +-
+ arch/arm/mach-omap2/omap-secure.c            |    1 +
+ arch/arm/mach-omap2/omap-wakeupgen.c         |    2 +-
+ arch/arm/mach-omap2/pm24xx.c                 |    3 ---
+ arch/arm/mach-omap2/pm34xx.c                 |   10 +++----
+ arch/arm/mach-omap2/prm_common.c             |    4 ++-
+ arch/arm/mach-omap2/serial.c                 |    2 +-
+ arch/arm/mach-omap2/usb-tusb6010.c           |    2 +-
+ arch/arm/plat-omap/Makefile                  |    3 ---
+ arch/arm/plat-omap/common.c                  |    1 +
+ arch/arm/plat-omap/dma.c                     |   13 +++++++--
+ arch/arm/plat-omap/dmtimer.c                 |    3 ++-
+ arch/arm/plat-omap/include/plat/board.h      |    2 ++
+ arch/arm/plat-omap/include/plat/common.h     |    2 ++
+ arch/arm/plat-omap/include/plat/dma.h        |    1 +
+ arch/arm/plat-omap/include/plat/dmtimer.h    |    4 +--
+ arch/arm/plat-omap/omap_device.c             |    2 --
+ arch/arm/plat-omap/sram.c                    |    4 +--
+ arch/arm/plat-omap/usb.c                     |    4 ---
+ drivers/usb/host/ohci-omap.c                 |    5 ++--
+ 53 files changed, 161 insertions(+), 165 deletions(-)
+ create mode 100644 arch/arm/mach-omap1/board-nand.c
+ rename arch/arm/{plat-omap => mach-omap1}/ocpi.c (93%)
