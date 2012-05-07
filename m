@@ -1,1163 +1,536 @@
-From: jean-philippe francois <jp.francois@cynove.com>
-Subject: Re: [PATCH v3 05/10] v4l: Add support for ov5640 sensor
-Date: Mon, 7 May 2012 09:27:45 +0200
-Message-ID: <CAGGh5h1P0F2skcMTZa_RFnZhhVuER+wkiSw6iT6HwWyQGaPg=A@mail.gmail.com>
-References: <1335971749-21258-1-git-send-email-saaguirre@ti.com>
-	<1335971749-21258-6-git-send-email-saaguirre@ti.com>
+From: Tero Kristo <t-kristo@ti.com>
+Subject: Re: [PATCH 3/3] ARM: OMAP2+ PM: Add support for TPS62361
+Date: Mon, 7 May 2012 10:38:19 +0300
+Message-ID: <1336376299.2149.249.camel@sokoban>
+References: <1336139842-845-1-git-send-email-t-kristo@ti.com>
+	 <1336139842-845-4-git-send-email-t-kristo@ti.com>
+	 <20120504220046.GA20795@senorita.am.dhcp.ti.com>
+Reply-To: <t-kristo@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-yw0-f46.google.com ([209.85.213.46]:45286 "EHLO
-	mail-yw0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755058Ab2EGH1q convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 7 May 2012 03:27:46 -0400
-In-Reply-To: <1335971749-21258-6-git-send-email-saaguirre@ti.com>
+Received: from comal.ext.ti.com ([198.47.26.152]:47692 "EHLO comal.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1754194Ab2EGHi0 (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Mon, 7 May 2012 03:38:26 -0400
+In-Reply-To: <20120504220046.GA20795@senorita.am.dhcp.ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Sergio Aguirre <saaguirre@ti.com>
-Cc: linux-media@vger.kernel.org, linux-omap@vger.kernel.org
+To: Nishanth Menon <nm@ti.com>
+Cc: linux-omap@vger.kernel.org, khilman@ti.com, linux-arm-kernel@lists.infradead.org, Vishwanath BS <vishwanath.bs@ti.com>
 
-2012/5/2 Sergio Aguirre <saaguirre@ti.com>:
-> This adds a very limited driver for ov5640, which
-> only supports:
-> =A0- 2592x1944 @ ~7.5 fps
-> =A0- 1920x1080 @ ~15 fps,
-> =A0- 1280x720 @ ~24 fps,
-> =A0- 640x480 @ ~24 fps,
-> =A0- 320x240 @ ~24 fps,
->
-> All in YUV422i format, using 1 CSI2 datalane @ 333 MHz.
->
+On Fri, 2012-05-04 at 17:00 -0500, Nishanth Menon wrote:
+> On 16:57-20120504, Tero Kristo wrote:
+> > From: Vishwanath BS <vishwanath.bs@ti.com>
+> > 
+> > TPS62361 is a new PMIC used with OMAP4460 on SDP4430 platform
+> > and panda board ES to supply MPU VDD.
+> > Rest of the VDDs continue to be supplied via TWL6030.
+> > 
+> > As part of this, the following have been moved to common
+> > location in voltage.h
+> > OMAP4_VP_CONFIG_ERROROFFSET, OMAP4_VP_VSTEPMIN_VSTEPMIN,
+> > OMAP4_VP_VSTEPMAX_VSTEPMAX, OMAP4_VP_VLIMITTO_TIMEOUT_US
+> > 
+> > [nm@ti.com: cleaned up TPS to handle board variations]
+> > Signed-off-by: Nishanth Menon <nm@ti.com>
+> > Signed-off-by: Vishwanath BS <vishwanath.bs@ti.com>
+> > [t-kristo@ti.com: minor cleanup, added panda board support]
+> > Signed-off-by: Tero Kristo <t-kristo@ti.com>
+> > ---
+> >  arch/arm/mach-omap2/Kconfig            |    9 ++
+> >  arch/arm/mach-omap2/Makefile           |    1 +
+> >  arch/arm/mach-omap2/board-4430sdp.c    |   10 ++
+> >  arch/arm/mach-omap2/board-omap4panda.c |    8 +
+> >  arch/arm/mach-omap2/omap_tps6236x.c    |  247 ++++++++++++++++++++++++++++++++
+> >  arch/arm/mach-omap2/omap_twl.c         |    5 -
+> >  arch/arm/mach-omap2/twl-common.c       |    1 +
+> >  arch/arm/mach-omap2/twl-common.h       |   16 ++
+> >  arch/arm/mach-omap2/voltage.h          |    5 +
+> >  9 files changed, 297 insertions(+), 5 deletions(-)
+> >  create mode 100644 arch/arm/mach-omap2/omap_tps6236x.c
+> > 
+> > diff --git a/arch/arm/mach-omap2/Kconfig b/arch/arm/mach-omap2/Kconfig
+> > index 8141b76..a147f00 100644
+> > --- a/arch/arm/mach-omap2/Kconfig
+> > +++ b/arch/arm/mach-omap2/Kconfig
+> > @@ -334,6 +334,7 @@ config MACH_OMAP_4430SDP
+> >  	select OMAP_PACKAGE_CBL
+> >  	select OMAP_PACKAGE_CBS
+> >  	select REGULATOR_FIXED_VOLTAGE if REGULATOR
+> > +	select OMAP_TPS6236X
+> >  
+> >  config MACH_OMAP4_PANDA
+> >  	bool "OMAP4 Panda Board"
+> > @@ -342,6 +343,7 @@ config MACH_OMAP4_PANDA
+> >  	select OMAP_PACKAGE_CBL
+> >  	select OMAP_PACKAGE_CBS
+> >  	select REGULATOR_FIXED_VOLTAGE if REGULATOR
+> > +	select OMAP_TPS6236X
+> >  
+> >  config OMAP3_EMU
+> >  	bool "OMAP3 debugging peripherals"
+> > @@ -384,6 +386,13 @@ config OMAP4_ERRATA_I688
+> >  	  In MPU case, L3 T2ASYNC FIFO and DDR T2ASYNC FIFO needs to be drained.
+> >  	  IO barrier ensure that there is no synchronisation loss on initiators
+> >  	  operating on both interconnect port simultaneously.
+> > +
+> > +config OMAP_TPS6236X
+> > +	bool "OMAP4 support for TPS6236X power IC"
+> > +	help
+> > +	  TPS62361 is a PMIC used with OMAP4460 to supply MPU VDD voltage.
+> > +	  Rest of the VDDs continue to be supplied via TWL6030.
+> > +
+> >  endmenu
+> >  
+> >  endif
+> > diff --git a/arch/arm/mach-omap2/Makefile b/arch/arm/mach-omap2/Makefile
+> > index 49f92bc..58861a2 100644
+> > --- a/arch/arm/mach-omap2/Makefile
+> > +++ b/arch/arm/mach-omap2/Makefile
+> > @@ -22,6 +22,7 @@ obj-y += mcbsp.o
+> >  endif
+> >  
+> >  obj-$(CONFIG_TWL4030_CORE) += omap_twl.o
+> > +obj-$(CONFIG_OMAP_TPS6236X) += omap_tps6236x.o
+> >  
+> >  # SMP support ONLY available for OMAP4
+> >  obj-$(CONFIG_SMP)			+= omap-smp.o omap-headsmp.o
+> > diff --git a/arch/arm/mach-omap2/board-4430sdp.c b/arch/arm/mach-omap2/board-4430sdp.c
+> > index a39fc4b..58fbf64 100644
+> > --- a/arch/arm/mach-omap2/board-4430sdp.c
+> > +++ b/arch/arm/mach-omap2/board-4430sdp.c
+> > @@ -63,6 +63,8 @@
+> >  #define GPIO_WIFI_PMENA		54
+> >  #define GPIO_WIFI_IRQ		53
+> >  
+> > +#define TPS62361_GPIO   7
+> > +
+> >  static const int sdp4430_keymap[] = {
+> >  	KEY(0, 0, KEY_E),
+> >  	KEY(0, 1, KEY_R),
+> > @@ -958,6 +960,14 @@ static void __init omap_4430sdp_init(void)
+> >  		pr_err("Keypad initialization failed: %d\n", status);
+> >  
+> >  	omap_4430sdp_display_init();
+> > +
+> > +	if (cpu_is_omap446x()) {
+> > +		/* Vsel0 = gpio, vsel1 = gnd */
+> > +		status = omap_tps6236x_board_setup(true, TPS62361_GPIO, -1,
+> > +					OMAP_PIN_OFF_OUTPUT_HIGH, -1);
+> > +		if (status)
+> > +			pr_err("TPS62361 initialization failed: %d\n", status);
+> > +	}
+> >  }
+> >  
+> >  MACHINE_START(OMAP_4430SDP, "OMAP4430 4430SDP board")
+> > diff --git a/arch/arm/mach-omap2/board-omap4panda.c b/arch/arm/mach-omap2/board-omap4panda.c
+> > index d8c0e89..5b5a6bc 100644
+> > --- a/arch/arm/mach-omap2/board-omap4panda.c
+> > +++ b/arch/arm/mach-omap2/board-omap4panda.c
+> > @@ -55,6 +55,7 @@
+> >  #define HDMI_GPIO_CT_CP_HPD 60 /* HPD mode enable/disable */
+> >  #define HDMI_GPIO_LS_OE 41 /* Level shifter for HDMI */
+> >  #define HDMI_GPIO_HPD  63 /* Hotplug detect */
+> > +#define TPS62361_GPIO 7 /* Vsel0 control for TPS62361 */
+> >  
+> >  /* wl127x BT, FM, GPS connectivity chip */
+> >  static int wl1271_gpios[] = {46, -1, -1};
+> > @@ -572,6 +573,13 @@ static void __init omap4_panda_init(void)
+> >  	omap4_ehci_init();
+> >  	usb_musb_init(&musb_board_data);
+> >  	omap4_panda_display_init();
+> > +	if (cpu_is_omap446x()) {
+> > +		/* vsel0 = gpio, vsel1 = gnd */
+> > +		ret = omap_tps6236x_board_setup(true, TPS62361_GPIO, -1,
+> > +				OMAP_PIN_OFF_OUTPUT_HIGH, -1);
+> > +		if (ret)
+> > +			pr_err("TPS62361 initialization failed: %d\n", ret);
+> > +	}
+> >  }
+> >  
+> >  MACHINE_START(OMAP4_PANDA, "OMAP4 Panda board")
+> > diff --git a/arch/arm/mach-omap2/omap_tps6236x.c b/arch/arm/mach-omap2/omap_tps6236x.c
+> > new file mode 100644
+> > index 0000000..84b07c2
+> > --- /dev/null
+> > +++ b/arch/arm/mach-omap2/omap_tps6236x.c
+> > @@ -0,0 +1,247 @@
+> > +/*
+> > + * OMAP and TPS6236x specific initialization
+> > + *
+> > + * Copyright (C) 2011 Texas Instruments Incorporated - http://www.ti.com/
+> > + * Vishwanath BS
+> > + * Nishanth Menon
+> > + *
+> > + * This program is free software; you can redistribute it and/or modify
+> > + * it under the terms of the GNU General Public License version 2 as
+> > + * published by the Free Software Foundation.
+> > + */
+> > +
+> > +#include <linux/init.h>
+> > +#include <linux/kernel.h>
+> > +#include <linux/gpio.h>
+> > +#include <linux/i2c/twl.h>
+> > +
+> > +#include "pm.h"
+> > +#include "vc.h"
+> > +#include "mux.h"
+> > +#include "twl-common.h"
+> > +
+> > +/* Voltage limits supported */
+> > +#define MIN_VOLTAGE_TPS62360_62_UV	770000
+> > +#define MAX_VOLTAGE_TPS62360_62_UV	1400000
+> > +
+> > +#define MIN_VOLTAGE_TPS62361_UV		500000
+> > +#define MAX_VOLTAGE_TPS62361_UV		1770000
+> > +
+> > +#define MAX_VOLTAGE_RAMP_TPS6236X_UV	32000
+> > +
+> > +/*
+> > + * This is the voltage delta between 2 values in voltage register.
+> > + * when switching voltage V1 to V2, TPS62361 can ramp up or down
+> > + * initially with step sizes of 20mV with a last step of 10mV.
+> > + * In the case of TPS6236[0|2], it is a constant 10mV steps
+> > + * we choose the 10mV step for linearity when SR is configured.
+> > + */
+> > +#define STEP_SIZE_TPS6236X		10000
+> > +
+> > +/* I2C access parameters */
+> > +#define I2C_TPS6236X_SLAVE_ADDR		0x60
+> > +
+> > +#define DEF_SET_REG(VSEL0, VSEL1)	(((VSEL1) << 1 | (VSEL0) << 0) & 0x3)
+> > +#define REG_TPS6236X_SET_0		0x00
+> > +#define REG_TPS6236X_SET_1		0x01
+> > +#define REG_TPS6236X_SET_2		0x02
+> > +#define REG_TPS6236X_SET_3		0x03
+> > +#define REG_TPS6236X_CTRL		0x04
+> > +#define REG_TPS6236X_TEMP		0x05
+> > +#define REG_TPS6236X_RAMP_CTRL		0x06
+> > +#define REG_TPS6236X_CHIP_ID0		0x08
+> > +#define REG_TPS6236X_CHIP_ID1		0x09
+> > +
+> > +#define MODE_TPS6236X_AUTO_PFM_PWM	0x00
+> > +#define MODE_TPS6236X_FORCE_PWM		BIT(7)
+> > +
+> > +/* We use Auto PFM/PWM mode currently seems to have the best trade off */
+> > +#define VOLTAGE_PFM_MODE_VAL		MODE_TPS6236X_AUTO_PFM_PWM
+> > +
+> > +#define REG_TPS6236X_RAMP_CTRL_RMP_MASK	(0x7 << 5)
+> > +#define REG_TPS6236X_RAMP_CTRL_EN_DISC	BIT(2)
+> > +#define REG_TPS6236X_RAMP_CTRL_RAMP_PFM	BIT(1)
+> > +
+> > +#define REG_TPS6236X_CTRL_PD_EN		BIT(7)
+> > +#define REG_TPS6236X_CTRL_PD_VSEL0	BIT(6)
+> > +#define REG_TPS6236X_CTRL_PD_VSEL1	BIT(5)
+> These should be used appropriately. we have reg defines without usage.
+> suggestion is - please port over the changes from the original source as
+> well as there are configurations of thermal shutdown, and other
+> configurations that are necessary as well.
 
-There is already a limited driver in mainline for ov5642.
-How does the 5642 differ from 5640 ?
-Can a single driver handle both chip ?
+I'll drop these out if they are not used in the current version of the
+patch, I may have missed parts like this.
 
+> 
+> > +
+> > +/* TWL usage */
+> > +#define TWL6030_REG_SYSEN_CFG_GRP			0xB3
+> > +#define TWL6030_BIT_APE_GRP				BIT(0)
+> You dont really need 6030 defines here in tps file now do you?
 
-> Signed-off-by: Sergio Aguirre <saaguirre@ti.com>
-> ---
-> =A0drivers/media/video/Kconfig =A0| =A0 =A06 +
-> =A0drivers/media/video/Makefile | =A0 =A01 +
-> =A0drivers/media/video/ov5640.c | =A0948 ++++++++++++++++++++++++++++=
-++++++++++++++
-> =A0include/media/ov5640.h =A0 =A0 =A0 | =A0 10 +
-> =A04 files changed, 965 insertions(+), 0 deletions(-)
-> =A0create mode 100644 drivers/media/video/ov5640.c
-> =A0create mode 100644 include/media/ov5640.h
->
-> diff --git a/drivers/media/video/Kconfig b/drivers/media/video/Kconfi=
-g
-> index 4482ac4..cc76652 100644
-> --- a/drivers/media/video/Kconfig
-> +++ b/drivers/media/video/Kconfig
-> @@ -480,6 +480,12 @@ config VIDEO_OV7670
-> =A0 =A0 =A0 =A0 =A0OV7670 VGA camera. =A0It currently only works with=
- the M88ALP01
-> =A0 =A0 =A0 =A0 =A0controller.
->
-> +config VIDEO_OV5640
-> + =A0 =A0 =A0 tristate "OmniVision OV5640 sensor support"
-> + =A0 =A0 =A0 depends on I2C && VIDEO_V4L2
-> + =A0 =A0 =A0 help
-> + =A0 =A0 =A0 =A0 This is a ov5640 camera driver
-> +
-> =A0config VIDEO_VS6624
-> =A0 =A0 =A0 =A0tristate "ST VS6624 sensor support"
-> =A0 =A0 =A0 =A0depends on VIDEO_V4L2 && I2C
-> diff --git a/drivers/media/video/Makefile b/drivers/media/video/Makef=
-ile
-> index c95cc0d..da40ab3 100644
-> --- a/drivers/media/video/Makefile
-> +++ b/drivers/media/video/Makefile
-> @@ -68,6 +68,7 @@ obj-$(CONFIG_VIDEO_CX25840) +=3D cx25840/
-> =A0obj-$(CONFIG_VIDEO_UPD64031A) +=3D upd64031a.o
-> =A0obj-$(CONFIG_VIDEO_UPD64083) +=3D upd64083.o
-> =A0obj-$(CONFIG_VIDEO_OV7670) =A0 =A0 +=3D ov7670.o
-> +obj-$(CONFIG_VIDEO_OV5640) =A0 =A0 +=3D ov5640.o
-> =A0obj-$(CONFIG_VIDEO_TCM825X) +=3D tcm825x.o
-> =A0obj-$(CONFIG_VIDEO_TVEEPROM) +=3D tveeprom.o
-> =A0obj-$(CONFIG_VIDEO_MT9M032) +=3D mt9m032.o
-> diff --git a/drivers/media/video/ov5640.c b/drivers/media/video/ov564=
-0.c
-> new file mode 100644
-> index 0000000..2a64d50
-> --- /dev/null
-> +++ b/drivers/media/video/ov5640.c
-> @@ -0,0 +1,948 @@
-> +/*
-> + * OmniVision OV5640 sensor driver
-> + *
-> + * Copyright (C) 2011 Texas Instruments Incorporated - http://www.ti=
-=2Ecom/
-> + *
-> + * This program is free software; you can redistribute it and/or
-> + * modify it under the terms of the GNU General Public License as
-> + * published by the Free Software Foundation version 2.
-> + *
-> + * This program is distributed "as is" WITHOUT ANY WARRANTY of any
-> + * kind, whether express or implied; without even the implied warran=
-ty
-> + * of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. =A0See th=
-e
-> + * GNU General Public License for more details.
-> + */
-> +
-> +#include <linux/videodev2.h>
-> +#include <linux/slab.h>
-> +#include <linux/i2c.h>
-> +#include <linux/log2.h>
-> +#include <linux/delay.h>
-> +#include <linux/module.h>
-> +
-> +#include <media/v4l2-device.h>
-> +#include <media/v4l2-subdev.h>
-> +#include <media/v4l2-ctrls.h>
-> +
-> +#include <media/ov5640.h>
-> +
-> +/* OV5640 has only one fixed colorspace per pixelcode */
-> +struct ov5640_datafmt {
-> + =A0 =A0 =A0 enum v4l2_mbus_pixelcode =A0 =A0 =A0 =A0code;
-> + =A0 =A0 =A0 enum v4l2_colorspace =A0 =A0 =A0 =A0 =A0 =A0colorspace;
-> +};
-> +
-> +struct ov5640_timing_cfg {
-> + =A0 =A0 =A0 u16 x_addr_start;
-> + =A0 =A0 =A0 u16 y_addr_start;
-> + =A0 =A0 =A0 u16 x_addr_end;
-> + =A0 =A0 =A0 u16 y_addr_end;
-> + =A0 =A0 =A0 u16 h_output_size;
-> + =A0 =A0 =A0 u16 v_output_size;
-> + =A0 =A0 =A0 u16 h_total_size;
-> + =A0 =A0 =A0 u16 v_total_size;
-> + =A0 =A0 =A0 u16 isp_h_offset;
-> + =A0 =A0 =A0 u16 isp_v_offset;
-> + =A0 =A0 =A0 u8 h_odd_ss_inc;
-> + =A0 =A0 =A0 u8 h_even_ss_inc;
-> + =A0 =A0 =A0 u8 v_odd_ss_inc;
-> + =A0 =A0 =A0 u8 v_even_ss_inc;
-> +};
-> +
-> +enum ov5640_size {
-> + =A0 =A0 =A0 OV5640_SIZE_QVGA,
-> + =A0 =A0 =A0 OV5640_SIZE_VGA,
-> + =A0 =A0 =A0 OV5640_SIZE_720P,
-> + =A0 =A0 =A0 OV5640_SIZE_1080P,
-> + =A0 =A0 =A0 OV5640_SIZE_5MP,
-> + =A0 =A0 =A0 OV5640_SIZE_LAST,
-> +};
-> +
-> +static const struct v4l2_frmsize_discrete ov5640_frmsizes[OV5640_SIZ=
-E_LAST] =3D {
-> + =A0 =A0 =A0 { =A0320, =A0240 },
-> + =A0 =A0 =A0 { =A0640, =A0480 },
-> + =A0 =A0 =A0 { 1280, =A0720 },
-> + =A0 =A0 =A0 { 1920, 1080 },
-> + =A0 =A0 =A0 { 2592, 1944 },
-> +};
-> +
-> +/* Find a frame size in an array */
-> +static int ov5640_find_framesize(u32 width, u32 height)
-> +{
-> + =A0 =A0 =A0 int i;
-> +
-> + =A0 =A0 =A0 for (i =3D 0; i < OV5640_SIZE_LAST; i++) {
-> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 if ((ov5640_frmsizes[i].width >=3D widt=
-h) &&
-> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 (ov5640_frmsizes[i].height >=3D=
- height))
-> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 break;
-> + =A0 =A0 =A0 }
-> +
-> + =A0 =A0 =A0 /* If not found, select biggest */
-> + =A0 =A0 =A0 if (i >=3D OV5640_SIZE_LAST)
-> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 i =3D OV5640_SIZE_LAST - 1;
-> +
-> + =A0 =A0 =A0 return i;
-> +}
-> +
-> +struct ov5640 {
-> + =A0 =A0 =A0 struct v4l2_subdev subdev;
-> + =A0 =A0 =A0 struct media_pad pad;
-> + =A0 =A0 =A0 struct v4l2_mbus_framefmt format;
-> +
-> + =A0 =A0 =A0 struct v4l2_ctrl_handler ctrl_handler;
-> +
-> + =A0 =A0 =A0 const struct ov5640_platform_data *pdata;
-> +
-> + =A0 =A0 =A0 struct v4l2_ctrl *pixel_rate;
-> +};
-> +
-> +static inline struct ov5640 *to_ov5640(struct v4l2_subdev *sd)
-> +{
-> + =A0 =A0 =A0 return container_of(sd, struct ov5640, subdev);
-> +}
-> +
-> +/**
-> + * struct ov5640_reg - ov5640 register format
-> + * @reg: 16-bit offset to register
-> + * @val: 8/16/32-bit register value
-> + * @length: length of the register
-> + *
-> + * Define a structure for OV5640 register initialization values
-> + */
-> +struct ov5640_reg {
-> + =A0 =A0 =A0 u16 =A0 =A0 reg;
-> + =A0 =A0 =A0 u8 =A0 =A0 =A0val;
-> +};
-> +
-> +/* TODO: Divide this properly */
-> +static const struct ov5640_reg configscript_common1[] =3D {
-> + =A0 =A0 =A0 { 0x3103, 0x03 },
-> + =A0 =A0 =A0 { 0x3017, 0x00 },
-> + =A0 =A0 =A0 { 0x3018, 0x00 },
-> + =A0 =A0 =A0 { 0x3630, 0x2e },
-> + =A0 =A0 =A0 { 0x3632, 0xe2 },
-> + =A0 =A0 =A0 { 0x3633, 0x23 },
-> + =A0 =A0 =A0 { 0x3634, 0x44 },
-> + =A0 =A0 =A0 { 0x3621, 0xe0 },
-> + =A0 =A0 =A0 { 0x3704, 0xa0 },
-> + =A0 =A0 =A0 { 0x3703, 0x5a },
-> + =A0 =A0 =A0 { 0x3715, 0x78 },
-> + =A0 =A0 =A0 { 0x3717, 0x01 },
-> + =A0 =A0 =A0 { 0x370b, 0x60 },
-> + =A0 =A0 =A0 { 0x3705, 0x1a },
-> + =A0 =A0 =A0 { 0x3905, 0x02 },
-> + =A0 =A0 =A0 { 0x3906, 0x10 },
-> + =A0 =A0 =A0 { 0x3901, 0x0a },
-> + =A0 =A0 =A0 { 0x3731, 0x12 },
-> + =A0 =A0 =A0 { 0x3600, 0x04 },
-> + =A0 =A0 =A0 { 0x3601, 0x22 },
-> + =A0 =A0 =A0 { 0x471c, 0x50 },
-> + =A0 =A0 =A0 { 0x3002, 0x1c },
-> + =A0 =A0 =A0 { 0x3006, 0xc3 },
-> + =A0 =A0 =A0 { 0x300e, 0x05 },
-> + =A0 =A0 =A0 { 0x302e, 0x08 },
-> + =A0 =A0 =A0 { 0x3612, 0x4b },
-> + =A0 =A0 =A0 { 0x3618, 0x04 },
-> + =A0 =A0 =A0 { 0x3034, 0x18 },
-> + =A0 =A0 =A0 { 0x3035, 0x11 },
-> + =A0 =A0 =A0 { 0x3036, 0x54 },
-> + =A0 =A0 =A0 { 0x3037, 0x13 },
-> + =A0 =A0 =A0 { 0x3708, 0x21 },
-> + =A0 =A0 =A0 { 0x3709, 0x12 },
-> + =A0 =A0 =A0 { 0x370c, 0x00 },
-> +};
-> +
-> +/* TODO: Divide this properly */
-> +static const struct ov5640_reg configscript_common2[] =3D {
-> + =A0 =A0 =A0 { 0x3a02, 0x01 },
-> + =A0 =A0 =A0 { 0x3a03, 0xec },
-> + =A0 =A0 =A0 { 0x3a08, 0x01 },
-> + =A0 =A0 =A0 { 0x3a09, 0x27 },
-> + =A0 =A0 =A0 { 0x3a0a, 0x00 },
-> + =A0 =A0 =A0 { 0x3a0b, 0xf6 },
-> + =A0 =A0 =A0 { 0x3a0e, 0x06 },
-> + =A0 =A0 =A0 { 0x3a0d, 0x08 },
-> + =A0 =A0 =A0 { 0x3a14, 0x01 },
-> + =A0 =A0 =A0 { 0x3a15, 0xec },
-> + =A0 =A0 =A0 { 0x4001, 0x02 },
-> + =A0 =A0 =A0 { 0x4004, 0x06 },
-> + =A0 =A0 =A0 { 0x460b, 0x37 },
-> + =A0 =A0 =A0 { 0x4750, 0x00 },
-> + =A0 =A0 =A0 { 0x4751, 0x00 },
-> + =A0 =A0 =A0 { 0x4800, 0x24 },
-> + =A0 =A0 =A0 { 0x5a00, 0x08 },
-> + =A0 =A0 =A0 { 0x5a21, 0x00 },
-> + =A0 =A0 =A0 { 0x5a24, 0x00 },
-> + =A0 =A0 =A0 { 0x5000, 0x27 },
-> + =A0 =A0 =A0 { 0x5001, 0x87 },
-> + =A0 =A0 =A0 { 0x3820, 0x40 },
-> + =A0 =A0 =A0 { 0x3821, 0x06 },
-> + =A0 =A0 =A0 { 0x3824, 0x01 },
-> + =A0 =A0 =A0 { 0x5481, 0x08 },
-> + =A0 =A0 =A0 { 0x5482, 0x14 },
-> + =A0 =A0 =A0 { 0x5483, 0x28 },
-> + =A0 =A0 =A0 { 0x5484, 0x51 },
-> + =A0 =A0 =A0 { 0x5485, 0x65 },
-> + =A0 =A0 =A0 { 0x5486, 0x71 },
-> + =A0 =A0 =A0 { 0x5487, 0x7d },
-> + =A0 =A0 =A0 { 0x5488, 0x87 },
-> + =A0 =A0 =A0 { 0x5489, 0x91 },
-> + =A0 =A0 =A0 { 0x548a, 0x9a },
-> + =A0 =A0 =A0 { 0x548b, 0xaa },
-> + =A0 =A0 =A0 { 0x548c, 0xb8 },
-> + =A0 =A0 =A0 { 0x548d, 0xcd },
-> + =A0 =A0 =A0 { 0x548e, 0xdd },
-> + =A0 =A0 =A0 { 0x548f, 0xea },
-> + =A0 =A0 =A0 { 0x5490, 0x1d },
-> + =A0 =A0 =A0 { 0x5381, 0x20 },
-> + =A0 =A0 =A0 { 0x5382, 0x64 },
-> + =A0 =A0 =A0 { 0x5383, 0x08 },
-> + =A0 =A0 =A0 { 0x5384, 0x20 },
-> + =A0 =A0 =A0 { 0x5385, 0x80 },
-> + =A0 =A0 =A0 { 0x5386, 0xa0 },
-> + =A0 =A0 =A0 { 0x5387, 0xa2 },
-> + =A0 =A0 =A0 { 0x5388, 0xa0 },
-> + =A0 =A0 =A0 { 0x5389, 0x02 },
-> + =A0 =A0 =A0 { 0x538a, 0x01 },
-> + =A0 =A0 =A0 { 0x538b, 0x98 },
-> + =A0 =A0 =A0 { 0x5300, 0x08 },
-> + =A0 =A0 =A0 { 0x5301, 0x30 },
-> + =A0 =A0 =A0 { 0x5302, 0x10 },
-> + =A0 =A0 =A0 { 0x5303, 0x00 },
-> + =A0 =A0 =A0 { 0x5304, 0x08 },
-> + =A0 =A0 =A0 { 0x5305, 0x30 },
-> + =A0 =A0 =A0 { 0x5306, 0x08 },
-> + =A0 =A0 =A0 { 0x5307, 0x16 },
-> + =A0 =A0 =A0 { 0x5580, 0x00 },
-> + =A0 =A0 =A0 { 0x5587, 0x00 },
-> + =A0 =A0 =A0 { 0x5588, 0x00 },
-> + =A0 =A0 =A0 { 0x5583, 0x40 },
-> + =A0 =A0 =A0 { 0x5584, 0x10 },
-> + =A0 =A0 =A0 { 0x5589, 0x10 },
-> + =A0 =A0 =A0 { 0x558a, 0x00 },
-> + =A0 =A0 =A0 { 0x558b, 0xf8 },
-> + =A0 =A0 =A0 { 0x3a0f, 0x36 },
-> + =A0 =A0 =A0 { 0x3a10, 0x2e },
-> + =A0 =A0 =A0 { 0x3a1b, 0x38 },
-> + =A0 =A0 =A0 { 0x3a1e, 0x2c },
-> + =A0 =A0 =A0 { 0x3a11, 0x70 },
-> + =A0 =A0 =A0 { 0x3a1f, 0x18 },
-> + =A0 =A0 =A0 { 0x3a18, 0x00 },
-> + =A0 =A0 =A0 { 0x3a19, 0xf8 },
-> + =A0 =A0 =A0 { 0x3003, 0x03 },
-> + =A0 =A0 =A0 { 0x3003, 0x01 },
-> +};
-> +
-> +static const struct ov5640_timing_cfg timing_cfg[OV5640_SIZE_LAST] =3D=
- {
-> + =A0 =A0 =A0 [OV5640_SIZE_QVGA] =3D {
-> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 .x_addr_start =3D 0,
-> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 .y_addr_start =3D 0,
-> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 .x_addr_end =3D 2623,
-> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 .y_addr_end =3D 1951,
-> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 .h_output_size =3D 320,
-> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 .v_output_size =3D 240,
-> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 .h_total_size =3D 2844,
-> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 .v_total_size =3D 1968,
-> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 .isp_h_offset =3D 16,
-> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 .isp_v_offset =3D 6,
-> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 .h_odd_ss_inc =3D 1,
-> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 .h_even_ss_inc =3D 1,
-> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 .v_odd_ss_inc =3D 1,
-> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 .v_even_ss_inc =3D 1,
-> + =A0 =A0 =A0 },
-> + =A0 =A0 =A0 [OV5640_SIZE_VGA] =3D {
-> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 .x_addr_start =3D 0,
-> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 .y_addr_start =3D 0,
-> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 .x_addr_end =3D 2623,
-> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 .y_addr_end =3D 1951,
-> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 .h_output_size =3D 640,
-> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 .v_output_size =3D 480,
-> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 .h_total_size =3D 2844,
-> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 .v_total_size =3D 1968,
-> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 .isp_h_offset =3D 16,
-> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 .isp_v_offset =3D 6,
-> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 .h_odd_ss_inc =3D 1,
-> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 .h_even_ss_inc =3D 1,
-> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 .v_odd_ss_inc =3D 1,
-> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 .v_even_ss_inc =3D 1,
-> + =A0 =A0 =A0 },
-> + =A0 =A0 =A0 [OV5640_SIZE_720P] =3D {
-> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 .x_addr_start =3D 336,
-> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 .y_addr_start =3D 434,
-> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 .x_addr_end =3D 2287,
-> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 .y_addr_end =3D 1522,
-> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 .h_output_size =3D 1280,
-> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 .v_output_size =3D 720,
-> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 .h_total_size =3D 2500,
-> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 .v_total_size =3D 1120,
-> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 .isp_h_offset =3D 16,
-> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 .isp_v_offset =3D 4,
-> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 .h_odd_ss_inc =3D 1,
-> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 .h_even_ss_inc =3D 1,
-> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 .v_odd_ss_inc =3D 1,
-> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 .v_even_ss_inc =3D 1,
-> + =A0 =A0 =A0 },
-> + =A0 =A0 =A0 [OV5640_SIZE_1080P] =3D {
-> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 .x_addr_start =3D 336,
-> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 .y_addr_start =3D 434,
-> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 .x_addr_end =3D 2287,
-> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 .y_addr_end =3D 1522,
-> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 .h_output_size =3D 1920,
-> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 .v_output_size =3D 1080,
-> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 .h_total_size =3D 2500,
-> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 .v_total_size =3D 1120,
-> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 .isp_h_offset =3D 16,
-> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 .isp_v_offset =3D 4,
-> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 .h_odd_ss_inc =3D 1,
-> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 .h_even_ss_inc =3D 1,
-> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 .v_odd_ss_inc =3D 1,
-> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 .v_even_ss_inc =3D 1,
-> + =A0 =A0 =A0 },
-> + =A0 =A0 =A0 [OV5640_SIZE_5MP] =3D {
-> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 .x_addr_start =3D 0,
-> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 .y_addr_start =3D 0,
-> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 .x_addr_end =3D 2623,
-> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 .y_addr_end =3D 1951,
-> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 .h_output_size =3D 2592,
-> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 .v_output_size =3D 1944,
-> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 .h_total_size =3D 2844,
-> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 .v_total_size =3D 1968,
-> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 .isp_h_offset =3D 16,
-> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 .isp_v_offset =3D 6,
-> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 .h_odd_ss_inc =3D 1,
-> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 .h_even_ss_inc =3D 1,
-> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 .v_odd_ss_inc =3D 1,
-> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 .v_even_ss_inc =3D 1,
-> + =A0 =A0 =A0 },
-> +};
-> +
-> +/**
-> + * ov5640_reg_read - Read a value from a register in an ov5640 senso=
-r device
-> + * @client: i2c driver client structure
-> + * @reg: register address / offset
-> + * @val: stores the value that gets read
-> + *
-> + * Read a value from a register in an ov5640 sensor device.
-> + * The value is returned in 'val'.
-> + * Returns zero if successful, or non-zero otherwise.
-> + */
-> +static int ov5640_reg_read(struct i2c_client *client, u16 reg, u8 *v=
-al)
-> +{
-> + =A0 =A0 =A0 int ret;
-> + =A0 =A0 =A0 u8 data[2] =3D {0};
-> + =A0 =A0 =A0 struct i2c_msg msg =3D {
-> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 .addr =A0 =3D client->addr,
-> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 .flags =A0=3D 0,
-> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 .len =A0 =A0=3D 2,
-> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 .buf =A0 =A0=3D data,
-> + =A0 =A0 =A0 };
-> +
-> + =A0 =A0 =A0 data[0] =3D (u8)(reg >> 8);
-> + =A0 =A0 =A0 data[1] =3D (u8)(reg & 0xff);
-> +
-> + =A0 =A0 =A0 ret =3D i2c_transfer(client->adapter, &msg, 1);
-> + =A0 =A0 =A0 if (ret < 0)
-> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 goto err;
-> +
-> + =A0 =A0 =A0 msg.flags =3D I2C_M_RD;
-> + =A0 =A0 =A0 msg.len =3D 1;
-> + =A0 =A0 =A0 ret =3D i2c_transfer(client->adapter, &msg, 1);
-> + =A0 =A0 =A0 if (ret < 0)
-> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 goto err;
-> +
-> + =A0 =A0 =A0 *val =3D data[0];
-> + =A0 =A0 =A0 return 0;
-> +
-> +err:
-> + =A0 =A0 =A0 dev_err(&client->dev, "Failed reading register 0x%02x!\=
-n", reg);
-> + =A0 =A0 =A0 return ret;
-> +}
-> +
-> +/**
-> + * Write a value to a register in ov5640 sensor device.
-> + * @client: i2c driver client structure.
-> + * @reg: Address of the register to read value from.
-> + * @val: Value to be written to a specific register.
-> + * Returns zero if successful, or non-zero otherwise.
-> + */
-> +static int ov5640_reg_write(struct i2c_client *client, u16 reg, u8 v=
-al)
-> +{
-> + =A0 =A0 =A0 int ret;
-> + =A0 =A0 =A0 unsigned char data[3] =3D { (u8)(reg >> 8), (u8)(reg & =
-0xff), val };
-> + =A0 =A0 =A0 struct i2c_msg msg =3D {
-> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 .addr =A0 =3D client->addr,
-> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 .flags =A0=3D 0,
-> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 .len =A0 =A0=3D 3,
-> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 .buf =A0 =A0=3D data,
-> + =A0 =A0 =A0 };
-> +
-> + =A0 =A0 =A0 ret =3D i2c_transfer(client->adapter, &msg, 1);
-> + =A0 =A0 =A0 if (ret < 0) {
-> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 dev_err(&client->dev, "Failed writing r=
-egister 0x%02x!\n", reg);
-> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 return ret;
-> + =A0 =A0 =A0 }
-> +
-> + =A0 =A0 =A0 return 0;
-> +}
-> +
-> +/**
-> + * Initialize a list of ov5640 registers.
-> + * The list of registers is terminated by the pair of values
-> + * @client: i2c driver client structure.
-> + * @reglist[]: List of address of the registers to write data.
-> + * Returns zero if successful, or non-zero otherwise.
-> + */
-> +static int ov5640_reg_writes(struct i2c_client *client,
-> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0const struct=
- ov5640_reg reglist[],
-> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0int size)
-> +{
-> + =A0 =A0 =A0 int err =3D 0, i;
-> +
-> + =A0 =A0 =A0 for (i =3D 0; i < size; i++) {
-> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 err =3D ov5640_reg_write(client, reglis=
-t[i].reg,
-> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 reglist=
-[i].val);
-> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 if (err)
-> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 return err;
-> + =A0 =A0 =A0 }
-> + =A0 =A0 =A0 return 0;
-> +}
-> +
-> +static int ov5640_reg_set(struct i2c_client *client, u16 reg, u8 val=
-)
-> +{
-> + =A0 =A0 =A0 int ret;
-> + =A0 =A0 =A0 u8 tmpval =3D 0;
-> +
-> + =A0 =A0 =A0 ret =3D ov5640_reg_read(client, reg, &tmpval);
-> + =A0 =A0 =A0 if (ret)
-> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 return ret;
-> +
-> + =A0 =A0 =A0 return ov5640_reg_write(client, reg, tmpval | val);
-> +}
-> +
-> +static int ov5640_reg_clr(struct i2c_client *client, u16 reg, u8 val=
-)
-> +{
-> + =A0 =A0 =A0 int ret;
-> + =A0 =A0 =A0 u8 tmpval =3D 0;
-> +
-> + =A0 =A0 =A0 ret =3D ov5640_reg_read(client, reg, &tmpval);
-> + =A0 =A0 =A0 if (ret)
-> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 return ret;
-> +
-> + =A0 =A0 =A0 return ov5640_reg_write(client, reg, tmpval & ~val);
-> +}
-> +
-> +static int ov5640_config_timing(struct v4l2_subdev *sd)
-> +{
-> + =A0 =A0 =A0 struct i2c_client *client =3D v4l2_get_subdevdata(sd);
-> + =A0 =A0 =A0 struct ov5640 *ov5640 =3D to_ov5640(sd);
-> + =A0 =A0 =A0 int ret, i;
-> +
-> + =A0 =A0 =A0 i =3D ov5640_find_framesize(ov5640->format.width, ov564=
-0->format.height);
-> +
-> + =A0 =A0 =A0 ret =3D ov5640_reg_write(client,
-> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 0x3800,
-> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 (timing_cfg[i].x_addr_s=
-tart & 0xFF00) >> 8);
-> + =A0 =A0 =A0 if (ret)
-> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 return ret;
-> +
-> + =A0 =A0 =A0 ret =3D ov5640_reg_write(client,
-> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 0x3801,
-> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 timing_cfg[i].x_addr_st=
-art & 0xFF);
-> + =A0 =A0 =A0 if (ret)
-> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 return ret;
-> +
-> + =A0 =A0 =A0 ret =3D ov5640_reg_write(client,
-> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 0x3802,
-> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 (timing_cfg[i].y_addr_s=
-tart & 0xFF00) >> 8);
-> + =A0 =A0 =A0 if (ret)
-> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 return ret;
-> +
-> + =A0 =A0 =A0 ret =3D ov5640_reg_write(client,
-> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 0x3803,
-> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 timing_cfg[i].y_addr_st=
-art & 0xFF);
-> + =A0 =A0 =A0 if (ret)
-> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 return ret;
-> +
-> + =A0 =A0 =A0 ret =3D ov5640_reg_write(client,
-> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 0x3804,
-> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 (timing_cfg[i].x_addr_e=
-nd & 0xFF00) >> 8);
-> + =A0 =A0 =A0 if (ret)
-> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 return ret;
-> +
-> + =A0 =A0 =A0 ret =3D ov5640_reg_write(client,
-> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 0x3805,
-> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 timing_cfg[i].x_addr_en=
-d & 0xFF);
-> + =A0 =A0 =A0 if (ret)
-> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 return ret;
-> +
-> + =A0 =A0 =A0 ret =3D ov5640_reg_write(client,
-> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 0x3806,
-> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 (timing_cfg[i].y_addr_e=
-nd & 0xFF00) >> 8);
-> + =A0 =A0 =A0 if (ret)
-> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 return ret;
-> +
-> + =A0 =A0 =A0 ret =3D ov5640_reg_write(client,
-> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 0x3807,
-> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 timing_cfg[i].y_addr_en=
-d & 0xFF);
-> + =A0 =A0 =A0 if (ret)
-> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 return ret;
-> +
-> + =A0 =A0 =A0 ret =3D ov5640_reg_write(client,
-> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 0x3808,
-> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 (timing_cfg[i].h_output=
-_size & 0xFF00) >> 8);
-> + =A0 =A0 =A0 if (ret)
-> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 return ret;
-> +
-> + =A0 =A0 =A0 ret =3D ov5640_reg_write(client,
-> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 0x3809,
-> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 timing_cfg[i].h_output_=
-size & 0xFF);
-> + =A0 =A0 =A0 if (ret)
-> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 return ret;
-> +
-> + =A0 =A0 =A0 ret =3D ov5640_reg_write(client,
-> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 0x380A,
-> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 (timing_cfg[i].v_output=
-_size & 0xFF00) >> 8);
-> + =A0 =A0 =A0 if (ret)
-> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 return ret;
-> +
-> + =A0 =A0 =A0 ret =3D ov5640_reg_write(client,
-> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 0x380B,
-> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 timing_cfg[i].v_output_=
-size & 0xFF);
-> + =A0 =A0 =A0 if (ret)
-> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 return ret;
-> +
-> + =A0 =A0 =A0 ret =3D ov5640_reg_write(client,
-> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 0x380C,
-> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 (timing_cfg[i].h_total_=
-size & 0xFF00) >> 8);
-> + =A0 =A0 =A0 if (ret)
-> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 return ret;
-> +
-> + =A0 =A0 =A0 ret =3D ov5640_reg_write(client,
-> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 0x380D,
-> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 timing_cfg[i].h_total_s=
-ize & 0xFF);
-> + =A0 =A0 =A0 if (ret)
-> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 return ret;
-> +
-> + =A0 =A0 =A0 ret =3D ov5640_reg_write(client,
-> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 0x380E,
-> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 (timing_cfg[i].v_total_=
-size & 0xFF00) >> 8);
-> + =A0 =A0 =A0 if (ret)
-> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 return ret;
-> +
-> + =A0 =A0 =A0 ret =3D ov5640_reg_write(client,
-> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 0x380F,
-> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 timing_cfg[i].v_total_s=
-ize & 0xFF);
-> + =A0 =A0 =A0 if (ret)
-> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 return ret;
-> +
-> + =A0 =A0 =A0 ret =3D ov5640_reg_write(client,
-> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 0x3810,
-> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 (timing_cfg[i].isp_h_of=
-fset & 0xFF00) >> 8);
-> + =A0 =A0 =A0 if (ret)
-> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 return ret;
-> +
-> + =A0 =A0 =A0 ret =3D ov5640_reg_write(client,
-> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 0x3811,
-> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 timing_cfg[i].isp_h_off=
-set & 0xFF);
-> + =A0 =A0 =A0 if (ret)
-> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 return ret;
-> +
-> + =A0 =A0 =A0 ret =3D ov5640_reg_write(client,
-> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 0x3812,
-> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 (timing_cfg[i].isp_v_of=
-fset & 0xFF00) >> 8);
-> + =A0 =A0 =A0 if (ret)
-> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 return ret;
-> +
-> + =A0 =A0 =A0 ret =3D ov5640_reg_write(client,
-> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 0x3813,
-> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 timing_cfg[i].isp_v_off=
-set & 0xFF);
-> + =A0 =A0 =A0 if (ret)
-> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 return ret;
-> +
-> + =A0 =A0 =A0 ret =3D ov5640_reg_write(client,
-> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 0x3814,
-> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 ((timing_cfg[i].h_odd_s=
-s_inc & 0xF) << 4) |
-> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 (timing_cfg[i].h_even_s=
-s_inc & 0xF));
-> + =A0 =A0 =A0 if (ret)
-> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 return ret;
-> +
-> + =A0 =A0 =A0 ret =3D ov5640_reg_write(client,
-> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 0x3815,
-> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 ((timing_cfg[i].v_odd_s=
-s_inc & 0xF) << 4) |
-> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 (timing_cfg[i].v_even_s=
-s_inc & 0xF));
-> +
-> + =A0 =A0 =A0 return ret;
-> +}
-> +
-> +static struct v4l2_mbus_framefmt *
-> +__ov5640_get_pad_format(struct ov5640 *ov5640, struct v4l2_subdev_fh=
- *fh,
-> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0unsigned int pad, en=
-um v4l2_subdev_format_whence which)
-> +{
-> + =A0 =A0 =A0 switch (which) {
-> + =A0 =A0 =A0 case V4L2_SUBDEV_FORMAT_TRY:
-> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 return v4l2_subdev_get_try_format(fh, p=
-ad);
-> + =A0 =A0 =A0 case V4L2_SUBDEV_FORMAT_ACTIVE:
-> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 return &ov5640->format;
-> + =A0 =A0 =A0 default:
-> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 return NULL;
-> + =A0 =A0 =A0 }
-> +}
-> +
-> +/* -----------------------------------------------------------------=
-------------
-> + * V4L2 subdev internal operations
-> + */
-> +
-> +static int ov5640_s_power(struct v4l2_subdev *sd, int on)
-> +{
-> + =A0 =A0 =A0 struct ov5640 *ov5640 =3D to_ov5640(sd);
-> +
-> + =A0 =A0 =A0 return ov5640->pdata->s_power(sd, on);
-> +}
-> +
-> +static struct v4l2_subdev_core_ops ov5640_subdev_core_ops =3D {
-> + =A0 =A0 =A0 .s_power =A0 =A0 =A0 =A0=3D ov5640_s_power,
-> +};
-> +
-> +static int ov5640_g_fmt(struct v4l2_subdev *sd,
-> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 struct v4l2_subdev_fh *=
-fh,
-> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 struct v4l2_subdev_form=
-at *format)
-> +{
-> + =A0 =A0 =A0 struct ov5640 *ov5640 =3D to_ov5640(sd);
-> +
-> + =A0 =A0 =A0 format->format =3D *__ov5640_get_pad_format(ov5640, fh,=
- format->pad,
-> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0=
- =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0format->which);
-> +
-> + =A0 =A0 =A0 return 0;
-> +}
-> +
-> +static int ov5640_s_fmt(struct v4l2_subdev *sd,
-> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 struct v4l2_subdev_fh *=
-fh,
-> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 struct v4l2_subdev_form=
-at *format)
-> +{
-> + =A0 =A0 =A0 struct ov5640 *ov5640 =3D to_ov5640(sd);
-> + =A0 =A0 =A0 struct v4l2_mbus_framefmt *__format;
-> +
-> + =A0 =A0 =A0 __format =3D __ov5640_get_pad_format(ov5640, fh, format=
-->pad,
-> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0=
- =A0 =A0 =A0 =A0 format->which);
-> +
-> + =A0 =A0 =A0 *__format =3D format->format;
-> +
-> + =A0 =A0 =A0 /* NOTE: This is always true for now, revisit later. */
-> + =A0 =A0 =A0 ov5640->pixel_rate->cur.val64 =3D 42000000;
-> +
-> + =A0 =A0 =A0 return 0;
-> +}
-> +
-> +static int ov5640_enum_fmt(struct v4l2_subdev *subdev,
-> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0struct v4l2_subd=
-ev_fh *fh,
-> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0struct v4l2_subd=
-ev_mbus_code_enum *code)
-> +{
-> + =A0 =A0 =A0 if (code->index >=3D 2)
-> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 return -EINVAL;
-> +
-> + =A0 =A0 =A0 switch (code->index) {
-> + =A0 =A0 =A0 case 0:
-> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 code->code =3D V4L2_MBUS_FMT_UYVY8_1X16=
-;
-> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 break;
-> + =A0 =A0 =A0 case 1:
-> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 code->code =3D V4L2_MBUS_FMT_YUYV8_1X16=
-;
-> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 break;
-> + =A0 =A0 =A0 }
-> + =A0 =A0 =A0 return 0;
-> +}
-> +
-> +static int ov5640_enum_framesizes(struct v4l2_subdev *subdev,
-> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0=
-struct v4l2_subdev_fh *fh,
-> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0=
-struct v4l2_subdev_frame_size_enum *fse)
-> +{
-> + =A0 =A0 =A0 if ((fse->index >=3D OV5640_SIZE_LAST) ||
-> + =A0 =A0 =A0 =A0 =A0 (fse->code !=3D V4L2_MBUS_FMT_UYVY8_1X16 &&
-> + =A0 =A0 =A0 =A0 =A0 =A0fse->code !=3D V4L2_MBUS_FMT_YUYV8_1X16))
-> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 return -EINVAL;
-> +
-> + =A0 =A0 =A0 fse->min_width =3D ov5640_frmsizes[fse->index].width;
-> + =A0 =A0 =A0 fse->max_width =3D fse->min_width;
-> + =A0 =A0 =A0 fse->min_height =3D ov5640_frmsizes[fse->index].height;
-> + =A0 =A0 =A0 fse->max_height =3D fse->min_height;
-> +
-> + =A0 =A0 =A0 return 0;
-> +}
-> +
-> +static int ov5640_s_stream(struct v4l2_subdev *sd, int enable)
-> +{
-> + =A0 =A0 =A0 struct ov5640 *ov5640 =3D to_ov5640(sd);
-> + =A0 =A0 =A0 struct i2c_client *client =3D v4l2_get_subdevdata(sd);
-> + =A0 =A0 =A0 int ret =3D 0;
-> +
-> + =A0 =A0 =A0 if (enable) {
-> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 u8 fmtreg =3D 0, fmtmuxreg =3D 0;
-> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 int i;
-> +
-> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 switch ((u32)ov5640->format.code) {
-> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 case V4L2_MBUS_FMT_UYVY8_1X16:
-> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 fmtreg =3D 0x32;
-> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 fmtmuxreg =3D 0;
-> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 break;
-> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 case V4L2_MBUS_FMT_YUYV8_1X16:
-> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 fmtreg =3D 0x30;
-> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 fmtmuxreg =3D 0;
-> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 break;
-> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 default:
-> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 /* This shouldn't happe=
-n */
-> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 ret =3D -EINVAL;
-> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 return ret;
-> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 }
-> +
-> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 ret =3D ov5640_reg_write(client, 0x4300=
-, fmtreg);
-> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 if (ret)
-> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 return ret;
-> +
-> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 ret =3D ov5640_reg_write(client, 0x501F=
-, fmtmuxreg);
-> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 if (ret)
-> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 return ret;
-> +
-> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 ret =3D ov5640_config_timing(sd);
-> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 if (ret)
-> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 return ret;
-> +
-> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 i =3D ov5640_find_framesize(ov5640->for=
-mat.width, ov5640->format.height);
-> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 if ((i =3D=3D OV5640_SIZE_QVGA) ||
-> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 (i =3D=3D OV5640_SIZE_VGA) ||
-> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 (i =3D=3D OV5640_SIZE_720P)) {
-> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 ret =3D ov5640_reg_writ=
-e(client, 0x3108,
-> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0=
- =A0 =A0 (i =3D=3D OV5640_SIZE_720P) ? 0x1 : 0);
-> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 if (ret)
-> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 return =
-ret;
-> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 ret =3D ov5640_reg_set(=
-client, 0x5001, 0x20);
-> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 } else {
-> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 ret =3D ov5640_reg_clr(=
-client, 0x5001, 0x20);
-> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 if (ret)
-> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 return =
-ret;
-> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 ret =3D ov5640_reg_writ=
-e(client, 0x3108, 0x2);
-> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 }
-> +
-> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 ret =3D ov5640_reg_clr(client, 0x3008, =
-0x40);
-> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 if (ret)
-> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 goto out;
-> + =A0 =A0 =A0 } else {
-> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 u8 tmpreg =3D 0;
-> +
-> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 ret =3D ov5640_reg_read(client, 0x3008,=
- &tmpreg);
-> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 if (ret)
-> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 goto out;
-> +
-> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 ret =3D ov5640_reg_write(client, 0x3008=
-, tmpreg | 0x40);
-> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 if (ret)
-> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 goto out;
-> + =A0 =A0 =A0 }
-> +
-> +out:
-> + =A0 =A0 =A0 return ret;
-> +}
-> +
-> +static struct v4l2_subdev_video_ops ov5640_subdev_video_ops =3D {
-> + =A0 =A0 =A0 .s_stream =A0 =A0 =A0 =3D ov5640_s_stream,
-> +};
-> +
-> +static struct v4l2_subdev_pad_ops ov5640_subdev_pad_ops =3D {
-> + =A0 =A0 =A0 .enum_mbus_code =3D ov5640_enum_fmt,
-> + =A0 =A0 =A0 .enum_frame_size =3D ov5640_enum_framesizes,
-> + =A0 =A0 =A0 .get_fmt =3D ov5640_g_fmt,
-> + =A0 =A0 =A0 .set_fmt =3D ov5640_s_fmt,
-> +};
-> +
-> +static int ov5640_g_skip_frames(struct v4l2_subdev *sd, u32 *frames)
-> +{
-> + =A0 =A0 =A0 /* Quantity of initial bad frames to skip. Revisit. */
-> + =A0 =A0 =A0 *frames =3D 3;
-> +
-> + =A0 =A0 =A0 return 0;
-> +}
-> +
-> +static struct v4l2_subdev_sensor_ops ov5640_subdev_sensor_ops =3D {
-> + =A0 =A0 =A0 .g_skip_frames =A0=3D ov5640_g_skip_frames,
-> +};
-> +
-> +static struct v4l2_subdev_ops ov5640_subdev_ops =3D {
-> + =A0 =A0 =A0 .core =A0 =3D &ov5640_subdev_core_ops,
-> + =A0 =A0 =A0 .video =A0=3D &ov5640_subdev_video_ops,
-> + =A0 =A0 =A0 .pad =A0 =A0=3D &ov5640_subdev_pad_ops,
-> + =A0 =A0 =A0 .sensor =3D &ov5640_subdev_sensor_ops,
-> +};
-> +
-> +static int ov5640_registered(struct v4l2_subdev *subdev)
-> +{
-> + =A0 =A0 =A0 struct i2c_client *client =3D v4l2_get_subdevdata(subde=
-v);
-> + =A0 =A0 =A0 struct ov5640 *ov5640 =3D to_ov5640(subdev);
-> + =A0 =A0 =A0 int ret =3D 0;
-> + =A0 =A0 =A0 u8 revision =3D 0;
-> +
-> + =A0 =A0 =A0 ret =3D ov5640_s_power(subdev, 1);
-> + =A0 =A0 =A0 if (ret < 0) {
-> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 dev_err(&client->dev, "OV5640 power up =
-failed\n");
-> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 return ret;
-> + =A0 =A0 =A0 }
-> +
-> + =A0 =A0 =A0 ret =3D ov5640_reg_read(client, 0x302A, &revision);
-> + =A0 =A0 =A0 if (ret) {
-> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 dev_err(&client->dev, "Failure to detec=
-t OV5640 chip\n");
-> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 goto out;
-> + =A0 =A0 =A0 }
-> +
-> + =A0 =A0 =A0 revision &=3D 0xF;
-> +
-> + =A0 =A0 =A0 dev_info(&client->dev, "Detected a OV5640 chip, revisio=
-n %x\n",
-> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0revision);
-> +
-> + =A0 =A0 =A0 /* SW Reset */
-> + =A0 =A0 =A0 ret =3D ov5640_reg_set(client, 0x3008, 0x80);
-> + =A0 =A0 =A0 if (ret)
-> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 goto out;
-> +
-> + =A0 =A0 =A0 msleep(2);
-> +
-> + =A0 =A0 =A0 ret =3D ov5640_reg_clr(client, 0x3008, 0x80);
-> + =A0 =A0 =A0 if (ret)
-> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 goto out;
-> +
-> + =A0 =A0 =A0 /* SW Powerdown */
-> + =A0 =A0 =A0 ret =3D ov5640_reg_set(client, 0x3008, 0x40);
-> + =A0 =A0 =A0 if (ret)
-> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 goto out;
-> +
-> + =A0 =A0 =A0 ret =3D ov5640_reg_writes(client, configscript_common1,
-> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 ARRAY_SIZE(configscript=
-_common1));
-> + =A0 =A0 =A0 if (ret)
-> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 goto out;
-> +
-> + =A0 =A0 =A0 ret =3D ov5640_reg_writes(client, configscript_common2,
-> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 ARRAY_SIZE(configscript=
-_common2));
-> + =A0 =A0 =A0 if (ret)
-> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 goto out;
-> +
-> + =A0 =A0 =A0 /* Init controls */
-> + =A0 =A0 =A0 ret =3D v4l2_ctrl_handler_init(&ov5640->ctrl_handler, 1=
-);
-> + =A0 =A0 =A0 if (ret)
-> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 goto out;
-> +
-> + =A0 =A0 =A0 ov5640->pixel_rate =3D v4l2_ctrl_new_std(
-> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 &ov5640=
-->ctrl_handler, NULL,
-> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 V4L2_CI=
-D_PIXEL_RATE,
-> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 0, 0, 1=
-, 0);
-> +
-> + =A0 =A0 =A0 subdev->ctrl_handler =3D &ov5640->ctrl_handler;
-> +out:
-> + =A0 =A0 =A0 ov5640_s_power(subdev, 0);
-> +
-> + =A0 =A0 =A0 return ret;
-> +}
-> +
-> +static int ov5640_open(struct v4l2_subdev *subdev, struct v4l2_subde=
-v_fh *fh)
-> +{
-> + =A0 =A0 =A0 struct v4l2_mbus_framefmt *format;
-> +
-> + =A0 =A0 =A0 format =3D v4l2_subdev_get_try_format(fh, 0);
-> + =A0 =A0 =A0 format->code =3D V4L2_MBUS_FMT_UYVY8_1X16;
-> + =A0 =A0 =A0 format->width =3D ov5640_frmsizes[OV5640_SIZE_VGA].widt=
-h;
-> + =A0 =A0 =A0 format->height =3D ov5640_frmsizes[OV5640_SIZE_VGA].hei=
-ght;
-> + =A0 =A0 =A0 format->field =3D V4L2_FIELD_NONE;
-> + =A0 =A0 =A0 format->colorspace =3D V4L2_COLORSPACE_JPEG;
-> +
-> + =A0 =A0 =A0 return 0;
-> +}
-> +
-> +static int ov5640_close(struct v4l2_subdev *subdev, struct v4l2_subd=
-ev_fh *fh)
-> +{
-> + =A0 =A0 =A0 return 0;
-> +}
-> +
-> +static struct v4l2_subdev_internal_ops ov5640_subdev_internal_ops =3D=
- {
-> + =A0 =A0 =A0 .registered =3D ov5640_registered,
-> + =A0 =A0 =A0 .open =3D ov5640_open,
-> + =A0 =A0 =A0 .close =3D ov5640_close,
-> +};
-> +
-> +static int ov5640_probe(struct i2c_client *client,
-> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0const struct i2c_dev=
-ice_id *did)
-> +{
-> + =A0 =A0 =A0 struct ov5640 *ov5640;
-> + =A0 =A0 =A0 int ret;
-> +
-> + =A0 =A0 =A0 if (!client->dev.platform_data) {
-> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 dev_err(&client->dev, "No platform data=
-!!\n");
-> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 return -ENODEV;
-> + =A0 =A0 =A0 }
-> +
-> + =A0 =A0 =A0 ov5640 =3D kzalloc(sizeof(*ov5640), GFP_KERNEL);
-> + =A0 =A0 =A0 if (!ov5640)
-> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 return -ENOMEM;
-> +
-> + =A0 =A0 =A0 ov5640->pdata =3D client->dev.platform_data;
-> +
-> + =A0 =A0 =A0 ov5640->format.code =3D V4L2_MBUS_FMT_UYVY8_1X16;
-> + =A0 =A0 =A0 ov5640->format.width =3D ov5640_frmsizes[OV5640_SIZE_VG=
-A].width;
-> + =A0 =A0 =A0 ov5640->format.height =3D ov5640_frmsizes[OV5640_SIZE_V=
-GA].height;
-> + =A0 =A0 =A0 ov5640->format.field =3D V4L2_FIELD_NONE;
-> + =A0 =A0 =A0 ov5640->format.colorspace =3D V4L2_COLORSPACE_JPEG;
-> +
-> + =A0 =A0 =A0 v4l2_i2c_subdev_init(&ov5640->subdev, client, &ov5640_s=
-ubdev_ops);
-> + =A0 =A0 =A0 ov5640->subdev.internal_ops =3D &ov5640_subdev_internal=
-_ops;
-> + =A0 =A0 =A0 ov5640->subdev.flags |=3D V4L2_SUBDEV_FL_HAS_DEVNODE;
-> + =A0 =A0 =A0 ov5640->subdev.entity.type =3D MEDIA_ENT_T_V4L2_SUBDEV_=
-SENSOR;
-> +
-> + =A0 =A0 =A0 ov5640->pad.flags =3D MEDIA_PAD_FL_SOURCE;
-> + =A0 =A0 =A0 ret =3D media_entity_init(&ov5640->subdev.entity, 1, &o=
-v5640->pad, 0);
-> + =A0 =A0 =A0 if (ret < 0)
-> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 goto err_mediainit;
-> +
-> + =A0 =A0 =A0 return ret;
-> +
-> +err_mediainit:
-> + =A0 =A0 =A0 v4l2_device_unregister_subdev(&ov5640->subdev);
-> + =A0 =A0 =A0 kfree(ov5640);
-> + =A0 =A0 =A0 return ret;
-> +}
-> +
-> +static int ov5640_remove(struct i2c_client *client)
-> +{
-> + =A0 =A0 =A0 struct v4l2_subdev *subdev =3D i2c_get_clientdata(clien=
-t);
-> + =A0 =A0 =A0 struct ov5640 *ov5640 =3D to_ov5640(subdev);
-> +
-> + =A0 =A0 =A0 v4l2_ctrl_handler_free(&ov5640->ctrl_handler);
-> + =A0 =A0 =A0 v4l2_device_unregister_subdev(subdev);
-> + =A0 =A0 =A0 media_entity_cleanup(&subdev->entity);
-> + =A0 =A0 =A0 kfree(ov5640);
-> + =A0 =A0 =A0 return 0;
-> +}
-> +
-> +static const struct i2c_device_id ov5640_id[] =3D {
-> + =A0 =A0 =A0 { "ov5640", 0 },
-> + =A0 =A0 =A0 { }
-> +};
-> +MODULE_DEVICE_TABLE(i2c, ov5640_id);
-> +
-> +static struct i2c_driver ov5640_i2c_driver =3D {
-> + =A0 =A0 =A0 .driver =3D {
-> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 .name =3D "ov5640",
-> + =A0 =A0 =A0 },
-> + =A0 =A0 =A0 .probe =A0 =A0 =A0 =A0 =A0=3D ov5640_probe,
-> + =A0 =A0 =A0 .remove =A0 =A0 =A0 =A0 =3D ov5640_remove,
-> + =A0 =A0 =A0 .id_table =A0 =A0 =A0 =3D ov5640_id,
-> +};
-> +
-> +static int __init ov5640_mod_init(void)
-> +{
-> + =A0 =A0 =A0 return i2c_add_driver(&ov5640_i2c_driver);
-> +}
-> +
-> +static void __exit ov5640_mod_exit(void)
-> +{
-> + =A0 =A0 =A0 i2c_del_driver(&ov5640_i2c_driver);
-> +}
-> +
-> +module_init(ov5640_mod_init);
-> +module_exit(ov5640_mod_exit);
-> +
-> +MODULE_DESCRIPTION("OmniVision OV5640 Camera driver");
-> +MODULE_AUTHOR("Sergio Aguirre <saaguirre@ti.com>");
-> +MODULE_LICENSE("GPL v2");
-> diff --git a/include/media/ov5640.h b/include/media/ov5640.h
-> new file mode 100644
-> index 0000000..65625ce
-> --- /dev/null
-> +++ b/include/media/ov5640.h
-> @@ -0,0 +1,10 @@
-> +#ifndef _MEDIA_OV5640_H
-> +#define _MEDIA_OV5640_H
-> +
-> +#include <media/v4l2-subdev.h>
-> +
-> +struct ov5640_platform_data {
-> + =A0 =A0 =A0int (*s_power)(struct v4l2_subdev *subdev, int on);
-> +};
-> +
-> +#endif
-> --
-> 1.7.5.4
->
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-media=
-" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at =A0http://vger.kernel.org/majordomo-info.html
---
-To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Yea true, similar to above.
+
+> > +
+> > +/* Which register do we use by default? */
+> > +static int __initdata default_reg = -1;
+> > +
+> > +/* Do we need to setup internal pullups? */
+> > +static int __initdata pd_vsel0 = -1;
+> > +static int __initdata pd_vsel1 = -1;
+> > +
+> > +static int __init _bd_setup(char *name, int gpio_vsel, int *pull, int *pd_vsel)
+> > +{
+> > +	int pull_dir;
+> > +	int r;
+> > +
+> > +	if (gpio_vsel == -1) {
+> > +		if (*pull != -1) {
+> > +			*pd_vsel = (*pull == OMAP_PIN_OFF_OUTPUT_HIGH);
+> I think a better mechanism to choose the pull should be used IMHO.
+
+Hmm, I'll look at this and see if I can figure out something better.
+
+> > +			*pull = *pd_vsel;
+> > +		} else {
+> > +			*pull = 0;
+> > +		}
+> > +		return 0;
+> > +	}
+> > +
+> > +	/* if we have a pull gpio, with bad dir, pull low */
+> > +	if (*pull == -1 || (*pull != OMAP_PIN_OFF_OUTPUT_HIGH &&
+> > +				*pull != OMAP_PIN_OFF_OUTPUT_LOW))
+> > +		*pull = OMAP_PIN_OFF_OUTPUT_LOW;
+> We dont need to set OFF_OUTPUT on OMAP4 as these are automatically
+> latched when going to OFF.
+
+True again, I'll drop these out.
+
+> > +
+> > +	r = omap_mux_init_gpio(gpio_vsel, *pull);
+> > +	if (r) {
+> > +		pr_err("%s: unable to mux gpio%d=%d\n", __func__,
+> > +			gpio_vsel, r);
+> > +		goto out;
+> > +	}
+> > +
+> > +	pull_dir = (*pull == OMAP_PIN_OFF_OUTPUT_HIGH);
+> > +	*pull = pull_dir;
+> note below
+> > +
+> > +	r = gpio_request(gpio_vsel, name);
+> > +	if (r) {
+> > +		pr_err("%s: unable to req gpio%d=%d\n", __func__,
+> > +			gpio_vsel, r);
+> > +		goto out;
+> > +	}
+> > +	r = gpio_direction_output(gpio_vsel, pull_dir);
+> > +	if (r) {
+> > +		pr_err("%s: unable to pull[%d] gpio%d=%d\n", __func__,
+> > +			gpio_vsel, pull_dir, r);
+> > +		gpio_free(gpio_vsel);
+> > +		goto out;
+> > +	}
+> > +out:
+> > +	return r;
+> > +}
+> > +
+> > +static unsigned long tps6236x_vsel_to_uv(const u8 vsel);
+> > +static u8 tps6236x_uv_to_vsel(unsigned long uv);
+> > +
+> > +static struct omap_voltdm_pmic omap4_mpu_pmic = {
+> > +	.slew_rate		= 8000,
+> without programing the slew rate, it is a bad idea to use the default
+> here considering we can go to 32mV/uSec by programing the
+> register
+
+Well, the main point with this patch is to provide minimal support for
+tps chip, I don't want to try and put all possible features in the first
+version. The missing features / optimizations can be added later once we
+have at least something in.
+
+> > +	.step_size		= STEP_SIZE_TPS6236X,
+> > +	.startup_time		= 1000,
+> > +	.shutdown_time		= 1,
+> > +	.vddmin			= MIN_VOLTAGE_TPS62361_UV,
+> > +	.vddmax			= MAX_VOLTAGE_TPS62361_UV,
+> > +	.volt_setup_time	= 0,
+> > +	.vp_erroroffset		= OMAP4_VP_CONFIG_ERROROFFSET,
+> > +	.vp_vstepmin		= OMAP4_VP_VSTEPMIN_VSTEPMIN,
+> > +	.vp_vstepmax		= OMAP4_VP_VSTEPMAX_VSTEPMAX,
+> > +	.vp_timeout_us		= OMAP4_VP_VLIMITTO_TIMEOUT_US,
+> > +	.i2c_slave_addr		= I2C_TPS6236X_SLAVE_ADDR,
+> > +	.volt_reg_addr		= REG_TPS6236X_SET_0,
+> > +	.cmd_reg_addr		= REG_TPS6236X_SET_0,
+> > +	.i2c_high_speed		= true,
+> > +	.vsel_to_uv		= tps6236x_vsel_to_uv,
+> > +	.uv_to_vsel		= tps6236x_uv_to_vsel,
+> > +};
+> > +
+> > +static unsigned long tps6236x_vsel_to_uv(const u8 vsel)
+> > +{
+> > +	return omap4_mpu_pmic.vddmin +
+> > +		(STEP_SIZE_TPS6236X * (vsel & ~VOLTAGE_PFM_MODE_VAL));
+> > +}
+> > +
+> > +static u8 tps6236x_uv_to_vsel(unsigned long uv)
+> > +{
+> > +	if (!uv)
+> > +		return 0;
+> > +
+> > +	/* Round off requests to limits */
+> > +	if (uv > omap4_mpu_pmic.vddmax) {
+> > +		pr_err("%s:Request for overvoltage[%ld] than supported[%u]\n",
+> > +				__func__, uv, omap4_mpu_pmic.vddmax);
+> > +		uv = omap4_mpu_pmic.vddmax;
+> > +	}
+> > +	if (uv < omap4_mpu_pmic.vddmin) {
+> > +		pr_err("%s:Request for undervoltage[%ld] than supported[%u]\n",
+> > +				__func__, uv, omap4_mpu_pmic.vddmin);
+> > +		uv = omap4_mpu_pmic.vddmin;
+> > +	}
+> > +	return DIV_ROUND_UP(uv - omap4_mpu_pmic.vddmin, STEP_SIZE_TPS6236X) |
+> > +			VOLTAGE_PFM_MODE_VAL;
+> > +}
+> > +
+> > +static __initdata struct omap_pmic_map omap_tps_map[] = {
+> > +	{
+> > +		.name = "mpu",
+> > +		.cpu = PMIC_CPU_OMAP4460,
+> > +		.pmic_data = &omap4_mpu_pmic,
+> > +	},
+> > +	/* Terminator */
+> > +	{ .name = NULL, .pmic_data = NULL},
+> > +};
+> > +
+> > +int __init omap_tps6236x_init(void)
+> > +{
+> > +	struct omap_pmic_map *map;
+> > +
+> > +	/* Without registers, I wont proceed */
+> > +	if (default_reg == -1)
+> > +		return -EINVAL;
+> > +
+> > +	map = omap_tps_map;
+> > +
+> > +	/* setup all the pmic's voltage addresses to the default one */
+> > +	while (map->name) {
+> > +		map->pmic_data->volt_reg_addr = default_reg;
+> > +		map->pmic_data->cmd_reg_addr = default_reg;
+> > +		map++;
+> > +	}
+> > +
+> > +	return omap_pmic_register_data(omap_tps_map);
+> > +}
+> > +
+> > +/**
+> > + * omap_tps6236x_board_setup() - provide the board config for TPS connect
+> > + * @use_62361:	Do we use TPS62361 variant?
+> > + * @gpio_vsel0:	If using GPIO to control VSEL0, provide gpio number, else -1
+> > + * @gpio_vsel1:	If using GPIO to control VSEL1, provide gpio number, else -1
+> > + * @pull0:	If using GPIO, provide mux mode OMAP_PIN_OFF_OUTPUT_[HIGH|LOW]
+> > + *		else provide any internal pull required, -1 if unused.
+> > + * @pull1:	If using GPIO, provide mux mode OMAP_PIN_OFF_OUTPUT_[HIGH|LOW]
+> > + *		else provide any internal pull required, -1 if unused.
+> > + *
+> > + * TPS6236x variants of PMIC can be hooked in numerous combinations on to the
+> > + * board. Some platforms can choose to hardwire and save on a GPIO for other
+> > + * uses, while others may hook a single line for GPIO control and may ground
+> > + * the other line. support these configurations.
+> > + *
+> > + * WARNING: for platforms using GPIO, be careful to provide MUX setting
+> > + * considering OFF mode configuration as well.
+> > + */
+> > +int __init omap_tps6236x_board_setup(bool use_62361, int gpio_vsel0,
+> > +		int gpio_vsel1, int pull0, int pull1)
+> > +{
+> > +	int r;
+> > +
+> > +	r = _bd_setup("tps6236x_vsel0", gpio_vsel0, &pull0, &pd_vsel0);
+> > +	if (r)
+> > +		goto out;
+> > +	r = _bd_setup("tps6236x_vsel1", gpio_vsel1, &pull1, &pd_vsel1);
+> > +	if (r) {
+> > +		if (gpio_vsel0 != -1)
+> > +			gpio_free(gpio_vsel0);
+> > +		goto out;
+> > +	}
+> > +
+> > +	default_reg = ((pull1 & 0x1) << 1) | (pull0 & 0x1);
+> it is a better idea not to reuse the same old variable as the meaning
+> changes at this point from pointing at OFF state config. the variable no
+> longer contains the pull param passed as input as it has been modified
+> by _bd_setup
+
+Not sure what you mean by this, default_reg only is used for indicating
+the register address used for voltage control. It is initialized based
+on the vsel0 and vsel1 values going to the tps chip.... A comment here
+would be good though.
+
+> > +
+> > +	if (!use_62361) {
+> > +		omap4_mpu_pmic.vddmin = MIN_VOLTAGE_TPS62360_62_UV;
+> > +		omap4_mpu_pmic.vddmax = MAX_VOLTAGE_TPS62360_62_UV;
+> > +	}
+> > +out:
+> > +	return r;
+> > +}
+> > diff --git a/arch/arm/mach-omap2/omap_twl.c b/arch/arm/mach-omap2/omap_twl.c
+> > index c8e418e..fef14df 100644
+> > --- a/arch/arm/mach-omap2/omap_twl.c
+> > +++ b/arch/arm/mach-omap2/omap_twl.c
+> > @@ -38,11 +38,6 @@
+> >  #define OMAP4_VDD_CORE_SR_VOLT_REG	0x61
+> >  #define OMAP4_VDD_CORE_SR_CMD_REG	0x62
+> >  
+> > -#define OMAP4_VP_CONFIG_ERROROFFSET	0x00
+> > -#define OMAP4_VP_VSTEPMIN_VSTEPMIN	0x01
+> > -#define OMAP4_VP_VSTEPMAX_VSTEPMAX	0x04
+> > -#define OMAP4_VP_VLIMITTO_TIMEOUT_US	200
+> > -
+> >  static bool is_offset_valid;
+> >  static u8 smps_offset;
+> >  /*
+> > diff --git a/arch/arm/mach-omap2/twl-common.c b/arch/arm/mach-omap2/twl-common.c
+> > index 2588e04..ec802d8 100644
+> > --- a/arch/arm/mach-omap2/twl-common.c
+> > +++ b/arch/arm/mach-omap2/twl-common.c
+> > @@ -78,6 +78,7 @@ void __init omap_pmic_late_init(void)
+> >  		return;
+> >  
+> >  	omap_twl_init();
+> > +	omap_tps6236x_init();
+> >  }
+> >  
+> >  #if defined(CONFIG_ARCH_OMAP3)
+> > diff --git a/arch/arm/mach-omap2/twl-common.h b/arch/arm/mach-omap2/twl-common.h
+> > index 2f805a3..0655efc 100644
+> > --- a/arch/arm/mach-omap2/twl-common.h
+> > +++ b/arch/arm/mach-omap2/twl-common.h
+> > @@ -86,4 +86,20 @@ struct omap_pmic_map {
+> >  extern int omap_pmic_register_data(struct omap_pmic_map *map);
+> >  extern void omap_pmic_data_init(void);
+> >  
+> > +#ifdef CONFIG_OMAP_TPS6236X
+> > +extern int omap_tps6236x_board_setup(bool use_62361, int gpio_vsel0,
+> > +			int gpio_vsel1, int pull0, int pull1);
+> > +extern int omap_tps6236x_init(void);
+> > +#else
+> > +static inline int omap_tps6236x_board_setup(bool use_62361, int gpio_vsel0,
+> > +			int gpio_vsel1, int pull0, int pull1)
+> > +{
+> > +	return -EINVAL;
+> > +}
+> > +static inline int omap_tps6236x_init(void)
+> > +{
+> > +	return -EINVAL;
+> > +}
+> > +#endif
+> makes no sense to have this in twl-common.h - this is a different PMIC.
+> This standard is not scalable if I need to define a new set of PMICs to
+> use.
+
+How about renaming twl-common.* to omap-pmic.*? I was thinking about
+doing this before posting the patch but decided to drop the idea for
+this version.
+
+> 
+> > +
+> >  #endif /* __OMAP_PMIC_COMMON__ */
+> > diff --git a/arch/arm/mach-omap2/voltage.h b/arch/arm/mach-omap2/voltage.h
+> > index 54b959c..ac68a0e 100644
+> > --- a/arch/arm/mach-omap2/voltage.h
+> > +++ b/arch/arm/mach-omap2/voltage.h
+> > @@ -138,6 +138,11 @@ struct omap_volt_data {
+> >  #define OMAP4_VP_CORE_VLIMITTO_VDDMIN	830000
+> >  #define OMAP4_VP_CORE_VLIMITTO_VDDMAX	1200000
+> >  
+> > +#define OMAP4_VP_CONFIG_ERROROFFSET	0x00
+> > +#define OMAP4_VP_VSTEPMIN_VSTEPMIN	0x01
+> > +#define OMAP4_VP_VSTEPMAX_VSTEPMAX	0x04
+> > +#define OMAP4_VP_VLIMITTO_TIMEOUT_US	200
+> > +
+> >  /**
+> >   * struct omap_voltdm_pmic - PMIC specific data required by voltage driver.
+> >   * @slew_rate:	PMIC slew rate (in uv/us)
+> 
+> One more point to consider is that with this - we *should* disable
+> VCORE3 and VMEM else we can have weird behavior such as those seen
+> by pandaboard-ES early adopters.
+
+In what case are we seeing such? If the regulators should be disabled,
+maybe we should do it already in bootloader.
+
+-Tero
+
