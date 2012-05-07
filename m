@@ -1,78 +1,55 @@
-From: "R, Sricharan" <r.sricharan@ti.com>
-Subject: Re: [PATCH 10/13] ARM: OMAP5: board-generic: Add device tree support.
-Date: Mon, 7 May 2012 19:38:39 +0530
-Message-ID: <CAJ7qFSdBz1ccp0Z-4pWvbq0J0zb6j3Kto4cDz3R0kHT7YfRo0w@mail.gmail.com>
-References: <1336029982-31898-1-git-send-email-r.sricharan@ti.com>
-	<1336029982-31898-11-git-send-email-r.sricharan@ti.com>
-	<4FA7CDC1.9050301@ti.com>
+From: Igor Grinberg <grinberg@compulab.co.il>
+Subject: Re: [PATCH] ARM: OMAP: USB: fix warning on EHCI PHY reset path
+Date: Mon, 07 May 2012 17:27:50 +0300
+Message-ID: <4FA7DBE6.3060809@compulab.co.il>
+References: <Pine.LNX.4.44L0.1205071003240.1602-100000@iolanthe.rowland.org>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aog117.obsmtp.com ([74.125.149.242]:58680 "EHLO
-	na3sys009aog117.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1756620Ab2EGOIp convert rfc822-to-8bit
-	(ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Mon, 7 May 2012 10:08:45 -0400
-Received: by lahc1 with SMTP id c1so3871306lah.26
-        for <linux-omap@vger.kernel.org>; Mon, 07 May 2012 07:08:39 -0700 (PDT)
-In-Reply-To: <4FA7CDC1.9050301@ti.com>
+Received: from 50.23.254.54-static.reverse.softlayer.com ([50.23.254.54]:42548
+	"EHLO softlayer.compulab.co.il" rhost-flags-OK-OK-OK-FAIL)
+	by vger.kernel.org with ESMTP id S1756676Ab2EGO17 (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 7 May 2012 10:27:59 -0400
+In-Reply-To: <Pine.LNX.4.44L0.1205071003240.1602-100000@iolanthe.rowland.org>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "Cousson, Benoit" <b-cousson@ti.com>
-Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, santosh.shilimkar@ti.com, tony@atomide.com
+To: Alan Stern <stern@rowland.harvard.edu>
+Cc: balbi@ti.com, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, Keshava Munegowda <Keshava_mgowda@ti.com>, linux-usb@vger.kernel.org, linux-omap@vger.kernel.org, Samuel Ortiz <sameo@linux.intel.com>
 
-Hi Benoit,
-  Thanks for the reviews.
-
->
->> Adding the minimal support for OMAP5 soc with device tree.
->
->
-> You should probably split that patch since you are doing several thin=
-gs that
-> are not OMAP5 related.
->
-> Do a patch that move the omap_init_irq into the INTC and GIC code fir=
-st.
->
-> Then, you can add a patch to add the OMAP5_DT machine entry.
->
-  ok, will split this then accordingly.
-
-[snip]
-
->> @@ -185,6 +185,8 @@ void omap3_intc_prepare_idle(void);
->> =A0void omap3_intc_resume_idle(void);
->> =A0void omap2_intc_handle_irq(struct pt_regs *regs);
->> =A0void omap3_intc_handle_irq(struct pt_regs *regs);
->> +void omap_of_init_irq(void);
->
->
-> In order to be consistent with the GIC function and even the previous=
- ones,
-> you should name the exported one:
->
-> +void omap_intc_of_init(void);
->
- Ok, will take care of this rename.
-
-
+On 05/07/12 17:04, Alan Stern wrote:
+> On Sun, 6 May 2012, Igor Grinberg wrote:
+> 
+>> Hi Alan,
+> 
+> ...
+> 
+>> Sorry, for being jumpy...
+>> Samuel has not answered yet (it has been more then two weeks already)
+>> and I'd like this to go into 3.5.
+>> Also, the dependency patch is already in Linus' tree. It has been merged with
+>> fixes (I thought it will happen only during the merge window...).
 >>
->> @@ -279,6 +280,16 @@ int __init omap_intc_of_init(struct device_node
->> *node,
->
->
-> And thus rename that one that become a private function without the o=
-map_
-> prefix.
->
- ok..
+>> Can you, please take this one?
+> 
+> No, I can't, sorry.  It has to be accepted by Greg KH.
 
-Thanks,
- Sricharan
---
-To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Hmm... I don't mind it be that way, but I'd like to understand:
+
+# scripts/get_maintainer.pl -f drivers/usb/host/ehci-omap.c
+Alan Stern <stern@rowland.harvard.edu> (maintainer:USB EHCI DRIVER)
+Felipe Balbi <balbi@ti.com> (maintainer:OMAP USB SUPPORT)
+Greg Kroah-Hartman <gregkh@suse.de> (supporter:USB SUBSYSTEM)
+linux-usb@vger.kernel.org (open list:USB EHCI DRIVER)
+linux-omap@vger.kernel.org (open list:OMAP USB SUPPORT)
+linux-kernel@vger.kernel.org (open list)
+
+This makes you the USB EHCI maintainer, right?
+I just want to understand...
+Do you need also ack from Greg to take something to your tree
+for being applied in the next merge window?
+
+
+-- 
+Regards,
+Igor.
