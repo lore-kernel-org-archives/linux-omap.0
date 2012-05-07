@@ -1,122 +1,103 @@
-From: Jon Hunter <jon-hunter@ti.com>
-Subject: Re: [PATCH v4 01/39] ARM: OMAP2+: gpmc: driver conversion
-Date: Mon, 7 May 2012 11:23:34 -0500
-Message-ID: <4FA7F706.1020706@ti.com>
-References: <cover.1335874494.git.afzal@ti.com> <363273a9ef82d6836197929157aa9a8eb8f5171a.1335874494.git.afzal@ti.com> <4FA022FC.5040703@ti.com> <C8443D0743D26F4388EA172BF4E2A7A93E982967@DBDE01.ent.ti.com> <4FA401C0.7070503@ti.com> <C8443D0743D26F4388EA172BF4E2A7A93E98712C@DBDE01.ent.ti.com>
+From: "S, Venkatraman" <svenkatr@ti.com>
+Subject: Re: [PATCH v2 01/16] FS: Added demand paging markers to filesystem
+Date: Mon, 7 May 2012 22:16:30 +0530
+Message-ID: <CANfBPZ_2JeWUu7ti97CVc=ODeEi65ke9EKV6Uje0JHcCM8gYqQ@mail.gmail.com>
+References: <1336054995-22988-1-git-send-email-svenkatr@ti.com>
+ <1336054995-22988-2-git-send-email-svenkatr@ti.com> <20120506233117.GU5091@dastard>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="ISO-8859-1"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from arroyo.ext.ti.com ([192.94.94.40]:42176 "EHLO arroyo.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1756701Ab2EGQX4 (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Mon, 7 May 2012 12:23:56 -0400
-In-Reply-To: <C8443D0743D26F4388EA172BF4E2A7A93E98712C@DBDE01.ent.ti.com>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: quoted-printable
+Return-path: <owner-linux-mm@kvack.org>
+In-Reply-To: <20120506233117.GU5091@dastard>
+Sender: owner-linux-mm@kvack.org
+To: Dave Chinner <david@fromorbit.com>
+Cc: linux-mmc@vger.kernel.org, cjb@laptop.org, linux-mm@kvack.org, linux-fsdevel@vger.kernel.org, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org, arnd.bergmann@linaro.org, alex.lemberg@sandisk.com, ilan.smith@sandisk.com, lporzio@micron.com, rmk+kernel@arm.linux.org.uk
 List-Id: linux-omap@vger.kernel.org
-To: "Mohammed, Afzal" <afzal@ti.com>
-Cc: "tony@atomide.com" <tony@atomide.com>, "linux@arm.linux.org.uk" <linux@arm.linux.org.uk>, "Hilman, Kevin" <khilman@ti.com>, "Balbi, Felipe" <balbi@ti.com>, "dwmw2@infradead.org" <dwmw2@infradead.org>, "kyungmin.park@samsung.com" <kyungmin.park@samsung.com>, "gregkh@linuxfoundation.org" <gregkh@linuxfoundation.org>, "Menon, Nishanth" <nm@ti.com>, "grinberg@compulab.co.il" <grinberg@compulab.co.il>, "notasas@gmail.com" <notasas@gmail.com>, "artem.bityutskiy@linux.intel.com" <artem.bityutskiy@linux.intel.com>, "vimal.newwork@gmail.com" <vimal.newwork@gmail.com>, "dbaryshkov@gmail.com" <dbaryshkov@gmail.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, "linux-usb@vger.kernel.org" <linux-usb@vger.kernel.org>, "linux-mtd@lists.infradead.org" <linux-mtd@lists.infradead.org>, Hire
 
-Hi Afzal,
+Mon, May 7, 2012 at 5:01 AM, Dave Chinner <david@fromorbit.com> wrote:
+> On Thu, May 03, 2012 at 07:53:00PM +0530, Venkatraman S wrote:
+>> From: Ilan Smith <ilan.smith@sandisk.com>
+>>
+>> Add attribute to identify demand paging requests.
+>> Mark readpages with demand paging attribute.
+>>
+>> Signed-off-by: Ilan Smith <ilan.smith@sandisk.com>
+>> Signed-off-by: Alex Lemberg <alex.lemberg@sandisk.com>
+>> Signed-off-by: Venkatraman S <svenkatr@ti.com>
+>> ---
+>> =A0fs/mpage.c =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0| =A0 =A02 ++
+>> =A0include/linux/bio.h =A0 =A0 =A0 | =A0 =A07 +++++++
+>> =A0include/linux/blk_types.h | =A0 =A02 ++
+>> =A03 files changed, 11 insertions(+)
+>>
+>> diff --git a/fs/mpage.c b/fs/mpage.c
+>> index 0face1c..8b144f5 100644
+>> --- a/fs/mpage.c
+>> +++ b/fs/mpage.c
+>> @@ -386,6 +386,8 @@ mpage_readpages(struct address_space *mapping, struc=
+t list_head *pages,
+>> =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =
+=A0 &last_block_in_bio, &map_bh,
+>> =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =
+=A0 &first_logical_block,
+>> =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =
+=A0 get_block);
+>> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 if (bio)
+>> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 bio->bi_rw |=
+=3D REQ_RW_DMPG;
+>
+> Have you thought about the potential for DOSing a machine
+> with this? That is, user data reads can now preempt writes of any
+> kind, effectively stalling writeback and memory reclaim which will
+> lead to OOM situations. Or, alternatively, journal flushing will get
+> stalled and no new modifications can take place until the read
+> stream stops.
 
-On 05/07/2012 05:57 AM, Mohammed, Afzal wrote:
-> Hi Jon,
-> 
-> On Fri, May 04, 2012 at 21:50:16, Hunter, Jon wrote:
->>> As mentioned in the cover letter,
->>>
->>> "Additional features that currently boards in mainline does not make
->>> use of like, waitpin interrupt handling, changes to leverage revision
->>> 6 IP differences has not been incorporated."
->>>
->>> Priority in this series is to convert into a driver, get all boards working
->>> on mainline. Once all boards are working with gpmc driver, these features
->>> which are not required for currently supported boards can be added later.
->>
->> Yes, but I meant why 2 and not say 5? Anyway, I think that this should
->> be marked with a comment like a TODO so it is clear that this needs to
->> be re-visited.
-> 
-> Ok, it will be marked with TODO
-> 
->>>> I think that it make more sense to have the wait-pin information part of
->>>> the gpmc_cs_data structure for the following reasons ...
->>>
->>> Waitpin information is indeed a part of cs as far as boards are concerned,
->>> it is only that it gets propogated to device
->>
->> Why does the device's driver care? From my point of view, the wait-pin
->> is just part of the interface setup/configuration. The external device
->> may require this and assumes that this has been setup along with the CS
->> and interface timing, but the device's driver should not care. Remember
->> this is just a ready signal used to stall the access. Once configured,
->> software should be unaware of it.
-> 
-> By device, it is referred to gpmc device which only gpmc driver is aware,
-> the peripheral device's driver is not at all aware.
-> 
->>>> Also, any reason why waitpin_polarity is an int? I see you define LOW as
->>>> -1, but I not sure why LOW cannot be 0 as 0 is programmed into the
->>>> register for an active low wait signal.
->>>
->>> Only intention is not to alter default waitpin polarity value, i.e. if
->>> any board does make use of it w/o knowledge of Kernel, I don't want to
->>> break it, there may be an argument saying that the board code is buggy,
->>> while if some board does so, it is, but don't want to break working one.
->>>
->>> Here unless user explicitly set the flag, it does nothing on polarity
->>
->> Ok. Do such scenario's exist today? Please note that board code will be
->> removed in the future and device-tree will replace. So if there are no
->> cases today, I would not be concerned. Unless this could be something
->> that has already been configured by the bootloader. However, in that
->> case would be even call this function?
-> 
-> Let me check this, here only intent was to play safe, as I have
-> only two boards to test.
-> 
->>>>> +int gpmc_cs_reconfigure(char *name, int id, struct gpmc_cs_data *cs)
->>>>
->>>> What scenario is this function used in? May be worth adding a comment
->>>> about the function.
->>>
->>> Ok, it was required for OneNAND, as it needs to reconfigure
->>
->> Ok, but why is that? Unless this is something generic about one-nand I
->> don't comprehend. I have a high-level understanding of one-nand, but I
->> am not familiar with the specifics that require it to be reconfigured.
-> 
-> Not too familiar with OneNAND, from the code it has been understood
-> that to set into sync mode, first it may have to set to async mode, read
-> frequency from OneNAND, then setup sync mode for that frequency.
-> 
-> 
->>>>> +	gpmc_setup_writeprotect(gpmc);
->>>>
->>>> Write protect is a pin and there is only one. Like the waitpins and CS
->>>> signals this needs to be associated with a device. It would make sense
->>>> that this is associated with the cs data.
->>>
->>> As far as platform are concerned, it is associated with cs, it is only
->>> that while configuring CS, it is propagated such that it is done once.
->>
->> Hmmm ... but here it looks like if write-protect is used you are going
->> to turn it on. A feature like this seems that it does need to be handled
->> by the device's driver. Enabling and disabling write-protect are
->> functions that I would expect are exported to the device's driver and
->> not directly enabled in the gpmc driver during probe. However, maybe is
->> could be valid for the write protect to be enabled by default which
->> could make sense. However, I don't see anywhere else in the driver to
->> control it.
->>
->> Shouldn't we warn on multiple devices trying to use write-protect when
->> parsing their configuration?
-> 
-> Even if a single device sets write protect, kernel will log it.
+This feature doesn't fiddle with the I/O scheduler's ability to balance
+read vs write requests or handling requests from various process queues (CF=
+Q).
 
-That does not seem sufficient. It should be flagged as an error.
+Also, for block devices which don't implement the ability to preempt (and e=
+ven
+for older versions of MMC devices which don't implement this feature),
+the behaviour
+falls back to waiting for write requests to complete before issuing the rea=
+d.
 
-Write protect is a resource like the CS and waitpins and so I would have
-thought that it should be reserved in the same way.
+In low end flash devices, some requests might take too long than normal
+due to background device maintenance (i.e flash erase / reclaim procedure)
+kicking in in the context of an ongoing write, stalling them by several
+orders of magnitude.
 
-Jon
+This implementation (See 14/16) does have several
+checks and timers to see that it's not triggered very often.
+In my tests, where I usually have a generous preemption time window, the ab=
+ort
+happens < 0.1% of the time.
+
+
+>
+> This really seems like functionality that belongs in an IO
+> scheduler so that write starvation can be avoided, not in high-level
+> data read paths where we have no clue about anything else going on
+> in the IO subsystem....
+
+Indeed, the feature is built mostly in the low level device driver and
+minor changes in the elevator. Changes above the block layer are only
+about setting
+attributes and transparent to their operation.
+
+>
+> Cheers,
+>
+> Dave.
+> --
+> Dave Chinner
+> david@fromorbit.com
+
+--
+To unsubscribe, send a message with 'unsubscribe linux-mm' in
+the body to majordomo@kvack.org.  For more info on Linux MM,
+see: http://www.linux-mm.org/ .
+Fight unfair telecom internet charges in Canada: sign http://stopthemeter.ca/
+Don't email: <a href=mailto:"dont@kvack.org"> email@kvack.org </a>
