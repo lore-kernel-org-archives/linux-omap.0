@@ -1,12 +1,14 @@
 From: Tony Lindgren <tony@atomide.com>
-Subject: [GIT PULL 1/5] omap sparse cleanup for v3.5 merge window
-Date: Mon, 7 May 2012 15:38:42 -0700
-Message-ID: <17112.11378356$1336430368@news.gmane.org>
+Subject: [GIT PULL 3/5] omap cpuidle cleanup for v3.5 merge window
+Date: Mon, 7 May 2012 15:38:43 -0700
+Message-ID: <E1SRWaH-0004dz-8T@merlin.infradead.org>
+References: <pull-1336430323-742388>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
 Content-Disposition: inline
+In-Reply-To: <pull-1336430323-742388>
 List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
  <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
 List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
@@ -20,92 +22,48 @@ To: Arnd Bergmann <arnd@arndb.de>, Olof Johansson <olof@lixom.net>
 Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 List-Id: linux-omap@vger.kernel.org
 
-The following changes since commit e816b57a337ea3b755de72bec38c10c864f23015:
+The following changes since commit d48b97b403d23f6df0b990cee652bdf9a52337a3:
 
-  Linux 3.4-rc3 (2012-04-15 18:28:29 -0700)
+  Linux 3.4-rc6 (2012-05-06 15:07:32 -0700)
 
 are available in the git repository at:
 
-  git://git.kernel.org/pub/scm/linux/kernel/git/tmlind/linux-omap tags/omap-cleanup-sparse-for-v3.5
+  git://git.kernel.org/pub/scm/linux/kernel/git/tmlind/linux-omap tags/omap-cleanup-cpuidle-for-v3.5
 
-for you to fetch changes up to 09f45b83109cb8e23a06d5efb1096a08a9545974:
+for you to fetch changes up to 274994c49c0ae7c42ce96dcd33b9555a697e7391:
 
-  Merge tag 'omap-cleanup-a2-for-3.5' of git://git.kernel.org/pub/scm/linux/kernel/git/pjw/omap-pending into cleanup-sparse (2012-04-18 10:09:26 -0700)
-
-----------------------------------------------------------------
-
-Sparse and cppcheck warning fixes
+  Merge branch 'for_3.5/cleanup/omap-cpuidle' of git://git.kernel.org/pub/scm/linux/kernel/git/khilman/linux-omap-pm into cleanup-cpuidle (2012-05-07 13:51:31 -0700)
 
 ----------------------------------------------------------------
-Paul Walmsley (11):
-      ARM: OMAP2+: declare file-local functions as static
-      ARM: OMAP: add includes for missing prototypes
-      ARM: OMAP1: OCPI: move to mach-omap1/
-      ARM: OMAP1: OHCI: use platform_data fn ptr to enable OCPI bus
-      ARM: OMAP2+: GPMC: resolve type-conversion warning from sparse
-      ARM: OMAP: fix 'using plain integer as NULL pointer' sparse warnings
-      ARM: OMAP: OCM RAM: use memset_io() when clearing SRAM
-      ARM: OMAP: DMA: use constant array maximum, drop some LCD DMA code
-      ARM: OMAP: USB: remove unnecessary sideways include
-      ARM: OMAP1: board files: deduplicate and clean some NAND-related code
-      ARM: OMAP2+: clean up some cppcheck warnings
+
+CPUidle cleanup
+
+----------------------------------------------------------------
+Daniel Lezcano (18):
+      ARM: OMAP4: cpuidle - Remove unused valid field
+      ARM: OMAP4: cpuidle - Declare the states with the driver declaration
+      ARM: OMAP4: cpuidle - Remove the cpuidle_params_table table
+      ARM: OMAP4: cpuidle - fix static omap4_idle_data declaration
+      ARM: OMAP4: cpuidle - Initialize omap4_idle_data at compile time
+      ARM: OMAP4: cpuidle - use the omap4_idle_data variable directly
+      ARM: OMAP4: cpuidle - remove omap4_idle_data initialization at boot time
+      ARM: OMAP3: cpuidle - remove rx51 cpuidle parameters table
+      ARM: OMAP3: define cpuidle statically
+      ARM: OMAP3: cpuidle - remove errata check in the init function
+      ARM: OMAP3: cpuidle - remove the 'valid' field
+      ARM: OMAP3: cpuidle - remove cpuidle_params_table
+      ARM: OMAP3: define statically the omap3_idle_data
+      ARM: OMAP3: cpuidle - use omap3_idle_data directly
+      ARM: OMAP3: cpuidle - simplify next_valid_state
+      ARM: OMAP3: set omap3_idle_data as static
+      ARM: OMAP3: cpuidle - set global variables static
+      ARM: OMAP3: cpuidle - check the powerdomain lookup
 
 Tony Lindgren (1):
-      Merge tag 'omap-cleanup-a2-for-3.5' of git://git.kernel.org/.../pjw/omap-pending into cleanup-sparse
+      Merge branch 'for_3.5/cleanup/omap-cpuidle' of git://git.kernel.org/.../khilman/linux-omap-pm into cleanup-cpuidle
 
- arch/arm/mach-omap1/Makefile                 |   13 ++++++---
- arch/arm/mach-omap1/ams-delta-fiq.c          |    2 +-
- arch/arm/mach-omap1/board-fsample.c          |   16 +----------
- arch/arm/mach-omap1/board-h2.c               |   17 +-----------
- arch/arm/mach-omap1/board-h3.c               |   16 +----------
- arch/arm/mach-omap1/board-nand.c             |   37 ++++++++++++++++++++++++++
- arch/arm/mach-omap1/board-palmz71.c          |    4 +--
- arch/arm/mach-omap1/board-perseus2.c         |   16 +----------
- arch/arm/mach-omap1/clock.c                  |    3 +--
- arch/arm/mach-omap1/common.h                 |   11 +++++++-
- arch/arm/mach-omap1/fpga.c                   |    2 +-
- arch/arm/mach-omap1/id.c                     |    2 ++
- arch/arm/mach-omap1/io.c                     |    3 +--
- arch/arm/mach-omap1/irq.c                    |    2 ++
- arch/arm/mach-omap1/lcd_dma.c                |    7 +----
- arch/arm/{plat-omap => mach-omap1}/ocpi.c    |    7 +++--
- arch/arm/mach-omap1/pm.c                     |    9 +++----
- arch/arm/mach-omap1/reset.c                  |    2 ++
- arch/arm/mach-omap1/timer.c                  |    3 +--
- arch/arm/mach-omap1/usb.c                    |    3 +++
- arch/arm/mach-omap2/am35xx-emac.c            |   37 ++++++++++++--------------
- arch/arm/mach-omap2/board-omap3evm.c         |    8 +++---
- arch/arm/mach-omap2/board-omap4panda.c       |    8 +++---
- arch/arm/mach-omap2/board-rx51-peripherals.c |    4 +--
- arch/arm/mach-omap2/board-zoom-display.c     |    1 +
- arch/arm/mach-omap2/common.h                 |    2 --
- arch/arm/mach-omap2/devices.c                |    7 +++--
- arch/arm/mach-omap2/gpio.c                   |    2 +-
- arch/arm/mach-omap2/gpmc-onenand.c           |    3 +--
- arch/arm/mach-omap2/gpmc.c                   |    3 +--
- arch/arm/mach-omap2/hwspinlock.c             |    2 +-
- arch/arm/mach-omap2/io.c                     |    1 +
- arch/arm/mach-omap2/irq.c                    |    3 ++-
- arch/arm/mach-omap2/mux.c                    |    2 +-
- arch/arm/mach-omap2/omap-secure.c            |    1 +
- arch/arm/mach-omap2/omap-wakeupgen.c         |    2 +-
- arch/arm/mach-omap2/pm24xx.c                 |    3 ---
- arch/arm/mach-omap2/pm34xx.c                 |   10 +++----
- arch/arm/mach-omap2/prm_common.c             |    4 ++-
- arch/arm/mach-omap2/serial.c                 |    2 +-
- arch/arm/mach-omap2/usb-tusb6010.c           |    2 +-
- arch/arm/plat-omap/Makefile                  |    3 ---
- arch/arm/plat-omap/common.c                  |    1 +
- arch/arm/plat-omap/dma.c                     |   13 +++++++--
- arch/arm/plat-omap/dmtimer.c                 |    3 ++-
- arch/arm/plat-omap/include/plat/board.h      |    2 ++
- arch/arm/plat-omap/include/plat/common.h     |    2 ++
- arch/arm/plat-omap/include/plat/dma.h        |    1 +
- arch/arm/plat-omap/include/plat/dmtimer.h    |    4 +--
- arch/arm/plat-omap/omap_device.c             |    2 --
- arch/arm/plat-omap/sram.c                    |    4 +--
- arch/arm/plat-omap/usb.c                     |    4 ---
- drivers/usb/host/ohci-omap.c                 |    5 ++--
- 53 files changed, 161 insertions(+), 165 deletions(-)
- create mode 100644 arch/arm/mach-omap1/board-nand.c
- rename arch/arm/{plat-omap => mach-omap1}/ocpi.c (93%)
+ arch/arm/mach-omap2/board-rx51.c  |   38 +++--
+ arch/arm/mach-omap2/cpuidle34xx.c |  298 +++++++++++++++----------------------
+ arch/arm/mach-omap2/cpuidle44xx.c |  126 +++++++---------
+ arch/arm/mach-omap2/pm.h          |   21 ---
+ 4 files changed, 190 insertions(+), 293 deletions(-)
