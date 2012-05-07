@@ -1,90 +1,61 @@
-From: Tomi Valkeinen <tomi.valkeinen@ti.com>
-Subject: Re: [PATCH v2 4/4] OMAPDSS: APPLY: Remove display dependency from
- overlay and manager checks
-Date: Mon, 07 May 2012 18:03:37 +0300
-Message-ID: <1336403017.3522.2.camel@lappyti>
-References: <1334561027-28569-1-git-send-email-archit@ti.com>
-	 <1336028864-13895-1-git-send-email-archit@ti.com>
-	 <1336028864-13895-5-git-send-email-archit@ti.com>
+From: Ohad Ben-Cohen <ohad@wizery.com>
+Subject: Re: [PATCH v2 3/3] omap: remoteproc: add support for a boot register
+Date: Mon, 7 May 2012 18:05:17 +0300
+Message-ID: <CAK=WgbYHxh7tJhzApEWrkjQmkJGMWpnXynTPH5QUDnJ-TnVaYw@mail.gmail.com>
+References: <1334360392-1494-1-git-send-email-jgutierrez@ti.com>
+ <1334360392-1494-4-git-send-email-jgutierrez@ti.com> <CAK=Wgbb4bJ22BYh444Xndaody7Q7Eoox3K7zvGCFmf6ZMHAa0w@mail.gmail.com>
+ <CADVn9RFOBdw0_19ErT6qEpy7325TG7wWkDfJtdF-6jq74z3nFw@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg="pgp-sha1"; protocol="application/pgp-signature";
-	boundary="=-dDeyyuVgsz9g+rcevH54"
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aog125.obsmtp.com ([74.125.149.153]:57357 "EHLO
-	na3sys009aog125.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1757145Ab2EGPDt (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 7 May 2012 11:03:49 -0400
-Received: by lban1 with SMTP id n1so3175058lba.24
-        for <linux-omap@vger.kernel.org>; Mon, 07 May 2012 08:03:45 -0700 (PDT)
-In-Reply-To: <1336028864-13895-5-git-send-email-archit@ti.com>
+Received: from mail-gh0-f174.google.com ([209.85.160.174]:53470 "EHLO
+	mail-gy0-f174.google.com" rhost-flags-OK-OK-OK-FAIL)
+	by vger.kernel.org with ESMTP id S1757056Ab2EGPFj convert rfc822-to-8bit
+	(ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Mon, 7 May 2012 11:05:39 -0400
+Received: by ghrr11 with SMTP id r11so4354726ghr.19
+        for <linux-omap@vger.kernel.org>; Mon, 07 May 2012 08:05:38 -0700 (PDT)
+In-Reply-To: <CADVn9RFOBdw0_19ErT6qEpy7325TG7wWkDfJtdF-6jq74z3nFw@mail.gmail.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Archit Taneja <archit@ti.com>
-Cc: linux-omap@vger.kernel.org, linux-fbdev@vger.kernel.org
+To: "Gutierrez, Juan" <jgutierrez@ti.com>
+Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Suman Anna <s-anna@ti.com>
 
+Hi Juan,
 
---=-dDeyyuVgsz9g+rcevH54
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: quoted-printable
+On Mon, May 7, 2012 at 5:38 PM, Gutierrez, Juan <jgutierrez@ti.com> wro=
+te:
+>> > @@ -40,6 +41,7 @@ struct omap_rproc_pdata {
+>> > =A0 =A0 =A0 =A0const struct rproc_ops *ops;
+>> > =A0 =A0 =A0 =A0int (*device_enable) (struct platform_device *pdev)=
+;
+>> > =A0 =A0 =A0 =A0int (*device_shutdown) (struct platform_device *pde=
+v);
+>> > + =A0 =A0 =A0 u32 boot_reg;
+>>
+>> We might want to use an IORESOURCE_MEM resource instead, since we're
+>> dealing with a platform device anyway.
+>>
+>> The driver can then fetch the address using platform_get_resource.
+>
+> Ok, Do you mean using resource table to get the boot_reg address, rig=
+ht?
 
-On Thu, 2012-05-03 at 12:37 +0530, Archit Taneja wrote:
-> In order to check the validity of overlay and manager info, there was a n=
-eed to
-> use the omap_dss_device struct to get the panel resolution. The manager's
-> private data in APPLY now contains the manager timings. Hence, we don't n=
-eed to
-> rely on the display resolution any more.
->=20
-> Create a function dss_mgr_get_timings() which returns the timings in mana=
-ger's
-> private data. Remove the need of passing omap_dss_device structs in the
-> functions which check for overlay and managers.
->=20
-> Have some initial values for manager timings in apply_init(), these would=
- ensure
-> that manager checks don't fail if an interface driver or a panel driver h=
-asn't
-> set the manager timings yet.
->=20
-> Signed-off-by: Archit Taneja <archit@ti.com>
+Sorry for the confusion - I meant using a 'struct resource' as the
+standard way to pass this kind of information to platform drivers.
 
-> +struct omap_video_timings *dss_mgr_get_timings(struct omap_overlay_manag=
-er *mgr)
-> +{
-> +	struct mgr_priv_data *mp =3D get_mgr_priv(mgr);
-> +
-> +	return &mp->timings;
-> +}
+=46or example take a look how omap2_mbox_probe uses
+platform_get_resource to retrieve the parameters which it then feeds
+to ioremap.
 
-This one returns a pointer into apply.c's internal data structures. The
-safest way would be to return a copy, but as it's an omapdss internal
-function, I think it's enough to return a pointer to a const struct.
+Using this standard approach will probably make life easier when we
+migrate to DT, too.
 
- Tomi
-
-
---=-dDeyyuVgsz9g+rcevH54
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: This is a digitally signed message part
-Content-Transfer-Encoding: 7bit
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.4.11 (GNU/Linux)
-
-iQIcBAABAgAGBQJPp+RJAAoJEPo9qoy8lh71aJUQAK6W+XprDjB4GDaufDebu9Le
-/MgDv43FVit0LPA9Akhz2VYY52sp4GSMlAqEYZ8YsvSqk6cG44RI9B6qTzoZteAB
-G60kGzTig7t7S8+2mbE2Kb9g8TAU8OkfY06fCSI7XnbnFx6oA3OkHk4qsFmc5dad
-66aAClMdEsjx1p66wxm9QLy0CY/Q46IBpKB89/lqbV1JracI7QnyiDEr9Y/fODg5
-hZk6wTptO9Nu2TNNERKKeDkhw6NApMR/8Qd1Shp3f+8rbbJX93R+bj2vS0vXYPFK
-pKJ0WoHKK4K5WS8Eq88NEZ+FnPof+MMF1nQdRSbJbb+gKcukWwbjX+bxOBwKAlTw
-RqNq8dVj9eN1QXd5QYQRJIXJDkNfsIWDeIKw810MjYF6VMZ6IuELeJd/M5UStCgj
-mXIog/AcFNtRk8V1GuLpujPhXY3REPxelgBFK7yKUJulaBwxuBA0XuoeObAEr9oF
-uFHcleYq4VBJm3d6MZboQUwU+piCkl3L6g2gz9/7WSt/Uq+I1oNSRwTv9FCH9aMn
-CZoIAlRQfoIVjYROKALQeDT6R9VCkzSy8m85q+JMw9UmVcK4COyHL/bmwv3txkXD
-6sP03H4LMPsrtHDvEa6fFGtVylcXlgkmWECzoBfp1gtn7PEBvoJpMOpVaahlHGo1
-pp3ff+wVofksntHeRkbu
-=8ScN
------END PGP SIGNATURE-----
-
---=-dDeyyuVgsz9g+rcevH54--
-
+Thanks,
+Ohad.
+--
+To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
