@@ -1,47 +1,44 @@
 From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH 07/13] ARM: OMAP5: l3: Add l3 error handler support for
- omap5.
-Date: Mon, 7 May 2012 10:34:30 -0700
-Message-ID: <20120507173430.GC5088@atomide.com>
+Subject: Re: [PATCH 10/13] ARM: OMAP5: board-generic: Add device tree
+ support.
+Date: Mon, 7 May 2012 10:35:55 -0700
+Message-ID: <20120507173555.GD5088@atomide.com>
 References: <1336029982-31898-1-git-send-email-r.sricharan@ti.com>
- <1336029982-31898-8-git-send-email-r.sricharan@ti.com>
- <20120504225153.GZ5613@atomide.com>
- <CAJ7qFSek4h78wHdwdb-h6UZNqUofT03PTm8LN66WQgdKyp5Y+A@mail.gmail.com>
+ <1336029982-31898-11-git-send-email-r.sricharan@ti.com>
+ <4FA7CDC1.9050301@ti.com>
+ <CAJ7qFSdBz1ccp0Z-4pWvbq0J0zb6j3Kto4cDz3R0kHT7YfRo0w@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-01-ewr.mailhop.org ([204.13.248.71]:34994 "EHLO
-	mho-01-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756665Ab2EGRed (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 7 May 2012 13:34:33 -0400
+Received: from mho-02-ewr.mailhop.org ([204.13.248.72]:13689 "EHLO
+	mho-02-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1757248Ab2EGRf5 (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 7 May 2012 13:35:57 -0400
 Content-Disposition: inline
-In-Reply-To: <CAJ7qFSek4h78wHdwdb-h6UZNqUofT03PTm8LN66WQgdKyp5Y+A@mail.gmail.com>
+In-Reply-To: <CAJ7qFSdBz1ccp0Z-4pWvbq0J0zb6j3Kto4cDz3R0kHT7YfRo0w@mail.gmail.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: "R, Sricharan" <r.sricharan@ti.com>
-Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, santosh.shilimkar@ti.com, b-cousson@ti.com
+Cc: "Cousson, Benoit" <b-cousson@ti.com>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, santosh.shilimkar@ti.com
 
-* R, Sricharan <r.sricharan@ti.com> [120506 00:42]:
-> Hi Tony,
->=20
-> >> - =C2=A0 =C2=A0 if (!(cpu_is_omap44xx()))
-> >> + =C2=A0 =C2=A0 if ((!(cpu_is_omap44xx())) && (!cpu_is_omap54xx())=
-)
-> >> =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 return -ENODEV;
-> >>
-> >> =C2=A0 =C2=A0 =C2=A0 for (i =3D 0; i < L3_MODULES; i++) {
+* R, Sricharan <r.sricharan@ti.com> [120507 07:12]:
+> Hi Benoit,
+>   Thanks for the reviews.
+> 
 > >
-> > Isn't there some unnecessary parens here?
->=20
->  You mean in this above for loop?.
->  There are multiple statements .
+> >> Adding the minimal support for OMAP5 soc with device tree.
+> >
+> >
+> > You should probably split that patch since you are doing several things that
+> > are not OMAP5 related.
+> >
+> > Do a patch that move the omap_init_irq into the INTC and GIC code first.
+> >
+> > Then, you can add a patch to add the OMAP5_DT machine entry.
+> >
+>   ok, will split this then accordingly.
 
-No, both the old (!(cpu_is_omap44xx())) and the added one.
+Thanks, that allows us to remove the dependencies that will easily
+cause merge errors adding let's say am33xx here.
 
 Tony
---
-To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
