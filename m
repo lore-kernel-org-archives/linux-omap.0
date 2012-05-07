@@ -1,61 +1,74 @@
-From: Ohad Ben-Cohen <ohad@wizery.com>
-Subject: Re: [PATCH v2 3/3] omap: remoteproc: add support for a boot register
-Date: Mon, 7 May 2012 18:05:17 +0300
-Message-ID: <CAK=WgbYHxh7tJhzApEWrkjQmkJGMWpnXynTPH5QUDnJ-TnVaYw@mail.gmail.com>
-References: <1334360392-1494-1-git-send-email-jgutierrez@ti.com>
- <1334360392-1494-4-git-send-email-jgutierrez@ti.com> <CAK=Wgbb4bJ22BYh444Xndaody7Q7Eoox3K7zvGCFmf6ZMHAa0w@mail.gmail.com>
- <CADVn9RFOBdw0_19ErT6qEpy7325TG7wWkDfJtdF-6jq74z3nFw@mail.gmail.com>
+From: Stephen Warren <swarren@wwwdotorg.org>
+Subject: Re: [PATCH V3 1/2] of: Add generic device tree DMA helpers
+Date: Mon, 07 May 2012 09:53:45 -0600
+Message-ID: <4FA7F009.5010003@wwwdotorg.org>
+References: <1335820679-28721-1-git-send-email-jon-hunter@ti.com> <4FA3F308.6030900@ti.com> <CAJe_ZhfFhZVG4gyaaVUgeQedJiSE=zj9nE28XCNH9DkPVgqj=A@mail.gmail.com> <201205041923.07620.arnd@arndb.de> <CAJe_Zhe8jYd1j=ti6FvqxXL7i5mbgf0jqb-84sFMTeUqyAonpw@mail.gmail.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-gh0-f174.google.com ([209.85.160.174]:53470 "EHLO
-	mail-gy0-f174.google.com" rhost-flags-OK-OK-OK-FAIL)
-	by vger.kernel.org with ESMTP id S1757056Ab2EGPFj convert rfc822-to-8bit
-	(ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Mon, 7 May 2012 11:05:39 -0400
-Received: by ghrr11 with SMTP id r11so4354726ghr.19
-        for <linux-omap@vger.kernel.org>; Mon, 07 May 2012 08:05:38 -0700 (PDT)
-In-Reply-To: <CADVn9RFOBdw0_19ErT6qEpy7325TG7wWkDfJtdF-6jq74z3nFw@mail.gmail.com>
+Received: from avon.wwwdotorg.org ([70.85.31.133]:43024 "EHLO
+	avon.wwwdotorg.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756583Ab2EGPxt (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 7 May 2012 11:53:49 -0400
+In-Reply-To: <CAJe_Zhe8jYd1j=ti6FvqxXL7i5mbgf0jqb-84sFMTeUqyAonpw@mail.gmail.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "Gutierrez, Juan" <jgutierrez@ti.com>
-Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Suman Anna <s-anna@ti.com>
+To: Jassi Brar <jaswinder.singh@linaro.org>
+Cc: Arnd Bergmann <arnd@arndb.de>, Stephen Warren <swarren@nvidia.com>, Benoit Cousson <b-cousson@ti.com>, device-tree <devicetree-discuss@lists.ozlabs.org>, Nicolas Ferre <nicolas.ferre@atmel.com>, Rob Herring <rob.herring@calxeda.com>, Grant Likely <grant.likely@secretlab.ca>, Jon Hunter <jon-hunter@ti.com>, Russell King <linux@arm.linux.org.uk>, linux-omap <linux-omap@vger.kernel.org>, linux-arm <linux-arm-kernel@lists.infradead.org>
 
-Hi Juan,
-
-On Mon, May 7, 2012 at 5:38 PM, Gutierrez, Juan <jgutierrez@ti.com> wro=
-te:
->> > @@ -40,6 +41,7 @@ struct omap_rproc_pdata {
->> > =A0 =A0 =A0 =A0const struct rproc_ops *ops;
->> > =A0 =A0 =A0 =A0int (*device_enable) (struct platform_device *pdev)=
-;
->> > =A0 =A0 =A0 =A0int (*device_shutdown) (struct platform_device *pde=
-v);
->> > + =A0 =A0 =A0 u32 boot_reg;
+On 05/05/2012 11:10 AM, Jassi Brar wrote:
+> On 5 May 2012 00:53, Arnd Bergmann <arnd@arndb.de> wrote:
+>> On Friday 04 May 2012, Jassi Brar wrote:
+>>> I see this requires a client driver to specify a particular req_line on a
+>>> particular dma controller. I am not sure if this is most optimal.
+>>>
+>>> I think such client->req_line map should be provided to the dmac controller
+>>> driver via its dt node in some format. The dmac driver could then populate
+>>> a dma_chan, or similar, only for that req_line and not for the unused one
+>>> which otherwise could also have served the same client.
+>>>
+>>> Ideally the I2C driver should simply ask, say, a channel for TX and another
+>>> for RX, everything else should already be setup via dmac's dt nodes.
 >>
->> We might want to use an IORESOURCE_MEM resource instead, since we're
->> dealing with a platform device anyway.
+>> If I understand you correctly, you think we can generalize the dma-request
+>> data in a way that we don't need to pass a specific dma engine phandle.
+>> I very much doubt this is possible, given how different the requirements
+>> are for each of the engines we support. You really need to pass a specific
+>> phandle so that we can find the code that can interpret the data in a
+>> meaningful way.
 >>
->> The driver can then fetch the address using platform_get_resource.
->
-> Ok, Do you mean using resource table to get the boot_reg address, rig=
-ht?
+> Hmm... there ought to be a way by which a client is handed a random 'token'
+> via its dt node and similarly the dmac informed which channel (and with what
+> capabilities) to allocate should it see a request coming with that token.
 
-Sorry for the confusion - I meant using a 'struct resource' as the
-standard way to pass this kind of information to platform drivers.
+I think that's the whole point of the patch.
 
-=46or example take a look how omap2_mbox_probe uses
-platform_get_resource to retrieve the parameters which it then feeds
-to ioremap.
+However, the token needs to be some driver-specific struct, since the
+required information may be more than just a single channel or request
+ID in general.
 
-Using this standard approach will probably make life easier when we
-migrate to DT, too.
+> That way dmac and client drivers using DT could do away with the filter_fn.
+> 
+> Roughly speaking (I am not very well versed with DT syntax)
+> 
+> Client Node:-
+> 
+> mmc1: mmc@13002000 {
+>         ...
+>         dma_tx = <891>   //some platform-wide unique value
+>         dma_rx = <927>   //some platform-wide unique value
+>         ...
+>  };
 
-Thanks,
-Ohad.
---
-To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+I believe we specifically don't want to introduce any global concept of
+DMA channel ID, either within the kernel, or at the device tree level.
+
+While we do have global interrupt and GPIO IDs within the kernel, this
+has caused problems, I think primarily due to the need to manage this
+unified namespace and allocate a single global ID for a bunch of
+different ranges of controller-specific IDs.
+
+Within device tree, everything is always represented as an ID
+relative-to or within a particular controller, so it's easy to namespace
+things separately.
