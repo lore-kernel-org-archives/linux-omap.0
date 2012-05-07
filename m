@@ -1,49 +1,67 @@
-From: Kevin Hilman <khilman@ti.com>
-Subject: Re: [PATCH 0/2] ARM: OMAP3: cleanup AM35xx SoC detection
-Date: Mon, 07 May 2012 10:33:41 -0700
-Message-ID: <87zk9j5216.fsf@ti.com>
-References: <1335829030-19431-1-git-send-email-khilman@ti.com>
+From: Tony Lindgren <tony@atomide.com>
+Subject: Re: [PATCH 02/13] ARM: OMAP5: Add minimal support for OMAP5430 SOC
+Date: Mon, 7 May 2012 10:33:51 -0700
+Message-ID: <20120507173351.GB5088@atomide.com>
+References: <1336029982-31898-1-git-send-email-r.sricharan@ti.com>
+ <1336029982-31898-3-git-send-email-r.sricharan@ti.com>
+ <20120504223933.GX5613@atomide.com>
+ <CAJ7qFSfkHGF7ehanZP=hyZ27HqSp1ONsT0tUV-wpLne9B4DEaQ@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aog118.obsmtp.com ([74.125.149.244]:33388 "EHLO
-	na3sys009aog118.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1757078Ab2EGRd2 (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 7 May 2012 13:33:28 -0400
-Received: by pbcwz7 with SMTP id wz7so7129564pbc.30
-        for <linux-omap@vger.kernel.org>; Mon, 07 May 2012 10:33:26 -0700 (PDT)
-In-Reply-To: <1335829030-19431-1-git-send-email-khilman@ti.com> (Kevin
-	Hilman's message of "Mon, 30 Apr 2012 16:37:08 -0700")
+Received: from mho-02-ewr.mailhop.org ([204.13.248.72]:10240 "EHLO
+	mho-02-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1757203Ab2EGRdx (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 7 May 2012 13:33:53 -0400
+Content-Disposition: inline
+In-Reply-To: <CAJ7qFSfkHGF7ehanZP=hyZ27HqSp1ONsT0tUV-wpLne9B4DEaQ@mail.gmail.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Tony Lindgren <tony@atomide.com>, linux-omap@vger.kernel.org
-Cc: linux-arm-kernel@lists.infradead.org
+To: "R, Sricharan" <r.sricharan@ti.com>
+Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, santosh.shilimkar@ti.com, b-cousson@ti.com
 
-Tony,
-
-Kevin Hilman <khilman@ti.com> writes:
-
-> The detection of AM35xx SoCs is confusing and has redundancies.  Clean
-> this up so that SoC detection is only based on SoC family: AM35xx.
-
-Since these aren't PM related, can you queue these with other cleanups
-for v3.5.  This is now independent from the similar changes made to the
-clock fwk which Paul is queuing.
-
-Once both series are merged, I'll have one final patch that removes all
-users of cpu_is_omap35*.
-
-Kevin
-
-> Kevin Hilman (2):
->   ARM: OMAP: AM35xx: remove redunant cpu_is checks for AM3505
->   ARM: OMAP: AM35xx: convert 3517 detection/flags to AM35xx
+* R, Sricharan <r.sricharan@ti.com> [120506 00:40]:
 >
->  arch/arm/mach-omap2/hsmmc.c                   |    8 ++++----
->  arch/arm/mach-omap2/id.c                      |    7 +++----
->  arch/arm/mach-omap2/omap_hwmod_3xxx_data.c    |    2 +-
->  arch/arm/mach-omap2/powerdomains3xxx_data.c   |    2 +-
->  arch/arm/mach-omap2/usb-musb.c                |    2 +-
->  arch/arm/mach-omap2/voltagedomains3xxx_data.c |    2 +-
->  arch/arm/plat-omap/include/plat/cpu.h         |    8 ++++++++
->  7 files changed, 19 insertions(+), 12 deletions(-)
+> > Also, please change the whole series to use CONFIG_SOC_OMAP5 instea=
+d
+> > of CONFIG_ARCH_OMAP5. CONFIG_ARCH_OMAPXXXX stuff will go away excep=
+t
+> > for CONFIG_ARCH_OMAP2PLUS. Sorry forgot to mention that earlier.
+> >
+>  ok. sure. will change this.
+
+Thanks.
+=20
+> >> -#if defined(CONFIG_ARCH_OMAP4) && !(defined(CONFIG_ARCH_OMAP2) ||=
+ =C2=A0 =C2=A0\
+> >> - =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=
+=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 defined(CON=
+=46IG_ARCH_OMAP3))
+> >> +#if (defined(CONFIG_ARCH_OMAP5) || defined(CONFIG_ARCH_OMAP4)) &&=
+ \
+> >> + =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 !(defined(CONFIG_ARCH_=
+OMAP2) || defined(CONFIG_ARCH_OMAP3))
+> >> +
+> >> =C2=A0static inline u32 omap2_prm_read_mod_reg(s16 module, u16 idx=
+)
+> >> =C2=A0{
+> >> =C2=A0 =C2=A0 =C2=A0 WARN(1, "prm: omap2xxx/omap3xxx specific func=
+tion and "
+> >
+> > Maybe these functions could be just set up as __weak to avoid the
+> > ifdeffery?
+> >
+>  sorry to understand,
+>  you mean make this weak and have a strong override for OMAP2 ?
+
+Yeah that should do the trick, right?
+=20
+Regards,
+
+Tony
+--
+To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
