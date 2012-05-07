@@ -1,153 +1,94 @@
 From: Kevin Hilman <khilman@ti.com>
-Subject: Re: oprofile and ARM A9 hardware counter
-Date: Mon, 07 May 2012 16:28:33 -0700
-Message-ID: <87k40nzi3i.fsf@ti.com>
-References: <20120403092524.GD17741@mudshark.cambridge.arm.com>
-	<CAMQu2gxE2STYxUGinzstX6W8jyofH829A__NQBjwLqZd9cqy=w@mail.gmail.com>
-	<20120403094749.GH17741@mudshark.cambridge.arm.com>
-	<CAMQu2gyFirtVTWpMu4G_qG5sq33J-_s_o2JhVAdrUf7P3qJ3AA@mail.gmail.com>
-	<20120403123444.GL17741@mudshark.cambridge.arm.com>
-	<878vicsxef.fsf@ti.com>
-	<20120403160706.GP17741@mudshark.cambridge.arm.com>
-	<87ehs4pfw4.fsf@ti.com>
-	<alpine.DEB.2.00.1204031727380.8000@utopia.booyaka.com>
-	<20120404111524.GF32505@mudshark.cambridge.arm.com>
-	<20120426180719.GC20186@mudshark.cambridge.arm.com>
-	<4FA45580.8070802@ti.com> <87ipg76hfm.fsf@ti.com>
-	<4FA8284C.7080803@ti.com>
+Subject: Re: [PATCH V3 04/10] ARM: OMAP3: hwmod: rename the smartreflex entries
+Date: Mon, 07 May 2012 16:39:53 -0700
+Message-ID: <87d36fzhkm.fsf@ti.com>
+References: <1335462041-4949-1-git-send-email-j-keerthy@ti.com>
+ <1335462041-4949-5-git-send-email-j-keerthy@ti.com>
+ <331ABD5ECB02734CA317220B2BBEABC13E9B1AA2@DBDE01.ent.ti.com>
+ <CAJ6a13ZSWSa_RpGB9NxtfyChUba9NGivGogpsfyk7oT9pNayjg@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aog103.obsmtp.com ([74.125.149.71]:35319 "EHLO
-	na3sys009aog103.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751486Ab2EGX2U (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 7 May 2012 19:28:20 -0400
-Received: by pbcwz7 with SMTP id wz7so12573209pbc.16
-        for <linux-omap@vger.kernel.org>; Mon, 07 May 2012 16:28:18 -0700 (PDT)
-In-Reply-To: <4FA8284C.7080803@ti.com> (Jon Hunter's message of "Mon, 7 May
-	2012 14:53:48 -0500")
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
+In-Reply-To: <CAJ6a13ZSWSa_RpGB9NxtfyChUba9NGivGogpsfyk7oT9pNayjg@mail.gmail.com>
+ (KEERTHY J.'s message of "Fri, 4 May 2012 15:41:34 +0530")
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
+List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
+List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
+Sender: linux-arm-kernel-bounces@lists.infradead.org
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
+To: "J, KEERTHY" <j-keerthy@ti.com>
+Cc: "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "rjw@sisk.pl" <rjw@sisk.pl>, "AnilKumar, Chimata" <anilkumar@ti.com>, "linux-pm@lists.linux-foundation.org" <linux-pm@lists.linux-foundation.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "Pihet-XID,
+ Jean" <j-pihet@ti.com>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>
 List-Id: linux-omap@vger.kernel.org
-To: Jon Hunter <jon-hunter@ti.com>
-Cc: Will Deacon <will.deacon@arm.com>, Paul Walmsley <paul@pwsan.com>, Benoit Cousson <b-cousson@ti.com>, Ming Lei <ming.lei@canonical.com>, Maynard Johnson <maynardj@us.ibm.com>, "Shilimkar, Santosh" <santosh.shilimkar@ti.com>, "oprofile-list@lists.sourceforge.net" <oprofile-list@lists.sourceforge.net>, Lik Lik <lik88888@gmail.com>, "eranian@gmail.com" <eranian@gmail.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>
 
-Jon Hunter <jon-hunter@ti.com> writes:
-
-> Hi Kevin,
->
-> On 05/07/2012 12:15 PM, Kevin Hilman wrote:
->> Jon Hunter <jon-hunter@ti.com> writes:
->> 
->>> Hi Will,
->>>
->>> On 04/26/2012 01:07 PM, Will Deacon wrote:
->>>> On Wed, Apr 04, 2012 at 12:15:24PM +0100, Will Deacon wrote:
->>>>> On Wed, Apr 04, 2012 at 12:29:49AM +0100, Paul Walmsley wrote:
->>>>>>
->>>>>> Part of the problem is that the clockdomain data for the emu_sys 
->>>>>> clockdomain is wrong.  Here's something to try to fix it.  It might just 
->>>>>> be enough to get it to work.
->>>>>
->>>>> Hmm, doesn't seem to work but I do see the following in dmesg when I try to
->>>>> use perf:
->>>>>
->>>>>  powerdomain: waited too long for powerdomain emu_pwrdm to complete transition
->>>>>
->>>>> which is new with your patch.
->>>>
->>>> Sorry to nag, but does anybody have a clue where to go from here? I can
->>>> start digging in the OMAP PM code, but it's all new territory for me.
->>>
->>> I did a little playing around with this today and I think that I have figured out why this was not working (see below). Please can you try the following patch? I tried this on top of your series for perf/omap4. 
->>>
->>> Paul, FYI. If this works for Will then I can re-base on top of the latest linux-omap and submit to the mailing list.
->>>
->>> Also, the above error about the emu_pwrdm is odd too. I noticed that the emu_pwrdm is always in the transitioning state. And when I say always, I mean that even if I check the power domain state while u-boot is running it is in the transitioning state. So even before the kernel starts. 
->>>
->>> Cheers
->>> Jon 
->>>
->>> From 9137ff9c1b382232de7443db0b51b7555846fb62 Mon Sep 17 00:00:00 2001
->>> From: Jon Hunter <jon-hunter@ti.com>
->>> Date: Fri, 4 May 2012 16:48:45 -0500
->>> Subject: [PATCH] ARM: OMAP4: Disable auto enable for EMU CLKDM
->>>
->>> The flag CLKDM_CAN_HWSUP allows the clock-domain to automatically transition
->>> to the enabled and disabled state. This means that as soon as we force a
->>> software wake-up on the clock domain, the clock domain will be allowed to idle
->>> and put back into the hardware auto state. For the EMU clock domain this is not
->>> what we want. We want to keep the clock domain in the software wakeup state
->>> while the clock domain is being used and put it back in to the hardware auto
->>> state when we have finished using the clock domain.
->>>
->>> Signed-off-by: Jon Hunter <jon-hunter@ti.com>
->> 
->> With this patch, how is the clkdm ever idled?
->
-> It does not! Sorry, I was so engrossed with figuring out why the EMU
-> clkdm was being idled as soon as it was enabled, I forgot to check if is
-> ever disabled once we terminated perf :-(
->
->> IIUC, your patch will get PMU interrupts working, but similarily to
->> previous patches in this thread, it works because it *never* allows the
->> EMU clkdm to idle.  This is not a mergeable solution because it will not
->> allow CORE retention (and thus full-chip retention.)
->
-> Right!
->
->> What we need is a solution that allows the clkdm to idle, and then to be
->> reinitialzed when it wakes up.  Due to the way (I understand) resets in
->> the debugss, allowing the clkdm to idle will cause a reset, so the
->> PMU/CTI interrupts need to be reinitialzied after wakeup.
->
-> Yes exactly I see that now. I have prototyped the 3 patches and this is
-> working AND the EMU clkdm does go back to idle. I can send out to the
-> list for review.
-
-Perfect, thanks.
-
->> Kevin
->> 
->> P.S. Please note there is also already a different fix in mainline for
->> the EMU clkdm data from Paul which adds the force wakeup flag and
->> removes the DISABLE_AUTO flag[1] (but leaves the ENABLE_AUTO flag,
->> because the hardware is capable.)
->
-> Hmmm ... yes saw this, and you will have to excuse me as I don't fully
-> follow the logic here. In fact, I am thinking we want the opposite ;-)
->
-> From looking, into this it seems to me that when PMU is running we want
-> the EMU clock domain in software-wakeup state and when PMU is not
-> running we want in the hardware auto state. 
-
-So far, I'm with you.
-
-> By keeping the ENABLE_AUTO flag set, as soon as we enable the clock
-> domain it is put right back into the HW_AUTO state 
-
-This is only because it was in the HWSUP state when _enable was called.
-If clkdm_deny_idle() is used, that behavior will change.
-
-> and hence PMU is
-> not working (see _enable() function in
-> arch/arm/mach-omap2/omap_hwmod.c)
->
-> So really what I think we want is to remove the ENABLE_AUTO flag to keep
-> the clock domain in software wake-up and use the DISABLE_AUTO flag to
-> put the clock domain back in HW_AUTO (note this requires a patch to
-> perform this 2nd part).
-
-Well, Paul will have to comment here for the final word, but IIUC, the
-hwmod flags are supposed to indicate only what the HW is capable of.  If
-we want to change the runtime behavior, we nee to use (or add) APIs to
-change the beahvior.  In this case, clkdm_allow_idle(),
-clkdm_deny_idle() are probably what is needed here.
-
-Kevin
-
-
-
-
-
-
-
+IkosIEtFRVJUSFkiIDxqLWtlZXJ0aHlAdGkuY29tPiB3cml0ZXM6Cgo+IEhpIEFuaWxLdW1hciwK
+Pgo+IFRoYW5rcyBmb3IgcmV2aWV3aW5nLgo+Cj4gT24gRnJpLCBNYXkgNCwgMjAxMiBhdCAyOjAw
+IFBNLCBBbmlsS3VtYXIsIENoaW1hdGEgPGFuaWxrdW1hckB0aS5jb20+IHdyb3RlOgo+PiBPbiBU
+aHUsIEFwciAyNiwgMjAxMiBhdCAyMzoxMDozNSwgSiwgS0VFUlRIWSB3cm90ZToKPj4+IEZyb206
+IEplYW4gUGloZXQgPGotcGloZXRAdGkuY29tPgo+Pj4KPj4+IENoYW5nZSB0aGUgbmFtZSBmaWVs
+ZCB2YWx1ZSB0byBiZXR0ZXIgcmVmbGVjdCB0aGUgc21hcnRyZWZsZXgKPj4+IGludGVncmF0aW9u
+IGluIHRoZSBzeXN0ZW0uCj4+Pgo+Pj4gU2lnbmVkLW9mZi1ieTogSmVhbiBQaWhldCA8ai1waWhl
+dEB0aS5jb20+Cj4+PiBTaWduZWQtb2ZmLWJ5OiBKIEtlZXJ0aHkgPGota2VlcnRoeUB0aS5jb20+
+Cj4+PiAtLS0KPj4+IMKgYXJjaC9hcm0vbWFjaC1vbWFwMi9vbWFwX2h3bW9kXzN4eHhfZGF0YS5j
+IHwgwqAgwqA4ICsrKystLS0tCj4+PiDCoGFyY2gvYXJtL21hY2gtb21hcDIvc21hcnRyZWZsZXgu
+YyDCoCDCoCDCoCDCoCDCoHwgwqAgwqAyICstCj4+PiDCoDIgZmlsZXMgY2hhbmdlZCwgNSBpbnNl
+cnRpb25zKCspLCA1IGRlbGV0aW9ucygtKQo+Pj4KPj4+IGRpZmYgLS1naXQgYS9hcmNoL2FybS9t
+YWNoLW9tYXAyL29tYXBfaHdtb2RfM3h4eF9kYXRhLmMgYi9hcmNoL2FybS9tYWNoLW9tYXAyL29t
+YXBfaHdtb2RfM3h4eF9kYXRhLmMKPj4+IGluZGV4IDE0NGQxMTguLjE1OTA3YjAgMTAwNjQ0Cj4+
+PiAtLS0gYS9hcmNoL2FybS9tYWNoLW9tYXAyL29tYXBfaHdtb2RfM3h4eF9kYXRhLmMKPj4+ICsr
+KyBiL2FyY2gvYXJtL21hY2gtb21hcDIvb21hcF9od21vZF8zeHh4X2RhdGEuYwo+Pj4gQEAgLTEz
+MjQsNyArMTMyNCw3IEBAIHN0YXRpYyBzdHJ1Y3Qgb21hcF9od21vZF9pcnFfaW5mbyBvbWFwM19z
+bWFydHJlZmxleF9tcHVfaXJxc1tdID0gewo+Pj4gwqB9Owo+Pj4KPj4+IMKgc3RhdGljIHN0cnVj
+dCBvbWFwX2h3bW9kIG9tYXAzNHh4X3NyMV9od21vZCA9IHsKPj4+IC0gwqAgwqAgLm5hbWUgwqAg
+wqAgwqAgwqAgwqAgPSAic3IxIiwKPj4+ICsgwqAgwqAgLm5hbWUgwqAgwqAgwqAgwqAgwqAgPSAi
+c21hcnRyZWZsZXhfbXB1X2l2YSIsCj4+PiDCoCDCoCDCoCAuY2xhc3MgwqAgwqAgwqAgwqAgwqA9
+ICZvbWFwMzR4eF9zbWFydHJlZmxleF9od21vZF9jbGFzcywKPj4+IMKgIMKgIMKgIC5tYWluX2Ns
+ayDCoCDCoCDCoCA9ICJzcjFfZmNrIiwKPj4+IMKgIMKgIMKgIC5wcmNtIMKgIMKgIMKgIMKgIMKg
+ID0gewo+Pj4gQEAgLTEzNDIsNyArMTM0Miw3IEBAIHN0YXRpYyBzdHJ1Y3Qgb21hcF9od21vZCBv
+bWFwMzR4eF9zcjFfaHdtb2QgPSB7Cj4+PiDCoH07Cj4+Pgo+Pj4gwqBzdGF0aWMgc3RydWN0IG9t
+YXBfaHdtb2Qgb21hcDM2eHhfc3IxX2h3bW9kID0gewo+Pj4gLSDCoCDCoCAubmFtZSDCoCDCoCDC
+oCDCoCDCoCA9ICJzcjEiLAo+Pj4gKyDCoCDCoCAubmFtZSDCoCDCoCDCoCDCoCDCoCA9ICJzbWFy
+dHJlZmxleF9tcHVfaXZhIiwKPj4+IMKgIMKgIMKgIC5jbGFzcyDCoCDCoCDCoCDCoCDCoD0gJm9t
+YXAzNnh4X3NtYXJ0cmVmbGV4X2h3bW9kX2NsYXNzLAo+Pj4gwqAgwqAgwqAgLm1haW5fY2xrIMKg
+IMKgIMKgID0gInNyMV9mY2siLAo+Pj4gwqAgwqAgwqAgLnByY20gwqAgwqAgwqAgwqAgwqAgPSB7
+Cj4+PiBAQCAtMTM2OSw3ICsxMzY5LDcgQEAgc3RhdGljIHN0cnVjdCBvbWFwX2h3bW9kX2lycV9p
+bmZvIG9tYXAzX3NtYXJ0cmVmbGV4X2NvcmVfaXJxc1tdID0gewo+Pj4gwqB9Owo+Pj4KPj4+IMKg
+c3RhdGljIHN0cnVjdCBvbWFwX2h3bW9kIG9tYXAzNHh4X3NyMl9od21vZCA9IHsKPj4+IC0gwqAg
+wqAgLm5hbWUgwqAgwqAgwqAgwqAgwqAgPSAic3IyIiwKPj4+ICsgwqAgwqAgLm5hbWUgwqAgwqAg
+wqAgwqAgwqAgPSAic21hcnRyZWZsZXhfY29yZSIsCj4+PiDCoCDCoCDCoCAuY2xhc3MgwqAgwqAg
+wqAgwqAgwqA9ICZvbWFwMzR4eF9zbWFydHJlZmxleF9od21vZF9jbGFzcywKPj4+IMKgIMKgIMKg
+IC5tYWluX2NsayDCoCDCoCDCoCA9ICJzcjJfZmNrIiwKPj4+IMKgIMKgIMKgIC5wcmNtIMKgIMKg
+IMKgIMKgIMKgID0gewo+Pj4gQEAgLTEzODcsNyArMTM4Nyw3IEBAIHN0YXRpYyBzdHJ1Y3Qgb21h
+cF9od21vZCBvbWFwMzR4eF9zcjJfaHdtb2QgPSB7Cj4+PiDCoH07Cj4+Pgo+Pj4gwqBzdGF0aWMg
+c3RydWN0IG9tYXBfaHdtb2Qgb21hcDM2eHhfc3IyX2h3bW9kID0gewo+Pj4gLSDCoCDCoCAubmFt
+ZSDCoCDCoCDCoCDCoCDCoCA9ICJzcjIiLAo+Pj4gKyDCoCDCoCAubmFtZSDCoCDCoCDCoCDCoCDC
+oCA9ICJzbWFydHJlZmxleF9jb3JlIiwKPj4+IMKgIMKgIMKgIC5jbGFzcyDCoCDCoCDCoCDCoCDC
+oD0gJm9tYXAzNnh4X3NtYXJ0cmVmbGV4X2h3bW9kX2NsYXNzLAo+Pj4gwqAgwqAgwqAgLm1haW5f
+Y2xrIMKgIMKgIMKgID0gInNyMl9mY2siLAo+Pj4gwqAgwqAgwqAgLnByY20gwqAgwqAgwqAgwqAg
+wqAgPSB7Cj4+PiBkaWZmIC0tZ2l0IGEvYXJjaC9hcm0vbWFjaC1vbWFwMi9zbWFydHJlZmxleC5j
+IGIvYXJjaC9hcm0vbWFjaC1vbWFwMi9zbWFydHJlZmxleC5jCj4+PiBpbmRleCAyZWRkMWUyLi5k
+ODU5Mjc3IDEwMDY0NAo+Pj4gLS0tIGEvYXJjaC9hcm0vbWFjaC1vbWFwMi9zbWFydHJlZmxleC5j
+Cj4+PiArKysgYi9hcmNoL2FybS9tYWNoLW9tYXAyL3NtYXJ0cmVmbGV4LmMKPj4+IEBAIC0xODMs
+NyArMTgzLDcgQEAgc3RhdGljIHZvaWQgc3Jfc2V0X3JlZ2ZpZWxkcyhzdHJ1Y3Qgb21hcF9zciAq
+c3IpCj4+PiDCoCDCoCDCoCDCoCDCoCDCoCDCoCBzci0+ZXJyX3dlaWdodCA9IE9NQVAzNDMwX1NS
+X0VSUldFSUdIVDsKPj4+IMKgIMKgIMKgIMKgIMKgIMKgIMKgIHNyLT5lcnJfbWF4bGltaXQgPSBP
+TUFQMzQzMF9TUl9FUlJNQVhMSU1JVDsKPj4+IMKgIMKgIMKgIMKgIMKgIMKgIMKgIHNyLT5hY2N1
+bV9kYXRhID0gT01BUDM0MzBfU1JfQUNDVU1EQVRBOwo+Pj4gLSDCoCDCoCDCoCDCoCDCoCDCoCBp
+ZiAoIShzdHJjbXAoc3ItPm5hbWUsICJzcjEiKSkpIHsKPj4+ICsgwqAgwqAgwqAgwqAgwqAgwqAg
+aWYgKCEoc3RyY21wKHNyLT5uYW1lLCAic21hcnRyZWZsZXhfbXB1X2l2YSIpKSkgewo+Pgo+PiBX
+aGF0IGlmIHZvbHRhZ2UgcmFpbCBpcyBkaWZmZXJlbnQgZm9yIG1wdSBhbmQgaXZhPyBJIGhhdmUg
+c2VlbiBzb21lIGRldmljZXMKPj4gc3VwcG9ydHMgU21hcnRSZWZsZXggaGF2ZSBkaWZmZXJlbnQg
+dm9sdGFnZSByYWlscyBmb3IgbXB1IGFuZCBpdmEuCj4+Cj4KPiBJIGdldCB0aGUgcG9pbnQuIE9N
+QVAzIGl2YSBhbmQgbXB1IGhhdmUgYSBjb21tb24gcmFpbC4gT01BUDQgb253YXJkcwo+IGV2ZW4g
+d2UgaGF2ZSBkaWZmZXJlbnQgcmFpbHMgZm9yIG1wdSBhbmQgaXZhLiBJIHdpbGwgZW5oYW5jZSB0
+aGUgY2hlY2tzIGhlcmUuCgpSYXRoZXIgdGhhbiBlbmhhbmNpbmcgdGhlIGNoZWNrcywgdGhpcyBT
+b0Mgc3BlY2lmaWMgZGF0YSBzaG91bGQgcHJvYmFibHkKanVzdCBiZSBtYWRlIHBhcnQgb2YgdGhl
+IFNvQyBzcGVjaWZpYyBod21vZCBkZXZfYXR0ci4KCktldmluCgoKX19fX19fX19fX19fX19fX19f
+X19fX19fX19fX19fX19fX19fX19fX19fX19fX18KbGludXgtYXJtLWtlcm5lbCBtYWlsaW5nIGxp
+c3QKbGludXgtYXJtLWtlcm5lbEBsaXN0cy5pbmZyYWRlYWQub3JnCmh0dHA6Ly9saXN0cy5pbmZy
+YWRlYWQub3JnL21haWxtYW4vbGlzdGluZm8vbGludXgtYXJtLWtlcm5lbAo=
