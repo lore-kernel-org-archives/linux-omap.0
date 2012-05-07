@@ -1,67 +1,77 @@
-From: Dave Chinner <david@fromorbit.com>
-Subject: Re: [PATCH v2 01/16] FS: Added demand paging markers to filesystem
-Date: Mon, 7 May 2012 09:31:17 +1000
-Message-ID: <20120506233117.GU5091@dastard>
-References: <1336054995-22988-1-git-send-email-svenkatr@ti.com>
- <1336054995-22988-2-git-send-email-svenkatr@ti.com>
+From: "R, Sricharan" <r.sricharan@ti.com>
+Subject: Re: [PATCH 12/13] ARM: OMAP5: Add the build support
+Date: Mon, 7 May 2012 09:05:50 +0530
+Message-ID: <CAJ7qFSeJc+F5xnW+P5r89yZEZXi8k-LqqnD8R1KEUONqravNBw@mail.gmail.com>
+References: <1336029982-31898-1-git-send-email-r.sricharan@ti.com>
+	<1336029982-31898-13-git-send-email-r.sricharan@ti.com>
+	<20120504225857.GB5613@atomide.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <owner-linux-mm@kvack.org>
-Content-Disposition: inline
-In-Reply-To: <1336054995-22988-2-git-send-email-svenkatr@ti.com>
-Sender: owner-linux-mm@kvack.org
-To: Venkatraman S <svenkatr@ti.com>
-Cc: linux-mmc@vger.kernel.org, cjb@laptop.org, linux-mm@kvack.org, linux-fsdevel@vger.kernel.org, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org, arnd.bergmann@linaro.org, alex.lemberg@sandisk.com, ilan.smith@sandisk.com, lporzio@micron.com, rmk+kernel@arm.linux.org.uk
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from na3sys009aog109.obsmtp.com ([74.125.149.201]:43590 "EHLO
+	na3sys009aog109.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1752874Ab2EGDfy convert rfc822-to-8bit
+	(ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Sun, 6 May 2012 23:35:54 -0400
+Received: by lboj14 with SMTP id j14so3691168lbo.21
+        for <linux-omap@vger.kernel.org>; Sun, 06 May 2012 20:35:50 -0700 (PDT)
+In-Reply-To: <20120504225857.GB5613@atomide.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Tony Lindgren <tony@atomide.com>
+Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, santosh.shilimkar@ti.com, b-cousson@ti.com
 
-On Thu, May 03, 2012 at 07:53:00PM +0530, Venkatraman S wrote:
-> From: Ilan Smith <ilan.smith@sandisk.com>
-> 
-> Add attribute to identify demand paging requests.
-> Mark readpages with demand paging attribute.
-> 
-> Signed-off-by: Ilan Smith <ilan.smith@sandisk.com>
-> Signed-off-by: Alex Lemberg <alex.lemberg@sandisk.com>
-> Signed-off-by: Venkatraman S <svenkatr@ti.com>
-> ---
->  fs/mpage.c                |    2 ++
->  include/linux/bio.h       |    7 +++++++
->  include/linux/blk_types.h |    2 ++
->  3 files changed, 11 insertions(+)
-> 
-> diff --git a/fs/mpage.c b/fs/mpage.c
-> index 0face1c..8b144f5 100644
-> --- a/fs/mpage.c
-> +++ b/fs/mpage.c
-> @@ -386,6 +386,8 @@ mpage_readpages(struct address_space *mapping, struct list_head *pages,
->  					&last_block_in_bio, &map_bh,
->  					&first_logical_block,
->  					get_block);
-> +			if (bio)
-> +				bio->bi_rw |= REQ_RW_DMPG;
+Hi Tony,
 
-Have you thought about the potential for DOSing a machine
-with this? That is, user data reads can now preempt writes of any
-kind, effectively stalling writeback and memory reclaim which will
-lead to OOM situations. Or, alternatively, journal flushing will get
-stalled and no new modifications can take place until the read
-stream stops.
+>> - =A0 =A0 select NEON if ARCH_OMAP3 || ARCH_OMAP4
+>> + =A0 =A0 select NEON if ARCH_OMAP3 || ARCH_OMAP4 || ARCH_OMAP5
+>> =A0 =A0 =A0 select SERIAL_OMAP
+>> =A0 =A0 =A0 select SERIAL_OMAP_CONSOLE
+>> =A0 =A0 =A0 select I2C
+>
+> If we add CONFIG_SOC_OMAP3PLUS and CONFIG_SOC_OMAP4PLUS, then
+> this becomes more future proof with select NEON if SOC_OMAP3PLUS.
+>
+ ok. will change this.
 
-This really seems like functionality that belongs in an IO
-scheduler so that write starvation can be avoided, not in high-level
-data read paths where we have no clue about anything else going on
-in the IO subsystem....
+>> +config ARCH_OMAP5
+>> + =A0 =A0 bool "TI OMAP5"
+>> + =A0 =A0 depends on ARCH_OMAP2PLUS
+>> + =A0 =A0 select CPU_V7
+>> + =A0 =A0 select ARM_GIC
+>> + =A0 =A0 select HAVE_SMP
+>
+> No need to have depends on ARCH_OMAP2PLUS, it's all inside
+> if ARCH_OMAP2PLUS anyways. I removed those already once, but that
+> had to be reverted because the patch was doing other things too
+> that did not work out too well..
+>ll
+ ok, will remove this then.
 
-Cheers,
+>> +config MACH_OMAP5_SEVM
+>> + =A0 =A0 bool "OMAP5 sevm Board"
+>> + =A0 =A0 depends on ARCH_OMAP5
+>> +
+>> =A0config OMAP3_EMU
+>> =A0 =A0 =A0 bool "OMAP3 debugging peripherals"
+>> =A0 =A0 =A0 depends on ARCH_OMAP3
+>
+> No need for it here either. Actually, I think this whole chunk
+> can be now left out since it's DT based?
+>he
+ ok, but the concern here was that without this macro
+ the print from compress and subsequently early
+prints appear broken.
 
-Dave.
--- 
-Dave Chinner
-david@fromorbit.com
+machine_is_omap5_sevm becomes zero without this config and
+machine_is_xxxx is used by the macro _DEBUG_LL_ENTRY
+uncompress.h.
 
+Thanks,
+ Sricharan
 --
-To unsubscribe, send a message with 'unsubscribe linux-mm' in
-the body to majordomo@kvack.org.  For more info on Linux MM,
-see: http://www.linux-mm.org/ .
-Fight unfair telecom internet charges in Canada: sign http://stopthemeter.ca/
-Don't email: <a href=mailto:"dont@kvack.org"> email@kvack.org </a>
+To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
