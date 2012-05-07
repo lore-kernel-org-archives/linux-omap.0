@@ -1,49 +1,99 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH 12/13] ARM: OMAP5: Add the build support
-Date: Mon, 7 May 2012 10:37:50 -0700
-Message-ID: <20120507173749.GE5088@atomide.com>
-References: <1336029982-31898-1-git-send-email-r.sricharan@ti.com>
- <1336029982-31898-13-git-send-email-r.sricharan@ti.com>
- <20120504225857.GB5613@atomide.com>
- <CAJ7qFSeJc+F5xnW+P5r89yZEZXi8k-LqqnD8R1KEUONqravNBw@mail.gmail.com>
+From: Kevin Hilman <khilman@ti.com>
+Subject: Re: [PATCH 1/2] OMAP2+: UART: Fix incorrect population of default uart pads
+Date: Mon, 07 May 2012 10:39:12 -0700
+Message-ID: <87r4uv51rz.fsf@ti.com>
+References: <1334065246-21294-1-git-send-email-govindraj.raja@ti.com>
+	<1334065246-21294-2-git-send-email-govindraj.raja@ti.com>
+	<87397uhv0q.fsf@ti.com>
+	<CAMrsUdKnDaO7qV2NpNvTb3QdO-XeM_PF645Mc43RozFVex71hQ@mail.gmail.com>
+	<20120504172417.GE5613@atomide.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=utf-8
 Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-02-ewr.mailhop.org ([204.13.248.72]:16847 "EHLO
-	mho-02-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756667Ab2EGRhv (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 7 May 2012 13:37:51 -0400
-Content-Disposition: inline
-In-Reply-To: <CAJ7qFSeJc+F5xnW+P5r89yZEZXi8k-LqqnD8R1KEUONqravNBw@mail.gmail.com>
+Received: from na3sys009aog132.obsmtp.com ([74.125.149.250]:49544 "EHLO
+	na3sys009aog132.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1757110Ab2EGRi7 convert rfc822-to-8bit
+	(ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Mon, 7 May 2012 13:38:59 -0400
+Received: by dadm1 with SMTP id m1so3031417dad.36
+        for <linux-omap@vger.kernel.org>; Mon, 07 May 2012 10:38:58 -0700 (PDT)
+In-Reply-To: <20120504172417.GE5613@atomide.com> (Tony Lindgren's message of
+	"Fri, 4 May 2012 10:24:18 -0700")
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "R, Sricharan" <r.sricharan@ti.com>
-Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, santosh.shilimkar@ti.com, b-cousson@ti.com
+To: Tony Lindgren <tony@atomide.com>
+Cc: "Raja, Govindraj" <govindraj.raja@ti.com>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Felipe Balbi <balbi@ti.com>, Russ Dill <russ.dill@gmail.com>
 
-* R, Sricharan <r.sricharan@ti.com> [120506 20:39]:
-> >> +config MACH_OMAP5_SEVM
-> >> + =C2=A0 =C2=A0 bool "OMAP5 sevm Board"
-> >> + =C2=A0 =C2=A0 depends on ARCH_OMAP5
-> >> +
-> >> =C2=A0config OMAP3_EMU
-> >> =C2=A0 =C2=A0 =C2=A0 bool "OMAP3 debugging peripherals"
-> >> =C2=A0 =C2=A0 =C2=A0 depends on ARCH_OMAP3
-> >
-> > No need for it here either. Actually, I think this whole chunk
-> > can be now left out since it's DT based?
-> >he
->  ok, but the concern here was that without this macro
->  the print from compress and subsequently early
-> prints appear broken.
->=20
-> machine_is_omap5_sevm becomes zero without this config and
-> machine_is_xxxx is used by the macro _DEBUG_LL_ENTRY
-> uncompress.h.
+Tony Lindgren <tony@atomide.com> writes:
 
-Ah I see.
+> * Raja, Govindraj <govindraj.raja@ti.com> [120424 01:41]:
+>> On Tue, Apr 24, 2012 at 5:15 AM, Kevin Hilman <khilman@ti.com> wrote=
+:
+>> > "Govindraj.R" <govindraj.raja@ti.com> writes:
+>> >
+>> >> From: "Govindraj.R" <govindraj.raja@ti.com>
+>> >>
+>> >> The following commit:
+>> >> (7496ba3 =C2=A0ARM: OMAP2+: UART: Add default mux for all uarts)
+>> >> added default pads for all uarts. But not all boards tend to
+>> >> use all uarts and most of unused uart pins are muxed for
+>> >> other purpose. This commit breaks the modules which where trying
+>> >> to use unused uart pins on their boards.
+>> >>
+>> >> So remove the default pads adding.
+>> >
+>> > I just noticed that this patch breaks runtime PM & wakeups for UAR=
+T
+>> > console (at least on 3530/Overo with ttyO2 console.)
+>> >
+>> > By removing the pads, the initial device_init_wakeup() is not call=
+ed on
+>> > port init. =C2=A0Without this call serial_omap_pm() disables runti=
+me PM
+>> > because it checks device_may_wakeup().
+>> >
+>> > Since runtime PM was disabled, I manually re-enabled it and then e=
+nabled
+>> > wakeups:
+>> >
+>> > =C2=A0echo auto > /sys/devices/platform/omap_uart.2/power/control
+>> > =C2=A0echo enabled > /sys/devices/platform/omap_uart.2/tty/ttyO2/p=
+ower/wakeup
+>> >
+>> > Then, after enabling auto-suspend timeouts, it seems wakeups are s=
+till
+>> > not working since the console hangs.
+>> >
+>> > Reverting $SUBJECT patch gets things working again.
+>>=20
+>> This was decided as part of discussion [1]
+>>=20
+>> If we are _reconsidering_ taking this patch [2]
+>> to dynamically probe uart pins and enable rx wakeup.
+>>=20
+>> I can re-work on the patch[2] as per tony's comments[1]
+>> and re-post it.
+> =20
+> Just to follow up on this.. Let's first get things working reliably,
+> and only then add more PM support.
+>
+> We absolutely can't revert $SUBJECT because it's known to mess up
+> at least smsc911x and ehci on zoom3, hsi on n900 and probably
+> many other things.
+>
+> For the -rc cycle, it seems that [2] is out of question at this point
+> as too intrusive. If the PM & wakeups are broken in the default cases=
+,
+> then I suggest we just take few steps back and disable any deeper PM
+> states in the -rc series.
 
-Tony
+Unfortunately, no need to do anything more to disable deeper PM states.
+
+Because $SUBJECT disables runtime PM for UART, it keeps both PER and
+CORE on all the time. :(
+
+Kevin
 --
 To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
 n
