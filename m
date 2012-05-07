@@ -1,43 +1,32 @@
-From: Janusz Krzysztofik <jkrzyszt@tis.icnet.pl>
-Subject: Re: [PATCH 3.4-rc4] ARM: OMAP1: Amstrad Delta: Fix wrong IRQ base in FIQ handler
-Date: Mon, 07 May 2012 23:16:25 +0200
-Message-ID: <1470735.vzc89Ry7Ka@acer>
-References: <1335806769-23711-1-git-send-email-jkrzyszt@tis.icnet.pl> <20120504165948.GC5613@atomide.com>
+From: Tony Lindgren <tony@atomide.com>
+Subject: Re: [GIT PULL] ARM: OMAP: PM: CPUidle cleanup for v3.5
+Date: Mon, 7 May 2012 15:08:41 -0700
+Message-ID: <20120507220840.GM5088@atomide.com>
+References: <87d36f50n0.fsf@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20120504165948.GC5613@atomide.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Tony Lindgren <tony@atomide.com>
-Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from mho-02-ewr.mailhop.org ([204.13.248.72]:54993 "EHLO
+	mho-02-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753142Ab2EGWIo (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 7 May 2012 18:08:44 -0400
+Content-Disposition: inline
+In-Reply-To: <87d36f50n0.fsf@ti.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Kevin Hilman <khilman@ti.com>
+Cc: linux-omap <linux-omap@vger.kernel.org>, linux-arm-kernel <linux-arm-kernel@lists.infradead.org>, Daniel Lezcano <daniel.lezcano@linaro.org>, Jean Pihet <jean.pihet@swing.be>, Santosh Shilimkar <santosh.shilimkar@ti.com>
 
-Dnia pi=C4=85tek, 4 maja 2012 09:59:49 Tony Lindgren pisze:
-> * Janusz Krzysztofik <jkrzyszt@tis.icnet.pl> [120430 10:30]:
-> > Commit 384ebe1c2849160d040df3e68634ec506f13d9ff, "gpio/omap: Add DT
-> > support to GPIO driver", introduced dynamic IRQ numbering of OMAP=20
-GPIO
-> > interrupts, breaking all IH_GPIO_BASE based IRQ number calculations=
-=2E
-> > This issue was corrected in the OMAP GPIO driver and the related=20
-header
-> > file with commit 25db711df3258d125dc1209800317e5c0ef3c870,=20
-"gpio/omap:
-> > Fix IRQ handling for SPARSE_IRQ".
-> >=20
-> > However, the Amstrad Delta FIQ handler, which replaces the gpio-oma=
-p
-> > driver in serving GPIO interrupts on this board, still uses that
-> > outdated method. Fix it.
->=20
-> Thanks applying into fixes.
+* Kevin Hilman <khilman@ti.com> [120507 11:07]:
+> Tony,
+> 
+> Please pull the following cleanup/consolidation of the OMAP CPUidle
+> code.  It's been reviewed and tested by Jean, Santosh and myself on
+> OMAP3/4.
+> 
+> Special thanks to Daniel Lezcano for this nice cleanup and
+> consolidation.
 
-Hi Tony,
-Thanks for taking this patch, but I ca't see it applied into your fixes=
-=20
-branch (the last one sitting there is "Linux 3.4-rc4" by Linus). Am I=20
-missing something?
+Thanks pulling into cleanup-cpuidle.
 
-Regards,
-Janusz
+Tony
