@@ -1,77 +1,142 @@
-From: "R, Sricharan" <r.sricharan@ti.com>
-Subject: Re: [PATCH 12/13] ARM: OMAP5: Add the build support
-Date: Mon, 7 May 2012 09:05:50 +0530
-Message-ID: <CAJ7qFSeJc+F5xnW+P5r89yZEZXi8k-LqqnD8R1KEUONqravNBw@mail.gmail.com>
-References: <1336029982-31898-1-git-send-email-r.sricharan@ti.com>
-	<1336029982-31898-13-git-send-email-r.sricharan@ti.com>
-	<20120504225857.GB5613@atomide.com>
+From: "J, KEERTHY" <j-keerthy@ti.com>
+Subject: Re: [PATCH V3 05/10] ARM: OMAP2+: SmartReflex: introduce a busy loop
+ condition test macro
+Date: Mon, 7 May 2012 10:51:53 +0530
+Message-ID: <CAJ6a13aA9nutZvRkcj8GHok9cEe8A=J2bwzSXt=Sd0Hu_WPaPw@mail.gmail.com>
+References: <1335462041-4949-1-git-send-email-j-keerthy@ti.com>
+	<1335462041-4949-6-git-send-email-j-keerthy@ti.com>
+	<331ABD5ECB02734CA317220B2BBEABC13E9B1B40@DBDE01.ent.ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: QUOTED-PRINTABLE
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aog109.obsmtp.com ([74.125.149.201]:43590 "EHLO
-	na3sys009aog109.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752874Ab2EGDfy convert rfc822-to-8bit
-	(ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Sun, 6 May 2012 23:35:54 -0400
-Received: by lboj14 with SMTP id j14so3691168lbo.21
-        for <linux-omap@vger.kernel.org>; Sun, 06 May 2012 20:35:50 -0700 (PDT)
-In-Reply-To: <20120504225857.GB5613@atomide.com>
-Sender: linux-omap-owner@vger.kernel.org
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <331ABD5ECB02734CA317220B2BBEABC13E9B1B40@DBDE01.ent.ti.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: "AnilKumar, Chimata" <anilkumar@ti.com>
+Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, "Hilman, Kevin" <khilman@ti.com>, "rjw@sisk.pl" <rjw@sisk.pl>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-pm@lists.linux-foundation.org" <linux-pm@lists.linux-foundation.org>, "Pihet-XID, Jean" <j-pihet@ti.com>
 List-Id: linux-omap@vger.kernel.org
-To: Tony Lindgren <tony@atomide.com>
-Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, santosh.shilimkar@ti.com, b-cousson@ti.com
 
-Hi Tony,
-
->> - =A0 =A0 select NEON if ARCH_OMAP3 || ARCH_OMAP4
->> + =A0 =A0 select NEON if ARCH_OMAP3 || ARCH_OMAP4 || ARCH_OMAP5
->> =A0 =A0 =A0 select SERIAL_OMAP
->> =A0 =A0 =A0 select SERIAL_OMAP_CONSOLE
->> =A0 =A0 =A0 select I2C
+On Fri, May 4, 2012 at 2:42 PM, AnilKumar, Chimata <anilkumar@ti.com> w=
+rote:
+> On Thu, Apr 26, 2012 at 23:10:36, J, KEERTHY wrote:
+>> From: Jean Pihet <j-pihet@ti.com>
+>>
+>> Now that omap_test_timeout is only accessible from mach-omap2/,
+>> introduce a similar function for SR.
+>>
+>> This change makes the SmartReflex implementation ready for the move
+>> to drivers/.
+>>
+>> Signed-off-by: Jean Pihet <j-pihet@ti.com>
+>> Signed-off-by: J Keerthy <j-keerthy@ti.com>
+>> ---
+>> =A0arch/arm/mach-omap2/smartreflex.c | =A0 12 ++++++------
+>> =A0include/linux/power/smartreflex.h | =A0 23 ++++++++++++++++++++++=
+-
+>> =A02 files changed, 28 insertions(+), 7 deletions(-)
+>>
+>> diff --git a/arch/arm/mach-omap2/smartreflex.c b/arch/arm/mach-omap2=
+/smartreflex.c
+>> index d859277..acef08d 100644
+>> --- a/arch/arm/mach-omap2/smartreflex.c
+>> +++ b/arch/arm/mach-omap2/smartreflex.c
+>> @@ -289,9 +289,9 @@ static void sr_v1_disable(struct omap_sr *sr)
+>> =A0 =A0 =A0 =A0* Wait for SR to be disabled.
+>> =A0 =A0 =A0 =A0* wait until ERRCONFIG.MCUDISACKINTST =3D 1. Typical =
+latency is 1us.
+>> =A0 =A0 =A0 =A0*/
+>> - =A0 =A0 omap_test_timeout((sr_read_reg(sr, ERRCONFIG_V1) &
+>> - =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 ERRCONFIG_MCUDISACKINTST),=
+ SR_DISABLE_TIMEOUT,
+>> - =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 timeout);
+>> + =A0 =A0 sr_test_cond_timeout((sr_read_reg(sr, ERRCONFIG_V1) &
+>> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0ERRCONFIG_MCUDI=
+SACKINTST), SR_DISABLE_TIMEOUT,
+>> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0timeout);
+>>
+>> =A0 =A0 =A0 if (timeout >=3D SR_DISABLE_TIMEOUT)
+>> =A0 =A0 =A0 =A0 =A0 =A0 =A0 dev_warn(&sr->pdev->dev, "%s: Smartrefle=
+x disable timedout\n",
+>> @@ -334,9 +334,9 @@ static void sr_v2_disable(struct omap_sr *sr)
+>> =A0 =A0 =A0 =A0* Wait for SR to be disabled.
+>> =A0 =A0 =A0 =A0* wait until IRQSTATUS.MCUDISACKINTST =3D 1. Typical =
+latency is 1us.
+>> =A0 =A0 =A0 =A0*/
+>> - =A0 =A0 omap_test_timeout((sr_read_reg(sr, IRQSTATUS) &
+>> - =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 IRQSTATUS_MCUDISABLEACKINT=
+), SR_DISABLE_TIMEOUT,
+>> - =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 timeout);
+>> + =A0 =A0 sr_test_cond_timeout((sr_read_reg(sr, IRQSTATUS) &
+>> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0IRQSTATUS_MCUDI=
+SABLEACKINT), SR_DISABLE_TIMEOUT,
+>> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0timeout);
+>>
+>> =A0 =A0 =A0 if (timeout >=3D SR_DISABLE_TIMEOUT)
+>> =A0 =A0 =A0 =A0 =A0 =A0 =A0 dev_warn(&sr->pdev->dev, "%s: Smartrefle=
+x disable timedout\n",
+>> diff --git a/include/linux/power/smartreflex.h b/include/linux/power=
+/smartreflex.h
+>> index 884eaee..78b795e 100644
+>> --- a/include/linux/power/smartreflex.h
+>> +++ b/include/linux/power/smartreflex.h
+>> @@ -22,7 +22,7 @@
+>>
+>> =A0#include <linux/types.h>
+>> =A0#include <linux/platform_device.h>
+>> -
+>> +#include <linux/delay.h>
+>> =A0#include <plat/voltage.h>
+>>
+>> =A0/*
+>> @@ -168,6 +168,27 @@ struct omap_sr {
+>> =A0};
+>>
+>> =A0/**
+>> + * test_cond_timeout - busy-loop, testing a condition
+>> + * @cond: condition to test until it evaluates to true
+>> + * @timeout: maximum number of microseconds in the timeout
+>> + * @index: loop index (integer)
+>> + *
+>> + * Loop waiting for @cond to become true or until at least @timeout
+>> + * microseconds have passed. =A0To use, define some integer @index =
+in the
+>> + * calling code. =A0After running, if @index =3D=3D @timeout, then =
+the loop has
+>> + * timed out.
+>> + *
+>> + * Copied from omap_test_timeout */
+>> +#define sr_test_cond_timeout(cond, timeout, index) =A0 =A0 =A0 =A0 =
+=A0 \
+>> +({ =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =
+=A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 \
+>> + =A0 =A0 for (index =3D 0; index < timeout; index++) { =A0 =A0 =A0 =
+=A0 =A0 =A0 \
+>> + =A0 =A0 =A0 =A0 =A0 =A0 if (cond) =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =
+=A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 \
+>> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 break; =A0 =A0 =A0 =A0 =A0=
+ =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0\
+>> + =A0 =A0 =A0 =A0 =A0 =A0 udelay(1); =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0=
+ =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0\
+>> + =A0 =A0 } =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =
+=A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 \
+>> +})
 >
-> If we add CONFIG_SOC_OMAP3PLUS and CONFIG_SOC_OMAP4PLUS, then
-> this becomes more future proof with select NEON if SOC_OMAP3PLUS.
+> I think we can use time_after()/time_before() APIs for timeout and cp=
+u_relax() for
+> tight loops instead of udelay().
+
+cpu_relax() changes the priority everytime to low and will yield to
+another thread.
+Considering that we are checking the condition every microsecond does i=
+t make
+some saving using cpu_relax().
+
 >
- ok. will change this.
+> Regards
+> AnilKumar
 
->> +config ARCH_OMAP5
->> + =A0 =A0 bool "TI OMAP5"
->> + =A0 =A0 depends on ARCH_OMAP2PLUS
->> + =A0 =A0 select CPU_V7
->> + =A0 =A0 select ARM_GIC
->> + =A0 =A0 select HAVE_SMP
->
-> No need to have depends on ARCH_OMAP2PLUS, it's all inside
-> if ARCH_OMAP2PLUS anyways. I removed those already once, but that
-> had to be reverted because the patch was doing other things too
-> that did not work out too well..
->ll
- ok, will remove this then.
 
->> +config MACH_OMAP5_SEVM
->> + =A0 =A0 bool "OMAP5 sevm Board"
->> + =A0 =A0 depends on ARCH_OMAP5
->> +
->> =A0config OMAP3_EMU
->> =A0 =A0 =A0 bool "OMAP3 debugging peripherals"
->> =A0 =A0 =A0 depends on ARCH_OMAP3
->
-> No need for it here either. Actually, I think this whole chunk
-> can be now left out since it's DT based?
->he
- ok, but the concern here was that without this macro
- the print from compress and subsequently early
-prints appear broken.
 
-machine_is_omap5_sevm becomes zero without this config and
-machine_is_xxxx is used by the macro _DEBUG_LL_ENTRY
-uncompress.h.
-
-Thanks,
- Sricharan
---
-To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+--=20
+Regards and Thanks,
+Keerthy
