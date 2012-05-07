@@ -1,37 +1,215 @@
 From: Archit Taneja <archit@ti.com>
-Subject: [PATCH 0/2] OMAPDSS: HDMI: Fix register dump of CORE registers
-Date: Mon, 7 May 2012 18:50:26 +0530
-Message-ID: <1336396828-29311-1-git-send-email-archit@ti.com>
+Subject: [PATCH 1/2] OMAPDSS: HDMI: Fix ti_hdmi_4xxx_core_dump
+Date: Mon, 7 May 2012 18:50:27 +0530
+Message-ID: <1336396828-29311-2-git-send-email-archit@ti.com>
+References: <1336396828-29311-1-git-send-email-archit@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from arroyo.ext.ti.com ([192.94.94.40]:58892 "EHLO arroyo.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754153Ab2EGNVM (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Mon, 7 May 2012 09:21:12 -0400
+Received: from devils.ext.ti.com ([198.47.26.153]:52013 "EHLO
+	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756593Ab2EGNVP (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 7 May 2012 09:21:15 -0400
+In-Reply-To: <1336396828-29311-1-git-send-email-archit@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: tomi.valkeinen@ti.com
 Cc: linux-omap@vger.kernel.org, linux-fbdev@vger.kernel.org, Archit Taneja <archit@ti.com>
 
-The HDMI CORE registers are dumped incorrectly due to incorrect register offset
-calculations. They are also dumped in a random order, with some of the registers
-repeated. This series fixes these issues.
+The function ti_hdmi_4xxx_core_dump has some bugs, the following mention the
+bugs and the solutions:
 
-The patches apply over:
+- The macros DUMPCORE and DUMPCOREAV in ti_hdmi_4xxx_core_dump() use
+  hdmi_pll_base() for the offsets needed to calculate register addresses, use
+  functions hdmi_core_sys_base() amd hdmi_av_base() to calculate the correct
+  offsets for CORE_SYS and CORE_AV registers.
 
-git://gitorious.org/linux-omap-dss2/linux.git dev
+- Many of the CORE_AV registers use the DUMPCORE macro, and hence the register
+  addresses are calculated incorrectly. Rename the current DUMPCOREAV macro as
+  DUMPCOREAV2 as it takes 2 arguments to dump indexed CORE_AV registers, create
+  a new macro called DUMPCOREAV which is now used for dumping non-indexed
+  CORE_AV registers.
 
-Tested on OMAP4 SDP.
+Thanks to Ancy Tom <ancytom@gmail.com> for pointing out the issues.
 
-Archit Taneja (2):
-  OMAPDSS: HDMI: Fix ti_hdmi_4xxx_core_dump
-  OMAPDSS: HDMI: define and dump CORE registers in correct order
+Signed-off-by: Archit Taneja <archit@ti.com>
+---
+ drivers/video/omap2/dss/ti_hdmi_4xxx_ip.c |  142 +++++++++++++++--------------
+ 1 files changed, 72 insertions(+), 70 deletions(-)
 
- drivers/video/omap2/dss/ti_hdmi_4xxx_ip.c |  163 +++++++++++++++--------------
- drivers/video/omap2/dss/ti_hdmi_4xxx_ip.h |   57 +++++------
- 2 files changed, 109 insertions(+), 111 deletions(-)
-
+diff --git a/drivers/video/omap2/dss/ti_hdmi_4xxx_ip.c b/drivers/video/omap2/dss/ti_hdmi_4xxx_ip.c
+index bfe6fe6..e266b8e 100644
+--- a/drivers/video/omap2/dss/ti_hdmi_4xxx_ip.c
++++ b/drivers/video/omap2/dss/ti_hdmi_4xxx_ip.c
+@@ -886,10 +886,12 @@ void ti_hdmi_4xxx_core_dump(struct hdmi_ip_data *ip_data, struct seq_file *s)
+ 
+ #define CORE_REG(i, name) name(i)
+ #define DUMPCORE(r) seq_printf(s, "%-35s %08x\n", #r,\
+-		hdmi_read_reg(hdmi_pll_base(ip_data), r))
+-#define DUMPCOREAV(i, r) seq_printf(s, "%s[%d]%*s %08x\n", #r, i, \
++		hdmi_read_reg(hdmi_core_sys_base(ip_data), r))
++#define DUMPCOREAV(r) seq_printf(s, "%-35s %08x\n", #r,\
++		hdmi_read_reg(hdmi_av_base(ip_data), r))
++#define DUMPCOREAV2(i, r) seq_printf(s, "%s[%d]%*s %08x\n", #r, i, \
+ 		(i < 10) ? 32 - strlen(#r) : 31 - strlen(#r), " ", \
+-		hdmi_read_reg(hdmi_pll_base(ip_data), CORE_REG(i, r)))
++		hdmi_read_reg(hdmi_av_base(ip_data), CORE_REG(i, r)))
+ 
+ 	DUMPCORE(HDMI_CORE_SYS_VND_IDL);
+ 	DUMPCORE(HDMI_CORE_SYS_DEV_IDL);
+@@ -924,85 +926,85 @@ void ti_hdmi_4xxx_core_dump(struct hdmi_ip_data *ip_data, struct seq_file *s)
+ 	DUMPCORE(HDMI_CORE_DDC_DATA);
+ 	DUMPCORE(HDMI_CORE_DDC_SEGM);
+ 
+-	DUMPCORE(HDMI_CORE_AV_HDMI_CTRL);
+-	DUMPCORE(HDMI_CORE_AV_DPD);
+-	DUMPCORE(HDMI_CORE_AV_PB_CTRL1);
+-	DUMPCORE(HDMI_CORE_AV_PB_CTRL2);
+-	DUMPCORE(HDMI_CORE_AV_AVI_TYPE);
+-	DUMPCORE(HDMI_CORE_AV_AVI_VERS);
+-	DUMPCORE(HDMI_CORE_AV_AVI_LEN);
+-	DUMPCORE(HDMI_CORE_AV_AVI_CHSUM);
++	DUMPCOREAV(HDMI_CORE_AV_HDMI_CTRL);
++	DUMPCOREAV(HDMI_CORE_AV_DPD);
++	DUMPCOREAV(HDMI_CORE_AV_PB_CTRL1);
++	DUMPCOREAV(HDMI_CORE_AV_PB_CTRL2);
++	DUMPCOREAV(HDMI_CORE_AV_AVI_TYPE);
++	DUMPCOREAV(HDMI_CORE_AV_AVI_VERS);
++	DUMPCOREAV(HDMI_CORE_AV_AVI_LEN);
++	DUMPCOREAV(HDMI_CORE_AV_AVI_CHSUM);
+ 
+ 	for (i = 0; i < HDMI_CORE_AV_AVI_DBYTE_NELEMS; i++)
+-		DUMPCOREAV(i, HDMI_CORE_AV_AVI_DBYTE);
++		DUMPCOREAV2(i, HDMI_CORE_AV_AVI_DBYTE);
+ 
+ 	for (i = 0; i < HDMI_CORE_AV_SPD_DBYTE_NELEMS; i++)
+-		DUMPCOREAV(i, HDMI_CORE_AV_SPD_DBYTE);
++		DUMPCOREAV2(i, HDMI_CORE_AV_SPD_DBYTE);
+ 
+ 	for (i = 0; i < HDMI_CORE_AV_AUD_DBYTE_NELEMS; i++)
+-		DUMPCOREAV(i, HDMI_CORE_AV_AUD_DBYTE);
++		DUMPCOREAV2(i, HDMI_CORE_AV_AUD_DBYTE);
+ 
+ 	for (i = 0; i < HDMI_CORE_AV_MPEG_DBYTE_NELEMS; i++)
+-		DUMPCOREAV(i, HDMI_CORE_AV_MPEG_DBYTE);
++		DUMPCOREAV2(i, HDMI_CORE_AV_MPEG_DBYTE);
+ 
+ 	for (i = 0; i < HDMI_CORE_AV_GEN_DBYTE_NELEMS; i++)
+-		DUMPCOREAV(i, HDMI_CORE_AV_GEN_DBYTE);
++		DUMPCOREAV2(i, HDMI_CORE_AV_GEN_DBYTE);
+ 
+ 	for (i = 0; i < HDMI_CORE_AV_GEN2_DBYTE_NELEMS; i++)
+-		DUMPCOREAV(i, HDMI_CORE_AV_GEN2_DBYTE);
+-
+-	DUMPCORE(HDMI_CORE_AV_ACR_CTRL);
+-	DUMPCORE(HDMI_CORE_AV_FREQ_SVAL);
+-	DUMPCORE(HDMI_CORE_AV_N_SVAL1);
+-	DUMPCORE(HDMI_CORE_AV_N_SVAL2);
+-	DUMPCORE(HDMI_CORE_AV_N_SVAL3);
+-	DUMPCORE(HDMI_CORE_AV_CTS_SVAL1);
+-	DUMPCORE(HDMI_CORE_AV_CTS_SVAL2);
+-	DUMPCORE(HDMI_CORE_AV_CTS_SVAL3);
+-	DUMPCORE(HDMI_CORE_AV_CTS_HVAL1);
+-	DUMPCORE(HDMI_CORE_AV_CTS_HVAL2);
+-	DUMPCORE(HDMI_CORE_AV_CTS_HVAL3);
+-	DUMPCORE(HDMI_CORE_AV_AUD_MODE);
+-	DUMPCORE(HDMI_CORE_AV_SPDIF_CTRL);
+-	DUMPCORE(HDMI_CORE_AV_HW_SPDIF_FS);
+-	DUMPCORE(HDMI_CORE_AV_SWAP_I2S);
+-	DUMPCORE(HDMI_CORE_AV_SPDIF_ERTH);
+-	DUMPCORE(HDMI_CORE_AV_I2S_IN_MAP);
+-	DUMPCORE(HDMI_CORE_AV_I2S_IN_CTRL);
+-	DUMPCORE(HDMI_CORE_AV_I2S_CHST0);
+-	DUMPCORE(HDMI_CORE_AV_I2S_CHST1);
+-	DUMPCORE(HDMI_CORE_AV_I2S_CHST2);
+-	DUMPCORE(HDMI_CORE_AV_I2S_CHST4);
+-	DUMPCORE(HDMI_CORE_AV_I2S_CHST5);
+-	DUMPCORE(HDMI_CORE_AV_ASRC);
+-	DUMPCORE(HDMI_CORE_AV_I2S_IN_LEN);
+-	DUMPCORE(HDMI_CORE_AV_HDMI_CTRL);
+-	DUMPCORE(HDMI_CORE_AV_AUDO_TXSTAT);
+-	DUMPCORE(HDMI_CORE_AV_AUD_PAR_BUSCLK_1);
+-	DUMPCORE(HDMI_CORE_AV_AUD_PAR_BUSCLK_2);
+-	DUMPCORE(HDMI_CORE_AV_AUD_PAR_BUSCLK_3);
+-	DUMPCORE(HDMI_CORE_AV_TEST_TXCTRL);
+-	DUMPCORE(HDMI_CORE_AV_DPD);
+-	DUMPCORE(HDMI_CORE_AV_PB_CTRL1);
+-	DUMPCORE(HDMI_CORE_AV_PB_CTRL2);
+-	DUMPCORE(HDMI_CORE_AV_AVI_TYPE);
+-	DUMPCORE(HDMI_CORE_AV_AVI_VERS);
+-	DUMPCORE(HDMI_CORE_AV_AVI_LEN);
+-	DUMPCORE(HDMI_CORE_AV_AVI_CHSUM);
+-	DUMPCORE(HDMI_CORE_AV_SPD_TYPE);
+-	DUMPCORE(HDMI_CORE_AV_SPD_VERS);
+-	DUMPCORE(HDMI_CORE_AV_SPD_LEN);
+-	DUMPCORE(HDMI_CORE_AV_SPD_CHSUM);
+-	DUMPCORE(HDMI_CORE_AV_AUDIO_TYPE);
+-	DUMPCORE(HDMI_CORE_AV_AUDIO_VERS);
+-	DUMPCORE(HDMI_CORE_AV_AUDIO_LEN);
+-	DUMPCORE(HDMI_CORE_AV_AUDIO_CHSUM);
+-	DUMPCORE(HDMI_CORE_AV_MPEG_TYPE);
+-	DUMPCORE(HDMI_CORE_AV_MPEG_VERS);
+-	DUMPCORE(HDMI_CORE_AV_MPEG_LEN);
+-	DUMPCORE(HDMI_CORE_AV_MPEG_CHSUM);
+-	DUMPCORE(HDMI_CORE_AV_CP_BYTE1);
+-	DUMPCORE(HDMI_CORE_AV_CEC_ADDR_ID);
++		DUMPCOREAV2(i, HDMI_CORE_AV_GEN2_DBYTE);
++
++	DUMPCOREAV(HDMI_CORE_AV_ACR_CTRL);
++	DUMPCOREAV(HDMI_CORE_AV_FREQ_SVAL);
++	DUMPCOREAV(HDMI_CORE_AV_N_SVAL1);
++	DUMPCOREAV(HDMI_CORE_AV_N_SVAL2);
++	DUMPCOREAV(HDMI_CORE_AV_N_SVAL3);
++	DUMPCOREAV(HDMI_CORE_AV_CTS_SVAL1);
++	DUMPCOREAV(HDMI_CORE_AV_CTS_SVAL2);
++	DUMPCOREAV(HDMI_CORE_AV_CTS_SVAL3);
++	DUMPCOREAV(HDMI_CORE_AV_CTS_HVAL1);
++	DUMPCOREAV(HDMI_CORE_AV_CTS_HVAL2);
++	DUMPCOREAV(HDMI_CORE_AV_CTS_HVAL3);
++	DUMPCOREAV(HDMI_CORE_AV_AUD_MODE);
++	DUMPCOREAV(HDMI_CORE_AV_SPDIF_CTRL);
++	DUMPCOREAV(HDMI_CORE_AV_HW_SPDIF_FS);
++	DUMPCOREAV(HDMI_CORE_AV_SWAP_I2S);
++	DUMPCOREAV(HDMI_CORE_AV_SPDIF_ERTH);
++	DUMPCOREAV(HDMI_CORE_AV_I2S_IN_MAP);
++	DUMPCOREAV(HDMI_CORE_AV_I2S_IN_CTRL);
++	DUMPCOREAV(HDMI_CORE_AV_I2S_CHST0);
++	DUMPCOREAV(HDMI_CORE_AV_I2S_CHST1);
++	DUMPCOREAV(HDMI_CORE_AV_I2S_CHST2);
++	DUMPCOREAV(HDMI_CORE_AV_I2S_CHST4);
++	DUMPCOREAV(HDMI_CORE_AV_I2S_CHST5);
++	DUMPCOREAV(HDMI_CORE_AV_ASRC);
++	DUMPCOREAV(HDMI_CORE_AV_I2S_IN_LEN);
++	DUMPCOREAV(HDMI_CORE_AV_HDMI_CTRL);
++	DUMPCOREAV(HDMI_CORE_AV_AUDO_TXSTAT);
++	DUMPCOREAV(HDMI_CORE_AV_AUD_PAR_BUSCLK_1);
++	DUMPCOREAV(HDMI_CORE_AV_AUD_PAR_BUSCLK_2);
++	DUMPCOREAV(HDMI_CORE_AV_AUD_PAR_BUSCLK_3);
++	DUMPCOREAV(HDMI_CORE_AV_TEST_TXCTRL);
++	DUMPCOREAV(HDMI_CORE_AV_DPD);
++	DUMPCOREAV(HDMI_CORE_AV_PB_CTRL1);
++	DUMPCOREAV(HDMI_CORE_AV_PB_CTRL2);
++	DUMPCOREAV(HDMI_CORE_AV_AVI_TYPE);
++	DUMPCOREAV(HDMI_CORE_AV_AVI_VERS);
++	DUMPCOREAV(HDMI_CORE_AV_AVI_LEN);
++	DUMPCOREAV(HDMI_CORE_AV_AVI_CHSUM);
++	DUMPCOREAV(HDMI_CORE_AV_SPD_TYPE);
++	DUMPCOREAV(HDMI_CORE_AV_SPD_VERS);
++	DUMPCOREAV(HDMI_CORE_AV_SPD_LEN);
++	DUMPCOREAV(HDMI_CORE_AV_SPD_CHSUM);
++	DUMPCOREAV(HDMI_CORE_AV_AUDIO_TYPE);
++	DUMPCOREAV(HDMI_CORE_AV_AUDIO_VERS);
++	DUMPCOREAV(HDMI_CORE_AV_AUDIO_LEN);
++	DUMPCOREAV(HDMI_CORE_AV_AUDIO_CHSUM);
++	DUMPCOREAV(HDMI_CORE_AV_MPEG_TYPE);
++	DUMPCOREAV(HDMI_CORE_AV_MPEG_VERS);
++	DUMPCOREAV(HDMI_CORE_AV_MPEG_LEN);
++	DUMPCOREAV(HDMI_CORE_AV_MPEG_CHSUM);
++	DUMPCOREAV(HDMI_CORE_AV_CP_BYTE1);
++	DUMPCOREAV(HDMI_CORE_AV_CEC_ADDR_ID);
+ }
+ 
+ void ti_hdmi_4xxx_phy_dump(struct hdmi_ip_data *ip_data, struct seq_file *s)
 -- 
 1.7.5.4
 
