@@ -1,61 +1,46 @@
-From: Arnd Bergmann <arnd@arndb.de>
-Subject: Re: [PATCH V3 1/2] of: Add generic device tree DMA helpers
-Date: Mon, 7 May 2012 17:21:33 +0000
-Message-ID: <201205071721.33704.arnd@arndb.de>
-References: <1335820679-28721-1-git-send-email-jon-hunter@ti.com> <CAJe_Zhe8jYd1j=ti6FvqxXL7i5mbgf0jqb-84sFMTeUqyAonpw@mail.gmail.com> <4FA7F009.5010003@wwwdotorg.org>
+From: Tony Lindgren <tony@atomide.com>
+Subject: Re: [PATCH 0/9] omap randconfig fixes for v3.3
+Date: Mon, 7 May 2012 12:07:17 -0700
+Message-ID: <20120507190716.GI5088@atomide.com>
+References: <1332522836-29517-1-git-send-email-mathieu.poirier@linaro.org>
+ <20120329172802.GX9859@atomide.com>
 Mime-Version: 1.0
-Content-Type: Text/Plain;
-  charset="iso-8859-1"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from moutng.kundenserver.de ([212.227.126.187]:61680 "EHLO
-	moutng.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1757564Ab2EGTCx (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 7 May 2012 15:02:53 -0400
-In-Reply-To: <4FA7F009.5010003@wwwdotorg.org>
+Received: from mho-01-ewr.mailhop.org ([204.13.248.71]:57779 "EHLO
+	mho-01-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1757592Ab2EGTHT (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 7 May 2012 15:07:19 -0400
+Content-Disposition: inline
+In-Reply-To: <20120329172802.GX9859@atomide.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Stephen Warren <swarren@wwwdotorg.org>
-Cc: Jassi Brar <jaswinder.singh@linaro.org>, Stephen Warren <swarren@nvidia.com>, Benoit Cousson <b-cousson@ti.com>, device-tree <devicetree-discuss@lists.ozlabs.org>, Nicolas Ferre <nicolas.ferre@atmel.com>, Rob Herring <rob.herring@calxeda.com>, Grant Likely <grant.likely@secretlab.ca>, Jon Hunter <jon-hunter@ti.com>, Russell King <linux@arm.linux.org.uk>, linux-omap <linux-omap@vger.kernel.org>, linux-arm <linux-arm-kernel@lists.infradead.org>
+To: mathieu.poirier@linaro.org
+Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org, arnd@arndb.de
 
-On Monday 07 May 2012, Stephen Warren wrote:
-> > That way dmac and client drivers using DT could do away with the filter_fn.
-> > 
-> > Roughly speaking (I am not very well versed with DT syntax)
-> > 
-> > Client Node:-
-> > 
-> > mmc1: mmc@13002000 {
-> >         ...
-> >         dma_tx = <891>   //some platform-wide unique value
-> >         dma_rx = <927>   //some platform-wide unique value
-> >         ...
-> >  };
+* Tony Lindgren <tony@atomide.com> [120329 10:31]:
+> Mathieu,
 > 
-> I believe we specifically don't want to introduce any global concept of
-> DMA channel ID, either within the kernel, or at the device tree level.
-
-I agree.
-
-> While we do have global interrupt and GPIO IDs within the kernel, this
-> has caused problems, I think primarily due to the need to manage this
-> unified namespace and allocate a single global ID for a bunch of
-> different ranges of controller-specific IDs.
+> * mathieu.poirier@linaro.org <mathieu.poirier@linaro.org> [120323 10:16]:
+> > From: "Arnd Bergmann" <arnd@arndb.de>
+> > 
+> > The following is a set of patches that have been sent
+> > out during the 3.1 cycle that were not acked or merged.
+> > 
+> > Sending again for completeness.  
+> > 
+> > Tony, please pull if there are no objections:
+> > 
+> > The following changes since commit c16fa4f2ad19908a47c63d8fa436a1178438c7e7:
 > 
-> Within device tree, everything is always represented as an ID
-> relative-to or within a particular controller, so it's easy to namespace
-> things separately.
+> Can you please drop the already fixed ones and post
+> a new pull request?
+> 
+> It seems that these should merge fine to current mainline
+> if based on v3.3. If not, then maybe use the linux-omap fixes
+> branch as the base that I've just pushed at commit 2533c2cf.
 
-Right. Note that strictly speaking the requirement is that everything
-is local to a particular namespace, which does not have to be the
-device controlling the property.
+Ping, any news on updating the pull request for the remaining
+comments?
 
-For instance, we can map interrupt numbers to different controllers
-using the interrupt-maps property. It is a fairly complex method,
-but something similar or a somewhat simpler method could be applied
-to define a namespace for dma controllers from which you can pick
-a request line.
-
-The example I've given earlier does just that.
-
-	Arnd
+Tony
