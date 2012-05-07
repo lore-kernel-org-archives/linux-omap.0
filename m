@@ -1,14 +1,12 @@
 From: Tony Lindgren <tony@atomide.com>
-Subject: [GIT PULL 2/5] omap hwmod cleanup for v3.5 merge window
+Subject: [GIT PULL 1/5] omap sparse cleanup for v3.5 merge window
 Date: Mon, 7 May 2012 15:38:42 -0700
-Message-ID: <E1SRWa6-0004bp-SW@merlin.infradead.org>
-References: <pull-1336430323-742388>
+Message-ID: <17112.11378356$1336430368@news.gmane.org>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
 Content-Disposition: inline
-In-Reply-To: <pull-1336430323-742388>
 List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
  <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
 List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
@@ -28,66 +26,86 @@ The following changes since commit e816b57a337ea3b755de72bec38c10c864f23015:
 
 are available in the git repository at:
 
-  git://git.kernel.org/pub/scm/linux/kernel/git/tmlind/linux-omap tags/omap-cleanup-hwmod-for-v3.5
+  git://git.kernel.org/pub/scm/linux/kernel/git/tmlind/linux-omap tags/omap-cleanup-sparse-for-v3.5
 
-for you to fetch changes up to 9c3a3009f1c66f4a758b1e5d31b6977185d70a56:
+for you to fetch changes up to 09f45b83109cb8e23a06d5efb1096a08a9545974:
 
-  Merge tag 'omap-cleanup-b-for-3.5' of git://git.kernel.org/pub/scm/linux/kernel/git/pjw/omap-pending into cleanup-hwmod (2012-04-19 17:43:42 -0700)
-
-----------------------------------------------------------------
-
-Clean up of hwmod to shrink down the IP block interconnections
+  Merge tag 'omap-cleanup-a2-for-3.5' of git://git.kernel.org/pub/scm/linux/kernel/git/pjw/omap-pending into cleanup-sparse (2012-04-18 10:09:26 -0700)
 
 ----------------------------------------------------------------
-Archit Taneja (1):
-      ARM: OMAP2/3: VENC hwmods: Remove OCPIF_SWSUP_IDLE flag from VENC slave interface
 
-Fernando Guzman Lugo (1):
-      ARM: OMAP2+: hwmod: add softreset delay field and OMAP4 data
+Sparse and cppcheck warning fixes
 
-Paul Walmsley (30):
-      ARM: OMAP2+: hwmod: Revert "ARM: OMAP2+: hwmod: Make omap_hwmod_softreset wait for reset status"
-      ARM: OMAP2+: hwmod: control all hardreset lines attached to a hwmod
-      ARM: OMAP4: hwmod data: remove pseudo-hwmods associated with hardreset lines
-      ARM: OMAP2+: hwmod: revise the IP block reset process
-      ARM: OMAP2+: hwmod: reorganize and document the initialization process
-      ARM: OMAP2+: hwmod: reorganize and document the reset and configuration process
-      ARM: OMAP2+: hwmod: revise hardreset behavior
-      ARM: OMAP2+: hwmod: provide a function to return the address space of the MPU RT
-      ARM: OMAP2+: hwmod: add omap_hwmod_get_resource_byname()
-      ARM: OMAP2+: timer: use a proper interface to get hwmod data
-      ARM: OMAP2/3: hwmod data: update old names
-      ARM: OMAP3: hwmod data: fix interfaces for the MMC hwmods
-      ARM: OMAP3: hwmod data: add DSS->L3 interconnect for 3430ES1
-      ARM: OMAP3: hwmod data: GPTIMER12 is attached to a separate interconnect
-      ARM: OMAP4: hwmod data: remove bandgap hwmod
-      ARM: OMAP4: hwmod data: add OCP_USER_DSP; mark omap44xx_dsp__iva appropriately
-      ARM: OMAP4: hwmod data: uncomment some "excluded" hwmods
-      ARM: OMAP2+: hwmod: extend OCP_* register offsets from 16 to 32 bits
-      ARM: OMAP2+: hwmod: add _find_mpu_rt_port()
-      ARM: OMAP2+: hwmod: add function to iterate over struct omap_hwmod_ocp_if
-      ARM: OMAP2+: hwmod: consolidate finding the MPU port index and storing it
-      ARM: OMAP2+: hwmod: add support for link registration
-      ARM: OMAP2+: hwmod data: convert to link registration
-      ARM: OMAP: hwmod: remove code support for direct hwmod registration
-      ARM: OMAP2+: hwmod data: remove forward declarations, reorganize
-      ARM: OMAP2xxx: hwmod data: share common hwmods between OMAP2420 and OMAP2430
-      ARM: OMAP2xxx: hwmod data: share common interface data
-      ARM: OMAP3: hwmod data: fix IVA interface clock
-      ARM: OMAP3: hwmod data: add IVA hard reset lines, main clock, clockdomain
-      ARM: OMAP2xxx: hwmod data: start to fix the IVA1, IVA2 and DSP
+----------------------------------------------------------------
+Paul Walmsley (11):
+      ARM: OMAP2+: declare file-local functions as static
+      ARM: OMAP: add includes for missing prototypes
+      ARM: OMAP1: OCPI: move to mach-omap1/
+      ARM: OMAP1: OHCI: use platform_data fn ptr to enable OCPI bus
+      ARM: OMAP2+: GPMC: resolve type-conversion warning from sparse
+      ARM: OMAP: fix 'using plain integer as NULL pointer' sparse warnings
+      ARM: OMAP: OCM RAM: use memset_io() when clearing SRAM
+      ARM: OMAP: DMA: use constant array maximum, drop some LCD DMA code
+      ARM: OMAP: USB: remove unnecessary sideways include
+      ARM: OMAP1: board files: deduplicate and clean some NAND-related code
+      ARM: OMAP2+: clean up some cppcheck warnings
 
 Tony Lindgren (1):
-      Merge tag 'omap-cleanup-b-for-3.5' of git://git.kernel.org/.../pjw/omap-pending into cleanup-hwmod
+      Merge tag 'omap-cleanup-a2-for-3.5' of git://git.kernel.org/.../pjw/omap-pending into cleanup-sparse
 
- arch/arm/mach-omap2/omap_hwmod.c                   | 1160 +++--
- arch/arm/mach-omap2/omap_hwmod_2420_data.c         | 1563 +-----
- arch/arm/mach-omap2/omap_hwmod_2430_data.c         | 2316 +++------
- .../mach-omap2/omap_hwmod_2xxx_interconnect_data.c |  266 +-
- arch/arm/mach-omap2/omap_hwmod_2xxx_ipblock_data.c |  562 +++
- arch/arm/mach-omap2/omap_hwmod_3xxx_data.c         | 5022 +++++++++----------
- arch/arm/mach-omap2/omap_hwmod_44xx_data.c         | 5066 ++++++++------------
- arch/arm/mach-omap2/omap_hwmod_common_data.h       |   71 +-
- arch/arm/mach-omap2/timer.c                        |   15 +-
- arch/arm/plat-omap/include/plat/omap_hwmod.h       |   44 +-
- 10 files changed, 6976 insertions(+), 9109 deletions(-)
+ arch/arm/mach-omap1/Makefile                 |   13 ++++++---
+ arch/arm/mach-omap1/ams-delta-fiq.c          |    2 +-
+ arch/arm/mach-omap1/board-fsample.c          |   16 +----------
+ arch/arm/mach-omap1/board-h2.c               |   17 +-----------
+ arch/arm/mach-omap1/board-h3.c               |   16 +----------
+ arch/arm/mach-omap1/board-nand.c             |   37 ++++++++++++++++++++++++++
+ arch/arm/mach-omap1/board-palmz71.c          |    4 +--
+ arch/arm/mach-omap1/board-perseus2.c         |   16 +----------
+ arch/arm/mach-omap1/clock.c                  |    3 +--
+ arch/arm/mach-omap1/common.h                 |   11 +++++++-
+ arch/arm/mach-omap1/fpga.c                   |    2 +-
+ arch/arm/mach-omap1/id.c                     |    2 ++
+ arch/arm/mach-omap1/io.c                     |    3 +--
+ arch/arm/mach-omap1/irq.c                    |    2 ++
+ arch/arm/mach-omap1/lcd_dma.c                |    7 +----
+ arch/arm/{plat-omap => mach-omap1}/ocpi.c    |    7 +++--
+ arch/arm/mach-omap1/pm.c                     |    9 +++----
+ arch/arm/mach-omap1/reset.c                  |    2 ++
+ arch/arm/mach-omap1/timer.c                  |    3 +--
+ arch/arm/mach-omap1/usb.c                    |    3 +++
+ arch/arm/mach-omap2/am35xx-emac.c            |   37 ++++++++++++--------------
+ arch/arm/mach-omap2/board-omap3evm.c         |    8 +++---
+ arch/arm/mach-omap2/board-omap4panda.c       |    8 +++---
+ arch/arm/mach-omap2/board-rx51-peripherals.c |    4 +--
+ arch/arm/mach-omap2/board-zoom-display.c     |    1 +
+ arch/arm/mach-omap2/common.h                 |    2 --
+ arch/arm/mach-omap2/devices.c                |    7 +++--
+ arch/arm/mach-omap2/gpio.c                   |    2 +-
+ arch/arm/mach-omap2/gpmc-onenand.c           |    3 +--
+ arch/arm/mach-omap2/gpmc.c                   |    3 +--
+ arch/arm/mach-omap2/hwspinlock.c             |    2 +-
+ arch/arm/mach-omap2/io.c                     |    1 +
+ arch/arm/mach-omap2/irq.c                    |    3 ++-
+ arch/arm/mach-omap2/mux.c                    |    2 +-
+ arch/arm/mach-omap2/omap-secure.c            |    1 +
+ arch/arm/mach-omap2/omap-wakeupgen.c         |    2 +-
+ arch/arm/mach-omap2/pm24xx.c                 |    3 ---
+ arch/arm/mach-omap2/pm34xx.c                 |   10 +++----
+ arch/arm/mach-omap2/prm_common.c             |    4 ++-
+ arch/arm/mach-omap2/serial.c                 |    2 +-
+ arch/arm/mach-omap2/usb-tusb6010.c           |    2 +-
+ arch/arm/plat-omap/Makefile                  |    3 ---
+ arch/arm/plat-omap/common.c                  |    1 +
+ arch/arm/plat-omap/dma.c                     |   13 +++++++--
+ arch/arm/plat-omap/dmtimer.c                 |    3 ++-
+ arch/arm/plat-omap/include/plat/board.h      |    2 ++
+ arch/arm/plat-omap/include/plat/common.h     |    2 ++
+ arch/arm/plat-omap/include/plat/dma.h        |    1 +
+ arch/arm/plat-omap/include/plat/dmtimer.h    |    4 +--
+ arch/arm/plat-omap/omap_device.c             |    2 --
+ arch/arm/plat-omap/sram.c                    |    4 +--
+ arch/arm/plat-omap/usb.c                     |    4 ---
+ drivers/usb/host/ohci-omap.c                 |    5 ++--
+ 53 files changed, 161 insertions(+), 165 deletions(-)
+ create mode 100644 arch/arm/mach-omap1/board-nand.c
+ rename arch/arm/{plat-omap => mach-omap1}/ocpi.c (93%)
