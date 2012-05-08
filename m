@@ -1,150 +1,89 @@
-From: Vaibhav Hiremath <hvaibhav@ti.com>
-Subject: [PATCH-V2 4/4] ARM: OMAP2+: CLEANUP: Add new config option for different DPLL features
-Date: Wed, 9 May 2012 01:22:04 +0530
-Message-ID: <1336506724-5494-5-git-send-email-hvaibhav@ti.com>
-References: <1336506724-5494-1-git-send-email-hvaibhav@ti.com>
+From: Tony Lindgren <tony@atomide.com>
+Subject: Re: [PATCH] ARM: OMAP2+: am33xx: Make am33xx as a separate class
+Date: Tue, 8 May 2012 13:08:34 -0700
+Message-ID: <20120508200833.GD5088@atomide.com>
+References: <1336490630-7272-1-git-send-email-hvaibhav@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from bear.ext.ti.com ([192.94.94.41]:52867 "EHLO bear.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1755597Ab2EHUER (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Tue, 8 May 2012 16:04:17 -0400
-In-Reply-To: <1336506724-5494-1-git-send-email-hvaibhav@ti.com>
+Received: from mho-01-ewr.mailhop.org ([204.13.248.71]:45015 "EHLO
+	mho-01-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756443Ab2EHUIg (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 8 May 2012 16:08:36 -0400
+Content-Disposition: inline
+In-Reply-To: <1336490630-7272-1-git-send-email-hvaibhav@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: linux-omap@vger.kernel.org
-Cc: tony@atomide.com, khilman@ti.com, paul@pwsan.com, linux-arm-kernel@lists.infradead.org, Vaibhav Hiremath <hvaibhav@ti.com>
+To: Vaibhav Hiremath <hvaibhav@ti.com>
+Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Kevin Hilman <khilman@ti.com>, Paul Walmsley <paul@pwsan.com>
 
-This patch cleans up dpll_data structure, making structure
-fields definition based on feature availability for given SoC,
-managed using Kconfig rules.
+* Vaibhav Hiremath <hvaibhav@ti.com> [120508 08:32]:
+> --- a/arch/arm/mach-omap2/Kconfig
+> +++ b/arch/arm/mach-omap2/Kconfig
+> @@ -123,8 +123,11 @@ config SOC_OMAPTI81XX
+>  
+>  config SOC_OMAPAM33XX
+>  	bool "AM33XX support"
+> -	depends on ARCH_OMAP3
+> +	depends on ARCH_OMAP2PLUS
 
-SOC_HAS_OMAP3_DPLL_IDLE: idle state
-SOC_HAS_OMAP3_DPLL_RECAL: recalibration capability
-SOC_HAS_OMAP3_DPLL_DCO_SEL: dco selection
-SOC_HAS_OMAP3_DPLL_SDDIV: sigma-delta div factor
-SOC_HAS_OMAP3_DPLL_FREQSEL: frequency selection
+This is not needed, it's inside if ARCH_OMAP2PLUS block.
 
-Signed-off-by: Vaibhav Hiremath <hvaibhav@ti.com>
-Cc: Tony Lindgren <tony@atomide.com>
-Cc: Kevin Hilman <khilman@ti.com>
-Cc: Paul Walmsley <paul@pwsan.com>
----
- arch/arm/mach-omap2/Kconfig             |   34 +++++++++++++++++++++++++++++++
- arch/arm/plat-omap/include/plat/clock.h |   14 ++++++++++--
- 2 files changed, 45 insertions(+), 3 deletions(-)
+> --- a/arch/arm/mach-omap2/Makefile
+> +++ b/arch/arm/mach-omap2/Makefile
+> @@ -16,6 +16,7 @@ secure-common				= omap-smc.o omap-secure.o
+>  obj-$(CONFIG_ARCH_OMAP2) += $(omap-2-3-common) $(hwmod-common)
+>  obj-$(CONFIG_ARCH_OMAP3) += $(omap-2-3-common) $(hwmod-common) $(secure-common)
+>  obj-$(CONFIG_ARCH_OMAP4) += prm44xx.o $(hwmod-common) $(secure-common)
+> +obj-$(CONFIG_SOC_OMAPAM33XX) += irq.o $(hwmod-common)
+>  
+>  ifneq ($(CONFIG_SND_OMAP_SOC_MCBSP),)
+>  obj-y += mcbsp.o
+> @@ -93,6 +94,7 @@ obj-$(CONFIG_ARCH_OMAP4)		+= prcm.o cm2xxx_3xxx.o cminst44xx.o \
+>  					   cm44xx.o prcm_mpu44xx.o \
+>  					   prminst44xx.o vc44xx_data.o \
+>  					   vp44xx_data.o prm44xx.o
+> +obj-$(CONFIG_SOC_OMAPAM33XX)		+= prcm.o
+>  
+>  # OMAP voltage domains
+>  voltagedomain-common			:= voltage.o vc.o vp.o
+> @@ -102,6 +104,7 @@ obj-$(CONFIG_ARCH_OMAP3)		+= $(voltagedomain-common) \
+>  					   voltagedomains3xxx_data.o
+>  obj-$(CONFIG_ARCH_OMAP4)		+= $(voltagedomain-common) \
+>  					   voltagedomains44xx_data.o
+> +obj-$(CONFIG_SOC_OMAPAM33XX)		+= $(voltagedomain-common)
+>  
+>  # OMAP powerdomain framework
+>  powerdomain-common			+= powerdomain.o powerdomain-common.o
+> @@ -116,6 +119,7 @@ obj-$(CONFIG_ARCH_OMAP3)		+= $(powerdomain-common) \
+>  obj-$(CONFIG_ARCH_OMAP4)		+= $(powerdomain-common) \
+>  					   powerdomain44xx.o \
+>  					   powerdomains44xx_data.o
+> +obj-$(CONFIG_SOC_OMAPAM33XX)		+= $(powerdomain-common)
+>  
+>  # PRCM clockdomain control
+>  clockdomain-common			+= clockdomain.o \
+> @@ -132,6 +136,7 @@ obj-$(CONFIG_ARCH_OMAP3)		+= $(clockdomain-common) \
+>  obj-$(CONFIG_ARCH_OMAP4)		+= $(clockdomain-common) \
+>  					   clockdomain44xx.o \
+>  					   clockdomains44xx_data.o
+> +obj-$(CONFIG_SOC_OMAPAM33XX)		+= $(clockdomain-common)
+>  
+>  # Clock framework
+>  obj-$(CONFIG_ARCH_OMAP2)		+= $(clock-common) clock2xxx.o \
+> @@ -149,6 +154,7 @@ obj-$(CONFIG_ARCH_OMAP3)		+= $(clock-common) clock3xxx.o \
+>  					   clkt_iclk.o
+>  obj-$(CONFIG_ARCH_OMAP4)		+= $(clock-common) clock44xx_data.o \
+>  					   dpll3xxx.o dpll44xx.o
+> +obj-$(CONFIG_SOC_OMAPAM33XX)		+= $(clock-common) dpll3xxx.o
+>  
+>  # OMAP2 clock rate set data (old "OPP" data)
+>  obj-$(CONFIG_SOC_OMAP2420)		+= opp2420_data.o
 
-diff --git a/arch/arm/mach-omap2/Kconfig b/arch/arm/mach-omap2/Kconfig
-index a432f3e..23999eb 100644
---- a/arch/arm/mach-omap2/Kconfig
-+++ b/arch/arm/mach-omap2/Kconfig
-@@ -20,6 +20,21 @@ config ARCH_OMAP2PLUS_TYPICAL
- 	help
- 	  Compile a kernel suitable for booting most boards
+Can you please rebase this on what's now in the cleanup branch at commit
+382ae00105d9989a821f458084e0428bce10b969? That should simplify the Makefile
+changes a bit.
 
-+config SOC_HAS_OMAP3_DPLL_IDLE
-+	bool "OMAP3 DPLL idle state support"
-+
-+config SOC_HAS_OMAP3_DPLL_RECAL
-+	bool "OMAP3 DPLL Recalibration support"
-+
-+config SOC_HAS_OMAP3_DPLL_DCO_SEL
-+	bool "OMAP3 DPLL DCO (Digitally Controlled Oscilators) support"
-+
-+config SOC_HAS_OMAP3_DPLL_SDDIV
-+	bool "OMAP3 DPLL Sigma-Delta Divider support"
-+
-+config SOC_HAS_OMAP3_DPLL_FREQSEL
-+	bool "OMAP3 DPLL Freq Select support"
-+
- config SOC_HAS_OMAP2_SDRC
- 	bool "OMAP2 SDRAM Controller support"
+Other than that looks good to me.
 
-@@ -42,6 +57,11 @@ config ARCH_OMAP3
- 	select ARM_CPU_SUSPEND if PM
- 	select MULTI_IRQ_HANDLER
- 	select SOC_HAS_OMAP2_SDRC
-+	select SOC_HAS_OMAP3_DPLL_IDLE
-+	select SOC_HAS_OMAP3_DPLL_RECAL
-+	select SOC_HAS_OMAP3_DPLL_DCO_SEL
-+	select SOC_HAS_OMAP3_DPLL_SDDIV
-+	select SOC_HAS_OMAP3_DPLL_FREQSEL
-
- config ARCH_OMAP4
- 	bool "TI OMAP4"
-@@ -59,6 +79,9 @@ config ARCH_OMAP4
- 	select PM_OPP if PM
- 	select USB_ARCH_HAS_EHCI if USB_SUPPORT
- 	select ARM_CPU_SUSPEND if PM
-+	select SOC_HAS_OMAP3_DPLL_IDLE
-+	select SOC_HAS_OMAP3_DPLL_RECAL
-+	select SOC_HAS_OMAP3_DPLL_SDDIV
-
- comment "OMAP Core Type"
- 	depends on ARCH_OMAP2
-@@ -84,16 +107,27 @@ config SOC_OMAP3430
- 	default y
- 	select ARCH_OMAP_OTG
- 	select SOC_HAS_OMAP2_SDRC
-+	select SOC_HAS_OMAP3_DPLL_IDLE
-+	select SOC_HAS_OMAP3_DPLL_RECAL
-+	select SOC_HAS_OMAP3_DPLL_DCO_SEL
-+	select SOC_HAS_OMAP3_DPLL_SDDIV
-+	select SOC_HAS_OMAP3_DPLL_FREQSEL
-
- config SOC_OMAPTI81XX
- 	bool "TI81XX support"
- 	depends on ARCH_OMAP3
- 	default y
-+	select SOC_HAS_OMAP3_DPLL_IDLE
-+	select SOC_HAS_OMAP3_DPLL_RECAL
-+	select SOC_HAS_OMAP3_DPLL_SDDIV
-
- config SOC_OMAPAM33XX
- 	bool "AM33XX support"
- 	depends on ARCH_OMAP3
- 	default y
-+	select SOC_HAS_OMAP3_DPLL_IDLE
-+	select SOC_HAS_OMAP3_DPLL_RECAL
-+	select SOC_HAS_OMAP3_DPLL_SDDIV
-
- config OMAP_PACKAGE_ZAF
-        bool
-diff --git a/arch/arm/plat-omap/include/plat/clock.h b/arch/arm/plat-omap/include/plat/clock.h
-index d0ef57c..8d40de8 100644
---- a/arch/arm/plat-omap/include/plat/clock.h
-+++ b/arch/arm/plat-omap/include/plat/clock.h
-@@ -156,18 +156,26 @@ struct dpll_data {
- 	u8			min_divider;
- 	u16			max_divider;
- 	u8			modes;
--#if defined(CONFIG_ARCH_OMAP3) || defined(CONFIG_ARCH_OMAP4)
-+#if defined(CONFIG_SOC_HAS_OMAP3_DPLL_IDLE)
- 	void __iomem		*autoidle_reg;
- 	void __iomem		*idlest_reg;
- 	u32			autoidle_mask;
--	u32			freqsel_mask;
- 	u32			idlest_mask;
-+#endif
-+#if defined(CONFIG_SOC_HAS_OMAP3_DPLL_FREQSEL)
-+	u32			freqsel_mask;
-+#endif
-+#if defined(CONFIG_SOC_HAS_OMAP3_DPLL_DCO_SEL)
- 	u32			dco_mask;
-+#endif
-+#if defined(CONFIG_SOC_HAS_OMAP3_DPLL_SDDIV)
- 	u32			sddiv_mask;
-+#endif
-+#if defined(CONFIG_SOC_HAS_OMAP3_DPLL_RECAL)
- 	u8			auto_recal_bit;
- 	u8			recal_en_bit;
- 	u8			recal_st_bit;
--#  endif
-+#endif
- 	u8			flags;
- };
-
---
-1.7.0.4
-
+Tony
