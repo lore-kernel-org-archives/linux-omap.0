@@ -1,68 +1,90 @@
-From: Archit Taneja <archit@ti.com>
-Subject: [PATCH v3 5/5] OMAPDSS: DPI/HDMI: Apply manager timings even if panel is disabled
-Date: Tue, 8 May 2012 15:28:16 +0530
-Message-ID: <1336471096-21096-6-git-send-email-archit@ti.com>
-References: <1334561027-28569-1-git-send-email-archit@ti.com>
- <1336471096-21096-1-git-send-email-archit@ti.com>
+From: "AnilKumar, Chimata" <anilkumar@ti.com>
+Subject: RE: [PATCH V3 00/10] PM: Create the AVS(Adaptive Voltage Scaling)
+Date: Tue, 8 May 2012 10:17:44 +0000
+Message-ID: <331ABD5ECB02734CA317220B2BBEABC13E9B6681@DBDE01.ent.ti.com>
+References: <1335462041-4949-1-git-send-email-j-keerthy@ti.com>
+	<20120426191159.GA9415@sirena.org.uk>
+	<CAJ6a13a6WN9h1QZynpEOf-R6RXwWBZ2eOPkTeNc15JX_YfAz_w@mail.gmail.com>
+	<20120427175657.GP18260@opensource.wolfsonmicro.com>	<87397o3n4y.fsf@ti.com>
+	<331ABD5ECB02734CA317220B2BBEABC13E9B1A67@DBDE01.ent.ti.com>
+ <87mx5jy2li.fsf@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from comal.ext.ti.com ([198.47.26.152]:40893 "EHLO comal.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753055Ab2EHJ7U (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Tue, 8 May 2012 05:59:20 -0400
-In-Reply-To: <1336471096-21096-1-git-send-email-archit@ti.com>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <87mx5jy2li.fsf@ti.com>
+Content-Language: en-US
+Sender: linux-kernel-owner@vger.kernel.org
+To: "Hilman, Kevin" <khilman@ti.com>
+Cc: Mark Brown <broonie@opensource.wolfsonmicro.com>, "J, KEERTHY" <j-keerthy@ti.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, "rjw@sisk.pl" <rjw@sisk.pl>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-pm@lists.linux-foundation.org" <linux-pm@lists.linux-foundation.org>, "Pihet-XID, Jean" <j-pihet@ti.com>
 List-Id: linux-omap@vger.kernel.org
-To: tomi.valkeinen@ti.com
-Cc: linux-omap@vger.kernel.org, linux-fbdev@vger.kernel.org, Archit Taneja <archit@ti.com>
 
-The DPI and HDMI interfaces use their 'set_timing' functions to take in a new
-set of timings. If the panel is disabled, they do not disable and re-enable
-the interface. Currently, the manager timings are applied in hdmi_power_on()
-and dpi_set_mode() respectively, these are not called by set_timings if the
-panel is disabled.
+On Tue, May 08, 2012 at 05:18:41, Hilman, Kevin wrote:
+> "AnilKumar, Chimata" <anilkumar@ti.com> writes:
+> 
+> > On Sat, Apr 28, 2012 at 02:31:17, Hilman, Kevin wrote:
+> >> Hi Mark,
+> >> 
+> >> Mark Brown <broonie@opensource.wolfsonmicro.com> writes:
+> >> 
+> >> > On Fri, Apr 27, 2012 at 11:09:10AM +0530, J, KEERTHY wrote:
+> >> >
+> >> >> Devfreq and cpufreq are related to dynamic frequency/voltage switching between
+> >> >> pre defined Operating Performance Points or the OPPs. Every OPP being
+> >> >> a voltage/frequency pair. Smartreflex is a different
+> >> >> power management technique.
+> >> >
+> >> > But presumably these things should integrate somehow - for example,
+> >> > should devfreq and cpufreq be providing inputs into what AVS is doing,
+> >> > and if so how?
+> >> 
+> >> The way it is currently designed, cpufreq/devfreq/regulator layers don't
+> >> need to know about AVS.
+> >> 
+> >> The higher-level layers only know about the "nominal" voltage.  AVS
+> >> hardware does automatic, adaptive, micro-adjustments around that nominal
+> >> voltage, and these micro-adjustments are managed by the AVS hardware
+> >> sending commands to the PMIC.  (specifically, on OMAP, the AVS sensors
+> >> provide inputs to the voltage processor (VP) which provide inputs to the
+> >> voltage controller (VC) which sends commands to the PMIC[1].)
+> >> 
+> >> The driver proposed here is primarily for initializing the various
+> >> parameters/sensitivity/etc. of the AVS hardware, but the actual voltage
+> >> adjustments are done in hardware by VC/VP.
+> >> 
+> >> The only thing the higher-level layers might potentially need to do to
+> >> enable/disable AVS around transitions (e.g. when changing OPP, AVS is
+> >> disabled before changing OPP and only re-enabled when the new nominal
+> >> voltage has been acheived.)
+> >> 
+> >> On OMAP, we handle this inside the OMAP-specific voltage layer which is
+> >> called by the regulator framework, so even the regulators do not need
+> >> any knowledge of AVS.
+> >
+> > Kevin,
+> >
+> > I want to point out some cases of SR implementation where this may not
+> > be true.
+> >
+> > Devices like DM8168, DM8148 and AM335X use Class 2B implementation of SR.
+> >
+> > Under this, SR module issues an interrupt to ARM when there is a need to
+> > change the voltage based on temperature changes, ageing etc.
+> >
+> > Once the interrupt arrives, kernel needs to adjust voltage using regulator API.
+> > The voltage change is a micro adjustment as in other SR classes.
+> 
+> That can easily be handled writing a plugin specific to class 2B.  This
+> driver was designed so plugins for other classes can be supported.  
+> 
+> Sure, we might need some enhancements for other classes (we already know
+> that we will for class 1 support.)  However, the purpose of this series
+> is to do the cleanups necessary for the driver to move to drivers/*.
+> 
 
-When checking overlay and manager data, the DSS driver uses the last applied
-manager timings, and not the timings held by omap_dss_device struct. Hence,
-there is a need to apply the new manager timings even if the panel is disabled.
+It's perfectly fine with me. My intention was just to highlight that
+class 2B SR will have to interact with regulator layer for voltage
+changes, so I guess it is little different from other SR classes.
 
-Apply the manager timings if the panel is disabled. Eventually, there should be
-one common place where the timings are applied independent of the state of the
-panel.
-
-Signed-off-by: Archit Taneja <archit@ti.com>
----
- drivers/video/omap2/dss/dpi.c  |    2 ++
- drivers/video/omap2/dss/hdmi.c |    2 ++
- 2 files changed, 4 insertions(+), 0 deletions(-)
-
-diff --git a/drivers/video/omap2/dss/dpi.c b/drivers/video/omap2/dss/dpi.c
-index 8127f46..1650050 100644
---- a/drivers/video/omap2/dss/dpi.c
-+++ b/drivers/video/omap2/dss/dpi.c
-@@ -298,6 +298,8 @@ void dpi_set_timings(struct omap_dss_device *dssdev,
- 
- 		dispc_runtime_put();
- 		dss_runtime_put();
-+	} else {
-+		dss_mgr_set_timings(dssdev->manager, timings);
- 	}
- }
- EXPORT_SYMBOL(dpi_set_timings);
-diff --git a/drivers/video/omap2/dss/hdmi.c b/drivers/video/omap2/dss/hdmi.c
-index 8d4ff8c..32ad712 100644
---- a/drivers/video/omap2/dss/hdmi.c
-+++ b/drivers/video/omap2/dss/hdmi.c
-@@ -435,6 +435,8 @@ void omapdss_hdmi_display_set_timing(struct omap_dss_device *dssdev)
- 		r = hdmi_power_on(dssdev);
- 		if (r)
- 			DSSERR("failed to power on device\n");
-+	} else {
-+		dss_mgr_set_timings(dssdev->manager, &dssdev->panel.timings);
- 	}
- }
- 
--- 
-1.7.5.4
-
+Thanks,
+AnilKumar
