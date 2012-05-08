@@ -1,150 +1,139 @@
 From: Vaibhav Hiremath <hvaibhav@ti.com>
-Subject: [RFC PATCH 4/4] ARM: OMAP2+: CLEANUP: Add new config option for different DPLL features
-Date: Tue, 8 May 2012 20:32:44 +0530
-Message-ID: <1336489364-19200-5-git-send-email-hvaibhav@ti.com>
+Subject: [PATCH 3/4] ARM: OMAP2+: CLEANUP: Remove unnecessary ifdef around __omap2_set_globals
+Date: Tue, 8 May 2012 20:32:43 +0530
+Message-ID: <1336489364-19200-4-git-send-email-hvaibhav@ti.com>
 References: <1336489364-19200-1-git-send-email-hvaibhav@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from arroyo.ext.ti.com ([192.94.94.40]:45146 "EHLO arroyo.ext.ti.com"
+Received: from arroyo.ext.ti.com ([192.94.94.40]:45139 "EHLO arroyo.ext.ti.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1756055Ab2EHPG7 (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Tue, 8 May 2012 11:06:59 -0400
+	id S1756055Ab2EHPG4 (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Tue, 8 May 2012 11:06:56 -0400
 In-Reply-To: <1336489364-19200-1-git-send-email-hvaibhav@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: linux-omap@vger.kernel.org
 Cc: tony@atomide.com, khilman@ti.com, paul@pwsan.com, b-cousson@ti.com, linux-arm-kernel@lists.infradead.org, Vaibhav Hiremath <hvaibhav@ti.com>
 
-This patch cleans up dpll_data structure, making structure
-fields definition based on feature availability for given SoC,
-managed using Kconfig rules.
-
-SOC_HAS_DPLL_IDLE: idle state
-SOC_HAS_DPLL_RECAL: recalibration capability
-SOC_HAS_DPLL_DCO_SEL: dco selection
-SOC_HAS_DPLL_SDDIV: sigma-delta div factor
-SOC_HAS_DPLL_FREQSEL: frequency selection
+The function __omap2_set_globals() can be common across all
+platforms/architectures, even in case of omap4, internally it
+calls same set of functions as in __omap2_set_globals() function
+(except for sdrc).
+This patch adds new config flag SOC_HAS_SDRC to handle sdrc,
+so that we can reuse same function across omap2/3/4...
 
 Signed-off-by: Vaibhav Hiremath <hvaibhav@ti.com>
 Cc: Tony Lindgren <tony@atomide.com>
 Cc: Kevin Hilman <khilman@ti.com>
 Cc: Paul Walmsley <paul@pwsan.com>
 ---
- arch/arm/mach-omap2/Kconfig             |   34 +++++++++++++++++++++++++++++++
- arch/arm/plat-omap/include/plat/clock.h |   14 ++++++++++--
- 2 files changed, 45 insertions(+), 3 deletions(-)
+ arch/arm/mach-omap2/Kconfig  |    8 ++++++++
+ arch/arm/mach-omap2/common.c |    8 +-------
+ arch/arm/mach-omap2/common.h |    5 +++++
+ 3 files changed, 14 insertions(+), 7 deletions(-)
 
 diff --git a/arch/arm/mach-omap2/Kconfig b/arch/arm/mach-omap2/Kconfig
-index 2277359..93bf5e2 100644
+index 0685dc8..2277359 100644
 --- a/arch/arm/mach-omap2/Kconfig
 +++ b/arch/arm/mach-omap2/Kconfig
-@@ -20,6 +20,21 @@ config ARCH_OMAP2PLUS_TYPICAL
+@@ -20,12 +20,16 @@ config ARCH_OMAP2PLUS_TYPICAL
  	help
  	  Compile a kernel suitable for booting most boards
-
-+config SOC_HAS_DPLL_IDLE
-+	bool "DPLL idle state support"
+ 
++config SOC_HAS_SDRC
++	bool "SDRAM Controller support"
 +
-+config SOC_HAS_DPLL_RECAL
-+	bool "DPLL Recalibration support"
-+
-+config SOC_HAS_DPLL_DCO_SEL
-+	bool "DPLL DCO (Digitally Controlled Oscilators) support"
-+
-+config SOC_HAS_DPLL_SDDIV
-+	bool "DPLL Sigma-Delta Divider support"
-+
-+config SOC_HAS_DPLL_FREQSEL
-+	bool "DPLL Freq Select support"
-+
- config SOC_HAS_SDRC
- 	bool "SDRAM Controller support"
-
-@@ -42,6 +57,11 @@ config ARCH_OMAP3
+ config ARCH_OMAP2
+ 	bool "TI OMAP2"
+ 	depends on ARCH_OMAP2PLUS
+ 	default y
+ 	select CPU_V6
+ 	select MULTI_IRQ_HANDLER
++	select SOC_HAS_SDRC
+ 
+ config ARCH_OMAP3
+ 	bool "TI OMAP3"
+@@ -37,6 +41,7 @@ config ARCH_OMAP3
+ 	select PM_OPP if PM
  	select ARM_CPU_SUSPEND if PM
  	select MULTI_IRQ_HANDLER
- 	select SOC_HAS_SDRC
-+	select SOC_HAS_DPLL_IDLE
-+	select SOC_HAS_DPLL_RECAL
-+	select SOC_HAS_DPLL_DCO_SEL
-+	select SOC_HAS_DPLL_SDDIV
-+	select SOC_HAS_DPLL_FREQSEL
-
++	select SOC_HAS_SDRC
+ 
  config ARCH_OMAP4
  	bool "TI OMAP4"
-@@ -59,6 +79,9 @@ config ARCH_OMAP4
- 	select PM_OPP if PM
- 	select USB_ARCH_HAS_EHCI if USB_SUPPORT
- 	select ARM_CPU_SUSPEND if PM
-+	select SOC_HAS_DPLL_IDLE
-+	select SOC_HAS_DPLL_RECAL
-+	select SOC_HAS_DPLL_SDDIV
-
- comment "OMAP Core Type"
+@@ -64,18 +69,21 @@ config SOC_OMAP2420
+ 	default y
+ 	select OMAP_DM_TIMER
+ 	select ARCH_OMAP_OTG
++	select SOC_HAS_SDRC
+ 
+ config SOC_OMAP2430
+ 	bool "OMAP2430 support"
  	depends on ARCH_OMAP2
-@@ -84,16 +107,27 @@ config SOC_OMAP3430
  	default y
  	select ARCH_OMAP_OTG
- 	select SOC_HAS_SDRC
-+	select SOC_HAS_DPLL_IDLE
-+	select SOC_HAS_DPLL_RECAL
-+	select SOC_HAS_DPLL_DCO_SEL
-+	select SOC_HAS_DPLL_SDDIV
-+	select SOC_HAS_DPLL_FREQSEL
-
++	select SOC_HAS_SDRC
+ 
+ config SOC_OMAP3430
+ 	bool "OMAP3430 support"
+ 	depends on ARCH_OMAP3
+ 	default y
+ 	select ARCH_OMAP_OTG
++	select SOC_HAS_SDRC
+ 
  config SOC_OMAPTI81XX
  	bool "TI81XX support"
- 	depends on ARCH_OMAP3
- 	default y
-+	select SOC_HAS_DPLL_IDLE
-+	select SOC_HAS_DPLL_RECAL
-+	select SOC_HAS_DPLL_SDDIV
-
- config SOC_OMAPAM33XX
- 	bool "AM33XX support"
- 	depends on ARCH_OMAP3
- 	default y
-+	select SOC_HAS_DPLL_IDLE
-+	select SOC_HAS_DPLL_RECAL
-+	select SOC_HAS_DPLL_SDDIV
-
- config OMAP_PACKAGE_ZAF
-        bool
-diff --git a/arch/arm/plat-omap/include/plat/clock.h b/arch/arm/plat-omap/include/plat/clock.h
-index d0ef57c..aa81c04 100644
---- a/arch/arm/plat-omap/include/plat/clock.h
-+++ b/arch/arm/plat-omap/include/plat/clock.h
-@@ -156,18 +156,26 @@ struct dpll_data {
- 	u8			min_divider;
- 	u16			max_divider;
- 	u8			modes;
--#if defined(CONFIG_ARCH_OMAP3) || defined(CONFIG_ARCH_OMAP4)
-+#if defined(CONFIG_SOC_HAS_DPLL_IDLE)
- 	void __iomem		*autoidle_reg;
- 	void __iomem		*idlest_reg;
- 	u32			autoidle_mask;
--	u32			freqsel_mask;
- 	u32			idlest_mask;
+diff --git a/arch/arm/mach-omap2/common.c b/arch/arm/mach-omap2/common.c
+index 1549c11..ad8626d 100644
+--- a/arch/arm/mach-omap2/common.c
++++ b/arch/arm/mach-omap2/common.c
+@@ -29,8 +29,6 @@
+ 
+ /* Global address base setup code */
+ 
+-#if defined(CONFIG_ARCH_OMAP2) || defined(CONFIG_ARCH_OMAP3)
+-
+ static void __init __omap2_set_globals(struct omap_globals *omap2_globals)
+ {
+ 	omap2_set_globals_tap(omap2_globals);
+@@ -39,8 +37,6 @@ static void __init __omap2_set_globals(struct omap_globals *omap2_globals)
+ 	omap2_set_globals_prcm(omap2_globals);
+ }
+ 
+-#endif
+-
+ #if defined(CONFIG_SOC_OMAP2420)
+ 
+ static struct omap_globals omap242x_globals = {
+@@ -170,9 +166,7 @@ static struct omap_globals omap4_globals = {
+ 
+ void __init omap2_set_globals_443x(void)
+ {
+-	omap2_set_globals_tap(&omap4_globals);
+-	omap2_set_globals_control(&omap4_globals);
+-	omap2_set_globals_prcm(&omap4_globals);
++	__omap2_set_globals(&omap4_globals);
+ }
+ 
+ void __init omap4_map_io(void)
+diff --git a/arch/arm/mach-omap2/common.h b/arch/arm/mach-omap2/common.h
+index 0e95efc..70dee99 100644
+--- a/arch/arm/mach-omap2/common.h
++++ b/arch/arm/mach-omap2/common.h
+@@ -122,7 +122,12 @@ void omap2_set_globals_am33xx(void);
+ 
+ /* These get called from omap2_set_globals_xxxx(), do not call these */
+ void omap2_set_globals_tap(struct omap_globals *);
++#if defined(CONFIG_SOC_HAS_SDRC)
+ void omap2_set_globals_sdrc(struct omap_globals *);
++#else
++static inline void omap2_set_globals_sdrc(struct omap_globals *omap2_globals)
++{ }
 +#endif
-+#if defined(CONFIG_SOC_HAS_DPLL_FREQSEL)
-+	u32			freqsel_mask;
-+#endif
-+#if defined(CONFIG_SOC_HAS_DPLL_DCO_SEL)
- 	u32			dco_mask;
-+#endif
-+#if defined(CONFIG_SOC_HAS_DPLL_SDDIV)
- 	u32			sddiv_mask;
-+#endif
-+#if defined(CONFIG_SOC_HAS_DPLL_RECAL)
- 	u8			auto_recal_bit;
- 	u8			recal_en_bit;
- 	u8			recal_st_bit;
--#  endif
-+#endif
- 	u8			flags;
- };
-
---
+ void omap2_set_globals_control(struct omap_globals *);
+ void omap2_set_globals_prcm(struct omap_globals *);
+ 
+-- 
 1.7.0.4
 
