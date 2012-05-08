@@ -1,122 +1,59 @@
-From: Rajendra Nayak <rnayak@ti.com>
-Subject: Re: [PATCHv4 6/8] ARM: OMAP4: PM: support ret_logic/mem_off_counters
-Date: Tue, 08 May 2012 14:27:32 +0530
-Message-ID: <4FA8DFFC.6050608@ti.com>
-References: <1334913591-26312-1-git-send-email-t-kristo@ti.com>	 <1334913591-26312-7-git-send-email-t-kristo@ti.com> <87pqafv810.fsf@ti.com> <1336466198.2149.269.camel@sokoban>
+From: "Govindraj.R" <govindraj.raja@ti.com>
+Subject: [PATCH v4 0/2] ARM: omap_hwmod: add api to enable/disable module level wakeup
+Date: Tue, 8 May 2012 14:34:15 +0530
+Message-ID: <1336467857-12521-1-git-send-email-govindraj.raja@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aog105.obsmtp.com ([74.125.149.75]:50861 "EHLO
-	na3sys009aog105.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751680Ab2EHI5j (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 8 May 2012 04:57:39 -0400
-Received: by obbuo13 with SMTP id uo13so10264536obb.29
-        for <linux-omap@vger.kernel.org>; Tue, 08 May 2012 01:57:38 -0700 (PDT)
-In-Reply-To: <1336466198.2149.269.camel@sokoban>
+Received: from bear.ext.ti.com ([192.94.94.41]:46018 "EHLO bear.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751241Ab2EHJEh (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Tue, 8 May 2012 05:04:37 -0400
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: t-kristo@ti.com
-Cc: Kevin Hilman <khilman@ti.com>, linux-omap@vger.kernel.org, paul@pwsan.com, linux-arm-kernel@lists.infradead.org, Axel Haslam <axelhaslam@gmail.com>
+To: linux-omap@vger.kernel.org
+Cc: linux-arm-kernel@lists.infradead.org, "Govindraj.R" <govindraj.raja@ti.com>, Paul Walmsley <paul@pwsan.com>, Kevin Hilman <khilman@ti.com>, Benoit Cousson <b-cousson@ti.com>, Tero Kristo <t-kristo@ti.com>, Tony Lindgren <tony@atomide.com>, Rajendra Nayak <rnayak@ti.com>, Santosh Shilimkar <santosh.shilimkar@ti.com>
 
-On Tuesday 08 May 2012 02:06 PM, Tero Kristo wrote:
-> On Mon, 2012-05-07 at 17:19 -0700, Kevin Hilman wrote:
->> Tero Kristo<t-kristo@ti.com>  writes:
->>
->>> From: Axel Haslam<axelhaslam@gmail.com>
->>>
->>> On OMAP4, there is no support to read previous logic state
->>> or previous memory state achieved when a power domain transitions
->>> to RET. Instead there are module level context registers.
->>>
->>> In order to support the powerdomain level logic/mem_off_counters
->>> on OMAP4, instead use the previous power state achieved (RET) and
->>> the *programmed* logic/mem RET state to derive if a powerdomain lost
->>> logic or did not.
->>
->> OK, but this also changes the behavior for OMAP3 as well, right?  I
->> don't see in the changelog how this affects OMAP3 and whether it is
->> still expected to work on OMAP3.  When changing common code like this,
->> the changelog should describe the impacts on to all affected SoCs.
->>
->> As suggested by Vaibhav Bedia, now might be the right time to add this
->> function to the SoC specific function pointers (struct pwrdm_ops.)
->>
->> Doing that, the existing function could be used for OMAP3 (and OMAP4 if
->> the changelog describes that it can/should be used for both.)
->>
->> Then, when AM33xx support is added, it will be obvious where they will
->> need to plugin support for that SoC.
->
-> How about the following patch? It will add a couple of redundant
-> read_prev_pwrst calls, but works in the same way as the original patch,
-> without touching the generic code. Also, as there have been talks about
-> adding caching for some of the pwrdm registers (especially the
-> prev_pwrst), this might not be that big of an issue.
->
-> If this looks good to you, I'll re-post the set with this patch.
->
-> -Tero
->
->
-> diff --git a/arch/arm/mach-omap2/powerdomain44xx.c
-> b/arch/arm/mach-omap2/powerdomain44xx.c
-> index 9bfb8a0..3d5e8d4 100644
-> --- a/arch/arm/mach-omap2/powerdomain44xx.c
-> +++ b/arch/arm/mach-omap2/powerdomain44xx.c
-> @@ -155,6 +155,14 @@ static int omap4_pwrdm_read_logic_retst(struct
-> powerdomain *pwrdm)
->   	return v;
->   }
->
-> +static int omap4_pwrdm_read_prev_logic_pwrst(struct powerdomain *pwrdm)
-> +{
-> +	if (omap4_pwrdm_read_prev_pwrst(pwrdm) != PWRDM_POWER_RET)
-> +		return PWRDM_POWER_ON;
-> +
-> +	return omap4_pwrdm_read_logic_retst(pwrdm);
+From: "Govindraj.R" <govindraj.raja@ti.com>
 
-Looks good to me. Do these ever get called with target state programmed
-to OFF?
+On omap2/3 module level wakeup is handled using PM_WKEN registers.
+Expand the hwmod framework to handle the module level wakeup enable 
+registers.
 
-regards,
-Rajendra
+Patch series based on:
+git://git.pwsan.com/linux-2.6 hwmod_soc_conditional_cleanup_3.5
 
-> +}
-> +
->   static int omap4_pwrdm_read_mem_pwrst(struct powerdomain *pwrdm, u8
-> bank)
->   {
->   	u32 m, v;
-> @@ -183,6 +191,14 @@ static int omap4_pwrdm_read_mem_retst(struct
-> powerdomain *pwrdm, u8 bank)
->   	return v;
->   }
->
-> +static int omap4_pwrdm_read_prev_mem_pwrst(struct powerdomain *pwrdm,
-> u8 bank)
-> +{
-> +	if (omap4_pwrdm_read_prev_pwrst(pwrdm) != PWRDM_POWER_RET)
-> +		return PWRDM_POWER_ON;
-> +
-> +	return omap4_pwrdm_read_mem_retst(pwrdm, bank);
-> +}
-> +
->   static int omap4_pwrdm_wait_transition(struct powerdomain *pwrdm)
->   {
->   	u32 c = 0;
-> @@ -256,9 +272,11 @@ struct pwrdm_ops omap4_pwrdm_operations = {
->   	.pwrdm_clear_all_prev_pwrst	= omap4_pwrdm_clear_all_prev_pwrst,
->   	.pwrdm_set_logic_retst	= omap4_pwrdm_set_logic_retst,
->   	.pwrdm_read_logic_pwrst	= omap4_pwrdm_read_logic_pwrst,
-> +	.pwrdm_read_prev_logic_pwrst	= omap4_pwrdm_read_prev_logic_pwrst,
->   	.pwrdm_read_logic_retst	= omap4_pwrdm_read_logic_retst,
->   	.pwrdm_read_mem_pwrst	= omap4_pwrdm_read_mem_pwrst,
->   	.pwrdm_read_mem_retst	= omap4_pwrdm_read_mem_retst,
-> +	.pwrdm_read_prev_mem_pwrst	= omap4_pwrdm_read_prev_mem_pwrst,
->   	.pwrdm_set_mem_onst	= omap4_pwrdm_set_mem_onst,
->   	.pwrdm_set_mem_retst	= omap4_pwrdm_set_mem_retst,
->   	.pwrdm_wait_transition	= omap4_pwrdm_wait_transition,
->
->
+Tested on Beagle-xm by enabling and disabling uart wakeups from sysfs
+Series depends on following patches for testing.
+http://marc.info/?l=linux-omap&m=133527588923598&w=2
+http://marc.info/?l=linux-omap&m=133518614022144&w=2
+
+Cc: Paul Walmsley <paul@pwsan.com>
+Cc: Kevin Hilman <khilman@ti.com>
+Cc: Benoit Cousson <b-cousson@ti.com>
+Cc: Tero Kristo <t-kristo@ti.com>
+Cc: Tony Lindgren <tony@atomide.com>
+Cc: Rajendra Nayak <rnayak@ti.com>
+Cc: Santosh Shilimkar <santosh.shilimkar@ti.com>
+
+Changes from v3:
+---------------
+Using hwmod soc init support to populate soc specific
+funcs.
+http://www.spinics.net/lists/linux-omap/msg69676.html
+
+
+Govindraj.R (2):
+  ARM: OMAP2/3: omap_hwmod: Add api to enable/disable module level
+    wakeup events
+  ARM: omap3: pm: Remove uart module level wakeup configurations
+
+ arch/arm/mach-omap2/omap_hwmod.c   |   29 +++++++++++++++++++++++++++++
+ arch/arm/mach-omap2/pm34xx.c       |   14 +++++---------
+ arch/arm/mach-omap2/prm2xxx_3xxx.c |   16 ++++++++++++++++
+ arch/arm/mach-omap2/prm2xxx_3xxx.h |    9 +++++++++
+ 4 files changed, 59 insertions(+), 9 deletions(-)
+
+-- 
+1.7.9
 
