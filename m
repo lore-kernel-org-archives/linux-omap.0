@@ -1,90 +1,99 @@
-From: Jassi Brar <jaswinder.singh@linaro.org>
-Subject: Re: [PATCH V3 1/2] of: Add generic device tree DMA helpers
-Date: Wed, 9 May 2012 00:39:12 +0530
-Message-ID: <CAJe_Zhf0=Qnsgsc7U_GbKxc0_6DKj33QWs0UW2giyrVEjPnrvw@mail.gmail.com>
-References: <1335820679-28721-1-git-send-email-jon-hunter@ti.com>
-	<4FA3F308.6030900@ti.com>
-	<CAJe_ZhfFhZVG4gyaaVUgeQedJiSE=zj9nE28XCNH9DkPVgqj=A@mail.gmail.com>
-	<201205041923.07620.arnd@arndb.de>
-	<CAJe_Zhe8jYd1j=ti6FvqxXL7i5mbgf0jqb-84sFMTeUqyAonpw@mail.gmail.com>
-	<4FA7F009.5010003@wwwdotorg.org>
-	<CAJe_ZheHFP9NZEiZfCvS3LL1k7xamzGq4Oep8gfmPRi6RR7R5Q@mail.gmail.com>
-	<4FA94B49.5050500@wwwdotorg.org>
+From: Ashwin Bihari <ashwin.bihari@logicpd.com>
+Subject: Additional support for LogicPD OMAP3530
+Date: Tue, 8 May 2012 14:14:51 -0500
+Message-ID: <0520A3FE5EDCF24F88B3F1451CFC64AE04A34D434D@edprex01>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
+Content-Type: multipart/mixed;
+	boundary="_000_0520A3FE5EDCF24F88B3F1451CFC64AE04A34D434Dedprex01_"
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-lpp01m010-f46.google.com ([209.85.215.46]:51910 "EHLO
-	mail-lpp01m010-f46.google.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755557Ab2EHTJO (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 8 May 2012 15:09:14 -0400
-Received: by lahd3 with SMTP id d3so1321134lah.19
-        for <linux-omap@vger.kernel.org>; Tue, 08 May 2012 12:09:13 -0700 (PDT)
-In-Reply-To: <4FA94B49.5050500@wwwdotorg.org>
+Received: from 174-46-170-145.static.twtelecom.net ([174.46.170.145]:37235
+	"HELO barracuda.logicpd.com" rhost-flags-OK-FAIL-OK-FAIL)
+	by vger.kernel.org with SMTP id S1752373Ab2EHTOp (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 8 May 2012 15:14:45 -0400
+Received: from EDPREX01.logicpd.com (edprex01.logicpd.com [10.1.18.134]) by barracuda.logicpd.com with ESMTP id HJu1re0b2D6dWE6D (version=TLSv1 cipher=AES128-SHA bits=128 verify=NO) for <linux-omap@vger.kernel.org>; Tue, 08 May 2012 14:14:44 -0500 (CDT)
+Content-Language: en-US
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Stephen Warren <swarren@wwwdotorg.org>
-Cc: Arnd Bergmann <arnd@arndb.de>, Stephen Warren <swarren@nvidia.com>, Benoit Cousson <b-cousson@ti.com>, device-tree <devicetree-discuss@lists.ozlabs.org>, Nicolas Ferre <nicolas.ferre@atmel.com>, Rob Herring <rob.herring@calxeda.com>, Grant Likely <grant.likely@secretlab.ca>, Jon Hunter <jon-hunter@ti.com>, Russell King <linux@arm.linux.org.uk>, linux-omap <linux-omap@vger.kernel.org>, linux-arm <linux-arm-kernel@lists.infradead.org>
+To: "tony@atomide.com" <tony@atomide.com>
+Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
 
-On 8 May 2012 22:05, Stephen Warren <swarren@wwwdotorg.org> wrote:
->
-> The data doesn't need to be part of the DMA controller node in order for
-> the DMA controller driver to be the entity interpreting it.
->
-I rather say, if the dma controller driver is the entity going to interpret the
-data, why not provide the data directly through its node at one go?
+--_000_0520A3FE5EDCF24F88B3F1451CFC64AE04A34D434Dedprex01_
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: quoted-printable
 
-There is important difference between providing data via clients
-during runtime vs providing info about every client to the dmac driver
-at one go during its probe.
+Tony,
 
->
-> The advantage here is that:
->
-> * The specifier is stored in the client, not the IRQ/GPIO/DMA
-> controller's node, so it's located right at the usage site, which
-> typically makes working out what resources a client uses easier.
->
-A client doesn't really need some n'th channel of some m'th dma controller.
-A client simply needs one channel for transmitting data whichever
-platform it be.
-So {n,m}_channel isn't really a required resource, dma_tx is, which I  still
-specify in the client's node.
-  The fact that this information is simply fwd by the client as such to the dmac
-(via utility code), makes the ritual even more pointless.
+I should've CC'ed you on my initial posting, and will do so with future pos=
+ts, but here is a ping with the 2 patches[1] I sent that add MSUB and LCD s=
+upport for the LogicPD OMAP3530 SOM-LV and Torpedo DevKits.
+
+Please let me know if you any comments or anyone (or mailing list) I should=
+ also CC for these patches.
+
+[1] - http://www.mail-archive.com/linux-omap@vger.kernel.org/msg68037.html
+
+Thanks
+~ Ashwin
 
 
-> This also keeps client-specific information out of the provider node,
-> allowing it to be fully generic.
->
-A typical Samsung SoC has 2 peripheral DMA controllers and
-about 40 possible clients. Of which ~20 clients could be served by either of
-the two dmacs. Of course hardly ever a machine has 10 clients. It would be
-desirable if the dma driver doesn't populate the unused 54(32+32-10) channels,
- presumably also reserving limited resources for each, on the machine.
+--_000_0520A3FE5EDCF24F88B3F1451CFC64AE04A34D434Dedprex01_
+Content-Disposition: attachment; filename="winmail.dat"
+Content-Transfer-Encoding: base64
+Content-Type: application/ms-tnef; name="winmail.dat"
 
-Consider this example ...
-A PL330 instance has 8 physical channels and 32 client i/f.
-So only 8 client reqs could be active at any time.
-PL330 doesn't provide a way to program a true LLI transfer(very useful for
-audio) using a single physical channel. However, we could emulate
-true LLI if we employ 2 physical channels for one audio channel request.
+eJ8+IqFsAQaQCAAEAAAAAAABAAEAAQeQBgAIAAAA5AQAAAAAAADoAAEJgAEAIQAAADZDOUIyNzY0
+RUREQjUxNEE5RjdGREZBMkUwOTA5RjY5AHYHAQ2ABAACAAAAAgACAAEFgAMADgAAANwHBQAIABMA
+DgAzAAIARgEBIIADAA4AAADcBwUACAATAA4AMAACAEMBAQiABwAYAAAASVBNLk1pY3Jvc29mdCBN
+YWlsLk5vdGUAMQgBBIABACgAAABBZGRpdGlvbmFsIHN1cHBvcnQgZm9yIExvZ2ljUEQgT01BUDM1
+MzAAVw0BA5AGAOAKAAA6AAAAAgF/AAEAAAA2AAAAPDA1MjBBM0ZFNUVEQ0YyNEY4OEIzRjE0NTFD
+RkM2NEFFMDRBMzRENDM0REBlZHByZXgwMT4AAAACAQkQAQAAAHQCAABwAgAALwMAAExaRnXW7SVJ
+YQAKZmJpZAQAAGNjwHBnMTI1MgD+A0PwdGV4dAH3AqQD4wIABGNoCsBzZXQwIO8HbQKDAFARTTIK
+gAa0AoCWfQqACMg7CWIxOQ7AvwnDFnIKMhZxAoAVYioJsHMJ8ASQYXQFsg5QA2Bzom8BgCBFeBHB
+bhgwXQZSdgSQF7YCEHIAwHR9CFBuGjEQIAXABaAbZGSaIANSIBAiF7JcdgiQ5HdrC4BkNR1TBPAH
+QA0XcDAKcRfyYmttawZzAZAAICBCTV9C4EVHSU59CvsL8gEwhHtUAiB5LFxsC4CGZQqBIfRJIHNo
+CGAIbGQnGjAgQ0MnFRxReQhgIAIgIG15kiALgGl0BzEgcBkQcySwGcAsIABwHGAD8Gw5AyBkbyLQ
+JjAD8HRouRxwdXQIcBngJQJzJXDyYibgIGgEkBngBAAlgN8k8CVBJnQmoBngMiTwGIDDEcAHkFsx
+XSAiwQnwbwVAJqAYgCWAZBxgBeBVIkIlg0xDRCLQdXCPJQAfkRrhKSNMb2cOUAJQK/BPTUFQMzWK
+MxIwUy2QLUxWJYMZIZBycAmAJjBEZXZSSySgcy4h7FAecGEdEgAgHnAFQAeAIGtufm8H4AaQI9MA
+cCRgBaBtfweAAjAEIAWxMlECIBngKL8FsQDAAxAooiHwH2ApKjL7IvMlgGwmUSOALIYw8SmVGy/N
+KgItJ+ACQHA6L9QvdzjALjQCLQrAEcAqaRowLjKRLyHxdXgiLQNxcEB2GDByLiJrBJFlbC4FsGcv
+AG1zZzY4MDM32i44UG0JUCH7VBmhH1DxIeV+IEEi4APwC5Ah+wMVQj/gHwBCAAEAAAAcAAAAQQBz
+AGgAdwBpAG4AIABCAGkAaABhAHIAaQAAAB8AZQABAAAANAAAAGEAcwBoAHcAaQBuAC4AYgBpAGgA
+YQByAGkAQABsAG8AZwBpAGMAcABkAC4AYwBvAG0AAAAfAGQAAQAAAAoAAABTAE0AVABQAAAAAAAC
+AUEAAQAAAHIAAAAAAAAAgSsfpL6jEBmdbgDdAQ9UAgAAAIBBAHMAaAB3AGkAbgAgAEIAaQBoAGEA
+cgBpAAAAUwBNAFQAUAAAAGEAcwBoAHcAaQBuAC4AYgBpAGgAYQByAGkAQABsAG8AZwBpAGMAcABk
+AC4AYwBvAG0AAAAAAB8AGgwBAAAAHAAAAEEAcwBoAHcAaQBuACAAQgBpAGgAYQByAGkAAAAfAB8M
+AQAAADQAAABhAHMAaAB3AGkAbgAuAGIAaQBoAGEAcgBpAEAAbABvAGcAaQBjAHAAZAAuAGMAbwBt
+AAAAHwAeDAEAAAAKAAAAUwBNAFQAUAAAAAAAAgEZDAEAAAByAAAAAAAAAIErH6S+oxAZnW4A3QEP
+VAIAAACAQQBzAGgAdwBpAG4AIABCAGkAaABhAHIAaQAAAFMATQBUAFAAAABhAHMAaAB3AGkAbgAu
+AGIAaQBoAGEAcgBpAEAAbABvAGcAaQBjAHAAZAAuAGMAbwBtAAAAAAAfADFAAQAAAAIAAAAAAAAA
+CwBAOgEAAAAfADBAAQAAAAIAAAAAAAAAHwAaAAEAAAASAAAASQBQAE0ALgBOAG8AdABlAAAAAAAD
+APE/CQQAAAsAQDoBAAAAAwD9P+QEAAACAQswAQAAABAAAABsmydk7dtRSp9/36LgkJ9pAwAXAAEA
+AABAADkAgAeD104tzQFAAAgwOAcX1k4tzQELAAIAAQAAAAsAIwAAAAAAAwAmAAAAAAALACkAAAAA
+AAMANgAAAAAAAgFHAAEAAAA5AAAAYz1VUzthPSA7cD1FbWJlZGRlZCBMb2dpYztsPUVEUFJFWDAx
+LTEyMDUwODE5MTQ0OFotNDc3MDIAAAAAHwBwAAEAAABQAAAAQQBkAGQAaQB0AGkAbwBuAGEAbAAg
+AHMAdQBwAHAAbwByAHQAIABmAG8AcgAgAEwAbwBnAGkAYwBQAEQAIABPAE0AQQBQADMANQAzADAA
+AAACAXEAAQAAABYAAAABzS1O19EWpckVOSRKgIWZO5wR9eGZAAAfADUQAQAAAGwAAAA8ADAANQAy
+ADAAQQAzAEYARQA1AEUARABDAEYAMgA0AEYAOAA4AEIAMwBGADEANAA1ADEAQwBGAEMANgA0AEEA
+RQAwADQAQQAzADQARAA0ADMANABEAEAAZQBkAHAAcgBlAHgAMAAxAD4AAAADAIAQ/////x8A8xAB
+AAAAWAAAAEEAZABkAGkAdABpAG8AbgBhAGwAIABzAHUAcABwAG8AcgB0ACAAZgBvAHIAIABMAG8A
+ZwBpAGMAUABEACAATwBNAEEAUAAzADUAMwAwAC4ARQBNAEwAAAALAPQQAAAAAAsA9RAAAAAACwD2
+EAAAAABAAAcw3H0N1k4tzQECARAwAQAAAEYAAAAAAAAAaZy1PGTH4U+Shtx4v1CvDwcA8GLB9y3N
+VEO8sGl6oF/TNAAAAf5L4QAAWfnNDjESQkOLis2bwq1j9wAF2eoyRgAAAAADAN4/n04AAB8A+D8B
+AAAAHAAAAEEAcwBoAHcAaQBuACAAQgBpAGgAYQByAGkAAAACAfk/AQAAAFAAAAAAAAAA3KdAyMBC
+EBq0uQgAKy/hggEAAAAAAAAAL089RU1CRURERUQgTE9HSUMvT1U9TE9HSUMvQ049UkVDSVBJRU5U
+Uy9DTj1BU0hXSU5CAB8A+j8BAAAAHAAAAEEAcwBoAHcAaQBuACAAQgBpAGgAYQByAGkAAAACAfs/
+AQAAAFAAAAAAAAAA3KdAyMBCEBq0uQgAKy/hggEAAAAAAAAAL089RU1CRURERUQgTE9HSUMvT1U9
+TE9HSUMvQ049UkVDSVBJRU5UUy9DTj1BU0hXSU5CAAMAGUAAAAAAAwAaQAAAAAADAAlZAQAAAAMA
+AIAIIAYAAAAAAMAAAAAAAABGAAAAABCFAAAAAAAACwAAgAggBgAAAAAAwAAAAAAAAEYAAAAAA4UA
+AAAAAAALAACACCAGAAAAAADAAAAAAAAARgAAAAAOhQAAAAAAAAMAAIAIIAYAAAAAAMAAAAAAAABG
+AAAAAAGFAAAAAAAAAwAAgAggBgAAAAAAwAAAAAAAAEYAAAAAGIUAAAAAAAALAACACCAGAAAAAADA
+AAAAAAAARgAAAAAGhQAAAAAAAAsAAIAIIAYAAAAAAMAAAAAAAABGAAAAAIKFAAAAAAAAAwANNPk/
+AAACARQ0AQAAABAAAABUlKHAKX8QG6WHCAArKiUXHwA9AAEAAAACAAAAAAAAAB8ANwABAAAAUAAA
+AEEAZABkAGkAdABpAG8AbgBhAGwAIABzAHUAcABwAG8AcgB0ACAAZgBvAHIAIABMAG8AZwBpAGMA
+UABEACAATwBNAEEAUAAzADUAMwAwAAAAHwAAgIYDAgAAAAAAwAAAAAAAAEYBAAAAHgAAAGEAYwBj
+AGUAcAB0AGwAYQBuAGcAdQBhAGcAZQAAAAAAAQAAAAwAAABlAG4ALQBVAFMAAAAfAACAhgMCAAAA
+AADAAAAAAAAARgEAAAAgAAAAeAAtAG0AcwAtAGgAYQBzAC0AYQB0AHQAYQBjAGgAAAABAAAAAgAA
+AAAAAADNIw==
 
-Obviously, if a machine had 7 or lesser clients, one would freely employ
-2 physical channels for audio and yet not worry about starving other clients.
-How would we achieve this if the dmac driver was initialized as "fully
-generic" ?
-
->
->> That encoding("channel_id") would be dma
->> controller specific and if we also manage to contain it within fixed number
->> of bytes we could also have common helpers for fetching it,
->
-> I don't think there's any need for it to fit into a fixed number of  bytes
->
-Yeah, I realized that soon after posting.
-
-I think I have run out of ways to explain myself better. FWIW, I won't
-object to whatever mechanism folks decide after knowing my concerns.
-
-Best Regards,
--Jassi
+--_000_0520A3FE5EDCF24F88B3F1451CFC64AE04A34D434Dedprex01_--
