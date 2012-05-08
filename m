@@ -1,75 +1,108 @@
-From: Igor Grinberg <grinberg-UTxiZqZC01RS1MOuV/RT9w@public.gmane.org>
-Subject: Re: [PATCH] ARM: OMAP: USB: fix warning on EHCI PHY reset path
-Date: Tue, 08 May 2012 10:53:44 +0300
-Message-ID: <4FA8D108.7090004@compulab.co.il>
-References: <Pine.LNX.4.44L0.1205071046350.1602-100000@iolanthe.rowland.org>
+From: Tero Kristo <t-kristo@ti.com>
+Subject: Re: [PATCHv4 6/8] ARM: OMAP4: PM: support ret_logic/mem_off_counters
+Date: Tue, 8 May 2012 11:03:24 +0300
+Message-ID: <1336464204.2149.265.camel@sokoban>
+References: <1334913591-26312-1-git-send-email-t-kristo@ti.com>
+ <1334913591-26312-7-git-send-email-t-kristo@ti.com> <87pqafv810.fsf@ti.com>
+Reply-To: t-kristo@ti.com
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
+Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <Pine.LNX.4.44L0.1205071046350.1602-100000-IYeN2dnnYyZXsRXLowluHWD2FQJk+8+b@public.gmane.org>
-Sender: linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Alan Stern <stern-nwvwT67g6+6dFdvTe/nMLpVzexx5G7lz@public.gmane.org>, Greg Kroah-Hartman <gregkh-hQyY1W1yCW8ekmWlsbkhG0B+6BGkLq7r@public.gmane.org>
-Cc: balbi-l0cyMroinI0@public.gmane.org, Keshava Munegowda <Keshava_mgowda-l0cyMroinI0@public.gmane.org>, linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Samuel Ortiz <sameo-VuQAYsv1563Yd54FQh9/CA@public.gmane.org>
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
+In-Reply-To: <87pqafv810.fsf@ti.com>
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
+List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
+List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
+Sender: linux-arm-kernel-bounces@lists.infradead.org
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
+To: Kevin Hilman <khilman@ti.com>
+Cc: paul@pwsan.com, linux-omap@vger.kernel.org, Axel Haslam <axelhaslam@gmail.com>, linux-arm-kernel@lists.infradead.org, Rajendra Nayak <rnayak@ti.com>
 List-Id: linux-omap@vger.kernel.org
 
-On 05/07/12 17:48, Alan Stern wrote:
-> On Mon, 7 May 2012, Igor Grinberg wrote:
+On Mon, 2012-05-07 at 17:19 -0700, Kevin Hilman wrote:
+> Tero Kristo <t-kristo@ti.com> writes:
 > 
->> On 05/07/12 17:04, Alan Stern wrote:
->>> On Sun, 6 May 2012, Igor Grinberg wrote:
->>>
->>>> Hi Alan,
->>>
->>> ...
->>>
->>>> Sorry, for being jumpy...
->>>> Samuel has not answered yet (it has been more then two weeks already)
->>>> and I'd like this to go into 3.5.
->>>> Also, the dependency patch is already in Linus' tree. It has been merged with
->>>> fixes (I thought it will happen only during the merge window...).
->>>>
->>>> Can you, please take this one?
->>>
->>> No, I can't, sorry.  It has to be accepted by Greg KH.
->>
->> Hmm... I don't mind it be that way, but I'd like to understand:
->>
->> # scripts/get_maintainer.pl -f drivers/usb/host/ehci-omap.c
->> Alan Stern <stern-nwvwT67g6+6dFdvTe/nMLpVzexx5G7lz@public.gmane.org> (maintainer:USB EHCI DRIVER)
->> Felipe Balbi <balbi-l0cyMroinI0@public.gmane.org> (maintainer:OMAP USB SUPPORT)
->> Greg Kroah-Hartman <gregkh-l3A5Bk7waGM@public.gmane.org> (supporter:USB SUBSYSTEM)
->> linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org (open list:USB EHCI DRIVER)
->> linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org (open list:OMAP USB SUPPORT)
->> linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org (open list)
->>
->> This makes you the USB EHCI maintainer, right?
+> > From: Axel Haslam <axelhaslam@gmail.com>
+> >
+> > On OMAP4, there is no support to read previous logic state
+> > or previous memory state achieved when a power domain transitions
+> > to RET. Instead there are module level context registers.
+> >
+> > In order to support the powerdomain level logic/mem_off_counters
+> > on OMAP4, instead use the previous power state achieved (RET) and
+> > the *programmed* logic/mem RET state to derive if a powerdomain lost
+> > logic or did not.
 > 
-> Right.
+> OK, but this also changes the behavior for OMAP3 as well, right?  I
+> don't see in the changelog how this affects OMAP3 and whether it is
+> still expected to work on OMAP3.  When changing common code like this,
+> the changelog should describe the impacts on to all affected SoCs.
+
+Actually this doesn't change the behavior for OMAP3, as OMAP3 has
+defined the ops for read_prev_logic_pwrst + read_prev_mem_pwrst. Looking
+at the code more closely it might actually make more sense to implement
+these for omap4 as well, instead of hacking this function. I'll check
+this out and see if this can be done.
+
+-Tero
+
+> As suggested by Vaibhav Bedia, now might be the right time to add this
+> function to the SoC specific function pointers (struct pwrdm_ops.)
 > 
->> I just want to understand...
->> Do you need also ack from Greg to take something to your tree
->> for being applied in the next merge window?
+> Doing that, the existing function could be used for OMAP3 (and OMAP4 if
+> the changelog describes that it can/should be used for both.)
 > 
-> No.  I don't takes patches at all, and in fact I don't even have a git
-> directory or a login account at kernel.org.  All my work goes through
-> Greg; I submit or acknowledge patches and he merges them.
-
-Ah, I see. Thanks for the explanation.
-So currently, I need to do something like this:
-
-Greg,
-
-This patch has been acked by Alan and Felipe, can you please apply it
-for the merge window (which is close as I understand from Linus':
-"We've never been closer to a 3.4 release").
-
-Thanks
-
--- 
-Regards,
-Igor.
---
-To unsubscribe from this list: send the line "unsubscribe linux-usb" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> Then, when AM33xx support is added, it will be obvious where they will
+> need to plugin support for that SoC.
+> 
+> Kevin
+> 
+> > If the powerdomain is programmed to enter RET state and lose logic
+> > in RET state, knowing that the powerdomain entered RET is good enough
+> > to derive that the logic was lost as well, in such cases.
+> >
+> > Signed-off-by: Axel Haslam <axelhaslam@gmail.com>
+> > [rnayak@ti.com: Updated changelog, updated patch to support mem counters]
+> > Signed-off-by: Rajendra Nayak <rnayak@ti.com>
+> > Signed-off-by: Tero Kristo <t-kristo@ti.com>
+> > ---
+> >  arch/arm/mach-omap2/powerdomain.c |   16 ++++++++++------
+> >  1 files changed, 10 insertions(+), 6 deletions(-)
+> >
+> > diff --git a/arch/arm/mach-omap2/powerdomain.c b/arch/arm/mach-omap2/powerdomain.c
+> > index 96ad3dbe..068f06b 100644
+> > --- a/arch/arm/mach-omap2/powerdomain.c
+> > +++ b/arch/arm/mach-omap2/powerdomain.c
+> > @@ -124,18 +124,22 @@ static int _pwrdm_register(struct powerdomain *pwrdm)
+> >  static void _update_logic_membank_counters(struct powerdomain *pwrdm)
+> >  {
+> >  	int i;
+> > -	u8 prev_logic_pwrst, prev_mem_pwrst;
+> > +	int logic_pwrst, mem_pwrst;
+> > +
+> > +	logic_pwrst = pwrdm_read_prev_logic_pwrst(pwrdm);
+> > +	if (logic_pwrst == -EINVAL)
+> > +		logic_pwrst = pwrdm_read_logic_retst(pwrdm);
+> >  
+> > -	prev_logic_pwrst = pwrdm_read_prev_logic_pwrst(pwrdm);
+> >  	if ((pwrdm->pwrsts_logic_ret == PWRSTS_OFF_RET) &&
+> > -	    (prev_logic_pwrst == PWRDM_POWER_OFF))
+> > +	    (logic_pwrst == PWRDM_POWER_OFF))
+> >  		pwrdm->ret_logic_off_counter++;
+> >  
+> >  	for (i = 0; i < pwrdm->banks; i++) {
+> > -		prev_mem_pwrst = pwrdm_read_prev_mem_pwrst(pwrdm, i);
+> > -
+> > +		mem_pwrst = pwrdm_read_prev_mem_pwrst(pwrdm, i);
+> > +		if (mem_pwrst == -EINVAL)
+> > +			mem_pwrst = pwrdm_read_mem_retst(pwrdm, i);
+> >  		if ((pwrdm->pwrsts_mem_ret[i] == PWRSTS_OFF_RET) &&
+> > -		    (prev_mem_pwrst == PWRDM_POWER_OFF))
+> > +		    (mem_pwrst == PWRDM_POWER_OFF))
+> >  			pwrdm->ret_mem_off_counter[i]++;
+> >  	}
+> >  }
