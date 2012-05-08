@@ -1,79 +1,57 @@
-From: Jon Hunter <jon-hunter-l0cyMroinI0@public.gmane.org>
-Subject: Re: [PATCH v4 01/39] ARM: OMAP2+: gpmc: driver conversion
-Date: Tue, 8 May 2012 10:08:24 -0500
-Message-ID: <4FA936E8.1080801@ti.com>
-References: <cover.1335874494.git.afzal@ti.com> <363273a9ef82d6836197929157aa9a8eb8f5171a.1335874494.git.afzal@ti.com> <4FA4035E.6020308@ti.com> <C8443D0743D26F4388EA172BF4E2A7A93E987147@DBDE01.ent.ti.com> <4FA7F232.7050802@ti.com> <C8443D0743D26F4388EA172BF4E2A7A93E9878EC@DBDE01.ent.ti.com>
+From: Jon Hunter <jon-hunter@ti.com>
+Subject: Re: [PATCH v4 02/39] ARM: OMAP2+: gpmc: Adapt to HWMOD
+Date: Tue, 8 May 2012 10:13:19 -0500
+Message-ID: <4FA9380F.90700@ti.com>
+References: <cover.1335874494.git.afzal@ti.com> <e0cf9678cb9a44d2a16401383ab8496eb825c291.1335874494.git.afzal@ti.com> <4FA04A8C.4050703@ti.com> <C8443D0743D26F4388EA172BF4E2A7A93E98299B@DBDE01.ent.ti.com> <4FA4041D.9010000@ti.com> <C8443D0743D26F4388EA172BF4E2A7A93E987159@DBDE01.ent.ti.com> <4FA7F473.7060607@ti.com> <C8443D0743D26F4388EA172BF4E2A7A93E987902@DBDE01.ent.ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="ISO-8859-1"
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <C8443D0743D26F4388EA172BF4E2A7A93E9878EC-Er742YJ7I/eIQmiDNMet8wC/G2K4zDHf@public.gmane.org>
-Sender: linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: "Mohammed, Afzal" <afzal-l0cyMroinI0@public.gmane.org>
-Cc: "tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org" <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>, "linux-lFZ/pmaqli7XmaaqVzeoHQ@public.gmane.org" <linux-lFZ/pmaqli7XmaaqVzeoHQ@public.gmane.org>, "Hilman, Kevin" <khilman-l0cyMroinI0@public.gmane.org>, "Balbi, Felipe" <balbi-l0cyMroinI0@public.gmane.org>, "dwmw2-wEGCiKHe2LqWVfeAwA7xHQ@public.gmane.org" <dwmw2-wEGCiKHe2LqWVfeAwA7xHQ@public.gmane.org>, "kyungmin.park-Sze3O3UU22JBDgjK7y7TUQ@public.gmane.org" <kyungmin.park-Sze3O3UU22JBDgjK7y7TUQ@public.gmane.org>, "gregkh-hQyY1W1yCW8ekmWlsbkhG0B+6BGkLq7r@public.gmane.org" <gregkh-hQyY1W1yCW8ekmWlsbkhG0B+6BGkLq7r@public.gmane.org>, "Menon, Nishanth" <nm-l0cyMroinI0@public.gmane.org>, "grinberg-UTxiZqZC01RS1MOuV/RT9w@public.gmane.org" <grinberg-UTxiZqZC01RS1MOuV/RT9w@public.gmane.org>, "notasas-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org" <notasas-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, "artem.bityutskiy-VuQAYsv1563Yd54FQh9/CA@public.gmane.org" <artem.bityutskiy-VuQAYsv1563Yd54FQh9/CA@public.gmane.org>, "vimal.newwork-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org" <vimal.newwork-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, "dbaryshkov-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org" <dbaryshkov-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, "linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org" <linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org>, "linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "linux-mtd-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org" <linux-mtd-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org>, Hire
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from devils.ext.ti.com ([198.47.26.153]:45211 "EHLO
+	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755834Ab2EHPNj (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 8 May 2012 11:13:39 -0400
+In-Reply-To: <C8443D0743D26F4388EA172BF4E2A7A93E987902@DBDE01.ent.ti.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: "Mohammed, Afzal" <afzal@ti.com>
+Cc: "tony@atomide.com" <tony@atomide.com>, "linux@arm.linux.org.uk" <linux@arm.linux.org.uk>, "Hilman, Kevin" <khilman@ti.com>, "Balbi, Felipe" <balbi@ti.com>, "dwmw2@infradead.org" <dwmw2@infradead.org>, "kyungmin.park@samsung.com" <kyungmin.park@samsung.com>, "gregkh@linuxfoundation.org" <gregkh@linuxfoundation.org>, "Menon, Nishanth" <nm@ti.com>, "grinberg@compulab.co.il" <grinberg@compulab.co.il>, "notasas@gmail.com" <notasas@gmail.com>, "artem.bityutskiy@linux.intel.com" <artem.bityutskiy@linux.intel.com>, "vimal.newwork@gmail.com" <vimal.newwork@gmail.com>, "dbaryshkov@gmail.com" <dbaryshkov@gmail.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, "linux-usb@vger.kernel.org" <linux-usb@vger.kernel.org>, "linux-mtd@lists.infradead.org" <linux-mtd@lists.infradead.org>
 
-Hi  Afzal,
+Hi Afzal,
 
-On 05/08/2012 01:18 AM, Mohammed, Afzal wrote:
+On 05/08/2012 01:24 AM, Mohammed, Afzal wrote:
 > Hi Jon,
 > 
-> On Mon, May 07, 2012 at 21:32:58, Hunter, Jon wrote:
+> On Mon, May 07, 2012 at 21:42:35, Hunter, Jon wrote:
 > 
->>>>> +	/* no waitpin */
->>>>> +	case 0:
->>>>> +		break;
->>>>> +	default:
->>>>> +		dev_err(gpmc->dev, "multiple waitpins selected on CS:%u\n", cs);
->>>>> +		return -EINVAL;
->>>>> +		break;
->>>>> +	}
->>>>
->>>> Why not combined case 0 and default? Both are invalid configurations so
->>>> just report invalid selection.
->>>
->>> Case 0 is not invalid, a case where waitpin is not used, default refers
->>> to when a user selects multiple waitpins wrongly.
+>>> Clk_prd is a platform data passed to the driver, so platform code
+>>> updates it, where else can it be done ?
 >>
->> Ok. Then for case 0, just return here. If the polarity is set, you could
->> print an error here.
+>> The point is that you can pass what ever you like. You do not need to
+>> pass the frequency you can pass the clock handle instead.
 > 
-> Different ways of doing things, this looks cleaner to me as already it is
-> checked, and time of execution in both cases would not differ much.
+> As clk rate is required in platform code for timing calculation, and
+> already available, period was passed
 
-Sure. However, I think that this could be simplified so that it is
-easier to read. At a minimum you may wish to add some comments to
-explain the purposes of the multi-level if-statements as it is not
-intuitive for the reader.
+Sure.
 
->>>>> +		if (gd->have_waitpin) {
->>>>> +			if (gd->waitpin != idx ||
->>>>> +					gd->waitpin_polarity != polarity) {
->>>>> +				dev_err(gpmc->dev, "error: conflict: waitpin %u with polarity %d on device %s.%d\n",
->>>>> +					gd->waitpin, gd->waitpin_polarity,
->>>>> +					gd->name, gd->id);
->>>>> +				return -EBUSY;
->>>>> +			}
->>>>> +		} else {
->>>>
->>>> Don't need the else as you are going to return in the above.
->>>
->>> Not always, only in case of error
 >>
->> Ok, but seems that it can be simplified a little.
->>
->> What happens if a device uses more than one wait-pin? In other words a
->> device with two chip-selects that uses two wait-pins?
+>> What happens it the clk_get() of the gpmc_l3_clk fails during the init?
 > 
-> Please re-read http://www.mail-archive.com/linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org/msg67702.html
-> and your reply
+> Thanks for bringing this point, invalid clk_prd has to be handled by driver.
+> 
+>>
+>> In fact if you migrate to runtime pm then we should not have the clk_get
+>> in the gpmc_init any more.
+> 
+> Even if converted to RPM, to get clk rate, clk_get has to be done
+> somewhere, right ?
 
-Ok thats fine. Sorry for my repeated questions, but I think that this
-just highlights that this code is not clear in it purpose. So again may
-be some comments would make this all clearer.
+Yes exactly. However, you could now do this in the driver itself like
+the probe function. Or may be just pass the frequency of the gpmc fclk
+to the driver and let the driver convert to the period. No reason we
+need to convert to the period outside of the driver. Hence, we can keep
+the function to do the conversion static in the driver and don't need to
+expose externally.
 
 Jon
---
-To unsubscribe from this list: send the line "unsubscribe linux-usb" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
