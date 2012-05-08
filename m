@@ -1,75 +1,187 @@
-From: Catalin Marinas <catalin.marinas@arm.com>
-Subject: Re: [PATCH] ARM: decompressor: Fix mmu mapping for non-DRAM
- address space.
-Date: Tue, 8 May 2012 15:16:31 +0100
-Message-ID: <20120508141631.GG17798@arm.com>
-References: <1336398149-26153-1-git-send-email-santosh.shilimkar@ti.com>
- <20120508124116.GE17798@arm.com>
- <CAMQu2gxXB4GyddjrcKWwJ=KXx=MoDs7DdwhbOY85qkVJ1Vv3wA@mail.gmail.com>
+From: Vaibhav Hiremath <hvaibhav@ti.com>
+Subject: [PATCH] ARM: OMAP2+: irq: Increase no of supported interrupts to 128
+Date: Tue, 8 May 2012 19:47:59 +0530
+Message-ID: <1336486679-15892-1-git-send-email-hvaibhav@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from cam-admin0.cambridge.arm.com ([217.140.96.50]:46863 "EHLO
-	cam-admin0.cambridge.arm.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755024Ab2EHORG (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 8 May 2012 10:17:06 -0400
-Content-Disposition: inline
-In-Reply-To: <CAMQu2gxXB4GyddjrcKWwJ=KXx=MoDs7DdwhbOY85qkVJ1Vv3wA@mail.gmail.com>
+Received: from bear.ext.ti.com ([192.94.94.41]:60445 "EHLO bear.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1755220Ab2EHOSJ (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Tue, 8 May 2012 10:18:09 -0400
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "Shilimkar, Santosh" <santosh.shilimkar@ti.com>
-Cc: "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, R Sricharan <r.sricharan@ti.com>, Russell King <linux@arm.linux.org.uk>
+To: linux-omap@vger.kernel.org
+Cc: linux-arm-kernel@lists.infradead.org, Vaibhav Hiremath <hvaibhav@ti.com>, Afzal Mohammed <afzal@ti.com>, Tony Lindgren <tony@atomide.com>, Kevin Hilman <khilman@ti.com>, Paul Walmsley <paul@pwsan.com>
 
-On Tue, May 08, 2012 at 03:01:57PM +0100, Shilimkar, Santosh wrote:
-> From b906ef372f0e2dfa7e1fbc3c87406b1c303d8975 Mon Sep 17 00:00:00 2001
-> From: R Sricharan <r.sricharan@ti.com>
-> Date: Mon, 7 May 2012 15:11:58 +0530
-> Subject: [PATCH] ARM: decompressor: Fix mmu mapping for non-DRAM address
->  space.
-> 
-> ARM decompressor code setups entire 4GB address space pages.
-> Out of the 4GB, about 256MB are setup with normal memory attributes
-> for needed DRAM and the rest of the address space as Strongly ordered.
-> 
-> But since all the sections are mapped in DOMAIN0(Manager), processor
-> like Cortex-A15, can speculatively prefetch from non-DRAM read sensitive
-> areas even in the presence of XN(Non-executable). This is because XN
-> attribute is ignored when domain is Manager.
-> 
-> This can lead to accesses to non-accessible address regions leading
-> to various interconnect violations. The issue is observed on OMAP5.
-> 
-> This patch tries to fix the issue by ensuring that all regions
-> are marked as a client domain so that XN attribute is effective.
-> 
-> Signed-off-by: R Sricharan <r.sricharan@ti.com>
-> Signed-off-by: Santosh Shilimkar <santosh.shilimkar@ti.com>
-> Cc: Russell King <linux@arm.linux.org.uk>
-> Cc: Catalin Marinas <catalin.marinas@arm.com>
-> ---
->  arch/arm/boot/compressed/head.S |   10 ++++++++--
->  1 files changed, 8 insertions(+), 2 deletions(-)
-> 
-> diff --git a/arch/arm/boot/compressed/head.S b/arch/arm/boot/compressed/head.S
-> index dc7e8ce..a2602b8 100644
-> --- a/arch/arm/boot/compressed/head.S
-> +++ b/arch/arm/boot/compressed/head.S
-> @@ -578,10 +578,12 @@ __setup_mmu:	sub	r3, r4, #16384		@ Page directory size
->  		mov	r9, r0, lsr #18
->  		mov	r9, r9, lsl #18		@ start of RAM
->  		add	r10, r9, #0x10000000	@ a reasonable RAM size
-> -		mov	r1, #0x12
-> +		mov	r1, #0x02		@ Default executable section
+With addition to TI81XX, AM33XX family of devices, the number
+of interrupts supported has increased to 128, compared to 96.
+The current implementation for irq handling is hardcoded to use
+96 interrupts (with 3 register-sets to handle), this patch cleanups
+the code, to increase maximum number of interrupts support
+to 128, with dynamic detection of no of registers required for
+handling all interrupts.
 
-I think it is simpler if you leave the original code here (with XN)
 
->  		orr	r1, r1, #3 << 10
->  		add	r2, r3, #16384
->  1:		cmp	r1, r9			@ if virt > start of RAM
-> +		orrlo	r1, r1, #0x10		@ Mark XN for non DRAM
-> +		bichs	r1, r1, #0x10		@ clear XN for DRAM
+Signed-off-by: Vaibhav Hiremath <hvaibhav@ti.com>
+Signed-off-by: Afzal Mohammed <afzal@ti.com>
+Cc: Tony Lindgren <tony@atomide.com>
+Cc: Kevin Hilman <khilman@ti.com>
+Cc: Paul Walmsley <paul@pwsan.com>
+---
+Ideally, we should use dynamic allocation to allocate memory
+for registers/arrays, may be too much cleanup for this patch,
+so as of now restricting to minimal changes to fit devices
+like, am33xx/ti81xx.
 
-and just do the bichs above.
+ arch/arm/mach-omap2/irq.c              |   47 +++++++++++++++----------------
+ arch/arm/plat-omap/include/plat/irqs.h |    7 +++-
+ 2 files changed, 28 insertions(+), 26 deletions(-)
 
--- 
-Catalin
+diff --git a/arch/arm/mach-omap2/irq.c b/arch/arm/mach-omap2/irq.c
+index 80f3ced..ea5aed9 100644
+--- a/arch/arm/mach-omap2/irq.c
++++ b/arch/arm/mach-omap2/irq.c
+@@ -58,10 +58,12 @@
+ static struct omap_irq_bank {
+ 	void __iomem *base_reg;
+ 	unsigned int nr_irqs;
++	unsigned int nr_regs_req;
+ } __attribute__ ((aligned(4))) irq_banks[] = {
+ 	{
+ 		/* MPU INTC */
+ 		.nr_irqs	= 96,
++		.nr_regs_req	= 3,
+ 	},
+ };
+
+@@ -73,8 +75,8 @@ struct omap3_intc_regs {
+ 	u32 protection;
+ 	u32 idle;
+ 	u32 threshold;
+-	u32 ilr[INTCPS_NR_IRQS];
+-	u32 mir[INTCPS_NR_MIR_REGS];
++	u32 ilr[INTCPS_MAX_NR_IRQS];
++	u32 mir[INTCPS_MAX_NR_REGS_REQ];
+ };
+
+ /* INTC bank register get/set */
+@@ -182,6 +184,7 @@ static void __init omap_init_irq(u32 base, int nr_irqs,
+ 		struct omap_irq_bank *bank = irq_banks + i;
+
+ 		bank->nr_irqs = nr_irqs;
++		bank->nr_regs_req = 0;
+
+ 		/* Static mapping, never released */
+ 		bank->base_reg = ioremap(base, SZ_4K);
+@@ -192,8 +195,10 @@ static void __init omap_init_irq(u32 base, int nr_irqs,
+
+ 		omap_irq_bank_init_one(bank);
+
+-		for (j = 0; j < bank->nr_irqs; j += 32)
++		for (j = 0; j < bank->nr_irqs; j += 32) {
+ 			omap_alloc_gc(bank->base_reg + j, j + irq_base, 32);
++			bank->nr_regs_req++;
++		}
+
+ 		nr_of_irqs += bank->nr_irqs;
+ 		nr_banks++;
+@@ -218,25 +223,19 @@ void __init ti81xx_init_irq(void)
+ 	omap_init_irq(OMAP34XX_IC_BASE, 128, NULL);
+ }
+
+-static inline void omap_intc_handle_irq(void __iomem *base_addr, struct pt_regs *regs)
++static inline void omap_intc_handle_irq(void __iomem *base_addr,
++		unsigned int no_regs_req, struct pt_regs *regs)
+ {
+-	u32 irqnr;
++	u32 irqnr = 0;
+
+ 	do {
+-		irqnr = readl_relaxed(base_addr + 0x98);
+-		if (irqnr)
+-			goto out;
+-
+-		irqnr = readl_relaxed(base_addr + 0xb8);
+-		if (irqnr)
+-			goto out;
++		int i = 0;
+
+-		irqnr = readl_relaxed(base_addr + 0xd8);
+-#ifdef CONFIG_SOC_OMAPTI816X
+-		if (irqnr)
+-			goto out;
+-		irqnr = readl_relaxed(base_addr + 0xf8);
+-#endif
++		for (i = 0; i < no_regs_req; i++) {
++			irqnr = readl_relaxed(base_addr + 0x98 + (0x20 * i));
++			if (irqnr)
++				goto out;
++		}
+
+ out:
+ 		if (!irqnr)
+@@ -255,7 +254,7 @@ out:
+ asmlinkage void __exception_irq_entry omap2_intc_handle_irq(struct pt_regs *regs)
+ {
+ 	void __iomem *base_addr = OMAP2_IRQ_BASE;
+-	omap_intc_handle_irq(base_addr, regs);
++	omap_intc_handle_irq(base_addr, irq_banks[0].nr_regs_req, regs);
+ }
+
+ int __init omap_intc_of_init(struct device_node *node,
+@@ -296,10 +295,10 @@ void omap_intc_save_context(void)
+ 			intc_bank_read_reg(bank, INTC_IDLE);
+ 		intc_context[ind].threshold =
+ 			intc_bank_read_reg(bank, INTC_THRESHOLD);
+-		for (i = 0; i < INTCPS_NR_IRQS; i++)
++		for (i = 0; i < bank->nr_irqs; i++)
+ 			intc_context[ind].ilr[i] =
+ 				intc_bank_read_reg(bank, (0x100 + 0x4*i));
+-		for (i = 0; i < INTCPS_NR_MIR_REGS; i++)
++		for (i = 0; i < bank->nr_regs_req; i++)
+ 			intc_context[ind].mir[i] =
+ 				intc_bank_read_reg(&irq_banks[0], INTC_MIR0 +
+ 				(0x20 * i));
+@@ -322,10 +321,10 @@ void omap_intc_restore_context(void)
+ 					bank, INTC_IDLE);
+ 		intc_bank_write_reg(intc_context[ind].threshold,
+ 					bank, INTC_THRESHOLD);
+-		for (i = 0; i < INTCPS_NR_IRQS; i++)
++		for (i = 0; i < bank->nr_irqs; i++)
+ 			intc_bank_write_reg(intc_context[ind].ilr[i],
+ 				bank, (0x100 + 0x4*i));
+-		for (i = 0; i < INTCPS_NR_MIR_REGS; i++)
++		for (i = 0; i < bank->nr_regs_req; i++)
+ 			intc_bank_write_reg(intc_context[ind].mir[i],
+ 				 &irq_banks[0], INTC_MIR0 + (0x20 * i));
+ 	}
+@@ -356,6 +355,6 @@ void omap3_intc_resume_idle(void)
+ asmlinkage void __exception_irq_entry omap3_intc_handle_irq(struct pt_regs *regs)
+ {
+ 	void __iomem *base_addr = OMAP3_IRQ_BASE;
+-	omap_intc_handle_irq(base_addr, regs);
++	omap_intc_handle_irq(base_addr, irq_banks[0].nr_regs_req, regs);
+ }
+ #endif /* CONFIG_ARCH_OMAP3 */
+diff --git a/arch/arm/plat-omap/include/plat/irqs.h b/arch/arm/plat-omap/include/plat/irqs.h
+index 37bbbbb..8e1b6ae 100644
+--- a/arch/arm/plat-omap/include/plat/irqs.h
++++ b/arch/arm/plat-omap/include/plat/irqs.h
+@@ -441,8 +441,11 @@
+
+ #define OMAP_IRQ_BIT(irq)	(1 << ((irq) % 32))
+
+-#define INTCPS_NR_MIR_REGS	3
+-#define INTCPS_NR_IRQS		96
++/*
++ * Max from AM33XX device
++ */
++#define INTCPS_MAX_NR_REGS_REQ	4
++#define INTCPS_MAX_NR_IRQS	128
+
+ #include <mach/hardware.h>
+
+--
+1.7.0.4
+
