@@ -1,71 +1,58 @@
 From: Archit Taneja <a0393947@ti.com>
-Subject: Re: [PATCH 0/2] OMAPDSS: HDMI: Fix register dump of CORE registers
-Date: Tue, 8 May 2012 17:39:55 +0530
-Message-ID: <4FA90D13.6010307@ti.com>
-References: <1336396828-29311-1-git-send-email-archit@ti.com> <1336478684.5761.30.camel@deskari>
+Subject: Re: [PATCH 0/6] OMAPDSS: Misc fixes and cleanups
+Date: Tue, 8 May 2012 17:42:04 +0530
+Message-ID: <4FA90D94.3020705@ti.com>
+References: <1336389696-21636-1-git-send-email-archit@ti.com> <1336478337.5761.29.camel@deskari>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="UTF-8"; format=flowed
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from comal.ext.ti.com ([198.47.26.152]:46224 "EHLO comal.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753767Ab2EHMKh (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Tue, 8 May 2012 08:10:37 -0400
-In-Reply-To: <1336478684.5761.30.camel@deskari>
+Received: from devils.ext.ti.com ([198.47.26.153]:33624 "EHLO
+	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751307Ab2EHMMp (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 8 May 2012 08:12:45 -0400
+In-Reply-To: <1336478337.5761.29.camel@deskari>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: Tomi Valkeinen <tomi.valkeinen@ti.com>
 Cc: linux-omap@vger.kernel.org, linux-fbdev@vger.kernel.org
 
-Hi,
-
-On Tuesday 08 May 2012 05:34 PM, Tomi Valkeinen wrote:
-> On Mon, 2012-05-07 at 18:50 +0530, Archit Taneja wrote:
->> The HDMI CORE registers are dumped incorrectly due to incorrect register offset
->> calculations. They are also dumped in a random order, with some of the registers
->> repeated. This series fixes these issues.
+On Tuesday 08 May 2012 05:28 PM, Tomi Valkeinen wrote:
+> On Mon, 2012-05-07 at 16:51 +0530, Archit Taneja wrote:
+>> The first patch in this series is a follow up on the previously posted series
+>> 'OMAPDSS: APPLY: Treat overlay manager timings as shadow registers'. It is
+>> required for HDMI and DPI interfaces to work properly, it ensures manager
+>> timings are applied in the set_timing() ops for these interfaces.
 >>
->> The patches apply over:
+>> The next 3 patches remove some unnecessary usage of omap_dss_device pointer in
+>> DISPC and APPLY.
 >>
->> git://gitorious.org/linux-omap-dss2/linux.git dev
+>> The last 2 patches are miscellaneous fixes and are self explanatory.
+>>
+>> Reference tree containing this series:
+>>
+>> git://gitorious.org/~boddob/linux-omap-dss2/archit-dss2-clone.git mgr_timing_and_fixes
 >>
 >> Tested on OMAP4 SDP.
 >>
->> Archit Taneja (2):
->>    OMAPDSS: HDMI: Fix ti_hdmi_4xxx_core_dump
->>    OMAPDSS: HDMI: define and dump CORE registers in correct order
->>
->>   drivers/video/omap2/dss/ti_hdmi_4xxx_ip.c |  163 +++++++++++++++--------------
->>   drivers/video/omap2/dss/ti_hdmi_4xxx_ip.h |   57 +++++------
->>   2 files changed, 109 insertions(+), 111 deletions(-)
+>> Archit Taneja (6):
+>>    OMAPDSS: DPI/HDMI: Apply manager timings even if panel is disabled
+>>    OMAPDSS: APPLY: Remove an unnecessary omap_dss_device pointer
+>>    OMAPDSS: DISPC: Remove omap_dss_device pointer usage from
+>>      dispc_mgr_pclk_rate()
+>>    OMAPDSS: DISPC: Remove usage of dispc_mgr_get_device()
+>>    OMAPDSS: Fix DSI_FCLK clock source selection
+>>    OMAPDSS: DISPC: Remove Fake VSYNC support
 >
-> Thanks, applying these.
+> The first four patches seem to be related (or at least based) to the
+> set_timings series (and the first patch you already had included in
+> later version).
+>
+> Should I take the two last patches and apply them already, as they are
+> fine and don't depend on anything? You could add the first 4 patches
+> into the set_timings series.
 
-In the second patch, there are some unnecessary lines left in the 
-core_dump function():
-
--	DUMPCOREAV(HDMI_CORE_AV_AVI_CHSUM);
-
--	for (i = 0; i < HDMI_CORE_AV_AVI_DBYTE_NELEMS; i++)
--		DUMPCOREAV2(i, HDMI_CORE_AV_AVI_DBYTE);
-
--	for (i = 0; i < HDMI_CORE_AV_SPD_DBYTE_NELEMS; i++)
--		DUMPCOREAV2(i, HDMI_CORE_AV_SPD_DBYTE);
-
--	for (i = 0; i < HDMI_CORE_AV_AUD_DBYTE_NELEMS; i++)
--		DUMPCOREAV2(i, HDMI_CORE_AV_AUD_DBYTE);
--
--	for (i = 0; i < HDMI_CORE_AV_MPEG_DBYTE_NELEMS; i++)
--		DUMPCOREAV2(i, HDMI_CORE_AV_MPEG_DBYTE);
-
--	for (i = 0; i < HDMI_CORE_AV_GEN_DBYTE_NELEMS; i++)
--		DUMPCOREAV2(i, HDMI_CORE_AV_GEN_DBYTE);
--
--	for (i = 0; i < HDMI_CORE_AV_GEN2_DBYTE_NELEMS; i++)
--		DUMPCOREAV2(i, HDMI_CORE_AV_GEN2_DBYTE);
-
-So you will see 5 annoying empty lines, could you remove those when you 
-apply, i totally missed this out..
+Yes, you can apply the last 2 patches.
 
 Thanks,
 Archit
