@@ -1,53 +1,337 @@
-From: "Mohammed, Afzal" <afzal@ti.com>
-Subject: RE: [PATCH v4-alt 3/6] ARM: OMAP3: hwmod data: add gpmc
-Date: Tue, 8 May 2012 13:12:07 +0000
-Message-ID: <C8443D0743D26F4388EA172BF4E2A7A93E987E55@DBDE01.ent.ti.com>
-References: <cover.1335941443.git.afzal@ti.com>
- <99ffbbcc634022ed3c781c37e03989f1d898003e.1335941444.git.afzal@ti.com>
- <alpine.DEB.2.00.1205051949290.20926@utopia.booyaka.com>
- <C8443D0743D26F4388EA172BF4E2A7A93E987188@DBDE01.ent.ti.com>
+From: Jean Pihet <jean.pihet@newoldbits.com>
+Subject: Re: oprofile and ARM A9 hardware counter
+Date: Tue, 8 May 2012 15:18:44 +0200
+Message-ID: <CAORVsuWQ6o64Jhpox0ZvjYAfzDJkXCc6XYX2a6o_cOdNyFdA0g@mail.gmail.com>
+References: <20120403092524.GD17741@mudshark.cambridge.arm.com>
+	<CAMQu2gxE2STYxUGinzstX6W8jyofH829A__NQBjwLqZd9cqy=w@mail.gmail.com>
+	<20120403094749.GH17741@mudshark.cambridge.arm.com>
+	<CAMQu2gyFirtVTWpMu4G_qG5sq33J-_s_o2JhVAdrUf7P3qJ3AA@mail.gmail.com>
+	<20120403123444.GL17741@mudshark.cambridge.arm.com>
+	<878vicsxef.fsf@ti.com>
+	<20120403160706.GP17741@mudshark.cambridge.arm.com>
+	<87ehs4pfw4.fsf@ti.com>
+	<alpine.DEB.2.00.1204031727380.8000@utopia.booyaka.com>
+	<20120404111524.GF32505@mudshark.cambridge.arm.com>
+	<20120426180719.GC20186@mudshark.cambridge.arm.com>
+	<4FA45580.8070802@ti.com>
+	<87ipg76hfm.fsf@ti.com>
+	<4FA8284C.7080803@ti.com>
+	<87k40nzi3i.fsf@ti.com>
+	<4FA8FCFF.40105@ti.com>
+	<CAORVsuWMhVQkQAmsyrprvW-0hK4y=RgGayn0p8WhyksScauBQQ@mail.gmail.com>
+	<4FA9138D.8010604@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from comal.ext.ti.com ([198.47.26.152]:49111 "EHLO comal.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753815Ab2EHNMP convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 8 May 2012 09:12:15 -0400
-In-Reply-To: <C8443D0743D26F4388EA172BF4E2A7A93E987188@DBDE01.ent.ti.com>
-Content-Language: en-US
+Received: from mail-vb0-f46.google.com ([209.85.212.46]:61139 "EHLO
+	mail-vb0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754831Ab2EHNSq convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 8 May 2012 09:18:46 -0400
+Received: by vbbff1 with SMTP id ff1so1916076vbb.19
+        for <linux-omap@vger.kernel.org>; Tue, 08 May 2012 06:18:45 -0700 (PDT)
+In-Reply-To: <4FA9138D.8010604@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Paul Walmsley <paul@pwsan.com>
-Cc: "tony@atomide.com" <tony@atomide.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
+To: "Cousson, Benoit" <b-cousson@ti.com>
+Cc: Kevin Hilman <khilman@ti.com>, Jon Hunter <jon-hunter@ti.com>, Will Deacon <will.deacon@arm.com>, Paul Walmsley <paul@pwsan.com>, Ming Lei <ming.lei@canonical.com>, Maynard Johnson <maynardj@us.ibm.com>, "Shilimkar, Santosh" <santosh.shilimkar@ti.com>, "oprofile-list@lists.sourceforge.net" <oprofile-list@lists.sourceforge.net>, Lik Lik <lik88888@gmail.com>, "eranian@gmail.com" <eranian@gmail.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>
 
-Hi Paul,
+On Tue, May 8, 2012 at 2:37 PM, Cousson, Benoit <b-cousson@ti.com> wrot=
+e:
+> Salut Jean,
+>
+>
+> On 5/8/2012 1:23 PM, Jean Pihet wrote:
+>>
+>> Hi Benoit,
+>>
+>> On Tue, May 8, 2012 at 1:01 PM, Cousson, Benoit<b-cousson@ti.com> =A0=
+wrote:
+>>>
+>>> Hi Kevin& =A0Jon,
+>>>
+>>>
+>>>
+>>> On 5/8/2012 1:28 AM, Kevin Hilman wrote:
+>>>>
+>>>>
+>>>> Jon Hunter<jon-hunter@ti.com> =A0 =A0writes:
+>>>>
+>>>>> Hi Kevin,
+>>>>>
+>>>>> On 05/07/2012 12:15 PM, Kevin Hilman wrote:
+>>>>>>
+>>>>>>
+>>>>>> Jon Hunter<jon-hunter@ti.com> =A0 =A0writes:
+>>>>>>
+>>>>>>> Hi Will,
+>>>>>>>
+>>>>>>> On 04/26/2012 01:07 PM, Will Deacon wrote:
+>>>>>>>>
+>>>>>>>>
+>>>>>>>> On Wed, Apr 04, 2012 at 12:15:24PM +0100, Will Deacon wrote:
+>>>>>>>>>
+>>>>>>>>>
+>>>>>>>>> On Wed, Apr 04, 2012 at 12:29:49AM +0100, Paul Walmsley wrote=
+:
+>>>>>>>>>>
+>>>>>>>>>>
+>>>>>>>>>>
+>>>>>>>>>> Part of the problem is that the clockdomain data for the emu=
+_sys
+>>>>>>>>>> clockdomain is wrong. =A0Here's something to try to fix it. =
+=A0It
+>>>>>>>>>> might
+>>>>>>>>>> just
+>>>>>>>>>> be enough to get it to work.
+>>>>>>>>>
+>>>>>>>>>
+>>>>>>>>>
+>>>>>>>>> Hmm, doesn't seem to work but I do see the following in dmesg=
+ when
+>>>>>>>>> I
+>>>>>>>>> try to
+>>>>>>>>> use perf:
+>>>>>>>>>
+>>>>>>>>> =A0powerdomain: waited too long for powerdomain emu_pwrdm to =
+complete
+>>>>>>>>> transition
+>>>>>>>>>
+>>>>>>>>> which is new with your patch.
+>>>>>>>>
+>>>>>>>>
+>>>>>>>>
+>>>>>>>> Sorry to nag, but does anybody have a clue where to go from he=
+re? I
+>>>>>>>> can
+>>>>>>>> start digging in the OMAP PM code, but it's all new territory =
+for
+>>>>>>>> me.
+>>>>>>>
+>>>>>>>
+>>>>>>>
+>>>>>>> I did a little playing around with this today and I think that =
+I have
+>>>>>>> figured out why this was not working (see below). Please can yo=
+u try
+>>>>>>> the
+>>>>>>> following patch? I tried this on top of your series for perf/om=
+ap4.
+>>>>>>>
+>>>>>>> Paul, FYI. If this works for Will then I can re-base on top of =
+the
+>>>>>>> latest linux-omap and submit to the mailing list.
+>>>>>>>
+>>>>>>> Also, the above error about the emu_pwrdm is odd too. I noticed=
+ that
+>>>>>>> the emu_pwrdm is always in the transitioning state. And when I =
+say
+>>>>>>> always, I
+>>>>>>> mean that even if I check the power domain state while u-boot i=
+s
+>>>>>>> running it
+>>>>>>> is in the transitioning state. So even before the kernel starts=
+=2E
+>>>>>>>
+>>>>>>> Cheers
+>>>>>>> Jon
+>>>>>>>
+>>>>>>> =A0From 9137ff9c1b382232de7443db0b51b7555846fb62 Mon Sep 17 00:=
+00:00
+>>>>>>> 2001
+>>>>>>> From: Jon Hunter<jon-hunter@ti.com>
+>>>>>>> Date: Fri, 4 May 2012 16:48:45 -0500
+>>>>>>> Subject: [PATCH] ARM: OMAP4: Disable auto enable for EMU CLKDM
+>>>>>>>
+>>>>>>> The flag CLKDM_CAN_HWSUP allows the clock-domain to automatical=
+ly
+>>>>>>> transition
+>>>>>>> to the enabled and disabled state. This means that as soon as w=
+e
+>>>>>>> force
+>>>>>>> a
+>>>>>>> software wake-up on the clock domain, the clock domain will be
+>>>>>>> allowed
+>>>>>>> to idle
+>>>>>>> and put back into the hardware auto state. For the EMU clock do=
+main
+>>>>>>> this is not
+>>>>>>> what we want. We want to keep the clock domain in the software =
+wakeup
+>>>>>>> state
+>>>>>>> while the clock domain is being used and put it back in to the
+>>>>>>> hardware
+>>>>>>> auto
+>>>>>>> state when we have finished using the clock domain.
+>>>>>>>
+>>>>>>> Signed-off-by: Jon Hunter<jon-hunter@ti.com>
+>>>>>>
+>>>>>>
+>>>>>>
+>>>>>> With this patch, how is the clkdm ever idled?
+>>>>>
+>>>>>
+>>>>>
+>>>>> It does not! Sorry, I was so engrossed with figuring out why the =
+EMU
+>>>>> clkdm was being idled as soon as it was enabled, I forgot to chec=
+k if
+>>>>> is
+>>>>> ever disabled once we terminated perf :-(
+>>>>>
+>>>>>> IIUC, your patch will get PMU interrupts working, but similarily=
+ to
+>>>>>> previous patches in this thread, it works because it *never* all=
+ows
+>>>>>> the
+>>>>>> EMU clkdm to idle. =A0This is not a mergeable solution because i=
+t will
+>>>>>> not
+>>>>>> allow CORE retention (and thus full-chip retention.)
+>>>>>
+>>>>>
+>>>>>
+>>>>> Right!
+>>>>>
+>>>>>> What we need is a solution that allows the clkdm to idle, and th=
+en to
+>>>>>> be
+>>>>>> reinitialzed when it wakes up. =A0Due to the way (I understand) =
+resets
+>>>>>> in
+>>>>>> the debugss, allowing the clkdm to idle will cause a reset, so t=
+he
+>>>>>> PMU/CTI interrupts need to be reinitialzied after wakeup.
+>>>>>
+>>>>>
+>>>>>
+>>>>> Yes exactly I see that now. I have prototyped the 3 patches and t=
+his is
+>>>>> working AND the EMU clkdm does go back to idle. I can send out to=
+ the
+>>>>> list for review.
+>>>>
+>>>>
+>>>>
+>>>> Perfect, thanks.
+>>>>
+>>>>>> Kevin
+>>>>>>
+>>>>>> P.S. Please note there is also already a different fix in mainli=
+ne for
+>>>>>> the EMU clkdm data from Paul which adds the force wakeup flag an=
+d
+>>>>>> removes the DISABLE_AUTO flag[1] (but leaves the ENABLE_AUTO fla=
+g,
+>>>>>> because the hardware is capable.)
+>>>>>
+>>>>>
+>>>>>
+>>>>> Hmmm ... yes saw this, and you will have to excuse me as I don't =
+fully
+>>>>> follow the logic here. In fact, I am thinking we want the opposit=
+e ;-)
+>>>>>
+>>>>> =A0From looking, into this it seems to me that when PMU is runnin=
+g we
+>>>>> want
+>>>>> the EMU clock domain in software-wakeup state and when PMU is not
+>>>>> running we want in the hardware auto state.
+>>>>
+>>>>
+>>>>
+>>>> So far, I'm with you.
+>>>>
+>>>>> By keeping the ENABLE_AUTO flag set, as soon as we enable the clo=
+ck
+>>>>> domain it is put right back into the HW_AUTO state
+>>>>
+>>>>
+>>>>
+>>>> This is only because it was in the HWSUP state when _enable was ca=
+lled.
+>>>> If clkdm_deny_idle() is used, that behavior will change.
+>>>>
+>>>>> and hence PMU is
+>>>>> not working (see _enable() function in
+>>>>> arch/arm/mach-omap2/omap_hwmod.c)
+>>>>>
+>>>>> So really what I think we want is to remove the ENABLE_AUTO flag =
+to
+>>>>> keep
+>>>>> the clock domain in software wake-up and use the DISABLE_AUTO fla=
+g to
+>>>>> put the clock domain back in HW_AUTO (note this requires a patch =
+to
+>>>>> perform this 2nd part).
+>>>>
+>>>>
+>>>>
+>>>> Well, Paul will have to comment here for the final word, but IIUC,=
+ the
+>>>> hwmod flags are supposed to indicate only what the HW is capable o=
+f. =A0If
+>>>> we want to change the runtime behavior, we nee to use (or add) API=
+s to
+>>>> change the beahvior. =A0In this case, clkdm_allow_idle(),
+>>>> clkdm_deny_idle() are probably what is needed here.
+>>>
+>>>
+>>>
+>>> Yes, indeed, we should not hack the flags to fix that kind of issue=
+=2E The
+>>> flags describe what the HW is capable of, and the EMU CD can suppor=
+t
+>>> HW_AUTO
+>>> and SW_WAKEUP. AFAIK, the issue with that EMU CD is that the only v=
+alid
+>>> next
+>>> power state is OFF, meaning that no retention mode is supported. So=
+ any
+>>> transition to idle will go to OFF and lead to a reset upon wakeup.
+>>>
+>>> That being said, being able to transition to OFF during idle is a
+>>> perfectly
+>>> valid state for most powerdomain in OMAP anyway, so we should be ab=
+le to
+>>> restore from OFF mode smoothly.
+>>>
+>>> It looks to me that what is missing here is *just* a restore path i=
+n the
+>>> PMU/CTI code. But I'm probably missing some nasty details in this i=
+ssue
+>>> :-)
+>>
+>> Although it is perfectly feasible to have a seamless transition of t=
+he
+>> EMU power domain, I think the PMU counters will not be accurate
+>> anymore since they stop counting events when going to OFF and re-sta=
+rt
+>> after the state restore.
+>
+>
+> Good point, but I think the PMU might still works fine because locate=
+d
+> inside the MPU domain. AFAIR, only the path to access the PMU and the=
+ CTI is
+> going to OFF and thus will be reset.
+Ever better point ;p Thanks for the precision.
+In any case my point was: can we allow the EMU CD to go OFF or prevent
+it from doing so? We need to answer that question first.
 
-On Mon, May 07, 2012 at 16:42:16, Mohammed, Afzal wrote:
+> But that whole DEBUGSS is such a nightmare, that I'm not 100% sure ab=
+out
+> that :-)
 
-> > > +static struct omap_hwmod omap3xxx_gpmc_hwmod = {
-> > > +	.name		= "gpmc",
-> > > +	.class		= &omap3xxx_gpmc_hwmod_class,
-> > > +	.clkdm_name	= "l3_init_clkdm",
-> > > +	.mpu_irqs	= omap3xxx_gpmc_irqs,
-> > > +	.main_clk	= "gpmc_fck",
-> > > +	.flags		= HWMOD_INIT_NO_IDLE | HWMOD_INIT_NO_RESET,
-> > > +};
-> > 
-> > Is there some reason why you are setting the HWMOD_INIT_NO_RESET flag 
-> > here?  Seems to me that the kernel should not rely on the bootloader GPMC 
-> > configuration, but should use a configuration from the board file or DT.
-> 
-> 
-> Major reason was that there are some boards that rely on bootloader
-> settings, eg. kernel does not do any setting for smsc911x. I did not
-> want to break those, at least it causes problem with omap3evm
 
-If HWMOD_NO_INIT_RESET is not present, it would break GPMC on
-many of the existing boards.
+>
+> Regards,
+> Benoit
+>
 
-New version of GPMC HWMOD patch has been posted with HWMOD_NO_IDLEST flag,
-which is a squashed one with OMAP2xxx HWMOD
-
-Regards
-AFzal
+Jean
+--
+To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
