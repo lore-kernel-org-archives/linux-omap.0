@@ -1,139 +1,56 @@
-From: Rajendra Nayak <rnayak@ti.com>
-Subject: Re: [PATCHv4 6/8] ARM: OMAP4: PM: support ret_logic/mem_off_counters
-Date: Tue, 08 May 2012 14:45:10 +0530
-Message-ID: <4FA8E41E.4030002@ti.com>
-References: <1334913591-26312-1-git-send-email-t-kristo@ti.com>	 <1334913591-26312-7-git-send-email-t-kristo@ti.com> <87pqafv810.fsf@ti.com>	 <1336466198.2149.269.camel@sokoban> <4FA8DFFC.6050608@ti.com> <1336468150.2149.271.camel@sokoban>
+From: "Cousson, Benoit" <b-cousson@ti.com>
+Subject: Re: [PATCH 12/13] ARM: OMAP5: Add the build support
+Date: Tue, 8 May 2012 11:19:33 +0200
+Message-ID: <4FA8E525.50506@ti.com>
+References: <1336029982-31898-1-git-send-email-r.sricharan@ti.com> <1336029982-31898-13-git-send-email-r.sricharan@ti.com> <20120504225857.GB5613@atomide.com> <CAJ7qFSeJc+F5xnW+P5r89yZEZXi8k-LqqnD8R1KEUONqravNBw@mail.gmail.com> <20120507173749.GE5088@atomide.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8; format=flowed
+Content-Type: text/plain; charset="UTF-8"; format=flowed
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aog124.obsmtp.com ([74.125.149.151]:50432 "EHLO
-	na3sys009aog124.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751211Ab2EHJPR (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 8 May 2012 05:15:17 -0400
-Received: by obbuo19 with SMTP id uo19so11875017obb.40
-        for <linux-omap@vger.kernel.org>; Tue, 08 May 2012 02:15:16 -0700 (PDT)
-In-Reply-To: <1336468150.2149.271.camel@sokoban>
+Received: from devils.ext.ti.com ([198.47.26.153]:54782 "EHLO
+	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751119Ab2EHJTh (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 8 May 2012 05:19:37 -0400
+In-Reply-To: <20120507173749.GE5088@atomide.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: t-kristo@ti.com
-Cc: Kevin Hilman <khilman@ti.com>, linux-omap@vger.kernel.org, paul@pwsan.com, linux-arm-kernel@lists.infradead.org, Axel Haslam <axelhaslam@gmail.com>
+To: Tony Lindgren <tony@atomide.com>
+Cc: "R, Sricharan" <r.sricharan@ti.com>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, santosh.shilimkar@ti.com
 
-On Tuesday 08 May 2012 02:39 PM, Tero Kristo wrote:
-> On Tue, 2012-05-08 at 14:27 +0530, Rajendra Nayak wrote:
->> On Tuesday 08 May 2012 02:06 PM, Tero Kristo wrote:
->>> On Mon, 2012-05-07 at 17:19 -0700, Kevin Hilman wrote:
->>>> Tero Kristo<t-kristo@ti.com>   writes:
->>>>
->>>>> From: Axel Haslam<axelhaslam@gmail.com>
->>>>>
->>>>> On OMAP4, there is no support to read previous logic state
->>>>> or previous memory state achieved when a power domain transitions
->>>>> to RET. Instead there are module level context registers.
->>>>>
->>>>> In order to support the powerdomain level logic/mem_off_counters
->>>>> on OMAP4, instead use the previous power state achieved (RET) and
->>>>> the *programmed* logic/mem RET state to derive if a powerdomain lost
->>>>> logic or did not.
->>>>
->>>> OK, but this also changes the behavior for OMAP3 as well, right?  I
->>>> don't see in the changelog how this affects OMAP3 and whether it is
->>>> still expected to work on OMAP3.  When changing common code like this,
->>>> the changelog should describe the impacts on to all affected SoCs.
->>>>
->>>> As suggested by Vaibhav Bedia, now might be the right time to add this
->>>> function to the SoC specific function pointers (struct pwrdm_ops.)
->>>>
->>>> Doing that, the existing function could be used for OMAP3 (and OMAP4 if
->>>> the changelog describes that it can/should be used for both.)
->>>>
->>>> Then, when AM33xx support is added, it will be obvious where they will
->>>> need to plugin support for that SoC.
->>>
->>> How about the following patch? It will add a couple of redundant
->>> read_prev_pwrst calls, but works in the same way as the original patch,
->>> without touching the generic code. Also, as there have been talks about
->>> adding caching for some of the pwrdm registers (especially the
->>> prev_pwrst), this might not be that big of an issue.
->>>
->>> If this looks good to you, I'll re-post the set with this patch.
->>>
->>> -Tero
->>>
->>>
->>> diff --git a/arch/arm/mach-omap2/powerdomain44xx.c
->>> b/arch/arm/mach-omap2/powerdomain44xx.c
->>> index 9bfb8a0..3d5e8d4 100644
->>> --- a/arch/arm/mach-omap2/powerdomain44xx.c
->>> +++ b/arch/arm/mach-omap2/powerdomain44xx.c
->>> @@ -155,6 +155,14 @@ static int omap4_pwrdm_read_logic_retst(struct
->>> powerdomain *pwrdm)
->>>    	return v;
->>>    }
->>>
->>> +static int omap4_pwrdm_read_prev_logic_pwrst(struct powerdomain *pwrdm)
->>> +{
->>> +	if (omap4_pwrdm_read_prev_pwrst(pwrdm) != PWRDM_POWER_RET)
->>> +		return PWRDM_POWER_ON;
->>> +
->>> +	return omap4_pwrdm_read_logic_retst(pwrdm);
->>
->> Looks good to me. Do these ever get called with target state programmed
->> to OFF?
->
-> At least with current kernel code, no. But you are right, it might be
-> better to change these to check against>  PWRDM_POWER_RET.
+Hi Tony,
 
-But in case of target power state being programmed to OFF, the logic
-retst might not be programmed at all, so in case of target state being
-OFF, returning the logic retst programmed might as well return
-PWRDM_POWER_ON itself, right?
+On 5/7/2012 7:37 PM, Tony Lindgren wrote:
+> * R, Sricharan<r.sricharan@ti.com>  [120506 20:39]:
+>>>> +config MACH_OMAP5_SEVM
+>>>> +     bool "OMAP5 sevm Board"
+>>>> +     depends on ARCH_OMAP5
+>>>> +
+>>>>   config OMAP3_EMU
+>>>>        bool "OMAP3 debugging peripherals"
+>>>>        depends on ARCH_OMAP3
+>>>
+>>> No need for it here either. Actually, I think this whole chunk
+>>> can be now left out since it's DT based?
+>>> he
+>>   ok, but the concern here was that without this macro
+>>   the print from compress and subsequently early
+>> prints appear broken.
+>>
+>> machine_is_omap5_sevm becomes zero without this config and
+>> machine_is_xxxx is used by the macro _DEBUG_LL_ENTRY
+>> uncompress.h.
+>
+> Ah I see.
 
->
-> -Tero
->
->>
->> regards,
->> Rajendra
->>
->>> +}
->>> +
->>>    static int omap4_pwrdm_read_mem_pwrst(struct powerdomain *pwrdm, u8
->>> bank)
->>>    {
->>>    	u32 m, v;
->>> @@ -183,6 +191,14 @@ static int omap4_pwrdm_read_mem_retst(struct
->>> powerdomain *pwrdm, u8 bank)
->>>    	return v;
->>>    }
->>>
->>> +static int omap4_pwrdm_read_prev_mem_pwrst(struct powerdomain *pwrdm,
->>> u8 bank)
->>> +{
->>> +	if (omap4_pwrdm_read_prev_pwrst(pwrdm) != PWRDM_POWER_RET)
->>> +		return PWRDM_POWER_ON;
->>> +
->>> +	return omap4_pwrdm_read_mem_retst(pwrdm, bank);
->>> +}
->>> +
->>>    static int omap4_pwrdm_wait_transition(struct powerdomain *pwrdm)
->>>    {
->>>    	u32 c = 0;
->>> @@ -256,9 +272,11 @@ struct pwrdm_ops omap4_pwrdm_operations = {
->>>    	.pwrdm_clear_all_prev_pwrst	= omap4_pwrdm_clear_all_prev_pwrst,
->>>    	.pwrdm_set_logic_retst	= omap4_pwrdm_set_logic_retst,
->>>    	.pwrdm_read_logic_pwrst	= omap4_pwrdm_read_logic_pwrst,
->>> +	.pwrdm_read_prev_logic_pwrst	= omap4_pwrdm_read_prev_logic_pwrst,
->>>    	.pwrdm_read_logic_retst	= omap4_pwrdm_read_logic_retst,
->>>    	.pwrdm_read_mem_pwrst	= omap4_pwrdm_read_mem_pwrst,
->>>    	.pwrdm_read_mem_retst	= omap4_pwrdm_read_mem_retst,
->>> +	.pwrdm_read_prev_mem_pwrst	= omap4_pwrdm_read_prev_mem_pwrst,
->>>    	.pwrdm_set_mem_onst	= omap4_pwrdm_set_mem_onst,
->>>    	.pwrdm_set_mem_retst	= omap4_pwrdm_set_mem_retst,
->>>    	.pwrdm_wait_transition	= omap4_pwrdm_wait_transition,
->>>
->>>
->>
->
->
+Mmm, still, I guess this mechanism should be deprecated with DT?
+We cannot keep creating fake board entry since we are not supposed to 
+have MACHINE_ID anymore.
+That will break DEBUG_LL for sure, but we knew about that current 
+limitation with DT.
 
+The point is that we should fix the code to stop relying on a machine id 
+going forward.
+And maybe we can parse the FDT at that time?
+
+Regards,
+Benoit
