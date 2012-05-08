@@ -1,105 +1,147 @@
-From: Stephen Warren <swarren@wwwdotorg.org>
-Subject: Re: [PATCH V3 1/2] of: Add generic device tree DMA helpers
-Date: Tue, 08 May 2012 10:35:21 -0600
-Message-ID: <4FA94B49.5050500@wwwdotorg.org>
-References: <1335820679-28721-1-git-send-email-jon-hunter@ti.com> <4FA3F308.6030900@ti.com> <CAJe_ZhfFhZVG4gyaaVUgeQedJiSE=zj9nE28XCNH9DkPVgqj=A@mail.gmail.com> <201205041923.07620.arnd@arndb.de> <CAJe_Zhe8jYd1j=ti6FvqxXL7i5mbgf0jqb-84sFMTeUqyAonpw@mail.gmail.com> <4FA7F009.5010003@wwwdotorg.org> <CAJe_ZheHFP9NZEiZfCvS3LL1k7xamzGq4Oep8gfmPRi6RR7R5Q@mail.gmail.com>
+From: "S, Venkatraman" <svenkatr@ti.com>
+Subject: Re: [PATCH v2 01/16] FS: Added demand paging markers to filesystem
+Date: Tue, 8 May 2012 22:05:32 +0530
+Message-ID: <CANfBPZ9dzzamHe=O+Zi0w+Romk8WPerp6qF+3KsRvv+U_ZBFYA@mail.gmail.com>
+References: <1336054995-22988-1-git-send-email-svenkatr@ti.com>
+ <1336054995-22988-2-git-send-email-svenkatr@ti.com> <20120506233117.GU5091@dastard>
+ <CAB+TZU8FNWuHrf6Hqnjs5fwH8yMJgd=CLPB0iUkrs2a-fgehtQ@mail.gmail.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from avon.wwwdotorg.org ([70.85.31.133]:59439 "EHLO
-	avon.wwwdotorg.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756434Ab2EHQf0 (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 8 May 2012 12:35:26 -0400
-In-Reply-To: <CAJe_ZheHFP9NZEiZfCvS3LL1k7xamzGq4Oep8gfmPRi6RR7R5Q@mail.gmail.com>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Transfer-Encoding: quoted-printable
+Return-path: <owner-linux-mm@kvack.org>
+In-Reply-To: <CAB+TZU8FNWuHrf6Hqnjs5fwH8yMJgd=CLPB0iUkrs2a-fgehtQ@mail.gmail.com>
+Sender: owner-linux-mm@kvack.org
+To: mani <manishrma@gmail.com>
+Cc: Dave Chinner <david@fromorbit.com>, linux-mmc@vger.kernel.org, cjb@laptop.org, linux-mm@kvack.org, linux-fsdevel@vger.kernel.org, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org, arnd.bergmann@linaro.org, alex.lemberg@sandisk.com, ilan.smith@sandisk.com, lporzio@micron.com, rmk+kernel@arm.linux.org.uk
 List-Id: linux-omap@vger.kernel.org
-To: Jassi Brar <jaswinder.singh@linaro.org>
-Cc: Arnd Bergmann <arnd@arndb.de>, Stephen Warren <swarren@nvidia.com>, Benoit Cousson <b-cousson@ti.com>, device-tree <devicetree-discuss@lists.ozlabs.org>, Nicolas Ferre <nicolas.ferre@atmel.com>, Rob Herring <rob.herring@calxeda.com>, Grant Likely <grant.likely@secretlab.ca>, Jon Hunter <jon-hunter@ti.com>, Russell King <linux@arm.linux.org.uk>, linux-omap <linux-omap@vger.kernel.org>, linux-arm <linux-arm-kernel@lists.infradead.org>
 
-On 05/07/2012 11:19 AM, Jassi Brar wrote:
-> On 7 May 2012 21:23, Stephen Warren <swarren@wwwdotorg.org> wrote:
->> On 05/05/2012 11:10 AM, Jassi Brar wrote:
+On Tue, May 8, 2012 at 11:58 AM, mani <manishrma@gmail.com> wrote:
+> How about adding the AS_DMPG flag in the file -> address_space when getti=
+ng
+> a filemap_fault()
+> so that we can treat the page fault pages as the high priority pages over
+> normal read requests.
+> How about changing below lines for the support of the pages those are
+> requested for the page fault ?
+>
+>
+> --- a/fs/mpage.c 2012-05-04 12:59:12.000000000 +0530
+> +++ b/fs/mpage.c 2012-05-07 13:13:49.000000000 +0530
+> @@ -408,6 +408,8 @@ mpage_readpages(struct address_space *ma
+> =A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0 &last_block_in_=
+bio, &map_bh,
+> =A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0 &first_logical_=
+block,
+> =A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0 get_block);
+> +=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0 if(test_bit(AS_DMPG, &mapping->flags) && =
+bio)
+>
+> +=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0 bio->bi_rw |=3D REQ_RW_=
+DMPG
+> =A0=A0=A0=A0=A0=A0=A0 }
+> =A0=A0=A0=A0=A0=A0=A0 page_cache_release(page);
+> =A0=A0=A0 }
+> --- a/include/linux/pagemap.h=A0=A0=A0 2012-05-04 12:57:35.000000000 +053=
+0
+> +++ b/include/linux/pagemap.h=A0=A0=A0 2012-05-07 13:15:24.000000000 +053=
+0
+> @@ -27,6 +27,7 @@ enum mapping_flags {
+> =A0#if defined (CONFIG_BD_CACHE_ENABLED)
+> =A0=A0=A0 AS_DIRECT=A0 =3D=A0=A0 __GFP_BITS_SHIFT + 4,=A0 /* DIRECT_IO sp=
+ecified on file op
+> */
+> =A0#endif
+> +=A0=A0 AS_DMPG=A0 =3D=A0=A0 __GFP_BITS_SHIFT + 5,=A0 /* DEMAND PAGE spec=
+ified on file op
+> */
+> =A0};
+>
+> =A0static inline void mapping_set_error(struct address_space *mapping, in=
+t
+> error)
+>
+> --- a/mm/filemap.c=A0=A0 2012-05-04 12:58:49.000000000 +0530
+> +++ b/mm/filemap.c=A0=A0 2012-05-07 13:15:03.000000000 +0530
+> @@ -1646,6 +1646,7 @@ int filemap_fault(struct vm_area_struct
+> =A0=A0=A0 if (offset >=3D size)
+> =A0=A0=A0=A0=A0=A0=A0 return VM_FAULT_SIGBUS;
+>
+> +=A0=A0 set_bit(AS_DMPG, &file->f_mapping->flags);
+> =A0=A0=A0 /*
+> =A0=A0=A0=A0 * Do we have something in the page cache already?
+> =A0=A0=A0=A0 */
+>
+> Will these changes have any adverse effect ?
+>
+
+Thanks for the example but I can't judge which of the two is the most
+elegant or acceptable to maintainers.
+I can test with your change and inform if it works.
+
+> Thanks & Regards
+> Manish
+>
+> On Mon, May 7, 2012 at 5:01 AM, Dave Chinner <david@fromorbit.com> wrote:
 >>
->>> Hmm... there ought to be a way by which a client is handed a random 'token'
->>> via its dt node and similarly the dmac informed which channel (and with what
->>> capabilities) to allocate should it see a request coming with that token.
+>> On Thu, May 03, 2012 at 07:53:00PM +0530, Venkatraman S wrote:
+>> > From: Ilan Smith <ilan.smith@sandisk.com>
+>> >
+>> > Add attribute to identify demand paging requests.
+>> > Mark readpages with demand paging attribute.
+>> >
+>> > Signed-off-by: Ilan Smith <ilan.smith@sandisk.com>
+>> > Signed-off-by: Alex Lemberg <alex.lemberg@sandisk.com>
+>> > Signed-off-by: Venkatraman S <svenkatr@ti.com>
+>> > ---
+>> > =A0fs/mpage.c =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0| =A0 =A02 ++
+>> > =A0include/linux/bio.h =A0 =A0 =A0 | =A0 =A07 +++++++
+>> > =A0include/linux/blk_types.h | =A0 =A02 ++
+>> > =A03 files changed, 11 insertions(+)
+>> >
+>> > diff --git a/fs/mpage.c b/fs/mpage.c
+>> > index 0face1c..8b144f5 100644
+>> > --- a/fs/mpage.c
+>> > +++ b/fs/mpage.c
+>> > @@ -386,6 +386,8 @@ mpage_readpages(struct address_space *mapping,
+>> > struct list_head *pages,
+>> > =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =
+=A0 =A0 &last_block_in_bio, &map_bh,
+>> > =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =
+=A0 =A0 &first_logical_block,
+>> > =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =
+=A0 =A0 get_block);
+>> > + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 if (bio)
+>> > + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 bio->bi_rw |=
+=3D REQ_RW_DMPG;
 >>
->> I think that's the whole point of the patch.
+>> Have you thought about the potential for DOSing a machine
+>> with this? That is, user data reads can now preempt writes of any
+>> kind, effectively stalling writeback and memory reclaim which will
+>> lead to OOM situations. Or, alternatively, journal flushing will get
+>> stalled and no new modifications can take place until the read
+>> stream stops.
 >>
->> However, the token needs to be some driver-specific struct, since the
->> required information may be more than just a single channel or request
->> ID in general.
+>> This really seems like functionality that belongs in an IO
+>> scheduler so that write starvation can be avoided, not in high-level
+>> data read paths where we have no clue about anything else going on
+>> in the IO subsystem....
 >>
-> Well, what I call 'token' could just as well be some numerical hash of
-> what you call 'driver-specific struct'.
-> And I never thought we could do without h/w specific information,
-> just that peculiarities lie with the dmac controllers and that's where
-> the discerning should happen.
-> 
-> Our opinions differ in that, I believe client side shouldn't need to
-> parse/decode the h/w specific parameters from data gotten via DT
-> (what I call 'token' and you 'driver-specific struct') - because that is
-> the key to having common client drivers working with different dma
-> controllers. And yes, I don't think we could find a future proof generic
-> and simple enough representation of dma resource specification in a
-> DT node :)
+>> Cheers,
+>>
+>> Dave.
+>> --
+>> Dave Chinner
+>> david@fromorbit.com
+>> --
+>> To unsubscribe from this list: send the line "unsubscribe linux-mmc" in
+>> the body of a message to majordomo@vger.kernel.org
+>> More majordomo info at =A0http://vger.kernel.org/majordomo-info.html
+>
+>
 
-Yes, I don't believe that follows.
-
-The data doesn't need to be part of the DMA controller node in order for
-the DMA controller driver to be the entity interpreting it.
-
-In many existing DT bindings, the structure of the client's property is:
-
-phandle specifier
-
-... all possibly repeated n times if you need to represent n resources,
-like n interrupts, n GPIOs, n DMA channels/...)
-
-... where specifier is some arbitrary sequence of cells, whose size and
-format are entirely determined by the driver for the node referred to by
-phandle.
-
-The parsing of this whole construct is hidden inside some utility code,
-so clients simply call e.g. of_get_gpio(), which internally calls a
-function in the relevant GPIO driver (as specified by the phandle) to
-parse the specifier, and return whatever representation of that
-specifier is required for the client to either use directly (e.g. GPIO
-ID to pass to gpio_request()) or pass back to the relevant APIs for the
-driver's subsystem (e.g. complete possibly driver-specific DMA
-filter/data representation for dmaengine).
-
-The advantage here is that:
-
-* The specifier is stored in the client, not the IRQ/GPIO/DMA
-controller's node, so it's located right at the usage site, which
-typically makes working out what resources a client uses easier. This
-also keeps client-specific information out of the provider node,
-allowing it to be fully generic.
-
-* The client doesn't know anything about the format of "specifier",
-since the provider driver parses it, so clients can still work with
-arbitrary providers of resources.
-
-> Instead, I suggest we encode the finer details of each channel-request
-> in node of the dma controller matched against the 'token' assigned
-> to the respective clients.
-
-Well, I guess I addressed that above - there's no need for the data to
-be in the DMA controller node for the DMA controller driver to parse it.
-
-> That encoding("channel_id") would be dma
-> controller specific and if we also manage to contain it within fixed number
-> of bytes we could also have common helpers for fetching it,
-
-I don't think there's any need for it to fit into a fixed number of
-bytes; the parsing routine can simply return a pointer to a
-driver-specific structure (or perhaps a dmaengine-defined structure,
-which in turn might contain a pointer to a driver-specific structure).
-That would allow complete flexibility in the representation of the
-driver-specific data.
-
-> though
-> it still would need to be decoded by dmac controller driver - which I think
-> we can't do without, considering the variety of dma floating around.
+--
+To unsubscribe, send a message with 'unsubscribe linux-mm' in
+the body to majordomo@kvack.org.  For more info on Linux MM,
+see: http://www.linux-mm.org/ .
+Fight unfair telecom internet charges in Canada: sign http://stopthemeter.ca/
+Don't email: <a href=mailto:"dont@kvack.org"> email@kvack.org </a>
