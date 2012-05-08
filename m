@@ -1,201 +1,92 @@
-From: "Cousson, Benoit" <b-cousson@ti.com>
-Subject: Re: oprofile and ARM A9 hardware counter
-Date: Tue, 8 May 2012 14:37:33 +0200
-Message-ID: <4FA9138D.8010604@ti.com>
-References: <20120403092524.GD17741@mudshark.cambridge.arm.com> <CAMQu2gxE2STYxUGinzstX6W8jyofH829A__NQBjwLqZd9cqy=w@mail.gmail.com> <20120403094749.GH17741@mudshark.cambridge.arm.com> <CAMQu2gyFirtVTWpMu4G_qG5sq33J-_s_o2JhVAdrUf7P3qJ3AA@mail.gmail.com> <20120403123444.GL17741@mudshark.cambridge.arm.com> <878vicsxef.fsf@ti.com> <20120403160706.GP17741@mudshark.cambridge.arm.com> <87ehs4pfw4.fsf@ti.com> <alpine.DEB.2.00.1204031727380.8000@utopia.booyaka.com> <20120404111524.GF32505@mudshark.cambridge.arm.com> <20120426180719.GC20186@mudshark.cambridge.arm.com> <4FA45580.8070802@ti.com> <87ipg76hfm.fsf@ti.com> <4FA8284C.7080803@ti.com> <87k40nzi3i.fsf@ti.com> <4FA8FCFF.40105@ti.com> <CAORVsuWMhVQkQAmsyrprvW-0hK4y=RgGayn0p8WhyksScauBQQ@mail.gmail.com>
+From: Catalin Marinas <catalin.marinas@arm.com>
+Subject: Re: [PATCH] ARM: decompressor: Fix mmu mapping for non-DRAM
+ address space.
+Date: Tue, 8 May 2012 13:41:16 +0100
+Message-ID: <20120508124116.GE17798@arm.com>
+References: <1336398149-26153-1-git-send-email-santosh.shilimkar@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="ISO-8859-1"; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from comal.ext.ti.com ([198.47.26.152]:47394 "EHLO comal.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1755079Ab2EHMiS (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Tue, 8 May 2012 08:38:18 -0400
-In-Reply-To: <CAORVsuWMhVQkQAmsyrprvW-0hK4y=RgGayn0p8WhyksScauBQQ@mail.gmail.com>
+Received: from cam-admin0.cambridge.arm.com ([217.140.96.50]:45034 "EHLO
+	cam-admin0.cambridge.arm.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1754550Ab2EHMlq (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 8 May 2012 08:41:46 -0400
+Content-Disposition: inline
+In-Reply-To: <1336398149-26153-1-git-send-email-santosh.shilimkar@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Jean Pihet <jean.pihet@newoldbits.com>
-Cc: Kevin Hilman <khilman@ti.com>, Jon Hunter <jon-hunter@ti.com>, Will Deacon <will.deacon@arm.com>, Paul Walmsley <paul@pwsan.com>, Ming Lei <ming.lei@canonical.com>, Maynard Johnson <maynardj@us.ibm.com>, "Shilimkar, Santosh" <santosh.shilimkar@ti.com>, "oprofile-list@lists.sourceforge.net" <oprofile-list@lists.sourceforge.net>, Lik Lik <lik88888@gmail.com>, "eranian@gmail.com" <eranian@gmail.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>
+To: Santosh Shilimkar <santosh.shilimkar@ti.com>
+Cc: "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, R Sricharan <r.sricharan@ti.com>, Russell King <linux@arm.linux.org.uk>
 
-Salut Jean,
+On Mon, May 07, 2012 at 02:42:29PM +0100, Santosh Shilimkar wrote:
+> From: R Sricharan <r.sricharan@ti.com>
+> 
+> ARM decompressor code setups entire 4GB address space pages.
+> Out of the 4GB, about 256MB are setup with normal memory attributes
+> for needed DRAM and the rest of the address space as Strongly ordered.
+> 
+> But since all the sections are mapped in DOMAIN0(Manager), processor
+> like Cortex-A15, can speculatively prefetch from non-DRAM read sensitive
+> areas even in the presence of XN(Non-executable). This is because XN
+> attribute is ignored when domain is Manager.
+> 
+> This can lead to accesses to non-accessible address regions leading
+> to various interconnect violations. The issue is observed on OMAP5.
+> 
+> This patch tries to fix the issue by ensuring that non-DRAM region
+> is marked as a client domain so that XN attribute is effective.
+> 
+> A better alternative is to not map un-used regions but since the
+> decompressor code is generic, there might be many exceptions
+> for the devices used like debug console etc.
+> 
+> Signed-off-by: R Sricharan <r.sricharan@ti.com>
+> Signed-off-by: Santosh Shilimkar <santosh.shilimkar@ti.com>
+> Cc: Russell King <linux@arm.linux.org.uk>
+> Cc: Catalin Marinas <catalin.marinas@arm.com>
+> ---
+>  arch/arm/boot/compressed/head.S |    7 ++++++-
+>  1 files changed, 6 insertions(+), 1 deletions(-)
+> 
+> diff --git a/arch/arm/boot/compressed/head.S b/arch/arm/boot/compressed/head.S
+> index dc7e8ce..4dc799b 100644
+> --- a/arch/arm/boot/compressed/head.S
+> +++ b/arch/arm/boot/compressed/head.S
+> @@ -578,7 +578,7 @@ __setup_mmu:	sub	r3, r4, #16384		@ Page directory size
+>  		mov	r9, r0, lsr #18
+>  		mov	r9, r9, lsl #18		@ start of RAM
+>  		add	r10, r9, #0x10000000	@ a reasonable RAM size
+> -		mov	r1, #0x12
+> +		mov	r1, #0x32		@ set domain1, XN, valid
+>  		orr	r1, r1, #3 << 10
+>  		add	r2, r3, #16384
+>  1:		cmp	r1, r9			@ if virt > start of RAM
+> @@ -587,8 +587,10 @@ __setup_mmu:	sub	r3, r4, #16384		@ Page directory size
+>  #else
+>  		orrhs	r1, r1, #0x0c		@ set cacheable, bufferable
+>  #endif
+> +		bichs	r1, r1, #0x20		@ set domain0 for DRAM
+>  		cmp	r1, r10			@ if virt > end of RAM
+>  		bichs	r1, r1, #0x0c		@ clear cacheable, bufferable
+> +		orrhs	r1, r1, #0x20		@ set domain1
 
-On 5/8/2012 1:23 PM, Jean Pihet wrote:
-> Hi Benoit,
->
-> On Tue, May 8, 2012 at 1:01 PM, Cousson, Benoit<b-cousson@ti.com>  wrote:
->> Hi Kevin&  Jon,
->>
->>
->> On 5/8/2012 1:28 AM, Kevin Hilman wrote:
->>>
->>> Jon Hunter<jon-hunter@ti.com>    writes:
->>>
->>>> Hi Kevin,
->>>>
->>>> On 05/07/2012 12:15 PM, Kevin Hilman wrote:
->>>>>
->>>>> Jon Hunter<jon-hunter@ti.com>    writes:
->>>>>
->>>>>> Hi Will,
->>>>>>
->>>>>> On 04/26/2012 01:07 PM, Will Deacon wrote:
->>>>>>>
->>>>>>> On Wed, Apr 04, 2012 at 12:15:24PM +0100, Will Deacon wrote:
->>>>>>>>
->>>>>>>> On Wed, Apr 04, 2012 at 12:29:49AM +0100, Paul Walmsley wrote:
->>>>>>>>>
->>>>>>>>>
->>>>>>>>> Part of the problem is that the clockdomain data for the emu_sys
->>>>>>>>> clockdomain is wrong.  Here's something to try to fix it.  It might
->>>>>>>>> just
->>>>>>>>> be enough to get it to work.
->>>>>>>>
->>>>>>>>
->>>>>>>> Hmm, doesn't seem to work but I do see the following in dmesg when I
->>>>>>>> try to
->>>>>>>> use perf:
->>>>>>>>
->>>>>>>>   powerdomain: waited too long for powerdomain emu_pwrdm to complete
->>>>>>>> transition
->>>>>>>>
->>>>>>>> which is new with your patch.
->>>>>>>
->>>>>>>
->>>>>>> Sorry to nag, but does anybody have a clue where to go from here? I
->>>>>>> can
->>>>>>> start digging in the OMAP PM code, but it's all new territory for me.
->>>>>>
->>>>>>
->>>>>> I did a little playing around with this today and I think that I have
->>>>>> figured out why this was not working (see below). Please can you try the
->>>>>> following patch? I tried this on top of your series for perf/omap4.
->>>>>>
->>>>>> Paul, FYI. If this works for Will then I can re-base on top of the
->>>>>> latest linux-omap and submit to the mailing list.
->>>>>>
->>>>>> Also, the above error about the emu_pwrdm is odd too. I noticed that
->>>>>> the emu_pwrdm is always in the transitioning state. And when I say always, I
->>>>>> mean that even if I check the power domain state while u-boot is running it
->>>>>> is in the transitioning state. So even before the kernel starts.
->>>>>>
->>>>>> Cheers
->>>>>> Jon
->>>>>>
->>>>>>   From 9137ff9c1b382232de7443db0b51b7555846fb62 Mon Sep 17 00:00:00 2001
->>>>>> From: Jon Hunter<jon-hunter@ti.com>
->>>>>> Date: Fri, 4 May 2012 16:48:45 -0500
->>>>>> Subject: [PATCH] ARM: OMAP4: Disable auto enable for EMU CLKDM
->>>>>>
->>>>>> The flag CLKDM_CAN_HWSUP allows the clock-domain to automatically
->>>>>> transition
->>>>>> to the enabled and disabled state. This means that as soon as we force
->>>>>> a
->>>>>> software wake-up on the clock domain, the clock domain will be allowed
->>>>>> to idle
->>>>>> and put back into the hardware auto state. For the EMU clock domain
->>>>>> this is not
->>>>>> what we want. We want to keep the clock domain in the software wakeup
->>>>>> state
->>>>>> while the clock domain is being used and put it back in to the hardware
->>>>>> auto
->>>>>> state when we have finished using the clock domain.
->>>>>>
->>>>>> Signed-off-by: Jon Hunter<jon-hunter@ti.com>
->>>>>
->>>>>
->>>>> With this patch, how is the clkdm ever idled?
->>>>
->>>>
->>>> It does not! Sorry, I was so engrossed with figuring out why the EMU
->>>> clkdm was being idled as soon as it was enabled, I forgot to check if is
->>>> ever disabled once we terminated perf :-(
->>>>
->>>>> IIUC, your patch will get PMU interrupts working, but similarily to
->>>>> previous patches in this thread, it works because it *never* allows the
->>>>> EMU clkdm to idle.  This is not a mergeable solution because it will not
->>>>> allow CORE retention (and thus full-chip retention.)
->>>>
->>>>
->>>> Right!
->>>>
->>>>> What we need is a solution that allows the clkdm to idle, and then to be
->>>>> reinitialzed when it wakes up.  Due to the way (I understand) resets in
->>>>> the debugss, allowing the clkdm to idle will cause a reset, so the
->>>>> PMU/CTI interrupts need to be reinitialzied after wakeup.
->>>>
->>>>
->>>> Yes exactly I see that now. I have prototyped the 3 patches and this is
->>>> working AND the EMU clkdm does go back to idle. I can send out to the
->>>> list for review.
->>>
->>>
->>> Perfect, thanks.
->>>
->>>>> Kevin
->>>>>
->>>>> P.S. Please note there is also already a different fix in mainline for
->>>>> the EMU clkdm data from Paul which adds the force wakeup flag and
->>>>> removes the DISABLE_AUTO flag[1] (but leaves the ENABLE_AUTO flag,
->>>>> because the hardware is capable.)
->>>>
->>>>
->>>> Hmmm ... yes saw this, and you will have to excuse me as I don't fully
->>>> follow the logic here. In fact, I am thinking we want the opposite ;-)
->>>>
->>>>   From looking, into this it seems to me that when PMU is running we want
->>>> the EMU clock domain in software-wakeup state and when PMU is not
->>>> running we want in the hardware auto state.
->>>
->>>
->>> So far, I'm with you.
->>>
->>>> By keeping the ENABLE_AUTO flag set, as soon as we enable the clock
->>>> domain it is put right back into the HW_AUTO state
->>>
->>>
->>> This is only because it was in the HWSUP state when _enable was called.
->>> If clkdm_deny_idle() is used, that behavior will change.
->>>
->>>> and hence PMU is
->>>> not working (see _enable() function in
->>>> arch/arm/mach-omap2/omap_hwmod.c)
->>>>
->>>> So really what I think we want is to remove the ENABLE_AUTO flag to keep
->>>> the clock domain in software wake-up and use the DISABLE_AUTO flag to
->>>> put the clock domain back in HW_AUTO (note this requires a patch to
->>>> perform this 2nd part).
->>>
->>>
->>> Well, Paul will have to comment here for the final word, but IIUC, the
->>> hwmod flags are supposed to indicate only what the HW is capable of.  If
->>> we want to change the runtime behavior, we nee to use (or add) APIs to
->>> change the beahvior.  In this case, clkdm_allow_idle(),
->>> clkdm_deny_idle() are probably what is needed here.
->>
->>
->> Yes, indeed, we should not hack the flags to fix that kind of issue. The
->> flags describe what the HW is capable of, and the EMU CD can support HW_AUTO
->> and SW_WAKEUP. AFAIK, the issue with that EMU CD is that the only valid next
->> power state is OFF, meaning that no retention mode is supported. So any
->> transition to idle will go to OFF and lead to a reset upon wakeup.
->>
->> That being said, being able to transition to OFF during idle is a perfectly
->> valid state for most powerdomain in OMAP anyway, so we should be able to
->> restore from OFF mode smoothly.
->>
->> It looks to me that what is missing here is *just* a restore path in the
->> PMU/CTI code. But I'm probably missing some nasty details in this issue :-)
-> Although it is perfectly feasible to have a seamless transition of the
-> EMU power domain, I think the PMU counters will not be accurate
-> anymore since they stop counting events when going to OFF and re-start
-> after the state restore.
+I would leave the same domain (0, set as client) and rather change the
+XN and cacheability bits once we finished with the DRAM. I think it's
+cleaner assuming we have two domains and the manager one overrides the
+XN bit.
 
-Good point, but I think the PMU might still works fine because located 
-inside the MPU domain. AFAIR, only the path to access the PMU and the 
-CTI is going to OFF and thus will be reset.
-But that whole DEBUGSS is such a nightmare, that I'm not 100% sure about 
-that :-)
+>  		str	r1, [r0], #4		@ 1:1 mapping
+>  		add	r1, r1, #1048576
+>  		teq	r0, r2
+> @@ -658,6 +660,9 @@ __armv7_mmu_cache_on:
+>  		movne	r1, #-1
+>  		mcrne	p15, 0, r3, c2, c0, 0	@ load page table pointer
+>  		mcrne	p15, 0, r1, c3, c0, 0	@ load domain access control
+> +		bic	r1, r1, #0xc
+> +		orr	r1, r1, #0x4
+> +		mcr	p15, 0, r1, c3, c0, 0   @ set domain1 as cliento
 
-Regards,
-Benoit
+So here just set domain 0 as client.
 
+-- 
+Catalin
