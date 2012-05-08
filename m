@@ -1,68 +1,55 @@
-From: Daniel Lezcano <daniel.lezcano@linaro.org>
-Subject: Re: [PATCH 2/2] ARM: OMAP3/4: consolidate cpuidle Makefile
-Date: Tue, 08 May 2012 23:02:20 +0200
-Message-ID: <4FA989DC.2030800@linaro.org>
-References: <1336151921-9485-1-git-send-email-daniel.lezcano@linaro.org> <1336151921-9485-3-git-send-email-daniel.lezcano@linaro.org> <87wr4mmmgn.fsf@ti.com>
+From: Kevin Hilman <khilman@ti.com>
+Subject: Re: [PATCH 0/2] ARM: OMAP3: cleanup AM35xx SoC detection
+Date: Tue, 08 May 2012 14:17:31 -0700
+Message-ID: <8762c6mkyc.fsf@ti.com>
+References: <1335829030-19431-1-git-send-email-khilman@ti.com>
+	<87zk9j5216.fsf@ti.com> <20120508205822.GF5088@atomide.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8;
-	format=flowed
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-ee0-f46.google.com ([74.125.83.46]:37036 "EHLO
-	mail-ee0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754601Ab2EHVCT (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 8 May 2012 17:02:19 -0400
-Received: by eeit10 with SMTP id t10so496746eei.19
-        for <linux-omap@vger.kernel.org>; Tue, 08 May 2012 14:02:18 -0700 (PDT)
-In-Reply-To: <87wr4mmmgn.fsf@ti.com>
+Received: from na3sys009aog101.obsmtp.com ([74.125.149.67]:44707 "EHLO
+	na3sys009aog101.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1752567Ab2EHVRU (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 8 May 2012 17:17:20 -0400
+Received: by pbbrq8 with SMTP id rq8so11335654pbb.35
+        for <linux-omap@vger.kernel.org>; Tue, 08 May 2012 14:17:19 -0700 (PDT)
+In-Reply-To: <20120508205822.GF5088@atomide.com> (Tony Lindgren's message of
+	"Tue, 8 May 2012 13:58:22 -0700")
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Kevin Hilman <khilman@ti.com>
-Cc: santosh.shilimkar@ti.com, jean.pihet@newoldbits.com, tony@atomide.com, linux-omap@vger.kernel.org, linaro-dev@lists.linaro.org, linux-arm-kernel@lists.infradead.org, patches@linaro.org
+To: Tony Lindgren <tony@atomide.com>
+Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 
-On 05/08/2012 10:44 PM, Kevin Hilman wrote:
-> Daniel Lezcano<daniel.lezcano@linaro.org>  writes:
+Tony Lindgren <tony@atomide.com> writes:
+
+> * Kevin Hilman <khilman@ti.com> [120507 10:37]:
+>> Tony,
+>> 
+>> Kevin Hilman <khilman@ti.com> writes:
+>> 
+>> > The detection of AM35xx SoCs is confusing and has redundancies.  Clean
+>> > this up so that SoC detection is only based on SoC family: AM35xx.
+>> 
+>> Since these aren't PM related, can you queue these with other cleanups
+>> for v3.5.  This is now independent from the similar changes made to the
+>> clock fwk which Paul is queuing.
 >
->> Define a CPU_IDLE section in the makefile, declare the functions in
->> the header files conforming to the kernel coding rules and remove th=
-e
->> 'define's in the C files.
->>
->> CONFIG_PM is enabled when CPU_IDLE is enabled because the cpuidle dr=
-ivers
->> use some functions from the pm subsystem.
->>
->> Signed-off-by: Daniel Lezcano<daniel.lezcano@linaro.org>
->> Reviewed-by: Jean Pihet<j-pihet@ti.com>
+> OK applied now to cleanup branch and just pushed out. Had to update them
+> a bit for the hwmod changes done by Paul.
+
+OK, thanks.
+
+>> Once both series are merged, I'll have one final patch that removes all
+>> users of cpu_is_omap35*.
 >
-> The changelog doesn't really answer "why" this change is needed.  IOW=
-, I
-> don't understand from the changelog exactly what problem this patch i=
-s
-> trying to solve.
->
-> AFAICT, it's just shuffling around the dependencies, and changes the
-> omap*_idle_init() calls into inline nops instead of function call nop=
-s.
+> OK can you please do that one against the current cleanup branch at
+> commit a75bf667d6535af66d34f8d7be0a36aa2a96c56e?
 
-Ok, I will modify the changelog. I'm always bad with the changelogs,=20
-this is something I have to improve :) I'm the first one to be happy=20
-when I find a nice description in the patches log.
+This last "removal" patch depends on the am35x clock changes that are in
+devel-prcm too.  So in order to apply it, I'd need a stable base with
+your cleanup and devel-prcm branches.
 
-Thanks.
+It's not a big deal though, it can wait until v3.5 as well.
 
-   -- Daniel
+Kevin
 
---=20
-  <http://www.linaro.org/> Linaro.org =E2=94=82 Open source software fo=
-r ARM SoCs
-
-=46ollow Linaro:  <http://www.facebook.com/pages/Linaro> Facebook |
-<http://twitter.com/#!/linaroorg> Twitter |
-<http://www.linaro.org/linaro-blog/> Blog
-
---
-To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
