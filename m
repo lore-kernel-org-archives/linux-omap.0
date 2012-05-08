@@ -1,94 +1,79 @@
-From: =?iso-8859-1?Q?M=E5ns_Rullg=E5rd?= <mans@mansr.com>
-Subject: Re: AM3517 boot failure
-Date: Tue, 08 May 2012 17:24:12 +0100
-Message-ID: <yw1xr4uu3akz.fsf@unicorn.mansr.com>
-References: <alpine.DEB.2.00.1204182005260.29048@utopia.booyaka.com>
-	<4F8FC572.80406@compulab.co.il>
-	<alpine.DEB.2.00.1205072349540.9984@utopia.booyaka.com>
-	<87pqaesrx0.fsf@ti.com>
-	<alpine.DEB.2.00.1205080946570.9984@utopia.booyaka.com>
+From: Greg Kroah-Hartman <gregkh-hQyY1W1yCW8ekmWlsbkhG0B+6BGkLq7r@public.gmane.org>
+Subject: Re: [PATCH] ARM: OMAP: USB: fix warning on EHCI PHY reset path
+Date: Tue, 8 May 2012 09:24:36 -0700
+Message-ID: <20120508162436.GA10200@kroah.com>
+References: <Pine.LNX.4.44L0.1205071046350.1602-100000@iolanthe.rowland.org>
+ <4FA8D108.7090004@compulab.co.il>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from unicorn.mansr.com ([78.86.181.103]:55531 "EHLO
-	unicorn.mansr.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756254Ab2EHQYO convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 8 May 2012 12:24:14 -0400
-In-Reply-To: <alpine.DEB.2.00.1205080946570.9984@utopia.booyaka.com> (Paul
-	Walmsley's message of "Tue, 8 May 2012 09:49:26 -0600 (MDT)")
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Content-Disposition: inline
+In-Reply-To: <4FA8D108.7090004-UTxiZqZC01RS1MOuV/RT9w@public.gmane.org>
+Sender: linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Igor Grinberg <grinberg-UTxiZqZC01RS1MOuV/RT9w@public.gmane.org>
+Cc: Alan Stern <stern-nwvwT67g6+6dFdvTe/nMLpVzexx5G7lz@public.gmane.org>, balbi-l0cyMroinI0@public.gmane.org, Keshava Munegowda <Keshava_mgowda-l0cyMroinI0@public.gmane.org>, linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Samuel Ortiz <sameo-VuQAYsv1563Yd54FQh9/CA@public.gmane.org>
 List-Id: linux-omap@vger.kernel.org
-To: Paul Walmsley <paul@pwsan.com>
-Cc: Kevin Hilman <khilman@ti.com>, Igor Grinberg <grinberg@compulab.co.il>, linux-omap@vger.kernel.org
 
-Paul Walmsley <paul@pwsan.com> writes:
+On Tue, May 08, 2012 at 10:53:44AM +0300, Igor Grinberg wrote:
+> On 05/07/12 17:48, Alan Stern wrote:
+> > On Mon, 7 May 2012, Igor Grinberg wrote:
+> > 
+> >> On 05/07/12 17:04, Alan Stern wrote:
+> >>> On Sun, 6 May 2012, Igor Grinberg wrote:
+> >>>
+> >>>> Hi Alan,
+> >>>
+> >>> ...
+> >>>
+> >>>> Sorry, for being jumpy...
+> >>>> Samuel has not answered yet (it has been more then two weeks already)
+> >>>> and I'd like this to go into 3.5.
+> >>>> Also, the dependency patch is already in Linus' tree. It has been merged with
+> >>>> fixes (I thought it will happen only during the merge window...).
+> >>>>
+> >>>> Can you, please take this one?
+> >>>
+> >>> No, I can't, sorry.  It has to be accepted by Greg KH.
+> >>
+> >> Hmm... I don't mind it be that way, but I'd like to understand:
+> >>
+> >> # scripts/get_maintainer.pl -f drivers/usb/host/ehci-omap.c
+> >> Alan Stern <stern-nwvwT67g6+6dFdvTe/nMLpVzexx5G7lz@public.gmane.org> (maintainer:USB EHCI DRIVER)
+> >> Felipe Balbi <balbi-l0cyMroinI0@public.gmane.org> (maintainer:OMAP USB SUPPORT)
+> >> Greg Kroah-Hartman <gregkh-l3A5Bk7waGM@public.gmane.org> (supporter:USB SUBSYSTEM)
+> >> linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org (open list:USB EHCI DRIVER)
+> >> linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org (open list:OMAP USB SUPPORT)
+> >> linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org (open list)
+> >>
+> >> This makes you the USB EHCI maintainer, right?
+> > 
+> > Right.
+> > 
+> >> I just want to understand...
+> >> Do you need also ack from Greg to take something to your tree
+> >> for being applied in the next merge window?
+> > 
+> > No.  I don't takes patches at all, and in fact I don't even have a git
+> > directory or a login account at kernel.org.  All my work goes through
+> > Greg; I submit or acknowledge patches and he merges them.
+> 
+> Ah, I see. Thanks for the explanation.
+> So currently, I need to do something like this:
+> 
+> Greg,
+> 
+> This patch has been acked by Alan and Felipe, can you please apply it
+> for the merge window (which is close as I understand from Linus':
+> "We've never been closer to a 3.4 release").
 
-> Hi Kevin,
->
-> thanks for the suggestion,
->
-> On Tue, 8 May 2012, Kevin Hilman wrote:
->
->> Paul Walmsley <paul@pwsan.com> writes:
->>=20
->> > On Thu, 19 Apr 2012, Igor Grinberg wrote:
->> >
->> >> IMO this can be seen on any AM35xx based board with EMAC, or am I=
- mistaken?
->> >
->> > Just tested this on a 3517EVM and the same problem is there too.
->>=20
->> Does adding nohlt on the cmdline make a difference?
->>=20
->> The AM35x has known wakeup limitations, and nohlt would at least avo=
-id
->> WFI to see if it's the wakeup problems that are the root cause here.
->
-> Adding 'nohlt' allows it to go a little farther in the boot, but stil=
-l=20
-> hangs.  Log below.
->
-> (Without 'nohlt', it hangs right after "calling  ip_auto_config+0x0/0=
-xf70=20
-> @ 1")
->
-> - Paul
->
-> [    6.250946] calling  net_secret_init+0x0/0x1c @ 1
-> [    6.255981] initcall net_secret_init+0x0/0x1c returned 0 after 119=
-=20
-> usecs
-> [    6.263092] calling  tcp_congestion_default+0x0/0xc @ 1
-> [    6.268646] initcall tcp_congestion_default+0x0/0xc returned 0 aft=
-er 29=20
-> usecs
-> [    6.276184] calling  ip_auto_config+0x0/0xf70 @ 1
-> [    6.325500] mmc0: new high speed SDHC card at address b368
-> [    6.334686] mmcblk0: mmc0:b368 USD   3.75 GiB=20
-> [    6.347686]  mmcblk0: p1 p2 p3
-> [   18.374359] initcall ip_auto_config+0x0/0xf70 returned -19 after=20
-> 11809741 use
-> cs
-> [   18.382141] calling  initialize_hashrnd+0x0/0x1c @ 1
-> [   18.387420] initcall initialize_hashrnd+0x0/0x1c returned 0 after =
-59=20
-> usecs
-> [   18.397949] async_waiting @ 1
-> [   18.401184] async_continuing @ 1 after 119 usec
-> (hangs)
+Ok, but it's fallen out of my email archive (I only keep the past month
+around), so can you please resend it, with Alan and Felipe's acks, so I
+can apply it?
 
-Are you still trying nfsroot?  Since ip_auto_config failed, it will hav=
-e
-no way of mounting the nfsroot and stop there.  Do you know why ip setu=
-p
-failed?
+thanks,
 
---=20
-M=E5ns Rullg=E5rd
-mans@mansr.com
+greg k-h
 --
-To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
-n
-the body of a message to majordomo@vger.kernel.org
+To unsubscribe from this list: send the line "unsubscribe linux-usb" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 More majordomo info at  http://vger.kernel.org/majordomo-info.html
