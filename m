@@ -1,67 +1,80 @@
-From: "Hiremath, Vaibhav" <hvaibhav@ti.com>
-Subject: RE: DSS2 DVI output: red screen
-Date: Tue, 8 May 2012 05:21:34 +0000
-Message-ID: <79CD15C6BA57404B839C016229A409A83EA18990@DBDE01.ent.ti.com>
-References: <CAEULaV+_Ch7T0yA==XC8_xORhN2rcre=W4nbKYq+vxQkdKAeCw@mail.gmail.com>
+From: Paul Walmsley <paul@pwsan.com>
+Subject: Re: [PATCH 02/13] ARM: OMAP5: Add minimal support for OMAP5430 SOC
+Date: Mon, 7 May 2012 23:31:49 -0600 (MDT)
+Message-ID: <alpine.DEB.2.00.1205072321190.9984@utopia.booyaka.com>
+References: <1336029982-31898-1-git-send-email-r.sricharan@ti.com> <1336029982-31898-3-git-send-email-r.sricharan@ti.com> <20120504223933.GX5613@atomide.com> <alpine.DEB.2.00.1205071259090.9984@utopia.booyaka.com> <20120507191847.GJ5088@atomide.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from comal.ext.ti.com ([198.47.26.152]:56499 "EHLO comal.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1749667Ab2EHFVk convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 8 May 2012 01:21:40 -0400
-In-Reply-To: <CAEULaV+_Ch7T0yA==XC8_xORhN2rcre=W4nbKYq+vxQkdKAeCw@mail.gmail.com>
-Content-Language: en-US
+Received: from utopia.booyaka.com ([72.9.107.138]:43059 "EHLO
+	utopia.booyaka.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751102Ab2EHFbu (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 8 May 2012 01:31:50 -0400
+In-Reply-To: <20120507191847.GJ5088@atomide.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Neil Johnson <neilj@procerusuav.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
+To: Tony Lindgren <tony@atomide.com>
+Cc: R Sricharan <r.sricharan@ti.com>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, santosh.shilimkar@ti.com, b-cousson@ti.com
 
-On Tue, May 08, 2012 at 04:41:35, Neil Johnson wrote:
-> Linux OMAP list:
+On Mon, 7 May 2012, Tony Lindgren wrote:
+
+> * Paul Walmsley <paul@pwsan.com> [120507 12:11]:
+> > On Fri, 4 May 2012, Tony Lindgren wrote:
+> > 
+> > > How about we add CONFIG_SOC_OMAP3PLUS in the clean-up series?
+> > > Then this becomes just:
+> > > 
+> > > #ifdef CONFIG_SOC_OMAP3PLUS
+> > 
+> > We might want to consider having separate CONFIG_SOC_* values for each 
+> > SoC.  So rather than CONFIG_SOC_OMAP3PLUS, we'd have CONFIG_SOC_OMAP3430, 
+> > CONFIG_SOC_OMAP3630, etc.
 > 
-> We are proving out the DVI output on a DM3730 board that we've
-> designed, and we're seeing something strange: Our output to the video
-> window is always red.  We see the penguin show up in the corner, and
-> text/graphics show up, but the red channel is always on for all pixels
-> on the screen.
+> Hmm but this would be in addition to the SOC specific options. The goal
+> is to cut down the ifdeffery needed all over the place to add new SoCs,
+> see the experimental patch I posted:
 > 
-> Studying our schematic and comparing with the Beagleboard-xm
-> schematic, it appears that we're hooking everything up the same way,
-> with just some subtle differences:
+> http://www.mail-archive.com/linux-omap@vger.kernel.org/msg67938.html
+
+I see.  Yeah, the problem is that it's hard to figure out which SoCs 
+should go into SOC_OMAP3PLUS.  AM33xx?  TI81xx?  etc.  Some of these chips 
+draw some aspects from chips that we've historically considered part of 
+OMAP3, and other aspects from OMAP4-style chips.
+
+What seems better to me would be to use a more specific, IP block-focused 
+macro as needed.  So to pick a random example, in mach-omap2/control.c, we 
+currently skip compilation of the scratchpad functions unless 
+CONFIG_ARCH_OMAP3 is defined.  Instead of making this 
+SOC_OMAP3PLUS-dependent, or dependent on a mess of CONFIG_SOC_* macros, 
+maybe something like CONFIG_OMAP3430_SCM_SCRATCHPAD_FORMAT?
+
+Of course, for some of these cases, maybe it makes more sense to move the 
+code out into a separate file, control-omap3-scratchpad.c or something, 
+and just conditionally compile it to avoid the #ifdefs.
+
+> Just to continue exploring just using the SoC specific options, we would
+> currently end up with more of this kind of nastiness:
 > 
-> We desire to output 1280x720 resolution (720p), and that means we need
-> to use the alternate configuration for the DSS output pins, as
-> mentioned in the DM3730 TRM:
+> #if defined(CONFIG_ARCH_OMAP4) && !(defined(CONFIG_ARCH_OMAP2) ||      \
+> 					defined(CONFIG_ARCH_OMAP3))
+
+Yep, agreed that we don't want that.
+
+> > The other motivation would be to support device manufacturers who only 
+> > wish to build a kernel for the single device that they are shipping.  In 
+> > terms of kernels shipped, this is probably the most popular use-case. With 
+> > something like CONFIG_SOC_OMAPAM33XX, they can avoid building quite a bit 
+> > of code and data (and potentially bugs) that are not needed for their 
+> > specific device.
 > 
-> On Page 1564, it states:
-> 
-> The DISPC_DATA_LCD[5:0] data multiplexed with the DSI signals on
-> dss_data[5:0] pads is limited to up to 60 MHz pixel clock frequency.
-> If the parallel 18/24-bit interface in bypass mode with a pixel clock
-> above 60 MHz is required, the DISPC_DATA_LCD[5:0] multiplexed on
-> dss_data[23:18] pads, and DISPC_DATA_LCD[23:18] multiplexed on
-> sys_boot pads must be used.
-> 
-> So, we've mapped DISPC_DATA_LCD[5:0] to dss_data[23:18] pads and
-> routed DISPC_DATA_LCD[23:18] to be multiplexed with the sys_boot pads.
-> 
-> Our sys_boot pads are all pulled up to 1.8 V through 4.7 K-ohm
-> resistors.  I'm suspicious that this is causing the red lines to be
-> pulled high, generating red pixels all the time.  Am I off-base here?
-> Is there something I'm missing, like the U-boot mux configuration or
-> something?  What can I check from a software level to verify that all
-> is correct?  According to the Beagle-board-xm manual, the board
-> auto-detects which way things are hooked up, but maybe I haven't
-> grabbed that code from the beagleboard board file?  Thanks,
-> 
+> Sure, but I think you're missing the point: This would be in addition
+> to the SoC specific options. Do you still see issues with that?
+
+Indeed, I misunderstood your proposal, sorry about that.
+
+Anyway, to me it seems like it would be a little better to have CONFIG_* 
+macros that are specific to the IP block in question, only because of the 
+SoC grouping problem that I mentioned above.
 
 
-Make sure that you have configured the pin mux settings accordingly,
-We have similar interface done on OMAP3EVM, so you can refer to the
-Omap3evm code,
-
-http://git.kernel.org/?p=linux/kernel/git/tmlind/linux-omap.git;a=blob;f=arch/arm/mach-omap2/board-omap3evm.c;h=fd1b481c762c97576f1c9cb5503e9bd470a4a528;hb=5e136da4f5d9aa5388097afad1f6a0e6fd8572c6#l556
-
-Thanks,
-Vaibhav
+- Paul
