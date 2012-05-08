@@ -1,105 +1,44 @@
-From: Jon Hunter <jon-hunter@ti.com>
-Subject: Re: oprofile and ARM A9 hardware counter
-Date: Tue, 8 May 2012 17:20:26 -0500
-Message-ID: <4FA99C2A.7050201@ti.com>
-References: <20120403092524.GD17741@mudshark.cambridge.arm.com> <CAMQu2gyFirtVTWpMu4G_qG5sq33J-_s_o2JhVAdrUf7P3qJ3AA@mail.gmail.com> <20120403123444.GL17741@mudshark.cambridge.arm.com> <878vicsxef.fsf@ti.com> <20120403160706.GP17741@mudshark.cambridge.arm.com> <87ehs4pfw4.fsf@ti.com> <alpine.DEB.2.00.1204031727380.8000@utopia.booyaka.com> <20120404111524.GF32505@mudshark.cambridge.arm.com> <20120426180719.GC20186@mudshark.cambridge.arm.com> <4FA45580.8070802@ti.com> <87ipg76hfm.fsf@ti.com> <4FA8284C.7080803@ti.com> <87k40nzi3i.fsf@ti.com> <4FA8FCFF.40105@ti.com> <CAORVsuWMhVQkQAmsyrprvW-0hK4y=RgGayn0p8WhyksScauBQQ@mail.gmail.com> <4FA9138D.8010604@ti.com> <CAORVsuWQ6o64Jhpox0ZvjYAfzDJkXCc6XYX2a6o_cOdNyFdA0g@mail.gmail.com> <87aa1isrg2.fsf@ti.com> <4FA927B1.4020108@ti.com> <87wr4mr6io.fsf@t
- i.com> <4FA9794A.7030607@ti.com> <87mx5il5vb.fsf@ti.com>
+From: Kevin Hilman <khilman@ti.com>
+Subject: Re: [PATCH-V2 3/4] ARM: OMAP2+: CLEANUP: Remove unnecessary ifdef around __omap2_set_globals
+Date: Tue, 08 May 2012 15:38:09 -0700
+Message-ID: <87397ajo32.fsf@ti.com>
+References: <1336506724-5494-1-git-send-email-hvaibhav@ti.com>
+	<1336506724-5494-4-git-send-email-hvaibhav@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="ISO-8859-1"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from comal.ext.ti.com ([198.47.26.152]:52712 "EHLO comal.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752013Ab2EHWUr (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Tue, 8 May 2012 18:20:47 -0400
-In-Reply-To: <87mx5il5vb.fsf@ti.com>
+Received: from na3sys009aog111.obsmtp.com ([74.125.149.205]:39687 "EHLO
+	na3sys009aog111.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1751589Ab2EHWhx (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 8 May 2012 18:37:53 -0400
+Received: by pbbrr13 with SMTP id rr13so9957847pbb.26
+        for <linux-omap@vger.kernel.org>; Tue, 08 May 2012 15:37:52 -0700 (PDT)
+In-Reply-To: <1336506724-5494-4-git-send-email-hvaibhav@ti.com> (Vaibhav
+	Hiremath's message of "Wed, 9 May 2012 01:22:03 +0530")
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Kevin Hilman <khilman@ti.com>
-Cc: "Cousson, Benoit" <b-cousson@ti.com>, Paul Walmsley <paul@pwsan.com>, Ming Lei <ming.lei@canonical.com>, Will Deacon <will.deacon@arm.com>, Jean Pihet <jean.pihet@newoldbits.com>, Maynard Johnson <maynardj@us.ibm.com>, "Shilimkar, Santosh" <santosh.shilimkar@ti.com>, "oprofile-list@lists.sourceforge.net" <oprofile-list@lists.sourceforge.net>, Lik Lik <lik88888@gmail.com>, "eranian@gmail.com" <eranian@gmail.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>
+To: Vaibhav Hiremath <hvaibhav@ti.com>
+Cc: linux-omap@vger.kernel.org, tony@atomide.com, paul@pwsan.com, linux-arm-kernel@lists.infradead.org
 
-Hi Kevin,
+Vaibhav Hiremath <hvaibhav@ti.com> writes:
 
-On 05/08/2012 04:28 PM, Kevin Hilman wrote:
-> Jon Hunter <jon-hunter@ti.com> writes:
-> 
->> On 05/08/2012 11:18 AM, Kevin Hilman wrote:
->>> "Cousson, Benoit" <b-cousson@ti.com> writes:
->>>
->>>> On 5/8/2012 4:00 PM, Kevin Hilman wrote:
->>>>> Jean Pihet<jean.pihet@newoldbits.com>  writes:
->>>>>
->>>>> [...]
->>>>>
->>>>>>>>> Yes, indeed, we should not hack the flags to fix that kind of issue. The
->>>>>>>>> flags describe what the HW is capable of, and the EMU CD can support
->>>>>>>>> HW_AUTO
->>>>>>>>> and SW_WAKEUP. AFAIK, the issue with that EMU CD is that the only valid
->>>>>>>>> next
->>>>>>>>> power state is OFF, meaning that no retention mode is supported. So any
->>>>>>>>> transition to idle will go to OFF and lead to a reset upon wakeup.
->>>>>>>>>
->>>>>>>>> That being said, being able to transition to OFF during idle is a
->>>>>>>>> perfectly
->>>>>>>>> valid state for most powerdomain in OMAP anyway, so we should be able to
->>>>>>>>> restore from OFF mode smoothly.
->>>>>>>>>
->>>>>>>>> It looks to me that what is missing here is *just* a restore path in the
->>>>>>>>> PMU/CTI code. But I'm probably missing some nasty details in this issue
->>>>>>>>> :-)
->>>>>>>>
->>>>>>>> Although it is perfectly feasible to have a seamless transition of the
->>>>>>>> EMU power domain, I think the PMU counters will not be accurate
->>>>>>>> anymore since they stop counting events when going to OFF and re-start
->>>>>>>> after the state restore.
->>>>>>>
->>>>>>>
->>>>>>> Good point, but I think the PMU might still works fine because located
->>>>>>> inside the MPU domain. AFAIR, only the path to access the PMU and the CTI is
->>>>>>> going to OFF and thus will be reset.
->>>>>>
->>>>>> Ever better point ;p Thanks for the precision.
->>>>>> In any case my point was: can we allow the EMU CD to go OFF or prevent
->>>>>> it from doing so? We need to answer that question first.
->>>>>>
->>>>>
->>>>> The idea I've suggested is to use runtime PM for this.  As long as the
->>>>> PMU is in use, it will be runtime PM enabled (and not allowed to go into
->>>>> HWSUP idle.)  When it is not used, it will be allowed to HWSUP idle, and
->>>>> then be reset.  The next time it is needed, the runtime resume will need
->>>>> to do a full re-init.
->>>>
->>>> Oh, but does that mean that this driver is not pm_runtime adapted yet?
->>>>
->>>
->>> Actually, it is.  Ming Lei has done it.
->>>
->>> Currently, Will has collected this[1] and is waiting (patiently) for us
->>> to produce a real fix that doesn't kill PM in the process.
->>
->> I had to make a couple mods to Ming's patches but I do have something
->> working now that _should_ not break PM. However, per my previous email
->> (in response to Benoit's) I am struggling with the definition of the
->> CLKDM_CAN_XXXXXX_AUTO flags to know the correct way to fix this.
->>
->> I was going to send out my patches, but I wanted to get some more
->> feedback on this first.
-> 
-> While waiting for feeback, if you set the flags to CAN_FORCE_WAKEUP and
-> CAN_HWSUP, can you get the PMU interrupts working after an EMU CD idle
-> transition (and reset.)
+> The function __omap2_set_globals() can be common across all
+> platforms/architectures, even in case of omap4, internally it
+> calls same set of functions as in __omap2_set_globals() function
+> (except for sdrc).
 
-Unfortunately, not. By setting CAN_HWSUP, the EMU CD will be put back
-into HW_AUTO state when it is enabled. The hwmod _enable() function will
-first put the CD into SW_WKUP (because CAN_FORCE_WAKEUP is set), but
-because it was previously in HW_AUTO state AND CAN_ENABLE_AUTO is set it
-will be be put back into HW_AUTO again. Hence, we are back where we begun!
+OK so far.
 
-CAN_ENABLE_AUTO is causing me a headache, because whenever you call
-clkdm_allow_idle, it will allow it to idle and this happens during the
-_enable() sequence :-(
+> This patch adds new config flag SOC_HAS_OMAP2_SDRC to handle sdrc,
+> so that we can reuse same function across omap2/3/4...
 
-Does this make sense?
+But what happens when a single kernel is built that has support for an
+SoC with an SDRC (OMAP4) and one that doesn't (AM33xx)?
 
-Cheers
-Jon
+In that case this new SOC_HAS_OMAP2_SDRC will be set, and
+set_globals_sdrc() will be called even for the SoCs without SDRC.
+
+So, rather than add a new Kconfig option for this, I would rather see 
+you using the existing runtime feature check for the SDRC: omap_has_sdrc()
+
+Kevin
