@@ -1,97 +1,94 @@
-From: Kevin Hilman <khilman@ti.com>
-Subject: Re: oprofile and ARM A9 hardware counter
-Date: Tue, 08 May 2012 09:18:06 -0700
-Message-ID: <87wr4mr6io.fsf@ti.com>
-References: <20120403092524.GD17741@mudshark.cambridge.arm.com>
-	<CAMQu2gxE2STYxUGinzstX6W8jyofH829A__NQBjwLqZd9cqy=w@mail.gmail.com>
-	<20120403094749.GH17741@mudshark.cambridge.arm.com>
-	<CAMQu2gyFirtVTWpMu4G_qG5sq33J-_s_o2JhVAdrUf7P3qJ3AA@mail.gmail.com>
-	<20120403123444.GL17741@mudshark.cambridge.arm.com>
-	<878vicsxef.fsf@ti.com>
-	<20120403160706.GP17741@mudshark.cambridge.arm.com>
-	<87ehs4pfw4.fsf@ti.com>
-	<alpine.DEB.2.00.1204031727380.8000@utopia.booyaka.com>
-	<20120404111524.GF32505@mudshark.cambridge.arm.com>
-	<20120426180719.GC20186@mudshark.cambridge.arm.com>
-	<4FA45580.8070802@ti.com> <87ipg76hfm.fsf@ti.com>
-	<4FA8284C.7080803@ti.com> <87k40nzi3i.fsf@ti.com>
-	<4FA8FCFF.40105@ti.com>
-	<CAORVsuWMhVQkQAmsyrprvW-0hK4y=RgGayn0p8WhyksScauBQQ@mail.gmail.com>
-	<4FA9138D.8010604@ti.com>
-	<CAORVsuWQ6o64Jhpox0ZvjYAfzDJkXCc6XYX2a6o_cOdNyFdA0g@mail.gmail.com>
-	<87aa1isrg2.fsf@ti.com> <4FA927B1.4020108@ti.com>
+From: =?iso-8859-1?Q?M=E5ns_Rullg=E5rd?= <mans@mansr.com>
+Subject: Re: AM3517 boot failure
+Date: Tue, 08 May 2012 17:24:12 +0100
+Message-ID: <yw1xr4uu3akz.fsf@unicorn.mansr.com>
+References: <alpine.DEB.2.00.1204182005260.29048@utopia.booyaka.com>
+	<4F8FC572.80406@compulab.co.il>
+	<alpine.DEB.2.00.1205072349540.9984@utopia.booyaka.com>
+	<87pqaesrx0.fsf@ti.com>
+	<alpine.DEB.2.00.1205080946570.9984@utopia.booyaka.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=iso-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aog136.obsmtp.com ([74.125.149.85]:44615 "EHLO
-	na3sys009aog136.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755938Ab2EHQRw (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 8 May 2012 12:17:52 -0400
-Received: by dajz8 with SMTP id z8so9396337daj.30
-        for <linux-omap@vger.kernel.org>; Tue, 08 May 2012 09:17:51 -0700 (PDT)
-In-Reply-To: <4FA927B1.4020108@ti.com> (Benoit Cousson's message of "Tue, 8
-	May 2012 16:03:29 +0200")
+Received: from unicorn.mansr.com ([78.86.181.103]:55531 "EHLO
+	unicorn.mansr.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756254Ab2EHQYO convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 8 May 2012 12:24:14 -0400
+In-Reply-To: <alpine.DEB.2.00.1205080946570.9984@utopia.booyaka.com> (Paul
+	Walmsley's message of "Tue, 8 May 2012 09:49:26 -0600 (MDT)")
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "Cousson, Benoit" <b-cousson@ti.com>
-Cc: Paul Walmsley <paul@pwsan.com>, Ming Lei <ming.lei@canonical.com>, Will Deacon <will.deacon@arm.com>, Jean Pihet <jean.pihet@newoldbits.com>, Maynard Johnson <maynardj@us.ibm.com>, "Shilimkar, Santosh" <santosh.shilimkar@ti.com>, Jon Hunter <jon-hunter@ti.com>, "oprofile-list@lists.sourceforge.net" <oprofile-list@lists.sourceforge.net>, Lik Lik <lik88888@gmail.com>, "eranian@gmail.com" <eranian@gmail.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>
+To: Paul Walmsley <paul@pwsan.com>
+Cc: Kevin Hilman <khilman@ti.com>, Igor Grinberg <grinberg@compulab.co.il>, linux-omap@vger.kernel.org
 
-"Cousson, Benoit" <b-cousson@ti.com> writes:
+Paul Walmsley <paul@pwsan.com> writes:
 
-> On 5/8/2012 4:00 PM, Kevin Hilman wrote:
->> Jean Pihet<jean.pihet@newoldbits.com>  writes:
->>
->> [...]
->>
->>>>>> Yes, indeed, we should not hack the flags to fix that kind of issue. The
->>>>>> flags describe what the HW is capable of, and the EMU CD can support
->>>>>> HW_AUTO
->>>>>> and SW_WAKEUP. AFAIK, the issue with that EMU CD is that the only valid
->>>>>> next
->>>>>> power state is OFF, meaning that no retention mode is supported. So any
->>>>>> transition to idle will go to OFF and lead to a reset upon wakeup.
->>>>>>
->>>>>> That being said, being able to transition to OFF during idle is a
->>>>>> perfectly
->>>>>> valid state for most powerdomain in OMAP anyway, so we should be able to
->>>>>> restore from OFF mode smoothly.
->>>>>>
->>>>>> It looks to me that what is missing here is *just* a restore path in the
->>>>>> PMU/CTI code. But I'm probably missing some nasty details in this issue
->>>>>> :-)
->>>>>
->>>>> Although it is perfectly feasible to have a seamless transition of the
->>>>> EMU power domain, I think the PMU counters will not be accurate
->>>>> anymore since they stop counting events when going to OFF and re-start
->>>>> after the state restore.
->>>>
->>>>
->>>> Good point, but I think the PMU might still works fine because located
->>>> inside the MPU domain. AFAIR, only the path to access the PMU and the CTI is
->>>> going to OFF and thus will be reset.
->>>
->>> Ever better point ;p Thanks for the precision.
->>> In any case my point was: can we allow the EMU CD to go OFF or prevent
->>> it from doing so? We need to answer that question first.
->>>
->>
->> The idea I've suggested is to use runtime PM for this.  As long as the
->> PMU is in use, it will be runtime PM enabled (and not allowed to go into
->> HWSUP idle.)  When it is not used, it will be allowed to HWSUP idle, and
->> then be reset.  The next time it is needed, the runtime resume will need
->> to do a full re-init.
+> Hi Kevin,
 >
-> Oh, but does that mean that this driver is not pm_runtime adapted yet?
+> thanks for the suggestion,
 >
+> On Tue, 8 May 2012, Kevin Hilman wrote:
+>
+>> Paul Walmsley <paul@pwsan.com> writes:
+>>=20
+>> > On Thu, 19 Apr 2012, Igor Grinberg wrote:
+>> >
+>> >> IMO this can be seen on any AM35xx based board with EMAC, or am I=
+ mistaken?
+>> >
+>> > Just tested this on a 3517EVM and the same problem is there too.
+>>=20
+>> Does adding nohlt on the cmdline make a difference?
+>>=20
+>> The AM35x has known wakeup limitations, and nohlt would at least avo=
+id
+>> WFI to see if it's the wakeup problems that are the root cause here.
+>
+> Adding 'nohlt' allows it to go a little farther in the boot, but stil=
+l=20
+> hangs.  Log below.
+>
+> (Without 'nohlt', it hangs right after "calling  ip_auto_config+0x0/0=
+xf70=20
+> @ 1")
+>
+> - Paul
+>
+> [    6.250946] calling  net_secret_init+0x0/0x1c @ 1
+> [    6.255981] initcall net_secret_init+0x0/0x1c returned 0 after 119=
+=20
+> usecs
+> [    6.263092] calling  tcp_congestion_default+0x0/0xc @ 1
+> [    6.268646] initcall tcp_congestion_default+0x0/0xc returned 0 aft=
+er 29=20
+> usecs
+> [    6.276184] calling  ip_auto_config+0x0/0xf70 @ 1
+> [    6.325500] mmc0: new high speed SDHC card at address b368
+> [    6.334686] mmcblk0: mmc0:b368 USD   3.75 GiB=20
+> [    6.347686]  mmcblk0: p1 p2 p3
+> [   18.374359] initcall ip_auto_config+0x0/0xf70 returned -19 after=20
+> 11809741 use
+> cs
+> [   18.382141] calling  initialize_hashrnd+0x0/0x1c @ 1
+> [   18.387420] initcall initialize_hashrnd+0x0/0x1c returned 0 after =
+59=20
+> usecs
+> [   18.397949] async_waiting @ 1
+> [   18.401184] async_continuing @ 1 after 119 usec
+> (hangs)
 
-Actually, it is.  Ming Lei has done it.
+Are you still trying nfsroot?  Since ip_auto_config failed, it will hav=
+e
+no way of mounting the nfsroot and stop there.  Do you know why ip setu=
+p
+failed?
 
-Currently, Will has collected this[1] and is waiting (patiently) for us
-to produce a real fix that doesn't kill PM in the process.
-
-Kevin
-
-[1] git://git.kernel.org/pub/scm/linux/kernel/git/will/linux.git perf/omap4
-
-
-
+--=20
+M=E5ns Rullg=E5rd
+mans@mansr.com
+--
+To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
