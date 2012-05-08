@@ -1,46 +1,76 @@
-From: Benoit Cousson <b-cousson@ti.com>
-Subject: [PATCH 1/3] arm/dts: twl4030: Add twl4030-gpio node
-Date: Tue, 8 May 2012 18:37:25 +0200
-Message-ID: <1336495047-5882-2-git-send-email-b-cousson@ti.com>
-References: <1336495047-5882-1-git-send-email-b-cousson@ti.com>
+From: Kevin Hilman <khilman@ti.com>
+Subject: Re: CPUFREQ maintainence.
+Date: Tue, 08 May 2012 09:56:51 -0700
+Message-ID: <877gwmr4q4.fsf@ti.com>
+References: <20120430140645.GB12583@redhat.com>
 Mime-Version: 1.0
-Content-Type: text/plain
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from devils.ext.ti.com ([198.47.26.153]:51179 "EHLO
-	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756242Ab2EHQiF (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 8 May 2012 12:38:05 -0400
-In-Reply-To: <1336495047-5882-1-git-send-email-b-cousson@ti.com>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset=us-ascii
+Return-path: <cpufreq-owner@vger.kernel.org>
+In-Reply-To: <20120430140645.GB12583@redhat.com> (Dave Jones's message of
+	"Mon, 30 Apr 2012 10:06:45 -0400")
+Sender: cpufreq-owner@vger.kernel.org
+To: Dave Jones <davej@redhat.com>
+Cc: cpufreq@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-omap <linux-omap@vger.kernel.org>
 List-Id: linux-omap@vger.kernel.org
-To: tony@atomide.com
-Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, devicetree-discuss@lists.ozlabs.org, Benoit Cousson <b-cousson@ti.com>, Felipe Balbi <balbi@ti.com>
 
-Add the twl-gpio node inside twl4030 definition.
+Dave Jones <davej@redhat.com> writes:
 
-Cc: Felipe Balbi <balbi@ti.com>
-Signed-off-by: Benoit Cousson <b-cousson@ti.com>
+> This last few releases I've been more of a hindrance than help to getting
+> some of the patches merged upstream, so due to my lack of time, I'm considering
+> removing myself as maintainer, and having patches routed as such instead...
+
+Thanks Dave for your work in maintaining the core all this time!
+
+> ARM -> Russell/relevant ARM subtree maintainers
+> x86 driver patches -> x86@vger.kernel.org
+> (All the other archs currently supported already go through the arch trees mips/sparc etc)
+
+I will continue to handle the OMAP driver.
+
+> The core doesn't see a huge amount of change these days, I figure patches for
+> that can just go to lkml & Linus/Andrew like any other subsystem.
+>
+> comments?
+
+I suppose we should we create separate MAINTAINERS entries for each of
+the drivers?
+
+If so, here's one to add the OMAP CPUfreq driver to the rest of the OMAP
+PM stuff I maintain.  I Cc'd the linux-omap list in case there are any
+objections to me adding myself.
+
+Kevin
+
+>From 307f4150416c34936d7f0011d7f1b2146c13f9a0 Mon Sep 17 00:00:00 2001
+From: Kevin Hilman <khilman@ti.com>
+Date: Tue, 8 May 2012 09:51:22 -0700
+Subject: [PATCH] MAINTAINERS: add OMAP CPUfreq driver to OMAP Power
+ Management section
+
+Add the OMAP CPUFreq driver to the list of files in the OMAP Power
+Management section.
+
+I've already been maintaining this driver, this just makes it
+official.
+
+Signed-off-by: Kevin Hilman <khilman@ti.com>
 ---
- arch/arm/boot/dts/twl4030.dtsi |    8 ++++++++
- 1 files changed, 8 insertions(+), 0 deletions(-)
+ MAINTAINERS |    1 +
+ 1 file changed, 1 insertion(+)
 
-diff --git a/arch/arm/boot/dts/twl4030.dtsi b/arch/arm/boot/dts/twl4030.dtsi
-index a94654c..22f4d13 100644
---- a/arch/arm/boot/dts/twl4030.dtsi
-+++ b/arch/arm/boot/dts/twl4030.dtsi
-@@ -36,4 +36,12 @@
- 		regulator-min-microvolt = <1850000>;
- 		regulator-max-microvolt = <3150000>;
- 	};
-+
-+	twl_gpio: gpio {
-+		compatible = "ti,twl4030-gpio";
-+		gpio-controller;
-+		#gpio-cells = <2>;
-+		interrupt-controller;
-+		#interrupt-cells = <1>;
-+	};
- };
+diff --git a/MAINTAINERS b/MAINTAINERS
+index 7071633..3f5212b 100644
+--- a/MAINTAINERS
++++ b/MAINTAINERS
+@@ -4788,6 +4788,7 @@ M:	Kevin Hilman <khilman@ti.com>
+ L:	linux-omap@vger.kernel.org
+ S:	Maintained
+ F:	arch/arm/*omap*/*pm*
++F:	drivers/cpufreq/omap-cpufreq.c
+ 
+ OMAP POWERDOMAIN/CLOCKDOMAIN SOC ADAPTATION LAYER SUPPORT
+ M:	Rajendra Nayak <rnayak@ti.com>
 -- 
-1.7.0.4
+1.7.9.2
+
 
