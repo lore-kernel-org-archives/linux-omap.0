@@ -1,78 +1,89 @@
 From: Tomi Valkeinen <tomi.valkeinen@ti.com>
-Subject: Re: [PATCH 00/25] OMAPDSS: DT preparation patches v2
-Date: Tue, 08 May 2012 11:44:28 +0300
-Message-ID: <1336466668.5761.12.camel@deskari>
-References: <1336053481-25433-1-git-send-email-tomi.valkeinen@ti.com>
-	 <20120507174657.GF5088@atomide.com>
+Subject: Re: [PATCH v2 4/4] OMAPDSS: APPLY: Remove display dependency from
+ overlay and manager checks
+Date: Tue, 08 May 2012 11:52:31 +0300
+Message-ID: <1336467151.5761.20.camel@deskari>
+References: <1334561027-28569-1-git-send-email-archit@ti.com>
+	   <1336028864-13895-1-git-send-email-archit@ti.com>
+	   <1336028864-13895-5-git-send-email-archit@ti.com>
+	  <1336403017.3522.2.camel@lappyti> <4FA8A927.9080705@ti.com>
+	 <1336461377.1896.23.camel@lappyti> <4FA8CD6D.3010503@ti.com>
 Mime-Version: 1.0
 Content-Type: multipart/signed; micalg="pgp-sha1"; protocol="application/pgp-signature";
-	boundary="=-5jQRUGVlH4AYBdmVudcJ"
+	boundary="=-ANXbO4lKPUk3eWd/bvRL"
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aog126.obsmtp.com ([74.125.149.155]:47758 "EHLO
-	na3sys009aog126.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751075Ab2EHIoe (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 8 May 2012 04:44:34 -0400
-Received: by lbbgj10 with SMTP id gj10so4163225lbb.9
-        for <linux-omap@vger.kernel.org>; Tue, 08 May 2012 01:44:31 -0700 (PDT)
-In-Reply-To: <20120507174657.GF5088@atomide.com>
+Received: from na3sys009aog136.obsmtp.com ([74.125.149.85]:48916 "EHLO
+	na3sys009aog136.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1751093Ab2EHIwg (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 8 May 2012 04:52:36 -0400
+Received: by lagr15 with SMTP id r15so4581239lag.30
+        for <linux-omap@vger.kernel.org>; Tue, 08 May 2012 01:52:33 -0700 (PDT)
+In-Reply-To: <4FA8CD6D.3010503@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Tony Lindgren <tony@atomide.com>
-Cc: linux-omap@vger.kernel.org, linux-fbdev@vger.kernel.org, archit@ti.com
+To: Archit Taneja <a0393947@ti.com>
+Cc: linux-omap@vger.kernel.org, linux-fbdev@vger.kernel.org
 
 
---=-5jQRUGVlH4AYBdmVudcJ
+--=-ANXbO4lKPUk3eWd/bvRL
 Content-Type: text/plain; charset="UTF-8"
 Content-Transfer-Encoding: quoted-printable
 
-On Mon, 2012-05-07 at 10:46 -0700, Tony Lindgren wrote:
-> Hi,
->=20
-> * Tomi Valkeinen <tomi.valkeinen@ti.com> [120503 07:01]:
-> > Hi,
-> >=20
-> > I started cleaning up and restructuring omapdss for device tree, and he=
-re's the
-> > first set of patches from that ordeal. There's nothing DT specific in t=
-hese
-> > patches, but they are mostly generic cleanups that make sense even with=
-out DT.
-> >=20
-> > This is the second version of these patches, the previous version can b=
-e found
-> > from: http://www.spinics.net/lists/linux-fbdev/msg05667.html
-> >=20
-> > The first 21 patches, which were in the previous version, have only got=
-ten
-> > minor cleanups (and, of course, more testing). The last 4 patches are n=
-ew. The
-> > most important of those patches is the DSI pin config patch, which make=
-s it
-> > possible for the panel driver to configure the DSI pins it needs.
-> >=20
-> > This series can also be found from:
-> > git://gitorious.org/linux-omap-dss2/linux.git work/devtree-base
->=20
-> Nice clean up. Can you please put the first 12 arch/arm/*omap*/* touching
-> patches (and the drivers/video dependencies needed) into a separate branc=
-h
-> and send me a pull request. That is assuming those patches are now immuta=
-ble.
->=20
-> Then I can pull it into cleanup-dss branch that we both can merge as
-> needed.
+On Tue, 2012-05-08 at 13:08 +0530, Archit Taneja wrote:
+> On Tuesday 08 May 2012 12:46 PM, Tomi Valkeinen wrote:
 
-Ok, I'll see how it goes. Do I have your ack for the board file changes?
+> > I'm not sure if it applies here, but as a general strategy, I suggest
+> > doing things in apply.c that require data from apply.c's internal data.
+> > When that's not possible, apply.c should call the functions outside
+> > apply.c, and pass the internal data as parameters (like calls to dispc)=
+.
+> >
+> > In your case, I for example see dss_mgr_check() calling
+> > dss_mgr_get_timings(). It would be quite easy to pass the timings to
+> > dss_mgr_check() from apply.c, thus removing the need to call the
+> > function. And, as you see, dss_mgr_check() already has a bunch of
+> > parameters, and the idea is the same with those: give the params, so
+> > that dss_mgr_check() doesn't need to ask for them.
+>=20
+> Right, I can do this for dss_mgr_check() and dss_ovl_check(), but if I=
+=20
+> you see the misc cleanup patch series I posted, I use=20
+> dss_mgr_get_timings()  in dispc.c functions to remove some=20
+> omap_dss_device references. These DISPC functions are called in=20
+> dispc_ovl_setup(), I could pass manager timings in dispc_ovl_setup() so=
+=20
+> that it comes directly from apply.c. What do you say?
 
-Do you want to have patches that touch only
-arch/arm/mach-omap2/display.c, but not the board files? That's a dss
-specific file, and I don't expect anyone else to make changes to it, so
-chances for conflicts should be quite minimal.
+Yes, I guess dispc_ovl_setup should get the timings pointer also. It's
+getting a bit complex, but I don't see any simpler way. Especially dispc
+functions should be quite self contained, dispc.c should not call
+elsewhere, but it should get all the needed data as parameters.
+
+> I guess we can get away from exposing private data in apply to DSS, but=
+=20
+> it might get a bit harder when we try to remove other omap_dss_device=20
+> references in the future. I'm just guessing though.
+
+We have two cases here: 1) using timings when doing apply.c things, as
+your patches do. In these cases the timings can be passed from apply.c
+as parameters. 2) using timings "outside" apply.c. I guess we currently
+don't have these, but for those we could have a get_timings() function
+that does take the locks. And similarly for other configs.
+
+Of course, that's still not perfect. Even if get_timings() is protected
+properly, there's no guarantee that the timings won't change right after
+get_timings has returned. But hopefully all writes and reads to timings
+would go via the same place, for example dpi.c. And dpi.c's own lock
+will protect the change of timings while another thread is using them.
+
+Btw, there's a typo in "OMAPDSS: DISPC: Remove usage of
+dispc_mgr_get_device()"'s description, dss_mgr_get_device() should be
+get_timings in one place.
 
  Tomi
 
 
---=-5jQRUGVlH4AYBdmVudcJ
+--=-ANXbO4lKPUk3eWd/bvRL
 Content-Type: application/pgp-signature; name="signature.asc"
 Content-Description: This is a digitally signed message part
 Content-Transfer-Encoding: 7bit
@@ -80,20 +91,20 @@ Content-Transfer-Encoding: 7bit
 -----BEGIN PGP SIGNATURE-----
 Version: GnuPG v1.4.11 (GNU/Linux)
 
-iQIcBAABAgAGBQJPqNzsAAoJEPo9qoy8lh71GlEQAJXe64e1bqXIepfvO2uQ+krM
-sErmflZmlzqtkXpyqt4gXfbpLylHFGAeex3SpTdiWGGTPCqoNZUbg6rdNaJwl6bb
-QC1DbiQD0LGTLfWZYyG3C5qcVBiw9dW4zKThmjAuhOh4TKAFkY6MvFQRzlAVUa2m
-uLhSRsOUedREeW2NoXJKKI+gkA1DJgsD9G0q5yZd50GsZj2zrTNpVwsQNBowK2+6
-ZpA4/8nJ6fOR7cHh02KXK2YlfU7xMiQyUv0/yo7z8cyOznLmOhiluou4X2WyTRyU
-OWrfps7WtVhrfKuP2+Im+NQT/q/DZxn5Vqs5m4UEchUxhi4/Znf3fCWi6OE/dKSZ
-s20ZhoK6xBXHF5bhe6j7FB2FuxTqi5s/l6WZ5e6ve6ZCNjQKtM1KkF+uJa5RCQbA
-KUqZV468EhTufe0Q9mvjz3yhi9B4LTD1ZPQk8RKBCqYOKAGkXvnlE86nJDG0TQia
-K3L3LsxG7VeTsif4JxvvZMnX/YPL8PsLFxAKpiwKveIl0mAlCIJqVs90EPFG7MNh
-yaPaUpnB7yGs2T/jDtzLG1GsAL1H/4pZTEkb34l+uma7VkE2lskJy7Hy3g09w6sx
-K64E9XeW0ZFhU1CEOAJrLcHNIfNj1bsuAF7ql49L3iO/Feg86Mi/Zs2v9zh56my2
-YIW5L/CtWWV0PiIfV+Mi
-=MrD7
+iQIcBAABAgAGBQJPqN7PAAoJEPo9qoy8lh71ijcP/294rAhVk1DyWZtd7fQ6zeBQ
+8CF9L4FthUvD7IZxYDGyX9Ld9Me71B2I5xPu01WtYX0/lAa1IBEq6TgK3q5xAv2u
+S9NP1PYPK5VkgbSHD5Fg0G/PRG82+uAnJR8ORmmChvPRZwqev6LaoWDCNH3vWHjA
+4GJHEbGqY4ZRYgZvAFhV6+jN7t4MUNGwjGBJxDBc5IYvwQ4Da7HVcJHbUDd6reZw
+8KeHoC6LJXAG7iJofwgLLNnhQm9UJ8Pm9Yk/ARBiZbXI24CBlAPUrYEABqKzu7vy
+BXOBdNl4QcjOQz3ox+/GN3lH31Ipuy05WgtsXYweiVfYi0F61kR+a4w/tJB/Fmoc
+FNjvGYqHukfScxBJ1TY5WqruQjrGqkRmEnbzLnuaAJoxSrjbKtTNH3Sn9k/qK15M
+Pk+49pyMIK+XgNqGrD5qvKn1YXY4WDtzh+og4QhM2XF+4Y0x8FLdv0oe3co6LigX
+FXtIzopl/Ic5iRZLcrxaRh6uaPWNZtMrJQhCeuMMlUuirLkmmpKms1L+FICvnuIH
+fmH/vY0/J6gn5aF7Uxp22zT7FvHyi7RZ1R1iYDI1wdNIc9AM1ppeUcOKumOqT+8g
+GNFJsaWT8H0+T7LJg4W2KOhagSOd0FiRtCC2qhsRRwnhhX/PWS0HqWohfdQms+1G
+VzAZgDqrdqK2aKyFiy+u
+=EBRC
 -----END PGP SIGNATURE-----
 
---=-5jQRUGVlH4AYBdmVudcJ--
+--=-ANXbO4lKPUk3eWd/bvRL--
 
