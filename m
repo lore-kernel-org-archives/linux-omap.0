@@ -1,72 +1,96 @@
 From: Kevin Hilman <khilman@ti.com>
-Subject: Re: [PATCH V3 04/10] ARM: OMAP3: hwmod: rename the smartreflex entries
-Date: Mon, 07 May 2012 16:55:37 -0700
-Message-ID: <87r4uvwnpi.fsf@ti.com>
-References: <1335462041-4949-1-git-send-email-j-keerthy@ti.com>
-	<1335462041-4949-5-git-send-email-j-keerthy@ti.com>
-	<331ABD5ECB02734CA317220B2BBEABC13E9B1AA2@DBDE01.ent.ti.com>
-	<CAJ6a13ZSWSa_RpGB9NxtfyChUba9NGivGogpsfyk7oT9pNayjg@mail.gmail.com>
-	<87d36fzhkm.fsf@ti.com>
+Subject: Re: [PATCHv4 6/8] ARM: OMAP4: PM: support ret_logic/mem_off_counters
+Date: Mon, 07 May 2012 17:19:39 -0700
+Message-ID: <87pqafv810.fsf@ti.com>
+References: <1334913591-26312-1-git-send-email-t-kristo@ti.com>
+	<1334913591-26312-7-git-send-email-t-kristo@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <87d36fzhkm.fsf@ti.com> (Kevin Hilman's message of "Mon, 07 May
-	2012 16:39:53 -0700")
-Sender: linux-kernel-owner@vger.kernel.org
-To: "J, KEERTHY" <j-keerthy@ti.com>
-Cc: "AnilKumar, Chimata" <anilkumar@ti.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, "rjw@sisk.pl" <rjw@sisk.pl>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-pm@lists.linux-foundation.org" <linux-pm@lists.linux-foundation.org>, "Pihet-XID, Jean" <j-pihet@ti.com>
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from na3sys009aog123.obsmtp.com ([74.125.149.149]:45050 "EHLO
+	na3sys009aog123.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1757803Ab2EHAT0 (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 7 May 2012 20:19:26 -0400
+Received: by pbbrp16 with SMTP id rp16so9774995pbb.38
+        for <linux-omap@vger.kernel.org>; Mon, 07 May 2012 17:19:25 -0700 (PDT)
+In-Reply-To: <1334913591-26312-7-git-send-email-t-kristo@ti.com> (Tero
+	Kristo's message of "Fri, 20 Apr 2012 12:19:49 +0300")
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Tero Kristo <t-kristo@ti.com>
+Cc: linux-omap@vger.kernel.org, paul@pwsan.com, linux-arm-kernel@lists.infradead.org, Axel Haslam <axelhaslam@gmail.com>, Rajendra Nayak <rnayak@ti.com>
 
-Kevin Hilman <khilman@ti.com> writes:
+Tero Kristo <t-kristo@ti.com> writes:
 
-> "J, KEERTHY" <j-keerthy@ti.com> writes:
-
-[...]
-
->>>> diff --git a/arch/arm/mach-omap2/smartreflex.c b/arch/arm/mach-oma=
-p2/smartreflex.c
->>>> index 2edd1e2..d859277 100644
->>>> --- a/arch/arm/mach-omap2/smartreflex.c
->>>> +++ b/arch/arm/mach-omap2/smartreflex.c
->>>> @@ -183,7 +183,7 @@ static void sr_set_regfields(struct omap_sr *s=
-r)
->>>> =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 sr->err_weight =3D=
- OMAP3430_SR_ERRWEIGHT;
->>>> =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 sr->err_maxlimit =
-=3D OMAP3430_SR_ERRMAXLIMIT;
->>>> =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 sr->accum_data =3D=
- OMAP3430_SR_ACCUMDATA;
->>>> - =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 if (!(strcmp(sr->name,=
- "sr1"))) {
->>>> + =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 if (!(strcmp(sr->name,=
- "smartreflex_mpu_iva"))) {
->>>
->>> What if voltage rail is different for mpu and iva? I have seen some=
- devices
->>> supports SmartReflex have different voltage rails for mpu and iva.
->>>
->>
->> I get the point. OMAP3 iva and mpu have a common rail. OMAP4 onwards
->> even we have different rails for mpu and iva. I will enhance the che=
-cks here.
+> From: Axel Haslam <axelhaslam@gmail.com>
 >
-> Rather than enhancing the checks, this SoC specific data should proba=
-bly
-> just be made part of the SoC specific hwmod dev_attr.
+> On OMAP4, there is no support to read previous logic state
+> or previous memory state achieved when a power domain transitions
+> to RET. Instead there are module level context registers.
+>
+> In order to support the powerdomain level logic/mem_off_counters
+> on OMAP4, instead use the previous power state achieved (RET) and
+> the *programmed* logic/mem RET state to derive if a powerdomain lost
+> logic or did not.
 
-That being said, this is an additional feature we can add after this
-driver is moved.
+OK, but this also changes the behavior for OMAP3 as well, right?  I
+don't see in the changelog how this affects OMAP3 and whether it is
+still expected to work on OMAP3.  When changing common code like this,
+the changelog should describe the impacts on to all affected SoCs.
 
-I would like this series to concentrate on the cleanups necessary to
-move to drivers/*, then additional features to support other SoCs can b=
-e
-added on top.
+As suggested by Vaibhav Bedia, now might be the right time to add this
+function to the SoC specific function pointers (struct pwrdm_ops.)
 
-Keerthy, please prepare a patch to generalize this to other SoCs by
-using dev_attr for this SoC specific data.   We can add it after this
-series is merged upstream.
+Doing that, the existing function could be used for OMAP3 (and OMAP4 if
+the changelog describes that it can/should be used for both.)
 
-Thanks,
+Then, when AM33xx support is added, it will be obvious where they will
+need to plugin support for that SoC.
 
 Kevin
+
+> If the powerdomain is programmed to enter RET state and lose logic
+> in RET state, knowing that the powerdomain entered RET is good enough
+> to derive that the logic was lost as well, in such cases.
+>
+> Signed-off-by: Axel Haslam <axelhaslam@gmail.com>
+> [rnayak@ti.com: Updated changelog, updated patch to support mem counters]
+> Signed-off-by: Rajendra Nayak <rnayak@ti.com>
+> Signed-off-by: Tero Kristo <t-kristo@ti.com>
+> ---
+>  arch/arm/mach-omap2/powerdomain.c |   16 ++++++++++------
+>  1 files changed, 10 insertions(+), 6 deletions(-)
+>
+> diff --git a/arch/arm/mach-omap2/powerdomain.c b/arch/arm/mach-omap2/powerdomain.c
+> index 96ad3dbe..068f06b 100644
+> --- a/arch/arm/mach-omap2/powerdomain.c
+> +++ b/arch/arm/mach-omap2/powerdomain.c
+> @@ -124,18 +124,22 @@ static int _pwrdm_register(struct powerdomain *pwrdm)
+>  static void _update_logic_membank_counters(struct powerdomain *pwrdm)
+>  {
+>  	int i;
+> -	u8 prev_logic_pwrst, prev_mem_pwrst;
+> +	int logic_pwrst, mem_pwrst;
+> +
+> +	logic_pwrst = pwrdm_read_prev_logic_pwrst(pwrdm);
+> +	if (logic_pwrst == -EINVAL)
+> +		logic_pwrst = pwrdm_read_logic_retst(pwrdm);
+>  
+> -	prev_logic_pwrst = pwrdm_read_prev_logic_pwrst(pwrdm);
+>  	if ((pwrdm->pwrsts_logic_ret == PWRSTS_OFF_RET) &&
+> -	    (prev_logic_pwrst == PWRDM_POWER_OFF))
+> +	    (logic_pwrst == PWRDM_POWER_OFF))
+>  		pwrdm->ret_logic_off_counter++;
+>  
+>  	for (i = 0; i < pwrdm->banks; i++) {
+> -		prev_mem_pwrst = pwrdm_read_prev_mem_pwrst(pwrdm, i);
+> -
+> +		mem_pwrst = pwrdm_read_prev_mem_pwrst(pwrdm, i);
+> +		if (mem_pwrst == -EINVAL)
+> +			mem_pwrst = pwrdm_read_mem_retst(pwrdm, i);
+>  		if ((pwrdm->pwrsts_mem_ret[i] == PWRSTS_OFF_RET) &&
+> -		    (prev_mem_pwrst == PWRDM_POWER_OFF))
+> +		    (mem_pwrst == PWRDM_POWER_OFF))
+>  			pwrdm->ret_mem_off_counter[i]++;
+>  	}
+>  }
