@@ -1,31 +1,30 @@
 From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH v3 08/10] arm: omap4panda: Add support for omap4iss
- camera
-Date: Tue, 8 May 2012 16:46:41 -0700
-Message-ID: <20120508234641.GV5088@atomide.com>
-References: <1335971749-21258-1-git-send-email-saaguirre@ti.com>
- <1335971749-21258-9-git-send-email-saaguirre@ti.com>
+Subject: Re: [PATCH 2/2] OMAP4: devices: Do not create mcpdm device if the
+ dtb has been provided
+Date: Tue, 8 May 2012 16:54:29 -0700
+Message-ID: <20120508235428.GW5088@atomide.com>
+References: <1335961399-18345-1-git-send-email-peter.ujfalusi@ti.com>
+ <1335961399-18345-2-git-send-email-peter.ujfalusi@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-media-owner@vger.kernel.org>
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from mho-02-ewr.mailhop.org ([204.13.248.72]:33007 "EHLO
+	mho-02-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751575Ab2EHXyc (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 8 May 2012 19:54:32 -0400
 Content-Disposition: inline
-In-Reply-To: <1335971749-21258-9-git-send-email-saaguirre@ti.com>
-Sender: linux-media-owner@vger.kernel.org
-To: Sergio Aguirre <saaguirre@ti.com>
-Cc: linux-media@vger.kernel.org, linux-omap@vger.kernel.org
+In-Reply-To: <1335961399-18345-2-git-send-email-peter.ujfalusi@ti.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: nb6g3dENgvI <peter.ujfalusi@ti.com>
+Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 
-* Sergio Aguirre <saaguirre@ti.com> [120502 08:21]:
-> This adds support for camera interface with the support for
-> following sensors:
+* nb6g3dENgvI <peter.ujfalusi@ti.com> [120502 05:26]:
+> From: Peter Ujfalusi <peter.ujfalusi@ti.com>
 > 
-> - OV5640
-> - OV5650
+> If dtb is provided the needed device will be created dynamically.
 
-It seems that at this point we should initialize new things like this
-with DT only. We don't quite yet have the muxing in place, but I'd
-rather not add yet another big platform_data file for something that
-does not even need to be there for DT booted devices.
+Thanks applying both into dt branch.
 
 Regards,
 
