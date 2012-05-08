@@ -1,29 +1,38 @@
-From: Russell King - ARM Linux <linux@arm.linux.org.uk>
-Subject: Re: [PATCH] ARM: decompressor: Fix mmu mapping for non-DRAM
-	address space.
-Date: Tue, 8 May 2012 22:55:54 +0100
-Message-ID: <20120508215554.GA18980@n2100.arm.linux.org.uk>
-References: <1336398149-26153-1-git-send-email-santosh.shilimkar@ti.com> <20120508124116.GE17798@arm.com> <CAMQu2gxXB4GyddjrcKWwJ=KXx=MoDs7DdwhbOY85qkVJ1Vv3wA@mail.gmail.com>
+From: Tony Lindgren <tony@atomide.com>
+Subject: Re: [PATCH v2] ARM: OMAP: WiLink platform data for the PandaBoard
+Date: Tue, 8 May 2012 14:56:31 -0700
+Message-ID: <20120508215629.GI5088@atomide.com>
+References: <1331074504-22683-1-git-send-email-mgherzan@gmail.com>
+ <4F648A3B.7020003@gmail.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from caramon.arm.linux.org.uk ([78.32.30.218]:58706 "EHLO
-	caramon.arm.linux.org.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756727Ab2EHV4X (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 8 May 2012 17:56:23 -0400
+Received: from mho-02-ewr.mailhop.org ([204.13.248.72]:47408 "EHLO
+	mho-02-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751757Ab2EHV4d (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 8 May 2012 17:56:33 -0400
 Content-Disposition: inline
-In-Reply-To: <CAMQu2gxXB4GyddjrcKWwJ=KXx=MoDs7DdwhbOY85qkVJ1Vv3wA@mail.gmail.com>
+In-Reply-To: <4F648A3B.7020003@gmail.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "Shilimkar, Santosh" <santosh.shilimkar@ti.com>
-Cc: Catalin Marinas <catalin.marinas@arm.com>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, R Sricharan <r.sricharan@ti.com>
+To: Mircea Gherzan <mgherzan@gmail.com>
+Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 
-On Tue, May 08, 2012 at 07:31:57PM +0530, Shilimkar, Santosh wrote:
-> Ok. Assuming you mean " it's _not_ cleaner to have two domains where
-> manager overrides XN attributes" Note that DRAM can be in the middle of
-> 4GB address space, so we need to take care of bottom and top address
-> space.
+* Mircea Gherzan <mgherzan@gmail.com> [120317 06:00]:
+> Hi Tony,
 > 
-> Update patch end of the email. Is that fine with you ?
+> Am 06.03.2012 23:55, schrieb Mircea Gherzan:
+> > The "uim" deamon requires sysfs entries that are filled in using
+> > this platform data.
+> > 
+> > Signed-off-by: Mircea Gherzan <mgherzan@gmail.com>
+> > ---
+> >  arch/arm/mach-omap2/board-omap4panda.c |   14 ++++++++++++--
+> >  include/linux/ti_wilink_st.h           |    2 ++
+> >  2 files changed, 14 insertions(+), 2 deletions(-)
+> 
+> Gentle ping.
 
-This is certainly not cleaner because this will break non-ARMv7.
+Thanks for patience, applying to board branch finally.
+
+Tony
