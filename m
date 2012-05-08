@@ -1,58 +1,48 @@
-From: Paul Walmsley <paul@pwsan.com>
-Subject: Re: Broken UART I/O wakeups on v3.4-rc4+
-Date: Tue, 8 May 2012 10:10:18 -0600 (MDT)
-Message-ID: <alpine.DEB.2.00.1205081006480.9984@utopia.booyaka.com>
-References: <alpine.DEB.2.00.1205072249090.9984@utopia.booyaka.com> <CAMrsUdL2ekriQfyM2QqK1h-Wv+r80sk38p8-NYnRJdd9x8UwCw@mail.gmail.com>
+From: Tony Lindgren <tony@atomide.com>
+Subject: Re: [PATCH 3/4] ARM: OMAP2+: CLEANUP: Remove unnecessary ifdef
+ around __omap2_set_globals
+Date: Tue, 8 May 2012 09:11:15 -0700
+Message-ID: <20120508161114.GW5088@atomide.com>
+References: <1336489364-19200-1-git-send-email-hvaibhav@ti.com>
+ <1336489364-19200-4-git-send-email-hvaibhav@ti.com>
 Mime-Version: 1.0
-Content-Type: MULTIPART/MIXED; BOUNDARY="155748971-685390054-1336493370=:9984"
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from utopia.booyaka.com ([72.9.107.138]:39221 "EHLO
-	utopia.booyaka.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755943Ab2EHQKT (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 8 May 2012 12:10:19 -0400
-In-Reply-To: <CAMrsUdL2ekriQfyM2QqK1h-Wv+r80sk38p8-NYnRJdd9x8UwCw@mail.gmail.com>
-Content-ID: <alpine.DEB.2.00.1205081009570.9984@utopia.booyaka.com>
+Received: from mho-02-ewr.mailhop.org ([204.13.248.72]:34021 "EHLO
+	mho-02-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755900Ab2EHQLS (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 8 May 2012 12:11:18 -0400
+Content-Disposition: inline
+In-Reply-To: <1336489364-19200-4-git-send-email-hvaibhav@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "Raja, Govindraj" <govindraj.raja@ti.com>
-Cc: Tony Lindgren <tony@atomide.com>, khilman@ti.com, linux-omap@vger.kernel.org, balbi@ti.com, linux-arm-kernel@lists.infradead.org
+To: Vaibhav Hiremath <hvaibhav@ti.com>
+Cc: linux-omap@vger.kernel.org, khilman@ti.com, paul@pwsan.com, b-cousson@ti.com, linux-arm-kernel@lists.infradead.org
 
-  This message is in MIME format.  The first part should be readable text,
-  while the remaining parts are likely unreadable without MIME-aware tools.
+* Vaibhav Hiremath <hvaibhav@ti.com> [120508 08:10]:
+> --- a/arch/arm/mach-omap2/Kconfig
+> +++ b/arch/arm/mach-omap2/Kconfig
+> @@ -20,12 +20,16 @@ config ARCH_OMAP2PLUS_TYPICAL
+>  	help
+>  	  Compile a kernel suitable for booting most boards
+>  
+> +config SOC_HAS_SDRC
+> +	bool "SDRAM Controller support"
+> +
+>  config ARCH_OMAP2
+>  	bool "TI OMAP2"
+>  	depends on ARCH_OMAP2PLUS
+>  	default y
+>  	select CPU_V6
+>  	select MULTI_IRQ_HANDLER
+> +	select SOC_HAS_SDRC
+>  
+>  config ARCH_OMAP3
+>  	bool "TI OMAP3"
 
---155748971-685390054-1336493370=:9984
-Content-Type: TEXT/PLAIN; CHARSET=ISO-8859-15
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Content-ID: <alpine.DEB.2.00.1205081009571.9984@utopia.booyaka.com>
+These still need to have OMAP in them, and ideally the type
+of the block. Something like SOC_HAS_OMAP2_SDRC?
 
-On Tue, 8 May 2012, Raja, Govindraj wrote:
+Regards,
 
-> On Tue, May 8, 2012 at 10:35 AM, Paul Walmsley <paul@pwsan.com> wrote:
->
-> >
->
-> The same is discussed in this thread as in here:=20
-> http://www.spinics.net/lists/linux-omap/msg68659.html
-
-OK.
-
-> > Could you please fix this? =A0We probably aren't too far from the v3.5 =
-merge
-> > window opening, so there isn't much time to fix it.
->=20
-> okay, one possible solution is to probe pins dynamically
-> and make rx wakeup capable which myself and Tony
-> discussed and came up with this patch [1]
->=20
-> or to add rx wakeup pad support for each board,
-> based on uart used as console.
-
-Oh well, sounds like UART I/O wakeups are going to be broken in v3.4 :-(
-
-Do you have a patch ready for Tony to queue for v3.5 to fix this?  From=20
-the above thread, it looks like Tony had some remaining comments to be=20
-addressed on your patch.
-
-
-- Paul
---155748971-685390054-1336493370=:9984--
+Tony
