@@ -1,71 +1,89 @@
-From: "Govindraj.R" <govindraj.raja@ti.com>
-Subject: [PATCH v4 2/2] ARM: omap3: pm: Remove uart module level wakeup configurations
-Date: Tue, 8 May 2012 14:34:17 +0530
-Message-ID: <1336467857-12521-3-git-send-email-govindraj.raja@ti.com>
-References: <1336467857-12521-1-git-send-email-govindraj.raja@ti.com>
+From: Archit Taneja <a0393947@ti.com>
+Subject: Re: [PATCH v2 4/4] OMAPDSS: APPLY: Remove display dependency from
+ overlay and manager checks
+Date: Tue, 8 May 2012 14:37:25 +0530
+Message-ID: <4FA8E24D.20608@ti.com>
+References: <1334561027-28569-1-git-send-email-archit@ti.com>    <1336028864-13895-1-git-send-email-archit@ti.com>    <1336028864-13895-5-git-send-email-archit@ti.com>   <1336403017.3522.2.camel@lappyti> <4FA8A927.9080705@ti.com>  <1336461377.1896.23.camel@lappyti> <4FA8CD6D.3010503@ti.com> <1336467151.5761.20.camel@deskari>
 Mime-Version: 1.0
-Content-Type: text/plain
+Content-Type: text/plain; charset="UTF-8"; format=flowed
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from devils.ext.ti.com ([198.47.26.153]:54043 "EHLO
-	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751041Ab2EHJEp (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 8 May 2012 05:04:45 -0400
-In-Reply-To: <1336467857-12521-1-git-send-email-govindraj.raja@ti.com>
+Received: from bear.ext.ti.com ([192.94.94.41]:46228 "EHLO bear.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751211Ab2EHJIH (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Tue, 8 May 2012 05:08:07 -0400
+In-Reply-To: <1336467151.5761.20.camel@deskari>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: linux-omap@vger.kernel.org
-Cc: linux-arm-kernel@lists.infradead.org, "Govindraj.R" <govindraj.raja@ti.com>, Paul Walmsley <paul@pwsan.com>, Kevin Hilman <khilman@ti.com>, Benoit Cousson <b-cousson@ti.com>, Tony Lindgren <tony@atomide.com>, Tero Kristo <t-kristo@ti.com>, Rajendra Nayak <rnayak@ti.com>, Santosh Shilimkar <santosh.shilimkar@ti.com>
+To: Tomi Valkeinen <tomi.valkeinen@ti.com>
+Cc: linux-omap@vger.kernel.org, linux-fbdev@vger.kernel.org
 
-From: "Govindraj.R" <govindraj.raja@ti.com>
+On Tuesday 08 May 2012 02:22 PM, Tomi Valkeinen wrote:
+> On Tue, 2012-05-08 at 13:08 +0530, Archit Taneja wrote:
+>> On Tuesday 08 May 2012 12:46 PM, Tomi Valkeinen wrote:
+>
+>>> I'm not sure if it applies here, but as a general strategy, I suggest
+>>> doing things in apply.c that require data from apply.c's internal data.
+>>> When that's not possible, apply.c should call the functions outside
+>>> apply.c, and pass the internal data as parameters (like calls to dispc).
+>>>
+>>> In your case, I for example see dss_mgr_check() calling
+>>> dss_mgr_get_timings(). It would be quite easy to pass the timings to
+>>> dss_mgr_check() from apply.c, thus removing the need to call the
+>>> function. And, as you see, dss_mgr_check() already has a bunch of
+>>> parameters, and the idea is the same with those: give the params, so
+>>> that dss_mgr_check() doesn't need to ask for them.
+>>
+>> Right, I can do this for dss_mgr_check() and dss_ovl_check(), but if I
+>> you see the misc cleanup patch series I posted, I use
+>> dss_mgr_get_timings()  in dispc.c functions to remove some
+>> omap_dss_device references. These DISPC functions are called in
+>> dispc_ovl_setup(), I could pass manager timings in dispc_ovl_setup() so
+>> that it comes directly from apply.c. What do you say?
+>
+> Yes, I guess dispc_ovl_setup should get the timings pointer also. It's
+> getting a bit complex, but I don't see any simpler way. Especially dispc
+> functions should be quite self contained, dispc.c should not call
+> elsewhere, but it should get all the needed data as parameters.
 
-The uart module level wakeups enabling and disabling
-are now handled from uart driver itself remove the uart module
-level configurations from pm code.
+Ok, you are right about dispc.c querying stuff from apply, it should all 
+be one way from apply/interface drivers to the dispc, and if that's the 
+case, then it has to get more complex. We could just pass the data in a 
+nicer way to make the number of arguments passed to dispc functions seem 
+small.
 
-Cc: Paul Walmsley <paul@pwsan.com>
-Cc: Kevin Hilman <khilman@ti.com>
-Cc: Benoit Cousson <b-cousson@ti.com>
-Cc: Tony Lindgren <tony@atomide.com>
-Cc: Tero Kristo <t-kristo@ti.com>
-Cc: Rajendra Nayak <rnayak@ti.com>
-Cc: Santosh Shilimkar <santosh.shilimkar@ti.com>
-Signed-off-by: Govindraj.R <govindraj.raja@ti.com>
----
- arch/arm/mach-omap2/pm34xx.c |   14 +++++---------
- 1 files changed, 5 insertions(+), 9 deletions(-)
+>
+>> I guess we can get away from exposing private data in apply to DSS, but
+>> it might get a bit harder when we try to remove other omap_dss_device
+>> references in the future. I'm just guessing though.
+>
+> We have two cases here: 1) using timings when doing apply.c things, as
+> your patches do. In these cases the timings can be passed from apply.c
+> as parameters. 2) using timings "outside" apply.c. I guess we currently
+> don't have these, but for those we could have a get_timings() function
+> that does take the locks. And similarly for other configs.
+>
+> Of course, that's still not perfect. Even if get_timings() is protected
+> properly, there's no guarantee that the timings won't change right after
+> get_timings has returned. But hopefully all writes and reads to timings
+> would go via the same place, for example dpi.c. And dpi.c's own lock
+> will protect the change of timings while another thread is using them.
+>
+> Btw, there's a typo in "OMAPDSS: DISPC: Remove usage of
+> dispc_mgr_get_device()"'s description, dss_mgr_get_device() should be
+> get_timings in one place.
 
-diff --git a/arch/arm/mach-omap2/pm34xx.c b/arch/arm/mach-omap2/pm34xx.c
-index 703bd10..7a19498 100644
---- a/arch/arm/mach-omap2/pm34xx.c
-+++ b/arch/arm/mach-omap2/pm34xx.c
-@@ -529,8 +529,6 @@ static void __init omap3_d2d_idle(void)
- 
- static void __init prcm_setup_regs(void)
- {
--	u32 omap3630_en_uart4_mask = cpu_is_omap3630() ?
--					OMAP3630_EN_UART4_MASK : 0;
- 	u32 omap3630_grpsel_uart4_mask = cpu_is_omap3630() ?
- 					OMAP3630_GRPSEL_UART4_MASK : 0;
- 
-@@ -562,13 +560,11 @@ static void __init prcm_setup_regs(void)
- 				OMAP3430_DSS_MOD, PM_WKEN);
- 
- 	/* Enable wakeups in PER */
--	omap2_prm_write_mod_reg(omap3630_en_uart4_mask |
--			  OMAP3430_EN_GPIO2_MASK | OMAP3430_EN_GPIO3_MASK |
--			  OMAP3430_EN_GPIO4_MASK | OMAP3430_EN_GPIO5_MASK |
--			  OMAP3430_EN_GPIO6_MASK | OMAP3430_EN_UART3_MASK |
--			  OMAP3430_EN_MCBSP2_MASK | OMAP3430_EN_MCBSP3_MASK |
--			  OMAP3430_EN_MCBSP4_MASK,
--			  OMAP3430_PER_MOD, PM_WKEN);
-+	omap2_prm_write_mod_reg(OMAP3430_EN_GPIO2_MASK |
-+			OMAP3430_EN_GPIO3_MASK | OMAP3430_EN_GPIO4_MASK |
-+			OMAP3430_EN_GPIO5_MASK | OMAP3430_EN_GPIO6_MASK |
-+			OMAP3430_EN_MCBSP2_MASK | OMAP3430_EN_MCBSP3_MASK |
-+			OMAP3430_EN_MCBSP4_MASK, OMAP3430_PER_MOD, PM_WKEN);
- 	/* and allow them to wake up MPU */
- 	omap2_prm_write_mod_reg(omap3630_grpsel_uart4_mask |
- 			  OMAP3430_GRPSEL_GPIO2_MASK |
--- 
-1.7.9
+Ah ok, I am removing the dss_mgr_get_timings() usage anyway, I'll pass 
+timings through dispc_ovl_setup().
+
+I am also going to make the first patch of the newer set 'OMAPDSS: 
+DPI/HDMI: Apply manager timings even if panel is disabled' a part of 
+this series since it's more related to applying timings. I posted it in 
+the next series since I had already posted out this series.
+
+Archit
+
+>
+>   Tomi
+>
 
