@@ -1,90 +1,35 @@
-From: Ricardo Neri <ricardo.neri@ti.com>
-Subject: Re: [PATCH v2 14/14] OMAPDSS: HDMI: Implement DSS
- driver interface for audio
-Date: Tue, 8 May 2012 18:55:53 -0500
-Message-ID: <4FA9B289.5000101@ti.com>
-References: <1336095848-6923-1-git-send-email-ricardo.neri@ti.com>
-	<1336095848-6923-15-git-send-email-ricardo.neri@ti.com>
-	<1336390986.2667.8.camel@deskari>
+From: Tony Lindgren <tony@atomide.com>
+Subject: Re: [PATCH 1/3] OMAP4: twl-common: Add twl6030 V1V8, V2V1 SMPS
+ common configuration
+Date: Tue, 8 May 2012 16:57:49 -0700
+Message-ID: <20120508235748.GX5088@atomide.com>
+References: <1335966276-19775-1-git-send-email-peter.ujfalusi@ti.com>
+ <1335966276-19775-2-git-send-email-peter.ujfalusi@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <alsa-devel-bounces@alsa-project.org>
-In-Reply-To: <1336390986.2667.8.camel@deskari>
-List-Unsubscribe: <http://mailman.alsa-project.org/mailman/listinfo/alsa-devel>,
-	<mailto:alsa-devel-request@alsa-project.org?subject=unsubscribe>
-List-Archive: <http://mailman.alsa-project.org/pipermail/alsa-devel>
-List-Post: <mailto:alsa-devel@alsa-project.org>
-List-Help: <mailto:alsa-devel-request@alsa-project.org?subject=help>
-List-Subscribe: <http://mailman.alsa-project.org/mailman/listinfo/alsa-devel>,
-	<mailto:alsa-devel-request@alsa-project.org?subject=subscribe>
-Sender: alsa-devel-bounces@alsa-project.org
-Errors-To: alsa-devel-bounces@alsa-project.org
-To: Tomi Valkeinen <tomi.valkeinen@ti.com>
-Cc: x0055901@ti.com, alsa-devel@alsa-project.org, research@ottomaneng.com, agraf@suse.de, vaibhav.bedia@ti.com, s-chereau@ti.com, peter.ujfalusi@ti.com, mythripk@ti.com, s-guiriec@ti.com, linux-omap@vger.kernel.org, lrg@ti.com
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from mho-02-ewr.mailhop.org ([204.13.248.72]:36288 "EHLO
+	mho-02-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752694Ab2EHX5v (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 8 May 2012 19:57:51 -0400
+Content-Disposition: inline
+In-Reply-To: <1335966276-19775-2-git-send-email-peter.ujfalusi@ti.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Peter Ujfalusi <peter.ujfalusi@ti.com>
+Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 
-Hi Tomi,
+* Peter Ujfalusi <peter.ujfalusi@ti.com> [120502 06:48]:
+> V1V8 supply from twl6030 commonly used as VIO for the machine.
+> V2V1 is adviced to supply the twl6040, and also to feed the twl6030's
+> VCXIO_IN, and VDAC_IN inputs.
+> Create the common regulator configurations for these regulators:
+> Make the V2V1 as supply_regulator for VCXIO, VDAC.
+> Add twl6040 (1-004b) as consumer for V1V8, and V2V1.
 
-Thanks for taking the time to comment.
+Looks like this needs to be refreshed, it does not seem to apply.
+Can you update against v3.4-rc6 and check the others too?
 
-On 05/07/2012 06:43 AM, Tomi Valkeinen wrote:
-> Hi,
->
-> On Thu, 2012-05-03 at 20:44 -0500, Ricardo Neri wrote:
->> Implement the DSS device driver audio support interface in the HDMI
->> panel driver and generic driver. The implementation relies on the
->> IP-specific functions that are defined at DSS probe time.
->>
->> At the moment, a hardirq-safe spinlock is used to protect the audio
->> functions. This is because such functions might be called while
->> holding a lock (this especially true for audio_start/stop). For the
->> rest of the audio functions, a mutex could be used in the future as
->> the enablement of resources might take too much time.
->
-> The series looks good, except locking. Granted, the locking in omapdss
-> is a bit bad generally also, but here I think it's a bit more broken.
->
-> For example, hdmi_panel.c:hdmi_panel_audio_supported() takes the audio
-> lock, and then uses variables like dssdev->state, and the hdmi video
-> mode. However, the video functions do not use audio lock, so effectively
-> the lock doesn't protect at all.
+Regards,
 
-Yes, it does not protect.
->
-> I'm not sure how to fix it, though. I think this shows the shortcomings
-> of the current locking strategy (or lack of =). What if the audio
-> functions that can sleep would take the hdmi panel's mutex, and also the
-> audio spinlock? That would at least fix some of the cases.
-
-But if the function can sleep, protecting it with the HDMI panel's mutex 
-should be enough, shouldn't it? Wouldn't it be pointless to also hold 
-the spinlock?
-
-Ideally, I think, only one lock, the HDMI panel's mutex, should be 
-enough to protect the HDMI panel's functions, including the audio 
-functions. Reusing the HDMI panel's mutex for the audio functions would 
-prevent the situation you describe regarding 
-hdmi_panel.c:hdmi_panel_audio_supported()... and the spinlock would not 
-be required.
-
-The only functions that cause problems with this approach are 
-audio_start/stop as ALSA calls them while holding a spinlock. The 
-spinlock could be used for these as they dont read or write the panel's 
-variables.
-
-However, holding a spinlock only when start/stopping audio would fail, 
-for instance, if someone starts/stops audio while enabling or 
-configuring audio; but that would be an issue in the design of the 
-component using DSS HDMI audio, wouldn't be? To prevent that, an 
-audio_configured state variable in the HDMI panel could be used to 
-monitor that audio is started only after it is enabled and configured. 
-In that case, both the spinlock and the mutex would be required, as you 
-propose, because audio_configured would be read inside audio_start/stop.
-
-BR,
-
-Ricardo
-
->
->   Tomi
+Tony
