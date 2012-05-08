@@ -1,152 +1,64 @@
-From: Tero Kristo <t-kristo@ti.com>
-Subject: Re: [PATCHv4 6/8] ARM: OMAP4: PM: support
- ret_logic/mem_off_counters
-Date: Tue, 8 May 2012 12:49:44 +0300
-Message-ID: <1336470584.2149.273.camel@sokoban>
-References: <1334913591-26312-1-git-send-email-t-kristo@ti.com>
-	 <1334913591-26312-7-git-send-email-t-kristo@ti.com> <87pqafv810.fsf@ti.com>
-		 <1336466198.2149.269.camel@sokoban> <4FA8DFFC.6050608@ti.com>
-	 <1336468150.2149.271.camel@sokoban> <4FA8E41E.4030002@ti.com>
-Reply-To: <t-kristo@ti.com>
+From: Archit Taneja <archit@ti.com>
+Subject: [PATCH v3 0/5] OMAPDSS: APPLY: Treat overlay manager timings as shadow registers
+Date: Tue, 8 May 2012 15:28:11 +0530
+Message-ID: <1336471096-21096-1-git-send-email-archit@ti.com>
+References: <1334561027-28569-1-git-send-email-archit@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from comal.ext.ti.com ([198.47.26.152]:40451 "EHLO comal.ext.ti.com"
+Received: from arroyo.ext.ti.com ([192.94.94.40]:59127 "EHLO arroyo.ext.ti.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1750926Ab2EHJty (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Tue, 8 May 2012 05:49:54 -0400
-In-Reply-To: <4FA8E41E.4030002@ti.com>
+	id S1751512Ab2EHJ7C (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Tue, 8 May 2012 05:59:02 -0400
+In-Reply-To: <1334561027-28569-1-git-send-email-archit@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Rajendra Nayak <rnayak@ti.com>
-Cc: Kevin Hilman <khilman@ti.com>, linux-omap@vger.kernel.org, paul@pwsan.com, linux-arm-kernel@lists.infradead.org, Axel Haslam <axelhaslam@gmail.com>
+To: tomi.valkeinen@ti.com
+Cc: linux-omap@vger.kernel.org, linux-fbdev@vger.kernel.org, Archit Taneja <archit@ti.com>
 
-On Tue, 2012-05-08 at 14:45 +0530, Rajendra Nayak wrote:
-> On Tuesday 08 May 2012 02:39 PM, Tero Kristo wrote:
-> > On Tue, 2012-05-08 at 14:27 +0530, Rajendra Nayak wrote:
-> >> On Tuesday 08 May 2012 02:06 PM, Tero Kristo wrote:
-> >>> On Mon, 2012-05-07 at 17:19 -0700, Kevin Hilman wrote:
-> >>>> Tero Kristo<t-kristo@ti.com>   writes:
-> >>>>
-> >>>>> From: Axel Haslam<axelhaslam@gmail.com>
-> >>>>>
-> >>>>> On OMAP4, there is no support to read previous logic state
-> >>>>> or previous memory state achieved when a power domain transitions
-> >>>>> to RET. Instead there are module level context registers.
-> >>>>>
-> >>>>> In order to support the powerdomain level logic/mem_off_counters
-> >>>>> on OMAP4, instead use the previous power state achieved (RET) and
-> >>>>> the *programmed* logic/mem RET state to derive if a powerdomain lost
-> >>>>> logic or did not.
-> >>>>
-> >>>> OK, but this also changes the behavior for OMAP3 as well, right?  I
-> >>>> don't see in the changelog how this affects OMAP3 and whether it is
-> >>>> still expected to work on OMAP3.  When changing common code like this,
-> >>>> the changelog should describe the impacts on to all affected SoCs.
-> >>>>
-> >>>> As suggested by Vaibhav Bedia, now might be the right time to add this
-> >>>> function to the SoC specific function pointers (struct pwrdm_ops.)
-> >>>>
-> >>>> Doing that, the existing function could be used for OMAP3 (and OMAP4 if
-> >>>> the changelog describes that it can/should be used for both.)
-> >>>>
-> >>>> Then, when AM33xx support is added, it will be obvious where they will
-> >>>> need to plugin support for that SoC.
-> >>>
-> >>> How about the following patch? It will add a couple of redundant
-> >>> read_prev_pwrst calls, but works in the same way as the original patch,
-> >>> without touching the generic code. Also, as there have been talks about
-> >>> adding caching for some of the pwrdm registers (especially the
-> >>> prev_pwrst), this might not be that big of an issue.
-> >>>
-> >>> If this looks good to you, I'll re-post the set with this patch.
-> >>>
-> >>> -Tero
-> >>>
-> >>>
-> >>> diff --git a/arch/arm/mach-omap2/powerdomain44xx.c
-> >>> b/arch/arm/mach-omap2/powerdomain44xx.c
-> >>> index 9bfb8a0..3d5e8d4 100644
-> >>> --- a/arch/arm/mach-omap2/powerdomain44xx.c
-> >>> +++ b/arch/arm/mach-omap2/powerdomain44xx.c
-> >>> @@ -155,6 +155,14 @@ static int omap4_pwrdm_read_logic_retst(struct
-> >>> powerdomain *pwrdm)
-> >>>    	return v;
-> >>>    }
-> >>>
-> >>> +static int omap4_pwrdm_read_prev_logic_pwrst(struct powerdomain *pwrdm)
-> >>> +{
-> >>> +	if (omap4_pwrdm_read_prev_pwrst(pwrdm) != PWRDM_POWER_RET)
-> >>> +		return PWRDM_POWER_ON;
-> >>> +
-> >>> +	return omap4_pwrdm_read_logic_retst(pwrdm);
-> >>
-> >> Looks good to me. Do these ever get called with target state programmed
-> >> to OFF?
-> >
-> > At least with current kernel code, no. But you are right, it might be
-> > better to change these to check against>  PWRDM_POWER_RET.
-> 
-> But in case of target power state being programmed to OFF, the logic
-> retst might not be programmed at all, so in case of target state being
-> OFF, returning the logic retst programmed might as well return
-> PWRDM_POWER_ON itself, right?
+An overlay manager's timings (the manager size, and blanking parameters if an
+LCD manager) are DISPC shadow registers, and they should hence follow the
+correct programming model.
 
-You are right, so better to check against OFF and return prev logic +
-membank states as OFF also if that is the case, and with RET, return the
-programmed state.
+This set makes the timings an extra_info parameter in manager's private data .
+The interface drivers now apply the timings in instead of directly writing to
+registers.
 
--Tero
+This change also prevents the need to use display resolution for overlay
+checks, hence making some of the APPLY functions less dependent on the display.
 
-> 
-> >
-> > -Tero
-> >
-> >>
-> >> regards,
-> >> Rajendra
-> >>
-> >>> +}
-> >>> +
-> >>>    static int omap4_pwrdm_read_mem_pwrst(struct powerdomain *pwrdm, u8
-> >>> bank)
-> >>>    {
-> >>>    	u32 m, v;
-> >>> @@ -183,6 +191,14 @@ static int omap4_pwrdm_read_mem_retst(struct
-> >>> powerdomain *pwrdm, u8 bank)
-> >>>    	return v;
-> >>>    }
-> >>>
-> >>> +static int omap4_pwrdm_read_prev_mem_pwrst(struct powerdomain *pwrdm,
-> >>> u8 bank)
-> >>> +{
-> >>> +	if (omap4_pwrdm_read_prev_pwrst(pwrdm) != PWRDM_POWER_RET)
-> >>> +		return PWRDM_POWER_ON;
-> >>> +
-> >>> +	return omap4_pwrdm_read_mem_retst(pwrdm, bank);
-> >>> +}
-> >>> +
-> >>>    static int omap4_pwrdm_wait_transition(struct powerdomain *pwrdm)
-> >>>    {
-> >>>    	u32 c = 0;
-> >>> @@ -256,9 +272,11 @@ struct pwrdm_ops omap4_pwrdm_operations = {
-> >>>    	.pwrdm_clear_all_prev_pwrst	= omap4_pwrdm_clear_all_prev_pwrst,
-> >>>    	.pwrdm_set_logic_retst	= omap4_pwrdm_set_logic_retst,
-> >>>    	.pwrdm_read_logic_pwrst	= omap4_pwrdm_read_logic_pwrst,
-> >>> +	.pwrdm_read_prev_logic_pwrst	= omap4_pwrdm_read_prev_logic_pwrst,
-> >>>    	.pwrdm_read_logic_retst	= omap4_pwrdm_read_logic_retst,
-> >>>    	.pwrdm_read_mem_pwrst	= omap4_pwrdm_read_mem_pwrst,
-> >>>    	.pwrdm_read_mem_retst	= omap4_pwrdm_read_mem_retst,
-> >>> +	.pwrdm_read_prev_mem_pwrst	= omap4_pwrdm_read_prev_mem_pwrst,
-> >>>    	.pwrdm_set_mem_onst	= omap4_pwrdm_set_mem_onst,
-> >>>    	.pwrdm_set_mem_retst	= omap4_pwrdm_set_mem_retst,
-> >>>    	.pwrdm_wait_transition	= omap4_pwrdm_wait_transition,
-> >>>
-> >>>
-> >>
-> >
-> >
-> 
+Changes since v3:
 
+- Make sure that we write to the timing registers and set go bits when calling
+  dss_mgr_set_timings
+- Don't create dss_mgr_get_timings(), apply should pass the timings rather than
+  outside DSS dunctions querying form it.
+
+These patches apply over:
+
+git://gitorious.org/linux-omap-dss2/linux.git dev
+
+Archit Taneja (5):
+  OMAPDSS: APPLY: Add manager timings as extra_info in private data
+  OMAPDSS: Apply manager timings instead of direct DISPC writes
+  OMAPDSS: MANAGER: Create a function to check manager timings
+  OMAPDSS: APPLY: Remove display dependency from overlay and manager
+    checks
+  OMAPDSS: DPI/HDMI: Apply manager timings even if panel is disabled
+
+ drivers/video/omap2/dss/apply.c   |  140 ++++++++++++++++++++++++++++++-------
+ drivers/video/omap2/dss/dispc.c   |    2 +-
+ drivers/video/omap2/dss/dpi.c     |    6 +-
+ drivers/video/omap2/dss/dsi.c     |    5 +-
+ drivers/video/omap2/dss/dss.h     |   13 +++-
+ drivers/video/omap2/dss/hdmi.c    |    4 +-
+ drivers/video/omap2/dss/manager.c |   19 +++++-
+ drivers/video/omap2/dss/overlay.c |   20 +++---
+ drivers/video/omap2/dss/rfbi.c    |    4 +-
+ drivers/video/omap2/dss/sdi.c     |    2 +-
+ drivers/video/omap2/dss/venc.c    |    2 +-
+ 11 files changed, 163 insertions(+), 54 deletions(-)
+
+-- 
+1.7.5.4
 
