@@ -1,62 +1,114 @@
-From: Igor Grinberg <grinberg@compulab.co.il>
-Subject: Re: [PATCH] ARM: OMAP3: cm-t35: add support for power off
-Date: Tue, 08 May 2012 11:33:19 +0300
-Message-ID: <4FA8DA4F.6080801@compulab.co.il>
-References: <1332928278-6582-1-git-send-email-grinberg@compulab.co.il> <4F8FEBBB.70509@compulab.co.il>
+From: Tero Kristo <t-kristo@ti.com>
+Subject: Re: [PATCHv4 6/8] ARM: OMAP4: PM: support
+ ret_logic/mem_off_counters
+Date: Tue, 8 May 2012 11:36:38 +0300
+Message-ID: <1336466198.2149.269.camel@sokoban>
+References: <1334913591-26312-1-git-send-email-t-kristo@ti.com>
+	 <1334913591-26312-7-git-send-email-t-kristo@ti.com> <87pqafv810.fsf@ti.com>
+Reply-To: <t-kristo@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
+Content-Type: text/plain; charset="UTF-8"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from 50.23.254.54-static.reverse.softlayer.com ([50.23.254.54]:51616
-	"EHLO softlayer.compulab.co.il" rhost-flags-OK-OK-OK-FAIL)
-	by vger.kernel.org with ESMTP id S1751046Ab2EHIdY (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 8 May 2012 04:33:24 -0400
-In-Reply-To: <4F8FEBBB.70509@compulab.co.il>
+Received: from comal.ext.ti.com ([198.47.26.152]:36862 "EHLO comal.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751395Ab2EHIgp (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Tue, 8 May 2012 04:36:45 -0400
+In-Reply-To: <87pqafv810.fsf@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Tony Lindgren <tony@atomide.com>
-Cc: Igor Grinberg <grinberg@compulab.co.il>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+To: Kevin Hilman <khilman@ti.com>
+Cc: linux-omap@vger.kernel.org, paul@pwsan.com, linux-arm-kernel@lists.infradead.org, Axel Haslam <axelhaslam@gmail.com>, Rajendra Nayak <rnayak@ti.com>
 
-ping x2
+On Mon, 2012-05-07 at 17:19 -0700, Kevin Hilman wrote:
+> Tero Kristo <t-kristo@ti.com> writes:
+> 
+> > From: Axel Haslam <axelhaslam@gmail.com>
+> >
+> > On OMAP4, there is no support to read previous logic state
+> > or previous memory state achieved when a power domain transitions
+> > to RET. Instead there are module level context registers.
+> >
+> > In order to support the powerdomain level logic/mem_off_counters
+> > on OMAP4, instead use the previous power state achieved (RET) and
+> > the *programmed* logic/mem RET state to derive if a powerdomain lost
+> > logic or did not.
+> 
+> OK, but this also changes the behavior for OMAP3 as well, right?  I
+> don't see in the changelog how this affects OMAP3 and whether it is
+> still expected to work on OMAP3.  When changing common code like this,
+> the changelog should describe the impacts on to all affected SoCs.
+> 
+> As suggested by Vaibhav Bedia, now might be the right time to add this
+> function to the SoC specific function pointers (struct pwrdm_ops.)
+> 
+> Doing that, the existing function could be used for OMAP3 (and OMAP4 if
+> the changelog describes that it can/should be used for both.)
+> 
+> Then, when AM33xx support is added, it will be obvious where they will
+> need to plugin support for that SoC.
 
-On 04/19/12 13:40, Igor Grinberg wrote:
-> ping!
-> 
-> Tony, can this please, go into 3.5?
-> 
-> On 03/28/12 11:51, Igor Grinberg wrote:
->> Enable the power off feature of the TPS65930 on-board PMIC.
->>
->> Signed-off-by: Igor Grinberg <grinberg@compulab.co.il>
->> ---
->>  arch/arm/mach-omap2/board-cm-t35.c |    5 +++++
->>  1 files changed, 5 insertions(+), 0 deletions(-)
->>
->> diff --git a/arch/arm/mach-omap2/board-cm-t35.c b/arch/arm/mach-omap2/board-cm-t35.c
->> index 8770be1..46275c6 100644
->> --- a/arch/arm/mach-omap2/board-cm-t35.c
->> +++ b/arch/arm/mach-omap2/board-cm-t35.c
->> @@ -499,6 +499,10 @@ static struct twl4030_gpio_platform_data cm_t35_gpio_data = {
->>  	.setup          = cm_t35_twl_gpio_setup,
->>  };
->>  
->> +static struct twl4030_power_data cm_t35_power_data = {
->> +	.use_poweroff	= true,
->> +};
->> +
->>  static struct twl4030_platform_data cm_t35_twldata = {
->>  	/* platform_data for children goes here */
->>  	.keypad		= &cm_t35_kp_data,
->> @@ -506,6 +510,7 @@ static struct twl4030_platform_data cm_t35_twldata = {
->>  	.vmmc1		= &cm_t35_vmmc1,
->>  	.vsim		= &cm_t35_vsim,
->>  	.vio		= &cm_t35_vio,
->> +	.power		= &cm_t35_power_data,
->>  };
->>  
->>  static void __init cm_t35_init_i2c(void)
-> 
+How about the following patch? It will add a couple of redundant
+read_prev_pwrst calls, but works in the same way as the original patch,
+without touching the generic code. Also, as there have been talks about
+adding caching for some of the pwrdm registers (especially the
+prev_pwrst), this might not be that big of an issue.
 
--- 
-Regards,
-Igor.
+If this looks good to you, I'll re-post the set with this patch.
+
+-Tero
+
+
+diff --git a/arch/arm/mach-omap2/powerdomain44xx.c
+b/arch/arm/mach-omap2/powerdomain44xx.c
+index 9bfb8a0..3d5e8d4 100644
+--- a/arch/arm/mach-omap2/powerdomain44xx.c
++++ b/arch/arm/mach-omap2/powerdomain44xx.c
+@@ -155,6 +155,14 @@ static int omap4_pwrdm_read_logic_retst(struct
+powerdomain *pwrdm)
+ 	return v;
+ }
+ 
++static int omap4_pwrdm_read_prev_logic_pwrst(struct powerdomain *pwrdm)
++{
++	if (omap4_pwrdm_read_prev_pwrst(pwrdm) != PWRDM_POWER_RET)
++		return PWRDM_POWER_ON;
++
++	return omap4_pwrdm_read_logic_retst(pwrdm);
++}
++
+ static int omap4_pwrdm_read_mem_pwrst(struct powerdomain *pwrdm, u8
+bank)
+ {
+ 	u32 m, v;
+@@ -183,6 +191,14 @@ static int omap4_pwrdm_read_mem_retst(struct
+powerdomain *pwrdm, u8 bank)
+ 	return v;
+ }
+ 
++static int omap4_pwrdm_read_prev_mem_pwrst(struct powerdomain *pwrdm,
+u8 bank)
++{
++	if (omap4_pwrdm_read_prev_pwrst(pwrdm) != PWRDM_POWER_RET)
++		return PWRDM_POWER_ON;
++
++	return omap4_pwrdm_read_mem_retst(pwrdm, bank);
++}
++
+ static int omap4_pwrdm_wait_transition(struct powerdomain *pwrdm)
+ {
+ 	u32 c = 0;
+@@ -256,9 +272,11 @@ struct pwrdm_ops omap4_pwrdm_operations = {
+ 	.pwrdm_clear_all_prev_pwrst	= omap4_pwrdm_clear_all_prev_pwrst,
+ 	.pwrdm_set_logic_retst	= omap4_pwrdm_set_logic_retst,
+ 	.pwrdm_read_logic_pwrst	= omap4_pwrdm_read_logic_pwrst,
++	.pwrdm_read_prev_logic_pwrst	= omap4_pwrdm_read_prev_logic_pwrst,
+ 	.pwrdm_read_logic_retst	= omap4_pwrdm_read_logic_retst,
+ 	.pwrdm_read_mem_pwrst	= omap4_pwrdm_read_mem_pwrst,
+ 	.pwrdm_read_mem_retst	= omap4_pwrdm_read_mem_retst,
++	.pwrdm_read_prev_mem_pwrst	= omap4_pwrdm_read_prev_mem_pwrst,
+ 	.pwrdm_set_mem_onst	= omap4_pwrdm_set_mem_onst,
+ 	.pwrdm_set_mem_retst	= omap4_pwrdm_set_mem_retst,
+ 	.pwrdm_wait_transition	= omap4_pwrdm_wait_transition,
+
+
