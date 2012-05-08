@@ -1,79 +1,38 @@
-From: Michael Crowe <michael.crowe@compunetix.com>
-Subject: OMAP3 EVM kernel
-Date: Tue, 8 May 2012 13:36:47 +0000
-Message-ID: <1F1FC0DBF7F44B49B17A82F8FDE9635C1E2909@EXCH2.compunet.local>
+From: Kevin Hilman <khilman@ti.com>
+Subject: Re: AM3517 boot failure
+Date: Tue, 08 May 2012 06:50:35 -0700
+Message-ID: <87pqaesrx0.fsf@ti.com>
+References: <alpine.DEB.2.00.1204182005260.29048@utopia.booyaka.com>
+	<4F8FC572.80406@compulab.co.il>
+	<alpine.DEB.2.00.1205072349540.9984@utopia.booyaka.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from exch1.compunetix.com ([198.144.40.9]:43045 "EHLO
-	exch1.compunetix.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754928Ab2EHNl5 convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 8 May 2012 09:41:57 -0400
-Content-Language: en-US
+Received: from na3sys009aog117.obsmtp.com ([74.125.149.242]:46285 "EHLO
+	na3sys009aog117.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1754116Ab2EHNuV (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 8 May 2012 09:50:21 -0400
+Received: by dady13 with SMTP id y13so2936367dad.5
+        for <linux-omap@vger.kernel.org>; Tue, 08 May 2012 06:50:20 -0700 (PDT)
+In-Reply-To: <alpine.DEB.2.00.1205072349540.9984@utopia.booyaka.com> (Paul
+	Walmsley's message of "Mon, 7 May 2012 23:50:27 -0600 (MDT)")
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
+To: Paul Walmsley <paul@pwsan.com>
+Cc: Igor Grinberg <grinberg@compulab.co.il>, linux-omap@vger.kernel.org
 
-I'm attempting to build a linux kernel (3.4-rc4) for the AM/DM37x Evaluation Module.   I built my own cross tools using CrossTools-ng (gcc4.4.3, glibc2.9, binutils2.21.1a).  I am using the bootloader that came on the board and booting from the mmc card.  Below is the output I get at startup.  
+Paul Walmsley <paul@pwsan.com> writes:
 
-Should I be attempting this from the tmlind git tree instead of stable?  
+> On Thu, 19 Apr 2012, Igor Grinberg wrote:
+>
+>> IMO this can be seen on any AM35xx based board with EMAC, or am I mistaken?
+>
+> Just tested this on a 3517EVM and the same problem is there too.
 
-Could someone send me a .config file from a known working kernel?  I am dreadfully ignorant about ARM processors, having spent the last 12 years as a PPC guy.  I now have this ARM eval kit sitting on my desk that I really need to get working in short order.  :)
+Does adding nohlt on the cmdline make a difference?
 
-Thanks,
---Mike
+The AM35x has known wakeup limitations, and nohlt would at least avoid
+WFI to see if it's the wakeup problems that are the root cause here.
 
-
-<output>
-Texas Instruments X-Loader 1.46 (Aug 16 2010 - 08:13:53)
-Starting X-loader on MMC
-Reading boot sector
-
-212880 Bytes Read from MMC
-Starting OS Bootloader from MMC...
-Starting OS Bootloader...
-
-
-U-Boot 2009.11 (Aug 16 2010 - 09:35:30)
-
-AM37x/DM37x-GP ES2.1, CPU-OPP2 L3-165MHz
-OMAP3 EVM board + LPDDR/NAND
-I2C:   ready
-DRAM:  256 MB
-NAND:  512 MiB
-In:    serial
-Out:   serial
-Err:   serial
-Read back SMSC id 0x92200000
-Die ID #1f6800029ff80000015f26ad0f022014
-Net:   smc911x-0                                                                 
-Hit any key to stop autoboot:  0                                                 
-mmc1 is available                                                                
-reading boot.scr                                                                 
-                                                                                 
-307 bytes read                                                                   
-Running bootscript from mmc ...                                                  
-## Executing script at 82000000                                                  
-reading uImage                                                                   
-                                                                                 
-3944336 bytes read                                                               
-## Booting kernel from Legacy Image at 80200000 ...                              
-   Image Name:   Linux-3.4.0-rc2+                                                
-   Image Type:   ARM Linux Kernel Image (uncompressed)                           
-   Data Size:    3944272 Bytes =  3.8 MB                                         
-   Load Address: 80008000                                                        
-   Entry Point:  80008000                                                        
-   Verifying Checksum ... OK                                                     
-   Loading Kernel Image ... OK                                                   
-OK                                                                               
-                                                                                 
-Starting kernel ...                                                              
-                                                                                 
-Uncompressing Linux... done, booting the kernel.
-
-
-</output>
-
-
+Kevin
 
