@@ -1,79 +1,91 @@
-From: Greg Kroah-Hartman <gregkh-hQyY1W1yCW8ekmWlsbkhG0B+6BGkLq7r@public.gmane.org>
-Subject: Re: [PATCH] ARM: OMAP: USB: fix warning on EHCI PHY reset path
-Date: Tue, 8 May 2012 09:24:36 -0700
-Message-ID: <20120508162436.GA10200@kroah.com>
-References: <Pine.LNX.4.44L0.1205071046350.1602-100000@iolanthe.rowland.org>
- <4FA8D108.7090004@compulab.co.il>
+From: "S, Venkatraman" <svenkatr@ti.com>
+Subject: Re: [PATCHv2 00/16] [FS, MM, block, MMC]: eMMC High Priority
+ Interrupt Feature
+Date: Tue, 8 May 2012 22:01:06 +0530
+Message-ID: <CANfBPZ-d-0FqY8Gruv+KDNoL3+FoQ68JEnxya5PydhY80x8yhA@mail.gmail.com>
+References: <1336054995-22988-1-git-send-email-svenkatr@ti.com> <4FA8CF5E.1070202@kernel.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <4FA8D108.7090004-UTxiZqZC01RS1MOuV/RT9w@public.gmane.org>
-Sender: linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Igor Grinberg <grinberg-UTxiZqZC01RS1MOuV/RT9w@public.gmane.org>
-Cc: Alan Stern <stern-nwvwT67g6+6dFdvTe/nMLpVzexx5G7lz@public.gmane.org>, balbi-l0cyMroinI0@public.gmane.org, Keshava Munegowda <Keshava_mgowda-l0cyMroinI0@public.gmane.org>, linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Samuel Ortiz <sameo-VuQAYsv1563Yd54FQh9/CA@public.gmane.org>
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Return-path: <linux-mmc-owner@vger.kernel.org>
+In-Reply-To: <4FA8CF5E.1070202@kernel.org>
+Sender: linux-mmc-owner@vger.kernel.org
+To: Minchan Kim <minchan@kernel.org>
+Cc: linux-mmc@vger.kernel.org, cjb@laptop.org, linux-mm@kvack.org, linux-fsdevel@vger.kernel.org, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org, arnd.bergmann@linaro.org, alex.lemberg@sandisk.com, ilan.smith@sandisk.com, lporzio@micron.com, rmk+kernel@arm.linux.org.uk
 List-Id: linux-omap@vger.kernel.org
 
-On Tue, May 08, 2012 at 10:53:44AM +0300, Igor Grinberg wrote:
-> On 05/07/12 17:48, Alan Stern wrote:
-> > On Mon, 7 May 2012, Igor Grinberg wrote:
-> > 
-> >> On 05/07/12 17:04, Alan Stern wrote:
-> >>> On Sun, 6 May 2012, Igor Grinberg wrote:
-> >>>
-> >>>> Hi Alan,
-> >>>
-> >>> ...
-> >>>
-> >>>> Sorry, for being jumpy...
-> >>>> Samuel has not answered yet (it has been more then two weeks already)
-> >>>> and I'd like this to go into 3.5.
-> >>>> Also, the dependency patch is already in Linus' tree. It has been merged with
-> >>>> fixes (I thought it will happen only during the merge window...).
-> >>>>
-> >>>> Can you, please take this one?
-> >>>
-> >>> No, I can't, sorry.  It has to be accepted by Greg KH.
-> >>
-> >> Hmm... I don't mind it be that way, but I'd like to understand:
-> >>
-> >> # scripts/get_maintainer.pl -f drivers/usb/host/ehci-omap.c
-> >> Alan Stern <stern-nwvwT67g6+6dFdvTe/nMLpVzexx5G7lz@public.gmane.org> (maintainer:USB EHCI DRIVER)
-> >> Felipe Balbi <balbi-l0cyMroinI0@public.gmane.org> (maintainer:OMAP USB SUPPORT)
-> >> Greg Kroah-Hartman <gregkh-l3A5Bk7waGM@public.gmane.org> (supporter:USB SUBSYSTEM)
-> >> linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org (open list:USB EHCI DRIVER)
-> >> linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org (open list:OMAP USB SUPPORT)
-> >> linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org (open list)
-> >>
-> >> This makes you the USB EHCI maintainer, right?
-> > 
-> > Right.
-> > 
-> >> I just want to understand...
-> >> Do you need also ack from Greg to take something to your tree
-> >> for being applied in the next merge window?
-> > 
-> > No.  I don't takes patches at all, and in fact I don't even have a git
-> > directory or a login account at kernel.org.  All my work goes through
-> > Greg; I submit or acknowledge patches and he merges them.
-> 
-> Ah, I see. Thanks for the explanation.
-> So currently, I need to do something like this:
-> 
-> Greg,
-> 
-> This patch has been acked by Alan and Felipe, can you please apply it
-> for the merge window (which is close as I understand from Linus':
-> "We've never been closer to a 3.4 release").
+On Tue, May 8, 2012 at 1:16 PM, Minchan Kim <minchan@kernel.org> wrote:
+> On 05/03/2012 11:22 PM, Venkatraman S wrote:
+>
+>> Standard eMMC (Embedded MultiMedia Card) specification expects to ex=
+ecute
+>> one request at a time. If some requests are more important than othe=
+rs, they
+>> can't be aborted while the flash procedure is in progress.
+>>
+>> New versions of the eMMC standard (4.41 and above) specfies a featur=
+e
+>> called High Priority Interrupt (HPI). This enables an ongoing transa=
+ction
+>> to be aborted using a special command (HPI command) so that the card=
+ is ready
+>> to receive new commands immediately. Then the new request can be sub=
+mitted
+>> to the card, and optionally the interrupted command can be resumed a=
+gain.
+>>
+>> Some restrictions exist on when and how the command can be used. For=
+ example,
+>> only write and write-like commands (ERASE) can be preempted, and the=
+ urgent
+>> request must be a read.
+>>
+>> In order to support this in software,
+>> a) At the top level, some policy decisions have to be made on what i=
+s
+>> worth preempting for.
+>> =A0 =A0 =A0 This implementation uses the demand paging requests and =
+swap
+>> read requests as potential reads worth preempting an ongoing long wr=
+ite.
+>> =A0 =A0 =A0 This is expected to provide improved responsiveness for =
+smarphones
+>> with multitasking capabilities - example would be launch a email app=
+lication
+>> while a video capture session (which causes long writes) is ongoing.
+>
+>
+> Do you have a number to prove it's really big effective?
 
-Ok, but it's fallen out of my email archive (I only keep the past month
-around), so can you please resend it, with Alan and Felipe's acks, so I
-can apply it?
+What type of benchmarks would be appropriate to post ?
+As you know, the response time of a card would vary depending on
+whether the flash device
+has enough empty blocks to write into and doesn't have to resort to GC =
+during
+write requests.
+Macro benchmarks like iozone etc would be inappropriate here, as they w=
+on't show
+the latency effects of individual write requests hung up doing page
+reclaim, which happens
+once in a while.
 
-thanks,
+>
+> What I have a concern is when we got low memory situation.
+> Then, writing speed for page reclaim is important for response.
+> If we allow read preempt write and write is delay, it means read path=
+ takes longer time to
+> get a empty buffer pages in reclaim. In such case, it couldn't be goo=
+d.
+>
 
-greg k-h
---
-To unsubscribe from this list: send the line "unsubscribe linux-usb" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+I agree. But when writes are delayed anyway as it exceeds
+hpi_time_threshold (the window
+available for invoking HPI), it means that the device is in GC mode
+and either read or write
+could be equally delayed.  Note that even in case of interrupting a
+write, a single block write
+(which usually is too short to be interrupted, as designed) is
+sufficient for doing a page reclaim,
+and further write requests (including multiblock) would not be subject
+to HPI, as they will
+complete within the average time.
