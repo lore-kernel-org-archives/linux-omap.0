@@ -1,133 +1,68 @@
-From: Tero Kristo <t-kristo@ti.com>
-Subject: Re: [PATCHv4 6/8] ARM: OMAP4: PM: support
- ret_logic/mem_off_counters
-Date: Tue, 8 May 2012 12:09:10 +0300
-Message-ID: <1336468150.2149.271.camel@sokoban>
-References: <1334913591-26312-1-git-send-email-t-kristo@ti.com>
-	 <1334913591-26312-7-git-send-email-t-kristo@ti.com> <87pqafv810.fsf@ti.com>
-	 <1336466198.2149.269.camel@sokoban> <4FA8DFFC.6050608@ti.com>
-Reply-To: <t-kristo@ti.com>
+From: "Raja, Govindraj" <govindraj.raja@ti.com>
+Subject: Re: Broken UART I/O wakeups on v3.4-rc4+
+Date: Tue, 8 May 2012 14:43:56 +0530
+Message-ID: <CAMrsUdL2ekriQfyM2QqK1h-Wv+r80sk38p8-NYnRJdd9x8UwCw@mail.gmail.com>
+References: <alpine.DEB.2.00.1205072249090.9984@utopia.booyaka.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from comal.ext.ti.com ([198.47.26.152]:38400 "EHLO comal.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751159Ab2EHJJR (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Tue, 8 May 2012 05:09:17 -0400
-In-Reply-To: <4FA8DFFC.6050608@ti.com>
+Received: from na3sys009aog115.obsmtp.com ([74.125.149.238]:60856 "EHLO
+	na3sys009aog115.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1751211Ab2EHJOS convert rfc822-to-8bit
+	(ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Tue, 8 May 2012 05:14:18 -0400
+Received: by obbuo19 with SMTP id uo19so10556349obb.12
+        for <linux-omap@vger.kernel.org>; Tue, 08 May 2012 02:14:17 -0700 (PDT)
+In-Reply-To: <alpine.DEB.2.00.1205072249090.9984@utopia.booyaka.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Rajendra Nayak <rnayak@ti.com>
-Cc: Kevin Hilman <khilman@ti.com>, linux-omap@vger.kernel.org, paul@pwsan.com, linux-arm-kernel@lists.infradead.org, Axel Haslam <axelhaslam@gmail.com>
+To: Paul Walmsley <paul@pwsan.com>, Tony Lindgren <tony@atomide.com>
+Cc: khilman@ti.com, linux-omap@vger.kernel.org, balbi@ti.com, linux-arm-kernel@lists.infradead.org
 
-On Tue, 2012-05-08 at 14:27 +0530, Rajendra Nayak wrote:
-> On Tuesday 08 May 2012 02:06 PM, Tero Kristo wrote:
-> > On Mon, 2012-05-07 at 17:19 -0700, Kevin Hilman wrote:
-> >> Tero Kristo<t-kristo@ti.com>  writes:
-> >>
-> >>> From: Axel Haslam<axelhaslam@gmail.com>
-> >>>
-> >>> On OMAP4, there is no support to read previous logic state
-> >>> or previous memory state achieved when a power domain transitions
-> >>> to RET. Instead there are module level context registers.
-> >>>
-> >>> In order to support the powerdomain level logic/mem_off_counters
-> >>> on OMAP4, instead use the previous power state achieved (RET) and
-> >>> the *programmed* logic/mem RET state to derive if a powerdomain lost
-> >>> logic or did not.
-> >>
-> >> OK, but this also changes the behavior for OMAP3 as well, right?  I
-> >> don't see in the changelog how this affects OMAP3 and whether it is
-> >> still expected to work on OMAP3.  When changing common code like this,
-> >> the changelog should describe the impacts on to all affected SoCs.
-> >>
-> >> As suggested by Vaibhav Bedia, now might be the right time to add this
-> >> function to the SoC specific function pointers (struct pwrdm_ops.)
-> >>
-> >> Doing that, the existing function could be used for OMAP3 (and OMAP4 if
-> >> the changelog describes that it can/should be used for both.)
-> >>
-> >> Then, when AM33xx support is added, it will be obvious where they will
-> >> need to plugin support for that SoC.
-> >
-> > How about the following patch? It will add a couple of redundant
-> > read_prev_pwrst calls, but works in the same way as the original patch,
-> > without touching the generic code. Also, as there have been talks about
-> > adding caching for some of the pwrdm registers (especially the
-> > prev_pwrst), this might not be that big of an issue.
-> >
-> > If this looks good to you, I'll re-post the set with this patch.
-> >
-> > -Tero
-> >
-> >
-> > diff --git a/arch/arm/mach-omap2/powerdomain44xx.c
-> > b/arch/arm/mach-omap2/powerdomain44xx.c
-> > index 9bfb8a0..3d5e8d4 100644
-> > --- a/arch/arm/mach-omap2/powerdomain44xx.c
-> > +++ b/arch/arm/mach-omap2/powerdomain44xx.c
-> > @@ -155,6 +155,14 @@ static int omap4_pwrdm_read_logic_retst(struct
-> > powerdomain *pwrdm)
-> >   	return v;
-> >   }
-> >
-> > +static int omap4_pwrdm_read_prev_logic_pwrst(struct powerdomain *pwrdm)
-> > +{
-> > +	if (omap4_pwrdm_read_prev_pwrst(pwrdm) != PWRDM_POWER_RET)
-> > +		return PWRDM_POWER_ON;
-> > +
-> > +	return omap4_pwrdm_read_logic_retst(pwrdm);
-> 
-> Looks good to me. Do these ever get called with target state programmed
-> to OFF?
+On Tue, May 8, 2012 at 10:35 AM, Paul Walmsley <paul@pwsan.com> wrote:
+>
+> Govindraj,
+>
+> After your commit bce492c04ba8fc66a4ea0a52b181ba255daaaf54 ("ARM: OMA=
+P2+:
+> UART: Fix incorrect population of default uart pads"), the kernel doe=
+s not
+> return from static suspend when off-mode is enabled upon an incoming
+> serial character.
+>
+> The following steps reproduce the problem:
+>
+> echo 1 > /debug/pm_debug/enable_off_mode
+> echo mem > /sys/power/state
+> (send a serial character after suspend is entered)
+>
+> (N.B., on the BeagleBoard, the GPIO-connected "USER" button can be us=
+ed to
+> wake the system at this point.)
+>
 
-At least with current kernel code, no. But you are right, it might be
-better to change these to check against > PWRDM_POWER_RET.
+The same is discussed in this thread as in here:
+http://www.spinics.net/lists/linux-omap/msg68659.html
 
--Tero
+> Could you please fix this? =A0We probably aren't too far from the v3.=
+5 merge
+> window opening, so there isn't much time to fix it.
 
-> 
-> regards,
-> Rajendra
-> 
-> > +}
-> > +
-> >   static int omap4_pwrdm_read_mem_pwrst(struct powerdomain *pwrdm, u8
-> > bank)
-> >   {
-> >   	u32 m, v;
-> > @@ -183,6 +191,14 @@ static int omap4_pwrdm_read_mem_retst(struct
-> > powerdomain *pwrdm, u8 bank)
-> >   	return v;
-> >   }
-> >
-> > +static int omap4_pwrdm_read_prev_mem_pwrst(struct powerdomain *pwrdm,
-> > u8 bank)
-> > +{
-> > +	if (omap4_pwrdm_read_prev_pwrst(pwrdm) != PWRDM_POWER_RET)
-> > +		return PWRDM_POWER_ON;
-> > +
-> > +	return omap4_pwrdm_read_mem_retst(pwrdm, bank);
-> > +}
-> > +
-> >   static int omap4_pwrdm_wait_transition(struct powerdomain *pwrdm)
-> >   {
-> >   	u32 c = 0;
-> > @@ -256,9 +272,11 @@ struct pwrdm_ops omap4_pwrdm_operations = {
-> >   	.pwrdm_clear_all_prev_pwrst	= omap4_pwrdm_clear_all_prev_pwrst,
-> >   	.pwrdm_set_logic_retst	= omap4_pwrdm_set_logic_retst,
-> >   	.pwrdm_read_logic_pwrst	= omap4_pwrdm_read_logic_pwrst,
-> > +	.pwrdm_read_prev_logic_pwrst	= omap4_pwrdm_read_prev_logic_pwrst,
-> >   	.pwrdm_read_logic_retst	= omap4_pwrdm_read_logic_retst,
-> >   	.pwrdm_read_mem_pwrst	= omap4_pwrdm_read_mem_pwrst,
-> >   	.pwrdm_read_mem_retst	= omap4_pwrdm_read_mem_retst,
-> > +	.pwrdm_read_prev_mem_pwrst	= omap4_pwrdm_read_prev_mem_pwrst,
-> >   	.pwrdm_set_mem_onst	= omap4_pwrdm_set_mem_onst,
-> >   	.pwrdm_set_mem_retst	= omap4_pwrdm_set_mem_retst,
-> >   	.pwrdm_wait_transition	= omap4_pwrdm_wait_transition,
-> >
-> >
-> 
+okay, one possible solution is to probe pins dynamically
+and make rx wakeup capable which myself and Tony
+discussed and came up with this patch [1]
 
+or to add rx wakeup pad support for each board,
+based on uart used as console.
 
+--
+Thanks,
+Govindraj.R
+
+[1]: http://www.spinics.net/lists/linux-omap/msg67822.html
+--
+To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
