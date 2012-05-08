@@ -1,60 +1,41 @@
-From: Michael Crowe <michael.crowe@compunetix.com>
-Subject: RE: OMAP3 EVM kernel
-Date: Tue, 8 May 2012 18:10:16 +0000
-Message-ID: <1F1FC0DBF7F44B49B17A82F8FDE9635C1E36BA@EXCH2.compunet.local>
-References: <1F1FC0DBF7F44B49B17A82F8FDE9635C1E2909@EXCH2.compunet.local>
- <20120508161416.4c5343cf@wker>
+From: Tony Lindgren <tony@atomide.com>
+Subject: Re: [GIT PULL] ARM: OMAP2+: Misc cleanup
+Date: Tue, 8 May 2012 11:34:14 -0700
+Message-ID: <20120508183414.GZ5088@atomide.com>
+References: <1336461259-28596-1-git-send-email-santosh.shilimkar@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from exch1.compunetix.com ([198.144.40.9]:48613 "EHLO
-	exch1.compunetix.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752265Ab2EHSKS convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 8 May 2012 14:10:18 -0400
-In-Reply-To: <20120508161416.4c5343cf@wker>
-Content-Language: en-US
+Received: from mho-01-ewr.mailhop.org ([204.13.248.71]:13629 "EHLO
+	mho-01-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753087Ab2EHSeT (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 8 May 2012 14:34:19 -0400
+Content-Disposition: inline
+In-Reply-To: <1336461259-28596-1-git-send-email-santosh.shilimkar@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Anatolij Gustschin <agust@denx.de>
-Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
+To: Santosh Shilimkar <santosh.shilimkar@ti.com>
+Cc: linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org
 
-Thank you...you are correct, Sir.  I changed the console to ttyO0 and now have output.  I am having issues trying to mount the RFS that is on the MMC card but have not fully investigated that issue yet.
+* Santosh Shilimkar <santosh.shilimkar@ti.com> [120508 00:18]:
+> Tony,
+> 
+> Please pull the following preparatory cleanup series to add OMAP5 minimal
+> support. Boot tested on OMAP2430 SDP, OMAP3430 SDP and OMAP4430 SDP platforms.
+> 
+> I have dropped {[PATCH 7/7] ARM: OMAP4+: Add prm and cm base init function}
+> from this set since Paul is taking that one in his queue.
 
-I would still really like to see a OMAP3_EVM .config file if anyone has one available.
+OK thanks, pulling this into cleanup-soc and merging into cleanup branch
+with what we have in devel-hwmod.
+ 
+> P.S: While merging this series with linux-omap master, I saw one trivial
+> Makefile conflict.
 
-Thanks,
---Mike
+Yes that's with devel-hwmod, I'm basing cleanup branch on that so we have
+all the dependencies out of the way for adding omap5 and am33xx patches
+on top of the cleanup branch.
 
+Regards,
 
------Original Message-----
-From: Anatolij Gustschin [mailto:agust@denx.de] 
-Sent: Tuesday, May 08, 2012 10:14 AM
-To: Michael Crowe
-Cc: linux-omap@vger.kernel.org
-Subject: Re: OMAP3 EVM kernel
-
-On Tue, 8 May 2012 13:36:47 +0000
-Michael Crowe <michael.crowe@compunetix.com> wrote:
-...                                                                              
-> 3944336 bytes read                                                               
-> ## Booting kernel from Legacy Image at 80200000 ...                              
->    Image Name:   Linux-3.4.0-rc2+                                                
->    Image Type:   ARM Linux Kernel Image (uncompressed)                           
->    Data Size:    3944272 Bytes =  3.8 MB                                         
->    Load Address: 80008000                                                        
->    Entry Point:  80008000                                                        
->    Verifying Checksum ... OK                                                     
->    Loading Kernel Image ... OK                                                   
-> OK                                                                               
->                                                                                  
-> Starting kernel ...                                                              
->                                                                                  
-> Uncompressing Linux... done, booting the kernel.
-
-Your kernel is probably booting, but without serial console output. What does U-Boot pass as the serial console parameter? If something like "console=ttySx"
-then it might be the issue. With this recent kernel try passing "console=ttyOx"
-instead (where 'x' is the UART number).
-
-HTH,
-Anatolij
+Tony
