@@ -1,47 +1,65 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: Re: defconfig for panda
-Date: Tue, 8 May 2012 15:04:35 -0700
-Message-ID: <20120508220434.GL5088@atomide.com>
-References: <1F91D012-8308-45BB-83AD-90E52D472AC2@kernel.crashing.org>
- <20120330184859.GB8240@atomide.com>
- <B05E7CFB-E2F3-426C-AAA8-622D715DB86A@kernel.crashing.org>
- <20120330213930.GC8240@atomide.com>
- <20120420160126.GA21441@beef>
- <20120420171345.GE21106@atomide.com>
- <CAMrsUdKWx=PDWiMpExBZuUjLeaaheJiZXJowGn5G5MBZ5+5RTA@mail.gmail.com>
+From: Ming Lei <ming.lei@canonical.com>
+Subject: Re: oprofile and ARM A9 hardware counter
+Date: Wed, 9 May 2012 06:12:15 +0800
+Message-ID: <CACVXFVOVFPnvWxtqYPPz2drY3AjPWxJHqF5ZCiEdmEqOrdr4Qw@mail.gmail.com>
+References: <20120403092524.GD17741@mudshark.cambridge.arm.com>
+	<CAMQu2gxE2STYxUGinzstX6W8jyofH829A__NQBjwLqZd9cqy=w@mail.gmail.com>
+	<20120403094749.GH17741@mudshark.cambridge.arm.com>
+	<CAMQu2gyFirtVTWpMu4G_qG5sq33J-_s_o2JhVAdrUf7P3qJ3AA@mail.gmail.com>
+	<20120403123444.GL17741@mudshark.cambridge.arm.com>
+	<878vicsxef.fsf@ti.com>
+	<20120403160706.GP17741@mudshark.cambridge.arm.com>
+	<87ehs4pfw4.fsf@ti.com>
+	<alpine.DEB.2.00.1204031727380.8000@utopia.booyaka.com>
+	<20120404111524.GF32505@mudshark.cambridge.arm.com>
+	<20120426180719.GC20186@mudshark.cambridge.arm.com>
+	<4FA45580.8070802@ti.com>
+	<87ipg76hfm.fsf@ti.com>
+	<4FA8284C.7080803@ti.com>
+	<87k40nzi3i.fsf@ti.com>
+	<4FA8FCFF.40105@ti.com>
+	<CAORVsuWMhVQkQAmsyrprvW-0hK4y=RgGayn0p8WhyksScauBQQ@mail.gmail.com>
+	<4FA9138D.8010604@ti.com>
+	<CAORVsuWQ6o64Jhpox0ZvjYAfzDJkXCc6XYX2a6o_cOdNyFdA0g@mail.gmail.com>
+	<87aa1isrg2.fsf@ti.com>
+	<4FA927B1.4020108@ti.com>
+	<87wr4mr6io.fsf@ti.com>
+	<4FA9794A.7030607@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=ISO-8859-1
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-01-ewr.mailhop.org ([204.13.248.71]:23300 "EHLO
-	mho-01-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753215Ab2EHWEi (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 8 May 2012 18:04:38 -0400
-Content-Disposition: inline
-In-Reply-To: <CAMrsUdKWx=PDWiMpExBZuUjLeaaheJiZXJowGn5G5MBZ5+5RTA@mail.gmail.com>
+Received: from youngberry.canonical.com ([91.189.89.112]:45736 "EHLO
+	youngberry.canonical.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752387Ab2EHWMT (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 8 May 2012 18:12:19 -0400
+Received: from mail-pz0-f46.google.com ([209.85.210.46])
+	by youngberry.canonical.com with esmtpsa (TLS1.0:RSA_ARCFOUR_SHA1:16)
+	(Exim 4.71)
+	(envelope-from <ming.lei@canonical.com>)
+	id 1SRsdm-0003jX-18
+	for linux-omap@vger.kernel.org; Tue, 08 May 2012 22:12:18 +0000
+Received: by dady13 with SMTP id y13so3203203dad.19
+        for <linux-omap@vger.kernel.org>; Tue, 08 May 2012 15:12:16 -0700 (PDT)
+In-Reply-To: <4FA9794A.7030607@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "Raja, Govindraj" <govindraj.raja@ti.com>
-Cc: Matt Porter <mporter@ti.com>, Kumar Gala <galak@kernel.crashing.org>, linux-omap@vger.kernel.org, Felipe Balbi <balbi@ti.com>
+To: Jon Hunter <jon-hunter@ti.com>
+Cc: Kevin Hilman <khilman@ti.com>, "Cousson, Benoit" <b-cousson@ti.com>, Paul Walmsley <paul@pwsan.com>, Will Deacon <will.deacon@arm.com>, Jean Pihet <jean.pihet@newoldbits.com>, Maynard Johnson <maynardj@us.ibm.com>, "Shilimkar, Santosh" <santosh.shilimkar@ti.com>, "oprofile-list@lists.sourceforge.net" <oprofile-list@lists.sourceforge.net>, Lik Lik <lik88888@gmail.com>, "eranian@gmail.com" <eranian@gmail.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>
 
-* Raja, Govindraj <govindraj.raja@ti.com> [120424 02:26]:
-> On Fri, Apr 20, 2012 at 10:43 PM, Tony Lindgren <tony@atomide.com> wrote:
-> > * Matt Porter <mporter@ti.com> [120420 09:04]:
-> >> On Fri, Mar 30, 2012 at 02:39:32PM -0700, Tony Lindgren wrote:
-> >> > * Kumar Gala <galak@kernel.crashing.org> [120330 14:14]:
-> >>
-> >> FWIW, the same EHCI + SMSC95xx config is used for Beagle xM for
-> >> nfsroot. First thing I enable on any builds.
-> >
-> > OK, can somebody please do a minimal patch to omap2plus_defconfig
-> > for this?
-> >
-> > Basically run make savedefconfig with those changes added and
-> > then diff against omap2plus_defconfig.
-> >
-> 
-> I have not seen the patch to enable this on the list,
-> so here is the patch[1] to do the same.
+On Wed, May 9, 2012 at 3:51 AM, Jon Hunter <jon-hunter@ti.com> wrote:
+>
+>
+> I had to make a couple mods to Ming's patches but I do have something
+> working now that _should_ not break PM. However, per my previous email
+> (in response to Benoit's) I am struggling with the definition of the
+> CLKDM_CAN_XXXXXX_AUTO flags to know the correct way to fix this.
+>
+> I was going to send out my patches, but I wanted to get some more
+> feedback on this first.
 
-Thanks applying into board branch.
+I can test your patch once I return home from business trip next week.
 
-Tony
+
+Thanks,
+--
+Ming Lei
