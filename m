@@ -1,43 +1,33 @@
 From: Paul Walmsley <paul@pwsan.com>
-Subject: Re: [PATCH] ARM: OMAP2/3: hwmod data: add gpmc
-Date: Tue, 8 May 2012 09:36:18 -0600 (MDT)
-Message-ID: <alpine.DEB.2.00.1205080932560.9984@utopia.booyaka.com>
-References: <1336481382-28583-1-git-send-email-afzal@ti.com>
+Subject: RE: [PATCH v4-alt 3/6] ARM: OMAP3: hwmod data: add gpmc
+Date: Tue, 8 May 2012 09:37:52 -0600 (MDT)
+Message-ID: <alpine.DEB.2.00.1205080936300.9984@utopia.booyaka.com>
+References: <cover.1335941443.git.afzal@ti.com> <99ffbbcc634022ed3c781c37e03989f1d898003e.1335941444.git.afzal@ti.com> <alpine.DEB.2.00.1205051949290.20926@utopia.booyaka.com> <C8443D0743D26F4388EA172BF4E2A7A93E987188@DBDE01.ent.ti.com>
+ <C8443D0743D26F4388EA172BF4E2A7A93E987E55@DBDE01.ent.ti.com>
 Mime-Version: 1.0
 Content-Type: TEXT/PLAIN; charset=US-ASCII
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from utopia.booyaka.com ([72.9.107.138]:33598 "EHLO
+Received: from utopia.booyaka.com ([72.9.107.138]:33613 "EHLO
 	utopia.booyaka.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756687Ab2EHPgV (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 8 May 2012 11:36:21 -0400
-In-Reply-To: <1336481382-28583-1-git-send-email-afzal@ti.com>
+	with ESMTP id S1756106Ab2EHPhx (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 8 May 2012 11:37:53 -0400
+In-Reply-To: <C8443D0743D26F4388EA172BF4E2A7A93E987E55@DBDE01.ent.ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Afzal Mohammed <afzal@ti.com>
-Cc: tony@atomide.com, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+To: "Mohammed, Afzal" <afzal@ti.com>
+Cc: "tony@atomide.com" <tony@atomide.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
 
-Hi,
+Hi
 
-On Tue, 8 May 2012, Afzal Mohammed wrote:
+On Tue, 8 May 2012, Mohammed, Afzal wrote:
 
-> This is patch 13/39 & 14/39 of v4 OMAP GPMC driver conversion
-> series modified and squashed into one.
+> If HWMOD_NO_INIT_RESET is not present, it would break GPMC on
+> many of the existing boards.
 
-...
+IMHO, that should also be fixed as part of your changes, to remove what 
+seems to be an unnecessary bootloader dependency.
 
-> +	/* HWMOD_INIT_NO_RESET can be removed once kernel is updated
-> +	 * to configure GPMC for all peripherals, right now many
-> +	 * peripherals depend on bootloader configuration, removing
-> +	 * this flag would break GPMC on many boards
-> +	 */
-
-Thanks for combining these.   But since you're doing quite a bit of GPMC 
-work, I think we should ensure that the kernel will configure the GPMC 
-before accessing GPMC devices as part of this change.
-
-See also 
-
-   http://marc.info/?l=linux-omap&m=133649129220098&w=2
+http://marc.info/?l=linux-omap&m=133649129220098&w=2
 
 
 - Paul
