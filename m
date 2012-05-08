@@ -1,139 +1,79 @@
-From: Vaibhav Hiremath <hvaibhav@ti.com>
-Subject: [PATCH 3/4] ARM: OMAP2+: CLEANUP: Remove unnecessary ifdef around __omap2_set_globals
-Date: Tue, 8 May 2012 20:32:43 +0530
-Message-ID: <1336489364-19200-4-git-send-email-hvaibhav@ti.com>
-References: <1336489364-19200-1-git-send-email-hvaibhav@ti.com>
+From: Jon Hunter <jon-hunter-l0cyMroinI0@public.gmane.org>
+Subject: Re: [PATCH v4 01/39] ARM: OMAP2+: gpmc: driver conversion
+Date: Tue, 8 May 2012 10:08:24 -0500
+Message-ID: <4FA936E8.1080801@ti.com>
+References: <cover.1335874494.git.afzal@ti.com> <363273a9ef82d6836197929157aa9a8eb8f5171a.1335874494.git.afzal@ti.com> <4FA4035E.6020308@ti.com> <C8443D0743D26F4388EA172BF4E2A7A93E987147@DBDE01.ent.ti.com> <4FA7F232.7050802@ti.com> <C8443D0743D26F4388EA172BF4E2A7A93E9878EC@DBDE01.ent.ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from arroyo.ext.ti.com ([192.94.94.40]:45139 "EHLO arroyo.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1756055Ab2EHPG4 (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Tue, 8 May 2012 11:06:56 -0400
-In-Reply-To: <1336489364-19200-1-git-send-email-hvaibhav@ti.com>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset="ISO-8859-1"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <C8443D0743D26F4388EA172BF4E2A7A93E9878EC-Er742YJ7I/eIQmiDNMet8wC/G2K4zDHf@public.gmane.org>
+Sender: linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: "Mohammed, Afzal" <afzal-l0cyMroinI0@public.gmane.org>
+Cc: "tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org" <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>, "linux-lFZ/pmaqli7XmaaqVzeoHQ@public.gmane.org" <linux-lFZ/pmaqli7XmaaqVzeoHQ@public.gmane.org>, "Hilman, Kevin" <khilman-l0cyMroinI0@public.gmane.org>, "Balbi, Felipe" <balbi-l0cyMroinI0@public.gmane.org>, "dwmw2-wEGCiKHe2LqWVfeAwA7xHQ@public.gmane.org" <dwmw2-wEGCiKHe2LqWVfeAwA7xHQ@public.gmane.org>, "kyungmin.park-Sze3O3UU22JBDgjK7y7TUQ@public.gmane.org" <kyungmin.park-Sze3O3UU22JBDgjK7y7TUQ@public.gmane.org>, "gregkh-hQyY1W1yCW8ekmWlsbkhG0B+6BGkLq7r@public.gmane.org" <gregkh-hQyY1W1yCW8ekmWlsbkhG0B+6BGkLq7r@public.gmane.org>, "Menon, Nishanth" <nm-l0cyMroinI0@public.gmane.org>, "grinberg-UTxiZqZC01RS1MOuV/RT9w@public.gmane.org" <grinberg-UTxiZqZC01RS1MOuV/RT9w@public.gmane.org>, "notasas-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org" <notasas-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, "artem.bityutskiy-VuQAYsv1563Yd54FQh9/CA@public.gmane.org" <artem.bityutskiy-VuQAYsv1563Yd54FQh9/CA@public.gmane.org>, "vimal.newwork-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org" <vimal.newwork-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, "dbaryshkov-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org" <dbaryshkov-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, "linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org" <linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org>, "linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "linux-mtd-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org" <linux-mtd-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org>, Hire
 List-Id: linux-omap@vger.kernel.org
-To: linux-omap@vger.kernel.org
-Cc: tony@atomide.com, khilman@ti.com, paul@pwsan.com, b-cousson@ti.com, linux-arm-kernel@lists.infradead.org, Vaibhav Hiremath <hvaibhav@ti.com>
 
-The function __omap2_set_globals() can be common across all
-platforms/architectures, even in case of omap4, internally it
-calls same set of functions as in __omap2_set_globals() function
-(except for sdrc).
-This patch adds new config flag SOC_HAS_SDRC to handle sdrc,
-so that we can reuse same function across omap2/3/4...
+Hi  Afzal,
 
-Signed-off-by: Vaibhav Hiremath <hvaibhav@ti.com>
-Cc: Tony Lindgren <tony@atomide.com>
-Cc: Kevin Hilman <khilman@ti.com>
-Cc: Paul Walmsley <paul@pwsan.com>
----
- arch/arm/mach-omap2/Kconfig  |    8 ++++++++
- arch/arm/mach-omap2/common.c |    8 +-------
- arch/arm/mach-omap2/common.h |    5 +++++
- 3 files changed, 14 insertions(+), 7 deletions(-)
+On 05/08/2012 01:18 AM, Mohammed, Afzal wrote:
+> Hi Jon,
+> 
+> On Mon, May 07, 2012 at 21:32:58, Hunter, Jon wrote:
+> 
+>>>>> +	/* no waitpin */
+>>>>> +	case 0:
+>>>>> +		break;
+>>>>> +	default:
+>>>>> +		dev_err(gpmc->dev, "multiple waitpins selected on CS:%u\n", cs);
+>>>>> +		return -EINVAL;
+>>>>> +		break;
+>>>>> +	}
+>>>>
+>>>> Why not combined case 0 and default? Both are invalid configurations so
+>>>> just report invalid selection.
+>>>
+>>> Case 0 is not invalid, a case where waitpin is not used, default refers
+>>> to when a user selects multiple waitpins wrongly.
+>>
+>> Ok. Then for case 0, just return here. If the polarity is set, you could
+>> print an error here.
+> 
+> Different ways of doing things, this looks cleaner to me as already it is
+> checked, and time of execution in both cases would not differ much.
 
-diff --git a/arch/arm/mach-omap2/Kconfig b/arch/arm/mach-omap2/Kconfig
-index 0685dc8..2277359 100644
---- a/arch/arm/mach-omap2/Kconfig
-+++ b/arch/arm/mach-omap2/Kconfig
-@@ -20,12 +20,16 @@ config ARCH_OMAP2PLUS_TYPICAL
- 	help
- 	  Compile a kernel suitable for booting most boards
- 
-+config SOC_HAS_SDRC
-+	bool "SDRAM Controller support"
-+
- config ARCH_OMAP2
- 	bool "TI OMAP2"
- 	depends on ARCH_OMAP2PLUS
- 	default y
- 	select CPU_V6
- 	select MULTI_IRQ_HANDLER
-+	select SOC_HAS_SDRC
- 
- config ARCH_OMAP3
- 	bool "TI OMAP3"
-@@ -37,6 +41,7 @@ config ARCH_OMAP3
- 	select PM_OPP if PM
- 	select ARM_CPU_SUSPEND if PM
- 	select MULTI_IRQ_HANDLER
-+	select SOC_HAS_SDRC
- 
- config ARCH_OMAP4
- 	bool "TI OMAP4"
-@@ -64,18 +69,21 @@ config SOC_OMAP2420
- 	default y
- 	select OMAP_DM_TIMER
- 	select ARCH_OMAP_OTG
-+	select SOC_HAS_SDRC
- 
- config SOC_OMAP2430
- 	bool "OMAP2430 support"
- 	depends on ARCH_OMAP2
- 	default y
- 	select ARCH_OMAP_OTG
-+	select SOC_HAS_SDRC
- 
- config SOC_OMAP3430
- 	bool "OMAP3430 support"
- 	depends on ARCH_OMAP3
- 	default y
- 	select ARCH_OMAP_OTG
-+	select SOC_HAS_SDRC
- 
- config SOC_OMAPTI81XX
- 	bool "TI81XX support"
-diff --git a/arch/arm/mach-omap2/common.c b/arch/arm/mach-omap2/common.c
-index 1549c11..ad8626d 100644
---- a/arch/arm/mach-omap2/common.c
-+++ b/arch/arm/mach-omap2/common.c
-@@ -29,8 +29,6 @@
- 
- /* Global address base setup code */
- 
--#if defined(CONFIG_ARCH_OMAP2) || defined(CONFIG_ARCH_OMAP3)
--
- static void __init __omap2_set_globals(struct omap_globals *omap2_globals)
- {
- 	omap2_set_globals_tap(omap2_globals);
-@@ -39,8 +37,6 @@ static void __init __omap2_set_globals(struct omap_globals *omap2_globals)
- 	omap2_set_globals_prcm(omap2_globals);
- }
- 
--#endif
--
- #if defined(CONFIG_SOC_OMAP2420)
- 
- static struct omap_globals omap242x_globals = {
-@@ -170,9 +166,7 @@ static struct omap_globals omap4_globals = {
- 
- void __init omap2_set_globals_443x(void)
- {
--	omap2_set_globals_tap(&omap4_globals);
--	omap2_set_globals_control(&omap4_globals);
--	omap2_set_globals_prcm(&omap4_globals);
-+	__omap2_set_globals(&omap4_globals);
- }
- 
- void __init omap4_map_io(void)
-diff --git a/arch/arm/mach-omap2/common.h b/arch/arm/mach-omap2/common.h
-index 0e95efc..70dee99 100644
---- a/arch/arm/mach-omap2/common.h
-+++ b/arch/arm/mach-omap2/common.h
-@@ -122,7 +122,12 @@ void omap2_set_globals_am33xx(void);
- 
- /* These get called from omap2_set_globals_xxxx(), do not call these */
- void omap2_set_globals_tap(struct omap_globals *);
-+#if defined(CONFIG_SOC_HAS_SDRC)
- void omap2_set_globals_sdrc(struct omap_globals *);
-+#else
-+static inline void omap2_set_globals_sdrc(struct omap_globals *omap2_globals)
-+{ }
-+#endif
- void omap2_set_globals_control(struct omap_globals *);
- void omap2_set_globals_prcm(struct omap_globals *);
- 
--- 
-1.7.0.4
+Sure. However, I think that this could be simplified so that it is
+easier to read. At a minimum you may wish to add some comments to
+explain the purposes of the multi-level if-statements as it is not
+intuitive for the reader.
 
+>>>>> +		if (gd->have_waitpin) {
+>>>>> +			if (gd->waitpin != idx ||
+>>>>> +					gd->waitpin_polarity != polarity) {
+>>>>> +				dev_err(gpmc->dev, "error: conflict: waitpin %u with polarity %d on device %s.%d\n",
+>>>>> +					gd->waitpin, gd->waitpin_polarity,
+>>>>> +					gd->name, gd->id);
+>>>>> +				return -EBUSY;
+>>>>> +			}
+>>>>> +		} else {
+>>>>
+>>>> Don't need the else as you are going to return in the above.
+>>>
+>>> Not always, only in case of error
+>>
+>> Ok, but seems that it can be simplified a little.
+>>
+>> What happens if a device uses more than one wait-pin? In other words a
+>> device with two chip-selects that uses two wait-pins?
+> 
+> Please re-read http://www.mail-archive.com/linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org/msg67702.html
+> and your reply
+
+Ok thats fine. Sorry for my repeated questions, but I think that this
+just highlights that this code is not clear in it purpose. So again may
+be some comments would make this all clearer.
+
+Jon
+--
+To unsubscribe from this list: send the line "unsubscribe linux-usb" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
