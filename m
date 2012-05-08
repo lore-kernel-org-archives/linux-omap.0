@@ -1,99 +1,88 @@
-From: Ashwin Bihari <ashwin.bihari@logicpd.com>
-Subject: Additional support for LogicPD OMAP3530
-Date: Tue, 8 May 2012 14:14:51 -0500
-Message-ID: <0520A3FE5EDCF24F88B3F1451CFC64AE04A34D434D@edprex01>
+From: Jon Hunter <jon-hunter@ti.com>
+Subject: Re: oprofile and ARM A9 hardware counter
+Date: Tue, 8 May 2012 14:51:38 -0500
+Message-ID: <4FA9794A.7030607@ti.com>
+References: <20120403092524.GD17741@mudshark.cambridge.arm.com> <CAMQu2gxE2STYxUGinzstX6W8jyofH829A__NQBjwLqZd9cqy=w@mail.gmail.com> <20120403094749.GH17741@mudshark.cambridge.arm.com> <CAMQu2gyFirtVTWpMu4G_qG5sq33J-_s_o2JhVAdrUf7P3qJ3AA@mail.gmail.com> <20120403123444.GL17741@mudshark.cambridge.arm.com> <878vicsxef.fsf@ti.com> <20120403160706.GP17741@mudshark.cambridge.arm.com> <87ehs4pfw4.fsf@ti.com> <alpine.DEB.2.00.1204031727380.8000@utopia.booyaka.com> <20120404111524.GF32505@mudshark.cambridge.arm.com> <20120426180719.GC20186@mudshark.cambridge.arm.com> <4FA45580.8070802@ti.com> <87ipg76hfm.fsf@ti.com> <4FA8284C.7080803@ti.com> <87k40nzi3i.fsf@ti.com> <4FA8FCFF.40105@ti.com> <CAORVsuWMhVQkQAmsyrprvW-0hK4y=RgGayn0p8WhyksScauBQQ@mail.gmail.com> <4FA9138D.8010604@ti.com> <CAORVsuWQ6o64J
+ hpox0ZvjYAfzDJkXCc6XYX2a6o_cOdNyFdA0g@mail.gmail.com> <87aa1isrg2.fsf@ti.com> <4FA927B1.4020108@ti.com> <87wr4mr6io.fsf@ti.com>
 Mime-Version: 1.0
-Content-Type: multipart/mixed;
-	boundary="_000_0520A3FE5EDCF24F88B3F1451CFC64AE04A34D434Dedprex01_"
+Content-Type: text/plain; charset="ISO-8859-1"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from 174-46-170-145.static.twtelecom.net ([174.46.170.145]:37235
-	"HELO barracuda.logicpd.com" rhost-flags-OK-FAIL-OK-FAIL)
-	by vger.kernel.org with SMTP id S1752373Ab2EHTOp (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 8 May 2012 15:14:45 -0400
-Received: from EDPREX01.logicpd.com (edprex01.logicpd.com [10.1.18.134]) by barracuda.logicpd.com with ESMTP id HJu1re0b2D6dWE6D (version=TLSv1 cipher=AES128-SHA bits=128 verify=NO) for <linux-omap@vger.kernel.org>; Tue, 08 May 2012 14:14:44 -0500 (CDT)
-Content-Language: en-US
+Received: from bear.ext.ti.com ([192.94.94.41]:52162 "EHLO bear.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1756443Ab2EHTwA (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Tue, 8 May 2012 15:52:00 -0400
+In-Reply-To: <87wr4mr6io.fsf@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "tony@atomide.com" <tony@atomide.com>
-Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
-
---_000_0520A3FE5EDCF24F88B3F1451CFC64AE04A34D434Dedprex01_
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: quoted-printable
-
-Tony,
-
-I should've CC'ed you on my initial posting, and will do so with future pos=
-ts, but here is a ping with the 2 patches[1] I sent that add MSUB and LCD s=
-upport for the LogicPD OMAP3530 SOM-LV and Torpedo DevKits.
-
-Please let me know if you any comments or anyone (or mailing list) I should=
- also CC for these patches.
-
-[1] - http://www.mail-archive.com/linux-omap@vger.kernel.org/msg68037.html
-
-Thanks
-~ Ashwin
+To: Kevin Hilman <khilman@ti.com>
+Cc: "Cousson, Benoit" <b-cousson@ti.com>, Paul Walmsley <paul@pwsan.com>, Ming Lei <ming.lei@canonical.com>, Will Deacon <will.deacon@arm.com>, Jean Pihet <jean.pihet@newoldbits.com>, Maynard Johnson <maynardj@us.ibm.com>, "Shilimkar, Santosh" <santosh.shilimkar@ti.com>, "oprofile-list@lists.sourceforge.net" <oprofile-list@lists.sourceforge.net>, Lik Lik <lik88888@gmail.com>, "eranian@gmail.com" <eranian@gmail.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>
 
 
---_000_0520A3FE5EDCF24F88B3F1451CFC64AE04A34D434Dedprex01_
-Content-Disposition: attachment; filename="winmail.dat"
-Content-Transfer-Encoding: base64
-Content-Type: application/ms-tnef; name="winmail.dat"
+On 05/08/2012 11:18 AM, Kevin Hilman wrote:
+> "Cousson, Benoit" <b-cousson@ti.com> writes:
+> 
+>> On 5/8/2012 4:00 PM, Kevin Hilman wrote:
+>>> Jean Pihet<jean.pihet@newoldbits.com>  writes:
+>>>
+>>> [...]
+>>>
+>>>>>>> Yes, indeed, we should not hack the flags to fix that kind of issue. The
+>>>>>>> flags describe what the HW is capable of, and the EMU CD can support
+>>>>>>> HW_AUTO
+>>>>>>> and SW_WAKEUP. AFAIK, the issue with that EMU CD is that the only valid
+>>>>>>> next
+>>>>>>> power state is OFF, meaning that no retention mode is supported. So any
+>>>>>>> transition to idle will go to OFF and lead to a reset upon wakeup.
+>>>>>>>
+>>>>>>> That being said, being able to transition to OFF during idle is a
+>>>>>>> perfectly
+>>>>>>> valid state for most powerdomain in OMAP anyway, so we should be able to
+>>>>>>> restore from OFF mode smoothly.
+>>>>>>>
+>>>>>>> It looks to me that what is missing here is *just* a restore path in the
+>>>>>>> PMU/CTI code. But I'm probably missing some nasty details in this issue
+>>>>>>> :-)
+>>>>>>
+>>>>>> Although it is perfectly feasible to have a seamless transition of the
+>>>>>> EMU power domain, I think the PMU counters will not be accurate
+>>>>>> anymore since they stop counting events when going to OFF and re-start
+>>>>>> after the state restore.
+>>>>>
+>>>>>
+>>>>> Good point, but I think the PMU might still works fine because located
+>>>>> inside the MPU domain. AFAIR, only the path to access the PMU and the CTI is
+>>>>> going to OFF and thus will be reset.
+>>>>
+>>>> Ever better point ;p Thanks for the precision.
+>>>> In any case my point was: can we allow the EMU CD to go OFF or prevent
+>>>> it from doing so? We need to answer that question first.
+>>>>
+>>>
+>>> The idea I've suggested is to use runtime PM for this.  As long as the
+>>> PMU is in use, it will be runtime PM enabled (and not allowed to go into
+>>> HWSUP idle.)  When it is not used, it will be allowed to HWSUP idle, and
+>>> then be reset.  The next time it is needed, the runtime resume will need
+>>> to do a full re-init.
+>>
+>> Oh, but does that mean that this driver is not pm_runtime adapted yet?
+>>
+> 
+> Actually, it is.  Ming Lei has done it.
+> 
+> Currently, Will has collected this[1] and is waiting (patiently) for us
+> to produce a real fix that doesn't kill PM in the process.
 
-eJ8+IqFsAQaQCAAEAAAAAAABAAEAAQeQBgAIAAAA5AQAAAAAAADoAAEJgAEAIQAAADZDOUIyNzY0
-RUREQjUxNEE5RjdGREZBMkUwOTA5RjY5AHYHAQ2ABAACAAAAAgACAAEFgAMADgAAANwHBQAIABMA
-DgAzAAIARgEBIIADAA4AAADcBwUACAATAA4AMAACAEMBAQiABwAYAAAASVBNLk1pY3Jvc29mdCBN
-YWlsLk5vdGUAMQgBBIABACgAAABBZGRpdGlvbmFsIHN1cHBvcnQgZm9yIExvZ2ljUEQgT01BUDM1
-MzAAVw0BA5AGAOAKAAA6AAAAAgF/AAEAAAA2AAAAPDA1MjBBM0ZFNUVEQ0YyNEY4OEIzRjE0NTFD
-RkM2NEFFMDRBMzRENDM0REBlZHByZXgwMT4AAAACAQkQAQAAAHQCAABwAgAALwMAAExaRnXW7SVJ
-YQAKZmJpZAQAAGNjwHBnMTI1MgD+A0PwdGV4dAH3AqQD4wIABGNoCsBzZXQwIO8HbQKDAFARTTIK
-gAa0AoCWfQqACMg7CWIxOQ7AvwnDFnIKMhZxAoAVYioJsHMJ8ASQYXQFsg5QA2Bzom8BgCBFeBHB
-bhgwXQZSdgSQF7YCEHIAwHR9CFBuGjEQIAXABaAbZGSaIANSIBAiF7JcdgiQ5HdrC4BkNR1TBPAH
-QA0XcDAKcRfyYmttawZzAZAAICBCTV9C4EVHSU59CvsL8gEwhHtUAiB5LFxsC4CGZQqBIfRJIHNo
-CGAIbGQnGjAgQ0MnFRxReQhgIAIgIG15kiALgGl0BzEgcBkQcySwGcAsIABwHGAD8Gw5AyBkbyLQ
-JjAD8HRouRxwdXQIcBngJQJzJXDyYibgIGgEkBngBAAlgN8k8CVBJnQmoBngMiTwGIDDEcAHkFsx
-XSAiwQnwbwVAJqAYgCWAZBxgBeBVIkIlg0xDRCLQdXCPJQAfkRrhKSNMb2cOUAJQK/BPTUFQMzWK
-MxIwUy2QLUxWJYMZIZBycAmAJjBEZXZSSySgcy4h7FAecGEdEgAgHnAFQAeAIGtufm8H4AaQI9MA
-cCRgBaBtfweAAjAEIAWxMlECIBngKL8FsQDAAxAooiHwH2ApKjL7IvMlgGwmUSOALIYw8SmVGy/N
-KgItJ+ACQHA6L9QvdzjALjQCLQrAEcAqaRowLjKRLyHxdXgiLQNxcEB2GDByLiJrBJFlbC4FsGcv
-AG1zZzY4MDM32i44UG0JUCH7VBmhH1DxIeV+IEEi4APwC5Ah+wMVQj/gHwBCAAEAAAAcAAAAQQBz
-AGgAdwBpAG4AIABCAGkAaABhAHIAaQAAAB8AZQABAAAANAAAAGEAcwBoAHcAaQBuAC4AYgBpAGgA
-YQByAGkAQABsAG8AZwBpAGMAcABkAC4AYwBvAG0AAAAfAGQAAQAAAAoAAABTAE0AVABQAAAAAAAC
-AUEAAQAAAHIAAAAAAAAAgSsfpL6jEBmdbgDdAQ9UAgAAAIBBAHMAaAB3AGkAbgAgAEIAaQBoAGEA
-cgBpAAAAUwBNAFQAUAAAAGEAcwBoAHcAaQBuAC4AYgBpAGgAYQByAGkAQABsAG8AZwBpAGMAcABk
-AC4AYwBvAG0AAAAAAB8AGgwBAAAAHAAAAEEAcwBoAHcAaQBuACAAQgBpAGgAYQByAGkAAAAfAB8M
-AQAAADQAAABhAHMAaAB3AGkAbgAuAGIAaQBoAGEAcgBpAEAAbABvAGcAaQBjAHAAZAAuAGMAbwBt
-AAAAHwAeDAEAAAAKAAAAUwBNAFQAUAAAAAAAAgEZDAEAAAByAAAAAAAAAIErH6S+oxAZnW4A3QEP
-VAIAAACAQQBzAGgAdwBpAG4AIABCAGkAaABhAHIAaQAAAFMATQBUAFAAAABhAHMAaAB3AGkAbgAu
-AGIAaQBoAGEAcgBpAEAAbABvAGcAaQBjAHAAZAAuAGMAbwBtAAAAAAAfADFAAQAAAAIAAAAAAAAA
-CwBAOgEAAAAfADBAAQAAAAIAAAAAAAAAHwAaAAEAAAASAAAASQBQAE0ALgBOAG8AdABlAAAAAAAD
-APE/CQQAAAsAQDoBAAAAAwD9P+QEAAACAQswAQAAABAAAABsmydk7dtRSp9/36LgkJ9pAwAXAAEA
-AABAADkAgAeD104tzQFAAAgwOAcX1k4tzQELAAIAAQAAAAsAIwAAAAAAAwAmAAAAAAALACkAAAAA
-AAMANgAAAAAAAgFHAAEAAAA5AAAAYz1VUzthPSA7cD1FbWJlZGRlZCBMb2dpYztsPUVEUFJFWDAx
-LTEyMDUwODE5MTQ0OFotNDc3MDIAAAAAHwBwAAEAAABQAAAAQQBkAGQAaQB0AGkAbwBuAGEAbAAg
-AHMAdQBwAHAAbwByAHQAIABmAG8AcgAgAEwAbwBnAGkAYwBQAEQAIABPAE0AQQBQADMANQAzADAA
-AAACAXEAAQAAABYAAAABzS1O19EWpckVOSRKgIWZO5wR9eGZAAAfADUQAQAAAGwAAAA8ADAANQAy
-ADAAQQAzAEYARQA1AEUARABDAEYAMgA0AEYAOAA4AEIAMwBGADEANAA1ADEAQwBGAEMANgA0AEEA
-RQAwADQAQQAzADQARAA0ADMANABEAEAAZQBkAHAAcgBlAHgAMAAxAD4AAAADAIAQ/////x8A8xAB
-AAAAWAAAAEEAZABkAGkAdABpAG8AbgBhAGwAIABzAHUAcABwAG8AcgB0ACAAZgBvAHIAIABMAG8A
-ZwBpAGMAUABEACAATwBNAEEAUAAzADUAMwAwAC4ARQBNAEwAAAALAPQQAAAAAAsA9RAAAAAACwD2
-EAAAAABAAAcw3H0N1k4tzQECARAwAQAAAEYAAAAAAAAAaZy1PGTH4U+Shtx4v1CvDwcA8GLB9y3N
-VEO8sGl6oF/TNAAAAf5L4QAAWfnNDjESQkOLis2bwq1j9wAF2eoyRgAAAAADAN4/n04AAB8A+D8B
-AAAAHAAAAEEAcwBoAHcAaQBuACAAQgBpAGgAYQByAGkAAAACAfk/AQAAAFAAAAAAAAAA3KdAyMBC
-EBq0uQgAKy/hggEAAAAAAAAAL089RU1CRURERUQgTE9HSUMvT1U9TE9HSUMvQ049UkVDSVBJRU5U
-Uy9DTj1BU0hXSU5CAB8A+j8BAAAAHAAAAEEAcwBoAHcAaQBuACAAQgBpAGgAYQByAGkAAAACAfs/
-AQAAAFAAAAAAAAAA3KdAyMBCEBq0uQgAKy/hggEAAAAAAAAAL089RU1CRURERUQgTE9HSUMvT1U9
-TE9HSUMvQ049UkVDSVBJRU5UUy9DTj1BU0hXSU5CAAMAGUAAAAAAAwAaQAAAAAADAAlZAQAAAAMA
-AIAIIAYAAAAAAMAAAAAAAABGAAAAABCFAAAAAAAACwAAgAggBgAAAAAAwAAAAAAAAEYAAAAAA4UA
-AAAAAAALAACACCAGAAAAAADAAAAAAAAARgAAAAAOhQAAAAAAAAMAAIAIIAYAAAAAAMAAAAAAAABG
-AAAAAAGFAAAAAAAAAwAAgAggBgAAAAAAwAAAAAAAAEYAAAAAGIUAAAAAAAALAACACCAGAAAAAADA
-AAAAAAAARgAAAAAGhQAAAAAAAAsAAIAIIAYAAAAAAMAAAAAAAABGAAAAAIKFAAAAAAAAAwANNPk/
-AAACARQ0AQAAABAAAABUlKHAKX8QG6WHCAArKiUXHwA9AAEAAAACAAAAAAAAAB8ANwABAAAAUAAA
-AEEAZABkAGkAdABpAG8AbgBhAGwAIABzAHUAcABwAG8AcgB0ACAAZgBvAHIAIABMAG8AZwBpAGMA
-UABEACAATwBNAEEAUAAzADUAMwAwAAAAHwAAgIYDAgAAAAAAwAAAAAAAAEYBAAAAHgAAAGEAYwBj
-AGUAcAB0AGwAYQBuAGcAdQBhAGcAZQAAAAAAAQAAAAwAAABlAG4ALQBVAFMAAAAfAACAhgMCAAAA
-AADAAAAAAAAARgEAAAAgAAAAeAAtAG0AcwAtAGgAYQBzAC0AYQB0AHQAYQBjAGgAAAABAAAAAgAA
-AAAAAADNIw==
+I had to make a couple mods to Ming's patches but I do have something
+working now that _should_ not break PM. However, per my previous email
+(in response to Benoit's) I am struggling with the definition of the
+CLKDM_CAN_XXXXXX_AUTO flags to know the correct way to fix this.
 
---_000_0520A3FE5EDCF24F88B3F1451CFC64AE04A34D434Dedprex01_--
+I was going to send out my patches, but I wanted to get some more
+feedback on this first.
+
+Cheers
+Jon
+
+
+
