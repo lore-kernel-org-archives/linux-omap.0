@@ -1,106 +1,47 @@
-From: Kevin Hilman <khilman@ti.com>
-Subject: Re: oprofile and ARM A9 hardware counter
-Date: Tue, 08 May 2012 14:28:40 -0700
-Message-ID: <87mx5il5vb.fsf@ti.com>
-References: <20120403092524.GD17741@mudshark.cambridge.arm.com>
-	<CAMQu2gyFirtVTWpMu4G_qG5sq33J-_s_o2JhVAdrUf7P3qJ3AA@mail.gmail.com>
-	<20120403123444.GL17741@mudshark.cambridge.arm.com>
-	<878vicsxef.fsf@ti.com>
-	<20120403160706.GP17741@mudshark.cambridge.arm.com>
-	<87ehs4pfw4.fsf@ti.com>
-	<alpine.DEB.2.00.1204031727380.8000@utopia.booyaka.com>
-	<20120404111524.GF32505@mudshark.cambridge.arm.com>
-	<20120426180719.GC20186@mudshark.cambridge.arm.com>
-	<4FA45580.8070802@ti.com> <87ipg76hfm.fsf@ti.com>
-	<4FA8284C.7080803@ti.com> <87k40nzi3i.fsf@ti.com>
-	<4FA8FCFF.40105@ti.com>
-	<CAORVsuWMhVQkQAmsyrprvW-0hK4y=RgGayn0p8WhyksScauBQQ@mail.gmail.com>
-	<4FA9138D.8010604@ti.com>
-	<CAORVsuWQ6o64Jhpox0ZvjYAfzDJkXCc6XYX2a6o_cOdNyFdA0g@mail.gmail.com>
-	<87aa1isrg2.fsf@ti.com> <4FA927B1.4020108@ti.com>
-	<87wr4mr6io.fsf@ti.com> <4FA9794A.7030607@ti.com>
+From: Tony Lindgren <tony@atomide.com>
+Subject: Re: [PATCH v4-alt 0/6] GPMC driver migrate one
+Date: Tue, 8 May 2012 14:36:26 -0700
+Message-ID: <20120508213625.GG5088@atomide.com>
+References: <cover.1335941443.git.afzal@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aog117.obsmtp.com ([74.125.149.242]:48652 "EHLO
-	na3sys009aog117.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754563Ab2EHV2Z (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 8 May 2012 17:28:25 -0400
-Received: by pbbrq8 with SMTP id rq8so9673777pbb.21
-        for <linux-omap@vger.kernel.org>; Tue, 08 May 2012 14:28:23 -0700 (PDT)
-In-Reply-To: <4FA9794A.7030607@ti.com> (Jon Hunter's message of "Tue, 8 May
-	2012 14:51:38 -0500")
+Received: from mho-01-ewr.mailhop.org ([204.13.248.71]:61996 "EHLO
+	mho-01-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751445Ab2EHVg2 (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 8 May 2012 17:36:28 -0400
+Content-Disposition: inline
+In-Reply-To: <cover.1335941443.git.afzal@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Jon Hunter <jon-hunter@ti.com>
-Cc: "Cousson, Benoit" <b-cousson@ti.com>, Paul Walmsley <paul@pwsan.com>, Ming Lei <ming.lei@canonical.com>, Will Deacon <will.deacon@arm.com>, Jean Pihet <jean.pihet@newoldbits.com>, Maynard Johnson <maynardj@us.ibm.com>, "Shilimkar, Santosh" <santosh.shilimkar@ti.com>, "oprofile-list@lists.sourceforge.net" <oprofile-list@lists.sourceforge.net>, Lik Lik <lik88888@gmail.com>, "eranian@gmail.com" <eranian@gmail.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>
+To: Afzal Mohammed <afzal@ti.com>
+Cc: linux-omap@vger.kernel.org
 
-Jon Hunter <jon-hunter@ti.com> writes:
+* Afzal Mohammed <afzal@ti.com> [120502 02:05]:
+> Hi Tony,
+> 
+> As you would have already seen, v4 of GPMC driver conversion has been
+> posted (this is v4-alt). I undertand the risk involved in converting
+> all board files to use new interface in a single patch series. But to
+> have a decent set of patches, I feel this is required. But this may
+> bring us to a point where GPMC may not work on some boards.
+> 
+> To resolve this and as per your earlier question on whether old along
+> with new interface can be made to work parallely, here is suggestion
+> from my end to deal with it.
 
-> On 05/08/2012 11:18 AM, Kevin Hilman wrote:
->> "Cousson, Benoit" <b-cousson@ti.com> writes:
->> 
->>> On 5/8/2012 4:00 PM, Kevin Hilman wrote:
->>>> Jean Pihet<jean.pihet@newoldbits.com>  writes:
->>>>
->>>> [...]
->>>>
->>>>>>>> Yes, indeed, we should not hack the flags to fix that kind of issue. The
->>>>>>>> flags describe what the HW is capable of, and the EMU CD can support
->>>>>>>> HW_AUTO
->>>>>>>> and SW_WAKEUP. AFAIK, the issue with that EMU CD is that the only valid
->>>>>>>> next
->>>>>>>> power state is OFF, meaning that no retention mode is supported. So any
->>>>>>>> transition to idle will go to OFF and lead to a reset upon wakeup.
->>>>>>>>
->>>>>>>> That being said, being able to transition to OFF during idle is a
->>>>>>>> perfectly
->>>>>>>> valid state for most powerdomain in OMAP anyway, so we should be able to
->>>>>>>> restore from OFF mode smoothly.
->>>>>>>>
->>>>>>>> It looks to me that what is missing here is *just* a restore path in the
->>>>>>>> PMU/CTI code. But I'm probably missing some nasty details in this issue
->>>>>>>> :-)
->>>>>>>
->>>>>>> Although it is perfectly feasible to have a seamless transition of the
->>>>>>> EMU power domain, I think the PMU counters will not be accurate
->>>>>>> anymore since they stop counting events when going to OFF and re-start
->>>>>>> after the state restore.
->>>>>>
->>>>>>
->>>>>> Good point, but I think the PMU might still works fine because located
->>>>>> inside the MPU domain. AFAIR, only the path to access the PMU and the CTI is
->>>>>> going to OFF and thus will be reset.
->>>>>
->>>>> Ever better point ;p Thanks for the precision.
->>>>> In any case my point was: can we allow the EMU CD to go OFF or prevent
->>>>> it from doing so? We need to answer that question first.
->>>>>
->>>>
->>>> The idea I've suggested is to use runtime PM for this.  As long as the
->>>> PMU is in use, it will be runtime PM enabled (and not allowed to go into
->>>> HWSUP idle.)  When it is not used, it will be allowed to HWSUP idle, and
->>>> then be reset.  The next time it is needed, the runtime resume will need
->>>> to do a full re-init.
->>>
->>> Oh, but does that mean that this driver is not pm_runtime adapted yet?
->>>
->> 
->> Actually, it is.  Ming Lei has done it.
->> 
->> Currently, Will has collected this[1] and is waiting (patiently) for us
->> to produce a real fix that doesn't kill PM in the process.
->
-> I had to make a couple mods to Ming's patches but I do have something
-> working now that _should_ not break PM. However, per my previous email
-> (in response to Benoit's) I am struggling with the definition of the
-> CLKDM_CAN_XXXXXX_AUTO flags to know the correct way to fix this.
->
-> I was going to send out my patches, but I wanted to get some more
-> feedback on this first.
+I think this is the only way to keep this all building and booting
+for each patch in the series, no? If so, then we should select this
+option. The first patch should be broken up into more readable patches,
+it seems that you can do that without breaking things.
+ 
+> Please let me know whether you are fine in taking patch series
+> as in v4 (that converts all boards at once, with further revisions
+> based on review comments).
 
-While waiting for feeback, if you set the flags to CAN_FORCE_WAKEUP and
-CAN_HWSUP, can you get the PMU interrupts working after an EMU CD idle
-transition (and reset.)
+It seems that there are still some pending comments and we need to
+have the hwmod entries merged first by Paul.
 
-Kevin
+Regards,
+
+Tony
