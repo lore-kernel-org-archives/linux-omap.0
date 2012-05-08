@@ -1,42 +1,82 @@
 From: Benoit Cousson <b-cousson@ti.com>
-Subject: [PATCH 0/3] ARM: OMAP: OMAP4 DTS updates
-Date: Tue, 8 May 2012 18:37:24 +0200
-Message-ID: <1336495047-5882-1-git-send-email-b-cousson@ti.com>
+Subject: [PATCH 2/3] arm/dts: omap4-sdp: Add LEDs support
+Date: Tue, 8 May 2012 18:37:26 +0200
+Message-ID: <1336495047-5882-3-git-send-email-b-cousson@ti.com>
+References: <1336495047-5882-1-git-send-email-b-cousson@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from comal.ext.ti.com ([198.47.26.152]:34541 "EHLO comal.ext.ti.com"
+Received: from arroyo.ext.ti.com ([192.94.94.40]:51343 "EHLO arroyo.ext.ti.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1755815Ab2EHQhl (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Tue, 8 May 2012 12:37:41 -0400
+	id S1756022Ab2EHQiF (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Tue, 8 May 2012 12:38:05 -0400
+In-Reply-To: <1336495047-5882-1-git-send-email-b-cousson@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: tony@atomide.com
 Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, devicetree-discuss@lists.ozlabs.org, Benoit Cousson <b-cousson@ti.com>
 
-Hi Tony,
+Add the debug LEDs nodes for an OMAP4 SDP/Blaze.
 
-Here is a small series I have done for 3.4 but never posted before.
-It adds GPIO node for twl4030 embedded gpio controller and some LEDs data
-to be able to get rid of the static init done in board file right now.
+Signed-off-by: Benoit Cousson <b-cousson@ti.com>
+---
+ arch/arm/boot/dts/omap4-sdp.dts |   43 +++++++++++++++++++++++++++++++++++++++
+ 1 files changed, 43 insertions(+), 0 deletions(-)
 
-It is based on arm-soc/omap/dt-missed-3.4 to get the previous patches not yet
-in linus/master.
-
-The patches are available here:
-git://git.kernel.org/pub/scm/linux/kernel/git/bcousson/linux-omap-dt.git for_3.5/dts/all
-
-Regards,
-Benoit
-
-
-Benoit Cousson (3):
-  arm/dts: twl4030: Add twl4030-gpio node
-  arm/dts: omap4-sdp: Add LEDs support
-  arm/dts: omap4-panda: Add LEDs support
-
- arch/arm/boot/dts/omap4-panda.dts |   15 +++++++++++++
- arch/arm/boot/dts/omap4-sdp.dts   |   43 +++++++++++++++++++++++++++++++++++++
- arch/arm/boot/dts/twl4030.dtsi    |    8 +++++++
- 3 files changed, 66 insertions(+), 0 deletions(-)
+diff --git a/arch/arm/boot/dts/omap4-sdp.dts b/arch/arm/boot/dts/omap4-sdp.dts
+index 67b2e98..e5eeb6f 100644
+--- a/arch/arm/boot/dts/omap4-sdp.dts
++++ b/arch/arm/boot/dts/omap4-sdp.dts
+@@ -27,6 +27,49 @@
+ 		enable-active-high;
+ 		regulator-boot-on;
+ 	};
++
++	leds {
++		compatible = "gpio-leds";
++		debug0 {
++			label = "omap4:green:debug0";
++			gpios = <&gpio2 29 0>; /* 61 */
++		};
++
++		debug1 {
++			label = "omap4:green:debug1";
++			gpios = <&gpio1 30 0>; /* 30 */
++		};
++
++		debug2 {
++			label = "omap4:green:debug2";
++			gpios = <&gpio1 7 0>; /* 7 */
++		};
++
++		debug3 {
++			label = "omap4:green:debug3";
++			gpios = <&gpio1 8 0>; /* 8 */
++		};
++
++		debug4 {
++			label = "omap4:green:debug4";
++			gpios = <&gpio2 18 0>; /* 50 */
++		};
++
++		user1 {
++			label = "omap4:blue:user";
++			gpios = <&gpio6 9 0>; /* 169 */
++		};
++
++		user2 {
++			label = "omap4:red:user";
++			gpios = <&gpio6 10 0>; /* 170 */
++		};
++
++		user3 {
++			label = "omap4:green:user";
++			gpios = <&gpio5 11 0>; /* 139 */
++		};
++	};
+ };
+ 
+ &i2c1 {
+-- 
+1.7.0.4
 
