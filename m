@@ -1,159 +1,118 @@
-From: "J, KEERTHY" <j-keerthy@ti.com>
-Subject: Re: [PATCH V3 00/10] PM: Create the AVS(Adaptive Voltage Scaling)
-Date: Tue, 8 May 2012 09:18:48 +0530
-Message-ID: <CAJ6a13arx4bNzc1ByXj=E9gwE3hrw7muZUwmbo3doYAzK-pAnQ@mail.gmail.com>
-References: <1335462041-4949-1-git-send-email-j-keerthy@ti.com>
-	<20120426191159.GA9415@sirena.org.uk>
-	<CAJ6a13a6WN9h1QZynpEOf-R6RXwWBZ2eOPkTeNc15JX_YfAz_w@mail.gmail.com>
-	<20120427175657.GP18260@opensource.wolfsonmicro.com>
-	<87397o3n4y.fsf@ti.com>
-	<331ABD5ECB02734CA317220B2BBEABC13E9B1A67@DBDE01.ent.ti.com>
-	<87mx5jy2li.fsf@ti.com>
+From: Archit Taneja <a0393947@ti.com>
+Subject: Re: [PATCH v2 1/4] OMAPDSS: APPLY: Add manager timings as extra_info
+ in private data
+Date: Tue, 8 May 2012 09:54:43 +0530
+Message-ID: <4FA8A00B.4040600@ti.com>
+References: <1334561027-28569-1-git-send-email-archit@ti.com>  <1336028864-13895-1-git-send-email-archit@ti.com>  <1336028864-13895-2-git-send-email-archit@ti.com> <1336402071.2667.16.camel@deskari>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: text/plain; charset="UTF-8"; format=flowed
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aog134.obsmtp.com ([74.125.149.83]:37764 "EHLO
-	na3sys009aog134.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755355Ab2EHDst convert rfc822-to-8bit
-	(ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Mon, 7 May 2012 23:48:49 -0400
-Received: by obbtb18 with SMTP id tb18so9203618obb.19
-        for <linux-omap@vger.kernel.org>; Mon, 07 May 2012 20:48:48 -0700 (PDT)
-In-Reply-To: <87mx5jy2li.fsf@ti.com>
+Received: from arroyo.ext.ti.com ([192.94.94.40]:44563 "EHLO arroyo.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1755333Ab2EHEZ2 (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Tue, 8 May 2012 00:25:28 -0400
+In-Reply-To: <1336402071.2667.16.camel@deskari>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Kevin Hilman <khilman@ti.com>, "AnilKumar, Chimata" <anilkumar@ti.com>
-Cc: Mark Brown <broonie@opensource.wolfsonmicro.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, "rjw@sisk.pl" <rjw@sisk.pl>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-pm@lists.linux-foundation.org" <linux-pm@lists.linux-foundation.org>, "Pihet-XID, Jean" <j-pihet@ti.com>
+To: Tomi Valkeinen <tomi.valkeinen@ti.com>
+Cc: linux-omap@vger.kernel.org, linux-fbdev@vger.kernel.org
 
-On Tue, May 8, 2012 at 5:18 AM, Kevin Hilman <khilman@ti.com> wrote:
-> "AnilKumar, Chimata" <anilkumar@ti.com> writes:
+Hi,
+
+On Monday 07 May 2012 08:17 PM, Tomi Valkeinen wrote:
+> Hi,
 >
->> On Sat, Apr 28, 2012 at 02:31:17, Hilman, Kevin wrote:
->>> Hi Mark,
->>>
->>> Mark Brown <broonie@opensource.wolfsonmicro.com> writes:
->>>
->>> > On Fri, Apr 27, 2012 at 11:09:10AM +0530, J, KEERTHY wrote:
->>> >
->>> >> Devfreq and cpufreq are related to dynamic frequency/voltage swi=
-tching between
->>> >> pre defined Operating Performance Points or the OPPs. Every OPP =
-being
->>> >> a voltage/frequency pair. Smartreflex is a different
->>> >> power management technique.
->>> >
->>> > But presumably these things should integrate somehow - for exampl=
-e,
->>> > should devfreq and cpufreq be providing inputs into what AVS is d=
-oing,
->>> > and if so how?
->>>
->>> The way it is currently designed, cpufreq/devfreq/regulator layers =
-don't
->>> need to know about AVS.
->>>
->>> The higher-level layers only know about the "nominal" voltage. =A0A=
-VS
->>> hardware does automatic, adaptive, micro-adjustments around that no=
-minal
->>> voltage, and these micro-adjustments are managed by the AVS hardwar=
-e
->>> sending commands to the PMIC. =A0(specifically, on OMAP, the AVS se=
-nsors
->>> provide inputs to the voltage processor (VP) which provide inputs t=
-o the
->>> voltage controller (VC) which sends commands to the PMIC[1].)
->>>
->>> The driver proposed here is primarily for initializing the various
->>> parameters/sensitivity/etc. of the AVS hardware, but the actual vol=
-tage
->>> adjustments are done in hardware by VC/VP.
->>>
->>> The only thing the higher-level layers might potentially need to do=
- to
->>> enable/disable AVS around transitions (e.g. when changing OPP, AVS =
-is
->>> disabled before changing OPP and only re-enabled when the new nomin=
-al
->>> voltage has been acheived.)
->>>
->>> On OMAP, we handle this inside the OMAP-specific voltage layer whic=
-h is
->>> called by the regulator framework, so even the regulators do not ne=
-ed
->>> any knowledge of AVS.
+> On Thu, 2012-05-03 at 12:37 +0530, Archit Taneja wrote:
+>> DISPC manager size and DISPC manager blanking parameters(for LCD managers)
+>> follow the shadow register programming model. Currently, they are programmed
+>> directly by the interface drivers.
 >>
->> Kevin,
+>> To configure manager timings using APPLY, there is a need to introduce extra
+>> info flags for managers, similar to what is done for overlays. This is needed
+>> because timings aren't a part of overlay_manager_info struct configured by a
+>> user of DSS, they are configured internally by the interface or panel drivers.
 >>
->> I want to point out some cases of SR implementation where this may n=
-ot
->> be true.
+>> Add dirty and shadow_dirty extra_info flags for managers, update these flags
+>> at the appropriate places. Rewrite the function extra_info_update_ongoing()
+>> slightly as checking for manager's extra_info flags can simplify the code a bit.
 >>
->> Devices like DM8168, DM8148 and AM335X use Class 2B implementation o=
-f SR.
+>> Create function dss_mgr_set_timings() which applies the new manager timings to
+>> extra_info.
 >>
->> Under this, SR module issues an interrupt to ARM when there is a nee=
-d to
->> change the voltage based on temperature changes, ageing etc.
->>
->> Once the interrupt arrives, kernel needs to adjust voltage using reg=
-ulator API.
->> The voltage change is a micro adjustment as in other SR classes.
+>> Signed-off-by: Archit Taneja<archit@ti.com>
 >
-> That can easily be handled writing a plugin specific to class 2B. =A0=
-This
-> driver was designed so plugins for other classes can be supported.
+> <snip>
 >
-> Sure, we might need some enhancements for other classes (we already k=
-now
-> that we will for class 1 support.) =A0However, the purpose of this se=
-ries
-> is to do the cleanups necessary for the driver to move to drivers/*.
+>> +static void dss_apply_mgr_timings(struct omap_overlay_manager *mgr,
+>> +		struct omap_video_timings *timings)
+>> +{
+>> +	struct mgr_priv_data *mp = get_mgr_priv(mgr);
+>> +
+>> +	mp->timings = *timings;
+>> +	mp->extra_info_dirty = true;
+>> +}
+>> +
+>> +void dss_mgr_set_timings(struct omap_overlay_manager *mgr,
+>> +		struct omap_video_timings *timings)
+>> +{
+>> +	unsigned long flags;
+>> +
+>> +	mutex_lock(&apply_lock);
+>> +
+>> +	spin_lock_irqsave(&data_lock, flags);
+>> +
+>> +	dss_apply_mgr_timings(mgr, timings);
+>> +
+>> +	spin_unlock_irqrestore(&data_lock, flags);
+>> +
+>> +	mutex_unlock(&apply_lock);
+>> +}
+>
+> With this, dpi.c&  others still need to use dispc_mgr_go(), which is
+> something that should be removed and done only from apply.c.
 
-AnilKumar,
-
-The intent of the series as explained by Kevin if to do the necessary c=
-lean up
-for the driver to move from mach-omap to drivers/*. We will for sure ne=
-ed
-more enhancements for other classes support.
+Ah ok, so with this set, dss_mgr_set_timings() doesn't ensure that the 
+configuration is taken in, the configuration may go in the next 
+overlay/manager enable or the next mgr_apply, but that may happen much 
+later.
 
 >
-> Support for additional classes can be added after the driver is moved
-> if/when folks are motivated to post that support upstream.
+> dss_<ovl|mgr>_<enable|disable>  functions handle GO, so you could have a
+> look at them. However, setting the timings is a bit different, so I'm
+> not sure how it should be done.
 >
->> The SR class 2B implementation on these devices does not exist in ma=
-inline.
->> I can point to some public repositories if you are interested in tak=
-ing a look at
->> the current code.
+> I think we have a few different options:
 >
-> No thanks. =A0We can discuss it when you post support for it to mainl=
-ine.
+> - Separate omapdss internal function (in apply.c) that can be used to
+> set GO after set_timings
 >
-> Kevin
+> - set GO in dss_mgr_set_timings(), but don't block
 >
->> Implementation of this SR method is must on at least the DM8168 devi=
-ce and
->> I know some customers who are using it on their production systems.
->>
->> Regards
->> AnilKumar
->> --
->> To unsubscribe from this list: send the line "unsubscribe linux-kern=
-el" in
->> the body of a message to majordomo@vger.kernel.org
->> More majordomo info at =A0http://vger.kernel.org/majordomo-info.html
->> Please read the FAQ at =A0http://www.tux.org/lkml/
+> - set GO in dss_mgr_set_timings(), and block until the changes are in HW
+> (this is more or less what the dss_<ovl|mgr>_<enable|disable>  functions
+> do).
+>
+> The first one would be good if the interface drivers would need to set
+> multiple configurations, and we don't want to block after each set call.
+> But we don't have anything like that, at least currently.
+>
+> The second one avoids blocking, but could perhaps cause problems because
+> the timings are not actually used yet when the function returns.
+>
+> I don't see any problem with the last option, so I'm slightly leaning
+> towards it.
 
+The 3rd option looks good to me too, but I'm wondering if we would need 
+to do the same things with all manager parameters which are in shadow 
+registers. Like in dpi.c, in dpi_set_mode() we set the DISPC_POL_FREQ 
+and DISPC_DIVISORo registers, writing GO for each parameter would be in 
+efficient, it's good that it doesn't happen much often. Maybe we could 
+group the rest of these parameters.
 
+Archit
 
---=20
-Regards and Thanks,
-Keerthy
---
-To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+>
+>   Tomi
+>
+
