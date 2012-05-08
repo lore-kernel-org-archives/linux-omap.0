@@ -1,296 +1,139 @@
-From: Jean Pihet <jean.pihet@newoldbits.com>
-Subject: Re: [PATCH 2/6] ARM: OMAP2+: PM: introduce power domains functional states
-Date: Tue, 8 May 2012 10:40:27 +0200
-Message-ID: <CAORVsuXUbz_f54x=hoFLEQpfAGTDcZGnTQ-fBgY_j415LC0TiQ@mail.gmail.com>
-References: <1334752782-28804-1-git-send-email-j-pihet@ti.com>
-	<1334752782-28804-3-git-send-email-j-pihet@ti.com>
-	<alpine.DEB.2.00.1205070043230.9984@utopia.booyaka.com>
+From: Igor Grinberg <grinberg@compulab.co.il>
+Subject: Re: [PATCH] [OMAP] Cleanup Beagleboard DVI reset gpio
+Date: Tue, 08 May 2012 11:41:44 +0300
+Message-ID: <4FA8DC48.5020901@compulab.co.il>
+References: <1336420852-2746-1-git-send-email-Russ.Dill@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-vb0-f46.google.com ([209.85.212.46]:60542 "EHLO
-	mail-vb0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751214Ab2EHIk2 convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 8 May 2012 04:40:28 -0400
-Received: by vbbff1 with SMTP id ff1so1676695vbb.19
-        for <linux-omap@vger.kernel.org>; Tue, 08 May 2012 01:40:27 -0700 (PDT)
-In-Reply-To: <alpine.DEB.2.00.1205070043230.9984@utopia.booyaka.com>
+Received: from 50.23.254.54-static.reverse.softlayer.com ([50.23.254.54]:51716
+	"EHLO softlayer.compulab.co.il" rhost-flags-OK-OK-OK-FAIL)
+	by vger.kernel.org with ESMTP id S1751542Ab2EHIlt (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 8 May 2012 04:41:49 -0400
+In-Reply-To: <1336420852-2746-1-git-send-email-Russ.Dill@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Paul Walmsley <paul@pwsan.com>
-Cc: linux-omap@vger.kernel.org, b-cousson@ti.com, khilman@ti.com, linux-arm-kernel@lists.infradead.org, Jean Pihet <j-pihet@ti.com>
+To: Russ Dill <Russ.Dill@ti.com>
+Cc: linux-omap@vger.kernel.org, chase.maupin@ti.com
 
-Paul,
+Hi Russ,
 
-On Mon, May 7, 2012 at 11:28 AM, Paul Walmsley <paul@pwsan.com> wrote:
-> Hi
->
-> On Wed, 18 Apr 2012, jean.pihet@newoldbits.com wrote:
->
->> From: Jean Pihet <j-pihet@ti.com>
->>
->> Introduce functional (or logical) states for power domains and the
->> API functions to read the power domains settings and to convert
->> between the functional (i.e. logical) and the internal (or registers=
-)
->> values.
->>
->> OMAP2, OMAP3 and OMAP4 platforms are defining a conversion routine.
->>
->> In the new API the function omap_set_pwrdm_state takes the functiona=
-l
->> states as parameter; while at it the function is moved to the power
->> domains code.
->>
->> The memory and logic states are not using the functional states, thi=
-s
->> comes as a subsequent patch.
->>
->> Signed-off-by: Jean Pihet <j-pihet@ti.com>
->
-> This patch results in several checkpatch warnings; please resolve the=
-m.
-Oops. Will check and update.
+On 05/07/12 23:00, Russ Dill wrote:
+> This removes several boot warnings from board-omap3beagle.c:
+> 
+>  - gpio_request: gpio--22 (DVI reset) status -22
+>  - Unable to get DVI reset GPIO
+> 
+> There is a combination of leftover code and revision confusion.
+> Additionally, xM support is currently a hack.
+> 
+> For original Beagleboard this removes the double initialization of GPIO
+> 170, properly configures it as an output, and wraps the initialization
+> in an if block so that xM does not attempt to request it.
+> 
+> For Beagleboard xM it removes reference to GPIO 129 which was part
+> of rev A1 and A2 designs, but never functioned. It then properly assigns
+> beagle_dvi_device.reset_gpio in beagle_twl_gpio_setup and removes the
+> hack of initializing it high.
+> 
+> Unfortunately, there is no way to tell the difference between xM A2 and
+> A3. However, GPIO 129 does not function on rev A1 and A2, and the TWL
+> GPIO used on A3 and beyond is not used on rev A1 and A2, there are no
+> problems created by this fix.
+> 
+> Tested on Beagleboard-xM Rev C1 and Beagleboard Rev B4.
+> 
+> Signed-off-by: Russ Dill <Russ.Dill@ti.com>
+> ---
+>  arch/arm/mach-omap2/board-omap3beagle.c |   35 +++++++++++++++++--------------
+>  1 file changed, 19 insertions(+), 16 deletions(-)
+> 
+> diff --git a/arch/arm/mach-omap2/board-omap3beagle.c b/arch/arm/mach-omap2/board-omap3beagle.c
+> index 3b9647a..fcb7b56 100644
+> --- a/arch/arm/mach-omap2/board-omap3beagle.c
+> +++ b/arch/arm/mach-omap2/board-omap3beagle.c
+> @@ -86,7 +86,7 @@ static struct {
+>  } beagle_config = {
+>  	.mmc1_gpio_wp = -EINVAL,
+>  	.usb_pwr_level = GPIOF_OUT_INIT_LOW,
+> -	.reset_gpio = 129,
+> +	.reset_gpio = -EINVAL,
 
->
->> ---
->> =A0arch/arm/mach-omap2/pm.c =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 | =A0=
- 66 -----------
->> =A0arch/arm/mach-omap2/powerdomain-common.c =A0 | =A0 61 ++++++++++
->> =A0arch/arm/mach-omap2/powerdomain.c =A0 =A0 =A0 =A0 =A0| =A0175 +++=
-+++++++++++++++++++++++++
->> =A0arch/arm/mach-omap2/powerdomain.h =A0 =A0 =A0 =A0 =A0| =A0 21 +++=
-+
->> =A0arch/arm/mach-omap2/powerdomain2xxx_3xxx.c | =A0 =A05 +
->> =A0arch/arm/mach-omap2/powerdomain44xx.c =A0 =A0 =A0| =A0 =A02 +
->> =A06 files changed, 264 insertions(+), 66 deletions(-)
->>
-=2E..
+While, you are at this one, can you please add a comment
+on what device does this gpio reset?
 
->> +/*
->> + * Functional (i.e. logical) to internal (i.e. registers)
->> + * values for the power domains states
->> + */
->
-> Please use kerneldoc-style function comments.
-Ok
+>  	.usr_button_gpio = 4,
+>  };
+>  
+> @@ -238,12 +238,17 @@ static struct omap_dss_board_info beagle_dss_data = {
+>  
+>  static void __init beagle_display_init(void)
+>  {
+> -	int r;
+> -
+> -	r = gpio_request_one(beagle_dvi_device.reset_gpio, GPIOF_OUT_INIT_LOW,
+> -			     "DVI reset");
+> -	if (r < 0)
+> -		printk(KERN_ERR "Unable to get DVI reset GPIO\n");
+> +	if (beagle_config.reset_gpio != -EINVAL) {
 
->
->> +int omap2_pwrdm_func_to_pwrst(struct powerdomain *pwrdm, u8 func_pw=
-rst)
->> +{
->> + =A0 =A0 int ret;
->> +
->> + =A0 =A0 switch (func_pwrst) {
->> + =A0 =A0 case PWRDM_FUNC_PWRST_ON:
->> + =A0 =A0 =A0 =A0 =A0 =A0 ret =3D PWRDM_POWER_ON;
->> + =A0 =A0 =A0 =A0 =A0 =A0 break;
->> + =A0 =A0 case PWRDM_FUNC_PWRST_INACTIVE:
->> + =A0 =A0 =A0 =A0 =A0 =A0 ret =3D PWRDM_POWER_INACTIVE;
->> + =A0 =A0 =A0 =A0 =A0 =A0 break;
->> + =A0 =A0 case PWRDM_FUNC_PWRST_CSWR:
->> + =A0 =A0 case PWRDM_FUNC_PWRST_OSWR:
->> + =A0 =A0 =A0 =A0 =A0 =A0 ret =3D PWRDM_POWER_RET;
->> + =A0 =A0 =A0 =A0 =A0 =A0 break;
->> + =A0 =A0 case PWRDM_FUNC_PWRST_OFF:
->> + =A0 =A0 =A0 =A0 =A0 =A0 ret =3D PWRDM_POWER_OFF;
->> + =A0 =A0 =A0 =A0 =A0 =A0 break;
->> + =A0 =A0 default:
->> + =A0 =A0 =A0 =A0 =A0 =A0 ret =3D -1;
->> + =A0 =A0 }
->> +
->> + =A0 =A0 return ret;
->> +}
->
-> At a quick glance, I don't think that this function is appropriate fo=
-r all
-> OMAP2+ chips. =A0For example, off-mode is not supported in our OMAP2x=
-xx
-> kernels. =A0And OMAP2xxx/3xxx do not support the INACTIVE powerstate.=
- =A0So
-> probably this function should differ by chip, and be located in the
-> powerdomain[2-4]*xx*.c files.
-I hope to make this function as generic as possible, hence the
-location (powerdomain-common.c). Some states are not programmed by the
-pwrdm_* functions since there forbidden by the contents of the
-pwrdm->pwrst field.
-Now if the need arises some platform specific function can be defined
-for conversion functions since the pwrdm->ops function pointers are
-used. I do not think it is needed now but it can easily be changed.
+Should this be:
+if (gpio_is_valid(beagle_config.reset_gpio)) {
+?
 
-> Also, what about the logic and memory bank power states? =A0Shouldn't=
- this
-> function pass those back as well?
-Cf. in the description "The memory and logic states are not using the
-functional states, this comes as a subsequent patch."
+> +		int r;
+> +
+> +		omap_mux_init_gpio(beagle_config.reset_gpio, OMAP_PIN_OUTPUT);
+> +		r = gpio_request_one(beagle_config.reset_gpio,
+> +				     GPIOF_OUT_INIT_LOW, "DVI reset");
+> +		if (r < 0)
+> +			printk(KERN_ERR "Unable to get DVI reset GPIO\n");
+> +		else
+> +			beagle_dvi_device.reset_gpio = beagle_config.reset_gpio;
+> +	}
+>  }
+>  
+>  #include "sdram-micron-mt46h32m32lf-6.h"
+> @@ -296,11 +301,14 @@ static int beagle_twl_gpio_setup(struct device *dev,
+>  		if (r)
+>  			pr_err("%s: unable to configure nDVI_PWR_EN\n",
+>  				__func__);
+> -		r = gpio_request_one(gpio + 2, GPIOF_OUT_INIT_HIGH,
+> -				     "DVI_LDO_EN");
+> +
+> +		r = gpio_request_one(gpio + 2, GPIOF_OUT_INIT_LOW,
+> +				     "DVI_PU");
+>  		if (r)
+> -			pr_err("%s: unable to configure DVI_LDO_EN\n",
+> -				__func__);
+> +			pr_err("%s: unable to get DVI_PU GPIO\n", __func__);
+> +		else
+> +			beagle_dvi_device.reset_gpio = gpio + 2;
+> +
+>  	} else {
+>  		/*
+>  		 * REVISIT: need ehci-omap hooks for external VBUS
+> @@ -309,7 +317,6 @@ static int beagle_twl_gpio_setup(struct device *dev,
+>  		if (gpio_request_one(gpio + 1, GPIOF_IN, "EHCI_nOC"))
+>  			pr_err("%s: unable to configure EHCI_nOC\n", __func__);
+>  	}
+> -	beagle_dvi_device.reset_gpio = beagle_config.reset_gpio;
+>  
+>  	gpio_request_one(gpio + TWL4030_GPIO_MAX, beagle_config.usb_pwr_level,
+>  			"nEN_USB_PWR");
+> @@ -540,10 +547,6 @@ static void __init omap3_beagle_init(void)
+>  	omap_sdrc_init(mt46h32m32lf6_sdrc_params,
+>  				  mt46h32m32lf6_sdrc_params);
+>  
+> -	omap_mux_init_gpio(170, OMAP_PIN_INPUT);
+> -	/* REVISIT leave DVI powered down until it's needed ... */
+> -	gpio_request_one(170, GPIOF_OUT_INIT_HIGH, "DVI_nPD");
+> -
+>  	usb_musb_init(NULL);
+>  	usbhs_init(&usbhs_bdata);
+>  	omap_nand_flash_init(NAND_BUSWIDTH_16, omap3beagle_nand_partitions,
 
->
->> +
->> +/*
->> + * Internal (i.e. registers) to functional (i.e. logical) values
->> + * for the power domains states
->> + */
->
-> Please use kerneldoc-style function documentation.
-Ok
-
->
->> +int omap2_pwrdm_pwrst_to_func(struct powerdomain *pwrdm, u8 pwrst)
->
-> Probably best to use "func_pwrst" or "fpwrst" rather than simply "fun=
-c"
-> here.
-Ok. I am for 'omap2_pwrdm_pwrst_to_fpwrst(...)'.
-
->
->> +{
->> + =A0 =A0 int ret;
->> +
->> + =A0 =A0 switch (pwrst) {
->> + =A0 =A0 case PWRDM_POWER_ON:
->> + =A0 =A0 =A0 =A0 =A0 =A0 ret =3D PWRDM_FUNC_PWRST_ON;
->> + =A0 =A0 =A0 =A0 =A0 =A0 break;
->> + =A0 =A0 case PWRDM_POWER_INACTIVE:
->> + =A0 =A0 =A0 =A0 =A0 =A0 ret =3D PWRDM_FUNC_PWRST_INACTIVE;
->> + =A0 =A0 =A0 =A0 =A0 =A0 break;
->> + =A0 =A0 case PWRDM_POWER_RET:
->> + =A0 =A0 =A0 =A0 =A0 =A0 /*
->> + =A0 =A0 =A0 =A0 =A0 =A0 =A0* XXX warning: return OSWR in case of p=
-d in RET and
->> + =A0 =A0 =A0 =A0 =A0 =A0 =A0* logic in OFF
->> + =A0 =A0 =A0 =A0 =A0 =A0 =A0*/
->> + =A0 =A0 =A0 =A0 =A0 =A0 ret =3D PWRDM_FUNC_PWRST_CSWR;
->> + =A0 =A0 =A0 =A0 =A0 =A0 break;
->> + =A0 =A0 case PWRDM_POWER_OFF:
->> + =A0 =A0 =A0 =A0 =A0 =A0 ret =3D PWRDM_FUNC_PWRST_OFF;
->> + =A0 =A0 =A0 =A0 =A0 =A0 break;
->> + =A0 =A0 default:
->> + =A0 =A0 =A0 =A0 =A0 =A0 ret =3D -1;
->> + =A0 =A0 }
->> +
->> + =A0 =A0 return ret;
->> +}
->
-> This function also needs to check the bank power states and logic pow=
-er
-> states to determine what the actual functional powerstate is.
-Same remark as above + there is a comment about it in the code ("XXX wa=
-rning").
-
->> +
->> diff --git a/arch/arm/mach-omap2/powerdomain.c b/arch/arm/mach-omap2=
-/powerdomain.c
->> index 319b277..718fa43 100644
->> --- a/arch/arm/mach-omap2/powerdomain.c
->> +++ b/arch/arm/mach-omap2/powerdomain.c
->> @@ -466,6 +466,136 @@ int pwrdm_get_mem_bank_count(struct powerdomai=
-n *pwrdm)
->> =A0}
->>
->> =A0/**
->> + * pwrdm_func_to_pwrst - get the internal (i.e. registers) value ma=
-pped
->> + * to the functional state
->
-> Probably best to use "func_pwrst" or "fpwrst" rather than simply "fun=
-c"
-> here.
-Ok
-
->
->> + * @pwrdm: struct powerdomain * to query
->> + * @func_pwrst: functional power state
->> + *
->> + * Convert the functional power state to the platform specific powe=
-r
->> + * domain state value.
->> + * Returns the internal power domain state value or -EINVAL in case
->> + * of invalid parameters passed in.
->> + */
->> +int pwrdm_func_to_pwrst(struct powerdomain *pwrdm, u8 func_pwrst)
->> +{
->> + =A0 =A0 int ret =3D func_pwrst;
->> +
->> + =A0 =A0 if ((!pwrdm)|| (func_pwrst >=3D PWRDM_MAX_FUNC_PWRSTS))
->> + =A0 =A0 =A0 =A0 =A0 =A0 return -EINVAL;
->> +
->> + =A0 =A0 pr_debug("powerdomain: convert %0x func to pwrst for %s\n"=
-,
->> + =A0 =A0 =A0 =A0 =A0 =A0 =A0func_pwrst, pwrdm->name);
->> +
->> + =A0 =A0 if (arch_pwrdm && arch_pwrdm->pwrdm_func_to_pwrst) {
->> + =A0 =A0 =A0 =A0 =A0 =A0 ret =3D arch_pwrdm->pwrdm_func_to_pwrst(pw=
-rdm, func_pwrst);
->> + =A0 =A0 }
->> +
->> + =A0 =A0 return ret;
->> +}
->> +
->> +/**
->> + * pwrdm_pwrst_to_func - get the functional (i.e. logical) value ma=
-pped
->> + * to the internal state
->> + * @pwrdm: struct powerdomain * to query
->> + * @pwrst: internal power state
->> + *
->> + * Convert the internal power state to the power domain functional =
-value.
->> + * Returns the functional power domain state value or -EINVAL in ca=
-se
->> + * of invalid parameters passed in.
->> + */
->> +int pwrdm_pwrst_to_func(struct powerdomain *pwrdm, u8 pwrst)
->> +{
->> + =A0 =A0 int ret =3D pwrst;
->> +
->> + =A0 =A0 if ((!pwrdm)|| (pwrst >=3D PWRDM_MAX_PWRSTS))
->> + =A0 =A0 =A0 =A0 =A0 =A0 return -EINVAL;
->> +
->> + =A0 =A0 pr_debug("powerdomain: convert %0x pwrst to func for %s\n"=
-,
->> + =A0 =A0 =A0 =A0 =A0 =A0 =A0pwrst, pwrdm->name);
->> +
->> + =A0 =A0 if (arch_pwrdm && arch_pwrdm->pwrdm_pwrst_to_func) {
->> + =A0 =A0 =A0 =A0 =A0 =A0 ret =3D arch_pwrdm->pwrdm_pwrst_to_func(pw=
-rdm, pwrst);
->> + =A0 =A0 }
->> +
->> + =A0 =A0 return ret;
->> +}
->> +
->> +/* Types of sleep_switch used in omap_set_pwrdm_state */
->> +#define FORCEWAKEUP_SWITCH =A0 0
->> +#define LOWPOWERSTATE_SWITCH 1
->> +
->> +/**
->> + * omap_set_pwrdm_state - program next powerdomain power state
->> + * @pwrdm: struct powerdomain * to set
->> + * @func_pwrst: power domain functional state, one of the PWRDM_FUN=
-C_* macros
->> + *
->> + * This programs the pwrdm next functional state, sets the dependen=
-cies
->> + * and waits for the state to be applied.
->> + */
->> +int omap_set_pwrdm_state(struct powerdomain *pwrdm, u32 func_pwrst)
->
-> This should presumably get renamed to match the other function names =
-in
-> this file, to be something like pwrdm_set_func_pwrst() or something
-> similar.
-Ok that makes sense.
-
-=2E..
-
->
->
-> - Paul
-
-Thanks,
-Jean
---
-To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+-- 
+Regards,
+Igor.
