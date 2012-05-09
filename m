@@ -1,165 +1,144 @@
-From: Russell King - ARM Linux <linux@arm.linux.org.uk>
-Subject: Re: [PATCH] ARM: decompressor: Fix mmu mapping for non-DRAM
-	address space.
-Date: Wed, 9 May 2012 16:48:49 +0100
-Message-ID: <20120509154849.GA10375@n2100.arm.linux.org.uk>
-References: <1336398149-26153-1-git-send-email-santosh.shilimkar@ti.com> <20120508124116.GE17798@arm.com> <CAMQu2gxXB4GyddjrcKWwJ=KXx=MoDs7DdwhbOY85qkVJ1Vv3wA@mail.gmail.com> <20120508215554.GA18980@n2100.arm.linux.org.uk> <CAMQu2gzmZ1Af4sAxoT9WS_akY1gBrqffKE84rnbM_EUK8V8NHQ@mail.gmail.com> <20120509122348.GA30632@n2100.arm.linux.org.uk> <CAMQu2gzdwXwzhhFLtLXTj5e0a9cFeq5ReUcMT-tGUxTPUcV_4Q@mail.gmail.com>
+From: Tomi Valkeinen <tomi.valkeinen@ti.com>
+Subject: RE: [PATCH 2/2] Add LCD support for the LogicPD OMAP3530 DevKits
+Date: Wed, 09 May 2012 18:52:17 +0300
+Message-ID: <1336578737.3962.67.camel@deskari>
+References: <1336418480-32635-1-git-send-email-ashwin.bihari@logicpd.com>
+	 <1336418480-32635-3-git-send-email-ashwin.bihari@logicpd.com>
+	 <1336547775.2724.7.camel@deskari>
+	 <0520A3FE5EDCF24F88B3F1451CFC64AE04A34D4C8E@edprex01>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: multipart/signed; micalg="pgp-sha1"; protocol="application/pgp-signature";
+	boundary="=-z+KsRMF2nOUmJmQoioRo"
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from caramon.arm.linux.org.uk ([78.32.30.218]:37548 "EHLO
-	caramon.arm.linux.org.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1758008Ab2EIPt5 (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 9 May 2012 11:49:57 -0400
-Content-Disposition: inline
-In-Reply-To: <CAMQu2gzdwXwzhhFLtLXTj5e0a9cFeq5ReUcMT-tGUxTPUcV_4Q@mail.gmail.com>
+Received: from na3sys009aog129.obsmtp.com ([74.125.149.142]:46994 "EHLO
+	na3sys009aog129.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1760023Ab2EIPwX (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 9 May 2012 11:52:23 -0400
+Received: by lahc1 with SMTP id c1so134439lah.4
+        for <linux-omap@vger.kernel.org>; Wed, 09 May 2012 08:52:20 -0700 (PDT)
+In-Reply-To: <0520A3FE5EDCF24F88B3F1451CFC64AE04A34D4C8E@edprex01>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "Shilimkar, Santosh" <santosh.shilimkar@ti.com>
-Cc: Catalin Marinas <catalin.marinas@arm.com>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, R Sricharan <r.sricharan@ti.com>
+To: Ashwin Bihari <ashwin.bihari@logicpd.com>
+Cc: linux-omap <linux-omap@vger.kernel.org>, Tony Lindgren <tony@atomide.com>
 
-On Wed, May 09, 2012 at 06:00:10PM +0530, Shilimkar, Santosh wrote:
-> On Wed, May 9, 2012 at 5:53 PM, Russell King - ARM Linux
-> <linux@arm.linux.org.uk> wrote:
-> > On Wed, May 09, 2012 at 02:20:28PM +0530, Shilimkar, Santosh wrote:
-> >> The only change done common code is =A0clearing 'XN' bit for DRAM
-> >> region in page table entries. The other change of setting the DACR
-> >> register is done in ARMv7 specific code.
-> >
-> > Yes, XN is an ARMv6+ thing. =A0Before ARMv5, it was implementation =
-defined.
-> >
-> > Some implementations used the bit to mean "allow writes to update t=
-he
-> > cache". =A0Other implementations labelled this bit as "should be ze=
-ro"
-> > while others labelled it as "should be one".
-> >
-> Good to know.
+
+--=-z+KsRMF2nOUmJmQoioRo
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: quoted-printable
+
+On Wed, 2012-05-09 at 10:38 -0500, Ashwin Bihari wrote:
+> > -----Original Message-----
+> > From: Tomi Valkeinen [mailto:tomi.valkeinen@ti.com]
+> > Sent: Wednesday, May 09, 2012 3:16 AM
+> > To: Ashwin Bihari
+> > Cc: linux-omap; Tony Lindgren
+> > Subject: Re: [PATCH 2/2] Add LCD support for the LogicPD OMAP3530 DevKi=
+ts
 >=20
-> > The upshot of this is, we know that having this bit as '1' means th=
-at
-> > all the CPUs we support today work. =A0I would be _very_ concerned =
-to
-> > change this bit to zero as we _really_ don't know how the pre-ARMv6
-> > CPUs would react.
-> >
-> I agree.
+> <snip>
+> =20
+> > > +static int omap3logic_panel_enable_lcd(struct omap_dss_device
+> > > +*dssdev) {
+> > > +	gpio_set_value(LCD_PANEL_PWR, 1);
+> > > +	if (machine_is_omap3530_lv_som())
+> > > +		gpio_set_value(OMAP3530_LV_SOM_BACKLIGHT_PWR, 1);
+> > > +	else if (machine_is_omap3_torpedo()) {
+> > > +		gpio_set_value(OMAP3530_TORPEDO_BACKLIGHT_PWR, 1);
+> > > +
+> > > +		gpio_set_value(OMAP3530_TORPEDO_MDISP, 1);
+> > > +	}
+> > > +
+> > > +	return 0;
+> > > +}
+> > > +
+> > > +static int omap3logic_panel_disable_lcd(struct omap_dss_device
+> > > +*dssdev) {
+> > > +	gpio_set_value(LCD_PANEL_PWR, 0);
+> > > +	if (machine_is_omap3530_lv_som())
+> > > +		gpio_set_value(OMAP3530_LV_SOM_BACKLIGHT_PWR, 0);
+> > > +	else if (machine_is_omap3_torpedo()) {
+> > > +		gpio_set_value(OMAP3530_TORPEDO_BACKLIGHT_PWR, 0);
+> > > +
+> > > +		gpio_set_value(OMAP3530_TORPEDO_MDISP, 0);
+> > > +	}
+> > > +
+> > > +	return 0;
+> > > +}
+> >=20
+> > This doesn't play well with device-tree. We can't do such callbacks whe=
+n we
+> > move to DT.
+> >=20
+> > I know we have similar code for other boards, and this can't be properl=
+y fixed
+> > right now, but I'm still a bit hesitant to add more such code because I=
+'m the
+> > one that has to clean it up later for DT =3D).
+> >=20
+> > I can handle the LCD_PANEL_PWR gpio, but the backlight is something tha=
+t
+> > should be removed from the panel enable callbacks. You could look at
+> > drivers/video/backlight/ and see if there's something there that could =
+be
+> > used for your board. Or implement a new BL driver, if nothing fits.
+> >=20
+> >  Tomi
 >=20
-> > The solution to this is pretty simple - if ARMv6+ needs a different
-> > base section mapping value, then we need to extract that from the c=
-ode
-> > and pass in the base section mapping value.
-> >
-> > I'll sort out a patch later today for this.
-> Great.
+> Tomi,
+>=20
+> Let me take a look at your linux-omap-dss2 tree and learn a bit more abou=
+t DT and figure out how to modify the LCD support so it better aligns with =
+your work and I'll re-submit that patch again..
 
-This works for my 4430SDP board.  I haven't booted it on anything else =
-yet.
-Please can you check that this solves the issue for you?  Thanks.
+I haven't published any DT stuff yet. But there's the DT cleanup series
+I have posted, which tries to re-structure stuff for some displays to be
+more DT compatible.
 
- arch/arm/boot/compressed/head.S |   29 ++++++++++++++++++-----------
- 1 files changed, 18 insertions(+), 11 deletions(-)
+The basic idea is that with DT there are no board files, and all device
+specific configuration values are in the DT data. So GPIO numbers etc.
+are defined in the DT data, and the device driver will read them and use
+them.
 
-diff --git a/arch/arm/boot/compressed/head.S b/arch/arm/boot/compressed=
-/head.S
-index dc7e8ce..5ad33a4 100644
---- a/arch/arm/boot/compressed/head.S
-+++ b/arch/arm/boot/compressed/head.S
-@@ -567,6 +567,12 @@ __armv3_mpu_cache_on:
- 		mcr	p15, 0, r0, c7, c0, 0	@ invalidate whole cache v3
- 		mov	pc, lr
-=20
-+#ifdef CONFIG_CPU_DCACHE_WRITETHROUGH
-+#define CB_BITS 0x08
-+#else
-+#define CB_BITS 0x0c
-+#endif
-+
- __setup_mmu:	sub	r3, r4, #16384		@ Page directory size
- 		bic	r3, r3, #0xff		@ Align the pointer
- 		bic	r3, r3, #0x3f00
-@@ -578,17 +584,14 @@ __setup_mmu:	sub	r3, r4, #16384		@ Page directory=
- size
- 		mov	r9, r0, lsr #18
- 		mov	r9, r9, lsl #18		@ start of RAM
- 		add	r10, r9, #0x10000000	@ a reasonable RAM size
--		mov	r1, #0x12
--		orr	r1, r1, #3 << 10
-+		mov	r1, #0x12		@ XN|U + section mapping
-+		orr	r1, r1, #3 << 10	@ AP=3D11
- 		add	r2, r3, #16384
- 1:		cmp	r1, r9			@ if virt > start of RAM
--#ifdef CONFIG_CPU_DCACHE_WRITETHROUGH
--		orrhs	r1, r1, #0x08		@ set cacheable
--#else
--		orrhs	r1, r1, #0x0c		@ set cacheable, bufferable
--#endif
--		cmp	r1, r10			@ if virt > end of RAM
--		bichs	r1, r1, #0x0c		@ clear cacheable, bufferable
-+		cmphs	r10, r1			@   && end of RAM > virt
-+		bic	r1, r1, #0x1c		@ clear XN|U + C + B
-+		orrlo	r1, r1, #0x10		@ Set XN|U for non-RAM
-+		orrhs	r1, r1, r6		@ set RAM section settings
- 		str	r1, [r0], #4		@ 1:1 mapping
- 		add	r1, r1, #1048576
- 		teq	r0, r2
-@@ -599,7 +602,7 @@ __setup_mmu:	sub	r3, r4, #16384		@ Page directory s=
-ize
-  * so there is no map overlap problem for up to 1 MB compressed kernel=
-=2E
-  * If the execution is in RAM then we would only be duplicating the ab=
-ove.
-  */
--		mov	r1, #0x1e
-+		orr	r1, r6, #0x04		@ ensure B is set for this
- 		orr	r1, r1, #3 << 10
- 		mov	r2, pc
- 		mov	r2, r2, lsr #20
-@@ -620,6 +623,7 @@ __arm926ejs_mmu_cache_on:
- __armv4_mmu_cache_on:
- 		mov	r12, lr
- #ifdef CONFIG_MMU
-+		mov	r6, #CB_BITS | 0x12	@ U
- 		bl	__setup_mmu
- 		mov	r0, #0
- 		mcr	p15, 0, r0, c7, c10, 4	@ drain write buffer
-@@ -641,6 +645,7 @@ __armv7_mmu_cache_on:
- #ifdef CONFIG_MMU
- 		mrc	p15, 0, r11, c0, c1, 4	@ read ID_MMFR0
- 		tst	r11, #0xf		@ VMSA
-+		movne	r6, #CB_BITS | 0x02	@ !XN
- 		blne	__setup_mmu
- 		mov	r0, #0
- 		mcr	p15, 0, r0, c7, c10, 4	@ drain write buffer
-@@ -655,7 +660,7 @@ __armv7_mmu_cache_on:
- 		orr	r0, r0, #1 << 25	@ big-endian page tables
- #endif
- 		orrne	r0, r0, #1		@ MMU enabled
--		movne	r1, #-1
-+		movne	r1, #0xfffffffd		@ domain 0 =3D client
- 		mcrne	p15, 0, r3, c2, c0, 0	@ load page table pointer
- 		mcrne	p15, 0, r1, c3, c0, 0	@ load domain access control
- #endif
-@@ -668,6 +673,7 @@ __armv7_mmu_cache_on:
-=20
- __fa526_cache_on:
- 		mov	r12, lr
-+		mov	r6, #CB_BITS | 0x12	@ U
- 		bl	__setup_mmu
- 		mov	r0, #0
- 		mcr	p15, 0, r0, c7, c7, 0	@ Invalidate whole cache
-@@ -682,6 +688,7 @@ __fa526_cache_on:
-=20
- __arm6_mmu_cache_on:
- 		mov	r12, lr
-+		mov	r6, #CB_BITS | 0x12	@ U
- 		bl	__setup_mmu
- 		mov	r0, #0
- 		mcr	p15, 0, r0, c7, c0, 0	@ invalidate whole cache v3
---
-To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+But DT support is not working yet, and we anyway need to support both DT
+and the old way for some time, so the board files should be changed to
+this direction. What this means for dss is that the panel specific GPIOs
+etc. need to be defined in a device specific struct, which is passed to
+the panel driver.
+
+For example, see my cleanup series, and
+include/video/omap-panel-tfp410.h,
+drivers/video/omap2/displays/panel-tfp410.c and the board files using
+that.
+
+All this is still a bit alive and changing, so you could also choose to
+wait a bit until things stabilize =3D).
+
+ Tomi
+
+
+--=-z+KsRMF2nOUmJmQoioRo
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: This is a digitally signed message part
+Content-Transfer-Encoding: 7bit
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.4.11 (GNU/Linux)
+
+iQIcBAABAgAGBQJPqpKxAAoJEPo9qoy8lh71CEQP/2PTXes14JViBIIFRwJsmcLH
+u73JnEPZQbU59HoWlia0m/6a4vimN3S+iPtlEXqPpftRbRnJFD4xXKf8JVPRwEIQ
+kwdfy3LjJ6VKojW9ZteZOBfvJM89fMD6LP7eWOxYdnUHKr/y6lOLscHmo6unjuQk
+7GYSLm0B79erzsv6Be2B6b1XnwGjHGS6HqmDtynwV4JKODTiplIQEmccPIw+l0eb
+9zbZNlLYcaB8MDSPupnQyvuGh8y8hJU+jIwuSqOWPVuL363BCvP2cbCJZBu2VeyC
+mAzeqkd2iHsCWB3gq3jlzA/0VcZS8u24DiJnU//uATSP4Fm4OUerD3RZfP8dAzai
+Ch4nKuw4mfI/FovRjrhJXYryhi/Nv8y6VDn17Vx2CO2c5A0MV9Z97PwMqFM7vWst
+2L7KA/LSifNkYBawLm5i0g6Ti7/rereC2vqlPmJJ8+fbjIrOzUXk6lCiFFbpTTJA
+EhQSNndyqRs7bAj9mkGOH8ZWhFKVSB0CQnVDq1mgStxfgaOLzDYRmciPP8KtOi4G
+01mLUAOXZObOnUiRc6MwbsTENoyvfyW1KfONWg3wj7PUcQHhE2ul8k2Cr2u0d7Vg
+QSrRSbGXROwiKLSmynKEjNuYJDc61BcqqpQmj7urlqTM/n6JBMZXySWZGEDvyewA
+gAl5Ow/KSd5uPoRGsUux
+=ESmW
+-----END PGP SIGNATURE-----
+
+--=-z+KsRMF2nOUmJmQoioRo--
+
