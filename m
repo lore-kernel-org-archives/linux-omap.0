@@ -1,114 +1,213 @@
-From: Minchan Kim <minchan@kernel.org>
-Subject: Re: [PATCHv2 00/16] [FS, MM, block, MMC]: eMMC High Priority Interrupt
- Feature
-Date: Wed, 09 May 2012 09:45:04 +0900
-Message-ID: <4FA9BE10.1030007@kernel.org>
-References: <1336054995-22988-1-git-send-email-svenkatr@ti.com> <4FA8CF5E.1070202@kernel.org> <CANfBPZ-d-0FqY8Gruv+KDNoL3+FoQ68JEnxya5PydhY80x8yhA@mail.gmail.com>
+From: Paul Walmsley <paul@pwsan.com>
+Subject: Re: [PATCH 5/7] ARM: OMAP2: Use hwmod to initialize mmc for 2420
+Date: Tue, 8 May 2012 18:46:34 -0600 (MDT)
+Message-ID: <alpine.DEB.2.00.1205081844530.28088@utopia.booyaka.com>
+References: <20120424000607.17783.81686.stgit@muffinssi.local> <20120424000835.17783.50945.stgit@muffinssi.local>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
-Return-path: <owner-linux-mm@kvack.org>
-In-Reply-To: <CANfBPZ-d-0FqY8Gruv+KDNoL3+FoQ68JEnxya5PydhY80x8yhA@mail.gmail.com>
-Sender: owner-linux-mm@kvack.org
-To: "S, Venkatraman" <svenkatr@ti.com>
-Cc: linux-mmc@vger.kernel.org, cjb@laptop.org, linux-mm@kvack.org, linux-fsdevel@vger.kernel.org, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org, arnd.bergmann@linaro.org, alex.lemberg@sandisk.com, ilan.smith@sandisk.com, lporzio@micron.com, rmk+kernel@arm.linux.org.uk
+Content-Type: TEXT/PLAIN; charset=US-ASCII
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from utopia.booyaka.com ([72.9.107.138]:59297 "EHLO
+	utopia.booyaka.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755846Ab2EIAqe (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 8 May 2012 20:46:34 -0400
+In-Reply-To: <20120424000835.17783.50945.stgit@muffinssi.local>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Tony Lindgren <tony@atomide.com>
+Cc: linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org
 
-On 05/09/2012 01:31 AM, S, Venkatraman wrote:
+Hi Tony
 
-> On Tue, May 8, 2012 at 1:16 PM, Minchan Kim <minchan@kernel.org> wrote:
->> On 05/03/2012 11:22 PM, Venkatraman S wrote:
->>
->>> Standard eMMC (Embedded MultiMedia Card) specification expects to execute
->>> one request at a time. If some requests are more important than others, they
->>> can't be aborted while the flash procedure is in progress.
->>>
->>> New versions of the eMMC standard (4.41 and above) specfies a feature
->>> called High Priority Interrupt (HPI). This enables an ongoing transaction
->>> to be aborted using a special command (HPI command) so that the card is ready
->>> to receive new commands immediately. Then the new request can be submitted
->>> to the card, and optionally the interrupted command can be resumed again.
->>>
->>> Some restrictions exist on when and how the command can be used. For example,
->>> only write and write-like commands (ERASE) can be preempted, and the urgent
->>> request must be a read.
->>>
->>> In order to support this in software,
->>> a) At the top level, some policy decisions have to be made on what is
->>> worth preempting for.
->>>       This implementation uses the demand paging requests and swap
->>> read requests as potential reads worth preempting an ongoing long write.
->>>       This is expected to provide improved responsiveness for smarphones
->>> with multitasking capabilities - example would be launch a email application
->>> while a video capture session (which causes long writes) is ongoing.
->>
->>
->> Do you have a number to prove it's really big effective?
+On Mon, 23 Apr 2012, Tony Lindgren wrote:
+
+> This allows us to pass dma request lines in platform data to
+> MMC driver the same way as we already do for omap2430 and later.
 > 
-> What type of benchmarks would be appropriate to post ?
-> As you know, the response time of a card would vary depending on
-> whether the flash device
-> has enough empty blocks to write into and doesn't have to resort to GC during
-> write requests.
-> Macro benchmarks like iozone etc would be inappropriate here, as they won't show
-> the latency effects of individual write requests hung up doing page
-> reclaim, which happens
-> once in a while.
+> Signed-off-by: Tony Lindgren <tony@atomide.com>
+
+This might save you some time, I updated this patch to move the device 
+creation code to arch/arm/mach-omap2/msdi.c and to change the hwmod name 
+to 'msdi1' to conform with the new data.  Updated patch below.
 
 
-We don't have such special benchmark so you need time to think how to prove it.
-IMHO, you can use run-many-x-apps.sh which checks elapsed time to activate programs
-by posting by Wu long time ago. 
+- Paul
 
-http://www.spinics.net/lists/linux-mm/msg09653.html
+From: Tony Lindgren <tony@atomide.com>
+Date: Mon, 23 Apr 2012 17:08:35 -0700
+Subject: [PATCH] ARM: OMAP2: Use hwmod to initialize mmc for 2420
 
-Of course, your eMMC is used above 80~90% for triggering GC stress and
-your memory should be used up by dirty pages to happen reclaim.
+This allows us to pass dma request lines in platform data to
+MMC driver the same way as we already do for omap2430 and later.
+
+Signed-off-by: Tony Lindgren <tony@atomide.com>
+---
+ arch/arm/mach-omap2/devices.c |   59 -----------------------------------
+ arch/arm/mach-omap2/msdi.c    |   68 +++++++++++++++++++++++++++++++++++++++++
+ 2 files changed, 68 insertions(+), 59 deletions(-)
+
+diff --git a/arch/arm/mach-omap2/devices.c b/arch/arm/mach-omap2/devices.c
+index e433603..263a85f 100644
+--- a/arch/arm/mach-omap2/devices.c
++++ b/arch/arm/mach-omap2/devices.c
+@@ -27,7 +27,6 @@
  
-
->>
->> What I have a concern is when we got low memory situation.
->> Then, writing speed for page reclaim is important for response.
->> If we allow read preempt write and write is delay, it means read path takes longer time to
->> get a empty buffer pages in reclaim. In such case, it couldn't be good.
->>
-> 
-> I agree. But when writes are delayed anyway as it exceeds
-> hpi_time_threshold (the window
-> available for invoking HPI), it means that the device is in GC mode
-> and either read or write
-> could be equally delayed.  Note that even in case of interrupting a
-> write, a single block write
-> (which usually is too short to be interrupted, as designed) is
-> sufficient for doing a page reclaim,
-> and further write requests (including multiblock) would not be subject
-> to HPI, as they will
-> complete within the average time.
-
-
-My point is that it would be better for read to not preempt write-for-page_reclaim.
-And we can identify it by PG_reclaim. You can get the idea.
-
-Anyway, HPI is only feature of a device of many storages and you are requiring modification
-of generic layers although it's not big. So for getting justification and attracting many
-core guys(MM,FS,BLOCK), you should provide data at least. 
-
-
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-mmc" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
-> 
-
-
-
+ #include "iomap.h"
+ #include <plat/board.h>
+-#include <plat/mmc.h>
+ #include <plat/dma.h>
+ #include <plat/omap_hwmod.h>
+ #include <plat/omap_device.h>
+@@ -574,64 +573,6 @@ static inline void omap_init_aes(void) { }
+ 
+ /*-------------------------------------------------------------------------*/
+ 
+-#if defined(CONFIG_MMC_OMAP) || defined(CONFIG_MMC_OMAP_MODULE)
+-
+-static inline void omap242x_mmc_mux(struct omap_mmc_platform_data
+-							*mmc_controller)
+-{
+-	if ((mmc_controller->slots[0].switch_pin > 0) && \
+-		(mmc_controller->slots[0].switch_pin < OMAP_MAX_GPIO_LINES))
+-		omap_mux_init_gpio(mmc_controller->slots[0].switch_pin,
+-					OMAP_PIN_INPUT_PULLUP);
+-	if ((mmc_controller->slots[0].gpio_wp > 0) && \
+-		(mmc_controller->slots[0].gpio_wp < OMAP_MAX_GPIO_LINES))
+-		omap_mux_init_gpio(mmc_controller->slots[0].gpio_wp,
+-					OMAP_PIN_INPUT_PULLUP);
+-
+-	omap_mux_init_signal("sdmmc_cmd", 0);
+-	omap_mux_init_signal("sdmmc_clki", 0);
+-	omap_mux_init_signal("sdmmc_clko", 0);
+-	omap_mux_init_signal("sdmmc_dat0", 0);
+-	omap_mux_init_signal("sdmmc_dat_dir0", 0);
+-	omap_mux_init_signal("sdmmc_cmd_dir", 0);
+-	if (mmc_controller->slots[0].caps & MMC_CAP_4_BIT_DATA) {
+-		omap_mux_init_signal("sdmmc_dat1", 0);
+-		omap_mux_init_signal("sdmmc_dat2", 0);
+-		omap_mux_init_signal("sdmmc_dat3", 0);
+-		omap_mux_init_signal("sdmmc_dat_dir1", 0);
+-		omap_mux_init_signal("sdmmc_dat_dir2", 0);
+-		omap_mux_init_signal("sdmmc_dat_dir3", 0);
+-	}
+-
+-	/*
+-	 * Use internal loop-back in MMC/SDIO Module Input Clock
+-	 * selection
+-	 */
+-	if (mmc_controller->slots[0].internal_clock) {
+-		u32 v = omap_ctrl_readl(OMAP2_CONTROL_DEVCONF0);
+-		v |= (1 << 24);
+-		omap_ctrl_writel(v, OMAP2_CONTROL_DEVCONF0);
+-	}
+-}
+-
+-void __init omap242x_init_mmc(struct omap_mmc_platform_data **mmc_data)
+-{
+-	char *name = "mmci-omap";
+-
+-	if (!mmc_data[0]) {
+-		pr_err("%s fails: Incomplete platform data\n", __func__);
+-		return;
+-	}
+-
+-	omap242x_mmc_mux(mmc_data[0]);
+-	omap_mmc_add(name, 0, OMAP2_MMC1_BASE, OMAP2420_MMC_SIZE,
+-					INT_24XX_MMC_IRQ, mmc_data[0]);
+-}
+-
+-#endif
+-
+-/*-------------------------------------------------------------------------*/
+-
+ #if defined(CONFIG_HDQ_MASTER_OMAP) || defined(CONFIG_HDQ_MASTER_OMAP_MODULE)
+ #define OMAP_HDQ_BASE	0x480B2000
+ static struct resource omap_hdq_resources[] = {
+diff --git a/arch/arm/mach-omap2/msdi.c b/arch/arm/mach-omap2/msdi.c
+index ef2a692..d75839a 100644
+--- a/arch/arm/mach-omap2/msdi.c
++++ b/arch/arm/mach-omap2/msdi.c
+@@ -24,9 +24,11 @@
+ #include <linux/kernel.h>
+ 
+ #include <plat/omap_hwmod.h>
++#include <plat/omap_device.h>
+ #include <plat/mmc.h>
+ 
+ #include "common.h"
++#include "mux.h"
+ 
+ /*
+  * MSDI_CON_OFFSET: offset in bytes of the MSDI IP block's CON register
+@@ -86,3 +88,69 @@ int omap_msdi_reset(struct omap_hwmod *oh)
+ 
+ 	return 0;
+ }
++
++static inline void omap242x_mmc_mux(struct omap_mmc_platform_data
++				    *mmc_controller)
++{
++	if ((mmc_controller->slots[0].switch_pin > 0) && \
++		(mmc_controller->slots[0].switch_pin < OMAP_MAX_GPIO_LINES))
++		omap_mux_init_gpio(mmc_controller->slots[0].switch_pin,
++					OMAP_PIN_INPUT_PULLUP);
++	if ((mmc_controller->slots[0].gpio_wp > 0) && \
++		(mmc_controller->slots[0].gpio_wp < OMAP_MAX_GPIO_LINES))
++		omap_mux_init_gpio(mmc_controller->slots[0].gpio_wp,
++					OMAP_PIN_INPUT_PULLUP);
++
++	omap_mux_init_signal("sdmmc_cmd", 0);
++	omap_mux_init_signal("sdmmc_clki", 0);
++	omap_mux_init_signal("sdmmc_clko", 0);
++	omap_mux_init_signal("sdmmc_dat0", 0);
++	omap_mux_init_signal("sdmmc_dat_dir0", 0);
++	omap_mux_init_signal("sdmmc_cmd_dir", 0);
++	if (mmc_controller->slots[0].caps & MMC_CAP_4_BIT_DATA) {
++		omap_mux_init_signal("sdmmc_dat1", 0);
++		omap_mux_init_signal("sdmmc_dat2", 0);
++		omap_mux_init_signal("sdmmc_dat3", 0);
++		omap_mux_init_signal("sdmmc_dat_dir1", 0);
++		omap_mux_init_signal("sdmmc_dat_dir2", 0);
++		omap_mux_init_signal("sdmmc_dat_dir3", 0);
++	}
++
++	/*
++	 * Use internal loop-back in MMC/SDIO Module Input Clock
++	 * selection
++	 */
++	if (mmc_controller->slots[0].internal_clock) {
++		u32 v = omap_ctrl_readl(OMAP2_CONTROL_DEVCONF0);
++		v |= (1 << 24);
++		omap_ctrl_writel(v, OMAP2_CONTROL_DEVCONF0);
++	}
++}
++
++void __init omap242x_init_mmc(struct omap_mmc_platform_data **mmc_data)
++{
++	struct platform_device *pdev;
++	struct omap_hwmod *oh;
++	int id = 0;
++	char *oh_name = "msdi1";
++	char *dev_name = "mmci-omap";
++
++	if (!mmc_data[0]) {
++		pr_err("%s fails: Incomplete platform data\n", __func__);
++		return;
++	}
++
++	omap242x_mmc_mux(mmc_data[0]);
++
++	oh = omap_hwmod_lookup(oh_name);
++	if (!oh) {
++		pr_err("Could not look up %s\n", oh_name);
++		return;
++	}
++	pdev = omap_device_build(dev_name, id, oh, mmc_data[0],
++				 sizeof(struct omap_mmc_platform_data), NULL, 0, 0);
++	if (IS_ERR(pdev))
++		WARN(1, "Can'd build omap_device for %s:%s.\n",
++					dev_name, oh->name);
++}
++
 -- 
-Kind regards,
-Minchan Kim
+1.7.10
 
---
-To unsubscribe, send a message with 'unsubscribe linux-mm' in
-the body to majordomo@kvack.org.  For more info on Linux MM,
-see: http://www.linux-mm.org/ .
-Fight unfair telecom internet charges in Canada: sign http://stopthemeter.ca/
-Don't email: <a href=mailto:"dont@kvack.org"> email@kvack.org </a>
