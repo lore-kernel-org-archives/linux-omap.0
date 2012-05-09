@@ -1,46 +1,102 @@
-From: Enrico Butera <ebutera@users.sourceforge.net>
-Subject: [PATCH v2] OMAP: igep0020: fix smsc911x dummy regulator id
-Date: Wed,  9 May 2012 11:27:59 +0200
-Message-ID: <1336555679-15676-1-git-send-email-ebutera@users.sourceforge.net>
+From: "Hiremath, Vaibhav" <hvaibhav@ti.com>
+Subject: RE: [PATCH] ARM: OMAP2+: am33xx: Make am33xx as a separate class
+Date: Wed, 9 May 2012 09:08:00 +0000
+Message-ID: <79CD15C6BA57404B839C016229A409A83EA1BF58@DBDE01.ent.ti.com>
+References: <1336490630-7272-1-git-send-email-hvaibhav@ti.com>
+ <20120508200833.GD5088@atomide.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-wg0-f42.google.com ([74.125.82.42]:40330 "EHLO
-	mail-wg0-f42.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752066Ab2EIJ27 (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 9 May 2012 05:28:59 -0400
-Received: by wgbds11 with SMTP id ds11so1430908wgb.1
-        for <linux-omap@vger.kernel.org>; Wed, 09 May 2012 02:28:58 -0700 (PDT)
+Received: from arroyo.ext.ti.com ([192.94.94.40]:38008 "EHLO arroyo.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1758801Ab2EIJbP convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 9 May 2012 05:31:15 -0400
+In-Reply-To: <20120508200833.GD5088@atomide.com>
+Content-Language: en-US
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: linux-omap@vger.kernel.org
-Cc: Tony Lindgren <tony@atomide.com>, Olof Johansson <olof@lixom.net>, Enrico Butera <ebutera@users.berlios.de>
+To: Tony Lindgren <tony@atomide.com>
+Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, "Hilman, Kevin" <khilman@ti.com>, Paul Walmsley <paul@pwsan.com>
 
-From: Enrico Butera <ebutera@users.berlios.de>
+On Wed, May 09, 2012 at 01:38:34, Tony Lindgren wrote:
+> * Vaibhav Hiremath <hvaibhav@ti.com> [120508 08:32]:
+> > --- a/arch/arm/mach-omap2/Kconfig
+> > +++ b/arch/arm/mach-omap2/Kconfig
+> > @@ -123,8 +123,11 @@ config SOC_OMAPTI81XX
+> >  
+> >  config SOC_OMAPAM33XX
+> >  	bool "AM33XX support"
+> > -	depends on ARCH_OMAP3
+> > +	depends on ARCH_OMAP2PLUS
+> 
+> This is not needed, it's inside if ARCH_OMAP2PLUS block.
+> 
 
-id 0 is already used and causes errors at boot:
+Good point, I will remove it.
 
-WARNING: at fs/sysfs/dir.c:508 sysfs_add_one+0x9c/0xac()
-sysfs: cannot create duplicate filename '/devices/platform/reg-fixed-voltage.0'
 
-Fix it by using the next available one (id=1).
+> > --- a/arch/arm/mach-omap2/Makefile
+> > +++ b/arch/arm/mach-omap2/Makefile
+> > @@ -16,6 +16,7 @@ secure-common				= omap-smc.o omap-secure.o
+> >  obj-$(CONFIG_ARCH_OMAP2) += $(omap-2-3-common) $(hwmod-common)
+> >  obj-$(CONFIG_ARCH_OMAP3) += $(omap-2-3-common) $(hwmod-common) $(secure-common)
+> >  obj-$(CONFIG_ARCH_OMAP4) += prm44xx.o $(hwmod-common) $(secure-common)
+> > +obj-$(CONFIG_SOC_OMAPAM33XX) += irq.o $(hwmod-common)
+> >  
+> >  ifneq ($(CONFIG_SND_OMAP_SOC_MCBSP),)
+> >  obj-y += mcbsp.o
+> > @@ -93,6 +94,7 @@ obj-$(CONFIG_ARCH_OMAP4)		+= prcm.o cm2xxx_3xxx.o cminst44xx.o \
+> >  					   cm44xx.o prcm_mpu44xx.o \
+> >  					   prminst44xx.o vc44xx_data.o \
+> >  					   vp44xx_data.o prm44xx.o
+> > +obj-$(CONFIG_SOC_OMAPAM33XX)		+= prcm.o
+> >  
+> >  # OMAP voltage domains
+> >  voltagedomain-common			:= voltage.o vc.o vp.o
+> > @@ -102,6 +104,7 @@ obj-$(CONFIG_ARCH_OMAP3)		+= $(voltagedomain-common) \
+> >  					   voltagedomains3xxx_data.o
+> >  obj-$(CONFIG_ARCH_OMAP4)		+= $(voltagedomain-common) \
+> >  					   voltagedomains44xx_data.o
+> > +obj-$(CONFIG_SOC_OMAPAM33XX)		+= $(voltagedomain-common)
+> >  
+> >  # OMAP powerdomain framework
+> >  powerdomain-common			+= powerdomain.o powerdomain-common.o
+> > @@ -116,6 +119,7 @@ obj-$(CONFIG_ARCH_OMAP3)		+= $(powerdomain-common) \
+> >  obj-$(CONFIG_ARCH_OMAP4)		+= $(powerdomain-common) \
+> >  					   powerdomain44xx.o \
+> >  					   powerdomains44xx_data.o
+> > +obj-$(CONFIG_SOC_OMAPAM33XX)		+= $(powerdomain-common)
+> >  
+> >  # PRCM clockdomain control
+> >  clockdomain-common			+= clockdomain.o \
+> > @@ -132,6 +136,7 @@ obj-$(CONFIG_ARCH_OMAP3)		+= $(clockdomain-common) \
+> >  obj-$(CONFIG_ARCH_OMAP4)		+= $(clockdomain-common) \
+> >  					   clockdomain44xx.o \
+> >  					   clockdomains44xx_data.o
+> > +obj-$(CONFIG_SOC_OMAPAM33XX)		+= $(clockdomain-common)
+> >  
+> >  # Clock framework
+> >  obj-$(CONFIG_ARCH_OMAP2)		+= $(clock-common) clock2xxx.o \
+> > @@ -149,6 +154,7 @@ obj-$(CONFIG_ARCH_OMAP3)		+= $(clock-common) clock3xxx.o \
+> >  					   clkt_iclk.o
+> >  obj-$(CONFIG_ARCH_OMAP4)		+= $(clock-common) clock44xx_data.o \
+> >  					   dpll3xxx.o dpll44xx.o
+> > +obj-$(CONFIG_SOC_OMAPAM33XX)		+= $(clock-common) dpll3xxx.o
+> >  
+> >  # OMAP2 clock rate set data (old "OPP" data)
+> >  obj-$(CONFIG_SOC_OMAP2420)		+= opp2420_data.o
+> 
+> Can you please rebase this on what's now in the cleanup branch at commit
+> 382ae00105d9989a821f458084e0428bce10b969? That should simplify the Makefile
+> changes a bit.
+> 
 
-Signed-off-by: Enrico Butera <ebutera@users.berlios.de>
----
- arch/arm/mach-omap2/board-igep0020.c |    2 +-
- 1 files changed, 1 insertions(+), 1 deletions(-)
+Yes, will do it and submit next version today.
 
-diff --git a/arch/arm/mach-omap2/board-igep0020.c b/arch/arm/mach-omap2/board-igep0020.c
-index 930c0d3..740cee9 100644
---- a/arch/arm/mach-omap2/board-igep0020.c
-+++ b/arch/arm/mach-omap2/board-igep0020.c
-@@ -641,7 +641,7 @@ static struct regulator_consumer_supply dummy_supplies[] = {
- 
- static void __init igep_init(void)
- {
--	regulator_register_fixed(0, dummy_supplies, ARRAY_SIZE(dummy_supplies));
-+	regulator_register_fixed(1, dummy_supplies, ARRAY_SIZE(dummy_supplies));
- 	omap3_mux_init(board_mux, OMAP_PACKAGE_CBB);
- 
- 	/* Get IGEP2 hardware revision */
--- 
-1.7.5.4
+> Other than that looks good to me.
+> 
+
+Thanks,
+Vaibhav
 
