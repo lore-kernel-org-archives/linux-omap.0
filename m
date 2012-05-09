@@ -1,192 +1,169 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH-V2] ARM: OMAP2+: am33xx: Make am33xx as a separate class
-Date: Wed, 9 May 2012 11:54:36 -0700
-Message-ID: <20120509185435.GU5088@atomide.com>
-References: <1336562667-6741-1-git-send-email-hvaibhav@ti.com>
+From: Stephen Warren <swarren@wwwdotorg.org>
+Subject: Re: [PATCH V3 1/2] of: Add generic device tree DMA helpers
+Date: Wed, 09 May 2012 13:10:09 -0600
+Message-ID: <4FAAC111.9020308@wwwdotorg.org>
+References: <1335820679-28721-1-git-send-email-jon-hunter@ti.com> <4FA3F308.6030900@ti.com> <CAJe_ZhfFhZVG4gyaaVUgeQedJiSE=zj9nE28XCNH9DkPVgqj=A@mail.gmail.com> <201205041923.07620.arnd@arndb.de> <CAJe_Zhe8jYd1j=ti6FvqxXL7i5mbgf0jqb-84sFMTeUqyAonpw@mail.gmail.com> <4FA7F009.5010003@wwwdotorg.org> <CAJe_ZheHFP9NZEiZfCvS3LL1k7xamzGq4Oep8gfmPRi6RR7R5Q@mail.gmail.com> <4FA94B49.5050500@wwwdotorg.org> <CAJe_Zhf0=Qnsgsc7U_GbKxc0_6DKj33QWs0UW2giyrVEjPnrvw@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-01-ewr.mailhop.org ([204.13.248.71]:34508 "EHLO
-	mho-01-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755452Ab2EISyj (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 9 May 2012 14:54:39 -0400
-Content-Disposition: inline
-In-Reply-To: <1336562667-6741-1-git-send-email-hvaibhav@ti.com>
+Received: from avon.wwwdotorg.org ([70.85.31.133]:57162 "EHLO
+	avon.wwwdotorg.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755870Ab2EITKN (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 9 May 2012 15:10:13 -0400
+In-Reply-To: <CAJe_Zhf0=Qnsgsc7U_GbKxc0_6DKj33QWs0UW2giyrVEjPnrvw@mail.gmail.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Vaibhav Hiremath <hvaibhav@ti.com>
-Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Kevin Hilman <khilman@ti.com>, Paul Walmsley <paul@pwsan.com>
+To: Jassi Brar <jaswinder.singh@linaro.org>
+Cc: Arnd Bergmann <arnd@arndb.de>, Stephen Warren <swarren@nvidia.com>, Benoit Cousson <b-cousson@ti.com>, device-tree <devicetree-discuss@lists.ozlabs.org>, Nicolas Ferre <nicolas.ferre@atmel.com>, Rob Herring <rob.herring@calxeda.com>, Grant Likely <grant.likely@secretlab.ca>, Jon Hunter <jon-hunter@ti.com>, Russell King <linux@arm.linux.org.uk>, linux-omap <linux-omap@vger.kernel.org>, linux-arm <linux-arm-kernel@lists.infradead.org>
 
-* Vaibhav Hiremath <hvaibhav@ti.com> [120509 04:28]:
-> Initially, we decided to make am33xx family of device to fall
-> under omap3 class (cpu_is_omap34xx() = true), since it carries
-> Cortex-A8 core. But while adding complete baseport support
-> (like, clock, power and hwmod) support, it is observed that,
-> we are creating more and more problems by treating am33xx device
-> as omap3 family, as nothing matches between them
-> (except cortex-A8 mpu).
+On 05/08/2012 01:09 PM, Jassi Brar wrote:
+> On 8 May 2012 22:05, Stephen Warren <swarren@wwwdotorg.org> wrote:
+>>
+>> The data doesn't need to be part of the DMA controller node in order for
+>> the DMA controller driver to be the entity interpreting it.
+>>
+> I rather say, if the dma controller driver is the entity going to interpret the
+> data, why not provide the data directly through its node at one go?
+> 
+> There is important difference between providing data via clients
+> during runtime vs providing info about every client to the dmac driver
+> at one go during its probe.
 
-Thanks applying into devel-soc after updating for soc_is change
-and fixing typo in the description that stil said OMAPAM. Updated
-patch below.
+I certainly see that there is a difference.
 
-Tony
+I don't understand why it's an important difference; I think everything
+needs to be handled at run-time no matter what:
 
+Just because there is information in the DT that "this client DT node
+uses this channel/request-ID/... of this DMA controller" doesn't mean
+that the driver for the client is going to be loaded, or that SW running
+on the system is going to cause that driver to actually be opened and do
+any DMA. As such, any resource allocation rules etc. must be evaluated
+only if/when a driver actually requests/uses a DMA channel, so having
+"all the information up front" doesn't seem like a theoretically
+possible thing anyway.
 
-From: Vaibhav Hiremath <hvaibhav@ti.com>
-Date: Wed, 9 May 2012 16:54:27 +0530
-Subject: [PATCH] ARM: OMAP2+: am33xx: Make am33xx as a separate class
+Very similar to this, in order to support your point that a given client
+could potentially use a channel from either of 2 different DMA
+controller instances, you don't know until run-time which controller
+will be used, so can't have up-front information in this scenario
+either, even if the DMA does actually take place.
 
-Initially, we decided to make am33xx family of device to fall
-under omap3 class (cpu_is_omap34xx() = true), since it carries
-Cortex-A8 core. But while adding complete baseport support
-(like, clock, power and hwmod) support, it is observed that,
-we are creating more and more problems by treating am33xx device
-as omap3 family, as nothing matches between them
-(except cortex-A8 mpu).
+>> The advantage here is that:
+>>
+>> * The specifier is stored in the client, not the IRQ/GPIO/DMA
+>> controller's node, so it's located right at the usage site, which
+>> typically makes working out what resources a client uses easier.
+>
+> A client doesn't really need some n'th channel of some m'th dma controller.
+> A client simply needs one channel for transmitting data whichever
+> platform it be.
+> So {n,m}_channel isn't really a required resource, dma_tx is, which I  still
+> specify in the client's node.
+>   The fact that this information is simply fwd by the client as such to the dmac
+> (via utility code), makes the ritual even more pointless.
 
-So,  after long discussion we have came to the conclusion that,
-we should not consider am33xx device as omap3 family, instead
-create separate class (SOC_AM33XX) under OMAP2PLUS.
-This means, for am33xx device, cpu_is_omap34xx() will return false,
-and only cpu_is_am33xx() will be true.
+Ah, I see your point now.
 
-Please refer to the link below, for mailing-list discussion on this -
+To solve this, we would need to (optionally?) model the DMA request
+signal routing in the DT, so that one could explicitly model the 1:1 or
+1:n situation.
 
-http://www.spinics.net/lists/linux-omap/msg69439.html
+And since a given DMA client might be able to use the services of 2
+different DMA controllers, those controllers might not even be identical
+HW, and hence would potentially not have identical DMA bindings. So,
+that doesn't work; we really do need device-agnostic DMA bindings in
+order to support this while maintaining all features.
 
-Signed-off-by: Vaibhav Hiremath <hvaibhav@ti.com>
-Cc: Kevin Hilman <khilman@ti.com>
-Cc: Paul Walmsley <paul@pwsan.com>
-[tony@atomide.com: fixed typo, updated for soc_is changes]
-Signed-off-by: Tony Lindgren <tony@atomide.com>
+That all said, do we want to:
 
-diff --git a/arch/arm/mach-omap2/Kconfig b/arch/arm/mach-omap2/Kconfig
-index 61bf3c3..7a77bb6 100644
---- a/arch/arm/mach-omap2/Kconfig
-+++ b/arch/arm/mach-omap2/Kconfig
-@@ -84,8 +84,10 @@ config SOC_TI81XX
- 
- config SOC_AM33XX
- 	bool "AM33XX support"
--	depends on ARCH_OMAP3
- 	default y
-+	select CPU_V7
-+	select ARM_CPU_SUSPEND if PM
-+	select MULTI_IRQ_HANDLER
- 
- config OMAP_PACKAGE_ZAF
-        bool
-diff --git a/arch/arm/mach-omap2/Makefile b/arch/arm/mach-omap2/Makefile
-index a5b8db3..25370fd 100644
---- a/arch/arm/mach-omap2/Makefile
-+++ b/arch/arm/mach-omap2/Makefile
-@@ -16,6 +16,7 @@ secure-common				= omap-smc.o omap-secure.o
- obj-$(CONFIG_ARCH_OMAP2) += $(omap-2-3-common) $(hwmod-common)
- obj-$(CONFIG_ARCH_OMAP3) += $(omap-2-3-common) $(hwmod-common) $(secure-common)
- obj-$(CONFIG_ARCH_OMAP4) += prm44xx.o $(hwmod-common) $(secure-common)
-+obj-$(CONFIG_SOC_AM33XX) += irq.o $(hwmod-common)
- 
- ifneq ($(CONFIG_SND_OMAP_SOC_MCBSP),)
- obj-y += mcbsp.o
-@@ -90,6 +91,7 @@ obj-$(CONFIG_ARCH_OMAP3)		+= vc3xxx_data.o vp3xxx_data.o
- obj-$(CONFIG_ARCH_OMAP4)		+= prcm.o cminst44xx.o cm44xx.o
- obj-$(CONFIG_ARCH_OMAP4)		+= prcm_mpu44xx.o prminst44xx.o
- obj-$(CONFIG_ARCH_OMAP4)		+= vc44xx_data.o vp44xx_data.o prm44xx.o
-+obj-$(CONFIG_SOC_AM33XX)		+= prcm.o
- 
- # OMAP voltage domains
- voltagedomain-common			:= voltage.o vc.o vp.o
-@@ -99,6 +101,7 @@ obj-$(CONFIG_ARCH_OMAP3)		+= $(voltagedomain-common)
- obj-$(CONFIG_ARCH_OMAP3)		+= voltagedomains3xxx_data.o
- obj-$(CONFIG_ARCH_OMAP4)		+= $(voltagedomain-common)
- obj-$(CONFIG_ARCH_OMAP4)		+= voltagedomains44xx_data.o
-+obj-$(CONFIG_SOC_AM33XX)		+= $(voltagedomain-common)
- 
- # OMAP powerdomain framework
- powerdomain-common			+= powerdomain.o powerdomain-common.o
-@@ -113,6 +116,7 @@ obj-$(CONFIG_ARCH_OMAP3)		+= powerdomains2xxx_3xxx_data.o
- obj-$(CONFIG_ARCH_OMAP4)		+= $(powerdomain-common)
- obj-$(CONFIG_ARCH_OMAP4)		+= powerdomain44xx.o
- obj-$(CONFIG_ARCH_OMAP4)		+= powerdomains44xx_data.o
-+obj-$(CONFIG_SOC_AM33XX)		+= $(powerdomain-common)
- 
- # PRCM clockdomain control
- clockdomain-common			+= clockdomain.o
-@@ -127,6 +131,7 @@ obj-$(CONFIG_ARCH_OMAP3)		+= clockdomains3xxx_data.o
- obj-$(CONFIG_ARCH_OMAP4)		+= $(clockdomain-common)
- obj-$(CONFIG_ARCH_OMAP4)		+= clockdomain44xx.o
- obj-$(CONFIG_ARCH_OMAP4)		+= clockdomains44xx_data.o
-+obj-$(CONFIG_SOC_AM33XX)		+= $(clockdomain-common)
- 
- # Clock framework
- obj-$(CONFIG_ARCH_OMAP2)		+= $(clock-common) clock2xxx.o
-@@ -144,6 +149,7 @@ obj-$(CONFIG_ARCH_OMAP3)		+= dpll3xxx.o clock3xxx_data.o
- obj-$(CONFIG_ARCH_OMAP3)		+= clkt_iclk.o
- obj-$(CONFIG_ARCH_OMAP4)		+= $(clock-common) clock44xx_data.o
- obj-$(CONFIG_ARCH_OMAP4)		+= dpll3xxx.o dpll44xx.o
-+obj-$(CONFIG_SOC_AM33XX)		+= $(clock-common) dpll3xxx.o
- 
- # OMAP2 clock rate set data (old "OPP" data)
- obj-$(CONFIG_SOC_OMAP2420)		+= opp2420_data.o
-diff --git a/arch/arm/mach-omap2/common.c b/arch/arm/mach-omap2/common.c
-index 1549c11..bf2a4d7 100644
---- a/arch/arm/mach-omap2/common.c
-+++ b/arch/arm/mach-omap2/common.c
-@@ -134,7 +134,9 @@ void __init ti81xx_map_io(void)
- {
- 	omapti81xx_map_common_io();
- }
-+#endif
- 
-+#if defined(CONFIG_SOC_AM33XX)
- #define AM33XX_TAP_BASE		(AM33XX_CTRL_BASE + \
- 				TI81XX_CONTROL_DEVICE_ID - 0x204)
- 
-diff --git a/arch/arm/plat-omap/include/plat/cpu.h b/arch/arm/plat-omap/include/plat/cpu.h
-index 297245d..75e1319 100644
---- a/arch/arm/plat-omap/include/plat/cpu.h
-+++ b/arch/arm/plat-omap/include/plat/cpu.h
-@@ -360,8 +360,6 @@ IS_OMAP_TYPE(3517, 0x3517)
- # undef cpu_is_ti816x
- # undef cpu_is_ti814x
- # undef soc_is_am35xx
--# undef cpu_is_am33xx
--# undef cpu_is_am335x
- # define cpu_is_omap3430()		is_omap3430()
- # define cpu_is_omap3503()		(cpu_is_omap3430() &&		\
- 						(!omap3_has_iva()) &&	\
-@@ -382,6 +380,11 @@ IS_OMAP_TYPE(3517, 0x3517)
- # define cpu_is_ti816x()		is_ti816x()
- # define cpu_is_ti814x()		is_ti814x()
- # define soc_is_am35xx()		is_am35xx()
-+#endif
-+
-+# if defined(CONFIG_SOC_AM33XX)
-+# undef cpu_is_am33xx
-+# undef cpu_is_am335x
- # define cpu_is_am33xx()		is_am33xx()
- # define cpu_is_am335x()		is_am335x()
- #endif
-@@ -441,7 +444,7 @@ IS_OMAP_TYPE(3517, 0x3517)
- #define AM35XX_REV_ES1_0	AM35XX_CLASS
- #define AM35XX_REV_ES1_1	(AM35XX_CLASS | (0x1 << 8))
- 
--#define AM335X_CLASS		0x33500034
-+#define AM335X_CLASS		0x33500033
- #define AM335X_REV_ES1_0	AM335X_CLASS
- 
- #define OMAP443X_CLASS		0x44300044
-diff --git a/arch/arm/plat-omap/sram.c b/arch/arm/plat-omap/sram.c
-index f9a8c53..982e8bc 100644
---- a/arch/arm/plat-omap/sram.c
-+++ b/arch/arm/plat-omap/sram.c
-@@ -85,7 +85,7 @@ static int is_sram_locked(void)
- 			__raw_writel(0xCFDE, OMAP24XX_VA_READPERM0);  /* all i-read */
- 			__raw_writel(0xCFDE, OMAP24XX_VA_WRITEPERM0); /* all i-write */
- 		}
--		if (cpu_is_omap34xx() && !cpu_is_am33xx()) {
-+		if (cpu_is_omap34xx()) {
- 			__raw_writel(0xFFFF, OMAP34XX_VA_REQINFOPERM0); /* all q-vects */
- 			__raw_writel(0xFFFF, OMAP34XX_VA_READPERM0);  /* all i-read */
- 			__raw_writel(0xFFFF, OMAP34XX_VA_WRITEPERM0); /* all i-write */
+a) Have the DT specify exactly which controller a given client will use,
+i.e. pick a particular one even when multiple are possible in HW.
+
+This is supported by the currently proposed bindings without issue; we
+just ignore the fact that the DT author could have connected the client
+to a different controller if they wanted.
+
+b) Have the DT represent exactly what exists in HW, i.e. that the
+client's DMA request signal is routed to N places, and have the SW pick
+which to use at runtime.
+
+You're obviously arguing for (b), and indeed that does seem more like a
+simple representation of the HW, rather than SW's use of HW, and so is
+indeed more appropriate.
+
+Solving (b) seems to require something very roughly like:
+
+dma-controller@0 {
+    compatible = "foo,dmac-xxx";
+    dma-requests = <
+		&client0 0 // DMAC req 0 is client0's 0th req output
+		&client0 1
+		&client1 0
+		&client1 1
+		&client2 0
+		...>;
+};
+
+dma-controller@1 {
+    compatible = "bar,dmac-yyy";
+    dma-requests = <
+		// Supports some client modules, but not the same ones
+		&client0 0
+		&client1 0
+		&client3 0
+		...>;
+};
+
+client0: i2s {
+    /* has 2 DMA request output signals: 0, 1 */
+};
+
+client1: spdif {
+    /* has 2 DMA request signals: 0, 1 */
+};
+
+client2: foo {
+    /* has 1 DMA request signal: 0 */
+};
+
+client3: bar {
+    /* has 1 DMA request signal: 0 */
+};
+
+and then having the core DMA code have an API like:
+
+channel = dma_request(clients_dma_req_output_id)
+
+which looks in each DMA controller's dma-requests list for the client's
+phandle and matching dma_req_output_id.
+
+>> This also keeps client-specific information out of the provider node,
+>> allowing it to be fully generic.
+>
+> A typical Samsung SoC has 2 peripheral DMA controllers and
+> about 40 possible clients. Of which ~20 clients could be served by either of
+> the two dmacs. Of course hardly ever a machine has 10 clients. It would be
+> desirable if the dma driver doesn't populate the unused 54(32+32-10) channels,
+>  presumably also reserving limited resources for each, on the machine.
+> 
+> Consider this example ...
+> A PL330 instance has 8 physical channels and 32 client i/f.
+> So only 8 client reqs could be active at any time.
+> PL330 doesn't provide a way to program a true LLI transfer(very useful for
+> audio) using a single physical channel. However, we could emulate
+> true LLI if we employ 2 physical channels for one audio channel request.
+
+I'm not familiar with what LLI means. I assume it's when the HW can be
+programmed with 2 DMA requests, and automatically starts the second once
+the first has completed, without SW intervention or interrupt latency.
+
+> Obviously, if a machine had 7 or lesser clients, one would freely employ
+> 2 physical channels for audio and yet not worry about starving other clients.
+> How would we achieve this if the dmac driver was initialized as "fully
+> generic" ?
+
+Well, the DMA controller's binding could easily allow representation of
+"single-channel" v.s. "double-channel" by specifying just one ID or two
+IDs in the binding. It'd make the binding more complex, but it is possible.
