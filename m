@@ -1,102 +1,43 @@
-From: "Hiremath, Vaibhav" <hvaibhav@ti.com>
-Subject: RE: [PATCH] ARM: OMAP2+: am33xx: Make am33xx as a separate class
-Date: Wed, 9 May 2012 09:08:00 +0000
-Message-ID: <79CD15C6BA57404B839C016229A409A83EA1BF58@DBDE01.ent.ti.com>
-References: <1336490630-7272-1-git-send-email-hvaibhav@ti.com>
- <20120508200833.GD5088@atomide.com>
+From: Olof Johansson <olof@lixom.net>
+Subject: Re: [GIT PULL 1/5] omap sparse cleanup for v3.5 merge window
+Date: Wed, 9 May 2012 02:33:07 -0700
+Message-ID: <CAOesGMihBsp0Nr-LwG8ayvcBkViWVCvQDsG75w4HN_h8cX=hAA@mail.gmail.com>
+References: <4fa84ef6.8988e50a.7e08.ffff88a0SMTPIN_ADDED@mx.google.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from arroyo.ext.ti.com ([192.94.94.40]:38008 "EHLO arroyo.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1758801Ab2EIJbP convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 9 May 2012 05:31:15 -0400
-In-Reply-To: <20120508200833.GD5088@atomide.com>
-Content-Language: en-US
+Received: from mail-pb0-f46.google.com ([209.85.160.46]:50129 "EHLO
+	mail-pb0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1758933Ab2EIJdI convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 9 May 2012 05:33:08 -0400
+Received: by pbbrp8 with SMTP id rp8so279583pbb.19
+        for <linux-omap@vger.kernel.org>; Wed, 09 May 2012 02:33:07 -0700 (PDT)
+In-Reply-To: <4fa84ef6.8988e50a.7e08.ffff88a0SMTPIN_ADDED@mx.google.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: Tony Lindgren <tony@atomide.com>
-Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, "Hilman, Kevin" <khilman@ti.com>, Paul Walmsley <paul@pwsan.com>
+Cc: Arnd Bergmann <arnd@arndb.de>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 
-On Wed, May 09, 2012 at 01:38:34, Tony Lindgren wrote:
-> * Vaibhav Hiremath <hvaibhav@ti.com> [120508 08:32]:
-> > --- a/arch/arm/mach-omap2/Kconfig
-> > +++ b/arch/arm/mach-omap2/Kconfig
-> > @@ -123,8 +123,11 @@ config SOC_OMAPTI81XX
-> >  
-> >  config SOC_OMAPAM33XX
-> >  	bool "AM33XX support"
-> > -	depends on ARCH_OMAP3
-> > +	depends on ARCH_OMAP2PLUS
-> 
-> This is not needed, it's inside if ARCH_OMAP2PLUS block.
-> 
+Hi,
 
-Good point, I will remove it.
+On Mon, May 7, 2012 at 3:38 PM, Tony Lindgren <tony@atomide.com> wrote:
+> The following changes since commit e816b57a337ea3b755de72bec38c10c864=
+f23015:
+>
+> =A0Linux 3.4-rc3 (2012-04-15 18:28:29 -0700)
+>
+> are available in the git repository at:
+>
+> =A0git://git.kernel.org/pub/scm/linux/kernel/git/tmlind/linux-omap ta=
+gs/omap-cleanup-sparse-for-v3.5
+
+Thanks, pulled 1-5. 1-3 went into next/cleanup, 4 and 5 into next/pm.
 
 
-> > --- a/arch/arm/mach-omap2/Makefile
-> > +++ b/arch/arm/mach-omap2/Makefile
-> > @@ -16,6 +16,7 @@ secure-common				= omap-smc.o omap-secure.o
-> >  obj-$(CONFIG_ARCH_OMAP2) += $(omap-2-3-common) $(hwmod-common)
-> >  obj-$(CONFIG_ARCH_OMAP3) += $(omap-2-3-common) $(hwmod-common) $(secure-common)
-> >  obj-$(CONFIG_ARCH_OMAP4) += prm44xx.o $(hwmod-common) $(secure-common)
-> > +obj-$(CONFIG_SOC_OMAPAM33XX) += irq.o $(hwmod-common)
-> >  
-> >  ifneq ($(CONFIG_SND_OMAP_SOC_MCBSP),)
-> >  obj-y += mcbsp.o
-> > @@ -93,6 +94,7 @@ obj-$(CONFIG_ARCH_OMAP4)		+= prcm.o cm2xxx_3xxx.o cminst44xx.o \
-> >  					   cm44xx.o prcm_mpu44xx.o \
-> >  					   prminst44xx.o vc44xx_data.o \
-> >  					   vp44xx_data.o prm44xx.o
-> > +obj-$(CONFIG_SOC_OMAPAM33XX)		+= prcm.o
-> >  
-> >  # OMAP voltage domains
-> >  voltagedomain-common			:= voltage.o vc.o vp.o
-> > @@ -102,6 +104,7 @@ obj-$(CONFIG_ARCH_OMAP3)		+= $(voltagedomain-common) \
-> >  					   voltagedomains3xxx_data.o
-> >  obj-$(CONFIG_ARCH_OMAP4)		+= $(voltagedomain-common) \
-> >  					   voltagedomains44xx_data.o
-> > +obj-$(CONFIG_SOC_OMAPAM33XX)		+= $(voltagedomain-common)
-> >  
-> >  # OMAP powerdomain framework
-> >  powerdomain-common			+= powerdomain.o powerdomain-common.o
-> > @@ -116,6 +119,7 @@ obj-$(CONFIG_ARCH_OMAP3)		+= $(powerdomain-common) \
-> >  obj-$(CONFIG_ARCH_OMAP4)		+= $(powerdomain-common) \
-> >  					   powerdomain44xx.o \
-> >  					   powerdomains44xx_data.o
-> > +obj-$(CONFIG_SOC_OMAPAM33XX)		+= $(powerdomain-common)
-> >  
-> >  # PRCM clockdomain control
-> >  clockdomain-common			+= clockdomain.o \
-> > @@ -132,6 +136,7 @@ obj-$(CONFIG_ARCH_OMAP3)		+= $(clockdomain-common) \
-> >  obj-$(CONFIG_ARCH_OMAP4)		+= $(clockdomain-common) \
-> >  					   clockdomain44xx.o \
-> >  					   clockdomains44xx_data.o
-> > +obj-$(CONFIG_SOC_OMAPAM33XX)		+= $(clockdomain-common)
-> >  
-> >  # Clock framework
-> >  obj-$(CONFIG_ARCH_OMAP2)		+= $(clock-common) clock2xxx.o \
-> > @@ -149,6 +154,7 @@ obj-$(CONFIG_ARCH_OMAP3)		+= $(clock-common) clock3xxx.o \
-> >  					   clkt_iclk.o
-> >  obj-$(CONFIG_ARCH_OMAP4)		+= $(clock-common) clock44xx_data.o \
-> >  					   dpll3xxx.o dpll44xx.o
-> > +obj-$(CONFIG_SOC_OMAPAM33XX)		+= $(clock-common) dpll3xxx.o
-> >  
-> >  # OMAP2 clock rate set data (old "OPP" data)
-> >  obj-$(CONFIG_SOC_OMAP2420)		+= opp2420_data.o
-> 
-> Can you please rebase this on what's now in the cleanup branch at commit
-> 382ae00105d9989a821f458084e0428bce10b969? That should simplify the Makefile
-> changes a bit.
-> 
-
-Yes, will do it and submit next version today.
-
-> Other than that looks good to me.
-> 
-
-Thanks,
-Vaibhav
-
+-Olof
+--
+To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
