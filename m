@@ -1,64 +1,56 @@
-From: "Shilimkar, Santosh" <santosh.shilimkar@ti.com>
-Subject: Re: [PATCH] ARM: decompressor: Fix mmu mapping for non-DRAM address space.
-Date: Wed, 9 May 2012 18:00:10 +0530
-Message-ID: <CAMQu2gzdwXwzhhFLtLXTj5e0a9cFeq5ReUcMT-tGUxTPUcV_4Q@mail.gmail.com>
-References: <1336398149-26153-1-git-send-email-santosh.shilimkar@ti.com>
- <20120508124116.GE17798@arm.com> <CAMQu2gxXB4GyddjrcKWwJ=KXx=MoDs7DdwhbOY85qkVJ1Vv3wA@mail.gmail.com>
- <20120508215554.GA18980@n2100.arm.linux.org.uk> <CAMQu2gzmZ1Af4sAxoT9WS_akY1gBrqffKE84rnbM_EUK8V8NHQ@mail.gmail.com>
- <20120509122348.GA30632@n2100.arm.linux.org.uk>
+From: Arnd Bergmann <arnd@arndb.de>
+Subject: Re: [PATCH V3 1/2] of: Add generic device tree DMA helpers
+Date: Wed, 9 May 2012 12:30:11 +0000
+Message-ID: <201205091230.11474.arnd@arndb.de>
+References: <1335820679-28721-1-git-send-email-jon-hunter@ti.com> <4FA94B49.5050500@wwwdotorg.org> <CAJe_Zhf0=Qnsgsc7U_GbKxc0_6DKj33QWs0UW2giyrVEjPnrvw@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: Text/Plain;
+  charset="iso-8859-1"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aog134.obsmtp.com ([74.125.149.83]:50756 "EHLO
-	na3sys009aog134.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1757155Ab2EIMac convert rfc822-to-8bit
-	(ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Wed, 9 May 2012 08:30:32 -0400
-Received: by qcsd16 with SMTP id d16so166643qcs.14
-        for <linux-omap@vger.kernel.org>; Wed, 09 May 2012 05:30:31 -0700 (PDT)
-In-Reply-To: <20120509122348.GA30632@n2100.arm.linux.org.uk>
+Received: from moutng.kundenserver.de ([212.227.126.186]:49474 "EHLO
+	moutng.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1757155Ab2EIMaq (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 9 May 2012 08:30:46 -0400
+In-Reply-To: <CAJe_Zhf0=Qnsgsc7U_GbKxc0_6DKj33QWs0UW2giyrVEjPnrvw@mail.gmail.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Russell King - ARM Linux <linux@arm.linux.org.uk>
-Cc: Catalin Marinas <catalin.marinas@arm.com>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, R Sricharan <r.sricharan@ti.com>
+To: Jassi Brar <jaswinder.singh@linaro.org>
+Cc: Stephen Warren <swarren@wwwdotorg.org>, Stephen Warren <swarren@nvidia.com>, Benoit Cousson <b-cousson@ti.com>, device-tree <devicetree-discuss@lists.ozlabs.org>, Nicolas Ferre <nicolas.ferre@atmel.com>, Rob Herring <rob.herring@calxeda.com>, Grant Likely <grant.likely@secretlab.ca>, Jon Hunter <jon-hunter@ti.com>, Russell King <linux@arm.linux.org.uk>, linux-omap <linux-omap@vger.kernel.org>, linux-arm <linux-arm-kernel@lists.infradead.org>
 
-On Wed, May 9, 2012 at 5:53 PM, Russell King - ARM Linux
-<linux@arm.linux.org.uk> wrote:
-> On Wed, May 09, 2012 at 02:20:28PM +0530, Shilimkar, Santosh wrote:
->> The only change done common code is =A0clearing 'XN' bit for DRAM
->> region in page table entries. The other change of setting the DACR
->> register is done in ARMv7 specific code.
->
-> Yes, XN is an ARMv6+ thing. =A0Before ARMv5, it was implementation de=
-fined.
->
-> Some implementations used the bit to mean "allow writes to update the
-> cache". =A0Other implementations labelled this bit as "should be zero=
-"
-> while others labelled it as "should be one".
->
-Good to know.
+On Tuesday 08 May 2012, Jassi Brar wrote:
+> On 8 May 2012 22:05, Stephen Warren <swarren@wwwdotorg.org> wrote:
+> >
+> > The data doesn't need to be part of the DMA controller node in order for
+> > the DMA controller driver to be the entity interpreting it.
+> >
+> I rather say, if the dma controller driver is the entity going to interpret the
+> data, why not provide the data directly through its node at one go?
+> 
+> There is important difference between providing data via clients
+> during runtime vs providing info about every client to the dmac driver
+> at one go during its probe.
 
-> The upshot of this is, we know that having this bit as '1' means that
-> all the CPUs we support today work. =A0I would be _very_ concerned to
-> change this bit to zero as we _really_ don't know how the pre-ARMv6
-> CPUs would react.
->
-I agree.
+IMHO the important aspect is what that data contains. The dma engine
+device node should only describe what that device looks like in hardware,
+but not how it is being used.  If you have two machines that have the
+same dma engine, but different devices attached to it, the only
+difference in the device tree ought to be in those devices, not in the
+parts that are common.
+> >> That encoding("channel_id") would be dma
+> >> controller specific and if we also manage to contain it within fixed number
+> >> of bytes we could also have common helpers for fetching it,
+> >
+> > I don't think there's any need for it to fit into a fixed number of  bytes
+> >
+> Yeah, I realized that soon after posting.
+> 
+> I think I have run out of ways to explain myself better. FWIW, I won't
+> object to whatever mechanism folks decide after knowing my concerns.
 
-> The solution to this is pretty simple - if ARMv6+ needs a different
-> base section mapping value, then we need to extract that from the cod=
-e
-> and pass in the base section mapping value.
->
-> I'll sort out a patch later today for this.
-Great.
+I think we should try hard to make it possible to describe your hardware
+correctly, but we don't need to optimize the syntax for that case if that
+means making the common case more complex. I'd rather make the common
+case simple and the exception possible using some extension.
 
-Regards
-Santosh
---
-To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+	Arnd
