@@ -1,37 +1,44 @@
-From: Vivek Goyal <vgoyal@redhat.com>
-Subject: Re: [PATCH v2 01/16] FS: Added demand paging markers to filesystem
-Date: Wed, 9 May 2012 11:27:58 -0400
-Message-ID: <20120509152758.GB16341@redhat.com>
-References: <1336054995-22988-1-git-send-email-svenkatr@ti.com>
- <1336054995-22988-2-git-send-email-svenkatr@ti.com>
- <20120506233117.GU5091@dastard>
- <CANfBPZ_2JeWUu7ti97CVc=ODeEi65ke9EKV6Uje0JHcCM8gYqQ@mail.gmail.com>
+From: Hein Tibosch <hein_tibosch@yahoo.es>
+Subject: omapfb-main.c: check result of simple_strtoul
+Date: Wed, 09 May 2012 22:47:38 +0800
+Message-ID: <4FAA838A.3040106@yahoo.es>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <owner-linux-mm@kvack.org>
-Content-Disposition: inline
-In-Reply-To: <CANfBPZ_2JeWUu7ti97CVc=ODeEi65ke9EKV6Uje0JHcCM8gYqQ@mail.gmail.com>
-Sender: owner-linux-mm@kvack.org
-To: "S, Venkatraman" <svenkatr@ti.com>
-Cc: Dave Chinner <david@fromorbit.com>, linux-mmc@vger.kernel.org, cjb@laptop.org, linux-mm@kvack.org, linux-fsdevel@vger.kernel.org, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org, arnd.bergmann@linaro.org, alex.lemberg@sandisk.com, ilan.smith@sandisk.com, lporzio@micron.com, rmk+kernel@arm.linux.org.uk
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from bosmailout20.eigbox.net ([66.96.189.20]:48888 "EHLO
+	bosmailout20.eigbox.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1759775Ab2EIP2w (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 9 May 2012 11:28:52 -0400
+Received: from bosmailscan06.eigbox.net ([10.20.15.6])
+	by bosmailout20.eigbox.net with esmtp (Exim)
+	id 1SS8BI-0004c2-OP
+	for linux-omap@vger.kernel.org; Wed, 09 May 2012 10:47:56 -0400
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Tomi Valkeinen <tomi.valkeinen@ti.com>
+Cc: linux-omap <linux-omap@vger.kernel.org>
 
-On Mon, May 07, 2012 at 10:16:30PM +0530, S, Venkatraman wrote:
+Tomi,
 
-[..]
-> This feature doesn't fiddle with the I/O scheduler's ability to balance
-> read vs write requests or handling requests from various process queues (CFQ).
-> 
 
-Does this feature work with CFQ? As CFQ does not submit sync IO (for
-idling queues) while async IO is pending and vice a versa (cfq_may_dispatch()).
+In drivers/video/omap2/omapfb/omapfb-main.c:
 
-Thanks
-Vivek
+ static int omapfb_parse_vram_param(const char *param, int max_entries,
+ 		unsigned long *sizes, unsigned long *paddrs)
+ {
+ 	int fbnum;
+ 	unsigned long size;
+ 	unsigned long paddr = 0;
+ 	char *p, *start;
+  	start = (char *)param;
+ 	while (1) {
+ 		p = start;
+  		fbnum = simple_strtoul(p, &p, 10);
+-		if (p == param)
++		if (p == start)
 
---
-To unsubscribe, send a message with 'unsubscribe linux-mm' in
-the body to majordomo@kvack.org.  For more info on Linux MM,
-see: http://www.linux-mm.org/ .
-Fight unfair telecom internet charges in Canada: sign http://stopthemeter.ca/
-Don't email: <a href=mailto:"dont@kvack.org"> email@kvack.org </a>
+correct?
+
+Hein
+
