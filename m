@@ -1,36 +1,46 @@
-From: Linus Walleij <linus.walleij@linaro.org>
-Subject: Re: [PATCH] pinctrl: Add generic pinctrl-simple driver that supports
- omap2+ padconf
-Date: Wed, 9 May 2012 11:09:34 +0200
-Message-ID: <CACRpkdaCg7Ocy1wzdZt1x4VrnV1JrmHkLLwF4vV6GvMjXP3BjA@mail.gmail.com>
-References: <20120502172401.GG3739@atomide.com>
-	<20120503065131.GA3738@game.jcrosoft.org>
-	<20120503152708.GC5140@atomide.com>
-	<4FA30805.5050804@wwwdotorg.org>
-	<20120504044305.GD7788@game.jcrosoft.org>
-	<20120504150342.GI5140@atomide.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20120504150342.GI5140@atomide.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Tony Lindgren <tony@atomide.com>
-Cc: Jean-Christophe PLAGNIOL-VILLARD <plagnioj@jcrosoft.com>, Stephen Warren <swarren@wwwdotorg.org>, linux-omap@vger.kernel.org, Stephen Warren <swarren@nvidia.com>, linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+From: Enrico Butera <ebutera@users.sourceforge.net>
+Subject: [PATCH v2] OMAP: igep0020: fix smsc911x dummy regulator id
+Date: Wed,  9 May 2012 11:27:59 +0200
+Message-ID: <1336555679-15676-1-git-send-email-ebutera@users.sourceforge.net>
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from mail-wg0-f42.google.com ([74.125.82.42]:40330 "EHLO
+	mail-wg0-f42.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752066Ab2EIJ27 (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 9 May 2012 05:28:59 -0400
+Received: by wgbds11 with SMTP id ds11so1430908wgb.1
+        for <linux-omap@vger.kernel.org>; Wed, 09 May 2012 02:28:58 -0700 (PDT)
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: linux-omap@vger.kernel.org
+Cc: Tony Lindgren <tony@atomide.com>, Olof Johansson <olof@lixom.net>, Enrico Butera <ebutera@users.berlios.de>
 
-On Fri, May 4, 2012 at 5:03 PM, Tony Lindgren <tony@atomide.com> wrote:
+From: Enrico Butera <ebutera@users.berlios.de>
 
-> Also I think we should let the pinctrl
-> core eventually manage the pins more too. Right now the pins are
-> a static array in the driver, which makes things unnecessarily
-> complex for the DT case. It would be nice to also have something like
-> pinctrl_register/unregister_pin instead of requiring them all
-> be registered while registering with the framework initially.
+id 0 is already used and causes errors at boot:
 
-Not instead of but in addition to :-)
+WARNING: at fs/sysfs/dir.c:508 sysfs_add_one+0x9c/0xac()
+sysfs: cannot create duplicate filename '/devices/platform/reg-fixed-voltage.0'
 
-One does not exclude the other. But a good general idea if you need
-this, just introduce it.
+Fix it by using the next available one (id=1).
 
-Yours,
-Linus Walleij
+Signed-off-by: Enrico Butera <ebutera@users.berlios.de>
+---
+ arch/arm/mach-omap2/board-igep0020.c |    2 +-
+ 1 files changed, 1 insertions(+), 1 deletions(-)
+
+diff --git a/arch/arm/mach-omap2/board-igep0020.c b/arch/arm/mach-omap2/board-igep0020.c
+index 930c0d3..740cee9 100644
+--- a/arch/arm/mach-omap2/board-igep0020.c
++++ b/arch/arm/mach-omap2/board-igep0020.c
+@@ -641,7 +641,7 @@ static struct regulator_consumer_supply dummy_supplies[] = {
+ 
+ static void __init igep_init(void)
+ {
+-	regulator_register_fixed(0, dummy_supplies, ARRAY_SIZE(dummy_supplies));
++	regulator_register_fixed(1, dummy_supplies, ARRAY_SIZE(dummy_supplies));
+ 	omap3_mux_init(board_mux, OMAP_PACKAGE_CBB);
+ 
+ 	/* Get IGEP2 hardware revision */
+-- 
+1.7.5.4
+
