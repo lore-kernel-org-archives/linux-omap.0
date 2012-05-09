@@ -1,56 +1,58 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: [GIT PULL] omap fixes for v3.4-rc6, take2
-Date: Wed, 9 May 2012 08:35:36 -0700
-Message-ID: <20120509153535.GJ5088@atomide.com>
+From: Ashwin Bihari <ashwin.bihari@logicpd.com>
+Subject: RE: [PATCH 2/2] Add LCD support for the LogicPD OMAP3530 DevKits
+Date: Wed, 9 May 2012 10:38:53 -0500
+Message-ID: <0520A3FE5EDCF24F88B3F1451CFC64AE04A34D4C8E@edprex01>
+References: <1336418480-32635-1-git-send-email-ashwin.bihari@logicpd.com>
+	 <1336418480-32635-3-git-send-email-ashwin.bihari@logicpd.com>
+ <1336547775.2724.7.camel@deskari>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-02-ewr.mailhop.org ([204.13.248.72]:52180 "EHLO
-	mho-02-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755341Ab2EIPfk (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 9 May 2012 11:35:40 -0400
-Content-Disposition: inline
+Received: from 174-46-170-145.static.twtelecom.net ([174.46.170.145]:43570
+	"HELO barracuda.logicpd.com" rhost-flags-OK-FAIL-OK-FAIL)
+	by vger.kernel.org with SMTP id S1756687Ab2EIPis (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 9 May 2012 11:38:48 -0400
+In-Reply-To: <1336547775.2724.7.camel@deskari>
+Content-Language: en-US
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Arnd Bergmann <arnd@arndb.de>, Olof Johansson <olof@lixom.net>
-Cc: linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org
+To: Tomi Valkeinen <tomi.valkeinen@ti.com>
+Cc: linux-omap <linux-omap@vger.kernel.org>, Tony Lindgren <tony@atomide.com>
 
-Hi Olof,
-
-Here's this one updated to drop the non-regression patch and to use updated
-version of Enrico's patch. The other two patches are the same.
-
-Regards,
-
-Tony
-
-
-The following changes since commit 69964ea4c7b68c9399f7977aa5b9aa6539a6a98a:
-
-  Linux 3.4-rc5 (2012-04-29 15:19:10 -0700)
-
-are available in the git repository at:
-
-  git://git.kernel.org/pub/scm/linux/kernel/git/tmlind/linux-omap tags/omap-fixes-for-v3.4-rc6-take-2
-
-for you to fetch changes up to 1a21932edc10de0dfd843797427719e5da43355b:
-
-  ARM: OMAP: igep0020: fix smsc911x dummy regulator id (2012-05-09 08:12:05 -0700)
-
-----------------------------------------------------------------
-Fix two board spefific regressions and one regression caused by bad documentation
-
-----------------------------------------------------------------
-Archit Taneja (1):
-      ARM: OMAP: Revert "ARM: OMAP: ctrl: Fix CONTROL_DSIPHY register fields"
-
-Enrico Butera (1):
-      ARM: OMAP: igep0020: fix smsc911x dummy regulator id
-
-Janusz Krzysztofik (1):
-      ARM: OMAP1: Amstrad Delta: Fix wrong IRQ base in FIQ handler
-
- arch/arm/mach-omap1/ams-delta-fiq.c                |    2 +-
- arch/arm/mach-omap2/board-igep0020.c               |    2 +-
- .../include/mach/ctrl_module_pad_core_44xx.h       |    8 ++++----
- 3 files changed, 6 insertions(+), 6 deletions(-)
+PiAtLS0tLU9yaWdpbmFsIE1lc3NhZ2UtLS0tLQ0KPiBGcm9tOiBUb21pIFZhbGtlaW5lbiBbbWFp
+bHRvOnRvbWkudmFsa2VpbmVuQHRpLmNvbV0NCj4gU2VudDogV2VkbmVzZGF5LCBNYXkgMDksIDIw
+MTIgMzoxNiBBTQ0KPiBUbzogQXNod2luIEJpaGFyaQ0KPiBDYzogbGludXgtb21hcDsgVG9ueSBM
+aW5kZ3Jlbg0KPiBTdWJqZWN0OiBSZTogW1BBVENIIDIvMl0gQWRkIExDRCBzdXBwb3J0IGZvciB0
+aGUgTG9naWNQRCBPTUFQMzUzMCBEZXZLaXRzDQoNCjxzbmlwPg0KIA0KPiA+ICtzdGF0aWMgaW50
+IG9tYXAzbG9naWNfcGFuZWxfZW5hYmxlX2xjZChzdHJ1Y3Qgb21hcF9kc3NfZGV2aWNlDQo+ID4g
+Kypkc3NkZXYpIHsNCj4gPiArCWdwaW9fc2V0X3ZhbHVlKExDRF9QQU5FTF9QV1IsIDEpOw0KPiA+
+ICsJaWYgKG1hY2hpbmVfaXNfb21hcDM1MzBfbHZfc29tKCkpDQo+ID4gKwkJZ3Bpb19zZXRfdmFs
+dWUoT01BUDM1MzBfTFZfU09NX0JBQ0tMSUdIVF9QV1IsIDEpOw0KPiA+ICsJZWxzZSBpZiAobWFj
+aGluZV9pc19vbWFwM190b3JwZWRvKCkpIHsNCj4gPiArCQlncGlvX3NldF92YWx1ZShPTUFQMzUz
+MF9UT1JQRURPX0JBQ0tMSUdIVF9QV1IsIDEpOw0KPiA+ICsNCj4gPiArCQlncGlvX3NldF92YWx1
+ZShPTUFQMzUzMF9UT1JQRURPX01ESVNQLCAxKTsNCj4gPiArCX0NCj4gPiArDQo+ID4gKwlyZXR1
+cm4gMDsNCj4gPiArfQ0KPiA+ICsNCj4gPiArc3RhdGljIGludCBvbWFwM2xvZ2ljX3BhbmVsX2Rp
+c2FibGVfbGNkKHN0cnVjdCBvbWFwX2Rzc19kZXZpY2UNCj4gPiArKmRzc2Rldikgew0KPiA+ICsJ
+Z3Bpb19zZXRfdmFsdWUoTENEX1BBTkVMX1BXUiwgMCk7DQo+ID4gKwlpZiAobWFjaGluZV9pc19v
+bWFwMzUzMF9sdl9zb20oKSkNCj4gPiArCQlncGlvX3NldF92YWx1ZShPTUFQMzUzMF9MVl9TT01f
+QkFDS0xJR0hUX1BXUiwgMCk7DQo+ID4gKwllbHNlIGlmIChtYWNoaW5lX2lzX29tYXAzX3RvcnBl
+ZG8oKSkgew0KPiA+ICsJCWdwaW9fc2V0X3ZhbHVlKE9NQVAzNTMwX1RPUlBFRE9fQkFDS0xJR0hU
+X1BXUiwgMCk7DQo+ID4gKw0KPiA+ICsJCWdwaW9fc2V0X3ZhbHVlKE9NQVAzNTMwX1RPUlBFRE9f
+TURJU1AsIDApOw0KPiA+ICsJfQ0KPiA+ICsNCj4gPiArCXJldHVybiAwOw0KPiA+ICt9DQo+IA0K
+PiBUaGlzIGRvZXNuJ3QgcGxheSB3ZWxsIHdpdGggZGV2aWNlLXRyZWUuIFdlIGNhbid0IGRvIHN1
+Y2ggY2FsbGJhY2tzIHdoZW4gd2UNCj4gbW92ZSB0byBEVC4NCj4gDQo+IEkga25vdyB3ZSBoYXZl
+IHNpbWlsYXIgY29kZSBmb3Igb3RoZXIgYm9hcmRzLCBhbmQgdGhpcyBjYW4ndCBiZSBwcm9wZXJs
+eSBmaXhlZA0KPiByaWdodCBub3csIGJ1dCBJJ20gc3RpbGwgYSBiaXQgaGVzaXRhbnQgdG8gYWRk
+IG1vcmUgc3VjaCBjb2RlIGJlY2F1c2UgSSdtIHRoZQ0KPiBvbmUgdGhhdCBoYXMgdG8gY2xlYW4g
+aXQgdXAgbGF0ZXIgZm9yIERUID0pLg0KPiANCj4gSSBjYW4gaGFuZGxlIHRoZSBMQ0RfUEFORUxf
+UFdSIGdwaW8sIGJ1dCB0aGUgYmFja2xpZ2h0IGlzIHNvbWV0aGluZyB0aGF0DQo+IHNob3VsZCBi
+ZSByZW1vdmVkIGZyb20gdGhlIHBhbmVsIGVuYWJsZSBjYWxsYmFja3MuIFlvdSBjb3VsZCBsb29r
+IGF0DQo+IGRyaXZlcnMvdmlkZW8vYmFja2xpZ2h0LyBhbmQgc2VlIGlmIHRoZXJlJ3Mgc29tZXRo
+aW5nIHRoZXJlIHRoYXQgY291bGQgYmUNCj4gdXNlZCBmb3IgeW91ciBib2FyZC4gT3IgaW1wbGVt
+ZW50IGEgbmV3IEJMIGRyaXZlciwgaWYgbm90aGluZyBmaXRzLg0KPiANCj4gIFRvbWkNCg0KVG9t
+aSwNCg0KTGV0IG1lIHRha2UgYSBsb29rIGF0IHlvdXIgbGludXgtb21hcC1kc3MyIHRyZWUgYW5k
+IGxlYXJuIGEgYml0IG1vcmUgYWJvdXQgRFQgYW5kIGZpZ3VyZSBvdXQgaG93IHRvIG1vZGlmeSB0
+aGUgTENEIHN1cHBvcnQgc28gaXQgYmV0dGVyIGFsaWducyB3aXRoIHlvdXIgd29yayBhbmQgSSds
+bCByZS1zdWJtaXQgdGhhdCBwYXRjaCBhZ2Fpbi4uDQoNClRoYW5rcw0KLS0gLS0gLS0NCn4gQXNo
+d2luDQoNCg0KDQo=
