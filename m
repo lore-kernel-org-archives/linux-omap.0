@@ -1,169 +1,177 @@
-From: Stephen Warren <swarren@wwwdotorg.org>
-Subject: Re: [PATCH V3 1/2] of: Add generic device tree DMA helpers
-Date: Wed, 09 May 2012 13:10:09 -0600
-Message-ID: <4FAAC111.9020308@wwwdotorg.org>
-References: <1335820679-28721-1-git-send-email-jon-hunter@ti.com> <4FA3F308.6030900@ti.com> <CAJe_ZhfFhZVG4gyaaVUgeQedJiSE=zj9nE28XCNH9DkPVgqj=A@mail.gmail.com> <201205041923.07620.arnd@arndb.de> <CAJe_Zhe8jYd1j=ti6FvqxXL7i5mbgf0jqb-84sFMTeUqyAonpw@mail.gmail.com> <4FA7F009.5010003@wwwdotorg.org> <CAJe_ZheHFP9NZEiZfCvS3LL1k7xamzGq4Oep8gfmPRi6RR7R5Q@mail.gmail.com> <4FA94B49.5050500@wwwdotorg.org> <CAJe_Zhf0=Qnsgsc7U_GbKxc0_6DKj33QWs0UW2giyrVEjPnrvw@mail.gmail.com>
+From: Jon Hunter <jon-hunter@ti.com>
+Subject: Re: oprofile and ARM A9 hardware counter
+Date: Wed, 9 May 2012 14:28:09 -0500
+Message-ID: <4FAAC549.6010206@ti.com>
+References: <20120403092524.GD17741@mudshark.cambridge.arm.com> <CAMQu2gxE2STYxUGinzstX6W8jyofH829A__NQBjwLqZd9cqy=w@mail.gmail.com> <20120403094749.GH17741@mudshark.cambridge.arm.com> <CAMQu2gyFirtVTWpMu4G_qG5sq33J-_s_o2JhVAdrUf7P3qJ3AA@mail.gmail.com> <20120403123444.GL17741@mudshark.cambridge.arm.com> <878vicsxef.fsf@ti.com> <20120403160706.GP17741@mudshark.cambridge.arm.com> <87ehs4pfw4.fsf@ti.com> <alpine.DEB.2.00.1204031727380.8000@utopia.booyaka.com> <20120404111524.GF32505@mudshark.cambridge.arm.com> <20120426180719.GC20186@mudshark.cambridge.arm.com> <4FA45580.8070802@ti.com> <87ipg76hfm.fsf@ti.com> <4FA8284C.7080803@ti.com> <87k40nzi3i.fsf@ti.com> <4FA8FCFF.40105@ti.com> <4FA9588E.9020906@ti.com> <87sjfal65t.fsf@ti.com> <4FAA4DB9.8060504@ti.com> <4FAAB1A3.9040806@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
+Content-Type: text/plain; charset="ISO-8859-1"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from avon.wwwdotorg.org ([70.85.31.133]:57162 "EHLO
-	avon.wwwdotorg.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755870Ab2EITKN (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 9 May 2012 15:10:13 -0400
-In-Reply-To: <CAJe_Zhf0=Qnsgsc7U_GbKxc0_6DKj33QWs0UW2giyrVEjPnrvw@mail.gmail.com>
+Received: from arroyo.ext.ti.com ([192.94.94.40]:41643 "EHLO arroyo.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1756882Ab2EIT2Z (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Wed, 9 May 2012 15:28:25 -0400
+In-Reply-To: <4FAAB1A3.9040806@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Jassi Brar <jaswinder.singh@linaro.org>
-Cc: Arnd Bergmann <arnd@arndb.de>, Stephen Warren <swarren@nvidia.com>, Benoit Cousson <b-cousson@ti.com>, device-tree <devicetree-discuss@lists.ozlabs.org>, Nicolas Ferre <nicolas.ferre@atmel.com>, Rob Herring <rob.herring@calxeda.com>, Grant Likely <grant.likely@secretlab.ca>, Jon Hunter <jon-hunter@ti.com>, Russell King <linux@arm.linux.org.uk>, linux-omap <linux-omap@vger.kernel.org>, linux-arm <linux-arm-kernel@lists.infradead.org>
+To: "Cousson, Benoit" <b-cousson@ti.com>
+Cc: Kevin Hilman <khilman@ti.com>, Paul Walmsley <paul@pwsan.com>, Ming Lei <ming.lei@canonical.com>, Will Deacon <will.deacon@arm.com>, Maynard Johnson <maynardj@us.ibm.com>, "Shilimkar, Santosh" <santosh.shilimkar@ti.com>, "oprofile-list@lists.sourceforge.net" <oprofile-list@lists.sourceforge.net>, Lik Lik <lik88888@gmail.com>, "eranian@gmail.com" <eranian@gmail.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>
 
-On 05/08/2012 01:09 PM, Jassi Brar wrote:
-> On 8 May 2012 22:05, Stephen Warren <swarren@wwwdotorg.org> wrote:
->>
->> The data doesn't need to be part of the DMA controller node in order for
->> the DMA controller driver to be the entity interpreting it.
->>
-> I rather say, if the dma controller driver is the entity going to interpret the
-> data, why not provide the data directly through its node at one go?
+
+On 05/09/2012 01:04 PM, Jon Hunter wrote:
+> Hi Benoit,
 > 
-> There is important difference between providing data via clients
-> during runtime vs providing info about every client to the dmac driver
-> at one go during its probe.
-
-I certainly see that there is a difference.
-
-I don't understand why it's an important difference; I think everything
-needs to be handled at run-time no matter what:
-
-Just because there is information in the DT that "this client DT node
-uses this channel/request-ID/... of this DMA controller" doesn't mean
-that the driver for the client is going to be loaded, or that SW running
-on the system is going to cause that driver to actually be opened and do
-any DMA. As such, any resource allocation rules etc. must be evaluated
-only if/when a driver actually requests/uses a DMA channel, so having
-"all the information up front" doesn't seem like a theoretically
-possible thing anyway.
-
-Very similar to this, in order to support your point that a given client
-could potentially use a channel from either of 2 different DMA
-controller instances, you don't know until run-time which controller
-will be used, so can't have up-front information in this scenario
-either, even if the DMA does actually take place.
-
->> The advantage here is that:
+> On 05/09/2012 05:58 AM, Cousson, Benoit wrote:
+>> Hi Kevin and Jon,
 >>
->> * The specifier is stored in the client, not the IRQ/GPIO/DMA
->> controller's node, so it's located right at the usage site, which
->> typically makes working out what resources a client uses easier.
->
-> A client doesn't really need some n'th channel of some m'th dma controller.
-> A client simply needs one channel for transmitting data whichever
-> platform it be.
-> So {n,m}_channel isn't really a required resource, dma_tx is, which I  still
-> specify in the client's node.
->   The fact that this information is simply fwd by the client as such to the dmac
-> (via utility code), makes the ritual even more pointless.
-
-Ah, I see your point now.
-
-To solve this, we would need to (optionally?) model the DMA request
-signal routing in the DT, so that one could explicitly model the 1:1 or
-1:n situation.
-
-And since a given DMA client might be able to use the services of 2
-different DMA controllers, those controllers might not even be identical
-HW, and hence would potentially not have identical DMA bindings. So,
-that doesn't work; we really do need device-agnostic DMA bindings in
-order to support this while maintaining all features.
-
-That all said, do we want to:
-
-a) Have the DT specify exactly which controller a given client will use,
-i.e. pick a particular one even when multiple are possible in HW.
-
-This is supported by the currently proposed bindings without issue; we
-just ignore the fact that the DT author could have connected the client
-to a different controller if they wanted.
-
-b) Have the DT represent exactly what exists in HW, i.e. that the
-client's DMA request signal is routed to N places, and have the SW pick
-which to use at runtime.
-
-You're obviously arguing for (b), and indeed that does seem more like a
-simple representation of the HW, rather than SW's use of HW, and so is
-indeed more appropriate.
-
-Solving (b) seems to require something very roughly like:
-
-dma-controller@0 {
-    compatible = "foo,dmac-xxx";
-    dma-requests = <
-		&client0 0 // DMAC req 0 is client0's 0th req output
-		&client0 1
-		&client1 0
-		&client1 1
-		&client2 0
-		...>;
-};
-
-dma-controller@1 {
-    compatible = "bar,dmac-yyy";
-    dma-requests = <
-		// Supports some client modules, but not the same ones
-		&client0 0
-		&client1 0
-		&client3 0
-		...>;
-};
-
-client0: i2s {
-    /* has 2 DMA request output signals: 0, 1 */
-};
-
-client1: spdif {
-    /* has 2 DMA request signals: 0, 1 */
-};
-
-client2: foo {
-    /* has 1 DMA request signal: 0 */
-};
-
-client3: bar {
-    /* has 1 DMA request signal: 0 */
-};
-
-and then having the core DMA code have an API like:
-
-channel = dma_request(clients_dma_req_output_id)
-
-which looks in each DMA controller's dma-requests list for the client's
-phandle and matching dma_req_output_id.
-
->> This also keeps client-specific information out of the provider node,
->> allowing it to be fully generic.
->
-> A typical Samsung SoC has 2 peripheral DMA controllers and
-> about 40 possible clients. Of which ~20 clients could be served by either of
-> the two dmacs. Of course hardly ever a machine has 10 clients. It would be
-> desirable if the dma driver doesn't populate the unused 54(32+32-10) channels,
->  presumably also reserving limited resources for each, on the machine.
+>> On 5/8/2012 11:22 PM, Kevin Hilman wrote:
+>>> Jon Hunter<jon-hunter@ti.com>  writes:
+>>>
+>>>> Hi Benoit,
+>>>>
+>>>> On 05/08/2012 06:01 AM, Cousson, Benoit wrote:
+>>>>
+>>>> [...]
+>>>>
+>>>>>>>> P.S. Please note there is also already a different fix in mainline for
+>>>>>>>> the EMU clkdm data from Paul which adds the force wakeup flag and
+>>>>>>>> removes the DISABLE_AUTO flag[1] (but leaves the ENABLE_AUTO flag,
+>>>>>>>> because the hardware is capable.)
+>>>>>>>
+>>>>>>> Hmmm ... yes saw this, and you will have to excuse me as I don't fully
+>>>>>>> follow the logic here. In fact, I am thinking we want the opposite ;-)
+>>>>>>>
+>>>>>>>   From looking, into this it seems to me that when PMU is running we want
+>>>>>>> the EMU clock domain in software-wakeup state and when PMU is not
+>>>>>>> running we want in the hardware auto state.
+>>>>>>
+>>>>>> So far, I'm with you.
+>>>>>>
+>>>>>>> By keeping the ENABLE_AUTO flag set, as soon as we enable the clock
+>>>>>>> domain it is put right back into the HW_AUTO state
+>>>>>>
+>>>>>> This is only because it was in the HWSUP state when _enable was called.
+>>>>>> If clkdm_deny_idle() is used, that behavior will change.
+>>>>>>
+>>>>>>> and hence PMU is
+>>>>>>> not working (see _enable() function in
+>>>>>>> arch/arm/mach-omap2/omap_hwmod.c)
+>>>>>>>
+>>>>>>> So really what I think we want is to remove the ENABLE_AUTO flag to keep
+>>>>>>> the clock domain in software wake-up and use the DISABLE_AUTO flag to
+>>>>>>> put the clock domain back in HW_AUTO (note this requires a patch to
+>>>>>>> perform this 2nd part).
+>>>>>>
+>>>>>> Well, Paul will have to comment here for the final word, but IIUC, the
+>>>>>> hwmod flags are supposed to indicate only what the HW is capable of.  If
+>>>>>> we want to change the runtime behavior, we nee to use (or add) APIs to
+>>>>>> change the beahvior.  In this case, clkdm_allow_idle(),
+>>>>>> clkdm_deny_idle() are probably what is needed here.
+>>>>>
+>>>>> Yes, indeed, we should not hack the flags to fix that kind of issue. The
+>>>>> flags describe what the HW is capable of, and the EMU CD can support
+>>>>> HW_AUTO and SW_WAKEUP. AFAIK, the issue with that EMU CD is that the
+>>>>> only valid next power state is OFF, meaning that no retention mode is
+>>>>> supported. So any transition to idle will go to OFF and lead to a reset
+>>>>> upon wakeup.
+>>>>
+>>>> No hacking intended here, just getting the flags correct ;-)
+>>>>
+>>>> So let me start from the beginning ...
+>>>>
+>>>> 1. I agree that for the EMU CD that the valid HW states are HW_AUTO and
+>>>> SW_WKUP.
+>>>>
+>>>> 2. When the EMU CD is active (due to something like PMU), we want to
+>>>> keep the CD in the SW_WKUP state, otherwise we can automatically
+>>>> transition to idle and reset the IP (at least for omap4430).
+>>>
+>>>> 3. When the EMU CD is inactive, we want to keep the CD in the HW_AUTO
+>>>> state because SW_SLEEP is NOT supported.
+>>>>
+>>>> In the current code, we have the CLKDM_CAN_DISABLE_AUTO flag disabled
+>>>> and the CLKDM_CAN_ENABLE_AUTO flag enabled. If CLKDM_CAN_ENABLE_AUTO is
+>>>> set then the omap_pm_clkdms_setup() function will place the CD into
+>>>> HW_AUTO regardless of CLKDM_CAN_DISABLE_AUTO, and the next time the
+>>>> hwmod _enable() is called it is in the HW_AUTO state and so it is
+>>>> allowed to idle. This is not what we want. Do you agree?
+>>>>
+>>>> If I set CLKDM_CAN_DISABLE_AUTO flag and disable CLKDM_CAN_ENABLE_AUTO,
+>>>> then I do not have the above problem.
+>>>>
+>>>> To be honest, with you the more I look and test the code, the more
+>>>> confused I am by the definition of the CLKDM_CAN_HWSUP ...
+>>>>
+>>>> #define CLKDM_CAN_HWSUP	(CLKDM_CAN_ENABLE_AUTO | CLKDM_CAN_DISABLE_AUTO)
+>>>>
+>>>> When I look at where these flags are used, I see that
+>>>> CLKDM_CAN_ENABLE_AUTO is used in clkdm_allow_idle and
+>>>> CLKDM_CAN_DISABLE_AUTO is used in clkdm_deny_idle. So this implies that ...
+>>>>
+>>>> CLKDM_CAN_ENABLE_AUTO = Supports HW_AUTO state when CD is active
+>>>> CLKDM_CAN_DISABLE_AUTO = Does NOT supports HW_AUTO state when CD is active
+>>>>
+>>>> Are the above the correct definitions?
+>>>
+>>> Not quite.
+>>>
+>>> These flags describe the capabilities as defined in CLKTRCTRL field of
+>>> the CLKSTCTRL register (e.g. CM_EMU_CLKSTCTRL)
+>>>
+>>> CLKDM_CAN_ENABLE_AUTO: IP supports HW_AUTO state (and it can be enabled)
+>>> CLKDM_CAN_DISABLE_AUTO: HW_AUTO feature can be disabled (a.k.a. NO_SLEEP)
+>>>
+>>> Note that in OMAP4, the latter called NO_SLEEP in the TRM, but in OMAP3
+>>> it's described as "The automatic hardware-supervised mode is disabled"
+>>
+>> Yeah, in fact this is the source of the current confusion for my point of view.
+>>
+>> We chat about that with Paul some time back.
+>>  
+>> EMU CD does support HW_AUTO and SW_WKUP, so it means that if you want to disable the AUTO mode you can use the SW_WKUP.
+>> Assuming that CLKDM_CAN_DISABLE_AUTO is equivalent to NO_SLEEP is thus not correct. In fact any state != HW_AUTO should be considered a non-automatic mode.
+>> So EMU does support CLKDM_CAN_ENABLE_AUTO, CLKDM_CAN_DISABLE_AUTO and CLKDM_CAN_FORCE_WAKEUP.
+>>
+>> But the way it is implemented does not really allow that, because disable hwsup imply setting state to OMAP34XX_CLKSTCTRL_DISABLE_AUTO.
+>>
+>> void omap4_cminst_clkdm_disable_hwsup(u8 part, s16 inst, u16 cdoffs)
+>> {
+>>         _clktrctrl_write(OMAP34XX_CLKSTCTRL_DISABLE_AUTO, part, inst, cdoffs);
+>> }
+>>
+>> So if we want to allow that, some code change are needed in order to set the clkdm mode to OMAP34XX_CLKSTCTRL_FORCE_WAKEUP if OMAP34XX_CLKSTCTRL_DISABLE_AUTO is not supported.
+>>
+>>> What is confusing to me is that the OMAP4 TRM doesn't list the NO_SLEEP
+>>> mode as supported by the EMU.   It seems to me that if the IP supports
+>>> HW_AUTO, it should be able to be enabled *and* disabled.
+>>
+>> No, not really, this is mostly OMAP3 legacy, and we do have plan to remove these useless modes going forward. We can effectively disable AUTO mode by going to FORCE_WAKEUP.
+>>
+>> - 0x0 NO_SLEEP A clock domain sleep transition is never initiated, irrespective of the hardware conditions.
+>> - 0x1 SW_SLEEP A software-forced sleep transition. The transition is initiated when the associated hardware conditions are satisfied
+>> - 0x2 SW_WKUP A software-forced clock domain wake-up transition is initiated, irrespective of the hardware conditions.
+>> - 0x3 HW_AUTO Hardware-controlled automatic sleep and wake-up transition is initiated by the PRCM module when the associated hardware conditions are satisfied
+>>
+>>
+>> On OMAP4, SW_SLEEP is equivalent to ENABLE_AUTO and 
+>> NO_SLEEP is equivalent to SW_WKUP. There are some slight differences inside the HW, but in term of functionality this is mostly equivalent.
+>>
+>>
+>> Bottom-line, if we fix the omap4_cminst_clkdm_disable_hwsup, we can consider that the EMU CD does support CLKDM_CAN_ENABLE_AUTO, CLKDM_CAN_DISABLE_AUTO and CLKDM_CAN_FORCE_WAKEUP, which is equivalent to CLKDM_CAN_HWSUP | CLKDM_CAN_FORCE_WAKEUP.
 > 
-> Consider this example ...
-> A PL330 instance has 8 physical channels and 32 client i/f.
-> So only 8 client reqs could be active at any time.
-> PL330 doesn't provide a way to program a true LLI transfer(very useful for
-> audio) using a single physical channel. However, we could emulate
-> true LLI if we employ 2 physical channels for one audio channel request.
+> Per our discussion and just to re-iterate here for OMAP4+ devices, we
+> should have ...
+> 
+> CAN_DISABLE_AUTO 	--> SW_WKUP
+> CAN_ENABLE_AUTO		--> HW_AUTO
+> CAN_FORCE_WAKEUP	--> SW_WKUP
+> CAN_FORCE_SLEEP		--> HW_AUTO
+> 
+> Hence, the NO_SLEEP and SW_SLEEP should not be used for OMAP4+ (per the
+> equivalents highlighted above). At least that is the current theory :-)
 
-I'm not familiar with what LLI means. I assume it's when the HW can be
-programmed with 2 DMA requests, and automatically starts the second once
-the first has completed, without SW intervention or interrupt latency.
+I realise now the the l4cfg CD does not support SW_WKUP and so I guess
+we still need NO_SLEEP in that case. So that would break the above
+mapping and we would have to handle it in software.
 
-> Obviously, if a machine had 7 or lesser clients, one would freely employ
-> 2 physical channels for audio and yet not worry about starving other clients.
-> How would we achieve this if the dmac driver was initialized as "fully
-> generic" ?
-
-Well, the DMA controller's binding could easily allow representation of
-"single-channel" v.s. "double-channel" by specifying just one ID or two
-IDs in the binding. It'd make the binding more complex, but it is possible.
+Jon
