@@ -1,99 +1,192 @@
-From: Tomi Valkeinen <tomi.valkeinen@ti.com>
-Subject: Re: [PATCH v4 0/9] OMAPDSS: APPLY: Treat overlay manager timings as
- shadow registers
-Date: Wed, 09 May 2012 14:13:11 +0300
-Message-ID: <1336561991.3962.31.camel@deskari>
-References: <1334561027-28569-1-git-send-email-archit@ti.com>
-	 <1336558256-26140-1-git-send-email-archit@ti.com>
+From: Vaibhav Hiremath <hvaibhav@ti.com>
+Subject: [PATCH-V2] ARM: OMAP2+: am33xx: Make am33xx as a separate class
+Date: Wed, 9 May 2012 16:54:27 +0530
+Message-ID: <1336562667-6741-1-git-send-email-hvaibhav@ti.com>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg="pgp-sha1"; protocol="application/pgp-signature";
-	boundary="=-mXDq4nSVgR4lnzuL575o"
+Content-Type: text/plain
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aog137.obsmtp.com ([74.125.149.18]:53733 "EHLO
-	na3sys009aog137.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1758027Ab2EILNR (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 9 May 2012 07:13:17 -0400
-Received: by lags15 with SMTP id s15so100177lag.20
-        for <linux-omap@vger.kernel.org>; Wed, 09 May 2012 04:13:14 -0700 (PDT)
-In-Reply-To: <1336558256-26140-1-git-send-email-archit@ti.com>
+Received: from devils.ext.ti.com ([198.47.26.153]:47576 "EHLO
+	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1758194Ab2EILYm (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 9 May 2012 07:24:42 -0400
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Archit Taneja <archit@ti.com>
-Cc: linux-omap@vger.kernel.org, linux-fbdev@vger.kernel.org
+To: linux-omap@vger.kernel.org
+Cc: linux-arm-kernel@lists.infradead.org, Vaibhav Hiremath <hvaibhav@ti.com>, Kevin Hilman <khilman@ti.com>, Tony Lindgren <tony@atomide.com>, Paul Walmsley <paul@pwsan.com>
 
+Initially, we decided to make am33xx family of device to fall
+under omap3 class (cpu_is_omap34xx() = true), since it carries
+Cortex-A8 core. But while adding complete baseport support
+(like, clock, power and hwmod) support, it is observed that,
+we are creating more and more problems by treating am33xx device
+as omap3 family, as nothing matches between them
+(except cortex-A8 mpu).
 
---=-mXDq4nSVgR4lnzuL575o
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: quoted-printable
+So,  after long discussion we have came to the conclusion that,
+we should not consider am33xx device as omap3 family, instead
+create separate class (SOC_OMAPAM33XX) under OMAP2PLUS.
+This means, for am33xx device, cpu_is_omap34xx() will return false,
+and only cpu_is_am33xx() will be true.
 
-On Wed, 2012-05-09 at 15:40 +0530, Archit Taneja wrote:
-> An overlay manager's timings (the manager size, and blanking parameters i=
-f an
-> LCD manager) are DISPC shadow registers, and they should hence follow the
-> correct programming model.
->=20
-> This set makes the timings an extra_info parameter in manager's private d=
-ata .
-> The interface drivers now apply the timings in instead of directly writin=
-g to
-> registers.
->=20
-> This change also prevents the need to use display resolution for overlay
-> checks, hence making some of the APPLY functions less dependent on the di=
-splay.
-> Some DISPC functions that needed display width can also use these private=
-ly
-> stored timings.
->=20
-> Changes since v3:
->=20
-> - Remove direct setting of go bit in dpi_set_timings()
-> - Take some of the patches in "OMAPDSS: Misc fixes and cleanups" and make=
- them a
->   part of this series as they are more related.
-> - Don't have an initial set of manager timings in private data, only chec=
-k
->   manager and overlay parameters once the manager is enabled.
->=20
-> These patches apply over:
->=20
-> git://gitorious.org/linux-omap-dss2/linux.git dev
->=20
-> Reference tree containing this series:
->=20
-> git://gitorious.org/~boddob/linux-omap-dss2/archit-dss2-clone.git mgr_tim=
-ing_and_fixes_2
->=20
-> Tested on OMAP4 SDP and Panda.
+Please refer to the link below, for mailing-list discussion on this -
 
-I did some quick tests on omap3 overo, worked fine. I'll merge to dss
-master branch.
+http://www.spinics.net/lists/linux-omap/msg69439.html
 
- Tomi
+Signed-off-by: Vaibhav Hiremath <hvaibhav@ti.com>
+Cc: Kevin Hilman <khilman@ti.com>
+Cc: Tony Lindgren <tony@atomide.com>
+Cc: Paul Walmsley <paul@pwsan.com>
 
+---
+NOTE: Boot tested it on OMAP3EVM platform.
 
---=-mXDq4nSVgR4lnzuL575o
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: This is a digitally signed message part
-Content-Transfer-Encoding: 7bit
+Changes from V1:
+    - This patch has been rebased against linux-omap/cleanup
+      branch.
+    - Rebased on top of KevinH's patch series -
+      [PATCH 0/3] ARM: OMAP2+: Kconfig: minor cleanup for SOC names
+      [PATCH 1/3] ARM: OMAP2+: INTC: fix Kconfig option for TI81XX
+      [PATCH 2/3] ARM: OMAP2+: Kconfig: convert SOC_OMAPTI81XX to SOC_TI81XX
+      [PATCH 3/3] ARM: OMAP2+: Kconfig: convert SOC_OMAPAM33XX to SOC_AM33XX
+    - Removed stale condition (dependes on ARCH_OMAP2PLUS) in
+      Kconfig for SOC_AM33XX.
 
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.4.11 (GNU/Linux)
+ arch/arm/mach-omap2/Kconfig           |    4 +++-
+ arch/arm/mach-omap2/Makefile          |    6 ++++++
+ arch/arm/mach-omap2/common.c          |    2 ++
+ arch/arm/plat-omap/include/plat/cpu.h |    9 ++++++---
+ arch/arm/plat-omap/sram.c             |    2 +-
+ 5 files changed, 18 insertions(+), 5 deletions(-)
 
-iQIcBAABAgAGBQJPqlFHAAoJEPo9qoy8lh71cQYQAKsQ3cpIaFJH46oUoWzur7tM
-yd0sMLZIDYGtm/vwhCe8ZGq1yX+eHsSnXaqyXdEkMWpSykuJHZ2fB0fscIJA8N6m
-/bZwAtXAvm5pkvuXVZAsPWoiUz/wcXGRd3C2qMvvZP0u7W2tAxQ1uUrr92dlTWnp
-j/IGia2HNyrLGtAl9/Y3dw2dG46FyefMKF73dgH64i8F5kxiTQjMULUrv8sY29B0
-3SUc+IdvJ1pEu62459YcUGN0L2tHNzDp3xamPYkJRcECodAvNH3AuPmCQH/NhxLY
-fexlwSdJTpzVyU0i2N+yaOrFC07L0DqxQE3X0zRsmP7gMFhTjCWn2S8URPJHc0M+
-UUiaNE8ApYvUa6BFTrm7bAUOKsa9T/8TKiSCHiEoL0Urbs4RVLMT08HeL7eWRUoT
-Acf/7YFkCbf2TBih7R3W3Dv2BVurdSGHcgyn+8AK1Y9psl67N13eFE1B5Rbdol+q
-353evqBoDDohw/ShJDBKlz0E9Ils5J3GpdGcZVntzOSTtzmMg0R+6AXDZimmAr1E
-p00gcVPsxiEqF5XJBAkKpMBriA9k+XhoZiS2Pw6BOW8PsYH998HgN36v7p5ADpJN
-otHRV6paFk/6vLD8+lMY0LCfSwPhvt3+7IiPjUdnRwofzpoNjhzhDmbsmfYlabiV
-1oGve5Q7cnmXcbRKjKc5
-=XlCU
------END PGP SIGNATURE-----
+diff --git a/arch/arm/mach-omap2/Kconfig b/arch/arm/mach-omap2/Kconfig
+index 61bf3c3..7a77bb6 100644
+--- a/arch/arm/mach-omap2/Kconfig
++++ b/arch/arm/mach-omap2/Kconfig
+@@ -84,8 +84,10 @@ config SOC_TI81XX
 
---=-mXDq4nSVgR4lnzuL575o--
+ config SOC_AM33XX
+ 	bool "AM33XX support"
+-	depends on ARCH_OMAP3
+ 	default y
++	select CPU_V7
++	select ARM_CPU_SUSPEND if PM
++	select MULTI_IRQ_HANDLER
+
+ config OMAP_PACKAGE_ZAF
+        bool
+diff --git a/arch/arm/mach-omap2/Makefile b/arch/arm/mach-omap2/Makefile
+index a5b8db3..25370fd 100644
+--- a/arch/arm/mach-omap2/Makefile
++++ b/arch/arm/mach-omap2/Makefile
+@@ -16,6 +16,7 @@ secure-common				= omap-smc.o omap-secure.o
+ obj-$(CONFIG_ARCH_OMAP2) += $(omap-2-3-common) $(hwmod-common)
+ obj-$(CONFIG_ARCH_OMAP3) += $(omap-2-3-common) $(hwmod-common) $(secure-common)
+ obj-$(CONFIG_ARCH_OMAP4) += prm44xx.o $(hwmod-common) $(secure-common)
++obj-$(CONFIG_SOC_AM33XX) += irq.o $(hwmod-common)
+
+ ifneq ($(CONFIG_SND_OMAP_SOC_MCBSP),)
+ obj-y += mcbsp.o
+@@ -90,6 +91,7 @@ obj-$(CONFIG_ARCH_OMAP3)		+= vc3xxx_data.o vp3xxx_data.o
+ obj-$(CONFIG_ARCH_OMAP4)		+= prcm.o cminst44xx.o cm44xx.o
+ obj-$(CONFIG_ARCH_OMAP4)		+= prcm_mpu44xx.o prminst44xx.o
+ obj-$(CONFIG_ARCH_OMAP4)		+= vc44xx_data.o vp44xx_data.o prm44xx.o
++obj-$(CONFIG_SOC_AM33XX)		+= prcm.o
+
+ # OMAP voltage domains
+ voltagedomain-common			:= voltage.o vc.o vp.o
+@@ -99,6 +101,7 @@ obj-$(CONFIG_ARCH_OMAP3)		+= $(voltagedomain-common)
+ obj-$(CONFIG_ARCH_OMAP3)		+= voltagedomains3xxx_data.o
+ obj-$(CONFIG_ARCH_OMAP4)		+= $(voltagedomain-common)
+ obj-$(CONFIG_ARCH_OMAP4)		+= voltagedomains44xx_data.o
++obj-$(CONFIG_SOC_AM33XX)		+= $(voltagedomain-common)
+
+ # OMAP powerdomain framework
+ powerdomain-common			+= powerdomain.o powerdomain-common.o
+@@ -113,6 +116,7 @@ obj-$(CONFIG_ARCH_OMAP3)		+= powerdomains2xxx_3xxx_data.o
+ obj-$(CONFIG_ARCH_OMAP4)		+= $(powerdomain-common)
+ obj-$(CONFIG_ARCH_OMAP4)		+= powerdomain44xx.o
+ obj-$(CONFIG_ARCH_OMAP4)		+= powerdomains44xx_data.o
++obj-$(CONFIG_SOC_AM33XX)		+= $(powerdomain-common)
+
+ # PRCM clockdomain control
+ clockdomain-common			+= clockdomain.o
+@@ -127,6 +131,7 @@ obj-$(CONFIG_ARCH_OMAP3)		+= clockdomains3xxx_data.o
+ obj-$(CONFIG_ARCH_OMAP4)		+= $(clockdomain-common)
+ obj-$(CONFIG_ARCH_OMAP4)		+= clockdomain44xx.o
+ obj-$(CONFIG_ARCH_OMAP4)		+= clockdomains44xx_data.o
++obj-$(CONFIG_SOC_AM33XX)		+= $(clockdomain-common)
+
+ # Clock framework
+ obj-$(CONFIG_ARCH_OMAP2)		+= $(clock-common) clock2xxx.o
+@@ -144,6 +149,7 @@ obj-$(CONFIG_ARCH_OMAP3)		+= dpll3xxx.o clock3xxx_data.o
+ obj-$(CONFIG_ARCH_OMAP3)		+= clkt_iclk.o
+ obj-$(CONFIG_ARCH_OMAP4)		+= $(clock-common) clock44xx_data.o
+ obj-$(CONFIG_ARCH_OMAP4)		+= dpll3xxx.o dpll44xx.o
++obj-$(CONFIG_SOC_AM33XX)		+= $(clock-common) dpll3xxx.o
+
+ # OMAP2 clock rate set data (old "OPP" data)
+ obj-$(CONFIG_SOC_OMAP2420)		+= opp2420_data.o
+diff --git a/arch/arm/mach-omap2/common.c b/arch/arm/mach-omap2/common.c
+index 1549c11..bf2a4d7 100644
+--- a/arch/arm/mach-omap2/common.c
++++ b/arch/arm/mach-omap2/common.c
+@@ -134,7 +134,9 @@ void __init ti81xx_map_io(void)
+ {
+ 	omapti81xx_map_common_io();
+ }
++#endif
+
++#if defined(CONFIG_SOC_AM33XX)
+ #define AM33XX_TAP_BASE		(AM33XX_CTRL_BASE + \
+ 				TI81XX_CONTROL_DEVICE_ID - 0x204)
+
+diff --git a/arch/arm/plat-omap/include/plat/cpu.h b/arch/arm/plat-omap/include/plat/cpu.h
+index 7b0d8ef..8ca86ec 100644
+--- a/arch/arm/plat-omap/include/plat/cpu.h
++++ b/arch/arm/plat-omap/include/plat/cpu.h
+@@ -360,8 +360,6 @@ IS_OMAP_TYPE(3517, 0x3517)
+ # undef cpu_is_ti816x
+ # undef cpu_is_ti814x
+ # undef cpu_is_am35xx
+-# undef cpu_is_am33xx
+-# undef cpu_is_am335x
+ # define cpu_is_omap3430()		is_omap3430()
+ # define cpu_is_omap3503()		(cpu_is_omap3430() &&		\
+ 						(!omap3_has_iva()) &&	\
+@@ -382,6 +380,11 @@ IS_OMAP_TYPE(3517, 0x3517)
+ # define cpu_is_ti816x()		is_ti816x()
+ # define cpu_is_ti814x()		is_ti814x()
+ # define cpu_is_am35xx()		is_am35xx()
++#endif
++
++# if defined(CONFIG_SOC_AM33XX)
++# undef cpu_is_am33xx
++# undef cpu_is_am335x
+ # define cpu_is_am33xx()		is_am33xx()
+ # define cpu_is_am335x()		is_am335x()
+ #endif
+@@ -441,7 +444,7 @@ IS_OMAP_TYPE(3517, 0x3517)
+ #define AM35XX_REV_ES1_0	AM35XX_CLASS
+ #define AM35XX_REV_ES1_1	(AM35XX_CLASS | (0x1 << 8))
+
+-#define AM335X_CLASS		0x33500034
++#define AM335X_CLASS		0x33500033
+ #define AM335X_REV_ES1_0	AM335X_CLASS
+
+ #define OMAP443X_CLASS		0x44300044
+diff --git a/arch/arm/plat-omap/sram.c b/arch/arm/plat-omap/sram.c
+index f9a8c53..982e8bc 100644
+--- a/arch/arm/plat-omap/sram.c
++++ b/arch/arm/plat-omap/sram.c
+@@ -85,7 +85,7 @@ static int is_sram_locked(void)
+ 			__raw_writel(0xCFDE, OMAP24XX_VA_READPERM0);  /* all i-read */
+ 			__raw_writel(0xCFDE, OMAP24XX_VA_WRITEPERM0); /* all i-write */
+ 		}
+-		if (cpu_is_omap34xx() && !cpu_is_am33xx()) {
++		if (cpu_is_omap34xx()) {
+ 			__raw_writel(0xFFFF, OMAP34XX_VA_REQINFOPERM0); /* all q-vects */
+ 			__raw_writel(0xFFFF, OMAP34XX_VA_READPERM0);  /* all i-read */
+ 			__raw_writel(0xFFFF, OMAP34XX_VA_WRITEPERM0); /* all i-write */
+--
+1.7.0.4
 
