@@ -1,41 +1,81 @@
-From: Russell King - ARM Linux <linux@arm.linux.org.uk>
-Subject: Re: [PATCH] ARM: decompressor: Fix mmu mapping for non-DRAM
-	address space.
-Date: Wed, 9 May 2012 13:23:48 +0100
-Message-ID: <20120509122348.GA30632@n2100.arm.linux.org.uk>
-References: <1336398149-26153-1-git-send-email-santosh.shilimkar@ti.com> <20120508124116.GE17798@arm.com> <CAMQu2gxXB4GyddjrcKWwJ=KXx=MoDs7DdwhbOY85qkVJ1Vv3wA@mail.gmail.com> <20120508215554.GA18980@n2100.arm.linux.org.uk> <CAMQu2gzmZ1Af4sAxoT9WS_akY1gBrqffKE84rnbM_EUK8V8NHQ@mail.gmail.com>
+From: "T Krishnamoorthy, Balaji" <balajitk@ti.com>
+Subject: Re: [RFC 00/12] OMAP DMA engine conversion
+Date: Wed, 9 May 2012 17:55:20 +0530
+Message-ID: <CANrkHUZBPMtAqS4TwwykrOwwvH6J2WeU5cWEx_Hr66UdZdOqJA@mail.gmail.com>
+References: <20120423160409.GE24299@n2100.arm.linux.org.uk>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from caramon.arm.linux.org.uk ([78.32.30.218]:43082 "EHLO
-	caramon.arm.linux.org.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1757958Ab2EIMYM (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 9 May 2012 08:24:12 -0400
-Content-Disposition: inline
-In-Reply-To: <CAMQu2gzmZ1Af4sAxoT9WS_akY1gBrqffKE84rnbM_EUK8V8NHQ@mail.gmail.com>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Return-path: <linux-mmc-owner@vger.kernel.org>
+In-Reply-To: <20120423160409.GE24299@n2100.arm.linux.org.uk>
+Sender: linux-mmc-owner@vger.kernel.org
+To: Russell King - ARM Linux <linux@arm.linux.org.uk>
+Cc: linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org, linux-mmc@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "Shilimkar, Santosh" <santosh.shilimkar@ti.com>
-Cc: Catalin Marinas <catalin.marinas@arm.com>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, R Sricharan <r.sricharan@ti.com>
 
-On Wed, May 09, 2012 at 02:20:28PM +0530, Shilimkar, Santosh wrote:
-> The only change done common code is  clearing 'XN' bit for DRAM
-> region in page table entries. The other change of setting the DACR
-> register is done in ARMv7 specific code.
+On Mon, Apr 23, 2012 at 9:34 PM, Russell King - ARM Linux
+<linux@arm.linux.org.uk> wrote:
+> For the full text, please see
+>
+> http://lists.arm.linux.org.uk/lurker/message/20120418.100954.7fa7acf8=
+=2Een.html
+>
+> This version contains updates for some of the comments received from =
+the
+> previous round, and adds the OMAP1/2 MMC and SPI drivers to the conve=
+rsion.
 
-Yes, XN is an ARMv6+ thing.  Before ARMv5, it was implementation defined.
+Tested eMMC, SD on omap4 Blaze
+Tested-by: Balaji T K <balajitk@ti.com>
 
-Some implementations used the bit to mean "allow writes to update the
-cache".  Other implementations labelled this bit as "should be zero"
-while others labelled it as "should be one".
-
-The upshot of this is, we know that having this bit as '1' means that
-all the CPUs we support today work.  I would be _very_ concerned to
-change this bit to zero as we _really_ don't know how the pre-ARMv6
-CPUs would react.
-
-The solution to this is pretty simple - if ARMv6+ needs a different
-base section mapping value, then we need to extract that from the code
-and pass in the base section mapping value.
-
-I'll sort out a patch later today for this.
+>
+> I've also added a note to feature-removal noting that the existing AP=
+Is
+> will be removed around 2013 - I'm planning January for that at the
+> moment. =A0Having drivers around which are unconverted blocks further=
+ work
+> on the DMA engine conversion, so it's actually important that we get
+> as many drivers converted as soon as possible.
+>
+> Anything which isn't converted will probably have its DMA code remove=
+d,
+> or if that results in the driver not being usable, the driver itself
+> will be removed.
+>
+> This series is still in RFC mode...
+>
+> =A0Documentation/feature-removal-schedule.txt | =A0 11 +
+> =A0arch/arm/mach-omap1/board-h2-mmc.c =A0 =A0 =A0 =A0 | =A0 =A01 -
+> =A0arch/arm/mach-omap1/board-h3-mmc.c =A0 =A0 =A0 =A0 | =A0 =A01 -
+> =A0arch/arm/mach-omap1/board-nokia770.c =A0 =A0 =A0 | =A0 =A01 -
+> =A0arch/arm/mach-omap2/board-n8x0.c =A0 =A0 =A0 =A0 =A0 | =A0 =A01 -
+> =A0arch/arm/mach-omap2/hsmmc.c =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0| =A0 =A0=
+1 -
+> =A0arch/arm/plat-omap/dma.c =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 | =A0=
+ 14 +
+> =A0arch/arm/plat-omap/include/plat/mmc.h =A0 =A0 =A0| =A0 =A02 -
+> =A0drivers/dma/Kconfig =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0=
+| =A0 10 +
+> =A0drivers/dma/Makefile =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 |=
+ =A0 =A02 +
+> =A0drivers/dma/omap-dma.c =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 | =A0=
+521 ++++++++++++++++++++++++++++
+> =A0drivers/dma/sa11x0-dma.c =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 | =A0=
+249 ++++---------
+> =A0drivers/dma/virt-dma.c =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 | =A0=
+ 99 ++++++
+> =A0drivers/dma/virt-dma.h =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 | =A0=
+138 ++++++++
+> =A0drivers/mmc/host/omap.c =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0| =A0=
+369 +++++++++-----------
+> =A0drivers/mmc/host/omap_hsmmc.c =A0 =A0 =A0 =A0 =A0 =A0 =A0| =A0206 =
+++++++------
+> =A0drivers/spi/spi-omap2-mcspi.c =A0 =A0 =A0 =A0 =A0 =A0 =A0| =A0228 =
++++++++------
+> =A017 files changed, 1268 insertions(+), 586 deletions(-)
+>
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-mmc" =
+in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at =A0http://vger.kernel.org/majordomo-info.html
