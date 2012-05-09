@@ -1,151 +1,94 @@
-From: Tomi Valkeinen <tomi.valkeinen@ti.com>
-Subject: Re: [PATCH v3 4/5] OMAPDSS: APPLY: Remove display dependency from
- overlay and manager checks
-Date: Wed, 09 May 2012 13:15:23 +0300
-Message-ID: <1336558523.3962.30.camel@deskari>
-References: <1334561027-28569-1-git-send-email-archit@ti.com>
-	   <1336471096-21096-1-git-send-email-archit@ti.com>
-	   <1336471096-21096-5-git-send-email-archit@ti.com>
-	  <1336474223.1821.6.camel@lappyti> <4FA901EC.8020002@ti.com>
-	 <1336478139.5761.27.camel@deskari> <4FA912F5.9030604@ti.com>
-	 <4FAA3E8E.4000904@ti.com>
+From: "Hiremath, Vaibhav" <hvaibhav@ti.com>
+Subject: RE: [PATCH] ARM: OMAP2+: irq: Increase no of supported interrupts
+ to 128
+Date: Wed, 9 May 2012 09:58:12 +0000
+Message-ID: <79CD15C6BA57404B839C016229A409A83EA1C06F@DBDE01.ent.ti.com>
+References: <1336486679-15892-1-git-send-email-hvaibhav@ti.com>
+ <87lil2o6u1.fsf@ti.com>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg="pgp-sha1"; protocol="application/pgp-signature";
-	boundary="=-lhbpGYJqOJIYAsAksbis"
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aog120.obsmtp.com ([74.125.149.140]:46353 "EHLO
-	na3sys009aog120.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753660Ab2EIKP2 (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 9 May 2012 06:15:28 -0400
-Received: by lbol5 with SMTP id l5so61013lbo.6
-        for <linux-omap@vger.kernel.org>; Wed, 09 May 2012 03:15:25 -0700 (PDT)
-In-Reply-To: <4FAA3E8E.4000904@ti.com>
+Received: from bear.ext.ti.com ([192.94.94.41]:34737 "EHLO bear.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752663Ab2EIKSl convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 9 May 2012 06:18:41 -0400
+In-Reply-To: <87lil2o6u1.fsf@ti.com>
+Content-Language: en-US
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Archit Taneja <a0393947@ti.com>
-Cc: linux-omap@vger.kernel.org, linux-fbdev@vger.kernel.org
+To: "Hilman, Kevin" <khilman@ti.com>
+Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, "Mohammed, Afzal" <afzal@ti.com>, Tony Lindgren <tony@atomide.com>, Paul Walmsley <paul@pwsan.com>
 
-
---=-lhbpGYJqOJIYAsAksbis
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: quoted-printable
-
-On Wed, 2012-05-09 at 15:23 +0530, Archit Taneja wrote:
-> On Tuesday 08 May 2012 06:05 PM, Archit Taneja wrote:
-> > On Tuesday 08 May 2012 05:25 PM, Tomi Valkeinen wrote:
-> >> On Tue, 2012-05-08 at 16:52 +0530, Archit Taneja wrote:
-> >>> On Tuesday 08 May 2012 04:20 PM, Tomi Valkeinen wrote:
-> >>
-> >>>> Checking the validity of all the settings is a bit tricky, but
-> >>>> currently
-> >>>> I think, as a rule of thumb, we should accept any settings when thin=
-gs
-> >>>> are disabled. So, until the interface driver sets the timings before
-> >>>> enabling the output, all ovl/mgr settings should be allowed. And we
-> >>>
-> >>> We have 2 ways to go about this, one is to have an initial set of
-> >>> 'always valid' values like I have done, the other option is to ignore
-> >>> manager timing related checks if the manager is disabled, i.e all
-> >>> configs are okay. To implement the second option, I think our functio=
-n
-> >>> dss_check_settings_low() would get more complicated. We would now hav=
-e
-> >>> to pass mp->enabled outside of apply, and pass it to dss_mgr_check()
-> >>> which would further need to pass this to dss_ovl_check(). Hence I use=
-d
-> >>> the first approach.
-> >>
-> >> I'm not sure about that. We already do it for overlay. In ovl.c we hav=
-e
-> >> dss_ovl_simple_check() and dss_ovl_check(). The simple check sees if t=
-he
-> >> settings pass basic sanity check. The check sees if all the ovl& mgr
-> >> settings are compatible with each other.
-> >>
-> >> Simple check is done when setting the config, called from
-> >> dss_ovl_set_info(). The proper check is done later when the actual
-> >> config is about to be taken into use.
-> >>
-> >> If mp->enabled =3D=3D false, can't we just skip dss_check_settings_low=
-()
-> >> totally for that manager? We skip the check for ovls the same way.
+On Wed, May 09, 2012 at 00:09:34, Hilman, Kevin wrote:
+> Vaibhav Hiremath <hvaibhav@ti.com> writes:
+> 
+> > With addition to TI81XX, AM33XX family of devices, the number
+> > of interrupts supported has increased to 128, compared to 96.
+> > The current implementation for irq handling is hardcoded to use
+> > 96 interrupts (with 3 register-sets to handle), this patch cleanups
+> > the code, to increase maximum number of interrupts support
+> > to 128, with dynamic detection of no of registers required for
+> > handling all interrupts.
 > >
-> > Okay, this would work better I guess. If someone tries to enable the
-> > manager without setting the timings, that check should fail, and in my
-> > approach, it would have passed, and would have led to bad stuff later.
->=20
-> One change in behaviour with the patch series I see is with the=20
-> following use case when connected to Pandaboad's DVI interface:
->=20
-> - Bootup with 1080p resolution
-> - Try to set 640x480 timings with sysfs.
->=20
-> The older behaviour was that the timings were taken, and a skewed image=
-=20
-> was seen(because the overlay size is larger in deimension)
->=20
-> The behaviour after this series is that the mgr_set_timings fails with=
-=20
-> the error:
->=20
-> omapdss OVERLAY error: overlay 0 horizontally not inside the display=20
-> area (0 + 1920 >=3D 640)
->=20
-> I guess this is better in a way, a user of DSS is supposed to reallocate=
-=20
-> the framebuffer with the desired size and then change the timings.
+> >
+> > Signed-off-by: Vaibhav Hiremath <hvaibhav@ti.com>
+> > Signed-off-by: Afzal Mohammed <afzal@ti.com>
+> > Cc: Tony Lindgren <tony@atomide.com>
+> > Cc: Kevin Hilman <khilman@ti.com>
+> > Cc: Paul Walmsley <paul@pwsan.com>
+> > ---
+> > Ideally, we should use dynamic allocation to allocate memory
+> > for registers/arrays, 
+> 
+> Yes.
+> 
 
-Yes, I think it's better. I think it's undefined what happens if the
-overlay is larger than the output. In theory the DSS HW could lock-up,
-or something. So we have to prevent it.
+Thanks Kevin, I will put this activity in my TODO list.
 
-omapdss could change the size of the overlay automatically, but I
-dislike things like that. Low level drivers adjusting the configuration
-from the user almost always brings problems. So yes, I also think that
-the user of DSS is supposed to handle it correctly.
+> > may be too much cleanup for this patch,
+> 
+> There is no such thing as too much cleanup.  ;)  
+> And the INTC is in need of it, IMO.
+> 
 
-> But with DVI, the problem is that dpi_set_timings already does a ton of=
-=20
-> stuff before dss_mgr_set_timings() is called, so we change the dividers=
-=20
-> to get the new clock, and then realise that the overlay can't fit=20
-> inside, and we are left nowhere. I guess this is a separate problem and=
-=20
-> we could tackle it later.
-
-Ah, ok. Yes, I guess we need to roll back the settings in that case. Or,
-I wonder, would a check function work, that would take the new timings
-and check those but also check if they match the overlays.
-
-Hmm, no, that doesn't solve it totally, as the overlay could be changed
-after the check. Again a problem with dss locking, we can't do the
-operation atomically...
-
- Tomi
+Indeed it is in need of cleanup...
 
 
---=-lhbpGYJqOJIYAsAksbis
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: This is a digitally signed message part
-Content-Transfer-Encoding: 7bit
+> > so as of now restricting to minimal changes to fit devices
+> > like, am33xx/ti81xx.
+> 
+> Then someone else will have to do the cleanup later.  It would be
+> greatly appreciated if you could do the necessary cleanup in order to
+> cleanly add support for more SoCs.  Yes, we probably should've insisted
+> when support for TI81xx was added, but that one slipped in under the
+> radar.
+> 
 
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.4.11 (GNU/Linux)
+Yeah, I understand. As I said I will put this activity in my TODO list.
 
-iQIcBAABAgAGBQJPqkO7AAoJEPo9qoy8lh71zDgP/iFLo1EqBRJsYZFAAIhWPEB/
-eqOY+kryKcWeM9JyPVkT+ydZ6hEowI8dgqjsRZh3W0Yo7pL7QXWrpMn0EYJ0wNU7
-LP+LztUzqHTGhOLp5tht/n7p3UtEELx+mWiTEf3ceMYbcyQJhIzvTO1btKGYkpQK
-Km6udvTyl9LXJrc+7CUP2zF4oc2gDBR/JjX0IQDSo2SqZWdFYH4u8AD0nYYP9tma
-Ty1bt3Ej7z2n6f5aIFCmJe866aknMJ1YMx60mdyZd3/qoMa4IWZbHqthUnP2WhLN
-BHLB35nPTNuEQj0k+imqM2GlIn2AmEinYHIwLXvncz4ABzkEeSImOr7GE3eACwmH
-SmVTHbxKHN1EHyDB9PSops6AJ1UsdSzOOE/39aHJVRfeW/5uvkFhnB4DlcettGgr
-kMMbwO8dY4SVPEgalHVPoq9cosCtrCuLW56MyvNb9x8OEiD6yNdWTkyhwt5rjI4E
-WtTRpIBUEYL+VMDv1grH1WqyHI1r28UU1aSCv+clZnEyIZYCUmhexxYZx+5ZlCAn
-pMWnHmJRFGrxIpQ7qsotiXY40Zu2YvPdykFCsCzgIxAS/vpfkqHIlPlivzlrldt3
-SU5sg2/3LCnG6Ms9chS9neqzmAQRbwq89MNL/z1NITptwqV0OmFYgvCFxZAsWGgF
-jwXWZdS4EiUdpbxhYMFE
-=43jX
------END PGP SIGNATURE-----
+> For starters, the notion of a banks this code is a rather messed up and
+> needs a cleanup.  A bank is supposed to be a group of 32 interrupts, 
+> and the INTC is made up of 3 (or 4) banks.   However, the current
+> code creates a single "bank" of 96 (or 128) interrupts.  
+> 
+> It also confuses what registers are part of the bank and what are global
+> to the INTC.  This confusion is both in init and in context save/restore.
+> 
+> IMO, to clean this up, first the notion of banks needs to be fixed in
+> that code there is a distinction between what acts on banks and what
+> works on the whole INTC.
+> 
+> Then, the init/alloc should be done dynamically based on the number of
+> interrupts passed to omap_init_irq()
+> 
 
---=-lhbpGYJqOJIYAsAksbis--
+Kevin,
+Let me finish up with am33xx baseport upstream activity which is currently 
+going on at full swing, then next thing I will pick up is this code cleanup.
 
+I still feel, this is still a valid cleanup patch, and can be merged, as it 
+is required/used when we do major cleanup.
+
+Thanks,
+Vaibhav
