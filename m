@@ -1,27 +1,59 @@
-From: Christoph Hellwig <hch@infradead.org>
-Subject: Re: [PATCH v2 01/16] FS: Added demand paging markers to filesystem
-Date: Wed, 9 May 2012 11:03:43 -0400
-Message-ID: <20120509150343.GB14916@infradead.org>
-References: <1336054995-22988-1-git-send-email-svenkatr@ti.com>
- <CANfBPZ_2JeWUu7ti97CVc=ODeEi65ke9EKV6Uje0JHcCM8gYqQ@mail.gmail.com>
- <20120509003348.GM5091@dastard>
- <201205091359.40554.arnd.bergmann@linaro.org>
+From: Tony Lindgren <tony@atomide.com>
+Subject: Re: [GIT PULL] omap fixes for v3.4-rc6
+Date: Wed, 9 May 2012 08:15:11 -0700
+Message-ID: <20120509151510.GG5088@atomide.com>
+References: <20120507223632.GP5088@atomide.com>
+ <CAOesGMjHEy0Rz+ow7J3BuUtt3h3SjU+6gG=PPGTu3tMNZXy6nQ@mail.gmail.com>
+ <1673508.aX9Ao89479@avalon>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-fsdevel-owner@vger.kernel.org>
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from mho-01-ewr.mailhop.org ([204.13.248.71]:43411 "EHLO
+	mho-01-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755891Ab2EIPPR (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 9 May 2012 11:15:17 -0400
 Content-Disposition: inline
-In-Reply-To: <201205091359.40554.arnd.bergmann@linaro.org>
-Sender: linux-fsdevel-owner@vger.kernel.org
-To: Arnd Bergmann <arnd.bergmann@linaro.org>
-Cc: Dave Chinner <david@fromorbit.com>, "S, Venkatraman" <svenkatr@ti.com>, linux-mmc@vger.kernel.org, cjb@laptop.org, linux-mm@kvack.org, linux-fsdevel@vger.kernel.org, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org, alex.lemberg@sandisk.com, ilan.smith@sandisk.com, lporzio@micron.com, rmk+kernel@arm.linux.org.uk
+In-Reply-To: <1673508.aX9Ao89479@avalon>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Cc: Olof Johansson <olof@lixom.net>, Arnd Bergmann <arnd@arndb.de>, linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org, ebutera@users.berlios.de
 
-On Wed, May 09, 2012 at 01:59:40PM +0000, Arnd Bergmann wrote:
-> My feeling is that we should just treat every (REQ_SYNC | REQ_READ)
-> request the same and let them interrupt long-running writes,
-> independent of whether it's REQ_META or demand paging.
+* Laurent Pinchart <laurent.pinchart@ideasonboard.com> [120509 04:09]:
+> Hi Olof,
+> 
+> On Tuesday 08 May 2012 23:48:06 Olof Johansson wrote:
+> > Hi,
+> > 
+> > On Mon, May 7, 2012 at 3:36 PM, Tony Lindgren <tony@atomide.com> wrote:
+> > > The following changes since commit 
+> 69964ea4c7b68c9399f7977aa5b9aa6539a6a98a:
+> > [..]
+> > 
+> > > Enrico Butera (1):
+> > >      ARM: OMAP: igep0020: fix smsc911x dummy regulator id
+> > 
+> > Hmm. Picking 40 without any kind of comment in the code isn't doing
+> > any favors for future readers. Seems like 1 would be free on this
+> > board, from the rest of the board file to judge (one other
+> > reg-fixed-regulator platform device)?
+> > 
+> > Please either comment why you picked 40 (i.e. it's a random number),
+> > or change it to something a little less random like 1. :)
 
-It's funny that the CFQ scheduler used to boost metadata reads that
-have REQ_META set - in fact it still does for those filesystems using
-the now split out REQ_PRIO.
+I'll use the update patch from Enrico.
 
+> > > Laurent Pinchart (1):
+> > >      ARM: OMAP: igep0020: Specify the VPLL2 regulator unconditionally
+> > 
+> > Is this a regression? I don't see any recent changes regarding this,
+> > so it's hard to tell. If not then I'd rather hold off for the merge
+> > window given that we're at -rc6.
+> 
+> It's not a regression, I'm fine with holding off until the v3.5 merge window.
+
+And will move this one into fixes-non-critical.
+
+Will send a new pull request shortly.
+
+Tony
