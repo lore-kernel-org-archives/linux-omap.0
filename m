@@ -1,73 +1,51 @@
-From: Ashwin Bihari <ashwin.bihari@logicpd.com>
-Subject: RE: [PATCH 2/2] Add LCD support for the LogicPD OMAP3530 DevKits
-Date: Wed, 9 May 2012 13:08:12 -0500
-Message-ID: <0520A3FE5EDCF24F88B3F1451CFC64AE04A355FDBA@edprex01>
-References: <1336418480-32635-1-git-send-email-ashwin.bihari@logicpd.com>
-	 <1336418480-32635-3-git-send-email-ashwin.bihari@logicpd.com>
-	 <1336547775.2724.7.camel@deskari>
-	 <0520A3FE5EDCF24F88B3F1451CFC64AE04A34D4C8E@edprex01>
- <1336578737.3962.67.camel@deskari>
+From: Kevin Hilman <khilman@ti.com>
+Subject: Re: [linux-pm] [PATCH V3 00/10] PM: Create the AVS(Adaptive Voltage Scaling)
+Date: Wed, 09 May 2012 11:29:26 -0700
+Message-ID: <87pqadgqd5.fsf@ti.com>
+References: <1335462041-4949-1-git-send-email-j-keerthy@ti.com>
+	<20120426191159.GA9415@sirena.org.uk>
+	<CAJ6a13a6WN9h1QZynpEOf-R6RXwWBZ2eOPkTeNc15JX_YfAz_w@mail.gmail.com>
+	<20120427175657.GP18260@opensource.wolfsonmicro.com>
+	<87397o3n4y.fsf@ti.com>
+	<331ABD5ECB02734CA317220B2BBEABC13E9B1A67@DBDE01.ent.ti.com>
+	<87mx5jy2li.fsf@ti.com>
+	<331ABD5ECB02734CA317220B2BBEABC13E9B6681@DBDE01.ent.ti.com>
+	<EF62F09C0797D947AD4180A1043C0DF73C40BCE1@DLEE10.ent.ti.com>
+	<87lil2jp2z.fsf@ti.com>
+	<EF62F09C0797D947AD4180A1043C0DF73C40C247@DLEE10.ent.ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from 174-46-170-145.static.twtelecom.net ([174.46.170.145]:55830
-	"HELO barracuda.logicpd.com" rhost-flags-OK-FAIL-OK-FAIL)
-	by vger.kernel.org with SMTP id S1754952Ab2EISII (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 9 May 2012 14:08:08 -0400
-In-Reply-To: <1336578737.3962.67.camel@deskari>
-Content-Language: en-US
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <EF62F09C0797D947AD4180A1043C0DF73C40C247@DLEE10.ent.ti.com>
+	(Richard Woodruff's message of "Wed, 9 May 2012 00:39:31 +0000")
+Sender: linux-kernel-owner@vger.kernel.org
+To: "Woodruff, Richard" <r-woodruff2@ti.com>
+Cc: "J, KEERTHY" <j-keerthy@ti.com>, Mark Brown <broonie@opensource.wolfsonmicro.com>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "AnilKumar, Chimata" <anilkumar@ti.com>, "linux-pm@lists.linux-foundation.org" <linux-pm@lists.linux-foundation.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "Pihet-XID, Jean" <j-pihet@ti.com>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>
 List-Id: linux-omap@vger.kernel.org
-To: Tomi Valkeinen <tomi.valkeinen@ti.com>
-Cc: linux-omap <linux-omap@vger.kernel.org>, Tony Lindgren <tony@atomide.com>
 
-PiBGcm9tOiBUb21pIFZhbGtlaW5lbiBbbWFpbHRvOnRvbWkudmFsa2VpbmVuQHRpLmNvbV0NCj4g
-U2VudDogV2VkbmVzZGF5LCBNYXkgMDksIDIwMTIgMTE6NTIgQU0NCj4gVG86IEFzaHdpbiBCaWhh
-cmkNCj4gQ2M6IGxpbnV4LW9tYXA7IFRvbnkgTGluZGdyZW4NCj4gU3ViamVjdDogUkU6IFtQQVRD
-SCAyLzJdIEFkZCBMQ0Qgc3VwcG9ydCBmb3IgdGhlIExvZ2ljUEQgT01BUDM1MzAgRGV2S2l0cw0K
-PiANCj4gT24gV2VkLCAyMDEyLTA1LTA5IGF0IDEwOjM4IC0wNTAwLCBBc2h3aW4gQmloYXJpIHdy
-b3RlOg0KPiA+ID4gLS0tLS1PcmlnaW5hbCBNZXNzYWdlLS0tLS0NCj4gPiA+IEZyb206IFRvbWkg
-VmFsa2VpbmVuIFttYWlsdG86dG9taS52YWxrZWluZW5AdGkuY29tXQ0KPiA+ID4gU2VudDogV2Vk
-bmVzZGF5LCBNYXkgMDksIDIwMTIgMzoxNiBBTQ0KPiA+ID4gVG86IEFzaHdpbiBCaWhhcmkNCj4g
-PiA+IENjOiBsaW51eC1vbWFwOyBUb255IExpbmRncmVuDQo+ID4gPiBTdWJqZWN0OiBSZTogW1BB
-VENIIDIvMl0gQWRkIExDRCBzdXBwb3J0IGZvciB0aGUgTG9naWNQRCBPTUFQMzUzMA0KPiA+ID4g
-RGV2S2l0cw0KPiA+DQoNCjxzbmlwPg0KDQo+ID4gPiBUaGlzIGRvZXNuJ3QgcGxheSB3ZWxsIHdp
-dGggZGV2aWNlLXRyZWUuIFdlIGNhbid0IGRvIHN1Y2ggY2FsbGJhY2tzDQo+ID4gPiB3aGVuIHdl
-IG1vdmUgdG8gRFQuDQo+ID4gPg0KPiA+ID4gSSBrbm93IHdlIGhhdmUgc2ltaWxhciBjb2RlIGZv
-ciBvdGhlciBib2FyZHMsIGFuZCB0aGlzIGNhbid0IGJlDQo+ID4gPiBwcm9wZXJseSBmaXhlZCBy
-aWdodCBub3csIGJ1dCBJJ20gc3RpbGwgYSBiaXQgaGVzaXRhbnQgdG8gYWRkIG1vcmUNCj4gPiA+
-IHN1Y2ggY29kZSBiZWNhdXNlIEknbSB0aGUgb25lIHRoYXQgaGFzIHRvIGNsZWFuIGl0IHVwIGxh
-dGVyIGZvciBEVCA9KS4NCj4gPiA+DQo+ID4gPiBJIGNhbiBoYW5kbGUgdGhlIExDRF9QQU5FTF9Q
-V1IgZ3BpbywgYnV0IHRoZSBiYWNrbGlnaHQgaXMgc29tZXRoaW5nDQo+ID4gPiB0aGF0IHNob3Vs
-ZCBiZSByZW1vdmVkIGZyb20gdGhlIHBhbmVsIGVuYWJsZSBjYWxsYmFja3MuIFlvdSBjb3VsZA0K
-PiA+ID4gbG9vayBhdCBkcml2ZXJzL3ZpZGVvL2JhY2tsaWdodC8gYW5kIHNlZSBpZiB0aGVyZSdz
-IHNvbWV0aGluZyB0aGVyZQ0KPiA+ID4gdGhhdCBjb3VsZCBiZSB1c2VkIGZvciB5b3VyIGJvYXJk
-LiBPciBpbXBsZW1lbnQgYSBuZXcgQkwgZHJpdmVyLCBpZg0KPiBub3RoaW5nIGZpdHMuDQo+ID4g
-Pg0KPiA+ID4gIFRvbWkNCj4gPg0KPiA+IFRvbWksDQo+ID4NCj4gPiBMZXQgbWUgdGFrZSBhIGxv
-b2sgYXQgeW91ciBsaW51eC1vbWFwLWRzczIgdHJlZSBhbmQgbGVhcm4gYSBiaXQgbW9yZSBhYm91
-dA0KPiA+IERUIGFuZCBmaWd1cmUgb3V0IGhvdyB0byBtb2RpZnkgdGhlIExDRCBzdXBwb3J0IHNv
-IGl0IGJldHRlciBhbGlnbnMgd2l0aCB5b3VyDQo+ID4gd29yayBhbmQgSSdsbCByZS1zdWJtaXQg
-dGhhdCBwYXRjaCBhZ2Fpbi4uDQo+IA0KPiBJIGhhdmVuJ3QgcHVibGlzaGVkIGFueSBEVCBzdHVm
-ZiB5ZXQuIEJ1dCB0aGVyZSdzIHRoZSBEVCBjbGVhbnVwIHNlcmllcyBJIGhhdmUNCj4gcG9zdGVk
-LCB3aGljaCB0cmllcyB0byByZS1zdHJ1Y3R1cmUgc3R1ZmYgZm9yIHNvbWUgZGlzcGxheXMgdG8g
-YmUgbW9yZSBEVA0KPiBjb21wYXRpYmxlLg0KPiANCj4gVGhlIGJhc2ljIGlkZWEgaXMgdGhhdCB3
-aXRoIERUIHRoZXJlIGFyZSBubyBib2FyZCBmaWxlcywgYW5kIGFsbCBkZXZpY2Ugc3BlY2lmaWMN
-Cj4gY29uZmlndXJhdGlvbiB2YWx1ZXMgYXJlIGluIHRoZSBEVCBkYXRhLiBTbyBHUElPIG51bWJl
-cnMgZXRjLg0KPiBhcmUgZGVmaW5lZCBpbiB0aGUgRFQgZGF0YSwgYW5kIHRoZSBkZXZpY2UgZHJp
-dmVyIHdpbGwgcmVhZCB0aGVtIGFuZCB1c2UNCj4gdGhlbS4NCj4gDQo+IEJ1dCBEVCBzdXBwb3J0
-IGlzIG5vdCB3b3JraW5nIHlldCwgYW5kIHdlIGFueXdheSBuZWVkIHRvIHN1cHBvcnQgYm90aCBE
-VA0KPiBhbmQgdGhlIG9sZCB3YXkgZm9yIHNvbWUgdGltZSwgc28gdGhlIGJvYXJkIGZpbGVzIHNo
-b3VsZCBiZSBjaGFuZ2VkIHRvIHRoaXMNCj4gZGlyZWN0aW9uLiBXaGF0IHRoaXMgbWVhbnMgZm9y
-IGRzcyBpcyB0aGF0IHRoZSBwYW5lbCBzcGVjaWZpYyBHUElPcyBldGMuIG5lZWQNCj4gdG8gYmUg
-ZGVmaW5lZCBpbiBhIGRldmljZSBzcGVjaWZpYyBzdHJ1Y3QsIHdoaWNoIGlzIHBhc3NlZCB0byB0
-aGUgcGFuZWwgZHJpdmVyLg0KPiANCj4gRm9yIGV4YW1wbGUsIHNlZSBteSBjbGVhbnVwIHNlcmll
-cywgYW5kDQo+IGluY2x1ZGUvdmlkZW8vb21hcC1wYW5lbC10ZnA0MTAuaCwNCj4gZHJpdmVycy92
-aWRlby9vbWFwMi9kaXNwbGF5cy9wYW5lbC10ZnA0MTAuYyBhbmQgdGhlIGJvYXJkIGZpbGVzIHVz
-aW5nIHRoYXQuDQo+IA0KPiBBbGwgdGhpcyBpcyBzdGlsbCBhIGJpdCBhbGl2ZSBhbmQgY2hhbmdp
-bmcsIHNvIHlvdSBjb3VsZCBhbHNvIGNob29zZSB0byB3YWl0IGEgYml0DQo+IHVudGlsIHRoaW5n
-cyBzdGFiaWxpemUgPSkuDQo+IA0KPiAgVG9taQ0KDQpUb21pLA0KDQpJIHdpbGwgdGFrZSBhIGxv
-b2sgYXQgdGhlIGZpbGVzIHlvdSBtZW50aW9uZWQgc28gZm9yIG15IG93biBpbmZvcm1hdGlvbiwg
-YnV0IHdpbGwgaG9sZCBvZmYgb24gc3VibWl0dGluZyBhbnl0aGluZyB1bnRpbCB0aGluZ3MgYXJl
-IHN0YWJsZSwgYXMgeW91IHN1Z2dlc3RlZC4NCg0KVGhhbmtzDQotLSAtLSAtLQ0KfiBBc2h3aW4N
-Cg0KDQoNCg==
+"Woodruff, Richard" <r-woodruff2@ti.com> writes:
+
+>> From: Hilman, Kevin
+>> Sent: Tuesday, May 08, 2012 5:17 PM
+>
+>> A basic OMAP AVS driver has been in mainline for a long time, yet we
+>> have not seen support submitted for all of these features.
+>
+> 1.5/3.5 is a feature.
+
+And I'm still waiting for it to be submitted upstream.
+
+> ABB is requirement for a production useable driver. Higher speed rated
+> OMAP4 and all OMAP5 added these to be useable. 
+
+ditto
+
+> Yes this is effort. Point of mentioning is to raise awareness of need.
+
+I'm well aware of the need.
+
+> Yet to be added feature has different meaning than functional gap.
+
+And both need to be submitted upstream.
+
+Kevin
