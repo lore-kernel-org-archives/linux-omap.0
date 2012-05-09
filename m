@@ -1,44 +1,69 @@
-From: Hein Tibosch <hein_tibosch@yahoo.es>
-Subject: omapfb-main.c: check result of simple_strtoul
-Date: Wed, 09 May 2012 22:47:38 +0800
-Message-ID: <4FAA838A.3040106@yahoo.es>
+From: Tony Lindgren <tony@atomide.com>
+Subject: Re: [PATCH v3] ARM: OMAP3: gpmc: add BCH ecc api and modes
+Date: Wed, 9 May 2012 08:31:42 -0700
+Message-ID: <20120509153141.GI5088@atomide.com>
+References: <1335442669-13474-1-git-send-email-ivan.djelic@parrot.com>
+ <20120509002927.GF5088@atomide.com>
+ <20120509081047.GC17333@parrot.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from bosmailout20.eigbox.net ([66.96.189.20]:48888 "EHLO
-	bosmailout20.eigbox.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1759775Ab2EIP2w (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 9 May 2012 11:28:52 -0400
-Received: from bosmailscan06.eigbox.net ([10.20.15.6])
-	by bosmailout20.eigbox.net with esmtp (Exim)
-	id 1SS8BI-0004c2-OP
-	for linux-omap@vger.kernel.org; Wed, 09 May 2012 10:47:56 -0400
+Received: from mho-01-ewr.mailhop.org ([204.13.248.71]:61934 "EHLO
+	mho-01-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755219Ab2EIPbp (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 9 May 2012 11:31:45 -0400
+Content-Disposition: inline
+In-Reply-To: <20120509081047.GC17333@parrot.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Tomi Valkeinen <tomi.valkeinen@ti.com>
-Cc: linux-omap <linux-omap@vger.kernel.org>
+To: Ivan Djelic <ivan.djelic@parrot.com>
+Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-mtd@lists.infradead.org" <linux-mtd@lists.infradead.org>, afzal@ti.com
 
-Tomi,
+* Ivan Djelic <ivan.djelic@parrot.com> [120509 01:15]:
+> On Wed, May 09, 2012 at 01:29:28AM +0100, Tony Lindgren wrote:
+> > * Ivan Djelic <ivan.djelic@parrot.com> [120426 05:23]:
+> > > Hello,
+> > > 
+> > > Here is version 3 of this patch after review from Tony Lindgren.
+> > > This version adds a separate initialization function mostly to check CPU
+> > > compatibility. This check cannot be done in gpmc_enable_hwecc_bch() (which
+> > > is meant to be called from mtd function ecc.hwctl) because ecc.hwctl is
+> > > not called before the first NAND read access, and it cannot return an error
+> > > status.
+> > 
+> > Thanks applying into devel-gpmc branch.
+> 
+> OK thanks!
+> 
+> I still have a question though: there are recent patches from
+> Afzal Mohammed that seem to go into the opposite direction, that is
+> giving back GPMC register access to the omap2 NAND driver.
+> In particular, [PATCH v4 17/39] [1] commit message says:
+> 
+>   GPMC driver has been modified to fill NAND platform data with GPMC
+>   NAND register details. As these registers are accessible in NAND
+>   driver itself, configure NAND in GPMC by itself.
+> 
+> This also includes ecc configuration. My original mtd driver patch indeed had
+> ecc handling code inside the driver (not in arch/arm/mach-omap2/gpmc.c).
+> 
+> So, my question is: which direction are we going to with respect to this
+> OMAP GPMC/NAND code separation ?
 
+What Afzal is doing is where we're heading. However, I'm afraid that
+may not be quite ready for v3.5 merge window as it needs proper testing
+on quite a few platforms to avoid issues with various devices connected
+to GPMC.
+ 
+> Note that I could prepare a new MTD patch with BCH ecc code included,
+> allowing to drop the GPMC BCH ecc api.
 
-In drivers/video/omap2/omapfb/omapfb-main.c:
+OK, let's do that then. I'll drop this patch and you can coordinate
+your patch with Afzal.
 
- static int omapfb_parse_vram_param(const char *param, int max_entries,
- 		unsigned long *sizes, unsigned long *paddrs)
- {
- 	int fbnum;
- 	unsigned long size;
- 	unsigned long paddr = 0;
- 	char *p, *start;
-  	start = (char *)param;
- 	while (1) {
- 		p = start;
-  		fbnum = simple_strtoul(p, &p, 10);
--		if (p == param)
-+		if (p == start)
+Regards,
 
-correct?
+Tony
 
-Hein
-
+ 
+> [1] http://lists.infradead.org/pipermail/linux-mtd/2012-May/041105.html
