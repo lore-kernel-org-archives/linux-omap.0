@@ -1,44 +1,60 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH] OMAPDSS: TFP410: use gpio_set_value_cansleep
-Date: Wed, 9 May 2012 16:37:46 -0700
-Message-ID: <20120509233745.GZ5088@atomide.com>
-References: <1336601288-27848-1-git-send-email-Russ.Dill@ti.com>
- <20120509221447.GY5088@atomide.com>
- <CA+Bv8Xa+1RJ5QTn=vO4GSw1VtUZc3xX0J5qBVshvV5Dj+9uZVA@mail.gmail.com>
+From: Omar Ramirez Luna <omar.luna-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>
+Subject: Re: [PATCH 0/2] OMAP: mailbox initial device tree support
+Date: Wed, 9 May 2012 18:48:31 -0500
+Message-ID: <CALLhW=5u75kSU1gorxMga2XHp4fbZnBBJhicTKGUCSTH86nAww@mail.gmail.com>
+References: <1335894460-19941-1-git-send-email-omar.luna@linaro.org>
+	<B5906170F1614E41A8A28DE3B8D121433EA68F6D@DBDE01.ent.ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-01-ewr.mailhop.org ([204.13.248.71]:51978 "EHLO
-	mho-01-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1758810Ab2EIXhs (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 9 May 2012 19:37:48 -0400
-Content-Disposition: inline
-In-Reply-To: <CA+Bv8Xa+1RJ5QTn=vO4GSw1VtUZc3xX0J5qBVshvV5Dj+9uZVA@mail.gmail.com>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <linaro-dev-bounces-cunTk1MwBs8s++Sfvej+rw@public.gmane.org>
+In-Reply-To: <B5906170F1614E41A8A28DE3B8D121433EA68F6D-Er742YJ7I/eIQmiDNMet8wC/G2K4zDHf@public.gmane.org>
+List-Unsubscribe: <http://lists.linaro.org/mailman/options/linaro-dev>,
+	<mailto:linaro-dev-request-cunTk1MwBs8s++Sfvej+rw@public.gmane.org?subject=unsubscribe>
+List-Archive: <http://lists.linaro.org/pipermail/linaro-dev>
+List-Post: <mailto:linaro-dev-cunTk1MwBs8s++Sfvej+rw@public.gmane.org>
+List-Help: <mailto:linaro-dev-request-cunTk1MwBs8s++Sfvej+rw@public.gmane.org?subject=help>
+List-Subscribe: <http://lists.linaro.org/mailman/listinfo/linaro-dev>,
+	<mailto:linaro-dev-request-cunTk1MwBs8s++Sfvej+rw@public.gmane.org?subject=subscribe>
+Sender: linaro-dev-bounces-cunTk1MwBs8s++Sfvej+rw@public.gmane.org
+Errors-To: linaro-dev-bounces-cunTk1MwBs8s++Sfvej+rw@public.gmane.org
+To: "Bedia, Vaibhav" <vaibhav.bedia-l0cyMroinI0@public.gmane.org>
+Cc: Russell King <linux-lFZ/pmaqli7XmaaqVzeoHQ@public.gmane.org>, "patches-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org" <patches-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>, Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>, "devicetree-discuss-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org" <devicetree-discuss-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org>, "linux-doc-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-doc-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Rob Herring <rob.herring-bsGFqQB8/DxBDgjK7y7TUQ@public.gmane.org>, Rob Landley <rob-VoJi6FS/r0vR7s880joybQ@public.gmane.org>, "linaro-dev-cunTk1MwBs8s++Sfvej+rw@public.gmane.org" <linaro-dev-cunTk1MwBs8s++Sfvej+rw@public.gmane.org>, "linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org" <linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org>
 List-Id: linux-omap@vger.kernel.org
-To: Russ Dill <Russ.Dill@ti.com>
-Cc: linux-omap@vger.kernel.org, linux-fbdev@vger.kernel.org, Tomi Valkeinen <tomi.valkeinen@ti.com>
 
-* Russ Dill <Russ.Dill@ti.com> [120509 15:53]:
-> On Wed, May 9, 2012 at 3:14 PM, Tony Lindgren <tony@atomide.com> wrote:
-> > * Russ Dill <Russ.Dill@ti.com> [120509 15:12]:
-> >> The Beagleboard xM gpio used for TFP410 powerdown is connected through
-> >> an I2C attached chip which means setting the GPIO can sleep. Code that
-> >> calls tfp410_power_on/off holds a mutex, so sleeping should be fine.
-> >
-> > What's the error without this patch? Or just no display?
-> >
-> > Just wondering if it's safe to merge Tomi's clean up series to
-> > arm-soc tree..
-> 
-> The only platform that has a problem is Beagleboard xM, and that is
-> only after 'ARM: OMAP: Cleanup Beagleboard DVI reset gpio' is applied.
-> Since the context actually can sleep, the only consequence is a
-> WARN_ON statement.
-> 
-> So yes, it should be safe.
+Hi Vaibhav,
 
-Well since I have not actually merged it with other branches yet, I'll wait
-for Tomi to apply that and repull his for-l-o-3.5 branch.
+Somehow I missed this mail.
 
-Tony
+On 2 May 2012 00:42, Bedia, Vaibhav <vaibhav.bedia-l0cyMroinI0@public.gmane.org> wrote:
+> Hi Omar,
+>
+> On Tue, May 01, 2012 at 23:17:38, Omar Ramirez Luna wrote:
+>> To allow mailbox driver to function with device tree.
+>>
+>> Tested in OMAP4 and OMAP3. OMAP2 untested.
+>>
+>
+> I think the mailbox code needs a cleanup similar to what you
+> had proposed earlier [1] before the device tree support is added.
+
+I believe the cleanup needs to be there, but this is generic enough to
+support DT as it is.
+
+> We probably need to decide whether the number of mailbox sub-modules
+> should be part of hwmod attribute or come from device tree.
+
+All the data is currently coming from hwmod, so I don't see why this
+must be split now between hwmod and DT, but I'm open for suggestions.
+
+> IMO the
+> static allocation of the mailboxes is better suited in the device-tree
+> data.
+
+If possible I wouldn't want to tie use case specifics to DT or hwmod,
+the whole point for the cleanup was to allow a dynamic mailbox
+allocation and not statically assign them.
+
+Regards,
+
+Omar
