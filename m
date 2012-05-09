@@ -1,55 +1,108 @@
-From: Samuel Ortiz <sameo@linux.intel.com>
-Subject: Re: [PATCH] MFD: twl6040: Add regulator support for VIO, V2V1
- supplies
-Date: Wed, 9 May 2012 22:02:06 +0200
-Message-ID: <20120509200206.GA17206@sortiz-mobl>
-References: <1335966882-19897-1-git-send-email-peter.ujfalusi@ti.com>
+From: Stephen Warren <swarren@wwwdotorg.org>
+Subject: Re: [PATCH] pinctrl: Add generic pinctrl-simple driver that supports
+ omap2+ padconf
+Date: Wed, 09 May 2012 14:16:13 -0600
+Message-ID: <4FAAD08D.1050806@wwwdotorg.org>
+References: <20120502172401.GG3739@atomide.com> <4FA42CBF.8010906@wwwdotorg.org> <20120504215758.GV5613@atomide.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mga02.intel.com ([134.134.136.20]:24451 "EHLO mga02.intel.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754439Ab2EITw2 (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Wed, 9 May 2012 15:52:28 -0400
-Content-Disposition: inline
-In-Reply-To: <1335966882-19897-1-git-send-email-peter.ujfalusi@ti.com>
+Received: from avon.wwwdotorg.org ([70.85.31.133]:59521 "EHLO
+	avon.wwwdotorg.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1759743Ab2EIUQR (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 9 May 2012 16:16:17 -0400
+In-Reply-To: <20120504215758.GV5613@atomide.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Peter Ujfalusi <peter.ujfalusi@ti.com>
-Cc: linux-kernel@vger.kernel.org, Mark Brown <broonie@opensource.wolfsonmicro.com>, linux-omap@vger.kernel.org, Tero Kristo <t-kristo@ti.com>
+To: Tony Lindgren <tony@atomide.com>
+Cc: Linus Walleij <linus.walleij@linaro.org>, linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org, Stephen Warren <swarren@nvidia.com>
 
-Hi Peter,
+On 05/04/2012 03:57 PM, Tony Lindgren wrote:
+> * Stephen Warren <swarren@wwwdotorg.org> [120504 12:27]:
+>> On 05/02/2012 11:24 AM, Tony Lindgren wrote:
+>>
+>>> diff --git a/Documentation/devicetree/bindings/pinctrl/pinctrl-simple.txt b/Documentation/devicetree/bindings/pinctrl/pinctrl-simple.txt
+...
+>> On the other hand, I worry about whether using "pinctrl-simple" here as
+>> the compatible value is going to cause issues:
+>>
+>> Certainly, this is a pretty simple driver, and most likely reasonably
+>> generic an applicable to many SoCs. However, it doesn't cover a bunch of
+>> cases that I'd still consider "simple". For example, what if each pin
+>> has a separate mux and pinconf register? There are probably many such
+>> small cases that would add up to something more complex. to cover those
+>> cases, will we be able to extend pinctrl-simple to cover them, and
+>> continue to be backwards compatible, or will we need to create a
+>> binding/driver for pinctrl-simple-1, pinctrl-simple-2, pinctrl-simple-3
+>> each of which covers some different, yet still simple, configuration?
+> 
+> Yes getting the binding right is the critical part here, everything else
+> can be added as needed. I was thinking about using separate properties
+> for auxilary registers, but now thinking about it a bit more, it may not
+> be sufficient.
+> 
+> How about we make some of these properties into arrays? For example:
+> 
+> #pinctrl-cells = 6;
+> pinctrl-simple,function-mask = <0x0000ffff 0x0000ffff 0xffff0000>;
+> pinctrl-simple,function-off = <0x7 0x7 0x70000>;
+> pinctrl-simple,pinconf-mask = <0xffff0000 0xffff0000 0x0000ffff>;
 
-On Wed, May 02, 2012 at 04:54:42PM +0300, Peter Ujfalusi wrote:
-> twl6040 has three power supply source:
-> VBAT needs to be connected to VBAT, VIO, and V2V1.
-> Add regulator support for the VIO, V2V1 supplies.
-> Initially handle the two supply together with bulk commands.
-> 
-> Signed-off-by: Peter Ujfalusi <peter.ujfalusi@ti.com>
-> Reviewed-by: Mark Brown <broonie@opensource.wolfsonmicro.com>
-> ---
->  drivers/mfd/twl6040-core.c  |   33 +++++++++++++++++++++++++++++----
->  include/linux/mfd/twl6040.h |    2 ++
->  2 files changed, 31 insertions(+), 4 deletions(-)
-> 
-> Hi Samuel,
-> 
-> The runtime dependencies for this patch has been sent to linux-omap list:
-> http://marc.info/?l=linux-omap&m=133596645010228&w=2
-> http://marc.info/?l=linux-omap&m=133596645610232&w=2
-> http://marc.info/?l=linux-omap&m=133596644310224&w=2
-> http://marc.info/?l=linux-omap&m=133596643310220&w=2
-> 
-> Alone this patch does not cause compile time regression but in runtime it needs
-> the arch/arm/mach-omap2 patches.
-> I try to avoid cross tree issues as much as I can and I'm happy if these will
-> come together in linux-next (and finally in 3.5).
-I applied this one to my nfc-next branch, thanks.
+I'm not sure what the 3 entries in the array are meant to describe?
 
-Cheers,
-Samuel.
+> Then for handling the set/clear bits case of registers, we could do that
+> automatically if both masks are 0 for some registers. We actually have
+> that for some omap1 where there are three registers per mux with bits
+> to set or clear. And these bits are not the same across all registers..
 
--- 
-Intel Open Source Technology Centre
-http://oss.intel.com/
+>>> +				0x6c 0xf	/* CSI21_DX3 OMAP_PIN_OUTPUT | OMAP_MUX_MODE7 */
+>>> +				0x6e 0xf	/* CSI21_DY3 OMAP_PIN_OUTPUT | OMAP_MUX_MODE7 */
+>>> +				0x70 0xf	/* CSI21_DX4 OMAP_PIN_OUTPUT | OMAP_MUX_MODE7 */
+>>> +				0x72 0xf	/* CSI21_DY4 OMAP_PIN_OUTPUT | OMAP_MUX_MODE7 */
+>>> +			>;
+>>> +		};
+>>> +	};
+>>> +
+>>> +
+>>> +	/* map all uart2 pins as a single function */
+>>> +	uart2_pins: pinmux_uart2_pins {
+>>> +		uart2_pins {
+>>> +			pinctrl-simple,cells = <
+>>> +				0xd8 0x118	/* UART2_CTS OMAP_PIN_INPUT_PULLUP | OMAP_MUX_MODE0 */
+>>> +				0xda 0		/* UART2_RTS OMAP_PIN_OUTPUT | OMAP_MUX_MODE0 */
+>>> +				0xdc 0x118	/* UART2_RX OMAP_PIN_INPUT_PULLUP | OMAP_MUX_MODE0 */
+>>> +				0xde 0		/* UART2_TX OMAP_PIN_OUTPUT | OMAP_MUX_MODE0 */
+>>> +			>;
+>>> +		};
+>>> +	};
+>>> +
+>>> +	/* map all uart3 pins as separate functions */
+>>> +	uart3_pins: pinmux_uart3_pins {
+>>
+>> From a binding perspective, I don't see why you'd want to allow two cases:
+>>
+>> 1) One node with multiple entries in pinctrl-simple,cells
+>> 2) Multiple nodes each with a single entry in pinctrl-simple,cells
+>>
+>> Why not only allow (1)?
+> 
+> Because we need to specify GPIO for some pins. There may be additional flags
+
+What do you mean by "specify GPIO"?
+
+Nothing in this pinctrl-simple binding seems to imply that it's also a
+GPIO controller.
+
+If "GPIO" is one of the functions that can be mux'd onto a pin, then I'd
+expect that to be represented in exactly the same way as any other
+function that could be mux'd onto the pin.
+
+So, I'm not sure what GPIO-related information you want to represent.
+
+> too, we do have external DMA request lines for few pins available.. I'm not
+> saying pinctrl fwk should know about that, but it's a similar mapping of pins
+> to GPIO lines.
+
+Aren't DMA request lines also just another function that can be mux'd
+onto a pin?
