@@ -1,59 +1,67 @@
 From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [GIT PULL] omap fixes for v3.4-rc6
-Date: Wed, 9 May 2012 08:15:11 -0700
-Message-ID: <20120509151510.GG5088@atomide.com>
-References: <20120507223632.GP5088@atomide.com>
- <CAOesGMjHEy0Rz+ow7J3BuUtt3h3SjU+6gG=PPGTu3tMNZXy6nQ@mail.gmail.com>
- <1673508.aX9Ao89479@avalon>
+Subject: Re: [PATCH v2] OMAP: igep0020: fix smsc911x dummy regulator id
+Date: Wed, 9 May 2012 08:23:59 -0700
+Message-ID: <20120509152358.GH5088@atomide.com>
+References: <1336555679-15676-1-git-send-email-ebutera@users.sourceforge.net>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-01-ewr.mailhop.org ([204.13.248.71]:43411 "EHLO
-	mho-01-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755891Ab2EIPPR (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 9 May 2012 11:15:17 -0400
+Received: from mho-02-ewr.mailhop.org ([204.13.248.72]:30578 "EHLO
+	mho-02-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1759778Ab2EIPYD (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 9 May 2012 11:24:03 -0400
 Content-Disposition: inline
-In-Reply-To: <1673508.aX9Ao89479@avalon>
+In-Reply-To: <1336555679-15676-1-git-send-email-ebutera@users.sourceforge.net>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-Cc: Olof Johansson <olof@lixom.net>, Arnd Bergmann <arnd@arndb.de>, linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org, ebutera@users.berlios.de
+To: Enrico Butera <ebutera@users.sourceforge.net>
+Cc: linux-omap@vger.kernel.org, Olof Johansson <olof@lixom.net>, Enrico Butera <ebutera@users.berlios.de>
 
-* Laurent Pinchart <laurent.pinchart@ideasonboard.com> [120509 04:09]:
-> Hi Olof,
+* Enrico Butera <ebutera@users.sourceforge.net> [120509 02:32]:
+> From: Enrico Butera <ebutera@users.berlios.de>
 > 
-> On Tuesday 08 May 2012 23:48:06 Olof Johansson wrote:
-> > Hi,
-> > 
-> > On Mon, May 7, 2012 at 3:36 PM, Tony Lindgren <tony@atomide.com> wrote:
-> > > The following changes since commit 
-> 69964ea4c7b68c9399f7977aa5b9aa6539a6a98a:
-> > [..]
-> > 
-> > > Enrico Butera (1):
-> > >      ARM: OMAP: igep0020: fix smsc911x dummy regulator id
-> > 
-> > Hmm. Picking 40 without any kind of comment in the code isn't doing
-> > any favors for future readers. Seems like 1 would be free on this
-> > board, from the rest of the board file to judge (one other
-> > reg-fixed-regulator platform device)?
-> > 
-> > Please either comment why you picked 40 (i.e. it's a random number),
-> > or change it to something a little less random like 1. :)
-
-I'll use the update patch from Enrico.
-
-> > > Laurent Pinchart (1):
-> > >      ARM: OMAP: igep0020: Specify the VPLL2 regulator unconditionally
-> > 
-> > Is this a regression? I don't see any recent changes regarding this,
-> > so it's hard to tell. If not then I'd rather hold off for the merge
-> > window given that we're at -rc6.
+> id 0 is already used and causes errors at boot:
 > 
-> It's not a regression, I'm fine with holding off until the v3.5 merge window.
+> WARNING: at fs/sysfs/dir.c:508 sysfs_add_one+0x9c/0xac()
+> sysfs: cannot create duplicate filename '/devices/platform/reg-fixed-voltage.0'
+> 
+> Fix it by using the next available one (id=1).
 
-And will move this one into fixes-non-critical.
-
-Will send a new pull request shortly.
+Thanks adding into fixes with updated comments for the regression,
+updated patch below.
 
 Tony
+
+
+From: Enrico Butera <ebutera@users.berlios.de>
+Date: Wed, 9 May 2012 11:27:59 +0200
+Subject: [PATCH] ARM: OMAP: igep0020: fix smsc911x dummy regulator id
+
+id 0 is already used and causes errors at boot:
+
+WARNING: at fs/sysfs/dir.c:508 sysfs_add_one+0x9c/0xac()
+sysfs: cannot create duplicate filename '/devices/platform/reg-fixed-voltage.0'
+
+Fix it by using the next available one (id=1).
+
+This was caused by 5b3689f4 (ARM: OMAP2+: smsc911x: Add fixed
+board regulators) that did not account for some regulators
+already being used.
+
+Signed-off-by: Enrico Butera <ebutera@users.berlios.de>
+[tony@atomide.com: updated comments for regression causing commit]
+Signed-off-by: Tony Lindgren <tony@atomide.com>
+
+diff --git a/arch/arm/mach-omap2/board-igep0020.c b/arch/arm/mach-omap2/board-igep0020.c
+index 930c0d3..740cee9 100644
+--- a/arch/arm/mach-omap2/board-igep0020.c
++++ b/arch/arm/mach-omap2/board-igep0020.c
+@@ -641,7 +641,7 @@ static struct regulator_consumer_supply dummy_supplies[] = {
+ 
+ static void __init igep_init(void)
+ {
+-	regulator_register_fixed(0, dummy_supplies, ARRAY_SIZE(dummy_supplies));
++	regulator_register_fixed(1, dummy_supplies, ARRAY_SIZE(dummy_supplies));
+ 	omap3_mux_init(board_mux, OMAP_PACKAGE_CBB);
+ 
+ 	/* Get IGEP2 hardware revision */
