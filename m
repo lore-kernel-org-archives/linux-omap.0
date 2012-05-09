@@ -1,69 +1,55 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH v3] ARM: OMAP3: gpmc: add BCH ecc api and modes
-Date: Wed, 9 May 2012 08:31:42 -0700
-Message-ID: <20120509153141.GI5088@atomide.com>
-References: <1335442669-13474-1-git-send-email-ivan.djelic@parrot.com>
- <20120509002927.GF5088@atomide.com>
- <20120509081047.GC17333@parrot.com>
+From: Ashwin Bihari <ashwin.bihari@logicpd.com>
+Subject: RE: [PATCH 2/2] Add LCD support for the LogicPD OMAP3530 DevKits
+Date: Wed, 9 May 2012 10:31:55 -0500
+Message-ID: <0520A3FE5EDCF24F88B3F1451CFC64AE04A34D4C57@edprex01>
+References: <1336418480-32635-1-git-send-email-ashwin.bihari@logicpd.com>
+ <1336418480-32635-3-git-send-email-ashwin.bihari@logicpd.com>
+ <20120509001321.GA5088@atomide.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-01-ewr.mailhop.org ([204.13.248.71]:61934 "EHLO
-	mho-01-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755219Ab2EIPbp (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 9 May 2012 11:31:45 -0400
-Content-Disposition: inline
-In-Reply-To: <20120509081047.GC17333@parrot.com>
+Received: from 174-46-170-145.static.twtelecom.net ([174.46.170.145]:49666
+	"HELO barracuda.logicpd.com" rhost-flags-OK-FAIL-OK-FAIL)
+	by vger.kernel.org with SMTP id S1756357Ab2EIPbu convert rfc822-to-8bit
+	(ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Wed, 9 May 2012 11:31:50 -0400
+In-Reply-To: <20120509001321.GA5088@atomide.com>
+Content-Language: en-US
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Ivan Djelic <ivan.djelic@parrot.com>
-Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-mtd@lists.infradead.org" <linux-mtd@lists.infradead.org>, afzal@ti.com
+To: Tony Lindgren <tony@atomide.com>
+Cc: linux-omap <linux-omap@vger.kernel.org>, Tomi Valkeinen <tomi.valkeinen@ti.com>
 
-* Ivan Djelic <ivan.djelic@parrot.com> [120509 01:15]:
-> On Wed, May 09, 2012 at 01:29:28AM +0100, Tony Lindgren wrote:
-> > * Ivan Djelic <ivan.djelic@parrot.com> [120426 05:23]:
-> > > Hello,
-> > > 
-> > > Here is version 3 of this patch after review from Tony Lindgren.
-> > > This version adds a separate initialization function mostly to check CPU
-> > > compatibility. This check cannot be done in gpmc_enable_hwecc_bch() (which
-> > > is meant to be called from mtd function ecc.hwctl) because ecc.hwctl is
-> > > not called before the first NAND read access, and it cannot return an error
-> > > status.
-> > 
-> > Thanks applying into devel-gpmc branch.
+> -----Original Message-----
+> From: Tony Lindgren [mailto:tony@atomide.com]
+> Sent: Tuesday, May 08, 2012 8:13 PM
+> To: Ashwin Bihari
+> Cc: linux-omap; Tomi Valkeinen
+> Subject: Re: [PATCH 2/2] Add LCD support for the LogicPD OMAP3530 DevKits
 > 
-> OK thanks!
+> * Ashwin Bihari <ashwin.bihari@logicpd.com> [120507 12:41]:
+> > Use the generic DSS panel driver that provides support for the 4.3"
+> > Sharp LQ043T1DG01 that comes standard on the
+> > OMAP3530 SOM-LV and Torpedo DevKits.
 > 
-> I still have a question though: there are recent patches from
-> Afzal Mohammed that seem to go into the opposite direction, that is
-> giving back GPMC register access to the omap2 NAND driver.
-> In particular, [PATCH v4 17/39] [1] commit message says:
+> Applying the 1/2 of this into board branch, but this probably needs to be
+> coordinated with changes Tomi is doing.
 > 
->   GPMC driver has been modified to fill NAND platform data with GPMC
->   NAND register details. As these registers are accessible in NAND
->   driver itself, configure NAND in GPMC by itself.
+> Regards,
 > 
-> This also includes ecc configuration. My original mtd driver patch indeed had
-> ecc handling code inside the driver (not in arch/arm/mach-omap2/gpmc.c).
+> Tony
 > 
-> So, my question is: which direction are we going to with respect to this
-> OMAP GPMC/NAND code separation ?
+> 
 
-What Afzal is doing is where we're heading. However, I'm afraid that
-may not be quite ready for v3.5 merge window as it needs proper testing
-on quite a few platforms to avoid issues with various devices connected
-to GPMC.
- 
-> Note that I could prepare a new MTD patch with BCH ecc code included,
-> allowing to drop the GPMC BCH ecc api.
+Tony,
 
-OK, let's do that then. I'll drop this patch and you can coordinate
-your patch with Afzal.
+I'll work with Tomi and modify the LCD support to align with what he is doing with DSS..
 
-Regards,
+Thanks
+-- -- --
+~ Ashwin
 
-Tony
 
- 
-> [1] http://lists.infradead.org/pipermail/linux-mtd/2012-May/041105.html
+
+
