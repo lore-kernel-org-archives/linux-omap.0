@@ -1,39 +1,29 @@
 From: Tony Lindgren <tony@atomide.com>
-Subject: Re: Additional support for LogicPD OMAP3530
-Date: Tue, 8 May 2012 17:19:02 -0700
-Message-ID: <20120509001901.GD5088@atomide.com>
-References: <0520A3FE5EDCF24F88B3F1451CFC64AE04A34D434D@edprex01>
+Subject: Re: [PATCH v2] GPMC: add ECC control definitions
+Date: Tue, 8 May 2012 17:26:46 -0700
+Message-ID: <20120509002645.GE5088@atomide.com>
+References: <1331204846-19573-1-git-send-email-yegorslists@googlemail.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-01-ewr.mailhop.org ([204.13.248.71]:46386 "EHLO
-	mho-01-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751774Ab2EIATF (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 8 May 2012 20:19:05 -0400
+Received: from mho-02-ewr.mailhop.org ([204.13.248.72]:22280 "EHLO
+	mho-02-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753082Ab2EIA0s (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 8 May 2012 20:26:48 -0400
 Content-Disposition: inline
-In-Reply-To: <0520A3FE5EDCF24F88B3F1451CFC64AE04A34D434D@edprex01>
+In-Reply-To: <1331204846-19573-1-git-send-email-yegorslists@googlemail.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Ashwin Bihari <ashwin.bihari@logicpd.com>
-Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
+To: yegorslists@googlemail.com
+Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 
-* Ashwin Bihari <ashwin.bihari@logicpd.com> [120508 12:18]:
-> Tony,
+* yegorslists@googlemail.com <yegorslists@googlemail.com> [120308 02:36]:
+> From: Yegor Yefremov <yegorslists@googlemail.com>
 > 
-> I should've CC'ed you on my initial posting, and will do so with future posts, but here is a ping with the 2 patches[1] I sent that add MSUB and LCD support for the LogicPD OMAP3530 SOM-LV and Torpedo DevKits.
-> 
-> Please let me know if you any comments or anyone (or mailing list) I should also CC for these patches.
+> Signed-off-by: Yegor Yefremov <yegorslists@googlemail.com>
+> ---
+> v2: READ and WRITE will be configured in the same way, so change the cases accordingly
 
-Applied the first one, the second one you need to coordinate with Tomi,
-or at least need to get an ack from Tomi as he is cleaning up the
-DSS2 init.
-
-Regards,
+Applying into devel-gpmc thanks.
 
 Tony
- 
-> [1] - http://www.mail-archive.com/linux-omap@vger.kernel.org/msg68037.html
-> 
-> Thanks
-> ~ Ashwin
-> 
