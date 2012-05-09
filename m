@@ -1,62 +1,111 @@
-From: Catalin Marinas <catalin.marinas@arm.com>
-Subject: Re: [PATCH] ARM: decompressor: Fix mmu mapping for non-DRAM
- address space.
-Date: Wed, 9 May 2012 11:23:27 +0100
-Message-ID: <20120509102327.GF11099@arm.com>
-References: <1336398149-26153-1-git-send-email-santosh.shilimkar@ti.com>
- <20120508124116.GE17798@arm.com>
- <CAMQu2gxXB4GyddjrcKWwJ=KXx=MoDs7DdwhbOY85qkVJ1Vv3wA@mail.gmail.com>
- <20120508215554.GA18980@n2100.arm.linux.org.uk>
- <CAMQu2gzmZ1Af4sAxoT9WS_akY1gBrqffKE84rnbM_EUK8V8NHQ@mail.gmail.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+From: jean.pihet@newoldbits.com
+Subject: [PATCH 1/2] ARM: OMAP3: PM: cpuidle: optimize the PER latency in C1 state
+Date: Wed,  9 May 2012 12:55:11 +0200
+Message-ID: <1336560912-26753-1-git-send-email-j-pihet@ti.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from cam-admin0.cambridge.arm.com ([217.140.96.50]:39726 "EHLO
-	cam-admin0.cambridge.arm.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751501Ab2EIK20 (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 9 May 2012 06:28:26 -0400
-Content-Disposition: inline
-In-Reply-To: <CAMQu2gzmZ1Af4sAxoT9WS_akY1gBrqffKE84rnbM_EUK8V8NHQ@mail.gmail.com>
+Received: from mail-wg0-f44.google.com ([74.125.82.44]:56624 "EHLO
+	mail-wg0-f44.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754507Ab2EIKz2 (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 9 May 2012 06:55:28 -0400
+Received: by wgbdr13 with SMTP id dr13so138775wgb.1
+        for <linux-omap@vger.kernel.org>; Wed, 09 May 2012 03:55:27 -0700 (PDT)
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "Shilimkar, Santosh" <santosh.shilimkar@ti.com>
-Cc: Russell King - ARM Linux <linux@arm.linux.org.uk>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, R Sricharan <r.sricharan@ti.com>
+To: Kevin Hilman <khilman@ti.com>, Grazvydas Ignotas <notasas@gmail.com>, linux-omap@vger.kernel.org
+Cc: Paul Walmsley <paul@pwsan.com>, Jean Pihet <j-pihet@ti.com>
 
-On Wed, May 09, 2012 at 09:50:28AM +0100, Shilimkar, Santosh wrote:
-> On Wed, May 9, 2012 at 3:25 AM, Russell King - ARM Linux
-> <linux@arm.linux.org.uk> wrote:
-> > On Tue, May 08, 2012 at 07:31:57PM +0530, Shilimkar, Santosh wrote:
-> >> Ok. Assuming you mean " it's _not_ cleaner to have two domains where
-> >> manager overrides XN attributes" Note that DRAM can be in the middle of
-> >> 4GB address space, so we need to take care of bottom and top address
-> >> space.
-> >>
-> >> Update patch end of the email. Is that fine with you ?
-> >
-> > This is certainly not cleaner because this will break non-ARMv7.
-> 
-> The only change done common code is  clearing 'XN' bit for DRAM
-> region in page table entries. The other change of setting the DACR
-> register is done in ARMv7 specific code.
-> 
-> So it should work as long as XN bit supported or that
-> bit position is not used. I checked ARMv6(OMAP2) and that seems
-> to be fine.
-> 
-> Can you please help me to understand which ARM version will
-> be broken because of this change and how ? I only have access
-> to ARMv6 and ARMv7 specs.
+From: Jean Pihet <j-pihet@ti.com>
 
-It's probably ARMv5 and earlier that didn't have an XN bit (introduced
-with ARMv6).
+One of the main contributors of the low power code latency is
+the PER power domain. To optimize the high-performance and
+low-latency C1 state, prevent any PER state which is lower
+than the CORE state in C1.
 
-I have an old ARM ARM on my desk and it looks like bit 4 is XN on ARMv6+
-and Implementation Defined on ARMv5 and earlier.  It looks like we set
-it all the time in the current decompressor.
+Reported and suggested by Kevin Hilman.
 
-Looking at the arch/arm/mm/mmu.c file, there is this PMD_BIT4 which is
-always set on ARMv5 and earlier except Xscale and XSC3 (see the comment
-in build_mem_type_table).
+Reported-by: Kevin Hilman <khilman@ti.com>
+Signed-off-by: Jean Pihet <j-pihet@ti.com>
+---
+ arch/arm/mach-omap2/cpuidle34xx.c |   38 +++++++++++++++++++-----------------
+ 1 files changed, 20 insertions(+), 18 deletions(-)
 
+diff --git a/arch/arm/mach-omap2/cpuidle34xx.c b/arch/arm/mach-omap2/cpuidle34xx.c
+index 5358664..353dd8d 100644
+--- a/arch/arm/mach-omap2/cpuidle34xx.c
++++ b/arch/arm/mach-omap2/cpuidle34xx.c
+@@ -247,19 +247,18 @@ static int omap3_enter_idle_bm(struct cpuidle_device *dev,
+ 			       int index)
+ {
+ 	int new_state_idx;
+-	u32 core_next_state, per_next_state = 0, per_saved_state = 0, cam_state;
++	u32 core_next_state, per_next_state = 0, per_saved_state = 0;
+ 	struct omap3_idle_statedata *cx;
+ 	int ret;
+ 
+ 	/*
+-	 * Prevent idle completely if CAM is active.
++	 * Use only C1 if CAM is active.
+ 	 * CAM does not have wakeup capability in OMAP3.
+ 	 */
+-	cam_state = pwrdm_read_pwrst(cam_pd);
+-	if (cam_state == PWRDM_POWER_ON) {
++	if (pwrdm_read_pwrst(cam_pd) == PWRDM_POWER_ON)
+ 		new_state_idx = drv->safe_state_index;
+-		goto select_state;
+-	}
++	else
++		new_state_idx = next_valid_state(dev, drv, index);
+ 
+ 	/*
+ 	 * FIXME: we currently manage device-specific idle states
+@@ -269,24 +268,28 @@ static int omap3_enter_idle_bm(struct cpuidle_device *dev,
+ 	 *        its own code.
+ 	 */
+ 
+-	/*
+-	 * Prevent PER off if CORE is not in retention or off as this
+-	 * would disable PER wakeups completely.
+-	 */
+-	cx = cpuidle_get_statedata(&dev->states_usage[index]);
++	/* Program PER state */
++	cx = cpuidle_get_statedata(&dev->states_usage[new_state_idx]);
+ 	core_next_state = cx->core_state;
+ 	per_next_state = per_saved_state = pwrdm_read_next_pwrst(per_pd);
+-	if ((per_next_state == PWRDM_POWER_OFF) &&
+-	    (core_next_state > PWRDM_POWER_RET))
+-		per_next_state = PWRDM_POWER_RET;
++	if (new_state_idx == 0) {
++		/* In C1 do not allow PER state lower than CORE state */
++		if (per_next_state < core_next_state)
++			per_next_state = core_next_state;
++	} else {
++		/*
++		 * Prevent PER OFF if CORE is not in RETention or OFF as this
++		 * would disable PER wakeups completely.
++		 */
++		if ((per_next_state == PWRDM_POWER_OFF) &&
++		    (core_next_state > PWRDM_POWER_RET))
++			per_next_state = PWRDM_POWER_RET;
++	}
+ 
+ 	/* Are we changing PER target state? */
+ 	if (per_next_state != per_saved_state)
+ 		pwrdm_set_next_pwrst(per_pd, per_next_state);
+ 
+-	new_state_idx = next_valid_state(dev, drv, index);
+-
+-select_state:
+ 	ret = omap3_enter_idle(dev, drv, new_state_idx);
+ 
+ 	/* Restore original PER state if it was modified */
+@@ -372,7 +375,6 @@ int __init omap3_idle_init(void)
+ 
+ 	/* C1 . MPU WFI + Core active */
+ 	_fill_cstate(drv, 0, "MPU ON + CORE ON");
+-	(&drv->states[0])->enter = omap3_enter_idle;
+ 	drv->safe_state_index = 0;
+ 	cx = _fill_cstate_usage(dev, 0);
+ 	cx->valid = 1;	/* C1 is always valid */
 -- 
-Catalin
+1.7.7.6
+
