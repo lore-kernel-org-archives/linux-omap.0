@@ -1,68 +1,58 @@
-From: Artem Bityutskiy <dedekind1@gmail.com>
-Subject: Re: [PATCH] ARM: OMAP1: fix compilation issue in board-sx1.c
-Date: Wed, 09 May 2012 10:57:18 +0300
-Message-ID: <1336550238.27683.1.camel@sauron.fi.intel.com>
-References: <1336485575-18352-1-git-send-email-dedekind1@gmail.com>
-	 <20120509001734.GC5088@atomide.com>
-Reply-To: dedekind1@gmail.com
+From: Ivan Djelic <ivan.djelic@parrot.com>
+Subject: Re: [PATCH v3] ARM: OMAP3: gpmc: add BCH ecc api and modes
+Date: Wed, 9 May 2012 10:07:47 +0200
+Message-ID: <20120509080747.GB17333@parrot.com>
+References: <1335442669-13474-1-git-send-email-ivan.djelic@parrot.com>
+ <20120509002927.GF5088@atomide.com>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg="pgp-sha1"; protocol="application/pgp-signature";
-	boundary="=-5xOXC8Gm7H1e6oAaNBia"
+Content-Type: text/plain; charset="us-ascii"
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mga02.intel.com ([134.134.136.20]:64127 "EHLO mga02.intel.com"
+Received: from co202.xi-lite.net ([149.6.83.202]:33885 "EHLO co202.xi-lite.net"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1755706Ab2EIHyJ (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Wed, 9 May 2012 03:54:09 -0400
-In-Reply-To: <20120509001734.GC5088@atomide.com>
+	id S1756858Ab2EIIId (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Wed, 9 May 2012 04:08:33 -0400
+Content-Disposition: inline
+In-Reply-To: <20120509002927.GF5088@atomide.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: Tony Lindgren <tony@atomide.com>
-Cc: OMAP Mailing List <linux-omap@vger.kernel.org>
+Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-mtd@lists.infradead.org" <linux-mtd@lists.infradead.org>, afzal@ti.com
 
+On Wed, May 09, 2012 at 01:29:28AM +0100, Tony Lindgren wrote:
+> * Ivan Djelic <ivan.djelic@parrot.com> [120426 05:23]:
+> > Hello,
+> > 
+> > Here is version 3 of this patch after review from Tony Lindgren.
+> > This version adds a separate initialization function mostly to check CPU
+> > compatibility. This check cannot be done in gpmc_enable_hwecc_bch() (which
+> > is meant to be called from mtd function ecc.hwctl) because ecc.hwctl is
+> > not called before the first NAND read access, and it cannot return an error
+> > status.
+> 
+> Thanks applying into devel-gpmc branch.
 
---=-5xOXC8Gm7H1e6oAaNBia
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: quoted-printable
+OK thanks!
 
-On Tue, 2012-05-08 at 17:17 -0700, Tony Lindgren wrote:
-> * Artem Bityutskiy <dedekind1@gmail.com> [120508 07:02]:
-> > From: Artem Bityutskiy <artem.bityutskiy@linux.intel.com>
-> >=20
-> > SX1 board requirese i2c, so select it in Kconfig, otherwise I have the
-> > following build error:
->=20
-> Thanks applying into fixes-non-critical as this seems to build
-> with omap1_defconfig.
+I still have a question though: there are recent patches from
+Afzal Mohammed that seem to go into the opposite direction, that is 
+giving back GPMC register access to the omap2 NAND driver.
+In particular, [PATCH v4 17/39] [1] commit message says:
 
-Right, because omap1_defconfig has i2c enabled. The build fails if I
-disable it. But this is not critical to me at all.
+  GPMC driver has been modified to fill NAND platform data with GPMC
+  NAND register details. As these registers are accessible in NAND
+  driver itself, configure NAND in GPMC by itself.
 
---=20
-Best Regards,
-Artem Bityutskiy
+This also includes ecc configuration. My original mtd driver patch indeed had
+ecc handling code inside the driver (not in arch/arm/mach-omap2/gpmc.c).
 
---=-5xOXC8Gm7H1e6oAaNBia
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: This is a digitally signed message part
-Content-Transfer-Encoding: 7bit
+So, my question is: which direction are we going to with respect to this
+OMAP GPMC/NAND code separation ?
 
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.4.12 (GNU/Linux)
+Note that I could prepare a new MTD patch with BCH ecc code included,
+allowing to drop the GPMC BCH ecc api.
 
-iQIcBAABAgAGBQJPqiNeAAoJECmIfjd9wqK0swgP/37TPRkeO6yAT95LNLq7ipiV
-EUhWuxqEomyMAPDoXVvZJPRXDeBaODHu9r9XPIvAlVdgSSNw0LRkHF4x/TkdxC33
-EY0aSsOaIZ3jH/Hzq9CfXVtdq3NqceD5j2WQwlsB5sC6imJ625qQ6OZWzA9dx7L/
-jbL2AE09jQk9Mq/G2RRbm2u6nHfixSq3a3/H87zE+OV2s1gEvV5edKxf8iq5EpJ8
-QnHcCZseovLaE/ABQN9VmgtWYSXMQwA5/V0MbXPqz7mGvE9fjz3BC5tgk5gX9nkm
-EId6jruvLcPCvPnkC/XVFO89KfTipUxmg/XSJwFcwayw4isjuxLwJx1j7aabvAF2
-4GD0LvoHcWc1zjzBiG1+w+H0nKQjzXF8a7cDAFmhCtm1+RzYM2NDglGXQR7QyojN
-4rZneONhxWwQ3XDrTpDxkPfJD1KQn6dGtStjbqcF3Eq8viwzeaw0N0VOq7peqpNA
-B9bgKorOOScVCrSVsG/Vi4D8l9iZ1VRAmsdd+SEGvD39VQhwzIfAALiN+b62xH/K
-bLJIU0Qtv28zInv5Mm3ENwhhVb9kZ/fhQEBWPsuBrW693r4aqdahLHMZEp7kouej
-R+PZAir1vYxECZm0hLUVlr7eIz6CAUc20kndnGmxVTE92HWdV4DOkFoakcaamGit
-cQj5q+q6eT/vK7xIo+MX
-=4IhG
------END PGP SIGNATURE-----
+BR,
+--
+Ivan
 
---=-5xOXC8Gm7H1e6oAaNBia--
-
+[1] http://lists.infradead.org/pipermail/linux-mtd/2012-May/041105.html
