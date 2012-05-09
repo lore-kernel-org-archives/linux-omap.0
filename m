@@ -1,29 +1,39 @@
 From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH] ARM: OMAP1: fix compilation issue in board-sx1.c
-Date: Tue, 8 May 2012 17:17:34 -0700
-Message-ID: <20120509001734.GC5088@atomide.com>
-References: <1336485575-18352-1-git-send-email-dedekind1@gmail.com>
+Subject: Re: Additional support for LogicPD OMAP3530
+Date: Tue, 8 May 2012 17:19:02 -0700
+Message-ID: <20120509001901.GD5088@atomide.com>
+References: <0520A3FE5EDCF24F88B3F1451CFC64AE04A34D434D@edprex01>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-02-ewr.mailhop.org ([204.13.248.72]:11713 "EHLO
-	mho-02-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751241Ab2EIARg (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 8 May 2012 20:17:36 -0400
+Received: from mho-01-ewr.mailhop.org ([204.13.248.71]:46386 "EHLO
+	mho-01-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751774Ab2EIATF (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 8 May 2012 20:19:05 -0400
 Content-Disposition: inline
-In-Reply-To: <1336485575-18352-1-git-send-email-dedekind1@gmail.com>
+In-Reply-To: <0520A3FE5EDCF24F88B3F1451CFC64AE04A34D434D@edprex01>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Artem Bityutskiy <dedekind1@gmail.com>
-Cc: OMAP Mailing List <linux-omap@vger.kernel.org>
+To: Ashwin Bihari <ashwin.bihari@logicpd.com>
+Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
 
-* Artem Bityutskiy <dedekind1@gmail.com> [120508 07:02]:
-> From: Artem Bityutskiy <artem.bityutskiy@linux.intel.com>
+* Ashwin Bihari <ashwin.bihari@logicpd.com> [120508 12:18]:
+> Tony,
 > 
-> SX1 board requirese i2c, so select it in Kconfig, otherwise I have the
-> following build error:
+> I should've CC'ed you on my initial posting, and will do so with future posts, but here is a ping with the 2 patches[1] I sent that add MSUB and LCD support for the LogicPD OMAP3530 SOM-LV and Torpedo DevKits.
+> 
+> Please let me know if you any comments or anyone (or mailing list) I should also CC for these patches.
 
-Thanks applying into fixes-non-critical as this seems to build
-with omap1_defconfig.
+Applied the first one, the second one you need to coordinate with Tomi,
+or at least need to get an ack from Tomi as he is cleaning up the
+DSS2 init.
+
+Regards,
 
 Tony
+ 
+> [1] - http://www.mail-archive.com/linux-omap@vger.kernel.org/msg68037.html
+> 
+> Thanks
+> ~ Ashwin
+> 
