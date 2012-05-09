@@ -1,308 +1,126 @@
-From: Jean Pihet <jean.pihet@newoldbits.com>
-Subject: Re: PM related performance degradation on OMAP3
-Date: Wed, 9 May 2012 13:00:15 +0200
-Message-ID: <CAORVsuWcSp9rY1oUe3copaWVYy2tz8QKMuFQXWeTVkge7GYFQA@mail.gmail.com>
-References: <CANOLnOP5gq4Vtt00SgRNW-3GZDWk0sukBgJx4V6rkMLL+b6G-w@mail.gmail.com>
-	<877gxobudk.fsf@ti.com>
-	<CANOLnOPbHBshCdbmSOjYdubWqUivrVpR-+eaayu=v4Yy6yKdsQ@mail.gmail.com>
-	<87ehrtn6na.fsf@ti.com>
-	<CANOLnOM_-yhr-j=UO3ynJ6HyJxzd_2FshPMXMLpcBcOB0mL7Qw@mail.gmail.com>
-	<87y5puwhus.fsf@ti.com>
-	<CAORVsuWP72dHFSBhX=Kux7GEk33qQgR74a74FFwzA8uniSabAQ@mail.gmail.com>
-	<877gx5dwz2.fsf@ti.com>
-	<CAORVsuXX9c+8-uJ1e1U920_jy0MK53jmCu+hXhHaXapHArMeLg@mail.gmail.com>
-	<87txzzhkvh.fsf@ti.com>
-	<CAORVsuV811jk7MsjyA4xKSbo+baU2z+eNjKqkA1ZH+3r+aiONg@mail.gmail.com>
-	<878vh36gpl.fsf@ti.com>
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Subject: Re: [PATCH 1/1] omap3: Provide means for changing CSI2 PHY configuration
+Date: Wed, 09 May 2012 13:01:34 +0200
+Message-ID: <1806533.kaSkiTLSjy@avalon>
+References: <1336539641-28424-1-git-send-email-sakari.ailus@iki.fi>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7Bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-vb0-f46.google.com ([209.85.212.46]:39357 "EHLO
-	mail-vb0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756711Ab2EILAQ convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 9 May 2012 07:00:16 -0400
-Received: by vbbff1 with SMTP id ff1so132920vbb.19
-        for <linux-omap@vger.kernel.org>; Wed, 09 May 2012 04:00:15 -0700 (PDT)
-In-Reply-To: <878vh36gpl.fsf@ti.com>
+Received: from perceval.ideasonboard.com ([95.142.166.194]:60887 "EHLO
+	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1757185Ab2EILBd (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 9 May 2012 07:01:33 -0400
+In-Reply-To: <1336539641-28424-1-git-send-email-sakari.ailus@iki.fi>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Kevin Hilman <khilman@ti.com>
-Cc: Grazvydas Ignotas <notasas@gmail.com>, linux-omap@vger.kernel.org, Paul Walmsley <paul@pwsan.com>
+To: Sakari Ailus <sakari.ailus@iki.fi>
+Cc: linux-omap@vger.kernel.org, paul@pwsan.com, tony@atomide.com
 
-Hi Kevin,
+Hi Sakari,
 
-On Mon, May 7, 2012 at 7:31 PM, Kevin Hilman <khilman@ti.com> wrote:
-> Jean Pihet <jean.pihet@newoldbits.com> writes:
->
->> On Tue, May 1, 2012 at 7:27 PM, Kevin Hilman <khilman@ti.com> wrote:
->>> Jean Pihet <jean.pihet@newoldbits.com> writes:
->>>
->>>> HI Kevin, Grazvydas,
->>>>
->>>> On Tue, Apr 24, 2012 at 4:29 PM, Kevin Hilman <khilman@ti.com> wro=
-te:
->>>>> Jean Pihet <jean.pihet@newoldbits.com> writes:
->>>>>
->>>>>> Hi Grazvydas, Kevin,
->>>>>>
->>>>>> I did some gather some performance measurements and statistics u=
-sing
->>>>>> custom tracepoints in __omap3_enter_idle.
->>>> I posted the patches for the power domains registers cache, cf.
->>>> http://marc.info/?l=3Dlinux-omap&m=3D133587781712039&w=3D2.
->>>>
->>>>>> All the details are at
->>>>>> http://www.omappedia.org/wiki/Power_Management_Device_Latencies_=
-Measurement#C1_performance_problem:_analysis
->>>> I updated the page with the measurements results with Kevin's patc=
-hes
->>>> and the registers cache patches.
->>>>
->>>> The results are showing that:
->>>> - the registers cache optimizes the low power mode transitions, bu=
-t is
->>>> not sufficient to obtain a big gain. A few unused domains are
->>>> transitioning, which causes a big penalty in the idle path.
->>>
->>> PER is the one that seems to be causing the most latency.
->>>
->>> Can you try do your measurements using hack below which makes sure =
-that
->>> PER isn't any deeper than CORE?
->>
->> Indeed your patch brings significant improvements, cf. wiki page at
->> http://www.omappedia.org/wiki/Power_Management_Device_Latencies_Meas=
-urement#C1_performance_problem:_analysis
->> for detailed information.
->> Here below is the reworked patch, more suited for inclusion in mainl=
-ine [1]
->>
->> I have another optimisation -in proof of concept state- that brings
->> another significant improvement. It is about allowing/disabling idle
->> for only 1 clkdm in a pwrdm and not iterate through all the clkdms.
->> This still needs some rework though. Cf. patch [2]
->
-> That should work since disabling idle for any clkdm will have the sam=
-e
-> effect. =A0Can you send this as a separate patch with a descriptive
-> changelog.
-I just sent 2 patches which optimize the C1 state latency:
- . [PATCH 1/2] ARM: OMAP3: PM: cpuidle: optimize the PER latency in C1 =
-state
- . [PATCH 2/2] ARM: OMAP3: PM: cpuidle: optimize the clkdm idle
-latency in C1 state
+Thanks for the patch.
 
-Note: those patches apply on top of your pre/post_transition
-optimization patches.
+On Wednesday 09 May 2012 08:00:41 Sakari Ailus wrote:
+> The OMAP 3630 has configuration how the ISP CSI-2 PHY pins are connected to
+> the actual CSI-2 receivers outside the ISP itself. Allow changing this
+> configuration from the ISP driver.
+> 
+> Signed-off-by: Sakari Ailus <sakari.ailus@iki.fi>
+> ---
+> Hi,
+> 
+> This patch does what was discussed some time ago: provide a bit more high
+> level interface than the registers for the ISP driver to change the CSI-2
+> PHY mappings.
+> 
+> omap_writel()/omap_readl() functions are no longer there so this works as a
+> convenient push to write a patch such as this. ;-)
+> 
+>  arch/arm/mach-omap2/control.c              |   32 +++++++++++++++++++++++++
+>  arch/arm/mach-omap2/include/mach/control.h |   11 +++++++++
+>  2 files changed, 43 insertions(+), 0 deletions(-)
+>  create mode 100644 arch/arm/mach-omap2/include/mach/control.h
+> 
+> diff --git a/arch/arm/mach-omap2/control.c b/arch/arm/mach-omap2/control.c
+> index 08e674b..78c27b2 100644
+> --- a/arch/arm/mach-omap2/control.c
+> +++ b/arch/arm/mach-omap2/control.c
+> @@ -12,9 +12,12 @@
+>   */
+>  #undef DEBUG
+> 
+> +#include <linux/export.h>
+>  #include <linux/kernel.h>
+>  #include <linux/io.h>
+> 
+> +#include <mach/control.h>
+> +
+>  #include <plat/hardware.h>
+>  #include <plat/sdrc.h>
+> 
+> @@ -564,4 +567,33 @@ int omap3_ctrl_save_padconf(void)
+>  	return 0;
+>  }
+> 
+> +void omap3_ctrl_csi2_select(u32 csi2cfg)
+> +{
+> +	/* FIXME: Do 34xx / 35xx require something here? */
 
-The performance results are close to the !PM case (No IDLE, no
-omap_sram_idle, all pwrdms to ON), i.e. 3.1MB/s on Beagleboard.
-The wiki page update comes asap.
+Well, maybe it's time to find out whether it does ?
 
+> +	if (cpu_is_omap3630()) {
+
+I would test !cpu_is_omap3630() and return, that would lower the indentation 
+level.
+
+> +		u32 cam_phy_ctrl =
+> +			omap_ctrl_readl(OMAP3630_CONTROL_CAMERA_PHY_CTRL);
+> +
+> +		/*
+> +		 * SCM.CONTROL_CAMERA_PHY_CTRL
+> +		 * - bit[4]    : CSIPHY1 data sent to CSIB
+> +		 * - bit [3:2] : CSIPHY1 config: 00 d-phy, 01/10 ccp2
+> +		 * - bit [1:0] : CSIPHY2 config: 00 d-phy, 01/10 ccp2
+> +		 */
+> +		if (csi2cfg == OMAP3_CTRL_CSI2_SELECT_PHY1_CCP2B)
+> +			cam_phy_ctrl |= 1 << 2;
+> +		else if (csi2cfg == OMAP3_CTRL_CSI2_SELECT_PHY1_CSI2C)
+> +			cam_phy_ctrl &= ~(1 << 2);
+> +
+> +		if (csi2cfg == OMAP3_CTRL_CSI2_SELECT_PHY2_CCP2B)
+> +			cam_phy_ctrl |= 1;
+> +		else if (csi2cfg == OMAP3_CTRL_CSI2_SELECT_PHY2_CSI2A)
+> +			cam_phy_ctrl &= ~1;
+> +
+> +		omap_ctrl_writel(cam_phy_ctrl,
+> +				 OMAP3630_CONTROL_CAMERA_PHY_CTRL);
+> +	}
+> +}
+> +EXPORT_SYMBOL_GPL(omap3_ctrl_csi2_select);
+> +
+>  #endif /* CONFIG_ARCH_OMAP3 && CONFIG_PM */
+> diff --git a/arch/arm/mach-omap2/include/mach/control.h
+> b/arch/arm/mach-omap2/include/mach/control.h new file mode 100644
+> index 0000000..4490b7a
+> --- /dev/null
+> +++ b/arch/arm/mach-omap2/include/mach/control.h
+> @@ -0,0 +1,11 @@
+> +#ifndef __MACH_CONTROL_H__
+> +#define __MACH_CONTROL_H__
+> +
+> +#define OMAP3_CTRL_CSI2_SELECT_PHY1_CCP2B      (1 << 0)
+> +#define OMAP3_CTRL_CSI2_SELECT_PHY1_CSI2C      (1 << 1)
+> +#define OMAP3_CTRL_CSI2_SELECT_PHY2_CCP2B      (1 << 2)
+> +#define OMAP3_CTRL_CSI2_SELECT_PHY2_CSI2A      (1 << 3)
+
+As you only test for equality, does a bitmask really make sense ?
+
+> +void omap3_ctrl_csi2_select(u32 csi2cfg);
+> +
+> +#endif /* __MACH_CONTROL_H__ */
+-- 
 Regards,
-Jean
 
->
-> Kevin
->
->
->> Patches [1] and [2] on top of the registers cache and the
->> optimisations in pre/post_transition bring the performance close to
->> the performance for the non cpuidle case (3.0MB/s compared to 3.1MB/=
-s
->> on Beagleboard).
->>
->> What do you think?
->>
->> Regards,
->> Jean
->>
->> ---
->> [1]
->> diff --git a/arch/arm/mach-omap2/cpuidle34xx.c
->> b/arch/arm/mach-omap2/cpuidle34xx.c
->> index e406d7b..572b605 100644
->> +++ b/arch/arm/mach-omap2/cpuidle34xx.c
->> @@ -279,32 +279,36 @@ static int omap3_enter_idle_bm(struct cpuidle_=
-device *dev,
->> =A0 =A0 =A0 int ret;
->>
->> =A0 =A0 =A0 /*
->> - =A0 =A0 =A0* Prevent idle completely if CAM is active.
->> + =A0 =A0 =A0* Use only C1 if CAM is active.
->> =A0 =A0 =A0 =A0* CAM does not have wakeup capability in OMAP3.
->> =A0 =A0 =A0 =A0*/
->> - =A0 =A0 if (pwrdm_read_func_pwrst(cam_pd) =3D=3D PWRDM_FUNC_PWRST_=
-ON) {
->> + =A0 =A0 if (pwrdm_read_func_pwrst(cam_pd) =3D=3D PWRDM_FUNC_PWRST_=
-ON)
->> =A0 =A0 =A0 =A0 =A0 =A0 =A0 new_state_idx =3D drv->safe_state_index;
->> - =A0 =A0 =A0 =A0 =A0 =A0 goto select_state;
->> - =A0 =A0 }
->> -
->> - =A0 =A0 new_state_idx =3D next_valid_state(dev, drv, index);
->> + =A0 =A0 else
->> + =A0 =A0 =A0 =A0 =A0 =A0 new_state_idx =3D next_valid_state(dev, dr=
-v, index);
->>
->> - =A0 =A0 /*
->> - =A0 =A0 =A0* Prevent PER off if CORE is not in retention or off as=
- this
->> - =A0 =A0 =A0* would disable PER wakeups completely.
->> - =A0 =A0 =A0*/
->> + =A0 =A0 /* Program PER state */
->> =A0 =A0 =A0 cx =3D cpuidle_get_statedata(&dev->states_usage[new_stat=
-e_idx]);
->> =A0 =A0 =A0 core_next_state =3D cx->core_state;
->> - =A0 =A0 per_next_state =3D per_saved_state =3D pwrdm_read_next_fun=
-c_pwrst(per_pd);
->> - =A0 =A0 if ((per_next_state =3D=3D PWRDM_FUNC_PWRST_OFF) &&
->> - =A0 =A0 =A0 =A0 (core_next_state > PWRDM_FUNC_PWRST_CSWR))
->> - =A0 =A0 =A0 =A0 =A0 =A0 per_next_state =3D PWRDM_FUNC_PWRST_CSWR;
->> + =A0 =A0 if (new_state_idx =3D=3D 0) {
->> + =A0 =A0 =A0 =A0 =A0 =A0 /* In C1 do not allow PER state lower than=
- CORE state */
->> + =A0 =A0 =A0 =A0 =A0 =A0 per_next_state =3D core_next_state;
->> + =A0 =A0 } else {
->> + =A0 =A0 =A0 =A0 =A0 =A0 /*
->> + =A0 =A0 =A0 =A0 =A0 =A0 =A0* Prevent PER off if CORE is not in RET=
-ention or OFF as this
->> + =A0 =A0 =A0 =A0 =A0 =A0 =A0* would disable PER wakeups completely.
->> + =A0 =A0 =A0 =A0 =A0 =A0 =A0*/
->> + =A0 =A0 =A0 =A0 =A0 =A0 per_next_state =3D per_saved_state =3D
->> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 pwrdm_read=
-_next_func_pwrst(per_pd);
->> + =A0 =A0 =A0 =A0 =A0 =A0 if ((per_next_state =3D=3D PWRDM_FUNC_PWRS=
-T_OFF) &&
->> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 (core_next_state > PWRDM_FUNC_PWRS=
-T_CSWR))
->> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 per_next_state =3D PWRDM_F=
-UNC_PWRST_CSWR;
->> + =A0 =A0 }
->>
->> =A0 =A0 =A0 /* Are we changing PER target state? */
->> =A0 =A0 =A0 if (per_next_state !=3D per_saved_state)
->> =A0 =A0 =A0 =A0 =A0 =A0 =A0 omap_set_pwrdm_state(per_pd, per_next_st=
-ate);
->>
->> -select_state:
->> =A0 =A0 =A0 ret =3D omap3_enter_idle(dev, drv, new_state_idx);
->>
->> =A0 =A0 =A0 /* Restore original PER state if it was modified */
->> @@ -390,7 +394,6 @@ int __init omap3_idle_init(void)
->>
->> =A0 =A0 =A0 /* C1 . MPU WFI + Core active */
->> =A0 =A0 =A0 _fill_cstate(drv, 0, "MPU ON + CORE ON");
->> - =A0 =A0 (&drv->states[0])->enter =3D omap3_enter_idle;
->> =A0 =A0 =A0 drv->safe_state_index =3D 0;
->> =A0 =A0 =A0 cx =3D _fill_cstate_usage(dev, 0);
->> =A0 =A0 =A0 cx->valid =3D 1; =A0/* C1 is always valid */
->>
->> [2]
->> diff --git a/arch/arm/mach-omap2/cpuidle34xx.c
->> b/arch/arm/mach-omap2/cpuidle34xx.c
->> index e406d7b..6aa3c75 100644
->> --- a/arch/arm/mach-omap2/cpuidle34xx.c
->> +++ b/arch/arm/mach-omap2/cpuidle34xx.c
->> @@ -118,8 +118,10 @@ static int __omap3_enter_idle(struct cpuidle_de=
-vice *dev,
->>
->> =A0 =A0 =A0 /* Deny idle for C1 */
->> =A0 =A0 =A0 if (index =3D=3D 0) {
->> - =A0 =A0 =A0 =A0 =A0 =A0 pwrdm_for_each_clkdm(mpu_pd, _cpuidle_deny=
-_idle);
->> - =A0 =A0 =A0 =A0 =A0 =A0 pwrdm_for_each_clkdm(core_pd, _cpuidle_den=
-y_idle);
->> + =A0 =A0 =A0 =A0 =A0 =A0 //pwrdm_for_each_clkdm(mpu_pd, _cpuidle_de=
-ny_idle);
->> + =A0 =A0 =A0 =A0 =A0 =A0 clkdm_deny_idle(mpu_pd->pwrdm_clkdms[0]);
->> + =A0 =A0 =A0 =A0 =A0 =A0 //pwrdm_for_each_clkdm(core_pd, _cpuidle_d=
-eny_idle);
->> + =A0 =A0 =A0 =A0 =A0 =A0 clkdm_deny_idle(core_pd->pwrdm_clkdms[0]);
->> =A0 =A0 =A0 }
->>
->> =A0 =A0 =A0 /*
->> @@ -141,8 +143,10 @@ static int __omap3_enter_idle(struct cpuidle_de=
-vice *dev,
->>
->> =A0 =A0 =A0 /* Re-allow idle for C1 */
->> =A0 =A0 =A0 if (index =3D=3D 0) {
->> - =A0 =A0 =A0 =A0 =A0 =A0 pwrdm_for_each_clkdm(mpu_pd, _cpuidle_allo=
-w_idle);
->> - =A0 =A0 =A0 =A0 =A0 =A0 pwrdm_for_each_clkdm(core_pd, _cpuidle_all=
-ow_idle);
->> + =A0 =A0 =A0 =A0 =A0 =A0 //pwrdm_for_each_clkdm(mpu_pd, _cpuidle_al=
-low_idle);
->> + =A0 =A0 =A0 =A0 =A0 =A0 clkdm_allow_idle(mpu_pd->pwrdm_clkdms[0]);
->> + =A0 =A0 =A0 =A0 =A0 =A0 //pwrdm_for_each_clkdm(core_pd, _cpuidle_a=
-llow_idle);
->> + =A0 =A0 =A0 =A0 =A0 =A0 clkdm_allow_idle(core_pd->pwrdm_clkdms[0])=
-;
->> =A0 =A0 =A0 }
->>
->> =A0return_sleep_time:
->>
->>>
->>> Kevin
->>>
->>> From bb2f67ed93dc83c645080e293d315d383c23c0c6 Mon Sep 17 00:00:00 2=
-001
->>> From: Kevin Hilman <khilman@ti.com>
->>> Date: Mon, 16 Apr 2012 17:53:14 -0700
->>> Subject: [PATCH] cpuidle34xx: per follows core, C1 use _bm
->>>
->>> ---
->>> =A0arch/arm/mach-omap2/cpuidle34xx.c | =A0 =A09 +++++----
->>> =A01 file changed, 5 insertions(+), 4 deletions(-)
->>>
->>> diff --git a/arch/arm/mach-omap2/cpuidle34xx.c b/arch/arm/mach-omap=
-2/cpuidle34xx.c
->>> index 374708d..00400ad 100644
->>> --- a/arch/arm/mach-omap2/cpuidle34xx.c
->>> +++ b/arch/arm/mach-omap2/cpuidle34xx.c
->>> @@ -278,9 +278,11 @@ static int omap3_enter_idle_bm(struct cpuidle_=
-device *dev,
->>> =A0 =A0 =A0 =A0cx =3D cpuidle_get_statedata(&dev->states_usage[inde=
-x]);
->>> =A0 =A0 =A0 =A0core_next_state =3D cx->core_state;
->>> =A0 =A0 =A0 =A0per_next_state =3D per_saved_state =3D pwrdm_read_ne=
-xt_pwrst(per_pd);
->>> - =A0 =A0 =A0 if ((per_next_state =3D=3D PWRDM_POWER_OFF) &&
->>> - =A0 =A0 =A0 =A0 =A0 (core_next_state > PWRDM_POWER_RET))
->>> - =A0 =A0 =A0 =A0 =A0 =A0 =A0 per_next_state =3D PWRDM_POWER_RET;
->>> + =A0 =A0 =A0 /* if ((per_next_state =3D=3D PWRDM_POWER_OFF) && */
->>> + =A0 =A0 =A0 /* =A0 =A0 (core_next_state > PWRDM_POWER_RET)) */
->>> + =A0 =A0 =A0 /* =A0 =A0 =A0per_next_state =3D PWRDM_POWER_RET; */
->>> + =A0 =A0 =A0 if (per_next_state < core_next_state)
->>> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 per_next_state =3D core_next_state;
->>>
->>> =A0 =A0 =A0 =A0/* Are we changing PER target state? */
->>> =A0 =A0 =A0 =A0if (per_next_state !=3D per_saved_state)
->>> @@ -374,7 +376,6 @@ int __init omap3_idle_init(void)
->>>
->>> =A0 =A0 =A0 =A0/* C1 . MPU WFI + Core active */
->>> =A0 =A0 =A0 =A0_fill_cstate(drv, 0, "MPU ON + CORE ON");
->>> - =A0 =A0 =A0 (&drv->states[0])->enter =3D omap3_enter_idle;
->>> =A0 =A0 =A0 =A0drv->safe_state_index =3D 0;
->>> =A0 =A0 =A0 =A0cx =3D _fill_cstate_usage(dev, 0);
->>> =A0 =A0 =A0 =A0cx->valid =3D 1; =A0/* C1 is always valid */
->>> --
->>> 1.7.9.2
->>>
->>> --
->>> To unsubscribe from this list: send the line "unsubscribe linux-oma=
-p" in
->>> the body of a message to majordomo@vger.kernel.org
->>> More majordomo info at =A0http://vger.kernel.org/majordomo-info.htm=
-l
->> --
->> To unsubscribe from this list: send the line "unsubscribe linux-omap=
-" in
->> the body of a message to majordomo@vger.kernel.org
->> More majordomo info at =A0http://vger.kernel.org/majordomo-info.html
---
-To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Laurent Pinchart
+
