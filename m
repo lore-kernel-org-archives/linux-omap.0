@@ -1,55 +1,56 @@
-From: Ashwin Bihari <ashwin.bihari@logicpd.com>
-Subject: RE: [PATCH 2/2] Add LCD support for the LogicPD OMAP3530 DevKits
-Date: Wed, 9 May 2012 10:31:55 -0500
-Message-ID: <0520A3FE5EDCF24F88B3F1451CFC64AE04A34D4C57@edprex01>
-References: <1336418480-32635-1-git-send-email-ashwin.bihari@logicpd.com>
- <1336418480-32635-3-git-send-email-ashwin.bihari@logicpd.com>
- <20120509001321.GA5088@atomide.com>
+From: Tony Lindgren <tony@atomide.com>
+Subject: [GIT PULL] omap fixes for v3.4-rc6, take2
+Date: Wed, 9 May 2012 08:35:36 -0700
+Message-ID: <20120509153535.GJ5088@atomide.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from 174-46-170-145.static.twtelecom.net ([174.46.170.145]:49666
-	"HELO barracuda.logicpd.com" rhost-flags-OK-FAIL-OK-FAIL)
-	by vger.kernel.org with SMTP id S1756357Ab2EIPbu convert rfc822-to-8bit
-	(ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Wed, 9 May 2012 11:31:50 -0400
-In-Reply-To: <20120509001321.GA5088@atomide.com>
-Content-Language: en-US
+Received: from mho-02-ewr.mailhop.org ([204.13.248.72]:52180 "EHLO
+	mho-02-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755341Ab2EIPfk (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 9 May 2012 11:35:40 -0400
+Content-Disposition: inline
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Tony Lindgren <tony@atomide.com>
-Cc: linux-omap <linux-omap@vger.kernel.org>, Tomi Valkeinen <tomi.valkeinen@ti.com>
+To: Arnd Bergmann <arnd@arndb.de>, Olof Johansson <olof@lixom.net>
+Cc: linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org
 
-> -----Original Message-----
-> From: Tony Lindgren [mailto:tony@atomide.com]
-> Sent: Tuesday, May 08, 2012 8:13 PM
-> To: Ashwin Bihari
-> Cc: linux-omap; Tomi Valkeinen
-> Subject: Re: [PATCH 2/2] Add LCD support for the LogicPD OMAP3530 DevKits
-> 
-> * Ashwin Bihari <ashwin.bihari@logicpd.com> [120507 12:41]:
-> > Use the generic DSS panel driver that provides support for the 4.3"
-> > Sharp LQ043T1DG01 that comes standard on the
-> > OMAP3530 SOM-LV and Torpedo DevKits.
-> 
-> Applying the 1/2 of this into board branch, but this probably needs to be
-> coordinated with changes Tomi is doing.
-> 
-> Regards,
-> 
-> Tony
-> 
-> 
+Hi Olof,
 
-Tony,
+Here's this one updated to drop the non-regression patch and to use updated
+version of Enrico's patch. The other two patches are the same.
 
-I'll work with Tomi and modify the LCD support to align with what he is doing with DSS..
+Regards,
 
-Thanks
--- -- --
-~ Ashwin
+Tony
 
 
+The following changes since commit 69964ea4c7b68c9399f7977aa5b9aa6539a6a98a:
 
+  Linux 3.4-rc5 (2012-04-29 15:19:10 -0700)
 
+are available in the git repository at:
+
+  git://git.kernel.org/pub/scm/linux/kernel/git/tmlind/linux-omap tags/omap-fixes-for-v3.4-rc6-take-2
+
+for you to fetch changes up to 1a21932edc10de0dfd843797427719e5da43355b:
+
+  ARM: OMAP: igep0020: fix smsc911x dummy regulator id (2012-05-09 08:12:05 -0700)
+
+----------------------------------------------------------------
+Fix two board spefific regressions and one regression caused by bad documentation
+
+----------------------------------------------------------------
+Archit Taneja (1):
+      ARM: OMAP: Revert "ARM: OMAP: ctrl: Fix CONTROL_DSIPHY register fields"
+
+Enrico Butera (1):
+      ARM: OMAP: igep0020: fix smsc911x dummy regulator id
+
+Janusz Krzysztofik (1):
+      ARM: OMAP1: Amstrad Delta: Fix wrong IRQ base in FIQ handler
+
+ arch/arm/mach-omap1/ams-delta-fiq.c                |    2 +-
+ arch/arm/mach-omap2/board-igep0020.c               |    2 +-
+ .../include/mach/ctrl_module_pad_core_44xx.h       |    8 ++++----
+ 3 files changed, 6 insertions(+), 6 deletions(-)
