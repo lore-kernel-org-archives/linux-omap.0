@@ -1,73 +1,72 @@
-From: "Hiremath, Vaibhav" <hvaibhav@ti.com>
-Subject: RE: [PATCH-V2 3/4] ARM: OMAP2+: CLEANUP: Remove unnecessary ifdef
- around __omap2_set_globals
-Date: Wed, 9 May 2012 08:59:49 +0000
-Message-ID: <79CD15C6BA57404B839C016229A409A83EA1BF14@DBDE01.ent.ti.com>
-References: <1336506724-5494-1-git-send-email-hvaibhav@ti.com>
-	<1336506724-5494-4-git-send-email-hvaibhav@ti.com> <87397ajo32.fsf@ti.com>
+From: "R, Sricharan" <r.sricharan@ti.com>
+Subject: Re: [PATCH 02/13] ARM: OMAP5: Add minimal support for OMAP5430 SOC
+Date: Wed, 9 May 2012 14:36:17 +0530
+Message-ID: <CAJ7qFSeziNRTUsUWc2Owjqs=A99p_WgiVH8vnEBoVB42v2p+pQ@mail.gmail.com>
+References: <1336029982-31898-1-git-send-email-r.sricharan@ti.com>
+	<1336029982-31898-3-git-send-email-r.sricharan@ti.com>
+	<20120504223933.GX5613@atomide.com>
+	<CAJ7qFSfkHGF7ehanZP=hyZ27HqSp1ONsT0tUV-wpLne9B4DEaQ@mail.gmail.com>
+	<20120507173351.GB5088@atomide.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from arroyo.ext.ti.com ([192.94.94.40]:36572 "EHLO arroyo.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751830Ab2EIJAq convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 9 May 2012 05:00:46 -0400
-In-Reply-To: <87397ajo32.fsf@ti.com>
-Content-Language: en-US
+Received: from na3sys009aog115.obsmtp.com ([74.125.149.238]:51755 "EHLO
+	na3sys009aog115.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1758864Ab2EIJG3 convert rfc822-to-8bit
+	(ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Wed, 9 May 2012 05:06:29 -0400
+Received: by lbbgm6 with SMTP id gm6so32397lbb.33
+        for <linux-omap@vger.kernel.org>; Wed, 09 May 2012 02:06:17 -0700 (PDT)
+In-Reply-To: <20120507173351.GB5088@atomide.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "Hilman, Kevin" <khilman@ti.com>
-Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "tony@atomide.com" <tony@atomide.com>, "paul@pwsan.com" <paul@pwsan.com>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>
+To: Tony Lindgren <tony@atomide.com>
+Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, santosh.shilimkar@ti.com, b-cousson@ti.com
 
-On Wed, May 09, 2012 at 04:08:09, Hilman, Kevin wrote:
-> Vaibhav Hiremath <hvaibhav@ti.com> writes:
-> 
-> > The function __omap2_set_globals() can be common across all
-> > platforms/architectures, even in case of omap4, internally it
-> > calls same set of functions as in __omap2_set_globals() function
-> > (except for sdrc).
-> 
-> OK so far.
-> 
-> > This patch adds new config flag SOC_HAS_OMAP2_SDRC to handle sdrc,
-> > so that we can reuse same function across omap2/3/4...
-> 
-> But what happens when a single kernel is built that has support for an
-> SoC with an SDRC (OMAP4) and one that doesn't (AM33xx)?
-> 
+Tony,
 
-As such Nothing...I looking into this direction while implementing.
+[snip]
+>> >> -#if defined(CONFIG_ARCH_OMAP4) && !(defined(CONFIG_ARCH_OMAP2) |=
+| =A0 =A0\
+>> >> - =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0=
+ =A0 =A0 defined(CONFIG_ARCH_OMAP3))
+>> >> +#if (defined(CONFIG_ARCH_OMAP5) || defined(CONFIG_ARCH_OMAP4)) &=
+& \
+>> >> + =A0 =A0 =A0 =A0 =A0 =A0 !(defined(CONFIG_ARCH_OMAP2) || defined=
+(CONFIG_ARCH_OMAP3))
+>> >> +
+>> >> =A0static inline u32 omap2_prm_read_mod_reg(s16 module, u16 idx)
+>> >> =A0{
+>> >> =A0 =A0 =A0 WARN(1, "prm: omap2xxx/omap3xxx specific function and=
+ "
+>> >
+>> > Maybe these functions could be just set up as __weak to avoid the
+>> > ifdeffery?
+>> >
+>> =A0sorry to understand,
+>> =A0you mean make this weak and have a strong override for OMAP2 ?
+>
+> Yeah that should do the trick, right?
+ Ok, There are multiple functions under that #ifdef.
+ Also i see that __weak cannot be used for inline functions.
+So should those functions should be moved to .c file and qualify them
+ __weak. There is already a strong override for OMAP2 and 3 which
+should not be a problem.
 
-In that case, sdrc.c file will be compiled in and execution will jump to
-omap2_set_globals_sdrc(). But inside this function, we are already checking 
-whether the omap2_globals->sdrc and omap2_globals->sms for NULL and then use 
-it.
+[OR]
 
-And function omap2_sdrc_init() is also depends on machine, so in case of
-Am33xx, it won't get into sdrc execution at all. And in case of omap4, it 
-will.
+ So after the cleanup patch introducing CONFIG_SOC_OMAP4PLUS
+ it can be changed as
+ #ifdef (CONFIG_SOC_OMAP4PLUS) && !(defined(CONFIG_ARCH_OMAP2) ||
+defined(CONFIG_ARCH_OMAP3))
 
-> In that case this new SOC_HAS_OMAP2_SDRC will be set, and
-> set_globals_sdrc() will be called even for the SoCs without SDRC.
-> 
-> So, rather than add a new Kconfig option for this, I would rather see 
-> you using the existing runtime feature check for the SDRC: omap_has_sdrc()
-> 
-
-There is NO difference between runtime feature check Vs this patch, refer to the function implementation,
-
-void __init omap2_set_globals_sdrc(struct omap_globals *omap2_globals)
-{
-	if (omap2_globals->sdrc)
-		omap2_sdrc_base = omap2_globals->sdrc;
-	if (omap2_globals->sms)
-		omap2_sms_base = omap2_globals->sms;
-}
-
-The initialization happens after checking for NULL, so even if you execute it or not, the variable are set to NULL in case of am33xx.
-
-So I don't find any difference between runtime and this patch.
+So this will avoid patching this for the future socs. ?
 
 Thanks,
-Vaibhav
+ Sricharan
+--
+To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
