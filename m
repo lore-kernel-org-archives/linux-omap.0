@@ -1,49 +1,48 @@
-From: Enrico <ebutera@users.berlios.de>
-Subject: Re: [GIT PULL] omap fixes for v3.4-rc6
-Date: Wed, 9 May 2012 10:32:02 +0200
-Message-ID: <CA+2YH7v54P7hSvPo=6eiNKQNgyxfBhpBxOLQZcfd4Zt_CzPrFQ@mail.gmail.com>
-References: <20120507223632.GP5088@atomide.com>
-	<CAOesGMjHEy0Rz+ow7J3BuUtt3h3SjU+6gG=PPGTu3tMNZXy6nQ@mail.gmail.com>
+From: kdorfman@codeaurora.org
+Subject: Re: [PATCH v2 14/16] mmc: block: Implement HPI invocation and
+     handling logic.
+Date: Wed, 9 May 2012 01:35:00 -0700 (PDT)
+Message-ID: <3f7a217a08fd2c508576cbac8d26b017.squirrel@www.codeaurora.org>
+References: <1336054995-22988-1-git-send-email-svenkatr@ti.com>
+    <1336054995-22988-15-git-send-email-svenkatr@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-vb0-f46.google.com ([209.85.212.46]:60914 "EHLO
-	mail-vb0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751648Ab2EIIcE convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 9 May 2012 04:32:04 -0400
-Received: by vbbff1 with SMTP id ff1so15957vbb.19
-        for <linux-omap@vger.kernel.org>; Wed, 09 May 2012 01:32:03 -0700 (PDT)
-In-Reply-To: <CAOesGMjHEy0Rz+ow7J3BuUtt3h3SjU+6gG=PPGTu3tMNZXy6nQ@mail.gmail.com>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain;charset=iso-8859-1
+Content-Transfer-Encoding: quoted-printable
+Return-path: <owner-linux-mm@kvack.org>
+In-Reply-To: <1336054995-22988-15-git-send-email-svenkatr@ti.com>
+Sender: owner-linux-mm@kvack.org
+Cc: linux-mmc@vger.kernel.org, cjb@laptop.org, linux-mm@kvack.org, linux-fsdevel@vger.kernel.org, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org, arnd.bergmann@linaro.org, alex.lemberg@sandisk.com, ilan.smith@sandisk.com, lporzio@micron.com, rmk+kernel@arm.linux.org.uk, Venkatraman S <svenkatr@ti.com>
 List-Id: linux-omap@vger.kernel.org
-To: Olof Johansson <olof@lixom.net>
-Cc: Tony Lindgren <tony@atomide.com>, Arnd Bergmann <arnd@arndb.de>, linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org, laurent.pinchart@ideasonboard.com
 
-On Wed, May 9, 2012 at 8:48 AM, Olof Johansson <olof@lixom.net> wrote:
-> Hi,
->
-> On Mon, May 7, 2012 at 3:36 PM, Tony Lindgren <tony@atomide.com> wrot=
-e:
->> The following changes since commit 69964ea4c7b68c9399f7977aa5b9aa653=
-9a6a98a:
-> [..]
->> Enrico Butera (1):
->> =A0 =A0 =A0ARM: OMAP: igep0020: fix smsc911x dummy regulator id
->
-> Hmm. Picking 40 without any kind of comment in the code isn't doing
-> any favors for future readers. Seems like 1 would be free on this
-> board, from the rest of the board file to judge (one other
-> reg-fixed-regulator platform device)?
->
-> Please either comment why you picked 40 (i.e. it's a random number),
-> or change it to something a little less random like 1. :)
 
-Yes i verified that 1 is free, i will send an updated patch.
+> +static bool mmc_can_do_foreground_hpi(struct mmc_queue *mq,
+> +			struct request *req, unsigned int thpi)
+> +{
+> +
+> +	/*
+> +	 * If some time has elapsed since the issuing of previous write
+> +	 * command, or if the size of the request was too small, there's
+> +	 * no point in preempting it. Check if it's worthwhile to preempt
+> +	 */
+> +	int time_elapsed =3D jiffies_to_msecs(jiffies -
+> +			mq->mqrq_cur->mmc_active.mrq->cmd->started_time);
+> +
+> +	if (time_elapsed <=3D thpi)
+> +			return true;
+Some host controllers (or DMA) has possibility to get the byte count of
+current transaction. It may be implemented as host api (similar to abort
+ops). Then you have more accurate estimation of worthiness.
 
-Enrico
+> +
+> +	return false;
+> +}
+
+Thanks, Kostya
+
 --
-To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+To unsubscribe, send a message with 'unsubscribe linux-mm' in
+the body to majordomo@kvack.org.  For more info on Linux MM,
+see: http://www.linux-mm.org/ .
+Fight unfair telecom internet charges in Canada: sign http://stopthemeter=
+.ca/
+Don't email: <a href=3Dmailto:"dont@kvack.org"> email@kvack.org </a>
