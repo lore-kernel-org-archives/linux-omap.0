@@ -1,81 +1,64 @@
-From: "T Krishnamoorthy, Balaji" <balajitk@ti.com>
-Subject: Re: [RFC 00/12] OMAP DMA engine conversion
-Date: Wed, 9 May 2012 17:55:20 +0530
-Message-ID: <CANrkHUZBPMtAqS4TwwykrOwwvH6J2WeU5cWEx_Hr66UdZdOqJA@mail.gmail.com>
-References: <20120423160409.GE24299@n2100.arm.linux.org.uk>
+From: "Shilimkar, Santosh" <santosh.shilimkar@ti.com>
+Subject: Re: [PATCH] ARM: decompressor: Fix mmu mapping for non-DRAM address space.
+Date: Wed, 9 May 2012 18:00:10 +0530
+Message-ID: <CAMQu2gzdwXwzhhFLtLXTj5e0a9cFeq5ReUcMT-tGUxTPUcV_4Q@mail.gmail.com>
+References: <1336398149-26153-1-git-send-email-santosh.shilimkar@ti.com>
+ <20120508124116.GE17798@arm.com> <CAMQu2gxXB4GyddjrcKWwJ=KXx=MoDs7DdwhbOY85qkVJ1Vv3wA@mail.gmail.com>
+ <20120508215554.GA18980@n2100.arm.linux.org.uk> <CAMQu2gzmZ1Af4sAxoT9WS_akY1gBrqffKE84rnbM_EUK8V8NHQ@mail.gmail.com>
+ <20120509122348.GA30632@n2100.arm.linux.org.uk>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: QUOTED-PRINTABLE
-Return-path: <linux-mmc-owner@vger.kernel.org>
-In-Reply-To: <20120423160409.GE24299@n2100.arm.linux.org.uk>
-Sender: linux-mmc-owner@vger.kernel.org
-To: Russell King - ARM Linux <linux@arm.linux.org.uk>
-Cc: linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org, linux-mmc@vger.kernel.org
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from na3sys009aog134.obsmtp.com ([74.125.149.83]:50756 "EHLO
+	na3sys009aog134.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1757155Ab2EIMac convert rfc822-to-8bit
+	(ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Wed, 9 May 2012 08:30:32 -0400
+Received: by qcsd16 with SMTP id d16so166643qcs.14
+        for <linux-omap@vger.kernel.org>; Wed, 09 May 2012 05:30:31 -0700 (PDT)
+In-Reply-To: <20120509122348.GA30632@n2100.arm.linux.org.uk>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Russell King - ARM Linux <linux@arm.linux.org.uk>
+Cc: Catalin Marinas <catalin.marinas@arm.com>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, R Sricharan <r.sricharan@ti.com>
 
-On Mon, Apr 23, 2012 at 9:34 PM, Russell King - ARM Linux
+On Wed, May 9, 2012 at 5:53 PM, Russell King - ARM Linux
 <linux@arm.linux.org.uk> wrote:
-> For the full text, please see
+> On Wed, May 09, 2012 at 02:20:28PM +0530, Shilimkar, Santosh wrote:
+>> The only change done common code is =A0clearing 'XN' bit for DRAM
+>> region in page table entries. The other change of setting the DACR
+>> register is done in ARMv7 specific code.
 >
-> http://lists.arm.linux.org.uk/lurker/message/20120418.100954.7fa7acf8=
-=2Een.html
+> Yes, XN is an ARMv6+ thing. =A0Before ARMv5, it was implementation de=
+fined.
 >
-> This version contains updates for some of the comments received from =
-the
-> previous round, and adds the OMAP1/2 MMC and SPI drivers to the conve=
-rsion.
+> Some implementations used the bit to mean "allow writes to update the
+> cache". =A0Other implementations labelled this bit as "should be zero=
+"
+> while others labelled it as "should be one".
+>
+Good to know.
 
-Tested eMMC, SD on omap4 Blaze
-Tested-by: Balaji T K <balajitk@ti.com>
+> The upshot of this is, we know that having this bit as '1' means that
+> all the CPUs we support today work. =A0I would be _very_ concerned to
+> change this bit to zero as we _really_ don't know how the pre-ARMv6
+> CPUs would react.
+>
+I agree.
 
+> The solution to this is pretty simple - if ARMv6+ needs a different
+> base section mapping value, then we need to extract that from the cod=
+e
+> and pass in the base section mapping value.
 >
-> I've also added a note to feature-removal noting that the existing AP=
-Is
-> will be removed around 2013 - I'm planning January for that at the
-> moment. =A0Having drivers around which are unconverted blocks further=
- work
-> on the DMA engine conversion, so it's actually important that we get
-> as many drivers converted as soon as possible.
->
-> Anything which isn't converted will probably have its DMA code remove=
-d,
-> or if that results in the driver not being usable, the driver itself
-> will be removed.
->
-> This series is still in RFC mode...
->
-> =A0Documentation/feature-removal-schedule.txt | =A0 11 +
-> =A0arch/arm/mach-omap1/board-h2-mmc.c =A0 =A0 =A0 =A0 | =A0 =A01 -
-> =A0arch/arm/mach-omap1/board-h3-mmc.c =A0 =A0 =A0 =A0 | =A0 =A01 -
-> =A0arch/arm/mach-omap1/board-nokia770.c =A0 =A0 =A0 | =A0 =A01 -
-> =A0arch/arm/mach-omap2/board-n8x0.c =A0 =A0 =A0 =A0 =A0 | =A0 =A01 -
-> =A0arch/arm/mach-omap2/hsmmc.c =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0| =A0 =A0=
-1 -
-> =A0arch/arm/plat-omap/dma.c =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 | =A0=
- 14 +
-> =A0arch/arm/plat-omap/include/plat/mmc.h =A0 =A0 =A0| =A0 =A02 -
-> =A0drivers/dma/Kconfig =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0=
-| =A0 10 +
-> =A0drivers/dma/Makefile =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 |=
- =A0 =A02 +
-> =A0drivers/dma/omap-dma.c =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 | =A0=
-521 ++++++++++++++++++++++++++++
-> =A0drivers/dma/sa11x0-dma.c =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 | =A0=
-249 ++++---------
-> =A0drivers/dma/virt-dma.c =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 | =A0=
- 99 ++++++
-> =A0drivers/dma/virt-dma.h =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 | =A0=
-138 ++++++++
-> =A0drivers/mmc/host/omap.c =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0| =A0=
-369 +++++++++-----------
-> =A0drivers/mmc/host/omap_hsmmc.c =A0 =A0 =A0 =A0 =A0 =A0 =A0| =A0206 =
-++++++------
-> =A0drivers/spi/spi-omap2-mcspi.c =A0 =A0 =A0 =A0 =A0 =A0 =A0| =A0228 =
-+++++++------
-> =A017 files changed, 1268 insertions(+), 586 deletions(-)
->
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-mmc" =
-in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at =A0http://vger.kernel.org/majordomo-info.html
+> I'll sort out a patch later today for this.
+Great.
+
+Regards
+Santosh
+--
+To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
