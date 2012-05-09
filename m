@@ -1,149 +1,149 @@
 From: Jon Hunter <jon-hunter@ti.com>
-Subject: [PATCH 3/6] arm: omap4: support pmu
-Date: Wed, 9 May 2012 16:35:50 -0500
-Message-ID: <1336599350-10944-1-git-send-email-jon-hunter@ti.com>
+Subject: [PATCH 4/6] ARM: OMAP4: PMU: Add runtime PM support
+Date: Wed, 9 May 2012 16:35:55 -0500
+Message-ID: <1336599355-10983-1-git-send-email-jon-hunter@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from comal.ext.ti.com ([198.47.26.152]:38859 "EHLO comal.ext.ti.com"
+Received: from bear.ext.ti.com ([192.94.94.41]:46663 "EHLO bear.ext.ti.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S932213Ab2EIVfy (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Wed, 9 May 2012 17:35:54 -0400
+	id S932213Ab2EIVgA (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Wed, 9 May 2012 17:36:00 -0400
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: linux-omap <linux-omap@vger.kernel.org>
-Cc: Ming Lei <ming.lei@canonical.com>, Woodruff Richard <r-woodruff2@ti.com>, Will Deacon <will.deacon@arm.com>, Benoit Cousson <b-cousson@ti.com>, Paul Walmsley <paul@pwsan.com>, Kevin Hilman <khilman@ti.com>, Jon Hunter <jon-hunter@ti.com>
+Cc: Jon Hunter <jon-hunter@ti.com>, Ming Lei <ming.lei@canonical.com>, Will Deacon <will.deacon@arm.com>, Benoit Cousson <b-cousson@ti.com>, Paul Walmsley <paul@pwsan.com>, Kevin Hilman <khilman@ti.com>
 
-From: Ming Lei <ming.lei@canonical.com>
+From: Jon Hunter <jon-hunter@ti.com>
 
-This patch supports pmu irq routed from CTI, so make pmu/perf working on
-OMAP4.
+This patch is based upon Ming Lei's patch to add runtime PM support for OMAP4
+[1]. In Ming's original patch the CTI interrupts were being enabled during
+runtime when the PMU was used but they were only configured once during init.
+Therefore move the configuration of the CTI interrupts to the runtime PM
+functions.
 
-The idea is from Woodruff Richard in the disscussion
-about "Oprofile on Pandaboard / Omap4" on pandaboard@googlegroups.com.
+[1] http://lists.infradead.org/pipermail/linux-arm-kernel/2011-November/074153.html
 
-Acked-by: Jean Pihet <j-pihet@ti.com>
-Acked-by: Tony Lindgren <tony@atomide.com>
-Acked-by: Santosh Shilimkar <santosh.shilimkar@ti.com>
-Cc: Woodruff Richard <r-woodruff2@ti.com>
 Cc: Ming Lei <ming.lei@canonical.com>
 Cc: Will Deacon <will.deacon@arm.com>
 Cc: Benoit Cousson <b-cousson@ti.com>
 Cc: Paul Walmsley <paul@pwsan.com>
 Cc: Kevin Hilman <khilman@ti.com>
-Signed-off-by: Ming Lei <ming.lei@canonical.com>
-Signed-off-by: Will Deacon <will.deacon@arm.com>
+
 Signed-off-by: Jon Hunter <jon-hunter@ti.com>
 ---
- arch/arm/mach-omap2/devices.c              |   60 +++++++++++++++++++++++++++-
- arch/arm/plat-omap/include/plat/omap44xx.h |    3 +
- 2 files changed, 62 insertions(+), 1 deletions(-)
+ arch/arm/mach-omap2/devices.c |   50 ++++++++++++++++++++++------------------
+ 1 files changed, 27 insertions(+), 23 deletions(-)
 
 diff --git a/arch/arm/mach-omap2/devices.c b/arch/arm/mach-omap2/devices.c
-index d75b7d3..636533d 100644
+index 636533d..b02aa81 100644
 --- a/arch/arm/mach-omap2/devices.c
 +++ b/arch/arm/mach-omap2/devices.c
-@@ -24,6 +24,7 @@
- #include <asm/mach-types.h>
- #include <asm/mach/map.h>
- #include <asm/pmu.h>
-+#include <asm/cti.h>
+@@ -18,6 +18,7 @@
+ #include <linux/slab.h>
+ #include <linux/of.h>
+ #include <linux/platform_data/omap4-keypad.h>
++#include <linux/pm_runtime.h>
  
- #include "iomap.h"
- #include <plat/board.h>
-@@ -432,6 +433,57 @@ static struct omap_device_pm_latency omap_pmu_latency[] = {
- 	},
+ #include <mach/hardware.h>
+ #include <mach/irqs.h>
+@@ -434,13 +435,22 @@ static struct omap_device_pm_latency omap_pmu_latency[] = {
  };
  
-+static struct cti omap4_cti[2];
-+
-+static void omap4_enable_cti(int irq)
-+{
-+	if (irq == OMAP44XX_IRQ_CTI0)
-+		cti_enable(&omap4_cti[0]);
-+	else if (irq == OMAP44XX_IRQ_CTI1)
-+		cti_enable(&omap4_cti[1]);
-+}
-+
-+static void omap4_disable_cti(int irq)
-+{
-+	if (irq == OMAP44XX_IRQ_CTI0)
-+		cti_disable(&omap4_cti[0]);
-+	else if (irq == OMAP44XX_IRQ_CTI1)
-+		cti_disable(&omap4_cti[1]);
-+}
-+
-+static irqreturn_t omap4_pmu_handler(int irq, void *dev, irq_handler_t handler)
-+{
-+	if (irq == OMAP44XX_IRQ_CTI0)
-+		cti_irq_ack(&omap4_cti[0]);
-+	else if (irq == OMAP44XX_IRQ_CTI1)
-+		cti_irq_ack(&omap4_cti[1]);
-+
-+	return handler(irq, dev);
-+}
-+
-+static void __init omap4_configure_pmu_irq(void)
-+{
-+	void __iomem *base0;
-+	void __iomem *base1;
-+
-+	base0 = ioremap(OMAP44XX_CTI0_BASE, SZ_4K);
-+	base1 = ioremap(OMAP44XX_CTI1_BASE, SZ_4K);
-+	if (!base0 && !base1) {
-+		pr_err("ioremap for OMAP4 CTI failed\n");
-+		return;
-+	}
-+
-+	/*configure CTI0 for pmu irq routing*/
-+	cti_init(&omap4_cti[0], base0, OMAP44XX_IRQ_CTI0, 6);
-+	cti_unlock(&omap4_cti[0]);
-+	cti_map_trigger(&omap4_cti[0], 1, 6, 2);
-+
-+	/*configure CTI1 for pmu irq routing*/
-+	cti_init(&omap4_cti[1], base1, OMAP44XX_IRQ_CTI1, 6);
-+	cti_unlock(&omap4_cti[1]);
-+	cti_map_trigger(&omap4_cti[1], 1, 6, 2);
-+}
-+
- static struct platform_device* __init omap4_init_pmu(void)
+ static struct cti omap4_cti[2];
++static struct platform_device *pmu_dev;
+ 
+ static void omap4_enable_cti(int irq)
  {
- 	int id = -1;
-@@ -459,6 +511,10 @@ static struct platform_device* __init omap4_init_pmu(void)
- 		return NULL;
+-	if (irq == OMAP44XX_IRQ_CTI0)
++	pm_runtime_get_sync(&pmu_dev->dev);
++	if (irq == OMAP44XX_IRQ_CTI0) {
++		/* configure CTI0 for pmu irq routing */
++		cti_unlock(&omap4_cti[0]);
++		cti_map_trigger(&omap4_cti[0], 1, 6, 2);
+ 		cti_enable(&omap4_cti[0]);
+-	else if (irq == OMAP44XX_IRQ_CTI1)
++	} else if (irq == OMAP44XX_IRQ_CTI1) {
++		/* configure CTI1 for pmu irq routing */
++		cti_unlock(&omap4_cti[1]);
++		cti_map_trigger(&omap4_cti[1], 1, 6, 2);
+ 		cti_enable(&omap4_cti[1]);
++	}
+ }
+ 
+ static void omap4_disable_cti(int irq)
+@@ -449,6 +459,7 @@ static void omap4_disable_cti(int irq)
+ 		cti_disable(&omap4_cti[0]);
+ 	else if (irq == OMAP44XX_IRQ_CTI1)
+ 		cti_disable(&omap4_cti[1]);
++	pm_runtime_put(&pmu_dev->dev);
+ }
+ 
+ static irqreturn_t omap4_pmu_handler(int irq, void *dev, irq_handler_t handler)
+@@ -461,27 +472,20 @@ static irqreturn_t omap4_pmu_handler(int irq, void *dev, irq_handler_t handler)
+ 	return handler(irq, dev);
+ }
+ 
+-static void __init omap4_configure_pmu_irq(void)
++static int __init omap4_configure_pmu(void)
+ {
+-	void __iomem *base0;
+-	void __iomem *base1;
++	omap4_cti[0].base = ioremap(OMAP44XX_CTI0_BASE, SZ_4K);
++	omap4_cti[1].base = ioremap(OMAP44XX_CTI1_BASE, SZ_4K);
+ 
+-	base0 = ioremap(OMAP44XX_CTI0_BASE, SZ_4K);
+-	base1 = ioremap(OMAP44XX_CTI1_BASE, SZ_4K);
+-	if (!base0 && !base1) {
++	if (!omap4_cti[0].base || !omap4_cti[1].base) {
+ 		pr_err("ioremap for OMAP4 CTI failed\n");
+-		return;
++		return -ENOMEM;
  	}
  
-+	omap4_pmu_data.handle_irq = omap4_pmu_handler;
-+	omap4_pmu_data.enable_irq = omap4_enable_cti;
-+	omap4_pmu_data.disable_irq = omap4_disable_cti;
+-	/*configure CTI0 for pmu irq routing*/
+-	cti_init(&omap4_cti[0], base0, OMAP44XX_IRQ_CTI0, 6);
+-	cti_unlock(&omap4_cti[0]);
+-	cti_map_trigger(&omap4_cti[0], 1, 6, 2);
++	cti_init(&omap4_cti[0], omap4_cti[0].base, OMAP44XX_IRQ_CTI0, 6);
++	cti_init(&omap4_cti[1], omap4_cti[1].base, OMAP44XX_IRQ_CTI1, 6);
+ 
+-	/*configure CTI1 for pmu irq routing*/
+-	cti_init(&omap4_cti[1], base1, OMAP44XX_IRQ_CTI1, 6);
+-	cti_unlock(&omap4_cti[1]);
+-	cti_map_trigger(&omap4_cti[1], 1, 6, 2);
++	return 0;
+ }
+ 
+ static struct platform_device* __init omap4_init_pmu(void)
+@@ -492,6 +496,9 @@ static struct platform_device* __init omap4_init_pmu(void)
+ 	struct omap_hwmod* oh[3];
+ 	char *dev_name = "arm-pmu";
+ 
++	if (omap4_configure_pmu())
++		return NULL;
 +
- 	pd = omap_device_build_ss(dev_name, id, oh, 3, &omap4_pmu_data,
- 				sizeof(omap4_pmu_data),
- 				omap_pmu_latency,
-@@ -479,7 +535,9 @@ static void __init omap_init_pmu(void)
- 		pd = omap4_init_pmu();
- 		if (!pd)
+ 	hw = "l3_main_3";
+ 	oh[0] = omap_hwmod_lookup(hw);
+ 	if (!oh[0]) {
+@@ -530,14 +537,11 @@ static void __init omap_init_pmu(void)
+ 	} else if (cpu_is_omap34xx()) {
+ 		omap_pmu_device.resource = &omap3_pmu_resource;
+ 	} else if (cpu_is_omap44xx()) {
+-		struct platform_device *pd;
+-
+-		pd = omap4_init_pmu();
+-		if (!pd)
++		pmu_dev = omap4_init_pmu();
++		if (!pmu_dev)
  			return;
--		omap_device_enable(pd);
-+
-+		omap_device_enable(&od->pdev);
-+		omap4_configure_pmu_irq();
+ 
+-		omap_device_enable(&od->pdev);
+-		omap4_configure_pmu_irq();
++		pm_runtime_enable(&pmu_dev->dev);
  		return;
  	} else {
  		return;
-diff --git a/arch/arm/plat-omap/include/plat/omap44xx.h b/arch/arm/plat-omap/include/plat/omap44xx.h
-index c0d478e..0b04969 100644
---- a/arch/arm/plat-omap/include/plat/omap44xx.h
-+++ b/arch/arm/plat-omap/include/plat/omap44xx.h
-@@ -58,5 +58,8 @@
- #define OMAP44XX_HSUSB_OHCI_BASE	(L4_44XX_BASE + 0x64800)
- #define OMAP44XX_HSUSB_EHCI_BASE	(L4_44XX_BASE + 0x64C00)
- 
-+#define OMAP44XX_CTI0_BASE		0x54148000
-+#define OMAP44XX_CTI1_BASE		0x54149000
-+
- #endif /* __ASM_ARCH_OMAP44XX_H */
- 
 -- 
 1.7.5.4
 
