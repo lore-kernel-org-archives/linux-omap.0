@@ -1,159 +1,308 @@
-From: "Cousson, Benoit" <b-cousson@ti.com>
-Subject: Re: oprofile and ARM A9 hardware counter
-Date: Wed, 9 May 2012 12:58:01 +0200
-Message-ID: <4FAA4DB9.8060504@ti.com>
-References: <20120403092524.GD17741@mudshark.cambridge.arm.com> <CAMQu2gxE2STYxUGinzstX6W8jyofH829A__NQBjwLqZd9cqy=w@mail.gmail.com> <20120403094749.GH17741@mudshark.cambridge.arm.com> <CAMQu2gyFirtVTWpMu4G_qG5sq33J-_s_o2JhVAdrUf7P3qJ3AA@mail.gmail.com> <20120403123444.GL17741@mudshark.cambridge.arm.com> <878vicsxef.fsf@ti.com> <20120403160706.GP17741@mudshark.cambridge.arm.com> <87ehs4pfw4.fsf@ti.com> <alpine.DEB.2.00.1204031727380.8000@utopia.booyaka.com> <20120404111524.GF32505@mudshark.cambridge.arm.com> <20120426180719.GC20186@mudshark.cambridge.arm.com> <4FA45580.8070802@ti.com> <87ipg76hfm.fsf@ti.com> <4FA8284C.7080803@ti.com> <87k40nzi3i.fsf@ti.com> <4FA8FCFF.40105@ti.com> <4FA9588E.9020906@ti.com> <87sjfal65t.fsf@ti.com>
+From: Jean Pihet <jean.pihet@newoldbits.com>
+Subject: Re: PM related performance degradation on OMAP3
+Date: Wed, 9 May 2012 13:00:15 +0200
+Message-ID: <CAORVsuWcSp9rY1oUe3copaWVYy2tz8QKMuFQXWeTVkge7GYFQA@mail.gmail.com>
+References: <CANOLnOP5gq4Vtt00SgRNW-3GZDWk0sukBgJx4V6rkMLL+b6G-w@mail.gmail.com>
+	<877gxobudk.fsf@ti.com>
+	<CANOLnOPbHBshCdbmSOjYdubWqUivrVpR-+eaayu=v4Yy6yKdsQ@mail.gmail.com>
+	<87ehrtn6na.fsf@ti.com>
+	<CANOLnOM_-yhr-j=UO3ynJ6HyJxzd_2FshPMXMLpcBcOB0mL7Qw@mail.gmail.com>
+	<87y5puwhus.fsf@ti.com>
+	<CAORVsuWP72dHFSBhX=Kux7GEk33qQgR74a74FFwzA8uniSabAQ@mail.gmail.com>
+	<877gx5dwz2.fsf@ti.com>
+	<CAORVsuXX9c+8-uJ1e1U920_jy0MK53jmCu+hXhHaXapHArMeLg@mail.gmail.com>
+	<87txzzhkvh.fsf@ti.com>
+	<CAORVsuV811jk7MsjyA4xKSbo+baU2z+eNjKqkA1ZH+3r+aiONg@mail.gmail.com>
+	<878vh36gpl.fsf@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="ISO-8859-1"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from bear.ext.ti.com ([192.94.94.41]:36397 "EHLO bear.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1756318Ab2EIK7x (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Wed, 9 May 2012 06:59:53 -0400
-In-Reply-To: <87sjfal65t.fsf@ti.com>
+Received: from mail-vb0-f46.google.com ([209.85.212.46]:39357 "EHLO
+	mail-vb0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756711Ab2EILAQ convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 9 May 2012 07:00:16 -0400
+Received: by vbbff1 with SMTP id ff1so132920vbb.19
+        for <linux-omap@vger.kernel.org>; Wed, 09 May 2012 04:00:15 -0700 (PDT)
+In-Reply-To: <878vh36gpl.fsf@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Kevin Hilman <khilman@ti.com>, Jon Hunter <jon-hunter@ti.com>
-Cc: Will Deacon <will.deacon@arm.com>, Paul Walmsley <paul@pwsan.com>, Ming Lei <ming.lei@canonical.com>, Maynard Johnson <maynardj@us.ibm.com>, "Shilimkar, Santosh" <santosh.shilimkar@ti.com>, "oprofile-list@lists.sourceforge.net" <oprofile-list@lists.sourceforge.net>, Lik Lik <lik88888@gmail.com>, "eranian@gmail.com" <eranian@gmail.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>
+To: Kevin Hilman <khilman@ti.com>
+Cc: Grazvydas Ignotas <notasas@gmail.com>, linux-omap@vger.kernel.org, Paul Walmsley <paul@pwsan.com>
 
-Hi Kevin and Jon,
+Hi Kevin,
 
-On 5/8/2012 11:22 PM, Kevin Hilman wrote:
-> Jon Hunter<jon-hunter@ti.com>  writes:
-> 
->> Hi Benoit,
->>
->> On 05/08/2012 06:01 AM, Cousson, Benoit wrote:
->>
->> [...]
->>
->>>>>> P.S. Please note there is also already a different fix in mainline for
->>>>>> the EMU clkdm data from Paul which adds the force wakeup flag and
->>>>>> removes the DISABLE_AUTO flag[1] (but leaves the ENABLE_AUTO flag,
->>>>>> because the hardware is capable.)
->>>>>
->>>>> Hmmm ... yes saw this, and you will have to excuse me as I don't fully
->>>>> follow the logic here. In fact, I am thinking we want the opposite ;-)
->>>>>
->>>>>   From looking, into this it seems to me that when PMU is running we want
->>>>> the EMU clock domain in software-wakeup state and when PMU is not
->>>>> running we want in the hardware auto state.
->>>>
->>>> So far, I'm with you.
->>>>
->>>>> By keeping the ENABLE_AUTO flag set, as soon as we enable the clock
->>>>> domain it is put right back into the HW_AUTO state
->>>>
->>>> This is only because it was in the HWSUP state when _enable was called.
->>>> If clkdm_deny_idle() is used, that behavior will change.
->>>>
->>>>> and hence PMU is
->>>>> not working (see _enable() function in
->>>>> arch/arm/mach-omap2/omap_hwmod.c)
->>>>>
->>>>> So really what I think we want is to remove the ENABLE_AUTO flag to keep
->>>>> the clock domain in software wake-up and use the DISABLE_AUTO flag to
->>>>> put the clock domain back in HW_AUTO (note this requires a patch to
->>>>> perform this 2nd part).
->>>>
->>>> Well, Paul will have to comment here for the final word, but IIUC, the
->>>> hwmod flags are supposed to indicate only what the HW is capable of.  If
->>>> we want to change the runtime behavior, we nee to use (or add) APIs to
->>>> change the beahvior.  In this case, clkdm_allow_idle(),
->>>> clkdm_deny_idle() are probably what is needed here.
+On Mon, May 7, 2012 at 7:31 PM, Kevin Hilman <khilman@ti.com> wrote:
+> Jean Pihet <jean.pihet@newoldbits.com> writes:
+>
+>> On Tue, May 1, 2012 at 7:27 PM, Kevin Hilman <khilman@ti.com> wrote:
+>>> Jean Pihet <jean.pihet@newoldbits.com> writes:
 >>>
->>> Yes, indeed, we should not hack the flags to fix that kind of issue. The
->>> flags describe what the HW is capable of, and the EMU CD can support
->>> HW_AUTO and SW_WAKEUP. AFAIK, the issue with that EMU CD is that the
->>> only valid next power state is OFF, meaning that no retention mode is
->>> supported. So any transition to idle will go to OFF and lead to a reset
->>> upon wakeup.
+>>>> HI Kevin, Grazvydas,
+>>>>
+>>>> On Tue, Apr 24, 2012 at 4:29 PM, Kevin Hilman <khilman@ti.com> wro=
+te:
+>>>>> Jean Pihet <jean.pihet@newoldbits.com> writes:
+>>>>>
+>>>>>> Hi Grazvydas, Kevin,
+>>>>>>
+>>>>>> I did some gather some performance measurements and statistics u=
+sing
+>>>>>> custom tracepoints in __omap3_enter_idle.
+>>>> I posted the patches for the power domains registers cache, cf.
+>>>> http://marc.info/?l=3Dlinux-omap&m=3D133587781712039&w=3D2.
+>>>>
+>>>>>> All the details are at
+>>>>>> http://www.omappedia.org/wiki/Power_Management_Device_Latencies_=
+Measurement#C1_performance_problem:_analysis
+>>>> I updated the page with the measurements results with Kevin's patc=
+hes
+>>>> and the registers cache patches.
+>>>>
+>>>> The results are showing that:
+>>>> - the registers cache optimizes the low power mode transitions, bu=
+t is
+>>>> not sufficient to obtain a big gain. A few unused domains are
+>>>> transitioning, which causes a big penalty in the idle path.
+>>>
+>>> PER is the one that seems to be causing the most latency.
+>>>
+>>> Can you try do your measurements using hack below which makes sure =
+that
+>>> PER isn't any deeper than CORE?
 >>
->> No hacking intended here, just getting the flags correct ;-)
+>> Indeed your patch brings significant improvements, cf. wiki page at
+>> http://www.omappedia.org/wiki/Power_Management_Device_Latencies_Meas=
+urement#C1_performance_problem:_analysis
+>> for detailed information.
+>> Here below is the reworked patch, more suited for inclusion in mainl=
+ine [1]
 >>
->> So let me start from the beginning ...
->>
->> 1. I agree that for the EMU CD that the valid HW states are HW_AUTO and
->> SW_WKUP.
->>
->> 2. When the EMU CD is active (due to something like PMU), we want to
->> keep the CD in the SW_WKUP state, otherwise we can automatically
->> transition to idle and reset the IP (at least for omap4430).
-> 
->> 3. When the EMU CD is inactive, we want to keep the CD in the HW_AUTO
->> state because SW_SLEEP is NOT supported.
->>
->> In the current code, we have the CLKDM_CAN_DISABLE_AUTO flag disabled
->> and the CLKDM_CAN_ENABLE_AUTO flag enabled. If CLKDM_CAN_ENABLE_AUTO is
->> set then the omap_pm_clkdms_setup() function will place the CD into
->> HW_AUTO regardless of CLKDM_CAN_DISABLE_AUTO, and the next time the
->> hwmod _enable() is called it is in the HW_AUTO state and so it is
->> allowed to idle. This is not what we want. Do you agree?
->>
->> If I set CLKDM_CAN_DISABLE_AUTO flag and disable CLKDM_CAN_ENABLE_AUTO,
->> then I do not have the above problem.
->>
->> To be honest, with you the more I look and test the code, the more
->> confused I am by the definition of the CLKDM_CAN_HWSUP ...
->>
->> #define CLKDM_CAN_HWSUP	(CLKDM_CAN_ENABLE_AUTO | CLKDM_CAN_DISABLE_AUTO)
->>
->> When I look at where these flags are used, I see that
->> CLKDM_CAN_ENABLE_AUTO is used in clkdm_allow_idle and
->> CLKDM_CAN_DISABLE_AUTO is used in clkdm_deny_idle. So this implies that ...
->>
->> CLKDM_CAN_ENABLE_AUTO = Supports HW_AUTO state when CD is active
->> CLKDM_CAN_DISABLE_AUTO = Does NOT supports HW_AUTO state when CD is active
->>
->> Are the above the correct definitions?
-> 
-> Not quite.
-> 
-> These flags describe the capabilities as defined in CLKTRCTRL field of
-> the CLKSTCTRL register (e.g. CM_EMU_CLKSTCTRL)
-> 
-> CLKDM_CAN_ENABLE_AUTO: IP supports HW_AUTO state (and it can be enabled)
-> CLKDM_CAN_DISABLE_AUTO: HW_AUTO feature can be disabled (a.k.a. NO_SLEEP)
-> 
-> Note that in OMAP4, the latter called NO_SLEEP in the TRM, but in OMAP3
-> it's described as "The automatic hardware-supervised mode is disabled"
+>> I have another optimisation -in proof of concept state- that brings
+>> another significant improvement. It is about allowing/disabling idle
+>> for only 1 clkdm in a pwrdm and not iterate through all the clkdms.
+>> This still needs some rework though. Cf. patch [2]
+>
+> That should work since disabling idle for any clkdm will have the sam=
+e
+> effect. =A0Can you send this as a separate patch with a descriptive
+> changelog.
+I just sent 2 patches which optimize the C1 state latency:
+ . [PATCH 1/2] ARM: OMAP3: PM: cpuidle: optimize the PER latency in C1 =
+state
+ . [PATCH 2/2] ARM: OMAP3: PM: cpuidle: optimize the clkdm idle
+latency in C1 state
 
-Yeah, in fact this is the source of the current confusion for my point of view.
+Note: those patches apply on top of your pre/post_transition
+optimization patches.
 
-We chat about that with Paul some time back.
- 
-EMU CD does support HW_AUTO and SW_WKUP, so it means that if you want to disable the AUTO mode you can use the SW_WKUP.
-Assuming that CLKDM_CAN_DISABLE_AUTO is equivalent to NO_SLEEP is thus not correct. In fact any state != HW_AUTO should be considered a non-automatic mode.
-So EMU does support CLKDM_CAN_ENABLE_AUTO, CLKDM_CAN_DISABLE_AUTO and CLKDM_CAN_FORCE_WAKEUP.
-
-But the way it is implemented does not really allow that, because disable hwsup imply setting state to OMAP34XX_CLKSTCTRL_DISABLE_AUTO.
-
-void omap4_cminst_clkdm_disable_hwsup(u8 part, s16 inst, u16 cdoffs)
-{
-        _clktrctrl_write(OMAP34XX_CLKSTCTRL_DISABLE_AUTO, part, inst, cdoffs);
-}
-
-So if we want to allow that, some code change are needed in order to set the clkdm mode to OMAP34XX_CLKSTCTRL_FORCE_WAKEUP if OMAP34XX_CLKSTCTRL_DISABLE_AUTO is not supported.
-
-> What is confusing to me is that the OMAP4 TRM doesn't list the NO_SLEEP
-> mode as supported by the EMU.   It seems to me that if the IP supports
-> HW_AUTO, it should be able to be enabled *and* disabled.
-
-No, not really, this is mostly OMAP3 legacy, and we do have plan to remove these useless modes going forward. We can effectively disable AUTO mode by going to FORCE_WAKEUP.
-
-- 0x0 NO_SLEEP A clock domain sleep transition is never initiated, irrespective of the hardware conditions.
-- 0x1 SW_SLEEP A software-forced sleep transition. The transition is initiated when the associated hardware conditions are satisfied
-- 0x2 SW_WKUP A software-forced clock domain wake-up transition is initiated, irrespective of the hardware conditions.
-- 0x3 HW_AUTO Hardware-controlled automatic sleep and wake-up transition is initiated by the PRCM module when the associated hardware conditions are satisfied
-
-
-On OMAP4, SW_SLEEP is equivalent to ENABLE_AUTO and 
-NO_SLEEP is equivalent to SW_WKUP. There are some slight differences inside the HW, but in term of functionality this is mostly equivalent.
-
-
-Bottom-line, if we fix the omap4_cminst_clkdm_disable_hwsup, we can consider that the EMU CD does support CLKDM_CAN_ENABLE_AUTO, CLKDM_CAN_DISABLE_AUTO and CLKDM_CAN_FORCE_WAKEUP, which is equivalent to CLKDM_CAN_HWSUP | CLKDM_CAN_FORCE_WAKEUP.
-
+The performance results are close to the !PM case (No IDLE, no
+omap_sram_idle, all pwrdms to ON), i.e. 3.1MB/s on Beagleboard.
+The wiki page update comes asap.
 
 Regards,
-Benoit
+Jean
+
+>
+> Kevin
+>
+>
+>> Patches [1] and [2] on top of the registers cache and the
+>> optimisations in pre/post_transition bring the performance close to
+>> the performance for the non cpuidle case (3.0MB/s compared to 3.1MB/=
+s
+>> on Beagleboard).
+>>
+>> What do you think?
+>>
+>> Regards,
+>> Jean
+>>
+>> ---
+>> [1]
+>> diff --git a/arch/arm/mach-omap2/cpuidle34xx.c
+>> b/arch/arm/mach-omap2/cpuidle34xx.c
+>> index e406d7b..572b605 100644
+>> +++ b/arch/arm/mach-omap2/cpuidle34xx.c
+>> @@ -279,32 +279,36 @@ static int omap3_enter_idle_bm(struct cpuidle_=
+device *dev,
+>> =A0 =A0 =A0 int ret;
+>>
+>> =A0 =A0 =A0 /*
+>> - =A0 =A0 =A0* Prevent idle completely if CAM is active.
+>> + =A0 =A0 =A0* Use only C1 if CAM is active.
+>> =A0 =A0 =A0 =A0* CAM does not have wakeup capability in OMAP3.
+>> =A0 =A0 =A0 =A0*/
+>> - =A0 =A0 if (pwrdm_read_func_pwrst(cam_pd) =3D=3D PWRDM_FUNC_PWRST_=
+ON) {
+>> + =A0 =A0 if (pwrdm_read_func_pwrst(cam_pd) =3D=3D PWRDM_FUNC_PWRST_=
+ON)
+>> =A0 =A0 =A0 =A0 =A0 =A0 =A0 new_state_idx =3D drv->safe_state_index;
+>> - =A0 =A0 =A0 =A0 =A0 =A0 goto select_state;
+>> - =A0 =A0 }
+>> -
+>> - =A0 =A0 new_state_idx =3D next_valid_state(dev, drv, index);
+>> + =A0 =A0 else
+>> + =A0 =A0 =A0 =A0 =A0 =A0 new_state_idx =3D next_valid_state(dev, dr=
+v, index);
+>>
+>> - =A0 =A0 /*
+>> - =A0 =A0 =A0* Prevent PER off if CORE is not in retention or off as=
+ this
+>> - =A0 =A0 =A0* would disable PER wakeups completely.
+>> - =A0 =A0 =A0*/
+>> + =A0 =A0 /* Program PER state */
+>> =A0 =A0 =A0 cx =3D cpuidle_get_statedata(&dev->states_usage[new_stat=
+e_idx]);
+>> =A0 =A0 =A0 core_next_state =3D cx->core_state;
+>> - =A0 =A0 per_next_state =3D per_saved_state =3D pwrdm_read_next_fun=
+c_pwrst(per_pd);
+>> - =A0 =A0 if ((per_next_state =3D=3D PWRDM_FUNC_PWRST_OFF) &&
+>> - =A0 =A0 =A0 =A0 (core_next_state > PWRDM_FUNC_PWRST_CSWR))
+>> - =A0 =A0 =A0 =A0 =A0 =A0 per_next_state =3D PWRDM_FUNC_PWRST_CSWR;
+>> + =A0 =A0 if (new_state_idx =3D=3D 0) {
+>> + =A0 =A0 =A0 =A0 =A0 =A0 /* In C1 do not allow PER state lower than=
+ CORE state */
+>> + =A0 =A0 =A0 =A0 =A0 =A0 per_next_state =3D core_next_state;
+>> + =A0 =A0 } else {
+>> + =A0 =A0 =A0 =A0 =A0 =A0 /*
+>> + =A0 =A0 =A0 =A0 =A0 =A0 =A0* Prevent PER off if CORE is not in RET=
+ention or OFF as this
+>> + =A0 =A0 =A0 =A0 =A0 =A0 =A0* would disable PER wakeups completely.
+>> + =A0 =A0 =A0 =A0 =A0 =A0 =A0*/
+>> + =A0 =A0 =A0 =A0 =A0 =A0 per_next_state =3D per_saved_state =3D
+>> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 pwrdm_read=
+_next_func_pwrst(per_pd);
+>> + =A0 =A0 =A0 =A0 =A0 =A0 if ((per_next_state =3D=3D PWRDM_FUNC_PWRS=
+T_OFF) &&
+>> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 (core_next_state > PWRDM_FUNC_PWRS=
+T_CSWR))
+>> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 per_next_state =3D PWRDM_F=
+UNC_PWRST_CSWR;
+>> + =A0 =A0 }
+>>
+>> =A0 =A0 =A0 /* Are we changing PER target state? */
+>> =A0 =A0 =A0 if (per_next_state !=3D per_saved_state)
+>> =A0 =A0 =A0 =A0 =A0 =A0 =A0 omap_set_pwrdm_state(per_pd, per_next_st=
+ate);
+>>
+>> -select_state:
+>> =A0 =A0 =A0 ret =3D omap3_enter_idle(dev, drv, new_state_idx);
+>>
+>> =A0 =A0 =A0 /* Restore original PER state if it was modified */
+>> @@ -390,7 +394,6 @@ int __init omap3_idle_init(void)
+>>
+>> =A0 =A0 =A0 /* C1 . MPU WFI + Core active */
+>> =A0 =A0 =A0 _fill_cstate(drv, 0, "MPU ON + CORE ON");
+>> - =A0 =A0 (&drv->states[0])->enter =3D omap3_enter_idle;
+>> =A0 =A0 =A0 drv->safe_state_index =3D 0;
+>> =A0 =A0 =A0 cx =3D _fill_cstate_usage(dev, 0);
+>> =A0 =A0 =A0 cx->valid =3D 1; =A0/* C1 is always valid */
+>>
+>> [2]
+>> diff --git a/arch/arm/mach-omap2/cpuidle34xx.c
+>> b/arch/arm/mach-omap2/cpuidle34xx.c
+>> index e406d7b..6aa3c75 100644
+>> --- a/arch/arm/mach-omap2/cpuidle34xx.c
+>> +++ b/arch/arm/mach-omap2/cpuidle34xx.c
+>> @@ -118,8 +118,10 @@ static int __omap3_enter_idle(struct cpuidle_de=
+vice *dev,
+>>
+>> =A0 =A0 =A0 /* Deny idle for C1 */
+>> =A0 =A0 =A0 if (index =3D=3D 0) {
+>> - =A0 =A0 =A0 =A0 =A0 =A0 pwrdm_for_each_clkdm(mpu_pd, _cpuidle_deny=
+_idle);
+>> - =A0 =A0 =A0 =A0 =A0 =A0 pwrdm_for_each_clkdm(core_pd, _cpuidle_den=
+y_idle);
+>> + =A0 =A0 =A0 =A0 =A0 =A0 //pwrdm_for_each_clkdm(mpu_pd, _cpuidle_de=
+ny_idle);
+>> + =A0 =A0 =A0 =A0 =A0 =A0 clkdm_deny_idle(mpu_pd->pwrdm_clkdms[0]);
+>> + =A0 =A0 =A0 =A0 =A0 =A0 //pwrdm_for_each_clkdm(core_pd, _cpuidle_d=
+eny_idle);
+>> + =A0 =A0 =A0 =A0 =A0 =A0 clkdm_deny_idle(core_pd->pwrdm_clkdms[0]);
+>> =A0 =A0 =A0 }
+>>
+>> =A0 =A0 =A0 /*
+>> @@ -141,8 +143,10 @@ static int __omap3_enter_idle(struct cpuidle_de=
+vice *dev,
+>>
+>> =A0 =A0 =A0 /* Re-allow idle for C1 */
+>> =A0 =A0 =A0 if (index =3D=3D 0) {
+>> - =A0 =A0 =A0 =A0 =A0 =A0 pwrdm_for_each_clkdm(mpu_pd, _cpuidle_allo=
+w_idle);
+>> - =A0 =A0 =A0 =A0 =A0 =A0 pwrdm_for_each_clkdm(core_pd, _cpuidle_all=
+ow_idle);
+>> + =A0 =A0 =A0 =A0 =A0 =A0 //pwrdm_for_each_clkdm(mpu_pd, _cpuidle_al=
+low_idle);
+>> + =A0 =A0 =A0 =A0 =A0 =A0 clkdm_allow_idle(mpu_pd->pwrdm_clkdms[0]);
+>> + =A0 =A0 =A0 =A0 =A0 =A0 //pwrdm_for_each_clkdm(core_pd, _cpuidle_a=
+llow_idle);
+>> + =A0 =A0 =A0 =A0 =A0 =A0 clkdm_allow_idle(core_pd->pwrdm_clkdms[0])=
+;
+>> =A0 =A0 =A0 }
+>>
+>> =A0return_sleep_time:
+>>
+>>>
+>>> Kevin
+>>>
+>>> From bb2f67ed93dc83c645080e293d315d383c23c0c6 Mon Sep 17 00:00:00 2=
+001
+>>> From: Kevin Hilman <khilman@ti.com>
+>>> Date: Mon, 16 Apr 2012 17:53:14 -0700
+>>> Subject: [PATCH] cpuidle34xx: per follows core, C1 use _bm
+>>>
+>>> ---
+>>> =A0arch/arm/mach-omap2/cpuidle34xx.c | =A0 =A09 +++++----
+>>> =A01 file changed, 5 insertions(+), 4 deletions(-)
+>>>
+>>> diff --git a/arch/arm/mach-omap2/cpuidle34xx.c b/arch/arm/mach-omap=
+2/cpuidle34xx.c
+>>> index 374708d..00400ad 100644
+>>> --- a/arch/arm/mach-omap2/cpuidle34xx.c
+>>> +++ b/arch/arm/mach-omap2/cpuidle34xx.c
+>>> @@ -278,9 +278,11 @@ static int omap3_enter_idle_bm(struct cpuidle_=
+device *dev,
+>>> =A0 =A0 =A0 =A0cx =3D cpuidle_get_statedata(&dev->states_usage[inde=
+x]);
+>>> =A0 =A0 =A0 =A0core_next_state =3D cx->core_state;
+>>> =A0 =A0 =A0 =A0per_next_state =3D per_saved_state =3D pwrdm_read_ne=
+xt_pwrst(per_pd);
+>>> - =A0 =A0 =A0 if ((per_next_state =3D=3D PWRDM_POWER_OFF) &&
+>>> - =A0 =A0 =A0 =A0 =A0 (core_next_state > PWRDM_POWER_RET))
+>>> - =A0 =A0 =A0 =A0 =A0 =A0 =A0 per_next_state =3D PWRDM_POWER_RET;
+>>> + =A0 =A0 =A0 /* if ((per_next_state =3D=3D PWRDM_POWER_OFF) && */
+>>> + =A0 =A0 =A0 /* =A0 =A0 (core_next_state > PWRDM_POWER_RET)) */
+>>> + =A0 =A0 =A0 /* =A0 =A0 =A0per_next_state =3D PWRDM_POWER_RET; */
+>>> + =A0 =A0 =A0 if (per_next_state < core_next_state)
+>>> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 per_next_state =3D core_next_state;
+>>>
+>>> =A0 =A0 =A0 =A0/* Are we changing PER target state? */
+>>> =A0 =A0 =A0 =A0if (per_next_state !=3D per_saved_state)
+>>> @@ -374,7 +376,6 @@ int __init omap3_idle_init(void)
+>>>
+>>> =A0 =A0 =A0 =A0/* C1 . MPU WFI + Core active */
+>>> =A0 =A0 =A0 =A0_fill_cstate(drv, 0, "MPU ON + CORE ON");
+>>> - =A0 =A0 =A0 (&drv->states[0])->enter =3D omap3_enter_idle;
+>>> =A0 =A0 =A0 =A0drv->safe_state_index =3D 0;
+>>> =A0 =A0 =A0 =A0cx =3D _fill_cstate_usage(dev, 0);
+>>> =A0 =A0 =A0 =A0cx->valid =3D 1; =A0/* C1 is always valid */
+>>> --
+>>> 1.7.9.2
+>>>
+>>> --
+>>> To unsubscribe from this list: send the line "unsubscribe linux-oma=
+p" in
+>>> the body of a message to majordomo@vger.kernel.org
+>>> More majordomo info at =A0http://vger.kernel.org/majordomo-info.htm=
+l
+>> --
+>> To unsubscribe from this list: send the line "unsubscribe linux-omap=
+" in
+>> the body of a message to majordomo@vger.kernel.org
+>> More majordomo info at =A0http://vger.kernel.org/majordomo-info.html
+--
+To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
