@@ -1,94 +1,57 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH] pinctrl: Add generic pinctrl-simple driver that
- supports omap2+ padconf
-Date: Wed, 9 May 2012 14:08:11 -0700
-Message-ID: <20120509210811.GX5088@atomide.com>
-References: <20120502172401.GG3739@atomide.com>
- <4FA42CBF.8010906@wwwdotorg.org>
- <20120504215758.GV5613@atomide.com>
- <4FAAD08D.1050806@wwwdotorg.org>
+From: Jon Hunter <jon-hunter@ti.com>
+Subject: [PATCH 0/6] ARM: OMAP4: Add PMU Support
+Date: Wed, 9 May 2012 16:33:36 -0500
+Message-ID: <1336599216-10826-1-git-send-email-jon-hunter@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-kernel-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <4FAAD08D.1050806@wwwdotorg.org>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Stephen Warren <swarren@wwwdotorg.org>
-Cc: Linus Walleij <linus.walleij@linaro.org>, linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org, Stephen Warren <swarren@nvidia.com>
+Content-Type: text/plain
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from devils.ext.ti.com ([198.47.26.153]:57308 "EHLO
+	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1758093Ab2EIVds (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 9 May 2012 17:33:48 -0400
+Received: from dlelxv30.itg.ti.com ([172.17.2.17])
+	by devils.ext.ti.com (8.13.7/8.13.7) with ESMTP id q49LXmN2008989
+	for <linux-omap@vger.kernel.org>; Wed, 9 May 2012 16:33:48 -0500
+Received: from DLEE74.ent.ti.com (dlee74.ent.ti.com [157.170.170.8])
+	by dlelxv30.itg.ti.com (8.13.8/8.13.8) with ESMTP id q49LXmIv012515
+	for <linux-omap@vger.kernel.org>; Wed, 9 May 2012 16:33:48 -0500
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: linux-omap <linux-omap@vger.kernel.org>
+Cc: Jon Hunter <jon-hunter@ti.com>
 
-* Stephen Warren <swarren@wwwdotorg.org> [120509 13:19]:
-> On 05/04/2012 03:57 PM, Tony Lindgren wrote:
-> > * Stephen Warren <swarren@wwwdotorg.org> [120504 12:27]:
-> >> On 05/02/2012 11:24 AM, Tony Lindgren wrote:
-> >>
-> >>> diff --git a/Documentation/devicetree/bindings/pinctrl/pinctrl-simple.txt b/Documentation/devicetree/bindings/pinctrl/pinctrl-simple.txt
-> ...
-> >> On the other hand, I worry about whether using "pinctrl-simple" here as
-> >> the compatible value is going to cause issues:
-> >>
-> >> Certainly, this is a pretty simple driver, and most likely reasonably
-> >> generic an applicable to many SoCs. However, it doesn't cover a bunch of
-> >> cases that I'd still consider "simple". For example, what if each pin
-> >> has a separate mux and pinconf register? There are probably many such
-> >> small cases that would add up to something more complex. to cover those
-> >> cases, will we be able to extend pinctrl-simple to cover them, and
-> >> continue to be backwards compatible, or will we need to create a
-> >> binding/driver for pinctrl-simple-1, pinctrl-simple-2, pinctrl-simple-3
-> >> each of which covers some different, yet still simple, configuration?
-> > 
-> > Yes getting the binding right is the critical part here, everything else
-> > can be added as needed. I was thinking about using separate properties
-> > for auxilary registers, but now thinking about it a bit more, it may not
-> > be sufficient.
-> > 
-> > How about we make some of these properties into arrays? For example:
-> > 
-> > #pinctrl-cells = 6;
-> > pinctrl-simple,function-mask = <0x0000ffff 0x0000ffff 0xffff0000>;
-> > pinctrl-simple,function-off = <0x7 0x7 0x70000>;
-> > pinctrl-simple,pinconf-mask = <0xffff0000 0xffff0000 0x0000ffff>;
-> 
-> I'm not sure what the 3 entries in the array are meant to describe?
+From: Jon Hunter <jon-hunter@ti.com>
 
-If you have let's say three registers per pin, those would be the
-related function and pinconf masks for those registers.
- 
-> > Because we need to specify GPIO for some pins. There may be additional flags
-> 
-> What do you mean by "specify GPIO"?
-> 
-> Nothing in this pinctrl-simple binding seems to imply that it's also a
-> GPIO controller.
+This series adds PMU support for OMAP4 devices. This is based upon Will Deacons
+series [1]. This series attempts to fix the management of the EMU power domain
+so that PMU can be enabled at runtime and low-power states are not prevented
+when PMU is not in-use. The fix is based upon inputs from Benoit, Paul and
+Kevin [2].
 
-It is not a GPIO controller, but eventually needs to deal with existing
-GPIO controllers.
- 
-> If "GPIO" is one of the functions that can be mux'd onto a pin, then I'd
-> expect that to be represented in exactly the same way as any other
-> function that could be mux'd onto the pin.
+This series is based upon the latest linux-omap master branch from Tony and has
+been tested on a OMAP4460 panda.
 
-Right. But additionally we also need to know the mux register to GPIO
-mapping for things like irq_set_irq_wake()/enable_irq_wake()/disable_irq_wake()
-that may be set dynamically depending on what the user wants.
- 
-> So, I'm not sure what GPIO-related information you want to represent.
+[1] git://git.kernel.org/pub/scm/linux/kernel/git/will/linux.git perf/omap4
+[2] http://marc.info/?l=oprofile-list&m=133657425417229&w=3
 
-It seems that we should be able to do pinctrl_request_gpio that uses
-an external GPIO controller and also sets up the desired wake-up flags
-as needed. Anyways, not needed yet.
+Jon Hunter (4):
+  Re-map the CTIs IRQs from MPU to DEBUGSS
+  ARM: OMAP4: PMU: Add runtime PM support
+  ARM: OMAP4: CLKDM: Update supported transition modes
+  ARM: OMAP4: Prevent EMU power domain transitioning to OFF when in-use
 
-> > too, we do have external DMA request lines for few pins available.. I'm not
-> > saying pinctrl fwk should know about that, but it's a similar mapping of pins
-> > to GPIO lines.
-> 
-> Aren't DMA request lines also just another function that can be mux'd
-> onto a pin?
+Ming Lei (2):
+  arm: omap4: create pmu device via hwmod
+  arm: omap4: support pmu
 
-Yes it's a function for routing the signal. But that also needs to be
-configured in the DMA controller. Right now there's no need to have
-that mapping in the binding.
+ arch/arm/mach-omap2/clockdomain44xx.c       |    7 +-
+ arch/arm/mach-omap2/clockdomains44xx_data.c |    2 +-
+ arch/arm/mach-omap2/cminst44xx.c            |   14 ---
+ arch/arm/mach-omap2/devices.c               |  123 ++++++++++++++++++++++++++-
+ arch/arm/mach-omap2/omap_hwmod_44xx_data.c  |    9 ++-
+ arch/arm/plat-omap/include/plat/omap44xx.h  |    3 +
+ 6 files changed, 135 insertions(+), 23 deletions(-)
 
-Regards,
+-- 
+1.7.5.4
 
-Tony
