@@ -1,82 +1,159 @@
-From: jean.pihet@newoldbits.com
-Subject: [PATCH 2/2] ARM: OMAP3: PM: cpuidle: optimize the clkdm idle latency in C1 state
-Date: Wed,  9 May 2012 12:55:12 +0200
-Message-ID: <1336560912-26753-2-git-send-email-j-pihet@ti.com>
-References: <1336560912-26753-1-git-send-email-j-pihet@ti.com>
+From: "Cousson, Benoit" <b-cousson@ti.com>
+Subject: Re: oprofile and ARM A9 hardware counter
+Date: Wed, 9 May 2012 12:58:01 +0200
+Message-ID: <4FAA4DB9.8060504@ti.com>
+References: <20120403092524.GD17741@mudshark.cambridge.arm.com> <CAMQu2gxE2STYxUGinzstX6W8jyofH829A__NQBjwLqZd9cqy=w@mail.gmail.com> <20120403094749.GH17741@mudshark.cambridge.arm.com> <CAMQu2gyFirtVTWpMu4G_qG5sq33J-_s_o2JhVAdrUf7P3qJ3AA@mail.gmail.com> <20120403123444.GL17741@mudshark.cambridge.arm.com> <878vicsxef.fsf@ti.com> <20120403160706.GP17741@mudshark.cambridge.arm.com> <87ehs4pfw4.fsf@ti.com> <alpine.DEB.2.00.1204031727380.8000@utopia.booyaka.com> <20120404111524.GF32505@mudshark.cambridge.arm.com> <20120426180719.GC20186@mudshark.cambridge.arm.com> <4FA45580.8070802@ti.com> <87ipg76hfm.fsf@ti.com> <4FA8284C.7080803@ti.com> <87k40nzi3i.fsf@ti.com> <4FA8FCFF.40105@ti.com> <4FA9588E.9020906@ti.com> <87sjfal65t.fsf@ti.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset="ISO-8859-1"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-we0-f174.google.com ([74.125.82.174]:54796 "EHLO
-	mail-we0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754507Ab2EIKz3 (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 9 May 2012 06:55:29 -0400
-Received: by werb10 with SMTP id b10so84201wer.19
-        for <linux-omap@vger.kernel.org>; Wed, 09 May 2012 03:55:28 -0700 (PDT)
-In-Reply-To: <1336560912-26753-1-git-send-email-j-pihet@ti.com>
+Received: from bear.ext.ti.com ([192.94.94.41]:36397 "EHLO bear.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1756318Ab2EIK7x (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Wed, 9 May 2012 06:59:53 -0400
+In-Reply-To: <87sjfal65t.fsf@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Kevin Hilman <khilman@ti.com>, Grazvydas Ignotas <notasas@gmail.com>, linux-omap@vger.kernel.org
-Cc: Paul Walmsley <paul@pwsan.com>, Jean Pihet <j-pihet@ti.com>
+To: Kevin Hilman <khilman@ti.com>, Jon Hunter <jon-hunter@ti.com>
+Cc: Will Deacon <will.deacon@arm.com>, Paul Walmsley <paul@pwsan.com>, Ming Lei <ming.lei@canonical.com>, Maynard Johnson <maynardj@us.ibm.com>, "Shilimkar, Santosh" <santosh.shilimkar@ti.com>, "oprofile-list@lists.sourceforge.net" <oprofile-list@lists.sourceforge.net>, Lik Lik <lik88888@gmail.com>, "eranian@gmail.com" <eranian@gmail.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>
 
-From: Jean Pihet <j-pihet@ti.com>
+Hi Kevin and Jon,
 
-It is not needed to iterate through all the clock domains of a
-power domain in order to allow or deny it to idle.
-This patch allows or denies only the first registered clock domain
-of a power domain, and so optimizes the latency of the low power
-code. The functions _cpuidle_allow_idle and _cpuidle_deny_idle are
-not used anymore and so are removed.
+On 5/8/2012 11:22 PM, Kevin Hilman wrote:
+> Jon Hunter<jon-hunter@ti.com>  writes:
+> 
+>> Hi Benoit,
+>>
+>> On 05/08/2012 06:01 AM, Cousson, Benoit wrote:
+>>
+>> [...]
+>>
+>>>>>> P.S. Please note there is also already a different fix in mainline for
+>>>>>> the EMU clkdm data from Paul which adds the force wakeup flag and
+>>>>>> removes the DISABLE_AUTO flag[1] (but leaves the ENABLE_AUTO flag,
+>>>>>> because the hardware is capable.)
+>>>>>
+>>>>> Hmmm ... yes saw this, and you will have to excuse me as I don't fully
+>>>>> follow the logic here. In fact, I am thinking we want the opposite ;-)
+>>>>>
+>>>>>   From looking, into this it seems to me that when PMU is running we want
+>>>>> the EMU clock domain in software-wakeup state and when PMU is not
+>>>>> running we want in the hardware auto state.
+>>>>
+>>>> So far, I'm with you.
+>>>>
+>>>>> By keeping the ENABLE_AUTO flag set, as soon as we enable the clock
+>>>>> domain it is put right back into the HW_AUTO state
+>>>>
+>>>> This is only because it was in the HWSUP state when _enable was called.
+>>>> If clkdm_deny_idle() is used, that behavior will change.
+>>>>
+>>>>> and hence PMU is
+>>>>> not working (see _enable() function in
+>>>>> arch/arm/mach-omap2/omap_hwmod.c)
+>>>>>
+>>>>> So really what I think we want is to remove the ENABLE_AUTO flag to keep
+>>>>> the clock domain in software wake-up and use the DISABLE_AUTO flag to
+>>>>> put the clock domain back in HW_AUTO (note this requires a patch to
+>>>>> perform this 2nd part).
+>>>>
+>>>> Well, Paul will have to comment here for the final word, but IIUC, the
+>>>> hwmod flags are supposed to indicate only what the HW is capable of.  If
+>>>> we want to change the runtime behavior, we nee to use (or add) APIs to
+>>>> change the beahvior.  In this case, clkdm_allow_idle(),
+>>>> clkdm_deny_idle() are probably what is needed here.
+>>>
+>>> Yes, indeed, we should not hack the flags to fix that kind of issue. The
+>>> flags describe what the HW is capable of, and the EMU CD can support
+>>> HW_AUTO and SW_WAKEUP. AFAIK, the issue with that EMU CD is that the
+>>> only valid next power state is OFF, meaning that no retention mode is
+>>> supported. So any transition to idle will go to OFF and lead to a reset
+>>> upon wakeup.
+>>
+>> No hacking intended here, just getting the flags correct ;-)
+>>
+>> So let me start from the beginning ...
+>>
+>> 1. I agree that for the EMU CD that the valid HW states are HW_AUTO and
+>> SW_WKUP.
+>>
+>> 2. When the EMU CD is active (due to something like PMU), we want to
+>> keep the CD in the SW_WKUP state, otherwise we can automatically
+>> transition to idle and reset the IP (at least for omap4430).
+> 
+>> 3. When the EMU CD is inactive, we want to keep the CD in the HW_AUTO
+>> state because SW_SLEEP is NOT supported.
+>>
+>> In the current code, we have the CLKDM_CAN_DISABLE_AUTO flag disabled
+>> and the CLKDM_CAN_ENABLE_AUTO flag enabled. If CLKDM_CAN_ENABLE_AUTO is
+>> set then the omap_pm_clkdms_setup() function will place the CD into
+>> HW_AUTO regardless of CLKDM_CAN_DISABLE_AUTO, and the next time the
+>> hwmod _enable() is called it is in the HW_AUTO state and so it is
+>> allowed to idle. This is not what we want. Do you agree?
+>>
+>> If I set CLKDM_CAN_DISABLE_AUTO flag and disable CLKDM_CAN_ENABLE_AUTO,
+>> then I do not have the above problem.
+>>
+>> To be honest, with you the more I look and test the code, the more
+>> confused I am by the definition of the CLKDM_CAN_HWSUP ...
+>>
+>> #define CLKDM_CAN_HWSUP	(CLKDM_CAN_ENABLE_AUTO | CLKDM_CAN_DISABLE_AUTO)
+>>
+>> When I look at where these flags are used, I see that
+>> CLKDM_CAN_ENABLE_AUTO is used in clkdm_allow_idle and
+>> CLKDM_CAN_DISABLE_AUTO is used in clkdm_deny_idle. So this implies that ...
+>>
+>> CLKDM_CAN_ENABLE_AUTO = Supports HW_AUTO state when CD is active
+>> CLKDM_CAN_DISABLE_AUTO = Does NOT supports HW_AUTO state when CD is active
+>>
+>> Are the above the correct definitions?
+> 
+> Not quite.
+> 
+> These flags describe the capabilities as defined in CLKTRCTRL field of
+> the CLKSTCTRL register (e.g. CM_EMU_CLKSTCTRL)
+> 
+> CLKDM_CAN_ENABLE_AUTO: IP supports HW_AUTO state (and it can be enabled)
+> CLKDM_CAN_DISABLE_AUTO: HW_AUTO feature can be disabled (a.k.a. NO_SLEEP)
+> 
+> Note that in OMAP4, the latter called NO_SLEEP in the TRM, but in OMAP3
+> it's described as "The automatic hardware-supervised mode is disabled"
 
-Signed-off-by: Jean Pihet <j-pihet@ti.com>
----
- arch/arm/mach-omap2/cpuidle34xx.c |   22 ++++------------------
- 1 files changed, 4 insertions(+), 18 deletions(-)
+Yeah, in fact this is the source of the current confusion for my point of view.
 
-diff --git a/arch/arm/mach-omap2/cpuidle34xx.c b/arch/arm/mach-omap2/cpuidle34xx.c
-index 353dd8d..d44b68a 100644
---- a/arch/arm/mach-omap2/cpuidle34xx.c
-+++ b/arch/arm/mach-omap2/cpuidle34xx.c
-@@ -73,20 +73,6 @@ struct omap3_idle_statedata omap3_idle_data[OMAP3_NUM_STATES];
+We chat about that with Paul some time back.
  
- struct powerdomain *mpu_pd, *core_pd, *per_pd, *cam_pd;
- 
--static int _cpuidle_allow_idle(struct powerdomain *pwrdm,
--				struct clockdomain *clkdm)
--{
--	clkdm_allow_idle(clkdm);
--	return 0;
--}
--
--static int _cpuidle_deny_idle(struct powerdomain *pwrdm,
--				struct clockdomain *clkdm)
--{
--	clkdm_deny_idle(clkdm);
--	return 0;
--}
--
- static int __omap3_enter_idle(struct cpuidle_device *dev,
- 				struct cpuidle_driver *drv,
- 				int index)
-@@ -105,8 +91,8 @@ static int __omap3_enter_idle(struct cpuidle_device *dev,
- 
- 	/* Deny idle for C1 */
- 	if (index == 0) {
--		pwrdm_for_each_clkdm(mpu_pd, _cpuidle_deny_idle);
--		pwrdm_for_each_clkdm(core_pd, _cpuidle_deny_idle);
-+		clkdm_deny_idle(mpu_pd->pwrdm_clkdms[0]);
-+		clkdm_deny_idle(core_pd->pwrdm_clkdms[0]);
- 	}
- 
- 	/*
-@@ -128,8 +114,8 @@ static int __omap3_enter_idle(struct cpuidle_device *dev,
- 
- 	/* Re-allow idle for C1 */
- 	if (index == 0) {
--		pwrdm_for_each_clkdm(mpu_pd, _cpuidle_allow_idle);
--		pwrdm_for_each_clkdm(core_pd, _cpuidle_allow_idle);
-+		clkdm_allow_idle(mpu_pd->pwrdm_clkdms[0]);
-+		clkdm_allow_idle(core_pd->pwrdm_clkdms[0]);
- 	}
- 
- return_sleep_time:
--- 
-1.7.7.6
+EMU CD does support HW_AUTO and SW_WKUP, so it means that if you want to disable the AUTO mode you can use the SW_WKUP.
+Assuming that CLKDM_CAN_DISABLE_AUTO is equivalent to NO_SLEEP is thus not correct. In fact any state != HW_AUTO should be considered a non-automatic mode.
+So EMU does support CLKDM_CAN_ENABLE_AUTO, CLKDM_CAN_DISABLE_AUTO and CLKDM_CAN_FORCE_WAKEUP.
 
+But the way it is implemented does not really allow that, because disable hwsup imply setting state to OMAP34XX_CLKSTCTRL_DISABLE_AUTO.
+
+void omap4_cminst_clkdm_disable_hwsup(u8 part, s16 inst, u16 cdoffs)
+{
+        _clktrctrl_write(OMAP34XX_CLKSTCTRL_DISABLE_AUTO, part, inst, cdoffs);
+}
+
+So if we want to allow that, some code change are needed in order to set the clkdm mode to OMAP34XX_CLKSTCTRL_FORCE_WAKEUP if OMAP34XX_CLKSTCTRL_DISABLE_AUTO is not supported.
+
+> What is confusing to me is that the OMAP4 TRM doesn't list the NO_SLEEP
+> mode as supported by the EMU.   It seems to me that if the IP supports
+> HW_AUTO, it should be able to be enabled *and* disabled.
+
+No, not really, this is mostly OMAP3 legacy, and we do have plan to remove these useless modes going forward. We can effectively disable AUTO mode by going to FORCE_WAKEUP.
+
+- 0x0 NO_SLEEP A clock domain sleep transition is never initiated, irrespective of the hardware conditions.
+- 0x1 SW_SLEEP A software-forced sleep transition. The transition is initiated when the associated hardware conditions are satisfied
+- 0x2 SW_WKUP A software-forced clock domain wake-up transition is initiated, irrespective of the hardware conditions.
+- 0x3 HW_AUTO Hardware-controlled automatic sleep and wake-up transition is initiated by the PRCM module when the associated hardware conditions are satisfied
+
+
+On OMAP4, SW_SLEEP is equivalent to ENABLE_AUTO and 
+NO_SLEEP is equivalent to SW_WKUP. There are some slight differences inside the HW, but in term of functionality this is mostly equivalent.
+
+
+Bottom-line, if we fix the omap4_cminst_clkdm_disable_hwsup, we can consider that the EMU CD does support CLKDM_CAN_ENABLE_AUTO, CLKDM_CAN_DISABLE_AUTO and CLKDM_CAN_FORCE_WAKEUP, which is equivalent to CLKDM_CAN_HWSUP | CLKDM_CAN_FORCE_WAKEUP.
+
+
+Regards,
+Benoit
