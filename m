@@ -1,56 +1,114 @@
-From: Arnd Bergmann <arnd@arndb.de>
-Subject: Re: [PATCH V3 1/2] of: Add generic device tree DMA helpers
-Date: Wed, 9 May 2012 12:30:11 +0000
-Message-ID: <201205091230.11474.arnd@arndb.de>
-References: <1335820679-28721-1-git-send-email-jon-hunter@ti.com> <4FA94B49.5050500@wwwdotorg.org> <CAJe_Zhf0=Qnsgsc7U_GbKxc0_6DKj33QWs0UW2giyrVEjPnrvw@mail.gmail.com>
+From: Hannu Heikkinen <hannuxx-X3B1VOXEql0@public.gmane.org>
+Subject: [PATCH] spi/omap: cleanup probe/remove routines
+Date: Wed,  9 May 2012 15:43:58 +0300
+Message-ID: <1336567438-6715-1-git-send-email-hannuxx@iki.fi>
 Mime-Version: 1.0
-Content-Type: Text/Plain;
-  charset="iso-8859-1"
+Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from moutng.kundenserver.de ([212.227.126.186]:49474 "EHLO
-	moutng.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1757155Ab2EIMaq (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 9 May 2012 08:30:46 -0400
-In-Reply-To: <CAJe_Zhf0=Qnsgsc7U_GbKxc0_6DKj33QWs0UW2giyrVEjPnrvw@mail.gmail.com>
-Sender: linux-omap-owner@vger.kernel.org
+Return-path: <spi-devel-general-bounces-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/spi-devel-general>,
+	<mailto:spi-devel-general-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=unsubscribe>
+List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum_name=spi-devel-general>
+List-Post: <mailto:spi-devel-general-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+List-Help: <mailto:spi-devel-general-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=help>
+List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/spi-devel-general>,
+	<mailto:spi-devel-general-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
+Errors-To: spi-devel-general-bounces-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+To: linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, spi-devel-general-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+Cc: tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org
 List-Id: linux-omap@vger.kernel.org
-To: Jassi Brar <jaswinder.singh@linaro.org>
-Cc: Stephen Warren <swarren@wwwdotorg.org>, Stephen Warren <swarren@nvidia.com>, Benoit Cousson <b-cousson@ti.com>, device-tree <devicetree-discuss@lists.ozlabs.org>, Nicolas Ferre <nicolas.ferre@atmel.com>, Rob Herring <rob.herring@calxeda.com>, Grant Likely <grant.likely@secretlab.ca>, Jon Hunter <jon-hunter@ti.com>, Russell King <linux@arm.linux.org.uk>, linux-omap <linux-omap@vger.kernel.org>, linux-arm <linux-arm-kernel@lists.infradead.org>
 
-On Tuesday 08 May 2012, Jassi Brar wrote:
-> On 8 May 2012 22:05, Stephen Warren <swarren@wwwdotorg.org> wrote:
-> >
-> > The data doesn't need to be part of the DMA controller node in order for
-> > the DMA controller driver to be the entity interpreting it.
-> >
-> I rather say, if the dma controller driver is the entity going to interpret the
-> data, why not provide the data directly through its node at one go?
-> 
-> There is important difference between providing data via clients
-> during runtime vs providing info about every client to the dmac driver
-> at one go during its probe.
+Cleanup probe and remove routines, use devm_* functions for
+managing resources.
 
-IMHO the important aspect is what that data contains. The dma engine
-device node should only describe what that device looks like in hardware,
-but not how it is being used.  If you have two machines that have the
-same dma engine, but different devices attached to it, the only
-difference in the device tree ought to be in those devices, not in the
-parts that are common.
-> >> That encoding("channel_id") would be dma
-> >> controller specific and if we also manage to contain it within fixed number
-> >> of bytes we could also have common helpers for fetching it,
-> >
-> > I don't think there's any need for it to fit into a fixed number of  bytes
-> >
-> Yeah, I realized that soon after posting.
-> 
-> I think I have run out of ways to explain myself better. FWIW, I won't
-> object to whatever mechanism folks decide after knowing my concerns.
+Also, in under free_master label, change use of kfree() into
+spi_master_put().
 
-I think we should try hard to make it possible to describe your hardware
-correctly, but we don't need to optimize the syntax for that case if that
-means making the common case more complex. I'd rather make the common
-case simple and the exception possible using some extension.
+CC: grant.likely-s3s/WqlpOiPyB63q8FvJNQ@public.gmane.org
+CC: tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org
+Signed-off-by: Hannu Heikkinen <hannuxx-X3B1VOXEql0@public.gmane.org>
+---
+ drivers/spi/spi-omap2-mcspi.c |   27 ++++++---------------------
+ 1 file changed, 6 insertions(+), 21 deletions(-)
 
-	Arnd
+diff --git a/drivers/spi/spi-omap2-mcspi.c b/drivers/spi/spi-omap2-mcspi.c
+index bb9274c..392efce 100644
+--- a/drivers/spi/spi-omap2-mcspi.c
++++ b/drivers/spi/spi-omap2-mcspi.c
+@@ -1166,17 +1166,12 @@ static int __init omap2_mcspi_probe(struct platform_device *pdev)
+ 	r->start += regs_offset;
+ 	r->end += regs_offset;
+ 	mcspi->phys = r->start;
+-	if (!request_mem_region(r->start, resource_size(r),
+-				dev_name(&pdev->dev))) {
+-		status = -EBUSY;
+-		goto free_master;
+-	}
+ 
+-	mcspi->base = ioremap(r->start, resource_size(r));
++	mcspi->base = devm_request_and_ioremap(&pdev->dev, r);
+ 	if (!mcspi->base) {
+-		dev_dbg(&pdev->dev, "can't ioremap MCSPI\n");
+-		status = -ENOMEM;
+-		goto release_region;
++		dev_dbg(&pdev->dev, "can't request mem and ioremap MCSPI\n");
++		status =  -ENOMEM;
++		goto free_master;
+ 	}
+ 
+ 	mcspi->dev = &pdev->dev;
+@@ -1191,7 +1186,7 @@ static int __init omap2_mcspi_probe(struct platform_device *pdev)
+ 			GFP_KERNEL);
+ 
+ 	if (mcspi->dma_channels == NULL)
+-		goto unmap_io;
++		goto free_master;
+ 
+ 	for (i = 0; i < master->num_chipselect; i++) {
+ 		char dma_ch_name[14];
+@@ -1241,12 +1236,8 @@ disable_pm:
+ 	pm_runtime_disable(&pdev->dev);
+ dma_chnl_free:
+ 	kfree(mcspi->dma_channels);
+-unmap_io:
+-	iounmap(mcspi->base);
+-release_region:
+-	release_mem_region(r->start, resource_size(r));
+ free_master:
+-	kfree(master);
++	spi_master_put(master);
+ 	platform_set_drvdata(pdev, NULL);
+ 	return status;
+ }
+@@ -1256,8 +1247,6 @@ static int __exit omap2_mcspi_remove(struct platform_device *pdev)
+ 	struct spi_master	*master;
+ 	struct omap2_mcspi	*mcspi;
+ 	struct omap2_mcspi_dma	*dma_channels;
+-	struct resource		*r;
+-	void __iomem *base;
+ 
+ 	master = dev_get_drvdata(&pdev->dev);
+ 	mcspi = spi_master_get_devdata(master);
+@@ -1265,12 +1254,8 @@ static int __exit omap2_mcspi_remove(struct platform_device *pdev)
+ 
+ 	omap2_mcspi_disable_clocks(mcspi);
+ 	pm_runtime_disable(&pdev->dev);
+-	r = platform_get_resource(pdev, IORESOURCE_MEM, 0);
+-	release_mem_region(r->start, resource_size(r));
+ 
+-	base = mcspi->base;
+ 	spi_unregister_master(master);
+-	iounmap(base);
+ 	kfree(dma_channels);
+ 	destroy_workqueue(mcspi->wq);
+ 	platform_set_drvdata(pdev, NULL);
+-- 
+1.7.10
+
+
+------------------------------------------------------------------------------
+Live Security Virtual Conference
+Exclusive live event will cover all the ways today's security and 
+threat landscape has changed and how IT managers can respond. Discussions 
+will include endpoint security, mobile security and the latest in malware 
+threats. http://www.accelacomm.com/jaw/sfrnl04242012/114/50122263/
