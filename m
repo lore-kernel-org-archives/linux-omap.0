@@ -1,58 +1,33 @@
-From: Ivan Djelic <ivan.djelic@parrot.com>
-Subject: Re: [PATCH v3] ARM: OMAP3: gpmc: add BCH ecc api and modes
-Date: Wed, 9 May 2012 10:10:47 +0200
-Message-ID: <20120509081047.GC17333@parrot.com>
-References: <1335442669-13474-1-git-send-email-ivan.djelic@parrot.com>
- <20120509002927.GF5088@atomide.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from co202.xi-lite.net ([149.6.83.202]:45993 "EHLO co202.xi-lite.net"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751187Ab2EIIL3 (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Wed, 9 May 2012 04:11:29 -0400
-Content-Disposition: inline
-In-Reply-To: <20120509002927.GF5088@atomide.com>
-Sender: linux-omap-owner@vger.kernel.org
+From: Koen Kooi <koen@dominion.thruhere.net>
+Subject: Re: [linux-pm] [PATCH V3 00/10] PM: Create the AVS(Adaptive Voltage Scaling)
+Date: Wed, 9 May 2012 10:19:55 +0200
+Message-ID: <7F5F5AD1-DC14-4693-817E-ADCC9EFB3D3D@dominion.thruhere.net>
+References: <1335462041-4949-1-git-send-email-j-keerthy@ti.com> <20120426191159.GA9415@sirena.org.uk> <CAJ6a13a6WN9h1QZynpEOf-R6RXwWBZ2eOPkTeNc15JX_YfAz_w@mail.gmail.com> <20120427175657.GP18260@opensource.wolfsonmicro.com>	<87397o3n4y.fsf@ti.com> <331ABD5ECB02734CA317220B2BBEABC13E9B1A67@DBDE01.ent.ti.com> <87mx5jy2li.fsf@ti.com> <331ABD5ECB02734CA317220B2BBEABC13E9B6681@DBDE01.ent.ti.com> <EF62F09C0797D947AD4180A1043C0DF73C40BCE1@DLEE10.ent.ti.com> <87lil2jp2z.fsf@ti.com> <EF62F09C0797D947AD4180A1043C0DF73C40C247@DLEE10.ent.ti.com>
+Mime-Version: 1.0 (Apple Message framework v1257)
+Content-Type: text/plain; charset=us-ascii
+Content-Transfer-Encoding: 8BIT
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <EF62F09C0797D947AD4180A1043C0DF73C40C247@DLEE10.ent.ti.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: "Woodruff, Richard" <r-woodruff2@ti.com>
+Cc: "Hilman, Kevin" <khilman@ti.com>, "AnilKumar, Chimata" <anilkumar@ti.com>, "J, KEERTHY" <j-keerthy@ti.com>, Mark Brown <broonie@opensource.wolfsonmicro.com>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-pm@lists.linux-foundation.org" <linux-pm@lists.linux-foundation.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "Pihet-XID, Jean" <j-pihet@ti.com>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>
 List-Id: linux-omap@vger.kernel.org
-To: Tony Lindgren <tony@atomide.com>
-Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-mtd@lists.infradead.org" <linux-mtd@lists.infradead.org>, afzal@ti.com
 
-On Wed, May 09, 2012 at 01:29:28AM +0100, Tony Lindgren wrote:
-> * Ivan Djelic <ivan.djelic@parrot.com> [120426 05:23]:
-> > Hello,
-> > 
-> > Here is version 3 of this patch after review from Tony Lindgren.
-> > This version adds a separate initialization function mostly to check CPU
-> > compatibility. This check cannot be done in gpmc_enable_hwecc_bch() (which
-> > is meant to be called from mtd function ecc.hwctl) because ecc.hwctl is
-> > not called before the first NAND read access, and it cannot return an error
-> > status.
+
+Op 9 mei 2012, om 02:39 heeft Woodruff, Richard het volgende geschreven:
+
+>> From: Hilman, Kevin
+>> Sent: Tuesday, May 08, 2012 5:17 PM
 > 
-> Thanks applying into devel-gpmc branch.
+>> A basic OMAP AVS driver has been in mainline for a long time, yet we
+>> have not seen support submitted for all of these features.
+> 
+> 1.5/3.5 is a feature.
+> 
+> ABB is requirement for a production useable driver. 
 
-OK thanks!
+ABB/FBB is also needed for 1GHz support on omap3 based SoCs like AM37xx and DM37xx.
 
-I still have a question though: there are recent patches from
-Afzal Mohammed that seem to go into the opposite direction, that is
-giving back GPMC register access to the omap2 NAND driver.
-In particular, [PATCH v4 17/39] [1] commit message says:
+regards,
 
-  GPMC driver has been modified to fill NAND platform data with GPMC
-  NAND register details. As these registers are accessible in NAND
-  driver itself, configure NAND in GPMC by itself.
-
-This also includes ecc configuration. My original mtd driver patch indeed had
-ecc handling code inside the driver (not in arch/arm/mach-omap2/gpmc.c).
-
-So, my question is: which direction are we going to with respect to this
-OMAP GPMC/NAND code separation ?
-
-Note that I could prepare a new MTD patch with BCH ecc code included,
-allowing to drop the GPMC BCH ecc api.
-
-BR,
---
-Ivan
-
-[1] http://lists.infradead.org/pipermail/linux-mtd/2012-May/041105.html
+Koen
