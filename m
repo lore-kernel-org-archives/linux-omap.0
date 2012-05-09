@@ -1,58 +1,99 @@
-From: Ashwin Bihari <ashwin.bihari@logicpd.com>
-Subject: RE: [PATCH 2/2] Add LCD support for the LogicPD OMAP3530 DevKits
-Date: Wed, 9 May 2012 10:38:53 -0500
-Message-ID: <0520A3FE5EDCF24F88B3F1451CFC64AE04A34D4C8E@edprex01>
-References: <1336418480-32635-1-git-send-email-ashwin.bihari@logicpd.com>
-	 <1336418480-32635-3-git-send-email-ashwin.bihari@logicpd.com>
- <1336547775.2724.7.camel@deskari>
+From: Tony Lindgren <tony@atomide.com>
+Subject: Re: [PATCH 00/25] OMAPDSS: DT preparation patches v2
+Date: Wed, 9 May 2012 08:45:43 -0700
+Message-ID: <20120509154543.GK5088@atomide.com>
+References: <1336053481-25433-1-git-send-email-tomi.valkeinen@ti.com>
+ <20120507174657.GF5088@atomide.com>
+ <1336550949.3962.2.camel@deskari>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from 174-46-170-145.static.twtelecom.net ([174.46.170.145]:43570
-	"HELO barracuda.logicpd.com" rhost-flags-OK-FAIL-OK-FAIL)
-	by vger.kernel.org with SMTP id S1756687Ab2EIPis (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 9 May 2012 11:38:48 -0400
-In-Reply-To: <1336547775.2724.7.camel@deskari>
-Content-Language: en-US
+Received: from mho-02-ewr.mailhop.org ([204.13.248.72]:16115 "EHLO
+	mho-02-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1760040Ab2EIPpq (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 9 May 2012 11:45:46 -0400
+Content-Disposition: inline
+In-Reply-To: <1336550949.3962.2.camel@deskari>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: Tomi Valkeinen <tomi.valkeinen@ti.com>
-Cc: linux-omap <linux-omap@vger.kernel.org>, Tony Lindgren <tony@atomide.com>
+Cc: linux-omap@vger.kernel.org, linux-fbdev@vger.kernel.org, archit@ti.com
 
-PiAtLS0tLU9yaWdpbmFsIE1lc3NhZ2UtLS0tLQ0KPiBGcm9tOiBUb21pIFZhbGtlaW5lbiBbbWFp
-bHRvOnRvbWkudmFsa2VpbmVuQHRpLmNvbV0NCj4gU2VudDogV2VkbmVzZGF5LCBNYXkgMDksIDIw
-MTIgMzoxNiBBTQ0KPiBUbzogQXNod2luIEJpaGFyaQ0KPiBDYzogbGludXgtb21hcDsgVG9ueSBM
-aW5kZ3Jlbg0KPiBTdWJqZWN0OiBSZTogW1BBVENIIDIvMl0gQWRkIExDRCBzdXBwb3J0IGZvciB0
-aGUgTG9naWNQRCBPTUFQMzUzMCBEZXZLaXRzDQoNCjxzbmlwPg0KIA0KPiA+ICtzdGF0aWMgaW50
-IG9tYXAzbG9naWNfcGFuZWxfZW5hYmxlX2xjZChzdHJ1Y3Qgb21hcF9kc3NfZGV2aWNlDQo+ID4g
-Kypkc3NkZXYpIHsNCj4gPiArCWdwaW9fc2V0X3ZhbHVlKExDRF9QQU5FTF9QV1IsIDEpOw0KPiA+
-ICsJaWYgKG1hY2hpbmVfaXNfb21hcDM1MzBfbHZfc29tKCkpDQo+ID4gKwkJZ3Bpb19zZXRfdmFs
-dWUoT01BUDM1MzBfTFZfU09NX0JBQ0tMSUdIVF9QV1IsIDEpOw0KPiA+ICsJZWxzZSBpZiAobWFj
-aGluZV9pc19vbWFwM190b3JwZWRvKCkpIHsNCj4gPiArCQlncGlvX3NldF92YWx1ZShPTUFQMzUz
-MF9UT1JQRURPX0JBQ0tMSUdIVF9QV1IsIDEpOw0KPiA+ICsNCj4gPiArCQlncGlvX3NldF92YWx1
-ZShPTUFQMzUzMF9UT1JQRURPX01ESVNQLCAxKTsNCj4gPiArCX0NCj4gPiArDQo+ID4gKwlyZXR1
-cm4gMDsNCj4gPiArfQ0KPiA+ICsNCj4gPiArc3RhdGljIGludCBvbWFwM2xvZ2ljX3BhbmVsX2Rp
-c2FibGVfbGNkKHN0cnVjdCBvbWFwX2Rzc19kZXZpY2UNCj4gPiArKmRzc2Rldikgew0KPiA+ICsJ
-Z3Bpb19zZXRfdmFsdWUoTENEX1BBTkVMX1BXUiwgMCk7DQo+ID4gKwlpZiAobWFjaGluZV9pc19v
-bWFwMzUzMF9sdl9zb20oKSkNCj4gPiArCQlncGlvX3NldF92YWx1ZShPTUFQMzUzMF9MVl9TT01f
-QkFDS0xJR0hUX1BXUiwgMCk7DQo+ID4gKwllbHNlIGlmIChtYWNoaW5lX2lzX29tYXAzX3RvcnBl
-ZG8oKSkgew0KPiA+ICsJCWdwaW9fc2V0X3ZhbHVlKE9NQVAzNTMwX1RPUlBFRE9fQkFDS0xJR0hU
-X1BXUiwgMCk7DQo+ID4gKw0KPiA+ICsJCWdwaW9fc2V0X3ZhbHVlKE9NQVAzNTMwX1RPUlBFRE9f
-TURJU1AsIDApOw0KPiA+ICsJfQ0KPiA+ICsNCj4gPiArCXJldHVybiAwOw0KPiA+ICt9DQo+IA0K
-PiBUaGlzIGRvZXNuJ3QgcGxheSB3ZWxsIHdpdGggZGV2aWNlLXRyZWUuIFdlIGNhbid0IGRvIHN1
-Y2ggY2FsbGJhY2tzIHdoZW4gd2UNCj4gbW92ZSB0byBEVC4NCj4gDQo+IEkga25vdyB3ZSBoYXZl
-IHNpbWlsYXIgY29kZSBmb3Igb3RoZXIgYm9hcmRzLCBhbmQgdGhpcyBjYW4ndCBiZSBwcm9wZXJs
-eSBmaXhlZA0KPiByaWdodCBub3csIGJ1dCBJJ20gc3RpbGwgYSBiaXQgaGVzaXRhbnQgdG8gYWRk
-IG1vcmUgc3VjaCBjb2RlIGJlY2F1c2UgSSdtIHRoZQ0KPiBvbmUgdGhhdCBoYXMgdG8gY2xlYW4g
-aXQgdXAgbGF0ZXIgZm9yIERUID0pLg0KPiANCj4gSSBjYW4gaGFuZGxlIHRoZSBMQ0RfUEFORUxf
-UFdSIGdwaW8sIGJ1dCB0aGUgYmFja2xpZ2h0IGlzIHNvbWV0aGluZyB0aGF0DQo+IHNob3VsZCBi
-ZSByZW1vdmVkIGZyb20gdGhlIHBhbmVsIGVuYWJsZSBjYWxsYmFja3MuIFlvdSBjb3VsZCBsb29r
-IGF0DQo+IGRyaXZlcnMvdmlkZW8vYmFja2xpZ2h0LyBhbmQgc2VlIGlmIHRoZXJlJ3Mgc29tZXRo
-aW5nIHRoZXJlIHRoYXQgY291bGQgYmUNCj4gdXNlZCBmb3IgeW91ciBib2FyZC4gT3IgaW1wbGVt
-ZW50IGEgbmV3IEJMIGRyaXZlciwgaWYgbm90aGluZyBmaXRzLg0KPiANCj4gIFRvbWkNCg0KVG9t
-aSwNCg0KTGV0IG1lIHRha2UgYSBsb29rIGF0IHlvdXIgbGludXgtb21hcC1kc3MyIHRyZWUgYW5k
-IGxlYXJuIGEgYml0IG1vcmUgYWJvdXQgRFQgYW5kIGZpZ3VyZSBvdXQgaG93IHRvIG1vZGlmeSB0
-aGUgTENEIHN1cHBvcnQgc28gaXQgYmV0dGVyIGFsaWducyB3aXRoIHlvdXIgd29yayBhbmQgSSds
-bCByZS1zdWJtaXQgdGhhdCBwYXRjaCBhZ2Fpbi4uDQoNClRoYW5rcw0KLS0gLS0gLS0NCn4gQXNo
-d2luDQoNCg0KDQo=
+* Tomi Valkeinen <tomi.valkeinen@ti.com> [120509 01:12]:
+> 
+> Below is the pull request for board file related changes. Tested on
+> panda & 4430sdp.
+
+Thanks, I've merged that into clenaup-dss branch and will send it
+along with other still pending cleanup branches.
+ 
+> How should I manage my tree related to this... Should I rebase my
+> original DT preparation series on top of this new branch, or can I just
+> ignore the new branch for now, as long as I merge it at some point
+> before sending a pull request to mainline?
+
+Yes you need to rebase on this now. And not touch these commits.
+
+Otherwise we'll end up with duplicate commits in the mainline tree,
+which is a big no-no. If something shows up that needs fixing in this
+series, it must now be separate patches on top of this series.
+
+When doing pull requests we both just have to make note that there's
+a dependency to this branch, and it will find it's way to mainline
+via arm-soc pull request. Or if no conflicts need sorting out, then
+it will just get merged with your pull request.
+
+Regards,
+
+Tony
+
+
+ 
+>  Tomi
+> 
+> The following changes since commit 66f75a5d028beaf67c931435fdc3e7823125730c:
+> 
+>   Linux 3.4-rc4 (2012-04-21 14:47:52 -0700)
+> 
+> are available in the git repository at:
+> 
+>   git://gitorious.org/linux-omap-dss2/linux.git for-l-o-3.5
+> 
+> for you to fetch changes up to e4a9e94cc58ed6e4efb02b80be3a9bf57f448d07:
+> 
+>   OMAPDSS: DSI: implement generic DSI pin config (2012-05-09 10:53:05 +0300)
+> 
+> ----------------------------------------------------------------
+> Tomi Valkeinen (6):
+>       OMAPDSS: panel-dvi: add PD gpio handling
+>       OMAP: board-files: remove custom PD GPIO handling for DVI output
+>       OMAPDSS: TFP410: rename dvi -> tfp410
+>       OMAPDSS: TFP410: rename dvi files to tfp410
+>       OMAPDSS: Taal: move reset gpio handling to taal driver
+>       OMAPDSS: DSI: implement generic DSI pin config
+> 
+>  arch/arm/mach-omap2/board-3430sdp.c                |   38 +-----
+>  arch/arm/mach-omap2/board-4430sdp.c                |   37 ++----
+>  arch/arm/mach-omap2/board-am3517evm.c              |   25 +---
+>  arch/arm/mach-omap2/board-cm-t35.c                 |   30 +----
+>  arch/arm/mach-omap2/board-devkit8000.c             |   30 +----
+>  arch/arm/mach-omap2/board-igep0020.c               |   32 +----
+>  arch/arm/mach-omap2/board-omap3beagle.c            |   37 +-----
+>  arch/arm/mach-omap2/board-omap3evm.c               |   29 +----
+>  arch/arm/mach-omap2/board-omap3stalker.c           |   29 +----
+>  arch/arm/mach-omap2/board-omap4panda.c             |   39 +-----
+>  arch/arm/mach-omap2/board-overo.c                  |   25 +---
+>  drivers/video/omap2/displays/Kconfig               |    8 +-
+>  drivers/video/omap2/displays/Makefile              |    2 +-
+>  drivers/video/omap2/displays/panel-taal.c          |   22 ++++
+>  .../omap2/displays/{panel-dvi.c => panel-tfp410.c} |  134 +++++++++++---------
+>  drivers/video/omap2/dss/dsi.c                      |  133 +++++++++----------
+>  include/video/omap-panel-nokia-dsi.h               |    3 +
+>  .../{omap-panel-dvi.h => omap-panel-tfp410.h}      |   18 ++-
+>  include/video/omapdss.h                            |   28 ++--
+>  19 files changed, 251 insertions(+), 448 deletions(-)
+>  rename drivers/video/omap2/displays/{panel-dvi.c => panel-tfp410.c} (63%)
+>  rename include/video/{omap-panel-dvi.h => omap-panel-tfp410.h} (63%)
+> 
+
+
