@@ -1,84 +1,173 @@
-From: Igor Grinberg <grinberg@compulab.co.il>
-Subject: Re: [PATCH] ARM: OMAP: USB: fix warning on EHCI PHY reset path
-Date: Wed, 09 May 2012 09:25:05 +0300
-Message-ID: <4FAA0DC1.40008@compulab.co.il>
-References: <Pine.LNX.4.44L0.1205071046350.1602-100000@iolanthe.rowland.org> <4FA8D108.7090004@compulab.co.il> <20120508162436.GA10200@kroah.com>
+From: Kishon Vijay Abraham I <kishon@ti.com>
+Subject: [PATCH] omap: hwmod: add support to set dmadisable in hwmod framework
+Date: Wed, 9 May 2012 11:56:34 +0530
+Message-ID: <1336544794-25644-1-git-send-email-kishon@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from 50.23.254.54-static.reverse.softlayer.com ([50.23.254.54]:35812
-	"EHLO softlayer.compulab.co.il" rhost-flags-OK-OK-OK-FAIL)
-	by vger.kernel.org with ESMTP id S1758132Ab2EIGZM (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 9 May 2012 02:25:12 -0400
-In-Reply-To: <20120508162436.GA10200@kroah.com>
+Received: from bear.ext.ti.com ([192.94.94.41]:52370 "EHLO bear.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1758377Ab2EIG0z (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Wed, 9 May 2012 02:26:55 -0400
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
-Cc: Alan Stern <stern@rowland.harvard.edu>, balbi@ti.com, Keshava Munegowda <Keshava_mgowda@ti.com>, linux-usb@vger.kernel.org, linux-omap@vger.kernel.org, Samuel Ortiz <sameo@linux.intel.com>
+To: linux-omap@vger.kernel.org, tony@atomide.com, khilman@ti.com, paul@pwsan.com, b-cousson@ti.com
+Cc: Kishon Vijay Abraham I <kishon@ti.com>
 
-On 05/08/12 19:24, Greg Kroah-Hartman wrote:
-> On Tue, May 08, 2012 at 10:53:44AM +0300, Igor Grinberg wrote:
->> On 05/07/12 17:48, Alan Stern wrote:
->>> On Mon, 7 May 2012, Igor Grinberg wrote:
->>>
->>>> On 05/07/12 17:04, Alan Stern wrote:
->>>>> On Sun, 6 May 2012, Igor Grinberg wrote:
->>>>>
->>>>>> Hi Alan,
->>>>>
->>>>> ...
->>>>>
->>>>>> Sorry, for being jumpy...
->>>>>> Samuel has not answered yet (it has been more then two weeks already)
->>>>>> and I'd like this to go into 3.5.
->>>>>> Also, the dependency patch is already in Linus' tree. It has been merged with
->>>>>> fixes (I thought it will happen only during the merge window...).
->>>>>>
->>>>>> Can you, please take this one?
->>>>>
->>>>> No, I can't, sorry.  It has to be accepted by Greg KH.
->>>>
->>>> Hmm... I don't mind it be that way, but I'd like to understand:
->>>>
->>>> # scripts/get_maintainer.pl -f drivers/usb/host/ehci-omap.c
->>>> Alan Stern <stern@rowland.harvard.edu> (maintainer:USB EHCI DRIVER)
->>>> Felipe Balbi <balbi@ti.com> (maintainer:OMAP USB SUPPORT)
->>>> Greg Kroah-Hartman <gregkh@suse.de> (supporter:USB SUBSYSTEM)
->>>> linux-usb@vger.kernel.org (open list:USB EHCI DRIVER)
->>>> linux-omap@vger.kernel.org (open list:OMAP USB SUPPORT)
->>>> linux-kernel@vger.kernel.org (open list)
->>>>
->>>> This makes you the USB EHCI maintainer, right?
->>>
->>> Right.
->>>
->>>> I just want to understand...
->>>> Do you need also ack from Greg to take something to your tree
->>>> for being applied in the next merge window?
->>>
->>> No.  I don't takes patches at all, and in fact I don't even have a git
->>> directory or a login account at kernel.org.  All my work goes through
->>> Greg; I submit or acknowledge patches and he merges them.
->>
->> Ah, I see. Thanks for the explanation.
->> So currently, I need to do something like this:
->>
->> Greg,
->>
->> This patch has been acked by Alan and Felipe, can you please apply it
->> for the merge window (which is close as I understand from Linus':
->> "We've never been closer to a 3.4 release").
-> 
-> Ok, but it's fallen out of my email archive (I only keep the past month
-> around), so can you please resend it, with Alan and Felipe's acks, so I
-> can apply it?
+The DMADISABLE bit is a semi-automatic bit present in sysconfig register
+of some modules. When the DMA must perform read/write accesses, the
+DMADISABLE bit is cleared by the hardware. But when the DMA must stop for power
+management, software must set the DMADISABLE bit back to 1.
 
-Yep, will shortly do.
+In cases where the ROMCODE/BOOTLOADER uses dma, the hardware clears the
+DMADISABLE bit (but the romcode/bootloader might not set it back to 1).
+In order for the kernel to start in a clean state, it is
+necessary for the kernel to set DMADISABLE bit back to 1 (irrespective
+of whether it's been set to 1 in romcode or bootloader).
 
-Thanks
+During _reset of the (hwmod)device, the DMADISABLE bit is set so that it
+does not prevent idling of the system. (NOTE: having DMADISABLE to 0,
+prevents the system to idle)
 
+DMADISABLE bit is present in usbotgss module of omap5.
 
+Cc: Benoit Cousson <b-cousson@ti.com>
+Cc: Kevin Hilman <khilman@ti.com>
+Cc: Paul Walmsley <paul@pwsan.com>
+Signed-off-by: Kishon Vijay Abraham I <kishon@ti.com>
+---
+checkpath warnings of "line over 80 characters" is ignored to aid easier
+grepping of strings while debugging.
+
+ arch/arm/mach-omap2/omap_hwmod.c             |   50 ++++++++++++++++++++++++++
+ arch/arm/mach-omap2/omap_hwmod_common_data.c |    1 +
+ arch/arm/plat-omap/include/plat/omap_hwmod.h |    5 +++
+ 3 files changed, 56 insertions(+), 0 deletions(-)
+
+diff --git a/arch/arm/mach-omap2/omap_hwmod.c b/arch/arm/mach-omap2/omap_hwmod.c
+index 7144ae6..009062f 100644
+--- a/arch/arm/mach-omap2/omap_hwmod.c
++++ b/arch/arm/mach-omap2/omap_hwmod.c
+@@ -345,6 +345,49 @@ static int _set_softreset(struct omap_hwmod *oh, u32 *v)
+ }
+ 
+ /**
++ * _set_dmadisable: set OCP_SYSCONFIG.DMADISABLE bit in @v
++ * @oh: struct omap_hwmod *
++ *
++ * The DMADISABLE bit is a semi-automatic bit present in sysconfig register
++ * of some modules. When the DMA must perform read/write accesses, the
++ * DMADISABLE bit is cleared by the hardware. But when the DMA must stop
++ * for power management, software must set the DMADISABLE bit back to 1.
++ *
++ * Set the DMADISABLE bit in @v for hwmod @oh.  Returns -EINVAL upon
++ * error or 0 upon success.
++ */
++static int _set_dmadisable(struct omap_hwmod *oh)
++{
++	u32 v;
++	u32 dmadisable_mask;
++
++	if (!oh->class->sysc ||
++	   !(oh->class->sysc->sysc_flags & SYSC_HAS_DMADISABLE))
++		return -EINVAL;
++
++	if (!oh->class->sysc->sysc_fields) {
++		WARN(1, "omap_hwmod: %s: offset struct for sysconfig not provided in class\n", oh->name);
++		return -EINVAL;
++	}
++
++	/* clocks must be on for this operation */
++	if (oh->_state != _HWMOD_STATE_ENABLED) {
++		pr_warning("omap_hwmod: %s: dma can be disabled only from enabled state\n", oh->name);
++		return -EINVAL;
++	}
++
++	pr_debug("omap_hwmod: %s: setting DMADISABLE\n", oh->name);
++
++	v = oh->_sysc_cache;
++	dmadisable_mask =
++		(0x1 << oh->class->sysc->sysc_fields->dmadisable_shift);
++	v |= dmadisable_mask;
++	_write_sysconfig(v, oh);
++
++	return 0;
++}
++
++/**
+  * _set_module_autoidle: set the OCP_SYSCONFIG AUTOIDLE field in @v
+  * @oh: struct omap_hwmod *
+  * @autoidle: desired AUTOIDLE bitfield value (0 or 1)
+@@ -1469,6 +1512,12 @@ dis_opt_clks:
+  * access; others (like the IVA) have idiosyncratic reset sequences.
+  * So for these relatively rare cases, custom reset code can be
+  * supplied in the struct omap_hwmod_class .reset function pointer.
++ *
++ * The _set_dmadisable is called to set the DMADISABLE bit so that it
++ * does not prevent idling of the system. This is necessary for cases where
++ * ROMCODE/BOOTLOADER uses dma and transfers control to the kernel without
++ * disabling dma.
++ *
+  * Passes along the return value from either _reset() or the custom
+  * reset function - these must return -EINVAL if the hwmod cannot be
+  * reset this way or if the hwmod is in the wrong state, -ETIMEDOUT if
+@@ -1481,6 +1530,7 @@ static int _reset(struct omap_hwmod *oh)
+ 	pr_debug("omap_hwmod: %s: resetting\n", oh->name);
+ 
+ 	ret = (oh->class->reset) ? oh->class->reset(oh) : _ocp_softreset(oh);
++	_set_dmadisable(oh);
+ 
+ 	if (oh->class->sysc) {
+ 		_update_sysc_cache(oh);
+diff --git a/arch/arm/mach-omap2/omap_hwmod_common_data.c b/arch/arm/mach-omap2/omap_hwmod_common_data.c
+index 51e5418..aff6138 100644
+--- a/arch/arm/mach-omap2/omap_hwmod_common_data.c
++++ b/arch/arm/mach-omap2/omap_hwmod_common_data.c
+@@ -47,6 +47,7 @@ struct omap_hwmod_sysc_fields omap_hwmod_sysc_type2 = {
+ 	.midle_shift	= SYSC_TYPE2_MIDLEMODE_SHIFT,
+ 	.sidle_shift	= SYSC_TYPE2_SIDLEMODE_SHIFT,
+ 	.srst_shift	= SYSC_TYPE2_SOFTRESET_SHIFT,
++	.dmadisable_shift = SYSC_TYPE2_DMADISABLE_SHIFT,
+ };
+ 
+ struct omap_dss_dispc_dev_attr omap2_3_dss_dispc_dev_attr = {
+diff --git a/arch/arm/plat-omap/include/plat/omap_hwmod.h b/arch/arm/plat-omap/include/plat/omap_hwmod.h
+index 3f26db4..63aee22 100644
+--- a/arch/arm/plat-omap/include/plat/omap_hwmod.h
++++ b/arch/arm/plat-omap/include/plat/omap_hwmod.h
+@@ -69,6 +69,8 @@ extern struct omap_hwmod_sysc_fields omap_hwmod_sysc_type2;
+ #define SYSC_TYPE2_SIDLEMODE_MASK	(0x3 << SYSC_TYPE2_SIDLEMODE_SHIFT)
+ #define SYSC_TYPE2_MIDLEMODE_SHIFT	4
+ #define SYSC_TYPE2_MIDLEMODE_MASK	(0x3 << SYSC_TYPE2_MIDLEMODE_SHIFT)
++#define SYSC_TYPE2_DMADISABLE_SHIFT	16
++#define SYSC_TYPE2_DMADISABLE_MASK	(0x1 << SYSC_TYPE2_DMADISABLE_SHIFT)
+ 
+ /* OCP SYSSTATUS bit shifts/masks */
+ #define SYSS_RESETDONE_SHIFT		0
+@@ -275,6 +277,7 @@ struct omap_hwmod_ocp_if {
+ #define SYSS_HAS_RESET_STATUS	(1 << 7)
+ #define SYSC_NO_CACHE		(1 << 8)  /* XXX SW flag, belongs elsewhere */
+ #define SYSC_HAS_RESET_STATUS	(1 << 9)
++#define SYSC_HAS_DMADISABLE	(1 << 10)
+ 
+ /* omap_hwmod_sysconfig.clockact flags */
+ #define CLOCKACT_TEST_BOTH	0x0
+@@ -290,6 +293,7 @@ struct omap_hwmod_ocp_if {
+  * @enwkup_shift: Offset of the enawakeup bit
+  * @srst_shift: Offset of the softreset bit
+  * @autoidle_shift: Offset of the autoidle bit
++ * @dmadisable_shift: Offset of the dmadisable bit
+  */
+ struct omap_hwmod_sysc_fields {
+ 	u8 midle_shift;
+@@ -298,6 +302,7 @@ struct omap_hwmod_sysc_fields {
+ 	u8 enwkup_shift;
+ 	u8 srst_shift;
+ 	u8 autoidle_shift;
++	u8 dmadisable_shift;
+ };
+ 
+ /**
 -- 
-Regards,
-Igor.
+1.7.5.4
+
