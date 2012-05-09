@@ -1,125 +1,130 @@
-From: Paul Walmsley <paul@pwsan.com>
-Subject: [GIT PULL] ARM: OMAP2+: some hwmod data additions for 3.5
-Date: Tue, 8 May 2012 18:33:31 -0600 (MDT)
-Message-ID: <alpine.DEB.2.00.1205081831500.28088@utopia.booyaka.com>
+From: Dave Chinner <david@fromorbit.com>
+Subject: Re: [PATCH v2 01/16] FS: Added demand paging markers to filesystem
+Date: Wed, 9 May 2012 10:33:48 +1000
+Message-ID: <20120509003348.GM5091@dastard>
+References: <1336054995-22988-1-git-send-email-svenkatr@ti.com>
+ <1336054995-22988-2-git-send-email-svenkatr@ti.com>
+ <20120506233117.GU5091@dastard>
+ <CANfBPZ_2JeWUu7ti97CVc=ODeEi65ke9EKV6Uje0JHcCM8gYqQ@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from utopia.booyaka.com ([72.9.107.138]:42652 "EHLO
-	utopia.booyaka.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752663Ab2EIAdc (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 8 May 2012 20:33:32 -0400
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset=iso-8859-1
+Content-Transfer-Encoding: quoted-printable
+Return-path: <owner-linux-mm@kvack.org>
+Content-Disposition: inline
+In-Reply-To: <CANfBPZ_2JeWUu7ti97CVc=ODeEi65ke9EKV6Uje0JHcCM8gYqQ@mail.gmail.com>
+Sender: owner-linux-mm@kvack.org
+To: "S, Venkatraman" <svenkatr@ti.com>
+Cc: linux-mmc@vger.kernel.org, cjb@laptop.org, linux-mm@kvack.org, linux-fsdevel@vger.kernel.org, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org, arnd.bergmann@linaro.org, alex.lemberg@sandisk.com, ilan.smith@sandisk.com, lporzio@micron.com, rmk+kernel@arm.linux.org.uk
 List-Id: linux-omap@vger.kernel.org
-To: tony@atomide.com
-Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 
------BEGIN PGP SIGNED MESSAGE-----
-Hash: SHA1
+On Mon, May 07, 2012 at 10:16:30PM +0530, S, Venkatraman wrote:
+> Mon, May 7, 2012 at 5:01 AM, Dave Chinner <david@fromorbit.com> wrote:
+> > On Thu, May 03, 2012 at 07:53:00PM +0530, Venkatraman S wrote:
+> >> From: Ilan Smith <ilan.smith@sandisk.com>
+> >>
+> >> Add attribute to identify demand paging requests.
+> >> Mark readpages with demand paging attribute.
+> >>
+> >> Signed-off-by: Ilan Smith <ilan.smith@sandisk.com>
+> >> Signed-off-by: Alex Lemberg <alex.lemberg@sandisk.com>
+> >> Signed-off-by: Venkatraman S <svenkatr@ti.com>
+> >> ---
+> >> =A0fs/mpage.c =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0| =A0 =A02 ++
+> >> =A0include/linux/bio.h =A0 =A0 =A0 | =A0 =A07 +++++++
+> >> =A0include/linux/blk_types.h | =A0 =A02 ++
+> >> =A03 files changed, 11 insertions(+)
+> >>
+> >> diff --git a/fs/mpage.c b/fs/mpage.c
+> >> index 0face1c..8b144f5 100644
+> >> --- a/fs/mpage.c
+> >> +++ b/fs/mpage.c
+> >> @@ -386,6 +386,8 @@ mpage_readpages(struct address_space *mapping, s=
+truct list_head *pages,
+> >> =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =
+=A0 =A0 &last_block_in_bio, &map_bh,
+> >> =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =
+=A0 =A0 &first_logical_block,
+> >> =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =
+=A0 =A0 get_block);
+> >> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 if (bio)
+> >> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 bio->bi_rw=
+ |=3D REQ_RW_DMPG;
+> >
+> > Have you thought about the potential for DOSing a machine
+> > with this? That is, user data reads can now preempt writes of any
+> > kind, effectively stalling writeback and memory reclaim which will
+> > lead to OOM situations. Or, alternatively, journal flushing will get
+> > stalled and no new modifications can take place until the read
+> > stream stops.
+>=20
+> This feature doesn't fiddle with the I/O scheduler's ability to balance
+> read vs write requests or handling requests from various process queues=
+ (CFQ).
 
-Hi Tony,
+And for schedulers like no-op that don't do any read/write balancing?
+Also, I thought the code was queuing such demand paged requests at
+the front of the queues, too, so bypassing most of the read/write
+balancing logic of the elevators...
 
-this pull request is for some hwmod data additions for v3.5.  It
-is based on top of the commits in the omap-devel-b-for-3.5 tag.
+> Also, for block devices which don't implement the ability to preempt (a=
+nd even
+> for older versions of MMC devices which don't implement this feature),
+> the behaviour
+> falls back to waiting for write requests to complete before issuing the=
+ read.
 
-Boot-tested on 5912OSK, N800, 2430SDP, 3517EVM, CM-T3517, 3530ES3
-BeagleBoard, 37xx EVM, and 4430ES2 PandaBoard.  (Note that 3517EVM and
-CM-T3517 don't boot fully to userspace due to issues with the EMAC
-code and board files that are unrelated to this series.)  Static
-suspend and dynamic idle to CSWR and OFF have been lightly tested on
-3530ES3 BeagleBoard, 37xx EVM.  Static suspend and dynamic idle
-have been lightly tested on 4430ES2 PandaBoard.  (Note that
-4430ES2 Pandaboard has a UART driver-related dynamic idle issue that
-is unrelated to this series.)  Boot and test logs are available at:
+Sure, but my point is that you are adding a flag that will be set
+for all user data read IO, and then making it priviledged in the
+lower layers.
 
-http://www.pwsan.com/omap/bootlogs/20120508/hwmod_data_devel_a_3.5__2db1bc2c9249950daa652ac94d677a21b4fe2f50/
+> In low end flash devices, some requests might take too long than normal
+> due to background device maintenance (i.e flash erase / reclaim procedu=
+re)
+> kicking in in the context of an ongoing write, stalling them by several
+> orders of magnitude.
 
-object size (delta in bytes from prcm_devel_a_3.5 (0135f6a04642c192bdf4b36e06937d3387e174ff)):
- text 	 data 	  bss 	total 	kernel
-    0 	    0 	    0 	    0 	5912osk_testconfig/vmlinux
- +420 	+1024 	    0 	+1444 	n800_multi_omap2xxx/vmlinux
- +452 	 +768 	    0 	+1220 	n800_testconfig/vmlinux
-    0 	    0 	    0 	    0 	omap1_defconfig/vmlinux
- +452 	+1056 	    0 	+1508 	omap2_4_testconfig/vmlinux
-+4548 	+1440 	    0 	+5988 	omap2plus_defconfig/vmlinux
- +452 	+1440 	    0 	+1892 	omap2plus_no_pm/vmlinux
- +252 	 +544 	  -64 	 +732 	omap3_4_testconfig/vmlinux
- +316 	 +544 	    0 	 +860 	omap3_testconfig/vmlinux
- +316 	    0 	    0 	 +316 	omap4_testconfig/vmlinux
+And thereby stalling what might be writes critical to operation.
+Indeed, how does this affect the system when it starts swapping
+heavily? If you keep stalling writes, the system won't be able to
+swap and free memory...
 
-The following changes since commit 0135f6a04642c192bdf4b36e06937d3387e174ff:
+> This implementation (See 14/16) does have several checks and
+> timers to see that it's not triggered very often.  In my tests,
+> where I usually have a generous preemption time window, the abort
+> happens < 0.1% of the time.
 
-  Merge branches 'clock_am35xx_cleanup_3.5', 'prm_cm_devel_a_3.5', 'clock_devel_a_3.5' and 'pwrdm_clkdm_cleanup_3.5' into prcm_devel_a_3.5 (2012-05-07 23:55:56 -0600)
+Yes, but seeing as the user has direct control of the pre-emption
+vector, it's not hard to imagine someone using it for a timing
+attack...
 
-are available in the git repository at:
+> > This really seems like functionality that belongs in an IO
+> > scheduler so that write starvation can be avoided, not in high-level
+> > data read paths where we have no clue about anything else going on
+> > in the IO subsystem....
+>=20
+> Indeed, the feature is built mostly in the low level device driver and
+> minor changes in the elevator. Changes above the block layer are only
+> about setting
+> attributes and transparent to their operation.
 
-  git://git.kernel.org/pub/scm/linux/kernel/git/pjw/omap-pending.git tags/omap-devel-c-for-3.5
+The problem is that the attribute you are setting covers every
+single data read that is done by all users. If that's what you want
+to have happen, then why do you even need a new flag at this layer?
+Just treat every non-REQ_META read request as a demand paged IO and
+you've got exactly the same behaviour without needing to tag at the
+higher layer....
 
-for you to fetch changes up to 414e41286e3aeb87de140ef4c75100f9344c32b2:
+Cheers,
 
-  ARM: OMAP2+: WDTIMER integration: fix !PM boot crash, disarm timer after hwmod reset (2012-05-08 17:25:37 -0600)
+Dave.
+--=20
+Dave Chinner
+david@fromorbit.com
 
-- ----------------------------------------------------------------
-Some OMAP IP block data additions for 3.5, along with a
-fix for a longstanding watchdog timer integration problem.
-
-- ----------------------------------------------------------------
-Kevin Hilman (1):
-      ARM: OMAP2+: WDTIMER integration: fix !PM boot crash, disarm timer after hwmod reset
-
-Paul Walmsley (4):
-      ARM: OMAP2+: HDQ1W: add custom reset function
-      ARM: OMAP2+: hwmod data: add HDQ/1-wire hwmod shared data
-      ARM: OMAP3: hwmod data: add HDQ/1-wire hwmod
-      ARM: OMAP2xxx: hwmod data: add HDQ/1-wire hwmod
-
-Peter Ujfalusi (2):
-      ARM: OMAP3: hwmod_data: Rename the common irq for McBSP ports
-      ARM: OMAP4: hwmod_data: Name the common irq for McBSP ports
-
-Shubhrajyoti D (1):
-      ARM: OMAP4: hwmod data: I2C: add flag for context restore
-
-Tony Lindgren (1):
-      ARM: OMAP2420: hwmod data: Add MMC hwmod data for 2420
-
-Vaibhav Hiremath (1):
-      ARM: OMAP2/3: hwmod data: Add 32k-sync timer data to hwmod database
-
- arch/arm/mach-omap2/Makefile                                 |    5 ++++-
- arch/arm/mach-omap2/hdq1w.c                                  |   72 +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
- arch/arm/mach-omap2/io.c                                     |   18 ---------------
- arch/arm/mach-omap2/msdi.c                                   |   88 ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
- arch/arm/mach-omap2/omap_hwmod_2420_data.c                   |  112 ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
- arch/arm/mach-omap2/omap_hwmod_2430_data.c                   |   47 +++++++++++++++++++++++++++++++++++++++
- arch/arm/mach-omap2/omap_hwmod_2xxx_3xxx_interconnect_data.c |    9 ++++++++
- arch/arm/mach-omap2/omap_hwmod_2xxx_3xxx_ipblock_data.c      |   22 ++++++++++++++++++
- arch/arm/mach-omap2/omap_hwmod_2xxx_ipblock_data.c           |   23 ++++++++++++++++++-
- arch/arm/mach-omap2/omap_hwmod_3xxx_data.c                   |   94 ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++-----
- arch/arm/mach-omap2/omap_hwmod_44xx_data.c                   |   12 +++++-----
- arch/arm/mach-omap2/omap_hwmod_common_data.h                 |    5 +++++
- arch/arm/mach-omap2/wd_timer.c                               |   45 +++++++++++++++++++++++++++++++++++++
- arch/arm/mach-omap2/wd_timer.h                               |    1 +
- arch/arm/plat-omap/include/plat/hdq1w.h                      |   36 ++++++++++++++++++++++++++++++
- arch/arm/plat-omap/include/plat/mmc.h                        |    4 ++++
- 16 files changed, 562 insertions(+), 31 deletions(-)
- create mode 100644 arch/arm/mach-omap2/hdq1w.c
- create mode 100644 arch/arm/mach-omap2/msdi.c
- create mode 100644 arch/arm/plat-omap/include/plat/hdq1w.h
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.4.12 (GNU/Linux)
-
-iQIcBAEBAgAGBQJPqborAAoJEMePsQ0LvSpLvmkP/RTk7tJonhLVwWoHie5BNvHs
-VsIHLdmavIAZrElwgsCuu6MvtLxgPILXsQX8w5MS1fez9AIzLoKti5mV/0A4EzXb
-VhK1acqpOz7A8YDg8xURoDBpYmJqNYpxwcv9nwBgUH/tXSceEh3VBCFxEUe6Xv9E
-cyyF/0vqKewM5CrqhVAkr/3la4fe8sw58H8wlZ0H+RF2xgk9FmIUjVDDe2v7gna+
-b59MtyUB+QwQRK3m5CkkEpa5GD4bEfhWWjlGZiahh+yTqV9YPGklbfNs9SkFMaR0
-3i8c+DWXjS2AQ+qANIj3cpfNW8FZsJVtxLdIfqJikSV1Bc8CEJ9H26VsdwjD4ieM
-+5T/NoNcwcUDllL1yFCkZhfa2yErlXQt58bo0NdjwUxOYDZsLwKHLLGE3INk0hYK
-zsALMVS7PFfQs/y5UG8HSkhgyNeb8k4GWNvR2zVR01solVbtpynkGAIL1+W9Weqx
-8Eq+rQOWXxpfY2ERo9I4xTMw/tlbtCStn955tjTN2uDFVsth5hPwlLZ+4Cxcs7VZ
-v+OCyyhtVAV11ALR8vY1CGfaRNuTMO6CngY26I/5y1nrX7J9mlrYxrabzLox844h
-tssLPh4vgYLQdRGWeWpajoZPPgwHV5BTEIp5Z+L0nqrig/Wjs+dzhiuQezyTLe4T
-m31VTS8BhlgCLebZ5ixw
-=fEdJ
------END PGP SIGNATURE-----
+--
+To unsubscribe, send a message with 'unsubscribe linux-mm' in
+the body to majordomo@kvack.org.  For more info on Linux MM,
+see: http://www.linux-mm.org/ .
+Fight unfair telecom internet charges in Canada: sign http://stopthemeter=
+.ca/
+Don't email: <a href=3Dmailto:"dont@kvack.org"> email@kvack.org </a>
