@@ -1,100 +1,64 @@
-From: Neil Johnson <neilj@procerusuav.com>
-Subject: Re: DSS2 DVI output: red screen
-Date: Wed, 9 May 2012 10:08:18 -0600
-Message-ID: <CAEULaVJzoG_uF7ji+UCSKZN_jhULWaKzZ-HMtH6c8dD7KqM2+g@mail.gmail.com>
-References: <CAEULaV+_Ch7T0yA==XC8_xORhN2rcre=W4nbKYq+vxQkdKAeCw@mail.gmail.com>
-	<79CD15C6BA57404B839C016229A409A83EA18990@DBDE01.ent.ti.com>
+From: Russ Dill <Russ.Dill@ti.com>
+Subject: Re: [PATCH] ARM: OMAP: Cleanup Beagleboard DVI reset gpio
+Date: Wed, 9 May 2012 09:26:09 -0700
+Message-ID: <CA+Bv8XZ4FYu+djvOMxhr6MbP8QYn4OL1PTc6TDJt42CpiESYDQ@mail.gmail.com>
+References: <87zk9ijp86.fsf@ti.com>
+	<1336531746-29027-1-git-send-email-Russ.Dill@ti.com>
+	<20120509155555.GL5088@atomide.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
+Content-Type: text/plain; charset=UTF-8
 Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-lb0-f174.google.com ([209.85.217.174]:36748 "EHLO
-	mail-lb0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1757617Ab2EIQIU convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 9 May 2012 12:08:20 -0400
-Received: by lbbgm6 with SMTP id gm6so336165lbb.19
-        for <linux-omap@vger.kernel.org>; Wed, 09 May 2012 09:08:18 -0700 (PDT)
-In-Reply-To: <79CD15C6BA57404B839C016229A409A83EA18990@DBDE01.ent.ti.com>
+Received: from mail-lpp01m010-f46.google.com ([209.85.215.46]:52660 "EHLO
+	mail-lpp01m010-f46.google.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1757560Ab2EIQ0L convert rfc822-to-8bit
+	(ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Wed, 9 May 2012 12:26:11 -0400
+Received: by lahd3 with SMTP id d3so353340lah.19
+        for <linux-omap@vger.kernel.org>; Wed, 09 May 2012 09:26:09 -0700 (PDT)
+In-Reply-To: <20120509155555.GL5088@atomide.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "Hiremath, Vaibhav" <hvaibhav@ti.com>
-Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
+To: Tony Lindgren <tony@atomide.com>
+Cc: linux-omap@vger.kernel.org, chase.maupin@ti.com, linux-arm-kernel@lists.infradead.org, Igor Grinberg <grinberg@compulab.co.il>, Tomi Valkeinen <tomi.valkeinen@ti.com>
 
-Vaibhav,
-
-Thanks for your help on this.=A0 I was unaware that the Kernel changed
-the pin-mux after U-boot did the initial setup.=A0 Applying this fix to
-the linux kernel fixed the problem.=A0 Much appreciated,
-
-Neil Johnson
-
-
-
-On Mon, May 7, 2012 at 11:21 PM, Hiremath, Vaibhav <hvaibhav@ti.com> wr=
-ote:
+On Wed, May 9, 2012 at 8:55 AM, Tony Lindgren <tony@atomide.com> wrote:
+> Hi Tomi,
 >
-> On Tue, May 08, 2012 at 04:41:35, Neil Johnson wrote:
-> > Linux OMAP list:
-> >
-> > We are proving out the DVI output on a DM3730 board that we've
-> > designed, and we're seeing something strange: Our output to the vid=
-eo
-> > window is always red. =A0We see the penguin show up in the corner, =
+> * Russ Dill <Russ.Dill@ti.com> [120508 19:52]:
+>> This removes several boot warnings from board-omap3beagle.c:
+>>
+>> =C2=A0- gpio_request: gpio--22 (DVI reset) status -22
+>> =C2=A0- Unable to get DVI reset GPIO
+>>
+>> There is a combination of leftover code and revision confusion.
+>> Additionally, xM support is currently a hack.
+>>
+>> For original Beagleboard this removes the double initialization of G=
+PIO
+>> 170, properly configures it as an output, and wraps the initializati=
+on
+>> in an if block so that xM does not attempt to request it.
+>>
+>> For Beagleboard xM it removes reference to GPIO 129 which was part
+>> of rev A1 and A2 designs, but never functioned. It then properly ass=
+igns
+>> beagle_dvi_device.reset_gpio in beagle_twl_gpio_setup and removes th=
+e
+>> hack of initializing it high. Additionally, it uses
+>> gpio_set_value_cansleep since this GPIO is connected through i2c.
+>>
+>> Unfortunately, there is no way to tell the difference between xM A2 =
 and
-> > text/graphics show up, but the red channel is always on for all pix=
-els
-> > on the screen.
-> >
-> > Studying our schematic and comparing with the Beagleboard-xm
-> > schematic, it appears that we're hooking everything up the same way=
-,
-> > with just some subtle differences:
-> >
-> > We desire to output 1280x720 resolution (720p), and that means we n=
-eed
-> > to use the alternate configuration for the DSS output pins, as
-> > mentioned in the DM3730 TRM:
-> >
-> > On Page 1564, it states:
-> >
-> > The DISPC_DATA_LCD[5:0] data multiplexed with the DSI signals on
-> > dss_data[5:0] pads is limited to up to 60 MHz pixel clock frequency=
-=2E
-> > If the parallel 18/24-bit interface in bypass mode with a pixel clo=
-ck
-> > above 60 MHz is required, the DISPC_DATA_LCD[5:0] multiplexed on
-> > dss_data[23:18] pads, and DISPC_DATA_LCD[23:18] multiplexed on
-> > sys_boot pads must be used.
-> >
-> > So, we've mapped DISPC_DATA_LCD[5:0] to dss_data[23:18] pads and
-> > routed DISPC_DATA_LCD[23:18] to be multiplexed with the sys_boot pa=
-ds.
-> >
-> > Our sys_boot pads are all pulled up to 1.8 V through 4.7 K-ohm
-> > resistors. =A0I'm suspicious that this is causing the red lines to =
-be
-> > pulled high, generating red pixels all the time. =A0Am I off-base h=
-ere?
-> > Is there something I'm missing, like the U-boot mux configuration o=
-r
-> > something? =A0What can I check from a software level to verify that=
- all
-> > is correct? =A0According to the Beagle-board-xm manual, the board
-> > auto-detects which way things are hooked up, but maybe I haven't
-> > grabbed that code from the beagleboard board file? =A0Thanks,
-> >
+>> A3. However, GPIO 129 does not function on rev A1 and A2, and the TW=
+L
+>> GPIO used on A3 and beyond is not used on rev A1 and A2, there are n=
+o
+>> problems created by this fix.
 >
->
-> Make sure that you have configured the pin mux settings accordingly,
-> We have similar interface done on OMAP3EVM, so you can refer to the
-> Omap3evm code,
->
-> http://git.kernel.org/?p=3Dlinux/kernel/git/tmlind/linux-omap.git;a=3D=
-blob;f=3Darch/arm/mach-omap2/board-omap3evm.c;h=3Dfd1b481c762c97576f1c9=
-cb5503e9bd470a4a528;hb=3D5e136da4f5d9aa5388097afad1f6a0e6fd8572c6#l556
->
-> Thanks,
-> Vaibhav
+> Can you check if this needs updates for your clean up patches?
+
+I'm not sure what you mean, can you be more specific?
 --
 To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
 n
