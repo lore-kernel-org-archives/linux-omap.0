@@ -1,106 +1,141 @@
-From: Tomi Valkeinen <tomi.valkeinen@ti.com>
-Subject: Re: [PATCH] OMAPDSS: TFP410: use gpio_set_value_cansleep
-Date: Thu, 10 May 2012 09:53:10 +0300
-Message-ID: <1336632790.5182.8.camel@deskari>
-References: <1336601288-27848-1-git-send-email-Russ.Dill@ti.com>
-	 <20120509221447.GY5088@atomide.com>
-	 <CA+Bv8Xa+1RJ5QTn=vO4GSw1VtUZc3xX0J5qBVshvV5Dj+9uZVA@mail.gmail.com>
-	 <20120509233745.GZ5088@atomide.com>
+From: Santosh Shilimkar <santosh.shilimkar@ti.com>
+Subject: Re: [PATCH 5/6] ARM: OMAP4: CLKDM: Update supported transition modes
+Date: Thu, 10 May 2012 12:24:27 +0530
+Message-ID: <4FAB6623.9090005@ti.com>
+References: <1336599364-11024-1-git-send-email-jon-hunter@ti.com>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg="pgp-sha1"; protocol="application/pgp-signature";
-	boundary="=-6/O8qK6rpMrfMP4OFnxe"
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aog138.obsmtp.com ([74.125.149.19]:43050 "EHLO
-	na3sys009aog138.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754944Ab2EJGxU (ORCPT
+Received: from na3sys009aog133.obsmtp.com ([74.125.149.82]:44230 "EHLO
+	na3sys009aog133.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1756496Ab2EJGyj (ORCPT
 	<rfc822;linux-omap@vger.kernel.org>);
-	Thu, 10 May 2012 02:53:20 -0400
-Received: by lbgc1 with SMTP id c1so1844176lbg.1
-        for <linux-omap@vger.kernel.org>; Wed, 09 May 2012 23:53:17 -0700 (PDT)
-In-Reply-To: <20120509233745.GZ5088@atomide.com>
+	Thu, 10 May 2012 02:54:39 -0400
+Received: by obbup19 with SMTP id up19so1768205obb.24
+        for <linux-omap@vger.kernel.org>; Wed, 09 May 2012 23:54:33 -0700 (PDT)
+In-Reply-To: <1336599364-11024-1-git-send-email-jon-hunter@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Tony Lindgren <tony@atomide.com>
-Cc: Russ Dill <Russ.Dill@ti.com>, linux-omap@vger.kernel.org, linux-fbdev@vger.kernel.org
+To: Jon Hunter <jon-hunter@ti.com>
+Cc: linux-omap <linux-omap@vger.kernel.org>, Ming Lei <ming.lei@canonical.com>, Will Deacon <will.deacon@arm.com>, Benoit Cousson <b-cousson@ti.com>, Paul Walmsley <paul@pwsan.com>, Kevin Hilman <khilman@ti.com>
 
+On Thursday 10 May 2012 03:06 AM, Jon Hunter wrote:
+> From: Jon Hunter <jon-hunter@ti.com>
+> 
+> For OMAP3+ devices, the clock domains (CLKDMs) support one or more of the
+> following transition modes ...
+> 
+> NO_SLEEP (0x0) - A clock domain sleep transition is never initiated,
+> 		 irrespective of the hardware conditions.
+> SW_SLEEP (0x1) - A software-forced sleep transition. The transition is initiated
+> 		 when the associated hardware conditions are satisfied
+> SW_WKUP  (0x2) - A software-forced clock domain wake-up transition is initiated,
+> 		 irrespective of the hardware conditions.
+> HW_AUTO  (0x3) - Hardware-controlled automatic sleep and wake-up transition is
+> 		 initiated by the PRCM module when the associated hardware
+> 		 conditions are satisfied.
+> 
+> For OMAP4 devices, SW_SLEEP is equivalent to HW_AUTO and NO_SLEEP is equivalent
+> to SW_WKUP. For OMAP4 devices, all CLKDMs support HW_AUTO and therefore we can
+> place the CLKDMs in the HW_AUTO state instead of the SW_SLEEP mode. Hence, we
+> do not need to use the SW_SLEEP mode. With regard to NO_SLEEP and SW_WKUP it is
+> preferred to use SW_WKUP mode if the CLKDM supports it and so use this mode
+> instead of NO_SLEEP where possible.
+> 
+> For a software perspective the above 4 modes are represented by the following
+> flags to indicate what modes are supported by each of the CLKDMs.
+> 
+> CLKDM_CAN_DISABLE_AUTO	--> NO_SLEEP
+> CLKDM_CAN_ENABLE_AUTO	--> HW_AUTO
+> CLKDM_CAN_FORCE_SLEEP	--> SW_SLEEP
+> CLKDM_CAN_FORCE_WAKEUP	--> SW_WKUP
+> 
+> By eliminating the SW_SLEEP mode the the mapping of the flags for OMAP4 devices
+> can becomes ...
+> 
+> CLKDM_CAN_DISABLE_AUTO	--> NO_SLEEP
+> CLKDM_CAN_ENABLE_AUTO	--> HW_AUTO
+> CLKDM_CAN_FORCE_SLEEP	--> HW_AUTO
+Not sure if this can be entirely correct for OMAP4.
+Because HW_AUTO = "Sleep and wakeup transition are
+based upon hardware conditions"
+Where as SW_SLEEP = "Start a software forced sleep
+transition on the domain."
 
---=-6/O8qK6rpMrfMP4OFnxe
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: quoted-printable
+I will reply on the the thread where this is being discussed.
 
-On Wed, 2012-05-09 at 16:37 -0700, Tony Lindgren wrote:
-> * Russ Dill <Russ.Dill@ti.com> [120509 15:53]:
-> > On Wed, May 9, 2012 at 3:14 PM, Tony Lindgren <tony@atomide.com> wrote:
-> > > * Russ Dill <Russ.Dill@ti.com> [120509 15:12]:
-> > >> The Beagleboard xM gpio used for TFP410 powerdown is connected throu=
-gh
-> > >> an I2C attached chip which means setting the GPIO can sleep. Code th=
-at
-> > >> calls tfp410_power_on/off holds a mutex, so sleeping should be fine.
-> > >
-> > > What's the error without this patch? Or just no display?
-> > >
-> > > Just wondering if it's safe to merge Tomi's clean up series to
-> > > arm-soc tree..
-> >=20
-> > The only platform that has a problem is Beagleboard xM, and that is
-> > only after 'ARM: OMAP: Cleanup Beagleboard DVI reset gpio' is applied.
-> > Since the context actually can sleep, the only consequence is a
-> > WARN_ON statement.
-> >=20
-> > So yes, it should be safe.
->=20
-> Well since I have not actually merged it with other branches yet, I'll wa=
-it
-> for Tomi to apply that and repull his for-l-o-3.5 branch.
+> CLKDM_CAN_FORCE_WAKEUP	--> SW_WKUP
+> 
+> Cc: Ming Lei <ming.lei@canonical.com>
+> Cc: Will Deacon <will.deacon@arm.com>
+> Cc: Benoit Cousson <b-cousson@ti.com>
+> Cc: Paul Walmsley <paul@pwsan.com>
+> Cc: Kevin Hilman <khilman@ti.com>
+> 
+> Signed-off-by: Jon Hunter <jon-hunter@ti.com>
+> ---
+>  arch/arm/mach-omap2/clockdomain44xx.c |    7 +++++--
+>  arch/arm/mach-omap2/cminst44xx.c      |   14 --------------
+>  2 files changed, 5 insertions(+), 16 deletions(-)
+> 
+> diff --git a/arch/arm/mach-omap2/clockdomain44xx.c b/arch/arm/mach-omap2/clockdomain44xx.c
+> index 4f04dd1..99ce556 100644
+> --- a/arch/arm/mach-omap2/clockdomain44xx.c
+> +++ b/arch/arm/mach-omap2/clockdomain44xx.c
+> @@ -70,7 +70,7 @@ static int omap4_clkdm_clear_all_wkup_sleep_deps(struct clockdomain *clkdm)
+>  
+>  static int omap4_clkdm_sleep(struct clockdomain *clkdm)
+>  {
+> -	omap4_cminst_clkdm_force_sleep(clkdm->prcm_partition,
+> +	omap4_cminst_clkdm_enable_hwsup(clkdm->prcm_partition,
+>  					clkdm->cm_inst, clkdm->clkdm_offs);
+In case SW_SLEEP != HW_AUTO, something like below can be done
 
-You can pull for-l-o-3.5 as it is now, there's no need to change it.
-This _cansleep change is a separate dss specific change.
+if (clkdm->flags & CLKDM_CAN_FORCE_SLEEP )
+	omap4_cminst_clkdm_force_sleep(clkdm->prcm_partition,
+				clkdm->cm_inst, clkdm->clkdm_offs);
+else
+	omap4_cminst_clkdm_enable_hwsup(clkdm->prcm_partition,
+				clkdm->cm_inst, clkdm->clkdm_offs);
 
-So to summarize:
-
-Currently the powerdown GPIO for tfp410 is handled in the board files
-(and called reset gpio), with gpio_set_value(). My cleanup series moves
-this to the tfp410 driver.
-
-BB-xM needs to use gpio_set_value_cansleep() in tfp410 to function
-properly, so the tfp410 driver needs to be changed, as this patch does.
-I will take this patch to the dss tree.
-
-So it's safe to pull my cleanup series, but if I understood correctly,
-applying Russ's "[PATCH v4] ARM: OMAP: Cleanup Beagleboard DVI reset
-gpio" will cause WARN_ONs on BB-xM until this patch to tfp410 is also
-applied.
-
-But it doesn't sound too serious, so I think it's safe to apply the
-"cleanup beagleboard dvi" patch also. The warning will go away when both
-l-o and dss trees are pulled in the merge window.
-
- Tomi
-
-
---=-6/O8qK6rpMrfMP4OFnxe
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: This is a digitally signed message part
-Content-Transfer-Encoding: 7bit
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.4.11 (GNU/Linux)
-
-iQIcBAABAgAGBQJPq2XWAAoJEPo9qoy8lh71gxIP/jyVTK6+90vZIvUQB9b42N9b
-396O1XAAszigTVYEXZbPfSdCCRGO6r5ToK0xgUhXk3RdvsqbKksIqiCa2czeY2X/
-FSiwa3AsqOMXTI2xR+WUCnkg1M9Lgr0zSd3NFvW3VMBKrrS5dYC3jKnoZF0gNHCD
-0KS74wBzEDS4tNwrCojHY+Wg4RwEgJ4/AEPkRBipqMgZ63BIH4MB4Lwo3Eoyy8Wf
-dvbOUMzP0+BxX5MokOeOq3Xfw+eogif4C9XWbKal2Vj/4FXfZR2r0Cei55W5Z0Q4
-0iomSXFGOnxXtgOENuizrt1VZdVruLKBFcAYtc4lkt+ECCCYlQglPSSfe3GB7hB3
-HkCyyjooEQP1wuvLUZnfNLHlY9dWnaUFKXfXoseexsMJpuBpc7Vh6IlATxQr+veC
-26FdI+HNOCmYe5Yl4XqpUYOG4HUHBvbrwMWG3J/D5lSoM8FcKCIFza+SGQyMy9Lt
-AjmgY7gFpWtAqm/lQ7yH3xYeVy0rUSo1ND2rtI08woP+8ww1Ij9IR3iPOQwwiDwq
-VWrF24Q9zTJnvqKFnMULlo6Ll88SOc9VIhmxm8emg/ysqVSUZSiVBTsK68u85CXT
-WX0mBCPPS1YDcpHUMNpP4s5MgE+0ZiegJ99l+EVGeJ8/w8zYiz8qvDWzlPc9Cs02
-Tuf7lYWTAyNMZiM0RHSO
-=Gtdj
------END PGP SIGNATURE-----
-
---=-6/O8qK6rpMrfMP4OFnxe--
+>  	return 0;
+>  }
+> @@ -90,7 +90,10 @@ static void omap4_clkdm_allow_idle(struct clockdomain *clkdm)
+>  
+>  static void omap4_clkdm_deny_idle(struct clockdomain *clkdm)
+>  {
+> -	omap4_cminst_clkdm_disable_hwsup(clkdm->prcm_partition,
+> +	if (clkdm->flags & CLKDM_CAN_FORCE_WAKEUP)
+> +		omap4_clkdm_wakeup(clkdm);
+> +	else
+> +		omap4_cminst_clkdm_disable_hwsup(clkdm->prcm_partition,
+>  					clkdm->cm_inst, clkdm->clkdm_offs);
+>  }
+>  
+> diff --git a/arch/arm/mach-omap2/cminst44xx.c b/arch/arm/mach-omap2/cminst44xx.c
+> index bd8810c..a44456c 100644
+> --- a/arch/arm/mach-omap2/cminst44xx.c
+> +++ b/arch/arm/mach-omap2/cminst44xx.c
+> @@ -227,20 +227,6 @@ void omap4_cminst_clkdm_disable_hwsup(u8 part, s16 inst, u16 cdoffs)
+>  }
+>  
+>  /**
+> - * omap4_cminst_clkdm_force_sleep - try to put a clockdomain into idle
+> - * @part: PRCM partition ID that the clockdomain registers exist in
+> - * @inst: CM instance register offset (*_INST macro)
+> - * @cdoffs: Clockdomain register offset (*_CDOFFS macro)
+> - *
+> - * Put a clockdomain referred to by (@part, @inst, @cdoffs) into idle
+> - * No return value.
+> - */
+> -void omap4_cminst_clkdm_force_sleep(u8 part, s16 inst, u16 cdoffs)
+> -{
+> -	_clktrctrl_write(OMAP34XX_CLKSTCTRL_FORCE_SLEEP, part, inst, cdoffs);
+> -}
+> -
+> -/**
+>   * omap4_cminst_clkdm_force_sleep - try to take a clockdomain out of idle
+>   * @part: PRCM partition ID that the clockdomain registers exist in
+>   * @inst: CM instance register offset (*_INST macro)
 
