@@ -1,47 +1,57 @@
 From: Paul Walmsley <paul@pwsan.com>
-Subject: Re: [PATCH-V7 0/3] ARM: OMAP: Make OMAP clocksource source selection
- runtime
-Date: Thu, 10 May 2012 16:28:46 -0600 (MDT)
-Message-ID: <alpine.DEB.2.00.1205101627260.32719@utopia.booyaka.com>
-References: <1336031941-23651-1-git-send-email-hvaibhav@ti.com> <2430095.tlzScq1o2g@acer>
+Subject: RE: [PATCH-V2 4/4] ARM: OMAP2+: CLEANUP: Add new config option for
+ different DPLL features
+Date: Thu, 10 May 2012 16:35:56 -0600 (MDT)
+Message-ID: <alpine.DEB.2.00.1205101634350.32719@utopia.booyaka.com>
+References: <1336506724-5494-1-git-send-email-hvaibhav@ti.com> <1336506724-5494-5-git-send-email-hvaibhav@ti.com> <87ehqui8yp.fsf@ti.com> <79CD15C6BA57404B839C016229A409A83EA1BF47@DBDE01.ent.ti.com>
 Mime-Version: 1.0
 Content-Type: TEXT/PLAIN; charset=US-ASCII
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from utopia.booyaka.com ([72.9.107.138]:54702 "EHLO
+Received: from utopia.booyaka.com ([72.9.107.138]:54911 "EHLO
 	utopia.booyaka.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1761906Ab2EJW2r (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 10 May 2012 18:28:47 -0400
-In-Reply-To: <2430095.tlzScq1o2g@acer>
+	with ESMTP id S1761692Ab2EJWf5 (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 10 May 2012 18:35:57 -0400
+In-Reply-To: <79CD15C6BA57404B839C016229A409A83EA1BF47@DBDE01.ent.ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Janusz Krzysztofik <jmkrzyszt@gmail.com>
-Cc: Vaibhav Hiremath <hvaibhav@ti.com>, linux-omap@vger.kernel.org, tony@atomide.com, khilman@ti.com, santosh.shilimkar@ti.com, b-cousson@ti.com, linux-arm-kernel@lists.infradead.org
+To: "Hiremath, Vaibhav" <hvaibhav@ti.com>
+Cc: "Hilman, Kevin" <khilman@ti.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "tony@atomide.com" <tony@atomide.com>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>
 
-Hello Janusz,
+On Wed, 9 May 2012, Hiremath, Vaibhav wrote:
 
-On Thu, 10 May 2012, Janusz Krzysztofik wrote:
-
-> Tried to test this branch, merged into 3.4-rc6, and with my Amstrad 
-> Delta fixes applied, using my custom Amstrad Delta config, but initially 
-> failed because an unrelated issue rised to the surface:
+> On Wed, May 09, 2012 at 04:20:06, Hilman, Kevin wrote:
 > 
-> |   LD      .tmp_vmlinux1
-> | arch/arm/mach-omap1/built-in.o: In function `omap1_usb_init':
-> | lcd_dma.c:(.init.text+0x1420): undefined reference to `ocpi_enable'
-> | make: *** [.tmp_vmlinux1] Error 1
+> > 
+> > [1]
+> > diff --git a/arch/arm/plat-omap/include/plat/clock.h b/arch/arm/plat-omap/include/plat/clock.h
+> > index d0ef57c..656b986 100644
+> > --- a/arch/arm/plat-omap/include/plat/clock.h
+> > +++ b/arch/arm/plat-omap/include/plat/clock.h
+> > @@ -156,7 +156,6 @@ struct dpll_data {
+> >  	u8			min_divider;
+> >  	u16			max_divider;
+> >  	u8			modes;
+> > -#if defined(CONFIG_ARCH_OMAP3) || defined(CONFIG_ARCH_OMAP4)
+> >  	void __iomem		*autoidle_reg;
+> >  	void __iomem		*idlest_reg;
+> >  	u32			autoidle_mask;
+> > @@ -167,7 +166,6 @@ struct dpll_data {
+> >  	u8			auto_recal_bit;
+> >  	u8			recal_en_bit;
+> >  	u8			recal_st_bit;
+> > -#  endif
+> >  	u8			flags;
+> >  };
+> >  
 > 
-> Apparently introduced with commit 
-> d3645d39ad0ed9f09535065676ea0ba114f93cdf, "ARM: OMAP1: OHCI: use 
-> platform_data fn ptr to enable OCPI bus", looks like one or more symbols 
-> exported by the not linked in arch/arm/mach-omap1/ocpi.o may be missing 
-> for non-OMAP16xx configs.
+> Honestly, I wanted to propose this first. 
+> I am OK, as long as we all agree on this.
+> 
+> Paul, can you conform on this?
 
-A fix for this is now posted here:
-
-http://marc.info/?l=linux-omap&m=133668898529344&w=2
-
-If you have the chance to test it, that would be great.  Hopefully it 
-should be pretty uncontroversial.
+Yes that's a better approach then defining CONFIG_* options for all the 
+bitfields, so please go ahead and just send a patch to drop that #ifdef 
+and I'll ack it.
 
 
 - Paul
