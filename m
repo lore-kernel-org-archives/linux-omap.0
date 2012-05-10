@@ -1,42 +1,51 @@
-From: Sricharan R <r.sricharan@ti.com>
-Subject: RE: [PATCH 2/4] ARM: OMAP2+: Move the stubbed prm and cm functions to
- prcm.c file and make them __weak.
-Date: Thu, 10 May 2012 23:14:49 +0530
-Message-ID: <342784e3cecaf14d95b4e1c648726da1@mail.gmail.com>
-References: <1336669615-16454-1-git-send-email-r.sricharan@ti.com>
- <1336669615-16454-3-git-send-email-r.sricharan@ti.com> <alpine.DEB.2.00.1205101140230.32719@utopia.booyaka.com>
+From: Ivan Djelic <ivan.djelic@parrot.com>
+Subject: Re: [PATCH v3] ARM: OMAP3: gpmc: add BCH ecc api and modes
+Date: Thu, 10 May 2012 19:45:27 +0200
+Message-ID: <20120510174527.GA11275@parrot.com>
+References: <1335442669-13474-1-git-send-email-ivan.djelic@parrot.com>
+ <20120509002927.GF5088@atomide.com>
+ <20120509081047.GC17333@parrot.com>
+ <20120509153141.GI5088@atomide.com>
+ <1336655257.2625.8.camel@sauron.fi.intel.com>
+ <20120510151725.GA11107@parrot.com>
+ <1336665138.2243.1.camel@brekeke>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
+Content-Type: text/plain; charset="us-ascii"
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aog125.obsmtp.com ([74.125.149.153]:44591 "EHLO
-	na3sys009aog125.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1760659Ab2EJRoy (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>);
-	Thu, 10 May 2012 13:44:54 -0400
-Received: by lban1 with SMTP id n1so1245196lba.10
-        for <linux-omap@vger.kernel.org>; Thu, 10 May 2012 10:44:51 -0700 (PDT)
-In-Reply-To: <alpine.DEB.2.00.1205101140230.32719@utopia.booyaka.com>
+Received: from co202.xi-lite.net ([149.6.83.202]:46647 "EHLO co202.xi-lite.net"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1760383Ab2EJRpb (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Thu, 10 May 2012 13:45:31 -0400
+Content-Disposition: inline
+In-Reply-To: <1336665138.2243.1.camel@brekeke>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Paul Walmsley <paul@pwsan.com>
-Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Santosh Shilimkar <santosh.shilimkar@ti.com>, tony@atomide.com, Benoit Cousson <b-cousson@ti.com>, paul@pswan.com
+To: Artem Bityutskiy <dedekind1@gmail.com>, Tony Lindgren <tony@atomide.com>
+Cc: "afzal@ti.com" <afzal@ti.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-mtd@lists.infradead.org" <linux-mtd@lists.infradead.org>
 
-Hi Paul,
->
-> On Thu, 10 May 2012, R Sricharan wrote:
->
-> > Some prm and cm registers read/write and status functions
-> > are built only for some custom OMAP2+ builds and are stubbed
-> > in header files for other builds under ifdef statements.
-> > But this results in adding new CONFIG_ARCH_OMAPXXX
-> > checks when SOCs are added in the future. So move them
-> > to a common place for OMAP2+ and make them 'weak' implementations.
->
-> Thanks for the patch.  These stubs aren't needed any longer, so we can
-> just get rid of them; no need to mark them __weak.  I've got a patch to
-> just drop them here to be posted soon as part of a larger PRCM cleanup.
->
-  Thanks. I will pick up your series.
+On Thu, May 10, 2012 at 04:52:18PM +0100, Artem Bityutskiy wrote:
+> On Thu, 2012-05-10 at 17:17 +0200, Ivan Djelic wrote:
+> > But in order to do so, I need the changes that Afzal has submitted
+> > (in particular [3]). Those changes (and as a consequence, my new patch)
+> > won't hit 3.5.
+> > 
+> > So, when Afzal's patches are pushed, I'll submit a new, single MTD patch.
+> 
+> But this is not going to happen this merge window as I understood, may
+> be not even the next one. We need to make UBIFS happy sooner than that,
+> I think. So may be we go forward with your original patch?
 
-Thanks,
- Sricharan
+I'm OK with this too, as the patches are ready and tested.
+The MTD patch is [2], it depends on [1] which has been pushed, then dropped by Tony.
+Do you need me to repost [2] ?
+
+Tony, sorry to backpedal on this: would you re-push patch [1], if indeed Afzal's patches
+are not going to be merged soon ? In the meantime, I can prepare a patch on top of Afzal's to
+have a smooth transition w.r.t BCH support. What do you think ?
+
+Best Regards,
+--
+Ivan
+
+[1] http://lists.infradead.org/pipermail/linux-mtd/2012-April/040965.html
+[2] http://lists.infradead.org/pipermail/linux-mtd/2012-April/041020.html
