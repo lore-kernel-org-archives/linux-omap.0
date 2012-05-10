@@ -1,52 +1,45 @@
-From: "DebBarma, Tarun Kanti" <tarun.kanti@ti.com>
-Subject: Re: [PATCH v2] gpio/omap: fix incorrect initialization of omap_gpio_mod_init
-Date: Thu, 10 May 2012 10:45:13 +0530
-Message-ID: <CAC83ZvKHDWmNneK5GQgSPhdg88apymEgUr0zm1EVYjfaWG2oXA@mail.gmail.com>
-References: <1335770412-1344-1-git-send-email-tarun.kanti@ti.com>
-	<CANOLnOO3bSxoE-8TaXd_Tz=taPOZpfQY+z-=6c7Ovfpf+FCAuw@mail.gmail.com>
-	<CAC83ZvLYmPr3qTRUUTom1iOA-czef9EVcM229UMDePnw8sbA+w@mail.gmail.com>
-	<1664819.7TVaX0jpJi@acer>
+From: Ohad Ben-Cohen <ohad@wizery.com>
+Subject: Re: [PATCH v3 2/2] omap4: iommu: fix irq and clock name for dsp-iommu
+Date: Thu, 10 May 2012 08:20:00 +0300
+Message-ID: <CAK=WgbZsM6HvFKTsnjK_LD=6wi75i2Ec_H2LvF782K5iZbT5xQ@mail.gmail.com>
+References: <1336616370-28268-1-git-send-email-jgutierrez@ti.com> <1336616370-28268-3-git-send-email-jgutierrez@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aog121.obsmtp.com ([74.125.149.145]:36927 "EHLO
-	na3sys009aog121.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751172Ab2EJFPP (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>);
-	Thu, 10 May 2012 01:15:15 -0400
-Received: by qadb17 with SMTP id b17so53036qad.19
-        for <linux-omap@vger.kernel.org>; Wed, 09 May 2012 22:15:13 -0700 (PDT)
-In-Reply-To: <1664819.7TVaX0jpJi@acer>
+Received: from mail-yx0-f174.google.com ([209.85.213.174]:49660 "EHLO
+	mail-yx0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751891Ab2EJFUW convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 10 May 2012 01:20:22 -0400
+Received: by yenm10 with SMTP id m10so1095927yen.19
+        for <linux-omap@vger.kernel.org>; Wed, 09 May 2012 22:20:21 -0700 (PDT)
+In-Reply-To: <1336616370-28268-3-git-send-email-jgutierrez@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Janusz Krzysztofik <jkrzyszt@tis.icnet.pl>
-Cc: Grazvydas Ignotas <notasas@gmail.com>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Kevin Hilman <khilman@ti.com>, Grant Likely <grant.likely@secretlab.ca>
+To: Juan Gutierrez <jgutierrez@ti.com>, Tony Lindgren <tony@atomide.com>
+Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 
-Hi,
+On Thu, May 10, 2012 at 5:19 AM, Juan Gutierrez <jgutierrez@ti.com> wro=
+te:
+> Irq and clock names were wrong for dsp iommu configuration
+> for omap4.
+>
+> - Renamed tesla_ick to dsp_fck:
+> =A0 This is required because the new naming convention introduced
+> =A0 by: commit 0e43327 "OMAP4 clock: Fix clock names and align
+> =A0 with hwmod names"
+>
+> - Renamed INT_44XX_DSP_MMU to OMAP44XX_IRQ_TESLA_MMU.
+> =A0 Naming convention adopted since: commit e927f8d "omap4: Add
+> =A0 auto-generated irq and dma headers"
+>
+> - dsp-iommu is enabled by default.
+>
+> Signed-off-by: Juan Gutierrez <jgutierrez@ti.com>
 
-On Thu, May 10, 2012 at 3:06 AM, Janusz Krzysztofik
-<jkrzyszt@tis.icnet.pl> wrote:
-> On Mon, 7 May 2012 10:52:28 DebBarma, Tarun Kanti wrote:
->> On Sun, May 6, 2012 at 3:25 AM, Grazvydas Ignotas <notasas@gmail.com> wrote:
->> > On Mon, Apr 30, 2012 at 10:20 AM, Tarun Kanti DebBarma
->> > <tarun.kanti@ti.com> wrote:
->> >> Initialization of irqenable, irqstatus registers is the common
->> >> operation done in this function for all OMAP platforms, viz. OMAP1,
->> >> OMAP2+. The latter _gpio_rmw()'s which supposedly got introduced
->> >> wrongly to take care of OMAP2+ platforms were overwriting initially
->> >> programmed OMAP1 value breaking functionality on OMAP1.
->
-> Hi,
-> I can confirm that my other issues with GPIO on Amstrad Delta were not
-> related, and this patch is still required for GPIO interrupts hardware
-> being correctly initialized on OMAP1 in 3.4-rc6. You can add my
->
-> Tested-by: Janusz Krzysztofik <jkrzyszt@tis.icnet.pl>
->
-> if you wish.
-Thank you for confirming!!
+Acked-by: Ohad Ben-Cohen <ohad@wizery.com>
 --
-Tarun
->
-> Thanks,
-> Janusz
+To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
