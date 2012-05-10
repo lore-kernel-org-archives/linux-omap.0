@@ -1,126 +1,54 @@
-From: NeilBrown <neilb@suse.de>
-Subject: Re: [PATCH 0/6] twl4030: Various fixes for charing-from-USB
-Date: Thu, 10 May 2012 12:37:54 +1000
-Message-ID: <20120510123754.6a6d95b9@notabene.brown>
-References: <20120425072931.20124.56635.stgit@notabene.brown>
-	<20120510012422.GA32077@nchen-desktop>
+From: Ricardo Neri <ricardo.neri@ti.com>
+Subject: [PATCH v3] Provide interface for audio support in DSS
+Date: Wed, 9 May 2012 22:42:31 -0500
+Message-ID: <1336621352-27959-1-git-send-email-ricardo.neri@ti.com>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=PGP-SHA1;
- boundary="Sig_/xjof8a7xTXExD4Ww5GXamV="; protocol="application/pgp-signature"
+Content-Type: text/plain
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from cantor2.suse.de ([195.135.220.15]:41534 "EHLO mx2.suse.de"
+Received: from bear.ext.ti.com ([192.94.94.41]:34342 "EHLO bear.ext.ti.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753809Ab2EJCiL (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Wed, 9 May 2012 22:38:11 -0400
-In-Reply-To: <20120510012422.GA32077@nchen-desktop>
+	id S1754824Ab2EJDm6 (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Wed, 9 May 2012 23:42:58 -0400
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Peter Chen <peter.chen@freescale.com>
-Cc: Samuel Ortiz <sameo@linux.intel.com>, Felipe Balbi <balbi@ti.com>, Grazvydas Ignotas <notasas@gmail.com>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, linux-kernel@vger.kernel.org, linux-usb@vger.kernel.org, linux-omap@vger.kernel.org
+To: tomi.valkeinen@ti.com
+Cc: s-chereau@ti.com, x0055901@ti.com, s-guiriec@ti.com, lrg@ti.com, peter.ujfalusi@ti.com, linux-omap@vger.kernel.org, alsa-devel@alsa-project.org, Ricardo Neri <ricardo.neri@ti.com>
 
---Sig_/xjof8a7xTXExD4Ww5GXamV=
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: quoted-printable
+Hi,
 
-On Thu, 10 May 2012 09:24:23 +0800 Peter Chen <peter.chen@freescale.com>
-wrote:
+This patch is proposed as a result of a previous discussion related to
+include audio support in the DSS device driver
+(http://www.spinics.net/lists/linux-omap/msg64748.html)
 
-> On Wed, Apr 25, 2012 at 05:33:10PM +1000, NeilBrown wrote:
-> > Following are a collection of patches that I've need using for a while
-> > to make sure the charge-from-usb on my GTA04 works.
-> > Hopefully I've included the right people in the recipient list :-)
-> >=20
-> > The issues are:
-> >  - charge the backup battery as well as the main battery
-> >  - charge from a charger which ties ID to ground via a resistor
-> >  - charge while device is suspended, or when no gadget module is
-> >    loaded (i.e. when the USB side thinks the phy should be powered
-> >    down).
-> According to USB Spec, when the USB bus goes to suspend, the device
-> should not draw more than 2.5mA. So when the device is suspended,
-> it should notify the battery driver do NOT charge any more.
+At the moment, this is intended to cover display technologies with audio based
+on CEA-861 and IEC-60958, such as HDMI and DisplayPort. However, provisions are
+made to make it extensible (see below).
 
-Hi Peter,
- thanks for your input.
+These are the changes with respect to v2:
 
- Would you be able to help me understand exactly what it means for the USB
- bus to go to suspend?  Is this something that the host initiates or
- something that the gadget initiates?
- How does this relate to a simple charger?  It that considered to have a
- non-suspended bus, or is it considered as a separate case?
+* A new enum and field is added to DSS to help implementations of the interface
+  to keep track of the audio state.
 
- Maybe we need to not suspend the USB OTG interface when the device as a
- whole enters suspend-to-RAM.  Maybe we need to register a dummy gadget to
- the bus active while in suspend?
- Does the gadget have to be responsive while-ever the bus is not suspended?
- Maybe we can arrange for any USB activity to trigger a resume?
+These are the changes with respect to v1:
 
- Entering suspend while still charging really should be possible - at least
- with a dump charger and hopefully from a host port as well.  I'll like to
- find the best way to achieve that, and any help you can provide would be
- greatly appreciated.
+* The audio_enable and audio_start functions were split into enable/disable
+  and  start/stop respectively to improve readability.
+* Comments were added on whether the DSS audio functions may sleep.
+* In order to make the audio configuration parameters extensible, a
+  struct omap_dss_audio is defined. This helps to easily add more config
+  parameters in the future if/when required (e.g., speaker order configuration).
+ 
+BR,
 
-Thanks,
-NeilBrown
+Ricardo
 
+Ricardo Neri (1):
+  OMAPDSS: Provide an interface for audio support
 
-> >=20
-> > Questions and comments more welcome.
-> >=20
-> > Thanks,
-> > NeilBrown
-> >=20
-> >=20
-> > ---
-> >=20
-> > NeilBrown (6):
-> >       twl4030-usb: Don't report EVENT_ID when there is VBUS.
-> >       twl4030-usb: Don't power down phy when it is in-use by charger.
-> >       twl4030_charger: Allow charger to control the regulator that feed=
-s it.
-> >       twl4030_charger: allow charging whenever VBUS is present.
-> >       twl4030_charger: add backup-battery charging.
-> >       twl4030_charger: Fix some typos
-> >=20
-> >=20
-> >  drivers/mfd/twl-core.c          |    9 ++--
-> >  drivers/power/twl4030_charger.c |   86 +++++++++++++++++++++++++++++++=
-++++----
-> >  drivers/usb/otg/twl4030-usb.c   |   27 ++++++++----
-> >  include/linux/i2c/twl.h         |    2 +
-> >  4 files changed, 102 insertions(+), 22 deletions(-)
-> >=20
-> > --=20
-> > Signature
-> >=20
-> > --
-> > To unsubscribe from this list: send the line "unsubscribe linux-usb" in
-> > the body of a message to majordomo@vger.kernel.org
-> > More majordomo info at  http://vger.kernel.org/majordomo-info.html
-> >=20
->=20
+ Documentation/arm/OMAP/DSS |   45 ++++++++++++++++++++++++++++++++++++++++++++
+ include/video/omapdss.h    |   34 +++++++++++++++++++++++++++++++++
+ 2 files changed, 79 insertions(+), 0 deletions(-)
 
+-- 
+1.7.5.4
 
---Sig_/xjof8a7xTXExD4Ww5GXamV=
-Content-Type: application/pgp-signature; name=signature.asc
-Content-Disposition: attachment; filename=signature.asc
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v2.0.18 (GNU/Linux)
-
-iQIVAwUBT6sqAjnsnt1WYoG5AQLHwRAAvVMS9UzWVbhGdiAfhf53lLJbq/AtUuUG
-2h1ayuM39PCZ+zWjqUgB1T4rK++KE3pcnI2hUD1OyFlPN63/RiGIE3SAp3auRBsm
-N+r4EwYwrcLGvnswQ1P2NVuwaGejRCzPb8PgGeRdLHFGghwCBlR59w3/OWRGZ3gV
-77uSSr9nspp7Rg1x2mUKr8S/ZxEtn4p1BvXWXdjzXPVJtZU6oPSEpgh+yQL6SplF
-3cs/4kje/Mu/6VTx4g/V/dUXuFUES/8Gb4+mwJ5qr4/Yz0RitEKjjkOVtrZ3a/w5
-Gj+VzgpGLzYRmslgvP9WwFnSkjvowdIOLACjmgHQ9PajMcojcp20eZpld2ibc2B/
-A9svNs4vHak82Xu+t591Hr9sLC5UVO9zG9cYeMmi8hmcK2qUIS4abfftXEwE6E9d
-YMIKCw3uJjCMp4GsTcZ75QCndP+oApIIdiLpdH305dxMwxawVPY3QKmRpGgJ9BNC
-eR9aKj5yW3EzGRxHSAzFnO+4VvfTc8akeMxjpY6wdtWIVeZ37vhPH7uzMBVfbZ4z
-SulFWMxfkT9bTXu+TEtrOOO1usqPd33cRh4sFzMu8TQmam9vfQa9h+NyzzYs/gV1
-HpTN8Fn2KMbwazRjBGeQYZOsnN/zMq9kSfxzwME2fYW7RMKgSTEvhLG+xPEaV5V1
-3/kqllebkJM=
-=JgN8
------END PGP SIGNATURE-----
-
---Sig_/xjof8a7xTXExD4Ww5GXamV=--
