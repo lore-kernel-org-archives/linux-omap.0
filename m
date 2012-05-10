@@ -1,101 +1,67 @@
-From: Tomi Valkeinen <tomi.valkeinen@ti.com>
-Subject: Re: [PATCH 00/25] OMAPDSS: DT preparation patches v2
-Date: Thu, 10 May 2012 10:11:28 +0300
-Message-ID: <1336633888.5182.19.camel@deskari>
-References: <1336053481-25433-1-git-send-email-tomi.valkeinen@ti.com>
-	 <20120507174657.GF5088@atomide.com> <1336550949.3962.2.camel@deskari>
-	 <20120509154543.GK5088@atomide.com>
+From: Santosh Shilimkar <santosh.shilimkar@ti.com>
+Subject: Re: [PATCH] ARM: decompressor: Fix mmu mapping for non-DRAM address
+ space.
+Date: Thu, 10 May 2012 12:41:35 +0530
+Message-ID: <4FAB6A27.3050509@ti.com>
+References: <1336398149-26153-1-git-send-email-santosh.shilimkar@ti.com> <20120508124116.GE17798@arm.com> <CAMQu2gxXB4GyddjrcKWwJ=KXx=MoDs7DdwhbOY85qkVJ1Vv3wA@mail.gmail.com> <20120508215554.GA18980@n2100.arm.linux.org.uk> <CAMQu2gzmZ1Af4sAxoT9WS_akY1gBrqffKE84rnbM_EUK8V8NHQ@mail.gmail.com> <20120509122348.GA30632@n2100.arm.linux.org.uk> <CAMQu2gzdwXwzhhFLtLXTj5e0a9cFeq5ReUcMT-tGUxTPUcV_4Q@mail.gmail.com> <20120509154849.GA10375@n2100.arm.linux.org.uk>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg="pgp-sha1"; protocol="application/pgp-signature";
-	boundary="=-Sr+lD9w0i49LlGm/nOnW"
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aog118.obsmtp.com ([74.125.149.244]:55629 "EHLO
-	na3sys009aog118.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755612Ab2EJHLf (ORCPT
+Received: from na3sys009aog131.obsmtp.com ([74.125.149.247]:53406 "EHLO
+	na3sys009aog131.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1756660Ab2EJHLn (ORCPT
 	<rfc822;linux-omap@vger.kernel.org>);
-	Thu, 10 May 2012 03:11:35 -0400
-Received: by lahg1 with SMTP id g1so262675lah.2
-        for <linux-omap@vger.kernel.org>; Thu, 10 May 2012 00:11:31 -0700 (PDT)
-In-Reply-To: <20120509154543.GK5088@atomide.com>
+	Thu, 10 May 2012 03:11:43 -0400
+Received: by obceq6 with SMTP id eq6so1672660obc.9
+        for <linux-omap@vger.kernel.org>; Thu, 10 May 2012 00:11:41 -0700 (PDT)
+In-Reply-To: <20120509154849.GA10375@n2100.arm.linux.org.uk>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Tony Lindgren <tony@atomide.com>
-Cc: linux-omap@vger.kernel.org, linux-fbdev@vger.kernel.org, archit@ti.com
+To: Russell King - ARM Linux <linux@arm.linux.org.uk>
+Cc: Catalin Marinas <catalin.marinas@arm.com>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, R Sricharan <r.sricharan@ti.com>
 
+On Wednesday 09 May 2012 09:18 PM, Russell King - ARM Linux wrote:
+> On Wed, May 09, 2012 at 06:00:10PM +0530, Shilimkar, Santosh wrote:
+>> On Wed, May 9, 2012 at 5:53 PM, Russell King - ARM Linux
+>> <linux@arm.linux.org.uk> wrote:
+>>> On Wed, May 09, 2012 at 02:20:28PM +0530, Shilimkar, Santosh wrote:
+>>>> The only change done common code is  clearing 'XN' bit for DRAM
+>>>> region in page table entries. The other change of setting the DACR
+>>>> register is done in ARMv7 specific code.
+>>>
+>>> Yes, XN is an ARMv6+ thing.  Before ARMv5, it was implementation defined.
+>>>
+>>> Some implementations used the bit to mean "allow writes to update the
+>>> cache".  Other implementations labelled this bit as "should be zero"
+>>> while others labelled it as "should be one".
+>>>
+>> Good to know.
+>>
+>>> The upshot of this is, we know that having this bit as '1' means that
+>>> all the CPUs we support today work.  I would be _very_ concerned to
+>>> change this bit to zero as we _really_ don't know how the pre-ARMv6
+>>> CPUs would react.
+>>>
+>> I agree.
+>>
+>>> The solution to this is pretty simple - if ARMv6+ needs a different
+>>> base section mapping value, then we need to extract that from the code
+>>> and pass in the base section mapping value.
+>>>
+>>> I'll sort out a patch later today for this.
+>> Great.
+> 
+> This works for my 4430SDP board.  I haven't booted it on anything else yet.
+> Please can you check that this solves the issue for you?  Thanks.
+> 
+Yes it does.
+Are you planning to merge below patch as is or split
+the patch like 1) Refactoring 2) ARMv7 fix
 
---=-Sr+lD9w0i49LlGm/nOnW
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: quoted-printable
+Either is fine with me.
 
-On Wed, 2012-05-09 at 08:45 -0700, Tony Lindgren wrote:
-> * Tomi Valkeinen <tomi.valkeinen@ti.com> [120509 01:12]:
-> >=20
-> > Below is the pull request for board file related changes. Tested on
-> > panda & 4430sdp.
->=20
-> Thanks, I've merged that into clenaup-dss branch and will send it
-> along with other still pending cleanup branches.
-> =20
-> > How should I manage my tree related to this... Should I rebase my
-> > original DT preparation series on top of this new branch, or can I just
-> > ignore the new branch for now, as long as I merge it at some point
-> > before sending a pull request to mainline?
->=20
-> Yes you need to rebase on this now. And not touch these commits.
->=20
-> Otherwise we'll end up with duplicate commits in the mainline tree,
-> which is a big no-no. If something shows up that needs fixing in this
-> series, it must now be separate patches on top of this series.
->=20
-> When doing pull requests we both just have to make note that there's
-> a dependency to this branch, and it will find it's way to mainline
-> via arm-soc pull request. Or if no conflicts need sorting out, then
-> it will just get merged with your pull request.
+Acked-by: Santosh Shilimkar <santosh.shilimkar@ti.com>
 
-Hmm, I'm still not totally sure how to proceed. What do you mean with
-"make a note"?
-
-I understand that I can't change the commits, but is it ok for me to now
-merge the for-l-o-3.5 branch into my master branch (which is my "stable"
-branch, for which I'll send a pull request)?
-
-If the same commits are both in my tree and in l-o (or arm-soc), doesn't
-it mean that the commits seem to come into Linus's tree from whoever
-happens to send their pull request first? Then again, does it matter..
-
-And if there are conflicts in the board files between for-l-o-3.5 and
-some other commits, and you or Arnd resolve those for l-o or arm-soc,
-what happens when the same, but unresolved, commits come from my pull
-request?=20
-
-Sorry if this should be obvious, but I haven't done such merging before
-and I'd rather not mess it up =3D).
-
- Tomi
-
-
---=-Sr+lD9w0i49LlGm/nOnW
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: This is a digitally signed message part
-Content-Transfer-Encoding: 7bit
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.4.11 (GNU/Linux)
-
-iQIcBAABAgAGBQJPq2ogAAoJEPo9qoy8lh713UsQAJAu/Wy/0kVBmm53QN4pt6/r
-3HvSrMRy1RpA4q38EWTKiv3RsI/nAkt5hdj9+JfUxf+cALkC5lZOJ4oA4kDFDBBW
-tCwS5Y334drthLwItCbBKO+Wc2IBFY4TLvDAEUkjL3ksKyWfPEzdIAUjBz3pALFf
-BNCg7l+wVbS/COZ/ErnS7fj2+QHH4jxa5m3Bh1G4lJfnUI8fV+kBkIActF1lWf9i
-oKfjOJ/v9A2G3BB7633fmY6bfeLzA5GiGOoZAtveKTGujPYdUjDUl/QExuf1BLWw
-mtFnPtzqm8jruXcLLzJXxWHTs1wEuE6OP4TSzvcdZIHgR9FBcMDdtq0cwBP56rBN
-j0v/c0ZixmmSaJaf9U5heUAOMJnoxlDx90WKAH6w6JiQOAK9uyky5llDVOzL6m8e
-l8NnfM7NFQcWnxtFqQ7R1LLLBzuz9Zp+SX2sHzyOJMFQiL1owjzadEBW3o5LtUo/
-bvJePjpV6DQ8tfsp6RaNw1d/OqPs4lDmsnw0fmNUURc8kLIuwEZU3HScF+OUoxkI
-uAF2EEfb2wKgY988l5OiaAq5omJg5ARH+JwUR1j0yMLVj4CAkmqGgWwbX5MWm1En
-rt0nIczHYwbg1/R9ND/C3tW1Cpwyr+rw9HqhsyRh4VFV5qxZu5oiBWxGaOMuWyHX
-qWZUoI0PM7UKxc4OLRYh
-=5w1p
------END PGP SIGNATURE-----
-
---=-Sr+lD9w0i49LlGm/nOnW--
-
+Regards
+Santosh
