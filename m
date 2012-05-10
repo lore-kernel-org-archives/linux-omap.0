@@ -1,45 +1,66 @@
-From: Paul Walmsley <paul@pwsan.com>
-Subject: Re: [PATCH 0/3] ARM: OMAP: AM35xx: fix some boot warnings with
- AM3505/3517
-Date: Thu, 10 May 2012 12:46:23 -0600 (MDT)
-Message-ID: <alpine.DEB.2.00.1205101242470.32719@utopia.booyaka.com>
-References: <20120510172449.13418.66815.stgit@dusk> <20120510184103.GB20494@animalcreek.com>
+From: Tony Lindgren <tony@atomide.com>
+Subject: Re: [GIT PULL 9/10] omap devicetree updates for v3.5 merge window
+Date: Thu, 10 May 2012 11:50:07 -0700
+Message-ID: <20120510185006.GI21851@atomide.com>
+References: <pull-1336675159-747052>
+ <E1SSYIv-0006IZ-NG@merlin.infradead.org>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from utopia.booyaka.com ([72.9.107.138]:37303 "EHLO
-	utopia.booyaka.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1760304Ab2EJSqY (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 10 May 2012 14:46:24 -0400
-In-Reply-To: <20120510184103.GB20494@animalcreek.com>
+Received: from mho-01-ewr.mailhop.org ([204.13.248.71]:42520 "EHLO
+	mho-01-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1760449Ab2EJSuK (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 10 May 2012 14:50:10 -0400
+Content-Disposition: inline
+In-Reply-To: <E1SSYIv-0006IZ-NG@merlin.infradead.org>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "Mark A. Greer" <mgreer@animalcreek.com>
-Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Kyle Manna <kyle.manna@fuel7.com>, Ranjith Lohithakshan <ranjithl@ti.com>
+To: Arnd Bergmann <arnd@arndb.de>, Olof Johansson <olof@lixom.net>
+Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 
-Hi Mark
-
-On Thu, 10 May 2012, Mark A. Greer wrote:
-
-> On Thu, May 10, 2012 at 11:29:13AM -0600, Paul Walmsley wrote:
-> > Hello,
-> > 
-> > this series fixes some of the warnings observed at boot with the AM35xx
-> > boards.  Intended for either the 3.5 or 3.5-rc merge windows.
-> > 
-> > Particularly appreciated would be some feedback on the "ARM: OMAP:
-> > AM35xx: fix UART4 softreset" patch from people who know the AM35xx SoC
-> > hardware.
+* Tony Lindgren <tony@atomide.com> [120510 11:49]:
+> The following changes since commit b3431f5ba402a98a89b78a9408b4972d8870df4d:
 > 
-> What repo/branch are these patches based on?
+>   arm/dts: OMAP3: Add mmc controller nodes and board data (2012-03-14 21:54:57 +0100)
+> 
+> are available in the git repository at:
+> 
+>   git://git.kernel.org/pub/scm/linux/kernel/git/tmlind/linux-omap tags/omap-dt-for-v3.5
+> 
+> for you to fetch changes up to 40364b9f5a4d167d97bb6a76cd239ca8cfff056a:
+> 
+>   arm/dts: omap4-panda: Add LEDs support (2012-05-09 17:18:03 -0700)
+> 
+> ----------------------------------------------------------------
+> Minor DT updates based on the dt-missed-3.4 branch
+> 
+> ----------------------------------------------------------------
 
-They are based on the 'omap-devel-b-for-3.5' tag in my omap-pending tree 
-on kernel.org:
+For this one there's a minor merge conflict, here's a suggested
+resolve.
 
-http://git.kernel.org/?p=linux/kernel/git/pjw/omap-pending.git;a=tag;h=8b14f48f6a985a71e250feb3e8595d9400829a18
+Regards,
 
-The series is also available via git from git://git.pwsan.com/linux-2.6 in 
-the branch "am35xx_hwmod_data_fixes_a_3.5".
+Tony
 
-
-- Paul
+--- a/arch/arm/mach-omap2/devices.c
++++ b/arch/arm/mach-omap2/devices.c
+@@@ -743,12 -721,14 +743,15 @@@ static int __init omap2_init_devices(vo
+  	 * in alphabetical order so they're easier to sort through.
+  	 */
+  	omap_init_audio();
+- 	omap_init_mcpdm();
+- 	omap_init_dmic();
+  	omap_init_camera();
+ +	omap_init_hdmi_audio();
+  	omap_init_mbox();
+- 	omap_init_mcspi();
++ 	/* If dtb is there, the devices will be created dynamically */
++ 	if (!of_have_populated_dt()) {
++ 		omap_init_dmic();
++ 		omap_init_mcpdm();
++ 		omap_init_mcspi();
++ 	}
+  	omap_init_pmu();
+  	omap_hdq_init();
+  	omap_init_sti();
