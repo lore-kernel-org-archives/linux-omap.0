@@ -1,67 +1,97 @@
-From: Santosh Shilimkar <santosh.shilimkar@ti.com>
-Subject: Re: [PATCH] ARM: decompressor: Fix mmu mapping for non-DRAM address
- space.
-Date: Thu, 10 May 2012 12:41:35 +0530
-Message-ID: <4FAB6A27.3050509@ti.com>
-References: <1336398149-26153-1-git-send-email-santosh.shilimkar@ti.com> <20120508124116.GE17798@arm.com> <CAMQu2gxXB4GyddjrcKWwJ=KXx=MoDs7DdwhbOY85qkVJ1Vv3wA@mail.gmail.com> <20120508215554.GA18980@n2100.arm.linux.org.uk> <CAMQu2gzmZ1Af4sAxoT9WS_akY1gBrqffKE84rnbM_EUK8V8NHQ@mail.gmail.com> <20120509122348.GA30632@n2100.arm.linux.org.uk> <CAMQu2gzdwXwzhhFLtLXTj5e0a9cFeq5ReUcMT-tGUxTPUcV_4Q@mail.gmail.com> <20120509154849.GA10375@n2100.arm.linux.org.uk>
+From: Tomi Valkeinen <tomi.valkeinen@ti.com>
+Subject: Re: [PATCH v2 14/14] OMAPDSS: HDMI: Implement DSS driver interface
+ for audio
+Date: Thu, 10 May 2012 10:54:09 +0300
+Message-ID: <1336636449.5182.26.camel@deskari>
+References: <1336095848-6923-1-git-send-email-ricardo.neri@ti.com>
+	   <1336095848-6923-15-git-send-email-ricardo.neri@ti.com>
+	  <1336390986.2667.8.camel@deskari> <4FA9B289.5000101@ti.com>
+	 <1336552081.3962.15.camel@deskari> <4FAB403E.6010000@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
+Content-Type: multipart/signed; micalg="pgp-sha1"; protocol="application/pgp-signature";
+	boundary="=-OHYrgN/EJi1l6rBRXmbK"
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aog131.obsmtp.com ([74.125.149.247]:53406 "EHLO
-	na3sys009aog131.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1756660Ab2EJHLn (ORCPT
+Received: from na3sys009aog112.obsmtp.com ([74.125.149.207]:54881 "EHLO
+	na3sys009aog112.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1757103Ab2EJHyP (ORCPT
 	<rfc822;linux-omap@vger.kernel.org>);
-	Thu, 10 May 2012 03:11:43 -0400
-Received: by obceq6 with SMTP id eq6so1672660obc.9
-        for <linux-omap@vger.kernel.org>; Thu, 10 May 2012 00:11:41 -0700 (PDT)
-In-Reply-To: <20120509154849.GA10375@n2100.arm.linux.org.uk>
+	Thu, 10 May 2012 03:54:15 -0400
+Received: by lags15 with SMTP id s15so875985lag.6
+        for <linux-omap@vger.kernel.org>; Thu, 10 May 2012 00:54:12 -0700 (PDT)
+In-Reply-To: <4FAB403E.6010000@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Russell King - ARM Linux <linux@arm.linux.org.uk>
-Cc: Catalin Marinas <catalin.marinas@arm.com>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, R Sricharan <r.sricharan@ti.com>
+To: Ricardo Neri <ricardo.neri@ti.com>
+Cc: mythripk@ti.com, s-chereau@ti.com, x0055901@ti.com, vaibhav.bedia@ti.com, s-guiriec@ti.com, lrg@ti.com, peter.ujfalusi@ti.com, agraf@suse.de, research@ottomaneng.com, linux-omap@vger.kernel.org, alsa-devel@alsa-project.org
 
-On Wednesday 09 May 2012 09:18 PM, Russell King - ARM Linux wrote:
-> On Wed, May 09, 2012 at 06:00:10PM +0530, Shilimkar, Santosh wrote:
->> On Wed, May 9, 2012 at 5:53 PM, Russell King - ARM Linux
->> <linux@arm.linux.org.uk> wrote:
->>> On Wed, May 09, 2012 at 02:20:28PM +0530, Shilimkar, Santosh wrote:
->>>> The only change done common code is  clearing 'XN' bit for DRAM
->>>> region in page table entries. The other change of setting the DACR
->>>> register is done in ARMv7 specific code.
->>>
->>> Yes, XN is an ARMv6+ thing.  Before ARMv5, it was implementation defined.
->>>
->>> Some implementations used the bit to mean "allow writes to update the
->>> cache".  Other implementations labelled this bit as "should be zero"
->>> while others labelled it as "should be one".
->>>
->> Good to know.
->>
->>> The upshot of this is, we know that having this bit as '1' means that
->>> all the CPUs we support today work.  I would be _very_ concerned to
->>> change this bit to zero as we _really_ don't know how the pre-ARMv6
->>> CPUs would react.
->>>
->> I agree.
->>
->>> The solution to this is pretty simple - if ARMv6+ needs a different
->>> base section mapping value, then we need to extract that from the code
->>> and pass in the base section mapping value.
->>>
->>> I'll sort out a patch later today for this.
->> Great.
-> 
-> This works for my 4430SDP board.  I haven't booted it on anything else yet.
-> Please can you check that this solves the issue for you?  Thanks.
-> 
-Yes it does.
-Are you planning to merge below patch as is or split
-the patch like 1) Refactoring 2) ARMv7 fix
 
-Either is fine with me.
+--=-OHYrgN/EJi1l6rBRXmbK
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: quoted-printable
 
-Acked-by: Santosh Shilimkar <santosh.shilimkar@ti.com>
+On Wed, 2012-05-09 at 23:12 -0500, Ricardo Neri wrote:
 
-Regards
-Santosh
+> Under the new strategy, in addition to not allowing the audio functions=
+=20
+> to be called from multiple threads, audio functions will fail if the=20
+> sequence _CONFIGURED -> _ENABLED -> PLAYING -> DISABLED is not followed.=
+=20
+> This is aligned with the behavior that ALSA follows for the audio=20
+> codecs. Also, it checks the state of the panel to allow the audio=20
+> transitions.
+> >
+> > But the video and audio paths are probably always separate, and for
+> > those we need protection. As you said, using the mutex for the may-slee=
+p
+> > audio functions solves the issue for those, leaving start/stop as the
+> > only problem case.
+>=20
+> Audio only needs to know if the display is active. Under the improved=20
+
+Audio also needs to know if the video mode is suitable for audio, right?
+So not only disabling the video has to stop audio, but also if the video
+mode changes to a non-supported one.
+
+> strategy, audio_start indirectly checks the state of the panel because=
+=20
+> the audio needs to be in AUDIO_ENABLED state to start and this state is=
+=20
+> reached only if the panel is active. The mutex is held to check the=20
+> state of the panel and the audio lock is held to change the audio state.=
+=20
+> Also, the audio transitions to AUDIO_DISABLED if the panel is disabled.=
+=20
+
+Hmm, I can't see the code that does that. As far as I see, no video
+enable/disable/reconfig affects audio in any way. Am I missing a patch?
+Could you setup a public git branch so it's easier for me to get the
+whole series, instead of sending individual patches.
+
+ Tomi
+
+
+--=-OHYrgN/EJi1l6rBRXmbK
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: This is a digitally signed message part
+Content-Transfer-Encoding: 7bit
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.4.11 (GNU/Linux)
+
+iQIcBAABAgAGBQJPq3QhAAoJEPo9qoy8lh7149IP/1JsMskK6cHMO23WLmpd4L+X
+SQZFNpSYParoFieovmghjSibRxAwuMbVVtYhCxTh2eu00wH/3JeR+0vsqcWckkg8
+XQGrbtybSwPZTwfw0IBEC6r9ukj6fDn36SAipStXVv0QbrCYlvJmWLQPo7WgYQxs
+EVpYKLlS+pE3SpKaAsCmUfFIrq5QHXqYqtnvv0nZ2YYP+uxQu7lyDyXkNJbr6vD8
+2s0bNCM6kQgVj9Q7lQOTlYHqrEzjyYu5OG1rhOSKn8aGKVfd5Fcu9SfSUWSWJe3r
+6uAqFdbFEvcggMZWZwe72x2iubQ8xVfn9kPxfrV9Lr99gE+jyzm8FNNkT3U3cS0/
+2WJYxiScX0iyXO2MTkcZhIrkCHFriLFZQu4YZyUUjKnm0b50CMkvom4+rTR66gL+
+JBqeq7cLRn0damUr8FvYaFLaDyHdBzIsR7v3Z/kdHZAwh+EfXtvqm8RZr7y5SvYf
+iLhu+XLcDkh7GIcZNeUC55rTpwe+oPL109P5aFKtzY7jvSJKjSRVeLlZPUCV1slv
+30nc7/P83Iv/nrY2JnPqDBtwKX3N0hvLYjP1CjhKdqm2GUGxOeMeoUk3KZrhiU5c
+e969X/UOXr2nT8U2v39PaIz8h4iQ9LB7bZ+LhwOFlTW7ttgzh3nyOmtaqpqNfSOJ
+xxGnGw27CA726FeWPEno
+=Y1mo
+-----END PGP SIGNATURE-----
+
+--=-OHYrgN/EJi1l6rBRXmbK--
+
