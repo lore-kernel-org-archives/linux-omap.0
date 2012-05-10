@@ -1,84 +1,113 @@
 From: Kevin Hilman <khilman@ti.com>
-Subject: Re: [PATCH-V2 3/4] ARM: OMAP2+: CLEANUP: Remove unnecessary ifdef around __omap2_set_globals
-Date: Thu, 10 May 2012 14:39:39 -0700
-Message-ID: <8762c3ww9w.fsf@ti.com>
-References: <1336506724-5494-1-git-send-email-hvaibhav@ti.com>
-	<1336506724-5494-4-git-send-email-hvaibhav@ti.com>
-	<87397ajo32.fsf@ti.com>
-	<79CD15C6BA57404B839C016229A409A83EA1BF14@DBDE01.ent.ti.com>
+Subject: Re: [PATCH] ARM: OMAP2+: irq: Increase no of supported interrupts to 128
+Date: Thu, 10 May 2012 14:49:21 -0700
+Message-ID: <87d36bvh9a.fsf@ti.com>
+References: <1336486679-15892-1-git-send-email-hvaibhav@ti.com>
+	<87lil2o6u1.fsf@ti.com>
+	<79CD15C6BA57404B839C016229A409A83EA1C06F@DBDE01.ent.ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aog107.obsmtp.com ([74.125.149.197]:49424 "EHLO
-	na3sys009aog107.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1761597Ab2EJVjn (ORCPT
+Received: from na3sys009aog123.obsmtp.com ([74.125.149.149]:34505 "EHLO
+	na3sys009aog123.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1761528Ab2EJVt1 (ORCPT
 	<rfc822;linux-omap@vger.kernel.org>);
-	Thu, 10 May 2012 17:39:43 -0400
-Received: by pbbrp16 with SMTP id rp16so3239242pbb.38
-        for <linux-omap@vger.kernel.org>; Thu, 10 May 2012 14:39:41 -0700 (PDT)
-In-Reply-To: <79CD15C6BA57404B839C016229A409A83EA1BF14@DBDE01.ent.ti.com>
-	(Vaibhav Hiremath's message of "Wed, 9 May 2012 08:59:49 +0000")
+	Thu, 10 May 2012 17:49:27 -0400
+Received: by dalf4 with SMTP id f4so1998068dal.15
+        for <linux-omap@vger.kernel.org>; Thu, 10 May 2012 14:49:24 -0700 (PDT)
+In-Reply-To: <79CD15C6BA57404B839C016229A409A83EA1C06F@DBDE01.ent.ti.com>
+	(Vaibhav Hiremath's message of "Wed, 9 May 2012 09:58:12 +0000")
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: "Hiremath, Vaibhav" <hvaibhav@ti.com>
-Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "tony@atomide.com" <tony@atomide.com>, "paul@pwsan.com" <paul@pwsan.com>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>
+Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, "Mohammed, Afzal" <afzal@ti.com>, Tony Lindgren <tony@atomide.com>, Paul Walmsley <paul@pwsan.com>
 
 "Hiremath, Vaibhav" <hvaibhav@ti.com> writes:
 
-> On Wed, May 09, 2012 at 04:08:09, Hilman, Kevin wrote:
+> On Wed, May 09, 2012 at 00:09:34, Hilman, Kevin wrote:
 >> Vaibhav Hiremath <hvaibhav@ti.com> writes:
 >> 
->> > The function __omap2_set_globals() can be common across all
->> > platforms/architectures, even in case of omap4, internally it
->> > calls same set of functions as in __omap2_set_globals() function
->> > (except for sdrc).
+>> > With addition to TI81XX, AM33XX family of devices, the number
+>> > of interrupts supported has increased to 128, compared to 96.
+>> > The current implementation for irq handling is hardcoded to use
+>> > 96 interrupts (with 3 register-sets to handle), this patch cleanups
+>> > the code, to increase maximum number of interrupts support
+>> > to 128, with dynamic detection of no of registers required for
+>> > handling all interrupts.
+>> >
+>> >
+>> > Signed-off-by: Vaibhav Hiremath <hvaibhav@ti.com>
+>> > Signed-off-by: Afzal Mohammed <afzal@ti.com>
+>> > Cc: Tony Lindgren <tony@atomide.com>
+>> > Cc: Kevin Hilman <khilman@ti.com>
+>> > Cc: Paul Walmsley <paul@pwsan.com>
+>> > ---
+>> > Ideally, we should use dynamic allocation to allocate memory
+>> > for registers/arrays, 
 >> 
->> OK so far.
->> 
->> > This patch adds new config flag SOC_HAS_OMAP2_SDRC to handle sdrc,
->> > so that we can reuse same function across omap2/3/4...
->> 
->> But what happens when a single kernel is built that has support for an
->> SoC with an SDRC (OMAP4) and one that doesn't (AM33xx)?
+>> Yes.
 >> 
 >
-> As such Nothing...I looking into this direction while implementing.
+> Thanks Kevin, I will put this activity in my TODO list.
 >
-> In that case, sdrc.c file will be compiled in and execution will jump to
-> omap2_set_globals_sdrc(). But inside this function, we are already checking 
-> whether the omap2_globals->sdrc and omap2_globals->sms for NULL and then use 
-> it.
+>> > may be too much cleanup for this patch,
+>> 
+>> There is no such thing as too much cleanup.  ;)  
+>> And the INTC is in need of it, IMO.
+>> 
 >
-> And function omap2_sdrc_init() is also depends on machine, so in case of
-> Am33xx, it won't get into sdrc execution at all. And in case of omap4, it 
-> will.
+> Indeed it is in need of cleanup...
+>
+>
+>> > so as of now restricting to minimal changes to fit devices
+>> > like, am33xx/ti81xx.
+>> 
+>> Then someone else will have to do the cleanup later.  It would be
+>> greatly appreciated if you could do the necessary cleanup in order to
+>> cleanly add support for more SoCs.  Yes, we probably should've insisted
+>> when support for TI81xx was added, but that one slipped in under the
+>> radar.
+>> 
+>
+> Yeah, I understand. As I said I will put this activity in my TODO list.
+>
+>> For starters, the notion of a banks this code is a rather messed up and
+>> needs a cleanup.  A bank is supposed to be a group of 32 interrupts, 
+>> and the INTC is made up of 3 (or 4) banks.   However, the current
+>> code creates a single "bank" of 96 (or 128) interrupts.  
+>> 
+>> It also confuses what registers are part of the bank and what are global
+>> to the INTC.  This confusion is both in init and in context save/restore.
+>> 
+>> IMO, to clean this up, first the notion of banks needs to be fixed in
+>> that code there is a distinction between what acts on banks and what
+>> works on the whole INTC.
+>> 
+>> Then, the init/alloc should be done dynamically based on the number of
+>> interrupts passed to omap_init_irq()
+>> 
+>
+> Kevin,
+> Let me finish up with am33xx baseport upstream activity which is currently 
+> going on at full swing, then next thing I will pick up is this code cleanup.
+>
+> I still feel, this is still a valid cleanup patch, and can be merged, as it 
+> is required/used when we do major cleanup.
 
-Then why bother with the #ifdef at all?
+Well, Tony can make that decision.
 
-If it already safe to call on all SoCs, just get rid of the #ifdef all
-together.
+Personally, I think this patch continues to add confusion on top of an
+existing mess, and to me provides the proverbial straw that broke the
+camel's back.
 
->> In that case this new SOC_HAS_OMAP2_SDRC will be set, and
->> set_globals_sdrc() will be called even for the SoCs without SDRC.
->> 
->> So, rather than add a new Kconfig option for this, I would rather see 
->> you using the existing runtime feature check for the SDRC: omap_has_sdrc()
->> 
->
-> There is NO difference between runtime feature check Vs this patch, refer to the function implementation,
->
-> void __init omap2_set_globals_sdrc(struct omap_globals *omap2_globals)
-> {
-> 	if (omap2_globals->sdrc)
-> 		omap2_sdrc_base = omap2_globals->sdrc;
-> 	if (omap2_globals->sms)
-> 		omap2_sms_base = omap2_globals->sms;
-> }
->
-> The initialization happens after checking for NULL, so even if you execute it or not, the variable are set to NULL in case of am33xx.
->
-> So I don't find any difference between runtime and this patch.
+That being said, the INTC core is an obviously important and sensitive
+piece of code so needs to be handled with care.
 
-Except readability.
+In case Tony decides to merge this patch and allow a future** cleanup,
+I'll provide some comments.
 
 Kevin
+
+** since they rarely happen, we tend to not have too much faith in
+   promises of mythical "future" cleanups.  This is not because we don't
+   trust you personally, but simply based on based experience.
