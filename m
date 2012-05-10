@@ -1,84 +1,72 @@
 From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH 00/25] OMAPDSS: DT preparation patches v2
-Date: Thu, 10 May 2012 09:13:27 -0700
-Message-ID: <20120510161327.GB21851@atomide.com>
-References: <1336053481-25433-1-git-send-email-tomi.valkeinen@ti.com>
- <20120507174657.GF5088@atomide.com>
- <1336550949.3962.2.camel@deskari>
- <20120509154543.GK5088@atomide.com>
- <1336633888.5182.19.camel@deskari>
+Subject: Re: [PATCH] OMAPDSS: TFP410: use gpio_set_value_cansleep
+Date: Thu, 10 May 2012 09:16:04 -0700
+Message-ID: <20120510161604.GC21851@atomide.com>
+References: <1336601288-27848-1-git-send-email-Russ.Dill@ti.com>
+ <20120509221447.GY5088@atomide.com>
+ <CA+Bv8Xa+1RJ5QTn=vO4GSw1VtUZc3xX0J5qBVshvV5Dj+9uZVA@mail.gmail.com>
+ <20120509233745.GZ5088@atomide.com>
+ <1336632790.5182.8.camel@deskari>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-02-ewr.mailhop.org ([204.13.248.72]:62155 "EHLO
+Received: from mho-02-ewr.mailhop.org ([204.13.248.72]:11040 "EHLO
 	mho-02-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750973Ab2EJQNa (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 10 May 2012 12:13:30 -0400
+	with ESMTP id S1758236Ab2EJQQG (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 10 May 2012 12:16:06 -0400
 Content-Disposition: inline
-In-Reply-To: <1336633888.5182.19.camel@deskari>
+In-Reply-To: <1336632790.5182.8.camel@deskari>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: Tomi Valkeinen <tomi.valkeinen@ti.com>
-Cc: linux-omap@vger.kernel.org, linux-fbdev@vger.kernel.org, archit@ti.com
+Cc: Russ Dill <Russ.Dill@ti.com>, linux-omap@vger.kernel.org, linux-fbdev@vger.kernel.org
 
-* Tomi Valkeinen <tomi.valkeinen@ti.com> [120510 00:15]:
-> On Wed, 2012-05-09 at 08:45 -0700, Tony Lindgren wrote:
-> > * Tomi Valkeinen <tomi.valkeinen@ti.com> [120509 01:12]:
+* Tomi Valkeinen <tomi.valkeinen@ti.com> [120509 23:56]:
+> On Wed, 2012-05-09 at 16:37 -0700, Tony Lindgren wrote:
+> > * Russ Dill <Russ.Dill@ti.com> [120509 15:53]:
+> > > On Wed, May 9, 2012 at 3:14 PM, Tony Lindgren <tony@atomide.com> wrote:
+> > > > * Russ Dill <Russ.Dill@ti.com> [120509 15:12]:
+> > > >> The Beagleboard xM gpio used for TFP410 powerdown is connected through
+> > > >> an I2C attached chip which means setting the GPIO can sleep. Code that
+> > > >> calls tfp410_power_on/off holds a mutex, so sleeping should be fine.
+> > > >
+> > > > What's the error without this patch? Or just no display?
+> > > >
+> > > > Just wondering if it's safe to merge Tomi's clean up series to
+> > > > arm-soc tree..
 > > > 
-> > > Below is the pull request for board file related changes. Tested on
-> > > panda & 4430sdp.
+> > > The only platform that has a problem is Beagleboard xM, and that is
+> > > only after 'ARM: OMAP: Cleanup Beagleboard DVI reset gpio' is applied.
+> > > Since the context actually can sleep, the only consequence is a
+> > > WARN_ON statement.
+> > > 
+> > > So yes, it should be safe.
 > > 
-> > Thanks, I've merged that into clenaup-dss branch and will send it
-> > along with other still pending cleanup branches.
-> >  
-> > > How should I manage my tree related to this... Should I rebase my
-> > > original DT preparation series on top of this new branch, or can I just
-> > > ignore the new branch for now, as long as I merge it at some point
-> > > before sending a pull request to mainline?
-> > 
-> > Yes you need to rebase on this now. And not touch these commits.
-> > 
-> > Otherwise we'll end up with duplicate commits in the mainline tree,
-> > which is a big no-no. If something shows up that needs fixing in this
-> > series, it must now be separate patches on top of this series.
-> > 
-> > When doing pull requests we both just have to make note that there's
-> > a dependency to this branch, and it will find it's way to mainline
-> > via arm-soc pull request. Or if no conflicts need sorting out, then
-> > it will just get merged with your pull request.
+> > Well since I have not actually merged it with other branches yet, I'll wait
+> > for Tomi to apply that and repull his for-l-o-3.5 branch.
 > 
-> Hmm, I'm still not totally sure how to proceed. What do you mean with
-> "make a note"?
+> You can pull for-l-o-3.5 as it is now, there's no need to change it.
+> This _cansleep change is a separate dss specific change.
+> 
+> So to summarize:
+> 
+> Currently the powerdown GPIO for tfp410 is handled in the board files
+> (and called reset gpio), with gpio_set_value(). My cleanup series moves
+> this to the tfp410 driver.
+> 
+> BB-xM needs to use gpio_set_value_cansleep() in tfp410 to function
+> properly, so the tfp410 driver needs to be changed, as this patch does.
+> I will take this patch to the dss tree.
+> 
+> So it's safe to pull my cleanup series, but if I understood correctly,
+> applying Russ's "[PATCH v4] ARM: OMAP: Cleanup Beagleboard DVI reset
+> gpio" will cause WARN_ONs on BB-xM until this patch to tfp410 is also
+> applied.
+> 
+> But it doesn't sound too serious, so I think it's safe to apply the
+> "cleanup beagleboard dvi" patch also. The warning will go away when both
+> l-o and dss trees are pulled in the merge window.
 
-Well let's say I had some conflicting platform data clean up patches,
-I would pull in your branch, then when sending a pull request I would
-mention that it depends on your branch being pulled in.
- 
-> I understand that I can't change the commits, but is it ok for me to now
-> merge the for-l-o-3.5 branch into my master branch (which is my "stable"
-> branch, for which I'll send a pull request)?
-
-Yes. But I suggest you first add add that panda xm gpio fix into your
-for-l-o-3.5 and that way it's safer for me to merge too.
- 
-> If the same commits are both in my tree and in l-o (or arm-soc), doesn't
-> it mean that the commits seem to come into Linus's tree from whoever
-> happens to send their pull request first? Then again, does it matter..
-
-Yes, that's OK.
- 
-> And if there are conflicts in the board files between for-l-o-3.5 and
-> some other commits, and you or Arnd resolve those for l-o or arm-soc,
-> what happens when the same, but unresolved, commits come from my pull
-> request? 
-
-Well in that case it makes sense to get the arm-soc changes merged
-first, who wants to resolve conflicts multiple times? Of course more
-branches can be pulled into both trees as needed too.
- 
-> Sorry if this should be obvious, but I haven't done such merging before
-> and I'd rather not mess it up =).
-
-Yeah np :)
+OK thanks will use for-l-o-3.5 as it is now then.
 
 Tony
