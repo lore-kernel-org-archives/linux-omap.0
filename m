@@ -1,53 +1,54 @@
-From: "R, Sricharan" <r.sricharan@ti.com>
-Subject: Re: [PATCH 02/13] ARM: OMAP5: Add minimal support for OMAP5430 SOC
-Date: Thu, 10 May 2012 15:19:08 +0530
-Message-ID: <CAJ7qFSfnVAHE1jX0UcBcJU0JQPeNjKfgq_tj_yvf=BL0fN4jdA@mail.gmail.com>
-References: <1336029982-31898-1-git-send-email-r.sricharan@ti.com>
-	<1336029982-31898-3-git-send-email-r.sricharan@ti.com>
-	<20120504223933.GX5613@atomide.com>
-	<CAJ7qFSfkHGF7ehanZP=hyZ27HqSp1ONsT0tUV-wpLne9B4DEaQ@mail.gmail.com>
-	<20120507173351.GB5088@atomide.com>
-	<CAJ7qFSeziNRTUsUWc2Owjqs=A99p_WgiVH8vnEBoVB42v2p+pQ@mail.gmail.com>
-	<20120509160042.GM5088@atomide.com>
+From: Tero Kristo <t-kristo@ti.com>
+Subject: Re: [PATCH 00/19] ARM: OMAP4 device off support
+Date: Thu, 10 May 2012 12:47:57 +0300
+Message-ID: <1336643277.2149.283.camel@sokoban>
+References: <1334914432-26456-1-git-send-email-t-kristo@ti.com>
+	 <873979gehh.fsf@ti.com>  <20120509231418.GC10375@n2100.arm.linux.org.uk>
+Reply-To: <t-kristo@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aog107.obsmtp.com ([74.125.149.197]:43269 "EHLO
-	na3sys009aog107.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1757753Ab2EJJtM convert rfc822-to-8bit
-	(ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Thu, 10 May 2012 05:49:12 -0400
-Received: by lbbgh12 with SMTP id gh12so1216517lbb.11
-        for <linux-omap@vger.kernel.org>; Thu, 10 May 2012 02:49:09 -0700 (PDT)
-In-Reply-To: <20120509160042.GM5088@atomide.com>
+Received: from arroyo.ext.ti.com ([192.94.94.40]:53063 "EHLO arroyo.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1757812Ab2EJJue (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Thu, 10 May 2012 05:50:34 -0400
+In-Reply-To: <20120509231418.GC10375@n2100.arm.linux.org.uk>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Tony Lindgren <tony@atomide.com>
-Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, santosh.shilimkar@ti.com, b-cousson@ti.com
+To: Russell King - ARM Linux <linux@arm.linux.org.uk>
+Cc: Kevin Hilman <khilman@ti.com>, paul@pwsan.com, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 
-Tony,
-[snip]
->> =A0So after the cleanup patch introducing CONFIG_SOC_OMAP4PLUS
->> =A0it can be changed as
->> =A0#ifdef (CONFIG_SOC_OMAP4PLUS) && !(defined(CONFIG_ARCH_OMAP2) ||
->> defined(CONFIG_ARCH_OMAP3))
->>
->> So this will avoid patching this for the future socs. ?
->
-> Well it seems that we've come to a conclusion that if we introduce
-> new config options, they should be based on features instead. So
-> CONFIG_SOC_HAS_OMAPXYZ_BLAH rather than CONFIG_SOC_OMAP4PLUS.
->
-   Sure thanks for clarifying.
-  Then i will introduce  a relevant config in my cleanup patch first an=
-d
-  then add OMAP5.
+On Thu, 2012-05-10 at 00:14 +0100, Russell King - ARM Linux wrote:
+> On Wed, May 09, 2012 at 03:46:02PM -0700, Kevin Hilman wrote:
+> > Tero Kristo <t-kristo@ti.com> writes:
+> > 
+> > > Hi,
+> > >
+> > > First version for this work. Applies on top of mainline + iochain set +
+> > > OMAP4 core retention set. Working tree available here:
+> > > tree: git://gitorious.org/~kristo/omap-pm/omap-pm-work.git
+> > > branch: mainline-3.4-omap4-dev-off
+> > 
+> > FYI... seems your get repo is corrupted.  I tried fetching both with git
+> > and https protocols:
+> > 
+> > $ git remote add tero git://gitorious.org/~kristo/omap-pm/omap-pm-work.git
+> > $ git fetch tero
+> > fatal: The remote end hung up unexpectedly
+> > fatal: protocol error: bad pack heade
+> > $ git remote rm tero
+> > $ git remote add tero https://git.gitorious.org/~kristo/omap-pm/omap-pm-work.git
+> > $ git fetch tero
+> > error: Unable to find 653621e4dd02d4a2117e1b813d9c5f1ccb11c9ed under https://git.gitorious.org/~kristo/omap-pm/omap-pm-work.git
+> > Cannot obtain needed object 653621e4dd02d4a2117e1b813d9c5f1ccb11c9ed
+> > error: Fetch failed.
+> 
+> You will have a partially transferred pack file in your repository...
 
-Thanks,
- Sricharan
---
-To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Strange, well I pushed 1 new branch and it looks like it is cloning
+properly now.
+
+-Tero
+
+
