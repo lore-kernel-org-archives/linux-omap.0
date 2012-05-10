@@ -1,141 +1,67 @@
-From: Santosh Shilimkar <santosh.shilimkar@ti.com>
-Subject: Re: [PATCH 5/6] ARM: OMAP4: CLKDM: Update supported transition modes
-Date: Thu, 10 May 2012 12:24:27 +0530
-Message-ID: <4FAB6623.9090005@ti.com>
-References: <1336599364-11024-1-git-send-email-jon-hunter@ti.com>
+From: Tomi Valkeinen <tomi.valkeinen@ti.com>
+Subject: Re: [PATCH] OMAPDSS: TFP410: use gpio_set_value_cansleep
+Date: Thu, 10 May 2012 09:54:50 +0300
+Message-ID: <1336632890.5182.9.camel@deskari>
+References: <1336601288-27848-1-git-send-email-Russ.Dill@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
+Content-Type: multipart/signed; micalg="pgp-sha1"; protocol="application/pgp-signature";
+	boundary="=-zlF4Nx/me7jpcmjZxL2p"
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aog133.obsmtp.com ([74.125.149.82]:44230 "EHLO
-	na3sys009aog133.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1756496Ab2EJGyj (ORCPT
+Received: from na3sys009aog128.obsmtp.com ([74.125.149.141]:35297 "EHLO
+	na3sys009aog128.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1755881Ab2EJGy5 (ORCPT
 	<rfc822;linux-omap@vger.kernel.org>);
-	Thu, 10 May 2012 02:54:39 -0400
-Received: by obbup19 with SMTP id up19so1768205obb.24
-        for <linux-omap@vger.kernel.org>; Wed, 09 May 2012 23:54:33 -0700 (PDT)
-In-Reply-To: <1336599364-11024-1-git-send-email-jon-hunter@ti.com>
+	Thu, 10 May 2012 02:54:57 -0400
+Received: by lbbgm6 with SMTP id gm6so1005565lbb.5
+        for <linux-omap@vger.kernel.org>; Wed, 09 May 2012 23:54:52 -0700 (PDT)
+In-Reply-To: <1336601288-27848-1-git-send-email-Russ.Dill@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Jon Hunter <jon-hunter@ti.com>
-Cc: linux-omap <linux-omap@vger.kernel.org>, Ming Lei <ming.lei@canonical.com>, Will Deacon <will.deacon@arm.com>, Benoit Cousson <b-cousson@ti.com>, Paul Walmsley <paul@pwsan.com>, Kevin Hilman <khilman@ti.com>
+To: Russ Dill <Russ.Dill@ti.com>
+Cc: linux-omap@vger.kernel.org, linux-fbdev@vger.kernel.org
 
-On Thursday 10 May 2012 03:06 AM, Jon Hunter wrote:
-> From: Jon Hunter <jon-hunter@ti.com>
-> 
-> For OMAP3+ devices, the clock domains (CLKDMs) support one or more of the
-> following transition modes ...
-> 
-> NO_SLEEP (0x0) - A clock domain sleep transition is never initiated,
-> 		 irrespective of the hardware conditions.
-> SW_SLEEP (0x1) - A software-forced sleep transition. The transition is initiated
-> 		 when the associated hardware conditions are satisfied
-> SW_WKUP  (0x2) - A software-forced clock domain wake-up transition is initiated,
-> 		 irrespective of the hardware conditions.
-> HW_AUTO  (0x3) - Hardware-controlled automatic sleep and wake-up transition is
-> 		 initiated by the PRCM module when the associated hardware
-> 		 conditions are satisfied.
-> 
-> For OMAP4 devices, SW_SLEEP is equivalent to HW_AUTO and NO_SLEEP is equivalent
-> to SW_WKUP. For OMAP4 devices, all CLKDMs support HW_AUTO and therefore we can
-> place the CLKDMs in the HW_AUTO state instead of the SW_SLEEP mode. Hence, we
-> do not need to use the SW_SLEEP mode. With regard to NO_SLEEP and SW_WKUP it is
-> preferred to use SW_WKUP mode if the CLKDM supports it and so use this mode
-> instead of NO_SLEEP where possible.
-> 
-> For a software perspective the above 4 modes are represented by the following
-> flags to indicate what modes are supported by each of the CLKDMs.
-> 
-> CLKDM_CAN_DISABLE_AUTO	--> NO_SLEEP
-> CLKDM_CAN_ENABLE_AUTO	--> HW_AUTO
-> CLKDM_CAN_FORCE_SLEEP	--> SW_SLEEP
-> CLKDM_CAN_FORCE_WAKEUP	--> SW_WKUP
-> 
-> By eliminating the SW_SLEEP mode the the mapping of the flags for OMAP4 devices
-> can becomes ...
-> 
-> CLKDM_CAN_DISABLE_AUTO	--> NO_SLEEP
-> CLKDM_CAN_ENABLE_AUTO	--> HW_AUTO
-> CLKDM_CAN_FORCE_SLEEP	--> HW_AUTO
-Not sure if this can be entirely correct for OMAP4.
-Because HW_AUTO = "Sleep and wakeup transition are
-based upon hardware conditions"
-Where as SW_SLEEP = "Start a software forced sleep
-transition on the domain."
 
-I will reply on the the thread where this is being discussed.
+--=-zlF4Nx/me7jpcmjZxL2p
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: quoted-printable
 
-> CLKDM_CAN_FORCE_WAKEUP	--> SW_WKUP
-> 
-> Cc: Ming Lei <ming.lei@canonical.com>
-> Cc: Will Deacon <will.deacon@arm.com>
-> Cc: Benoit Cousson <b-cousson@ti.com>
-> Cc: Paul Walmsley <paul@pwsan.com>
-> Cc: Kevin Hilman <khilman@ti.com>
-> 
-> Signed-off-by: Jon Hunter <jon-hunter@ti.com>
+On Wed, 2012-05-09 at 15:08 -0700, Russ Dill wrote:
+> The Beagleboard xM gpio used for TFP410 powerdown is connected through
+> an I2C attached chip which means setting the GPIO can sleep. Code that
+> calls tfp410_power_on/off holds a mutex, so sleeping should be fine.
+>=20
+> Signed-off-by: Russ Dill <Russ.Dill@ti.com>
 > ---
->  arch/arm/mach-omap2/clockdomain44xx.c |    7 +++++--
->  arch/arm/mach-omap2/cminst44xx.c      |   14 --------------
->  2 files changed, 5 insertions(+), 16 deletions(-)
-> 
-> diff --git a/arch/arm/mach-omap2/clockdomain44xx.c b/arch/arm/mach-omap2/clockdomain44xx.c
-> index 4f04dd1..99ce556 100644
-> --- a/arch/arm/mach-omap2/clockdomain44xx.c
-> +++ b/arch/arm/mach-omap2/clockdomain44xx.c
-> @@ -70,7 +70,7 @@ static int omap4_clkdm_clear_all_wkup_sleep_deps(struct clockdomain *clkdm)
->  
->  static int omap4_clkdm_sleep(struct clockdomain *clkdm)
->  {
-> -	omap4_cminst_clkdm_force_sleep(clkdm->prcm_partition,
-> +	omap4_cminst_clkdm_enable_hwsup(clkdm->prcm_partition,
->  					clkdm->cm_inst, clkdm->clkdm_offs);
-In case SW_SLEEP != HW_AUTO, something like below can be done
+>  drivers/video/omap2/displays/panel-tfp410.c |    4 ++--
+>  1 file changed, 2 insertions(+), 2 deletions(-)
 
-if (clkdm->flags & CLKDM_CAN_FORCE_SLEEP )
-	omap4_cminst_clkdm_force_sleep(clkdm->prcm_partition,
-				clkdm->cm_inst, clkdm->clkdm_offs);
-else
-	omap4_cminst_clkdm_enable_hwsup(clkdm->prcm_partition,
-				clkdm->cm_inst, clkdm->clkdm_offs);
+I'll apply this to dss tree, thanks.
 
->  	return 0;
->  }
-> @@ -90,7 +90,10 @@ static void omap4_clkdm_allow_idle(struct clockdomain *clkdm)
->  
->  static void omap4_clkdm_deny_idle(struct clockdomain *clkdm)
->  {
-> -	omap4_cminst_clkdm_disable_hwsup(clkdm->prcm_partition,
-> +	if (clkdm->flags & CLKDM_CAN_FORCE_WAKEUP)
-> +		omap4_clkdm_wakeup(clkdm);
-> +	else
-> +		omap4_cminst_clkdm_disable_hwsup(clkdm->prcm_partition,
->  					clkdm->cm_inst, clkdm->clkdm_offs);
->  }
->  
-> diff --git a/arch/arm/mach-omap2/cminst44xx.c b/arch/arm/mach-omap2/cminst44xx.c
-> index bd8810c..a44456c 100644
-> --- a/arch/arm/mach-omap2/cminst44xx.c
-> +++ b/arch/arm/mach-omap2/cminst44xx.c
-> @@ -227,20 +227,6 @@ void omap4_cminst_clkdm_disable_hwsup(u8 part, s16 inst, u16 cdoffs)
->  }
->  
->  /**
-> - * omap4_cminst_clkdm_force_sleep - try to put a clockdomain into idle
-> - * @part: PRCM partition ID that the clockdomain registers exist in
-> - * @inst: CM instance register offset (*_INST macro)
-> - * @cdoffs: Clockdomain register offset (*_CDOFFS macro)
-> - *
-> - * Put a clockdomain referred to by (@part, @inst, @cdoffs) into idle
-> - * No return value.
-> - */
-> -void omap4_cminst_clkdm_force_sleep(u8 part, s16 inst, u16 cdoffs)
-> -{
-> -	_clktrctrl_write(OMAP34XX_CLKSTCTRL_FORCE_SLEEP, part, inst, cdoffs);
-> -}
-> -
-> -/**
->   * omap4_cminst_clkdm_force_sleep - try to take a clockdomain out of idle
->   * @part: PRCM partition ID that the clockdomain registers exist in
->   * @inst: CM instance register offset (*_INST macro)
+ Tomi
+
+
+--=-zlF4Nx/me7jpcmjZxL2p
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: This is a digitally signed message part
+Content-Transfer-Encoding: 7bit
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.4.11 (GNU/Linux)
+
+iQIcBAABAgAGBQJPq2Y6AAoJEPo9qoy8lh71YzAP/369xufeiqHwgdo3gFSVtQhV
+8OW/MMcNFtAB9QZBDeTUFPm3hsr9VCr1p9IS+oYLfKB+hhFWg9TxEjHVWdRCgj1s
+0sthygOUYJq67cVZsxrKsY4dXdiFK3fQAvxjxuhLkFZPJadNUPJsB+jAMzNUyfYC
+Z7uivIuoV+FfeCx3f1lrnWfBAE0ta+r6He7kkiLU8DAcmqsiWQza+v5Tp+QyP05i
+3y/aa3FNq2LcksDksPDXFYHwhiaoajNShCfSQWikB47xK7R0FPkTyq7ko4P4sS9W
+CvZSOfCYENjP6RCj8OeWNADOU2/Z23hKPdK8QHrZ1mG+bn1zYTZ01s3X888apSXV
+ToZAyyEoffzHsDQ2odyLw9IZXrsBY7K0HgDk+J4nwCBLz7gfLoKuwZT/8BKjxVEF
+e3XYvgCU2x8TmdBxhR+SGrpS+/HbzHNQOLqMbzGf1SxcVV+qUSwvIdoct7Zb11rN
+IFtZYKdYbGQcg102aZtmWs/Ej4ICvapYKE5PIe0ilFSwaQwZAsxobt3JfEMm5Xap
+OtdW52rkLD6jGcp8rA2ZVV7v72a+FKN0fhVLqOOl++j6Dw1tMvzYFEpXudhra19i
+8SwsVK7NY4PR4E4ORkF8GKlCPZT41MZByF8K6x1yee1AmLuzEwXqz+kQ6WxwTjuW
+YqG2+WS1eJz3p+56hhbN
+=eUEu
+-----END PGP SIGNATURE-----
+
+--=-zlF4Nx/me7jpcmjZxL2p--
 
