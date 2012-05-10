@@ -1,74 +1,45 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: [GIT PULL 10/10] omap dss clean up for v3.5 merge window
-Date: Thu, 10 May 2012 11:39:19 -0700
-Message-ID: <E1SSYJI-0006gd-Fa@merlin.infradead.org>
-References: <pull-1336675159-747052>
+From: Paul Walmsley <paul@pwsan.com>
+Subject: Re: [PATCH 0/3] ARM: OMAP: AM35xx: fix some boot warnings with
+ AM3505/3517
+Date: Thu, 10 May 2012 12:46:23 -0600 (MDT)
+Message-ID: <alpine.DEB.2.00.1205101242470.32719@utopia.booyaka.com>
+References: <20120510172449.13418.66815.stgit@dusk> <20120510184103.GB20494@animalcreek.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-Content-Disposition: inline
-In-Reply-To: <pull-1336675159-747052>
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: linux-arm-kernel-bounces@lists.infradead.org
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: Arnd Bergmann <arnd@arndb.de>, Olof Johansson <olof@lixom.net>
-Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+Content-Type: TEXT/PLAIN; charset=US-ASCII
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from utopia.booyaka.com ([72.9.107.138]:37303 "EHLO
+	utopia.booyaka.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1760304Ab2EJSqY (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 10 May 2012 14:46:24 -0400
+In-Reply-To: <20120510184103.GB20494@animalcreek.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: "Mark A. Greer" <mgreer@animalcreek.com>
+Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Kyle Manna <kyle.manna@fuel7.com>, Ranjith Lohithakshan <ranjithl@ti.com>
 
-The following changes since commit d48b97b403d23f6df0b990cee652bdf9a52337a3:
+Hi Mark
 
-  Linux 3.4-rc6 (2012-05-06 15:07:32 -0700)
+On Thu, 10 May 2012, Mark A. Greer wrote:
 
-are available in the git repository at:
+> On Thu, May 10, 2012 at 11:29:13AM -0600, Paul Walmsley wrote:
+> > Hello,
+> > 
+> > this series fixes some of the warnings observed at boot with the AM35xx
+> > boards.  Intended for either the 3.5 or 3.5-rc merge windows.
+> > 
+> > Particularly appreciated would be some feedback on the "ARM: OMAP:
+> > AM35xx: fix UART4 softreset" patch from people who know the AM35xx SoC
+> > hardware.
+> 
+> What repo/branch are these patches based on?
 
-  git://git.kernel.org/pub/scm/linux/kernel/git/tmlind/linux-omap tags/omap-cleanup-dss-for-v3.5
+They are based on the 'omap-devel-b-for-3.5' tag in my omap-pending tree 
+on kernel.org:
 
-for you to fetch changes up to 21f787b356279798a002c68d53628755c84168de:
+http://git.kernel.org/?p=linux/kernel/git/pjw/omap-pending.git;a=tag;h=8b14f48f6a985a71e250feb3e8595d9400829a18
 
-  Merge branch 'for-l-o-3.5' of git://gitorious.org/linux-omap-dss2/linux into cleanup-dss (2012-05-09 08:39:20 -0700)
+The series is also available via git from git://git.pwsan.com/linux-2.6 in 
+the branch "am35xx_hwmod_data_fixes_a_3.5".
 
-----------------------------------------------------------------
 
-Clean up for omap DSS board init in preparation for adding DT support.
-
-----------------------------------------------------------------
-Tomi Valkeinen (6):
-      OMAPDSS: panel-dvi: add PD gpio handling
-      OMAP: board-files: remove custom PD GPIO handling for DVI output
-      OMAPDSS: TFP410: rename dvi -> tfp410
-      OMAPDSS: TFP410: rename dvi files to tfp410
-      OMAPDSS: Taal: move reset gpio handling to taal driver
-      OMAPDSS: DSI: implement generic DSI pin config
-
-Tony Lindgren (1):
-      Merge branch 'for-l-o-3.5' of git://gitorious.org/linux-omap-dss2/linux into cleanup-dss
-
- arch/arm/mach-omap2/board-3430sdp.c                |   38 +-----
- arch/arm/mach-omap2/board-4430sdp.c                |   37 ++----
- arch/arm/mach-omap2/board-am3517evm.c              |   25 +---
- arch/arm/mach-omap2/board-cm-t35.c                 |   30 +----
- arch/arm/mach-omap2/board-devkit8000.c             |   30 +----
- arch/arm/mach-omap2/board-igep0020.c               |   32 +----
- arch/arm/mach-omap2/board-omap3beagle.c            |   37 +-----
- arch/arm/mach-omap2/board-omap3evm.c               |   29 +----
- arch/arm/mach-omap2/board-omap3stalker.c           |   29 +----
- arch/arm/mach-omap2/board-omap4panda.c             |   39 +-----
- arch/arm/mach-omap2/board-overo.c                  |   25 +---
- drivers/video/omap2/displays/Kconfig               |    8 +-
- drivers/video/omap2/displays/Makefile              |    2 +-
- drivers/video/omap2/displays/panel-taal.c          |   22 ++++
- .../omap2/displays/{panel-dvi.c => panel-tfp410.c} |  134 +++++++++++---------
- drivers/video/omap2/dss/dsi.c                      |  133 +++++++++----------
- include/video/omap-panel-nokia-dsi.h               |    3 +
- .../{omap-panel-dvi.h => omap-panel-tfp410.h}      |   18 ++-
- include/video/omapdss.h                            |   28 ++--
- 19 files changed, 251 insertions(+), 448 deletions(-)
- rename drivers/video/omap2/displays/{panel-dvi.c => panel-tfp410.c} (63%)
- rename include/video/{omap-panel-dvi.h => omap-panel-tfp410.h} (63%)
+- Paul
