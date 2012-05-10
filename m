@@ -1,118 +1,52 @@
-From: Roger Quadros <rogerq@ti.com>
-Subject: Re: [PATCH 01/13] ARM: OMAP5: id: Add cpu id for ES versions
-Date: Thu, 10 May 2012 14:18:30 +0300
-Message-ID: <4FABA406.1080608@ti.com>
-References: <1336029982-31898-1-git-send-email-r.sricharan@ti.com> <1336029982-31898-2-git-send-email-r.sricharan@ti.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset="ISO-8859-1"
-Content-Transfer-Encoding: 7bit
+From: Grazvydas Ignotas <notasas@gmail.com>
+Subject: [PATCH v2] OMAPDSS: OMAPFB: always allow to configure overlay
+Date: Thu, 10 May 2012 14:19:56 +0300
+Message-ID: <1336648796-20219-1-git-send-email-notasas@gmail.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from bear.ext.ti.com ([192.94.94.41]:56016 "EHLO bear.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754498Ab2EJLSp (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Thu, 10 May 2012 07:18:45 -0400
-In-Reply-To: <1336029982-31898-2-git-send-email-r.sricharan@ti.com>
+Received: from mail-bk0-f46.google.com ([209.85.214.46]:60306 "EHLO
+	mail-bk0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753835Ab2EJLUk (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 10 May 2012 07:20:40 -0400
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: R Sricharan <r.sricharan@ti.com>
-Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, santosh.shilimkar@ti.com, tony@atomide.com, b-cousson@ti.com
+To: linux-fbdev@vger.kernel.org
+Cc: linux-omap@vger.kernel.org, Tomi Valkeinen <tomi.valkeinen@ti.com>, Grazvydas Ignotas <notasas@gmail.com>
 
-Hi,
-\
-On 05/03/2012 10:26 AM, R Sricharan wrote:
-> Adding the OMAP5 ES1.0, 2.0 and OMAP5432 cpu revision
-> detection support.
-> 
-> Signed-off-by: R Sricharan <r.sricharan@ti.com>
-> Signed-off-by: Santosh Shilimkar <santosh.shilimkar@ti.com>
-> ---
->  arch/arm/mach-omap2/control.h         |    4 +++
->  arch/arm/mach-omap2/id.c              |   47 +++++++++++++++++++++++++++++++++
->  arch/arm/plat-omap/include/plat/cpu.h |   23 ++++++++++++++-
->  3 files changed, 72 insertions(+), 2 deletions(-)
-> 
-> diff --git a/arch/arm/mach-omap2/control.h b/arch/arm/mach-omap2/control.h
-> index a406fd0..9daac6f 100644
-> --- a/arch/arm/mach-omap2/control.h
-> +++ b/arch/arm/mach-omap2/control.h
-> @@ -246,6 +246,10 @@
->  /* TI81XX CONTROL_DEVCONF register offsets */
->  #define TI81XX_CONTROL_DEVICE_ID	(TI81XX_CONTROL_DEVCONF + 0x000)
->  
-> +/* OMAP54XX CONTROL STATUS register */
-> +#define OMAP5XXX_CONTROL_STATUS                0x134
-> +#define OMAP5_DEVICETYPE_MASK          (0x7 << 6)
-> +
->  /*
->   * REVISIT: This list of registers is not comprehensive - there are more
->   * that should be added.
-> diff --git a/arch/arm/mach-omap2/id.c b/arch/arm/mach-omap2/id.c
-> index 0e79b7b..d2ec323 100644
-> --- a/arch/arm/mach-omap2/id.c
-> +++ b/arch/arm/mach-omap2/id.c
-> @@ -50,6 +50,11 @@ int omap_type(void)
->  		val = omap_ctrl_readl(OMAP343X_CONTROL_STATUS);
->  	} else if (cpu_is_omap44xx()) {
->  		val = omap_ctrl_readl(OMAP4_CTRL_MODULE_CORE_STATUS);
-> +	} else if (cpu_is_omap54xx()) {
-> +		val = omap_ctrl_readl(OMAP5XXX_CONTROL_STATUS);
-> +		val &= OMAP5_DEVICETYPE_MASK;
-> +		val >>= 6;
-> +		goto out;
->  	} else {
->  		pr_err("Cannot detect omap type!\n");
->  		goto out;
-> @@ -500,6 +505,48 @@ void __init omap4xxx_check_revision(void)
->  		((omap_rev() >> 12) & 0xf), ((omap_rev() >> 8) & 0xf));
->  }
->  
-> +void __init omap5xxx_check_revision(void)
-> +{
-> +	u32 idcode;
-> +	u16 hawkeye;
-> +	u8 rev;
-> +
-> +	idcode = read_tap_reg(OMAP_TAP_IDCODE);
-> +	hawkeye = (idcode >> 12) & 0xffff;
-> +	rev = (idcode >> 28) & 0xff;
-> +	switch (hawkeye) {
-> +	case 0xb942:
-> +		switch (rev) {
-> +		case 0:
-> +			omap_revision = OMAP5430_REV_ES1_0;
-> +			break;
-> +		case 1:
-> +			omap_revision = OMAP5430_REV_ES2_0;
-> +			break;
-> +		default:
-> +			omap_revision = OMAP5430_REV_ES1_0;
+Currently when multiple overlays are active, OMAPFB_SETUP_PLANE fails.
+Instead of failing, allow it to configure the first overlay as if there
+was only one overlay, the remaining ones will have to be configured in
+other ways (sysfs).
 
-Default should always be the latest version supported. i.e. in this case
-it should be OMAP5430_REV_ES2_0
+This allows overlay-controlling programs (like video players) to function
+properly when framebuffer is cloned to another display (like TV).
 
+Signed-off-by: Grazvydas Ignotas <notasas@gmail.com>
+---
+ drivers/video/omap2/omapfb/omapfb-ioctl.c |    4 ++--
+ 1 files changed, 2 insertions(+), 2 deletions(-)
 
-> +		}
-> +		break;
-> +
-> +	case 0xb998:
-> +		switch (rev) {
-> +		case 0:
-> +			omap_revision = OMAP5432_REV_ES1_0;
-> +			break;
-> +		default:
-> +			omap_revision = OMAP5432_REV_ES1_0;
-> +		}
-> +		break;
-> +
-> +	default:
-> +		/* Unknown default to latest silicon rev as default*/
-> +		omap_revision = OMAP5430_REV_ES2_0;
-> +	}
-> +
-> +	pr_info("OMAP%04x ES%d.0\n",
-> +			omap_rev() >> 16, ((omap_rev() >> 12) & 0xf));
-> +}
-> +
+diff --git a/drivers/video/omap2/omapfb/omapfb-ioctl.c b/drivers/video/omap2/omapfb/omapfb-ioctl.c
+index 6a09ef8..8af7e17 100644
+--- a/drivers/video/omap2/omapfb/omapfb-ioctl.c
++++ b/drivers/video/omap2/omapfb/omapfb-ioctl.c
+@@ -70,7 +70,7 @@ static int omapfb_setup_plane(struct fb_info *fbi, struct omapfb_plane_info *pi)
+ 
+ 	DBG("omapfb_setup_plane\n");
+ 
+-	if (ofbi->num_overlays != 1) {
++	if (ofbi->num_overlays == 0) {
+ 		r = -EINVAL;
+ 		goto out;
+ 	}
+@@ -185,7 +185,7 @@ static int omapfb_query_plane(struct fb_info *fbi, struct omapfb_plane_info *pi)
+ {
+ 	struct omapfb_info *ofbi = FB2OFB(fbi);
+ 
+-	if (ofbi->num_overlays != 1) {
++	if (ofbi->num_overlays == 0) {
+ 		memset(pi, 0, sizeof(*pi));
+ 	} else {
+ 		struct omap_overlay *ovl;
+-- 
+1.7.0.4
 
-regards,
--roger
