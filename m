@@ -1,59 +1,66 @@
 From: Juan Gutierrez <jgutierrez@ti.com>
-Subject: [PATCH v3 0/2] Fixes in preparation for enabling Dsp in omap4
-Date: Wed,  9 May 2012 21:19:28 -0500
-Message-ID: <1336616370-28268-1-git-send-email-jgutierrez@ti.com>
+Subject: [PATCH v3 2/2] omap4: iommu: fix irq and clock name for dsp-iommu
+Date: Wed,  9 May 2012 21:19:30 -0500
+Message-ID: <1336616370-28268-3-git-send-email-jgutierrez@ti.com>
+References: <1336616370-28268-1-git-send-email-jgutierrez@ti.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aog126.obsmtp.com ([74.125.149.155]:42856 "EHLO
-	na3sys009aog126.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752532Ab2EJCTq (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 9 May 2012 22:19:46 -0400
-Received: by ggmi1 with SMTP id i1so745911ggm.31
-        for <linux-omap@vger.kernel.org>; Wed, 09 May 2012 19:19:44 -0700 (PDT)
+Received: from na3sys009aog137.obsmtp.com ([74.125.149.18]:40306 "EHLO
+	na3sys009aog137.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1752532Ab2EJCTv (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 9 May 2012 22:19:51 -0400
+Received: by obbuo13 with SMTP id uo13so2272881obb.1
+        for <linux-omap@vger.kernel.org>; Wed, 09 May 2012 19:19:50 -0700 (PDT)
+In-Reply-To: <1336616370-28268-1-git-send-email-jgutierrez@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, ohad@wizery.com
 Cc: Juan Gutierrez <jgutierrez@ti.com>
 
-This set of patches provides the foundation for enabling
-OMAP4 Dsp as remote processor.
+Irq and clock names were wrong for dsp iommu configuration
+for omap4.
 
-The first patch is a generic fix for mailbox in mach-omap2.
-Without this patch, the irq for a mailbox instance other than
-the first one is not properly enabled.
+- Renamed tesla_ick to dsp_fck:
+   This is required because the new naming convention introduced
+   by: commit 0e43327 "OMAP4 clock: Fix clock names and align
+   with hwmod names"
 
-The second patch fixes the clock and irq names for the Tesla
-iommu in omap4 and enable it by default.
+- Renamed INT_44XX_DSP_MMU to OMAP44XX_IRQ_TESLA_MMU.
+   Naming convention adopted since: commit e927f8d "omap4: Add
+   auto-generated irq and dma headers"
 
-History:
-=======
-Changes from v2:
- - Patch 3 is removed from this series. 
-   If http://marc.info/?l=linux-omap&m=133601127627420&w=2
-   is merged, it might be revisited. 	
+- dsp-iommu is enabled by default.
 
- - Changes in patch 1:
-   - Use omap_mbox_enable/disable_irq APIs instead of the
-     internal ops.
-   - Move notifier_block before enabling the mbox's irq to
-     avoid possible race.
- - Changes in patch 2:
-   - Commit message revisited to clarify the need of the change.
-
-Changes from v1:
-  - Whitespaces and tabs were added when sending the patches
-    by the mailer, due to wrong configuration. 
-  - No code changes.
-
-
-Juan Gutierrez (2):
-  omap: mailbox: enable mailbox irq per instance
-  omap4: iommu: fix irq and clock name for dsp-iommu
-
- arch/arm/mach-omap2/mailbox.c    |    2 --
+Signed-off-by: Juan Gutierrez <jgutierrez@ti.com>
+---
  arch/arm/mach-omap2/omap-iommu.c |    6 ++----
- arch/arm/plat-omap/mailbox.c     |    9 ++++++---
- 3 files changed, 8 insertions(+), 9 deletions(-)
+ 1 files changed, 2 insertions(+), 4 deletions(-)
 
+diff --git a/arch/arm/mach-omap2/omap-iommu.c b/arch/arm/mach-omap2/omap-iommu.c
+index ac49384..1be8bcb 100644
+--- a/arch/arm/mach-omap2/omap-iommu.c
++++ b/arch/arm/mach-omap2/omap-iommu.c
+@@ -73,19 +73,17 @@ static struct iommu_device omap4_devices[] = {
+ 			.da_end = 0xFFFFF000,
+ 		},
+ 	},
+-#if defined(CONFIG_MPU_TESLA_IOMMU)
+ 	{
+ 		.base = OMAP4_MMU2_BASE,
+-		.irq = INT_44XX_DSP_MMU,
++		.irq = OMAP44XX_IRQ_TESLA_MMU,
+ 		.pdata = {
+ 			.name = "tesla",
+ 			.nr_tlb_entries = 32,
+-			.clk_name = "tesla_ick",
++			.clk_name = "dsp_fck",
+ 			.da_start = 0x0,
+ 			.da_end = 0xFFFFF000,
+ 		},
+ 	},
+-#endif
+ };
+ #define NR_OMAP4_IOMMU_DEVICES ARRAY_SIZE(omap4_devices)
+ static struct platform_device *omap4_iommu_pdev[NR_OMAP4_IOMMU_DEVICES];
 -- 
 1.7.5.4
 
