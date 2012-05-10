@@ -1,128 +1,53 @@
-From: Vaibhav Hiremath <hvaibhav@ti.com>
-Subject: [RESUBMIT PATCH] ARM: OMAP2+: am33xx: Add low level debugging support
-Date: Thu, 10 May 2012 14:23:01 +0530
-Message-ID: <1336639981-27194-1-git-send-email-hvaibhav@ti.com>
+From: stephane eranian <eranian@googlemail.com>
+Subject: Re: oprofile and ARM A9 hardware counter
+Date: Thu, 10 May 2012 11:12:01 +0200
+Message-ID: <CAMsRxf+qgSSAqRrZP=bP8pYoKRsi+ozRz-BSGoK=vkQPbD8SnQ@mail.gmail.com>
+References: <87ipg76hfm.fsf@ti.com>
+	<4FA8284C.7080803@ti.com>
+	<87k40nzi3i.fsf@ti.com>
+	<4FA8FCFF.40105@ti.com>
+	<4FA9588E.9020906@ti.com>
+	<87sjfal65t.fsf@ti.com>
+	<4FAA4DB9.8060504@ti.com>
+	<4FAAB1A3.9040806@ti.com>
+	<4FAAC549.6010206@ti.com>
+	<4FAAE564.6040708@ti.com>
+	<20120510084422.GB27276@mudshark.cambridge.arm.com>
+Reply-To: eranian@gmail.com
 Mime-Version: 1.0
-Content-Type: text/plain
+Content-Type: text/plain; charset=UTF-8
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from comal.ext.ti.com ([198.47.26.152]:41697 "EHLO comal.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1755712Ab2EJI6v (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Thu, 10 May 2012 04:58:51 -0400
+Received: from mail-yx0-f174.google.com ([209.85.213.174]:55786 "EHLO
+	mail-yx0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1757551Ab2EJJMC (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 10 May 2012 05:12:02 -0400
+Received: by yenm10 with SMTP id m10so1222542yen.19
+        for <linux-omap@vger.kernel.org>; Thu, 10 May 2012 02:12:02 -0700 (PDT)
+In-Reply-To: <20120510084422.GB27276@mudshark.cambridge.arm.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: linux-omap@vger.kernel.org
-Cc: tony@atomide.com, khilman@ti.com, paul@pwsan.com, linux-arm-kernel@lists.infradead.org, Afzal Mohammed <afzal@ti.com>, Vaibhav Hiremath <hvaibhav@ti.com>
+To: Will Deacon <will.deacon@arm.com>
+Cc: Jon Hunter <jon-hunter@ti.com>, "Cousson, Benoit" <b-cousson@ti.com>, Kevin Hilman <khilman@ti.com>, Paul Walmsley <paul@pwsan.com>, Ming Lei <ming.lei@canonical.com>, Maynard Johnson <maynardj@us.ibm.com>, "Shilimkar, Santosh" <santosh.shilimkar@ti.com>, "oprofile-list@lists.sourceforge.net" <oprofile-list@lists.sourceforge.net>, Lik Lik <lik88888@gmail.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>
 
-From: Afzal Mohammed <afzal@ti.com>
+On Thu, May 10, 2012 at 10:44 AM, Will Deacon <will.deacon@arm.com> wrote:
+> On Wed, May 09, 2012 at 10:45:08PM +0100, Jon Hunter wrote:
+>> Hi All,
+>
+> Hi Jon,
+>
+>> I have posted my latest series here [1] based upon that from Will [2]
+>> which attempts to fix the EMU CD based upon the inputs from this thread.
+>> It is working on my omap4460 panda. Hopefully Ming and/or Will can also
+>> test. I know that Ming is out this week but said he can test next week.
+>
+> Many thanks to you (+Kevin, Benoit, Paul and co) for persevering with this.
+> If I can get my hands on a Panda, I'll see if I can test something this
+> week. Any particular tests you want me to run to exercise the interaction
+> with PM?
+>
+> Cheers,
+>
+I would like to get the final patch (on top of Ming's) so I can test this on
+my Panda board too. Thanks.
 
-Add support for low level debugging on AM335X EVM (AM33XX family).
-Currently only support for UART1 console, which is used on AM335X EVM
-is added.
-
-Signed-off-by: Afzal Mohammed <afzal@ti.com>
-Signed-off-by: Vaibhav Hiremath <hvaibhav@ti.com>
-Reviewed-by: Kevin Hilman <khilman@ti.com>
-Cc: Tony Lindgren <tony@atomide.com>
-Cc: Paul Walmsley <paul@pwsan.com>
----
-This patch had been Reviewed and accepted earlier, but got
-missed during last merge window. Resubmitting again, without
-code-change.
-
- arch/arm/mach-omap2/include/mach/debug-macro.S |   17 ++++++++++++++++-
- arch/arm/plat-omap/include/plat/serial.h       |    4 ++++
- arch/arm/plat-omap/include/plat/uncompress.h   |    6 ++++++
- 3 files changed, 26 insertions(+), 1 deletions(-)
-
-diff --git a/arch/arm/mach-omap2/include/mach/debug-macro.S b/arch/arm/mach-omap2/include/mach/debug-macro.S
-index cdfc2a1..d7f844a 100644
---- a/arch/arm/mach-omap2/include/mach/debug-macro.S
-+++ b/arch/arm/mach-omap2/include/mach/debug-macro.S
-@@ -72,6 +72,8 @@ omap_uart_lsr:	.word	0
- 		beq	82f			@ configure UART2
- 		cmp	\rp, #TI81XXUART3	@ ti81Xx UART offsets different
- 		beq	83f			@ configure UART3
-+		cmp	\rp, #AM33XXUART1	@ AM33XX UART offsets different
-+		beq	84f			@ configure UART1
- 		cmp	\rp, #ZOOM_UART		@ only on zoom2/3
- 		beq	95f			@ configure ZOOM_UART
-
-@@ -100,7 +102,9 @@ omap_uart_lsr:	.word	0
- 		b	98f
- 83:		mov	\rp, #UART_OFFSET(TI81XX_UART3_BASE)
- 		b	98f
--
-+84:		ldr	\rp, =AM33XX_UART1_BASE
-+		and	\rp, \rp, #0x00ffffff
-+		b	97f
- 95:		ldr	\rp, =ZOOM_UART_BASE
- 		str	\rp, [\tmp, #0]		@ omap_uart_phys
- 		ldr	\rp, =ZOOM_UART_VIRT
-@@ -109,6 +113,17 @@ omap_uart_lsr:	.word	0
- 		str	\rp, [\tmp, #8]		@ omap_uart_lsr
- 		b	10b
-
-+		/* AM33XX: Store both phys and virt address for the uart */
-+97:		add	\rp, \rp, #0x44000000	@ phys base
-+		str	\rp, [\tmp, #0]		@ omap_uart_phys
-+		sub	\rp, \rp, #0x44000000	@ phys base
-+		add	\rp, \rp, #0xf9000000	@ virt base
-+		str	\rp, [\tmp, #4]		@ omap_uart_virt
-+		mov	\rp, #(UART_LSR << OMAP_PORT_SHIFT)
-+		str	\rp, [\tmp, #8]		@ omap_uart_lsr
-+
-+		b	10b
-+
- 		/* Store both phys and virt address for the uart */
- 98:		add	\rp, \rp, #0x48000000	@ phys base
- 		str	\rp, [\tmp, #0]		@ omap_uart_phys
-diff --git a/arch/arm/plat-omap/include/plat/serial.h b/arch/arm/plat-omap/include/plat/serial.h
-index b073e5f..28e2d25 100644
---- a/arch/arm/plat-omap/include/plat/serial.h
-+++ b/arch/arm/plat-omap/include/plat/serial.h
-@@ -60,6 +60,9 @@
- /* AM3505/3517 UART4 */
- #define AM35XX_UART4_BASE	0x4809E000	/* Only on AM3505/3517 */
-
-+/* AM33XX serial port */
-+#define AM33XX_UART1_BASE	0x44E09000
-+
- /* External port on Zoom2/3 */
- #define ZOOM_UART_BASE		0x10000000
- #define ZOOM_UART_VIRT		0xfa400000
-@@ -93,6 +96,7 @@
- #define TI81XXUART1		81
- #define TI81XXUART2		82
- #define TI81XXUART3		83
-+#define AM33XXUART1		84
- #define ZOOM_UART		95		/* Only on zoom2/3 */
-
- /* This is only used by 8250.c for omap1510 */
-diff --git a/arch/arm/plat-omap/include/plat/uncompress.h b/arch/arm/plat-omap/include/plat/uncompress.h
-index cc3f11b..ac43233 100644
---- a/arch/arm/plat-omap/include/plat/uncompress.h
-+++ b/arch/arm/plat-omap/include/plat/uncompress.h
-@@ -103,6 +103,10 @@ static inline void flush(void)
- 	_DEBUG_LL_ENTRY(mach, TI81XX_UART##p##_BASE, OMAP_PORT_SHIFT,	\
- 		TI81XXUART##p)
-
-+#define DEBUG_LL_AM33XX(p, mach)					\
-+	_DEBUG_LL_ENTRY(mach, AM33XX_UART##p##_BASE, OMAP_PORT_SHIFT,	\
-+		AM33XXUART##p)
-+
- static inline void __arch_decomp_setup(unsigned long arch_id)
- {
- 	int port = 0;
-@@ -183,6 +187,8 @@ static inline void __arch_decomp_setup(unsigned long arch_id)
- 		/* TI8148 base boards using UART1 */
- 		DEBUG_LL_TI81XX(1, ti8148evm);
-
-+		/* AM33XX base boards using UART1 */
-+		DEBUG_LL_AM33XX(1, am335xevm);
- 	} while (0);
- }
-
---
-1.7.0.4
-
+> Will
