@@ -1,39 +1,38 @@
-From: Paul Walmsley <paul@pwsan.com>
-Subject: Re: [PATCH-V2 2/4] ARM: OMAP2+: CLEANUP: Move omap3 dpll ops to
- dpll3xxx.c
-Date: Thu, 10 May 2012 17:02:11 -0600 (MDT)
-Message-ID: <alpine.DEB.2.00.1205101701420.32719@utopia.booyaka.com>
-References: <1336506724-5494-1-git-send-email-hvaibhav@ti.com> <1336506724-5494-3-git-send-email-hvaibhav@ti.com>
+From: "Jonson Chong" <jclegalfirm002@gmail.com>
+Subject: Mutual Benefit
+Date: Wed, 9 May 2012 18:51:25 -0700
+Message-ID: <201205102251.q4AMpWNg017193__44747.0043007799$1336698384$gmane$org@smtp-newsletter.intersaar.de>
+Reply-To: <jclegalfirm001@yahoo.com>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+Content-Type: text/plain;
+	charset="Windows-1251"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from utopia.booyaka.com ([72.9.107.138]:48792 "EHLO
-	utopia.booyaka.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932800Ab2EJXCM (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 10 May 2012 19:02:12 -0400
-In-Reply-To: <1336506724-5494-3-git-send-email-hvaibhav@ti.com>
+Received: from smtp-newsletter.intersaar.de ([213.135.15.218]:33071 "EHLO
+	smtp-newsletter.intersaar.de" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1755929Ab2EKBGQ (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>);
+	Thu, 10 May 2012 21:06:16 -0400
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Vaibhav Hiremath <hvaibhav@ti.com>
-Cc: linux-omap@vger.kernel.org, tony@atomide.com, khilman@ti.com, linux-arm-kernel@lists.infradead.org
-
-On Wed, 9 May 2012, Vaibhav Hiremath wrote:
-
-> In order to remove unnecessary idefs, move noncore and core
-> dpll ops to dpll3xxx.c file (where it should have been already).
-> 
-> The clkops (clkops_omap3_core_dpll_ops & clkops_omap3_noncore_dpll_ops)
-> is used in clock data files, and dependency is already handled by
-> Makefile rule.
-> 
-> Signed-off-by: Vaibhav Hiremath <hvaibhav@ti.com>
-> Cc: Tony Lindgren <tony@atomide.com>
-> Cc: Kevin Hilman <khilman@ti.com>
-> Cc: Paul Walmsley <paul@pwsan.com>
-
-This is probably okay.
-
-Acked-by: Paul Walmsley <paul@pwsan.com>
 
 
-- Paul
+62A-1 Jalan PJU 5/21,
+The Strand Kota Damansara,
+47801 Petaling Jaya, Malaysia.
+
+I am Jonson Chong,an attorney at law and i would love to share with you a very important business 
+proposition that will be of mutual benefit to both of us.
+ A deceased client of mine,that shares the same last name as yours,who after shall be referred to as 
+my late client,died as the result of a heart-related condition on March 12th 2009.
+His heart condition was due to the death of all the members of his family in the tsunami disaster on the 26th
+ December 2004 in Sumatra Indonesia .
+
+http://en.wikipedia.org/wiki/2004_Indian_Ocean_earthquake
+My late Client has a deposit of ( US$17.5 Million Dollars) left behind.
+I can be reached on (jclegalfirm001@gmail.com) for more information.
+
+Email: jclegalfirm001@gmail.com
+Best regards,
+Jonson Chong
+Attorney at Law
