@@ -1,54 +1,130 @@
-From: Tero Kristo <t-kristo@ti.com>
-Subject: Re: [PATCH 00/19] ARM: OMAP4 device off support
-Date: Thu, 10 May 2012 12:47:57 +0300
-Message-ID: <1336643277.2149.283.camel@sokoban>
-References: <1334914432-26456-1-git-send-email-t-kristo@ti.com>
-	 <873979gehh.fsf@ti.com>  <20120509231418.GC10375@n2100.arm.linux.org.uk>
-Reply-To: <t-kristo@ti.com>
+From: "Cousson, Benoit" <b-cousson@ti.com>
+Subject: Re: [PATCH 2/6] arm: omap4: create pmu device via hwmod
+Date: Thu, 10 May 2012 11:56:57 +0200
+Message-ID: <4FAB90E9.30408@ti.com>
+References: <1336599343-10905-1-git-send-email-jon-hunter@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
+Content-Type: text/plain; charset="ISO-8859-1"; format=flowed
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from arroyo.ext.ti.com ([192.94.94.40]:53063 "EHLO arroyo.ext.ti.com"
+Received: from arroyo.ext.ti.com ([192.94.94.40]:53349 "EHLO arroyo.ext.ti.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1757812Ab2EJJue (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Thu, 10 May 2012 05:50:34 -0400
-In-Reply-To: <20120509231418.GC10375@n2100.arm.linux.org.uk>
+	id S1757970Ab2EJJ5T (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Thu, 10 May 2012 05:57:19 -0400
+In-Reply-To: <1336599343-10905-1-git-send-email-jon-hunter@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Russell King - ARM Linux <linux@arm.linux.org.uk>
-Cc: Kevin Hilman <khilman@ti.com>, paul@pwsan.com, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+To: Jon Hunter <jon-hunter@ti.com>, Ming Lei <ming.lei@canonical.com>
+Cc: linux-omap <linux-omap@vger.kernel.org>, Will Deacon <will.deacon@arm.com>, Paul Walmsley <paul@pwsan.com>, Kevin Hilman <khilman@ti.com>
 
-On Thu, 2012-05-10 at 00:14 +0100, Russell King - ARM Linux wrote:
-> On Wed, May 09, 2012 at 03:46:02PM -0700, Kevin Hilman wrote:
-> > Tero Kristo <t-kristo@ti.com> writes:
-> > 
-> > > Hi,
-> > >
-> > > First version for this work. Applies on top of mainline + iochain set +
-> > > OMAP4 core retention set. Working tree available here:
-> > > tree: git://gitorious.org/~kristo/omap-pm/omap-pm-work.git
-> > > branch: mainline-3.4-omap4-dev-off
-> > 
-> > FYI... seems your get repo is corrupted.  I tried fetching both with git
-> > and https protocols:
-> > 
-> > $ git remote add tero git://gitorious.org/~kristo/omap-pm/omap-pm-work.git
-> > $ git fetch tero
-> > fatal: The remote end hung up unexpectedly
-> > fatal: protocol error: bad pack heade
-> > $ git remote rm tero
-> > $ git remote add tero https://git.gitorious.org/~kristo/omap-pm/omap-pm-work.git
-> > $ git fetch tero
-> > error: Unable to find 653621e4dd02d4a2117e1b813d9c5f1ccb11c9ed under https://git.gitorious.org/~kristo/omap-pm/omap-pm-work.git
-> > Cannot obtain needed object 653621e4dd02d4a2117e1b813d9c5f1ccb11c9ed
-> > error: Fetch failed.
-> 
-> You will have a partially transferred pack file in your repository...
+Hi Jon & Ming,
 
-Strange, well I pushed 1 new branch and it looks like it is cloning
-properly now.
+On 5/9/2012 11:35 PM, Jon Hunter wrote:
+> From: Ming Lei<ming.lei@canonical.com>
+>
+> The following modules is required to be enabled before configuring
+> cross trigger interface for enabling pmu irq:
+>
+>          l3_instr, l3_main_3, debugss
+>
+> so build the arm-pmu device via the three hwmods.
+>
+> Cc: Ming Lei<ming.lei@canonical.com>
+> Cc: Will Deacon<will.deacon@arm.com>
+> Cc: Benoit Cousson<b-cousson@ti.com>
+> Cc: Paul Walmsley<paul@pwsan.com>
+> Cc: Kevin Hilman<khilman@ti.com>
+>
+> Signed-off-by: Ming Lei<ming.lei@canonical.com>
+> Signed-off-by: Will Deacon<will.deacon@arm.com>
+> Signed-off-by: Jon Hunter<jon-hunter@ti.com>
+> ---
+>   arch/arm/mach-omap2/devices.c |   61 ++++++++++++++++++++++++++++++++++++++---
+>   1 files changed, 57 insertions(+), 4 deletions(-)
+>
+> diff --git a/arch/arm/mach-omap2/devices.c b/arch/arm/mach-omap2/devices.c
+> index 58682d1..d75b7d3 100644
+> --- a/arch/arm/mach-omap2/devices.c
+> +++ b/arch/arm/mach-omap2/devices.c
+> @@ -423,14 +423,67 @@ static struct platform_device omap_pmu_device = {
+>   	.num_resources	= 1,
+>   };
+>
+> -static void omap_init_pmu(void)
+> +static struct arm_pmu_platdata omap4_pmu_data;
+> +static struct omap_device_pm_latency omap_pmu_latency[] = {
+> +	[0] = {
+> +		.deactivate_func = omap_device_idle_hwmods,
+> +		.activate_func   = omap_device_enable_hwmods,
+> +		.flags		 = OMAP_DEVICE_LATENCY_AUTO_ADJUST,
+> +	},
+> +};
 
--Tero
+You can get rid of that, and use a NULL value during 
+omap_device_build_ss. It will use the default value automatically.
 
+> +static struct platform_device* __init omap4_init_pmu(void)
+>   {
+> -	if (cpu_is_omap24xx())
+> +	int id = -1;
+> +	const char *hw;
+> +	struct platform_device *pd;
+> +	struct omap_hwmod* oh[3];
+> +	char *dev_name = "arm-pmu";
+> +
+> +	hw = "l3_main_3";
+> +	oh[0] = omap_hwmod_lookup(hw);
+> +	if (!oh[0]) {
+> +		pr_err("Could not look up %s hwmod\n", hw);
+> +		return NULL;
+> +	}
+> +	hw = "l3_instr";
+> +	oh[1] = omap_hwmod_lookup(hw);
+> +	if (!oh[1]) {
+> +		pr_err("Could not look up %s hwmod\n", hw);
+> +		return NULL;
+> +	}
+> +	hw = "debugss";
+> +	oh[2] = omap_hwmod_lookup(hw);
+> +	if (!oh[2]) {
+> +		pr_err("Could not look up %s hwmod\n", hw);
+> +		return NULL;
+> +	}
+> +
+> +	pd = omap_device_build_ss(dev_name, id, oh, 3,&omap4_pmu_data,
+> +				sizeof(omap4_pmu_data),
+> +				omap_pmu_latency,
+> +				ARRAY_SIZE(omap_pmu_latency), 0);
+> +	WARN(IS_ERR(pd), "Can't build omap_device for %s.\n",
+> +				dev_name);
+> +	return pd;
+> +}
+> +static void __init omap_init_pmu(void)
+> +{
+> +	if (cpu_is_omap24xx()) {
+>   		omap_pmu_device.resource =&omap2_pmu_resource;
+
+Ideally, OMAP2 and 3 should use the hwmod device creation as well.
+
+Regards,
+Benoit
+
+> -	else if (cpu_is_omap34xx())
+> +	} else if (cpu_is_omap34xx()) {
+>   		omap_pmu_device.resource =&omap3_pmu_resource;
+> -	else
+> +	} else if (cpu_is_omap44xx()) {
+> +		struct platform_device *pd;
+> +
+> +		pd = omap4_init_pmu();
+> +		if (!pd)
+> +			return;
+> +		omap_device_enable(pd);
+> +		return;
+> +	} else {
+>   		return;
+> +	}
+>
+>   	platform_device_register(&omap_pmu_device);
+>   }
 
