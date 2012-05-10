@@ -1,81 +1,60 @@
-From: Tomi Valkeinen <tomi.valkeinen@ti.com>
-Subject: Re: omapfb-main.c: check result of simple_strtoul
-Date: Thu, 10 May 2012 11:23:14 +0300
-Message-ID: <1336638194.5182.28.camel@deskari>
-References: <4FAA838A.3040106@yahoo.es>
+From: "Hiremath, Vaibhav" <hvaibhav@ti.com>
+Subject: RE: [GIT PULL] ARM: OMAP2+: Misc cleanup
+Date: Thu, 10 May 2012 08:33:39 +0000
+Message-ID: <79CD15C6BA57404B839C016229A409A83EA1F2D1@DBDE01.ent.ti.com>
+References: <1336461259-28596-1-git-send-email-santosh.shilimkar@ti.com>
+ <20120508183414.GZ5088@atomide.com>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg="pgp-sha1"; protocol="application/pgp-signature";
-	boundary="=-DAtSn24HeZjDhZwvrhIN"
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aog102.obsmtp.com ([74.125.149.69]:55267 "EHLO
-	na3sys009aog102.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1757013Ab2EJIXU (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>);
-	Thu, 10 May 2012 04:23:20 -0400
-Received: by lbol5 with SMTP id l5so885881lbo.6
-        for <linux-omap@vger.kernel.org>; Thu, 10 May 2012 01:23:17 -0700 (PDT)
-In-Reply-To: <4FAA838A.3040106@yahoo.es>
+Received: from comal.ext.ti.com ([198.47.26.152]:39959 "EHLO comal.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1756726Ab2EJIep convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 10 May 2012 04:34:45 -0400
+In-Reply-To: <20120508183414.GZ5088@atomide.com>
+Content-Language: en-US
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Hein Tibosch <hein_tibosch@yahoo.es>
-Cc: linux-omap <linux-omap@vger.kernel.org>
+To: Tony Lindgren <tony@atomide.com>, "Shilimkar, Santosh" <santosh.shilimkar@ti.com>
+Cc: "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
+
+On Wed, May 09, 2012 at 00:04:14, Tony Lindgren wrote:
+> * Santosh Shilimkar <santosh.shilimkar@ti.com> [120508 00:18]:
+> > Tony,
+> > 
+> > Please pull the following preparatory cleanup series to add OMAP5 minimal
+> > support. Boot tested on OMAP2430 SDP, OMAP3430 SDP and OMAP4430 SDP platforms.
+> > 
+> > I have dropped {[PATCH 7/7] ARM: OMAP4+: Add prm and cm base init function}
+> > from this set since Paul is taking that one in his queue.
+> 
+> OK thanks, pulling this into cleanup-soc and merging into cleanup branch
+> with what we have in devel-hwmod.
+>  
+Tony,
 
 
---=-DAtSn24HeZjDhZwvrhIN
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: quoted-printable
+Just observed that, while merging cleanup-soc into cleanup branch you have 
+missed couple of lines from Satosh's original patch. Which leads to build 
+break on OMAP2 alone build.
 
-On Wed, 2012-05-09 at 22:47 +0800, Hein Tibosch wrote:
-> Tomi,
->=20
->=20
-> In drivers/video/omap2/omapfb/omapfb-main.c:
->=20
->  static int omapfb_parse_vram_param(const char *param, int max_entries,
->  		unsigned long *sizes, unsigned long *paddrs)
->  {
->  	int fbnum;
->  	unsigned long size;
->  	unsigned long paddr =3D 0;
->  	char *p, *start;
->   	start =3D (char *)param;
->  	while (1) {
->  		p =3D start;
->   		fbnum =3D simple_strtoul(p, &p, 10);
-> -		if (p =3D=3D param)
-> +		if (p =3D=3D start)
->=20
-> correct?
+Can you please merge below change,
 
-Yes, looks like a correct fix. I'll cook up a patch.
-
-How did you encounter the bug? What was the outcome?
-
- Tomi
+diff --git a/arch/arm/mach-omap2/Makefile b/arch/arm/mach-omap2/Makefile
+index 833f153..c82783a 100644
+--- a/arch/arm/mach-omap2/Makefile
++++ b/arch/arm/mach-omap2/Makefile
+@@ -122,6 +122,8 @@ obj-$(CONFIG_SOC_AM33XX)            += $(powerdomain-common)
+ clockdomain-common                     += clockdomain.o
+ clockdomain-common                     += clockdomains_common_data.o
+ obj-$(CONFIG_ARCH_OMAP2)               += $(clockdomain-common)
++obj-$(CONFIG_ARCH_OMAP2)               += clockdomain2xxx_3xxx.o
++obj-$(CONFIG_ARCH_OMAP2)               += clockdomains2xxx_3xxx_data.o
+ obj-$(CONFIG_SOC_OMAP2420)             += clockdomains2420_data.o
+ obj-$(CONFIG_SOC_OMAP2430)             += clockdomains2430_data.o
+ obj-$(CONFIG_ARCH_OMAP3)               += $(clockdomain-common)
 
 
---=-DAtSn24HeZjDhZwvrhIN
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: This is a digitally signed message part
-Content-Transfer-Encoding: 7bit
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.4.11 (GNU/Linux)
-
-iQIcBAABAgAGBQJPq3ryAAoJEPo9qoy8lh71eewP/3R3Cz6rXoiARgjPhdPJOjY0
-sfB7pw/+fPxEMFzFnnYL3ZEiKL3wVokypXrzVMt6aUEK8DX65bXI004x9xJL/ZqJ
-isEFZGtqBTLhCBt6XxSp+ZxHF/hpSRRMuQlbjv7Kr/hmFSi0OdUnaqBN8ykL2idx
-Oibt7mKBVhKIP+m3LMg7+PG/EcXTFToUSWR+pdJMbRihOJYjMJGBqWXO97RSqlne
-sxGLuTi9gzMhLS2gaM4ABS2Xnzzyr3SCFr1F7kb32LNFHvq6QVJaKom1HTNHrq0A
-URYMFUlOTMA5aBE+51PVTC5q83xaObdv4GcliM7dPXAExOzlWvFa2LEbIrns3zsc
-HVKrts81VDaNqSr4VT/gJ4OPmi7RxNYFUEbfdN9DZHJb4ZSNfdZdjqOKiNf7O7EM
-OOGCQe705Va/ZJNbzqCtVWCin22oPUnMOAg6MRP26juJSB/6VOEtRfEPiucj9W+H
-UfaDsna4enNK26ODcxHT5CvVrK2Zf/hZq5nXo/pdtktjroFyqTTvQElha9zGhcKY
-tgtanC4JFTOsh/s/ONUqDa8gt1Zn92bwFhVLy4ZLm+SjHYzcHEOXpW9xYmqunUA7
-ASg+pOLe9ivVaC6yN3/c/oyDGOGL199Eb4NpgpZpRDjdMneC8d1UkMKd2TI5WklK
-41orPKnlwIIwTfVknXgR
-=T2A/
------END PGP SIGNATURE-----
-
---=-DAtSn24HeZjDhZwvrhIN--
-
+Thanks,
+Vaibhav
