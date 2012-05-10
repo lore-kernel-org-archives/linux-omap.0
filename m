@@ -1,31 +1,57 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH-V7 0/3] ARM: OMAP: Make OMAP clocksource source
- selection runtime
-Date: Thu, 10 May 2012 15:26:44 -0700
-Message-ID: <20120510222644.GQ21851@atomide.com>
-References: <1336031941-23651-1-git-send-email-hvaibhav@ti.com>
- <2430095.tlzScq1o2g@acer>
+From: Paul Walmsley <paul@pwsan.com>
+Subject: [PATCH] ARM: OMAP1: USB: fix ocpi_enable compile problem on non-1610
+ builds
+Date: Thu, 10 May 2012 16:27:23 -0600 (MDT)
+Message-ID: <alpine.DEB.2.00.1205101625360.32719@utopia.booyaka.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-01-ewr.mailhop.org ([204.13.248.71]:21800 "EHLO
-	mho-01-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1761857Ab2EJW0s (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 10 May 2012 18:26:48 -0400
-Content-Disposition: inline
-In-Reply-To: <2430095.tlzScq1o2g@acer>
+Received: from utopia.booyaka.com ([72.9.107.138]:54689 "EHLO
+	utopia.booyaka.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1761862Ab2EJW1X (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 10 May 2012 18:27:23 -0400
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Janusz Krzysztofik <jmkrzyszt@gmail.com>
-Cc: Vaibhav Hiremath <hvaibhav@ti.com>, linux-omap@vger.kernel.org, khilman@ti.com, paul@pwsan.com, santosh.shilimkar@ti.com, b-cousson@ti.com, linux-arm-kernel@lists.infradead.org
+To: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+Cc: Janusz Krzysztofik <jmkrzyszt@gmail.com>, tony@atomide.com
 
-* Janusz Krzysztofik <jmkrzyszt@gmail.com> [120510 14:40]:
-> 
-> Otherwise, if configured with OMAP16xx selected, builds and seems to work 
-> correctly for me, to the extent possible to verify without physical 
-> access to the hardware. However, please note that the Amstrad Delta 
-> doesn't make use of the 32k timer, only mpu_timer.
 
-OK good to hear, thanks!
+Janusz Krzysztofik reported the following build break on OMAP1 builds that
+don't include CONFIG_ARCH_OMAP16XX:
 
-Tony
+  LD      .tmp_vmlinux1
+arch/arm/mach-omap1/built-in.o: In function `omap1_usb_init':
+lcd_dma.c:(.init.text+0x1420): undefined reference to `ocpi_enable'
+make: *** [.tmp_vmlinux1] Error 1
+
+This was caused by commit d3645d39ad0ed9f09535065676ea0ba114f93cdf
+("ARM: OMAP1: OHCI: use platform_data fn ptr to enable OCPI bus").
+Fix by declaring an empty ocpi_enable() on non-16XX builds, which
+should work until the OCPI code is moved out to drivers/.
+
+Cc: Janusz Krzysztofik <jmkrzyszt@gmail.com>
+Signed-off-by: Paul Walmsley <paul@pwsan.com>
+---
+Passes a compile test with a 15xx-only config.
+
+ arch/arm/mach-omap1/common.h |    4 ++++
+ 1 file changed, 4 insertions(+)
+
+diff --git a/arch/arm/mach-omap1/common.h b/arch/arm/mach-omap1/common.h
+index a90b9d7..4193383 100644
+--- a/arch/arm/mach-omap1/common.h
++++ b/arch/arm/mach-omap1/common.h
+@@ -63,6 +63,10 @@ extern bool omap_32k_timer_init(void);
+ 
+ extern u32 omap_irq_flags;
+ 
++#ifdef CONFIG_ARCH_OMAP16XX
+ extern int ocpi_enable(void);
++#else
++static inline int ocpi_enable(void) { return 0; }
++#endif
+ 
+ #endif /* __ARCH_ARM_MACH_OMAP1_COMMON_H */
+-- 
+1.7.10
+
