@@ -1,47 +1,50 @@
-From: "Shilimkar, Santosh" <santosh.shilimkar@ti.com>
-Subject: Re: [PATCH 4/6] ARM: OMAP4: PMU: Add runtime PM support
-Date: Thu, 10 May 2012 11:51:54 +0530
-Message-ID: <CAMQu2gwFOVA2v8YyHW_fA1vgrVTcD==G8BQY4AOUQaVyusKzSw@mail.gmail.com>
-References: <1336599355-10983-1-git-send-email-jon-hunter@ti.com>
+From: "Mohammed, Afzal" <afzal@ti.com>
+Subject: RE: [PATCH v4-alt 0/6] GPMC driver migrate one
+Date: Thu, 10 May 2012 06:35:23 +0000
+Message-ID: <C8443D0743D26F4388EA172BF4E2A7A93E98A339@DBDE01.ent.ti.com>
+References: <cover.1335941443.git.afzal@ti.com>
+ <20120508213625.GG5088@atomide.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aog104.obsmtp.com ([74.125.149.73]:52283 "EHLO
-	na3sys009aog104.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753996Ab2EJGWQ (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>);
-	Thu, 10 May 2012 02:22:16 -0400
-Received: by qcsc20 with SMTP id c20so1114825qcs.18
-        for <linux-omap@vger.kernel.org>; Wed, 09 May 2012 23:22:15 -0700 (PDT)
-In-Reply-To: <1336599355-10983-1-git-send-email-jon-hunter@ti.com>
+Received: from arroyo.ext.ti.com ([192.94.94.40]:43036 "EHLO arroyo.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1755893Ab2EJGf2 convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 10 May 2012 02:35:28 -0400
+In-Reply-To: <20120508213625.GG5088@atomide.com>
+Content-Language: en-US
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Jon Hunter <jon-hunter@ti.com>
-Cc: linux-omap <linux-omap@vger.kernel.org>, Ming Lei <ming.lei@canonical.com>, Will Deacon <will.deacon@arm.com>, Benoit Cousson <b-cousson@ti.com>, Paul Walmsley <paul@pwsan.com>, Kevin Hilman <khilman@ti.com>
+To: Tony Lindgren <tony@atomide.com>
+Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
 
-On Thu, May 10, 2012 at 3:05 AM, Jon Hunter <jon-hunter@ti.com> wrote:
-> From: Jon Hunter <jon-hunter@ti.com>
->
-> This patch is based upon Ming Lei's patch to add runtime PM support for OMAP4
-> [1]. In Ming's original patch the CTI interrupts were being enabled during
-> runtime when the PMU was used but they were only configured once during init.
-> Therefore move the configuration of the CTI interrupts to the runtime PM
-> functions.
->
-You might want to give the reason why you need to move the re-confiuration
-from init to to run-time PM functions so that the actual issue of
-reset gets addressed.
+Hi Tony,
 
+On Wed, May 09, 2012 at 03:06:26, Tony Lindgren wrote:
 
-> [1] http://lists.infradead.org/pipermail/linux-arm-kernel/2011-November/074153.html
->
-> Cc: Ming Lei <ming.lei@canonical.com>
-> Cc: Will Deacon <will.deacon@arm.com>
-> Cc: Benoit Cousson <b-cousson@ti.com>
-> Cc: Paul Walmsley <paul@pwsan.com>
-> Cc: Kevin Hilman <khilman@ti.com>
->
-> Signed-off-by: Jon Hunter <jon-hunter@ti.com>
-> ---
-Patch as such looks fine to me.
-Reviewed-by: Santosh Shilimkar <santosh.shilimkar@ti.com>
+> > To resolve this and as per your earlier question on whether old along
+> > with new interface can be made to work parallely, here is suggestion
+> > from my end to deal with it.
+> 
+> I think this is the only way to keep this all building and booting
+> for each patch in the series, no? If so, then we should select this
+> option. The first patch should be broken up into more readable patches,
+> it seems that you can do that without breaking things.
+
+Bisectability has been maintained in the patches.
+
+Ok, I will proceed by keeping old & new interface together, will
+try to achieve it in smaller patches and without hacks.
+
+> > Please let me know whether you are fine in taking patch series
+> > as in v4 (that converts all boards at once, with further revisions
+> > based on review comments).
+> 
+> It seems that there are still some pending comments and we need to
+> have the hwmod entries merged first by Paul.
+
+Ok, first I will try to get hwmod in.
+
+Regards
+Afzal
