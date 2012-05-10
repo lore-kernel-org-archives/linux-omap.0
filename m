@@ -1,68 +1,101 @@
-From: Stephen Warren <swarren@wwwdotorg.org>
-Subject: Re: [PATCH] pinctrl: Add generic pinctrl-simple driver that supports
- omap2+ padconf
-Date: Thu, 10 May 2012 11:05:23 -0600
-Message-ID: <4FABF553.20601@wwwdotorg.org>
-References: <20120503065131.GA3738@game.jcrosoft.org> <20120503152708.GC5140@atomide.com> <4FA30805.5050804@wwwdotorg.org> <20120504044305.GD7788@game.jcrosoft.org> <20120504150342.GI5140@atomide.com> <20120504153251.GE7788@game.jcrosoft.org> <20120504163420.GA5613@atomide.com> <4FA42631.6060304@wwwdotorg.org> <20120504220809.GW5613@atomide.com> <4FAAD141.3090306@wwwdotorg.org> <20120509204925.GV5088@atomide.com>
+From: R Sricharan <r.sricharan@ti.com>
+Subject: [PATCH 1/4] ARM: OMAP2+: Introduce CONFIG_SOC_HAS_OMAP_DPLL macro
+Date: Thu, 10 May 2012 22:36:52 +0530
+Message-ID: <1336669615-16454-2-git-send-email-r.sricharan@ti.com>
+References: <1336669615-16454-1-git-send-email-r.sricharan@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20120509204925.GV5088@atomide.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Tony Lindgren <tony@atomide.com>
-Cc: Jean-Christophe PLAGNIOL-VILLARD <plagnioj@jcrosoft.com>, Linus Walleij <linus.walleij@linaro.org>, linux-omap@vger.kernel.org, Stephen Warren <swarren@nvidia.com>, linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+Content-Type: text/plain
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from bear.ext.ti.com ([192.94.94.41]:47788 "EHLO bear.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1754327Ab2EJRHO (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Thu, 10 May 2012 13:07:14 -0400
+In-Reply-To: <1336669615-16454-1-git-send-email-r.sricharan@ti.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: linux-omap@vger.kernel.org
+Cc: linux-arm-kernel@lists.infradead.org, santosh.shilimkar@ti.com, tony@atomide.com, b-cousson@ti.com, r.sricharan@ti.com, paul@pswan.com
 
-On 05/09/2012 02:49 PM, Tony Lindgren wrote:
-> * Stephen Warren <swarren@wwwdotorg.org> [120509 13:22]:
->> On 05/04/2012 04:08 PM, Tony Lindgren wrote:
->>> * Stephen Warren <swarren@wwwdotorg.org> [120504 11:59]:
->>>> On 05/04/2012 10:34 AM, Tony Lindgren wrote:
->>>>> * Jean-Christophe PLAGNIOL-VILLARD <plagnioj@jcrosoft.com> [120504 08:58]:
->>>>>> On 08:03 Fri 04 May     , Tony Lindgren wrote:
->>>>>>>>
->>>>>>>> so I was thinking to do like on gpio
->>>>>>>>
->>>>>>>> uart {
->>>>>>>> 	pin = < &pioA 12 {pararms} >
->>>>>>>>
->>>>>>>> }
->>>>>>>
->>>>>>> Hmm I assume the "12" above the gpio number?
->>>>>> no pin number in the bank because it could not be gpio
->>>>>
->>>>> Yes OK, but pin number 12 in the gpio bank, not in the mux register.
->>>>> Got it.
->>>>
->>>> I'd prefer to avoid any references to GPIOs here; not all muxable pins
->>>> are GPIOs and not all GPIOs are muxable pins. Lets keep the two concepts
->>>> independent.
->>>
->>> And it seems that &pioA 12 is not always enough information for the pinctrl
->>> driver to request a GPIO. So it's best to specify it separately.
->>
->> Why would a pinctrl driver "request a GPIO"?
-> 
-> Hmm what would pinctrl_request_gpio do if the GPIO driver is separate driver?
+The DPLL ip was introduced and used in the OMAP3PLUS socs, while
+OMAP2 had the APLL IP. There are some features which are common
+to both ips, and some which are only applicable to DPLL ip's.
+Currently CONFIG_ARCH_OMAP_XXX checks is used to conditionally
+compile the additional features for every applicable SOC. This
+makes it nessecary to add new a check for every new SOC added
+in the future.
 
-Well, that's a GPIO driver requesting a GPIO from the pinctrl system,
-rather than the pinctrl driver requesting a GPIO (sorry to be picky).
+So by introducing a new "SOC_HAS_OMAP_DPLL" config such new #ifdefs
+can be avoided for the future socs and also to cleanup the existing
+ ifdefferies.
 
-It wasn't at all obvious to me from your binding proposal that you
-intended the pinctrl-simple driver to support the GPIO operations at
-all. If you do want this, I think you'd need some properties (perhaps
-some kind of explicit table) in order to set up the GPIO ID -> pinctrl
-pin ID mapping. I don't recall seeing those; did I just miss them? I
-think we'd want this to be explicit because:
+Signed-off-by: R Sricharan <r.sricharan@ti.com>
+---
+ arch/arm/mach-omap2/Kconfig             |    5 +++++
+ arch/arm/mach-omap2/clock.c             |    2 +-
+ arch/arm/plat-omap/include/plat/clock.h |    4 ++--
+ 3 files changed, 8 insertions(+), 3 deletions(-)
 
-a) It may well be the case that not all users of pinctrl-simple actually
-mux/control GPIOs at all. It's certainly possible to only mux "special
-functions", and have dedicated pins for a GPIO controller.
+diff --git a/arch/arm/mach-omap2/Kconfig b/arch/arm/mach-omap2/Kconfig
+index 0685dc8..9a8d691 100644
+--- a/arch/arm/mach-omap2/Kconfig
++++ b/arch/arm/mach-omap2/Kconfig
+@@ -27,9 +27,13 @@ config ARCH_OMAP2
+ 	select CPU_V6
+ 	select MULTI_IRQ_HANDLER
+ 
++config SOC_HAS_OMAP_DPLL
++	bool
++
+ config ARCH_OMAP3
+ 	bool "TI OMAP3"
+ 	depends on ARCH_OMAP2PLUS
++	select SOC_HAS_OMAP_DPLL
+ 	default y
+ 	select CPU_V7
+ 	select USB_ARCH_HAS_EHCI if USB_SUPPORT
+@@ -42,6 +46,7 @@ config ARCH_OMAP4
+ 	bool "TI OMAP4"
+ 	default y
+ 	depends on ARCH_OMAP2PLUS
++	select SOC_HAS_OMAP_DPLL
+ 	select CACHE_L2X0
+ 	select CPU_V7
+ 	select ARM_GIC
+diff --git a/arch/arm/mach-omap2/clock.c b/arch/arm/mach-omap2/clock.c
+index d9f4931..629cd2d 100644
+--- a/arch/arm/mach-omap2/clock.c
++++ b/arch/arm/mach-omap2/clock.c
+@@ -400,7 +400,7 @@ int omap2_clk_set_parent(struct clk *clk, struct clk *new_parent)
+ 
+ /* OMAP3/4 non-CORE DPLL clkops */
+ 
+-#if defined(CONFIG_ARCH_OMAP3) || defined(CONFIG_ARCH_OMAP4)
++#ifdef CONFIG_SOC_HAS_OMAP_DPLL
+ 
+ const struct clkops clkops_omap3_noncore_dpll_ops = {
+ 	.enable		= omap3_noncore_dpll_enable,
+diff --git a/arch/arm/plat-omap/include/plat/clock.h b/arch/arm/plat-omap/include/plat/clock.h
+index d0ef57c..095bee8 100644
+--- a/arch/arm/plat-omap/include/plat/clock.h
++++ b/arch/arm/plat-omap/include/plat/clock.h
+@@ -156,7 +156,7 @@ struct dpll_data {
+ 	u8			min_divider;
+ 	u16			max_divider;
+ 	u8			modes;
+-#if defined(CONFIG_ARCH_OMAP3) || defined(CONFIG_ARCH_OMAP4)
++#ifdef CONFIG_SOC_HAS_OMAP_DPLL
+ 	void __iomem		*autoidle_reg;
+ 	void __iomem		*idlest_reg;
+ 	u32			autoidle_mask;
+@@ -167,7 +167,7 @@ struct dpll_data {
+ 	u8			auto_recal_bit;
+ 	u8			recal_en_bit;
+ 	u8			recal_st_bit;
+-#  endif
++#endif
+ 	u8			flags;
+ };
+ 
+-- 
+1.7.1
 
-b) Even when GPIOs do come into the picture, it may be that only some of
-the pins are available as GPIOs.
-
-Also, were you intending pinctrl-simple to actually be the GPIO
-controller itself? That'd be another case that one might consider fairly
-simple, but then extends to being gpio-simple as well as pinctrl-simple...
