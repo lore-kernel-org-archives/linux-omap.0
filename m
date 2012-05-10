@@ -1,66 +1,49 @@
-From: R Sricharan <r.sricharan@ti.com>
-Subject: [PATCH 3/4] ARM: OMAP2+: Move stubbed secure_sram_reserve function to a common.c and call it __weak
-Date: Thu, 10 May 2012 22:36:54 +0530
-Message-ID: <1336669615-16454-4-git-send-email-r.sricharan@ti.com>
+From: Sricharan R <r.sricharan@ti.com>
+Subject: RE: [PATCH 0/4] ARM: OMAP2+: Misc cleanup part2
+Date: Thu, 10 May 2012 22:47:38 +0530
+Message-ID: <e9a14034778ef9c8047887de64b5dbae@mail.gmail.com>
 References: <1336669615-16454-1-git-send-email-r.sricharan@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain
+Content-Type: text/plain; charset=ISO-8859-1
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from bear.ext.ti.com ([192.94.94.41]:47780 "EHLO bear.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754014Ab2EJRHK (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Thu, 10 May 2012 13:07:10 -0400
+Received: from na3sys009aog126.obsmtp.com ([74.125.149.155]:43779 "EHLO
+	na3sys009aog126.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1756648Ab2EJRRl (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>);
+	Thu, 10 May 2012 13:17:41 -0400
+Received: by lahc1 with SMTP id c1so1199624lah.4
+        for <linux-omap@vger.kernel.org>; Thu, 10 May 2012 10:17:39 -0700 (PDT)
 In-Reply-To: <1336669615-16454-1-git-send-email-r.sricharan@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: linux-omap@vger.kernel.org
-Cc: linux-arm-kernel@lists.infradead.org, santosh.shilimkar@ti.com, tony@atomide.com, b-cousson@ti.com, r.sricharan@ti.com, paul@pswan.com
+To: Sricharan R <r.sricharan@ti.com>, linux-omap@vger.kernel.org
+Cc: linux-arm-kernel@lists.infradead.org, Santosh Shilimkar <santosh.shilimkar@ti.com>, tony@atomide.com, Benoit Cousson <b-cousson@ti.com>, paul@pswan.com
 
-omap_secure_ram_reserve_memblock is stubbed for OMAP1,2 only builds using a
- ifdef check. But this results in adding CONFIG_ARCH_OMAPxx checks for
-future socs that use the real function. So move this to common.c file and
-call it __weak.
+> -----Original Message-----
+> From: R Sricharan [mailto:r.sricharan@ti.com]
+> Sent: Thursday, May 10, 2012 10:37 PM
+> To: linux-omap@vger.kernel.org
+> Cc: linux-arm-kernel@lists.infradead.org; santosh.shilimkar@ti.com;
+> tony@atomide.com; b-cousson@ti.com; r.sricharan@ti.com; paul@pswan.com
+> Subject: [PATCH 0/4] ARM: OMAP2+: Misc cleanup part2
+>
+> This is a continuation of the previous cleanup series from
+> santosh.shilimkar@ti.com [1]. Patches are outcome of the OMAP5
+> review suggestions from Tony/Benoit/Santosh/Rajendra.
+>
+> [1]  http://www.spinics.net/lists/linux-omap/msg69730.html
+>
+> R Sricharan (4):
+>   ARM: OMAP2+: Introduce CONFIG_SOC_HAS_OMAP_DPLL macro
+>   ARM: OMAP2+: Move the stubbed prm and cm functions to prcm.c file and
+>     make them __weak.
+>   ARM: OMAP2+: Move stubbed secure_sram_reserve function to a common.c
+>     and call it __weak
+>   ARM: OMAP: counter-32k: Select the CR register offset using the IP
+>     scheme.
+>
+ Forgot to add the below reviewed-by tag.
+   Reviewed-by: Santosh Shilimkar <santosh.shilimkar@ti.com>
 
-Signed-off-by: R Sricharan <r.sricharan@ti.com>
----
- arch/arm/plat-omap/common.c                   |    9 +++++++++
- arch/arm/plat-omap/include/plat/omap-secure.h |    5 -----
- 2 files changed, 9 insertions(+), 5 deletions(-)
-
-diff --git a/arch/arm/plat-omap/common.c b/arch/arm/plat-omap/common.c
-index 0a9b9a9..89a3723 100644
---- a/arch/arm/plat-omap/common.c
-+++ b/arch/arm/plat-omap/common.c
-@@ -77,3 +77,12 @@ void __init omap_init_consistent_dma_size(void)
- 	init_consistent_dma_size(CONFIG_FB_OMAP_CONSISTENT_DMA_SIZE << 20);
- #endif
- }
-+
-+/*
-+ * Stub function for OMAP2 so that common files
-+ * continue to build when custom builds are used
-+ */
-+int __weak omap_secure_ram_reserve_memblock(void)
-+{
-+	return 0;
-+}
-diff --git a/arch/arm/plat-omap/include/plat/omap-secure.h b/arch/arm/plat-omap/include/plat/omap-secure.h
-index 8c7994c..0e4acd2 100644
---- a/arch/arm/plat-omap/include/plat/omap-secure.h
-+++ b/arch/arm/plat-omap/include/plat/omap-secure.h
-@@ -3,12 +3,7 @@
- 
- #include <linux/types.h>
- 
--#if defined(CONFIG_ARCH_OMAP3) || defined(CONFIG_ARCH_OMAP4)
- extern int omap_secure_ram_reserve_memblock(void);
--#else
--static inline void omap_secure_ram_reserve_memblock(void)
--{ }
--#endif
- 
- #ifdef CONFIG_OMAP4_ERRATA_I688
- extern int omap_barrier_reserve_memblock(void);
--- 
-1.7.1
-
+Thanks,
+ Sricharan
