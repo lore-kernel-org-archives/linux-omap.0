@@ -1,54 +1,52 @@
-From: "Mohammed, Afzal" <afzal@ti.com>
-Subject: RE: [PATCH v4 01/39] ARM: OMAP2+: gpmc: driver conversion
-Date: Thu, 10 May 2012 05:10:22 +0000
-Message-ID: <C8443D0743D26F4388EA172BF4E2A7A93E98A285@DBDE01.ent.ti.com>
-References: <cover.1335874494.git.afzal@ti.com>
- <363273a9ef82d6836197929157aa9a8eb8f5171a.1335874494.git.afzal@ti.com>
- <4FA4035E.6020308@ti.com>
- <C8443D0743D26F4388EA172BF4E2A7A93E987147@DBDE01.ent.ti.com>
- <4FA7F232.7050802@ti.com>
- <C8443D0743D26F4388EA172BF4E2A7A93E9878EC@DBDE01.ent.ti.com>
- <4FA936E8.1080801@ti.com>
+From: "DebBarma, Tarun Kanti" <tarun.kanti@ti.com>
+Subject: Re: [PATCH v2] gpio/omap: fix incorrect initialization of omap_gpio_mod_init
+Date: Thu, 10 May 2012 10:45:13 +0530
+Message-ID: <CAC83ZvKHDWmNneK5GQgSPhdg88apymEgUr0zm1EVYjfaWG2oXA@mail.gmail.com>
+References: <1335770412-1344-1-git-send-email-tarun.kanti@ti.com>
+	<CANOLnOO3bSxoE-8TaXd_Tz=taPOZpfQY+z-=6c7Ovfpf+FCAuw@mail.gmail.com>
+	<CAC83ZvLYmPr3qTRUUTom1iOA-czef9EVcM229UMDePnw8sbA+w@mail.gmail.com>
+	<1664819.7TVaX0jpJi@acer>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
+Content-Type: text/plain; charset=ISO-8859-1
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from devils.ext.ti.com ([198.47.26.153]:49489 "EHLO
-	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751148Ab2EJFM2 convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 10 May 2012 01:12:28 -0400
-In-Reply-To: <4FA936E8.1080801@ti.com>
-Content-Language: en-US
+Received: from na3sys009aog121.obsmtp.com ([74.125.149.145]:36927 "EHLO
+	na3sys009aog121.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1751172Ab2EJFPP (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>);
+	Thu, 10 May 2012 01:15:15 -0400
+Received: by qadb17 with SMTP id b17so53036qad.19
+        for <linux-omap@vger.kernel.org>; Wed, 09 May 2012 22:15:13 -0700 (PDT)
+In-Reply-To: <1664819.7TVaX0jpJi@acer>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "Hunter, Jon" <jon-hunter@ti.com>
-Cc: "tony@atomide.com" <tony@atomide.com>, "linux@arm.linux.org.uk" <linux@arm.linux.org.uk>, "Hilman, Kevin" <khilman@ti.com>, "Balbi, Felipe" <balbi@ti.com>, "dwmw2@infradead.org" <dwmw2@infradead.org>, "kyungmin.park@samsung.com" <kyungmin.park@samsung.com>, "gregkh@linuxfoundation.org" <gregkh@linuxfoundation.org>, "Menon, Nishanth" <nm@ti.com>, "grinberg@compulab.co.il" <grinberg@compulab.co.il>, "notasas@gmail.com" <notasas@gmail.com>, "artem.bityutskiy@linux.intel.com" <artem.bityutskiy@linux.intel.com>, "vimal.newwork@gmail.com" <vimal.newwork@gmail.com>, "dbaryshkov@gmail.com" <dbaryshkov@gmail.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, "linux-usb@vger.kernel.org" <linux-usb@vger.kernel.org>, "linux-mtd@lists.infradead.org" <linux-mtd@lists.infradead.org>, Hire
+To: Janusz Krzysztofik <jkrzyszt@tis.icnet.pl>
+Cc: Grazvydas Ignotas <notasas@gmail.com>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Kevin Hilman <khilman@ti.com>, Grant Likely <grant.likely@secretlab.ca>
 
-Hi Jon,
+Hi,
 
-On Tue, May 08, 2012 at 20:38:24, Hunter, Jon wrote:
-
-> > Different ways of doing things, this looks cleaner to me as already it is
-> > checked, and time of execution in both cases would not differ much.
-> 
-> Sure. However, I think that this could be simplified so that it is
-> easier to read. At a minimum you may wish to add some comments to
-> explain the purposes of the multi-level if-statements as it is not
-> intuitive for the reader.
-
-Ok
-
-> >> What happens if a device uses more than one wait-pin? In other words a
-> >> device with two chip-selects that uses two wait-pins?
-> > 
-> > Please re-read http://www.mail-archive.com/linux-omap@vger.kernel.org/msg67702.html
-> > and your reply
-> 
-> Ok thats fine. Sorry for my repeated questions, but I think that this
-> just highlights that this code is not clear in it purpose. So again may
-> be some comments would make this all clearer.
-
-Ok
-
-Regards
-Afzal
+On Thu, May 10, 2012 at 3:06 AM, Janusz Krzysztofik
+<jkrzyszt@tis.icnet.pl> wrote:
+> On Mon, 7 May 2012 10:52:28 DebBarma, Tarun Kanti wrote:
+>> On Sun, May 6, 2012 at 3:25 AM, Grazvydas Ignotas <notasas@gmail.com> wrote:
+>> > On Mon, Apr 30, 2012 at 10:20 AM, Tarun Kanti DebBarma
+>> > <tarun.kanti@ti.com> wrote:
+>> >> Initialization of irqenable, irqstatus registers is the common
+>> >> operation done in this function for all OMAP platforms, viz. OMAP1,
+>> >> OMAP2+. The latter _gpio_rmw()'s which supposedly got introduced
+>> >> wrongly to take care of OMAP2+ platforms were overwriting initially
+>> >> programmed OMAP1 value breaking functionality on OMAP1.
+>
+> Hi,
+> I can confirm that my other issues with GPIO on Amstrad Delta were not
+> related, and this patch is still required for GPIO interrupts hardware
+> being correctly initialized on OMAP1 in 3.4-rc6. You can add my
+>
+> Tested-by: Janusz Krzysztofik <jkrzyszt@tis.icnet.pl>
+>
+> if you wish.
+Thank you for confirming!!
+--
+Tarun
+>
+> Thanks,
+> Janusz
