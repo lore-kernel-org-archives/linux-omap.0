@@ -1,95 +1,146 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH] pinctrl: Add generic pinctrl-simple driver that
- supports omap2+ padconf
-Date: Thu, 10 May 2012 10:27:22 -0700
-Message-ID: <20120510172722.GE21851@atomide.com>
-References: <4FA30805.5050804@wwwdotorg.org>
- <20120504044305.GD7788@game.jcrosoft.org>
- <20120504150342.GI5140@atomide.com>
- <20120504153251.GE7788@game.jcrosoft.org>
- <20120504163420.GA5613@atomide.com>
- <4FA42631.6060304@wwwdotorg.org>
- <20120504220809.GW5613@atomide.com>
- <4FAAD141.3090306@wwwdotorg.org>
- <20120509204925.GV5088@atomide.com>
- <4FABF553.20601@wwwdotorg.org>
+From: Paul Walmsley <paul@pwsan.com>
+Subject: [PATCH 2/3] ARM: OMAP AM35xx: clock and hwmod data: fix UART4 data
+Date: Thu, 10 May 2012 11:29:18 -0600
+Message-ID: <20120510172917.13418.14437.stgit@dusk>
+References: <20120510172449.13418.66815.stgit@dusk>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-kernel-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <4FABF553.20601@wwwdotorg.org>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Stephen Warren <swarren@wwwdotorg.org>
-Cc: Jean-Christophe PLAGNIOL-VILLARD <plagnioj@jcrosoft.com>, Linus Walleij <linus.walleij@linaro.org>, linux-omap@vger.kernel.org, Stephen Warren <swarren@nvidia.com>, linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from utopia.booyaka.com ([72.9.107.138]:47643 "EHLO
+	utopia.booyaka.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1757731Ab2EJRdV (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 10 May 2012 13:33:21 -0400
+In-Reply-To: <20120510172449.13418.66815.stgit@dusk>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+Cc: Kyle Manna <kyle.manna@fuel7.com>, "Mark A. Greer" <mgreer@animalcreek.com>, Ranjith Lohithakshan <ranjithl@ti.com>
 
-* Stephen Warren <swarren@wwwdotorg.org> [120510 10:09]:
-> On 05/09/2012 02:49 PM, Tony Lindgren wrote:
-> > * Stephen Warren <swarren@wwwdotorg.org> [120509 13:22]:
-> >> On 05/04/2012 04:08 PM, Tony Lindgren wrote:
-> >>> * Stephen Warren <swarren@wwwdotorg.org> [120504 11:59]:
-> >>>> On 05/04/2012 10:34 AM, Tony Lindgren wrote:
-> >>>>> * Jean-Christophe PLAGNIOL-VILLARD <plagnioj@jcrosoft.com> [120504 08:58]:
-> >>>>>> On 08:03 Fri 04 May     , Tony Lindgren wrote:
-> >>>>>>>>
-> >>>>>>>> so I was thinking to do like on gpio
-> >>>>>>>>
-> >>>>>>>> uart {
-> >>>>>>>> 	pin = < &pioA 12 {pararms} >
-> >>>>>>>>
-> >>>>>>>> }
-> >>>>>>>
-> >>>>>>> Hmm I assume the "12" above the gpio number?
-> >>>>>> no pin number in the bank because it could not be gpio
-> >>>>>
-> >>>>> Yes OK, but pin number 12 in the gpio bank, not in the mux register.
-> >>>>> Got it.
-> >>>>
-> >>>> I'd prefer to avoid any references to GPIOs here; not all muxable pins
-> >>>> are GPIOs and not all GPIOs are muxable pins. Lets keep the two concepts
-> >>>> independent.
-> >>>
-> >>> And it seems that &pioA 12 is not always enough information for the pinctrl
-> >>> driver to request a GPIO. So it's best to specify it separately.
-> >>
-> >> Why would a pinctrl driver "request a GPIO"?
-> > 
-> > Hmm what would pinctrl_request_gpio do if the GPIO driver is separate driver?
-> 
-> Well, that's a GPIO driver requesting a GPIO from the pinctrl system,
-> rather than the pinctrl driver requesting a GPIO (sorry to be picky).
+Add missing terminators to the arrays of IRQ, DMA, and address space
+structure records in the AM35xx UART4 hwmod data.  Without these
+terminators, the following warnings appear on boot:
 
-Oh sorry maybe I misunderstood what pinctrl_request_gpio is doing.
-Seems like that should work the same way from binding point of view.
+omap_uart.3: failed to claim resource 58
+omap_device: omap_uart: build failed (-16)
+WARNING: at /home/paul/linux/arch/arm/mach-omap2/serial.c:375 omap_serial_init_port+0x198/0x284()
+Could not build omap_device for omap_uart: uart4.
+
+Also, AM35xx uart4_fck has an incorrect parent clock pointer.  Fix it
+and clean up a whitespace issue.
+
+Fix some incorrectly-named macros related to AM35xx UART4.
+
+Cc: Kyle Manna <kyle.manna@fuel7.com>
+Cc: Mark A. Greer <mgreer@animalcreek.com>
+Cc: Ranjith Lohithakshan <ranjithl@ti.com>
+Signed-off-by: Paul Walmsley <paul@pwsan.com>
+---
+ arch/arm/mach-omap2/clock3xxx_data.c       |   14 +++++++-------
+ arch/arm/mach-omap2/cm-regbits-34xx.h      |    4 ++--
+ arch/arm/mach-omap2/omap_hwmod_3xxx_data.c |    7 +++++--
+ arch/arm/mach-omap2/prcm-common.h          |    4 ++--
+ 4 files changed, 16 insertions(+), 13 deletions(-)
+
+diff --git a/arch/arm/mach-omap2/clock3xxx_data.c b/arch/arm/mach-omap2/clock3xxx_data.c
+index 13102b9..11644bf 100644
+--- a/arch/arm/mach-omap2/clock3xxx_data.c
++++ b/arch/arm/mach-omap2/clock3xxx_data.c
+@@ -2490,13 +2490,13 @@ static struct clk uart4_fck = {
+ };
  
-> It wasn't at all obvious to me from your binding proposal that you
-> intended the pinctrl-simple driver to support the GPIO operations at
-> all. If you do want this, I think you'd need some properties (perhaps
-> some kind of explicit table) in order to set up the GPIO ID -> pinctrl
-> pin ID mapping. I don't recall seeing those; did I just miss them? I
-> think we'd want this to be explicit because:
-> 
-> a) It may well be the case that not all users of pinctrl-simple actually
-> mux/control GPIOs at all. It's certainly possible to only mux "special
-> functions", and have dedicated pins for a GPIO controller.
-> 
-> b) Even when GPIOs do come into the picture, it may be that only some of
-> the pins are available as GPIOs.
+ static struct clk uart4_fck_am35xx = {
+-	.name           = "uart4_fck",
+-	.ops            = &clkops_omap2_dflt_wait,
+-	.parent         = &per_48m_fck,
+-	.enable_reg     = OMAP_CM_REGADDR(CORE_MOD, CM_FCLKEN1),
+-	.enable_bit     = OMAP3430_EN_UART4_SHIFT,
+-	.clkdm_name     = "core_l4_clkdm",
+-	.recalc         = &followparent_recalc,
++	.name		= "uart4_fck",
++	.ops		= &clkops_omap2_dflt_wait,
++	.parent		= &core_48m_fck,
++	.enable_reg	= OMAP_CM_REGADDR(CORE_MOD, CM_FCLKEN1),
++	.enable_bit	= AM35XX_EN_UART4_SHIFT,
++	.clkdm_name	= "core_l4_clkdm",
++	.recalc		= &followparent_recalc,
+ };
+ 
+ static struct clk gpt2_fck = {
+diff --git a/arch/arm/mach-omap2/cm-regbits-34xx.h b/arch/arm/mach-omap2/cm-regbits-34xx.h
+index 8083a8c..766338f 100644
+--- a/arch/arm/mach-omap2/cm-regbits-34xx.h
++++ b/arch/arm/mach-omap2/cm-regbits-34xx.h
+@@ -169,8 +169,6 @@
+ /* AM35XX specific CM_ICLKEN1_CORE bits */
+ #define AM35XX_EN_IPSS_MASK				(1 << 4)
+ #define AM35XX_EN_IPSS_SHIFT				4
+-#define AM35XX_EN_UART4_MASK				(1 << 23)
+-#define AM35XX_EN_UART4_SHIFT				23
+ 
+ /* CM_ICLKEN2_CORE */
+ #define OMAP3430_EN_PKA_MASK				(1 << 4)
+@@ -207,6 +205,8 @@
+ #define OMAP3430_ST_DES2_MASK				(1 << 26)
+ #define OMAP3430_ST_MSPRO_SHIFT				23
+ #define OMAP3430_ST_MSPRO_MASK				(1 << 23)
++#define AM35XX_ST_UART4_SHIFT				23
++#define AM35XX_ST_UART4_MASK				(1 << 23)
+ #define OMAP3430_ST_HDQ_SHIFT				22
+ #define OMAP3430_ST_HDQ_MASK				(1 << 22)
+ #define OMAP3430ES1_ST_FAC_SHIFT			8
+diff --git a/arch/arm/mach-omap2/omap_hwmod_3xxx_data.c b/arch/arm/mach-omap2/omap_hwmod_3xxx_data.c
+index 678a3aa..c939131 100644
+--- a/arch/arm/mach-omap2/omap_hwmod_3xxx_data.c
++++ b/arch/arm/mach-omap2/omap_hwmod_3xxx_data.c
+@@ -526,11 +526,13 @@ static struct omap_hwmod omap36xx_uart4_hwmod = {
+ 
+ static struct omap_hwmod_irq_info am35xx_uart4_mpu_irqs[] = {
+ 	{ .irq = INT_35XX_UART4_IRQ, },
++	{ .irq = -1 }
+ };
+ 
+ static struct omap_hwmod_dma_info am35xx_uart4_sdma_reqs[] = {
+ 	{ .name = "rx", .dma_req = AM35XX_DMA_UART4_RX, },
+ 	{ .name = "tx", .dma_req = AM35XX_DMA_UART4_TX, },
++	{ .dma_req = -1 }
+ };
+ 
+ static struct omap_hwmod am35xx_uart4_hwmod = {
+@@ -542,9 +544,9 @@ static struct omap_hwmod am35xx_uart4_hwmod = {
+ 		.omap2 = {
+ 			.module_offs = CORE_MOD,
+ 			.prcm_reg_id = 1,
+-			.module_bit = OMAP3430_EN_UART4_SHIFT,
++			.module_bit = AM35XX_EN_UART4_SHIFT,
+ 			.idlest_reg_id = 1,
+-			.idlest_idle_bit = OMAP3430_EN_UART4_SHIFT,
++			.idlest_idle_bit = AM35XX_ST_UART4_SHIFT,
+ 		},
+ 	},
+ 	.class		= &omap2_uart_class,
+@@ -2188,6 +2190,7 @@ static struct omap_hwmod_addr_space am35xx_uart4_addr_space[] = {
+ 		.pa_end		= OMAP3_UART4_AM35XX_BASE + SZ_1K - 1,
+ 		.flags		= ADDR_MAP_ON_INIT | ADDR_TYPE_RT,
+ 	},
++	{ }
+ };
+ 
+ static struct omap_hwmod_ocp_if am35xx_l4_core__uart4 = {
+diff --git a/arch/arm/mach-omap2/prcm-common.h b/arch/arm/mach-omap2/prcm-common.h
+index 6da3ba4..cc1398e 100644
+--- a/arch/arm/mach-omap2/prcm-common.h
++++ b/arch/arm/mach-omap2/prcm-common.h
+@@ -203,8 +203,8 @@
+ #define OMAP3430_EN_MMC2_SHIFT				25
+ #define OMAP3430_EN_MMC1_MASK				(1 << 24)
+ #define OMAP3430_EN_MMC1_SHIFT				24
+-#define OMAP3430_EN_UART4_MASK				(1 << 23)
+-#define OMAP3430_EN_UART4_SHIFT				23
++#define AM35XX_EN_UART4_MASK				(1 << 23)
++#define AM35XX_EN_UART4_SHIFT				23
+ #define OMAP3430_EN_MCSPI4_MASK				(1 << 21)
+ #define OMAP3430_EN_MCSPI4_SHIFT			21
+ #define OMAP3430_EN_MCSPI3_MASK				(1 << 20)
 
-Right, we need some pinctrl to gpio mapping eventually. That comes
-automatically from DT for the pins and gpios we care about.
 
-And that's why the binding needs to be flexible enough so we can add
-optional pin specific options as needed in addition to parsing a larger
-set of pins with no options.
-
-> Also, were you intending pinctrl-simple to actually be the GPIO
-> controller itself? That'd be another case that one might consider fairly
-> simple, but then extends to being gpio-simple as well as pinctrl-simple...
-
-No, I was thinking that we can have other drivers using pinctrl simple
-and add the extra features for the pins that have those.
-
-Regards,
-
-Tony
