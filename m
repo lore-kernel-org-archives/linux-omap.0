@@ -1,74 +1,84 @@
-From: Janusz Krzysztofik <jmkrzyszt@gmail.com>
-Subject: Re: [PATCH-V7 0/3] ARM: OMAP: Make OMAP clocksource source selection runtime
-Date: Thu, 10 May 2012 23:36:48 +0200
-Message-ID: <2430095.tlzScq1o2g@acer>
-References: <1336031941-23651-1-git-send-email-hvaibhav@ti.com>
+From: Kevin Hilman <khilman@ti.com>
+Subject: Re: [PATCH-V2 3/4] ARM: OMAP2+: CLEANUP: Remove unnecessary ifdef around __omap2_set_globals
+Date: Thu, 10 May 2012 14:39:39 -0700
+Message-ID: <8762c3ww9w.fsf@ti.com>
+References: <1336506724-5494-1-git-send-email-hvaibhav@ti.com>
+	<1336506724-5494-4-git-send-email-hvaibhav@ti.com>
+	<87397ajo32.fsf@ti.com>
+	<79CD15C6BA57404B839C016229A409A83EA1BF14@DBDE01.ent.ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 7Bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-we0-f174.google.com ([74.125.82.174]:57361 "EHLO
-	mail-we0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1761106Ab2EJVgz (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 10 May 2012 17:36:55 -0400
-Received: by weyu7 with SMTP id u7so10538wey.19
-        for <linux-omap@vger.kernel.org>; Thu, 10 May 2012 14:36:54 -0700 (PDT)
-In-Reply-To: <1336031941-23651-1-git-send-email-hvaibhav@ti.com>
+Received: from na3sys009aog107.obsmtp.com ([74.125.149.197]:49424 "EHLO
+	na3sys009aog107.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1761597Ab2EJVjn (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>);
+	Thu, 10 May 2012 17:39:43 -0400
+Received: by pbbrp16 with SMTP id rp16so3239242pbb.38
+        for <linux-omap@vger.kernel.org>; Thu, 10 May 2012 14:39:41 -0700 (PDT)
+In-Reply-To: <79CD15C6BA57404B839C016229A409A83EA1BF14@DBDE01.ent.ti.com>
+	(Vaibhav Hiremath's message of "Wed, 9 May 2012 08:59:49 +0000")
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Vaibhav Hiremath <hvaibhav@ti.com>
-Cc: linux-omap@vger.kernel.org, tony@atomide.com, khilman@ti.com, paul@pwsan.com, santosh.shilimkar@ti.com, b-cousson@ti.com, linux-arm-kernel@lists.infradead.org
+To: "Hiremath, Vaibhav" <hvaibhav@ti.com>
+Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "tony@atomide.com" <tony@atomide.com>, "paul@pwsan.com" <paul@pwsan.com>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>
 
-Dnia czwartek, 3 maja 2012 13:28:58 Vaibhav Hiremath pisze:
-> Current OMAP code supports couple of clocksource options based
-> on compilation flag (CONFIG_OMAP_32K_TIMER). The 32KHz sync-timer
-> and a gptimer which can run on 32KHz or system clock (e.g 38.4 MHz)
-> 
-> This patch series cleans up the existing 32k-sync timer 
-implementation,
-> movind SoC init code to respective files (mach-omap1/timer32k.c and
-> mach-omap2/timer.c) and uses kernel parameter to override the default
-> clocksource of "counter_32k", also in order to support some OMAP based
-> derivative SoCs like AM33XX which doesn't have 32K sync-timer hardware 
-IP,
-> adds hwmod lookup for omap2+ devices, and if lookup fails then
-> fall back to gp-timer.
-> 
-> if(use_gptimer_clksrc == true)
-> 	gptimer clocksource init;
-> else if (counter_32 init == false)
-> 	/* Fallback to gptimer */
-> 	gptimer clocksource init(;
-> 
-> With this, we should be able to support multi-omap boot
-> including devices with/without 32k-sync timer.
-> 
-> This patch-series has been boot tested on AM37xEVM platform, it
-> would be helpful if somebody help me to validate it on OMAP1/2
-> platforms.
-> 
-> The patches are also available at (based on linux-omap/master) -
-> https://github.com/hvaibhav/am335x-linux   32ksync-timer-cleanup
+"Hiremath, Vaibhav" <hvaibhav@ti.com> writes:
 
-Tried to test this branch, merged into 3.4-rc6, and with my Amstrad 
-Delta fixes applied, using my custom Amstrad Delta config, but initially 
-failed because an unrelated issue rised to the surface:
+> On Wed, May 09, 2012 at 04:08:09, Hilman, Kevin wrote:
+>> Vaibhav Hiremath <hvaibhav@ti.com> writes:
+>> 
+>> > The function __omap2_set_globals() can be common across all
+>> > platforms/architectures, even in case of omap4, internally it
+>> > calls same set of functions as in __omap2_set_globals() function
+>> > (except for sdrc).
+>> 
+>> OK so far.
+>> 
+>> > This patch adds new config flag SOC_HAS_OMAP2_SDRC to handle sdrc,
+>> > so that we can reuse same function across omap2/3/4...
+>> 
+>> But what happens when a single kernel is built that has support for an
+>> SoC with an SDRC (OMAP4) and one that doesn't (AM33xx)?
+>> 
+>
+> As such Nothing...I looking into this direction while implementing.
+>
+> In that case, sdrc.c file will be compiled in and execution will jump to
+> omap2_set_globals_sdrc(). But inside this function, we are already checking 
+> whether the omap2_globals->sdrc and omap2_globals->sms for NULL and then use 
+> it.
+>
+> And function omap2_sdrc_init() is also depends on machine, so in case of
+> Am33xx, it won't get into sdrc execution at all. And in case of omap4, it 
+> will.
 
-|   LD      .tmp_vmlinux1
-| arch/arm/mach-omap1/built-in.o: In function `omap1_usb_init':
-| lcd_dma.c:(.init.text+0x1420): undefined reference to `ocpi_enable'
-| make: *** [.tmp_vmlinux1] Error 1
+Then why bother with the #ifdef at all?
 
-Apparently introduced with commit 
-d3645d39ad0ed9f09535065676ea0ba114f93cdf, "ARM: OMAP1: OHCI: use 
-platform_data fn ptr to enable OCPI bus", looks like one or more symbols 
-exported by the not linked in arch/arm/mach-omap1/ocpi.o may be missing 
-for non-OMAP16xx configs.
+If it already safe to call on all SoCs, just get rid of the #ifdef all
+together.
 
-Otherwise, if configured with OMAP16xx selected, builds and seems to work 
-correctly for me, to the extent possible to verify without physical 
-access to the hardware. However, please note that the Amstrad Delta 
-doesn't make use of the 32k timer, only mpu_timer.
+>> In that case this new SOC_HAS_OMAP2_SDRC will be set, and
+>> set_globals_sdrc() will be called even for the SoCs without SDRC.
+>> 
+>> So, rather than add a new Kconfig option for this, I would rather see 
+>> you using the existing runtime feature check for the SDRC: omap_has_sdrc()
+>> 
+>
+> There is NO difference between runtime feature check Vs this patch, refer to the function implementation,
+>
+> void __init omap2_set_globals_sdrc(struct omap_globals *omap2_globals)
+> {
+> 	if (omap2_globals->sdrc)
+> 		omap2_sdrc_base = omap2_globals->sdrc;
+> 	if (omap2_globals->sms)
+> 		omap2_sms_base = omap2_globals->sms;
+> }
+>
+> The initialization happens after checking for NULL, so even if you execute it or not, the variable are set to NULL in case of am33xx.
+>
+> So I don't find any difference between runtime and this patch.
 
-Thanks,
-Janusz
+Except readability.
+
+Kevin
