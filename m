@@ -1,58 +1,72 @@
-From: Ivan Djelic <ivan.djelic@parrot.com>
+From: Artem Bityutskiy <dedekind1@gmail.com>
 Subject: Re: [PATCH v3] ARM: OMAP3: gpmc: add BCH ecc api and modes
-Date: Thu, 10 May 2012 17:17:25 +0200
-Message-ID: <20120510151725.GA11107@parrot.com>
+Date: Thu, 10 May 2012 18:52:18 +0300
+Message-ID: <1336665138.2243.1.camel@brekeke>
 References: <1335442669-13474-1-git-send-email-ivan.djelic@parrot.com>
- <20120509002927.GF5088@atomide.com>
- <20120509081047.GC17333@parrot.com>
- <20120509153141.GI5088@atomide.com>
- <1336655257.2625.8.camel@sauron.fi.intel.com>
+	 <20120509002927.GF5088@atomide.com> <20120509081047.GC17333@parrot.com>
+	 <20120509153141.GI5088@atomide.com>
+	 <1336655257.2625.8.camel@sauron.fi.intel.com>
+	 <20120510151725.GA11107@parrot.com>
+Reply-To: dedekind1@gmail.com
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
+Content-Type: multipart/signed; micalg="pgp-sha1"; protocol="application/pgp-signature";
+	boundary="=-XlZI6Mkrpg3NfJ9gr8GM"
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from co202.xi-lite.net ([149.6.83.202]:33096 "EHLO co202.xi-lite.net"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1759900Ab2EJPR3 (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Thu, 10 May 2012 11:17:29 -0400
-Content-Disposition: inline
-In-Reply-To: <1336655257.2625.8.camel@sauron.fi.intel.com>
+Received: from mail-lpp01m010-f46.google.com ([209.85.215.46]:40823 "EHLO
+	mail-lpp01m010-f46.google.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1755160Ab2EJPz4 (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>);
+	Thu, 10 May 2012 11:55:56 -0400
+Received: by lahd3 with SMTP id d3so1197482lah.19
+        for <linux-omap@vger.kernel.org>; Thu, 10 May 2012 08:55:54 -0700 (PDT)
+In-Reply-To: <20120510151725.GA11107@parrot.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Artem Bityutskiy <dedekind1@gmail.com>
+To: Ivan Djelic <ivan.djelic@parrot.com>
 Cc: Tony Lindgren <tony@atomide.com>, "afzal@ti.com" <afzal@ti.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-mtd@lists.infradead.org" <linux-mtd@lists.infradead.org>
 
-On Thu, May 10, 2012 at 02:07:37PM +0100, Artem Bityutskiy wrote:
-> On Wed, 2012-05-09 at 08:31 -0700, Tony Lindgren wrote:
-> > > Note that I could prepare a new MTD patch with BCH ecc code included,
-> > > allowing to drop the GPMC BCH ecc api.
-> > 
-> > OK, let's do that then. I'll drop this patch and you can coordinate
-> > your patch with Afzal.
-> 
-> Ivan, so are you going to send new patches early enough to make them hit
-> 3.5? Can you please then re-send all the dependent patches again and
-> again describe what depends on what, because I am getting lost :-)
 
-Yes, I agree this has become a bit confusing. I currently have 2 pending patches:
+--=-XlZI6Mkrpg3NfJ9gr8GM
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: quoted-printable
 
-[1] ARM-OMAP3-gpmc-add-BCH-ecc-api-and-modes_v3.patch        (linux-omap)
-[2] mtd-nand-omap-add-support-for-hardware-BCH-ecc_v2.patch  (linux-mtd)
+On Thu, 2012-05-10 at 17:17 +0200, Ivan Djelic wrote:
+> But in order to do so, I need the changes that Afzal has submitted
+> (in particular [3]). Those changes (and as a consequence, my new patch)
+> won't hit 3.5.
+>=20
+> So, when Afzal's patches are pushed, I'll submit a new, single MTD patch.
 
-They should both be dropped. I will basically merge the two patches and
-submit a new single patch on MTD only, with no dependency. I won't need
-to patch arch/arm/mach-omap2 anymore.
+But this is not going to happen this merge window as I understood, may
+be not even the next one. We need to make UBIFS happy sooner than that,
+I think. So may be we go forward with your original patch?
 
-But in order to do so, I need the changes that Afzal has submitted
-(in particular [3]). Those changes (and as a consequence, my new patch)
-won't hit 3.5.
+--=20
+Best Regards,
+Artem Bityutskiy
 
-So, when Afzal's patches are pushed, I'll submit a new, single MTD patch.
+--=-XlZI6Mkrpg3NfJ9gr8GM
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: This is a digitally signed message part
+Content-Transfer-Encoding: 7bit
 
-BR,
---
-Ivan
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.4.12 (GNU/Linux)
 
+iQIcBAABAgAGBQJPq+QyAAoJECmIfjd9wqK0Rb4QAKxKZtZoFNYFHuyOgKirFrdL
+ReIGlBcdw9pICIbtukO+yQjPpXPlhueAqNfAY5LKVzeEM9DEki1UuNfIg3yHIyLQ
++BLUGIConFn3U9loR4yQdC0gMDl7YoTC25bXOQYUw5Mrl5SqMEPj49heZIjG+rXO
+/VUy3h9qOw2HRbmapHlyY0s3rXGxL4YXlongqUMy22ofrLHwFKPJt5MAJ2gTBqDR
+Iy3fD14lpZPr6jD3KCrsGuNBKBZq7F1h1dAUqyad4ceLPzSugQM2AtoeTu25P5/s
+xkTW2UjOiGSaxGlTRQHGmxjz3H1/9QymDuXPX5WqXejp5GERDmX8568u0SfRwZRn
+o2lfiLU9H2nfYe+QD5QUJHZ/6DTubTacmqnp/fCkqLjfoqCIKj4xT6UDRrzQP9Jd
+tqET34UjVgSBoFLhHomi3bqqDHJ4ZcRHqKEwGUsXpOMrumHWdETRBh9Fhvkl05Tk
+quoLv2TwVsy+ZQ9FsA/AizfCM2Z6j4VwWL3515/fahGgRZ977yOSpTdosnRyS3IP
+aHlXrurgym7PwRTJDQwyieVBR7FflSfMoJe8gqpqXaJOT5Ovs4IboUe+A+TmXCCk
+PARG/wRY+Pob0WwTsT1LrZF5jYGINfaiRtLMJMuQ+hF35zdzl9PDwgvy9TZv64B5
+e/YlBjANwIQkTtQd10/H
+=0b+w
+-----END PGP SIGNATURE-----
 
-[1] http://lists.infradead.org/pipermail/linux-mtd/2012-April/040965.html
-[2] http://lists.infradead.org/pipermail/linux-mtd/2012-April/041020.html
-[3] http://lists.infradead.org/pipermail/linux-mtd/2012-May/041105.html
+--=-XlZI6Mkrpg3NfJ9gr8GM--
+
