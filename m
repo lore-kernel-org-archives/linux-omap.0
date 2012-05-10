@@ -1,14 +1,17 @@
 From: Ricardo Neri <ricardo.neri@ti.com>
-Subject: [PATCH v3] OMAPDSS: HDMI: Implement DSS driver
-	interface for audio
-Date: Wed, 9 May 2012 22:59:48 -0500
-Message-ID: <1336622388-28183-2-git-send-email-ricardo.neri@ti.com>
-References: <1336622388-28183-1-git-send-email-ricardo.neri@ti.com>
+Subject: Re: [PATCH v2 14/14] OMAPDSS: HDMI: Implement DSS
+ driver interface for audio
+Date: Wed, 9 May 2012 23:12:46 -0500
+Message-ID: <4FAB403E.6010000@ti.com>
+References: <1336095848-6923-1-git-send-email-ricardo.neri@ti.com>
+	<1336095848-6923-15-git-send-email-ricardo.neri@ti.com>
+	<1336390986.2667.8.camel@deskari> <4FA9B289.5000101@ti.com>
+	<1336552081.3962.15.camel@deskari>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Return-path: <alsa-devel-bounces@alsa-project.org>
-In-Reply-To: <1336622388-28183-1-git-send-email-ricardo.neri@ti.com>
+In-Reply-To: <1336552081.3962.15.camel@deskari>
 List-Unsubscribe: <http://mailman.alsa-project.org/mailman/listinfo/alsa-devel>,
 	<mailto:alsa-devel-request@alsa-project.org?subject=unsubscribe>
 List-Archive: <http://mailman.alsa-project.org/pipermail/alsa-devel>
@@ -18,277 +21,137 @@ List-Subscribe: <http://mailman.alsa-project.org/mailman/listinfo/alsa-devel>,
 	<mailto:alsa-devel-request@alsa-project.org?subject=subscribe>
 Sender: alsa-devel-bounces@alsa-project.org
 Errors-To: alsa-devel-bounces@alsa-project.org
-To: tomi.valkeinen@ti.com, mythripk@ti.com
-Cc: x0055901@ti.com, alsa-devel@alsa-project.org, Ricardo Neri <ricardo.neri@ti.com>, agraf@suse.de, vaibhav.bedia@ti.com, s-chereau@ti.com, peter.ujfalusi@ti.com, research@ottomaneng.com, s-guiriec@ti.com, linux-omap@vger.kernel.org, lrg@ti.com
+To: Tomi Valkeinen <tomi.valkeinen@ti.com>
+Cc: x0055901@ti.com, alsa-devel@alsa-project.org, research@ottomaneng.com, agraf@suse.de, vaibhav.bedia@ti.com, s-chereau@ti.com, peter.ujfalusi@ti.com, mythripk@ti.com, s-guiriec@ti.com, linux-omap@vger.kernel.org, lrg@ti.com
 List-Id: linux-omap@vger.kernel.org
 
-Implement the DSS device driver audio support interface in the HDMI
-panel driver and generic driver. The implementation relies on the
-IP-specific functions that are defined at DSS probe time.
+On 05/09/2012 03:28 AM, Tomi Valkeinen wrote:
+> On Tue, 2012-05-08 at 18:55 -0500, Ricardo Neri wrote:
+>> Hi Tomi,
+>>
+>> Thanks for taking the time to comment.
+>>
+>> On 05/07/2012 06:43 AM, Tomi Valkeinen wrote:
+>>> Hi,
+>>>
+>>> On Thu, 2012-05-03 at 20:44 -0500, Ricardo Neri wrote:
+>>>> Implement the DSS device driver audio support interface in the HDMI
+>>>> panel driver and generic driver. The implementation relies on the
+>>>> IP-specific functions that are defined at DSS probe time.
+>>>>
+>>>> At the moment, a hardirq-safe spinlock is used to protect the audio
+>>>> functions. This is because such functions might be called while
+>>>> holding a lock (this especially true for audio_start/stop). For the
+>>>> rest of the audio functions, a mutex could be used in the future as
+>>>> the enablement of resources might take too much time.
+>>>
+>>> The series looks good, except locking. Granted, the locking in omapdss
+>>> is a bit bad generally also, but here I think it's a bit more broken.
+>>>
+>>> For example, hdmi_panel.c:hdmi_panel_audio_supported() takes the audio
+>>> lock, and then uses variables like dssdev->state, and the hdmi video
+>>> mode. However, the video functions do not use audio lock, so effectively
+>>> the lock doesn't protect at all.
+>>
+>> Yes, it does not protect.
+>>>
+>>> I'm not sure how to fix it, though. I think this shows the shortcomings
+>>> of the current locking strategy (or lack of =). What if the audio
+>
+> Btw, I meant shortcomings in the general DSS locking strategy, not the
+> locking in this particular patch.
+>
+>>> functions that can sleep would take the hdmi panel's mutex, and also the
+>>> audio spinlock? That would at least fix some of the cases.
+>>
+>> But if the function can sleep, protecting it with the HDMI panel's mutex
+>> should be enough, shouldn't it? Wouldn't it be pointless to also hold
+>> the spinlock?
+>
+> If the start/stop functions use the spinlock, but not the mutex, then
+> the sleeping functions should also use the spinlock to prevent touching
+> the same data at the same time.
+>
+>> Ideally, I think, only one lock, the HDMI panel's mutex, should be
+>> enough to protect the HDMI panel's functions, including the audio
+>> functions. Reusing the HDMI panel's mutex for the audio functions would
+>> prevent the situation you describe regarding
+>> hdmi_panel.c:hdmi_panel_audio_supported()... and the spinlock would not
+>> be required.
+>>
+>> The only functions that cause problems with this approach are
+>> audio_start/stop as ALSA calls them while holding a spinlock. The
+>> spinlock could be used for these as they dont read or write the panel's
+>> variables.
+>
+> Locks always protect a particular piece of data. What is the data in
+> this case, if not panel's variables? DSS registers?
+Yes, in this case, it protects access to HDMI IP registers.
 
-A mixed locking strategy is used. The panel's mutex is used when
-the state of the panel is queried as required by the audio functions.
-The audio state is protected using a spinlock as users of DSS HDMI
-audio functionality might start/stop audio while holding a spinlock.
-The mutex and the spinlock are held and released as needed by each
-individual function to protect the panel state and the audio state.
+I just implemented an improved locking strategy. I included a new 
+variable to monitor the audio state, this will be protected by the audio 
+lock.
 
-Although the panel's audio_start functions does not check whether
-the panel is active, the audio _ENABLED state can be reached only
-from audio_enable, which does check the state of the panel. Also,
-if the panel is ever disabled, the audio state will transition
-to _DISABLED. Transitions are always protected by the audio lock.
+This is the new implementation:
+http://www.mail-archive.com/linux-omap@vger.kernel.org/msg68409.html
+http://www.mail-archive.com/linux-omap@vger.kernel.org/msg68411.html
 
-Signed-off-by: Ricardo Neri <ricardo.neri@ti.com>
----
- drivers/video/omap2/dss/dss.h        |    8 ++
- drivers/video/omap2/dss/hdmi.c       |   42 ++++++++++
- drivers/video/omap2/dss/hdmi_panel.c |  140 ++++++++++++++++++++++++++++++++++
- 3 files changed, 190 insertions(+), 0 deletions(-)
+>
+>> However, holding a spinlock only when start/stopping audio would fail,
+>> for instance, if someone starts/stops audio while enabling or
+>> configuring audio; but that would be an issue in the design of the
+>> component using DSS HDMI audio, wouldn't be? To prevent that, an
+>
+> I guess it's up to us to decide what is the supposed use-patter of the
+> functions =). For dss functions in general it's pretty vague and
+> non-defined. But we could start here with audio functions and define
+> that the audio functions may not be called from multiple threads at the
+> same time. That would remove any issues with concurrent calls to audio
+> functions, presuming the audio side actually conforms to this =).
 
-diff --git a/drivers/video/omap2/dss/dss.h b/drivers/video/omap2/dss/dss.h
-index d4b3dff..ec4aa14 100644
---- a/drivers/video/omap2/dss/dss.h
-+++ b/drivers/video/omap2/dss/dss.h
-@@ -514,6 +514,14 @@ int omapdss_hdmi_read_edid(u8 *buf, int len);
- bool omapdss_hdmi_detect(void);
- int hdmi_panel_init(void);
- void hdmi_panel_exit(void);
-+#ifdef CONFIG_OMAP4_DSS_HDMI_AUDIO
-+int hdmi_audio_enable(void);
-+void hdmi_audio_disable(void);
-+int hdmi_audio_start(void);
-+void hdmi_audio_stop(void);
-+bool hdmi_mode_has_audio(void);
-+int hdmi_audio_config(struct omap_dss_audio *audio);
-+#endif
- 
- /* RFBI */
- #ifdef CONFIG_OMAP2_DSS_RFBI
-diff --git a/drivers/video/omap2/dss/hdmi.c b/drivers/video/omap2/dss/hdmi.c
-index aee0acf..388301e 100644
---- a/drivers/video/omap2/dss/hdmi.c
-+++ b/drivers/video/omap2/dss/hdmi.c
-@@ -673,6 +673,48 @@ int hdmi_compute_acr(u32 sample_freq, u32 *n, u32 *cts)
- 
- 	return 0;
- }
-+
-+int hdmi_audio_enable(void)
-+{
-+	DSSDBG("audio_enable\n");
-+
-+	return hdmi.ip_data.ops->audio_enable(&hdmi.ip_data);
-+}
-+
-+void hdmi_audio_disable(void)
-+{
-+	DSSDBG("audio_disable\n");
-+
-+	hdmi.ip_data.ops->audio_disable(&hdmi.ip_data);
-+}
-+
-+int hdmi_audio_start(void)
-+{
-+	DSSDBG("audio_start\n");
-+
-+	return hdmi.ip_data.ops->audio_start(&hdmi.ip_data);
-+}
-+
-+void hdmi_audio_stop(void)
-+{
-+	DSSDBG("audio_stop\n");
-+
-+	hdmi.ip_data.ops->audio_stop(&hdmi.ip_data);
-+}
-+
-+bool hdmi_mode_has_audio(void)
-+{
-+	if (hdmi.ip_data.cfg.cm.mode == HDMI_HDMI)
-+		return true;
-+	else
-+		return false;
-+}
-+
-+int hdmi_audio_config(struct omap_dss_audio *audio)
-+{
-+	return hdmi.ip_data.ops->audio_config(&hdmi.ip_data, audio);
-+}
-+
- #endif
- 
- /* HDMI HW IP initialisation */
-diff --git a/drivers/video/omap2/dss/hdmi_panel.c b/drivers/video/omap2/dss/hdmi_panel.c
-index 5e215d6..a8419c3 100644
---- a/drivers/video/omap2/dss/hdmi_panel.c
-+++ b/drivers/video/omap2/dss/hdmi_panel.c
-@@ -32,6 +32,10 @@
- static struct {
- 	/* This protects the panel ops, mainly when accessing the HDMI IP. */
- 	struct mutex lock;
-+#if defined(CONFIG_OMAP4_DSS_HDMI_AUDIO)
-+	/* This protects the audio ops, specifically. */
-+	spinlock_t audio_lock;
-+#endif
- } hdmi;
- 
- 
-@@ -55,6 +59,130 @@ static void hdmi_panel_remove(struct omap_dss_device *dssdev)
- 
- }
- 
-+#if defined(CONFIG_OMAP4_DSS_HDMI_AUDIO)
-+static int hdmi_panel_audio_enable(struct omap_dss_device *dssdev)
-+{
-+	unsigned long flags;
-+	int r;
-+
-+	mutex_lock(&hdmi.lock);
-+	spin_lock_irqsave(&hdmi.audio_lock, flags);
-+
-+	/* audio can be enabled only if the display is active */
-+	if (dssdev->state != OMAP_DSS_DISPLAY_ACTIVE) {
-+		DSSERR("display is not active\n");
-+		r = -EPERM;
-+		goto err;
-+	}
-+
-+	r = hdmi_audio_enable();
-+
-+	if (!r)
-+		dssdev->audio_state = OMAP_DSS_AUDIO_ENABLED;
-+
-+err:
-+	spin_unlock_irqrestore(&hdmi.audio_lock, flags);
-+	mutex_unlock(&hdmi.lock);
-+	return r;
-+}
-+
-+static void hdmi_panel_audio_disable(struct omap_dss_device *dssdev)
-+{
-+	unsigned long flags;
-+
-+	spin_lock_irqsave(&hdmi.audio_lock, flags);
-+
-+	hdmi_audio_disable();
-+
-+	dssdev->audio_state = OMAP_DSS_AUDIO_DISABLED;
-+
-+	spin_unlock_irqrestore(&hdmi.audio_lock, flags);
-+}
-+
-+static int hdmi_panel_audio_start(struct omap_dss_device *dssdev)
-+{
-+	unsigned long flags;
-+	int r;
-+
-+	spin_lock_irqsave(&hdmi.audio_lock, flags);
-+	/*
-+	 * No need to check the panel state. It was checked when trasitioning
-+	 * to AUDIO_ENABLED.
-+	 */
-+	if (dssdev->audio_state != OMAP_DSS_AUDIO_ENABLED) {
-+		DSSERR("audio start from invalid state\n");
-+		r = -EPERM;
-+		goto err;
-+	}
-+
-+	r = hdmi_audio_start();
-+
-+	if (!r)
-+		dssdev->audio_state = OMAP_DSS_AUDIO_PLAYING;
-+
-+err:
-+	spin_unlock_irqrestore(&hdmi.audio_lock, flags);
-+	return r;
-+}
-+
-+static void hdmi_panel_audio_stop(struct omap_dss_device *dssdev)
-+{
-+	unsigned long flags;
-+
-+	spin_lock_irqsave(&hdmi.audio_lock, flags);
-+
-+	hdmi_audio_stop();
-+	dssdev->audio_state = OMAP_DSS_AUDIO_ENABLED;
-+
-+	spin_unlock_irqrestore(&hdmi.audio_lock, flags);
-+}
-+
-+static bool hdmi_panel_audio_supported(struct omap_dss_device *dssdev)
-+{
-+	bool r = false;
-+
-+	mutex_lock(&hdmi.lock);
-+
-+	if (dssdev->state != OMAP_DSS_DISPLAY_ACTIVE)
-+		goto err;
-+
-+	if (!hdmi_mode_has_audio())
-+		goto err;
-+
-+	r = true;
-+err:
-+	mutex_unlock(&hdmi.lock);
-+	return r;
-+}
-+
-+static int hdmi_panel_audio_config(struct omap_dss_device *dssdev,
-+		struct omap_dss_audio *audio)
-+{
-+	unsigned long flags;
-+	int r;
-+
-+	mutex_lock(&hdmi.lock);
-+	spin_lock_irqsave(&hdmi.audio_lock, flags);
-+
-+	/* it only makes sense to configure audio if the display is active */
-+	if (dssdev->state != OMAP_DSS_DISPLAY_ACTIVE) {
-+		DSSERR("display is not active\n");
-+		r = -EPERM;
-+		goto err;
-+	}
-+
-+	r = hdmi_audio_config(audio);
-+
-+	if (!r)
-+		dssdev->audio_state = OMAP_DSS_AUDIO_CONFIGURED;
-+
-+err:
-+	spin_unlock_irqrestore(&hdmi.audio_lock, flags);
-+	mutex_unlock(&hdmi.lock);
-+	return r;
-+}
-+#endif
-+
- static int hdmi_panel_enable(struct omap_dss_device *dssdev)
- {
- 	int r = 0;
-@@ -235,6 +363,14 @@ static struct omap_dss_driver hdmi_driver = {
- 	.check_timings	= hdmi_check_timings,
- 	.read_edid	= hdmi_read_edid,
- 	.detect		= hdmi_detect,
-+#if defined(CONFIG_OMAP4_DSS_HDMI_AUDIO)
-+	.audio_enable	= hdmi_panel_audio_enable,
-+	.audio_disable	= hdmi_panel_audio_disable,
-+	.audio_start	= hdmi_panel_audio_start,
-+	.audio_stop	= hdmi_panel_audio_stop,
-+	.audio_supported	= hdmi_panel_audio_supported,
-+	.audio_config	= hdmi_panel_audio_config,
-+#endif
- 	.driver			= {
- 		.name   = "hdmi_panel",
- 		.owner  = THIS_MODULE,
-@@ -245,6 +381,10 @@ int hdmi_panel_init(void)
- {
- 	mutex_init(&hdmi.lock);
- 
-+#if defined(CONFIG_OMAP4_DSS_HDMI_AUDIO)
-+	spin_lock_init(&hdmi.audio_lock);
-+#endif
-+
- 	omap_dss_register_driver(&hdmi_driver);
- 
- 	return 0;
--- 
-1.7.5.4
+Under the new strategy, in addition to not allowing the audio functions 
+to be called from multiple threads, audio functions will fail if the 
+sequence _CONFIGURED -> _ENABLED -> PLAYING -> DISABLED is not followed. 
+This is aligned with the behavior that ALSA follows for the audio 
+codecs. Also, it checks the state of the panel to allow the audio 
+transitions.
+>
+> But the video and audio paths are probably always separate, and for
+> those we need protection. As you said, using the mutex for the may-sleep
+> audio functions solves the issue for those, leaving start/stop as the
+> only problem case.
+
+Audio only needs to know if the display is active. Under the improved 
+strategy, audio_start indirectly checks the state of the panel because 
+the audio needs to be in AUDIO_ENABLED state to start and this state is 
+reached only if the panel is active. The mutex is held to check the 
+state of the panel and the audio lock is held to change the audio state. 
+Also, the audio transitions to AUDIO_DISABLED if the panel is disabled. 
+Therefore, I think, this should ensure that the panel is active when 
+starting audio.
+>
+> However, even if we could protect start/stop with locks, we still have a
+> problem (which is general problem related to dss locking): we don't have
+> any protection between the function calls. So basically this could
+> happen:
+>
+> [video thread] setup video&  enable
+> [audio thread] check that all is ok, and configure audio
+> [video thread] change video config or disable video
+> [audio thread] start_audio ->  fails, because video config no longer
+> valid for audio
+
+Under the improved locking strategy, at least it does not fail silently. 
+The video thread will disable audio (while holding the audio lock) and, 
+when the audio thread gains the lock, audio_start will fail because it 
+is in an invalid state. The error is reported to the audio user where it 
+can be handled properly(e.g., it can reconfigure and try again).
+
+>
+> But I guess we have to accept that the locking is not perfect, and try
+> to solve it properly later, as it's a bigger, dss-wide change.
+
+Another piece that is missing is the notify mechanism to let know the 
+audio user that the panel was disabled or the video configuration changed.
+>
+>   Tomi
