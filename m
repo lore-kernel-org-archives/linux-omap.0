@@ -1,72 +1,65 @@
 From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH] OMAPDSS: TFP410: use gpio_set_value_cansleep
-Date: Thu, 10 May 2012 09:16:04 -0700
-Message-ID: <20120510161604.GC21851@atomide.com>
-References: <1336601288-27848-1-git-send-email-Russ.Dill@ti.com>
- <20120509221447.GY5088@atomide.com>
- <CA+Bv8Xa+1RJ5QTn=vO4GSw1VtUZc3xX0J5qBVshvV5Dj+9uZVA@mail.gmail.com>
- <20120509233745.GZ5088@atomide.com>
- <1336632790.5182.8.camel@deskari>
+Subject: Re: [GIT PULL] ARM: OMAP2+: Misc cleanup
+Date: Thu, 10 May 2012 09:18:26 -0700
+Message-ID: <20120510161825.GD21851@atomide.com>
+References: <1336461259-28596-1-git-send-email-santosh.shilimkar@ti.com>
+ <20120508183414.GZ5088@atomide.com>
+ <79CD15C6BA57404B839C016229A409A83EA1F2D1@DBDE01.ent.ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-02-ewr.mailhop.org ([204.13.248.72]:11040 "EHLO
-	mho-02-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1758236Ab2EJQQG (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 10 May 2012 12:16:06 -0400
+Received: from mho-01-ewr.mailhop.org ([204.13.248.71]:30857 "EHLO
+	mho-01-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751262Ab2EJQSb (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 10 May 2012 12:18:31 -0400
 Content-Disposition: inline
-In-Reply-To: <1336632790.5182.8.camel@deskari>
+In-Reply-To: <79CD15C6BA57404B839C016229A409A83EA1F2D1@DBDE01.ent.ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Tomi Valkeinen <tomi.valkeinen@ti.com>
-Cc: Russ Dill <Russ.Dill@ti.com>, linux-omap@vger.kernel.org, linux-fbdev@vger.kernel.org
+To: "Hiremath, Vaibhav" <hvaibhav@ti.com>
+Cc: "Shilimkar, Santosh" <santosh.shilimkar@ti.com>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
 
-* Tomi Valkeinen <tomi.valkeinen@ti.com> [120509 23:56]:
-> On Wed, 2012-05-09 at 16:37 -0700, Tony Lindgren wrote:
-> > * Russ Dill <Russ.Dill@ti.com> [120509 15:53]:
-> > > On Wed, May 9, 2012 at 3:14 PM, Tony Lindgren <tony@atomide.com> wrote:
-> > > > * Russ Dill <Russ.Dill@ti.com> [120509 15:12]:
-> > > >> The Beagleboard xM gpio used for TFP410 powerdown is connected through
-> > > >> an I2C attached chip which means setting the GPIO can sleep. Code that
-> > > >> calls tfp410_power_on/off holds a mutex, so sleeping should be fine.
-> > > >
-> > > > What's the error without this patch? Or just no display?
-> > > >
-> > > > Just wondering if it's safe to merge Tomi's clean up series to
-> > > > arm-soc tree..
+* Hiremath, Vaibhav <hvaibhav@ti.com> [120510 01:37]:
+> On Wed, May 09, 2012 at 00:04:14, Tony Lindgren wrote:
+> > * Santosh Shilimkar <santosh.shilimkar@ti.com> [120508 00:18]:
+> > > Tony,
 > > > 
-> > > The only platform that has a problem is Beagleboard xM, and that is
-> > > only after 'ARM: OMAP: Cleanup Beagleboard DVI reset gpio' is applied.
-> > > Since the context actually can sleep, the only consequence is a
-> > > WARN_ON statement.
+> > > Please pull the following preparatory cleanup series to add OMAP5 minimal
+> > > support. Boot tested on OMAP2430 SDP, OMAP3430 SDP and OMAP4430 SDP platforms.
 > > > 
-> > > So yes, it should be safe.
+> > > I have dropped {[PATCH 7/7] ARM: OMAP4+: Add prm and cm base init function}
+> > > from this set since Paul is taking that one in his queue.
 > > 
-> > Well since I have not actually merged it with other branches yet, I'll wait
-> > for Tomi to apply that and repull his for-l-o-3.5 branch.
+> > OK thanks, pulling this into cleanup-soc and merging into cleanup branch
+> > with what we have in devel-hwmod.
+> >  
+> Tony,
 > 
-> You can pull for-l-o-3.5 as it is now, there's no need to change it.
-> This _cansleep change is a separate dss specific change.
 > 
-> So to summarize:
-> 
-> Currently the powerdown GPIO for tfp410 is handled in the board files
-> (and called reset gpio), with gpio_set_value(). My cleanup series moves
-> this to the tfp410 driver.
-> 
-> BB-xM needs to use gpio_set_value_cansleep() in tfp410 to function
-> properly, so the tfp410 driver needs to be changed, as this patch does.
-> I will take this patch to the dss tree.
-> 
-> So it's safe to pull my cleanup series, but if I understood correctly,
-> applying Russ's "[PATCH v4] ARM: OMAP: Cleanup Beagleboard DVI reset
-> gpio" will cause WARN_ONs on BB-xM until this patch to tfp410 is also
-> applied.
-> 
-> But it doesn't sound too serious, so I think it's safe to apply the
-> "cleanup beagleboard dvi" patch also. The warning will go away when both
-> l-o and dss trees are pulled in the merge window.
+> Just observed that, while merging cleanup-soc into cleanup branch you have 
+> missed couple of lines from Satosh's original patch. Which leads to build 
+> break on OMAP2 alone build.
 
-OK thanks will use for-l-o-3.5 as it is now then.
+OK thanks for letting me know, will take a look.
 
 Tony
+ 
+> Can you please merge below change,
+> 
+> diff --git a/arch/arm/mach-omap2/Makefile b/arch/arm/mach-omap2/Makefile
+> index 833f153..c82783a 100644
+> --- a/arch/arm/mach-omap2/Makefile
+> +++ b/arch/arm/mach-omap2/Makefile
+> @@ -122,6 +122,8 @@ obj-$(CONFIG_SOC_AM33XX)            += $(powerdomain-common)
+>  clockdomain-common                     += clockdomain.o
+>  clockdomain-common                     += clockdomains_common_data.o
+>  obj-$(CONFIG_ARCH_OMAP2)               += $(clockdomain-common)
+> +obj-$(CONFIG_ARCH_OMAP2)               += clockdomain2xxx_3xxx.o
+> +obj-$(CONFIG_ARCH_OMAP2)               += clockdomains2xxx_3xxx_data.o
+>  obj-$(CONFIG_SOC_OMAP2420)             += clockdomains2420_data.o
+>  obj-$(CONFIG_SOC_OMAP2430)             += clockdomains2430_data.o
+>  obj-$(CONFIG_ARCH_OMAP3)               += $(clockdomain-common)
+> 
+> 
+> Thanks,
+> Vaibhav
