@@ -1,49 +1,44 @@
-From: Sricharan R <r.sricharan@ti.com>
-Subject: RE: [PATCH 0/4] ARM: OMAP2+: Misc cleanup part2
-Date: Thu, 10 May 2012 22:47:38 +0530
-Message-ID: <e9a14034778ef9c8047887de64b5dbae@mail.gmail.com>
-References: <1336669615-16454-1-git-send-email-r.sricharan@ti.com>
+From: Paul Walmsley <paul@pwsan.com>
+Subject: Re: [GIT PULL] ARM: OMAP3+: PRM/hwmod: fix and improve I/O chain
+ wakeup support
+Date: Thu, 10 May 2012 11:26:04 -0600 (MDT)
+Message-ID: <alpine.DEB.2.00.1205101123460.32719@utopia.booyaka.com>
+References: <alpine.DEB.2.00.1203120413530.11332@utopia.booyaka.com>  <1334910066.2149.33.camel@sokoban>  <20120420165508.GD21106@atomide.com> <1336558415.2149.274.camel@sokoban>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aog126.obsmtp.com ([74.125.149.155]:43779 "EHLO
-	na3sys009aog126.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1756648Ab2EJRRl (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>);
-	Thu, 10 May 2012 13:17:41 -0400
-Received: by lahc1 with SMTP id c1so1199624lah.4
-        for <linux-omap@vger.kernel.org>; Thu, 10 May 2012 10:17:39 -0700 (PDT)
-In-Reply-To: <1336669615-16454-1-git-send-email-r.sricharan@ti.com>
+Received: from utopia.booyaka.com ([72.9.107.138]:41078 "EHLO
+	utopia.booyaka.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755988Ab2EJR0G (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 10 May 2012 13:26:06 -0400
+In-Reply-To: <1336558415.2149.274.camel@sokoban>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Sricharan R <r.sricharan@ti.com>, linux-omap@vger.kernel.org
-Cc: linux-arm-kernel@lists.infradead.org, Santosh Shilimkar <santosh.shilimkar@ti.com>, tony@atomide.com, Benoit Cousson <b-cousson@ti.com>, paul@pswan.com
+To: Tero Kristo <t-kristo@ti.com>
+Cc: Tony Lindgren <tony@atomide.com>, linux-omap@vger.kernel.org, rnayak@ti.com, linux-arm-kernel@lists.infradead.org
 
-> -----Original Message-----
-> From: R Sricharan [mailto:r.sricharan@ti.com]
-> Sent: Thursday, May 10, 2012 10:37 PM
-> To: linux-omap@vger.kernel.org
-> Cc: linux-arm-kernel@lists.infradead.org; santosh.shilimkar@ti.com;
-> tony@atomide.com; b-cousson@ti.com; r.sricharan@ti.com; paul@pswan.com
-> Subject: [PATCH 0/4] ARM: OMAP2+: Misc cleanup part2
->
-> This is a continuation of the previous cleanup series from
-> santosh.shilimkar@ti.com [1]. Patches are outcome of the OMAP5
-> review suggestions from Tony/Benoit/Santosh/Rajendra.
->
-> [1]  http://www.spinics.net/lists/linux-omap/msg69730.html
->
-> R Sricharan (4):
->   ARM: OMAP2+: Introduce CONFIG_SOC_HAS_OMAP_DPLL macro
->   ARM: OMAP2+: Move the stubbed prm and cm functions to prcm.c file and
->     make them __weak.
->   ARM: OMAP2+: Move stubbed secure_sram_reserve function to a common.c
->     and call it __weak
->   ARM: OMAP: counter-32k: Select the CR register offset using the IP
->     scheme.
->
- Forgot to add the below reviewed-by tag.
-   Reviewed-by: Santosh Shilimkar <santosh.shilimkar@ti.com>
+Hi Tero,
 
-Thanks,
- Sricharan
+On Wed, 9 May 2012, Tero Kristo wrote:
+
+> On Fri, 2012-04-20 at 09:55 -0700, Tony Lindgren wrote:
+> > * Tero Kristo <t-kristo@ti.com> [120420 01:24]:
+> > > Hi,
+> > > 
+> > > What happened with this pull request? It doesn't seem to be in 3.4 at
+> > > least.
+> > 
+> > There was a boot issue on omap3 evm and that branch got dropped.
+> > Will merge it again after Paul has figured out the issue.
+> 
+> Paul / Tony, do you want me to re-send the set for this with the OMAP3
+> EVM related fix? This was figured out in a separate email chain.
+
+Will try to integrate it here.  But maybe if I run into problems here, I 
+might ask for your help.
+
+By the way, I regret how long it's taken me to review and handle some of 
+your pending patchsets.  They haven't been forgotten here...
+
+
+- Paul
