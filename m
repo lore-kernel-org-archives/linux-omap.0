@@ -1,48 +1,50 @@
-From: Ohad Ben-Cohen <ohad@wizery.com>
-Subject: Re: [PATCH v3 1/2] omap: mailbox: enable mailbox irq per instance
-Date: Thu, 10 May 2012 08:25:27 +0300
-Message-ID: <CAK=WgbYhPVRtptozudJ0MLOq4jdQFrnds7UkkNL_Gdo0cuU4Fg@mail.gmail.com>
-References: <1336616370-28268-1-git-send-email-jgutierrez@ti.com> <1336616370-28268-2-git-send-email-jgutierrez@ti.com>
+From: "Mohammed, Afzal" <afzal-l0cyMroinI0@public.gmane.org>
+Subject: RE: [PATCH v4 02/39] ARM: OMAP2+: gpmc: Adapt to HWMOD
+Date: Thu, 10 May 2012 05:17:39 +0000
+Message-ID: <C8443D0743D26F4388EA172BF4E2A7A93E98A2AA@DBDE01.ent.ti.com>
+References: <cover.1335874494.git.afzal@ti.com>
+ <e0cf9678cb9a44d2a16401383ab8496eb825c291.1335874494.git.afzal@ti.com>
+ <4FA04A8C.4050703@ti.com>
+ <C8443D0743D26F4388EA172BF4E2A7A93E98299B@DBDE01.ent.ti.com>
+ <4FA4041D.9010000@ti.com>
+ <C8443D0743D26F4388EA172BF4E2A7A93E987159@DBDE01.ent.ti.com>
+ <4FA7F473.7060607@ti.com>
+ <C8443D0743D26F4388EA172BF4E2A7A93E987902@DBDE01.ent.ti.com>
+ <4FA9380F.90700@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-yx0-f174.google.com ([209.85.213.174]:40286 "EHLO
-	mail-yx0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751954Ab2EJFZt convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 10 May 2012 01:25:49 -0400
-Received: by yenm10 with SMTP id m10so1098163yen.19
-        for <linux-omap@vger.kernel.org>; Wed, 09 May 2012 22:25:48 -0700 (PDT)
-In-Reply-To: <1336616370-28268-2-git-send-email-jgutierrez@ti.com>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
+Return-path: <linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <4FA9380F.90700-l0cyMroinI0@public.gmane.org>
+Content-Language: en-US
+Sender: linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: "Hunter, Jon" <jon-hunter-l0cyMroinI0@public.gmane.org>
+Cc: "tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org" <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>, "linux-lFZ/pmaqli7XmaaqVzeoHQ@public.gmane.org" <linux-lFZ/pmaqli7XmaaqVzeoHQ@public.gmane.org>, "Hilman, Kevin" <khilman-l0cyMroinI0@public.gmane.org>, "Balbi, Felipe" <balbi-l0cyMroinI0@public.gmane.org>, "dwmw2-wEGCiKHe2LqWVfeAwA7xHQ@public.gmane.org" <dwmw2-wEGCiKHe2LqWVfeAwA7xHQ@public.gmane.org>, "kyungmin.park-Sze3O3UU22JBDgjK7y7TUQ@public.gmane.org" <kyungmin.park-Sze3O3UU22JBDgjK7y7TUQ@public.gmane.org>, "gregkh-hQyY1W1yCW8ekmWlsbkhG0B+6BGkLq7r@public.gmane.org" <gregkh-hQyY1W1yCW8ekmWlsbkhG0B+6BGkLq7r@public.gmane.org>, "Menon, Nishanth" <nm-l0cyMroinI0@public.gmane.org>, "grinberg-UTxiZqZC01RS1MOuV/RT9w@public.gmane.org" <grinberg-UTxiZqZC01RS1MOuV/RT9w@public.gmane.org>, "notasas-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org" <notasas-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, "artem.bityutskiy-VuQAYsv1563Yd54FQh9/CA@public.gmane.org" <artem.bityutskiy-VuQAYsv1563Yd54FQh9/CA@public.gmane.org>, "vimal.newwork-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org" <vimal.newwork-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, "dbaryshkov-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org" <dbaryshkov-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, "linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org" <linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org>, "linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "linux-mtd-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org" <linux-mtd-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org>
 List-Id: linux-omap@vger.kernel.org
-To: Juan Gutierrez <jgutierrez@ti.com>
-Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Suman Anna <s-anna@ti.com>
 
-On Thu, May 10, 2012 at 5:19 AM, Juan Gutierrez <jgutierrez@ti.com> wro=
-te:
-> @@ -338,13 +341,13 @@ struct omap_mbox *omap_mbox_get(const char *nam=
-e, struct notifier_block *nb)
-> =A0 =A0 =A0 =A0if (!mbox)
-> =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0return ERR_PTR(-ENOENT);
->
-> + =A0 =A0 =A0 if (nb)
-> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 blocking_notifier_chain_register(&mbox-=
->notifier, nb);
-> +
-> =A0 =A0 =A0 =A0ret =3D omap_mbox_startup(mbox);
-> =A0 =A0 =A0 =A0if (ret)
-> =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0return ERR_PTR(-ENODEV);
+Hi Jon,
 
-Let's unroll blocking_notifier_chain_register when omap_mbox_startup fa=
-ils.
+On Tue, May 08, 2012 at 20:43:19, Hunter, Jon wrote:
 
-Care to do a quick respin of this one with it ?
+> >> In fact if you migrate to runtime pm then we should not have the clk_get
+> >> in the gpmc_init any more.
+> > 
+> > Even if converted to RPM, to get clk rate, clk_get has to be done
+> > somewhere, right ?
+> 
+> Yes exactly. However, you could now do this in the driver itself like
+> the probe function. Or may be just pass the frequency of the gpmc fclk
+> to the driver and let the driver convert to the period. No reason we
+> need to convert to the period outside of the driver. Hence, we can keep
+> the function to do the conversion static in the driver and don't need to
+> expose externally.
 
-Thanks,
-Ohad.
+But platform need period before driver is probed (for calculating
+peripheral timings to be passed for driver)
+
+Regards
+Afzal
 --
-To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
-n
-the body of a message to majordomo@vger.kernel.org
+To unsubscribe from this list: send the line "unsubscribe linux-usb" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 More majordomo info at  http://vger.kernel.org/majordomo-info.html
