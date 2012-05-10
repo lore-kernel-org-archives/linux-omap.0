@@ -1,64 +1,43 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH v3] ARM: OMAP3: gpmc: add BCH ecc api and modes
-Date: Thu, 10 May 2012 12:02:43 -0700
-Message-ID: <20120510190243.GM21851@atomide.com>
-References: <1335442669-13474-1-git-send-email-ivan.djelic@parrot.com>
- <20120509002927.GF5088@atomide.com>
- <20120509081047.GC17333@parrot.com>
- <20120509153141.GI5088@atomide.com>
- <1336655257.2625.8.camel@sauron.fi.intel.com>
- <20120510151725.GA11107@parrot.com>
- <1336665138.2243.1.camel@brekeke>
- <20120510174527.GA11275@parrot.com>
+From: Jon Hunter <jon-hunter@ti.com>
+Subject: Re: oprofile and ARM A9 hardware counter
+Date: Thu, 10 May 2012 14:05:37 -0500
+Message-ID: <4FAC1181.7070403@ti.com>
+References: <20120403092524.GD17741@mudshark.cambridge.arm.com> <20120403094749.GH17741@mudshark.cambridge.arm.com> <CAMQu2gyFirtVTWpMu4G_qG5sq33J-_s_o2JhVAdrUf7P3qJ3AA@mail.gmail.com> <20120403123444.GL17741@mudshark.cambridge.arm.com> <878vicsxef.fsf@ti.com> <20120403160706.GP17741@mudshark.cambridge.arm.com> <87ehs4pfw4.fsf@ti.com> <alpine.DEB.2.00.1204031727380.8000@utopia.booyaka.com> <20120404111524.GF32505@mudshark.cambridge.arm.com> <20120426180719.GC20186@mudshark.cambridge.arm.com> <4FA45580.8070802@ti.com> <87ipg76hfm.fsf@ti.com> <4FA8284C.7080803@ti.com> <87k40nzi3i.fsf@ti.com> <4FA8FCFF.40105@ti.com> <4FA9588E.9020906@ti.com> <87sjfal65t.fsf@ti.com> <4FAA4DB9.8060504@ti.com> <4FAAB1A3.9040806@ti.com> <4FAAC549.6010206@ti.com> <4FAAE564.6040708@ti.com> <874nronn0a.fsf@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset="ISO-8859-1"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-02-ewr.mailhop.org ([204.13.248.72]:55885 "EHLO
-	mho-02-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754703Ab2EJTCq (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 10 May 2012 15:02:46 -0400
-Content-Disposition: inline
-In-Reply-To: <20120510174527.GA11275@parrot.com>
+Received: from arroyo.ext.ti.com ([192.94.94.40]:54974 "EHLO arroyo.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1757177Ab2EJTFt (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Thu, 10 May 2012 15:05:49 -0400
+In-Reply-To: <874nronn0a.fsf@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Ivan Djelic <ivan.djelic@parrot.com>
-Cc: Artem Bityutskiy <dedekind1@gmail.com>, "afzal@ti.com" <afzal@ti.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-mtd@lists.infradead.org" <linux-mtd@lists.infradead.org>
+To: Kevin Hilman <khilman@ti.com>
+Cc: "Cousson, Benoit" <b-cousson@ti.com>, Paul Walmsley <paul@pwsan.com>, Ming Lei <ming.lei@canonical.com>, Will Deacon <will.deacon@arm.com>, Maynard Johnson <maynardj@us.ibm.com>, "Shilimkar, Santosh" <santosh.shilimkar@ti.com>, "oprofile-list@lists.sourceforge.net" <oprofile-list@lists.sourceforge.net>, Lik Lik <lik88888@gmail.com>, "eranian@gmail.com" <eranian@gmail.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>
 
-* Ivan Djelic <ivan.djelic@parrot.com> [120510 10:49]:
-> On Thu, May 10, 2012 at 04:52:18PM +0100, Artem Bityutskiy wrote:
-> > On Thu, 2012-05-10 at 17:17 +0200, Ivan Djelic wrote:
-> > > But in order to do so, I need the changes that Afzal has submitted
-> > > (in particular [3]). Those changes (and as a consequence, my new patch)
-> > > won't hit 3.5.
-> > > 
-> > > So, when Afzal's patches are pushed, I'll submit a new, single MTD patch.
-> > 
-> > But this is not going to happen this merge window as I understood, may
-> > be not even the next one. We need to make UBIFS happy sooner than that,
-> > I think. So may be we go forward with your original patch?
+Hi Kevin,
+
+On 05/10/2012 09:12 AM, Kevin Hilman wrote:
+> Jon Hunter <jon-hunter@ti.com> writes:
 > 
-> I'm OK with this too, as the patches are ready and tested.
-> The MTD patch is [2], it depends on [1] which has been pushed, then dropped by Tony.
-> Do you need me to repost [2] ?
+> [...]
 > 
-> Tony, sorry to backpedal on this: would you re-push patch [1], if indeed Afzal's patches
-> are not going to be merged soon ? In the meantime, I can prepare a patch on top of Afzal's to
-> have a smooth transition w.r.t BCH support. What do you think ?
+>> I have posted my latest series here [1] based upon that from Will [2]
+>> which attempts to fix the EMU CD based upon the inputs from this thread.
+>> It is working on my omap4460 panda. 
+> 
+> There are some differences between 4430 and 4460 here.  Can you test on
+> 4430 as well?
 
-Yes this is OK with me as this removes the blocker for UBIFS work.
+No problem. I tested on an OMAP4430 ES2.2 EMU blaze this morning and it
+is also working.
 
-For arch/arm/mach-omap2/gpmc.c, I have the following two patches
-queued:
+By the way, from an EMU power domain perspective the omap4430 and
+omap4460 behave the same, that is the PD is always set to OFF state and
+so will transition to OFF when ever the EMU CD idles. So same problem
+exists when using PMU and CTI.
 
-27aeb3da5f97c55f61d92e3dbfb738762f76dc32 Merge tag 'omap-cleanup-for-v3.5' into tmp-merge
-2c65e7440d56b3b285d1c95563b4dcce8e40dea3 GPMC: add ECC control definitions
-355f8eee48134ba10ca81664ee90eeb240f5f928 ARM: OMAP2+: GPMC: resolve type-conversion warning from sparse
-
-Looks your patch applies to v3.4-rc6 and what I have queued without
-conflicts, so I suggest you merge both via MTD patches:
-
-Acked-by: Tony Lindgren <tony@atomide.com>
-
- 
-> [1] http://lists.infradead.org/pipermail/linux-mtd/2012-April/040965.html
-> [2] http://lists.infradead.org/pipermail/linux-mtd/2012-April/041020.html
+Cheers
+Jon
