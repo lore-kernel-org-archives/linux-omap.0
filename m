@@ -1,40 +1,56 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH] ARM: OMAP: OTG integration: fix compiler warning
-Date: Fri, 11 May 2012 09:57:48 -0700
-Message-ID: <20120511165748.GU21851@atomide.com>
-References: <alpine.DEB.2.00.1205091637100.23869@utopia.booyaka.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+From: Grant Likely <grant.likely@secretlab.ca>
+Subject: Re: [PATCH v2] gpio/omap: fix incorrect initialization of omap_gpio_mod_init
+Date: Fri, 11 May 2012 12:57:45 -0600
+Message-ID: <20120511185745.558333E0791@localhost>
+References: <1335770412-1344-1-git-send-email-tarun.kanti@ti.com> <CANOLnOO3bSxoE-8TaXd_Tz=taPOZpfQY+z-=6c7Ovfpf+FCAuw@mail.gmail.com> <CAC83ZvLYmPr3qTRUUTom1iOA-czef9EVcM229UMDePnw8sbA+w@mail.gmail.com> <1664819.7TVaX0jpJi@acer> <CAC83ZvKHDWmNneK5GQgSPhdg88apymEgUr0zm1EVYjfaWG2oXA@mail.gmail.com> <87mx5gm7wj.fsf@ti.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-01-ewr.mailhop.org ([204.13.248.71]:43210 "EHLO
-	mho-01-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932313Ab2EKQ5v (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 11 May 2012 12:57:51 -0400
-Content-Disposition: inline
-In-Reply-To: <alpine.DEB.2.00.1205091637100.23869@utopia.booyaka.com>
+Received: from mail-pb0-f46.google.com ([209.85.160.46]:38622 "EHLO
+	mail-pb0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752166Ab2EKS5s (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 11 May 2012 14:57:48 -0400
+Received: by pbbrp8 with SMTP id rp8so3655233pbb.19
+        for <linux-omap@vger.kernel.org>; Fri, 11 May 2012 11:57:48 -0700 (PDT)
+In-Reply-To: <87mx5gm7wj.fsf@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Paul Walmsley <paul@pwsan.com>
-Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+To: Kevin Hilman <khilman@ti.com>
+Cc: Janusz Krzysztofik <jkrzyszt@tis.icnet.pl>, Grazvydas Ignotas <notasas@gmail.com>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, "DebBarma, Tarun Kanti" <tarun.kanti@ti.com>
 
-* Paul Walmsley <paul@pwsan.com> [120509 15:41]:
+On Thu, 10 May 2012 07:23:56 -0700, Kevin Hilman <khilman@ti.com> wrote:
+> Grant,
 > 
-> Tony reported the following compile warning after commit
-> eeb3711b89d68e147e05e7b43a49ecc5009dc157 ("ARM: OMAP2+: clean up some
-> cppcheck warnings"):
+> "DebBarma, Tarun Kanti" <tarun.kanti@ti.com> writes:
 > 
-> arch/arm/plat-omap/usb.c: In function 'omap_otg_init':
-> arch/arm/plat-omap/usb.c:40: warning: unused variable 'status'
+> > Hi,
+> >
+> > On Thu, May 10, 2012 at 3:06 AM, Janusz Krzysztofik
+> > <jkrzyszt@tis.icnet.pl> wrote:
+> >> On Mon, 7 May 2012 10:52:28 DebBarma, Tarun Kanti wrote:
+> >>> On Sun, May 6, 2012 at 3:25 AM, Grazvydas Ignotas <notasas@gmail.com> wrote:
+> >>> > On Mon, Apr 30, 2012 at 10:20 AM, Tarun Kanti DebBarma
+> >>> > <tarun.kanti@ti.com> wrote:
+> >>> >> Initialization of irqenable, irqstatus registers is the common
+> >>> >> operation done in this function for all OMAP platforms, viz. OMAP1,
+> >>> >> OMAP2+. The latter _gpio_rmw()'s which supposedly got introduced
+> >>> >> wrongly to take care of OMAP2+ platforms were overwriting initially
+> >>> >> programmed OMAP1 value breaking functionality on OMAP1.
+> >>
+> >> Hi,
+> >> I can confirm that my other issues with GPIO on Amstrad Delta were not
+> >> related, and this patch is still required for GPIO interrupts hardware
+> >> being correctly initialized on OMAP1 in 3.4-rc6. You can add my
+> >>
+> >> Tested-by: Janusz Krzysztofik <jkrzyszt@tis.icnet.pl>
+> >>
+> >> if you wish.
+> > Thank you for confirming!!
 > 
-> This happens if CONFIG_ARCH_OMAP_OTG is set but
-> CONFIG_USB_GADGET_OMAP, CONFIG_USB_OHCI_HCD,
-> CONFIG_USB_OHCI_HCD_MODULE, and CONFIG_USB_OTG are all unset.
+> We'd like to get this one in for v3.4-rc.  Can you queue it?
 > 
-> Fix by localizing the status variable to the blocks that use it.
-> 
-> Compile-tested only, with omap2plus_defconfig and omap2plus_defconfig
-> with CONFIG_USB_OHCI_HCD and CONFIG_USB_OTG enabled.
+> I added the tested-by from Janusz and my signoff, and pull request is
+> below.
 
-Thanks applying into fixes-for-cleanup branch.
+Pulled, thanks.  I'll send a pull req out to Linus today.
 
-Tony
+g.
+
