@@ -1,67 +1,74 @@
 From: Tomi Valkeinen <tomi.valkeinen@ti.com>
-Subject: Re: [PATCH v2 14/14] OMAPDSS: HDMI: Implement DSS driver interface
- for audio
-Date: Fri, 11 May 2012 15:51:33 +0300
-Message-ID: <1336740693.8751.78.camel@deskari>
-References: <1336095848-6923-1-git-send-email-ricardo.neri@ti.com>
-	    <1336095848-6923-15-git-send-email-ricardo.neri@ti.com>
-	   <1336390986.2667.8.camel@deskari> <4FA9B289.5000101@ti.com>
-	  <1336552081.3962.15.camel@deskari> <4FAB403E.6010000@ti.com>
-	 <1336636449.5182.26.camel@deskari> <4FAC71E0.2060808@ti.com>
+Subject: Re: [PATCH] OMAP4: panda: add statics to remove warnings
+Date: Fri, 11 May 2012 15:55:09 +0300
+Message-ID: <1336740909.8751.80.camel@deskari>
+References: <1335166780-5899-1-git-send-email-tomi.valkeinen@ti.com>
+	 <20120424171630.GQ3739@atomide.com> <1335356951.2799.5.camel@deskari>
+	 <20120504192903.GQ5613@atomide.com>
 Mime-Version: 1.0
 Content-Type: multipart/signed; micalg="pgp-sha1"; protocol="application/pgp-signature";
-	boundary="=-BBTw8gDnC50RQbyvup7o"
+	boundary="=-gFP3cRLR+aQCO95dsq4w"
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aog102.obsmtp.com ([74.125.149.69]:51766 "EHLO
-	na3sys009aog102.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1757321Ab2EKMvk (ORCPT
+Received: from na3sys009aog105.obsmtp.com ([74.125.149.75]:59967 "EHLO
+	na3sys009aog105.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1758964Ab2EKMzQ (ORCPT
 	<rfc822;linux-omap@vger.kernel.org>);
-	Fri, 11 May 2012 08:51:40 -0400
-Received: by lahc1 with SMTP id c1so2028828lah.32
-        for <linux-omap@vger.kernel.org>; Fri, 11 May 2012 05:51:37 -0700 (PDT)
-In-Reply-To: <4FAC71E0.2060808@ti.com>
+	Fri, 11 May 2012 08:55:16 -0400
+Received: by lagv3 with SMTP id v3so591362lag.3
+        for <linux-omap@vger.kernel.org>; Fri, 11 May 2012 05:55:12 -0700 (PDT)
+In-Reply-To: <20120504192903.GQ5613@atomide.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Ricardo Neri <ricardo.neri@ti.com>
-Cc: mythripk@ti.com, s-chereau@ti.com, x0055901@ti.com, vaibhav.bedia@ti.com, s-guiriec@ti.com, lrg@ti.com, peter.ujfalusi@ti.com, agraf@suse.de, research@ottomaneng.com, linux-omap@vger.kernel.org, alsa-devel@alsa-project.org
+To: Tony Lindgren <tony@atomide.com>
+Cc: linux-omap@vger.kernel.org
 
 
---=-BBTw8gDnC50RQbyvup7o
+--=-gFP3cRLR+aQCO95dsq4w
 Content-Type: text/plain; charset="UTF-8"
 Content-Transfer-Encoding: quoted-printable
 
-On Thu, 2012-05-10 at 20:56 -0500, Ricardo Neri wrote:
+On Fri, 2012-05-04 at 12:29 -0700, Tony Lindgren wrote:
+> * Tomi Valkeinen <tomi.valkeinen@ti.com> [120425 05:32]:
+> > On Tue, 2012-04-24 at 10:16 -0700, Tony Lindgren wrote:
+> > > * Tomi Valkeinen <tomi.valkeinen@ti.com> [120423 00:43]:
+> > > > Add statics to board-omap4-panda.c's internal functions and data
+> > > > structures to remove warnings.
+> > >=20
+> > > Care to update with the warnings produced?
+> >=20
+> > Ah, sure. Updated patch below:
+> >=20
+> > From e96ddeb7d783d48a15a32f8ef5a7bae3089f66b9 Mon Sep 17 00:00:00 2001
+> > From: Tomi Valkeinen <tomi.valkeinen@ti.com>
+> > Date: Wed, 28 Mar 2012 11:38:58 +0300
+> > Subject: [PATCH] OMAP4: panda: add statics to remove warnings
+> >=20
+> > Add statics to board-omap4-panda.c's internal functions and data
+> > structures to remove sparse warnings:
+> >=20
+> > arch/arm/mach-omap2/board-omap4panda.c:234:29: warning: symbol
+> > 'omap_panda_wlan_data' was not declared. Should it be static?
+> > arch/arm/mach-omap2/board-omap4panda.c:441:24: warning: symbol
+> > 'omap4_panda_dvi_device' was not declared. Should it be static?
+> > arch/arm/mach-omap2/board-omap4panda.c:451:12: warning: symbol
+> > 'omap4_panda_dvi_init' was not declared. Should it be static?
+> > arch/arm/mach-omap2/board-omap4panda.c:512:13: warning: symbol
+> > 'omap4_panda_display_init' was not declared. Should it be static?
+>=20
+> Thanks adding to fixes-non-critical.
 
-> Sorry, some hunks where missing in the patch that I submitted yesterday.
->=20
-> I just pushed a branch containing the whole most up-to-date series here:
->=20
-> git://gitorious.org/omap-audio/linux-audio.git=20
-> ricardon/topic/dss_audio-for-tomi
->=20
-> This includes the implementation of the DSS audio interface for HDMI=20
-> covering the improved locking strategy [1][2], plus the missing hunks in=
+It seems this patch is obsolete, as there's already one in linux-next:
+
+commit 8c3d4534a8da0dc6a2d52b61585e61f7e8143096
+Author: Paul Walmsley <paul@pwsan.com>
+Date:   Fri Apr 13 06:34:26 2012 -0600
+
+    ARM: OMAP2+: declare file-local functions as static
 =20
-> my yesterday's patch, plus handling of mode changes you pointed out.
->=20
-> Please let me know if you want me to resubmit the whole patch series so=
-=20
-> that you can comment if you need to.
-
-Thanks, I think this is fine. I had to rebase your branch as you had
-some extra patches there also. There were also a few conflicts with
-latest dss stuff, but nothing serious.
-
-I pushed the branch with latest dss and your branch to:
-
-git://gitorious.org/linux-omap-dss2/linux.git test
-
-With a quick test video works ok, but I didn't test audio.
-
  Tomi
 
 
---=-BBTw8gDnC50RQbyvup7o
+--=-gFP3cRLR+aQCO95dsq4w
 Content-Type: application/pgp-signature; name="signature.asc"
 Content-Description: This is a digitally signed message part
 Content-Transfer-Encoding: 7bit
@@ -69,20 +76,20 @@ Content-Transfer-Encoding: 7bit
 -----BEGIN PGP SIGNATURE-----
 Version: GnuPG v1.4.11 (GNU/Linux)
 
-iQIcBAABAgAGBQJPrQtVAAoJEPo9qoy8lh71SzIP/RyDaK9UYsOOpKHa/9f5g6V1
-7mFkMHbX8hAiSF1E3sr7u8R0jshXOQzV/fL8RJ2UpgW73wDQQiGUt8yrTXdYlCca
-LrbMWbSSnX3Yo4fLMIF/zCeyAa+UkR5AQKRYaU3xW/faYxR8NkDezBQ5bKX7s8lj
-QRhR5EEg9MwGNL6D2SvtRDTSyd9aOyQFZE5WLopB3+2qDOCzu7cmrFSYZHIMltYD
-hEt/5H85TH2epD7HRtt3aVOt446O4zRxjR00/zZkflAvvoGVeJmSIinx00IKjONa
-iFfP671yFI5JIZig0gP/+kYKlP8AdG1Lg7U0SnEkG/b2TRMWRTnqzq7KF8UIzW1m
-RqPUfq7fjf3wKNLgcRcG/6h+NtPatbnmjDYJ7AtUhza7nllCG9pT11H8xGJ7JuWC
-LK2x8POQR6KTvBhSWd3hGRnPXy5qynyQh3leLNQMWWsDl90Q0v0N5R5bGp2wz2JX
-7t/qOKx6hM2wSwLFBTnbh7c/dHY36nL1PiqL8W3CdK7Yao5uFOqItzstL/+VheHw
-1+pE5WZCiNNCigfHTuLJJMbT/ED0sWgxoBSF7bQDZ0ZinAqwkwvq3IRQLLGfydBY
-0q7KuklZwcE06OsMKNi/i1gFCYSGb5vkod01+td83DYEZDuQZcEQ8nhey0Ii4lx4
-xE0yc5NuYubFvbVj3q1b
-=4kfZ
+iQIcBAABAgAGBQJPrQwtAAoJEPo9qoy8lh71KW0QAIYqvm/I+u193qGUde3IihXd
+2CLSqndtqhXULOpMpjRq5C6C2pltFHUHjwQXGgHA5lMGGfcsJTrd0D9OjiUvC48k
+sSFVFZgsG27+IAx+NSZpIuZYto3hgSfszSxuEIQDQVSryEHR/S+zStdReT+MtpZW
+zLIph6cVsjBTRzSEGTzbybzCRaNRPquvpOEgeLZ7JEC9oGlYpOS5w7Yi2pnVOg70
+XgMbjF5lAqNh7YMUovwyffCPv9laZ4FGACsFlAPaGr5/eM8MEo3BjKFDwhv6buH2
+RtfCaI9F4+qqvV4GXzkJt75EImKuHV1acgUpOnb9kl5wBPrHsILKzGz6b1IMlf4M
+yCu3WpBfbEXbjJiRq7UMFqRsaD1Y6ACdJnvpu5itjmPMugtgQFC/QWfr3bogA/ky
+dZrncBzZVCDqEHMOjptUZb7TsMfnAKrKIBO5BlLF9bFNTXEpyImL0hdGzIDQ4ZAN
+rUPebGyQadIvQK/wh244Jj1qwqTkvAlrgIXFUzYfykxDS4GJqCW6SUOXHaTObb2O
+hk3/zR8pWzHhI+GmGOC1KEbQhmE7n7JleFFZWe8/KDgaRRC2IrjilSNG5Txb7w6s
+XeYGwypCX4iPfe/v2GDf+9Wo4x6gl2ZlsDMd8ROpNeyBhLd2pjQlGzMLR/Wf81lY
+q2oO3mJH+eteLOKJQXrZ
+=grkF
 -----END PGP SIGNATURE-----
 
---=-BBTw8gDnC50RQbyvup7o--
+--=-gFP3cRLR+aQCO95dsq4w--
 
