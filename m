@@ -1,141 +1,83 @@
-From: "Cousson, Benoit" <b-cousson@ti.com>
-Subject: Re: [PATCH 3/3] ARM: OMAP: AM35xx: fix UART4 softreset
-Date: Fri, 11 May 2012 10:48:21 +0200
-Message-ID: <4FACD255.3080702@ti.com>
-References: <20120510172449.13418.66815.stgit@dusk> <20120510172918.13418.64781.stgit@dusk>
+From: "Raja, Govindraj" <govindraj.raja@ti.com>
+Subject: Re: [PATCH v2] OMAP2+: UART: Add mechanism to probe uart pins and
+ configure rx wakeup
+Date: Fri, 11 May 2012 14:43:50 +0530
+Message-ID: <CAMrsUdJn6G1p29QZQbo6J_-aadj=tMrfCEM5GMJSUwTdRqg05g@mail.gmail.com>
+References: <1336655139-8908-1-git-send-email-govindraj.raja@ti.com> <20120510191152.GN21851@atomide.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8;
-	format=flowed
+Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from arroyo.ext.ti.com ([192.94.94.40]:34671 "EHLO arroyo.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1756928Ab2EKIuN (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Fri, 11 May 2012 04:50:13 -0400
-In-Reply-To: <20120510172918.13418.64781.stgit@dusk>
+Received: from na3sys009aog108.obsmtp.com ([74.125.149.199]:47099 "EHLO
+	na3sys009aog108.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1758493Ab2EKJOM convert rfc822-to-8bit
+	(ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Fri, 11 May 2012 05:14:12 -0400
+Received: by obbwd18 with SMTP id wd18so3768037obb.0
+        for <linux-omap@vger.kernel.org>; Fri, 11 May 2012 02:14:11 -0700 (PDT)
+In-Reply-To: <20120510191152.GN21851@atomide.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Paul Walmsley <paul@pwsan.com>
-Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Kyle Manna <kyle.manna@fuel7.com>, Ranjith Lohithakshan <ranjithl@ti.com>, "Mark A. Greer" <mgreer@animalcreek.com>
+To: Tony Lindgren <tony@atomide.com>
+Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Felipe Balbi <balbi@ti.com>, Kevin Hilman <khilman@ti.com>, Russ Dill <russ.dill@gmail.com>, Paul Walmsley <paul@pwsan.com>, Ameya Palande <ameya.palande@ti.com>
 
-Hi Paul,
+On Fri, May 11, 2012 at 12:41 AM, Tony Lindgren <tony@atomide.com> wrot=
+e:
+> * Govindraj.R <govindraj.raja@ti.com> [120510 06:09]:
+>> From: "Govindraj.R" <govindraj.raja@ti.com>
+>>
+>> The commit (bce492c0 =A0ARM: OMAP2+: UART: Fix incorrect population =
+of
+>> default uart pads) removed default uart pads that where getting popu=
+lated
+>> and which was making rx pin wakeup capable. If uart pads was used in
+>
+> Nitpick.. this should say "were used" here =A0 =A0 =A0 =A0 =A0 =A0 =A0=
+ =A0 ^^^
 
-On 5/10/2012 7:29 PM, Paul Walmsley wrote:
-> During kernel init, the AM3505/AM3517 UART4 cannot complete its softr=
-eset:
->
-> omap_hwmod: uart4: softreset failed (waited 10000 usec)
->
-> This also results in another warning later in the boot process:
->
-> omap_hwmod: uart4: enabled state can only be entered from initialized=
-, idle, or disabled state
->
->> From empirical observation, the AM35xx UART4 IP block requires eithe=
-r
-> uart1_fck or uart2_fck to be enabled while UART4 resets.  Otherwise
-> the reset will never complete.  So this patch adds uart1_fck as an
-> optional clock for UART4 and adds the appropriate hwmod flag to cause
-> uart1_fck to be enabled during the reset process.  (The choice of
-> uart1_fck over uart2_fck was arbitrary.)
->
-> Unfortunately this observation raises many questions.  Is it necessar=
-y
-> for uart1_fck or uart2_fck to be controlled with uart4_fck for the
-> UART4 to work correctly?  What exactly do the AM35xx UART4 clock
-> tree and the related PRCM idle management FSMs look like?  If anyone
-> has the ability to answer these questions through empirical functiona=
-l
-> testing, or hardware information from the AM35xx designers, it would
-> be greatly appreciated.
-
-I do not have any clue about that chip, but is this clock really what i=
-t=20
-is supposed to be? I mean, isn't the uart1_fck the parent of all the=20
-UART fck or something like that. Don't we just have an issue becasue th=
-e=20
-clock names are not accurate?
-
-Regards,
-Benoit
+will change this.
 
 >
-> Cc: Beno=C3=AEt Cousson<b-cousson@ti.com>
-> Cc: Kyle Manna<kyle.manna@fuel7.com>
-> Cc: Mark A. Greer<mgreer@animalcreek.com>
-> Cc: Ranjith Lohithakshan<ranjithl@ti.com>
-> Signed-off-by: Paul Walmsley<paul@pwsan.com>
-> ---
->   arch/arm/mach-omap2/clock3xxx_data.c       |    8 ++++++--
->   arch/arm/mach-omap2/omap_hwmod_3xxx_data.c |   17 +++++++++++++++++
->   2 files changed, 23 insertions(+), 2 deletions(-)
+>> --- a/arch/arm/mach-omap2/serial.c
+>> +++ b/arch/arm/mach-omap2/serial.c
+>> @@ -295,8 +353,7 @@ void __init omap_serial_board_init(struct omap_u=
+art_port_info *info)
+>> =A0 =A0 =A0 =A0 =A0 =A0 =A0 bdata.pads =3D NULL;
+>> =A0 =A0 =A0 =A0 =A0 =A0 =A0 bdata.pads_cnt =3D 0;
+>>
+>> - =A0 =A0 =A0 =A0 =A0 =A0 if (cpu_is_omap44xx() || cpu_is_omap34xx()=
+)
+>> - =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 omap_serial_fill_default_p=
+ads(&bdata);
+>> + =A0 =A0 =A0 =A0 =A0 =A0 omap_serial_check_wakeup(&bdata, uart);
 >
-> diff --git a/arch/arm/mach-omap2/clock3xxx_data.c b/arch/arm/mach-oma=
-p2/clock3xxx_data.c
-> index 11644bf..12c64db 100644
-> --- a/arch/arm/mach-omap2/clock3xxx_data.c
-> +++ b/arch/arm/mach-omap2/clock3xxx_data.c
-> @@ -3201,8 +3201,12 @@ static struct clk vpfe_fck =3D {
->   };
+> Should this section become:
 >
->   /*
-> - * The UART1/2 functional clock acts as the functional
-> - * clock for UART4. No separate fclk control available.
-> + * The UART1/2 functional clock acts as the functional clock for
-> + * UART4. No separate fclk control available.  XXX Well now we have =
-a
-> + * uart4_fck that is apparently used as the UART4 functional clock,
-> + * but it also seems that uart1_fck or uart2_fck are still needed, a=
-t
-> + * least for UART4 softresets to complete.  This really needs
-> + * clarification.
->    */
->   static struct clk uart4_ick_am35xx =3D {
->   	.name		=3D "uart4_ick",
-> diff --git a/arch/arm/mach-omap2/omap_hwmod_3xxx_data.c b/arch/arm/ma=
-ch-omap2/omap_hwmod_3xxx_data.c
-> index c939131..c6653a80 100644
-> --- a/arch/arm/mach-omap2/omap_hwmod_3xxx_data.c
-> +++ b/arch/arm/mach-omap2/omap_hwmod_3xxx_data.c
-> @@ -535,6 +535,20 @@ static struct omap_hwmod_dma_info am35xx_uart4_s=
-dma_reqs[] =3D {
->   	{ .dma_req =3D -1 }
->   };
+> =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0if (!info) {
+> =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0omap_serial_check_wake=
+up(&bdata, uart);
+> =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0omap_serial_init_port(=
+&bdata, NULL);
+> =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0} else {
+> =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0omap_serial_init_port(=
+&bdata, &info[uart->num]);
+> =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0}
 >
-> +/*
-> + * XXX AM35xx UART4 cannot complete its softreset without uart1_fck =
-or
-> + * uart2_fck being enabled.  So we add uart1_fck as an optional cloc=
-k,
-> + * below, and set the HWMOD_CONTROL_OPT_CLKS_IN_RESET.  This really
-> + * should not be needed.  The functional clock structure of the AM35=
-xx
-> + * UART4 is extremely unclear and opaque; it is unclear what the rol=
-e
-> + * of uart1/2_fck is for the UART4.  Any clarification from either
-> + * empirical testing or the AM3505/3517 hardware designers would be
-> + * most welcome.
-> + */
-> +static struct omap_hwmod_opt_clk am35xx_uart4_opt_clks[] =3D {
-> +	{ .role =3D "softreset_uart1_fck", .clk =3D "uart1_fck" },
-> +};
-> +
->   static struct omap_hwmod am35xx_uart4_hwmod =3D {
->   	.name		=3D "uart4",
->   	.mpu_irqs	=3D am35xx_uart4_mpu_irqs,
-> @@ -549,6 +563,9 @@ static struct omap_hwmod am35xx_uart4_hwmod =3D {
->   			.idlest_idle_bit =3D AM35XX_ST_UART4_SHIFT,
->   		},
->   	},
-> +	.opt_clks	=3D am35xx_uart4_opt_clks,
-> +	.opt_clks_cnt	=3D ARRAY_SIZE(am35xx_uart4_opt_clks),
-> +	.flags		=3D HWMOD_CONTROL_OPT_CLKS_IN_RESET,
->   	.class		=3D&omap2_uart_class,
->   };
->
->
->
+> As if you have bdata, then there should not be anything to mux,
+> right?
 
+populating bdata should not depend on port_info,
+omap_serial_board_init takes only port info parameter and tries to popu=
+late
+wakeup parameter since it has not received the same from board file.
+And board file may or may not pass port info.
+
+So populating bdata -> for uart wakeup pin should not be coupled with
+availability of port info.
+
+--
+Thanks,
+Govindraj.R
 --
 To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
 n
