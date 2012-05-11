@@ -1,48 +1,60 @@
-From: "Cousson, Benoit" <b-cousson@ti.com>
-Subject: Re: [PATCH 3/3] ARM: OMAP: AM35xx: fix UART4 softreset
-Date: Fri, 11 May 2012 11:41:47 +0200
-Message-ID: <4FACDEDB.7030903@ti.com>
-References: <20120510172449.13418.66815.stgit@dusk> <20120510172918.13418.64781.stgit@dusk> <4FACD255.3080702@ti.com> <alpine.DEB.2.00.1205110316500.3201@utopia.booyaka.com> <4FACDC63.7060605@ti.com> <alpine.DEB.2.00.1205110333240.3201@utopia.booyaka.com>
+From: joseph daniel <josephdanielwalter@gmail.com>
+Subject: Re: [PATCH] usb/dwc3: Fix the dwc3 dependency
+Date: Fri, 11 May 2012 15:39:10 +0530
+Message-ID: <CAFDqYy02=wMSqtXxsU0c+sZL++1BPvUz4yMEfGthzGr98O5=xw@mail.gmail.com>
+References: <1336715724-8441-1-git-send-email-josephdanielwalter@gmail.com>
+	<20120511075713.GA14284@arwen.pp.htv.fi>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="ISO-8859-1"; format=flowed
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from comal.ext.ti.com ([198.47.26.152]:60925 "EHLO comal.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S932156Ab2EKJpO (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Fri, 11 May 2012 05:45:14 -0400
-In-Reply-To: <alpine.DEB.2.00.1205110333240.3201@utopia.booyaka.com>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <20120511075713.GA14284@arwen.pp.htv.fi>
+Sender: linux-kernel-owner@vger.kernel.org
+To: balbi@ti.com
+Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>, linux-usb@vger.kernel.org, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Paul Walmsley <paul@pwsan.com>
-Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Kyle Manna <kyle.manna@fuel7.com>, Ranjith Lohithakshan <ranjithl@ti.com>, "Mark A. Greer" <mgreer@animalcreek.com>
 
-On 5/11/2012 11:35 AM, Paul Walmsley wrote:
-> On Fri, 11 May 2012, Cousson, Benoit wrote:
->
->> On 5/11/2012 11:22 AM, Paul Walmsley wrote:
+Hi Felipe,
+
+On Fri, May 11, 2012 at 1:27 PM, Felipe Balbi <balbi@ti.com> wrote:
+> On Fri, May 11, 2012 at 11:25:24AM +0530, joseph daniel wrote:
+>> The warning shown up when ran with randconfig,
 >>
->>> On the rest of the OMAPs, as far as I know, the UART clocks are all
->>> separate.
+>> warning: (USB_DWC3) selects USB_XHCI_PLATFORM which has unmet direct=
+ dependencies (USB_SUPPORT && USB_XHCI_HCD)
 >>
->> In fact, not really. The same PER_48M_GFCLK clock is used for every UART
->> instances in OMAP4. We do have a separate modulemode for each UART but as far
->> as clocks are concerned, the source clock is the same.
+>> Signed-off-by: joseph daniel <josephdanielwalter@gmail.com>
+>> ---
+>> =A0drivers/usb/dwc3/Kconfig | =A0 =A02 +-
+>> =A01 file changed, 1 insertion(+), 1 deletion(-)
+>>
+>> diff --git a/drivers/usb/dwc3/Kconfig b/drivers/usb/dwc3/Kconfig
+>> index d8f741f..68271fa 100644
+>> --- a/drivers/usb/dwc3/Kconfig
+>> +++ b/drivers/usb/dwc3/Kconfig
+>> @@ -1,6 +1,6 @@
+>> =A0config USB_DWC3
+>> =A0 =A0 =A0 tristate "DesignWare USB3 DRD Core Support"
+>> - =A0 =A0 depends on (USB && USB_GADGET)
+>> + =A0 =A0 depends on (USB && USB_SUPPORT && USB_XCHI_HCD && USB_GADG=
+ET)
+> =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0=
+ =A0 =A0 =A0 =A0 =A0^^^^
+> =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0=
+ =A0 =A0 =A0 =A0 =A0typo
 >
-> By "separate" I mean that they are all independently gated. This does not
-> appear to be the case with AM3517.  Or perhaps it is the case and
-> something isn't right with the idle management FSMs.
+> I would prefer the select to change:
+>
+> select XHCI_PLATFORM if (USB_SUPPORT && USB_XHCI_HCD)
+>
+will do this and send out a patch shotly.
+> or something similar.
+>
+>> =A0 =A0 =A0 select USB_OTG_UTILS
+>> =A0 =A0 =A0 select USB_GADGET_DUALSPEED
+>> =A0 =A0 =A0 select USB_GADGET_SUPERSPEED
+>
+> --
+> balbi
 
-But they are not separately gated for OMAP4 either. This is the 
-modulemode trick that make us think that, but it just means that the 
-PRCM should ensure that this clock is needed when at least one UART 
-modulemode is enabled. In fact the SPI modules are using the same clock.
-
-The modulemode is used to do some reference counting, but the gating is 
-done globally. It was the same with the FCK_EN and ICK_EN in OMAP2&3.
-
-The PRCM spec show only one global gating between FUNC_48M_FCLK and 
-PER_48M_GFCLK. All the modules are sharing the exact same clock.
-
-Regards,
-Benoit
+Thanks
