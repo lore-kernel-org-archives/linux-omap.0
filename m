@@ -1,144 +1,53 @@
-From: "S, Venkatraman" <svenkatr@ti.com>
-Subject: Re: [PATCHv2 00/16] [FS, MM, block, MMC]: eMMC High Priority
- Interrupt Feature
-Date: Sat, 12 May 2012 00:48:57 +0530
-Message-ID: <CANfBPZ9jHfX6tyrOx=9E+L+Z0JzXMqjMYK++Q53C4TJFSujoGg@mail.gmail.com>
-References: <1336054995-22988-1-git-send-email-svenkatr@ti.com>
- <4FA8CF5E.1070202@kernel.org> <CANfBPZ-d-0FqY8Gruv+KDNoL3+FoQ68JEnxya5PydhY80x8yhA@mail.gmail.com>
- <4FA9BE10.1030007@kernel.org>
+From: Tony Lindgren <tony@atomide.com>
+Subject: [GIT PULL] few omap fixups for v3.5 merge window
+Date: Fri, 11 May 2012 12:22:31 -0700
+Message-ID: <20120511192230.GV21851@atomide.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aog101.obsmtp.com ([74.125.149.67]:55516 "EHLO
-	na3sys009aog101.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1760608Ab2EKTTV convert rfc822-to-8bit
-	(ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Fri, 11 May 2012 15:19:21 -0400
-Received: by bkcjm19 with SMTP id jm19so3080747bkc.0
-        for <linux-omap@vger.kernel.org>; Fri, 11 May 2012 12:19:19 -0700 (PDT)
-In-Reply-To: <4FA9BE10.1030007@kernel.org>
+Received: from mho-01-ewr.mailhop.org ([204.13.248.71]:37604 "EHLO
+	mho-01-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1760812Ab2EKTWg (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 11 May 2012 15:22:36 -0400
+Content-Disposition: inline
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Minchan Kim <minchan@kernel.org>
-Cc: linux-mmc@vger.kernel.org, cjb@laptop.org, linux-mm@kvack.org, linux-fsdevel@vger.kernel.org, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org, arnd.bergmann@linaro.org, alex.lemberg@sandisk.com, ilan.smith@sandisk.com, lporzio@micron.com, rmk+kernel@arm.linux.org.uk
+To: Arnd Bergmann <arnd@arndb.de>, Olof Johansson <olof@lixom.net>
+Cc: linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org
 
-On Wed, May 9, 2012 at 6:15 AM, Minchan Kim <minchan@kernel.org> wrote:
-> On 05/09/2012 01:31 AM, S, Venkatraman wrote:
->
->> On Tue, May 8, 2012 at 1:16 PM, Minchan Kim <minchan@kernel.org> wro=
-te:
->>> On 05/03/2012 11:22 PM, Venkatraman S wrote:
->>>
->>>> Standard eMMC (Embedded MultiMedia Card) specification expects to =
-execute
->>>> one request at a time. If some requests are more important than ot=
-hers, they
->>>> can't be aborted while the flash procedure is in progress.
->>>>
->>>> New versions of the eMMC standard (4.41 and above) specfies a feat=
-ure
->>>> called High Priority Interrupt (HPI). This enables an ongoing tran=
-saction
->>>> to be aborted using a special command (HPI command) so that the ca=
-rd is ready
->>>> to receive new commands immediately. Then the new request can be s=
-ubmitted
->>>> to the card, and optionally the interrupted command can be resumed=
- again.
->>>>
->>>> Some restrictions exist on when and how the command can be used. F=
-or example,
->>>> only write and write-like commands (ERASE) can be preempted, and t=
-he urgent
->>>> request must be a read.
->>>>
->>>> In order to support this in software,
->>>> a) At the top level, some policy decisions have to be made on what=
- is
->>>> worth preempting for.
->>>> =A0 =A0 =A0 This implementation uses the demand paging requests an=
-d swap
->>>> read requests as potential reads worth preempting an ongoing long =
-write.
->>>> =A0 =A0 =A0 This is expected to provide improved responsiveness fo=
-r smarphones
->>>> with multitasking capabilities - example would be launch a email a=
-pplication
->>>> while a video capture session (which causes long writes) is ongoin=
-g.
->>>
->>>
->>> Do you have a number to prove it's really big effective?
->>
->> What type of benchmarks would be appropriate to post ?
->> As you know, the response time of a card would vary depending on
->> whether the flash device
->> has enough empty blocks to write into and doesn't have to resort to =
-GC during
->> write requests.
->> Macro benchmarks like iozone etc would be inappropriate here, as the=
-y won't show
->> the latency effects of individual write requests hung up doing page
->> reclaim, which happens
->> once in a while.
->
->
-> We don't have such special benchmark so you need time to think how to=
- prove it.
-> IMHO, you can use run-many-x-apps.sh which checks elapsed time to act=
-ivate programs
-> by posting by Wu long time ago.
->
-> http://www.spinics.net/lists/linux-mm/msg09653.html
->
-> Of course, your eMMC is used above 80~90% for triggering GC stress an=
-d
-> your memory should be used up by dirty pages to happen reclaim.
->
->
->>>
->>> What I have a concern is when we got low memory situation.
->>> Then, writing speed for page reclaim is important for response.
->>> If we allow read preempt write and write is delay, it means read pa=
-th takes longer time to
->>> get a empty buffer pages in reclaim. In such case, it couldn't be g=
-ood.
->>>
->>
->> I agree. But when writes are delayed anyway as it exceeds
->> hpi_time_threshold (the window
->> available for invoking HPI), it means that the device is in GC mode
->> and either read or write
->> could be equally delayed. =A0Note that even in case of interrupting =
-a
->> write, a single block write
->> (which usually is too short to be interrupted, as designed) is
->> sufficient for doing a page reclaim,
->> and further write requests (including multiblock) would not be subje=
-ct
->> to HPI, as they will
->> complete within the average time.
->
->
-> My point is that it would be better for read to not preempt write-for=
--page_reclaim.
-> And we can identify it by PG_reclaim. You can get the idea.
->
-> Anyway, HPI is only feature of a device of many storages and you are =
-requiring modification
-> of generic layers although it's not big. So for getting justification=
- and attracting many
-> core guys(MM,FS,BLOCK), you should provide data at least.
->
-Hi Kim,
- Apologies for a delayed response. I am studying your suggestions and
-will get back with
-some changes and also some profiling data.
+Hi Arnd & Olof,
+
+Here are the fixes needed for the regressions caused by
+omap-cleanup-sparse-for-v3.5. I suggest pulling this into
+arm-soc/omap/cleanup-sparse where the issues got introduced.
+
 Regards,
-Venkat.
---
-To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+
+Tony
+
+
+The following changes since commit 09f45b83109cb8e23a06d5efb1096a08a9545974:
+
+  Merge tag 'omap-cleanup-a2-for-3.5' of git://git.kernel.org/pub/scm/linux/kernel/git/pjw/omap-pending into cleanup-sparse (2012-04-18 10:09:26 -0700)
+
+are available in the git repository at:
+
+
+  git://git.kernel.org/pub/scm/linux/kernel/git/tmlind/linux-omap fixes-for-cleanup
+
+for you to fetch changes up to 19b08b33fa4c60d66d4e341d4d1d9a6e86ffc9e6:
+
+  ARM: OMAP: OTG integration: fix compiler warning (2012-05-11 09:56:43 -0700)
+
+----------------------------------------------------------------
+Turns out the earlier omap-cleanup-sparse-for-v3.5
+up introduced one compile issue and a new warning.
+
+----------------------------------------------------------------
+Paul Walmsley (2):
+      ARM: OMAP1: USB: fix ocpi_enable compile problem on non-1610 builds
+      ARM: OMAP: OTG integration: fix compiler warning
+
+ arch/arm/mach-omap1/common.h |    4 ++++
+ arch/arm/plat-omap/usb.c     |    4 +++-
+ 2 files changed, 7 insertions(+), 1 deletion(-)
