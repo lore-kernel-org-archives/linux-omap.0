@@ -1,12 +1,12 @@
 From: "Mark A. Greer" <mgreer@animalcreek.com>
-Subject: [PATCH 2/2] arm: omap3: am35x: Disable hlt when using Davinci EMAC
-Date: Fri, 11 May 2012 14:12:58 -0700
-Message-ID: <1336770778-23044-3-git-send-email-mgreer@animalcreek.com>
+Subject: [PATCH 1/2] arm: omap3: am35x: Add Davinci EMAC/MDIO hwmod support
+Date: Fri, 11 May 2012 14:12:57 -0700
+Message-ID: <1336770778-23044-2-git-send-email-mgreer@animalcreek.com>
 References: <1336770778-23044-1-git-send-email-mgreer@animalcreek.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail20.dotsterhost.com ([66.11.232.73]:55322 "EHLO
+Received: from mail20.dotsterhost.com ([66.11.232.73]:55317 "EHLO
 	mail20.dotsterhost.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1761008Ab2EKVNJ (ORCPT
+	with ESMTP id S1761007Ab2EKVNJ (ORCPT
 	<rfc822;linux-omap@vger.kernel.org>); Fri, 11 May 2012 17:13:09 -0400
 In-Reply-To: <1336770778-23044-1-git-send-email-mgreer@animalcreek.com>
 Sender: linux-omap-owner@vger.kernel.org
@@ -16,166 +16,268 @@ Cc: linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org, "Mark A. G
 
 From: "Mark A. Greer" <mgreer@animalcreek.com>
 
-The am35x family of SoCs has a Davinci EMAC ethernet
-controller on-chip.  Unfortunately, the EMAC is unable
-to wake the PRCM when there is network activity which
-leads to a hung or extremely slow system when the MPU
-has executed a 'wfi' instruction (because of pm_idle
-or CPUidle).  To prevent this, add hooks to the EMAC
-pm_runtime suspend/resume calls so that hlt is disabled
-whenever the EMAC is in use.
+Add hwmod support for the EMAC (and MDIO)
+ethernet controller that's on the am35x
+family of SoC's.
 
 Signed-off-by: Mark A. Greer <mgreer@animalcreek.com>
 ---
- arch/arm/mach-omap2/am35xx-emac.c     |   44 +++++++++++++++++++++++++++++----
- arch/arm/mach-omap2/am35xx-emac.h     |   16 +++++++++---
- arch/arm/mach-omap2/board-am3517evm.c |    3 ++-
- arch/arm/mach-omap2/board-cm-t3517.c  |    3 ++-
- 4 files changed, 56 insertions(+), 10 deletions(-)
+ arch/arm/mach-omap2/am35xx-emac.c          |   92 ++++++++++++++--------------
+ arch/arm/mach-omap2/clock3xxx_data.c       |    2 +-
+ arch/arm/mach-omap2/include/mach/am35xx.h  |    2 +
+ arch/arm/mach-omap2/omap_hwmod_3xxx_data.c |   85 +++++++++++++++++++++++++
+ 4 files changed, 135 insertions(+), 46 deletions(-)
 
 diff --git a/arch/arm/mach-omap2/am35xx-emac.c b/arch/arm/mach-omap2/am35xx-emac.c
-index 3bb5cb3..22ff968 100644
+index 1f97e74..3bb5cb3 100644
 --- a/arch/arm/mach-omap2/am35xx-emac.c
 +++ b/arch/arm/mach-omap2/am35xx-emac.c
-@@ -23,6 +23,37 @@
- #include "control.h"
- #include "am35xx-emac.h"
- 
-+/*
-+ * Default pm_lats for the am35x.
-+ * The net effect of using am35xx_emac_pm_lats[] is that
-+ * pm_idle or CPUidle won't be called while the emac
-+ * interface is open.  This is required because the
-+ * EMAC can't wake up PRCM so if the MPU is executing
-+ * a 'wfi' instruction (e.g., from pm_idle or CPUidle),
-+ * it won't break out of it due to emac activity.
-+ */
-+static int am35xx_emac_deactivate_func(struct omap_device *od)
-+{
-+	enable_hlt();
-+	return omap_device_idle_hwmods(od);
-+}
-+
-+static int am35xx_emac_activate_func(struct omap_device *od)
-+{
-+	disable_hlt();
-+	return omap_device_enable_hwmods(od);
-+}
-+
-+struct omap_device_pm_latency am35xx_emac_pm_lats[] = {
-+	{
-+		.deactivate_func	= am35xx_emac_deactivate_func,
-+		.activate_func		= am35xx_emac_activate_func,
-+		.flags			= OMAP_DEVICE_LATENCY_AUTO_ADJUST,
-+	},
-+};
-+
-+int am35xx_emac_pm_lats_size = ARRAY_SIZE(am35xx_emac_pm_lats);
-+
- static void am35xx_enable_emac_int(void)
- {
- 	u32 regval;
-@@ -61,12 +92,13 @@ static struct emac_platform_data am35xx_emac_pdata = {
- static struct mdio_platform_data am35xx_mdio_pdata;
- 
- static int __init omap_davinci_emac_dev_init(struct omap_hwmod *oh,
--		void *pdata, int pdata_len)
-+		void *pdata, int pdata_len,
-+		struct omap_device_pm_latency *pm_lats, int pm_lats_size)
- {
- 	struct platform_device *pdev;
- 
- 	pdev = omap_device_build(oh->class->name, 0, oh, pdata, pdata_len,
--			NULL, 0, false);
-+			pm_lats, pm_lats_size, false);
- 	if (IS_ERR(pdev)) {
- 		WARN(1, "Can't build omap_device for %s:%s.\n",
- 					oh->class->name, oh->name);
-@@ -76,7 +108,8 @@ static int __init omap_davinci_emac_dev_init(struct omap_hwmod *oh,
- 	return 0;
- }
- 
--void __init am35xx_emac_init(unsigned long mdio_bus_freq, u8 rmii_en)
-+void __init am35xx_emac_init(unsigned long mdio_bus_freq, u8 rmii_en,
-+		struct omap_device_pm_latency *pm_lats, int pm_lats_size)
- {
- 	struct omap_hwmod *oh;
- 	u32 regval;
-@@ -91,7 +124,7 @@ void __init am35xx_emac_init(unsigned long mdio_bus_freq, u8 rmii_en)
- 	am35xx_mdio_pdata.bus_freq = mdio_bus_freq;
- 
- 	ret = omap_davinci_emac_dev_init(oh, &am35xx_mdio_pdata,
--					 sizeof(am35xx_mdio_pdata));
-+					 sizeof(am35xx_mdio_pdata), NULL, 0);
- 	if (ret) {
- 		pr_err("Could not build davinci_mdio hwmod device\n");
- 		return;
-@@ -106,7 +139,8 @@ void __init am35xx_emac_init(unsigned long mdio_bus_freq, u8 rmii_en)
- 	am35xx_emac_pdata.rmii_en = rmii_en;
- 
- 	ret = omap_davinci_emac_dev_init(oh, &am35xx_emac_pdata,
--					 sizeof(am35xx_emac_pdata));
-+					 sizeof(am35xx_emac_pdata),
-+					 pm_lats, pm_lats_size);
- 	if (ret) {
- 		pr_err("Could not build davinci_emac hwmod device\n");
- 		return;
-diff --git a/arch/arm/mach-omap2/am35xx-emac.h b/arch/arm/mach-omap2/am35xx-emac.h
-index 15c6f9c..7c23808 100644
---- a/arch/arm/mach-omap2/am35xx-emac.h
-+++ b/arch/arm/mach-omap2/am35xx-emac.h
-@@ -6,10 +6,20 @@
-  * published by the Free Software Foundation.
+@@ -15,27 +15,13 @@
+  * General Public License for more details.
   */
  
+-#include <linux/clk.h>
++#include <linux/err.h>
+ #include <linux/davinci_emac.h>
+-#include <linux/platform_device.h>
+-#include <plat/irqs.h>
++#include <asm/system.h>
 +#include <plat/omap_device.h>
-+
- #define AM35XX_DEFAULT_MDIO_FREQUENCY	1000000
+ #include <mach/am35xx.h>
+-
+ #include "control.h"
+-
+-static struct mdio_platform_data am35xx_emac_mdio_pdata;
+-
+-static struct resource am35xx_emac_mdio_resources[] = {
+-	DEFINE_RES_MEM(AM35XX_IPSS_EMAC_BASE + AM35XX_EMAC_MDIO_OFFSET, SZ_4K),
+-};
+-
+-static struct platform_device am35xx_emac_mdio_device = {
+-	.name		= "davinci_mdio",
+-	.id		= 0,
+-	.num_resources	= ARRAY_SIZE(am35xx_emac_mdio_resources),
+-	.resource	= am35xx_emac_mdio_resources,
+-	.dev.platform_data = &am35xx_emac_mdio_pdata,
+-};
++#include "am35xx-emac.h"
  
--#if defined(CONFIG_TI_DAVINCI_EMAC) || defined(CONFIG_TI_DAVINCI_EMAC_MODULE)
--void am35xx_emac_init(unsigned long mdio_bus_freq, u8 rmii_en);
-+#if IS_ENABLED(CONFIG_TI_DAVINCI_EMAC)
-+extern struct omap_device_pm_latency am35xx_emac_pm_lats[];
-+extern int am35xx_emac_pm_lats_size;
-+
-+void am35xx_emac_init(unsigned long mdio_bus_freq, u8 rmii_en,
-+		struct omap_device_pm_latency *pm_lats, int pm_lats_size);
- #else
--static inline void am35xx_emac_init(unsigned long mdio_bus_freq, u8 rmii_en) {}
-+#define am35xx_emac_pm_lats		NULL
-+#define am35xx_emac_pm_lats_size	0
-+
-+static inline void am35xx_emac_init(unsigned long mdio_bus_freq, u8 rmii_en,
-+		struct omap_device_pm_latency *pm_lats, int pm_lats_size) {}
- #endif
-diff --git a/arch/arm/mach-omap2/board-am3517evm.c b/arch/arm/mach-omap2/board-am3517evm.c
-index 3645285..fe3a304 100644
---- a/arch/arm/mach-omap2/board-am3517evm.c
-+++ b/arch/arm/mach-omap2/board-am3517evm.c
-@@ -385,7 +385,8 @@ static void __init am3517_evm_init(void)
- 	i2c_register_board_info(1, am3517evm_i2c1_boardinfo,
- 				ARRAY_SIZE(am3517evm_i2c1_boardinfo));
- 	/*Ethernet*/
--	am35xx_emac_init(AM35XX_DEFAULT_MDIO_FREQUENCY, 1);
-+	am35xx_emac_init(AM35XX_DEFAULT_MDIO_FREQUENCY, 1,
-+			 am35xx_emac_pm_lats, am35xx_emac_pm_lats_size);
+ static void am35xx_enable_emac_int(void)
+ {
+@@ -72,41 +58,57 @@ static struct emac_platform_data am35xx_emac_pdata = {
+ 	.interrupt_disable	= am35xx_disable_emac_int,
+ };
  
- 	/* MUSB */
- 	am3517_evm_musb_init();
-diff --git a/arch/arm/mach-omap2/board-cm-t3517.c b/arch/arm/mach-omap2/board-cm-t3517.c
-index 9e66e16..0a3dc7a 100644
---- a/arch/arm/mach-omap2/board-cm-t3517.c
-+++ b/arch/arm/mach-omap2/board-cm-t3517.c
-@@ -292,7 +292,8 @@ static void __init cm_t3517_init(void)
- 	cm_t3517_init_rtc();
- 	cm_t3517_init_usbh();
- 	cm_t3517_init_hecc();
--	am35xx_emac_init(AM35XX_DEFAULT_MDIO_FREQUENCY, 1);
-+	am35xx_emac_init(AM35XX_DEFAULT_MDIO_FREQUENCY, 1,
-+			 am35xx_emac_pm_lats, am35xx_emac_pm_lats_size);
- }
+-static struct resource am35xx_emac_resources[] = {
+-	DEFINE_RES_MEM(AM35XX_IPSS_EMAC_BASE, 0x30000),
+-	DEFINE_RES_IRQ(INT_35XX_EMAC_C0_RXTHRESH_IRQ),
+-	DEFINE_RES_IRQ(INT_35XX_EMAC_C0_RX_PULSE_IRQ),
+-	DEFINE_RES_IRQ(INT_35XX_EMAC_C0_TX_PULSE_IRQ),
+-	DEFINE_RES_IRQ(INT_35XX_EMAC_C0_MISC_PULSE_IRQ),
+-};
++static struct mdio_platform_data am35xx_mdio_pdata;
  
- MACHINE_START(CM_T3517, "Compulab CM-T3517")
+-static struct platform_device am35xx_emac_device = {
+-	.name		= "davinci_emac",
+-	.id		= -1,
+-	.num_resources	= ARRAY_SIZE(am35xx_emac_resources),
+-	.resource	= am35xx_emac_resources,
+-	.dev		= {
+-		.platform_data	= &am35xx_emac_pdata,
+-	},
+-};
++static int __init omap_davinci_emac_dev_init(struct omap_hwmod *oh,
++		void *pdata, int pdata_len)
++{
++	struct platform_device *pdev;
++
++	pdev = omap_device_build(oh->class->name, 0, oh, pdata, pdata_len,
++			NULL, 0, false);
++	if (IS_ERR(pdev)) {
++		WARN(1, "Can't build omap_device for %s:%s.\n",
++					oh->class->name, oh->name);
++		return PTR_ERR(pdev);
++	}
++
++	return 0;
++}
+ 
+ void __init am35xx_emac_init(unsigned long mdio_bus_freq, u8 rmii_en)
+ {
+-	unsigned int regval;
+-	int err;
++	struct omap_hwmod *oh;
++	u32 regval;
++	int ret;
+ 
+-	am35xx_emac_pdata.rmii_en = rmii_en;
+-	am35xx_emac_mdio_pdata.bus_freq = mdio_bus_freq;
+-	err = platform_device_register(&am35xx_emac_device);
+-	if (err) {
+-		pr_err("AM35x: failed registering EMAC device: %d\n", err);
++	oh = omap_hwmod_lookup("davinci_mdio");
++	if (!oh) {
++		pr_err("Could not find davinci_mdio hwmod\n");
++		return;
++	}
++
++	am35xx_mdio_pdata.bus_freq = mdio_bus_freq;
++
++	ret = omap_davinci_emac_dev_init(oh, &am35xx_mdio_pdata,
++					 sizeof(am35xx_mdio_pdata));
++	if (ret) {
++		pr_err("Could not build davinci_mdio hwmod device\n");
+ 		return;
+ 	}
+ 
+-	err = platform_device_register(&am35xx_emac_mdio_device);
+-	if (err) {
+-		pr_err("AM35x: failed registering EMAC MDIO device: %d\n", err);
+-		platform_device_unregister(&am35xx_emac_device);
++	oh = omap_hwmod_lookup("davinci_emac");
++	if (!oh) {
++		pr_err("Could not find davinci_emac hwmod\n");
++		return;
++	}
++
++	am35xx_emac_pdata.rmii_en = rmii_en;
++
++	ret = omap_davinci_emac_dev_init(oh, &am35xx_emac_pdata,
++					 sizeof(am35xx_emac_pdata));
++	if (ret) {
++		pr_err("Could not build davinci_emac hwmod device\n");
+ 		return;
+ 	}
+ 
+diff --git a/arch/arm/mach-omap2/clock3xxx_data.c b/arch/arm/mach-omap2/clock3xxx_data.c
+index 12c64db..f2f422e 100644
+--- a/arch/arm/mach-omap2/clock3xxx_data.c
++++ b/arch/arm/mach-omap2/clock3xxx_data.c
+@@ -3478,7 +3478,7 @@ static struct omap_clk omap3xxx_clks[] = {
+ 	CLK(NULL,	"ipss_ick",	&ipss_ick,	CK_AM35XX),
+ 	CLK(NULL,	"rmii_ck",	&rmii_ck,	CK_AM35XX),
+ 	CLK(NULL,	"pclk_ck",	&pclk_ck,	CK_AM35XX),
+-	CLK("davinci_emac",	NULL,	&emac_ick,	CK_AM35XX),
++	CLK("davinci_emac.0",	NULL,	&emac_ick,	CK_AM35XX),
+ 	CLK("davinci_mdio.0",	NULL,	&emac_fck,	CK_AM35XX),
+ 	CLK("vpfe-capture",	"master",	&vpfe_ick,	CK_AM35XX),
+ 	CLK("vpfe-capture",	"slave",	&vpfe_fck,	CK_AM35XX),
+diff --git a/arch/arm/mach-omap2/include/mach/am35xx.h b/arch/arm/mach-omap2/include/mach/am35xx.h
+index f1e13d1..9559449 100644
+--- a/arch/arm/mach-omap2/include/mach/am35xx.h
++++ b/arch/arm/mach-omap2/include/mach/am35xx.h
+@@ -36,6 +36,8 @@
+ #define AM35XX_EMAC_CNTRL_MOD_OFFSET	(0x0)
+ #define AM35XX_EMAC_CNTRL_RAM_OFFSET	(0x20000)
+ #define AM35XX_EMAC_MDIO_OFFSET		(0x30000)
++#define AM35XX_IPSS_MDIO_BASE		(AM35XX_IPSS_EMAC_BASE + \
++						AM35XX_EMAC_MDIO_OFFSET)
+ #define AM35XX_EMAC_CNTRL_RAM_SIZE	(0x2000)
+ #define AM35XX_EMAC_RAM_ADDR		(AM3517_EMAC_BASE + \
+ 						AM3517_EMAC_CNTRL_RAM_OFFSET)
+diff --git a/arch/arm/mach-omap2/omap_hwmod_3xxx_data.c b/arch/arm/mach-omap2/omap_hwmod_3xxx_data.c
+index c6653a80..87d817d 100644
+--- a/arch/arm/mach-omap2/omap_hwmod_3xxx_data.c
++++ b/arch/arm/mach-omap2/omap_hwmod_3xxx_data.c
+@@ -3075,6 +3075,87 @@ static struct omap_hwmod_ocp_if omap3xxx_l4_core__usb_tll_hs = {
+ 	.user		= OCP_USER_MPU | OCP_USER_SDMA,
+ };
+ 
++/* am35xx has Davinci MDIO & EMAC */
++static struct omap_hwmod_class am35xx_mdio_class = {
++	.name = "davinci_mdio",
++};
++
++static struct omap_hwmod am35xx_mdio_hwmod = {
++	.name		= "davinci_mdio",
++	.class		= &am35xx_mdio_class,
++	.flags		= HWMOD_NO_IDLEST,
++};
++
++static struct omap_hwmod_ocp_if am35xx_mdio__l3 = {
++	.master		= &am35xx_mdio_hwmod,
++	.slave		= &omap3xxx_l3_main_hwmod,
++	.clk		= "emac_fck",
++	.user		= OCP_USER_MPU,
++};
++
++static struct omap_hwmod_addr_space am35xx_mdio_addrs[] = {
++	{
++		.pa_start	= AM35XX_IPSS_MDIO_BASE,
++		.pa_end		= AM35XX_IPSS_MDIO_BASE + SZ_4K - 1,
++		.flags		= ADDR_TYPE_RT,
++	},
++	{ }
++};
++
++/* l4_core -> davinci mdio  */
++static struct omap_hwmod_ocp_if am35xx_l4_core__mdio = {
++	.master		= &omap3xxx_l4_core_hwmod,
++	.slave		= &am35xx_mdio_hwmod,
++	.clk		= "emac_fck",
++	.addr		= am35xx_mdio_addrs,
++	.user		= OCP_USER_MPU,
++};
++
++static struct omap_hwmod_irq_info am35xx_emac_mpu_irqs[] = {
++	{ .name = "rxthresh",	.irq = INT_35XX_EMAC_C0_RXTHRESH_IRQ },
++	{ .name = "rx_pulse",	.irq = INT_35XX_EMAC_C0_RX_PULSE_IRQ },
++	{ .name = "tx_pulse",	.irq = INT_35XX_EMAC_C0_TX_PULSE_IRQ },
++	{ .name = "misc_pulse",	.irq = INT_35XX_EMAC_C0_MISC_PULSE_IRQ },
++	{ .irq = -1 }
++};
++
++static struct omap_hwmod_class am35xx_emac_class = {
++	.name = "davinci_emac",
++};
++
++static struct omap_hwmod am35xx_emac_hwmod = {
++	.name		= "davinci_emac",
++	.mpu_irqs	= am35xx_emac_mpu_irqs,
++	.class		= &am35xx_emac_class,
++	.flags		= HWMOD_NO_IDLEST,
++};
++
++/* l3_core -> davinci emac interface */
++static struct omap_hwmod_ocp_if am35xx_emac__l3 = {
++	.master		= &am35xx_emac_hwmod,
++	.slave		= &omap3xxx_l3_main_hwmod,
++	.clk		= "emac_ick",
++	.user		= OCP_USER_MPU,
++};
++
++static struct omap_hwmod_addr_space am35xx_emac_addrs[] = {
++	{
++		.pa_start	= AM35XX_IPSS_EMAC_BASE,
++		.pa_end		= AM35XX_IPSS_EMAC_BASE + 0x30000 - 1,
++		.flags		= ADDR_TYPE_RT,
++	},
++	{ }
++};
++
++/* l4_core -> davinci emac  */
++static struct omap_hwmod_ocp_if am35xx_l4_core__emac = {
++	.master		= &omap3xxx_l4_core_hwmod,
++	.slave		= &am35xx_emac_hwmod,
++	.clk		= "emac_ick",
++	.addr		= am35xx_emac_addrs,
++	.user		= OCP_USER_MPU,
++};
++
+ static struct omap_hwmod_ocp_if *omap3xxx_hwmod_ocp_ifs[] __initdata = {
+ 	&omap3xxx_l3_main__l4_core,
+ 	&omap3xxx_l3_main__l4_per,
+@@ -3200,6 +3281,10 @@ static struct omap_hwmod_ocp_if *am35xx_hwmod_ocp_ifs[] __initdata = {
+ 	&omap3xxx_l4_core__usb_tll_hs,
+ 	&omap3xxx_l4_core__es3plus_mmc1,
+ 	&omap3xxx_l4_core__es3plus_mmc2,
++	&am35xx_mdio__l3,
++	&am35xx_l4_core__mdio,
++	&am35xx_emac__l3,
++	&am35xx_l4_core__emac,
+ 	NULL
+ };
+ 
 -- 
 1.7.9.4
 
