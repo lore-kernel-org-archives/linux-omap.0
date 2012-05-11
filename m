@@ -1,71 +1,129 @@
-From: Stephen Warren <swarren@wwwdotorg.org>
-Subject: Re: [PATCH] pinctrl: Add generic pinctrl-simple driver that supports
- omap2+ padconf
-Date: Fri, 11 May 2012 15:04:39 -0600
-Message-ID: <4FAD7EE7.2070704@wwwdotorg.org>
-References: <20120504150342.GI5140@atomide.com> <20120504153251.GE7788@game.jcrosoft.org> <20120504163420.GA5613@atomide.com> <4FA42631.6060304@wwwdotorg.org> <20120504220809.GW5613@atomide.com> <4FAAD141.3090306@wwwdotorg.org> <20120509204925.GV5088@atomide.com> <4FABF553.20601@wwwdotorg.org> <20120510172722.GE21851@atomide.com> <4FAD65D8.30109@wwwdotorg.org> <20120511195147.GW21851@atomide.com>
+From: Jassi Brar <jaswinder.singh@linaro.org>
+Subject: Re: [PATCH V3 1/2] of: Add generic device tree DMA helpers
+Date: Sat, 12 May 2012 02:36:32 +0530
+Message-ID: <CAJe_Zhc8T-vR8fjFLyT4bz6dj=TUyx0F8k=fAPYn_MnbGW5LBg@mail.gmail.com>
+References: <1335820679-28721-1-git-send-email-jon-hunter@ti.com>
+	<4FA3F308.6030900@ti.com>
+	<CAJe_ZhfFhZVG4gyaaVUgeQedJiSE=zj9nE28XCNH9DkPVgqj=A@mail.gmail.com>
+	<201205041923.07620.arnd@arndb.de>
+	<CAJe_Zhe8jYd1j=ti6FvqxXL7i5mbgf0jqb-84sFMTeUqyAonpw@mail.gmail.com>
+	<4FA7F009.5010003@wwwdotorg.org>
+	<CAJe_ZheHFP9NZEiZfCvS3LL1k7xamzGq4Oep8gfmPRi6RR7R5Q@mail.gmail.com>
+	<4FA94B49.5050500@wwwdotorg.org>
+	<CAJe_Zhf0=Qnsgsc7U_GbKxc0_6DKj33QWs0UW2giyrVEjPnrvw@mail.gmail.com>
+	<4FAAC111.9020308@wwwdotorg.org>
+	<CAJe_Zhcrr2QqoY=H3=3EJLPQBjC3Yc43EDjqYXaNok9-T+=0yw@mail.gmail.com>
+	<4FABF445.3030105@wwwdotorg.org>
+	<CAJe_ZhduQuHnFyF20VnjZW9uz1szwL6O7=ow+tMqanmeHs58pQ@mail.gmail.com>
+	<4FAD6848.40700@wwwdotorg.org>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from avon.wwwdotorg.org ([70.85.31.133]:41067 "EHLO
-	avon.wwwdotorg.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932903Ab2EKVEn (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 11 May 2012 17:04:43 -0400
-In-Reply-To: <20120511195147.GW21851@atomide.com>
+Received: from mail-lpp01m010-f46.google.com ([209.85.215.46]:50350 "EHLO
+	mail-lpp01m010-f46.google.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S932903Ab2EKVGe convert rfc822-to-8bit
+	(ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Fri, 11 May 2012 17:06:34 -0400
+Received: by lahd3 with SMTP id d3so2197819lah.19
+        for <linux-omap@vger.kernel.org>; Fri, 11 May 2012 14:06:32 -0700 (PDT)
+In-Reply-To: <4FAD6848.40700@wwwdotorg.org>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Tony Lindgren <tony@atomide.com>
-Cc: Jean-Christophe PLAGNIOL-VILLARD <plagnioj@jcrosoft.com>, Linus Walleij <linus.walleij@linaro.org>, linux-omap@vger.kernel.org, Stephen Warren <swarren@nvidia.com>, linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+To: Stephen Warren <swarren@wwwdotorg.org>
+Cc: Arnd Bergmann <arnd@arndb.de>, Stephen Warren <swarren@nvidia.com>, Benoit Cousson <b-cousson@ti.com>, device-tree <devicetree-discuss@lists.ozlabs.org>, Nicolas Ferre <nicolas.ferre@atmel.com>, Rob Herring <rob.herring@calxeda.com>, Grant Likely <grant.likely@secretlab.ca>, Jon Hunter <jon-hunter@ti.com>, Russell King <linux@arm.linux.org.uk>, linux-omap <linux-omap@vger.kernel.org>, linux-arm <linux-arm-kernel@lists.infradead.org>
 
-On 05/11/2012 01:51 PM, Tony Lindgren wrote:
-> * Stephen Warren <swarren@wwwdotorg.org> [120511 12:21]:
->>
->> The mapping of GPIO to pinctrl pins would presumably be driven solely by
->> the HW design of the pin controller and GPIO, and not by the mux
->> selection in the pin controller (otherwise, I'd argue this isn't a
->> simple case that should be handled by pinctrl-simple).
->>
->> As such, I'd expect some properties/table at the top-level of the pin
->> controller object to describe the GPIO mapping. In turn, that implies
->> that the individual per-pin mux-selection/configuration nodes don't need
->> to describe any GPIO-related information.
-> 
-> Yes good point. I agree it's a HW design issue, and could be in the properties
-> for the pin controller object.
-> 
-> Just to summarize, the things to consider with the GPIO to mux mapping are:
-> 
-> 1. Having this table as static data in the driver is is not a nice
->    solution as it seems that we'd currently need six mapping tables for
->    omap2+ alone.
-> 
-> 2. This table is not needed for most of the (hundreds of) pins, it's
->    only needed for a few selected pins, let's say ten or so on an average
->    device. So there's no need to stuff the kernel with information about
->    the unused GPIO pins.
-> 
-> It seems that the conclusion here is that we don't need to worry about
-> GPIOs in the pinctrl-simple binding for now, and it can be added later
-> without having to change the basic binding.
-
-The one thing I wanted to resolve here wasn't so much the binding for
-GPIO interaction here, but the following comment:
-
-You wrote:
-> I wrote:
->> From a binding perspective, I don't see why you'd want to allow two cases:
->>
->> 1) One node with multiple entries in pinctrl-simple,cells
->> 2) Multiple nodes each with a single entry in pinctrl-simple,cells
->>
->> Why not only allow (1)?
+On 12 May 2012 00:58, Stephen Warren <swarren@wwwdotorg.org> wrote:
+> On 05/10/2012 01:59 PM, Jassi Brar wrote:
 >
-> Because we need to specify GPIO for some pins. There may be additional flags
-> too, we do have external DMA request lines for few pins available.. I'm not
-> saying pinctrl fwk should know about that, but it's a similar mapping of pins
-> to GPIO lines.
+>> I think arbitrary numerical tokens are a reasonable price to pay for=
+ the
+>> robustness and simplicity they bring.
+>
+> I have to disagree here.
+>
+> Using phandle+ID is almost as simple, and much more flexible. Global =
+IDs
+> have a number of disadvantages:
+>
+> a) You have to somehow keep them unique. Even with just a single .dts
+> file, that's going to be a little painful since there's no central ta=
+ble
+> of these IDs.
+>
+> What if the DT is composed of a bunch of chunks that represent plugga=
+ble
+> boards, which may be mixed/matched together depending on what the use=
+r
+> actually plugged in? Then, you have to be very careful to keep the n
+> different files' numbering ranges segregated, or conflicts will occur=
+=2E
+>
+You might want to revisit this point after working out the finer detail=
+s of what
+you propose for a client's specifier :)
 
-I'm asserting that since any GPIO mapping information would be at the
-top-level of the pinctrl-simple binding, we can in fact only allow
-option (1) above for the individual pin configuration nodes.
+>>
+>> Well, I doubt if there would ever be enough such platforms to warran=
+t a
+>> new generic framework. For now, I would leave that to be a matter be=
+tween
+>> the dmac driver and its DT node.
+>>
+>> Similarly let every dmac, being unique, require DT data in it's own =
+custom
+>> format - I don't believe we can find a generic DT format for every k=
+ind of
+>> dmac that does exist or would exist. (For ex, you found a way for RM=
+K's
+>> mux'ed req_lines, but what about assigning priorities to clients whi=
+ch is
+>> possible with PL08X dmacs but not most others?)
+>
+> Good question. Again thought that sounds a little like policy, so
+> perhaps should be negotiated at runtime rather than described in DT?
+>
+As much as we love everything to be runtime configurable, I am afraid i=
+t
+can't be. We can't add new calls to the dmaengine api for simply
+supporting specific features of various dmacs (priority in this case)
+Because that would mean ideally every client going through the mostly
+useless ritual of querying/setting those features and most dmacs
+just 'pretending' to support some, except for the rare ones that actual=
+ly do.
+So as much as these sound like policy, they would usually be directly
+hardcoded via dt for the machine or deducted by the dmac driver.
+
+>>
+>>> client0: i2s {
+>>> =A0 /* has 2 DMA request output signals: 0, 1 */
+>>> };
+>>>
+>>> client1: spdif {
+>>> =A0 /* has 2 DMA request signals: 0, 1 */
+>>> };
+>>>
+>> Do we also need to somehow tag these signals for the client to
+>> differentiate between TX and RX channel ?
+>
+> Yes, the client's DT binding would certainly need to describe how man=
+y
+> DMA request signals its HW generates, and give a unique ID to each. T=
+he
+> driver would need to request a DMA channel for a specific one of its =
+DMA
+> requests.
+>
+Did I read "give a unique ID to each" correctly ?
+Could you please take some time out to jot down an example of how a
+typical client's dma specifier should look.
+
+=46WIW, I think I can live with what you propose. Let us go for the kil=
+l.
+
+Thanks.
+--
+To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
