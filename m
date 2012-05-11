@@ -1,35 +1,27 @@
-From: Grant Likely <grant.likely@secretlab.ca>
-Subject: Re: [PATCH v2] gpio/omap: fix incorrect initialization of omap_gpio_mod_init
-Date: Fri, 11 May 2012 12:58:33 -0600
-Message-ID: <20120511185834.08DAB3E0791@localhost>
-References: <1335770412-1344-1-git-send-email-tarun.kanti@ti.com> <CANOLnOO3bSxoE-8TaXd_Tz=taPOZpfQY+z-=6c7Ovfpf+FCAuw@mail.gmail.com> <CAC83ZvLYmPr3qTRUUTom1iOA-czef9EVcM229UMDePnw8sbA+w@mail.gmail.com>
+From: Jourdan Hilaire <jourdanh@csu.fullerton.edu>
+Subject: =?ISO-8859-1?Q?=A3250=2C000=2E00_GBP=3F_Send_your_Answers?=
+Date: Fri, 11 May 2012 20:14:16 +0100
+Message-ID: <CAF8MGWMEb89yTNpKpOwKQ7MPnwgLfQi3BwGX9mmGzK-hSo9=Vw@mail.gmail.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-pz0-f46.google.com ([209.85.210.46]:51049 "EHLO
-	mail-pz0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1758451Ab2EKS6g (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 11 May 2012 14:58:36 -0400
-Received: by dady13 with SMTP id y13so3447875dad.19
-        for <linux-omap@vger.kernel.org>; Fri, 11 May 2012 11:58:36 -0700 (PDT)
-In-Reply-To: <CAC83ZvLYmPr3qTRUUTom1iOA-czef9EVcM229UMDePnw8sbA+w@mail.gmail.com>
+Received: from mail-pb0-f66.google.com ([209.85.160.66]:41048 "EHLO
+	mail-pb0-f66.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1759850Ab2EKTOR convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 11 May 2012 15:14:17 -0400
+Received: by pbbrp8 with SMTP id rp8so1457957pbb.1
+        for <linux-omap@vger.kernel.org>; Fri, 11 May 2012 12:14:17 -0700 (PDT)
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "DebBarma, Tarun Kanti" <tarun.kanti@ti.com>, Grazvydas Ignotas <notasas@gmail.com>
-Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Kevin Hilman <khilman@ti.com>
 
-On Mon, 7 May 2012 10:52:28 +0530, "DebBarma, Tarun Kanti" <tarun.kanti@ti.com> wrote:
-> Hi,
-> 
-> On Sun, May 6, 2012 at 3:25 AM, Grazvydas Ignotas <notasas@gmail.com> wrote:
-> > I've noticed that current mainline enables _all_ possible GPIO
-> > interrupts, this patch fixes that problem.
-> OK, thanks.
-> 
-> > Also Grant doesn't seem to be on CC so might not be able to pick this up.
-> I have added Cc: in the patch and was expecting that would take care.
-> Looks like that has not happened. Anyways, I have explicitly added in the email.
-
-I'm particularly bursty when it comes to patch review and applying.
-Sometimes it takes me a while to find time for maintainership work.
-
-g.
-
+Who won 2010 football world cup hosted by south Africa (A),brazil
+(B)Spain (C)USA. You have the chance to win =A3250,000.00 GBP? Send you=
+r
+Answers to Mr K.P. Plowman
+Email : mrk.p_plowman@yahoo.com.hk
+--
+To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
