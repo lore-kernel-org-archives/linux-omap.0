@@ -1,129 +1,181 @@
-From: Jassi Brar <jaswinder.singh@linaro.org>
-Subject: Re: [PATCH V3 1/2] of: Add generic device tree DMA helpers
-Date: Sat, 12 May 2012 02:36:32 +0530
-Message-ID: <CAJe_Zhc8T-vR8fjFLyT4bz6dj=TUyx0F8k=fAPYn_MnbGW5LBg@mail.gmail.com>
-References: <1335820679-28721-1-git-send-email-jon-hunter@ti.com>
-	<4FA3F308.6030900@ti.com>
-	<CAJe_ZhfFhZVG4gyaaVUgeQedJiSE=zj9nE28XCNH9DkPVgqj=A@mail.gmail.com>
-	<201205041923.07620.arnd@arndb.de>
-	<CAJe_Zhe8jYd1j=ti6FvqxXL7i5mbgf0jqb-84sFMTeUqyAonpw@mail.gmail.com>
-	<4FA7F009.5010003@wwwdotorg.org>
-	<CAJe_ZheHFP9NZEiZfCvS3LL1k7xamzGq4Oep8gfmPRi6RR7R5Q@mail.gmail.com>
-	<4FA94B49.5050500@wwwdotorg.org>
-	<CAJe_Zhf0=Qnsgsc7U_GbKxc0_6DKj33QWs0UW2giyrVEjPnrvw@mail.gmail.com>
-	<4FAAC111.9020308@wwwdotorg.org>
-	<CAJe_Zhcrr2QqoY=H3=3EJLPQBjC3Yc43EDjqYXaNok9-T+=0yw@mail.gmail.com>
-	<4FABF445.3030105@wwwdotorg.org>
-	<CAJe_ZhduQuHnFyF20VnjZW9uz1szwL6O7=ow+tMqanmeHs58pQ@mail.gmail.com>
-	<4FAD6848.40700@wwwdotorg.org>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+From: "Mark A. Greer" <mgreer@animalcreek.com>
+Subject: [PATCH 2/2] arm: omap3: am35x: Disable hlt when using Davinci EMAC
+Date: Fri, 11 May 2012 14:12:58 -0700
+Message-ID: <1336770778-23044-3-git-send-email-mgreer@animalcreek.com>
+References: <1336770778-23044-1-git-send-email-mgreer@animalcreek.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-lpp01m010-f46.google.com ([209.85.215.46]:50350 "EHLO
-	mail-lpp01m010-f46.google.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S932903Ab2EKVGe convert rfc822-to-8bit
-	(ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Fri, 11 May 2012 17:06:34 -0400
-Received: by lahd3 with SMTP id d3so2197819lah.19
-        for <linux-omap@vger.kernel.org>; Fri, 11 May 2012 14:06:32 -0700 (PDT)
-In-Reply-To: <4FAD6848.40700@wwwdotorg.org>
+Received: from mail20.dotsterhost.com ([66.11.232.73]:55322 "EHLO
+	mail20.dotsterhost.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1761008Ab2EKVNJ (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 11 May 2012 17:13:09 -0400
+In-Reply-To: <1336770778-23044-1-git-send-email-mgreer@animalcreek.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Stephen Warren <swarren@wwwdotorg.org>
-Cc: Arnd Bergmann <arnd@arndb.de>, Stephen Warren <swarren@nvidia.com>, Benoit Cousson <b-cousson@ti.com>, device-tree <devicetree-discuss@lists.ozlabs.org>, Nicolas Ferre <nicolas.ferre@atmel.com>, Rob Herring <rob.herring@calxeda.com>, Grant Likely <grant.likely@secretlab.ca>, Jon Hunter <jon-hunter@ti.com>, Russell King <linux@arm.linux.org.uk>, linux-omap <linux-omap@vger.kernel.org>, linux-arm <linux-arm-kernel@lists.infradead.org>
+To: paul@pwsan.com, khilman@ti.com
+Cc: linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org, "Mark A. Greer" <mgreer@animalcreek.com>
 
-On 12 May 2012 00:58, Stephen Warren <swarren@wwwdotorg.org> wrote:
-> On 05/10/2012 01:59 PM, Jassi Brar wrote:
->
->> I think arbitrary numerical tokens are a reasonable price to pay for=
- the
->> robustness and simplicity they bring.
->
-> I have to disagree here.
->
-> Using phandle+ID is almost as simple, and much more flexible. Global =
-IDs
-> have a number of disadvantages:
->
-> a) You have to somehow keep them unique. Even with just a single .dts
-> file, that's going to be a little painful since there's no central ta=
-ble
-> of these IDs.
->
-> What if the DT is composed of a bunch of chunks that represent plugga=
-ble
-> boards, which may be mixed/matched together depending on what the use=
-r
-> actually plugged in? Then, you have to be very careful to keep the n
-> different files' numbering ranges segregated, or conflicts will occur=
-=2E
->
-You might want to revisit this point after working out the finer detail=
-s of what
-you propose for a client's specifier :)
+From: "Mark A. Greer" <mgreer@animalcreek.com>
 
->>
->> Well, I doubt if there would ever be enough such platforms to warran=
-t a
->> new generic framework. For now, I would leave that to be a matter be=
-tween
->> the dmac driver and its DT node.
->>
->> Similarly let every dmac, being unique, require DT data in it's own =
-custom
->> format - I don't believe we can find a generic DT format for every k=
-ind of
->> dmac that does exist or would exist. (For ex, you found a way for RM=
-K's
->> mux'ed req_lines, but what about assigning priorities to clients whi=
-ch is
->> possible with PL08X dmacs but not most others?)
->
-> Good question. Again thought that sounds a little like policy, so
-> perhaps should be negotiated at runtime rather than described in DT?
->
-As much as we love everything to be runtime configurable, I am afraid i=
-t
-can't be. We can't add new calls to the dmaengine api for simply
-supporting specific features of various dmacs (priority in this case)
-Because that would mean ideally every client going through the mostly
-useless ritual of querying/setting those features and most dmacs
-just 'pretending' to support some, except for the rare ones that actual=
-ly do.
-So as much as these sound like policy, they would usually be directly
-hardcoded via dt for the machine or deducted by the dmac driver.
+The am35x family of SoCs has a Davinci EMAC ethernet
+controller on-chip.  Unfortunately, the EMAC is unable
+to wake the PRCM when there is network activity which
+leads to a hung or extremely slow system when the MPU
+has executed a 'wfi' instruction (because of pm_idle
+or CPUidle).  To prevent this, add hooks to the EMAC
+pm_runtime suspend/resume calls so that hlt is disabled
+whenever the EMAC is in use.
 
->>
->>> client0: i2s {
->>> =A0 /* has 2 DMA request output signals: 0, 1 */
->>> };
->>>
->>> client1: spdif {
->>> =A0 /* has 2 DMA request signals: 0, 1 */
->>> };
->>>
->> Do we also need to somehow tag these signals for the client to
->> differentiate between TX and RX channel ?
->
-> Yes, the client's DT binding would certainly need to describe how man=
-y
-> DMA request signals its HW generates, and give a unique ID to each. T=
-he
-> driver would need to request a DMA channel for a specific one of its =
-DMA
-> requests.
->
-Did I read "give a unique ID to each" correctly ?
-Could you please take some time out to jot down an example of how a
-typical client's dma specifier should look.
+Signed-off-by: Mark A. Greer <mgreer@animalcreek.com>
+---
+ arch/arm/mach-omap2/am35xx-emac.c     |   44 +++++++++++++++++++++++++++++----
+ arch/arm/mach-omap2/am35xx-emac.h     |   16 +++++++++---
+ arch/arm/mach-omap2/board-am3517evm.c |    3 ++-
+ arch/arm/mach-omap2/board-cm-t3517.c  |    3 ++-
+ 4 files changed, 56 insertions(+), 10 deletions(-)
 
-=46WIW, I think I can live with what you propose. Let us go for the kil=
-l.
+diff --git a/arch/arm/mach-omap2/am35xx-emac.c b/arch/arm/mach-omap2/am35xx-emac.c
+index 3bb5cb3..22ff968 100644
+--- a/arch/arm/mach-omap2/am35xx-emac.c
++++ b/arch/arm/mach-omap2/am35xx-emac.c
+@@ -23,6 +23,37 @@
+ #include "control.h"
+ #include "am35xx-emac.h"
+ 
++/*
++ * Default pm_lats for the am35x.
++ * The net effect of using am35xx_emac_pm_lats[] is that
++ * pm_idle or CPUidle won't be called while the emac
++ * interface is open.  This is required because the
++ * EMAC can't wake up PRCM so if the MPU is executing
++ * a 'wfi' instruction (e.g., from pm_idle or CPUidle),
++ * it won't break out of it due to emac activity.
++ */
++static int am35xx_emac_deactivate_func(struct omap_device *od)
++{
++	enable_hlt();
++	return omap_device_idle_hwmods(od);
++}
++
++static int am35xx_emac_activate_func(struct omap_device *od)
++{
++	disable_hlt();
++	return omap_device_enable_hwmods(od);
++}
++
++struct omap_device_pm_latency am35xx_emac_pm_lats[] = {
++	{
++		.deactivate_func	= am35xx_emac_deactivate_func,
++		.activate_func		= am35xx_emac_activate_func,
++		.flags			= OMAP_DEVICE_LATENCY_AUTO_ADJUST,
++	},
++};
++
++int am35xx_emac_pm_lats_size = ARRAY_SIZE(am35xx_emac_pm_lats);
++
+ static void am35xx_enable_emac_int(void)
+ {
+ 	u32 regval;
+@@ -61,12 +92,13 @@ static struct emac_platform_data am35xx_emac_pdata = {
+ static struct mdio_platform_data am35xx_mdio_pdata;
+ 
+ static int __init omap_davinci_emac_dev_init(struct omap_hwmod *oh,
+-		void *pdata, int pdata_len)
++		void *pdata, int pdata_len,
++		struct omap_device_pm_latency *pm_lats, int pm_lats_size)
+ {
+ 	struct platform_device *pdev;
+ 
+ 	pdev = omap_device_build(oh->class->name, 0, oh, pdata, pdata_len,
+-			NULL, 0, false);
++			pm_lats, pm_lats_size, false);
+ 	if (IS_ERR(pdev)) {
+ 		WARN(1, "Can't build omap_device for %s:%s.\n",
+ 					oh->class->name, oh->name);
+@@ -76,7 +108,8 @@ static int __init omap_davinci_emac_dev_init(struct omap_hwmod *oh,
+ 	return 0;
+ }
+ 
+-void __init am35xx_emac_init(unsigned long mdio_bus_freq, u8 rmii_en)
++void __init am35xx_emac_init(unsigned long mdio_bus_freq, u8 rmii_en,
++		struct omap_device_pm_latency *pm_lats, int pm_lats_size)
+ {
+ 	struct omap_hwmod *oh;
+ 	u32 regval;
+@@ -91,7 +124,7 @@ void __init am35xx_emac_init(unsigned long mdio_bus_freq, u8 rmii_en)
+ 	am35xx_mdio_pdata.bus_freq = mdio_bus_freq;
+ 
+ 	ret = omap_davinci_emac_dev_init(oh, &am35xx_mdio_pdata,
+-					 sizeof(am35xx_mdio_pdata));
++					 sizeof(am35xx_mdio_pdata), NULL, 0);
+ 	if (ret) {
+ 		pr_err("Could not build davinci_mdio hwmod device\n");
+ 		return;
+@@ -106,7 +139,8 @@ void __init am35xx_emac_init(unsigned long mdio_bus_freq, u8 rmii_en)
+ 	am35xx_emac_pdata.rmii_en = rmii_en;
+ 
+ 	ret = omap_davinci_emac_dev_init(oh, &am35xx_emac_pdata,
+-					 sizeof(am35xx_emac_pdata));
++					 sizeof(am35xx_emac_pdata),
++					 pm_lats, pm_lats_size);
+ 	if (ret) {
+ 		pr_err("Could not build davinci_emac hwmod device\n");
+ 		return;
+diff --git a/arch/arm/mach-omap2/am35xx-emac.h b/arch/arm/mach-omap2/am35xx-emac.h
+index 15c6f9c..7c23808 100644
+--- a/arch/arm/mach-omap2/am35xx-emac.h
++++ b/arch/arm/mach-omap2/am35xx-emac.h
+@@ -6,10 +6,20 @@
+  * published by the Free Software Foundation.
+  */
+ 
++#include <plat/omap_device.h>
++
+ #define AM35XX_DEFAULT_MDIO_FREQUENCY	1000000
+ 
+-#if defined(CONFIG_TI_DAVINCI_EMAC) || defined(CONFIG_TI_DAVINCI_EMAC_MODULE)
+-void am35xx_emac_init(unsigned long mdio_bus_freq, u8 rmii_en);
++#if IS_ENABLED(CONFIG_TI_DAVINCI_EMAC)
++extern struct omap_device_pm_latency am35xx_emac_pm_lats[];
++extern int am35xx_emac_pm_lats_size;
++
++void am35xx_emac_init(unsigned long mdio_bus_freq, u8 rmii_en,
++		struct omap_device_pm_latency *pm_lats, int pm_lats_size);
+ #else
+-static inline void am35xx_emac_init(unsigned long mdio_bus_freq, u8 rmii_en) {}
++#define am35xx_emac_pm_lats		NULL
++#define am35xx_emac_pm_lats_size	0
++
++static inline void am35xx_emac_init(unsigned long mdio_bus_freq, u8 rmii_en,
++		struct omap_device_pm_latency *pm_lats, int pm_lats_size) {}
+ #endif
+diff --git a/arch/arm/mach-omap2/board-am3517evm.c b/arch/arm/mach-omap2/board-am3517evm.c
+index 3645285..fe3a304 100644
+--- a/arch/arm/mach-omap2/board-am3517evm.c
++++ b/arch/arm/mach-omap2/board-am3517evm.c
+@@ -385,7 +385,8 @@ static void __init am3517_evm_init(void)
+ 	i2c_register_board_info(1, am3517evm_i2c1_boardinfo,
+ 				ARRAY_SIZE(am3517evm_i2c1_boardinfo));
+ 	/*Ethernet*/
+-	am35xx_emac_init(AM35XX_DEFAULT_MDIO_FREQUENCY, 1);
++	am35xx_emac_init(AM35XX_DEFAULT_MDIO_FREQUENCY, 1,
++			 am35xx_emac_pm_lats, am35xx_emac_pm_lats_size);
+ 
+ 	/* MUSB */
+ 	am3517_evm_musb_init();
+diff --git a/arch/arm/mach-omap2/board-cm-t3517.c b/arch/arm/mach-omap2/board-cm-t3517.c
+index 9e66e16..0a3dc7a 100644
+--- a/arch/arm/mach-omap2/board-cm-t3517.c
++++ b/arch/arm/mach-omap2/board-cm-t3517.c
+@@ -292,7 +292,8 @@ static void __init cm_t3517_init(void)
+ 	cm_t3517_init_rtc();
+ 	cm_t3517_init_usbh();
+ 	cm_t3517_init_hecc();
+-	am35xx_emac_init(AM35XX_DEFAULT_MDIO_FREQUENCY, 1);
++	am35xx_emac_init(AM35XX_DEFAULT_MDIO_FREQUENCY, 1,
++			 am35xx_emac_pm_lats, am35xx_emac_pm_lats_size);
+ }
+ 
+ MACHINE_START(CM_T3517, "Compulab CM-T3517")
+-- 
+1.7.9.4
 
-Thanks.
---
-To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
