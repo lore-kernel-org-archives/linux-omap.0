@@ -1,108 +1,71 @@
 From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH 1/3] ARM: OMAP2+: gpmc: update nand register helper
-Date: Fri, 11 May 2012 13:02:14 -0700
-Message-ID: <20120511200214.GZ21851@atomide.com>
-References: <cover.1336748974.git.afzal@ti.com>
- <b1a955469e6968b369e89f8e47bfc14c7051e6bb.1336748974.git.afzal@ti.com>
+Subject: Re: [PATCH 00/13] ARM: OMAP5: Add minimal OMAP5 SOC support
+Date: Fri, 11 May 2012 13:11:13 -0700
+Message-ID: <20120511201113.GA21851@atomide.com>
+References: <1336029982-31898-1-git-send-email-r.sricharan@ti.com>
+ <e02393fc87c4e06ce1d783a03747aff7@mail.gmail.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-02-ewr.mailhop.org ([204.13.248.72]:37337 "EHLO
-	mho-02-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756074Ab2EKUCS (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 11 May 2012 16:02:18 -0400
+Received: from mho-01-ewr.mailhop.org ([204.13.248.71]:14393 "EHLO
+	mho-01-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754380Ab2EKULP (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 11 May 2012 16:11:15 -0400
 Content-Disposition: inline
-In-Reply-To: <b1a955469e6968b369e89f8e47bfc14c7051e6bb.1336748974.git.afzal@ti.com>
+In-Reply-To: <e02393fc87c4e06ce1d783a03747aff7@mail.gmail.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Afzal Mohammed <afzal@ti.com>
-Cc: dedekind1@gmail.com, ivan.djelic@parrot.com, linux-omap@vger.kernel.org, linux-mtd@lists.infradead.org
+To: Sricharan R <r.sricharan@ti.com>
+Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Santosh Shilimkar <santosh.shilimkar@ti.com>, Benoit Cousson <b-cousson@ti.com>
 
-* Afzal Mohammed <afzal@ti.com> [120511 08:48]:
-> Provide helper function for updating NAND register details for
-> the necessary chip select. NAND drivers platform data can be
-> updated with this information so that NAND driver can handle
-> GPMC NAND operations by itself.
+Hi,
 
-Hmm this seems that it might be a more future proof path.
+* Sricharan R <r.sricharan@ti.com> [120510 10:47]:
+> Hi Tony,
+> 
+> > -----Original Message-----
+> > From: R Sricharan [mailto:r.sricharan@ti.com]
+> > Sent: Thursday, May 03, 2012 12:56 PM
+> > To: linux-omap@vger.kernel.org
+> > Cc: linux-arm-kernel@lists.infradead.org; santosh.shilimkar@ti.com;
+> > tony@atomide.com; b-cousson@ti.com; r.sricharan@ti.com
+> > Subject: [PATCH 00/13] ARM: OMAP5: Add minimal OMAP5 SOC support
+> >
+> > The series adds minimal OMAP5 support.
+> > OMAP5430 has a dual core Cortex-A15 based MPU subsystem with 2MB
+> > L2 cache. The SOC has many compatible blocks with OMAP4 SOCS and
+> > hence large part of the peripherals are re-used.
+> >
+> > OMAP5432 is another variant of OMAP5430, with a
+> > memory controller supporting DDR3 and SATA.
+> >
+>  OMAP5 V2 series is ready with all comments addressed, but I have
+>  below dependencies to be merged to apply my series against your
+>  cleanup-soc branch
+
+OK
+ 
+>  1) git://git.pwsan.com/linux-2.6 hwmod_soc_conditional_cleanup_3.5
+
+This one is not merged in yet and it seems that we're out of time
+for v3.5 unless it drags on and we have -rc8 after -rc7.
+
+>  2) git://git.pwsan.com/linux-2.6 hwmod_data_cleanup_3.5
+>  3) https://github.com/hvaibhav/am335x-linux   32ksync-timer-cleanup
+
+These two are merged in arm-soc now.
+
+>  4) http://www.spinics.net/lists/arm-kernel/msg174461.html
+
+I think this series still has some pending comments?
+ 
+>  Can you please let me know how you want me to prepare the series
+>  with these dependencies.
+
+Until these dependencies get cleared out, it seems that the best
+branch to base your patches is omap-cleanup-timer-for-v3.5 tag
+and just carry the pending patches for a little bit longer.
+
+Regards,
 
 Tony
-
- 
-> Signed-off-by: Afzal Mohammed <afzal@ti.com>
-> ---
->  arch/arm/mach-omap2/gpmc.c             |   21 +++++++++++++++++++++
->  arch/arm/plat-omap/include/plat/gpmc.h |   18 ++++++++++++++++++
->  2 files changed, 39 insertions(+)
-> 
-> diff --git a/arch/arm/mach-omap2/gpmc.c b/arch/arm/mach-omap2/gpmc.c
-> index 46b09da..a409a3e 100644
-> --- a/arch/arm/mach-omap2/gpmc.c
-> +++ b/arch/arm/mach-omap2/gpmc.c
-> @@ -49,6 +49,7 @@
->  #define GPMC_ECC_CONTROL	0x1f8
->  #define GPMC_ECC_SIZE_CONFIG	0x1fc
->  #define GPMC_ECC1_RESULT        0x200
-> +#define GPMC_ECC_BCH_RESULT_0	0x240
->  
->  /* GPMC ECC control settings */
->  #define GPMC_ECC_CTRL_ECCCLEAR		0x100
-> @@ -681,6 +682,26 @@ int gpmc_prefetch_reset(int cs)
->  }
->  EXPORT_SYMBOL(gpmc_prefetch_reset);
->  
-> +void gpmc_update_nand_reg(struct gpmc_nand_regs *reg, int cs)
-> +{
-> +	reg->gpmc_status = gpmc_base + GPMC_STATUS;
-> +	reg->gpmc_nand_command = gpmc_base + GPMC_CS0_OFFSET +
-> +				GPMC_CS_NAND_COMMAND + GPMC_CS_SIZE * cs;
-> +	reg->gpmc_nand_address = gpmc_base + GPMC_CS0_OFFSET +
-> +				GPMC_CS_NAND_ADDRESS + GPMC_CS_SIZE * cs;
-> +	reg->gpmc_nand_data = gpmc_base + GPMC_CS0_OFFSET +
-> +				GPMC_CS_NAND_DATA + GPMC_CS_SIZE * cs;
-> +	reg->gpmc_prefetch_config1 = gpmc_base + GPMC_PREFETCH_CONFIG1;
-> +	reg->gpmc_prefetch_config2 = gpmc_base + GPMC_PREFETCH_CONFIG2;
-> +	reg->gpmc_prefetch_control = gpmc_base + GPMC_PREFETCH_CONTROL;
-> +	reg->gpmc_prefetch_status = gpmc_base + GPMC_PREFETCH_STATUS;
-> +	reg->gpmc_ecc_config = gpmc_base + GPMC_ECC_CONFIG;
-> +	reg->gpmc_ecc_control = gpmc_base + GPMC_ECC_CONTROL;
-> +	reg->gpmc_ecc_size_config = gpmc_base + GPMC_ECC_SIZE_CONFIG;
-> +	reg->gpmc_ecc1_result = gpmc_base + GPMC_ECC1_RESULT;
-> +	reg->gpmc_bch_result0 = gpmc_base + GPMC_ECC_BCH_RESULT_0;
-> +}
-> +
->  static void __init gpmc_mem_init(void)
->  {
->  	int cs;
-> diff --git a/arch/arm/plat-omap/include/plat/gpmc.h b/arch/arm/plat-omap/include/plat/gpmc.h
-> index 1527929..6a8078e 100644
-> --- a/arch/arm/plat-omap/include/plat/gpmc.h
-> +++ b/arch/arm/plat-omap/include/plat/gpmc.h
-> @@ -131,6 +131,24 @@ struct gpmc_timings {
->  	u16 wr_data_mux_bus;	/* WRDATAONADMUXBUS */
->  };
->  
-> +struct gpmc_nand_regs {
-> +	void __iomem	*gpmc_status;
-> +	void __iomem	*gpmc_nand_command;
-> +	void __iomem	*gpmc_nand_address;
-> +	void __iomem	*gpmc_nand_data;
-> +	void __iomem	*gpmc_prefetch_config1;
-> +	void __iomem	*gpmc_prefetch_config2;
-> +	void __iomem	*gpmc_prefetch_control;
-> +	void __iomem	*gpmc_prefetch_status;
-> +	void __iomem	*gpmc_ecc_config;
-> +	void __iomem	*gpmc_ecc_control;
-> +	void __iomem	*gpmc_ecc_size_config;
-> +	void __iomem	*gpmc_ecc1_result;
-> +	void __iomem	*gpmc_bch_result0;
-> +};
-> +
-> +extern void gpmc_update_nand_reg(struct gpmc_nand_regs *reg, int cs);
-> +
->  extern unsigned int gpmc_ns_to_ticks(unsigned int time_ns);
->  extern unsigned int gpmc_ps_to_ticks(unsigned int time_ps);
->  extern unsigned int gpmc_ticks_to_ns(unsigned int ticks);
-> -- 
-> 1.7.10
-> 
