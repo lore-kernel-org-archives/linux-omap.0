@@ -1,43 +1,38 @@
-From: Will Deacon <will.deacon@arm.com>
-Subject: Re: oprofile and ARM A9 hardware counter
-Date: Fri, 11 May 2012 17:38:32 +0100
-Message-ID: <20120511163831.GI2626@mudshark.cambridge.arm.com>
-References: <4FAAC549.6010206@ti.com>
- <4FAAE564.6040708@ti.com>
- <20120510084422.GB27276@mudshark.cambridge.arm.com>
- <4FAC0F05.3060803@ti.com>
- <20120511122547.GE17453@mudshark.cambridge.arm.com>
- <4FAD1865.70003@ti.com>
- <20120511134920.GC2626@mudshark.cambridge.arm.com>
- <4FAD27CB.5060102@ti.com>
- <20120511150223.GD2626@mudshark.cambridge.arm.com>
- <4FAD3EF3.4080409@ti.com>
+From: Tony Lindgren <tony@atomide.com>
+Subject: Re: [PATCH] ARM: OMAP1: USB: fix ocpi_enable compile problem on
+ non-1610 builds
+Date: Fri, 11 May 2012 09:53:07 -0700
+Message-ID: <20120511165306.GT21851@atomide.com>
+References: <alpine.DEB.2.00.1205101625360.32719@utopia.booyaka.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from cam-admin0.cambridge.arm.com ([217.140.96.50]:44443 "EHLO
-	cam-admin0.cambridge.arm.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753019Ab2EKQjQ (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>);
-	Fri, 11 May 2012 12:39:16 -0400
+Received: from mho-01-ewr.mailhop.org ([204.13.248.71]:39709 "EHLO
+	mho-01-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1759925Ab2EKQxJ (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 11 May 2012 12:53:09 -0400
 Content-Disposition: inline
-In-Reply-To: <4FAD3EF3.4080409@ti.com>
+In-Reply-To: <alpine.DEB.2.00.1205101625360.32719@utopia.booyaka.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Jon Hunter <jon-hunter@ti.com>
-Cc: "Cousson, Benoit" <b-cousson@ti.com>, Kevin Hilman <khilman@ti.com>, Paul Walmsley <paul@pwsan.com>, Ming Lei <ming.lei@canonical.com>, Maynard Johnson <maynardj@us.ibm.com>, "Shilimkar, Santosh" <santosh.shilimkar@ti.com>, "oprofile-list@lists.sourceforge.net" <oprofile-list@lists.sourceforge.net>, Lik Lik <lik88888@gmail.com>, "eranian@gmail.com" <eranian@gmail.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>
+To: Paul Walmsley <paul@pwsan.com>
+Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Janusz Krzysztofik <jmkrzyszt@gmail.com>
 
-On Fri, May 11, 2012 at 05:31:47PM +0100, Jon Hunter wrote:
-> Can you send me your .config?
+* Paul Walmsley <paul@pwsan.com> [120510 15:31]:
+> 
+> Janusz Krzysztofik reported the following build break on OMAP1 builds that
+> don't include CONFIG_ARCH_OMAP16XX:
+> 
+>   LD      .tmp_vmlinux1
+> arch/arm/mach-omap1/built-in.o: In function `omap1_usb_init':
+> lcd_dma.c:(.init.text+0x1420): undefined reference to `ocpi_enable'
+> make: *** [.tmp_vmlinux1] Error 1
+> 
+> This was caused by commit d3645d39ad0ed9f09535065676ea0ba114f93cdf
+> ("ARM: OMAP1: OHCI: use platform_data fn ptr to enable OCPI bus").
+> Fix by declaring an empty ocpi_enable() on non-16XX builds, which
+> should work until the OCPI code is moved out to drivers/.
 
-Sent off-list.
+Thanks applying into fixes-for-cleanup branch.
 
-> At the same time, maybe just try "make omap2plus_defconfig" and enable
-> the OMAP3 debug devices config. That's all I am doing.
-
-Excellent, that works for me. Once we've worked out the problem with my
-.config you can have my tested-by.
-
-Cheers,
-
-Will
+Tony
