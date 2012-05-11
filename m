@@ -1,58 +1,67 @@
-From: "Mohammed, Afzal" <afzal@ti.com>
-Subject: RE: [PATCH v3] ARM: OMAP3: gpmc: add BCH ecc api and modes
-Date: Fri, 11 May 2012 15:50:51 +0000
-Message-ID: <C8443D0743D26F4388EA172BF4E2A7A93E98B337@DBDE01.ent.ti.com>
-References: <1335442669-13474-1-git-send-email-ivan.djelic@parrot.com>
- <20120509002927.GF5088@atomide.com> <20120509081047.GC17333@parrot.com>
- <20120509153141.GI5088@atomide.com>
- <1336655257.2625.8.camel@sauron.fi.intel.com>
- <20120510151725.GA11107@parrot.com> <1336665138.2243.1.camel@brekeke>
- <20120510174527.GA11275@parrot.com>
+From: Jon Hunter <jon-hunter@ti.com>
+Subject: Re: oprofile and ARM A9 hardware counter
+Date: Fri, 11 May 2012 11:31:47 -0500
+Message-ID: <4FAD3EF3.4080409@ti.com>
+References: <4FAA4DB9.8060504@ti.com> <4FAAB1A3.9040806@ti.com> <4FAAC549.6010206@ti.com> <4FAAE564.6040708@ti.com> <20120510084422.GB27276@mudshark.cambridge.arm.com> <4FAC0F05.3060803@ti.com> <20120511122547.GE17453@mudshark.cambridge.arm.com> <4FAD1865.70003@ti.com> <20120511134920.GC2626@mudshark.cambridge.arm.com> <4FAD27CB.5060102@ti.com> <20120511150223.GD2626@mudshark.cambridge.arm.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
+Content-Type: text/plain; charset="ISO-8859-1"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from arroyo.ext.ti.com ([192.94.94.40]:55817 "EHLO arroyo.ext.ti.com"
+Received: from arroyo.ext.ti.com ([192.94.94.40]:58148 "EHLO arroyo.ext.ti.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1750903Ab2EKPvD convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 11 May 2012 11:51:03 -0400
-In-Reply-To: <20120510174527.GA11275@parrot.com>
-Content-Language: en-US
+	id S1756649Ab2EKQcJ (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Fri, 11 May 2012 12:32:09 -0400
+In-Reply-To: <20120511150223.GD2626@mudshark.cambridge.arm.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Ivan Djelic <ivan.djelic@parrot.com>, Artem Bityutskiy <dedekind1@gmail.com>, Tony Lindgren <tony@atomide.com>
-Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-mtd@lists.infradead.org" <linux-mtd@lists.infradead.org>
+To: Will Deacon <will.deacon@arm.com>
+Cc: "Cousson, Benoit" <b-cousson@ti.com>, Kevin Hilman <khilman@ti.com>, Paul Walmsley <paul@pwsan.com>, Ming Lei <ming.lei@canonical.com>, Maynard Johnson <maynardj@us.ibm.com>, "Shilimkar, Santosh" <santosh.shilimkar@ti.com>, "oprofile-list@lists.sourceforge.net" <oprofile-list@lists.sourceforge.net>, Lik Lik <lik88888@gmail.com>, "eranian@gmail.com" <eranian@gmail.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>
 
-Hi Ivan,
+Hi Will,
 
-On Thu, May 10, 2012 at 23:15:27, Ivan Djelic wrote:
-> > > So, when Afzal's patches are pushed, I'll submit a new, single MTD patch.
-> > 
-> > But this is not going to happen this merge window as I understood, may
-> > be not even the next one. We need to make UBIFS happy sooner than that,
-> > I think. So may be we go forward with your original patch?
+On 05/11/2012 10:02 AM, Will Deacon wrote:
+> On Fri, May 11, 2012 at 03:52:59PM +0100, Jon Hunter wrote:
+>> Hi Will,
 > 
-> I'm OK with this too, as the patches are ready and tested.
-> The MTD patch is [2], it depends on [1] which has been pushed, then dropped by Tony.
-> Do you need me to repost [2] ?
+> Hello,
 > 
-> Tony, sorry to backpedal on this: would you re-push patch [1], if indeed Afzal's patches
-> are not going to be merged soon ? In the meantime, I can prepare a patch on top of Afzal's to
-> have a smooth transition w.r.t BCH support. What do you think ?
+>> On 05/11/2012 08:49 AM, Will Deacon wrote:
+>>> I enabled OMAP3 debug peripherals, so I selected CPU_HAS_PMU that way.
+>>
+>> I tried the same (make omap2plus_defconfig and enabled the above
+>> option), and I do see the interrupts firing on both 4430 and 4460...
+>>
+>> / # cat /proc/interrupts
+>>            CPU0       CPU1
+>>  29:       1023        404       GIC  twd
+>>  33:        401          0       GIC  arm-pmu
+>>  34:          0        441       GIC  arm-pmu
+> 
+> Well, at least it's working for somebody!
+> 
+>> What is your kernel commit ID that you applied the patches on top of?
+> 
+> 7cf543bc ("Linux-omap rebuilt: Updated to -rc6, merged in pending branches,
+> please test"). Is there something else I need too?
 
-A new series [A-D] has been sent for handling GPMC NAND registers by NAND driver
-itself. This is being targeted for 3.5. Hopefully if every one is in agreement, we
-can avoid patching for BCH support again when GPMC driver migration happens. And
-the effect of GPMC driver migration on NAND driver can be reduced when it happens.
+Ok, thanks. I was based upon Tony's -rc5. However, I rebased to the same
+as you and it is still working for me
 
-Can you try a patch on top of this series & checks if it works for you, if more is
-required from my side let me know.
+Can you send me your .config?
 
-Regards
-Afzal
+At the same time, maybe just try "make omap2plus_defconfig" and enable
+the OMAP3 debug devices config. That's all I am doing.
 
-[A] http://marc.info/?l=linux-omap&m=133675113218509&w=2
-[B] http://marc.info/?l=linux-omap&m=133675123118577&w=2
-[C] http://marc.info/?l=linux-omap&m=133675123718579&w=2
-[D] http://marc.info/?l=linux-omap&m=133675124818580&w=2
+>> What board are you using? Blaze, panda, etc, and is it 4430 or 4460?
+> 
+> Ye olde Panda 4430. It does work with my perf/omap4 branch though using the
+> same .config (I can mail it to you separately if you want).
 
+Ok, should be fine. The kernel should print the ES version on start-up ...
+
+[    0.000000] OMAP4430 ES2.2
+
+What does yours show?
+
+Cheers
+Jon
