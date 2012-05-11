@@ -1,61 +1,55 @@
 From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [GIT PULL] ARM: OMAP2+: Add AM335x and AM3517/05 EVM DT support
-Date: Fri, 11 May 2012 12:56:20 -0700
-Message-ID: <20120511195620.GX21851@atomide.com>
-References: <4FAD0A71.80201@ti.com>
+Subject: Re: [PATCH v4-alt 0/6] GPMC driver migrate one
+Date: Fri, 11 May 2012 13:00:49 -0700
+Message-ID: <20120511200049.GY21851@atomide.com>
+References: <cover.1335941443.git.afzal@ti.com>
+ <20120508213625.GG5088@atomide.com>
+ <C8443D0743D26F4388EA172BF4E2A7A93E98A339@DBDE01.ent.ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-02-ewr.mailhop.org ([204.13.248.72]:28251 "EHLO
+Received: from mho-02-ewr.mailhop.org ([204.13.248.72]:35082 "EHLO
 	mho-02-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755524Ab2EKT4X (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 11 May 2012 15:56:23 -0400
+	with ESMTP id S1759382Ab2EKUAv (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 11 May 2012 16:00:51 -0400
 Content-Disposition: inline
-In-Reply-To: <4FAD0A71.80201@ti.com>
+In-Reply-To: <C8443D0743D26F4388EA172BF4E2A7A93E98A339@DBDE01.ent.ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "Cousson, Benoit" <b-cousson@ti.com>
-Cc: linux-omap <linux-omap@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, "Hiremath, Vaibhav" <hvaibhav@ti.com>
+To: "Mohammed, Afzal" <afzal@ti.com>
+Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
 
-Hi,
-
-* Cousson, Benoit <b-cousson@ti.com> [120511 05:51]:
+* Mohammed, Afzal <afzal@ti.com> [120509 23:39]:
 > Hi Tony,
 > 
-> Here are some remaining DT patches I was not able to push at 3.4 due to some missing dependency.
-> It applies now fine on top of lo/dt branch.
+> On Wed, May 09, 2012 at 03:06:26, Tony Lindgren wrote:
+> 
+> > > To resolve this and as per your earlier question on whether old along
+> > > with new interface can be made to work parallely, here is suggestion
+> > > from my end to deal with it.
+> > 
+> > I think this is the only way to keep this all building and booting
+> > for each patch in the series, no? If so, then we should select this
+> > option. The first patch should be broken up into more readable patches,
+> > it seems that you can do that without breaking things.
+> 
+> Bisectability has been maintained in the patches.
+> 
+> Ok, I will proceed by keeping old & new interface together, will
+> try to achieve it in smaller patches and without hacks.
+> 
+> > > Please let me know whether you are fine in taking patch series
+> > > as in v4 (that converts all boards at once, with further revisions
+> > > based on review comments).
+> > 
+> > It seems that there are still some pending comments and we need to
+> > have the hwmod entries merged first by Paul.
+> 
+> Ok, first I will try to get hwmod in.
 
-It seems that there are still patches being discussed for those SoCs
-and we're pretty much done for this merge window. So unless things
-drag on to -rc8, I'd say we just need to postpone merging new things
-and merge them early around -rc2.
+Let's try to get merged these into l-o master around -rc2 so we can
+have them tested properly for a few weeks before v3.6 merge window.
 
 Regards,
 
 Tony
-
-
- 
-> Regards,
-> Benoit
-> 
-> 
-> The following changes since commit 40364b9f5a4d167d97bb6a76cd239ca8cfff056a:
->   Benoit Cousson (1):
->         arm/dts: omap4-panda: Add LEDs support
-> 
-> are available in the git repository at:
-> 
->   git://git.kernel.org/pub/scm/linux/kernel/git/bcousson/linux-omap-dt.git for_3.5/dts/am33xx
-> 
-> Vaibhav Hiremath (3):
->       arm/dts: Add support for TI AM335x EVM board
->       arm/dts: omap3-evm: Add i2c and twl4030 support
->       arm/dts: Add support for TI AM3517/05 EVM board
-> 
->  arch/arm/boot/dts/am335x-evm.dts |   39 ++++++++++++++++++++++++++++++++++++++
->  arch/arm/boot/dts/am3517-evm.dts |   32 +++++++++++++++++++++++++++++++
->  arch/arm/boot/dts/omap3-evm.dts  |   28 +++++++++++++++++++++++++++
->  3 files changed, 99 insertions(+), 0 deletions(-)
->  create mode 100644 arch/arm/boot/dts/am335x-evm.dts
->  create mode 100644 arch/arm/boot/dts/am3517-evm.dts
