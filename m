@@ -1,38 +1,59 @@
-From: Samuel Ortiz <sameo@linux.intel.com>
-Subject: Re: [PATCH 2/2] mfd: twl: remove pdata->irq_base/_end, no more users
-Date: Fri, 11 May 2012 11:40:09 +0200
-Message-ID: <20120511094009.GD1214@sortiz-mobl>
-References: <1336497542-13629-1-git-send-email-khilman@ti.com>
- <1336497542-13629-3-git-send-email-khilman@ti.com>
+From: "Cousson, Benoit" <b-cousson@ti.com>
+Subject: Re: [PATCH 3/3] ARM: OMAP: AM35xx: fix UART4 softreset
+Date: Fri, 11 May 2012 11:31:15 +0200
+Message-ID: <4FACDC63.7060605@ti.com>
+References: <20120510172449.13418.66815.stgit@dusk> <20120510172918.13418.64781.stgit@dusk> <4FACD255.3080702@ti.com> <alpine.DEB.2.00.1205110316500.3201@utopia.booyaka.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=UTF-8;
+	format=flowed
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mga02.intel.com ([134.134.136.20]:10467 "EHLO mga02.intel.com"
+Received: from bear.ext.ti.com ([192.94.94.41]:37718 "EHLO bear.ext.ti.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1756737Ab2EKJa3 (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Fri, 11 May 2012 05:30:29 -0400
-Content-Disposition: inline
-In-Reply-To: <1336497542-13629-3-git-send-email-khilman@ti.com>
+	id S1756737Ab2EKJcz (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Fri, 11 May 2012 05:32:55 -0400
+In-Reply-To: <alpine.DEB.2.00.1205110316500.3201@utopia.booyaka.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Kevin Hilman <khilman@ti.com>
-Cc: linux-omap@vger.kernel.org, Benoit Cousson <b-cousson@ti.com>, linux-arm-kernel@lists.infradead.org
+To: Paul Walmsley <paul@pwsan.com>
+Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Kyle Manna <kyle.manna@fuel7.com>, Ranjith Lohithakshan <ranjithl@ti.com>, "Mark A. Greer" <mgreer@animalcreek.com>
 
-Hi Kevin,
+On 5/11/2012 11:22 AM, Paul Walmsley wrote:
+> Hi Beno=C3=AEt
+>
+> On Fri, 11 May 2012, Cousson, Benoit wrote:
+>
+>> I do not have any clue about that chip, but is this clock really wha=
+t it is
+>> supposed to be? I mean, isn't the uart1_fck the parent of all the UA=
+RT fck or
+>> something like that. Don't we just have an issue becasue the clock n=
+ames are
+>> not accurate?
+>
+> I guess that's what I'm trying to find out.
+>
+> According to the AM3517 TRM rev. B (SPRUGR0B) Figure 14-20 "UART
+> Functional Integration" and Table 14-11 "UART Clocks", all of the UAR=
+Ts
+> appear to have independent functional clocks.  The table even mention=
+s a
+> CM_FCLKEN1_CORE.EN_UART4 bit.  But the PRCM chapter of this TRM doesn=
+'t
+> mention that at all.  So the documentation is not too useful here.
+>
+> On the rest of the OMAPs, as far as I know, the UART clocks are all
+> separate.
 
-On Tue, May 08, 2012 at 10:19:02AM -0700, Kevin Hilman wrote:
-> After converstion to SPARSE_IRQ, the driver doesn't use the
-> pdata->irq_base/irq_end fields anymore.  The last users
-> have been cleanup up, and now these fields can be removed.
-> 
-> Cc: Benoit Cousson <b-cousson@ti.com>
-> Cc: Samuel Ortiz <sameo@linux.intel.com>
-> Signed-off-by: Kevin Hilman <khilman@ti.com>
-Acked-by: Samuel Ortiz <sameo@linux.intel.com>
+In fact, not really. The same PER_48M_GFCLK clock is used for every UAR=
+T=20
+instances in OMAP4. We do have a separate modulemode for each UART but=20
+as far as clocks are concerned, the source clock is the same.
 
-Cheers,
-Samuel.
-
--- 
-Intel Open Source Technology Centre
-http://oss.intel.com/
+Regards,
+Benoit
+--
+To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
