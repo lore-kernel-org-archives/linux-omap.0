@@ -1,55 +1,108 @@
 From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH v4-alt 0/6] GPMC driver migrate one
-Date: Fri, 11 May 2012 13:00:49 -0700
-Message-ID: <20120511200049.GY21851@atomide.com>
-References: <cover.1335941443.git.afzal@ti.com>
- <20120508213625.GG5088@atomide.com>
- <C8443D0743D26F4388EA172BF4E2A7A93E98A339@DBDE01.ent.ti.com>
+Subject: Re: [PATCH 1/3] ARM: OMAP2+: gpmc: update nand register helper
+Date: Fri, 11 May 2012 13:02:14 -0700
+Message-ID: <20120511200214.GZ21851@atomide.com>
+References: <cover.1336748974.git.afzal@ti.com>
+ <b1a955469e6968b369e89f8e47bfc14c7051e6bb.1336748974.git.afzal@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-02-ewr.mailhop.org ([204.13.248.72]:35082 "EHLO
+Received: from mho-02-ewr.mailhop.org ([204.13.248.72]:37337 "EHLO
 	mho-02-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1759382Ab2EKUAv (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 11 May 2012 16:00:51 -0400
+	with ESMTP id S1756074Ab2EKUCS (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 11 May 2012 16:02:18 -0400
 Content-Disposition: inline
-In-Reply-To: <C8443D0743D26F4388EA172BF4E2A7A93E98A339@DBDE01.ent.ti.com>
+In-Reply-To: <b1a955469e6968b369e89f8e47bfc14c7051e6bb.1336748974.git.afzal@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "Mohammed, Afzal" <afzal@ti.com>
-Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
+To: Afzal Mohammed <afzal@ti.com>
+Cc: dedekind1@gmail.com, ivan.djelic@parrot.com, linux-omap@vger.kernel.org, linux-mtd@lists.infradead.org
 
-* Mohammed, Afzal <afzal@ti.com> [120509 23:39]:
-> Hi Tony,
-> 
-> On Wed, May 09, 2012 at 03:06:26, Tony Lindgren wrote:
-> 
-> > > To resolve this and as per your earlier question on whether old along
-> > > with new interface can be made to work parallely, here is suggestion
-> > > from my end to deal with it.
-> > 
-> > I think this is the only way to keep this all building and booting
-> > for each patch in the series, no? If so, then we should select this
-> > option. The first patch should be broken up into more readable patches,
-> > it seems that you can do that without breaking things.
-> 
-> Bisectability has been maintained in the patches.
-> 
-> Ok, I will proceed by keeping old & new interface together, will
-> try to achieve it in smaller patches and without hacks.
-> 
-> > > Please let me know whether you are fine in taking patch series
-> > > as in v4 (that converts all boards at once, with further revisions
-> > > based on review comments).
-> > 
-> > It seems that there are still some pending comments and we need to
-> > have the hwmod entries merged first by Paul.
-> 
-> Ok, first I will try to get hwmod in.
+* Afzal Mohammed <afzal@ti.com> [120511 08:48]:
+> Provide helper function for updating NAND register details for
+> the necessary chip select. NAND drivers platform data can be
+> updated with this information so that NAND driver can handle
+> GPMC NAND operations by itself.
 
-Let's try to get merged these into l-o master around -rc2 so we can
-have them tested properly for a few weeks before v3.6 merge window.
-
-Regards,
+Hmm this seems that it might be a more future proof path.
 
 Tony
+
+ 
+> Signed-off-by: Afzal Mohammed <afzal@ti.com>
+> ---
+>  arch/arm/mach-omap2/gpmc.c             |   21 +++++++++++++++++++++
+>  arch/arm/plat-omap/include/plat/gpmc.h |   18 ++++++++++++++++++
+>  2 files changed, 39 insertions(+)
+> 
+> diff --git a/arch/arm/mach-omap2/gpmc.c b/arch/arm/mach-omap2/gpmc.c
+> index 46b09da..a409a3e 100644
+> --- a/arch/arm/mach-omap2/gpmc.c
+> +++ b/arch/arm/mach-omap2/gpmc.c
+> @@ -49,6 +49,7 @@
+>  #define GPMC_ECC_CONTROL	0x1f8
+>  #define GPMC_ECC_SIZE_CONFIG	0x1fc
+>  #define GPMC_ECC1_RESULT        0x200
+> +#define GPMC_ECC_BCH_RESULT_0	0x240
+>  
+>  /* GPMC ECC control settings */
+>  #define GPMC_ECC_CTRL_ECCCLEAR		0x100
+> @@ -681,6 +682,26 @@ int gpmc_prefetch_reset(int cs)
+>  }
+>  EXPORT_SYMBOL(gpmc_prefetch_reset);
+>  
+> +void gpmc_update_nand_reg(struct gpmc_nand_regs *reg, int cs)
+> +{
+> +	reg->gpmc_status = gpmc_base + GPMC_STATUS;
+> +	reg->gpmc_nand_command = gpmc_base + GPMC_CS0_OFFSET +
+> +				GPMC_CS_NAND_COMMAND + GPMC_CS_SIZE * cs;
+> +	reg->gpmc_nand_address = gpmc_base + GPMC_CS0_OFFSET +
+> +				GPMC_CS_NAND_ADDRESS + GPMC_CS_SIZE * cs;
+> +	reg->gpmc_nand_data = gpmc_base + GPMC_CS0_OFFSET +
+> +				GPMC_CS_NAND_DATA + GPMC_CS_SIZE * cs;
+> +	reg->gpmc_prefetch_config1 = gpmc_base + GPMC_PREFETCH_CONFIG1;
+> +	reg->gpmc_prefetch_config2 = gpmc_base + GPMC_PREFETCH_CONFIG2;
+> +	reg->gpmc_prefetch_control = gpmc_base + GPMC_PREFETCH_CONTROL;
+> +	reg->gpmc_prefetch_status = gpmc_base + GPMC_PREFETCH_STATUS;
+> +	reg->gpmc_ecc_config = gpmc_base + GPMC_ECC_CONFIG;
+> +	reg->gpmc_ecc_control = gpmc_base + GPMC_ECC_CONTROL;
+> +	reg->gpmc_ecc_size_config = gpmc_base + GPMC_ECC_SIZE_CONFIG;
+> +	reg->gpmc_ecc1_result = gpmc_base + GPMC_ECC1_RESULT;
+> +	reg->gpmc_bch_result0 = gpmc_base + GPMC_ECC_BCH_RESULT_0;
+> +}
+> +
+>  static void __init gpmc_mem_init(void)
+>  {
+>  	int cs;
+> diff --git a/arch/arm/plat-omap/include/plat/gpmc.h b/arch/arm/plat-omap/include/plat/gpmc.h
+> index 1527929..6a8078e 100644
+> --- a/arch/arm/plat-omap/include/plat/gpmc.h
+> +++ b/arch/arm/plat-omap/include/plat/gpmc.h
+> @@ -131,6 +131,24 @@ struct gpmc_timings {
+>  	u16 wr_data_mux_bus;	/* WRDATAONADMUXBUS */
+>  };
+>  
+> +struct gpmc_nand_regs {
+> +	void __iomem	*gpmc_status;
+> +	void __iomem	*gpmc_nand_command;
+> +	void __iomem	*gpmc_nand_address;
+> +	void __iomem	*gpmc_nand_data;
+> +	void __iomem	*gpmc_prefetch_config1;
+> +	void __iomem	*gpmc_prefetch_config2;
+> +	void __iomem	*gpmc_prefetch_control;
+> +	void __iomem	*gpmc_prefetch_status;
+> +	void __iomem	*gpmc_ecc_config;
+> +	void __iomem	*gpmc_ecc_control;
+> +	void __iomem	*gpmc_ecc_size_config;
+> +	void __iomem	*gpmc_ecc1_result;
+> +	void __iomem	*gpmc_bch_result0;
+> +};
+> +
+> +extern void gpmc_update_nand_reg(struct gpmc_nand_regs *reg, int cs);
+> +
+>  extern unsigned int gpmc_ns_to_ticks(unsigned int time_ns);
+>  extern unsigned int gpmc_ps_to_ticks(unsigned int time_ps);
+>  extern unsigned int gpmc_ticks_to_ns(unsigned int ticks);
+> -- 
+> 1.7.10
+> 
