@@ -1,58 +1,61 @@
 From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH] pinctrl: Add generic pinctrl-simple driver that
- supports omap2+ padconf
-Date: Fri, 11 May 2012 12:51:48 -0700
-Message-ID: <20120511195147.GW21851@atomide.com>
-References: <20120504150342.GI5140@atomide.com>
- <20120504153251.GE7788@game.jcrosoft.org>
- <20120504163420.GA5613@atomide.com>
- <4FA42631.6060304@wwwdotorg.org>
- <20120504220809.GW5613@atomide.com>
- <4FAAD141.3090306@wwwdotorg.org>
- <20120509204925.GV5088@atomide.com>
- <4FABF553.20601@wwwdotorg.org>
- <20120510172722.GE21851@atomide.com>
- <4FAD65D8.30109@wwwdotorg.org>
+Subject: Re: [GIT PULL] ARM: OMAP2+: Add AM335x and AM3517/05 EVM DT support
+Date: Fri, 11 May 2012 12:56:20 -0700
+Message-ID: <20120511195620.GX21851@atomide.com>
+References: <4FAD0A71.80201@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-kernel-owner@vger.kernel.org>
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from mho-02-ewr.mailhop.org ([204.13.248.72]:28251 "EHLO
+	mho-02-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755524Ab2EKT4X (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 11 May 2012 15:56:23 -0400
 Content-Disposition: inline
-In-Reply-To: <4FAD65D8.30109@wwwdotorg.org>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Stephen Warren <swarren@wwwdotorg.org>
-Cc: Jean-Christophe PLAGNIOL-VILLARD <plagnioj@jcrosoft.com>, Linus Walleij <linus.walleij@linaro.org>, linux-omap@vger.kernel.org, Stephen Warren <swarren@nvidia.com>, linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+In-Reply-To: <4FAD0A71.80201@ti.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: "Cousson, Benoit" <b-cousson@ti.com>
+Cc: linux-omap <linux-omap@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, "Hiremath, Vaibhav" <hvaibhav@ti.com>
 
-* Stephen Warren <swarren@wwwdotorg.org> [120511 12:21]:
+Hi,
+
+* Cousson, Benoit <b-cousson@ti.com> [120511 05:51]:
+> Hi Tony,
 > 
-> The mapping of GPIO to pinctrl pins would presumably be driven solely by
-> the HW design of the pin controller and GPIO, and not by the mux
-> selection in the pin controller (otherwise, I'd argue this isn't a
-> simple case that should be handled by pinctrl-simple).
-> 
-> As such, I'd expect some properties/table at the top-level of the pin
-> controller object to describe the GPIO mapping. In turn, that implies
-> that the individual per-pin mux-selection/configuration nodes don't need
-> to describe any GPIO-related information.
+> Here are some remaining DT patches I was not able to push at 3.4 due to some missing dependency.
+> It applies now fine on top of lo/dt branch.
 
-Yes good point. I agree it's a HW design issue, and could be in the properties
-for the pin controller object.
-
-Just to summarize, the things to consider with the GPIO to mux mapping are:
-
-1. Having this table as static data in the driver is is not a nice
-   solution as it seems that we'd currently need six mapping tables for
-   omap2+ alone.
-
-2. This table is not needed for most of the (hundreds of) pins, it's
-   only needed for a few selected pins, let's say ten or so on an average
-   device. So there's no need to stuff the kernel with information about
-   the unused GPIO pins.
-
-It seems that the conclusion here is that we don't need to worry about
-GPIOs in the pinctrl-simple binding for now, and it can be added later
-without having to change the basic binding.
+It seems that there are still patches being discussed for those SoCs
+and we're pretty much done for this merge window. So unless things
+drag on to -rc8, I'd say we just need to postpone merging new things
+and merge them early around -rc2.
 
 Regards,
 
 Tony
+
+
+ 
+> Regards,
+> Benoit
+> 
+> 
+> The following changes since commit 40364b9f5a4d167d97bb6a76cd239ca8cfff056a:
+>   Benoit Cousson (1):
+>         arm/dts: omap4-panda: Add LEDs support
+> 
+> are available in the git repository at:
+> 
+>   git://git.kernel.org/pub/scm/linux/kernel/git/bcousson/linux-omap-dt.git for_3.5/dts/am33xx
+> 
+> Vaibhav Hiremath (3):
+>       arm/dts: Add support for TI AM335x EVM board
+>       arm/dts: omap3-evm: Add i2c and twl4030 support
+>       arm/dts: Add support for TI AM3517/05 EVM board
+> 
+>  arch/arm/boot/dts/am335x-evm.dts |   39 ++++++++++++++++++++++++++++++++++++++
+>  arch/arm/boot/dts/am3517-evm.dts |   32 +++++++++++++++++++++++++++++++
+>  arch/arm/boot/dts/omap3-evm.dts  |   28 +++++++++++++++++++++++++++
+>  3 files changed, 99 insertions(+), 0 deletions(-)
+>  create mode 100644 arch/arm/boot/dts/am335x-evm.dts
+>  create mode 100644 arch/arm/boot/dts/am3517-evm.dts
