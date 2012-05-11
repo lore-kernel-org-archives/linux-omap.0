@@ -1,74 +1,51 @@
-From: "Raja, Govindraj" <govindraj.raja@ti.com>
-Subject: Re: [PATCH v2] OMAP2+: UART: Add mechanism to probe uart pins and
- configure rx wakeup
-Date: Fri, 11 May 2012 14:45:44 +0530
-Message-ID: <CAMrsUdL8117xSFah8+qxE_8pZozuXhWv587p4UK6hacMjxYO6w@mail.gmail.com>
-References: <1336655139-8908-1-git-send-email-govindraj.raja@ti.com> <CA+Bv8XbDVW_XbUbKyTziyw5LjxbymYKNWhFySBhaMeT22b-Bxw@mail.gmail.com>
+From: Paul Walmsley <paul@pwsan.com>
+Subject: Re: [PATCH 3/3] ARM: OMAP: AM35xx: fix UART4 softreset
+Date: Fri, 11 May 2012 03:22:47 -0600 (MDT)
+Message-ID: <alpine.DEB.2.00.1205110316500.3201@utopia.booyaka.com>
+References: <20120510172449.13418.66815.stgit@dusk> <20120510172918.13418.64781.stgit@dusk> <4FACD255.3080702@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: MULTIPART/MIXED; BOUNDARY="155748971-153787301-1336728167=:3201"
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aog115.obsmtp.com ([74.125.149.238]:32913 "EHLO
-	na3sys009aog115.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755328Ab2EKJQG convert rfc822-to-8bit
-	(ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Fri, 11 May 2012 05:16:06 -0400
-Received: by obhx4 with SMTP id x4so3959961obh.34
-        for <linux-omap@vger.kernel.org>; Fri, 11 May 2012 02:16:04 -0700 (PDT)
-In-Reply-To: <CA+Bv8XbDVW_XbUbKyTziyw5LjxbymYKNWhFySBhaMeT22b-Bxw@mail.gmail.com>
+Received: from utopia.booyaka.com ([72.9.107.138]:55874 "EHLO
+	utopia.booyaka.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1757855Ab2EKJWs (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 11 May 2012 05:22:48 -0400
+In-Reply-To: <4FACD255.3080702@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Russ Dill <russ.dill@gmail.com>
-Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Felipe Balbi <balbi@ti.com>, Kevin Hilman <khilman@ti.com>, Tony Lindgren <tony@atomide.com>, Paul Walmsley <paul@pwsan.com>, Ameya Palande <ameya.palande@ti.com>
+To: "Cousson, Benoit" <b-cousson@ti.com>
+Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Kyle Manna <kyle.manna@fuel7.com>, Ranjith Lohithakshan <ranjithl@ti.com>, "Mark A. Greer" <mgreer@animalcreek.com>
 
-On Fri, May 11, 2012 at 2:04 PM, Russ Dill <russ.dill@gmail.com> wrote:
-> On Thu, May 10, 2012 at 6:05 AM, Govindraj.R <govindraj.raja@ti.com> =
-wrote:
->> From: "Govindraj.R" <govindraj.raja@ti.com>
->>
->> The commit (bce492c0 =A0ARM: OMAP2+: UART: Fix incorrect population =
-of
->> default uart pads) removed default uart pads that where getting popu=
-lated
->> and which was making rx pin wakeup capable. If uart pads was used in
->> different mode by any other module then it would fail since the defa=
-ult
->> pads took over all the uart pins forcefully. With removal of default=
- pads
->> the rx_pad wakeup for console uart while waking up from off mode is =
-broken.
+  This message is in MIME format.  The first part should be readable text,
+  while the remaining parts are likely unreadable without MIME-aware tools.
 
-[...]
+--155748971-153787301-1336728167=:3201
+Content-Type: TEXT/PLAIN; charset=UTF-8
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+
+Hi Beno=C3=AEt
+
+On Fri, 11 May 2012, Cousson, Benoit wrote:
+
+> I do not have any clue about that chip, but is this clock really what it =
+is
+> supposed to be? I mean, isn't the uart1_fck the parent of all the UART fc=
+k or
+> something like that. Don't we just have an issue becasue the clock names =
+are
+> not accurate?
+
+I guess that's what I'm trying to find out.
+
+According to the AM3517 TRM rev. B (SPRUGR0B) Figure 14-20 "UART=20
+Functional Integration" and Table 14-11 "UART Clocks", all of the UARTs=20
+appear to have independent functional clocks.  The table even mentions a=20
+CM_FCLKEN1_CORE.EN_UART4 bit.  But the PRCM chapter of this TRM doesn't=20
+mention that at all.  So the documentation is not too useful here.
+
+On the rest of the OMAPs, as far as I know, the UART clocks are all=20
+separate.
 
 
->> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0* Check if uart is used in default =
-tx/rx mode i.e. in mux mode0
->> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0* if yes then configure rx pin for =
-wake up capability
->> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0*/
->> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 if (!(rx_mode & 0x07) && !(tx_mode & 0=
-x07))
->> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 omap_serial_fill_uart_=
-tx_rx_pads(bdata, uart);
->
-> I realize the comment makes it clear, but it'd probably be better to
-> just make the code clear. I noticed mux.h has a OMAP_MODE_GPIO(x)
-> macro for testing if a mux is in mode4. Perhaps its time to start
-> expanding on that, at least with a macro like:
->
-> #define OMAP_MUX_MODE(x) ((x) & OMAP_MUX_MODE7)
->
-> So you can do a OMAP_MUX_MODE(rx_mode) =3D=3D OMAP_MUX_MODE0
->
-
-Yes sure, will add the macro and use the same.
-(will post v3 addressing the comments received so far)
-
---
-Thanks,
-Govindraj.R
---
-To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+- Paul
+--155748971-153787301-1336728167=:3201--
