@@ -1,59 +1,68 @@
-From: Paul Walmsley <paul@pwsan.com>
-Subject: Re: OMAP3EVM not booting on l-o master
-Date: Fri, 11 May 2012 16:39:17 -0600 (MDT)
-Message-ID: <alpine.DEB.2.00.1205111638140.3201@utopia.booyaka.com>
-References: <C8443D0743D26F4388EA172BF4E2A7A9317C3A03@DBDE01.ent.ti.com> <C8443D0743D26F4388EA172BF4E2A7A9317C3B18@DBDE01.ent.ti.com> <alpine.DEB.2.00.1204050330380.10302@utopia.booyaka.com> <alpine.DEB.2.00.1204050403460.10302@utopia.booyaka.com>
- <C8443D0743D26F4388EA172BF4E2A7A9317C4B44@DBDE01.ent.ti.com> <alpine.DEB.2.00.1204051303000.10302@utopia.booyaka.com> <C8443D0743D26F4388EA172BF4E2A7A9317C5DB6@DBDE01.ent.ti.com> <alpine.DEB.2.00.1204060111400.10302@utopia.booyaka.com>
- <C8443D0743D26F4388EA172BF4E2A7A9317C5EEF@DBDE01.ent.ti.com> <1335173044.2149.64.camel@sokoban> <87obqhawig.fsf@ti.com> <1335532591.2149.163.camel@sokoban> <87fwbowyuu.fsf@ti.com> <1335790016.2149.185.camel@sokoban> <87vckht0lf.fsf@ti.com>
- <alpine.DEB.2.00.1205020242420.19695@utopia.booyaka.com> <87aa1qhd49.fsf@ti.com>
+From: Stephen Warren <swarren@wwwdotorg.org>
+Subject: Re: [PATCH V3 1/2] of: Add generic device tree DMA helpers
+Date: Fri, 11 May 2012 17:51:08 -0600
+Message-ID: <4FADA5EC.8040807@wwwdotorg.org>
+References: <1335820679-28721-1-git-send-email-jon-hunter@ti.com> <4FA3F308.6030900@ti.com> <CAJe_ZhfFhZVG4gyaaVUgeQedJiSE=zj9nE28XCNH9DkPVgqj=A@mail.gmail.com> <201205041923.07620.arnd@arndb.de> <CAJe_Zhe8jYd1j=ti6FvqxXL7i5mbgf0jqb-84sFMTeUqyAonpw@mail.gmail.com> <4FA7F009.5010003@wwwdotorg.org> <CAJe_ZheHFP9NZEiZfCvS3LL1k7xamzGq4Oep8gfmPRi6RR7R5Q@mail.gmail.com> <4FA94B49.5050500@wwwdotorg.org> <CAJe_Zhf0=Qnsgsc7U_GbKxc0_6DKj33QWs0UW2giyrVEjPnrvw@mail.gmail.com> <4FAAC111.9020308@wwwdotorg.org> <CAJe_Zhcrr2QqoY=H3=3EJLPQBjC3Yc43EDjqYXaNok9-T+=0yw@mail.gmail.com> <4FABF445.3030105@wwwdotorg.org> <CAJe_ZhduQuHnFyF20VnjZW9uz1szwL6O7=ow+tMqanmeHs58pQ@mail.gmail.com> <4FAD6848.40700@wwwdotorg.org> <CAJe_Zhc8T-vR8fjFLyT4bz6dj=TUyx0F8k=fAPYn_MnbGW5LBg@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from utopia.booyaka.com ([72.9.107.138]:43849 "EHLO
-	utopia.booyaka.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751308Ab2EKWjS (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 11 May 2012 18:39:18 -0400
-In-Reply-To: <87aa1qhd49.fsf@ti.com>
+Received: from avon.wwwdotorg.org ([70.85.31.133]:60507 "EHLO
+	avon.wwwdotorg.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1760464Ab2EKXvN (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 11 May 2012 19:51:13 -0400
+In-Reply-To: <CAJe_Zhc8T-vR8fjFLyT4bz6dj=TUyx0F8k=fAPYn_MnbGW5LBg@mail.gmail.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Kevin Hilman <khilman@ti.com>
-Cc: "linux-omap\\@vger.kernel.org" <linux-omap@vger.kernel.org>
+To: Jassi Brar <jaswinder.singh@linaro.org>
+Cc: Arnd Bergmann <arnd@arndb.de>, Stephen Warren <swarren@nvidia.com>, Benoit Cousson <b-cousson@ti.com>, device-tree <devicetree-discuss@lists.ozlabs.org>, Nicolas Ferre <nicolas.ferre@atmel.com>, Rob Herring <rob.herring@calxeda.com>, Grant Likely <grant.likely@secretlab.ca>, Jon Hunter <jon-hunter@ti.com>, Russell King <linux@arm.linux.org.uk>, linux-omap <linux-omap@vger.kernel.org>, linux-arm <linux-arm-kernel@lists.infradead.org>
 
-Hi Kevin,
+On 05/11/2012 03:06 PM, Jassi Brar wrote:
+> On 12 May 2012 00:58, Stephen Warren <swarren@wwwdotorg.org> wrote:
+>> On 05/10/2012 01:59 PM, Jassi Brar wrote:
+...
+>>>> client0: i2s {
+>>>>   /* has 2 DMA request output signals: 0, 1 */
+>>>> };
+>>>>
+>>>> client1: spdif {
+>>>>   /* has 2 DMA request signals: 0, 1 */
+>>>> };
+>>>>
+>>> Do we also need to somehow tag these signals for the client to
+>>> differentiate between TX and RX channel ?
+>>
+>> Yes, the client's DT binding would certainly need to describe how many
+>> DMA request signals its HW generates, and give a unique ID to each. The
+>> driver would need to request a DMA channel for a specific one of its DMA
+>> requests.
+>>
+> Did I read "give a unique ID to each" correctly ?
 
-On Wed, 2 May 2012, Kevin Hilman wrote:
+It'd be unique relative to that individual device or DT node, not at any
+larger scope.
 
-> >From 22726db6fc514cc5110db43fdf05d5afda8e4a59 Mon Sep 17 00:00:00 2001
-> From: Kevin Hilman <khilman@ti.com>
-> Date: Tue, 1 May 2012 07:06:42 -0700
-> Subject: [PATCH] ARM: OMAP3: PM: leave PRCM interrupts disabled until
->  explicitly enabled.
-> 
-> By default, request_irq() will auto-enable the requested IRQ.
-> 
-> For PRCM interrupts, we may want to avoid that until the PM core code
-> is fully ready to handle the interrupts.  This is particularily true
-> for IO pad interrupts on OMAP3, which are shared between the hwmod
-> core and the PRM core.
-> 
-> In order to avoid PRCM IO-chain interrupts until the PM core is ready
-> to handle them, ready, set the IRQ_NOAUTOEN flag for the PRCM IO-chain
-> interrupt,  which means it will remain disabled after request_irq().
-> 
-> Then, explicitly enable the PRCM interrupts after the request_irq() in
-> the PM core (but not in the hwmod core.)
-> 
-> Special thanks to Tero Kristo for suggesting to isolate the fix to
-> only the IO-chain interrupt on OMAP3 instead of all PRCM interrupts.
-> 
-> Tested-by: Afzal Mohammed <afzal@ti.com>
-> Acked-by: Tero Kristo <t-kristo@ti.com>
-> Cc: Paul Walmsley <paul@pwsan.com>
-> Signed-off-by: Kevin Hilman <khilman@ti.com>
+> Could you please take some time out to jot down an example of how a
+> typical client's dma specifier should look.
 
-Acked-by: Paul Walmsley <paul@pwsan.com>
+With this proposal, I'm not sure that the client DT node would need any
+DMA information at all, at least nothing that identifies which DMA
+controllers, channels, or requests are required to service this
+node/device's DMA requests - that routing information is all represented
+in the DMA controller itself.
 
-If for some reason it doesn't get in for 3.5, let me know and I'll queue 
-with the other IO chain patches for 3.6 as we discussed.
+(I think Arnd made the following point earlier in this thread):
 
-- Paul
+If you did need to put any other information in DT, then that probably
+would go in the DMA client node, since it'd presumably be the same
+irrespective of which DMA controller got used. However, that information
+presumably wouldn't be needed in DT at all, since the driver would know
+it, since it'd be a facet of the HW.
+
+Note: I'm thinking things like DMA physical address (presumably an
+offset from the reg property), DMA access size (presumably a fixed
+property of the HW), DMA burst size (presumably a property of the HW,
+although at least some HW can be programmed to raise the DMA request
+signal with a varying number of FIFO entries free, so not fixed), etc.
+
+> FWIW, I think I can live with what you propose. Let us go for the kill.
