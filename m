@@ -1,81 +1,59 @@
-From: Kevin Hilman <khilman@ti.com>
-Subject: Re: [PATCH-V2 3/4] ARM: OMAP2+: CLEANUP: Remove unnecessary ifdef around __omap2_set_globals
-Date: Fri, 11 May 2012 14:54:51 -0700
-Message-ID: <87k40itmc4.fsf@ti.com>
-References: <1336506724-5494-1-git-send-email-hvaibhav@ti.com>
-	<1336506724-5494-4-git-send-email-hvaibhav@ti.com>
-	<87397ajo32.fsf@ti.com>
-	<79CD15C6BA57404B839C016229A409A83EA1BF14@DBDE01.ent.ti.com>
-	<8762c3ww9w.fsf@ti.com>
-	<79CD15C6BA57404B839C016229A409A83EA220A3@DBDE01.ent.ti.com>
+From: Paul Walmsley <paul@pwsan.com>
+Subject: Re: OMAP3EVM not booting on l-o master
+Date: Fri, 11 May 2012 16:39:17 -0600 (MDT)
+Message-ID: <alpine.DEB.2.00.1205111638140.3201@utopia.booyaka.com>
+References: <C8443D0743D26F4388EA172BF4E2A7A9317C3A03@DBDE01.ent.ti.com> <C8443D0743D26F4388EA172BF4E2A7A9317C3B18@DBDE01.ent.ti.com> <alpine.DEB.2.00.1204050330380.10302@utopia.booyaka.com> <alpine.DEB.2.00.1204050403460.10302@utopia.booyaka.com>
+ <C8443D0743D26F4388EA172BF4E2A7A9317C4B44@DBDE01.ent.ti.com> <alpine.DEB.2.00.1204051303000.10302@utopia.booyaka.com> <C8443D0743D26F4388EA172BF4E2A7A9317C5DB6@DBDE01.ent.ti.com> <alpine.DEB.2.00.1204060111400.10302@utopia.booyaka.com>
+ <C8443D0743D26F4388EA172BF4E2A7A9317C5EEF@DBDE01.ent.ti.com> <1335173044.2149.64.camel@sokoban> <87obqhawig.fsf@ti.com> <1335532591.2149.163.camel@sokoban> <87fwbowyuu.fsf@ti.com> <1335790016.2149.185.camel@sokoban> <87vckht0lf.fsf@ti.com>
+ <alpine.DEB.2.00.1205020242420.19695@utopia.booyaka.com> <87aa1qhd49.fsf@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aog109.obsmtp.com ([74.125.149.201]:56884 "EHLO
-	na3sys009aog109.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1758710Ab2EKVyz (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>);
-	Fri, 11 May 2012 17:54:55 -0400
-Received: by pbbrp12 with SMTP id rp12so6767982pbb.1
-        for <linux-omap@vger.kernel.org>; Fri, 11 May 2012 14:54:53 -0700 (PDT)
-In-Reply-To: <79CD15C6BA57404B839C016229A409A83EA220A3@DBDE01.ent.ti.com>
-	(Vaibhav Hiremath's message of "Fri, 11 May 2012 06:09:58 +0000")
+Received: from utopia.booyaka.com ([72.9.107.138]:43849 "EHLO
+	utopia.booyaka.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751308Ab2EKWjS (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 11 May 2012 18:39:18 -0400
+In-Reply-To: <87aa1qhd49.fsf@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "Hiremath, Vaibhav" <hvaibhav@ti.com>
-Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "tony@atomide.com" <tony@atomide.com>, "paul@pwsan.com" <paul@pwsan.com>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>
+To: Kevin Hilman <khilman@ti.com>
+Cc: "linux-omap\\@vger.kernel.org" <linux-omap@vger.kernel.org>
 
-"Hiremath, Vaibhav" <hvaibhav@ti.com> writes:
+Hi Kevin,
 
-> On Fri, May 11, 2012 at 03:09:39, Hilman, Kevin wrote:
->> "Hiremath, Vaibhav" <hvaibhav@ti.com> writes:
->> 
->> > On Wed, May 09, 2012 at 04:08:09, Hilman, Kevin wrote:
->> >> Vaibhav Hiremath <hvaibhav@ti.com> writes:
->> >> 
->> >> > The function __omap2_set_globals() can be common across all
->> >> > platforms/architectures, even in case of omap4, internally it
->> >> > calls same set of functions as in __omap2_set_globals() function
->> >> > (except for sdrc).
->> >> 
->> >> OK so far.
->> >> 
->> >> > This patch adds new config flag SOC_HAS_OMAP2_SDRC to handle sdrc,
->> >> > so that we can reuse same function across omap2/3/4...
->> >> 
->> >> But what happens when a single kernel is built that has support for an
->> >> SoC with an SDRC (OMAP4) and one that doesn't (AM33xx)?
->> >> 
->> >
->> > As such Nothing...I looking into this direction while implementing.
->> >
->> > In that case, sdrc.c file will be compiled in and execution will jump to
->> > omap2_set_globals_sdrc(). But inside this function, we are already checking 
->> > whether the omap2_globals->sdrc and omap2_globals->sms for NULL and then use 
->> > it.
->> >
->> > And function omap2_sdrc_init() is also depends on machine, so in case of
->> > Am33xx, it won't get into sdrc execution at all. And in case of omap4, it 
->> > will.
->> 
->> Then why bother with the #ifdef at all?
->> 
->> If it already safe to call on all SoCs, just get rid of the #ifdef all
->> together.
->> 
->
-> Kevin,
->
-> sdrc.o target gets built only as "omap-2-3-common", this will not get built 
-> for omap4, am33xx, ti81xx, etc...
+On Wed, 2 May 2012, Kevin Hilman wrote:
 
-OK, I see what you mean now.  I was confusing because this patch doesn't
-touch sdrc.c, or the Makefile for sdrc.c.
+> >From 22726db6fc514cc5110db43fdf05d5afda8e4a59 Mon Sep 17 00:00:00 2001
+> From: Kevin Hilman <khilman@ti.com>
+> Date: Tue, 1 May 2012 07:06:42 -0700
+> Subject: [PATCH] ARM: OMAP3: PM: leave PRCM interrupts disabled until
+>  explicitly enabled.
+> 
+> By default, request_irq() will auto-enable the requested IRQ.
+> 
+> For PRCM interrupts, we may want to avoid that until the PM core code
+> is fully ready to handle the interrupts.  This is particularily true
+> for IO pad interrupts on OMAP3, which are shared between the hwmod
+> core and the PRM core.
+> 
+> In order to avoid PRCM IO-chain interrupts until the PM core is ready
+> to handle them, ready, set the IRQ_NOAUTOEN flag for the PRCM IO-chain
+> interrupt,  which means it will remain disabled after request_irq().
+> 
+> Then, explicitly enable the PRCM interrupts after the request_irq() in
+> the PM core (but not in the hwmod core.)
+> 
+> Special thanks to Tero Kristo for suggesting to isolate the fix to
+> only the IO-chain interrupt on OMAP3 instead of all PRCM interrupts.
+> 
+> Tested-by: Afzal Mohammed <afzal@ti.com>
+> Acked-by: Tero Kristo <t-kristo@ti.com>
+> Cc: Paul Walmsley <paul@pwsan.com>
+> Signed-off-by: Kevin Hilman <khilman@ti.com>
 
-> So in order to avoid build break, you have to have some mechanism, and
-> that's where we need to create config option dependent on platform.
+Acked-by: Paul Walmsley <paul@pwsan.com>
 
-That being the case, for readability sake, I suggest you change the
-Makefile to use the new config option for sdrc.c as well.
+If for some reason it doesn't get in for 3.5, let me know and I'll queue 
+with the other IO chain patches for 3.6 as we discussed.
 
-Kevin
+- Paul
