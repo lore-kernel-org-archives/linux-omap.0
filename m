@@ -1,60 +1,123 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [GIT PULL] ARM: OMAP2+: Add AM335x and AM3517/05 EVM DT support
-Date: Sat, 12 May 2012 10:15:04 -0700
-Message-ID: <20120512171503.GL5140@atomide.com>
-References: <4FAD0A71.80201@ti.com>
- <20120511195620.GX21851@atomide.com>
- <79CD15C6BA57404B839C016229A409A83EA23806@DBDE01.ent.ti.com>
+From: Wolfram Sang <w.sang-bIcnvbaLZ9MEGnE8C9+IrQ@public.gmane.org>
+Subject: Re: [PATCHv9 06/10] I2C: OMAP: Fix the crash in i2c remove
+Date: Sat, 12 May 2012 20:10:19 +0200
+Message-ID: <20120512181019.GA28973@pengutronix.de>
+References: <1335969135-20858-1-git-send-email-shubhrajyoti@ti.com>
+ <1335969135-20858-7-git-send-email-shubhrajyoti@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-02-ewr.mailhop.org ([204.13.248.72]:54888 "EHLO
-	mho-02-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751530Ab2ELRPI (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Sat, 12 May 2012 13:15:08 -0400
+Content-Type: multipart/signed; micalg=pgp-sha1;
+	protocol="application/pgp-signature"; boundary="gKMricLos+KVdGMg"
+Return-path: <linux-i2c-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 Content-Disposition: inline
-In-Reply-To: <79CD15C6BA57404B839C016229A409A83EA23806@DBDE01.ent.ti.com>
-Sender: linux-omap-owner@vger.kernel.org
+In-Reply-To: <1335969135-20858-7-git-send-email-shubhrajyoti-l0cyMroinI0@public.gmane.org>
+Sender: linux-i2c-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Shubhrajyoti D <shubhrajyoti-l0cyMroinI0@public.gmane.org>
+Cc: linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-i2c-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, ben-linux-elnMNo+KYs3YtjvyW6yDsg@public.gmane.org, tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org, Kevin Hilman <khilman-l0cyMroinI0@public.gmane.org>, Rajendra Nayak <rnayak-l0cyMroinI0@public.gmane.org>
 List-Id: linux-omap@vger.kernel.org
-To: "Hiremath, Vaibhav" <hvaibhav@ti.com>
-Cc: "Cousson, Benoit" <b-cousson@ti.com>, linux-omap <linux-omap@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>
 
-* Hiremath, Vaibhav <hvaibhav@ti.com> [120512 01:26]:
-> On Sat, May 12, 2012 at 01:26:20, Tony Lindgren wrote:
-> > Hi,
-> > 
-> > * Cousson, Benoit <b-cousson@ti.com> [120511 05:51]:
-> > > Hi Tony,
-> > > 
-> > > Here are some remaining DT patches I was not able to push at 3.4 due to some missing dependency.
-> > > It applies now fine on top of lo/dt branch.
-> > 
-> > It seems that there are still patches being discussed for those SoCs
-> > and we're pretty much done for this merge window. So unless things
-> > drag on to -rc8, I'd say we just need to postpone merging new things
-> > and merge them early around -rc2.
-> > 
-> 
-> Oops...
-> It seems like I missed this merge window as well...
 
-We can still queue these into linux-omap for testing as
-soon as the patches are ready.
+--gKMricLos+KVdGMg
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
 
-In general, for anything more intrusive we want to have
-the patches sitting in linux-omap master branch and then
-in linux-next for at least a week. Then merging them into
-mainline tree is usually safe to do. The reason for this is
-that mainline kernel is our stable tree, not our
-development tree.
+On Wed, May 02, 2012 at 08:02:11PM +0530, Shubhrajyoti D wrote:
+>     In omap_i2c_remove we are accessing the I2C_CON register without
+>     enabling the clocks. Fix the same by enabling the clocks and disabling
+>     it.
+>     This fixes the following crash.
+>     [  154.723022] ------------[ cut here ]------------
+>     [  154.725677] WARNING: at arch/arm/mach-omap2/omap_l3_noc.c:112 l3_i=
+nterrupt_handler+0x1b4/0x1c4()
+>     [  154.725677] L3 custom error: MASTER:MPU TARGET:L4 PER2
+>     [  154.742614] Modules linked in: i2c_omap(-)
+>     [  154.746948] Backtrace:
+>     [  154.746948] [<c0013078>] (dump_backtrace+0x0/0x110) from [<c026c15=
+8>] (dump_stack+0x18/0x1c)
+>     [  154.752716]  r6:00000070 r5:c002c43c r4:df9b9e98 r3:df9b8000
+>     [  154.764465] [<c026c140>] (dump_stack+0x0/0x1c) from [<c0041a2c>] (=
+warn_slowpath_common+0x5c/0x6c)
+>     [  154.768341] [<c00419d0>] (warn_slowpath_common+0x0/0x6c) from [<c0=
+041ae0>] (warn_slowpath_fmt+0x38/0x40)
+>     [  154.776153]  r8:00000180 r7:c0361594 r6:c0379b48 r5:00080003 r4:e0=
+838b00
+>     [  154.790771] r3:00000009
+>     [  154.791778] [<c0041aa8>] (warn_slowpath_fmt+0x0/0x40) from [<c002c=
+43c>] (l3_interrupt_handler+0x1b4/0x1c4)
+>     [  154.803710]  r3:c0361598 r2:c02ef74c
+>     [  154.807403] [<c002c288>] (l3_interrupt_handler+0x0/0x1c4) from [<c=
+0085f44>] (handle_irq_event_percpu+0x58/0
+>     [  154.818237]  r8:0000002a r7:00000000 r6:00000000 r5:df808054 r4:df=
+8893c0
+>     [  154.825378] [<c0085eec>] (handle_irq_event_percpu+0x0/0x188) from =
+[<c00860b8>] (handle_irq_event+0x44/0x64)
+>     [  154.835662] [<c0086074>] (handle_irq_event+0x0/0x64) from [<c0088e=
+c0>] (handle_fasteoi_irq+0xa4/0x10c)
+>     [  154.845458]  r6:0000002a r5:df808054 r4:df808000 r3:c034a150
+>     [  154.846466] [<c0088e1c>] (handle_fasteoi_irq+0x0/0x10c) from [<c00=
+85ed0>] (generic_handle_irq+0x30/0x38)
+>     [  154.854278]  r5:c034aa48 r4:0000002a
+>     [  154.862091] [<c0085ea0>] (generic_handle_irq+0x0/0x38) from [<c000=
+fd38>] (handle_IRQ+0x60/0xc0)
+>     [  154.874450]  r4:c034ea70 r3:000001f8
+>     [  154.878234] [<c000fcd8>] (handle_IRQ+0x0/0xc0) from [<c0008478>] (=
+gic_handle_irq+0x20/0x5c)
+>     [  154.887023]  r7:ffffff40 r6:df9b9fb0 r5:c034e2b4 r4:0000001a
+>     [  154.887054] [<c0008458>] (gic_handle_irq+0x0/0x5c) from [<c000ea80=
+>] (__irq_usr+0x40/0x60)
+>     [  154.901153] Exception stack(0xdf9b9fb0 to 0xdf9b9ff8)
+>     [  154.907104] 9fa0:                                     beaf1f04 400=
+6be00 0000000f 0000000c
+>     [  154.915710] 9fc0: 4006c000 00000000 00008034 ffffff40 00000007 000=
+00000 00000000 0007b8d7
+>     [  154.916778] 9fe0: 00000000 beaf1b68 0000d23c 4005baf0 80000010 fff=
+fffff
+>     [  154.931335]  r6:ffffffff r5:80000010 r4:4005baf0 r3:beaf1f04
+>     [  154.937316] ---[ end trace 1b75b31a2719ed21 ]--
+>=20
+> Cc: Kevin Hilman <khilman-l0cyMroinI0@public.gmane.org>
+> Cc: Rajendra Nayak <rnayak-l0cyMroinI0@public.gmane.org>
+> Signed-off-by: Shubhrajyoti D <shubhrajyoti-l0cyMroinI0@public.gmane.org>
 
-We just need to queue most of things between -rc2 and
--rc4 into the arm-soc tree, and have any issues fixed up
-before the merge window. Trying to cram development
-branches in around -rc6 just causes us a huge maintenance
-nightmare trying to fix up things in the mainline tree
-between -rc1 and -rc4.
+I'd really like a comment from the PM experts if each and every driver
+has to ensure that the clocks are enabled on remove like this?
 
-Cheers,
+> ---
+>  drivers/i2c/busses/i2c-omap.c |    2 ++
+>  1 files changed, 2 insertions(+), 0 deletions(-)
+>=20
+> diff --git a/drivers/i2c/busses/i2c-omap.c b/drivers/i2c/busses/i2c-omap.c
+> index fec8d5c..44e8cfa 100644
+> --- a/drivers/i2c/busses/i2c-omap.c
+> +++ b/drivers/i2c/busses/i2c-omap.c
+> @@ -1108,7 +1108,9 @@ omap_i2c_remove(struct platform_device *pdev)
+> =20
+>  	free_irq(dev->irq, dev);
+>  	i2c_del_adapter(&dev->adapter);
+> +	pm_runtime_get_sync(&pdev->dev);
+>  	omap_i2c_write_reg(dev, OMAP_I2C_CON_REG, 0);
+> +	pm_runtime_put(&pdev->dev);
+>  	pm_runtime_disable(&pdev->dev);
+>  	iounmap(dev->base);
+>  	kfree(dev);
+> --=20
+> 1.7.5.4
+>=20
 
-Tony
+--=20
+Pengutronix e.K.                           | Wolfram Sang                |
+Industrial Linux Solutions                 | http://www.pengutronix.de/  |
+
+--gKMricLos+KVdGMg
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: Digital signature
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.4.12 (GNU/Linux)
+
+iEYEARECAAYFAk+up4sACgkQD27XaX1/VRsSXwCePdVxbHqPxNN3sGOrAbPjSvWg
+S00An1i427zxNFDVWgjQyZRywUcRTWqa
+=7YkS
+-----END PGP SIGNATURE-----
+
+--gKMricLos+KVdGMg--
