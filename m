@@ -1,71 +1,57 @@
-From: Ricardo Neri <ricardo.neri@ti.com>
-Subject: Re: [PATCH v2 14/14] OMAPDSS: HDMI: Implement DSS
- driver interface for audio
-Date: Fri, 11 May 2012 19:18:44 -0500
-Message-ID: <4FADAC64.8090009@ti.com>
-References: <1336095848-6923-1-git-send-email-ricardo.neri@ti.com>
-	<1336095848-6923-15-git-send-email-ricardo.neri@ti.com>
-	<1336390986.2667.8.camel@deskari> <4FA9B289.5000101@ti.com>
-	<1336552081.3962.15.camel@deskari> <4FAB403E.6010000@ti.com>
-	<1336636449.5182.26.camel@deskari> <4FAC71E0.2060808@ti.com>
-	<1336740693.8751.78.camel@deskari>
+From: Kevin Hilman <khilman@ti.com>
+Subject: [GIT PULL] gpio/omap: cleanups for v3.5
+Date: Fri, 11 May 2012 17:30:48 -0700
+Message-ID: <874nrmtf47.fsf@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <alsa-devel-bounces@alsa-project.org>
-In-Reply-To: <1336740693.8751.78.camel@deskari>
-List-Unsubscribe: <http://mailman.alsa-project.org/mailman/listinfo/alsa-devel>,
-	<mailto:alsa-devel-request@alsa-project.org?subject=unsubscribe>
-List-Archive: <http://mailman.alsa-project.org/pipermail/alsa-devel>
-List-Post: <mailto:alsa-devel@alsa-project.org>
-List-Help: <mailto:alsa-devel-request@alsa-project.org?subject=help>
-List-Subscribe: <http://mailman.alsa-project.org/mailman/listinfo/alsa-devel>,
-	<mailto:alsa-devel-request@alsa-project.org?subject=subscribe>
-Sender: alsa-devel-bounces@alsa-project.org
-Errors-To: alsa-devel-bounces@alsa-project.org
-To: Tomi Valkeinen <tomi.valkeinen@ti.com>
-Cc: x0055901@ti.com, alsa-devel@alsa-project.org, research@ottomaneng.com, agraf@suse.de, vaibhav.bedia@ti.com, s-chereau@ti.com, peter.ujfalusi@ti.com, mythripk@ti.com, s-guiriec@ti.com, linux-omap@vger.kernel.org, lrg@ti.com
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from na3sys009aog130.obsmtp.com ([74.125.149.143]:54065 "EHLO
+	na3sys009aog130.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1758717Ab2ELAav (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>);
+	Fri, 11 May 2012 20:30:51 -0400
+Received: by pbbrr13 with SMTP id rr13so4491087pbb.12
+        for <linux-omap@vger.kernel.org>; Fri, 11 May 2012 17:30:50 -0700 (PDT)
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Grant Likely <grant.likely@secretlab.ca>
+Cc: linux-omap <linux-omap@vger.kernel.org>, linux-arm-kernel <linux-arm-kernel@lists.infradead.org>
 
-On 05/11/2012 07:51 AM, Tomi Valkeinen wrote:
-> On Thu, 2012-05-10 at 20:56 -0500, Ricardo Neri wrote:
->
->> Sorry, some hunks where missing in the patch that I submitted yesterday.
->>
->> I just pushed a branch containing the whole most up-to-date series here:
->>
->> git://gitorious.org/omap-audio/linux-audio.git
->> ricardon/topic/dss_audio-for-tomi
->>
->> This includes the implementation of the DSS audio interface for HDMI
->> covering the improved locking strategy [1][2], plus the missing hunks in
->> my yesterday's patch, plus handling of mode changes you pointed out.
->>
->> Please let me know if you want me to resubmit the whole patch series so
->> that you can comment if you need to.
->
-> Thanks, I think this is fine. I had to rebase your branch as you had
-> some extra patches there also. There were also a few conflicts with
-> latest dss stuff, but nothing serious.
->
-> I pushed the branch with latest dss and your branch to:
->
-> git://gitorious.org/linux-omap-dss2/linux.git test
->
-> With a quick test video works ok, but I didn't test audio.
+Hi Grant,
 
-Thanks for taking the patches! In your branch, the audio part would not 
-build with audio enabled as your branch does not have the ALSA CEA-861 
-definitions patch [1]. The platform devices for the ASoC HDMI drivers[2] 
-are also missing. I put these patches on top of your test branch and 
-audio works well. [1] and [2] will come from Takashi's and Tony's branches.
+Here's the final round of GPIO cleanups for v3.5.  This branch is based
+on my for_3.5/fixes/gpio branch you just pulled.
 
-BR,
-
-Ricardo
+Kevin
 
 
-[1]http://www.mail-archive.com/linux-omap@vger.kernel.org/msg66600.html
-[2]http://www.spinics.net/lists/linux-omap/msg68834.html
->
->   Tomi
+The following changes since commit 6edd94db250038c8fdf176f23ca4017d2f312509:
+
+  gpio/omap: fix incorrect initialization of omap_gpio_mod_init (2012-05-10 07:16:15 -0700)
+
+are available in the git repository at:
+
+  git://git.kernel.org/pub/scm/linux/kernel/git/khilman/linux-omap-pm.git for_3.5/gpio/cleanup
+
+for you to fetch changes up to 1b1287032df3a69d3ef9a486b444f4ffcca50d01:
+
+  gpio/omap: fix missing check in *_runtime_suspend() (2012-05-11 17:08:40 -0700)
+
+----------------------------------------------------------------
+Tarun Kanti DebBarma (8):
+      gpio/omap: remove virtual_irq_start variable
+      gpio/omap: remove saved_fallingdetect, saved_risingdetect
+      gpio/omap: remove suspend_wakeup field from struct gpio_bank
+      gpio/omap: remove saved_wakeup field from struct gpio_bank
+      gpio/omap: remove retrigger variable in gpio_irq_handler
+      gpio/omap: remove suspend/resume callbacks
+      gpio/omap: remove cpu_is_omapxxxx() checks from *_runtime_resume()
+      gpio/omap: fix missing check in *_runtime_suspend()
+
+ arch/arm/mach-omap1/gpio15xx.c         |    2 -
+ arch/arm/mach-omap1/gpio16xx.c         |    5 --
+ arch/arm/mach-omap1/gpio7xx.c          |    7 ---
+ arch/arm/mach-omap2/gpio.c             |    3 +-
+ arch/arm/plat-omap/include/plat/gpio.h |    3 +-
+ drivers/gpio/gpio-omap.c               |  103 +++++++-------------------------
+ 6 files changed, 27 insertions(+), 96 deletions(-)
