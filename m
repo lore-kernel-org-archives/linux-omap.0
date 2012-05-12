@@ -1,142 +1,111 @@
-From: Hannu Heikkinen <hannuxx@iki.fi>
-Subject: Re: [PATCH] spi/omap: cleanup probe/remove routines
-Date: Sat, 12 May 2012 16:12:16 +0300
-Message-ID: <20120512131216.GA4664@beyadr.localdomain>
-References: <1336567438-6715-1-git-send-email-hannuxx@iki.fi>
- <20120510003720.2F90C3E08F4@localhost>
+From: Jassi Brar <jaswinder.singh@linaro.org>
+Subject: Re: [PATCH V3 1/2] of: Add generic device tree DMA helpers
+Date: Sat, 12 May 2012 19:10:06 +0530
+Message-ID: <CAJe_Zhe61GTQQy+ZCVndAd=mrHxGBqyZ8JGZTSHsvE2XRzfGoA@mail.gmail.com>
+References: <1335820679-28721-1-git-send-email-jon-hunter@ti.com>
+	<4FA3F308.6030900@ti.com>
+	<CAJe_ZhfFhZVG4gyaaVUgeQedJiSE=zj9nE28XCNH9DkPVgqj=A@mail.gmail.com>
+	<201205041923.07620.arnd@arndb.de>
+	<CAJe_Zhe8jYd1j=ti6FvqxXL7i5mbgf0jqb-84sFMTeUqyAonpw@mail.gmail.com>
+	<4FA7F009.5010003@wwwdotorg.org>
+	<CAJe_ZheHFP9NZEiZfCvS3LL1k7xamzGq4Oep8gfmPRi6RR7R5Q@mail.gmail.com>
+	<4FA94B49.5050500@wwwdotorg.org>
+	<CAJe_Zhf0=Qnsgsc7U_GbKxc0_6DKj33QWs0UW2giyrVEjPnrvw@mail.gmail.com>
+	<4FAAC111.9020308@wwwdotorg.org>
+	<CAJe_Zhcrr2QqoY=H3=3EJLPQBjC3Yc43EDjqYXaNok9-T+=0yw@mail.gmail.com>
+	<4FABF445.3030105@wwwdotorg.org>
+	<CAJe_ZhduQuHnFyF20VnjZW9uz1szwL6O7=ow+tMqanmeHs58pQ@mail.gmail.com>
+	<4FAD6848.40700@wwwdotorg.org>
+	<CAJe_Zhc8T-vR8fjFLyT4bz6dj=TUyx0F8k=fAPYn_MnbGW5LBg@mail.gmail.com>
+	<4FADA5EC.8040807@wwwdotorg.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from relay.sigmatic.fi ([80.69.161.51]:36374 "EHLO relay.sigmatic.fi"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751786Ab2ELNMT (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Sat, 12 May 2012 09:12:19 -0400
-Content-Disposition: inline
-In-Reply-To: <20120510003720.2F90C3E08F4@localhost>
+Received: from mail-lb0-f174.google.com ([209.85.217.174]:33058 "EHLO
+	mail-lb0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753248Ab2ELNkI convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Sat, 12 May 2012 09:40:08 -0400
+Received: by lbbgm6 with SMTP id gm6so2470311lbb.19
+        for <linux-omap@vger.kernel.org>; Sat, 12 May 2012 06:40:06 -0700 (PDT)
+In-Reply-To: <4FADA5EC.8040807@wwwdotorg.org>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Grant Likely <grant.likely@secretlab.ca>
-Cc: linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org, spi-devel-general@lists.sourceforge.net, Kevin Hilman <khilman@deeprootsystems.com>, tony@atomide.com
+To: Stephen Warren <swarren@wwwdotorg.org>
+Cc: Arnd Bergmann <arnd@arndb.de>, Stephen Warren <swarren@nvidia.com>, Benoit Cousson <b-cousson@ti.com>, device-tree <devicetree-discuss@lists.ozlabs.org>, Nicolas Ferre <nicolas.ferre@atmel.com>, Rob Herring <rob.herring@calxeda.com>, Grant Likely <grant.likely@secretlab.ca>, Jon Hunter <jon-hunter@ti.com>, Russell King <linux@arm.linux.org.uk>, linux-omap <linux-omap@vger.kernel.org>, linux-arm <linux-arm-kernel@lists.infradead.org>
 
-On 09/05/12 18:37 -0600, Grant Likely wrote:
-> On Wed,  9 May 2012 15:43:58 +0300, Hannu Heikkinen <hannuxx@iki.fi> wrote:
-> > Cleanup probe and remove routines, use devm_* functions for
-> > managing resources.
-> > 
-> > Also, in under free_master label, change use of kfree() into
-> > spi_master_put().
-> 
-> Patch does not apply to my current spi/next branch[1].
-> 
-> [1]git://git.secretlab.ca/git/linux-2.6 spi/next
-> 
-> While I'm thinking about it; Kevin, how do you want me handling OMAP
-> spi patches.  Do you want to pick them up, test them and send me a git
-> branch to pull like with gpio?  Or can I just pick them up?
-> 
-> g.
+On 12 May 2012 05:21, Stephen Warren <swarren@wwwdotorg.org> wrote:
+> On 05/11/2012 03:06 PM, Jassi Brar wrote:
+>> On 12 May 2012 00:58, Stephen Warren <swarren@wwwdotorg.org> wrote:
+>>> On 05/10/2012 01:59 PM, Jassi Brar wrote:
+> ...
+>>>>> client0: i2s {
+>>>>> =A0 /* has 2 DMA request output signals: 0, 1 */
+>>>>> };
+>>>>>
+>>>>> client1: spdif {
+>>>>> =A0 /* has 2 DMA request signals: 0, 1 */
+>>>>> };
+>>>>>
+>>>> Do we also need to somehow tag these signals for the client to
+>>>> differentiate between TX and RX channel ?
+>>>
+>>> Yes, the client's DT binding would certainly need to describe how m=
+any
+>>> DMA request signals its HW generates, and give a unique ID to each.=
+ The
+>>> driver would need to request a DMA channel for a specific one of it=
+s DMA
+>>> requests.
+>>>
+>> Did I read "give a unique ID to each" correctly ?
+>
+> It'd be unique relative to that individual device or DT node, not at =
+any
+> larger scope.
+>
+OK.
 
-hi, I forgot this spi/next brach. devm funcs already applied
-(commit 1a77b127ae147f5827043a9896d7f4cb248b402e - Shubhrajyoti).
+>> Could you please take some time out to jot down an example of how a
+>> typical client's dma specifier should look.
+>
+> With this proposal, I'm not sure that the client DT node would need a=
+ny
+> DMA information at all, at least nothing that identifies which DMA
+> controllers, channels, or requests are required to service this
+> node/device's DMA requests - that routing information is all represen=
+ted
+> in the DMA controller itself.
+>
+> (I think Arnd made the following point earlier in this thread):
+>
+> If you did need to put any other information in DT, then that probabl=
+y
+> would go in the DMA client node, since it'd presumably be the same
+> irrespective of which DMA controller got used. However, that informat=
+ion
+> presumably wouldn't be needed in DT at all, since the driver would kn=
+ow
+> it, since it'd be a facet of the HW.
+>
+> Note: I'm thinking things like DMA physical address (presumably an
+> offset from the reg property), DMA access size (presumably a fixed
+> property of the HW), DMA burst size (presumably a property of the HW,
+> although at least some HW can be programmed to raise the DMA request
+> signal with a varying number of FIFO entries free, so not fixed), etc=
+=2E
+>
+Yeah, neither did I think a client node should tell more than IDs of
+its channels
+- which we now decide to simply mention in its binding.
 
-Please ignore below patch, I'll check if there's something devm related
-to do left.
+How do I know if you or someone is interested in reworking the patchset
+or want me to give it a try?
 
-br,
-Hannu
-
-> 
-> > 
-> > CC: grant.likely@secretlab.ca
-> > CC: tony@atomide.com
-> > Signed-off-by: Hannu Heikkinen <hannuxx@iki.fi>
-> > ---
-> >  drivers/spi/spi-omap2-mcspi.c |   27 ++++++---------------------
-> >  1 file changed, 6 insertions(+), 21 deletions(-)
-> > 
-> > diff --git a/drivers/spi/spi-omap2-mcspi.c b/drivers/spi/spi-omap2-mcspi.c
-> > index bb9274c..392efce 100644
-> > --- a/drivers/spi/spi-omap2-mcspi.c
-> > +++ b/drivers/spi/spi-omap2-mcspi.c
-> > @@ -1166,17 +1166,12 @@ static int __init omap2_mcspi_probe(struct platform_device *pdev)
-> >  	r->start += regs_offset;
-> >  	r->end += regs_offset;
-> >  	mcspi->phys = r->start;
-> > -	if (!request_mem_region(r->start, resource_size(r),
-> > -				dev_name(&pdev->dev))) {
-> > -		status = -EBUSY;
-> > -		goto free_master;
-> > -	}
-> >  
-> > -	mcspi->base = ioremap(r->start, resource_size(r));
-> > +	mcspi->base = devm_request_and_ioremap(&pdev->dev, r);
-> >  	if (!mcspi->base) {
-> > -		dev_dbg(&pdev->dev, "can't ioremap MCSPI\n");
-> > -		status = -ENOMEM;
-> > -		goto release_region;
-> > +		dev_dbg(&pdev->dev, "can't request mem and ioremap MCSPI\n");
-> > +		status =  -ENOMEM;
-> > +		goto free_master;
-> >  	}
-> >  
-> >  	mcspi->dev = &pdev->dev;
-> > @@ -1191,7 +1186,7 @@ static int __init omap2_mcspi_probe(struct platform_device *pdev)
-> >  			GFP_KERNEL);
-> >  
-> >  	if (mcspi->dma_channels == NULL)
-> > -		goto unmap_io;
-> > +		goto free_master;
-> >  
-> >  	for (i = 0; i < master->num_chipselect; i++) {
-> >  		char dma_ch_name[14];
-> > @@ -1241,12 +1236,8 @@ disable_pm:
-> >  	pm_runtime_disable(&pdev->dev);
-> >  dma_chnl_free:
-> >  	kfree(mcspi->dma_channels);
-> > -unmap_io:
-> > -	iounmap(mcspi->base);
-> > -release_region:
-> > -	release_mem_region(r->start, resource_size(r));
-> >  free_master:
-> > -	kfree(master);
-> > +	spi_master_put(master);
-> >  	platform_set_drvdata(pdev, NULL);
-> >  	return status;
-> >  }
-> > @@ -1256,8 +1247,6 @@ static int __exit omap2_mcspi_remove(struct platform_device *pdev)
-> >  	struct spi_master	*master;
-> >  	struct omap2_mcspi	*mcspi;
-> >  	struct omap2_mcspi_dma	*dma_channels;
-> > -	struct resource		*r;
-> > -	void __iomem *base;
-> >  
-> >  	master = dev_get_drvdata(&pdev->dev);
-> >  	mcspi = spi_master_get_devdata(master);
-> > @@ -1265,12 +1254,8 @@ static int __exit omap2_mcspi_remove(struct platform_device *pdev)
-> >  
-> >  	omap2_mcspi_disable_clocks(mcspi);
-> >  	pm_runtime_disable(&pdev->dev);
-> > -	r = platform_get_resource(pdev, IORESOURCE_MEM, 0);
-> > -	release_mem_region(r->start, resource_size(r));
-> >  
-> > -	base = mcspi->base;
-> >  	spi_unregister_master(master);
-> > -	iounmap(base);
-> >  	kfree(dma_channels);
-> >  	destroy_workqueue(mcspi->wq);
-> >  	platform_set_drvdata(pdev, NULL);
-> > -- 
-> > 1.7.10
-> > 
-> 
-> -- 
-> Grant Likely, B.Sc, P.Eng.
-> Secret Lab Technologies, Ltd.
-
--- 
--------------------------------------
-Hannu Heikkinen
-hannuxx@iki.fi
-PGP Key fingerprint FB04 2612 05B5 1CBD 9428  9E4D 2407 2F8C 52C0 A173
--------------------------------------
-
+Thanks,
+Jassi
+--
+To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
