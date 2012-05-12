@@ -1,42 +1,142 @@
-From: "Hiremath, Vaibhav" <hvaibhav@ti.com>
-Subject: RE: [GIT PULL] ARM: OMAP2+: Add AM335x and AM3517/05 EVM DT support
-Date: Sat, 12 May 2012 08:22:55 +0000
-Message-ID: <79CD15C6BA57404B839C016229A409A83EA23806@DBDE01.ent.ti.com>
-References: <4FAD0A71.80201@ti.com> <20120511195620.GX21851@atomide.com>
+From: Hannu Heikkinen <hannuxx@iki.fi>
+Subject: Re: [PATCH] spi/omap: cleanup probe/remove routines
+Date: Sat, 12 May 2012 16:12:16 +0300
+Message-ID: <20120512131216.GA4664@beyadr.localdomain>
+References: <1336567438-6715-1-git-send-email-hannuxx@iki.fi>
+ <20120510003720.2F90C3E08F4@localhost>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from devils.ext.ti.com ([198.47.26.153]:49731 "EHLO
-	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753337Ab2ELIXF convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Sat, 12 May 2012 04:23:05 -0400
-In-Reply-To: <20120511195620.GX21851@atomide.com>
-Content-Language: en-US
+Received: from relay.sigmatic.fi ([80.69.161.51]:36374 "EHLO relay.sigmatic.fi"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751786Ab2ELNMT (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Sat, 12 May 2012 09:12:19 -0400
+Content-Disposition: inline
+In-Reply-To: <20120510003720.2F90C3E08F4@localhost>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Tony Lindgren <tony@atomide.com>, "Cousson, Benoit" <b-cousson@ti.com>
-Cc: linux-omap <linux-omap@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>
+To: Grant Likely <grant.likely@secretlab.ca>
+Cc: linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org, spi-devel-general@lists.sourceforge.net, Kevin Hilman <khilman@deeprootsystems.com>, tony@atomide.com
 
-On Sat, May 12, 2012 at 01:26:20, Tony Lindgren wrote:
-> Hi,
-> 
-> * Cousson, Benoit <b-cousson@ti.com> [120511 05:51]:
-> > Hi Tony,
+On 09/05/12 18:37 -0600, Grant Likely wrote:
+> On Wed,  9 May 2012 15:43:58 +0300, Hannu Heikkinen <hannuxx@iki.fi> wrote:
+> > Cleanup probe and remove routines, use devm_* functions for
+> > managing resources.
 > > 
-> > Here are some remaining DT patches I was not able to push at 3.4 due to some missing dependency.
-> > It applies now fine on top of lo/dt branch.
+> > Also, in under free_master label, change use of kfree() into
+> > spi_master_put().
 > 
-> It seems that there are still patches being discussed for those SoCs
-> and we're pretty much done for this merge window. So unless things
-> drag on to -rc8, I'd say we just need to postpone merging new things
-> and merge them early around -rc2.
+> Patch does not apply to my current spi/next branch[1].
 > 
+> [1]git://git.secretlab.ca/git/linux-2.6 spi/next
+> 
+> While I'm thinking about it; Kevin, how do you want me handling OMAP
+> spi patches.  Do you want to pick them up, test them and send me a git
+> branch to pull like with gpio?  Or can I just pick them up?
+> 
+> g.
 
-Oops...
-It seems like I missed this merge window as well...
+hi, I forgot this spi/next brach. devm funcs already applied
+(commit 1a77b127ae147f5827043a9896d7f4cb248b402e - Shubhrajyoti).
 
-Thanks,
-Vaibhav
+Please ignore below patch, I'll check if there's something devm related
+to do left.
 
+br,
+Hannu
+
+> 
+> > 
+> > CC: grant.likely@secretlab.ca
+> > CC: tony@atomide.com
+> > Signed-off-by: Hannu Heikkinen <hannuxx@iki.fi>
+> > ---
+> >  drivers/spi/spi-omap2-mcspi.c |   27 ++++++---------------------
+> >  1 file changed, 6 insertions(+), 21 deletions(-)
+> > 
+> > diff --git a/drivers/spi/spi-omap2-mcspi.c b/drivers/spi/spi-omap2-mcspi.c
+> > index bb9274c..392efce 100644
+> > --- a/drivers/spi/spi-omap2-mcspi.c
+> > +++ b/drivers/spi/spi-omap2-mcspi.c
+> > @@ -1166,17 +1166,12 @@ static int __init omap2_mcspi_probe(struct platform_device *pdev)
+> >  	r->start += regs_offset;
+> >  	r->end += regs_offset;
+> >  	mcspi->phys = r->start;
+> > -	if (!request_mem_region(r->start, resource_size(r),
+> > -				dev_name(&pdev->dev))) {
+> > -		status = -EBUSY;
+> > -		goto free_master;
+> > -	}
+> >  
+> > -	mcspi->base = ioremap(r->start, resource_size(r));
+> > +	mcspi->base = devm_request_and_ioremap(&pdev->dev, r);
+> >  	if (!mcspi->base) {
+> > -		dev_dbg(&pdev->dev, "can't ioremap MCSPI\n");
+> > -		status = -ENOMEM;
+> > -		goto release_region;
+> > +		dev_dbg(&pdev->dev, "can't request mem and ioremap MCSPI\n");
+> > +		status =  -ENOMEM;
+> > +		goto free_master;
+> >  	}
+> >  
+> >  	mcspi->dev = &pdev->dev;
+> > @@ -1191,7 +1186,7 @@ static int __init omap2_mcspi_probe(struct platform_device *pdev)
+> >  			GFP_KERNEL);
+> >  
+> >  	if (mcspi->dma_channels == NULL)
+> > -		goto unmap_io;
+> > +		goto free_master;
+> >  
+> >  	for (i = 0; i < master->num_chipselect; i++) {
+> >  		char dma_ch_name[14];
+> > @@ -1241,12 +1236,8 @@ disable_pm:
+> >  	pm_runtime_disable(&pdev->dev);
+> >  dma_chnl_free:
+> >  	kfree(mcspi->dma_channels);
+> > -unmap_io:
+> > -	iounmap(mcspi->base);
+> > -release_region:
+> > -	release_mem_region(r->start, resource_size(r));
+> >  free_master:
+> > -	kfree(master);
+> > +	spi_master_put(master);
+> >  	platform_set_drvdata(pdev, NULL);
+> >  	return status;
+> >  }
+> > @@ -1256,8 +1247,6 @@ static int __exit omap2_mcspi_remove(struct platform_device *pdev)
+> >  	struct spi_master	*master;
+> >  	struct omap2_mcspi	*mcspi;
+> >  	struct omap2_mcspi_dma	*dma_channels;
+> > -	struct resource		*r;
+> > -	void __iomem *base;
+> >  
+> >  	master = dev_get_drvdata(&pdev->dev);
+> >  	mcspi = spi_master_get_devdata(master);
+> > @@ -1265,12 +1254,8 @@ static int __exit omap2_mcspi_remove(struct platform_device *pdev)
+> >  
+> >  	omap2_mcspi_disable_clocks(mcspi);
+> >  	pm_runtime_disable(&pdev->dev);
+> > -	r = platform_get_resource(pdev, IORESOURCE_MEM, 0);
+> > -	release_mem_region(r->start, resource_size(r));
+> >  
+> > -	base = mcspi->base;
+> >  	spi_unregister_master(master);
+> > -	iounmap(base);
+> >  	kfree(dma_channels);
+> >  	destroy_workqueue(mcspi->wq);
+> >  	platform_set_drvdata(pdev, NULL);
+> > -- 
+> > 1.7.10
+> > 
+> 
+> -- 
+> Grant Likely, B.Sc, P.Eng.
+> Secret Lab Technologies, Ltd.
+
+-- 
+-------------------------------------
+Hannu Heikkinen
+hannuxx@iki.fi
+PGP Key fingerprint FB04 2612 05B5 1CBD 9428  9E4D 2407 2F8C 52C0 A173
+-------------------------------------
 
