@@ -1,152 +1,99 @@
 From: Tero Kristo <t-kristo@ti.com>
-Subject: [PATCHv5 5/8] ARM: OMAP: hwmod: Add support for per hwmod/module context lost count
-Date: Mon, 14 May 2012 13:03:13 +0300
-Message-ID: <1336989796-26594-6-git-send-email-t-kristo@ti.com>
+Subject: [PATCHv5 6/8] ARM: OMAP4: pwrdm: add support for reading prev logic and mem states
+Date: Mon, 14 May 2012 13:03:14 +0300
+Message-ID: <1336989796-26594-7-git-send-email-t-kristo@ti.com>
 References: <1336989796-26594-1-git-send-email-t-kristo@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from comal.ext.ti.com ([198.47.26.152]:44015 "EHLO comal.ext.ti.com"
+Received: from bear.ext.ti.com ([192.94.94.41]:44094 "EHLO bear.ext.ti.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1755375Ab2ENKDj (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Mon, 14 May 2012 06:03:39 -0400
+	id S1755679Ab2ENKDn (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Mon, 14 May 2012 06:03:43 -0400
 In-Reply-To: <1336989796-26594-1-git-send-email-t-kristo@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: linux-omap@vger.kernel.org, khilman@ti.com, paul@pwsan.com
-Cc: linux-arm-kernel@lists.infradead.org, Rajendra Nayak <rnayak@ti.com>
+Cc: linux-arm-kernel@lists.infradead.org
 
-From: Rajendra Nayak <rnayak@ti.com>
+On OMAP4, there is no support to read previous logic state
+or previous memory state achieved when a power domain transitions
+to RET. Instead there are module level context registers.
 
-OMAP4 has module specific context lost registers which makes it now
-possible to have module level context loss count, instead of relying
-on the powerdomain level context count.
+In order to support the powerdomain level logic/mem_off_counters
+on OMAP4, instead use the previous power state achieved (RET) and
+the *programmed* logic/mem RET state to derive if a powerdomain lost
+logic or did not.
 
-Add 2 private hwmod api's to update/clear the hwmod/module specific
-context lost counters/register.
+If the powerdomain is programmed to enter RET state and lose logic
+in RET state, knowing that the powerdomain entered RET is good enough
+to derive that the logic was lost as well, in such cases.
 
-Update the module specific context_lost_counter and clear the hardware
-bits just after enabling the module.
-
-omap_hwmod_get_context_loss_count() now returns the hwmod context loss
-count them on platforms where they exist (OMAP4), else fall back on
-the pwrdm level counters for older platforms.
-
-Signed-off-by: Rajendra Nayak <rnayak@ti.com>
-[paul@pwsan.com: added function kerneldoc, fixed structure kerneldoc,
- rearranged structure to avoid memory waste, marked fns as OMAP4-specific,
- prevent fn entry on non-OMAP4 chips, reduced indentation, merged update
- and clear, merged patches]
-Signed-off-by: Paul Walmsley <paul@pwsan.com>
 Signed-off-by: Tero Kristo <t-kristo@ti.com>
 ---
- arch/arm/mach-omap2/omap_hwmod.c             |   44 +++++++++++++++++++++++--
- arch/arm/plat-omap/include/plat/omap_hwmod.h |    8 +++-
- 2 files changed, 46 insertions(+), 6 deletions(-)
+ arch/arm/mach-omap2/powerdomain44xx.c |   32 ++++++++++++++++++++++++++++++++
+ 1 files changed, 32 insertions(+), 0 deletions(-)
 
-diff --git a/arch/arm/mach-omap2/omap_hwmod.c b/arch/arm/mach-omap2/omap_hwmod.c
-index 8683d6f..601f5a5f 100644
---- a/arch/arm/mach-omap2/omap_hwmod.c
-+++ b/arch/arm/mach-omap2/omap_hwmod.c
-@@ -1520,6 +1520,36 @@ static void _reconfigure_io_chain(void)
+diff --git a/arch/arm/mach-omap2/powerdomain44xx.c b/arch/arm/mach-omap2/powerdomain44xx.c
+index 601325b..ab00736 100644
+--- a/arch/arm/mach-omap2/powerdomain44xx.c
++++ b/arch/arm/mach-omap2/powerdomain44xx.c
+@@ -151,6 +151,21 @@ static int omap4_pwrdm_read_logic_retst(struct powerdomain *pwrdm)
+ 	return v;
  }
  
- /**
-+ * _omap4_update_context_lost - increment hwmod context loss counter if
-+ * hwmod context was lost, and clear hardware context loss reg
-+ * @oh: hwmod to check for context loss
-+ *
-+ * If the PRCM indicates that the hwmod @oh lost context, increment
-+ * our in-memory context loss counter, and clear the RM_*_CONTEXT
-+ * bits. No return value.
-+ */
-+static void _omap4_update_context_lost(struct omap_hwmod *oh)
++static int omap4_pwrdm_read_prev_logic_pwrst(struct powerdomain *pwrdm)
 +{
-+	u32 r;
++	int state;
 +
-+	if (!(oh->flags & HWMOD_CONTEXT_REG))
-+		return;
++	state = omap4_pwrdm_read_prev_pwrst(pwrdm);
 +
-+	r = omap4_prminst_read_inst_reg(oh->clkdm->pwrdm.ptr->prcm_partition,
-+					oh->clkdm->pwrdm.ptr->prcm_offs,
-+					oh->prcm.omap4.context_offs);
++	if (state == PWRDM_POWER_OFF)
++		return PWRDM_POWER_OFF;
 +
-+	if (!r)
-+		return;
++	if (state != PWRDM_POWER_RET)
++		return PWRDM_POWER_ON;
 +
-+	oh->prcm.omap4.context_lost_counter++;
-+
-+	omap4_prminst_write_inst_reg(r, oh->clkdm->pwrdm.ptr->prcm_partition,
-+				     oh->clkdm->pwrdm.ptr->prcm_offs,
-+				     oh->prcm.omap4.context_offs);
++	return omap4_pwrdm_read_logic_retst(pwrdm);
 +}
 +
-+/**
-  * _enable - enable an omap_hwmod
-  * @oh: struct omap_hwmod *
-  *
-@@ -1599,6 +1629,8 @@ static int _enable(struct omap_hwmod *oh)
- 	_enable_clocks(oh);
- 	_enable_module(oh);
- 
-+	_omap4_update_context_lost(oh);
-+
- 	r = _wait_target_ready(oh);
- 	if (!r) {
- 		/*
-@@ -2724,17 +2756,21 @@ ohsps_unlock:
-  * omap_hwmod_get_context_loss_count - get lost context count
-  * @oh: struct omap_hwmod *
-  *
-- * Query the powerdomain of of @oh to get the context loss
-- * count for this device.
-+ * Returns the context loss count of associated @oh
-+ * upon success, or zero if no context loss data is available.
-  *
-- * Returns the context loss count of the powerdomain assocated with @oh
-- * upon success, or zero if no powerdomain exists for @oh.
-+ * On OMAP4, this queries the per-hwmod context loss register,
-+ * assuming one exists.  If not, or on OMAP2/3, this queries the
-+ * enclosing powerdomain context loss count.
-  */
- int omap_hwmod_get_context_loss_count(struct omap_hwmod *oh)
+ static int omap4_pwrdm_read_mem_pwrst(struct powerdomain *pwrdm, u8 bank)
  {
- 	struct powerdomain *pwrdm;
- 	int ret = 0;
+ 	u32 m, v;
+@@ -179,6 +194,21 @@ static int omap4_pwrdm_read_mem_retst(struct powerdomain *pwrdm, u8 bank)
+ 	return v;
+ }
  
-+	if (oh->flags & HWMOD_CONTEXT_REG)
-+		return oh->prcm.omap4.context_lost_counter;
++static int omap4_pwrdm_read_prev_mem_pwrst(struct powerdomain *pwrdm, u8 bank)
++{
++	int state;
 +
- 	pwrdm = omap_hwmod_get_pwrdm(oh);
- 	if (pwrdm)
- 		ret = pwrdm_get_context_loss_count(pwrdm);
-diff --git a/arch/arm/plat-omap/include/plat/omap_hwmod.h b/arch/arm/plat-omap/include/plat/omap_hwmod.h
-index f247dee..8f5510b 100644
---- a/arch/arm/plat-omap/include/plat/omap_hwmod.h
-+++ b/arch/arm/plat-omap/include/plat/omap_hwmod.h
-@@ -364,9 +364,12 @@ struct omap_hwmod_omap2_prcm {
- 
- /**
-  * struct omap_hwmod_omap4_prcm - OMAP4-specific PRCM data
-- * @clkctrl_reg: PRCM address of the clock control register
-- * @rstctrl_reg: address of the XXX_RSTCTRL register located in the PRM
-+ * @clkctrl_offs: offset of the PRCM clock control register
-+ * @rstctrl_offs: offset of the XXX_RSTCTRL register located in the PRM
-+ * @context_offs: offset of the RM_*_CONTEXT register
-  * @submodule_wkdep_bit: bit shift of the WKDEP range
-+ * @modulemode: allowable modulemodes
-+ * @context_lost_counter: Count of module level context lost
-  */
- struct omap_hwmod_omap4_prcm {
- 	u16		clkctrl_offs;
-@@ -374,6 +377,7 @@ struct omap_hwmod_omap4_prcm {
- 	u16		context_offs;
- 	u8		submodule_wkdep_bit;
- 	u8		modulemode;
-+	unsigned	context_lost_counter;
- };
- 
- 
++	state = omap4_pwrdm_read_prev_pwrst(pwrdm);
++
++	if (state == PWRDM_POWER_OFF)
++		return PWRDM_POWER_OFF;
++
++	if (state != PWRDM_POWER_RET)
++		return PWRDM_POWER_ON;
++
++	return omap4_pwrdm_read_mem_retst(pwrdm, bank);
++}
++
+ static int omap4_pwrdm_wait_transition(struct powerdomain *pwrdm)
+ {
+ 	u32 c = 0;
+@@ -217,9 +247,11 @@ struct pwrdm_ops omap4_pwrdm_operations = {
+ 	.pwrdm_clear_all_prev_pwrst	= omap4_pwrdm_clear_all_prev_pwrst,
+ 	.pwrdm_set_logic_retst	= omap4_pwrdm_set_logic_retst,
+ 	.pwrdm_read_logic_pwrst	= omap4_pwrdm_read_logic_pwrst,
++	.pwrdm_read_prev_logic_pwrst	= omap4_pwrdm_read_prev_logic_pwrst,
+ 	.pwrdm_read_logic_retst	= omap4_pwrdm_read_logic_retst,
+ 	.pwrdm_read_mem_pwrst	= omap4_pwrdm_read_mem_pwrst,
+ 	.pwrdm_read_mem_retst	= omap4_pwrdm_read_mem_retst,
++	.pwrdm_read_prev_mem_pwrst	= omap4_pwrdm_read_prev_mem_pwrst,
+ 	.pwrdm_set_mem_onst	= omap4_pwrdm_set_mem_onst,
+ 	.pwrdm_set_mem_retst	= omap4_pwrdm_set_mem_retst,
+ 	.pwrdm_wait_transition	= omap4_pwrdm_wait_transition,
 -- 
 1.7.4.1
 
