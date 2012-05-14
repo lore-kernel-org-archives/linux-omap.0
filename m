@@ -1,80 +1,61 @@
-From: Mark Brown <broonie@opensource.wolfsonmicro.com>
-Subject: Re: [PATCH 1/4] MFD: palmas PMIC device support
-Date: Mon, 14 May 2012 11:33:35 +0100
-Message-ID: <20120514103334.GP31985@opensource.wolfsonmicro.com>
-References: <1336960712-2812-1-git-send-email-gg@slimlogic.co.uk>
- <1336960712-2812-2-git-send-email-gg@slimlogic.co.uk>
- <20120514082832.GF31985@opensource.wolfsonmicro.com>
- <4FB0DDD7.8020803@slimlogic.co.uk>
+From: Shubhrajyoti <shubhrajyoti@ti.com>
+Subject: Re: [PATCHv9 06/10] I2C: OMAP: Fix the crash in i2c remove
+Date: Mon, 14 May 2012 16:56:19 +0530
+Message-ID: <4FB0EBDB.3040902@ti.com>
+References: <1335969135-20858-1-git-send-email-shubhrajyoti@ti.com> <1335969135-20858-7-git-send-email-shubhrajyoti@ti.com> <20120512181019.GA28973@pengutronix.de>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="fjEAjMKpll6GDq3U"
-Return-path: <linux-kernel-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <4FB0DDD7.8020803@slimlogic.co.uk>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Graeme Gregory <gg@slimlogic.co.uk>
-Cc: linux-kernel@vger.kernel.org, sameo@linux.intel.com, lrg@ti.com, b-cousson@ti.com, linux-omap@vger.kernel.org
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from na3sys009aog130.obsmtp.com ([74.125.149.143]:42918 "EHLO
+	na3sys009aog130.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1753787Ab2ENL01 (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>);
+	Mon, 14 May 2012 07:26:27 -0400
+Received: by obbup19 with SMTP id up19so7578816obb.38
+        for <linux-omap@vger.kernel.org>; Mon, 14 May 2012 04:26:26 -0700 (PDT)
+In-Reply-To: <20120512181019.GA28973@pengutronix.de>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Wolfram Sang <w.sang@pengutronix.de>
+Cc: linux-omap@vger.kernel.org, linux-i2c@vger.kernel.org, linux-arm-kernel@lists.infradead.org, ben-linux@fluff.org, tony@atomide.com, Kevin Hilman <khilman@ti.com>, Rajendra Nayak <rnayak@ti.com>
+
+On Saturday 12 May 2012 11:40 PM, Wolfram Sang wrote:
+>> Cc: Kevin Hilman <khilman@ti.com>
+>> > Cc: Rajendra Nayak <rnayak@ti.com>
+>> > Signed-off-by: Shubhrajyoti D <shubhrajyoti@ti.com>
+> I'd really like a comment from the PM experts if each and every driver
+> has to ensure that the clocks are enabled on remove like this?
+Just resent cc ing linux-pm
+
+BTW also found that
+
+Some others are also doing the same. eg:
+ 
+drivers/mmc/host/omap_hsmmc.c
+static int __devexit omap_hsmmc_remove(struct platform_device *pdev)
+{
+        struct omap_hsmmc_host *host = platform_get_drvdata(pdev);
+        struct resource *res;
+
+        pm_runtime_get_sync(host->dev);
+        mmc_remove_host(host->mmc);
+
+2. drivers/usb/musb/musb_core.c
+
+static void musb_shutdown(struct platform_device *pdev)
+{
+        struct musb     *musb = dev_to_musb(&pdev->dev);
+        unsigned long   flags;
+
+        pm_runtime_get_sync(musb->controller);
+
+Anyways will wait for feedback.
 
 
---fjEAjMKpll6GDq3U
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
 
-On Mon, May 14, 2012 at 07:26:31PM +0900, Graeme Gregory wrote:
-> On 14/05/12 17:28, Mark Brown wrote:
-> > On Mon, May 14, 2012 at 10:58:29AM +0900, Graeme Gregory wrote:
 
-> >>  drivers/mfd/palmas-irq.c   |  241 +++++
+>
+>> > ---
+>> >  drivers/i2c/busses/i2c-omap.c |   
 
-> > The IRQ support here seems to be following a pretty common pattern for
-> > dense IRQ maps - could we factor it out into regmap-irq?  It'd also be
-> > nice if it were using an irq_domain - while it's far from essential it
-> > is something Grant has been pushing and I believe it'll be required when
-> > you do device tree support.
-
-> The IRQ map is not dense. It is split into 4 registers which are not
-> contiguous. I think the overhead of translating to 4 reqmap irqs would
-> negate the point of using regmap irq. I can add to TODO to add this
-> handling to regmap_irq.
-
-If the register blocks are nicely spaced we can probably find a
-framework way to do this. =20
-
-> I am confused on the whole irq_domain business, is it replacement for
-> sparse irq? I don't see many users in drivers/mfd and not much
-> Documentation.
-
-regmap-irq in -next as of today has an example of using them for this
-type of device (and of course half the point of regmap-irq is that it
-avoids individual drivers needing to worry so much about things like
-this, they can just use data!).  I also posted a patch for wm831x though
-that's got a bunch of noise in the function drivers due to passing the
-interrupt numbers through as resources, the core should be fairly clear
-though and is a bit more direct.
-
---fjEAjMKpll6GDq3U
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: Digital signature
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.4.12 (GNU/Linux)
-
-iQIcBAEBAgAGBQJPsN94AAoJEBus8iNuMP3dfx4P/2JciwNFtQIGdZF3IjZRday4
-XV33bZf+tYrZc48ge/go7P+nV3PDivIZ/CBpYXGeU/APyjCk2+cAvksQkNTgw9sl
-uWph4NDYoZuAtkHh729gsYYPkm1SulhE/hkKEvZ/RpSFJj47twZvlfy3DZnfE9MM
-Waoj2IjF0nYIgXY72RC9XnnBd6XLo2qqoX179s5B6yRwHSg1n2zAzep9HluwaNWH
-LhFSsxxepPQgAkI/m7Iv8EO49ouOpaV0XYUNVtRh6utga/xcvZTg3jKbU/uIju4a
-bT6JP784kapTCdIHX5EUYf+1V2j6PX4Lnbz9hdo7URdMJQ9FNFFGU1m09cw2Jcf9
-4l0njMhkudSAykAkh8znMsjNT3QK4Jsd2EOe91CUwFkHsuQ2flG6aPWdqzuenIUH
-QO16t27O6fJ/U+LCbxhsN05qUbGCaUmYVuBvXqoq9IQF68XuwT/6qKoTVadaz9ai
-VqkCnVIN1i1eWD8qZC6Ae5u1+L/eZukSElpT+H8m2iZ5TQ6IFc+95z6SbzdopmD8
-LwTlrngxPx4NuQduUiOhc0gpY/XW8QEJbwZBPuN+a06PZbYl8Hbg7PfLp/CDKIxG
-c1JxvJvLPDpRgFuO9vGTEV5iBwIZEZoJ5coAVURh36YdWQ5hlSZ5KDA4LolpvIqM
-4b1kPvVqwhZTuawgtR4T
-=V6tX
------END PGP SIGNATURE-----
-
---fjEAjMKpll6GDq3U--
