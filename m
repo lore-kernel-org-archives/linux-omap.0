@@ -1,58 +1,50 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: Re: Panda: USB crash with today's linux-next
-Date: Mon, 14 May 2012 11:37:43 -0700
-Message-ID: <20120514183742.GB17852@atomide.com>
-References: <1336996151.2333.3.camel@deskari>
- <20120514121527.GF22242@arwen.pp.htv.fi>
- <1336998251.2333.17.camel@deskari>
- <20120514122920.GK22242@arwen.pp.htv.fi>
- <20120514124757.GL22242@arwen.pp.htv.fi>
- <4FB13B91.7020007@ti.com>
- <20120514175838.GA31200@arwen.pp.htv.fi>
- <20120514181413.GA17852@atomide.com>
+From: Stephen Warren <swarren@wwwdotorg.org>
+Subject: Re: [PATCH] pinctrl: Add generic pinctrl-simple driver that supports
+ omap2+ padconf
+Date: Mon, 14 May 2012 12:38:50 -0600
+Message-ID: <4FB1513A.4070002@wwwdotorg.org>
+References: <20120503065131.GA3738@game.jcrosoft.org> <20120503152708.GC5140@atomide.com> <4FA30805.5050804@wwwdotorg.org> <20120504044305.GD7788@game.jcrosoft.org> <20120504150342.GI5140@atomide.com> <20120504153251.GE7788@game.jcrosoft.org> <20120504163420.GA5613@atomide.com> <4FA42631.6060304@wwwdotorg.org> <20120504220809.GW5613@atomide.com> <4FAAD141.3090306@wwwdotorg.org> <20120509204925.GV5088@atomide.com> <4FABF553.20601@wwwdotorg.org> <CACRpkdbqjofEi-5J+GTMOXFK1VvbXqa6At1fKXCge+5_y6aaRA@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-01-ewr.mailhop.org ([204.13.248.71]:36968 "EHLO
-	mho-01-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753287Ab2ENShp (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 14 May 2012 14:37:45 -0400
-Content-Disposition: inline
-In-Reply-To: <20120514181413.GA17852@atomide.com>
+Received: from avon.wwwdotorg.org ([70.85.31.133]:49183 "EHLO
+	avon.wwwdotorg.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S932073Ab2ENSix (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 14 May 2012 14:38:53 -0400
+In-Reply-To: <CACRpkdbqjofEi-5J+GTMOXFK1VvbXqa6At1fKXCge+5_y6aaRA@mail.gmail.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Felipe Balbi <balbi@ti.com>
-Cc: "Cousson, Benoit" <b-cousson@ti.com>, Tomi Valkeinen <tomi.valkeinen@ti.com>, linux-omap@vger.kernel.org, Balaji T K <balajitk@ti.com>, "Venkatraman S." <svenkatr@ti.com>
+To: Linus Walleij <linus.walleij@linaro.org>
+Cc: Tony Lindgren <tony@atomide.com>, Jean-Christophe PLAGNIOL-VILLARD <plagnioj@jcrosoft.com>, linux-omap@vger.kernel.org, Stephen Warren <swarren@nvidia.com>, linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 
-* Tony Lindgren <tony@atomide.com> [120514 11:19]:
-> * Felipe Balbi <balbi@ti.com> [120514 11:04]:
-> > 
-> > That whole MMC card detection is also pretty screwed up. Balaji/Venkat,
-> > can you guys look into that ? Probably making something generic using a
-> > threaded IRQ handler ?
-> > 
-> > I mean, all the MMC core should need is an IRQ number (through GPIOs or
-> > not doesn't/shouldn't matter) and it should be able to use a threaded
-> > IRQ handler to kick the card detection/initialization.
+On 05/12/2012 05:49 PM, Linus Walleij wrote:
+> On Thu, May 10, 2012 at 7:05 PM, Stephen Warren <swarren@wwwdotorg.org> wrote:
 > 
-> That's mostly done.. Just need to update the patches for it.
+>> Also, were you intending pinctrl-simple to actually be the GPIO
+>> controller itself? That'd be another case that one might consider fairly
+>> simple, but then extends to being gpio-simple as well as pinctrl-simple...
+> 
+> We have some pinctrl drivers implementing gpiolib too already,
+> and it's unavoidable I think, as some recent discussion about
+> matcing struct gpio_chip and pinctrl GPIO ranges shows.
 
-Mostly done meaning "all the MMC core should need is an IRQ number"
-part that is :)
- 
-> I posted some patches to take care of the card detection in the MMC
-> driver by leaving out the platform callbacks:
+I strongly believe we should only do this when the exact same HW module
+is both pinctrl and GPIO.
+
+When there are separate HW modules, we should have separate drivers. The
+fact that the two drivers need to co-ordinate with each-other isn't a
+good argument to make them one driver.
+
+And irrespective of how the drivers are structured, if there are two HW
+modules, we really need two separate nodes in DT to describe them, since
+the SW architecture (1 vs. 2 drivers) shouldn't influence the DT
+representation unduly.
+
+> Maybe "-simple" isn't such a good name for this thing. Noone thinks
+> any kind of pin control is simple in any sense of the word anyway :-D
 > 
-> http://lists.infradead.org/pipermail/linux-arm-kernel/2012-March/087303.html
-> 
-> That's using gpiochip_find_by_name(), but after talking with Grant
-> about that, we agreed gpiochip_find_by_name() should be local as there's
-> no guarantees about anything with the gpiochip names. 
-> 
-> Regards,
-> 
-> Tony
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-omap" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> Tony, would pinctrl-dt-only.c be a better name perhaps?
+
+That might be OK for the filename, but it doesn't seem like a useful
+change for the DT compatible value.
