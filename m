@@ -1,62 +1,50 @@
 From: Graeme Gregory <gg@slimlogic.co.uk>
-Subject: [PATCH 4/4] REGULATOR: regulator for Palmas Kconfig
-Date: Mon, 14 May 2012 10:58:32 +0900
-Message-ID: <1336960712-2812-5-git-send-email-gg@slimlogic.co.uk>
+Subject: [PATCH 2/4] MFD: palmas PMIC device support Kconfig
+Date: Mon, 14 May 2012 10:58:30 +0900
+Message-ID: <1336960712-2812-3-git-send-email-gg@slimlogic.co.uk>
 References: <1336960712-2812-1-git-send-email-gg@slimlogic.co.uk>
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from slimlogic.co.uk ([89.16.172.20]:59186 "EHLO slimlogic.co.uk"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753982Ab2ENCGQ (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Sun, 13 May 2012 22:06:16 -0400
+Return-path: <linux-kernel-owner@vger.kernel.org>
 In-Reply-To: <1336960712-2812-1-git-send-email-gg@slimlogic.co.uk>
-Sender: linux-omap-owner@vger.kernel.org
-List-Id: linux-omap@vger.kernel.org
+Sender: linux-kernel-owner@vger.kernel.org
 To: linux-kernel@vger.kernel.org
 Cc: sameo@linux.intel.com, lrg@ti.com, broonie@opensource.wolfsonmicro.com, b-cousson@ti.com, linux-omap@vger.kernel.org, Graeme Gregory <gg@slimlogic.co.uk>
+List-Id: linux-omap@vger.kernel.org
 
-Add the Kconfig/Makefile stuff for the palmas regulator driver
+Add the new palmas MFD to Kconfig and Makefile
 
 Signed-off-by: Graeme Gregory <gg@slimlogic.co.uk>
 ---
- drivers/regulator/Kconfig  |   12 ++++++++++++
- drivers/regulator/Makefile |    1 +
- 2 files changed, 13 insertions(+)
+ drivers/mfd/Kconfig  |    8 ++++++++
+ drivers/mfd/Makefile |    1 +
+ 2 files changed, 9 insertions(+)
 
-diff --git a/drivers/regulator/Kconfig b/drivers/regulator/Kconfig
-index 4ad4e8d..c86b886 100644
---- a/drivers/regulator/Kconfig
-+++ b/drivers/regulator/Kconfig
-@@ -268,6 +268,18 @@ config REGULATOR_DB8500_PRCMU
- 	  This driver supports the voltage domain regulators controlled by the
- 	  DB8500 PRCMU
+diff --git a/drivers/mfd/Kconfig b/drivers/mfd/Kconfig
+index c618e3a..1528bdd 100644
+--- a/drivers/mfd/Kconfig
++++ b/drivers/mfd/Kconfig
+@@ -906,6 +906,14 @@ config MFD_ANATOP
+ 	  MFD controller. This controller embeds regulator and
+ 	  thermal devices for Freescale i.MX platforms.
  
-+config REGULATOR_PALMAS
-+	tristate "TI Palmas PMIC Regulators"
-+	depends on MFD_PALMAS
++config MFD_PALMAS
++	bool "Support for the TI Palmas series chips"
++	select MFD_CORE
++	depends on I2C=y
 +	help
-+	  If you wish to control the regulators on the Palmas series of
-+	  chips say Y here. This will enable support for all the software
-+	  controllable SMPS/LDO regulators.
++	  If you say yes here you get support for the Palmas
++	  series of PMIC chips from Texas Instruments.
 +
-+	  The regulators available on Palmas series chips vary depending
-+	  on the muxing. This is handled automatically in the driver by
-+	  reading the mux info from OTP.
-+
- config REGULATOR_TPS6105X
- 	tristate "TI TPS6105X Power regulators"
- 	depends on TPS6105X
-diff --git a/drivers/regulator/Makefile b/drivers/regulator/Makefile
-index dcc56dc..977fd46 100644
---- a/drivers/regulator/Makefile
-+++ b/drivers/regulator/Makefile
-@@ -33,6 +33,7 @@ obj-$(CONFIG_REGULATOR_MAX8998) += max8998.o
- obj-$(CONFIG_REGULATOR_MC13783) += mc13783-regulator.o
- obj-$(CONFIG_REGULATOR_MC13892) += mc13892-regulator.o
- obj-$(CONFIG_REGULATOR_MC13XXX_CORE) +=  mc13xxx-regulator-core.o
-+obj-$(CONFIG_REGULATOR_PALMAS) += palmas-regulator.o
- obj-$(CONFIG_REGULATOR_PCAP) += pcap-regulator.o
- obj-$(CONFIG_REGULATOR_PCF50633) += pcf50633-regulator.o
- obj-$(CONFIG_REGULATOR_RC5T583)  += rc5t583-regulator.o
+ endmenu
+ endif
+ 
+diff --git a/drivers/mfd/Makefile b/drivers/mfd/Makefile
+index acc888d..f4a342e 100644
+--- a/drivers/mfd/Makefile
++++ b/drivers/mfd/Makefile
+@@ -118,3 +118,4 @@ obj-$(CONFIG_MFD_RC5T583)	+= rc5t583.o rc5t583-irq.o
+ obj-$(CONFIG_MFD_S5M_CORE)	+= s5m-core.o s5m-irq.o
+ obj-$(CONFIG_MFD_ANATOP)	+= anatop-mfd.o
+ obj-$(CONFIG_MFD_LM3533)	+= lm3533-core.o lm3533-ctrlbank.o
++obj-$(CONFIG_MFD_PALMAS)	+= palmas.o palmas-irq.o
 -- 
 1.7.9.5
-
