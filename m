@@ -1,414 +1,625 @@
 From: Tero Kristo <t-kristo@ti.com>
-Subject: [PATCHv2 05/19] ARM: OMAP4: PM: save/restore all CM1/2 settings in OFF mode
-Date: Mon, 14 May 2012 13:18:36 +0300
-Message-ID: <1336990730-26892-6-git-send-email-t-kristo@ti.com>
+Subject: [PATCHv2 06/19] ARM: OMAP4: PM: Add SAR backup support towards device OFF
+Date: Mon, 14 May 2012 13:18:37 +0300
+Message-ID: <1336990730-26892-7-git-send-email-t-kristo@ti.com>
 References: <1336990730-26892-1-git-send-email-t-kristo@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from comal.ext.ti.com ([198.47.26.152]:44783 "EHLO comal.ext.ti.com"
+Received: from comal.ext.ti.com ([198.47.26.152]:44799 "EHLO comal.ext.ti.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1755826Ab2ENKTU (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Mon, 14 May 2012 06:19:20 -0400
+	id S1755826Ab2ENKTa (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Mon, 14 May 2012 06:19:30 -0400
 In-Reply-To: <1336990730-26892-1-git-send-email-t-kristo@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: linux-omap@vger.kernel.org, khilman@ti.com, paul@pwsan.com
-Cc: linux-arm-kernel@lists.infradead.org, Rajendra Nayak <rnayak@ti.com>, Nishanth Menon <nm@ti.com>, Santosh Shilimkar <santosh.shilimkar@ti.com>, Axel Haslam <axelhaslam@gmail.com>
+Cc: linux-arm-kernel@lists.infradead.org, Santosh Shilimkar <santosh.shilimkar@ti.com>
 
-From: Rajendra Nayak <rnayak@ti.com>
+From: Santosh Shilimkar <santosh.shilimkar@ti.com>
 
-Restore all CM1/2 module registers as they are lost in OFF mode.
+The SAR RAM is maintained during Device OFF mode. The register layout
+is fixed in SAR ROM. SAR is split into 4 banks with different
+privilege accesses based on device type
 
-[nm@ti.com: minor clean ups]
-Signed-off-by: Nishanth Menon <nm@ti.com>
-Signed-off-by: Rajendra Nayak <rnayak@ti.com>
+ ---------------------------------------------------------------
+ Access mode		Bank	Address Range
+ ---------------------------------------------------------------
+ HS/GP : Public		1	0x4A32_6000 - 0x4A32_6FFF (4kB)
+ HS/GP : Public		2	0x4A32_7000 - 0x4A32_73FF (1kB)
+
+ HS/EMU : Secured
+ GP : Public		3	0x4A32_8000 - 0x4A32_87FF (2kB)
+
+ HS/GP :Secure
+ write once.		4	0x4A32_9000 - 0x4A32_93FF (1kB)
+ ---------------------------------------------------------------
+
+The save process is done entirely by software and restore is done by
+hardware using the auto-restore feature. The restore feature is enabled
+by default and cannot be disabled. The software must save the data
+to be restored in a dedicated location in SAR RAM.
+
+[with contributions for 4460, cleanups from:
+Rajeev Kulkarni <rajeevk@ti.com>
+Nishanth Menon <nm@ti.com>
+Axel Haslam <axelhaslam@gmail.com>
+Avinash.H.M <avinashhm@ti.com>]
 Signed-off-by: Santosh Shilimkar <santosh.shilimkar@ti.com>
-Signed-off-by: Axel Haslam <axelhaslam@gmail.com>
+[t-kristo@ti.com: dropped huge data tables as they are no longer needed
+ with subsequent patches that generate the layouts based on SAR ROM
+ contents, also dropped unnecessary dmm-44xx.h header file.]
 Signed-off-by: Tero Kristo <t-kristo@ti.com>
 ---
- arch/arm/mach-omap2/cm44xx.c              |  328 +++++++++++++++++++++++++++++
- arch/arm/mach-omap2/cm44xx.h              |    2 +
- arch/arm/mach-omap2/omap-mpuss-lowpower.c |    2 +
- 3 files changed, 332 insertions(+), 0 deletions(-)
+ arch/arm/mach-omap2/Makefile               |    2 +-
+ arch/arm/mach-omap2/cm1_44xx.h             |    2 +
+ arch/arm/mach-omap2/cm2_44xx.h             |    2 +
+ arch/arm/mach-omap2/omap-mpuss-lowpower.c  |    7 +
+ arch/arm/mach-omap2/omap-sar.c             |  330 ++++++++++++++++++++++++++++
+ arch/arm/mach-omap2/omap4-common.c         |   28 ---
+ arch/arm/mach-omap2/omap4-sar-layout.h     |   50 +++++
+ arch/arm/mach-omap2/pm.h                   |   12 +
+ arch/arm/plat-omap/include/plat/omap44xx.h |    5 +
+ 9 files changed, 409 insertions(+), 29 deletions(-)
+ create mode 100644 arch/arm/mach-omap2/omap-sar.c
 
-diff --git a/arch/arm/mach-omap2/cm44xx.c b/arch/arm/mach-omap2/cm44xx.c
-index 535d66e..1958808 100644
---- a/arch/arm/mach-omap2/cm44xx.c
-+++ b/arch/arm/mach-omap2/cm44xx.c
-@@ -21,8 +21,11 @@
- #include "iomap.h"
- #include "common.h"
- #include "cm.h"
-+#include "cm44xx.h"
- #include "cm1_44xx.h"
- #include "cm2_44xx.h"
-+#include "cminst44xx.h"
-+#include "prcm44xx.h"
- #include "cm-regbits-44xx.h"
+diff --git a/arch/arm/mach-omap2/Makefile b/arch/arm/mach-omap2/Makefile
+index 49f92bc..a978679 100644
+--- a/arch/arm/mach-omap2/Makefile
++++ b/arch/arm/mach-omap2/Makefile
+@@ -27,7 +27,7 @@ obj-$(CONFIG_TWL4030_CORE) += omap_twl.o
+ obj-$(CONFIG_SMP)			+= omap-smp.o omap-headsmp.o
+ obj-$(CONFIG_HOTPLUG_CPU)		+= omap-hotplug.o
+ obj-$(CONFIG_ARCH_OMAP4)		+= omap4-common.o omap-wakeupgen.o \
+-					   sleep44xx.o
++					   sleep44xx.o omap-sar.o
  
- /* CM1 hardware module low-level functions */
-@@ -50,3 +53,328 @@ void omap4_cm2_write_inst_reg(u32 val, s16 inst, u16 reg)
- {
- 	__raw_writel(val, OMAP44XX_CM2_REGADDR(inst, reg));
- }
-+
-+#define MAX_CM_REGISTERS 51
-+
-+struct omap4_cm_reg {
-+	u16 offset;
-+	u32 val;
-+};
-+
-+struct omap4_cm_regs {
-+	u16 mod_off;
-+	u16 no_reg;
-+	struct omap4_cm_reg reg[MAX_CM_REGISTERS];
-+};
-+
-+static struct omap4_cm_regs cm1_regs[] = {
-+	/* OMAP4430_CM1_OCP_SOCKET_MOD */
-+	{ .mod_off = OMAP4430_CM1_OCP_SOCKET_INST, .no_reg = 1,
-+		{
-+			{ OMAP4_CM_CM1_PROFILING_CLKCTRL_OFFSET }
-+		},
-+	},
-+	/* OMAP4430_CM1_CKGEN_MOD */
-+	{ .mod_off = OMAP4430_CM1_CKGEN_INST, .no_reg = 4,
-+		{
-+			{ OMAP4_CM_CLKSEL_CORE_OFFSET },
-+			{ OMAP4_CM_CLKSEL_ABE_OFFSET },
-+			{ OMAP4_CM_DLL_CTRL_OFFSET },
-+			{ OMAP4_CM_DYN_DEP_PRESCAL_OFFSET }
-+		},
-+	},
-+	/* OMAP4430_CM1_MPU_MOD */
-+	{ .mod_off = OMAP4430_CM1_MPU_INST, .no_reg = 4,
-+		{
-+			{ OMAP4_CM_MPU_CLKSTCTRL_OFFSET },
-+			{ OMAP4_CM_MPU_STATICDEP_OFFSET },
-+			{ OMAP4_CM_MPU_DYNAMICDEP_OFFSET },
-+			{ OMAP4_CM_MPU_MPU_CLKCTRL_OFFSET }
-+		},
-+	},
-+	/* OMAP4430_CM1_TESLA_MOD */
-+	{ .mod_off = OMAP4430_CM1_TESLA_INST, .no_reg = 4,
-+		{
-+			{ OMAP4_CM_TESLA_CLKSTCTRL_OFFSET },
-+			{ OMAP4_CM_TESLA_STATICDEP_OFFSET },
-+			{ OMAP4_CM_TESLA_DYNAMICDEP_OFFSET },
-+			{ OMAP4_CM_TESLA_TESLA_CLKCTRL_OFFSET }
-+		},
-+	},
-+	/* OMAP4430_CM1_ABE_MOD */
-+	{ .mod_off = OMAP4430_CM1_ABE_INST, .no_reg = 15,
-+		{
-+			{ OMAP4_CM1_ABE_CLKSTCTRL_OFFSET },
-+			{ OMAP4_CM1_ABE_L4ABE_CLKCTRL_OFFSET },
-+			{ OMAP4_CM1_ABE_AESS_CLKCTRL_OFFSET },
-+			{ OMAP4_CM1_ABE_PDM_CLKCTRL_OFFSET },
-+			{ OMAP4_CM1_ABE_DMIC_CLKCTRL_OFFSET },
-+			{ OMAP4_CM1_ABE_MCASP_CLKCTRL_OFFSET },
-+			{ OMAP4_CM1_ABE_MCBSP1_CLKCTRL_OFFSET },
-+			{ OMAP4_CM1_ABE_MCBSP2_CLKCTRL_OFFSET },
-+			{ OMAP4_CM1_ABE_MCBSP3_CLKCTRL_OFFSET },
-+			{ OMAP4_CM1_ABE_SLIMBUS_CLKCTRL_OFFSET },
-+			{ OMAP4_CM1_ABE_TIMER5_CLKCTRL_OFFSET },
-+			{ OMAP4_CM1_ABE_TIMER6_CLKCTRL_OFFSET },
-+			{ OMAP4_CM1_ABE_TIMER7_CLKCTRL_OFFSET },
-+			{ OMAP4_CM1_ABE_TIMER8_CLKCTRL_OFFSET },
-+			{ OMAP4_CM1_ABE_WDT3_CLKCTRL_OFFSET }
-+		},
-+	},
-+};
-+
-+static struct omap4_cm_regs cm2_regs[] = {
-+	/* OMAP4430_CM2_OCP_SOCKET_MOD */
-+	{ .mod_off = OMAP4430_CM2_OCP_SOCKET_INST, .no_reg = 1,
-+		{
-+			{ OMAP4_CM_CM2_PROFILING_CLKCTRL_OFFSET }
-+		},
-+	},
-+	/* OMAP4430_CM2_CKGEN_MOD */
-+	{ .mod_off = OMAP4430_CM2_CKGEN_INST, .no_reg = 12,
-+		{
-+			{ OMAP4_CM_CLKSEL_DUCATI_ISS_ROOT_OFFSET },
-+			{ OMAP4_CM_CLKSEL_USB_60MHZ_OFFSET },
-+			{ OMAP4_CM_SCALE_FCLK_OFFSET },
-+			{ OMAP4_CM_CORE_DVFS_PERF1_OFFSET },
-+			{ OMAP4_CM_CORE_DVFS_PERF2_OFFSET },
-+			{ OMAP4_CM_CORE_DVFS_PERF3_OFFSET },
-+			{ OMAP4_CM_CORE_DVFS_PERF4_OFFSET },
-+			{ OMAP4_CM_CORE_DVFS_CURRENT_OFFSET },
-+			{ OMAP4_CM_IVA_DVFS_PERF_TESLA_OFFSET },
-+			{ OMAP4_CM_IVA_DVFS_PERF_IVAHD_OFFSET },
-+			{ OMAP4_CM_IVA_DVFS_PERF_ABE_OFFSET },
-+			{ OMAP4_CM_IVA_DVFS_CURRENT_OFFSET }
-+		},
-+	},
-+	/* OMAP4430_CM2_ALWAYS_ON_MOD */
-+	{ .mod_off = OMAP4430_CM2_ALWAYS_ON_INST, .no_reg = 6,
-+		{
-+			{ OMAP4_CM_ALWON_CLKSTCTRL_OFFSET },
-+			{ OMAP4_CM_ALWON_MDMINTC_CLKCTRL_OFFSET },
-+			{ OMAP4_CM_ALWON_SR_MPU_CLKCTRL_OFFSET },
-+			{ OMAP4_CM_ALWON_SR_IVA_CLKCTRL_OFFSET },
-+			{ OMAP4_CM_ALWON_SR_CORE_CLKCTRL_OFFSET },
-+			{ OMAP4_CM_ALWON_USBPHY_CLKCTRL_OFFSET }
-+		},
-+	},
-+	/* OMAP4430_CM2_CORE_MOD */
-+	{ .mod_off = OMAP4430_CM2_CORE_INST, .no_reg = 41,
-+		{
-+			{ OMAP4_CM_L3_1_CLKSTCTRL_OFFSET },
-+			{ OMAP4_CM_L3_1_DYNAMICDEP_OFFSET },
-+			{ OMAP4_CM_L3_1_L3_1_CLKCTRL_OFFSET },
-+			{ OMAP4_CM_L3_2_CLKSTCTRL_OFFSET },
-+			{ OMAP4_CM_L3_2_DYNAMICDEP_OFFSET },
-+			{ OMAP4_CM_L3_2_L3_2_CLKCTRL_OFFSET },
-+			{ OMAP4_CM_L3_2_GPMC_CLKCTRL_OFFSET },
-+			{ OMAP4_CM_L3_2_OCMC_RAM_CLKCTRL_OFFSET },
-+			{ OMAP4_CM_DUCATI_CLKSTCTRL_OFFSET },
-+			{ OMAP4_CM_DUCATI_STATICDEP_OFFSET },
-+			{ OMAP4_CM_DUCATI_DYNAMICDEP_OFFSET },
-+			{ OMAP4_CM_DUCATI_DUCATI_CLKCTRL_OFFSET },
-+			{ OMAP4_CM_SDMA_CLKSTCTRL_OFFSET },
-+			{ OMAP4_CM_SDMA_STATICDEP_OFFSET },
-+			{ OMAP4_CM_SDMA_DYNAMICDEP_OFFSET },
-+			{ OMAP4_CM_SDMA_SDMA_CLKCTRL_OFFSET },
-+			{ OMAP4_CM_MEMIF_CLKSTCTRL_OFFSET },
-+			{ OMAP4_CM_MEMIF_DMM_CLKCTRL_OFFSET },
-+			{ OMAP4_CM_MEMIF_EMIF_FW_CLKCTRL_OFFSET },
-+			{ OMAP4_CM_MEMIF_EMIF_1_CLKCTRL_OFFSET },
-+			{ OMAP4_CM_MEMIF_EMIF_2_CLKCTRL_OFFSET },
-+			{ OMAP4_CM_MEMIF_DLL_CLKCTRL_OFFSET },
-+			{ OMAP4_CM_MEMIF_EMIF_H1_CLKCTRL_OFFSET },
-+			{ OMAP4_CM_MEMIF_EMIF_H2_CLKCTRL_OFFSET },
-+			{ OMAP4_CM_MEMIF_DLL_H_CLKCTRL_OFFSET },
-+			{ OMAP4_CM_D2D_CLKSTCTRL_OFFSET },
-+			{ OMAP4_CM_D2D_STATICDEP_OFFSET },
-+			{ OMAP4_CM_D2D_DYNAMICDEP_OFFSET },
-+			{ OMAP4_CM_D2D_SAD2D_CLKCTRL_OFFSET },
-+			{ OMAP4_CM_D2D_MODEM_ICR_CLKCTRL_OFFSET },
-+			{ OMAP4_CM_D2D_SAD2D_FW_CLKCTRL_OFFSET },
-+			{ OMAP4_CM_L4CFG_CLKSTCTRL_OFFSET },
-+			{ OMAP4_CM_L4CFG_DYNAMICDEP_OFFSET },
-+			{ OMAP4_CM_L4CFG_L4_CFG_CLKCTRL_OFFSET },
-+			{ OMAP4_CM_L4CFG_HW_SEM_CLKCTRL_OFFSET },
-+			{ OMAP4_CM_L4CFG_MAILBOX_CLKCTRL_OFFSET },
-+			{ OMAP4_CM_L4CFG_SAR_ROM_CLKCTRL_OFFSET },
-+			{ OMAP4_CM_L3INSTR_CLKSTCTRL_OFFSET },
-+			{ OMAP4_CM_L3INSTR_L3_3_CLKCTRL_OFFSET },
-+			{ OMAP4_CM_L3INSTR_L3_INSTR_CLKCTRL_OFFSET },
-+			{ OMAP4_CM_L3INSTR_OCP_WP1_CLKCTRL_OFFSET }
-+		},
-+	},
-+	/* OMAP4430_CM2_IVAHD_MOD */
-+	{ .mod_off = OMAP4430_CM2_IVAHD_INST, .no_reg = 5,
-+		{
-+			{ OMAP4_CM_IVAHD_CLKSTCTRL_OFFSET },
-+			{ OMAP4_CM_IVAHD_STATICDEP_OFFSET },
-+			{ OMAP4_CM_IVAHD_DYNAMICDEP_OFFSET },
-+			{ OMAP4_CM_IVAHD_IVAHD_CLKCTRL_OFFSET },
-+			{ OMAP4_CM_IVAHD_SL2_CLKCTRL_OFFSET }
-+		},
-+	},
-+	/* OMAP4430_CM2_CAM_MOD */
-+	{ .mod_off = OMAP4430_CM2_CAM_INST, .no_reg = 5,
-+		{
-+			{ OMAP4_CM_CAM_CLKSTCTRL_OFFSET },
-+			{ OMAP4_CM_CAM_STATICDEP_OFFSET },
-+			{ OMAP4_CM_CAM_DYNAMICDEP_OFFSET },
-+			{ OMAP4_CM_CAM_ISS_CLKCTRL_OFFSET },
-+			{ OMAP4_CM_CAM_FDIF_CLKCTRL_OFFSET }
-+		},
-+	},
-+	/* OMAP4430_CM2_DSS_MOD */
-+	{ .mod_off = OMAP4430_CM2_DSS_INST, .no_reg = 5,
-+		{
-+			{ OMAP4_CM_DSS_CLKSTCTRL_OFFSET },
-+			{ OMAP4_CM_DSS_STATICDEP_OFFSET },
-+			{ OMAP4_CM_DSS_DYNAMICDEP_OFFSET },
-+			{ OMAP4_CM_DSS_DSS_CLKCTRL_OFFSET },
-+			{ OMAP4_CM_DSS_DEISS_CLKCTRL_OFFSET }
-+		},
-+	},
-+	/* OMAP4430_CM2_GFX_MOD */
-+	{ .mod_off = OMAP4430_CM2_GFX_INST, .no_reg = 4,
-+		{
-+			{ OMAP4_CM_GFX_CLKSTCTRL_OFFSET },
-+			{ OMAP4_CM_GFX_STATICDEP_OFFSET },
-+			{ OMAP4_CM_GFX_DYNAMICDEP_OFFSET },
-+			{ OMAP4_CM_GFX_GFX_CLKCTRL_OFFSET }
-+		},
-+	},
-+	/* OMAP4430_CM2_L3INIT_MOD */
-+	{ .mod_off = OMAP4430_CM2_L3INIT_INST, .no_reg = 20,
-+		{
-+			{ OMAP4_CM_L3INIT_CLKSTCTRL_OFFSET },
-+			{ OMAP4_CM_L3INIT_STATICDEP_OFFSET },
-+			{ OMAP4_CM_L3INIT_DYNAMICDEP_OFFSET },
-+			{ OMAP4_CM_L3INIT_MMC1_CLKCTRL_OFFSET },
-+			{ OMAP4_CM_L3INIT_MMC2_CLKCTRL_OFFSET },
-+			{ OMAP4_CM_L3INIT_HSI_CLKCTRL_OFFSET },
-+			{ OMAP4_CM_L3INIT_UNIPRO1_CLKCTRL_OFFSET },
-+			{ OMAP4_CM_L3INIT_USB_HOST_CLKCTRL_OFFSET },
-+			{ OMAP4_CM_L3INIT_USB_OTG_CLKCTRL_OFFSET },
-+			{ OMAP4_CM_L3INIT_USB_TLL_CLKCTRL_OFFSET },
-+			{ OMAP4_CM_L3INIT_P1500_CLKCTRL_OFFSET },
-+			{ OMAP4_CM_L3INIT_EMAC_CLKCTRL_OFFSET },
-+			{ OMAP4_CM_L3INIT_SATA_CLKCTRL_OFFSET },
-+			{ OMAP4_CM_L3INIT_TPPSS_CLKCTRL_OFFSET },
-+			{ OMAP4_CM_L3INIT_PCIESS_CLKCTRL_OFFSET },
-+			{ OMAP4_CM_L3INIT_CCPTX_CLKCTRL_OFFSET },
-+			{ OMAP4_CM_L3INIT_XHPI_CLKCTRL_OFFSET },
-+			{ OMAP4_CM_L3INIT_MMC6_CLKCTRL_OFFSET },
-+			{ OMAP4_CM_L3INIT_USB_HOST_FS_CLKCTRL_OFFSET },
-+			{ OMAP4_CM_L3INIT_USBPHYOCP2SCP_CLKCTRL_OFFSET }
-+		},
-+	},
-+	/* OMAP4430_CM2_L4PER_MOD */
-+	{ .mod_off = OMAP4430_CM2_L4PER_INST, .no_reg = 51,
-+		{
-+			{ OMAP4_CM_L4PER_CLKSTCTRL_OFFSET },
-+			{ OMAP4_CM_L4PER_DYNAMICDEP_OFFSET },
-+			{ OMAP4_CM_L4PER_ADC_CLKCTRL_OFFSET },
-+			{ OMAP4_CM_L4PER_DMTIMER10_CLKCTRL_OFFSET },
-+			{ OMAP4_CM_L4PER_DMTIMER11_CLKCTRL_OFFSET },
-+			{ OMAP4_CM_L4PER_DMTIMER2_CLKCTRL_OFFSET },
-+			{ OMAP4_CM_L4PER_DMTIMER3_CLKCTRL_OFFSET },
-+			{ OMAP4_CM_L4PER_DMTIMER4_CLKCTRL_OFFSET },
-+			{ OMAP4_CM_L4PER_DMTIMER9_CLKCTRL_OFFSET },
-+			{ OMAP4_CM_L4PER_ELM_CLKCTRL_OFFSET },
-+			{ OMAP4_CM_L4PER_GPIO2_CLKCTRL_OFFSET },
-+			{ OMAP4_CM_L4PER_GPIO3_CLKCTRL_OFFSET },
-+			{ OMAP4_CM_L4PER_GPIO4_CLKCTRL_OFFSET },
-+			{ OMAP4_CM_L4PER_GPIO5_CLKCTRL_OFFSET },
-+			{ OMAP4_CM_L4PER_GPIO6_CLKCTRL_OFFSET },
-+			{ OMAP4_CM_L4PER_HDQ1W_CLKCTRL_OFFSET },
-+			{ OMAP4_CM_L4PER_HECC1_CLKCTRL_OFFSET },
-+			{ OMAP4_CM_L4PER_HECC2_CLKCTRL_OFFSET },
-+			{ OMAP4_CM_L4PER_I2C1_CLKCTRL_OFFSET },
-+			{ OMAP4_CM_L4PER_I2C2_CLKCTRL_OFFSET },
-+			{ OMAP4_CM_L4PER_I2C3_CLKCTRL_OFFSET },
-+			{ OMAP4_CM_L4PER_I2C4_CLKCTRL_OFFSET },
-+			{ OMAP4_CM_L4PER_L4PER_CLKCTRL_OFFSET },
-+			{ OMAP4_CM_L4PER_MCASP2_CLKCTRL_OFFSET },
-+			{ OMAP4_CM_L4PER_MCASP3_CLKCTRL_OFFSET },
-+			{ OMAP4_CM_L4PER_MCBSP4_CLKCTRL_OFFSET },
-+			{ OMAP4_CM_L4PER_MGATE_CLKCTRL_OFFSET },
-+			{ OMAP4_CM_L4PER_MCSPI1_CLKCTRL_OFFSET },
-+			{ OMAP4_CM_L4PER_MCSPI2_CLKCTRL_OFFSET },
-+			{ OMAP4_CM_L4PER_MCSPI3_CLKCTRL_OFFSET },
-+			{ OMAP4_CM_L4PER_MCSPI4_CLKCTRL_OFFSET },
-+			{ OMAP4_CM_L4PER_MMCSD3_CLKCTRL_OFFSET },
-+			{ OMAP4_CM_L4PER_MMCSD4_CLKCTRL_OFFSET },
-+			{ OMAP4_CM_L4PER_MSPROHG_CLKCTRL_OFFSET },
-+			{ OMAP4_CM_L4PER_SLIMBUS2_CLKCTRL_OFFSET },
-+			{ OMAP4_CM_L4PER_UART1_CLKCTRL_OFFSET },
-+			{ OMAP4_CM_L4PER_UART2_CLKCTRL_OFFSET },
-+			{ OMAP4_CM_L4PER_UART3_CLKCTRL_OFFSET },
-+			{ OMAP4_CM_L4PER_UART4_CLKCTRL_OFFSET },
-+			{ OMAP4_CM_L4PER_MMCSD5_CLKCTRL_OFFSET },
-+			{ OMAP4_CM_L4PER_I2C5_CLKCTRL_OFFSET },
-+			{ OMAP4_CM_L4SEC_CLKSTCTRL_OFFSET },
-+			{ OMAP4_CM_L4SEC_STATICDEP_OFFSET },
-+			{ OMAP4_CM_L4SEC_DYNAMICDEP_OFFSET },
-+			{ OMAP4_CM_L4SEC_AES1_CLKCTRL_OFFSET },
-+			{ OMAP4_CM_L4SEC_AES2_CLKCTRL_OFFSET },
-+			{ OMAP4_CM_L4SEC_DES3DES_CLKCTRL_OFFSET },
-+			{ OMAP4_CM_L4SEC_PKAEIP29_CLKCTRL_OFFSET },
-+			{ OMAP4_CM_L4SEC_RNG_CLKCTRL_OFFSET },
-+			{ OMAP4_CM_L4SEC_SHA2MD51_CLKCTRL_OFFSET },
-+			{ OMAP4_CM_L4SEC_CRYPTODMA_CLKCTRL_OFFSET }
-+		},
-+	},
-+	/* OMAP4430_CM2_CEFUSE_MOD */
-+	{ .mod_off = OMAP4430_CM2_CEFUSE_INST, .no_reg = 2,
-+		{
-+			{ OMAP4_CM_CEFUSE_CLKSTCTRL_OFFSET },
-+			{ OMAP4_CM_CEFUSE_CEFUSE_CLKCTRL_OFFSET }
-+		},
-+	},
-+};
-+
-+static void omap4_cm_part_prepare_off(u32 part, struct omap4_cm_regs *cm_reg,
-+				      int size)
-+{
-+	u32 i, j;
-+
-+	for (i = 0; i < size; i++, cm_reg++) {
-+		for (j = 0; j < cm_reg->no_reg; j++) {
-+			cm_reg->reg[j].val =
-+			    omap4_cminst_read_inst_reg(part,
-+						       cm_reg->mod_off,
-+						       cm_reg->reg[j].offset);
-+		}
-+	}
-+}
-+
-+static void omap4_cm_part_resume_off(u32 part, struct omap4_cm_regs *cm_reg,
-+				     int size)
-+{
-+	u32 i, j;
-+
-+	for (i = 0; i < size; i++, cm_reg++) {
-+		for (j = 0; j < cm_reg->no_reg; j++) {
-+			omap4_cminst_write_inst_reg(cm_reg->reg[j].val,
-+						    part,
-+						    cm_reg->mod_off,
-+						    cm_reg->reg[j].offset);
-+		}
-+	}
-+}
-+
-+void omap4_cm_prepare_off(void)
-+{
-+	omap4_cm_part_prepare_off(OMAP4430_CM1_PARTITION, cm1_regs,
-+				  ARRAY_SIZE(cm1_regs));
-+	omap4_cm_part_prepare_off(OMAP4430_CM2_PARTITION, cm2_regs,
-+				  ARRAY_SIZE(cm2_regs));
-+}
-+
-+void omap4_cm_resume_off(void)
-+{
-+	omap4_cm_part_resume_off(OMAP4430_CM1_PARTITION, cm1_regs,
-+				 ARRAY_SIZE(cm1_regs));
-+	omap4_cm_part_resume_off(OMAP4430_CM2_PARTITION, cm2_regs,
-+				 ARRAY_SIZE(cm2_regs));
-+}
-diff --git a/arch/arm/mach-omap2/cm44xx.h b/arch/arm/mach-omap2/cm44xx.h
-index 5fba0fa..b3b0f21 100644
---- a/arch/arm/mach-omap2/cm44xx.h
-+++ b/arch/arm/mach-omap2/cm44xx.h
-@@ -24,6 +24,8 @@
- #define OMAP4_CM_STATICDEP				0x0004
+ plus_sec := $(call as-instr,.arch_extension sec,+sec)
+ AFLAGS_omap-headsmp.o			:=-Wa,-march=armv7-a$(plus_sec)
+diff --git a/arch/arm/mach-omap2/cm1_44xx.h b/arch/arm/mach-omap2/cm1_44xx.h
+index 1bc00dc..c21b660 100644
+--- a/arch/arm/mach-omap2/cm1_44xx.h
++++ b/arch/arm/mach-omap2/cm1_44xx.h
+@@ -218,8 +218,10 @@
+ #define OMAP4430_CM1_ABE_WDT3_CLKCTRL			OMAP44XX_CM1_REGADDR(OMAP4430_CM1_ABE_INST, 0x0088)
  
- #ifndef __ASSEMBLER__
-+extern void omap4_cm_prepare_off(void);
-+extern void omap4_cm_resume_off(void);
- extern void omap4_dpll_prepare_off(void);
- extern void omap4_dpll_resume_off(void);
+ /* Function prototypes */
++#ifndef __ASSEMBLER__
+ extern u32 omap4_cm1_read_inst_reg(s16 inst, u16 idx);
+ extern void omap4_cm1_write_inst_reg(u32 val, s16 inst, u16 idx);
+ extern u32 omap4_cm1_rmw_inst_reg_bits(u32 mask, u32 bits, s16 inst, s16 idx);
++#endif
+ 
+ #endif
+diff --git a/arch/arm/mach-omap2/cm2_44xx.h b/arch/arm/mach-omap2/cm2_44xx.h
+index b9de72d..3e8871e 100644
+--- a/arch/arm/mach-omap2/cm2_44xx.h
++++ b/arch/arm/mach-omap2/cm2_44xx.h
+@@ -450,8 +450,10 @@
+ #define OMAP4430_CM_CEFUSE_CEFUSE_CLKCTRL		OMAP44XX_CM2_REGADDR(OMAP4430_CM2_CEFUSE_INST, 0x0020)
+ 
+ /* Function prototypes */
++#ifndef __ASSEMBLER__
+ extern u32 omap4_cm2_read_inst_reg(s16 inst, u16 idx);
+ extern void omap4_cm2_write_inst_reg(u32 val, s16 inst, u16 idx);
+ extern u32 omap4_cm2_rmw_inst_reg_bits(u32 mask, u32 bits, s16 inst, s16 idx);
++#endif
+ 
  #endif
 diff --git a/arch/arm/mach-omap2/omap-mpuss-lowpower.c b/arch/arm/mach-omap2/omap-mpuss-lowpower.c
-index 0a1d5c5..68923af 100644
+index 68923af..2d994dd 100644
 --- a/arch/arm/mach-omap2/omap-mpuss-lowpower.c
 +++ b/arch/arm/mach-omap2/omap-mpuss-lowpower.c
-@@ -265,6 +265,7 @@ int omap4_enter_lowpower(unsigned int cpu, unsigned int power_state)
+@@ -233,6 +233,7 @@ int omap4_enter_lowpower(unsigned int cpu, unsigned int power_state)
+ {
+ 	unsigned int save_state = 0;
+ 	unsigned int wakeup_cpu;
++	int ret;
+ 
+ 	if (omap_rev() == OMAP4430_REV_ES1_0)
+ 		return -ENXIO;
+@@ -265,6 +266,11 @@ int omap4_enter_lowpower(unsigned int cpu, unsigned int power_state)
  	 */
  	mpuss_clear_prev_logic_pwrst();
  	if (omap4_device_next_state_off()) {
-+		omap4_cm_prepare_off();
++		/* Save the device context to SAR RAM */
++		ret = omap_sar_save();
++		if (ret)
++			goto sar_save_failed;
++		omap_sar_overwrite();
+ 		omap4_cm_prepare_off();
  		omap4_dpll_prepare_off();
  		save_state = 3;
- 	} else if ((pwrdm_read_next_pwrst(mpuss_pd) == PWRDM_POWER_RET) &&
-@@ -297,6 +298,7 @@ int omap4_enter_lowpower(unsigned int cpu, unsigned int power_state)
- 
- 	if (omap4_device_prev_state_off()) {
- 		omap4_dpll_resume_off();
-+		omap4_cm_resume_off();
+@@ -302,6 +308,7 @@ int omap4_enter_lowpower(unsigned int cpu, unsigned int power_state)
  		omap4_device_clear_prev_off_state();
  	}
+ 
++sar_save_failed:
+ 	pwrdm_post_transition();
+ 
+ 	return 0;
+diff --git a/arch/arm/mach-omap2/omap-sar.c b/arch/arm/mach-omap2/omap-sar.c
+new file mode 100644
+index 0000000..141aebc
+--- /dev/null
++++ b/arch/arm/mach-omap2/omap-sar.c
+@@ -0,0 +1,330 @@
++/*
++ * OMAP4 Save Restore source file
++ *
++ * Copyright (C) 2010 Texas Instruments, Inc.
++ * Written by Santosh Shilimkar <santosh.shilimkar@ti.com>
++ *
++ * This program is free software; you can redistribute it and/or modify
++ * it under the terms of the GNU General Public License version 2 as
++ * published by the Free Software Foundation.
++ */
++
++#include <linux/kernel.h>
++#include <linux/init.h>
++#include <linux/io.h>
++#include <linux/platform_device.h>
++#include <linux/clk.h>
++
++#include "iomap.h"
++#include "pm.h"
++#include "clockdomain.h"
++
++#include "omap4-sar-layout.h"
++#include "cm-regbits-44xx.h"
++#include "prcm44xx.h"
++#include "cminst44xx.h"
++
++static void __iomem *sar_ram_base;
++static void __iomem *omap4_sar_modules[MAX_SAR_MODULES];
++static struct powerdomain *l3init_pwrdm;
++	static struct clockdomain *l3init_clkdm;
++static struct clk *usb_host_ck, *usb_tll_ck;
++
++/*
++ * SAR_RAM1 register layout consist of EMIF1, EMIF2, CM1, CM2,
++ * CONTROL_CORE efuse, DMM and USB TLL registers.
++ * The layout is arranged is a two dimentional array like
++ * below,
++ * const u32 sar_ramX_layout[nb_regs_sets][4] = {
++ *	{module_index, reg_offset, size, sar_ram_offset},
++ * }
++ */
++static const u32 omap443x_sar_ram1_layout[][4] = {
++};
++
++/*
++ * SAR_RAM2 register layout consist of SYSCTRL_PADCONF_CORE regsiters
++ */
++static const u32 omap443x_sar_ram2_layout[][4] = {
++};
++
++/*
++ * SAR_RAM3 and  SAR_RAM4 layout is not listed since moslty it's handle by
++ * secure software.
++ */
++static const u32 omap443x_sar_ram3_layout[][4] = {
++};
++
++/*
++ * omap_sar_save :
++ * common routine to save the registers to  SAR RAM with the
++ * given parameters
++ * @nb_regs - Number of registers to saved
++ * @sar_bank_offset - where to backup
++ * @sar_layout - constant table containing the backup info
++ */
++static void sar_save(u32 nb_regs, u32 sar_bank, const u32 sar_layout_table[][4])
++{
++	u32 reg_val, size, i, j;
++	void __iomem *reg_read_addr, *sar_wr_addr;
++
++	for (i = 0; i < nb_regs; i++) {
++		if (omap4_sar_modules[(sar_layout_table[i][MODULE_ADDR_IDX])]) {
++			size = sar_layout_table[i][MODULE_NB_REGS_IDX];
++			reg_read_addr =
++			    omap4_sar_modules[sar_layout_table[i]
++					      [MODULE_ADDR_IDX]]
++			    + sar_layout_table[i][MODULE_OFFSET_IDX];
++			sar_wr_addr = sar_ram_base + sar_bank +
++			    sar_layout_table[i][SAR_RAM_OFFSET_IDX];
++			for (j = 0; j < size; j++) {
++				reg_val = __raw_readl(reg_read_addr + j * 4);
++				__raw_writel(reg_val, sar_wr_addr + j * 4);
++			}
++		}
++	}
++}
++
++static void save_sar_bank3(void)
++{
++	struct clockdomain *l4_secure_clkdm;
++
++	/*
++	 * Not supported on ES1.0 silicon
++	 */
++	if (omap_rev() == OMAP4430_REV_ES1_0) {
++		WARN_ONCE(1, "omap4: SAR backup not supported on ES1.0 ..\n");
++		return;
++	}
++
++	l4_secure_clkdm = clkdm_lookup("l4_secure_clkdm");
++	clkdm_wakeup(l4_secure_clkdm);
++
++	sar_save(ARRAY_SIZE(omap443x_sar_ram3_layout), SAR_BANK3_OFFSET,
++		 omap443x_sar_ram3_layout);
++
++	clkdm_allow_idle(l4_secure_clkdm);
++}
++
++static int omap4_sar_not_accessible(void)
++{
++	u32 usbhost_state, usbtll_state;
++
++	/*
++	 * Make sure that USB host and TLL modules are not
++	 * enabled before attempting to save the context
++	 * registers, otherwise this will trigger an exception.
++	 */
++	usbhost_state = omap4_cminst_read_inst_reg(OMAP4430_CM2_PARTITION,
++				OMAP4430_CM2_L3INIT_INST,
++				OMAP4_CM_L3INIT_USB_HOST_CLKCTRL_OFFSET);
++	usbhost_state &= (OMAP4430_STBYST_MASK | OMAP4430_IDLEST_MASK);
++
++	usbtll_state = omap4_cminst_read_inst_reg(OMAP4430_CM2_PARTITION,
++				OMAP4430_CM2_L3INIT_INST,
++				OMAP4_CM_L3INIT_USB_TLL_CLKCTRL_OFFSET);
++	usbtll_state &= OMAP4430_IDLEST_MASK;
++
++	if ((usbhost_state == (OMAP4430_STBYST_MASK | OMAP4430_IDLEST_MASK)) &&
++	    (usbtll_state == (OMAP4430_IDLEST_MASK)))
++		return 0;
++	else
++		return -EBUSY;
++}
++
++ /*
++  * omap_sar_save -
++  * Save the context to SAR_RAM1 and SAR_RAM2 as per
++  * omap4xxx_sar_ram1_layout and omap4xxx_sar_ram2_layout for the device OFF
++  * mode
++  */
++int omap_sar_save(void)
++{
++	if (omap4_sar_not_accessible()) {
++		pr_debug("%s: USB SAR CNTX registers are not accessible!\n",
++			 __func__);
++		return -EBUSY;
++	}
++
++	/*
++	 * SAR bits and clocks needs to be enabled
++	 */
++	clkdm_wakeup(l3init_clkdm);
++	pwrdm_enable_hdwr_sar(l3init_pwrdm);
++	clk_enable(usb_host_ck);
++	clk_enable(usb_tll_ck);
++
++	/* Save SAR BANK1 */
++	sar_save(ARRAY_SIZE(omap443x_sar_ram1_layout), SAR_BANK1_OFFSET,
++		 omap443x_sar_ram1_layout);
++
++	clk_disable(usb_host_ck);
++	clk_disable(usb_tll_ck);
++	pwrdm_disable_hdwr_sar(l3init_pwrdm);
++	clkdm_allow_idle(l3init_clkdm);
++
++	/* Save SAR BANK2 */
++	sar_save(ARRAY_SIZE(omap443x_sar_ram2_layout), SAR_BANK2_OFFSET,
++		 omap443x_sar_ram2_layout);
++
++	return 0;
++}
++
++/**
++ * omap_sar_overwrite :
++ * This API overwrite some of the SAR locations as a special cases
++ * The register content to be saved can be the register value before
++ * going into OFF-mode or a value that is required on wake up. This means
++ * that the restored register value can be different from the last value
++ * of the register before going into OFF-mode
++ *	- CM1 and CM2 configuration
++ *		Bits 0 of the CM_SHADOW_FREQ_CONFIG1 regiser and the
++ *		CM_SHADOW_FREQ_CONFIG2 register are self-clearing and must
++ *		 be set at restore time. Thus, these data must always be
++ *		overwritten in the SAR RAM.
++ *	- Because USBHOSTHS and USBTLL restore needs a particular
++ *		sequencing, the software must overwrite data read from
++ *		the following registers implied in phase2a and phase 2b
++ */
++void omap_sar_overwrite(void)
++{
++	u32 val = 0;
++	u32 offset = 0;
++
++	/* Overwriting Phase1 data to be restored */
++	/* CM2 MEMIF_CLKTRCTRL = SW_WKUP, before FREQ UPDATE */
++	__raw_writel(0x2, sar_ram_base + SAR_BANK1_OFFSET + 0xd0);
++	/* CM1 CM_SHADOW_FREQ_CONFIG2, Enable FREQ UPDATE */
++	val = __raw_readl(OMAP4430_CM_SHADOW_FREQ_CONFIG2);
++	/*
++	 * FIXME: Implement FREQ UPDATE for L#/M5 before enabling this
++	 * val |= 1 << OMAP4430_FREQ_UPDATE_SHIFT;
++	 */
++	__raw_writel(val, sar_ram_base + SAR_BANK1_OFFSET + 0x100);
++	/* CM1 CM_SHADOW_FREQ_CONFIG1, Enable FREQ UPDATE */
++	val = __raw_readl(OMAP4430_CM_SHADOW_FREQ_CONFIG1);
++	val |= 1 << OMAP4430_FREQ_UPDATE_SHIFT;
++	val &= ~OMAP4430_DLL_OVERRIDE_MASK;
++	__raw_writel(val, sar_ram_base + SAR_BANK1_OFFSET + 0x104);
++	/* CM2 MEMIF_CLKTRCTRL = HW_AUTO, after FREQ UPDATE */
++	__raw_writel(0x3, sar_ram_base + SAR_BANK1_OFFSET + 0x124);
++
++	/* Overwriting Phase2a data to be restored */
++	/* CM_L3INIT_USB_HOST_CLKCTRL: SAR_MODE = 1, MODULEMODE = 2 */
++	__raw_writel(0x00000012,
++		     sar_ram_base + SAR_BANK1_OFFSET + 0x2ec + offset);
++	/* CM_L3INIT_USB_TLL_CLKCTRL: SAR_MODE = 1, MODULEMODE = 1 */
++	__raw_writel(0x00000011,
++		     sar_ram_base + SAR_BANK1_OFFSET + 0x2f0 + offset);
++	/* CM2 CM_SDMA_STATICDEP : Enable static depedency for SAR modules */
++	__raw_writel(0x000090e8,
++		     sar_ram_base + SAR_BANK1_OFFSET + 0x2f4 + offset);
++
++	/* Overwriting Phase2b data to be restored */
++	/* CM_L3INIT_USB_HOST_CLKCTRL: SAR_MODE = 0, MODULEMODE = 0 */
++	val = __raw_readl(OMAP4430_CM_L3INIT_USB_HOST_CLKCTRL);
++	val &= (OMAP4430_CLKSEL_UTMI_P1_MASK | OMAP4430_CLKSEL_UTMI_P2_MASK);
++	__raw_writel(val, sar_ram_base + SAR_BANK1_OFFSET + 0x91c + offset);
++	/* CM_L3INIT_USB_TLL_CLKCTRL: SAR_MODE = 0, MODULEMODE = 0 */
++	__raw_writel(0x0000000,
++		     sar_ram_base + SAR_BANK1_OFFSET + 0x920 + offset);
++	/* CM2 CM_SDMA_STATICDEP : Clear the static depedency */
++	__raw_writel(0x00000040,
++		     sar_ram_base + SAR_BANK1_OFFSET + 0x924 + offset);
++
++	/* readback to ensure data reaches to SAR RAM */
++	barrier();
++	val = __raw_readl(sar_ram_base + SAR_BANK1_OFFSET + 0x924 + offset);
++}
++
++void __iomem *omap4_get_sar_ram_base(void)
++{
++	return sar_ram_base;
++}
++
++/*
++ * SAR RAM used to save and restore the HW
++ * context in low power modes
++ */
++static int __init omap4_sar_ram_init(void)
++{
++	/*
++	 * To avoid code running on other OMAPs in
++	 * multi-omap builds
++	 */
++	if (!cpu_is_omap44xx())
++		return -ENODEV;
++
++	/*
++	 * Static mapping, never released Actual SAR area used is 8K it's
++	 * spaced over 16K address with some part is reserved.
++	 */
++	sar_ram_base = ioremap(OMAP44XX_SAR_RAM_BASE, SZ_16K);
++	BUG_ON(!sar_ram_base);
++
++	/*
++	 * All these are static mappings so ioremap() will
++	 * just return with mapped VA
++	 */
++	omap4_sar_modules[EMIF1_INDEX] = ioremap(OMAP44XX_EMIF1_BASE, SZ_1M);
++	BUG_ON(!omap4_sar_modules[EMIF1_INDEX]);
++	omap4_sar_modules[EMIF2_INDEX] = ioremap(OMAP44XX_EMIF2_BASE, SZ_1M);
++	BUG_ON(!omap4_sar_modules[EMIF2_INDEX]);
++	omap4_sar_modules[DMM_INDEX] = ioremap(OMAP44XX_DMM_BASE, SZ_1M);
++	BUG_ON(!omap4_sar_modules[DMM_INDEX]);
++	omap4_sar_modules[CM1_INDEX] = ioremap(OMAP4430_CM1_BASE, SZ_8K);
++	BUG_ON(!omap4_sar_modules[CM1_INDEX]);
++	omap4_sar_modules[CM2_INDEX] = ioremap(OMAP4430_CM2_BASE, SZ_8K);
++	BUG_ON(!omap4_sar_modules[CM2_INDEX]);
++	omap4_sar_modules[C2C_INDEX] = ioremap(OMAP44XX_C2C_BASE, SZ_1M);
++	BUG_ON(!omap4_sar_modules[C2C_INDEX]);
++	omap4_sar_modules[CTRL_MODULE_PAD_CORE_INDEX] =
++	    ioremap(OMAP443X_CTRL_BASE, SZ_4K);
++	BUG_ON(!omap4_sar_modules[CTRL_MODULE_PAD_CORE_INDEX]);
++	omap4_sar_modules[L3_CLK1_INDEX] = ioremap(L3_44XX_BASE_CLK1, SZ_1M);
++	BUG_ON(!omap4_sar_modules[L3_CLK1_INDEX]);
++	omap4_sar_modules[L3_CLK2_INDEX] = ioremap(L3_44XX_BASE_CLK2, SZ_1M);
++	BUG_ON(!omap4_sar_modules[L3_CLK2_INDEX]);
++	omap4_sar_modules[L3_CLK3_INDEX] = ioremap(L3_44XX_BASE_CLK3, SZ_1M);
++	BUG_ON(!omap4_sar_modules[L3_CLK3_INDEX]);
++	omap4_sar_modules[USBTLL_INDEX] = ioremap(OMAP44XX_USBTLL_BASE, SZ_1M);
++	BUG_ON(!omap4_sar_modules[USBTLL_INDEX]);
++	omap4_sar_modules[UHH_INDEX] = ioremap(OMAP44XX_UHH_CONFIG_BASE, SZ_1M);
++	BUG_ON(!omap4_sar_modules[UHH_INDEX]);
++	omap4_sar_modules[L4CORE_INDEX] = ioremap(L4_44XX_PHYS, SZ_4M);
++	BUG_ON(!omap4_sar_modules[L4CORE_INDEX]);
++	omap4_sar_modules[L4PER_INDEX] = ioremap(L4_PER_44XX_PHYS, SZ_4M);
++	BUG_ON(!omap4_sar_modules[L4PER_INDEX]);
++
++	/*
++	 * SAR BANK3 contains all firewall settings and it's saved through
++	 * secure API on HS device. On GP device these registers are
++	 * meaningless but still needs to be saved. Otherwise Auto-restore
++	 * phase DMA takes an abort. Hence save these conents only once
++	 * in init to avoid the issue while waking up from device OFF
++	 */
++	if (omap_type() == OMAP2_DEVICE_TYPE_GP)
++		save_sar_bank3();
++
++	/*
++	 * L3INIT PD and clocks are needed for SAR save phase
++	 */
++	l3init_pwrdm = pwrdm_lookup("l3init_pwrdm");
++	if (!l3init_pwrdm)
++		pr_err("Failed to get l3init_pwrdm\n");
++
++	l3init_clkdm = clkdm_lookup("l3_init_clkdm");
++	if (!l3init_clkdm)
++		pr_err("Failed to get l3_init_clkdm\n");
++
++	usb_host_ck = clk_get_sys("usbhs_omap", "hs_fck");
++	if (IS_ERR(usb_host_ck))
++		pr_err("Could not get usb_host_ck\n");
++
++	usb_tll_ck = clk_get_sys("usbhs_omap", "usbtll_ick");
++	if (IS_ERR(usb_tll_ck))
++		pr_err("Could not get usb_tll_ck\n");
++
++	return 0;
++}
++early_initcall(omap4_sar_ram_init);
+diff --git a/arch/arm/mach-omap2/omap4-common.c b/arch/arm/mach-omap2/omap4-common.c
+index cc6a915..7ea4652 100644
+--- a/arch/arm/mach-omap2/omap4-common.c
++++ b/arch/arm/mach-omap2/omap4-common.c
+@@ -37,7 +37,6 @@
+ static void __iomem *l2cache_base;
+ #endif
+ 
+-static void __iomem *sar_ram_base;
+ static void __iomem *gic_dist_base_addr;
+ 
+ #ifdef CONFIG_OMAP4_ERRATA_I688
+@@ -186,30 +185,3 @@ static int __init omap_l2_cache_init(void)
+ }
+ early_initcall(omap_l2_cache_init);
+ #endif
+-
+-void __iomem *omap4_get_sar_ram_base(void)
+-{
+-	return sar_ram_base;
+-}
+-
+-/*
+- * SAR RAM used to save and restore the HW
+- * context in low power modes
+- */
+-static int __init omap4_sar_ram_init(void)
+-{
+-	/*
+-	 * To avoid code running on other OMAPs in
+-	 * multi-omap builds
+-	 */
+-	if (!cpu_is_omap44xx())
+-		return -ENOMEM;
+-
+-	/* Static mapping, never released */
+-	sar_ram_base = ioremap(OMAP44XX_SAR_RAM_BASE, SZ_16K);
+-	if (WARN_ON(!sar_ram_base))
+-		return -ENOMEM;
+-
+-	return 0;
+-}
+-early_initcall(omap4_sar_ram_init);
+diff --git a/arch/arm/mach-omap2/omap4-sar-layout.h b/arch/arm/mach-omap2/omap4-sar-layout.h
+index fe5b545..eef2839 100644
+--- a/arch/arm/mach-omap2/omap4-sar-layout.h
++++ b/arch/arm/mach-omap2/omap4-sar-layout.h
+@@ -11,6 +11,56 @@
+ #ifndef OMAP_ARCH_OMAP4_SAR_LAYOUT_H
+ #define OMAP_ARCH_OMAP4_SAR_LAYOUT_H
+ 
++#include <mach/hardware.h>
++#include <mach/ctrl_module_pad_core_44xx.h>
++
++#include "cm1_44xx.h"
++#include "cm2_44xx.h"
++#include "prcm-common.h"
++
++/*
++ * The SAR RAM is maintained during Device OFF mode.
++ * It is split into 4 banks with different privilege accesses
++ *
++ * ---------------------------------------------------------------------
++ * Access mode			Bank	Address Range
++ * ---------------------------------------------------------------------
++ * HS/GP : Public		1	0x4A32_6000 - 0x4A32_6FFF (4kB)
++ * HS/GP : Public, Secured
++ * if padconfaccdisable=1	2	0x4A32_7000 - 0x4A32_73FF (1kB)
++ * HS/EMU : Secured
++ * GP : Public			3	0x4A32_8000 - 0x4A32_87FF (2kB)
++ * HS/GP :
++ * Secure Priviledge,
++ * write once.			4	0x4A32_9000 - 0x4A32_93FF (1kB)
++ * ---------------------------------------------------------------------
++ * The SAR RAM save regiter layout is fixed since restore is done by hardware.
++ */
++
++#define MODULE_ADDR_IDX				0
++#define MODULE_OFFSET_IDX			1
++#define MODULE_NB_REGS_IDX			2
++#define SAR_RAM_OFFSET_IDX			3
++
++/*
++ * Module Index used to lookup VA using index
++ */
++#define MAX_SAR_MODULES				14
++#define EMIF1_INDEX				0
++#define EMIF2_INDEX				1
++#define DMM_INDEX				2
++#define CM1_INDEX				3
++#define CM2_INDEX				4
++#define C2C_INDEX				5
++#define CTRL_MODULE_PAD_CORE_INDEX		6
++#define L3_CLK1_INDEX				7
++#define L3_CLK2_INDEX				8
++#define L3_CLK3_INDEX				9
++#define USBTLL_INDEX				10
++#define UHH_INDEX				11
++#define L4CORE_INDEX				12
++#define L4PER_INDEX				13
++
+ /*
+  * SAR BANK offsets from base address OMAP44XX_SAR_RAM_BASE
+  */
+diff --git a/arch/arm/mach-omap2/pm.h b/arch/arm/mach-omap2/pm.h
+index d95f8c5..ce1e27f 100644
+--- a/arch/arm/mach-omap2/pm.h
++++ b/arch/arm/mach-omap2/pm.h
+@@ -157,4 +157,16 @@ static inline int omap4_twl_init(void)
+ }
+ #endif
+ 
++#ifdef CONFIG_PM
++extern int omap_sar_save(void);
++extern void omap_sar_overwrite(void);
++#else
++static inline void omap_sar_save(void)
++{
++}
++static inline void omap_sar_overwrite(void)
++{
++}
++#endif
++
+ #endif
+diff --git a/arch/arm/plat-omap/include/plat/omap44xx.h b/arch/arm/plat-omap/include/plat/omap44xx.h
+index 1a45700..8e83e16 100644
+--- a/arch/arm/plat-omap/include/plat/omap44xx.h
++++ b/arch/arm/plat-omap/include/plat/omap44xx.h
+@@ -22,6 +22,9 @@
+ #define L4_PER_44XX_BASE		0x48000000
+ #define L4_EMU_44XX_BASE		0x54000000
+ #define L3_44XX_BASE			0x44000000
++#define L3_44XX_BASE_CLK1		L3_44XX_BASE
++#define L3_44XX_BASE_CLK2		0x44800000
++#define L3_44XX_BASE_CLK3		0x45000000
+ #define OMAP44XX_EMIF1_BASE		0x4c000000
+ #define OMAP44XX_EMIF2_BASE		0x4d000000
+ #define OMAP44XX_DMM_BASE		0x4e000000
+@@ -59,5 +62,7 @@
+ #define OMAP44XX_HSUSB_OHCI_BASE	(L4_44XX_BASE + 0x64800)
+ #define OMAP44XX_HSUSB_EHCI_BASE	(L4_44XX_BASE + 0x64C00)
+ 
++#define OMAP44XX_C2C_BASE		0x5c000000
++
+ #endif /* __ASM_ARCH_OMAP44XX_H */
  
 -- 
 1.7.4.1
