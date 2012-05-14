@@ -1,112 +1,125 @@
-From: Tero Kristo <t-kristo@ti.com>
-Subject: [PATCHv2 15/19] ARM: OMAP4430: PM: workaround for DDR corruption on second CS
-Date: Mon, 14 May 2012 13:18:46 +0300
-Message-ID: <1336990730-26892-16-git-send-email-t-kristo@ti.com>
-References: <1336990730-26892-1-git-send-email-t-kristo@ti.com>
+From: Graeme Gregory <gg@slimlogic.co.uk>
+Subject: Re: [PATCH 1/4] MFD: palmas PMIC device support
+Date: Mon, 14 May 2012 19:26:31 +0900
+Message-ID: <4FB0DDD7.8020803@slimlogic.co.uk>
+References: <1336960712-2812-1-git-send-email-gg@slimlogic.co.uk> <1336960712-2812-2-git-send-email-gg@slimlogic.co.uk> <20120514082832.GF31985@opensource.wolfsonmicro.com>
 Mime-Version: 1.0
-Content-Type: text/plain
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from bear.ext.ti.com ([192.94.94.41]:44870 "EHLO bear.ext.ti.com"
+Received: from slimlogic.co.uk ([89.16.172.20]:53880 "EHLO slimlogic.co.uk"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1755889Ab2ENKTq (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Mon, 14 May 2012 06:19:46 -0400
-In-Reply-To: <1336990730-26892-1-git-send-email-t-kristo@ti.com>
+	id S1755475Ab2ENK0i (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Mon, 14 May 2012 06:26:38 -0400
+In-Reply-To: <20120514082832.GF31985@opensource.wolfsonmicro.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: linux-omap@vger.kernel.org, khilman@ti.com, paul@pwsan.com
-Cc: linux-arm-kernel@lists.infradead.org, Santosh Shilimkar <santosh.shilimkar@ti.com>
+To: Mark Brown <broonie@opensource.wolfsonmicro.com>
+Cc: linux-kernel@vger.kernel.org, sameo@linux.intel.com, lrg@ti.com, b-cousson@ti.com, linux-omap@vger.kernel.org
 
-From: Santosh Shilimkar <santosh.shilimkar@ti.com>
+On 14/05/12 17:28, Mark Brown wrote:
+> On Mon, May 14, 2012 at 10:58:29AM +0900, Graeme Gregory wrote:
+>
+>>  drivers/mfd/palmas-irq.c   |  241 +++++
+> The IRQ support here seems to be following a pretty common pattern for
+> dense IRQ maps - could we factor it out into regmap-irq?  It'd also be
+> nice if it were using an irq_domain - while it's far from essential it
+> is something Grant has been pushing and I believe it'll be required when
+> you do device tree support.
+>
+The IRQ map is not dense. It is split into 4 registers which are not
+contiguous. I think the overhead of translating to 4 reqmap irqs would
+negate the point of using regmap irq. I can add to TODO to add this
+handling to regmap_irq.
 
-Work around for Errata ID: i632 "LPDDR2 Corruption After OFF Mode
-Transition When CS1 Is Used On EMIF" which impacts OMAP443x silicon
-The issue occurs when EMIF_SDRAM_CONFIG is restored first before
-EMIF_SDRAM_CONFIG_2 is not yet restored, the register configuration
-is not set properly, we apply the required workaround allowing
-the restore sequence to work properly.
+I am confused on the whole irq_domain business, is it replacement for
+sparse irq? I don't see many users in drivers/mfd and not much
+Documentation.
 
-Signed-off-by: Santosh Shilimkar <santosh.shilimkar@ti.com>
-[t-kristo@ti.com: moved workaround from omap-sar.c to pm44xx.c]
-Signed-off-by: Tero Kristo <t-kristo@ti.com>
----
- .../include/mach/ctrl_module_wkup_44xx.h           |    2 +
- arch/arm/mach-omap2/pm44xx.c                       |   37 ++++++++++++++++++++
- 2 files changed, 39 insertions(+), 0 deletions(-)
+>> +	if (palmas->irq_mask != reg_mask) {
+>> +		addr = PALMAS_BASE_TO_REG(PALMAS_INTERRUPT_BASE,
+>> +				PALMAS_INT1_MASK);
+>> +		reg = palmas->irq_mask & 0xFF;
+>> +		regmap_write(palmas->regmap[slave], addr, reg);
+> This looks like you've open coded some regmap_update_bits() calls?
+I did not notice this, but yes it could, I shall convert.
 
-diff --git a/arch/arm/mach-omap2/include/mach/ctrl_module_wkup_44xx.h b/arch/arm/mach-omap2/include/mach/ctrl_module_wkup_44xx.h
-index a0af9ba..b763a79 100644
---- a/arch/arm/mach-omap2/include/mach/ctrl_module_wkup_44xx.h
-+++ b/arch/arm/mach-omap2/include/mach/ctrl_module_wkup_44xx.h
-@@ -28,6 +28,8 @@
- #define OMAP4_CTRL_MODULE_WKUP_IP_REVISION		0x0000
- #define OMAP4_CTRL_MODULE_WKUP_IP_HWINFO		0x0004
- #define OMAP4_CTRL_MODULE_WKUP_IP_SYSCONFIG		0x0010
-+#define OMAP4_CTRL_SECURE_EMIF1_SDRAM_CONFIG2_REG	0x0114
-+#define OMAP4_CTRL_SECURE_EMIF2_SDRAM_CONFIG2_REG	0x011c
- #define OMAP4_CTRL_MODULE_WKUP_CONF_DEBUG_SEL_TST_0	0x0460
- #define OMAP4_CTRL_MODULE_WKUP_CONF_DEBUG_SEL_TST_1	0x0464
- #define OMAP4_CTRL_MODULE_WKUP_CONF_DEBUG_SEL_TST_2	0x0468
-diff --git a/arch/arm/mach-omap2/pm44xx.c b/arch/arm/mach-omap2/pm44xx.c
-index 215b80e..dfaa254 100644
---- a/arch/arm/mach-omap2/pm44xx.c
-+++ b/arch/arm/mach-omap2/pm44xx.c
-@@ -17,12 +17,18 @@
- #include <linux/err.h>
- #include <linux/slab.h>
- #include <asm/system_misc.h>
-+#include <linux/io.h>
-+
-+#include <mach/ctrl_module_wkup_44xx.h>
-+#include <mach/hardware.h>
- 
- #include "common.h"
- #include "clockdomain.h"
- #include "powerdomain.h"
- #include "pm.h"
- 
-+#define EMIF_SDRAM_CONFIG2_OFFSET	0xc
-+
- struct power_state {
- 	struct powerdomain *pwrdm;
- 	u32 next_state;
-@@ -215,6 +221,37 @@ static int __init omap4_pm_init(void)
- 
- 	pr_err("Power Management for TI OMAP4.\n");
- 
-+	/*
-+	 * Work around for OMAP443x Errata i632: "LPDDR2 Corruption After OFF
-+	 * Mode Transition When CS1 Is Used On EMIF":
-+	 * Overwrite EMIF1/EMIF2
-+	 * SECURE_EMIF1_SDRAM_CONFIG2_REG
-+	 * SECURE_EMIF2_SDRAM_CONFIG2_REG
-+	 */
-+	if (cpu_is_omap443x()) {
-+		void __iomem *secure_ctrl_mod;
-+		void __iomem *emif1;
-+		void __iomem *emif2;
-+		u32 val;
-+
-+		secure_ctrl_mod = ioremap(OMAP4_CTRL_MODULE_WKUP, SZ_4K);
-+		emif1 = ioremap(OMAP44XX_EMIF1_BASE, SZ_1M);
-+		emif2 = ioremap(OMAP44XX_EMIF2_BASE, SZ_1M);
-+
-+		BUG_ON(!secure_ctrl_mod || !emif1 || !emif2);
-+
-+		val = __raw_readl(emif1 + EMIF_SDRAM_CONFIG2_OFFSET);
-+		__raw_writel(val, secure_ctrl_mod +
-+			     OMAP4_CTRL_SECURE_EMIF1_SDRAM_CONFIG2_REG);
-+		val = __raw_readl(emif2 + EMIF_SDRAM_CONFIG2_OFFSET);
-+		__raw_writel(val, secure_ctrl_mod +
-+			     OMAP4_CTRL_SECURE_EMIF2_SDRAM_CONFIG2_REG);
-+		wmb();
-+		iounmap(secure_ctrl_mod);
-+		iounmap(emif1);
-+		iounmap(emif2);
-+	}
-+
- 	ret = pwrdm_for_each(pwrdms_setup, NULL);
- 	if (ret) {
- 		pr_err("Failed to setup powerdomains\n");
--- 
-1.7.4.1
+>> +	if (!palmas->irq_base) {
+>> +		dev_warn(palmas->dev, "No interrupt support, no IRQ base\n");
+>> +		return -EINVAL;
+>> +	}
+> If you use an irqdomain you can automatically allocate the interrupt
+> range much more easily (even if you don't if you pass -1 as the base
+> irq_alloc_descs() it's supposed to figure things out to you - it looks
+> like you're not calling irq_alloc_decs()).
+As you noticed later I put the irq_alloc_descs in the wrong location I
+shall fix.
+> With the irqdomain you should also find that as the interrupts are
+> always registered (even if they can't fire) then you can just assume
+> they're there in function drivers which makes the code simpler.
+>
+>> +	ret = request_threaded_irq(palmas->irq, NULL, palmas_irq, IRQF_ONESHOT,
+>> +				   "palmas-irq", palmas);
+>> +
+>> +	irq_set_irq_type(palmas->irq, IRQ_TYPE_LEVEL_LOW);
+> Why not just IRQF_TRIGGER_LOW?
+I was copying the style from other MFD drivers, I this method seems the
+more popular. I am not fixed on this style though so I will change.
+
+>> +static const struct mfd_cell palmas_children[] = {
+>> +};
+> I'd just go ahead and fill this in, it makes merging much easier as the
+> function drivers don't have a merge dependency on the core.
+OK I shall do this!
+
+>> +static const struct regmap_config palmas_regmap_config[PALMAS_NUM_CLIENTS] = {
+>> +	{
+>> +		.reg_bits = 8,
+>> +		.val_bits = 8,
+>> +		.cache_type = REGCACHE_NONE,
+> Shouldn't need to explicitly set REGCACHE_NONE.  max_register might be
+> useful to get you register dumps in debugfs.
+Ok, I was just making it clear that I was not caching, I know that
+NONE=0, I shall add the max_register fields though.
+
+>> +	palmas = kzalloc(sizeof(struct palmas), GFP_KERNEL);
+>> +	if (palmas == NULL)
+>> +		return -ENOMEM;
+> devm_kzalloc().
+I had meant to do this, will fix.
+>> +	ret = irq_alloc_descs(-1, 0, PALMAS_NUM_IRQ, 0);
+>> +	if (ret < 0) {
+>> +		dev_err(&i2c->dev, "failed to allocate IRQ descs\n");
+>> +		goto err;
+>> +	}
+> Oh, here's the irq_alloc_descs() call - seems useful to put it in the
+> generic irq init?
+As noted yes wrong location, will fix.
+>> +		palmas->regmap[i] = regmap_init_i2c(palmas->i2c_clients[i],
+>> +				&palmas_regmap_config[i]);
+> devm_regmap_init_i2c().
+>
+Will fix!
+>> +static const struct i2c_device_id palmas_i2c_id[] = {
+>> +	{ "palmas", PALMAS_ID_TWL6035 },
+>> +};
+>> +MODULE_DEVICE_TABLE(i2c, palmas_i2c_id);
+> I'd suggest also including the part names as an option (so having an
+> entry for "twl6035") - makes life easier for users as they don't need to
+> think about if the device is compatible.
+Ok, I did have this then changed my mind, but I can add them back easy
+enough.
+
+>> +/* Bit definitions for MONTHS_REG */
+>> +#define MONTHS_REG_MONTH1					0x10
+>> +#define MONTHS_REG_MONTH1_SHIFT					4
+>> +#define MONTHS_REG_MONTH0_MASK					0x0f
+>> +#define MONTHS_REG_MONTH0_SHIFT					0
+> Some of these registers should be namespaced (many are already).
+I can do this, it will take some of the register definitions pretty
+close to 72 chars though.
+
+Thanks for taking time to review.
+
+Graeme
 
