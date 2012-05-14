@@ -1,45 +1,66 @@
-From: Joshua Emele <jemele@trellisware.com>
-Subject: Re: MUSB problem
-Date: Mon, 14 May 2012 23:13:12 +0000 (UTC)
-Message-ID: <loom.20120515T010853-466@post.gmane.org>
-References: <4F97EBDF.7090400@mlbassoc.com> <4F97EE60.4090406@mlbassoc.com>
+From: Kevin Hilman <khilman@ti.com>
+Subject: Re: [PATCH 0/2] arm: omap3: am35x: Convert emac to hwmod & disable hlt when open
+Date: Mon, 14 May 2012 16:28:15 -0700
+Message-ID: <874nripckw.fsf@ti.com>
+References: <1336770778-23044-1-git-send-email-mgreer@animalcreek.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from plane.gmane.org ([80.91.229.3]:34130 "EHLO plane.gmane.org"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1758246Ab2ENXPG (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Mon, 14 May 2012 19:15:06 -0400
-Received: from list by plane.gmane.org with local (Exim 4.69)
-	(envelope-from <gplao-linux-omap-open-source-moved1@m.gmane.org>)
-	id 1SU4Tn-0001FL-IN
-	for linux-omap@vger.kernel.org; Tue, 15 May 2012 01:15:03 +0200
-Received: from 69.199.146.210 ([69.199.146.210])
-        by main.gmane.org with esmtp (Gmexim 0.1 (Debian))
-        id 1AlnuQ-0007hv-00
-        for <linux-omap@vger.kernel.org>; Tue, 15 May 2012 01:15:03 +0200
-Received: from jemele by 69.199.146.210 with local (Gmexim 0.1 (Debian))
-        id 1AlnuQ-0007hv-00
-        for <linux-omap@vger.kernel.org>; Tue, 15 May 2012 01:15:03 +0200
+Received: from na3sys009aog125.obsmtp.com ([74.125.149.153]:54855 "EHLO
+	na3sys009aog125.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S932402Ab2ENX2S (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>);
+	Mon, 14 May 2012 19:28:18 -0400
+Received: by dano14 with SMTP id o14so15077241dan.25
+        for <linux-omap@vger.kernel.org>; Mon, 14 May 2012 16:28:16 -0700 (PDT)
+In-Reply-To: <1336770778-23044-1-git-send-email-mgreer@animalcreek.com> (Mark
+	A. Greer's message of "Fri, 11 May 2012 14:12:56 -0700")
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: linux-omap@vger.kernel.org
+To: "Mark A. Greer" <mgreer@animalcreek.com>, "Nori, Sekhar" <nsekhar@ti.com>
+Cc: paul@pwsan.com, linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org
 
++Sekhar,
 
-> Actually, I was too hasty saying that this worked even with this
-> error.  I can ping out from my board, but any higher level of traffic,
-> e.g. SSH into the box, falls over 
-> 
-> The problems vanish when I disable MUSB DMA.
-> 
-> What gives?
-> 
+"Mark A. Greer" <mgreer@animalcreek.com> writes:
 
-I'm also seeing this on a variety of kernels, from 2.6.34 to 3.3.0. I must 
-explicitly set musb_hdrc.use_dma=n for the smsc95xx card to function.
+> From: "Mark A. Greer" <mgreer@animalcreek.com>
+>
+> Paul, Kevin,
+>
+> These patches convert the davinci emac support for the am35x SoC
+> to use hwmod and add enable_hlt()/disable_hlt() calls to the
+> pm_runtime hooks for that driver.
 
-The latest kernel I have tested this against is:
-Linux WC-11003A 3.3.0 #1 PREEMPT Fri May 11 18:05:35 PDT 2012 armv7l GNU/Linux
+Great.  I didn't look closely at the hwmod data, but the approach is
+right here, IMO.
 
+> I have converted the davinci_emac driver to use pm_runtime but I
+> can't formally submit it yet since it requires some changes on the
+> mach-davinci side that haven't happened yet.  I will send it as an
+> RFC in a reply to this thread.
 
+Sekhar, are you planning to add runtime PM core support to davinci?
+I recommend looking at the simple OMAP1 layer that implements a basic
+clocks-only runtime PM layer.
+
+Kevin
+
+> The patches are based on:
+> 	git://git.pwsan.com/linux-2.6 am35xx_hwmod_data_fixes_a_3.5
+>
+> Mark
+> --
+>
+> Mark A. Greer (2):
+>   arm: omap3: am35x: Add Davinci EMAC/MDIO hwmod support
+>   arm: omap3: am35x: Disable hlt when using Davinci EMAC
+>
+>  arch/arm/mach-omap2/am35xx-emac.c          |  120 ++++++++++++++++++----------
+>  arch/arm/mach-omap2/am35xx-emac.h          |   16 +++-
+>  arch/arm/mach-omap2/board-am3517evm.c      |    3 +-
+>  arch/arm/mach-omap2/board-cm-t3517.c       |    3 +-
+>  arch/arm/mach-omap2/clock3xxx_data.c       |    2 +-
+>  arch/arm/mach-omap2/include/mach/am35xx.h  |    2 +
+>  arch/arm/mach-omap2/omap_hwmod_3xxx_data.c |   85 ++++++++++++++++++++
+>  7 files changed, 183 insertions(+), 48 deletions(-)
