@@ -1,136 +1,58 @@
-From: Mark Brown <broonie@opensource.wolfsonmicro.com>
-Subject: Re: [PATCH 1/4] MFD: palmas PMIC device support
-Date: Mon, 14 May 2012 09:28:33 +0100
-Message-ID: <20120514082832.GF31985@opensource.wolfsonmicro.com>
-References: <1336960712-2812-1-git-send-email-gg@slimlogic.co.uk>
- <1336960712-2812-2-git-send-email-gg@slimlogic.co.uk>
+From: Shubhrajyoti D <shubhrajyoti-l0cyMroinI0@public.gmane.org>
+Subject: [PATCHv10 00/10] I2C fixes
+Date: Mon, 14 May 2012 14:19:48 +0530
+Message-ID: <1336985398-3291-1-git-send-email-shubhrajyoti@ti.com>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="vKFfOv5t3oGVpiF+"
-Return-path: <linux-kernel-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <1336960712-2812-2-git-send-email-gg@slimlogic.co.uk>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Graeme Gregory <gg@slimlogic.co.uk>
-Cc: linux-kernel@vger.kernel.org, sameo@linux.intel.com, lrg@ti.com, b-cousson@ti.com, linux-omap@vger.kernel.org
+Content-Type: text/plain
+Return-path: <linux-i2c-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Sender: linux-i2c-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Cc: linux-i2c-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, ben-linux-elnMNo+KYs3YtjvyW6yDsg@public.gmane.org, tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org, w.sang-bIcnvbaLZ9MEGnE8C9+IrQ@public.gmane.org, Shubhrajyoti D <shubhrajyoti-l0cyMroinI0@public.gmane.org>
 List-Id: linux-omap@vger.kernel.org
 
 
---vKFfOv5t3oGVpiF+
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
+The patch series does the following
 
-On Mon, May 14, 2012 at 10:58:29AM +0900, Graeme Gregory wrote:
+- Warn fixes if CONFIG_PM_RUNTIME is not selected.
+- In case of i2c remove register access was done without any
+ get_sync fix the same.
+- Folds a patch from Tasslehoff to prevent any merge conflicts.
+- Prevents the XDUF flag to be set if the underflow condition is not met.
+- As per discussion in [1] .Adds a patch to rename the 1p153 errata and
+ use the unique id instead as the section number in the recent errata
+ docs has changed.
 
->  drivers/mfd/palmas-irq.c   |  241 +++++
+v9:
+Fix the comments from Wolfram Sang
+Also update the patches with comments.
 
-The IRQ support here seems to be following a pretty common pattern for
-dense IRQ maps - could we factor it out into regmap-irq?  It'd also be
-nice if it were using an irq_domain - while it's far from essential it
-is something Grant has been pushing and I believe it'll be required when
-you do device tree support.
+[1] http://www.spinics.net/lists/linux-i2c/msg07607.html
 
-> +	if (palmas->irq_mask != reg_mask) {
-> +		addr = PALMAS_BASE_TO_REG(PALMAS_INTERRUPT_BASE,
-> +				PALMAS_INT1_MASK);
-> +		reg = palmas->irq_mask & 0xFF;
-> +		regmap_write(palmas->regmap[slave], addr, reg);
+Tested on omap4sdp and omap3sdp.
+The following changes since commit 9ff00d58a915b6747ba2e843ab2d04c712b4dc32:
 
-This looks like you've open coded some regmap_update_bits() calls?
+  Merge tag 'for-linus-3.4-20120513' of git://git.infradead.org/linux-mtd (2012-05-13 11:33:09 -0700)
 
-> +	if (!palmas->irq_base) {
-> +		dev_warn(palmas->dev, "No interrupt support, no IRQ base\n");
-> +		return -EINVAL;
-> +	}
+are available in the git repository at:
 
-If you use an irqdomain you can automatically allocate the interrupt
-range much more easily (even if you don't if you pass -1 as the base
-irq_alloc_descs() it's supposed to figure things out to you - it looks
-like you're not calling irq_alloc_decs()).
+  git://gitorious.org/linus-tree/linus-tree.git i2c_omap-fixes
 
-With the irqdomain you should also find that as the interrupts are
-always registered (even if they can't fire) then you can just assume
-they're there in function drivers which makes the code simpler.
+Shubhrajyoti D (9):
+      I2C: OMAP: make omap_i2c_unidle/idle functions depend on CONFIG_PM_RUNTIME
+      I2C: OMAP: Fix the mismatch of pm_runtime enable and disable
+      I2C: OMAP: Fix the interrupt clearing in OMAP4
+      I2C: OMAP: Prevent the register access after pm_runtime_put in probe
+      I2C: OMAP: Don't check if wait_for_completion_timeout() returns less than zero
+      I2C: OMAP: Fix the crash in i2c remove
+      I2C: OMAP: Handle error check for pm runtime
+      I2C: OMAP: Do not set the XUDF(Transmit underflow) if the underflow is not reached
+      I2C: OMAP: Rename the 1p153 to the erratum id i462
 
-> +	ret = request_threaded_irq(palmas->irq, NULL, palmas_irq, IRQF_ONESHOT,
-> +				   "palmas-irq", palmas);
-> +
-> +	irq_set_irq_type(palmas->irq, IRQ_TYPE_LEVEL_LOW);
+Tasslehoff Kjappfot (1):
+      I2C: OMAP: prevent the overwrite of the errata flags
 
-Why not just IRQF_TRIGGER_LOW?
+ drivers/i2c/busses/i2c-omap.c |  127 ++++++++++++++++++++---------------------
+ 1 files changed, 62 insertions(+), 65 deletions(-)
 
-> +static const struct mfd_cell palmas_children[] = {
-> +};
-
-I'd just go ahead and fill this in, it makes merging much easier as the
-function drivers don't have a merge dependency on the core.
-
-> +static const struct regmap_config palmas_regmap_config[PALMAS_NUM_CLIENTS] = {
-> +	{
-> +		.reg_bits = 8,
-> +		.val_bits = 8,
-> +		.cache_type = REGCACHE_NONE,
-
-Shouldn't need to explicitly set REGCACHE_NONE.  max_register might be
-useful to get you register dumps in debugfs.
-
-> +	palmas = kzalloc(sizeof(struct palmas), GFP_KERNEL);
-> +	if (palmas == NULL)
-> +		return -ENOMEM;
-
-devm_kzalloc().
-
-> +	ret = irq_alloc_descs(-1, 0, PALMAS_NUM_IRQ, 0);
-> +	if (ret < 0) {
-> +		dev_err(&i2c->dev, "failed to allocate IRQ descs\n");
-> +		goto err;
-> +	}
-
-Oh, here's the irq_alloc_descs() call - seems useful to put it in the
-generic irq init?
-
-> +		palmas->regmap[i] = regmap_init_i2c(palmas->i2c_clients[i],
-> +				&palmas_regmap_config[i]);
-
-devm_regmap_init_i2c().
-
-> +static const struct i2c_device_id palmas_i2c_id[] = {
-> +	{ "palmas", PALMAS_ID_TWL6035 },
-> +};
-> +MODULE_DEVICE_TABLE(i2c, palmas_i2c_id);
-
-I'd suggest also including the part names as an option (so having an
-entry for "twl6035") - makes life easier for users as they don't need to
-think about if the device is compatible.
-
-> +/* Bit definitions for MONTHS_REG */
-> +#define MONTHS_REG_MONTH1					0x10
-> +#define MONTHS_REG_MONTH1_SHIFT					4
-> +#define MONTHS_REG_MONTH0_MASK					0x0f
-> +#define MONTHS_REG_MONTH0_SHIFT					0
-
-Some of these registers should be namespaced (many are already).
-
---vKFfOv5t3oGVpiF+
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: Digital signature
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.4.12 (GNU/Linux)
-
-iQIcBAEBAgAGBQJPsMIqAAoJEBus8iNuMP3dugsP/Rbt8Q9qpcZR4pqT5yJMRwwJ
-LuqhoSQE1RVnCdtLw7xhDEHvIy4jpeJG8MBVKQRjtfmbQ+f09YLz6aJzzfH7qnqd
-IDCgBl/AhUbX6Y7I41v0Lin+ofkwQ3GAoAbW5qzkOO9NjjgnVWgFWQRqiVcaVJxn
-ym/+P5gDkXyqetLWOCT9htxbq6O277IpHromUr/zMrfHwVt4IKn5zXgbW3QNYisi
-AaitiCVqnA3Dkv9SY9lPrvq6IIxI4L2NM12i0ULIO+Ms+I/WuKXRO2ExlkWOeFnm
-bv2U17XXq5nlLhRcg1KRexQxjn0uO6GTg37LmrYfJ5/n9sqIaDtb1DiVzOxMe/NN
-PEjEz2RkRpbdV0SzU/lLl+ReDGaUgm8XVbT8MiUIn6AuqbomWLBjyCbBhrylticL
-j8YIdXxcGNijJvNKgWP76unFSCaW0C2FyoE+f5XpLHmKANWG8o1NsdyjVLnE0xdq
-IHmfCRzXyMUeN/NMbYozQrHWUbWgX2gCPqRihfQgC2uNeDfT/Lgl64YhkMM52gki
-6ECfVkoWe5afUim+xSBSttwb4H3WR0+pSeFewMFBn+k5PeKlxHJxxliDgjE+MpHA
-NzporJAsFiRDUk0o4XS4LeHSUXdBk1v6E7zWXYfdjD1RbJL62IBAGqDgCMpR0id1
-1cgigSA2TCa7S2NoUlpJ
-=KOlP
------END PGP SIGNATURE-----
-
---vKFfOv5t3oGVpiF+--
+-- 
+1.7.5.4
