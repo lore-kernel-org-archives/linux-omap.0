@@ -1,197 +1,136 @@
-From: Igor Grinberg <grinberg@compulab.co.il>
-Subject: Re: [PATCH 2/2] arm: omap3: am35x: Disable hlt when using Davinci
- EMAC
-Date: Mon, 14 May 2012 11:20:58 +0300
-Message-ID: <4FB0C06A.5030503@compulab.co.il>
-References: <1336770778-23044-1-git-send-email-mgreer@animalcreek.com> <1336770778-23044-3-git-send-email-mgreer@animalcreek.com>
+From: Mark Brown <broonie@opensource.wolfsonmicro.com>
+Subject: Re: [PATCH 1/4] MFD: palmas PMIC device support
+Date: Mon, 14 May 2012 09:28:33 +0100
+Message-ID: <20120514082832.GF31985@opensource.wolfsonmicro.com>
+References: <1336960712-2812-1-git-send-email-gg@slimlogic.co.uk>
+ <1336960712-2812-2-git-send-email-gg@slimlogic.co.uk>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from 50.23.254.54-static.reverse.softlayer.com ([50.23.254.54]:37804
-	"EHLO softlayer.compulab.co.il" rhost-flags-OK-OK-OK-FAIL)
-	by vger.kernel.org with ESMTP id S1753787Ab2ENIVF (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>);
-	Mon, 14 May 2012 04:21:05 -0400
-In-Reply-To: <1336770778-23044-3-git-send-email-mgreer@animalcreek.com>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: multipart/signed; micalg=pgp-sha1;
+	protocol="application/pgp-signature"; boundary="vKFfOv5t3oGVpiF+"
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <1336960712-2812-2-git-send-email-gg@slimlogic.co.uk>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Graeme Gregory <gg@slimlogic.co.uk>
+Cc: linux-kernel@vger.kernel.org, sameo@linux.intel.com, lrg@ti.com, b-cousson@ti.com, linux-omap@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "Mark A. Greer" <mgreer@animalcreek.com>
-Cc: paul@pwsan.com, khilman@ti.com, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 
-Hi Mark,
 
-Thanks for the great work!
+--vKFfOv5t3oGVpiF+
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
 
-On 05/12/12 00:12, Mark A. Greer wrote:
-> From: "Mark A. Greer" <mgreer@animalcreek.com>
-> 
-> The am35x family of SoCs has a Davinci EMAC ethernet
-> controller on-chip.  Unfortunately, the EMAC is unable
-> to wake the PRCM when there is network activity which
-> leads to a hung or extremely slow system when the MPU
-> has executed a 'wfi' instruction (because of pm_idle
-> or CPUidle).  To prevent this, add hooks to the EMAC
-> pm_runtime suspend/resume calls so that hlt is disabled
-> whenever the EMAC is in use.
-> 
-> Signed-off-by: Mark A. Greer <mgreer@animalcreek.com>
-> ---
->  arch/arm/mach-omap2/am35xx-emac.c     |   44 +++++++++++++++++++++++++++++----
->  arch/arm/mach-omap2/am35xx-emac.h     |   16 +++++++++---
->  arch/arm/mach-omap2/board-am3517evm.c |    3 ++-
->  arch/arm/mach-omap2/board-cm-t3517.c  |    3 ++-
->  4 files changed, 56 insertions(+), 10 deletions(-)
-> 
-> diff --git a/arch/arm/mach-omap2/am35xx-emac.c b/arch/arm/mach-omap2/am35xx-emac.c
-> index 3bb5cb3..22ff968 100644
-> --- a/arch/arm/mach-omap2/am35xx-emac.c
-> +++ b/arch/arm/mach-omap2/am35xx-emac.c
-> @@ -23,6 +23,37 @@
->  #include "control.h"
->  #include "am35xx-emac.h"
->  
-> +/*
-> + * Default pm_lats for the am35x.
-> + * The net effect of using am35xx_emac_pm_lats[] is that
-> + * pm_idle or CPUidle won't be called while the emac
-> + * interface is open.  This is required because the
-> + * EMAC can't wake up PRCM so if the MPU is executing
-> + * a 'wfi' instruction (e.g., from pm_idle or CPUidle),
-> + * it won't break out of it due to emac activity.
-> + */
-> +static int am35xx_emac_deactivate_func(struct omap_device *od)
-> +{
-> +	enable_hlt();
-> +	return omap_device_idle_hwmods(od);
-> +}
+On Mon, May 14, 2012 at 10:58:29AM +0900, Graeme Gregory wrote:
+
+>  drivers/mfd/palmas-irq.c   |  241 +++++
+
+The IRQ support here seems to be following a pretty common pattern for
+dense IRQ maps - could we factor it out into regmap-irq?  It'd also be
+nice if it were using an irq_domain - while it's far from essential it
+is something Grant has been pushing and I believe it'll be required when
+you do device tree support.
+
+> +	if (palmas->irq_mask != reg_mask) {
+> +		addr = PALMAS_BASE_TO_REG(PALMAS_INTERRUPT_BASE,
+> +				PALMAS_INT1_MASK);
+> +		reg = palmas->irq_mask & 0xFF;
+> +		regmap_write(palmas->regmap[slave], addr, reg);
+
+This looks like you've open coded some regmap_update_bits() calls?
+
+> +	if (!palmas->irq_base) {
+> +		dev_warn(palmas->dev, "No interrupt support, no IRQ base\n");
+> +		return -EINVAL;
+> +	}
+
+If you use an irqdomain you can automatically allocate the interrupt
+range much more easily (even if you don't if you pass -1 as the base
+irq_alloc_descs() it's supposed to figure things out to you - it looks
+like you're not calling irq_alloc_decs()).
+
+With the irqdomain you should also find that as the interrupts are
+always registered (even if they can't fire) then you can just assume
+they're there in function drivers which makes the code simpler.
+
+> +	ret = request_threaded_irq(palmas->irq, NULL, palmas_irq, IRQF_ONESHOT,
+> +				   "palmas-irq", palmas);
 > +
-> +static int am35xx_emac_activate_func(struct omap_device *od)
-> +{
-> +	disable_hlt();
-> +	return omap_device_enable_hwmods(od);
-> +}
-> +
-> +struct omap_device_pm_latency am35xx_emac_pm_lats[] = {
-> +	{
-> +		.deactivate_func	= am35xx_emac_deactivate_func,
-> +		.activate_func		= am35xx_emac_activate_func,
-> +		.flags			= OMAP_DEVICE_LATENCY_AUTO_ADJUST,
-> +	},
+> +	irq_set_irq_type(palmas->irq, IRQ_TYPE_LEVEL_LOW);
+
+Why not just IRQF_TRIGGER_LOW?
+
+> +static const struct mfd_cell palmas_children[] = {
 > +};
-> +
-> +int am35xx_emac_pm_lats_size = ARRAY_SIZE(am35xx_emac_pm_lats);
-> +
->  static void am35xx_enable_emac_int(void)
->  {
->  	u32 regval;
-> @@ -61,12 +92,13 @@ static struct emac_platform_data am35xx_emac_pdata = {
->  static struct mdio_platform_data am35xx_mdio_pdata;
->  
->  static int __init omap_davinci_emac_dev_init(struct omap_hwmod *oh,
-> -		void *pdata, int pdata_len)
-> +		void *pdata, int pdata_len,
-> +		struct omap_device_pm_latency *pm_lats, int pm_lats_size)
->  {
->  	struct platform_device *pdev;
->  
->  	pdev = omap_device_build(oh->class->name, 0, oh, pdata, pdata_len,
-> -			NULL, 0, false);
-> +			pm_lats, pm_lats_size, false);
->  	if (IS_ERR(pdev)) {
->  		WARN(1, "Can't build omap_device for %s:%s.\n",
->  					oh->class->name, oh->name);
-> @@ -76,7 +108,8 @@ static int __init omap_davinci_emac_dev_init(struct omap_hwmod *oh,
->  	return 0;
->  }
->  
-> -void __init am35xx_emac_init(unsigned long mdio_bus_freq, u8 rmii_en)
-> +void __init am35xx_emac_init(unsigned long mdio_bus_freq, u8 rmii_en,
-> +		struct omap_device_pm_latency *pm_lats, int pm_lats_size)
->  {
->  	struct omap_hwmod *oh;
->  	u32 regval;
-> @@ -91,7 +124,7 @@ void __init am35xx_emac_init(unsigned long mdio_bus_freq, u8 rmii_en)
->  	am35xx_mdio_pdata.bus_freq = mdio_bus_freq;
->  
->  	ret = omap_davinci_emac_dev_init(oh, &am35xx_mdio_pdata,
-> -					 sizeof(am35xx_mdio_pdata));
-> +					 sizeof(am35xx_mdio_pdata), NULL, 0);
->  	if (ret) {
->  		pr_err("Could not build davinci_mdio hwmod device\n");
->  		return;
-> @@ -106,7 +139,8 @@ void __init am35xx_emac_init(unsigned long mdio_bus_freq, u8 rmii_en)
->  	am35xx_emac_pdata.rmii_en = rmii_en;
->  
->  	ret = omap_davinci_emac_dev_init(oh, &am35xx_emac_pdata,
-> -					 sizeof(am35xx_emac_pdata));
-> +					 sizeof(am35xx_emac_pdata),
-> +					 pm_lats, pm_lats_size);
->  	if (ret) {
->  		pr_err("Could not build davinci_emac hwmod device\n");
->  		return;
-> diff --git a/arch/arm/mach-omap2/am35xx-emac.h b/arch/arm/mach-omap2/am35xx-emac.h
-> index 15c6f9c..7c23808 100644
-> --- a/arch/arm/mach-omap2/am35xx-emac.h
-> +++ b/arch/arm/mach-omap2/am35xx-emac.h
-> @@ -6,10 +6,20 @@
->   * published by the Free Software Foundation.
->   */
->  
-> +#include <plat/omap_device.h>
-> +
->  #define AM35XX_DEFAULT_MDIO_FREQUENCY	1000000
->  
-> -#if defined(CONFIG_TI_DAVINCI_EMAC) || defined(CONFIG_TI_DAVINCI_EMAC_MODULE)
-> -void am35xx_emac_init(unsigned long mdio_bus_freq, u8 rmii_en);
-> +#if IS_ENABLED(CONFIG_TI_DAVINCI_EMAC)
-> +extern struct omap_device_pm_latency am35xx_emac_pm_lats[];
-> +extern int am35xx_emac_pm_lats_size;
-> +
-> +void am35xx_emac_init(unsigned long mdio_bus_freq, u8 rmii_en,
-> +		struct omap_device_pm_latency *pm_lats, int pm_lats_size);
->  #else
-> -static inline void am35xx_emac_init(unsigned long mdio_bus_freq, u8 rmii_en) {}
-> +#define am35xx_emac_pm_lats		NULL
-> +#define am35xx_emac_pm_lats_size	0
-> +
-> +static inline void am35xx_emac_init(unsigned long mdio_bus_freq, u8 rmii_en,
-> +		struct omap_device_pm_latency *pm_lats, int pm_lats_size) {}
->  #endif
-> diff --git a/arch/arm/mach-omap2/board-am3517evm.c b/arch/arm/mach-omap2/board-am3517evm.c
-> index 3645285..fe3a304 100644
-> --- a/arch/arm/mach-omap2/board-am3517evm.c
-> +++ b/arch/arm/mach-omap2/board-am3517evm.c
-> @@ -385,7 +385,8 @@ static void __init am3517_evm_init(void)
->  	i2c_register_board_info(1, am3517evm_i2c1_boardinfo,
->  				ARRAY_SIZE(am3517evm_i2c1_boardinfo));
->  	/*Ethernet*/
-> -	am35xx_emac_init(AM35XX_DEFAULT_MDIO_FREQUENCY, 1);
-> +	am35xx_emac_init(AM35XX_DEFAULT_MDIO_FREQUENCY, 1,
-> +			 am35xx_emac_pm_lats, am35xx_emac_pm_lats_size);
 
-Why is it essential for board file to pass these pm structures?
-Is it something board specific?
-Can't you just use them inside the am35xx-emac.c file?
+I'd just go ahead and fill this in, it makes merging much easier as the
+function drivers don't have a merge dependency on the core.
 
->  
->  	/* MUSB */
->  	am3517_evm_musb_init();
-> diff --git a/arch/arm/mach-omap2/board-cm-t3517.c b/arch/arm/mach-omap2/board-cm-t3517.c
-> index 9e66e16..0a3dc7a 100644
-> --- a/arch/arm/mach-omap2/board-cm-t3517.c
-> +++ b/arch/arm/mach-omap2/board-cm-t3517.c
-> @@ -292,7 +292,8 @@ static void __init cm_t3517_init(void)
->  	cm_t3517_init_rtc();
->  	cm_t3517_init_usbh();
->  	cm_t3517_init_hecc();
-> -	am35xx_emac_init(AM35XX_DEFAULT_MDIO_FREQUENCY, 1);
-> +	am35xx_emac_init(AM35XX_DEFAULT_MDIO_FREQUENCY, 1,
-> +			 am35xx_emac_pm_lats, am35xx_emac_pm_lats_size);
->  }
->  
->  MACHINE_START(CM_T3517, "Compulab CM-T3517")
+> +static const struct regmap_config palmas_regmap_config[PALMAS_NUM_CLIENTS] = {
+> +	{
+> +		.reg_bits = 8,
+> +		.val_bits = 8,
+> +		.cache_type = REGCACHE_NONE,
 
--- 
-Regards,
-Igor.
+Shouldn't need to explicitly set REGCACHE_NONE.  max_register might be
+useful to get you register dumps in debugfs.
+
+> +	palmas = kzalloc(sizeof(struct palmas), GFP_KERNEL);
+> +	if (palmas == NULL)
+> +		return -ENOMEM;
+
+devm_kzalloc().
+
+> +	ret = irq_alloc_descs(-1, 0, PALMAS_NUM_IRQ, 0);
+> +	if (ret < 0) {
+> +		dev_err(&i2c->dev, "failed to allocate IRQ descs\n");
+> +		goto err;
+> +	}
+
+Oh, here's the irq_alloc_descs() call - seems useful to put it in the
+generic irq init?
+
+> +		palmas->regmap[i] = regmap_init_i2c(palmas->i2c_clients[i],
+> +				&palmas_regmap_config[i]);
+
+devm_regmap_init_i2c().
+
+> +static const struct i2c_device_id palmas_i2c_id[] = {
+> +	{ "palmas", PALMAS_ID_TWL6035 },
+> +};
+> +MODULE_DEVICE_TABLE(i2c, palmas_i2c_id);
+
+I'd suggest also including the part names as an option (so having an
+entry for "twl6035") - makes life easier for users as they don't need to
+think about if the device is compatible.
+
+> +/* Bit definitions for MONTHS_REG */
+> +#define MONTHS_REG_MONTH1					0x10
+> +#define MONTHS_REG_MONTH1_SHIFT					4
+> +#define MONTHS_REG_MONTH0_MASK					0x0f
+> +#define MONTHS_REG_MONTH0_SHIFT					0
+
+Some of these registers should be namespaced (many are already).
+
+--vKFfOv5t3oGVpiF+
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: Digital signature
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.4.12 (GNU/Linux)
+
+iQIcBAEBAgAGBQJPsMIqAAoJEBus8iNuMP3dugsP/Rbt8Q9qpcZR4pqT5yJMRwwJ
+LuqhoSQE1RVnCdtLw7xhDEHvIy4jpeJG8MBVKQRjtfmbQ+f09YLz6aJzzfH7qnqd
+IDCgBl/AhUbX6Y7I41v0Lin+ofkwQ3GAoAbW5qzkOO9NjjgnVWgFWQRqiVcaVJxn
+ym/+P5gDkXyqetLWOCT9htxbq6O277IpHromUr/zMrfHwVt4IKn5zXgbW3QNYisi
+AaitiCVqnA3Dkv9SY9lPrvq6IIxI4L2NM12i0ULIO+Ms+I/WuKXRO2ExlkWOeFnm
+bv2U17XXq5nlLhRcg1KRexQxjn0uO6GTg37LmrYfJ5/n9sqIaDtb1DiVzOxMe/NN
+PEjEz2RkRpbdV0SzU/lLl+ReDGaUgm8XVbT8MiUIn6AuqbomWLBjyCbBhrylticL
+j8YIdXxcGNijJvNKgWP76unFSCaW0C2FyoE+f5XpLHmKANWG8o1NsdyjVLnE0xdq
+IHmfCRzXyMUeN/NMbYozQrHWUbWgX2gCPqRihfQgC2uNeDfT/Lgl64YhkMM52gki
+6ECfVkoWe5afUim+xSBSttwb4H3WR0+pSeFewMFBn+k5PeKlxHJxxliDgjE+MpHA
+NzporJAsFiRDUk0o4XS4LeHSUXdBk1v6E7zWXYfdjD1RbJL62IBAGqDgCMpR0id1
+1cgigSA2TCa7S2NoUlpJ
+=KOlP
+-----END PGP SIGNATURE-----
+
+--vKFfOv5t3oGVpiF+--
