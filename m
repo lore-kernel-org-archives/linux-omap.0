@@ -1,96 +1,65 @@
-From: Felipe Balbi <balbi@ti.com>
-Subject: Re: Panda: USB crash with today's linux-next
-Date: Mon, 14 May 2012 22:35:36 +0300
-Message-ID: <20120514193535.GA31886@arwen.pp.htv.fi>
-References: <1336996151.2333.3.camel@deskari>
- <20120514121527.GF22242@arwen.pp.htv.fi>
- <1336998251.2333.17.camel@deskari>
- <20120514122920.GK22242@arwen.pp.htv.fi>
- <20120514124757.GL22242@arwen.pp.htv.fi>
- <4FB13B91.7020007@ti.com>
- <20120514175838.GA31200@arwen.pp.htv.fi>
- <20120514181413.GA17852@atomide.com>
- <20120514183742.GB17852@atomide.com>
-Reply-To: balbi@ti.com
+From: Nicolas Pitre <nico@fluxnic.net>
+Subject: Re: [PATCH 01/11] OMAP2+: Add SoC specific map_io functions
+Date: Mon, 14 May 2012 15:55:04 -0400 (EDT)
+Message-ID: <alpine.LFD.2.02.1205141553280.1640@xanadu.home>
+References: <1316809399-19579-1-git-send-email-b-cousson@ti.com>
+ <1316809399-19579-2-git-send-email-b-cousson@ti.com>
+ <20120504175942.5ceb8e91@skate> <4FB11F63.2010108@ti.com>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="IJpNTDwzlM2Ie8A6"
+Content-Type: multipart/mixed; boundary="Boundary_(ID_5KMK3WOE+fSdDgPE0CUKuQ)"
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aog120.obsmtp.com ([74.125.149.140]:40755 "EHLO
-	na3sys009aog120.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1757691Ab2ENTh1 (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>);
-	Mon, 14 May 2012 15:37:27 -0400
-Received: by laap9 with SMTP id p9so4517757laa.36
-        for <linux-omap@vger.kernel.org>; Mon, 14 May 2012 12:37:22 -0700 (PDT)
-Content-Disposition: inline
-In-Reply-To: <20120514183742.GB17852@atomide.com>
+Received: from relais.videotron.ca ([24.201.245.36]:64875 "EHLO
+	relais.videotron.ca" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752437Ab2ENTzF (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 14 May 2012 15:55:05 -0400
+Received: from xanadu.home ([66.130.28.92]) by VL-VM-MR006.ip.videotron.ca
+ (Oracle Communications Messaging Exchange Server 7u4-22.01 64bit (built Apr 21
+ 2011)) with ESMTP id <0M41009373BSI8A0@VL-VM-MR006.ip.videotron.ca> for
+ linux-omap@vger.kernel.org; Mon, 14 May 2012 15:55:05 -0400 (EDT)
+In-reply-to: <4FB11F63.2010108@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Tony Lindgren <tony@atomide.com>
-Cc: Felipe Balbi <balbi@ti.com>, "Cousson, Benoit" <b-cousson@ti.com>, Tomi Valkeinen <tomi.valkeinen@ti.com>, linux-omap@vger.kernel.org, Balaji T K <balajitk@ti.com>, "Venkatraman S." <svenkatr@ti.com>
+To: "Cousson, Benoit" <b-cousson@ti.com>
+Cc: Thomas Petazzoni <thomas.petazzoni@free-electrons.com>, khilman@ti.com, devicetree-discuss@lists.ozlabs.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+
+  This message is in MIME format.  The first part should be readable text,
+  while the remaining parts are likely unreadable without MIME-aware tools.
+
+--Boundary_(ID_5KMK3WOE+fSdDgPE0CUKuQ)
+Content-type: TEXT/PLAIN; charset=utf-8
+Content-transfer-encoding: 8BIT
+
+On Mon, 14 May 2012, Cousson, Benoit wrote:
+
+> Salut Thomas,
+> 
+> Sorry for the delay.
+> 
+> On 5/4/2012 5:59 PM, Thomas Petazzoni wrote:
+> > Hello Benoit,
+> > 
+> > Le Fri, 23 Sep 2011 22:23:09 +0200,
+> > Benoit Cousson<b-cousson@ti.com>  a écrit :
+> > 
+> > > Add SoC specific map_io function to be used by the generic DT
+> > > board file. This is an intermediate step before having some
+> > > generic DT aware map_io function.
+> > > 
+> > > Signed-off-by: Benoit Cousson<b-cousson@ti.com>
+> > > Cc: Tony Lindgren<tony@atomide.com>
+> > 
+> > Do you know if some progress has been made on having a generic DT aware
+> > map_io function, or is the per-SoC ->map_io() function still the
+> > recommended way of handling SoC having different requirements of static
+> > mappings at boot time?
+> 
+> Mmm, Maybe I'm wrong, but I'm not sure people are really pushing to store that
+> inside DT. But to be honest, I don't really know :-)
+
+In general, static vs dynamic IO mappings are just some Linux 
+implementation details.  This distinction does not belong in DT.
 
 
---IJpNTDwzlM2Ie8A6
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
+Nicolas
 
-On Mon, May 14, 2012 at 11:37:43AM -0700, Tony Lindgren wrote:
-> * Tony Lindgren <tony@atomide.com> [120514 11:19]:
-> > * Felipe Balbi <balbi@ti.com> [120514 11:04]:
-> > >=20
-> > > That whole MMC card detection is also pretty screwed up. Balaji/Venka=
-t,
-> > > can you guys look into that ? Probably making something generic using=
- a
-> > > threaded IRQ handler ?
-> > >=20
-> > > I mean, all the MMC core should need is an IRQ number (through GPIOs =
-or
-> > > not doesn't/shouldn't matter) and it should be able to use a threaded
-> > > IRQ handler to kick the card detection/initialization.
-> >=20
-> > That's mostly done.. Just need to update the patches for it.
->=20
-> Mostly done meaning "all the MMC core should need is an IRQ number"
-> part that is :)
-
-but you've done it for omap_hsmmc.c, right ? What I meant is that the
-whole card detection should be done at the MMC framework level.
-
-I mean, if we tell MMC core what's the card detect IRQ number, it should
-be able to implement a generic version of omap_hsmmc_detect(). All that
-thing does is read the current gpio status number and call
-mmc_detect_change().
-
-mmc_detect_change() then kicks a delayed work, which shouldn't be needed
-because omap_hsmmc_detect() (or the generic of it) is already using a
-threaded IRQ.
-
---=20
-balbi
-
---IJpNTDwzlM2Ie8A6
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: Digital signature
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.4.12 (GNU/Linux)
-
-iQIcBAEBAgAGBQJPsV6HAAoJEIaOsuA1yqRE9mQP/i/KESR3h8bHymLEweAIxIAI
-dtOIn7+c2g0/hM7mPLF6k6pZyImGRK1BcK1IkgsMMV/DMCDxAhmzWzMNasKpuSBa
-jWXKFb6dbHQUpUgTYrBG+31FdZZWATpA+4ALVp3jOKmLp1YJqXqpra5dg8BiPgcW
-lD4ALGE8EStVsfPnkx+s2WTuucVAPIrPNNdC6IGVGQoaX5BgzFxZK66RPjpOLBZy
-ZeJwY2VVlL13sL+abmZlQTzBXTOrEDq24A+TbDST3jF2mUPHvw97OxdktiCNsYa5
-0ELQQomLaaDMM1u+disjBpIt6itzSu5v55vsS4rBtyDqx2HDS0vW283i/fzKXj/p
-jqklK4notMba/H4o121ByNwWG/dCk70jeiKfsEE5dCIMeASrjgMZ8QyrUcKQqdg3
-KkXwz0bq4flX6+NtvYhgeYhgR5OmL3FsdcyhVZDMhWzRFYovHOX057zN471eqeYV
-AiQLhLe3ODsKNuD9UsJNQj99qGZbgvzgOxBqlqvdCJxIh6xqB+Dzv1baN5I4hKst
-TsHB+hnx67XRys9JfIyRM7XDktjg25oo6IQlu2bk3Ji76oB+m+YpsQUIfWm02NQ6
-R/42UBSAQ7uKXbcUilqlscNauJZWnj+q26D93NnkdCodf5nyGBGQ7/D2gMr/+5ev
-dGFuWoc/U4tsm26+McA9
-=4v/X
------END PGP SIGNATURE-----
-
---IJpNTDwzlM2Ie8A6--
+--Boundary_(ID_5KMK3WOE+fSdDgPE0CUKuQ)--
