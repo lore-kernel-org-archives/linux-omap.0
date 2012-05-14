@@ -1,119 +1,89 @@
 From: Tero Kristo <t-kristo@ti.com>
-Subject: [PATCHv2 12/19] ARM: OMAP4: PM: update ROM return address for OSWR and OFF
-Date: Mon, 14 May 2012 13:18:43 +0300
-Message-ID: <1336990730-26892-13-git-send-email-t-kristo@ti.com>
+Subject: [PATCHv2 14/19] ARM: OMAP4: wakeupgen: enable clocks for save_secure_all
+Date: Mon, 14 May 2012 13:18:45 +0300
+Message-ID: <1336990730-26892-15-git-send-email-t-kristo@ti.com>
 References: <1336990730-26892-1-git-send-email-t-kristo@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from arroyo.ext.ti.com ([192.94.94.40]:38457 "EHLO arroyo.ext.ti.com"
+Received: from comal.ext.ti.com ([198.47.26.152]:44828 "EHLO comal.ext.ti.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1755860Ab2ENKTi (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Mon, 14 May 2012 06:19:38 -0400
+	id S1755885Ab2ENKTo (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Mon, 14 May 2012 06:19:44 -0400
 In-Reply-To: <1336990730-26892-1-git-send-email-t-kristo@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: linux-omap@vger.kernel.org, khilman@ti.com, paul@pwsan.com
-Cc: linux-arm-kernel@lists.infradead.org, Carlos Leija <cileija@ti.com>, Praneeth Bajjuri <praneeth@ti.com>, Bryan Buckley <bryan.buckley@ti.com>
+Cc: linux-arm-kernel@lists.infradead.org
 
-From: Carlos Leija <cileija@ti.com>
+save_secure_all needs l3_main_3_ick and l4_secure_clkdm enabled,
+otherwise the secure ROM code will crash.
 
-At wakeup from OFF/OSWR CPU1 will call secure HAL service through a local
-secure dispatcher with MMU off, thus ROM will save a PA return address.
-Later in the wakeup, when SMC driver calls an RPC through
-omap4_secure_dispatcher (MMU is on now), ROM code won't log the new return
-address as RPCs are handled different. Thus ROM will attempt to return to
-a PA address when the MMU is on and the system will hang.
-
-We need to do this for OSWR state and OFF state of mpu power domain,
-not just for device off(mpu pd OFF).
-
-Signed-off-by: Carlos Leija <cileija@ti.com>
-Signed-off-by: Praneeth Bajjuri <praneeth@ti.com>
-Signed-off-by: Bryan Buckley <bryan.buckley@ti.com>
-[t-kristo@ti.com: merged the two patches into one]
 Signed-off-by: Tero Kristo <t-kristo@ti.com>
 ---
- arch/arm/mach-omap2/include/mach/omap-secure.h |    1 +
- arch/arm/mach-omap2/omap-mpuss-lowpower.c      |   13 +++++++++++++
- arch/arm/mach-omap2/pm.h                       |    1 +
- arch/arm/mach-omap2/pm44xx.c                   |    8 ++++++++
- 4 files changed, 23 insertions(+), 0 deletions(-)
+ arch/arm/mach-omap2/omap-wakeupgen.c |   20 ++++++++++++++++++++
+ 1 files changed, 20 insertions(+), 0 deletions(-)
 
-diff --git a/arch/arm/mach-omap2/include/mach/omap-secure.h b/arch/arm/mach-omap2/include/mach/omap-secure.h
-index c90a435..d9bde61 100644
---- a/arch/arm/mach-omap2/include/mach/omap-secure.h
-+++ b/arch/arm/mach-omap2/include/mach/omap-secure.h
-@@ -43,6 +43,7 @@
- #define OMAP4_MON_L2X0_PREFETCH_INDEX	0x113
+diff --git a/arch/arm/mach-omap2/omap-wakeupgen.c b/arch/arm/mach-omap2/omap-wakeupgen.c
+index b2165e4..c7c4db4 100644
+--- a/arch/arm/mach-omap2/omap-wakeupgen.c
++++ b/arch/arm/mach-omap2/omap-wakeupgen.c
+@@ -29,10 +29,12 @@
  
- /* Secure PPA(Primary Protected Application) APIs */
-+#define OMAP4_PPA_SERVICE_0		0x21
- #define OMAP4_PPA_L2_POR_INDEX		0x23
- #define OMAP4_PPA_CPU_ACTRL_SMP_INDEX	0x25
+ #include <mach/omap-wakeupgen.h>
+ #include <mach/omap-secure.h>
++#include <plat/omap_hwmod.h>
  
-diff --git a/arch/arm/mach-omap2/omap-mpuss-lowpower.c b/arch/arm/mach-omap2/omap-mpuss-lowpower.c
-index f555ac2..1f06f97 100644
---- a/arch/arm/mach-omap2/omap-mpuss-lowpower.c
-+++ b/arch/arm/mach-omap2/omap-mpuss-lowpower.c
-@@ -52,6 +52,8 @@
- 
- #include <plat/omap44xx.h>
- 
-+#include <mach/omap-secure.h>
-+
- #include "iomap.h"
- #include "common.h"
  #include "omap4-sar-layout.h"
-@@ -384,6 +386,17 @@ int omap4_enter_lowpower(unsigned int cpu, unsigned int power_state)
- 	set_cpu_next_pwrst(wakeup_cpu, PWRDM_POWER_ON);
+ #include "common.h"
+ #include "pm.h"
++#include "clockdomain.h"
  
- 	if (omap4_mpuss_read_prev_context_state()) {
-+		/*
-+		 * Dummy dispatcher call after OSWR and OFF
-+		 * Restore the right return Kernel address (with MMU on) for
-+		 * subsequent calls to secure ROM. Otherwise the return address
-+		 * will be to a PA return address and the system will hang.
-+		 */
-+		if (IS_PM44XX_ERRATUM(PM_OMAP4_ROM_RETURN_ADDRESS_ERRATUM))
-+			omap_secure_dispatcher(OMAP4_PPA_SERVICE_0,
-+					       FLAG_START_CRITICAL,
-+					       0, 0, 0, 0, 0);
+ #define NR_REG_BANKS		4
+ #define MAX_IRQS		128
+@@ -49,6 +51,8 @@ static DEFINE_SPINLOCK(wakeupgen_lock);
+ static unsigned int irq_target_cpu[NR_IRQS];
+ 
+ static struct powerdomain *mpuss_pd;
++static struct clockdomain *l4_secure_clkdm;
++static struct omap_hwmod *l3_main_3_oh;
+ 
+ /*
+  * Static helper functions.
+@@ -300,10 +304,18 @@ static void save_secure_ram(void)
+ static void save_secure_all(void)
+ {
+ 	u32 ret;
 +
- 		restore_ivahd_tesla_regs();
- 		restore_l3instr_regs();
++	omap_hwmod_enable(l3_main_3_oh);
++	clkdm_wakeup(l4_secure_clkdm);
++
+ 	ret = omap_secure_dispatcher(OMAP4_HAL_SAVEALL_INDEX,
+ 				FLAG_START_CRITICAL,
+ 				1, omap_secure_ram_mempool_base(),
+ 				0, 0, 0);
++
++	clkdm_allow_idle(l4_secure_clkdm);
++	omap_hwmod_idle(l3_main_3_oh);
++
+ 	if (ret != API_HAL_RET_VALUE_OK)
+ 		pr_err("Secure all context save failed\n");
+ }
+@@ -441,6 +453,14 @@ int __init omap_wakeupgen_init(void)
+ 			sar_writel(GIC_ISR_NON_SECURE, ICDISR_SPI_OFFSET, i);
+ 		iounmap(sar_base);
+ 		sar_base = NULL;
++	} else {
++		l3_main_3_oh = omap_hwmod_lookup("l3_main_3");
++		if (!l3_main_3_oh)
++			pr_err("%s: failed to get l3_main_3_oh\n", __func__);
++
++		l4_secure_clkdm = clkdm_lookup("l4_secure_clkdm");
++		if (!l4_secure_clkdm)
++			pr_err("%s: failed to get l4_secure_clkdm\n", __func__);
  	}
-diff --git a/arch/arm/mach-omap2/pm.h b/arch/arm/mach-omap2/pm.h
-index b971f6f..1d24b96 100644
---- a/arch/arm/mach-omap2/pm.h
-+++ b/arch/arm/mach-omap2/pm.h
-@@ -132,6 +132,7 @@ static inline void enable_omap3630_toggle_l2_on_restore(void) { }
  
- #define PM_OMAP4_ROM_IVAHD_TESLA_ERRATUM	(1 << 0)
- #define PM_OMAP4_ROM_L3INSTR_ERRATUM		(1 << 1)
-+#define PM_OMAP4_ROM_RETURN_ADDRESS_ERRATUM	(1 << 2)
- 
- #if defined(CONFIG_PM) && defined(CONFIG_ARCH_OMAP4)
- extern u16 pm44xx_errata;
-diff --git a/arch/arm/mach-omap2/pm44xx.c b/arch/arm/mach-omap2/pm44xx.c
-index 8591df2..215b80e 100644
---- a/arch/arm/mach-omap2/pm44xx.c
-+++ b/arch/arm/mach-omap2/pm44xx.c
-@@ -282,6 +282,14 @@ static int __init omap4_pm_init(void)
- 	if (omap_type() != OMAP2_DEVICE_TYPE_GP)
- 		pm44xx_errata |= PM_OMAP4_ROM_L3INSTR_ERRATUM;
- 
-+	/*
-+	 * Restore the right return Kernel address (with MMU on) for
-+	 * subsequent calls to secure ROM. Otherwise the return address
-+	 * will be to a PA return address and the system will hang.
-+	 */
-+	if (omap_type() != OMAP2_DEVICE_TYPE_GP)
-+		pm44xx_errata |= PM_OMAP4_ROM_RETURN_ADDRESS_ERRATUM;
-+
- #ifdef CONFIG_SUSPEND
- 	omap_pm_suspend = omap4_pm_suspend;
- #endif
+ 	irq_hotplug_init();
 -- 
 1.7.4.1
 
