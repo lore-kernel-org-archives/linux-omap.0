@@ -1,248 +1,152 @@
 From: Tero Kristo <t-kristo@ti.com>
-Subject: [PATCHv5 3/8] ARM: OMAP4460: Workaround for ROM bug because of CA9 r2pX gic control register change
-Date: Mon, 14 May 2012 13:03:11 +0300
-Message-ID: <1336989796-26594-4-git-send-email-t-kristo@ti.com>
+Subject: [PATCHv5 5/8] ARM: OMAP: hwmod: Add support for per hwmod/module context lost count
+Date: Mon, 14 May 2012 13:03:13 +0300
+Message-ID: <1336989796-26594-6-git-send-email-t-kristo@ti.com>
 References: <1336989796-26594-1-git-send-email-t-kristo@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from arroyo.ext.ti.com ([192.94.94.40]:37724 "EHLO arroyo.ext.ti.com"
+Received: from comal.ext.ti.com ([198.47.26.152]:44015 "EHLO comal.ext.ti.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1755670Ab2ENKDf (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Mon, 14 May 2012 06:03:35 -0400
+	id S1755375Ab2ENKDj (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Mon, 14 May 2012 06:03:39 -0400
 In-Reply-To: <1336989796-26594-1-git-send-email-t-kristo@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: linux-omap@vger.kernel.org, khilman@ti.com, paul@pwsan.com
-Cc: linux-arm-kernel@lists.infradead.org, Santosh Shilimkar <santosh.shilimkar@ti.com>
+Cc: linux-arm-kernel@lists.infradead.org, Rajendra Nayak <rnayak@ti.com>
 
-From: Santosh Shilimkar <santosh.shilimkar@ti.com>
+From: Rajendra Nayak <rnayak@ti.com>
 
-GIC distributor control register has changed between CortexA9 r1pX and
-r2pX. The Control Register secure banked version is now composed of 2
-bits:
-     bit 0 == Secure Enable
-     bit 1 == Non-Secure Enable
-The Non-Secure banked register has not changed. Since the ROM Code is
-based on the r1pX GIC, the CPU1 GIC restoration will cause a problem
-to CPU0 Non-Secure SW.
-The workaround must be:
-     1) Before doing the CPU1 wakeup, CPU0 must disable
-        the GIC distributor
-     2) CPU1 must re-enable the GIC distributor on
-        it's wakeup path.
+OMAP4 has module specific context lost registers which makes it now
+possible to have module level context loss count, instead of relying
+on the powerdomain level context count.
 
-With this procedure, the GIC configuration done between the
-CPU0 wakeup and CPU1 wakeup will not be lost but during this
-short windows, the CPU0 will not receive interrupts
+Add 2 private hwmod api's to update/clear the hwmod/module specific
+context lost counters/register.
 
-Signed-off-by: Santosh Shilimkar <santosh.shilimkar@ti.com>
+Update the module specific context_lost_counter and clear the hardware
+bits just after enabling the module.
+
+omap_hwmod_get_context_loss_count() now returns the hwmod context loss
+count them on platforms where they exist (OMAP4), else fall back on
+the pwrdm level counters for older platforms.
+
+Signed-off-by: Rajendra Nayak <rnayak@ti.com>
+[paul@pwsan.com: added function kerneldoc, fixed structure kerneldoc,
+ rearranged structure to avoid memory waste, marked fns as OMAP4-specific,
+ prevent fn entry on non-OMAP4 chips, reduced indentation, merged update
+ and clear, merged patches]
+Signed-off-by: Paul Walmsley <paul@pwsan.com>
 Signed-off-by: Tero Kristo <t-kristo@ti.com>
 ---
- arch/arm/mach-omap2/common.h              |    2 +
- arch/arm/mach-omap2/omap-headsmp.S        |   36 +++++++++++++++++++++++++++++
- arch/arm/mach-omap2/omap-mpuss-lowpower.c |    9 ++++++-
- arch/arm/mach-omap2/omap-smp.c            |   28 +++++++++++++++++++++-
- arch/arm/mach-omap2/omap4-common.c        |    8 +++++-
- 5 files changed, 80 insertions(+), 3 deletions(-)
+ arch/arm/mach-omap2/omap_hwmod.c             |   44 +++++++++++++++++++++++--
+ arch/arm/plat-omap/include/plat/omap_hwmod.h |    8 +++-
+ 2 files changed, 46 insertions(+), 6 deletions(-)
 
-diff --git a/arch/arm/mach-omap2/common.h b/arch/arm/mach-omap2/common.h
-index 57da7f4..48d1ebe 100644
---- a/arch/arm/mach-omap2/common.h
-+++ b/arch/arm/mach-omap2/common.h
-@@ -199,6 +199,7 @@ static inline void __iomem *omap4_get_scu_base(void)
- #endif
- 
- extern void __init gic_init_irq(void);
-+extern void gic_dist_disable(void);
- extern void omap_smc1(u32 fn, u32 arg);
- extern void __iomem *omap4_get_sar_ram_base(void);
- extern void omap_do_wfi(void);
-@@ -206,6 +207,7 @@ extern void omap_do_wfi(void);
- #ifdef CONFIG_SMP
- /* Needed for secondary core boot */
- extern void omap_secondary_startup(void);
-+extern void omap_secondary_startup_4460(void);
- extern u32 omap_modify_auxcoreboot0(u32 set_mask, u32 clear_mask);
- extern void omap_auxcoreboot_addr(u32 cpu_addr);
- extern u32 omap_read_auxcoreboot0(void);
-diff --git a/arch/arm/mach-omap2/omap-headsmp.S b/arch/arm/mach-omap2/omap-headsmp.S
-index 503ac77..d602555 100644
---- a/arch/arm/mach-omap2/omap-headsmp.S
-+++ b/arch/arm/mach-omap2/omap-headsmp.S
-@@ -43,3 +43,39 @@ hold:	ldr	r12,=0x103
- 	b	secondary_startup
- ENDPROC(omap_secondary_startup)
- 
-+ENTRY(omap_secondary_startup_4460)
-+hold_2:	ldr	r12,=0x103
-+	dsb
-+	smc	#0			@ read from AuxCoreBoot0
-+	mov	r0, r0, lsr #9
-+	mrc	p15, 0, r4, c0, c0, 5
-+	and	r4, r4, #0x0f
-+	cmp	r0, r4
-+	bne	hold_2
-+
-+	/*
-+	 * GIC distributor control register has changed between
-+	 * CortexA9 r1pX and r2pX. The Control Register secure
-+	 * banked version is now composed of 2 bits:
-+	 * bit 0 == Secure Enable
-+	 * bit 1 == Non-Secure Enable
-+	 * The Non-Secure banked register has not changed
-+	 * Because the ROM Code is based on the r1pX GIC, the CPU1
-+	 * GIC restoration will cause a problem to CPU0 Non-Secure SW.
-+	 * The workaround must be:
-+	 * 1) Before doing the CPU1 wakeup, CPU0 must disable
-+	 * the GIC distributor
-+	 * 2) CPU1 must re-enable the GIC distributor on
-+	 * it's wakeup path.
-+	 */
-+	ldr	r1, =0x48241000
-+	ldr	r0, [r1]
-+	orr	r0, #1
-+	str	r0, [r1]
-+
-+	/*
-+	 * we've been released from the wait loop,secondary_stack
-+	 * should now contain the SVC stack for this core
-+	 */
-+	b	secondary_startup
-+ENDPROC(omap_secondary_startup_4460)
-diff --git a/arch/arm/mach-omap2/omap-mpuss-lowpower.c b/arch/arm/mach-omap2/omap-mpuss-lowpower.c
-index 13670aa..e02c082 100644
---- a/arch/arm/mach-omap2/omap-mpuss-lowpower.c
-+++ b/arch/arm/mach-omap2/omap-mpuss-lowpower.c
-@@ -68,6 +68,7 @@ struct omap4_cpu_pm_info {
- 	void __iomem *scu_sar_addr;
- 	void __iomem *wkup_sar_addr;
- 	void __iomem *l2x0_sar_addr;
-+	void (*secondary_startup)(void);
- };
- 
- static DEFINE_PER_CPU(struct omap4_cpu_pm_info, omap4_pm_info);
-@@ -300,6 +301,7 @@ int omap4_enter_lowpower(unsigned int cpu, unsigned int power_state)
- int __cpuinit omap4_hotplug_cpu(unsigned int cpu, unsigned int power_state)
- {
- 	unsigned int cpu_state = 0;
-+	struct omap4_cpu_pm_info *pm_info = &per_cpu(omap4_pm_info, cpu);
- 
- 	if (omap_rev() == OMAP4430_REV_ES1_0)
- 		return -ENXIO;
-@@ -309,7 +311,7 @@ int __cpuinit omap4_hotplug_cpu(unsigned int cpu, unsigned int power_state)
- 
- 	clear_cpu_prev_pwrst(cpu);
- 	set_cpu_next_pwrst(cpu, power_state);
--	set_cpu_wakeup_addr(cpu, virt_to_phys(omap_secondary_startup));
-+	set_cpu_wakeup_addr(cpu, virt_to_phys(pm_info->secondary_startup));
- 	scu_pwrst_prepare(cpu, power_state);
- 
- 	/*
-@@ -360,6 +362,11 @@ int __init omap4_mpuss_init(void)
- 	pm_info->scu_sar_addr = sar_base + SCU_OFFSET1;
- 	pm_info->wkup_sar_addr = sar_base + CPU1_WAKEUP_NS_PA_ADDR_OFFSET;
- 	pm_info->l2x0_sar_addr = sar_base + L2X0_SAVE_OFFSET1;
-+	if (cpu_is_omap446x())
-+		pm_info->secondary_startup = omap_secondary_startup_4460;
-+	else
-+		pm_info->secondary_startup = omap_secondary_startup;
-+
- 	pm_info->pwrdm = pwrdm_lookup("cpu1_pwrdm");
- 	if (!pm_info->pwrdm) {
- 		pr_err("Lookup failed for CPU1 pwrdm\n");
-diff --git a/arch/arm/mach-omap2/omap-smp.c b/arch/arm/mach-omap2/omap-smp.c
-index deffbf1..c3eb9e8 100644
---- a/arch/arm/mach-omap2/omap-smp.c
-+++ b/arch/arm/mach-omap2/omap-smp.c
-@@ -33,6 +33,7 @@
- 
- /* SCU base address */
- static void __iomem *scu_base;
-+bool omap4_smp_romcode_errata;
- 
- static DEFINE_SPINLOCK(boot_lock);
- 
-@@ -104,6 +105,24 @@ int __cpuinit boot_secondary(unsigned int cpu, struct task_struct *idle)
- 	 *	4.3.4.2 Power States of CPU0 and CPU1
- 	 */
- 	if (booted) {
-+		/*
-+		 * GIC distributor control register has changed between
-+		 * CortexA9 r1pX and r2pX. The Control Register secure
-+		 * banked version is now composed of 2 bits:
-+		 * bit 0 == Secure Enable
-+		 * bit 1 == Non-Secure Enable
-+		 * The Non-Secure banked register has not changed
-+		 * Because the ROM Code is based on the r1pX GIC, the CPU1
-+		 * GIC restoration will cause a problem to CPU0 Non-Secure SW.
-+		 * The workaround must be:
-+		 * 1) Before doing the CPU1 wakeup, CPU0 must disable
-+		 * the GIC distributor
-+		 * 2) CPU1 must re-enable the GIC distributor on
-+		 * it's wakeup path.
-+		 */
-+		if (omap4_smp_romcode_errata)
-+			gic_dist_disable();
-+
- 		clkdm_wakeup(cpu1_clkdm);
- 		clkdm_allow_idle(cpu1_clkdm);
- 	} else {
-@@ -124,13 +143,20 @@ int __cpuinit boot_secondary(unsigned int cpu, struct task_struct *idle)
- 
- static void __init wakeup_secondary(void)
- {
-+	void *startup_addr = omap_secondary_startup;
-+
- 	/*
- 	 * Write the address of secondary startup routine into the
- 	 * AuxCoreBoot1 where ROM code will jump and start executing
- 	 * on secondary core once out of WFE
- 	 * A barrier is added to ensure that write buffer is drained
- 	 */
--	omap_auxcoreboot_addr(virt_to_phys(omap_secondary_startup));
-+	if (cpu_is_omap446x()) {
-+		startup_addr = omap_secondary_startup_4460;
-+		omap4_smp_romcode_errata = true;
-+	}
-+
-+	omap_auxcoreboot_addr(virt_to_phys(startup_addr));
- 	smp_wmb();
- 
- 	/*
-diff --git a/arch/arm/mach-omap2/omap4-common.c b/arch/arm/mach-omap2/omap4-common.c
-index 70de277..cc6a915 100644
---- a/arch/arm/mach-omap2/omap4-common.c
-+++ b/arch/arm/mach-omap2/omap4-common.c
-@@ -38,6 +38,7 @@ static void __iomem *l2cache_base;
- #endif
- 
- static void __iomem *sar_ram_base;
-+static void __iomem *gic_dist_base_addr;
- 
- #ifdef CONFIG_OMAP4_ERRATA_I688
- /* Used to implement memory barrier on DRAM path */
-@@ -92,7 +93,6 @@ void __init omap_barriers_init(void)
- void __init gic_init_irq(void)
- {
- 	void __iomem *omap_irq_base;
--	void __iomem *gic_dist_base_addr;
- 
- 	/* Static mapping, never released */
- 	gic_dist_base_addr = ioremap(OMAP44XX_GIC_DIST_BASE, SZ_4K);
-@@ -107,6 +107,12 @@ void __init gic_init_irq(void)
- 	gic_init(0, 29, gic_dist_base_addr, omap_irq_base);
+diff --git a/arch/arm/mach-omap2/omap_hwmod.c b/arch/arm/mach-omap2/omap_hwmod.c
+index 8683d6f..601f5a5f 100644
+--- a/arch/arm/mach-omap2/omap_hwmod.c
++++ b/arch/arm/mach-omap2/omap_hwmod.c
+@@ -1520,6 +1520,36 @@ static void _reconfigure_io_chain(void)
  }
  
-+void gic_dist_disable(void)
+ /**
++ * _omap4_update_context_lost - increment hwmod context loss counter if
++ * hwmod context was lost, and clear hardware context loss reg
++ * @oh: hwmod to check for context loss
++ *
++ * If the PRCM indicates that the hwmod @oh lost context, increment
++ * our in-memory context loss counter, and clear the RM_*_CONTEXT
++ * bits. No return value.
++ */
++static void _omap4_update_context_lost(struct omap_hwmod *oh)
 +{
-+	if (gic_dist_base_addr)
-+		__raw_writel(0x0, gic_dist_base_addr + GIC_DIST_CTRL);
++	u32 r;
++
++	if (!(oh->flags & HWMOD_CONTEXT_REG))
++		return;
++
++	r = omap4_prminst_read_inst_reg(oh->clkdm->pwrdm.ptr->prcm_partition,
++					oh->clkdm->pwrdm.ptr->prcm_offs,
++					oh->prcm.omap4.context_offs);
++
++	if (!r)
++		return;
++
++	oh->prcm.omap4.context_lost_counter++;
++
++	omap4_prminst_write_inst_reg(r, oh->clkdm->pwrdm.ptr->prcm_partition,
++				     oh->clkdm->pwrdm.ptr->prcm_offs,
++				     oh->prcm.omap4.context_offs);
 +}
 +
- #ifdef CONFIG_CACHE_L2X0
++/**
+  * _enable - enable an omap_hwmod
+  * @oh: struct omap_hwmod *
+  *
+@@ -1599,6 +1629,8 @@ static int _enable(struct omap_hwmod *oh)
+ 	_enable_clocks(oh);
+ 	_enable_module(oh);
  
- void __iomem *omap4_get_l2cache_base(void)
++	_omap4_update_context_lost(oh);
++
+ 	r = _wait_target_ready(oh);
+ 	if (!r) {
+ 		/*
+@@ -2724,17 +2756,21 @@ ohsps_unlock:
+  * omap_hwmod_get_context_loss_count - get lost context count
+  * @oh: struct omap_hwmod *
+  *
+- * Query the powerdomain of of @oh to get the context loss
+- * count for this device.
++ * Returns the context loss count of associated @oh
++ * upon success, or zero if no context loss data is available.
+  *
+- * Returns the context loss count of the powerdomain assocated with @oh
+- * upon success, or zero if no powerdomain exists for @oh.
++ * On OMAP4, this queries the per-hwmod context loss register,
++ * assuming one exists.  If not, or on OMAP2/3, this queries the
++ * enclosing powerdomain context loss count.
+  */
+ int omap_hwmod_get_context_loss_count(struct omap_hwmod *oh)
+ {
+ 	struct powerdomain *pwrdm;
+ 	int ret = 0;
+ 
++	if (oh->flags & HWMOD_CONTEXT_REG)
++		return oh->prcm.omap4.context_lost_counter;
++
+ 	pwrdm = omap_hwmod_get_pwrdm(oh);
+ 	if (pwrdm)
+ 		ret = pwrdm_get_context_loss_count(pwrdm);
+diff --git a/arch/arm/plat-omap/include/plat/omap_hwmod.h b/arch/arm/plat-omap/include/plat/omap_hwmod.h
+index f247dee..8f5510b 100644
+--- a/arch/arm/plat-omap/include/plat/omap_hwmod.h
++++ b/arch/arm/plat-omap/include/plat/omap_hwmod.h
+@@ -364,9 +364,12 @@ struct omap_hwmod_omap2_prcm {
+ 
+ /**
+  * struct omap_hwmod_omap4_prcm - OMAP4-specific PRCM data
+- * @clkctrl_reg: PRCM address of the clock control register
+- * @rstctrl_reg: address of the XXX_RSTCTRL register located in the PRM
++ * @clkctrl_offs: offset of the PRCM clock control register
++ * @rstctrl_offs: offset of the XXX_RSTCTRL register located in the PRM
++ * @context_offs: offset of the RM_*_CONTEXT register
+  * @submodule_wkdep_bit: bit shift of the WKDEP range
++ * @modulemode: allowable modulemodes
++ * @context_lost_counter: Count of module level context lost
+  */
+ struct omap_hwmod_omap4_prcm {
+ 	u16		clkctrl_offs;
+@@ -374,6 +377,7 @@ struct omap_hwmod_omap4_prcm {
+ 	u16		context_offs;
+ 	u8		submodule_wkdep_bit;
+ 	u8		modulemode;
++	unsigned	context_lost_counter;
+ };
+ 
+ 
 -- 
 1.7.4.1
 
