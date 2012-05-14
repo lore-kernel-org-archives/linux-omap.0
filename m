@@ -1,33 +1,25 @@
-From: Janusz Krzysztofik <jkrzyszt@tis.icnet.pl>
-Subject: Re: [PATCH] omap: dma: Clear status registers on enable/disable irq.
-Date: Mon, 14 May 2012 14:48:31 +0200
-Message-ID: <5693144.pkJCBoTAMO@vclass>
-References: <1334954578-10478-1-git-send-email-oleg.matcovschi@ti.com> <1633215.yCrxk1mQVq@acer> <4FA69DB8.7060000@bitmer.com>
+From: "JODHKA, PARMEET" <PARMEET.JODHKA@tccd.edu>
+Subject: System Administrator
+Date: Mon, 14 May 2012 08:21:35 -0500
+Message-ID: <90BE2ABD7D9BFF4395061F5F950D4BA4209FA32244@NETC026.ALL.DISTTCCD.NET>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 7Bit
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <4FA69DB8.7060000@bitmer.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Jarkko Nikula <jarkko.nikula@bitmer.com>
-Cc: Tony Lindgren <tony@atomide.com>, Oleg Matcovschi <oleg.matcovschi@ti.com>, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux@arm.linux.org.uk, Peter Ujfalusi <peter.ujfalusi@ti.com>
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7BIT
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from mail.tccd.edu ([64.28.249.28]:43125 "EHLO mail.tccd.edu"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1755245Ab2ENNbA convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 14 May 2012 09:31:00 -0400
+Content-Language: en-US
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: "imperialist438@gateway.net" <imperialist438@gateway.net>
 
-On Sunday 06 of May 2012 18:50:16 Jarkko Nikula wrote:
-> On 05/04/2012 10:39 PM, Janusz Krzysztofik wrote:
-> >> This seems like a nice fix to me. As it affects all omaps, I'd like to
-> >> see some tested-by from Janusz/Jarkko/Peter. Can you guys give it a 
-> > try
-> >> with some audio tests?
-> > 
-> > OK, I can do, but perhaps not before next Saturday, when I'm back home, 
-> > able to actually listen to the audio, not only watch the IRQ counters 
-> > rising up ;-).
-> > 
-> Ok from omap3
-> 
-> Tested-by: Jarkko Nikula <jarkko.nikula@bitmer.com>
+You have reached the storage limit on your mailbox.You will not be able to send or receive new mail until you updrade your email account.
 
-Works for me on OMAP1.
+Click the below link to fill your email upgrade form.
 
-Tested-by: Janusz Krzyszofik <jkrzyszt@tis.inet.pl>
+CLICK HERE:<https://docs.google.com/spreadsheet/viewform?formkey=dG5aYkF2R0lScVNUeEZTZFlqeGVYQXc6MQ>
+
+Thanks
+System Administrator
