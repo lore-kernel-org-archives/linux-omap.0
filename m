@@ -1,224 +1,145 @@
 From: Tero Kristo <t-kristo@ti.com>
-Subject: [PATCHv2 08/19] ARM: OMAP4: SAR: generate overwrite data based on SAR ROM contents
-Date: Mon, 14 May 2012 13:18:39 +0300
-Message-ID: <1336990730-26892-9-git-send-email-t-kristo@ti.com>
+Subject: [PATCHv2 11/19] ARM: OMAP4: PM: save/restore CM L3INSTR registers when MPU hits OSWR/OFF mode
+Date: Mon, 14 May 2012 13:18:42 +0300
+Message-ID: <1336990730-26892-12-git-send-email-t-kristo@ti.com>
 References: <1336990730-26892-1-git-send-email-t-kristo@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from arroyo.ext.ti.com ([192.94.94.40]:38444 "EHLO arroyo.ext.ti.com"
+Received: from arroyo.ext.ti.com ([192.94.94.40]:38454 "EHLO arroyo.ext.ti.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1755812Ab2ENKT3 (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Mon, 14 May 2012 06:19:29 -0400
+	id S1755826Ab2ENKTi (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Mon, 14 May 2012 06:19:38 -0400
 In-Reply-To: <1336990730-26892-1-git-send-email-t-kristo@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: linux-omap@vger.kernel.org, khilman@ti.com, paul@pwsan.com
-Cc: linux-arm-kernel@lists.infradead.org
+Cc: linux-arm-kernel@lists.infradead.org, Rajendra Nayak <rnayak@ti.com>, Santosh Shilimkar <santosh.shilimkar@ti.com>
 
-omap_sar_overwrite() now uses offsets detected during init time from
-the SAR ROM contents.
+From: Rajendra Nayak <rnayak@ti.com>
 
+On HS devices on the way out of MPU OSWR and OFF ROM code wrongly
+overwrites the CM L3INSTR registers. So to avoid this, save them and
+restore on the way out from MPU OSWR/OFF.
+
+This errata applies to all HS/EMU versions of OMAP4.
+
+Signed-off-by: Rajendra Nayak <rnayak@ti.com>
+Signed-off-by: Santosh Shilimkar <santosh.shilimkar@ti.com>
+[t-kristo@ti.com: added omap4 pm errata support]
 Signed-off-by: Tero Kristo <t-kristo@ti.com>
 ---
- arch/arm/mach-omap2/omap-sar.c |  159 +++++++++++++++++++++++++++++-----------
- 1 files changed, 115 insertions(+), 44 deletions(-)
+ arch/arm/mach-omap2/omap-mpuss-lowpower.c |   35 ++++++++++++++++++++++++++++-
+ arch/arm/mach-omap2/pm.h                  |    1 +
+ arch/arm/mach-omap2/pm44xx.c              |    8 ++++++
+ 3 files changed, 43 insertions(+), 1 deletions(-)
 
-diff --git a/arch/arm/mach-omap2/omap-sar.c b/arch/arm/mach-omap2/omap-sar.c
-index b49ae16..4244ee6 100644
---- a/arch/arm/mach-omap2/omap-sar.c
-+++ b/arch/arm/mach-omap2/omap-sar.c
-@@ -38,7 +38,52 @@ struct sar_ram_entry {
- 	u32 ram_addr;
+diff --git a/arch/arm/mach-omap2/omap-mpuss-lowpower.c b/arch/arm/mach-omap2/omap-mpuss-lowpower.c
+index 73e45a5..f555ac2 100644
+--- a/arch/arm/mach-omap2/omap-mpuss-lowpower.c
++++ b/arch/arm/mach-omap2/omap-mpuss-lowpower.c
+@@ -95,6 +95,12 @@ static struct reg_tuple ivahd_reg[] = {
+ 	{.addr = OMAP4430_PM_IVAHD_PWRSTCTRL}
  };
  
-+struct sar_overwrite_entry {
-+	u32 reg_addr;
-+	u32 sar_offset;
-+	bool valid;
++static struct reg_tuple l3instr_reg[] = {
++	{.addr = OMAP4430_CM_L3INSTR_L3_3_CLKCTRL},
++	{.addr = OMAP4430_CM_L3INSTR_L3_INSTR_CLKCTRL},
++	{.addr = OMAP4430_CM_L3INSTR_OCP_WP1_CLKCTRL},
 +};
 +
-+enum {
-+	MEMIF_CLKSTCTRL_IDX,
-+	SHADOW_FREQ_CFG2_IDX,
-+	SHADOW_FREQ_CFG1_IDX,
-+	MEMIF_CLKSTCTRL_2_IDX,
-+	HSUSBHOST_CLKCTRL_IDX,
-+	HSUSBHOST_CLKCTRL_2_IDX,
-+	OW_IDX_SIZE
-+};
-+
- static struct sar_ram_entry *sar_ram_layout[3];
-+static struct sar_overwrite_entry *sar_overwrite_data;
-+
-+static struct sar_overwrite_entry omap4_sar_overwrite_data[OW_IDX_SIZE] = {
-+	[MEMIF_CLKSTCTRL_IDX] = { .reg_addr = 0x4a009e0c },
-+	[SHADOW_FREQ_CFG2_IDX] = { .reg_addr = 0x4a004e2c },
-+	[SHADOW_FREQ_CFG1_IDX] = { .reg_addr = 0x4a004e30 },
-+	[MEMIF_CLKSTCTRL_2_IDX] = { .reg_addr = 0x4a009e0c },
-+	[HSUSBHOST_CLKCTRL_IDX] = { .reg_addr = 0x4a009e54 },
-+	[HSUSBHOST_CLKCTRL_2_IDX] = { .reg_addr = 0x4a009e54 },
-+};
-+
-+static void check_overwrite_data(u32 io_addr, u32 ram_addr, int size)
+ /*
+  * Program the wakeup routine address for the CPU0 and CPU1
+  * used for OFF or DORMANT wakeup.
+@@ -262,6 +268,28 @@ static inline void restore_ivahd_tesla_regs(void)
+ 		__raw_writel(ivahd_reg[i].val, ivahd_reg[i].addr);
+ }
+ 
++static inline void save_l3instr_regs(void)
 +{
 +	int i;
 +
-+	while (size) {
-+		for (i = 0; i < OW_IDX_SIZE; i++) {
-+			if (sar_overwrite_data[i].reg_addr == io_addr &&
-+			    !sar_overwrite_data[i].valid) {
-+				sar_overwrite_data[i].sar_offset = ram_addr;
-+				sar_overwrite_data[i].valid = true;
-+				break;
-+			}
-+		}
-+		size--;
-+		io_addr += 4;
-+		ram_addr += 4;
-+	}
++	if (!IS_PM44XX_ERRATUM(PM_OMAP4_ROM_L3INSTR_ERRATUM))
++		return;
++
++	for (i = 0; i < ARRAY_SIZE(l3instr_reg); i++)
++		l3instr_reg[i].val = __raw_readl(l3instr_reg[i].addr);
 +}
++
++static inline void restore_l3instr_regs(void)
++{
++	int i;
++
++	if (!IS_PM44XX_ERRATUM(PM_OMAP4_ROM_L3INSTR_ERRATUM))
++		return;
++
++	for (i = 0; i < ARRAY_SIZE(l3instr_reg); i++)
++		__raw_writel(l3instr_reg[i].val, l3instr_reg[i].addr);
++}
++
+ /**
+  * omap4_enter_lowpower: OMAP4 MPUSS Low Power Entry Function
+  * The purpose of this function is to manage low power programming
+@@ -321,13 +349,16 @@ int omap4_enter_lowpower(unsigned int cpu, unsigned int power_state)
+ 		omap4_cm_prepare_off();
+ 		omap4_dpll_prepare_off();
+ 		save_ivahd_tesla_regs();
++		save_l3instr_regs();
+ 		save_state = 3;
+ 	} else if ((pwrdm_read_next_pwrst(mpuss_pd) == PWRDM_POWER_RET) &&
+ 		(pwrdm_read_logic_retst(mpuss_pd) == PWRDM_POWER_OFF)) {
+ 		save_ivahd_tesla_regs();
++		save_l3instr_regs();
+ 		save_state = 2;
+ 	} else if (pwrdm_read_next_pwrst(mpuss_pd) == PWRDM_POWER_OFF) {
+ 		save_ivahd_tesla_regs();
++		save_l3instr_regs();
+ 		save_state = 3;
+ 	}
  
- /*
-  * omap_sar_save :
-@@ -166,53 +211,76 @@ int omap_sar_save(void)
- void omap_sar_overwrite(void)
- {
- 	u32 val = 0;
--	u32 usb_offset = 0x2ec;
--	u32 usb_offset2 = 0x91c;
--
--	/* Overwriting Phase1 data to be restored */
--	/* CM2 MEMIF_CLKTRCTRL = SW_WKUP, before FREQ UPDATE */
--	__raw_writel(0x2, sar_ram_base + SAR_BANK1_OFFSET + 0xd0);
--	/* CM1 CM_SHADOW_FREQ_CONFIG2, Enable FREQ UPDATE */
--	val = __raw_readl(OMAP4430_CM_SHADOW_FREQ_CONFIG2);
--	/*
--	 * FIXME: Implement FREQ UPDATE for L#/M5 before enabling this
--	 * val |= 1 << OMAP4430_FREQ_UPDATE_SHIFT;
--	 */
--	__raw_writel(val, sar_ram_base + SAR_BANK1_OFFSET + 0x100);
--	/* CM1 CM_SHADOW_FREQ_CONFIG1, Enable FREQ UPDATE */
--	val = __raw_readl(OMAP4430_CM_SHADOW_FREQ_CONFIG1);
--	val |= 1 << OMAP4430_FREQ_UPDATE_SHIFT;
--	val &= ~OMAP4430_DLL_OVERRIDE_2_2_MASK;
--	__raw_writel(val, sar_ram_base + SAR_BANK1_OFFSET + 0x104);
--	/* CM2 MEMIF_CLKTRCTRL = HW_AUTO, after FREQ UPDATE */
--	__raw_writel(0x3, sar_ram_base + SAR_BANK1_OFFSET + 0x124);
--
--	/* Overwriting Phase2a data to be restored */
--	/* CM_L3INIT_USB_HOST_CLKCTRL: SAR_MODE = 1, MODULEMODE = 2 */
--	__raw_writel(0x00000012,
--		     sar_ram_base + SAR_BANK1_OFFSET + usb_offset);
--	/* CM_L3INIT_USB_TLL_CLKCTRL: SAR_MODE = 1, MODULEMODE = 1 */
--	__raw_writel(0x00000011,
--		     sar_ram_base + SAR_BANK1_OFFSET + usb_offset + 4);
--	/* CM2 CM_SDMA_STATICDEP : Enable static depedency for SAR modules */
--	__raw_writel(0x000090e8,
--		     sar_ram_base + SAR_BANK1_OFFSET + usb_offset + 8);
--
--	/* Overwriting Phase2b data to be restored */
--	/* CM_L3INIT_USB_HOST_CLKCTRL: SAR_MODE = 0, MODULEMODE = 0 */
--	val = __raw_readl(OMAP4430_CM_L3INIT_USB_HOST_CLKCTRL);
--	val &= (OMAP4430_CLKSEL_UTMI_P1_MASK | OMAP4430_CLKSEL_UTMI_P2_MASK);
--	__raw_writel(val, sar_ram_base + SAR_BANK1_OFFSET + usb_offset2);
--	/* CM_L3INIT_USB_TLL_CLKCTRL: SAR_MODE = 0, MODULEMODE = 0 */
--	__raw_writel(0x0000000,
--		     sar_ram_base + SAR_BANK1_OFFSET + usb_offset2 + 4);
--	/* CM2 CM_SDMA_STATICDEP : Clear the static depedency */
--	__raw_writel(0x00000040,
--		     sar_ram_base + SAR_BANK1_OFFSET + usb_offset2 + 8);
-+	u32 offset = 0;
-+
-+	if (sar_overwrite_data[MEMIF_CLKSTCTRL_IDX].valid)
-+		__raw_writel(0x2, sar_ram_base +
-+			sar_overwrite_data[MEMIF_CLKSTCTRL_IDX].sar_offset);
-+
-+	if (sar_overwrite_data[SHADOW_FREQ_CFG1_IDX].valid) {
-+		offset = sar_overwrite_data[SHADOW_FREQ_CFG1_IDX].sar_offset;
-+		val = __raw_readl(sar_ram_base + offset);
-+		val |= 1 << OMAP4430_FREQ_UPDATE_SHIFT;
-+		val &= ~OMAP4430_DLL_OVERRIDE_2_2_MASK;
-+		__raw_writel(val, sar_ram_base + offset);
-+	}
-+
-+	if (sar_overwrite_data[SHADOW_FREQ_CFG2_IDX].valid) {
-+		offset = sar_overwrite_data[SHADOW_FREQ_CFG2_IDX].sar_offset;
-+		val = __raw_readl(sar_ram_base + offset);
-+		/*
-+		 * FIXME: Implement FREQ UPDATE for L#/M5 before enabling
-+		 * val |= 1 << OMAP4430_FREQ_UPDATE_SHIFT;
-+		 */
-+		__raw_writel(val, sar_ram_base + offset);
-+	}
-+
-+	if (sar_overwrite_data[MEMIF_CLKSTCTRL_2_IDX].valid)
-+		__raw_writel(0x3, sar_ram_base +
-+			sar_overwrite_data[MEMIF_CLKSTCTRL_2_IDX].sar_offset);
-+
-+	if (sar_overwrite_data[HSUSBHOST_CLKCTRL_IDX].valid) {
-+		offset = sar_overwrite_data[HSUSBHOST_CLKCTRL_IDX].sar_offset;
-+
-+		/* Overwriting Phase2a data to be restored */
-+		/* CM_L3INIT_USB_HOST_CLKCTRL: SAR_MODE = 1, MODULEMODE = 2 */
-+		__raw_writel(OMAP4430_SAR_MODE_MASK | 0x2,
-+			sar_ram_base + offset);
-+		/* CM_L3INIT_USB_TLL_CLKCTRL: SAR_MODE = 1, MODULEMODE = 1 */
-+		__raw_writel(OMAP4430_SAR_MODE_MASK | 0x1,
-+			sar_ram_base + offset + 4);
-+		/*
-+		 * CM2 CM_SDMA_STATICDEP : Enable static depedency for
-+		 * SAR modules
-+		 */
-+		__raw_writel(OMAP4430_L4WKUP_STATDEP_MASK |
-+			     OMAP4430_L4CFG_STATDEP_MASK |
-+			     OMAP4430_L3INIT_STATDEP_MASK |
-+			     OMAP4430_L3_1_STATDEP_MASK |
-+			     OMAP4430_L3_2_STATDEP_MASK |
-+			     OMAP4430_ABE_STATDEP_MASK,
-+			     sar_ram_base + offset + 8);
-+	}
-+
-+	if (sar_overwrite_data[HSUSBHOST_CLKCTRL_2_IDX].valid) {
-+		offset = sar_overwrite_data[HSUSBHOST_CLKCTRL_2_IDX].sar_offset;
-+
-+		/* Overwriting Phase2b data to be restored */
-+		/* CM_L3INIT_USB_HOST_CLKCTRL: SAR_MODE = 0, MODULEMODE = 0 */
-+		val = __raw_readl(OMAP4430_CM_L3INIT_USB_HOST_CLKCTRL);
-+		val &= (OMAP4430_CLKSEL_UTMI_P1_MASK |
-+			OMAP4430_CLKSEL_UTMI_P2_MASK);
-+		__raw_writel(val, sar_ram_base + offset);
-+		/* CM_L3INIT_USB_TLL_CLKCTRL: SAR_MODE = 0, MODULEMODE = 0 */
-+		__raw_writel(0, sar_ram_base + offset + 4);
-+		/* CM2 CM_SDMA_STATICDEP : Clear the static depedency */
-+		__raw_writel(OMAP4430_L3_2_STATDEP_MASK,
-+			     sar_ram_base + offset + 8);
+@@ -352,8 +383,10 @@ int omap4_enter_lowpower(unsigned int cpu, unsigned int power_state)
+ 	wakeup_cpu = smp_processor_id();
+ 	set_cpu_next_pwrst(wakeup_cpu, PWRDM_POWER_ON);
+ 
+-	if (omap4_mpuss_read_prev_context_state())
++	if (omap4_mpuss_read_prev_context_state()) {
+ 		restore_ivahd_tesla_regs();
++		restore_l3instr_regs();
 +	}
  
- 	/* readback to ensure data reaches to SAR RAM */
- 	barrier();
--	val = __raw_readl(sar_ram_base + SAR_BANK1_OFFSET + usb_offset2 + 8);
-+	val = __raw_readl(sar_ram_base + offset);
- }
+ 	if (omap4_device_prev_state_off()) {
+ 		omap4_dpll_resume_off();
+diff --git a/arch/arm/mach-omap2/pm.h b/arch/arm/mach-omap2/pm.h
+index d2d468e..b971f6f 100644
+--- a/arch/arm/mach-omap2/pm.h
++++ b/arch/arm/mach-omap2/pm.h
+@@ -131,6 +131,7 @@ static inline void enable_omap3630_toggle_l2_on_restore(void) { }
+ #endif		/* defined(CONFIG_PM) && defined(CONFIG_ARCH_OMAP3) */
  
- void __iomem *omap4_get_sar_ram_base(void)
-@@ -314,6 +382,8 @@ static int sar_layout_generate(void)
- 				if (!set_sar_io_addr(entry[bank], io_addr)) {
- 					entry[bank]->size = size;
- 					entry[bank]->ram_addr = ram_addr;
-+					check_overwrite_data(io_addr, ram_addr,
-+						size);
- 					entry[bank]++;
- 				}
- 			}
-@@ -387,6 +457,7 @@ static int __init omap4_sar_ram_init(void)
- 	BUG_ON(!sar_ram_base);
+ #define PM_OMAP4_ROM_IVAHD_TESLA_ERRATUM	(1 << 0)
++#define PM_OMAP4_ROM_L3INSTR_ERRATUM		(1 << 1)
  
- 	sar_modules = omap44xx_sar_modules;
-+	sar_overwrite_data = omap4_sar_overwrite_data;
+ #if defined(CONFIG_PM) && defined(CONFIG_ARCH_OMAP4)
+ extern u16 pm44xx_errata;
+diff --git a/arch/arm/mach-omap2/pm44xx.c b/arch/arm/mach-omap2/pm44xx.c
+index 3870c08..8591df2 100644
+--- a/arch/arm/mach-omap2/pm44xx.c
++++ b/arch/arm/mach-omap2/pm44xx.c
+@@ -274,6 +274,14 @@ static int __init omap4_pm_init(void)
+ 	    omap_type() != OMAP2_DEVICE_TYPE_GP)
+ 		pm44xx_errata |= PM_OMAP4_ROM_IVAHD_TESLA_ERRATUM;
  
- 	sar_ioremap_modules();
- 
++	/*
++	 * Similar to above errata, ROM code modifies L3INSTR clock
++	 * registers also and these must be saved / restored during
++	 * MPU OSWR / device off.
++	 */
++	if (omap_type() != OMAP2_DEVICE_TYPE_GP)
++		pm44xx_errata |= PM_OMAP4_ROM_L3INSTR_ERRATUM;
++
+ #ifdef CONFIG_SUSPEND
+ 	omap_pm_suspend = omap4_pm_suspend;
+ #endif
 -- 
 1.7.4.1
 
