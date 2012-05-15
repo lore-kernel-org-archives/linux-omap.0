@@ -1,75 +1,109 @@
 From: Kevin Hilman <khilman@ti.com>
-Subject: Re: [PATCHv4 4/8] ARM: OMAP4: hwmod: flag hwmods/modules supporting module level context status
-Date: Tue, 15 May 2012 15:22:23 -0700
-Message-ID: <87pqa5axuo.fsf@ti.com>
-References: <1334913591-26312-1-git-send-email-t-kristo@ti.com>
-	<1334913591-26312-5-git-send-email-t-kristo@ti.com>
-	<4F957ACD.2040103@ti.com> <1335278815.2149.93.camel@sokoban>
-	<4F96DF8C.6040400@ti.com>
+Subject: Re: [PATCHv5 6/8] ARM: OMAP4: pwrdm: add support for reading prev logic and mem states
+Date: Tue, 15 May 2012 15:36:58 -0700
+Message-ID: <87havhax6d.fsf@ti.com>
+References: <1336989796-26594-1-git-send-email-t-kristo@ti.com>
+	<1336989796-26594-7-git-send-email-t-kristo@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aog119.obsmtp.com ([74.125.149.246]:39268 "EHLO
-	na3sys009aog119.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S965655Ab2EOWWY (ORCPT
+Received: from na3sys009aog117.obsmtp.com ([74.125.149.242]:52225 "EHLO
+	na3sys009aog117.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S965977Ab2EOWg7 (ORCPT
 	<rfc822;linux-omap@vger.kernel.org>);
-	Tue, 15 May 2012 18:22:24 -0400
-Received: by dady13 with SMTP id y13so162994dad.33
-        for <linux-omap@vger.kernel.org>; Tue, 15 May 2012 15:22:23 -0700 (PDT)
-In-Reply-To: <4F96DF8C.6040400@ti.com> (Benoit Cousson's message of "Tue, 24
-	Apr 2012 19:14:52 +0200")
+	Tue, 15 May 2012 18:36:59 -0400
+Received: by dalf4 with SMTP id f4so108373dal.15
+        for <linux-omap@vger.kernel.org>; Tue, 15 May 2012 15:36:57 -0700 (PDT)
+In-Reply-To: <1336989796-26594-7-git-send-email-t-kristo@ti.com> (Tero
+	Kristo's message of "Mon, 14 May 2012 13:03:14 +0300")
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "Cousson, Benoit" <b-cousson@ti.com>
-Cc: t-kristo@ti.com, Jon Hunter <jon-hunter@ti.com>, linux-omap@vger.kernel.org, paul@pwsan.com, Rajendra Nayak <rnayak@ti.com>, linux-arm-kernel@lists.infradead.org
+To: Tero Kristo <t-kristo@ti.com>
+Cc: linux-omap@vger.kernel.org, paul@pwsan.com, linux-arm-kernel@lists.infradead.org
 
-"Cousson, Benoit" <b-cousson@ti.com> writes:
+Tero Kristo <t-kristo@ti.com> writes:
 
-> On 4/24/2012 4:46 PM, Tero Kristo wrote:
->> On Mon, 2012-04-23 at 10:52 -0500, Jon Hunter wrote:
->>> Hi Tero,
->>>
->>> On 04/20/2012 04:19 AM, Tero Kristo wrote:
->>>> From: Rajendra Nayak<rnayak@ti.com>
->>>>
->>>> On OMAP4 most modules/hwmods support module level context status. On
->>>> OMAP3 and earlier, we relyed on the power domain level context status.
->>>> Identify all such modules using a 'HWMOD_CONTEXT_REG' flag, all such
->>>> hwmods already have a valid 'context_offs' populated in .prcm structure.
->>>
->>> Is it necessary to add another flag? Can't we just check if context_offs
->>> is non-zero? Would save adding a lot more lines to an already large file
->>> :-)
->>
->> Actually one of the older versions of this patch was just checking
->> against a non-zero value, but it was decided to be changed as
->> potentially the context_offs can be zero even if it is a valid offset.
-
-Potentially?  Is that the case on OMAP4/5 today?  I don't see any for
-OMAP4 in mainline.
-
-If zero really is a valid offset somewhere (where?), then we could use
--1 (or USHRT_MAX in this case.)
-
-> Yeah, but still, every OMAP4 IPs are supporting that except two of
-> them I guess, so it is a pity to add that to every IPs.
+> On OMAP4, there is no support to read previous logic state
+> or previous memory state achieved when a power domain transitions
+> to RET. Instead there are module level context registers.
 >
-> We'd better add a HWMOD_NO_CONTEXT_REG to the few IPs that are not
-> supporting that. Since OMAP 2 & 3 does not have this feature at all,
-> we can check on the cpu revision.
+> In order to support the powerdomain level logic/mem_off_counters
+> on OMAP4, instead use the previous power state achieved (RET) and
+> the *programmed* logic/mem RET state to derive if a powerdomain lost
+> logic or did not.
 >
-> I think the issue raised by Rajendra was about AM35xx that looks like
-> an OMAP3 variant but does have these registers like an OMAP4
-> variant:-(
+> If the powerdomain is programmed to enter RET state and lose logic
+> in RET state, knowing that the powerdomain entered RET is good enough
+> to derive that the logic was lost as well, in such cases.
+>
+> Signed-off-by: Tero Kristo <t-kristo@ti.com>
 
-If AM335x is missing it for *all* IPs, that's easy enough to solve
-without bloating the data file: just set .context_offs field (or flag)
-to the magic value for all IPs during hwmod registration.
-
-Paul/Benoit should make the call whether to use a special value in the
-.context_offs field (0 or -1) or add a new flag.  If a flag is chosen, I
-agree with Benoit that it should indicate the *lack* of the feature,
-since having the feature is the norm.
+Looks OK, but these new functions need some kerneldoc to describe the
+decision making.
 
 Kevin
 
+> ---
+>  arch/arm/mach-omap2/powerdomain44xx.c |   32 ++++++++++++++++++++++++++++++++
+>  1 files changed, 32 insertions(+), 0 deletions(-)
+>
+> diff --git a/arch/arm/mach-omap2/powerdomain44xx.c b/arch/arm/mach-omap2/powerdomain44xx.c
+> index 601325b..ab00736 100644
+> --- a/arch/arm/mach-omap2/powerdomain44xx.c
+> +++ b/arch/arm/mach-omap2/powerdomain44xx.c
+> @@ -151,6 +151,21 @@ static int omap4_pwrdm_read_logic_retst(struct powerdomain *pwrdm)
+>  	return v;
+>  }
+>  
+> +static int omap4_pwrdm_read_prev_logic_pwrst(struct powerdomain *pwrdm)
+> +{
+> +	int state;
+> +
+> +	state = omap4_pwrdm_read_prev_pwrst(pwrdm);
+> +
+> +	if (state == PWRDM_POWER_OFF)
+> +		return PWRDM_POWER_OFF;
+> +
+> +	if (state != PWRDM_POWER_RET)
+> +		return PWRDM_POWER_ON;
+> +
+> +	return omap4_pwrdm_read_logic_retst(pwrdm);
+> +}
+> +
+>  static int omap4_pwrdm_read_mem_pwrst(struct powerdomain *pwrdm, u8 bank)
+>  {
+>  	u32 m, v;
+> @@ -179,6 +194,21 @@ static int omap4_pwrdm_read_mem_retst(struct powerdomain *pwrdm, u8 bank)
+>  	return v;
+>  }
+>  
+> +static int omap4_pwrdm_read_prev_mem_pwrst(struct powerdomain *pwrdm, u8 bank)
+> +{
+> +	int state;
+> +
+> +	state = omap4_pwrdm_read_prev_pwrst(pwrdm);
+> +
+> +	if (state == PWRDM_POWER_OFF)
+> +		return PWRDM_POWER_OFF;
+> +
+> +	if (state != PWRDM_POWER_RET)
+> +		return PWRDM_POWER_ON;
+> +
+> +	return omap4_pwrdm_read_mem_retst(pwrdm, bank);
+> +}
+> +
+>  static int omap4_pwrdm_wait_transition(struct powerdomain *pwrdm)
+>  {
+>  	u32 c = 0;
+> @@ -217,9 +247,11 @@ struct pwrdm_ops omap4_pwrdm_operations = {
+>  	.pwrdm_clear_all_prev_pwrst	= omap4_pwrdm_clear_all_prev_pwrst,
+>  	.pwrdm_set_logic_retst	= omap4_pwrdm_set_logic_retst,
+>  	.pwrdm_read_logic_pwrst	= omap4_pwrdm_read_logic_pwrst,
+> +	.pwrdm_read_prev_logic_pwrst	= omap4_pwrdm_read_prev_logic_pwrst,
+>  	.pwrdm_read_logic_retst	= omap4_pwrdm_read_logic_retst,
+>  	.pwrdm_read_mem_pwrst	= omap4_pwrdm_read_mem_pwrst,
+>  	.pwrdm_read_mem_retst	= omap4_pwrdm_read_mem_retst,
+> +	.pwrdm_read_prev_mem_pwrst	= omap4_pwrdm_read_prev_mem_pwrst,
+>  	.pwrdm_set_mem_onst	= omap4_pwrdm_set_mem_onst,
+>  	.pwrdm_set_mem_retst	= omap4_pwrdm_set_mem_retst,
+>  	.pwrdm_wait_transition	= omap4_pwrdm_wait_transition,
