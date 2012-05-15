@@ -1,96 +1,98 @@
-From: "Mark A. Greer" <mgreer@animalcreek.com>
-Subject: Re: [PATCH] arm: omap3: am35x: Set proper powerdomain states
-Date: Tue, 15 May 2012 11:54:43 -0700
-Message-ID: <20120515185443.GC26651@animalcreek.com>
-References: <1335821208-13098-1-git-send-email-mgreer@animalcreek.com>
- <CAORVsuXouGSdZRKW+T8yvc+23KYr-x0u9FeRXxiET+QmanE_EA@mail.gmail.com>
- <20120515183527.GB26651@animalcreek.com>
+From: "Buckley, Bryan" <bryan.buckley@ti.com>
+Subject: Re: [PATCH] ARM: decompressor: Fix mmu mapping for non-DRAM address space.
+Date: Tue, 15 May 2012 13:55:44 -0500
+Message-ID: <CAG_NtY_KH5s-dQx_CY5unn74WUUjbBKyghp-grM-NHFbTAOn-A@mail.gmail.com>
+References: <1336398149-26153-1-git-send-email-santosh.shilimkar@ti.com>
+	<20120508124116.GE17798@arm.com>
+	<CAMQu2gxXB4GyddjrcKWwJ=KXx=MoDs7DdwhbOY85qkVJ1Vv3wA@mail.gmail.com>
+	<20120508215554.GA18980@n2100.arm.linux.org.uk>
+	<CAMQu2gzmZ1Af4sAxoT9WS_akY1gBrqffKE84rnbM_EUK8V8NHQ@mail.gmail.com>
+	<20120509122348.GA30632@n2100.arm.linux.org.uk>
+	<CAMQu2gzdwXwzhhFLtLXTj5e0a9cFeq5ReUcMT-tGUxTPUcV_4Q@mail.gmail.com>
+	<20120509154849.GA10375@n2100.arm.linux.org.uk>
+	<CAG_NtY_qv-cv=Yd8CBcP4TrNCXJbTgz5WXvAsmCdQFWEotVhrg@mail.gmail.com>
+	<20120509214040.GB10375@n2100.arm.linux.org.uk>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-1
+Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail20.dotsterhost.com ([66.11.232.73]:36011 "EHLO
-	mail20.dotsterhost.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932419Ab2EOSyo (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 15 May 2012 14:54:44 -0400
-Content-Disposition: inline
-In-Reply-To: <20120515183527.GB26651@animalcreek.com>
+Received: from na3sys009aog137.obsmtp.com ([74.125.149.18]:34151 "EHLO
+	na3sys009aog137.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S966209Ab2EOSzp convert rfc822-to-8bit
+	(ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Tue, 15 May 2012 14:55:45 -0400
+Received: by vbbfs19 with SMTP id fs19so7141974vbb.15
+        for <linux-omap@vger.kernel.org>; Tue, 15 May 2012 11:55:44 -0700 (PDT)
+In-Reply-To: <20120509214040.GB10375@n2100.arm.linux.org.uk>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Jean Pihet <jean.pihet@newoldbits.com>
-Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, khilman@ti.com, paul@pwsan.com
+To: Russell King - ARM Linux <linux@arm.linux.org.uk>
+Cc: "Shilimkar, Santosh" <santosh.shilimkar@ti.com>, Catalin Marinas <catalin.marinas@arm.com>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, R Sricharan <r.sricharan@ti.com>
 
-On Tue, May 15, 2012 at 11:35:27AM -0700, Mark A. Greer wrote:
-> On Tue, May 15, 2012 at 09:43:52AM +0200, Jean Pihet wrote:
-> > Hi Mark,
->=20
-> Hi Jean.
->=20
-> > On Mon, Apr 30, 2012 at 11:26 PM, Mark A. Greer <mgreer@animalcreek=
-=2Ecom> wrote:
-> > > From: "Mark A. Greer" <mgreer@animalcreek.com>
+On Wed, May 9, 2012 at 4:40 PM, Russell King - ARM Linux
+<linux@arm.linux.org.uk> wrote:
+>
+> On Wed, May 09, 2012 at 03:44:08PM -0500, Buckley, Bryan wrote:
+> > On Wed, May 9, 2012 at 10:48 AM, Russell King - ARM Linux
+> > <linux@arm.linux.org.uk> wrote:
 > > >
-> > > The am35x family of SoCs only support the PWRSTS_ON
-> > > state so create a new set of powerdomain structures
-> > > that ensure that only the ON state is entered.
+> > > On Wed, May 09, 2012 at 06:00:10PM +0530, Shilimkar, Santosh wrot=
+e:
+> > > > On Wed, May 9, 2012 at 5:53 PM, Russell King - ARM Linux
+> > > > <linux@arm.linux.org.uk> wrote:
+> > > > > On Wed, May 09, 2012 at 02:20:28PM +0530, Shilimkar, Santosh =
+wrote:
+> > > > >> The only change done common code is =A0clearing 'XN' bit for=
+ DRAM
+> > > > >> region in page table entries. The other change of setting th=
+e DACR
+> > > > >> register is done in ARMv7 specific code.
+> > > > >
+> > > > > Yes, XN is an ARMv6+ thing. =A0Before ARMv5, it was implement=
+ation defined.
+> > > > >
+> > > > > Some implementations used the bit to mean "allow writes to up=
+date the
+> > > > > cache". =A0Other implementations labelled this bit as "should=
+ be zero"
+> > > > > while others labelled it as "should be one".
+> > > > >
+> > > > Good to know.
+> > > >
+> > > > > The upshot of this is, we know that having this bit as '1' me=
+ans that
+> > > > > all the CPUs we support today work. =A0I would be _very_ conc=
+erned to
+> > > > > change this bit to zero as we _really_ don't know how the pre=
+-ARMv6
+> > > > > CPUs would react.
+> > > > >
+> > > > I agree.
+> > > >
+> > > > > The solution to this is pretty simple - if ARMv6+ needs a dif=
+ferent
+> > > > > base section mapping value, then we need to extract that from=
+ the code
+> > > > > and pass in the base section mapping value.
+> > > > >
+> > > > > I'll sort out a patch later today for this.
+> > > > Great.
 > > >
-> > > Signed-off-by: Mark A. Greer <mgreer@animalcreek.com>
-> > > ---
->=20
-> > > =A0void __init omap3xxx_powerdomains_init(void)
-> > > =A0{
-> > > =A0 =A0 =A0 =A0unsigned int rev;
-> > > @@ -301,21 +403,31 @@ void __init omap3xxx_powerdomains_init(void=
-)
-> > > =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0return;
+> > > This works for my 4430SDP board. =A0I haven't booted it on anythi=
+ng else yet.
+> > > Please can you check that this solves the issue for you? =A0Thank=
+s.
 > > >
-> > > =A0 =A0 =A0 =A0pwrdm_register_platform_funcs(&omap3_pwrdm_operati=
-ons);
-> > > - =A0 =A0 =A0 pwrdm_register_pwrdms(powerdomains_omap3430_common)=
-;
-> > >
-> > > =A0 =A0 =A0 =A0rev =3D omap_rev();
-> > >
-> > > - =A0 =A0 =A0 if (rev =3D=3D OMAP3430_REV_ES1_0)
-> > > - =A0 =A0 =A0 =A0 =A0 =A0 =A0 pwrdm_register_pwrdms(powerdomains_=
-omap3430es1);
-> > > - =A0 =A0 =A0 else if (rev =3D=3D OMAP3430_REV_ES2_0 || rev =3D=3D=
- OMAP3430_REV_ES2_1 ||
-> > > - =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0rev =3D=3D OMAP3430_REV_ES3_0 ||=
- rev =3D=3D OMAP3630_REV_ES1_0)
-> > > - =A0 =A0 =A0 =A0 =A0 =A0 =A0 pwrdm_register_pwrdms(powerdomains_=
-omap3430es2_es3_0);
-> > > - =A0 =A0 =A0 else if (rev =3D=3D OMAP3430_REV_ES3_1 || rev =3D=3D=
- OMAP3430_REV_ES3_1_2 ||
-> > > - =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0rev =3D=3D AM35XX_REV_ES1_0 || r=
-ev =3D=3D AM35XX_REV_ES1_1 ||
-> > > - =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0rev =3D=3D OMAP3630_REV_ES1_1 ||=
- rev =3D=3D OMAP3630_REV_ES1_2)
-> > > - =A0 =A0 =A0 =A0 =A0 =A0 =A0 pwrdm_register_pwrdms(powerdomains_=
-omap3430es3_1plus);
-> > > - =A0 =A0 =A0 else
-> > > - =A0 =A0 =A0 =A0 =A0 =A0 =A0 WARN(1, "OMAP3 powerdomain init: un=
-known chip type\n");
-> > > + =A0 =A0 =A0 if (rev =3D=3D AM35XX_REV_ES1_0 || rev =3D=3D AM35X=
-X_REV_ES1_1) {
-> > > + =A0 =A0 =A0 =A0 =A0 =A0 =A0 pwrdm_register_pwrdms(powerdomains_=
-am35x);
-> > > + =A0 =A0 =A0 } else {
-> > > + =A0 =A0 =A0 =A0 =A0 =A0 =A0 pwrdm_register_pwrdms(powerdomains_=
-omap3430_common);
-> > Is there a way to avoid the big 'if else' here and have the code
-> > organized per chipset revision? A mutliple if-else or -even better
-> > IMO- a switch-case would make the code more readable.
->=20
-> We can't avoid it completely because we have to register
-> powerdomains_am35x[] [exclusive] OR (powerdomains_omap3430_common[] +
-> extras).  What I can do is leave the outside 'if' and turn the code
-> inside the 'else' into a switch stmt which should look nicer.
+> >
+> > Solves the issue for OMAP5. Thanks Russel and company.
+>
+> Can I add this attributation for this patch:
+>
+> Tested-by: Bryan Buckley <bryan.buckley@ti.com>
+>
+> ?
 
-Actually, I had a bug in this version where some domains weren't being
-added as they should be for the am35x.  I'll fix that in v2.
-
-Mark
+If still applicable, yes that is fine.
 --
 To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
 n
