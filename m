@@ -1,141 +1,77 @@
-From: Graeme Gregory <gg@slimlogic.co.uk>
-Subject: Re: [PATCH 3/4] REGULATOR: regulator driver for Palmas series chips
-Date: Tue, 15 May 2012 15:12:45 +0900
-Message-ID: <4FB1F3DD.3060005@slimlogic.co.uk>
-References: <1336960712-2812-1-git-send-email-gg@slimlogic.co.uk> <1336960712-2812-4-git-send-email-gg@slimlogic.co.uk> <20120514085223.GH31985@opensource.wolfsonmicro.com>
+From: Thomas Weber <thomas.weber.linux@googlemail.com>
+Subject: Re: [PATCH v4 04/39] ARM: OMAP2+: gpmc: Acquire NAND CS value
+Date: Tue, 15 May 2012 08:30:32 +0200
+Message-ID: <4FB1F808.9080500@gmail.com>
+References: <cover.1335874494.git.afzal@ti.com> <10220de398d22fad5de783d8f58fc55ebac85338.1335874494.git.afzal@ti.com> <4FA05292.7030902@ti.com> <C8443D0743D26F4388EA172BF4E2A7A93E9829B0@DBDE01.ent.ti.com> <C8443D0743D26F4388EA172BF4E2A7A93E98BD5A@DBDE01.ent.ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from slimlogic.co.uk ([89.16.172.20]:60173 "EHLO slimlogic.co.uk"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754188Ab2EOGNC (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Tue, 15 May 2012 02:13:02 -0400
-In-Reply-To: <20120514085223.GH31985@opensource.wolfsonmicro.com>
+Received: from mail-bk0-f46.google.com ([209.85.214.46]:60069 "EHLO
+	mail-bk0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753808Ab2EOGag (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 15 May 2012 02:30:36 -0400
+Received: by bkcji2 with SMTP id ji2so4456838bkc.19
+        for <linux-omap@vger.kernel.org>; Mon, 14 May 2012 23:30:34 -0700 (PDT)
+In-Reply-To: <C8443D0743D26F4388EA172BF4E2A7A93E98BD5A@DBDE01.ent.ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Mark Brown <broonie@opensource.wolfsonmicro.com>
-Cc: linux-kernel@vger.kernel.org, sameo@linux.intel.com, lrg@ti.com, b-cousson@ti.com, linux-omap@vger.kernel.org
+To: "Mohammed, Afzal" <afzal@ti.com>
+Cc: "tony@atomide.com" <tony@atomide.com>, "artem.bityutskiy@linux.intel.com" <artem.bityutskiy@linux.intel.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-mtd@lists.infradead.org" <linux-mtd@lists.infradead.org>
 
-On 14/05/12 17:52, Mark Brown wrote:
-> On Mon, May 14, 2012 at 10:58:31AM +0900, Graeme Gregory wrote:
+Hello Afzal,
+
+On 05/14/12 12:33, Mohammed, Afzal wrote:
+> Hi All,
 >
-> Looks good, quite a few of the things below are updates for very
-> recently introduced APIs.
+> On Thu, May 03, 2012 at 14:12:11, Mohammed, Afzal wrote:
 >
->> +static int palmas_smps_read(struct palmas *palmas, unsigned int reg,
->> +		unsigned int *dest)
->> +{
->> +	int slave;
->> +	unsigned int addr;
->> +
->> +	slave = PALMAS_BASE_TO_SLAVE(PALMAS_SMPS_BASE);
->> +	addr = PALMAS_BASE_TO_REG(PALMAS_SMPS_BASE, reg);
->> +
->> +	return regmap_read(palmas->regmap[slave], addr, dest);
->> +}
-> Looks like the LDO and SPMS regulators both use the same regmap?
-Yes have tidied this up a little in latest version.
->> +	.get_voltage		= palmas_get_voltage_smps,
-> Why not get_voltage_sel?
-Mild amnesia is my excuse, is fixed now!
+>>>> Some boards depend on bootloader to update chip select value for NAND.
+>>>> It is felt that Kernel should not depend on bootloader to get CS, as
+>>>> for a particular board CS is hardwired and is fixed, hence this can
+>>>> directly be updated in Kernel. But as CS value for boards that depend
+>>>> on this behaviour is not available, educate gpmc driver to acquire
+>>>> chip select value for NAND. this ideally should be removed once CS
+>>>> for those boards are available.
+>>> Do you know how many boards require this? If so which are those boards?
+>> devkit8000, beagle board, omap3touchbook, overo.
+>>
+>> Beagle board, found out to be zero.
+> I need a help.
+>
+> Can someone familiar with boards - devkit8000, omap3touchbook, overo boards,
+> let me know GPMC CS on which NAND is connected.
+On Devkit8000 the NAND is connected to CS0.
+I thought that all NAND devices for booting are connected to CS0, 
+because of ROM code?
 
->> +	.set_voltage_sel	= palmas_set_voltage_smps_sel,
->> +	.list_voltage		= palmas_list_voltage_smps,
-> Implementing map_voltage() too would be nice.
-I have implemented it for smps.
->> +static int palmas_is_enabled_smps10(struct regulator_dev *dev)
->> +{
->> +	struct palmas_pmic *pmic = rdev_get_drvdata(dev);
->> +	unsigned int reg;
->> +
->> +	palmas_smps_read(pmic->palmas, PALMAS_SMPS10_STATUS, &reg);
->> +
->> +	reg &= SMPS10_BOOST_EN;
->> +
-> Should be able to use regulator_is_enabled_regmap() and friends.
-Has been converted thanks!
+According to spruf98w.pdf:
 
->> +static int palmas_list_voltage_smps10(struct regulator_dev *dev,
->> +					unsigned selector)
->> +{
->> +	if (selector)
->> +		return 5000000;
->> +
->> +	return 3750000;
-> This could be written a little more transparently!
-Have re-written it hopefully clearer.
+25.4.7.4 NAND
+...
+  * The device is connected to CS0.
+...
 
->> +static int palmas_get_voltage_smps10(struct regulator_dev *dev)
->> +{
->> +	struct palmas_pmic *pmic = rdev_get_drvdata(dev);
->> +	int selector;
->> +	unsigned int reg;
->> +
->> +	palmas_smps_read(pmic->palmas, PALMAS_SMPS10_CTRL, &reg);
->> +
->> +	selector = (reg & SMPS10_VSEL) >> 3;
->> +
->> +	return palmas_list_voltage_smps10(dev, selector);
-> Should be get_voltage_sel() really, or beter still should be using
-> regulator_set_voltage_sel_regmap().  Similarly for the set (which is
-> already using _sel()).
-I have implemented it using the regmap functions thanks for tip!
+Regards,
+Thomas
 
->> +static int palmas_enable_ldo(struct regulator_dev *dev)
->> +{
->> +	struct palmas_pmic *pmic = rdev_get_drvdata(dev);
->> +	int id = rdev_get_id(dev);
->> +	unsigned int reg;
->> +
->> +	palmas_ldo_read(pmic->palmas, palmas_regs_info[id].ctrl_addr, &reg);
->> +
->> +	reg |= LDO1_CTRL_MODE_ACTIVE;
->> +
->> +	palmas_ldo_write(pmic->palmas, palmas_regs_info[id].ctrl_addr, reg);
-> Could use the core regmap stuff for the LDOs too.
-Enable/Disable now use regmap but is_enabled cant as it reads from a
-different bitmask.
-
->> +	/* Adjust selector to match list_voltage ranges */
->> +	if (selector > 49)
->> +		selector = 49;
->> +
->> +	return palmas_list_voltage_ldo(dev, selector);
-> get_voltage_sel().
-Has been fixed!
-
->> +	if (!pdata)
->> +		return -EINVAL;
->> +	if (!pdata->reg_data)
->> +		return -EINVAL;
-> I'd expect the driver to be able to register the regulators with no
-> platform data at all.
-Ok, I misunderstood how the pdata was used, hopefully I have got it
-correct in the new version.
-
->> +	pmic = kzalloc(sizeof(*pmic), GFP_KERNEL);
->> +	if (!pmic)
->> +		return -ENOMEM;
-> devm_kzalloc()
-Fixed!
-
->> +	pmic->desc = kcalloc(PALMAS_NUM_REGS,
->> +			sizeof(struct regulator_desc), GFP_KERNEL);
->> +	if (!pmic->desc) {
->> +		ret = -ENOMEM;
->> +		goto err_free_pmic;
->> +	}
-> Just embed this in the pmic struct?  It's always the same size.
-Have embedded, this was a left over from when I was originally planning
-the muxing handling.
-
->> +	pmic->rdev = kcalloc(PALMAS_NUM_REGS,
->> +			sizeof(struct regulator_dev *), GFP_KERNEL);
-> Similarly heere.
-Same as above.
-
-Thanks for taking time to review. Am sending v2 patches soon.
-
-Graeme
+> Hi Tony,
+>
+> I am planning to provide actual CS # used for NAND on above boards instead of
+> finding the value at runtime. Is there any reason that NAND CS# is found out
+> at runtime ? (hence remove necessity of omap_nand_flash_init()).
+>
+> Presence of this also causes an additional dependency of bootloader.
+>
+> As CS # depends on wiring on the board, my understanding is that it will be
+> fixed for a given board. Are you ok if acquiring NAND CS # is removed ?
+>
+> Removal of this helps in simplifying gpmc driver (undergoing conversion).
+>
+> Regards
+> Afzal
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-omap" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
 
