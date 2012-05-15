@@ -1,59 +1,72 @@
-From: "Hiremath, Vaibhav" <hvaibhav@ti.com>
-Subject: RE: [PATCH] ARM: OMAP2+: CLEANUP: Remove ARCH_OMAPx ifdef from
- struct dpll_data
-Date: Tue, 15 May 2012 05:41:34 +0000
-Message-ID: <79CD15C6BA57404B839C016229A409A83EA25E11@DBDE01.ent.ti.com>
-References: <1336716163-2960-1-git-send-email-hvaibhav@ti.com>
- <87zk9apfjo.fsf@ti.com>
+From: "J, KEERTHY" <j-keerthy@ti.com>
+Subject: Re: [PATCH V3 00/10] PM: Create the AVS(Adaptive Voltage Scaling)
+Date: Tue, 15 May 2012 11:16:53 +0530
+Message-ID: <CAJ6a13aJwesHw0frCV+EfvYaep09cZGcu_PopuHzye1HS2tgvg@mail.gmail.com>
+References: <1335462041-4949-1-git-send-email-j-keerthy@ti.com>
+	<87397by2h9.fsf@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from devils.ext.ti.com ([198.47.26.153]:38517 "EHLO
-	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751416Ab2EOFlo convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 15 May 2012 01:41:44 -0400
-In-Reply-To: <87zk9apfjo.fsf@ti.com>
-Content-Language: en-US
+Received: from na3sys009aog137.obsmtp.com ([74.125.149.18]:55287 "EHLO
+	na3sys009aog137.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1751819Ab2EOFqz convert rfc822-to-8bit
+	(ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Tue, 15 May 2012 01:46:55 -0400
+Received: by obbun3 with SMTP id un3so9005566obb.39
+        for <linux-omap@vger.kernel.org>; Mon, 14 May 2012 22:46:53 -0700 (PDT)
+In-Reply-To: <87397by2h9.fsf@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "Hilman, Kevin" <khilman@ti.com>
-Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, Tony Lindgren <tony@atomide.com>, Paul Walmsley <paul@pwsan.com>, "Shilimkar, Santosh" <santosh.shilimkar@ti.com>, "R, Sricharan" <r.sricharan@ti.com>
+To: "Rafael J. Wysocki" <rjw@sisk.pl>, Kevin Hilman <khilman@ti.com>
+Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org, linux-pm@lists.linux-foundation.org, j-pihet@ti.com
 
-On Tue, May 15, 2012 at 03:54:11, Hilman, Kevin wrote:
-> Vaibhav Hiremath <hvaibhav@ti.com> writes:
-> 
-> > From: Kevin Hilman <khilman@ti.com>
-> >
-> > There are certain fields inside 'struct dpll_data' which are
-> > included under ARCH_OMAP3 and ARCH_OMAP4 option, which makes it
-> > difficult to use it for new devices like, am33xx, ti81xx, etc...
-> >
-> > So remove the ifdef completely, this will add few fields to the struct
-> > unused, but it improves readability and maintainability of the code.
-> >
-> > Signed-off-by: Kevin Hilman <khilman@ti.com>
-> > Signed-off-by: Vaibhav Hiremath <hvaibhav@ti.com>
-> > Cc: Tony Lindgren <tony@atomide.com>
-> > Cc: Paul Walmsley <paul@pwsan.com>
-> > Cc: Santosh Shilimkar <santosh.shilimkar@ti.com>
-> > Cc: R Sricharan <r.sricharan@ti.com>
-> > ---
-> > Since Kevin had provided this idea and code change,
-> > making this patch under his authorship.
-> 
-> Be sure to give yourself credit for writing the changelog.  Normally, if
-> you make changes/additions to patch, you can add a line just before your
-> signoff.  Something like:
-> 
-> [hvaibhav@ti.com: wrote detailed changelog]
-> 
+On Tue, May 8, 2012 at 5:21 AM, Kevin Hilman <khilman@ti.com> wrote:
+> Rafael,
+>
+> Keerthy <j-keerthy@ti.com> writes:
+>
+>> From: J Keerthy <j-keerthy@ti.com>
+>>
+>> AVS(Adaptive Voltage Scaling) is a power management technique which
+>> controls the operating voltage of a device in order to optimize (i.e=
+=2E reduce)
+>> its power consumption. The voltage is adapted depending on static fa=
+ctors
+>> (chip manufacturing process) and dynamic factors (temperature
+>> depending performance).
+>> The TI AVS solution is named Smartreflex.
+>>
+>> To that end, create the AVS driver in drivers/power/avs and
+>> move the OMAP SmartReflex code to the new directory. The
+>> class driver is still retained in the mach-omap2 directory.
+>
+> How should we handle this for upstream?
+>
+> It does a bunch of cleanup under arch/arm then does the move to
+> drivers/power the end. =A0To avoid conflicts with other OMAP core cha=
+nges,
+> I would suggest we take this through the OMAP tree.
+>
+> With your ack, I'd be glad to take it.
 
-Ok...
+Hello Rafael,
 
-Paul,
-Can you please add above statement, when you merge it into your repo?
+A gentle ping on this series.
+
+>
+> Thanks,
+>
+> Kevin
+>
 
 
-Thanks,
-Vaibhav
+
+--=20
+Regards and Thanks,
+Keerthy
+--
+To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
