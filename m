@@ -1,101 +1,77 @@
-From: "Cousson, Benoit" <b-cousson@ti.com>
-Subject: Re: [PATCH] ARM: OMAP4: PM: Keep static dep between MPUSS and ABE
- clockdomain
-Date: Tue, 15 May 2012 16:32:25 +0200
-Message-ID: <4FB268F9.9040508@ti.com>
-References: <1337082156-30390-1-git-send-email-tarun.kanti@ti.com>
+From: Jon Hunter <jon-hunter@ti.com>
+Subject: Re: [PATCH 5/6] ARM: OMAP4: CLKDM: Update supported transition modes
+Date: Tue, 15 May 2012 09:33:34 -0500
+Message-ID: <4FB2693E.7090303@ti.com>
+References: <1336599364-11024-1-git-send-email-jon-hunter@ti.com> <4FAB6623.9090005@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="ISO-8859-1"
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <1337082156-30390-1-git-send-email-tarun.kanti@ti.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Tarun Kanti DebBarma <tarun.kanti@ti.com>, Paul Walmsley <paul@pwsan.com>
-Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org, Kevin Hilman <khilman@ti.com>, Tony Lindgren <tony@atomide.com>, Russell King <linux@arm.linux.org.uk>
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from devils.ext.ti.com ([198.47.26.153]:38182 "EHLO
+	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S932355Ab2EOOdl (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 15 May 2012 10:33:41 -0400
+In-Reply-To: <4FAB6623.9090005@ti.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Santosh Shilimkar <santosh.shilimkar@ti.com>
+Cc: linux-omap <linux-omap@vger.kernel.org>, Ming Lei <ming.lei@canonical.com>, Will Deacon <will.deacon@arm.com>, Benoit Cousson <b-cousson@ti.com>, Paul Walmsley <paul@pwsan.com>, Kevin Hilman <khilman@ti.com>
 
-+ Paul
+Hi Santosh, Benoit,
 
-Hi Tarun,
+On 05/10/2012 01:54 AM, Santosh Shilimkar wrote:
+> On Thursday 10 May 2012 03:06 AM, Jon Hunter wrote:
+>> From: Jon Hunter <jon-hunter@ti.com>
+>>
+>> For OMAP3+ devices, the clock domains (CLKDMs) support one or more of the
+>> following transition modes ...
+>>
+>> NO_SLEEP (0x0) - A clock domain sleep transition is never initiated,
+>> 		 irrespective of the hardware conditions.
+>> SW_SLEEP (0x1) - A software-forced sleep transition. The transition is initiated
+>> 		 when the associated hardware conditions are satisfied
+>> SW_WKUP  (0x2) - A software-forced clock domain wake-up transition is initiated,
+>> 		 irrespective of the hardware conditions.
+>> HW_AUTO  (0x3) - Hardware-controlled automatic sleep and wake-up transition is
+>> 		 initiated by the PRCM module when the associated hardware
+>> 		 conditions are satisfied.
+>>
+>> For OMAP4 devices, SW_SLEEP is equivalent to HW_AUTO and NO_SLEEP is equivalent
+>> to SW_WKUP. For OMAP4 devices, all CLKDMs support HW_AUTO and therefore we can
+>> place the CLKDMs in the HW_AUTO state instead of the SW_SLEEP mode. Hence, we
+>> do not need to use the SW_SLEEP mode. With regard to NO_SLEEP and SW_WKUP it is
+>> preferred to use SW_WKUP mode if the CLKDM supports it and so use this mode
+>> instead of NO_SLEEP where possible.
+>>
+>> For a software perspective the above 4 modes are represented by the following
+>> flags to indicate what modes are supported by each of the CLKDMs.
+>>
+>> CLKDM_CAN_DISABLE_AUTO	--> NO_SLEEP
+>> CLKDM_CAN_ENABLE_AUTO	--> HW_AUTO
+>> CLKDM_CAN_FORCE_SLEEP	--> SW_SLEEP
+>> CLKDM_CAN_FORCE_WAKEUP	--> SW_WKUP
+>>
+>> By eliminating the SW_SLEEP mode the the mapping of the flags for OMAP4 devices
+>> can becomes ...
+>>
+>> CLKDM_CAN_DISABLE_AUTO	--> NO_SLEEP
+>> CLKDM_CAN_ENABLE_AUTO	--> HW_AUTO
+>> CLKDM_CAN_FORCE_SLEEP	--> HW_AUTO
+> Not sure if this can be entirely correct for OMAP4.
+> Because HW_AUTO = "Sleep and wakeup transition are
+> based upon hardware conditions"
+> Where as SW_SLEEP = "Start a software forced sleep
+> transition on the domain."
+> 
+> I will reply on the the thread where this is being discussed.
 
-On 5/15/2012 1:42 PM, Tarun Kanti DebBarma wrote:
-> Commit 68523f4233de5f233478dde0a63047b4efb710b8 (ARM: OMAP4:
-> Workaround the OCP synchronisation issue with 32K synctimer)
-> does not include GP Timers in ABE domain. Since synchronization
-> issue is applicable to all GPTIMER[1-12], we also need to set
-> static dependency of MPUSS with abe_clkdm and l4_per_clkdm.
-> Dependency with l4_per_clkdm timers is already set in commit
-> 12f27826bdaf56b01cbdfc8bdeb577ebc106dee3 (ARM: OMAP4: PM: Keep
-> static dep between MPUSS-EMIF and MPUSS-L3/L4 and DUCATI-L3).
-> Therefore, set static dependency of MPUSS with abe_clkdm.
+Given that feedback we received that the only difference between HW_AUTO
+and SW_SLEEP is "that the PRM_IRQSTATUS_MPU.TRANSITION_ST interrupt
+status is set in case of SW_SLEEP transition, and not set in case of
+HW_AUTO transition". Are you ok with this change? If so can you sign-off
+on this?
 
-It seems to me that these various static dep workaround patches are more and more confusing and should require some further investigation / explanation.
+I can update the series with all the comments and re-post this week.
 
-If we keep doing that we will end up having every clock domains always ON each time the CPU is active. This is a very brute force approach not really acceptable for mainline and for PM point of view.
-
-Here we are forcing the ABE domain to be ON each time the MPU is ON even if we do not have any timer used inside the domain.
-
-It was mostly OK to do that for the wakeup domain due to the small power impact, but doing that on the L4_PER and ABE seems a little bit too much.
-
-The fix assumes as well that the MPU is the only user of that timer. What if either DSP or IPU uses it as well?
-
-
-Moreover the previous 68523f4233de5f2 commit did add tons of deps that does not seems to be really justified by any HW errata AFAIK.
-That does not mean they are not needed, but I think we should either remove them or add some more explanation.
-
-+       /*
-+        * The dynamic dependency between MPUSS -> MEMIF and
-+        * MPUSS -> L4_PER/L3_* and DUCATI -> L3_* doesn't work as
-+        * expected. The hardware recommendation is to enable static
-+        * dependencies for these to avoid system lock ups or random crashes.
-+        */
-+       mpuss_clkdm = clkdm_lookup("mpuss_clkdm");
-+       emif_clkdm = clkdm_lookup("l3_emif_clkdm");
-+       l3_1_clkdm = clkdm_lookup("l3_1_clkdm");
-+       l3_2_clkdm = clkdm_lookup("l3_2_clkdm");
-+       l4_per_clkdm = clkdm_lookup("l4_per_clkdm");
-+       ducati_clkdm = clkdm_lookup("ducati_clkdm");
-+       if ((!mpuss_clkdm) || (!emif_clkdm) || (!l3_1_clkdm) ||
-+               (!l3_2_clkdm) || (!ducati_clkdm) || (!l4_per_clkdm))
-+               goto err2;
-+
-+       ret = clkdm_add_wkdep(mpuss_clkdm, emif_clkdm);
-
-AFAIK, this one is the only one covered by an errata. It might be good to add a comment to explained the issue.
-
-+       ret |= clkdm_add_wkdep(mpuss_clkdm, l3_1_clkdm);
-+       ret |= clkdm_add_wkdep(mpuss_clkdm, l3_2_clkdm);
-+       ret |= clkdm_add_wkdep(mpuss_clkdm, l4_per_clkdm);
-+       ret |= clkdm_add_wkdep(ducati_clkdm, l3_1_clkdm);
-+       ret |= clkdm_add_wkdep(ducati_clkdm, l3_2_clkdm);
-
-Do we have errata for any of these ones?
-
-
-
-There is as well a confusion in the way the dep is explained. The dep is from a domain to a other one. Just saying a dep between domains is thus confusing.
-We do not know what is the initiator and what is the source.
-
-To add on top of that confusion, the API seems to explain the reverse dep.
-
- * clkdm_add_wkdep - add a wakeup dependency from clkdm2 to clkdm1
- * @clkdm1: wake this struct clockdomain * up (dependent)
- * @clkdm2: when this struct clockdomain * wakes up (source)
-
-Reading that you are implementing a dep from ABE to MPU. 
-
-> +	ret |= clkdm_add_wkdep(mpuss_clkdm, abe_clkdm);
-
-Which is clearly not what is done, since the HW setting is correct at the end.
-The API is setting the CM_MPU_STATICDEP.ABE_STATDEP bit. Meaning a dep from MPU domain toward target ABE domain.
-
-I guess the kerneldoc has to be updated.
-
-
-Paul,
-
-That sounds like an OMAP3 legacy stuff, isn't it? OMAP4 does not have these separate wkup / sleep dep anymore but only domain dep.
-
-
-Regards,
-Benoit
+Cheers
+Jon
