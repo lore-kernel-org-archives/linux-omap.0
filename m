@@ -1,119 +1,59 @@
-From: "Shilimkar, Santosh" <santosh.shilimkar@ti.com>
-Subject: Re: [PATCH] ARM: OMAP4: PM: Keep static dep between MPUSS and ABE clockdomain
-Date: Tue, 15 May 2012 20:30:44 +0530
-Message-ID: <CAMQu2gy72cbR4+xr6pYQBamNSjLdxUu4s_MkDf=pwrPnB56enA@mail.gmail.com>
-References: <1337082156-30390-1-git-send-email-tarun.kanti@ti.com> <4FB268F9.9040508@ti.com>
+From: "Mohammed, Afzal" <afzal@ti.com>
+Subject: RE: [PATCH 1/3] ARM: OMAP2+: gpmc: Modify interrupt handling
+Date: Tue, 15 May 2012 15:06:43 +0000
+Message-ID: <C8443D0743D26F4388EA172BF4E2A7A93E98C879@DBDE01.ent.ti.com>
+References: <cover.1337090835.git.afzal@ti.com>
+ <d193f1d968843c2580006bf3cde51f951de13892.1337090835.git.afzal@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <4FB268F9.9040508@ti.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: "Cousson, Benoit" <b-cousson@ti.com>
-Cc: Tarun Kanti DebBarma <tarun.kanti@ti.com>, Paul Walmsley <paul@pwsan.com>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org, Kevin Hilman <khilman@ti.com>, Tony Lindgren <tony@atomide.com>, Russell King <linux@arm.linux.org.uk>
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from comal.ext.ti.com ([198.47.26.152]:50670 "EHLO comal.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S933044Ab2EOPG4 convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 15 May 2012 11:06:56 -0400
+In-Reply-To: <d193f1d968843c2580006bf3cde51f951de13892.1337090835.git.afzal@ti.com>
+Content-Language: en-US
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: "tony@atomide.com" <tony@atomide.com>, "dwmw2@infradead.org" <dwmw2@infradead.org>, "artem.bityutskiy@linux.intel.com" <artem.bityutskiy@linux.intel.com>, "dedekind1@gmail.com" <dedekind1@gmail.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-mtd@lists.infradead.org" <linux-mtd@lists.infradead.org>
+Cc: "ivan.djelic@parrot.com" <ivan.djelic@parrot.com>
 
-On Tue, May 15, 2012 at 8:02 PM, Cousson, Benoit <b-cousson@ti.com> wro=
-te:
-> + Paul
->
-> Hi Tarun,
->
-> On 5/15/2012 1:42 PM, Tarun Kanti DebBarma wrote:
->> Commit 68523f4233de5f233478dde0a63047b4efb710b8 (ARM: OMAP4:
->> Workaround the OCP synchronisation issue with 32K synctimer)
->> does not include GP Timers in ABE domain. Since synchronization
->> issue is applicable to all GPTIMER[1-12], we also need to set
->> static dependency of MPUSS with abe_clkdm and l4_per_clkdm.
->> Dependency with l4_per_clkdm timers is already set in commit
->> 12f27826bdaf56b01cbdfc8bdeb577ebc106dee3 (ARM: OMAP4: PM: Keep
->> static dep between MPUSS-EMIF and MPUSS-L3/L4 and DUCATI-L3).
->> Therefore, set static dependency of MPUSS with abe_clkdm.
->
-> It seems to me that these various static dep workaround patches are m=
-ore and more confusing and should require some further investigation / =
-explanation.
->
-This is a new BUG which has not made it to errata list yet. It will
-make it eventually.
+Hi Tony,
 
-> If we keep doing that we will end up having every clock domains alway=
-s ON each time the CPU is active. This is a very brute force approach n=
-ot really acceptable for mainline and for PM point of view.
->
-Indeed.
+On Tue, May 15, 2012 at 20:08:34, Mohammed, Afzal wrote:
+> Modify interrupt handling such that interrupts can be handled by GPMC
+> client drivers using standard interrupt APIs rather than requiring
+> the drivers to have knowledge about GPMC interrupt handling. Currently
+> only NAND related interrupts has been considered (which is the case
+> even without this change) as the only user of GPMC interrupt is NAND.
 
-> Here we are forcing the ABE domain to be ON each time the MPU is ON e=
-ven if we do not have any timer used inside the domain.
->
-Actually the BUG is really related to timers running on 32KHz and only
-in that case such a WA is needed. BTW, the WA is suggested by hardware
-team.
+:
 
-> It was mostly OK to do that for the wakeup domain due to the small po=
-wer impact, but doing that on the L4_PER and ABE seems a little bit too=
- much.
->
-L4PER and ABE should not be set default....
+> -	ret = request_irq(gpmc_irq, gpmc_handle_irq, IRQF_SHARED, "gpmc", NULL);
 
-> The fix assumes as well that the MPU is the only user of that timer. =
-What if either DSP or IPU uses it as well?
->
+If this series could not be considered for 3.5, to prevent failure of
+request_irq, either,
 
-> Moreover the previous 68523f4233de5f2 commit did add tons of deps tha=
-t does not seems to be really justified by any HW errata AFAIK.
-> That does not mean they are not needed, but I think we should either =
-remove them or add some more explanation.
->
-EMIF and L3 are covered as part of the errata's. Most if these static
-deps issues never worked properly and people ended up hacking
-like disable L3 when display ON etc etc.
+355f8ee  ARM: OMAP2+: GPMC: resolve type-conversion warning from sparse,
 
-> + =A0 =A0 =A0 /*
-> + =A0 =A0 =A0 =A0* The dynamic dependency between MPUSS -> MEMIF and
-> + =A0 =A0 =A0 =A0* MPUSS -> L4_PER/L3_* and DUCATI -> L3_* doesn't wo=
-rk as
-> + =A0 =A0 =A0 =A0* expected. The hardware recommendation is to enable=
- static
-> + =A0 =A0 =A0 =A0* dependencies for these to avoid system lock ups or=
- random crashes.
-> + =A0 =A0 =A0 =A0*/
-> + =A0 =A0 =A0 mpuss_clkdm =3D clkdm_lookup("mpuss_clkdm");
-> + =A0 =A0 =A0 emif_clkdm =3D clkdm_lookup("l3_emif_clkdm");
-> + =A0 =A0 =A0 l3_1_clkdm =3D clkdm_lookup("l3_1_clkdm");
-> + =A0 =A0 =A0 l3_2_clkdm =3D clkdm_lookup("l3_2_clkdm");
-> + =A0 =A0 =A0 l4_per_clkdm =3D clkdm_lookup("l4_per_clkdm");
-> + =A0 =A0 =A0 ducati_clkdm =3D clkdm_lookup("ducati_clkdm");
-> + =A0 =A0 =A0 if ((!mpuss_clkdm) || (!emif_clkdm) || (!l3_1_clkdm) ||
-> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 (!l3_2_clkdm) || (!ducati_clkdm) || (!l=
-4_per_clkdm))
-> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 goto err2;
-> +
-> + =A0 =A0 =A0 ret =3D clkdm_add_wkdep(mpuss_clkdm, emif_clkdm);
->
-> AFAIK, this one is the only one covered by an errata. It might be goo=
-d to add a comment to explained the issue.
->
-> + =A0 =A0 =A0 ret |=3D clkdm_add_wkdep(mpuss_clkdm, l3_1_clkdm);
-> + =A0 =A0 =A0 ret |=3D clkdm_add_wkdep(mpuss_clkdm, l3_2_clkdm);
-> + =A0 =A0 =A0 ret |=3D clkdm_add_wkdep(mpuss_clkdm, l4_per_clkdm);
-> + =A0 =A0 =A0 ret |=3D clkdm_add_wkdep(ducati_clkdm, l3_1_clkdm);
-> + =A0 =A0 =A0 ret |=3D clkdm_add_wkdep(ducati_clkdm, l3_2_clkdm);
->
-> Do we have errata for any of these ones?
->
-If we forget about the latest timer issues doing the round only EMIF an=
-d L3
-deps with different initiators were needed. L4PER was because of UART
-idle mode issue which I fixed recently. At least with that fix, L4PER s=
-hould
-be killed. Will be good to take the latest findings on the static deps =
-issues
-and update above list.
-
-These timer OCP sync issue has really created a big mess again...
-Timer is 3 domains. AON, ABE and L4pER and the WA suggested is
-static dep as if it is free. There is no other WA.
+should be avoided, or diff [1] would be required, as shared irq needs dev-id.
 
 Regards
-Santosh
+Afzal
+
+[1]
+diff --git a/arch/arm/mach-omap2/gpmc.c b/arch/arm/mach-omap2/gpmc.c
+index 46b09da..9e1b726 100644
+--- a/arch/arm/mach-omap2/gpmc.c
++++ b/arch/arm/mach-omap2/gpmc.c
+@@ -768,7 +768,7 @@ static int __init gpmc_init(void)
+                irq++;
+        }
+
+-       ret = request_irq(gpmc_irq, gpmc_handle_irq, IRQF_SHARED, "gpmc", NULL);
++       ret = request_irq(gpmc_irq, gpmc_handle_irq, 0, "gpmc", NULL);
+        if (ret)
+                pr_err("gpmc: irq-%d could not claim: err %d\n",
+                                                gpmc_irq, ret);
+
