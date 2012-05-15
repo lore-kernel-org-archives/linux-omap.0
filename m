@@ -1,21 +1,21 @@
 From: Kevin Hilman <khilman@ti.com>
-Subject: Re: [PATCHv5 6/8] ARM: OMAP4: pwrdm: add support for reading prev logic and mem states
-Date: Tue, 15 May 2012 15:36:58 -0700
-Message-ID: <87havhax6d.fsf@ti.com>
+Subject: Re: [PATCHv5 8/8] ARM: OMAP4: PM: Added option for enabling OSWR
+Date: Tue, 15 May 2012 15:41:39 -0700
+Message-ID: <87zk999ie4.fsf@ti.com>
 References: <1336989796-26594-1-git-send-email-t-kristo@ti.com>
-	<1336989796-26594-7-git-send-email-t-kristo@ti.com>
+	<1336989796-26594-9-git-send-email-t-kristo@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aog117.obsmtp.com ([74.125.149.242]:52225 "EHLO
-	na3sys009aog117.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S965977Ab2EOWg7 (ORCPT
+Received: from na3sys009aog132.obsmtp.com ([74.125.149.250]:47610 "EHLO
+	na3sys009aog132.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S966244Ab2EOWlj (ORCPT
 	<rfc822;linux-omap@vger.kernel.org>);
-	Tue, 15 May 2012 18:36:59 -0400
-Received: by dalf4 with SMTP id f4so108373dal.15
-        for <linux-omap@vger.kernel.org>; Tue, 15 May 2012 15:36:57 -0700 (PDT)
-In-Reply-To: <1336989796-26594-7-git-send-email-t-kristo@ti.com> (Tero
-	Kristo's message of "Mon, 14 May 2012 13:03:14 +0300")
+	Tue, 15 May 2012 18:41:39 -0400
+Received: by pbbrq2 with SMTP id rq2so249937pbb.20
+        for <linux-omap@vger.kernel.org>; Tue, 15 May 2012 15:41:38 -0700 (PDT)
+In-Reply-To: <1336989796-26594-9-git-send-email-t-kristo@ti.com> (Tero
+	Kristo's message of "Mon, 14 May 2012 13:03:16 +0300")
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: Tero Kristo <t-kristo@ti.com>
@@ -23,87 +23,110 @@ Cc: linux-omap@vger.kernel.org, paul@pwsan.com, linux-arm-kernel@lists.infradead
 
 Tero Kristo <t-kristo@ti.com> writes:
 
-> On OMAP4, there is no support to read previous logic state
-> or previous memory state achieved when a power domain transitions
-> to RET. Instead there are module level context registers.
->
-> In order to support the powerdomain level logic/mem_off_counters
-> on OMAP4, instead use the previous power state achieved (RET) and
-> the *programmed* logic/mem RET state to derive if a powerdomain lost
-> logic or did not.
->
-> If the powerdomain is programmed to enter RET state and lose logic
-> in RET state, knowing that the powerdomain entered RET is good enough
-> to derive that the logic was lost as well, in such cases.
+> PM debug now contains a file that can be used to control OSWR support
+> enable / disable on OMAP4. Also removed the off_mode_enable file for
+> the same platform as it is unsupported.
 >
 > Signed-off-by: Tero Kristo <t-kristo@ti.com>
 
-Looks OK, but these new functions need some kerneldoc to describe the
-decision making.
+I'll gladly take a patch that makes enable_off_mode OMAP3-only, but I am
+not interested managing another new flag for OSWR.
+
+For OMAP4, this should just be the default, and any drivers that are
+broken just need to be fixed either by implementing context save/restore
+or by using constraints.
 
 Kevin
 
 > ---
->  arch/arm/mach-omap2/powerdomain44xx.c |   32 ++++++++++++++++++++++++++++++++
->  1 files changed, 32 insertions(+), 0 deletions(-)
+>  arch/arm/mach-omap2/pm-debug.c |   20 ++++++++++++++++----
+>  arch/arm/mach-omap2/pm.h       |    1 +
+>  arch/arm/mach-omap2/pm44xx.c   |   16 ++++++++++++++++
+>  3 files changed, 33 insertions(+), 4 deletions(-)
 >
-> diff --git a/arch/arm/mach-omap2/powerdomain44xx.c b/arch/arm/mach-omap2/powerdomain44xx.c
-> index 601325b..ab00736 100644
-> --- a/arch/arm/mach-omap2/powerdomain44xx.c
-> +++ b/arch/arm/mach-omap2/powerdomain44xx.c
-> @@ -151,6 +151,21 @@ static int omap4_pwrdm_read_logic_retst(struct powerdomain *pwrdm)
->  	return v;
+> diff --git a/arch/arm/mach-omap2/pm-debug.c b/arch/arm/mach-omap2/pm-debug.c
+> index 814bcd9..d9a8e42 100644
+> --- a/arch/arm/mach-omap2/pm-debug.c
+> +++ b/arch/arm/mach-omap2/pm-debug.c
+> @@ -39,6 +39,7 @@
+>  #include "pm.h"
+>  
+>  u32 enable_off_mode;
+> +static u32 enable_oswr_mode;
+>  
+>  #ifdef CONFIG_DEBUG_FS
+>  #include <linux/debugfs.h>
+> @@ -247,10 +248,13 @@ static int option_set(void *data, u64 val)
+>  			omap_pm_enable_off_mode();
+>  		else
+>  			omap_pm_disable_off_mode();
+> -		if (cpu_is_omap34xx())
+> -			omap3_pm_off_mode_enable(val);
+> +
+> +		omap3_pm_off_mode_enable(val);
+>  	}
+>  
+> +	if (option == &enable_oswr_mode)
+> +		omap4_pm_oswr_mode_enable(val);
+> +
+>  	return 0;
 >  }
 >  
-> +static int omap4_pwrdm_read_prev_logic_pwrst(struct powerdomain *pwrdm)
-> +{
-> +	int state;
+> @@ -274,8 +278,16 @@ static int __init pm_dbg_init(void)
+>  
+>  	pwrdm_for_each(pwrdms_setup, (void *)d);
+>  
+> -	(void) debugfs_create_file("enable_off_mode", S_IRUGO | S_IWUSR, d,
+> -				   &enable_off_mode, &pm_dbg_option_fops);
+> +	if (cpu_is_omap34xx())
+> +		(void) debugfs_create_file("enable_off_mode",
+> +			S_IRUGO | S_IWUSR, d, &enable_off_mode,
+> +			&pm_dbg_option_fops);
 > +
-> +	state = omap4_pwrdm_read_prev_pwrst(pwrdm);
+> +	if (cpu_is_omap44xx())
+> +		(void) debugfs_create_file("enable_oswr_mode",
+> +			S_IRUGO | S_IWUSR, d, &enable_oswr_mode,
+> +			&pm_dbg_option_fops);
 > +
-> +	if (state == PWRDM_POWER_OFF)
-> +		return PWRDM_POWER_OFF;
-> +
-> +	if (state != PWRDM_POWER_RET)
-> +		return PWRDM_POWER_ON;
-> +
-> +	return omap4_pwrdm_read_logic_retst(pwrdm);
-> +}
-> +
->  static int omap4_pwrdm_read_mem_pwrst(struct powerdomain *pwrdm, u8 bank)
->  {
->  	u32 m, v;
-> @@ -179,6 +194,21 @@ static int omap4_pwrdm_read_mem_retst(struct powerdomain *pwrdm, u8 bank)
->  	return v;
+>  	pm_dbg_init_done = 1;
+>  
+>  	return 0;
+> diff --git a/arch/arm/mach-omap2/pm.h b/arch/arm/mach-omap2/pm.h
+> index 36fa90b..c36ab63 100644
+> --- a/arch/arm/mach-omap2/pm.h
+> +++ b/arch/arm/mach-omap2/pm.h
+> @@ -17,6 +17,7 @@
+>  
+>  extern void *omap3_secure_ram_storage;
+>  extern void omap3_pm_off_mode_enable(int);
+> +extern void omap4_pm_oswr_mode_enable(int);
+>  extern void omap_sram_idle(void);
+>  extern int omap_set_pwrdm_state(struct powerdomain *pwrdm, u32 state);
+>  extern int omap3_idle_init(void);
+> diff --git a/arch/arm/mach-omap2/pm44xx.c b/arch/arm/mach-omap2/pm44xx.c
+> index cc85576..07ac0d3 100644
+> --- a/arch/arm/mach-omap2/pm44xx.c
+> +++ b/arch/arm/mach-omap2/pm44xx.c
+> @@ -115,6 +115,22 @@ static int __init pwrdms_setup(struct powerdomain *pwrdm, void *unused)
+>  	return omap_set_pwrdm_state(pwrst->pwrdm, pwrst->next_state);
 >  }
 >  
-> +static int omap4_pwrdm_read_prev_mem_pwrst(struct powerdomain *pwrdm, u8 bank)
+> +void omap4_pm_oswr_mode_enable(int enable)
 > +{
-> +	int state;
+> +	u32 next_logic_state;
+> +	struct power_state *pwrst;
 > +
-> +	state = omap4_pwrdm_read_prev_pwrst(pwrdm);
+> +	if (enable)
+> +		next_logic_state = PWRDM_POWER_OFF;
+> +	else
+> +		next_logic_state = PWRDM_POWER_RET;
 > +
-> +	if (state == PWRDM_POWER_OFF)
-> +		return PWRDM_POWER_OFF;
-> +
-> +	if (state != PWRDM_POWER_RET)
-> +		return PWRDM_POWER_ON;
-> +
-> +	return omap4_pwrdm_read_mem_retst(pwrdm, bank);
+> +	list_for_each_entry(pwrst, &pwrst_list, node) {
+> +		pwrst->next_logic_state = next_logic_state;
+> +		pwrdm_set_logic_retst(pwrst->pwrdm, pwrst->next_logic_state);
+> +	}
 > +}
 > +
->  static int omap4_pwrdm_wait_transition(struct powerdomain *pwrdm)
->  {
->  	u32 c = 0;
-> @@ -217,9 +247,11 @@ struct pwrdm_ops omap4_pwrdm_operations = {
->  	.pwrdm_clear_all_prev_pwrst	= omap4_pwrdm_clear_all_prev_pwrst,
->  	.pwrdm_set_logic_retst	= omap4_pwrdm_set_logic_retst,
->  	.pwrdm_read_logic_pwrst	= omap4_pwrdm_read_logic_pwrst,
-> +	.pwrdm_read_prev_logic_pwrst	= omap4_pwrdm_read_prev_logic_pwrst,
->  	.pwrdm_read_logic_retst	= omap4_pwrdm_read_logic_retst,
->  	.pwrdm_read_mem_pwrst	= omap4_pwrdm_read_mem_pwrst,
->  	.pwrdm_read_mem_retst	= omap4_pwrdm_read_mem_retst,
-> +	.pwrdm_read_prev_mem_pwrst	= omap4_pwrdm_read_prev_mem_pwrst,
->  	.pwrdm_set_mem_onst	= omap4_pwrdm_set_mem_onst,
->  	.pwrdm_set_mem_retst	= omap4_pwrdm_set_mem_retst,
->  	.pwrdm_wait_transition	= omap4_pwrdm_wait_transition,
+>  /**
+>   * omap_default_idle - OMAP4 default ilde routine.'
+>   *
