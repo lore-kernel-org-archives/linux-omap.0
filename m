@@ -1,223 +1,142 @@
-From: "Mark A. Greer" <mgreer@animalcreek.com>
-Subject: Re: [PATCH 2/2] arm: omap3: am35x: Disable hlt when using Davinci
- EMAC
-Date: Tue, 15 May 2012 09:14:30 -0700
-Message-ID: <20120515161430.GA26651@animalcreek.com>
-References: <1336770778-23044-1-git-send-email-mgreer@animalcreek.com>
- <1336770778-23044-3-git-send-email-mgreer@animalcreek.com>
- <4FB0C06A.5030503@compulab.co.il>
- <20120514165456.GA28976@animalcreek.com>
- <87ehqmqwhm.fsf@ti.com>
- <4FB24F21.2010009@compulab.co.il>
+From: "Cousson, Benoit" <b-cousson@ti.com>
+Subject: Re: [PATCH] ARM: OMAP4: PM: Keep static dep between MPUSS and ABE
+ clockdomain
+Date: Tue, 15 May 2012 18:25:22 +0200
+Message-ID: <4FB28372.3010604@ti.com>
+References: <1337082156-30390-1-git-send-email-tarun.kanti@ti.com> <4FB268F9.9040508@ti.com> <CAMQu2gy72cbR4+xr6pYQBamNSjLdxUu4s_MkDf=pwrPnB56enA@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset="ISO-8859-1"; format=flowed
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail20.dotsterhost.com ([66.11.232.73]:33575 "EHLO
-	mail20.dotsterhost.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S965264Ab2EOQOc (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 15 May 2012 12:14:32 -0400
-Content-Disposition: inline
-In-Reply-To: <4FB24F21.2010009@compulab.co.il>
+Received: from devils.ext.ti.com ([198.47.26.153]:46800 "EHLO
+	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S933069Ab2EOQZg (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 15 May 2012 12:25:36 -0400
+In-Reply-To: <CAMQu2gy72cbR4+xr6pYQBamNSjLdxUu4s_MkDf=pwrPnB56enA@mail.gmail.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Igor Grinberg <grinberg@compulab.co.il>
-Cc: Kevin Hilman <khilman@ti.com>, paul@pwsan.com, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+To: "Shilimkar, Santosh" <santosh.shilimkar@ti.com>
+Cc: Tarun Kanti DebBarma <tarun.kanti@ti.com>, Paul Walmsley <paul@pwsan.com>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org, Kevin Hilman <khilman@ti.com>, Tony Lindgren <tony@atomide.com>, Russell King <linux@arm.linux.org.uk>
 
-On Tue, May 15, 2012 at 03:42:09PM +0300, Igor Grinberg wrote:
-> On 05/15/12 00:32, Kevin Hilman wrote:
-> > "Mark A. Greer" <mgreer@animalcreek.com> writes:
-> > 
-> >> On Mon, May 14, 2012 at 11:20:58AM +0300, Igor Grinberg wrote:
-> >>> Hi Mark,
-> >>
-> >> Hi Igor.
-> >>
-> >>> Thanks for the great work!
-> >>>
-> >>> On 05/12/12 00:12, Mark A. Greer wrote:
-> >>>> From: "Mark A. Greer" <mgreer@animalcreek.com>
-> >>>>
-> >>>> The am35x family of SoCs has a Davinci EMAC ethernet
-> >>>> controller on-chip.  Unfortunately, the EMAC is unable
-> >>>> to wake the PRCM when there is network activity which
-> >>>> leads to a hung or extremely slow system when the MPU
-> >>>> has executed a 'wfi' instruction (because of pm_idle
-> >>>> or CPUidle).  To prevent this, add hooks to the EMAC
-> >>>> pm_runtime suspend/resume calls so that hlt is disabled
-> >>>> whenever the EMAC is in use.
-> >>>>
-> >>>> Signed-off-by: Mark A. Greer <mgreer@animalcreek.com>
-> >>>> ---
-> >>>>  arch/arm/mach-omap2/am35xx-emac.c     |   44 +++++++++++++++++++++++++++++----
-> >>>>  arch/arm/mach-omap2/am35xx-emac.h     |   16 +++++++++---
-> >>>>  arch/arm/mach-omap2/board-am3517evm.c |    3 ++-
-> >>>>  arch/arm/mach-omap2/board-cm-t3517.c  |    3 ++-
-> >>>>  4 files changed, 56 insertions(+), 10 deletions(-)
-> >>>>
-> >>>> diff --git a/arch/arm/mach-omap2/am35xx-emac.c b/arch/arm/mach-omap2/am35xx-emac.c
-> >>>> index 3bb5cb3..22ff968 100644
-> >>>> --- a/arch/arm/mach-omap2/am35xx-emac.c
-> >>>> +++ b/arch/arm/mach-omap2/am35xx-emac.c
-> >>>> @@ -23,6 +23,37 @@
-> >>>>  #include "control.h"
-> >>>>  #include "am35xx-emac.h"
-> >>>>  
-> >>>> +/*
-> >>>> + * Default pm_lats for the am35x.
-> >>>> + * The net effect of using am35xx_emac_pm_lats[] is that
-> >>>> + * pm_idle or CPUidle won't be called while the emac
-> >>>> + * interface is open.  This is required because the
-> >>>> + * EMAC can't wake up PRCM so if the MPU is executing
-> >>>> + * a 'wfi' instruction (e.g., from pm_idle or CPUidle),
-> >>>> + * it won't break out of it due to emac activity.
-> >>>> + */
-> >>>> +static int am35xx_emac_deactivate_func(struct omap_device *od)
-> >>>> +{
-> >>>> +	enable_hlt();
-> >>>> +	return omap_device_idle_hwmods(od);
-> >>>> +}
-> >>>> +
-> >>>> +static int am35xx_emac_activate_func(struct omap_device *od)
-> >>>> +{
-> >>>> +	disable_hlt();
-> >>>> +	return omap_device_enable_hwmods(od);
-> >>>> +}
-> >>>> +
-> >>>> +struct omap_device_pm_latency am35xx_emac_pm_lats[] = {
-> >>>> +	{
-> >>>> +		.deactivate_func	= am35xx_emac_deactivate_func,
-> >>>> +		.activate_func		= am35xx_emac_activate_func,
-> >>>> +		.flags			= OMAP_DEVICE_LATENCY_AUTO_ADJUST,
-> >>>> +	},
-> >>>> +};
-> >>>> +
-> >>>> +int am35xx_emac_pm_lats_size = ARRAY_SIZE(am35xx_emac_pm_lats);
-> >>>> +
-> >>>>  static void am35xx_enable_emac_int(void)
-> >>>>  {
-> >>>>  	u32 regval;
-> >>>> @@ -61,12 +92,13 @@ static struct emac_platform_data am35xx_emac_pdata = {
-> >>>>  static struct mdio_platform_data am35xx_mdio_pdata;
-> >>>>  
-> >>>>  static int __init omap_davinci_emac_dev_init(struct omap_hwmod *oh,
-> >>>> -		void *pdata, int pdata_len)
-> >>>> +		void *pdata, int pdata_len,
-> >>>> +		struct omap_device_pm_latency *pm_lats, int pm_lats_size)
-> >>>>  {
-> >>>>  	struct platform_device *pdev;
-> >>>>  
-> >>>>  	pdev = omap_device_build(oh->class->name, 0, oh, pdata, pdata_len,
-> >>>> -			NULL, 0, false);
-> >>>> +			pm_lats, pm_lats_size, false);
-> >>>>  	if (IS_ERR(pdev)) {
-> >>>>  		WARN(1, "Can't build omap_device for %s:%s.\n",
-> >>>>  					oh->class->name, oh->name);
-> >>>> @@ -76,7 +108,8 @@ static int __init omap_davinci_emac_dev_init(struct omap_hwmod *oh,
-> >>>>  	return 0;
-> >>>>  }
-> >>>>  
-> >>>> -void __init am35xx_emac_init(unsigned long mdio_bus_freq, u8 rmii_en)
-> >>>> +void __init am35xx_emac_init(unsigned long mdio_bus_freq, u8 rmii_en,
-> >>>> +		struct omap_device_pm_latency *pm_lats, int pm_lats_size)
-> >>>>  {
-> >>>>  	struct omap_hwmod *oh;
-> >>>>  	u32 regval;
-> >>>> @@ -91,7 +124,7 @@ void __init am35xx_emac_init(unsigned long mdio_bus_freq, u8 rmii_en)
-> >>>>  	am35xx_mdio_pdata.bus_freq = mdio_bus_freq;
-> >>>>  
-> >>>>  	ret = omap_davinci_emac_dev_init(oh, &am35xx_mdio_pdata,
-> >>>> -					 sizeof(am35xx_mdio_pdata));
-> >>>> +					 sizeof(am35xx_mdio_pdata), NULL, 0);
-> >>>>  	if (ret) {
-> >>>>  		pr_err("Could not build davinci_mdio hwmod device\n");
-> >>>>  		return;
-> >>>> @@ -106,7 +139,8 @@ void __init am35xx_emac_init(unsigned long mdio_bus_freq, u8 rmii_en)
-> >>>>  	am35xx_emac_pdata.rmii_en = rmii_en;
-> >>>>  
-> >>>>  	ret = omap_davinci_emac_dev_init(oh, &am35xx_emac_pdata,
-> >>>> -					 sizeof(am35xx_emac_pdata));
-> >>>> +					 sizeof(am35xx_emac_pdata),
-> >>>> +					 pm_lats, pm_lats_size);
-> >>>>  	if (ret) {
-> >>>>  		pr_err("Could not build davinci_emac hwmod device\n");
-> >>>>  		return;
-> >>>> diff --git a/arch/arm/mach-omap2/am35xx-emac.h b/arch/arm/mach-omap2/am35xx-emac.h
-> >>>> index 15c6f9c..7c23808 100644
-> >>>> --- a/arch/arm/mach-omap2/am35xx-emac.h
-> >>>> +++ b/arch/arm/mach-omap2/am35xx-emac.h
-> >>>> @@ -6,10 +6,20 @@
-> >>>>   * published by the Free Software Foundation.
-> >>>>   */
-> >>>>  
-> >>>> +#include <plat/omap_device.h>
-> >>>> +
-> >>>>  #define AM35XX_DEFAULT_MDIO_FREQUENCY	1000000
-> >>>>  
-> >>>> -#if defined(CONFIG_TI_DAVINCI_EMAC) || defined(CONFIG_TI_DAVINCI_EMAC_MODULE)
-> >>>> -void am35xx_emac_init(unsigned long mdio_bus_freq, u8 rmii_en);
-> >>>> +#if IS_ENABLED(CONFIG_TI_DAVINCI_EMAC)
-> >>>> +extern struct omap_device_pm_latency am35xx_emac_pm_lats[];
-> >>>> +extern int am35xx_emac_pm_lats_size;
-> >>>> +
-> >>>> +void am35xx_emac_init(unsigned long mdio_bus_freq, u8 rmii_en,
-> >>>> +		struct omap_device_pm_latency *pm_lats, int pm_lats_size);
-> >>>>  #else
-> >>>> -static inline void am35xx_emac_init(unsigned long mdio_bus_freq, u8 rmii_en) {}
-> >>>> +#define am35xx_emac_pm_lats		NULL
-> >>>> +#define am35xx_emac_pm_lats_size	0
-> >>>> +
-> >>>> +static inline void am35xx_emac_init(unsigned long mdio_bus_freq, u8 rmii_en,
-> >>>> +		struct omap_device_pm_latency *pm_lats, int pm_lats_size) {}
-> >>>>  #endif
-> >>>> diff --git a/arch/arm/mach-omap2/board-am3517evm.c b/arch/arm/mach-omap2/board-am3517evm.c
-> >>>> index 3645285..fe3a304 100644
-> >>>> --- a/arch/arm/mach-omap2/board-am3517evm.c
-> >>>> +++ b/arch/arm/mach-omap2/board-am3517evm.c
-> >>>> @@ -385,7 +385,8 @@ static void __init am3517_evm_init(void)
-> >>>>  	i2c_register_board_info(1, am3517evm_i2c1_boardinfo,
-> >>>>  				ARRAY_SIZE(am3517evm_i2c1_boardinfo));
-> >>>>  	/*Ethernet*/
-> >>>> -	am35xx_emac_init(AM35XX_DEFAULT_MDIO_FREQUENCY, 1);
-> >>>> +	am35xx_emac_init(AM35XX_DEFAULT_MDIO_FREQUENCY, 1,
-> >>>> +			 am35xx_emac_pm_lats, am35xx_emac_pm_lats_size);
-> >>>
-> >>> Why is it essential for board file to pass these pm structures?
-> >>> Is it something board specific?
-> >>> Can't you just use them inside the am35xx-emac.c file?
-> >>
-> >> Great question.  I went back & forth on this mayself (I have 3 different
-> >> versions sitting in my repo :).  I ended up passing the pm structures in
-> >> case there is a variant that comes along that doesn't need this fixup (or
-> >> a board that wants to do this plus additional things).
-> >>
-> >> The variants that I have are:
-> >>
-> >> 1) Leave am35xx_emac_init() interface the way it is and automatically
-> >> add the necessary things.  The problem is lack of flexibility if & when
-> >> some other variant comes along.
-> >>
-> >> 2) Add pm_lats & pm_lats_size to am35xx_emac_init() but if they're NULL
-> >> or 0, then use the defaults that are the same as what's in this patch.
-> >> More flexible but doesn't easily allow a board file to NULL out the pm
-> >> structure (have to make up and pass NULL version).
-> >>
-> >> 3) Pass the pm struct via am35xx_emac_init() and just make the default
-> >> available for use.  This is what I submitted since it was the most flexible.
-> >>
-> >> Which one do you prefer or do you have something else in mind?
-> >>
-> > 
-> > For now, I suggest you stick with (1) until we have a reason to make it
-> > more flexible.  AFAIK, all usages of this IP in OMAP-derivative parts
-> > have this same limitation.
-> 
-> I agree with Kevin - (1) should be used.
-> 
-> There is no need to complicate things in favor of something that might
-> or might not exist some day, because even if it will exist some day,
-> we probably anyway will see a better solution to this and will change
-> the existing one.
+On 5/15/2012 5:00 PM, Shilimkar, Santosh wrote:
+> On Tue, May 15, 2012 at 8:02 PM, Cousson, Benoit<b-cousson@ti.com>  wrote:
+>> + Paul
+>>
+>> Hi Tarun,
+>>
+>> On 5/15/2012 1:42 PM, Tarun Kanti DebBarma wrote:
+>>> Commit 68523f4233de5f233478dde0a63047b4efb710b8 (ARM: OMAP4:
+>>> Workaround the OCP synchronisation issue with 32K synctimer)
+>>> does not include GP Timers in ABE domain. Since synchronization
+>>> issue is applicable to all GPTIMER[1-12], we also need to set
+>>> static dependency of MPUSS with abe_clkdm and l4_per_clkdm.
+>>> Dependency with l4_per_clkdm timers is already set in commit
+>>> 12f27826bdaf56b01cbdfc8bdeb577ebc106dee3 (ARM: OMAP4: PM: Keep
+>>> static dep between MPUSS-EMIF and MPUSS-L3/L4 and DUCATI-L3).
+>>> Therefore, set static dependency of MPUSS with abe_clkdm.
+>>
+>> It seems to me that these various static dep workaround patches are more and more confusing and should require some further investigation / explanation.
+>>
+> This is a new BUG which has not made it to errata list yet. It will
+> make it eventually.
+>
+>> If we keep doing that we will end up having every clock domains always ON each time the CPU is active. This is a very brute force approach not really acceptable for mainline and for PM point of view.
+>>
+> Indeed.
+>
+>> Here we are forcing the ABE domain to be ON each time the MPU is ON even if we do not have any timer used inside the domain.
+>>
+> Actually the BUG is really related to timers running on 32KHz and only
+> in that case such a WA is needed. BTW, the WA is suggested by hardware
+> team.
 
-Okay, I will submit v2 in a bit.
+That does not mean we have to implement it that way, or there is no 
+other WA. HW team tends to stop investigating as soon as one WA is found.
 
-Mark
+>> It was mostly OK to do that for the wakeup domain due to the small power impact, but doing that on the L4_PER and ABE seems a little bit too much.
+>>
+> L4PER and ABE should not be set default....
+
+Indeed.
+
+>> The fix assumes as well that the MPU is the only user of that timer. What if either DSP or IPU uses it as well?
+>>
+>
+>> Moreover the previous 68523f4233de5f2 commit did add tons of deps that does not seems to be really justified by any HW errata AFAIK.
+>> That does not mean they are not needed, but I think we should either remove them or add some more explanation.
+>>
+> EMIF and L3 are covered as part of the errata's. Most if these static
+> deps issues never worked properly and people ended up hacking
+> like disable L3 when display ON etc etc.
+
+Yeah, that's why we have to be more explicit because some of them were 
+already investigated further since last year, and as you said some are 
+already deprecated.
+
+>> +       /*
+>> +        * The dynamic dependency between MPUSS ->  MEMIF and
+>> +        * MPUSS ->  L4_PER/L3_* and DUCATI ->  L3_* doesn't work as
+>> +        * expected. The hardware recommendation is to enable static
+>> +        * dependencies for these to avoid system lock ups or random crashes.
+>> +        */
+>> +       mpuss_clkdm = clkdm_lookup("mpuss_clkdm");
+>> +       emif_clkdm = clkdm_lookup("l3_emif_clkdm");
+>> +       l3_1_clkdm = clkdm_lookup("l3_1_clkdm");
+>> +       l3_2_clkdm = clkdm_lookup("l3_2_clkdm");
+>> +       l4_per_clkdm = clkdm_lookup("l4_per_clkdm");
+>> +       ducati_clkdm = clkdm_lookup("ducati_clkdm");
+>> +       if ((!mpuss_clkdm) || (!emif_clkdm) || (!l3_1_clkdm) ||
+>> +               (!l3_2_clkdm) || (!ducati_clkdm) || (!l4_per_clkdm))
+>> +               goto err2;
+>> +
+>> +       ret = clkdm_add_wkdep(mpuss_clkdm, emif_clkdm);
+>>
+>> AFAIK, this one is the only one covered by an errata. It might be good to add a comment to explained the issue.
+>>
+>> +       ret |= clkdm_add_wkdep(mpuss_clkdm, l3_1_clkdm);
+>> +       ret |= clkdm_add_wkdep(mpuss_clkdm, l3_2_clkdm);
+>> +       ret |= clkdm_add_wkdep(mpuss_clkdm, l4_per_clkdm);
+>> +       ret |= clkdm_add_wkdep(ducati_clkdm, l3_1_clkdm);
+>> +       ret |= clkdm_add_wkdep(ducati_clkdm, l3_2_clkdm);
+>>
+>> Do we have errata for any of these ones?
+>>
+> If we forget about the latest timer issues doing the round only EMIF and L3
+> deps with different initiators were needed.
+
+Is there an errata for these ones?
+
+> L4PER was because of UART
+> idle mode issue which I fixed recently. At least with that fix, L4PER should
+> be killed. Will be good to take the latest findings on the static deps issues
+> and update above list.
+
+Yes, that was my point. We have to reduce that list if possible and 
+potentially add some details to understand why these deps are needed.
+
+> These timer OCP sync issue has really created a big mess again...
+> Timer is 3 domains. AON, ABE and L4pER and the WA suggested is
+> static dep as if it is free. There is no other WA.
+
+There is always other WA. Playing with global clock domain settings to 
+prevent clock transition at IP level is always the easy but worst WA.
+
+A much better approach is to play with IP local idle management. At 
+least that will ensure that the WA is applied only if the module is in 
+use. Another one will be to read until the timer has changed its value. 
+OK, that one will generate a huge delay that might be un-acceptable for 
+a timer using a 32k clock, but might be doable for a one at sys_clk, 
+assuming this bug does exist in that case.
+
+My point is that we have to refine the way we are applying this WA if it 
+is really needed for all the cases. Enabling at boot time only is 
+clearly not a good approach.
+
+In any case, this WA should be module centric. If we change the clock 
+domain partitioning for OMAP5, we will have to change again that fix 
+since we are hard coding the clock domain in that code.
+This is the timers IP that does have this issue, so it should be handled 
+at that level.
+
+Regards,
+Benoit
