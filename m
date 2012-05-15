@@ -1,51 +1,65 @@
-From: "Mark A. Greer" <mgreer@animalcreek.com>
-Subject: [PATCH v2 0/2] arm: omap3: am35x: Convert emac to hwmod & disable hlt when open
-Date: Tue, 15 May 2012 11:14:00 -0700
-Message-ID: <1337105642-22711-1-git-send-email-mgreer@animalcreek.com>
+From: Mark Brown <broonie@opensource.wolfsonmicro.com>
+Subject: Re: [PATCHv2 3/4] REGULATOR: regulator driver for Palmas series chips
+Date: Tue, 15 May 2012 19:19:25 +0100
+Message-ID: <20120515181921.GE19592@opensource.wolfsonmicro.com>
+References: <1337064539-3014-1-git-send-email-gg@slimlogic.co.uk>
+ <1337064539-3014-4-git-send-email-gg@slimlogic.co.uk>
+Mime-Version: 1.0
+Content-Type: multipart/signed; micalg=pgp-sha1;
+	protocol="application/pgp-signature"; boundary="6e7ZaeXHKrTJCxdu"
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail20.dotsterhost.com ([66.11.232.73]:36963 "EHLO
-	mail20.dotsterhost.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932922Ab2EOSOy (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 15 May 2012 14:14:54 -0400
+Received: from opensource.wolfsonmicro.com ([80.75.67.52]:42169 "EHLO
+	opensource.wolfsonmicro.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1754402Ab2EOSTl (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>);
+	Tue, 15 May 2012 14:19:41 -0400
+Content-Disposition: inline
+In-Reply-To: <1337064539-3014-4-git-send-email-gg@slimlogic.co.uk>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: paul@pwsan.com, khilman@ti.com
-Cc: linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org, "Mark A. Greer" <mgreer@animalcreek.com>
+To: Graeme Gregory <gg@slimlogic.co.uk>
+Cc: linux-kernel@vger.kernel.org, sameo@linux.intel.com, lrg@ti.com, b-cousson@ti.com, linux-omap@vger.kernel.org
 
-From: "Mark A. Greer" <mgreer@animalcreek.com>
 
-These patches convert the davinci emac support for the am35x SoC
-to use hwmod and add enable_hlt()/disable_hlt() calls to the
-pm_runtime hooks for that driver.
+--6e7ZaeXHKrTJCxdu
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
 
-I have converted the davinci_emac driver to use pm_runtime but I
-can't formally submit it yet since it requires some changes on the
-mach-davinci side that haven't happened yet.  I will send it as an
-RFC in a reply to this thread.
+On Tue, May 15, 2012 at 03:48:58PM +0900, Graeme Gregory wrote:
+> Palmas has both Switched Mode (SMPS) and Linear (LDO) regulators in it.
+> This regulator driver allows software control of these regulators.
+>=20
+> The regulators available on Palmas series chips vary depending on the mux=
+ing.
+> This is handled automatically in the driver by reading the mux info from =
+OTP.
 
-The patches are based on:
-        git://git.pwsan.com/linux-2.6 am35xx_hwmod_data_fixes_a_3.5
+This all looks good modulo the thing with is_enabled() that I mentioned
+which I think we can deal with incrementally - I'd apply but it depends
+on the MFD header :/ If Samuel is OK with me applying the MFD I'll work
+it out in my trees (probably by squashing the pdata into the mfd commit.
 
-Changes from v1:
-- patch 1/2, "arm: omap3: am35x: Add Davinci EMAC/MDIO hwmod support"
-  is unchanged
-- patch 2/2, "arm: "omap3: am35x: Disable hlt when using Davinci EMAC"
-  has been reworked to keep the code as simple as possible per
-  http://www.spinics.net/lists/linux-omap/msg70354.html
+--6e7ZaeXHKrTJCxdu
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: Digital signature
 
-Mark
---
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.4.12 (GNU/Linux)
 
-Mark A. Greer (2):
-  arm: omap3: am35x: Add Davinci EMAC/MDIO hwmod support
-  arm: omap3: am35x: Disable hlt when using Davinci EMAC
+iQIcBAEBAgAGBQJPsp4eAAoJEBus8iNuMP3deS0P/jtPrNzvPB9QvteLN6uCkRa2
+Z6tevX0nLvS+wnazv3YZvb25vB9ipq5+kWqF4cAq0Bk/fElmyG6nqucYZXOBlb/r
+ZpOSGnbVMKfmbLh9UfBUVBwnYd2+JQmuB20rXmcTE15IYj7Mlq2GWJ89jTnqfO3V
+qSIEjZjm8m3ZMoCbAZ1xA4i0cH1WbXE9gDePMaNm7T4Hcdafc/e1xBMSC0v+dNnS
+oQ05zLo9wQZLesa3bgr0r0JM+EwGULhAaFjHYOyRZ8rg/OBUFCNDclRDa9MeMMEQ
+0L3EqpEG2iRhfD9Fl5z4v/7rqOZN/dS1dSSIAKja4GzpJw9y5iN83dK4sWFctBQO
+EZ3ZBozhpMg34Z54nThLHQ1ccSq9tuFStWFqSbp8kf8/UlxvA6W0NPVdCenzZq1a
+N4gCDQ9abrW5qakNmgB6yK53eXt9weJQRnJ60SBsl+3pwZOhTZGYTeF2KVbZeliL
+stc3XlgfJ4xE9WIPo7ryXOLLiYLRArdFCDNAtqsi6ewd419E4aJJ/XnyZ8/Eectm
+8EGZIt8Ir+RgCXBFwLgVLv+bWmnhVokA4R3grta8O2liRaIeQIoL2lxa9k/2l/eI
+bRChIMVZi3wuUwzWCljbluQskfguY/A0lCFEy3lHpgu8ghGQhwvRu8tGwNCM+Nhc
+ryiHrVcnzcT6EhW9hMNz
+=YGc3
+-----END PGP SIGNATURE-----
 
- arch/arm/mach-omap2/am35xx-emac.c          |  116 ++++++++++++++++++----------
- arch/arm/mach-omap2/clock3xxx_data.c       |    2 +-
- arch/arm/mach-omap2/include/mach/am35xx.h  |    2 +
- arch/arm/mach-omap2/omap_hwmod_3xxx_data.c |   85 ++++++++++++++++++++
- 4 files changed, 163 insertions(+), 42 deletions(-)
-
--- 
-1.7.9.4
-
+--6e7ZaeXHKrTJCxdu--
