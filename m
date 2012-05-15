@@ -1,132 +1,76 @@
-From: Kevin Hilman <khilman@ti.com>
-Subject: Re: [PATCHv5 8/8] ARM: OMAP4: PM: Added option for enabling OSWR
-Date: Tue, 15 May 2012 15:41:39 -0700
-Message-ID: <87zk999ie4.fsf@ti.com>
-References: <1336989796-26594-1-git-send-email-t-kristo@ti.com>
-	<1336989796-26594-9-git-send-email-t-kristo@ti.com>
+From: Jon Hunter <jon-hunter@ti.com>
+Subject: [PATCH 0/9] ARM: OMAP: DMTIMER clean-up in preparation for device-tree
+Date: Tue, 15 May 2012 18:35:14 -0500
+Message-ID: <1337124914-19921-1-git-send-email-jon-hunter@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aog132.obsmtp.com ([74.125.149.250]:47610 "EHLO
-	na3sys009aog132.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S966244Ab2EOWlj (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>);
-	Tue, 15 May 2012 18:41:39 -0400
-Received: by pbbrq2 with SMTP id rq2so249937pbb.20
-        for <linux-omap@vger.kernel.org>; Tue, 15 May 2012 15:41:38 -0700 (PDT)
-In-Reply-To: <1336989796-26594-9-git-send-email-t-kristo@ti.com> (Tero
-	Kristo's message of "Mon, 14 May 2012 13:03:16 +0300")
+Received: from devils.ext.ti.com ([198.47.26.153]:42032 "EHLO
+	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S966132Ab2EOXfN (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 15 May 2012 19:35:13 -0400
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Tero Kristo <t-kristo@ti.com>
-Cc: linux-omap@vger.kernel.org, paul@pwsan.com, linux-arm-kernel@lists.infradead.org
+To: linux-omap <linux-omap@vger.kernel.org>
+Cc: Tony Lindgren <tony@atomide.com>, Benoit Cousson <b-cousson@ti.com>, Jon Hunter <jon-hunter@ti.com>
 
-Tero Kristo <t-kristo@ti.com> writes:
+From: Jon Hunter <jon-hunter@ti.com>
 
-> PM debug now contains a file that can be used to control OSWR support
-> enable / disable on OMAP4. Also removed the off_mode_enable file for
-> the same platform as it is unsupported.
->
-> Signed-off-by: Tero Kristo <t-kristo@ti.com>
+In order to migrate the dmtimer driver to support device-tree I found that it
+was first necessary to clean-up the timer platform data. The goal of this
+series is to simplify the timer platform data structure from ...
 
-I'll gladly take a patch that makes enable_off_mode OMAP3-only, but I am
-not interested managing another new flag for OSWR.
+struct dmtimer_platform_data {
+	int (*set_timer_src)(struct platform_device *pdev, int source);
+	int timer_ip_version;
+	u32 needs_manual_reset:1;
+	bool reserved;
+	bool loses_context;
+	int (*get_context_loss_count)(struct device *dev);
+};
 
-For OMAP4, this should just be the default, and any drivers that are
-broken just need to be fixed either by implementing context save/restore
-or by using constraints.
+to ...
 
-Kevin
+struct dmtimer_platform_data {
+	int (*set_timer_src)(struct platform_device *pdev, int source);
+	u32 timer_capability;
+};
 
-> ---
->  arch/arm/mach-omap2/pm-debug.c |   20 ++++++++++++++++----
->  arch/arm/mach-omap2/pm.h       |    1 +
->  arch/arm/mach-omap2/pm44xx.c   |   16 ++++++++++++++++
->  3 files changed, 33 insertions(+), 4 deletions(-)
->
-> diff --git a/arch/arm/mach-omap2/pm-debug.c b/arch/arm/mach-omap2/pm-debug.c
-> index 814bcd9..d9a8e42 100644
-> --- a/arch/arm/mach-omap2/pm-debug.c
-> +++ b/arch/arm/mach-omap2/pm-debug.c
-> @@ -39,6 +39,7 @@
->  #include "pm.h"
->  
->  u32 enable_off_mode;
-> +static u32 enable_oswr_mode;
->  
->  #ifdef CONFIG_DEBUG_FS
->  #include <linux/debugfs.h>
-> @@ -247,10 +248,13 @@ static int option_set(void *data, u64 val)
->  			omap_pm_enable_off_mode();
->  		else
->  			omap_pm_disable_off_mode();
-> -		if (cpu_is_omap34xx())
-> -			omap3_pm_off_mode_enable(val);
-> +
-> +		omap3_pm_off_mode_enable(val);
->  	}
->  
-> +	if (option == &enable_oswr_mode)
-> +		omap4_pm_oswr_mode_enable(val);
-> +
->  	return 0;
->  }
->  
-> @@ -274,8 +278,16 @@ static int __init pm_dbg_init(void)
->  
->  	pwrdm_for_each(pwrdms_setup, (void *)d);
->  
-> -	(void) debugfs_create_file("enable_off_mode", S_IRUGO | S_IWUSR, d,
-> -				   &enable_off_mode, &pm_dbg_option_fops);
-> +	if (cpu_is_omap34xx())
-> +		(void) debugfs_create_file("enable_off_mode",
-> +			S_IRUGO | S_IWUSR, d, &enable_off_mode,
-> +			&pm_dbg_option_fops);
-> +
-> +	if (cpu_is_omap44xx())
-> +		(void) debugfs_create_file("enable_oswr_mode",
-> +			S_IRUGO | S_IWUSR, d, &enable_oswr_mode,
-> +			&pm_dbg_option_fops);
-> +
->  	pm_dbg_init_done = 1;
->  
->  	return 0;
-> diff --git a/arch/arm/mach-omap2/pm.h b/arch/arm/mach-omap2/pm.h
-> index 36fa90b..c36ab63 100644
-> --- a/arch/arm/mach-omap2/pm.h
-> +++ b/arch/arm/mach-omap2/pm.h
-> @@ -17,6 +17,7 @@
->  
->  extern void *omap3_secure_ram_storage;
->  extern void omap3_pm_off_mode_enable(int);
-> +extern void omap4_pm_oswr_mode_enable(int);
->  extern void omap_sram_idle(void);
->  extern int omap_set_pwrdm_state(struct powerdomain *pwrdm, u32 state);
->  extern int omap3_idle_init(void);
-> diff --git a/arch/arm/mach-omap2/pm44xx.c b/arch/arm/mach-omap2/pm44xx.c
-> index cc85576..07ac0d3 100644
-> --- a/arch/arm/mach-omap2/pm44xx.c
-> +++ b/arch/arm/mach-omap2/pm44xx.c
-> @@ -115,6 +115,22 @@ static int __init pwrdms_setup(struct powerdomain *pwrdm, void *unused)
->  	return omap_set_pwrdm_state(pwrst->pwrdm, pwrst->next_state);
->  }
->  
-> +void omap4_pm_oswr_mode_enable(int enable)
-> +{
-> +	u32 next_logic_state;
-> +	struct power_state *pwrst;
-> +
-> +	if (enable)
-> +		next_logic_state = PWRDM_POWER_OFF;
-> +	else
-> +		next_logic_state = PWRDM_POWER_RET;
-> +
-> +	list_for_each_entry(pwrst, &pwrst_list, node) {
-> +		pwrst->next_logic_state = next_logic_state;
-> +		pwrdm_set_logic_retst(pwrst->pwrdm, pwrst->next_logic_state);
-> +	}
-> +}
-> +
->  /**
->   * omap_default_idle - OMAP4 default ilde routine.'
->   *
+... where timer_capability is a bit mask that indicates the timer features
+supported and uses the HWMOD timer capabilities flags described in
+plat/dmtimer.h. For OMAP2+ devices this allows us to read the timer
+capabilities from the HWMOD data and for OMAP1 devices the flags are simply
+populated by the timer initialisation code. Eventually, the aim is to read the
+timer capabilities from the device tree blob.
+
+This series includes some fixes as well as clean-up. If it is preferred to split
+the series into fixes and clean-up I can do that, but wanted to get some
+feedback on this approach.
+
+This series is based upon the current linux-omap master branch. I have built
+both omap1 and omap2plus configurations as well as booted the respective kernels
+on the omap5912 OSK (omap1), omap2430 SDP, OMAP3430 Beagle and OMAP4460 PANDA.
+
+Jon Hunter (9):
+  ARM: OMAP: Remove unnecessary clk structure
+  ARM: OMAP2+: Remove unused max number of timers definition
+  ARM: OMAP2+: Add dmtimer platform function to reserve systimers
+  ARM: OMAP: Represent timer features using HWMOD flags
+  ARM: OMAP2+: HWMOD: Correct timer device attributes
+  ARM: OMAP2+: Fix external clock support for dmtimers
+  ARM: OMAP: Remove loses_context variable from timer platform data
+  ARM: OMAP: Remove timer function pointer for context loss counter
+  ARM: OMAP: Add flag to indicate if a timer needs a manual reset
+
+ arch/arm/mach-omap1/timer.c                        |    3 +-
+ arch/arm/mach-omap2/omap_hwmod_2xxx_ipblock_data.c |   24 ++++++----
+ arch/arm/mach-omap2/omap_hwmod_3xxx_data.c         |   10 +----
+ arch/arm/mach-omap2/omap_hwmod_44xx_data.c         |    6 --
+ arch/arm/mach-omap2/timer.c                        |   22 ++-------
+ arch/arm/plat-omap/dmtimer.c                       |   49 ++++++++++++--------
+ arch/arm/plat-omap/include/plat/dmtimer.h          |   21 ++------
+ 7 files changed, 57 insertions(+), 78 deletions(-)
+
+-- 
+1.7.5.4
+
