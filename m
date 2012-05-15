@@ -1,67 +1,141 @@
-From: "Hiremath, Vaibhav" <hvaibhav@ti.com>
-Subject: RE: [GIT PULL] ARM: OMAP2+: Add AM335x and AM3517/05 EVM DT support
-Date: Tue, 15 May 2012 06:05:26 +0000
-Message-ID: <79CD15C6BA57404B839C016229A409A83EA25EB3@DBDE01.ent.ti.com>
-References: <4FAD0A71.80201@ti.com> <20120511195620.GX21851@atomide.com>
- <79CD15C6BA57404B839C016229A409A83EA23806@DBDE01.ent.ti.com>
- <20120512171503.GL5140@atomide.com>
+From: Graeme Gregory <gg@slimlogic.co.uk>
+Subject: Re: [PATCH 3/4] REGULATOR: regulator driver for Palmas series chips
+Date: Tue, 15 May 2012 15:12:45 +0900
+Message-ID: <4FB1F3DD.3060005@slimlogic.co.uk>
+References: <1336960712-2812-1-git-send-email-gg@slimlogic.co.uk> <1336960712-2812-4-git-send-email-gg@slimlogic.co.uk> <20120514085223.GH31985@opensource.wolfsonmicro.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from arroyo.ext.ti.com ([192.94.94.40]:40587 "EHLO arroyo.ext.ti.com"
+Received: from slimlogic.co.uk ([89.16.172.20]:60173 "EHLO slimlogic.co.uk"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754449Ab2EOGFe convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 15 May 2012 02:05:34 -0400
-In-Reply-To: <20120512171503.GL5140@atomide.com>
-Content-Language: en-US
+	id S1754188Ab2EOGNC (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Tue, 15 May 2012 02:13:02 -0400
+In-Reply-To: <20120514085223.GH31985@opensource.wolfsonmicro.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Tony Lindgren <tony@atomide.com>
-Cc: "Cousson, Benoit" <b-cousson@ti.com>, linux-omap <linux-omap@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>
+To: Mark Brown <broonie@opensource.wolfsonmicro.com>
+Cc: linux-kernel@vger.kernel.org, sameo@linux.intel.com, lrg@ti.com, b-cousson@ti.com, linux-omap@vger.kernel.org
 
-On Sat, May 12, 2012 at 22:45:04, Tony Lindgren wrote:
-> * Hiremath, Vaibhav <hvaibhav@ti.com> [120512 01:26]:
-> > On Sat, May 12, 2012 at 01:26:20, Tony Lindgren wrote:
-> > > Hi,
-> > > 
-> > > * Cousson, Benoit <b-cousson@ti.com> [120511 05:51]:
-> > > > Hi Tony,
-> > > > 
-> > > > Here are some remaining DT patches I was not able to push at 3.4 due to some missing dependency.
-> > > > It applies now fine on top of lo/dt branch.
-> > > 
-> > > It seems that there are still patches being discussed for those SoCs
-> > > and we're pretty much done for this merge window. So unless things
-> > > drag on to -rc8, I'd say we just need to postpone merging new things
-> > > and merge them early around -rc2.
-> > > 
-> > 
-> > Oops...
-> > It seems like I missed this merge window as well...
-> 
-> We can still queue these into linux-omap for testing as
-> soon as the patches are ready.
-> 
-> In general, for anything more intrusive we want to have
-> the patches sitting in linux-omap master branch and then
-> in linux-next for at least a week. Then merging them into
-> mainline tree is usually safe to do. The reason for this is
-> that mainline kernel is our stable tree, not our
-> development tree.
-> 
-> We just need to queue most of things between -rc2 and
-> -rc4 into the arm-soc tree, and have any issues fixed up
-> before the merge window. Trying to cram development
-> branches in around -rc6 just causes us a huge maintenance
-> nightmare trying to fix up things in the mainline tree
-> between -rc1 and -rc4.
-> 
+On 14/05/12 17:52, Mark Brown wrote:
+> On Mon, May 14, 2012 at 10:58:31AM +0900, Graeme Gregory wrote:
+>
+> Looks good, quite a few of the things below are updates for very
+> recently introduced APIs.
+>
+>> +static int palmas_smps_read(struct palmas *palmas, unsigned int reg,
+>> +		unsigned int *dest)
+>> +{
+>> +	int slave;
+>> +	unsigned int addr;
+>> +
+>> +	slave = PALMAS_BASE_TO_SLAVE(PALMAS_SMPS_BASE);
+>> +	addr = PALMAS_BASE_TO_REG(PALMAS_SMPS_BASE, reg);
+>> +
+>> +	return regmap_read(palmas->regmap[slave], addr, dest);
+>> +}
+> Looks like the LDO and SPMS regulators both use the same regmap?
+Yes have tidied this up a little in latest version.
+>> +	.get_voltage		= palmas_get_voltage_smps,
+> Why not get_voltage_sel?
+Mild amnesia is my excuse, is fixed now!
 
-Understood Tony...
+>> +	.set_voltage_sel	= palmas_set_voltage_smps_sel,
+>> +	.list_voltage		= palmas_list_voltage_smps,
+> Implementing map_voltage() too would be nice.
+I have implemented it for smps.
+>> +static int palmas_is_enabled_smps10(struct regulator_dev *dev)
+>> +{
+>> +	struct palmas_pmic *pmic = rdev_get_drvdata(dev);
+>> +	unsigned int reg;
+>> +
+>> +	palmas_smps_read(pmic->palmas, PALMAS_SMPS10_STATUS, &reg);
+>> +
+>> +	reg &= SMPS10_BOOST_EN;
+>> +
+> Should be able to use regulator_is_enabled_regmap() and friends.
+Has been converted thanks!
 
-This time I will try to follow up closely and will make sure that we have 
-everything (especially new development) by rc2-rc4 window.
+>> +static int palmas_list_voltage_smps10(struct regulator_dev *dev,
+>> +					unsigned selector)
+>> +{
+>> +	if (selector)
+>> +		return 5000000;
+>> +
+>> +	return 3750000;
+> This could be written a little more transparently!
+Have re-written it hopefully clearer.
 
-Thanks,
-Vaibhav
+>> +static int palmas_get_voltage_smps10(struct regulator_dev *dev)
+>> +{
+>> +	struct palmas_pmic *pmic = rdev_get_drvdata(dev);
+>> +	int selector;
+>> +	unsigned int reg;
+>> +
+>> +	palmas_smps_read(pmic->palmas, PALMAS_SMPS10_CTRL, &reg);
+>> +
+>> +	selector = (reg & SMPS10_VSEL) >> 3;
+>> +
+>> +	return palmas_list_voltage_smps10(dev, selector);
+> Should be get_voltage_sel() really, or beter still should be using
+> regulator_set_voltage_sel_regmap().  Similarly for the set (which is
+> already using _sel()).
+I have implemented it using the regmap functions thanks for tip!
+
+>> +static int palmas_enable_ldo(struct regulator_dev *dev)
+>> +{
+>> +	struct palmas_pmic *pmic = rdev_get_drvdata(dev);
+>> +	int id = rdev_get_id(dev);
+>> +	unsigned int reg;
+>> +
+>> +	palmas_ldo_read(pmic->palmas, palmas_regs_info[id].ctrl_addr, &reg);
+>> +
+>> +	reg |= LDO1_CTRL_MODE_ACTIVE;
+>> +
+>> +	palmas_ldo_write(pmic->palmas, palmas_regs_info[id].ctrl_addr, reg);
+> Could use the core regmap stuff for the LDOs too.
+Enable/Disable now use regmap but is_enabled cant as it reads from a
+different bitmask.
+
+>> +	/* Adjust selector to match list_voltage ranges */
+>> +	if (selector > 49)
+>> +		selector = 49;
+>> +
+>> +	return palmas_list_voltage_ldo(dev, selector);
+> get_voltage_sel().
+Has been fixed!
+
+>> +	if (!pdata)
+>> +		return -EINVAL;
+>> +	if (!pdata->reg_data)
+>> +		return -EINVAL;
+> I'd expect the driver to be able to register the regulators with no
+> platform data at all.
+Ok, I misunderstood how the pdata was used, hopefully I have got it
+correct in the new version.
+
+>> +	pmic = kzalloc(sizeof(*pmic), GFP_KERNEL);
+>> +	if (!pmic)
+>> +		return -ENOMEM;
+> devm_kzalloc()
+Fixed!
+
+>> +	pmic->desc = kcalloc(PALMAS_NUM_REGS,
+>> +			sizeof(struct regulator_desc), GFP_KERNEL);
+>> +	if (!pmic->desc) {
+>> +		ret = -ENOMEM;
+>> +		goto err_free_pmic;
+>> +	}
+> Just embed this in the pmic struct?  It's always the same size.
+Have embedded, this was a left over from when I was originally planning
+the muxing handling.
+
+>> +	pmic->rdev = kcalloc(PALMAS_NUM_REGS,
+>> +			sizeof(struct regulator_dev *), GFP_KERNEL);
+> Similarly heere.
+Same as above.
+
+Thanks for taking time to review. Am sending v2 patches soon.
+
+Graeme
+
