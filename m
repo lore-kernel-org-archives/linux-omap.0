@@ -1,56 +1,283 @@
-From: Mark Brown <broonie@opensource.wolfsonmicro.com>
-Subject: Re: [PATCHv2 1/4] MFD: palmas PMIC device support
-Date: Tue, 15 May 2012 19:14:51 +0100
-Message-ID: <20120515181448.GD19592@opensource.wolfsonmicro.com>
-References: <1337064539-3014-1-git-send-email-gg@slimlogic.co.uk>
- <1337064539-3014-2-git-send-email-gg@slimlogic.co.uk>
-Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="LTeJQqWS0MN7I/qa"
-Return-path: <linux-kernel-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <1337064539-3014-2-git-send-email-gg@slimlogic.co.uk>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Graeme Gregory <gg@slimlogic.co.uk>
-Cc: linux-kernel@vger.kernel.org, sameo@linux.intel.com, lrg@ti.com, b-cousson@ti.com, linux-omap@vger.kernel.org
+From: "Mark A. Greer" <mgreer@animalcreek.com>
+Subject: [PATCH v2 1/2] arm: omap3: am35x: Add Davinci EMAC/MDIO hwmod support
+Date: Tue, 15 May 2012 11:14:01 -0700
+Message-ID: <1337105642-22711-2-git-send-email-mgreer@animalcreek.com>
+References: <1337105642-22711-1-git-send-email-mgreer@animalcreek.com>
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from mail20.dotsterhost.com ([66.11.232.73]:37588 "EHLO
+	mail20.dotsterhost.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S932887Ab2EOSPI (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 15 May 2012 14:15:08 -0400
+In-Reply-To: <1337105642-22711-1-git-send-email-mgreer@animalcreek.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: paul@pwsan.com, khilman@ti.com
+Cc: linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org, "Mark A. Greer" <mgreer@animalcreek.com>
 
+From: "Mark A. Greer" <mgreer@animalcreek.com>
 
---LTeJQqWS0MN7I/qa
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
+Add hwmod support for the EMAC (and MDIO)
+ethernet controller that's on the am35x
+family of SoC's.
 
-On Tue, May 15, 2012 at 03:48:56PM +0900, Graeme Gregory wrote:
-> Palmas is a PMIC from Texas Instruments and this is the MFD part of the
-> driver for this chip. The PMIC has SMPS and LDO regulators, a general
-> purpose ADC, GPIO, USB OTG mode detection, watchdog and RTC features.
+Signed-off-by: Mark A. Greer <mgreer@animalcreek.com>
+---
+ arch/arm/mach-omap2/am35xx-emac.c          |   92 ++++++++++++++--------------
+ arch/arm/mach-omap2/clock3xxx_data.c       |    2 +-
+ arch/arm/mach-omap2/include/mach/am35xx.h  |    2 +
+ arch/arm/mach-omap2/omap_hwmod_3xxx_data.c |   85 +++++++++++++++++++++++++
+ 4 files changed, 135 insertions(+), 46 deletions(-)
 
-Reviwed-by: Mark Brown <broonie@opensource.wolfsonmicro.com>
+diff --git a/arch/arm/mach-omap2/am35xx-emac.c b/arch/arm/mach-omap2/am35xx-emac.c
+index 1f97e74..3bb5cb3 100644
+--- a/arch/arm/mach-omap2/am35xx-emac.c
++++ b/arch/arm/mach-omap2/am35xx-emac.c
+@@ -15,27 +15,13 @@
+  * General Public License for more details.
+  */
+ 
+-#include <linux/clk.h>
++#include <linux/err.h>
+ #include <linux/davinci_emac.h>
+-#include <linux/platform_device.h>
+-#include <plat/irqs.h>
++#include <asm/system.h>
++#include <plat/omap_device.h>
+ #include <mach/am35xx.h>
+-
+ #include "control.h"
+-
+-static struct mdio_platform_data am35xx_emac_mdio_pdata;
+-
+-static struct resource am35xx_emac_mdio_resources[] = {
+-	DEFINE_RES_MEM(AM35XX_IPSS_EMAC_BASE + AM35XX_EMAC_MDIO_OFFSET, SZ_4K),
+-};
+-
+-static struct platform_device am35xx_emac_mdio_device = {
+-	.name		= "davinci_mdio",
+-	.id		= 0,
+-	.num_resources	= ARRAY_SIZE(am35xx_emac_mdio_resources),
+-	.resource	= am35xx_emac_mdio_resources,
+-	.dev.platform_data = &am35xx_emac_mdio_pdata,
+-};
++#include "am35xx-emac.h"
+ 
+ static void am35xx_enable_emac_int(void)
+ {
+@@ -72,41 +58,57 @@ static struct emac_platform_data am35xx_emac_pdata = {
+ 	.interrupt_disable	= am35xx_disable_emac_int,
+ };
+ 
+-static struct resource am35xx_emac_resources[] = {
+-	DEFINE_RES_MEM(AM35XX_IPSS_EMAC_BASE, 0x30000),
+-	DEFINE_RES_IRQ(INT_35XX_EMAC_C0_RXTHRESH_IRQ),
+-	DEFINE_RES_IRQ(INT_35XX_EMAC_C0_RX_PULSE_IRQ),
+-	DEFINE_RES_IRQ(INT_35XX_EMAC_C0_TX_PULSE_IRQ),
+-	DEFINE_RES_IRQ(INT_35XX_EMAC_C0_MISC_PULSE_IRQ),
+-};
++static struct mdio_platform_data am35xx_mdio_pdata;
+ 
+-static struct platform_device am35xx_emac_device = {
+-	.name		= "davinci_emac",
+-	.id		= -1,
+-	.num_resources	= ARRAY_SIZE(am35xx_emac_resources),
+-	.resource	= am35xx_emac_resources,
+-	.dev		= {
+-		.platform_data	= &am35xx_emac_pdata,
+-	},
+-};
++static int __init omap_davinci_emac_dev_init(struct omap_hwmod *oh,
++		void *pdata, int pdata_len)
++{
++	struct platform_device *pdev;
++
++	pdev = omap_device_build(oh->class->name, 0, oh, pdata, pdata_len,
++			NULL, 0, false);
++	if (IS_ERR(pdev)) {
++		WARN(1, "Can't build omap_device for %s:%s.\n",
++					oh->class->name, oh->name);
++		return PTR_ERR(pdev);
++	}
++
++	return 0;
++}
+ 
+ void __init am35xx_emac_init(unsigned long mdio_bus_freq, u8 rmii_en)
+ {
+-	unsigned int regval;
+-	int err;
++	struct omap_hwmod *oh;
++	u32 regval;
++	int ret;
+ 
+-	am35xx_emac_pdata.rmii_en = rmii_en;
+-	am35xx_emac_mdio_pdata.bus_freq = mdio_bus_freq;
+-	err = platform_device_register(&am35xx_emac_device);
+-	if (err) {
+-		pr_err("AM35x: failed registering EMAC device: %d\n", err);
++	oh = omap_hwmod_lookup("davinci_mdio");
++	if (!oh) {
++		pr_err("Could not find davinci_mdio hwmod\n");
++		return;
++	}
++
++	am35xx_mdio_pdata.bus_freq = mdio_bus_freq;
++
++	ret = omap_davinci_emac_dev_init(oh, &am35xx_mdio_pdata,
++					 sizeof(am35xx_mdio_pdata));
++	if (ret) {
++		pr_err("Could not build davinci_mdio hwmod device\n");
+ 		return;
+ 	}
+ 
+-	err = platform_device_register(&am35xx_emac_mdio_device);
+-	if (err) {
+-		pr_err("AM35x: failed registering EMAC MDIO device: %d\n", err);
+-		platform_device_unregister(&am35xx_emac_device);
++	oh = omap_hwmod_lookup("davinci_emac");
++	if (!oh) {
++		pr_err("Could not find davinci_emac hwmod\n");
++		return;
++	}
++
++	am35xx_emac_pdata.rmii_en = rmii_en;
++
++	ret = omap_davinci_emac_dev_init(oh, &am35xx_emac_pdata,
++					 sizeof(am35xx_emac_pdata));
++	if (ret) {
++		pr_err("Could not build davinci_emac hwmod device\n");
+ 		return;
+ 	}
+ 
+diff --git a/arch/arm/mach-omap2/clock3xxx_data.c b/arch/arm/mach-omap2/clock3xxx_data.c
+index 12c64db..f2f422e 100644
+--- a/arch/arm/mach-omap2/clock3xxx_data.c
++++ b/arch/arm/mach-omap2/clock3xxx_data.c
+@@ -3478,7 +3478,7 @@ static struct omap_clk omap3xxx_clks[] = {
+ 	CLK(NULL,	"ipss_ick",	&ipss_ick,	CK_AM35XX),
+ 	CLK(NULL,	"rmii_ck",	&rmii_ck,	CK_AM35XX),
+ 	CLK(NULL,	"pclk_ck",	&pclk_ck,	CK_AM35XX),
+-	CLK("davinci_emac",	NULL,	&emac_ick,	CK_AM35XX),
++	CLK("davinci_emac.0",	NULL,	&emac_ick,	CK_AM35XX),
+ 	CLK("davinci_mdio.0",	NULL,	&emac_fck,	CK_AM35XX),
+ 	CLK("vpfe-capture",	"master",	&vpfe_ick,	CK_AM35XX),
+ 	CLK("vpfe-capture",	"slave",	&vpfe_fck,	CK_AM35XX),
+diff --git a/arch/arm/mach-omap2/include/mach/am35xx.h b/arch/arm/mach-omap2/include/mach/am35xx.h
+index f1e13d1..9559449 100644
+--- a/arch/arm/mach-omap2/include/mach/am35xx.h
++++ b/arch/arm/mach-omap2/include/mach/am35xx.h
+@@ -36,6 +36,8 @@
+ #define AM35XX_EMAC_CNTRL_MOD_OFFSET	(0x0)
+ #define AM35XX_EMAC_CNTRL_RAM_OFFSET	(0x20000)
+ #define AM35XX_EMAC_MDIO_OFFSET		(0x30000)
++#define AM35XX_IPSS_MDIO_BASE		(AM35XX_IPSS_EMAC_BASE + \
++						AM35XX_EMAC_MDIO_OFFSET)
+ #define AM35XX_EMAC_CNTRL_RAM_SIZE	(0x2000)
+ #define AM35XX_EMAC_RAM_ADDR		(AM3517_EMAC_BASE + \
+ 						AM3517_EMAC_CNTRL_RAM_OFFSET)
+diff --git a/arch/arm/mach-omap2/omap_hwmod_3xxx_data.c b/arch/arm/mach-omap2/omap_hwmod_3xxx_data.c
+index c6653a80..87d817d 100644
+--- a/arch/arm/mach-omap2/omap_hwmod_3xxx_data.c
++++ b/arch/arm/mach-omap2/omap_hwmod_3xxx_data.c
+@@ -3075,6 +3075,87 @@ static struct omap_hwmod_ocp_if omap3xxx_l4_core__usb_tll_hs = {
+ 	.user		= OCP_USER_MPU | OCP_USER_SDMA,
+ };
+ 
++/* am35xx has Davinci MDIO & EMAC */
++static struct omap_hwmod_class am35xx_mdio_class = {
++	.name = "davinci_mdio",
++};
++
++static struct omap_hwmod am35xx_mdio_hwmod = {
++	.name		= "davinci_mdio",
++	.class		= &am35xx_mdio_class,
++	.flags		= HWMOD_NO_IDLEST,
++};
++
++static struct omap_hwmod_ocp_if am35xx_mdio__l3 = {
++	.master		= &am35xx_mdio_hwmod,
++	.slave		= &omap3xxx_l3_main_hwmod,
++	.clk		= "emac_fck",
++	.user		= OCP_USER_MPU,
++};
++
++static struct omap_hwmod_addr_space am35xx_mdio_addrs[] = {
++	{
++		.pa_start	= AM35XX_IPSS_MDIO_BASE,
++		.pa_end		= AM35XX_IPSS_MDIO_BASE + SZ_4K - 1,
++		.flags		= ADDR_TYPE_RT,
++	},
++	{ }
++};
++
++/* l4_core -> davinci mdio  */
++static struct omap_hwmod_ocp_if am35xx_l4_core__mdio = {
++	.master		= &omap3xxx_l4_core_hwmod,
++	.slave		= &am35xx_mdio_hwmod,
++	.clk		= "emac_fck",
++	.addr		= am35xx_mdio_addrs,
++	.user		= OCP_USER_MPU,
++};
++
++static struct omap_hwmod_irq_info am35xx_emac_mpu_irqs[] = {
++	{ .name = "rxthresh",	.irq = INT_35XX_EMAC_C0_RXTHRESH_IRQ },
++	{ .name = "rx_pulse",	.irq = INT_35XX_EMAC_C0_RX_PULSE_IRQ },
++	{ .name = "tx_pulse",	.irq = INT_35XX_EMAC_C0_TX_PULSE_IRQ },
++	{ .name = "misc_pulse",	.irq = INT_35XX_EMAC_C0_MISC_PULSE_IRQ },
++	{ .irq = -1 }
++};
++
++static struct omap_hwmod_class am35xx_emac_class = {
++	.name = "davinci_emac",
++};
++
++static struct omap_hwmod am35xx_emac_hwmod = {
++	.name		= "davinci_emac",
++	.mpu_irqs	= am35xx_emac_mpu_irqs,
++	.class		= &am35xx_emac_class,
++	.flags		= HWMOD_NO_IDLEST,
++};
++
++/* l3_core -> davinci emac interface */
++static struct omap_hwmod_ocp_if am35xx_emac__l3 = {
++	.master		= &am35xx_emac_hwmod,
++	.slave		= &omap3xxx_l3_main_hwmod,
++	.clk		= "emac_ick",
++	.user		= OCP_USER_MPU,
++};
++
++static struct omap_hwmod_addr_space am35xx_emac_addrs[] = {
++	{
++		.pa_start	= AM35XX_IPSS_EMAC_BASE,
++		.pa_end		= AM35XX_IPSS_EMAC_BASE + 0x30000 - 1,
++		.flags		= ADDR_TYPE_RT,
++	},
++	{ }
++};
++
++/* l4_core -> davinci emac  */
++static struct omap_hwmod_ocp_if am35xx_l4_core__emac = {
++	.master		= &omap3xxx_l4_core_hwmod,
++	.slave		= &am35xx_emac_hwmod,
++	.clk		= "emac_ick",
++	.addr		= am35xx_emac_addrs,
++	.user		= OCP_USER_MPU,
++};
++
+ static struct omap_hwmod_ocp_if *omap3xxx_hwmod_ocp_ifs[] __initdata = {
+ 	&omap3xxx_l3_main__l4_core,
+ 	&omap3xxx_l3_main__l4_per,
+@@ -3200,6 +3281,10 @@ static struct omap_hwmod_ocp_if *am35xx_hwmod_ocp_ifs[] __initdata = {
+ 	&omap3xxx_l4_core__usb_tll_hs,
+ 	&omap3xxx_l4_core__es3plus_mmc1,
+ 	&omap3xxx_l4_core__es3plus_mmc2,
++	&am35xx_mdio__l3,
++	&am35xx_l4_core__mdio,
++	&am35xx_emac__l3,
++	&am35xx_l4_core__emac,
+ 	NULL
+ };
+ 
+-- 
+1.7.9.4
 
-however this depends on some new regmap-irq changes that Graeme posted a
-couple of days ago and are only on regmap at the minute - Samuel, if
-you're OK with this I guess the easiest thing is if I apply there?
-
---LTeJQqWS0MN7I/qa
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: Digital signature
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.4.12 (GNU/Linux)
-
-iQIcBAEBAgAGBQJPsp0PAAoJEBus8iNuMP3ddhoP/jC0tmBKEOwe7h//sNZ8Cju4
-rglDhAacjSckTKtB/f56IINQUg1hvPCwZ2Z9iXI08xoaXUcXVArTLQa3FUyJ35cK
-UX4+528Gj2/QDEtutMx0/i/tNmBt7fa21wqix8tqaKX6GoE5/X0UYxmmmNoI6iZ3
-vCGiubtjTV48NMcDKiIoVL+ll8apQ6EjLyig91/X7nLiqrkSobHz5Qh9Z4hLam1x
-upasGL8UBSdREaiTSERwsE5Q2Ow90OZv8vfdZEAI2WC7k64njvSLYDfJUGnYrsWd
-XnSPoTT8GVZTrB6YqssPUBmE+QSrW9j4HD+s+n9Cp0n7k+Pdro44O9Zdws9Kq3nR
-3F7IMTcxX1ZmiEI/doEUmRmbGmrwNRhMT33HEG2LD40gJl1J9wvrODLaVAbE33pz
-vIz5wOoXeNOL66PcEiG7uLXpFCxkPumbWu5m1VO5qZjLKcieQB2F1unJd8WE30aG
-6SQgptkF7vuTjlk2gH4P9JW1aIP+Hu/aI4Ip3YtduufImGIpc88g+6z5U5yAeVy+
-0dc8sfelmqublfxS0rB89c7fs6KLSGN0Wx5U4RjmjdQB9pcIyhECfHbT7nC1kBgu
-Mf32EdQlZIs4xWOC7P5RvBjQbnmRHJ0IOPHhR40cMypodFOepnXXuJ30+/kjIToY
-KQhD6gcS5gJ4ngPkVG1T
-=FSWM
------END PGP SIGNATURE-----
-
---LTeJQqWS0MN7I/qa--
