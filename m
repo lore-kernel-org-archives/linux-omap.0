@@ -1,107 +1,45 @@
-From: Tomi Valkeinen <tomi.valkeinen@ti.com>
-Subject: Re: [PATCH] OMAPDSS: DISPC: Update Accumulator configuration for
- chroma plane
-Date: Tue, 15 May 2012 15:51:32 +0300
-Message-ID: <1337086292.23670.29.camel@deskari>
-References: <1337069087-21121-1-git-send-email-cmahapatra@ti.com>
+From: Will Deacon <will.deacon@arm.com>
+Subject: Re: oprofile and ARM A9 hardware counter
+Date: Tue, 15 May 2012 14:52:28 +0100
+Message-ID: <20120515135228.GD10057@mudshark.cambridge.arm.com>
+References: <20120510084422.GB27276@mudshark.cambridge.arm.com>
+ <4FAC0F05.3060803@ti.com>
+ <20120511122547.GE17453@mudshark.cambridge.arm.com>
+ <4FAD1865.70003@ti.com>
+ <20120511134920.GC2626@mudshark.cambridge.arm.com>
+ <4FAD27CB.5060102@ti.com>
+ <20120511150223.GD2626@mudshark.cambridge.arm.com>
+ <4FAD3EF3.4080409@ti.com>
+ <20120511163831.GI2626@mudshark.cambridge.arm.com>
+ <4FADA5E4.80006@ti.com>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg="pgp-sha1"; protocol="application/pgp-signature";
-	boundary="=-t7AXWUFFpGACOQXpML3h"
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aog101.obsmtp.com ([74.125.149.67]:37520 "EHLO
-	na3sys009aog101.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S932620Ab2EOMvh (ORCPT
+Received: from cam-admin0.cambridge.arm.com ([217.140.96.50]:53385 "EHLO
+	cam-admin0.cambridge.arm.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1758090Ab2EONwz (ORCPT
 	<rfc822;linux-omap@vger.kernel.org>);
-	Tue, 15 May 2012 08:51:37 -0400
-Received: by lahd3 with SMTP id d3so4101616lah.19
-        for <linux-omap@vger.kernel.org>; Tue, 15 May 2012 05:51:35 -0700 (PDT)
-In-Reply-To: <1337069087-21121-1-git-send-email-cmahapatra@ti.com>
+	Tue, 15 May 2012 09:52:55 -0400
+Content-Disposition: inline
+In-Reply-To: <4FADA5E4.80006@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Chandrabhanu Mahapatra <cmahapatra@ti.com>
-Cc: linux-omap@vger.kernel.org, linux-fbdev@vger.kernel.org
+To: Jon Hunter <jon-hunter@ti.com>
+Cc: "Cousson, Benoit" <b-cousson@ti.com>, Kevin Hilman <khilman@ti.com>, Paul Walmsley <paul@pwsan.com>, Ming Lei <ming.lei@canonical.com>, Maynard Johnson <maynardj@us.ibm.com>, "Shilimkar, Santosh" <santosh.shilimkar@ti.com>, "oprofile-list@lists.sourceforge.net" <oprofile-list@lists.sourceforge.net>, Lik Lik <lik88888@gmail.com>, "eranian@gmail.com" <eranian@gmail.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>
 
+On Sat, May 12, 2012 at 12:51:00AM +0100, Jon Hunter wrote:
+> On 05/11/2012 11:38 AM, Will Deacon wrote:
+> > Excellent, that works for me. Once we've worked out the problem with my
+> > .config you can have my tested-by.
+> 
+> Great! I have been looking at your .config, but I have not been able to
+> figure out the problem so far. Do you recall what your config is based
+> upon? I seems quite different to mine and the omap2plus_defconfig has
+> not changed much in the last few kernel releases.
 
---=-t7AXWUFFpGACOQXpML3h
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: quoted-printable
+Hmm, I'm honestly not sure -- it was just lying around in my home directory.
+Given that I know very little about OMAP, I would suspect that it's either
+based on the defconfig or I inherited a working kernel image from somebody
+else and used /proc/config.gz to build my own.
 
-On Tue, 2012-05-15 at 13:34 +0530, Chandrabhanu Mahapatra wrote:
-> DISPC has two accumulator registers DISPC_VIDp_ACCU_0 and DISPC_VIDp_ACCU=
-_1 each
-> with horizontal and vertical bit fields. The bit fields can take values i=
-n the
-> range of -1024 to 1023. Based on bit field values DISPC decides on which =
-one out
-> of 8 phases the filtering starts. DISPC_VIDp_ACCU_0 is used for progressi=
-ve
-> output and for interlaced output both DISPC_VIDp_ACCU_0 and DISPC_VIDp_AC=
-CU_1
-> are used.
->=20
-> The current accumulator values in DISPC scaling logic for chroma plane ta=
-kes
-> default values for all color modes and rotation types. So, the horizontal=
- and
-> vertical up and downsampling accumulator bit field values have been updat=
-ed for
-> better performance.
->=20
-> Signed-off-by: Chandrabhanu Mahapatra <cmahapatra@ti.com>
-
-> ---
-> @@ -1249,6 +1335,9 @@ static void dispc_ovl_set_scaling_uv(enum omap_plan=
-e plane,
->  	int scale_x =3D out_width !=3D orig_width;
->  	int scale_y =3D out_height !=3D orig_height;
-> =20
-> +	dispc_ovl_set_accu_uv(plane, orig_width, orig_height, out_width,
-> +			out_height, ilace, color_mode, rotation);
-> +
->  	if (!dss_has_feature(FEAT_HANDLE_UV_SEPARATE))
->  		return;
->  	if ((color_mode !=3D OMAP_DSS_COLOR_YUV2 &&
-
-This crashes if color mode is not yuv or nv.
-
-Should the set_accu_uv call be a bit later, after these lines:
-
-	if (!dss_has_feature(FEAT_HANDLE_UV_SEPARATE))
-		return;
-	if ((color_mode !=3D OMAP_DSS_COLOR_YUV2 &&
-			color_mode !=3D OMAP_DSS_COLOR_UYVY &&
-			color_mode !=3D OMAP_DSS_COLOR_NV12)) {
-		/* reset chroma resampling for RGB formats  */
-		REG_FLD_MOD(DISPC_OVL_ATTRIBUTES2(plane), 0, 8, 8);
-		return;
-	}
-
-
- Tomi
-
-
---=-t7AXWUFFpGACOQXpML3h
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: This is a digitally signed message part
-Content-Transfer-Encoding: 7bit
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.4.11 (GNU/Linux)
-
-iQIcBAABAgAGBQJPslFUAAoJEPo9qoy8lh71Td0P/jka+0rfWE/gxYO6TGUZZsXU
-Q9wVFEGbqwarDhRfkcTGd0y8oIESqWyE/Ap7rHcBPBRPxBA7SjeVkZwg07SmeQNW
-c3t5KyYG0zgJ+JoHpMIy6vzCx91OgJJebuhtHI/pud7JhSOjHg+IZ8TzoSUvXEsW
-/h0koNVkiBNvqG2nwJv0pMEAZ5AXWC9aLEEzTdNnWwvqbs0MaQUza1PW0uKUCzdU
-d8B0EbeKYihMbvjoL0eQ3nkg8VoTsh0GN/aa0WrUiv5cNdtZizm4GOfW+NNXnKDj
-pJE+1nOdxEV0iYhE3aHtvtv0k8O8MtfsAnt4UPx93iXIkTmUjKCzMWHRu4KIG+fl
-rXBHJ6AW73Hvqo9Ga+Bq7d06l3z+qglpALsRToxgJ4zqSmjKe4+NxGLk5La4S/hI
-Fw0nohLb+bnGIIjtYFQFQiNvWoG9K8oskNfLVlNSKOAmfDdyAbBGSLOswYeWFIyc
-Wxh7hV7DcI1oqs7ksFJUYNPxOHJbzXDONJDH5OE/uN8bZI9LMJiXXA3hKlvihyUV
-3rudryy9oQ0HZMt6mxVuUSXdJFDcO1w6BFlN3AO2yt11IZnLKVHvyD+LcDfdifIj
-WtIFRYx2DjCDUMRlgLirli9WsknWhfNNOjxiL11hQNa5j0XqllPt8MbVbjrzxFXo
-JYeFmPtpolN2n38GKF+2
-=QqPZ
------END PGP SIGNATURE-----
-
---=-t7AXWUFFpGACOQXpML3h--
-
+Will
