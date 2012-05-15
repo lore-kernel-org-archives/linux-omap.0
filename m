@@ -1,195 +1,119 @@
-From: Afzal Mohammed <afzal@ti.com>
-Subject: [PATCH 3/3] mtd: nand: omap2: use gpmc provided irqs
-Date: Tue, 15 May 2012 20:08:47 +0530
-Message-ID: <588ded576e45a01d538fd6fa83bde6dd111fc6b2.1337090835.git.afzal@ti.com>
-References: <cover.1337090835.git.afzal@ti.com>
+From: "Shilimkar, Santosh" <santosh.shilimkar@ti.com>
+Subject: Re: [PATCH] ARM: OMAP4: PM: Keep static dep between MPUSS and ABE clockdomain
+Date: Tue, 15 May 2012 20:30:44 +0530
+Message-ID: <CAMQu2gy72cbR4+xr6pYQBamNSjLdxUu4s_MkDf=pwrPnB56enA@mail.gmail.com>
+References: <1337082156-30390-1-git-send-email-tarun.kanti@ti.com> <4FB268F9.9040508@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from comal.ext.ti.com ([198.47.26.152]:49323 "EHLO comal.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1756104Ab2EOOzS (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Tue, 15 May 2012 10:55:18 -0400
-In-Reply-To: <cover.1337090835.git.afzal@ti.com>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <4FB268F9.9040508@ti.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: "Cousson, Benoit" <b-cousson@ti.com>
+Cc: Tarun Kanti DebBarma <tarun.kanti@ti.com>, Paul Walmsley <paul@pwsan.com>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org, Kevin Hilman <khilman@ti.com>, Tony Lindgren <tony@atomide.com>, Russell King <linux@arm.linux.org.uk>
 List-Id: linux-omap@vger.kernel.org
-To: tony@atomide.com, dwmw2@infradead.org, artem.bityutskiy@linux.intel.com, dedekind1@gmail.com, linux-omap@vger.kernel.org, linux-mtd@lists.infradead.org
-Cc: ivan.djelic@parrot.com, Afzal Mohammed <afzal@ti.com>
 
-GPMC driver provides it's clients with interrupts that can be used
-through struct resource. Make use of it for irq mode functionality.
+On Tue, May 15, 2012 at 8:02 PM, Cousson, Benoit <b-cousson@ti.com> wro=
+te:
+> + Paul
+>
+> Hi Tarun,
+>
+> On 5/15/2012 1:42 PM, Tarun Kanti DebBarma wrote:
+>> Commit 68523f4233de5f233478dde0a63047b4efb710b8 (ARM: OMAP4:
+>> Workaround the OCP synchronisation issue with 32K synctimer)
+>> does not include GP Timers in ABE domain. Since synchronization
+>> issue is applicable to all GPTIMER[1-12], we also need to set
+>> static dependency of MPUSS with abe_clkdm and l4_per_clkdm.
+>> Dependency with l4_per_clkdm timers is already set in commit
+>> 12f27826bdaf56b01cbdfc8bdeb577ebc106dee3 (ARM: OMAP4: PM: Keep
+>> static dep between MPUSS-EMIF and MPUSS-L3/L4 and DUCATI-L3).
+>> Therefore, set static dependency of MPUSS with abe_clkdm.
+>
+> It seems to me that these various static dep workaround patches are m=
+ore and more confusing and should require some further investigation / =
+explanation.
+>
+This is a new BUG which has not made it to errata list yet. It will
+make it eventually.
 
-Also now write protect disable is done by GPMC code, hence remove it.
+> If we keep doing that we will end up having every clock domains alway=
+s ON each time the CPU is active. This is a very brute force approach n=
+ot really acceptable for mainline and for PM point of view.
+>
+Indeed.
 
-Signed-off-by: Afzal Mohammed <afzal@ti.com>
----
- drivers/mtd/nand/omap2.c |   70 +++++++++++++++++++++++++++-------------------
- 1 file changed, 42 insertions(+), 28 deletions(-)
+> Here we are forcing the ABE domain to be ON each time the MPU is ON e=
+ven if we do not have any timer used inside the domain.
+>
+Actually the BUG is really related to timers running on 32KHz and only
+in that case such a WA is needed. BTW, the WA is suggested by hardware
+team.
 
-diff --git a/drivers/mtd/nand/omap2.c b/drivers/mtd/nand/omap2.c
-index f69ecc1..2eac7d9 100644
---- a/drivers/mtd/nand/omap2.c
-+++ b/drivers/mtd/nand/omap2.c
-@@ -131,7 +131,8 @@ struct omap_nand_info {
- 	unsigned long			mem_size;
- 	struct completion		comp;
- 	int				dma_ch;
--	int				gpmc_irq;
-+	int				gpmc_irq_fifo;
-+	int				gpmc_irq_count;
- 	enum {
- 		OMAP_NAND_IO_READ = 0,	/* read */
- 		OMAP_NAND_IO_WRITE,	/* write */
-@@ -556,14 +557,12 @@ static irqreturn_t omap_nand_irq(int this_irq, void *dev)
- {
- 	struct omap_nand_info *info = (struct omap_nand_info *) dev;
- 	u32 bytes;
--	u32 irq_stat;
- 
--	irq_stat = gpmc_read_status(GPMC_GET_IRQ_STATUS);
- 	bytes = readl(info->reg.gpmc_prefetch_status);
- 	bytes = GPMC_PREFETCH_STATUS_FIFO_CNT(bytes);
- 	bytes = bytes  & 0xFFFC; /* io in multiple of 4 bytes */
- 	if (info->iomode == OMAP_NAND_IO_WRITE) { /* checks for write io */
--		if (irq_stat & 0x2)
-+		if (this_irq == info->gpmc_irq_count)
- 			goto done;
- 
- 		if (info->buf_len && (info->buf_len < bytes))
-@@ -580,20 +579,17 @@ static irqreturn_t omap_nand_irq(int this_irq, void *dev)
- 						(u32 *)info->buf, bytes >> 2);
- 		info->buf = info->buf + bytes;
- 
--		if (irq_stat & 0x2)
-+		if (this_irq == info->gpmc_irq_count)
- 			goto done;
- 	}
--	gpmc_cs_configure(info->gpmc_cs, GPMC_SET_IRQ_STATUS, irq_stat);
- 
- 	return IRQ_HANDLED;
- 
- done:
- 	complete(&info->comp);
--	/* disable irq */
--	gpmc_cs_configure(info->gpmc_cs, GPMC_ENABLE_IRQ, 0);
- 
--	/* clear status */
--	gpmc_cs_configure(info->gpmc_cs, GPMC_SET_IRQ_STATUS, irq_stat);
-+	disable_irq_nosync(info->gpmc_irq_fifo);
-+	disable_irq_nosync(info->gpmc_irq_count);
- 
- 	return IRQ_HANDLED;
- }
-@@ -627,9 +623,9 @@ static void omap_read_buf_irq_pref(struct mtd_info *mtd, u_char *buf, int len)
- 		goto out_copy;
- 
- 	info->buf_len = len;
--	/* enable irq */
--	gpmc_cs_configure(info->gpmc_cs, GPMC_ENABLE_IRQ,
--		(GPMC_IRQ_FIFOEVENTENABLE | GPMC_IRQ_COUNT_EVENT));
-+
-+	enable_irq(info->gpmc_irq_count);
-+	enable_irq(info->gpmc_irq_fifo);
- 
- 	/* waiting for read to complete */
- 	wait_for_completion(&info->comp);
-@@ -677,12 +673,13 @@ static void omap_write_buf_irq_pref(struct mtd_info *mtd,
- 		goto out_copy;
- 
- 	info->buf_len = len;
--	/* enable irq */
--	gpmc_cs_configure(info->gpmc_cs, GPMC_ENABLE_IRQ,
--			(GPMC_IRQ_FIFOEVENTENABLE | GPMC_IRQ_COUNT_EVENT));
-+
-+	enable_irq(info->gpmc_irq_count);
-+	enable_irq(info->gpmc_irq_fifo);
- 
- 	/* waiting for write to complete */
- 	wait_for_completion(&info->comp);
-+
- 	/* wait for data to flushed-out before reset the prefetch */
- 	tim = 0;
- 	limit = (loops_per_jiffy *  msecs_to_jiffies(OMAP_NAND_TIMEOUT_MS));
-@@ -1079,9 +1076,6 @@ static int __devinit omap_nand_probe(struct platform_device *pdev)
- 	info->nand.options	= pdata->devsize;
- 	info->nand.options	|= NAND_SKIP_BBTSCAN;
- 
--	/* NAND write protect off */
--	gpmc_cs_configure(info->gpmc_cs, GPMC_CONFIG_WP, 0);
--
- 	res = platform_get_resource(pdev, IORESOURCE_MEM, 0);
- 	if (res == NULL) {
- 		err = -EINVAL;
-@@ -1104,6 +1098,14 @@ static int __devinit omap_nand_probe(struct platform_device *pdev)
- 		goto out_release_mem_region;
- 	}
- 
-+	info->gpmc_irq_fifo = platform_get_irq_byname(pdev, "fifoevent");
-+	if (info->gpmc_irq_fifo == -ENXIO)
-+		dev_warn(&pdev->dev, "error getting FIFO IRQ\n");
-+
-+	info->gpmc_irq_count = platform_get_irq_byname(pdev, "terminalcount");
-+	if (info->gpmc_irq_count == -ENXIO)
-+		dev_warn(&pdev->dev, "error getting TERMINALCOUNT IRQ\n");
-+
- 	info->nand.controller = &info->controller;
- 
- 	info->nand.IO_ADDR_W = info->nand.IO_ADDR_R;
-@@ -1159,17 +1161,24 @@ static int __devinit omap_nand_probe(struct platform_device *pdev)
- 		break;
- 
- 	case NAND_OMAP_PREFETCH_IRQ:
--		err = request_irq(pdata->gpmc_irq,
--				omap_nand_irq, IRQF_SHARED, "gpmc-nand", info);
-+		err = request_irq(info->gpmc_irq_fifo,	omap_nand_irq,
-+					IRQF_SHARED, "gpmc-nand-fifo", info);
- 		if (err) {
- 			dev_err(&pdev->dev, "requesting irq(%d) error:%d",
--							pdata->gpmc_irq, err);
-+						info->gpmc_irq_fifo, err);
- 			goto out_release_mem_region;
--		} else {
--			info->gpmc_irq	     = pdata->gpmc_irq;
--			info->nand.read_buf  = omap_read_buf_irq_pref;
--			info->nand.write_buf = omap_write_buf_irq_pref;
- 		}
-+		err = request_irq(info->gpmc_irq_count,	omap_nand_irq,
-+					IRQF_SHARED, "gpmc-nand-count", info);
-+		if (err) {
-+			dev_err(&pdev->dev, "requesting irq(%d) error:%d",
-+						info->gpmc_irq_count, err);
-+			goto out_free_irq_gpmc_fifo;
-+		}
-+
-+		info->nand.read_buf  = omap_read_buf_irq_pref;
-+		info->nand.write_buf = omap_write_buf_irq_pref;
-+
- 		break;
- 
- 	default:
-@@ -1239,6 +1248,8 @@ static int __devinit omap_nand_probe(struct platform_device *pdev)
- 
- 	return 0;
- 
-+out_free_irq_gpmc_fifo:
-+	free_irq(info->gpmc_irq_fifo, info);
- out_release_mem_region:
- 	release_mem_region(info->phys_base, info->mem_size);
- out_free_info:
-@@ -1257,8 +1268,11 @@ static int omap_nand_remove(struct platform_device *pdev)
- 	if (info->dma_ch != -1)
- 		omap_free_dma(info->dma_ch);
- 
--	if (info->gpmc_irq)
--		free_irq(info->gpmc_irq, info);
-+	if (info->gpmc_irq_fifo > 0)
-+		free_irq(info->gpmc_irq_fifo, info);
-+
-+	if (info->gpmc_irq_count > 0)
-+		free_irq(info->gpmc_irq_count, info);
- 
- 	/* Release NAND device, its internal structures and partitions */
- 	nand_release(&info->mtd);
--- 
-1.7.10
+> It was mostly OK to do that for the wakeup domain due to the small po=
+wer impact, but doing that on the L4_PER and ABE seems a little bit too=
+ much.
+>
+L4PER and ABE should not be set default....
 
+> The fix assumes as well that the MPU is the only user of that timer. =
+What if either DSP or IPU uses it as well?
+>
+
+> Moreover the previous 68523f4233de5f2 commit did add tons of deps tha=
+t does not seems to be really justified by any HW errata AFAIK.
+> That does not mean they are not needed, but I think we should either =
+remove them or add some more explanation.
+>
+EMIF and L3 are covered as part of the errata's. Most if these static
+deps issues never worked properly and people ended up hacking
+like disable L3 when display ON etc etc.
+
+> + =A0 =A0 =A0 /*
+> + =A0 =A0 =A0 =A0* The dynamic dependency between MPUSS -> MEMIF and
+> + =A0 =A0 =A0 =A0* MPUSS -> L4_PER/L3_* and DUCATI -> L3_* doesn't wo=
+rk as
+> + =A0 =A0 =A0 =A0* expected. The hardware recommendation is to enable=
+ static
+> + =A0 =A0 =A0 =A0* dependencies for these to avoid system lock ups or=
+ random crashes.
+> + =A0 =A0 =A0 =A0*/
+> + =A0 =A0 =A0 mpuss_clkdm =3D clkdm_lookup("mpuss_clkdm");
+> + =A0 =A0 =A0 emif_clkdm =3D clkdm_lookup("l3_emif_clkdm");
+> + =A0 =A0 =A0 l3_1_clkdm =3D clkdm_lookup("l3_1_clkdm");
+> + =A0 =A0 =A0 l3_2_clkdm =3D clkdm_lookup("l3_2_clkdm");
+> + =A0 =A0 =A0 l4_per_clkdm =3D clkdm_lookup("l4_per_clkdm");
+> + =A0 =A0 =A0 ducati_clkdm =3D clkdm_lookup("ducati_clkdm");
+> + =A0 =A0 =A0 if ((!mpuss_clkdm) || (!emif_clkdm) || (!l3_1_clkdm) ||
+> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 (!l3_2_clkdm) || (!ducati_clkdm) || (!l=
+4_per_clkdm))
+> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 goto err2;
+> +
+> + =A0 =A0 =A0 ret =3D clkdm_add_wkdep(mpuss_clkdm, emif_clkdm);
+>
+> AFAIK, this one is the only one covered by an errata. It might be goo=
+d to add a comment to explained the issue.
+>
+> + =A0 =A0 =A0 ret |=3D clkdm_add_wkdep(mpuss_clkdm, l3_1_clkdm);
+> + =A0 =A0 =A0 ret |=3D clkdm_add_wkdep(mpuss_clkdm, l3_2_clkdm);
+> + =A0 =A0 =A0 ret |=3D clkdm_add_wkdep(mpuss_clkdm, l4_per_clkdm);
+> + =A0 =A0 =A0 ret |=3D clkdm_add_wkdep(ducati_clkdm, l3_1_clkdm);
+> + =A0 =A0 =A0 ret |=3D clkdm_add_wkdep(ducati_clkdm, l3_2_clkdm);
+>
+> Do we have errata for any of these ones?
+>
+If we forget about the latest timer issues doing the round only EMIF an=
+d L3
+deps with different initiators were needed. L4PER was because of UART
+idle mode issue which I fixed recently. At least with that fix, L4PER s=
+hould
+be killed. Will be good to take the latest findings on the static deps =
+issues
+and update above list.
+
+These timer OCP sync issue has really created a big mess again...
+Timer is 3 domains. AON, ABE and L4pER and the WA suggested is
+static dep as if it is free. There is no other WA.
+
+Regards
+Santosh
