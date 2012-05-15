@@ -1,120 +1,64 @@
-From: "Ryazantsev, Volodymyr" <v.riazantsev@ti.com>
-Subject: Re: [PATCH] OMAP4: Adding ID for OMAP4460 ES1.1
-Date: Tue, 15 May 2012 14:34:00 +0300
-Message-ID: <CALxnyLDMpxsX2qZmJrb_oF+qLd_-DaApEGA0u+EiWEVX6Y1xmg@mail.gmail.com>
-References: <1333357197-6354-1-git-send-email-rogerq@ti.com>
- <4F7AC721.4020205@ti.com> <20120418165008.GI21106@atomide.com> <4F8FBD6D.1040400@ti.com>
+From: Tarun Kanti DebBarma <tarun.kanti@ti.com>
+Subject: [PATCH] ARM: OMAP4: PM: Keep static dep between MPUSS and ABE clockdomain
+Date: Tue, 15 May 2012 17:12:36 +0530
+Message-ID: <1337082156-30390-1-git-send-email-tarun.kanti@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aog124.obsmtp.com ([74.125.149.151]:53414 "EHLO
-	na3sys009aog124.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1757553Ab2EOLed convert rfc822-to-8bit
-	(ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Tue, 15 May 2012 07:34:33 -0400
-Received: by ggnv5 with SMTP id v5so2032639ggn.26
-        for <linux-omap@vger.kernel.org>; Tue, 15 May 2012 04:34:30 -0700 (PDT)
-In-Reply-To: <4F8FBD6D.1040400@ti.com>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Sender: linux-kernel-owner@vger.kernel.org
+To: linux-omap@vger.kernel.org
+Cc: linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org, Tarun Kanti DebBarma <tarun.kanti@ti.com>, Kevin Hilman <khilman@ti.com>, Tony Lindgren <tony@atomide.com>, Russell King <linux@arm.linux.org.uk>
 List-Id: linux-omap@vger.kernel.org
-To: Tony Lindgren <tony@atomide.com>
-Cc: Roger Quadros <rogerq@ti.com>, linux-omap@vger.kernel.org, Chris Lalancette <clalancette@gmail.com>
 
-Hi Tony,
+Commit 68523f4233de5f233478dde0a63047b4efb710b8 (ARM: OMAP4:
+Workaround the OCP synchronisation issue with 32K synctimer)
+does not include GP Timers in ABE domain. Since synchronization
+issue is applicable to all GPTIMER[1-12], we also need to set
+static dependency of MPUSS with abe_clkdm and l4_per_clkdm.
+Dependency with l4_per_clkdm timers is already set in commit
+12f27826bdaf56b01cbdfc8bdeb577ebc106dee3 (ARM: OMAP4: PM: Keep
+static dep between MPUSS-EMIF and MPUSS-L3/L4 and DUCATI-L3).
+Therefore, set static dependency of MPUSS with abe_clkdm.
 
-=A0 Could you please take this patch.
-=A0 Its absence raises some issues like Errata maintenance.
+Cc: Kevin Hilman <khilman@ti.com>
+Cc: Tony Lindgren <tony@atomide.com>
+Cc: Russell King <linux@arm.linux.org.uk>
+Signed-off-by: Tarun Kanti DebBarma <tarun.kanti@ti.com>
+---
+ arch/arm/mach-omap2/pm44xx.c |    6 +++++-
+ 1 files changed, 5 insertions(+), 1 deletions(-)
 
-Thanks,
-=A0 _vr
-
-On Thu, Apr 19, 2012 at 10:23 AM, Roger Quadros <rogerq@ti.com> wrote:
->
-> Hi,
->
-> On 04/18/2012 07:50 PM, Tony Lindgren wrote:
-> > Hi,
-> >
-> > * Roger Quadros <rogerq@ti.com> [120403 02:50]:
-> >> Hi Tony,
-> >>
-> >> Could you please take this patch for the next merge? Thanks.
-> >
-> > Yes, it seems that this is not needed as a fix for the -rc cycle?
->
-> Right, it is not needed for this -rc cycle.
-> >
-> > If it's needed as a fix, please let me know and also describe
-> > what breaks.
->
-> It does not fix anything but is just for the sake of correctness.
->
-> regards,
-> -roger
->
-> >
-> >> On 04/02/2012 11:59 AM, Roger Quadros wrote:
-> >>> From: Chris Lalancette <clalancette@gmail.com>
-> >>>
-> >>> Signed-off-by: Chris Lalancette <clalancette@gmail.com>
-> >>> Signed-off-by: Roger Quadros <rogerq@ti.com>
-> >>> ---
-> >>> =A0arch/arm/mach-omap2/id.c =A0 =A0 =A0 =A0 =A0 =A0 =A0| =A0 =A05=
- ++++-
-> >>> =A0arch/arm/plat-omap/include/plat/cpu.h | =A0 =A01 +
-> >>> =A02 files changed, 5 insertions(+), 1 deletions(-)
-> >>>
-> >>> diff --git a/arch/arm/mach-omap2/id.c b/arch/arm/mach-omap2/id.c
-> >>> index 0e79b7b..f139817 100644
-> >>> --- a/arch/arm/mach-omap2/id.c
-> >>> +++ b/arch/arm/mach-omap2/id.c
-> >>> @@ -478,9 +478,12 @@ void __init omap4xxx_check_revision(void)
-> >>> =A0 =A0 case 0xb94e:
-> >>> =A0 =A0 =A0 =A0 =A0 =A0 switch (rev) {
-> >>> =A0 =A0 =A0 =A0 =A0 =A0 case 0:
-> >>> - =A0 =A0 =A0 =A0 =A0 default:
-> >>> =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 omap_revision =3D OMAP446=
-0_REV_ES1_0;
-> >>> =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 break;
-> >>> + =A0 =A0 =A0 =A0 =A0 case 2:
-> >>> + =A0 =A0 =A0 =A0 =A0 default:
-> >>> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 omap_revision =3D OMAP4460_=
-REV_ES1_1;
-> >>> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 break;
-> >>> =A0 =A0 =A0 =A0 =A0 =A0 }
-> >>> =A0 =A0 =A0 =A0 =A0 =A0 break;
-> >>> =A0 =A0 case 0xb975:
-> >>> diff --git a/arch/arm/plat-omap/include/plat/cpu.h b/arch/arm/pla=
-t-omap/include/plat/cpu.h
-> >>> index dc6a86b..4bdf14e 100644
-> >>> --- a/arch/arm/plat-omap/include/plat/cpu.h
-> >>> +++ b/arch/arm/plat-omap/include/plat/cpu.h
-> >>> @@ -445,6 +445,7 @@ IS_OMAP_TYPE(3517, 0x3517)
-> >>>
-> >>> =A0#define OMAP446X_CLASS =A0 =A0 =A0 =A0 =A0 =A0 0x44600044
-> >>> =A0#define OMAP4460_REV_ES1_0 (OMAP446X_CLASS | (0x10 << 8))
-> >>> +#define OMAP4460_REV_ES1_1 (OMAP446X_CLASS | (0x11 << 8))
-> >>>
-> >>> =A0#define OMAP447X_CLASS =A0 =A0 =A0 =A0 =A0 =A0 0x44700044
-> >>> =A0#define OMAP4470_REV_ES1_0 (OMAP447X_CLASS | (0x10 << 8))
-> >>
->
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-omap"=
- in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at =A0http://vger.kernel.org/majordomo-info.html
-
-
-
-
---
-~~~~~~~~~~~~~~~~~~~
-Best regards,
-Riazantsev Volodymyr | OMAP4 Platform | GlobalLogic Ukr.
---
-To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+diff --git a/arch/arm/mach-omap2/pm44xx.c b/arch/arm/mach-omap2/pm44xx.c
+index 8856253..f788e98 100644
+--- a/arch/arm/mach-omap2/pm44xx.c
++++ b/arch/arm/mach-omap2/pm44xx.c
+@@ -146,6 +146,7 @@ static int __init omap4_pm_init(void)
+ 	int ret;
+ 	struct clockdomain *emif_clkdm, *mpuss_clkdm, *l3_1_clkdm, *l4wkup;
+ 	struct clockdomain *ducati_clkdm, *l3_2_clkdm, *l4_per_clkdm;
++	struct clockdomain *abe_clkdm;
+ 
+ 	if (!cpu_is_omap44xx())
+ 		return -ENODEV;
+@@ -180,8 +181,10 @@ static int __init omap4_pm_init(void)
+ 	l4_per_clkdm = clkdm_lookup("l4_per_clkdm");
+ 	l4wkup = clkdm_lookup("l4_wkup_clkdm");
+ 	ducati_clkdm = clkdm_lookup("ducati_clkdm");
++	abe_clkdm = clkdm_lookup("abe_clkdm");
+ 	if ((!mpuss_clkdm) || (!emif_clkdm) || (!l3_1_clkdm) || (!l4wkup) ||
+-		(!l3_2_clkdm) || (!ducati_clkdm) || (!l4_per_clkdm))
++		(!l3_2_clkdm) || (!ducati_clkdm) || (!l4_per_clkdm) ||
++		(!abe_clkdm))
+ 		goto err2;
+ 
+ 	ret = clkdm_add_wkdep(mpuss_clkdm, emif_clkdm);
+@@ -191,6 +194,7 @@ static int __init omap4_pm_init(void)
+ 	ret |= clkdm_add_wkdep(mpuss_clkdm, l4wkup);
+ 	ret |= clkdm_add_wkdep(ducati_clkdm, l3_1_clkdm);
+ 	ret |= clkdm_add_wkdep(ducati_clkdm, l3_2_clkdm);
++	ret |= clkdm_add_wkdep(mpuss_clkdm, abe_clkdm);
+ 	if (ret) {
+ 		pr_err("Failed to add MPUSS -> L3/EMIF/L4PER, DUCATI -> L3 "
+ 				"wakeup dependency\n");
+-- 
+1.7.0.4
