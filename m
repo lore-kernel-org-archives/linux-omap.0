@@ -1,82 +1,78 @@
-From: Santosh Shilimkar <santosh.shilimkar@ti.com>
-Subject: Re: [PATCHv5 3/8] ARM: OMAP4460: Workaround for ROM bug because of
- CA9 r2pX gic control register change
-Date: Wed, 16 May 2012 18:01:31 +0530
-Message-ID: <4FB39E23.6060706@ti.com>
-References: <1336989796-26594-1-git-send-email-t-kristo@ti.com> <1336989796-26594-4-git-send-email-t-kristo@ti.com>
+From: Jassi Brar <jaswinder.singh@linaro.org>
+Subject: Re: [PATCH V3 1/2] of: Add generic device tree DMA helpers
+Date: Wed, 16 May 2012 18:07:34 +0530
+Message-ID: <CAJe_ZhcrMycgOWf6EiGEjz25C1ZTkB1W=33Qqp4rFpcq-5QsDg@mail.gmail.com>
+References: <1335820679-28721-1-git-send-email-jon-hunter@ti.com>
+	<CAJe_Zhe-SqDMDGOhrYZtBBJnCYqLR0H07cPKzG4SyUxiLrgFnQ@mail.gmail.com>
+	<4FA3F308.6030900@ti.com>
+	<CAJe_ZhfFhZVG4gyaaVUgeQedJiSE=zj9nE28XCNH9DkPVgqj=A@mail.gmail.com>
+	<4FB2FEBA.1030404@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aog120.obsmtp.com ([74.125.149.140]:45474 "EHLO
-	na3sys009aog120.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1757231Ab2EPMbj (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>);
-	Wed, 16 May 2012 08:31:39 -0400
-Received: by obqv19 with SMTP id v19so1588352obq.22
-        for <linux-omap@vger.kernel.org>; Wed, 16 May 2012 05:31:37 -0700 (PDT)
-In-Reply-To: <1336989796-26594-4-git-send-email-t-kristo@ti.com>
+Received: from mail-lb0-f174.google.com ([209.85.217.174]:50929 "EHLO
+	mail-lb0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754835Ab2EPMhg convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 16 May 2012 08:37:36 -0400
+Received: by lbbgm6 with SMTP id gm6so462007lbb.19
+        for <linux-omap@vger.kernel.org>; Wed, 16 May 2012 05:37:34 -0700 (PDT)
+In-Reply-To: <4FB2FEBA.1030404@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Tero Kristo <t-kristo@ti.com>
-Cc: linux-omap@vger.kernel.org, khilman@ti.com, paul@pwsan.com, linux-arm-kernel@lists.infradead.org
+To: Jon Hunter <jon-hunter@ti.com>
+Cc: device-tree <devicetree-discuss@lists.ozlabs.org>, Stephen Warren <swarren@nvidia.com>, Benoit Cousson <b-cousson@ti.com>, Arnd Bergmann <arnd@arndb.de>, Nicolas Ferre <nicolas.ferre@atmel.com>, Rob Herring <rob.herring@calxeda.com>, Grant Likely <grant.likely@secretlab.ca>, Russell King <linux@arm.linux.org.uk>, linux-omap <linux-omap@vger.kernel.org>, linux-arm <linux-arm-kernel@lists.infradead.org>
 
-Tero,
+Hi Jon,
 
-On Monday 14 May 2012 03:33 PM, Tero Kristo wrote:
-> From: Santosh Shilimkar <santosh.shilimkar@ti.com>
-> 
-> GIC distributor control register has changed between CortexA9 r1pX and
-> r2pX. The Control Register secure banked version is now composed of 2
-> bits:
->      bit 0 == Secure Enable
->      bit 1 == Non-Secure Enable
+On 16 May 2012 06:41, Jon Hunter <jon-hunter@ti.com> wrote:
+> On 05/04/2012 02:01 PM, Jassi Brar wrote:
+>>
+>> + =A0 =A0 =A0 i2c1: i2c@1 {
+>> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 ...
+>> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 dma =3D <&sdma 2 1 &sdma 3 2>;
+>> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 ...
+>> + =A0 =A0 =A0 };
+>>>
+>> I see this requires a client driver to specify a particular req_line=
+ on a
+>> particular dma controller. I am not sure if this is most optimal.
+>
+> Actually, no. The phandle in the DT specifies the DMA controller to u=
+se.
+> Then the client simply asks for a channel with a particular property,
+> for example, DMA_MEM_TO_DEV (ie. TX) and the channel information is r=
+eturn.
+>
+See below.
 
-[..]
+>> I think such client->req_line map should be provided to the dmac con=
+troller
+>> driver via its dt node in some format. The dmac driver could then po=
+pulate
+>> a dma_chan, or similar, only for that req_line and not for the unuse=
+d one
+>> which otherwise could also have served the same client.
+>>
+>> Ideally the I2C driver should simply ask, say, a channel for TX and =
+another
+>> for RX, everything else should already be setup via dmac's dt nodes.
+>
+> Yes that is the intention here.
+>
+But the client is required to specify the dmac that would serve it.
+Which is more
+than simply asking for "some suitable channel".
 
-> diff --git a/arch/arm/mach-omap2/omap-smp.c b/arch/arm/mach-omap2/omap-smp.c
-> index deffbf1..c3eb9e8 100644
-> --- a/arch/arm/mach-omap2/omap-smp.c
-> +++ b/arch/arm/mach-omap2/omap-smp.c
-> @@ -33,6 +33,7 @@
->  
->  /* SCU base address */
->  static void __iomem *scu_base;
-> +bool omap4_smp_romcode_errata;
->  
->  static DEFINE_SPINLOCK(boot_lock);
->  
-> @@ -104,6 +105,24 @@ int __cpuinit boot_secondary(unsigned int cpu, struct task_struct *idle)
->  	 *	4.3.4.2 Power States of CPU0 and CPU1
->  	 */
->  	if (booted) {
-> +		/*
-> +		 * GIC distributor control register has changed between
-> +		 * CortexA9 r1pX and r2pX. The Control Register secure
-> +		 * banked version is now composed of 2 bits:
-> +		 * bit 0 == Secure Enable
-> +		 * bit 1 == Non-Secure Enable
-> +		 * The Non-Secure banked register has not changed
-> +		 * Because the ROM Code is based on the r1pX GIC, the CPU1
-> +		 * GIC restoration will cause a problem to CPU0 Non-Secure SW.
-> +		 * The workaround must be:
-> +		 * 1) Before doing the CPU1 wakeup, CPU0 must disable
-> +		 * the GIC distributor
-> +		 * 2) CPU1 must re-enable the GIC distributor on
-> +		 * it's wakeup path.
-> +		 */
-> +		if (omap4_smp_romcode_errata)
-For safety, disable local IRQ here.
-		local_irq_disable();
-> +			gic_dist_disable();
-> +
-And CPU0 needs to wait here till CPU1 re-enables the distributor
-to avoid any random issues.
-
-The BUG is applicable for CPUIDLE as well with MPUSS OSWR state, but
-we can fix the idle in another patch to avoid dependency.
-Basically above 3 lines should also be part of idle code where we
-wakeup the CPU1 using force wakeup.
-
-Regards
-Santosh
+If you read the whole exchange between I and Stephen, we converged on a
+scheme of clients' node having nothing to specify and DMAC told all abo=
+ut
+every client in one palce. Which resembles closer to reality and is
+much simpler.
+I already started on a patchset and should be able submit for review
+in a day or two.
+--
+To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
