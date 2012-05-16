@@ -1,122 +1,499 @@
-From: Jassi Brar <jaswinder.singh@linaro.org>
-Subject: Re: [PATCH V3 1/2] of: Add generic device tree DMA helpers
-Date: Thu, 17 May 2012 02:46:38 +0530
-Message-ID: <CAJe_ZhebPfmLS8ur8FAnmdj37ye25HrE2QF-Qk5PVDnzmpAniQ@mail.gmail.com>
-References: <1335820679-28721-1-git-send-email-jon-hunter@ti.com>
-	<4FB3D294.4020505@wwwdotorg.org>
-	<CAJe_Zhe6uT7u-+0VEx2XCieuynmK5nOO=4DSpDDS_Q=N8-QtPA@mail.gmail.com>
-	<201205161942.20296.arnd@arndb.de>
+From: Kevin Hilman <khilman@ti.com>
+Subject: Re: [PATCHv2 03/19] ARM: OMAP4: PM: Add device-off support
+Date: Wed, 16 May 2012 15:36:01 -0700
+Message-ID: <87obpn92jy.fsf@ti.com>
+References: <1336990730-26892-1-git-send-email-t-kristo@ti.com>
+	<1336990730-26892-4-git-send-email-t-kristo@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-lpp01m010-f46.google.com ([209.85.215.46]:38824 "EHLO
-	mail-lpp01m010-f46.google.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1756131Ab2EPVQk convert rfc822-to-8bit
-	(ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Wed, 16 May 2012 17:16:40 -0400
-Received: by lahd3 with SMTP id d3so851855lah.19
-        for <linux-omap@vger.kernel.org>; Wed, 16 May 2012 14:16:39 -0700 (PDT)
-In-Reply-To: <201205161942.20296.arnd@arndb.de>
+Received: from na3sys009aog115.obsmtp.com ([74.125.149.238]:44647 "EHLO
+	na3sys009aog115.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S932137Ab2EPWgG (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>);
+	Wed, 16 May 2012 18:36:06 -0400
+Received: by pbbro2 with SMTP id ro2so1813034pbb.41
+        for <linux-omap@vger.kernel.org>; Wed, 16 May 2012 15:36:04 -0700 (PDT)
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Arnd Bergmann <arnd@arndb.de>
-Cc: Stephen Warren <swarren@wwwdotorg.org>, Jon Hunter <jon-hunter@ti.com>, Stephen Warren <swarren@nvidia.com>, Benoit Cousson <b-cousson@ti.com>, device-tree <devicetree-discuss@lists.ozlabs.org>, Nicolas Ferre <nicolas.ferre@atmel.com>, Rob Herring <rob.herring@calxeda.com>, Grant Likely <grant.likely@secretlab.ca>, Russell King <linux@arm.linux.org.uk>, linux-omap <linux-omap@vger.kernel.org>, linux-arm <linux-arm-kernel@lists.infradead.org>
+To: Tero Kristo <t-kristo@ti.com>, Jean Pihet <jean.pihet@newoldbits.com>
+Cc: linux-omap@vger.kernel.org, paul@pwsan.com, linux-arm-kernel@lists.infradead.org, Santosh Shilimkar <santosh.shilimkar@ti.com>
 
-On 17 May 2012 01:12, Arnd Bergmann <arnd@arndb.de> wrote:
->>
->> Generic binding to provide a way to provide the client-channel map a=
-nd
->> other dmac specific parameters to the dma controller driver
->>
->> DMA Model:-
->> =A0 Only the most common characteristics of a dma setup are assumed
->> in this binding.
->> Client: Some h/w controller that could request a DMA controller in
->> the system to perform data transfer on its behalf. Example SPI, MMC,
->> I2S etc.
->> DMAC: A DMA Controller instance. Example, PL330, PL08X, SDMA etc.
->>
->> =A0The assumed model of the DMAC, in this binding, has P peripheral
->> interfaces (P request signals) that could request a data transfer
->> and C physical channels that actually do the data transfers, hence,
->> at most C out of P peripherals could be served by the DMAC at any
->> point of time. Usually C :=3D P, but not always. Usually, any of the
->> physical channels could be employed by the DMAC driver to serve any
->> client.
->> =A0The DMAC driver identifies a client by its i/f number, 'peri_id'
->> on the given DMAC. For example, TX for SPI has 7th while RX_TX
->> (half-duplex) for MMC has 10th peripheral interface (request-signal)
->> on a given DMAC. Usually, any of the physical channels could be
->> employed by the DMAC driver to serve a client.
++Jean for functional power states
+
+Tero Kristo <t-kristo@ti.com> writes:
+
+> This patch adds device off support to OMAP4 device type.
+
+Description is rather thin for a patch that is doing so much.
+
+> OFF mode is disabled by default, 
+
+why?
+
+> however, there are two ways to enable OFF mode:
+> a) In the board file, call omap4_pm_off_mode_enable(1)
+> b) Enable OFF mode using the debugfs entry
+> echo "1">/sys/kernel/debug/pm_debug/enable_off_mode
+> (conversely echo '0' will disable it as well).
+
+This part needs to be a separate patch.
+
+But, as stated in the core retention series, I'd like to move away from
+these global flags all together.
+
+The way we manage the disabling of certain states (like off) is already
+clumsy for OMAP3, and it's getting worse with OMAP4.  Basically, I think
+this feature needs to be supported by using constraints on functional
+power states.   Having checks all over the place is getting unwieldy and
+not attractive to maintain.
+
+The combination of constraints and functional power states should make
+this much more manageable.   Until we have that, I'd prefer to keep
+the debugfs enable/disable stuff as separate patches at the end of the
+series used only for testing.
+
+> Signed-off-by: Santosh Shilimkar <santosh.shilimkar@ti.com>
+> [t-kristo@ti.com: largely re-structured the code]
+
+then the sign-off above from Santosh probably doesn't apply anymore.
+You should change that to a Cc and just mention tht this is based upon
+some original work from Santosh.
+
+First,  some general comments:
+
+There is a lot going on in this patch, so it is hard to follow what all
+is related, and why.  Just a quick glance suggests it needs to be broken
+up into at least a few parts:
+
+- low-level PRM support: new APIs for various off-mode features)
+  (should probably be done on top of functional power states)
+- powerdomain core support or "achievable" states
+  (should probably be done on top of functional power states)
+- IRQ/GIC context save/restore
+- secure RAM save/restore (this has been tightly coupled to the GIC
+  but it's not obvious why)
+- PM debug support to enable/disable off-mode
+  (for testing only, not for merge)
+
+> Signed-off-by: Tero Kristo <t-kristo@ti.com>
+> ---
+>  arch/arm/mach-omap2/omap-mpuss-lowpower.c |   10 ++++-
+>  arch/arm/mach-omap2/omap-wakeupgen.c      |   47 +++++++++++++++++++-
+>  arch/arm/mach-omap2/pm-debug.c            |   17 +++++--
+>  arch/arm/mach-omap2/pm.h                  |   20 +++++++++
+>  arch/arm/mach-omap2/pm44xx.c              |   45 +++++++++++++++++++
+>  arch/arm/mach-omap2/prm44xx.c             |   66 +++++++++++++++++++++++++++++
+>  6 files changed, 197 insertions(+), 8 deletions(-)
 >
-Btw, just to be clear... this is not _my_ setup.
-The dma controller manuals might use different terms but underneath
-most(if not all) dma controllers fit this model. At lease every dmac
-on Samsung SoCs and ARM's PL330 and PL08x does.
-In fact, I have trouble imaging some dmac not conforming to this model.=
-=2E.
-but then again it could be just me.
+> diff --git a/arch/arm/mach-omap2/omap-mpuss-lowpower.c b/arch/arm/mach-omap2/omap-mpuss-lowpower.c
+> index e02c082..7418e7c 100644
+> --- a/arch/arm/mach-omap2/omap-mpuss-lowpower.c
+> +++ b/arch/arm/mach-omap2/omap-mpuss-lowpower.c
+> @@ -60,6 +60,7 @@
+>  #include "prcm44xx.h"
+>  #include "prm44xx.h"
+>  #include "prm-regbits-44xx.h"
+> +#include "cm44xx.h"
+>  
+>  #ifdef CONFIG_SMP
+>  
+> @@ -263,9 +264,13 @@ int omap4_enter_lowpower(unsigned int cpu, unsigned int power_state)
+>  	 * In MPUSS OSWR or device OFF, interrupt controller  contest is lost.
+>  	 */
+>  	mpuss_clear_prev_logic_pwrst();
+> -	if ((pwrdm_read_next_pwrst(mpuss_pd) == PWRDM_POWER_RET) &&
+> +	if (omap4_device_next_state_off())
+> +		save_state = 3;
 
+Why?
 
-> I'm still anything but convinced by this model. Basically it's the
-> exact opposite of what we do for every other subsystem (irq, pinctrl,
-> regulator, gpio, ...), where the device using some infrastructure
-> contains the information about who provides it, whereas here you
-> move all the information into the device that provides the functional=
-ity,
-> and have no handle in the device using it by which the driver can
-> identify it.
->
-The idea was that a client shouldn't need to know/tell which dma contro=
-ller
-serves it or which peripheral interface of a dma controller.
-I think in future third-party device IPs, like ARM's Primecell, are onl=
-y gonna
-get more common so it makes even more sense.
+I don't see why this check is needed in addition to the mpuss_pd check
+added just below?
 
+> +	else if ((pwrdm_read_next_pwrst(mpuss_pd) == PWRDM_POWER_RET) &&
+>  		(pwrdm_read_logic_retst(mpuss_pd) == PWRDM_POWER_OFF))
+>  		save_state = 2;
+> +	else if (pwrdm_read_next_pwrst(mpuss_pd) == PWRDM_POWER_OFF)
+> +		save_state = 3;
+>  	cpu_clear_prev_logic_pwrst(cpu);
+>  	set_cpu_next_pwrst(cpu, power_state);
+> @@ -288,6 +293,9 @@ int omap4_enter_lowpower(unsigned int cpu, unsigned int power_state)
+>  	wakeup_cpu = smp_processor_id();
+>  	set_cpu_next_pwrst(wakeup_cpu, PWRDM_POWER_ON);
+>  
+> +	if (omap4_device_prev_state_off())
+> +		omap4_device_clear_prev_off_state();
+> +
 
-> I believe that it can work and that it solves the problem you are
-> faced with at minimal complexity, but you put the burden of this
-> complexity on everybody who does not have this issue, and make
-> the general binding confusing and harder to read.
->
-I am sorry if I gave you the wrong impression, but I didn't intend to j=
-ust
-scratch my personal itch. I truly believed I and Stephen reached a gene=
-ric
-solution i.e, as much as it could be.
+The 'clear prev off state' is subsequently removed in the last patch
+"ARM: OMAP4: powerdomain: update mpu / core off counters during device
+off."   Why is it needed here?
 
+>  	pwrdm_post_transition();
+>  
+>  	return 0;
+> diff --git a/arch/arm/mach-omap2/omap-wakeupgen.c b/arch/arm/mach-omap2/omap-wakeupgen.c
+> index 42cd7fb..805d08d 100644
+> --- a/arch/arm/mach-omap2/omap-wakeupgen.c
+> +++ b/arch/arm/mach-omap2/omap-wakeupgen.c
+> @@ -32,6 +32,7 @@
+>  
+>  #include "omap4-sar-layout.h"
+>  #include "common.h"
+> +#include "pm.h"
+>  
+>  #define NR_REG_BANKS		4
+>  #define MAX_IRQS		128
+> @@ -46,6 +47,8 @@ static void __iomem *sar_base;
+>  static DEFINE_SPINLOCK(wakeupgen_lock);
+>  static unsigned int irq_target_cpu[NR_IRQS];
+>  
+> +static struct powerdomain *mpuss_pd;
+> +
+>  /*
+>   * Static helper functions.
+>   */
+> @@ -259,7 +262,7 @@ static void irq_save_context(void)
+>  /*
+>   * Clear WakeupGen SAR backup status.
+>   */
+> -void irq_sar_clear(void)
+> +static void irq_sar_clear(void)
+>  {
+>  	u32 val;
+>  	val = __raw_readl(sar_base + SAR_BACKUP_STATUS_OFFSET);
+> @@ -271,7 +274,7 @@ void irq_sar_clear(void)
+>   * Save GIC and Wakeupgen interrupt context using secure API
+>   * for HS/EMU devices.
+>   */
+> -static void irq_save_secure_context(void)
+> +static void irq_save_secure_gic(void)
+>  {
+>  	u32 ret;
+>  	ret = omap_secure_dispatcher(OMAP4_HAL_SAVEGIC_INDEX,
+> @@ -282,6 +285,40 @@ static void irq_save_secure_context(void)
+>  }
+>  #endif
+>  
+> +static void save_secure_ram(void)
+> +{
+> +	u32 ret;
 
-> It also adds much more data to the device tree (in source and binary =
-form)
-> because you need to describe every device using a dma controller
-> and have a label to reference it.
->
-I don't see why one can't add entries to chan-map as and when more
-clients appear for the DMAC ? It should be perfectly ok to specify less
-than the maximum possible clients in chan-map.
-Requiring labels - yes, doesn't sound very nice, but many nodes already=
- do.
+CodingStyle nit: blank line needed here (and in multiple other places)
 
-> More importantly, you make it very hard to add devices in a board fil=
-e
-> to a dma controller that already has descriptions for some channels,
-> because you cannot easily extend the chan-map unless you rewrite all =
-of it.
->
-I am not sure I understand the point.
+> +	ret = omap_secure_dispatcher(OMAP4_HAL_SAVESECURERAM_INDEX,
+> +				FLAG_START_CRITICAL,
+> +				1, omap_secure_ram_mempool_base(),
+> +				0, 0, 0);
+> +	if (ret != API_HAL_RET_VALUE_OK)
+> +		pr_err("Secure ram context save failed\n");
+> +}
+> +
+> +static void save_secure_all(void)
+> +{
+> +	u32 ret;
+> +	ret = omap_secure_dispatcher(OMAP4_HAL_SAVEALL_INDEX,
+> +				FLAG_START_CRITICAL,
+> +				1, omap_secure_ram_mempool_base(),
+> +				0, 0, 0);
+> +	if (ret != API_HAL_RET_VALUE_OK)
+> +		pr_err("Secure all context save failed\n");
+> +}
 
-> We really need something simpler than this for the common case.
-> I have already made suggestions for how to make it still possible
-> to cover the corner case of multiple dma engines connected to the
-> same slave, which would keep the complexity local to those devices
-> that actually need it.
->
-Thanks $DEITY, I posted a preview. Maybe I should put it on hold.
-And thank you for speaking up immediately. Really!
---
-To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+This secure mode save/restore seems misplaced in the wakeupgen driver.
+Seems to me like it belongs in omap-secure.c.
+
+> +
+> +static void irq_save_secure_context(void)
+> +{
+> +	if (omap4_device_next_state_off()) {
+> +		save_secure_all();
+> +	} else if (pwrdm_read_next_pwrst(mpuss_pd) == PWRDM_POWER_OFF) {
+
+Why is this check needed?  This is called from the CPU_CLUSTER_PM_ENTER
+notifier, which AFAICT, is only called when the cluster is going off.
+
+> +		irq_save_secure_gic();
+> +		save_secure_ram();
+> +	} else {
+> +		irq_save_secure_gic();
+> +	}
+> +}
+> +
+>  #ifdef CONFIG_HOTPLUG_CPU
+>  static int __cpuinit irq_cpu_hotplug_notify(struct notifier_block *self,
+>  					 unsigned long action, void *hcpu)
+> @@ -388,5 +425,11 @@ int __init omap_wakeupgen_init(void)
+>  	irq_hotplug_init();
+>  	irq_pm_init();
+>  
+> +	mpuss_pd = pwrdm_lookup("mpu_pwrdm");
+> +	if (!mpuss_pd) {
+> +		pr_err("wakeupgen: unable to get mpu_pwrdm\n");
+> +		return -EINVAL;
+> +	}
+> +
+>  	return 0;
+>  }
+> diff --git a/arch/arm/mach-omap2/pm-debug.c b/arch/arm/mach-omap2/pm-debug.c
+> index d9a8e42..d8cf5e5 100644
+> --- a/arch/arm/mach-omap2/pm-debug.c
+> +++ b/arch/arm/mach-omap2/pm-debug.c
+> @@ -40,6 +40,7 @@
+>  
+>  u32 enable_off_mode;
+>  static u32 enable_oswr_mode;
+> +static void (*off_mode_enable_func) (int);
+>  
+>  #ifdef CONFIG_DEBUG_FS
+>  #include <linux/debugfs.h>
+> @@ -249,7 +250,8 @@ static int option_set(void *data, u64 val)
+>  		else
+>  			omap_pm_disable_off_mode();
+>  
+> -		omap3_pm_off_mode_enable(val);
+> +		if (off_mode_enable_func)
+> +			off_mode_enable_func(val);
+>  	}
+>  
+>  	if (option == &enable_oswr_mode)
+> @@ -278,16 +280,21 @@ static int __init pm_dbg_init(void)
+>  
+>  	pwrdm_for_each(pwrdms_setup, (void *)d);
+>  
+> -	if (cpu_is_omap34xx())
+> -		(void) debugfs_create_file("enable_off_mode",
+> -			S_IRUGO | S_IWUSR, d, &enable_off_mode,
+> -			&pm_dbg_option_fops);
+> +	(void) debugfs_create_file("enable_off_mode",
+> +		S_IRUGO | S_IWUSR, d, &enable_off_mode,
+> +		&pm_dbg_option_fops);
+>  
+>  	if (cpu_is_omap44xx())
+>  		(void) debugfs_create_file("enable_oswr_mode",
+>  			S_IRUGO | S_IWUSR, d, &enable_oswr_mode,
+>  			&pm_dbg_option_fops);
+>  
+> +	if (cpu_is_omap34xx())
+> +		off_mode_enable_func = omap3_pm_off_mode_enable;
+> +
+> +	if (cpu_is_omap44xx())
+> +		off_mode_enable_func = omap4_pm_off_mode_enable;
+> +
+>  	pm_dbg_init_done = 1;
+>  
+>  	return 0;
+> diff --git a/arch/arm/mach-omap2/pm.h b/arch/arm/mach-omap2/pm.h
+> index c36ab63..d95f8c5 100644
+> --- a/arch/arm/mach-omap2/pm.h
+> +++ b/arch/arm/mach-omap2/pm.h
+> @@ -18,6 +18,7 @@
+>  extern void *omap3_secure_ram_storage;
+>  extern void omap3_pm_off_mode_enable(int);
+>  extern void omap4_pm_oswr_mode_enable(int);
+> +extern void omap4_pm_off_mode_enable(int);
+>  extern void omap_sram_idle(void);
+>  extern int omap_set_pwrdm_state(struct powerdomain *pwrdm, u32 state);
+>  extern int omap3_idle_init(void);
+> @@ -25,6 +26,25 @@ extern int omap4_idle_init(void);
+>  extern int omap_pm_clkdms_setup(struct clockdomain *clkdm, void *unused);
+>  extern int (*omap_pm_suspend)(void);
+>  
+> +#ifdef CONFIG_PM
+> +extern void omap4_device_set_state_off(u8 enable);
+> +extern bool omap4_device_prev_state_off(void);
+> +extern bool omap4_device_next_state_off(void);
+> +extern void omap4_device_clear_prev_off_state(void);
+> +#else
+> +static inline void omap4_device_set_state_off(u8 enable)
+> +{
+> +}
+> +static inline bool omap4_device_prev_state_off(void)
+> +{
+> +	return false;
+> +}
+> +static inline bool omap4_device_next_state_off(void)
+> +{
+> +	return false;
+> +}
+> +#endif
+> +
+>  #if defined(CONFIG_PM_OPP)
+>  extern int omap3_opp_init(void);
+>  extern int omap4_opp_init(void);
+> diff --git a/arch/arm/mach-omap2/pm44xx.c b/arch/arm/mach-omap2/pm44xx.c
+> index 07ac0d3..8f0ec56 100644
+> --- a/arch/arm/mach-omap2/pm44xx.c
+> +++ b/arch/arm/mach-omap2/pm44xx.c
+> @@ -87,6 +87,27 @@ static int omap4_pm_suspend(void)
+>  }
+>  #endif /* CONFIG_SUSPEND */
+>  
+> +/**
+> + * get_achievable_state() - Provide achievable state
+> + * @available_states:	what states are available
+> + * @req_min_state:	what state is the minimum we'd like to hit
+> + *
+> + * Power domains have varied capabilities. When attempting a low power
+> + * state such as OFF/RET, a specific min requested state may not be
+> + * supported on the power domain, in which case, the next higher power
+> + * state which is supported is returned. This is because a combination
+> + * of system power states where the parent PD's state is not in line
+> + * with expectation can result in system instabilities.
+> + */
+> +static inline u8 get_achievable_state(u8 available_states, u8 req_min_state)
+> +{
+> +	u16 mask = 0xFF << req_min_state;
+> +
+> +	if (available_states & mask)
+> +		return __ffs(available_states & mask);
+> +	return PWRDM_POWER_ON;
+> +}
+
+This feature needs to be generalized (preferably on top of functional
+power states) because we have the same need on various AM3xxx SoCs which
+don't support RET/OFF.  Mark Greer has started on this, but I think it
+needs to be part of the functional power states work.
+
+It also needs to be part of the powerdomain layer, IMO.
+
+>  static int __init pwrdms_setup(struct powerdomain *pwrdm, void *unused)
+>  {
+>  	struct power_state *pwrst;
+> @@ -115,6 +136,30 @@ static int __init pwrdms_setup(struct powerdomain *pwrdm, void *unused)
+>  	return omap_set_pwrdm_state(pwrst->pwrdm, pwrst->next_state);
+>  }
+>  
+> +void omap4_pm_off_mode_enable(int enable)
+> +{
+> +	u32 next_state = PWRDM_POWER_RET;
+> +	u32 next_logic_state = PWRDM_POWER_ON;
+> +	struct power_state *pwrst;
+> +
+> +	if (enable) {
+> +		next_state = PWRDM_POWER_OFF;
+> +		next_logic_state = PWRDM_POWER_OFF;
+> +	}
+> +
+> +	omap4_device_set_state_off(enable);
+> +
+> +	list_for_each_entry(pwrst, &pwrst_list, node) {
+> +		pwrst->next_state =
+> +			get_achievable_state(pwrst->pwrdm->pwrsts, next_state);
+> +		pwrst->next_logic_state =
+> +			get_achievable_state(pwrst->pwrdm->pwrsts_logic_ret,
+> +				next_logic_state);
+> +		omap_set_pwrdm_state(pwrst->pwrdm, pwrst->next_state);
+> +		pwrdm_set_logic_retst(pwrst->pwrdm, pwrst->next_logic_state);
+> +	}
+> +}
+> +
+>  void omap4_pm_oswr_mode_enable(int enable)
+>  {
+>  	u32 next_logic_state;
+> diff --git a/arch/arm/mach-omap2/prm44xx.c b/arch/arm/mach-omap2/prm44xx.c
+> index 09d84de..86c6c6b 100644
+> --- a/arch/arm/mach-omap2/prm44xx.c
+> +++ b/arch/arm/mach-omap2/prm44xx.c
+> @@ -289,6 +289,72 @@ static void __init omap44xx_prm_enable_io_wakeup(void)
+>  			OMAP4_PRM_IO_PMCTRL_OFFSET);
+>  }
+>  
+> +/**
+> + * omap4_device_set_state_off() - setup device off state
+> + * @enable:	set to off or not.
+> + *
+> + * When Device OFF is enabled, Device is allowed to perform
+> + * transition to off mode as soon as all power domains in MPU, IVA
+> + * and CORE voltage are in OFF or OSWR state (open switch retention)
+> + */
+> +void omap4_device_set_state_off(u8 enable)
+> +{
+> +	if (enable)
+> +		omap4_prminst_write_inst_reg(0x1 <<
+> +				OMAP4430_DEVICE_OFF_ENABLE_SHIFT,
+> +				OMAP4430_PRM_PARTITION,
+> +				OMAP4430_PRM_DEVICE_INST,
+> +				OMAP4_PRM_DEVICE_OFF_CTRL_OFFSET);
+> +	else
+> +		omap4_prminst_write_inst_reg(0x0 <<
+> +				OMAP4430_DEVICE_OFF_ENABLE_SHIFT,
+> +				OMAP4430_PRM_PARTITION,
+> +				OMAP4430_PRM_DEVICE_INST,
+> +				OMAP4_PRM_DEVICE_OFF_CTRL_OFFSET);
+> +}
+
+minor: a more compact, and more readable (so it's obvious at first
+glance that the same register is being written) would be:
+
+void omap4_device_set_state_off(u8 enable)
+{
+        u8 val = enable ? 0x1 : 0x0;
+
+	omap4_prminst_write_inst_reg(val <<
+				OMAP4430_DEVICE_OFF_ENABLE_SHIFT,
+				OMAP4430_PRM_PARTITION,
+				OMAP4430_PRM_DEVICE_INST,
+				OMAP4_PRM_DEVICE_OFF_CTRL_OFFSET);
+}
+
+> +/**
+> + * omap4_device_prev_state_off:
+> + * returns true if the device hit OFF mode
+> + * This is API to check whether OMAP is waking up from device OFF mode.
+> + * There is no other status bit available for SW to read whether last state
+> + * entered was device OFF. To work around this, CORE PD, RFF context state
+> + * is used which is lost only when we hit device OFF state
+> + */
+> +bool omap4_device_prev_state_off(void)
+> +{
+> +	u32 reg;
+
+minor: reg makes me think the result of the read is a register address,
+not a value.  How about s/reg/val/.
+
+> +	reg = omap4_prminst_read_inst_reg(OMAP4430_PRM_PARTITION,
+> +				OMAP4430_PRM_CORE_INST,
+> +				OMAP4_RM_L3_1_L3_1_CONTEXT_OFFSET)
+> +		& OMAP4430_LOSTCONTEXT_RFF_MASK;
+> +
+> +	return reg ? true : false;
+> +}
+> +
+> +void omap4_device_clear_prev_off_state(void)
+> +{
+> +	omap4_prminst_write_inst_reg(OMAP4430_LOSTCONTEXT_RFF_MASK |
+> +				OMAP4430_LOSTCONTEXT_DFF_MASK,
+> +				OMAP4430_PRM_PARTITION,
+> +				OMAP4430_PRM_CORE_INST,
+> +				OMAP4_RM_L3_1_L3_1_CONTEXT_OFFSET);
+> +}
+> +
+> +/**
+> + * omap4_device_next_state_off:
+> + * returns true if the device next state is OFF
+> + * This is API to check whether OMAP is programmed for device OFF
+> + */
+> +bool omap4_device_next_state_off(void)
+> +{
+> +	return omap4_prminst_read_inst_reg(OMAP4430_PRM_PARTITION,
+> +			OMAP4430_PRM_DEVICE_INST,
+> +			OMAP4_PRM_DEVICE_OFF_CTRL_OFFSET)
+> +			& OMAP4430_DEVICE_OFF_ENABLE_MASK ? true : false;
+
+minor: when using these long register read helpers, IMO readability
+improves if this is of the form:
+
+       val = <read register>;
+       val &= <mask>;
+       return val ? true : false;
+
+> +}
+> +
+>  static int __init omap4xxx_prcm_init(void)
+>  {
+>  	if (cpu_is_omap44xx()) {
+
+Kevin
+
