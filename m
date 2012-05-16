@@ -1,34 +1,133 @@
-From: Stephen Warren <swarren@wwwdotorg.org>
-Subject: Re: [PATCH] pinctrl: Add generic pinctrl-simple driver that supports
- omap2+ padconf
-Date: Wed, 16 May 2012 09:53:50 -0600
-Message-ID: <4FB3CD8E.3030308@wwwdotorg.org>
-References: <20120503065131.GA3738@game.jcrosoft.org> <20120503152708.GC5140@atomide.com> <4FA30805.5050804@wwwdotorg.org> <20120504044305.GD7788@game.jcrosoft.org> <20120504150342.GI5140@atomide.com> <20120504153251.GE7788@game.jcrosoft.org> <20120504163420.GA5613@atomide.com> <4FA42631.6060304@wwwdotorg.org> <20120504220809.GW5613@atomide.com> <4FAAD141.3090306@wwwdotorg.org> <20120509204925.GV5088@atomide.com> <4FABF553.20601@wwwdotorg.org> <CACRpkdbqjofEi-5J+GTMOXFK1VvbXqa6At1fKXCge+5_y6aaRA@mail.gmail.com> <4FB1513A.4070002@wwwdotorg.org> <CACRpkdZCJXy4EMCa0x8pOLUOz=646_housV8qyqMh9AgfwxxUw@mail.gmail.com>
+From: Jon Hunter <jon-hunter@ti.com>
+Subject: Re: [PATCH V3 1/2] of: Add generic device tree DMA helpers
+Date: Wed, 16 May 2012 11:01:08 -0500
+Message-ID: <4FB3CF44.4040603@ti.com>
+References: <1335820679-28721-1-git-send-email-jon-hunter@ti.com> <CAJe_Zhe-SqDMDGOhrYZtBBJnCYqLR0H07cPKzG4SyUxiLrgFnQ@mail.gmail.com> <4FA3F308.6030900@ti.com> <CAJe_ZhfFhZVG4gyaaVUgeQedJiSE=zj9nE28XCNH9DkPVgqj=A@mail.gmail.com> <4FB2FEBA.1030404@ti.com> <CAJe_ZhcrMycgOWf6EiGEjz25C1ZTkB1W=33Qqp4rFpcq-5QsDg@mail.gmail.com> <4FB3A87C.1000000@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
+Content-Type: text/plain; charset="ISO-8859-1"
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <CACRpkdZCJXy4EMCa0x8pOLUOz=646_housV8qyqMh9AgfwxxUw@mail.gmail.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Linus Walleij <linus.walleij@linaro.org>
-Cc: Tony Lindgren <tony@atomide.com>, Jean-Christophe PLAGNIOL-VILLARD <plagnioj@jcrosoft.com>, linux-omap@vger.kernel.org, Stephen Warren <swarren@nvidia.com>, linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from comal.ext.ti.com ([198.47.26.152]:46268 "EHLO comal.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1756540Ab2EPQB2 (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Wed, 16 May 2012 12:01:28 -0400
+In-Reply-To: <4FB3A87C.1000000@ti.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Jassi Brar <jaswinder.singh@linaro.org>
+Cc: Stephen Warren <swarren@nvidia.com>, Benoit Cousson <b-cousson@ti.com>, Arnd Bergmann <arnd@arndb.de>, device-tree <devicetree-discuss@lists.ozlabs.org>, Nicolas Ferre <nicolas.ferre@atmel.com>, Rob Herring <rob.herring@calxeda.com>, Grant Likely <grant.likely@secretlab.ca>, Russell King <linux@arm.linux.org.uk>, linux-omap <linux-omap@vger.kernel.org>, linux-arm <linux-arm-kernel@lists.infradead.org>
 
-On 05/16/2012 01:14 AM, Linus Walleij wrote:
-> On Mon, May 14, 2012 at 8:38 PM, Stephen Warren <swarren@wwwdotorg.org> wrote:
->> On 05/12/2012 05:49 PM, Linus Walleij wrote:
-...
->>> Maybe "-simple" isn't such a good name for this thing. Noone thinks
->>> any kind of pin control is simple in any sense of the word anyway :-D
->>>
->>> Tony, would pinctrl-dt-only.c be a better name perhaps?
->>
->> That might be OK for the filename, but it doesn't seem like a useful
->> change for the DT compatible value.
+
+On 05/16/2012 08:15 AM, Jon Hunter wrote:
+> Hi Jassi,
 > 
-> Oh I didn't think of these. Hm from a generic world running Windows
-> Mobile etc I take it that this is seen as simple mappings then?
+> On 05/16/2012 07:37 AM, Jassi Brar wrote:
+>> Hi Jon,
+>>
+>> On 16 May 2012 06:41, Jon Hunter <jon-hunter@ti.com> wrote:
+>>> On 05/04/2012 02:01 PM, Jassi Brar wrote:
+>>>>
+>>>> +       i2c1: i2c@1 {
+>>>> +               ...
+>>>> +               dma = <&sdma 2 1 &sdma 3 2>;
+>>>> +               ...
+>>>> +       };
+>>>>>
+>>>> I see this requires a client driver to specify a particular req_line on a
+>>>> particular dma controller. I am not sure if this is most optimal.
+>>>
+>>> Actually, no. The phandle in the DT specifies the DMA controller to use.
+>>> Then the client simply asks for a channel with a particular property,
+>>> for example, DMA_MEM_TO_DEV (ie. TX) and the channel information is return.
+>>>
+>> See below.
+>>
+>>>> I think such client->req_line map should be provided to the dmac controller
+>>>> driver via its dt node in some format. The dmac driver could then populate
+>>>> a dma_chan, or similar, only for that req_line and not for the unused one
+>>>> which otherwise could also have served the same client.
+>>>>
+>>>> Ideally the I2C driver should simply ask, say, a channel for TX and another
+>>>> for RX, everything else should already be setup via dmac's dt nodes.
+>>>
+>>> Yes that is the intention here.
+>>>
+>> But the client is required to specify the dmac that would serve it.
+>> Which is more
+>> than simply asking for "some suitable channel".
+> 
+> No this is not the case with what I propose. The client knows nothing
+> about the dmac.
 
-I can't think of anything that's much better than pinctrl-simple.
-Perhaps pinctrl-generic; at least that doesn't imply it's simple if we
-keep adding features:-)
+By the way, I do see your point. You wish to describe the all the
+mappings available to all dma controllers and then set a mapping in the
+device tree. Where as I am simply setting a mapping and do not list all
+other possibilities (assuming that there some).
+
+What is still unclear to me, is if you use this token approach how
+readable is the device-tree? For example, if you have a client that can
+use one of two dmac and for each dmac the request/channel number is
+different, then by using a global token how can I determine what the
+options available for this client are?
+
+Take your example ...
+
+mmc1: mmc@13002000 {
+        ...
+        dma_tx = <891>   //some platform-wide unique value
+        dma_rx = <927>   //some platform-wide unique value
+        ...
+};
+
+DMAC's Node:-
+
+pdma2: pdma@10800000 {
+         .......
+	dma_map = <891, 7>,       // Map mmc1_tx onto i/f 7
+		  <927, 8>,       // Map mmc1_rx onto i/f 8
+	.......
+};
+
+But now I have another dmac which has the following options ...
+
+pdma1: pdma@10000000 {
+         .......
+	dma_map = <598, 2>,       // Map mmc1_tx onto i/f 2
+		  <230, 3>,       // Map mmc1_rx onto i/f 3
+	.......
+};
+
+Other than using a comment or yet another token to represent the client,
+it is not clear from the arbitrary token value itself what my options are.
+
+One way around this would be to have an enable/disable flag along with
+the token such as ...
+
+mmc1: mmc@13002000 {
+        ...
+        dma_tx = <891, 1>   // default tx channel
+        dma_rx = <927, 1>   // default rx channel
+        dma_tx = <598, 0>   // other available tx channel
+        dma_rx = <230, 0>   // other available rx channel
+        ...
+};
+
+That being said, we could take the same approach with using the dmac
+phandle instead of the token. So you would have ...
+
+
+mmc1: mmc@13002000 {
+        ...
+		// phandle + channel + enable/disable
+        dma_tx = <pdma0, 7, 1>   // default tx channel
+        dma_rx = <pdma0, 8, 1>   // default rx channel
+        dma_tx = <pdma1, 2, 0>   // other available tx channel
+        dma_rx = <pdma1, 3, 0>   // other available rx channel
+        ...
+};
+
+Then you could eliminate the random token and dma map from the dmac.
+Seems easier to read too.
+
+Cheers
+Jon
