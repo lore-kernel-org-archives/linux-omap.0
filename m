@@ -1,64 +1,43 @@
 From: Kevin Hilman <khilman@ti.com>
-Subject: Re: [PATCHv2 10/19] ARM: OMAP4: PM: Work-around for ROM code BUG
- of IVAHD/TESLA
-Date: Wed, 16 May 2012 16:07:21 -0700
-Message-ID: <4FB43329.50505@ti.com>
+Subject: Re: [PATCHv2 11/19] ARM: OMAP4: PM: save/restore CM L3INSTR registers when MPU hits OSWR/OFF mode
+Date: Wed, 16 May 2012 16:17:23 -0700
+Message-ID: <87sjez67i4.fsf@ti.com>
 References: <1336990730-26892-1-git-send-email-t-kristo@ti.com>
- <1336990730-26892-11-git-send-email-t-kristo@ti.com> <87zk976827.fsf@ti.com>
+	<1336990730-26892-12-git-send-email-t-kristo@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"; Format="flowed"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-In-Reply-To: <87zk976827.fsf@ti.com>
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: linux-arm-kernel-bounces@lists.infradead.org
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: Tero Kristo <t-kristo@ti.com>
-Cc: paul@pwsan.com, linux-omap@vger.kernel.org, Santosh Shilimkar <santosh.shilimkar@ti.com>, linux-arm-kernel@lists.infradead.org, Rajendra Nayak <rnayak@ti.com>
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from na3sys009aog133.obsmtp.com ([74.125.149.82]:43607 "EHLO
+	na3sys009aog133.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S932946Ab2EPXR1 (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>);
+	Wed, 16 May 2012 19:17:27 -0400
+Received: by pbbro8 with SMTP id ro8so2329755pbb.39
+        for <linux-omap@vger.kernel.org>; Wed, 16 May 2012 16:17:25 -0700 (PDT)
+In-Reply-To: <1336990730-26892-12-git-send-email-t-kristo@ti.com> (Tero
+	Kristo's message of "Mon, 14 May 2012 13:18:42 +0300")
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Tero Kristo <t-kristo@ti.com>
+Cc: linux-omap@vger.kernel.org, paul@pwsan.com, linux-arm-kernel@lists.infradead.org, Rajendra Nayak <rnayak@ti.com>, Santosh Shilimkar <santosh.shilimkar@ti.com>
 
-On 05/16/2012 04:05 PM, Kevin Hilman wrote:
-> Tero Kristo<t-kristo@ti.com>  writes:
->
->> From: Santosh Shilimkar<santosh.shilimkar@ti.com>
->>
->> The ROM BUG is when MPU Domain OFF wake up sequence that can compromise
->> IVA and Tesla execution.
->>
->> At wakeup from MPU OFF on HS device only (not GP device), when
->> restoring the Secure RAM, the ROM Code reconfigures the clocks the
->> same way it is done at Cold Reset.
->
-> Ouch.
->
->> The IVAHD Clocks and Power Domain settings are:
->> 	IVAHD_CM2 IVAHD_CLKCTRL_MODULE_MODE = DISABLE
->> 	IVAHD_CM2 SL2_CLKCTRL_MODULE_MODE = DISABLE
->> 	IVAHD_CM2 SL2_CLKSTCTRL_CLKTRCTRL = HW_AUTO
->> 	IVAHD_PRM IVAHD_PWRSTCTRL_POWERSTATE = OFF
->> The TESLA Clocks and Power Domain settings are:
->> 	TESLA_CM1 TESLA_CLKCTRL_MODULE_MODE = DISABLE
->> 	TESLA_CM1 TESLA_CLKSTCTRL_CLKTRCTRL = HW_AUTO
->> 	TESLA_PRM TESLA_PWRSTCTRL_POWERSTATE = OFF
->>
->> This patch fixes the low power OFF mode code so that the these
->> registers are saved and restore across MPU OFF state.
->>
->> Also because of this limitation, MPU OFF alone is not targeted without
->> device OFF to avoid IVAHD and TESLA execution impact
->
-> I don't see where this restriction is implemented.
->
-> And, can this be hooked into cluster PM notifiers.
+Tero Kristo <t-kristo@ti.com> writes:
 
-Especially since this only effects a subset of revisions, installing the 
-notifier only on effected revisions also removes any overhead on working 
-revisions.
+> From: Rajendra Nayak <rnayak@ti.com>
+>
+> On HS devices on the way out of MPU OSWR and OFF ROM code wrongly
+> overwrites the CM L3INSTR registers. So to avoid this, save them and
+> restore on the way out from MPU OSWR/OFF.
+>
+> This errata applies to all HS/EMU versions of OMAP4.
+>
+> Signed-off-by: Rajendra Nayak <rnayak@ti.com>
+> Signed-off-by: Santosh Shilimkar <santosh.shilimkar@ti.com>
+> [t-kristo@ti.com: added omap4 pm errata support]
+> Signed-off-by: Tero Kristo <t-kristo@ti.com>
+
+Let's use the cluster PM notifiers here too, using the PM errata check
+when registering the notifier.
 
 Kevin
+
