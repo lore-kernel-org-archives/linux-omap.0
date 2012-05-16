@@ -1,59 +1,101 @@
-From: Ming Lei <ming.lei@canonical.com>
-Subject: Re: [PATCH 3/6] arm: omap4: support pmu
-Date: Wed, 16 May 2012 18:12:06 +0800
-Message-ID: <CACVXFVNsniPK0-5bU8+8iZeA1JD5WD1refn37nnArq6cGs5=MA@mail.gmail.com>
-References: <1336599350-10944-1-git-send-email-jon-hunter@ti.com>
+From: Santosh Shilimkar <santosh.shilimkar@ti.com>
+Subject: Re: [PATCHv5 3/8] ARM: OMAP4460: Workaround for ROM bug because of
+ CA9 r2pX gic control register change
+Date: Wed, 16 May 2012 17:53:54 +0530
+Message-ID: <4FB39C5A.5080404@ti.com>
+References: <1336989796-26594-1-git-send-email-t-kristo@ti.com> <1336989796-26594-4-git-send-email-t-kristo@ti.com> <87zk99ce5q.fsf@ti.com> <4FB3707B.2080200@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from youngberry.canonical.com ([91.189.89.112]:58097 "EHLO
-	youngberry.canonical.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1759918Ab2EPKMK convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 16 May 2012 06:12:10 -0400
-Received: from mail-pz0-f46.google.com ([209.85.210.46])
-	by youngberry.canonical.com with esmtpsa (TLS1.0:RSA_ARCFOUR_MD5:16)
-	(Exim 4.71)
-	(envelope-from <ming.lei@canonical.com>)
-	id 1SUbDE-00012I-7x
-	for linux-omap@vger.kernel.org; Wed, 16 May 2012 10:12:08 +0000
-Received: by dady13 with SMTP id y13so778677dad.19
-        for <linux-omap@vger.kernel.org>; Wed, 16 May 2012 03:12:06 -0700 (PDT)
-In-Reply-To: <1336599350-10944-1-git-send-email-jon-hunter@ti.com>
+Received: from na3sys009aog109.obsmtp.com ([74.125.149.201]:44130 "EHLO
+	na3sys009aog109.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1757231Ab2EPMYB (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>);
+	Wed, 16 May 2012 08:24:01 -0400
+Received: by ghbz22 with SMTP id z22so4357ghb.41
+        for <linux-omap@vger.kernel.org>; Wed, 16 May 2012 05:24:00 -0700 (PDT)
+In-Reply-To: <4FB3707B.2080200@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Jon Hunter <jon-hunter@ti.com>
-Cc: linux-omap <linux-omap@vger.kernel.org>, Woodruff Richard <r-woodruff2@ti.com>, Will Deacon <will.deacon@arm.com>, Benoit Cousson <b-cousson@ti.com>, Paul Walmsley <paul@pwsan.com>, Kevin Hilman <khilman@ti.com>
+To: Kevin Hilman <khilman@ti.com>
+Cc: Tero Kristo <t-kristo@ti.com>, linux-omap@vger.kernel.org, paul@pwsan.com, linux-arm-kernel@lists.infradead.org
 
-On Thu, May 10, 2012 at 5:35 AM, Jon Hunter <jon-hunter@ti.com> wrote:
+Kevin,
 
-> +
-> + =A0 =A0 =A0 /*configure CTI0 for pmu irq routing*/
-> + =A0 =A0 =A0 cti_init(&omap4_cti[0], base0, OMAP44XX_IRQ_CTI0, 6);
-> + =A0 =A0 =A0 cti_unlock(&omap4_cti[0]);
-> + =A0 =A0 =A0 cti_map_trigger(&omap4_cti[0], 1, 6, 2);
-> +
-> + =A0 =A0 =A0 /*configure CTI1 for pmu irq routing*/
-> + =A0 =A0 =A0 cti_init(&omap4_cti[1], base1, OMAP44XX_IRQ_CTI1, 6);
-> + =A0 =A0 =A0 cti_unlock(&omap4_cti[1]);
-> + =A0 =A0 =A0 cti_map_trigger(&omap4_cti[1], 1, 6, 2);
+On Wednesday 16 May 2012 02:46 PM, Santosh Shilimkar wrote:
+> On Wednesday 16 May 2012 03:14 AM, Kevin Hilman wrote:
+>> Santosh,
+>>
+>> Tero Kristo <t-kristo@ti.com> writes:
+>>
+>>> From: Santosh Shilimkar <santosh.shilimkar@ti.com>
+>>>
+>>> GIC distributor control register has changed between CortexA9 r1pX and
+>>> r2pX. The Control Register secure banked version is now composed of 2
+>>> bits:
+>>>      bit 0 == Secure Enable
+>>>      bit 1 == Non-Secure Enable
+>>> The Non-Secure banked register has not changed. 
+>>
+>> For those without the r1pX TRM handy, please include what this look like
+>> before (presumably 1 bit?)  The changelog and in-code comments should
+>> both be enhanced.
+>>
+> You are right. There was only one bit previously which was used for
+> secure/non-secure mode. So ROM over-writes the non-secure bit
+> accidentally.
+> 
+>>> Since the ROM Code is based on the r1pX GIC, the CPU1 GIC restoration
+>>> will cause a problem to CPU0 Non-Secure SW.
+>>
+>> Please describe the problem, so we can better understand the specifics
+>> of the workaround.
+>>
+Below is the updated changelog.
 
-As pointed in another thread, the above line should be changed to below=
-:
+--------------
+ARM: OMAP4460: Workaround for ROM bug because of CA9 r2pX gic control
+register change
 
-             cti_map_trigger(&omap4_cti[1], 1, 6, 3);
+With MPUSS programmed to OSWR(Open Switch retention), GIC context is
+lost. On the CPU wakeup paths, ROM code gets executed which will setup
+GIC secure configurations and restore the GIC context if it was saved
+based on SAR_BACKUP_STATUS.
 
-which can avoid irq flood issue at high frequency sample mode.
-=46or detailed description about the issue and fix, see below link:
+The ROM Code GIC distributor restoration is split in two parts:
+CPU specific register done by each CPU and common register done by
+only one CPU. If the GIC Distributor Control Register = 1, the
+second CPU will not do the common GIC restoration.
 
-      http://permalink.gmane.org/gmane.linux.linaro.devel/10532
+GIC distributor control register has changed between CortexA9 r1pX and
+r2pX. The Control Register secure banked version is now composed of 2
+bits vs only one bit before r1px:
+     bit 0 == Secure Enable
+     bit 1 == Non-Secure Enable
+Hence the value of Control register will be 3 and not 1 as the r1pX
+based ROM code expects. So he CPU1 on it's wakeup ROM code path, will
+go to the GIC initialization procedure and will so reset the full GIC
+and NS GIC distributor Enable bit will get cleared.
+Since the GIC distributor gets disabled in a live system, CPU1 will
+hang because the interrupts stop firing.
 
+Workaround for the issue:
+     1) Before doing the CPU1 wakeup, CPU0 must disable
+        the GIC distributor and wait for it to be enabled.
+     2) CPU1 must re-enable the GIC distributor on
+        it's wakeup path.
 
-Thanks,
---
-Ming Lei
---
-To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+With this procedure, the GIC configuration done between the
+CPU0 wakeup and CPU1 wakeup will not be lost but during this
+short windows, the CPU0 will not receive interrupts.
+
+The BUG is applicable to only OMAP4460(r2pX) devices.
+OMAP4470(r2Px), ROM code is fixed for this BUG.
+----------------
+
+Let me know if it clarifies the issue ?
+
+Regards
+Santosh
+
