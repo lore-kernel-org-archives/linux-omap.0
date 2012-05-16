@@ -1,63 +1,65 @@
-From: Paul Walmsley <paul@pwsan.com>
-Subject: Re: [PATCH 0/9] ARM: OMAP: DMTIMER clean-up in preparation for
- device-tree
-Date: Wed, 16 May 2012 17:30:43 -0600 (MDT)
-Message-ID: <alpine.DEB.2.00.1205161727200.2921@utopia.booyaka.com>
-References: <1337124914-19921-1-git-send-email-jon-hunter@ti.com> <4FB37356.9040001@ti.com> <4FB40AB5.10302@ti.com>
+From: Kevin Hilman <khilman@ti.com>
+Subject: Re: [PATCHv2 12/19] ARM: OMAP4: PM: update ROM return address for OSWR and OFF
+Date: Wed, 16 May 2012 16:36:35 -0700
+Message-ID: <87zk974s1o.fsf@ti.com>
+References: <1336990730-26892-1-git-send-email-t-kristo@ti.com>
+	<1336990730-26892-13-git-send-email-t-kristo@ti.com>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from utopia.booyaka.com ([72.9.107.138]:41515 "EHLO
-	utopia.booyaka.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932144Ab2EPXao (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 16 May 2012 19:30:44 -0400
-In-Reply-To: <4FB40AB5.10302@ti.com>
+Received: from na3sys009aog132.obsmtp.com ([74.125.149.250]:59241 "EHLO
+	na3sys009aog132.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1760762Ab2EPXgj (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>);
+	Wed, 16 May 2012 19:36:39 -0400
+Received: by dadz8 with SMTP id z8so2166035dad.35
+        for <linux-omap@vger.kernel.org>; Wed, 16 May 2012 16:36:37 -0700 (PDT)
+In-Reply-To: <1336990730-26892-13-git-send-email-t-kristo@ti.com> (Tero
+	Kristo's message of "Mon, 14 May 2012 13:18:43 +0300")
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Jon Hunter <jon-hunter@ti.com>
-Cc: "Cousson, Benoit" <b-cousson@ti.com>, linux-omap <linux-omap@vger.kernel.org>, Tony Lindgren <tony@atomide.com>, "DebBarma, Tarun Kanti" <tarun.kanti@ti.com>
+To: Tero Kristo <t-kristo@ti.com>
+Cc: linux-omap@vger.kernel.org, paul@pwsan.com, linux-arm-kernel@lists.infradead.org, Carlos Leija <cileija@ti.com>, Praneeth Bajjuri <praneeth@ti.com>, Bryan Buckley <bryan.buckley@ti.com>
 
-Hello Jon,
+Tero Kristo <t-kristo@ti.com> writes:
 
-On Wed, 16 May 2012, Jon Hunter wrote:
+> From: Carlos Leija <cileija@ti.com>
+>
+> At wakeup from OFF/OSWR CPU1 will call secure HAL service through a local
+> secure dispatcher with MMU off, 
 
-> I have been looking into this and in order to get rid for the above
-> function pointer we would need to move at a minimum the following
-> functions from omap-mach2/clkt_clksel.c into the platform code.
+Reviewers who are uninitaited in this level of detail need some more
+help here  (even those who are deeply familiar will need more help in a
+few months when they forget the details.)
 
-By platform code, do you mean arch/arm/plat-omap?
+So, some more detail about where this is in the code would be helpful
+here.
 
-> _get_clksel_by_parent()
-> _get_div_and_fieldval()
-> _write_clksel_reg()
-> omap2_init_clksel_parent()
-> omap2_clksel_set_parent()
-> 
-> However, it may be simpler just to move the clkt_clksel.c file
-> completely. I have tested the above functions on omap1 and they are
-> working well. However, before doing this we would need to get Paul's
-> buy-in that this is the right thing to do.
-> 
-> Paul, do you have any thoughts on this? We were trying to see if we
-> could eliminate the dmtimer function pointer for setting the timer clock
-> source.
+> thus ROM will save a PA return address.
+> Later in the wakeup, when SMC driver calls an RPC through
+> omap4_secure_dispatcher (MMU is on now), 
 
-So, just to see if I'm understanding you correctly, you are planning to 
-implement clksel clocks in the clock framework for OMAP1, and then use 
-clk_set_parent() in the DMTIMER driver ?
+Again, pointer to where is this in the code would be helpful.
 
-If so, then yes, that sounds like the right thing to do.
+Also, it's not obvious why RPC use used here. Is that referring to the
+fact that the secure calls on CPU1 are dispatched to CPU0?  Whatever it
+means, it should be summarized in the changelog.
 
-Eventually both OMAP2+ and OMAP1 will presumably switch to the common 
-clock framework, once things settle down a bit and can be tested.
+> ROM code won't log the new return
+> address as RPCs are handled different. Thus ROM will attempt to return to
+> a PA address when the MMU is on and the system will hang.
+>
+> We need to do this for OSWR state and OFF state of mpu power domain,
+> not just for device off(mpu pd OFF).
 
-> Also, the only other minor issue I see is that for omap1 devices instead
-> of having "sys_ck" as the name the clock name is "armxor_ck". We cannot
-> rename armxor_ck as it is used by many peripherals but we could use a
-> #define to workaround this or add a dummy clock node.
+The code suggests that affects *all* OMAP4 revisions?  Is that correct?
 
-OMAP1 clockfw uses clkdev just like OMAP2+, so you should be able to 
-define as many clock aliases as you want in mach-omap1/clock_data.c.
+And once again, can this be implmented using cluster PM notifiers, where
+the notifier is registered only on affected revisions?
+
+(Sheesh, the number of ROM code workaounds in this series is rather
+disconcerting.)
+
+Kevin
 
 
-- Paul
