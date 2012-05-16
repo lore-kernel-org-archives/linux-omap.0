@@ -1,68 +1,126 @@
-From: Jon Hunter <jon-hunter@ti.com>
-Subject: Re: [PATCH V3 1/2] of: Add generic device tree DMA helpers
-Date: Wed, 16 May 2012 13:03:32 -0500
-Message-ID: <4FB3EBF4.3070305@ti.com>
-References: <1335820679-28721-1-git-send-email-jon-hunter@ti.com> <CAJe_Zhe-SqDMDGOhrYZtBBJnCYqLR0H07cPKzG4SyUxiLrgFnQ@mail.gmail.com> <4FA3F308.6030900@ti.com> <CAJe_ZhfFhZVG4gyaaVUgeQedJiSE=zj9nE28XCNH9DkPVgqj=A@mail.gmail.com> <4FB2FEBA.1030404@ti.com> <CAJe_ZhcrMycgOWf6EiGEjz25C1ZTkB1W=33Qqp4rFpcq-5QsDg@mail.gmail.com> <4FB3A87C.1000000@ti.com> <4FB3CF44.4040603@ti.com> <CAJe_ZhcQAABe9xF6HEvUq8OT8RoWXTHAsrzyZiGO9bM-GHNiTg@mail.gmail.com> <4FB3E00B.4030207@ti.com> <CAJe_Zhe_edZ32K50i8AH+wagUkYWRxJpWpZpZ-ddk83LF5vKRg@mail.gmail.com> <4FB3E5F2.8010301@ti.com> <4FB3E7E4.5060505@wwwdotorg.org>
+From: Kevin Hilman <khilman@ti.com>
+Subject: Re: [PATCHv2 01/19] ARM: OMAP4: PM: powerdomain: Add HWSAR flag to L3INIT
+Date: Wed, 16 May 2012 11:27:20 -0700
+Message-ID: <874nrgf0c7.fsf@ti.com>
+References: <1336990730-26892-1-git-send-email-t-kristo@ti.com>
+	<1336990730-26892-2-git-send-email-t-kristo@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="ISO-8859-1"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from devils.ext.ti.com ([198.47.26.153]:41552 "EHLO
-	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1760054Ab2EPSDv (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 16 May 2012 14:03:51 -0400
-In-Reply-To: <4FB3E7E4.5060505@wwwdotorg.org>
+Received: from na3sys009aog122.obsmtp.com ([74.125.149.147]:34744 "EHLO
+	na3sys009aog122.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1754161Ab2EPS1X (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>);
+	Wed, 16 May 2012 14:27:23 -0400
+Received: by dajt11 with SMTP id t11so1640198daj.38
+        for <linux-omap@vger.kernel.org>; Wed, 16 May 2012 11:27:21 -0700 (PDT)
+In-Reply-To: <1336990730-26892-2-git-send-email-t-kristo@ti.com> (Tero
+	Kristo's message of "Mon, 14 May 2012 13:18:32 +0300")
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Stephen Warren <swarren@wwwdotorg.org>
-Cc: Jassi Brar <jaswinder.singh@linaro.org>, Stephen Warren <swarren@nvidia.com>, Benoit Cousson <b-cousson@ti.com>, Arnd Bergmann <arnd@arndb.de>, device-tree <devicetree-discuss@lists.ozlabs.org>, Nicolas Ferre <nicolas.ferre@atmel.com>, Rob Herring <rob.herring@calxeda.com>, Grant Likely <grant.likely@secretlab.ca>, Russell King <linux@arm.linux.org.uk>, linux-omap <linux-omap@vger.kernel.org>, linux-arm <linux-arm-kernel@lists.infradead.org>
+To: Tero Kristo <t-kristo@ti.com>
+Cc: linux-omap@vger.kernel.org, paul@pwsan.com, linux-arm-kernel@lists.infradead.org, Santosh Shilimkar <santosh.shilimkar@ti.com>
 
+Tero Kristo <t-kristo@ti.com> writes:
 
-On 05/16/2012 12:46 PM, Stephen Warren wrote:
-> On 05/16/2012 11:37 AM, Jon Hunter wrote:
->>
->>
->> On 05/16/2012 12:24 PM, Jassi Brar wrote:
->>> On 16 May 2012 22:42, Jon Hunter <jon-hunter@ti.com> wrote:
->>>
->>>>>> What is still unclear to me, is if you use this token approach how
->>>>>> readable is the device-tree? For example, if you have a client that can
->>>>>> use one of two dmac and for each dmac the request/channel number is
->>>>>> different, then by using a global token how can I determine what the
->>>>>> options available for this client are?
->>>>>>
->>>>> Simple - you/client need not know about any option at all :)
->>>>>
->>>>> Client driver would simply request some channel and if it
->>>>> doesn't get it, it bails out.
->>>>>
->>>>> It would be the DMACs' DT node that would contain that info.
->>>>
->>>> Yes, but what if I am doing some custom application and want to modify
->>>> the mapping that is being used? So I just wanted to make sure it is easy
->>>> to understand assuming that you understand what your h/w is capable of.
->>>>
->>> Any scenario when a client would want to choose which dma controller
->>> it runs on?
->>>
->>> Because when we say a client could be provided a channel on any of the
->>> two given dmacs, it implies that the client wouldn't feel any difference.
->>
->> That's not my point. I am saying for some reason, maybe QoS, _I_ want to
->> specify which mapping used. I am the one that knows how the h/w is being
->> used and _I_ want to customise the dma/channel mapping in the DT, such
->> that when the client asks for it I know what it is getting. Yes to the
->> client, it does not care, but I do.
-> 
-> If you really need to do that, you could always just lie in the DT node
-> of the DMA controllers you don't want to use, and omit the entry for the
-> DMA client(s) you don't want to use it.
+> From: Santosh Shilimkar <santosh.shilimkar@ti.com>
+>
+> L3INIT powerdomain has USB HOST and USB TLL modules which support
+> hardware save-and-restore (HW SAR) mechanism.
+> This patch updates the L3INIT power domain to mark them as capable
+> of doing H/w save and restore and provides functions to do them
+> explicitly.
+>
+> Note: Eventually, these custom function implementation will be
+> abstracted and might be done in hwmod or in other layer.
 
-Exactly. The point I am trying to make, is that whatever binding we have
-it needs to be intuitive such that someone who knows the hardware could
-customise by removing entries, etc. This is probably a mute point now
-that we are not using the token scheme, but I wanted to be clear that I
-could see people customising the stock dev-trees in the kernel for their
-particular application. That's all.
+Why not do it the right way now?
 
-Jon
+Also, these new functions need kerneldoc.
+
+Kevin
+
+> Signed-off-by: Santosh Shilimkar <santosh.shilimkar@ti.com>
+> Signed-off-by: Tero Kristo <t-kristo@ti.com>
+> ---
+>  arch/arm/mach-omap2/powerdomain44xx.c       |   41 +++++++++++++++++++++++++++
+>  arch/arm/mach-omap2/powerdomains44xx_data.c |    2 +-
+>  2 files changed, 42 insertions(+), 1 deletions(-)
+>
+> diff --git a/arch/arm/mach-omap2/powerdomain44xx.c b/arch/arm/mach-omap2/powerdomain44xx.c
+> index ab00736..37f7e12 100644
+> --- a/arch/arm/mach-omap2/powerdomain44xx.c
+> +++ b/arch/arm/mach-omap2/powerdomain44xx.c
+> @@ -23,6 +23,10 @@
+>  #include "prm44xx.h"
+>  #include "prminst44xx.h"
+>  #include "prm-regbits-44xx.h"
+> +#include "cm-regbits-44xx.h"
+> +#include "prcm44xx.h"
+> +#include "cm2_44xx.h"
+> +#include "cminst44xx.h"
+>  
+>  static int omap4_pwrdm_set_next_pwrst(struct powerdomain *pwrdm, u8 pwrst)
+>  {
+> @@ -238,6 +242,41 @@ static int omap4_pwrdm_wait_transition(struct powerdomain *pwrdm)
+>  	return 0;
+>  }
+>  
+> +static int omap4_pwrdm_enable_hdwr_sar(struct powerdomain *pwrdm)
+> +{
+> +	/*
+> +	 * FIXME: This should be fixed right way by moving it into HWMOD
+> +	 * or clock framework since sar control is moved to module level
+> +	 */
+> +	omap4_cminst_rmw_inst_reg_bits(OMAP4430_SAR_MODE_MASK,
+> +		1 << OMAP4430_SAR_MODE_SHIFT, OMAP4430_CM2_PARTITION,
+> +		OMAP4430_CM2_L3INIT_INST,
+> +		OMAP4_CM_L3INIT_USB_HOST_CLKCTRL_OFFSET);
+> +	omap4_cminst_rmw_inst_reg_bits(OMAP4430_SAR_MODE_MASK,
+> +		1 << OMAP4430_SAR_MODE_SHIFT, OMAP4430_CM2_PARTITION,
+> +		OMAP4430_CM2_L3INIT_INST,
+> +		OMAP4_CM_L3INIT_USB_TLL_CLKCTRL_OFFSET);
+> +	return 0;
+> +}
+> +
+> +static int omap4_pwrdm_disable_hdwr_sar(struct powerdomain *pwrdm)
+> +{
+> +	/*
+> +	 * FIXME: This should be fixed right way by moving it into HWMOD
+> +	 * or clock framework since sar control is moved to module level
+> +	 */
+> +	omap4_cminst_rmw_inst_reg_bits(OMAP4430_SAR_MODE_MASK,
+> +		0 << OMAP4430_SAR_MODE_SHIFT, OMAP4430_CM2_PARTITION,
+> +		OMAP4430_CM2_L3INIT_INST,
+> +		OMAP4_CM_L3INIT_USB_HOST_CLKCTRL_OFFSET);
+> +	omap4_cminst_rmw_inst_reg_bits(OMAP4430_SAR_MODE_MASK,
+> +		0 << OMAP4430_SAR_MODE_SHIFT, OMAP4430_CM2_PARTITION,
+> +		OMAP4430_CM2_L3INIT_INST,
+> +		OMAP4_CM_L3INIT_USB_TLL_CLKCTRL_OFFSET);
+> +
+> +	return 0;
+> +}
+> +
+>  struct pwrdm_ops omap4_pwrdm_operations = {
+>  	.pwrdm_set_next_pwrst	= omap4_pwrdm_set_next_pwrst,
+>  	.pwrdm_read_next_pwrst	= omap4_pwrdm_read_next_pwrst,
+> @@ -255,4 +294,6 @@ struct pwrdm_ops omap4_pwrdm_operations = {
+>  	.pwrdm_set_mem_onst	= omap4_pwrdm_set_mem_onst,
+>  	.pwrdm_set_mem_retst	= omap4_pwrdm_set_mem_retst,
+>  	.pwrdm_wait_transition	= omap4_pwrdm_wait_transition,
+> +	.pwrdm_enable_hdwr_sar	= omap4_pwrdm_enable_hdwr_sar,
+> +	.pwrdm_disable_hdwr_sar	= omap4_pwrdm_disable_hdwr_sar,
+>  };
+> diff --git a/arch/arm/mach-omap2/powerdomains44xx_data.c b/arch/arm/mach-omap2/powerdomains44xx_data.c
+> index 704664c..d8701ce 100644
+> --- a/arch/arm/mach-omap2/powerdomains44xx_data.c
+> +++ b/arch/arm/mach-omap2/powerdomains44xx_data.c
+> @@ -276,7 +276,7 @@ static struct powerdomain l3init_44xx_pwrdm = {
+>  	.pwrsts_mem_on	= {
+>  		[0] = PWRSTS_ON,	/* l3init_bank1 */
+>  	},
+> -	.flags		  = PWRDM_HAS_LOWPOWERSTATECHANGE,
+> +	.flags		  = PWRDM_HAS_LOWPOWERSTATECHANGE | PWRDM_HAS_HDWR_SAR,
+>  };
+>  
+>  /* l4per_44xx_pwrdm: Target peripherals power domain */
