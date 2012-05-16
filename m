@@ -1,112 +1,261 @@
-From: Felipe Balbi <balbi@ti.com>
-Subject: Re: Panda: USB crash with today's linux-next
-Date: Wed, 16 May 2012 11:39:35 +0300
-Message-ID: <20120516083934.GI17359@arwen.pp.htv.fi>
-References: <20120514121527.GF22242@arwen.pp.htv.fi>
- <1336998251.2333.17.camel@deskari>
- <20120514122920.GK22242@arwen.pp.htv.fi>
- <20120514124757.GL22242@arwen.pp.htv.fi>
- <4FB13B91.7020007@ti.com>
- <20120514175838.GA31200@arwen.pp.htv.fi>
- <20120514181413.GA17852@atomide.com>
- <20120514183742.GB17852@atomide.com>
- <20120514193535.GA31886@arwen.pp.htv.fi>
- <20120515201426.GE17852@atomide.com>
-Reply-To: balbi@ti.com
+From: Tero Kristo <t-kristo@ti.com>
+Subject: Re: [PATCHv5 3/8] ARM: OMAP4460: Workaround for ROM bug because of
+ CA9 r2pX gic control register change
+Date: Wed, 16 May 2012 11:54:51 +0300
+Message-ID: <1337158491.2149.344.camel@sokoban>
+References: <1336989796-26594-1-git-send-email-t-kristo@ti.com>
+	 <1336989796-26594-4-git-send-email-t-kristo@ti.com> <87zk99ce5q.fsf@ti.com>
+Reply-To: <t-kristo@ti.com>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="xGGVyNQdqA79rdfn"
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aog116.obsmtp.com ([74.125.149.240]:53926 "EHLO
-	na3sys009aog116.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1759755Ab2EPIl2 (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>);
-	Wed, 16 May 2012 04:41:28 -0400
-Received: by lbom4 with SMTP id m4so406524lbo.2
-        for <linux-omap@vger.kernel.org>; Wed, 16 May 2012 01:41:24 -0700 (PDT)
-Content-Disposition: inline
-In-Reply-To: <20120515201426.GE17852@atomide.com>
+Received: from devils.ext.ti.com ([198.47.26.153]:38550 "EHLO
+	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S965328Ab2EPIzB (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 16 May 2012 04:55:01 -0400
+In-Reply-To: <87zk99ce5q.fsf@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Tony Lindgren <tony@atomide.com>
-Cc: Felipe Balbi <balbi@ti.com>, "Cousson, Benoit" <b-cousson@ti.com>, Tomi Valkeinen <tomi.valkeinen@ti.com>, linux-omap@vger.kernel.org, Balaji T K <balajitk@ti.com>, "Venkatraman S." <svenkatr@ti.com>
+To: Kevin Hilman <khilman@ti.com>
+Cc: Santosh Shilimkar <santosh.shilimkar@ti.com>, linux-omap@vger.kernel.org, paul@pwsan.com, linux-arm-kernel@lists.infradead.org
+
+On Tue, 2012-05-15 at 14:44 -0700, Kevin Hilman wrote:
+> Santosh,
+> 
+> Tero Kristo <t-kristo@ti.com> writes:
+> 
+> > From: Santosh Shilimkar <santosh.shilimkar@ti.com>
+> >
+> > GIC distributor control register has changed between CortexA9 r1pX and
+> > r2pX. The Control Register secure banked version is now composed of 2
+> > bits:
+> >      bit 0 == Secure Enable
+> >      bit 1 == Non-Secure Enable
+> > The Non-Secure banked register has not changed. 
+> 
+> For those without the r1pX TRM handy, please include what this look like
+> before (presumably 1 bit?)  The changelog and in-code comments should
+> both be enhanced.
+> 
+> > Since the ROM Code is based on the r1pX GIC, the CPU1 GIC restoration
+> > will cause a problem to CPU0 Non-Secure SW.
+> 
+> Please describe the problem, so we can better understand the specifics
+> of the workaround.
+
+Santosh, can you provide a better changelog for this?
+
+> 
+> Also, is there an erratum number for this?
+
+Nothing public. I don't think there are any public documents about ROM
+code, including erratas.
+
+> 
+> > The workaround must be:
+> >      1) Before doing the CPU1 wakeup, CPU0 must disable
+> >         the GIC distributor
+> >      2) CPU1 must re-enable the GIC distributor on
+> >         it's wakeup path.
+> 
+> Again, because the problem was not described, I am not entirely sure why
+> the workaround "must" be this, and how it fixes the problem.  Remember
+> to put yourself in the shoes of a reviewer who has not been deeply
+> involved in the code, so what seems obvious to you will not be obvious
+> to the reviewer without having to study the code and dig in to the TRMs.
+> 
+> > With this procedure, the GIC configuration done between the
+> > CPU0 wakeup and CPU1 wakeup will not be lost but during this
+> > short windows, the CPU0 will not receive interrupts
+> 
+> Hmm, so I guess this means that CPU0 always has to wakeup first, even on GP
+> devices? 
+
+Yes.
+
+> 
+> Also, the changelog doesn't describe what power states this affects, and
+> whether it's an idle problem or just a supend problem.  A quick glance
+> at the code suggests that only suspend is being addressed by this patch.
+> However, with the addition of coupled CPUidle (coming very soon now),
+> won't we have this same problem in idle?  IMO, this patch should address
+> both.
+
+My understanding is that this happens if mpu_pwrdm goes off. Cpuidle
+support is not added to this patch as it does not exist yet. Probably
+shouldn't be that big fix.
+
+> 
+> This workaround also assumes that you always want CPU1 to wakeup
+> immediately after CPU0.  I guess that will be the case for the coupled
+> states that would be affected by this bug, but the changelog should
+> describe that as well
+
+Yes, this patch assumes both CPUs attempt to wake-up, thus cpu1 is stuck
+in the hold loop. The device-off set patch #17 addresses this issue and
+puts cpu1 back to idle immediately if no wake request is received from
+cpu0. That patch should be possible to move to this set if needed.
 
 
---xGGVyNQdqA79rdfn
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
+> 
+> Some minor comments below...
+> 
+> > Signed-off-by: Santosh Shilimkar <santosh.shilimkar@ti.com>
+> > Signed-off-by: Tero Kristo <t-kristo@ti.com>
+> > ---
+> >  arch/arm/mach-omap2/common.h              |    2 +
+> >  arch/arm/mach-omap2/omap-headsmp.S        |   36 +++++++++++++++++++++++++++++
+> >  arch/arm/mach-omap2/omap-mpuss-lowpower.c |    9 ++++++-
+> >  arch/arm/mach-omap2/omap-smp.c            |   28 +++++++++++++++++++++-
+> >  arch/arm/mach-omap2/omap4-common.c        |    8 +++++-
+> >  5 files changed, 80 insertions(+), 3 deletions(-)
+> >
+> > diff --git a/arch/arm/mach-omap2/common.h b/arch/arm/mach-omap2/common.h
+> > index 57da7f4..48d1ebe 100644
+> > --- a/arch/arm/mach-omap2/common.h
+> > +++ b/arch/arm/mach-omap2/common.h
+> > @@ -199,6 +199,7 @@ static inline void __iomem *omap4_get_scu_base(void)
+> >  #endif
+> >  
+> >  extern void __init gic_init_irq(void);
+> > +extern void gic_dist_disable(void);
+> >  extern void omap_smc1(u32 fn, u32 arg);
+> >  extern void __iomem *omap4_get_sar_ram_base(void);
+> >  extern void omap_do_wfi(void);
+> > @@ -206,6 +207,7 @@ extern void omap_do_wfi(void);
+> >  #ifdef CONFIG_SMP
+> >  /* Needed for secondary core boot */
+> >  extern void omap_secondary_startup(void);
+> > +extern void omap_secondary_startup_4460(void);
+> >  extern u32 omap_modify_auxcoreboot0(u32 set_mask, u32 clear_mask);
+> >  extern void omap_auxcoreboot_addr(u32 cpu_addr);
+> >  extern u32 omap_read_auxcoreboot0(void);
+> > diff --git a/arch/arm/mach-omap2/omap-headsmp.S b/arch/arm/mach-omap2/omap-headsmp.S
+> > index 503ac77..d602555 100644
+> > --- a/arch/arm/mach-omap2/omap-headsmp.S
+> > +++ b/arch/arm/mach-omap2/omap-headsmp.S
+> > @@ -43,3 +43,39 @@ hold:	ldr	r12,=0x103
+> >  	b	secondary_startup
+> >  ENDPROC(omap_secondary_startup)
+> >  
+> > +ENTRY(omap_secondary_startup_4460)
+> > +hold_2:	ldr	r12,=0x103
+> > +	dsb
+> > +	smc	#0			@ read from AuxCoreBoot0
+> > +	mov	r0, r0, lsr #9
+> > +	mrc	p15, 0, r4, c0, c0, 5
+> > +	and	r4, r4, #0x0f
+> > +	cmp	r0, r4
+> > +	bne	hold_2
+> > +
+> > +	/*
+> > +	 * GIC distributor control register has changed between
+> > +	 * CortexA9 r1pX and r2pX. The Control Register secure
+> > +	 * banked version is now composed of 2 bits:
+> > +	 * bit 0 == Secure Enable
+> > +	 * bit 1 == Non-Secure Enable
+> > +	 * The Non-Secure banked register has not changed
+> > +	 * Because the ROM Code is based on the r1pX GIC, the CPU1
+> > +	 * GIC restoration will cause a problem to CPU0 Non-Secure SW.
+> > +	 * The workaround must be:
+> > +	 * 1) Before doing the CPU1 wakeup, CPU0 must disable
+> > +	 * the GIC distributor
+> > +	 * 2) CPU1 must re-enable the GIC distributor on
+> > +	 * it's wakeup path.
+> > +	 */
+> > +	ldr	r1, =0x48241000
+> 
+> Why not OMAP44XX_GIC_DIST_BASE for readability sake?
 
-On Tue, May 15, 2012 at 01:14:29PM -0700, Tony Lindgren wrote:
-> * Felipe Balbi <balbi@ti.com> [120514 12:41]:
-> > On Mon, May 14, 2012 at 11:37:43AM -0700, Tony Lindgren wrote:
-> > > * Tony Lindgren <tony@atomide.com> [120514 11:19]:
-> > > > * Felipe Balbi <balbi@ti.com> [120514 11:04]:
-> > > > >=20
-> > > > > That whole MMC card detection is also pretty screwed up. Balaji/V=
-enkat,
-> > > > > can you guys look into that ? Probably making something generic u=
-sing a
-> > > > > threaded IRQ handler ?
-> > > > >=20
-> > > > > I mean, all the MMC core should need is an IRQ number (through GP=
-IOs or
-> > > > > not doesn't/shouldn't matter) and it should be able to use a thre=
-aded
-> > > > > IRQ handler to kick the card detection/initialization.
-> > > >=20
-> > > > That's mostly done.. Just need to update the patches for it.
-> > >=20
-> > > Mostly done meaning "all the MMC core should need is an IRQ number"
-> > > part that is :)
-> >=20
-> > but you've done it for omap_hsmmc.c, right ? What I meant is that the
-> > whole card detection should be done at the MMC framework level.
->=20
-> Yes what I did was just try to start gettting rid of the platform
-> callbacks.
-> =20
-> > I mean, if we tell MMC core what's the card detect IRQ number, it should
-> > be able to implement a generic version of omap_hsmmc_detect(). All that
-> > thing does is read the current gpio status number and call
-> > mmc_detect_change().
-> >=20
-> > mmc_detect_change() then kicks a delayed work, which shouldn't be needed
-> > because omap_hsmmc_detect() (or the generic of it) is already using a
-> > threaded IRQ.
->=20
-> Yeah maybe it's doable.. The MMC driver needs to read the status of the
-> card insert, but maybe that should be just just gpio_get_value().
->=20
-> Then ideally the MMC driver would not have any knowledge how the GPIO
-> is handled as it can come from whatever gpiochip using internal GPIO
-> or TWL GPIO.
+Will change this.
 
-correct.
+> 
+> > +	ldr	r0, [r1]
+> > +	orr	r0, #1
+> > +	str	r0, [r1]
+> > +
+> > +	/*
+> > +	 * we've been released from the wait loop,secondary_stack
+> > +	 * should now contain the SVC stack for this core
+> > +	 */
+> > +	b	secondary_startup
+> > +ENDPROC(omap_secondary_startup_4460)
+> > diff --git a/arch/arm/mach-omap2/omap-mpuss-lowpower.c b/arch/arm/mach-omap2/omap-mpuss-lowpower.c
+> > index 13670aa..e02c082 100644
+> > --- a/arch/arm/mach-omap2/omap-mpuss-lowpower.c
+> > +++ b/arch/arm/mach-omap2/omap-mpuss-lowpower.c
+> > @@ -68,6 +68,7 @@ struct omap4_cpu_pm_info {
+> >  	void __iomem *scu_sar_addr;
+> >  	void __iomem *wkup_sar_addr;
+> >  	void __iomem *l2x0_sar_addr;
+> > +	void (*secondary_startup)(void);
+> >  };
+> >  
+> >  static DEFINE_PER_CPU(struct omap4_cpu_pm_info, omap4_pm_info);
+> > @@ -300,6 +301,7 @@ int omap4_enter_lowpower(unsigned int cpu, unsigned int power_state)
+> >  int __cpuinit omap4_hotplug_cpu(unsigned int cpu, unsigned int power_state)
+> >  {
+> >  	unsigned int cpu_state = 0;
+> > +	struct omap4_cpu_pm_info *pm_info = &per_cpu(omap4_pm_info, cpu);
+> >  
+> >  	if (omap_rev() == OMAP4430_REV_ES1_0)
+> >  		return -ENXIO;
+> > @@ -309,7 +311,7 @@ int __cpuinit omap4_hotplug_cpu(unsigned int cpu, unsigned int power_state)
+> >  
+> >  	clear_cpu_prev_pwrst(cpu);
+> >  	set_cpu_next_pwrst(cpu, power_state);
+> > -	set_cpu_wakeup_addr(cpu, virt_to_phys(omap_secondary_startup));
+> > +	set_cpu_wakeup_addr(cpu, virt_to_phys(pm_info->secondary_startup));
+> >  	scu_pwrst_prepare(cpu, power_state);
+> >  
+> >  	/*
+> > @@ -360,6 +362,11 @@ int __init omap4_mpuss_init(void)
+> >  	pm_info->scu_sar_addr = sar_base + SCU_OFFSET1;
+> >  	pm_info->wkup_sar_addr = sar_base + CPU1_WAKEUP_NS_PA_ADDR_OFFSET;
+> >  	pm_info->l2x0_sar_addr = sar_base + L2X0_SAVE_OFFSET1;
+> > +	if (cpu_is_omap446x())
+> > +		pm_info->secondary_startup = omap_secondary_startup_4460;
+> > +	else
+> > +		pm_info->secondary_startup = omap_secondary_startup;
+> 
+> Does this exist on 4470 too?
 
---=20
-balbi
+No, only valid for 4460. ROM code should be fixed on 4470 (haven't
+tested that though as I don't have access to 4470 devices.)
 
---xGGVyNQdqA79rdfn
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: Digital signature
+> 
+> Using a PM erratum check here instead of cpu_is* would make this more
+> scalable.  
+> 
+> Same comment for the cpu_is* check in wakeup_secondary()
+> 
+> Then, where the erratum is defined, it should state clearly why this
+> affects 446x and not before (presumably because 4430 has r1pX and 4460
+> has r2pX.)
 
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.4.12 (GNU/Linux)
+Yea, I can add errata flag for this. The errata support for omap4 PM is
+currently defined in the device off set, so I guess I need to pull that
+to this set.
 
-iQIcBAEBAgAGBQJPs2fGAAoJEIaOsuA1yqREagsP/0au7TezIsgjbDG3fa9IHHbJ
-G3hoDp2whb4wyjSCBnHi9x1pzYCNZKncsrS9GUtMcyPoQRDW3Ht5Ia5DWh/gY99u
-Oz//xmotEv28rNwvcQLAaUrtHoSeyXlj4NO5trx1QivCpmaUzhpkfNiFIZzO+0Je
-Ar2FOXGkhuHxk5No+zI4MFGjNkiRdpp2pznilyXg5S61XWOBvihTpEGKtKgyRd6+
-/QkBhapqs/a/KZRcJfgVwtCvVRv/IZEb1cIW0s/mOmPr6ffFapYVKjT88GpCgkT0
-9MoZLnq3ip7rdvKLLm+RQrF6llnq/HhD6TSdBwxfKh/5r1ywA6upL+VSZDj8tizM
-P5rzt6D8pPYSPT4eF5fzX3sTprbwghXnsIyPb44zx9rbHwvt4koRt+psqvy8ikK5
-LBKB0Zvn4O0YbcHz5tYCTeWxRf8svn2Cn8ZwVsPQ3BNRnjuQaPWLRksK+8/a+7iG
-H6YdaGPh1udAYE+D9WFlmWDRf9EIrEXHDUZdNMJN045C72h9oSTI6yebUi/qBQ1R
-O4JyBvySJX1FGDQVa+4x5WayswwqRpD75kElLeqGFYDoFZr8JNY0JUsQOAmn2fcW
-BrGIZXOyaHYSI3+UmYhwb3QuXsDOnFpnhZVoDm0IIV/e/2DCDfCBvBuhFXV6NmXH
-im0Um4RlT9+rLHuqe8Xh
-=bKAt
------END PGP SIGNATURE-----
+> 
+> >  	pm_info->pwrdm = pwrdm_lookup("cpu1_pwrdm");
+> >  	if (!pm_info->pwrdm) {
+> >  		pr_err("Lookup failed for CPU1 pwrdm\n");
+> > diff --git a/arch/arm/mach-omap2/omap-smp.c b/arch/arm/mach-omap2/omap-smp.c
+> > index deffbf1..c3eb9e8 100644
+> > --- a/arch/arm/mach-omap2/omap-smp.c
+> > +++ b/arch/arm/mach-omap2/omap-smp.c
+> > @@ -33,6 +33,7 @@
+> >  
+> >  /* SCU base address */
+> >  static void __iomem *scu_base;
+> > +bool omap4_smp_romcode_errata;
+> 
+> static?
 
---xGGVyNQdqA79rdfn--
+Yes should be.
+
+-Tero
+
+
