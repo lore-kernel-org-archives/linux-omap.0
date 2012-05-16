@@ -1,69 +1,69 @@
 From: Jon Hunter <jon-hunter@ti.com>
-Subject: Re: [PATCH V3 1/2] of: Add generic device tree DMA helpers
-Date: Wed, 16 May 2012 08:15:40 -0500
-Message-ID: <4FB3A87C.1000000@ti.com>
-References: <1335820679-28721-1-git-send-email-jon-hunter@ti.com> <CAJe_Zhe-SqDMDGOhrYZtBBJnCYqLR0H07cPKzG4SyUxiLrgFnQ@mail.gmail.com> <4FA3F308.6030900@ti.com> <CAJe_ZhfFhZVG4gyaaVUgeQedJiSE=zj9nE28XCNH9DkPVgqj=A@mail.gmail.com> <4FB2FEBA.1030404@ti.com> <CAJe_ZhcrMycgOWf6EiGEjz25C1ZTkB1W=33Qqp4rFpcq-5QsDg@mail.gmail.com>
+Subject: Re: [PATCH 0/9] ARM: OMAP: DMTIMER clean-up in preparation for device-tree
+Date: Wed, 16 May 2012 08:34:06 -0500
+Message-ID: <4FB3ACCE.1050103@ti.com>
+References: <1337124914-19921-1-git-send-email-jon-hunter@ti.com> <4FB37356.9040001@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="ISO-8859-1"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from comal.ext.ti.com ([198.47.26.152]:34837 "EHLO comal.ext.ti.com"
+Received: from bear.ext.ti.com ([192.94.94.41]:59613 "EHLO bear.ext.ti.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1758718Ab2EPNP7 (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Wed, 16 May 2012 09:15:59 -0400
-In-Reply-To: <CAJe_ZhcrMycgOWf6EiGEjz25C1ZTkB1W=33Qqp4rFpcq-5QsDg@mail.gmail.com>
+	id S1758846Ab2EPNeD (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Wed, 16 May 2012 09:34:03 -0400
+In-Reply-To: <4FB37356.9040001@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Jassi Brar <jaswinder.singh@linaro.org>
-Cc: device-tree <devicetree-discuss@lists.ozlabs.org>, Stephen Warren <swarren@nvidia.com>, Benoit Cousson <b-cousson@ti.com>, Arnd Bergmann <arnd@arndb.de>, Nicolas Ferre <nicolas.ferre@atmel.com>, Rob Herring <rob.herring@calxeda.com>, Grant Likely <grant.likely@secretlab.ca>, Russell King <linux@arm.linux.org.uk>, linux-omap <linux-omap@vger.kernel.org>, linux-arm <linux-arm-kernel@lists.infradead.org>
+To: "Cousson, Benoit" <b-cousson@ti.com>
+Cc: linux-omap <linux-omap@vger.kernel.org>, Tony Lindgren <tony@atomide.com>
 
-Hi Jassi,
+Hi Benoit,
 
-On 05/16/2012 07:37 AM, Jassi Brar wrote:
+On 05/16/2012 04:28 AM, Cousson, Benoit wrote:
 > Hi Jon,
 > 
-> On 16 May 2012 06:41, Jon Hunter <jon-hunter@ti.com> wrote:
->> On 05/04/2012 02:01 PM, Jassi Brar wrote:
->>>
->>> +       i2c1: i2c@1 {
->>> +               ...
->>> +               dma = <&sdma 2 1 &sdma 3 2>;
->>> +               ...
->>> +       };
->>>>
->>> I see this requires a client driver to specify a particular req_line on a
->>> particular dma controller. I am not sure if this is most optimal.
+> On 5/16/2012 1:35 AM, Jon Hunter wrote:
+>> From: Jon Hunter<jon-hunter@ti.com>
 >>
->> Actually, no. The phandle in the DT specifies the DMA controller to use.
->> Then the client simply asks for a channel with a particular property,
->> for example, DMA_MEM_TO_DEV (ie. TX) and the channel information is return.
+>> In order to migrate the dmtimer driver to support device-tree I found
+>> that it
+>> was first necessary to clean-up the timer platform data. The goal of this
+>> series is to simplify the timer platform data structure from ...
 >>
-> See below.
+>> struct dmtimer_platform_data {
+>>     int (*set_timer_src)(struct platform_device *pdev, int source);
+>>     int timer_ip_version;
+>>     u32 needs_manual_reset:1;
+>>     bool reserved;
+>>     bool loses_context;
+>>     int (*get_context_loss_count)(struct device *dev);
+>> };
+>>
+>> to ...
+>>
+>> struct dmtimer_platform_data {
+>>     int (*set_timer_src)(struct platform_device *pdev, int source);
 > 
->>> I think such client->req_line map should be provided to the dmac controller
->>> driver via its dt node in some format. The dmac driver could then populate
->>> a dma_chan, or similar, only for that req_line and not for the unused one
->>> which otherwise could also have served the same client.
->>>
->>> Ideally the I2C driver should simply ask, say, a channel for TX and another
->>> for RX, everything else should already be setup via dmac's dt nodes.
->>
->> Yes that is the intention here.
->>
-> But the client is required to specify the dmac that would serve it.
-> Which is more
-> than simply asking for "some suitable channel".
+> I guess that custom set_timer_src should not be there at all anymore.
+> Well at least for OMAP2+.
+> We should just use the regular clock API to change the parent. I do not
+> see why we should add that wrapper on top of the clock API and thus
+> store some internal clock name inside the timer device init code.
 
-No this is not the case with what I propose. The client knows nothing
-about the dmac.
+Yes I really wanted to eliminate that function pointer too, but it was a
+little trickier. The OMAP2+ code does use the clock framework to switch
+the parent already, but the problem is that the OMAP1 code does not. So
+we cannot have a common function for OMAP1 and OMAP2+.
 
-> If you read the whole exchange between I and Stephen, we converged on a
-> scheme of clients' node having nothing to specify and DMAC told all about
-> every client in one palce. Which resembles closer to reality and is
-> much simpler.
-> I already started on a patchset and should be able submit for review
-> in a day or two.
+One option would be to move the OMAP2+ function into the dmtimer because
+it already uses the clock framework and then only populate the function
+pointer for OMAP1. However, I admit this is ugly.
 
-Ok. I look forward to your implementation :-)
+Let me look at this some more to see what I can do. I can at least test
+on my old omap1 board now for prototyping :-)
 
+Did you look at the rest of the series? Let me know if you are ok with
+the approach and have any concerns on my hwmod changes/fix-ups ;-)
+
+Cheers
 Jon
