@@ -1,52 +1,55 @@
-From: Stephen Warren <swarren@wwwdotorg.org>
-Subject: Re: [PATCH V3 1/2] of: Add generic device tree DMA helpers
-Date: Thu, 17 May 2012 13:32:18 -0600
-Message-ID: <4FB55242.2080501@wwwdotorg.org>
-References: <1335820679-28721-1-git-send-email-jon-hunter@ti.com> <4FB3D294.4020505@wwwdotorg.org> <CAJe_Zhe6uT7u-+0VEx2XCieuynmK5nOO=4DSpDDS_Q=N8-QtPA@mail.gmail.com> <201205161942.20296.arnd@arndb.de> <CAJe_ZhebPfmLS8ur8FAnmdj37ye25HrE2QF-Qk5PVDnzmpAniQ@mail.gmail.com>
+From: Kevin Hilman <khilman@ti.com>
+Subject: Re: [PATCH 2/9] ARM: OMAP2+: Remove unused max number of timers definition
+Date: Thu, 17 May 2012 13:07:14 -0700
+Message-ID: <87obpmwozx.fsf@ti.com>
+References: <1337124927-19992-1-git-send-email-jon-hunter@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from avon.wwwdotorg.org ([70.85.31.133]:33526 "EHLO
-	avon.wwwdotorg.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752765Ab2EQTcW (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 17 May 2012 15:32:22 -0400
-In-Reply-To: <CAJe_ZhebPfmLS8ur8FAnmdj37ye25HrE2QF-Qk5PVDnzmpAniQ@mail.gmail.com>
+Received: from na3sys009aog134.obsmtp.com ([74.125.149.83]:36179 "EHLO
+	na3sys009aog134.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S932347Ab2EQUHQ (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>);
+	Thu, 17 May 2012 16:07:16 -0400
+Received: by dano14 with SMTP id o14so3839671dan.39
+        for <linux-omap@vger.kernel.org>; Thu, 17 May 2012 13:07:14 -0700 (PDT)
+In-Reply-To: <1337124927-19992-1-git-send-email-jon-hunter@ti.com> (Jon
+	Hunter's message of "Tue, 15 May 2012 18:35:27 -0500")
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Jassi Brar <jaswinder.singh@linaro.org>
-Cc: Arnd Bergmann <arnd@arndb.de>, Jon Hunter <jon-hunter@ti.com>, Stephen Warren <swarren@nvidia.com>, Benoit Cousson <b-cousson@ti.com>, device-tree <devicetree-discuss@lists.ozlabs.org>, Nicolas Ferre <nicolas.ferre@atmel.com>, Rob Herring <rob.herring@calxeda.com>, Grant Likely <grant.likely@secretlab.ca>, Russell King <linux@arm.linux.org.uk>, linux-omap <linux-omap@vger.kernel.org>, linux-arm <linux-arm-kernel@lists.infradead.org>
+To: Jon Hunter <jon-hunter@ti.com>
+Cc: linux-omap <linux-omap@vger.kernel.org>, Tony Lindgren <tony@atomide.com>, Benoit Cousson <b-cousson@ti.com>
 
-On 05/16/2012 03:16 PM, Jassi Brar wrote:
-> On 17 May 2012 01:12, Arnd Bergmann <arnd@arndb.de> wrote:
-...
->> More importantly, you make it very hard to add devices in a board file
->> to a dma controller that already has descriptions for some channels,
->> because you cannot easily extend the chan-map unless you rewrite all of it.
->>
-> I am not sure I understand the point.
+Jon Hunter <jon-hunter@ti.com> writes:
 
-Ah yes, Arnd has a good point.
+> From: Jon Hunter <jon-hunter@ti.com>
+>
+> The OMAP2+ timer code has a definition for the maximum number of timers that
+> OMAP2+ devices have. This defintion is not used anywhere in the code and
+> appears to be left over. Furthermore the definition is not accurate for OMAP4
+> devices that only have 11 timers available because the 12th timer is reserved
+> as a secure timer. Therefore, remove this definition.
 
-If the DMA request routing information is in each client node, then it's
-trivial to add DMA clients to board files; you just put the
-board-specific nodes and properties in the board file, and there's no
-possibility of conflicts; you aren't having to add to or override any
-existing property in the base SoC file.
+changelog nit: the 12th timer is secure on OMAP3 HS devices also.
 
-(As background, most ARM device trees are separated out into 1 file
-defining all the SoC devices e.g. soc.dtsi, and a separate file for each
-board e.g. board.dts, which includes the SoC file.)
+Kevin
 
-Now, the DMA node for an on-SoC DMAC would be in soc.dtsi. Typically,
-the DMAC is connected to many on-SoC devices, and hence soc.dtsi would
-need to specify the routing information for all those devices to avoid
-duplicating it in every board.dts. Now, if you have some DMA requests
-that go off-SoC, the board.dts file might want to add to the routing
-table to indicate what clients connect to those DMA requests. However,
-there's no way in the device tree compiler right now to add to a
-property; you can only completely replace it. That would entail
-duplicating the entire routing information from soc.dtsi into each
-board.dts that wanted to add to it - a bad situation. Splitting the
-routing information into chunks in the client nodes avoids this issue
-entirely.
+> Signed-off-by: Jon Hunter <jon-hunter@ti.com>
+> ---
+>  arch/arm/mach-omap2/timer.c |    3 ---
+>  1 files changed, 0 insertions(+), 3 deletions(-)
+>
+> diff --git a/arch/arm/mach-omap2/timer.c b/arch/arm/mach-omap2/timer.c
+> index 840929b..c030dfe 100644
+> --- a/arch/arm/mach-omap2/timer.c
+> +++ b/arch/arm/mach-omap2/timer.c
+> @@ -69,9 +69,6 @@
+>  #define OMAP3_SECURE_TIMER	1
+>  #endif
+>  
+> -/* MAX_GPTIMER_ID: number of GPTIMERs on the chip */
+> -#define MAX_GPTIMER_ID		12
+> -
+>  static u32 sys_timer_reserved;
+>  
+>  /* Clockevent code */
