@@ -1,35 +1,69 @@
-From: Mark Brown <broonie@opensource.wolfsonmicro.com>
-Subject: Re: [PATCH V3 1/2] of: Add generic device tree DMA helpers
-Date: Thu, 17 May 2012 14:52:36 +0100
-Message-ID: <20120517135236.GA5807@sirena.org.uk>
-References: <1335820679-28721-1-git-send-email-jon-hunter@ti.com>
- <4FB3D294.4020505@wwwdotorg.org>
- <CAJe_Zhe6uT7u-+0VEx2XCieuynmK5nOO=4DSpDDS_Q=N8-QtPA@mail.gmail.com>
- <201205161942.20296.arnd@arndb.de>
- <20120517132223.GB9650@n2100.arm.linux.org.uk>
+From: "S, Venkatraman" <svenkatr@ti.com>
+Subject: Re: [PATCH -next] mmc: omap_hsmmc: pass IRQF_ONESHOT to request_threaded_irq
+Date: Thu, 17 May 2012 19:26:38 +0530
+Message-ID: <CANfBPZ__JCHs01yt_AwgqjVXebBCxMiqCyThPf4Rr8MB191h5g@mail.gmail.com>
+References: <1337221633-26656-1-git-send-email-ming.lei@canonical.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from cassiel.sirena.org.uk ([80.68.93.111]:46554 "EHLO
-	cassiel.sirena.org.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754352Ab2EQNwq (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 17 May 2012 09:52:46 -0400
-Content-Disposition: inline
-In-Reply-To: <20120517132223.GB9650@n2100.arm.linux.org.uk>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Return-path: <linux-mmc-owner@vger.kernel.org>
+In-Reply-To: <1337221633-26656-1-git-send-email-ming.lei@canonical.com>
+Sender: linux-mmc-owner@vger.kernel.org
+To: Ming Lei <ming.lei@canonical.com>
+Cc: Chris Ball <cjb@laptop.org>, Grant Likely <grant.likely@secretlab.ca>, linux-omap@vger.kernel.org, linux-mmc@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Russell King - ARM Linux <linux@arm.linux.org.uk>
-Cc: Arnd Bergmann <arnd@arndb.de>, device-tree <devicetree-discuss@lists.ozlabs.org>, Rob Herring <rob.herring@calxeda.com>, Jassi Brar <jaswinder.singh@linaro.org>, Jon Hunter <jon-hunter@ti.com>, linux-omap <linux-omap@vger.kernel.org>, linux-arm <linux-arm-kernel@lists.infradead.org>
 
-On Thu, May 17, 2012 at 02:22:23PM +0100, Russell King - ARM Linux wrote:
+On Thu, May 17, 2012 at 7:57 AM, Ming Lei <ming.lei@canonical.com> wrot=
+e:
+> The flag of IRQF_ONESHOT should be passed to request_threaded_irq,
+> otherwise the following failure message should be dumped because
+> hardware handler is defined as NULL:
+>
+> [ =A0 =A03.383483] genirq: Threaded irq requested with handler=3DNULL=
+ and
+> !ONESHOT for irq 368
+> [ =A0 =A03.392730] omap_hsmmc: probe of omap_hsmmc.0 failed with erro=
+r -22
+>
+> The patch fixes one kernel hang bug which is caused by mmc card
+> probe failure and root device can't be brought up.
+>
+> Signed-off-by: Ming Lei <ming.lei@canonical.com>
+Right thing to do!
+Acked-by: Venkatraman S <svenkatr@ti.com>
 
-> DMA on the other hand seems to have cases where you can make a choice
-> between two or more providers of the service.  The impression that I'm
-> getting from this thread is that it's difficult to describe that kind
-> of relationship in DT - DT is good at describing "A provides X to C"
-> but not "A _or_ B provides X to C and you can chose either A or B
-> depending on <something> to satisfy X".
-
-A similar thing exists in a lot of clock trees - often the final clock
-block before an IP block includes a mux which could come from one of a
-number of sources.
+> ---
+> =A0drivers/mmc/host/omap_hsmmc.c | =A0 =A02 +-
+> =A01 file changed, 1 insertion(+), 1 deletion(-)
+>
+> diff --git a/drivers/mmc/host/omap_hsmmc.c b/drivers/mmc/host/omap_hs=
+mmc.c
+> index ebaf62a..9a7a60a 100644
+> --- a/drivers/mmc/host/omap_hsmmc.c
+> +++ b/drivers/mmc/host/omap_hsmmc.c
+> @@ -1981,7 +1981,7 @@ static int __devinit omap_hsmmc_probe(struct pl=
+atform_device *pdev)
+> =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0ret =3D request_threaded_irq(mmc_slot(=
+host).card_detect_irq,
+> =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0=
+ =A0 =A0 =A0 NULL,
+> =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0=
+ =A0 =A0 =A0 omap_hsmmc_detect,
+> - =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0=
+ =A0 =A0 =A0 =A0IRQF_TRIGGER_RISING | IRQF_TRIGGER_FALLING,
+> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0=
+ =A0 =A0 =A0 =A0IRQF_TRIGGER_RISING | IRQF_TRIGGER_FALLING | IRQF_ONESH=
+OT,
+> =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0=
+ =A0 =A0 =A0 mmc_hostname(mmc), host);
+> =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0if (ret) {
+> =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0dev_dbg(mmc_dev(host->=
+mmc),
+> --
+> 1.7.9.5
+>
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-mmc" =
+in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at =A0http://vger.kernel.org/majordomo-info.html
