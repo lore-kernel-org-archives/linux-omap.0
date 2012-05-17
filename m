@@ -1,88 +1,105 @@
-From: Jassi Brar <jaswinder.singh@linaro.org>
-Subject: Re: [PATCH V3 1/2] of: Add generic device tree DMA helpers
-Date: Thu, 17 May 2012 09:35:39 +0530
-Message-ID: <CAJe_ZheKUoM+UjagtfmqLha-vwQr4J+CdEjvtR8t0cmdOQJPyw@mail.gmail.com>
-References: <1335820679-28721-1-git-send-email-jon-hunter@ti.com>
-	<4FB3D294.4020505@wwwdotorg.org>
-	<CAJe_Zhe6uT7u-+0VEx2XCieuynmK5nOO=4DSpDDS_Q=N8-QtPA@mail.gmail.com>
-	<201205161942.20296.arnd@arndb.de>
-	<4FB43F69.1070608@wwwdotorg.org>
+From: "DebBarma, Tarun Kanti" <tarun.kanti@ti.com>
+Subject: Re: [PATCH 0/9] ARM: OMAP: DMTIMER clean-up in preparation for device-tree
+Date: Thu, 17 May 2012 10:37:36 +0530
+Message-ID: <CAC83ZvK4MHbtY5xrw3RoVgLvGNVToDonXWibS49H+j0yKh2MfQ@mail.gmail.com>
+References: <1337124914-19921-1-git-send-email-jon-hunter@ti.com>
+	<4FB37356.9040001@ti.com>
+	<4FB40AB5.10302@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-lpp01m010-f46.google.com ([209.85.215.46]:42331 "EHLO
-	mail-lpp01m010-f46.google.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1750896Ab2EQEFl convert rfc822-to-8bit
+Received: from na3sys009aog115.obsmtp.com ([74.125.149.238]:35740 "EHLO
+	na3sys009aog115.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1752765Ab2EQFHi convert rfc822-to-8bit
 	(ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Thu, 17 May 2012 00:05:41 -0400
-Received: by lahd3 with SMTP id d3so1027961lah.19
-        for <linux-omap@vger.kernel.org>; Wed, 16 May 2012 21:05:40 -0700 (PDT)
-In-Reply-To: <4FB43F69.1070608@wwwdotorg.org>
+	Thu, 17 May 2012 01:07:38 -0400
+Received: by qabj34 with SMTP id j34so1585894qab.11
+        for <linux-omap@vger.kernel.org>; Wed, 16 May 2012 22:07:36 -0700 (PDT)
+In-Reply-To: <4FB40AB5.10302@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Stephen Warren <swarren@wwwdotorg.org>
-Cc: Arnd Bergmann <arnd@arndb.de>, Jon Hunter <jon-hunter@ti.com>, Stephen Warren <swarren@nvidia.com>, Benoit Cousson <b-cousson@ti.com>, device-tree <devicetree-discuss@lists.ozlabs.org>, Nicolas Ferre <nicolas.ferre@atmel.com>, Rob Herring <rob.herring@calxeda.com>, Grant Likely <grant.likely@secretlab.ca>, Russell King <linux@arm.linux.org.uk>, linux-omap <linux-omap@vger.kernel.org>, linux-arm <linux-arm-kernel@lists.infradead.org>
+To: Jon Hunter <jon-hunter@ti.com>
+Cc: "Cousson, Benoit" <b-cousson@ti.com>, Paul Walmsley <paul@pwsan.com>, linux-omap <linux-omap@vger.kernel.org>, Tony Lindgren <tony@atomide.com>
 
-On 17 May 2012 05:29, Stephen Warren <swarren@wwwdotorg.org> wrote:
->>>
->>> Generic binding to provide a way to provide the client-channel map =
-and
->>> other dmac specific parameters to the dma controller driver
->>>
->>> DMA Model:-
->>> =A0 Only the most common characteristics of a dma setup are assumed
->>> in this binding.
->>> Client: Some h/w controller that could request a DMA controller in
->>> the system to perform data transfer on its behalf. Example SPI, MMC=
-,
->>> I2S etc.
->>> DMAC: A DMA Controller instance. Example, PL330, PL08X, SDMA etc.
->>>
->>> =A0The assumed model of the DMAC, in this binding, has P peripheral
->>> interfaces (P request signals) that could request a data transfer
->>> and C physical channels that actually do the data transfers, hence,
->>> at most C out of P peripherals could be served by the DMAC at any
->>> point of time. Usually C :=3D P, but not always. Usually, any of th=
-e
->>> physical channels could be employed by the DMAC driver to serve any
->>> client.
->>> =A0The DMAC driver identifies a client by its i/f number, 'peri_id'
->>> on the given DMAC. For example, TX for SPI has 7th while RX_TX
->>> (half-duplex) for MMC has 10th peripheral interface (request-signal=
-)
->>> on a given DMAC. Usually, any of the physical channels could be
->>> employed by the DMAC driver to serve a client.
+On Thu, May 17, 2012 at 1:44 AM, Jon Hunter <jon-hunter@ti.com> wrote:
+> Hi Benoit,
+>
+> On 05/16/2012 04:28 AM, Cousson, Benoit wrote:
+>> Hi Jon,
 >>
->> I'm still anything but convinced by this model. Basically it's the
->> exact opposite of what we do for every other subsystem (irq, pinctrl=
-,
->> regulator, gpio, ...), where the device using some infrastructure
->> contains the information about who provides it, whereas here you
->> move all the information into the device that provides the functiona=
-lity,
->> and have no handle in the device using it by which the driver can
->> identify it.
+>> On 5/16/2012 1:35 AM, Jon Hunter wrote:
+>>> From: Jon Hunter<jon-hunter@ti.com>
+>>>
+>>> In order to migrate the dmtimer driver to support device-tree I fou=
+nd
+>>> that it
+>>> was first necessary to clean-up the timer platform data. The goal o=
+f this
+>>> series is to simplify the timer platform data structure from ...
+>>>
+>>> struct dmtimer_platform_data {
+>>> =A0 =A0 int (*set_timer_src)(struct platform_device *pdev, int sour=
+ce);
+>>> =A0 =A0 int timer_ip_version;
+>>> =A0 =A0 u32 needs_manual_reset:1;
+>>> =A0 =A0 bool reserved;
+>>> =A0 =A0 bool loses_context;
+>>> =A0 =A0 int (*get_context_loss_count)(struct device *dev);
+>>> };
+>>>
+>>> to ...
+>>>
+>>> struct dmtimer_platform_data {
+>>> =A0 =A0 int (*set_timer_src)(struct platform_device *pdev, int sour=
+ce);
+>>
+>> I guess that custom set_timer_src should not be there at all anymore=
+=2E
+>> Well at least for OMAP2+.
+>> We should just use the regular clock API to change the parent. I do =
+not
+>> see why we should add that wrapper on top of the clock API and thus
+>> store some internal clock name inside the timer device init code.
+Whatever is done within omap2_dm_timer_set_src() in mach-omap2/timer.c
+can be implemented inside omap_dm_timer_set_source() in plat-omap/dmtim=
+er.c
+directly whereby we continue to use the generic clock APIs provided in
+include/linux/clk.h.
+
 >
-> Yes, I guess this is backwards. But, the HW is a little different too=
-;
-> GPIOs (and probably interrupts) don't have multiple places they could
-> come from.
+> I have been looking into this and in order to get rid for the above
+> function pointer we would need to move at a minimum the following
+> functions from omap-mach2/clkt_clksel.c into the platform code.
 >
-> The problem is that if we did something like this in the DMA client:
+> _get_clksel_by_parent()
+> _get_div_and_fieldval()
+> _write_clksel_reg()
+> omap2_init_clksel_parent()
+> omap2_clksel_set_parent()
 >
-> dma-reqs =3D <&dmac1 DMAC1_DMA_REQ_6 &dmac1 DMAC1_DMA_REQ_8>;
+> However, it may be simpler just to move the clkt_clksel.c file
+> completely. I have tested the above functions on omap1 and they are
+> working well. However, before doing this we would need to get Paul's
+> buy-in that this is the right thing to do.
+I am not sure if this is really needed though.
+--
+Tarun
 >
-> how do we know if the client is emitting 2 DMA request signals that g=
-et
-> routed to two different inputs on the DMA controller, or whether this=
- is
-> two alternatives for the same signal.
+> Paul, do you have any thoughts on this? We were trying to see if we
+> could eliminate the dmtimer function pointer for setting the timer cl=
+ock
+> source.
 >
-=46WIW, I wouldn't lose sleep over the possibility of redundancy on sam=
-e DMAC.
-If a client's request signal is routed to 2 inputs, they are usually
-on different DMACs.
+> Also, the only other minor issue I see is that for omap1 devices inst=
+ead
+> of having "sys_ck" as the name the clock name is "armxor_ck". We cann=
+ot
+> rename armxor_ck as it is used by many peripherals but we could use a
+> #define to workaround this or add a dummy clock node.
+>
+> Cheers
+> Jon
 --
 To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
 n
