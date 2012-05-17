@@ -1,84 +1,46 @@
-From: Kevin Hilman <khilman@ti.com>
-Subject: Re: [PATCHv2 18/19] ARM: OMAP4460: wakeupgen: set GIC_CPU0 backup status flag always
-Date: Wed, 16 May 2012 17:33:25 -0700
-Message-ID: <87sjez1wa2.fsf@ti.com>
-References: <1336990730-26892-1-git-send-email-t-kristo@ti.com>
-	<1336990730-26892-19-git-send-email-t-kristo@ti.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+From: Ming Lei <ming.lei@canonical.com>
+Subject: [PATCH -next] mmc: omap_hsmmc: pass IRQF_ONESHOT to request_threaded_irq
+Date: Thu, 17 May 2012 10:27:12 +0800
+Message-ID: <1337221633-26656-1-git-send-email-ming.lei@canonical.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aob106.obsmtp.com ([74.125.149.76]:59049 "EHLO
-	na3sys009aog106.obsmtp.com" rhost-flags-OK-OK-OK-FAIL)
-	by vger.kernel.org with ESMTP id S1752139Ab2EQAd2 (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>);
-	Wed, 16 May 2012 20:33:28 -0400
-Received: by dajt11 with SMTP id t11so1510516daj.10
-        for <linux-omap@vger.kernel.org>; Wed, 16 May 2012 17:33:26 -0700 (PDT)
-In-Reply-To: <1336990730-26892-19-git-send-email-t-kristo@ti.com> (Tero
-	Kristo's message of "Mon, 14 May 2012 13:18:49 +0300")
+Received: from mail-pz0-f46.google.com ([209.85.210.46]:56562 "EHLO
+	mail-pz0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1760855Ab2EQC12 (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 16 May 2012 22:27:28 -0400
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Tero Kristo <t-kristo@ti.com>
-Cc: linux-omap@vger.kernel.org, paul@pwsan.com, linux-arm-kernel@lists.infradead.org
+To: Chris Ball <cjb@laptop.org>, Grant Likely <grant.likely@secretlab.ca>
+Cc: linux-omap@vger.kernel.org, linux-mmc@vger.kernel.org, Ming Lei <ming.lei@canonical.com>
 
-Tero Kristo <t-kristo@ti.com> writes:
+The flag of IRQF_ONESHOT should be passed to request_threaded_irq,
+otherwise the following failure message should be dumped because
+hardware handler is defined as NULL:
 
-> Without this, CPU0 will crash in the ROM code during wakeup from
-> device off. This patch also clears the GIC save area, to prevent
-> ROM code from writing garbage to the GIC registers during wakeup.
-> The actual GIC restore is done by kernel.
->
-> This bug fix applies only to OMAP4460, it is fixed on OMAP4470.
->
-> Signed-off-by: Tero Kristo <t-kristo@ti.com>
+[    3.383483] genirq: Threaded irq requested with handler=NULL and
+!ONESHOT for irq 368
+[    3.392730] omap_hsmmc: probe of omap_hsmmc.0 failed with error -22
 
-Please create/use PM_ERRATUM flag.
+The patch fixes one kernel hang bug which is caused by mmc card
+probe failure and root device can't be brought up.
 
-Kevin
+Signed-off-by: Ming Lei <ming.lei@canonical.com>
+---
+ drivers/mmc/host/omap_hsmmc.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-> ---
->  arch/arm/mach-omap2/omap-wakeupgen.c   |   14 ++++++++++++++
->  arch/arm/mach-omap2/omap4-sar-layout.h |    1 +
->  2 files changed, 15 insertions(+), 0 deletions(-)
->
-> diff --git a/arch/arm/mach-omap2/omap-wakeupgen.c b/arch/arm/mach-omap2/omap-wakeupgen.c
-> index c7c4db4..30da299 100644
-> --- a/arch/arm/mach-omap2/omap-wakeupgen.c
-> +++ b/arch/arm/mach-omap2/omap-wakeupgen.c
-> @@ -447,10 +447,24 @@ int __init omap_wakeupgen_init(void)
->  
->  	if (omap_type() == OMAP2_DEVICE_TYPE_GP) {
->  		sar_base = ioremap(OMAP44XX_SAR_RAM_BASE, SZ_16K);
-> +		/* Clean GIC SAR area */
-> +		for (i = SAR_BACKUP_STATUS_OFFSET; i < WAKEUPGENENB_OFFSET_CPU0;
-> +			i += 4)
-> +			sar_writel(0, i, 0);
-> +
->  		sar_writel(GIC_ISR_NON_SECURE, ICDISR_CPU0_OFFSET, 0);
->  		sar_writel(GIC_ISR_NON_SECURE, ICDISR_CPU1_OFFSET, 0);
->  		for (i = 0; i < max_spi_reg; i++)
->  			sar_writel(GIC_ISR_NON_SECURE, ICDISR_SPI_OFFSET, i);
-> +
-> +		/*
-> +		 * Set CPU0 GIC backup flag permanently for omap4460,
-> +		 * this is needed because of the ROM code bug that breaks
-> +		 * GIC during wakeup from device off
-> +		 */
-> +		if (cpu_is_omap446x())
-> +			__raw_writel(SAR_BACKUP_STATUS_GIC_CPU0,
-> +				     sar_base + SAR_BACKUP_STATUS_OFFSET);
->  		iounmap(sar_base);
->  		sar_base = NULL;
->  	} else {
-> diff --git a/arch/arm/mach-omap2/omap4-sar-layout.h b/arch/arm/mach-omap2/omap4-sar-layout.h
-> index 0056667..e621c51 100644
-> --- a/arch/arm/mach-omap2/omap4-sar-layout.h
-> +++ b/arch/arm/mach-omap2/omap4-sar-layout.h
-> @@ -88,6 +88,7 @@
->  #define ICDISR_CPU0_OFFSET			(SAR_BANK3_OFFSET + 0x50c)
->  #define ICDISR_CPU1_OFFSET			(SAR_BANK3_OFFSET + 0x510)
->  #define ICDISR_SPI_OFFSET			(SAR_BANK3_OFFSET + 0x514)
-> +#define SAR_BACKUP_STATUS_GIC_CPU0		0x1
->  
->  /* WakeUpGen save restore offset from OMAP44XX_SAR_RAM_BASE */
->  #define WAKEUPGENENB_OFFSET_CPU0		(SAR_BANK3_OFFSET + 0x684)
+diff --git a/drivers/mmc/host/omap_hsmmc.c b/drivers/mmc/host/omap_hsmmc.c
+index ebaf62a..9a7a60a 100644
+--- a/drivers/mmc/host/omap_hsmmc.c
++++ b/drivers/mmc/host/omap_hsmmc.c
+@@ -1981,7 +1981,7 @@ static int __devinit omap_hsmmc_probe(struct platform_device *pdev)
+ 		ret = request_threaded_irq(mmc_slot(host).card_detect_irq,
+ 					   NULL,
+ 					   omap_hsmmc_detect,
+-					   IRQF_TRIGGER_RISING | IRQF_TRIGGER_FALLING,
++					   IRQF_TRIGGER_RISING | IRQF_TRIGGER_FALLING | IRQF_ONESHOT,
+ 					   mmc_hostname(mmc), host);
+ 		if (ret) {
+ 			dev_dbg(mmc_dev(host->mmc),
+-- 
+1.7.9.5
+
