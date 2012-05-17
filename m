@@ -1,48 +1,138 @@
-From: Chris Ball <cjb@laptop.org>
-Subject: Re: [PATCH 0/3] mmc: omap: driver registration cleanups
-Date: Thu, 17 May 2012 08:27:24 -0400
-Message-ID: <871umj56xf.fsf@laptop.org>
-References: <1336476935-16564-1-git-send-email-svenkatr@ti.com>
-	<CANrkHUaajRTd3D3QU7pfTRN5cv9QaqYcryOs4YNSYHq-kBkYVw@mail.gmail.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+From: Uri Yosef <uri.y@variscite.com>
+Subject: [PATCH] arm/dts: OMAP4: Add Variscite OMAP4 System-On-Modeule support
+Date: Thu, 17 May 2012 15:17:31 +0300
+Message-ID: <1337257051-5004-1-git-send-email-uri.y@variscite.com>
+References: <20120509213156.GZ5140@atomide.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from void.printf.net ([89.145.121.20]:34551 "EHLO void.printf.net"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753798Ab2EQM1Z convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 17 May 2012 08:27:25 -0400
-In-Reply-To: <CANrkHUaajRTd3D3QU7pfTRN5cv9QaqYcryOs4YNSYHq-kBkYVw@mail.gmail.com>
-	(T. Krishnamoorthy's message of "Thu, 10 May 2012 20:24:37 +0530")
+Received: from mail-wi0-f172.google.com ([209.85.212.172]:51536 "EHLO
+	mail-wi0-f172.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754869Ab2EQMav (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 17 May 2012 08:30:51 -0400
+Received: by wibhj8 with SMTP id hj8so4998222wib.1
+        for <linux-omap@vger.kernel.org>; Thu, 17 May 2012 05:30:50 -0700 (PDT)
+In-Reply-To: <20120509213156.GZ5140@atomide.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "T Krishnamoorthy, Balaji" <balajitk@ti.com>
-Cc: Venkatraman S <svenkatr@ti.com>, linux-mmc@vger.kernel.org, linux-omap@vger.kernel.org
+To: tony@atomide.com
+Cc: linux@arm.linux.org.uk, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org, oren@variscite.com, Uri Yosef <uri.y@variscite.com>
 
-Hi,
+Hi Tony,
 
-On Thu, May 10 2012, T Krishnamoorthy, Balaji wrote:
-> On Tue, May 8, 2012 at 5:05 PM, Venkatraman S <svenkatr@ti.com> wrote=
-:
->> Cleanups for the legacy omap mmc driver to remove clutter and
->> make it well behaved as module.
->>
->> Venkatraman S (3):
->> =C2=A0mmc: omap: convert to per instance workqueue
->> =C2=A0mmc: omap: make it behave well as module
->> =C2=A0mmc: omap: convert to module_platform_driver
->
-> Looks good to me, So
-> Acked-by: Balaji T K <balajitk@ti.com>
+This is the updated DTS patch for Vatiscite OMAP4 SOM support
 
-Thanks, pushed to mmc-next for 3.5.
+Regatds,
+Uri Yosef
 
-- Chris.
---=20
-Chris Ball   <cjb@laptop.org>   <http://printf.net/>
-One Laptop Per Child
---
-To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+
+Signed-off-by: Uri Yosef <uri.y@variscite.com>
+
+---
+ arch/arm/boot/dts/omap4-var_som.dts |   96 +++++++++++++++++++++++++++++++++++
+ 1 files changed, 96 insertions(+), 0 deletions(-)
+ create mode 100644 arch/arm/boot/dts/omap4-var_som.dts
+
+diff --git a/arch/arm/boot/dts/omap4-var_som.dts b/arch/arm/boot/dts/omap4-var_som.dts
+new file mode 100644
+index 0000000..d41161d
+--- /dev/null
++++ b/arch/arm/boot/dts/omap4-var_som.dts
+@@ -0,0 +1,96 @@
++/*
++ * Copyright (C) 2012 Variscite Ltd. - http://www.variscite.com
++ *
++ * This program is free software; you can redistribute it and/or modify
++ * it under the terms of the GNU General Public License version 2 as
++ * published by the Free Software Foundation.
++ */
++/dts-v1/;
++
++/include/ "omap4.dtsi"
++
++/ {
++	model = "Variscite OMAP4 SOM";
++	compatible = "var,omap4-var_som", "ti,omap4430", "ti,omap4";
++
++	memory {
++		device_type = "memory";
++		reg = <0x80000000 0x40000000>; /* 1 GB */
++	};
++
++	vdd_eth: fixedregulator@0 {
++		compatible = "regulator-fixed";
++		regulator-name = "VDD_ETH";
++		regulator-min-microvolt = <3300000>;
++		regulator-max-microvolt = <3300000>;
++		enable-active-high;
++		regulator-boot-on;
++	};
++};
++
++&i2c1 {
++	clock-frequency = <400000>;
++
++	twl: twl@48 {
++		reg = <0x48>;
++		/* SPI = 0, IRQ# = 7, 4 = active high level-sensitive */
++		interrupts = <0 7 4>; /* IRQ_SYS_1N cascaded to gic */
++		interrupt-parent = <&gic>;
++	};
++};
++
++/include/ "twl6030.dtsi"
++
++&i2c2 {
++	clock-frequency = <400000>;
++};
++
++&i2c3 {
++	clock-frequency = <400000>;
++
++	/*
++	 * Temperature Sensor
++	 * http://www.ti.com/lit/ds/symlink/tmp105.pdf
++	 */
++	tmp105@49 {
++		compatible = "ti,tmp105";
++		reg = <0x49>;
++	};
++};
++
++&i2c4 {
++	clock-frequency = <400000>;
++};
++
++&mcspi1 {
++	eth@0 {
++		compatible = "ks8851";
++		spi-max-frequency = <24000000>;
++		reg = <0>;
++		interrupt-parent = <&gpio6>;
++		interrupts = <11>; /* gpio line 171 */
++		vdd-supply = <&vdd_eth>;
++	};
++};
++
++&mmc1 {
++	vmmc-supply = <&vmmc>;
++	ti,bus-width = <8>;
++	ti,non-removable;
++};
++
++&mmc2 {
++	status = "disable";
++};
++
++&mmc3 {
++	status = "disable";
++};
++
++&mmc4 {
++	status = "disable";
++};
++
++&mmc5 {
++	ti,bus-width = <4>;
++};
+-- 
+1.7.5.4
+
