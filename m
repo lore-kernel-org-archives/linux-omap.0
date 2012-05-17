@@ -1,92 +1,105 @@
-From: Stephen Warren <swarren@wwwdotorg.org>
-Subject: Re: [PATCH V3 1/2] of: Add generic device tree DMA helpers
-Date: Wed, 16 May 2012 17:59:37 -0600
-Message-ID: <4FB43F69.1070608@wwwdotorg.org>
-References: <1335820679-28721-1-git-send-email-jon-hunter@ti.com> <4FB3D294.4020505@wwwdotorg.org> <CAJe_Zhe6uT7u-+0VEx2XCieuynmK5nOO=4DSpDDS_Q=N8-QtPA@mail.gmail.com> <201205161942.20296.arnd@arndb.de>
+From: Kevin Hilman <khilman@ti.com>
+Subject: Re: [PATCHv2 14/19] ARM: OMAP4: wakeupgen: enable clocks for save_secure_all
+Date: Wed, 16 May 2012 17:06:38 -0700
+Message-ID: <871umj4qnl.fsf@ti.com>
+References: <1336990730-26892-1-git-send-email-t-kristo@ti.com>
+	<1336990730-26892-15-git-send-email-t-kristo@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from avon.wwwdotorg.org ([70.85.31.133]:52750 "EHLO
-	avon.wwwdotorg.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1760743Ab2EPX7m (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 16 May 2012 19:59:42 -0400
-In-Reply-To: <201205161942.20296.arnd@arndb.de>
+Received: from na3sys009aog108.obsmtp.com ([74.125.149.199]:58173 "EHLO
+	na3sys009aog108.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S932144Ab2EQAGl (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>);
+	Wed, 16 May 2012 20:06:41 -0400
+Received: by pbbrr13 with SMTP id rr13so1952526pbb.12
+        for <linux-omap@vger.kernel.org>; Wed, 16 May 2012 17:06:40 -0700 (PDT)
+In-Reply-To: <1336990730-26892-15-git-send-email-t-kristo@ti.com> (Tero
+	Kristo's message of "Mon, 14 May 2012 13:18:45 +0300")
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Arnd Bergmann <arnd@arndb.de>
-Cc: Jassi Brar <jaswinder.singh@linaro.org>, Jon Hunter <jon-hunter@ti.com>, Stephen Warren <swarren@nvidia.com>, Benoit Cousson <b-cousson@ti.com>, device-tree <devicetree-discuss@lists.ozlabs.org>, Nicolas Ferre <nicolas.ferre@atmel.com>, Rob Herring <rob.herring@calxeda.com>, Grant Likely <grant.likely@secretlab.ca>, Russell King <linux@arm.linux.org.uk>, linux-omap <linux-omap@vger.kernel.org>, linux-arm <linux-arm-kernel@lists.infradead.org>
+To: Tero Kristo <t-kristo@ti.com>, Benoit Cousson <b-cousson@ti.com>
+Cc: linux-omap@vger.kernel.org, paul@pwsan.com, linux-arm-kernel@lists.infradead.org
 
-On 05/16/2012 01:42 PM, Arnd Bergmann wrote:
-> On Wednesday 16 May 2012, Jassi Brar wrote:
->> On 16 May 2012 21:45, Stephen Warren <swarren@wwwdotorg.org> wrote:
-> 
->>
->> Generic binding to provide a way to provide the client-channel map and
->> other dmac specific parameters to the dma controller driver
->>
->> DMA Model:-
->>   Only the most common characteristics of a dma setup are assumed
->> in this binding.
->> Client: Some h/w controller that could request a DMA controller in
->> the system to perform data transfer on its behalf. Example SPI, MMC,
->> I2S etc.
->> DMAC: A DMA Controller instance. Example, PL330, PL08X, SDMA etc.
->>
->>  The assumed model of the DMAC, in this binding, has P peripheral
->> interfaces (P request signals) that could request a data transfer
->> and C physical channels that actually do the data transfers, hence,
->> at most C out of P peripherals could be served by the DMAC at any
->> point of time. Usually C := P, but not always. Usually, any of the
->> physical channels could be employed by the DMAC driver to serve any
->> client.
->>  The DMAC driver identifies a client by its i/f number, 'peri_id'
->> on the given DMAC. For example, TX for SPI has 7th while RX_TX
->> (half-duplex) for MMC has 10th peripheral interface (request-signal)
->> on a given DMAC. Usually, any of the physical channels could be
->> employed by the DMAC driver to serve a client.
-> 
-> I'm still anything but convinced by this model. Basically it's the
-> exact opposite of what we do for every other subsystem (irq, pinctrl,
-> regulator, gpio, ...), where the device using some infrastructure
-> contains the information about who provides it, whereas here you
-> move all the information into the device that provides the functionality,
-> and have no handle in the device using it by which the driver can
-> identify it.
++Benoit
 
-Yes, I guess this is backwards. But, the HW is a little different too;
-GPIOs (and probably interrupts) don't have multiple places they could
-come from.
+Tero Kristo <t-kristo@ti.com> writes:
 
-The problem is that if we did something like this in the DMA client:
+> save_secure_all needs l3_main_3_ick and l4_secure_clkdm enabled,
+> otherwise the secure ROM code will crash.
+>
+> Signed-off-by: Tero Kristo <t-kristo@ti.com>
 
-dma-reqs = <&dmac1 DMAC1_DMA_REQ_6 &dmac1 DMAC1_DMA_REQ_8>;
+I think I mentioned this already (I'm already lost in what I've said for
+thisseries), but I don't think the secure RAM stuff belongs in the
+wakeupgen driver.
 
-how do we know if the client is emitting 2 DMA request signals that get
-routed to two different inputs on the DMA controller, or whether this is
-two alternatives for the same signal.
+Also, this patch suggests that the OCM RAM block needs a proper hwmod
+instead of manually fiddling with the l3_main_3 hwmod and the l4_secure clkdm.
 
-Perhaps we can separate each logical request into separate properties.
-This will make the simple case slightly more complex, since there are n
-properties rather than n entries in each property, but still allow the
-more complex case:
+Kevin
 
-Simple case:
-
-/* e.g. FIFO TX DMA req - 2 DMACs possible */
-dma-req-0 = <&dmac1 DMAC1_DMA_REQ_6>;
-/* e.g. FIFO RX DMA req 1 DMAC possible */
-dma-req-1 = <&dmac1 DMAC1_DMA_REQ_8>;
-
-Multiple DMAC case:
-
-/* e.g. FIFO TX DMA req - 2 DMACs possible */
-dma-req-0 = <&dmac1 DMAC1_DMA_REQ_6 &dmac2 DMA_2_DMA_REQ_8>;
-/* e.g. FIFO RX DMA req 1 DMAC possible */
-dma-req-1 = <&dmac1 DMAC1_DMA_REQ_8>;
-
-Then, when the DMA client calls the standard API to "get DMA channel for
-my outbound DMA request "n", the core code will kasprintf("dma-req-%d",
-n); to generate the property name. That's how pinctrl works.
-
-Does that seem better?
+> ---
+>  arch/arm/mach-omap2/omap-wakeupgen.c |   20 ++++++++++++++++++++
+>  1 files changed, 20 insertions(+), 0 deletions(-)
+>
+> diff --git a/arch/arm/mach-omap2/omap-wakeupgen.c b/arch/arm/mach-omap2/omap-wakeupgen.c
+> index b2165e4..c7c4db4 100644
+> --- a/arch/arm/mach-omap2/omap-wakeupgen.c
+> +++ b/arch/arm/mach-omap2/omap-wakeupgen.c
+> @@ -29,10 +29,12 @@
+>  
+>  #include <mach/omap-wakeupgen.h>
+>  #include <mach/omap-secure.h>
+> +#include <plat/omap_hwmod.h>
+>  
+>  #include "omap4-sar-layout.h"
+>  #include "common.h"
+>  #include "pm.h"
+> +#include "clockdomain.h"
+>  
+>  #define NR_REG_BANKS		4
+>  #define MAX_IRQS		128
+> @@ -49,6 +51,8 @@ static DEFINE_SPINLOCK(wakeupgen_lock);
+>  static unsigned int irq_target_cpu[NR_IRQS];
+>  
+>  static struct powerdomain *mpuss_pd;
+> +static struct clockdomain *l4_secure_clkdm;
+> +static struct omap_hwmod *l3_main_3_oh;
+>  
+>  /*
+>   * Static helper functions.
+> @@ -300,10 +304,18 @@ static void save_secure_ram(void)
+>  static void save_secure_all(void)
+>  {
+>  	u32 ret;
+> +
+> +	omap_hwmod_enable(l3_main_3_oh);
+> +	clkdm_wakeup(l4_secure_clkdm);
+> +
+>  	ret = omap_secure_dispatcher(OMAP4_HAL_SAVEALL_INDEX,
+>  				FLAG_START_CRITICAL,
+>  				1, omap_secure_ram_mempool_base(),
+>  				0, 0, 0);
+> +
+> +	clkdm_allow_idle(l4_secure_clkdm);
+> +	omap_hwmod_idle(l3_main_3_oh);
+> +
+>  	if (ret != API_HAL_RET_VALUE_OK)
+>  		pr_err("Secure all context save failed\n");
+>  }
+> @@ -441,6 +453,14 @@ int __init omap_wakeupgen_init(void)
+>  			sar_writel(GIC_ISR_NON_SECURE, ICDISR_SPI_OFFSET, i);
+>  		iounmap(sar_base);
+>  		sar_base = NULL;
+> +	} else {
+> +		l3_main_3_oh = omap_hwmod_lookup("l3_main_3");
+> +		if (!l3_main_3_oh)
+> +			pr_err("%s: failed to get l3_main_3_oh\n", __func__);
+> +
+> +		l4_secure_clkdm = clkdm_lookup("l4_secure_clkdm");
+> +		if (!l4_secure_clkdm)
+> +			pr_err("%s: failed to get l4_secure_clkdm\n", __func__);
+>  	}
+>  
+>  	irq_hotplug_init();
