@@ -1,81 +1,76 @@
 From: Kevin Hilman <khilman@ti.com>
-Subject: Re: [PATCHv2 04/19] ARM: OMAP4: PM: save/restore all DPLL settings in OFF mode
-Date: Thu, 17 May 2012 09:37:42 -0700
-Message-ID: <87mx56227d.fsf@ti.com>
+Subject: Re: [PATCHv2 06/19] ARM: OMAP4: PM: Add SAR backup support towards
+ device OFF
+Date: Thu, 17 May 2012 09:42:48 -0700
+Message-ID: <87aa1621yv.fsf@ti.com>
 References: <1336990730-26892-1-git-send-email-t-kristo@ti.com>
-	<1336990730-26892-5-git-send-email-t-kristo@ti.com>
-	<87d363928g.fsf@ti.com>
-	<CAMQu2gw5myvyvM8x225KnN59vEYBYLBiEsvML8RAoE0t+RrbYA@mail.gmail.com>
-	<CAMQu2gywor2o+g8Fn80ogbTtEZPSXM74M65GsO2zH44tg-W7gQ@mail.gmail.com>
+ <1336990730-26892-7-git-send-email-t-kristo@ti.com>
+ <87aa177my3.fsf@ti.com>
+ <CAMQu2gznJ0q-Eqevh9dWn+vw69to91kfFG6hYDvTbGj3zwT0FQ@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aog109.obsmtp.com ([74.125.149.201]:54391 "EHLO
-	na3sys009aog109.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S932751Ab2EQQht convert rfc822-to-8bit
-	(ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Thu, 17 May 2012 12:37:49 -0400
-Received: by pbbrq13 with SMTP id rq13so3196369pbb.22
-        for <linux-omap@vger.kernel.org>; Thu, 17 May 2012 09:37:47 -0700 (PDT)
-In-Reply-To: <CAMQu2gywor2o+g8Fn80ogbTtEZPSXM74M65GsO2zH44tg-W7gQ@mail.gmail.com>
-	(Santosh Shilimkar's message of "Thu, 17 May 2012 14:22:52 +0530")
-Sender: linux-omap-owner@vger.kernel.org
-List-Id: linux-omap@vger.kernel.org
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
+In-Reply-To: <CAMQu2gznJ0q-Eqevh9dWn+vw69to91kfFG6hYDvTbGj3zwT0FQ@mail.gmail.com>
+ (Santosh Shilimkar's message of "Thu, 17 May 2012 12:32:00 +0530")
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
+List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
+List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
+Sender: linux-arm-kernel-bounces@lists.infradead.org
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
 To: "Shilimkar, Santosh" <santosh.shilimkar@ti.com>
-Cc: Tero Kristo <t-kristo@ti.com>, linux-omap@vger.kernel.org, paul@pwsan.com, linux-arm-kernel@lists.infradead.org, Rajendra Nayak <rnayak@ti.com>, Nishanth Menon <nm@ti.com>
+Cc: Tero Kristo <t-kristo@ti.com>, paul@pwsan.com, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+List-Id: linux-omap@vger.kernel.org
 
-"Shilimkar, Santosh" <santosh.shilimkar@ti.com> writes:
-
-> On Thu, May 17, 2012 at 12:34 PM, Shilimkar, Santosh
-> <santosh.shilimkar@ti.com> wrote:
->> On Thu, May 17, 2012 at 4:12 AM, Kevin Hilman <khilman@ti.com> wrote=
-:
->>> Tero Kristo <t-kristo@ti.com> writes:
->>>
->>>> From: Rajendra Nayak <rnayak@ti.com>
->>>>
->>>> SAR/ROM code restores only CORE DPLL to its original state
->>>> post wakeup from OFF mode.
->>>> The rest of the DPLL's in OMAP4 platform (MPU/IVA/ABE/USB/PER)
->>>> are saved and restored here during an OFF transition.
->>>>
->>>> [nm@ti.com: minor cleanups]
->>>> Signed-off-by: Nishanth Menon <nm@ti.com>
->>>> Signed-off-by: Rajendra Nayak <rnayak@ti.com>
->>>> Signed-off-by: Santosh Shilimkar <santosh.shilimkar@ti.com>
->>>> Signed-off-by: Tero Kristo <t-kristo@ti.com>
->>>
->>> Some general comments:
->>>
->>> - the register dump/print doesn't belong here. =C2=A0If needed, sho=
-uld be a
->>> =C2=A0debug feature if needed.
->>>
->>> - Rather than hooking into omap4_enter_lowpower(), should use
->>> =C2=A0the cluster PM enter/exit notifier chain.
->>>
->> This is again specific to device OFF only and not related to CPU
->> cluster state as such. So I don't think notifiers should be used her=
-e.
->>
->> O.w even when we attempt just MPU OSWR C-state, all these functions =
-will
->> get called in notifier chain.
->>
-> Just a thought, we can have a separate notifier chain for device OFF.=
- It can
-> allow use to get rid of 'enable_off_mode" kind of flags and can be
-> used by many drivers too.
-
-Yes, I like this idea.
-
-It allows a much cleaner collection of all the activities needed for
-device off.
-
-Kevin
---
-To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+IlNoaWxpbWthciwgU2FudG9zaCIgPHNhbnRvc2guc2hpbGlta2FyQHRpLmNvbT4gd3JpdGVzOgoK
+PiBPbiBUaHUsIE1heSAxNywgMjAxMiBhdCA0OjI4IEFNLCBLZXZpbiBIaWxtYW4gPGtoaWxtYW5A
+dGkuY29tPiB3cm90ZToKPj4gVGVybyBLcmlzdG8gPHQta3Jpc3RvQHRpLmNvbT4gd3JpdGVzOgo+
+Pgo+Pj4gRnJvbTogU2FudG9zaCBTaGlsaW1rYXIgPHNhbnRvc2guc2hpbGlta2FyQHRpLmNvbT4K
+Pj4+Cj4+PiBUaGUgU0FSIFJBTSBpcyBtYWludGFpbmVkIGR1cmluZyBEZXZpY2UgT0ZGIG1vZGUu
+Cj4+Cj4+IHNvIHdoeSBpcyB0aGlzIHBhdGNoIGJvdGhlcmluZyB0byBzYXZlIGFuZCByZXN0b3Jl
+IGl0Pwo+Pgo+IFNBUiBSQU0gaXMgbWFpbnRhaW5lZChub3QgcG93ZXJlZCBkb3duKSBidXQgc29t
+ZWJvZHkgbmVlZHMgdG8KPiBmZWVsIHRoZSBjb250ZW50cyB3aGljaCB3aWxsIGJlIHByZXNlcnZl
+ZCA6LSkKPgo+PiAtRUNPTkZVU0VECj4+Cj4+PiBUaGUgcmVnaXN0ZXIgbGF5b3V0Cj4+PiBpcyBm
+aXhlZCBpbiBTQVIgUk9NLiBTQVIgaXMgc3BsaXQgaW50byA0IGJhbmtzIHdpdGggZGlmZmVyZW50
+Cj4+PiBwcml2aWxlZ2UgYWNjZXNzZXMgYmFzZWQgb24gZGV2aWNlIHR5cGUKPj4+Cj4+PiDCoC0t
+LS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0t
+LS0tLQo+Pj4gwqBBY2Nlc3MgbW9kZSDCoCDCoCDCoCDCoCDCoEJhbmsgwqAgwqBBZGRyZXNzIFJh
+bmdlCj4+PiDCoC0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0t
+LS0tLS0tLS0tLS0tLS0tLQo+Pj4gwqBIUy9HUCA6IFB1YmxpYyDCoCDCoCDCoCDCoCDCoCDCoCDC
+oCAxIMKgIMKgIMKgIDB4NEEzMl82MDAwIC0gMHg0QTMyXzZGRkYgKDRrQikKPj4+IMKgSFMvR1Ag
+OiBQdWJsaWMgwqAgwqAgwqAgwqAgwqAgwqAgwqAgMiDCoCDCoCDCoCAweDRBMzJfNzAwMCAtIDB4
+NEEzMl83M0ZGICgxa0IpCj4+Pgo+Pj4gwqBIUy9FTVUgOiBTZWN1cmVkCj4+PiDCoEdQIDogUHVi
+bGljIMKgIMKgIMKgIMKgIMKgMyDCoCDCoCDCoCAweDRBMzJfODAwMCAtIDB4NEEzMl84N0ZGICgy
+a0IpCj4+Pgo+Pj4gwqBIUy9HUCA6U2VjdXJlCj4+PiDCoHdyaXRlIG9uY2UuIMKgIMKgIMKgIMKg
+IMKgNCDCoCDCoCDCoCAweDRBMzJfOTAwMCAtIDB4NEEzMl85M0ZGICgxa0IpCj4+PiDCoC0tLS0t
+LS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0t
+LQo+Pj4KPj4+IFRoZSBzYXZlIHByb2Nlc3MgaXMgZG9uZSBlbnRpcmVseSBieSBzb2Z0d2FyZSBh
+bmQgcmVzdG9yZSBpcyBkb25lIGJ5Cj4+PiBoYXJkd2FyZSB1c2luZyB0aGUgYXV0by1yZXN0b3Jl
+IGZlYXR1cmUuIFRoZSByZXN0b3JlIGZlYXR1cmUgaXMgZW5hYmxlZAo+Pj4gYnkgZGVmYXVsdCBh
+bmQgY2Fubm90IGJlIGRpc2FibGVkLiBUaGUgc29mdHdhcmUgbXVzdCBzYXZlIHRoZSBkYXRhCj4+
+PiB0byBiZSByZXN0b3JlZCBpbiBhIGRlZGljYXRlZCBsb2NhdGlvbiBpbiBTQVIgUkFNLgo+Pgo+
+PiBTb21lIGdlbmVyYWwgY29tbWVudHM6Cj4+Cj4+IC0gY2FuIHRoZSBjbHVzdGVyIFBNIG5vdGlm
+aWVyIGJlIHVzZWQgZm9yIHRoZSBzYXZlIHBhdGg/Cj4+Cj4gTm9wZS4gVGhpcyBpcyBmb3IgZGV2
+aWNlIE9GRiBvbmx5IGNhc2UuIENQVSBDbHVzdGVyIHN0YXRlIGFzIHN1Y2gKPiBoYXMgbm8gZGVw
+ZW5kZW5jeS4KClllYWgsIEkgc2VlIG5vdy4gIEkgbGlrZSB5b3VyIGlkZWEgb2YgYSBkZXZpY2Ut
+b2ZmIG5vdGlmaWVyIGNoYWluCm1vZGVsZWQgb24gdGhlIENQVSBQTSBub3RpZmllciBjaGFpbi4K
+Cj4+IC0gVGhpcyBwYXRjaCBhZGRzIGxvdHMgb2YgZGF0YSB0aGF0IGlzIGltbWVkaWF0ZWx5IHJl
+bW92ZWQgYnkgdGhlIG5leHQKPj4gwqBwYXRjaC4gwqBQcm9iYWJseSB0aGUgdHdvIGp1c3QgbmVl
+ZCB0byBiZSBjb21iaW5lZC4KPj4KPiBpb3JtYXAoKSBodW5rIGZyb20gdGhpcyBwYXRjaCBjYW4g
+YmUgY29tcGxldGVseSBkcm9wcGVkIHNpbmNlCj4gaXQgaXMgZ2V0dGluZyBmaXhlZCBpbiBuZXh0
+IHBhdGNoLiBPdGhlciBpbmZyYXN0cnVjdHVyZSBpcyBtYWludGFpbmVkLgoKTG9vayBhZ2FpbiBh
+dCBob3cgbXVjaCBzdHVmZiBpcyBkZWxldGVkIGluIHRoZSBuZXh0IHBhdGNoIHRoYXQgaXMgYWRk
+ZWQKaW4gdGhpcyBwYXRjaCwgYW5kIHRoaW5rIGFib3V0IGhvdyBhIHJldmlld2VyIGlzIHN1cHBv
+c2VkIHRvIGZvbGxvdyB0aGF0CmVhc2lseS4KCj4+IC0gQlVHX09OKCkgc2hvdWxkIG5vdCBiZSB1
+c2VkIHVubGVzcyB0aGVyZSBpcyBhYnNvbHV0ZWx5IG5vIHJlY292ZXJ5Cj4+IMKgcGF0aCwgc2lu
+Y2UgaXQgY2FzdWVzIGEgZnVsbCBrZXJuZWwgcGFuaWMuIMKgIEluc3RlYWQsIHNvbWUgZXJyb3IK
+Pj4gwqByZWNvdmVyeSBzaG91bGQgYmUgYWRkZWQuCj4+Cj4gV0FSTl9PTiBzaG91bGQgc3VmZmlj
+ZS4KCk5vdCByZWFsbHkuICBFcnJvciByZWNvdmVyeSBzaG91bGQgYmUgYWRkZWQuCgpLZXZpbgoK
+X19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX18KbGludXgtYXJt
+LWtlcm5lbCBtYWlsaW5nIGxpc3QKbGludXgtYXJtLWtlcm5lbEBsaXN0cy5pbmZyYWRlYWQub3Jn
+Cmh0dHA6Ly9saXN0cy5pbmZyYWRlYWQub3JnL21haWxtYW4vbGlzdGluZm8vbGludXgtYXJtLWtl
+cm5lbAo=
