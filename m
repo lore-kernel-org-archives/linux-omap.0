@@ -1,138 +1,32 @@
-From: Uri Yosef <uri.y@variscite.com>
-Subject: [PATCH] arm/dts: OMAP4: Add Variscite OMAP4 System-On-Modeule support
-Date: Thu, 17 May 2012 15:17:31 +0300
-Message-ID: <1337257051-5004-1-git-send-email-uri.y@variscite.com>
-References: <20120509213156.GZ5140@atomide.com>
+From: Russell King - ARM Linux <linux@arm.linux.org.uk>
+Subject: Re: [PATCH V3 1/2] of: Add generic device tree DMA helpers
+Date: Thu, 17 May 2012 14:18:28 +0100
+Message-ID: <20120517131828.GA9650@n2100.arm.linux.org.uk>
+References: <CAJe_ZhfFhZVG4gyaaVUgeQedJiSE=zj9nE28XCNH9DkPVgqj=A@mail.gmail.com> <201205041923.07620.arnd@arndb.de> <CAJe_Zhe8jYd1j=ti6FvqxXL7i5mbgf0jqb-84sFMTeUqyAonpw@mail.gmail.com> <4FA7F009.5010003@wwwdotorg.org> <CAJe_ZheHFP9NZEiZfCvS3LL1k7xamzGq4Oep8gfmPRi6RR7R5Q@mail.gmail.com> <4FA94B49.5050500@wwwdotorg.org> <CAJe_Zhf0=Qnsgsc7U_GbKxc0_6DKj33QWs0UW2giyrVEjPnrvw@mail.gmail.com> <4FAAC111.9020308@wwwdotorg.org> <CAJe_Zhcrr2QqoY=H3=3EJLPQBjC3Yc43EDjqYXaNok9-T+=0yw@mail.gmail.com> <4FABF445.3030105@wwwdotorg.org>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-wi0-f172.google.com ([209.85.212.172]:51536 "EHLO
-	mail-wi0-f172.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754869Ab2EQMav (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 17 May 2012 08:30:51 -0400
-Received: by wibhj8 with SMTP id hj8so4998222wib.1
-        for <linux-omap@vger.kernel.org>; Thu, 17 May 2012 05:30:50 -0700 (PDT)
-In-Reply-To: <20120509213156.GZ5140@atomide.com>
+Received: from caramon.arm.linux.org.uk ([78.32.30.218]:49341 "EHLO
+	caramon.arm.linux.org.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1760961Ab2EQNTQ (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 17 May 2012 09:19:16 -0400
+Content-Disposition: inline
+In-Reply-To: <4FABF445.3030105@wwwdotorg.org>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: tony@atomide.com
-Cc: linux@arm.linux.org.uk, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org, oren@variscite.com, Uri Yosef <uri.y@variscite.com>
+To: Stephen Warren <swarren@wwwdotorg.org>
+Cc: Jassi Brar <jaswinder.singh@linaro.org>, Arnd Bergmann <arnd@arndb.de>, Stephen Warren <swarren@nvidia.com>, Benoit Cousson <b-cousson@ti.com>, device-tree <devicetree-discuss@lists.ozlabs.org>, Nicolas Ferre <nicolas.ferre@atmel.com>, Rob Herring <rob.herring@calxeda.com>, Grant Likely <grant.likely@secretlab.ca>, Jon Hunter <jon-hunter@ti.com>, linux-omap <linux-omap@vger.kernel.org>, linux-arm <linux-arm-kernel@lists.infradead.org>
 
-Hi Tony,
+On Thu, May 10, 2012 at 11:00:53AM -0600, Stephen Warren wrote:
+> To solve Russell's HW, we need some way of representing the mux directly
+> in DT irrespective of how the DMA controller or DMA client specify what
+> they're connected to. Anything else isn't representing the HW in DT.
 
-This is the updated DTS patch for Vatiscite OMAP4 SOM support
+Note that it's now no longer _just_ my hardware.
 
-Regatds,
-Uri Yosef
+The Spear family of SoCs have a very similar setup - they mux the DMA
+request signals between the PL08x and their peripherals.  It looks like
+each of the 16 DMA requests to the PL08x can be independently muxed
+between four possibilities via a common register.
 
-
-Signed-off-by: Uri Yosef <uri.y@variscite.com>
-
----
- arch/arm/boot/dts/omap4-var_som.dts |   96 +++++++++++++++++++++++++++++++++++
- 1 files changed, 96 insertions(+), 0 deletions(-)
- create mode 100644 arch/arm/boot/dts/omap4-var_som.dts
-
-diff --git a/arch/arm/boot/dts/omap4-var_som.dts b/arch/arm/boot/dts/omap4-var_som.dts
-new file mode 100644
-index 0000000..d41161d
---- /dev/null
-+++ b/arch/arm/boot/dts/omap4-var_som.dts
-@@ -0,0 +1,96 @@
-+/*
-+ * Copyright (C) 2012 Variscite Ltd. - http://www.variscite.com
-+ *
-+ * This program is free software; you can redistribute it and/or modify
-+ * it under the terms of the GNU General Public License version 2 as
-+ * published by the Free Software Foundation.
-+ */
-+/dts-v1/;
-+
-+/include/ "omap4.dtsi"
-+
-+/ {
-+	model = "Variscite OMAP4 SOM";
-+	compatible = "var,omap4-var_som", "ti,omap4430", "ti,omap4";
-+
-+	memory {
-+		device_type = "memory";
-+		reg = <0x80000000 0x40000000>; /* 1 GB */
-+	};
-+
-+	vdd_eth: fixedregulator@0 {
-+		compatible = "regulator-fixed";
-+		regulator-name = "VDD_ETH";
-+		regulator-min-microvolt = <3300000>;
-+		regulator-max-microvolt = <3300000>;
-+		enable-active-high;
-+		regulator-boot-on;
-+	};
-+};
-+
-+&i2c1 {
-+	clock-frequency = <400000>;
-+
-+	twl: twl@48 {
-+		reg = <0x48>;
-+		/* SPI = 0, IRQ# = 7, 4 = active high level-sensitive */
-+		interrupts = <0 7 4>; /* IRQ_SYS_1N cascaded to gic */
-+		interrupt-parent = <&gic>;
-+	};
-+};
-+
-+/include/ "twl6030.dtsi"
-+
-+&i2c2 {
-+	clock-frequency = <400000>;
-+};
-+
-+&i2c3 {
-+	clock-frequency = <400000>;
-+
-+	/*
-+	 * Temperature Sensor
-+	 * http://www.ti.com/lit/ds/symlink/tmp105.pdf
-+	 */
-+	tmp105@49 {
-+		compatible = "ti,tmp105";
-+		reg = <0x49>;
-+	};
-+};
-+
-+&i2c4 {
-+	clock-frequency = <400000>;
-+};
-+
-+&mcspi1 {
-+	eth@0 {
-+		compatible = "ks8851";
-+		spi-max-frequency = <24000000>;
-+		reg = <0>;
-+		interrupt-parent = <&gpio6>;
-+		interrupts = <11>; /* gpio line 171 */
-+		vdd-supply = <&vdd_eth>;
-+	};
-+};
-+
-+&mmc1 {
-+	vmmc-supply = <&vmmc>;
-+	ti,bus-width = <8>;
-+	ti,non-removable;
-+};
-+
-+&mmc2 {
-+	status = "disable";
-+};
-+
-+&mmc3 {
-+	status = "disable";
-+};
-+
-+&mmc4 {
-+	status = "disable";
-+};
-+
-+&mmc5 {
-+	ti,bus-width = <4>;
-+};
--- 
-1.7.5.4
-
+See arch/arm/plat-spear/pl080.c in current arm-soc.
