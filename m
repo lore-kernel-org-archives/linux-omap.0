@@ -1,76 +1,83 @@
 From: Kevin Hilman <khilman@ti.com>
-Subject: Re: [PATCHv2 06/19] ARM: OMAP4: PM: Add SAR backup support towards
- device OFF
-Date: Thu, 17 May 2012 09:42:48 -0700
-Message-ID: <87aa1621yv.fsf@ti.com>
+Subject: Re: [PATCHv2 10/19] ARM: OMAP4: PM: Work-around for ROM code BUG of IVAHD/TESLA
+Date: Thu, 17 May 2012 09:45:31 -0700
+Message-ID: <871umi21uc.fsf@ti.com>
 References: <1336990730-26892-1-git-send-email-t-kristo@ti.com>
- <1336990730-26892-7-git-send-email-t-kristo@ti.com>
- <87aa177my3.fsf@ti.com>
- <CAMQu2gznJ0q-Eqevh9dWn+vw69to91kfFG6hYDvTbGj3zwT0FQ@mail.gmail.com>
+	<1336990730-26892-11-git-send-email-t-kristo@ti.com>
+	<87zk976827.fsf@ti.com>
+	<CAMQu2gzNTjnYGcXzEOD0NVgbCT-nNwMf5A_LypLZCtXmwcKfwA@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-In-Reply-To: <CAMQu2gznJ0q-Eqevh9dWn+vw69to91kfFG6hYDvTbGj3zwT0FQ@mail.gmail.com>
- (Santosh Shilimkar's message of "Thu, 17 May 2012 12:32:00 +0530")
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: linux-arm-kernel-bounces@lists.infradead.org
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: "Shilimkar, Santosh" <santosh.shilimkar@ti.com>
-Cc: Tero Kristo <t-kristo@ti.com>, paul@pwsan.com, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from na3sys009aog109.obsmtp.com ([74.125.149.201]:36379 "EHLO
+	na3sys009aog109.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1755099Ab2EQQpc convert rfc822-to-8bit
+	(ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Thu, 17 May 2012 12:45:32 -0400
+Received: by dadz8 with SMTP id z8so3193993dad.7
+        for <linux-omap@vger.kernel.org>; Thu, 17 May 2012 09:45:31 -0700 (PDT)
+In-Reply-To: <CAMQu2gzNTjnYGcXzEOD0NVgbCT-nNwMf5A_LypLZCtXmwcKfwA@mail.gmail.com>
+	(Santosh Shilimkar's message of "Thu, 17 May 2012 12:22:19 +0530")
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: "Shilimkar, Santosh" <santosh.shilimkar@ti.com>
+Cc: Tero Kristo <t-kristo@ti.com>, linux-omap@vger.kernel.org, paul@pwsan.com, linux-arm-kernel@lists.infradead.org, Rajendra Nayak <rnayak@ti.com>
 
-IlNoaWxpbWthciwgU2FudG9zaCIgPHNhbnRvc2guc2hpbGlta2FyQHRpLmNvbT4gd3JpdGVzOgoK
-PiBPbiBUaHUsIE1heSAxNywgMjAxMiBhdCA0OjI4IEFNLCBLZXZpbiBIaWxtYW4gPGtoaWxtYW5A
-dGkuY29tPiB3cm90ZToKPj4gVGVybyBLcmlzdG8gPHQta3Jpc3RvQHRpLmNvbT4gd3JpdGVzOgo+
-Pgo+Pj4gRnJvbTogU2FudG9zaCBTaGlsaW1rYXIgPHNhbnRvc2guc2hpbGlta2FyQHRpLmNvbT4K
-Pj4+Cj4+PiBUaGUgU0FSIFJBTSBpcyBtYWludGFpbmVkIGR1cmluZyBEZXZpY2UgT0ZGIG1vZGUu
-Cj4+Cj4+IHNvIHdoeSBpcyB0aGlzIHBhdGNoIGJvdGhlcmluZyB0byBzYXZlIGFuZCByZXN0b3Jl
-IGl0Pwo+Pgo+IFNBUiBSQU0gaXMgbWFpbnRhaW5lZChub3QgcG93ZXJlZCBkb3duKSBidXQgc29t
-ZWJvZHkgbmVlZHMgdG8KPiBmZWVsIHRoZSBjb250ZW50cyB3aGljaCB3aWxsIGJlIHByZXNlcnZl
-ZCA6LSkKPgo+PiAtRUNPTkZVU0VECj4+Cj4+PiBUaGUgcmVnaXN0ZXIgbGF5b3V0Cj4+PiBpcyBm
-aXhlZCBpbiBTQVIgUk9NLiBTQVIgaXMgc3BsaXQgaW50byA0IGJhbmtzIHdpdGggZGlmZmVyZW50
-Cj4+PiBwcml2aWxlZ2UgYWNjZXNzZXMgYmFzZWQgb24gZGV2aWNlIHR5cGUKPj4+Cj4+PiDCoC0t
-LS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0t
-LS0tLQo+Pj4gwqBBY2Nlc3MgbW9kZSDCoCDCoCDCoCDCoCDCoEJhbmsgwqAgwqBBZGRyZXNzIFJh
-bmdlCj4+PiDCoC0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0t
-LS0tLS0tLS0tLS0tLS0tLQo+Pj4gwqBIUy9HUCA6IFB1YmxpYyDCoCDCoCDCoCDCoCDCoCDCoCDC
-oCAxIMKgIMKgIMKgIDB4NEEzMl82MDAwIC0gMHg0QTMyXzZGRkYgKDRrQikKPj4+IMKgSFMvR1Ag
-OiBQdWJsaWMgwqAgwqAgwqAgwqAgwqAgwqAgwqAgMiDCoCDCoCDCoCAweDRBMzJfNzAwMCAtIDB4
-NEEzMl83M0ZGICgxa0IpCj4+Pgo+Pj4gwqBIUy9FTVUgOiBTZWN1cmVkCj4+PiDCoEdQIDogUHVi
-bGljIMKgIMKgIMKgIMKgIMKgMyDCoCDCoCDCoCAweDRBMzJfODAwMCAtIDB4NEEzMl84N0ZGICgy
-a0IpCj4+Pgo+Pj4gwqBIUy9HUCA6U2VjdXJlCj4+PiDCoHdyaXRlIG9uY2UuIMKgIMKgIMKgIMKg
-IMKgNCDCoCDCoCDCoCAweDRBMzJfOTAwMCAtIDB4NEEzMl85M0ZGICgxa0IpCj4+PiDCoC0tLS0t
-LS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0t
-LQo+Pj4KPj4+IFRoZSBzYXZlIHByb2Nlc3MgaXMgZG9uZSBlbnRpcmVseSBieSBzb2Z0d2FyZSBh
-bmQgcmVzdG9yZSBpcyBkb25lIGJ5Cj4+PiBoYXJkd2FyZSB1c2luZyB0aGUgYXV0by1yZXN0b3Jl
-IGZlYXR1cmUuIFRoZSByZXN0b3JlIGZlYXR1cmUgaXMgZW5hYmxlZAo+Pj4gYnkgZGVmYXVsdCBh
-bmQgY2Fubm90IGJlIGRpc2FibGVkLiBUaGUgc29mdHdhcmUgbXVzdCBzYXZlIHRoZSBkYXRhCj4+
-PiB0byBiZSByZXN0b3JlZCBpbiBhIGRlZGljYXRlZCBsb2NhdGlvbiBpbiBTQVIgUkFNLgo+Pgo+
-PiBTb21lIGdlbmVyYWwgY29tbWVudHM6Cj4+Cj4+IC0gY2FuIHRoZSBjbHVzdGVyIFBNIG5vdGlm
-aWVyIGJlIHVzZWQgZm9yIHRoZSBzYXZlIHBhdGg/Cj4+Cj4gTm9wZS4gVGhpcyBpcyBmb3IgZGV2
-aWNlIE9GRiBvbmx5IGNhc2UuIENQVSBDbHVzdGVyIHN0YXRlIGFzIHN1Y2gKPiBoYXMgbm8gZGVw
-ZW5kZW5jeS4KClllYWgsIEkgc2VlIG5vdy4gIEkgbGlrZSB5b3VyIGlkZWEgb2YgYSBkZXZpY2Ut
-b2ZmIG5vdGlmaWVyIGNoYWluCm1vZGVsZWQgb24gdGhlIENQVSBQTSBub3RpZmllciBjaGFpbi4K
-Cj4+IC0gVGhpcyBwYXRjaCBhZGRzIGxvdHMgb2YgZGF0YSB0aGF0IGlzIGltbWVkaWF0ZWx5IHJl
-bW92ZWQgYnkgdGhlIG5leHQKPj4gwqBwYXRjaC4gwqBQcm9iYWJseSB0aGUgdHdvIGp1c3QgbmVl
-ZCB0byBiZSBjb21iaW5lZC4KPj4KPiBpb3JtYXAoKSBodW5rIGZyb20gdGhpcyBwYXRjaCBjYW4g
-YmUgY29tcGxldGVseSBkcm9wcGVkIHNpbmNlCj4gaXQgaXMgZ2V0dGluZyBmaXhlZCBpbiBuZXh0
-IHBhdGNoLiBPdGhlciBpbmZyYXN0cnVjdHVyZSBpcyBtYWludGFpbmVkLgoKTG9vayBhZ2FpbiBh
-dCBob3cgbXVjaCBzdHVmZiBpcyBkZWxldGVkIGluIHRoZSBuZXh0IHBhdGNoIHRoYXQgaXMgYWRk
-ZWQKaW4gdGhpcyBwYXRjaCwgYW5kIHRoaW5rIGFib3V0IGhvdyBhIHJldmlld2VyIGlzIHN1cHBv
-c2VkIHRvIGZvbGxvdyB0aGF0CmVhc2lseS4KCj4+IC0gQlVHX09OKCkgc2hvdWxkIG5vdCBiZSB1
-c2VkIHVubGVzcyB0aGVyZSBpcyBhYnNvbHV0ZWx5IG5vIHJlY292ZXJ5Cj4+IMKgcGF0aCwgc2lu
-Y2UgaXQgY2FzdWVzIGEgZnVsbCBrZXJuZWwgcGFuaWMuIMKgIEluc3RlYWQsIHNvbWUgZXJyb3IK
-Pj4gwqByZWNvdmVyeSBzaG91bGQgYmUgYWRkZWQuCj4+Cj4gV0FSTl9PTiBzaG91bGQgc3VmZmlj
-ZS4KCk5vdCByZWFsbHkuICBFcnJvciByZWNvdmVyeSBzaG91bGQgYmUgYWRkZWQuCgpLZXZpbgoK
-X19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX18KbGludXgtYXJt
-LWtlcm5lbCBtYWlsaW5nIGxpc3QKbGludXgtYXJtLWtlcm5lbEBsaXN0cy5pbmZyYWRlYWQub3Jn
-Cmh0dHA6Ly9saXN0cy5pbmZyYWRlYWQub3JnL21haWxtYW4vbGlzdGluZm8vbGludXgtYXJtLWtl
-cm5lbAo=
+"Shilimkar, Santosh" <santosh.shilimkar@ti.com> writes:
+
+> On Thu, May 17, 2012 at 4:35 AM, Kevin Hilman <khilman@ti.com> wrote:
+>> Tero Kristo <t-kristo@ti.com> writes:
+>>
+>>> From: Santosh Shilimkar <santosh.shilimkar@ti.com>
+>>>
+>>> The ROM BUG is when MPU Domain OFF wake up sequence that can compro=
+mise
+>>> IVA and Tesla execution.
+>>>
+>>> At wakeup from MPU OFF on HS device only (not GP device), when
+>>> restoring the Secure RAM, the ROM Code reconfigures the clocks the
+>>> same way it is done at Cold Reset.
+>>
+>> Ouch.
+>>
+>>> The IVAHD Clocks and Power Domain settings are:
+>>> =C2=A0 =C2=A0 =C2=A0 IVAHD_CM2 IVAHD_CLKCTRL_MODULE_MODE =3D DISABL=
+E
+>>> =C2=A0 =C2=A0 =C2=A0 IVAHD_CM2 SL2_CLKCTRL_MODULE_MODE =3D DISABLE
+>>> =C2=A0 =C2=A0 =C2=A0 IVAHD_CM2 SL2_CLKSTCTRL_CLKTRCTRL =3D HW_AUTO
+>>> =C2=A0 =C2=A0 =C2=A0 IVAHD_PRM IVAHD_PWRSTCTRL_POWERSTATE =3D OFF
+>>> The TESLA Clocks and Power Domain settings are:
+>>> =C2=A0 =C2=A0 =C2=A0 TESLA_CM1 TESLA_CLKCTRL_MODULE_MODE =3D DISABL=
+E
+>>> =C2=A0 =C2=A0 =C2=A0 TESLA_CM1 TESLA_CLKSTCTRL_CLKTRCTRL =3D HW_AUT=
+O
+>>> =C2=A0 =C2=A0 =C2=A0 TESLA_PRM TESLA_PWRSTCTRL_POWERSTATE =3D OFF
+>>>
+>>> This patch fixes the low power OFF mode code so that the these
+>>> registers are saved and restore across MPU OFF state.
+>>>
+>>> Also because of this limitation, MPU OFF alone is not targeted with=
+out
+>>> device OFF to avoid IVAHD and TESLA execution impact
+>>
+>> I don't see where this restriction is implemented.
+>>
+> It's handled and the patch is in mainline for some time.
+> We de-scoped MPU OFF from OMAP4430 devices in SW and
+> hardware team de-scoped it in hardware from OMAP4460 onwards.
+> Deepest state on MPUSS cluster is OSWR.
+
+The question was about the changelog.
+
+The changelog makes it sound like the restriction is part of the patch,
+but it is not.  Please update the changlog to clarify that, ideally
+adding a reference to the commit you mentioned.
+
+Kevin
+
+--
+To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
