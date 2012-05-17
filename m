@@ -1,105 +1,104 @@
-From: "DebBarma, Tarun Kanti" <tarun.kanti@ti.com>
-Subject: Re: [PATCH 0/9] ARM: OMAP: DMTIMER clean-up in preparation for device-tree
-Date: Thu, 17 May 2012 10:37:36 +0530
-Message-ID: <CAC83ZvK4MHbtY5xrw3RoVgLvGNVToDonXWibS49H+j0yKh2MfQ@mail.gmail.com>
-References: <1337124914-19921-1-git-send-email-jon-hunter@ti.com>
-	<4FB37356.9040001@ti.com>
-	<4FB40AB5.10302@ti.com>
+From: Ming Lei <ming.lei@canonical.com>
+Subject: Re: [PATCH 4/6] ARM: OMAP4: PMU: Add runtime PM support
+Date: Thu, 17 May 2012 13:28:13 +0800
+Message-ID: <CACVXFVPGA7LdRT8=hSZkr5GLhz-8f1sNSDf6E5ima0TuSFgPCg@mail.gmail.com>
+References: <1336599355-10983-1-git-send-email-jon-hunter@ti.com>
+	<CACVXFVOmLOm8qD5Mq8qJQGSCcD7kNhW9OOsQqzx6W77709CXEQ@mail.gmail.com>
+	<4FB26AA6.1060807@ti.com>
+	<CACVXFVNqWM7G8dK2AA90JPvE6e_L0_Zwk-BJTjThY+nZ6ONnQA@mail.gmail.com>
+	<CACVXFVNmg-5HHFmdT9a0cfUvGb-OYMe1QOdn3JOMo9rc=aMqTQ@mail.gmail.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aog115.obsmtp.com ([74.125.149.238]:35740 "EHLO
-	na3sys009aog115.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752765Ab2EQFHi convert rfc822-to-8bit
-	(ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Thu, 17 May 2012 01:07:38 -0400
-Received: by qabj34 with SMTP id j34so1585894qab.11
-        for <linux-omap@vger.kernel.org>; Wed, 16 May 2012 22:07:36 -0700 (PDT)
-In-Reply-To: <4FB40AB5.10302@ti.com>
+Received: from youngberry.canonical.com ([91.189.89.112]:34230 "EHLO
+	youngberry.canonical.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752872Ab2EQF2Q convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 17 May 2012 01:28:16 -0400
+Received: from mail-pz0-f46.google.com ([209.85.210.46])
+	by youngberry.canonical.com with esmtpsa (TLS1.0:RSA_ARCFOUR_MD5:16)
+	(Exim 4.71)
+	(envelope-from <ming.lei@canonical.com>)
+	id 1SUtG3-0002Gh-9t
+	for linux-omap@vger.kernel.org; Thu, 17 May 2012 05:28:15 +0000
+Received: by dady13 with SMTP id y13so1947216dad.19
+        for <linux-omap@vger.kernel.org>; Wed, 16 May 2012 22:28:13 -0700 (PDT)
+In-Reply-To: <CACVXFVNmg-5HHFmdT9a0cfUvGb-OYMe1QOdn3JOMo9rc=aMqTQ@mail.gmail.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: Jon Hunter <jon-hunter@ti.com>
-Cc: "Cousson, Benoit" <b-cousson@ti.com>, Paul Walmsley <paul@pwsan.com>, linux-omap <linux-omap@vger.kernel.org>, Tony Lindgren <tony@atomide.com>
+Cc: Ming Lei <ming.lei@canonical.com>, linux-omap <linux-omap@vger.kernel.org>, Will Deacon <will.deacon@arm.com>, Benoit Cousson <b-cousson@ti.com>, Paul Walmsley <paul@pwsan.com>, Kevin Hilman <khilman@ti.com>
 
-On Thu, May 17, 2012 at 1:44 AM, Jon Hunter <jon-hunter@ti.com> wrote:
-> Hi Benoit,
+On Wed, May 16, 2012 at 4:17 PM, Ming Lei <ming.lei@canonical.com> wrot=
+e:
+> Jon,
 >
-> On 05/16/2012 04:28 AM, Cousson, Benoit wrote:
->> Hi Jon,
+> On Wed, May 16, 2012 at 6:05 AM, Ming Lei <ming.lei@canonical.com> wr=
+ote:
 >>
->> On 5/16/2012 1:35 AM, Jon Hunter wrote:
->>> From: Jon Hunter<jon-hunter@ti.com>
->>>
->>> In order to migrate the dmtimer driver to support device-tree I fou=
-nd
->>> that it
->>> was first necessary to clean-up the timer platform data. The goal o=
-f this
->>> series is to simplify the timer platform data structure from ...
->>>
->>> struct dmtimer_platform_data {
->>> =A0 =A0 int (*set_timer_src)(struct platform_device *pdev, int sour=
-ce);
->>> =A0 =A0 int timer_ip_version;
->>> =A0 =A0 u32 needs_manual_reset:1;
->>> =A0 =A0 bool reserved;
->>> =A0 =A0 bool loses_context;
->>> =A0 =A0 int (*get_context_loss_count)(struct device *dev);
->>> };
->>>
->>> to ...
->>>
->>> struct dmtimer_platform_data {
->>> =A0 =A0 int (*set_timer_src)(struct platform_device *pdev, int sour=
-ce);
 >>
->> I guess that custom set_timer_src should not be there at all anymore=
-=2E
->> Well at least for OMAP2+.
->> We should just use the regular clock API to change the parent. I do =
-not
->> see why we should add that wrapper on top of the clock API and thus
->> store some internal clock name inside the timer device init code.
-Whatever is done within omap2_dm_timer_set_src() in mach-omap2/timer.c
-can be implemented inside omap_dm_timer_set_source() in plat-omap/dmtim=
-er.c
-directly whereby we continue to use the generic clock APIs provided in
-include/linux/clk.h.
+>> On Tuesday, May 15, 2012, Jon Hunter <jon-hunter@ti.com> wrote:
+>>> Hi Ming,
+>>>
+>>> On 05/14/2012 11:53 PM, Ming Lei wrote:
+>>>> On Thu, May 10, 2012 at 5:35 AM, Jon Hunter <jon-hunter@ti.com> wr=
+ote:
+>>>>> From: Jon Hunter <jon-hunter@ti.com>
+>>>>>
+>>>>> This patch is based upon Ming Lei's patch to add runtime PM suppo=
+rt for
+>>>>> OMAP4
+>>>>> [1]. In Ming's original patch the CTI interrupts were being enabl=
+ed
+>>>>> during
+>>>>> runtime when the PMU was used but they were only configured once =
+during
+>>>>> init.
+>>>>> Therefore move the configuration of the CTI interrupts to the run=
+time PM
+>>>>> functions.
+>>>>
+>>>> As Shilimkar pointed out, you need to give the reason why the chan=
+ge
+>>>> is introduced
+>>>> in the patch.
+>>>
+>>> Yes will do. I have been waiting to get some feedback on HW_AUTO ve=
+rsus
+>>> SW_SLEEP from design before posting a V2. I will enhance the change=
+log.
+>>
+>> Looks pandaboard will hang during kernel boot
+>> with the latest next tree, so perf can't be tested now.
+>> Once the problem is fixed, l will run perf test and provide my feedb=
+ack.
+>
+> After bisecting, looks it is the 1st commit which triggers kernel
+> boot hang:
+>
+> commit 5f3aa31f77733605f04a5a92ddc475ffd439585f
+> Merge: 0f131ea ce4deaa
+> Author: Stephen Rothwell <sfr@canb.auug.org.au>
+> Date: =A0 Mon May 14 18:55:39 2012 +1000
+>
+> =A0 =A0Merge remote-tracking branch 'arm-soc/for-next'
 
->
-> I have been looking into this and in order to get rid for the above
-> function pointer we would need to move at a minimum the following
-> functions from omap-mach2/clkt_clksel.c into the platform code.
->
-> _get_clksel_by_parent()
-> _get_div_and_fieldval()
-> _write_clksel_reg()
-> omap2_init_clksel_parent()
-> omap2_clksel_set_parent()
->
-> However, it may be simpler just to move the clkt_clksel.c file
-> completely. I have tested the above functions on omap1 and they are
-> working well. However, before doing this we would need to get Paul's
-> buy-in that this is the right thing to do.
-I am not sure if this is really needed though.
+The above kernel hang is caused by mmc driver probe failure,
+which can be fixed by the patch in below link:
+
+      http://www.mail-archive.com/linux-omap@vger.kernel.org/msg68848.h=
+tml
+
+After applying the patch, I can test the 6 patches and looks they work =
+well
+about perf support on omap4, also perf can work well after S2R.
+
+Tested-by: Ming Lei <ming.lei@canonical.com>
+
+
+Thanks,
 --
-Tarun
->
-> Paul, do you have any thoughts on this? We were trying to see if we
-> could eliminate the dmtimer function pointer for setting the timer cl=
-ock
-> source.
->
-> Also, the only other minor issue I see is that for omap1 devices inst=
-ead
-> of having "sys_ck" as the name the clock name is "armxor_ck". We cann=
-ot
-> rename armxor_ck as it is used by many peripherals but we could use a
-> #define to workaround this or add a dummy clock node.
->
-> Cheers
-> Jon
+Ming Lei
 --
 To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
 n
