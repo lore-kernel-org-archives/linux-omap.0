@@ -1,226 +1,214 @@
-From: Kevin Hilman <khilman@ti.com>
-Subject: Re: [PATCHv5 3/8] ARM: OMAP4460: Workaround for ROM bug because of CA9 r2pX gic control register change
-Date: Thu, 17 May 2012 10:15:57 -0700
-Message-ID: <87txzeybhu.fsf@ti.com>
-References: <1336989796-26594-1-git-send-email-t-kristo@ti.com>
-	<1336989796-26594-4-git-send-email-t-kristo@ti.com>
-	<87zk99ce5q.fsf@ti.com> <4FB3707B.2080200@ti.com>
-	<4FB39C5A.5080404@ti.com> <87mx586pci.fsf@ti.com>
-	<CAMQu2gxKmeEnZr8PHZjuC_PUUzjbn7gDkG5NDKM6h2kuS+aJVQ@mail.gmail.com>
+From: Ohad Ben-Cohen <ohad@wizery.com>
+Subject: Re: [PATCH 1/7] remoteproc: resource table overhaul
+Date: Thu, 17 May 2012 21:45:25 +0300
+Message-ID: <CAK=WgbYeQr5ZwTSBo+ZJUzN7fQ--0QbC8HSjrGT-Geycs4SKcg@mail.gmail.com>
+References: <1330589497-4139-1-git-send-email-ohad@wizery.com>
+ <1330589497-4139-2-git-send-email-ohad@wizery.com> <4F6354E4.8030704@monstr.eu>
+ <CAK=Wgbbbi4GnuHedSh6cR1LhkZr8c9q6i=_TLSL252LpPB8Xsw@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: multipart/mixed; boundary=20cf30050d2e06966604c03fd85b
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aog122.obsmtp.com ([74.125.149.147]:40273 "EHLO
-	na3sys009aog122.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753257Ab2EQRQA convert rfc822-to-8bit
-	(ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Thu, 17 May 2012 13:16:00 -0400
-Received: by dakp5 with SMTP id p5so2591991dak.28
-        for <linux-omap@vger.kernel.org>; Thu, 17 May 2012 10:15:59 -0700 (PDT)
-In-Reply-To: <CAMQu2gxKmeEnZr8PHZjuC_PUUzjbn7gDkG5NDKM6h2kuS+aJVQ@mail.gmail.com>
-	(Santosh Shilimkar's message of "Thu, 17 May 2012 12:16:31 +0530")
+Received: from mail-yw0-f46.google.com ([209.85.213.46]:39377 "EHLO
+	mail-yw0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1760878Ab2EQSpr (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 17 May 2012 14:45:47 -0400
+Received: by yhmm54 with SMTP id m54so2165766yhm.19
+        for <linux-omap@vger.kernel.org>; Thu, 17 May 2012 11:45:46 -0700 (PDT)
+In-Reply-To: <CAK=Wgbbbi4GnuHedSh6cR1LhkZr8c9q6i=_TLSL252LpPB8Xsw@mail.gmail.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "Shilimkar, Santosh" <santosh.shilimkar@ti.com>
-Cc: Tero Kristo <t-kristo@ti.com>, linux-omap@vger.kernel.org, paul@pwsan.com, linux-arm-kernel@lists.infradead.org
+To: monstr@monstr.eu
+Cc: linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Brian Swetland <swetland@google.com>, Iliyan Malchev <malchev@google.com>, Arnd Bergmann <arnd@arndb.de>, Grant Likely <grant.likely@secretlab.ca>, Rusty Russell <rusty@rustcorp.com.au>, Mark Grosen <mgrosen@ti.com>, John Williams <john.williams@petalogix.com>, Loic PALLARDY <loic.pallardy@stericsson.com>, Ludovic BARRE <ludovic.barre@stericsson.com>, Omar Ramirez Luna <omar.luna@linaro.org>, Guzman Lugo Fernando <fernando.lugo@ti.com>, Anna Suman <s-anna@ti.com>, Clark Rob <rob@ti.com>, Stephen Boyd <sboyd@codeaurora.org>, Saravana Kannan <skannan@codeaurora.org>, David Brown <davidb@codeaurora.org>, Kieran Bingham <kieranbingham@gmail.com>, Tony Lindgren <tony@atomide.com>
 
-"Shilimkar, Santosh" <santosh.shilimkar@ti.com> writes:
+--20cf30050d2e06966604c03fd85b
+Content-Type: text/plain; charset=ISO-8859-1
 
-> On Wed, May 16, 2012 at 10:21 PM, Kevin Hilman <khilman@ti.com> wrote=
-:
->> Santosh Shilimkar <santosh.shilimkar@ti.com> writes:
->>
->>> Kevin,
->>>
->>> On Wednesday 16 May 2012 02:46 PM, Santosh Shilimkar wrote:
->>>> On Wednesday 16 May 2012 03:14 AM, Kevin Hilman wrote:
->>>>> Santosh,
->>>>>
->>>>> Tero Kristo <t-kristo@ti.com> writes:
->>>>>
->>>>>> From: Santosh Shilimkar <santosh.shilimkar@ti.com>
->>>>>>
->>>>>> GIC distributor control register has changed between CortexA9 r1=
-pX and
->>>>>> r2pX. The Control Register secure banked version is now composed=
- of 2
->>>>>> bits:
->>>>>> =C2=A0 =C2=A0 =C2=A0bit 0 =3D=3D Secure Enable
->>>>>> =C2=A0 =C2=A0 =C2=A0bit 1 =3D=3D Non-Secure Enable
->>>>>> The Non-Secure banked register has not changed.
->>>>>
->>>>> For those without the r1pX TRM handy, please include what this lo=
-ok like
->>>>> before (presumably 1 bit?) =C2=A0The changelog and in-code commen=
-ts should
->>>>> both be enhanced.
->>>>>
->>>> You are right. There was only one bit previously which was used fo=
-r
->>>> secure/non-secure mode. So ROM over-writes the non-secure bit
->>>> accidentally.
->>>>
->>>>>> Since the ROM Code is based on the r1pX GIC, the CPU1 GIC restor=
-ation
->>>>>> will cause a problem to CPU0 Non-Secure SW.
->>>>>
->>>>> Please describe the problem, so we can better understand the spec=
-ifics
->>>>> of the workaround.
->>>>>
->>> Below is the updated changelog.
->>
->> Much better, thanks. =C2=A0But it still took me several reads to ful=
-ly
->> understand. =C2=A0Maybe it's because the cold I have is stuffing up =
-my head,
->> so it takes me awhile to understand... =C2=A0Anyways, some minor com=
-ments to
->> help clarify...
->>
->> Sorry to be so picky about changelogs, but this is a really nasty bu=
-g,
->> and the workaround has some rather important side effects, so I want=
- the
->> description of the bug and the workaround to be well described.
->>
->>> --------------
->>> ARM: OMAP4460: Workaround for ROM bug because of CA9 r2pX gic contr=
-ol
->>> register change
->>>
->>> With MPUSS programmed to OSWR(Open Switch retention), GIC context i=
-s
->>> lost. On the CPU wakeup paths, ROM code gets executed which will se=
-tup
->>> GIC secure configurations and restore the GIC context if it was sav=
-ed
->>> based on SAR_BACKUP_STATUS.
->>>
->>> The ROM Code GIC distributor restoration is split in two parts:
->>> CPU specific register done by each CPU and common register done by
->>> only one CPU. If the GIC Distributor Control Register =3D 1, the
->>> second CPU will not do the common GIC restoration.
->>
->> s/second CPU/second CPU to wake up/
->>
-> ok
->>> GIC distributor control register has changed between CortexA9 r1pX =
-and
->>> r2pX. The Control Register secure banked version is now composed of=
- 2
->>> bits vs only one bit before r1px:
->>
->> before r1pX?
-> I mean r1px, r0px etc.
->>
->>> =C2=A0 =C2=A0 =C2=A0bit 0 =3D=3D Secure Enable
->>> =C2=A0 =C2=A0 =C2=A0bit 1 =3D=3D Non-Secure Enable
->>
->> And what did this look like for r1pX? =C2=A0 =C2=A0Presumably bit0 w=
-as non-secure
->> enable?
->>
-> Yes. Same bit is used. It's banked bit which has secure and non-secur=
-e view.
->
->>> Hence the value of Control register will be 3 and not 1 as the r1pX
->>> based ROM code expects.
->>
->> Why will it be 3?
->>
->> Will it be 3 on GP devices?
->>
-> Yes. Because you have 2 bits. Since both bits will be set [ Bit 1 wil=
-l
-> be set by ROM code]
-> and bit 0 will be set by Linux.
+Hi Michal,
 
-Why will the secure enable bit be set on GP devices?
+On Sat, Mar 17, 2012 at 8:39 AM, Ohad Ben-Cohen <ohad@wizery.com> wrote:
+> IOW: you can probably just wait a bit until this patch is ready and
+> take it into your tree. It will most likely bring back the behavior you
+> need :)
 
->>> So he CPU1 on it's wakeup ROM code path, will
->>
->> s/it's/its/
->>
-> ok
->>> go to the GIC initialization procedure and will so reset the full G=
-IC
->>> and NS GIC distributor Enable bit will get cleared.
->>
->> This is where it's confusing.
->>
-> Hmm.
->
->> On r2pX, NS enable bit is bit 1. =C2=A0It's not mentioned here, but =
-I'm
->> assuming that it's bit 0 on r1pX, right? (I can't seem to find an r1=
-pX
->> TRM)
->>
-> Yes. As I mentioned earlier, will make that more clear.
->
->> Since ROM code is r1pX-based, I would assume that it would continue =
-to
->> clear bit 0, which is only now the secure enable bit?
->>
->> Or, is it the case that ROM code clears all the bits? =C2=A0That sho=
-uld be described.
->>
-> ROM code reads the register value and compares it with value =3D=3D 1
-> " If the GIC Distributor Control Register =3D 1, the
-> second CPU will not do the common GIC restoration"
-> On r2Px, the value becomes 3 and entire ROM code logic goofs up
-> and take wrong code path.
+Does something like the attached help ?
 
-That part is clear. =20
+Thanks,
+Ohad.
 
-What's not at all clear is what the ROM code does *after* this.  Does i=
-t
-clear both bits?  or just bit 0?  Since it's r1pX based, I would expect
-that it doesn't touch anything other than bit 0.
+--20cf30050d2e06966604c03fd85b
+Content-Type: application/octet-stream;
+	name="0001-remoteproc-allocate-vrings-on-demand-free-when-not-n.patch"
+Content-Disposition: attachment;
+	filename="0001-remoteproc-allocate-vrings-on-demand-free-when-not-n.patch"
+Content-Transfer-Encoding: base64
+X-Attachment-Id: f_h2c64syb0
 
->>> Since the GIC distributor gets disabled in a live system, CPU1 will
->>> hang because the interrupts stop firing.
->>> =C2=A0 =C2=A0 =C2=A01) Before doing the CPU1 wakeup, CPU0 must disa=
-ble
->>> =C2=A0 =C2=A0 =C2=A0 =C2=A0 the GIC distributor and wait for it to =
-be enabled.
->>
->> what does 'disable GIC distributor' mean. =C2=A0secure? non-secure? =
-both?
->>
-> HLOS is a non-secure view so it can disable only non-secure bit.
-
-The changelog is not talking about the HLOS, it's talking about the ROM
-code, which presumably can set/clear both bits.
-
->>> =C2=A0 =C2=A0 =C2=A02) CPU1 must re-enable the GIC distributor on
->>> =C2=A0 =C2=A0 =C2=A0 =C2=A0 it's wakeup path.
->>
->> Describe why this works. =C2=A0e.g. because it cause ROM code to ski=
-p its
->> broken restore path.
->>
-> ROM code logic find the control register value 1 because bit 1 is
-> cleared by non-secure SW during the check.
-
-and because it finds the control regster value to be 1...
-
-Santosh, I do understand what is happening here.  But I play dumb so
-that it will be described in great detail in the changelog so that when
-I forget (and you forget) we can go back to this and get a quick
-understanding of both the bug and the workaround.
-
-Since you are very deeply familiar with this bug, it's understandably
-hard to write this changelog since most things probably seem obvious to
-you.  A suggestion would be to have a few colleagues that are not
-familiar with this bug read the changelog and try and describe it back
-to you.
-
-Kevin
---
-To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+RnJvbSA2MzhhNzVlYmJhOGI3YTEwNzg2MDZhYmYyZTcyYTU4ZjM1NmY3ZDM2IE1vbiBTZXAgMTcg
+MDA6MDA6MDAgMjAwMQpGcm9tOiBPaGFkIEJlbi1Db2hlbiA8b2hhZEB3aXplcnkuY29tPgpEYXRl
+OiBUaHUsIDE3IE1heSAyMDEyIDE0OjIzOjU5ICswMzAwClN1YmplY3Q6IFtQQVRDSF0gcmVtb3Rl
+cHJvYzogYWxsb2NhdGUgdnJpbmdzIG9uIGRlbWFuZCwgZnJlZSB3aGVuIG5vdCBuZWVkZWQKCkR5
+bmFtaWNhbGx5IGFsbG9jYXRlIHRoZSB2cmluZ3MnIERNQSB3aGVuIHRoZSByZW1vdGUgcHJvY2Vz
+c29yCmlzIGFib3V0IHRvIGJlIHBvd2VyZWQgb24gKGkuZS4gd2hlbiAtPmZpbmRfdnFzKCkgaXMg
+aW52b2tlZCksCmFuZCByZWxlYXNlIHRoZW0gYXMgc29vbiBhcyBpdCBpcyBwb3dlcmVkIG9mZiAo
+aS5lLiB3aGVuIC0+ZGVsX3ZxcygpCmlzIGludm9rZWQpLgoKVGhlIG9idmlvdXMgYW5kIGltbWVk
+aWF0ZSBiZW5lZml0IGlzIGJldHRlciBtZW1vcnkgdXRpbGl6YXRpb24sIHNpbmNlCm1lbW9yeSBm
+b3IgdGhlIHZyaW5ncyBpcyBub3cgb25seSBhbGxvY2F0ZWQgd2hlbiB0aGUgcmVsZXZhbnQgcmVt
+b3RlCnByb2Nlc3NvciBpcyB1c2VkLgoKQWRkaXRpb25hbGx5LCB0aGlzIGFwcHJvYWNoIGFsc28g
+bWFrZXMgcmVjb3Zlcnkgb2YgYSAoY3Jhc2hpbmcpCnJlbW90ZSBwcm9jZXNzb3IgZWFzaWVyOiBv
+bmUganVzdCBuZWVkcyB0byByZW1vdmUgdGhlIHJlbGV2YW50CnZkZXZzLCBhbmQgdGhlIGVudGly
+ZSB2cmluZ3MgY2xlYW51cCB0YWtlcyBwbGFjZSBhdXRvbWFnaWNhbGx5LgoKU2lnbmVkLW9mZi1i
+eTogT2hhZCBCZW4tQ29oZW4gPG9oYWRAd2l6ZXJ5LmNvbT4KLS0tCiBkcml2ZXJzL3JlbW90ZXBy
+b2MvcmVtb3RlcHJvY19jb3JlLmMgICAgIHwgIDEwOCArKysrKysrKysrKysrKystLS0tLS0tLS0t
+LS0tLS0KIGRyaXZlcnMvcmVtb3RlcHJvYy9yZW1vdGVwcm9jX2ludGVybmFsLmggfCAgICAyICsK
+IGRyaXZlcnMvcmVtb3RlcHJvYy9yZW1vdGVwcm9jX3ZpcnRpby5jICAgfCAgIDEzICsrKy0KIDMg
+ZmlsZXMgY2hhbmdlZCwgNjYgaW5zZXJ0aW9ucygrKSwgNTcgZGVsZXRpb25zKC0pCgpkaWZmIC0t
+Z2l0IGEvZHJpdmVycy9yZW1vdGVwcm9jL3JlbW90ZXByb2NfY29yZS5jIGIvZHJpdmVycy9yZW1v
+dGVwcm9jL3JlbW90ZXByb2NfY29yZS5jCmluZGV4IGU3NTZhMGQuLjcxZDAxZGMgMTAwNjQ0Ci0t
+LSBhL2RyaXZlcnMvcmVtb3RlcHJvYy9yZW1vdGVwcm9jX2NvcmUuYworKysgYi9kcml2ZXJzL3Jl
+bW90ZXByb2MvcmVtb3RlcHJvY19jb3JlLmMKQEAgLTI3OSwzNCArMjc5LDE3IEBAIHJwcm9jX2xv
+YWRfc2VnbWVudHMoc3RydWN0IHJwcm9jICpycHJvYywgY29uc3QgdTggKmVsZl9kYXRhLCBzaXpl
+X3QgbGVuKQogCXJldHVybiByZXQ7CiB9CiAKLXN0YXRpYyBpbnQKLV9fcnByb2NfaGFuZGxlX3Zy
+aW5nKHN0cnVjdCBycHJvY192ZGV2ICpydmRldiwgc3RydWN0IGZ3X3JzY192ZGV2ICpyc2MsIGlu
+dCBpKQoraW50IHJwcm9jX2FsbG9jX3ZyaW5nKHN0cnVjdCBycHJvY192ZGV2ICpydmRldiwgaW50
+IGkpCiB7CiAJc3RydWN0IHJwcm9jICpycHJvYyA9IHJ2ZGV2LT5ycHJvYzsKIAlzdHJ1Y3QgZGV2
+aWNlICpkZXYgPSBycHJvYy0+ZGV2OwotCXN0cnVjdCBmd19yc2NfdmRldl92cmluZyAqdnJpbmcg
+PSAmcnNjLT52cmluZ1tpXTsKKwlzdHJ1Y3QgcnByb2NfdnJpbmcgKnZyaW5nID0gJnJ2ZGV2LT52
+cmluZ1tpXTsKIAlkbWFfYWRkcl90IGRtYTsKIAl2b2lkICp2YTsKIAlpbnQgcmV0LCBzaXplLCBu
+b3RpZnlpZDsKIAotCWRldl9kYmcoZGV2LCAidmRldiByc2M6IHZyaW5nJWQ6IGRhICV4LCBxc3og
+JWQsIGFsaWduICVkXG4iLAotCQkJCWksIHZyaW5nLT5kYSwgdnJpbmctPm51bSwgdnJpbmctPmFs
+aWduKTsKLQotCS8qIG1ha2Ugc3VyZSByZXNlcnZlZCBieXRlcyBhcmUgemVyb2VzICovCi0JaWYg
+KHZyaW5nLT5yZXNlcnZlZCkgewotCQlkZXZfZXJyKGRldiwgInZyaW5nIHJzYyBoYXMgbm9uIHpl
+cm8gcmVzZXJ2ZWQgYnl0ZXNcbiIpOwotCQlyZXR1cm4gLUVJTlZBTDsKLQl9Ci0KLQkvKiB2ZXJp
+ZnkgcXVldWUgc2l6ZSBhbmQgdnJpbmcgYWxpZ25tZW50IGFyZSBzYW5lICovCi0JaWYgKCF2cmlu
+Zy0+bnVtIHx8ICF2cmluZy0+YWxpZ24pIHsKLQkJZGV2X2VycihkZXYsICJpbnZhbGlkIHFzeiAo
+JWQpIG9yIGFsaWdubWVudCAoJWQpXG4iLAotCQkJCQkJdnJpbmctPm51bSwgdnJpbmctPmFsaWdu
+KTsKLQkJcmV0dXJuIC1FSU5WQUw7Ci0JfQotCiAJLyogYWN0dWFsIHNpemUgb2YgdnJpbmcgKGlu
+IGJ5dGVzKSAqLwotCXNpemUgPSBQQUdFX0FMSUdOKHZyaW5nX3NpemUodnJpbmctPm51bSwgdnJp
+bmctPmFsaWduKSk7CisJc2l6ZSA9IFBBR0VfQUxJR04odnJpbmdfc2l6ZSh2cmluZy0+bGVuLCB2
+cmluZy0+YWxpZ24pKTsKIAogCWlmICghaWRyX3ByZV9nZXQoJnJwcm9jLT5ub3RpZnlpZHMsIEdG
+UF9LRVJORUwpKSB7CiAJCWRldl9lcnIoZGV2LCAiaWRyX3ByZV9nZXQgZmFpbGVkXG4iKTsKQEAg
+LTMxNiw2ICsyOTksNyBAQCBfX3Jwcm9jX2hhbmRsZV92cmluZyhzdHJ1Y3QgcnByb2NfdmRldiAq
+cnZkZXYsIHN0cnVjdCBmd19yc2NfdmRldiAqcnNjLCBpbnQgaSkKIAkvKgogCSAqIEFsbG9jYXRl
+IG5vbi1jYWNoZWFibGUgbWVtb3J5IGZvciB0aGUgdnJpbmcuIEluIHRoZSBmdXR1cmUKIAkgKiB0
+aGlzIGNhbGwgd2lsbCBhbHNvIGNvbmZpZ3VyZSB0aGUgSU9NTVUgZm9yIHVzCisJICogVE9ETzog
+bGV0IHRoZSBycHJvYyBrbm93IHRoZSBkYSBvZiB0aGlzIHZyaW5nCiAJICovCiAJdmEgPSBkbWFf
+YWxsb2NfY29oZXJlbnQoZGV2LCBzaXplLCAmZG1hLCBHRlBfS0VSTkVMKTsKIAlpZiAoIXZhKSB7
+CkBAIC0zMjMsNDQgKzMwNyw2NiBAQCBfX3Jwcm9jX2hhbmRsZV92cmluZyhzdHJ1Y3QgcnByb2Nf
+dmRldiAqcnZkZXYsIHN0cnVjdCBmd19yc2NfdmRldiAqcnNjLCBpbnQgaSkKIAkJcmV0dXJuIC1F
+SU5WQUw7CiAJfQogCi0JLyogYXNzaWduIGFuIHJwcm9jLXdpZGUgdW5pcXVlIGluZGV4IGZvciB0
+aGlzIHZyaW5nICovCi0JLyogVE9ETzogYXNzaWduIGEgbm90aWZ5aWQgZm9yIHJ2ZGV2IHVwZGF0
+ZXMgYXMgd2VsbCAqLwotCXJldCA9IGlkcl9nZXRfbmV3KCZycHJvYy0+bm90aWZ5aWRzLCAmcnZk
+ZXYtPnZyaW5nW2ldLCAmbm90aWZ5aWQpOworCS8qCisJICogQXNzaWduIGFuIHJwcm9jLXdpZGUg
+dW5pcXVlIGluZGV4IGZvciB0aGlzIHZyaW5nCisJICogVE9ETzogYXNzaWduIGEgbm90aWZ5aWQg
+Zm9yIHJ2ZGV2IHVwZGF0ZXMgYXMgd2VsbAorCSAqIFRPRE86IGxldCB0aGUgcnByb2Mga25vdyB0
+aGUgbm90aWZ5aWQgb2YgdGhpcyB2cmluZworCSAqIFRPRE86IHN1cHBvcnQgcHJlZGVmaW5lZCBu
+b3RpZnlpZHMgKHZpYSByZXNvdXJjZSB0YWJsZSkKKwkgKi8KKwlyZXQgPSBpZHJfZ2V0X25ldygm
+cnByb2MtPm5vdGlmeWlkcywgdnJpbmcsICZub3RpZnlpZCk7CiAJaWYgKHJldCkgewogCQlkZXZf
+ZXJyKGRldiwgImlkcl9nZXRfbmV3IGZhaWxlZDogJWRcbiIsIHJldCk7CiAJCWRtYV9mcmVlX2Nv
+aGVyZW50KGRldiwgc2l6ZSwgdmEsIGRtYSk7CiAJCXJldHVybiByZXQ7CiAJfQogCi0JLyogbGV0
+IHRoZSBycHJvYyBrbm93IHRoZSBkYSBhbmQgbm90aWZ5aWQgb2YgdGhpcyB2cmluZyAqLwotCS8q
+IFRPRE86IGV4cG9zZSB0aGlzIHRvIHJlbW90ZSBwcm9jZXNzb3IgKi8KLQl2cmluZy0+ZGEgPSBk
+bWE7Ci0JdnJpbmctPm5vdGlmeWlkID0gbm90aWZ5aWQ7Ci0KIAlkZXZfZGJnKGRldiwgInZyaW5n
+JWQ6IHZhICVwIGRtYSAleCBzaXplICV4IGlkciAlZFxuIiwgaSwgdmEsCiAJCQkJCWRtYSwgc2l6
+ZSwgbm90aWZ5aWQpOwogCi0JcnZkZXYtPnZyaW5nW2ldLmxlbiA9IHZyaW5nLT5udW07Ci0JcnZk
+ZXYtPnZyaW5nW2ldLmFsaWduID0gdnJpbmctPmFsaWduOwotCXJ2ZGV2LT52cmluZ1tpXS52YSA9
+IHZhOwotCXJ2ZGV2LT52cmluZ1tpXS5kbWEgPSBkbWE7Ci0JcnZkZXYtPnZyaW5nW2ldLm5vdGlm
+eWlkID0gbm90aWZ5aWQ7Ci0JcnZkZXYtPnZyaW5nW2ldLnJ2ZGV2ID0gcnZkZXY7CisJdnJpbmct
+PnZhID0gdmE7CisJdnJpbmctPmRtYSA9IGRtYTsKKwl2cmluZy0+bm90aWZ5aWQgPSBub3RpZnlp
+ZDsKIAogCXJldHVybiAwOwogfQogCi1zdGF0aWMgdm9pZCBfX3Jwcm9jX2ZyZWVfdnJpbmdzKHN0
+cnVjdCBycHJvY192ZGV2ICpydmRldiwgaW50IGkpCitzdGF0aWMgaW50CitycHJvY19wYXJzZV92
+cmluZyhzdHJ1Y3QgcnByb2NfdmRldiAqcnZkZXYsIHN0cnVjdCBmd19yc2NfdmRldiAqcnNjLCBp
+bnQgaSkKIHsKIAlzdHJ1Y3QgcnByb2MgKnJwcm9jID0gcnZkZXYtPnJwcm9jOworCXN0cnVjdCBk
+ZXZpY2UgKmRldiA9IHJwcm9jLT5kZXY7CisJc3RydWN0IGZ3X3JzY192ZGV2X3ZyaW5nICp2cmlu
+ZyA9ICZyc2MtPnZyaW5nW2ldOworCisJZGV2X2RiZyhkZXYsICJ2ZGV2IHJzYzogdnJpbmclZDog
+ZGEgJXgsIHFzeiAlZCwgYWxpZ24gJWRcbiIsCisJCQkJaSwgdnJpbmctPmRhLCB2cmluZy0+bnVt
+LCB2cmluZy0+YWxpZ24pOwogCi0JZm9yIChpLS07IGkgPj0gMDsgaS0tKSB7Ci0JCXN0cnVjdCBy
+cHJvY192cmluZyAqcnZyaW5nID0gJnJ2ZGV2LT52cmluZ1tpXTsKLQkJaW50IHNpemUgPSBQQUdF
+X0FMSUdOKHZyaW5nX3NpemUocnZyaW5nLT5sZW4sIHJ2cmluZy0+YWxpZ24pKTsKKwkvKiBtYWtl
+IHN1cmUgcmVzZXJ2ZWQgYnl0ZXMgYXJlIHplcm9lcyAqLworCWlmICh2cmluZy0+cmVzZXJ2ZWQp
+IHsKKwkJZGV2X2VycihkZXYsICJ2cmluZyByc2MgaGFzIG5vbiB6ZXJvIHJlc2VydmVkIGJ5dGVz
+XG4iKTsKKwkJcmV0dXJuIC1FSU5WQUw7CisJfQogCi0JCWRtYV9mcmVlX2NvaGVyZW50KHJwcm9j
+LT5kZXYsIHNpemUsIHJ2cmluZy0+dmEsIHJ2cmluZy0+ZG1hKTsKLQkJaWRyX3JlbW92ZSgmcnBy
+b2MtPm5vdGlmeWlkcywgcnZyaW5nLT5ub3RpZnlpZCk7CisJLyogdmVyaWZ5IHF1ZXVlIHNpemUg
+YW5kIHZyaW5nIGFsaWdubWVudCBhcmUgc2FuZSAqLworCWlmICghdnJpbmctPm51bSB8fCAhdnJp
+bmctPmFsaWduKSB7CisJCWRldl9lcnIoZGV2LCAiaW52YWxpZCBxc3ogKCVkKSBvciBhbGlnbm1l
+bnQgKCVkKVxuIiwKKwkJCQkJCXZyaW5nLT5udW0sIHZyaW5nLT5hbGlnbik7CisJCXJldHVybiAt
+RUlOVkFMOwogCX0KKworCXJ2ZGV2LT52cmluZ1tpXS5sZW4gPSB2cmluZy0+bnVtOworCXJ2ZGV2
+LT52cmluZ1tpXS5hbGlnbiA9IHZyaW5nLT5hbGlnbjsKKwlydmRldi0+dnJpbmdbaV0ucnZkZXYg
+PSBydmRldjsKKworCXJldHVybiAwOworfQorCit2b2lkIHJwcm9jX2ZyZWVfdnJpbmcoc3RydWN0
+IHJwcm9jX3ZyaW5nICpydnJpbmcpCit7CisJaW50IHNpemUgPSBQQUdFX0FMSUdOKHZyaW5nX3Np
+emUocnZyaW5nLT5sZW4sIHJ2cmluZy0+YWxpZ24pKTsKKwlzdHJ1Y3QgcnByb2MgKnJwcm9jID0g
+cnZyaW5nLT5ydmRldi0+cnByb2M7CisKKwlkbWFfZnJlZV9jb2hlcmVudChycHJvYy0+ZGV2LCBz
+aXplLCBydnJpbmctPnZhLCBydnJpbmctPmRtYSk7CisJaWRyX3JlbW92ZSgmcnByb2MtPm5vdGlm
+eWlkcywgcnZyaW5nLT5ub3RpZnlpZCk7CiB9CiAKIC8qKgpAQCAtNDI1LDExICs0MzEsMTEgQEAg
+c3RhdGljIGludCBycHJvY19oYW5kbGVfdmRldihzdHJ1Y3QgcnByb2MgKnJwcm9jLCBzdHJ1Y3Qg
+ZndfcnNjX3ZkZXYgKnJzYywKIAogCXJ2ZGV2LT5ycHJvYyA9IHJwcm9jOwogCi0JLyogYWxsb2Nh
+dGUgdGhlIHZyaW5ncyAqLworCS8qIHBhcnNlIHRoZSB2cmluZ3MgKi8KIAlmb3IgKGkgPSAwOyBp
+IDwgcnNjLT5udW1fb2ZfdnJpbmdzOyBpKyspIHsKLQkJcmV0ID0gX19ycHJvY19oYW5kbGVfdnJp
+bmcocnZkZXYsIHJzYywgaSk7CisJCXJldCA9IHJwcm9jX3BhcnNlX3ZyaW5nKHJ2ZGV2LCByc2Ms
+IGkpOwogCQlpZiAocmV0KQotCQkJZ290byBmcmVlX3ZyaW5nczsKKwkJCWdvdG8gZnJlZV9ydmRl
+djsKIAl9CiAKIAkvKiByZW1lbWJlciB0aGUgZGV2aWNlIGZlYXR1cmVzICovCkBAIC00NDAsMTIg
+KzQ0NiwxMSBAQCBzdGF0aWMgaW50IHJwcm9jX2hhbmRsZV92ZGV2KHN0cnVjdCBycHJvYyAqcnBy
+b2MsIHN0cnVjdCBmd19yc2NfdmRldiAqcnNjLAogCS8qIGl0IGlzIG5vdyBzYWZlIHRvIGFkZCB0
+aGUgdmlydGlvIGRldmljZSAqLwogCXJldCA9IHJwcm9jX2FkZF92aXJ0aW9fZGV2KHJ2ZGV2LCBy
+c2MtPmlkKTsKIAlpZiAocmV0KQotCQlnb3RvIGZyZWVfdnJpbmdzOworCQlnb3RvIGZyZWVfcnZk
+ZXY7CiAKIAlyZXR1cm4gMDsKIAotZnJlZV92cmluZ3M6Ci0JX19ycHJvY19mcmVlX3ZyaW5ncyhy
+dmRldiwgaSk7CitmcmVlX3J2ZGV2OgogCWtmcmVlKHJ2ZGV2KTsKIAlyZXR1cm4gcmV0OwogfQpA
+QCAtMTI2NSwxOCArMTI3MCwxMSBAQCBFWFBPUlRfU1lNQk9MKHJwcm9jX3NodXRkb3duKTsKIHZv
+aWQgcnByb2NfcmVsZWFzZShzdHJ1Y3Qga3JlZiAqa3JlZikKIHsKIAlzdHJ1Y3QgcnByb2MgKnJw
+cm9jID0gY29udGFpbmVyX29mKGtyZWYsIHN0cnVjdCBycHJvYywgcmVmY291bnQpOwotCXN0cnVj
+dCBycHJvY192ZGV2ICpydmRldiwgKnJ2dG1wOwogCiAJZGV2X2luZm8ocnByb2MtPmRldiwgInJl
+bW92aW5nICVzXG4iLCBycHJvYy0+bmFtZSk7CiAKIAlycHJvY19kZWxldGVfZGVidWdfZGlyKHJw
+cm9jKTsKIAotCS8qIGNsZWFuIHVwIHJlbW90ZSB2ZGV2IGVudHJpZXMgKi8KLQlsaXN0X2Zvcl9l
+YWNoX2VudHJ5X3NhZmUocnZkZXYsIHJ2dG1wLCAmcnByb2MtPnJ2ZGV2cywgbm9kZSkgewotCQlf
+X3Jwcm9jX2ZyZWVfdnJpbmdzKHJ2ZGV2LCBSVkRFVl9OVU1fVlJJTkdTKTsKLQkJbGlzdF9kZWwo
+JnJ2ZGV2LT5ub2RlKTsKLQl9Ci0KIAkvKgogCSAqIEF0IHRoaXMgcG9pbnQgbm8gb25lIGhvbGRz
+IGEgcmVmZXJlbmNlIHRvIHJwcm9jIGFueW1vcmUsCiAJICogc28gd2UgY2FuIGRpcmVjdGx5IHVu
+cm9sbCBycHJvY19hbGxvYygpCkBAIC0xNTQ3LDcgKzE1NDUsNyBAQCBFWFBPUlRfU1lNQk9MKHJw
+cm9jX2ZyZWUpOwogICovCiBpbnQgcnByb2NfdW5yZWdpc3RlcihzdHJ1Y3QgcnByb2MgKnJwcm9j
+KQogewotCXN0cnVjdCBycHJvY192ZGV2ICpydmRldjsKKwlzdHJ1Y3QgcnByb2NfdmRldiAqcnZk
+ZXYsICp0bXA7CiAKIAlpZiAoIXJwcm9jKQogCQlyZXR1cm4gLUVJTlZBTDsKQEAgLTE1NTYsNyAr
+MTU1NCw3IEBAIGludCBycHJvY191bnJlZ2lzdGVyKHN0cnVjdCBycHJvYyAqcnByb2MpCiAJd2Fp
+dF9mb3JfY29tcGxldGlvbigmcnByb2MtPmZpcm13YXJlX2xvYWRpbmdfY29tcGxldGUpOwogCiAJ
+LyogY2xlYW4gdXAgcmVtb3RlIHZkZXYgZW50cmllcyAqLwotCWxpc3RfZm9yX2VhY2hfZW50cnko
+cnZkZXYsICZycHJvYy0+cnZkZXZzLCBub2RlKQorCWxpc3RfZm9yX2VhY2hfZW50cnlfc2FmZShy
+dmRldiwgdG1wLCAmcnByb2MtPnJ2ZGV2cywgbm9kZSkKIAkJcnByb2NfcmVtb3ZlX3ZpcnRpb19k
+ZXYocnZkZXYpOwogCiAJLyogdGhlIHJwcm9jIGlzIGRvd25yZWYnZWQgYXMgc29vbiBhcyBpdCdz
+IHJlbW92ZWQgZnJvbSB0aGUga2xpc3QgKi8KZGlmZiAtLWdpdCBhL2RyaXZlcnMvcmVtb3RlcHJv
+Yy9yZW1vdGVwcm9jX2ludGVybmFsLmggYi9kcml2ZXJzL3JlbW90ZXByb2MvcmVtb3RlcHJvY19p
+bnRlcm5hbC5oCmluZGV4IDlmMzM2ZDYuLmY0OTU3Y2YgMTAwNjQ0Ci0tLSBhL2RyaXZlcnMvcmVt
+b3RlcHJvYy9yZW1vdGVwcm9jX2ludGVybmFsLmgKKysrIGIvZHJpdmVycy9yZW1vdGVwcm9jL3Jl
+bW90ZXByb2NfaW50ZXJuYWwuaApAQCAtNDEsNCArNDEsNiBAQCB2b2lkIHJwcm9jX2NyZWF0ZV9k
+ZWJ1Z19kaXIoc3RydWN0IHJwcm9jICpycHJvYyk7CiB2b2lkIHJwcm9jX2luaXRfZGVidWdmcyh2
+b2lkKTsKIHZvaWQgcnByb2NfZXhpdF9kZWJ1Z2ZzKHZvaWQpOwogCit2b2lkIHJwcm9jX2ZyZWVf
+dnJpbmcoc3RydWN0IHJwcm9jX3ZyaW5nICpydnJpbmcpOworaW50IHJwcm9jX2FsbG9jX3ZyaW5n
+KHN0cnVjdCBycHJvY192ZGV2ICpydmRldiwgaW50IGkpOwogI2VuZGlmIC8qIFJFTU9URVBST0Nf
+SU5URVJOQUxfSCAqLwpkaWZmIC0tZ2l0IGEvZHJpdmVycy9yZW1vdGVwcm9jL3JlbW90ZXByb2Nf
+dmlydGlvLmMgYi9kcml2ZXJzL3JlbW90ZXByb2MvcmVtb3RlcHJvY192aXJ0aW8uYwppbmRleCBl
+Y2Y2MTIxLi4yNmE3MTQ0IDEwMDY0NAotLS0gYS9kcml2ZXJzL3JlbW90ZXByb2MvcmVtb3RlcHJv
+Y192aXJ0aW8uYworKysgYi9kcml2ZXJzL3JlbW90ZXByb2MvcmVtb3RlcHJvY192aXJ0aW8uYwpA
+QCAtNzcsMTQgKzc3LDE3IEBAIHN0YXRpYyBzdHJ1Y3QgdmlydHF1ZXVlICpycF9maW5kX3ZxKHN0
+cnVjdCB2aXJ0aW9fZGV2aWNlICp2ZGV2LAogCXN0cnVjdCBycHJvY192cmluZyAqcnZyaW5nOwog
+CXN0cnVjdCB2aXJ0cXVldWUgKnZxOwogCXZvaWQgKmFkZHI7Ci0JaW50IGxlbiwgc2l6ZTsKKwlp
+bnQgbGVuLCBzaXplLCByZXQ7CiAKIAkvKiB3ZSdyZSB0ZW1wb3JhcmlseSBsaW1pdGVkIHRvIHR3
+byB2aXJ0cXVldWVzIHBlciBydmRldiAqLwogCWlmIChpZCA+PSBBUlJBWV9TSVpFKHJ2ZGV2LT52
+cmluZykpCiAJCXJldHVybiBFUlJfUFRSKC1FSU5WQUwpOwogCi0JcnZyaW5nID0gJnJ2ZGV2LT52
+cmluZ1tpZF07CisJcmV0ID0gcnByb2NfYWxsb2NfdnJpbmcocnZkZXYsIGlkKTsKKwlpZiAocmV0
+KQorCQlyZXR1cm4gRVJSX1BUUihyZXQpOwogCisJcnZyaW5nID0gJnJ2ZGV2LT52cmluZ1tpZF07
+CiAJYWRkciA9IHJ2cmluZy0+dmE7CiAJbGVuID0gcnZyaW5nLT5sZW47CiAKQEAgLTEwMyw2ICsx
+MDYsNyBAQCBzdGF0aWMgc3RydWN0IHZpcnRxdWV1ZSAqcnBfZmluZF92cShzdHJ1Y3QgdmlydGlv
+X2RldmljZSAqdmRldiwKIAkJCQkJcnByb2NfdmlydGlvX25vdGlmeSwgY2FsbGJhY2ssIG5hbWUp
+OwogCWlmICghdnEpIHsKIAkJZGV2X2VycihycHJvYy0+ZGV2LCAidnJpbmdfbmV3X3ZpcnRxdWV1
+ZSAlcyBmYWlsZWRcbiIsIG5hbWUpOworCQlycHJvY19mcmVlX3ZyaW5nKHJ2cmluZyk7CiAJCXJl
+dHVybiBFUlJfUFRSKC1FTk9NRU0pOwogCX0KIApAQCAtMTI1LDYgKzEyOSw3IEBAIHN0YXRpYyB2
+b2lkIHJwcm9jX3ZpcnRpb19kZWxfdnFzKHN0cnVjdCB2aXJ0aW9fZGV2aWNlICp2ZGV2KQogCQly
+dnJpbmcgPSB2cS0+cHJpdjsKIAkJcnZyaW5nLT52cSA9IE5VTEw7CiAJCXZyaW5nX2RlbF92aXJ0
+cXVldWUodnEpOworCQlycHJvY19mcmVlX3ZyaW5nKHJ2cmluZyk7CiAJfQogfQogCkBAIC0yMjgs
+OCArMjMzLDEyIEBAIHN0YXRpYyBzdHJ1Y3QgdmlydGlvX2NvbmZpZ19vcHMgcnByb2NfdmlydGlv
+X2NvbmZpZ19vcHMgPSB7CiBzdGF0aWMgdm9pZCBycHJvY192ZGV2X3JlbGVhc2Uoc3RydWN0IGRl
+dmljZSAqZGV2KQogewogCXN0cnVjdCB2aXJ0aW9fZGV2aWNlICp2ZGV2ID0gZGV2X3RvX3ZpcnRp
+byhkZXYpOworCXN0cnVjdCBycHJvY192ZGV2ICpydmRldiA9IHZkZXZfdG9fcnZkZXYodmRldik7
+CiAJc3RydWN0IHJwcm9jICpycHJvYyA9IHZkZXZfdG9fcnByb2ModmRldik7CiAKKwlsaXN0X2Rl
+bCgmcnZkZXYtPm5vZGUpOworCWtmcmVlKHJ2ZGV2KTsKKwogCWtyZWZfcHV0KCZycHJvYy0+cmVm
+Y291bnQsIHJwcm9jX3JlbGVhc2UpOwogfQogCi0tIAoxLjcuNS40Cgo=
+--20cf30050d2e06966604c03fd85b--
