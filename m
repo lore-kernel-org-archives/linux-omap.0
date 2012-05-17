@@ -1,105 +1,127 @@
 From: Kevin Hilman <khilman@ti.com>
-Subject: Re: [PATCHv2 14/19] ARM: OMAP4: wakeupgen: enable clocks for save_secure_all
-Date: Wed, 16 May 2012 17:06:38 -0700
-Message-ID: <871umj4qnl.fsf@ti.com>
+Subject: Re: [PATCHv2 15/19] ARM: OMAP4430: PM: workaround for DDR corruption on second CS
+Date: Wed, 16 May 2012 17:15:09 -0700
+Message-ID: <87mx573boy.fsf@ti.com>
 References: <1336990730-26892-1-git-send-email-t-kristo@ti.com>
-	<1336990730-26892-15-git-send-email-t-kristo@ti.com>
+	<1336990730-26892-16-git-send-email-t-kristo@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aog108.obsmtp.com ([74.125.149.199]:58173 "EHLO
-	na3sys009aog108.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S932144Ab2EQAGl (ORCPT
+Received: from na3sys009aog107.obsmtp.com ([74.125.149.197]:58430 "EHLO
+	na3sys009aog107.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S933115Ab2EQAPL (ORCPT
 	<rfc822;linux-omap@vger.kernel.org>);
-	Wed, 16 May 2012 20:06:41 -0400
-Received: by pbbrr13 with SMTP id rr13so1952526pbb.12
-        for <linux-omap@vger.kernel.org>; Wed, 16 May 2012 17:06:40 -0700 (PDT)
-In-Reply-To: <1336990730-26892-15-git-send-email-t-kristo@ti.com> (Tero
-	Kristo's message of "Mon, 14 May 2012 13:18:45 +0300")
+	Wed, 16 May 2012 20:15:11 -0400
+Received: by pbbrr13 with SMTP id rr13so2163309pbb.40
+        for <linux-omap@vger.kernel.org>; Wed, 16 May 2012 17:15:10 -0700 (PDT)
+In-Reply-To: <1336990730-26892-16-git-send-email-t-kristo@ti.com> (Tero
+	Kristo's message of "Mon, 14 May 2012 13:18:46 +0300")
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Tero Kristo <t-kristo@ti.com>, Benoit Cousson <b-cousson@ti.com>
-Cc: linux-omap@vger.kernel.org, paul@pwsan.com, linux-arm-kernel@lists.infradead.org
-
-+Benoit
+To: Tero Kristo <t-kristo@ti.com>
+Cc: linux-omap@vger.kernel.org, paul@pwsan.com, Santosh Shilimkar <santosh.shilimkar@ti.com>, linux-arm-kernel@lists.infradead.org
 
 Tero Kristo <t-kristo@ti.com> writes:
 
-> save_secure_all needs l3_main_3_ick and l4_secure_clkdm enabled,
-> otherwise the secure ROM code will crash.
+> From: Santosh Shilimkar <santosh.shilimkar@ti.com>
 >
+> Work around for Errata ID: i632 "LPDDR2 Corruption After OFF Mode
+> Transition When CS1 Is Used On EMIF" which impacts OMAP443x silicon
+> The issue occurs when EMIF_SDRAM_CONFIG is restored first before
+> EMIF_SDRAM_CONFIG_2 is not yet restored, the register configuration
+> is not set properly, we apply the required workaround allowing
+> the restore sequence to work properly.
+
+Please summarize the workaround here as well.
+
+> Signed-off-by: Santosh Shilimkar <santosh.shilimkar@ti.com>
+> [t-kristo@ti.com: moved workaround from omap-sar.c to pm44xx.c]
 > Signed-off-by: Tero Kristo <t-kristo@ti.com>
+> ---
+>  .../include/mach/ctrl_module_wkup_44xx.h           |    2 +
+>  arch/arm/mach-omap2/pm44xx.c                       |   37 ++++++++++++++++++++
+>  2 files changed, 39 insertions(+), 0 deletions(-)
+>
+> diff --git a/arch/arm/mach-omap2/include/mach/ctrl_module_wkup_44xx.h b/arch/arm/mach-omap2/include/mach/ctrl_module_wkup_44xx.h
+> index a0af9ba..b763a79 100644
+> --- a/arch/arm/mach-omap2/include/mach/ctrl_module_wkup_44xx.h
+> +++ b/arch/arm/mach-omap2/include/mach/ctrl_module_wkup_44xx.h
+> @@ -28,6 +28,8 @@
+>  #define OMAP4_CTRL_MODULE_WKUP_IP_REVISION		0x0000
+>  #define OMAP4_CTRL_MODULE_WKUP_IP_HWINFO		0x0004
+>  #define OMAP4_CTRL_MODULE_WKUP_IP_SYSCONFIG		0x0010
+> +#define OMAP4_CTRL_SECURE_EMIF1_SDRAM_CONFIG2_REG	0x0114
+> +#define OMAP4_CTRL_SECURE_EMIF2_SDRAM_CONFIG2_REG	0x011c
+>  #define OMAP4_CTRL_MODULE_WKUP_CONF_DEBUG_SEL_TST_0	0x0460
+>  #define OMAP4_CTRL_MODULE_WKUP_CONF_DEBUG_SEL_TST_1	0x0464
+>  #define OMAP4_CTRL_MODULE_WKUP_CONF_DEBUG_SEL_TST_2	0x0468
+> diff --git a/arch/arm/mach-omap2/pm44xx.c b/arch/arm/mach-omap2/pm44xx.c
+> index 215b80e..dfaa254 100644
+> --- a/arch/arm/mach-omap2/pm44xx.c
+> +++ b/arch/arm/mach-omap2/pm44xx.c
+> @@ -17,12 +17,18 @@
+>  #include <linux/err.h>
+>  #include <linux/slab.h>
+>  #include <asm/system_misc.h>
+> +#include <linux/io.h>
+> +
+> +#include <mach/ctrl_module_wkup_44xx.h>
+> +#include <mach/hardware.h>
+>  
+>  #include "common.h"
+>  #include "clockdomain.h"
+>  #include "powerdomain.h"
+>  #include "pm.h"
+>  
+> +#define EMIF_SDRAM_CONFIG2_OFFSET	0xc
+> +
+>  struct power_state {
+>  	struct powerdomain *pwrdm;
+>  	u32 next_state;
+> @@ -215,6 +221,37 @@ static int __init omap4_pm_init(void)
+>  
+>  	pr_err("Power Management for TI OMAP4.\n");
+>  
+> +	/*
+> +	 * Work around for OMAP443x Errata i632: "LPDDR2 Corruption After OFF
+> +	 * Mode Transition When CS1 Is Used On EMIF":
+> +	 * Overwrite EMIF1/EMIF2
+> +	 * SECURE_EMIF1_SDRAM_CONFIG2_REG
+> +	 * SECURE_EMIF2_SDRAM_CONFIG2_REG
+> +	 */
+> +	if (cpu_is_omap443x()) {
 
-I think I mentioned this already (I'm already lost in what I've said for
-thisseries), but I don't think the secure RAM stuff belongs in the
-wakeupgen driver.
+This should probably be done later in this function, after PM_ERRATUM
+flags are setup, and then it should use a PM_ERRATUM flag instead of cpu_is*
 
-Also, this patch suggests that the OCM RAM block needs a proper hwmod
-instead of manually fiddling with the l3_main_3 hwmod and the l4_secure clkdm.
+> +		void __iomem *secure_ctrl_mod;
+> +		void __iomem *emif1;
+> +		void __iomem *emif2;
+> +		u32 val;
+> +
+> +		secure_ctrl_mod = ioremap(OMAP4_CTRL_MODULE_WKUP, SZ_4K);
+> +		emif1 = ioremap(OMAP44XX_EMIF1_BASE, SZ_1M);
+> +		emif2 = ioremap(OMAP44XX_EMIF2_BASE, SZ_1M);
+> +
+> +		BUG_ON(!secure_ctrl_mod || !emif1 || !emif2);
+
+Please avoid BUG_ON() and use proper error recovery.  This is not a
+condition where the entire kernel should panic.
+
+> +		val = __raw_readl(emif1 + EMIF_SDRAM_CONFIG2_OFFSET);
+> +		__raw_writel(val, secure_ctrl_mod +
+> +			     OMAP4_CTRL_SECURE_EMIF1_SDRAM_CONFIG2_REG);
+> +		val = __raw_readl(emif2 + EMIF_SDRAM_CONFIG2_OFFSET);
+> +		__raw_writel(val, secure_ctrl_mod +
+> +			     OMAP4_CTRL_SECURE_EMIF2_SDRAM_CONFIG2_REG);
+> +		wmb();
+> +		iounmap(secure_ctrl_mod);
+> +		iounmap(emif1);
+> +		iounmap(emif2);
+> +	}
+>
+>  	ret = pwrdm_for_each(pwrdms_setup, NULL);
+>  	if (ret) {
+>  		pr_err("Failed to setup powerdomains\n");
 
 Kevin
-
-> ---
->  arch/arm/mach-omap2/omap-wakeupgen.c |   20 ++++++++++++++++++++
->  1 files changed, 20 insertions(+), 0 deletions(-)
->
-> diff --git a/arch/arm/mach-omap2/omap-wakeupgen.c b/arch/arm/mach-omap2/omap-wakeupgen.c
-> index b2165e4..c7c4db4 100644
-> --- a/arch/arm/mach-omap2/omap-wakeupgen.c
-> +++ b/arch/arm/mach-omap2/omap-wakeupgen.c
-> @@ -29,10 +29,12 @@
->  
->  #include <mach/omap-wakeupgen.h>
->  #include <mach/omap-secure.h>
-> +#include <plat/omap_hwmod.h>
->  
->  #include "omap4-sar-layout.h"
->  #include "common.h"
->  #include "pm.h"
-> +#include "clockdomain.h"
->  
->  #define NR_REG_BANKS		4
->  #define MAX_IRQS		128
-> @@ -49,6 +51,8 @@ static DEFINE_SPINLOCK(wakeupgen_lock);
->  static unsigned int irq_target_cpu[NR_IRQS];
->  
->  static struct powerdomain *mpuss_pd;
-> +static struct clockdomain *l4_secure_clkdm;
-> +static struct omap_hwmod *l3_main_3_oh;
->  
->  /*
->   * Static helper functions.
-> @@ -300,10 +304,18 @@ static void save_secure_ram(void)
->  static void save_secure_all(void)
->  {
->  	u32 ret;
-> +
-> +	omap_hwmod_enable(l3_main_3_oh);
-> +	clkdm_wakeup(l4_secure_clkdm);
-> +
->  	ret = omap_secure_dispatcher(OMAP4_HAL_SAVEALL_INDEX,
->  				FLAG_START_CRITICAL,
->  				1, omap_secure_ram_mempool_base(),
->  				0, 0, 0);
-> +
-> +	clkdm_allow_idle(l4_secure_clkdm);
-> +	omap_hwmod_idle(l3_main_3_oh);
-> +
->  	if (ret != API_HAL_RET_VALUE_OK)
->  		pr_err("Secure all context save failed\n");
->  }
-> @@ -441,6 +453,14 @@ int __init omap_wakeupgen_init(void)
->  			sar_writel(GIC_ISR_NON_SECURE, ICDISR_SPI_OFFSET, i);
->  		iounmap(sar_base);
->  		sar_base = NULL;
-> +	} else {
-> +		l3_main_3_oh = omap_hwmod_lookup("l3_main_3");
-> +		if (!l3_main_3_oh)
-> +			pr_err("%s: failed to get l3_main_3_oh\n", __func__);
-> +
-> +		l4_secure_clkdm = clkdm_lookup("l4_secure_clkdm");
-> +		if (!l4_secure_clkdm)
-> +			pr_err("%s: failed to get l4_secure_clkdm\n", __func__);
->  	}
->  
->  	irq_hotplug_init();
