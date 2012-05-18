@@ -1,139 +1,243 @@
 From: "Shilimkar, Santosh" <santosh.shilimkar@ti.com>
-Subject: Re: [PATCHv2 15/19] ARM: OMAP4430: PM: workaround for DDR corruption
- on second CS
-Date: Fri, 18 May 2012 11:25:38 +0530
-Message-ID: <CAMQu2gwUypAN_v7NFOCz=dB=doftjgbFqmm1WJFAHBG5iH=2tg@mail.gmail.com>
-References: <1336990730-26892-1-git-send-email-t-kristo@ti.com>
- <1336990730-26892-16-git-send-email-t-kristo@ti.com> <87mx573boy.fsf@ti.com>
- <CAMQu2gzOeX3W1HouzVHf7uvMHtdTp7=E22fk6Uq81sxcdM5nxg@mail.gmail.com>
- <87vcjuzred.fsf@ti.com>
+Subject: Re: [PATCHv5 3/8] ARM: OMAP4460: Workaround for ROM bug because of
+ CA9 r2pX gic control register change
+Date: Fri, 18 May 2012 11:35:36 +0530
+Message-ID: <CAMQu2gyqhxVP1M7ftxJ5qqmZ8Bp0ZmHd=7EjJZ7G1Y=Md=vT=g@mail.gmail.com>
+References: <1336989796-26594-1-git-send-email-t-kristo@ti.com>
+ <1336989796-26594-4-git-send-email-t-kristo@ti.com> <87zk99ce5q.fsf@ti.com>
+ <4FB3707B.2080200@ti.com> <4FB39C5A.5080404@ti.com> <87mx586pci.fsf@ti.com>
+ <CAMQu2gxKmeEnZr8PHZjuC_PUUzjbn7gDkG5NDKM6h2kuS+aJVQ@mail.gmail.com> <87txzeybhu.fsf@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="iso-8859-1"
-Content-Transfer-Encoding: quoted-printable
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-In-Reply-To: <87vcjuzred.fsf@ti.com>
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: linux-arm-kernel-bounces@lists.infradead.org
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: Kevin Hilman <khilman@ti.com>
-Cc: Tero Kristo <t-kristo@ti.com>, paul@pwsan.com, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from na3sys009aog129.obsmtp.com ([74.125.149.142]:55112 "EHLO
+	na3sys009aog129.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1752969Ab2ERGGB convert rfc822-to-8bit
+	(ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Fri, 18 May 2012 02:06:01 -0400
+Received: by qcsk26 with SMTP id k26so1990338qcs.40
+        for <linux-omap@vger.kernel.org>; Thu, 17 May 2012 23:05:57 -0700 (PDT)
+In-Reply-To: <87txzeybhu.fsf@ti.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Kevin Hilman <khilman@ti.com>
+Cc: Tero Kristo <t-kristo@ti.com>, linux-omap@vger.kernel.org, paul@pwsan.com, linux-arm-kernel@lists.infradead.org
 
-On Thu, May 17, 2012 at 10:17 PM, Kevin Hilman <khilman@ti.com> wrote:
+On Thu, May 17, 2012 at 10:45 PM, Kevin Hilman <khilman@ti.com> wrote:
 > "Shilimkar, Santosh" <santosh.shilimkar@ti.com> writes:
 >
->> On Thu, May 17, 2012 at 5:45 AM, Kevin Hilman <khilman@ti.com> wrote:
->>> Tero Kristo <t-kristo@ti.com> writes:
+>> On Wed, May 16, 2012 at 10:21 PM, Kevin Hilman <khilman@ti.com> wrot=
+e:
+>>> Santosh Shilimkar <santosh.shilimkar@ti.com> writes:
 >>>
->>>> From: Santosh Shilimkar <santosh.shilimkar@ti.com>
+>>>> Kevin,
 >>>>
->>>> Work around for Errata ID: i632 "LPDDR2 Corruption After OFF Mode
->>>> Transition When CS1 Is Used On EMIF" which impacts OMAP443x silicon
->>>> The issue occurs when EMIF_SDRAM_CONFIG is restored first before
->>>> EMIF_SDRAM_CONFIG_2 is not yet restored, the register configuration
->>>> is not set properly, we apply the required workaround allowing
->>>> the restore sequence to work properly.
+>>>> On Wednesday 16 May 2012 02:46 PM, Santosh Shilimkar wrote:
+>>>>> On Wednesday 16 May 2012 03:14 AM, Kevin Hilman wrote:
+>>>>>> Santosh,
+>>>>>>
+>>>>>> Tero Kristo <t-kristo@ti.com> writes:
+>>>>>>
+>>>>>>> From: Santosh Shilimkar <santosh.shilimkar@ti.com>
+>>>>>>>
+>>>>>>> GIC distributor control register has changed between CortexA9 r=
+1pX and
+>>>>>>> r2pX. The Control Register secure banked version is now compose=
+d of 2
+>>>>>>> bits:
+>>>>>>> =A0 =A0 =A0bit 0 =3D=3D Secure Enable
+>>>>>>> =A0 =A0 =A0bit 1 =3D=3D Non-Secure Enable
+>>>>>>> The Non-Secure banked register has not changed.
+>>>>>>
+>>>>>> For those without the r1pX TRM handy, please include what this l=
+ook like
+>>>>>> before (presumably 1 bit?) =A0The changelog and in-code comments=
+ should
+>>>>>> both be enhanced.
+>>>>>>
+>>>>> You are right. There was only one bit previously which was used f=
+or
+>>>>> secure/non-secure mode. So ROM over-writes the non-secure bit
+>>>>> accidentally.
+>>>>>
+>>>>>>> Since the ROM Code is based on the r1pX GIC, the CPU1 GIC resto=
+ration
+>>>>>>> will cause a problem to CPU0 Non-Secure SW.
+>>>>>>
+>>>>>> Please describe the problem, so we can better understand the spe=
+cifics
+>>>>>> of the workaround.
+>>>>>>
+>>>> Below is the updated changelog.
 >>>
->>> Please summarize the workaround here as well.
+>>> Much better, thanks. =A0But it still took me several reads to fully
+>>> understand. =A0Maybe it's because the cold I have is stuffing up my=
+ head,
+>>> so it takes me awhile to understand... =A0Anyways, some minor comme=
+nts to
+>>> help clarify...
 >>>
->> ok
->>>> Signed-off-by: Santosh Shilimkar <santosh.shilimkar@ti.com>
->>>> [t-kristo@ti.com: moved workaround from omap-sar.c to pm44xx.c]
->>>> Signed-off-by: Tero Kristo <t-kristo@ti.com>
->>>> ---
->>>> =A0.../include/mach/ctrl_module_wkup_44xx.h =A0 =A0 =A0 =A0 =A0 | =A0 =
-=A02 +
->>>> =A0arch/arm/mach-omap2/pm44xx.c =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =
-=A0 =A0 | =A0 37 ++++++++++++++++++++
->>>> =A02 files changed, 39 insertions(+), 0 deletions(-)
->>>>
->>>> diff --git a/arch/arm/mach-omap2/include/mach/ctrl_module_wkup_44xx.h =
-b/arch/arm/mach-omap2/include/mach/ctrl_module_wkup_44xx.h
->>>> index a0af9ba..b763a79 100644
->>>> --- a/arch/arm/mach-omap2/include/mach/ctrl_module_wkup_44xx.h
->>>> +++ b/arch/arm/mach-omap2/include/mach/ctrl_module_wkup_44xx.h
->>>> @@ -28,6 +28,8 @@
->>>> =A0#define OMAP4_CTRL_MODULE_WKUP_IP_REVISION =A0 =A0 =A0 =A0 =A0 0x00=
-00
->>>> =A0#define OMAP4_CTRL_MODULE_WKUP_IP_HWINFO =A0 =A0 =A0 =A0 =A0 =A0 0x=
-0004
->>>> =A0#define OMAP4_CTRL_MODULE_WKUP_IP_SYSCONFIG =A0 =A0 =A0 =A0 =A00x00=
-10
->>>> +#define OMAP4_CTRL_SECURE_EMIF1_SDRAM_CONFIG2_REG =A0 =A00x0114
->>>> +#define OMAP4_CTRL_SECURE_EMIF2_SDRAM_CONFIG2_REG =A0 =A00x011c
->>>> =A0#define OMAP4_CTRL_MODULE_WKUP_CONF_DEBUG_SEL_TST_0 =A00x0460
->>>> =A0#define OMAP4_CTRL_MODULE_WKUP_CONF_DEBUG_SEL_TST_1 =A00x0464
->>>> =A0#define OMAP4_CTRL_MODULE_WKUP_CONF_DEBUG_SEL_TST_2 =A00x0468
->>>> diff --git a/arch/arm/mach-omap2/pm44xx.c b/arch/arm/mach-omap2/pm44xx=
-.c
->>>> index 215b80e..dfaa254 100644
->>>> --- a/arch/arm/mach-omap2/pm44xx.c
->>>> +++ b/arch/arm/mach-omap2/pm44xx.c
->>>> @@ -17,12 +17,18 @@
->>>> =A0#include <linux/err.h>
->>>> =A0#include <linux/slab.h>
->>>> =A0#include <asm/system_misc.h>
->>>> +#include <linux/io.h>
->>>> +
->>>> +#include <mach/ctrl_module_wkup_44xx.h>
->>>> +#include <mach/hardware.h>
->>>>
->>>> =A0#include "common.h"
->>>> =A0#include "clockdomain.h"
->>>> =A0#include "powerdomain.h"
->>>> =A0#include "pm.h"
->>>>
->>>> +#define EMIF_SDRAM_CONFIG2_OFFSET =A0 =A00xc
->>>> +
->>>> =A0struct power_state {
->>>> =A0 =A0 =A0 struct powerdomain *pwrdm;
->>>> =A0 =A0 =A0 u32 next_state;
->>>> @@ -215,6 +221,37 @@ static int __init omap4_pm_init(void)
->>>>
->>>> =A0 =A0 =A0 pr_err("Power Management for TI OMAP4.\n");
->>>>
->>>> + =A0 =A0 /*
->>>> + =A0 =A0 =A0* Work around for OMAP443x Errata i632: "LPDDR2 Corruptio=
-n After OFF
->>>> + =A0 =A0 =A0* Mode Transition When CS1 Is Used On EMIF":
->>>> + =A0 =A0 =A0* Overwrite EMIF1/EMIF2
->>>> + =A0 =A0 =A0* SECURE_EMIF1_SDRAM_CONFIG2_REG
->>>> + =A0 =A0 =A0* SECURE_EMIF2_SDRAM_CONFIG2_REG
->>>> + =A0 =A0 =A0*/
->>>> + =A0 =A0 if (cpu_is_omap443x()) {
+>>> Sorry to be so picky about changelogs, but this is a really nasty b=
+ug,
+>>> and the workaround has some rather important side effects, so I wan=
+t the
+>>> description of the bug and the workaround to be well described.
 >>>
->>> This should probably be done later in this function, after PM_ERRATUM
->>> flags are setup, and then it should use a PM_ERRATUM flag instead of cp=
-u_is*
+>>>> --------------
+>>>> ARM: OMAP4460: Workaround for ROM bug because of CA9 r2pX gic cont=
+rol
+>>>> register change
+>>>>
+>>>> With MPUSS programmed to OSWR(Open Switch retention), GIC context =
+is
+>>>> lost. On the CPU wakeup paths, ROM code gets executed which will s=
+etup
+>>>> GIC secure configurations and restore the GIC context if it was sa=
+ved
+>>>> based on SAR_BACKUP_STATUS.
+>>>>
+>>>> The ROM Code GIC distributor restoration is split in two parts:
+>>>> CPU specific register done by each CPU and common register done by
+>>>> only one CPU. If the GIC Distributor Control Register =3D 1, the
+>>>> second CPU will not do the common GIC restoration.
+>>>
+>>> s/second CPU/second CPU to wake up/
 >>>
 >> ok
+>>>> GIC distributor control register has changed between CortexA9 r1pX=
+ and
+>>>> r2pX. The Control Register secure banked version is now composed o=
+f 2
+>>>> bits vs only one bit before r1px:
+>>>
+>>> before r1pX?
+>> I mean r1px, r0px etc.
+>>>
+>>>> =A0 =A0 =A0bit 0 =3D=3D Secure Enable
+>>>> =A0 =A0 =A0bit 1 =3D=3D Non-Secure Enable
+>>>
+>>> And what did this look like for r1pX? =A0 =A0Presumably bit0 was no=
+n-secure
+>>> enable?
+>>>
+>> Yes. Same bit is used. It's banked bit which has secure and non-secu=
+re view.
 >>
->>>> + =A0 =A0 =A0 =A0 =A0 =A0 void __iomem *secure_ctrl_mod;
->>>> + =A0 =A0 =A0 =A0 =A0 =A0 void __iomem *emif1;
->>>> + =A0 =A0 =A0 =A0 =A0 =A0 void __iomem *emif2;
->>>> + =A0 =A0 =A0 =A0 =A0 =A0 u32 val;
->>>> +
->>>> + =A0 =A0 =A0 =A0 =A0 =A0 secure_ctrl_mod =3D ioremap(OMAP4_CTRL_MODUL=
-E_WKUP, SZ_4K);
->>>> + =A0 =A0 =A0 =A0 =A0 =A0 emif1 =3D ioremap(OMAP44XX_EMIF1_BASE, SZ_1M=
-);
->>>> + =A0 =A0 =A0 =A0 =A0 =A0 emif2 =3D ioremap(OMAP44XX_EMIF2_BASE, SZ_1M=
-);
->>>> +
->>>> + =A0 =A0 =A0 =A0 =A0 =A0 BUG_ON(!secure_ctrl_mod || !emif1 || !emif2);
+>>>> Hence the value of Control register will be 3 and not 1 as the r1p=
+X
+>>>> based ROM code expects.
 >>>
->>> Please avoid BUG_ON() and use proper error recovery. =A0This is not a
->>> condition where the entire kernel should panic.
+>>> Why will it be 3?
 >>>
->> Agree. WARN_ON() should suffice.
+>>> Will it be 3 on GP devices?
+>>>
+>> Yes. Because you have 2 bits. Since both bits will be set [ Bit 1 wi=
+ll
+>> be set by ROM code]
+>> and bit 0 will be set by Linux.
 >
-> A WARN_ON() is ok (but noisy). =A0Better is a pr_warn() with some proper
-> error recovery.
+> Why will the secure enable bit be set on GP devices?
 >
-OK
+>>>> So he CPU1 on it's wakeup ROM code path, will
+>>>
+>>> s/it's/its/
+>>>
+>> ok
+>>>> go to the GIC initialization procedure and will so reset the full =
+GIC
+>>>> and NS GIC distributor Enable bit will get cleared.
+>>>
+>>> This is where it's confusing.
+>>>
+>> Hmm.
+>>
+>>> On r2pX, NS enable bit is bit 1. =A0It's not mentioned here, but I'=
+m
+>>> assuming that it's bit 0 on r1pX, right? (I can't seem to find an r=
+1pX
+>>> TRM)
+>>>
+>> Yes. As I mentioned earlier, will make that more clear.
+>>
+>>> Since ROM code is r1pX-based, I would assume that it would continue=
+ to
+>>> clear bit 0, which is only now the secure enable bit?
+>>>
+>>> Or, is it the case that ROM code clears all the bits? =A0That shoul=
+d be described.
+>>>
+>> ROM code reads the register value and compares it with value =3D=3D =
+1
+>> " If the GIC Distributor Control Register =3D 1, the
+>> second CPU will not do the common GIC restoration"
+>> On r2Px, the value becomes 3 and entire ROM code logic goofs up
+>> and take wrong code path.
+>
+> That part is clear.
+>
+> What's not at all clear is what the ROM code does *after* this. =A0Do=
+es it
+> clear both bits? =A0or just bit 0? =A0Since it's r1pX based, I would =
+expect
+> that it doesn't touch anything other than bit 0.
+>
+Actually since the condition of control register =3D=3D 1 is not satisf=
+ied,
+It re-inits entire GIC thinking it's not configured at all. So everythi=
+ng
+will be cleared and including non-secure GIC dist. enable bit.
+
+>>>> Since the GIC distributor gets disabled in a live system, CPU1 wil=
+l
+>>>> hang because the interrupts stop firing.
+>>>> =A0 =A0 =A01) Before doing the CPU1 wakeup, CPU0 must disable
+>>>> =A0 =A0 =A0 =A0 the GIC distributor and wait for it to be enabled.
+>>>
+>>> what does 'disable GIC distributor' mean. =A0secure? non-secure? bo=
+th?
+>>>
+>> HLOS is a non-secure view so it can disable only non-secure bit.
+>
+> The changelog is not talking about the HLOS, it's talking about the R=
+OM
+> code, which presumably can set/clear both bits.
+>
+>>>> =A0 =A0 =A02) CPU1 must re-enable the GIC distributor on
+>>>> =A0 =A0 =A0 =A0 it's wakeup path.
+>>>
+>>> Describe why this works. =A0e.g. because it cause ROM code to skip =
+its
+>>> broken restore path.
+>>>
+>> ROM code logic find the control register value 1 because bit 1 is
+>> cleared by non-secure SW during the check.
+>
+> and because it finds the control regster value to be 1...
+>
+> Santosh, I do understand what is happening here. =A0But I play dumb s=
+o
+> that it will be described in great detail in the changelog so that wh=
+en
+> I forget (and you forget) we can go back to this and get a quick
+> understanding of both the bug and the workaround.
+>
+> Since you are very deeply familiar with this bug, it's understandably
+> hard to write this changelog since most things probably seem obvious =
+to
+> you. =A0A suggestion would be to have a few colleagues that are not
+> familiar with this bug read the changelog and try and describe it bac=
+k
+> to you.
+>
+I agree with you. This is side effect of knowing some BUGs too much.
+I will work with Tero so that change log captures more details.
+
+Regards
+Santosh
+without any assumptions.
+--
+To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
