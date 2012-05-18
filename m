@@ -1,76 +1,122 @@
-From: Ming Lei <ming.lei@canonical.com>
-Subject: Re: [PATCH] ARM: OMAP2+: fix gpmc request_irq
-Date: Fri, 18 May 2012 19:47:59 +0800
-Message-ID: <CACVXFVN_0mkVEJkC8iQLF87UVNRkxSUB3+6DeBBHB5dkt5ddrA@mail.gmail.com>
-References: <1337316183-1203-1-git-send-email-ming.lei@canonical.com>
-	<CAMQu2gxQVFRk7FvmOzOkW8LYFYg5f4B_rJ0bsU4yJwN4i6X8_Q@mail.gmail.com>
-	<C8443D0743D26F4388EA172BF4E2A7A93E98DCBD@DBDE01.ent.ti.com>
-	<CAMQu2gzhG4fm-B8mhCkrUjMEkkKR4yDZokvnkChLux8voLUnbw@mail.gmail.com>
-	<CACVXFVMm5iasFAaBcFhfZskHFwMXEoO2_riP1renR8a0tP_PNg@mail.gmail.com>
-	<CAMQu2gz9SGDwE3p1oREb8h+1RUpd1h6yOEJCRJ52PCSY1w0=yQ@mail.gmail.com>
-	<CACVXFVOA=EDJR6HqBRRegr13nTnNdjGSvQUwek2jbu41C5euWA@mail.gmail.com>
-	<CAMQu2gwzZ7dGW9xMNvTXqB8k3cfJuVF+a2cCVXLn4q92+W3aGQ@mail.gmail.com>
+From: Tomi Valkeinen <tomi.valkeinen@ti.com>
+Subject: Re: [PATCH] OMAPDSS: DSI: Support command mode interleaving during
+ video mode blanking periods
+Date: Fri, 18 May 2012 16:39:56 +0300
+Message-ID: <1337348396.2607.19.camel@deskari>
+References: <1337061738-32488-1-git-send-email-archit@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
+Content-Type: multipart/signed; micalg="pgp-sha1"; protocol="application/pgp-signature";
+	boundary="=-k07882ysNX4MfjII6a2q"
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from youngberry.canonical.com ([91.189.89.112]:40406 "EHLO
-	youngberry.canonical.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1761726Ab2ERLsC (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 18 May 2012 07:48:02 -0400
-Received: from mail-pz0-f46.google.com ([209.85.210.46])
-	by youngberry.canonical.com with esmtpsa (TLS1.0:RSA_ARCFOUR_MD5:16)
-	(Exim 4.71)
-	(envelope-from <ming.lei@canonical.com>)
-	id 1SVLf7-0003ia-Iu
-	for linux-omap@vger.kernel.org; Fri, 18 May 2012 11:48:01 +0000
-Received: by dady13 with SMTP id y13so3737437dad.19
-        for <linux-omap@vger.kernel.org>; Fri, 18 May 2012 04:47:59 -0700 (PDT)
-In-Reply-To: <CAMQu2gwzZ7dGW9xMNvTXqB8k3cfJuVF+a2cCVXLn4q92+W3aGQ@mail.gmail.com>
+Received: from na3sys009aog120.obsmtp.com ([74.125.149.140]:42688 "EHLO
+	na3sys009aog120.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S933714Ab2ERNj7 (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>);
+	Fri, 18 May 2012 09:39:59 -0400
+Received: by lahj13 with SMTP id j13so1909378lah.25
+        for <linux-omap@vger.kernel.org>; Fri, 18 May 2012 06:39:56 -0700 (PDT)
+In-Reply-To: <1337061738-32488-1-git-send-email-archit@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "Shilimkar, Santosh" <santosh.shilimkar@ti.com>
-Cc: "Mohammed, Afzal" <afzal@ti.com>, Tony Lindgren <tony@atomide.com>, Russell King <linux@arm.linux.org.uk>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, "Hilman, Kevin" <khilman@ti.com>
+To: Archit Taneja <archit@ti.com>
+Cc: linux-fbdev@vger.kernel.org, linux-omap@vger.kernel.org
+
+
+--=-k07882ysNX4MfjII6a2q
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: quoted-printable
 
 Hi,
 
-On Fri, May 18, 2012 at 6:13 PM, Shilimkar, Santosh
-<santosh.shilimkar@ti.com> wrote:
-> Generally IRQF_SHARED means, the interrupt line is only one but
-> multiple devices can generate the interrupts. If you connect
-> different devices on GMPC using chip selects like Ethernet controller,
-> Nand, NOR contoller, all of they can generate events which can be
-> reported by the GPMC. That's the reason I shared the line
-> is shared.
+On Tue, 2012-05-15 at 11:32 +0530, Archit Taneja wrote:
+> DSI supports interleaving of command mode packets during the HSA, HFP, HB=
+P and
+> BLLP blanking intervals in a video mode stream. This is useful as a user =
+may
+> want to read or change the configuration of a panel without stopping the =
+video
+> stream.
+>=20
+> On OMAP DSI, we can queue HS or LP command mode packets in the TX FIFO, a=
+nd
+> the DSI HW takes care of interleaving this data during the one of the bla=
+nking
+> intervals. The DSI HW needs to be programmed with the maximum amount of d=
+ata
+> that can be interleaved in a particular blanking period. A blanking perio=
+d
+> cannot be used to send command mode data for it's complete duration, ther=
+e is
+> some amount of time required for the DSI data and clock lanes to transiti=
+on
+> to the desired LP or HS state.
+>=20
+> Based on the state of the lanes at the beginning and end of the blanking =
+period,
+> we have different scenarios, with each scenario having a different value =
+of time
+> required to transition to HS or LP. Refer to the section 'Interleaving Mo=
+de' in
+> OMAP TRM for more info on the scenarios and the equations to calculate th=
+e time
+> required for HS or LP transitions.
+>=20
+> We use the scenarios which takes the maximum time for HS or LP transition=
+, this
+> gives us the minimum amount of time that can be used to interleave comman=
+d mode
+> data. The amount of data that can be sent during this minimum time is cal=
+culated
+> for command mode packets both in LP and HS. These are written to the regi=
+sters
+> DSI_VM_TIMING4 to DSI_VM_TIMING6.
+>=20
+> The calculations don't take into account the time required of transmittin=
+g BTA
+> when doing a DSI read, or verifying if a DSI write went through correctly=
+. Until
+> these latencies aren't considered, the behaviour of DSI is unpredictable =
+when
+> a BTA is interleaved during a blanking period. Enhancement of these calcu=
+lations
+> is a TODO item.
 
-IMO, it depends on if the event handlers of other chips(ethernet, nand, nor..)
-share the same irq number(GPMC_IRQ). If so, it should be IRQF_SHARED.
-If they are handled in its own irq number(it may convert to irq dispatching),
-that shouldn't be IRQF_SHARED.
+The code in dsi_config_cmd_mode_interleaving() looks a bit long and
+confusing, but I don't think it's trivial to simplify it. There's just
+so many variables to consider.
 
-On Fri, May 18, 2012 at 6:51 PM, Mohammed, Afzal <afzal@ti.com> wrote:
-> Hi Ming,
->
-> Requesting irq is called by driver of IP, while whether it is shared or
-> not depends on SoC where IP lives, so ideally it seems platform should
-> inform the driver whether it is shared & driver should do what platform
-> tells. Or else to be safe, it should be made shared always ?
+In the future I think we should store the DSI configurations into
+memory, so that we don't need to parse the hardware registers to find
+out things like DSI timings.
 
-Shared or not(IRQF_SHARED) may be determined by hardware and
-software handling.
+I'll apply this, as it's very nice to have at least minimal interleaving
+support.
 
-If the same interrupt line is shared by several peripherals and all interrupt
-handlers are requested to same interrupt number for handling IRQs from
-these peripherals, it should be IRQF_SHARED.
+ Tomi
 
->
-> This may not make much sense now w.r.t gpmc, but would be applicable
-> once gpmc becomes a driver (undergoing conversion), but may not be that
-> important as there are no SoCs presently sharing gpmc interrupt (afaik)
 
-Looks the fix isn't needed if so.
+--=-k07882ysNX4MfjII6a2q
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: This is a digitally signed message part
+Content-Transfer-Encoding: 7bit
 
-Anyway, thanks your guys for exposing much info about GPMC irq handling.
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.4.11 (GNU/Linux)
 
-Thanks,
---
-Ming Lei
+iQIcBAABAgAGBQJPtlEsAAoJEPo9qoy8lh7164AQALIyaDO2fbUE3bBhSmKc6YiO
+UBXglrpE7FZRFr0TV4Ni4Sl1u5Eo3CjeKtnh662hp0nyJIZNnVYBsECk/JGjPzsH
+AuWR+LIIUROsc91TEbZgJTXyH4qJ9KO4zw8o5os+kLZd0ocShsMPFUAMKlXGCEpf
+pOTeWwIwRoXPpZEZjZH1CpMR1gC3KLx6J0JyJ6W0wk5j8+7MkaxCOljA/lX9/syM
+BCuNDnQ2+vi7SPUhXkJ1si5dYoBNgPWlfD8Q8yNsENMFIiHQh7YwIKgNtYWHrK2E
+/GSrP6WvnCEaPFQzR1e5FpOmqcjEIJTxE+tBpYXUHNC44G/P1ue5lXoREeee5Xe9
+7dbcMe3rZHFZyE/Kd10H88Bpb5pueU/Oem/J/XyaTaH849jWZuXoiHgLY7GSJ2Fx
+BZUDhEfjmYXAtbJrBfgUOsWXZ/9PLqVaYymOGXThInt4K/5yjORRmt+6GLeM0Whm
+U/IxGGxCcjzKm/SmxSDri0fNyxpUhMB9jg3dL8fjBnSWSwyVpGtUatSGPBfQp5AV
+7xMI2UGwLU9X6iRXvB9GFtvlIG9wE9MKUHeDQ04zc7g6JVbIp3BT+m2Q4XdfMCrg
+OFSRWxDWksIo3uu/JgmkSEgfPcNd7Hs7yLxVNtbSvl/NHBuBEefdJkfKj8ORk9c/
+Y/skrgEKKZlOMllduZLv
+=/9mF
+-----END PGP SIGNATURE-----
+
+--=-k07882ysNX4MfjII6a2q--
+
