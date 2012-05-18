@@ -1,43 +1,40 @@
-From: "Mohammed, Afzal" <afzal@ti.com>
-Subject: RE: tps65910
-Date: Fri, 18 May 2012 09:12:06 +0000
-Message-ID: <C8443D0743D26F4388EA172BF4E2A7A93E98DDAD@DBDE01.ent.ti.com>
-References: <CAP3+TErDaA9Sdf2yf9asu1kNqRowTAga6NksVW9j4c+fzi9v=Q@mail.gmail.com>
+From: Samuel Ortiz <sameo@linux.intel.com>
+Subject: Re: [PATCHv2 1/4] MFD: palmas PMIC device support
+Date: Fri, 18 May 2012 11:55:12 +0200
+Message-ID: <20120518095512.GF12015@sortiz-mobl>
+References: <1337064539-3014-1-git-send-email-gg@slimlogic.co.uk>
+ <1337064539-3014-2-git-send-email-gg@slimlogic.co.uk>
+ <20120515181448.GD19592@opensource.wolfsonmicro.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from comal.ext.ti.com ([198.47.26.152]:57515 "EHLO comal.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S967112Ab2ERJML convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 18 May 2012 05:12:11 -0400
-In-Reply-To: <CAP3+TErDaA9Sdf2yf9asu1kNqRowTAga6NksVW9j4c+fzi9v=Q@mail.gmail.com>
-Content-Language: en-US
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <20120515181448.GD19592@opensource.wolfsonmicro.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Mark Brown <broonie@opensource.wolfsonmicro.com>
+Cc: Graeme Gregory <gg@slimlogic.co.uk>, linux-kernel@vger.kernel.org, lrg@ti.com, b-cousson@ti.com, linux-omap@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Maxim Podbereznyy <lisarden@gmail.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
 
-Hi Maxim,
+Hi Mark,
 
-On Fri, May 18, 2012 at 13:23:53, Maxim Podbereznyy wrote:
-> Hey guys!
+On Tue, May 15, 2012 at 07:14:51PM +0100, Mark Brown wrote:
+> On Tue, May 15, 2012 at 03:48:56PM +0900, Graeme Gregory wrote:
+> > Palmas is a PMIC from Texas Instruments and this is the MFD part of the
+> > driver for this chip. The PMIC has SMPS and LDO regulators, a general
+> > purpose ADC, GPIO, USB OTG mode detection, watchdog and RTC features.
 > 
-> Who knows how to initialize and use tps65910 driver in linux with
-> am3517? I designed a board using the Craneboard schematic as a
-> reference. Mistral provides the kernel 2.6.32 and it works fine. Now
-> I'm porting the BSP to kernel 3.0.17 and don't know how to implement
-> voltage regulator features with the tps65910 driver (it appeared in
-> kernel 3.0 ) under kernel 3.0 environment.
+> Reviwed-by: Mark Brown <broonie@opensource.wolfsonmicro.com>
 > 
-> I'm watching board-omap3beagle.c as a reference and tps65910.c driver
-> and can't find any correlation. Any suggestions?
-> 
-> Any help is appreciated!
+> however this depends on some new regmap-irq changes that Graeme posted a
+> couple of days ago and are only on regmap at the minute - Samuel, if
+> you're OK with this I guess the easiest thing is if I apply there?
+I'm fine with it. For the MFD parts:
 
-AM335X EVM (support not yet in mainline) works with tps65910, in case AM335X
-release helps you, 
+Acked-by: Samuel Ortiz <sameo@linux.intel.com>
 
-git://arago-project.org/git/projects/linux-am33x.git v3.2_AM335xPSP_04.06.00.07
+Cheers,
+Samuel.
 
-Regards
-Afzal
+-- 
+Intel Open Source Technology Centre
+http://oss.intel.com/
