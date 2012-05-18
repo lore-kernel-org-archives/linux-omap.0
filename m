@@ -1,46 +1,46 @@
-From: "Poddar, Sourav" <sourav.poddar@ti.com>
-Subject: Re: [RESEND/PATCHv2] Input: omap-keypad: dynamically handle register offsets
-Date: Fri, 18 May 2012 10:04:28 +0530
-Message-ID: <CAKdam55YzfuGk+AHb=SgBqtLYJeLh_UpHAaxdVBp_Nv55iBCDw@mail.gmail.com>
-References: <1335419677-24934-1-git-send-email-sourav.poddar@ti.com>
-	<20120509051809.GA10514@core.coreip.homeip.net>
-	<CAKdam56kv2qia-2DMeTRMYwWJbskOeiJkW46wJqfMU9-pVkXwQ@mail.gmail.com>
-	<20120509074539.GI10514@core.coreip.homeip.net>
-	<CAKdam567nCNbMX8hW=bKS5bSQs_z9wP-GaM3sWsM2fjhmVQZMg@mail.gmail.com>
-	<CAKdam57xYtKw7iNJFd+5r-VS-6Mn8OG26xEFUR9SiMvk8gPW4A@mail.gmail.com>
-	<CAKdam55EAHZvM6-r138UgVnqw5t_cE1=+t_Hwm=WmMk8nMwKuA@mail.gmail.com>
-	<20120517152556.GA25976@core.coreip.homeip.net>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
+From: Ming Lei <ming.lei@canonical.com>
+Subject: [PATCH] ARM: OMAP2+: fix gpmc request_irq
+Date: Fri, 18 May 2012 12:43:03 +0800
+Message-ID: <1337316183-1203-1-git-send-email-ming.lei@canonical.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aog111.obsmtp.com ([74.125.149.205]:34742 "EHLO
-	na3sys009aog111.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755076Ab2EREec (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>);
-	Fri, 18 May 2012 00:34:32 -0400
-Received: by bkcik5 with SMTP id ik5so2142816bkc.29
-        for <linux-omap@vger.kernel.org>; Thu, 17 May 2012 21:34:29 -0700 (PDT)
-In-Reply-To: <20120517152556.GA25976@core.coreip.homeip.net>
+Received: from mail-pz0-f46.google.com ([209.85.210.46]:65265 "EHLO
+	mail-pz0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756283Ab2EREnV (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 18 May 2012 00:43:21 -0400
+Received: by mail-pz0-f46.google.com with SMTP id y13so3323065dad.19
+        for <linux-omap@vger.kernel.org>; Thu, 17 May 2012 21:43:21 -0700 (PDT)
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Dmitry Torokhov <dmitry.torokhov@gmail.com>
-Cc: linux-input@vger.kernel.org, linux-omap@vger.kernel.org, balbi@ti.com, akpm@linux-foundation.org
+To: Tony Lindgren <tony@atomide.com>, Russell King <linux@arm.linux.org.uk>
+Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Ming Lei <ming.lei@canonical.com>, Kevin Hilman <khilman@ti.com>
 
-On Thu, May 17, 2012 at 8:55 PM, Dmitry Torokhov
-<dmitry.torokhov@gmail.com> wrote:
-> Hi Sourav,
->
-> On Thu, May 17, 2012 at 07:01:49PM +0530, Poddar, Sourav wrote:
->> Hi Dmitry,
->>
->> Gentle Ping on this..
->
-> The patch has been committed to my 'next' branch for 3.5 on 05/11/12:
->
-Thanks.
-> http://git.kernel.org/?p=linux/kernel/git/dtor/input.git;a=commit;h=f77621cc640a7c50b3d8c5254ecc5d91eaa99d0d
->
-> Thanks.
->
-> --
-> Dmitry
+The IRQ52 on OMAP2+ is not a shared interrupt line. If IRQF_SHARED
+is passed to request_irq and dev_id is set as NULL, request_irq will
+return -EINVAL.
+
+This patch just removes the flag of IRQF_SHARED to make the irq
+registration successful.
+
+Cc: Kevin Hilman <khilman@ti.com>
+Cc: Tony Lindgren <tony@atomide.com>
+Signed-off-by: Ming Lei <ming.lei@canonical.com>
+---
+ arch/arm/mach-omap2/gpmc.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/arch/arm/mach-omap2/gpmc.c b/arch/arm/mach-omap2/gpmc.c
+index 2286410..e45d31b 100644
+--- a/arch/arm/mach-omap2/gpmc.c
++++ b/arch/arm/mach-omap2/gpmc.c
+@@ -769,7 +769,7 @@ static int __init gpmc_init(void)
+ 		irq++;
+ 	}
+ 
+-	ret = request_irq(gpmc_irq, gpmc_handle_irq, IRQF_SHARED, "gpmc", NULL);
++	ret = request_irq(gpmc_irq, gpmc_handle_irq, 0, "gpmc", NULL);
+ 	if (ret)
+ 		pr_err("gpmc: irq-%d could not claim: err %d\n",
+ 						gpmc_irq, ret);
+-- 
+1.7.9.5
+
