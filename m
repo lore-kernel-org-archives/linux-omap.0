@@ -1,114 +1,165 @@
 From: Ricardo Neri <ricardo.neri@ti.com>
-Subject: [PATCH 10/11] ASoC: OMAP: HDMI: Make sound card naming
-	more generic
-Date: Fri, 18 May 2012 01:42:42 -0500
-Message-ID: <1337323363-11449-11-git-send-email-ricardo.neri@ti.com>
+Subject: [PATCH 01/11] ASoC: OMAP: HDMI: Introduce codec
+Date: Fri, 18 May 2012 01:42:33 -0500
+Message-ID: <1337323363-11449-2-git-send-email-ricardo.neri@ti.com>
 References: <1337323363-11449-1-git-send-email-ricardo.neri@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <alsa-devel-bounces@alsa-project.org>
+Content-Type: text/plain
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from comal.ext.ti.com ([198.47.26.152]:47747 "EHLO comal.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1754479Ab2ERGnV (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Fri, 18 May 2012 02:43:21 -0400
 In-Reply-To: <1337323363-11449-1-git-send-email-ricardo.neri@ti.com>
-List-Unsubscribe: <http://mailman.alsa-project.org/mailman/listinfo/alsa-devel>,
-	<mailto:alsa-devel-request@alsa-project.org?subject=unsubscribe>
-List-Archive: <http://mailman.alsa-project.org/pipermail/alsa-devel>
-List-Post: <mailto:alsa-devel@alsa-project.org>
-List-Help: <mailto:alsa-devel-request@alsa-project.org?subject=help>
-List-Subscribe: <http://mailman.alsa-project.org/mailman/listinfo/alsa-devel>,
-	<mailto:alsa-devel-request@alsa-project.org?subject=subscribe>
-Sender: alsa-devel-bounces@alsa-project.org
-Errors-To: alsa-devel-bounces@alsa-project.org
-To: broonie@opensource.wolfsonmicro.com, lrg@ti.com
-Cc: x0055901@ti.com, alsa-devel@alsa-project.org, Ricardo Neri <ricardo.neri@ti.com>, peter.ujfalusi@ti.com, s-guiriec@ti.com, linux-omap@vger.kernel.org
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: broonie@opensource.wolfsonmicro.com, lrg@ti.com
+Cc: x0055901@ti.com, peter.ujfalusi@ti.com, s-guiriec@ti.com, linux-omap@vger.kernel.org, alsa-devel@alsa-project.org, Ricardo Neri <ricardo.neri@ti.com>
 
-Rename all the relevant structures, variables and functions to not
-make specific reference to OMAP4. This is to make the driver encompass
-future OMAP versions that feature HDMI and not only OMAP4. These
-changes are only in naming. There are not functional changes.
+Introduce codec for HDMI. At the moment, this is a dummy codec. In the
+future it will parse the EDID to modify the supported parameters, such
+as the number of channels and the sample rates. At the moment, it blindly
+supports all the sample rates and audio channels described in the HDMI
+1.4a specification.
 
 Signed-off-by: Ricardo Neri <ricardo.neri@ti.com>
 ---
- sound/soc/omap/omap4-hdmi-card.c |   28 ++++++++++++++--------------
- 1 files changed, 14 insertions(+), 14 deletions(-)
+ sound/soc/codecs/Kconfig     |    4 ++
+ sound/soc/codecs/Makefile    |    2 +
+ sound/soc/codecs/omap-hdmi.c |   69 ++++++++++++++++++++++++++++++++++++++++++
+ sound/soc/omap/Kconfig       |    1 +
+ 4 files changed, 76 insertions(+), 0 deletions(-)
+ create mode 100644 sound/soc/codecs/omap-hdmi.c
 
-diff --git a/sound/soc/omap/omap4-hdmi-card.c b/sound/soc/omap/omap4-hdmi-card.c
-index 6c3255f..eaa2ea0 100644
---- a/sound/soc/omap/omap4-hdmi-card.c
-+++ b/sound/soc/omap/omap4-hdmi-card.c
-@@ -1,7 +1,7 @@
- /*
-- * omap4-hdmi-card.c
-+ * omap-hdmi-card.c
-  *
-- * OMAP ALSA SoC machine driver for TI OMAP4 HDMI
-+ * OMAP ALSA SoC machine driver for TI OMAP HDMI
-  * Copyright (C) 2011 Texas Instruments Incorporated - http://www.ti.com/
-  * Author: Ricardo Neri <ricardo.neri@ti.com>
-  *
-@@ -29,7 +29,7 @@
+diff --git a/sound/soc/codecs/Kconfig b/sound/soc/codecs/Kconfig
+index 59d8efa..7cac665 100644
+--- a/sound/soc/codecs/Kconfig
++++ b/sound/soc/codecs/Kconfig
+@@ -42,6 +42,7 @@ config SND_SOC_ALL_CODECS
+ 	select SND_SOC_MAX9850 if I2C
+ 	select SND_SOC_MAX9768 if I2C
+ 	select SND_SOC_MAX9877 if I2C
++	select SND_SOC_OMAP_HDMI_CODEC if OMAP4_DSS_HDMI
+ 	select SND_SOC_PCM3008
+ 	select SND_SOC_RT5631 if I2C
+ 	select SND_SOC_SGTL5000 if I2C
+@@ -226,6 +227,9 @@ config SND_SOC_MAX98095
+ config SND_SOC_MAX9850
+ 	tristate
  
- #define DRV_NAME "omap-hdmi-audio"
++config SND_SOC_OMAP_HDMI_CODEC
++       tristate
++
+ config SND_SOC_PCM3008
+        tristate
  
--static struct snd_soc_dai_link omap4_hdmi_dai = {
-+static struct snd_soc_dai_link omap_hdmi_dai = {
- 	.name = "HDMI",
- 	.stream_name = "HDMI",
- 	.cpu_dai_name = "omap-hdmi-audio-dai",
-@@ -38,16 +38,16 @@ static struct snd_soc_dai_link omap4_hdmi_dai = {
- 	.codec_dai_name = "omap-hdmi-hifi",
- };
- 
--static struct snd_soc_card snd_soc_omap4_hdmi = {
--	.name = "OMAP4HDMI",
-+static struct snd_soc_card snd_soc_omap_hdmi = {
-+	.name = "OMAPHDMI",
- 	.owner = THIS_MODULE,
--	.dai_link = &omap4_hdmi_dai,
-+	.dai_link = &omap_hdmi_dai,
- 	.num_links = 1,
- };
- 
--static __devinit int omap4_hdmi_probe(struct platform_device *pdev)
-+static __devinit int omap_hdmi_probe(struct platform_device *pdev)
- {
--	struct snd_soc_card *card = &snd_soc_omap4_hdmi;
-+	struct snd_soc_card *card = &snd_soc_omap_hdmi;
- 	int ret;
- 
- 	card->dev = &pdev->dev;
-@@ -61,7 +61,7 @@ static __devinit int omap4_hdmi_probe(struct platform_device *pdev)
- 	return 0;
- }
- 
--static int __devexit omap4_hdmi_remove(struct platform_device *pdev)
-+static int __devexit omap_hdmi_remove(struct platform_device *pdev)
- {
- 	struct snd_soc_card *card = platform_get_drvdata(pdev);
- 
-@@ -70,18 +70,18 @@ static int __devexit omap4_hdmi_remove(struct platform_device *pdev)
- 	return 0;
- }
- 
--static struct platform_driver omap4_hdmi_driver = {
-+static struct platform_driver omap_hdmi_driver = {
- 	.driver = {
- 		.name = DRV_NAME,
- 		.owner = THIS_MODULE,
- 	},
--	.probe = omap4_hdmi_probe,
--	.remove = __devexit_p(omap4_hdmi_remove),
-+	.probe = omap_hdmi_probe,
-+	.remove = __devexit_p(omap_hdmi_remove),
- };
- 
--module_platform_driver(omap4_hdmi_driver);
-+module_platform_driver(omap_hdmi_driver);
- 
- MODULE_AUTHOR("Ricardo Neri <ricardo.neri@ti.com>");
--MODULE_DESCRIPTION("OMAP4 HDMI machine ASoC driver");
-+MODULE_DESCRIPTION("OMAP HDMI machine ASoC driver");
- MODULE_LICENSE("GPL");
- MODULE_ALIAS("platform:" DRV_NAME);
+diff --git a/sound/soc/codecs/Makefile b/sound/soc/codecs/Makefile
+index 6662eb0..7e475c9 100644
+--- a/sound/soc/codecs/Makefile
++++ b/sound/soc/codecs/Makefile
+@@ -29,6 +29,7 @@ snd-soc-max9768-objs := max9768.o
+ snd-soc-max98088-objs := max98088.o
+ snd-soc-max98095-objs := max98095.o
+ snd-soc-max9850-objs := max9850.o
++snd-soc-omap-hdmi-codec-objs := omap-hdmi.o
+ snd-soc-pcm3008-objs := pcm3008.o
+ snd-soc-rt5631-objs := rt5631.o
+ snd-soc-sgtl5000-objs := sgtl5000.o
+@@ -135,6 +136,7 @@ obj-$(CONFIG_SND_SOC_MAX9768)	+= snd-soc-max9768.o
+ obj-$(CONFIG_SND_SOC_MAX98088)	+= snd-soc-max98088.o
+ obj-$(CONFIG_SND_SOC_MAX98095)	+= snd-soc-max98095.o
+ obj-$(CONFIG_SND_SOC_MAX9850)	+= snd-soc-max9850.o
++obj-$(CONFIG_SND_SOC_OMAP_HDMI_CODEC) += snd-soc-omap-hdmi-codec.o
+ obj-$(CONFIG_SND_SOC_PCM3008)	+= snd-soc-pcm3008.o
+ obj-$(CONFIG_SND_SOC_RT5631)	+= snd-soc-rt5631.o
+ obj-$(CONFIG_SND_SOC_SGTL5000)  += snd-soc-sgtl5000.o
+diff --git a/sound/soc/codecs/omap-hdmi.c b/sound/soc/codecs/omap-hdmi.c
+new file mode 100644
+index 0000000..1bf5c74
+--- /dev/null
++++ b/sound/soc/codecs/omap-hdmi.c
+@@ -0,0 +1,69 @@
++/*
++ * ALSA SoC codec driver for HDMI audio on OMAP processors.
++ * Copyright (C) 2012 Texas Instruments Incorporated - http://www.ti.com/
++ * Author: Ricardo Neri <ricardo.neri@ti.com>
++ *
++ * This program is free software; you can redistribute it and/or
++ * modify it under the terms of the GNU General Public License
++ * version 2 as published by the Free Software Foundation.
++ *
++ * This program is distributed in the hope that it will be useful, but
++ * WITHOUT ANY WARRANTY; without even the implied warranty of
++ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
++ * General Public License for more details.
++ *
++ * You should have received a copy of the GNU General Public License
++ * along with this program; if not, write to the Free Software
++ * Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA
++ * 02110-1301 USA
++ *
++ */
++#include <linux/module.h>
++#include <sound/soc.h>
++
++#define DRV_NAME "hdmi-audio-codec"
++
++static struct snd_soc_codec_driver omap_hdmi_codec;
++
++static struct snd_soc_dai_driver omap_hdmi_codec_dai = {
++	.name = "omap-hdmi-hifi",
++	.playback = {
++		.channels_min = 2,
++		.channels_max = 8,
++		.rates = SNDRV_PCM_RATE_32000 |
++			SNDRV_PCM_RATE_44100 | SNDRV_PCM_RATE_48000 |
++			SNDRV_PCM_RATE_88200 | SNDRV_PCM_RATE_96000 |
++			SNDRV_PCM_RATE_176400 | SNDRV_PCM_RATE_192000,
++		.formats = SNDRV_PCM_FMTBIT_S16_LE |
++			SNDRV_PCM_FMTBIT_S24_LE,
++	},
++};
++
++static __devinit int omap_hdmi_codec_probe(struct platform_device *pdev)
++{
++	return snd_soc_register_codec(&pdev->dev, &omap_hdmi_codec,
++			&omap_hdmi_codec_dai, 1);
++}
++
++static __devexit int omap_hdmi_codec_remove(struct platform_device *pdev)
++{
++	snd_soc_unregister_codec(&pdev->dev);
++	return 0;
++}
++
++static struct platform_driver omap_hdmi_codec_driver = {
++	.driver		= {
++		.name	= DRV_NAME,
++		.owner	= THIS_MODULE,
++	},
++
++	.probe		= omap_hdmi_codec_probe,
++	.remove		= __devexit_p(omap_hdmi_codec_remove),
++};
++
++module_platform_driver(omap_hdmi_codec_driver);
++
++MODULE_AUTHOR("Ricardo Neri <ricardo.neri@ti.com>");
++MODULE_DESCRIPTION("ASoC OMAP HDMI codec driver");
++MODULE_LICENSE("GPL");
++MODULE_ALIAS("platform:" DRV_NAME);
+diff --git a/sound/soc/omap/Kconfig b/sound/soc/omap/Kconfig
+index deafbfa..9ccfa5e 100644
+--- a/sound/soc/omap/Kconfig
++++ b/sound/soc/omap/Kconfig
+@@ -113,6 +113,7 @@ config SND_OMAP_SOC_OMAP4_HDMI
+ 	tristate "SoC Audio support for Texas Instruments OMAP4 HDMI"
+ 	depends on SND_OMAP_SOC && OMAP4_DSS_HDMI && OMAP2_DSS && ARCH_OMAP4
+ 	select SND_OMAP_SOC_HDMI
++	select SND_SOC_OMAP_HDMI_CODEC
+ 	help
+ 	  Say Y if you want to add support for SoC HDMI audio on Texas Instruments
+ 	  OMAP4 chips
 -- 
 1.7.5.4
+
