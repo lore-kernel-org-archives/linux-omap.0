@@ -1,8 +1,8 @@
 From: Ricardo Neri <ricardo.neri@ti.com>
-Subject: [PATCH 04/11] ASoC: OMAP: HDMI: Create a structure for
-	private data of the CPU DAI
-Date: Fri, 18 May 2012 01:42:36 -0500
-Message-ID: <1337323363-11449-5-git-send-email-ricardo.neri@ti.com>
+Subject: [PATCH 10/11] ASoC: OMAP: HDMI: Make sound card naming
+	more generic
+Date: Fri, 18 May 2012 01:42:42 -0500
+Message-ID: <1337323363-11449-11-git-send-email-ricardo.neri@ti.com>
 References: <1337323363-11449-1-git-send-email-ricardo.neri@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
@@ -22,99 +22,93 @@ To: broonie@opensource.wolfsonmicro.com, lrg@ti.com
 Cc: x0055901@ti.com, alsa-devel@alsa-project.org, Ricardo Neri <ricardo.neri@ti.com>, peter.ujfalusi@ti.com, s-guiriec@ti.com, linux-omap@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-Create a struct hdmi_priv to store the relevant data of the CPU DAI
-driver. As more data is added to the driver, having all the data
-in the same location eases its handling. At the moment, only the DMA
-configuration parameters are included in the structure.
-
-Also, the required memory is allocated using devm_kzalloc rather than
-using a static global variable.
+Rename all the relevant structures, variables and functions to not
+make specific reference to OMAP4. This is to make the driver encompass
+future OMAP versions that feature HDMI and not only OMAP4. These
+changes are only in naming. There are not functional changes.
 
 Signed-off-by: Ricardo Neri <ricardo.neri@ti.com>
 ---
- sound/soc/omap/omap-hdmi.c |   28 +++++++++++++++++++---------
- 1 files changed, 19 insertions(+), 9 deletions(-)
+ sound/soc/omap/omap4-hdmi-card.c |   28 ++++++++++++++--------------
+ 1 files changed, 14 insertions(+), 14 deletions(-)
 
-diff --git a/sound/soc/omap/omap-hdmi.c b/sound/soc/omap/omap-hdmi.c
-index b889f76..a6656b2 100644
---- a/sound/soc/omap/omap-hdmi.c
-+++ b/sound/soc/omap/omap-hdmi.c
-@@ -37,9 +37,8 @@
+diff --git a/sound/soc/omap/omap4-hdmi-card.c b/sound/soc/omap/omap4-hdmi-card.c
+index 6c3255f..eaa2ea0 100644
+--- a/sound/soc/omap/omap4-hdmi-card.c
++++ b/sound/soc/omap/omap4-hdmi-card.c
+@@ -1,7 +1,7 @@
+ /*
+- * omap4-hdmi-card.c
++ * omap-hdmi-card.c
+  *
+- * OMAP ALSA SoC machine driver for TI OMAP4 HDMI
++ * OMAP ALSA SoC machine driver for TI OMAP HDMI
+  * Copyright (C) 2011 Texas Instruments Incorporated - http://www.ti.com/
+  * Author: Ricardo Neri <ricardo.neri@ti.com>
+  *
+@@ -29,7 +29,7 @@
  
- #define DRV_NAME "omap-hdmi-audio-dai"
+ #define DRV_NAME "omap-hdmi-audio"
  
--static struct omap_pcm_dma_data omap_hdmi_dai_dma_params = {
--	.name = "HDMI playback",
--	.sync_mode = OMAP_DMA_SYNC_PACKET,
-+struct hdmi_priv {
-+	struct omap_pcm_dma_data dma_params;
+-static struct snd_soc_dai_link omap4_hdmi_dai = {
++static struct snd_soc_dai_link omap_hdmi_dai = {
+ 	.name = "HDMI",
+ 	.stream_name = "HDMI",
+ 	.cpu_dai_name = "omap-hdmi-audio-dai",
+@@ -38,16 +38,16 @@ static struct snd_soc_dai_link omap4_hdmi_dai = {
+ 	.codec_dai_name = "omap-hdmi-hifi",
  };
  
- static int omap_hdmi_dai_startup(struct snd_pcm_substream *substream,
-@@ -62,23 +61,24 @@ static int omap_hdmi_dai_hw_params(struct snd_pcm_substream *substream,
- 				    struct snd_pcm_hw_params *params,
- 				    struct snd_soc_dai *dai)
+-static struct snd_soc_card snd_soc_omap4_hdmi = {
+-	.name = "OMAP4HDMI",
++static struct snd_soc_card snd_soc_omap_hdmi = {
++	.name = "OMAPHDMI",
+ 	.owner = THIS_MODULE,
+-	.dai_link = &omap4_hdmi_dai,
++	.dai_link = &omap_hdmi_dai,
+ 	.num_links = 1,
+ };
+ 
+-static __devinit int omap4_hdmi_probe(struct platform_device *pdev)
++static __devinit int omap_hdmi_probe(struct platform_device *pdev)
  {
-+	struct hdmi_priv *priv = snd_soc_dai_get_drvdata(dai);
- 	int err = 0;
- 
- 	switch (params_format(params)) {
- 	case SNDRV_PCM_FORMAT_S16_LE:
--		omap_hdmi_dai_dma_params.packet_size = 16;
-+		priv->dma_params.packet_size = 16;
- 		break;
- 	case SNDRV_PCM_FORMAT_S24_LE:
--		omap_hdmi_dai_dma_params.packet_size = 32;
-+		priv->dma_params.packet_size = 32;
- 		break;
- 	default:
- 		err = -EINVAL;
- 	}
- 
--	omap_hdmi_dai_dma_params.data_type = OMAP_DMA_DATA_TYPE_S32;
-+	priv->dma_params.data_type = OMAP_DMA_DATA_TYPE_S32;
- 
- 	snd_soc_dai_set_dma_data(dai, substream,
--				 &omap_hdmi_dai_dma_params);
-+				 &priv->dma_params);
- 
- 	return err;
- }
-@@ -102,6 +102,13 @@ static __devinit int omap_hdmi_probe(struct platform_device *pdev)
- {
+-	struct snd_soc_card *card = &snd_soc_omap4_hdmi;
++	struct snd_soc_card *card = &snd_soc_omap_hdmi;
  	int ret;
- 	struct resource *hdmi_rsrc;
-+	struct hdmi_priv *hdmi_data;
-+
-+	hdmi_data = devm_kzalloc(&pdev->dev, sizeof(*hdmi_data), GFP_KERNEL);
-+	if (hdmi_data == NULL) {
-+		dev_err(&pdev->dev, "Cannot allocate memory for HDMI data\n");
-+		return -ENOMEM;
-+	}
  
- 	hdmi_rsrc = platform_get_resource(pdev, IORESOURCE_MEM, 0);
- 	if (!hdmi_rsrc) {
-@@ -109,7 +116,7 @@ static __devinit int omap_hdmi_probe(struct platform_device *pdev)
- 		return -ENODEV;
- 	}
- 
--	omap_hdmi_dai_dma_params.port_addr =  hdmi_rsrc->start
-+	hdmi_data->dma_params.port_addr =  hdmi_rsrc->start
- 		+ OMAP_HDMI_AUDIO_DMA_PORT;
- 
- 	hdmi_rsrc = platform_get_resource(pdev, IORESOURCE_DMA, 0);
-@@ -118,8 +125,11 @@ static __devinit int omap_hdmi_probe(struct platform_device *pdev)
- 		return -ENODEV;
- 	}
- 
--	omap_hdmi_dai_dma_params.dma_req =  hdmi_rsrc->start;
-+	hdmi_data->dma_params.dma_req =  hdmi_rsrc->start;
-+	hdmi_data->dma_params.name = "HDMI playback";
-+	hdmi_data->dma_params.sync_mode = OMAP_DMA_SYNC_PACKET;
- 
-+	dev_set_drvdata(&pdev->dev, hdmi_data);
- 	ret = snd_soc_register_dai(&pdev->dev, &omap_hdmi_dai);
- 	return ret;
+ 	card->dev = &pdev->dev;
+@@ -61,7 +61,7 @@ static __devinit int omap4_hdmi_probe(struct platform_device *pdev)
+ 	return 0;
  }
+ 
+-static int __devexit omap4_hdmi_remove(struct platform_device *pdev)
++static int __devexit omap_hdmi_remove(struct platform_device *pdev)
+ {
+ 	struct snd_soc_card *card = platform_get_drvdata(pdev);
+ 
+@@ -70,18 +70,18 @@ static int __devexit omap4_hdmi_remove(struct platform_device *pdev)
+ 	return 0;
+ }
+ 
+-static struct platform_driver omap4_hdmi_driver = {
++static struct platform_driver omap_hdmi_driver = {
+ 	.driver = {
+ 		.name = DRV_NAME,
+ 		.owner = THIS_MODULE,
+ 	},
+-	.probe = omap4_hdmi_probe,
+-	.remove = __devexit_p(omap4_hdmi_remove),
++	.probe = omap_hdmi_probe,
++	.remove = __devexit_p(omap_hdmi_remove),
+ };
+ 
+-module_platform_driver(omap4_hdmi_driver);
++module_platform_driver(omap_hdmi_driver);
+ 
+ MODULE_AUTHOR("Ricardo Neri <ricardo.neri@ti.com>");
+-MODULE_DESCRIPTION("OMAP4 HDMI machine ASoC driver");
++MODULE_DESCRIPTION("OMAP HDMI machine ASoC driver");
+ MODULE_LICENSE("GPL");
+ MODULE_ALIAS("platform:" DRV_NAME);
 -- 
 1.7.5.4
