@@ -1,56 +1,207 @@
-From: Jassi Brar <jaswinder.singh@linaro.org>
-Subject: Re: [PATCH V3 1/2] of: Add generic device tree DMA helpers
-Date: Fri, 18 May 2012 22:42:52 +0530
-Message-ID: <CAJe_ZherKototBYoc3d47JJbYjYxAMJbQ5RmjupoMyqNjdQYEQ@mail.gmail.com>
-References: <1335820679-28721-1-git-send-email-jon-hunter@ti.com>
- <4FB3D294.4020505@wwwdotorg.org>
- <CAJe_Zhe6uT7u-+0VEx2XCieuynmK5nOO=4DSpDDS_Q=N8-QtPA@mail.gmail.com>
- <201205161942.20296.arnd@arndb.de>
- <CAJe_ZhebPfmLS8ur8FAnmdj37ye25HrE2QF-Qk5PVDnzmpAniQ@mail.gmail.com>
- <4FB55242.2080501@wwwdotorg.org>
+From: Sergio Aguirre <sergio.a.aguirre@gmail.com>
+Subject: Re: [PATCH v3 07/10] arm: omap4430sdp: Add support for omap4iss camera
+Date: Fri, 18 May 2012 12:18:47 -0500
+Message-ID: <CAC-OdnDd1OZWAMEe=xPoxBbiSGXfSsNQKstP4mUD5VyFv5rQow@mail.gmail.com>
+References: <1335971749-21258-1-git-send-email-saaguirre@ti.com>
+	<1335971749-21258-8-git-send-email-saaguirre@ti.com>
+	<20120502194700.GF852@valkosipuli.localdomain>
+	<CAKnK67S5zZW0HAUYrg4ZqudiQqcOY+kbZeDeQ1OGU+s+cShBDQ@mail.gmail.com>
+	<CAKnK67SZGES33T02Ki3imZi20OKRSRe+u9nONsq2KoEGVz4_0w@mail.gmail.com>
+	<20120514002430.GH3373@valkosipuli.retiisi.org.uk>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-In-Reply-To: <4FB55242.2080501@wwwdotorg.org>
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: linux-arm-kernel-bounces@lists.infradead.org
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: Stephen Warren <swarren@wwwdotorg.org>
-Cc: Stephen Warren <swarren@nvidia.com>, Benoit Cousson <b-cousson@ti.com>, Arnd Bergmann <arnd@arndb.de>, device-tree <devicetree-discuss@lists.ozlabs.org>, Nicolas Ferre <nicolas.ferre@atmel.com>, Rob Herring <rob.herring@calxeda.com>, Grant Likely <grant.likely@secretlab.ca>, Jon Hunter <jon-hunter@ti.com>, Russell King <linux@arm.linux.org.uk>, linux-omap <linux-omap@vger.kernel.org>, linux-arm <linux-arm-kernel@lists.infradead.org>
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from mail-ob0-f174.google.com ([209.85.214.174]:64149 "EHLO
+	mail-ob0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S965628Ab2ERRSs convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 18 May 2012 13:18:48 -0400
+In-Reply-To: <20120514002430.GH3373@valkosipuli.retiisi.org.uk>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Sakari Ailus <sakari.ailus@iki.fi>
+Cc: "Aguirre, Sergio" <saaguirre@ti.com>, linux-media@vger.kernel.org, linux-omap@vger.kernel.org
 
-On 18 May 2012 01:02, Stephen Warren <swarren@wwwdotorg.org> wrote:
+Hi Sakari,
+
+On Sun, May 13, 2012 at 7:24 PM, Sakari Ailus <sakari.ailus@iki.fi> wro=
+te:
+> Hi Sergio,
 >
-> Now, the DMA node for an on-SoC DMAC would be in soc.dtsi. Typically,
-> the DMAC is connected to many on-SoC devices, and hence soc.dtsi would
-> need to specify the routing information for all those devices to avoid
-> duplicating it in every board.dts. Now, if you have some DMA requests
-> that go off-SoC, the board.dts file might want to add to the routing
-> table to indicate what clients connect to those DMA requests. However,
-> there's no way in the device tree compiler right now to add to a
-> property; you can only completely replace it. That would entail
-> duplicating the entire routing information from soc.dtsi into each
-> board.dts that wanted to add to it - a bad situation. Splitting the
-> routing information into chunks in the client nodes avoids this issue
-> entirely.
+> On Thu, May 03, 2012 at 10:20:47PM -0500, Aguirre, Sergio wrote:
+>> Hi Sakari,
+>>
+>> On Thu, May 3, 2012 at 7:03 AM, Aguirre, Sergio <saaguirre@ti.com> w=
+rote:
+>> > Hi Sakari,
+>> >
+>> > Thanks for reviewing.
+>> >
+>> > On Wed, May 2, 2012 at 2:47 PM, Sakari Ailus <sakari.ailus@iki.fi>=
+ wrote:
+>> >>
+>> >> Hi Sergio,
+>> >>
+>> >> Thanks for the patches!!
+>> >>
+>> >> On Wed, May 02, 2012 at 10:15:46AM -0500, Sergio Aguirre wrote:
+>> >> ...
+>> >>> +static int sdp4430_ov_cam1_power(struct v4l2_subdev *subdev, in=
+t on)
+>> >>> +{
+>> >>> + =A0 =A0 struct device *dev =3D subdev->v4l2_dev->dev;
+>> >>> + =A0 =A0 int ret;
+>> >>> +
+>> >>> + =A0 =A0 if (on) {
+>> >>> + =A0 =A0 =A0 =A0 =A0 =A0 if (!regulator_is_enabled(sdp4430_cam2=
+pwr_reg)) {
+>> >>> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 ret =3D regulator_enab=
+le(sdp4430_cam2pwr_reg);
+>> >>> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 if (ret) {
+>> >>> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 dev_er=
+r(dev,
+>> >>> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0=
+ =A0 =A0 "Error in enabling sensor power regulator 'cam2pwr'\n");
+>> >>> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 return=
+ ret;
+>> >>> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 }
+>> >>> +
+>> >>> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 msleep(50);
+>> >>> + =A0 =A0 =A0 =A0 =A0 =A0 }
+>> >>> +
+>> >>> + =A0 =A0 =A0 =A0 =A0 =A0 gpio_set_value(OMAP4430SDP_GPIO_CAM_PD=
+N_B, 1);
+>> >>> + =A0 =A0 =A0 =A0 =A0 =A0 msleep(10);
+>> >>> + =A0 =A0 =A0 =A0 =A0 =A0 ret =3D clk_enable(sdp4430_cam1_aux_cl=
+k); /* Enable XCLK */
+>> >>> + =A0 =A0 =A0 =A0 =A0 =A0 if (ret) {
+>> >>> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 dev_err(dev,
+>> >>> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 "Error=
+ in clk_enable() in %s(%d)\n",
+>> >>> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 __func=
+__, on);
+>> >>> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 gpio_set_value(OMAP443=
+0SDP_GPIO_CAM_PDN_B, 0);
+>> >>> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 return ret;
+>> >>> + =A0 =A0 =A0 =A0 =A0 =A0 }
+>> >>> + =A0 =A0 =A0 =A0 =A0 =A0 msleep(10);
+>> >>> + =A0 =A0 } else {
+>> >>> + =A0 =A0 =A0 =A0 =A0 =A0 clk_disable(sdp4430_cam1_aux_clk);
+>> >>> + =A0 =A0 =A0 =A0 =A0 =A0 msleep(1);
+>> >>> + =A0 =A0 =A0 =A0 =A0 =A0 gpio_set_value(OMAP4430SDP_GPIO_CAM_PD=
+N_B, 0);
+>> >>> + =A0 =A0 =A0 =A0 =A0 =A0 if (regulator_is_enabled(sdp4430_cam2p=
+wr_reg)) {
+>> >>> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 ret =3D regulator_disa=
+ble(sdp4430_cam2pwr_reg);
+>> >>> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 if (ret) {
+>> >>> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 dev_er=
+r(dev,
+>> >>> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0=
+ =A0 =A0 "Error in disabling sensor power regulator 'cam2pwr'\n");
+>> >>> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 return=
+ ret;
+>> >>> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 }
+>> >>> + =A0 =A0 =A0 =A0 =A0 =A0 }
+>> >>> + =A0 =A0 }
+>> >>> +
+>> >>> + =A0 =A0 return 0;
+>> >>> +}
+>> >>
+>> >> Isn't this something that should be part of the sensor driver? Th=
+ere's
+>> >> nothing in the above code that would be board specific, except th=
+e names of
+>> >> the clocks, regulators and GPIOs. The sensor driver could hold th=
+e names
+>> >> instead; this would be also compatible with the device tree.
+>> >
+>> > Agreed. I see what you mean...
+>> >
+>> > I'll take care of that.
+>>
+>> Can you please check out these patches?
+>>
+>> 1. http://gitorious.org/omap4-v4l2-camera/omap4-v4l2-camera/commit/c=
+b6c10d58053180364461e6bc8d30d1ec87e6e22
 >
- As already noted by Russell, the dma setup is different than irq or
-gpio which deliberately lend to off-SoC attachments. Without fpga'ing,
-I find it hard to imagine request-signals going off-SoC.
+> Ideally we should really get rid of the board code callbacks. What do=
+ you
+> need to do there?
 
-I only see the issue of different boards sporting a different sub-sets
-of clients i.e, a map entry may or may exist for a board but it would
-be same for two boards that have it.
- Maybe we could somehow separate out the chan-map and private-data
-into board.dts ?
-Even if it has to stay in soc.dts, we still have the benefit of having
-dmac agnostic client nodes.
+Well, in a OMAP44xx Blaze:
 
-cheers!
+http://svtronics.com/products/27-blaze-mdp
+
+The CSI2-A interface has 2 possible sensor inputs:
+
+- Sony IMX060 12 MP
+- OmniVision OV5650 5MP
+
+Which are muxed with a High speed differential selector.
+
+(Analog devices part: ADG936, found here:
+http://www.analog.com/static/imported-files/data_sheets/ADG936_936R.pdf=
+)
+
+And to make it more fun, you switch that with a GPIO in an Audio IC (TW=
+L6040) !
+
+Quite a mess, but leaves me with few options, so that's why I need
+that to be board
+specific, and that by providing these function that can be used to
+take care of such
+"creative" designs :P
+
+Have better ideas?
+
+>
+>> 2. http://gitorious.org/omap4-v4l2-camera/omap4-v4l2-camera/commit/6=
+732e0db25c6647b34ef8f01c244a49a1fd6b45d
+>
+> Isn't reset voltage level (high or low) a property of the sensor rath=
+er than
+> the board?
+>
+> Well, I know sometimes the people who typically design the hardware c=
+an be
+> quite inventive. ;)
+
+Unfortunately, that's exactly the case!
+
+Again, in this "creative" design in Blaze platform I mentioned above,
+they also have a
+level inverter just before the RESET pin in the sensor. So that makes
+it active high, from
+the GPIO driver point of view :/
+
+Not sure if there's a better way of handling this...
+
+Thanks for the comments!
+
+Regards,
+Sergio
+
+>
+>> 3. http://gitorious.org/omap4-v4l2-camera/omap4-v4l2-camera/commit/d=
+61c4e3142dc9cae972f9128fe73d986838c0ca1
+>
+>> 4. http://gitorious.org/omap4-v4l2-camera/omap4-v4l2-camera/commit/e=
+83f36001c7f7cbe184ad094d9b0c95c39e5028f
+>
+> Cheers,
+>
+> --
+> Sakari Ailus
+> e-mail: sakari.ailus@iki.fi =A0 =A0 jabber/XMPP/Gmail: sailus@retiisi=
+=2Eorg.uk
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-media=
+" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at =A0http://vger.kernel.org/majordomo-info.html
+--
+To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
