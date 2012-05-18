@@ -1,57 +1,46 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH 8/8] gpio/omap: fix missing check in *_runtime_suspend()
-Date: Thu, 17 May 2012 17:10:04 -0700
-Message-ID: <20120518001004.GJ17852@atomide.com>
-References: <1335536018-16004-1-git-send-email-tarun.kanti@ti.com>
- <1335536018-16004-9-git-send-email-tarun.kanti@ti.com>
- <87y5oqtpnw.fsf@ti.com>
- <20120517231251.GH17852@atomide.com>
- <87mx56s6nz.fsf@ti.com>
+From: "Poddar, Sourav" <sourav.poddar@ti.com>
+Subject: Re: [RESEND/PATCHv2] Input: omap-keypad: dynamically handle register offsets
+Date: Fri, 18 May 2012 10:04:28 +0530
+Message-ID: <CAKdam55YzfuGk+AHb=SgBqtLYJeLh_UpHAaxdVBp_Nv55iBCDw@mail.gmail.com>
+References: <1335419677-24934-1-git-send-email-sourav.poddar@ti.com>
+	<20120509051809.GA10514@core.coreip.homeip.net>
+	<CAKdam56kv2qia-2DMeTRMYwWJbskOeiJkW46wJqfMU9-pVkXwQ@mail.gmail.com>
+	<20120509074539.GI10514@core.coreip.homeip.net>
+	<CAKdam567nCNbMX8hW=bKS5bSQs_z9wP-GaM3sWsM2fjhmVQZMg@mail.gmail.com>
+	<CAKdam57xYtKw7iNJFd+5r-VS-6Mn8OG26xEFUR9SiMvk8gPW4A@mail.gmail.com>
+	<CAKdam55EAHZvM6-r138UgVnqw5t_cE1=+t_Hwm=WmMk8nMwKuA@mail.gmail.com>
+	<20120517152556.GA25976@core.coreip.homeip.net>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=ISO-8859-1
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-01-ewr.mailhop.org ([204.13.248.71]:46747 "EHLO
-	mho-01-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S933088Ab2ERAKI (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 17 May 2012 20:10:08 -0400
-Content-Disposition: inline
-In-Reply-To: <87mx56s6nz.fsf@ti.com>
+Received: from na3sys009aog111.obsmtp.com ([74.125.149.205]:34742 "EHLO
+	na3sys009aog111.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1755076Ab2EREec (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>);
+	Fri, 18 May 2012 00:34:32 -0400
+Received: by bkcik5 with SMTP id ik5so2142816bkc.29
+        for <linux-omap@vger.kernel.org>; Thu, 17 May 2012 21:34:29 -0700 (PDT)
+In-Reply-To: <20120517152556.GA25976@core.coreip.homeip.net>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Kevin Hilman <khilman@ti.com>
-Cc: Tarun Kanti DebBarma <tarun.kanti@ti.com>, Santosh Shilimkar <santosh.shilimkar@ti.com>, Grant Likely <grant.likely@secretlab.ca>, linux-omap@vger.kernel.org, "Cousson, Benoit" <b-cousson@ti.com>, linux-arm-kernel@lists.infradead.org
+To: Dmitry Torokhov <dmitry.torokhov@gmail.com>
+Cc: linux-input@vger.kernel.org, linux-omap@vger.kernel.org, balbi@ti.com, akpm@linux-foundation.org
 
-* Kevin Hilman <khilman@ti.com> [120517 17:00]:
-> 
-> Argh, then $SUBJECT patch here has caused brokeness in multiple ways.
-> It managed to break both runtime suspend and runtime resume at the same
-> time. :(
-> 
-> The change added by this patch to runtime_suspend effectively disables
-> the fix I did in 68942edb09 (gpio/omap: fix wakeups on level-triggered GPIOs)
-> causing the sluggish network problems to reappear, since that GPIO IRQ
-> is no longer causing wakeups.
+On Thu, May 17, 2012 at 8:55 PM, Dmitry Torokhov
+<dmitry.torokhov@gmail.com> wrote:
+> Hi Sourav,
 >
-> Simple fix is below, which just moves the check added in $SUBJECT patch
-> below the workaround for the edge/level fix.  Can you confirm it works
-> on Zoom3 (applies on gpio/next + my previous fix.)
-
-Thanks yes having both of your fixes applied fixes the issues I was
-seeing, so for both:
-
-Tested-by: Tony Lindgren <tony@atomide.com>
- 
-> I didn't notice the same problem on Overo, but I guess it's because
-> Overo had some enabled non-wakeup GPIOs in the same bank, so it didn't
-> bypass the level-triggered IRQ fix.
-
-Makes sense for why it only appears on some boards.
- 
-> In the mean time, they're availble in my for_3.5/fixes/gpio-2 branch.
-
-I'll merge that also into l-o master for some more testing before
-the merge window.
-
-Regards,
-
-Tony
+> On Thu, May 17, 2012 at 07:01:49PM +0530, Poddar, Sourav wrote:
+>> Hi Dmitry,
+>>
+>> Gentle Ping on this..
+>
+> The patch has been committed to my 'next' branch for 3.5 on 05/11/12:
+>
+Thanks.
+> http://git.kernel.org/?p=linux/kernel/git/dtor/input.git;a=commit;h=f77621cc640a7c50b3d8c5254ecc5d91eaa99d0d
+>
+> Thanks.
+>
+> --
+> Dmitry
