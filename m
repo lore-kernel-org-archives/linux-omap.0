@@ -1,241 +1,143 @@
 From: "Shilimkar, Santosh" <santosh.shilimkar@ti.com>
-Subject: Re: [PATCHv5 3/8] ARM: OMAP4460: Workaround for ROM bug because of
- CA9 r2pX gic control register change
-Date: Fri, 18 May 2012 11:35:36 +0530
-Message-ID: <CAMQu2gyqhxVP1M7ftxJ5qqmZ8Bp0ZmHd=7EjJZ7G1Y=Md=vT=g@mail.gmail.com>
-References: <1336989796-26594-1-git-send-email-t-kristo@ti.com>
- <1336989796-26594-4-git-send-email-t-kristo@ti.com> <87zk99ce5q.fsf@ti.com>
- <4FB3707B.2080200@ti.com> <4FB39C5A.5080404@ti.com> <87mx586pci.fsf@ti.com>
- <CAMQu2gxKmeEnZr8PHZjuC_PUUzjbn7gDkG5NDKM6h2kuS+aJVQ@mail.gmail.com> <87txzeybhu.fsf@ti.com>
+Subject: Re: [PATCH 8/8] gpio/omap: fix missing check in *_runtime_suspend()
+Date: Fri, 18 May 2012 11:52:13 +0530
+Message-ID: <CAMQu2gys=yXMoz5g5X+7Tf+VQ5D9J8ZkpWgdm-87rSOZ6w7BXA@mail.gmail.com>
+References: <1335536018-16004-1-git-send-email-tarun.kanti@ti.com>
+ <1335536018-16004-9-git-send-email-tarun.kanti@ti.com> <87y5oqtpnw.fsf@ti.com>
+ <20120517231251.GH17852@atomide.com> <87mx56s6nz.fsf@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aog129.obsmtp.com ([74.125.149.142]:55112 "EHLO
-	na3sys009aog129.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752969Ab2ERGGB convert rfc822-to-8bit
+Received: from na3sys009aog127.obsmtp.com ([74.125.149.107]:48673 "EHLO
+	na3sys009aog127.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1752219Ab2ERGWf convert rfc822-to-8bit
 	(ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Fri, 18 May 2012 02:06:01 -0400
-Received: by qcsk26 with SMTP id k26so1990338qcs.40
-        for <linux-omap@vger.kernel.org>; Thu, 17 May 2012 23:05:57 -0700 (PDT)
-In-Reply-To: <87txzeybhu.fsf@ti.com>
+	Fri, 18 May 2012 02:22:35 -0400
+Received: by qcmv28 with SMTP id v28so1842367qcm.25
+        for <linux-omap@vger.kernel.org>; Thu, 17 May 2012 23:22:34 -0700 (PDT)
+In-Reply-To: <87mx56s6nz.fsf@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: Kevin Hilman <khilman@ti.com>
-Cc: Tero Kristo <t-kristo@ti.com>, linux-omap@vger.kernel.org, paul@pwsan.com, linux-arm-kernel@lists.infradead.org
+Cc: Tony Lindgren <tony@atomide.com>, Tarun Kanti DebBarma <tarun.kanti@ti.com>, Grant Likely <grant.likely@secretlab.ca>, linux-omap@vger.kernel.org, "Cousson, Benoit" <b-cousson@ti.com>, linux-arm-kernel@lists.infradead.org
 
-On Thu, May 17, 2012 at 10:45 PM, Kevin Hilman <khilman@ti.com> wrote:
-> "Shilimkar, Santosh" <santosh.shilimkar@ti.com> writes:
+On Fri, May 18, 2012 at 5:26 AM, Kevin Hilman <khilman@ti.com> wrote:
+> Tony Lindgren <tony@atomide.com> writes:
 >
->> On Wed, May 16, 2012 at 10:21 PM, Kevin Hilman <khilman@ti.com> wrot=
-e:
->>> Santosh Shilimkar <santosh.shilimkar@ti.com> writes:
+>> * Kevin Hilman <khilman@ti.com> [120517 15:29]:
 >>>
->>>> Kevin,
->>>>
->>>> On Wednesday 16 May 2012 02:46 PM, Santosh Shilimkar wrote:
->>>>> On Wednesday 16 May 2012 03:14 AM, Kevin Hilman wrote:
->>>>>> Santosh,
->>>>>>
->>>>>> Tero Kristo <t-kristo@ti.com> writes:
->>>>>>
->>>>>>> From: Santosh Shilimkar <santosh.shilimkar@ti.com>
->>>>>>>
->>>>>>> GIC distributor control register has changed between CortexA9 r=
-1pX and
->>>>>>> r2pX. The Control Register secure banked version is now compose=
-d of 2
->>>>>>> bits:
->>>>>>> =A0 =A0 =A0bit 0 =3D=3D Secure Enable
->>>>>>> =A0 =A0 =A0bit 1 =3D=3D Non-Secure Enable
->>>>>>> The Non-Secure banked register has not changed.
->>>>>>
->>>>>> For those without the r1pX TRM handy, please include what this l=
-ook like
->>>>>> before (presumably 1 bit?) =A0The changelog and in-code comments=
- should
->>>>>> both be enhanced.
->>>>>>
->>>>> You are right. There was only one bit previously which was used f=
-or
->>>>> secure/non-secure mode. So ROM over-writes the non-secure bit
->>>>> accidentally.
->>>>>
->>>>>>> Since the ROM Code is based on the r1pX GIC, the CPU1 GIC resto=
-ration
->>>>>>> will cause a problem to CPU0 Non-Secure SW.
->>>>>>
->>>>>> Please describe the problem, so we can better understand the spe=
-cifics
->>>>>> of the workaround.
->>>>>>
->>>> Below is the updated changelog.
+>>> I just noticed that this patch has caused some strange problems, no=
+tably
+>>> with the GPIO IRQ used by smsc911x NIC (Overo, Zoom3, 2430SDP, etc.=
+ etc.)
 >>>
->>> Much better, thanks. =A0But it still took me several reads to fully
->>> understand. =A0Maybe it's because the cold I have is stuffing up my=
- head,
->>> so it takes me awhile to understand... =A0Anyways, some minor comme=
-nts to
->>> help clarify...
+>>> The patch itself is OK, but it has exposed a bug in other parts of =
+the
+>>> context restore path that was previously hidden.
 >>>
->>> Sorry to be so picky about changelogs, but this is a really nasty b=
-ug,
->>> and the workaround has some rather important side effects, so I wan=
-t the
->>> description of the bug and the workaround to be well described.
->>>
->>>> --------------
->>>> ARM: OMAP4460: Workaround for ROM bug because of CA9 r2pX gic cont=
-rol
->>>> register change
->>>>
->>>> With MPUSS programmed to OSWR(Open Switch retention), GIC context =
-is
->>>> lost. On the CPU wakeup paths, ROM code gets executed which will s=
-etup
->>>> GIC secure configurations and restore the GIC context if it was sa=
-ved
->>>> based on SAR_BACKUP_STATUS.
->>>>
->>>> The ROM Code GIC distributor restoration is split in two parts:
->>>> CPU specific register done by each CPU and common register done by
->>>> only one CPU. If the GIC Distributor Control Register =3D 1, the
->>>> second CPU will not do the common GIC restoration.
->>>
->>> s/second CPU/second CPU to wake up/
->>>
->> ok
->>>> GIC distributor control register has changed between CortexA9 r1pX=
- and
->>>> r2pX. The Control Register secure banked version is now composed o=
-f 2
->>>> bits vs only one bit before r1px:
->>>
->>> before r1pX?
->> I mean r1px, r0px etc.
->>>
->>>> =A0 =A0 =A0bit 0 =3D=3D Secure Enable
->>>> =A0 =A0 =A0bit 1 =3D=3D Non-Secure Enable
->>>
->>> And what did this look like for r1pX? =A0 =A0Presumably bit0 was no=
-n-secure
->>> enable?
->>>
->> Yes. Same bit is used. It's banked bit which has secure and non-secu=
-re view.
+>>> We seem to have been finding lots of GPIO bugs by just testing the
+>>> network chips with GPIO IRQs. =A0Can I suggest that a platform with=
+ a GPIO
+>>> IRQ NIC be added to the test platforms you're using?
 >>
->>>> Hence the value of Control register will be 3 and not 1 as the r1p=
-X
->>>> based ROM code expects.
->>>
->>> Why will it be 3?
->>>
->>> Will it be 3 on GP devices?
->>>
->> Yes. Because you have 2 bits. Since both bits will be set [ Bit 1 wi=
-ll
->> be set by ROM code]
->> and bit 0 will be set by Linux.
+>> Yes considering the breakage it's pretty obvious the original series=
+ was
+>> never properly tested on omaps.
 >
-> Why will the secure enable bit be set on GP devices?
+> Agreed.
 >
->>>> So he CPU1 on it's wakeup ROM code path, will
->>>
->>> s/it's/its/
->>>
->> ok
->>>> go to the GIC initialization procedure and will so reset the full =
-GIC
->>>> and NS GIC distributor Enable bit will get cleared.
->>>
->>> This is where it's confusing.
->>>
->> Hmm.
+Actually OMAP4 network interface as well uses the GPIO as a interrupt l=
+ine but
+that didn't show the issue. But I agree more and more test scenario's a=
+re needed
+for infrastructure components like GPIO/DMA/TImer because of their mult=
+iple
+types of usages.
+
+>> Regarding this fix, using gpio/next + this patch fixes nfsroot for 2=
+430sdp,
+>> and gets zoom3 nfsroot booting going a bit better.
 >>
->>> On r2pX, NS enable bit is bit 1. =A0It's not mentioned here, but I'=
-m
->>> assuming that it's bit 0 on r1pX, right? (I can't seem to find an r=
-1pX
->>> TRM)
->>>
->> Yes. As I mentioned earlier, will make that more clear.
+>> However, at least on zoom3 nfsroot now takes several _minutes_ to ge=
+t to
+>> login: with gpio/next + this patch. The system is totally unusable.
 >>
->>> Since ROM code is r1pX-based, I would assume that it would continue=
- to
->>> clear bit 0, which is only now the secure enable bit?
+>> It seems that the GPIO interrupt wake-up events are not properly wor=
+king
+>> now?
+>>
+>> Reverting the "gpio/omap: fix missing check in *_runtime_suspend()"
+>> patch seems to fix the issue.
+>
+> Argh, then $SUBJECT patch here has caused brokeness in multiple ways.
+> It managed to break both runtime suspend and runtime resume at the sa=
+me
+> time. :(
+>
+> The change added by this patch to runtime_suspend effectively disable=
+s
+> the fix I did in 68942edb09 (gpio/omap: fix wakeups on level-triggere=
+d GPIOs)
+> causing the sluggish network problems to reappear, since that GPIO IR=
+Q
+> is no longer causing wakeups.
+>
+That's pretty bad.
+
+> Simple fix is below, which just moves the check added in $SUBJECT pat=
+ch
+> below the workaround for the edge/level fix. =A0Can you confirm it wo=
+rks
+> on Zoom3 (applies on gpio/next + my previous fix.)
+>
+> I didn't notice the same problem on Overo, but I guess it's because
+> Overo had some enabled non-wakeup GPIOs in the same bank, so it didn'=
+t
+> bypass the level-triggered IRQ fix.
+>
+>>> Subject: [PATCH] gpio/omap: fix broken context restore for non-OFF =
+mode
+>>> =A0transitions
 >>>
->>> Or, is it the case that ROM code clears all the bits? =A0That shoul=
-d be described.
->>>
->> ROM code reads the register value and compares it with value =3D=3D =
+>>> The fix in commit 1b12870 (gpio/omap: fix missing check in
+>>> *_runtime_suspend()) exposed another bug in the context restore pat=
+h.
+>>
+>> Kevin, looks like commit 1b12870 does not exist in gpio/next?
+>
+> Will update the changelog.
+>
+> Because of this new problem, I have to add the patch below too, so
+> I'll get them both queued up for Grant
+>
+> In the mean time, they're availble in my for_3.5/fixes/gpio-2 branch.
+>
+> Kevin
+>
+> [1]
+> From afb4f0836dc3c432aa999fc98a80bf75e1481e04 Mon Sep 17 00:00:00 200=
 1
->> " If the GIC Distributor Control Register =3D 1, the
->> second CPU will not do the common GIC restoration"
->> On r2Px, the value becomes 3 and entire ROM code logic goofs up
->> and take wrong code path.
+> From: Kevin Hilman <khilman@ti.com>
+> Date: Thu, 17 May 2012 16:42:16 -0700
+> Subject: [PATCH] gpio/omap: (re)fix wakeups on level-triggered GPIOs
 >
-> That part is clear.
+> commit 1b1287032 (gpio/omap: fix missing check in *_runtime_suspend()=
+)
+> broke wakeups on level-triggered GPIOs by adding the enabled
+> non-wakeup GPIO check before the workaround that enables wakeups
+> on level-triggered IRQs, effectively disabling that workaround.
 >
-> What's not at all clear is what the ROM code does *after* this. =A0Do=
-es it
-> clear both bits? =A0or just bit 0? =A0Since it's r1pX based, I would =
-expect
-> that it doesn't touch anything other than bit 0.
+> To fix, move the enabled non-wakeup GPIO check after the
+> level-triggered IRQ workaround.
 >
-Actually since the condition of control register =3D=3D 1 is not satisf=
-ied,
-It re-inits entire GIC thinking it's not configured at all. So everythi=
-ng
-will be cleared and including non-secure GIC dist. enable bit.
-
->>>> Since the GIC distributor gets disabled in a live system, CPU1 wil=
-l
->>>> hang because the interrupts stop firing.
->>>> =A0 =A0 =A01) Before doing the CPU1 wakeup, CPU0 must disable
->>>> =A0 =A0 =A0 =A0 the GIC distributor and wait for it to be enabled.
->>>
->>> what does 'disable GIC distributor' mean. =A0secure? non-secure? bo=
-th?
->>>
->> HLOS is a non-secure view so it can disable only non-secure bit.
+> Reported-by: Tony Lindgren <tony@atomide.com>
 >
-> The changelog is not talking about the HLOS, it's talking about the R=
-OM
-> code, which presumably can set/clear both bits.
->
->>>> =A0 =A0 =A02) CPU1 must re-enable the GIC distributor on
->>>> =A0 =A0 =A0 =A0 it's wakeup path.
->>>
->>> Describe why this works. =A0e.g. because it cause ROM code to skip =
-its
->>> broken restore path.
->>>
->> ROM code logic find the control register value 1 because bit 1 is
->> cleared by non-secure SW during the check.
->
-> and because it finds the control regster value to be 1...
->
-> Santosh, I do understand what is happening here. =A0But I play dumb s=
-o
-> that it will be described in great detail in the changelog so that wh=
-en
-> I forget (and you forget) we can go back to this and get a quick
-> understanding of both the bug and the workaround.
->
-> Since you are very deeply familiar with this bug, it's understandably
-> hard to write this changelog since most things probably seem obvious =
-to
-> you. =A0A suggestion would be to have a few colleagues that are not
-> familiar with this bug read the changelog and try and describe it bac=
-k
-> to you.
->
-I agree with you. This is side effect of knowing some BUGs too much.
-I will work with Tero so that change log captures more details.
-
-Regards
-Santosh
-without any assumptions.
+> Cc: Tarun Kanti DebBarma <tarun.kanti@ti.com>
+> Signed-off-by: Kevin Hilman <khilman@ti.com>
+> ---
+Thanks for the Fix Kevin.
+Acked-by: Santosh Shilimkar <santosh.shilimkar@ti.com>
 --
 To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
 n
