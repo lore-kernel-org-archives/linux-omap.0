@@ -1,66 +1,104 @@
 From: Ricardo Neri <ricardo.neri@ti.com>
-Subject: [PATCH 08/11] ASoC: OMAP: HDMI: Expand capabilities of the HDMI DAI
-Date: Fri, 18 May 2012 01:42:40 -0500
-Message-ID: <1337323363-11449-9-git-send-email-ricardo.neri@ti.com>
-References: <1337323363-11449-1-git-send-email-ricardo.neri@ti.com>
+Subject: [PATCH 00/11] ASoC: OMAP: HDMI: Use DSS audio
+	interface and prepare for OMAP5
+Date: Fri, 18 May 2012 01:42:32 -0500
+Message-ID: <1337323363-11449-1-git-send-email-ricardo.neri@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from devils.ext.ti.com ([198.47.26.153]:60240 "EHLO
-	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1759638Ab2ERGnW (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 18 May 2012 02:43:22 -0400
-In-Reply-To: <1337323363-11449-1-git-send-email-ricardo.neri@ti.com>
-Sender: linux-omap-owner@vger.kernel.org
-List-Id: linux-omap@vger.kernel.org
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <alsa-devel-bounces@alsa-project.org>
+List-Unsubscribe: <http://mailman.alsa-project.org/mailman/listinfo/alsa-devel>,
+	<mailto:alsa-devel-request@alsa-project.org?subject=unsubscribe>
+List-Archive: <http://mailman.alsa-project.org/pipermail/alsa-devel>
+List-Post: <mailto:alsa-devel@alsa-project.org>
+List-Help: <mailto:alsa-devel-request@alsa-project.org?subject=help>
+List-Subscribe: <http://mailman.alsa-project.org/mailman/listinfo/alsa-devel>,
+	<mailto:alsa-devel-request@alsa-project.org?subject=subscribe>
+Sender: alsa-devel-bounces@alsa-project.org
+Errors-To: alsa-devel-bounces@alsa-project.org
 To: broonie@opensource.wolfsonmicro.com, lrg@ti.com
-Cc: x0055901@ti.com, peter.ujfalusi@ti.com, s-guiriec@ti.com, linux-omap@vger.kernel.org, alsa-devel@alsa-project.org, Ricardo Neri <ricardo.neri@ti.com>
+Cc: x0055901@ti.com, alsa-devel@alsa-project.org, Ricardo Neri <ricardo.neri@ti.com>, peter.ujfalusi@ti.com, s-guiriec@ti.com, linux-omap@vger.kernel.org
+List-Id: linux-omap@vger.kernel.org
 
-According to the HDMI specification, a source is permitted to
-transmit L-PCM audio in the following sample rates: 32kHz, 44.1kHz,
-48kHz, 88.2kHz, 96kHz, 176.4kHz or 192kHz.
+Hello,
 
-It also supports up to 8 audio channels.
+The ASoC HDMI codec used to be embedded in the DSS HDMI driver. In order
+to give the OMAP HDMI code a more logical arrangement and to remove
+some dependency breaks[1][2], such ASoC HDMI codec was removed[3]. Instead, the
+DSS HDMI audio functionality[4] is now provided through the new DSS device driver
+audio interface [5]. Hence, the ASoC HDMI support for OMAP needs to be changed
+to use this new DSS device driver audio interface. Under this new approach:
 
-The sink may not necessarily support all these sample rates and
-channels. However, as this CPU DAI describes the HDMI source, it
-makes sense to include them. The limitation of capabilities as
-supported by the sink should be done in the ASoC HDMI codec.
+ * The HDMI audio functionality provided by the OMAP is now regarded as a
+   CPU DAI rather than a codec. Hence, the CPU DAI will perform the operations
+   that were performed previously by the codec (using the DSS dev driver audio
+   interface).
+ * A new ASoC HDMI OMAP codec is introduced as a dummy component. In the
+   future, this component will examine the features supported by the sink
+   and limit the number of channels, sample rates and formats that are exposed
+   to the user.
 
-Signed-off-by: Ricardo Neri <ricardo.neri@ti.com>
----
- sound/soc/omap/omap-hdmi.c |    2 +-
- sound/soc/omap/omap-hdmi.h |    4 +++-
- 2 files changed, 4 insertions(+), 2 deletions(-)
+Also, this set of patches paves the way to the introduction of the HDMI audio
+functionality for OMAP5. The goal is to use the same set of ASoC drivers
+for OMAP4 and OMAP5 (DSS will be in charge of selecting the correct set
+of functions at run time). For this, several patches are submitted for:
 
-diff --git a/sound/soc/omap/omap-hdmi.c b/sound/soc/omap/omap-hdmi.c
-index ec7c7e6..a08245d 100644
---- a/sound/soc/omap/omap-hdmi.c
-+++ b/sound/soc/omap/omap-hdmi.c
-@@ -253,7 +253,7 @@ static const struct snd_soc_dai_ops omap_hdmi_dai_ops = {
- static struct snd_soc_dai_driver omap_hdmi_dai = {
- 	.playback = {
- 		.channels_min = 2,
--		.channels_max = 2,
-+		.channels_max = 8,
- 		.rates = OMAP_HDMI_RATES,
- 		.formats = OMAP_HDMI_FORMATS,
- 	},
-diff --git a/sound/soc/omap/omap-hdmi.h b/sound/soc/omap/omap-hdmi.h
-index 34c298d..6ad2bf4 100644
---- a/sound/soc/omap/omap-hdmi.h
-+++ b/sound/soc/omap/omap-hdmi.h
-@@ -28,7 +28,9 @@
- #define OMAP_HDMI_AUDIO_DMA_PORT 0x8c
- 
- #define OMAP_HDMI_RATES	(SNDRV_PCM_RATE_32000 | \
--				SNDRV_PCM_RATE_44100 | SNDRV_PCM_RATE_48000)
-+				SNDRV_PCM_RATE_44100 | SNDRV_PCM_RATE_48000 | \
-+				SNDRV_PCM_RATE_88200 | SNDRV_PCM_RATE_96000 | \
-+				SNDRV_PCM_RATE_176400 | SNDRV_PCM_RATE_192000)
- 
- #define OMAP_HDMI_FORMATS (SNDRV_PCM_FMTBIT_S16_LE | \
- 				SNDRV_PCM_FMTBIT_S24_LE)
+ * Generalizing the build files to encompass not only OMAP4.
+ * In the HDMI sound card driver, renaming the the functions and structures
+   from omap4_ to omap_.
+
+This set includes the suggestions and improvements that Mark Brown kindly provided
+some time ago [6][7].
+
+Please note that this set of patches will not build unless the patches from [4],
+[5] and [8] are present. All these patches have been accepted and should be
+upstream for K3.5.
+
+This implementation was validated on top of:
+git://git.kernel.org/pub/scm/linux/kernel/git/torvalds/linux-2.6.git v3.4-rc7
+
+and Liam Girdwood's:
+git://gitorious.org/omap-audio/linux-audio.git lrg/topic/3.5-dev
+
+Thanks,
+
+Ricardo
+
+[1] http://www.mail-archive.com/linux-omap@vger.kernel.org/msg67295.html
+[2] http://www.spinics.net/lists/linux-omap/msg66178.html
+[3] http://www.mail-archive.com/linux-omap@vger.kernel.org/msg67809.html
+[4] http://www.spinics.net/lists/linux-omap/msg69466.html
+[5] http://www.spinics.net/lists/linux-omap/msg69451.html
+[6] http://mailman.alsa-project.org/pipermail/alsa-devel/2012-February/049064.html
+[7] http://mailman.alsa-project.org/pipermail/alsa-devel/2012-February/049065.html
+[8] http://www.mail-archive.com/linux-omap@vger.kernel.org/msg66600.html
+
+Ricardo Neri (11):
+  ASoC: OMAP: HDMI: Introduce codec
+  ASoC: OMAP: HDMI: Update the platform device names
+  ASoC: OMAP: HDMI: Change error values in HDMI CPU DAI
+  ASoC: OMAP: HDMI: Create a structure for private data of the CPU DAI
+  ASoC: OMAP: HDMI: Use the DSS audio interface
+  ASoC: OMAP: HDMI: Expand configuration of hw_params
+  ASoC: OMAP: HDMI: Improve how the display state is verified
+  ASoC: OMAP: HDMI: Expand capabilities of the HDMI DAI
+  ASoC: OMAP: HDMI: Make build config options more generic
+  ASoC: OMAP: HDMI: Make sound card naming more generic
+  ASoC: OMAP: HDMI: Rename sound card driver
+
+ sound/soc/codecs/Kconfig         |    4 +
+ sound/soc/codecs/Makefile        |    2 +
+ sound/soc/codecs/omap-hdmi.c     |   69 +++++++++++
+ sound/soc/omap/Kconfig           |    8 +-
+ sound/soc/omap/Makefile          |    4 +-
+ sound/soc/omap/omap-hdmi-card.c  |   87 ++++++++++++++
+ sound/soc/omap/omap-hdmi.c       |  238 +++++++++++++++++++++++++++++++++++---
+ sound/soc/omap/omap-hdmi.h       |    4 +-
+ sound/soc/omap/omap4-hdmi-card.c |  121 -------------------
+ 9 files changed, 395 insertions(+), 142 deletions(-)
+ create mode 100644 sound/soc/codecs/omap-hdmi.c
+ create mode 100644 sound/soc/omap/omap-hdmi-card.c
+ delete mode 100644 sound/soc/omap/omap4-hdmi-card.c
+
 -- 
 1.7.5.4
-
