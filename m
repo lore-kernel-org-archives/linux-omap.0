@@ -1,60 +1,57 @@
 From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [GIT PULL] misc omap fixes for 3.5
-Date: Thu, 17 May 2012 17:00:55 -0700
-Message-ID: <20120518000055.GI17852@atomide.com>
-References: <CAK=Wgbb8rXxGaSuk1VyoXz60Faek0Hd0=9EpqAAGKTt6V0FWQQ@mail.gmail.com>
+Subject: Re: [PATCH 8/8] gpio/omap: fix missing check in *_runtime_suspend()
+Date: Thu, 17 May 2012 17:10:04 -0700
+Message-ID: <20120518001004.GJ17852@atomide.com>
+References: <1335536018-16004-1-git-send-email-tarun.kanti@ti.com>
+ <1335536018-16004-9-git-send-email-tarun.kanti@ti.com>
+ <87y5oqtpnw.fsf@ti.com>
+ <20120517231251.GH17852@atomide.com>
+ <87mx56s6nz.fsf@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-01-ewr.mailhop.org ([204.13.248.71]:41708 "EHLO
+Received: from mho-01-ewr.mailhop.org ([204.13.248.71]:46747 "EHLO
 	mho-01-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S933549Ab2ERAA6 (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 17 May 2012 20:00:58 -0400
+	with ESMTP id S933088Ab2ERAKI (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 17 May 2012 20:10:08 -0400
 Content-Disposition: inline
-In-Reply-To: <CAK=Wgbb8rXxGaSuk1VyoXz60Faek0Hd0=9EpqAAGKTt6V0FWQQ@mail.gmail.com>
+In-Reply-To: <87mx56s6nz.fsf@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Ohad Ben-Cohen <ohad@wizery.com>
-Cc: linux-arm <linux-arm-kernel@lists.infradead.org>, linux-omap@vger.kernel.org, "Gutierrez, Juan" <jgutierrez@ti.com>
+To: Kevin Hilman <khilman@ti.com>
+Cc: Tarun Kanti DebBarma <tarun.kanti@ti.com>, Santosh Shilimkar <santosh.shilimkar@ti.com>, Grant Likely <grant.likely@secretlab.ca>, linux-omap@vger.kernel.org, "Cousson, Benoit" <b-cousson@ti.com>, linux-arm-kernel@lists.infradead.org
 
-* Ohad Ben-Cohen <ohad@wizery.com> [120516 02:58]:
-> Hi Tony,
+* Kevin Hilman <khilman@ti.com> [120517 17:00]:
 > 
-> Two important fixes from Juan that are necessary to utilize the DSP on
-> OMAP4, and a trivial hwspinlock cleanup.
+> Argh, then $SUBJECT patch here has caused brokeness in multiple ways.
+> It managed to break both runtime suspend and runtime resume at the same
+> time. :(
 > 
-> I tried to keep things as simple as possible, but please tell me if
-> you want this pull request anyway differently (e.g. split to two
-> separate fixes/cleanups requests, use an annotated signed tag, etc..).
+> The change added by this patch to runtime_suspend effectively disables
+> the fix I did in 68942edb09 (gpio/omap: fix wakeups on level-triggered GPIOs)
+> causing the sluggish network problems to reappear, since that GPIO IRQ
+> is no longer causing wakeups.
+>
+> Simple fix is below, which just moves the check added in $SUBJECT patch
+> below the workaround for the edge/level fix.  Can you confirm it works
+> on Zoom3 (applies on gpio/next + my previous fix.)
 
-In general, yes fixes, cleanup, and devel should be all separate.
+Thanks yes having both of your fixes applied fixes the issues I was
+seeing, so for both:
 
-These all look like valid -rc1 fixes for me though, so pulling into
-fixes-omap4-dsp branch and merging into l-o master for testing.
+Tested-by: Tony Lindgren <tony@atomide.com>
+ 
+> I didn't notice the same problem on Overo, but I guess it's because
+> Overo had some enabled non-wakeup GPIOs in the same bank, so it didn't
+> bypass the level-triggered IRQ fix.
+
+Makes sense for why it only appears on some boards.
+ 
+> In the mean time, they're availble in my for_3.5/fixes/gpio-2 branch.
+
+I'll merge that also into l-o master for some more testing before
+the merge window.
 
 Regards,
 
 Tony
- 
-> The following changes since commit d48b97b403d23f6df0b990cee652bdf9a52337a3:
-> 
->   Linux 3.4-rc6 (2012-05-06 15:07:32 -0700)
-> 
-> are available in the git repository at:
->   git://git.kernel.org/pub/scm/linux/kernel/git/ohad/linux.git for-tony
-> 
-> Juan Gutierrez (2):
->       ARM: OMAP: enable mailbox irq per instance
->       ARM: OMAP4: fix irq and clock name for dsp-iommu
-> 
-> Ohad Ben-Cohen (1):
->       ARM: OMAP4: hwspinlocks_init() should be static
-> 
->  arch/arm/mach-omap2/hwspinlock.c |    2 +-
->  arch/arm/mach-omap2/mailbox.c    |    2 --
->  arch/arm/mach-omap2/omap-iommu.c |    6 ++----
->  arch/arm/plat-omap/mailbox.c     |   13 +++++++++----
->  4 files changed, 12 insertions(+), 11 deletions(-)
-> 
-> Thanks,
-> Ohad.
