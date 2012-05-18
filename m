@@ -1,62 +1,54 @@
-From: Ricardo Neri <ricardo.neri@ti.com>
-Subject: [PATCH 09/11] ASoC: OMAP: HDMI: Make build config options more generic
-Date: Fri, 18 May 2012 01:42:41 -0500
-Message-ID: <1337323363-11449-10-git-send-email-ricardo.neri@ti.com>
-References: <1337323363-11449-1-git-send-email-ricardo.neri@ti.com>
+From: "Shilimkar, Santosh" <santosh.shilimkar@ti.com>
+Subject: Re: [PATCH] ARM: OMAP2+: fix gpmc request_irq
+Date: Fri, 18 May 2012 12:33:16 +0530
+Message-ID: <CAMQu2gxQVFRk7FvmOzOkW8LYFYg5f4B_rJ0bsU4yJwN4i6X8_Q@mail.gmail.com>
+References: <1337316183-1203-1-git-send-email-ming.lei@canonical.com>
 Mime-Version: 1.0
-Content-Type: text/plain
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from bear.ext.ti.com ([192.94.94.41]:40221 "EHLO bear.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1759877Ab2ERGnW (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Fri, 18 May 2012 02:43:22 -0400
-In-Reply-To: <1337323363-11449-1-git-send-email-ricardo.neri@ti.com>
+Received: from na3sys009aog107.obsmtp.com ([74.125.149.197]:45845 "EHLO
+	na3sys009aog107.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1754346Ab2ERHDi convert rfc822-to-8bit
+	(ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Fri, 18 May 2012 03:03:38 -0400
+Received: by qafl39 with SMTP id l39so2615729qaf.2
+        for <linux-omap@vger.kernel.org>; Fri, 18 May 2012 00:03:36 -0700 (PDT)
+In-Reply-To: <1337316183-1203-1-git-send-email-ming.lei@canonical.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: broonie@opensource.wolfsonmicro.com, lrg@ti.com
-Cc: x0055901@ti.com, peter.ujfalusi@ti.com, s-guiriec@ti.com, linux-omap@vger.kernel.org, alsa-devel@alsa-project.org, Ricardo Neri <ricardo.neri@ti.com>
+To: Ming Lei <ming.lei@canonical.com>
+Cc: Tony Lindgren <tony@atomide.com>, Russell King <linux@arm.linux.org.uk>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Kevin Hilman <khilman@ti.com>, Afzal Mohammed <afzal@ti.com>
 
-Make Kconfig and Makefile more generic to encompass not only
-OMAP4 but other OMAP processors featuring HDMI.
++ Afzal who has been doing quite a bit of GMPC work recently.
 
-Also, relax the dependency list to depend only on any OMAP processor
-supporting OMAP2_DSS and OMAP4_DSS_HDMI. As HDMI support for
-future OMAP versions is added, the dependency list must change
-accordingly.
+On Fri, May 18, 2012 at 10:13 AM, Ming Lei <ming.lei@canonical.com> wro=
+te:
+> The IRQ52 on OMAP2+ is not a shared interrupt line. If IRQF_SHARED
+> is passed to request_irq and dev_id is set as NULL, request_irq will
+> return -EINVAL.
+>
+GPMC IRQ line can shared between the multiple devices you
+connect on it.
 
-Signed-off-by: Ricardo Neri <ricardo.neri@ti.com>
----
- sound/soc/omap/Kconfig  |    6 +++---
- sound/soc/omap/Makefile |    2 +-
- 2 files changed, 4 insertions(+), 4 deletions(-)
+> This patch just removes the flag of IRQF_SHARED to make the irq
+> registration successful.
+>
+> Cc: Kevin Hilman <khilman@ti.com>
+> Cc: Tony Lindgren <tony@atomide.com>
+> Signed-off-by: Ming Lei <ming.lei@canonical.com>
+> ---
+> =A0arch/arm/mach-omap2/gpmc.c | =A0 =A02 +-
+> =A01 file changed, 1 insertion(+), 1 deletion(-)
+>
+Are you sure it fails ?
+I just tried booting OMAP4 with 3.4-rc4 and don't see the irq
+failure error message. What I am missing ?
 
-diff --git a/sound/soc/omap/Kconfig b/sound/soc/omap/Kconfig
-index 13afb2c..57a2fa7 100644
---- a/sound/soc/omap/Kconfig
-+++ b/sound/soc/omap/Kconfig
-@@ -109,9 +109,9 @@ config SND_OMAP_SOC_OMAP_ABE_TWL6040
- 	  - PandaBoard (4430)
- 	  - PandaBoardES (4460)
- 
--config SND_OMAP_SOC_OMAP4_HDMI
--	tristate "SoC Audio support for Texas Instruments OMAP4 HDMI"
--	depends on SND_OMAP_SOC && OMAP4_DSS_HDMI && OMAP2_DSS && ARCH_OMAP4
-+config SND_OMAP_SOC_OMAP_HDMI
-+	tristate "SoC Audio support for Texas Instruments OMAP HDMI"
-+	depends on SND_OMAP_SOC && OMAP4_DSS_HDMI && OMAP2_DSS
- 	select SND_OMAP_SOC_HDMI
- 	select SND_SOC_OMAP_HDMI_CODEC
- 	select OMAP4_DSS_HDMI_AUDIO
-diff --git a/sound/soc/omap/Makefile b/sound/soc/omap/Makefile
-index 1d656bc..b4ef308 100644
---- a/sound/soc/omap/Makefile
-+++ b/sound/soc/omap/Makefile
-@@ -41,4 +41,4 @@ obj-$(CONFIG_SND_OMAP_SOC_OMAP3_PANDORA) += snd-soc-omap3pandora.o
- obj-$(CONFIG_SND_OMAP_SOC_OMAP3_BEAGLE) += snd-soc-omap3beagle.o
- obj-$(CONFIG_SND_OMAP_SOC_ZOOM2) += snd-soc-zoom2.o
- obj-$(CONFIG_SND_OMAP_SOC_IGEP0020) += snd-soc-igep0020.o
--obj-$(CONFIG_SND_OMAP_SOC_OMAP4_HDMI) += snd-soc-omap4-hdmi.o
-+obj-$(CONFIG_SND_OMAP_SOC_OMAP_HDMI) += snd-soc-omap4-hdmi.o
--- 
-1.7.5.4
-
+Regards
+Santosh
+--
+To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
