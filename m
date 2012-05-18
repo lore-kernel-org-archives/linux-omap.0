@@ -1,69 +1,131 @@
-From: Stephen Warren <swarren@wwwdotorg.org>
-Subject: Re: [PATCH V3 1/2] of: Add generic device tree DMA helpers
-Date: Fri, 18 May 2012 15:07:53 -0600
-Message-ID: <4FB6BA29.6070400@wwwdotorg.org>
-References: <1335820679-28721-1-git-send-email-jon-hunter@ti.com> <201205161942.20296.arnd@arndb.de> <4FB43F69.1070608@wwwdotorg.org> <201205182050.00095.arnd@arndb.de>
+From: Jon Hunter <jon-hunter@ti.com>
+Subject: Re: [PATCH 2/6] arm: omap4: create pmu device via hwmod
+Date: Fri, 18 May 2012 16:09:04 -0500
+Message-ID: <4FB6BA70.6000608@ti.com>
+References: <1336599343-10905-1-git-send-email-jon-hunter@ti.com> <4FAB90E9.30408@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
+Content-Type: text/plain; charset="ISO-8859-1"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from avon.wwwdotorg.org ([70.85.31.133]:58550 "EHLO
-	avon.wwwdotorg.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S967427Ab2ERVH5 (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 18 May 2012 17:07:57 -0400
-In-Reply-To: <201205182050.00095.arnd@arndb.de>
+Received: from comal.ext.ti.com ([198.47.26.152]:39854 "EHLO comal.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S967427Ab2ERVJN (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Fri, 18 May 2012 17:09:13 -0400
+In-Reply-To: <4FAB90E9.30408@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Arnd Bergmann <arnd@arndb.de>
-Cc: Jassi Brar <jaswinder.singh@linaro.org>, Jon Hunter <jon-hunter@ti.com>, Stephen Warren <swarren@nvidia.com>, Benoit Cousson <b-cousson@ti.com>, device-tree <devicetree-discuss@lists.ozlabs.org>, Nicolas Ferre <nicolas.ferre@atmel.com>, Rob Herring <rob.herring@calxeda.com>, Grant Likely <grant.likely@secretlab.ca>, Russell King <linux@arm.linux.org.uk>, linux-omap <linux-omap@vger.kernel.org>, linux-arm <linux-arm-kernel@lists.infradead.org>
+To: "Cousson, Benoit" <b-cousson@ti.com>
+Cc: Ming Lei <ming.lei@canonical.com>, linux-omap <linux-omap@vger.kernel.org>, Will Deacon <will.deacon@arm.com>, Paul Walmsley <paul@pwsan.com>, Kevin Hilman <khilman@ti.com>
 
-On 05/18/2012 02:49 PM, Arnd Bergmann wrote:
-> On Wednesday 16 May 2012, Stephen Warren wrote:
->> Simple case:
+Hi Benoit,
+
+On 05/10/2012 04:56 AM, Cousson, Benoit wrote:
+> Hi Jon & Ming,
+> 
+> On 5/9/2012 11:35 PM, Jon Hunter wrote:
+>> From: Ming Lei<ming.lei@canonical.com>
 >>
->> /* e.g. FIFO TX DMA req - 2 DMACs possible */
->> dma-req-0 = <&dmac1 DMAC1_DMA_REQ_6>;
->> /* e.g. FIFO RX DMA req 1 DMAC possible */
->> dma-req-1 = <&dmac1 DMAC1_DMA_REQ_8>;
+>> The following modules is required to be enabled before configuring
+>> cross trigger interface for enabling pmu irq:
 >>
->> Multiple DMAC case:
+>>          l3_instr, l3_main_3, debugss
 >>
->> /* e.g. FIFO TX DMA req - 2 DMACs possible */
->> dma-req-0 = <&dmac1 DMAC1_DMA_REQ_6 &dmac2 DMA_2_DMA_REQ_8>;
->> /* e.g. FIFO RX DMA req 1 DMAC possible */
->> dma-req-1 = <&dmac1 DMAC1_DMA_REQ_8>;
+>> so build the arm-pmu device via the three hwmods.
 >>
->> Then, when the DMA client calls the standard API to "get DMA channel for
->> my outbound DMA request "n", the core code will kasprintf("dma-req-%d",
->> n); to generate the property name. That's how pinctrl works.
+>> Cc: Ming Lei<ming.lei@canonical.com>
+>> Cc: Will Deacon<will.deacon@arm.com>
+>> Cc: Benoit Cousson<b-cousson@ti.com>
+>> Cc: Paul Walmsley<paul@pwsan.com>
+>> Cc: Kevin Hilman<khilman@ti.com>
 >>
->> Does that seem better?
+>> Signed-off-by: Ming Lei<ming.lei@canonical.com>
+>> Signed-off-by: Will Deacon<will.deacon@arm.com>
+>> Signed-off-by: Jon Hunter<jon-hunter@ti.com>
+>> ---
+>>   arch/arm/mach-omap2/devices.c |   61
+>> ++++++++++++++++++++++++++++++++++++++---
+>>   1 files changed, 57 insertions(+), 4 deletions(-)
+>>
+>> diff --git a/arch/arm/mach-omap2/devices.c
+>> b/arch/arm/mach-omap2/devices.c
+>> index 58682d1..d75b7d3 100644
+>> --- a/arch/arm/mach-omap2/devices.c
+>> +++ b/arch/arm/mach-omap2/devices.c
+>> @@ -423,14 +423,67 @@ static struct platform_device omap_pmu_device = {
+>>       .num_resources    = 1,
+>>   };
+>>
+>> -static void omap_init_pmu(void)
+>> +static struct arm_pmu_platdata omap4_pmu_data;
+>> +static struct omap_device_pm_latency omap_pmu_latency[] = {
+>> +    [0] = {
+>> +        .deactivate_func = omap_device_idle_hwmods,
+>> +        .activate_func   = omap_device_enable_hwmods,
+>> +        .flags         = OMAP_DEVICE_LATENCY_AUTO_ADJUST,
+>> +    },
+>> +};
 > 
-> Yes, that is one way that I suggested at an earlier point. After some
-> discussion, I would use a different syntax for these though, to the exact
-> same effect, writing it as
-> 
-> 
-> 	dmas = <&dmac1 DMAC1_DMA_REQ_6>,  <&dmac2 DMA_2_DMA_REQ_8>,  <&dmac1 DMAC1_DMA_REQ_8>;
-> 	dma-names = "tx", "tx", "rx";
+> You can get rid of that, and use a NULL value during
+> omap_device_build_ss. It will use the default value automatically.
 
-That looks pretty reasonable. One comment below.
+I have removed this now for V2.
 
-> The driver can still request the dma line by name "tx" and the subsystem
-> would pick one out of those with the same name.
+>> +static struct platform_device* __init omap4_init_pmu(void)
+>>   {
+>> -    if (cpu_is_omap24xx())
+>> +    int id = -1;
+>> +    const char *hw;
+>> +    struct platform_device *pd;
+>> +    struct omap_hwmod* oh[3];
+>> +    char *dev_name = "arm-pmu";
+>> +
+>> +    hw = "l3_main_3";
+>> +    oh[0] = omap_hwmod_lookup(hw);
+>> +    if (!oh[0]) {
+>> +        pr_err("Could not look up %s hwmod\n", hw);
+>> +        return NULL;
+>> +    }
+>> +    hw = "l3_instr";
+>> +    oh[1] = omap_hwmod_lookup(hw);
+>> +    if (!oh[1]) {
+>> +        pr_err("Could not look up %s hwmod\n", hw);
+>> +        return NULL;
+>> +    }
+>> +    hw = "debugss";
+>> +    oh[2] = omap_hwmod_lookup(hw);
+>> +    if (!oh[2]) {
+>> +        pr_err("Could not look up %s hwmod\n", hw);
+>> +        return NULL;
+>> +    }
+>> +
+>> +    pd = omap_device_build_ss(dev_name, id, oh, 3,&omap4_pmu_data,
+>> +                sizeof(omap4_pmu_data),
+>> +                omap_pmu_latency,
+>> +                ARRAY_SIZE(omap_pmu_latency), 0);
+>> +    WARN(IS_ERR(pd), "Can't build omap_device for %s.\n",
+>> +                dev_name);
+>> +    return pd;
+>> +}
+>> +static void __init omap_init_pmu(void)
+>> +{
+>> +    if (cpu_is_omap24xx()) {
+>>           omap_pmu_device.resource =&omap2_pmu_resource;
 > 
-> For the majority of cases, we would only need a single dma request line
+> Ideally, OMAP2 and 3 should use the hwmod device creation as well.
 
-Hmm. Many devices have multiple different FIFOs, and hence multiple DMA
-request signals (e.g. Tegra I2S has separate RX and TX FIFO, Tegra
-S/PDIF has 2 FIFOs in each direction). That would require the driver to
-always use get_by_name() to differentiate between 2/4 options for the
-same DMA req or 2/4 different DMA requests. Most other bindings allow
-use of get_by_id() or get_by_name() interchangeably.
+Do you know for OMAP2/3 what hwmods are needed for PMU support? Is it
+just the MPU?
 
-> and could leave out the dma-names property, so when you don't ask for a
-> specific name, you just get any dma line out of the dmas array.
-> 
-> 	Arnd
-> 
+I see two options here for OMAP2/3 ...
 
+1. Add the appropriate PMU interrupts to the MPU HWMOD and use the MPU
+HWMOD to build the pmu device.
+2. Create a new PMU HWMOD for OMAP2/3.
+
+Please note that for 4460, I can get PMU to work without needing the EMU
+PD if I use the PMU interrupts and not CTI. So this really simplifies
+matters for 4460 (and 4470). For 4460 I have created the PMU device by
+just using the MPU HWMOD and adding the PMU interrupts to the MPU HWMOD.
+
+Cheers
+Jon
