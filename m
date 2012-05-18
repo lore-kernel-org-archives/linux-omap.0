@@ -1,75 +1,60 @@
-From: Mark Brown <broonie@opensource.wolfsonmicro.com>
-Subject: Re: [PATCH 00/11] ASoC: OMAP: HDMI: Use DSS audio
- interface and prepare for OMAP5
-Date: Fri, 18 May 2012 17:33:03 +0100
-Message-ID: <20120518163302.GN4039@opensource.wolfsonmicro.com>
-References: <1337323363-11449-1-git-send-email-ricardo.neri@ti.com>
+From: Maxim Podbereznyy <lisarden@gmail.com>
+Subject: Re: tps65910
+Date: Fri, 18 May 2012 19:46:26 +0300
+Message-ID: <CAP3+TEp8mu386GNGMgQsdwy9cDysGvUthPJT1gtRMOKtD_K1Hw@mail.gmail.com>
+References: <CAP3+TErDaA9Sdf2yf9asu1kNqRowTAga6NksVW9j4c+fzi9v=Q@mail.gmail.com>
+	<C8443D0743D26F4388EA172BF4E2A7A93E98DDAD@DBDE01.ent.ti.com>
 Mime-Version: 1.0
-Content-Type: multipart/mixed; boundary="===============5102299398817542644=="
-Return-path: <alsa-devel-bounces@alsa-project.org>
-In-Reply-To: <1337323363-11449-1-git-send-email-ricardo.neri@ti.com>
-List-Unsubscribe: <http://mailman.alsa-project.org/mailman/listinfo/alsa-devel>,
-	<mailto:alsa-devel-request@alsa-project.org?subject=unsubscribe>
-List-Archive: <http://mailman.alsa-project.org/pipermail/alsa-devel>
-List-Post: <mailto:alsa-devel@alsa-project.org>
-List-Help: <mailto:alsa-devel-request@alsa-project.org?subject=help>
-List-Subscribe: <http://mailman.alsa-project.org/mailman/listinfo/alsa-devel>,
-	<mailto:alsa-devel-request@alsa-project.org?subject=subscribe>
-Sender: alsa-devel-bounces@alsa-project.org
-Errors-To: alsa-devel-bounces@alsa-project.org
-To: Ricardo Neri <ricardo.neri@ti.com>
-Cc: x0055901@ti.com, alsa-devel@alsa-project.org, peter.ujfalusi@ti.com, s-guiriec@ti.com, linux-omap@vger.kernel.org, lrg@ti.com
+Content-Type: text/plain; charset=ISO-8859-1
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from mail-lpp01m010-f46.google.com ([209.85.215.46]:56447 "EHLO
+	mail-lpp01m010-f46.google.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S965120Ab2ERQq2 (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>);
+	Fri, 18 May 2012 12:46:28 -0400
+Received: by lahd3 with SMTP id d3so2217643lah.19
+        for <linux-omap@vger.kernel.org>; Fri, 18 May 2012 09:46:26 -0700 (PDT)
+In-Reply-To: <C8443D0743D26F4388EA172BF4E2A7A93E98DDAD@DBDE01.ent.ti.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: "Mohammed, Afzal" <afzal@ti.com>
+Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
 
+Hi Mohammed!
 
---===============5102299398817542644==
-Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="K4LMwn8CgX2KMboP"
-Content-Disposition: inline
+Thanks a lot! This code certainly can be used as a reference. I just
+wonder why it was not possible to rewrite tps65910 driver to comply
+with current twl interface? For example tps65910 API for the
+Craneboard is 100% the same as for OMAP3 and therefore porting
+features from Beagleboard to any board with tps65910 would be like
+1-2-3. am33xx BSP is supported by TI, omap3evm is supported by TI,
+though both BSPs have absolutely different PMIC API in spite of they
+implement the same features..
 
+Max
 
---K4LMwn8CgX2KMboP
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
-
-On Fri, May 18, 2012 at 01:42:32AM -0500, Ricardo Neri wrote:
-> Hello,
->=20
-> The ASoC HDMI codec used to be embedded in the DSS HDMI driver. In order
-> to give the OMAP HDMI code a more logical arrangement and to remove
-
-Acked-by: Mark Brown <broonie@opensource.wolfsonmicro.com>
-
---K4LMwn8CgX2KMboP
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: Digital signature
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.4.12 (GNU/Linux)
-
-iQIcBAEBAgAGBQJPtnm4AAoJEBus8iNuMP3debAP+QHnEMtLm4BSb2MV1qjFWXHy
-xZWb9MSxzXlrbtWeNQMrFgWiTR2nod30DD+CFcVP4JgvygZ03NN10IovLvUTuJ9q
-HaEo+tnks1pfRh3fMV1xauw07owHsaoSlisX2mqDJu3Lw1MN9gQWtRUJtcM1prv/
-CXeLLnX0Y6FHNl9QPjL+g6NEixpX2M55SvfcRNikC5VyKesh+o8bkaSog4R/xuuI
-qJWadCYpPQ3vzMT4kLwYUHqgKrWDHFxIDkAyTDo/txKeRHVinyMa8aW95Jncroh1
-Zgzo6qgUher1mmhyRv8zUL+fkH+3Ozl5RQl+V5hnvrjP+bxDMGqD+pfiVuoPEgXK
-FCqONi8f2YygKX33R0q5zLGcC1bHkEEvzeZiJCtVNOSw78MNlT1gGR2K08s4oErA
-YsbbJ49P9fi0YM70UNE7SREFE6sEsuduSnyNc7LE99+d9/FwgZdiQ6km4t+4/TC/
-qh4GcgdO1/KnUzg3JoXSwBlIWEiZTdcoHUttGcO5su2HGVRc+RQACcNeVeNnXXXQ
-vj0RNfkm5eHOkNsCueN0CGFyRHe/JaEa3pRZIWLKiaEOctAeM5ddZhONYPzYFcR9
-pPTZ3YGQbjzCR3IsctOtp2HQpSffL7Fl1W0aHtXk0Po8Cl3J0dcQ44yHSfgqX104
-Ma+Bxo/XO98820ptYw+U
-=3D1U
------END PGP SIGNATURE-----
-
---K4LMwn8CgX2KMboP--
-
---===============5102299398817542644==
-Content-Type: text/plain; charset="us-ascii"
-MIME-Version: 1.0
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
-
-
---===============5102299398817542644==--
+2012/5/18 Mohammed, Afzal <afzal@ti.com>:
+> Hi Maxim,
+>
+> On Fri, May 18, 2012 at 13:23:53, Maxim Podbereznyy wrote:
+>> Hey guys!
+>>
+>> Who knows how to initialize and use tps65910 driver in linux with
+>> am3517? I designed a board using the Craneboard schematic as a
+>> reference. Mistral provides the kernel 2.6.32 and it works fine. Now
+>> I'm porting the BSP to kernel 3.0.17 and don't know how to implement
+>> voltage regulator features with the tps65910 driver (it appeared in
+>> kernel 3.0 ) under kernel 3.0 environment.
+>>
+>> I'm watching board-omap3beagle.c as a reference and tps65910.c driver
+>> and can't find any correlation. Any suggestions?
+>>
+>> Any help is appreciated!
+>
+> AM335X EVM (support not yet in mainline) works with tps65910, in case AM335X
+> release helps you,
+>
+> git://arago-project.org/git/projects/linux-am33x.git v3.2_AM335xPSP_04.06.00.07
+>
+> Regards
+> Afzal
