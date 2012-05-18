@@ -1,55 +1,43 @@
-From: Ming Lei <ming.lei@canonical.com>
-Subject: Re: [PATCH] ARM: OMAP2+: fix gpmc request_irq
-Date: Fri, 18 May 2012 17:04:15 +0800
-Message-ID: <CACVXFVOA=EDJR6HqBRRegr13nTnNdjGSvQUwek2jbu41C5euWA@mail.gmail.com>
-References: <1337316183-1203-1-git-send-email-ming.lei@canonical.com>
-	<CAMQu2gxQVFRk7FvmOzOkW8LYFYg5f4B_rJ0bsU4yJwN4i6X8_Q@mail.gmail.com>
-	<C8443D0743D26F4388EA172BF4E2A7A93E98DCBD@DBDE01.ent.ti.com>
-	<CAMQu2gzhG4fm-B8mhCkrUjMEkkKR4yDZokvnkChLux8voLUnbw@mail.gmail.com>
-	<CACVXFVMm5iasFAaBcFhfZskHFwMXEoO2_riP1renR8a0tP_PNg@mail.gmail.com>
-	<CAMQu2gz9SGDwE3p1oREb8h+1RUpd1h6yOEJCRJ52PCSY1w0=yQ@mail.gmail.com>
+From: "Mohammed, Afzal" <afzal@ti.com>
+Subject: RE: tps65910
+Date: Fri, 18 May 2012 09:12:06 +0000
+Message-ID: <C8443D0743D26F4388EA172BF4E2A7A93E98DDAD@DBDE01.ent.ti.com>
+References: <CAP3+TErDaA9Sdf2yf9asu1kNqRowTAga6NksVW9j4c+fzi9v=Q@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from youngberry.canonical.com ([91.189.89.112]:39779 "EHLO
-	youngberry.canonical.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S967457Ab2ERJER (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 18 May 2012 05:04:17 -0400
-Received: from mail-pz0-f46.google.com ([209.85.210.46])
-	by youngberry.canonical.com with esmtpsa (TLS1.0:RSA_ARCFOUR_MD5:16)
-	(Exim 4.71)
-	(envelope-from <ming.lei@canonical.com>)
-	id 1SVJ6e-0006HZ-TC
-	for linux-omap@vger.kernel.org; Fri, 18 May 2012 09:04:17 +0000
-Received: by dady13 with SMTP id y13so3578313dad.19
-        for <linux-omap@vger.kernel.org>; Fri, 18 May 2012 02:04:15 -0700 (PDT)
-In-Reply-To: <CAMQu2gz9SGDwE3p1oREb8h+1RUpd1h6yOEJCRJ52PCSY1w0=yQ@mail.gmail.com>
+Received: from comal.ext.ti.com ([198.47.26.152]:57515 "EHLO comal.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S967112Ab2ERJML convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 18 May 2012 05:12:11 -0400
+In-Reply-To: <CAP3+TErDaA9Sdf2yf9asu1kNqRowTAga6NksVW9j4c+fzi9v=Q@mail.gmail.com>
+Content-Language: en-US
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "Shilimkar, Santosh" <santosh.shilimkar@ti.com>
-Cc: "Mohammed, Afzal" <afzal@ti.com>, Tony Lindgren <tony@atomide.com>, Russell King <linux@arm.linux.org.uk>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, "Hilman, Kevin" <khilman@ti.com>
+To: Maxim Podbereznyy <lisarden@gmail.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
 
-On Fri, May 18, 2012 at 3:43 PM, Shilimkar, Santosh
-<santosh.shilimkar@ti.com> wrote:
+Hi Maxim,
 
->> Is the gpmc a shared interrupt line? SHARED is not needed at all for
->> non shared interrupt line in hardware.
->>
-> The line is shared.
+On Fri, May 18, 2012 at 13:23:53, Maxim Podbereznyy wrote:
+> Hey guys!
+> 
+> Who knows how to initialize and use tps65910 driver in linux with
+> am3517? I designed a board using the Craneboard schematic as a
+> reference. Mistral provides the kernel 2.6.32 and it works fine. Now
+> I'm porting the BSP to kernel 3.0.17 and don't know how to implement
+> voltage regulator features with the tps65910 driver (it appeared in
+> kernel 3.0 ) under kernel 3.0 environment.
+> 
+> I'm watching board-omap3beagle.c as a reference and tps65910.c driver
+> and can't find any correlation. Any suggestions?
+> 
+> Any help is appreciated!
 
-If so, dev_id should be added. But sorry, could you let me know
-what other interrupt sources are shared with the line?
+AM335X EVM (support not yet in mainline) works with tps65910, in case AM335X
+release helps you, 
 
->From 17.3.2 "Interrupt Requests to Cortex-A9 MPU INTC" of OMAP4
-TRM, GPMC_IRQ is the only source of MA_IRQ_20 for Cortex-A9 MPU
-INTC.  Even though GPMC_IRQ is connected with D_IRQ_59(DSP INTC)
-and MA_IRQ_20(MPU INTC), this still means it is not a shared line for
-MPU INTC.
+git://arago-project.org/git/projects/linux-am33x.git v3.2_AM335xPSP_04.06.00.07
 
-Also looks the above is similar for OMAP3.
-
-Correct me if the above is wrong.
-
-Thanks,
---
-Ming Lei
+Regards
+Afzal
