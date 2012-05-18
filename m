@@ -1,63 +1,108 @@
 From: Nishanth Menon <nm@ti.com>
-Subject: [PATCH] ARM: OMAP: PM: Lock clocks list while generating summary
-Date: Fri, 18 May 2012 12:56:39 -0500
-Message-ID: <1337363799-22085-1-git-send-email-nm@ti.com>
+Subject: [PATCH] ARM: OMAP3+: PM: VP: ensure VP is idle before disable
+Date: Fri, 18 May 2012 13:12:55 -0500
+Message-ID: <1337364775-29597-1-git-send-email-nm@ti.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aog108.obsmtp.com ([74.125.149.199]:58547 "EHLO
-	na3sys009aog108.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S965082Ab2ERR4o (ORCPT
+Received: from na3sys009aog110.obsmtp.com ([74.125.149.203]:55634 "EHLO
+	na3sys009aog110.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1758661Ab2ERSNB (ORCPT
 	<rfc822;linux-omap@vger.kernel.org>);
-	Fri, 18 May 2012 13:56:44 -0400
-Received: by yhjj56 with SMTP id j56so3352097yhj.6
-        for <linux-omap@vger.kernel.org>; Fri, 18 May 2012 10:56:43 -0700 (PDT)
+	Fri, 18 May 2012 14:13:01 -0400
+Received: by yenl6 with SMTP id l6so3153511yen.9
+        for <linux-omap@vger.kernel.org>; Fri, 18 May 2012 11:12:59 -0700 (PDT)
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Paul Walmsley <paul@pwsan.com>
-Cc: Todd Poynor <toddpoynor@google.com>, Tony Lindgren <tony@atomide.com>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Nishanth Menon <nm@ti.com>
+To: Kevin Hilman <khilman@ti.com>
+Cc: Wenbiao Wang <wwang@ti.com>, Tony Lindgren <tony@atomide.com>, "open list:OMAP SUPPORT" <linux-omap@vger.kernel.org>, "moderated list:ARM PORT" <linux-arm-kernel@lists.infradead.org>, Nishanth Menon <nm@ti.com>
 
-From: Todd Poynor <toddpoynor@google.com>
+From: Wenbiao Wang <wwang@ti.com>
 
-commit a53025724052b2b1edbc982a4a248784638f563d
-(OMAP: Add debugfs node to show the summary of all clocks)
+Voltage Processor state machine transition to disable need to
+occur from IDLE state. When we transition OPP in a functioning
+system, the call sequence for an OPP transition is as follows:
+omap_sr_disable
+      -> sr class 3 disable
+           -> vp disable
+           -> sr disable
+forceupdate to voltage/frequency scale depending on which OPP
+we are transitioning to.
 
-Introduced clock summary, however, we are interested in seeing
-snapshot of the clock state, not in dynamically changing clock
-configurations as the data provided by clock summary will then be
-useless for debugging configuration issues. So, hold the common lock
-when dumping the clock summary.
+If we hit a critical timing window where SR had commanded VP
+for a voltage transition and VP is in the middle of operating
+on that command, it needs to go through a few states before
+going to update state(where it actually sends the command to
+VC). Initial view of h/w owners is that the state disable of VP
+is expected to be sampled for the next transition.
 
-Cc: Paul Walmsley <paul@pwsan.com>
+Instead, to be on a safer side, we ensure that the valid states
+of the VP state machine is diligently followed by software. This
+can be done by waiting for VP to be in idle  prior to disabling
+VP.
+
+As part of this change, increase timeout for VP idle check to
+improbable 500uSec to be certain that system is indeed unable
+to continue before crashing out with error(worst case expectancy
+remains the same 3-100uSec depending on when we caught VP).
+
 Cc: Tony Lindgren <tony@atomide.com>
-Cc: linux-omap@vger.kernel.org
-Cc: linux-arm-kernel@lists.infradead.org
+Cc: Kevin Hilman <khilman@ti.com>
+Cc: linux-omap@vger.kernel.org (open list:OMAP SUPPORT)
+Cc: linux-arm-kernel@lists.infradead.org (moderated list:ARM PORT)
 
-[nm@ti.com: added commit message]
+[nm@ti.com: port from android]
 Signed-off-by: Nishanth Menon <nm@ti.com>
-Signed-off-by: Todd Poynor <toddpoynor@google.com>
+Signed-off-by: Wenbiao Wang <wwang@ti.com>
 ---
- arch/arm/plat-omap/clock.c |    2 ++
- 1 file changed, 2 insertions(+)
+ arch/arm/mach-omap2/vp.c |   15 +++++++++++++--
+ arch/arm/mach-omap2/vp.h |    2 +-
+ 2 files changed, 14 insertions(+), 3 deletions(-)
 
-diff --git a/arch/arm/plat-omap/clock.c b/arch/arm/plat-omap/clock.c
-index 62ec5c4..706b7e2 100644
---- a/arch/arm/plat-omap/clock.c
-+++ b/arch/arm/plat-omap/clock.c
-@@ -461,6 +461,7 @@ static int clk_dbg_show_summary(struct seq_file *s, void *unused)
- 	struct clk *c;
- 	struct clk *pa;
- 
-+	mutex_lock(&clocks_mutex);
- 	seq_printf(s, "%-30s %-30s %-10s %s\n",
- 		"clock-name", "parent-name", "rate", "use-count");
- 
-@@ -469,6 +470,7 @@ static int clk_dbg_show_summary(struct seq_file *s, void *unused)
- 		seq_printf(s, "%-30s %-30s %-10lu %d\n",
- 			c->name, pa ? pa->name : "none", c->rate, c->usecount);
+diff --git a/arch/arm/mach-omap2/vp.c b/arch/arm/mach-omap2/vp.c
+index f95c1ba..925d869 100644
+--- a/arch/arm/mach-omap2/vp.c
++++ b/arch/arm/mach-omap2/vp.c
+@@ -262,6 +262,17 @@ void omap_vp_disable(struct voltagedomain *voltdm)
+ 		return;
  	}
-+	mutex_unlock(&clocks_mutex);
  
- 	return 0;
- }
++	/*
++	 * Wait for VP idle Typical latency is <2us. Maximum latency is ~100us
++	 * Depending on if we catch VP in the middle of an SR operation.
++	 */
++	omap_test_timeout((voltdm->read(vp->vstatus)),
++			  VP_IDLE_TIMEOUT, timeout);
++
++	if (timeout >= VP_IDLE_TIMEOUT)
++		pr_warning("%s: vdd_%s idle timedout before disable\n",
++			   __func__, voltdm->name);
++
+ 	/* Disable VP */
+ 	vpconfig = voltdm->read(vp->vpconfig);
+ 	vpconfig &= ~vp->common->vpconfig_vpenable;
+@@ -274,8 +285,8 @@ void omap_vp_disable(struct voltagedomain *voltdm)
+ 			  VP_IDLE_TIMEOUT, timeout);
+ 
+ 	if (timeout >= VP_IDLE_TIMEOUT)
+-		pr_warning("%s: vdd_%s idle timedout\n",
+-			__func__, voltdm->name);
++		pr_warning("%s: vdd_%s idle timedout after disable\n",
++			   __func__, voltdm->name);
+ 
+ 	vp->enabled = false;
+ 
+diff --git a/arch/arm/mach-omap2/vp.h b/arch/arm/mach-omap2/vp.h
+index 7c155d2..0abf895 100644
+--- a/arch/arm/mach-omap2/vp.h
++++ b/arch/arm/mach-omap2/vp.h
+@@ -31,7 +31,7 @@ struct voltagedomain;
+ #define OMAP4_VP_VDD_MPU_ID 2
+ 
+ /* XXX document */
+-#define VP_IDLE_TIMEOUT		200
++#define VP_IDLE_TIMEOUT		500
+ #define VP_TRANXDONE_TIMEOUT	300
+ 
+ /**
 -- 
 1.7.9.5
 
