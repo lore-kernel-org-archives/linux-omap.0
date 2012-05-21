@@ -1,74 +1,107 @@
 From: Tero Kristo <t-kristo@ti.com>
-Subject: Re: [PATCHv2 04/19] ARM: OMAP4: PM: save/restore all DPLL settings
- in OFF mode
-Date: Mon, 21 May 2012 12:01:18 +0300
-Message-ID: <1337590878.28274.0.camel@sokoban>
+Subject: Re: [PATCHv2 06/19] ARM: OMAP4: PM: Add SAR backup support towards
+ device OFF
+Date: Mon, 21 May 2012 12:07:38 +0300
+Message-ID: <1337591258.28274.2.camel@sokoban>
 References: <1336990730-26892-1-git-send-email-t-kristo@ti.com>
-	 <1336990730-26892-5-git-send-email-t-kristo@ti.com> <87d363928g.fsf@ti.com>
-	 <CAMQu2gw5myvyvM8x225KnN59vEYBYLBiEsvML8RAoE0t+RrbYA@mail.gmail.com>
-	 <CAMQu2gywor2o+g8Fn80ogbTtEZPSXM74M65GsO2zH44tg-W7gQ@mail.gmail.com>
-	 <87mx56227d.fsf@ti.com>
+	 <1336990730-26892-7-git-send-email-t-kristo@ti.com> <87aa177my3.fsf@ti.com>
+	 <CAMQu2gznJ0q-Eqevh9dWn+vw69to91kfFG6hYDvTbGj3zwT0FQ@mail.gmail.com>
+	 <87aa1621yv.fsf@ti.com>
+	 <CAMQu2gwgfsxZ67OeDMK4_Z0phPxuiSMA9oiJ63cz1nPiOBA+jg@mail.gmail.com>
 Reply-To: <t-kristo@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="UTF-8"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from bear.ext.ti.com ([192.94.94.41]:43602 "EHLO bear.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S932141Ab2EUJBc (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Mon, 21 May 2012 05:01:32 -0400
-In-Reply-To: <87mx56227d.fsf@ti.com>
+Received: from devils.ext.ti.com ([198.47.26.153]:33733 "EHLO
+	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S932256Ab2EUJHo (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 21 May 2012 05:07:44 -0400
+In-Reply-To: <CAMQu2gwgfsxZ67OeDMK4_Z0phPxuiSMA9oiJ63cz1nPiOBA+jg@mail.gmail.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Kevin Hilman <khilman@ti.com>
-Cc: "Shilimkar, Santosh" <santosh.shilimkar@ti.com>, linux-omap@vger.kernel.org, paul@pwsan.com, linux-arm-kernel@lists.infradead.org, Rajendra Nayak <rnayak@ti.com>, Nishanth Menon <nm@ti.com>
+To: "Shilimkar, Santosh" <santosh.shilimkar@ti.com>
+Cc: Kevin Hilman <khilman@ti.com>, linux-omap@vger.kernel.org, paul@pwsan.com, linux-arm-kernel@lists.infradead.org
 
-On Thu, 2012-05-17 at 09:37 -0700, Kevin Hilman wrote:
-> "Shilimkar, Santosh" <santosh.shilimkar@ti.com> writes:
-> 
-> > On Thu, May 17, 2012 at 12:34 PM, Shilimkar, Santosh
-> > <santosh.shilimkar@ti.com> wrote:
-> >> On Thu, May 17, 2012 at 4:12 AM, Kevin Hilman <khilman@ti.com> wrote:
+On Fri, 2012-05-18 at 11:23 +0530, Shilimkar, Santosh wrote:
+> On Thu, May 17, 2012 at 10:12 PM, Kevin Hilman <khilman@ti.com> wrote:
+> > "Shilimkar, Santosh" <santosh.shilimkar@ti.com> writes:
+> >
+> >> On Thu, May 17, 2012 at 4:28 AM, Kevin Hilman <khilman@ti.com> wrote:
 > >>> Tero Kristo <t-kristo@ti.com> writes:
 > >>>
-> >>>> From: Rajendra Nayak <rnayak@ti.com>
+> >>>> From: Santosh Shilimkar <santosh.shilimkar@ti.com>
 > >>>>
-> >>>> SAR/ROM code restores only CORE DPLL to its original state
-> >>>> post wakeup from OFF mode.
-> >>>> The rest of the DPLL's in OMAP4 platform (MPU/IVA/ABE/USB/PER)
-> >>>> are saved and restored here during an OFF transition.
+> >>>> The SAR RAM is maintained during Device OFF mode.
+> >>>
+> >>> so why is this patch bothering to save and restore it?
+> >>>
+> >> SAR RAM is maintained(not powered down) but somebody needs to
+> >> feel the contents which will be preserved :-)
+> >>
+> >>> -ECONFUSED
+> >>>
+> >>>> The register layout
+> >>>> is fixed in SAR ROM. SAR is split into 4 banks with different
+> >>>> privilege accesses based on device type
 > >>>>
-> >>>> [nm@ti.com: minor cleanups]
-> >>>> Signed-off-by: Nishanth Menon <nm@ti.com>
-> >>>> Signed-off-by: Rajendra Nayak <rnayak@ti.com>
-> >>>> Signed-off-by: Santosh Shilimkar <santosh.shilimkar@ti.com>
-> >>>> Signed-off-by: Tero Kristo <t-kristo@ti.com>
+> >>>>  ---------------------------------------------------------------
+> >>>>  Access mode          Bank    Address Range
+> >>>>  ---------------------------------------------------------------
+> >>>>  HS/GP : Public               1       0x4A32_6000 - 0x4A32_6FFF (4kB)
+> >>>>  HS/GP : Public               2       0x4A32_7000 - 0x4A32_73FF (1kB)
+> >>>>
+> >>>>  HS/EMU : Secured
+> >>>>  GP : Public          3       0x4A32_8000 - 0x4A32_87FF (2kB)
+> >>>>
+> >>>>  HS/GP :Secure
+> >>>>  write once.          4       0x4A32_9000 - 0x4A32_93FF (1kB)
+> >>>>  ---------------------------------------------------------------
+> >>>>
+> >>>> The save process is done entirely by software and restore is done by
+> >>>> hardware using the auto-restore feature. The restore feature is enabled
+> >>>> by default and cannot be disabled. The software must save the data
+> >>>> to be restored in a dedicated location in SAR RAM.
 > >>>
 > >>> Some general comments:
 > >>>
-> >>> - the register dump/print doesn't belong here.  If needed, should be a
-> >>>  debug feature if needed.
+> >>> - can the cluster PM notifier be used for the save path?
 > >>>
-> >>> - Rather than hooking into omap4_enter_lowpower(), should use
-> >>>  the cluster PM enter/exit notifier chain.
+> >> Nope. This is for device OFF only case. CPU Cluster state as such
+> >> has no dependency.
+> >
+> > Yeah, I see now.  I like your idea of a device-off notifier chain
+> > modeled on the CPU PM notifier chain.
+> >
+> >>> - This patch adds lots of data that is immediately removed by the next
+> >>>  patch.  Probably the two just need to be combined.
 > >>>
-> >> This is again specific to device OFF only and not related to CPU
-> >> cluster state as such. So I don't think notifiers should be used here.
-> >>
-> >> O.w even when we attempt just MPU OSWR C-state, all these functions will
-> >> get called in notifier chain.
-> >>
-> > Just a thought, we can have a separate notifier chain for device OFF. It can
-> > allow use to get rid of 'enable_off_mode" kind of flags and can be
-> > used by many drivers too.
-> 
-> Yes, I like this idea.
-> 
-> It allows a much cleaner collection of all the activities needed for
-> device off.
+> >> iormap() hunk from this patch can be completely dropped since
+> >> it is getting fixed in next patch. Other infrastructure is maintained.
+> >
+> > Look again at how much stuff is deleted in the next patch that is added
+> > in this patch, and think about how a reviewer is supposed to follow that
+> > easily.
+> >
+> OK. With me. Actually with proposed split of further patch, things can
+> be sorted out in different patches quite well.
 
-I can just read the device next state off in the notifier func.
+I'll take a look if I'll merge these patches completely or modify the
+contents. In some work version I had, this patch was completely merged
+with the next.
+
+> 
+> >>> - BUG_ON() should not be used unless there is absolutely no recovery
+> >>>  path, since it casues a full kernel panic.   Instead, some error
+> >>>  recovery should be added.
+> >>>
+> >> WARN_ON should suffice.
+> >
+> > Not really.  Error recovery should be added.
+> >
+> Agree
+
+Will fix that also.
 
 -Tero
-
 
