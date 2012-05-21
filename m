@@ -1,142 +1,143 @@
-From: "Cousson, Benoit" <b-cousson@ti.com>
-Subject: Re: [PATCH 6/9] ARM: OMAP2+: Fix external clock support for dmtimers
-Date: Mon, 21 May 2012 18:58:21 +0200
-Message-ID: <4FBA742D.6020800@ti.com>
-References: <1337124956-20133-1-git-send-email-jon-hunter@ti.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset="ISO-8859-1"; format=flowed
-Content-Transfer-Encoding: 7bit
+From: Ohad Ben-Cohen <ohad@wizery.com>
+Subject: [PATCH] iommu/core: pass a user-provided token to fault handlers
+Date: Mon, 21 May 2012 20:20:05 +0300
+Message-ID: <1337620805-30217-1-git-send-email-ohad@wizery.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from comal.ext.ti.com ([198.47.26.152]:54305 "EHLO comal.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752089Ab2EURDa (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Mon, 21 May 2012 13:03:30 -0400
-In-Reply-To: <1337124956-20133-1-git-send-email-jon-hunter@ti.com>
+Received: from mail-we0-f174.google.com ([74.125.82.174]:39112 "EHLO
+	mail-we0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754805Ab2EURUe (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 21 May 2012 13:20:34 -0400
+Received: by weyu7 with SMTP id u7so3334141wey.19
+        for <linux-omap@vger.kernel.org>; Mon, 21 May 2012 10:20:33 -0700 (PDT)
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Jon Hunter <jon-hunter@ti.com>
-Cc: linux-omap <linux-omap@vger.kernel.org>, Tony Lindgren <tony@atomide.com>
+To: iommu@lists.linux-foundation.org
+Cc: linux-omap@vger.kernel.org, Joerg Roedel <Joerg.Roedel@amd.com>, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org, Ohad Ben-Cohen <ohad@wizery.com>, Fernando Guzman Lugo <fernando.lugo@ti.com>
 
-Hi Jon,
+Sometimes a single IOMMU user may have to deal with several
+different IOMMU devices (e.g. remoteproc).
 
-On 5/16/2012 1:35 AM, Jon Hunter wrote:
-> From: Jon Hunter<jon-hunter@ti.com>
->
-> Currently, the dmtimer determines whether an timer can support an external
-> clock source (sys_altclk) for driving the timer by the IP version. Only
-> OMAP24xx devices can support an external clock source, but the IP version
-> between OMAP24xx and OMAP3xxx is common and so this incorrectly indicates
-> that OMAP3 devices can use an external clock source.
->
-> Rather than use the IP version, use the OMAP_TIMER_HAS_ALTCLK flag added
-> to the HWMOD timer device attributes. By doing this, this allows us to
-> eliminate the "timer_ip_version" variable passed as part of the platform data.
+When an IOMMU fault happens, such users have to regain their
+context in order to deal with the fault.
 
-I do not think this is the right way to handle that. The timer IP itself 
-does have only one input clock.
-This is the mux before that clock that will have several inputs 
-depending on the SoC revision.
-So this is purely PRCM stuff and has nothing to do with the timer IP itself.
+Users can't use the private fields of neither the iommu_domain nor
+the IOMMU device, because those are already used by the IOMMU core
+and low level driver (respectively).
 
-The OMAP_TIMER_HAS_ALTCLK is thus not a timer IP information and cannot 
-be stored inside timer hwmod.
+This patch just simply allows users to pass a private token (most
+notably their own context pointer) to iommu_set_fault_handler(),
+and then makes sure it is provided back to the users whenever
+an IOMMU fault happens.
 
-In fact, if the alt clock is there the "alt_clk" alias will be there and 
-thus you can use the clk_get(dev, "alt_clk") to figure out if the clock 
-is there or not.
+The patch also adopts remoteproc to the new fault handling
+interface, but the real functionality using this (recovery of
+remote processors) will only be added later in a subsequent patch
+set.
 
+Cc: Fernando Guzman Lugo <fernando.lugo@ti.com>
+Signed-off-by: Ohad Ben-Cohen <ohad@wizery.com>
+---
+ drivers/iommu/iommu.c                |    5 ++++-
+ drivers/remoteproc/remoteproc_core.c |    4 ++--
+ include/linux/iommu.h                |   10 ++++++----
+ 3 files changed, 12 insertions(+), 7 deletions(-)
 
-Regards,
-Benoit
-
-
-> We can also remove the timer IP version from the HWMOD data because the dmtimer
-> driver uses the TIDR register to determine the IP version.
->
-> Signed-off-by: Jon Hunter<jon-hunter@ti.com>
-> ---
->   arch/arm/mach-omap2/omap_hwmod_2xxx_ipblock_data.c |    1 -
->   arch/arm/mach-omap2/omap_hwmod_3xxx_data.c         |    2 --
->   arch/arm/mach-omap2/timer.c                        |    3 +--
->   arch/arm/plat-omap/include/plat/dmtimer.h          |    7 -------
->   4 files changed, 1 insertions(+), 12 deletions(-)
->
-> diff --git a/arch/arm/mach-omap2/omap_hwmod_2xxx_ipblock_data.c b/arch/arm/mach-omap2/omap_hwmod_2xxx_ipblock_data.c
-> index 4ecb2e8..de8442c 100644
-> --- a/arch/arm/mach-omap2/omap_hwmod_2xxx_ipblock_data.c
-> +++ b/arch/arm/mach-omap2/omap_hwmod_2xxx_ipblock_data.c
-> @@ -68,7 +68,6 @@ static struct omap_hwmod_class_sysconfig omap2xxx_timer_sysc = {
->   struct omap_hwmod_class omap2xxx_timer_hwmod_class = {
->   	.name	= "timer",
->   	.sysc	=&omap2xxx_timer_sysc,
-> -	.rev	= OMAP_TIMER_IP_VERSION_1,
->   };
->
->   /*
-> diff --git a/arch/arm/mach-omap2/omap_hwmod_3xxx_data.c b/arch/arm/mach-omap2/omap_hwmod_3xxx_data.c
-> index 7b33094..0ea53bc 100644
-> --- a/arch/arm/mach-omap2/omap_hwmod_3xxx_data.c
-> +++ b/arch/arm/mach-omap2/omap_hwmod_3xxx_data.c
-> @@ -129,7 +129,6 @@ static struct omap_hwmod_class_sysconfig omap3xxx_timer_1ms_sysc = {
->   static struct omap_hwmod_class omap3xxx_timer_1ms_hwmod_class = {
->   	.name = "timer",
->   	.sysc =&omap3xxx_timer_1ms_sysc,
-> -	.rev = OMAP_TIMER_IP_VERSION_1,
->   };
->
->   static struct omap_hwmod_class_sysconfig omap3xxx_timer_sysc = {
-> @@ -145,7 +144,6 @@ static struct omap_hwmod_class_sysconfig omap3xxx_timer_sysc = {
->   static struct omap_hwmod_class omap3xxx_timer_hwmod_class = {
->   	.name = "timer",
->   	.sysc =&omap3xxx_timer_sysc,
-> -	.rev =  OMAP_TIMER_IP_VERSION_1,
->   };
->
->   /* secure timers dev attribute */
-> diff --git a/arch/arm/mach-omap2/timer.c b/arch/arm/mach-omap2/timer.c
-> index d8a5dc3..cfc5781 100644
-> --- a/arch/arm/mach-omap2/timer.c
-> +++ b/arch/arm/mach-omap2/timer.c
-> @@ -418,7 +418,7 @@ static int omap2_dm_timer_set_src(struct platform_device *pdev, int source)
->   		break;
->
->   	case OMAP_TIMER_SRC_EXT_CLK:
-> -		if (pdata->timer_ip_version == OMAP_TIMER_IP_VERSION_1) {
-> +		if (pdata->timer_capability&  OMAP_TIMER_HAS_ALTCLK) {
->   			parent_name = "alt_ck";
->   			break;
->   		}
-> @@ -498,7 +498,6 @@ static int __init omap_timer_init(struct omap_hwmod *oh, void *unused)
->   	sscanf(oh->name, "timer%2d",&id);
->
->   	pdata->set_timer_src = omap2_dm_timer_set_src;
-> -	pdata->timer_ip_version = oh->class->rev;
->
->   	if (timer_dev_attr)
->   		pdata->timer_capability = timer_dev_attr->timer_capability;
-> diff --git a/arch/arm/plat-omap/include/plat/dmtimer.h b/arch/arm/plat-omap/include/plat/dmtimer.h
-> index 2ce1e4a..2c5c155 100644
-> --- a/arch/arm/plat-omap/include/plat/dmtimer.h
-> +++ b/arch/arm/plat-omap/include/plat/dmtimer.h
-> @@ -55,12 +55,6 @@
->   #define OMAP_TIMER_TRIGGER_OVERFLOW		0x01
->   #define OMAP_TIMER_TRIGGER_OVERFLOW_AND_COMPARE	0x02
->
-> -/*
-> - * IP revision identifier so that Highlander IP
-> - * in OMAP4 can be distinguished.
-> - */
-> -#define OMAP_TIMER_IP_VERSION_1                        0x1
-> -
->   /* timer capabilities used in hwmod database */
->   #define OMAP_TIMER_SECURE				0x80000000
->   #define OMAP_TIMER_ALWON				0x40000000
-> @@ -97,7 +91,6 @@ struct timer_regs {
->
->   struct dmtimer_platform_data {
->   	int (*set_timer_src)(struct platform_device *pdev, int source);
-> -	int timer_ip_version;
->   	u32 needs_manual_reset:1;
->   	bool loses_context;
->
+diff --git a/drivers/iommu/iommu.c b/drivers/iommu/iommu.c
+index 2198b2d..8b9ded8 100644
+--- a/drivers/iommu/iommu.c
++++ b/drivers/iommu/iommu.c
+@@ -119,6 +119,7 @@ EXPORT_SYMBOL_GPL(iommu_present);
+  * iommu_set_fault_handler() - set a fault handler for an iommu domain
+  * @domain: iommu domain
+  * @handler: fault handler
++ * @token: user data, will be passed back to the fault handler
+  *
+  * This function should be used by IOMMU users which want to be notified
+  * whenever an IOMMU fault happens.
+@@ -127,11 +128,13 @@ EXPORT_SYMBOL_GPL(iommu_present);
+  * error code otherwise.
+  */
+ void iommu_set_fault_handler(struct iommu_domain *domain,
+-					iommu_fault_handler_t handler)
++					iommu_fault_handler_t handler,
++					void *token)
+ {
+ 	BUG_ON(!domain);
+ 
+ 	domain->handler = handler;
++	domain->handler_token = token;
+ }
+ EXPORT_SYMBOL_GPL(iommu_set_fault_handler);
+ 
+diff --git a/drivers/remoteproc/remoteproc_core.c b/drivers/remoteproc/remoteproc_core.c
+index ee15c68..f71d07e 100644
+--- a/drivers/remoteproc/remoteproc_core.c
++++ b/drivers/remoteproc/remoteproc_core.c
+@@ -78,7 +78,7 @@ typedef int (*rproc_handle_resource_t)(struct rproc *rproc, void *, int avail);
+  * the recovery of the remote processor.
+  */
+ static int rproc_iommu_fault(struct iommu_domain *domain, struct device *dev,
+-		unsigned long iova, int flags)
++		unsigned long iova, int flags, void *token)
+ {
+ 	dev_err(dev, "iommu fault: da 0x%lx flags 0x%x\n", iova, flags);
+ 
+@@ -117,7 +117,7 @@ static int rproc_enable_iommu(struct rproc *rproc)
+ 		return -ENOMEM;
+ 	}
+ 
+-	iommu_set_fault_handler(domain, rproc_iommu_fault);
++	iommu_set_fault_handler(domain, rproc_iommu_fault, rproc);
+ 
+ 	ret = iommu_attach_device(domain, dev);
+ 	if (ret) {
+diff --git a/include/linux/iommu.h b/include/linux/iommu.h
+index d937580..450293f 100644
+--- a/include/linux/iommu.h
++++ b/include/linux/iommu.h
+@@ -35,12 +35,13 @@ struct iommu_domain;
+ #define IOMMU_FAULT_WRITE	0x1
+ 
+ typedef int (*iommu_fault_handler_t)(struct iommu_domain *,
+-				struct device *, unsigned long, int);
++			struct device *, unsigned long, int, void *);
+ 
+ struct iommu_domain {
+ 	struct iommu_ops *ops;
+ 	void *priv;
+ 	iommu_fault_handler_t handler;
++	void *handler_token;
+ };
+ 
+ #define IOMMU_CAP_CACHE_COHERENCY	0x1
+@@ -95,7 +96,7 @@ extern phys_addr_t iommu_iova_to_phys(struct iommu_domain *domain,
+ extern int iommu_domain_has_cap(struct iommu_domain *domain,
+ 				unsigned long cap);
+ extern void iommu_set_fault_handler(struct iommu_domain *domain,
+-					iommu_fault_handler_t handler);
++			iommu_fault_handler_t handler, void *token);
+ extern int iommu_device_group(struct device *dev, unsigned int *groupid);
+ 
+ /**
+@@ -132,7 +133,8 @@ static inline int report_iommu_fault(struct iommu_domain *domain,
+ 	 * invoke it.
+ 	 */
+ 	if (domain->handler)
+-		ret = domain->handler(domain, dev, iova, flags);
++		ret = domain->handler(domain, dev, iova, flags,
++						domain->handler_token);
+ 
+ 	return ret;
+ }
+@@ -191,7 +193,7 @@ static inline int domain_has_cap(struct iommu_domain *domain,
+ }
+ 
+ static inline void iommu_set_fault_handler(struct iommu_domain *domain,
+-					iommu_fault_handler_t handler)
++				iommu_fault_handler_t handler, void *token)
+ {
+ }
+ 
+-- 
+1.7.5.4
 
