@@ -1,85 +1,74 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH] OMAP: Beagle: fix DVI GPIO request
-Date: Mon, 21 May 2012 09:11:21 -0700
-Message-ID: <20120521161120.GL17852@atomide.com>
-References: <1337593277-13822-1-git-send-email-tomi.valkeinen@ti.com>
- <1337593277-13822-2-git-send-email-tomi.valkeinen@ti.com>
- <4DA41490-EF90-40A5-B3EE-E6281B4F1313@dominion.thruhere.net>
- <1337598763.2078.28.camel@lappyti>
- <8607C2E0-C1C0-49C6-9563-4CE1BF291E82@dominion.thruhere.net>
- <1337600181.2078.32.camel@lappyti>
+From: Russ Dill <Russ.Dill@ti.com>
+Subject: Re: [PATCH v4] ARM: OMAP: Cleanup Beagleboard DVI reset gpio
+Date: Mon, 21 May 2012 09:12:31 -0700
+Message-ID: <CA+Bv8XZvgNws2_Eer7MwEZGVdxHFYnkvOZVHYs0kT2=8r3f5sg@mail.gmail.com>
+References: <20120509163649.GN5088@atomide.com>
+	<1336601703-27977-1-git-send-email-Russ.Dill@ti.com>
+	<1337616478.2717.13.camel@deskari>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-01-ewr.mailhop.org ([204.13.248.71]:40732 "EHLO
-	mho-01-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752823Ab2EUQL0 (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 21 May 2012 12:11:26 -0400
-Content-Disposition: inline
-In-Reply-To: <1337600181.2078.32.camel@lappyti>
+Received: from mail-lpp01m010-f46.google.com ([209.85.215.46]:58325 "EHLO
+	mail-lpp01m010-f46.google.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1755429Ab2EUQMd convert rfc822-to-8bit
+	(ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Mon, 21 May 2012 12:12:33 -0400
+Received: by lahd3 with SMTP id d3so3601470lah.19
+        for <linux-omap@vger.kernel.org>; Mon, 21 May 2012 09:12:31 -0700 (PDT)
+In-Reply-To: <1337616478.2717.13.camel@deskari>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: Tomi Valkeinen <tomi.valkeinen@ti.com>
-Cc: Koen Kooi <koen@dominion.thruhere.net>, linux-omap@vger.kernel.org
+Cc: linux-omap@vger.kernel.org, chase.maupin@ti.com, linux-arm-kernel@lists.infradead.org, Igor Grinberg <grinberg@compulab.co.il>, Tony Lindgren <tony@atomide.com>
 
-* Tomi Valkeinen <tomi.valkeinen@ti.com> [120521 04:40]:
-> On Mon, 2012-05-21 at 13:28 +0200, Koen Kooi wrote:
-> > Op 21 mei 2012, om 13:12 heeft Tomi Valkeinen het volgende geschreven:
-> > 
-> > > On Mon, 2012-05-21 at 12:59 +0200, Koen Kooi wrote:
-> > >> Op 21 mei 2012, om 11:41 heeft Tomi Valkeinen het volgende geschreven:
-> > >> 
-> > >>> Commit e813a55eb9c9bc6c8039fb16332cf43402125b30 ("OMAP: board-files:
-> > >>> remove custom PD GPIO handling for DVI output") moved TFP410 chip's
-> > >>> powerdown-gpio handling from the board files to the tfp410 driver. One
-> > >>> gpio_request_one(powerdown-gpio, ...) was mistakenly left unremoved in
-> > >>> the Beagle board file. This causes the tfp410 driver to fail to request
-> > >>> the gpio on Beagle, causing the driver to fail and thus the DVI output
-> > >>> doesn't work.
-> > >>> 
-> > >>> This patch removes the gpio_request_one() from the board file.
-> > >>> 
-> > >>> Signed-off-by: Tomi Valkeinen <tomi.valkeinen@ti.com>
-> > >>> ---
-> > >>> arch/arm/mach-omap2/board-omap3beagle.c |    3 +--
-> > >>> 1 file changed, 1 insertion(+), 2 deletions(-)
-> > >>> 
-> > >>> diff --git a/arch/arm/mach-omap2/board-omap3beagle.c b/arch/arm/mach-omap2/board-omap3beagle.c
-> > >>> index 8ede8d2..72ad1f6 100644
-> > >>> --- a/arch/arm/mach-omap2/board-omap3beagle.c
-> > >>> +++ b/arch/arm/mach-omap2/board-omap3beagle.c
-> > >>> @@ -510,9 +510,8 @@ static void __init omap3_beagle_init(void)
-> > >>> 	omap_sdrc_init(mt46h32m32lf6_sdrc_params,
-> > >>> 				  mt46h32m32lf6_sdrc_params);
-> > >>> 
-> > >>> +	/* DVI power down GPIO */
-> > >>> 	omap_mux_init_gpio(170, OMAP_PIN_INPUT);
-> > >> 
-> > >> Wouldn't it be an output rather than an input?
-> > > 
-> > > Indeed. Note that I didn't change the line above =).
-> > > 
-> > > It seems this was changed last December:
-> > > 
-> > > -       omap_cfg_reg(J25_34XX_GPIO170);
-> > > +       omap_mux_init_gpio(170, OMAP_PIN_INPUT);
-> > > 
-> > > I wonder if the mux init is even necessary. Shouldn't the bootloader set
-> > > the muxes?
-> > 
-> > It'd rather have the kernel reset the muxes to the proper value to ensure a known state.
-> 
-> Well, I think all this needs to be handled differently anyway with
-> device tree. If I've understood correctly the driver using the GPIO
-> should configure the pin when the driver starts. But if the driver is
-> not loaded/compiled-in, then it's again up to the bootloader.
-> 
-> Or is there going to be a board specific mux-init with devtree?
+On Mon, May 21, 2012 at 9:07 AM, Tomi Valkeinen <tomi.valkeinen@ti.com>=
+ wrote:
+> On Wed, 2012-05-09 at 15:15 -0700, Russ Dill wrote:
+>> This removes several boot warnings from board-omap3beagle.c:
+>>
+>> =C2=A0- gpio_request: gpio--22 (DVI reset) status -22
+>> =C2=A0- Unable to get DVI reset GPIO
+>>
+>> There is a combination of leftover code and revision confusion.
+>> Additionally, xM support is currently a hack.
+>>
+>> For original Beagleboard this removes the double initialization of G=
+PIO
+>> 170, properly configures it as an output, and wraps the initializati=
+on
+>> in an if block so that xM does not attempt to request it.
+>>
+>> For Beagleboard xM it removes reference to GPIO 129 which was part
+>> of rev A1 and A2 designs, but never functioned. It then properly ass=
+igns
+>> beagle_dvi_device.reset_gpio in beagle_twl_gpio_setup and removes th=
+e
+>> hack of initializing it high. Additionally, it uses
+>> gpio_set_value_cansleep since this GPIO is connected through i2c.
+>>
+>> Unfortunately, there is no way to tell the difference between xM A2 =
+and
+>> A3. However, GPIO 129 does not function on rev A1 and A2, and the TW=
+L
+>> GPIO used on A3 and beyond is not used on rev A1 and A2, there are n=
+o
+>> problems created by this fix.
+>>
+>> v4
+>> =C2=A0- Rebase onto git://gitorious.org/linux-omap-dss2/linux.git fo=
+r-l-o-3.5
+>> =C2=A0- Use dvi_pd_gpio instead of reset_gpio to match with new nami=
+ng
+>
+> Hmm, was this rebased correctly? It doesn't apply to for-l-o-3.5 bran=
+ch.
 
-For device tree the mux setting will come from devicetree. Until
-that works, it's best to keep the omap_mux_init_gpio() calll.
-
-Regards,
-
-Tony
-
+It sits on top of for-l-o-3.5 and '[OMAP] Mark Beagleboard-xM MMC bus
+as 4-bit'. You can cherry-pick 1afb82e4 before applying, or I can drop
+that patch from the series and resend.
+--
+To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
