@@ -1,92 +1,61 @@
-From: Tero Kristo <t-kristo@ti.com>
-Subject: Re: [PATCHv2 18/19] ARM: OMAP4460: wakeupgen: set GIC_CPU0 backup
- status flag always
-Date: Mon, 21 May 2012 12:12:34 +0300
-Message-ID: <1337591554.28274.6.camel@sokoban>
-References: <1336990730-26892-1-git-send-email-t-kristo@ti.com>
-	 <1336990730-26892-19-git-send-email-t-kristo@ti.com>
-	 <87sjez1wa2.fsf@ti.com>
-Reply-To: <t-kristo@ti.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: 7bit
+From: Tomi Valkeinen <tomi.valkeinen@ti.com>
+Subject: [PATCH 0/8] OMAPDSS: fixes
+Date: Mon, 21 May 2012 12:27:58 +0300
+Message-ID: <1337592486-13040-1-git-send-email-tomi.valkeinen@ti.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from devils.ext.ti.com ([198.47.26.153]:34065 "EHLO
-	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1757259Ab2EUJMq (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 21 May 2012 05:12:46 -0400
-In-Reply-To: <87sjez1wa2.fsf@ti.com>
+Received: from na3sys009aog125.obsmtp.com ([74.125.149.153]:41346 "EHLO
+	na3sys009aog125.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S932453Ab2EUJ2U (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>);
+	Mon, 21 May 2012 05:28:20 -0400
+Received: by lbbgo11 with SMTP id go11so3142277lbb.3
+        for <linux-omap@vger.kernel.org>; Mon, 21 May 2012 02:28:17 -0700 (PDT)
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Kevin Hilman <khilman@ti.com>
-Cc: linux-omap@vger.kernel.org, paul@pwsan.com, linux-arm-kernel@lists.infradead.org
+To: linux-omap@vger.kernel.org
+Cc: archit@ti.com, Tomi Valkeinen <tomi.valkeinen@ti.com>
 
-On Wed, 2012-05-16 at 17:33 -0700, Kevin Hilman wrote:
-> Tero Kristo <t-kristo@ti.com> writes:
-> 
-> > Without this, CPU0 will crash in the ROM code during wakeup from
-> > device off. This patch also clears the GIC save area, to prevent
-> > ROM code from writing garbage to the GIC registers during wakeup.
-> > The actual GIC restore is done by kernel.
-> >
-> > This bug fix applies only to OMAP4460, it is fixed on OMAP4470.
-> >
-> > Signed-off-by: Tero Kristo <t-kristo@ti.com>
-> 
-> Please create/use PM_ERRATUM flag.
+Here are some late fixes for omapdss. Mostly small things that were found
+during testing.
 
-Okay.
+One exception is the TILER support from Chandrabhanu, which adds support to
+configure omapdss so that it can be used with TILER. While not a fix, it's safe
+to add as the patch doesn't affect non-TILER operations.
 
--Tero
+ Tomi
 
-> 
-> Kevin
-> 
-> > ---
-> >  arch/arm/mach-omap2/omap-wakeupgen.c   |   14 ++++++++++++++
-> >  arch/arm/mach-omap2/omap4-sar-layout.h |    1 +
-> >  2 files changed, 15 insertions(+), 0 deletions(-)
-> >
-> > diff --git a/arch/arm/mach-omap2/omap-wakeupgen.c b/arch/arm/mach-omap2/omap-wakeupgen.c
-> > index c7c4db4..30da299 100644
-> > --- a/arch/arm/mach-omap2/omap-wakeupgen.c
-> > +++ b/arch/arm/mach-omap2/omap-wakeupgen.c
-> > @@ -447,10 +447,24 @@ int __init omap_wakeupgen_init(void)
-> >  
-> >  	if (omap_type() == OMAP2_DEVICE_TYPE_GP) {
-> >  		sar_base = ioremap(OMAP44XX_SAR_RAM_BASE, SZ_16K);
-> > +		/* Clean GIC SAR area */
-> > +		for (i = SAR_BACKUP_STATUS_OFFSET; i < WAKEUPGENENB_OFFSET_CPU0;
-> > +			i += 4)
-> > +			sar_writel(0, i, 0);
-> > +
-> >  		sar_writel(GIC_ISR_NON_SECURE, ICDISR_CPU0_OFFSET, 0);
-> >  		sar_writel(GIC_ISR_NON_SECURE, ICDISR_CPU1_OFFSET, 0);
-> >  		for (i = 0; i < max_spi_reg; i++)
-> >  			sar_writel(GIC_ISR_NON_SECURE, ICDISR_SPI_OFFSET, i);
-> > +
-> > +		/*
-> > +		 * Set CPU0 GIC backup flag permanently for omap4460,
-> > +		 * this is needed because of the ROM code bug that breaks
-> > +		 * GIC during wakeup from device off
-> > +		 */
-> > +		if (cpu_is_omap446x())
-> > +			__raw_writel(SAR_BACKUP_STATUS_GIC_CPU0,
-> > +				     sar_base + SAR_BACKUP_STATUS_OFFSET);
-> >  		iounmap(sar_base);
-> >  		sar_base = NULL;
-> >  	} else {
-> > diff --git a/arch/arm/mach-omap2/omap4-sar-layout.h b/arch/arm/mach-omap2/omap4-sar-layout.h
-> > index 0056667..e621c51 100644
-> > --- a/arch/arm/mach-omap2/omap4-sar-layout.h
-> > +++ b/arch/arm/mach-omap2/omap4-sar-layout.h
-> > @@ -88,6 +88,7 @@
-> >  #define ICDISR_CPU0_OFFSET			(SAR_BANK3_OFFSET + 0x50c)
-> >  #define ICDISR_CPU1_OFFSET			(SAR_BANK3_OFFSET + 0x510)
-> >  #define ICDISR_SPI_OFFSET			(SAR_BANK3_OFFSET + 0x514)
-> > +#define SAR_BACKUP_STATUS_GIC_CPU0		0x1
-> >  
-> >  /* WakeUpGen save restore offset from OMAP44XX_SAR_RAM_BASE */
-> >  #define WAKEUPGENENB_OFFSET_CPU0		(SAR_BANK3_OFFSET + 0x684)
+Archit Taneja (2):
+  OMAPDSS: HACK: VENC/DISPC: Delay dividing Y resolution for managers
+    connected to VENC
+  OMAPDSS: Apply VENC timings even if panel is disabled
 
+Chandrabhanu Mahapatra (1):
+  OMAPDSS: DISPC: Support rotation through TILER
+
+Tomi Valkeinen (5):
+  OMAPDSS: use DSI_FIFO_BUG workaround only for manual update displays
+  OMAPDSS: DISPC: fix usage of dispc_ovl_set_accu_uv
+  OMAPDSS: remove compiler warnings when CONFIG_BUG=n
+  OMAPFB: remove compiler warnings when CONFIG_BUG=n
+  OMAPDSS: VRFB: remove compiler warnings when CONFIG_BUG=n
+
+ drivers/video/omap2/dss/apply.c          |    2 +-
+ drivers/video/omap2/dss/dispc.c          |  130 +++++++++++++++++++++++++-----
+ drivers/video/omap2/dss/dispc.h          |   72 +++++++++++++++++
+ drivers/video/omap2/dss/display.c        |    2 +
+ drivers/video/omap2/dss/dsi.c            |    9 ++-
+ drivers/video/omap2/dss/dss.c            |    3 +
+ drivers/video/omap2/dss/dss.h            |    3 +-
+ drivers/video/omap2/dss/dss_features.c   |   16 ++++
+ drivers/video/omap2/dss/dss_features.h   |    3 +
+ drivers/video/omap2/dss/overlay.c        |    6 ++
+ drivers/video/omap2/dss/venc.c           |    9 +--
+ drivers/video/omap2/omapfb/omapfb-main.c |    1 +
+ drivers/video/omap2/omapfb/omapfb.h      |    1 +
+ drivers/video/omap2/vrfb.c               |    4 +-
+ include/video/omapdss.h                  |    5 +-
+ 15 files changed, 233 insertions(+), 33 deletions(-)
+
+-- 
+1.7.9.5
 
