@@ -1,45 +1,144 @@
-From: "Shilimkar, Santosh" <santosh.shilimkar@ti.com>
-Subject: Re: [PATCHv2 14/19] ARM: OMAP4: wakeupgen: enable clocks for save_secure_all
-Date: Mon, 21 May 2012 15:13:17 +0530
-Message-ID: <CAMQu2gw4XwO_pAHnHNzwY_xQ4_tHS7a3iAFMxLL1ddV8xHwPvg@mail.gmail.com>
-References: <1336990730-26892-1-git-send-email-t-kristo@ti.com>
- <1336990730-26892-15-git-send-email-t-kristo@ti.com> <871umj4qnl.fsf@ti.com> <1337593097.28274.19.camel@sokoban>
+From: "Cousson, Benoit" <b-cousson@ti.com>
+Subject: Re: [PATCH 2/6] arm: omap4: create pmu device via hwmod
+Date: Mon, 21 May 2012 11:52:50 +0200
+Message-ID: <4FBA1072.1030007@ti.com>
+References: <1336599343-10905-1-git-send-email-jon-hunter@ti.com> <4FAB90E9.30408@ti.com> <4FB6BA70.6000608@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
+Content-Type: text/plain; charset="ISO-8859-1"; format=flowed
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aog121.obsmtp.com ([74.125.149.145]:33146 "EHLO
-	na3sys009aog121.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752367Ab2EUJnk (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>);
-	Mon, 21 May 2012 05:43:40 -0400
-Received: by qcso7 with SMTP id o7so3093572qcs.6
-        for <linux-omap@vger.kernel.org>; Mon, 21 May 2012 02:43:38 -0700 (PDT)
-In-Reply-To: <1337593097.28274.19.camel@sokoban>
+Received: from comal.ext.ti.com ([198.47.26.152]:58337 "EHLO comal.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1757566Ab2EUJxm (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Mon, 21 May 2012 05:53:42 -0400
+In-Reply-To: <4FB6BA70.6000608@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: t-kristo@ti.com
-Cc: Kevin Hilman <khilman@ti.com>, Benoit Cousson <b-cousson@ti.com>, linux-omap@vger.kernel.org, paul@pwsan.com, linux-arm-kernel@lists.infradead.org
+To: Jon Hunter <jon-hunter@ti.com>
+Cc: Ming Lei <ming.lei@canonical.com>, linux-omap <linux-omap@vger.kernel.org>, Will Deacon <will.deacon@arm.com>, Paul Walmsley <paul@pwsan.com>, Kevin Hilman <khilman@ti.com>
 
-On Mon, May 21, 2012 at 3:08 PM, Tero Kristo <t-kristo@ti.com> wrote:
-> On Wed, 2012-05-16 at 17:06 -0700, Kevin Hilman wrote:
->> +Benoit
->>
->> Tero Kristo <t-kristo@ti.com> writes:
->>
->> > save_secure_all needs l3_main_3_ick and l4_secure_clkdm enabled,
->> > otherwise the secure ROM code will crash.
->> >
->> > Signed-off-by: Tero Kristo <t-kristo@ti.com>
->>
->> I think I mentioned this already (I'm already lost in what I've said for
->> thisseries), but I don't think the secure RAM stuff belongs in the
->> wakeupgen driver.
+Hi Jon,
+
+On 5/18/2012 11:09 PM, Jon Hunter wrote:
+> Hi Benoit,
 >
-> As mentioned, save_secure_all saves:
-> - secure RAM
-> - GIC registers
-> - some other mysterious stuff
-(mysterious:  Entire firewall registers )
+> On 05/10/2012 04:56 AM, Cousson, Benoit wrote:
+>> Hi Jon&  Ming,
+>>
+>> On 5/9/2012 11:35 PM, Jon Hunter wrote:
+>>> From: Ming Lei<ming.lei@canonical.com>
+>>>
+>>> The following modules is required to be enabled before configuring
+>>> cross trigger interface for enabling pmu irq:
+>>>
+>>>           l3_instr, l3_main_3, debugss
+>>>
+>>> so build the arm-pmu device via the three hwmods.
+>>>
+>>> Cc: Ming Lei<ming.lei@canonical.com>
+>>> Cc: Will Deacon<will.deacon@arm.com>
+>>> Cc: Benoit Cousson<b-cousson@ti.com>
+>>> Cc: Paul Walmsley<paul@pwsan.com>
+>>> Cc: Kevin Hilman<khilman@ti.com>
+>>>
+>>> Signed-off-by: Ming Lei<ming.lei@canonical.com>
+>>> Signed-off-by: Will Deacon<will.deacon@arm.com>
+>>> Signed-off-by: Jon Hunter<jon-hunter@ti.com>
+>>> ---
+>>>    arch/arm/mach-omap2/devices.c |   61
+>>> ++++++++++++++++++++++++++++++++++++++---
+>>>    1 files changed, 57 insertions(+), 4 deletions(-)
+>>>
+>>> diff --git a/arch/arm/mach-omap2/devices.c
+>>> b/arch/arm/mach-omap2/devices.c
+>>> index 58682d1..d75b7d3 100644
+>>> --- a/arch/arm/mach-omap2/devices.c
+>>> +++ b/arch/arm/mach-omap2/devices.c
+>>> @@ -423,14 +423,67 @@ static struct platform_device omap_pmu_device = {
+>>>        .num_resources    = 1,
+>>>    };
+>>>
+>>> -static void omap_init_pmu(void)
+>>> +static struct arm_pmu_platdata omap4_pmu_data;
+>>> +static struct omap_device_pm_latency omap_pmu_latency[] = {
+>>> +    [0] = {
+>>> +        .deactivate_func = omap_device_idle_hwmods,
+>>> +        .activate_func   = omap_device_enable_hwmods,
+>>> +        .flags         = OMAP_DEVICE_LATENCY_AUTO_ADJUST,
+>>> +    },
+>>> +};
+>>
+>> You can get rid of that, and use a NULL value during
+>> omap_device_build_ss. It will use the default value automatically.
+>
+> I have removed this now for V2.
+>
+>>> +static struct platform_device* __init omap4_init_pmu(void)
+>>>    {
+>>> -    if (cpu_is_omap24xx())
+>>> +    int id = -1;
+>>> +    const char *hw;
+>>> +    struct platform_device *pd;
+>>> +    struct omap_hwmod* oh[3];
+>>> +    char *dev_name = "arm-pmu";
+>>> +
+>>> +    hw = "l3_main_3";
+>>> +    oh[0] = omap_hwmod_lookup(hw);
+>>> +    if (!oh[0]) {
+>>> +        pr_err("Could not look up %s hwmod\n", hw);
+>>> +        return NULL;
+>>> +    }
+>>> +    hw = "l3_instr";
+>>> +    oh[1] = omap_hwmod_lookup(hw);
+>>> +    if (!oh[1]) {
+>>> +        pr_err("Could not look up %s hwmod\n", hw);
+>>> +        return NULL;
+>>> +    }
+>>> +    hw = "debugss";
+>>> +    oh[2] = omap_hwmod_lookup(hw);
+>>> +    if (!oh[2]) {
+>>> +        pr_err("Could not look up %s hwmod\n", hw);
+>>> +        return NULL;
+>>> +    }
+>>> +
+>>> +    pd = omap_device_build_ss(dev_name, id, oh, 3,&omap4_pmu_data,
+>>> +                sizeof(omap4_pmu_data),
+>>> +                omap_pmu_latency,
+>>> +                ARRAY_SIZE(omap_pmu_latency), 0);
+>>> +    WARN(IS_ERR(pd), "Can't build omap_device for %s.\n",
+>>> +                dev_name);
+>>> +    return pd;
+>>> +}
+>>> +static void __init omap_init_pmu(void)
+>>> +{
+>>> +    if (cpu_is_omap24xx()) {
+>>>            omap_pmu_device.resource =&omap2_pmu_resource;
+>>
+>> Ideally, OMAP2 and 3 should use the hwmod device creation as well.
+>
+> Do you know for OMAP2/3 what hwmods are needed for PMU support? Is it
+> just the MPU?
 
-Regards
-Santosh
+Well, in fact I don't have a clue, but I assume the same kind of DEBUGSS 
+IPs should be there as well.
+
+> I see two options here for OMAP2/3 ...
+>
+> 1. Add the appropriate PMU interrupts to the MPU HWMOD and use the MPU
+> HWMOD to build the pmu device.
+> 2. Create a new PMU HWMOD for OMAP2/3.
+
+I don't really know how the PMU is accessible in OMAP2 & 3. If, it is 
+via an internal MPU bus without any PRCM control, it will not worst 
+adding a hwmod for it.
+
+Benoit
+
+> Please note that for 4460, I can get PMU to work without needing the EMU
+> PD if I use the PMU interrupts and not CTI. So this really simplifies
+> matters for 4460 (and 4470). For 4460 I have created the PMU device by
+> just using the MPU HWMOD and adding the PMU interrupts to the MPU HWMOD.
+>
+> Cheers
+> Jon
+
