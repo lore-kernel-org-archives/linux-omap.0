@@ -1,56 +1,105 @@
 From: Santosh Shilimkar <santosh.shilimkar@ti.com>
-Subject: [PATCH v2 1/4] ARM: OMAP: timer: allow gp timer clock-event to be used on both cpus
-Date: Mon, 21 May 2012 13:02:36 +0530
-Message-ID: <1337585559-20250-2-git-send-email-santosh.shilimkar@ti.com>
+Subject: [PATCH v2 3/4] ARM: OMAP4: CPUidle: add synchronization for coupled idle states
+Date: Mon, 21 May 2012 13:02:38 +0530
+Message-ID: <1337585559-20250-4-git-send-email-santosh.shilimkar@ti.com>
 References: <1337585559-20250-1-git-send-email-santosh.shilimkar@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from arroyo.ext.ti.com ([192.94.94.40]:38021 "EHLO arroyo.ext.ti.com"
+Received: from bear.ext.ti.com ([192.94.94.41]:38940 "EHLO bear.ext.ti.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752065Ab2EUHcv (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Mon, 21 May 2012 03:32:51 -0400
+	id S1752519Ab2EUHc6 (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Mon, 21 May 2012 03:32:58 -0400
 In-Reply-To: <1337585559-20250-1-git-send-email-santosh.shilimkar@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: khilman@ti.com
 Cc: linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org, ccross@android.com, Santosh Shilimkar <santosh.shilimkar@ti.com>
 
-For coupled cpuidle to work when both cpus are active, it needs a global timer
-that can handle events for both cpus.  This timer is used as the broadcast
-clock-event when the per-cpu timer hardware stop in low power states.
-Set the cpumask of clockevent_gpt to all cpus, set the rating correctly, and
-set the irq to allow the clockevent core to determine the affinity of the
-timer.
+From: Kevin Hilman <khilman@ti.com>
 
-Signed-off-by: Colin Cross <ccross@android.com>
+With coupled idle states, a failure for any CPU to hit a low power
+state must be coordinated such that all CPUs abort.
+
+On OMAP4, when entering a coupled state, CPU0 has to wait for CPU1 to
+enter its low power state before it can enter its low power state.
+
+This is implemented by letting CPU0 wait for the CPU1 powerdomain to
+hit off.  However, there are conditions where CPU1 might abort/fail
+and not hit off while CPU0 is waiting for it.  For example, a CPU1
+wakeup or a failed attempt to hit off due to hardware conditions.
+
+To avoid the deadlock where CPU0 would continually wait for CPU1 to
+hit off-mode, this patch adds a flag to signal when each CPU has come
+out of its low-power state.  CPU0 then checks whether CPU1 has hit off
+*or* has already completed its attempt to hit off.  If the latter,
+CPU0 must abort its attempt to hit a low-power state so the coupled
+state enter method can return.
+
+In addition, cpuidle_coupled_parallel_barrier() is used to ensure the
+clearing of the 'done' flag is synchronized on all CPUs.
+
+Signed-off-by: Kevin Hilman <khilman@ti.com>
 Signed-off-by: Santosh Shilimkar <santosh.shilimkar@ti.com>
 ---
- arch/arm/mach-omap2/timer.c |    4 +++-
- 1 files changed, 3 insertions(+), 1 deletions(-)
+ arch/arm/mach-omap2/cpuidle44xx.c |   22 +++++++++++++++++++++-
+ 1 files changed, 21 insertions(+), 1 deletions(-)
 
-diff --git a/arch/arm/mach-omap2/timer.c b/arch/arm/mach-omap2/timer.c
-index c512bac..4212f2f 100644
---- a/arch/arm/mach-omap2/timer.c
-+++ b/arch/arm/mach-omap2/timer.c
-@@ -135,6 +135,7 @@ static struct clock_event_device clockevent_gpt = {
- 	.name		= "gp timer",
- 	.features       = CLOCK_EVT_FEAT_PERIODIC | CLOCK_EVT_FEAT_ONESHOT,
- 	.shift		= 32,
-+	.rating		= 300,
- 	.set_next_event	= omap2_gp_timer_set_next_event,
- 	.set_mode	= omap2_gp_timer_set_mode,
- };
-@@ -226,7 +227,8 @@ static void __init omap2_gp_clockevent_init(int gptimer_id,
- 		clockevent_delta2ns(3, &clockevent_gpt);
- 		/* Timer internal resynch latency. */
+diff --git a/arch/arm/mach-omap2/cpuidle44xx.c b/arch/arm/mach-omap2/cpuidle44xx.c
+index 25655eb..eb93e45 100644
+--- a/arch/arm/mach-omap2/cpuidle44xx.c
++++ b/arch/arm/mach-omap2/cpuidle44xx.c
+@@ -53,6 +53,9 @@ static struct omap4_idle_statedata omap4_idle_data[] = {
+ static struct powerdomain *mpu_pd, *cpu_pd[NR_CPUS];
+ static struct clockdomain *cpu_clkdm[NR_CPUS];
  
--	clockevent_gpt.cpumask = cpumask_of(0);
-+	clockevent_gpt.cpumask = cpu_possible_mask;
-+	clockevent_gpt.irq = omap_dm_timer_get_irq(&clkev);
- 	clockevents_register_device(&clockevent_gpt);
++static atomic_t abort_barrier;
++static bool cpu_done[NR_CPUS];
++
+ /**
+  * omap4_enter_idle_coupled_[simple/coupled] - OMAP4 cpuidle entry functions
+  * @dev: cpuidle device
+@@ -90,8 +93,20 @@ static int omap4_enter_idle_coupled(struct cpuidle_device *dev,
+ 	 * out of coherency and in OFF mode.
+ 	 */
+ 	if (dev->cpu == 0 && cpumask_test_cpu(1, cpu_online_mask)) {
+-		while (pwrdm_read_pwrst(cpu_pd[1]) != PWRDM_POWER_OFF)
++		while (pwrdm_read_pwrst(cpu_pd[1]) != PWRDM_POWER_OFF) {
+ 			cpu_relax();
++
++			/*
++			 * CPU1 could have already entered & exited idle
++			 * without hitting off because of a wakeup
++			 * or a failed attempt to hit off mode.  Check for
++			 * that here, otherwise we could spin forever
++			 * waiting for CPU1 off.
++			 */
++			if (cpu_done[1])
++			    goto fail;
++
++		}
+ 	}
  
- 	pr_info("OMAP clockevent source: GPTIMER%d at %lu Hz\n",
+ 	clockevents_notify(CLOCK_EVT_NOTIFY_BROADCAST_ENTER, &cpu_id);
+@@ -116,6 +131,7 @@ static int omap4_enter_idle_coupled(struct cpuidle_device *dev,
+ 	}
+ 
+ 	omap4_enter_lowpower(dev->cpu, cx->cpu_state);
++	cpu_done[dev->cpu] = true;
+ 
+ 	/* Wakeup CPU1 only if it is not offlined */
+ 	if (dev->cpu == 0 && cpumask_test_cpu(1, cpu_online_mask)) {
+@@ -138,6 +154,10 @@ static int omap4_enter_idle_coupled(struct cpuidle_device *dev,
+ 
+ 	clockevents_notify(CLOCK_EVT_NOTIFY_BROADCAST_EXIT, &cpu_id);
+ 
++fail:
++	cpuidle_coupled_parallel_barrier(dev, &abort_barrier);
++	cpu_done[dev->cpu] = false;
++
+ 	local_fiq_enable();
+ 
+ 	return index;
 -- 
 1.7.5.4
 
