@@ -1,98 +1,80 @@
 From: Tomi Valkeinen <tomi.valkeinen@ti.com>
 Subject: Re: [PATCH] OMAP: Beagle: fix DVI GPIO request
-Date: Mon, 21 May 2012 14:36:21 +0300
-Message-ID: <1337600181.2078.32.camel@lappyti>
+Date: Mon, 21 May 2012 15:56:06 +0300
+Message-ID: <1337604966.2717.1.camel@deskari>
 References: <1337593277-13822-1-git-send-email-tomi.valkeinen@ti.com>
 	 <1337593277-13822-2-git-send-email-tomi.valkeinen@ti.com>
-	 <4DA41490-EF90-40A5-B3EE-E6281B4F1313@dominion.thruhere.net>
-	 <1337598763.2078.28.camel@lappyti>
-	 <8607C2E0-C1C0-49C6-9563-4CE1BF291E82@dominion.thruhere.net>
 Mime-Version: 1.0
 Content-Type: multipart/signed; micalg="pgp-sha1"; protocol="application/pgp-signature";
-	boundary="=-YNbjbnUiIPCm4qdDEhe/"
+	boundary="=-h/0wILI5wR96rpqBtQ4i"
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aog120.obsmtp.com ([74.125.149.140]:36408 "EHLO
-	na3sys009aog120.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751405Ab2EULg0 (ORCPT
+Received: from na3sys009aog127.obsmtp.com ([74.125.149.107]:37705 "EHLO
+	na3sys009aog127.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1755678Ab2EUM4Q (ORCPT
 	<rfc822;linux-omap@vger.kernel.org>);
-	Mon, 21 May 2012 07:36:26 -0400
-Received: by lbbgh12 with SMTP id gh12so3047336lbb.25
-        for <linux-omap@vger.kernel.org>; Mon, 21 May 2012 04:36:23 -0700 (PDT)
-In-Reply-To: <8607C2E0-C1C0-49C6-9563-4CE1BF291E82@dominion.thruhere.net>
+	Mon, 21 May 2012 08:56:16 -0400
+Received: by lahm15 with SMTP id m15so4606286lah.37
+        for <linux-omap@vger.kernel.org>; Mon, 21 May 2012 05:56:13 -0700 (PDT)
+In-Reply-To: <1337593277-13822-2-git-send-email-tomi.valkeinen@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Koen Kooi <koen@dominion.thruhere.net>
-Cc: tony@atomide.com, linux-omap@vger.kernel.org
+To: tony@atomide.com
+Cc: linux-omap@vger.kernel.org, Koen Kooi <koen@dominion.thruhere.net>
 
 
---=-YNbjbnUiIPCm4qdDEhe/
+--=-h/0wILI5wR96rpqBtQ4i
 Content-Type: text/plain; charset="UTF-8"
 Content-Transfer-Encoding: quoted-printable
 
-On Mon, 2012-05-21 at 13:28 +0200, Koen Kooi wrote:
-> Op 21 mei 2012, om 13:12 heeft Tomi Valkeinen het volgende geschreven:
->=20
-> > On Mon, 2012-05-21 at 12:59 +0200, Koen Kooi wrote:
-> >> Op 21 mei 2012, om 11:41 heeft Tomi Valkeinen het volgende geschreven:
-> >>=20
-> >>> Commit e813a55eb9c9bc6c8039fb16332cf43402125b30 ("OMAP: board-files:
-> >>> remove custom PD GPIO handling for DVI output") moved TFP410 chip's
-> >>> powerdown-gpio handling from the board files to the tfp410 driver. On=
-e
-> >>> gpio_request_one(powerdown-gpio, ...) was mistakenly left unremoved i=
-n
-> >>> the Beagle board file. This causes the tfp410 driver to fail to reque=
-st
-> >>> the gpio on Beagle, causing the driver to fail and thus the DVI outpu=
-t
-> >>> doesn't work.
-> >>>=20
-> >>> This patch removes the gpio_request_one() from the board file.
-> >>>=20
-> >>> Signed-off-by: Tomi Valkeinen <tomi.valkeinen@ti.com>
-> >>> ---
-> >>> arch/arm/mach-omap2/board-omap3beagle.c |    3 +--
-> >>> 1 file changed, 1 insertion(+), 2 deletions(-)
-> >>>=20
-> >>> diff --git a/arch/arm/mach-omap2/board-omap3beagle.c b/arch/arm/mach-=
-omap2/board-omap3beagle.c
-> >>> index 8ede8d2..72ad1f6 100644
-> >>> --- a/arch/arm/mach-omap2/board-omap3beagle.c
-> >>> +++ b/arch/arm/mach-omap2/board-omap3beagle.c
-> >>> @@ -510,9 +510,8 @@ static void __init omap3_beagle_init(void)
-> >>> 	omap_sdrc_init(mt46h32m32lf6_sdrc_params,
-> >>> 				  mt46h32m32lf6_sdrc_params);
-> >>>=20
-> >>> +	/* DVI power down GPIO */
-> >>> 	omap_mux_init_gpio(170, OMAP_PIN_INPUT);
-> >>=20
-> >> Wouldn't it be an output rather than an input?
-> >=20
-> > Indeed. Note that I didn't change the line above =3D).
-> >=20
-> > It seems this was changed last December:
-> >=20
-> > -       omap_cfg_reg(J25_34XX_GPIO170);
-> > +       omap_mux_init_gpio(170, OMAP_PIN_INPUT);
-> >=20
-> > I wonder if the mux init is even necessary. Shouldn't the bootloader se=
-t
-> > the muxes?
->=20
-> It'd rather have the kernel reset the muxes to the proper value to ensure=
- a known state.
+Here's an updated patch with a fix for the GPIO direction:
 
-Well, I think all this needs to be handled differently anyway with
-device tree. If I've understood correctly the driver using the GPIO
-should configure the pin when the driver starts. But if the driver is
-not loaded/compiled-in, then it's again up to the bootloader.
+=46rom e74be66075d14f7ed55ba3aaa8a166eac6a3e60f Mon Sep 17 00:00:00 2001
+From: Tomi Valkeinen <tomi.valkeinen@ti.com>
+Date: Mon, 21 May 2012 11:28:57 +0300
+Subject: [PATCH] OMAP: Beagle: fix TFP410 powerdown GPIO init
 
-Or is there going to be a board specific mux-init with devtree?
+Commit e813a55eb9c9bc6c8039fb16332cf43402125b30 ("OMAP: board-files:
+remove custom PD GPIO handling for DVI output") moved TFP410 chip's
+powerdown-gpio handling from the board files to the tfp410 driver. One
+gpio_request_one(powerdown-gpio, ...) was mistakenly left unremoved in
+the Beagle board file. This causes the tfp410 driver to fail to request
+the gpio on Beagle, causing the driver to fail and thus the DVI output
+doesn't work.
 
- Tomi
+Also the powerdown-gpio is initialized as OMAP_PIN_INPUT, whereas it's
+an output.
+
+This patch removes the gpio_request_one() from the board file and
+changes the pin to OMAP_PIN_OUTPUT.
+
+Signed-off-by: Tomi Valkeinen <tomi.valkeinen@ti.com>
+---
+ arch/arm/mach-omap2/board-omap3beagle.c |    5 ++---
+ 1 file changed, 2 insertions(+), 3 deletions(-)
+
+diff --git a/arch/arm/mach-omap2/board-omap3beagle.c b/arch/arm/mach-omap2/=
+board-omap3beagle.c
+index 8ede8d2..5066080 100644
+--- a/arch/arm/mach-omap2/board-omap3beagle.c
++++ b/arch/arm/mach-omap2/board-omap3beagle.c
+@@ -510,9 +510,8 @@ static void __init omap3_beagle_init(void)
+ 	omap_sdrc_init(mt46h32m32lf6_sdrc_params,
+ 				  mt46h32m32lf6_sdrc_params);
+=20
+-	omap_mux_init_gpio(170, OMAP_PIN_INPUT);
+-	/* REVISIT leave DVI powered down until it's needed ... */
+-	gpio_request_one(170, GPIOF_OUT_INIT_HIGH, "DVI_nPD");
++	/* TFP410 power down GPIO */
++	omap_mux_init_gpio(170, OMAP_PIN_OUTPUT);
+=20
+ 	usb_musb_init(NULL);
+ 	usbhs_init(&usbhs_bdata);
+--=20
+1.7.9.5
 
 
---=-YNbjbnUiIPCm4qdDEhe/
+
+--=-h/0wILI5wR96rpqBtQ4i
 Content-Type: application/pgp-signature; name="signature.asc"
 Content-Description: This is a digitally signed message part
 Content-Transfer-Encoding: 7bit
@@ -100,20 +82,20 @@ Content-Transfer-Encoding: 7bit
 -----BEGIN PGP SIGNATURE-----
 Version: GnuPG v1.4.11 (GNU/Linux)
 
-iQIcBAABAgAGBQJPuii1AAoJEPo9qoy8lh711WMP/jJ2deNLoTnYgQ8tS79kcQGx
-XQuO4scjrN+VL+wBWnX9tWHT9CE2slRQg9TAzffzyfP/VimSHACkhkQJ5Xaeus8t
-Tl5ygzIsqAmmVC0Cxmw70/uoFbj0/EK4/+GSBowrvVh3gHEaVN0jo/ZOX6I0sIvZ
-cQXSBHBWo/7H0FyltngX5YVBlLu4031nXr1KsGas6P7fRqVusKXWhR+Xa0KeBRYO
-sQBKYAXilcL0aVsACEeHigYu5Y6HccZ4oa/BIZGb9q8NYlYyvE7Y8s/Wovut0qL3
-mE/Sx1T/+0HmEYRW4ishMz8iGupEx54izH9z0kSS3oAQ9E11Ae/CjmeMsIRPFgfD
-8nvcVgkWjlJ5X/lVmaDNCzXwm2WjKxm7ippko5bMyehruxu2ARGnkK1j/jQ/329h
-rkK37bowPtEZHzDFxLV3Tdf49+KXHM2/+GVb5VbOJOf4QPu9rofMwzVjbJrX6Bs8
-nqdpXWgiSSn6ysl7ENdD9AzNuRcWAuEcAzQbPrHOCvA4U2xGTZhW8O+xbhFK/s5H
-4F9JdqVg9MlVo1E1Njh+c6LAKlqhcXBGvW+ArjetM1ipij/32cMzt2e1x08M7MBV
-QymItV75XJCo4apSGB3OVhz98NzvVrVoPhG5Eg3oicD8SA3lDu6IF4ICT4kp4cDo
-RlZU9vT5xukyf3vhDsqn
-=/6OP
+iQIcBAABAgAGBQJPujtmAAoJEPo9qoy8lh71mUYP/A9NMXEgD3Tj+CTDB0FgUFOW
+LbRMdyJyD6Ums2nr+0s/FMg7msscVDn5UCHelQqdepaXUOKqec2nOKh2qgCUeAgJ
+OvYaTdU3bmnFsudjcn3kiL+LKasHMAfX+mkac8gYotdiyrr3PIRtp9RkCc9xWuMG
+QEbtpyq5mBn6TZJjFgPb8tIa+M6MC8/jfMdsrgnck0PWH/aDUkoUZErm9H+dj/Mf
+yleLaly8VIQCBpDmiXbk2pkm87lCKYCMRf6pt5qwMxvzmZfSXDV9CkARjtMxcbpU
+Hd/yUcDzz1D3rceAH17BS6DX0TS20msqWD6lBYkeqQvDA5Vd8FdixoyMZjdyIdwQ
+o+jaF5viFjwGPXtymbGG0BrQs3saSp6/phDfUFIrbmuXwDh6x2idn10/lqz8MILn
+wz0ciDbic1iUSJYd4kCS/YeNo89GIxqgP/D8Y1sdLF4GHMczGCAiemIXLZROUa3N
+qGxspqLTSkaNOhl2gpiHA34BstIRfTN1eEfgMYJ2NPQrB4KNO9TMHqmk3oubX/EI
+mg2mKWjO06BDBMFIQEBDD0O2blQbKHYsPAo+F+IhTSItsuAqTH46CGSOBfxlVlFG
+zUrP/Nbze2RLX3UyA34HpV+HDKFY9NjGT3CuMeiazY2VeZw4SoRIvRW1DzeunvFW
+MphihAW4rh34Oqmlw2bS
+=Y9nr
 -----END PGP SIGNATURE-----
 
---=-YNbjbnUiIPCm4qdDEhe/--
+--=-h/0wILI5wR96rpqBtQ4i--
 
