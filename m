@@ -1,86 +1,57 @@
-From: Archit Taneja <a0393947@ti.com>
-Subject: Re: [PATCH] OMAPDSS: DSI: Support command mode interleaving during
- video mode blanking periods
-Date: Mon, 21 May 2012 13:44:16 +0530
-Message-ID: <4FB9F958.7080600@ti.com>
-References: <1337061738-32488-1-git-send-email-archit@ti.com> <1337348396.2607.19.camel@deskari>
+From: Tero Kristo <t-kristo@ti.com>
+Subject: Re: [PATCHv2 02/19] ARM: OMAP4: Add SAR ROM base address
+Date: Mon, 21 May 2012 11:28:45 +0300
+Message-ID: <1337588925.2149.371.camel@sokoban>
+References: <1336990730-26892-1-git-send-email-t-kristo@ti.com>
+	 <1336990730-26892-3-git-send-email-t-kristo@ti.com> <87zk98dlq6.fsf@ti.com>
+Reply-To: <t-kristo@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"; format=flowed
+Content-Type: text/plain; charset="UTF-8"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from bear.ext.ti.com ([192.94.94.41]:41097 "EHLO bear.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751741Ab2EUIPE (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Mon, 21 May 2012 04:15:04 -0400
-In-Reply-To: <1337348396.2607.19.camel@deskari>
+Received: from devils.ext.ti.com ([198.47.26.153]:59700 "EHLO
+	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753656Ab2EUI2x (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 21 May 2012 04:28:53 -0400
+In-Reply-To: <87zk98dlq6.fsf@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Tomi Valkeinen <tomi.valkeinen@ti.com>
-Cc: linux-fbdev@vger.kernel.org, linux-omap@vger.kernel.org
+To: Kevin Hilman <khilman@ti.com>
+Cc: linux-omap@vger.kernel.org, paul@pwsan.com, linux-arm-kernel@lists.infradead.org
 
-On Friday 18 May 2012 07:09 PM, Tomi Valkeinen wrote:
-> Hi,
->
-> On Tue, 2012-05-15 at 11:32 +0530, Archit Taneja wrote:
->> DSI supports interleaving of command mode packets during the HSA, HFP, HBP and
->> BLLP blanking intervals in a video mode stream. This is useful as a user may
->> want to read or change the configuration of a panel without stopping the video
->> stream.
->>
->> On OMAP DSI, we can queue HS or LP command mode packets in the TX FIFO, and
->> the DSI HW takes care of interleaving this data during the one of the blanking
->> intervals. The DSI HW needs to be programmed with the maximum amount of data
->> that can be interleaved in a particular blanking period. A blanking period
->> cannot be used to send command mode data for it's complete duration, there is
->> some amount of time required for the DSI data and clock lanes to transition
->> to the desired LP or HS state.
->>
->> Based on the state of the lanes at the beginning and end of the blanking period,
->> we have different scenarios, with each scenario having a different value of time
->> required to transition to HS or LP. Refer to the section 'Interleaving Mode' in
->> OMAP TRM for more info on the scenarios and the equations to calculate the time
->> required for HS or LP transitions.
->>
->> We use the scenarios which takes the maximum time for HS or LP transition, this
->> gives us the minimum amount of time that can be used to interleave command mode
->> data. The amount of data that can be sent during this minimum time is calculated
->> for command mode packets both in LP and HS. These are written to the registers
->> DSI_VM_TIMING4 to DSI_VM_TIMING6.
->>
->> The calculations don't take into account the time required of transmitting BTA
->> when doing a DSI read, or verifying if a DSI write went through correctly. Until
->> these latencies aren't considered, the behaviour of DSI is unpredictable when
->> a BTA is interleaved during a blanking period. Enhancement of these calculations
->> is a TODO item.
->
-> The code in dsi_config_cmd_mode_interleaving() looks a bit long and
-> confusing, but I don't think it's trivial to simplify it. There's just
-> so many variables to consider.
+On Wed, 2012-05-16 at 11:28 -0700, Kevin Hilman wrote:
+> Tero Kristo <t-kristo@ti.com> writes:
+> 
+> > Added in preparation for device off mode. SAR ROM contains the mapping
+> > from SAR RAM to IO registers, and this will eventually be parsed during
+> > init time to do the reverse before device off.
+> >
+> > Signed-off-by: Tero Kristo <t-kristo@ti.com>
+> 
+> This should be combined with the patch that uses the #define.
 
-There is a little optimisation done in the code to not calculate the 
-interleaving parameter for a blanking period which is not used for 
-interleaving. Checks like below are done for that:
+Okay sounds good.
 
-	if(!hsa_blanking_mode) {
-		...
-	}
+-Tero
 
-	if (!hfp_blanking_mode) {
-		...
-	}
+> 
+> Kevin
+> 
+> > ---
+> >  arch/arm/plat-omap/include/plat/omap44xx.h |    1 +
+> >  1 files changed, 1 insertions(+), 0 deletions(-)
+> >
+> > diff --git a/arch/arm/plat-omap/include/plat/omap44xx.h b/arch/arm/plat-omap/include/plat/omap44xx.h
+> > index c0d478e..1a45700 100644
+> > --- a/arch/arm/plat-omap/include/plat/omap44xx.h
+> > +++ b/arch/arm/plat-omap/include/plat/omap44xx.h
+> > @@ -46,6 +46,7 @@
+> >  #define OMAP44XX_MCPDM_BASE		0x40132000
+> >  #define OMAP44XX_MCPDM_L3_BASE		0x49032000
+> >  #define OMAP44XX_SAR_RAM_BASE		0x4a326000
+> > +#define OMAP44XX_SAR_ROM_BASE		0x4a05e000
+> >  
+> >  #define OMAP44XX_MAILBOX_BASE		(L4_44XX_BASE + 0xF4000)
+> >  #define OMAP44XX_HSUSB_OTG_BASE		(L4_44XX_BASE + 0xAB000)
 
-	...
 
-We could remove this, as the computation is just done once and there 
-seems to be no side effects to write interleaving parameters for a 
-blanking period not used for interleaving. But it won't make much 
-function much simpler.
-
->
-> In the future I think we should store the DSI configurations into
-> memory, so that we don't need to parse the hardware registers to find
-> out things like DSI timings.
-
-Yes, I'll do this clean up sometime soon.
-
-Archit
