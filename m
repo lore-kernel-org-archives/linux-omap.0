@@ -1,43 +1,64 @@
-From: Jon Hunter <jon-hunter@ti.com>
-Subject: Re: [PATCH 0/9] ARM: OMAP: DMTIMER clean-up in preparation for device-tree
-Date: Tue, 22 May 2012 15:33:05 -0500
-Message-ID: <4FBBF801.1010307@ti.com>
-References: <1337124914-19921-1-git-send-email-jon-hunter@ti.com> <4FB37356.9040001@ti.com> <4FB40AB5.10302@ti.com> <alpine.DEB.2.00.1205161727200.2921@utopia.booyaka.com> <4FB51FA9.7010202@ti.com> <alpine.DEB.2.00.1205171047580.2921@utopia.booyaka.com>
+From: Andrew Morton <akpm@linux-foundation.org>
+Subject: Re: [PATCH] backlight: initialize  struct backlight_properties
+	properly
+Date: Tue, 22 May 2012 13:59:02 -0700
+Message-ID: <20120522135902.90253d07.akpm@linux-foundation.org>
+References: <1337585085-4891-1-git-send-email-corentin.chary@gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="ISO-8859-1"
+Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from devils.ext.ti.com ([198.47.26.153]:58534 "EHLO
-	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932614Ab2EVUdF (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 22 May 2012 16:33:05 -0400
-In-Reply-To: <alpine.DEB.2.00.1205171047580.2921@utopia.booyaka.com>
-Sender: linux-omap-owner@vger.kernel.org
+Return-path: <dri-devel-bounces+sf-dri-devel=m.gmane.org@lists.freedesktop.org>
+In-Reply-To: <1337585085-4891-1-git-send-email-corentin.chary@gmail.com>
+List-Unsubscribe: <http://lists.freedesktop.org/mailman/options/dri-devel>,
+	<mailto:dri-devel-request@lists.freedesktop.org?subject=unsubscribe>
+List-Archive: <http://lists.freedesktop.org/archives/dri-devel>
+List-Post: <mailto:dri-devel@lists.freedesktop.org>
+List-Help: <mailto:dri-devel-request@lists.freedesktop.org?subject=help>
+List-Subscribe: <http://lists.freedesktop.org/mailman/listinfo/dri-devel>,
+	<mailto:dri-devel-request@lists.freedesktop.org?subject=subscribe>
+Sender: dri-devel-bounces+sf-dri-devel=m.gmane.org@lists.freedesktop.org
+Errors-To: dri-devel-bounces+sf-dri-devel=m.gmane.org@lists.freedesktop.org
+To: Corentin Chary <corentin.chary@gmail.com>
+Cc: Arnd Bergmann <arnd@arndb.de>, Mathieu Poirier <mathieu.poirier@linaro.org>, Tobias Schandinat <FlorianSchandinat@gmx.de>, Mark Brown <broonie@opensource.wolfsonmicro.com>, linux-kernel@vger.kernel.org, dri-devel@lists.freedesktop.org, platform-driver-x86@vger.kernel.org, patches@opensource.wolfsonmicro.com, Florian@freedesktop.org, Dave@freedesktop.org, Richard Purdie <rpurdie@rpsys.net>, linux-fbdev@vger.kernel.org, Lars-Peter@freedesktop.org, Airlie <airlied@redhat.com>, Axel Lin <axel.lin@gmail.com>, linux-omap@vger.kernel.org, Matthew Garrett <mjg@redhat.com>
 List-Id: linux-omap@vger.kernel.org
-To: Paul Walmsley <paul@pwsan.com>
-Cc: "Cousson, Benoit" <b-cousson@ti.com>, linux-omap <linux-omap@vger.kernel.org>, Tony Lindgren <tony@atomide.com>, "DebBarma, Tarun Kanti" <tarun.kanti@ti.com>
 
-Hi Tony, Paul,
+On Mon, 21 May 2012 09:24:35 +0200
+Corentin Chary <corentin.chary@gmail.com> wrote:
 
-On 05/17/2012 11:48 AM, Paul Walmsley wrote:
-> On Thu, 17 May 2012, Jon Hunter wrote:
+> In all these files, the .power field was never correctly initialized.
 > 
->> Yes that's right. What is your preference here, the options are ...
->>
->> 1. Move the clkt_clksel.c file to arch/arm/plat-omap and change the
->> omap2_xxx API names to omap_xxx.
->> 2. Add the functions in clkt_clksel.c to arch/arm/plat-omap/clock.c and
->> get rid of clkt_clksel.c altogether.
-> 
-> #1.
+> ...
+>
+> --- a/drivers/gpu/drm/i915/intel_panel.c
+> +++ b/drivers/gpu/drm/i915/intel_panel.c
+> @@ -342,6 +342,7 @@ int intel_panel_setup_backlight(struct drm_device *dev)
+>  	else
+>  		return -ENODEV;
+>  
+> +	memset(&props, 0, sizeof(props));
 
-I have posted a new series here [1] to fix omap1 dmtimers and commonise
-the code to set dmtimer source clock between omap1 and omap2.
+This code is all still quite fragile.  What happens if we add a new
+field to backlight_properties?  We need to go edit a zillion drivers?
 
-My plan is to rebase this series on top of that, if you are ok with
-those changes.
+There are two ways of fixing this:
 
-[1] http://marc.info/?l=linux-omap&m=133771799505501&w=2
+a) write and use
 
-Cheers
-Jon
+void backlight_properties_init(struct backlight_properties *props,
+				int type, int max_brightness, etc);
+
+   or
+
+b) edit all sites to do
+
+	struct backlight_properties bl_props = {
+		.type = BACKLIGHT_RAW,
+		.max_brighness = intel_panel_get_max_backlight(dev),
+		.power = FB_BLANK_UNBLANK,
+	};
+
+they're largely equivalent - the struct will be zeroed out and
+then certain fields will be initialised.  a) is a bit better because
+some future field may not want the all-zeroes pattern (eg, a spinlock).
+
+But they're both better than what we have now!
