@@ -1,122 +1,126 @@
-From: Nishanth Menon <nm@ti.com>
-Subject: [PATCH V3 1/3] ARM: OMAP3+: PM: VP: ensure VP is idle before disable
-Date: Tue, 22 May 2012 08:31:44 -0500
-Message-ID: <1337693504-4442-1-git-send-email-nm@ti.com>
-References: <[PATCH 1/3] ARM: OMAP3+: PM: VP: ensure VP is idle before disable>
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aog110.obsmtp.com ([74.125.149.203]:60240 "EHLO
-	na3sys009aog110.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753032Ab2EVNbw (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>);
-	Tue, 22 May 2012 09:31:52 -0400
-Received: by yhoo21 with SMTP id o21so7167407yho.18
-        for <linux-omap@vger.kernel.org>; Tue, 22 May 2012 06:31:51 -0700 (PDT)
-In-Reply-To: <[PATCH 1/3] ARM: OMAP3+: PM: VP: ensure VP is idle before disable>
-Sender: linux-omap-owner@vger.kernel.org
+From: Tero Kristo <t-kristo@ti.com>
+Subject: Re: [PATCHv4 4/8] ARM: OMAP4: hwmod: flag hwmods/modules
+ supporting module level context status
+Date: Tue, 22 May 2012 17:20:32 +0300
+Message-ID: <1337696432.20948.44.camel@sokoban>
+References: <1334913591-26312-1-git-send-email-t-kristo@ti.com>
+ <1334913591-26312-5-git-send-email-t-kristo@ti.com>
+ <4F957ACD.2040103@ti.com> <1335278815.2149.93.camel@sokoban>
+ <4F96DF8C.6040400@ti.com> <87pqa5axuo.fsf@ti.com> <4FB33A29.4030404@ti.com>
+ <4FB33EF2.90705@ti.com>
+Reply-To: t-kristo@ti.com
+Mime-Version: 1.0
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
+In-Reply-To: <4FB33EF2.90705@ti.com>
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
+List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
+List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
+Sender: linux-arm-kernel-bounces@lists.infradead.org
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
+To: Rajendra Nayak <rnayak@ti.com>
+Cc: Kevin Hilman <khilman@ti.com>, paul@pwsan.com, "Cousson,
+ Benoit" <b-cousson@ti.com>, Jon Hunter <jon-hunter@ti.com>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 List-Id: linux-omap@vger.kernel.org
-To: Kevin Hilman <khilman@ti.com>
-Cc: Wenbiao Wang <wwang@ti.com>, Tony Lindgren <tony@atomide.com>, Eduardo Valentin <eduardo.valentin@ti.com>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Nishanth Menon <nm@ti.com>
 
-From: Wenbiao Wang <wwang@ti.com>
+On Wed, 2012-05-16 at 11:15 +0530, Rajendra Nayak wrote:
+> On Wednesday 16 May 2012 10:54 AM, Rajendra Nayak wrote:
+> > On Wednesday 16 May 2012 03:52 AM, Kevin Hilman wrote:
+> >> "Cousson, Benoit"<b-cousson@ti.com> writes:
+> >>
+> >>> On 4/24/2012 4:46 PM, Tero Kristo wrote:
+> >>>> On Mon, 2012-04-23 at 10:52 -0500, Jon Hunter wrote:
+> >>>>> Hi Tero,
+> >>>>>
+> >>>>> On 04/20/2012 04:19 AM, Tero Kristo wrote:
+> >>>>>> From: Rajendra Nayak<rnayak@ti.com>
+> >>>>>>
+> >>>>>> On OMAP4 most modules/hwmods support module level context status. On
+> >>>>>> OMAP3 and earlier, we relyed on the power domain level context
+> >>>>>> status.
+> >>>>>> Identify all such modules using a 'HWMOD_CONTEXT_REG' flag, all such
+> >>>>>> hwmods already have a valid 'context_offs' populated in .prcm
+> >>>>>> structure.
+> >>>>>
+> >>>>> Is it necessary to add another flag? Can't we just check if
+> >>>>> context_offs
+> >>>>> is non-zero? Would save adding a lot more lines to an already large
+> >>>>> file
+> >>>>> :-)
+> >>>>
+> >>>> Actually one of the older versions of this patch was just checking
+> >>>> against a non-zero value, but it was decided to be changed as
+> >>>> potentially the context_offs can be zero even if it is a valid offset.
+> >>
+> >> Potentially? Is that the case on OMAP4/5 today? I don't see any for
+> >> OMAP4 in mainline.
+> >
+> > No, we don;t have any such cases today in either OMAP4 or OMAP5.
+> >
+> >>
+> >> If zero really is a valid offset somewhere (where?), then we could use
+> >> -1 (or USHRT_MAX in this case.)
+> >
+> > This makes sense for OMAP4 and beyond (and same with having a flag
+> > to indicate the *lack* of having the feature) as it will mean just
+> > adding a few entries in hwmod data files to indicate IP blocks (very
+> > few) which do not support this feature.
+> >
+> > However since none of OMAP2/3 varients (except I guess the AMxxxx
+> > family) support this, it would also mean we mark
+> > *most* blocks in OMAP2/3 to indicate they *lack* this feature, which
+> > would mean bloating the OMAP2/3 data files, but your
+> > comment below about doing it for all IPs during hwmod registration
+> > makes sense at least for OMAP2 since *all* blocks can be marked at
+> > registration. OMAP3 would probably need more data files to be updated
+> > to indicate which ones support and which ones don't.
+> >
+> > Having said that I also see 'context_reg' being defined inside
+> > omap_hwmod_omap4_prcm would need to be fixed if we have to
+> > support this for SoCs which fall as OMAP3 varients.
+> 
+> I just went back and looked at Vaibhavs patch which adds am33xx
+> hwmod data and I think none of what I said above is a problem.
+> I think we can safely mark the few blocks on OMAP4 which do
+> not have a valid context_reg with -1 or USHRT_MAX as you suggested
+> and mark all OMAP2/3 blocks with this at registration.
+> 
+> Benoit/Paul, does that sound good?
 
-Voltage Processor state machine transition to disable need to
-occur from IDLE state. When we transition OPP in a functioning
-system, the call sequence for an OPP transition is as follows:
-omap_sr_disable
-      -> sr class 3 disable
-           -> vp disable
-           -> sr disable
-forceupdate to voltage/frequency scale depending on which OPP
-we are transitioning to.
+Any comments to this? This is blocking v6 for this set. Also, who is
+going to generate the hwmod data?
 
-If we hit a critical timing window where SR had commanded VP
-for a voltage transition and VP is in the middle of operating
-on that command, it needs to go through a few states before
-going to update state(where it actually sends the command to
-VC). Initial view of h/w owners is that the state disable of VP
-is expected to be sampled for the next transition.
+-Tero
 
-Instead, to be on a safer side, we ensure that the valid states
-of the VP state machine is diligently followed by software. This
-can be done by waiting for VP to be in idle  prior to disabling
-VP. Existing prints have been updated to ensure context is
-available on error messages.
-
-As part of this change, increase timeout for VP idle check to
-improbable 500uSec to be certain that system is indeed unable
-to continue before crashing out with error(worst case expectancy
-remains the same 3-100uSec depending on when we caught VP). Update
-macro documentation as well
-
-Cc: Tony Lindgren <tony@atomide.com>
-Cc: Kevin Hilman <khilman@ti.com>
-Cc: Eduardo Valentin <eduardo.valentin@ti.com>
-Cc: linux-omap@vger.kernel.org
-Cc: linux-arm-kernel@lists.infradead.org
-
-[nm@ti.com: port from android]
-Signed-off-by: Nishanth Menon <nm@ti.com>
-Signed-off-by: Wenbiao Wang <wwang@ti.com>
----
-V3: updated documenation for VP_IDLE_TIMEOUT macro
-V2: http://marc.info/?t=133736542500001&r=1&w=2
- arch/arm/mach-omap2/vp.c |   15 +++++++++++++--
- arch/arm/mach-omap2/vp.h |    9 +++++++--
- 2 files changed, 20 insertions(+), 4 deletions(-)
-
-diff --git a/arch/arm/mach-omap2/vp.c b/arch/arm/mach-omap2/vp.c
-index f95c1ba..925d869 100644
---- a/arch/arm/mach-omap2/vp.c
-+++ b/arch/arm/mach-omap2/vp.c
-@@ -262,6 +262,17 @@ void omap_vp_disable(struct voltagedomain *voltdm)
- 		return;
- 	}
- 
-+	/*
-+	 * Wait for VP idle Typical latency is <2us. Maximum latency is ~100us
-+	 * Depending on if we catch VP in the middle of an SR operation.
-+	 */
-+	omap_test_timeout((voltdm->read(vp->vstatus)),
-+			  VP_IDLE_TIMEOUT, timeout);
-+
-+	if (timeout >= VP_IDLE_TIMEOUT)
-+		pr_warning("%s: vdd_%s idle timedout before disable\n",
-+			   __func__, voltdm->name);
-+
- 	/* Disable VP */
- 	vpconfig = voltdm->read(vp->vpconfig);
- 	vpconfig &= ~vp->common->vpconfig_vpenable;
-@@ -274,8 +285,8 @@ void omap_vp_disable(struct voltagedomain *voltdm)
- 			  VP_IDLE_TIMEOUT, timeout);
- 
- 	if (timeout >= VP_IDLE_TIMEOUT)
--		pr_warning("%s: vdd_%s idle timedout\n",
--			__func__, voltdm->name);
-+		pr_warning("%s: vdd_%s idle timedout after disable\n",
-+			   __func__, voltdm->name);
- 
- 	vp->enabled = false;
- 
-diff --git a/arch/arm/mach-omap2/vp.h b/arch/arm/mach-omap2/vp.h
-index 7c155d2..79b159f 100644
---- a/arch/arm/mach-omap2/vp.h
-+++ b/arch/arm/mach-omap2/vp.h
-@@ -30,8 +30,13 @@ struct voltagedomain;
- #define OMAP4_VP_VDD_IVA_ID 1
- #define OMAP4_VP_VDD_MPU_ID 2
- 
--/* XXX document */
--#define VP_IDLE_TIMEOUT		200
-+/*
-+ * Maximum time for Voltage Processor to enter or exit idle
-+ * worst case is around 100uSec depending on when we intercepted VP
-+ * we use 5 times worst case value to be sure that the system flags
-+ * invalid condition
-+ */
-+#define VP_IDLE_TIMEOUT		500
- #define VP_TRANXDONE_TIMEOUT	300
- 
- /**
--- 
-1.7.9.5
-
+> 
+> >
+> >>
+> >>> Yeah, but still, every OMAP4 IPs are supporting that except two of
+> >>> them I guess, so it is a pity to add that to every IPs.
+> >>>
+> >>> We'd better add a HWMOD_NO_CONTEXT_REG to the few IPs that are not
+> >>> supporting that. Since OMAP 2& 3 does not have this feature at all,
+> >>> we can check on the cpu revision.
+> >>>
+> >>> I think the issue raised by Rajendra was about AM35xx that looks like
+> >>> an OMAP3 variant but does have these registers like an OMAP4
+> >>> variant:-(
+> >>
+> >> If AM335x is missing it for *all* IPs, that's easy enough to solve
+> >> without bloating the data file: just set .context_offs field (or flag)
+> >> to the magic value for all IPs during hwmod registration.
+> >>
+> >> Paul/Benoit should make the call whether to use a special value in the
+> >> .context_offs field (0 or -1) or add a new flag. If a flag is chosen, I
+> >> agree with Benoit that it should indicate the *lack* of the feature,
+> >> since having the feature is the norm.
+> >>
+> >> Kevin
+> >>
+> >
+> 
