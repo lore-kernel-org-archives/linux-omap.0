@@ -1,223 +1,140 @@
-From: Jon Hunter <jon-hunter@ti.com>
-Subject: [PATCH 4/5] ARM: OMAP1: Add dmtimer clock data
-Date: Tue, 22 May 2012 15:17:49 -0500
-Message-ID: <1337717869-20678-1-git-send-email-jon-hunter@ti.com>
+From: Siarhei Siamashka <siarhei.siamashka@gmail.com>
+Subject: Re: [PATCH 0/2] OMAPDSS: write-through caching support for omapfb
+Date: Tue, 22 May 2012 23:25:26 +0300
+Message-ID: <CACY+gR15Q+wEVnkWqWmTy4+R72zP91t-KCHvZS-vAO1Ls0Ef-A@mail.gmail.com>
+References: <1337716444-30139-1-git-send-email-siarhei.siamashka@gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from comal.ext.ti.com ([198.47.26.152]:53157 "EHLO comal.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S932454Ab2EVURv (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Tue, 22 May 2012 16:17:51 -0400
+Received: from mail-yx0-f174.google.com ([209.85.213.174]:39697 "EHLO
+	mail-yx0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S932524Ab2EVUZ1 convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 22 May 2012 16:25:27 -0400
+In-Reply-To: <1337716444-30139-1-git-send-email-siarhei.siamashka@gmail.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: linux-omap <linux-omap@vger.kernel.org>
-Cc: Tony Lindgren <tony@atomide.com>, Paul Walmsley <paul@pwsan.com>, Tarun Kanti <tarun.kanti@ti.com>, Jon Hunter <jon-hunter@ti.com>
+To: linux-arm-kernel@lists.infradead.org
+Cc: linux-omap@vger.kernel.org, linux-fbdev@vger.kernel.org, linux@arm.linux.org.uk, tomi.valkeinen@ti.com, Siarhei Siamashka <siarhei.siamashka@gmail.com>
 
-From: Jon Hunter <jon-hunter@ti.com>
+On Tue, May 22, 2012 at 10:54 PM, Siarhei Siamashka
+<siarhei.siamashka@gmail.com> wrote:
+> And at least for ARM11 and Cortex-A8 processors, the performance of
+> write-through cache is really good. Cortex-A9 is another story, becau=
+se
+> all pages marked as Write-Through are supposedly treated as Non-Cache=
+able:
+> =C2=A0 =C2=A0http://infocenter.arm.com/help/topic/com.arm.doc.ddi0388=
+h/CBBFDIJD.html
+> So OMAP4 is out of luck.
 
-Add clock data for the 8 dmtimers present on OMAP16xx (including OMAP5912)
-and OMAP17xx devices. These timers support 3 different clock sources which
-are the 32kHz clock, ARMXOR clock and an external clock source.
+I don't have Pandaboard ES, but still tried to experiment changing the
+following line in the kernel sources to benchmark different types of
+caching for the framebuffer on Origen board (Exynos 4210):
+    https://github.com/torvalds/linux/blob/v3.4/drivers/media/video/vid=
+eobuf2-memops.c#L158
 
-Signed-off-by: Jon Hunter <jon-hunter@ti.com>
----
- arch/arm/mach-omap1/clock_data.c |  140 ++++++++++++++++++++++++++++++++++++++
- 1 file changed, 140 insertions(+)
+It was not a totally clean experiment, because 500x500 16bpp pixel
+buffer is much smaller than 1MiB L2 cache and the performance numbers
+may be a bit odd. Also I have not checked whether the same buffer may
+be mapped with different cacheability attributes anywhere else (which
+would be bad). But still it was interesting to see whether
+write-through cache is of any use and whether it could serve as a
+replacement for shadowfb.
 
-diff --git a/arch/arm/mach-omap1/clock_data.c b/arch/arm/mach-omap1/clock_data.c
-index d60f690..27acf4c 100644
---- a/arch/arm/mach-omap1/clock_data.c
-+++ b/arch/arm/mach-omap1/clock_data.c
-@@ -83,6 +83,12 @@ static struct clk ck_ref = {
- 	.rate		= 12000000,
- };
- 
-+static struct clk ck_32k = {
-+	.name		= "ck_32k",
-+	.ops		= &clkops_null,
-+	.rate		= 32768,
-+};
-+
- static struct clk ck_dpll1 = {
- 	.name		= "ck_dpll1",
- 	.ops		= &clkops_null,
-@@ -677,6 +683,127 @@ static struct clk i2c_ick = {
- 	.recalc		= &followparent_recalc,
- };
- 
-+static const struct clksel_rate div_1_0_rates[] = {
-+	{ .div = 1, .val = 0, .flags = CK_16XX | CK_1710 },
-+	{ .div = 0 },
-+};
-+static const struct clksel_rate div_1_1_rates[] = {
-+	{ .div = 1, .val = 1, .flags = CK_16XX | CK_1710 },
-+	{ .div = 0 },
-+};
-+static const struct clksel_rate div_1_2_rates[] = {
-+	{ .div = 1, .val = 2, .flags = CK_16XX | CK_1710 },
-+	{ .div = 0 },
-+};
-+
-+static struct clk timer_extclk = {
-+	.name		= "timer_extclk",
-+	.ops		= &clkops_null,
-+};
-+
-+static const struct clksel timer_sel[] = {
-+	{ .parent = &armxor_ck.clk, .rates = div_1_0_rates },
-+	{ .parent = &ck_32k, .rates = div_1_1_rates },
-+	{ .parent = &timer_extclk, .rates = div_1_2_rates },
-+	{ .parent = NULL },
-+};
-+
-+static struct clk timer1_fck = {
-+	.name		= "timer1_fck",
-+	.ops		= &clkops_generic,
-+	.init		= &omap_init_clksel_parent,
-+	.clksel		= timer_sel,
-+	.clksel_reg	= OMAP1_IO_ADDRESS(MOD_CONF_CTRL_1),
-+	.clksel_mask	= BIT(1) | BIT(0),
-+	.parent		= &armxor_ck.clk,
-+	.flags		= CLOCK_NO_IDLE_PARENT,
-+	.recalc		= &followparent_recalc,
-+};
-+
-+static struct clk timer2_fck = {
-+	.name		= "timer2_fck",
-+	.ops		= &clkops_generic,
-+	.init		= &omap_init_clksel_parent,
-+	.clksel		= timer_sel,
-+	.clksel_reg	= OMAP1_IO_ADDRESS(MOD_CONF_CTRL_1),
-+	.clksel_mask	= BIT(3) | BIT(2),
-+	.parent		= &armxor_ck.clk,
-+	.flags		= CLOCK_NO_IDLE_PARENT,
-+	.recalc		= &followparent_recalc,
-+};
-+
-+static struct clk timer3_fck = {
-+	.name		= "timer3_fck",
-+	.ops		= &clkops_generic,
-+	.init		= &omap_init_clksel_parent,
-+	.clksel		= timer_sel,
-+	.clksel_reg	= OMAP1_IO_ADDRESS(MOD_CONF_CTRL_1),
-+	.clksel_mask	= BIT(5) | BIT(4),
-+	.parent		= &armxor_ck.clk,
-+	.flags		= CLOCK_NO_IDLE_PARENT,
-+	.recalc		= &followparent_recalc,
-+};
-+
-+static struct clk timer4_fck = {
-+	.name		= "timer4_fck",
-+	.ops		= &clkops_generic,
-+	.init		= &omap_init_clksel_parent,
-+	.clksel		= timer_sel,
-+	.clksel_reg	= OMAP1_IO_ADDRESS(MOD_CONF_CTRL_1),
-+	.clksel_mask	= BIT(7) | BIT(6),
-+	.parent		= &armxor_ck.clk,
-+	.flags		= CLOCK_NO_IDLE_PARENT,
-+	.recalc		= &followparent_recalc,
-+};
-+
-+static struct clk timer5_fck = {
-+	.name		= "timer5_fck",
-+	.ops		= &clkops_generic,
-+	.init		= &omap_init_clksel_parent,
-+	.clksel		= timer_sel,
-+	.clksel_reg	= OMAP1_IO_ADDRESS(MOD_CONF_CTRL_1),
-+	.clksel_mask	= BIT(9) | BIT(8),
-+	.parent		= &armxor_ck.clk,
-+	.flags		= CLOCK_NO_IDLE_PARENT,
-+	.recalc		= &followparent_recalc,
-+};
-+
-+static struct clk timer6_fck = {
-+	.name		= "timer6_fck",
-+	.ops		= &clkops_generic,
-+	.init		= &omap_init_clksel_parent,
-+	.clksel		= timer_sel,
-+	.clksel_reg	= OMAP1_IO_ADDRESS(MOD_CONF_CTRL_1),
-+	.clksel_mask	= BIT(11) | BIT(10),
-+	.parent		= &armxor_ck.clk,
-+	.flags		= CLOCK_NO_IDLE_PARENT,
-+	.recalc		= &followparent_recalc,
-+};
-+
-+static struct clk timer7_fck = {
-+	.name		= "timer7_fck",
-+	.ops		= &clkops_generic,
-+	.init		= &omap_init_clksel_parent,
-+	.clksel		= timer_sel,
-+	.clksel_reg	= OMAP1_IO_ADDRESS(MOD_CONF_CTRL_1),
-+	.clksel_mask	= BIT(13) | BIT(12),
-+	.parent		= &armxor_ck.clk,
-+	.flags		= CLOCK_NO_IDLE_PARENT,
-+	.recalc		= &followparent_recalc,
-+};
-+
-+static struct clk timer8_fck = {
-+	.name		= "timer8_fck",
-+	.ops		= &clkops_generic,
-+	.init		= &omap_init_clksel_parent,
-+	.clksel		= timer_sel,
-+	.clksel_reg	= OMAP1_IO_ADDRESS(MOD_CONF_CTRL_1),
-+	.clksel_mask	= BIT(15) | BIT(14),
-+	.parent		= &armxor_ck.clk,
-+	.flags		= CLOCK_NO_IDLE_PARENT,
-+	.recalc		= &followparent_recalc,
-+};
-+
- /*
-  * clkdev integration
-  */
-@@ -698,6 +825,15 @@ static struct omap_clk omap_clks[] = {
- 	CLK("omap_wdt", "ick",		&dummy_ck,	CK_1510 | CK_310),
- 	CLK(NULL,	"arminth_ck",	&arminth_ck1510, CK_1510 | CK_310),
- 	CLK(NULL,	"arminth_ck",	&arminth_ck16xx, CK_16XX),
-+	CLK(NULL,	"timer_sys_ck",	&armxor_ck.clk,	CK_16XX | CK_1710),
-+	CLK("omap_timer.1", "fck",	&timer1_fck,	CK_16XX | CK_1710),
-+	CLK("omap_timer.2", "fck",	&timer2_fck,	CK_16XX | CK_1710),
-+	CLK("omap_timer.3", "fck",	&timer3_fck,	CK_16XX | CK_1710),
-+	CLK("omap_timer.4", "fck",	&timer4_fck,	CK_16XX | CK_1710),
-+	CLK("omap_timer.5", "fck",	&timer5_fck,	CK_16XX | CK_1710),
-+	CLK("omap_timer.6", "fck",	&timer6_fck,	CK_16XX | CK_1710),
-+	CLK("omap_timer.7", "fck",	&timer7_fck,	CK_16XX | CK_1710),
-+	CLK("omap_timer.8", "fck",	&timer8_fck,	CK_16XX | CK_1710),
- 	/* CK_GEN2 clocks */
- 	CLK(NULL,	"dsp_ck",	&dsp_ck,	CK_16XX | CK_1510 | CK_310),
- 	CLK(NULL,	"dspmmu_ck",	&dspmmu_ck,	CK_16XX | CK_1510 | CK_310),
-@@ -719,6 +855,7 @@ static struct omap_clk omap_clks[] = {
- 	CLK(NULL,	"lcd_ck",	&lcd_ck_16xx,	CK_16XX | CK_7XX),
- 	CLK(NULL,	"lcd_ck",	&lcd_ck_1510.clk, CK_1510 | CK_310),
- 	/* ULPD clocks */
-+	CLK(NULL,	"timer_32k_ck",	&ck_32k,	CK_16XX | CK_1510 | CK_310 | CK_7XX),
- 	CLK(NULL,	"uart1_ck",	&uart1_1510,	CK_1510 | CK_310),
- 	CLK(NULL,	"uart1_ck",	&uart1_16xx.clk, CK_16XX),
- 	CLK(NULL,	"uart1_ck",	&uart1_7xx,	CK_7XX),
-@@ -759,6 +896,7 @@ static struct omap_clk omap_clks[] = {
- 	CLK("omap-mcbsp.1", "fck",	&dspxor_ck,	CK_16XX | CK_1510 | CK_310),
- 	CLK("omap-mcbsp.2", "fck",	&armper_ck.clk,	CK_16XX | CK_1510 | CK_310),
- 	CLK("omap-mcbsp.3", "fck",	&dspxor_ck,	CK_16XX | CK_1510 | CK_310),
-+	CLK(NULL,	"timer_ext_ck",	&timer_extclk,	CK_16XX | CK_1710),
- };
- 
- /*
-@@ -771,6 +909,7 @@ static struct clk_functions omap1_clk_functions = {
- 	.clk_round_rate		= omap1_clk_round_rate,
- 	.clk_set_rate		= omap1_clk_set_rate,
- 	.clk_disable_unused	= omap1_clk_disable_unused,
-+	.clk_set_parent		= omap_clksel_set_parent,
- };
- 
- static void __init omap1_show_rates(void)
-@@ -882,6 +1021,7 @@ int __init omap1_clk_init(void)
- 			}
- 		}
- 	}
-+	propagate_rate(&ck_32k);
- 	propagate_rate(&ck_dpll1);
- 	/* Cache rates for clocks connected to ck_ref (not dpll1) */
- 	propagate_rate(&ck_ref);
--- 
-1.7.9.5
+Origen board, Exynos 4210, Cortex-A9 1.2GHz, 1920x1080 screen
+resolution, 16bpp desktop color depth (I did not find any obvious way
+how to change it to 32bpp yet):
 
+$ x11perf -scroll500 -copywinwin500 -copypixpix500 \
+          -copypixwin500 -copywinpix500
+
+-- pgprot_noncached + shadowfb
+ 100000 trep @  0.2708 msec ( 3690.0/sec): Scroll 500x500 pixels
+  40000 trep @  0.7307 msec ( 1370.0/sec): Copy 500x500 from window to =
+window
+  60000 trep @  0.5471 msec ( 1830.0/sec): Copy 500x500 from pixmap to =
+window
+  60000 trep @  0.5822 msec ( 1720.0/sec): Copy 500x500 from window to =
+pixmap
+  40000 trep @  0.6584 msec ( 1520.0/sec): Copy 500x500 from pixmap to =
+pixmap
+
+-- pgprot_writecombine + shadowfb
+ 100000 trep @  0.2612 msec ( 3830.0/sec): Scroll 500x500 pixels
+  40000 trep @  0.7058 msec ( 1420.0/sec): Copy 500x500 from window to =
+window
+  60000 trep @  0.5262 msec ( 1900.0/sec): Copy 500x500 from pixmap to =
+window
+  60000 trep @  0.5797 msec ( 1730.0/sec): Copy 500x500 from window to =
+pixmap
+  40000 trep @  0.6554 msec ( 1530.0/sec): Copy 500x500 from pixmap to =
+pixmap
+
+-- pgprot_writethrough + shadowfb
+ 100000 trep @  0.2609 msec ( 3830.0/sec): Scroll 500x500 pixels
+  40000 trep @  0.7018 msec ( 1420.0/sec): Copy 500x500 from window to =
+window
+  60000 trep @  0.5260 msec ( 1900.0/sec): Copy 500x500 from pixmap to =
+window
+  60000 trep @  0.5758 msec ( 1740.0/sec): Copy 500x500 from window to =
+pixmap
+  40000 trep @  0.6569 msec ( 1520.0/sec): Copy 500x500 from pixmap to =
+pixmap
+
+-- pgprot_noncached
+   3500 trep @  7.5972 msec (  132.0/sec): Scroll 500x500 pixels
+   1800 trep @ 14.7146 msec (   68.0/sec): Copy 500x500 from window to =
+window
+   6000 trep @  4.6501 msec (  215.0/sec): Copy 500x500 from pixmap to =
+window
+   8000 trep @  3.3500 msec (  299.0/sec): Copy 500x500 from window to =
+pixmap
+  40000 trep @  0.6546 msec ( 1530.0/sec): Copy 500x500 from pixmap to =
+pixmap
+
+-- pgprot_writecombine
+  10000 trep @  2.9439 msec (  340.0/sec): Scroll 500x500 pixels
+   6000 trep @  5.7246 msec (  175.0/sec): Copy 500x500 from window to =
+window
+  60000 trep @  0.4213 msec ( 2370.0/sec): Copy 500x500 from pixmap to =
+window
+  12000 trep @  2.2423 msec (  446.0/sec): Copy 500x500 from window to =
+pixmap
+  40000 trep @  0.6648 msec ( 1500.0/sec): Copy 500x500 from pixmap to =
+pixmap
+
+-- pgprot_writethrough
+  40000 trep @  0.7103 msec ( 1410.0/sec): Scroll 500x500 pixels
+  20000 trep @  1.3024 msec (  768.0/sec): Copy 500x500 from window to =
+window
+  80000 trep @  0.3933 msec ( 2540.0/sec): Copy 500x500 from pixmap to =
+window
+  18000 trep @  1.3967 msec (  716.0/sec): Copy 500x500 from window to =
+pixmap
+  40000 trep @  0.6548 msec ( 1530.0/sec): Copy 500x500 from pixmap to =
+pixmap
+
+Without shadowfb, the performance of "writecombine" looks to be better
+than "noncached". And "writethrough" is clearly the fastest. Still
+even "writethrough" is no match for shadowfb on Cortex-A9 (unlike
+ARM11 and Cortex-A8).
+
+So is Cortex-A9 a lost cause? Maybe experimenting with page table
+entries and tweaking inner/outer cacheability attributes could provide
+something? From the first glance, it looks like read performance for
+write-through cached memory is rather bad on Cortex-A9. But still
+there is some speedup, so it does not seem to be treated as totally
+non-cached. And at least PL310 L2 cache controller has some support
+for "Cacheable write-through, allocate on read":
+    http://infocenter.arm.com/help/topic/com.arm.doc.ddi0246f/ch02s03s0=
+1.html
+
+--=20
+Best regards,
+Siarhei Siamashka
+--
+To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
