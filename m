@@ -1,45 +1,63 @@
-From: Ricardo Neri <ricardo.neri@ti.com>
-Subject: [PATCH] OMAPDSS: HDMI: OMAP4: Fix request_irq for HPD
-Date: Mon, 21 May 2012 21:47:20 -0500
-Message-ID: <1337654841-28378-1-git-send-email-ricardo.neri@ti.com>
+From: "Mohammed, Afzal" <afzal@ti.com>
+Subject: RE: [PATCH 0/3] GPMC NAND isr using standard API
+Date: Tue, 22 May 2012 04:26:32 +0000
+Message-ID: <C8443D0743D26F4388EA172BF4E2A7A93E98EE28@DBDE01.ent.ti.com>
+References: <cover.1337090835.git.afzal@ti.com>
+ <20120519125018.GA2407@parrot.com>
 Mime-Version: 1.0
-Content-Type: text/plain
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from arroyo.ext.ti.com ([192.94.94.40]:36654 "EHLO arroyo.ext.ti.com"
+Received: from bear.ext.ti.com ([192.94.94.41]:43566 "EHLO bear.ext.ti.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751177Ab2EVCro (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Mon, 21 May 2012 22:47:44 -0400
-Received: from dlelxv30.itg.ti.com ([172.17.2.17])
-	by arroyo.ext.ti.com (8.13.7/8.13.7) with ESMTP id q4M2lh2n025354
-	for <linux-omap@vger.kernel.org>; Mon, 21 May 2012 21:47:43 -0500
-Received: from DFLE70.ent.ti.com (dfle70.ent.ti.com [128.247.5.40])
-	by dlelxv30.itg.ti.com (8.13.8/8.13.8) with ESMTP id q4M2lh3N022065
-	for <linux-omap@vger.kernel.org>; Mon, 21 May 2012 21:47:43 -0500
+	id S1751375Ab2EVE0v convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 22 May 2012 00:26:51 -0400
+In-Reply-To: <20120519125018.GA2407@parrot.com>
+Content-Language: en-US
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: tomi.valkeinen@ti.com, mythripk@ti.com
-Cc: s-guiriec@ti.com, linux-omap@vger.kernel.org, Ricardo Neri <ricardo.neri@ti.com>
+To: Ivan Djelic <ivan.djelic@parrot.com>
+Cc: "tony@atomide.com" <tony@atomide.com>, "dwmw2@infradead.org" <dwmw2@infradead.org>, "artem.bityutskiy@linux.intel.com" <artem.bityutskiy@linux.intel.com>, "dedekind1@gmail.com" <dedekind1@gmail.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-mtd@lists.infradead.org" <linux-mtd@lists.infradead.org>
 
-Hi Tomi,
+Hi Ivan,
 
-While validating HDMI audio on the linux-next tree I found that requesting
-the threaded irq for HDMI HDP will fail due to an upcoming change in genirq[1].
-This change requires to use the IRQF_ONESHOT flag even for edge type interrupts
-if no handler is provided, otherwise the request will fail.
+On Sat, May 19, 2012 at 18:20:18, Ivan Djelic wrote:
 
-Also, while there, I removed the IRQF_DISABLED flag as it is now deprecated.
+> Hi Afzal,
+> 
+> I tried to take your series of patches, but I had issues with the
+> first [1] (I did not try the others): it depends on the following patch,
+> which is not in the l2-mtd-2.6 tree:
+> 
+> http://www.mail-archive.com/linux-omap@vger.kernel.org/msg68258.html
+> 
+> and it does not apply anyway to l2-mtd-2.6 because of (at least) the
+> following patches:
+> 
+> http://lists.infradead.org/pipermail/linux-mtd/2012-April/040631.html
+> http://lists.infradead.org/pipermail/linux-mtd/2012-April/040724.html
+> 
+> So, do you think you could rebase your series on l2-mtd-2.6 ?
+> And maybe merge the 3 series into a single one, if they have circular
+> dependencies ?
 
-If you are OK with the change, I hope it could be merged for K3.5 otherwise
-HDMI will fail.
+I am not sure what the workflow should be here, all patch series were
+made over omap tree, if it is generated over mtd tree, similar issue
+would happen for omap platform patches. 
 
-[1].http://www.spinics.net/lists/linux-tip-commits/msg14974.html
+In any case, for your reference, the 3 series of patches of had been
+rebased over mtd tree, and is available,
 
-Ricardo Neri (1):
-  OMAPDSS: HDMI: OMAP4: Update IRQ flags for the HPD IRQ request
+git@gitorious.org:x0148406-public/linux-kernel.git gpmc-mtd.
 
- drivers/video/omap2/dss/ti_hdmi_4xxx_ip.c |    6 +++---
- 1 files changed, 3 insertions(+), 3 deletions(-)
+To prevent confusion the 3 patch series has not been posted.
 
--- 
-1.7.5.4
+Tony, Artem, how should the conflict between omap & mtd trees be handled
+for patch series ?
 
+I believe it is better to send the 3 patch series into one as mentioned
+by Ivan, and planning to do so, but in that case over which tree should
+it be based ?
+
+Regards
+Afzal
