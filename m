@@ -1,77 +1,40 @@
 From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH v4-alt 3/6] ARM: OMAP3: hwmod data: add gpmc
-Date: Tue, 22 May 2012 09:42:15 -0700
-Message-ID: <20120522164215.GE16308@atomide.com>
-References: <cover.1335941443.git.afzal@ti.com>
- <99ffbbcc634022ed3c781c37e03989f1d898003e.1335941444.git.afzal@ti.com>
- <alpine.DEB.2.00.1205051949290.20926@utopia.booyaka.com>
- <C8443D0743D26F4388EA172BF4E2A7A93E987188@DBDE01.ent.ti.com>
- <alpine.DEB.2.00.1205080915220.9984@utopia.booyaka.com>
- <C8443D0743D26F4388EA172BF4E2A7A93E98A2F3@DBDE01.ent.ti.com>
- <alpine.DEB.2.00.1205212344460.1275@utopia.booyaka.com>
+Subject: Re: [PATCH 0/3] GPMC NAND isr using standard API
+Date: Tue, 22 May 2012 09:44:15 -0700
+Message-ID: <20120522164413.GF16308@atomide.com>
+References: <cover.1337090835.git.afzal@ti.com>
+ <20120519125018.GA2407@parrot.com>
+ <C8443D0743D26F4388EA172BF4E2A7A93E98EE28@DBDE01.ent.ti.com>
+ <1337667283.2483.83.camel@sauron.fi.intel.com>
+ <C8443D0743D26F4388EA172BF4E2A7A93E98F0E1@DBDE01.ent.ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-02-ewr.mailhop.org ([204.13.248.72]:47957 "EHLO
-	mho-02-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751413Ab2EVQmS (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 22 May 2012 12:42:18 -0400
+Received: from mho-01-ewr.mailhop.org ([204.13.248.71]:58544 "EHLO
+	mho-01-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751671Ab2EVQoV (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 22 May 2012 12:44:21 -0400
 Content-Disposition: inline
-In-Reply-To: <alpine.DEB.2.00.1205212344460.1275@utopia.booyaka.com>
+In-Reply-To: <C8443D0743D26F4388EA172BF4E2A7A93E98F0E1@DBDE01.ent.ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Paul Walmsley <paul@pwsan.com>
-Cc: "Mohammed, Afzal" <afzal@ti.com>, khilman@ti.com, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
+To: "Mohammed, Afzal" <afzal@ti.com>
+Cc: "artem.bityutskiy@linux.intel.com" <artem.bityutskiy@linux.intel.com>, Ivan Djelic <ivan.djelic@parrot.com>, "dwmw2@infradead.org" <dwmw2@infradead.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-mtd@lists.infradead.org" <linux-mtd@lists.infradead.org>
 
-* Paul Walmsley <paul@pwsan.com> [120521 23:51]:
+* Mohammed, Afzal <afzal@ti.com> [120522 00:05]:
+> Hi Artem,
 > 
-> Next, I'd suggest implementing the code to allow GPMC timing configuration 
-> from raw register data (the second method above).  This is hackish but for 
-> some boards, this is all we'll have.  This will also presumably require 
-> some extra DT bindings for the register data.  If this method is used, 
-> this code should also call a PM function to block clock rate changes on 
-> the GPMC clock, and an explanatory warning should be logged to the 
-> console.
-
-Also something to note here is that generating dynamic timings from the
-fixed GPMC register values won't work for other frequencies.
-
-As far as I remember, the main problem trying to convert fixed value
-GPMC timings into dynamic timings is the fact that some GPMC values
-calculated depend on clock cycles, while other values depend on time.
-
-So the cycle values remain unknown trying to upsample from fixed timings.
- 
-> For boards that we don't have access to, and all someone would have are 
-> the register values set by the bootloader, I'd propose a phased approach:
+> On Tue, May 22, 2012 at 11:44:43, Artem Bityutskiy wrote:
+> > You merge the 2 trees and work on top of that? Or you wait for 3.5-r1
+> > when everything is merged and work on top of that?
 > 
-> 1. The kernel should log the bootloader-provided GPMC timing registers to 
-> the console during boot, along with a warning message that indicates that 
-> GPMC for these boards will cease to function in the near future unless 
-> patches are provided to update the kernel board file and/or DT data with 
-> the GPMC register contents.  This should allow people who have those 
-> boards and who care about them to submit kernel patches to allow the 
-> GPMC-attached devices to continue to function.
+> I will merge 2 trees & do
+> 
+> Tony, are you ok with that ?
 
-Unfortunately for many of the older boards these values will probably
-remain unknown.
-
-So the better approach here is to just disable frequency scaling
-for these cases. Otherwise we'll be breaking old boards with smsc911x
-where the timings for the FPGA controlling smsc911x are unknown.
-
-If we somehow manage to get those values without breaking support for
-these boards, then yes I agree we should deprecate hardcoded and
-bootloader values.
- 
-> 2. A patch to Documentation/feature-removal-schedule.txt should be
-> submitted which states that support for implicit bootloader GPMC timings
-> will be removed within two or three kernel releases.
-
-I'm fine with that assuming we somehow first have the values for the
-most commonly used boards for smsc911x. But before that happens, we can't
-really deprecate bootloader set GPMC values.
+I suggest you guys do your own merge of the two trees until -rc1
+is out, then start using -rc1 as the base like Artem suggested.
 
 Regards,
 
-Tony 
+Tony
