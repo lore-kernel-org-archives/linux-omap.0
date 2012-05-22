@@ -1,136 +1,57 @@
-From: Jingoo Han <jg1.han@samsung.com>
-Subject: Re: [PATCH] backlight: initialize  struct backlight_properties properly
-Date: Tue, 22 May 2012 09:07:31 +0900
-Message-ID: <000601cd37ae$e1ae8300$a50b8900$%han@samsung.com>
-References: <1337585085-4891-1-git-send-email-corentin.chary@gmail.com>
+From: Ricardo Neri <ricardo.neri@ti.com>
+Subject: [PATCH] OMAPDSS: HDMI: OMAP4: Update IRQ flags for the HPD IRQ request
+Date: Mon, 21 May 2012 21:47:21 -0500
+Message-ID: <1337654841-28378-2-git-send-email-ricardo.neri@ti.com>
+References: <1337654841-28378-1-git-send-email-ricardo.neri@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mailout1.samsung.com ([203.254.224.24]:37196 "EHLO
-	mailout1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751993Ab2EVAH4 (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 21 May 2012 20:07:56 -0400
-In-reply-to: <1337585085-4891-1-git-send-email-corentin.chary@gmail.com>
-Content-language: ko
+Received: from comal.ext.ti.com ([198.47.26.152]:53450 "EHLO comal.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1750881Ab2EVCro (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Mon, 21 May 2012 22:47:44 -0400
+Received: from dlelxv30.itg.ti.com ([172.17.2.17])
+	by comal.ext.ti.com (8.13.7/8.13.7) with ESMTP id q4M2lhU3029152
+	for <linux-omap@vger.kernel.org>; Mon, 21 May 2012 21:47:43 -0500
+Received: from DFLE71.ent.ti.com (dfle71.ent.ti.com [128.247.5.62])
+	by dlelxv30.itg.ti.com (8.13.8/8.13.8) with ESMTP id q4M2lhrJ022062
+	for <linux-omap@vger.kernel.org>; Mon, 21 May 2012 21:47:43 -0500
+In-Reply-To: <1337654841-28378-1-git-send-email-ricardo.neri@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: 'Corentin Chary' <corentin.chary@gmail.com>, 'Richard Purdie' <rpurdie@rpsys.net>, 'Andrew Morton' <akpm@linux-foundation.org>
-Cc: 'Keith Packard' <keithp@keithp.com>, 'David Airlie' <airlied@linux.ie>, 'Matthew Garrett' <mjg@redhat.com>, 'Florian Tobias Schandinat' <FlorianSchandinat@gmx.de>, 'Mark Brown' <broonie@opensource.wolfsonmicro.com>, 'Tomi Valkeinen' <tomi.valkeinen@ti.com>, 'Mathieu Poirier' <mathieu.poirier@linaro.org>, 'Dave Airlie' <airlied@redhat.com>, 'Arnd Bergmann' <arnd@arndb.de>, 'Lars-Peter Clausen' <lars@metafoo.de>, 'Axel Lin' <axel.lin@gmail.com>, dri-devel@lists.freedesktop.org, linux-kernel@vger.kernel.org, platform-driver-x86@vger.kernel.org, linux-fbdev@vger.kernel.org, patches@opensource.wolfsonmicro.com, linux-omap@vger.kernel.org, 'Jingoo Han' <jg1.han@samsung.com>
+To: tomi.valkeinen@ti.com, mythripk@ti.com
+Cc: s-guiriec@ti.com, linux-omap@vger.kernel.org, Ricardo Neri <ricardo.neri@ti.com>
 
-On Mon, May 21, 2012 at 04:25 PM +0000, Corentin Chary wrote:
+genirq requires that the IRQ requests that do not provided a handler to
+use the IRQF_ONESHOT flag. This is to prevent situations in which the irq line
+is reenabled while the interrupt is still asserted. While this situation may
+not happen in edge type interrupts, genirq still requires to use IRQF_ONESHOT.
 
-> 
-> In all these files, the .power field was never correctly initialized.
-> 
-> Signed-off-by: Corentin Chary <corentin.chary@gmail.com>
+Also, remove the IRQF_DISABLED as the flag is now a NOOP and has been
+deprecated.
 
-It looks good.
+Signed-off-by: Ricardo Neri <ricardo.neri@ti.com>
+---
+ drivers/video/omap2/dss/ti_hdmi_4xxx_ip.c |    6 +++---
+ 1 files changed, 3 insertions(+), 3 deletions(-)
 
-Best regards,
-Jingoo Han
-
-> ---
->  drivers/gpu/drm/i915/intel_panel.c              |    1 +
->  drivers/gpu/drm/radeon/radeon_legacy_encoders.c |    1 +
->  drivers/platform/x86/toshiba_acpi.c             |    1 +
->  drivers/video/backlight/da903x_bl.c             |    1 +
->  drivers/video/backlight/pcf50633-backlight.c    |    1 +
->  drivers/video/backlight/wm831x_bl.c             |    1 +
->  drivers/video/omap2/displays/panel-acx565akm.c  |    1 +
->  7 files changed, 7 insertions(+)
-> 
-> diff --git a/drivers/gpu/drm/i915/intel_panel.c b/drivers/gpu/drm/i915/intel_panel.c
-> index 48177ec..ec4a1e0 100644
-> --- a/drivers/gpu/drm/i915/intel_panel.c
-> +++ b/drivers/gpu/drm/i915/intel_panel.c
-> @@ -342,6 +342,7 @@ int intel_panel_setup_backlight(struct drm_device *dev)
->  	else
->  		return -ENODEV;
-> 
-> +	memset(&props, 0, sizeof(props));
->  	props.type = BACKLIGHT_RAW;
->  	props.max_brightness = intel_panel_get_max_backlight(dev);
->  	dev_priv->backlight =
-> diff --git a/drivers/gpu/drm/radeon/radeon_legacy_encoders.c
-> b/drivers/gpu/drm/radeon/radeon_legacy_encoders.c
-> index 42db254..a0c8222 100644
-> --- a/drivers/gpu/drm/radeon/radeon_legacy_encoders.c
-> +++ b/drivers/gpu/drm/radeon/radeon_legacy_encoders.c
-> @@ -369,6 +369,7 @@ void radeon_legacy_backlight_init(struct radeon_encoder *radeon_encoder,
->  		goto error;
->  	}
-> 
-> +	memset(&props, 0, sizeof(props));
->  	props.max_brightness = MAX_RADEON_LEVEL;
->  	props.type = BACKLIGHT_RAW;
->  	bd = backlight_device_register("radeon_bl", &drm_connector->kdev,
-> diff --git a/drivers/platform/x86/toshiba_acpi.c b/drivers/platform/x86/toshiba_acpi.c
-> index bde32de..d680bb2 100644
-> --- a/drivers/platform/x86/toshiba_acpi.c
-> +++ b/drivers/platform/x86/toshiba_acpi.c
-> @@ -1095,6 +1095,7 @@ static int __devinit toshiba_acpi_setup_backlight(struct toshiba_acpi_dev *dev)
->  	ret = get_tr_backlight_status(dev, &enabled);
->  	dev->tr_backlight_supported = !ret;
-> 
-> +	memset(&props, 0, sizeof(props));
->  	props.type = BACKLIGHT_PLATFORM;
->  	props.max_brightness = HCI_LCD_BRIGHTNESS_LEVELS - 1;
-> 
-> diff --git a/drivers/video/backlight/da903x_bl.c b/drivers/video/backlight/da903x_bl.c
-> index 30e1968..573c7ec 100644
-> --- a/drivers/video/backlight/da903x_bl.c
-> +++ b/drivers/video/backlight/da903x_bl.c
-> @@ -136,6 +136,7 @@ static int da903x_backlight_probe(struct platform_device *pdev)
->  		da903x_write(data->da903x_dev, DA9034_WLED_CONTROL2,
->  				DA9034_WLED_ISET(pdata->output_current));
-> 
-> +	memset(&props, 0, sizeof(props));
->  	props.type = BACKLIGHT_RAW;
->  	props.max_brightness = max_brightness;
->  	bl = backlight_device_register(pdev->name, data->da903x_dev, data,
-> diff --git a/drivers/video/backlight/pcf50633-backlight.c b/drivers/video/backlight/pcf50633-backlight.c
-> index c65853c..c092159 100644
-> --- a/drivers/video/backlight/pcf50633-backlight.c
-> +++ b/drivers/video/backlight/pcf50633-backlight.c
-> @@ -111,6 +111,7 @@ static int __devinit pcf50633_bl_probe(struct platform_device *pdev)
->  	if (!pcf_bl)
->  		return -ENOMEM;
-> 
-> +	memset(&bl_props, 0, sizeof(bl_props));
->  	bl_props.type = BACKLIGHT_RAW;
->  	bl_props.max_brightness = 0x3f;
->  	bl_props.power = FB_BLANK_UNBLANK;
-> diff --git a/drivers/video/backlight/wm831x_bl.c b/drivers/video/backlight/wm831x_bl.c
-> index 5d365de..9e5517a 100644
-> --- a/drivers/video/backlight/wm831x_bl.c
-> +++ b/drivers/video/backlight/wm831x_bl.c
-> @@ -194,6 +194,7 @@ static int wm831x_backlight_probe(struct platform_device *pdev)
->  	data->current_brightness = 0;
->  	data->isink_reg = isink_reg;
-> 
-> +	memset(&props, 0, sizeof(props));
->  	props.type = BACKLIGHT_RAW;
->  	props.max_brightness = max_isel;
->  	bl = backlight_device_register("wm831x", &pdev->dev, data,
-> diff --git a/drivers/video/omap2/displays/panel-acx565akm.c b/drivers/video/omap2/displays/panel-
-> acx565akm.c
-> index d26f37a..74e7cf0 100644
-> --- a/drivers/video/omap2/displays/panel-acx565akm.c
-> +++ b/drivers/video/omap2/displays/panel-acx565akm.c
-> @@ -532,6 +532,7 @@ static int acx_panel_probe(struct omap_dss_device *dssdev)
-> 
->  	/*------- Backlight control --------*/
-> 
-> +	memset(&props, 0, sizeof(props));
->  	props.fb_blank = FB_BLANK_UNBLANK;
->  	props.power = FB_BLANK_UNBLANK;
->  	props.type = BACKLIGHT_RAW;
-> --
-> 1.7.9.5
-> 
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-fbdev" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+diff --git a/drivers/video/omap2/dss/ti_hdmi_4xxx_ip.c b/drivers/video/omap2/dss/ti_hdmi_4xxx_ip.c
+index 4dcdbbb..d52823d 100644
+--- a/drivers/video/omap2/dss/ti_hdmi_4xxx_ip.c
++++ b/drivers/video/omap2/dss/ti_hdmi_4xxx_ip.c
+@@ -303,9 +303,9 @@ int ti_hdmi_4xxx_phy_enable(struct hdmi_ip_data *ip_data)
+ 	REG_FLD_MOD(phy_base, HDMI_TXPHY_PAD_CFG_CTRL, 0x1, 27, 27);
+ 
+ 	r = request_threaded_irq(gpio_to_irq(ip_data->hpd_gpio),
+-			NULL, hpd_irq_handler,
+-			IRQF_DISABLED | IRQF_TRIGGER_RISING |
+-			IRQF_TRIGGER_FALLING, "hpd", ip_data);
++				 NULL, hpd_irq_handler,
++				 IRQF_TRIGGER_RISING | IRQF_TRIGGER_FALLING |
++				 IRQF_ONESHOT, "hpd", ip_data);
+ 	if (r) {
+ 		DSSERR("HPD IRQ request failed\n");
+ 		hdmi_set_phy_pwr(ip_data, HDMI_PHYPWRCMD_OFF);
+-- 
+1.7.5.4
 
