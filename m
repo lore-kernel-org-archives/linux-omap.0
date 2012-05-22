@@ -1,58 +1,136 @@
-From: Stephen Warren <swarren@wwwdotorg.org>
-Subject: Re: [PATCH V3 1/2] of: Add generic device tree DMA helpers
-Date: Mon, 21 May 2012 14:32:10 -0600
-Message-ID: <4FBAA64A.200@wwwdotorg.org>
-References: <1335820679-28721-1-git-send-email-jon-hunter@ti.com> <201205190844.03654.arnd@arndb.de> <4FBA7C80.4080801@wwwdotorg.org> <201205211818.45646.arnd@arndb.de>
+From: Jingoo Han <jg1.han@samsung.com>
+Subject: Re: [PATCH] backlight: initialize  struct backlight_properties properly
+Date: Tue, 22 May 2012 09:07:31 +0900
+Message-ID: <000601cd37ae$e1ae8300$a50b8900$%han@samsung.com>
+References: <1337585085-4891-1-git-send-email-corentin.chary@gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
+Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from avon.wwwdotorg.org ([70.85.31.133]:33137 "EHLO
-	avon.wwwdotorg.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752167Ab2EUUcO (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 21 May 2012 16:32:14 -0400
-In-Reply-To: <201205211818.45646.arnd@arndb.de>
+Received: from mailout1.samsung.com ([203.254.224.24]:37196 "EHLO
+	mailout1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751993Ab2EVAH4 (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 21 May 2012 20:07:56 -0400
+In-reply-to: <1337585085-4891-1-git-send-email-corentin.chary@gmail.com>
+Content-language: ko
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Arnd Bergmann <arnd@arndb.de>
-Cc: Jassi Brar <jaswinder.singh@linaro.org>, Jon Hunter <jon-hunter@ti.com>, Stephen Warren <swarren@nvidia.com>, Benoit Cousson <b-cousson@ti.com>, device-tree <devicetree-discuss@lists.ozlabs.org>, Nicolas Ferre <nicolas.ferre@atmel.com>, Rob Herring <rob.herring@calxeda.com>, Grant Likely <grant.likely@secretlab.ca>, Russell King <linux@arm.linux.org.uk>, linux-omap <linux-omap@vger.kernel.org>, linux-arm <linux-arm-kernel@lists.infradead.org>
+To: 'Corentin Chary' <corentin.chary@gmail.com>, 'Richard Purdie' <rpurdie@rpsys.net>, 'Andrew Morton' <akpm@linux-foundation.org>
+Cc: 'Keith Packard' <keithp@keithp.com>, 'David Airlie' <airlied@linux.ie>, 'Matthew Garrett' <mjg@redhat.com>, 'Florian Tobias Schandinat' <FlorianSchandinat@gmx.de>, 'Mark Brown' <broonie@opensource.wolfsonmicro.com>, 'Tomi Valkeinen' <tomi.valkeinen@ti.com>, 'Mathieu Poirier' <mathieu.poirier@linaro.org>, 'Dave Airlie' <airlied@redhat.com>, 'Arnd Bergmann' <arnd@arndb.de>, 'Lars-Peter Clausen' <lars@metafoo.de>, 'Axel Lin' <axel.lin@gmail.com>, dri-devel@lists.freedesktop.org, linux-kernel@vger.kernel.org, platform-driver-x86@vger.kernel.org, linux-fbdev@vger.kernel.org, patches@opensource.wolfsonmicro.com, linux-omap@vger.kernel.org, 'Jingoo Han' <jg1.han@samsung.com>
 
-On 05/21/2012 12:18 PM, Arnd Bergmann wrote:
-> On Monday 21 May 2012, Stephen Warren wrote:
->>>
->>> The point with the direction was that it covers most cases and makes
->>> them rather simple, while for the rare case where you need more than
->>> two channels, you just use the otherwise optional named interface
->>> rather than the numbered one. My feeling is that this also makes a
->>> lot of sense at the driver API level: most dirvers just ask for the
->>> read and write channels using a very simple interface, and those drivers
->>> that have more than two will want to name them anyway.
->>
->> How are you thinking of representing the direction in DT - as part of
->> the DMA request specifier, so in a DMAC-specific way?
->>
->> If so, that seems a little odd; you have to request a DMA channel for
->> "TX", but then end up having the common code check all the entries in
->> the dmas property since it can't know which are TX, and then have the
->> wrong ones almost accidentally fail, since the DMAC will then determine
->> that it can't support TX on the RX DMA request IDs.
+On Mon, May 21, 2012 at 04:25 PM +0000, Corentin Chary wrote:
+
 > 
-> I think the direction must be encoded in a way that does not depend on
-> the binding for the specific controller. There are two ways I can see
-> how we might do it:
+> In all these files, the .power field was never correctly initialized.
 > 
-> 1. have separate property names for tx and rx channels, and probably
->    one for combined rx/tx channels
+> Signed-off-by: Corentin Chary <corentin.chary@gmail.com>
 
-> 2. define the second cell in each channel specifier to be the direction
->    in a predefined format, followed by the other (controller specific)
->    attributes, if any.
+It looks good.
 
-In this option, lets say bit 0 is 0==TX, 1==RX (or perhaps 2 bits if
-combined TX/RX is needed)
+Best regards,
+Jingoo Han
 
-Then, we could reserve say bits 7:1 as client DMA request ID.
+> ---
+>  drivers/gpu/drm/i915/intel_panel.c              |    1 +
+>  drivers/gpu/drm/radeon/radeon_legacy_encoders.c |    1 +
+>  drivers/platform/x86/toshiba_acpi.c             |    1 +
+>  drivers/video/backlight/da903x_bl.c             |    1 +
+>  drivers/video/backlight/pcf50633-backlight.c    |    1 +
+>  drivers/video/backlight/wm831x_bl.c             |    1 +
+>  drivers/video/omap2/displays/panel-acx565akm.c  |    1 +
+>  7 files changed, 7 insertions(+)
+> 
+> diff --git a/drivers/gpu/drm/i915/intel_panel.c b/drivers/gpu/drm/i915/intel_panel.c
+> index 48177ec..ec4a1e0 100644
+> --- a/drivers/gpu/drm/i915/intel_panel.c
+> +++ b/drivers/gpu/drm/i915/intel_panel.c
+> @@ -342,6 +342,7 @@ int intel_panel_setup_backlight(struct drm_device *dev)
+>  	else
+>  		return -ENODEV;
+> 
+> +	memset(&props, 0, sizeof(props));
+>  	props.type = BACKLIGHT_RAW;
+>  	props.max_brightness = intel_panel_get_max_backlight(dev);
+>  	dev_priv->backlight =
+> diff --git a/drivers/gpu/drm/radeon/radeon_legacy_encoders.c
+> b/drivers/gpu/drm/radeon/radeon_legacy_encoders.c
+> index 42db254..a0c8222 100644
+> --- a/drivers/gpu/drm/radeon/radeon_legacy_encoders.c
+> +++ b/drivers/gpu/drm/radeon/radeon_legacy_encoders.c
+> @@ -369,6 +369,7 @@ void radeon_legacy_backlight_init(struct radeon_encoder *radeon_encoder,
+>  		goto error;
+>  	}
+> 
+> +	memset(&props, 0, sizeof(props));
+>  	props.max_brightness = MAX_RADEON_LEVEL;
+>  	props.type = BACKLIGHT_RAW;
+>  	bd = backlight_device_register("radeon_bl", &drm_connector->kdev,
+> diff --git a/drivers/platform/x86/toshiba_acpi.c b/drivers/platform/x86/toshiba_acpi.c
+> index bde32de..d680bb2 100644
+> --- a/drivers/platform/x86/toshiba_acpi.c
+> +++ b/drivers/platform/x86/toshiba_acpi.c
+> @@ -1095,6 +1095,7 @@ static int __devinit toshiba_acpi_setup_backlight(struct toshiba_acpi_dev *dev)
+>  	ret = get_tr_backlight_status(dev, &enabled);
+>  	dev->tr_backlight_supported = !ret;
+> 
+> +	memset(&props, 0, sizeof(props));
+>  	props.type = BACKLIGHT_PLATFORM;
+>  	props.max_brightness = HCI_LCD_BRIGHTNESS_LEVELS - 1;
+> 
+> diff --git a/drivers/video/backlight/da903x_bl.c b/drivers/video/backlight/da903x_bl.c
+> index 30e1968..573c7ec 100644
+> --- a/drivers/video/backlight/da903x_bl.c
+> +++ b/drivers/video/backlight/da903x_bl.c
+> @@ -136,6 +136,7 @@ static int da903x_backlight_probe(struct platform_device *pdev)
+>  		da903x_write(data->da903x_dev, DA9034_WLED_CONTROL2,
+>  				DA9034_WLED_ISET(pdata->output_current));
+> 
+> +	memset(&props, 0, sizeof(props));
+>  	props.type = BACKLIGHT_RAW;
+>  	props.max_brightness = max_brightness;
+>  	bl = backlight_device_register(pdev->name, data->da903x_dev, data,
+> diff --git a/drivers/video/backlight/pcf50633-backlight.c b/drivers/video/backlight/pcf50633-backlight.c
+> index c65853c..c092159 100644
+> --- a/drivers/video/backlight/pcf50633-backlight.c
+> +++ b/drivers/video/backlight/pcf50633-backlight.c
+> @@ -111,6 +111,7 @@ static int __devinit pcf50633_bl_probe(struct platform_device *pdev)
+>  	if (!pcf_bl)
+>  		return -ENOMEM;
+> 
+> +	memset(&bl_props, 0, sizeof(bl_props));
+>  	bl_props.type = BACKLIGHT_RAW;
+>  	bl_props.max_brightness = 0x3f;
+>  	bl_props.power = FB_BLANK_UNBLANK;
+> diff --git a/drivers/video/backlight/wm831x_bl.c b/drivers/video/backlight/wm831x_bl.c
+> index 5d365de..9e5517a 100644
+> --- a/drivers/video/backlight/wm831x_bl.c
+> +++ b/drivers/video/backlight/wm831x_bl.c
+> @@ -194,6 +194,7 @@ static int wm831x_backlight_probe(struct platform_device *pdev)
+>  	data->current_brightness = 0;
+>  	data->isink_reg = isink_reg;
+> 
+> +	memset(&props, 0, sizeof(props));
+>  	props.type = BACKLIGHT_RAW;
+>  	props.max_brightness = max_isel;
+>  	bl = backlight_device_register("wm831x", &pdev->dev, data,
+> diff --git a/drivers/video/omap2/displays/panel-acx565akm.c b/drivers/video/omap2/displays/panel-
+> acx565akm.c
+> index d26f37a..74e7cf0 100644
+> --- a/drivers/video/omap2/displays/panel-acx565akm.c
+> +++ b/drivers/video/omap2/displays/panel-acx565akm.c
+> @@ -532,6 +532,7 @@ static int acx_panel_probe(struct omap_dss_device *dssdev)
+> 
+>  	/*------- Backlight control --------*/
+> 
+> +	memset(&props, 0, sizeof(props));
+>  	props.fb_blank = FB_BLANK_UNBLANK;
+>  	props.power = FB_BLANK_UNBLANK;
+>  	props.type = BACKLIGHT_RAW;
+> --
+> 1.7.9.5
+> 
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-fbdev" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
 
-And then have bits 31:8 as DMAC specific data.
-
-Wouldn't that allow us to have our cake and eat it?
