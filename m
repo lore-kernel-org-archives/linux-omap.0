@@ -1,77 +1,84 @@
-From: "J, KEERTHY" <j-keerthy@ti.com>
-Subject: Re: [PATCH V3 00/10] PM: Create the AVS(Adaptive Voltage Scaling)
-Date: Wed, 23 May 2012 10:21:19 +0530
-Message-ID: <CAJ6a13YLogA7M=rzSJAW6fHZOujFY0Crfdz9Sc5qL0mt8kX9CA@mail.gmail.com>
-References: <1335462041-4949-1-git-send-email-j-keerthy@ti.com>
-	<87397by2h9.fsf@ti.com>
-	<CAJ6a13aJwesHw0frCV+EfvYaep09cZGcu_PopuHzye1HS2tgvg@mail.gmail.com>
+From: Santosh Shilimkar <santosh.shilimkar@ti.com>
+Subject: Re: [PATCH 2/6] ARM: OMAP2+: PM: introduce power domains functional
+ states
+Date: Wed, 23 May 2012 12:09:30 +0530
+Message-ID: <4FBC8622.3020308@ti.com>
+References: <1334752782-28804-1-git-send-email-j-pihet@ti.com> <1334752782-28804-3-git-send-email-j-pihet@ti.com> <alpine.DEB.2.00.1205070043230.9984@utopia.booyaka.com> <CAORVsuXUbz_f54x=hoFLEQpfAGTDcZGnTQ-fBgY_j415LC0TiQ@mail.gmail.com> <4FB4CD45.4050807@ti.com> <CAORVsuWgn5Zuf9T1eVBjJJhTGL5jrY=hirTaZp8E2HprzbvHng@mail.gmail.com> <CAMQu2gwBYUmBLV+wByVxto_ETu6-YjHycGWnhVn-Tb9pJUngDw@mail.gmail.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <CAJ6a13aJwesHw0frCV+EfvYaep09cZGcu_PopuHzye1HS2tgvg@mail.gmail.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: "Rafael J. Wysocki" <rjw@sisk.pl>, Kevin Hilman <khilman@ti.com>, greg@kroah.com
-Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org, linux-pm@lists.linux-foundation.org, j-pihet@ti.com
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from na3sys009aog129.obsmtp.com ([74.125.149.142]:54652 "EHLO
+	na3sys009aog129.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1750892Ab2EWGjj (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>);
+	Wed, 23 May 2012 02:39:39 -0400
+Received: by obfk16 with SMTP id k16so13714917obf.2
+        for <linux-omap@vger.kernel.org>; Tue, 22 May 2012 23:39:38 -0700 (PDT)
+In-Reply-To: <CAMQu2gwBYUmBLV+wByVxto_ETu6-YjHycGWnhVn-Tb9pJUngDw@mail.gmail.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Jean Pihet <jean.pihet@newoldbits.com>, Paul Walmsley <paul@pwsan.com>
+Cc: linux-omap@vger.kernel.org, b-cousson@ti.com, khilman@ti.com, linux-arm-kernel@lists.infradead.org, Jean Pihet <j-pihet@ti.com>
 
-On Tue, May 15, 2012 at 11:16 AM, J, KEERTHY <j-keerthy@ti.com> wrote:
-> On Tue, May 8, 2012 at 5:21 AM, Kevin Hilman <khilman@ti.com> wrote:
->> Rafael,
+Jean,
+
+On Monday 21 May 2012 07:55 PM, Shilimkar, Santosh wrote:
+> Jean,
+> 
+> On Mon, May 21, 2012 at 7:23 PM, Jean Pihet <jean.pihet@newoldbits.com> wrote:
+>> Hi Santosh,
 >>
->> Keerthy <j-keerthy@ti.com> writes:
+>> On Thu, May 17, 2012 at 12:04 PM, Santosh Shilimkar
+>> <santosh.shilimkar@ti.com> wrote:
+
+[...]
+
+>> What do you think?
 >>
->>> From: J Keerthy <j-keerthy@ti.com>
->>>
->>> AVS(Adaptive Voltage Scaling) is a power management technique which
->>> controls the operating voltage of a device in order to optimize (i.=
-e. reduce)
->>> its power consumption. The voltage is adapted depending on static f=
-actors
->>> (chip manufacturing process) and dynamic factors (temperature
->>> depending performance).
->>> The TI AVS solution is named Smartreflex.
->>>
->>> To that end, create the AVS driver in drivers/power/avs and
->>> move the OMAP SmartReflex code to the new directory. The
->>> class driver is still retained in the mach-omap2 directory.
->>
->> How should we handle this for upstream?
->>
->> It does a bunch of cleanup under arch/arm then does the move to
->> drivers/power the end. =A0To avoid conflicts with other OMAP core ch=
-anges,
->> I would suggest we take this through the OMAP tree.
->>
->> With your ack, I'd be glad to take it.
->
-> Hello Rafael,
->
-> A gentle ping on this series.
+> I like the idea as mentioned. I just think the series should already
+> take care of memory state, logic state and quirk flags to see how
+> it looks overall. Will have one more fresh look at the series but if
+> you have subsequent WIP patches which can handle the other
+> parameters, please send that link.
+> 
+I have scanned the series again. Somehow I still find myself
+not convinced with the approach. I found having PD OSWR
+CSWR state is the only change from this series helps to
+some extent. But if you look from PRCM point of view,
+they are already two distinct power domain states. Only
+bad part from programming perspective, is, it's needs
+to take care of additional bit to set and get PD state.
 
-Hi Greg,
+If we actually support 'PWRDM_POWER_OSWRET" and
+'PWRDM_POWER_CSWRET" as valid state then we can do
+everything without the functional power state series.
+I mean we can use 'omap_set_pwrdm_state()' as a single
+API for programming the PD, instead of duplicating
+these all over the place.
 
-This series has Kevin's comments incorporated.
+OSWR by definition can be customised per power
+domain based on various supported logic and
+memory states.With this series, OSWR definition
+also become static and if that is agreed then
+we should cab just make that as a state like
+ON/OFF/INACTIVE.
 
-Kevin,
+But I don't want to object this series if
+Paul is convinced and agrees with the approach.
+My view may be bit narrow but I am not convinced
+with the approach.
 
-Can i have your Ack for this series?
+Btw, ther are some real differences in PD INACTIVE state
+in OMAP3 and OMAP4+ devices. I had some discussion with
+Paul before on it. It needs to be clubbed with
+voltagedomain layer to properly represent. Some
+discussion was on the list [1] and some of that
+was off list with hardware designers. Relevant
+thread is here [1]
 
->
->>
->> Thanks,
->>
->> Kevin
->>
->
->
->
-> --
-> Regards and Thanks,
-> Keerthy
+Regards
+Santosh
 
-
-
---=20
-Regards and Thanks,
-Keerthy
+[1]
+http://lists.infradead.org/pipermail/linux-arm-kernel/2011-February/041133.html
