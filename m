@@ -1,58 +1,67 @@
-From: Omar Ramirez Luna <omar.luna@linaro.org>
-Subject: Re: [PATCH 0/2] OMAP: mailbox initial device tree support
-Date: Wed, 23 May 2012 17:03:51 -0500
-Message-ID: <CALLhW=7ENCpodLxf-vaY6EzYRv9uKz_52FDsUbMAaSGNFy4LiQ@mail.gmail.com>
-References: <1335894460-19941-1-git-send-email-omar.luna@linaro.org>
+From: Kevin Hilman <khilman@ti.com>
+Subject: Re: [PATCH v3] OMAP2+: UART: Add mechanism to probe uart pins and configure rx wakeup
+Date: Wed, 23 May 2012 16:11:46 -0700
+Message-ID: <87likize4t.fsf@ti.com>
+References: <1336655139-8908-1-git-send-email-govindraj.raja@ti.com>
+	<1336729242-16168-1-git-send-email-govindraj.raja@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-gg0-f174.google.com ([209.85.161.174]:40117 "EHLO
-	mail-gg0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751026Ab2EWWDw convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 23 May 2012 18:03:52 -0400
-Received: by mail-gg0-f174.google.com with SMTP id u4so7079777ggl.19
-        for <linux-omap@vger.kernel.org>; Wed, 23 May 2012 15:03:51 -0700 (PDT)
-In-Reply-To: <1335894460-19941-1-git-send-email-omar.luna@linaro.org>
+Received: from na3sys009aog114.obsmtp.com ([74.125.149.211]:40836 "EHLO
+	na3sys009aog114.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1751150Ab2EWXLu (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>);
+	Wed, 23 May 2012 19:11:50 -0400
+Received: by pbbrp12 with SMTP id rp12so18062306pbb.1
+        for <linux-omap@vger.kernel.org>; Wed, 23 May 2012 16:11:49 -0700 (PDT)
+In-Reply-To: <1336729242-16168-1-git-send-email-govindraj.raja@ti.com>
+	(Govindraj R.'s message of "Fri, 11 May 2012 15:10:42 +0530")
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Benoit Cousson <b-cousson@ti.com>, Tony Lindgren <tony@atomide.com>
-Cc: Grant Likely <grant.likely@secretlab.ca>, Rob Herring <rob.herring@calxeda.com>, Rob Landley <rob@landley.net>, Russell King <linux@arm.linux.org.uk>, Vaibhav Bedia <vaibhav.bedia@ti.com>, Omar Ramirez Luna <omar.luna@linaro.org>, linux-doc@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org, patches@linaro.org, linaro-dev@lists.linaro.org, devicetree-discuss@lists.ozlabs.org
+To: "Govindraj.R" <govindraj.raja@ti.com>
+Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Felipe Balbi <balbi@ti.com>, Russ Dill <russ.dill@gmail.com>, Tony Lindgren <tony@atomide.com>, Paul Walmsley <paul@pwsan.com>, Ameya Palande <ameya.palande@ti.com>
 
-Hi Tony, Benoit,
+"Govindraj.R" <govindraj.raja@ti.com> writes:
 
-On 1 May 2012 12:47, Omar Ramirez Luna <omar.luna@linaro.org> wrote:
-> To allow mailbox driver to function with device tree.
+> From: "Govindraj.R" <govindraj.raja@ti.com>
 >
-> Tested in OMAP4 and OMAP3. OMAP2 untested.
+> The commit (bce492c0  ARM: OMAP2+: UART: Fix incorrect population of
+> default uart pads) removed default uart pads that where getting populated
+> and which was making rx pin wakeup capable. If uart pads were used in
+> different mode by any other module then it would fail since the default
+> pads took over all the uart pins forcefully. With removal of default pads
+> the rx_pad wakeup for console uart while waking up from off mode is broken.
 >
-> Omar Ramirez Luna (2):
-> =A0OMAP: mailbox: add device tree support
-> =A0arm/dts: OMAP2+: Add mailbox nodes
+> Utilise the mux api available to probe the availability of mux pins
+> in uart mode and probe for availability of uart pin in mux mode0
+> if uart is available as uart pin itself then configure rx pin
+> as wakeup capable.
 >
-> =A0.../devicetree/bindings/arm/omap/mailbox.txt =A0 =A0 =A0 | =A0 =A0=
-9 +++++++++
-> =A0arch/arm/boot/dts/omap2.dtsi =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0=
- =A0 | =A0 =A05 +++++
-> =A0arch/arm/boot/dts/omap3.dtsi =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0=
- =A0 | =A0 =A05 +++++
-> =A0arch/arm/boot/dts/omap4.dtsi =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0=
- =A0 | =A0 =A05 +++++
-> =A0arch/arm/mach-omap2/devices.c =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =
-=A0 =A0| =A0 =A03 +++
-> =A0arch/arm/mach-omap2/mailbox.c =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =
-=A0 =A0| =A0 12 ++++++++++++
-> =A06 files changed, 39 insertions(+), 0 deletions(-)
-> =A0create mode 100644 Documentation/devicetree/bindings/arm/omap/mail=
-box.txt
+> This patch itself doesn't cater to all boards. Boards using uart rx wakeup
+> mechanism should ensure the usage of omap_serial_init_port by configuring
+> required uart ports and pass necessary mux data, till then this probing of
+> uart pins can cater to enabling of rx pad wakeup to most of the boards.
+>
+> This patch can also throw some boot warning from _omap_mux_get_by_name
+> if pin is requested for availability is not present while dynamically probing
+> the uart pins availability such boot warnings can be addressed only when board
+> files are patched with omap_serial_init_port calls passing the right pads
+> needed for a given port.
+>
+> Discussion Threads for reference:
+> http://www.spinics.net/lists/linux-omap/msg69859.html
+> http://www.spinics.net/lists/linux-omap/msg68659.html
+>
+> Cc: Felipe Balbi <balbi@ti.com>
+> Cc: Kevin Hilman <khilman@ti.com>
+> Cc: Russ Dill <russ.dill@gmail.com>
+> Cc: Tony Lindgren <tony@atomide.com>
+> Cc: Paul Walmsley <paul@pwsan.com>
+> Cc: Ameya Palande <ameya.palande@ti.com>
+> Signed-off-by: Govindraj.R <govindraj.raja@ti.com>
 
-Can you share your thoughts for these patches?
+Tony, it's up to you if you're OK with this mux interface, but I can at
+least confirm that this gets runtime PM + UART wakeups working again on
+the boards I tried: 3530/Overo, 3430/n900, 3530/OMAP3EVM.
 
-Regards,
-
-Omar
---
-To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Kevin
