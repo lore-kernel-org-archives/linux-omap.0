@@ -1,97 +1,47 @@
-From: "Hiremath, Vaibhav" <hvaibhav@ti.com>
-Subject: RE: [PATCH-V3 3/3] ARM: OMAP3+: clock33xx: Add AM33XX clock tree
- data
-Date: Wed, 23 May 2012 10:15:04 +0000
-Message-ID: <79CD15C6BA57404B839C016229A409A83EA31E77@DBDE01.ent.ti.com>
-References: <1333458578-23073-1-git-send-email-hvaibhav@ti.com>
- <1333458578-23073-4-git-send-email-hvaibhav@ti.com>
- <alpine.DEB.2.00.1204241857260.24864@utopia.booyaka.com>
- <79CD15C6BA57404B839C016229A409A83E9FD175@DBDE01.ent.ti.com>
- <4F97B891.1020601@ti.com>
- <79CD15C6BA57404B839C016229A409A83E9FD707@DBDE01.ent.ti.com>
- <4F97E243.6000500@ti.com>
- <79CD15C6BA57404B839C016229A409A83E9FDA47@DBDE01.ent.ti.com>
- <4F97EF11.4020300@ti.com>
- <79CD15C6BA57404B839C016229A409A83E9FDAE7@DBDE01.ent.ti.com>
- <alpine.DEB.2.00.1204250755020.29696@utopia.booyaka.com>
- <4F9816D1.3000102@ti.com>
- <alpine.DEB.2.00.1204250934130.29696@utopia.booyaka.com>
+From: Ohad Ben-Cohen <ohad@wizery.com>
+Subject: Re: [PATCH 1/7] remoteproc: resource table overhaul
+Date: Wed, 23 May 2012 15:41:33 +0300
+Message-ID: <CAK=WgbYdLqMBPeFsAHw+_zyLpVYeARc2oB_gNt9H66SMmZgt=g@mail.gmail.com>
+References: <1330589497-4139-1-git-send-email-ohad@wizery.com>
+ <1330589497-4139-2-git-send-email-ohad@wizery.com> <4F6354E4.8030704@monstr.eu>
+ <CAK=Wgbbbi4GnuHedSh6cR1LhkZr8c9q6i=_TLSL252LpPB8Xsw@mail.gmail.com>
+ <CAK=WgbYeQr5ZwTSBo+ZJUzN7fQ--0QbC8HSjrGT-Geycs4SKcg@mail.gmail.com>
+ <CAHTX3d+=QTZo994jct6+pPqsCniG0B2a_9q6fLdGjvcbZ7qj_A@mail.gmail.com>
+ <CAK=WgbahzGHmvszw6HBgihN4NcPA8ceaQCNSOk_FC61bToxBXQ@mail.gmail.com>
+ <CAHTX3dK8rDomYqWvBX1ay200AmM1dBCYD3nJ2UYbzC_SSFankw@mail.gmail.com>
+ <4FBB5908.4010505@stericsson.com> <CAK=WgbYKMh8oifeC-A9LYq8GV_Nb7L8wc198YZujGEsp9mmvsw@mail.gmail.com>
+ <4FBB8BCB.3010802@stericsson.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from comal.ext.ti.com ([198.47.26.152]:35259 "EHLO comal.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1758766Ab2EWKPN convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 23 May 2012 06:15:13 -0400
-In-Reply-To: <alpine.DEB.2.00.1204250934130.29696@utopia.booyaka.com>
-Content-Language: en-US
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <4FBB8BCB.3010802@stericsson.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: frq09524 <ludovic.barre@stericsson.com>
+Cc: Michal Simek <monstr@monstr.eu>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, Brian Swetland <swetland@google.com>, Iliyan Malchev <malchev@google.com>, Arnd Bergmann <arnd@arndb.de>, Grant Likely <grant.likely@secretlab.ca>, Rusty Russell <rusty@rustcorp.com.au>, Mark Grosen <mgrosen@ti.com>, John Williams <john.williams@petalogix.com>, Loic PALLARDY <loic.pallardy@stericsson.com>, Omar Ramirez Luna <omar.luna@linaro.org>, Guzman Lugo Fernando <fernando.lugo@ti.com>, Anna Suman <s-anna@ti.com>, Clark Rob <rob@ti.com>, Stephen Boyd <sboyd@codeaurora.org>, Saravana Kannan <skannan@codeaurora.org>, David Brown <davidb@codeaurora.org>, Kieran Bingham <kieranbingham@gmail.com>, Tony Lindgren <tony@atomide.com>
 List-Id: linux-omap@vger.kernel.org
-To: Paul Walmsley <paul@pwsan.com>, "Cousson, Benoit" <b-cousson@ti.com>
-Cc: "Mohammed, Afzal" <afzal@ti.com>, "Bedia, Vaibhav" <vaibhav.bedia@ti.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "tony@atomide.com" <tony@atomide.com>, "Hilman, Kevin" <khilman@ti.com>, "Nayak, Rajendra" <rnayak@ti.com>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>
 
-On Wed, Apr 25, 2012 at 21:06:43, Paul Walmsley wrote:
-> On Wed, 25 Apr 2012, Cousson, Benoit wrote:
-> 
-> > Please take care of changing the hwmod main_clk as well. But maybe 
-> > that's not part of that series.
-> 
-> It's not part of the series yet.
-> 
-> Vaibhav, could you take care of changing the main_clk in your hwmod data 
-> patches, and send those to the list?
-> 
-> 
+Hi=A0Ludovic,
 
-Paul,
+On Tue, May 22, 2012 at 3:51 PM, frq09524 <ludovic.barre@stericsson.com=
+> wrote:
+> In my previous patch, to find the correct subdevice that match with p=
+hysical memory, I used pa member of rproc_mem_entry.
 
-Just an update on the status,
+I'm not sure we want to find these subdevices using the physical
+memory of the expected region.
 
-I used your cleaned version of clocktree data, where you have removed all 
-leaf-nodes and merged multiple clocks nodes into one; but it did not work. I 
-attempted to review the cleanup and tried to debug, but found it bit hard to 
-come back to working clocktree from stripped version. So moved back to my 
-submitted clocktree and started stripping the clock leaf-nodes, same way you 
-had done it. Now I reached to the stage where I have working clocktree 
-without peripheral leaf-nodes and booting on BeagleBone.
+Doing so means more work when setting up those numbers initially, and
+may also break if/when those number changes.
 
-I will start working on migrating to common clock framework now, and hoping 
-to finish it soon.
+What do you think about looking up those subdevices by names?
 
+E.g. before allocating the vrings, we may look for a subdevice called
+"vrings-mem". If one exists, we'll use it when invoking the DMA API.
+If not, we'll just use the default rproc device.
 
-Just FYI (may need your help), I got into some issues (still open) during 
-this cleanup -
-
-
-1. In cases where we have clock selection option for node-leafs, like, 
-   Timers, I removed enable_reg entry from the node, which results into a 
-   kernel error message from function omap2_dflt_clk_disable()
-
-clock: clk_disable called on independent clock %s which has no enable_reg
-
-
-2. clkdm_name entry: 
-   The issue is, two entries available for clockdomain associated for 
-   module/clock 
-        - hwmod_data.main_clk and 
-        - clk.clkdm_name
-
-   They must match, right? The parent/root clocks flows from one domain to 
-   another domain, so I have to keep the nodes just for sake of matching 
-   clockdomain entry present in associated main_clk data.
-
-   I am still reviewing the code from Rajendra, but one of Rajendra's patch 
-   actually will help here, made it to use hwmod_data.clkdm (if available) 
-   always, instead of directly using clk.clkdm.
-
-3. If I understand correctly, hwmod_data.main_clk is functional clock and    
-   hwmod_ocp_if.clk is interface clock, right?
-
-   So currently, I have mentioned same entry in both the places (especially 
-   for Peripherals/modules).
-   I am planning to remove ocp_if/clk entry data for all modules..
-   
+This way we don't need to change the firmware if/when we change the
+memory regions allocated for each purpose.
 
 Thanks,
-Vaibhav
+Ohad.
