@@ -1,249 +1,58 @@
-From: Andy Gross <andy.gross@ti.com>
-Subject: [PATCH] omap2+: add drm device
-Date: Wed, 23 May 2012 15:08:10 -0500
-Message-ID: <1337803690-30116-1-git-send-email-andy.gross@ti.com>
+From: Omar Ramirez Luna <omar.luna@linaro.org>
+Subject: Re: [PATCH 0/2] OMAP: mailbox initial device tree support
+Date: Wed, 23 May 2012 17:03:51 -0500
+Message-ID: <CALLhW=7ENCpodLxf-vaY6EzYRv9uKz_52FDsUbMAaSGNFy4LiQ@mail.gmail.com>
+References: <1335894460-19941-1-git-send-email-omar.luna@linaro.org>
 Mime-Version: 1.0
-Content-Type: text/plain
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from devils.ext.ti.com ([198.47.26.153]:46688 "EHLO
-	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753061Ab2EWUIf (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 23 May 2012 16:08:35 -0400
+Received: from mail-gg0-f174.google.com ([209.85.161.174]:40117 "EHLO
+	mail-gg0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751026Ab2EWWDw convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 23 May 2012 18:03:52 -0400
+Received: by mail-gg0-f174.google.com with SMTP id u4so7079777ggl.19
+        for <linux-omap@vger.kernel.org>; Wed, 23 May 2012 15:03:51 -0700 (PDT)
+In-Reply-To: <1335894460-19941-1-git-send-email-omar.luna@linaro.org>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: dri-devel@lists.freedesktop.org, linux-omap@vger.kernel.org
-Cc: greg@kroah.com, tomi.valkeinen@ti.com, rob@ti.com, Andy Gross <andy.gross@ti.com>
+To: Benoit Cousson <b-cousson@ti.com>, Tony Lindgren <tony@atomide.com>
+Cc: Grant Likely <grant.likely@secretlab.ca>, Rob Herring <rob.herring@calxeda.com>, Rob Landley <rob@landley.net>, Russell King <linux@arm.linux.org.uk>, Vaibhav Bedia <vaibhav.bedia@ti.com>, Omar Ramirez Luna <omar.luna@linaro.org>, linux-doc@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org, patches@linaro.org, linaro-dev@lists.linaro.org, devicetree-discuss@lists.ozlabs.org
 
-Register OMAP DRM/KMS platform device.  DMM is split into a
-separate device using hwmod.
+Hi Tony, Benoit,
 
-Signed-off-by: Andy Gross <andy.gross@ti.com>
----
- arch/arm/mach-omap2/Makefile           |    4 ++
- arch/arm/mach-omap2/drm.c              |   61 ++++++++++++++++++++++++++++++++
- drivers/staging/omapdrm/omap_drv.h     |    2 +-
- drivers/staging/omapdrm/omap_priv.h    |   55 ----------------------------
- include/linux/platform_data/omap_drm.h |   52 +++++++++++++++++++++++++++
- 5 files changed, 118 insertions(+), 56 deletions(-)
- create mode 100644 arch/arm/mach-omap2/drm.c
- delete mode 100644 drivers/staging/omapdrm/omap_priv.h
- create mode 100644 include/linux/platform_data/omap_drm.h
+On 1 May 2012 12:47, Omar Ramirez Luna <omar.luna@linaro.org> wrote:
+> To allow mailbox driver to function with device tree.
+>
+> Tested in OMAP4 and OMAP3. OMAP2 untested.
+>
+> Omar Ramirez Luna (2):
+> =A0OMAP: mailbox: add device tree support
+> =A0arm/dts: OMAP2+: Add mailbox nodes
+>
+> =A0.../devicetree/bindings/arm/omap/mailbox.txt =A0 =A0 =A0 | =A0 =A0=
+9 +++++++++
+> =A0arch/arm/boot/dts/omap2.dtsi =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0=
+ =A0 | =A0 =A05 +++++
+> =A0arch/arm/boot/dts/omap3.dtsi =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0=
+ =A0 | =A0 =A05 +++++
+> =A0arch/arm/boot/dts/omap4.dtsi =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0=
+ =A0 | =A0 =A05 +++++
+> =A0arch/arm/mach-omap2/devices.c =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =
+=A0 =A0| =A0 =A03 +++
+> =A0arch/arm/mach-omap2/mailbox.c =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =
+=A0 =A0| =A0 12 ++++++++++++
+> =A06 files changed, 39 insertions(+), 0 deletions(-)
+> =A0create mode 100644 Documentation/devicetree/bindings/arm/omap/mail=
+box.txt
 
-diff --git a/arch/arm/mach-omap2/Makefile b/arch/arm/mach-omap2/Makefile
-index 49f92bc..c301ab7 100644
---- a/arch/arm/mach-omap2/Makefile
-+++ b/arch/arm/mach-omap2/Makefile
-@@ -187,6 +187,10 @@ ifneq ($(CONFIG_TIDSPBRIDGE),)
- obj-y					+= dsp.o
- endif
- 
-+ifneq ($(CONFIG_DRM_OMAP),)
-+obj-y					+= drm.o
-+endif
-+
- # Specific board support
- obj-$(CONFIG_MACH_OMAP_GENERIC)		+= board-generic.o
- obj-$(CONFIG_MACH_OMAP_H4)		+= board-h4.o
-diff --git a/arch/arm/mach-omap2/drm.c b/arch/arm/mach-omap2/drm.c
-new file mode 100644
-index 0000000..72e0f01b
---- /dev/null
-+++ b/arch/arm/mach-omap2/drm.c
-@@ -0,0 +1,61 @@
-+/*
-+ * DRM/KMS device registration for TI OMAP platforms
-+ *
-+ * Copyright (C) 2012 Texas Instruments
-+ * Author: Rob Clark <rob.clark@linaro.org>
-+ *
-+ * This program is free software; you can redistribute it and/or modify it
-+ * under the terms of the GNU General Public License version 2 as published by
-+ * the Free Software Foundation.
-+ *
-+ * This program is distributed in the hope that it will be useful, but WITHOUT
-+ * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
-+ * FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License for
-+ * more details.
-+ *
-+ * You should have received a copy of the GNU General Public License along with
-+ * this program.  If not, see <http://www.gnu.org/licenses/>.
-+ */
-+
-+#include <linux/module.h>
-+#include <linux/kernel.h>
-+#include <linux/mm.h>
-+#include <linux/init.h>
-+#include <linux/platform_device.h>
-+#include <linux/dma-mapping.h>
-+
-+#include <plat/omap_device.h>
-+#include <plat/omap_hwmod.h>
-+
-+#if defined(CONFIG_DRM_OMAP) || (CONFIG_DRM_OMAP_MODULE)
-+
-+static struct platform_device omap_drm_device = {
-+	.dev = {
-+		.coherent_dma_mask = DMA_BIT_MASK(32),
-+	},
-+	.name = "omapdrm",
-+	.id = 0,
-+};
-+
-+static int __init omap_init_drm(void)
-+{
-+	struct omap_hwmod *oh = NULL;
-+	struct platform_device *pdev;
-+
-+	/* lookup and populate the DMM information, if present - OMAP4+ */
-+	oh = omap_hwmod_lookup("dmm");
-+
-+	if (oh) {
-+		pdev = omap_device_build(oh->name, -1, oh, NULL, 0, NULL, 0,
-+					false);
-+		WARN(IS_ERR(pdev), "Could not build omap_device for %s\n",
-+			oh->name);
-+	}
-+
-+	return platform_device_register(&omap_drm_device);
-+
-+}
-+
-+arch_initcall(omap_init_drm);
-+
-+#endif
-diff --git a/drivers/staging/omapdrm/omap_drv.h b/drivers/staging/omapdrm/omap_drv.h
-index b7e0f07..96296e0 100644
---- a/drivers/staging/omapdrm/omap_drv.h
-+++ b/drivers/staging/omapdrm/omap_drv.h
-@@ -25,8 +25,8 @@
- #include <linux/types.h>
- #include <drm/drmP.h>
- #include <drm/drm_crtc_helper.h>
-+#include <linux/platform_data/omap_drm.h>
- #include "omap_drm.h"
--#include "omap_priv.h"
- 
- #define DBG(fmt, ...) DRM_DEBUG(fmt"\n", ##__VA_ARGS__)
- #define VERB(fmt, ...) if (0) DRM_DEBUG(fmt, ##__VA_ARGS__) /* verbose debug */
-diff --git a/drivers/staging/omapdrm/omap_priv.h b/drivers/staging/omapdrm/omap_priv.h
-deleted file mode 100644
-index ef64414..0000000
---- a/drivers/staging/omapdrm/omap_priv.h
-+++ /dev/null
-@@ -1,55 +0,0 @@
--/*
-- * include/drm/omap_priv.h
-- *
-- * Copyright (C) 2011 Texas Instruments
-- * Author: Rob Clark <rob@ti.com>
-- *
-- * This program is free software; you can redistribute it and/or modify it
-- * under the terms of the GNU General Public License version 2 as published by
-- * the Free Software Foundation.
-- *
-- * This program is distributed in the hope that it will be useful, but WITHOUT
-- * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
-- * FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License for
-- * more details.
-- *
-- * You should have received a copy of the GNU General Public License along with
-- * this program.  If not, see <http://www.gnu.org/licenses/>.
-- */
--
--#ifndef __OMAP_PRIV_H__
--#define __OMAP_PRIV_H__
--
--/* Non-userspace facing APIs
-- */
--
--/* optional platform data to configure the default configuration of which
-- * pipes/overlays/CRTCs are used.. if this is not provided, then instead the
-- * first CONFIG_DRM_OMAP_NUM_CRTCS are used, and they are each connected to
-- * one manager, with priority given to managers that are connected to
-- * detected devices.  Remaining overlays are used as video planes.  This
-- * should be a good default behavior for most cases, but yet there still
-- * might be times when you wish to do something different.
-- */
--struct omap_kms_platform_data {
--	/* overlays to use as CRTCs: */
--	int ovl_cnt;
--	const int *ovl_ids;
--
--	/* overlays to use as video planes: */
--	int pln_cnt;
--	const int *pln_ids;
--
--	int mgr_cnt;
--	const int *mgr_ids;
--
--	int dev_cnt;
--	const char **dev_names;
--};
--
--struct omap_drm_platform_data {
--	struct omap_kms_platform_data *kms_pdata;
--	struct omap_dmm_platform_data *dmm_pdata;
--};
--
--#endif /* __OMAP_DRM_H__ */
-diff --git a/include/linux/platform_data/omap_drm.h b/include/linux/platform_data/omap_drm.h
-new file mode 100644
-index 0000000..3da73bd
---- /dev/null
-+++ b/include/linux/platform_data/omap_drm.h
-@@ -0,0 +1,52 @@
-+/*
-+ * DRM/KMS platform data for TI OMAP platforms
-+ *
-+ * Copyright (C) 2012 Texas Instruments
-+ * Author: Rob Clark <rob.clark@linaro.org>
-+ *
-+ * This program is free software; you can redistribute it and/or modify it
-+ * under the terms of the GNU General Public License version 2 as published by
-+ * the Free Software Foundation.
-+ *
-+ * This program is distributed in the hope that it will be useful, but WITHOUT
-+ * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
-+ * FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License for
-+ * more details.
-+ *
-+ * You should have received a copy of the GNU General Public License along with
-+ * this program.  If not, see <http://www.gnu.org/licenses/>.
-+ */
-+
-+#ifndef __PLATFORM_DATA_OMAP_DRM_H__
-+#define __PLATFORM_DATA_OMAP_DRM_H__
-+
-+/*
-+ * Optional platform data to configure the default configuration of which
-+ * pipes/overlays/CRTCs are used.. if this is not provided, then instead the
-+ * first CONFIG_DRM_OMAP_NUM_CRTCS are used, and they are each connected to
-+ * one manager, with priority given to managers that are connected to
-+ * detected devices.  Remaining overlays are used as video planes.  This
-+ * should be a good default behavior for most cases, but yet there still
-+ * might be times when you wish to do something different.
-+ */
-+struct omap_kms_platform_data {
-+	/* overlays to use as CRTCs: */
-+	int ovl_cnt;
-+	const int *ovl_ids;
-+
-+	/* overlays to use as video planes: */
-+	int pln_cnt;
-+	const int *pln_ids;
-+
-+	int mgr_cnt;
-+	const int *mgr_ids;
-+
-+	int dev_cnt;
-+	const char **dev_names;
-+};
-+
-+struct omap_drm_platform_data {
-+	struct omap_kms_platform_data *kms_pdata;
-+};
-+
-+#endif /* __PLATFORM_DATA_OMAP_DRM_H__ */
--- 
-1.7.5.4
+Can you share your thoughts for these patches?
 
+Regards,
+
+Omar
+--
+To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
