@@ -1,54 +1,67 @@
-From: Russell King - ARM Linux <linux@arm.linux.org.uk>
-Subject: [PATCH] Fix OMAP4 boot regression
-Date: Thu, 24 May 2012 10:04:49 +0100
-Message-ID: <20120524090449.GA24486@n2100.arm.linux.org.uk>
+From: Stephen Boyd <sboyd@codeaurora.org>
+Subject: Re: [PATCH] remoteproc: block premature rproc booting
+Date: Thu, 24 May 2012 02:15:54 -0700
+Message-ID: <4FBDFC4A.1060602@codeaurora.org>
+References: <1337687472-23009-1-git-send-email-ohad@wizery.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from caramon.arm.linux.org.uk ([78.32.30.218]:46454 "EHLO
-	caramon.arm.linux.org.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753395Ab2EXJEy (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 24 May 2012 05:04:54 -0400
-Content-Disposition: inline
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <1337687472-23009-1-git-send-email-ohad@wizery.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Ohad Ben-Cohen <ohad@wizery.com>
+Cc: linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 List-Id: linux-omap@vger.kernel.org
-To: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 
-Fix a boot regression in existing kernels causing:
+On 5/22/2012 4:51 AM, Ohad Ben-Cohen wrote:
+> When an rproc instance is registered, remoteproc asynchronously
+> loads its firmware in order to tell which vdevs it supports.
+>
+> Later on those vdevs are registered, and when probed, their drivers
+> usually trigger powering on of the remote processor.
+>
+> OTOH, non-standard scenarios might involve early invocation of
+> rproc_boot even before the asynchronous fw loading has completed.
+>
+> We're not sure we really want to support those scenarios, but right
+> now we do (e.g. via rproc_get_by_name), so let's simply fix this race
+> by blocking those premature rproc_boot() flows until the async fw
+> loading is completed.
+>
+> Reported-and-tested-by: Sjur Brandeland <sjur.brandeland@stericsson.com>
+> Signed-off-by: Ohad Ben-Cohen <ohad@wizery.com>
+> ---
+>  drivers/remoteproc/remoteproc_core.c |   12 ++++++++++++
+>  1 files changed, 12 insertions(+), 0 deletions(-)
+>
+> diff --git a/drivers/remoteproc/remoteproc_core.c b/drivers/remoteproc/remoteproc_core.c
+> index 40e2b2d..464ea4f 100644
+> --- a/drivers/remoteproc/remoteproc_core.c
+> +++ b/drivers/remoteproc/remoteproc_core.c
+> @@ -1141,6 +1141,18 @@ int rproc_boot(struct rproc *rproc)
+>  
+>  	dev = rproc->dev;
+>  
+> +	/*
+> +	 * if asynchronoush fw loading is underway, wait up to 65 secs
+> +	 * (just a bit more than the firmware request's timeout)
+> +	 */
+> +	ret = wait_for_completion_interruptible_timeout(
+> +					&rproc->firmware_loading_complete,
+> +					msecs_to_jiffies(65000));
 
-genirq: Threaded irq requested with handler=NULL and !ONESHOT for irq XXX
+The request_firmware timeout is defaulted to 60 seconds but not
+necessarily 60 if the user has changed the timeout in sysfs.
 
-caused by 1c6c6952 (genirq: Reject bogus threaded irq requests).
+Why does this need to be a timeout at all? Presumably
+request_firmware_nowait() in rproc_register() will timeout and complete
+the firmware_loading_complete completion variable. Would it suffice to
+have some new rproc->state like RPROC_UNKNOWN that we set in
+rproc_register() before adding it to the list of rprocs? If we find the
+firmware then we set it to RPROC_READY or RPROC_REGISTERED? Then we
+wait_for_completion() and check the state, failing if it's still in the
+unknown state.
 
-Signed-off-by: Russell King <rmk+kernel@arm.linux.org.uk>
---
- drivers/mmc/host/omap_hsmmc.c |    2 +-
- drivers/rtc/rtc-twl.c         |    2 +-
- 2 files changed, 2 insertions(+), 2 deletions(-)
-
-diff --git a/drivers/mmc/host/omap_hsmmc.c b/drivers/mmc/host/omap_hsmmc.c
-index d76fc82..84016cb 100644
---- a/drivers/mmc/host/omap_hsmmc.c
-+++ b/drivers/mmc/host/omap_hsmmc.c
-@@ -1962,7 +1962,7 @@ static int __devinit omap_hsmmc_probe(struct platform_device *pdev)
- 		ret = request_threaded_irq(mmc_slot(host).card_detect_irq,
- 					   NULL,
- 					   omap_hsmmc_detect,
--					   IRQF_TRIGGER_RISING | IRQF_TRIGGER_FALLING,
-+					   IRQF_TRIGGER_RISING | IRQF_TRIGGER_FALLING | IRQF_ONESHOT,
- 					   mmc_hostname(mmc), host);
- 		if (ret) {
- 			dev_dbg(mmc_dev(host->mmc),
-diff --git a/drivers/rtc/rtc-twl.c b/drivers/rtc/rtc-twl.c
-index 258abea..c5d06fe 100644
---- a/drivers/rtc/rtc-twl.c
-+++ b/drivers/rtc/rtc-twl.c
-@@ -510,7 +510,7 @@ static int __devinit twl_rtc_probe(struct platform_device *pdev)
- 	}
- 
- 	ret = request_threaded_irq(irq, NULL, twl_rtc_interrupt,
--				   IRQF_TRIGGER_RISING,
-+				   IRQF_TRIGGER_RISING | IRQF_ONESHOT,
- 				   dev_name(&rtc->dev), rtc);
- 	if (ret < 0) {
- 		dev_err(&pdev->dev, "IRQ is not free.\n");
+-- 
+Sent by an employee of the Qualcomm Innovation Center, Inc.
+The Qualcomm Innovation Center, Inc. is a member of the Code Aurora Forum.
