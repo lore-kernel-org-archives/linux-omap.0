@@ -1,56 +1,84 @@
 From: Tomi Valkeinen <tomi.valkeinen@ti.com>
-Subject: Re: [PATCH] omap2+: add drm device
-Date: Thu, 24 May 2012 15:13:01 +0300
-Message-ID: <1337861581.12304.7.camel@deskari>
-References: <1337803690-30116-1-git-send-email-andy.gross@ti.com>
-	 <1337839294.2764.7.camel@lappyti>
-	 <CAO8GWq=rGLw3nx_r3+AO6xZNSDVyftpUXwWnbfevga4x2QUxfA@mail.gmail.com>
-	 <1337843144.2909.17.camel@deskari> <1337844098.2909.20.camel@deskari>
-	 <CAF6AEGur-mmZDVrE+Y-6tesNCVKp4xKKuS-C7ozTSJ2KQijHdw@mail.gmail.com>
+Subject: Re: v3.4-rc4 DSS PM problem (Was: Re: Problems with 3.4-rc5)
+Date: Thu, 24 May 2012 15:35:02 +0300
+Message-ID: <1337862902.13723.4.camel@deskari>
+References: <1336033721.14378.2.camel@deskari>
+	   <WC20120503084938.900446@terrafix.co.uk>
+	   <1336050442.14378.10.camel@deskari>
+	   <WC20120504091902.970499@terrafix.co.uk>
+	 <1336139415.2552.4.camel@deskari>   <1336140072.2552.6.camel@deskari>
+	 <WC20120504140943.7604D0@terrafix.co.uk>
+	   <1336143281.2552.21.camel@deskari> <1336143500.2552.23.camel@deskari>
+	   <1336483598.5761.45.camel@deskari>
+	  <WC20120514073642.6306D7@terrafix.co.uk>
+	 <1336982138.2532.32.camel@lappyti>
+	  <alpine.DEB.2.00.1205151148440.16649@utopia.booyaka.com>
+	 <1337159300.7692.22.camel@deskari> <4FB37CE5.1040707@ti.com>
 Mime-Version: 1.0
 Content-Type: multipart/signed; micalg="pgp-sha1"; protocol="application/pgp-signature";
-	boundary="=-aa8xVZoQSIECn17iPwzz"
+	boundary="=-nvYyGW0lJu9boJoIwucg"
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aob106.obsmtp.com ([74.125.149.76]:43800 "EHLO
-	na3sys009aog106.obsmtp.com" rhost-flags-OK-OK-OK-FAIL)
-	by vger.kernel.org with ESMTP id S1753969Ab2EXMNI (ORCPT
+Received: from na3sys009aog116.obsmtp.com ([74.125.149.240]:38229 "EHLO
+	na3sys009aog116.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1751876Ab2EXMfJ (ORCPT
 	<rfc822;linux-omap@vger.kernel.org>);
-	Thu, 24 May 2012 08:13:08 -0400
-Received: by lban1 with SMTP id n1so7097519lba.24
-        for <linux-omap@vger.kernel.org>; Thu, 24 May 2012 05:13:05 -0700 (PDT)
-In-Reply-To: <CAF6AEGur-mmZDVrE+Y-6tesNCVKp4xKKuS-C7ozTSJ2KQijHdw@mail.gmail.com>
+	Thu, 24 May 2012 08:35:09 -0400
+Received: by lban1 with SMTP id n1so7115199lba.24
+        for <linux-omap@vger.kernel.org>; Thu, 24 May 2012 05:35:06 -0700 (PDT)
+In-Reply-To: <4FB37CE5.1040707@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Rob Clark <rob.clark@linaro.org>
-Cc: greg@kroah.com, linux-omap@vger.kernel.org, dri-devel@lists.freedesktop.org
+To: "Cousson, Benoit" <b-cousson@ti.com>
+Cc: Paul Walmsley <paul@pwsan.com>, Joe Woodward <jw@terrafix.co.uk>, khilman@ti.com, Archit Taneja <a0393947@ti.com>, linux-omap@vger.kernel.org
 
 
---=-aa8xVZoQSIECn17iPwzz
+--=-nvYyGW0lJu9boJoIwucg
 Content-Type: text/plain; charset="UTF-8"
 Content-Transfer-Encoding: quoted-printable
 
-On Thu, 2012-05-24 at 02:44 -0600, Rob Clark wrote:
-
-> but other drivers *can* use tiler, thanks to dmabuf.. I have omap4iss
-> v4l2 camera working w/ tiler buffers on my pandaboard, for example.
+On Wed, 2012-05-16 at 12:09 +0200, Cousson, Benoit wrote:
+> Hi Tomi,
 >=20
-> Maybe fbdev is an exception to the rule because it has no way for
-> userspace to pass it a buffer to use.  But on the other hand it is a
-> legacy API so I'm not sure if it is worth loosing too much sleep over
-> that.
+> On 5/16/2012 11:08 AM, Tomi Valkeinen wrote:
 
-I'm not that familiar with dmabuf, but are you saying it's not possible
-for a kernel driver to request the buffers? They _must_ come from the
-userspace?
+> > Disabling DPLL3 autoidle fixes the problem. Disabling DPLL4 autoidle
+> > doesn't affect the problem.
+>=20
+> The issues your are facing seems to be the well known DSS low power=20
+> refresh mode we've been trying to use since OMAP2 :-).
 
-Anyway, even if it would be possible, if the tiler is a part of omapdrm
-we need omapdrm to get and use the tiler buffers. And we can't have
-omapdrm running when using omapfb, because they both use omapdss.
+Hmm, so are you saying no one has managed to get fifomerge and autoidle
+working reliably? If so, no point for me to even try it =3D).
+
+If so, I wonder which is better to have: fifomerge or autoidle...=20
+
+> > I also suspect that this could be just a plain DSS bug. The default FIF=
+O
+> > low/high thresholds are 960/1023 bytes (i.e. DSS starts refilling the
+> > FIFO when there are 960 or less bytes in the fifo, and stops at 1023.
+> > The fifo is 1024 bytes). The values are calculated with fifo_size -
+> > burst_size and fifo_size - 1.
+> >
+> > We are now using FIFO merge features, which combines multiple fifos int=
+o
+> > one when possible, making the fifo size 1024*3 =3D 3072. Using the same
+> > low threshold and increasing the high threshold to 960/3071 works fine.
+> > Changing the high threshold to 3008 causes underflows. Increasing the
+> > low threshold to ~1600 makes DSS work again.
+>=20
+> That's weird, in theory what should matter is only the diff between the=
+=20
+> high and low. Well the low value should be as high as possible as well=
+=20
+> to support the wakeup latency.
+
+Yep. That makes me think there's some kind of problem with DSS accessing
+the memory with particular fifo thresholds.
 
  Tomi
 
 
---=-aa8xVZoQSIECn17iPwzz
+--=-nvYyGW0lJu9boJoIwucg
 Content-Type: application/pgp-signature; name="signature.asc"
 Content-Description: This is a digitally signed message part
 Content-Transfer-Encoding: 7bit
@@ -58,20 +86,20 @@ Content-Transfer-Encoding: 7bit
 -----BEGIN PGP SIGNATURE-----
 Version: GnuPG v1.4.11 (GNU/Linux)
 
-iQIcBAABAgAGBQJPviXNAAoJEPo9qoy8lh71Qa8P/2iRlGMz0T6SpZ73/Vk5IdCN
-u1Cf0T6svJPm8Sd8Emxdy7Evq5u7d91SxdqEXbyxfFGFD4EkTL3CeM6zsYD1s6+x
-i4mgr6Wo3LlkrMHosmgJUxW9ZOf1Msb88BRkITLhqNSl1WlYGvhjXsMI+EKeudPU
-BYj6EtD3qCqGeruwAYnwdSoCzjIFzUN7J5tcvsGJ4FTOUk1kNjm1YcNPEf6BK0jI
-CY1K1C/lfpOab7O8LLTT0GWldFDtuDjmvN2jhhP62JcqO9jo7guyRwIWcKhUoxP9
-7hOuS9cHdS4zYeol20upN8SKf0jr/bRPSdmdLSe0DgCxRnoaaCp9WVrvgipHTIOc
-vS/moczwgg4vPNNAEfi8sdIoAEE4o+bz3fTxuI9YVbg95fDU9BBYXCwqGqGx4BmN
-OZzyKek3jHa3YC+EOf9T08GMiSXLvahuC09a5vtAQHjIDJIuTFOiwu5ZkhxGdktK
-f/UspDaoVJH57ePY73KeQQMh/yCb/qOZmrw7gVrvP9Wa2184R5R5yYZtNj3+fXlc
-foHMa2nPrLSSsd3HDiDpO/2WseYFpdD4ujgas73XHMwzgBa25vGXbAObHCoBvnSE
-IC3ZNh0AXbN7HJMEEJIqZqALEJpukzPhIc8tZ1PEZUmFM4vm+ujrq6y6WBiSLC95
-M8FbwMkjmIdqOy1Z0I+C
-=/kEv
+iQIcBAABAgAGBQJPvir2AAoJEPo9qoy8lh71WzIP/0aEa48COv1rt+oYnixodh+T
+LvFosvs4QF2v/Eb4gpx+OgfCBT/9rt6iTifeDxjhMyKK4G4Sj8Yn/H4mCVx/C9wC
+Z8E2QKpJQWkCar2bL/jEvNrmU9b2OIPZPwyR9Qpu582WF7RasWfGZzqsApz7A66o
+uQNYSNEm6S+hO0rgHUhgaOQU4ZIkzPPOqaw1XchBC/uyIq3lmnWMCzCU6fYwYhof
+WK0Qna1lX10E4utcMTwRpjfpCjuHTVFTTvPlfv1f3siUnSEuxhSb1tn1d4ma4eud
+TDMI3iLmOZVYkyaR9wFqhThRJG4MpiXHEH3p7cL9gCktYPcntuPrWR66iFsudMud
+zuGbTlDCbsrwIK0oI9yAblb6541+UpjsPY/7MPndBxiBz7+t6eVfwB2V381PlMD7
+s8M/GKU/t29eGrOBx9RtCy8MqXHhLkOd00LGccyeNJSXZ2qn7Gwk5x4zEOZfPZ/a
+v+eMgJ4kBlcDvP9NOaYYslVLBsTR2P30mYsTiC7L4g5U9GI0f57OpfWzJC7sv3RS
+C68XmkVI5min5cDiqsOgu0IWH/aDXYU8Dvi0WJuYCXv5Bo1zY9f+wHCttpO7+Z5y
+HjU8jgBfLv9TxcTN2lkRLVBdEcR0q8dqPBARIyMMNlaeMtWNa98TZUA8VRlYvZWS
+tDEqRhIwqW1AdTnSN5Eh
+=g3cW
 -----END PGP SIGNATURE-----
 
---=-aa8xVZoQSIECn17iPwzz--
+--=-nvYyGW0lJu9boJoIwucg--
 
