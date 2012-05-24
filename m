@@ -1,101 +1,121 @@
-From: "Clark, Rob" <rob@ti.com>
-Subject: Re: [PATCH] omap2+: add drm device
-Date: Thu, 24 May 2012 00:27:19 -0600
-Message-ID: <CAO8GWq=rGLw3nx_r3+AO6xZNSDVyftpUXwWnbfevga4x2QUxfA@mail.gmail.com>
-References: <1337803690-30116-1-git-send-email-andy.gross@ti.com>
-	<1337839294.2764.7.camel@lappyti>
+From: "Munegowda, Keshava" <keshava_mgowda@ti.com>
+Subject: Re: MFD USB host: prevents CORE retention in idle
+Date: Thu, 24 May 2012 12:35:35 +0530
+Message-ID: <CAP05o4KNnrKdmgJ=Ky=MS4pwEoEErH+Agkm2EwN1i1UDb-CbPQ@mail.gmail.com>
+References: <87zk8yxx9l.fsf@ti.com>
+	<4FBD7FDC.9050307@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aog122.obsmtp.com ([74.125.149.147]:46388 "EHLO
-	na3sys009aog122.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1750699Ab2EXG1W convert rfc822-to-8bit
+Received: from na3sys009aob106.obsmtp.com ([74.125.149.76]:55020 "EHLO
+	na3sys009aog106.obsmtp.com" rhost-flags-OK-OK-OK-FAIL)
+	by vger.kernel.org with ESMTP id S1750721Ab2EXHFg convert rfc822-to-8bit
 	(ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Thu, 24 May 2012 02:27:22 -0400
-Received: by lbbgg6 with SMTP id gg6so6759824lbb.8
-        for <linux-omap@vger.kernel.org>; Wed, 23 May 2012 23:27:19 -0700 (PDT)
-In-Reply-To: <1337839294.2764.7.camel@lappyti>
+	Thu, 24 May 2012 03:05:36 -0400
+Received: by obfk16 with SMTP id k16so16510608obf.30
+        for <linux-omap@vger.kernel.org>; Thu, 24 May 2012 00:05:35 -0700 (PDT)
+In-Reply-To: <4FBD7FDC.9050307@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Tomi Valkeinen <tomi.valkeinen@ti.com>
-Cc: Andy Gross <andy.gross@ti.com>, dri-devel@lists.freedesktop.org, linux-omap@vger.kernel.org, greg@kroah.com
+To: Kevin Hilman <khilman@ti.com>
+Cc: Felipe Balbi <balbi@ti.com>, linux-omap <linux-omap@vger.kernel.org>
 
-On Thu, May 24, 2012 at 12:01 AM, Tomi Valkeinen <tomi.valkeinen@ti.com=
-> wrote:
-> Hi,
->
-> On Wed, 2012-05-23 at 15:08 -0500, Andy Gross wrote:
->> Register OMAP DRM/KMS platform device. =A0DMM is split into a
->> separate device using hwmod.
+On Thu, May 24, 2012 at 5:55 AM, Kevin Hilman <khilman@ti.com> wrote:
+> On 05/23/2012 05:01 PM, Kevin Hilman wrote:
 >>
->> Signed-off-by: Andy Gross <andy.gross@ti.com>
+>> Hi Keshava,
+>>
+>> Using current l-o master, I noticed that CORE was not hitting retent=
+ion
+>> in idle on my 3530/Overo. =A0CORE hits retention on suspend just fin=
+e.
+>>
+>> Debugging this, I found that usbtll_fck was still enabled during idl=
+e,
+>> thus preventing CORE from hitting retention.
+>>
+>> To test, I disabled USB host (CONFIG_MFD_OMAP_USB_HOST=3Dn in .confi=
+g) and
+>> was then started seeing CORE hit retention in idle again.
+>>
+>> I have nothing plugged into the USB host port on this board, so I
+>> would've expected that runtime PM would've kicked in and shutdown th=
+is
+>> clock.
+>>
+>> Any ideas what's going on here? =A0Is this expected behavior?
+>>
 >
-> <snip>
+> If it helps, attached is a bootlog after enabling debug for
+> mfd/omap-usb-host.c as well. =A0Notice there's a couple of clock-rela=
+ted
+> warnings from this driver as well. =A0Not sure if they're relevant:
 >
->> +static int __init omap_init_drm(void)
->> +{
->> + =A0 =A0 struct omap_hwmod *oh =3D NULL;
->> + =A0 =A0 struct platform_device *pdev;
->> +
->> + =A0 =A0 /* lookup and populate the DMM information, if present - O=
-MAP4+ */
->> + =A0 =A0 oh =3D omap_hwmod_lookup("dmm");
->> +
->> + =A0 =A0 if (oh) {
->> + =A0 =A0 =A0 =A0 =A0 =A0 pdev =3D omap_device_build(oh->name, -1, o=
-h, NULL, 0, NULL, 0,
->> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0=
- =A0 false);
->> + =A0 =A0 =A0 =A0 =A0 =A0 WARN(IS_ERR(pdev), "Could not build omap_d=
-evice for %s\n",
->> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 oh->name);
->> + =A0 =A0 }
->> +
->> + =A0 =A0 return platform_device_register(&omap_drm_device);
->> +
->> +}
+> usbhs_omap: alias fck already exists
+> usbhs_omap usbhs_omap: xclk60mhsp2_ck set parentfailed error:-22
+
+these clocks were specific to omap4 and it should not cause any
+problem to omap3 boards.
+
+I will try to reproduce this on 3430 sdp to explore further.
+
+
 >
-> I still don't like fixing the tiler to drm. I would like to have basi=
-c
-> tiler support in omapfb also, but with this approach I'll need to
-> duplicate the code. And even if we disregard omapfb, wouldn't it be
-> architecturally better to have the tiler as a separate independent
-> library/driver?
-
-Not easily, at least not if we want to manage to use tiler/dmm in a
-more dynamic way, or to enable some additional features which are
-still on the roadmap (like reprogramming dmm synchronized w/ scanout,
-or some things which are coming if future hw generations).  We need
-one place to keep track of which buffers are potentially evictable to
-make room for mapping a new buffer.  And if you look at the tricks
-that go on with mmap'ing tiled buffers to userspace, you *really*
-don't want to duplicate that in N different drivers.
-
-=46ortunately with dmabuf there is not really a need for N different
-drivers to need to use tiler/dmm directly.  The dmabuf mechanism
-provides what they need to import GEM buffers from omapdrm.  That may
-not really help omapfb because fbdev doesn't have a concept of
-importing buffers.  But OTOH this is unnecessary, because drm provides
-an fbdev interface for legacy apps.  The best thing I'd recommend is,
-if you miss some features of omapfb in the drm fbdev implementation,
-is to send some patches to add this missing features.
-
->> +struct omap_drm_platform_data {
->> + =A0 =A0 struct omap_kms_platform_data *kms_pdata;
->> +};
+> With debug enabled, I see the runtime resume during init followed by =
+the
+> runtime suspend.
 >
-> This one is missing struct omap_dmm_platform_data *dmm_pdata, so you
-> didn't just move the struct. Is that on purpose?
-
-the dmm pdata is no longer needed because we get what we need from
-hwmod via platform_get_resource()
-
-BR,
--R
-
-> =A0Tomi
+> [ =A0 =A00.936248] usbhs_omap usbhs_omap: xclk60mhsp2_ck set parentfa=
+iled
+> error:-22
+> [ =A0 =A00.944152] usbhs_omap usbhs_omap: starting TI HSUSB Controlle=
+r
+> [ =A0 =A00.944335] usbhs_omap usbhs_omap: usbhs_runtime_resume
+> [ =A0 =A00.944641] usbhs_omap usbhs_omap: OMAP UHH_REVISION 0x10
+> [ =A0 =A00.944641] usbhs_omap usbhs_omap: OMAP3 ES version > ES2.1
+> [ =A0 =A00.944671] usbhs_omap usbhs_omap: UHH setup done,ry
+> uhh_hostconfig=3D8000121d
+> [ =A0 =A00.947082] usbhs_omap usbhs_omap: usbhs_runtime_suspend
 >
+> However, later in the boot I see a runtime_resume and never see anoth=
+er
+> suspend. =A0That seems to be the root cause of CORE not hitting reten=
+tion.
+>
+> From the boot log:
+>
+> [ =A0 =A02.018707] ehci_hcd: USB 2.0 'Enhanced' Host Controller (EHCI=
+) Driver
+> [ =A0 =A02.025787] ehci_hcd: block sizes: qh 64 qtd 96 itd 160 sitd 9=
+6
+> [ =A0 =A02.026306] ehci-omap ehci-omap.0: failed to get ehci port1 re=
+gulator
+> [ =A0 =A02.026519] usbhs_omap usbhs_omap: usbhs_runtime_resume
+> [ =A0 =A03.030639] ehci-omap ehci-omap.0: phy reset operation timed o=
+ut
+> [ =A0 =A03.030700] ehci-omap ehci-omap.0: reset hcs_params 0x1313 dbg=
+=3D0 cc=3D1
+> pcc=3D3 ordered ports=3D3
+> [ =A0 =A03.030731] ehci-omap ehci-omap.0: reset hcc_params 0016 thres=
+h 1 uframes
+> 256/512/1024 park
+> [ =A0 =A03.030761] ehci-omap ehci-omap.0: reset command 0080b02 =A0pa=
+rk=3D3
+> ithresh=3D8 period=3D1024 Reset HALT
+> [ =A0 =A03.030792] ehci-omap ehci-omap.0: OMAP-EHCI Host Controller
+>
+> Since the only get/puts I see are in omap_usbhs_init(), I'm not sure =
+how
+> this driver is being runtime resumed. =A0Presumably it's due to how t=
+he rest
+> of the USB stack works, which I'm not at all familiar with.
+>
+> Hopefully, the above is enough to debug the problem,
+>
+> Thanks,
+>
+> Kevin
 --
 To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
 n
