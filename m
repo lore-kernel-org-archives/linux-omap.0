@@ -1,87 +1,35 @@
-From: Kevin Hilman <khilman@ti.com>
-Subject: Re: [PATCH V3 00/10] PM: Create the AVS(Adaptive Voltage Scaling)
-Date: Thu, 24 May 2012 10:24:15 -0700
-Message-ID: <87obpdv6f4.fsf@ti.com>
-References: <1335462041-4949-1-git-send-email-j-keerthy@ti.com>
-	<87397by2h9.fsf@ti.com>
-	<CAJ6a13aJwesHw0frCV+EfvYaep09cZGcu_PopuHzye1HS2tgvg@mail.gmail.com>
-	<CAJ6a13YLogA7M=rzSJAW6fHZOujFY0Crfdz9Sc5qL0mt8kX9CA@mail.gmail.com>
+From: "Woodruff, Richard" <r-woodruff2@ti.com>
+Subject: usage of sparse or other trick for improved type safety
+Date: Thu, 24 May 2012 18:12:34 +0000
+Message-ID: <EF62F09C0797D947AD4180A1043C0DF73C423E7B@DLEE10.ent.ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aog122.obsmtp.com ([74.125.149.147]:54541 "EHLO
-	na3sys009aog122.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1756080Ab2EXRYU convert rfc822-to-8bit
-	(ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Thu, 24 May 2012 13:24:20 -0400
-Received: by pbbrp2 with SMTP id rp2so585503pbb.0
-        for <linux-omap@vger.kernel.org>; Thu, 24 May 2012 10:24:18 -0700 (PDT)
-In-Reply-To: <CAJ6a13YLogA7M=rzSJAW6fHZOujFY0Crfdz9Sc5qL0mt8kX9CA@mail.gmail.com>
-	(KEERTHY J.'s message of "Wed, 23 May 2012 10:21:19 +0530")
+Received: from arroyo.ext.ti.com ([192.94.94.40]:48867 "EHLO arroyo.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752613Ab2EXSMi convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 24 May 2012 14:12:38 -0400
+Content-Language: en-US
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "J, KEERTHY" <j-keerthy@ti.com>
-Cc: "Rafael J. Wysocki" <rjw@sisk.pl>, greg@kroah.com, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org, linux-pm@lists.linux-foundation.org, j-pihet@ti.com
+To: "tony@atomide.com" <tony@atomide.com>
+Cc: "Hilman, Kevin" <khilman@ti.com>, "Menon, Nishanth" <nm@ti.com>, "jean.pihet@newoldbits.com" <jean.pihet@newoldbits.com>, "Sripathy, Vishwanath" <vishwanath.bs@ti.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "Pasam, Vijay" <vpasam@ti.com>
 
-"J, KEERTHY" <j-keerthy@ti.com> writes:
+Hi Tony,
 
-> On Tue, May 15, 2012 at 11:16 AM, J, KEERTHY <j-keerthy@ti.com> wrote=
-:
->> On Tue, May 8, 2012 at 5:21 AM, Kevin Hilman <khilman@ti.com> wrote:
->>> Rafael,
->>>
->>> Keerthy <j-keerthy@ti.com> writes:
->>>
->>>> From: J Keerthy <j-keerthy@ti.com>
->>>>
->>>> AVS(Adaptive Voltage Scaling) is a power management technique whic=
-h
->>>> controls the operating voltage of a device in order to optimize (i=
-=2Ee. reduce)
->>>> its power consumption. The voltage is adapted depending on static =
-factors
->>>> (chip manufacturing process) and dynamic factors (temperature
->>>> depending performance).
->>>> The TI AVS solution is named Smartreflex.
->>>>
->>>> To that end, create the AVS driver in drivers/power/avs and
->>>> move the OMAP SmartReflex code to the new directory. The
->>>> class driver is still retained in the mach-omap2 directory.
->>>
->>> How should we handle this for upstream?
->>>
->>> It does a bunch of cleanup under arch/arm then does the move to
->>> drivers/power the end. =C2=A0To avoid conflicts with other OMAP cor=
-e changes,
->>> I would suggest we take this through the OMAP tree.
->>>
->>> With your ack, I'd be glad to take it.
->>
->> Hello Rafael,
->>
->> A gentle ping on this series.
->
-> Hi Greg,
->
-> This series has Kevin's comments incorporated.
->
-> Kevin,
->
-> Can i have your Ack for this series?
->
+I am hoping to solicit an opinion from you for OMAP frameworks in general.
 
-Well, as mentioned above, I'm waiting for Rafael's ack, then I will
-merge it.
+In some recent review there was some debate about how it was good practice to form parameters in a way which didn't get misused. Nishanth was having some experience where end users doing custom ports made some hard to find mistakes.
 
-Because of all the arch/arm/mach-omap2/* changes, I would like to merge
-this via the OMAP tree to avoid conflicts with other stuff we have
-changing in arch/arm/mach-omap2/*
+I was wondering if it is useful to create a standard or it's a waste of time.  The knee-jerk reaction to comment is to consider annotations for driver users of api's, then inside the framework trust internals to do the right thing.  Complexity divide between a driver and some frameworks might be similar to user-vs-kernel.
 
-Kevin
+I think example in this case was IVA and other external subsystems commonly got away using stale definitions when managing their own power domains.  Example seemed a little pedantic but it is true that this has broken several times through migrations. At customer fan out it causes a lot of effort which could have been avoided.
 
---
-To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Just last week someone was trying to caste away an iomem annotation from external driver based on warning. For me warning was a good thing and forced discussion.
+
+I do recall you pushing what ARM and Linux tress did in this area back into OMAP years back.  Question is if it's worth internalizing more for our ever growing frameworks.
+
+Thanks,
+Richard W.
+
