@@ -1,77 +1,41 @@
-From: "Cousson, Benoit" <b-cousson@ti.com>
-Subject: Re: [PATCH 2/2] arm/dts: OMAP2+: Add mailbox nodes
-Date: Thu, 24 May 2012 17:47:30 +0200
-Message-ID: <4FBE5812.8020806@ti.com>
-References: <1335894460-19941-1-git-send-email-omar.luna@linaro.org> <1335894460-19941-3-git-send-email-omar.luna@linaro.org>
+From: Paul Walmsley <paul@pwsan.com>
+Subject: Re: v3.4-rc4 DSS PM problem (Was: Re: Problems with 3.4-rc5)
+Date: Thu, 24 May 2012 10:19:42 -0600 (MDT)
+Message-ID: <alpine.DEB.2.00.1205240201500.2572@utopia.booyaka.com>
+References: <1336033721.14378.2.camel@deskari>  <WC20120503084938.900446@terrafix.co.uk>  <1336050442.14378.10.camel@deskari>  <WC20120504091902.970499@terrafix.co.uk> <1336139415.2552.4.camel@deskari>  <1336140072.2552.6.camel@deskari>
+ <WC20120504140943.7604D0@terrafix.co.uk>  <1336143281.2552.21.camel@deskari> <1336143500.2552.23.camel@deskari>  <1336483598.5761.45.camel@deskari> <WC20120514073642.6306D7@terrafix.co.uk>  <1336982138.2532.32.camel@lappyti>  <alpine.DEB.2.00.1205151148440.16649@utopia.booyaka.com>
+  <1337159300.7692.22.camel@deskari> <1337160001.7692.24.camel@deskari>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="ISO-8859-1"; format=flowed
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-doc-owner@vger.kernel.org>
-In-Reply-To: <1335894460-19941-3-git-send-email-omar.luna@linaro.org>
-Sender: linux-doc-owner@vger.kernel.org
-To: Omar Ramirez Luna <omar.luna@linaro.org>
-Cc: devicetree-discuss@lists.ozlabs.org, Grant Likely <grant.likely@secretlab.ca>, Rob Herring <rob.herring@calxeda.com>, Rob Landley <rob@landley.net>, Russell King <linux@arm.linux.org.uk>, Tony Lindgren <tony@atomide.com>, linux-doc@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org, patches@linaro.org, linaro-dev@lists.linaro.org
+Content-Type: TEXT/PLAIN; charset=US-ASCII
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from utopia.booyaka.com ([72.9.107.138]:39061 "EHLO
+	utopia.booyaka.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S933336Ab2EXQTo (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 24 May 2012 12:19:44 -0400
+In-Reply-To: <1337160001.7692.24.camel@deskari>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Tomi Valkeinen <tomi.valkeinen@ti.com>
+Cc: Joe Woodward <jw@terrafix.co.uk>, khilman@ti.com, Archit Taneja <a0393947@ti.com>, linux-omap@vger.kernel.org, b-cousson@ti.com
 
-On 5/1/2012 7:47 PM, Omar Ramirez Luna wrote:
-> Add nodes for mailbox DT, to interface with hwmods.
->
-> Signed-off-by: Omar Ramirez Luna<omar.luna@linaro.org>
+On Wed, 16 May 2012, Tomi Valkeinen wrote:
 
-Acked-by: Benoit Cousson <b-cousson@ti.com>
+> JFYI, I also tested changing DISPC's SYSCONFIG:CLOCKACTIVITY, which, to
+> me, sounds a bit related to dpll autoidle. By default it's 0, "interface
+> and functional clocks can be switched off". I tested the three other
+> values, but none of them had any effect.
 
-> ---
->   arch/arm/boot/dts/omap2.dtsi |    5 +++++
->   arch/arm/boot/dts/omap3.dtsi |    5 +++++
->   arch/arm/boot/dts/omap4.dtsi |    5 +++++
->   3 files changed, 15 insertions(+), 0 deletions(-)
->
-> diff --git a/arch/arm/boot/dts/omap2.dtsi b/arch/arm/boot/dts/omap2.dtsi
-> index f2ab4ea..2175cc3 100644
-> --- a/arch/arm/boot/dts/omap2.dtsi
-> +++ b/arch/arm/boot/dts/omap2.dtsi
-> @@ -46,6 +46,11 @@
->   			#interrupt-cells =<1>;
->   		};
->
-> +		mailbox: mailbox@48094000 {
-> +			compatible = "ti,omap2-mailbox";
-> +			ti,hwmods = "mailbox";
-> +		};
-> +
->   		uart1: serial@4806a000 {
->   			compatible = "ti,omap2-uart";
->   			ti,hwmods = "uart1";
-> diff --git a/arch/arm/boot/dts/omap3.dtsi b/arch/arm/boot/dts/omap3.dtsi
-> index c612135..540f6d6 100644
-> --- a/arch/arm/boot/dts/omap3.dtsi
-> +++ b/arch/arm/boot/dts/omap3.dtsi
-> @@ -69,6 +69,11 @@
->   			reg =<0x48200000 0x1000>;
->   		};
->
-> +		mailbox: mailbox@48094000 {
-> +			compatible = "ti,omap3-mailbox";
-> +			ti,hwmods = "mailbox";
-> +		};
-> +
->   		uart1: serial@4806a000 {
->   			compatible = "ti,omap3-uart";
->   			ti,hwmods = "uart1";
-> diff --git a/arch/arm/boot/dts/omap4.dtsi b/arch/arm/boot/dts/omap4.dtsi
-> index 3d35559..84f27dd 100644
-> --- a/arch/arm/boot/dts/omap4.dtsi
-> +++ b/arch/arm/boot/dts/omap4.dtsi
-> @@ -104,6 +104,11 @@
->   			<0x48240100 0x0100>;
->   		};
->
-> +		mailbox: mailbox@4a0f4000 {
-> +			compatible = "ti,omap4-mailbox";
-> +			ti,hwmods = "mailbox";
-> +		};
-> +
->   		uart1: serial@4806a000 {
->   			compatible = "ti,omap4-uart";
->   			ti,hwmods = "uart1";
+As I understand it (which could very well be mistaken), the CLOCKACTIVITY 
+bits are only useful in situations where we'd like to allow the 
+interconnect to idle, but keep the functional clock of the IP block (or 
+subsystem) running.  Right now, we control an IP block's interface clock 
+and functional clock together, so CLOCKACTIVITY should probably always be 
+0.
 
+But for drivers that want to do more fine-grained clock control, or if we 
+create some notion of an "autonomous IP block" in our integration layer 
+for devices that can function without its interconnect, it might be worth 
+exploring whether it is worthwhile to change those bits.
+
+
+- Paul
