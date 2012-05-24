@@ -1,40 +1,56 @@
-From: "Menon, Nishanth" <nm@ti.com>
-Subject: Re: [PATCH] ARM: OMAP3+: dpll: optimize noncore dpll locking logic
-Date: Thu, 24 May 2012 10:03:17 -0500
-Message-ID: <CAOMWX4eeyGG_LjvLwg+QAk8bVXjMVq_AFVfv0BPJ3vawb=GAJQ@mail.gmail.com>
-References: <1337369838-15185-1-git-send-email-nm@ti.com> <alpine.DEB.2.00.1205240147510.2572@utopia.booyaka.com>
- <CAOMWX4c7T+8TcnjvcMonEQwAbpBFJXRhiBu_cu4i36W81AgLWg@mail.gmail.com> <alpine.DEB.2.00.1205240856140.2572@utopia.booyaka.com>
+From: "Gross, Andy" <andy.gross@ti.com>
+Subject: Re: [PATCH] omap2+: add drm device
+Date: Thu, 24 May 2012 10:09:38 -0500
+Message-ID: <CABT81PhhCaXuHW+x34_Q8izdcW0Ud8dNVSMEr0Zzyt9FAjm5TA@mail.gmail.com>
+References: <1337803690-30116-1-git-send-email-andy.gross@ti.com>
+	<1337839294.2764.7.camel@lappyti>
+	<CAO8GWq=rGLw3nx_r3+AO6xZNSDVyftpUXwWnbfevga4x2QUxfA@mail.gmail.com>
+	<1337843144.2909.17.camel@deskari>
+	<1337844098.2909.20.camel@deskari>
+	<CAF6AEGur-mmZDVrE+Y-6tesNCVKp4xKKuS-C7ozTSJ2KQijHdw@mail.gmail.com>
+	<1337861581.12304.7.camel@deskari>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aog116.obsmtp.com ([74.125.149.240]:60125 "EHLO
-	na3sys009aog116.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751364Ab2EXPDl convert rfc822-to-8bit
-	(ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Thu, 24 May 2012 11:03:41 -0400
-Received: by wibhj6 with SMTP id hj6so5455698wib.9
-        for <linux-omap@vger.kernel.org>; Thu, 24 May 2012 08:03:39 -0700 (PDT)
-In-Reply-To: <alpine.DEB.2.00.1205240856140.2572@utopia.booyaka.com>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset="iso-8859-1"
+Content-Transfer-Encoding: quoted-printable
+Return-path: <dri-devel-bounces+sf-dri-devel=m.gmane.org@lists.freedesktop.org>
+In-Reply-To: <1337861581.12304.7.camel@deskari>
+List-Unsubscribe: <http://lists.freedesktop.org/mailman/options/dri-devel>,
+	<mailto:dri-devel-request@lists.freedesktop.org?subject=unsubscribe>
+List-Archive: <http://lists.freedesktop.org/archives/dri-devel>
+List-Post: <mailto:dri-devel@lists.freedesktop.org>
+List-Help: <mailto:dri-devel-request@lists.freedesktop.org?subject=help>
+List-Subscribe: <http://lists.freedesktop.org/mailman/listinfo/dri-devel>,
+	<mailto:dri-devel-request@lists.freedesktop.org?subject=subscribe>
+Sender: dri-devel-bounces+sf-dri-devel=m.gmane.org@lists.freedesktop.org
+Errors-To: dri-devel-bounces+sf-dri-devel=m.gmane.org@lists.freedesktop.org
+To: Tomi Valkeinen <tomi.valkeinen@ti.com>
+Cc: greg@kroah.com, linux-omap@vger.kernel.org, dri-devel@lists.freedesktop.org, Rob Clark <rob.clark@linaro.org>
 List-Id: linux-omap@vger.kernel.org
-To: Paul Walmsley <paul@pwsan.com>
-Cc: Vikram Pandita <vikram.pandita@ti.com>, Tony Lindgren <tony@atomide.com>, Jon Hunter <jon-hunter@ti.com>, Mike Turquette <mturquette@ti.com>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 
-On Thu, May 24, 2012 at 9:57 AM, Paul Walmsley <paul@pwsan.com> wrote:
+On Thu, May 24, 2012 at 7:13 AM, Tomi Valkeinen <tomi.valkeinen@ti.com> wro=
+te:
+> On Thu, 2012-05-24 at 02:44 -0600, Rob Clark wrote:
 >
-> Okay. =A0As I understand it, the maintainers above me would like
-> Signed-off-by:s from the entire submission patch, even if there are n=
-o
-> contributions to the patch itself. =A0So please let me know if it's o=
-kay for
-> me to add your S-o-b.
-Thanks. ok with me :)
+>> but other drivers *can* use tiler, thanks to dmabuf.. I have omap4iss
+>> v4l2 camera working w/ tiler buffers on my pandaboard, for example.
+>>
+>> Maybe fbdev is an exception to the rule because it has no way for
+>> userspace to pass it a buffer to use. =A0But on the other hand it is a
+>> legacy API so I'm not sure if it is worth loosing too much sleep over
+>> that.
+>
+> I'm not that familiar with dmabuf, but are you saying it's not possible
+> for a kernel driver to request the buffers? They _must_ come from the
+> userspace?
+>
+> Anyway, even if it would be possible, if the tiler is a part of omapdrm
+> we need omapdrm to get and use the tiler buffers. And we can't have
+> omapdrm running when using omapfb, because they both use omapdss.
 
-Regards,
-Nishanth Menon
---
-To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+And that is a good point.  The DSS is kind of a sticking point to anyone
+having to enable DRM to get Tiler.  However, omapfb doesn't currently utili=
+ze
+DMM/Tiler features.  Can't we defer generalizing until there is a
+requirement for it?
+
+Andy
