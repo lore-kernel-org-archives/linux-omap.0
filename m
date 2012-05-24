@@ -1,83 +1,90 @@
-From: Paul Walmsley <paul@pwsan.com>
-Subject: RE: [PATCH-V3 3/3] ARM: OMAP3+: clock33xx: Add AM33XX clock tree
- data
-Date: Thu, 24 May 2012 15:30:10 -0600 (MDT)
-Message-ID: <alpine.DEB.2.00.1205241525510.25520@utopia.booyaka.com>
-References: <1333458578-23073-1-git-send-email-hvaibhav@ti.com> <1333458578-23073-4-git-send-email-hvaibhav@ti.com> <alpine.DEB.2.00.1204241857260.24864@utopia.booyaka.com> <79CD15C6BA57404B839C016229A409A83E9FD175@DBDE01.ent.ti.com> <4F97B891.1020601@ti.com>
- <79CD15C6BA57404B839C016229A409A83E9FD707@DBDE01.ent.ti.com> <4F97E243.6000500@ti.com> <79CD15C6BA57404B839C016229A409A83E9FDA47@DBDE01.ent.ti.com> <4F97EF11.4020300@ti.com> <79CD15C6BA57404B839C016229A409A83E9FDAE7@DBDE01.ent.ti.com>
- <alpine.DEB.2.00.1204250755020.29696@utopia.booyaka.com> <4F9816D1.3000102@ti.com> <alpine.DEB.2.00.1204250934130.29696@utopia.booyaka.com> <79CD15C6BA57404B839C016229A409A83EA31E77@DBDE01.ent.ti.com> <alpine.DEB.2.00.1205230854430.3085@utopia.booyaka.com>
- <79CD15C6BA57404B839C016229A409A83EA33611@DBDE01.ent.ti.com> <alpine.DEB.2.00.1205240120580.2572@utopia.booyaka.com> <79CD15C6BA57404B839C016229A409A83EA3609D@DBDE01.ent.ti.com>
+From: Kevin Hilman <khilman@ti.com>
+Subject: Re: MFD USB host: prevents CORE retention in idle
+Date: Thu, 24 May 2012 15:13:01 -0700
+Message-ID: <878vghut1u.fsf@ti.com>
+References: <87zk8yxx9l.fsf@ti.com> <4FBD7FDC.9050307@ti.com>
+	<CAP05o4KNnrKdmgJ=Ky=MS4pwEoEErH+Agkm2EwN1i1UDb-CbPQ@mail.gmail.com>
+	<871um9wlzx.fsf@ti.com>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from utopia.booyaka.com ([72.9.107.138]:33350 "EHLO
-	utopia.booyaka.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S965457Ab2EXVaM (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 24 May 2012 17:30:12 -0400
-In-Reply-To: <79CD15C6BA57404B839C016229A409A83EA3609D@DBDE01.ent.ti.com>
+Received: from na3sys009aog121.obsmtp.com ([74.125.149.145]:33959 "EHLO
+	na3sys009aog121.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1757329Ab2EXWNF convert rfc822-to-8bit
+	(ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Thu, 24 May 2012 18:13:05 -0400
+Received: by danh15 with SMTP id h15so409337dan.37
+        for <linux-omap@vger.kernel.org>; Thu, 24 May 2012 15:13:03 -0700 (PDT)
+In-Reply-To: <871um9wlzx.fsf@ti.com> (Kevin Hilman's message of "Thu, 24 May
+	2012 10:02:26 -0700")
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "Hiremath, Vaibhav" <hvaibhav@ti.com>
-Cc: "Cousson, Benoit" <b-cousson@ti.com>, "Mohammed, Afzal" <afzal@ti.com>, "Bedia, Vaibhav" <vaibhav.bedia@ti.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "tony@atomide.com" <tony@atomide.com>, "Hilman, Kevin" <khilman@ti.com>, "Nayak, Rajendra" <rnayak@ti.com>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>
+To: "Munegowda, Keshava" <keshava_mgowda@ti.com>
+Cc: Felipe Balbi <balbi@ti.com>, linux-omap <linux-omap@vger.kernel.org>
 
-On Thu, 24 May 2012, Hiremath, Vaibhav wrote:
+Kevin Hilman <khilman@ti.com> writes:
 
-> On Thu, May 24, 2012 at 13:01:11, Paul Walmsley wrote:
-> > On Wed, 23 May 2012, Hiremath, Vaibhav wrote:
-> > 
-> > > I came across situation where, two modules fall into different clock 
-> > > domains but their functional clock is happened to be coming from same 
-> > > source/dpll-divider. So in order to satisfy clkdm match between them, I 
-> > > have kept nodes without enable_regs.
-> > 
-> > Could you please provide an example?
-> 
-> In case of AM33xx, clock architecture is,
-> 
-> sysclk1 -> L4_wakeup - wakeup domain modules
-> 
-> sysclk1 -> L4 HS - L4 HS domain modules
-> 
-> sysclk1 -> L4 LS - L4 LS domain modules
-> 
-> and so on...
-> 
-> 
-> Now with leaf node cleanup, we are moving upward in the clocktree, more 
-> close to dpll output, and is the issue related to clockdomain.
+> "Munegowda, Keshava" <keshava_mgowda@ti.com> writes:
+>
+>> On Thu, May 24, 2012 at 5:55 AM, Kevin Hilman <khilman@ti.com> wrote=
+:
+>>> On 05/23/2012 05:01 PM, Kevin Hilman wrote:
+>>>>
+>>>> Hi Keshava,
+>>>>
+>>>> Using current l-o master, I noticed that CORE was not hitting rete=
+ntion
+>>>> in idle on my 3530/Overo. =C2=A0CORE hits retention on suspend jus=
+t fine.
+>>>>
+>>>> Debugging this, I found that usbtll_fck was still enabled during i=
+dle,
+>>>> thus preventing CORE from hitting retention.
+>>>>
+>>>> To test, I disabled USB host (CONFIG_MFD_OMAP_USB_HOST=3Dn in .con=
+fig) and
+>>>> was then started seeing CORE hit retention in idle again.
+>>>>
+>>>> I have nothing plugged into the USB host port on this board, so I
+>>>> would've expected that runtime PM would've kicked in and shutdown =
+this
+>>>> clock.
+>>>>
+>>>> Any ideas what's going on here? =C2=A0Is this expected behavior?
+>>>>
+>>>
+>>> If it helps, attached is a bootlog after enabling debug for
+>>> mfd/omap-usb-host.c as well. =C2=A0Notice there's a couple of clock=
+-related
+>>> warnings from this driver as well. =C2=A0Not sure if they're releva=
+nt:
+>>>
+>>> usbhs_omap: alias fck already exists
+>>> usbhs_omap usbhs_omap: xclk60mhsp2_ck set parentfailed error:-22
+>>
+>> these clocks were specific to omap4 and it should not cause any
+>> problem to omap3 boards.
+>
+> OK, they seem unrelated to this CORE retention problem, but the warni=
+ngs
+> should still be understood and fixed.
+>
+>> I will try to reproduce this on 3430 sdp to explore further.
+>
+> Thanks for looking.  Note that I only saw this problem on my 3530
+> platforms (Overo, OMAP3EVM.)  My 3430/n900 doesn't support USBHS host
+> AFAICT, so didn't test there.
 
-I don't really understand.  Perhaps you could provide an example from one 
-of the modules?
+After realizing that the same IP should exist on 3430/n900, I copied
+some board file support for USBHS host from overo into the n900 board
+file in order to test on 3430/n900. =20
 
-Are you saying that you have a module that should be in a different 
-clockdomain than the clockdomain of the module's main functional clock?
+Problem exists on n900 too.
 
-> > > > >    So currently, I have mentioned same entry in both the places (especially 
-> > > > >    for Peripherals/modules).
-> > > > >    I am planning to remove ocp_if/clk entry data for all modules..
-> > > > 
-> > > > Hmmm, could you explain this further?
-> > > 
-> > > what if, module only has interface clock? Should it be present as 
-> > > main_clk or ocp_if.clk or both?? Example would be, TPCC, TPTC, 
-> > > smartreflex, etc...
-> > 
-> > Well it definitely should be present as the ocp_if.clk.  I personally 
-> > think it would be good to list the same clock as the hwmod's main_clk too, 
-> > but it's currently not strictly necessary.  There are some examples in the 
-> > omap_hwmod_44xx_data.c file, like omap44xx_mailbox_hwmod.
-> 
-> omap44xx_mailbox_hwmod doesn't have main_clk exported in the hwmod_data,
-> so I think I should also follow same thing, right?
-
-Well please start with specifying the main_clk for all IP blocks.  It is 
-potentially ambiguous not to specify it, so unless there is some problem 
-with specifying it, I'd prefer to have them.
-
-> You can access the code at - 
-> https://github.com/hvaibhav/am335x-linux   am335x-upstream-staging
-
-I'll wait until it's posted to the lists.
-
-
-- Paul
+Kevin
+--
+To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
