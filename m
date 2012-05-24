@@ -1,18 +1,18 @@
 From: Rob Clark <rob.clark@linaro.org>
 Subject: Re: [PATCH] staging: omapdrm: fix crash when freeing bad fb
-Date: Thu, 24 May 2012 12:41:47 -0600
-Message-ID: <CAF6AEGu1mMujAXKQTBhQ_=_CnxJHF5d+QOdaLAOzbN2ovcFDVA@mail.gmail.com>
+Date: Thu, 24 May 2012 12:41:17 -0600
+Message-ID: <CAF6AEGtfn=AOsLBZvS+jhqK63E_b108RFFsqvCT6rovfpAnS=w@mail.gmail.com>
 References: <1337877862-5055-1-git-send-email-andy.gross@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-gg0-f174.google.com ([209.85.161.174]:55190 "EHLO
-	mail-gg0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S933458Ab2EXSlt convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 24 May 2012 14:41:49 -0400
-Received: by gglu4 with SMTP id u4so102251ggl.19
-        for <linux-omap@vger.kernel.org>; Thu, 24 May 2012 11:41:48 -0700 (PDT)
+Received: from mail-vc0-f174.google.com ([209.85.220.174]:40308 "EHLO
+	mail-vc0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S933458Ab2EXSlw convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 24 May 2012 14:41:52 -0400
+Received: by mail-vc0-f174.google.com with SMTP id f11so53416vcb.19
+        for <linux-omap@vger.kernel.org>; Thu, 24 May 2012 11:41:52 -0700 (PDT)
 In-Reply-To: <1337877862-5055-1-git-send-email-andy.gross@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
