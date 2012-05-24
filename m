@@ -1,97 +1,103 @@
-From: Tomi Valkeinen <tomi.valkeinen@ti.com>
+From: "Clark, Rob" <rob@ti.com>
 Subject: Re: [PATCH] omap2+: add drm device
-Date: Thu, 24 May 2012 09:01:34 +0300
-Message-ID: <1337839294.2764.7.camel@lappyti>
+Date: Thu, 24 May 2012 00:27:19 -0600
+Message-ID: <CAO8GWq=rGLw3nx_r3+AO6xZNSDVyftpUXwWnbfevga4x2QUxfA@mail.gmail.com>
 References: <1337803690-30116-1-git-send-email-andy.gross@ti.com>
+	<1337839294.2764.7.camel@lappyti>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg="pgp-sha1"; protocol="application/pgp-signature";
-	boundary="=-8ne+w5v56VdQtKtfuR5U"
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aog126.obsmtp.com ([74.125.149.155]:34629 "EHLO
-	na3sys009aog126.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752756Ab2EXGBo (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>);
-	Thu, 24 May 2012 02:01:44 -0400
-Received: by lbbgj10 with SMTP id gj10so6982717lbb.23
-        for <linux-omap@vger.kernel.org>; Wed, 23 May 2012 23:01:41 -0700 (PDT)
-In-Reply-To: <1337803690-30116-1-git-send-email-andy.gross@ti.com>
+Received: from na3sys009aog122.obsmtp.com ([74.125.149.147]:46388 "EHLO
+	na3sys009aog122.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1750699Ab2EXG1W convert rfc822-to-8bit
+	(ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Thu, 24 May 2012 02:27:22 -0400
+Received: by lbbgg6 with SMTP id gg6so6759824lbb.8
+        for <linux-omap@vger.kernel.org>; Wed, 23 May 2012 23:27:19 -0700 (PDT)
+In-Reply-To: <1337839294.2764.7.camel@lappyti>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Andy Gross <andy.gross@ti.com>
-Cc: dri-devel@lists.freedesktop.org, linux-omap@vger.kernel.org, greg@kroah.com, rob@ti.com
+To: Tomi Valkeinen <tomi.valkeinen@ti.com>
+Cc: Andy Gross <andy.gross@ti.com>, dri-devel@lists.freedesktop.org, linux-omap@vger.kernel.org, greg@kroah.com
 
+On Thu, May 24, 2012 at 12:01 AM, Tomi Valkeinen <tomi.valkeinen@ti.com=
+> wrote:
+> Hi,
+>
+> On Wed, 2012-05-23 at 15:08 -0500, Andy Gross wrote:
+>> Register OMAP DRM/KMS platform device. =A0DMM is split into a
+>> separate device using hwmod.
+>>
+>> Signed-off-by: Andy Gross <andy.gross@ti.com>
+>
+> <snip>
+>
+>> +static int __init omap_init_drm(void)
+>> +{
+>> + =A0 =A0 struct omap_hwmod *oh =3D NULL;
+>> + =A0 =A0 struct platform_device *pdev;
+>> +
+>> + =A0 =A0 /* lookup and populate the DMM information, if present - O=
+MAP4+ */
+>> + =A0 =A0 oh =3D omap_hwmod_lookup("dmm");
+>> +
+>> + =A0 =A0 if (oh) {
+>> + =A0 =A0 =A0 =A0 =A0 =A0 pdev =3D omap_device_build(oh->name, -1, o=
+h, NULL, 0, NULL, 0,
+>> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0=
+ =A0 false);
+>> + =A0 =A0 =A0 =A0 =A0 =A0 WARN(IS_ERR(pdev), "Could not build omap_d=
+evice for %s\n",
+>> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 oh->name);
+>> + =A0 =A0 }
+>> +
+>> + =A0 =A0 return platform_device_register(&omap_drm_device);
+>> +
+>> +}
+>
+> I still don't like fixing the tiler to drm. I would like to have basi=
+c
+> tiler support in omapfb also, but with this approach I'll need to
+> duplicate the code. And even if we disregard omapfb, wouldn't it be
+> architecturally better to have the tiler as a separate independent
+> library/driver?
 
---=-8ne+w5v56VdQtKtfuR5U
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: quoted-printable
+Not easily, at least not if we want to manage to use tiler/dmm in a
+more dynamic way, or to enable some additional features which are
+still on the roadmap (like reprogramming dmm synchronized w/ scanout,
+or some things which are coming if future hw generations).  We need
+one place to keep track of which buffers are potentially evictable to
+make room for mapping a new buffer.  And if you look at the tricks
+that go on with mmap'ing tiled buffers to userspace, you *really*
+don't want to duplicate that in N different drivers.
 
-Hi,
+=46ortunately with dmabuf there is not really a need for N different
+drivers to need to use tiler/dmm directly.  The dmabuf mechanism
+provides what they need to import GEM buffers from omapdrm.  That may
+not really help omapfb because fbdev doesn't have a concept of
+importing buffers.  But OTOH this is unnecessary, because drm provides
+an fbdev interface for legacy apps.  The best thing I'd recommend is,
+if you miss some features of omapfb in the drm fbdev implementation,
+is to send some patches to add this missing features.
 
-On Wed, 2012-05-23 at 15:08 -0500, Andy Gross wrote:
-> Register OMAP DRM/KMS platform device.  DMM is split into a
-> separate device using hwmod.
->=20
-> Signed-off-by: Andy Gross <andy.gross@ti.com>
+>> +struct omap_drm_platform_data {
+>> + =A0 =A0 struct omap_kms_platform_data *kms_pdata;
+>> +};
+>
+> This one is missing struct omap_dmm_platform_data *dmm_pdata, so you
+> didn't just move the struct. Is that on purpose?
 
-<snip>
+the dmm pdata is no longer needed because we get what we need from
+hwmod via platform_get_resource()
 
-> +static int __init omap_init_drm(void)
-> +{
-> +	struct omap_hwmod *oh =3D NULL;
-> +	struct platform_device *pdev;
-> +
-> +	/* lookup and populate the DMM information, if present - OMAP4+ */
-> +	oh =3D omap_hwmod_lookup("dmm");
-> +
-> +	if (oh) {
-> +		pdev =3D omap_device_build(oh->name, -1, oh, NULL, 0, NULL, 0,
-> +					false);
-> +		WARN(IS_ERR(pdev), "Could not build omap_device for %s\n",
-> +			oh->name);
-> +	}
-> +
-> +	return platform_device_register(&omap_drm_device);
-> +
-> +}
+BR,
+-R
 
-I still don't like fixing the tiler to drm. I would like to have basic
-tiler support in omapfb also, but with this approach I'll need to
-duplicate the code. And even if we disregard omapfb, wouldn't it be
-architecturally better to have the tiler as a separate independent
-library/driver?
-
-> +struct omap_drm_platform_data {
-> +	struct omap_kms_platform_data *kms_pdata;
-> +};
-
-This one is missing struct omap_dmm_platform_data *dmm_pdata, so you
-didn't just move the struct. Is that on purpose?
-
- Tomi
-
-
---=-8ne+w5v56VdQtKtfuR5U
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: This is a digitally signed message part
-Content-Transfer-Encoding: 7bit
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.4.11 (GNU/Linux)
-
-iQIcBAABAgAGBQJPvc6+AAoJEPo9qoy8lh71f84P/ioEbNuhIUZwof0prxCEZE1i
-2AMyCVWLc2OoGKo54qRxgC2ZN1yRkw8mJSuAbXbujopPId1DvIFM+O7x28SBno1b
-eiZk8L4fSxePs6zyuliNqi7HdKHudJJz0obnxs2QcHYB2Y9HryQ3a2uoZbpEmcFi
-Dh800IxOnhGKA9598hZT1gImTLGPVLyr40oMaL/YsjdMUYgyAArKSRTr8VMuK2WG
-ivZo73NG6RbsZXbOCIgJUUqBNciDnGHmpiNzCm6JOXCzJTl76qnZKO43Ja1UzQ9n
-TNvaw2w+GXENZRV7IM/cbutGE4F8MEBwc5sjvjG/v20VvylzP7HSok/nh4IP5ZRm
-Qnm4UZUII+emvk8D5HTt1lIvk3Sv6jvHO66MQVQbZuhfpMJ0XgT48dZWXFpkqnqC
-xaLKSqUphrnfCCFz5/9AEARiTpn1Hl20kugewKzBKJO+Pd2RPOJootsgLavr0kqb
-JfoQgvgaFJsfyp4qVPyiT9es6Bd/GKN6mMUa3rSeq2qzSiF5MKd+uMunefmt4FTX
-Zf3N1+gt7s88CYR++u4MX+L4nVbirnf6yHPcgxFlmWzOalpATpzrhnW80eJtewZX
-1vwyuOoZV0UGV2ytcXsngEj7krngLNONJ1l9BK2/wLGk7hVKV63Aj5Owq0uQGQJq
-FFTRBe2gMQUy+jADxqF5
-=bmft
------END PGP SIGNATURE-----
-
---=-8ne+w5v56VdQtKtfuR5U--
-
+> =A0Tomi
+>
+--
+To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
