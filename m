@@ -1,223 +1,169 @@
-From: Tomi Valkeinen <tomi.valkeinen@ti.com>
-Subject: Re: v3.4-rc4 DSS PM problem (Was: Re: Problems with 3.4-rc5)
-Date: Fri, 25 May 2012 11:24:48 +0300
-Message-ID: <1337934288.2842.19.camel@deskari>
-References: <1336033721.14378.2.camel@deskari>
-	   <WC20120503084938.900446@terrafix.co.uk>
-	   <1336050442.14378.10.camel@deskari>
-	   <WC20120504091902.970499@terrafix.co.uk>
-	 <1336139415.2552.4.camel@deskari>   <1336140072.2552.6.camel@deskari>
-	 <WC20120504140943.7604D0@terrafix.co.uk>
-	   <1336143281.2552.21.camel@deskari> <1336143500.2552.23.camel@deskari>
-	   <1336483598.5761.45.camel@deskari>
-	  <WC20120514073642.6306D7@terrafix.co.uk>
-	 <1336982138.2532.32.camel@lappyti>
-	  <alpine.DEB.2.00.1205151148440.16649@utopia.booyaka.com>
-	 <1337159300.7692.22.camel@deskari>
-	 <alpine.DEB.2.00.1205241022180.2572@utopia.booyaka.com>
+From: Eduardo Valentin <eduardo.valentin@ti.com>
+Subject: [RFC PATCH 00/11] OMAP System Control Module
+Date: Fri, 25 May 2012 11:25:50 +0300
+Message-ID: <1337934361-1606-1-git-send-email-eduardo.valentin@ti.com>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg="pgp-sha1"; protocol="application/pgp-signature";
-	boundary="=-w9x7ZRJ7uDAifF8JEtVy"
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aog134.obsmtp.com ([74.125.149.83]:53569 "EHLO
-	na3sys009aog134.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751698Ab2EYIY7 (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>);
-	Fri, 25 May 2012 04:24:59 -0400
-Received: by lbbgm6 with SMTP id gm6so466225lbb.19
-        for <linux-omap@vger.kernel.org>; Fri, 25 May 2012 01:24:56 -0700 (PDT)
-In-Reply-To: <alpine.DEB.2.00.1205241022180.2572@utopia.booyaka.com>
-Sender: linux-omap-owner@vger.kernel.org
-List-Id: linux-omap@vger.kernel.org
-To: Paul Walmsley <paul@pwsan.com>
-Cc: Joe Woodward <jw@terrafix.co.uk>, khilman@ti.com, jean.pihet@newoldbits.com, Archit Taneja <a0393947@ti.com>, linux-omap@vger.kernel.org
-
-
---=-w9x7ZRJ7uDAifF8JEtVy
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: quoted-printable
-
-On Thu, 2012-05-24 at 18:39 -0600, Paul Walmsley wrote:
-> cc Jean
->=20
-> Hello Tomi,
->=20
-> On Wed, 16 May 2012, Tomi Valkeinen wrote:
->=20
-> > I also suspect that this could be just a plain DSS bug. The default FIF=
-O
-> > low/high thresholds are 960/1023 bytes (i.e. DSS starts refilling the
-> > FIFO when there are 960 or less bytes in the fifo, and stops at 1023.
-> > The fifo is 1024 bytes). The values are calculated with fifo_size -
-> > burst_size and fifo_size - 1.
-> >=20
-> > We are now using FIFO merge features, which combines multiple fifos int=
-o
-> > one when possible, making the fifo size 1024*3 =3D 3072. Using the same
-> > low threshold and increasing the high threshold to 960/3071 works fine.
-> > Changing the high threshold to 3008 causes underflows. Increasing the
-> > low threshold to ~1600 makes DSS work again.
->=20
-> Just a few thoughts.
->=20
-> In terms of the high threshold, it seems really strange to me that=20
-> changing the high threshold would make such a difference.  Na=C3=AFvely, =
-I'd=20
-> assume that you'd want to set it as high as possible?  I suppose in cases=
-=20
-> where the interconnect is congested, setting it lower might allow lower=
-=20
-> latency for other interconnect users, but I'd hope we don't have to worry=
-=20
-> much about that.  So it doesn't seem to me that there would be any=20
-> advantage to setting it lower than the maximum.
-
-It's true that the high threshold should be set as high as possible, and
-this is what we do. Except for DSI command mode output on OMAP3, where,
-for unknown reason, the highest value (fifosize - 1) doesn't work and we
-need to program it to fifosize - burstsize. And this was causing the
-original problem, fifosize - burstsize was not working for other outputs
-properly.
-
-I guess this also hints that there's something wrong with omap3 and the
-dss fifo thresholds.
-
-> Probably the low threshold is the more important parameter, from a PM=20
-> perspective.  If you know the FIFO's drain rate and the low threshold, it=
-=20
-> should be possible to calculate the maximum latency that the FIFO can=20
-> tolerate to avoid an underflow.  This could be used to specify a device P=
-M=20
-> QoS constraint to prevent the interconnect latency from exceeding that=
-=20
-> value.
-
-Yes, this is how the low threshold should be adjusted. I have never
-tried to calculate the threshold need, though, as I haven't had all the
-information and understanding to properly calculate it.
-
-> I'd guess the calculations would be something like this -- (I hope you ca=
-n=20
-> correct my relative ignorance of the DSS in the following estimates):
->=20
-> Looking at mach-omap2/board-rx51-video.c, let's suppose that the FIFO=20
-> drain rate would be 864 x 480 x 32 bits/second.  Since the FIFO width is=
-=20
-> 32 bits, that's
-
-I think the DSS fifo entries are 8 bit on omap2/3, 128bits on omap4. At
-least those are the "units" used with fifo size, threshold sizes, burst
-size, etc.
-
->    864 x 480 =3D 414 780 FIFO entries/second, or
->=20
->    (1 000 000 =C2=B5s/s / 414 780 FIFO entries/s) =3D ~2.411 =C2=B5s/FIFO=
- entry.
->=20
-> So if you need a low FIFO threshold at 960 entries, you could call the=
-=20
-> device PM QoS functions to set a wakeup latency constraint for the=20
-> interconnect would be nothing greater than this:
->=20
->    (2.411 =C2=B5s/FIFO entry * 960 FIFO entries) =3D 2 314.96 =C2=B5s
->=20
-> (The reality is that it would need to be something less than this, to=20
-> account for the time needed for the GFX DMA transfer to start supplying=
-=20
-> data, etc.)
-
-Makes sense.
-
-Another reason for underflows we have is the different rotation engines.
-VRFB on omap2/3, and TILER on omap4. Both increase the "work" needed to
-get pixels, although I'm not sure what the actual causes for the
-increased work are.
-
-> The ultimate goal, with Jean's device PM QoS patches, is that these=20
-> constraints could change the DPLL autoidle settings or powerdomain states=
-=20
-> to ensure the constraint was met.  He's got a page here:
->=20
->   http://omappedia.org/wiki/Power_Management_Device_Latencies_Measurement
->=20
-> (Unfortunately it's not clear what the DPLL autoidle modes and voltage=
-=20
-> scaling bits are set to for many of the estimates, and we also know that=
-=20
-> there are many software optimizations possible for our idle path.)
->=20
-> We're still working on getting the OMAP device PM QoS patches merged, but=
-=20
-> the Linux core support is there, so you should be able to patch your=20
-> drivers to use them -- see for example dev_pm_qos_add_request().
-
-Thanks for the pointers, I need to study that.
-
-> Just paging through the DSS TRM section, some other settings that might b=
-e=20
-> worth checking are:
->=20
-> - is DISPC_GFX_ATTRIBUTES.GFXBURSTSIZE set to 16x32?
-
-Yes. (8 x 128 on omap4)
-
-I presume each DMA burst has a small overhead, so maximizing the burst
-size minimizes the overhead. Do you see any other effect with the burst
-size? I mean, do you see any need to know the burst size value when
-trying to calculate optimal thresholds?
-
-> - is DISPC_GFX_ATTRIBUTES.GFXFIFOPRELOAD set to 1?
-
-No. We set it to 0 so that PRELOAD is used. If I've understood right,
-the problem with using GFXFIFOPRELOAD=3D1, i.e. high threshold is used for
-preload value, is that the high threshold can be quite high, and the
-preload needs to happen during vertical blanking. With a small vblank
-time and high high threshold there may not be enough time for the
-preload.
-
-Then again, I have not verified that. And I'm not sure why it would be a
-problem if the FIFO is not loaded up to the preload value during
-blanking, presuming we still have enough pixels to proceed normally.
-
-For me it would make more sense to always load the fifo to full, so
-there wouldn't be need for any PRELOAD value at all.
-
-> - is DISPC_GFX_PRELOAD.PRELOAD set to the maximum possible value?
-
-No, it's left at the default value. But I have tried adjusting this (and
-also changing the GFXFIFOPRELOAD bit), and neither fixed the original
-problem.
-
-> - is DISPC_CONFIG.FIFOFILLING set to 1?
-
-No, it's set to 0. With this problem there's only one overlay enabled so
-it shouldn't have any effect.
-
- Tomi
-
-
---=-w9x7ZRJ7uDAifF8JEtVy
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: This is a digitally signed message part
+Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
+Return-path: <linux-pm-bounces@lists.linux-foundation.org>
+List-Unsubscribe: <https://lists.linuxfoundation.org/mailman/options/linux-pm>,
+	<mailto:linux-pm-request@lists.linux-foundation.org?subject=unsubscribe>
+List-Archive: <http://lists.linuxfoundation.org/pipermail/linux-pm/>
+List-Post: <mailto:linux-pm@lists.linux-foundation.org>
+List-Help: <mailto:linux-pm-request@lists.linux-foundation.org?subject=help>
+List-Subscribe: <https://lists.linuxfoundation.org/mailman/listinfo/linux-pm>,
+	<mailto:linux-pm-request@lists.linux-foundation.org?subject=subscribe>
+Sender: linux-pm-bounces@lists.linux-foundation.org
+Errors-To: linux-pm-bounces@lists.linux-foundation.org
+To: b-cousson@ti.com, kishon@ti.com, kbaidarov@dev.rtsoft.ru, santosh.shilimkar@ti.com, tony@atomide.com, paul@pwsan.com
+Cc: amit.kucheria@linaro.org, balbi@ti.com, linux-pm@lists.linux-foundation.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+List-Id: linux-omap@vger.kernel.org
 
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.4.11 (GNU/Linux)
+Hello Paul and Tony,
 
-iQIcBAABAgAGBQJPv0HQAAoJEPo9qoy8lh71kR8P/09NBBRR8LVxBbkSAE0Sd308
-rxbECk64ZgSTpJ957XRgu8/gTQfhR3lEjfj4cjZbJX3/iwpPdd5P/iQwO6RO9zr/
-th7gN84xExW9bOo/5juTVO+qnBYPtzF1FQa99v6bVko+ydcncPxDX5sYM03Y00w9
-QJagPPfc4HAPXh3Jf9YegySG3Z72XyEle+JhLOKrW2R6rTW/AeWCPVYxVO3lLk7w
-5GBCMoe1bjvdBcnPQQIIH5kPXHY+AGeCcRI2u/AEFs1bkt+08XwbSvrfrBtSYh0H
-DjOYOFcNHoVMBE9ca+YwyOoAYEw0oJWq7H9Ycifx0J8BQ9oVJX1jTeyQkwvoizyy
-OSPGrgeVOHusFAqc/qiGMFUMusJpRcMEkzXkemHYnZTAvjH3mg0Pfrn+LFin56Ox
-YOH9tkEcq+q5rcfZVhf/wJhFl6DvM4A5BJk7G9N7cEXqkCgv40+dsTI9Ip1PO3p2
-cxjuTseai6snyWEvnl1JvMBK7XR3Q02leoWJksXBNL2S8B8XMrQVnGLqD+/wnA0z
-La5IBPH+bnRwupj/KLnVV4IFIYYURrk0rABnifACdoe14Xr6MDhTxe3Aj7XRg67P
-YSxs0JMBknMixilnG4BrDNoJTeUiqPydrvepZVaSl8jjZHAj08oNeRISdVvFjGtZ
-czWyFR6Aqfjy7AhczYf5
-=dcQL
------END PGP SIGNATURE-----
+This is a series of patches adding a basic support for system control module,
+on OMAP4+ context. It is a working in progress, but I wanted to share already
+to get your feedback.
 
---=-w9x7ZRJ7uDAifF8JEtVy--
+I've modeled the driver as an MFD. You will see in this series:
+. A rework of the system control module header (patch from Santosh, picked from the list)
+. Device creation for control module core
+. Early device creation for control module core
+. The MFD core driver for system control module
+. The MFD child for usb-phy pin control
+. The MFD child for bandgap sensor
+. Very early exposure of OMAP4 thermal zone
+. All added drivers are only supporting DT probing
+. The series is based on linux-omap master, as it has the hwmod entries for SCM.
 
+The overall idea of this series is to put in place the infrastructure. It is
+not touching nor removing the existing APIs under mach-omap2/control.c for now.
+But the target is to have these APIs moved to the MFD core driver.
+
+For early access, like ID checking, I have written the platform driver
+as an early platform driver and you will see also early device addition
+and probing under device.c for this case. This is of course a proposal.
+I see that there are people that thing this is a bit of an overkill.
+Konstantin (CCd) was proposing a simpler solution by having
+APIs with early_* prefixes, and solve the IO address mapping with
+a DT entry, for instance. But feel free to propose better ways.
+
+This code has been ripped off from the Android 3.1 branch. I have rewritten
+a couple of things, but the major driver functions and API's entries are kept.
+
+So, based on this series, I see as a TODO list, for system control core driver:
+- Start to move all the existing APIs under mach-omap2/control.c to the mfd core.
+- Rewrite the users of the existing APIs, mentioned on previous item
+Once we decide the API and agree on how to deal with early calls.
+- Add remaining children (from top of my head, the CAM is one of them,
+but I also think we should prob have one for HWOBS for instance)
+- Test on boards that use the existing APIs.
+
+TODO list for bandgap driver:
+- Improve thermal zone definition for OMAP4
+- Introduce the thermal zones for OMAP5
+
+Amit, due to hwmod dep, I didn't include any cooling binding in this series,
+based on the generic CPU cooling device.
+
+Overall series has been tested only with panda board OMAP4460.
+
+Your comments are welcome.
+
+All best,
+
+Eduardo Valentin (9):
+  ARM: OMAP: expose control.h to mach area
+  OMAP: Add early device for system control module
+  mfd: omap: control: core system control driver
+  OMAP2+: use control module mfd driver in omap_type
+  mfd: omap: control: usb-phy: introduce the ctrl-module usb driver
+  ARM: OMAP4+: Adding the temperature sensor register set bit fields
+  ARM: OMAP4+: thermal: introduce bandgap temperature sensor
+  omap4: thermal: add basic CPU thermal zone
+  ARM: DT: Add support to system control module for OMAP4
+
+Kishon Vijay Abraham I (1):
+  arm: omap: device: create a device for system control module
+
+Santosh Shilimkar (1):
+  ARM: OMAP4: Remove un-used control module headers and defines.
+
+ .../devicetree/bindings/mfd/omap_control.txt       |   44 +
+ .../devicetree/bindings/thermal/omap_bandgap.txt   |   27 +
+ arch/arm/boot/dts/omap4.dtsi                       |   13 +
+ arch/arm/mach-omap2/Kconfig                        |    1 +
+ arch/arm/mach-omap2/am35xx-emac.c                  |    2 +-
+ arch/arm/mach-omap2/board-3430sdp.c                |    2 +-
+ arch/arm/mach-omap2/board-4430sdp.c                |    2 +-
+ arch/arm/mach-omap2/board-am3517crane.c            |    2 +-
+ arch/arm/mach-omap2/board-am3517evm.c              |    2 +-
+ arch/arm/mach-omap2/board-apollon.c                |    2 +-
+ arch/arm/mach-omap2/board-cm-t3517.c               |    2 +-
+ arch/arm/mach-omap2/board-h4.c                     |    2 +-
+ arch/arm/mach-omap2/board-igep0020.c               |    2 +-
+ arch/arm/mach-omap2/board-ldp.c                    |    2 +-
+ arch/arm/mach-omap2/board-omap3logic.c             |    2 +-
+ arch/arm/mach-omap2/board-omap4panda.c             |    2 +-
+ arch/arm/mach-omap2/board-omap4pcm049.c            |    2 +-
+ arch/arm/mach-omap2/clock2420_data.c               |    2 +-
+ arch/arm/mach-omap2/clock2430_data.c               |    2 +-
+ arch/arm/mach-omap2/clock3xxx_data.c               |    2 +-
+ arch/arm/mach-omap2/clock44xx_data.c               |    2 +-
+ arch/arm/mach-omap2/common.c                       |    2 +-
+ arch/arm/mach-omap2/control.c                      |    2 +-
+ arch/arm/mach-omap2/cpuidle34xx.c                  |    2 +-
+ arch/arm/mach-omap2/devices.c                      |   57 +-
+ arch/arm/mach-omap2/display.c                      |    2 +-
+ arch/arm/mach-omap2/hsmmc.c                        |    2 +-
+ arch/arm/mach-omap2/id.c                           |   18 +-
+ arch/arm/mach-omap2/{ => include/mach}/control.h   |  163 ++-
+ .../include/mach/ctrl_module_core_44xx.h           |  391 -----
+ .../include/mach/ctrl_module_pad_core_44xx.h       | 1409 -----------------
+ .../include/mach/ctrl_module_pad_wkup_44xx.h       |  236 ---
+ .../include/mach/ctrl_module_wkup_44xx.h           |   92 --
+ arch/arm/mach-omap2/mcbsp.c                        |    2 +-
+ arch/arm/mach-omap2/mux.c                          |    2 +-
+ arch/arm/mach-omap2/omap_phy_internal.c            |    2 +-
+ arch/arm/mach-omap2/opp3xxx_data.c                 |    2 +-
+ arch/arm/mach-omap2/opp4xxx_data.c                 |    2 +-
+ arch/arm/mach-omap2/pm24xx.c                       |    2 +-
+ arch/arm/mach-omap2/pm34xx.c                       |    2 +-
+ arch/arm/mach-omap2/prcm.c                         |    2 +-
+ arch/arm/mach-omap2/serial.c                       |    2 +-
+ arch/arm/mach-omap2/sleep34xx.S                    |    2 +-
+ arch/arm/mach-omap2/sr_device.c                    |    2 +-
+ arch/arm/mach-omap2/usb-fs.c                       |    2 +-
+ arch/arm/mach-omap2/voltage.c                      |    2 +-
+ arch/arm/plat-omap/Kconfig                         |    3 +
+ drivers/mfd/Kconfig                                |    9 +
+ drivers/mfd/Makefile                               |    1 +
+ drivers/mfd/omap-control-core.c                    |  211 +++
+ drivers/thermal/Kconfig                            |   25 +
+ drivers/thermal/Makefile                           |    5 +-
+ drivers/thermal/omap-bandgap.c                     | 1602 ++++++++++++++++++++
+ drivers/thermal/omap-bandgap.h                     |   75 +
+ drivers/thermal/omap4-thermal.c                    |   72 +
+ drivers/usb/otg/Kconfig                            |   13 +
+ drivers/usb/otg/Makefile                           |    1 +
+ drivers/usb/otg/omap4-usb-phy.c                    |  130 ++
+ include/linux/mfd/omap_control.h                   |   69 +
+ include/linux/usb/omap4_usb_phy.h                  |   53 +
+ 60 files changed, 2617 insertions(+), 2173 deletions(-)
+ create mode 100644 Documentation/devicetree/bindings/mfd/omap_control.txt
+ create mode 100644 Documentation/devicetree/bindings/thermal/omap_bandgap.txt
+ rename arch/arm/mach-omap2/{ => include/mach}/control.h (75%)
+ delete mode 100644 arch/arm/mach-omap2/include/mach/ctrl_module_core_44xx.h
+ delete mode 100644 arch/arm/mach-omap2/include/mach/ctrl_module_pad_core_44xx.h
+ delete mode 100644 arch/arm/mach-omap2/include/mach/ctrl_module_pad_wkup_44xx.h
+ delete mode 100644 arch/arm/mach-omap2/include/mach/ctrl_module_wkup_44xx.h
+ create mode 100644 drivers/mfd/omap-control-core.c
+ create mode 100644 drivers/thermal/omap-bandgap.c
+ create mode 100644 drivers/thermal/omap-bandgap.h
+ create mode 100644 drivers/thermal/omap4-thermal.c
+ create mode 100644 drivers/usb/otg/omap4-usb-phy.c
+ create mode 100644 include/linux/mfd/omap_control.h
+ create mode 100644 include/linux/usb/omap4_usb_phy.h
+
+-- 
+1.7.7.1.488.ge8e1c
