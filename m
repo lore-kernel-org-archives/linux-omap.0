@@ -1,51 +1,47 @@
 From: <jgq516@gmail.com>
-Subject: [PATCH 3/3] watchdog: omap_wdt: add device tree support
-Date: Fri, 25 May 2012 18:42:32 +0800
-Message-ID: <1337942552-28218-4-git-send-email-jgq516@gmail.com>
+Subject: [PATCH 2/3] OMAP: avoid build wdt platform device if with dt support
+Date: Fri, 25 May 2012 18:42:31 +0800
+Message-ID: <1337942552-28218-3-git-send-email-jgq516@gmail.com>
 References: <1337942552-28218-1-git-send-email-jgq516@gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain
-Return-path: <linux-kernel-owner@vger.kernel.org>
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
 In-Reply-To: <1337942552-28218-1-git-send-email-jgq516@gmail.com>
-Sender: linux-kernel-owner@vger.kernel.org
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
+List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
+List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
+Sender: linux-arm-kernel-bounces@lists.infradead.org
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
 To: linux@arm.linux.org.uk, b-cousson@ti.com, rob.herring@calxeda.com, grant.likely@secretlab.ca, rnayak@ti.com, tony@atomide.com, wim@iguana.be
-Cc: linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, devicetree-discuss@lists.ozlabs.org, linux-watchdog@vger.kernel.org
+Cc: devicetree-discuss@lists.ozlabs.org, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-watchdog@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
 From: Xiao Jiang <jgq516@gmail.com>
 
-Add device table for omap_wdt to support dt.
+If provided dt support, then skip add wdt platform device as usual.
 
 Signed-off-by: Xiao Jiang <jgq516@gmail.com>
 ---
- drivers/watchdog/omap_wdt.c |    8 ++++++++
- 1 files changed, 8 insertions(+), 0 deletions(-)
+ arch/arm/mach-omap2/devices.c |    2 +-
+ 1 files changed, 1 insertions(+), 1 deletions(-)
 
-diff --git a/drivers/watchdog/omap_wdt.c b/drivers/watchdog/omap_wdt.c
-index 8285d65..d98c615 100644
---- a/drivers/watchdog/omap_wdt.c
-+++ b/drivers/watchdog/omap_wdt.c
-@@ -430,6 +430,13 @@ static int omap_wdt_resume(struct platform_device *pdev)
- #define	omap_wdt_resume		NULL
- #endif
+diff --git a/arch/arm/mach-omap2/devices.c b/arch/arm/mach-omap2/devices.c
+index ae62ece..80d7e3f 100644
+--- a/arch/arm/mach-omap2/devices.c
++++ b/arch/arm/mach-omap2/devices.c
+@@ -759,7 +759,7 @@ static int __init omap_init_wdt(void)
+ 	char *oh_name = "wd_timer2";
+ 	char *dev_name = "omap_wdt";
  
-+static const struct of_device_id omap_wdt_of_match[] = {
-+	{ .compatible = "ti,omap3-wdt", },
-+	{ .compatible = "ti,omap4-wdt", },
-+	{},
-+};
-+MODULE_DEVICE_TABLE(of, omap_wdt_of_match);
-+
- static struct platform_driver omap_wdt_driver = {
- 	.probe		= omap_wdt_probe,
- 	.remove		= __devexit_p(omap_wdt_remove),
-@@ -439,6 +446,7 @@ static struct platform_driver omap_wdt_driver = {
- 	.driver		= {
- 		.owner	= THIS_MODULE,
- 		.name	= "omap_wdt",
-+		.of_match_table = omap_wdt_of_match,
- 	},
- };
+-	if (!cpu_class_is_omap2())
++	if (!cpu_class_is_omap2() || of_have_populated_dt())
+ 		return 0;
  
+ 	oh = omap_hwmod_lookup(oh_name);
 -- 
 1.7.3
