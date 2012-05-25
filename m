@@ -1,168 +1,56 @@
-From: "Cousson, Benoit" <b-cousson@ti.com>
-Subject: Re: [RFC PATCH 08/11] ARM: OMAP4+: Adding the
- temperature sensor register set bit fields
-Date: Fri, 25 May 2012 17:13:26 +0200
-Message-ID: <4FBFA196.2030503@ti.com>
-References: <1337934361-1606-1-git-send-email-eduardo.valentin@ti.com>
-	<1337934361-1606-9-git-send-email-eduardo.valentin@ti.com>
+From: Thomas Klute <thomas2.klute@uni-dortmund.de>
+Subject: Ftrace Timer on OMAP3
+Date: Fri, 25 May 2012 17:19:07 +0200
+Message-ID: <4FBFA2EB.708@uni-dortmund.de>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"; Format="flowed"
+Content-Type: text/plain; charset=UTF-8
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-pm-bounces@lists.linux-foundation.org>
-In-Reply-To: <1337934361-1606-9-git-send-email-eduardo.valentin@ti.com>
-List-Unsubscribe: <https://lists.linuxfoundation.org/mailman/options/linux-pm>,
-	<mailto:linux-pm-request@lists.linux-foundation.org?subject=unsubscribe>
-List-Archive: <http://lists.linuxfoundation.org/pipermail/linux-pm/>
-List-Post: <mailto:linux-pm@lists.linux-foundation.org>
-List-Help: <mailto:linux-pm-request@lists.linux-foundation.org?subject=help>
-List-Subscribe: <https://lists.linuxfoundation.org/mailman/listinfo/linux-pm>,
-	<mailto:linux-pm-request@lists.linux-foundation.org?subject=subscribe>
-Sender: linux-pm-bounces@lists.linux-foundation.org
-Errors-To: linux-pm-bounces@lists.linux-foundation.org
-To: Eduardo Valentin <eduardo.valentin@ti.com>
-Cc: amit.kucheria@linaro.org, balbi@ti.com, kishon@ti.com, kbaidarov@dev.rtsoft.ru, Keerthy <j-keerthy@ti.com>, linux-pm@lists.linux-foundation.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from mx1.HRZ.Uni-Dortmund.DE ([129.217.128.51]:38777 "EHLO
+	unimail.uni-dortmund.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S932069Ab2EYPTK (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 25 May 2012 11:19:10 -0400
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: linux-omap@vger.kernel.org
+Cc: Carsten Vogel <carsten.vogel@rub.de>
 
-On 5/25/2012 10:25 AM, Eduardo Valentin wrote:
-> OMAP4460 specific temperature sensor register bit fields are added.
-> Existing OMAP4 entries are renamed to OMAP4430.
->
-> Signed-off-by: Keerthy<j-keerthy@ti.com>
-> Signed-off-by: Eduardo Valentin<eduardo.valentin@ti.com>
-> ---
->   arch/arm/mach-omap2/include/mach/control.h |  116 ++++++++++++++++++++++++++++
+Hi everyone,
 
-Now that we do have a dedicated driver for the bandgap, I guess it will 
-be better to put these defines inside the driver directly.
+we're having some trouble getting useful results from Ftrace on OMAP3
+(Gumstix Overo). As you can see in the example output below, function
+duration can't be displayed with a precision higher than about 30.5 us,
+which matches the frequency of the 32 kHz platform timer. For OMAP1,
+using OMAP_MPU_TIMER instead of CONFIG_OMAP_32K_TIMER should provide
+better results [1], but I couldn't find anything similar for OMAP3. Just
+setting CONFIG_OMAP_32K_TIMER=N didn't change the results. Did I miss
+anything, or isn't there any more precise timer?
 
-Benoit
+Best regards,
+Thomas Klute
 
->   1 files changed, 116 insertions(+), 0 deletions(-)
->
-> diff --git a/arch/arm/mach-omap2/include/mach/control.h b/arch/arm/mach-omap2/include/mach/control.h
-> index cf42764..171b504 100644
-> --- a/arch/arm/mach-omap2/include/mach/control.h
-> +++ b/arch/arm/mach-omap2/include/mach/control.h
-> @@ -230,6 +230,122 @@
->   /* OMAP44xx control McBSP padconf */
->   #define OMAP4_CTRL_MODULE_PAD_CORE_CONTROL_MCBSPLP	0x061c
->
-> +/* TEMP_SENSOR OMAP4430 */
-> +#define OMAP4430_BGAP_TEMPSOFF_SHIFT			12
-> +#define OMAP4430_BGAP_TEMPSOFF_MASK			(1<<  12)
-> +#define OMAP4430_BGAP_TSHUT_SHIFT				11
-> +#define OMAP4430_BGAP_TSHUT_MASK				(1<<  11)
-> +#define OMAP4430_BGAP_TEMP_SENSOR_CONTCONV_SHIFT		10
-> +#define OMAP4430_BGAP_TEMP_SENSOR_CONTCONV_MASK		(1<<  10)
-> +#define OMAP4430_BGAP_TEMP_SENSOR_SOC_SHIFT		9
-> +#define OMAP4430_BGAP_TEMP_SENSOR_SOC_MASK			(1<<  9)
-> +#define OMAP4430_BGAP_TEMP_SENSOR_EOCZ_SHIFT		8
-> +#define OMAP4430_BGAP_TEMP_SENSOR_EOCZ_MASK		(1<<  8)
-> +#define OMAP4430_BGAP_TEMP_SENSOR_DTEMP_SHIFT		0
-> +#define OMAP4430_BGAP_TEMP_SENSOR_DTEMP_MASK		(0xff<<  0)
-> +
-> +/* TEMP_SENSOR OMAP4460 */
-> +#define OMAP4460_BGAP_TEMPSOFF_SHIFT			13
-> +#define OMAP4460_BGAP_TEMPSOFF_MASK			(1<<  13)
-> +#define OMAP4460_BGAP_TEMP_SENSOR_SOC_SHIFT		11
-> +#define OMAP4460_BGAP_TEMP_SENSOR_SOC_MASK		(1<<  11)
-> +#define OMAP4460_BGAP_TEMP_SENSOR_EOCZ_SHIFT		10
-> +#define OMAP4460_BGAP_TEMP_SENSOR_EOCZ_MASK		(1<<  10)
-> +#define OMAP4460_BGAP_TEMP_SENSOR_DTEMP_SHIFT		0
-> +#define OMAP4460_BGAP_TEMP_SENSOR_DTEMP_MASK		(0x3ff<<  0)
-> +
-> +/* BANDGAP_CTRL */
-> +#define OMAP4460_SINGLE_MODE_SHIFT			31
-> +#define OMAP4460_SINGLE_MODE_MASK			(1<<  31)
-> +#define OMAP4460_MASK_HOT_SHIFT				1
-> +#define OMAP4460_MASK_HOT_MASK				(1<<  1)
-> +#define OMAP4460_MASK_COLD_SHIFT			0
-> +#define OMAP4460_MASK_COLD_MASK				(1<<  0)
-> +
-> +/* BANDGAP_COUNTER */
-> +#define OMAP4460_COUNTER_SHIFT				0
-> +#define OMAP4460_COUNTER_MASK				(0xffffff<<  0)
-> +
-> +/* BANDGAP_THRESHOLD */
-> +#define OMAP4460_T_HOT_SHIFT				16
-> +#define OMAP4460_T_HOT_MASK				(0x3ff<<  16)
-> +#define OMAP4460_T_COLD_SHIFT				0
-> +#define OMAP4460_T_COLD_MASK				(0x3ff<<  0)
-> +
-> +/* TSHUT_THRESHOLD */
-> +#define OMAP4460_TSHUT_HOT_SHIFT			16
-> +#define OMAP4460_TSHUT_HOT_MASK				(0x3ff<<  16)
-> +#define OMAP4460_TSHUT_COLD_SHIFT			0
-> +#define OMAP4460_TSHUT_COLD_MASK			(0x3ff<<  0)
-> +
-> +/* BANDGAP_STATUS */
-> +#define OMAP4460_CLEAN_STOP_SHIFT			3
-> +#define OMAP4460_CLEAN_STOP_MASK			(1<<  3)
-> +#define OMAP4460_BGAP_ALERT_SHIFT			2
-> +#define OMAP4460_BGAP_ALERT_MASK			(1<<  2)
-> +#define OMAP4460_HOT_FLAG_SHIFT				1
-> +#define OMAP4460_HOT_FLAG_MASK				(1<<  1)
-> +#define OMAP4460_COLD_FLAG_SHIFT			0
-> +#define OMAP4460_COLD_FLAG_MASK				(1<<  0)
-> +
-> +/* TEMP_SENSOR OMAP5430 */
-> +#define OMAP5430_BGAP_TEMP_SENSOR_SOC_SHIFT		12
-> +#define OMAP5430_BGAP_TEMP_SENSOR_SOC_MASK		(1<<  12)
-> +#define OMAP5430_BGAP_TEMPSOFF_SHIFT			11
-> +#define OMAP5430_BGAP_TEMPSOFF_MASK			(1<<  11)
-> +#define OMAP5430_BGAP_TEMP_SENSOR_EOCZ_SHIFT		10
-> +#define OMAP5430_BGAP_TEMP_SENSOR_EOCZ_MASK		(1<<  10)
-> +#define OMAP5430_BGAP_TEMP_SENSOR_DTEMP_SHIFT		0
-> +#define OMAP5430_BGAP_TEMP_SENSOR_DTEMP_MASK		(0x3ff<<  0)
-> +
-> +/* BANDGAP_CTRL */
-> +#define OMAP5430_MASK_HOT_CORE_SHIFT			5
-> +#define OMAP5430_MASK_HOT_CORE_MASK			(1<<  5)
-> +#define OMAP5430_MASK_COLD_CORE_SHIFT			4
-> +#define OMAP5430_MASK_COLD_CORE_MASK			(1<<  4)
-> +#define OMAP5430_MASK_HOT_MM_SHIFT			3
-> +#define OMAP5430_MASK_HOT_MM_MASK			(1<<  3)
-> +#define OMAP5430_MASK_COLD_MM_SHIFT			2
-> +#define OMAP5430_MASK_COLD_MM_MASK			(1<<  2)
-> +#define OMAP5430_MASK_HOT_MPU_SHIFT			1
-> +#define OMAP5430_MASK_HOT_MPU_MASK			(1<<  1)
-> +#define OMAP5430_MASK_COLD_MPU_SHIFT			0
-> +#define OMAP5430_MASK_COLD_MPU_MASK			(1<<  0)
-> +
-> +/* BANDGAP_COUNTER */
-> +#define OMAP5430_REPEAT_MODE_SHIFT			31
-> +#define OMAP5430_REPEAT_MODE_MASK			(1<<  31)
-> +#define OMAP5430_COUNTER_SHIFT				0
-> +#define OMAP5430_COUNTER_MASK				(0xffffff<<  0)
-> +
-> +/* BANDGAP_THRESHOLD */
-> +#define OMAP5430_T_HOT_SHIFT				16
-> +#define OMAP5430_T_HOT_MASK				(0x3ff<<  16)
-> +#define OMAP5430_T_COLD_SHIFT				0
-> +#define OMAP5430_T_COLD_MASK				(0x3ff<<  0)
-> +
-> +/* TSHUT_THRESHOLD */
-> +#define OMAP5430_TSHUT_HOT_SHIFT			16
-> +#define OMAP5430_TSHUT_HOT_MASK				(0x3ff<<  16)
-> +#define OMAP5430_TSHUT_COLD_SHIFT			0
-> +#define OMAP5430_TSHUT_COLD_MASK			(0x3ff<<  0)
-> +
-> +/* BANDGAP_STATUS */
-> +#define OMAP5430_BGAP_ALERT_SHIFT			31
-> +#define OMAP5430_BGAP_ALERT_MASK			(1<<  31)
-> +#define OMAP5430_HOT_CORE_FLAG_SHIFT			5
-> +#define OMAP5430_HOT_CORE_FLAG_MASK			(1<<  5)
-> +#define OMAP5430_COLD_CORE_FLAG_SHIFT			4
-> +#define OMAP5430_COLD_CORE_FLAG_MASK			(1<<  4)
-> +#define OMAP5430_HOT_MM_FLAG_SHIFT			3
-> +#define OMAP5430_HOT_MM_FLAG_MASK			(1<<  3)
-> +#define OMAP5430_COLD_MM_FLAG_SHIFT			2
-> +#define OMAP5430_COLD_MM_FLAG_MASK			(1<<  2)
-> +#define OMAP5430_HOT_MPU_FLAG_SHIFT			1
-> +#define OMAP5430_HOT_MPU_FLAG_MASK			(1<<  1)
-> +#define OMAP5430_COLD_MPU_FLAG_SHIFT			0
-> +#define OMAP5430_COLD_MPU_FLAG_MASK			(1<<  0)
-> +
->   /* AM35XX only CONTROL_GENERAL register offsets */
->   #define AM35XX_CONTROL_MSUSPENDMUX_6    (OMAP2_CONTROL_GENERAL + 0x0038)
->   #define AM35XX_CONTROL_DEVCONF2         (OMAP2_CONTROL_GENERAL + 0x0310)
+[1]
+http://elinux.org/images/0/0c/Bird-LS-2009-Measuring-function-duration-with-ftrace.pdf
+
+Example Ftrace output:
+
+  876.252136 |   0)               |  sys_sendmsg() {
+  876.252166 |   0)               |    rom_rtadd() {
+  876.252197 |   0)   0.000 us    |      release_queue_for_dst();
+  876.252197 |   0)   0.000 us    |      add_route();
+  876.252197 |   0) + 30.517 us   |    }
+  876.252258 |   0) + 91.553 us   |  }
+--
+  876.311859 |   0)               |  sys_sendmsg() {
+  876.311889 |   0)               |    rom_rtadd() {
+  876.311889 |   0) + 30.518 us   |      release_queue_for_dst();
+  876.311920 |   0)   0.000 us    |      add_route();
+  876.311920 |   0) + 30.518 us   |    }
+  876.311950 |   0) + 91.552 us   |  }
+--
+  876.371704 |   0)               |  sys_sendmsg() {
+  876.371765 |   0)               |    rom_rtadd() {
+  876.371765 |   0)   0.000 us    |      release_queue_for_dst();
+  876.371765 |   0)   0.000 us    |      add_route();
+  876.371795 |   0) + 30.517 us   |    }
+  876.371826 |   0) ! 122.071 us  |  }
