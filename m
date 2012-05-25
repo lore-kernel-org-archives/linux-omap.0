@@ -1,271 +1,157 @@
 From: Eduardo Valentin <eduardo.valentin@ti.com>
-Subject: [RFC PATCH 07/11] mfd: omap: control: usb-phy: introduce the ctrl-module usb driver
-Date: Fri, 25 May 2012 11:25:57 +0300
-Message-ID: <1337934361-1606-8-git-send-email-eduardo.valentin@ti.com>
+Subject: [RFC PATCH 08/11] ARM: OMAP4+: Adding the temperature sensor register set bit fields
+Date: Fri, 25 May 2012 11:25:58 +0300
+Message-ID: <1337934361-1606-9-git-send-email-eduardo.valentin@ti.com>
 References: <1337934361-1606-1-git-send-email-eduardo.valentin@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from devils.ext.ti.com ([198.47.26.153]:38579 "EHLO
-	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756121Ab2EYI1P (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 25 May 2012 04:27:15 -0400
+Received: from bear.ext.ti.com ([192.94.94.41]:48366 "EHLO bear.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1756121Ab2EYI1T (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Fri, 25 May 2012 04:27:19 -0400
 In-Reply-To: <1337934361-1606-1-git-send-email-eduardo.valentin@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: b-cousson@ti.com, kishon@ti.com, kbaidarov@dev.rtsoft.ru, santosh.shilimkar@ti.com, tony@atomide.com, paul@pwsan.com
-Cc: balbi@ti.com, amit.kucheria@linaro.org, linux-pm@lists.linux-foundation.org, linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org, amit.kachhap@linaro.org, Eduardo Valentin <eduardo.valentin@ti.com>
+Cc: balbi@ti.com, amit.kucheria@linaro.org, linux-pm@lists.linux-foundation.org, linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org, amit.kachhap@linaro.org, Eduardo Valentin <eduardo.valentin@ti.com>, Keerthy <j-keerthy@ti.com>
 
-Created a new platform driver for the platform device created by the
-control module mfd core, wrt usb. This driver has API's to power on/off
-the phy and the API's to write to musb mailbox.
+OMAP4460 specific temperature sensor register bit fields are added.
+Existing OMAP4 entries are renamed to OMAP4430.
 
-(p.s. the mailbox for musb in omap4 is present in system control
-module)
-
-[kishon@ti.com: wrote the original API's related to USB functions]
-Signed-off-by: Kishon Vijay Abraham I <kishon@ti.com>
+Signed-off-by: Keerthy <j-keerthy@ti.com>
 Signed-off-by: Eduardo Valentin <eduardo.valentin@ti.com>
 ---
- drivers/usb/otg/Kconfig           |   13 ++++
- drivers/usb/otg/Makefile          |    1 +
- drivers/usb/otg/omap4-usb-phy.c   |  130 +++++++++++++++++++++++++++++++++++++
- include/linux/usb/omap4_usb_phy.h |   53 +++++++++++++++
- 4 files changed, 197 insertions(+), 0 deletions(-)
- create mode 100644 drivers/usb/otg/omap4-usb-phy.c
- create mode 100644 include/linux/usb/omap4_usb_phy.h
+ arch/arm/mach-omap2/include/mach/control.h |  116 ++++++++++++++++++++++++++++
+ 1 files changed, 116 insertions(+), 0 deletions(-)
 
-diff --git a/drivers/usb/otg/Kconfig b/drivers/usb/otg/Kconfig
-index 5c87db0..e2840f1 100644
---- a/drivers/usb/otg/Kconfig
-+++ b/drivers/usb/otg/Kconfig
-@@ -78,6 +78,19 @@ config TWL6030_USB
- 	  are hooked to this driver through platform_data structure.
- 	  The definition of internal PHY APIs are in the mach-omap2 layer.
+diff --git a/arch/arm/mach-omap2/include/mach/control.h b/arch/arm/mach-omap2/include/mach/control.h
+index cf42764..171b504 100644
+--- a/arch/arm/mach-omap2/include/mach/control.h
++++ b/arch/arm/mach-omap2/include/mach/control.h
+@@ -230,6 +230,122 @@
+ /* OMAP44xx control McBSP padconf */
+ #define OMAP4_CTRL_MODULE_PAD_CORE_CONTROL_MCBSPLP	0x061c
  
-+config OMAP4_USB_PHY
-+	tristate "Texas Instruments OMAP4+ USB pin control driver"
-+	depends on MFD_OMAP_CONTROL
-+	help
-+	  If you say yes here you get support for the Texas Instruments
-+	  OMAP4+ USB pin control driver. The register set is part of system
-+	  control module.
++/* TEMP_SENSOR OMAP4430 */
++#define OMAP4430_BGAP_TEMPSOFF_SHIFT			12
++#define OMAP4430_BGAP_TEMPSOFF_MASK			(1 << 12)
++#define OMAP4430_BGAP_TSHUT_SHIFT				11
++#define OMAP4430_BGAP_TSHUT_MASK				(1 << 11)
++#define OMAP4430_BGAP_TEMP_SENSOR_CONTCONV_SHIFT		10
++#define OMAP4430_BGAP_TEMP_SENSOR_CONTCONV_MASK		(1 << 10)
++#define OMAP4430_BGAP_TEMP_SENSOR_SOC_SHIFT		9
++#define OMAP4430_BGAP_TEMP_SENSOR_SOC_MASK			(1 << 9)
++#define OMAP4430_BGAP_TEMP_SENSOR_EOCZ_SHIFT		8
++#define OMAP4430_BGAP_TEMP_SENSOR_EOCZ_MASK		(1 << 8)
++#define OMAP4430_BGAP_TEMP_SENSOR_DTEMP_SHIFT		0
++#define OMAP4430_BGAP_TEMP_SENSOR_DTEMP_MASK		(0xff << 0)
 +
-+	  USB phy in OMAP configures control module register for powering on
-+	  the phy, configuring VBUSVALID, AVALID, IDDIG and SESSEND. For
-+	  performing the above mentioned configuration, API's are added in
-+	  by this children of the control module driver.
++/* TEMP_SENSOR OMAP4460 */
++#define OMAP4460_BGAP_TEMPSOFF_SHIFT			13
++#define OMAP4460_BGAP_TEMPSOFF_MASK			(1 << 13)
++#define OMAP4460_BGAP_TEMP_SENSOR_SOC_SHIFT		11
++#define OMAP4460_BGAP_TEMP_SENSOR_SOC_MASK		(1 << 11)
++#define OMAP4460_BGAP_TEMP_SENSOR_EOCZ_SHIFT		10
++#define OMAP4460_BGAP_TEMP_SENSOR_EOCZ_MASK		(1 << 10)
++#define OMAP4460_BGAP_TEMP_SENSOR_DTEMP_SHIFT		0
++#define OMAP4460_BGAP_TEMP_SENSOR_DTEMP_MASK		(0x3ff << 0)
 +
- config NOP_USB_XCEIV
- 	tristate "NOP USB Transceiver Driver"
- 	select USB_OTG_UTILS
-diff --git a/drivers/usb/otg/Makefile b/drivers/usb/otg/Makefile
-index 41aa509..60c8c83 100644
---- a/drivers/usb/otg/Makefile
-+++ b/drivers/usb/otg/Makefile
-@@ -13,6 +13,7 @@ obj-$(CONFIG_USB_GPIO_VBUS)	+= gpio_vbus.o
- obj-$(CONFIG_ISP1301_OMAP)	+= isp1301_omap.o
- obj-$(CONFIG_TWL4030_USB)	+= twl4030-usb.o
- obj-$(CONFIG_TWL6030_USB)	+= twl6030-usb.o
-+obj-$(CONFIG_OMAP4_USB_PHY)	+= omap4-usb-phy.o
- obj-$(CONFIG_NOP_USB_XCEIV)	+= nop-usb-xceiv.o
- obj-$(CONFIG_USB_ULPI)		+= ulpi.o
- obj-$(CONFIG_USB_ULPI_VIEWPORT)	+= ulpi_viewport.o
-diff --git a/drivers/usb/otg/omap4-usb-phy.c b/drivers/usb/otg/omap4-usb-phy.c
-new file mode 100644
-index 0000000..a29ea45
---- /dev/null
-+++ b/drivers/usb/otg/omap4-usb-phy.c
-@@ -0,0 +1,130 @@
-+/*
-+ * OMAP4 system control module driver, USB control children
-+ *
-+ * Copyright (C) 2012 Texas Instruments Incorporated - http://www.ti.com/
-+ *
-+ * Contact:
-+ *    Kishon Vijay Abraham I <kishon@ti.com>
-+ *    Eduardo Valentin <eduardo.valentin@ti.com>
-+ *
-+ * This program is free software; you can redistribute it and/or
-+ * modify it under the terms of the GNU General Public License
-+ * version 2 as published by the Free Software Foundation.
-+ *
-+ * This program is distributed in the hope that it will be useful, but
-+ * WITHOUT ANY WARRANTY; without even the implied warranty of
-+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
-+ * General Public License for more details.
-+ *
-+ * You should have received a copy of the GNU General Public License
-+ * along with this program; if not, write to the Free Software
-+ * Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA
-+ * 02110-1301 USA
-+ *
-+ */
++/* BANDGAP_CTRL */
++#define OMAP4460_SINGLE_MODE_SHIFT			31
++#define OMAP4460_SINGLE_MODE_MASK			(1 << 31)
++#define OMAP4460_MASK_HOT_SHIFT				1
++#define OMAP4460_MASK_HOT_MASK				(1 << 1)
++#define OMAP4460_MASK_COLD_SHIFT			0
++#define OMAP4460_MASK_COLD_MASK				(1 << 0)
 +
-+#include <linux/module.h>
-+#include <linux/init.h>
-+#include <linux/delay.h>
-+#include <linux/err.h>
-+#include <linux/platform_device.h>
-+#include <linux/mfd/omap_control.h>
-+#include <linux/usb/omap4_usb_phy.h>
++/* BANDGAP_COUNTER */
++#define OMAP4460_COUNTER_SHIFT				0
++#define OMAP4460_COUNTER_MASK				(0xffffff << 0)
 +
-+/**
-+ * omap4_usb_phy_power - power on/off the phy using control module reg
-+ * @dev: struct device *
-+ * @on: 0 or 1, based on powering on or off the PHY
-+ *
-+ * omap_usb2 can call this API to power on or off the PHY.
-+ */
-+int omap4_usb_phy_power(struct device *dev, int on)
-+{
-+	u32 val;
-+	int ret;
++/* BANDGAP_THRESHOLD */
++#define OMAP4460_T_HOT_SHIFT				16
++#define OMAP4460_T_HOT_MASK				(0x3ff << 16)
++#define OMAP4460_T_COLD_SHIFT				0
++#define OMAP4460_T_COLD_MASK				(0x3ff << 0)
 +
-+	if (on) {
-+		ret = omap_control_readl(dev, CONTROL_DEV_CONF, &val);
-+		if (!ret && (val & PHY_PD)) {
-+			ret = omap_control_writel(dev, ~PHY_PD,
-+						  CONTROL_DEV_CONF);
-+			/* XXX: add proper documentation for this delay */
-+			mdelay(200);
-+		}
-+	} else {
-+		ret = omap_control_writel(dev, PHY_PD, CONTROL_DEV_CONF);
-+	}
++/* TSHUT_THRESHOLD */
++#define OMAP4460_TSHUT_HOT_SHIFT			16
++#define OMAP4460_TSHUT_HOT_MASK				(0x3ff << 16)
++#define OMAP4460_TSHUT_COLD_SHIFT			0
++#define OMAP4460_TSHUT_COLD_MASK			(0x3ff << 0)
 +
-+	return ret;
-+}
-+EXPORT_SYMBOL_GPL(omap4_usb_phy_power);
++/* BANDGAP_STATUS */
++#define OMAP4460_CLEAN_STOP_SHIFT			3
++#define OMAP4460_CLEAN_STOP_MASK			(1 << 3)
++#define OMAP4460_BGAP_ALERT_SHIFT			2
++#define OMAP4460_BGAP_ALERT_MASK			(1 << 2)
++#define OMAP4460_HOT_FLAG_SHIFT				1
++#define OMAP4460_HOT_FLAG_MASK				(1 << 1)
++#define OMAP4460_COLD_FLAG_SHIFT			0
++#define OMAP4460_COLD_FLAG_MASK				(1 << 0)
 +
-+/**
-+ * omap4_usb_phy_mailbox - write to usb otg mailbox
-+ * @dev: struct device *
-+ * @val: the value to be written to the mailbox
-+ *
-+ * On detection of a device (ID pin is grounded), the phy should call this API
-+ * to set AVALID, VBUSVALID and ID pin is grounded.
-+ *
-+ * When OMAP is connected to a host (OMAP in device mode), the phy should call
-+ * this API to set AVALID, VBUSVALID and ID pin in high impedance.
-+ *
-+ * The phy should call this API, if OMAP is disconnected from host or device.
-+ */
-+int omap4_usb_phy_mailbox(struct device *dev, u32 val)
-+{
-+	return omap_control_writel(dev, val, CONTROL_USBOTGHS_CONTROL);
-+}
-+EXPORT_SYMBOL_GPL(omap4_usb_phy_mailbox);
++/* TEMP_SENSOR OMAP5430 */
++#define OMAP5430_BGAP_TEMP_SENSOR_SOC_SHIFT		12
++#define OMAP5430_BGAP_TEMP_SENSOR_SOC_MASK		(1 << 12)
++#define OMAP5430_BGAP_TEMPSOFF_SHIFT			11
++#define OMAP5430_BGAP_TEMPSOFF_MASK			(1 << 11)
++#define OMAP5430_BGAP_TEMP_SENSOR_EOCZ_SHIFT		10
++#define OMAP5430_BGAP_TEMP_SENSOR_EOCZ_MASK		(1 << 10)
++#define OMAP5430_BGAP_TEMP_SENSOR_DTEMP_SHIFT		0
++#define OMAP5430_BGAP_TEMP_SENSOR_DTEMP_MASK		(0x3ff << 0)
 +
-+static int __devinit omap_usb_phy_probe(struct platform_device *pdev)
-+{
-+	struct omap_control *omap_control;
++/* BANDGAP_CTRL */
++#define OMAP5430_MASK_HOT_CORE_SHIFT			5
++#define OMAP5430_MASK_HOT_CORE_MASK			(1 << 5)
++#define OMAP5430_MASK_COLD_CORE_SHIFT			4
++#define OMAP5430_MASK_COLD_CORE_MASK			(1 << 4)
++#define OMAP5430_MASK_HOT_MM_SHIFT			3
++#define OMAP5430_MASK_HOT_MM_MASK			(1 << 3)
++#define OMAP5430_MASK_COLD_MM_SHIFT			2
++#define OMAP5430_MASK_COLD_MM_MASK			(1 << 2)
++#define OMAP5430_MASK_HOT_MPU_SHIFT			1
++#define OMAP5430_MASK_HOT_MPU_MASK			(1 << 1)
++#define OMAP5430_MASK_COLD_MPU_SHIFT			0
++#define OMAP5430_MASK_COLD_MPU_MASK			(1 << 0)
 +
-+	omap_control = dev_get_drvdata(pdev->dev.parent);
++/* BANDGAP_COUNTER */
++#define OMAP5430_REPEAT_MODE_SHIFT			31
++#define OMAP5430_REPEAT_MODE_MASK			(1 << 31)
++#define OMAP5430_COUNTER_SHIFT				0
++#define OMAP5430_COUNTER_MASK				(0xffffff << 0)
 +
-+	if (!omap_control) {
-+		dev_err(&pdev->dev, "no omap_control in our parent\n");
-+		return -EINVAL;
-+	}
++/* BANDGAP_THRESHOLD */
++#define OMAP5430_T_HOT_SHIFT				16
++#define OMAP5430_T_HOT_MASK				(0x3ff << 16)
++#define OMAP5430_T_COLD_SHIFT				0
++#define OMAP5430_T_COLD_MASK				(0x3ff << 0)
 +
-+	return 0;
-+}
++/* TSHUT_THRESHOLD */
++#define OMAP5430_TSHUT_HOT_SHIFT			16
++#define OMAP5430_TSHUT_HOT_MASK				(0x3ff << 16)
++#define OMAP5430_TSHUT_COLD_SHIFT			0
++#define OMAP5430_TSHUT_COLD_MASK			(0x3ff << 0)
 +
-+static int __devexit omap_usb_phy_remove(struct platform_device *pdev)
-+{
-+	return 0;
-+}
++/* BANDGAP_STATUS */
++#define OMAP5430_BGAP_ALERT_SHIFT			31
++#define OMAP5430_BGAP_ALERT_MASK			(1 << 31)
++#define OMAP5430_HOT_CORE_FLAG_SHIFT			5
++#define OMAP5430_HOT_CORE_FLAG_MASK			(1 << 5)
++#define OMAP5430_COLD_CORE_FLAG_SHIFT			4
++#define OMAP5430_COLD_CORE_FLAG_MASK			(1 << 4)
++#define OMAP5430_HOT_MM_FLAG_SHIFT			3
++#define OMAP5430_HOT_MM_FLAG_MASK			(1 << 3)
++#define OMAP5430_COLD_MM_FLAG_SHIFT			2
++#define OMAP5430_COLD_MM_FLAG_MASK			(1 << 2)
++#define OMAP5430_HOT_MPU_FLAG_SHIFT			1
++#define OMAP5430_HOT_MPU_FLAG_MASK			(1 << 1)
++#define OMAP5430_COLD_MPU_FLAG_SHIFT			0
++#define OMAP5430_COLD_MPU_FLAG_MASK			(1 << 0)
 +
-+static const struct of_device_id of_omap_usb_phy_match[] = {
-+	{ .compatible = "ti,omap4-usb-phy", },
-+	{ },
-+};
-+
-+static struct platform_driver omap_usb_phy_driver = {
-+	.probe = omap_usb_phy_probe,
-+	.remove = __devexit_p(omap_usb_phy_remove),
-+	.driver = {
-+			.name	= "omap4-usb-phy",
-+			.owner	= THIS_MODULE,
-+			.of_match_table	= of_omap_usb_phy_match,
-+	},
-+};
-+
-+static int __init omap_usb_phy_init(void)
-+{
-+	return platform_driver_register(&omap_usb_phy_driver);
-+}
-+postcore_initcall(omap_usb_phy_init);
-+
-+static void __exit omap_usb_phy_exit(void)
-+{
-+	platform_driver_unregister(&omap_usb_phy_driver);
-+}
-+module_exit(omap_usb_phy_exit);
-+
-+MODULE_DESCRIPTION("OMAP4+ USB-phy driver");
-+MODULE_LICENSE("GPL");
-+MODULE_ALIAS("platform: omap4-usb-phy");
-+MODULE_AUTHOR("Texas Instrument Inc.");
-diff --git a/include/linux/usb/omap4_usb_phy.h b/include/linux/usb/omap4_usb_phy.h
-new file mode 100644
-index 0000000..b6a4701
---- /dev/null
-+++ b/include/linux/usb/omap4_usb_phy.h
-@@ -0,0 +1,53 @@
-+/*
-+ * OMAP4 USB-phy
-+ *
-+ * Copyright (C) 2012 Texas Instruments Incorporated - http://www.ti.com/
-+ *
-+ * Contact:
-+ *    Kishon Vijay Abraham I <kishon@ti.com>
-+ *    Eduardo Valentin <eduardo.valentin@ti.com>
-+ *
-+ * This program is free software; you can redistribute it and/or
-+ * modify it under the terms of the GNU General Public License
-+ * version 2 as published by the Free Software Foundation.
-+ *
-+ * This program is distributed in the hope that it will be useful, but
-+ * WITHOUT ANY WARRANTY; without even the implied warranty of
-+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
-+ * General Public License for more details.
-+ *
-+ * You should have received a copy of the GNU General Public License
-+ * along with this program; if not, write to the Free Software
-+ * Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA
-+ * 02110-1301 USA
-+ *
-+ */
-+
-+#ifndef __OMAP4_USB_PHY_H
-+#define __OMAP4_USB_PHY_H
-+
-+#define	PHY_PD				0x1
-+#define	AVALID				BIT(0)
-+#define	BVALID				BIT(1)
-+#define	VBUSVALID			BIT(2)
-+#define	SESSEND				BIT(3)
-+#define	IDDIG				BIT(4)
-+#define	CONTROL_DEV_CONF		0x00000300
-+#define	CONTROL_USBOTGHS_CONTROL	0x0000033C
-+
-+/* USB-PHY helpers */
-+#if (defined(CONFIG_OMAP4_USB_PHY)) || (defined(CONFIG_OMAP4_USB_PHY_MODULE))
-+extern int omap4_usb_phy_mailbox(struct device *dev, u32 val);
-+extern int omap4_usb_phy_power(struct device *dev, int on);
-+#else
-+static inline int omap4_usb_phy_mailbox(struct device *dev, u32 val)
-+{
-+	return 0;
-+}
-+static inline int omap4_usb_phy_power(struct device *dev, int on)
-+{
-+	return 0;
-+}
-+#endif
-+
-+#endif
+ /* AM35XX only CONTROL_GENERAL register offsets */
+ #define AM35XX_CONTROL_MSUSPENDMUX_6    (OMAP2_CONTROL_GENERAL + 0x0038)
+ #define AM35XX_CONTROL_DEVCONF2         (OMAP2_CONTROL_GENERAL + 0x0310)
 -- 
 1.7.7.1.488.ge8e1c
 
