@@ -1,282 +1,107 @@
-From: "Valentin, Eduardo" <eduardo.valentin@ti.com>
-Subject: Re: [RFC PATCH 00/11] OMAP System Control Module
-Date: Fri, 25 May 2012 14:11:26 +0300
-Message-ID: <CAGF5oy_76y=8Cj=1YjhQAo_JvUb8T5K6E7PoWAkDWULjJXuGSg@mail.gmail.com>
-References: <1337934361-1606-1-git-send-email-eduardo.valentin@ti.com>
-	<4FBF63E7.3070605@dev.rtsoft.ru>
+From: Konstantin Baydarov <kbaidarov@dev.rtsoft.ru>
+Subject: Re: [RFC PATCH 04/11] OMAP: Add early device for system control module
+Date: Fri, 25 May 2012 15:32:23 +0400
+Message-ID: <4FBF6DC7.6070707@dev.rtsoft.ru>
+References: <1337934361-1606-1-git-send-email-eduardo.valentin@ti.com> <1337934361-1606-5-git-send-email-eduardo.valentin@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aog108.obsmtp.com ([74.125.149.199]:42645 "EHLO
-	na3sys009aog108.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1757092Ab2EYLL2 convert rfc822-to-8bit
-	(ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Fri, 25 May 2012 07:11:28 -0400
-Received: by obbwd18 with SMTP id wd18so1188497obb.28
-        for <linux-omap@vger.kernel.org>; Fri, 25 May 2012 04:11:26 -0700 (PDT)
-In-Reply-To: <4FBF63E7.3070605@dev.rtsoft.ru>
+Received: from mail.dev.rtsoft.ru ([213.79.90.226]:55966 "HELO
+	mail.dev.rtsoft.ru" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with SMTP id S1754325Ab2EYLc1 (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 25 May 2012 07:32:27 -0400
+In-Reply-To: <1337934361-1606-5-git-send-email-eduardo.valentin@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Konstantin Baydarov <kbaidarov@dev.rtsoft.ru>
-Cc: b-cousson@ti.com, kishon@ti.com, santosh.shilimkar@ti.com, tony@atomide.com, paul@pwsan.com, balbi@ti.com, amit.kucheria@linaro.org, linux-pm@lists.linux-foundation.org, linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org, amit.kachhap@linaro.org
+To: Eduardo Valentin <eduardo.valentin@ti.com>
+Cc: b-cousson@ti.com, kishon@ti.com, santosh.shilimkar@ti.com, tony@atomide.com, paul@pwsan.com, balbi@ti.com, amit.kucheria@linaro.org, linux-pm@lists.linux-foundation.org, linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org, amit.kachhap@linaro.org, Konstantin Baydarov <kbaidarov@dev.rtsoft.ru>
 
-Konstantin,
+  Hi , Eduardo.
 
-On Fri, May 25, 2012 at 1:50 PM, Konstantin Baydarov
-<kbaidarov@dev.rtsoft.ru> wrote:
-> =A0Hi.
+On 05/25/2012 12:25 PM, Eduardo Valentin wrote:
+> This is a way to add an early device for system control module.
+> the code is also requesting for driver registration and probing.
+> Done at early_initcall because at that time, ioremapping is possible.
 >
-> On 05/25/2012 12:25 PM, Eduardo Valentin wrote:
->> Hello Paul and Tony,
->>
->> This is a series of patches adding a basic support for system contro=
-l module,
->> on OMAP4+ context. It is a working in progress, but I wanted to shar=
-e already
->> to get your feedback.
->>
->> I've modeled the driver as an MFD. You will see in this series:
->> . A rework of the system control module header (patch from Santosh, =
-picked from the list)
->> . Device creation for control module core
->> . Early device creation for control module core
->> . The MFD core driver for system control module
->> . The MFD child for usb-phy pin control
->> . The MFD child for bandgap sensor
->> . Very early exposure of OMAP4 thermal zone
->> . All added drivers are only supporting DT probing
->> . The series is based on linux-omap master, as it has the hwmod entr=
-ies for SCM.
->>
->> The overall idea of this series is to put in place the infrastructur=
-e. It is
->> not touching nor removing the existing APIs under mach-omap2/control=
-=2Ec for now.
->> But the target is to have these APIs moved to the MFD core driver.
->>
->> For early access, like ID checking, I have written the platform driv=
-er
->> as an early platform driver and you will see also early device addit=
-ion
->> and probing under device.c for this case. This is of course a propos=
-al.
->> I see that there are people that thing this is a bit of an overkill.
->> Konstantin (CCd) was proposing a simpler solution by having
->> APIs with early_* prefixes, and solve the IO address mapping with
->> a DT entry, for instance. But feel free to propose better ways.
-> In my latest version I got rid from early API set, check out patch fo=
-r V3 patch set.
-> I'll attach patch for current version later.
-
-
-Please send it across so we can compare your approach with the one
-present in this series.
-
+> Signed-off-by: Eduardo Valentin <eduardo.valentin@ti.com>
+> ---
+>  arch/arm/mach-omap2/devices.c |   29 +++++++++++++++++++++++++++++
+>  1 files changed, 29 insertions(+), 0 deletions(-)
 >
-> BR,
-> =A0 =A0Konstantin Baydarov.
->
->>
->> This code has been ripped off from the Android 3.1 branch. I have re=
-written
->> a couple of things, but the major driver functions and API's entries=
- are kept.
->>
->> So, based on this series, I see as a TODO list, for system control c=
-ore driver:
->> - Start to move all the existing APIs under mach-omap2/control.c to =
-the mfd core.
->> - Rewrite the users of the existing APIs, mentioned on previous item
->> Once we decide the API and agree on how to deal with early calls.
->> - Add remaining children (from top of my head, the CAM is one of the=
-m,
->> but I also think we should prob have one for HWOBS for instance)
->> - Test on boards that use the existing APIs.
->>
->> TODO list for bandgap driver:
->> - Improve thermal zone definition for OMAP4
->> - Introduce the thermal zones for OMAP5
->>
->> Amit, due to hwmod dep, I didn't include any cooling binding in this=
- series,
->> based on the generic CPU cooling device.
->>
->> Overall series has been tested only with panda board OMAP4460.
->>
->> Your comments are welcome.
->>
->> All best,
->>
->> Eduardo Valentin (9):
->> =A0 ARM: OMAP: expose control.h to mach area
->> =A0 OMAP: Add early device for system control module
->> =A0 mfd: omap: control: core system control driver
->> =A0 OMAP2+: use control module mfd driver in omap_type
->> =A0 mfd: omap: control: usb-phy: introduce the ctrl-module usb drive=
-r
->> =A0 ARM: OMAP4+: Adding the temperature sensor register set bit fiel=
-ds
->> =A0 ARM: OMAP4+: thermal: introduce bandgap temperature sensor
->> =A0 omap4: thermal: add basic CPU thermal zone
->> =A0 ARM: DT: Add support to system control module for OMAP4
->>
->> Kishon Vijay Abraham I (1):
->> =A0 arm: omap: device: create a device for system control module
->>
->> Santosh Shilimkar (1):
->> =A0 ARM: OMAP4: Remove un-used control module headers and defines.
->>
->> =A0.../devicetree/bindings/mfd/omap_control.txt =A0 =A0 =A0 | =A0 44=
- +
->> =A0.../devicetree/bindings/thermal/omap_bandgap.txt =A0 | =A0 27 +
->> =A0arch/arm/boot/dts/omap4.dtsi =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =
-=A0 =A0 | =A0 13 +
->> =A0arch/arm/mach-omap2/Kconfig =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0=
- =A0 =A0| =A0 =A01 +
->> =A0arch/arm/mach-omap2/am35xx-emac.c =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0=
- =A0| =A0 =A02 +-
->> =A0arch/arm/mach-omap2/board-3430sdp.c =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0=
-| =A0 =A02 +-
->> =A0arch/arm/mach-omap2/board-4430sdp.c =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0=
-| =A0 =A02 +-
->> =A0arch/arm/mach-omap2/board-am3517crane.c =A0 =A0 =A0 =A0 =A0 =A0| =
-=A0 =A02 +-
->> =A0arch/arm/mach-omap2/board-am3517evm.c =A0 =A0 =A0 =A0 =A0 =A0 =A0=
-| =A0 =A02 +-
->> =A0arch/arm/mach-omap2/board-apollon.c =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0=
-| =A0 =A02 +-
->> =A0arch/arm/mach-omap2/board-cm-t3517.c =A0 =A0 =A0 =A0 =A0 =A0 =A0 =
-| =A0 =A02 +-
->> =A0arch/arm/mach-omap2/board-h4.c =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0=
- =A0 | =A0 =A02 +-
->> =A0arch/arm/mach-omap2/board-igep0020.c =A0 =A0 =A0 =A0 =A0 =A0 =A0 =
-| =A0 =A02 +-
->> =A0arch/arm/mach-omap2/board-ldp.c =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0=
- =A0| =A0 =A02 +-
->> =A0arch/arm/mach-omap2/board-omap3logic.c =A0 =A0 =A0 =A0 =A0 =A0 | =
-=A0 =A02 +-
->> =A0arch/arm/mach-omap2/board-omap4panda.c =A0 =A0 =A0 =A0 =A0 =A0 | =
-=A0 =A02 +-
->> =A0arch/arm/mach-omap2/board-omap4pcm049.c =A0 =A0 =A0 =A0 =A0 =A0| =
-=A0 =A02 +-
->> =A0arch/arm/mach-omap2/clock2420_data.c =A0 =A0 =A0 =A0 =A0 =A0 =A0 =
-| =A0 =A02 +-
->> =A0arch/arm/mach-omap2/clock2430_data.c =A0 =A0 =A0 =A0 =A0 =A0 =A0 =
-| =A0 =A02 +-
->> =A0arch/arm/mach-omap2/clock3xxx_data.c =A0 =A0 =A0 =A0 =A0 =A0 =A0 =
-| =A0 =A02 +-
->> =A0arch/arm/mach-omap2/clock44xx_data.c =A0 =A0 =A0 =A0 =A0 =A0 =A0 =
-| =A0 =A02 +-
->> =A0arch/arm/mach-omap2/common.c =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =
-=A0 =A0 | =A0 =A02 +-
->> =A0arch/arm/mach-omap2/control.c =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0=
- =A0 =A0| =A0 =A02 +-
->> =A0arch/arm/mach-omap2/cpuidle34xx.c =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0=
- =A0| =A0 =A02 +-
->> =A0arch/arm/mach-omap2/devices.c =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0=
- =A0 =A0| =A0 57 +-
->> =A0arch/arm/mach-omap2/display.c =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0=
- =A0 =A0| =A0 =A02 +-
->> =A0arch/arm/mach-omap2/hsmmc.c =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0=
- =A0 =A0| =A0 =A02 +-
->> =A0arch/arm/mach-omap2/id.c =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =
-=A0 =A0 =A0 | =A0 18 +-
->> =A0arch/arm/mach-omap2/{ =3D> include/mach}/control.h =A0 | =A0163 +=
-+-
->> =A0.../include/mach/ctrl_module_core_44xx.h =A0 =A0 =A0 =A0 =A0 | =A0=
-391 -----
->> =A0.../include/mach/ctrl_module_pad_core_44xx.h =A0 =A0 =A0 | 1409 -=
-----------------
->> =A0.../include/mach/ctrl_module_pad_wkup_44xx.h =A0 =A0 =A0 | =A0236=
- ---
->> =A0.../include/mach/ctrl_module_wkup_44xx.h =A0 =A0 =A0 =A0 =A0 | =A0=
- 92 --
->> =A0arch/arm/mach-omap2/mcbsp.c =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0=
- =A0 =A0| =A0 =A02 +-
->> =A0arch/arm/mach-omap2/mux.c =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0=
- =A0 =A0 =A0| =A0 =A02 +-
->> =A0arch/arm/mach-omap2/omap_phy_internal.c =A0 =A0 =A0 =A0 =A0 =A0| =
-=A0 =A02 +-
->> =A0arch/arm/mach-omap2/opp3xxx_data.c =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0=
- | =A0 =A02 +-
->> =A0arch/arm/mach-omap2/opp4xxx_data.c =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0=
- | =A0 =A02 +-
->> =A0arch/arm/mach-omap2/pm24xx.c =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =
-=A0 =A0 | =A0 =A02 +-
->> =A0arch/arm/mach-omap2/pm34xx.c =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =
-=A0 =A0 | =A0 =A02 +-
->> =A0arch/arm/mach-omap2/prcm.c =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0=
- =A0 =A0 | =A0 =A02 +-
->> =A0arch/arm/mach-omap2/serial.c =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =
-=A0 =A0 | =A0 =A02 +-
->> =A0arch/arm/mach-omap2/sleep34xx.S =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0=
- =A0| =A0 =A02 +-
->> =A0arch/arm/mach-omap2/sr_device.c =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0=
- =A0| =A0 =A02 +-
->> =A0arch/arm/mach-omap2/usb-fs.c =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =
-=A0 =A0 | =A0 =A02 +-
->> =A0arch/arm/mach-omap2/voltage.c =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0=
- =A0 =A0| =A0 =A02 +-
->> =A0arch/arm/plat-omap/Kconfig =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0=
- =A0 =A0 | =A0 =A03 +
->> =A0drivers/mfd/Kconfig =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0=
- =A0 =A0 =A0 =A0| =A0 =A09 +
->> =A0drivers/mfd/Makefile =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =
-=A0 =A0 =A0 =A0 | =A0 =A01 +
->> =A0drivers/mfd/omap-control-core.c =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0=
- =A0| =A0211 +++
->> =A0drivers/thermal/Kconfig =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0=
- =A0 =A0 =A0| =A0 25 +
->> =A0drivers/thermal/Makefile =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =
-=A0 =A0 =A0 | =A0 =A05 +-
->> =A0drivers/thermal/omap-bandgap.c =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0=
- =A0 | 1602 ++++++++++++++++++++
->> =A0drivers/thermal/omap-bandgap.h =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0=
- =A0 | =A0 75 +
->> =A0drivers/thermal/omap4-thermal.c =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0=
- =A0| =A0 72 +
->> =A0drivers/usb/otg/Kconfig =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0=
- =A0 =A0 =A0| =A0 13 +
->> =A0drivers/usb/otg/Makefile =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =
-=A0 =A0 =A0 | =A0 =A01 +
->> =A0drivers/usb/otg/omap4-usb-phy.c =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0=
- =A0| =A0130 ++
->> =A0include/linux/mfd/omap_control.h =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =
-=A0 | =A0 69 +
->> =A0include/linux/usb/omap4_usb_phy.h =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0=
- =A0| =A0 53 +
->> =A060 files changed, 2617 insertions(+), 2173 deletions(-)
->> =A0create mode 100644 Documentation/devicetree/bindings/mfd/omap_con=
-trol.txt
->> =A0create mode 100644 Documentation/devicetree/bindings/thermal/omap=
-_bandgap.txt
->> =A0rename arch/arm/mach-omap2/{ =3D> include/mach}/control.h (75%)
->> =A0delete mode 100644 arch/arm/mach-omap2/include/mach/ctrl_module_c=
-ore_44xx.h
->> =A0delete mode 100644 arch/arm/mach-omap2/include/mach/ctrl_module_p=
-ad_core_44xx.h
->> =A0delete mode 100644 arch/arm/mach-omap2/include/mach/ctrl_module_p=
-ad_wkup_44xx.h
->> =A0delete mode 100644 arch/arm/mach-omap2/include/mach/ctrl_module_w=
-kup_44xx.h
->> =A0create mode 100644 drivers/mfd/omap-control-core.c
->> =A0create mode 100644 drivers/thermal/omap-bandgap.c
->> =A0create mode 100644 drivers/thermal/omap-bandgap.h
->> =A0create mode 100644 drivers/thermal/omap4-thermal.c
->> =A0create mode 100644 drivers/usb/otg/omap4-usb-phy.c
->> =A0create mode 100644 include/linux/mfd/omap_control.h
->> =A0create mode 100644 include/linux/usb/omap4_usb_phy.h
->>
->
+> diff --git a/arch/arm/mach-omap2/devices.c b/arch/arm/mach-omap2/devices.c
+> index 9332673..58cc5c3 100644
+> --- a/arch/arm/mach-omap2/devices.c
+> +++ b/arch/arm/mach-omap2/devices.c
+> @@ -40,6 +40,35 @@
+>  #define L3_MODULES_MAX_LEN 12
+>  #define L3_MODULES 3
+>  
+> +static struct resource control_resources[] = {
+> +	[0] = {
+> +		.start	= 0x4a002000,
+> +		.end	= 0x4a0027ff,
+> +		.flags	= IORESOURCE_MEM,
+> +	},
+> +};
+> +static struct platform_device control_device = {
+> +	.name		= "omap-control-core",
+> +	.id		= 0,
+> +	.resource	= control_resources,
+> +	.num_resources	= ARRAY_SIZE(control_resources),
+> +};
+> +
+> +static struct platform_device *early_devices[] __initdata = {
+> +	&control_device,
+> +};
+> +
+> +static int __init plat_early_device_setup(void)
+> +{
+> +	early_platform_add_devices(early_devices,
+> +				   ARRAY_SIZE(early_devices));
+> +	early_platform_driver_register_all("early_omap_control");
+> +	early_platform_driver_probe("early_omap_control", 1, false);
+I checked out git://gitorious.org/omap-thermal/omap-thermal.git omap_scm_dev.
+Looks like that calling devm_kzalloc() and platform_get_resource() from early_initcall is too early.
+I get following backtrace (probably the backtrace is kernel config dependent):
+...
+[    0.198455] [<c00193b4>] (unwind_backtrace+0x0/0xe0) from [<c02b2a10>] (do_raw_spin_lock+0x20/0x134)
+[    0.207977] [<c02b2a10>] (do_raw_spin_lock+0x20/0x134) from [<c05df068>] (_raw_spin_lock_irqsave+0x58/0x64)
+[    0.218109] [<c05df068>] (_raw_spin_lock_irqsave+0x58/0x64) from [<c02f03bc>] (devres_add+0x18/0x38)
+[    0.227600] [<c02f03bc>] (devres_add+0x18/0x38) from [<c02f07d0>] (devm_kzalloc+0x50/0x5c)
+[    0.236206] [<c02f07d0>] (devm_kzalloc+0x50/0x5c) from [<c05c73a4>] (omap_control_probe+0x20/0xe4)
+[    0.245544] [<c05c73a4>] (omap_control_probe+0x20/0xe4) from [<c07b3178>] (early_platform_driver_probe+0x1ac/0x23c)
+[    0.256378] [<c07b3178>] (early_platform_driver_probe+0x1ac/0x23c) from [<c0798030>] (plat_early_device_setup+0x2c/0x3c)
+[    0.267700] [<c0798030>] (plat_early_device_setup+0x2c/0x3c) from [<c078f8c4>] (do_one_initcall+0x90/0x164)
+[    0.277801] [<c078f8c4>] (do_one_initcall+0x90/0x164) from [<c078f9ec>] (kernel_init+0x54/0x1a4)
+[    0.286956] [<c078f9ec>] (kernel_init+0x54/0x1a4) from [<c0013818>] (kernel_thread_exit+0x0/0x8)
+[    0.296203] ------------[ cut here ]------------
+[    0.301086] WARNING: at include/linux/kref.h:41 kobject_get+0x24/0x48()
+[    0.308044] [<c00193b4>] (unwind_backtrace+0x0/0xe0) from [<c00394a4>] (warn_slowpath_common+0x48/0x60)
+[    0.317871] [<c00394a4>] (warn_slowpath_common+0x48/0x60) from [<c0039574>] (warn_slowpath_null+0x18/0x1c)
+[    0.327941] [<c0039574>] (warn_slowpath_null+0x18/0x1c) from [<c02a59b4>] (kobject_get+0x24/0x48)
+[    0.337219] [<c02a59b4>] (kobject_get+0x24/0x48) from [<c02eb588>] (get_device+0x14/0x1c)
+[    0.345764] [<c02eb588>] (get_device+0x14/0x1c) from [<c02eb66c>] (device_add+0xc4/0x594)
+[    0.354370] [<c02eb66c>] (device_add+0xc4/0x594) from [<c03eeab4>] (of_platform_device_create_pdata+0x5c/0x7c)
+[    0.364807] [<c03eeab4>] (of_platform_device_create_pdata+0x5c/0x7c) from [<c03eec94>] (of_platform_bus_create+0x1c0/0x258)
+[    0.376403] [<c03eec94>] (of_platform_bus_create+0x1c0/0x258) from [<c03eee4c>] (of_platform_populate+0x5c/0x88)
+[    0.387023] [<c03eee4c>] (of_platform_populate+0x5c/0x88) from [<c07b3178>] (early_platform_driver_probe+0x1ac/0x23c)
+[    0.398101] [<c07b3178>] (early_platform_driver_probe+0x1ac/0x23c) from [<c0798030>] (plat_early_device_setup+0x2c/0x3c)
+[    0.409423] [<c0798030>] (plat_early_device_setup+0x2c/0x3c) from [<c078f8c4>] (do_one_initcall+0x90/0x164)
+[    0.419586] [<c078f8c4>] (do_one_initcall+0x90/0x164) from [<c078f9ec>] (kernel_init+0x54/0x1a4)
+[    0.428771] [<c078f9ec>] (kernel_init+0x54/0x1a4) from [<c0013818>] (kernel_thread_exit+0x0/0x8)
+[    0.437957] ---[ end trace da227214a82491b7 ]--
+...
 
+  BR,
+    Konstantin Baydarov.
 
+> +
+> +	return 0;
+> +}
+> +early_initcall(plat_early_device_setup);
+> +
+>  static int omap_init_control(void)
+>  {
+>  	struct omap_hwmod		*oh;
 
---=20
-
-Eduardo Valentin
---
-To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
