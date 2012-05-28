@@ -1,87 +1,50 @@
-From: Felipe Balbi <balbi@ti.com>
-Subject: Re: [PATCH] mmc: omap: Fix a section warning regression
-Date: Mon, 28 May 2012 11:22:18 +0300
-Message-ID: <20120528082217.GI18918@arwen.pp.htv.fi>
-References: <20120528065347.GR17852@atomide.com>
-Reply-To: balbi@ti.com
+From: Ming Lei <ming.lei@canonical.com>
+Subject: Re: Ftrace Timer on OMAP3
+Date: Mon, 28 May 2012 16:24:35 +0800
+Message-ID: <CACVXFVMg140Tj0cAH8aWD7VROgody7E+mEe0pNyou7hpfJUr9w@mail.gmail.com>
+References: <4FBFA2EB.708@uni-dortmund.de>
+	<79CD15C6BA57404B839C016229A409A83EA38110@DBDE01.ent.ti.com>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="liqSWPDvh3eyfZ9k"
+Content-Type: text/plain; charset=ISO-8859-1
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aog103.obsmtp.com ([74.125.149.71]:43877 "EHLO
-	na3sys009aog103.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751174Ab2E1IXx (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>);
-	Mon, 28 May 2012 04:23:53 -0400
-Received: by lbbgm6 with SMTP id gm6so2523940lbb.33
-        for <linux-omap@vger.kernel.org>; Mon, 28 May 2012 01:23:50 -0700 (PDT)
-Content-Disposition: inline
-In-Reply-To: <20120528065347.GR17852@atomide.com>
+Received: from youngberry.canonical.com ([91.189.89.112]:47021 "EHLO
+	youngberry.canonical.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751174Ab2E1IYj (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 28 May 2012 04:24:39 -0400
+Received: from mail-pb0-f46.google.com ([209.85.160.46])
+	by youngberry.canonical.com with esmtpsa (TLS1.0:RSA_ARCFOUR_MD5:16)
+	(Exim 4.71)
+	(envelope-from <ming.lei@canonical.com>)
+	id 1SYvFl-0002Qg-Rt
+	for linux-omap@vger.kernel.org; Mon, 28 May 2012 08:24:38 +0000
+Received: by pbbrp8 with SMTP id rp8so4368101pbb.19
+        for <linux-omap@vger.kernel.org>; Mon, 28 May 2012 01:24:35 -0700 (PDT)
+In-Reply-To: <79CD15C6BA57404B839C016229A409A83EA38110@DBDE01.ent.ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Tony Lindgren <tony@atomide.com>
-Cc: linux-mmc@vger.kernel.org, Venkatraman S <svenkatr@ti.com>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+To: "Hiremath, Vaibhav" <hvaibhav@ti.com>
+Cc: Thomas Klute <thomas2.klute@uni-dortmund.de>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, Carsten Vogel <carsten.vogel@rub.de>
 
+On Mon, May 28, 2012 at 2:56 PM, Hiremath, Vaibhav <hvaibhav@ti.com> wrote:
+> On Fri, May 25, 2012 at 20:49:07, Thomas Klute wrote:
+>> Hi everyone,
+>>
+>> we're having some trouble getting useful results from Ftrace on OMAP3
+>> (Gumstix Overo). As you can see in the example output below, function
+>> duration can't be displayed with a precision higher than about 30.5 us,
+>> which matches the frequency of the 32 kHz platform timer. For OMAP1,
+>> using OMAP_MPU_TIMER instead of CONFIG_OMAP_32K_TIMER should provide
+>> better results [1], but I couldn't find anything similar for OMAP3. Just
+>> setting CONFIG_OMAP_32K_TIMER=N didn't change the results. Did I miss
+>> anything, or isn't there any more precise timer?
+>>
+>
+> I believe you are using mainline kernel here, if yes, you should be enabling
+> the dmtimer using commandline argument, "clocksource="gp_timer".
 
---liqSWPDvh3eyfZ9k
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
+Also you need to pass 'nohlt' to kernel since gp_timer can't be kept
+when cpu is idled in deep state.
 
-On Sun, May 27, 2012 at 11:53:47PM -0700, Tony Lindgren wrote:
-> Commit b6e0703b (mmc: omap: make it behave well as a module) made some
-> __devinit changes but missed one function causing a section warning:
->=20
-> WARNING: vmlinux.o(.devinit.text+0x8604): Section mismatch in reference
-> from the function mmc_omap_probe)
-> The function __devinit mmc_omap_probe() references a function
-> __init mmc_omap_new_slot()
->=20
-> Signed-off-by: Tony Lindgren <tony@atomide.com>
-
-Acked-by: Felipe Balbi <balbi@ti.com>
-
->=20
-> --- a/drivers/mmc/host/omap.c
-> +++ b/drivers/mmc/host/omap.c
-> @@ -1300,7 +1300,7 @@ static const struct mmc_host_ops mmc_omap_ops =3D {
->  	.set_ios	=3D mmc_omap_set_ios,
->  };
-> =20
-> -static int __init mmc_omap_new_slot(struct mmc_omap_host *host, int id)
-> +static int __devinit mmc_omap_new_slot(struct mmc_omap_host *host, int i=
-d)
->  {
->  	struct mmc_omap_slot *slot =3D NULL;
->  	struct mmc_host *mmc;
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-omap" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
-
---=20
-balbi
-
---liqSWPDvh3eyfZ9k
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: Digital signature
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.4.12 (GNU/Linux)
-
-iQIcBAEBAgAGBQJPwzW5AAoJEIaOsuA1yqREAs0P/2SbGt3OdMz4V2zg8sc6fF1v
-PwYssXuWGVnGngZpgufr/mKzpIkaowEyQuQuidxBBKA9hYp1VO8ONcksm38kFNj3
-GuSANTzeFUqMDwGsA8CBIXMnY3NTO8OtotDE1Sb2Tf3TdrfD37/EUzIxyAOEccKI
-8066X2GwySuN2j2yaldfeUjqlmWtD2f1xB88SGPyGbv9yJGDZETze2szOLYZFitw
-c+JpTK0cTla2LdXM8WiprVlA+QdXg38UcIHt+0OGgr1dSgh8eGQEp4FKi2VeKLZ8
-kqLnFCse1zxRLNYn/dC7TxY7VpNdTmM1H4/wQeth+PMEb+ulpCsfbYyDQFnJFzsw
-UBrzJzxkgu+MP7qeOikPrprh0F4nTa/I2xKGpoWIpUoHiAigy0F8mqUc48vlTuR7
-GbeiArm/ft9/y/sZThql7khAAsjUKXktHS3eSHbHBkMruwEHam9IbCxNy2dNu/oJ
-PryrAzXzx8pmZUpJSPcrqtO1D8YgfaO1cmM0cOJHE3Wh9wXsWe/jEZ2PMtNyeQXH
-c2duXHqirFNkiWiLBchdRO1T5RS8bAzq+T/MN7rKdNbWrL7WaM6XoFE4D68aE6vT
-unDdfvv1TcA0uQY7Kh8Q3H4bNf9To7M3/JiGrCN9KSSU0cP4s2NFM73nrpj+6/dm
-qK5Yfcz3j9kG8IriswYZ
-=JQtB
------END PGP SIGNATURE-----
-
---liqSWPDvh3eyfZ9k--
+Thanks,
+--
+Ming Lei
