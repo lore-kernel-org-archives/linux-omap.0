@@ -1,80 +1,78 @@
-From: "Valentin, Eduardo" <eduardo.valentin@ti.com>
-Subject: Re: [RFC PATCH 02/11] ARM: OMAP: expose control.h to
-	mach area
-Date: Mon, 28 May 2012 13:30:55 +0300
-Message-ID: <CAGF5oy_R0xKsKQoqq2ReCjEP2tWC4UcawnAkTPU35thysnSj7g@mail.gmail.com>
-References: <1337934361-1606-1-git-send-email-eduardo.valentin@ti.com>
-	<1337934361-1606-3-git-send-email-eduardo.valentin@ti.com>
-	<CAMQu2gxbkFCtkK+NCVksC82-R4SAKKtK2w=zNbrNi9a10s1t1Q@mail.gmail.com>
+From: Tony Lindgren <tony@atomide.com>
+Subject: [PATCH] mmc: omap: Fix NULL pointer dereference if
+ mmc_omap_new_slot() fails
+Date: Mon, 28 May 2012 03:36:42 -0700
+Message-ID: <20120528103641.GA12766@atomide.com>
+References: <20120528065347.GR17852@atomide.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-pm-bounces@lists.linux-foundation.org>
-In-Reply-To: <CAMQu2gxbkFCtkK+NCVksC82-R4SAKKtK2w=zNbrNi9a10s1t1Q@mail.gmail.com>
-List-Unsubscribe: <https://lists.linuxfoundation.org/mailman/options/linux-pm>,
-	<mailto:linux-pm-request@lists.linux-foundation.org?subject=unsubscribe>
-List-Archive: <http://lists.linuxfoundation.org/pipermail/linux-pm/>
-List-Post: <mailto:linux-pm@lists.linux-foundation.org>
-List-Help: <mailto:linux-pm-request@lists.linux-foundation.org?subject=help>
-List-Subscribe: <https://lists.linuxfoundation.org/mailman/listinfo/linux-pm>,
-	<mailto:linux-pm-request@lists.linux-foundation.org?subject=subscribe>
-Sender: linux-pm-bounces@lists.linux-foundation.org
-Errors-To: linux-pm-bounces@lists.linux-foundation.org
-To: "Shilimkar, Santosh" <santosh.shilimkar@ti.com>
-Cc: amit.kucheria@linaro.org, balbi@ti.com, kishon@ti.com, kbaidarov@dev.rtsoft.ru, linux-pm@lists.linux-foundation.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-mmc-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <20120528065347.GR17852@atomide.com>
+Sender: linux-mmc-owner@vger.kernel.org
+To: linux-mmc@vger.kernel.org
+Cc: Venkatraman S <svenkatr@ti.com>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Chris Ball <cjb@laptop.org>
 List-Id: linux-omap@vger.kernel.org
 
-Hello,
+Commit b01a4f1c (mmc: omap: convert to per instance workqueue) initializes
+the workqueue too late causing the following:
 
-On Mon, May 28, 2012 at 12:25 PM, Shilimkar, Santosh
-<santosh.shilimkar@ti.com> wrote:
-> On Fri, May 25, 2012 at 1:55 PM, Eduardo Valentin
-> <eduardo.valentin@ti.com> wrote:
->> This patch exposes the definitions under control.h to
->> drivers outside the machine code.
->>
->> Signed-off-by: Eduardo Valentin <eduardo.valentin@ti.com>
->> ---
-> After second thought, this complete header movement needs to avoided.
-> Drivers should not anyway include something like <mach/control.h>
->
-> May be split the control.h header file data into ..
-> - defines used by mach-omap2/* files which can remain in "control.h"
-> in existing location.
+Unable to handle kernel NULL pointer dereference at virtual address 00000000
+pgd = c0004000
+[00000000] *pgd=00000000
+Internal error: Oops: 5 [#1] SMP ARM
+Modules linked in:
+CPU: 0    Not tainted  (3.4.0-08218-gb48b2c3 #158)
+PC is at __queue_work+0x8/0x46c
+LR is at queue_work_on+0x38/0x40
+pc : [<c005bb4c>]    lr : [<c005c00c>]    psr: 60000193
+sp : c0691e1c  ip : 00000000  fp : c07374ac
+r10: c7aae400  r9 : c0395700  r8 : 00000100
+r7 : c0691e70  r6 : 00000000  r5 : 00000000  r4 : c7aae440
+r3 : 00000001  r2 : c7aae440  r1 : 00000000  r0 : 00000000
+Flags: nZCv  IRQs off  FIQs on  Mode SVC_32  ISA ARM  Segment kernel
+Control: 00c5387d  Table: 80004000  DAC: 00000017
+Process swapper/0 (pid: 0, stack limit = 0xc06902f8)
+Stack: (0xc0691e1c to 0xc0692000)
 
-OK..
+Fix this by initializing the workqueue before mmc_omap_remove_slot()
+get called. Tested on n770, looks like n800 at least still has some
+other issue with MMC.
 
-> - common functions/defines used across drivers/*, mach-omap2/*,
-> plat-omap/*, should
-> go to include/linux/omap_control.h
+Signed-off-by: Tony Lindgren <tony@atomide.com>
 
-Right..
-
-> - Driver specific defines like thermal, usb etc, should go to
-> respective drivers file.
-
-Indeed.
-
->
-> What do you think ?
-
-I think we are in line. And I believe I saw a similar comment by
-Benoit in other email thread.
-
-Having a better thinking of this, it makes sense to have the
-definition specific to drivers in the driver scope only, as they are
-going to be used only there anyway.
-
-I will drop this patch off and update the remaining changes
-accordingly (drop the change in control.h for thermal specific and
-move it to omap_bandgap.h).
-
->
-> Regards
-> santosh
-
-
-
--- 
-
-Eduardo Valentin
+--- a/drivers/mmc/host/omap.c
++++ b/drivers/mmc/host/omap.c
+@@ -1485,24 +1485,27 @@ static int __devinit mmc_omap_probe(struct platform_device *pdev)
+ 	}
+ 
+ 	host->nr_slots = pdata->nr_slots;
++
++	host->mmc_omap_wq = alloc_workqueue("mmc_omap", 0, 0);
++	if (!host->mmc_omap_wq)
++		goto err_plat_cleanup;
++
+ 	for (i = 0; i < pdata->nr_slots; i++) {
+ 		ret = mmc_omap_new_slot(host, i);
+ 		if (ret < 0) {
+ 			while (--i >= 0)
+ 				mmc_omap_remove_slot(host->slots[i]);
+ 
+-			goto err_plat_cleanup;
++			goto err_destroy_wq;
+ 		}
+ 	}
+ 
+ 	host->reg_shift = (cpu_is_omap7xx() ? 1 : 2);
+ 
+-	host->mmc_omap_wq = alloc_workqueue("mmc_omap", 0, 0);
+-	if (!host->mmc_omap_wq)
+-		goto err_plat_cleanup;
+-
+ 	return 0;
+ 
++err_destroy_wq:
++	destroy_workqueue(host->mmc_omap_wq);
+ err_plat_cleanup:
+ 	if (pdata->cleanup)
+ 		pdata->cleanup(&pdev->dev);
