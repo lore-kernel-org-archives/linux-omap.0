@@ -1,77 +1,73 @@
 From: Shubhrajyoti D <shubhrajyoti@ti.com>
-Subject: [PATCHv10 00/11] I2C fixes
-Date: Tue, 29 May 2012 16:26:12 +0530
-Message-ID: <1338288983-15026-1-git-send-email-shubhrajyoti@ti.com>
+Subject: [PATCHv10 11/11] OMAP/I2C - Fix timeout problem during suspend.
+Date: Tue, 29 May 2012 16:26:23 +0530
+Message-ID: <1338288983-15026-12-git-send-email-shubhrajyoti@ti.com>
+References: <1338288983-15026-1-git-send-email-shubhrajyoti@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from bear.ext.ti.com ([192.94.94.41]:51686 "EHLO bear.ext.ti.com"
+Received: from bear.ext.ti.com ([192.94.94.41]:51688 "EHLO bear.ext.ti.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753813Ab2E2K5Z (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Tue, 29 May 2012 06:57:25 -0400
+	id S1753487Ab2E2K51 (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Tue, 29 May 2012 06:57:27 -0400
+In-Reply-To: <1338288983-15026-1-git-send-email-shubhrajyoti@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: linux-omap@vger.kernel.org
-Cc: linux-i2c@vger.kernel.org, linux-arm-kernel@lists.infradead.org, ben-linux@fluff.org, tony@atomide.com, w.sang@pengutronix.de, Shubhrajyoti D <shubhrajyoti@ti.com>
+Cc: linux-i2c@vger.kernel.org, linux-arm-kernel@lists.infradead.org, ben-linux@fluff.org, tony@atomide.com, w.sang@pengutronix.de, Neil Brown <neilb@suse.de>, Shubhrajyoti D <shubhrajyoti@ti.com>
 
+From: Neil Brown <neilb@suse.de>
 
-The patch series does the following
+On a board with OMAP3 processor and TWL4030 Power management,
+we need to talk to the TWL4030 during late suspend but cannot
+because the I2C interrupt is disabled (as late suspend disables
+interrupt).
 
-- Warn fixes if CONFIG_PM_RUNTIME is not selected.
-- In case of i2c remove register access was done without any
- get_sync fix the same.
-- Folds a patch from Tasslehoff to prevent any merge conflicts.
-- Prevents the XDUF flag to be set if the underflow condition is not met.
-- As per discussion in [1] .Adds a patch to rename the 1p153 errata and
- use the unique id instead as the section number in the recent errata
- docs has changed.
+e.g. I get messages like:
 
-v9:
-Fix the comments from Wolfram Sang
+[   62.161102] musb-omap2430 musb-omap2430: LATE power domain suspend
+[   63.167205] omap_i2c omap_i2c.1: controller timed out
+[   63.183044] twl: i2c_read failed to transfer all messages
+[   64.182861] omap_i2c omap_i2c.1: controller timed out
+[   64.198455] twl: i2c_write failed to transfer all messages
+[   65.198455] omap_i2c omap_i2c.1: controller timed out
+[   65.203765] twl: i2c_write failed to transfer all messages
 
-v10:
-Add a patch from Neil to the series.
-Fix kevin comments
-update the patches with comments.
+The stack shows omap2430_runtime_suspend calling twl4030_set_suspend
+which tries to power-down the USB PHY (twl4030_phy_suspend ->
+twl4030_phy_power -> __twl4030_phy_power which as a nice WARN_ON
+that helps).
 
-[1] http://www.spinics.net/lists/linux-i2c/msg07607.html
+Then we get the same in resume:
 
-Tested on omap4sdp and omap3sdp.
-- Did functional tests read write on both the platforms.
-- Off mode and retention on OMAP3
-- On OMAP4 just did echo mem > /sys/power/state and wakeup.
-Did see.
-[ 1360.595855] Successfully put all powerdomains to target state
-However didnt see the ret count for other than mpu_pwrdm increase.
-I think power support for omap4 is minimal. 
+[   69.603912] musb-omap2430 musb-omap2430: EARLY power domain resume
+[   70.610473] omap_i2c omap_i2c.1: controller timed out
+[   70.626129] twl: i2c_write failed to transfer all messages
+etc.
 
-The following changes since commit b48b2c3e50433ff6f7e46186daa7f986bd960215:
+So don't disable interrupts for I2C.
 
-  openrisc: use generic strnlen_user() function (2012-05-27 21:00:32 -0700)
+Acked-by: Kevin Hilman <khilman@ti.com>
+Tested-by: Kevin Hilman <khilman@ti.com>
+Signed-off-by: NeilBrown <neilb@suse.de>
+Signed-off-by: Shubhrajyoti D <shubhrajyoti@ti.com>
+---
+ drivers/i2c/busses/i2c-omap.c |    2 +-
+ 1 files changed, 1 insertions(+), 1 deletions(-)
 
-are available in the git repository at:
-  git://gitorious.org/linus-tree/linus-tree.git i2c_omap-fixes
-
-Neil Brown (1):
-      OMAP/I2C - Fix timeout problem during suspend.
-
-Shubhrajyoti D (9):
-      I2C: OMAP: make omap_i2c_unidle/idle functions depend on CONFIG_PM_RUNTIME
-      I2C: OMAP: Fix the mismatch of pm_runtime enable and disable
-      I2C: OMAP: Fix the interrupt clearing in OMAP4
-      I2C: OMAP: Prevent the register access after pm_runtime_put in probe
-      I2C: OMAP: Don't check if wait_for_completion_timeout() returns less than zero
-      I2C: OMAP: Fix the crash in i2c remove
-      I2C: OMAP: Handle error check for pm runtime
-      I2C: OMAP: Do not set the XUDF(Transmit underflow) if the underflow is not reached
-      I2C: OMAP: Rename the 1p153 to the erratum id i462
-
-Tasslehoff Kjappfot (1):
-      I2C: OMAP: prevent the overwrite of the errata flags
-
- drivers/i2c/busses/i2c-omap.c |  129 ++++++++++++++++++++---------------------
- 1 files changed, 63 insertions(+), 66 deletions(-)
-
+diff --git a/drivers/i2c/busses/i2c-omap.c b/drivers/i2c/busses/i2c-omap.c
+index dc3bd40..9895fa7 100644
+--- a/drivers/i2c/busses/i2c-omap.c
++++ b/drivers/i2c/busses/i2c-omap.c
+@@ -1053,7 +1053,7 @@ omap_i2c_probe(struct platform_device *pdev)
+ 
+ 	isr = (dev->rev < OMAP_I2C_OMAP1_REV_2) ? omap_i2c_omap1_isr :
+ 								   omap_i2c_isr;
+-	r = request_irq(dev->irq, isr, 0, pdev->name, dev);
++	r = request_irq(dev->irq, isr, IRQF_NO_SUSPEND, pdev->name, dev);
+ 
+ 	if (r) {
+ 		dev_err(dev->dev, "failure requesting irq %i\n", dev->irq);
 -- 
 1.7.5.4
 
