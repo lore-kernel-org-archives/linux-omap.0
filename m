@@ -1,271 +1,1217 @@
 From: Vaibhav Hiremath <hvaibhav@ti.com>
-Subject: [PATCH-V2 1/4] ARM: OMAP2+: hwmod: Hook-up am33xx support in omap_hwmod framework
-Date: Tue, 29 May 2012 15:26:39 +0530
-Message-ID: <1338285402-11306-2-git-send-email-hvaibhav@ti.com>
+Subject: [PATCH-V2 3/4] ARM: OMAP3+: clock33xx: Add AM33XX clock tree data
+Date: Tue, 29 May 2012 15:26:41 +0530
+Message-ID: <1338285402-11306-4-git-send-email-hvaibhav@ti.com>
 References: <1338285402-11306-1-git-send-email-hvaibhav@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from arroyo.ext.ti.com ([192.94.94.40]:39741 "EHLO arroyo.ext.ti.com"
+Received: from comal.ext.ti.com ([198.47.26.152]:41126 "EHLO comal.ext.ti.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751501Ab2E2J5P (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Tue, 29 May 2012 05:57:15 -0400
+	id S1753195Ab2E2J5W (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Tue, 29 May 2012 05:57:22 -0400
 In-Reply-To: <1338285402-11306-1-git-send-email-hvaibhav@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: linux-omap@vger.kernel.org
-Cc: tony@atomide.com, khilman@ti.com, paul@pwsan.com, linux-arm-kernel@lists.infradead.org, Vaibhav Hiremath <hvaibhav@ti.com>
+Cc: tony@atomide.com, khilman@ti.com, paul@pwsan.com, linux-arm-kernel@lists.infradead.org, Vaibhav Hiremath <hvaibhav@ti.com>, Afzal Mohammed <afzal@ti.com>, Vaibhav Bedia <vaibhav.bedia@ti.com>, Rajendra Nayak <rnayak@ti.com>, Benoit Cousson <b-cousson@ti.com>
 
-AM33XX PRCM architecture is different that any OMAP family
-of devices, so it is required to have separate implementation
-to handle AM33XX module enable/disable, reset assert/deassert
-functionality.
-This patch adds wrapper api's in omap_hwmod framework to
-access prm/cm for AM33XX family of devices.
+AM33XX clock implementation is different than any existing OMAP
+family of devices. Although DPLL module is similar to OMAP4
+device, but the usage is very much different than OMAP4.
+AM33XX has different peripheral set and each module gets
+integrated to the clock framework differently than OMAP
+family of devices.
+
+This patch adds full Clock tree data for AM33XX family
+of devices and also integrates it into existing OMAP framework.
 
 Signed-off-by: Vaibhav Hiremath <hvaibhav@ti.com>
-Cc: Paul Walmsley <paul@pwsan.com>
+Signed-off-by: Afzal Mohammed <afzal@ti.com>
+Signed-off-by: Vaibhav Bedia <vaibhav.bedia@ti.com>
 Cc: Kevin Hilman <khilman@ti.com>
-Cc: Tony Lindgren <tony@atomide.com>
+Cc: Rajendra Nayak <rnayak@ti.com>
+CC: Tony Lindgren <tony@atomide.com>
+Cc: Paul Walmsley <paul@pwsan.com>
+Cc: Benoit Cousson <b-cousson@ti.com>
 ---
- arch/arm/mach-omap2/omap_hwmod.c |  180 ++++++++++++++++++++++++++++++++++++++
- 1 files changed, 180 insertions(+), 0 deletions(-)
+NOTE: Please note that, the clock tree needs to be migrated
+      to common-clock framework.
 
-diff --git a/arch/arm/mach-omap2/omap_hwmod.c b/arch/arm/mach-omap2/omap_hwmod.c
-index acc616c..d10c4e2 100644
---- a/arch/arm/mach-omap2/omap_hwmod.c
-+++ b/arch/arm/mach-omap2/omap_hwmod.c
-@@ -149,8 +149,10 @@
+ arch/arm/mach-omap2/Makefile                  |    1 +
+ arch/arm/mach-omap2/clock.h                   |    2 +
+ arch/arm/mach-omap2/clock33xx_data.c          | 1105 +++++++++++++++++++++++++
+ arch/arm/mach-omap2/io.c                      |    2 +
+ arch/arm/plat-omap/include/plat/clkdev_omap.h |    1 +
+ 5 files changed, 1111 insertions(+), 0 deletions(-)
+ create mode 100644 arch/arm/mach-omap2/clock33xx_data.c
 
- #include "cm2xxx_3xxx.h"
- #include "cminst44xx.h"
+diff --git a/arch/arm/mach-omap2/Makefile b/arch/arm/mach-omap2/Makefile
+index 7df7af6..9eb1158 100644
+--- a/arch/arm/mach-omap2/Makefile
++++ b/arch/arm/mach-omap2/Makefile
+@@ -158,6 +158,7 @@ obj-$(CONFIG_ARCH_OMAP3)		+= clkt_iclk.o
+ obj-$(CONFIG_ARCH_OMAP4)		+= $(clock-common) clock44xx_data.o
+ obj-$(CONFIG_ARCH_OMAP4)		+= dpll3xxx.o dpll44xx.o
+ obj-$(CONFIG_SOC_AM33XX)		+= $(clock-common) dpll3xxx.o
++obj-$(CONFIG_SOC_AM33XX)		+= clock33xx_data.o
+
+ # OMAP2 clock rate set data (old "OPP" data)
+ obj-$(CONFIG_SOC_OMAP2420)		+= opp2420_data.o
+diff --git a/arch/arm/mach-omap2/clock.h b/arch/arm/mach-omap2/clock.h
+index 980b0a4..35ec5f3 100644
+--- a/arch/arm/mach-omap2/clock.h
++++ b/arch/arm/mach-omap2/clock.h
+@@ -167,4 +167,6 @@ extern const struct clksel_rate div31_1to31_rates[];
+ extern struct clk virt_19200000_ck;
+ extern struct clk virt_26000000_ck;
+
++extern int am33xx_clk_init(void);
++
+ #endif
+diff --git a/arch/arm/mach-omap2/clock33xx_data.c b/arch/arm/mach-omap2/clock33xx_data.c
+new file mode 100644
+index 0000000..25bbcc7
+--- /dev/null
++++ b/arch/arm/mach-omap2/clock33xx_data.c
+@@ -0,0 +1,1105 @@
++/*
++ * AM33XX Clock data
++ *
++ * Copyright (C) 2012 Texas Instruments Incorporated - http://www.ti.com/
++ * Vaibhav Hiremath <hvaibhav@ti.com>
++ *
++ * This program is free software; you can redistribute it and/or
++ * modify it under the terms of the GNU General Public License as
++ * published by the Free Software Foundation version 2.
++ *
++ * This program is distributed "as is" WITHOUT ANY WARRANTY of any
++ * kind, whether express or implied; without even the implied warranty
++ * of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
++ * GNU General Public License for more details.
++ */
++
++#include <linux/kernel.h>
++#include <linux/list.h>
++#include <linux/clk.h>
++#include <plat/clkdev_omap.h>
++#include <plat/am33xx.h>
++
++#include "iomap.h"
++#include "control.h"
++#include "clock.h"
++#include "cm.h"
 +#include "cm33xx.h"
- #include "prm2xxx_3xxx.h"
- #include "prm44xx.h"
-+#include "prm33xx.h"
- #include "prminst44xx.h"
- #include "mux.h"
-
-@@ -821,6 +823,27 @@ static void _omap4_enable_module(struct omap_hwmod *oh)
- }
-
- /**
-+ * _am33xx_enable_module - enable CLKCTRL modulemode on AM33XX
-+ * @oh: struct omap_hwmod *
-+ *
-+ * Enables the PRCM module mode related to the hwmod @oh.
-+ * No return value.
++#include "cm-regbits-33xx.h"
++#include "prm.h"
++
++/* Maximum DPLL multiplier, divider values for AM33XX */
++#define AM33XX_MAX_DPLL_MULT		2047
++#define AM33XX_MAX_DPLL_DIV		128
++
++/* Modulemode control */
++#define AM33XX_MODULEMODE_HWCTRL	0
++#define AM33XX_MODULEMODE_SWCTRL	1
++
++/* TRM ERRATA: Timer 3 & 6 default parent (TCLKIN) may not be always
++ *    physically present, in such a case HWMOD enabling of
++ *    clock would be failure with default parent. And timer
++ *    probe thinks clock is already enabled, this leads to
++ *    crash upon accessing timer 3 & 6 registers in probe.
++ *    Fix by setting parent of both these timers to master
++ *    oscillator clock.
 + */
-+static void _am33xx_enable_module(struct omap_hwmod *oh)
++static inline void am33xx_init_timer_parent(struct clk *clk)
 +{
-+	if (!oh->clkdm || !oh->prcm.omap4.modulemode)
-+		return;
-+
-+	pr_debug("omap_hwmod: %s: %s: %d\n",
-+		 oh->name, __func__, oh->prcm.omap4.modulemode);
-+
-+	am33xx_cm_module_enable(oh->prcm.omap4.modulemode,
-+				   oh->clkdm->cm_inst,
-+				   oh->clkdm->clkdm_offs,
-+				   oh->prcm.omap4.clkctrl_offs);
++	omap2_clksel_set_parent(clk, clk->parent);
 +}
 +
-+/**
-  * _omap4_wait_target_disable - wait for a module to be disabled on OMAP4
-  * @oh: struct omap_hwmod *
-  *
-@@ -847,6 +870,31 @@ static int _omap4_wait_target_disable(struct omap_hwmod *oh)
- }
-
- /**
-+ * _am33xx_wait_target_disable - wait for a module to be disabled on AM33XX
-+ * @oh: struct omap_hwmod *
++/* Root clocks */
++
++/* RTC 32k */
++static struct clk clk_32768_ck = {
++	.name		= "clk_32768_ck",
++	.clkdm_name	= "l4_rtc_clkdm",
++	.rate		= 32768,
++	.ops		= &clkops_null,
++};
++
++/* On-Chip 32KHz RC OSC */
++static struct clk clk_rc32k_ck = {
++	.name		= "clk_rc32k_ck",
++	.rate		= 32000,
++	.ops		= &clkops_null,
++};
++
++/* Crystal input clks */
++static struct clk virt_24000000_ck = {
++	.name		= "virt_24000000_ck",
++	.rate		= 24000000,
++	.ops		= &clkops_null,
++};
++
++static struct clk virt_25000000_ck = {
++	.name		= "virt_25000000_ck",
++	.rate		= 25000000,
++	.ops		= &clkops_null,
++};
++
++/* Oscillator clock */
++/* 19.2, 24, 25 or 26 MHz */
++static const struct clksel sys_clkin_sel[] = {
++	{ .parent = &virt_19200000_ck, .rates = div_1_0_rates },
++	{ .parent = &virt_24000000_ck, .rates = div_1_1_rates },
++	{ .parent = &virt_25000000_ck, .rates = div_1_2_rates },
++	{ .parent = &virt_26000000_ck, .rates = div_1_3_rates },
++	{ .parent = NULL },
++};
++
++/* External clock - 12 MHz */
++static struct clk tclkin_ck = {
++	.name		= "tclkin_ck",
++	.rate		= 12000000,
++	.ops		= &clkops_null,
++};
++
++/*
++ * sys_clk in: input to the dpll and also used as funtional clock for,
++ *   adc_tsc, smartreflex0-1, timer1-7, mcasp0-1, dcan0-1, cefuse
 + *
-+ * Wait for a module @oh to enter slave idle.  Returns 0 if the module
-+ * does not have an IDLEST bit or if the module successfully enters
-+ * slave idle; otherwise, pass along the return value of the
-+ * appropriate *_cm*_wait_module_idle() function.
 + */
-+static int _am33xx_wait_target_disable(struct omap_hwmod *oh)
-+{
-+	if (!oh)
-+		return -EINVAL;
++static struct clk sys_clkin_ck = {
++	.name		= "sys_clkin_ck",
++	.parent		= &virt_24000000_ck,
++	.init		= &omap2_init_clksel_parent,
++	.clksel_reg	= AM33XX_CTRL_REGADDR(AM33XX_CONTROL_STATUS),
++	.clksel_mask	= AM33XX_CONTROL_STATUS_SYSBOOT1_MASK,
++	.clksel		= sys_clkin_sel,
++	.ops		= &clkops_null,
++	.recalc		= &omap2_clksel_recalc,
++};
 +
-+	if (oh->_int_flags & _HWMOD_NO_MPU_PORT)
-+		return 0;
++/* DPLL_CORE */
++static struct dpll_data dpll_core_dd = {
++	.mult_div1_reg	= AM33XX_CM_CLKSEL_DPLL_CORE,
++	.clk_bypass	= &sys_clkin_ck,
++	.clk_ref	= &sys_clkin_ck,
++	.control_reg	= AM33XX_CM_CLKMODE_DPLL_CORE,
++	.modes		= (1 << DPLL_LOW_POWER_BYPASS) | (1 << DPLL_LOCKED),
++	.idlest_reg	= AM33XX_CM_IDLEST_DPLL_CORE,
++	.mult_mask	= AM33XX_DPLL_MULT_MASK,
++	.div1_mask	= AM33XX_DPLL_DIV_MASK,
++	.enable_mask	= AM33XX_DPLL_EN_MASK,
++	.idlest_mask	= AM33XX_ST_DPLL_CLK_MASK,
++	.max_multiplier	= AM33XX_MAX_DPLL_MULT,
++	.max_divider	= AM33XX_MAX_DPLL_DIV,
++	.min_divider	= 1,
++};
 +
-+	if (oh->flags & HWMOD_NO_IDLEST)
-+		return 0;
++/* CLKDCOLDO output */
++static struct clk dpll_core_ck = {
++	.name		= "dpll_core_ck",
++	.parent		= &sys_clkin_ck,
++	.dpll_data	= &dpll_core_dd,
++	.init		= &omap2_init_dpll_parent,
++	.ops		= &clkops_omap3_core_dpll_ops,
++	.recalc		= &omap3_dpll_recalc,
++};
 +
-+	return am33xx_cm_wait_module_idle(oh->clkdm->cm_inst,
-+					     oh->clkdm->clkdm_offs,
-+					     oh->prcm.omap4.clkctrl_offs);
-+}
++static struct clk dpll_core_x2_ck = {
++	.name		= "dpll_core_x2_ck",
++	.parent		= &dpll_core_ck,
++	.flags		= CLOCK_CLKOUTX2,
++	.ops		= &clkops_null,
++	.recalc		= &omap3_clkoutx2_recalc,
++};
 +
-+/**
-  * _count_mpu_irqs - count the number of MPU IRQ lines associated with @oh
-  * @oh: struct omap_hwmod *oh
-  *
-@@ -1552,6 +1600,37 @@ static int _omap4_disable_module(struct omap_hwmod *oh)
- }
-
- /**
-+ * _am33xx_disable_module - enable CLKCTRL modulemode on AM33XX
-+ * @oh: struct omap_hwmod *
++
++static const struct clksel dpll_core_m4_div[] = {
++	{ .parent = &dpll_core_x2_ck, .rates = div31_1to31_rates },
++	{ .parent = NULL },
++};
++
++static struct clk dpll_core_m4_ck = {
++	.name		= "dpll_core_m4_ck",
++	.parent		= &dpll_core_x2_ck,
++	.init		= &omap2_init_clksel_parent,
++	.clksel		= dpll_core_m4_div,
++	.clksel_reg	= AM33XX_CM_DIV_M4_DPLL_CORE,
++	.clksel_mask	= AM33XX_HSDIVIDER_CLKOUT1_DIV_MASK,
++	.ops		= &clkops_null,
++	.recalc		= &omap2_clksel_recalc,
++	.round_rate	= &omap2_clksel_round_rate,
++	.set_rate	= &omap2_clksel_set_rate,
++};
++
++static const struct clksel dpll_core_m5_div[] = {
++	{ .parent = &dpll_core_x2_ck, .rates = div31_1to31_rates },
++	{ .parent = NULL },
++};
++
++static struct clk dpll_core_m5_ck = {
++	.name		= "dpll_core_m5_ck",
++	.parent		= &dpll_core_x2_ck,
++	.init		= &omap2_init_clksel_parent,
++	.clksel		= dpll_core_m5_div,
++	.clksel_reg	= AM33XX_CM_DIV_M5_DPLL_CORE,
++	.clksel_mask	= AM33XX_HSDIVIDER_CLKOUT2_DIV_MASK,
++	.ops		= &clkops_null,
++	.recalc		= &omap2_clksel_recalc,
++	.round_rate	= &omap2_clksel_round_rate,
++	.set_rate	= &omap2_clksel_set_rate,
++};
++
++static const struct clksel dpll_core_m6_div[] = {
++	{ .parent = &dpll_core_x2_ck, .rates = div31_1to31_rates },
++	{ .parent = NULL },
++};
++
++static struct clk dpll_core_m6_ck = {
++	.name		= "dpll_core_m6_ck",
++	.parent		= &dpll_core_x2_ck,
++	.init		= &omap2_init_clksel_parent,
++	.clksel		= dpll_core_m6_div,
++	.clksel_reg	= AM33XX_CM_DIV_M6_DPLL_CORE,
++	.clksel_mask	= AM33XX_HSDIVIDER_CLKOUT3_DIV_MASK,
++	.ops		= &clkops_null,
++	.recalc		= &omap2_clksel_recalc,
++	.round_rate	= &omap2_clksel_round_rate,
++	.set_rate	= &omap2_clksel_set_rate,
++};
++
++/* DPLL_MPU */
++static struct dpll_data dpll_mpu_dd = {
++	.mult_div1_reg	= AM33XX_CM_CLKSEL_DPLL_MPU,
++	.clk_bypass	= &sys_clkin_ck,
++	.clk_ref	= &sys_clkin_ck,
++	.control_reg	= AM33XX_CM_CLKMODE_DPLL_MPU,
++	.modes		= (1 << DPLL_LOW_POWER_BYPASS) | (1 << DPLL_LOCKED),
++	.idlest_reg	= AM33XX_CM_IDLEST_DPLL_MPU,
++	.mult_mask	= AM33XX_DPLL_MULT_MASK,
++	.div1_mask	= AM33XX_DPLL_DIV_MASK,
++	.enable_mask	= AM33XX_DPLL_EN_MASK,
++	.idlest_mask	= AM33XX_ST_DPLL_CLK_MASK,
++	.max_multiplier	= AM33XX_MAX_DPLL_MULT,
++	.max_divider	= AM33XX_MAX_DPLL_DIV,
++	.min_divider	= 1,
++};
++
++/* CLKOUT: fdpll/M2 */
++static struct clk dpll_mpu_ck = {
++	.name		= "dpll_mpu_ck",
++	.parent		= &sys_clkin_ck,
++	.dpll_data	= &dpll_mpu_dd,
++	.init		= &omap2_init_dpll_parent,
++	.ops		= &clkops_omap3_noncore_dpll_ops,
++	.recalc		= &omap3_dpll_recalc,
++	.round_rate	= &omap2_dpll_round_rate,
++	.set_rate	= &omap3_noncore_dpll_set_rate,
++};
++
++/*
++ * TODO: Add clksel here (sys_clkin, CORE_CLKOUTM6, PER_CLKOUTM2
++ * and ALT_CLK1/2)
++ */
++static const struct clksel dpll_mpu_m2_div[] = {
++	{ .parent = &dpll_mpu_ck, .rates = div31_1to31_rates },
++	{ .parent = NULL },
++};
++
++static struct clk dpll_mpu_m2_ck = {
++	.name		= "dpll_mpu_m2_ck",
++	.clkdm_name	= "mpu_clkdm",
++	.parent		= &dpll_mpu_ck,
++	.clksel		= dpll_mpu_m2_div,
++	.clksel_reg	= AM33XX_CM_DIV_M2_DPLL_MPU,
++	.clksel_mask	= AM33XX_DPLL_CLKOUT_DIV_MASK,
++	.ops		= &clkops_null,
++	.recalc		= &omap2_clksel_recalc,
++	.round_rate	= &omap2_clksel_round_rate,
++	.set_rate	= &omap2_clksel_set_rate,
++};
++
++/* DPLL_DDR */
++static struct dpll_data dpll_ddr_dd = {
++	.mult_div1_reg	= AM33XX_CM_CLKSEL_DPLL_DDR,
++	.clk_bypass	= &sys_clkin_ck,
++	.clk_ref	= &sys_clkin_ck,
++	.control_reg	= AM33XX_CM_CLKMODE_DPLL_DDR,
++	.modes		= (1 << DPLL_LOW_POWER_BYPASS) | (1 << DPLL_LOCKED),
++	.idlest_reg	= AM33XX_CM_IDLEST_DPLL_DDR,
++	.mult_mask	= AM33XX_DPLL_MULT_MASK,
++	.div1_mask	= AM33XX_DPLL_DIV_MASK,
++	.enable_mask	= AM33XX_DPLL_EN_MASK,
++	.idlest_mask	= AM33XX_ST_DPLL_CLK_MASK,
++	.max_multiplier	= AM33XX_MAX_DPLL_MULT,
++	.max_divider	= AM33XX_MAX_DPLL_DIV,
++	.min_divider	= 1,
++};
++
++/* CLKOUT: fdpll/M2 */
++static struct clk dpll_ddr_ck = {
++	.name		= "dpll_ddr_ck",
++	.parent		= &sys_clkin_ck,
++	.dpll_data	= &dpll_ddr_dd,
++	.init		= &omap2_init_dpll_parent,
++	.ops		= &clkops_null,
++	.recalc		= &omap3_dpll_recalc,
++};
++
++/*
++ * TODO: Add clksel here (sys_clkin, CORE_CLKOUTM6, PER_CLKOUTM2
++ * and ALT_CLK1/2)
++ */
++static const struct clksel dpll_ddr_m2_div[] = {
++	{ .parent = &dpll_ddr_ck, .rates = div31_1to31_rates },
++	{ .parent = NULL },
++};
++
++static struct clk dpll_ddr_m2_ck = {
++	.name		= "dpll_ddr_m2_ck",
++	.parent		= &dpll_ddr_ck,
++	.clksel		= dpll_ddr_m2_div,
++	.clksel_reg	= AM33XX_CM_DIV_M2_DPLL_DDR,
++	.clksel_mask	= AM33XX_DPLL_CLKOUT_DIV_MASK,
++	.ops		= &clkops_null,
++	.recalc		= &omap2_clksel_recalc,
++	.round_rate	= &omap2_clksel_round_rate,
++	.set_rate	= &omap2_clksel_set_rate,
++};
++
++/* emif_fck functional clock */
++static struct clk dpll_ddr_m2_div2_ck = {
++	.name		= "dpll_ddr_m2_div2_ck",
++	.clkdm_name	= "l3_clkdm",
++	.parent		= &dpll_ddr_m2_ck,
++	.ops		= &clkops_null,
++	.fixed_div	= 2,
++	.recalc		= &omap_fixed_divisor_recalc,
++};
++
++/* DPLL_DISP */
++static struct dpll_data dpll_disp_dd = {
++	.mult_div1_reg	= AM33XX_CM_CLKSEL_DPLL_DISP,
++	.clk_bypass	= &sys_clkin_ck,
++	.clk_ref	= &sys_clkin_ck,
++	.control_reg	= AM33XX_CM_CLKMODE_DPLL_DISP,
++	.modes		= (1 << DPLL_LOW_POWER_BYPASS) | (1 << DPLL_LOCKED),
++	.idlest_reg	= AM33XX_CM_IDLEST_DPLL_DISP,
++	.mult_mask	= AM33XX_DPLL_MULT_MASK,
++	.div1_mask	= AM33XX_DPLL_DIV_MASK,
++	.enable_mask	= AM33XX_DPLL_EN_MASK,
++	.idlest_mask	= AM33XX_ST_DPLL_CLK_MASK,
++	.max_multiplier	= AM33XX_MAX_DPLL_MULT,
++	.max_divider	= AM33XX_MAX_DPLL_DIV,
++	.min_divider	= 1,
++};
++
++/* CLKOUT: fdpll/M2 */
++static struct clk dpll_disp_ck = {
++	.name		= "dpll_disp_ck",
++	.parent		= &sys_clkin_ck,
++	.dpll_data	= &dpll_disp_dd,
++	.init		= &omap2_init_dpll_parent,
++	.ops		= &clkops_null,
++	.recalc		= &omap3_dpll_recalc,
++	.round_rate	= &omap2_dpll_round_rate,
++	.set_rate	= &omap3_noncore_dpll_set_rate,
++};
++
++/*
++ * TODO: Add clksel here (sys_clkin, CORE_CLKOUTM6, PER_CLKOUTM2
++ * and ALT_CLK1/2)
++ */
++static const struct clksel dpll_disp_m2_div[] = {
++	{ .parent = &dpll_disp_ck, .rates = div31_1to31_rates },
++	{ .parent = NULL },
++};
++
++static struct clk dpll_disp_m2_ck = {
++	.name		= "dpll_disp_m2_ck",
++	.parent		= &dpll_disp_ck,
++	.clksel		= dpll_disp_m2_div,
++	.clksel_reg	= AM33XX_CM_DIV_M2_DPLL_DISP,
++	.clksel_mask	= AM33XX_DPLL_CLKOUT_DIV_MASK,
++	.ops		= &clkops_null,
++	.recalc		= &omap2_clksel_recalc,
++	.round_rate	= &omap2_clksel_round_rate,
++	.set_rate	= &omap2_clksel_set_rate,
++};
++
++/* DPLL_PER */
++static struct dpll_data dpll_per_dd = {
++	.mult_div1_reg	= AM33XX_CM_CLKSEL_DPLL_PERIPH,
++	.clk_bypass	= &sys_clkin_ck,
++	.clk_ref	= &sys_clkin_ck,
++	.control_reg	= AM33XX_CM_CLKMODE_DPLL_PER,
++	.modes		= (1 << DPLL_LOW_POWER_BYPASS) | (1 << DPLL_LOCKED),
++	.idlest_reg	= AM33XX_CM_IDLEST_DPLL_PER,
++	.mult_mask	= AM33XX_DPLL_MULT_PERIPH_MASK,
++	.div1_mask	= AM33XX_DPLL_PER_DIV_MASK,
++	.enable_mask	= AM33XX_DPLL_EN_MASK,
++	.idlest_mask	= AM33XX_ST_DPLL_CLK_MASK,
++	.max_multiplier	= AM33XX_MAX_DPLL_MULT,
++	.max_divider	= AM33XX_MAX_DPLL_DIV,
++	.min_divider	= 1,
++	.flags		= DPLL_J_TYPE,
++};
++
++/* CLKDCOLDO */
++static struct clk dpll_per_ck = {
++	.name		= "dpll_per_ck",
++	.parent		= &sys_clkin_ck,
++	.dpll_data	= &dpll_per_dd,
++	.init		= &omap2_init_dpll_parent,
++	.ops		= &clkops_null,
++	.recalc		= &omap3_dpll_recalc,
++	.round_rate	= &omap2_dpll_round_rate,
++	.set_rate	= &omap3_noncore_dpll_set_rate,
++};
++
++/* CLKOUT: fdpll/M2 */
++static const struct clksel dpll_per_m2_div[] = {
++	{ .parent = &dpll_per_ck, .rates = div31_1to31_rates },
++	{ .parent = NULL },
++};
++
++static struct clk dpll_per_m2_ck = {
++	.name		= "dpll_per_m2_ck",
++	.parent		= &dpll_per_ck,
++	.clksel		= dpll_per_m2_div,
++	.clksel_reg	= AM33XX_CM_DIV_M2_DPLL_PER,
++	.clksel_mask	= AM33XX_DPLL_CLKOUT_DIV_MASK,
++	.ops		= &clkops_null,
++	.recalc		= &omap2_clksel_recalc,
++	.round_rate	= &omap2_clksel_round_rate,
++	.set_rate	= &omap2_clksel_set_rate,
++};
++
++static struct clk dpll_per_m2_div4_wkupdm_ck = {
++	.name		= "dpll_per_m2_div4_wkupdm_ck",
++	.clkdm_name	= "l4_wkup_clkdm",
++	.parent		= &dpll_per_m2_ck,
++	.fixed_div	= 4,
++	.ops		= &clkops_null,
++	.recalc		= &omap_fixed_divisor_recalc,
++};
++
++static struct clk dpll_per_m2_div4_ck = {
++	.name		= "dpll_per_m2_div4_ck",
++	.clkdm_name	= "l4ls_clkdm",
++	.parent		= &dpll_per_m2_ck,
++	.fixed_div	= 4,
++	.ops		= &clkops_null,
++	.recalc		= &omap_fixed_divisor_recalc,
++};
++
++static struct clk l3_gclk = {
++	.name		= "l3_gclk",
++	.clkdm_name	= "l3_clkdm",
++	.parent		= &dpll_core_m4_ck,
++	.ops		= &clkops_null,
++	.recalc		= &followparent_recalc,
++};
++
++static struct clk dpll_core_m4_div2_ck = {
++	.name		= "dpll_core_m4_div2_ck",
++	.clkdm_name	= "l4_wkup_clkdm",
++	.parent		= &dpll_core_m4_ck,
++	.ops		= &clkops_null,
++	.fixed_div	= 2,
++	.recalc		= &omap_fixed_divisor_recalc,
++};
++
++static struct clk l4_rtc_gclk = {
++	.name		= "l4_rtc_gclk",
++	.parent		= &dpll_core_m4_ck,
++	.ops		= &clkops_null,
++	.fixed_div	= 2,
++	.recalc		= &omap_fixed_divisor_recalc,
++};
++
++static struct clk clk_24mhz = {
++	.name		= "clk_24mhz",
++	.parent		= &dpll_per_m2_ck,
++	.fixed_div	= 8,
++	.ops		= &clkops_null,
++	.recalc		= &omap_fixed_divisor_recalc,
++};
++
++/*
++ * Below clock nodes describes clockdomains derived out
++ * of core clock.
++ */
++static struct clk l4hs_gclk = {
++	.name		= "l4hs_gclk",
++	.clkdm_name	= "l4hs_clkdm",
++	.parent		= &dpll_core_m4_ck,
++	.ops		= &clkops_null,
++	.recalc		= &followparent_recalc,
++};
++
++static struct clk l3s_gclk = {
++	.name		= "l3s_gclk",
++	.clkdm_name	= "l3s_clkdm",
++	.parent		= &dpll_core_m4_div2_ck,
++	.ops		= &clkops_null,
++	.recalc		= &followparent_recalc,
++};
++
++static struct clk l4fw_gclk = {
++	.name		= "l4fw_gclk",
++	.clkdm_name	= "l4fw_clkdm",
++	.parent		= &dpll_core_m4_div2_ck,
++	.ops		= &clkops_null,
++	.recalc		= &followparent_recalc,
++};
++
++static struct clk l4ls_gclk = {
++	.name		= "l4ls_gclk",
++	.clkdm_name	= "l4ls_clkdm",
++	.parent		= &dpll_core_m4_div2_ck,
++	.ops		= &clkops_null,
++	.recalc		= &followparent_recalc,
++};
++
++static struct clk sysclk_div_ck = {
++	.name		= "sysclk_div_ck",
++	.parent		= &dpll_core_m4_ck,
++	.ops		= &clkops_null,
++	.recalc		= &followparent_recalc,
++};
++
++/*
++ * In order to match the clock domain with hwmod clockdomain entry,
++ * separate clock nodes is required for the modules which are
++ * directly getting their funtioncal clock from sys_clkin.
++ */
++static struct clk adc_tsc_fck = {
++	.name		= "adc_tsc_fck",
++	.clkdm_name	= "l4_wkup_clkdm",
++	.parent		= &sys_clkin_ck,
++	.ops		= &clkops_null,
++	.recalc		= &followparent_recalc,
++};
++
++static struct clk dcan0_fck = {
++	.name		= "dcan0_fck",
++	.clkdm_name	= "l4ls_clkdm",
++	.parent		= &sys_clkin_ck,
++	.ops		= &clkops_null,
++	.recalc		= &followparent_recalc,
++};
++
++static struct clk dcan1_fck = {
++	.name		= "dcan1_fck",
++	.clkdm_name	= "l4ls_clkdm",
++	.parent		= &sys_clkin_ck,
++	.ops		= &clkops_null,
++	.recalc		= &followparent_recalc,
++};
++
++static struct clk mcasp0_fck = {
++	.name		= "mcasp0_fck",
++	.clkdm_name	= "l3s_clkdm",
++	.parent		= &sys_clkin_ck,
++	.ops		= &clkops_null,
++	.recalc		= &followparent_recalc,
++};
++
++static struct clk mcasp1_fck = {
++	.name		= "mcasp1_fck",
++	.clkdm_name	= "l3s_clkdm",
++	.parent		= &sys_clkin_ck,
++	.ops		= &clkops_null,
++	.recalc		= &followparent_recalc,
++};
++
++static struct clk smartreflex0_fck = {
++	.name		= "smartreflex0_fck",
++	.clkdm_name	= "l4_wkup_clkdm",
++	.parent		= &sys_clkin_ck,
++	.ops		= &clkops_null,
++	.recalc		= &followparent_recalc,
++};
++
++static struct clk smartreflex1_fck = {
++	.name		= "smartreflex1_fck",
++	.clkdm_name	= "l4_wkup_clkdm",
++	.parent		= &sys_clkin_ck,
++	.ops		= &clkops_null,
++	.recalc		= &followparent_recalc,
++};
++
++/*
++ * Modules clock nodes
 + *
-+ * Disable the PRCM module mode related to the hwmod @oh.
-+ * Return EINVAL if the modulemode is not supported and 0 in case of success.
++ * The following clock leaf nodes are added for the moment because:
++ *
++ *  - hwmod data is not present for these modules, either hwmod
++ *    control is not required or its not populated.
++ *  - Driver code is not yet migrated to use hwmod/runtime pm
++ *  - Modules outside kernel access (to disable them by default)
++ *
++ *     - debugss
++ *     - mmu (gfx domain)
++ *     - cefuse
++ *     - usbotg_fck (its additional clock and not really a modulemode)
++ *     - ieee5000
 + */
-+static int _am33xx_disable_module(struct omap_hwmod *oh)
++static struct clk debugss_ick = {
++	.name		= "debugss_ick",
++	.clkdm_name	= "l3_aon_clkdm",
++	.parent		= &dpll_core_m4_ck,
++	.ops		= &clkops_omap2_dflt,
++	.enable_reg	= AM33XX_CM_WKUP_DEBUGSS_CLKCTRL,
++	.enable_bit	= AM33XX_MODULEMODE_SWCTRL,
++	.recalc		= &followparent_recalc,
++};
++
++static struct clk mmu_fck = {
++	.name		= "mmu_fck",
++	.clkdm_name	= "gfx_l3_clkdm",
++	.parent		= &dpll_core_m4_ck,
++	.ops		= &clkops_omap2_dflt,
++	.enable_reg	= AM33XX_CM_GFX_MMUDATA_CLKCTRL,
++	.enable_bit	= AM33XX_MODULEMODE_SWCTRL,
++	.recalc		= &followparent_recalc,
++};
++
++static struct clk cefuse_fck = {
++	.name		= "cefuse_fck",
++	.clkdm_name	= "l4_cefuse_clkdm",
++	.parent		= &sys_clkin_ck,
++	.enable_reg	= AM33XX_CM_CEFUSE_CEFUSE_CLKCTRL,
++	.enable_bit	= AM33XX_MODULEMODE_SWCTRL,
++	.ops		= &clkops_omap2_dflt,
++	.recalc		= &followparent_recalc,
++};
++
++/*
++ * clkdiv32 is generated from fixed division of 732.4219
++ */
++static struct clk clkdiv32k_ick = {
++	.name		= "clkdiv32k_ick",
++	.clkdm_name	= "clk_24mhz_clkdm",
++	.rate		= 32768,
++	.parent		= &clk_24mhz,
++	.enable_reg	= AM33XX_CM_PER_CLKDIV32K_CLKCTRL,
++	.enable_bit	= AM33XX_MODULEMODE_SWCTRL,
++	.ops		= &clkops_omap2_dflt,
++};
++
++static struct clk usbotg_fck = {
++	.name		= "usbotg_fck",
++	.clkdm_name	= "l3s_clkdm",
++	.parent		= &dpll_per_ck,
++	.enable_reg	= AM33XX_CM_CLKDCOLDO_DPLL_PER,
++	.enable_bit	= AM33XX_ST_DPLL_CLKDCOLDO_SHIFT,
++	.ops		= &clkops_omap2_dflt,
++	.recalc		= &followparent_recalc,
++};
++
++static struct clk ieee5000_fck = {
++	.name		= "ieee5000_fck",
++	.clkdm_name	= "l3s_clkdm",
++	.parent		= &dpll_core_m4_div2_ck,
++	.enable_reg	= AM33XX_CM_PER_IEEE5000_CLKCTRL,
++	.enable_bit	= AM33XX_MODULEMODE_SWCTRL,
++	.ops		= &clkops_omap2_dflt,
++	.recalc		= &followparent_recalc,
++};
++
++/* Timers */
++static const struct clksel timer1_clkmux_sel[] = {
++	{ .parent = &sys_clkin_ck, .rates = div_1_0_rates },
++	{ .parent = &clkdiv32k_ick, .rates = div_1_1_rates },
++	{ .parent = &tclkin_ck, .rates = div_1_2_rates },
++	{ .parent = &clk_rc32k_ck, .rates = div_1_3_rates },
++	{ .parent = &clk_32768_ck, .rates = div_1_4_rates },
++	{ .parent = NULL },
++};
++
++static struct clk timer1_fck = {
++	.name		= "timer1_fck",
++	.clkdm_name	= "l4ls_clkdm",
++	.parent		= &sys_clkin_ck,
++	.init		= &omap2_init_clksel_parent,
++	.clksel		= timer1_clkmux_sel,
++	.clksel_reg	= AM33XX_CLKSEL_TIMER1MS_CLK,
++	.clksel_mask	= AM33XX_CLKSEL_0_2_MASK,
++	.ops		= &clkops_null,
++	.recalc		= &omap2_clksel_recalc,
++};
++
++static const struct clksel timer2_to_7_clk_sel[] = {
++	{ .parent = &tclkin_ck, .rates = div_1_0_rates },
++	{ .parent = &sys_clkin_ck, .rates = div_1_1_rates },
++	{ .parent = &clkdiv32k_ick, .rates = div_1_2_rates },
++	{ .parent = NULL },
++};
++
++static struct clk timer2_fck = {
++	.name		= "timer2_fck",
++	.clkdm_name	= "l4ls_clkdm",
++	.parent		= &sys_clkin_ck,
++	.init		= &omap2_init_clksel_parent,
++	.clksel		= timer2_to_7_clk_sel,
++	.clksel_reg	= AM33XX_CLKSEL_TIMER2_CLK,
++	.clksel_mask	= AM33XX_CLKSEL_0_1_MASK,
++	.ops		= &clkops_null,
++	.recalc		= &omap2_clksel_recalc,
++};
++
++static struct clk timer3_fck = {
++	.name		= "timer3_fck",
++	.clkdm_name	= "l4ls_clkdm",
++	.parent		= &sys_clkin_ck,
++	.init		= &am33xx_init_timer_parent,
++	.clksel		= timer2_to_7_clk_sel,
++	.clksel_reg	= AM33XX_CLKSEL_TIMER3_CLK,
++	.clksel_mask	= AM33XX_CLKSEL_0_1_MASK,
++	.ops		= &clkops_null,
++	.recalc		= &omap2_clksel_recalc,
++};
++
++static struct clk timer4_fck = {
++	.name		= "timer4_fck",
++	.clkdm_name	= "l4ls_clkdm",
++	.parent		= &sys_clkin_ck,
++	.init		= &omap2_init_clksel_parent,
++	.clksel		= timer2_to_7_clk_sel,
++	.clksel_reg	= AM33XX_CLKSEL_TIMER4_CLK,
++	.clksel_mask	= AM33XX_CLKSEL_0_1_MASK,
++	.ops		= &clkops_null,
++	.recalc		= &omap2_clksel_recalc,
++};
++
++static struct clk timer5_fck = {
++	.name		= "timer5_fck",
++	.clkdm_name	= "l4ls_clkdm",
++	.parent		= &sys_clkin_ck,
++	.init		= &omap2_init_clksel_parent,
++	.clksel		= timer2_to_7_clk_sel,
++	.clksel_reg	= AM33XX_CLKSEL_TIMER5_CLK,
++	.clksel_mask	= AM33XX_CLKSEL_0_1_MASK,
++	.ops		= &clkops_null,
++	.recalc		= &omap2_clksel_recalc,
++};
++
++static struct clk timer6_fck = {
++	.name		= "timer6_fck",
++	.clkdm_name	= "l4ls_clkdm",
++	.parent		= &sys_clkin_ck,
++	.init		= &am33xx_init_timer_parent,
++	.clksel		= timer2_to_7_clk_sel,
++	.clksel_reg	= AM33XX_CLKSEL_TIMER6_CLK,
++	.clksel_mask	= AM33XX_CLKSEL_0_1_MASK,
++	.ops		= &clkops_null,
++	.recalc		= &omap2_clksel_recalc,
++};
++
++static struct clk timer7_fck = {
++	.name		= "timer7_fck",
++	.clkdm_name	= "l4ls_clkdm",
++	.parent		= &sys_clkin_ck,
++	.init		= &omap2_init_clksel_parent,
++	.clksel		= timer2_to_7_clk_sel,
++	.clksel_reg	= AM33XX_CLKSEL_TIMER7_CLK,
++	.clksel_mask	= AM33XX_CLKSEL_0_1_MASK,
++	.ops		= &clkops_null,
++	.recalc		= &omap2_clksel_recalc,
++};
++
++static struct clk cpsw_125mhz_gclk = {
++	.name		= "cpsw_125mhz_gclk",
++	.clkdm_name	= "cpsw_125mhz_clkdm",
++	.parent		= &dpll_core_m5_ck,
++	.ops		= &clkops_null,
++	.fixed_div	= 2,
++	.recalc		= &omap_fixed_divisor_recalc,
++};
++
++static const struct clksel cpsw_cpts_rft_clkmux_sel[] = {
++	{ .parent = &dpll_core_m5_ck, .rates = div_1_0_rates },
++	{ .parent = &dpll_core_m4_ck, .rates = div_1_1_rates },
++	{ .parent = NULL },
++};
++
++static struct clk cpsw_cpts_rft_clk = {
++	.name		= "cpsw_cpts_rft_clk",
++	.clkdm_name	= "cpsw_125mhz_clkdm",
++	.parent		= &dpll_core_m5_ck,
++	.clksel		= cpsw_cpts_rft_clkmux_sel,
++	.clksel_reg	= AM33XX_CM_CPTS_RFT_CLKSEL,
++	.clksel_mask	= AM33XX_CLKSEL_0_0_MASK,
++	.ops		= &clkops_null,
++	.recalc		= &followparent_recalc,
++};
++
++/* gpio */
++static const struct clksel gpio0_dbclk_mux_sel[] = {
++	{ .parent = &clk_rc32k_ck, .rates = div_1_0_rates },
++	{ .parent = &clk_32768_ck, .rates = div_1_1_rates },
++	{ .parent = &clkdiv32k_ick, .rates = div_1_2_rates },
++	{ .parent = NULL },
++};
++
++static struct clk gpio0_dbclk_mux_ck = {
++	.name		= "gpio0_dbclk_mux_ck",
++	.clkdm_name	= "l4_wkup_clkdm",
++	.parent		= &clk_rc32k_ck,
++	.init		= &omap2_init_clksel_parent,
++	.clksel		= gpio0_dbclk_mux_sel,
++	.clksel_reg	= AM33XX_CLKSEL_GPIO0_DBCLK,
++	.clksel_mask	= AM33XX_CLKSEL_0_1_MASK,
++	.ops		= &clkops_null,
++	.recalc		= &omap2_clksel_recalc,
++};
++
++static struct clk gpio0_dbclk = {
++	.name		= "gpio0_dbclk",
++	.clkdm_name	= "l4_wkup_clkdm",
++	.parent		= &gpio0_dbclk_mux_ck,
++	.enable_reg	= AM33XX_CM_WKUP_GPIO0_CLKCTRL,
++	.enable_bit	= AM33XX_OPTFCLKEN_GPIO0_GDBCLK_SHIFT,
++	.ops		= &clkops_omap2_dflt,
++	.recalc		= &followparent_recalc,
++};
++
++static struct clk gpio1_dbclk = {
++	.name		= "gpio1_dbclk",
++	.clkdm_name	= "l4ls_clkdm",
++	.parent		= &clkdiv32k_ick,
++	.enable_reg	= AM33XX_CM_PER_GPIO1_CLKCTRL,
++	.enable_bit	= AM33XX_OPTFCLKEN_GPIO_1_GDBCLK_SHIFT,
++	.ops		= &clkops_omap2_dflt,
++	.recalc		= &followparent_recalc,
++};
++
++static struct clk gpio2_dbclk = {
++	.name		= "gpio2_dbclk",
++	.clkdm_name	= "l4ls_clkdm",
++	.parent		= &clkdiv32k_ick,
++	.enable_reg	= AM33XX_CM_PER_GPIO2_CLKCTRL,
++	.enable_bit	= AM33XX_OPTFCLKEN_GPIO_2_GDBCLK_SHIFT,
++	.ops		= &clkops_omap2_dflt,
++	.recalc		= &followparent_recalc,
++};
++
++static struct clk gpio3_dbclk = {
++	.name		= "gpio3_dbclk",
++	.clkdm_name	= "l4ls_clkdm",
++	.parent		= &clkdiv32k_ick,
++	.enable_reg	= AM33XX_CM_PER_GPIO3_CLKCTRL,
++	.enable_bit	= AM33XX_OPTFCLKEN_GPIO_3_GDBCLK_SHIFT,
++	.ops		= &clkops_omap2_dflt,
++	.recalc		= &followparent_recalc,
++};
++
++static const struct clksel pruss_ocp_clk_mux_sel[] = {
++	{ .parent = &l3_gclk, .rates = div_1_0_rates },
++	{ .parent = &dpll_disp_m2_ck, .rates = div_1_1_rates },
++	{ .parent = NULL },
++};
++
++static struct clk pruss_ocp_gclk = {
++	.name		= "pruss_ocp_gclk",
++	.clkdm_name	= "pruss_ocp_clkdm",
++	.parent		= &l3_gclk,
++	.init		= &omap2_init_clksel_parent,
++	.clksel		= pruss_ocp_clk_mux_sel,
++	.clksel_reg	= AM33XX_CLKSEL_PRUSS_OCP_CLK,
++	.clksel_mask	= AM33XX_CLKSEL_0_0_MASK,
++	.ops		= &clkops_null,
++	.recalc		= &followparent_recalc,
++};
++
++static const struct clksel lcd_clk_mux_sel[] = {
++	{ .parent = &dpll_disp_m2_ck, .rates = div_1_0_rates },
++	{ .parent = &dpll_core_m5_ck, .rates = div_1_1_rates },
++	{ .parent = &dpll_per_m2_ck, .rates = div_1_2_rates },
++	{ .parent = NULL },
++};
++
++static struct clk lcd_gclk = {
++	.name		= "lcd_gclk",
++	.clkdm_name	= "lcdc_clkdm",
++	.parent		= &dpll_disp_m2_ck,
++	.init		= &omap2_init_clksel_parent,
++	.clksel		= lcd_clk_mux_sel,
++	.clksel_reg	= AM33XX_CLKSEL_LCDC_PIXEL_CLK,
++	.clksel_mask	= AM33XX_CLKSEL_0_1_MASK,
++	.ops		= &clkops_null,
++	.recalc		= &followparent_recalc,
++};
++
++static struct clk mmc_clk = {
++	.name		= "mmc_clk",
++	.clkdm_name	= "l4ls_clkdm",
++	.parent		= &dpll_per_m2_ck,
++	.ops		= &clkops_null,
++	.fixed_div	= 2,
++	.recalc		= &omap_fixed_divisor_recalc,
++};
++
++static struct clk mmc2_fck = {
++	.name		= "mmc2_fck",
++	.clkdm_name	= "l3s_clkdm",
++	.parent		= &mmc_clk,
++	.ops		= &clkops_null,
++	.recalc		= &followparent_recalc,
++};
++
++static const struct clksel gfx_clksel_sel[] = {
++	{ .parent = &dpll_core_m4_ck, .rates = div_1_0_rates },
++	{ .parent = &dpll_per_m2_ck, .rates = div_1_1_rates },
++	{ .parent = NULL },
++};
++
++static struct clk gfx_fclk_clksel_ck = {
++	.name		= "gfx_fclk_clksel_ck",
++	.parent		= &dpll_core_m4_ck,
++	.clksel		= gfx_clksel_sel,
++	.ops		= &clkops_null,
++	.clksel_reg	= AM33XX_CLKSEL_GFX_FCLK,
++	.clksel_mask	= AM33XX_CLKSEL_GFX_FCLK_MASK,
++	.recalc		= &omap2_clksel_recalc,
++};
++
++static const struct clksel_rate div_1_0_2_1_rates[] = {
++	{ .div = 1, .val = 0, .flags = RATE_IN_AM33XX },
++	{ .div = 2, .val = 1, .flags = RATE_IN_AM33XX },
++	{ .div = 0 },
++};
++
++static const struct clksel gfx_div_sel[] = {
++	{ .parent = &gfx_fclk_clksel_ck, .rates = div_1_0_2_1_rates },
++	{ .parent = NULL },
++};
++
++static struct clk gfx_fck_div_ck = {
++	.name		= "gfx_fck_div_ck",
++	.clkdm_name	= "gfx_l3_clkdm",
++	.parent		= &gfx_fclk_clksel_ck,
++	.init		= &omap2_init_clksel_parent,
++	.clksel		= gfx_div_sel,
++	.clksel_reg	= AM33XX_CLKSEL_GFX_FCLK,
++	.clksel_mask	= AM33XX_CLKSEL_0_0_MASK,
++	.recalc		= &omap2_clksel_recalc,
++	.round_rate	= &omap2_clksel_round_rate,
++	.set_rate	= &omap2_clksel_set_rate,
++	.ops		= &clkops_null,
++};
++
++static const struct clksel sysclkout_pre_sel[] = {
++	{ .parent = &clk_32768_ck, .rates = div_1_0_rates },
++	{ .parent = &l3_gclk, .rates = div_1_1_rates },
++	{ .parent = &dpll_ddr_m2_ck, .rates = div_1_2_rates },
++	{ .parent = &dpll_per_m2_ck, .rates = div_1_3_rates },
++	{ .parent = &lcd_gclk, .rates = div_1_4_rates },
++	{ .parent = NULL },
++};
++
++static struct clk sysclkout_pre_ck = {
++	.name		= "sysclkout_pre_ck",
++	.parent		= &clk_32768_ck,
++	.init		= &omap2_init_clksel_parent,
++	.clksel		= sysclkout_pre_sel,
++	.clksel_reg	= AM33XX_CM_CLKOUT_CTRL,
++	.clksel_mask	= AM33XX_CLKOUT2SOURCE_MASK,
++	.ops		= &clkops_null,
++	.recalc		= &omap2_clksel_recalc,
++};
++
++/* Divide by 8 clock rates with default clock is 1/1*/
++static const struct clksel_rate div8_rates[] = {
++	{ .div = 1, .val = 0, .flags = RATE_IN_AM33XX },
++	{ .div = 2, .val = 1, .flags = RATE_IN_AM33XX },
++	{ .div = 3, .val = 2, .flags = RATE_IN_AM33XX },
++	{ .div = 4, .val = 3, .flags = RATE_IN_AM33XX },
++	{ .div = 5, .val = 4, .flags = RATE_IN_AM33XX },
++	{ .div = 6, .val = 5, .flags = RATE_IN_AM33XX },
++	{ .div = 7, .val = 6, .flags = RATE_IN_AM33XX },
++	{ .div = 8, .val = 7, .flags = RATE_IN_AM33XX },
++	{ .div = 0 },
++};
++
++static const struct clksel clkout2_div[] = {
++	{ .parent = &sysclkout_pre_ck, .rates = div8_rates },
++	{ .parent = NULL },
++};
++
++static struct clk clkout2_ck = {
++	.name		= "clkout2_ck",
++	.parent		= &sysclkout_pre_ck,
++	.ops		= &clkops_omap2_dflt,
++	.clksel		= clkout2_div,
++	.clksel_reg	= AM33XX_CM_CLKOUT_CTRL,
++	.clksel_mask	= AM33XX_CLKOUT2DIV_MASK,
++	.enable_reg	= AM33XX_CM_CLKOUT_CTRL,
++	.enable_bit	= AM33XX_CLKOUT2EN_SHIFT,
++	.recalc		= &omap2_clksel_recalc,
++	.round_rate	= &omap2_clksel_round_rate,
++	.set_rate	= &omap2_clksel_set_rate,
++};
++
++static const struct clksel wdt_clkmux_sel[] = {
++	{ .parent = &clk_rc32k_ck, .rates = div_1_0_rates },
++	{ .parent = &clkdiv32k_ick, .rates = div_1_1_rates },
++	{ .parent = NULL },
++};
++
++static struct clk wdt1_fck = {
++	.name		= "wdt1_fck",
++	.clkdm_name	= "l4_wkup_clkdm",
++	.parent		= &clk_rc32k_ck,
++	.init		= &omap2_init_clksel_parent,
++	.clksel		= wdt_clkmux_sel,
++	.clksel_reg	= AM33XX_CLKSEL_WDT1_CLK,
++	.clksel_mask	= AM33XX_CLKSEL_0_1_MASK,
++	.ops		= &clkops_null,
++	.recalc		= &omap2_clksel_recalc,
++};
++
++/*
++ * clkdev
++ */
++static struct omap_clk am33xx_clks[] = {
++	CLK(NULL,	"clk_32768_ck",		&clk_32768_ck,	CK_AM33XX),
++	CLK(NULL,	"clk_rc32k_ck",		&clk_rc32k_ck,	CK_AM33XX),
++	CLK(NULL,	"virt_19200000_ck",	&virt_19200000_ck,	CK_AM33XX),
++	CLK(NULL,	"virt_24000000_ck",	&virt_24000000_ck,	CK_AM33XX),
++	CLK(NULL,	"virt_25000000_ck",	&virt_25000000_ck,	CK_AM33XX),
++	CLK(NULL,	"virt_26000000_ck",	&virt_26000000_ck,	CK_AM33XX),
++	CLK(NULL,	"sys_clkin_ck",		&sys_clkin_ck,	CK_AM33XX),
++	CLK(NULL,	"tclkin_ck",		&tclkin_ck,	CK_AM33XX),
++	CLK(NULL,	"dpll_core_ck",		&dpll_core_ck,	CK_AM33XX),
++	CLK(NULL,	"dpll_core_x2_ck",	&dpll_core_x2_ck,	CK_AM33XX),
++	CLK(NULL,	"dpll_core_m4_ck",	&dpll_core_m4_ck,	CK_AM33XX),
++	CLK(NULL,	"dpll_core_m5_ck",	&dpll_core_m5_ck,	CK_AM33XX),
++	CLK(NULL,	"dpll_core_m6_ck",	&dpll_core_m6_ck,	CK_AM33XX),
++	CLK(NULL,	"dpll_mpu_ck",		&dpll_mpu_ck,	CK_AM33XX),
++	CLK(NULL,	"dpll_mpu_m2_ck",	&dpll_mpu_m2_ck,	CK_AM33XX),
++	CLK(NULL,	"dpll_ddr_ck",		&dpll_ddr_ck,	CK_AM33XX),
++	CLK(NULL,	"dpll_ddr_m2_ck",	&dpll_ddr_m2_ck,	CK_AM33XX),
++	CLK(NULL,	"dpll_ddr_m2_div2_ck",	&dpll_ddr_m2_div2_ck,	CK_AM33XX),
++	CLK(NULL,	"dpll_disp_ck",		&dpll_disp_ck,	CK_AM33XX),
++	CLK(NULL,	"dpll_disp_m2_ck",	&dpll_disp_m2_ck,	CK_AM33XX),
++	CLK(NULL,	"dpll_per_ck",		&dpll_per_ck,	CK_AM33XX),
++	CLK(NULL,	"dpll_per_m2_ck",	&dpll_per_m2_ck,	CK_AM33XX),
++	CLK(NULL,	"dpll_per_m2_div4_wkupdm_ck",	&dpll_per_m2_div4_wkupdm_ck,	CK_AM33XX),
++	CLK(NULL,	"dpll_per_m2_div4_ck",	&dpll_per_m2_div4_ck,	CK_AM33XX),
++	CLK(NULL,	"adc_tsc_fck",		&adc_tsc_fck,	CK_AM33XX),
++	CLK(NULL,	"cefuse_fck",		&cefuse_fck,	CK_AM33XX),
++	CLK(NULL,	"clkdiv32k_ick",	&clkdiv32k_ick,	CK_AM33XX),
++	CLK(NULL,	"dcan0_fck",		&dcan0_fck,	CK_AM33XX),
++	CLK(NULL,	"dcan1_fck",		&dcan1_fck,	CK_AM33XX),
++	CLK(NULL,	"debugss_ick",		&debugss_ick,	CK_AM33XX),
++	CLK(NULL,	"pruss_ocp_gclk",	&pruss_ocp_gclk,	CK_AM33XX),
++	CLK("davinci-mcasp.0",  NULL,           &mcasp0_fck,    CK_AM33XX),
++	CLK("davinci-mcasp.1",  NULL,           &mcasp1_fck,    CK_AM33XX),
++	CLK("NULL",	"mmc2_fck",		&mmc2_fck,	CK_AM33XX),
++	CLK(NULL,	"mmu_fck",		&mmu_fck,	CK_AM33XX),
++	CLK(NULL,	"smartreflex0_fck",	&smartreflex0_fck,	CK_AM33XX),
++	CLK(NULL,	"smartreflex1_fck",	&smartreflex1_fck,	CK_AM33XX),
++	CLK(NULL,	"gpt1_fck",		&timer1_fck,	CK_AM33XX),
++	CLK(NULL,	"gpt2_fck",		&timer2_fck,	CK_AM33XX),
++	CLK(NULL,	"gpt3_fck",		&timer3_fck,	CK_AM33XX),
++	CLK(NULL,	"gpt4_fck",		&timer4_fck,	CK_AM33XX),
++	CLK(NULL,	"gpt5_fck",		&timer5_fck,	CK_AM33XX),
++	CLK(NULL,	"gpt6_fck",		&timer6_fck,	CK_AM33XX),
++	CLK(NULL,	"gpt7_fck",		&timer7_fck,	CK_AM33XX),
++	CLK(NULL,	"usbotg_fck",		&usbotg_fck,	CK_AM33XX),
++	CLK(NULL,	"ieee5000_fck",		&ieee5000_fck,	CK_AM33XX),
++	CLK(NULL,	"wdt1_fck",		&wdt1_fck,	CK_AM33XX),
++	CLK(NULL,	"l4_rtc_gclk",		&l4_rtc_gclk,	CK_AM33XX),
++	CLK(NULL,	"l3_gclk",		&l3_gclk,	CK_AM33XX),
++	CLK(NULL,	"dpll_core_m4_div2_ck",	&dpll_core_m4_div2_ck,	CK_AM33XX),
++	CLK(NULL,	"l4hs_gclk",		&l4hs_gclk,	CK_AM33XX),
++	CLK(NULL,	"l3s_gclk",		&l3s_gclk,	CK_AM33XX),
++	CLK(NULL,	"l4fw_gclk",		&l4fw_gclk,	CK_AM33XX),
++	CLK(NULL,	"l4ls_gclk",		&l4ls_gclk,	CK_AM33XX),
++	CLK(NULL,	"clk_24mhz",		&clk_24mhz,	CK_AM33XX),
++	CLK(NULL,	"sysclk_div_ck",	&sysclk_div_ck,	CK_AM33XX),
++	CLK(NULL,	"cpsw_125mhz_gclk",	&cpsw_125mhz_gclk,	CK_AM33XX),
++	CLK(NULL,	"cpsw_cpts_rft_clk",	&cpsw_cpts_rft_clk,	CK_AM33XX),
++	CLK(NULL,	"gpio0_dbclk_mux_ck",	&gpio0_dbclk_mux_ck,	CK_AM33XX),
++	CLK(NULL,	"gpio0_dbclk",		&gpio0_dbclk,	CK_AM33XX),
++	CLK(NULL,	"gpio1_dbclk",		&gpio1_dbclk,	CK_AM33XX),
++	CLK(NULL,	"gpio2_dbclk",		&gpio2_dbclk,	CK_AM33XX),
++	CLK(NULL,	"gpio3_dbclk",		&gpio3_dbclk,	CK_AM33XX),
++	CLK(NULL,	"lcd_gclk",		&lcd_gclk,	CK_AM33XX),
++	CLK(NULL,	"mmc_clk",		&mmc_clk,	CK_AM33XX),
++	CLK(NULL,	"gfx_fclk_clksel_ck",	&gfx_fclk_clksel_ck,	CK_AM33XX),
++	CLK(NULL,	"gfx_fck_div_ck",	&gfx_fck_div_ck,	CK_AM33XX),
++	CLK(NULL,	"sysclkout_pre_ck",	&sysclkout_pre_ck,	CK_AM33XX),
++	CLK(NULL,	"clkout2_ck",		&clkout2_ck,	CK_AM33XX),
++};
++
++int __init am33xx_clk_init(void)
 +{
-+	int v;
++	struct omap_clk *c;
++	u32 cpu_clkflg;
 +
-+	if (!oh->clkdm || !oh->prcm.omap4.modulemode)
-+		return -EINVAL;
++	if (soc_is_am33xx()) {
++		cpu_mask = RATE_IN_AM33XX;
++		cpu_clkflg = CK_AM33XX;
++	}
 +
-+	pr_debug("omap_hwmod: %s: %s\n", oh->name, __func__);
++	clk_init(&omap2_clk_functions);
 +
-+	am33xx_cm_module_disable(oh->clkdm->cm_inst,
-+				    oh->clkdm->clkdm_offs,
-+				    oh->prcm.omap4.clkctrl_offs);
++	for (c = am33xx_clks; c < am33xx_clks + ARRAY_SIZE(am33xx_clks); c++)
++		clk_preinit(c->lk.clk);
 +
-+	if (_are_any_hardreset_lines_asserted(oh))
-+		return 0;
++	for (c = am33xx_clks; c < am33xx_clks + ARRAY_SIZE(am33xx_clks); c++) {
++		if (c->cpu & cpu_clkflg) {
++			clkdev_add(&c->lk);
++			clk_register(c->lk.clk);
++			omap2_init_clk_clkdm(c->lk.clk);
++		}
++	}
 +
-+	v = _am33xx_wait_target_disable(oh);
-+	if (v)
-+		pr_warn("omap_hwmod: %s: _wait_target_disable failed\n",
-+			oh->name);
++	recalculate_root_clocks();
++
++	/*
++	 * Only enable those clocks we will need, let the drivers
++	 * enable other clocks as necessary
++	 */
++	clk_enable_init_clocks();
 +
 +	return 0;
 +}
-+
-+/**
-  * _ocp_softreset - reset an omap_hwmod via the OCP_SYSCONFIG bit
-  * @oh: struct omap_hwmod *
-  *
-@@ -2448,6 +2527,33 @@ static int _omap4_wait_target_ready(struct omap_hwmod *oh)
+diff --git a/arch/arm/mach-omap2/io.c b/arch/arm/mach-omap2/io.c
+index 7acfb76..cf30eda 100644
+--- a/arch/arm/mach-omap2/io.c
++++ b/arch/arm/mach-omap2/io.c
+@@ -38,6 +38,7 @@
+ #include "powerdomain.h"
+ #include "clockdomain.h"
+ #include "common.h"
++#include "clock.h"
+ #include "clock2xxx.h"
+ #include "clock3xxx.h"
+ #include "clock44xx.h"
+@@ -431,6 +432,7 @@ void __init am33xx_init_early(void)
+ 	am33xx_voltagedomains_init();
+ 	am33xx_powerdomains_init();
+ 	am33xx_clockdomains_init();
++	am33xx_clk_init();
  }
+ #endif
 
- /**
-+ * _am33xx_wait_target_ready - wait for a module to leave slave idle
-+ * @oh: struct omap_hwmod *
-+ *
-+ * Wait for a module @oh to leave slave idle.  Returns 0 if the module
-+ * does not have an IDLEST bit or if the module successfully leaves
-+ * slave idle; otherwise, pass along the return value of the
-+ * appropriate *_cm*_wait_module_ready() function.
-+ */
-+static int _am33xx_wait_target_ready(struct omap_hwmod *oh)
-+{
-+	if (!oh || !oh->clkdm)
-+		return -EINVAL;
-+
-+	if (oh->flags & HWMOD_NO_IDLEST)
-+		return 0;
-+
-+	if (!_find_mpu_rt_port(oh))
-+		return 0;
-+
-+	/* XXX check module SIDLEMODE, hardreset status */
-+
-+	return am33xx_cm_wait_module_ready(oh->clkdm->cm_inst,
-+					      oh->clkdm->clkdm_offs,
-+					      oh->prcm.omap4.clkctrl_offs);
-+}
-+
-+/**
-  * _omap2_assert_hardreset - call OMAP2 PRM hardreset fn with hwmod args
-  * @oh: struct omap_hwmod * to assert hardreset
-  * @ohri: hardreset line data
-@@ -2570,6 +2676,72 @@ static int _omap4_is_hardreset_asserted(struct omap_hwmod *oh,
- 				oh->prcm.omap4.rstctrl_offs);
- }
+diff --git a/arch/arm/plat-omap/include/plat/clkdev_omap.h b/arch/arm/plat-omap/include/plat/clkdev_omap.h
+index d0ed8c4..025d85a 100644
+--- a/arch/arm/plat-omap/include/plat/clkdev_omap.h
++++ b/arch/arm/plat-omap/include/plat/clkdev_omap.h
+@@ -39,6 +39,7 @@ struct omap_clk {
+ #define CK_443X		(1 << 11)
+ #define CK_TI816X	(1 << 12)
+ #define CK_446X		(1 << 13)
++#define CK_AM33XX	(1 << 14)	/* AM33xx specific clocks */
+ #define CK_1710		(1 << 15)	/* 1710 extra for rate selection */
 
-+/**
-+ * _am33xx_assert_hardreset - call AM33XX PRM hardreset fn with hwmod args
-+ * @oh: struct omap_hwmod * to assert hardreset
-+ * @ohri: hardreset line data
-+ *
-+ * Call am33xx_prminst_assert_hardreset() with parameters extracted
-+ * from the hwmod @oh and the hardreset line data @ohri.  Only
-+ * intended for use as an soc_ops function pointer.  Passes along the
-+ * return value from am33xx_prminst_assert_hardreset().  XXX This
-+ * function is scheduled for removal when the PRM code is moved into
-+ * drivers/.
-+ */
-+static int _am33xx_assert_hardreset(struct omap_hwmod *oh,
-+				   struct omap_hwmod_rst_info *ohri)
-+
-+{
-+	return am33xx_prm_assert_hardreset(ohri->rst_shift,
-+				oh->clkdm->pwrdm.ptr->prcm_offs,
-+				oh->prcm.omap4.rstctrl_offs);
-+}
-+
-+/**
-+ * _am33xx_deassert_hardreset - call AM33XX PRM hardreset fn with hwmod args
-+ * @oh: struct omap_hwmod * to deassert hardreset
-+ * @ohri: hardreset line data
-+ *
-+ * Call am33xx_prminst_deassert_hardreset() with parameters extracted
-+ * from the hwmod @oh and the hardreset line data @ohri.  Only
-+ * intended for use as an soc_ops function pointer.  Passes along the
-+ * return value from am33xx_prminst_deassert_hardreset().  XXX This
-+ * function is scheduled for removal when the PRM code is moved into
-+ * drivers/.
-+ */
-+static int _am33xx_deassert_hardreset(struct omap_hwmod *oh,
-+				     struct omap_hwmod_rst_info *ohri)
-+{
-+	if (ohri->st_shift)
-+		pr_err("omap_hwmod: %s: %s: hwmod data error: OMAP4 does not support st_shift\n",
-+		       oh->name, ohri->name);
-+
-+	return am33xx_prm_deassert_hardreset(ohri->rst_shift,
-+				oh->clkdm->pwrdm.ptr->prcm_offs,
-+				oh->prcm.omap4.rstctrl_offs,
-+				oh->prcm.omap4.rstst_offs);
-+}
-+
-+/**
-+ * _am33xx_is_hardreset_asserted - call AM33XX PRM hardreset fn with hwmod args
-+ * @oh: struct omap_hwmod * to test hardreset
-+ * @ohri: hardreset line data
-+ *
-+ * Call am33xx_prminst_is_hardreset_asserted() with parameters
-+ * extracted from the hwmod @oh and the hardreset line data @ohri.
-+ * Only intended for use as an soc_ops function pointer.  Passes along
-+ * the return value from am33xx_prminst_is_hardreset_asserted().  XXX
-+ * This function is scheduled for removal when the PRM code is moved
-+ * into drivers/.
-+ */
-+static int _am33xx_is_hardreset_asserted(struct omap_hwmod *oh,
-+					struct omap_hwmod_rst_info *ohri)
-+{
-+	return am33xx_prm_is_hardreset_asserted(ohri->rst_shift,
-+				oh->clkdm->pwrdm.ptr->prcm_offs,
-+				oh->prcm.omap4.rstctrl_offs);
-+}
-+
- /* Public functions */
 
- u32 omap_hwmod_read(struct omap_hwmod *oh, u16 reg_offs)
-@@ -3569,6 +3741,14 @@ void __init omap_hwmod_init(void)
- 		soc_ops.deassert_hardreset = _omap4_deassert_hardreset;
- 		soc_ops.is_hardreset_asserted = _omap4_is_hardreset_asserted;
- 		soc_ops.init_clkdm = _init_clkdm;
-+	} else if (soc_is_am33xx()) {
-+		soc_ops.enable_module = _am33xx_enable_module;
-+		soc_ops.disable_module = _am33xx_disable_module;
-+		soc_ops.wait_target_ready = _am33xx_wait_target_ready;
-+		soc_ops.assert_hardreset = _am33xx_assert_hardreset;
-+		soc_ops.deassert_hardreset = _am33xx_deassert_hardreset;
-+		soc_ops.is_hardreset_asserted = _am33xx_is_hardreset_asserted;
-+		soc_ops.init_clkdm = _init_clkdm;
- 	} else {
- 		WARN(1, "omap_hwmod: unknown SoC type\n");
- 	}
 --
 1.7.0.4
 
