@@ -1,90 +1,72 @@
-From: "Menon, Nishanth" <nm@ti.com>
-Subject: Re: [PATCHv2 09/19] ARM: OMAP4: PM: add errata support
-Date: Tue, 29 May 2012 15:10:57 -0500
-Message-ID: <CAOMWX4dmt2jUOpkgFC=o5oez3CfUVzF_0NTkm23qrNQDDpmo9w@mail.gmail.com>
-References: <1336990730-26892-1-git-send-email-t-kristo@ti.com> <1336990730-26892-10-git-send-email-t-kristo@ti.com>
+From: Kevin Hilman <khilman@ti.com>
+Subject: Re: [PATCHv2 10/19] ARM: OMAP4: PM: Work-around for ROM code BUG of IVAHD/TESLA
+Date: Tue, 29 May 2012 13:13:18 -0700
+Message-ID: <87y5oag2zl.fsf@ti.com>
+References: <1336990730-26892-1-git-send-email-t-kristo@ti.com>
+	<1336990730-26892-11-git-send-email-t-kristo@ti.com>
+	<87zk976827.fsf@ti.com> <4FB43329.50505@ti.com>
+	<1337591500.28274.5.camel@sokoban>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aog101.obsmtp.com ([74.125.149.67]:42140 "EHLO
-	na3sys009aog101.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755824Ab2E2ULV convert rfc822-to-8bit
-	(ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Tue, 29 May 2012 16:11:21 -0400
-Received: by wgbdq10 with SMTP id dq10so3093114wgb.27
-        for <linux-omap@vger.kernel.org>; Tue, 29 May 2012 13:11:18 -0700 (PDT)
-In-Reply-To: <1336990730-26892-10-git-send-email-t-kristo@ti.com>
+Received: from na3sys009aob106.obsmtp.com ([74.125.149.76]:46834 "EHLO
+	na3sys009aog106.obsmtp.com" rhost-flags-OK-OK-OK-FAIL)
+	by vger.kernel.org with ESMTP id S1754531Ab2E2UNU (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>);
+	Tue, 29 May 2012 16:13:20 -0400
+Received: by dadm1 with SMTP id m1so6249231dad.8
+        for <linux-omap@vger.kernel.org>; Tue, 29 May 2012 13:13:19 -0700 (PDT)
+In-Reply-To: <1337591500.28274.5.camel@sokoban> (Tero Kristo's message of
+	"Mon, 21 May 2012 12:11:40 +0300")
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Tero Kristo <t-kristo@ti.com>
-Cc: linux-omap@vger.kernel.org, khilman@ti.com, paul@pwsan.com, linux-arm-kernel@lists.infradead.org
+To: t-kristo@ti.com
+Cc: paul@pwsan.com, linux-omap@vger.kernel.org, Santosh Shilimkar <santosh.shilimkar@ti.com>, linux-arm-kernel@lists.infradead.org, Rajendra Nayak <rnayak@ti.com>
 
-On Mon, May 14, 2012 at 5:18 AM, Tero Kristo <t-kristo@ti.com> wrote:
-> Added similar PM errata flag support as omap3 has. A few errata flags
-> will be added in subsequent patches.
+Tero Kristo <t-kristo@ti.com> writes:
 
-Considering that we might have erratas for future SoCs as well,
-should'nt we just
-set up a common errata flag for all SoCs and since we have i123 numbers=
-, would
-it help being able to reuse errata flags cross SoC generations (if we n=
-eed to)?
+> On Wed, 2012-05-16 at 16:07 -0700, Kevin Hilman wrote:
+>> On 05/16/2012 04:05 PM, Kevin Hilman wrote:
+>> > Tero Kristo<t-kristo@ti.com>  writes:
+>> >
+>> >> From: Santosh Shilimkar<santosh.shilimkar@ti.com>
+>> >>
+>> >> The ROM BUG is when MPU Domain OFF wake up sequence that can compromise
+>> >> IVA and Tesla execution.
+>> >>
+>> >> At wakeup from MPU OFF on HS device only (not GP device), when
+>> >> restoring the Secure RAM, the ROM Code reconfigures the clocks the
+>> >> same way it is done at Cold Reset.
+>> >
+>> > Ouch.
+>> >
+>> >> The IVAHD Clocks and Power Domain settings are:
+>> >> 	IVAHD_CM2 IVAHD_CLKCTRL_MODULE_MODE = DISABLE
+>> >> 	IVAHD_CM2 SL2_CLKCTRL_MODULE_MODE = DISABLE
+>> >> 	IVAHD_CM2 SL2_CLKSTCTRL_CLKTRCTRL = HW_AUTO
+>> >> 	IVAHD_PRM IVAHD_PWRSTCTRL_POWERSTATE = OFF
+>> >> The TESLA Clocks and Power Domain settings are:
+>> >> 	TESLA_CM1 TESLA_CLKCTRL_MODULE_MODE = DISABLE
+>> >> 	TESLA_CM1 TESLA_CLKSTCTRL_CLKTRCTRL = HW_AUTO
+>> >> 	TESLA_PRM TESLA_PWRSTCTRL_POWERSTATE = OFF
+>> >>
+>> >> This patch fixes the low power OFF mode code so that the these
+>> >> registers are saved and restore across MPU OFF state.
+>> >>
+>> >> Also because of this limitation, MPU OFF alone is not targeted without
+>> >> device OFF to avoid IVAHD and TESLA execution impact
+>> >
+>> > I don't see where this restriction is implemented.
+>> >
+>> > And, can this be hooked into cluster PM notifiers.
+>> 
+>> Especially since this only effects a subset of revisions, installing the 
+>> notifier only on effected revisions also removes any overhead on working 
+>> revisions.
+>
+> Where would you recommend adding the notifiers to? Just to the same file
+> or...? pm44xx.c?
 
-> Signed-off-by: Tero Kristo <t-kristo@ti.com>
-> ---
-> =A0arch/arm/mach-omap2/pm.h =A0 =A0 | =A0 =A07 +++++++
-> =A0arch/arm/mach-omap2/pm44xx.c | =A0 =A01 +
-> =A02 files changed, 8 insertions(+), 0 deletions(-)
->
-> diff --git a/arch/arm/mach-omap2/pm.h b/arch/arm/mach-omap2/pm.h
-> index ce1e27f..e53ee3c 100644
-> --- a/arch/arm/mach-omap2/pm.h
-> +++ b/arch/arm/mach-omap2/pm.h
-> @@ -130,6 +130,13 @@ extern void enable_omap3630_toggle_l2_on_restore=
-(void);
-> =A0static inline void enable_omap3630_toggle_l2_on_restore(void) { }
-> =A0#endif =A0 =A0 =A0 =A0 /* defined(CONFIG_PM) && defined(CONFIG_ARC=
-H_OMAP3) */
->
-> +#if defined(CONFIG_PM) && defined(CONFIG_ARCH_OMAP4)
-> +extern u16 pm44xx_errata;
-> +#define IS_PM44XX_ERRATUM(id) =A0 =A0 =A0 =A0 =A0(pm44xx_errata & (i=
-d))
-> +#else
-> +#define IS_PM44XX_ERRATUM(id) =A0 =A0 =A0 =A0 =A00
-> +#endif
-> +
-> =A0#ifdef CONFIG_OMAP_SMARTREFLEX
-> =A0extern int omap_devinit_smartreflex(void);
-> =A0extern void omap_enable_smartreflex_on_init(void);
-> diff --git a/arch/arm/mach-omap2/pm44xx.c b/arch/arm/mach-omap2/pm44x=
-x.c
-> index 8f0ec56..8238097 100644
-> --- a/arch/arm/mach-omap2/pm44xx.c
-> +++ b/arch/arm/mach-omap2/pm44xx.c
-> @@ -35,6 +35,7 @@ struct power_state {
-> =A0};
->
-> =A0static LIST_HEAD(pwrst_list);
-> +u16 pm44xx_errata;
->
-> =A0#ifdef CONFIG_SUSPEND
-> =A0static int omap4_pm_suspend(void)
-> --
-> 1.7.4.1
->
->
-> _______________________________________________
-> linux-arm-kernel mailing list
-> linux-arm-kernel@lists.infradead.org
-> http://lists.infradead.org/mailman/listinfo/linux-arm-kernel
+Same file should be ok.
 
-
-Regards,
-Nishanth Menon
---
-To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Kevin
