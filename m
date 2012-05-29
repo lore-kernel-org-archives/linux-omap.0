@@ -1,83 +1,92 @@
-From: "Cousson, Benoit" <b-cousson@ti.com>
-Subject: Re: [RFC PATCH 05/11] mfd: omap: control: core system
-	control driver
-Date: Tue, 29 May 2012 15:31:43 +0200
-Message-ID: <4FC4CFBF.7070702@ti.com>
-References: <1337934361-1606-1-git-send-email-eduardo.valentin@ti.com>
-	<1337934361-1606-6-git-send-email-eduardo.valentin@ti.com>
-	<CAMQu2gy_rgLidHWy7xxZBiVD4wfFuTvA+wC7joogrcFptwsx8w@mail.gmail.com>
-	<20120528114225.GH3923@besouro>
-	<CAMQu2gzmPqiq5Aj8Fu6Jctdzkzeq6nXVCJcVvXHn4DRB3ZqNhw@mail.gmail.com>
+From: Konstantin Baydarov <kbaidarov@dev.rtsoft.ru>
+Subject: Re: [RFC PATCH 03/11] arm: omap: device: create a device for system
+ control module
+Date: Tue, 29 May 2012 17:39:54 +0400
+Message-ID: <4FC4D1AA.5040807@dev.rtsoft.ru>
+References: <1337934361-1606-1-git-send-email-eduardo.valentin@ti.com> <1337934361-1606-4-git-send-email-eduardo.valentin@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"; Format="flowed"
+Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-pm-bounces@lists.linux-foundation.org>
-In-Reply-To: <CAMQu2gzmPqiq5Aj8Fu6Jctdzkzeq6nXVCJcVvXHn4DRB3ZqNhw@mail.gmail.com>
-List-Unsubscribe: <https://lists.linuxfoundation.org/mailman/options/linux-pm>,
-	<mailto:linux-pm-request@lists.linux-foundation.org?subject=unsubscribe>
-List-Archive: <http://lists.linuxfoundation.org/pipermail/linux-pm/>
-List-Post: <mailto:linux-pm@lists.linux-foundation.org>
-List-Help: <mailto:linux-pm-request@lists.linux-foundation.org?subject=help>
-List-Subscribe: <https://lists.linuxfoundation.org/mailman/listinfo/linux-pm>,
-	<mailto:linux-pm-request@lists.linux-foundation.org?subject=subscribe>
-Sender: linux-pm-bounces@lists.linux-foundation.org
-Errors-To: linux-pm-bounces@lists.linux-foundation.org
-To: "Shilimkar, Santosh" <santosh.shilimkar@ti.com>
-Cc: amit.kucheria@linaro.org, balbi@ti.com, kishon@ti.com, kbaidarov@dev.rtsoft.ru, J Keerthy <j-keerthy@ti.com>, linux-pm@lists.linux-foundation.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from mail.dev.rtsoft.ru ([213.79.90.226]:56774 "HELO
+	mail.dev.rtsoft.ru" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with SMTP id S1752102Ab2E2NkY (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 29 May 2012 09:40:24 -0400
+In-Reply-To: <1337934361-1606-4-git-send-email-eduardo.valentin@ti.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Eduardo Valentin <eduardo.valentin@ti.com>
+Cc: b-cousson@ti.com, kishon@ti.com, santosh.shilimkar@ti.com, tony@atomide.com, paul@pwsan.com, balbi@ti.com, amit.kucheria@linaro.org, linux-pm@lists.linux-foundation.org, linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org, amit.kachhap@linaro.org, Konstantin Baydarov <kbaidarov@dev.rtsoft.ru>
 
-On 5/28/2012 3:15 PM, Shilimkar, Santosh wrote:
-> On Mon, May 28, 2012 at 5:12 PM, Eduardo Valentin
+  Hi.
 
-[...]
+On 05/25/2012 12:25 PM, Eduardo Valentin wrote:
+> From: Kishon Vijay Abraham I <kishon@ti.com>
+>
+> Extracts the device data from hwmod database and create a platform device
+> using omap device build.
+>
+> The device build is done during postcore_initcall.
+>
+> Signed-off-by: Kishon Vijay Abraham I <kishon@ti.com>
+> Signed-off-by: Eduardo Valentin <eduardo.valentin@ti.com>
+> ---
+>  arch/arm/mach-omap2/devices.c |   26 ++++++++++++++++++++++++++
+>  1 files changed, 26 insertions(+), 0 deletions(-)
+>
+> diff --git a/arch/arm/mach-omap2/devices.c b/arch/arm/mach-omap2/devices.c
+> index 152c266..9332673 100644
+> --- a/arch/arm/mach-omap2/devices.c
+> +++ b/arch/arm/mach-omap2/devices.c
+> @@ -40,6 +40,32 @@
+>  #define L3_MODULES_MAX_LEN 12
+>  #define L3_MODULES 3
+>  
+> +static int omap_init_control(void)
+> +{
+> +	struct omap_hwmod		*oh;
+> +	struct platform_device		*pdev;
+> +	const char			*oh_name, *name;
+> +
+> +	oh_name = "ctrl_module_core";
+> +	name = "omap-control-core";
+> +
+> +	oh = omap_hwmod_lookup(oh_name);
+> +	if (!oh) {
+> +		pr_err("Could not lookup hwmod for %s\n", oh_name);
+> +		return PTR_ERR(oh);
+> +	}
+> +
+> +	pdev = omap_device_build(name, -1, oh, NULL, 0, NULL, 0, true);
+I noticed that control module omap device is created and configured according to following idle flags:
+static struct omap_hwmod_class_sysconfig omap44xx_ctrl_module_sysc = {
+    .rev_offs    = 0x0000,
+    .sysc_offs    = 0x0010,
+    .sysc_flags    = SYSC_HAS_SIDLEMODE,
+    .idlemodes    = (SIDLE_FORCE | SIDLE_NO | SIDLE_SMART |
+               SIDLE_SMART_WKUP),
+    .sysc_fields    = &omap_hwmod_sysc_type2,
+};
 
->>>> +/**
->>>> + * omap_control_readl: Read a single omap control module register.
->>>> + *
->>>> + * @dev: device to read from.
->>>> + * @reg: register to read.
->>>> + * @val: output with register value.
->>>> + *
->>>> + * returns 0 on success or -EINVAL in case struct device is invalid.
->>>> + */
->>>> +int omap_control_readl(struct device *dev, u32 reg, u32 *val)
->>>> +{
->>>> +       struct omap_control *omap_control = dev_get_drvdata(dev);
->>>> +
->>>> +       if (!omap_control)
->>>> +               return -EINVAL;
->>>> +
->>>> +       *val = readl(omap_control->base + reg);
->>>> +
->>>> +       return 0;
->>>> +}
->>>> +EXPORT_SYMBOL_GPL(omap_control_readl);
->>>> +
->>> I might have missed in the last scan, but can you let
->>> function return the register value.
->>
->> Why?
->>
-> Because thats how typical read 1 value kind of functions
-> look like..
+IIUC, ".idlemodes    = (SIDLE_FORCE | SIDLE_NO | SIDLE_SMART | SIDLE_SMART_WKUP)" means that CONTROL_GEN_CORE idlemode will be set to
+"0x2,0x3: Clock is automatically gated when there is no access to the Control Module through L4-interconnect". See CONTROL_GEN_CORE_SYSCONFIG register.
+So IIUC theoretically CONTROL_GEN_CORE module clock can be automatically gated. Recalling that CONTROL_GEN_CORE module has an THERMAL_ALERT interrupt that is used by the bandgap driver, I'm wondering if the THERMAL_ALERT interrupt will be fired when CONTROL_GEN_CORE module clock is gated?
+Probably bandgap driver should set CONTROL_GEN_CORE idle mode to SIDLE_NO, to prevent loosing THERMAL_ALERT interrupt?
 
-Yeah, I tend to agree with Santosh here as well. I'm expecting such API 
-to return the value.
-Moreover the error handling in that case is really an exception and thus 
-a WARM is enough since it should never ever happen except if there is a 
-bug during the probe. And in that case, it should already fail at probe 
-time.
+  BR,
+    Konstantin Baydarov.
 
->>> I am guessing, you did this for error case handling. You might
->>> want to stick to read API semantic and just have WARN_ON()
->>> to take care of error case.
->>
->> Yeah, that was for error handling and to do not confuse register
->> values with error values.
->>
-> No strong opinion if you like it that way but it just appeared odd to
-> me from a caller perspective.
+> +	if (IS_ERR(pdev)) {
+> +		pr_err("Could not build omap_device for %s %s\n",
+> +		       name, oh_name);
+> +		return PTR_ERR(pdev);
+> +	}
+> +
+> +	return 0;
+> +}
+> +postcore_initcall(omap_init_control);
+> +
+>  static int __init omap3_l3_init(void)
+>  {
+>  	struct omap_hwmod *oh;
 
-Yep, I do agree.
-
-Benoit
