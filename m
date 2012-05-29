@@ -1,125 +1,91 @@
-From: Felipe Balbi <balbi@ti.com>
-Subject: Re: Regression for non-eMMC cards with commit fa550189?
-Date: Tue, 29 May 2012 10:40:48 +0300
-Message-ID: <20120529074047.GE16340@arwen.pp.htv.fi>
-References: <20120528132147.GC12766@atomide.com>
- <CAPDyKFrcviT3_Fz13LpFJ+1oKxQ5LKswN7EmzVcWTJkiiDWusA@mail.gmail.com>
-Reply-To: balbi@ti.com
+From: Eduardo Valentin <eduardo.valentin@ti.com>
+Subject: Re: [RFC PATCH 03/11] arm: omap: device: create a device
+ for system control module
+Date: Tue, 29 May 2012 12:44:01 +0300
+Message-ID: <20120529094400.GA3505@besouro>
+References: <1337934361-1606-1-git-send-email-eduardo.valentin@ti.com>
+	<1337934361-1606-4-git-send-email-eduardo.valentin@ti.com>
+	<4FBF7B74.4020302@ti.com>
+Reply-To: eduardo.valentin@ti.com
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="5xSkJheCpeK0RUEJ"
-Return-path: <linux-mmc-owner@vger.kernel.org>
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-pm-bounces@lists.linux-foundation.org>
 Content-Disposition: inline
-In-Reply-To: <CAPDyKFrcviT3_Fz13LpFJ+1oKxQ5LKswN7EmzVcWTJkiiDWusA@mail.gmail.com>
-Sender: linux-mmc-owner@vger.kernel.org
-To: Ulf Hansson <ulf.hansson@linaro.org>
-Cc: Tony Lindgren <tony@atomide.com>, Chris Ball <cjb@laptop.org>, linux-mmc@vger.kernel.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+In-Reply-To: <4FBF7B74.4020302@ti.com>
+List-Unsubscribe: <https://lists.linuxfoundation.org/mailman/options/linux-pm>,
+	<mailto:linux-pm-request@lists.linux-foundation.org?subject=unsubscribe>
+List-Archive: <http://lists.linuxfoundation.org/pipermail/linux-pm/>
+List-Post: <mailto:linux-pm@lists.linux-foundation.org>
+List-Help: <mailto:linux-pm-request@lists.linux-foundation.org?subject=help>
+List-Subscribe: <https://lists.linuxfoundation.org/mailman/listinfo/linux-pm>,
+	<mailto:linux-pm-request@lists.linux-foundation.org?subject=subscribe>
+Sender: linux-pm-bounces@lists.linux-foundation.org
+Errors-To: linux-pm-bounces@lists.linux-foundation.org
+To: "Cousson, Benoit" <b-cousson@ti.com>
+Cc: amit.kucheria@linaro.org, kbaidarov@dev.rtsoft.ru, kishon@ti.com, balbi@ti.com, linux-pm@lists.linux-foundation.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 List-Id: linux-omap@vger.kernel.org
 
-
---5xSkJheCpeK0RUEJ
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
-
-Hi,
-
-On Tue, May 29, 2012 at 02:52:34PM +0800, Ulf Hansson wrote:
-> Hi Tony,
->=20
-> This patch changes the sequence of how the host drivers set_ios
-> function gets called during probe.
->=20
-> Before:
-> 1. mmc_power_off
-> 2. mmc_power_up
->=20
-> Now:
-> 1. mmc_power_up
->=20
-> My guess is then; the omap driver set_ios function requires that
-> mmc_power_off is called before a mmc_power_up.
-> Hopefully this requirement can be removed and fixed in the host driver so=
-mehow.
->=20
-> Please get back to me if you need some more assistance around this matter.
->=20
-> Kind regards
-> Ulf Hansson
->=20
->=20
-> On 28 May 2012 21:21, Tony Lindgren <tony@atomide.com> wrote:
-> > Hi Ulf & Chris,
+On Fri, May 25, 2012 at 02:30:44PM +0200, Cousson Benoit wrote:
+> On 5/25/2012 10:25 AM, Eduardo Valentin wrote:
+> >From: Kishon Vijay Abraham I<kishon@ti.com>
 > >
-> > Looks like commit fa550189 (mmc: core: Prevent eMMC VCC supply to be
-> > cut from late init) causes MMC card to stop working at least with
-> > n8x0 using drivers/mmc/host/omap.c. The card(s) on it are not eMMC.
+> >Extracts the device data from hwmod database and create a platform device
+> >using omap device build.
 > >
-> > Reverting fa550189 makes things work again. Any ideas what could
-> > be causing this?
+> >The device build is done during postcore_initcall.
+> 
+> Do you still need that since you are supporting only DT?
+> The device will be built automatically in the DT case.
+
+In fact this is not needed for DT only probing. Dropping this one.
+
+> 
+> Regards,
+> Benoit
+> 
 > >
-> > No debug output from MMC_DEBUG, looks like commands won't even
-> > get started?
-
-Can you enable debugging on menelaus so we see what the driver is doing ?
-
-I believe that to change the VMMC's supply voltage you need to turn off
-the regulator, meaning LDO_CTRL7[1:0] =3D 0b00.
-
-That could be one thing. It would be cool what menelaus is writing to
-the registers on working and failing case. Also what are the contents of
-LDO_CTRL1 and LDO_CTRL7 before any operation. Something like this will
-help:
-
-diff --git a/drivers/mfd/menelaus.c b/drivers/mfd/menelaus.c
-index cb4910a..8cab234 100644
---- a/drivers/mfd/menelaus.c
-+++ b/drivers/mfd/menelaus.c
-@@ -31,6 +31,8 @@
-  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
-  */
-=20
-+#define DEBUG
-+
- #include <linux/module.h>
- #include <linux/i2c.h>
- #include <linux/interrupt.h>
-@@ -469,6 +471,10 @@ static int menelaus_set_voltage(const struct menelaus_=
-vtg *vtg, int mV,
- 	if (vtg =3D=3D 0)
- 		goto set_voltage;
-=20
-+	dev_dbg(&c->dev, "VTG_REG %02x MODE_REG %02x\n",
-+			menelaus_read_reg(vtg->vtg_reg),
-+			menelaus_read_reg(mode_reg));
-+
- 	ret =3D menelaus_read_reg(vtg->vtg_reg);
- 	if (ret < 0)
- 		goto out;
-
---=20
-balbi
-
---5xSkJheCpeK0RUEJ
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: Digital signature
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.4.12 (GNU/Linux)
-
-iQIcBAEBAgAGBQJPxH1/AAoJEIaOsuA1yqREGD8P/iuRiLEYkBO0wpZ8V0cZ+5xX
-SDdbhzcneYFncJuj334KzLyuBRUaCMMcBycR0w6P/NUtlAwP5BWAI99h0mSH8zBR
-jaQcZjC6Mh9e3ICWSMAjASf1L+lu6C+BJj3gSxNH1N/h3eSaShMctAl+NKOG/r6v
-7rYgrGseILVs5WAJz65NHXWGHDnQA/N0hjWL0evRdOOu15T3ZAXGKEViND7cpens
-c4Sj1+MG/MEsz0DStEeQAh9F8KsTPck5b76N32K7LmnqSATvAuZnRDu0KSn3LLZG
-3EAqWsnqrOHatPRuKhPl0gkcvC7m2JMKG2dtav2/9eZ7+tbrtaDJWUPzAiGqPWbs
-Ve8/Ceo+sqL3ckhLfKd4c6SM+xQFjLqqpSBOjED/obDYg5owrz+hywiCVPCgUVy8
-xr9UMpcGFLmfzlYHqOOjILzcd0c7ElPJJ6mf4fX2bYpKK6UPpdiuj0YnfWCAyIlB
-3s0QVKw/sn7YdDnMukm6xYHgYoRADLJRqbIDDWv0Fkx4DTITeG/HLkbtFWQF6z8P
-sQhjktfk2Q/zZTE/4CmOpKUPRnN2LmMjfDkAY8jlP+7HTQ4C2EJiqXwNlcI/xg89
-Yid9jBy+dDuP/n8/+ZMuQbFsdlxxm7AQ/3nRPHXsdsQFf4zf4MttwxRMMpDMijK1
-rL90eJnHuQOxCds0Vzx9
-=jepE
------END PGP SIGNATURE-----
-
---5xSkJheCpeK0RUEJ--
+> >Signed-off-by: Kishon Vijay Abraham I<kishon@ti.com>
+> >Signed-off-by: Eduardo Valentin<eduardo.valentin@ti.com>
+> >---
+> >  arch/arm/mach-omap2/devices.c |   26 ++++++++++++++++++++++++++
+> >  1 files changed, 26 insertions(+), 0 deletions(-)
+> >
+> >diff --git a/arch/arm/mach-omap2/devices.c b/arch/arm/mach-omap2/devices.c
+> >index 152c266..9332673 100644
+> >--- a/arch/arm/mach-omap2/devices.c
+> >+++ b/arch/arm/mach-omap2/devices.c
+> >@@ -40,6 +40,32 @@
+> >  #define L3_MODULES_MAX_LEN 12
+> >  #define L3_MODULES 3
+> >
+> >+static int omap_init_control(void)
+> >+{
+> >+	struct omap_hwmod		*oh;
+> >+	struct platform_device		*pdev;
+> >+	const char			*oh_name, *name;
+> >+
+> >+	oh_name = "ctrl_module_core";
+> >+	name = "omap-control-core";
+> >+
+> >+	oh = omap_hwmod_lookup(oh_name);
+> >+	if (!oh) {
+> >+		pr_err("Could not lookup hwmod for %s\n", oh_name);
+> >+		return PTR_ERR(oh);
+> >+	}
+> >+
+> >+	pdev = omap_device_build(name, -1, oh, NULL, 0, NULL, 0, true);
+> >+	if (IS_ERR(pdev)) {
+> >+		pr_err("Could not build omap_device for %s %s\n",
+> >+		       name, oh_name);
+> >+		return PTR_ERR(pdev);
+> >+	}
+> >+
+> >+	return 0;
+> >+}
+> >+postcore_initcall(omap_init_control);
+> >+
+> >  static int __init omap3_l3_init(void)
+> >  {
+> >  	struct omap_hwmod *oh;
+> 
