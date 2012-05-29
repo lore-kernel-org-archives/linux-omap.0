@@ -1,16 +1,16 @@
 From: "Cousson, Benoit" <b-cousson@ti.com>
-Subject: Re: [RFC PATCH 09/11] ARM: OMAP4+: thermal: introduce
- bandgap temperature sensor
-Date: Tue, 29 May 2012 15:14:48 +0200
-Message-ID: <4FC4CBC8.2040600@ti.com>
+Subject: Re: [RFC PATCH 05/11] mfd: omap: control: core system
+	control driver
+Date: Tue, 29 May 2012 15:25:31 +0200
+Message-ID: <4FC4CE4B.8020708@ti.com>
 References: <1337934361-1606-1-git-send-email-eduardo.valentin@ti.com>
-	<1337934361-1606-10-git-send-email-eduardo.valentin@ti.com>
-	<4FBFAA18.4040103@ti.com> <20120528111624.GC3923@besouro>
+	<1337934361-1606-6-git-send-email-eduardo.valentin@ti.com>
+	<4FBF8078.9050809@ti.com> <20120528113502.GG3923@besouro>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"; Format="flowed"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-pm-bounces@lists.linux-foundation.org>
-In-Reply-To: <20120528111624.GC3923@besouro>
+In-Reply-To: <20120528113502.GG3923@besouro>
 List-Unsubscribe: <https://lists.linuxfoundation.org/mailman/options/linux-pm>,
 	<mailto:linux-pm-request@lists.linux-foundation.org?subject=unsubscribe>
 List-Archive: <http://lists.linuxfoundation.org/pipermail/linux-pm/>
@@ -21,541 +21,434 @@ List-Subscribe: <https://lists.linuxfoundation.org/mailman/listinfo/linux-pm>,
 Sender: linux-pm-bounces@lists.linux-foundation.org
 Errors-To: linux-pm-bounces@lists.linux-foundation.org
 To: eduardo.valentin@ti.com
-Cc: amit.kucheria@linaro.org, balbi@ti.com, kishon@ti.com, kbaidarov@dev.rtsoft.ru, Keerthy <j-keerthy@ti.com>, linux-pm@lists.linux-foundation.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+Cc: amit.kucheria@linaro.org, balbi@ti.com, kishon@ti.com, kbaidarov@dev.rtsoft.ru, J Keerthy <j-keerthy@ti.com>, linux-pm@lists.linux-foundation.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 List-Id: linux-omap@vger.kernel.org
 
-On 5/28/2012 1:16 PM, Eduardo Valentin wrote:
-> Hello again,
+On 5/28/2012 1:35 PM, Eduardo Valentin wrote:
+> Hello,
 >
-> On Fri, May 25, 2012 at 05:49:44PM +0200, Cousson Benoit wrote:
+> On Fri, May 25, 2012 at 02:52:08PM +0200, Cousson Benoit wrote:
 >> On 5/25/2012 10:25 AM, Eduardo Valentin wrote:
->
-> <big cut>
->
+>>> This patch introduces a MFD core device driver for
+>>> OMAP system control module.
+>>>
+>>> The control module allows software control of
+>>> various static modes supported by the device. It is
+>>> composed of two control submodules: general control
+>>> module and device (padconfiguration) control
+>>> module.
+>>>
+>>> In this patch, the children defined are for:
+>>> . USB-phy pin control
+>>> . Bangap temperature sensor
+>>>
+>>> Device driver is probed with postcore_initcall.
+>>> However, as some of the APIs exposed by this driver
+>>> may be needed in very early init phase, an early init
+>>> class is also available: "early_omap_control".
+>>>
+>>> Signed-off-by: J Keerthy<j-keerthy@ti.com>
+>>> Signed-off-by: Kishon Vijay Abraham I<kishon@ti.com>
+>>> Signed-off-by: Eduardo Valentin<eduardo.valentin@ti.com>
+>>> ---
+>>>   .../devicetree/bindings/mfd/omap_control.txt       |   44 ++++
+>>>   arch/arm/mach-omap2/Kconfig                        |    1 +
+>>>   arch/arm/plat-omap/Kconfig                         |    3 +
+>>>   drivers/mfd/Kconfig                                |    9 +
+>>>   drivers/mfd/Makefile                               |    1 +
+>>>   drivers/mfd/omap-control-core.c                    |  211 ++++++++++++++++++++
+>>>   include/linux/mfd/omap_control.h                   |   69 +++++++
+>>>   7 files changed, 338 insertions(+), 0 deletions(-)
+>>>   create mode 100644 Documentation/devicetree/bindings/mfd/omap_control.txt
+>>>   create mode 100644 drivers/mfd/omap-control-core.c
+>>>   create mode 100644 include/linux/mfd/omap_control.h
+>>>
+>>> diff --git a/Documentation/devicetree/bindings/mfd/omap_control.txt b/Documentation/devicetree/bindings/mfd/omap_control.txt
+>>> new file mode 100644
+>>> index 0000000..46d5e7e
+>>> --- /dev/null
+>>> +++ b/Documentation/devicetree/bindings/mfd/omap_control.txt
+>>> @@ -0,0 +1,44 @@
+>>> +* Texas Instrument OMAP System Control Module (SCM) bindings
 >>> +
->>> +static const struct omap_bandgap_data omap4460_data = {
->>> +	.has_talert = true,
->>> +	.has_tshut = true,
->>> +	.fclock_name = "bandgap_ts_fclk",
->>> +	.div_ck_name = "div_ts_ck",
->>
->> None of these clock data should be there ideally. You should ensure
->> that the proper device alias will be there using clkdev entries.
->
-> In fact, it is a shame that it would be needed to have this entries there :-(
->
->>
->> Except that with DT, it will not work without the clock DT binding :-(
->>
->> I think Rob posted a latest update based on CCF... but for the
->> moment we are stuck :-(
->
-> OK. But would it work for BG as well as it seams to be a special case?
->
->>
->>> +	.conv_table = omap4460_adc_to_temp,
->>> +	.sensors = {
->>> +		{
->>> +			.registers =&omap4460_mpu_temp_sensor_registers,
->>> +			.ts_data =&omap4460_mpu_temp_sensor_data,
->>> +			.domain = "cpu",
->>> +		},
->>> +	},
->>> +	.sensor_count = 1,
+>>> +The control module allows software control of various static modes supported by
+>>> +the device. The control module controls the settings of various device  modules
+>>> +through register configuration and internal signals. It also controls  the  pad
+>>> +configuration, pin functional multiplexing, and the routing of internal signals
+>>> +(such as PRCM  signals or DMA requests)  to output pins configured for hardware
+>>> +observability.
+>>> +
+>>> +Required properties:
+>>> +- compatible : Should be:
+>>> +  - "ti,omap3-control" for OMAP3 support
+>>> +  - "ti,omap4-control" for OMAP4 support
+>>> +  - "ti,omap5-control" for OMAP5 support
+>>> +
+>>> +OMAP specific properties:
+>>> +- ti,hwmods: Name of the hwmod associated to the control module:
+>>> +  Should be "ctrl_module_core";
+>>> +
+>>> +Sub-nodes:
+>>> +- bandgap : contains the bandgap node
+>>> +
+>>> +  The bindings details of individual bandgap device can be found in:
+>>> +  Documentation/devicetree/bindings/thermal/omap_bandgap.txt
+>>> +
+>>> +- usb : contains the usb phy pin control node
+>>> +
+>>> +  The only required property for this child is:
+>>> +    - compatible = "ti,omap4-control-usb";
+>>> +
+>>> +Examples:
+>>> +
+>>> +ctrl_module_core: ctrl_module_core@4a002000 {
+>>> +	compatible = "ti,omap4-control";
+>>> +	ti,hwmods = "ctrl_module_core";
+>>> +	bandgap {
+>>> +		compatible = "ti,omap4460-bandgap";
+>>> +		interrupts =<0 126 4>; /* talert */
+>>> +		ti,tshut-gpio =<86>; /* tshut */
+>>> +	};
+>>> +	usb {
+>>> +		compatible = "ti,omap4-usb-phy";
+>>> +	};
 >>> +};
+>>> diff --git a/arch/arm/mach-omap2/Kconfig b/arch/arm/mach-omap2/Kconfig
+>>> index a2b946d..7dfe5e1 100644
+>>> --- a/arch/arm/mach-omap2/Kconfig
+>>> +++ b/arch/arm/mach-omap2/Kconfig
+>>> @@ -52,6 +52,7 @@ config ARCH_OMAP4
+>>>   	select PL310_ERRATA_727915
+>>>   	select ARM_ERRATA_720789
+>>>   	select ARCH_HAS_OPP
+>>> +	select ARCH_HAS_CONTROL_MODULE
+>>>   	select PM_OPP if PM
+>>>   	select USB_ARCH_HAS_EHCI if USB_SUPPORT
+>>>   	select ARM_CPU_SUSPEND if PM
+>>> diff --git a/arch/arm/plat-omap/Kconfig b/arch/arm/plat-omap/Kconfig
+>>> index ad95c7a..222dbad 100644
+>>> --- a/arch/arm/plat-omap/Kconfig
+>>> +++ b/arch/arm/plat-omap/Kconfig
+>>> @@ -5,6 +5,9 @@ menu "TI OMAP Common Features"
+>>>   config ARCH_OMAP_OTG
+>>>   	bool
+>>>
+>>> +config ARCH_HAS_CONTROL_MODULE
+>>> +	bool
 >>> +
->>> +static const struct omap_bandgap_data omap5430_data = {
->>> +	.has_talert = true,
->>> +	.has_tshut = true,
->>> +	.fclock_name = "ts_clk_div_ck",
->>> +	.div_ck_name = "ts_clk_div_ck",
->>> +	.conv_table = omap5430_adc_to_temp,
->>> +	.sensors = {
->>> +		{
->>> +			.registers =&omap5430_mpu_temp_sensor_registers,
->>> +			.ts_data =&omap5430_mpu_temp_sensor_data,
->>> +			.domain = "cpu",
->>> +		},
->>> +		{
->>> +			.registers =&omap5430_gpu_temp_sensor_registers,
->>> +			.ts_data =&omap5430_gpu_temp_sensor_data,
->>> +			.domain = "gpu",
->>> +		},
->>> +		{
->>> +			.registers =&omap5430_core_temp_sensor_registers,
->>> +			.ts_data =&omap5430_core_temp_sensor_data,
->>> +			.domain = "core",
->>> +		},
->>> +	},
->>> +	.sensor_count = 3,
->>
->> It can probably be replaced by a sizeof.
->
-> ARRAY_SIZE prob, will check.
-
-Ah, yes, that's one... I was looking for it for forgot the name :-)
-
->>> +};
+>>>   choice
+>>>   	prompt "OMAP System Type"
+>>>   	default ARCH_OMAP2PLUS
+>>> diff --git a/drivers/mfd/Kconfig b/drivers/mfd/Kconfig
+>>> index 11e4438..25a66d8 100644
+>>> --- a/drivers/mfd/Kconfig
+>>> +++ b/drivers/mfd/Kconfig
+>>> @@ -795,6 +795,15 @@ config MFD_WL1273_CORE
+>>>   	  driver connects the radio-wl1273 V4L2 module and the wl1273
+>>>   	  audio codec.
+>>>
+>>> +config MFD_OMAP_CONTROL
+>>> +	bool "Texas Instruments OMAP System control module"
+>>> +	depends on ARCH_HAS_CONTROL_MODULE
+>>> +	help
+>>> +	  This is the core driver for system control module. This driver
+>>> +	  is responsible for creating the control module mfd child,
+>>> +	  like USB-pin control, pin muxing, MMC-pbias and DDR IO dynamic
+>>> +	  change for off mode.
 >>> +
->>> +static const struct of_device_id of_omap_bandgap_match[] = {
->>> +	/*
->>> +	 * TODO: Add support to 4430
->>> +	 * { .compatible = "ti,omap4430-bandgap", .data = , },
->>> +	 */
->>> +	{
->>> +		.compatible = "ti,omap4460-bandgap",
->>> +		.data = (void *)&omap4460_data,
+>>>   config MFD_OMAP_USB_HOST
+>>>   	bool "Support OMAP USBHS core driver"
+>>>   	depends on USB_EHCI_HCD_OMAP || USB_OHCI_HCD_OMAP3
+>>> diff --git a/drivers/mfd/Makefile b/drivers/mfd/Makefile
+>>> index 05fa538..00f99d6 100644
+>>> --- a/drivers/mfd/Makefile
+>>> +++ b/drivers/mfd/Makefile
+>>> @@ -106,6 +106,7 @@ obj-$(CONFIG_MFD_TPS6586X)	+= tps6586x.o
+>>>   obj-$(CONFIG_MFD_VX855)		+= vx855.o
+>>>   obj-$(CONFIG_MFD_WL1273_CORE)	+= wl1273-core.o
+>>>   obj-$(CONFIG_MFD_CS5535)	+= cs5535-mfd.o
+>>> +obj-$(CONFIG_MFD_OMAP_CONTROL)	+= omap-control-core.o
+>>>   obj-$(CONFIG_MFD_OMAP_USB_HOST)	+= omap-usb-host.o
+>>>   obj-$(CONFIG_MFD_PM8921_CORE) 	+= pm8921-core.o
+>>>   obj-$(CONFIG_MFD_PM8XXX_IRQ) 	+= pm8xxx-irq.o
+>>> diff --git a/drivers/mfd/omap-control-core.c b/drivers/mfd/omap-control-core.c
+>>> new file mode 100644
+>>> index 0000000..7d8d408
+>>> --- /dev/null
+>>> +++ b/drivers/mfd/omap-control-core.c
+>>> @@ -0,0 +1,211 @@
+>>> +/*
+>>> + * OMAP system control module driver file
+>>> + *
+>>> + * Copyright (C) 2011-2012 Texas Instruments Incorporated - http://www.ti.com/
+>>> + * Contacts:
+>>> + * Based on original code written by:
+>>> + *    J Keerthy<j-keerthy@ti.com>
+>>> + *    Moiz Sonasath<m-sonasath@ti.com>
+>>> + * MFD clean up and re-factoring:
+>>> + *    Eduardo Valentin<eduardo.valentin@ti.com>
+>>> + *
+>>> + * This program is free software; you can redistribute it and/or
+>>> + * modify it under the terms of the GNU General Public License
+>>> + * version 2 as published by the Free Software Foundation.
+>>> + *
+>>> + * This program is distributed in the hope that it will be useful, but
+>>> + * WITHOUT ANY WARRANTY; without even the implied warranty of
+>>> + * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+>>> + * General Public License for more details.
+>>> + *
+>>> + */
+>>> +
+>>> +#include<linux/module.h>
+>>> +#include<linux/export.h>
+>>> +#include<linux/platform_device.h>
+>>> +#include<linux/slab.h>
+>>> +#include<linux/io.h>
+>>> +#include<linux/err.h>
+>>> +#include<linux/of_platform.h>
+>>> +#include<linux/of_address.h>
+>>> +#include<linux/mfd/core.h>
+>>> +#include<linux/mfd/omap_control.h>
+>>> +
+>>> +static struct omap_control *omap_control_module;
 >>
->> No need to cast toward a void *.
+>> Mmm, we can have up to 4 control module instances in OMAP4.
+>>
+>> Well, I'm not sure it worth considering them as separate devices. Is
+>> that your plan as well?
 >
-> In this case, there is a need, because the omap4460_data is const but the .data field isn't. So I need to force it.
+> At least for now I was focusing on the ctrl_module_core ...
+
+OK, that's a good start already :-)
+
+>> But since they all have different base address, it will be trick to
+>> handle them with only a single entry.
+>
+> Indeed. We can always add the support latter on.
+>
+> I am not sure what would be the best way to handle those instances though,
+> and how they are going to expose APIs. Would need to have an instance bound
+> to API set?
+
+We should not go to that path I guess. We should have an API at children 
+level independent of the underlying control module partitioning.
+
+Regards,
+Benoit
+
+>>> +
+>>> +/**
+>>> + * omap_control_readl: Read a single omap control module register.
+>>> + *
+>>> + * @dev: device to read from.
+>>> + * @reg: register to read.
+>>> + * @val: output with register value.
+>>> + *
+>>> + * returns 0 on success or -EINVAL in case struct device is invalid.
+>>> + */
+>>> +int omap_control_readl(struct device *dev, u32 reg, u32 *val)
+>>> +{
+>>> +	struct omap_control *omap_control = dev_get_drvdata(dev);
+>>> +
+>>> +	if (!omap_control)
+>>> +		return -EINVAL;
+>>> +
+>>> +	*val = readl(omap_control->base + reg);
+>>> +
+>>> +	return 0;
+>>> +}
+>>> +EXPORT_SYMBOL_GPL(omap_control_readl);
+>>> +
+>>> +/**
+>>> + * omap_control_writel: Write a single omap control module register.
+>>> + *
+>>> + * @dev: device to read from.
+>>> + * @val: value to write.
+>>> + * @reg: register to write to.
+>>> + *
+>>> + * returns 0 on success or -EINVAL in case struct device is invalid.
+>>> + */
+>>> +int omap_control_writel(struct device *dev, u32 val, u32 reg)
+>>> +{
+>>> +	struct omap_control *omap_control = dev_get_drvdata(dev);
+>>> +	unsigned long flags;
+>>> +
+>>> +	if (!omap_control)
+>>> +		return -EINVAL;
+>>> +
+>>> +	spin_lock_irqsave(&omap_control->reg_lock, flags);
+>>> +	writel(val, omap_control->base + reg);
+>>> +	spin_unlock_irqrestore(&omap_control->reg_lock, flags);
+>>> +
+>>> +	return 0;
+>>> +}
+>>> +EXPORT_SYMBOL_GPL(omap_control_writel);
+>>> +
+>>> +/**
+>>> + * omap_control_get: returns the control module device pinter
+>>
+>> typo
+>
+> K
 >
 >>
->>> +	},
->>> +	{
->>> +		.compatible = "ti,omap5430-bandgap",
->>> +		.data = (void *)&omap5430_data,
->>> +	},
->>> +	/* Sentinel */
+>>> + *
+>>> + * The modules which has to use control module API's to read or write should
+>>> + * call this API to get the control module device pointer.
+>>> + */
+>>> +struct device *omap_control_get(void)
+>>> +{
+>>> +	unsigned long flags;
+>>> +
+>>> +	if (!omap_control_module)
+>>> +		return ERR_PTR(-ENODEV);
+>>> +
+>>> +	spin_lock_irqsave(&omap_control_module->reg_lock, flags);
+>>> +	omap_control_module->use_count++;
+>>> +	spin_unlock_irqrestore(&omap_control_module->reg_lock, flags);
+>>
+>> Don't we do have some better way to increment atomically a variable
+>> in Linux.
+>
+> Yeah we have, atomic API. In general I think the SCM/bangap/phy APIs
+> need to be revisited WRT locking, in general.
+>
+>>
+>>> +
+>>> +	return omap_control_module->dev;
+>>> +}
+>>> +EXPORT_SYMBOL_GPL(omap_control_get);
+>>> +
+>>> +/**
+>>> + * omap_control_put: returns the control module device pinter
+>>> + *
+>>> + * The modules which has to use control module API's to read or write should
+>>> + * call this API to get the control module device pointer.
+>>> + */
+>>> +void omap_control_put(struct device *dev)
+>>> +{
+>>> +	struct omap_control *omap_control = dev_get_drvdata(dev);
+>>> +	unsigned long flags;
+>>> +
+>>> +	if (!omap_control)
+>>> +		return;
+>>> +
+>>> +	spin_lock_irqsave(&omap_control->reg_lock, flags);
+>>> +	omap_control->use_count--;
+>>> +	spin_unlock_irqrestore(&omap_control_module->reg_lock, flags);
+>>> +}
+>>> +EXPORT_SYMBOL_GPL(omap_control_put);
+>>> +
+>>> +static const struct of_device_id of_omap_control_match[] = {
+>>> +	{ .compatible = "ti,omap3-control", },
+>>> +	{ .compatible = "ti,omap4-control", },
+>>> +	{ .compatible = "ti,omap5-control", },
 >>> +	{ },
 >>> +};
 >>> +
->>> +static struct omap_bandgap *omap_bandgap_build(struct platform_device *pdev)
+>>> +static int __devinit omap_control_probe(struct platform_device *pdev)
 >>> +{
->>> +	struct device_node *node = pdev->dev.of_node;
->>> +	const struct of_device_id *of_id;
->>> +	struct omap_bandgap *bg_ptr;
+>>> +	struct resource *res;
+>>> +	void __iomem *base;
+>>> +	struct device *dev =&pdev->dev;
+>>> +	struct device_node *np = dev->of_node;
+>>> +	struct omap_control *omap_control;
 >>
->> bg_ptr is not a super name.
+>> Maybe omap_control_data instead? At least if this is drvdata only.
+>> If this is supposed to be the *handle* to the control module
+>> instance, it should be fine.
 >
-> Got a better name? Just don't want a long one to avoid code bending at 80th column...
-
-My concern was mainly with the _ptr, it looks like a Hungarian notation. 
-:-)...
-
-Maybe bg only? Or omap_bg?
-
->
->>
->>> +	u32 prop;
->>> +
->>> +	/* just for the sake */
->>> +	if (!node) {
->>> +		dev_err(&pdev->dev, "no platform information available\n");
->>> +		return ERR_PTR(-EINVAL);
->>> +	}
->>
->> Not needed, just do the of_match_device here directly.
->
-> Indeed...
+> That's suppose to be the phandle :-)
 >
 >>
 >>> +
->>> +	bg_ptr = devm_kzalloc(&pdev->dev, sizeof(struct omap_bandgap),
->>> +				    GFP_KERNEL);
->>> +	if (!bg_ptr) {
->>> +		dev_err(&pdev->dev, "Unable to allocate mem for driver ref\n");
->>> +		return ERR_PTR(-ENOMEM);
+>>> +	omap_control = devm_kzalloc(dev, sizeof(*omap_control), GFP_KERNEL);
+>>> +	if (!omap_control) {
+>>> +		dev_err(dev, "not enough memory for omap_control\n");
+>>> +		return -ENOMEM;
 >>> +	}
 >>> +
->>> +	of_id = of_match_device(of_omap_bandgap_match,&pdev->dev);
->>> +	if (of_id)
->>> +		bg_ptr->pdata = of_id->data;
->>
->> Nit: This is not really pdata anymore, so you should maybe remove
->> the "p" to avoid confusion.
->
-> OK...
->
->>
->>> +
->>> +	if (bg_ptr->pdata->has_tshut) {
->>> +		if (of_property_read_u32(node, "ti,tshut-gpio",&prop)<   0) {
->>> +			dev_err(&pdev->dev, "missing tshut gpio in device tree\n");
->>> +			return ERR_PTR(-EINVAL);
->>> +		}
->>> +		bg_ptr->tshut_gpio = prop;
->>> +		if (!gpio_is_valid(bg_ptr->tshut_gpio)) {
->>> +			dev_err(&pdev->dev, "invalid gpio for tshut (%d)\n",
->>> +				bg_ptr->tshut_gpio);
->>> +			return ERR_PTR(-EINVAL);
->>> +		}
->>> +	}
->>> +
->>> +	return bg_ptr;
->>> +}
->>> +
->>> +static
->>> +int __devinit omap_bandgap_probe(struct platform_device *pdev)
->>> +{
->>> +	struct device *cdev = pdev->dev.parent;
->>> +	struct omap_bandgap *bg_ptr;
->>> +	int clk_rate, ret = 0, i;
->>> +
->>> +	if (!cdev) {
->>> +		dev_err(&pdev->dev, "no omap control ref in our parent\n");
+>>> +	res = platform_get_resource(pdev, IORESOURCE_MEM, 0);
+>>> +	if (!res) {
+>>> +		dev_err(dev, "missing memory base resource\n");
 >>> +		return -EINVAL;
 >>> +	}
 >>> +
->>> +	bg_ptr = omap_bandgap_build(pdev);
->>> +	if (IS_ERR_OR_NULL(bg_ptr)) {
->>> +		dev_err(&pdev->dev, "failed to fetch platform data\n");
->>> +		return PTR_ERR(bg_ptr);
+>>> +	base = devm_request_and_ioremap(dev, res);
+>>> +	if (!base) {
+>>> +		dev_err(dev, "ioremap failed\n");
+>>> +		return -EADDRNOTAVAIL;
 >>> +	}
 >>> +
->>> +	if (bg_ptr->pdata->has_talert) {
->>
->> Nit2: Yeah, in fact instead of pdata, "conf" or "settings" seems to
->> be more representative of what this structure really contain.
->
-> conf looks good to me.
->
->>
->>> +		ret = omap_bandgap_talert_init(bg_ptr, pdev);
->>> +		if (ret) {
->>> +			dev_err(&pdev->dev, "failed to initialize Talert IRQ\n");
->>> +			return ret;
->>> +		}
->>> +	}
+>>> +	omap_control->base = base;
+>>> +	omap_control->dev = dev;
+>>> +	spin_lock_init(&omap_control->reg_lock);
 >>> +
->>> +	if (bg_ptr->pdata->has_tshut) {
->>> +		ret = omap_bandgap_tshut_init(bg_ptr, pdev);
->>> +		if (ret) {
->>> +			dev_err(&pdev->dev,
->>> +				"failed to initialize system tshut IRQ\n");
->>> +			goto free_talert;
->>> +		}
->>> +	}
+>>> +	platform_set_drvdata(pdev, omap_control);
+>>> +	omap_control_module = omap_control;
 >>> +
->>> +	bg_ptr->fclock = clk_get(NULL, bg_ptr->pdata->fclock_name);
->>
->> That's not good to get a clock without using the local dev alias.
->> But because of lack of clock DT binding yet, I'm not sure we have
->> the choice.
->
-> In fact I didn't touch the clk data on purpose and left the clock handling
-> as is. On my side I didn't know how the clock struct would look like with DT,
-> so, I didn't mess with it.
->
-> Do you have a reference to check the work in progress for clock DT ?
-
-Rob sent a pull request, it seems that now it is up to Mike T. :-)
-
-http://lists-archives.com/linux-kernel/27640907-dt-clk-binding-support.html
-
->
->>
->>> +	ret = IS_ERR_OR_NULL(bg_ptr->fclock);
->>> +	if (ret) {
->>> +		dev_err(&pdev->dev, "failed to request fclock reference\n");
->>> +		goto free_irqs;
->>> +	}
->>> +
->>> +	bg_ptr->div_clk = clk_get(NULL,  bg_ptr->pdata->div_ck_name);
->>> +	ret = IS_ERR_OR_NULL(bg_ptr->div_clk);
->>> +	if (ret) {
->>> +		dev_err(&pdev->dev,
->>> +			"failed to request div_ts_ck clock ref\n");
->>> +		goto free_irqs;
->>> +	}
->>> +
->>> +	bg_ptr->conv_table = bg_ptr->pdata->conv_table;
->>> +	for (i = 0; i<   bg_ptr->pdata->sensor_count; i++) {
->>> +		struct temp_sensor_registers *tsr;
->>> +		u32 val;
->>> +
->>> +		tsr = bg_ptr->pdata->sensors[i].registers;
->>> +		/*
->>> +		 * check if the efuse has a non-zero value if not
->>> +		 * it is an untrimmed sample and the temperatures
->>> +		 * may not be accurate
->>> +		 */
->>> +		ret = omap_control_readl(cdev, tsr->bgap_efuse,&val);
->>> +		if (ret || !val)
->>> +			dev_info(&pdev->dev,
->>> +				 "Non-trimmed BGAP, Temp not accurate\n");
->>> +	}
->>> +
->>> +	clk_rate = clk_round_rate(bg_ptr->div_clk,
->>> +				  bg_ptr->pdata->sensors[0].ts_data->max_freq);
->>> +	if (clk_rate<   bg_ptr->pdata->sensors[0].ts_data->min_freq ||
->>> +	    clk_rate == 0xffffffff) {
->>> +		ret = -ENODEV;
->>> +		goto put_clks;
->>> +	}
->>> +
->>> +	ret = clk_set_rate(bg_ptr->div_clk, clk_rate);
->>> +	if (ret) {
->>> +		dev_err(&pdev->dev, "Cannot set clock rate\n");
->>> +		goto put_clks;
->>> +	}
->>> +
->>> +	bg_ptr->clk_rate = clk_rate;
->>> +	clk_enable(bg_ptr->fclock);
->>> +
->>> +	mutex_init(&bg_ptr->bg_mutex);
->>> +	bg_ptr->dev =&pdev->dev;
->>> +	platform_set_drvdata(pdev, bg_ptr);
->>> +
->>> +	/* 1 clk cycle */
->>
->> What does that mean exactly?
->
-> That's indeed a good question. I guess by default we configure the bandgap to
-> wait only 1 cycle before it goes to the next read round, if in continuous mode.
-
-OK, so some more explanation in that comment are maybe required.
-
-Thanks,
-Benoit
-
->
-> That should get overwritten when we have, for instance, some policy initialized
-> and changing the update rate based on the temperature level that the sensor is.
->
-> These decisions would go under omapXX-thermal.c, BTW. Check my reply on your
-> suggestion for data structure split.
->
->>
->> Regards,
->> Benoit
->>
->>> +	for (i = 0; i<   bg_ptr->pdata->sensor_count; i++)
->>> +		configure_temp_sensor_counter(bg_ptr, i, 1);
->>> +
->>> +	for (i = 0; i<   bg_ptr->pdata->sensor_count; i++) {
->>> +		struct temp_sensor_data *ts_data;
->>> +
->>> +		ts_data = bg_ptr->pdata->sensors[i].ts_data;
->>> +
->>> +		temp_sensor_init_talert_thresholds(bg_ptr, i,
->>> +						   ts_data->t_hot,
->>> +						   ts_data->t_cold);
->>> +		temp_sensor_configure_tshut_hot(bg_ptr, i,
->>> +						ts_data->tshut_hot);
->>> +		temp_sensor_configure_tshut_cold(bg_ptr, i,
->>> +						 ts_data->tshut_cold);
->>> +	}
->>> +
->>> +	enable_continuous_mode(bg_ptr);
->>> +
->>> +	/* Set .250 seconds time as default counter */
->>> +	for (i = 0; i<   bg_ptr->pdata->sensor_count; i++)
->>> +		configure_temp_sensor_counter(bg_ptr, i,
->>> +					      bg_ptr->clk_rate / 4);
->>> +
->>> +	/* Every thing is good? Then expose the sensors */
->>> +	for (i = 0; i<   bg_ptr->pdata->sensor_count; i++) {
->>> +		char *domain;
->>> +
->>> +		domain = bg_ptr->pdata->sensors[i].domain;
->>> +		if (bg_ptr->pdata->expose_sensor)
->>> +			bg_ptr->pdata->expose_sensor(bg_ptr, i, domain);
->>> +	}
->>> +
->>> +	return 0;
->>> +
->>> +put_clks:
->>> +	clk_disable(bg_ptr->fclock);
->>> +	clk_put(bg_ptr->fclock);
->>> +	clk_put(bg_ptr->div_clk);
->>> +free_irqs:
->>> +	free_irq(gpio_to_irq(bg_ptr->tshut_gpio), NULL);
->>> +	gpio_free(bg_ptr->tshut_gpio);
->>> +free_talert:
->>> +	free_irq(bg_ptr->irq, bg_ptr);
->>> +
->>> +	return ret;
+>>> +	return of_platform_populate(np, of_omap_control_match, NULL, dev);
 >>> +}
 >>> +
->>> +static
->>> +int __devexit omap_bandgap_remove(struct platform_device *pdev)
+>>> +static int __devexit omap_control_remove(struct platform_device *pdev)
 >>> +{
->>> +	struct omap_bandgap *bg_ptr = platform_get_drvdata(pdev);
+>>> +	struct omap_control *omap_control = platform_get_drvdata(pdev);
 >>> +
->>> +	clk_disable(bg_ptr->fclock);
->>> +	clk_put(bg_ptr->fclock);
->>> +	clk_put(bg_ptr->div_clk);
->>> +	free_irq(bg_ptr->irq, bg_ptr);
->>> +	free_irq(gpio_to_irq(bg_ptr->tshut_gpio), NULL);
->>> +	gpio_free(bg_ptr->tshut_gpio);
+>>> +	spin_lock(&omap_control->reg_lock);
+>>> +	if (omap_control->use_count>   0) {
+>>> +		spin_unlock(&omap_control->reg_lock);
+>>> +		dev_err(&pdev->dev, "device removed while still being used\n");
+>>> +		return -EBUSY;
+>>> +	}
+>>> +	spin_unlock(&omap_control->reg_lock);
+>>> +
+>>> +	iounmap(omap_control->base);
+>>> +	platform_set_drvdata(pdev, NULL);
 >>> +
 >>> +	return 0;
 >>> +}
 >>> +
->>> +#ifdef CONFIG_PM
->>> +static int omap_bandgap_save_ctxt(struct omap_bandgap *bg_ptr)
->>> +{
->>> +	struct device *cdev = bg_ptr->dev->parent;
->>> +	int err = 0;
->>> +	int i;
->>> +
->>> +	for (i = 0; i<   bg_ptr->pdata->sensor_count; i++) {
->>> +		struct temp_sensor_registers *tsr;
->>> +		struct temp_sensor_regval *rval;
->>> +
->>> +		rval = bg_ptr->pdata->sensors[i].regval;
->>> +		tsr = bg_ptr->pdata->sensors[i].registers;
->>> +
->>> +		err = omap_control_readl(cdev, tsr->bgap_mode_ctrl,
->>> +					&rval->bg_mode_ctrl);
->>> +		err |= omap_control_readl(cdev,	tsr->bgap_mask_ctrl,
->>> +					&rval->bg_ctrl);
->>> +		err |= omap_control_readl(cdev,	tsr->bgap_counter,
->>> +					&rval->bg_counter);
->>> +		err |= omap_control_readl(cdev, tsr->bgap_threshold,
->>> +					&rval->bg_threshold);
->>> +		err |= omap_control_readl(cdev, tsr->tshut_threshold,
->>> +					&rval->tshut_threshold);
->>> +
->>> +		if (err)
->>> +			dev_err(bg_ptr->dev, "could not save sensor %d\n", i);
->>> +	}
->>> +
->>> +	return err ? -EIO : 0;
->>> +}
->>> +
->>> +static int
->>> +omap_bandgap_force_single_read(struct omap_bandgap *bg_ptr, int id)
->>> +{
->>> +	struct device *cdev = bg_ptr->dev->parent;
->>> +	struct temp_sensor_registers *tsr;
->>> +	u32 temp = 0, counter = 1000;
->>> +	int err;
->>> +
->>> +	tsr = bg_ptr->pdata->sensors[id].registers;
->>> +	/* Select single conversion mode */
->>> +	err = omap_control_readl(cdev, tsr->bgap_mode_ctrl,&temp);
->>> +	temp&= ~(1<<   __ffs(tsr->mode_ctrl_mask));
->>> +	omap_control_writel(cdev, temp, tsr->bgap_mode_ctrl);
->>> +
->>> +	/* Start of Conversion = 1 */
->>> +	err |= omap_control_readl(cdev, tsr->temp_sensor_ctrl,&temp);
->>> +	temp |= 1<<   __ffs(tsr->bgap_soc_mask);
->>> +	omap_control_writel(cdev, temp, tsr->temp_sensor_ctrl);
->>> +	/* Wait until DTEMP is updated */
->>> +	err |= omap_control_readl(cdev, tsr->temp_sensor_ctrl,&temp);
->>> +	temp&= (tsr->bgap_dtemp_mask);
->>> +	while ((temp == 0)&&   --counter) {
->>> +		err |= omap_control_readl(cdev, tsr->temp_sensor_ctrl,&temp);
->>> +		temp&= (tsr->bgap_dtemp_mask);
->>> +	}
->>> +	/* Start of Conversion = 0 */
->>> +	err |= omap_control_readl(cdev, tsr->temp_sensor_ctrl,&temp);
->>> +	temp&= ~(1<<   __ffs(tsr->bgap_soc_mask));
->>> +	err |= omap_control_writel(cdev, temp, tsr->temp_sensor_ctrl);
->>> +
->>> +	return err ? -EIO : 0;
->>> +}
->>> +
->>> +static int omap_bandgap_restore_ctxt(struct omap_bandgap *bg_ptr)
->>> +{
->>> +	struct device *cdev = bg_ptr->dev->parent;
->>> +	int i, err = 0;
->>> +	u32 temp = 0;
->>> +
->>> +	for (i = 0; i<   bg_ptr->pdata->sensor_count; i++) {
->>> +		struct temp_sensor_registers *tsr;
->>> +		struct temp_sensor_regval *rval;
->>> +		u32 val;
->>> +
->>> +		rval = bg_ptr->pdata->sensors[i].regval;
->>> +		tsr = bg_ptr->pdata->sensors[i].registers;
->>> +
->>> +		err = omap_control_readl(cdev, tsr->bgap_counter,&val);
->>> +		if (val == 0) {
->>> +			err |= omap_control_writel(cdev, rval->bg_threshold,
->>> +						   tsr->bgap_threshold);
->>> +			err |= omap_control_writel(cdev, rval->tshut_threshold,
->>> +						   tsr->tshut_threshold);
->>> +			/* Force immediate temperature measurement and update
->>> +			 * of the DTEMP field
->>> +			 */
->>> +			omap_bandgap_force_single_read(bg_ptr, i);
->>> +			err |= omap_control_writel(cdev, rval->bg_counter,
->>> +						   tsr->bgap_counter);
->>> +			err |= omap_control_writel(cdev, rval->bg_mode_ctrl,
->>> +						   tsr->bgap_mode_ctrl);
->>> +			err |= omap_control_writel(cdev, rval->bg_ctrl,
->>> +						   tsr->bgap_mask_ctrl);
->>> +		} else {
->>> +			err |= omap_control_readl(cdev, tsr->temp_sensor_ctrl,
->>> +						&temp);
->>> +			temp&= (tsr->bgap_dtemp_mask);
->>> +			if (temp == 0) {
->>> +				omap_bandgap_force_single_read(bg_ptr, i);
->>> +				err |= omap_control_readl(cdev,
->>> +							  tsr->bgap_mask_ctrl,
->>> +							&temp);
->>> +				temp |= 1<<   __ffs(tsr->mode_ctrl_mask);
->>> +				err |= omap_control_writel(cdev, temp,
->>> +							   tsr->bgap_mask_ctrl);
->>> +			}
->>> +		}
->>> +		if (err)
->>> +			dev_err(bg_ptr->dev, "could not save sensor %d\n", i);
->>> +	}
->>> +
->>> +	return err ? -EIO : 0;
->>> +}
->>> +
->>> +static int omap_bandgap_suspend(struct device *dev)
->>> +{
->>> +	struct omap_bandgap *bg_ptr = dev_get_drvdata(dev);
->>> +	int err;
->>> +
->>> +	err = omap_bandgap_save_ctxt(bg_ptr);
->>> +	clk_disable(bg_ptr->fclock);
->>> +
->>> +	return err;
->>> +}
->>> +
->>> +static int omap_bandgap_resume(struct device *dev)
->>> +{
->>> +	struct omap_bandgap *bg_ptr = dev_get_drvdata(dev);
->>> +
->>> +	clk_enable(bg_ptr->fclock);
->>> +
->>> +	return omap_bandgap_restore_ctxt(bg_ptr);
->>> +}
->>> +static const struct dev_pm_ops omap_bandgap_dev_pm_ops = {
->>> +	SET_SYSTEM_SLEEP_PM_OPS(omap_bandgap_suspend,
->>> +				omap_bandgap_resume)
->>> +};
->>> +
->>> +#define DEV_PM_OPS	(&omap_bandgap_dev_pm_ops)
->>> +#else
->>> +#define DEV_PM_OPS	NULL
->>> +#endif
->>> +
->>> +static struct platform_driver omap_bandgap_sensor_driver = {
->>> +	.probe = omap_bandgap_probe,
->>> +	.remove = omap_bandgap_remove,
+>>> +static struct platform_driver omap_control_driver = {
+>>> +	.probe			= omap_control_probe,
+>>> +	.remove			= __devexit_p(omap_control_remove),
 >>> +	.driver = {
->>> +			.name = "omap-bandgap",
->>> +			.pm = DEV_PM_OPS,
->>> +			.of_match_table	= of_omap_bandgap_match,
+>>> +		.name		= "omap-control-core",
+>>> +		.owner		= THIS_MODULE,
+>>> +		.of_match_table	= of_omap_control_match,
 >>> +	},
 >>> +};
 >>> +
->>> +module_platform_driver(omap_bandgap_sensor_driver);
->>> +early_platform_init("early_omap_temperature",&omap_bandgap_sensor_driver);
+>>> +static int __init omap_control_init(void)
+>>> +{
+>>> +	return platform_driver_register(&omap_control_driver);
+>>> +}
+>>> +postcore_initcall_sync(omap_control_init);
 >>> +
->>> +MODULE_DESCRIPTION("OMAP4+ bandgap temperature sensor driver");
+>>> +static void __exit omap_control_exit(void)
+>>> +{
+>>> +	platform_driver_unregister(&omap_control_driver);
+>>> +}
+>>> +module_exit(omap_control_exit);
+>>> +early_platform_init("early_omap_control",&omap_control_driver);
+>>> +
+>>> +MODULE_DESCRIPTION("OMAP system control module driver");
 >>> +MODULE_LICENSE("GPL v2");
->>> +MODULE_ALIAS("platform:omap-bandgap");
->>> +MODULE_AUTHOR("Texas Instrument Inc.");
->>> diff --git a/drivers/thermal/omap-bandgap.h b/drivers/thermal/omap-bandgap.h
+>>> +MODULE_ALIAS("platform:omap-control-core");
+>>> +MODULE_AUTHOR("Texas Instruments Inc.");
+>>> diff --git a/include/linux/mfd/omap_control.h b/include/linux/mfd/omap_control.h
 >>> new file mode 100644
->>> index 0000000..12e0d6b
+>>> index 0000000..7a33eda
 >>> --- /dev/null
->>> +++ b/drivers/thermal/omap-bandgap.h
->>> @@ -0,0 +1,63 @@
+>>> +++ b/include/linux/mfd/omap_control.h
+>>> @@ -0,0 +1,69 @@
 >>> +/*
->>> + * OMAP4 Bandgap temperature sensor driver
+>>> + * OMAP system control module header file
 >>> + *
->>> + * Copyright (C) 2011 Texas Instruments Incorporated - http://www.ti.com/
+>>> + * Copyright (C) 2011-2012 Texas Instruments Incorporated - http://www.ti.com/
 >>> + * Contact:
+>>> + *   J Keerthy<j-keerthy@ti.com>
+>>> + *   Moiz Sonasath<m-sonasath@ti.com>
+>>> + *   Abraham, Kishon Vijay<kishon@ti.com>
 >>> + *   Eduardo Valentin<eduardo.valentin@ti.com>
 >>> + *
 >>> + * This program is free software; you can redistribute it and/or
@@ -567,54 +460,43 @@ Benoit
 >>> + * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
 >>> + * General Public License for more details.
 >>> + *
->>> + * You should have received a copy of the GNU General Public License
->>> + * along with this program; if not, write to the Free Software
->>> + * Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA
->>> + * 02110-1301 USA
->>> + *
 >>> + */
->>> +#ifndef __OMAP_BANDGAP_H
->>> +#define __OMAP_BANDGAP_H
 >>> +
->>> +struct omap_bandgap_data;
+>>> +#ifndef __DRIVERS_OMAP_CONTROL_H
+>>> +#define __DRIVERS_OMAP_CONTROL_H
+>>> +
+>>> +#include<linux/err.h>
 >>> +
 >>> +/**
->>> + * struct omap_bandgap - bandgap device structure
+>>> + * struct system control module - scm device structure
 >>> + * @dev: device pointer
->>> + * @pdata: platform data with sensor data
->>> + * @fclock: pointer to functional clock of temperature sensor
->>> + * @div_clk: pointer to parent clock of temperature sensor fclk
->>> + * @conv_table: Pointer to adc to temperature conversion table
->>> + * @bg_mutex: Mutex for sysfs, irq and PM
->>> + * @irq: MPU Irq number for thermal alert
->>> + * @tshut_gpio: GPIO where Tshut signal is routed
->>> + * @clk_rate: Holds current clock rate
+>>> + * @base: Base of the temp I/O
+>>> + * @reg_lock: protect omap_control structure
+>>> + * @use_count: track API users
 >>> + */
->>> +struct omap_bandgap {
->>> +	struct device			*dev;
->>> +	const struct omap_bandgap_data	*pdata;
->>> +	struct clk			*fclock;
->>> +	struct clk			*div_clk;
->>> +	const int			*conv_table;
->>> +	struct mutex			bg_mutex; /* Mutex for irq and PM */
->>> +	int				irq;
->>> +	int				tshut_gpio;
->>> +	u32				clk_rate;
->>> +};
->>> +
->>> +int omap_bandgap_read_thot(struct omap_bandgap *bg_ptr, int id, int *thot);
->>> +int omap_bandgap_write_thot(struct omap_bandgap *bg_ptr, int id, int val);
->>> +int omap_bandgap_read_tcold(struct omap_bandgap *bg_ptr, int id, int *tcold);
->>> +int omap_bandgap_write_tcold(struct omap_bandgap *bg_ptr, int id, int val);
->>> +int omap_bandgap_read_update_interval(struct omap_bandgap *bg_ptr, int id,
->>> +				      int *interval);
->>> +int omap_bandgap_write_update_interval(struct omap_bandgap *bg_ptr, int id,
->>> +				       u32 interval);
->>> +int omap_bandgap_read_temperature(struct omap_bandgap *bg_ptr, int id,
->>> +				  int *temperature);
->>> +
->>> +#endif
+>>> +struct omap_control {
+>>> +	struct device		*dev;
 >>
+>> Do you really need the dev?
+>> You API is device based and not omap_control based, so it should not
+>> be needed.
+>>
+>> I guess we should be consistent here. We can store the devices and
+>> used a device based API or store the omap_control and thus expose a
+>> omap_control API.
 >
-> ---
-> Eduardo
+> Yeah, this API structure is left over of the previous driver.
+>
+> The omap_control_get returns the SCM device reference
+> and the users of SCM use it as parameter for the SCM APIs.
+>
+> We need to have in mind that, for SCM, the users are:
+> a. Its children (USB phy, BG, etc)
+> b. Non children users (mach code)
+>
+> The refcounting and the locking needs to take care of both I'd say.
+> The struct dev was just a way to pass the SCM phandle.
+>
+>>
+>> Regards,
+>> Benoit
