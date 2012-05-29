@@ -1,7 +1,7 @@
 From: Shubhrajyoti D <shubhrajyoti-l0cyMroinI0@public.gmane.org>
-Subject: [PATCHv10 10/11] I2C: OMAP: Rename the 1p153 to the erratum id i462
-Date: Tue, 29 May 2012 16:26:22 +0530
-Message-ID: <1338288983-15026-11-git-send-email-shubhrajyoti@ti.com>
+Subject: [PATCHv10 02/11] I2C: OMAP: Fix the mismatch of pm_runtime enable and disable
+Date: Tue, 29 May 2012 16:26:14 +0530
+Message-ID: <1338288983-15026-3-git-send-email-shubhrajyoti@ti.com>
 References: <1338288983-15026-1-git-send-email-shubhrajyoti@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
@@ -9,67 +9,43 @@ Return-path: <linux-i2c-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 In-Reply-To: <1338288983-15026-1-git-send-email-shubhrajyoti-l0cyMroinI0@public.gmane.org>
 Sender: linux-i2c-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 To: linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-Cc: linux-i2c-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, ben-linux-elnMNo+KYs3YtjvyW6yDsg@public.gmane.org, tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org, w.sang-bIcnvbaLZ9MEGnE8C9+IrQ@public.gmane.org, Shubhrajyoti D <shubhrajyoti-l0cyMroinI0@public.gmane.org>, Jon Hunter <jon-hunter-l0cyMroinI0@public.gmane.org>
+Cc: linux-i2c-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, ben-linux-elnMNo+KYs3YtjvyW6yDsg@public.gmane.org, tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org, w.sang-bIcnvbaLZ9MEGnE8C9+IrQ@public.gmane.org, Shubhrajyoti D <shubhrajyoti-l0cyMroinI0@public.gmane.org>, Rajendra Nayak <rnayak-l0cyMroinI0@public.gmane.org>
 List-Id: linux-omap@vger.kernel.org
 
-The section number in the recent errata document has changed.
-Rename the erratum 1p153 to the unique id i462 instead, so that
-it is easier to reference. Also change the function name and comments
-to reflect the same.
+Currently the i2c driver calls the pm_runtime_enable and never
+the disable. This may cause a warning when pm_runtime_enable
+checks for the count match.Fix the same by calling
+pm_runtime_disable in the error and the remove path.
 
-Cc: Jon Hunter <jon-hunter-l0cyMroinI0@public.gmane.org>
-Reviewed-by: Kevin Hilman <khilman-l0cyMroinI0@public.gmane.org>
+Cc: Rajendra Nayak <rnayak-l0cyMroinI0@public.gmane.org>
+Acked-by: Kevin Hilman <khilman-l0cyMroinI0@public.gmane.org>
 Signed-off-by: Shubhrajyoti D <shubhrajyoti-l0cyMroinI0@public.gmane.org>
 ---
- drivers/i2c/busses/i2c-omap.c |   12 ++++++------
- 1 files changed, 6 insertions(+), 6 deletions(-)
+-v10 Adding Kevin's ack.
+-v9 Remove attempting from the changelogs.
+
+ drivers/i2c/busses/i2c-omap.c |    2 ++
+ 1 files changed, 2 insertions(+), 0 deletions(-)
 
 diff --git a/drivers/i2c/busses/i2c-omap.c b/drivers/i2c/busses/i2c-omap.c
-index cd6feea..dc3bd40 100644
+index 4f4188d..c851672 100644
 --- a/drivers/i2c/busses/i2c-omap.c
 +++ b/drivers/i2c/busses/i2c-omap.c
-@@ -173,7 +173,7 @@ enum {
- 
- /* Errata definitions */
- #define I2C_OMAP_ERRATA_I207		(1 << 0)
--#define I2C_OMAP3_1P153			(1 << 1)
-+#define I2C_OMAP_ERRATA_I462		(1 << 1)
- 
- struct omap_i2c_dev {
- 	struct device		*dev;
-@@ -718,11 +718,11 @@ omap_i2c_omap1_isr(int this_irq, void *dev_id)
- #endif
- 
- /*
-- * OMAP3430 Errata 1.153: When an XRDY/XDR is hit, wait for XUDF before writing
-+ * OMAP3430 Errata i462: When an XRDY/XDR is hit, wait for XUDF before writing
-  * data to DATA_REG. Otherwise some data bytes can be lost while transferring
-  * them from the memory to the I2C interface.
-  */
--static int errata_omap3_1p153(struct omap_i2c_dev *dev, u16 *stat, int *err)
-+static int errata_omap3_i462(struct omap_i2c_dev *dev, u16 *stat, int *err)
- {
- 	unsigned long timeout = 10000;
- 
-@@ -881,8 +881,8 @@ complete:
- 					break;
- 				}
- 
--				if ((dev->errata & I2C_OMAP3_1P153) &&
--				    errata_omap3_1p153(dev, &stat, &err))
-+				if ((dev->errata & I2C_OMAP_ERRATA_I462) &&
-+				    errata_omap3_i462(dev, &stat, &err))
- 					goto complete;
- 
- 				omap_i2c_write_reg(dev, OMAP_I2C_DATA_REG, w);
-@@ -1020,7 +1020,7 @@ omap_i2c_probe(struct platform_device *pdev)
- 		dev->errata |= I2C_OMAP_ERRATA_I207;
- 
- 	if (dev->rev <= OMAP_I2C_REV_ON_3430)
--		dev->errata |= I2C_OMAP3_1P153;
-+		dev->errata |= I2C_OMAP_ERRATA_I462;
- 
- 	if (!(dev->flags & OMAP_I2C_FLAG_NO_FIFO)) {
- 		u16 s;
+@@ -1090,6 +1090,7 @@ err_unuse_clocks:
+ 	omap_i2c_write_reg(dev, OMAP_I2C_CON_REG, 0);
+ 	pm_runtime_put(dev->dev);
+ 	iounmap(dev->base);
++	pm_runtime_disable(&pdev->dev);
+ err_free_mem:
+ 	platform_set_drvdata(pdev, NULL);
+ 	kfree(dev);
+@@ -1110,6 +1111,7 @@ omap_i2c_remove(struct platform_device *pdev)
+ 	free_irq(dev->irq, dev);
+ 	i2c_del_adapter(&dev->adapter);
+ 	omap_i2c_write_reg(dev, OMAP_I2C_CON_REG, 0);
++	pm_runtime_disable(&pdev->dev);
+ 	iounmap(dev->base);
+ 	kfree(dev);
+ 	mem = platform_get_resource(pdev, IORESOURCE_MEM, 0);
 -- 
 1.7.5.4
