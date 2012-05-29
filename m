@@ -1,46 +1,78 @@
-From: Mike Turquette <mturquette@ti.com>
-Subject: Re: [RFC PATCH 09/11] ARM: OMAP4+: thermal: introduce bandgap
- temperature sensor
-Date: Tue, 29 May 2012 10:51:25 -0700
-Message-ID: <20120529175125.GD2722@gmail.com>
-References: <1337934361-1606-1-git-send-email-eduardo.valentin@ti.com>
- <1337934361-1606-10-git-send-email-eduardo.valentin@ti.com>
- <4FBFAA18.4040103@ti.com>
- <20120528111624.GC3923@besouro>
- <4FC4CBC8.2040600@ti.com>
+From: Jon Hunter <jon-hunter@ti.com>
+Subject: Re: [PATCH 1/3] arm/dts: add wdt node for omap3 and omap4
+Date: Tue, 29 May 2012 12:52:13 -0500
+Message-ID: <4FC50CCD.7090404@ti.com>
+References: <1337942552-28218-1-git-send-email-jgq516@gmail.com> <1337942552-28218-2-git-send-email-jgq516@gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset="ISO-8859-1"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aog119.obsmtp.com ([74.125.149.246]:51932 "EHLO
-	na3sys009aog119.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753041Ab2E2Rvi (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>);
-	Tue, 29 May 2012 13:51:38 -0400
-Received: by obbwd18 with SMTP id wd18so8974759obb.0
-        for <linux-omap@vger.kernel.org>; Tue, 29 May 2012 10:51:37 -0700 (PDT)
-Content-Disposition: inline
-In-Reply-To: <4FC4CBC8.2040600@ti.com>
+Received: from devils.ext.ti.com ([198.47.26.153]:38739 "EHLO
+	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754545Ab2E2Rwb (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 29 May 2012 13:52:31 -0400
+In-Reply-To: <1337942552-28218-2-git-send-email-jgq516@gmail.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "Cousson, Benoit" <b-cousson@ti.com>
-Cc: eduardo.valentin@ti.com, kishon@ti.com, kbaidarov@dev.rtsoft.ru, santosh.shilimkar@ti.com, tony@atomide.com, paul@pwsan.com, balbi@ti.com, amit.kucheria@linaro.org, linux-pm@lists.linux-foundation.org, linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org, amit.kachhap@linaro.org, Keerthy <j-keerthy@ti.com>
+To: jgq516@gmail.com
+Cc: linux@arm.linux.org.uk, b-cousson@ti.com, rob.herring@calxeda.com, grant.likely@secretlab.ca, rnayak@ti.com, tony@atomide.com, wim@iguana.be, devicetree-discuss@lists.ozlabs.org, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-watchdog@vger.kernel.org
 
-On 20120529-15:14, Cousson, Benoit wrote:
-> On 5/28/2012 1:16 PM, Eduardo Valentin wrote:
-> >In fact I didn't touch the clk data on purpose and left the clock handling
-> >as is. On my side I didn't know how the clock struct would look like with DT,
-> >so, I didn't mess with it.
-> >
-> >Do you have a reference to check the work in progress for clock DT ?
+
+On 05/25/2012 05:42 AM, jgq516@gmail.com wrote:
+> From: Xiao Jiang <jgq516@gmail.com>
 > 
-> Rob sent a pull request, it seems that now it is up to Mike T. :-)
+> Add wdt node to support dt.
 > 
-> http://lists-archives.com/linux-kernel/27640907-dt-clk-binding-support.html
+> Signed-off-by: Xiao Jiang <jgq516@gmail.com>
+> ---
+>  arch/arm/boot/dts/omap3.dtsi |    5 +++++
+>  arch/arm/boot/dts/omap4.dtsi |    5 +++++
+>  2 files changed, 10 insertions(+), 0 deletions(-)
 > 
+> diff --git a/arch/arm/boot/dts/omap3.dtsi b/arch/arm/boot/dts/omap3.dtsi
+> index 99474fa..039df5c 100644
+> --- a/arch/arm/boot/dts/omap3.dtsi
+> +++ b/arch/arm/boot/dts/omap3.dtsi
+> @@ -215,5 +215,10 @@
+>  			compatible = "ti,omap3-hsmmc";
+>  			ti,hwmods = "mmc3";
+>  		};
+> +
+> +		wdt: wdt@48314000{
 
-Due to the on-going discussion around those patches I haven't pulled
-yet.  If everyone agrees once the dust settles then I'll take them in.
+Minor comment, may be call this wdt2 as this is watchdog timer 2. Also
+ass a space between the address and the "{".
 
-Regards,
-Mike
+> +			compatible = "ti,omap3-wdt";
+> +			ti,hwmods = "wd_timer2";
+> +		};
+>  	};
+>  };
+> diff --git a/arch/arm/boot/dts/omap4.dtsi b/arch/arm/boot/dts/omap4.dtsi
+> index 359c497..d01403d 100644
+> --- a/arch/arm/boot/dts/omap4.dtsi
+> +++ b/arch/arm/boot/dts/omap4.dtsi
+> @@ -272,5 +272,10 @@
+>  			ti,hwmods = "mmc5";
+>  			ti,needs-special-reset;
+>  		};
+> +
+> +		wdt: wdt@4a314000{
 
+Same as above.
+
+> +			compatible = "ti,omap4-wdt";
+> +			ti,hwmods = "wd_timer2";
+> +		};
+>  	};
+>  };
+
+Also we should add some documentation to describe the binding. Here it
+is very simple, but nonetheless we should have something as we have for
+gpio [1].
+
+Cheers
+Jon
+
+[1]
+http://git.kernel.org/?p=linux/kernel/git/torvalds/linux-2.6.git;a=blob;f=Documentation/devicetree/bindings/gpio/gpio-omap.txt;h=bff51a2fee1eae7d387b40ea913e04782554bf68;hb=HEAD
