@@ -1,68 +1,77 @@
 From: Shubhrajyoti D <shubhrajyoti@ti.com>
-Subject: [PATCHv10 08/11] I2C: OMAP: prevent the overwrite of the errata flags
-Date: Tue, 29 May 2012 16:26:20 +0530
-Message-ID: <1338288983-15026-9-git-send-email-shubhrajyoti@ti.com>
-References: <1338288983-15026-1-git-send-email-shubhrajyoti@ti.com>
+Subject: [PATCHv10 00/11] I2C fixes
+Date: Tue, 29 May 2012 16:26:12 +0530
+Message-ID: <1338288983-15026-1-git-send-email-shubhrajyoti@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-In-Reply-To: <1338288983-15026-1-git-send-email-shubhrajyoti@ti.com>
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: linux-arm-kernel-bounces@lists.infradead.org
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: linux-omap@vger.kernel.org
-Cc: tony@atomide.com, Tasslehoff Kjappfot <tasskjapp@gmail.com>, w.sang@pengutronix.de, linux-i2c@vger.kernel.org, ben-linux@fluff.org, Shubhrajyoti D <shubhrajyoti@ti.com>, linux-arm-kernel@lists.infradead.org
+Content-Type: text/plain
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from bear.ext.ti.com ([192.94.94.41]:51686 "EHLO bear.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1753813Ab2E2K5Z (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Tue, 29 May 2012 06:57:25 -0400
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: linux-omap@vger.kernel.org
+Cc: linux-i2c@vger.kernel.org, linux-arm-kernel@lists.infradead.org, ben-linux@fluff.org, tony@atomide.com, w.sang@pengutronix.de, Shubhrajyoti D <shubhrajyoti@ti.com>
 
-From: Tasslehoff Kjappfot <tasskjapp@gmail.com>
 
-i2c_probe set the dev->errata flag, but omap_i2c_init cleared the flag again.
-Prevent the overwrite of the errata flags.Move the errata handling to a unified
-place in probe to prevent such errors.
+The patch series does the following
 
-Reviewed-by: Kevin Hilman <khilman@ti.com>
-Signed-off-by: Tasslehoff Kjappfot <tasskjapp@gmail.com>
-Signed-off-by: Shubhrajyoti D <shubhrajyoti@ti.com>
----
--v9  Update the changelogs to be more explainatory.
+- Warn fixes if CONFIG_PM_RUNTIME is not selected.
+- In case of i2c remove register access was done without any
+ get_sync fix the same.
+- Folds a patch from Tasslehoff to prevent any merge conflicts.
+- Prevents the XDUF flag to be set if the underflow condition is not met.
+- As per discussion in [1] .Adds a patch to rename the 1p153 errata and
+ use the unique id instead as the section number in the recent errata
+ docs has changed.
 
- drivers/i2c/busses/i2c-omap.c |   10 +++++-----
- 1 files changed, 5 insertions(+), 5 deletions(-)
+v9:
+Fix the comments from Wolfram Sang
 
-diff --git a/drivers/i2c/busses/i2c-omap.c b/drivers/i2c/busses/i2c-omap.c
-index c39b72f..6129cb8 100644
---- a/drivers/i2c/busses/i2c-omap.c
-+++ b/drivers/i2c/busses/i2c-omap.c
-@@ -427,11 +427,6 @@ static int omap_i2c_init(struct omap_i2c_dev *dev)
- 	/* Take the I2C module out of reset: */
- 	omap_i2c_write_reg(dev, OMAP_I2C_CON_REG, OMAP_I2C_CON_EN);
- 
--	dev->errata = 0;
--
--	if (dev->flags & OMAP_I2C_FLAG_APPLY_ERRATA_I207)
--		dev->errata |= I2C_OMAP_ERRATA_I207;
--
- 	/* Enable interrupts */
- 	dev->iestate = (OMAP_I2C_IE_XRDY | OMAP_I2C_IE_RRDY |
- 			OMAP_I2C_IE_ARDY | OMAP_I2C_IE_NACK |
-@@ -1019,6 +1014,11 @@ omap_i2c_probe(struct platform_device *pdev)
- 
- 	dev->rev = omap_i2c_read_reg(dev, OMAP_I2C_REV_REG) & 0xff;
- 
-+	dev->errata = 0;
-+
-+	if (dev->flags & OMAP_I2C_FLAG_APPLY_ERRATA_I207)
-+		dev->errata |= I2C_OMAP_ERRATA_I207;
-+
- 	if (dev->rev <= OMAP_I2C_REV_ON_3430)
- 		dev->errata |= I2C_OMAP3_1P153;
- 
+v10:
+Add a patch from Neil to the series.
+Fix kevin comments
+update the patches with comments.
+
+[1] http://www.spinics.net/lists/linux-i2c/msg07607.html
+
+Tested on omap4sdp and omap3sdp.
+- Did functional tests read write on both the platforms.
+- Off mode and retention on OMAP3
+- On OMAP4 just did echo mem > /sys/power/state and wakeup.
+Did see.
+[ 1360.595855] Successfully put all powerdomains to target state
+However didnt see the ret count for other than mpu_pwrdm increase.
+I think power support for omap4 is minimal. 
+
+The following changes since commit b48b2c3e50433ff6f7e46186daa7f986bd960215:
+
+  openrisc: use generic strnlen_user() function (2012-05-27 21:00:32 -0700)
+
+are available in the git repository at:
+  git://gitorious.org/linus-tree/linus-tree.git i2c_omap-fixes
+
+Neil Brown (1):
+      OMAP/I2C - Fix timeout problem during suspend.
+
+Shubhrajyoti D (9):
+      I2C: OMAP: make omap_i2c_unidle/idle functions depend on CONFIG_PM_RUNTIME
+      I2C: OMAP: Fix the mismatch of pm_runtime enable and disable
+      I2C: OMAP: Fix the interrupt clearing in OMAP4
+      I2C: OMAP: Prevent the register access after pm_runtime_put in probe
+      I2C: OMAP: Don't check if wait_for_completion_timeout() returns less than zero
+      I2C: OMAP: Fix the crash in i2c remove
+      I2C: OMAP: Handle error check for pm runtime
+      I2C: OMAP: Do not set the XUDF(Transmit underflow) if the underflow is not reached
+      I2C: OMAP: Rename the 1p153 to the erratum id i462
+
+Tasslehoff Kjappfot (1):
+      I2C: OMAP: prevent the overwrite of the errata flags
+
+ drivers/i2c/busses/i2c-omap.c |  129 ++++++++++++++++++++---------------------
+ 1 files changed, 63 insertions(+), 66 deletions(-)
+
 -- 
 1.7.5.4
+
