@@ -1,74 +1,58 @@
-From: "Hiremath, Vaibhav" <hvaibhav@ti.com>
-Subject: RE: [PATCH-V4 2/4] ARM: OMAP3/4: omap_hwmod: Add rstst_off field to
- struct omap_hwmod_omap4_prcm
-Date: Tue, 29 May 2012 06:31:46 +0000
-Message-ID: <79CD15C6BA57404B839C016229A409A83EA39298@DBDE01.ent.ti.com>
-References: <1333123435-27186-1-git-send-email-hvaibhav@ti.com>
- <1333123435-27186-3-git-send-email-hvaibhav@ti.com>
+From: Ulf Hansson <ulf.hansson@linaro.org>
+Subject: Re: Regression for non-eMMC cards with commit fa550189?
+Date: Tue, 29 May 2012 14:52:34 +0800
+Message-ID: <CAPDyKFrcviT3_Fz13LpFJ+1oKxQ5LKswN7EmzVcWTJkiiDWusA@mail.gmail.com>
+References: <20120528132147.GC12766@atomide.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
+Content-Type: text/plain; charset=ISO-8859-1
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from comal.ext.ti.com ([198.47.26.152]:59122 "EHLO comal.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751300Ab2E2Gb6 convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 29 May 2012 02:31:58 -0400
-In-Reply-To: <1333123435-27186-3-git-send-email-hvaibhav@ti.com>
-Content-Language: en-US
+Received: from mail-ey0-f174.google.com ([209.85.215.174]:54281 "EHLO
+	mail-ey0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751186Ab2E2Gwg (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 29 May 2012 02:52:36 -0400
+Received: by eaak11 with SMTP id k11so909795eaa.19
+        for <linux-omap@vger.kernel.org>; Mon, 28 May 2012 23:52:35 -0700 (PDT)
+In-Reply-To: <20120528132147.GC12766@atomide.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "Hiremath, Vaibhav" <hvaibhav@ti.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
-Cc: "tony@atomide.com" <tony@atomide.com>, "Hilman, Kevin" <khilman@ti.com>, "paul@pwsan.com" <paul@pwsan.com>, "Nayak, Rajendra" <rnayak@ti.com>, "Cousson, Benoit" <b-cousson@ti.com>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>
+To: Tony Lindgren <tony@atomide.com>
+Cc: Chris Ball <cjb@laptop.org>, linux-mmc@vger.kernel.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 
-On Fri, Mar 30, 2012 at 21:33:53, Hiremath, Vaibhav wrote:
-> In case of AM33XX device, XXX_RSTST register offset is not
-> consistent across PRM modules/instances,
-> 
-> PRM_XXX            RSTST
-> =========================
-> PRM_PER_MOD:       0x04
-> PRM_WKUP_MOD:      0x0C
-> PRM_MPU_MOD:       NA
-> PRM_DEVICE_MOD:    0x08
-> 
-> This means, we need to pass on XXX_RSTST register offset
-> information through omap_hwmod data, similar to XXX_RSTCTRL.
-> 
-> Currently, this field is only applicable and used for AM33XX
-> devices.
-> 
-> Signed-off-by: Vaibhav Hiremath <hvaibhav@ti.com>
-> Cc: Benoit Cousson <b-cousson@ti.com>
-> Cc: Tony Lindgren <tony@atomide.com>
-> Cc: Kevin Hilman <khilman@ti.com>
-> Cc: Paul Walmsley <paul@pwsan.com>
-> Cc: Rajendra Nayak <rnayak@ti.com>
-> ---
->  arch/arm/plat-omap/include/plat/omap_hwmod.h |    2 ++
->  1 files changed, 2 insertions(+), 0 deletions(-)
-> 
-> diff --git a/arch/arm/plat-omap/include/plat/omap_hwmod.h b/arch/arm/plat-omap/include/plat/omap_hwmod.h
-> index 9ae87eb..50f42ec 100644
-> --- a/arch/arm/plat-omap/include/plat/omap_hwmod.h
-> +++ b/arch/arm/plat-omap/include/plat/omap_hwmod.h
-> @@ -374,11 +374,13 @@ struct omap_hwmod_omap2_prcm {
->   * struct omap_hwmod_omap4_prcm - OMAP4-specific PRCM data
->   * @clkctrl_reg: PRCM address of the clock control register
->   * @rstctrl_reg: address of the XXX_RSTCTRL register located in the PRM
-> + * @rstst_reg: (AM33XX Only) address of the XXX_RSTST register located in the PRM
->   * @submodule_wkdep_bit: bit shift of the WKDEP range
->   */
->  struct omap_hwmod_omap4_prcm {
->  	u16		clkctrl_offs;
->  	u16		rstctrl_offs;
-> +	u16		rstst_offs;
->  	u16		context_offs;
->  	u8		submodule_wkdep_bit;
->  	u8		modulemode;
+Hi Tony,
 
-Paul,
+This patch changes the sequence of how the host drivers set_ios
+function gets called during probe.
 
-We have missed this patch from the series, can you merge this one as well?
+Before:
+1. mmc_power_off
+2. mmc_power_up
 
-Thanks,
-Vaibhav
+Now:
+1. mmc_power_up
+
+My guess is then; the omap driver set_ios function requires that
+mmc_power_off is called before a mmc_power_up.
+Hopefully this requirement can be removed and fixed in the host driver somehow.
+
+Please get back to me if you need some more assistance around this matter.
+
+Kind regards
+Ulf Hansson
+
+
+On 28 May 2012 21:21, Tony Lindgren <tony@atomide.com> wrote:
+> Hi Ulf & Chris,
+>
+> Looks like commit fa550189 (mmc: core: Prevent eMMC VCC supply to be
+> cut from late init) causes MMC card to stop working at least with
+> n8x0 using drivers/mmc/host/omap.c. The card(s) on it are not eMMC.
+>
+> Reverting fa550189 makes things work again. Any ideas what could
+> be causing this?
+>
+> No debug output from MMC_DEBUG, looks like commands won't even
+> get started?
+>
+> Regards,
+>
+> Tony
