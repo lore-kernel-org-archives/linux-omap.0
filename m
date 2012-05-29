@@ -1,294 +1,81 @@
 From: Vaibhav Hiremath <hvaibhav@ti.com>
-Subject: [PATCH-V2 2/4] ARM: OMAP3+: clock: Move common clksel_rate & clock data to common file
-Date: Tue, 29 May 2012 15:26:40 +0530
-Message-ID: <1338285402-11306-3-git-send-email-hvaibhav@ti.com>
-References: <1338285402-11306-1-git-send-email-hvaibhav@ti.com>
+Subject: [PATCH-V2 0/4] ARM: OMAP2+: am33xx: Add clocktree and hwmod data
+Date: Tue, 29 May 2012 15:26:38 +0530
+Message-ID: <1338285402-11306-1-git-send-email-hvaibhav@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from comal.ext.ti.com ([198.47.26.152]:41121 "EHLO comal.ext.ti.com"
+Received: from bear.ext.ti.com ([192.94.94.41]:48932 "EHLO bear.ext.ti.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753170Ab2E2J5S (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Tue, 29 May 2012 05:57:18 -0400
-In-Reply-To: <1338285402-11306-1-git-send-email-hvaibhav@ti.com>
+	id S1751501Ab2E2J5N (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Tue, 29 May 2012 05:57:13 -0400
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: linux-omap@vger.kernel.org
 Cc: tony@atomide.com, khilman@ti.com, paul@pwsan.com, linux-arm-kernel@lists.infradead.org, Vaibhav Hiremath <hvaibhav@ti.com>
 
-From: Paul Walmsley <paul@pwsan.com>
+This patch adds complete clockctree and hwmod data for the
+AM33XX family of devices.
 
-OMAP3, OMAP4 and AM33xx share some common data like, clksel_rate
-oscillator clock input (Virtual clock nodes), required for
-clock tree; so move common data to common data file so that it
-can be reused.
+This patch-series is cleaned up further from Paul's cleanup
+activity on AM33xx clocktree, where all leaf nodes have been
+removed and now modules enable/disable is controlled only
+using hwmod framework interface.
 
-Signed-off-by: Paul Walmsley <paul@pwsan.com>
-[hvaibhav@ti.com: Created separate commit from Paul's developement
-  branch]
-Signed-off-by: Vaibhav Hiremath <hvaibhav@ti.com>
----
-I would like propose further data moment from clock tree perspective,
+There are certain modules, like clkdiv32k, debugss, etc..., for
+which we still doesn't have hwmod_data present, so in order to
+disable these modules during boot time, we still have to maintain
+clk node for them. Comment has been added to highlight this, and
+in the future we will cleanup this.
+As far as, CLKDIV32K module, in reality is not module but still
+we have MODULEMODE to control it, so we may have to keep this node
+alone in the clocktree.
 
- - Move all "clksel_rate" to common clock data, since one or the
-   multiple clocktree's will use them.
- - Move virtual clk data structures to common clock data.
- - Move 32k clk structure to common clock data.
+This patch is created on top of recently submitted patches
+(accepted on the list) for am33xx voltage/powerdomain/clockcomain
+patch-series -
+http://www.mail-archive.com/linux-omap@vger.kernel.org/msg69023.html
 
- arch/arm/mach-omap2/clock.h             |   12 +++++
- arch/arm/mach-omap2/clock3xxx_data.c    |   20 ++------
- arch/arm/mach-omap2/clock44xx_data.c    |   72 -----------------------------
- arch/arm/mach-omap2/clock_common_data.c |   77 +++++++++++++++++++++++++++++++
- 4 files changed, 93 insertions(+), 88 deletions(-)
+All the patches are also available at
+https://github.com/hvaibhav/am335x-linux   am335x-upstream-staging
 
-diff --git a/arch/arm/mach-omap2/clock.h b/arch/arm/mach-omap2/clock.h
-index a1bb23a..980b0a4 100644
---- a/arch/arm/mach-omap2/clock.h
-+++ b/arch/arm/mach-omap2/clock.h
-@@ -155,4 +155,16 @@ extern const struct clkops clkops_omap3_noncore_dpll_ops;
- extern const struct clkops clkops_omap3_core_dpll_ops;
- extern const struct clkops clkops_omap4_dpllmx_ops;
+This patch has been boot tested on BeagleBone platform.
 
-+/* clksel_rate blocks shared between OMAP44xx and AM33xx */
-+extern const struct clksel_rate div_1_0_rates[];
-+extern const struct clksel_rate div_1_1_rates[];
-+extern const struct clksel_rate div_1_2_rates[];
-+extern const struct clksel_rate div_1_3_rates[];
-+extern const struct clksel_rate div_1_4_rates[];
-+extern const struct clksel_rate div31_1to31_rates[];
-+
-+/* clocks shared between various OMAP SoCs */
-+extern struct clk virt_19200000_ck;
-+extern struct clk virt_26000000_ck;
-+
- #endif
-diff --git a/arch/arm/mach-omap2/clock3xxx_data.c b/arch/arm/mach-omap2/clock3xxx_data.c
-index 452b613..160ced3 100644
---- a/arch/arm/mach-omap2/clock3xxx_data.c
-+++ b/arch/arm/mach-omap2/clock3xxx_data.c
-@@ -93,18 +93,6 @@ static struct clk virt_16_8m_ck = {
- 	.rate		= 16800000,
- };
+History:
+========
+ClockTree: http://www.mail-archive.com/linux-omap@vger.kernel.org/msg67095.html
+Hwmod: http://www.spinics.net/lists/linux-omap/msg69189.html
 
--static struct clk virt_19_2m_ck = {
--	.name		= "virt_19_2m_ck",
--	.ops		= &clkops_null,
--	.rate		= 19200000,
--};
--
--static struct clk virt_26m_ck = {
--	.name		= "virt_26m_ck",
--	.ops		= &clkops_null,
--	.rate		= 26000000,
--};
--
- static struct clk virt_38_4m_ck = {
- 	.name		= "virt_38_4m_ck",
- 	.ops		= &clkops_null,
-@@ -145,8 +133,8 @@ static const struct clksel osc_sys_clksel[] = {
- 	{ .parent = &virt_12m_ck,   .rates = osc_sys_12m_rates },
- 	{ .parent = &virt_13m_ck,   .rates = osc_sys_13m_rates },
- 	{ .parent = &virt_16_8m_ck, .rates = osc_sys_16_8m_rates },
--	{ .parent = &virt_19_2m_ck, .rates = osc_sys_19_2m_rates },
--	{ .parent = &virt_26m_ck,   .rates = osc_sys_26m_rates },
-+	{ .parent = &virt_19200000_ck, .rates = osc_sys_19_2m_rates },
-+	{ .parent = &virt_26000000_ck,   .rates = osc_sys_26m_rates },
- 	{ .parent = &virt_38_4m_ck, .rates = osc_sys_38_4m_rates },
- 	{ .parent = NULL },
- };
-@@ -3230,8 +3218,8 @@ static struct omap_clk omap3xxx_clks[] = {
- 	CLK(NULL,	"virt_12m_ck",	&virt_12m_ck,	CK_3XXX),
- 	CLK(NULL,	"virt_13m_ck",	&virt_13m_ck,	CK_3XXX),
- 	CLK(NULL,	"virt_16_8m_ck", &virt_16_8m_ck, CK_3430ES2PLUS | CK_AM35XX  | CK_36XX),
--	CLK(NULL,	"virt_19_2m_ck", &virt_19_2m_ck, CK_3XXX),
--	CLK(NULL,	"virt_26m_ck",	&virt_26m_ck,	CK_3XXX),
-+	CLK(NULL,	"virt_19200000_ck", &virt_19200000_ck, CK_3XXX),
-+	CLK(NULL,	"virt_26000000_ck",	&virt_26000000_ck,	CK_3XXX),
- 	CLK(NULL,	"virt_38_4m_ck", &virt_38_4m_ck, CK_3XXX),
- 	CLK(NULL,	"osc_sys_ck",	&osc_sys_ck,	CK_3XXX),
- 	CLK(NULL,	"sys_ck",	&sys_ck,	CK_3XXX),
-diff --git a/arch/arm/mach-omap2/clock44xx_data.c b/arch/arm/mach-omap2/clock44xx_data.c
-index 2172f66..66c2e27 100644
---- a/arch/arm/mach-omap2/clock44xx_data.c
-+++ b/arch/arm/mach-omap2/clock44xx_data.c
-@@ -106,18 +106,6 @@ static struct clk virt_16800000_ck = {
- 	.rate		= 16800000,
- };
+Changes from V1:
+	- Removed all leaf nodes from clocktree, and migrated
+	  hwmod data to use parent clock of module's funtional clock
+	  as main_clk.
+	- Rebased patches against Kevin's omap_hwmod cleanup patch-series,
+	  where, cpu_is_xxx is no longer needed and platform specific
+	  api's will be registered during init call itself.
+	-
 
--static struct clk virt_19200000_ck = {
--	.name		= "virt_19200000_ck",
--	.ops		= &clkops_null,
--	.rate		= 19200000,
--};
--
--static struct clk virt_26000000_ck = {
--	.name		= "virt_26000000_ck",
--	.ops		= &clkops_null,
--	.rate		= 26000000,
--};
--
- static struct clk virt_27000000_ck = {
- 	.name		= "virt_27000000_ck",
- 	.ops		= &clkops_null,
-@@ -130,31 +118,6 @@ static struct clk virt_38400000_ck = {
- 	.rate		= 38400000,
- };
+Paul Walmsley (1):
+  ARM: OMAP3+: clock: Move common clksel_rate & clock data to common
+    file
 
--static const struct clksel_rate div_1_0_rates[] = {
--	{ .div = 1, .val = 0, .flags = RATE_IN_4430 },
--	{ .div = 0 },
--};
--
--static const struct clksel_rate div_1_1_rates[] = {
--	{ .div = 1, .val = 1, .flags = RATE_IN_4430 },
--	{ .div = 0 },
--};
--
--static const struct clksel_rate div_1_2_rates[] = {
--	{ .div = 1, .val = 2, .flags = RATE_IN_4430 },
--	{ .div = 0 },
--};
--
--static const struct clksel_rate div_1_3_rates[] = {
--	{ .div = 1, .val = 3, .flags = RATE_IN_4430 },
--	{ .div = 0 },
--};
--
--static const struct clksel_rate div_1_4_rates[] = {
--	{ .div = 1, .val = 4, .flags = RATE_IN_4430 },
--	{ .div = 0 },
--};
--
- static const struct clksel_rate div_1_5_rates[] = {
- 	{ .div = 1, .val = 5, .flags = RATE_IN_4430 },
- 	{ .div = 0 },
-@@ -288,41 +251,6 @@ static struct clk dpll_abe_x2_ck = {
- 	.recalc		= &omap3_clkoutx2_recalc,
- };
+Vaibhav Hiremath (3):
+  ARM: OMAP2+: hwmod: Hook-up am33xx support in omap_hwmod framework
+  ARM: OMAP3+: clock33xx: Add AM33XX clock tree data
+  ARM: OMAP3+: hwmod: Add AM33XX HWMOD data
 
--static const struct clksel_rate div31_1to31_rates[] = {
--	{ .div = 1, .val = 1, .flags = RATE_IN_4430 },
--	{ .div = 2, .val = 2, .flags = RATE_IN_4430 },
--	{ .div = 3, .val = 3, .flags = RATE_IN_4430 },
--	{ .div = 4, .val = 4, .flags = RATE_IN_4430 },
--	{ .div = 5, .val = 5, .flags = RATE_IN_4430 },
--	{ .div = 6, .val = 6, .flags = RATE_IN_4430 },
--	{ .div = 7, .val = 7, .flags = RATE_IN_4430 },
--	{ .div = 8, .val = 8, .flags = RATE_IN_4430 },
--	{ .div = 9, .val = 9, .flags = RATE_IN_4430 },
--	{ .div = 10, .val = 10, .flags = RATE_IN_4430 },
--	{ .div = 11, .val = 11, .flags = RATE_IN_4430 },
--	{ .div = 12, .val = 12, .flags = RATE_IN_4430 },
--	{ .div = 13, .val = 13, .flags = RATE_IN_4430 },
--	{ .div = 14, .val = 14, .flags = RATE_IN_4430 },
--	{ .div = 15, .val = 15, .flags = RATE_IN_4430 },
--	{ .div = 16, .val = 16, .flags = RATE_IN_4430 },
--	{ .div = 17, .val = 17, .flags = RATE_IN_4430 },
--	{ .div = 18, .val = 18, .flags = RATE_IN_4430 },
--	{ .div = 19, .val = 19, .flags = RATE_IN_4430 },
--	{ .div = 20, .val = 20, .flags = RATE_IN_4430 },
--	{ .div = 21, .val = 21, .flags = RATE_IN_4430 },
--	{ .div = 22, .val = 22, .flags = RATE_IN_4430 },
--	{ .div = 23, .val = 23, .flags = RATE_IN_4430 },
--	{ .div = 24, .val = 24, .flags = RATE_IN_4430 },
--	{ .div = 25, .val = 25, .flags = RATE_IN_4430 },
--	{ .div = 26, .val = 26, .flags = RATE_IN_4430 },
--	{ .div = 27, .val = 27, .flags = RATE_IN_4430 },
--	{ .div = 28, .val = 28, .flags = RATE_IN_4430 },
--	{ .div = 29, .val = 29, .flags = RATE_IN_4430 },
--	{ .div = 30, .val = 30, .flags = RATE_IN_4430 },
--	{ .div = 31, .val = 31, .flags = RATE_IN_4430 },
--	{ .div = 0 },
--};
--
- static const struct clksel dpll_abe_m2x2_div[] = {
- 	{ .parent = &dpll_abe_x2_ck, .rates = div31_1to31_rates },
- 	{ .parent = NULL },
-diff --git a/arch/arm/mach-omap2/clock_common_data.c b/arch/arm/mach-omap2/clock_common_data.c
-index 6424d46..b9f3ba6 100644
---- a/arch/arm/mach-omap2/clock_common_data.c
-+++ b/arch/arm/mach-omap2/clock_common_data.c
-@@ -43,3 +43,80 @@ const struct clksel_rate dsp_ick_rates[] = {
- 	{ .div = 3, .val = 3, .flags = RATE_IN_243X },
- 	{ .div = 0 },
- };
-+
-+
-+/* clksel_rate blocks shared between OMAP44xx and AM33xx */
-+
-+const struct clksel_rate div_1_0_rates[] = {
-+	{ .div = 1, .val = 0, .flags = RATE_IN_4430 | RATE_IN_AM33XX },
-+	{ .div = 0 },
-+};
-+
-+const struct clksel_rate div_1_1_rates[] = {
-+	{ .div = 1, .val = 1, .flags = RATE_IN_4430 | RATE_IN_AM33XX },
-+	{ .div = 0 },
-+};
-+
-+const struct clksel_rate div_1_2_rates[] = {
-+	{ .div = 1, .val = 2, .flags = RATE_IN_4430 | RATE_IN_AM33XX },
-+	{ .div = 0 },
-+};
-+
-+const struct clksel_rate div_1_3_rates[] = {
-+	{ .div = 1, .val = 3, .flags = RATE_IN_4430 | RATE_IN_AM33XX },
-+	{ .div = 0 },
-+};
-+
-+const struct clksel_rate div_1_4_rates[] = {
-+	{ .div = 1, .val = 4, .flags = RATE_IN_4430 | RATE_IN_AM33XX },
-+	{ .div = 0 },
-+};
-+
-+const struct clksel_rate div31_1to31_rates[] = {
-+	{ .div = 1, .val = 1, .flags = RATE_IN_4430 | RATE_IN_AM33XX },
-+	{ .div = 2, .val = 2, .flags = RATE_IN_4430 | RATE_IN_AM33XX },
-+	{ .div = 3, .val = 3, .flags = RATE_IN_4430 | RATE_IN_AM33XX },
-+	{ .div = 4, .val = 4, .flags = RATE_IN_4430 | RATE_IN_AM33XX },
-+	{ .div = 5, .val = 5, .flags = RATE_IN_4430 | RATE_IN_AM33XX },
-+	{ .div = 6, .val = 6, .flags = RATE_IN_4430 | RATE_IN_AM33XX },
-+	{ .div = 7, .val = 7, .flags = RATE_IN_4430 | RATE_IN_AM33XX },
-+	{ .div = 8, .val = 8, .flags = RATE_IN_4430 | RATE_IN_AM33XX },
-+	{ .div = 9, .val = 9, .flags = RATE_IN_4430 | RATE_IN_AM33XX },
-+	{ .div = 10, .val = 10, .flags = RATE_IN_4430 | RATE_IN_AM33XX },
-+	{ .div = 11, .val = 11, .flags = RATE_IN_4430 | RATE_IN_AM33XX },
-+	{ .div = 12, .val = 12, .flags = RATE_IN_4430 | RATE_IN_AM33XX },
-+	{ .div = 13, .val = 13, .flags = RATE_IN_4430 | RATE_IN_AM33XX },
-+	{ .div = 14, .val = 14, .flags = RATE_IN_4430 | RATE_IN_AM33XX },
-+	{ .div = 15, .val = 15, .flags = RATE_IN_4430 | RATE_IN_AM33XX },
-+	{ .div = 16, .val = 16, .flags = RATE_IN_4430 | RATE_IN_AM33XX },
-+	{ .div = 17, .val = 17, .flags = RATE_IN_4430 | RATE_IN_AM33XX },
-+	{ .div = 18, .val = 18, .flags = RATE_IN_4430 | RATE_IN_AM33XX },
-+	{ .div = 19, .val = 19, .flags = RATE_IN_4430 | RATE_IN_AM33XX },
-+	{ .div = 20, .val = 20, .flags = RATE_IN_4430 | RATE_IN_AM33XX },
-+	{ .div = 21, .val = 21, .flags = RATE_IN_4430 | RATE_IN_AM33XX },
-+	{ .div = 22, .val = 22, .flags = RATE_IN_4430 | RATE_IN_AM33XX },
-+	{ .div = 23, .val = 23, .flags = RATE_IN_4430 | RATE_IN_AM33XX },
-+	{ .div = 24, .val = 24, .flags = RATE_IN_4430 | RATE_IN_AM33XX },
-+	{ .div = 25, .val = 25, .flags = RATE_IN_4430 | RATE_IN_AM33XX },
-+	{ .div = 26, .val = 26, .flags = RATE_IN_4430 | RATE_IN_AM33XX },
-+	{ .div = 27, .val = 27, .flags = RATE_IN_4430 | RATE_IN_AM33XX },
-+	{ .div = 28, .val = 28, .flags = RATE_IN_4430 | RATE_IN_AM33XX },
-+	{ .div = 29, .val = 29, .flags = RATE_IN_4430 | RATE_IN_AM33XX },
-+	{ .div = 30, .val = 30, .flags = RATE_IN_4430 | RATE_IN_AM33XX },
-+	{ .div = 31, .val = 31, .flags = RATE_IN_4430 | RATE_IN_AM33XX },
-+	{ .div = 0 },
-+};
-+
-+/* Clocks shared between various OMAP SoCs */
-+
-+struct clk virt_19200000_ck = {
-+	.name		= "virt_19200000_ck",
-+	.ops		= &clkops_null,
-+	.rate		= 19200000,
-+};
-+
-+struct clk virt_26000000_ck = {
-+	.name		= "virt_26000000_ck",
-+	.ops		= &clkops_null,
-+	.rate		= 26000000,
-+};
---
-1.7.0.4
+ arch/arm/mach-omap2/Makefile                  |    2 +
+ arch/arm/mach-omap2/clock.h                   |   14 +
+ arch/arm/mach-omap2/clock33xx_data.c          | 1105 ++++++++
+ arch/arm/mach-omap2/clock3xxx_data.c          |   20 +-
+ arch/arm/mach-omap2/clock44xx_data.c          |   72 -
+ arch/arm/mach-omap2/clock_common_data.c       |   77 +
+ arch/arm/mach-omap2/io.c                      |    4 +
+ arch/arm/mach-omap2/omap_hwmod.c              |  180 ++
+ arch/arm/mach-omap2/omap_hwmod_33xx_data.c    | 3368 +++++++++++++++++++++++++
+ arch/arm/plat-omap/include/plat/clkdev_omap.h |    1 +
+ arch/arm/plat-omap/include/plat/omap_hwmod.h  |    1 +
+ 11 files changed, 4756 insertions(+), 88 deletions(-)
+ create mode 100644 arch/arm/mach-omap2/clock33xx_data.c
+ create mode 100644 arch/arm/mach-omap2/omap_hwmod_33xx_data.c
 
