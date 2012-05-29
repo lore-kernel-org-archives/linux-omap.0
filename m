@@ -1,73 +1,135 @@
-From: Shubhrajyoti D <shubhrajyoti@ti.com>
-Subject: [PATCHv10 11/11] OMAP/I2C - Fix timeout problem during suspend.
-Date: Tue, 29 May 2012 16:26:23 +0530
-Message-ID: <1338288983-15026-12-git-send-email-shubhrajyoti@ti.com>
+From: Shubhrajyoti D <shubhrajyoti-l0cyMroinI0@public.gmane.org>
+Subject: [PATCHv10 01/11] I2C: OMAP: make omap_i2c_unidle/idle functions depend on CONFIG_PM_RUNTIME
+Date: Tue, 29 May 2012 16:26:13 +0530
+Message-ID: <1338288983-15026-2-git-send-email-shubhrajyoti@ti.com>
 References: <1338288983-15026-1-git-send-email-shubhrajyoti@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from bear.ext.ti.com ([192.94.94.41]:51688 "EHLO bear.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753487Ab2E2K51 (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Tue, 29 May 2012 06:57:27 -0400
-In-Reply-To: <1338288983-15026-1-git-send-email-shubhrajyoti@ti.com>
-Sender: linux-omap-owner@vger.kernel.org
+Return-path: <linux-i2c-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <1338288983-15026-1-git-send-email-shubhrajyoti-l0cyMroinI0@public.gmane.org>
+Sender: linux-i2c-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Cc: linux-i2c-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, ben-linux-elnMNo+KYs3YtjvyW6yDsg@public.gmane.org, tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org, w.sang-bIcnvbaLZ9MEGnE8C9+IrQ@public.gmane.org, Shubhrajyoti D <shubhrajyoti-l0cyMroinI0@public.gmane.org>
 List-Id: linux-omap@vger.kernel.org
-To: linux-omap@vger.kernel.org
-Cc: linux-i2c@vger.kernel.org, linux-arm-kernel@lists.infradead.org, ben-linux@fluff.org, tony@atomide.com, w.sang@pengutronix.de, Neil Brown <neilb@suse.de>, Shubhrajyoti D <shubhrajyoti@ti.com>
 
-From: Neil Brown <neilb@suse.de>
+The functions omap_i2c_unidle/idle are called from omap_i2c_runtime_resume
+and omap_i2c_runtime_suspend which is compiled for CONFIG_PM_RUNTIME.
+This patch removes the omap_i2c_unidle/idle functions and folds them
+into the runtime callbacks.
 
-On a board with OMAP3 processor and TWL4030 Power management,
-we need to talk to the TWL4030 during late suspend but cannot
-because the I2C interrupt is disabled (as late suspend disables
-interrupt).
+This fixes the below warn when CONFIG_PM_RUNTIME is not defined
 
-e.g. I get messages like:
+ CC      arch/arm/mach-omap2/board-ti8168evm.o
+drivers/i2c/busses/i2c-omap.c:272: warning: 'omap_i2c_unidle' defined but not used
+drivers/i2c/busses/i2c-omap.c:293: warning: 'omap_i2c_idle' defined but not used
+  CC      net/ipv4/ip_forward.o
 
-[   62.161102] musb-omap2430 musb-omap2430: LATE power domain suspend
-[   63.167205] omap_i2c omap_i2c.1: controller timed out
-[   63.183044] twl: i2c_read failed to transfer all messages
-[   64.182861] omap_i2c omap_i2c.1: controller timed out
-[   64.198455] twl: i2c_write failed to transfer all messages
-[   65.198455] omap_i2c omap_i2c.1: controller timed out
-[   65.203765] twl: i2c_write failed to transfer all messages
-
-The stack shows omap2430_runtime_suspend calling twl4030_set_suspend
-which tries to power-down the USB PHY (twl4030_phy_suspend ->
-twl4030_phy_power -> __twl4030_phy_power which as a nice WARN_ON
-that helps).
-
-Then we get the same in resume:
-
-[   69.603912] musb-omap2430 musb-omap2430: EARLY power domain resume
-[   70.610473] omap_i2c omap_i2c.1: controller timed out
-[   70.626129] twl: i2c_write failed to transfer all messages
-etc.
-
-So don't disable interrupts for I2C.
-
-Acked-by: Kevin Hilman <khilman@ti.com>
-Tested-by: Kevin Hilman <khilman@ti.com>
-Signed-off-by: NeilBrown <neilb@suse.de>
-Signed-off-by: Shubhrajyoti D <shubhrajyoti@ti.com>
+Reviewed-by: Kevin Hilman <khilman-l0cyMroinI0@public.gmane.org>
+Signed-off-by: Shubhrajyoti D <shubhrajyoti-l0cyMroinI0@public.gmane.org>
 ---
- drivers/i2c/busses/i2c-omap.c |    2 +-
- 1 files changed, 1 insertions(+), 1 deletions(-)
+ drivers/i2c/busses/i2c-omap.c |   75 +++++++++++++++++-----------------------
+ 1 files changed, 32 insertions(+), 43 deletions(-)
 
 diff --git a/drivers/i2c/busses/i2c-omap.c b/drivers/i2c/busses/i2c-omap.c
-index dc3bd40..9895fa7 100644
+index 801df60..4f4188d 100644
 --- a/drivers/i2c/busses/i2c-omap.c
 +++ b/drivers/i2c/busses/i2c-omap.c
-@@ -1053,7 +1053,7 @@ omap_i2c_probe(struct platform_device *pdev)
+@@ -269,47 +269,6 @@ static inline u16 omap_i2c_read_reg(struct omap_i2c_dev *i2c_dev, int reg)
+ 				(i2c_dev->regs[reg] << i2c_dev->reg_shift));
+ }
  
- 	isr = (dev->rev < OMAP_I2C_OMAP1_REV_2) ? omap_i2c_omap1_isr :
- 								   omap_i2c_isr;
--	r = request_irq(dev->irq, isr, 0, pdev->name, dev);
-+	r = request_irq(dev->irq, isr, IRQF_NO_SUSPEND, pdev->name, dev);
+-static void omap_i2c_unidle(struct omap_i2c_dev *dev)
+-{
+-	if (dev->flags & OMAP_I2C_FLAG_RESET_REGS_POSTIDLE) {
+-		omap_i2c_write_reg(dev, OMAP_I2C_CON_REG, 0);
+-		omap_i2c_write_reg(dev, OMAP_I2C_PSC_REG, dev->pscstate);
+-		omap_i2c_write_reg(dev, OMAP_I2C_SCLL_REG, dev->scllstate);
+-		omap_i2c_write_reg(dev, OMAP_I2C_SCLH_REG, dev->sclhstate);
+-		omap_i2c_write_reg(dev, OMAP_I2C_BUF_REG, dev->bufstate);
+-		omap_i2c_write_reg(dev, OMAP_I2C_SYSC_REG, dev->syscstate);
+-		omap_i2c_write_reg(dev, OMAP_I2C_WE_REG, dev->westate);
+-		omap_i2c_write_reg(dev, OMAP_I2C_CON_REG, OMAP_I2C_CON_EN);
+-	}
+-
+-	/*
+-	 * Don't write to this register if the IE state is 0 as it can
+-	 * cause deadlock.
+-	 */
+-	if (dev->iestate)
+-		omap_i2c_write_reg(dev, OMAP_I2C_IE_REG, dev->iestate);
+-}
+-
+-static void omap_i2c_idle(struct omap_i2c_dev *dev)
+-{
+-	u16 iv;
+-
+-	dev->iestate = omap_i2c_read_reg(dev, OMAP_I2C_IE_REG);
+-	if (dev->dtrev == OMAP_I2C_IP_VERSION_2)
+-		omap_i2c_write_reg(dev, OMAP_I2C_IP_V2_IRQENABLE_CLR, 1);
+-	else
+-		omap_i2c_write_reg(dev, OMAP_I2C_IE_REG, 0);
+-
+-	if (dev->rev < OMAP_I2C_OMAP1_REV_2) {
+-		iv = omap_i2c_read_reg(dev, OMAP_I2C_IV_REG); /* Read clears */
+-	} else {
+-		omap_i2c_write_reg(dev, OMAP_I2C_STAT_REG, dev->iestate);
+-
+-		/* Flush posted write */
+-		omap_i2c_read_reg(dev, OMAP_I2C_STAT_REG);
+-	}
+-}
+-
+ static int omap_i2c_init(struct omap_i2c_dev *dev)
+ {
+ 	u16 psc = 0, scll = 0, sclh = 0, buf = 0;
+@@ -1163,8 +1122,22 @@ static int omap_i2c_runtime_suspend(struct device *dev)
+ {
+ 	struct platform_device *pdev = to_platform_device(dev);
+ 	struct omap_i2c_dev *_dev = platform_get_drvdata(pdev);
++	u16 iv;
++
++	_dev->iestate = omap_i2c_read_reg(_dev, OMAP_I2C_IE_REG);
++	if (_dev->dtrev == OMAP_I2C_IP_VERSION_2)
++		omap_i2c_write_reg(_dev, OMAP_I2C_IP_V2_IRQENABLE_CLR, 1);
++	else
++		omap_i2c_write_reg(_dev, OMAP_I2C_IE_REG, 0);
++
++	if (_dev->rev < OMAP_I2C_OMAP1_REV_2) {
++		iv = omap_i2c_read_reg(_dev, OMAP_I2C_IV_REG); /* Read clears */
++	} else {
++		omap_i2c_write_reg(_dev, OMAP_I2C_STAT_REG, _dev->iestate);
  
- 	if (r) {
- 		dev_err(dev->dev, "failure requesting irq %i\n", dev->irq);
+-	omap_i2c_idle(_dev);
++		/* Flush posted write */
++		omap_i2c_read_reg(_dev, OMAP_I2C_STAT_REG);
++	}
+ 
+ 	return 0;
+ }
+@@ -1174,7 +1147,23 @@ static int omap_i2c_runtime_resume(struct device *dev)
+ 	struct platform_device *pdev = to_platform_device(dev);
+ 	struct omap_i2c_dev *_dev = platform_get_drvdata(pdev);
+ 
+-	omap_i2c_unidle(_dev);
++	if (_dev->flags & OMAP_I2C_FLAG_RESET_REGS_POSTIDLE) {
++		omap_i2c_write_reg(_dev, OMAP_I2C_CON_REG, 0);
++		omap_i2c_write_reg(_dev, OMAP_I2C_PSC_REG, _dev->pscstate);
++		omap_i2c_write_reg(_dev, OMAP_I2C_SCLL_REG, _dev->scllstate);
++		omap_i2c_write_reg(_dev, OMAP_I2C_SCLH_REG, _dev->sclhstate);
++		omap_i2c_write_reg(_dev, OMAP_I2C_BUF_REG, _dev->bufstate);
++		omap_i2c_write_reg(_dev, OMAP_I2C_SYSC_REG, _dev->syscstate);
++		omap_i2c_write_reg(_dev, OMAP_I2C_WE_REG, _dev->westate);
++		omap_i2c_write_reg(_dev, OMAP_I2C_CON_REG, OMAP_I2C_CON_EN);
++	}
++
++	/*
++	 * Don't write to this register if the IE state is 0 as it can
++	 * cause deadlock.
++	 */
++	if (_dev->iestate)
++		omap_i2c_write_reg(_dev, OMAP_I2C_IE_REG, _dev->iestate);
+ 
+ 	return 0;
+ }
 -- 
 1.7.5.4
-
