@@ -1,50 +1,59 @@
 From: "Hiremath, Vaibhav" <hvaibhav@ti.com>
-Subject: RE: [RESUBMIT PATCH] ARM: OMAP2+: am33xx: Add low level debugging
- support
-Date: Tue, 29 May 2012 06:12:59 +0000
-Message-ID: <79CD15C6BA57404B839C016229A409A83EA39248@DBDE01.ent.ti.com>
-References: <1336639981-27194-1-git-send-email-hvaibhav@ti.com>
+Subject: RE: [GIT PULL] ARM: OMAP2+: Add AM335x and AM3517/05 EVM DT support
+Date: Tue, 29 May 2012 06:16:39 +0000
+Message-ID: <79CD15C6BA57404B839C016229A409A83EA39262@DBDE01.ent.ti.com>
+References: <4FAD0A71.80201@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 8BIT
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from arroyo.ext.ti.com ([192.94.94.40]:57598 "EHLO arroyo.ext.ti.com"
+Received: from arroyo.ext.ti.com ([192.94.94.40]:57751 "EHLO arroyo.ext.ti.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751291Ab2E2GNG convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 29 May 2012 02:13:06 -0400
-In-Reply-To: <1336639981-27194-1-git-send-email-hvaibhav@ti.com>
+	id S1751291Ab2E2GQn convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 29 May 2012 02:16:43 -0400
+In-Reply-To: <4FAD0A71.80201@ti.com>
 Content-Language: en-US
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "Hiremath, Vaibhav" <hvaibhav@ti.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
-Cc: "tony@atomide.com" <tony@atomide.com>, "Hilman, Kevin" <khilman@ti.com>, "paul@pwsan.com" <paul@pwsan.com>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, "Mohammed, Afzal" <afzal@ti.com>
+To: "Cousson, Benoit" <b-cousson@ti.com>, Tony Lindgren <tony@atomide.com>
+Cc: linux-omap <linux-omap@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>
 
-On Thu, May 10, 2012 at 14:23:01, Hiremath, Vaibhav wrote:
-> From: Afzal Mohammed <afzal@ti.com>
+On Fri, May 11, 2012 at 18:17:45, Cousson, Benoit wrote:
+> Hi Tony,
 > 
-> Add support for low level debugging on AM335X EVM (AM33XX family).
-> Currently only support for UART1 console, which is used on AM335X EVM
-> is added.
+> Here are some remaining DT patches I was not able to push at 3.4 due to some missing dependency.
+> It applies now fine on top of lo/dt branch.
 > 
-> Signed-off-by: Afzal Mohammed <afzal@ti.com>
-> Signed-off-by: Vaibhav Hiremath <hvaibhav@ti.com>
-> Reviewed-by: Kevin Hilman <khilman@ti.com>
-> Cc: Tony Lindgren <tony@atomide.com>
-> Cc: Paul Walmsley <paul@pwsan.com>
-> ---
-> This patch had been Reviewed and accepted earlier, but got
-> missed during last merge window. Resubmitting again, without
-> code-change.
+> Regards,
+> Benoit
 > 
->  arch/arm/mach-omap2/include/mach/debug-macro.S |   17 ++++++++++++++++-
->  arch/arm/plat-omap/include/plat/serial.h       |    4 ++++
->  arch/arm/plat-omap/include/plat/uncompress.h   |    6 ++++++
->  3 files changed, 26 insertions(+), 1 deletions(-)
+> 
+> The following changes since commit 40364b9f5a4d167d97bb6a76cd239ca8cfff056a:
+>   Benoit Cousson (1):
+>         arm/dts: omap4-panda: Add LEDs support
+> 
+> are available in the git repository at:
+> 
+>   git://git.kernel.org/pub/scm/linux/kernel/git/bcousson/linux-omap-dt.git for_3.5/dts/am33xx
+> 
+> Vaibhav Hiremath (3):
+>       arm/dts: Add support for TI AM335x EVM board
+>       arm/dts: omap3-evm: Add i2c and twl4030 support
+>       arm/dts: Add support for TI AM3517/05 EVM board
+> 
+>  arch/arm/boot/dts/am335x-evm.dts |   39 ++++++++++++++++++++++++++++++++++++++
+>  arch/arm/boot/dts/am3517-evm.dts |   32 +++++++++++++++++++++++++++++++
+>  arch/arm/boot/dts/omap3-evm.dts  |   28 +++++++++++++++++++++++++++
+>  3 files changed, 99 insertions(+), 0 deletions(-)
+>  create mode 100644 arch/arm/boot/dts/am335x-evm.dts
+>  create mode 100644 arch/arm/boot/dts/am3517-evm.dts
 > 
 
-Tony,
 
-Can this be merged now???
+Tony (and Benoit),
+
+Can this patch merged into your "dt" branch??? And into "master" as well, so that we can be sure that, it goes in next merge window.
 
 Thanks,
 Vaibhav
+
