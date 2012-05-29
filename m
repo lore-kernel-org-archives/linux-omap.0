@@ -1,58 +1,90 @@
 From: "Menon, Nishanth" <nm@ti.com>
-Subject: Re: [PATCHv2 04/19] ARM: OMAP4: PM: save/restore all DPLL settings in
- OFF mode
-Date: Tue, 29 May 2012 14:46:55 -0500
-Message-ID: <CAOMWX4ctJcfGNxXK4hT+QH-m7zUfP1N3H56oVDVzPFmhVTFOMw@mail.gmail.com>
-References: <1336990730-26892-1-git-send-email-t-kristo@ti.com>
- <1336990730-26892-5-git-send-email-t-kristo@ti.com> <87d363928g.fsf@ti.com>
- <CAMQu2gw5myvyvM8x225KnN59vEYBYLBiEsvML8RAoE0t+RrbYA@mail.gmail.com>
- <CAMQu2gywor2o+g8Fn80ogbTtEZPSXM74M65GsO2zH44tg-W7gQ@mail.gmail.com>
+Subject: Re: [PATCHv2 09/19] ARM: OMAP4: PM: add errata support
+Date: Tue, 29 May 2012 15:10:57 -0500
+Message-ID: <CAOMWX4dmt2jUOpkgFC=o5oez3CfUVzF_0NTkm23qrNQDDpmo9w@mail.gmail.com>
+References: <1336990730-26892-1-git-send-email-t-kristo@ti.com> <1336990730-26892-10-git-send-email-t-kristo@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="iso-8859-1"
-Content-Transfer-Encoding: quoted-printable
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-In-Reply-To: <CAMQu2gywor2o+g8Fn80ogbTtEZPSXM74M65GsO2zH44tg-W7gQ@mail.gmail.com>
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: linux-arm-kernel-bounces@lists.infradead.org
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: "Shilimkar, Santosh" <santosh.shilimkar@ti.com>
-Cc: Kevin Hilman <khilman@ti.com>, paul@pwsan.com, Rajendra Nayak <rnayak@ti.com>, Tero Kristo <t-kristo@ti.com>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from na3sys009aog101.obsmtp.com ([74.125.149.67]:42140 "EHLO
+	na3sys009aog101.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1755824Ab2E2ULV convert rfc822-to-8bit
+	(ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Tue, 29 May 2012 16:11:21 -0400
+Received: by wgbdq10 with SMTP id dq10so3093114wgb.27
+        for <linux-omap@vger.kernel.org>; Tue, 29 May 2012 13:11:18 -0700 (PDT)
+In-Reply-To: <1336990730-26892-10-git-send-email-t-kristo@ti.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Tero Kristo <t-kristo@ti.com>
+Cc: linux-omap@vger.kernel.org, khilman@ti.com, paul@pwsan.com, linux-arm-kernel@lists.infradead.org
 
-On Thu, May 17, 2012 at 3:52 AM, Shilimkar, Santosh
-<santosh.shilimkar@ti.com> wrote:
-> On Thu, May 17, 2012 at 12:34 PM, Shilimkar, Santosh
-> <santosh.shilimkar@ti.com> wrote:
->> On Thu, May 17, 2012 at 4:12 AM, Kevin Hilman <khilman@ti.com> wrote:
->>> Tero Kristo <t-kristo@ti.com> writes:
->>>
-[...]
->>> - Rather than hooking into omap4_enter_lowpower(), should use
->>> =A0the cluster PM enter/exit notifier chain.
->>>
->> This is again specific to device OFF only and not related to CPU
->> cluster state as such. So I don't think notifiers should be used here.
->>
->> O.w even when we attempt just MPU OSWR C-state, all these functions will
->> get called in notifier chain.
->>
-> Just a thought, we can have a separate notifier chain for device OFF. It =
-can
-> allow use to get rid of 'enable_off_mode" kind of flags and can be
-> used by many drivers too.
+On Mon, May 14, 2012 at 5:18 AM, Tero Kristo <t-kristo@ti.com> wrote:
+> Added similar PM errata flag support as omap3 has. A few errata flags
+> will be added in subsequent patches.
 
-Like the overall idea, but one minor dumb concern might be sequencing
-of notifiers
- - OFF entry and restore needs things to be executed in a specific sequence.
-How do we plan to ensure the sequence is maintained in a notifier call
-chain? one
-possible option might be a "priority" based scheme?
+Considering that we might have erratas for future SoCs as well,
+should'nt we just
+set up a common errata flag for all SoCs and since we have i123 numbers=
+, would
+it help being able to reuse errata flags cross SoC generations (if we n=
+eed to)?
+
+> Signed-off-by: Tero Kristo <t-kristo@ti.com>
+> ---
+> =A0arch/arm/mach-omap2/pm.h =A0 =A0 | =A0 =A07 +++++++
+> =A0arch/arm/mach-omap2/pm44xx.c | =A0 =A01 +
+> =A02 files changed, 8 insertions(+), 0 deletions(-)
+>
+> diff --git a/arch/arm/mach-omap2/pm.h b/arch/arm/mach-omap2/pm.h
+> index ce1e27f..e53ee3c 100644
+> --- a/arch/arm/mach-omap2/pm.h
+> +++ b/arch/arm/mach-omap2/pm.h
+> @@ -130,6 +130,13 @@ extern void enable_omap3630_toggle_l2_on_restore=
+(void);
+> =A0static inline void enable_omap3630_toggle_l2_on_restore(void) { }
+> =A0#endif =A0 =A0 =A0 =A0 /* defined(CONFIG_PM) && defined(CONFIG_ARC=
+H_OMAP3) */
+>
+> +#if defined(CONFIG_PM) && defined(CONFIG_ARCH_OMAP4)
+> +extern u16 pm44xx_errata;
+> +#define IS_PM44XX_ERRATUM(id) =A0 =A0 =A0 =A0 =A0(pm44xx_errata & (i=
+d))
+> +#else
+> +#define IS_PM44XX_ERRATUM(id) =A0 =A0 =A0 =A0 =A00
+> +#endif
+> +
+> =A0#ifdef CONFIG_OMAP_SMARTREFLEX
+> =A0extern int omap_devinit_smartreflex(void);
+> =A0extern void omap_enable_smartreflex_on_init(void);
+> diff --git a/arch/arm/mach-omap2/pm44xx.c b/arch/arm/mach-omap2/pm44x=
+x.c
+> index 8f0ec56..8238097 100644
+> --- a/arch/arm/mach-omap2/pm44xx.c
+> +++ b/arch/arm/mach-omap2/pm44xx.c
+> @@ -35,6 +35,7 @@ struct power_state {
+> =A0};
+>
+> =A0static LIST_HEAD(pwrst_list);
+> +u16 pm44xx_errata;
+>
+> =A0#ifdef CONFIG_SUSPEND
+> =A0static int omap4_pm_suspend(void)
+> --
+> 1.7.4.1
+>
+>
+> _______________________________________________
+> linux-arm-kernel mailing list
+> linux-arm-kernel@lists.infradead.org
+> http://lists.infradead.org/mailman/listinfo/linux-arm-kernel
+
 
 Regards,
 Nishanth Menon
+--
+To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
