@@ -1,62 +1,102 @@
-From: Konstantin Baydarov <kbaidarov@dev.rtsoft.ru>
-Subject: Re: [RFC PATCH 11/11] ARM: DT: Add support to system control module
- for OMAP4
-Date: Wed, 30 May 2012 13:05:50 +0400
-Message-ID: <4FC5E2EE.8030504@dev.rtsoft.ru>
-References: <1337934361-1606-1-git-send-email-eduardo.valentin@ti.com> <1337934361-1606-12-git-send-email-eduardo.valentin@ti.com> <4FC49BA5.5050008@dev.rtsoft.ru> <4FC5DC9F.7080104@ti.com>
+From: Xiao Jiang <jgq516@gmail.com>
+Subject: Re: [PATCH 3/3] watchdog: omap_wdt: add device tree support
+Date: Wed, 30 May 2012 18:14:18 +0800
+Message-ID: <4FC5F2FA.4050606@gmail.com>
+References: <1337942552-28218-1-git-send-email-jgq516@gmail.com>
+ <1337942552-28218-4-git-send-email-jgq516@gmail.com>
+ <4FC51008.1050004@ti.com> <4FC59171.8040009@gmail.com>
+ <4FC5D21F.2030702@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
+Content-Type: text/plain; charset="us-ascii"; Format="flowed"
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail.dev.rtsoft.ru ([213.79.90.226]:59877 "HELO
-	mail.dev.rtsoft.ru" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with SMTP id S932433Ab2E3JFx (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 30 May 2012 05:05:53 -0400
-In-Reply-To: <4FC5DC9F.7080104@ti.com>
-Sender: linux-omap-owner@vger.kernel.org
-List-Id: linux-omap@vger.kernel.org
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
+In-Reply-To: <4FC5D21F.2030702@ti.com>
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
+List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
+List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
+Sender: linux-arm-kernel-bounces@lists.infradead.org
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
 To: "Cousson, Benoit" <b-cousson@ti.com>
-Cc: Eduardo Valentin <eduardo.valentin@ti.com>, kishon@ti.com, santosh.shilimkar@ti.com, tony@atomide.com, paul@pwsan.com, balbi@ti.com, amit.kucheria@linaro.org, linux-pm@lists.linux-foundation.org, linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org, amit.kachhap@linaro.org, Konstantin Baydarov <kbaidarov@dev.rtsoft.ru>
+Cc: linux@arm.linux.org.uk, linux-watchdog@vger.kernel.org, tony@atomide.com, devicetree-discuss@lists.ozlabs.org, rnayak@ti.com, linux-kernel@vger.kernel.org, rob.herring@calxeda.com, grant.likely@secretlab.ca, wim@iguana.be, Jon Hunter <jon-hunter@ti.com>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+List-Id: linux-omap@vger.kernel.org
 
-On 05/30/2012 12:38 PM, Cousson, Benoit wrote:
-> On 5/29/2012 11:49 AM, Konstantin Baydarov wrote:
->>    Hi, Eduardo.
->>
->> On 05/25/2012 12:26 PM, Eduardo Valentin wrote:
->>> This patch add device tree entries on OMAP4 based boards
->>> for System Control Module (SCM).
->>>
->>> Signed-off-by: Eduardo Valentin<eduardo.valentin@ti.com>
->>> ---
->>>   arch/arm/boot/dts/omap4.dtsi |   13 +++++++++++++
->>>   1 files changed, 13 insertions(+), 0 deletions(-)
->>>
->>> diff --git a/arch/arm/boot/dts/omap4.dtsi b/arch/arm/boot/dts/omap4.dtsi
->>> index 359c497..d2cb392 100644
->>> --- a/arch/arm/boot/dts/omap4.dtsi
->>> +++ b/arch/arm/boot/dts/omap4.dtsi
->>> @@ -272,5 +272,18 @@
->>>               ti,hwmods = "mmc5";
->>>               ti,needs-special-reset;
->>>           };
->>> +
->>> +        ctrl_module_core: ctrl_module_core@4a002000 {
->>> +            compatible = "ti,omap4-control";
->>> +            ti,hwmods = "ctrl_module_core";
->>> +            bandgap {
->>> +                compatible = "ti,omap4460-bandgap";
->>> +                interrupts =<0 126 4>; /* talert */
->>> +                ti,tshut-gpio =<86>; /* tshut */
->>> +            };
->> I believe that CPU-specific bandgap definition should be moved to bard specific dts.
+Cousson, Benoit wrote:
+> On 5/30/2012 5:18 AM, Xiao Jiang wrote:
+>> Jon Hunter wrote:
+>>> On 05/25/2012 05:42 AM, jgq516@gmail.com wrote:
+>>>> From: Xiao Jiang <jgq516@gmail.com>
+>>>>
+>>>> Add device table for omap_wdt to support dt.
+>>>>
+>>>> Signed-off-by: Xiao Jiang <jgq516@gmail.com>
+>>>> ---
+>>>> drivers/watchdog/omap_wdt.c | 8 ++++++++
+>>>> 1 files changed, 8 insertions(+), 0 deletions(-)
+>>>>
+>>>> diff --git a/drivers/watchdog/omap_wdt.c b/drivers/watchdog/omap_wdt.c
+>>>> index 8285d65..d98c615 100644
+>>>> --- a/drivers/watchdog/omap_wdt.c
+>>>> +++ b/drivers/watchdog/omap_wdt.c
+>>>> @@ -430,6 +430,13 @@ static int omap_wdt_resume(struct
+>>>> platform_device *pdev)
+>>>> #define omap_wdt_resume NULL
+>>>> #endif
+>>>>
+>>>> +static const struct of_device_id omap_wdt_of_match[] = {
+>>>> + { .compatible = "ti,omap3-wdt", },
+>>>> + { .compatible = "ti,omap4-wdt", },
 >
-> Mmm, why, since it is CPU specific and not board specific. I has to be in the SoC file.
-Speaking about omap4430 - omap4430 bandgap differs from omap4460, so if omap4430 bandgap support will be added to omap-bandgap driver the version of bandgap should specified in dts file. omap4.dtsi is a common for omap4 boards, that is why I'm suggesting to move bandgap description to probably board specific file.
-Another solution is to determine bandgap type in driver probe function, but in that case "ti,omap4460-bandgap" in omap4.dtsi should be replaced to "ti,omap4-bandgap".
+> If there is no difference between the OMAP3 and the OMAP4 WDT IP, just 
+> add one entry "ti,omap3-wdt". And then in the OMAP4 DTS you will just 
+> put : compatible = "ti,omap3-wdt"; or compatible =  "ti,omap4-wdt", 
+> "ti,omap3-wdt";
+> I'm still a little bit confused about the real need for the 
+> "ti,omap4-wdt: entry, but it seems to be the way to do it in PPC.
+I believe OMAP2, OMAP3 and OMAP4 share the same IP, so how about use 
+"ti, omap2-wdt"? and other dts files
+put compatible like "ti,omap4-wdt", "ti,omap2-wdt" and "ti,omap4-wdt", 
+"ti,omap2-wdt".
+>
+>>>> + {},
+>>>> +};
+>>>> +MODULE_DEVICE_TABLE(of, omap_wdt_of_match);
+>>>> +
+>>>> static struct platform_driver omap_wdt_driver = {
+>>>> .probe = omap_wdt_probe,
+>>>> .remove = __devexit_p(omap_wdt_remove),
+>>>> @@ -439,6 +446,7 @@ static struct platform_driver omap_wdt_driver = {
+>>>> .driver = {
+>>>> .owner = THIS_MODULE,
+>>>> .name = "omap_wdt",
+>>>> + .of_match_table = omap_wdt_of_match,
+>>>> },
+>>>> };
+>>>>
+>>>
+>>> I think we need to add some code to the probe function that calls
+>>> of_match_device() and ensures we find a match. For example ...
+>>>
+>>> if (of_have_populated_dt())
+>>> if (!of_match_device(omap_wdt_of_match, &pdev->dev))
+>>> return -EINVAL;
+>>>
+>> Will add it in v2, thanks for suggestion.
+>
+> No, in fact this is not needed. We need that mainly when several 
+> instances can match the same driver and thus we select the proper one 
+> using the of_match_device. Otherwise, just check is the device_node is 
+> there.
+>
+> In that case, the driver does not even care about any DT node so there 
+> is no need to add extra code for that. Keep it simple.
+>
+Thanks for elaborating, simple is good for this one.
 
-  BR,
-    Konstantin Baydarov.
-
+Regards,
+Xiao
 > Regards,
 > Benoit
-
