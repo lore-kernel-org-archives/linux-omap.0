@@ -1,51 +1,58 @@
-From: Xiao Jiang <jgq516@gmail.com>
-Subject: Compile err when enable CONFIG_SND_OMAP_SOC_OMAP_HDMI
-Date: Wed, 30 May 2012 15:14:45 +0800
-Message-ID: <4FC5C8E5.7060108@gmail.com>
+From: Tony Lindgren <tony@atomide.com>
+Subject: [PATCH] mmc: omap: Fix broken reg_shift initialization
+Date: Wed, 30 May 2012 00:13:01 -0700
+Message-ID: <20120530071300.GH12766@atomide.com>
+References: <20120528132147.GC12766@atomide.com>
+ <CAPDyKFrcviT3_Fz13LpFJ+1oKxQ5LKswN7EmzVcWTJkiiDWusA@mail.gmail.com>
+ <20120529074047.GE16340@arwen.pp.htv.fi>
+ <20120529124732.GD12766@atomide.com>
+ <20120529125024.GM9577@arwen.pp.htv.fi>
+ <20120529130312.GE12766@atomide.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-vc0-f174.google.com ([209.85.220.174]:51623 "EHLO
-	mail-vc0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754665Ab2E3GWn (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 30 May 2012 02:22:43 -0400
-Received: by vcbf11 with SMTP id f11so2623834vcb.19
-        for <linux-omap@vger.kernel.org>; Tue, 29 May 2012 23:22:42 -0700 (PDT)
+Received: from mho-02-ewr.mailhop.org ([204.13.248.72]:37409 "EHLO
+	mho-02-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754542Ab2E3HNH (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 30 May 2012 03:13:07 -0400
+Content-Disposition: inline
+In-Reply-To: <20120529130312.GE12766@atomide.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: linux-omap@vger.kernel.org
-Cc: jgq516@gmail.com
+To: Felipe Balbi <balbi@ti.com>
+Cc: Ulf Hansson <ulf.hansson@linaro.org>, Chris Ball <cjb@laptop.org>, linux-mmc@vger.kernel.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 
-Hello,
+Commit fa550189 (mmc: core: Prevent eMMC VCC supply to be cut from late init)
+slightly affected timings for how things are done for the omap MMC driver
+causing the MMC cards not getting detected any longer.
 
-After enable SND_OMAP_SOC_OMAP_HDMI with omap2plus_defconfig, I got some 
-err infos with latest
-Linus's tree, does somebody also has the same issue?
+Turns out this was caused by buggy reg_shift initialization in the omap
+MMC driver that was happening after mmc_add_host() was being called.
 
-sound/soc/omap/omap-hdmi.c:45:24: error: field 'dss_audio' has 
-incomplete type
-sound/soc/omap/omap-hdmi.c: In function 'omap_hdmi_dai_startup':
-sound/soc/omap/omap-hdmi.c:67:27: error: 'struct omap_dss_driver' has no 
-member named 'audio_supported'
-sound/soc/omap/omap-hdmi.c: In function 'omap_hdmi_dai_prepare':
-sound/soc/omap/omap-hdmi.c:79:29: error: 'struct omap_dss_driver' has no 
-member named 'audio_enable'
-sound/soc/omap/omap-hdmi.c: In function 'omap_hdmi_dai_hw_params':
-sound/soc/omap/omap-hdmi.c:208:28: error: 'struct omap_dss_driver' has 
-no member named 'audio_config'
-sound/soc/omap/omap-hdmi.c: In function 'omap_hdmi_dai_trigger':
-sound/soc/omap/omap-hdmi.c:224:29: error: 'struct omap_dss_driver' has 
-no member named 'audio_start'
-sound/soc/omap/omap-hdmi.c:229:23: error: 'struct omap_dss_driver' has 
-no member named 'audio_stop'
-sound/soc/omap/omap-hdmi.c: In function 'omap_hdmi_dai_shutdown':
-sound/soc/omap/omap-hdmi.c:242:22: error: 'struct omap_dss_driver' has 
-no member named 'audio_disable'
-sound/soc/omap/omap-hdmi.c: In function 'omap_hdmi_dai_prepare':
-sound/soc/omap/omap-hdmi.c:80:1: warning: control reaches end of 
-non-void function
+Fix this by initializing reg_shift before mmc_add_host() is called.
 
-Regards,
-Xiao
+Signed-off-by: Tony Lindgren <tony@atomide.com>
 
+---
+
+Heh found it! Chris, maybe Cc stable on this one?
+
+--- a/drivers/mmc/host/omap.c
++++ b/drivers/mmc/host/omap.c
+@@ -1485,6 +1485,7 @@ static int __devinit mmc_omap_probe(struct platform_device *pdev)
+ 	}
+ 
+ 	host->nr_slots = pdata->nr_slots;
++	host->reg_shift = (cpu_is_omap7xx() ? 1 : 2);
+ 
+ 	host->mmc_omap_wq = alloc_workqueue("mmc_omap", 0, 0);
+ 	if (!host->mmc_omap_wq)
+@@ -1500,8 +1501,6 @@ static int __devinit mmc_omap_probe(struct platform_device *pdev)
+ 		}
+ 	}
+ 
+-	host->reg_shift = (cpu_is_omap7xx() ? 1 : 2);
+-
+ 	return 0;
+ 
+ err_destroy_wq:
