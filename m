@@ -1,120 +1,46 @@
-From: Jon Hunter <jon-hunter@ti.com>
-Subject: Re: [PATCH 1/3] arm/dts: add wdt node for omap3 and omap4
-Date: Wed, 30 May 2012 09:42:45 -0500
-Message-ID: <4FC631E5.9080000@ti.com>
-References: <1337942552-28218-1-git-send-email-jgq516@gmail.com>
- <1337942552-28218-2-git-send-email-jgq516@gmail.com>
- <4FC50CCD.7090404@ti.com> <4FC591C9.2050004@gmail.com>
+From: "Menon, Nishanth" <nm@ti.com>
+Subject: Re: [PATCHv2 09/19] ARM: OMAP4: PM: add errata support
+Date: Wed, 30 May 2012 09:45:42 -0500
+Message-ID: <CAOMWX4dKgnv54rkEVQL7YW8i2Ymz+cMvbQ7WgNnnNrYhbMHFXA@mail.gmail.com>
+References: <1336990730-26892-1-git-send-email-t-kristo@ti.com>
+ <1336990730-26892-10-git-send-email-t-kristo@ti.com> <CAOMWX4dmt2jUOpkgFC=o5oez3CfUVzF_0NTkm23qrNQDDpmo9w@mail.gmail.com>
+ <1338366759.8834.124.camel@sokoban>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-In-Reply-To: <4FC591C9.2050004@gmail.com>
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: linux-arm-kernel-bounces@lists.infradead.org
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: Xiao Jiang <jgq516@gmail.com>
-Cc: linux@arm.linux.org.uk, b-cousson@ti.com, tony@atomide.com, devicetree-discuss@lists.ozlabs.org, rnayak@ti.com, linux-kernel@vger.kernel.org, rob.herring@calxeda.com, grant.likely@secretlab.ca, wim@iguana.be, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-watchdog@vger.kernel.org
+Content-Type: text/plain; charset=ISO-8859-1
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from na3sys009aog120.obsmtp.com ([74.125.149.140]:45905 "EHLO
+	na3sys009aog120.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1751212Ab2E3OqG (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>);
+	Wed, 30 May 2012 10:46:06 -0400
+Received: by werm13 with SMTP id m13so3509585wer.15
+        for <linux-omap@vger.kernel.org>; Wed, 30 May 2012 07:46:02 -0700 (PDT)
+In-Reply-To: <1338366759.8834.124.camel@sokoban>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: t-kristo@ti.com
+Cc: linux-omap@vger.kernel.org, khilman@ti.com, paul@pwsan.com, linux-arm-kernel@lists.infradead.org
 
+On Wed, May 30, 2012 at 3:32 AM, Tero Kristo <t-kristo@ti.com> wrote:
+> On Tue, 2012-05-29 at 15:10 -0500, Menon, Nishanth wrote:
+>> On Mon, May 14, 2012 at 5:18 AM, Tero Kristo <t-kristo@ti.com> wrote:
+>> > Added similar PM errata flag support as omap3 has. A few errata flags
+>> > will be added in subsequent patches.
+>>
+>> Considering that we might have erratas for future SoCs as well,
+>> should'nt we just
+>> set up a common errata flag for all SoCs and since we have i123 numbers, would
+>> it help being able to reuse errata flags cross SoC generations (if we need to)?
+>
+> Not sure... how quickly do we run out of bits that way? :) Also, at
+> least pm34xx / pm44xx erratas don't have anything in common. We can
+> probably re-use pm44xx erratas for omap5 though.
+>
+> One annoyance is that, the OMAP4 erratas are going to have a number of
+> ROM code erratas on them, which don't really have any public i123
+> numbers available. >.<
 
-On 05/29/2012 10:19 PM, Xiao Jiang wrote:
-> Jon Hunter wrote:
->> On 05/25/2012 05:42 AM, jgq516@gmail.com wrote:
->>  
->>> From: Xiao Jiang <jgq516@gmail.com>
->>>
->>> Add wdt node to support dt.
->>>
->>> Signed-off-by: Xiao Jiang <jgq516@gmail.com>
->>> ---
->>>  arch/arm/boot/dts/omap3.dtsi |    5 +++++
->>>  arch/arm/boot/dts/omap4.dtsi |    5 +++++
->>>  2 files changed, 10 insertions(+), 0 deletions(-)
->>>
->>> diff --git a/arch/arm/boot/dts/omap3.dtsi b/arch/arm/boot/dts/omap3.dtsi
->>> index 99474fa..039df5c 100644
->>> --- a/arch/arm/boot/dts/omap3.dtsi
->>> +++ b/arch/arm/boot/dts/omap3.dtsi
->>> @@ -215,5 +215,10 @@
->>>              compatible = "ti,omap3-hsmmc";
->>>              ti,hwmods = "mmc3";
->>>          };
->>> +
->>> +        wdt: wdt@48314000{
->>>     
->>
->> Minor comment, may be call this wdt2 as this is watchdog timer 2. Also
->> ass a space between the address and the "{".
->>
->>   
-> Ok, will change it to "wdt2: wdt@48314000 {".
->>> +            compatible = "ti,omap3-wdt";
->>> +            ti,hwmods = "wd_timer2";
->>> +        };
->>>      };
->>>  };
->>> diff --git a/arch/arm/boot/dts/omap4.dtsi b/arch/arm/boot/dts/omap4.dtsi
->>> index 359c497..d01403d 100644
->>> --- a/arch/arm/boot/dts/omap4.dtsi
->>> +++ b/arch/arm/boot/dts/omap4.dtsi
->>> @@ -272,5 +272,10 @@
->>>              ti,hwmods = "mmc5";
->>>              ti,needs-special-reset;
->>>          };
->>> +
->>> +        wdt: wdt@4a314000{
->>>     
->>
->> Same as above.
->>
->>   
-> Ditto.
->>> +            compatible = "ti,omap4-wdt";
->>> +            ti,hwmods = "wd_timer2";
->>> +        };
->>>      };
->>>  };
->>>     
->>
->> Also we should add some documentation to describe the binding. Here it
->> is very simple, but nonetheless we should have something as we have for
->> gpio [1].
->>
->>   
-> Thanks for reminding, how about below patch?
-> 
-> diff --git a/Documentation/devicetree/bindings/watchdog/omap-wdt.txt
-> b/Documentation/devicetree/bindings/watchdog/omap-wdt.txt
-> new file mode 100644
-> index 0000000..4272d06
-> --- /dev/null
-> +++ b/Documentation/devicetree/bindings/watchdog/omap-wdt.txt
-> @@ -0,0 +1,15 @@
-> +TI Watchdog Timer (WDT) Controller for OMAP
-> +
-> +Required properties:
-> +- compatible:
-> +  - "ti,omap2-wdt" for OMAP2
-> +  - "ti,omap3-wdt" for OMAP3
-> +  - "ti,omap4-wdt" for OMAP4
-> +- ti,hwmods: Name of the hwmod associated to the WDT
-> +
-> +Examples:
-> +
-> +wdt2: wdt@73f98000 {
-> +       compatible = "ti,omap4-wdt";
-> +       ti,hwmods = "wd_timer2";
-> +};
+Sounds good to me.
 
-Yes looks good. Thanks! Minor nit-pick in the example I would just copy
-the omap4 node completely with the actual omap4 address :-)
-
-Cheers
-Jon
+Regards,
+Nishanth Menon
