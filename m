@@ -1,77 +1,69 @@
-From: Daniel Lezcano <daniel.lezcano@linaro.org>
-Subject: Re: [PATCH] ARM: OMAP3/4: consolidate cpuidle Makefile
-Date: Wed, 30 May 2012 21:15:26 +0200
-Message-ID: <4FC671CE.6040807@linaro.org>
-References: <1336644177-13834-1-git-send-email-daniel.lezcano@linaro.org> <4FB08D24.7070101@ti.com> <4FC59CDD.1030100@linaro.org> <87pq9l8ruv.fsf@ti.com>
+From: Omar Ramirez Luna <omar.luna-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>
+Subject: Re: [PATCH 0/2] OMAP: mailbox initial device tree support
+Date: Wed, 30 May 2012 14:31:57 -0500
+Message-ID: <CALLhW=7hdmTZsipbVvGXNNCwE=NsvYJc9mUWRff3V7CA=_vskQ@mail.gmail.com>
+References: <1335894460-19941-1-git-send-email-omar.luna@linaro.org>
+	<B5906170F1614E41A8A28DE3B8D121433EA68F6D@DBDE01.ent.ti.com>
+	<4FBE574F.6070408@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-pz0-f46.google.com ([209.85.210.46]:54962 "EHLO
-	mail-pz0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751238Ab2E3TPb (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 30 May 2012 15:15:31 -0400
-Received: by dady13 with SMTP id y13so193226dad.19
-        for <linux-omap@vger.kernel.org>; Wed, 30 May 2012 12:15:30 -0700 (PDT)
-In-Reply-To: <87pq9l8ruv.fsf@ti.com>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <linaro-dev-bounces-cunTk1MwBs8s++Sfvej+rw@public.gmane.org>
+In-Reply-To: <4FBE574F.6070408-l0cyMroinI0@public.gmane.org>
+List-Unsubscribe: <http://lists.linaro.org/mailman/options/linaro-dev>,
+	<mailto:linaro-dev-request-cunTk1MwBs8s++Sfvej+rw@public.gmane.org?subject=unsubscribe>
+List-Archive: <http://lists.linaro.org/pipermail/linaro-dev>
+List-Post: <mailto:linaro-dev-cunTk1MwBs8s++Sfvej+rw@public.gmane.org>
+List-Help: <mailto:linaro-dev-request-cunTk1MwBs8s++Sfvej+rw@public.gmane.org?subject=help>
+List-Subscribe: <http://lists.linaro.org/mailman/listinfo/linaro-dev>,
+	<mailto:linaro-dev-request-cunTk1MwBs8s++Sfvej+rw@public.gmane.org?subject=subscribe>
+Sender: linaro-dev-bounces-cunTk1MwBs8s++Sfvej+rw@public.gmane.org
+Errors-To: linaro-dev-bounces-cunTk1MwBs8s++Sfvej+rw@public.gmane.org
+To: "Cousson, Benoit" <b-cousson-l0cyMroinI0@public.gmane.org>
+Cc: Russell King <linux-lFZ/pmaqli7XmaaqVzeoHQ@public.gmane.org>, "patches-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org" <patches-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>, Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>, "devicetree-discuss-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org" <devicetree-discuss-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org>, "linux-doc-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-doc-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "Bedia,
+	Vaibhav" <vaibhav.bedia-l0cyMroinI0@public.gmane.org>, Rob Herring <rob.herring-bsGFqQB8/DxBDgjK7y7TUQ@public.gmane.org>, Rob Landley <rob-VoJi6FS/r0vR7s880joybQ@public.gmane.org>, "linaro-dev-cunTk1MwBs8s++Sfvej+rw@public.gmane.org" <linaro-dev-cunTk1MwBs8s++Sfvej+rw@public.gmane.org>, "linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org" <linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org>
 List-Id: linux-omap@vger.kernel.org
-To: Kevin Hilman <khilman@ti.com>
-Cc: Rajendra Nayak <rnayak@ti.com>, tony@atomide.com, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linaro-dev@lists.linaro.org, patches@linaro.org
 
-On 05/30/2012 08:07 PM, Kevin Hilman wrote:
-> Daniel Lezcano <daniel.lezcano@linaro.org> writes:
->=20
->> On 05/14/2012 06:42 AM, Rajendra Nayak wrote:
->>> On Thursday 10 May 2012 03:32 PM, Daniel Lezcano wrote:
->>>> The current Makefile compiles the cpuidle34xx.c and cpuidle44xx.c =
-files
->>>> even if the cpuidle option is not set in the kernel.
->>>>
->>>> This patch fixes this by creating a section in the Makefile where =
-these
->>>> files are compiled only if the CONFIG_CPU_IDLE option is set.
->>>>
->>>> This modification breaks an implicit dependency between CPU_IDLE a=
-nd
->>>> PM as
->>>> they belong to the same block in the Makefile. This is fixed in th=
-e
->>>> Kconfig
->>>> by selecting explicitely PM is CPU_IDLE is set.
->>>>
->>>> The linux coding style recommend to use no-op functions in the hea=
-ders
->>>> when the subsystem is disabled instead of adding big section in C =
-files.
+Hi,
+
+On 24 May 2012 10:44, Cousson, Benoit <b-cousson-l0cyMroinI0@public.gmane.org> wrote:
+> On 5/2/2012 7:42 AM, Bedia, Vaibhav wrote:
+>>
+>> Hi Omar,
+>>
+>> On Tue, May 01, 2012 at 23:17:38, Omar Ramirez Luna wrote:
 >>>
->>> Looks good to me.
->>> Reviewed-by: Rajendra Nayak <rnayak@ti.com>
+>>> To allow mailbox driver to function with device tree.
+>>>
+>>> Tested in OMAP4 and OMAP3. OMAP2 untested.
 >>
->> Hi Kevin,
 >>
->> I think I addressed all the points. Is it possible to consider this
->> patch for inclusion ?
+>> I think the mailbox code needs a cleanup similar to what you
+>> had proposed earlier [1] before the device tree support is added.
 >>
->=20
-> Yes.  I'll queue up as a cleanup for v3.6 with the reviewed-by from
-> Rajendra.
+>> We probably need to decide whether the number of mailbox sub-modules
+>> should be part of hwmod attribute or come from device tree. IMO the
+>> static allocation of the mailboxes is better suited in the device-tree
+>> data.
+>
+>
+> Ideally yes, but that assumes we are supporting only DT boot method, which
+> is still not the case today.
+>
+> That being said, the driver might still be able to leverage DT if available
+> already.
+>
+>
+> This can be done later as well.
+>
+> Omar,
+> That's up to you.
 
-Cool !
+Thanks for the ack on the 2nd patch.
 
-Thanks
-  -- Daniel
+Yes, I think these changes doesn't depend on the cleanup of the
+driver, they could be included prior to them.
 
---=20
- <http://www.linaro.org/> Linaro.org =E2=94=82 Open source software for=
- ARM SoCs
+Regards,
 
-=46ollow Linaro:  <http://www.facebook.com/pages/Linaro> Facebook |
-<http://twitter.com/#!/linaroorg> Twitter |
-<http://www.linaro.org/linaro-blog/> Blog
-
---
-To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Omar
