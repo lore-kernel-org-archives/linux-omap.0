@@ -1,56 +1,74 @@
-From: Kevin Hilman <khilman@ti.com>
-Subject: [GIT PULL] OMAP PM fixes for v3.5-rc
-Date: Wed, 30 May 2012 16:24:42 -0700
-Message-ID: <87ipfd45hh.fsf@ti.com>
+From: Ricardo Neri <ricardo.neri@ti.com>
+Subject: Re: Compile err when enable CONFIG_SND_OMAP_SOC_OMAP_HDMI
+Date: Wed, 30 May 2012 18:35:11 -0500
+Message-ID: <4FC6AEAF.5020501@ti.com>
+References: <4FC5C8E5.7060108@gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset="ISO-8859-1"; format=flowed
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aog109.obsmtp.com ([74.125.149.201]:54500 "EHLO
-	na3sys009aog109.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752631Ab2E3XYr (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>);
-	Wed, 30 May 2012 19:24:47 -0400
-Received: by pbcwy7 with SMTP id wy7so761172pbc.17
-        for <linux-omap@vger.kernel.org>; Wed, 30 May 2012 16:24:43 -0700 (PDT)
+Received: from devils.ext.ti.com ([198.47.26.153]:49372 "EHLO
+	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751425Ab2E3Xfi (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 30 May 2012 19:35:38 -0400
+In-Reply-To: <4FC5C8E5.7060108@gmail.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Tony Lindgren <tony@atomide.com>
-Cc: linux-omap <linux-omap@vger.kernel.org>, linux-arm-kernel <linux-arm-kernel@lists.infradead.org>
+To: Xiao Jiang <jgq516@gmail.com>, "Valkeinen, Tomi" <tomi.valkeinen@ti.com>
+Cc: linux-omap@vger.kernel.org
 
-Tony,
++Tomi
 
-Here's a couple PM related fixes for v3.5-rc, based on your cleanup
-branch.
+Hi Xiao,
 
-Kevin
+On 05/30/2012 02:14 AM, Xiao Jiang wrote:
+> Hello,
+>
+> After enable SND_OMAP_SOC_OMAP_HDMI with omap2plus_defconfig, I got some
+> err infos with latest
+> Linus's tree, does somebody also has the same issue?
+>
+> sound/soc/omap/omap-hdmi.c:45:24: error: field 'dss_audio' has
+> incomplete type
+> sound/soc/omap/omap-hdmi.c: In function 'omap_hdmi_dai_startup':
+> sound/soc/omap/omap-hdmi.c:67:27: error: 'struct omap_dss_driver' has no
+> member named 'audio_supported'
+> sound/soc/omap/omap-hdmi.c: In function 'omap_hdmi_dai_prepare':
+> sound/soc/omap/omap-hdmi.c:79:29: error: 'struct omap_dss_driver' has no
+> member named 'audio_enable'
+> sound/soc/omap/omap-hdmi.c: In function 'omap_hdmi_dai_hw_params':
+> sound/soc/omap/omap-hdmi.c:208:28: error: 'struct omap_dss_driver' has
+> no member named 'audio_config'
+> sound/soc/omap/omap-hdmi.c: In function 'omap_hdmi_dai_trigger':
+> sound/soc/omap/omap-hdmi.c:224:29: error: 'struct omap_dss_driver' has
+> no member named 'audio_start'
+> sound/soc/omap/omap-hdmi.c:229:23: error: 'struct omap_dss_driver' has
+> no member named 'audio_stop'
+> sound/soc/omap/omap-hdmi.c: In function 'omap_hdmi_dai_shutdown':
+> sound/soc/omap/omap-hdmi.c:242:22: error: 'struct omap_dss_driver' has
+> no member named 'audio_disable'
+> sound/soc/omap/omap-hdmi.c: In function 'omap_hdmi_dai_prepare':
+> sound/soc/omap/omap-hdmi.c:80:1: warning: control reaches end of
+> non-void function
 
+Build breaks because there some patches [1] that are still missing in 
+Linus' tree. ASoC HDMI audio driver for OMAP[2] now uses the new DSS 
+audio functionality in [1], but ASoC patches were merged first. DSS 
+patches have been accepted and they are part of Tomi's pull request for 
+DSS for K3.5. Hopefully this will be fixed when v3.5-rc1 is out.
 
-The following changes since commit 2c65e7440d56b3b285d1c95563b4dcce8e40dea3:
+BR,
 
-  GPMC: add ECC control definitions (2012-05-10 09:39:47 -0700)
+Ricardo
 
-are available in the git repository at:
-
-  git://git.kernel.org/pub/scm/linux/kernel/git/khilman/linux-omap-pm.git for_3.5/fixes/pm
-
-for you to fetch changes up to 1ce029968718477149e7f1fb245a8e82c690cc4a:
-
-  arm: omap3: am35x: Don't mark missing features as present (2012-05-11 16:47:19 -0700)
-
-----------------------------------------------------------------
-Kevin Hilman (1):
-      ARM: OMAP3: PM: fix shared PRCM interrupts: leave disabled at boot
-
-Mark A. Greer (1):
-      arm: omap3: am35x: Don't mark missing features as present
-
-NeilBrown (1):
-      ARM: OMAP2+: INTC: fix suspend abort, set IRQCHIP_SKIP_SET_WAKE
-
- arch/arm/mach-omap2/id.c           |   11 +++++++++++
- arch/arm/mach-omap2/irq.c          |    1 +
- arch/arm/mach-omap2/pm34xx.c       |    1 +
- arch/arm/mach-omap2/prm2xxx_3xxx.c |   14 +++++++++++---
- 4 files changed, 24 insertions(+), 3 deletions(-)
-
+[1].http://www.spinics.net/lists/linux-omap/msg69466.html
+[2].http://www.spinics.net/lists/linux-omap/msg70561.html
+>
+> Regards,
+> Xiao
+>
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-omap" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at http://vger.kernel.org/majordomo-info.html
 
