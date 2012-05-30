@@ -1,61 +1,159 @@
-From: Tero Kristo <t-kristo@ti.com>
-Subject: Re: [PATCHv2 14/19] ARM: OMAP4: wakeupgen: enable clocks for
- save_secure_all
-Date: Wed, 30 May 2012 11:33:37 +0300
-Message-ID: <1338366817.8834.125.camel@sokoban>
-References: <1336990730-26892-1-git-send-email-t-kristo@ti.com>
-	 <1336990730-26892-15-git-send-email-t-kristo@ti.com>
-	 <871umj4qnl.fsf@ti.com> <1337593097.28274.19.camel@sokoban>
-	 <87pq9mg2w4.fsf@ti.com>
-Reply-To: <t-kristo@ti.com>
+From: Stephen Boyd <sboyd@codeaurora.org>
+Subject: Re: [PATCH 1/2] remoteproc: maintain a generic child device for each
+ rproc
+Date: Wed, 30 May 2012 01:36:10 -0700
+Message-ID: <4FC5DBFA.2030300@codeaurora.org>
+References: <1338017791-9442-1-git-send-email-ohad@wizery.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
+Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from arroyo.ext.ti.com ([192.94.94.40]:50919 "EHLO arroyo.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1756199Ab2E3Idm (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Wed, 30 May 2012 04:33:42 -0400
-In-Reply-To: <87pq9mg2w4.fsf@ti.com>
-Sender: linux-omap-owner@vger.kernel.org
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <1338017791-9442-1-git-send-email-ohad@wizery.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Ohad Ben-Cohen <ohad@wizery.com>
+Cc: linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Fernando Guzman Lugo <fernando.lugo@ti.com>
 List-Id: linux-omap@vger.kernel.org
-To: Kevin Hilman <khilman@ti.com>
-Cc: Benoit Cousson <b-cousson@ti.com>, linux-omap@vger.kernel.org, paul@pwsan.com, linux-arm-kernel@lists.infradead.org
 
-On Tue, 2012-05-29 at 13:15 -0700, Kevin Hilman wrote:
-> Tero Kristo <t-kristo@ti.com> writes:
-> 
-> > On Wed, 2012-05-16 at 17:06 -0700, Kevin Hilman wrote:
-> >> +Benoit
-> >> 
-> >> Tero Kristo <t-kristo@ti.com> writes:
-> >> 
-> >> > save_secure_all needs l3_main_3_ick and l4_secure_clkdm enabled,
-> >> > otherwise the secure ROM code will crash.
-> >> >
-> >> > Signed-off-by: Tero Kristo <t-kristo@ti.com>
-> >> 
-> >> I think I mentioned this already (I'm already lost in what I've said for
-> >> thisseries), but I don't think the secure RAM stuff belongs in the
-> >> wakeupgen driver.
-> >
-> > As mentioned, save_secure_all saves:
-> > - secure RAM
-> > - GIC registers
-> > - some other mysterious stuff
-> >
-> > Attempting to do separate saves for secure RAM + GIC hang the device
-> > during wakeup, in addition to being really inefficient (secure API calls
-> > are expensive.)
-> 
-> I guess my comment wasn't that this isn't needed, but that it doesn't
-> seem to belong in the wakeupgen base (which should probably converted
-> into a real driver.)
-> 
-> Seems better to have this stuff in the secure code, maybe omap-secure.c?
+On 5/26/2012 12:36 AM, Ohad Ben-Cohen wrote:
+> For each registered rproc, maintain a generic remoteproc device whose
+> parent is the low level platform-specific device (commonly a pdev, but
+> it may certainly be any other type of device too).
+>
+> With this in hand, the resulting device hierarchy might then look like:
+>
+> omap-rproc.0
+>  |
+>  - remoteproc.0
 
-That might be an option yes. I'll see if I can move these calls over
-there.
+It looks like remoteproc0, remoteproc1, etc. is what's used.
 
--Tero
+>     |
+>     - virtio0
+>     |
+>     - virtio1
+>        |
+>        - rpmsg0
+>        |
+>        - rpmsg1
+>        |
+>        - rpmsg2
+>
+> Where:
+> - omap-rproc.0 is the low level device that's bound to the
+>   driver which invokes rproc_register()
+> - remoteproc.0 is the result of this patch, and will be added by the
+>   remoteproc framework when rproc_register() is invoked
+> - virtio0 and virtio1 are vdevs that are registered by remoteproc
+>   when it realizes that they are supported by the firmware
+>   of the physical remote processor represented by omap-rproc.0
+> - rpmsg0, rpmsg1 and rpmsg2 are rpmsg devices that represent rpmsg
+>   channels, and are registerd by the rpmsg bus when it gets notified
+>   about their existence
+>
+> Technically, this patch:
+> - changes 'struct rproc' to contain this generic remoteproc.x device
+> - creates a new "remoteproc" class, to which this new generic remoteproc.x
+>   device belong to.
+> - adds a super simple enumeration method for the indices of the
+>   remoteproc.x devices
+> - updates all dev_* messaging to use the generic remoteproc.x device
+>   instead of the low level platform-specific device
 
+One complaint I've gotten is that the error messages are essentially
+useless now. I believe there are some ongoing discussions on lkml to fix
+this by traversing the device hierarchy to find the "real" device but
+the hard part is finding the real device.
+
+> - updates all dma_* allocations to use the parent of remoteproc.x (where
+>   the platform-specific memory pools, most commonly CMA, are to be found)
+>
+> Adding this generic device has several merits:
+> - we can now add remoteproc runtime PM support simply by hooking onto the
+>   new "remoteproc" class
+> - all remoteproc log messages will now carry a common name prefix
+>   instead of having a platform-specific one
+> - having a device as part of the rproc struct makes it possible to simplify
+>   refcounting (see subsequent patch)
+>
+> Thanks to Stephen Boyd <sboyd@codeaurora.org> for suggesting and
+> discussing these ideas in one of the remoteproc review threads and
+> to Fernando Guzman Lugo <fernando.lugo@ti.com> for trying them out
+> with the (upcoming) runtime PM support for remoteproc.
+[snip]
+>
+> diff --git a/drivers/remoteproc/remoteproc_core.c b/drivers/remoteproc/remoteproc_core.c
+> index 464ea4f..9e3d4cf 100644
+> --- a/drivers/remoteproc/remoteproc_core.c
+> +++ b/drivers/remoteproc/remoteproc_core.c
+> @@ -66,6 +66,9 @@ typedef int (*rproc_handle_resources_t)(struct rproc *rproc,
+>  				struct resource_table *table, int len);
+>  typedef int (*rproc_handle_resource_t)(struct rproc *rproc, void *, int avail);
+>  
+> +/* Unique numbering for remoteproc devices */
+> +static unsigned int dev_index;
+> +
+
+Hm... perhaps use that ida stuff instead of a raw integer?
+
+> +static struct class rproc_class = {
+> +	.name		= "remoteproc",
+> +	.owner		= THIS_MODULE,
+> +	.dev_release	= rproc_class_release,
+> +};
+
+I'm not clear on busses versus classes. I recall seeing a thread where
+someone said classes were on the way out and shouldn't be used but I
+can't find it anymore. Should we use classes for devices that will never
+have a matching driver?
+
+> +
+>  /**
+>   * rproc_alloc() - allocate a remote processor handle
+>   * @dev: the underlying device
+> @@ -1492,12 +1516,19 @@ struct rproc *rproc_alloc(struct device *dev, const char *name,
+>  		return NULL;
+>  	}
+>  
+> -	rproc->dev = dev;
+>  	rproc->name = name;
+>  	rproc->ops = ops;
+>  	rproc->firmware = firmware;
+>  	rproc->priv = &rproc[1];
+>  
+> +	device_initialize(&rproc->dev);
+> +	rproc->dev.parent = dev;
+> +	rproc->dev.class = &rproc_class;
+> +
+> +	/* Assign a unique device index and name */
+> +	rproc->index = dev_index++;
+> +	dev_set_name(&rproc->dev, "remoteproc%d", rproc->index);
+> +
+
+This doesn't look thread safe. ida would fix this (ida_simple_get/remove
+looks like what you want).
+
+> diff --git a/include/linux/remoteproc.h b/include/linux/remoteproc.h
+> index f1ffabb..0b835d3 100644
+> --- a/include/linux/remoteproc.h
+> +++ b/include/linux/remoteproc.h
+> @@ -383,6 +383,7 @@ enum rproc_state {
+>   * @bootaddr: address of first instruction to boot rproc with (optional)
+>   * @rvdevs: list of remote virtio devices
+>   * @notifyids: idr for dynamically assigning rproc-wide unique notify ids
+> + * @index: index of this rproc device
+>   */
+>  struct rproc {
+>  	struct klist_node node;
+> @@ -391,7 +392,7 @@ struct rproc {
+>  	const char *firmware;
+>  	void *priv;
+>  	const struct rproc_ops *ops;
+> -	struct device *dev;
+> +	struct device dev;
+
+I'm not sure if the kernel-doc for this field is accurate anymore. Is it
+an 'underlying device' still?
+
+-- 
+Sent by an employee of the Qualcomm Innovation Center, Inc.
+The Qualcomm Innovation Center, Inc. is a member of the Code Aurora Forum.
