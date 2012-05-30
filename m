@@ -1,111 +1,129 @@
-From: Xiao Jiang <jgq516@gmail.com>
-Subject: Re: [PATCH 1/3] arm/dts: add wdt node for omap3 and omap4
-Date: Wed, 30 May 2012 11:19:37 +0800
-Message-ID: <4FC591C9.2050004@gmail.com>
-References: <1337942552-28218-1-git-send-email-jgq516@gmail.com> <1337942552-28218-2-git-send-email-jgq516@gmail.com> <4FC50CCD.7090404@ti.com>
+From: Daniel Lezcano <daniel.lezcano-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>
+Subject: Re: [PATCH] ARM: OMAP3/4: consolidate cpuidle Makefile
+Date: Wed, 30 May 2012 06:06:53 +0200
+Message-ID: <4FC59CDD.1030100@linaro.org>
+References: <1336644177-13834-1-git-send-email-daniel.lezcano@linaro.org>
+	<4FB08D24.7070101@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <4FC50CCD.7090404@ti.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Jon Hunter <jon-hunter@ti.com>
-Cc: linux@arm.linux.org.uk, b-cousson@ti.com, rob.herring@calxeda.com, grant.likely@secretlab.ca, rnayak@ti.com, tony@atomide.com, wim@iguana.be, devicetree-discuss@lists.ozlabs.org, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-watchdog@vger.kernel.org
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
+Return-path: <linaro-dev-bounces-cunTk1MwBs8s++Sfvej+rw@public.gmane.org>
+In-Reply-To: <4FB08D24.7070101-l0cyMroinI0@public.gmane.org>
+List-Unsubscribe: <http://lists.linaro.org/mailman/options/linaro-dev>,
+	<mailto:linaro-dev-request-cunTk1MwBs8s++Sfvej+rw@public.gmane.org?subject=unsubscribe>
+List-Archive: <http://lists.linaro.org/pipermail/linaro-dev>
+List-Post: <mailto:linaro-dev-cunTk1MwBs8s++Sfvej+rw@public.gmane.org>
+List-Help: <mailto:linaro-dev-request-cunTk1MwBs8s++Sfvej+rw@public.gmane.org?subject=help>
+List-Subscribe: <http://lists.linaro.org/mailman/listinfo/linaro-dev>,
+	<mailto:linaro-dev-request-cunTk1MwBs8s++Sfvej+rw@public.gmane.org?subject=subscribe>
+Sender: linaro-dev-bounces-cunTk1MwBs8s++Sfvej+rw@public.gmane.org
+Errors-To: linaro-dev-bounces-cunTk1MwBs8s++Sfvej+rw@public.gmane.org
+To: Rajendra Nayak <rnayak-l0cyMroinI0@public.gmane.org>
+Cc: khilman-l0cyMroinI0@public.gmane.org, linaro-dev-cunTk1MwBs8s++Sfvej+rw@public.gmane.org, patches-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org, tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org
 List-Id: linux-omap@vger.kernel.org
 
-Jon Hunter wrote:
-> On 05/25/2012 05:42 AM, jgq516@gmail.com wrote:
->   
->> From: Xiao Jiang <jgq516@gmail.com>
->>
->> Add wdt node to support dt.
->>
->> Signed-off-by: Xiao Jiang <jgq516@gmail.com>
->> ---
->>  arch/arm/boot/dts/omap3.dtsi |    5 +++++
->>  arch/arm/boot/dts/omap4.dtsi |    5 +++++
->>  2 files changed, 10 insertions(+), 0 deletions(-)
->>
->> diff --git a/arch/arm/boot/dts/omap3.dtsi b/arch/arm/boot/dts/omap3.dtsi
->> index 99474fa..039df5c 100644
->> --- a/arch/arm/boot/dts/omap3.dtsi
->> +++ b/arch/arm/boot/dts/omap3.dtsi
->> @@ -215,5 +215,10 @@
->>  			compatible = "ti,omap3-hsmmc";
->>  			ti,hwmods = "mmc3";
->>  		};
->> +
->> +		wdt: wdt@48314000{
->>     
->
-> Minor comment, may be call this wdt2 as this is watchdog timer 2. Also
-> ass a space between the address and the "{".
->
->   
-Ok, will change it to "wdt2: wdt@48314000 {".
->> +			compatible = "ti,omap3-wdt";
->> +			ti,hwmods = "wd_timer2";
->> +		};
->>  	};
->>  };
->> diff --git a/arch/arm/boot/dts/omap4.dtsi b/arch/arm/boot/dts/omap4.dtsi
->> index 359c497..d01403d 100644
->> --- a/arch/arm/boot/dts/omap4.dtsi
->> +++ b/arch/arm/boot/dts/omap4.dtsi
->> @@ -272,5 +272,10 @@
->>  			ti,hwmods = "mmc5";
->>  			ti,needs-special-reset;
->>  		};
->> +
->> +		wdt: wdt@4a314000{
->>     
->
-> Same as above.
->
->   
-Ditto.
->> +			compatible = "ti,omap4-wdt";
->> +			ti,hwmods = "wd_timer2";
->> +		};
->>  	};
->>  };
->>     
->
-> Also we should add some documentation to describe the binding. Here it
-> is very simple, but nonetheless we should have something as we have for
-> gpio [1].
->
->   
-Thanks for reminding, how about below patch?
-
-diff --git a/Documentation/devicetree/bindings/watchdog/omap-wdt.txt 
-b/Documentation/devicetree/bindings/watchdog/omap-wdt.txt
-new file mode 100644
-index 0000000..4272d06
---- /dev/null
-+++ b/Documentation/devicetree/bindings/watchdog/omap-wdt.txt
-@@ -0,0 +1,15 @@
-+TI Watchdog Timer (WDT) Controller for OMAP
-+
-+Required properties:
-+- compatible:
-+  - "ti,omap2-wdt" for OMAP2
-+  - "ti,omap3-wdt" for OMAP3
-+  - "ti,omap4-wdt" for OMAP4
-+- ti,hwmods: Name of the hwmod associated to the WDT
-+
-+Examples:
-+
-+wdt2: wdt@73f98000 {
-+       compatible = "ti,omap4-wdt";
-+       ti,hwmods = "wd_timer2";
-+};
-
-Regards,
-Xiao
-> Cheers
-> Jon
->
-> [1]
-> http://git.kernel.org/?p=linux/kernel/git/torvalds/linux-2.6.git;a=blob;f=Documentation/devicetree/bindings/gpio/gpio-omap.txt;h=bff51a2fee1eae7d387b40ea913e04782554bf68;hb=HEAD
->   
+T24gMDUvMTQvMjAxMiAwNjo0MiBBTSwgUmFqZW5kcmEgTmF5YWsgd3JvdGU6Cj4gT24gVGh1cnNk
+YXkgMTAgTWF5IDIwMTIgMDM6MzIgUE0sIERhbmllbCBMZXpjYW5vIHdyb3RlOgo+PiBUaGUgY3Vy
+cmVudCBNYWtlZmlsZSBjb21waWxlcyB0aGUgY3B1aWRsZTM0eHguYyBhbmQgY3B1aWRsZTQ0eHgu
+YyBmaWxlcwo+PiBldmVuIGlmIHRoZSBjcHVpZGxlIG9wdGlvbiBpcyBub3Qgc2V0IGluIHRoZSBr
+ZXJuZWwuCj4+Cj4+IFRoaXMgcGF0Y2ggZml4ZXMgdGhpcyBieSBjcmVhdGluZyBhIHNlY3Rpb24g
+aW4gdGhlIE1ha2VmaWxlIHdoZXJlIHRoZXNlCj4+IGZpbGVzIGFyZSBjb21waWxlZCBvbmx5IGlm
+IHRoZSBDT05GSUdfQ1BVX0lETEUgb3B0aW9uIGlzIHNldC4KPj4KPj4gVGhpcyBtb2RpZmljYXRp
+b24gYnJlYWtzIGFuIGltcGxpY2l0IGRlcGVuZGVuY3kgYmV0d2VlbiBDUFVfSURMRSBhbmQKPj4g
+UE0gYXMKPj4gdGhleSBiZWxvbmcgdG8gdGhlIHNhbWUgYmxvY2sgaW4gdGhlIE1ha2VmaWxlLiBU
+aGlzIGlzIGZpeGVkIGluIHRoZQo+PiBLY29uZmlnCj4+IGJ5IHNlbGVjdGluZyBleHBsaWNpdGVs
+eSBQTSBpcyBDUFVfSURMRSBpcyBzZXQuCj4+Cj4+IFRoZSBsaW51eCBjb2Rpbmcgc3R5bGUgcmVj
+b21tZW5kIHRvIHVzZSBuby1vcCBmdW5jdGlvbnMgaW4gdGhlIGhlYWRlcnMKPj4gd2hlbiB0aGUg
+c3Vic3lzdGVtIGlzIGRpc2FibGVkIGluc3RlYWQgb2YgYWRkaW5nIGJpZyBzZWN0aW9uIGluIEMg
+ZmlsZXMuCj4gCj4gTG9va3MgZ29vZCB0byBtZS4KPiBSZXZpZXdlZC1ieTogUmFqZW5kcmEgTmF5
+YWsgPHJuYXlha0B0aS5jb20+CgpIaSBLZXZpbiwKCkkgdGhpbmsgSSBhZGRyZXNzZWQgYWxsIHRo
+ZSBwb2ludHMuIElzIGl0IHBvc3NpYmxlIHRvIGNvbnNpZGVyIHRoaXMKcGF0Y2ggZm9yIGluY2x1
+c2lvbiA/CgpUaGFua3MKICAtLSBEYW5pZWwKCj4+IFRoaXMgcGF0Y2ggZml4IHRoaXMgYWxzby4K
+Pj4KPj4gU2lnbmVkLW9mZi1ieTogRGFuaWVsIExlemNhbm88ZGFuaWVsLmxlemNhbm9AbGluYXJv
+Lm9yZz4KPj4gUmV2aWV3ZWQtYnk6IEplYW4gUGloZXQ8ai1waWhldEB0aS5jb20+Cj4+IC0tLQo+
+PiAgIGFyY2gvYXJtL21hY2gtb21hcDIvS2NvbmZpZyAgICAgICB8ICAgIDIgKysKPj4gICBhcmNo
+L2FybS9tYWNoLW9tYXAyL01ha2VmaWxlICAgICAgfCAgIDExICsrKysrKystLS0tCj4+ICAgYXJj
+aC9hcm0vbWFjaC1vbWFwMi9jcHVpZGxlMzR4eC5jIHwgICAgOCAtLS0tLS0tLQo+PiAgIGFyY2gv
+YXJtL21hY2gtb21hcDIvY3B1aWRsZTQ0eHguYyB8ICAgIDggLS0tLS0tLS0KPj4gICBhcmNoL2Fy
+bS9tYWNoLW9tYXAyL3BtLmggICAgICAgICAgfCAgIDE3ICsrKysrKysrKysrKysrKy0tCj4+ICAg
+NSBmaWxlcyBjaGFuZ2VkLCAyNCBpbnNlcnRpb25zKCspLCAyMiBkZWxldGlvbnMoLSkKPj4KPj4g
+ZGlmZiAtLWdpdCBhL2FyY2gvYXJtL21hY2gtb21hcDIvS2NvbmZpZyBiL2FyY2gvYXJtL21hY2gt
+b21hcDIvS2NvbmZpZwo+PiBpbmRleCA4MTQxYjc2Li40MmY2Yjg5IDEwMDY0NAo+PiAtLS0gYS9h
+cmNoL2FybS9tYWNoLW9tYXAyL0tjb25maWcKPj4gKysrIGIvYXJjaC9hcm0vbWFjaC1vbWFwMi9L
+Y29uZmlnCj4+IEBAIC0zNCw2ICszNCw3IEBAIGNvbmZpZyBBUkNIX09NQVAzCj4+ICAgICAgIHNl
+bGVjdCBDUFVfVjcKPj4gICAgICAgc2VsZWN0IFVTQl9BUkNIX0hBU19FSENJIGlmIFVTQl9TVVBQ
+T1JUCj4+ICAgICAgIHNlbGVjdCBBUkNIX0hBU19PUFAKPj4gKyAgICBzZWxlY3QgUE0gaWYgQ1BV
+X0lETEUKPj4gICAgICAgc2VsZWN0IFBNX09QUCBpZiBQTQo+PiAgICAgICBzZWxlY3QgQVJNX0NQ
+VV9TVVNQRU5EIGlmIFBNCj4+ICAgICAgIHNlbGVjdCBNVUxUSV9JUlFfSEFORExFUgo+PiBAQCAt
+NTEsNiArNTIsNyBAQCBjb25maWcgQVJDSF9PTUFQNAo+PiAgICAgICBzZWxlY3QgUEwzMTBfRVJS
+QVRBXzcyNzkxNQo+PiAgICAgICBzZWxlY3QgQVJNX0VSUkFUQV83MjA3ODkKPj4gICAgICAgc2Vs
+ZWN0IEFSQ0hfSEFTX09QUAo+PiArICAgIHNlbGVjdCBQTSBpZiBDUFVfSURMRQo+PiAgICAgICBz
+ZWxlY3QgUE1fT1BQIGlmIFBNCj4+ICAgICAgIHNlbGVjdCBVU0JfQVJDSF9IQVNfRUhDSSBpZiBV
+U0JfU1VQUE9SVAo+PiAgICAgICBzZWxlY3QgQVJNX0NQVV9TVVNQRU5EIGlmIFBNCj4+IGRpZmYg
+LS1naXQgYS9hcmNoL2FybS9tYWNoLW9tYXAyL01ha2VmaWxlIGIvYXJjaC9hcm0vbWFjaC1vbWFw
+Mi9NYWtlZmlsZQo+PiBpbmRleCA0OWY5MmJjLi5mNDZjNzM1IDEwMDY0NAo+PiAtLS0gYS9hcmNo
+L2FybS9tYWNoLW9tYXAyL01ha2VmaWxlCj4+ICsrKyBiL2FyY2gvYXJtL21hY2gtb21hcDIvTWFr
+ZWZpbGUKPj4gQEAgLTY0LDEwICs2NCw4IEBAIGVuZGlmCj4+ICAgaWZlcSAoJChDT05GSUdfUE0p
+LHkpCj4+ICAgb2JqLSQoQ09ORklHX0FSQ0hfT01BUDIpICAgICAgICArPSBwbTI0eHgubwo+PiAg
+IG9iai0kKENPTkZJR19BUkNIX09NQVAyKSAgICAgICAgKz0gc2xlZXAyNHh4Lm8KPj4gLW9iai0k
+KENPTkZJR19BUkNIX09NQVAzKSAgICAgICAgKz0gcG0zNHh4Lm8gc2xlZXAzNHh4Lm8gXAo+PiAt
+ICAgICAgICAgICAgICAgICAgICAgICBjcHVpZGxlMzR4eC5vCj4+IC1vYmotJChDT05GSUdfQVJD
+SF9PTUFQNCkgICAgICAgICs9IHBtNDR4eC5vIG9tYXAtbXB1c3MtbG93cG93ZXIubyBcCj4+IC0g
+ICAgICAgICAgICAgICAgICAgICAgIGNwdWlkbGU0NHh4Lm8KPj4gK29iai0kKENPTkZJR19BUkNI
+X09NQVAzKSAgICAgICAgKz0gcG0zNHh4Lm8gc2xlZXAzNHh4Lm8KPj4gK29iai0kKENPTkZJR19B
+UkNIX09NQVA0KSAgICAgICAgKz0gcG00NHh4Lm8gb21hcC1tcHVzcy1sb3dwb3dlci5vCj4+ICAg
+b2JqLSQoQ09ORklHX1BNX0RFQlVHKSAgICAgICAgICAgICs9IHBtLWRlYnVnLm8KPj4gICBvYmot
+JChDT05GSUdfT01BUF9TTUFSVFJFRkxFWCkgICAgICAgICAgKz0gc3JfZGV2aWNlLm8gc21hcnRy
+ZWZsZXgubwo+PiAgIG9iai0kKENPTkZJR19PTUFQX1NNQVJUUkVGTEVYX0NMQVNTMykgICAgKz0g
+c21hcnRyZWZsZXgtY2xhc3MzLm8KPj4gQEAgLTgxLDYgKzc5LDExIEBAIGVuZGlmCj4+Cj4+ICAg
+ZW5kaWYKPj4KPj4gK2lmZXEgKCQoQ09ORklHX0NQVV9JRExFKSx5KQo+PiArb2JqLSQoQ09ORklH
+X0FSQ0hfT01BUDMpICAgICAgICAgICAgICAgICs9IGNwdWlkbGUzNHh4Lm8KPj4gK29iai0kKENP
+TkZJR19BUkNIX09NQVA0KSAgICAgICAgICAgICAgICArPSBjcHVpZGxlNDR4eC5vCj4+ICtlbmRp
+Zgo+PiArCj4+ICAgIyBQUkNNCj4+ICAgb2JqLXkgICAgICAgICAgICAgICAgICAgICs9IHBybV9j
+b21tb24ubwo+PiAgIG9iai0kKENPTkZJR19BUkNIX09NQVAyKSAgICAgICAgKz0gcHJjbS5vIGNt
+Mnh4eF8zeHh4Lm8gcHJtMnh4eF8zeHh4Lm8KPj4gZGlmZiAtLWdpdCBhL2FyY2gvYXJtL21hY2gt
+b21hcDIvY3B1aWRsZTM0eHguYwo+PiBiL2FyY2gvYXJtL21hY2gtb21hcDIvY3B1aWRsZTM0eHgu
+Ywo+PiBpbmRleCAyMDdiYzFjLi4zMTM0NDUyIDEwMDY0NAo+PiAtLS0gYS9hcmNoL2FybS9tYWNo
+LW9tYXAyL2NwdWlkbGUzNHh4LmMKPj4gKysrIGIvYXJjaC9hcm0vbWFjaC1vbWFwMi9jcHVpZGxl
+MzR4eC5jCj4+IEBAIC0zNiw4ICszNiw2IEBACj4+ICAgI2luY2x1ZGUgImNvbnRyb2wuaCIKPj4g
+ICAjaW5jbHVkZSAiY29tbW9uLmgiCj4+Cj4+IC0jaWZkZWYgQ09ORklHX0NQVV9JRExFCj4+IC0K
+Pj4gICAvKiBNYWNoIHNwZWNpZmljIGluZm9ybWF0aW9uIHRvIGJlIHJlY29yZGVkIGluIHRoZSBD
+LXN0YXRlCj4+IGRyaXZlcl9kYXRhICovCj4+ICAgc3RydWN0IG9tYXAzX2lkbGVfc3RhdGVkYXRh
+IHsKPj4gICAgICAgdTMyIG1wdV9zdGF0ZTsKPj4gQEAgLTM3OSw5ICszNzcsMyBAQCBpbnQgX19p
+bml0IG9tYXAzX2lkbGVfaW5pdCh2b2lkKQo+Pgo+PiAgICAgICByZXR1cm4gMDsKPj4gICB9Cj4+
+IC0jZWxzZQo+PiAtaW50IF9faW5pdCBvbWFwM19pZGxlX2luaXQodm9pZCkKPj4gLXsKPj4gLSAg
+ICByZXR1cm4gMDsKPj4gLX0KPj4gLSNlbmRpZiAvKiBDT05GSUdfQ1BVX0lETEUgKi8KPj4gZGlm
+ZiAtLWdpdCBhL2FyY2gvYXJtL21hY2gtb21hcDIvY3B1aWRsZTQ0eHguYwo+PiBiL2FyY2gvYXJt
+L21hY2gtb21hcDIvY3B1aWRsZTQ0eHguYwo+PiBpbmRleCBiZTE2MTdjLi4wMmQxNWJiIDEwMDY0
+NAo+PiAtLS0gYS9hcmNoL2FybS9tYWNoLW9tYXAyL2NwdWlkbGU0NHh4LmMKPj4gKysrIGIvYXJj
+aC9hcm0vbWFjaC1vbWFwMi9jcHVpZGxlNDR4eC5jCj4+IEBAIC0yMiw4ICsyMiw2IEBACj4+ICAg
+I2luY2x1ZGUgInBtLmgiCj4+ICAgI2luY2x1ZGUgInBybS5oIgo+Pgo+PiAtI2lmZGVmIENPTkZJ
+R19DUFVfSURMRQo+PiAtCj4+ICAgLyogTWFjaGluZSBzcGVjaWZpYyBpbmZvcm1hdGlvbiAqLwo+
+PiAgIHN0cnVjdCBvbWFwNF9pZGxlX3N0YXRlZGF0YSB7Cj4+ICAgICAgIHUzMiBjcHVfc3RhdGU7
+Cj4+IEBAIC0xOTksOSArMTk3LDMgQEAgaW50IF9faW5pdCBvbWFwNF9pZGxlX2luaXQodm9pZCkK
+Pj4KPj4gICAgICAgcmV0dXJuIDA7Cj4+ICAgfQo+PiAtI2Vsc2UKPj4gLWludCBfX2luaXQgb21h
+cDRfaWRsZV9pbml0KHZvaWQpCj4+IC17Cj4+IC0gICAgcmV0dXJuIDA7Cj4+IC19Cj4+IC0jZW5k
+aWYgLyogQ09ORklHX0NQVV9JRExFICovCj4+IGRpZmYgLS1naXQgYS9hcmNoL2FybS9tYWNoLW9t
+YXAyL3BtLmggYi9hcmNoL2FybS9tYWNoLW9tYXAyL3BtLmgKPj4gaW5kZXggNzg1NjQ4OS4uYWIw
+NGQzYiAxMDA2NDQKPj4gLS0tIGEvYXJjaC9hcm0vbWFjaC1vbWFwMi9wbS5oCj4+ICsrKyBiL2Fy
+Y2gvYXJtL21hY2gtb21hcDIvcG0uaAo+PiBAQCAtMTUsMTIgKzE1LDI1IEBACj4+Cj4+ICAgI2lu
+Y2x1ZGUgInBvd2VyZG9tYWluLmgiCj4+Cj4+ICsjaWZkZWYgQ09ORklHX0NQVV9JRExFCj4+ICtl
+eHRlcm4gaW50IF9faW5pdCBvbWFwM19pZGxlX2luaXQodm9pZCk7Cj4+ICtleHRlcm4gaW50IF9f
+aW5pdCBvbWFwNF9pZGxlX2luaXQodm9pZCk7Cj4+ICsjZWxzZQo+PiArc3RhdGljIGlubGluZSBp
+bnQgb21hcDNfaWRsZV9pbml0KHZvaWQpCj4+ICt7Cj4+ICsgICAgcmV0dXJuIDA7Cj4+ICt9Cj4+
+ICsKPj4gK3N0YXRpYyBpbmxpbmUgaW50IG9tYXA0X2lkbGVfaW5pdCh2b2lkKQo+PiArewo+PiAr
+ICAgIHJldHVybiAwOwo+PiArfQo+PiArI2VuZGlmCj4+ICsKPj4gICBleHRlcm4gdm9pZCAqb21h
+cDNfc2VjdXJlX3JhbV9zdG9yYWdlOwo+PiAgIGV4dGVybiB2b2lkIG9tYXAzX3BtX29mZl9tb2Rl
+X2VuYWJsZShpbnQpOwo+PiAgIGV4dGVybiB2b2lkIG9tYXBfc3JhbV9pZGxlKHZvaWQpOwo+PiAg
+IGV4dGVybiBpbnQgb21hcF9zZXRfcHdyZG1fc3RhdGUoc3RydWN0IHBvd2VyZG9tYWluICpwd3Jk
+bSwgdTMyIHN0YXRlKTsKPj4gLWV4dGVybiBpbnQgb21hcDNfaWRsZV9pbml0KHZvaWQpOwo+PiAt
+ZXh0ZXJuIGludCBvbWFwNF9pZGxlX2luaXQodm9pZCk7Cj4+ICAgZXh0ZXJuIGludCBvbWFwX3Bt
+X2Nsa2Rtc19zZXR1cChzdHJ1Y3QgY2xvY2tkb21haW4gKmNsa2RtLCB2b2lkCj4+ICp1bnVzZWQp
+Owo+PiAgIGV4dGVybiBpbnQgKCpvbWFwX3BtX3N1c3BlbmQpKHZvaWQpOwo+Pgo+IAoKCi0tIAog
+PGh0dHA6Ly93d3cubGluYXJvLm9yZy8+IExpbmFyby5vcmcg4pSCIE9wZW4gc291cmNlIHNvZnR3
+YXJlIGZvciBBUk0gU29DcwoKRm9sbG93IExpbmFybzogIDxodHRwOi8vd3d3LmZhY2Vib29rLmNv
+bS9wYWdlcy9MaW5hcm8+IEZhY2Vib29rIHwKPGh0dHA6Ly90d2l0dGVyLmNvbS8jIS9saW5hcm9v
+cmc+IFR3aXR0ZXIgfAo8aHR0cDovL3d3dy5saW5hcm8ub3JnL2xpbmFyby1ibG9nLz4gQmxvZwoK
+Cl9fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fCmxpbmFyby1k
+ZXYgbWFpbGluZyBsaXN0CmxpbmFyby1kZXZAbGlzdHMubGluYXJvLm9yZwpodHRwOi8vbGlzdHMu
+bGluYXJvLm9yZy9tYWlsbWFuL2xpc3RpbmZvL2xpbmFyby1kZXYK
