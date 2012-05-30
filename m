@@ -1,75 +1,69 @@
-From: Ohad Ben-Cohen <ohad@wizery.com>
-Subject: Re: [PATCH 2/2] remoteproc: remove the now-redundant kref
-Date: Wed, 30 May 2012 15:38:01 +0300
-Message-ID: <CAK=WgbbwaMAnTGcivC9ZR8K-MtTqHAV3+BgUmk8WjCaayifJxw@mail.gmail.com>
-References: <1338017791-9442-1-git-send-email-ohad@wizery.com>
- <1338017791-9442-2-git-send-email-ohad@wizery.com> <4FC5DD74.4030202@codeaurora.org>
+From: Kishon Vijay Abraham I <kishon@ti.com>
+Subject: [RFC PATCH 0/3] usb: musb: add new phy driver
+Date: Wed, 30 May 2012 20:04:23 +0530
+Message-ID: <1338388466-3565-1-git-send-email-kishon@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <4FC5DD74.4030202@codeaurora.org>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Stephen Boyd <sboyd@codeaurora.org>
-Cc: linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Fernando Guzman Lugo <fernando.lugo@ti.com>
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
+List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
+List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
+Sender: linux-arm-kernel-bounces@lists.infradead.org
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
+To: tony@atomide.com, linux@arm.linux.org.uk, gregkh@linuxfoundation.org, kishon@ti.com, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org, linux-usb@vger.kernel.org, balbi@ti.com
 List-Id: linux-omap@vger.kernel.org
 
-On Wed, May 30, 2012 at 11:42 AM, Stephen Boyd <sboyd@codeaurora.org> w=
-rote:
-> I was hoping we could use class_for_each_device() and
-> class_find_device() to replace all this code. Then we wouldn't need a=
-ll
-> this klist stuff that the class is taking care of already.
+This series adds a new usb2 phy driver. The device for which is created
+by the ocp2scp driver. This also uses control module driver.
 
-Awesome! This really is worth a shot.
+This series converts twl6030 as a comparator driver (previously it was
+also the phy driver) and makes use of omap-usb2 as the phy driver.
 
->> +/**
->> + * rproc_class_release() - release a remote processor instance
->> + * @dev: the rproc's device
->> + *
->> + * This function should _never_ be called directly.
->> + *
->> + * It will be called by the driver core when no one holds a valid p=
-ointer
->> + * to @dev anymore.
->> + */
->
-> Why is this added now and not in the previous patch?
+Instead of notification mechanism by power chip to omap glue to pass detection
+of any events, an export API has been added in omap glue. Both twl4030 and
+twl6030 will call to this API to pass any event. (twl6030 is used in omap4 and
+twl4030 is used in omap3).
 
-Hmm, probably because it was copied from rproc_release, which was
-killed in this patch. I can probably shift it to the first patch since
-I'm anyway doing some changes.
+This series depends on:
+*[RFC PATCH 00/11] OMAP System Control Module* patch series
+However System Control Module driver has only dt support, so wouldn't
+be able to test this patch series. However I'll adapt omap usb2 phy
+driver and musb driver for dt and send it asap to the list.
 
->> - =A0 =A0 /* the rproc will only be released after its refcount drop=
-s to zero */
->> - =A0 =A0 kref_put(&rproc->refcount, rproc_release);
->> + =A0 =A0 /* unroll rproc_alloc. TODO: we may want to let the users =
-do that */
->> + =A0 =A0 put_device(&rproc->dev);
->
-> Yes I think we want rproc_free() to actually call put_device() the la=
-st
-> time and free the resources.
+This series also depends on:
+*[PATCH v3 0/3] usb: multi-phy support* patch series
+*[RFC PATCH 0/5] omap: add ocp2scp as a misc driver* patch series
 
-Yeah that was one of the options I considered.
+Compile tested only.
 
-In general, we have three options here:
-1. Remove this last put_device invocation, and require users to call
-rproc_free() even after they call rproc_unregister().
-2. Let rproc_unregister() still do this, by calling rproc_free().
-3. Let rproc_unregister() still do this, by invoking put_device().
+Kishon Vijay Abraham I (3):
+  drivers: usb: otg: add a new driver for omap usb2 phy
+  usb: musb: omap glue: use omap-usb2 as the phy driver
+  arm: omap: phy: remove unused functions from omap-phy-internal.c
 
-I think that (1) looks better since it makes the interface symmetric
-and straight forward.
+ arch/arm/mach-omap2/omap_phy_internal.c |  138 ------------------
+ arch/arm/mach-omap2/twl-common.c        |    5 -
+ arch/arm/mach-omap2/usb-musb.c          |    3 -
+ drivers/usb/musb/musb_core.h            |    1 -
+ drivers/usb/musb/omap2430.c             |  150 ++++++++++++++------
+ drivers/usb/otg/Kconfig                 |   17 ++-
+ drivers/usb/otg/Makefile                |    1 +
+ drivers/usb/otg/omap-usb2.c             |  232 +++++++++++++++++++++++++++++++
+ drivers/usb/otg/twl4030-usb.c           |   40 ++----
+ drivers/usb/otg/twl6030-usb.c           |  172 +++++------------------
+ include/linux/usb/musb-omap.h           |   31 ++++
+ include/linux/usb/omap_usb.h            |   47 ++++++
+ include/linux/usb/phy_companion.h       |   34 +++++
+ 13 files changed, 514 insertions(+), 357 deletions(-)
+ create mode 100644 drivers/usb/otg/omap-usb2.c
+ create mode 100644 include/linux/usb/musb-omap.h
+ create mode 100644 include/linux/usb/omap_usb.h
+ create mode 100644 include/linux/usb/phy_companion.h
 
-(2) and (3) may be simper because users only need to call
-rproc_unregister and that's it.
-
-I eventually decided against (1) because I was concerned it will only
-confuse users at this point.
-
-But if you think that (1) is nicer too then maybe we should go ahead
-and do that change.
-
-Thanks,
-Ohad.
+-- 
+1.7.5.4
