@@ -1,58 +1,86 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: [PATCH] mmc: omap: Fix broken reg_shift initialization
-Date: Wed, 30 May 2012 00:13:01 -0700
-Message-ID: <20120530071300.GH12766@atomide.com>
-References: <20120528132147.GC12766@atomide.com>
- <CAPDyKFrcviT3_Fz13LpFJ+1oKxQ5LKswN7EmzVcWTJkiiDWusA@mail.gmail.com>
- <20120529074047.GE16340@arwen.pp.htv.fi>
- <20120529124732.GD12766@atomide.com>
- <20120529125024.GM9577@arwen.pp.htv.fi>
- <20120529130312.GE12766@atomide.com>
+From: "Cousson, Benoit" <b-cousson@ti.com>
+Subject: Re: [PATCH 3/3] watchdog: omap_wdt: add device tree support
+Date: Wed, 30 May 2012 09:54:07 +0200
+Message-ID: <4FC5D21F.2030702@ti.com>
+References: <1337942552-28218-1-git-send-email-jgq516@gmail.com> <1337942552-28218-4-git-send-email-jgq516@gmail.com> <4FC51008.1050004@ti.com> <4FC59171.8040009@gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset="ISO-8859-1"; format=flowed
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-02-ewr.mailhop.org ([204.13.248.72]:37409 "EHLO
-	mho-02-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754542Ab2E3HNH (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 30 May 2012 03:13:07 -0400
-Content-Disposition: inline
-In-Reply-To: <20120529130312.GE12766@atomide.com>
+Received: from arroyo.ext.ti.com ([192.94.94.40]:48830 "EHLO arroyo.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1755964Ab2E3Hy3 (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Wed, 30 May 2012 03:54:29 -0400
+In-Reply-To: <4FC59171.8040009@gmail.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Felipe Balbi <balbi@ti.com>
-Cc: Ulf Hansson <ulf.hansson@linaro.org>, Chris Ball <cjb@laptop.org>, linux-mmc@vger.kernel.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+To: Xiao Jiang <jgq516@gmail.com>
+Cc: Jon Hunter <jon-hunter@ti.com>, linux@arm.linux.org.uk, rob.herring@calxeda.com, grant.likely@secretlab.ca, rnayak@ti.com, tony@atomide.com, wim@iguana.be, devicetree-discuss@lists.ozlabs.org, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-watchdog@vger.kernel.org
 
-Commit fa550189 (mmc: core: Prevent eMMC VCC supply to be cut from late init)
-slightly affected timings for how things are done for the omap MMC driver
-causing the MMC cards not getting detected any longer.
+On 5/30/2012 5:18 AM, Xiao Jiang wrote:
+> Jon Hunter wrote:
+>> On 05/25/2012 05:42 AM, jgq516@gmail.com wrote:
+>>> From: Xiao Jiang <jgq516@gmail.com>
+>>>
+>>> Add device table for omap_wdt to support dt.
+>>>
+>>> Signed-off-by: Xiao Jiang <jgq516@gmail.com>
+>>> ---
+>>> drivers/watchdog/omap_wdt.c | 8 ++++++++
+>>> 1 files changed, 8 insertions(+), 0 deletions(-)
+>>>
+>>> diff --git a/drivers/watchdog/omap_wdt.c b/drivers/watchdog/omap_wdt.c
+>>> index 8285d65..d98c615 100644
+>>> --- a/drivers/watchdog/omap_wdt.c
+>>> +++ b/drivers/watchdog/omap_wdt.c
+>>> @@ -430,6 +430,13 @@ static int omap_wdt_resume(struct
+>>> platform_device *pdev)
+>>> #define omap_wdt_resume NULL
+>>> #endif
+>>>
+>>> +static const struct of_device_id omap_wdt_of_match[] = {
+>>> + { .compatible = "ti,omap3-wdt", },
+>>> + { .compatible = "ti,omap4-wdt", },
 
-Turns out this was caused by buggy reg_shift initialization in the omap
-MMC driver that was happening after mmc_add_host() was being called.
+If there is no difference between the OMAP3 and the OMAP4 WDT IP, just 
+add one entry "ti,omap3-wdt". And then in the OMAP4 DTS you will just 
+put : compatible = "ti,omap3-wdt"; or compatible =  "ti,omap4-wdt", 
+"ti,omap3-wdt";
+I'm still a little bit confused about the real need for the 
+"ti,omap4-wdt: entry, but it seems to be the way to do it in PPC.
 
-Fix this by initializing reg_shift before mmc_add_host() is called.
+>>> + {},
+>>> +};
+>>> +MODULE_DEVICE_TABLE(of, omap_wdt_of_match);
+>>> +
+>>> static struct platform_driver omap_wdt_driver = {
+>>> .probe = omap_wdt_probe,
+>>> .remove = __devexit_p(omap_wdt_remove),
+>>> @@ -439,6 +446,7 @@ static struct platform_driver omap_wdt_driver = {
+>>> .driver = {
+>>> .owner = THIS_MODULE,
+>>> .name = "omap_wdt",
+>>> + .of_match_table = omap_wdt_of_match,
+>>> },
+>>> };
+>>>
+>>
+>> I think we need to add some code to the probe function that calls
+>> of_match_device() and ensures we find a match. For example ...
+>>
+>> if (of_have_populated_dt())
+>> if (!of_match_device(omap_wdt_of_match, &pdev->dev))
+>> return -EINVAL;
+>>
+> Will add it in v2, thanks for suggestion.
 
-Signed-off-by: Tony Lindgren <tony@atomide.com>
+No, in fact this is not needed. We need that mainly when several 
+instances can match the same driver and thus we select the proper one 
+using the of_match_device. Otherwise, just check is the device_node is 
+there.
 
----
+In that case, the driver does not even care about any DT node so there 
+is no need to add extra code for that. Keep it simple.
 
-Heh found it! Chris, maybe Cc stable on this one?
-
---- a/drivers/mmc/host/omap.c
-+++ b/drivers/mmc/host/omap.c
-@@ -1485,6 +1485,7 @@ static int __devinit mmc_omap_probe(struct platform_device *pdev)
- 	}
- 
- 	host->nr_slots = pdata->nr_slots;
-+	host->reg_shift = (cpu_is_omap7xx() ? 1 : 2);
- 
- 	host->mmc_omap_wq = alloc_workqueue("mmc_omap", 0, 0);
- 	if (!host->mmc_omap_wq)
-@@ -1500,8 +1501,6 @@ static int __devinit mmc_omap_probe(struct platform_device *pdev)
- 		}
- 	}
- 
--	host->reg_shift = (cpu_is_omap7xx() ? 1 : 2);
--
- 	return 0;
- 
- err_destroy_wq:
+Regards,
+Benoit
