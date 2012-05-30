@@ -1,90 +1,71 @@
-From: Xiao Jiang <jgq516@gmail.com>
-Subject: Re: [PATCH 0/3] omap3/omap4: add device tree support for wdt
-Date: Wed, 30 May 2012 18:14:33 +0800
-Message-ID: <4FC5F309.9080604@gmail.com>
-References: <1337942552-28218-1-git-send-email-jgq516@gmail.com>
- <4FC50BA2.4070404@ti.com>
+From: "Cousson, Benoit" <b-cousson@ti.com>
+Subject: Re: [RFC PATCH 11/11] ARM: DT: Add support to system
+ control module for OMAP4
+Date: Wed, 30 May 2012 11:26:54 +0200
+Message-ID: <4FC5E7DE.2060905@ti.com>
+References: <1337934361-1606-1-git-send-email-eduardo.valentin@ti.com>
+	<1337934361-1606-12-git-send-email-eduardo.valentin@ti.com>
+	<4FC49BA5.5050008@dev.rtsoft.ru> <4FC5DC9F.7080104@ti.com>
+	<4FC5E2EE.8030504@dev.rtsoft.ru>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"; Format="flowed"
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-In-Reply-To: <4FC50BA2.4070404@ti.com>
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: linux-arm-kernel-bounces@lists.infradead.org
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: Jon Hunter <jon-hunter@ti.com>
-Cc: linux@arm.linux.org.uk, b-cousson@ti.com, tony@atomide.com, devicetree-discuss@lists.ozlabs.org, rnayak@ti.com, linux-kernel@vger.kernel.org, rob.herring@calxeda.com, grant.likely@secretlab.ca, wim@iguana.be, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-watchdog@vger.kernel.org
+Return-path: <linux-pm-bounces@lists.linux-foundation.org>
+In-Reply-To: <4FC5E2EE.8030504@dev.rtsoft.ru>
+List-Unsubscribe: <https://lists.linuxfoundation.org/mailman/options/linux-pm>,
+	<mailto:linux-pm-request@lists.linux-foundation.org?subject=unsubscribe>
+List-Archive: <http://lists.linuxfoundation.org/pipermail/linux-pm/>
+List-Post: <mailto:linux-pm@lists.linux-foundation.org>
+List-Help: <mailto:linux-pm-request@lists.linux-foundation.org?subject=help>
+List-Subscribe: <https://lists.linuxfoundation.org/mailman/listinfo/linux-pm>,
+	<mailto:linux-pm-request@lists.linux-foundation.org?subject=subscribe>
+Sender: linux-pm-bounces@lists.linux-foundation.org
+Errors-To: linux-pm-bounces@lists.linux-foundation.org
+To: Konstantin Baydarov <kbaidarov@dev.rtsoft.ru>
+Cc: balbi@ti.com, kishon@ti.com, amit.kucheria@linaro.org, linux-pm@lists.linux-foundation.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 List-Id: linux-omap@vger.kernel.org
 
-Jon Hunter wrote:
-> Hi Xiao Jiang,
->
-> On 05/25/2012 05:42 AM, jgq516@gmail.com wrote:
->   
->> From: Xiao Jiang <jgq516@gmail.com>
+On 5/30/2012 11:05 AM, Konstantin Baydarov wrote:
+> On 05/30/2012 12:38 PM, Cousson, Benoit wrote:
+>> On 5/29/2012 11:49 AM, Konstantin Baydarov wrote:
+>>> Hi, Eduardo.
+>>>
+>>> On 05/25/2012 12:26 PM, Eduardo Valentin wrote:
+>>>> This patch add device tree entries on OMAP4 based boards for
+>>>> System Control Module (SCM).
+
+...
+
+>>> I believe that CPU-specific bandgap definition should be moved to
+>>> bard specific dts.
 >>
->> This series can be applied to dt branch of linux-omap tree.
->>     
->
-> Thanks for sending this!
->
->   
->> Since omap24xx series has different wdt base addr (omap2420: 0x48022000 and
->> omap2430: 0x49016000) per commit 2817142f31bfbf26c216bf4f9192540c81b2d071, so
->> I don't add wdt node in omap2.dtsi just like omap3 and omap4, maybe different
->> dts files are needed for omap2420 and omap2430.
->>     
->
-> Good point. I am wondering if we can simple drop the address from the
-> wdt2 node for omap2. It is not really being used. May be Benoit can comment.
->
->   
-Hmm, I think the address doesn't need anymore since the related hw_mod 
-has the right addr as follows.
+>> Mmm, why, since it is CPU specific and not board specific. I has to
+>> be in the SoC file.
+> Speaking about omap4430 - omap4430 bandgap differs from omap4460, so
+> if omap4430 bandgap support will be added to omap-bandgap driver the
+> version of bandgap should specified in dts file. omap4.dtsi is a
+> common for omap4 boards, that is why I'm suggesting to move bandgap
+> description to probably board specific file.
 
-static struct omap_hwmod_addr_space omap2420_wd_timer2_addrs[] = {
-        {  
-                .pa_start       = 0x48022000,
-                .pa_end         = 0x4802207f,
-                .flags          = ADDR_TYPE_RT
-        }, 
-        { }
-};
+OK, I got your point, but in that case we could potentially define a 
+omap4460.dtsi file.
 
-static struct omap_hwmod_addr_space omap2430_wd_timer2_addrs[] = {
-        {  
-                .pa_start       = 0x49016000,
-                .pa_end         = 0x4901607f,
-                .flags          = ADDR_TYPE_RT
-        }, 
-        { }
-};
+> Another solution is to
+> determine bandgap type in driver probe function, but in that case
+> "ti,omap4460-bandgap" in omap4.dtsi should be replaced to
+> "ti,omap4-bandgap".
 
-static struct omap_hwmod_addr_space omap3xxx_wd_timer2_addrs[] = {
-        {   
-                .pa_start       = 0x48314000,
-                .pa_end         = 0x4831407f,
-                .flags          = ADDR_TYPE_RT
-        },  
-        { } 
-};
+Yes, this is the best solution, but that assume that we can identify the 
+control module version from the HW, which is not necessarily true :-(
 
-static struct omap_hwmod_addr_space omap44xx_wd_timer2_addrs[] = {
-        {   
-                .pa_start       = 0x4a313000,
-                .pa_end         = 0x4a31407f,
-                .flags          = ADDR_TYPE_RT
-        },  
-        { } 
-};
+The IP_REVISION (offset = 0) value are unfortunately not documented, so 
+we should read it to check if they are different from omap4430 and 4460.
+
+The bitfield layout in that register is:
+
+IP_REV_MAJOR: 8..10
+IP_REV_CUSTOM: 6..7
+IP_REV_MINOR: 0..5
 
 Regards,
-Xiao
-> Cheers
-> Jon
+Benoit
