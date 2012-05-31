@@ -1,132 +1,95 @@
-From: "Cousson, Benoit" <b-cousson@ti.com>
-Subject: Re: [PATCH 1/3] arm/dts: add wdt node for omap3 and omap4
-Date: Thu, 31 May 2012 22:59:53 +0200
-Message-ID: <4FC7DBC9.7090406@ti.com>
-References: <1337942552-28218-1-git-send-email-jgq516@gmail.com> <1337942552-28218-2-git-send-email-jgq516@gmail.com> <4FC50CCD.7090404@ti.com> <4FC591C9.2050004@gmail.com> <4FC631E5.9080000@ti.com> <4FC706D7.2010801@gmail.com> <4FC78672.6040805@ti.com>
+From: Jon Hunter <jon-hunter@ti.com>
+Subject: Re: [PATCH 4/6] ARM: OMAP4: PMU: Add runtime PM support
+Date: Thu, 31 May 2012 16:23:45 -0500
+Message-ID: <4FC7E161.1080400@ti.com>
+References: <1336599355-10983-1-git-send-email-jon-hunter@ti.com> <87wr3uelgp.fsf@ti.com> <4FC548A3.2040906@ti.com> <4FC54D3B.10301@ti.com> <87pq9l7306.fsf@ti.com> <20120531012923.GB8506@mudshark.cambridge.arm.com> <4FC7B465.60703@ti.com> <87r4u0ytd9.fsf@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="ISO-8859-1"; format=flowed
+Content-Type: text/plain; charset="ISO-8859-1"
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <4FC78672.6040805@ti.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Jon Hunter <jon-hunter@ti.com>
-Cc: Xiao Jiang <jgq516@gmail.com>, linux@arm.linux.org.uk, rob.herring@calxeda.com, grant.likely@secretlab.ca, rnayak@ti.com, tony@atomide.com, wim@iguana.be, devicetree-discuss@lists.ozlabs.org, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-watchdog@vger.kernel.org
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from arroyo.ext.ti.com ([192.94.94.40]:49706 "EHLO arroyo.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1758555Ab2EaVXq (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Thu, 31 May 2012 17:23:46 -0400
+In-Reply-To: <87r4u0ytd9.fsf@ti.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Kevin Hilman <khilman@ti.com>
+Cc: Will Deacon <will.deacon@arm.com>, linux-omap <linux-omap@vger.kernel.org>, Ming Lei <ming.lei@canonical.com>, Benoit Cousson <b-cousson@ti.com>, Paul Walmsley <paul@pwsan.com>
 
-On 5/31/2012 4:55 PM, Jon Hunter wrote:
-> On 05/31/2012 12:51 AM, Xiao Jiang wrote:
->> Hi Jon and Benoit,
->>>> Thanks for reminding, how about below patch?
+Hi Kevin,
+
+On 05/31/2012 03:42 PM, Kevin Hilman wrote:
+> Jon Hunter <jon-hunter@ti.com> writes:
+> 
+>> Hi Kevin, Will,
+>>
+>> On 05/30/2012 08:29 PM, Will Deacon wrote:
+>>> Hi Kevin,
+>>>
+>>> On Wed, May 30, 2012 at 10:50:01PM +0100, Kevin Hilman wrote:
+>>>> Basically, I don't like the result when we have to hack around missing
+>>>> runtime PM support for a driver, so IMO, the driver should be updated.
 >>>>
->>>> diff --git a/Documentation/devicetree/bindings/watchdog/omap-wdt.txt
->>>> b/Documentation/devicetree/bindings/watchdog/omap-wdt.txt
->>>> new file mode 100644
->>>> index 0000000..4272d06
->>>> --- /dev/null
->>>> +++ b/Documentation/devicetree/bindings/watchdog/omap-wdt.txt
->>>> @@ -0,0 +1,15 @@
->>>> +TI Watchdog Timer (WDT) Controller for OMAP
->>>> +
->>>> +Required properties:
->>>> +- compatible:
->>>> +  - "ti,omap2-wdt" for OMAP2
->>>> +  - "ti,omap3-wdt" for OMAP3
->>>> +  - "ti,omap4-wdt" for OMAP4
->>>> +- ti,hwmods: Name of the hwmod associated to the WDT
->>>> +
->>>> +Examples:
->>>> +
->>>> +wdt2: wdt@73f98000 {
->>>> +       compatible = "ti,omap4-wdt";
->>>> +       ti,hwmods = "wd_timer2";
->>>> +};
+>>>> IOW, it looks to me like the armpmu driver should grow runtime PM
+>>>> support.  The current armpmu_release|reserve should probably be replaced
+>>>> with runtime PM get/put, and the functionality in those functions would
+>>>> be the runtime PM callbacks instead.
 >>>>
+>>>> Will, any objections to armpmu growing runtime PM support?
 >>>
->>> Yes looks good. Thanks! Minor nit-pick in the example I would just copy
->>> the omap4 node completely with the actual omap4 address :-)
+>>> My plan for the armpmu reservation is to kill the global reservation scheme
+>>> that we currently have and push those function pointers into the arm_pmu,
+>>> so that fits with what you'd like.
 >>>
->>>
->> Oops, wrong addr, :). Perhaps we can drop address as you said, since the
->> right addresses are defined
->> in wd_timer2 hwmod (see [1]), and wdt also works without the address as
->> follows.
+>>> The only concern I have is that we need the mutual exclusion even when we
+>>> don't have support for runtime PM. If we can solve that then I'm fine with
+>>> the approach.
 >>
->> diff --git a/arch/arm/boot/dts/omap2.dtsi b/arch/arm/boot/dts/omap2.dtsi
->> index f2ab4ea..0017bd8 100644
->> --- a/arch/arm/boot/dts/omap2.dtsi
->> +++ b/arch/arm/boot/dts/omap2.dtsi
->> @@ -63,5 +63,10 @@
->>                         ti,hwmods = "uart3";
->>                         clock-frequency =<48000000>;
->>                 };
->> +
->> +               wdt2: wdt {
->> +                       compatible = "ti,omap2-wdt";
->> +                       ti,hwmods = "wd_timer2";
->> +               };
->>         };
->> };
->> diff --git a/arch/arm/boot/dts/omap3.dtsi b/arch/arm/boot/dts/omap3.dtsi
->> index 99474fa..dbf8a5b 100644
->> --- a/arch/arm/boot/dts/omap3.dtsi
->> +++ b/arch/arm/boot/dts/omap3.dtsi
->> @@ -215,5 +215,10 @@
->>                         compatible = "ti,omap3-hsmmc";
->>                         ti,hwmods = "mmc3";
->>                 };
->> +
->> +               wdt2: wdt {
->> +                       compatible = "ti,omap3-wdt", "ti,omap2-wdt";
->> +                       ti,hwmods = "wd_timer2";
->> +               };
->>         };
->> };
->> diff --git a/arch/arm/boot/dts/omap4.dtsi b/arch/arm/boot/dts/omap4.dtsi
->> index 359c497..ce74e87 100644
->> --- a/arch/arm/boot/dts/omap4.dtsi
->> +++ b/arch/arm/boot/dts/omap4.dtsi
->> @@ -272,5 +272,10 @@
->>                         ti,hwmods = "mmc5";
->>                         ti,needs-special-reset;
->>                 };
->> +
->> +               wdt2: wdt {
->> +                       compatible = "ti,omap4-wdt", "ti,omap2-wdt";
->> +                       ti,hwmods = "wd_timer2";
->> +               };
->>         };
->> };
+>> To add a bit more food for thought, I had implemented a quick patch to
+>> add runtime PM support for PMU. You will notice that I have been
+>> conservative on where I have placed the pm_runtime_get/put calls,
+>> because I am not too familiar with the PMU driver to know exactly
+>> where we need to maintain the PMU context. So right now these are just
+>> around the reserve_hardware/release_hardware calls. This works on OMAP
+>> for some quick testing. However, I would need to make sure this does
+>> not break compilation without runtime PM enabled.
 >>
->> Infos for omap3:
->> # dmesg|grep Machine
->> <6>[    0.000000] Machine: Generic OMAP3 (Flattened Device Tree), model:
->> TI OMAP3 EVM (OMAP3530, AM/DM37x)
->> # dmesg|grep omap_wdt_probe
->> <4>[    2.552825] in omap_wdt_probe: 299, res->start = 0x48314000
->>
->> Infos for omap4:
->> root@localhost:/root>  dmesg|grep Machine
->> [    0.000000] Machine: Generic OMAP4 (Flattened Device Tree), model: TI
->> OMAP4 SDP board
->> root@localhost:/root>  dmesg|grep omap_wdt_probe
->> [    1.687896] in omap_wdt_probe: 299, res->start = 0x4a314000
->>
->> So can I drop the wdt addr from dts file? otherwise it is not feasible
->> to add omap2 wdt node in omap2.dtsi
->> due to different addrs for omap2420 and omap2430.
->
-> Benoit, what is your preference here?
+>> Let me know your thoughts.
+> 
+> That looks good, but I'm curious what would be done in the new
+> plat->runtime_* hooks.  Maybe the irq enable/disable stuff in the pmu
+> driver needs to be moved into the runtime PM hooks?
 
-Get rid of both omap2420 and 2430 :-)
+For omap4, the plat->runtime_* hooks look like ...
 
-The point is that only OMAP3 and OMAP4 are supposed to be migrated to DT 
-for the moment.
++static int omap4_pmu_runtime_resume(struct device *dev)
++{
++       /* configure CTI0 for PMU IRQ routing */
++       cti_unlock(&omap4_cti[0]);
++       cti_map_trigger(&omap4_cti[0], 1, 6, 2);
++       cti_enable(&omap4_cti[0]);
++
++       /* configure CTI1 for PMU IRQ routing */
++       cti_unlock(&omap4_cti[1]);
++       cti_map_trigger(&omap4_cti[1], 1, 6, 3);
++       cti_enable(&omap4_cti[1]);
++
++       return 0;
++}
++
++static int omap4_pmu_runtime_suspend(struct device *dev)
++{
++       cti_disable(&omap4_cti[0]);
++       cti_disable(&omap4_cti[1]);
++
++       return 0;
++}
 
-If you do not have any OMAP2 board to test that, it is anyway safer to 
-not touch the omap2.dtsi file.
+This is what I have implemented so far and currently testing. So really
+just using the hooks to configure the cross triggering interface.
 
-If the 2 or 3 remaining users of OMAP2 boards want to have DT support, 
-they'll be able to add that themselves.
+Is this what you were thinking?
 
-Regards,
-Benoit
+Cheers
+Jon
