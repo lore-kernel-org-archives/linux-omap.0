@@ -1,81 +1,53 @@
-From: Maxim Podbereznyy <lisarden@gmail.com>
-Subject: Re: latest kernel for am35xx
-Date: Thu, 31 May 2012 10:08:44 +0300
-Message-ID: <CAP3+TErug0DmndHWCVsguw2+e_vPCB2McF5j0+AyrMj8eGa=MQ@mail.gmail.com>
-References: <CAP3+TEr8vsnZPhAhgH-w7jAjWZTNQgWvsQ3cn_uz4TaX8c-Zgg@mail.gmail.com>
-	<CAPjKCR_CiKA_vXNyfYHdJeqPMsv0SA_oRYg1-XzbO2C1vSbLug@mail.gmail.com>
+From: "ABRAHAM, KISHON VIJAY" <kishon@ti.com>
+Subject: Re: [RFC PATCH 0/5] omap: add ocp2scp as a misc driver
+Date: Thu, 31 May 2012 13:44:04 +0530
+Message-ID: <CAAe_U6LFFstds=iQ7cy7gM9vWbfRgf5z0gaRp_-bu0Qjx6eA1Q@mail.gmail.com>
+References: <1338375394-16268-1-git-send-email-kishon@ti.com>
+	<201205301843.51568.arnd@arndb.de>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-lb0-f174.google.com ([209.85.217.174]:48418 "EHLO
-	mail-lb0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750742Ab2EaHIp convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 31 May 2012 03:08:45 -0400
-Received: by lbbgm6 with SMTP id gm6so606733lbb.19
-        for <linux-omap@vger.kernel.org>; Thu, 31 May 2012 00:08:44 -0700 (PDT)
-In-Reply-To: <CAPjKCR_CiKA_vXNyfYHdJeqPMsv0SA_oRYg1-XzbO2C1vSbLug@mail.gmail.com>
-Sender: linux-omap-owner@vger.kernel.org
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <201205301843.51568.arnd@arndb.de>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Arnd Bergmann <arnd@arndb.de>
+Cc: paul@pwsan.com, tony@atomide.com, linux@arm.linux.org.uk, b-cousson@ti.com, gregkh@linuxfoundation.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org, balbi@ti.com
 List-Id: linux-omap@vger.kernel.org
-To: Anil Kumar <anilkumar880@gmail.com>
-Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
 
-Hi!
+Hi Arnd,
 
-http://git.kernel.org/?p=3Dlinux/kernel/git/tmlind/linux-omap.git
-Does anyone knows a working branch/tag for am3517evm? I need the board
-boots fine with Ethernet enabled and working.
+On Thu, May 31, 2012 at 12:13 AM, Arnd Bergmann <arnd@arndb.de> wrote:
+> On Wednesday 30 May 2012, Kishon Vijay Abraham I wrote:
+>>
+>> This patch series is done as a preparatory step for adding phy drivers
+>> for dwc3 and musb.
+>>
+>> This series adds a new driver for ocp2scp to which phy drivers are connected.
+>>
+>> I'm planning to send phy drivers asap. Meanwhile I'd like to get some
+>> review comments for this series. I have also plans to send device tree
+>> adaptation of the ocp2scp driver.
+>>
+>> Developed on
+>> http://git.kernel.org/pub/scm/linux/kernel/git/gregkh/usb.git usb-next
+>>
+>> If it has to be based on some other tree, please let me know.
+>
+> This must be the most pointless driver I've seen in a long time. It doesn't
+> actually do anything at all, it just creates child devices from a static
+> lookup table.
+>
+> Just put the devices you actually want into the device tree instead and
+> have them automatically created.
 
-I read a few messages at e2e forum and all of them report about broken
-features.. I need wl1271 support in the kernel therefore I have to use
-on the latest kernels.
+But shouldn't device tree support and non-device tree support co-exist
+till the non-device tree is completely knocked out of the kernel? Even
+then shouldn't there be a separate driver to extract the child nodes
+of ocp2scp and create a device (using of_platform_populate)?
+As far as I've seen, the devices are automatically created (by virtue
+of of_platform_populate() in  mach-omap2/board-generic.c in omap case)
+only for the devices that is connected to the system bus. For other
+cases, the parent should be responsible for creating the child
+devices.
 
-2012/5/30 Anil Kumar <anilkumar880@gmail.com>:
-> Hi Lisarden,
->
-> Please try this.
->
-> git://git.kernel.org/pub/scm/linux/kernel/git/tmlind/linux-omap.git
->
-> Thanks,
-> Anil
->
-> On Wed, May 30, 2012 at 2:21 PM, Maxim Podbereznyy <lisarden@gmail.co=
-m>
-> wrote:
->>
->> Hi!
->>
->> I need to use the latest kernel at a am3517 based board where
->> Craneboard schematic was used as a reference. In addition to Cranboa=
-rd
->> scheme I have wl1271 chip added and therefore I need a kernel - one =
-of
->> the latests to support wireless feature.
->>
->> The job I did:
->> 1) used kernel from Craneboard (Mistral repository) - 2.6.32, no wl1=
-271
->> support
->> 2) OMAPPSP_04.02.00.07 - 2.6.37, tps65910 driver is broken
->> 3) AM335x PSP 04.06.00.07 - does not compile for am3517evm
->>
->> Can anybody suggest some alive kernel tree where tps65910 and wl1271
->> chips are supported? Having am3517evm or am3517crane board files wou=
-ld
->> be a great help!
->>
->> Thanks in advance!
->> Max
->> --
->> To unsubscribe from this list: send the line "unsubscribe linux-omap=
-" in
->> the body of a message to majordomo@vger.kernel.org
->> More majordomo info at =A0http://vger.kernel.org/majordomo-info.html
->
->
---
-To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Thanks
+Kishon
