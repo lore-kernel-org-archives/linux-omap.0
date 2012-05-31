@@ -1,91 +1,124 @@
-From: Kevin Hilman <khilman@ti.com>
-Subject: Re: [PATCHv10 00/11] I2C fixes
-Date: Thu, 31 May 2012 15:59:47 -0700
-Message-ID: <87obp4x8gs.fsf@ti.com>
-References: <1338288983-15026-1-git-send-email-shubhrajyoti@ti.com>
+From: Jon Hunter <jon-hunter@ti.com>
+Subject: Re: [PATCH 4/6] ARM: OMAP4: PMU: Add runtime PM support
+Date: Thu, 31 May 2012 18:02:20 -0500
+Message-ID: <4FC7F87C.9080709@ti.com>
+References: <1336599355-10983-1-git-send-email-jon-hunter@ti.com> <87wr3uelgp.fsf@ti.com> <4FC548A3.2040906@ti.com> <4FC54D3B.10301@ti.com> <87pq9l7306.fsf@ti.com> <20120531012923.GB8506@mudshark.cambridge.arm.com> <4FC7B465.60703@ti.com> <87r4u0ytd9.fsf@ti.com> <4FC7E161.1080400@ti.com> <87d35kyo3v.fsf@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset="ISO-8859-1"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aog132.obsmtp.com ([74.125.149.250]:59605 "EHLO
-	na3sys009aog132.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1758189Ab2EaW7r (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>);
-	Thu, 31 May 2012 18:59:47 -0400
-Received: by pbbrp2 with SMTP id rp2so2230340pbb.0
-        for <linux-omap@vger.kernel.org>; Thu, 31 May 2012 15:59:46 -0700 (PDT)
-In-Reply-To: <1338288983-15026-1-git-send-email-shubhrajyoti@ti.com>
-	(Shubhrajyoti D.'s message of "Tue, 29 May 2012 16:26:12 +0530")
+Received: from comal.ext.ti.com ([198.47.26.152]:38591 "EHLO comal.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1758244Ab2EaXCX (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Thu, 31 May 2012 19:02:23 -0400
+In-Reply-To: <87d35kyo3v.fsf@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Shubhrajyoti D <shubhrajyoti@ti.com>
-Cc: linux-omap@vger.kernel.org, linux-i2c@vger.kernel.org, linux-arm-kernel@lists.infradead.org, ben-linux@fluff.org, tony@atomide.com, w.sang@pengutronix.de
+To: Kevin Hilman <khilman@ti.com>
+Cc: Will Deacon <will.deacon@arm.com>, linux-omap <linux-omap@vger.kernel.org>, Ming Lei <ming.lei@canonical.com>, Benoit Cousson <b-cousson@ti.com>, Paul Walmsley <paul@pwsan.com>
 
-Shubhrajyoti D <shubhrajyoti@ti.com> writes:
+Hi Kevin,
 
-> The patch series does the following
->
-> - Warn fixes if CONFIG_PM_RUNTIME is not selected.
-> - In case of i2c remove register access was done without any
->  get_sync fix the same.
-> - Folds a patch from Tasslehoff to prevent any merge conflicts.
-> - Prevents the XDUF flag to be set if the underflow condition is not met.
-> - As per discussion in [1] .Adds a patch to rename the 1p153 errata and
->  use the unique id instead as the section number in the recent errata
->  docs has changed.
->
-> v9:
-> Fix the comments from Wolfram Sang
->
-> v10:
-> Add a patch from Neil to the series.
-> Fix kevin comments
-> update the patches with comments.
+On 05/31/2012 05:36 PM, Kevin Hilman wrote:
+> Jon Hunter <jon-hunter@ti.com> writes:
+> 
+>> Hi Kevin,
+>>
+>> On 05/31/2012 03:42 PM, Kevin Hilman wrote:
+>>> Jon Hunter <jon-hunter@ti.com> writes:
+>>>
+>>>> Hi Kevin, Will,
+>>>>
+>>>> On 05/30/2012 08:29 PM, Will Deacon wrote:
+>>>>> Hi Kevin,
+>>>>>
+>>>>> On Wed, May 30, 2012 at 10:50:01PM +0100, Kevin Hilman wrote:
+>>>>>> Basically, I don't like the result when we have to hack around missing
+>>>>>> runtime PM support for a driver, so IMO, the driver should be updated.
+>>>>>>
+>>>>>> IOW, it looks to me like the armpmu driver should grow runtime PM
+>>>>>> support.  The current armpmu_release|reserve should probably be replaced
+>>>>>> with runtime PM get/put, and the functionality in those functions would
+>>>>>> be the runtime PM callbacks instead.
+>>>>>>
+>>>>>> Will, any objections to armpmu growing runtime PM support?
+>>>>>
+>>>>> My plan for the armpmu reservation is to kill the global reservation scheme
+>>>>> that we currently have and push those function pointers into the arm_pmu,
+>>>>> so that fits with what you'd like.
+>>>>>
+>>>>> The only concern I have is that we need the mutual exclusion even when we
+>>>>> don't have support for runtime PM. If we can solve that then I'm fine with
+>>>>> the approach.
+>>>>
+>>>> To add a bit more food for thought, I had implemented a quick patch to
+>>>> add runtime PM support for PMU. You will notice that I have been
+>>>> conservative on where I have placed the pm_runtime_get/put calls,
+>>>> because I am not too familiar with the PMU driver to know exactly
+>>>> where we need to maintain the PMU context. So right now these are just
+>>>> around the reserve_hardware/release_hardware calls. This works on OMAP
+>>>> for some quick testing. However, I would need to make sure this does
+>>>> not break compilation without runtime PM enabled.
+>>>>
+>>>> Let me know your thoughts.
+>>>
+>>> That looks good, but I'm curious what would be done in the new
+>>> plat->runtime_* hooks.  Maybe the irq enable/disable stuff in the pmu
+>>> driver needs to be moved into the runtime PM hooks?
+>>
+>> For omap4, the plat->runtime_* hooks look like ...
+>>
+>> +static int omap4_pmu_runtime_resume(struct device *dev)
+>> +{
+>> +       /* configure CTI0 for PMU IRQ routing */
+>> +       cti_unlock(&omap4_cti[0]);
+>> +       cti_map_trigger(&omap4_cti[0], 1, 6, 2);
+>> +       cti_enable(&omap4_cti[0]);
+>> +
+>> +       /* configure CTI1 for PMU IRQ routing */
+>> +       cti_unlock(&omap4_cti[1]);
+>> +       cti_map_trigger(&omap4_cti[1], 1, 6, 3);
+>> +       cti_enable(&omap4_cti[1]);
+>> +
+>> +       return 0;
+>> +}
+>> +
+>> +static int omap4_pmu_runtime_suspend(struct device *dev)
+>> +{
+>> +       cti_disable(&omap4_cti[0]);
+>> +       cti_disable(&omap4_cti[1]);
+>> +
+>> +       return 0;
+>> +}
+>>
+>> This is what I have implemented so far and currently testing. So really
+>> just using the hooks to configure the cross triggering interface.
+>>
+>> Is this what you were thinking?
+>>
+> 
+> Basically, yes.  
+> 
+> But since I haven't studied the PMU driver closely, I have some dumb
+> questions.  My concern is that these look bsically like the
+> plat->irq_[enable|disable] hooks, so I guess the root of my question is
+> do we need both the irq enable/disable and runtime suspend/resume hooks
+> in plat?  or can we get by with one set.
 
-Shubhrajyoti, thanks for the updates.
+No you are right. The way it is now we could get by with just the one of
+hooks. However, the main reason I added the new hooks would be if there
+are other places we can call the pm_runtime_* functions. I am not too
+familiar with the flow in which the functions are called in the PMU
+driver and so this was a simple attempt to push the PM runtime framework
+in the PMU driver.
 
-Wolfgang, with these updates and testing a bit better described, I'm OK
-with you merging it.  Merging it now will give it plenty of time to
-bake in linux-next and get more test exposure.
+Hmmm ... however, now looking at the history behind the plat->irq_*
+hooks, I see that Ming specifically added these for omap4 [1]. I was
+under the impression other architectures may be using this. I guess not.
+So if it is preferred we could do-away with the plat->irq_* and replace
+with the plat->runtime_*.
 
-Thanks,
+Cheers
+Jon
 
-Kevin
-
-
-> [1] http://www.spinics.net/lists/linux-i2c/msg07607.html
->
-> Tested on omap4sdp and omap3sdp.
-> - Did functional tests read write on both the platforms.
-> - Off mode and retention on OMAP3
-> - On OMAP4 just did echo mem > /sys/power/state and wakeup.
-> Did see.
-> [ 1360.595855] Successfully put all powerdomains to target state
-> However didnt see the ret count for other than mpu_pwrdm increase.
-> I think power support for omap4 is minimal. 
->
-> The following changes since commit b48b2c3e50433ff6f7e46186daa7f986bd960215:
->
->   openrisc: use generic strnlen_user() function (2012-05-27 21:00:32 -0700)
->
-> are available in the git repository at:
->   git://gitorious.org/linus-tree/linus-tree.git i2c_omap-fixes
->
-> Neil Brown (1):
->       OMAP/I2C - Fix timeout problem during suspend.
->
-> Shubhrajyoti D (9):
->       I2C: OMAP: make omap_i2c_unidle/idle functions depend on CONFIG_PM_RUNTIME
->       I2C: OMAP: Fix the mismatch of pm_runtime enable and disable
->       I2C: OMAP: Fix the interrupt clearing in OMAP4
->       I2C: OMAP: Prevent the register access after pm_runtime_put in probe
->       I2C: OMAP: Don't check if wait_for_completion_timeout() returns less than zero
->       I2C: OMAP: Fix the crash in i2c remove
->       I2C: OMAP: Handle error check for pm runtime
->       I2C: OMAP: Do not set the XUDF(Transmit underflow) if the underflow is not reached
->       I2C: OMAP: Rename the 1p153 to the erratum id i462
->
-> Tasslehoff Kjappfot (1):
->       I2C: OMAP: prevent the overwrite of the errata flags
->
->  drivers/i2c/busses/i2c-omap.c |  129 ++++++++++++++++++++---------------------
->  1 files changed, 63 insertions(+), 66 deletions(-)
+[1] http://marc.info/?l=linux-arm-kernel&m=131946766428315&w=2
