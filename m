@@ -1,136 +1,191 @@
 From: Tero Kristo <t-kristo@ti.com>
-Subject: [PATCHv6 02/14] ARM: OMAP: voltage: renamed vp_vddmin and vp_vddmax fields
-Date: Thu, 31 May 2012 16:55:38 +0300
-Message-ID: <1338472550-20743-3-git-send-email-t-kristo@ti.com>
+Subject: [PATCHv6 04/14] ARM: OMAP3: VC: calculate ramp times
+Date: Thu, 31 May 2012 16:55:40 +0300
+Message-ID: <1338472550-20743-5-git-send-email-t-kristo@ti.com>
 References: <1338472550-20743-1-git-send-email-t-kristo@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from devils.ext.ti.com ([198.47.26.153]:33333 "EHLO
+Received: from devils.ext.ti.com ([198.47.26.153]:33341 "EHLO
 	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1758035Ab2EaN4E (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 31 May 2012 09:56:04 -0400
+	with ESMTP id S1758035Ab2EaN4I (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 31 May 2012 09:56:08 -0400
 In-Reply-To: <1338472550-20743-1-git-send-email-t-kristo@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: linux-omap@vger.kernel.org, khilman@ti.com
 Cc: linux-arm-kernel@lists.infradead.org
 
-These are now called vddmin and vddmax, as these fields will be used
-globally for selecting voltage ranges for a pmic channel, and not
-only for voltage processor.
+OMAP3 VC code now uses voltage deltas + slew rates for calculating actual
+ramp times for voltage changes. Previously a static value was used.
+Two calculation methods are provided: i2c_timings and off_timings.
+I2C timings are used during retention or off mode transition which
+is initiated over I2C, and OFF timings are used if PMIC signal
+(nsleep) is used to control all the off mode voltages at the same time.
 
 Signed-off-by: Tero Kristo <t-kristo@ti.com>
 ---
- arch/arm/mach-omap2/omap_twl.c |   28 ++++++++++++++--------------
- arch/arm/mach-omap2/voltage.h  |    4 ++--
- arch/arm/mach-omap2/vp.c       |    4 ++--
- 3 files changed, 18 insertions(+), 18 deletions(-)
+ arch/arm/mach-omap2/vc.c |  108 ++++++++++++++++++++++++++++++++++++++-------
+ arch/arm/mach-omap2/vc.h |    1 -
+ 2 files changed, 91 insertions(+), 18 deletions(-)
 
-diff --git a/arch/arm/mach-omap2/omap_twl.c b/arch/arm/mach-omap2/omap_twl.c
-index df4e7c3..c38a530 100644
---- a/arch/arm/mach-omap2/omap_twl.c
-+++ b/arch/arm/mach-omap2/omap_twl.c
-@@ -149,8 +149,8 @@ static struct omap_voltdm_pmic omap3_mpu_pmic = {
- 	.vp_erroroffset		= OMAP3_VP_CONFIG_ERROROFFSET,
- 	.vp_vstepmin		= OMAP3_VP_VSTEPMIN_VSTEPMIN,
- 	.vp_vstepmax		= OMAP3_VP_VSTEPMAX_VSTEPMAX,
--	.vp_vddmin		= OMAP3430_VP1_VLIMITTO_VDDMIN,
--	.vp_vddmax		= OMAP3430_VP1_VLIMITTO_VDDMAX,
-+	.vddmin			= OMAP3430_VP1_VLIMITTO_VDDMIN,
-+	.vddmax			= OMAP3430_VP1_VLIMITTO_VDDMAX,
- 	.vp_timeout_us		= OMAP3_VP_VLIMITTO_TIMEOUT_US,
- 	.i2c_slave_addr		= OMAP3_SRI2C_SLAVE_ADDR,
- 	.volt_reg_addr		= OMAP3_VDD_MPU_SR_CONTROL_REG,
-@@ -170,8 +170,8 @@ static struct omap_voltdm_pmic omap3_core_pmic = {
- 	.vp_erroroffset		= OMAP3_VP_CONFIG_ERROROFFSET,
- 	.vp_vstepmin		= OMAP3_VP_VSTEPMIN_VSTEPMIN,
- 	.vp_vstepmax		= OMAP3_VP_VSTEPMAX_VSTEPMAX,
--	.vp_vddmin		= OMAP3430_VP2_VLIMITTO_VDDMIN,
--	.vp_vddmax		= OMAP3430_VP2_VLIMITTO_VDDMAX,
-+	.vddmin			= OMAP3430_VP2_VLIMITTO_VDDMIN,
-+	.vddmax			= OMAP3430_VP2_VLIMITTO_VDDMAX,
- 	.vp_timeout_us		= OMAP3_VP_VLIMITTO_TIMEOUT_US,
- 	.i2c_slave_addr		= OMAP3_SRI2C_SLAVE_ADDR,
- 	.volt_reg_addr		= OMAP3_VDD_CORE_SR_CONTROL_REG,
-@@ -191,8 +191,8 @@ static struct omap_voltdm_pmic omap4_mpu_pmic = {
- 	.vp_erroroffset		= OMAP4_VP_CONFIG_ERROROFFSET,
- 	.vp_vstepmin		= OMAP4_VP_VSTEPMIN_VSTEPMIN,
- 	.vp_vstepmax		= OMAP4_VP_VSTEPMAX_VSTEPMAX,
--	.vp_vddmin		= OMAP4_VP_MPU_VLIMITTO_VDDMIN,
--	.vp_vddmax		= OMAP4_VP_MPU_VLIMITTO_VDDMAX,
-+	.vddmin			= OMAP4_VP_MPU_VLIMITTO_VDDMIN,
-+	.vddmax			= OMAP4_VP_MPU_VLIMITTO_VDDMAX,
- 	.vp_timeout_us		= OMAP4_VP_VLIMITTO_TIMEOUT_US,
- 	.i2c_slave_addr		= OMAP4_SRI2C_SLAVE_ADDR,
- 	.volt_reg_addr		= OMAP4_VDD_MPU_SR_VOLT_REG,
-@@ -213,8 +213,8 @@ static struct omap_voltdm_pmic omap4_iva_pmic = {
- 	.vp_erroroffset		= OMAP4_VP_CONFIG_ERROROFFSET,
- 	.vp_vstepmin		= OMAP4_VP_VSTEPMIN_VSTEPMIN,
- 	.vp_vstepmax		= OMAP4_VP_VSTEPMAX_VSTEPMAX,
--	.vp_vddmin		= OMAP4_VP_IVA_VLIMITTO_VDDMIN,
--	.vp_vddmax		= OMAP4_VP_IVA_VLIMITTO_VDDMAX,
-+	.vddmin			= OMAP4_VP_IVA_VLIMITTO_VDDMIN,
-+	.vddmax			= OMAP4_VP_IVA_VLIMITTO_VDDMAX,
- 	.vp_timeout_us		= OMAP4_VP_VLIMITTO_TIMEOUT_US,
- 	.i2c_slave_addr		= OMAP4_SRI2C_SLAVE_ADDR,
- 	.volt_reg_addr		= OMAP4_VDD_IVA_SR_VOLT_REG,
-@@ -235,8 +235,8 @@ static struct omap_voltdm_pmic omap4_core_pmic = {
- 	.vp_erroroffset		= OMAP4_VP_CONFIG_ERROROFFSET,
- 	.vp_vstepmin		= OMAP4_VP_VSTEPMIN_VSTEPMIN,
- 	.vp_vstepmax		= OMAP4_VP_VSTEPMAX_VSTEPMAX,
--	.vp_vddmin		= OMAP4_VP_CORE_VLIMITTO_VDDMIN,
--	.vp_vddmax		= OMAP4_VP_CORE_VLIMITTO_VDDMAX,
-+	.vddmin			= OMAP4_VP_CORE_VLIMITTO_VDDMIN,
-+	.vddmax			= OMAP4_VP_CORE_VLIMITTO_VDDMAX,
- 	.vp_timeout_us		= OMAP4_VP_VLIMITTO_TIMEOUT_US,
- 	.i2c_slave_addr		= OMAP4_SRI2C_SLAVE_ADDR,
- 	.volt_reg_addr		= OMAP4_VDD_CORE_SR_VOLT_REG,
-@@ -272,10 +272,10 @@ int __init omap3_twl_init(void)
- 		return -ENODEV;
+diff --git a/arch/arm/mach-omap2/vc.c b/arch/arm/mach-omap2/vc.c
+index a1e0fd6..bba0d7c 100644
+--- a/arch/arm/mach-omap2/vc.c
++++ b/arch/arm/mach-omap2/vc.c
+@@ -206,29 +206,109 @@ int omap_vc_bypass_scale(struct voltagedomain *voltdm,
+ 	return 0;
+ }
  
- 	if (cpu_is_omap3630()) {
--		omap3_mpu_pmic.vp_vddmin = OMAP3630_VP1_VLIMITTO_VDDMIN;
--		omap3_mpu_pmic.vp_vddmax = OMAP3630_VP1_VLIMITTO_VDDMAX;
--		omap3_core_pmic.vp_vddmin = OMAP3630_VP2_VLIMITTO_VDDMIN;
--		omap3_core_pmic.vp_vddmax = OMAP3630_VP2_VLIMITTO_VDDMAX;
-+		omap3_mpu_pmic.vddmin = OMAP3630_VP1_VLIMITTO_VDDMIN;
-+		omap3_mpu_pmic.vddmax = OMAP3630_VP1_VLIMITTO_VDDMAX;
-+		omap3_core_pmic.vddmin = OMAP3630_VP2_VLIMITTO_VDDMIN;
-+		omap3_core_pmic.vddmax = OMAP3630_VP2_VLIMITTO_VDDMAX;
- 	}
- 
+-static void __init omap3_vfsm_init(struct voltagedomain *voltdm)
++/**
++ * omap3_set_i2c_timings - sets i2c sleep timings for a channel
++ * @voltdm: channel to configure
++ * @off_mode: select whether retention or off mode values used
++ *
++ * Calculates and sets up voltage controller to use I2C based
++ * voltage scaling for sleep modes. This can be used for either off mode
++ * or retention. Off mode has additionally an option to use sys_off_mode
++ * pad, which uses a global signal to program the whole power IC to
++ * off-mode.
++ */
++static void omap3_set_i2c_timings(struct voltagedomain *voltdm, bool off_mode)
+ {
++	unsigned long voltsetup1;
++	u32 tgt_volt;
++
++	if (off_mode)
++		tgt_volt = voltdm->vc_param->off;
++	else
++		tgt_volt = voltdm->vc_param->ret;
++
++	voltsetup1 = (voltdm->vc_param->on - tgt_volt) /
++			voltdm->pmic->slew_rate;
++
++	voltsetup1 = voltsetup1 * voltdm->sys_clk.rate / 8 / 1000000 + 1;
++
++	voltdm->rmw(voltdm->vfsm->voltsetup_mask,
++		voltsetup1 << __ffs(voltdm->vfsm->voltsetup_mask),
++		voltdm->vfsm->voltsetup_reg);
++
  	/*
-diff --git a/arch/arm/mach-omap2/voltage.h b/arch/arm/mach-omap2/voltage.h
-index a0efab7..e7f71ff 100644
---- a/arch/arm/mach-omap2/voltage.h
-+++ b/arch/arm/mach-omap2/voltage.h
-@@ -162,8 +162,8 @@ struct omap_voltdm_pmic {
- 	u8 vp_erroroffset;
- 	u8 vp_vstepmin;
- 	u8 vp_vstepmax;
--	u32 vp_vddmin;
--	u32 vp_vddmax;
-+	u32 vddmin;
-+	u32 vddmax;
- 	u8 vp_timeout_us;
+-	 * Voltage Manager FSM parameters init
+-	 * XXX This data should be passed in from the board file
++	 * pmic is not controlling the voltage scaling during retention,
++	 * thus set voltsetup2 to 0
+ 	 */
+-	voltdm->write(OMAP3_CLKSETUP, OMAP3_PRM_CLKSETUP_OFFSET);
+-	voltdm->write(OMAP3_VOLTOFFSET, OMAP3_PRM_VOLTOFFSET_OFFSET);
+-	voltdm->write(OMAP3_VOLTSETUP2, OMAP3_PRM_VOLTSETUP2_OFFSET);
++	voltdm->write(0, OMAP3_PRM_VOLTSETUP2_OFFSET);
+ }
+ 
+-static void __init omap3_vc_init_channel(struct voltagedomain *voltdm)
++/**
++ * omap3_set_off_timings - sets off-mode timings for a channel
++ * @voltdm: channel to configure
++ *
++ * Calculates and sets up off-mode timings for a channel. Off-mode
++ * can use either I2C based voltage scaling, or alternatively
++ * sys_off_mode pad can be used to send a global command to power IC.
++ * This function first checks which mode is being used, and calls
++ * omap3_set_i2c_timings() if the system is using I2C control mode.
++ * sys_off_mode has the additional benefit that voltages can be
++ * scaled to zero volt level with TWL4030 / TWL5030, I2C can only
++ * scale to 600mV.
++ */
++static void omap3_set_off_timings(struct voltagedomain *voltdm)
+ {
+-	static bool is_initialized;
++	unsigned long clksetup;
++	unsigned long voltsetup2;
++	unsigned long voltsetup2_old;
++	u32 val;
+ 
+-	if (is_initialized)
++	/* check if sys_off_mode is used to control off-mode voltages */
++	val = voltdm->read(OMAP3_PRM_VOLTCTRL_OFFSET);
++	if (!(val & OMAP3430_SEL_OFF_MASK)) {
++		/* No, omap is controlling them over I2C */
++		omap3_set_i2c_timings(voltdm, true);
+ 		return;
++	}
+ 
+-	omap3_vfsm_init(voltdm);
++	clksetup = voltdm->read(OMAP3_PRM_CLKSETUP_OFFSET);
+ 
+-	is_initialized = true;
++	/* voltsetup 2 in us */
++	voltsetup2 = voltdm->vc_param->on / voltdm->pmic->slew_rate;
++
++	/* convert to 32k clk cycles */
++	voltsetup2 = DIV_ROUND_UP(voltsetup2 * 32768, 1000000);
++
++	voltsetup2_old = voltdm->read(OMAP3_PRM_VOLTSETUP2_OFFSET);
++
++	/*
++	 * Update voltsetup2 if higher than current value (needed because
++	 * we have multiple channels with different ramp times), also
++	 * update voltoffset always to value recommended by TRM
++	 */
++	if (voltsetup2 > voltsetup2_old) {
++		voltdm->write(voltsetup2, OMAP3_PRM_VOLTSETUP2_OFFSET);
++		voltdm->write(clksetup - voltsetup2,
++			OMAP3_PRM_VOLTOFFSET_OFFSET);
++	} else
++		voltdm->write(clksetup - voltsetup2_old,
++			OMAP3_PRM_VOLTOFFSET_OFFSET);
++
++	/*
++	 * omap is not controlling voltage scaling during off-mode,
++	 * thus set voltsetup1 to 0
++	 */
++	voltdm->rmw(voltdm->vfsm->voltsetup_mask, 0,
++		voltdm->vfsm->voltsetup_reg);
++
++	/* voltoffset must be clksetup minus voltsetup2 according to TRM */
++	voltdm->write(clksetup - voltsetup2, OMAP3_PRM_VOLTOFFSET_OFFSET);
+ }
+ 
++static void __init omap3_vc_init_channel(struct voltagedomain *voltdm)
++{
++	omap3_set_off_timings(voltdm);
++}
+ 
+ /* OMAP4 specific voltage init functions */
+ static void __init omap4_vc_init_channel(struct voltagedomain *voltdm)
+@@ -339,7 +419,6 @@ void __init omap_vc_init_channel(struct voltagedomain *voltdm)
+ 	vc->i2c_slave_addr = voltdm->pmic->i2c_slave_addr;
+ 	vc->volt_reg_addr = voltdm->pmic->volt_reg_addr;
+ 	vc->cmd_reg_addr = voltdm->pmic->cmd_reg_addr;
+-	vc->setup_time = voltdm->pmic->volt_setup_time;
+ 
+ 	/* Configure the i2c slave address for this VC */
+ 	voltdm->rmw(vc->smps_sa_mask,
+@@ -378,11 +457,6 @@ void __init omap_vc_init_channel(struct voltagedomain *voltdm)
+ 	/* Channel configuration */
+ 	omap_vc_config_channel(voltdm);
+ 
+-	/* Configure the setup times */
+-	voltdm->rmw(voltdm->vfsm->voltsetup_mask,
+-		    vc->setup_time << __ffs(voltdm->vfsm->voltsetup_mask),
+-		    voltdm->vfsm->voltsetup_reg);
+-
+ 	omap_vc_i2c_init(voltdm);
+ 
+ 	if (cpu_is_omap34xx())
+diff --git a/arch/arm/mach-omap2/vc.h b/arch/arm/mach-omap2/vc.h
+index 7618b69..91c8d75 100644
+--- a/arch/arm/mach-omap2/vc.h
++++ b/arch/arm/mach-omap2/vc.h
+@@ -86,7 +86,6 @@ struct omap_vc_channel {
+ 	u16 i2c_slave_addr;
+ 	u16 volt_reg_addr;
+ 	u16 cmd_reg_addr;
+-	u16 setup_time;
+ 	u8 cfg_channel;
  	bool i2c_high_speed;
- 	u8 i2c_mcode;
-diff --git a/arch/arm/mach-omap2/vp.c b/arch/arm/mach-omap2/vp.c
-index 40b3dcc..c585dfb 100644
---- a/arch/arm/mach-omap2/vp.c
-+++ b/arch/arm/mach-omap2/vp.c
-@@ -58,8 +58,8 @@ void __init omap_vp_init(struct voltagedomain *voltdm)
- 	sys_clk_rate = voltdm->sys_clk.rate / 1000;
  
- 	timeout = (sys_clk_rate * voltdm->pmic->vp_timeout_us) / 1000;
--	vddmin = voltdm->pmic->uv_to_vsel(voltdm->pmic->vp_vddmin);
--	vddmax = voltdm->pmic->uv_to_vsel(voltdm->pmic->vp_vddmax);
-+	vddmin = voltdm->pmic->uv_to_vsel(voltdm->pmic->vddmin);
-+	vddmax = voltdm->pmic->uv_to_vsel(voltdm->pmic->vddmax);
- 
- 	waittime = DIV_ROUND_UP(voltdm->pmic->step_size * sys_clk_rate,
- 				1000 * voltdm->pmic->slew_rate);
 -- 
 1.7.4.1
 
