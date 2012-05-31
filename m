@@ -1,72 +1,74 @@
-From: "ABRAHAM, KISHON VIJAY" <kishon@ti.com>
-Subject: Re: [RFC PATCH 0/5] omap: add ocp2scp as a misc driver
-Date: Thu, 31 May 2012 16:48:40 +0530
-Message-ID: <CAAe_U6J3p9Lh9g82tSSLxOJ7nqrozdRe11zV_v2rqTuMYPjbyA@mail.gmail.com>
-References: <1338375394-16268-1-git-send-email-kishon@ti.com>
-	<201205301843.51568.arnd@arndb.de>
-	<CAAe_U6LFFstds=iQ7cy7gM9vWbfRgf5z0gaRp_-bu0Qjx6eA1Q@mail.gmail.com>
-	<201205310922.18550.arnd@arndb.de>
+From: Konstantin Baydarov <kbaidarov@dev.rtsoft.ru>
+Subject: Re: [RFC PATCH 11/11] ARM: DT: Add support to system control module
+ for OMAP4
+Date: Thu, 31 May 2012 16:06:00 +0400
+Message-ID: <4FC75EA8.6090406@dev.rtsoft.ru>
+References: <1337934361-1606-1-git-send-email-eduardo.valentin@ti.com> <1337934361-1606-12-git-send-email-eduardo.valentin@ti.com> <4FC49BA5.5050008@dev.rtsoft.ru> <4FC5DC9F.7080104@ti.com> <4FC5E2EE.8030504@dev.rtsoft.ru> <4FC5E7DE.2060905@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aog121.obsmtp.com ([74.125.149.145]:39300 "EHLO
-	na3sys009aog121.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752773Ab2EaLSm convert rfc822-to-8bit
-	(ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Thu, 31 May 2012 07:18:42 -0400
-Received: by yenl6 with SMTP id l6so792015yen.37
-        for <linux-omap@vger.kernel.org>; Thu, 31 May 2012 04:18:41 -0700 (PDT)
-In-Reply-To: <201205310922.18550.arnd@arndb.de>
+Received: from mail.dev.rtsoft.ru ([213.79.90.226]:55242 "HELO
+	mail.dev.rtsoft.ru" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with SMTP id S1757290Ab2EaMGI (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 31 May 2012 08:06:08 -0400
+In-Reply-To: <4FC5E7DE.2060905@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Arnd Bergmann <arnd@arndb.de>
-Cc: paul@pwsan.com, tony@atomide.com, linux@arm.linux.org.uk, b-cousson@ti.com, gregkh@linuxfoundation.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org, balbi@ti.com
+To: "Cousson, Benoit" <b-cousson@ti.com>
+Cc: Eduardo Valentin <eduardo.valentin@ti.com>, kishon@ti.com, santosh.shilimkar@ti.com, tony@atomide.com, paul@pwsan.com, balbi@ti.com, amit.kucheria@linaro.org, linux-pm@lists.linux-foundation.org, linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org, amit.kachhap@linaro.org
 
-Hi Arnd,
+  Hi.
 
-On Thu, May 31, 2012 at 2:52 PM, Arnd Bergmann <arnd@arndb.de> wrote:
-> On Thursday 31 May 2012, ABRAHAM, KISHON VIJAY wrote:
->> >
->> > Just put the devices you actually want into the device tree instea=
-d and
->> > have them automatically created.
->>
->> But shouldn't device tree support and non-device tree support co-exi=
-st
->> till the non-device tree is completely knocked out of the kernel? Ev=
-en
+On 05/30/2012 01:26 PM, Cousson, Benoit wrote:
+> On 5/30/2012 11:05 AM, Konstantin Baydarov wrote:
+>> On 05/30/2012 12:38 PM, Cousson, Benoit wrote:
+>>> On 5/29/2012 11:49 AM, Konstantin Baydarov wrote:
+>>>> Hi, Eduardo.
+>>>>
+>>>> On 05/25/2012 12:26 PM, Eduardo Valentin wrote:
+>>>>> This patch add device tree entries on OMAP4 based boards for
+>>>>> System Control Module (SCM).
 >
-> Well, it's a new driver, so there is no regression in supporting it o=
-nly
-> on DT-enabled boards. OMAP5 is DT-only anyway and OMAP4 only supports=
- two
-> boards that should both be working with the generic DT code already.
+> ...
 >
->> then shouldn't there be a separate driver to extract the child nodes
->> of ocp2scp and create a device (using of_platform_populate)?
->> As far as I've seen, the devices are automatically created (by virtu=
-e
->> of of_platform_populate() in =A0mach-omap2/board-generic.c in omap c=
-ase)
->> only for the devices that is connected to the system bus. For other
->> cases, the parent should be responsible for creating the child
->> devices.
+>>>> I believe that CPU-specific bandgap definition should be moved to
+>>>> bard specific dts.
+>>>
+>>> Mmm, why, since it is CPU specific and not board specific. I has to
+>>> be in the SoC file.
+>> Speaking about omap4430 - omap4430 bandgap differs from omap4460, so
+>> if omap4430 bandgap support will be added to omap-bandgap driver the
+>> version of bandgap should specified in dts file. omap4.dtsi is a
+>> common for omap4 boards, that is why I'm suggesting to move bandgap
+>> description to probably board specific file.
 >
-> I would mark the multiplexed device compatible with "simple-bus", whi=
-ch
-> results in the child devices automatically getting added.
+> OK, I got your point, but in that case we could potentially define a omap4460.dtsi file.
+>
+>> Another solution is to
+>> determine bandgap type in driver probe function, but in that case
+>> "ti,omap4460-bandgap" in omap4.dtsi should be replaced to
+>> "ti,omap4-bandgap".
+>
+> Yes, this is the best solution, but that assume that we can identify the control module version from the HW, which is not necessarily true :-(
+>
+> The IP_REVISION (offset = 0) value are unfortunately not documented, so we should read it to check if they are different from omap4430 and 4460.
+>
+> The bitfield layout in that register is:
+>
+> IP_REV_MAJOR: 8..10
+> IP_REV_CUSTOM: 6..7
+> IP_REV_MINOR: 0..5
+The value of CONTROL_GEN_CORE_REVISION register on my panda board(4430) is:
+CONTROL_GEN_CORE_REVISION: 0x40000900
+CONTROL_GEN_CORE_HWINFO:  0x0
 
-hmm.. ocp2scp has a sysconfig register and it also has a module mode
-by which it can be enabled/disabled. I was making use of pm_runtime
-API's to control these registers (Apart from creating child devices,
-the driver also has a call to pm_runtime_enable). I'm not sure if with
-"simple-bus" we'll be able to do those. I have to check on that.
+  Eduardo, could you check CONTROL_GEN_CORE_REVISION on your 4460 board.
 
-Thanks
-Kishon
---
-To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+  BR,
+    Konstantin Baydarov.
+
+>
+> Regards,
+> Benoit
+
