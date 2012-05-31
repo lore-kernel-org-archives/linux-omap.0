@@ -1,125 +1,49 @@
 From: Jon Hunter <jon-hunter@ti.com>
-Subject: Re: [PATCH 1/3] arm/dts: add wdt node for omap3 and omap4
-Date: Thu, 31 May 2012 09:55:46 -0500
-Message-ID: <4FC78672.6040805@ti.com>
-References: <1337942552-28218-1-git-send-email-jgq516@gmail.com> <1337942552-28218-2-git-send-email-jgq516@gmail.com> <4FC50CCD.7090404@ti.com> <4FC591C9.2050004@gmail.com> <4FC631E5.9080000@ti.com> <4FC706D7.2010801@gmail.com>
+Subject: Re: [PATCH 4/6] ARM: OMAP4: PMU: Add runtime PM support
+Date: Thu, 31 May 2012 10:04:02 -0500
+Message-ID: <4FC78862.5010101@ti.com>
+References: <1336599355-10983-1-git-send-email-jon-hunter@ti.com> <87wr3uelgp.fsf@ti.com> <4FC548A3.2040906@ti.com> <4FC54D3B.10301@ti.com> <87pq9l7306.fsf@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="ISO-8859-1"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from comal.ext.ti.com ([198.47.26.152]:41139 "EHLO comal.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752132Ab2EaO7P (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Thu, 31 May 2012 10:59:15 -0400
-In-Reply-To: <4FC706D7.2010801@gmail.com>
+Received: from devils.ext.ti.com ([198.47.26.153]:37945 "EHLO
+	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754313Ab2EaPEX (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 31 May 2012 11:04:23 -0400
+In-Reply-To: <87pq9l7306.fsf@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Xiao Jiang <jgq516@gmail.com>
-Cc: b-cousson@ti.com, linux@arm.linux.org.uk, rob.herring@calxeda.com, grant.likely@secretlab.ca, rnayak@ti.com, tony@atomide.com, wim@iguana.be, devicetree-discuss@lists.ozlabs.org, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-watchdog@vger.kernel.org
+To: Kevin Hilman <khilman@ti.com>
+Cc: linux-omap <linux-omap@vger.kernel.org>, Ming Lei <ming.lei@canonical.com>, Will Deacon <will.deacon@arm.com>, Benoit Cousson <b-cousson@ti.com>, Paul Walmsley <paul@pwsan.com>
 
+Hi Kevin,
 
-On 05/31/2012 12:51 AM, Xiao Jiang wrote:
-> Hi Jon and Benoit,
->>> Thanks for reminding, how about below patch?
->>>
->>> diff --git a/Documentation/devicetree/bindings/watchdog/omap-wdt.txt
->>> b/Documentation/devicetree/bindings/watchdog/omap-wdt.txt
->>> new file mode 100644
->>> index 0000000..4272d06
->>> --- /dev/null
->>> +++ b/Documentation/devicetree/bindings/watchdog/omap-wdt.txt
->>> @@ -0,0 +1,15 @@
->>> +TI Watchdog Timer (WDT) Controller for OMAP
->>> +
->>> +Required properties:
->>> +- compatible:
->>> +  - "ti,omap2-wdt" for OMAP2
->>> +  - "ti,omap3-wdt" for OMAP3
->>> +  - "ti,omap4-wdt" for OMAP4
->>> +- ti,hwmods: Name of the hwmod associated to the WDT
->>> +
->>> +Examples:
->>> +
->>> +wdt2: wdt@73f98000 {
->>> +       compatible = "ti,omap4-wdt";
->>> +       ti,hwmods = "wd_timer2";
->>> +};
->>>     
->>
->> Yes looks good. Thanks! Minor nit-pick in the example I would just copy
->> the omap4 node completely with the actual omap4 address :-)
->>
->>   
-> Oops, wrong addr, :). Perhaps we can drop address as you said, since the
-> right addresses are defined
-> in wd_timer2 hwmod (see [1]), and wdt also works without the address as
-> follows.
-> 
-> diff --git a/arch/arm/boot/dts/omap2.dtsi b/arch/arm/boot/dts/omap2.dtsi
-> index f2ab4ea..0017bd8 100644
-> --- a/arch/arm/boot/dts/omap2.dtsi
-> +++ b/arch/arm/boot/dts/omap2.dtsi
-> @@ -63,5 +63,10 @@
->                        ti,hwmods = "uart3";
->                        clock-frequency = <48000000>;
->                };
-> +
-> +               wdt2: wdt {
-> +                       compatible = "ti,omap2-wdt";
-> +                       ti,hwmods = "wd_timer2";
-> +               };
->        };
-> };
-> diff --git a/arch/arm/boot/dts/omap3.dtsi b/arch/arm/boot/dts/omap3.dtsi
-> index 99474fa..dbf8a5b 100644
-> --- a/arch/arm/boot/dts/omap3.dtsi
-> +++ b/arch/arm/boot/dts/omap3.dtsi
-> @@ -215,5 +215,10 @@
->                        compatible = "ti,omap3-hsmmc";
->                        ti,hwmods = "mmc3";
->                };
-> +
-> +               wdt2: wdt {
-> +                       compatible = "ti,omap3-wdt", "ti,omap2-wdt";
-> +                       ti,hwmods = "wd_timer2";
-> +               };
->        };
-> };
-> diff --git a/arch/arm/boot/dts/omap4.dtsi b/arch/arm/boot/dts/omap4.dtsi
-> index 359c497..ce74e87 100644
-> --- a/arch/arm/boot/dts/omap4.dtsi
-> +++ b/arch/arm/boot/dts/omap4.dtsi
-> @@ -272,5 +272,10 @@
->                        ti,hwmods = "mmc5";
->                        ti,needs-special-reset;
->                };
-> +
-> +               wdt2: wdt {
-> +                       compatible = "ti,omap4-wdt", "ti,omap2-wdt";
-> +                       ti,hwmods = "wd_timer2";
-> +               };
->        };
-> };
-> 
-> Infos for omap3:
-> # dmesg|grep Machine
-> <6>[    0.000000] Machine: Generic OMAP3 (Flattened Device Tree), model:
-> TI OMAP3 EVM (OMAP3530, AM/DM37x)
-> # dmesg|grep omap_wdt_probe
-> <4>[    2.552825] in omap_wdt_probe: 299, res->start = 0x48314000
-> 
-> Infos for omap4:
-> root@localhost:/root> dmesg|grep Machine
-> [    0.000000] Machine: Generic OMAP4 (Flattened Device Tree), model: TI
-> OMAP4 SDP board
-> root@localhost:/root> dmesg|grep omap_wdt_probe
-> [    1.687896] in omap_wdt_probe: 299, res->start = 0x4a314000
-> 
-> So can I drop the wdt addr from dts file? otherwise it is not feasible
-> to add omap2 wdt node in omap2.dtsi
-> due to different addrs for omap2420 and omap2430.
+On 05/30/2012 04:50 PM, Kevin Hilman wrote:
 
-Benoit, what is your preference here?
+[...]
+
+> I'm guessing you probably know my thoughts since you've already thought
+> through how this should probably look.
+> 
+> Basically, I don't like the result when we have to hack around missing
+> runtime PM support for a driver, so IMO, the driver should be updated.
+> 
+> IOW, it looks to me like the armpmu driver should grow runtime PM
+> support.  The current armpmu_release|reserve should probably be replaced
+> with runtime PM get/put, and the functionality in those functions would
+> be the runtime PM callbacks instead.
+> 
+> Will, any objections to armpmu growing runtime PM support?
+> 
+> Kevin
+> 
+> P.S.  Jon, for readability sake, any objections to  moving the PMU device init
+> out of devices.c into pmu.c?  devices.c is awful crowded.
+
+No objections. I am guessing that pmu was not supported back in the ARM9
+days and so this is only really specific to omap2 devices. That being
+said, should this still go into plat-omap dir or just mach-omap2?
 
 Cheers
 Jon
