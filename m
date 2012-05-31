@@ -1,8 +1,8 @@
 From: Tero Kristo <t-kristo@ti.com>
-Subject: [PATCHv3 8/9] ARM: OMAP3: prevent per_clkdm from attempting manual
- domain transitions
-Date: Thu, 31 May 2012 16:29:01 +0300
-Message-ID: <1338470942-20185-9-git-send-email-t-kristo@ti.com>
+Subject: [PATCHv3 9/9] TEMP: ARM: OMAP3: prevent dpll4 manual enable / disable
+ + prevent core clkdm idle
+Date: Thu, 31 May 2012 16:29:02 +0300
+Message-ID: <1338470942-20185-10-git-send-email-t-kristo@ti.com>
 References: <1338470942-20185-1-git-send-email-t-kristo@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
@@ -22,37 +22,50 @@ To: linux-omap@vger.kernel.org, khilman@ti.com, paul@pwsan.com
 Cc: linux-arm-kernel@lists.infradead.org
 List-Id: linux-omap@vger.kernel.org
 
-Previously, PER clock domain was always enabled, as the usecounts
-for this domain incorrectly always showed positive value. On HW
-level though, the domain enters idle as it is set in HW supervised
-mode. Now, when the usecounts reflect real values, PER domain will
-attempt to enter software supervised idle, which is not supported by the
-hardware/kernel that well, and causes multiple problems. First of all,
-coming back from idle, PER domain remains idle as the wakedeps have
-been disabled for the domain, and this causes a crash with the GPIO
-code, as the resume code attempts to access domain which is not active.
-Just enabling the interface clocks for the GPIO does not help, as they
-are autoidled and don't bring the domain out of idle. Secondly, there
-are multiple erratas for omap3, which say that the wakedeps should be
-enabled for the PER domain, see e.g. errata i582 for omap3630.
+DPLL4 (PER DPLL) disable can cause issues on omap3, thus prevent
+disable / enable by setting the clkops as core_dpll_ops. Also, prevent
+l3 / l4 core clkdomain manual transitions as these can cause issues also.
 
 Signed-off-by: Tero Kristo <t-kristo@ti.com>
 ---
- arch/arm/mach-omap2/clockdomains3xxx_data.c |    2 +-
- 1 files changed, 1 insertions(+), 1 deletions(-)
+ arch/arm/mach-omap2/clock3xxx_data.c        |    2 +-
+ arch/arm/mach-omap2/clockdomains3xxx_data.c |    4 ++--
+ 2 files changed, 3 insertions(+), 3 deletions(-)
 
+diff --git a/arch/arm/mach-omap2/clock3xxx_data.c b/arch/arm/mach-omap2/clock3xxx_data.c
+index ca0de28..bbc1a36 100644
+--- a/arch/arm/mach-omap2/clock3xxx_data.c
++++ b/arch/arm/mach-omap2/clock3xxx_data.c
+@@ -611,7 +611,7 @@ static struct dpll_data dpll4_dd_3630 __initdata = {
+ 
+ static struct clk dpll4_ck = {
+ 	.name		= "dpll4_ck",
+-	.ops		= &clkops_omap3_noncore_dpll_ops,
++	.ops		= &clkops_omap3_core_dpll_ops,
+ 	.parent		= &sys_ck,
+ 	.dpll_data	= &dpll4_dd,
+ 	.round_rate	= &omap2_dpll_round_rate,
 diff --git a/arch/arm/mach-omap2/clockdomains3xxx_data.c b/arch/arm/mach-omap2/clockdomains3xxx_data.c
-index 6038adb..0dae4c8 100644
+index 0dae4c8..52bf48c 100644
 --- a/arch/arm/mach-omap2/clockdomains3xxx_data.c
 +++ b/arch/arm/mach-omap2/clockdomains3xxx_data.c
-@@ -282,7 +282,7 @@ static struct clockdomain usbhost_clkdm = {
- static struct clockdomain per_clkdm = {
- 	.name		= "per_clkdm",
- 	.pwrdm		= { .name = "per_pwrdm" },
--	.flags		= CLKDM_CAN_HWSUP_SWSUP,
-+	.flags		= CLKDM_CAN_HWSUP_SWSUP | CLKDM_SKIP_MANUAL_TRANS,
- 	.dep_bit	= OMAP3430_EN_PER_SHIFT,
- 	.wkdep_srcs	= per_wkdeps,
- 	.sleepdep_srcs	= per_sleepdeps,
+@@ -232,7 +232,7 @@ static struct clockdomain d2d_clkdm = {
+ static struct clockdomain core_l3_3xxx_clkdm = {
+ 	.name		= "core_l3_clkdm",
+ 	.pwrdm		= { .name = "core_pwrdm" },
+-	.flags		= CLKDM_CAN_HWSUP,
++	.flags		= CLKDM_CAN_HWSUP | CLKDM_SKIP_MANUAL_TRANS,
+ 	.dep_bit	= OMAP3430_EN_CORE_SHIFT,
+ 	.clktrctrl_mask = OMAP3430_CLKTRCTRL_L3_MASK,
+ };
+@@ -245,7 +245,7 @@ static struct clockdomain core_l3_3xxx_clkdm = {
+ static struct clockdomain core_l4_3xxx_clkdm = {
+ 	.name		= "core_l4_clkdm",
+ 	.pwrdm		= { .name = "core_pwrdm" },
+-	.flags		= CLKDM_CAN_HWSUP,
++	.flags		= CLKDM_CAN_HWSUP | CLKDM_SKIP_MANUAL_TRANS,
+ 	.dep_bit	= OMAP3430_EN_CORE_SHIFT,
+ 	.clktrctrl_mask = OMAP3430_CLKTRCTRL_L4_MASK,
+ };
 -- 
 1.7.4.1
