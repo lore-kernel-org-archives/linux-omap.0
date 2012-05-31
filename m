@@ -1,85 +1,91 @@
 From: Kevin Hilman <khilman@ti.com>
-Subject: Re: [PATCH V3 00/10] PM: Create the AVS(Adaptive Voltage Scaling)
-Date: Thu, 31 May 2012 15:40:30 -0700
-Message-ID: <874nqwynxd.fsf@ti.com>
-References: <1335462041-4949-1-git-send-email-j-keerthy@ti.com>
-	<87397by2h9.fsf@ti.com>
-	<CAJ6a13aJwesHw0frCV+EfvYaep09cZGcu_PopuHzye1HS2tgvg@mail.gmail.com>
-	<CAJ6a13YLogA7M=rzSJAW6fHZOujFY0Crfdz9Sc5qL0mt8kX9CA@mail.gmail.com>
-	<87obpdv6f4.fsf@ti.com>
+Subject: Re: [PATCHv10 00/11] I2C fixes
+Date: Thu, 31 May 2012 15:59:47 -0700
+Message-ID: <87obp4x8gs.fsf@ti.com>
+References: <1338288983-15026-1-git-send-email-shubhrajyoti@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <87obpdv6f4.fsf@ti.com> (Kevin Hilman's message of "Thu, 24 May
-	2012 10:24:15 -0700")
-Sender: linux-kernel-owner@vger.kernel.org
-To: "J, KEERTHY" <j-keerthy@ti.com>
-Cc: "Rafael J. Wysocki" <rjw@sisk.pl>, greg@kroah.com, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org, linux-pm@lists.linux-foundation.org, j-pihet@ti.com
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from na3sys009aog132.obsmtp.com ([74.125.149.250]:59605 "EHLO
+	na3sys009aog132.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1758189Ab2EaW7r (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>);
+	Thu, 31 May 2012 18:59:47 -0400
+Received: by pbbrp2 with SMTP id rp2so2230340pbb.0
+        for <linux-omap@vger.kernel.org>; Thu, 31 May 2012 15:59:46 -0700 (PDT)
+In-Reply-To: <1338288983-15026-1-git-send-email-shubhrajyoti@ti.com>
+	(Shubhrajyoti D.'s message of "Tue, 29 May 2012 16:26:12 +0530")
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Shubhrajyoti D <shubhrajyoti@ti.com>
+Cc: linux-omap@vger.kernel.org, linux-i2c@vger.kernel.org, linux-arm-kernel@lists.infradead.org, ben-linux@fluff.org, tony@atomide.com, w.sang@pengutronix.de
 
-Kevin Hilman <khilman@ti.com> writes:
+Shubhrajyoti D <shubhrajyoti@ti.com> writes:
 
-> "J, KEERTHY" <j-keerthy@ti.com> writes:
+> The patch series does the following
 >
->> On Tue, May 15, 2012 at 11:16 AM, J, KEERTHY <j-keerthy@ti.com> wrot=
-e:
->>> On Tue, May 8, 2012 at 5:21 AM, Kevin Hilman <khilman@ti.com> wrote=
-:
->>>> Rafael,
->>>>
->>>> Keerthy <j-keerthy@ti.com> writes:
->>>>
->>>>> From: J Keerthy <j-keerthy@ti.com>
->>>>>
->>>>> AVS(Adaptive Voltage Scaling) is a power management technique whi=
-ch
->>>>> controls the operating voltage of a device in order to optimize (=
-i.e. reduce)
->>>>> its power consumption. The voltage is adapted depending on static=
- factors
->>>>> (chip manufacturing process) and dynamic factors (temperature
->>>>> depending performance).
->>>>> The TI AVS solution is named Smartreflex.
->>>>>
->>>>> To that end, create the AVS driver in drivers/power/avs and
->>>>> move the OMAP SmartReflex code to the new directory. The
->>>>> class driver is still retained in the mach-omap2 directory.
->>>>
->>>> How should we handle this for upstream?
->>>>
->>>> It does a bunch of cleanup under arch/arm then does the move to
->>>> drivers/power the end. =C2=A0To avoid conflicts with other OMAP co=
-re changes,
->>>> I would suggest we take this through the OMAP tree.
->>>>
->>>> With your ack, I'd be glad to take it.
->>>
->>> Hello Rafael,
->>>
->>> A gentle ping on this series.
->>
->> Hi Greg,
->>
->> This series has Kevin's comments incorporated.
->>
->> Kevin,
->>
->> Can i have your Ack for this series?
->>
+> - Warn fixes if CONFIG_PM_RUNTIME is not selected.
+> - In case of i2c remove register access was done without any
+>  get_sync fix the same.
+> - Folds a patch from Tasslehoff to prevent any merge conflicts.
+> - Prevents the XDUF flag to be set if the underflow condition is not met.
+> - As per discussion in [1] .Adds a patch to rename the 1p153 errata and
+>  use the unique id instead as the section number in the recent errata
+>  docs has changed.
 >
-> Well, as mentioned above, I'm waiting for Rafael's ack, then I will
-> merge it.
+> v9:
+> Fix the comments from Wolfram Sang
 >
-> Because of all the arch/arm/mach-omap2/* changes, I would like to mer=
-ge
-> this via the OMAP tree to avoid conflicts with other stuff we have
-> changing in arch/arm/mach-omap2/*
+> v10:
+> Add a patch from Neil to the series.
+> Fix kevin comments
+> update the patches with comments.
 
-OK, I had an off-line discussion with Rafael and he's OK that I take
-these.  I will add an ack from Rafael and queue this series up for v3.6=
-=2E
+Shubhrajyoti, thanks for the updates.
+
+Wolfgang, with these updates and testing a bit better described, I'm OK
+with you merging it.  Merging it now will give it plenty of time to
+bake in linux-next and get more test exposure.
 
 Thanks,
 
 Kevin
+
+
+> [1] http://www.spinics.net/lists/linux-i2c/msg07607.html
+>
+> Tested on omap4sdp and omap3sdp.
+> - Did functional tests read write on both the platforms.
+> - Off mode and retention on OMAP3
+> - On OMAP4 just did echo mem > /sys/power/state and wakeup.
+> Did see.
+> [ 1360.595855] Successfully put all powerdomains to target state
+> However didnt see the ret count for other than mpu_pwrdm increase.
+> I think power support for omap4 is minimal. 
+>
+> The following changes since commit b48b2c3e50433ff6f7e46186daa7f986bd960215:
+>
+>   openrisc: use generic strnlen_user() function (2012-05-27 21:00:32 -0700)
+>
+> are available in the git repository at:
+>   git://gitorious.org/linus-tree/linus-tree.git i2c_omap-fixes
+>
+> Neil Brown (1):
+>       OMAP/I2C - Fix timeout problem during suspend.
+>
+> Shubhrajyoti D (9):
+>       I2C: OMAP: make omap_i2c_unidle/idle functions depend on CONFIG_PM_RUNTIME
+>       I2C: OMAP: Fix the mismatch of pm_runtime enable and disable
+>       I2C: OMAP: Fix the interrupt clearing in OMAP4
+>       I2C: OMAP: Prevent the register access after pm_runtime_put in probe
+>       I2C: OMAP: Don't check if wait_for_completion_timeout() returns less than zero
+>       I2C: OMAP: Fix the crash in i2c remove
+>       I2C: OMAP: Handle error check for pm runtime
+>       I2C: OMAP: Do not set the XUDF(Transmit underflow) if the underflow is not reached
+>       I2C: OMAP: Rename the 1p153 to the erratum id i462
+>
+> Tasslehoff Kjappfot (1):
+>       I2C: OMAP: prevent the overwrite of the errata flags
+>
+>  drivers/i2c/busses/i2c-omap.c |  129 ++++++++++++++++++++---------------------
+>  1 files changed, 63 insertions(+), 66 deletions(-)
