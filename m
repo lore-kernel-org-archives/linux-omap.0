@@ -1,113 +1,85 @@
 From: Kevin Hilman <khilman@ti.com>
-Subject: Re: [PATCH 4/6] ARM: OMAP4: PMU: Add runtime PM support
-Date: Thu, 31 May 2012 15:36:36 -0700
-Message-ID: <87d35kyo3v.fsf@ti.com>
-References: <1336599355-10983-1-git-send-email-jon-hunter@ti.com>
-	<87wr3uelgp.fsf@ti.com> <4FC548A3.2040906@ti.com>
-	<4FC54D3B.10301@ti.com> <87pq9l7306.fsf@ti.com>
-	<20120531012923.GB8506@mudshark.cambridge.arm.com>
-	<4FC7B465.60703@ti.com> <87r4u0ytd9.fsf@ti.com>
-	<4FC7E161.1080400@ti.com>
+Subject: Re: [PATCH V3 00/10] PM: Create the AVS(Adaptive Voltage Scaling)
+Date: Thu, 31 May 2012 15:40:30 -0700
+Message-ID: <874nqwynxd.fsf@ti.com>
+References: <1335462041-4949-1-git-send-email-j-keerthy@ti.com>
+	<87397by2h9.fsf@ti.com>
+	<CAJ6a13aJwesHw0frCV+EfvYaep09cZGcu_PopuHzye1HS2tgvg@mail.gmail.com>
+	<CAJ6a13YLogA7M=rzSJAW6fHZOujFY0Crfdz9Sc5qL0mt8kX9CA@mail.gmail.com>
+	<87obpdv6f4.fsf@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aog112.obsmtp.com ([74.125.149.207]:52136 "EHLO
-	na3sys009aog112.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1758476Ab2EaWgh (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>);
-	Thu, 31 May 2012 18:36:37 -0400
-Received: by pbcwy7 with SMTP id wy7so1911288pbc.3
-        for <linux-omap@vger.kernel.org>; Thu, 31 May 2012 15:36:35 -0700 (PDT)
-In-Reply-To: <4FC7E161.1080400@ti.com> (Jon Hunter's message of "Thu, 31 May
-	2012 16:23:45 -0500")
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <87obpdv6f4.fsf@ti.com> (Kevin Hilman's message of "Thu, 24 May
+	2012 10:24:15 -0700")
+Sender: linux-kernel-owner@vger.kernel.org
+To: "J, KEERTHY" <j-keerthy@ti.com>
+Cc: "Rafael J. Wysocki" <rjw@sisk.pl>, greg@kroah.com, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org, linux-pm@lists.linux-foundation.org, j-pihet@ti.com
 List-Id: linux-omap@vger.kernel.org
-To: Jon Hunter <jon-hunter@ti.com>
-Cc: Will Deacon <will.deacon@arm.com>, linux-omap <linux-omap@vger.kernel.org>, Ming Lei <ming.lei@canonical.com>, Benoit Cousson <b-cousson@ti.com>, Paul Walmsley <paul@pwsan.com>
 
-Jon Hunter <jon-hunter@ti.com> writes:
+Kevin Hilman <khilman@ti.com> writes:
 
-> Hi Kevin,
+> "J, KEERTHY" <j-keerthy@ti.com> writes:
 >
-> On 05/31/2012 03:42 PM, Kevin Hilman wrote:
->> Jon Hunter <jon-hunter@ti.com> writes:
->> 
->>> Hi Kevin, Will,
->>>
->>> On 05/30/2012 08:29 PM, Will Deacon wrote:
->>>> Hi Kevin,
+>> On Tue, May 15, 2012 at 11:16 AM, J, KEERTHY <j-keerthy@ti.com> wrot=
+e:
+>>> On Tue, May 8, 2012 at 5:21 AM, Kevin Hilman <khilman@ti.com> wrote=
+:
+>>>> Rafael,
 >>>>
->>>> On Wed, May 30, 2012 at 10:50:01PM +0100, Kevin Hilman wrote:
->>>>> Basically, I don't like the result when we have to hack around missing
->>>>> runtime PM support for a driver, so IMO, the driver should be updated.
+>>>> Keerthy <j-keerthy@ti.com> writes:
+>>>>
+>>>>> From: J Keerthy <j-keerthy@ti.com>
 >>>>>
->>>>> IOW, it looks to me like the armpmu driver should grow runtime PM
->>>>> support.  The current armpmu_release|reserve should probably be replaced
->>>>> with runtime PM get/put, and the functionality in those functions would
->>>>> be the runtime PM callbacks instead.
+>>>>> AVS(Adaptive Voltage Scaling) is a power management technique whi=
+ch
+>>>>> controls the operating voltage of a device in order to optimize (=
+i.e. reduce)
+>>>>> its power consumption. The voltage is adapted depending on static=
+ factors
+>>>>> (chip manufacturing process) and dynamic factors (temperature
+>>>>> depending performance).
+>>>>> The TI AVS solution is named Smartreflex.
 >>>>>
->>>>> Will, any objections to armpmu growing runtime PM support?
+>>>>> To that end, create the AVS driver in drivers/power/avs and
+>>>>> move the OMAP SmartReflex code to the new directory. The
+>>>>> class driver is still retained in the mach-omap2 directory.
 >>>>
->>>> My plan for the armpmu reservation is to kill the global reservation scheme
->>>> that we currently have and push those function pointers into the arm_pmu,
->>>> so that fits with what you'd like.
+>>>> How should we handle this for upstream?
 >>>>
->>>> The only concern I have is that we need the mutual exclusion even when we
->>>> don't have support for runtime PM. If we can solve that then I'm fine with
->>>> the approach.
+>>>> It does a bunch of cleanup under arch/arm then does the move to
+>>>> drivers/power the end. =C2=A0To avoid conflicts with other OMAP co=
+re changes,
+>>>> I would suggest we take this through the OMAP tree.
+>>>>
+>>>> With your ack, I'd be glad to take it.
 >>>
->>> To add a bit more food for thought, I had implemented a quick patch to
->>> add runtime PM support for PMU. You will notice that I have been
->>> conservative on where I have placed the pm_runtime_get/put calls,
->>> because I am not too familiar with the PMU driver to know exactly
->>> where we need to maintain the PMU context. So right now these are just
->>> around the reserve_hardware/release_hardware calls. This works on OMAP
->>> for some quick testing. However, I would need to make sure this does
->>> not break compilation without runtime PM enabled.
+>>> Hello Rafael,
 >>>
->>> Let me know your thoughts.
->> 
->> That looks good, but I'm curious what would be done in the new
->> plat->runtime_* hooks.  Maybe the irq enable/disable stuff in the pmu
->> driver needs to be moved into the runtime PM hooks?
+>>> A gentle ping on this series.
+>>
+>> Hi Greg,
+>>
+>> This series has Kevin's comments incorporated.
+>>
+>> Kevin,
+>>
+>> Can i have your Ack for this series?
+>>
 >
-> For omap4, the plat->runtime_* hooks look like ...
+> Well, as mentioned above, I'm waiting for Rafael's ack, then I will
+> merge it.
 >
-> +static int omap4_pmu_runtime_resume(struct device *dev)
-> +{
-> +       /* configure CTI0 for PMU IRQ routing */
-> +       cti_unlock(&omap4_cti[0]);
-> +       cti_map_trigger(&omap4_cti[0], 1, 6, 2);
-> +       cti_enable(&omap4_cti[0]);
-> +
-> +       /* configure CTI1 for PMU IRQ routing */
-> +       cti_unlock(&omap4_cti[1]);
-> +       cti_map_trigger(&omap4_cti[1], 1, 6, 3);
-> +       cti_enable(&omap4_cti[1]);
-> +
-> +       return 0;
-> +}
-> +
-> +static int omap4_pmu_runtime_suspend(struct device *dev)
-> +{
-> +       cti_disable(&omap4_cti[0]);
-> +       cti_disable(&omap4_cti[1]);
-> +
-> +       return 0;
-> +}
->
-> This is what I have implemented so far and currently testing. So really
-> just using the hooks to configure the cross triggering interface.
->
-> Is this what you were thinking?
->
+> Because of all the arch/arm/mach-omap2/* changes, I would like to mer=
+ge
+> this via the OMAP tree to avoid conflicts with other stuff we have
+> changing in arch/arm/mach-omap2/*
 
-Basically, yes.  
+OK, I had an off-line discussion with Rafael and he's OK that I take
+these.  I will add an ack from Rafael and queue this series up for v3.6=
+=2E
 
-But since I haven't studied the PMU driver closely, I have some dumb
-questions.  My concern is that these look bsically like the
-plat->irq_[enable|disable] hooks, so I guess the root of my question is
-do we need both the irq enable/disable and runtime suspend/resume hooks
-in plat?  or can we get by with one set.
+Thanks,
 
 Kevin
