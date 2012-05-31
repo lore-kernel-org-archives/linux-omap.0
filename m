@@ -1,36 +1,40 @@
-From: Yegor Yefremov <yegor_sub1@visionsystems.de>
-Subject: Re: latest kernel for am35xx
-Date: Thu, 31 May 2012 11:02:06 +0200
-Message-ID: <4FC7338E.4080502@visionsystems.de>
-References: <CAP3+TEr8vsnZPhAhgH-w7jAjWZTNQgWvsQ3cn_uz4TaX8c-Zgg@mail.gmail.com> <CAPjKCR_CiKA_vXNyfYHdJeqPMsv0SA_oRYg1-XzbO2C1vSbLug@mail.gmail.com> <CAP3+TErug0DmndHWCVsguw2+e_vPCB2McF5j0+AyrMj8eGa=MQ@mail.gmail.com>
-Reply-To: yegor_sub1@visionsystems.de
+From: Arnd Bergmann <arnd@arndb.de>
+Subject: Re: [RFC PATCH 0/5] omap: add ocp2scp as a misc driver
+Date: Thu, 31 May 2012 09:22:18 +0000
+Message-ID: <201205310922.18550.arnd@arndb.de>
+References: <1338375394-16268-1-git-send-email-kishon@ti.com> <201205301843.51568.arnd@arndb.de> <CAAe_U6LFFstds=iQ7cy7gM9vWbfRgf5z0gaRp_-bu0Qjx6eA1Q@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
+Content-Type: Text/Plain;
+  charset="iso-8859-1"
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from ns.visionsystems.de ([62.145.30.242]:55182 "EHLO
-	mail.visionsystems.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752685Ab2EaJCT (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 31 May 2012 05:02:19 -0400
-In-Reply-To: <CAP3+TErug0DmndHWCVsguw2+e_vPCB2McF5j0+AyrMj8eGa=MQ@mail.gmail.com>
-Sender: linux-omap-owner@vger.kernel.org
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <CAAe_U6LFFstds=iQ7cy7gM9vWbfRgf5z0gaRp_-bu0Qjx6eA1Q@mail.gmail.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: "ABRAHAM, KISHON VIJAY" <kishon@ti.com>
+Cc: paul@pwsan.com, tony@atomide.com, linux@arm.linux.org.uk, b-cousson@ti.com, gregkh@linuxfoundation.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org, balbi@ti.com
 List-Id: linux-omap@vger.kernel.org
-To: Maxim Podbereznyy <lisarden@gmail.com>
-Cc: Anil Kumar <anilkumar880@gmail.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
 
-Hi Maxim,
-
-> http://git.kernel.org/?p=linux/kernel/git/tmlind/linux-omap.git
-> Does anyone knows a working branch/tag for am3517evm? I need the board
-> boots fine with Ethernet enabled and working.
+On Thursday 31 May 2012, ABRAHAM, KISHON VIJAY wrote:
+> >
+> > Just put the devices you actually want into the device tree instead and
+> > have them automatically created.
 > 
-> I read a few messages at e2e forum and all of them report about broken
-> features.. I need wl1271 support in the kernel therefore I have to use
-> on the latest kernels.
+> But shouldn't device tree support and non-device tree support co-exist
+> till the non-device tree is completely knocked out of the kernel? Even
 
-my best choice was 3.3-rc7 so far. With final 3.3 frame buffer made problems. wl1271 was working like a charm. I have another PMIC, so I don't know if it works well with tps65910.
+Well, it's a new driver, so there is no regression in supporting it only
+on DT-enabled boards. OMAP5 is DT-only anyway and OMAP4 only supports two
+boards that should both be working with the generic DT code already.
 
-I just took the master branch of linux-omap.git
+> then shouldn't there be a separate driver to extract the child nodes
+> of ocp2scp and create a device (using of_platform_populate)?
+> As far as I've seen, the devices are automatically created (by virtue
+> of of_platform_populate() in  mach-omap2/board-generic.c in omap case)
+> only for the devices that is connected to the system bus. For other
+> cases, the parent should be responsible for creating the child
+> devices.
 
-Best regards,
-Yegor
+I would mark the multiplexed device compatible with "simple-bus", which
+results in the child devices automatically getting added.
+
+	Arnd
