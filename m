@@ -1,52 +1,48 @@
-From: Kevin Hilman <khilman@ti.com>
-Subject: [GIT PULL] OMAP: AM3xxx: cpu_is dead code removal
-Date: Wed, 30 May 2012 16:43:04 -0700
-Message-ID: <877gvt44mv.fsf@ti.com>
+From: Will Deacon <will.deacon@arm.com>
+Subject: Re: [PATCH 4/6] ARM: OMAP4: PMU: Add runtime PM support
+Date: Thu, 31 May 2012 02:29:23 +0100
+Message-ID: <20120531012923.GB8506@mudshark.cambridge.arm.com>
+References: <1336599355-10983-1-git-send-email-jon-hunter@ti.com>
+ <87wr3uelgp.fsf@ti.com>
+ <4FC548A3.2040906@ti.com>
+ <4FC54D3B.10301@ti.com>
+ <87pq9l7306.fsf@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aog132.obsmtp.com ([74.125.149.250]:37402 "EHLO
-	na3sys009aog132.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751425Ab2E3XnH (ORCPT
+Received: from cam-admin0.cambridge.arm.com ([217.140.96.50]:48093 "EHLO
+	cam-admin0.cambridge.arm.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1757598Ab2EaB3l (ORCPT
 	<rfc822;linux-omap@vger.kernel.org>);
-	Wed, 30 May 2012 19:43:07 -0400
-Received: by pbbrp2 with SMTP id rp2so661446pbb.0
-        for <linux-omap@vger.kernel.org>; Wed, 30 May 2012 16:43:05 -0700 (PDT)
+	Wed, 30 May 2012 21:29:41 -0400
+Content-Disposition: inline
+In-Reply-To: <87pq9l7306.fsf@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Tony Lindgren <tony@atomide.com>
-Cc: linux-omap <linux-omap@vger.kernel.org>, linux-arm-kernel <linux-arm-kernel@lists.infradead.org>
+To: Kevin Hilman <khilman@ti.com>
+Cc: Jon Hunter <jon-hunter@ti.com>, linux-omap <linux-omap@vger.kernel.org>, Ming Lei <ming.lei@canonical.com>, Benoit Cousson <b-cousson@ti.com>, Paul Walmsley <paul@pwsan.com>
 
-Tony,
+Hi Kevin,
 
-These couple patches didn't make it for v3.5 because of some cross-tree
-dependencies.  All the dependencies are now merged (after Linus merged
-arm-soc/next/pm), so here's the remaining patches.
+On Wed, May 30, 2012 at 10:50:01PM +0100, Kevin Hilman wrote:
+> Basically, I don't like the result when we have to hack around missing
+> runtime PM support for a driver, so IMO, the driver should be updated.
+> 
+> IOW, it looks to me like the armpmu driver should grow runtime PM
+> support.  The current armpmu_release|reserve should probably be replaced
+> with runtime PM get/put, and the functionality in those functions would
+> be the runtime PM callbacks instead.
+> 
+> Will, any objections to armpmu growing runtime PM support?
 
-Not sure if you want to get them in for 3.5-rc or queue them in your
-cleanup branch for v3.6.  Up to you.
+My plan for the armpmu reservation is to kill the global reservation scheme
+that we currently have and push those function pointers into the arm_pmu,
+so that fits with what you'd like.
 
-Kevin
+The only concern I have is that we need the mutual exclusion even when we
+don't have support for runtime PM. If we can solve that then I'm fine with
+the approach.
 
+Cheers,
 
-The following changes since commit cdd3a354a05b0c33fe33ab11a0fb0838396cad19:
-
-  Merge tag 'pm' of git://git.kernel.org/pub/scm/linux/kernel/git/arm/arm-soc (2012-05-22 09:41:01 -0700)
-
-are available in the git repository at:
-
-
-  git://git.kernel.org/pub/scm/linux/kernel/git/khilman/linux-omap-pm.git for_3.5/cleanup/am3xxx-cpu-is-leftovers
-
-for you to fetch changes up to 96f3994929c05a21d757a83613d2710b780ea2b4:
-
-  ARM: OMAP: SoC detection: remove unused cpu_is macros (2012-05-25 15:48:48 -0700)
-
-----------------------------------------------------------------
-Kevin Hilman (2):
-      ARM: OMAP3: clock data: cleanup AM3[35]x SoC detection
-      ARM: OMAP: SoC detection: remove unused cpu_is macros
-
- arch/arm/mach-omap2/clock3xxx_data.c  |    2 +-
- arch/arm/plat-omap/include/plat/cpu.h |   33 ---------------------------------
- 2 files changed, 1 insertion(+), 34 deletions(-)
+Will
