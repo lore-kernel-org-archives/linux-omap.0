@@ -1,71 +1,136 @@
 From: Tero Kristo <t-kristo@ti.com>
-Subject: [PATCHv3 9/9] TEMP: ARM: OMAP3: prevent dpll4 manual enable / disable
- + prevent core clkdm idle
-Date: Thu, 31 May 2012 16:29:02 +0300
-Message-ID: <1338470942-20185-10-git-send-email-t-kristo@ti.com>
-References: <1338470942-20185-1-git-send-email-t-kristo@ti.com>
+Subject: [PATCHv6 02/14] ARM: OMAP: voltage: renamed vp_vddmin and vp_vddmax fields
+Date: Thu, 31 May 2012 16:55:38 +0300
+Message-ID: <1338472550-20743-3-git-send-email-t-kristo@ti.com>
+References: <1338472550-20743-1-git-send-email-t-kristo@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-In-Reply-To: <1338470942-20185-1-git-send-email-t-kristo@ti.com>
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: linux-arm-kernel-bounces@lists.infradead.org
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: linux-omap@vger.kernel.org, khilman@ti.com, paul@pwsan.com
-Cc: linux-arm-kernel@lists.infradead.org
+Content-Type: text/plain
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from devils.ext.ti.com ([198.47.26.153]:33333 "EHLO
+	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1758035Ab2EaN4E (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 31 May 2012 09:56:04 -0400
+In-Reply-To: <1338472550-20743-1-git-send-email-t-kristo@ti.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: linux-omap@vger.kernel.org, khilman@ti.com
+Cc: linux-arm-kernel@lists.infradead.org
 
-DPLL4 (PER DPLL) disable can cause issues on omap3, thus prevent
-disable / enable by setting the clkops as core_dpll_ops. Also, prevent
-l3 / l4 core clkdomain manual transitions as these can cause issues also.
+These are now called vddmin and vddmax, as these fields will be used
+globally for selecting voltage ranges for a pmic channel, and not
+only for voltage processor.
 
 Signed-off-by: Tero Kristo <t-kristo@ti.com>
 ---
- arch/arm/mach-omap2/clock3xxx_data.c        |    2 +-
- arch/arm/mach-omap2/clockdomains3xxx_data.c |    4 ++--
- 2 files changed, 3 insertions(+), 3 deletions(-)
+ arch/arm/mach-omap2/omap_twl.c |   28 ++++++++++++++--------------
+ arch/arm/mach-omap2/voltage.h  |    4 ++--
+ arch/arm/mach-omap2/vp.c       |    4 ++--
+ 3 files changed, 18 insertions(+), 18 deletions(-)
 
-diff --git a/arch/arm/mach-omap2/clock3xxx_data.c b/arch/arm/mach-omap2/clock3xxx_data.c
-index ca0de28..bbc1a36 100644
---- a/arch/arm/mach-omap2/clock3xxx_data.c
-+++ b/arch/arm/mach-omap2/clock3xxx_data.c
-@@ -611,7 +611,7 @@ static struct dpll_data dpll4_dd_3630 __initdata = {
+diff --git a/arch/arm/mach-omap2/omap_twl.c b/arch/arm/mach-omap2/omap_twl.c
+index df4e7c3..c38a530 100644
+--- a/arch/arm/mach-omap2/omap_twl.c
++++ b/arch/arm/mach-omap2/omap_twl.c
+@@ -149,8 +149,8 @@ static struct omap_voltdm_pmic omap3_mpu_pmic = {
+ 	.vp_erroroffset		= OMAP3_VP_CONFIG_ERROROFFSET,
+ 	.vp_vstepmin		= OMAP3_VP_VSTEPMIN_VSTEPMIN,
+ 	.vp_vstepmax		= OMAP3_VP_VSTEPMAX_VSTEPMAX,
+-	.vp_vddmin		= OMAP3430_VP1_VLIMITTO_VDDMIN,
+-	.vp_vddmax		= OMAP3430_VP1_VLIMITTO_VDDMAX,
++	.vddmin			= OMAP3430_VP1_VLIMITTO_VDDMIN,
++	.vddmax			= OMAP3430_VP1_VLIMITTO_VDDMAX,
+ 	.vp_timeout_us		= OMAP3_VP_VLIMITTO_TIMEOUT_US,
+ 	.i2c_slave_addr		= OMAP3_SRI2C_SLAVE_ADDR,
+ 	.volt_reg_addr		= OMAP3_VDD_MPU_SR_CONTROL_REG,
+@@ -170,8 +170,8 @@ static struct omap_voltdm_pmic omap3_core_pmic = {
+ 	.vp_erroroffset		= OMAP3_VP_CONFIG_ERROROFFSET,
+ 	.vp_vstepmin		= OMAP3_VP_VSTEPMIN_VSTEPMIN,
+ 	.vp_vstepmax		= OMAP3_VP_VSTEPMAX_VSTEPMAX,
+-	.vp_vddmin		= OMAP3430_VP2_VLIMITTO_VDDMIN,
+-	.vp_vddmax		= OMAP3430_VP2_VLIMITTO_VDDMAX,
++	.vddmin			= OMAP3430_VP2_VLIMITTO_VDDMIN,
++	.vddmax			= OMAP3430_VP2_VLIMITTO_VDDMAX,
+ 	.vp_timeout_us		= OMAP3_VP_VLIMITTO_TIMEOUT_US,
+ 	.i2c_slave_addr		= OMAP3_SRI2C_SLAVE_ADDR,
+ 	.volt_reg_addr		= OMAP3_VDD_CORE_SR_CONTROL_REG,
+@@ -191,8 +191,8 @@ static struct omap_voltdm_pmic omap4_mpu_pmic = {
+ 	.vp_erroroffset		= OMAP4_VP_CONFIG_ERROROFFSET,
+ 	.vp_vstepmin		= OMAP4_VP_VSTEPMIN_VSTEPMIN,
+ 	.vp_vstepmax		= OMAP4_VP_VSTEPMAX_VSTEPMAX,
+-	.vp_vddmin		= OMAP4_VP_MPU_VLIMITTO_VDDMIN,
+-	.vp_vddmax		= OMAP4_VP_MPU_VLIMITTO_VDDMAX,
++	.vddmin			= OMAP4_VP_MPU_VLIMITTO_VDDMIN,
++	.vddmax			= OMAP4_VP_MPU_VLIMITTO_VDDMAX,
+ 	.vp_timeout_us		= OMAP4_VP_VLIMITTO_TIMEOUT_US,
+ 	.i2c_slave_addr		= OMAP4_SRI2C_SLAVE_ADDR,
+ 	.volt_reg_addr		= OMAP4_VDD_MPU_SR_VOLT_REG,
+@@ -213,8 +213,8 @@ static struct omap_voltdm_pmic omap4_iva_pmic = {
+ 	.vp_erroroffset		= OMAP4_VP_CONFIG_ERROROFFSET,
+ 	.vp_vstepmin		= OMAP4_VP_VSTEPMIN_VSTEPMIN,
+ 	.vp_vstepmax		= OMAP4_VP_VSTEPMAX_VSTEPMAX,
+-	.vp_vddmin		= OMAP4_VP_IVA_VLIMITTO_VDDMIN,
+-	.vp_vddmax		= OMAP4_VP_IVA_VLIMITTO_VDDMAX,
++	.vddmin			= OMAP4_VP_IVA_VLIMITTO_VDDMIN,
++	.vddmax			= OMAP4_VP_IVA_VLIMITTO_VDDMAX,
+ 	.vp_timeout_us		= OMAP4_VP_VLIMITTO_TIMEOUT_US,
+ 	.i2c_slave_addr		= OMAP4_SRI2C_SLAVE_ADDR,
+ 	.volt_reg_addr		= OMAP4_VDD_IVA_SR_VOLT_REG,
+@@ -235,8 +235,8 @@ static struct omap_voltdm_pmic omap4_core_pmic = {
+ 	.vp_erroroffset		= OMAP4_VP_CONFIG_ERROROFFSET,
+ 	.vp_vstepmin		= OMAP4_VP_VSTEPMIN_VSTEPMIN,
+ 	.vp_vstepmax		= OMAP4_VP_VSTEPMAX_VSTEPMAX,
+-	.vp_vddmin		= OMAP4_VP_CORE_VLIMITTO_VDDMIN,
+-	.vp_vddmax		= OMAP4_VP_CORE_VLIMITTO_VDDMAX,
++	.vddmin			= OMAP4_VP_CORE_VLIMITTO_VDDMIN,
++	.vddmax			= OMAP4_VP_CORE_VLIMITTO_VDDMAX,
+ 	.vp_timeout_us		= OMAP4_VP_VLIMITTO_TIMEOUT_US,
+ 	.i2c_slave_addr		= OMAP4_SRI2C_SLAVE_ADDR,
+ 	.volt_reg_addr		= OMAP4_VDD_CORE_SR_VOLT_REG,
+@@ -272,10 +272,10 @@ int __init omap3_twl_init(void)
+ 		return -ENODEV;
  
- static struct clk dpll4_ck = {
- 	.name		= "dpll4_ck",
--	.ops		= &clkops_omap3_noncore_dpll_ops,
-+	.ops		= &clkops_omap3_core_dpll_ops,
- 	.parent		= &sys_ck,
- 	.dpll_data	= &dpll4_dd,
- 	.round_rate	= &omap2_dpll_round_rate,
-diff --git a/arch/arm/mach-omap2/clockdomains3xxx_data.c b/arch/arm/mach-omap2/clockdomains3xxx_data.c
-index 0dae4c8..52bf48c 100644
---- a/arch/arm/mach-omap2/clockdomains3xxx_data.c
-+++ b/arch/arm/mach-omap2/clockdomains3xxx_data.c
-@@ -232,7 +232,7 @@ static struct clockdomain d2d_clkdm = {
- static struct clockdomain core_l3_3xxx_clkdm = {
- 	.name		= "core_l3_clkdm",
- 	.pwrdm		= { .name = "core_pwrdm" },
--	.flags		= CLKDM_CAN_HWSUP,
-+	.flags		= CLKDM_CAN_HWSUP | CLKDM_SKIP_MANUAL_TRANS,
- 	.dep_bit	= OMAP3430_EN_CORE_SHIFT,
- 	.clktrctrl_mask = OMAP3430_CLKTRCTRL_L3_MASK,
- };
-@@ -245,7 +245,7 @@ static struct clockdomain core_l3_3xxx_clkdm = {
- static struct clockdomain core_l4_3xxx_clkdm = {
- 	.name		= "core_l4_clkdm",
- 	.pwrdm		= { .name = "core_pwrdm" },
--	.flags		= CLKDM_CAN_HWSUP,
-+	.flags		= CLKDM_CAN_HWSUP | CLKDM_SKIP_MANUAL_TRANS,
- 	.dep_bit	= OMAP3430_EN_CORE_SHIFT,
- 	.clktrctrl_mask = OMAP3430_CLKTRCTRL_L4_MASK,
- };
+ 	if (cpu_is_omap3630()) {
+-		omap3_mpu_pmic.vp_vddmin = OMAP3630_VP1_VLIMITTO_VDDMIN;
+-		omap3_mpu_pmic.vp_vddmax = OMAP3630_VP1_VLIMITTO_VDDMAX;
+-		omap3_core_pmic.vp_vddmin = OMAP3630_VP2_VLIMITTO_VDDMIN;
+-		omap3_core_pmic.vp_vddmax = OMAP3630_VP2_VLIMITTO_VDDMAX;
++		omap3_mpu_pmic.vddmin = OMAP3630_VP1_VLIMITTO_VDDMIN;
++		omap3_mpu_pmic.vddmax = OMAP3630_VP1_VLIMITTO_VDDMAX;
++		omap3_core_pmic.vddmin = OMAP3630_VP2_VLIMITTO_VDDMIN;
++		omap3_core_pmic.vddmax = OMAP3630_VP2_VLIMITTO_VDDMAX;
+ 	}
+ 
+ 	/*
+diff --git a/arch/arm/mach-omap2/voltage.h b/arch/arm/mach-omap2/voltage.h
+index a0efab7..e7f71ff 100644
+--- a/arch/arm/mach-omap2/voltage.h
++++ b/arch/arm/mach-omap2/voltage.h
+@@ -162,8 +162,8 @@ struct omap_voltdm_pmic {
+ 	u8 vp_erroroffset;
+ 	u8 vp_vstepmin;
+ 	u8 vp_vstepmax;
+-	u32 vp_vddmin;
+-	u32 vp_vddmax;
++	u32 vddmin;
++	u32 vddmax;
+ 	u8 vp_timeout_us;
+ 	bool i2c_high_speed;
+ 	u8 i2c_mcode;
+diff --git a/arch/arm/mach-omap2/vp.c b/arch/arm/mach-omap2/vp.c
+index 40b3dcc..c585dfb 100644
+--- a/arch/arm/mach-omap2/vp.c
++++ b/arch/arm/mach-omap2/vp.c
+@@ -58,8 +58,8 @@ void __init omap_vp_init(struct voltagedomain *voltdm)
+ 	sys_clk_rate = voltdm->sys_clk.rate / 1000;
+ 
+ 	timeout = (sys_clk_rate * voltdm->pmic->vp_timeout_us) / 1000;
+-	vddmin = voltdm->pmic->uv_to_vsel(voltdm->pmic->vp_vddmin);
+-	vddmax = voltdm->pmic->uv_to_vsel(voltdm->pmic->vp_vddmax);
++	vddmin = voltdm->pmic->uv_to_vsel(voltdm->pmic->vddmin);
++	vddmax = voltdm->pmic->uv_to_vsel(voltdm->pmic->vddmax);
+ 
+ 	waittime = DIV_ROUND_UP(voltdm->pmic->step_size * sys_clk_rate,
+ 				1000 * voltdm->pmic->slew_rate);
 -- 
 1.7.4.1
+
