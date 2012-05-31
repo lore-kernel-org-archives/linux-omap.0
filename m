@@ -1,121 +1,82 @@
-From: "Shilimkar, Santosh" <santosh.shilimkar@ti.com>
-Subject: Re: [PATCHv2 04/19] ARM: OMAP4: PM: save/restore all DPLL settings in
- OFF mode
-Date: Thu, 31 May 2012 08:08:51 +0530
-Message-ID: <CAMQu2gyD7W0whj=0jBhpo91EyduXPDGOH396kxEc+K5OUepyPw@mail.gmail.com>
-References: <1336990730-26892-1-git-send-email-t-kristo@ti.com>
- <1336990730-26892-5-git-send-email-t-kristo@ti.com> <87d363928g.fsf@ti.com>
- <CAMQu2gw5myvyvM8x225KnN59vEYBYLBiEsvML8RAoE0t+RrbYA@mail.gmail.com>
- <CAMQu2gywor2o+g8Fn80ogbTtEZPSXM74M65GsO2zH44tg-W7gQ@mail.gmail.com>
- <CAOMWX4ctJcfGNxXK4hT+QH-m7zUfP1N3H56oVDVzPFmhVTFOMw@mail.gmail.com>
- <87wr3t8s81.fsf@ti.com> <CAOMWX4ewVauzYW9pJq07=moLcgkBLyvx68o7T8975cGvshfK3Q@mail.gmail.com>
- <87mx4p5niq.fsf@ti.com>
+From: Xiao Jiang <jgq516@gmail.com>
+Subject: Re: Compile err when enable CONFIG_SND_OMAP_SOC_OMAP_HDMI
+Date: Thu, 31 May 2012 12:27:28 +0800
+Message-ID: <4FC6F330.8070408@gmail.com>
+References: <4FC5C8E5.7060108@gmail.com> <4FC6AEAF.5020501@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aog121.obsmtp.com ([74.125.149.145]:41713 "EHLO
-	na3sys009aog121.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1757757Ab2EaCjN convert rfc822-to-8bit
-	(ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Wed, 30 May 2012 22:39:13 -0400
-Received: by qcsc20 with SMTP id c20so307804qcs.4
-        for <linux-omap@vger.kernel.org>; Wed, 30 May 2012 19:39:11 -0700 (PDT)
-In-Reply-To: <87mx4p5niq.fsf@ti.com>
+Received: from mail-vb0-f46.google.com ([209.85.212.46]:33581 "EHLO
+	mail-vb0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752026Ab2EaDfS (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 30 May 2012 23:35:18 -0400
+Received: by vbbff1 with SMTP id ff1so350771vbb.19
+        for <linux-omap@vger.kernel.org>; Wed, 30 May 2012 20:35:17 -0700 (PDT)
+In-Reply-To: <4FC6AEAF.5020501@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Kevin Hilman <khilman@ti.com>
-Cc: "Menon, Nishanth" <nm@ti.com>, paul@pwsan.com, Rajendra Nayak <rnayak@ti.com>, Tero Kristo <t-kristo@ti.com>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+To: Ricardo Neri <ricardo.neri@ti.com>
+Cc: "Valkeinen, Tomi" <tomi.valkeinen@ti.com>, linux-omap@vger.kernel.org
 
-On Thu, May 31, 2012 at 3:39 AM, Kevin Hilman <khilman@ti.com> wrote:
-> "Menon, Nishanth" <nm@ti.com> writes:
+Ricardo Neri wrote:
+> +Tomi
 >
->> On Wed, May 30, 2012 at 12:59 PM, Kevin Hilman <khilman@ti.com> wrot=
-e:
->>> "Menon, Nishanth" <nm@ti.com> writes:
->>>
->>>> On Thu, May 17, 2012 at 3:52 AM, Shilimkar, Santosh
->>>> <santosh.shilimkar@ti.com> wrote:
->>>>> On Thu, May 17, 2012 at 12:34 PM, Shilimkar, Santosh
->>>>> <santosh.shilimkar@ti.com> wrote:
->>>>>> On Thu, May 17, 2012 at 4:12 AM, Kevin Hilman <khilman@ti.com> w=
-rote:
->>>>>>> Tero Kristo <t-kristo@ti.com> writes:
->>>>>>>
->>>> [...]
->>>>>>> - Rather than hooking into omap4_enter_lowpower(), should use
->>>>>>> =A0the cluster PM enter/exit notifier chain.
->>>>>>>
->>>>>> This is again specific to device OFF only and not related to CPU
->>>>>> cluster state as such. So I don't think notifiers should be used=
- here.
->>>>>>
->>>>>> O.w even when we attempt just MPU OSWR C-state, all these functi=
-ons will
->>>>>> get called in notifier chain.
->>>>>>
->>>>> Just a thought, we can have a separate notifier chain for device =
-OFF. It can
->>>>> allow use to get rid of 'enable_off_mode" kind of flags and can b=
-e
->>>>> used by many drivers too.
->>>>
->>>> Like the overall idea, but one minor dumb concern might be sequenc=
-ing
->>>> of notifiers
->>>> =A0- OFF entry and restore needs things to be executed in a specif=
-ic sequence.
->>>> How do we plan to ensure the sequence is maintained in a notifier =
-call
->>>> chain? one
->>>> possible option might be a "priority" based scheme?
->>>
->>> Or just combine the events that need a specific sequence into singl=
-e
->>> notifier callback function.
->> There is other issues in case of failure cases -> abort of OFF
->> sequence due to pending interrupt
->> detected as part of a notifier - error handling needs to be sane in
->> proper sequence.
->> I understand and appreciate the intent of replacing the single mega
->> enter_sleep with a chain of notifiers
->> but any such option will need to be scalable enough to handle weird
->> erratum handling (HSI CAWAKE as an example)
->> which potentially break the logic flow and be either be equal or
->> better than what we have today interms of
->> error handling. since these notifiers will be triggered for
->> CPUIDLE(performance sensitive) and suspend, the intricacies
->> might be better understood by seeing how this proposed notifiers loo=
-k like.
+> Hi Xiao,
 >
-> Makes sense. =A0Thanks for clarifying.
+> On 05/30/2012 02:14 AM, Xiao Jiang wrote:
+>> Hello,
+>>
+>> After enable SND_OMAP_SOC_OMAP_HDMI with omap2plus_defconfig, I got some
+>> err infos with latest
+>> Linus's tree, does somebody also has the same issue?
+>>
+>> sound/soc/omap/omap-hdmi.c:45:24: error: field 'dss_audio' has
+>> incomplete type
+>> sound/soc/omap/omap-hdmi.c: In function 'omap_hdmi_dai_startup':
+>> sound/soc/omap/omap-hdmi.c:67:27: error: 'struct omap_dss_driver' has no
+>> member named 'audio_supported'
+>> sound/soc/omap/omap-hdmi.c: In function 'omap_hdmi_dai_prepare':
+>> sound/soc/omap/omap-hdmi.c:79:29: error: 'struct omap_dss_driver' has no
+>> member named 'audio_enable'
+>> sound/soc/omap/omap-hdmi.c: In function 'omap_hdmi_dai_hw_params':
+>> sound/soc/omap/omap-hdmi.c:208:28: error: 'struct omap_dss_driver' has
+>> no member named 'audio_config'
+>> sound/soc/omap/omap-hdmi.c: In function 'omap_hdmi_dai_trigger':
+>> sound/soc/omap/omap-hdmi.c:224:29: error: 'struct omap_dss_driver' has
+>> no member named 'audio_start'
+>> sound/soc/omap/omap-hdmi.c:229:23: error: 'struct omap_dss_driver' has
+>> no member named 'audio_stop'
+>> sound/soc/omap/omap-hdmi.c: In function 'omap_hdmi_dai_shutdown':
+>> sound/soc/omap/omap-hdmi.c:242:22: error: 'struct omap_dss_driver' has
+>> no member named 'audio_disable'
+>> sound/soc/omap/omap-hdmi.c: In function 'omap_hdmi_dai_prepare':
+>> sound/soc/omap/omap-hdmi.c:80:1: warning: control reaches end of
+>> non-void function
 >
-> What $SUBJECT series proposed was indeed a "mega function", but one t=
-hat
-> was just a list of function calls with no error checking or recovery,
-> and no documentation/description about dependencies/sequencing etc. e=
-tc.
-> Based on the patches at hadn (which is all reviewers have to go on),
-> notifiers seemed to be a good fit.
+> Build breaks because there some patches [1] that are still missing in 
+> Linus' tree. ASoC HDMI audio driver for OMAP[2] now uses the new DSS 
+> audio functionality in [1], but ASoC patches were merged first. DSS 
+> patches have been accepted and they are part of Tomi's pull request 
+> for DSS for K3.5. Hopefully this will be fixed when v3.5-rc1 is out.
 >
-> If there are good reasons that all of the device-off events need to b=
-e
-> coordinated/synchronized/sequenced (and it sounds like there are, tha=
-nks
-> for pointing them out), I am not opposed to that approach. =A0It simp=
-ly
-> needs to be well described in the changlog.
->
-There are sequence dependencies but lot of code can be extracted and pu=
-t
-into smaller blocks that is independent.
+Ricardo, thanks for your detail infos :).
 
-I agree for the error handling part notifier chain could be an issue.
+Regards,
+Xiao
+> BR,
+>
+> Ricardo
+>
+> [1].http://www.spinics.net/lists/linux-omap/msg69466.html
+> [2].http://www.spinics.net/lists/linux-omap/msg70561.html
+>>
+>> Regards,
+>> Xiao
+>>
+>> -- 
+>> To unsubscribe from this list: send the line "unsubscribe linux-omap" in
+>> the body of a message to majordomo@vger.kernel.org
+>> More majordomo info at http://vger.kernel.org/majordomo-info.html
+>
 
-Regards
-Santosh
---
-To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
