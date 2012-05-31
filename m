@@ -1,142 +1,91 @@
 From: Tero Kristo <t-kristo@ti.com>
-Subject: [PATCHv6 06/14] ARM: OMAP4: VC: calculate ramp times
-Date: Thu, 31 May 2012 16:55:42 +0300
-Message-ID: <1338472550-20743-7-git-send-email-t-kristo@ti.com>
+Subject: [PATCHv6 11/14] TEMP: ARM: OMAP3: beagle rev-c4: enable OPP6
+Date: Thu, 31 May 2012 16:55:47 +0300
+Message-ID: <1338472550-20743-12-git-send-email-t-kristo@ti.com>
 References: <1338472550-20743-1-git-send-email-t-kristo@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from devils.ext.ti.com ([198.47.26.153]:33346 "EHLO
-	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1758035Ab2EaN4N (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 31 May 2012 09:56:13 -0400
+Received: from bear.ext.ti.com ([192.94.94.41]:44256 "EHLO bear.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S932305Ab2EaN4R (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Thu, 31 May 2012 09:56:17 -0400
 In-Reply-To: <1338472550-20743-1-git-send-email-t-kristo@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: linux-omap@vger.kernel.org, khilman@ti.com
 Cc: linux-arm-kernel@lists.infradead.org
 
-OMAP4 VC code now uses voltage deltas + slew rates for calculating
-actual ramp times for voltage changes. Both retention / sleep +
-off mode voltage ramp times are setup at the same time during
-initialization.
+Beagleboard rev-c4 has a speed sorted OMAP3530 chip which can run at 720MHz.
 
 Signed-off-by: Tero Kristo <t-kristo@ti.com>
 ---
- arch/arm/mach-omap2/vc.c |   94 ++++++++++++++++++++++++++++++++++++++++++++++
- 1 files changed, 94 insertions(+), 0 deletions(-)
+ arch/arm/mach-omap2/board-omap3beagle.c |   29 +++++++++++++++++++++++++++++
+ arch/arm/mach-omap2/opp3xxx_data.c      |    4 ++++
+ 2 files changed, 33 insertions(+), 0 deletions(-)
 
-diff --git a/arch/arm/mach-omap2/vc.c b/arch/arm/mach-omap2/vc.c
-index bba0d7c..0a37673 100644
---- a/arch/arm/mach-omap2/vc.c
-+++ b/arch/arm/mach-omap2/vc.c
-@@ -310,12 +310,106 @@ static void __init omap3_vc_init_channel(struct voltagedomain *voltdm)
- 	omap3_set_off_timings(voltdm);
- }
- 
-+/**
-+ * omap4_calc_volt_ramp - calculates voltage ramping delays on omap4
-+ * @voltdm: channel to calculate values for
-+ * @voltage_diff: voltage difference in microvolts
-+ *
-+ * Calculates voltage ramp prescaler + counter values for a voltage
-+ * difference on omap4. Returns a field value suitable for writing to
-+ * VOLTSETUP register for a channel in following format:
-+ * bits[8:9] prescaler ... bits[0:5] counter. See OMAP4 TRM for reference.
-+ */
-+static u32 omap4_calc_volt_ramp(struct voltagedomain *voltdm, u32 voltage_diff)
-+{
-+	u32 prescaler;
-+	u32 cycles;
-+	u32 time;
-+
-+	time = voltage_diff / voltdm->pmic->slew_rate;
-+
-+	cycles = voltdm->sys_clk.rate / 1000 * time / 1000;
-+
-+	cycles /= 64;
-+	prescaler = 0;
-+
-+	/* shift to next prescaler until no overflow */
-+
-+	/* scale for div 256 = 64 * 4 */
-+	if (cycles > 63) {
-+		cycles /= 4;
-+		prescaler++;
-+	}
-+
-+	/* scale for div 512 = 256 * 2 */
-+	if (cycles > 63) {
-+		cycles /= 2;
-+		prescaler++;
-+	}
-+
-+	/* scale for div 2048 = 512 * 4 */
-+	if (cycles > 63) {
-+		cycles /= 4;
-+		prescaler++;
-+	}
-+
-+	/* check for overflow => invalid ramp time */
-+	if (cycles > 63) {
-+		pr_warning("%s: invalid setuptime for vdd_%s\n", __func__,
-+			voltdm->name);
-+		return 0;
-+	}
-+
-+	cycles++;
-+
-+	return (prescaler << OMAP4430_RAMP_UP_PRESCAL_SHIFT) |
-+		(cycles << OMAP4430_RAMP_UP_COUNT_SHIFT);
-+}
-+
-+/**
-+ * omap4_set_timings - set voltage ramp timings for a channel
-+ * @voltdm: channel to configure
-+ * @off_mode: whether off-mode values are used
-+ *
-+ * Calculates and sets the voltage ramp up / down values for a channel.
-+ */
-+static void omap4_set_timings(struct voltagedomain *voltdm, bool off_mode)
-+{
-+	u32 val;
-+	u32 ramp;
-+	int offset;
-+
-+	if (off_mode) {
-+		ramp = omap4_calc_volt_ramp(voltdm,
-+			voltdm->vc_param->on - voltdm->vc_param->off);
-+		offset = voltdm->vfsm->voltsetup_off_reg;
-+	} else {
-+		ramp = omap4_calc_volt_ramp(voltdm,
-+			voltdm->vc_param->on - voltdm->vc_param->ret);
-+		offset = voltdm->vfsm->voltsetup_reg;
-+	}
-+
-+	if (!ramp)
-+		return;
-+
-+	val = voltdm->read(offset);
-+
-+	val |= ramp << OMAP4430_RAMP_DOWN_COUNT_SHIFT;
-+
-+	val |= ramp << OMAP4430_RAMP_UP_COUNT_SHIFT;
-+
-+	voltdm->write(val, offset);
-+}
-+
- /* OMAP4 specific voltage init functions */
- static void __init omap4_vc_init_channel(struct voltagedomain *voltdm)
- {
- 	static bool is_initialized;
- 	u32 vc_val;
- 
-+	omap4_set_timings(voltdm, true);
-+	omap4_set_timings(voltdm, false);
-+
- 	if (is_initialized)
+diff --git a/arch/arm/mach-omap2/board-omap3beagle.c b/arch/arm/mach-omap2/board-omap3beagle.c
+index 79c6909..09aa4b1 100644
+--- a/arch/arm/mach-omap2/board-omap3beagle.c
++++ b/arch/arm/mach-omap2/board-omap3beagle.c
+@@ -461,6 +461,35 @@ static void __init beagle_opp_init(void)
  		return;
+ 	}
  
++	if (omap3_beagle_version == OMAP3BEAGLE_BOARD_C4) {
++		struct device *mpu_dev, *iva_dev;
++
++		mpu_dev = omap_device_get_by_hwmod_name("mpu");
++		iva_dev = omap_device_get_by_hwmod_name("iva");
++
++		if (!mpu_dev || !iva_dev) {
++			pr_err("%s: Aiee.. no mpu/dsp devices? %p %p\n",
++				__func__, mpu_dev, iva_dev);
++			return;
++		}
++		/* Enable MPU 720MHz opp */
++		r = opp_enable(mpu_dev, 720000000);
++
++		/* Enable IVA 520MHz opp */
++		r |= opp_enable(iva_dev, 520000000);
++
++		if (r) {
++			pr_err("%s: failed to enable higher opp %d\n",
++				__func__, r);
++			/*
++			 * Cleanup - disable the higher freqs - we dont care
++			 * about the results
++			 */
++			opp_disable(mpu_dev, 720000000);
++			opp_disable(iva_dev, 520000000);
++		}
++	}
++
+ 	/* Custom OPP enabled for all xM versions */
+ 	if (cpu_is_omap3630()) {
+ 		struct device *mpu_dev, *iva_dev;
+diff --git a/arch/arm/mach-omap2/opp3xxx_data.c b/arch/arm/mach-omap2/opp3xxx_data.c
+index d95f3f9..a0f5fe1 100644
+--- a/arch/arm/mach-omap2/opp3xxx_data.c
++++ b/arch/arm/mach-omap2/opp3xxx_data.c
+@@ -98,6 +98,8 @@ static struct omap_opp_def __initdata omap34xx_opp_def_list[] = {
+ 	OPP_INITIALIZER("mpu", true, 550000000, OMAP3430_VDD_MPU_OPP4_UV),
+ 	/* MPU OPP5 */
+ 	OPP_INITIALIZER("mpu", true, 600000000, OMAP3430_VDD_MPU_OPP5_UV),
++	/* MPU OPP6 : omap3530 high speed grade only */
++	OPP_INITIALIZER("mpu", false, 720000000, OMAP3430_VDD_MPU_OPP5_UV),
+ 
+ 	/*
+ 	 * L3 OPP1 - 41.5 MHz is disabled because: The voltage for that OPP is
+@@ -123,6 +125,8 @@ static struct omap_opp_def __initdata omap34xx_opp_def_list[] = {
+ 	OPP_INITIALIZER("iva", true, 400000000, OMAP3430_VDD_MPU_OPP4_UV),
+ 	/* DSP OPP5 */
+ 	OPP_INITIALIZER("iva", true, 430000000, OMAP3430_VDD_MPU_OPP5_UV),
++	/* DSP OPP6 : omap3530 high speed grade only */
++	OPP_INITIALIZER("iva", false, 520000000, OMAP3430_VDD_MPU_OPP5_UV),
+ };
+ 
+ static struct omap_opp_def __initdata omap36xx_opp_def_list[] = {
 -- 
 1.7.4.1
 
