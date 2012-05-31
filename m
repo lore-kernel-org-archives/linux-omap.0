@@ -1,82 +1,132 @@
 From: Xiao Jiang <jgq516@gmail.com>
-Subject: Re: Compile err when enable CONFIG_SND_OMAP_SOC_OMAP_HDMI
-Date: Thu, 31 May 2012 12:27:28 +0800
-Message-ID: <4FC6F330.8070408@gmail.com>
-References: <4FC5C8E5.7060108@gmail.com> <4FC6AEAF.5020501@ti.com>
+Subject: Re: [PATCH 1/3] arm/dts: add wdt node for omap3 and omap4
+Date: Thu, 31 May 2012 13:51:19 +0800
+Message-ID: <4FC706D7.2010801@gmail.com>
+References: <1337942552-28218-1-git-send-email-jgq516@gmail.com>
+ <1337942552-28218-2-git-send-email-jgq516@gmail.com>
+ <4FC50CCD.7090404@ti.com> <4FC591C9.2050004@gmail.com>
+ <4FC631E5.9080000@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Type: text/plain; charset="us-ascii"; Format="flowed"
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-vb0-f46.google.com ([209.85.212.46]:33581 "EHLO
-	mail-vb0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752026Ab2EaDfS (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 30 May 2012 23:35:18 -0400
-Received: by vbbff1 with SMTP id ff1so350771vbb.19
-        for <linux-omap@vger.kernel.org>; Wed, 30 May 2012 20:35:17 -0700 (PDT)
-In-Reply-To: <4FC6AEAF.5020501@ti.com>
-Sender: linux-omap-owner@vger.kernel.org
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
+In-Reply-To: <4FC631E5.9080000@ti.com>
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
+List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
+List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
+Sender: linux-arm-kernel-bounces@lists.infradead.org
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
+To: Jon Hunter <jon-hunter@ti.com>, b-cousson@ti.com
+Cc: linux@arm.linux.org.uk, linux-watchdog@vger.kernel.org, tony@atomide.com, devicetree-discuss@lists.ozlabs.org, rnayak@ti.com, linux-kernel@vger.kernel.org, rob.herring@calxeda.com, grant.likely@secretlab.ca, wim@iguana.be, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 List-Id: linux-omap@vger.kernel.org
-To: Ricardo Neri <ricardo.neri@ti.com>
-Cc: "Valkeinen, Tomi" <tomi.valkeinen@ti.com>, linux-omap@vger.kernel.org
 
-Ricardo Neri wrote:
-> +Tomi
->
-> Hi Xiao,
->
-> On 05/30/2012 02:14 AM, Xiao Jiang wrote:
->> Hello,
+Hi Jon and Benoit,
+>> Thanks for reminding, how about below patch?
 >>
->> After enable SND_OMAP_SOC_OMAP_HDMI with omap2plus_defconfig, I got some
->> err infos with latest
->> Linus's tree, does somebody also has the same issue?
->>
->> sound/soc/omap/omap-hdmi.c:45:24: error: field 'dss_audio' has
->> incomplete type
->> sound/soc/omap/omap-hdmi.c: In function 'omap_hdmi_dai_startup':
->> sound/soc/omap/omap-hdmi.c:67:27: error: 'struct omap_dss_driver' has no
->> member named 'audio_supported'
->> sound/soc/omap/omap-hdmi.c: In function 'omap_hdmi_dai_prepare':
->> sound/soc/omap/omap-hdmi.c:79:29: error: 'struct omap_dss_driver' has no
->> member named 'audio_enable'
->> sound/soc/omap/omap-hdmi.c: In function 'omap_hdmi_dai_hw_params':
->> sound/soc/omap/omap-hdmi.c:208:28: error: 'struct omap_dss_driver' has
->> no member named 'audio_config'
->> sound/soc/omap/omap-hdmi.c: In function 'omap_hdmi_dai_trigger':
->> sound/soc/omap/omap-hdmi.c:224:29: error: 'struct omap_dss_driver' has
->> no member named 'audio_start'
->> sound/soc/omap/omap-hdmi.c:229:23: error: 'struct omap_dss_driver' has
->> no member named 'audio_stop'
->> sound/soc/omap/omap-hdmi.c: In function 'omap_hdmi_dai_shutdown':
->> sound/soc/omap/omap-hdmi.c:242:22: error: 'struct omap_dss_driver' has
->> no member named 'audio_disable'
->> sound/soc/omap/omap-hdmi.c: In function 'omap_hdmi_dai_prepare':
->> sound/soc/omap/omap-hdmi.c:80:1: warning: control reaches end of
->> non-void function
+>> diff --git a/Documentation/devicetree/bindings/watchdog/omap-wdt.txt
+>> b/Documentation/devicetree/bindings/watchdog/omap-wdt.txt
+>> new file mode 100644
+>> index 0000000..4272d06
+>> --- /dev/null
+>> +++ b/Documentation/devicetree/bindings/watchdog/omap-wdt.txt
+>> @@ -0,0 +1,15 @@
+>> +TI Watchdog Timer (WDT) Controller for OMAP
+>> +
+>> +Required properties:
+>> +- compatible:
+>> +  - "ti,omap2-wdt" for OMAP2
+>> +  - "ti,omap3-wdt" for OMAP3
+>> +  - "ti,omap4-wdt" for OMAP4
+>> +- ti,hwmods: Name of the hwmod associated to the WDT
+>> +
+>> +Examples:
+>> +
+>> +wdt2: wdt@73f98000 {
+>> +       compatible = "ti,omap4-wdt";
+>> +       ti,hwmods = "wd_timer2";
+>> +};
+>>     
 >
-> Build breaks because there some patches [1] that are still missing in 
-> Linus' tree. ASoC HDMI audio driver for OMAP[2] now uses the new DSS 
-> audio functionality in [1], but ASoC patches were merged first. DSS 
-> patches have been accepted and they are part of Tomi's pull request 
-> for DSS for K3.5. Hopefully this will be fixed when v3.5-rc1 is out.
+> Yes looks good. Thanks! Minor nit-pick in the example I would just copy
+> the omap4 node completely with the actual omap4 address :-)
 >
-Ricardo, thanks for your detail infos :).
+>   
+Oops, wrong addr, :). Perhaps we can drop address as you said, since the 
+right addresses are defined
+in wd_timer2 hwmod (see [1]), and wdt also works without the address as 
+follows.
+
+diff --git a/arch/arm/boot/dts/omap2.dtsi b/arch/arm/boot/dts/omap2.dtsi
+index f2ab4ea..0017bd8 100644
+--- a/arch/arm/boot/dts/omap2.dtsi
++++ b/arch/arm/boot/dts/omap2.dtsi
+@@ -63,5 +63,10 @@
+                        ti,hwmods = "uart3";
+                        clock-frequency = <48000000>;
+                };
++
++               wdt2: wdt {
++                       compatible = "ti,omap2-wdt";
++                       ti,hwmods = "wd_timer2";
++               };
+        };
+ };
+diff --git a/arch/arm/boot/dts/omap3.dtsi b/arch/arm/boot/dts/omap3.dtsi
+index 99474fa..dbf8a5b 100644
+--- a/arch/arm/boot/dts/omap3.dtsi
++++ b/arch/arm/boot/dts/omap3.dtsi
+@@ -215,5 +215,10 @@
+                        compatible = "ti,omap3-hsmmc";
+                        ti,hwmods = "mmc3";
+                };
++
++               wdt2: wdt {
++                       compatible = "ti,omap3-wdt", "ti,omap2-wdt";
++                       ti,hwmods = "wd_timer2";
++               };
+        };
+ };
+diff --git a/arch/arm/boot/dts/omap4.dtsi b/arch/arm/boot/dts/omap4.dtsi
+index 359c497..ce74e87 100644
+--- a/arch/arm/boot/dts/omap4.dtsi
++++ b/arch/arm/boot/dts/omap4.dtsi
+@@ -272,5 +272,10 @@
+                        ti,hwmods = "mmc5";
+                        ti,needs-special-reset;
+                };
++
++               wdt2: wdt {
++                       compatible = "ti,omap4-wdt", "ti,omap2-wdt";
++                       ti,hwmods = "wd_timer2";
++               };
+        };
+ };
+
+Infos for omap3:
+# dmesg|grep Machine
+<6>[    0.000000] Machine: Generic OMAP3 (Flattened Device Tree), model: 
+TI OMAP3 EVM (OMAP3530, AM/DM37x)
+# dmesg|grep omap_wdt_probe
+<4>[    2.552825] in omap_wdt_probe: 299, res->start = 0x48314000
+
+Infos for omap4:
+root@localhost:/root> dmesg|grep Machine
+[    0.000000] Machine: Generic OMAP4 (Flattened Device Tree), model: TI 
+OMAP4 SDP board
+root@localhost:/root> dmesg|grep omap_wdt_probe
+[    1.687896] in omap_wdt_probe: 299, res->start = 0x4a314000
+
+So can I drop the wdt addr from dts file? otherwise it is not feasible 
+to add omap2 wdt node in omap2.dtsi
+due to different addrs for omap2420 and omap2430.
 
 Regards,
 Xiao
-> BR,
->
-> Ricardo
->
-> [1].http://www.spinics.net/lists/linux-omap/msg69466.html
-> [2].http://www.spinics.net/lists/linux-omap/msg70561.html
->>
->> Regards,
->> Xiao
->>
->> -- 
->> To unsubscribe from this list: send the line "unsubscribe linux-omap" in
->> the body of a message to majordomo@vger.kernel.org
->> More majordomo info at http://vger.kernel.org/majordomo-info.html
->
-
+[1] http://marc.info/?l=linux-omap&m=133836995026565&w=2
+> Cheers
+> Jon
+>   
