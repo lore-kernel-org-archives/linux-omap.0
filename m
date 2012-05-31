@@ -1,107 +1,86 @@
 From: Tero Kristo <t-kristo@ti.com>
-Subject: [PATCHv6 10/14] ARM: OMAP: TWL: change the vddmin / vddmax voltages to spec
-Date: Thu, 31 May 2012 16:55:46 +0300
-Message-ID: <1338472550-20743-11-git-send-email-t-kristo@ti.com>
+Subject: [PATCHv6 14/14] ARM: OMAP3+: voltage: remove unused volt_setup_time parameter
+Date: Thu, 31 May 2012 16:55:50 +0300
+Message-ID: <1338472550-20743-15-git-send-email-t-kristo@ti.com>
 References: <1338472550-20743-1-git-send-email-t-kristo@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from bear.ext.ti.com ([192.94.94.41]:44255 "EHLO bear.ext.ti.com"
+Received: from arroyo.ext.ti.com ([192.94.94.40]:53690 "EHLO arroyo.ext.ti.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S932290Ab2EaN4Q (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Thu, 31 May 2012 09:56:16 -0400
+	id S932353Ab2EaN4V (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Thu, 31 May 2012 09:56:21 -0400
 In-Reply-To: <1338472550-20743-1-git-send-email-t-kristo@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: linux-omap@vger.kernel.org, khilman@ti.com
 Cc: linux-arm-kernel@lists.infradead.org
 
-As vddmin / vddmax voltages for the pmic only describe the pmic
-capabilities now, change the voltages to be according to spec.
-TWL data manuals give following values:
-
-TWL4030 (SWCS019L) : VDD1: 600mV ... 1450mV, VDD2: 600mV ... 1500mV
-TWL5030 (SWCS030E) : VDD1: 600mV ... 1450mV, VDD2: 600mV ... 1500mV
-TWL6030 (SWCS045A) : 0V ... 2100mV
+This is no longer needed as the ramp times are calculated from
+voltage deltas + slew rates.
 
 Signed-off-by: Tero Kristo <t-kristo@ti.com>
 ---
- arch/arm/mach-omap2/omap_twl.c |   27 ++++++++++-----------------
- 1 files changed, 10 insertions(+), 17 deletions(-)
+ arch/arm/mach-omap2/omap_twl.c |    5 -----
+ arch/arm/mach-omap2/voltage.h  |    1 -
+ 2 files changed, 0 insertions(+), 6 deletions(-)
 
 diff --git a/arch/arm/mach-omap2/omap_twl.c b/arch/arm/mach-omap2/omap_twl.c
-index dca1d66..188f210 100644
+index 188f210..ecae989 100644
 --- a/arch/arm/mach-omap2/omap_twl.c
 +++ b/arch/arm/mach-omap2/omap_twl.c
-@@ -145,8 +145,8 @@ static struct omap_voltdm_pmic omap3_mpu_pmic = {
+@@ -141,7 +141,6 @@ static u8 twl6030_uv_to_vsel(unsigned long uv)
+ static struct omap_voltdm_pmic omap3_mpu_pmic = {
+ 	.slew_rate		= 4000,
+ 	.step_size		= 12500,
+-	.volt_setup_time	= 0xfff,
  	.vp_erroroffset		= OMAP3_VP_CONFIG_ERROROFFSET,
  	.vp_vstepmin		= OMAP3_VP_VSTEPMIN_VSTEPMIN,
  	.vp_vstepmax		= OMAP3_VP_VSTEPMAX_VSTEPMAX,
--	.vddmin			= OMAP3430_VP1_VLIMITTO_VDDMIN,
--	.vddmax			= OMAP3430_VP1_VLIMITTO_VDDMAX,
-+	.vddmin			= 600000,
-+	.vddmax			= 1450000,
- 	.vp_timeout_us		= OMAP3_VP_VLIMITTO_TIMEOUT_US,
- 	.i2c_slave_addr		= OMAP3_SRI2C_SLAVE_ADDR,
- 	.volt_reg_addr		= OMAP3_VDD_MPU_SR_CONTROL_REG,
-@@ -162,8 +162,8 @@ static struct omap_voltdm_pmic omap3_core_pmic = {
+@@ -158,7 +157,6 @@ static struct omap_voltdm_pmic omap3_mpu_pmic = {
+ static struct omap_voltdm_pmic omap3_core_pmic = {
+ 	.slew_rate		= 4000,
+ 	.step_size		= 12500,
+-	.volt_setup_time        = 0xfff,
  	.vp_erroroffset		= OMAP3_VP_CONFIG_ERROROFFSET,
  	.vp_vstepmin		= OMAP3_VP_VSTEPMIN_VSTEPMIN,
  	.vp_vstepmax		= OMAP3_VP_VSTEPMAX_VSTEPMAX,
--	.vddmin			= OMAP3430_VP2_VLIMITTO_VDDMIN,
--	.vddmax			= OMAP3430_VP2_VLIMITTO_VDDMAX,
-+	.vddmin			= 600000,
-+	.vddmax			= 1450000,
- 	.vp_timeout_us		= OMAP3_VP_VLIMITTO_TIMEOUT_US,
- 	.i2c_slave_addr		= OMAP3_SRI2C_SLAVE_ADDR,
- 	.volt_reg_addr		= OMAP3_VDD_CORE_SR_CONTROL_REG,
-@@ -179,8 +179,8 @@ static struct omap_voltdm_pmic omap4_mpu_pmic = {
+@@ -175,7 +173,6 @@ static struct omap_voltdm_pmic omap3_core_pmic = {
+ static struct omap_voltdm_pmic omap4_mpu_pmic = {
+ 	.slew_rate		= 4000,
+ 	.step_size		= 12660,
+-	.volt_setup_time	= 0,
  	.vp_erroroffset		= OMAP4_VP_CONFIG_ERROROFFSET,
  	.vp_vstepmin		= OMAP4_VP_VSTEPMIN_VSTEPMIN,
  	.vp_vstepmax		= OMAP4_VP_VSTEPMAX_VSTEPMAX,
--	.vddmin			= OMAP4_VP_MPU_VLIMITTO_VDDMIN,
--	.vddmax			= OMAP4_VP_MPU_VLIMITTO_VDDMAX,
-+	.vddmin			= 0,
-+	.vddmax			= 2100000,
- 	.vp_timeout_us		= OMAP4_VP_VLIMITTO_TIMEOUT_US,
- 	.i2c_slave_addr		= OMAP4_SRI2C_SLAVE_ADDR,
- 	.volt_reg_addr		= OMAP4_VDD_MPU_SR_VOLT_REG,
-@@ -197,8 +197,8 @@ static struct omap_voltdm_pmic omap4_iva_pmic = {
+@@ -193,7 +190,6 @@ static struct omap_voltdm_pmic omap4_mpu_pmic = {
+ static struct omap_voltdm_pmic omap4_iva_pmic = {
+ 	.slew_rate		= 4000,
+ 	.step_size		= 12660,
+-	.volt_setup_time	= 0,
  	.vp_erroroffset		= OMAP4_VP_CONFIG_ERROROFFSET,
  	.vp_vstepmin		= OMAP4_VP_VSTEPMIN_VSTEPMIN,
  	.vp_vstepmax		= OMAP4_VP_VSTEPMAX_VSTEPMAX,
--	.vddmin			= OMAP4_VP_IVA_VLIMITTO_VDDMIN,
--	.vddmax			= OMAP4_VP_IVA_VLIMITTO_VDDMAX,
-+	.vddmin			= 0,
-+	.vddmax			= 2100000,
- 	.vp_timeout_us		= OMAP4_VP_VLIMITTO_TIMEOUT_US,
- 	.i2c_slave_addr		= OMAP4_SRI2C_SLAVE_ADDR,
- 	.volt_reg_addr		= OMAP4_VDD_IVA_SR_VOLT_REG,
-@@ -215,8 +215,8 @@ static struct omap_voltdm_pmic omap4_core_pmic = {
+@@ -211,7 +207,6 @@ static struct omap_voltdm_pmic omap4_iva_pmic = {
+ static struct omap_voltdm_pmic omap4_core_pmic = {
+ 	.slew_rate		= 4000,
+ 	.step_size		= 12660,
+-	.volt_setup_time	= 0,
  	.vp_erroroffset		= OMAP4_VP_CONFIG_ERROROFFSET,
  	.vp_vstepmin		= OMAP4_VP_VSTEPMIN_VSTEPMIN,
  	.vp_vstepmax		= OMAP4_VP_VSTEPMAX_VSTEPMAX,
--	.vddmin			= OMAP4_VP_CORE_VLIMITTO_VDDMIN,
--	.vddmax			= OMAP4_VP_CORE_VLIMITTO_VDDMAX,
-+	.vddmin			= 0,
-+	.vddmax			= 2100000,
- 	.vp_timeout_us		= OMAP4_VP_VLIMITTO_TIMEOUT_US,
- 	.i2c_slave_addr		= OMAP4_SRI2C_SLAVE_ADDR,
- 	.volt_reg_addr		= OMAP4_VDD_CORE_SR_VOLT_REG,
-@@ -251,13 +251,6 @@ int __init omap3_twl_init(void)
- 	if (!cpu_is_omap34xx())
- 		return -ENODEV;
- 
--	if (cpu_is_omap3630()) {
--		omap3_mpu_pmic.vddmin = OMAP3630_VP1_VLIMITTO_VDDMIN;
--		omap3_mpu_pmic.vddmax = OMAP3630_VP1_VLIMITTO_VDDMAX;
--		omap3_core_pmic.vddmin = OMAP3630_VP2_VLIMITTO_VDDMIN;
--		omap3_core_pmic.vddmax = OMAP3630_VP2_VLIMITTO_VDDMAX;
--	}
--
- 	/*
- 	 * The smartreflex bit on twl4030 specifies if the setting of voltage
- 	 * is done over the I2C_SR path. Since this setting is independent of
+diff --git a/arch/arm/mach-omap2/voltage.h b/arch/arm/mach-omap2/voltage.h
+index d2d5b2b..4d02d6e 100644
+--- a/arch/arm/mach-omap2/voltage.h
++++ b/arch/arm/mach-omap2/voltage.h
+@@ -155,7 +155,6 @@ struct omap_volt_data {
+ struct omap_voltdm_pmic {
+ 	int slew_rate;
+ 	int step_size;
+-	u16 volt_setup_time;
+ 	u16 i2c_slave_addr;
+ 	u16 volt_reg_addr;
+ 	u16 cmd_reg_addr;
 -- 
 1.7.4.1
 
