@@ -1,223 +1,46 @@
 From: Tero Kristo <t-kristo@ti.com>
-Subject: [PATCHv6 13/14] ARM: OMAP3: vc: auto_ret / auto_off support
-Date: Thu, 31 May 2012 16:55:49 +0300
-Message-ID: <1338472550-20743-14-git-send-email-t-kristo@ti.com>
+Subject: [PATCHv6 08/14] ARM: OMAP3+: vp: use new vp_params for calculating vddmin and vddmax
+Date: Thu, 31 May 2012 16:55:44 +0300
+Message-ID: <1338472550-20743-9-git-send-email-t-kristo@ti.com>
 References: <1338472550-20743-1-git-send-email-t-kristo@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from bear.ext.ti.com ([192.94.94.41]:44266 "EHLO bear.ext.ti.com"
+Received: from arroyo.ext.ti.com ([192.94.94.40]:53684 "EHLO arroyo.ext.ti.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S932290Ab2EaN4V (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Thu, 31 May 2012 09:56:21 -0400
+	id S1758172Ab2EaN4P (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Thu, 31 May 2012 09:56:15 -0400
 In-Reply-To: <1338472550-20743-1-git-send-email-t-kristo@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: linux-omap@vger.kernel.org, khilman@ti.com
 Cc: linux-arm-kernel@lists.infradead.org
 
-Voltage code will now enable / disable auto_ret / auto_off dynamically
-according to the voltagedomain usecounts. This is accomplished via
-the usage of the voltdm callback functions for sleep / wakeup.
+Now we select the vddmin and vddmax values based on both pmic and
+voltage processor data, this allows usage of different power ICs.
 
 Signed-off-by: Tero Kristo <t-kristo@ti.com>
 ---
- arch/arm/mach-omap2/vc.c |  139 +++++++++++++++++++++++++++++++++++++++------
- 1 files changed, 120 insertions(+), 19 deletions(-)
+ arch/arm/mach-omap2/vp.c |    6 ++++--
+ 1 files changed, 4 insertions(+), 2 deletions(-)
 
-diff --git a/arch/arm/mach-omap2/vc.c b/arch/arm/mach-omap2/vc.c
-index 5fe2ff1..78a359e 100644
---- a/arch/arm/mach-omap2/vc.c
-+++ b/arch/arm/mach-omap2/vc.c
-@@ -12,6 +12,7 @@
- #include <linux/init.h>
- #include <linux/bug.h>
- #include <linux/io.h>
-+#include <linux/string.h>
+diff --git a/arch/arm/mach-omap2/vp.c b/arch/arm/mach-omap2/vp.c
+index c585dfb..c9277c3 100644
+--- a/arch/arm/mach-omap2/vp.c
++++ b/arch/arm/mach-omap2/vp.c
+@@ -58,8 +58,10 @@ void __init omap_vp_init(struct voltagedomain *voltdm)
+ 	sys_clk_rate = voltdm->sys_clk.rate / 1000;
  
- #include <asm/div64.h>
+ 	timeout = (sys_clk_rate * voltdm->pmic->vp_timeout_us) / 1000;
+-	vddmin = voltdm->pmic->uv_to_vsel(voltdm->pmic->vddmin);
+-	vddmax = voltdm->pmic->uv_to_vsel(voltdm->pmic->vddmax);
++	vddmin = max(voltdm->vp_param->vddmin, voltdm->pmic->vddmin);
++	vddmax = min(voltdm->vp_param->vddmax, voltdm->pmic->vddmax);
++	vddmin = voltdm->pmic->uv_to_vsel(vddmin);
++	vddmax = voltdm->pmic->uv_to_vsel(vddmax);
  
-@@ -240,12 +241,6 @@ static void omap3_set_i2c_timings(struct voltagedomain *voltdm, bool off_mode)
- 	unsigned long voltsetup1;
- 	u32 tgt_volt;
- 
--	/*
--	 * Oscillator is shut down only if we are using sys_off_mode pad,
--	 * thus we set a minimal setup time here
--	 */
--	omap3_set_clksetup(1, voltdm);
--
- 	if (off_mode)
- 		tgt_volt = voltdm->vc_param->off;
- 	else
-@@ -259,12 +254,6 @@ static void omap3_set_i2c_timings(struct voltagedomain *voltdm, bool off_mode)
- 	voltdm->rmw(voltdm->vfsm->voltsetup_mask,
- 		voltsetup1 << __ffs(voltdm->vfsm->voltsetup_mask),
- 		voltdm->vfsm->voltsetup_reg);
--
--	/*
--	 * pmic is not controlling the voltage scaling during retention,
--	 * thus set voltsetup2 to 0
--	 */
--	voltdm->write(0, OMAP3_PRM_VOLTSETUP2_OFFSET);
- }
- 
- /**
-@@ -286,7 +275,6 @@ static void omap3_set_off_timings(struct voltagedomain *voltdm)
- 	unsigned long voltsetup2;
- 	unsigned long voltsetup2_old;
- 	u32 val;
--	u32 tstart, tshut;
- 
- 	/* check if sys_off_mode is used to control off-mode voltages */
- 	val = voltdm->read(OMAP3_PRM_VOLTCTRL_OFFSET);
-@@ -296,9 +284,6 @@ static void omap3_set_off_timings(struct voltagedomain *voltdm)
- 		return;
- 	}
- 
--	omap_pm_get_oscillator(&tstart, &tshut);
--	omap3_set_clksetup(tstart, voltdm);
--
- 	clksetup = voltdm->read(OMAP3_PRM_CLKSETUP_OFFSET);
- 
- 	/* voltsetup 2 in us */
-@@ -328,17 +313,133 @@ static void omap3_set_off_timings(struct voltagedomain *voltdm)
- 	 */
- 	voltdm->rmw(voltdm->vfsm->voltsetup_mask, 0,
- 		voltdm->vfsm->voltsetup_reg);
-+}
-+
-+/**
-+ * omap3_set_core_ret_timings - set retention timings for core domain
-+ * @voltdm: pointer for core voltagedomain struct
-+ *
-+ * This function is called once core domain is ready to enter
-+ * retention. This sets the values for the global setup variables like
-+ * oscillator setup time, and the ramp times for voltages.
-+ */
-+static void omap3_set_core_ret_timings(struct voltagedomain *voltdm)
-+{
-+	/*
-+	 * Oscillator is not shut down in retention, thus set minimal
-+	 * clock setup time
-+	 */
-+	omap3_set_clksetup(1, voltdm);
- 
--	/* voltoffset must be clksetup minus voltsetup2 according to TRM */
--	voltdm->write(clksetup - voltsetup2, OMAP3_PRM_VOLTOFFSET_OFFSET);
-+	/*
-+	 * Reset voltsetup 2 and voltoffset when entering retention
-+	 * as they are only used when pmic is controlling voltages
-+	 */
-+	voltdm->write(0, OMAP3_PRM_VOLTSETUP2_OFFSET);
-+	voltdm->write(0, OMAP3_PRM_VOLTOFFSET_OFFSET);
-+	omap3_set_i2c_timings(voltdm, false);
- }
- 
--static void __init omap3_vc_init_channel(struct voltagedomain *voltdm)
-+/**
-+ * omap3_set_core_off_timings - set off timings for core domain
-+ * @voltdm: pointer for core voltagedomain struct
-+ *
-+ * This function is called once core domain is ready to enter off-mode.
-+ * This sets the values for the global setup variables like oscillator
-+ * setup time, and the ramp times for voltages.
-+ */
-+static void omap3_set_core_off_timings(struct voltagedomain *voltdm)
- {
-+	u32 tstart, tshut;
-+
-+	omap_pm_get_oscillator(&tstart, &tshut);
-+	omap3_set_clksetup(tstart, voltdm);
- 	omap3_set_off_timings(voltdm);
- }
- 
- /**
-+ * omap3_vc_channel_sleep - idle callback for a voltagedomain
-+ * @voltdm: voltage channel that is entering idle
-+ *
-+ * Prepares voltage channel for entering idle. This gets called from
-+ * the voltagedomain code once the usecount for the domain reaches zero.
-+ * Function checks the target sleep mode and configures the channel
-+ * accordingly.
-+ */
-+static void omap3_vc_channel_sleep(struct voltagedomain *voltdm)
-+{
-+	/* Set off timings if entering off */
-+	if (voltdm->target_state == PWRDM_POWER_OFF)
-+		omap3_set_off_timings(voltdm);
-+	else
-+		omap3_set_i2c_timings(voltdm, false);
-+}
-+
-+/**
-+ * omap3_vc_core_sleep - idle callback for core voltagedomain
-+ * @voltdm: pointer to core voltagedomain struct
-+ *
-+ * Prepares core voltagedomain for idle. This checks the target sleep
-+ * mode of the device (highest sleep mode of all powerdomains), and
-+ * sets up the device according to this either for retention, sleep
-+ * or off-mode.
-+ */
-+static void omap3_vc_core_sleep(struct voltagedomain *voltdm)
-+{
-+	u8 mode;
-+
-+	switch (voltdm->target_state) {
-+	case PWRDM_POWER_OFF:
-+		mode = OMAP3430_AUTO_OFF_MASK;
-+		break;
-+	case PWRDM_POWER_RET:
-+		mode = OMAP3430_AUTO_RET_MASK;
-+		break;
-+	default:
-+		mode = OMAP3430_AUTO_SLEEP_MASK;
-+		break;
-+	}
-+
-+	if (mode == OMAP3430_AUTO_OFF_MASK)
-+		omap3_set_core_off_timings(voltdm);
-+	else
-+		omap3_set_core_ret_timings(voltdm);
-+
-+	voltdm->rmw(OMAP3430_AUTO_OFF_MASK | OMAP3430_AUTO_RET_MASK |
-+		    OMAP3430_AUTO_SLEEP_MASK, mode,
-+		    OMAP3_PRM_VOLTCTRL_OFFSET);
-+}
-+
-+/**
-+ * omap3_vc_core_wakeup - wakeup callback for core domain
-+ * @voltdm: pointer to core voltagedomain struct
-+ *
-+ * Resumes core voltagedomain from idle. Callback from voltagedomain
-+ * code once usecount reaches non-zero value.
-+ */
-+static void omap3_vc_core_wakeup(struct voltagedomain *voltdm)
-+{
-+	voltdm->rmw(OMAP3430_AUTO_OFF_MASK | OMAP3430_AUTO_RET_MASK |
-+		    OMAP3430_AUTO_SLEEP_MASK, 0, OMAP3_PRM_VOLTCTRL_OFFSET);
-+}
-+
-+static void __init omap3_vc_init_channel(struct voltagedomain *voltdm)
-+{
-+	/*
-+	 * Set up voltagedomain callbacks for idle / resume and init
-+	 * channel for retention voltage levels.
-+	 */
-+	if (!strcmp(voltdm->name, "core")) {
-+		voltdm->sleep = omap3_vc_core_sleep;
-+		voltdm->wakeup = omap3_vc_core_wakeup;
-+		omap3_set_core_ret_timings(voltdm);
-+	} else {
-+		voltdm->sleep = omap3_vc_channel_sleep;
-+		omap3_set_i2c_timings(voltdm, false);
-+	}
-+}
-+
-+/**
-  * omap4_calc_volt_ramp - calculates voltage ramping delays on omap4
-  * @voltdm: channel to calculate values for
-  * @voltage_diff: voltage difference in microvolts
+ 	waittime = DIV_ROUND_UP(voltdm->pmic->step_size * sys_clk_rate,
+ 				1000 * voltdm->pmic->slew_rate);
 -- 
 1.7.4.1
 
