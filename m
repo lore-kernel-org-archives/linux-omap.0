@@ -1,42 +1,132 @@
-From: Arnd Bergmann <arnd@arndb.de>
-Subject: Re: [RFC PATCH 0/5] omap: add ocp2scp as a misc driver
-Date: Thu, 31 May 2012 20:46:14 +0000
-Message-ID: <201205312046.14823.arnd@arndb.de>
-References: <1338375394-16268-1-git-send-email-kishon@ti.com> <201205310922.18550.arnd@arndb.de> <CAAe_U6J3p9Lh9g82tSSLxOJ7nqrozdRe11zV_v2rqTuMYPjbyA@mail.gmail.com>
+From: "Cousson, Benoit" <b-cousson@ti.com>
+Subject: Re: [PATCH 1/3] arm/dts: add wdt node for omap3 and omap4
+Date: Thu, 31 May 2012 22:59:53 +0200
+Message-ID: <4FC7DBC9.7090406@ti.com>
+References: <1337942552-28218-1-git-send-email-jgq516@gmail.com> <1337942552-28218-2-git-send-email-jgq516@gmail.com> <4FC50CCD.7090404@ti.com> <4FC591C9.2050004@gmail.com> <4FC631E5.9080000@ti.com> <4FC706D7.2010801@gmail.com> <4FC78672.6040805@ti.com>
 Mime-Version: 1.0
-Content-Type: Text/Plain;
-  charset="iso-8859-1"
+Content-Type: text/plain; charset="ISO-8859-1"; format=flowed
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from moutng.kundenserver.de ([212.227.126.186]:50158 "EHLO
-	moutng.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752237Ab2EaUrV (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 31 May 2012 16:47:21 -0400
-In-Reply-To: <CAAe_U6J3p9Lh9g82tSSLxOJ7nqrozdRe11zV_v2rqTuMYPjbyA@mail.gmail.com>
-Sender: linux-omap-owner@vger.kernel.org
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <4FC78672.6040805@ti.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Jon Hunter <jon-hunter@ti.com>
+Cc: Xiao Jiang <jgq516@gmail.com>, linux@arm.linux.org.uk, rob.herring@calxeda.com, grant.likely@secretlab.ca, rnayak@ti.com, tony@atomide.com, wim@iguana.be, devicetree-discuss@lists.ozlabs.org, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-watchdog@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "ABRAHAM, KISHON VIJAY" <kishon@ti.com>
-Cc: paul@pwsan.com, tony@atomide.com, linux@arm.linux.org.uk, b-cousson@ti.com, gregkh@linuxfoundation.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org, balbi@ti.com
 
-On Thursday 31 May 2012, ABRAHAM, KISHON VIJAY wrote:
-> > I would mark the multiplexed device compatible with "simple-bus", which
-> > results in the child devices automatically getting added.
-> 
-> hmm.. ocp2scp has a sysconfig register and it also has a module mode
-> by which it can be enabled/disabled. I was making use of pm_runtime
-> API's to control these registers (Apart from creating child devices,
-> the driver also has a call to pm_runtime_enable). 
+On 5/31/2012 4:55 PM, Jon Hunter wrote:
+> On 05/31/2012 12:51 AM, Xiao Jiang wrote:
+>> Hi Jon and Benoit,
+>>>> Thanks for reminding, how about below patch?
+>>>>
+>>>> diff --git a/Documentation/devicetree/bindings/watchdog/omap-wdt.txt
+>>>> b/Documentation/devicetree/bindings/watchdog/omap-wdt.txt
+>>>> new file mode 100644
+>>>> index 0000000..4272d06
+>>>> --- /dev/null
+>>>> +++ b/Documentation/devicetree/bindings/watchdog/omap-wdt.txt
+>>>> @@ -0,0 +1,15 @@
+>>>> +TI Watchdog Timer (WDT) Controller for OMAP
+>>>> +
+>>>> +Required properties:
+>>>> +- compatible:
+>>>> +  - "ti,omap2-wdt" for OMAP2
+>>>> +  - "ti,omap3-wdt" for OMAP3
+>>>> +  - "ti,omap4-wdt" for OMAP4
+>>>> +- ti,hwmods: Name of the hwmod associated to the WDT
+>>>> +
+>>>> +Examples:
+>>>> +
+>>>> +wdt2: wdt@73f98000 {
+>>>> +       compatible = "ti,omap4-wdt";
+>>>> +       ti,hwmods = "wd_timer2";
+>>>> +};
+>>>>
+>>>
+>>> Yes looks good. Thanks! Minor nit-pick in the example I would just copy
+>>> the omap4 node completely with the actual omap4 address :-)
+>>>
+>>>
+>> Oops, wrong addr, :). Perhaps we can drop address as you said, since the
+>> right addresses are defined
+>> in wd_timer2 hwmod (see [1]), and wdt also works without the address as
+>> follows.
+>>
+>> diff --git a/arch/arm/boot/dts/omap2.dtsi b/arch/arm/boot/dts/omap2.dtsi
+>> index f2ab4ea..0017bd8 100644
+>> --- a/arch/arm/boot/dts/omap2.dtsi
+>> +++ b/arch/arm/boot/dts/omap2.dtsi
+>> @@ -63,5 +63,10 @@
+>>                         ti,hwmods = "uart3";
+>>                         clock-frequency =<48000000>;
+>>                 };
+>> +
+>> +               wdt2: wdt {
+>> +                       compatible = "ti,omap2-wdt";
+>> +                       ti,hwmods = "wd_timer2";
+>> +               };
+>>         };
+>> };
+>> diff --git a/arch/arm/boot/dts/omap3.dtsi b/arch/arm/boot/dts/omap3.dtsi
+>> index 99474fa..dbf8a5b 100644
+>> --- a/arch/arm/boot/dts/omap3.dtsi
+>> +++ b/arch/arm/boot/dts/omap3.dtsi
+>> @@ -215,5 +215,10 @@
+>>                         compatible = "ti,omap3-hsmmc";
+>>                         ti,hwmods = "mmc3";
+>>                 };
+>> +
+>> +               wdt2: wdt {
+>> +                       compatible = "ti,omap3-wdt", "ti,omap2-wdt";
+>> +                       ti,hwmods = "wd_timer2";
+>> +               };
+>>         };
+>> };
+>> diff --git a/arch/arm/boot/dts/omap4.dtsi b/arch/arm/boot/dts/omap4.dtsi
+>> index 359c497..ce74e87 100644
+>> --- a/arch/arm/boot/dts/omap4.dtsi
+>> +++ b/arch/arm/boot/dts/omap4.dtsi
+>> @@ -272,5 +272,10 @@
+>>                         ti,hwmods = "mmc5";
+>>                         ti,needs-special-reset;
+>>                 };
+>> +
+>> +               wdt2: wdt {
+>> +                       compatible = "ti,omap4-wdt", "ti,omap2-wdt";
+>> +                       ti,hwmods = "wd_timer2";
+>> +               };
+>>         };
+>> };
+>>
+>> Infos for omap3:
+>> # dmesg|grep Machine
+>> <6>[    0.000000] Machine: Generic OMAP3 (Flattened Device Tree), model:
+>> TI OMAP3 EVM (OMAP3530, AM/DM37x)
+>> # dmesg|grep omap_wdt_probe
+>> <4>[    2.552825] in omap_wdt_probe: 299, res->start = 0x48314000
+>>
+>> Infos for omap4:
+>> root@localhost:/root>  dmesg|grep Machine
+>> [    0.000000] Machine: Generic OMAP4 (Flattened Device Tree), model: TI
+>> OMAP4 SDP board
+>> root@localhost:/root>  dmesg|grep omap_wdt_probe
+>> [    1.687896] in omap_wdt_probe: 299, res->start = 0x4a314000
+>>
+>> So can I drop the wdt addr from dts file? otherwise it is not feasible
+>> to add omap2 wdt node in omap2.dtsi
+>> due to different addrs for omap2420 and omap2430.
+>
+> Benoit, what is your preference here?
 
-I see. 
+Get rid of both omap2420 and 2430 :-)
 
-> I'm not sure if with
-> "simple-bus" we'll be able to do those. I have to check on that.
+The point is that only OMAP3 and OMAP4 are supposed to be migrated to DT 
+for the moment.
 
-How about making it compatible with both "simple-bus" and something
-that handles the pm_runtime requirements?
+If you do not have any OMAP2 board to test that, it is anyway safer to 
+not touch the omap2.dtsi file.
 
-I don't understand enough of what needs to be done for pm_runtime
-across a lot of devices, but I'd hope that it should be possible
-to do that in a generic way based on the device definition.
+If the 2 or 3 remaining users of OMAP2 boards want to have DT support, 
+they'll be able to add that themselves.
 
-	Arnd
+Regards,
+Benoit
