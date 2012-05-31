@@ -1,124 +1,58 @@
-From: Jon Hunter <jon-hunter@ti.com>
-Subject: Re: [PATCH 4/6] ARM: OMAP4: PMU: Add runtime PM support
-Date: Thu, 31 May 2012 18:02:20 -0500
-Message-ID: <4FC7F87C.9080709@ti.com>
-References: <1336599355-10983-1-git-send-email-jon-hunter@ti.com> <87wr3uelgp.fsf@ti.com> <4FC548A3.2040906@ti.com> <4FC54D3B.10301@ti.com> <87pq9l7306.fsf@ti.com> <20120531012923.GB8506@mudshark.cambridge.arm.com> <4FC7B465.60703@ti.com> <87r4u0ytd9.fsf@ti.com> <4FC7E161.1080400@ti.com> <87d35kyo3v.fsf@ti.com>
+From: Kevin Hilman <khilman@ti.com>
+Subject: Re: [PATCH] ARM: OMAP2+: OPP: Fix to ensure check of right oppdef after bad one
+Date: Thu, 31 May 2012 16:15:38 -0700
+Message-ID: <87d35kx7qd.fsf@ti.com>
+References: <1337361979-19052-1-git-send-email-nm@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="ISO-8859-1"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from comal.ext.ti.com ([198.47.26.152]:38591 "EHLO comal.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1758244Ab2EaXCX (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Thu, 31 May 2012 19:02:23 -0400
-In-Reply-To: <87d35kyo3v.fsf@ti.com>
+Received: from na3sys009aog112.obsmtp.com ([74.125.149.207]:44812 "EHLO
+	na3sys009aog112.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1758594Ab2EaXPm (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>);
+	Thu, 31 May 2012 19:15:42 -0400
+Received: by dalh21 with SMTP id h21so1933221dal.34
+        for <linux-omap@vger.kernel.org>; Thu, 31 May 2012 16:15:38 -0700 (PDT)
+In-Reply-To: <1337361979-19052-1-git-send-email-nm@ti.com> (Nishanth Menon's
+	message of "Fri, 18 May 2012 12:26:19 -0500")
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Kevin Hilman <khilman@ti.com>
-Cc: Will Deacon <will.deacon@arm.com>, linux-omap <linux-omap@vger.kernel.org>, Ming Lei <ming.lei@canonical.com>, Benoit Cousson <b-cousson@ti.com>, Paul Walmsley <paul@pwsan.com>
+To: Nishanth Menon <nm@ti.com>
+Cc: Steve Sakoman <steve@sakoman.com>, Tony Lindgren <tony@atomide.com>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 
-Hi Kevin,
+Nishanth Menon <nm@ti.com> writes:
 
-On 05/31/2012 05:36 PM, Kevin Hilman wrote:
-> Jon Hunter <jon-hunter@ti.com> writes:
-> 
->> Hi Kevin,
->>
->> On 05/31/2012 03:42 PM, Kevin Hilman wrote:
->>> Jon Hunter <jon-hunter@ti.com> writes:
->>>
->>>> Hi Kevin, Will,
->>>>
->>>> On 05/30/2012 08:29 PM, Will Deacon wrote:
->>>>> Hi Kevin,
->>>>>
->>>>> On Wed, May 30, 2012 at 10:50:01PM +0100, Kevin Hilman wrote:
->>>>>> Basically, I don't like the result when we have to hack around missing
->>>>>> runtime PM support for a driver, so IMO, the driver should be updated.
->>>>>>
->>>>>> IOW, it looks to me like the armpmu driver should grow runtime PM
->>>>>> support.  The current armpmu_release|reserve should probably be replaced
->>>>>> with runtime PM get/put, and the functionality in those functions would
->>>>>> be the runtime PM callbacks instead.
->>>>>>
->>>>>> Will, any objections to armpmu growing runtime PM support?
->>>>>
->>>>> My plan for the armpmu reservation is to kill the global reservation scheme
->>>>> that we currently have and push those function pointers into the arm_pmu,
->>>>> so that fits with what you'd like.
->>>>>
->>>>> The only concern I have is that we need the mutual exclusion even when we
->>>>> don't have support for runtime PM. If we can solve that then I'm fine with
->>>>> the approach.
->>>>
->>>> To add a bit more food for thought, I had implemented a quick patch to
->>>> add runtime PM support for PMU. You will notice that I have been
->>>> conservative on where I have placed the pm_runtime_get/put calls,
->>>> because I am not too familiar with the PMU driver to know exactly
->>>> where we need to maintain the PMU context. So right now these are just
->>>> around the reserve_hardware/release_hardware calls. This works on OMAP
->>>> for some quick testing. However, I would need to make sure this does
->>>> not break compilation without runtime PM enabled.
->>>>
->>>> Let me know your thoughts.
->>>
->>> That looks good, but I'm curious what would be done in the new
->>> plat->runtime_* hooks.  Maybe the irq enable/disable stuff in the pmu
->>> driver needs to be moved into the runtime PM hooks?
->>
->> For omap4, the plat->runtime_* hooks look like ...
->>
->> +static int omap4_pmu_runtime_resume(struct device *dev)
->> +{
->> +       /* configure CTI0 for PMU IRQ routing */
->> +       cti_unlock(&omap4_cti[0]);
->> +       cti_map_trigger(&omap4_cti[0], 1, 6, 2);
->> +       cti_enable(&omap4_cti[0]);
->> +
->> +       /* configure CTI1 for PMU IRQ routing */
->> +       cti_unlock(&omap4_cti[1]);
->> +       cti_map_trigger(&omap4_cti[1], 1, 6, 3);
->> +       cti_enable(&omap4_cti[1]);
->> +
->> +       return 0;
->> +}
->> +
->> +static int omap4_pmu_runtime_suspend(struct device *dev)
->> +{
->> +       cti_disable(&omap4_cti[0]);
->> +       cti_disable(&omap4_cti[1]);
->> +
->> +       return 0;
->> +}
->>
->> This is what I have implemented so far and currently testing. So really
->> just using the hooks to configure the cross triggering interface.
->>
->> Is this what you were thinking?
->>
-> 
-> Basically, yes.  
-> 
-> But since I haven't studied the PMU driver closely, I have some dumb
-> questions.  My concern is that these look bsically like the
-> plat->irq_[enable|disable] hooks, so I guess the root of my question is
-> do we need both the irq enable/disable and runtime suspend/resume hooks
-> in plat?  or can we get by with one set.
+> Commit 9fa2df6b90786301b175e264f5fa9846aba81a65
+> (ARM: OMAP2+: OPP: allow OPP enumeration to continue if device is not present)
+> makes the logic:
+> for (i = 0; i < opp_def_size; i++) {
+> 	<snip>
+> 	if (!oh || !oh->od) {
+> 		<snip>
+> 		continue;
+> 	}
+> <snip>
+> opp_def++;
+> }
+>
+> In short, the moment we hit a "Bad OPP", we end up looping the list
+> comparing against the bad opp definition pointer for the rest of the
+> iteration count. Instead, increment opp_def in the for loop itself
+> and allow continue to be used in code without much thought so that
+> we check the next set of OPP definition pointers :)
+>
+> Cc: Kevin Hilman <khilman@ti.com>
+> Cc: Steve Sakoman <steve@sakoman.com>
+> Cc: Tony Lindgren <tony@atomide.com>
+> Cc: linux-omap@vger.kernel.org
+> Cc: linux-arm-kernel@lists.infradead.org
+>
+> Signed-off-by: Nishanth Menon <nm@ti.com>
 
-No you are right. The way it is now we could get by with just the one of
-hooks. However, the main reason I added the new hooks would be if there
-are other places we can call the pm_runtime_* functions. I am not too
-familiar with the flow in which the functions are called in the PMU
-driver and so this was a simple attempt to push the PM runtime framework
-in the PMU driver.
+Good catch.
 
-Hmmm ... however, now looking at the history behind the plat->irq_*
-hooks, I see that Ming specifically added these for omap4 [1]. I was
-under the impression other architectures may be using this. I guess not.
-So if it is preferred we could do-away with the plat->irq_* and replace
-with the plat->runtime_*.
+Queuing for my next set of PM fixes for v3.5-rc (branch: for_3.5/fixes/pm-2)
 
-Cheers
-Jon
+Thanks for the fix!
 
-[1] http://marc.info/?l=linux-arm-kernel&m=131946766428315&w=2
+Kevin
