@@ -1,203 +1,101 @@
-From: Tero Kristo <t-kristo@ti.com>
-Subject: Re: [PATCHv2 19/19] ARM: OMAP4: powerdomain: update mpu / core off
- counters during device off
-Date: Thu, 31 May 2012 09:50:21 +0300
-Message-ID: <1338447021.8834.161.camel@sokoban>
-References: <1336990730-26892-1-git-send-email-t-kristo@ti.com>
-	 <1336990730-26892-20-git-send-email-t-kristo@ti.com>
-	 <CAOMWX4fV_UEOuUi3M0yT5QfyunAw7Gf85LoXOP2DquQzv=rB6w@mail.gmail.com>
-Reply-To: <t-kristo@ti.com>
+From: Tomi Valkeinen <tomi.valkeinen@ti.com>
+Subject: Re: Compile err when enable CONFIG_SND_OMAP_SOC_OMAP_HDMI
+Date: Thu, 31 May 2012 10:00:21 +0300
+Message-ID: <4FC71705.80704@ti.com>
+References: <4FC5C8E5.7060108@gmail.com> <4FC6AEAF.5020501@ti.com>  <4FC704A4.2050806@bitmer.com> <1338445869.1864.3.camel@lappyti> <4FC712D3.50103@bitmer.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: 7bit
+Content-Type: multipart/signed; micalg=pgp-sha1;
+ protocol="application/pgp-signature";
+ boundary="------------enig0E171871E0A5BCBDEB380D0F"
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from devils.ext.ti.com ([198.47.26.153]:40517 "EHLO
-	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751680Ab2EaGu3 (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 31 May 2012 02:50:29 -0400
-In-Reply-To: <CAOMWX4fV_UEOuUi3M0yT5QfyunAw7Gf85LoXOP2DquQzv=rB6w@mail.gmail.com>
+Received: from na3sys009aog138.obsmtp.com ([74.125.149.19]:34328 "EHLO
+	na3sys009aog138.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1750742Ab2EaHAb (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>);
+	Thu, 31 May 2012 03:00:31 -0400
+Received: by lbbgm6 with SMTP id gm6so672962lbb.5
+        for <linux-omap@vger.kernel.org>; Thu, 31 May 2012 00:00:24 -0700 (PDT)
+In-Reply-To: <4FC712D3.50103@bitmer.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "Menon, Nishanth" <nm@ti.com>
-Cc: linux-omap@vger.kernel.org, khilman@ti.com, paul@pwsan.com, linux-arm-kernel@lists.infradead.org
+To: Jarkko Nikula <jarkko.nikula@bitmer.com>
+Cc: Ricardo Neri <ricardo.neri@ti.com>, Xiao Jiang <jgq516@gmail.com>, linux-omap@vger.kernel.org
 
-On Wed, 2012-05-30 at 16:08 -0500, Menon, Nishanth wrote:
-> On Mon, May 14, 2012 at 5:18 AM, Tero Kristo <t-kristo@ti.com> wrote:
-> > Currently device off does not have any counters / timers of its own
-> > and it is impossible to track the time spent in this state. In device
-> > off, MPU / CORE powerdomains enter OSWR, so normally the RETENTION
-> > state times / counts are increased during device off.
-> >
-> > This patch adds a new field to the powerdomain struct for context loss
-> > register, which is checked during pwrdm_post_transition to see if
-> > a device off type context loss has happened. If this is the case,
-> > the counters + timers for OFF state are touched instead of RETENTION.
-> >
-> > Signed-off-by: Tero Kristo <t-kristo@ti.com>
-> > ---
-> >  arch/arm/mach-omap2/omap-mpuss-lowpower.c   |    1 -
-> >  arch/arm/mach-omap2/powerdomain.c           |    9 +++++++++
-> >  arch/arm/mach-omap2/powerdomain.h           |    2 ++
-> >  arch/arm/mach-omap2/powerdomains44xx_data.c |    2 ++
-> >  arch/arm/mach-omap2/prm44xx.c               |   15 +++++++++++++++
-> >  arch/arm/mach-omap2/prm44xx.h               |    2 ++
-> >  6 files changed, 30 insertions(+), 1 deletions(-)
-> >
-> > diff --git a/arch/arm/mach-omap2/omap-mpuss-lowpower.c b/arch/arm/mach-omap2/omap-mpuss-lowpower.c
-> > index 1f06f97..f187025 100644
-> > --- a/arch/arm/mach-omap2/omap-mpuss-lowpower.c
-> > +++ b/arch/arm/mach-omap2/omap-mpuss-lowpower.c
-> > @@ -404,7 +404,6 @@ int omap4_enter_lowpower(unsigned int cpu, unsigned int power_state)
-> >        if (omap4_device_prev_state_off()) {
-> >                omap4_dpll_resume_off();
-> >                omap4_cm_resume_off();
-> > -               omap4_device_clear_prev_off_state();
-> 
-> We should probably delete the function in it's entirety - not just the
-> call - the original implementation just clears L3 and this
-> implementation seems superior.
+This is an OpenPGP/MIME signed message (RFC 2440 and 3156)
+--------------enig0E171871E0A5BCBDEB380D0F
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: quoted-printable
 
-Yeah, that can be done, I don't think it is used anymore after this
-change.
+On 05/31/2012 09:42 AM, Jarkko Nikula wrote:
+> On 05/31/2012 09:31 AM, Tomi Valkeinen wrote:
+>> It's true that there's a commit range where the asoc stuff doesn't
+>> compile, and I agree that it's not good. But you need to explicitly
+>> enable the HDMI ASOC support to get the error.
+>>
+> You can still hit the build breakage by randconfig or if it's enabled b=
+y
+> default in the future and you start bisecting with that config old kern=
+el.
 
-> 
-> >        }
-> >
-> >  sar_save_failed:
-> > diff --git a/arch/arm/mach-omap2/powerdomain.c b/arch/arm/mach-omap2/powerdomain.c
-> > index 96ad3dbe..f13bb2c 100644
-> > --- a/arch/arm/mach-omap2/powerdomain.c
-> > +++ b/arch/arm/mach-omap2/powerdomain.c
-> > @@ -156,6 +156,15 @@ static int _pwrdm_state_switch(struct powerdomain *pwrdm, int flag)
-> >                break;
-> >        case PWRDM_STATE_PREV:
-> >                prev = pwrdm_read_prev_pwrst(pwrdm);
-> > +
-> > +               /*
-> > +                * If powerdomain has context offset defined, check if
-> > +                * the domain has lost context (i.e. entered off)
-> > +                */
-> > +               if (pwrdm->context_offs)
-> > +                       if (omap4_pwrdm_lost_context_rff(pwrdm->prcm_offs,
-> > +                                                        pwrdm->context_offs))
-> 
-> We should wrap this under pwrdm_lost_context(pwrdm)
-> pwrdm_lost_context should call the arch_pwrdm->lost_context_rff as
-> needed? the rest of the powerdomain.c does not use OMAP4 specific
-> APIs.
+That's true.
 
-Yes, that sounds like a good change, I'll change this.
+>>> It's quite boring to try to bisect over multiple kernel versions and
+>>> where most of the time goes solving random unrelated build breakages.=
 
-> 
-> 
-> > +                               prev = PWRDM_POWER_OFF;
-> >                if (pwrdm->state != prev)
-> >                        pwrdm->state_counter[prev]++;
-> >                if (prev == PWRDM_POWER_RET)
-> > diff --git a/arch/arm/mach-omap2/powerdomain.h b/arch/arm/mach-omap2/powerdomain.h
-> > index 0d72a8a..a427645 100644
-> > --- a/arch/arm/mach-omap2/powerdomain.h
-> > +++ b/arch/arm/mach-omap2/powerdomain.h
-> > @@ -82,6 +82,7 @@ struct powerdomain;
-> >  * @name: Powerdomain name
-> >  * @voltdm: voltagedomain containing this powerdomain
-> >  * @prcm_offs: the address offset from CM_BASE/PRM_BASE
-> > + * @context_offs: the address offset for the CONTEXT register
-> >  * @prcm_partition: (OMAP4 only) the PRCM partition ID containing @prcm_offs
-> >  * @pwrsts: Possible powerdomain power states
-> >  * @pwrsts_logic_ret: Possible logic power states when pwrdm in RETENTION
-> > @@ -106,6 +107,7 @@ struct powerdomain {
-> >                struct voltagedomain *ptr;
-> >        } voltdm;
-> >        const s16 prcm_offs;
-> > +       const s16 context_offs;
-> >        const u8 pwrsts;
-> >        const u8 pwrsts_logic_ret;
-> >        const u8 flags;
-> > diff --git a/arch/arm/mach-omap2/powerdomains44xx_data.c b/arch/arm/mach-omap2/powerdomains44xx_data.c
-> > index d8701ce..c4de02f 100644
-> > --- a/arch/arm/mach-omap2/powerdomains44xx_data.c
-> > +++ b/arch/arm/mach-omap2/powerdomains44xx_data.c
-> > @@ -36,6 +36,7 @@ static struct powerdomain core_44xx_pwrdm = {
-> >        .voltdm           = { .name = "core" },
-> >        .prcm_offs        = OMAP4430_PRM_CORE_INST,
-> >        .prcm_partition   = OMAP4430_PRM_PARTITION,
-> > +       .context_offs     = OMAP4_RM_L3_1_L3_1_CONTEXT_OFFSET,
-> >        .pwrsts           = PWRSTS_RET_ON,
-> >        .pwrsts_logic_ret = PWRSTS_OFF_RET,
-> >        .banks            = 5,
-> > @@ -205,6 +206,7 @@ static struct powerdomain mpu_44xx_pwrdm = {
-> >        .voltdm           = { .name = "mpu" },
-> >        .prcm_offs        = OMAP4430_PRM_MPU_INST,
-> >        .prcm_partition   = OMAP4430_PRM_PARTITION,
-> > +       .context_offs     = OMAP4_RM_MPU_MPU_CONTEXT_OFFSET,
-> >        .pwrsts           = PWRSTS_RET_ON,
-> >        .pwrsts_logic_ret = PWRSTS_OFF_RET,
-> >        .banks            = 3,
-> 
-> Why are we not populating the rest of the CONTEXT_OFFSET registers?
+>>
+>> How to get arm/arm/, omapdss, omapdrm and asoc driver changes in at th=
+e
+>> same time? All go through various different trees and maintainers. I
+>> haven't found a solution for this. If you have good ideas, please shar=
+e
+>> =3D).
+>>
+> One simple - wait for next merge window. It's not that long. Only ~3
+> months and meanwhile one could keep boss/customer/wife/whatever
+> satisfied by carrying patches in own tree :-)
 
-Well, the thing is, other domains don't have any 'spare' context
-registers that are not needed by anything else. Like, all the per domain
-context registers are used by some hwmod. If we grab the register for
-this use, then the context lost count for that hwmod will break.
+Well... I'm not sure how serious you are here =3D).
 
-For PER domain, it might be possible to use RM_L4PER_L4_PER_CONTEXT
-though (it has two bit positions), but that is the only one missing...
-Other domains do go to OFF. L3_init domain doesn't have anything.
+In some cases that's doable, and we've done it, for example omapdrm had
+some things delayed until next merge window, so it's definitely an option=
+=2E
 
-> 
-> > diff --git a/arch/arm/mach-omap2/prm44xx.c b/arch/arm/mach-omap2/prm44xx.c
-> > index 86c6c6b..de9132f 100644
-> > --- a/arch/arm/mach-omap2/prm44xx.c
-> > +++ b/arch/arm/mach-omap2/prm44xx.c
-> > @@ -289,6 +289,21 @@ static void __init omap44xx_prm_enable_io_wakeup(void)
-> >                        OMAP4_PRM_IO_PMCTRL_OFFSET);
-> >  }
-> >
-> > +bool omap4_pwrdm_lost_context_rff(s16 inst, s16 offset)
-> > +{
-> > +       u32 val;
-> > +
-> > +       val = omap4_prminst_read_inst_reg(OMAP4430_PRM_PARTITION, inst, offset);
-> > +
-> > +       if (val & OMAP4430_LOSTCONTEXT_RFF_MASK) {
-> > +               omap4_prminst_write_inst_reg(val, OMAP4430_PRM_PARTITION, inst,
-> > +                                            offset);
-> > +               return true;
-> > +       }
-> > +
-> > +       return false;
-> > +}
-> > +
-> 
-> could move to powerdomain4xx.c?
+But it's quite easy to get some build dependencies between pull
+requests, so we'd be delaying features all the time. And sometimes even
+cross dependencies. In the worst case it could end up with delaying some
+features for a year to get all single pieces in bit by bit.
 
-Yes, I'll do that.
+Something I think we could try to do is create some kinds of temporary
+dummy functions or such which allow the compilation, but of course makes
+the component not (fully) functional. The temp functions could then be
+removed in -rc2 or so, when the dependencies are all there. But doesn't
+feel like an optimal solution either...
 
--Tero
-
-> 
-> >  /**
-> >  * omap4_device_set_state_off() - setup device off state
-> >  * @enable:    set to off or not.
-> > diff --git a/arch/arm/mach-omap2/prm44xx.h b/arch/arm/mach-omap2/prm44xx.h
-> > index ee72ae6..fa76d9c 100644
-> > --- a/arch/arm/mach-omap2/prm44xx.h
-> > +++ b/arch/arm/mach-omap2/prm44xx.h
-> > @@ -771,6 +771,8 @@ extern void omap44xx_prm_ocp_barrier(void);
-> >  extern void omap44xx_prm_save_and_clear_irqen(u32 *saved_mask);
-> >  extern void omap44xx_prm_restore_irqen(u32 *saved_mask);
-> >
-> > +extern bool omap4_pwrdm_lost_context_rff(s16 inst, s16 offset);
-> we dont need to do this if we use arch_pwrdm->
-> > +
-> >  # endif
-> >
-> >  #endif
-> 
-> ---
-> Regards,
-> Nishanth Menon
+ Tomi
 
 
+--------------enig0E171871E0A5BCBDEB380D0F
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: OpenPGP digital signature
+Content-Disposition: attachment; filename="signature.asc"
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.4.11 (GNU/Linux)
+Comment: Using GnuPG with Mozilla - http://enigmail.mozdev.org/
+
+iQIcBAEBAgAGBQJPxxcFAAoJEPo9qoy8lh71IB4QAJP+x3AJ9I47Ebt8cmP41Yvc
+3/UgQWkTaSIeD4KtRKjXEUREqTQnzeteO6CIXODkvtKEBvEQlq8SpVsH91ibGJot
+LzbuytucKfl6P9W+sezJ9w3qrUpi0YZ33JJGbp+0mU34qBM0TWpdyWGBHUcsDQg6
+TUc+8ZE1UUv68yFSbbbfegjIVWf/b7QKTHQfANrBDWGhh+vC2Gnw4BaAbTNfRKgX
+v4zUQNQ6bU8ArBZ+55m1KIkJDQpNxcctuxeekUgD+MkCPDFoMbEqbBCD2ZLPSnyG
+WmoRGxiMGahyxOsWTbf1x1nezfAG39sP2sGgPsyqdgOpzfffFC62lfzmkttamOTV
+yee+/DL1vxy7NYkzXAvjwV3Flf0dmkKYiSa0jlmQ7EkXjcDKSGBm8lfrWo31g+hQ
+64hzHKmjE3YYkUIV5kDIECJCDZgtorg+36IWNjDw28eycEw/HDN0C2MziKlEngqx
+r4NtxAMmA+It0OCPNTZnxZhhxJXmc/gKIE9vDSGRzFSbpEi/XM+qxkR6atprmqns
+VAGjOJsKjKiczc9La/sK0OMcyKsec+FzAlE9V7bQFuE5riI38RpNZs4abGAAXt93
+7JzTXwtHVXaIWdhpaO4nB1DSuLFWBa1AOA9wlMENHBd8CBKzB4eEAQ+45AUUd1Tk
+okDVq8zY0BxWPNZ9p0UO
+=nGKK
+-----END PGP SIGNATURE-----
+
+--------------enig0E171871E0A5BCBDEB380D0F--
