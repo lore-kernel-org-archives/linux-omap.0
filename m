@@ -1,98 +1,75 @@
-From: Felipe Balbi <balbi-l0cyMroinI0@public.gmane.org>
-Subject: Re: [PATCH 2/6] usb: gadget: omap_udc: remove useless print
-Date: Fri, 1 Jun 2012 14:07:52 +0300
-Message-ID: <20120601110751.GM15957@arwen.pp.htv.fi>
-References: <1338293761-9457-1-git-send-email-balbi@ti.com>
- <1338293761-9457-3-git-send-email-balbi@ti.com>
- <20120601110123.GK12766@atomide.com>
-Reply-To: balbi-l0cyMroinI0@public.gmane.org
+From: Tony Lindgren <tony@atomide.com>
+Subject: Re: [RFC PATCH 02/11] ARM: OMAP: expose control.h to mach area
+Date: Fri, 1 Jun 2012 04:19:39 -0700
+Message-ID: <20120601111938.GL12766@atomide.com>
+References: <1337934361-1606-1-git-send-email-eduardo.valentin@ti.com>
+ <1337934361-1606-3-git-send-email-eduardo.valentin@ti.com>
+ <CAMQu2gxbkFCtkK+NCVksC82-R4SAKKtK2w=zNbrNi9a10s1t1Q@mail.gmail.com>
+ <CAGF5oy_R0xKsKQoqq2ReCjEP2tWC4UcawnAkTPU35thysnSj7g@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="QqzFzR/RUlLahzby"
-Return-path: <linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <20120601110123.GK12766-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
-Sender: linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
-Cc: Felipe Balbi <balbi-l0cyMroinI0@public.gmane.org>, Linux USB Mailing List <linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Linux OMAP Mailing List <linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-List-Id: linux-omap@vger.kernel.org
-
-
---QqzFzR/RUlLahzby
 Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from mho-01-ewr.mailhop.org ([204.13.248.71]:50376 "EHLO
+	mho-01-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752433Ab2FALTq (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 1 Jun 2012 07:19:46 -0400
 Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
+In-Reply-To: <CAGF5oy_R0xKsKQoqq2ReCjEP2tWC4UcawnAkTPU35thysnSj7g@mail.gmail.com>
+Sender: linux-omap-owner@vger.kernel.org
+List-Id: linux-omap@vger.kernel.org
+To: "Valentin, Eduardo" <eduardo.valentin@ti.com>
+Cc: "Shilimkar, Santosh" <santosh.shilimkar@ti.com>, b-cousson@ti.com, kishon@ti.com, kbaidarov@dev.rtsoft.ru, paul@pwsan.com, balbi@ti.com, amit.kucheria@linaro.org, linux-pm@lists.linux-foundation.org, linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org, amit.kachhap@linaro.org
 
-Hi,
+* Valentin, Eduardo <eduardo.valentin@ti.com> [120528 03:34]:
+> Hello,
+> 
+> On Mon, May 28, 2012 at 12:25 PM, Shilimkar, Santosh
+> <santosh.shilimkar@ti.com> wrote:
+> > On Fri, May 25, 2012 at 1:55 PM, Eduardo Valentin
+> > <eduardo.valentin@ti.com> wrote:
+> >> This patch exposes the definitions under control.h to
+> >> drivers outside the machine code.
+> >>
+> >> Signed-off-by: Eduardo Valentin <eduardo.valentin@ti.com>
+> >> ---
+> > After second thought, this complete header movement needs to avoided.
+> > Drivers should not anyway include something like <mach/control.h>
+> >
+> > May be split the control.h header file data into ..
+> > - defines used by mach-omap2/* files which can remain in "control.h"
+> > in existing location.
+> 
+> OK..
+> 
+> > - common functions/defines used across drivers/*, mach-omap2/*,
+> > plat-omap/*, should
+> > go to include/linux/omap_control.h
+> 
+> Right..
+> 
+> > - Driver specific defines like thermal, usb etc, should go to
+> > respective drivers file.
+> 
+> Indeed.
+> 
+> >
+> > What do you think ?
+> 
+> I think we are in line. And I believe I saw a similar comment by
+> Benoit in other email thread.
+> 
+> Having a better thinking of this, it makes sense to have the
+> definition specific to drivers in the driver scope only, as they are
+> going to be used only there anyway.
+> 
+> I will drop this patch off and update the remaining changes
+> accordingly (drop the change in control.h for thermal specific and
+> move it to omap_bandgap.h).
 
-On Fri, Jun 01, 2012 at 04:01:24AM -0700, Tony Lindgren wrote:
-> * Felipe Balbi <balbi-l0cyMroinI0@public.gmane.org> [120529 05:22]:
-> > that print isn't needed at all. Remove it
-> > and move the use_dma reinitialization to
-> > probe() function.
-> >=20
-> > Note that ideally we would drop all
-> > cpu_is_* and machine_is_* checks from
-> > this driver instead. Later patches will
-> > come to get rid of those.
-> >=20
-> > Signed-off-by: Felipe Balbi <balbi-l0cyMroinI0@public.gmane.org>
-> > ---
-> >  drivers/usb/gadget/omap_udc.c |   13 +++----------
-> >  1 file changed, 3 insertions(+), 10 deletions(-)
-> >=20
-> > diff --git a/drivers/usb/gadget/omap_udc.c b/drivers/usb/gadget/omap_ud=
-c.c
-> > index aa2d174..5e7b891 100644
-> > --- a/drivers/usb/gadget/omap_udc.c
-> > +++ b/drivers/usb/gadget/omap_udc.c
-> > @@ -2800,6 +2800,9 @@ static int __init omap_udc_probe(struct platform_=
-device *pdev)
-> >  	struct clk		*dc_clk =3D NULL;
-> >  	struct clk		*hhc_clk =3D NULL;
-> > =20
-> > +	if (cpu_is_omap7xx())
-> > +		use_dma =3D 0;
-> > +
-> >  	/* NOTE:  "knows" the order of the resources! */
-> >  	if (!request_mem_region(pdev->resource[0].start,
-> >  			pdev->resource[0].end - pdev->resource[0].start + 1,
->=20
-> I think this would break omap_udc for 7xx as it then tries to use
-> DMA as USED_MA is set by default?
+Yes good, we should not expose these to the other drivers, that will
+lead into misuse of these defines from various other drivers that we
+may not notice until it's too late.
 
-I'm clearing it in the start of probe function. There's not functional
-changes at all. use_dma is ON by default, then our probe gets called and
-first thing we do is clear use_dma to zero when we're running on
-omap7xx. I don't see the issue, maybe I'm missing something.
+Regards,
 
---=20
-balbi
-
---QqzFzR/RUlLahzby
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: Digital signature
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.4.12 (GNU/Linux)
-
-iQIcBAEBAgAGBQJPyKKHAAoJEIaOsuA1yqREZ38P/1OCoIGTYFOmSFuL9LIjhDo+
-BAKTfmhrtevK2mOr7RzP7v6vBjOKQhVqmOPdyyKV1/lEMkyFSrySxUR/Oe2//qWz
-5lNO/csu7878oIDYLBkXOmYdP6wM31pa9Sn6ppzBszBqP8JrcfR+KNFchwZ6mHsf
-+M81lI4Q0aj8ez9BV5pBMdp68mRo4dF6FBQ3KGa55RRg26yURb2PQERdILSkeyAf
-gDJtLLWmvkO/Fi2t1JFKODVVn5F8fXhXpjwVS8fh5YSHZAn15TqZv56orTzXvnAj
-zJXWYguYXbat3xfGLpw688hZ47G3SQvPZpIMGRDodKNS1MTbvbvH9muASeMAHsZ2
-YQM3A7BCbnjwPFfaJLwnbXlOODQfyyID0Xk6S8bFBMxO62unJOkESvRzBLynuLAm
-iAZ3pq2waUpz+X1vPaqoVaYqKIjgXjXi/KNA0JbtLq7r87TbzOIqx685VTA5WZGq
-70YHw9l3f7qqVGCcTfyZUEuBlolEXsu5gzRYmyCcW59WYYFGOUkBtcWzUbxULYcz
-a4PW8TGA0WHvOJdK2e8J+bior+vrEZGi32GF1Qq3loF5hamwUAlvysFe9xiqYUR+
-r5lCssth9KapYnhx5sRF/FSaBTZxjbZxHdgwjWFSk4l8XCEUS7aeN9Cr/X74+92w
-bZd74TF5kEZssx2D+G1C
-=42Lk
------END PGP SIGNATURE-----
-
---QqzFzR/RUlLahzby--
---
-To unsubscribe from this list: send the line "unsubscribe linux-usb" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Tony
