@@ -1,95 +1,95 @@
-From: Nishanth Menon <nm@ti.com>
-Subject: [PATCH V2 4/4] ARM: OMAP3+: PM: VP: ensure VP is idle before disable
-Date: Thu, 31 May 2012 20:41:39 -0500
-Message-ID: <1338514899-3560-5-git-send-email-nm@ti.com>
-References: <1338514899-3560-1-git-send-email-nm@ti.com>
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aog123.obsmtp.com ([74.125.149.149]:38559 "EHLO
-	na3sys009aog123.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755910Ab2FABmC (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>);
-	Thu, 31 May 2012 21:42:02 -0400
-Received: by obcni5 with SMTP id ni5so2445104obc.41
-        for <linux-omap@vger.kernel.org>; Thu, 31 May 2012 18:41:57 -0700 (PDT)
-In-Reply-To: <1338514899-3560-1-git-send-email-nm@ti.com>
-Sender: linux-omap-owner@vger.kernel.org
-List-Id: linux-omap@vger.kernel.org
+From: "J, KEERTHY" <j-keerthy@ti.com>
+Subject: Re: [PATCH V3 00/10] PM: Create the AVS(Adaptive Voltage Scaling)
+Date: Fri, 1 Jun 2012 09:15:45 +0530
+Message-ID: <CAJ6a13YzgxK1QJVLd+ZKRM=w4mM3P3YXicwdazpBaRDqdUDHqA@mail.gmail.com>
+References: <1335462041-4949-1-git-send-email-j-keerthy@ti.com>
+	<87397by2h9.fsf@ti.com>
+	<CAJ6a13aJwesHw0frCV+EfvYaep09cZGcu_PopuHzye1HS2tgvg@mail.gmail.com>
+	<CAJ6a13YLogA7M=rzSJAW6fHZOujFY0Crfdz9Sc5qL0mt8kX9CA@mail.gmail.com>
+	<87obpdv6f4.fsf@ti.com>
+	<874nqwynxd.fsf@ti.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <874nqwynxd.fsf@ti.com>
+Sender: linux-kernel-owner@vger.kernel.org
 To: Kevin Hilman <khilman@ti.com>
-Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Wenbiao Wang <wwang@ti.com>, Tony Lindgren <tony@atomide.com>, Nishanth Menon <nm@ti.com>
+Cc: "Rafael J. Wysocki" <rjw@sisk.pl>, greg@kroah.com, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org, linux-pm@lists.linux-foundation.org, j-pihet@ti.com
+List-Id: linux-omap@vger.kernel.org
 
-From: Wenbiao Wang <wwang@ti.com>
+On Fri, Jun 1, 2012 at 4:10 AM, Kevin Hilman <khilman@ti.com> wrote:
+> Kevin Hilman <khilman@ti.com> writes:
+>
+>> "J, KEERTHY" <j-keerthy@ti.com> writes:
+>>
+>>> On Tue, May 15, 2012 at 11:16 AM, J, KEERTHY <j-keerthy@ti.com> wro=
+te:
+>>>> On Tue, May 8, 2012 at 5:21 AM, Kevin Hilman <khilman@ti.com> wrot=
+e:
+>>>>> Rafael,
+>>>>>
+>>>>> Keerthy <j-keerthy@ti.com> writes:
+>>>>>
+>>>>>> From: J Keerthy <j-keerthy@ti.com>
+>>>>>>
+>>>>>> AVS(Adaptive Voltage Scaling) is a power management technique wh=
+ich
+>>>>>> controls the operating voltage of a device in order to optimize =
+(i.e. reduce)
+>>>>>> its power consumption. The voltage is adapted depending on stati=
+c factors
+>>>>>> (chip manufacturing process) and dynamic factors (temperature
+>>>>>> depending performance).
+>>>>>> The TI AVS solution is named Smartreflex.
+>>>>>>
+>>>>>> To that end, create the AVS driver in drivers/power/avs and
+>>>>>> move the OMAP SmartReflex code to the new directory. The
+>>>>>> class driver is still retained in the mach-omap2 directory.
+>>>>>
+>>>>> How should we handle this for upstream?
+>>>>>
+>>>>> It does a bunch of cleanup under arch/arm then does the move to
+>>>>> drivers/power the end. =A0To avoid conflicts with other OMAP core=
+ changes,
+>>>>> I would suggest we take this through the OMAP tree.
+>>>>>
+>>>>> With your ack, I'd be glad to take it.
+>>>>
+>>>> Hello Rafael,
+>>>>
+>>>> A gentle ping on this series.
+>>>
+>>> Hi Greg,
+>>>
+>>> This series has Kevin's comments incorporated.
+>>>
+>>> Kevin,
+>>>
+>>> Can i have your Ack for this series?
+>>>
+>>
+>> Well, as mentioned above, I'm waiting for Rafael's ack, then I will
+>> merge it.
+>>
+>> Because of all the arch/arm/mach-omap2/* changes, I would like to me=
+rge
+>> this via the OMAP tree to avoid conflicts with other stuff we have
+>> changing in arch/arm/mach-omap2/*
+>
+> OK, I had an off-line discussion with Rafael and he's OK that I take
+> these. =A0I will add an ack from Rafael and queue this series up for =
+v3.6.
 
-Voltage Processor state machine transition to disable need to
-occur from IDLE state. When we transition OPP in a functioning
-system, the call sequence for an OPP transition is as follows:
-omap_sr_disable
-      -> sr class 3 disable
-           -> vp disable
-           -> sr disable
-forceupdate to voltage/frequency scale depending on which OPP
-we are transitioning to.
+Thanks Kevin.
 
-If we hit a critical timing window where SR had commanded VP
-for a voltage transition and VP is in the middle of operating
-on that command, it needs to go through a few states before
-going to update state(where it actually sends the command to
-VC). Initial view of h/w owners is that the state disable of VP
-is expected to be sampled for the next transition.
+>
+> Thanks,
+>
+> Kevin
 
-Instead, to be on a safer side, we ensure that the valid states
-of the VP state machine is diligently followed by software. This
-can be done by waiting for VP to be in idle  prior to disabling
-VP. Existing prints have been updated to ensure context is
-available on error messages.
 
-As part of this change, increase timeout for VP idle check to
-improbable 500uSec to be certain that system is indeed unable
-to continue before crashing out with error(worst case expectancy
-remains the same 3-100uSec depending on when we caught VP).
 
-Cc: Tony Lindgren <tony@atomide.com>
-Cc: Kevin Hilman <khilman@ti.com>
-
-[nm@ti.com: port from android]
-Signed-off-by: Nishanth Menon <nm@ti.com>
-Signed-off-by: Wenbiao Wang <wwang@ti.com>
----
- arch/arm/mach-omap2/vp.c |    4 ++++
- arch/arm/mach-omap2/vp.h |    5 +++--
- 2 files changed, 7 insertions(+), 2 deletions(-)
-
-diff --git a/arch/arm/mach-omap2/vp.c b/arch/arm/mach-omap2/vp.c
-index 2a8a085..9a72deb 100644
---- a/arch/arm/mach-omap2/vp.c
-+++ b/arch/arm/mach-omap2/vp.c
-@@ -308,6 +308,10 @@ void omap_vp_disable(struct voltagedomain *voltdm)
- 		return;
- 	}
- 
-+	if (_vp_wait_for_idle(voltdm, vp)) {
-+		pr_warn_ratelimited("%s: vdd_%s timedout!Ignore and try\n",
-+				    __func__, voltdm->name);
-+	}
- 	/* Disable VP */
- 	vpconfig = voltdm->read(vp->vpconfig);
- 	vpconfig &= ~vp->common->vpconfig_vpenable;
-diff --git a/arch/arm/mach-omap2/vp.h b/arch/arm/mach-omap2/vp.h
-index 4655b39..4b4eeb6 100644
---- a/arch/arm/mach-omap2/vp.h
-+++ b/arch/arm/mach-omap2/vp.h
-@@ -33,9 +33,10 @@ struct voltagedomain;
- /*
-  * Time out for Voltage processor in micro seconds. Typical latency is < 2uS,
-  * but worst case latencies could be around 3-200uS depending on where we
-- * interrupted VP's operation.
-+ * interrupted VP's operation. Use an improbable timeout value to be
-+ * sure that timeout events are beyond doubt.
-  */
--#define VP_IDLE_TIMEOUT		200
-+#define VP_IDLE_TIMEOUT		500
- #define VP_TRANXDONE_TIMEOUT	300
- 
- /**
--- 
-1.7.9.5
-
+--=20
+Regards and Thanks,
+Keerthy
