@@ -1,67 +1,57 @@
-From: Mark Brown <broonie@opensource.wolfsonmicro.com>
-Subject: Re: [PATCH] ASoC: omap-mcbsp: Add pm_runtime_get/put functions call
- for McBSP.
-Date: Fri, 1 Jun 2012 21:24:50 +0100
-Message-ID: <20120601202449.GA4258@opensource.wolfsonmicro.com>
-References: <1338581572-11047-1-git-send-email-s-guiriec@ti.com>
+From: Jon Hunter <jon-hunter@ti.com>
+Subject: Re: [RFC 00/24] Move OMAP2+ over to use COMMON clock
+Date: Fri, 1 Jun 2012 15:37:45 -0500
+Message-ID: <4FC92819.7040504@ti.com>
+References: <1338552485-31325-1-git-send-email-rnayak@ti.com>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="SUOF0GtieIMvvwua"
+Content-Type: text/plain; charset="ISO-8859-1"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from opensource.wolfsonmicro.com ([80.75.67.52]:37954 "EHLO
-	opensource.wolfsonmicro.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1759247Ab2FAUYy (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 1 Jun 2012 16:24:54 -0400
-Content-Disposition: inline
-In-Reply-To: <1338581572-11047-1-git-send-email-s-guiriec@ti.com>
+Received: from comal.ext.ti.com ([198.47.26.152]:47831 "EHLO comal.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752751Ab2FAUhy (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Fri, 1 Jun 2012 16:37:54 -0400
+In-Reply-To: <1338552485-31325-1-git-send-email-rnayak@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Sebastien Guiriec <s-guiriec@ti.com>
-Cc: Peter Ujfalusi <peter.ujfalusi@ti.com>, Jarkko Nikula <jarkko.nikula@bitmer.com>, Liam Girdwood <lrg@ti.com>, linux-omap@vger.kernel.org, alsa-devel@alsa-project.org
+To: Rajendra Nayak <rnayak@ti.com>
+Cc: mturquette@ti.com, paul@pwsan.com, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 
+Hi Rajendra, Paul,
 
---SUOF0GtieIMvvwua
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
+On 06/01/2012 07:07 AM, Rajendra Nayak wrote:
+> Hi,
+> 
+> This RFC series is based of Mikes' latest clk-next. I will
+> rebase it once 3.5-rc1 is out and post with more testing thats
+> in progress. Meanwhile, the RFC is for me to get some early
+> feedback on the patches.
+> 
+> This series retains the static clock declarations and also
+> all data and code in mach-omap folders and does not move
+> it as yet to drivers/clk. I know its desierable that we move
+> away from static declaration of data and move over to drivers/clk
+> but thats not addressed by this series.
+> Also the series moves over only OMAP2+ (OMAP2/3/4)
+> to use COMMON clk and leaves OMAP1 still using OMAP
+> clock framework.
 
-On Fri, Jun 01, 2012 at 10:12:52PM +0200, Sebastien Guiriec wrote:
-> pm_runtime_get_sync() and put_sync() are not called by McBSP driver.
-> This is introducing a problem with PM and Audio Backend due to
-> missing get/put for McBSP IP.
+I had wanted to move the file mach-omap2/clkt_sel.c into
+plat-omap/clkt_sel.c so that this could be used by omap1. The reason for
+doing this is to fix clock configuration for dmtimers, which right now
+is complete broken. I have posted a series here [1], however, it appears
+that patch #1 to move clkt_sel.c never made it to the mailing list :-(
 
-They are called by the core.  Probably you're just pointing your struct
-device at some virtual device instead of the physical device, either
-enabling runtime PM for the virtual device (assuming it's a child of the
-physical device) or changing the pointer to the physical device (which
-might make for better dev_ logging potentially) should resolve the
-issue.
+Looking at this series, all the functions on clkt_sel.c have been
+converted to the clock common framework and so this will probably no
+longer work for omap1. So there are possibly a couple solutions ...
 
-> +       pm_runtime_put_sync(mcbsp->dev);
+1. Move omap1 to the common clock framework (I am sure this would be
+preferred but a lot more work).
+2. Duplicate the appropriate functions from the current clkt_sel.c in an
+equivalent file in mach-omap1.
 
-No need for this, anyway - just use regular _put().  We don't care if
-the device is actually suspended before we return, the PM core can do
-that at it's leisure.
+[1] http://marc.info/?l=linux-omap&m=133771799505501&w=2
 
---SUOF0GtieIMvvwua
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: Digital signature
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.4.12 (GNU/Linux)
-
-iQIcBAEBAgAGBQJPySUDAAoJEBus8iNuMP3d96sP+gPMTEdzhwmEsH1gwXuA6RB4
-ZS9Rheo5lGyEs1wL2/3R7gshDi2mC5L66tuajrvhjymis4uOiJquysoYF+vNo7/R
-xqhk1jQSM0lsyVnBEKTiz6DkeF84TjrR8YwYzD4fYt+HN7d0BtFDQr+/7WlEmKgc
-k6zn61CLFFjyJmBGbB7zGgncfEp2WA3ag7RCJn6nYybB17YTj+LD6gmRz+2ealDj
-FPTNSakDahs0xbxiRZgyiGA8MqaSbBAzDCH1U3Wpm6BidB3WNlfvfwf2CExCaAH/
-K1Asn+yIadhnzfoy7iGhEQsoo7IBw2qsoKSTkAW+OplzP7nMdGsXBZwz2XvQT/KV
-ftSurJ3J5Cn8jyE1UdBE1Ho2rjQEvfeXZfAAdnoJWXQGQJI3Tgiv3DxAVSBLWjHk
-t/kHj1R6exniNTqZpS0oa2oD3CmhIgQJPXay9f3lHYOaC1DkEppZGUiCILOqyduA
-9s1UGFiRYL7exxHHchW3He9SjTDoypkZrSg65AnAeVeGtJyapCO3bgPlfAw78VNh
-CAkDSNktlI0qAjMNA9EQeAG6GDm/ZCt/XTwpfg3Y2SVna3MZkzBToMGOZNPBY1XD
-Z7dLxxh2wxUauwvEFtdkGFhE6YG3ndHa3YktdaUT+9Q7yhfKkPvcQGk2M0CPuVja
-/I+u6nD4OmwTKsdqk9eD
-=s2RQ
------END PGP SIGNATURE-----
-
---SUOF0GtieIMvvwua--
+Cheers
+Jon
