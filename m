@@ -1,57 +1,47 @@
 From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [RFC PATCH 07/11] mfd: omap: control: usb-phy:
- introduce the ctrl-module usb driver
-Date: Fri, 1 Jun 2012 04:38:53 -0700
-Message-ID: <20120601113853.GO12766@atomide.com>
+Subject: Re: [RFC PATCH 09/11] ARM: OMAP4+: thermal: introduce bandgap
+ temperature sensor
+Date: Fri, 1 Jun 2012 04:42:39 -0700
+Message-ID: <20120601114238.GP12766@atomide.com>
 References: <1337934361-1606-1-git-send-email-eduardo.valentin@ti.com>
-	<1337934361-1606-8-git-send-email-eduardo.valentin@ti.com>
+ <1337934361-1606-10-git-send-email-eduardo.valentin@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-pm-bounces@lists.linux-foundation.org>
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from mho-01-ewr.mailhop.org ([204.13.248.71]:63665 "EHLO
+	mho-01-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756609Ab2FALmr (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 1 Jun 2012 07:42:47 -0400
 Content-Disposition: inline
-In-Reply-To: <1337934361-1606-8-git-send-email-eduardo.valentin@ti.com>
-List-Unsubscribe: <https://lists.linuxfoundation.org/mailman/options/linux-pm>,
-	<mailto:linux-pm-request@lists.linux-foundation.org?subject=unsubscribe>
-List-Archive: <http://lists.linuxfoundation.org/pipermail/linux-pm/>
-List-Post: <mailto:linux-pm@lists.linux-foundation.org>
-List-Help: <mailto:linux-pm-request@lists.linux-foundation.org?subject=help>
-List-Subscribe: <https://lists.linuxfoundation.org/mailman/listinfo/linux-pm>,
-	<mailto:linux-pm-request@lists.linux-foundation.org?subject=subscribe>
-Sender: linux-pm-bounces@lists.linux-foundation.org
-Errors-To: linux-pm-bounces@lists.linux-foundation.org
-To: Eduardo Valentin <eduardo.valentin@ti.com>
-Cc: amit.kucheria@linaro.org, balbi@ti.com, kishon@ti.com, linux-pm@lists.linux-foundation.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+In-Reply-To: <1337934361-1606-10-git-send-email-eduardo.valentin@ti.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Eduardo Valentin <eduardo.valentin@ti.com>
+Cc: b-cousson@ti.com, kishon@ti.com, kbaidarov@dev.rtsoft.ru, santosh.shilimkar@ti.com, paul@pwsan.com, balbi@ti.com, amit.kucheria@linaro.org, linux-pm@lists.linux-foundation.org, linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org, amit.kachhap@linaro.org, Keerthy <j-keerthy@ti.com>
 
 * Eduardo Valentin <eduardo.valentin@ti.com> [120525 01:31]:
-> +int omap4_usb_phy_power(struct device *dev, int on)
-> +{
-> +	u32 val;
-> +	int ret;
-> +
-> +	if (on) {
-> +		ret = omap_control_readl(dev, CONTROL_DEV_CONF, &val);
-> +		if (!ret && (val & PHY_PD)) {
-> +			ret = omap_control_writel(dev, ~PHY_PD,
-> +						  CONTROL_DEV_CONF);
-> +			/* XXX: add proper documentation for this delay */
-> +			mdelay(200);
-> +		}
-> +	} else {
-> +		ret = omap_control_writel(dev, PHY_PD, CONTROL_DEV_CONF);
-> +	}
-> +
-> +	return ret;
-> +}
-> +EXPORT_SYMBOL_GPL(omap4_usb_phy_power);
+> In the System Control Module, OMAP supplies a voltage reference
+> and a temperature sensor feature that are gathered in the band
+> gap voltage and temperature sensor (VBGAPTS) module. The band
+> gap provides current and voltage reference for its internal
+> circuits and other analog IP blocks. The analog-to-digital
+> converter (ADC) produces an output value that is proportional
+> to the silicon temperature.
+> 
+> This patch provides a platform driver which expose this feature.
+> It is moduled as a MFD child of the System Control Module core
+> MFD driver.
+> 
+> This driver provides only APIs to access the device properties,
+> like temperature, thresholds and update rate.
 
-I'm not quite convinced that we should export omap_control_read/write
-to drivers. If there's a clear register area this USB phy driver can
-manage, then ioremaping it separately makes sense. If it's just one
-register, then exporting something like omap_control_usb_phy_set()
-might be better for ensuring that drivers don't mess up things for
-other drivers.
+Here too you a better long term solution is probably to ioremap
+the temp sensor registers for the driver. That way alloc_mem_region()
+provides some checks so the driver won't stomp over other registers.
+
+If you need to use omap_ctrl_read/write here, then we should at
+least clearly understand and document why it needs to be done that
+way instead of following standard ioremap + readl/writel.
 
 Regards,
 
