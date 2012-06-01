@@ -1,135 +1,87 @@
-From: Jean Pihet <jean.pihet@newoldbits.com>
-Subject: Re: [PATCH 2/2] ARM: OMAP3: PM: cpuidle: optimize the clkdm idle
- latency in C1 state
-Date: Fri, 1 Jun 2012 17:14:17 +0200
-Message-ID: <CAORVsuWeHJufTA+MMg1OUNjqVdoUn0M80-atnFB5B7d4jU3eDA@mail.gmail.com>
-References: <1336560912-26753-1-git-send-email-j-pihet@ti.com>
-	<1336560912-26753-2-git-send-email-j-pihet@ti.com>
-	<87pq9k1fhd.fsf@ti.com>
+From: "ABRAHAM, KISHON VIJAY" <kishon@ti.com>
+Subject: Re: [RFC PATCH 2/5] arm: omap: remove ocp2scp_usb_phy_ick clock node
+Date: Fri, 1 Jun 2012 21:24:42 +0530
+Message-ID: <CAAe_U6+3dCpvsX4WZDopa-V9G=cnhFzaMe49wWk6AoAVx6ESRA@mail.gmail.com>
+References: <1338375394-16268-1-git-send-email-kishon@ti.com>
+	<1338375394-16268-3-git-send-email-kishon@ti.com>
+	<CAMQu2gxcP8At5j4UOK3bgX+Q+OunXeTxyXEr6hAhGiwjLs-gJg@mail.gmail.com>
+	<4FC63B8D.3070107@ti.com>
+	<CAAe_U6L6b26J4Q3mB6K0BLtwkaL92SFZSQTMCd=Rv3UBynVCBA@mail.gmail.com>
+	<4FC8C288.5060200@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-lpp01m010-f46.google.com ([209.85.215.46]:52233 "EHLO
-	mail-lpp01m010-f46.google.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S932649Ab2FAPOT convert rfc822-to-8bit
+Received: from na3sys009aog119.obsmtp.com ([74.125.149.246]:59693 "EHLO
+	na3sys009aog119.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S964937Ab2FAPyo convert rfc822-to-8bit
 	(ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Fri, 1 Jun 2012 11:14:19 -0400
-Received: by lahd3 with SMTP id d3so1621555lah.19
-        for <linux-omap@vger.kernel.org>; Fri, 01 Jun 2012 08:14:17 -0700 (PDT)
-In-Reply-To: <87pq9k1fhd.fsf@ti.com>
+	Fri, 1 Jun 2012 11:54:44 -0400
+Received: by yenl3 with SMTP id l3so2149632yen.26
+        for <linux-omap@vger.kernel.org>; Fri, 01 Jun 2012 08:54:42 -0700 (PDT)
+In-Reply-To: <4FC8C288.5060200@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Kevin Hilman <khilman@ti.com>
-Cc: Grazvydas Ignotas <notasas@gmail.com>, linux-omap@vger.kernel.org, Paul Walmsley <paul@pwsan.com>, Jean Pihet <j-pihet@ti.com>
+To: "Cousson, Benoit" <b-cousson@ti.com>
+Cc: "Shilimkar, Santosh" <santosh.shilimkar@ti.com>, paul@pwsan.com, tony@atomide.com, linux@arm.linux.org.uk, arnd@arndb.de, gregkh@linuxfoundation.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org, balbi@ti.com
 
-Hi Kevin,
+On Fri, Jun 1, 2012 at 6:54 PM, Cousson, Benoit <b-cousson@ti.com> wrot=
+e:
+> On 6/1/2012 2:52 PM, ABRAHAM, KISHON VIJAY wrote:
+>>
+>> Hi Benoit,
+>>
+>> On Wed, May 30, 2012 at 8:53 PM, Cousson, Benoit<b-cousson@ti.com> =A0=
+wrote:
+>>>
+>>> On 5/30/2012 4:51 PM, Shilimkar, Santosh wrote:
+>>>>
+>>>>
+>>>> On Wed, May 30, 2012 at 4:26 PM, Kishon Vijay Abraham I<kishon@ti.=
+com>
+>>>> =A0wrote:
+>>>>>
+>>>>>
+>>>>> "ocp2scp_usb_phy_ick" clock node was a fake clock node created
+>>>>> to control MODULEMODE of ocp2scp. Since the hwmod for ocp2scp is =
+now
+>>>>> added
+>>>>> (which can be used to control MODULEMODE) this clock node is remo=
+ved.
+>>>>>
+>>>>> Cc: Benoit Cousson<b-cousson@ti.com>
+>>>>> Signed-off-by: Kishon Vijay Abraham I<kishon@ti.com>
+>>>>> ---
+>>>>> =A0arch/arm/mach-omap2/clock44xx_data.c | =A0 11 -----------
+>>>>
+>>>>
+>>>>
+>>>> Have you patched clock44xx_data.c manually or you have a patch for
+>>>> the clock_data autogen script to generate it ?
+>>>
+>>>
+>>>
+>>> I have a series that will remove all these clock nodes. I should be=
+ able
+>>> to
+>>> post that soon.
+>>>
+>>> Potentially at that time, Kishon might be able to drop that patch.
+>>
+>>
+>> Will you be sending a patch for *[RFC PATCH 1/5] arm: omap: hwmod:
+>> make *phy_48m* as the main_clk of ocp2scp* also or I have to keep th=
+at
+>> as part of my series?
+>
+>
+> Good point. In fact, I'm fixing both at the same time to avoid any bi=
+sect
+> issue.
 
-On Thu, May 31, 2012 at 6:29 PM, Kevin Hilman <khilman@ti.com> wrote:
-> jean.pihet@newoldbits.com writes:
->
->> From: Jean Pihet <j-pihet@ti.com>
->>
->> It is not needed to iterate through all the clock domains of a
->> power domain in order to allow or deny it to idle.
->
-> Why? =A0(I know the answer, but would like it answered here.)
->
->> This patch allows or denies only the first registered clock domain
->> of a power domain, and so optimizes the latency of the low power
->> code. The functions _cpuidle_allow_idle and _cpuidle_deny_idle are
->> not used anymore and so are removed.
->>
->> Signed-off-by: Jean Pihet <j-pihet@ti.com>
->
-> Other than the changelog update, it looks good but also needs a rebas=
-e
-> like the previous patch.
->
-> After that, I'll add them to my for_3.6/pm/performance branch and que=
-ue
-> for v3.6.
-The new series has been sent as '[PATCH 0/3] ARM: OMAP3: PM: optimize
-cpuidle C1 state latency' with the suggested changes (changelog
-updated, rebased on for_3.6/pm/performance).
+Thanks :-)
 
-Note: with the code from the branch the CORE does not idle. The
-optimization changes have been tested OK though.
-
->
-> Thanks!
->
-> Kevin
->
-
-Regards,
-Jean
-
-
->> ---
->> =A0arch/arm/mach-omap2/cpuidle34xx.c | =A0 22 ++++------------------
->> =A01 files changed, 4 insertions(+), 18 deletions(-)
->>
->> diff --git a/arch/arm/mach-omap2/cpuidle34xx.c b/arch/arm/mach-omap2=
-/cpuidle34xx.c
->> index 353dd8d..d44b68a 100644
->> --- a/arch/arm/mach-omap2/cpuidle34xx.c
->> +++ b/arch/arm/mach-omap2/cpuidle34xx.c
->> @@ -73,20 +73,6 @@ struct omap3_idle_statedata omap3_idle_data[OMAP3=
-_NUM_STATES];
->>
->> =A0struct powerdomain *mpu_pd, *core_pd, *per_pd, *cam_pd;
->>
->> -static int _cpuidle_allow_idle(struct powerdomain *pwrdm,
->> - =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 struct clo=
-ckdomain *clkdm)
->> -{
->> - =A0 =A0 clkdm_allow_idle(clkdm);
->> - =A0 =A0 return 0;
->> -}
->> -
->> -static int _cpuidle_deny_idle(struct powerdomain *pwrdm,
->> - =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 struct clo=
-ckdomain *clkdm)
->> -{
->> - =A0 =A0 clkdm_deny_idle(clkdm);
->> - =A0 =A0 return 0;
->> -}
->> -
->> =A0static int __omap3_enter_idle(struct cpuidle_device *dev,
->> =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 struct c=
-puidle_driver *drv,
->> =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 int inde=
-x)
->> @@ -105,8 +91,8 @@ static int __omap3_enter_idle(struct cpuidle_devi=
-ce *dev,
->>
->> =A0 =A0 =A0 /* Deny idle for C1 */
->> =A0 =A0 =A0 if (index =3D=3D 0) {
->> - =A0 =A0 =A0 =A0 =A0 =A0 pwrdm_for_each_clkdm(mpu_pd, _cpuidle_deny=
-_idle);
->> - =A0 =A0 =A0 =A0 =A0 =A0 pwrdm_for_each_clkdm(core_pd, _cpuidle_den=
-y_idle);
->> + =A0 =A0 =A0 =A0 =A0 =A0 clkdm_deny_idle(mpu_pd->pwrdm_clkdms[0]);
->> + =A0 =A0 =A0 =A0 =A0 =A0 clkdm_deny_idle(core_pd->pwrdm_clkdms[0]);
->> =A0 =A0 =A0 }
->>
->> =A0 =A0 =A0 /*
->> @@ -128,8 +114,8 @@ static int __omap3_enter_idle(struct cpuidle_dev=
-ice *dev,
->>
->> =A0 =A0 =A0 /* Re-allow idle for C1 */
->> =A0 =A0 =A0 if (index =3D=3D 0) {
->> - =A0 =A0 =A0 =A0 =A0 =A0 pwrdm_for_each_clkdm(mpu_pd, _cpuidle_allo=
-w_idle);
->> - =A0 =A0 =A0 =A0 =A0 =A0 pwrdm_for_each_clkdm(core_pd, _cpuidle_all=
-ow_idle);
->> + =A0 =A0 =A0 =A0 =A0 =A0 clkdm_allow_idle(mpu_pd->pwrdm_clkdms[0]);
->> + =A0 =A0 =A0 =A0 =A0 =A0 clkdm_allow_idle(core_pd->pwrdm_clkdms[0])=
-;
->> =A0 =A0 =A0 }
->>
->> =A0return_sleep_time:
+-Kishon
 --
 To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
 n
