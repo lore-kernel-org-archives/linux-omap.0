@@ -1,51 +1,67 @@
-From: <jgq516@gmail.com>
-Subject: [PATCHv2 3/3] watchdog: omap_wdt: add device tree support
-Date: Fri, 1 Jun 2012 12:44:16 +0800
-Message-ID: <1338525856-4359-4-git-send-email-jgq516@gmail.com>
-References: <1338525856-4359-1-git-send-email-jgq516@gmail.com>
+From: Igor Grinberg <grinberg@compulab.co.il>
+Subject: Re: [PATCH] ARM: OMAP2+: OPP: Fix to ensure check of right oppdef
+ after bad one
+Date: Fri, 01 Jun 2012 10:03:02 +0300
+Message-ID: <4FC86926.5050404@compulab.co.il>
+References: <1337361979-19052-1-git-send-email-nm@ti.com> <87d35kx7qd.fsf@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain
-Return-path: <linux-doc-owner@vger.kernel.org>
-In-Reply-To: <1338525856-4359-1-git-send-email-jgq516@gmail.com>
-Sender: linux-doc-owner@vger.kernel.org
-To: grant.likely@secretlab.ca, rob.herring@calxeda.com, rob@landley.net, linux@arm.linux.org.uk, b-cousson@ti.com, rnayak@ti.com, tony@atomide.com, wim@iguana.be, jon-hunter@ti.com
-Cc: devicetree-discuss@lists.ozlabs.org, linux-doc@vger.kernel.org, linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org, linux-watchdog@vger.kernel.org
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from 50.23.254.54-static.reverse.softlayer.com ([50.23.254.54]:40249
+	"EHLO softlayer.compulab.co.il" rhost-flags-OK-OK-OK-FAIL)
+	by vger.kernel.org with ESMTP id S1754614Ab2FAHDJ (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 1 Jun 2012 03:03:09 -0400
+In-Reply-To: <87d35kx7qd.fsf@ti.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Kevin Hilman <khilman@ti.com>
+Cc: Nishanth Menon <nm@ti.com>, Tony Lindgren <tony@atomide.com>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Steve Sakoman <steve@sakoman.com>
 
-From: Xiao Jiang <jgq516@gmail.com>
+Hi Kevin, Nishanth,
 
-Add device table for omap_wdt to support dt.
+On 06/01/12 02:15, Kevin Hilman wrote:
+> Nishanth Menon <nm@ti.com> writes:
+> 
+>> Commit 9fa2df6b90786301b175e264f5fa9846aba81a65
+>> (ARM: OMAP2+: OPP: allow OPP enumeration to continue if device is not present)
+>> makes the logic:
+>> for (i = 0; i < opp_def_size; i++) {
+>> 	<snip>
+>> 	if (!oh || !oh->od) {
+>> 		<snip>
+>> 		continue;
+>> 	}
+>> <snip>
+>> opp_def++;
+>> }
+>>
+>> In short, the moment we hit a "Bad OPP", we end up looping the list
+>> comparing against the bad opp definition pointer for the rest of the
+>> iteration count. Instead, increment opp_def in the for loop itself
+>> and allow continue to be used in code without much thought so that
+>> we check the next set of OPP definition pointers :)
+>>
+>> Cc: Kevin Hilman <khilman@ti.com>
+>> Cc: Steve Sakoman <steve@sakoman.com>
+>> Cc: Tony Lindgren <tony@atomide.com>
+>> Cc: linux-omap@vger.kernel.org
+>> Cc: linux-arm-kernel@lists.infradead.org
+>>
+>> Signed-off-by: Nishanth Menon <nm@ti.com>
+> 
+> Good catch.
+> 
+> Queuing for my next set of PM fixes for v3.5-rc (branch: for_3.5/fixes/pm-2)
 
-Signed-off-by: Xiao Jiang <jgq516@gmail.com>
----
- drivers/watchdog/omap_wdt.c |    7 +++++++
- 1 files changed, 7 insertions(+), 0 deletions(-)
+I think this should also apply for stable, right?
+If it should, can you please add a
+Cc: stable@vger.kernel.org
+?
 
-diff --git a/drivers/watchdog/omap_wdt.c b/drivers/watchdog/omap_wdt.c
-index 8285d65..02ebfd5 100644
---- a/drivers/watchdog/omap_wdt.c
-+++ b/drivers/watchdog/omap_wdt.c
-@@ -430,6 +430,12 @@ static int omap_wdt_resume(struct platform_device *pdev)
- #define	omap_wdt_resume		NULL
- #endif
- 
-+static const struct of_device_id omap_wdt_of_match[] = {
-+	{ .compatible = "ti,omap3-wdt", },
-+	{},
-+};
-+MODULE_DEVICE_TABLE(of, omap_wdt_of_match);
-+
- static struct platform_driver omap_wdt_driver = {
- 	.probe		= omap_wdt_probe,
- 	.remove		= __devexit_p(omap_wdt_remove),
-@@ -439,6 +445,7 @@ static struct platform_driver omap_wdt_driver = {
- 	.driver		= {
- 		.owner	= THIS_MODULE,
- 		.name	= "omap_wdt",
-+		.of_match_table = omap_wdt_of_match,
- 	},
- };
- 
+Thanks
+
+
 -- 
-1.7.3
-
+Regards,
+Igor.
