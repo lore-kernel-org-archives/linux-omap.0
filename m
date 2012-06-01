@@ -1,50 +1,90 @@
 From: Nishanth Menon <nm@ti.com>
-Subject: [PATCH V4 0/4] ARM: OMAP3+: VP: collate fixes
-Date: Thu, 31 May 2012 20:41:35 -0500
-Message-ID: <1338514899-3560-1-git-send-email-nm@ti.com>
+Subject: [PATCH V2 1/4] ARM: OMAP3+: PM: VP: check only the VPINIDLE status bit
+Date: Thu, 31 May 2012 20:41:36 -0500
+Message-ID: <1338514899-3560-2-git-send-email-nm@ti.com>
+References: <1338514899-3560-1-git-send-email-nm@ti.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aog133.obsmtp.com ([74.125.149.82]:41789 "EHLO
-	na3sys009aog133.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752744Ab2FABls (ORCPT
+Received: from na3sys009aog109.obsmtp.com ([74.125.149.201]:55968 "EHLO
+	na3sys009aog109.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1753943Ab2FABlv (ORCPT
 	<rfc822;linux-omap@vger.kernel.org>);
-	Thu, 31 May 2012 21:41:48 -0400
-Received: by obqv19 with SMTP id v19so2530551obq.8
-        for <linux-omap@vger.kernel.org>; Thu, 31 May 2012 18:41:47 -0700 (PDT)
+	Thu, 31 May 2012 21:41:51 -0400
+Received: by obceq6 with SMTP id eq6so2786834obc.37
+        for <linux-omap@vger.kernel.org>; Thu, 31 May 2012 18:41:49 -0700 (PDT)
+In-Reply-To: <1338514899-3560-1-git-send-email-nm@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: Kevin Hilman <khilman@ti.com>
 Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Nishanth Menon <nm@ti.com>, Tony Lindgren <tony@atomide.com>
 
-Reviewing the android code base brought out a few fixes that upstream
-does not have, so collating them and posting them out in this chain.
-
-Nishanth Menon (3):
-  ARM: OMAP3+: PM: VP: check only the VPINIDLE status bit
-  ARM: OMAP3+: PM: VP: move check of idle to separate function
-  ARM: OMAP3+: PM: VP: check to ensure VP is idle before forceupdate
-
-Wenbiao Wang (1):
-  ARM: OMAP3+: PM: VP: ensure VP is idle before disable
-
- arch/arm/mach-omap2/vp.c          |   65 +++++++++++++++++++++++++++++++------
- arch/arm/mach-omap2/vp.h          |   10 ++++--
- arch/arm/mach-omap2/vp3xxx_data.c |    1 +
- arch/arm/mach-omap2/vp44xx_data.c |    1 +
- 4 files changed, 65 insertions(+), 12 deletions(-)
-
-Changes in v4:
-	vp idle moved off to a seperate function
-	reordered patches to reduce loc changes
-	rate controlled warnings
-
-Previous revs:
-	V1: http://marc.info/?l=linux-omap&m=133736976423629&w=2
+Currently we check against the entire 32 bits of the status register
+Where, bits 1-31 are marked as reserved and mentioned in TRM as read
+returns undefined values. Hence, check against purely the vpinidle
+status bit.
 
 Cc: Tony Lindgren <tony@atomide.com>
 Cc: Kevin Hilman <khilman@ti.com>
---
-Regards,
-Nishanth Menon
+Reported-by: Vinay Amancha <vinaykumar@ti.com>
+Signed-off-by: Nishanth Menon <nm@ti.com>
+---
+ arch/arm/mach-omap2/vp.c          |    5 +++--
+ arch/arm/mach-omap2/vp.h          |    1 +
+ arch/arm/mach-omap2/vp3xxx_data.c |    1 +
+ arch/arm/mach-omap2/vp44xx_data.c |    1 +
+ 4 files changed, 6 insertions(+), 2 deletions(-)
+
+diff --git a/arch/arm/mach-omap2/vp.c b/arch/arm/mach-omap2/vp.c
+index f95c1ba..faefef7 100644
+--- a/arch/arm/mach-omap2/vp.c
++++ b/arch/arm/mach-omap2/vp.c
+@@ -270,8 +270,9 @@ void omap_vp_disable(struct voltagedomain *voltdm)
+ 	/*
+ 	 * Wait for VP idle Typical latency is <2us. Maximum latency is ~100us
+ 	 */
+-	omap_test_timeout((voltdm->read(vp->vstatus)),
+-			  VP_IDLE_TIMEOUT, timeout);
++	omap_test_timeout((voltdm->read(vp->vstatus) &
++			   vp->common->vstatus_vpidle), VP_IDLE_TIMEOUT,
++			  timeout);
+ 
+ 	if (timeout >= VP_IDLE_TIMEOUT)
+ 		pr_warning("%s: vdd_%s idle timedout\n",
+diff --git a/arch/arm/mach-omap2/vp.h b/arch/arm/mach-omap2/vp.h
+index 7c155d2..ac1d6cf 100644
+--- a/arch/arm/mach-omap2/vp.h
++++ b/arch/arm/mach-omap2/vp.h
+@@ -73,6 +73,7 @@ struct omap_vp_common {
+ 	u8 vpconfig_initvdd;
+ 	u8 vpconfig_forceupdate;
+ 	u8 vpconfig_vpenable;
++	u8 vstatus_vpidle;
+ 	u8 vstepmin_stepmin_shift;
+ 	u8 vstepmin_smpswaittimemin_shift;
+ 	u8 vstepmax_stepmax_shift;
+diff --git a/arch/arm/mach-omap2/vp3xxx_data.c b/arch/arm/mach-omap2/vp3xxx_data.c
+index bd89f80..a65909b 100644
+--- a/arch/arm/mach-omap2/vp3xxx_data.c
++++ b/arch/arm/mach-omap2/vp3xxx_data.c
+@@ -44,6 +44,7 @@ static const struct omap_vp_common omap3_vp_common = {
+ 	.vpconfig_initvdd = OMAP3430_INITVDD_MASK,
+ 	.vpconfig_forceupdate = OMAP3430_FORCEUPDATE_MASK,
+ 	.vpconfig_vpenable = OMAP3430_VPENABLE_MASK,
++	.vstatus_vpidle = OMAP3430_VPINIDLE_MASK,
+ 	.vstepmin_smpswaittimemin_shift = OMAP3430_SMPSWAITTIMEMIN_SHIFT,
+ 	.vstepmax_smpswaittimemax_shift = OMAP3430_SMPSWAITTIMEMAX_SHIFT,
+ 	.vstepmin_stepmin_shift = OMAP3430_VSTEPMIN_SHIFT,
+diff --git a/arch/arm/mach-omap2/vp44xx_data.c b/arch/arm/mach-omap2/vp44xx_data.c
+index 8c031d1..9d14881 100644
+--- a/arch/arm/mach-omap2/vp44xx_data.c
++++ b/arch/arm/mach-omap2/vp44xx_data.c
+@@ -44,6 +44,7 @@ static const struct omap_vp_common omap4_vp_common = {
+ 	.vpconfig_initvdd = OMAP4430_INITVDD_MASK,
+ 	.vpconfig_forceupdate = OMAP4430_FORCEUPDATE_MASK,
+ 	.vpconfig_vpenable = OMAP4430_VPENABLE_MASK,
++	.vstatus_vpidle = OMAP4430_VPINIDLE_MASK,
+ 	.vstepmin_smpswaittimemin_shift = OMAP4430_SMPSWAITTIMEMIN_SHIFT,
+ 	.vstepmax_smpswaittimemax_shift = OMAP4430_SMPSWAITTIMEMAX_SHIFT,
+ 	.vstepmin_stepmin_shift = OMAP4430_VSTEPMIN_SHIFT,
 -- 
 1.7.9.5
 
