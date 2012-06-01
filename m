@@ -1,669 +1,1767 @@
 From: Rajendra Nayak <rnayak@ti.com>
-Subject: [RFC 17/24] ARM: omap: clk: Use plat clock.c & clock.h only for OMAP1
-Date: Fri, 1 Jun 2012 17:37:58 +0530
-Message-ID: <1338552485-31325-18-git-send-email-rnayak@ti.com>
+Subject: [RFC 02/24] ARM: omap4: cm: add bitfield width values
+Date: Fri, 1 Jun 2012 17:37:43 +0530
+Message-ID: <1338552485-31325-3-git-send-email-rnayak@ti.com>
 References: <1338552485-31325-1-git-send-email-rnayak@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from bear.ext.ti.com ([192.94.94.41]:54078 "EHLO bear.ext.ti.com"
+Received: from comal.ext.ti.com ([198.47.26.152]:47194 "EHLO comal.ext.ti.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1759535Ab2FAMI4 (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Fri, 1 Jun 2012 08:08:56 -0400
+	id S1759519Ab2FAMIq (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Fri, 1 Jun 2012 08:08:46 -0400
 In-Reply-To: <1338552485-31325-1-git-send-email-rnayak@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: mturquette@ti.com, paul@pwsan.com
 Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Rajendra Nayak <rnayak@ti.com>
 
-Get rid of all OMAP2+ content from plat/clock.h and use it along with
-plat/clock.c only for OMAP1.
-Get rid of all '#include <plat/clock.h>' from OMAP2+ files.
+From: Mike Turquette <mturquette@ti.com>
 
+The new common clk framework includes basic definitions for mux and
+divider clocks.  These definitions depend on shift and width values
+instead of the pre-computed masks that the OMAP clk framework has
+traditionally used when accessing the register to control the mux or
+divisor.
+
+To ease this transition the masks are left intact and the width field is
+simply added alongside the shift and mask data.
+
+Signed-off-by: Mike Turquette <mturquette@ti.com>
 Signed-off-by: Rajendra Nayak <rnayak@ti.com>
 ---
- arch/arm/mach-omap2/clkt2xxx_apll.c          |    1 -
- arch/arm/mach-omap2/clkt2xxx_dpll.c          |    2 -
- arch/arm/mach-omap2/clkt2xxx_dpllcore.c      |    1 -
- arch/arm/mach-omap2/clkt2xxx_osc.c           |    2 -
- arch/arm/mach-omap2/clkt2xxx_sys.c           |    2 -
- arch/arm/mach-omap2/clkt2xxx_virt_prcm_set.c |    1 -
- arch/arm/mach-omap2/clkt34xx_dpll3m2.c       |    1 -
- arch/arm/mach-omap2/clkt_clksel.c            |    2 -
- arch/arm/mach-omap2/clkt_dpll.c              |    1 -
- arch/arm/mach-omap2/clkt_iclk.c              |    1 -
- arch/arm/mach-omap2/clock.c                  |    1 -
- arch/arm/mach-omap2/clock.h                  |    6 -
- arch/arm/mach-omap2/clock2430.c              |    1 -
- arch/arm/mach-omap2/clock2xxx.c              |    1 -
- arch/arm/mach-omap2/clock34xx.c              |    2 -
- arch/arm/mach-omap2/clock3517.c              |    2 -
- arch/arm/mach-omap2/clock36xx.c              |    2 -
- arch/arm/mach-omap2/clock3xxx.c              |    1 -
- arch/arm/mach-omap2/clockdomain.c            |    1 -
- arch/arm/mach-omap2/clockdomain.h            |    1 -
- arch/arm/mach-omap2/common.c                 |    1 -
- arch/arm/mach-omap2/dpll3xxx.c               |    1 -
- arch/arm/mach-omap2/dpll44xx.c               |    1 -
- arch/arm/mach-omap2/omap_hwmod.c             |    1 -
- arch/arm/mach-omap2/pm-debug.c               |    1 -
- arch/arm/mach-omap2/pm24xx.c                 |    1 -
- arch/arm/mach-omap2/sdram-nokia.c            |    1 -
- arch/arm/mach-omap2/sdrc.c                   |    1 -
- arch/arm/mach-omap2/sdrc2xxx.c               |    1 -
- arch/arm/plat-omap/Makefile                  |    3 +-
- arch/arm/plat-omap/clock.c                   |    2 -
- arch/arm/plat-omap/counter_32k.c             |    2 -
- arch/arm/plat-omap/include/plat/clock.h      |  140 --------------------------
- drivers/spi/spi-omap2-mcspi.c                |    1 -
- 34 files changed, 2 insertions(+), 187 deletions(-)
+ arch/arm/mach-omap2/cm-regbits-44xx.h |  411 +++++++++++++++++++++++++++------
+ 1 files changed, 335 insertions(+), 76 deletions(-)
 
-diff --git a/arch/arm/mach-omap2/clkt2xxx_apll.c b/arch/arm/mach-omap2/clkt2xxx_apll.c
-index a147188..882eab9 100644
---- a/arch/arm/mach-omap2/clkt2xxx_apll.c
-+++ b/arch/arm/mach-omap2/clkt2xxx_apll.c
-@@ -21,7 +21,6 @@
- #include <linux/clk.h>
- #include <linux/io.h>
- 
--#include <plat/clock.h>
- #include <plat/prcm.h>
- 
- #include "clock.h"
-diff --git a/arch/arm/mach-omap2/clkt2xxx_dpll.c b/arch/arm/mach-omap2/clkt2xxx_dpll.c
-index a1f9915..4bc699c 100644
---- a/arch/arm/mach-omap2/clkt2xxx_dpll.c
-+++ b/arch/arm/mach-omap2/clkt2xxx_dpll.c
-@@ -14,8 +14,6 @@
- #include <linux/clk.h>
- #include <linux/io.h>
- 
--#include <plat/clock.h>
--
- #include "clock.h"
- #include "cm2xxx_3xxx.h"
- #include "cm-regbits-24xx.h"
-diff --git a/arch/arm/mach-omap2/clkt2xxx_dpllcore.c b/arch/arm/mach-omap2/clkt2xxx_dpllcore.c
-index d5e9c94..fd7b9ab 100644
---- a/arch/arm/mach-omap2/clkt2xxx_dpllcore.c
-+++ b/arch/arm/mach-omap2/clkt2xxx_dpllcore.c
-@@ -25,7 +25,6 @@
- #include <linux/clk.h>
- #include <linux/io.h>
- 
--#include <plat/clock.h>
- #include <plat/sram.h>
- #include <plat/sdrc.h>
- 
-diff --git a/arch/arm/mach-omap2/clkt2xxx_osc.c b/arch/arm/mach-omap2/clkt2xxx_osc.c
-index 3b1d13f..52a4508 100644
---- a/arch/arm/mach-omap2/clkt2xxx_osc.c
-+++ b/arch/arm/mach-omap2/clkt2xxx_osc.c
-@@ -23,8 +23,6 @@
- #include <linux/clk.h>
- #include <linux/io.h>
- 
--#include <plat/clock.h>
--
- #include "clock.h"
- #include "clock2xxx.h"
- #include "prm2xxx_3xxx.h"
-diff --git a/arch/arm/mach-omap2/clkt2xxx_sys.c b/arch/arm/mach-omap2/clkt2xxx_sys.c
-index 12164a6..d68b3bc 100644
---- a/arch/arm/mach-omap2/clkt2xxx_sys.c
-+++ b/arch/arm/mach-omap2/clkt2xxx_sys.c
-@@ -22,8 +22,6 @@
- #include <linux/clk.h>
- #include <linux/io.h>
- 
--#include <plat/clock.h>
--
- #include "clock.h"
- #include "clock2xxx.h"
- #include "prm2xxx_3xxx.h"
-diff --git a/arch/arm/mach-omap2/clkt2xxx_virt_prcm_set.c b/arch/arm/mach-omap2/clkt2xxx_virt_prcm_set.c
-index a0b2b28..eb7f553 100644
---- a/arch/arm/mach-omap2/clkt2xxx_virt_prcm_set.c
-+++ b/arch/arm/mach-omap2/clkt2xxx_virt_prcm_set.c
-@@ -34,7 +34,6 @@
- #include <linux/slab.h>
- 
- #include <plat/cpu.h>
--#include <plat/clock.h>
- #include <plat/sram.h>
- #include <plat/sdrc.h>
- 
-diff --git a/arch/arm/mach-omap2/clkt34xx_dpll3m2.c b/arch/arm/mach-omap2/clkt34xx_dpll3m2.c
-index 7e550b1..74cc4ed 100644
---- a/arch/arm/mach-omap2/clkt34xx_dpll3m2.c
-+++ b/arch/arm/mach-omap2/clkt34xx_dpll3m2.c
-@@ -21,7 +21,6 @@
- #include <linux/clk.h>
- #include <linux/io.h>
- 
--#include <plat/clock.h>
- #include <plat/sram.h>
- #include <plat/sdrc.h>
- 
-diff --git a/arch/arm/mach-omap2/clkt_clksel.c b/arch/arm/mach-omap2/clkt_clksel.c
-index c99222a..396f7fb 100644
---- a/arch/arm/mach-omap2/clkt_clksel.c
-+++ b/arch/arm/mach-omap2/clkt_clksel.c
-@@ -49,8 +49,6 @@
- #include <linux/io.h>
- #include <linux/bug.h>
- 
--#include <plat/clock.h>
--
- #include "clock.h"
- 
- /* Private functions */
-diff --git a/arch/arm/mach-omap2/clkt_dpll.c b/arch/arm/mach-omap2/clkt_dpll.c
-index e84512f..23c677e 100644
---- a/arch/arm/mach-omap2/clkt_dpll.c
-+++ b/arch/arm/mach-omap2/clkt_dpll.c
-@@ -25,7 +25,6 @@
- 
- #include <asm/div64.h>
- 
--#include <plat/clock.h>
- #include <plat/cpu.h>
- 
- #include "clock.h"
-diff --git a/arch/arm/mach-omap2/clkt_iclk.c b/arch/arm/mach-omap2/clkt_iclk.c
-index b3aa8d3..16f84fb 100644
---- a/arch/arm/mach-omap2/clkt_iclk.c
-+++ b/arch/arm/mach-omap2/clkt_iclk.c
-@@ -18,7 +18,6 @@
- #endif
- #include <linux/io.h>
- 
--#include <plat/clock.h>
- #include <plat/prcm.h>
- 
- #include "clock.h"
-diff --git a/arch/arm/mach-omap2/clock.c b/arch/arm/mach-omap2/clock.c
-index cdfa9c5..d19af9b 100644
---- a/arch/arm/mach-omap2/clock.c
-+++ b/arch/arm/mach-omap2/clock.c
-@@ -29,7 +29,6 @@
- #include <trace/events/power.h>
- 
- #include <asm/cpu.h>
--#include <plat/clock.h>
- #include "clockdomain.h"
- #include <plat/cpu.h>
- #include <plat/prcm.h>
-diff --git a/arch/arm/mach-omap2/clock.h b/arch/arm/mach-omap2/clock.h
-index bfeb18e..fd022b3 100644
---- a/arch/arm/mach-omap2/clock.h
-+++ b/arch/arm/mach-omap2/clock.h
-@@ -17,11 +17,6 @@
- #define __ARCH_ARM_MACH_OMAP2_CLOCK_H
- 
- #include <linux/kernel.h>
--
--#include <plat/clock.h>
--
--#ifdef CONFIG_COMMON_CLK
--
- #include <linux/clk-provider.h>
- #include <linux/list.h>
- 
-@@ -261,7 +256,6 @@ struct clk_hw_omap_ops {
- 
- unsigned long omap_fixed_divisor_recalc(struct clk_hw *hw,
- 		unsigned long parent_rate);
--#endif /* CONFIG_COMMON_CLK */
- 
- /* CM_CLKSEL2_PLL.CORE_CLK_SRC bits (2XXX) */
- #define CORE_CLK_SRC_32K		0x0
-diff --git a/arch/arm/mach-omap2/clock2430.c b/arch/arm/mach-omap2/clock2430.c
-index a629bc3..b3f07c3 100644
---- a/arch/arm/mach-omap2/clock2430.c
-+++ b/arch/arm/mach-omap2/clock2430.c
-@@ -22,7 +22,6 @@
- #include <linux/io.h>
- 
- #include <plat/hardware.h>
--#include <plat/clock.h>
- 
- #include "iomap.h"
- #include "clock.h"
-diff --git a/arch/arm/mach-omap2/clock2xxx.c b/arch/arm/mach-omap2/clock2xxx.c
-index 39a183b..3377221 100644
---- a/arch/arm/mach-omap2/clock2xxx.c
-+++ b/arch/arm/mach-omap2/clock2xxx.c
-@@ -23,7 +23,6 @@
- #include <linux/io.h>
- 
- #include <plat/cpu.h>
--#include <plat/clock.h>
- 
- #include "clock.h"
- #include "clock2xxx.h"
-diff --git a/arch/arm/mach-omap2/clock34xx.c b/arch/arm/mach-omap2/clock34xx.c
-index a4b0d38..16da66e 100644
---- a/arch/arm/mach-omap2/clock34xx.c
-+++ b/arch/arm/mach-omap2/clock34xx.c
-@@ -21,8 +21,6 @@
- #include <linux/clk.h>
- #include <linux/io.h>
- 
--#include <plat/clock.h>
--
- #include "clock.h"
- #include "clock34xx.h"
- #include "cm2xxx_3xxx.h"
-diff --git a/arch/arm/mach-omap2/clock3517.c b/arch/arm/mach-omap2/clock3517.c
-index f338697..07cb9e2 100644
---- a/arch/arm/mach-omap2/clock3517.c
-+++ b/arch/arm/mach-omap2/clock3517.c
-@@ -21,8 +21,6 @@
- #include <linux/clk.h>
- #include <linux/io.h>
- 
--#include <plat/clock.h>
--
- #include "clock.h"
- #include "clock3517.h"
- #include "cm2xxx_3xxx.h"
-diff --git a/arch/arm/mach-omap2/clock36xx.c b/arch/arm/mach-omap2/clock36xx.c
-index 502c960..9f50e97 100644
---- a/arch/arm/mach-omap2/clock36xx.c
-+++ b/arch/arm/mach-omap2/clock36xx.c
-@@ -22,8 +22,6 @@
- #include <linux/clk.h>
- #include <linux/io.h>
- 
--#include <plat/clock.h>
--
- #include "clock.h"
- #include "clock36xx.h"
- 
-diff --git a/arch/arm/mach-omap2/clock3xxx.c b/arch/arm/mach-omap2/clock3xxx.c
-index af05eeb..ecb6029 100644
---- a/arch/arm/mach-omap2/clock3xxx.c
-+++ b/arch/arm/mach-omap2/clock3xxx.c
-@@ -22,7 +22,6 @@
- #include <linux/io.h>
- 
- #include <plat/hardware.h>
--#include <plat/clock.h>
- 
- #include "clock.h"
- #include "clock3xxx.h"
-diff --git a/arch/arm/mach-omap2/clockdomain.c b/arch/arm/mach-omap2/clockdomain.c
-index ad07689..b765228 100644
---- a/arch/arm/mach-omap2/clockdomain.c
-+++ b/arch/arm/mach-omap2/clockdomain.c
-@@ -27,7 +27,6 @@
- 
- #include <linux/bitops.h>
- 
--#include <plat/clock.h>
- #include "clockdomain.h"
- 
- /* clkdm_list contains all registered struct clockdomains */
-diff --git a/arch/arm/mach-omap2/clockdomain.h b/arch/arm/mach-omap2/clockdomain.h
-index f7b5860..c77d7b7 100644
---- a/arch/arm/mach-omap2/clockdomain.h
-+++ b/arch/arm/mach-omap2/clockdomain.h
-@@ -20,7 +20,6 @@
- #include <linux/spinlock.h>
- 
- #include "powerdomain.h"
--#include <plat/clock.h>
- #include <plat/omap_hwmod.h>
- #include <plat/cpu.h>
- 
-diff --git a/arch/arm/mach-omap2/common.c b/arch/arm/mach-omap2/common.c
-index 1549c11..cf91170 100644
---- a/arch/arm/mach-omap2/common.c
-+++ b/arch/arm/mach-omap2/common.c
-@@ -20,7 +20,6 @@
- #include <plat/hardware.h>
- #include <plat/board.h>
- #include <plat/mux.h>
--#include <plat/clock.h>
- 
- #include "iomap.h"
- #include "common.h"
-diff --git a/arch/arm/mach-omap2/dpll3xxx.c b/arch/arm/mach-omap2/dpll3xxx.c
-index 13535b1..aadc8c1 100644
---- a/arch/arm/mach-omap2/dpll3xxx.c
-+++ b/arch/arm/mach-omap2/dpll3xxx.c
-@@ -29,7 +29,6 @@
- #include <linux/clkdev.h>
- 
- #include <plat/cpu.h>
--#include <plat/clock.h>
- 
- #include "clock.h"
- #include "cm2xxx_3xxx.h"
-diff --git a/arch/arm/mach-omap2/dpll44xx.c b/arch/arm/mach-omap2/dpll44xx.c
-index fbf94d2..529c79d 100644
---- a/arch/arm/mach-omap2/dpll44xx.c
-+++ b/arch/arm/mach-omap2/dpll44xx.c
-@@ -16,7 +16,6 @@
- #include <linux/bitops.h>
- 
- #include <plat/cpu.h>
--#include <plat/clock.h>
- 
- #include "clock.h"
- #include "clock44xx.h"
-diff --git a/arch/arm/mach-omap2/omap_hwmod.c b/arch/arm/mach-omap2/omap_hwmod.c
-index 91d0f19..e153298 100644
---- a/arch/arm/mach-omap2/omap_hwmod.c
-+++ b/arch/arm/mach-omap2/omap_hwmod.c
-@@ -146,7 +146,6 @@
- #include <plat/cpu.h>
- #include "clockdomain.h"
- #include "powerdomain.h"
--#include <plat/clock.h>
- #include <plat/omap_hwmod.h>
- #include <plat/prcm.h>
- 
-diff --git a/arch/arm/mach-omap2/pm-debug.c b/arch/arm/mach-omap2/pm-debug.c
-index 6fa332c..eff10e4 100644
---- a/arch/arm/mach-omap2/pm-debug.c
-+++ b/arch/arm/mach-omap2/pm-debug.c
-@@ -27,7 +27,6 @@
- #include <linux/module.h>
- #include <linux/slab.h>
- 
--#include <plat/clock.h>
- #include <plat/board.h>
- #include "powerdomain.h"
- #include "clockdomain.h"
-diff --git a/arch/arm/mach-omap2/pm24xx.c b/arch/arm/mach-omap2/pm24xx.c
-index 7656ff8..d719959 100644
---- a/arch/arm/mach-omap2/pm24xx.c
-+++ b/arch/arm/mach-omap2/pm24xx.c
-@@ -39,7 +39,6 @@
- #include <asm/mach-types.h>
- #include <asm/system_misc.h>
- 
--#include <plat/clock.h>
- #include <plat/sram.h>
- #include <plat/dma.h>
- #include <plat/board.h>
-diff --git a/arch/arm/mach-omap2/sdram-nokia.c b/arch/arm/mach-omap2/sdram-nokia.c
-index 845c4fd..810ad8c 100644
---- a/arch/arm/mach-omap2/sdram-nokia.c
-+++ b/arch/arm/mach-omap2/sdram-nokia.c
-@@ -18,7 +18,6 @@
- #include <linux/io.h>
- 
- #include "common.h"
--#include <plat/clock.h>
- #include <plat/sdrc.h>
- 
- #include "sdram-nokia.h"
-diff --git a/arch/arm/mach-omap2/sdrc.c b/arch/arm/mach-omap2/sdrc.c
-index e3d345f..93e0fd4 100644
---- a/arch/arm/mach-omap2/sdrc.c
-+++ b/arch/arm/mach-omap2/sdrc.c
-@@ -24,7 +24,6 @@
- #include <linux/io.h>
- 
- #include "common.h"
--#include <plat/clock.h>
- #include <plat/sram.h>
- 
- #include <plat/sdrc.h>
-diff --git a/arch/arm/mach-omap2/sdrc2xxx.c b/arch/arm/mach-omap2/sdrc2xxx.c
-index 1133bb2..59608ff 100644
---- a/arch/arm/mach-omap2/sdrc2xxx.c
-+++ b/arch/arm/mach-omap2/sdrc2xxx.c
-@@ -25,7 +25,6 @@
- #include <linux/io.h>
- 
- #include <plat/hardware.h>
--#include <plat/clock.h>
- #include <plat/sram.h>
- #include <plat/sdrc.h>
- 
-diff --git a/arch/arm/plat-omap/Makefile b/arch/arm/plat-omap/Makefile
-index c0fe275..69b3888 100644
---- a/arch/arm/plat-omap/Makefile
-+++ b/arch/arm/plat-omap/Makefile
-@@ -3,12 +3,13 @@
- #
- 
- # Common support
--obj-y := common.o sram.o clock.o devices.o dma.o mux.o \
-+obj-y := common.o sram.o devices.o dma.o mux.o \
- 	 usb.o fb.o counter_32k.o
- obj-m :=
- obj-n :=
- obj-  :=
- 
-+obj-$(CONFIG_ARCH_OMAP1) += clock.o
- # OCPI interconnect support for 1710, 1610 and 5912
- obj-$(CONFIG_ARCH_OMAP16XX) += ocpi.o
- 
-diff --git a/arch/arm/plat-omap/clock.c b/arch/arm/plat-omap/clock.c
-index d311b7c..62ec5c4 100644
---- a/arch/arm/plat-omap/clock.c
-+++ b/arch/arm/plat-omap/clock.c
-@@ -10,7 +10,6 @@
-  * it under the terms of the GNU General Public License version 2 as
-  * published by the Free Software Foundation.
-  */
--#ifndef CONFIG_COMMON_CLK
- #include <linux/kernel.h>
- #include <linux/init.h>
- #include <linux/list.h>
-@@ -568,4 +567,3 @@ err_out:
- late_initcall(clk_debugfs_init);
- 
- #endif /* defined(CONFIG_PM_DEBUG) && defined(CONFIG_DEBUG_FS) */
--#endif /* CONFIG_COMMON_CLK */
-diff --git a/arch/arm/plat-omap/counter_32k.c b/arch/arm/plat-omap/counter_32k.c
-index f96b803..c88d6b2 100644
---- a/arch/arm/plat-omap/counter_32k.c
-+++ b/arch/arm/plat-omap/counter_32k.c
-@@ -25,8 +25,6 @@
- #include <plat/common.h>
- #include <plat/board.h>
- 
--#include <plat/clock.h>
--
+diff --git a/arch/arm/mach-omap2/cm-regbits-44xx.h b/arch/arm/mach-omap2/cm-regbits-44xx.h
+index 65597a7..4c6c2f7 100644
+--- a/arch/arm/mach-omap2/cm-regbits-44xx.h
++++ b/arch/arm/mach-omap2/cm-regbits-44xx.h
+@@ -1,7 +1,7 @@
  /*
-  * 32KHz clocksource ... always available, on pretty most chips except
-  * OMAP 730 and 1510.  Other timers could be used as clocksources, with
-diff --git a/arch/arm/plat-omap/include/plat/clock.h b/arch/arm/plat-omap/include/plat/clock.h
-index d937cfb..6cba482 100644
---- a/arch/arm/plat-omap/include/plat/clock.h
-+++ b/arch/arm/plat-omap/include/plat/clock.h
-@@ -13,17 +13,12 @@
- #ifndef __ARCH_ARM_OMAP_CLOCK_H
- #define __ARCH_ARM_OMAP_CLOCK_H
- 
--#ifndef CONFIG_COMMON_CLK
- #include <linux/list.h>
- 
- struct module;
- struct clk;
- struct clockdomain;
- 
--#define __clk_get_name(clk) clk->name
--#define __clk_get_parent(clk) clk->parent
--#define __clk_get_rate(clk) clk->rate
--
- /**
-  * struct clkops - some clock function pointers
-  * @enable: fn ptr that enables the current clock in hardware
-@@ -53,131 +48,6 @@ struct clkops {
- 	void			(*deny_idle)(struct clk *);
- };
- 
--#ifdef CONFIG_ARCH_OMAP2PLUS
--
--/* struct clksel_rate.flags possibilities */
--#define RATE_IN_242X		(1 << 0)
--#define RATE_IN_243X		(1 << 1)
--#define RATE_IN_3430ES1		(1 << 2)	/* 3430ES1 rates only */
--#define RATE_IN_3430ES2PLUS	(1 << 3)	/* 3430 ES >= 2 rates only */
--#define RATE_IN_36XX		(1 << 4)
--#define RATE_IN_4430		(1 << 5)
--#define RATE_IN_TI816X		(1 << 6)
--#define RATE_IN_4460		(1 << 7)
--#define RATE_IN_AM33XX		(1 << 8)
--#define RATE_IN_TI814X		(1 << 9)
--
--#define RATE_IN_24XX		(RATE_IN_242X | RATE_IN_243X)
--#define RATE_IN_34XX		(RATE_IN_3430ES1 | RATE_IN_3430ES2PLUS)
--#define RATE_IN_3XXX		(RATE_IN_34XX | RATE_IN_36XX)
--#define RATE_IN_44XX		(RATE_IN_4430 | RATE_IN_4460)
--
--/* RATE_IN_3430ES2PLUS_36XX includes 34xx/35xx with ES >=2, and all 36xx/37xx */
--#define RATE_IN_3430ES2PLUS_36XX	(RATE_IN_3430ES2PLUS | RATE_IN_36XX)
--
--
--/**
-- * struct clksel_rate - register bitfield values corresponding to clk divisors
-- * @val: register bitfield value (shifted to bit 0)
-- * @div: clock divisor corresponding to @val
-- * @flags: (see "struct clksel_rate.flags possibilities" above)
-- *
-- * @val should match the value of a read from struct clk.clksel_reg
-- * AND'ed with struct clk.clksel_mask, shifted right to bit 0.
-- *
-- * @div is the divisor that should be applied to the parent clock's rate
-- * to produce the current clock's rate.
-- */
--struct clksel_rate {
--	u32			val;
--	u8			div;
--	u16			flags;
--};
--
--/**
-- * struct clksel - available parent clocks, and a pointer to their divisors
-- * @parent: struct clk * to a possible parent clock
-- * @rates: available divisors for this parent clock
-- *
-- * A struct clksel is always associated with one or more struct clks
-- * and one or more struct clksel_rates.
-- */
--struct clksel {
--	struct clk		 *parent;
--	const struct clksel_rate *rates;
--};
--
--/**
-- * struct dpll_data - DPLL registers and integration data
-- * @mult_div1_reg: register containing the DPLL M and N bitfields
-- * @mult_mask: mask of the DPLL M bitfield in @mult_div1_reg
-- * @div1_mask: mask of the DPLL N bitfield in @mult_div1_reg
-- * @clk_bypass: struct clk pointer to the clock's bypass clock input
-- * @clk_ref: struct clk pointer to the clock's reference clock input
-- * @control_reg: register containing the DPLL mode bitfield
-- * @enable_mask: mask of the DPLL mode bitfield in @control_reg
-- * @last_rounded_rate: cache of the last rate result of omap2_dpll_round_rate()
-- * @last_rounded_m: cache of the last M result of omap2_dpll_round_rate()
-- * @max_multiplier: maximum valid non-bypass multiplier value (actual)
-- * @last_rounded_n: cache of the last N result of omap2_dpll_round_rate()
-- * @min_divider: minimum valid non-bypass divider value (actual)
-- * @max_divider: maximum valid non-bypass divider value (actual)
-- * @modes: possible values of @enable_mask
-- * @autoidle_reg: register containing the DPLL autoidle mode bitfield
-- * @idlest_reg: register containing the DPLL idle status bitfield
-- * @autoidle_mask: mask of the DPLL autoidle mode bitfield in @autoidle_reg
-- * @freqsel_mask: mask of the DPLL jitter correction bitfield in @control_reg
-- * @idlest_mask: mask of the DPLL idle status bitfield in @idlest_reg
-- * @auto_recal_bit: bitshift of the driftguard enable bit in @control_reg
-- * @recal_en_bit: bitshift of the PRM_IRQENABLE_* bit for recalibration IRQs
-- * @recal_st_bit: bitshift of the PRM_IRQSTATUS_* bit for recalibration IRQs
-- * @flags: DPLL type/features (see below)
-- *
-- * Possible values for @flags:
-- * DPLL_J_TYPE: "J-type DPLL" (only some 36xx, 4xxx DPLLs)
-- *
-- * @freqsel_mask is only used on the OMAP34xx family and AM35xx.
-- *
-- * XXX Some DPLLs have multiple bypass inputs, so it's not technically
-- * correct to only have one @clk_bypass pointer.
-- *
-- * XXX The runtime-variable fields (@last_rounded_rate, @last_rounded_m,
-- * @last_rounded_n) should be separated from the runtime-fixed fields
-- * and placed into a different structure, so that the runtime-fixed data
-- * can be placed into read-only space.
-- */
--struct dpll_data {
--	void __iomem		*mult_div1_reg;
--	u32			mult_mask;
--	u32			div1_mask;
--	struct clk		*clk_bypass;
--	struct clk		*clk_ref;
--	void __iomem		*control_reg;
--	u32			enable_mask;
--	unsigned long		last_rounded_rate;
--	u16			last_rounded_m;
--	u16			max_multiplier;
--	u8			last_rounded_n;
--	u8			min_divider;
--	u16			max_divider;
--	u8			modes;
--#if defined(CONFIG_ARCH_OMAP3) || defined(CONFIG_ARCH_OMAP4)
--	void __iomem		*autoidle_reg;
--	void __iomem		*idlest_reg;
--	u32			autoidle_mask;
--	u32			freqsel_mask;
--	u32			idlest_mask;
--	u32			dco_mask;
--	u32			sddiv_mask;
--	u8			auto_recal_bit;
--	u8			recal_en_bit;
--	u8			recal_st_bit;
--#  endif
--	u8			flags;
--};
--
--#endif
--
- /*
-  * struct clk.flags possibilities
+  * OMAP44xx Clock Management register bits
   *
-@@ -261,17 +131,8 @@ struct clk {
- 	s8			usecount;
- 	u8			fixed_div;
- 	u8			flags;
--#ifdef CONFIG_ARCH_OMAP2PLUS
--	void __iomem		*clksel_reg;
--	u32			clksel_mask;
--	const struct clksel	*clksel;
--	struct dpll_data	*dpll_data;
--	const char		*clkdm_name;
--	struct clockdomain	*clkdm;
--#else
- 	u8			rate_offset;
- 	u8			src_offset;
--#endif
- #if defined(CONFIG_PM_DEBUG) && defined(CONFIG_DEBUG_FS)
- 	struct dentry		*dent;	/* For visible tree hierarchy */
+- * Copyright (C) 2009-2010 Texas Instruments, Inc.
++ * Copyright (C) 2009-2012 Texas Instruments, Inc.
+  * Copyright (C) 2009-2010 Nokia Corporation
+  *
+  * Paul Walmsley (paul@pwsan.com)
+@@ -24,6 +24,7 @@
+ 
+ /* Used by CM_L3_1_DYNAMICDEP, CM_MPU_DYNAMICDEP, CM_TESLA_DYNAMICDEP */
+ #define OMAP4430_ABE_DYNDEP_SHIFT				3
++#define OMAP4430_ABE_DYNDEP_WIDTH				0x1
+ #define OMAP4430_ABE_DYNDEP_MASK				(1 << 3)
+ 
+ /*
+@@ -31,14 +32,17 @@
+  * CM_MPU_STATICDEP, CM_SDMA_STATICDEP, CM_TESLA_STATICDEP
+  */
+ #define OMAP4430_ABE_STATDEP_SHIFT				3
++#define OMAP4430_ABE_STATDEP_WIDTH				0x1
+ #define OMAP4430_ABE_STATDEP_MASK				(1 << 3)
+ 
+ /* Used by CM_L4CFG_DYNAMICDEP */
+ #define OMAP4430_ALWONCORE_DYNDEP_SHIFT				16
++#define OMAP4430_ALWONCORE_DYNDEP_WIDTH				0x1
+ #define OMAP4430_ALWONCORE_DYNDEP_MASK				(1 << 16)
+ 
+ /* Used by CM_DUCATI_STATICDEP, CM_MPU_STATICDEP, CM_TESLA_STATICDEP */
+ #define OMAP4430_ALWONCORE_STATDEP_SHIFT			16
++#define OMAP4430_ALWONCORE_STATDEP_WIDTH			0x1
+ #define OMAP4430_ALWONCORE_STATDEP_MASK				(1 << 16)
+ 
+ /*
+@@ -47,294 +51,367 @@
+  * CM_AUTOIDLE_DPLL_PER, CM_AUTOIDLE_DPLL_UNIPRO, CM_AUTOIDLE_DPLL_USB
+  */
+ #define OMAP4430_AUTO_DPLL_MODE_SHIFT				0
++#define OMAP4430_AUTO_DPLL_MODE_WIDTH				0x3
+ #define OMAP4430_AUTO_DPLL_MODE_MASK				(0x7 << 0)
+ 
+ /* Used by CM_L4CFG_DYNAMICDEP */
+ #define OMAP4430_CEFUSE_DYNDEP_SHIFT				17
++#define OMAP4430_CEFUSE_DYNDEP_WIDTH				0x1
+ #define OMAP4430_CEFUSE_DYNDEP_MASK				(1 << 17)
+ 
+ /* Used by CM_DUCATI_STATICDEP, CM_MPU_STATICDEP, CM_TESLA_STATICDEP */
+ #define OMAP4430_CEFUSE_STATDEP_SHIFT				17
++#define OMAP4430_CEFUSE_STATDEP_WIDTH				0x1
+ #define OMAP4430_CEFUSE_STATDEP_MASK				(1 << 17)
+ 
+ /* Used by CM1_ABE_CLKSTCTRL */
+ #define OMAP4430_CLKACTIVITY_ABE_24M_GFCLK_SHIFT		13
++#define OMAP4430_CLKACTIVITY_ABE_24M_GFCLK_WIDTH		0x1
+ #define OMAP4430_CLKACTIVITY_ABE_24M_GFCLK_MASK			(1 << 13)
+ 
+ /* Used by CM1_ABE_CLKSTCTRL */
+ #define OMAP4430_CLKACTIVITY_ABE_ALWON_32K_CLK_SHIFT		12
++#define OMAP4430_CLKACTIVITY_ABE_ALWON_32K_CLK_WIDTH		0x1
+ #define OMAP4430_CLKACTIVITY_ABE_ALWON_32K_CLK_MASK		(1 << 12)
+ 
+ /* Used by CM_WKUP_CLKSTCTRL */
+ #define OMAP4430_CLKACTIVITY_ABE_LP_CLK_SHIFT			9
++#define OMAP4430_CLKACTIVITY_ABE_LP_CLK_WIDTH			0x1
+ #define OMAP4430_CLKACTIVITY_ABE_LP_CLK_MASK			(1 << 9)
+ 
+ /* Used by CM1_ABE_CLKSTCTRL */
+ #define OMAP4430_CLKACTIVITY_ABE_SYSCLK_SHIFT			11
++#define OMAP4430_CLKACTIVITY_ABE_SYSCLK_WIDTH			0x1
+ #define OMAP4430_CLKACTIVITY_ABE_SYSCLK_MASK			(1 << 11)
+ 
+ /* Used by CM1_ABE_CLKSTCTRL */
+ #define OMAP4430_CLKACTIVITY_ABE_X2_CLK_SHIFT			8
++#define OMAP4430_CLKACTIVITY_ABE_X2_CLK_WIDTH			0x1
+ #define OMAP4430_CLKACTIVITY_ABE_X2_CLK_MASK			(1 << 8)
+ 
+ /* Used by CM_MEMIF_CLKSTCTRL */
+ #define OMAP4430_CLKACTIVITY_ASYNC_DLL_CLK_SHIFT		11
++#define OMAP4430_CLKACTIVITY_ASYNC_DLL_CLK_WIDTH		0x1
+ #define OMAP4430_CLKACTIVITY_ASYNC_DLL_CLK_MASK			(1 << 11)
+ 
+ /* Used by CM_MEMIF_CLKSTCTRL */
+ #define OMAP4430_CLKACTIVITY_ASYNC_PHY1_CLK_SHIFT		12
++#define OMAP4430_CLKACTIVITY_ASYNC_PHY1_CLK_WIDTH		0x1
+ #define OMAP4430_CLKACTIVITY_ASYNC_PHY1_CLK_MASK		(1 << 12)
+ 
+ /* Used by CM_MEMIF_CLKSTCTRL */
+ #define OMAP4430_CLKACTIVITY_ASYNC_PHY2_CLK_SHIFT		13
++#define OMAP4430_CLKACTIVITY_ASYNC_PHY2_CLK_WIDTH		0x1
+ #define OMAP4430_CLKACTIVITY_ASYNC_PHY2_CLK_MASK		(1 << 13)
+ 
+ /* Used by CM_CAM_CLKSTCTRL */
+ #define OMAP4430_CLKACTIVITY_CAM_PHY_CTRL_GCLK_SHIFT		9
++#define OMAP4430_CLKACTIVITY_CAM_PHY_CTRL_GCLK_WIDTH		0x1
+ #define OMAP4430_CLKACTIVITY_CAM_PHY_CTRL_GCLK_MASK		(1 << 9)
+ 
+ /* Used by CM_ALWON_CLKSTCTRL */
+ #define OMAP4430_CLKACTIVITY_CORE_ALWON_32K_GFCLK_SHIFT		12
++#define OMAP4430_CLKACTIVITY_CORE_ALWON_32K_GFCLK_WIDTH		0x1
+ #define OMAP4430_CLKACTIVITY_CORE_ALWON_32K_GFCLK_MASK		(1 << 12)
+ 
+ /* Used by CM_EMU_CLKSTCTRL */
+ #define OMAP4430_CLKACTIVITY_CORE_DPLL_EMU_CLK_SHIFT		9
++#define OMAP4430_CLKACTIVITY_CORE_DPLL_EMU_CLK_WIDTH		0x1
+ #define OMAP4430_CLKACTIVITY_CORE_DPLL_EMU_CLK_MASK		(1 << 9)
+ 
+ /* Used by CM_L4CFG_CLKSTCTRL */
+ #define OMAP4460_CLKACTIVITY_CORE_TS_GFCLK_SHIFT		9
++#define OMAP4460_CLKACTIVITY_CORE_TS_GFCLK_WIDTH		0x1
+ #define OMAP4460_CLKACTIVITY_CORE_TS_GFCLK_MASK			(1 << 9)
+ 
+ /* Used by CM_CEFUSE_CLKSTCTRL */
+ #define OMAP4430_CLKACTIVITY_CUST_EFUSE_SYS_CLK_SHIFT		9
++#define OMAP4430_CLKACTIVITY_CUST_EFUSE_SYS_CLK_WIDTH		0x1
+ #define OMAP4430_CLKACTIVITY_CUST_EFUSE_SYS_CLK_MASK		(1 << 9)
+ 
+ /* Used by CM_MEMIF_CLKSTCTRL */
+ #define OMAP4430_CLKACTIVITY_DLL_CLK_SHIFT			9
++#define OMAP4430_CLKACTIVITY_DLL_CLK_WIDTH			0x1
+ #define OMAP4430_CLKACTIVITY_DLL_CLK_MASK			(1 << 9)
+ 
+ /* Used by CM_L4PER_CLKSTCTRL */
+ #define OMAP4430_CLKACTIVITY_DMT10_GFCLK_SHIFT			9
++#define OMAP4430_CLKACTIVITY_DMT10_GFCLK_WIDTH			0x1
+ #define OMAP4430_CLKACTIVITY_DMT10_GFCLK_MASK			(1 << 9)
+ 
+ /* Used by CM_L4PER_CLKSTCTRL */
+ #define OMAP4430_CLKACTIVITY_DMT11_GFCLK_SHIFT			10
++#define OMAP4430_CLKACTIVITY_DMT11_GFCLK_WIDTH			0x1
+ #define OMAP4430_CLKACTIVITY_DMT11_GFCLK_MASK			(1 << 10)
+ 
+ /* Used by CM_L4PER_CLKSTCTRL */
+ #define OMAP4430_CLKACTIVITY_DMT2_GFCLK_SHIFT			11
++#define OMAP4430_CLKACTIVITY_DMT2_GFCLK_WIDTH			0x1
+ #define OMAP4430_CLKACTIVITY_DMT2_GFCLK_MASK			(1 << 11)
+ 
+ /* Used by CM_L4PER_CLKSTCTRL */
+ #define OMAP4430_CLKACTIVITY_DMT3_GFCLK_SHIFT			12
++#define OMAP4430_CLKACTIVITY_DMT3_GFCLK_WIDTH			0x1
+ #define OMAP4430_CLKACTIVITY_DMT3_GFCLK_MASK			(1 << 12)
+ 
+ /* Used by CM_L4PER_CLKSTCTRL */
+ #define OMAP4430_CLKACTIVITY_DMT4_GFCLK_SHIFT			13
++#define OMAP4430_CLKACTIVITY_DMT4_GFCLK_WIDTH			0x1
+ #define OMAP4430_CLKACTIVITY_DMT4_GFCLK_MASK			(1 << 13)
+ 
+ /* Used by CM_L4PER_CLKSTCTRL */
+ #define OMAP4430_CLKACTIVITY_DMT9_GFCLK_SHIFT			14
++#define OMAP4430_CLKACTIVITY_DMT9_GFCLK_WIDTH			0x1
+ #define OMAP4430_CLKACTIVITY_DMT9_GFCLK_MASK			(1 << 14)
+ 
+ /* Used by CM_DSS_CLKSTCTRL */
+ #define OMAP4430_CLKACTIVITY_DSS_ALWON_SYS_CLK_SHIFT		10
++#define OMAP4430_CLKACTIVITY_DSS_ALWON_SYS_CLK_WIDTH		0x1
+ #define OMAP4430_CLKACTIVITY_DSS_ALWON_SYS_CLK_MASK		(1 << 10)
+ 
+ /* Used by CM_DSS_CLKSTCTRL */
+ #define OMAP4430_CLKACTIVITY_DSS_FCLK_SHIFT			9
++#define OMAP4430_CLKACTIVITY_DSS_FCLK_WIDTH			0x1
+ #define OMAP4430_CLKACTIVITY_DSS_FCLK_MASK			(1 << 9)
+ 
+ /* Used by CM_DUCATI_CLKSTCTRL */
+ #define OMAP4430_CLKACTIVITY_DUCATI_GCLK_SHIFT			8
++#define OMAP4430_CLKACTIVITY_DUCATI_GCLK_WIDTH			0x1
+ #define OMAP4430_CLKACTIVITY_DUCATI_GCLK_MASK			(1 << 8)
+ 
+ /* Used by CM_EMU_CLKSTCTRL */
+ #define OMAP4430_CLKACTIVITY_EMU_SYS_CLK_SHIFT			8
++#define OMAP4430_CLKACTIVITY_EMU_SYS_CLK_WIDTH			0x1
+ #define OMAP4430_CLKACTIVITY_EMU_SYS_CLK_MASK			(1 << 8)
+ 
+ /* Used by CM_CAM_CLKSTCTRL */
+ #define OMAP4430_CLKACTIVITY_FDIF_GFCLK_SHIFT			10
++#define OMAP4430_CLKACTIVITY_FDIF_GFCLK_WIDTH			0x1
+ #define OMAP4430_CLKACTIVITY_FDIF_GFCLK_MASK			(1 << 10)
+ 
+ /* Used by CM_L4PER_CLKSTCTRL */
+ #define OMAP4430_CLKACTIVITY_FUNC_12M_GFCLK_SHIFT		15
++#define OMAP4430_CLKACTIVITY_FUNC_12M_GFCLK_WIDTH		0x1
+ #define OMAP4430_CLKACTIVITY_FUNC_12M_GFCLK_MASK		(1 << 15)
+ 
+ /* Used by CM1_ABE_CLKSTCTRL */
+ #define OMAP4430_CLKACTIVITY_FUNC_24M_GFCLK_SHIFT		10
++#define OMAP4430_CLKACTIVITY_FUNC_24M_GFCLK_WIDTH		0x1
+ #define OMAP4430_CLKACTIVITY_FUNC_24M_GFCLK_MASK		(1 << 10)
+ 
+ /* Used by CM_DSS_CLKSTCTRL */
+ #define OMAP4430_CLKACTIVITY_HDMI_PHY_48MHZ_GFCLK_SHIFT		11
++#define OMAP4430_CLKACTIVITY_HDMI_PHY_48MHZ_GFCLK_WIDTH		0x1
+ #define OMAP4430_CLKACTIVITY_HDMI_PHY_48MHZ_GFCLK_MASK		(1 << 11)
+ 
+ /* Used by CM_L3INIT_CLKSTCTRL */
+ #define OMAP4430_CLKACTIVITY_HSIC_P1_480M_GFCLK_SHIFT		20
++#define OMAP4430_CLKACTIVITY_HSIC_P1_480M_GFCLK_WIDTH		0x1
+ #define OMAP4430_CLKACTIVITY_HSIC_P1_480M_GFCLK_MASK		(1 << 20)
+ 
+ /* Used by CM_L3INIT_CLKSTCTRL */
+ #define OMAP4430_CLKACTIVITY_HSIC_P1_GFCLK_SHIFT		26
++#define OMAP4430_CLKACTIVITY_HSIC_P1_GFCLK_WIDTH		0x1
+ #define OMAP4430_CLKACTIVITY_HSIC_P1_GFCLK_MASK			(1 << 26)
+ 
+ /* Used by CM_L3INIT_CLKSTCTRL */
+ #define OMAP4430_CLKACTIVITY_HSIC_P2_480M_GFCLK_SHIFT		21
++#define OMAP4430_CLKACTIVITY_HSIC_P2_480M_GFCLK_WIDTH		0x1
+ #define OMAP4430_CLKACTIVITY_HSIC_P2_480M_GFCLK_MASK		(1 << 21)
+ 
+ /* Used by CM_L3INIT_CLKSTCTRL */
+ #define OMAP4430_CLKACTIVITY_HSIC_P2_GFCLK_SHIFT		27
++#define OMAP4430_CLKACTIVITY_HSIC_P2_GFCLK_WIDTH		0x1
+ #define OMAP4430_CLKACTIVITY_HSIC_P2_GFCLK_MASK			(1 << 27)
+ 
+ /* Used by CM_L3INIT_CLKSTCTRL */
+ #define OMAP4430_CLKACTIVITY_INIT_48MC_GFCLK_SHIFT		13
++#define OMAP4430_CLKACTIVITY_INIT_48MC_GFCLK_WIDTH		0x1
+ #define OMAP4430_CLKACTIVITY_INIT_48MC_GFCLK_MASK		(1 << 13)
+ 
+ /* Used by CM_L3INIT_CLKSTCTRL */
+ #define OMAP4430_CLKACTIVITY_INIT_48M_GFCLK_SHIFT		12
++#define OMAP4430_CLKACTIVITY_INIT_48M_GFCLK_WIDTH		0x1
+ #define OMAP4430_CLKACTIVITY_INIT_48M_GFCLK_MASK		(1 << 12)
+ 
+ /* Used by CM_L3INIT_CLKSTCTRL */
+ #define OMAP4430_CLKACTIVITY_INIT_60M_P1_GFCLK_SHIFT		28
++#define OMAP4430_CLKACTIVITY_INIT_60M_P1_GFCLK_WIDTH		0x1
+ #define OMAP4430_CLKACTIVITY_INIT_60M_P1_GFCLK_MASK		(1 << 28)
+ 
+ /* Used by CM_L3INIT_CLKSTCTRL */
+ #define OMAP4430_CLKACTIVITY_INIT_60M_P2_GFCLK_SHIFT		29
++#define OMAP4430_CLKACTIVITY_INIT_60M_P2_GFCLK_WIDTH		0x1
+ #define OMAP4430_CLKACTIVITY_INIT_60M_P2_GFCLK_MASK		(1 << 29)
+ 
+ /* Used by CM_L3INIT_CLKSTCTRL */
+ #define OMAP4430_CLKACTIVITY_INIT_96M_GFCLK_SHIFT		11
++#define OMAP4430_CLKACTIVITY_INIT_96M_GFCLK_WIDTH		0x1
+ #define OMAP4430_CLKACTIVITY_INIT_96M_GFCLK_MASK		(1 << 11)
+ 
+ /* Used by CM_L3INIT_CLKSTCTRL */
+ #define OMAP4430_CLKACTIVITY_INIT_HSI_GFCLK_SHIFT		16
++#define OMAP4430_CLKACTIVITY_INIT_HSI_GFCLK_WIDTH		0x1
+ #define OMAP4430_CLKACTIVITY_INIT_HSI_GFCLK_MASK		(1 << 16)
+ 
+ /* Used by CM_L3INIT_CLKSTCTRL */
+ #define OMAP4430_CLKACTIVITY_INIT_HSMMC1_GFCLK_SHIFT		17
++#define OMAP4430_CLKACTIVITY_INIT_HSMMC1_GFCLK_WIDTH		0x1
+ #define OMAP4430_CLKACTIVITY_INIT_HSMMC1_GFCLK_MASK		(1 << 17)
+ 
+ /* Used by CM_L3INIT_CLKSTCTRL */
+ #define OMAP4430_CLKACTIVITY_INIT_HSMMC2_GFCLK_SHIFT		18
++#define OMAP4430_CLKACTIVITY_INIT_HSMMC2_GFCLK_WIDTH		0x1
+ #define OMAP4430_CLKACTIVITY_INIT_HSMMC2_GFCLK_MASK		(1 << 18)
+ 
+ /* Used by CM_L3INIT_CLKSTCTRL */
+ #define OMAP4430_CLKACTIVITY_INIT_HSMMC6_GFCLK_SHIFT		19
++#define OMAP4430_CLKACTIVITY_INIT_HSMMC6_GFCLK_WIDTH		0x1
+ #define OMAP4430_CLKACTIVITY_INIT_HSMMC6_GFCLK_MASK		(1 << 19)
+ 
+ /* Used by CM_CAM_CLKSTCTRL */
+ #define OMAP4430_CLKACTIVITY_ISS_GCLK_SHIFT			8
++#define OMAP4430_CLKACTIVITY_ISS_GCLK_WIDTH			0x1
+ #define OMAP4430_CLKACTIVITY_ISS_GCLK_MASK			(1 << 8)
+ 
+ /* Used by CM_IVAHD_CLKSTCTRL */
+ #define OMAP4430_CLKACTIVITY_IVAHD_ROOT_CLK_SHIFT		8
++#define OMAP4430_CLKACTIVITY_IVAHD_ROOT_CLK_WIDTH		0x1
+ #define OMAP4430_CLKACTIVITY_IVAHD_ROOT_CLK_MASK		(1 << 8)
+ 
+ /* Used by CM_D2D_CLKSTCTRL */
+ #define OMAP4430_CLKACTIVITY_L3X2_D2D_GICLK_SHIFT		10
++#define OMAP4430_CLKACTIVITY_L3X2_D2D_GICLK_WIDTH		0x1
+ #define OMAP4430_CLKACTIVITY_L3X2_D2D_GICLK_MASK		(1 << 10)
+ 
+ /* Used by CM_L3_1_CLKSTCTRL */
+ #define OMAP4430_CLKACTIVITY_L3_1_GICLK_SHIFT			8
++#define OMAP4430_CLKACTIVITY_L3_1_GICLK_WIDTH			0x1
+ #define OMAP4430_CLKACTIVITY_L3_1_GICLK_MASK			(1 << 8)
+ 
+ /* Used by CM_L3_2_CLKSTCTRL */
+ #define OMAP4430_CLKACTIVITY_L3_2_GICLK_SHIFT			8
++#define OMAP4430_CLKACTIVITY_L3_2_GICLK_WIDTH			0x1
+ #define OMAP4430_CLKACTIVITY_L3_2_GICLK_MASK			(1 << 8)
+ 
+ /* Used by CM_D2D_CLKSTCTRL */
+ #define OMAP4430_CLKACTIVITY_L3_D2D_GICLK_SHIFT			8
++#define OMAP4430_CLKACTIVITY_L3_D2D_GICLK_WIDTH			0x1
+ #define OMAP4430_CLKACTIVITY_L3_D2D_GICLK_MASK			(1 << 8)
+ 
+ /* Used by CM_SDMA_CLKSTCTRL */
+ #define OMAP4430_CLKACTIVITY_L3_DMA_GICLK_SHIFT			8
++#define OMAP4430_CLKACTIVITY_L3_DMA_GICLK_WIDTH			0x1
+ #define OMAP4430_CLKACTIVITY_L3_DMA_GICLK_MASK			(1 << 8)
+ 
+ /* Used by CM_DSS_CLKSTCTRL */
+ #define OMAP4430_CLKACTIVITY_L3_DSS_GICLK_SHIFT			8
++#define OMAP4430_CLKACTIVITY_L3_DSS_GICLK_WIDTH			0x1
+ #define OMAP4430_CLKACTIVITY_L3_DSS_GICLK_MASK			(1 << 8)
+ 
+ /* Used by CM_MEMIF_CLKSTCTRL */
+ #define OMAP4430_CLKACTIVITY_L3_EMIF_GICLK_SHIFT		8
++#define OMAP4430_CLKACTIVITY_L3_EMIF_GICLK_WIDTH		0x1
+ #define OMAP4430_CLKACTIVITY_L3_EMIF_GICLK_MASK			(1 << 8)
+ 
+ /* Used by CM_GFX_CLKSTCTRL */
+ #define OMAP4430_CLKACTIVITY_L3_GFX_GICLK_SHIFT			8
++#define OMAP4430_CLKACTIVITY_L3_GFX_GICLK_WIDTH			0x1
+ #define OMAP4430_CLKACTIVITY_L3_GFX_GICLK_MASK			(1 << 8)
+ 
+ /* Used by CM_L3INIT_CLKSTCTRL */
+ #define OMAP4430_CLKACTIVITY_L3_INIT_GICLK_SHIFT		8
++#define OMAP4430_CLKACTIVITY_L3_INIT_GICLK_WIDTH		0x1
+ #define OMAP4430_CLKACTIVITY_L3_INIT_GICLK_MASK			(1 << 8)
+ 
+ /* Used by CM_L3INSTR_CLKSTCTRL */
+ #define OMAP4430_CLKACTIVITY_L3_INSTR_GICLK_SHIFT		8
++#define OMAP4430_CLKACTIVITY_L3_INSTR_GICLK_WIDTH		0x1
+ #define OMAP4430_CLKACTIVITY_L3_INSTR_GICLK_MASK		(1 << 8)
+ 
+ /* Used by CM_L4SEC_CLKSTCTRL */
+ #define OMAP4430_CLKACTIVITY_L3_SECURE_GICLK_SHIFT		8
++#define OMAP4430_CLKACTIVITY_L3_SECURE_GICLK_WIDTH		0x1
+ #define OMAP4430_CLKACTIVITY_L3_SECURE_GICLK_MASK		(1 << 8)
+ 
+ /* Used by CM_ALWON_CLKSTCTRL */
+ #define OMAP4430_CLKACTIVITY_L4_AO_ICLK_SHIFT			8
++#define OMAP4430_CLKACTIVITY_L4_AO_ICLK_WIDTH			0x1
+ #define OMAP4430_CLKACTIVITY_L4_AO_ICLK_MASK			(1 << 8)
+ 
+ /* Used by CM_CEFUSE_CLKSTCTRL */
+ #define OMAP4430_CLKACTIVITY_L4_CEFUSE_GICLK_SHIFT		8
++#define OMAP4430_CLKACTIVITY_L4_CEFUSE_GICLK_WIDTH		0x1
+ #define OMAP4430_CLKACTIVITY_L4_CEFUSE_GICLK_MASK		(1 << 8)
+ 
+ /* Used by CM_L4CFG_CLKSTCTRL */
+ #define OMAP4430_CLKACTIVITY_L4_CFG_GICLK_SHIFT			8
++#define OMAP4430_CLKACTIVITY_L4_CFG_GICLK_WIDTH			0x1
+ #define OMAP4430_CLKACTIVITY_L4_CFG_GICLK_MASK			(1 << 8)
+ 
+ /* Used by CM_D2D_CLKSTCTRL */
+ #define OMAP4430_CLKACTIVITY_L4_D2D_GICLK_SHIFT			9
++#define OMAP4430_CLKACTIVITY_L4_D2D_GICLK_WIDTH			0x1
+ #define OMAP4430_CLKACTIVITY_L4_D2D_GICLK_MASK			(1 << 9)
+ 
+ /* Used by CM_L3INIT_CLKSTCTRL */
+ #define OMAP4430_CLKACTIVITY_L4_INIT_GICLK_SHIFT		9
++#define OMAP4430_CLKACTIVITY_L4_INIT_GICLK_WIDTH		0x1
+ #define OMAP4430_CLKACTIVITY_L4_INIT_GICLK_MASK			(1 << 9)
+ 
+ /* Used by CM_L4PER_CLKSTCTRL */
+ #define OMAP4430_CLKACTIVITY_L4_PER_GICLK_SHIFT			8
++#define OMAP4430_CLKACTIVITY_L4_PER_GICLK_WIDTH			0x1
+ #define OMAP4430_CLKACTIVITY_L4_PER_GICLK_MASK			(1 << 8)
+ 
+ /* Used by CM_L4SEC_CLKSTCTRL */
+ #define OMAP4430_CLKACTIVITY_L4_SECURE_GICLK_SHIFT		9
++#define OMAP4430_CLKACTIVITY_L4_SECURE_GICLK_WIDTH		0x1
+ #define OMAP4430_CLKACTIVITY_L4_SECURE_GICLK_MASK		(1 << 9)
+ 
+ /* Used by CM_WKUP_CLKSTCTRL */
+ #define OMAP4430_CLKACTIVITY_L4_WKUP_GICLK_SHIFT		12
++#define OMAP4430_CLKACTIVITY_L4_WKUP_GICLK_WIDTH		0x1
+ #define OMAP4430_CLKACTIVITY_L4_WKUP_GICLK_MASK			(1 << 12)
+ 
+ /* Used by CM_MPU_CLKSTCTRL */
+ #define OMAP4430_CLKACTIVITY_MPU_DPLL_CLK_SHIFT			8
++#define OMAP4430_CLKACTIVITY_MPU_DPLL_CLK_WIDTH			0x1
+ #define OMAP4430_CLKACTIVITY_MPU_DPLL_CLK_MASK			(1 << 8)
+ 
+ /* Used by CM1_ABE_CLKSTCTRL */
+ #define OMAP4430_CLKACTIVITY_OCP_ABE_GICLK_SHIFT		9
++#define OMAP4430_CLKACTIVITY_OCP_ABE_GICLK_WIDTH		0x1
+ #define OMAP4430_CLKACTIVITY_OCP_ABE_GICLK_MASK			(1 << 9)
+ 
+ /* Used by CM_L4PER_CLKSTCTRL */
+ #define OMAP4430_CLKACTIVITY_PER_24MC_GFCLK_SHIFT		16
++#define OMAP4430_CLKACTIVITY_PER_24MC_GFCLK_WIDTH		0x1
+ #define OMAP4430_CLKACTIVITY_PER_24MC_GFCLK_MASK		(1 << 16)
+ 
+ /* Used by CM_L4PER_CLKSTCTRL */
+ #define OMAP4430_CLKACTIVITY_PER_32K_GFCLK_SHIFT		17
++#define OMAP4430_CLKACTIVITY_PER_32K_GFCLK_WIDTH		0x1
+ #define OMAP4430_CLKACTIVITY_PER_32K_GFCLK_MASK			(1 << 17)
+ 
+ /* Used by CM_L4PER_CLKSTCTRL */
+ #define OMAP4430_CLKACTIVITY_PER_48M_GFCLK_SHIFT		18
++#define OMAP4430_CLKACTIVITY_PER_48M_GFCLK_WIDTH		0x1
+ #define OMAP4430_CLKACTIVITY_PER_48M_GFCLK_MASK			(1 << 18)
+ 
+ /* Used by CM_L4PER_CLKSTCTRL */
+ #define OMAP4430_CLKACTIVITY_PER_96M_GFCLK_SHIFT		19
++#define OMAP4430_CLKACTIVITY_PER_96M_GFCLK_WIDTH		0x1
+ #define OMAP4430_CLKACTIVITY_PER_96M_GFCLK_MASK			(1 << 19)
+ 
+ /* Used by CM_L4PER_CLKSTCTRL */
+ #define OMAP4430_CLKACTIVITY_PER_ABE_24M_GFCLK_SHIFT		25
++#define OMAP4430_CLKACTIVITY_PER_ABE_24M_GFCLK_WIDTH		0x1
+ #define OMAP4430_CLKACTIVITY_PER_ABE_24M_GFCLK_MASK		(1 << 25)
+ 
+ /* Used by CM_L4PER_CLKSTCTRL */
+ #define OMAP4430_CLKACTIVITY_PER_MCASP2_GFCLK_SHIFT		20
++#define OMAP4430_CLKACTIVITY_PER_MCASP2_GFCLK_WIDTH		0x1
+ #define OMAP4430_CLKACTIVITY_PER_MCASP2_GFCLK_MASK		(1 << 20)
+ 
+ /* Used by CM_L4PER_CLKSTCTRL */
+@@ -343,94 +420,114 @@
+ 
+ /* Used by CM_L4PER_CLKSTCTRL */
+ #define OMAP4430_CLKACTIVITY_PER_MCBSP4_GFCLK_SHIFT		22
++#define OMAP4430_CLKACTIVITY_PER_MCBSP4_GFCLK_WIDTH		0x1
+ #define OMAP4430_CLKACTIVITY_PER_MCBSP4_GFCLK_MASK		(1 << 22)
+ 
+ /* Used by CM_L4PER_CLKSTCTRL */
+ #define OMAP4430_CLKACTIVITY_PER_SYS_GFCLK_SHIFT		24
++#define OMAP4430_CLKACTIVITY_PER_SYS_GFCLK_WIDTH		0x1
+ #define OMAP4430_CLKACTIVITY_PER_SYS_GFCLK_MASK			(1 << 24)
+ 
+ /* Used by CM_MEMIF_CLKSTCTRL */
+ #define OMAP4430_CLKACTIVITY_PHY_ROOT_CLK_SHIFT			10
++#define OMAP4430_CLKACTIVITY_PHY_ROOT_CLK_WIDTH			0x1
+ #define OMAP4430_CLKACTIVITY_PHY_ROOT_CLK_MASK			(1 << 10)
+ 
+ /* Used by CM_GFX_CLKSTCTRL */
+ #define OMAP4430_CLKACTIVITY_SGX_GFCLK_SHIFT			9
++#define OMAP4430_CLKACTIVITY_SGX_GFCLK_WIDTH			0x1
+ #define OMAP4430_CLKACTIVITY_SGX_GFCLK_MASK			(1 << 9)
+ 
+ /* Used by CM_ALWON_CLKSTCTRL */
+ #define OMAP4430_CLKACTIVITY_SR_CORE_SYSCLK_SHIFT		11
++#define OMAP4430_CLKACTIVITY_SR_CORE_SYSCLK_WIDTH		0x1
+ #define OMAP4430_CLKACTIVITY_SR_CORE_SYSCLK_MASK		(1 << 11)
+ 
+ /* Used by CM_ALWON_CLKSTCTRL */
+ #define OMAP4430_CLKACTIVITY_SR_IVA_SYSCLK_SHIFT		10
++#define OMAP4430_CLKACTIVITY_SR_IVA_SYSCLK_WIDTH		0x1
+ #define OMAP4430_CLKACTIVITY_SR_IVA_SYSCLK_MASK			(1 << 10)
+ 
+ /* Used by CM_ALWON_CLKSTCTRL */
+ #define OMAP4430_CLKACTIVITY_SR_MPU_SYSCLK_SHIFT		9
++#define OMAP4430_CLKACTIVITY_SR_MPU_SYSCLK_WIDTH		0x1
+ #define OMAP4430_CLKACTIVITY_SR_MPU_SYSCLK_MASK			(1 << 9)
+ 
+ /* Used by CM_WKUP_CLKSTCTRL */
+ #define OMAP4430_CLKACTIVITY_SYS_CLK_SHIFT			8
++#define OMAP4430_CLKACTIVITY_SYS_CLK_WIDTH			0x1
+ #define OMAP4430_CLKACTIVITY_SYS_CLK_MASK			(1 << 8)
+ 
+ /* Used by CM_TESLA_CLKSTCTRL */
+ #define OMAP4430_CLKACTIVITY_TESLA_ROOT_CLK_SHIFT		8
++#define OMAP4430_CLKACTIVITY_TESLA_ROOT_CLK_WIDTH		0x1
+ #define OMAP4430_CLKACTIVITY_TESLA_ROOT_CLK_MASK		(1 << 8)
+ 
+ /* Used by CM_L3INIT_CLKSTCTRL */
+ #define OMAP4430_CLKACTIVITY_TLL_CH0_GFCLK_SHIFT		22
++#define OMAP4430_CLKACTIVITY_TLL_CH0_GFCLK_WIDTH		0x1
+ #define OMAP4430_CLKACTIVITY_TLL_CH0_GFCLK_MASK			(1 << 22)
+ 
+ /* Used by CM_L3INIT_CLKSTCTRL */
+ #define OMAP4430_CLKACTIVITY_TLL_CH1_GFCLK_SHIFT		23
++#define OMAP4430_CLKACTIVITY_TLL_CH1_GFCLK_WIDTH		0x1
+ #define OMAP4430_CLKACTIVITY_TLL_CH1_GFCLK_MASK			(1 << 23)
+ 
+ /* Used by CM_L3INIT_CLKSTCTRL */
+ #define OMAP4430_CLKACTIVITY_TLL_CH2_GFCLK_SHIFT		24
++#define OMAP4430_CLKACTIVITY_TLL_CH2_GFCLK_WIDTH		0x1
+ #define OMAP4430_CLKACTIVITY_TLL_CH2_GFCLK_MASK			(1 << 24)
+ 
+ /* Used by CM_L3INIT_CLKSTCTRL */
+ #define OMAP4430_CLKACTIVITY_UNIPRO_DPLL_CLK_SHIFT		10
++#define OMAP4430_CLKACTIVITY_UNIPRO_DPLL_CLK_WIDTH		0x1
+ #define OMAP4430_CLKACTIVITY_UNIPRO_DPLL_CLK_MASK		(1 << 10)
+ 
+ /* Used by CM_L3INIT_CLKSTCTRL */
+ #define OMAP4430_CLKACTIVITY_USB_DPLL_CLK_SHIFT			14
++#define OMAP4430_CLKACTIVITY_USB_DPLL_CLK_WIDTH			0x1
+ #define OMAP4430_CLKACTIVITY_USB_DPLL_CLK_MASK			(1 << 14)
+ 
+ /* Used by CM_L3INIT_CLKSTCTRL */
+ #define OMAP4430_CLKACTIVITY_USB_DPLL_HS_CLK_SHIFT		15
++#define OMAP4430_CLKACTIVITY_USB_DPLL_HS_CLK_WIDTH		0x1
+ #define OMAP4430_CLKACTIVITY_USB_DPLL_HS_CLK_MASK		(1 << 15)
+ 
+ /* Used by CM_WKUP_CLKSTCTRL */
+ #define OMAP4430_CLKACTIVITY_USIM_GFCLK_SHIFT			10
++#define OMAP4430_CLKACTIVITY_USIM_GFCLK_WIDTH			0x1
+ #define OMAP4430_CLKACTIVITY_USIM_GFCLK_MASK			(1 << 10)
+ 
+ /* Used by CM_L3INIT_CLKSTCTRL */
+ #define OMAP4430_CLKACTIVITY_UTMI_P3_GFCLK_SHIFT		30
++#define OMAP4430_CLKACTIVITY_UTMI_P3_GFCLK_WIDTH		0x1
+ #define OMAP4430_CLKACTIVITY_UTMI_P3_GFCLK_MASK			(1 << 30)
+ 
+ /* Used by CM_L3INIT_CLKSTCTRL */
+ #define OMAP4430_CLKACTIVITY_UTMI_ROOT_GFCLK_SHIFT		25
++#define OMAP4430_CLKACTIVITY_UTMI_ROOT_GFCLK_WIDTH		0x1
+ #define OMAP4430_CLKACTIVITY_UTMI_ROOT_GFCLK_MASK		(1 << 25)
+ 
+ /* Used by CM_WKUP_CLKSTCTRL */
+ #define OMAP4430_CLKACTIVITY_WKUP_32K_GFCLK_SHIFT		11
++#define OMAP4430_CLKACTIVITY_WKUP_32K_GFCLK_WIDTH		0x1
+ #define OMAP4430_CLKACTIVITY_WKUP_32K_GFCLK_MASK		(1 << 11)
+ 
+ /* Used by CM_WKUP_CLKSTCTRL */
+ #define OMAP4460_CLKACTIVITY_WKUP_TS_GFCLK_SHIFT		13
++#define OMAP4460_CLKACTIVITY_WKUP_TS_GFCLK_WIDTH		0x1
+ #define OMAP4460_CLKACTIVITY_WKUP_TS_GFCLK_MASK			(1 << 13)
+ 
+ /*
+  * Used by CM1_ABE_TIMER5_CLKCTRL, CM1_ABE_TIMER6_CLKCTRL,
+  * CM1_ABE_TIMER7_CLKCTRL, CM1_ABE_TIMER8_CLKCTRL, CM_L3INIT_MMC1_CLKCTRL,
+- * CM_L3INIT_MMC2_CLKCTRL, CM_L3INIT_MMC6_CLKCTRL, CM_L4PER_DMTIMER10_CLKCTRL,
++ * CM_L3INIT_MMC2_CLKCTRL, CM_L4PER_DMTIMER10_CLKCTRL,
+  * CM_L4PER_DMTIMER11_CLKCTRL, CM_L4PER_DMTIMER2_CLKCTRL,
+  * CM_L4PER_DMTIMER3_CLKCTRL, CM_L4PER_DMTIMER4_CLKCTRL,
+- * CM_L4PER_DMTIMER9_CLKCTRL, CM_L4PER_MCASP2_CLKCTRL, CM_L4PER_MCASP3_CLKCTRL,
+- * CM_WKUP_TIMER1_CLKCTRL
++ * CM_L4PER_DMTIMER9_CLKCTRL, CM_WKUP_TIMER1_CLKCTRL
+  */
+ #define OMAP4430_CLKSEL_SHIFT					24
++#define OMAP4430_CLKSEL_WIDTH					0x1
+ #define OMAP4430_CLKSEL_MASK					(1 << 24)
+ 
+ /*
+@@ -438,50 +535,62 @@
+  * CM_CLKSEL_DUCATI_ISS_ROOT, CM_CLKSEL_USB_60MHZ, CM_L4_WKUP_CLKSEL
+  */
+ #define OMAP4430_CLKSEL_0_0_SHIFT				0
++#define OMAP4430_CLKSEL_0_0_WIDTH				0x1
+ #define OMAP4430_CLKSEL_0_0_MASK				(1 << 0)
+ 
+ /* Renamed from CLKSEL Used by CM_BYPCLK_DPLL_IVA, CM_BYPCLK_DPLL_MPU */
+ #define OMAP4430_CLKSEL_0_1_SHIFT				0
++#define OMAP4430_CLKSEL_0_1_WIDTH				0x2
+ #define OMAP4430_CLKSEL_0_1_MASK				(0x3 << 0)
+ 
+ /* Renamed from CLKSEL Used by CM_L3INIT_HSI_CLKCTRL */
+ #define OMAP4430_CLKSEL_24_25_SHIFT				24
++#define OMAP4430_CLKSEL_24_25_WIDTH				0x2
+ #define OMAP4430_CLKSEL_24_25_MASK				(0x3 << 24)
+ 
+ /* Used by CM_L3INIT_USB_OTG_CLKCTRL */
+ #define OMAP4430_CLKSEL_60M_SHIFT				24
++#define OMAP4430_CLKSEL_60M_WIDTH				0x1
+ #define OMAP4430_CLKSEL_60M_MASK				(1 << 24)
+ 
+ /* Used by CM_MPU_MPU_CLKCTRL */
+ #define OMAP4460_CLKSEL_ABE_DIV_MODE_SHIFT			25
++#define OMAP4460_CLKSEL_ABE_DIV_MODE_WIDTH			0x1
+ #define OMAP4460_CLKSEL_ABE_DIV_MODE_MASK			(1 << 25)
+ 
+ /* Used by CM1_ABE_AESS_CLKCTRL */
+ #define OMAP4430_CLKSEL_AESS_FCLK_SHIFT				24
++#define OMAP4430_CLKSEL_AESS_FCLK_WIDTH				0x1
+ #define OMAP4430_CLKSEL_AESS_FCLK_MASK				(1 << 24)
+ 
+ /* Used by CM_CLKSEL_CORE */
+ #define OMAP4430_CLKSEL_CORE_SHIFT				0
++#define OMAP4430_CLKSEL_CORE_WIDTH				0x1
+ #define OMAP4430_CLKSEL_CORE_MASK				(1 << 0)
+ 
+ /* Renamed from CLKSEL_CORE Used by CM_SHADOW_FREQ_CONFIG2 */
+ #define OMAP4430_CLKSEL_CORE_1_1_SHIFT				1
++#define OMAP4430_CLKSEL_CORE_1_1_WIDTH				0x1
+ #define OMAP4430_CLKSEL_CORE_1_1_MASK				(1 << 1)
+ 
+ /* Used by CM_WKUP_USIM_CLKCTRL */
+ #define OMAP4430_CLKSEL_DIV_SHIFT				24
++#define OMAP4430_CLKSEL_DIV_WIDTH				0x1
+ #define OMAP4430_CLKSEL_DIV_MASK				(1 << 24)
+ 
+ /* Used by CM_MPU_MPU_CLKCTRL */
+ #define OMAP4460_CLKSEL_EMIF_DIV_MODE_SHIFT			24
++#define OMAP4460_CLKSEL_EMIF_DIV_MODE_WIDTH			0x1
+ #define OMAP4460_CLKSEL_EMIF_DIV_MODE_MASK			(1 << 24)
+ 
+ /* Used by CM_CAM_FDIF_CLKCTRL */
+ #define OMAP4430_CLKSEL_FCLK_SHIFT				24
++#define OMAP4430_CLKSEL_FCLK_WIDTH				0x2
+ #define OMAP4430_CLKSEL_FCLK_MASK				(0x3 << 24)
+ 
+ /* Used by CM_L4PER_MCBSP4_CLKCTRL */
+ #define OMAP4430_CLKSEL_INTERNAL_SOURCE_SHIFT			25
++#define OMAP4430_CLKSEL_INTERNAL_SOURCE_WIDTH			0x1
+ #define OMAP4430_CLKSEL_INTERNAL_SOURCE_MASK			(1 << 25)
+ 
+ /*
+@@ -490,34 +599,42 @@
+  * CM1_ABE_MCBSP3_CLKCTRL
+  */
+ #define OMAP4430_CLKSEL_INTERNAL_SOURCE_CM1_ABE_DMIC_SHIFT	26
++#define OMAP4430_CLKSEL_INTERNAL_SOURCE_CM1_ABE_DMIC_WIDTH	0x2
+ #define OMAP4430_CLKSEL_INTERNAL_SOURCE_CM1_ABE_DMIC_MASK	(0x3 << 26)
+ 
+ /* Used by CM_CLKSEL_CORE */
+ #define OMAP4430_CLKSEL_L3_SHIFT				4
++#define OMAP4430_CLKSEL_L3_WIDTH				0x1
+ #define OMAP4430_CLKSEL_L3_MASK					(1 << 4)
+ 
+ /* Renamed from CLKSEL_L3 Used by CM_SHADOW_FREQ_CONFIG2 */
+ #define OMAP4430_CLKSEL_L3_SHADOW_SHIFT				2
++#define OMAP4430_CLKSEL_L3_SHADOW_WIDTH				0x1
+ #define OMAP4430_CLKSEL_L3_SHADOW_MASK				(1 << 2)
+ 
+ /* Used by CM_CLKSEL_CORE */
+ #define OMAP4430_CLKSEL_L4_SHIFT				8
++#define OMAP4430_CLKSEL_L4_WIDTH				0x1
+ #define OMAP4430_CLKSEL_L4_MASK					(1 << 8)
+ 
+ /* Used by CM_CLKSEL_ABE */
+ #define OMAP4430_CLKSEL_OPP_SHIFT				0
++#define OMAP4430_CLKSEL_OPP_WIDTH				0x2
+ #define OMAP4430_CLKSEL_OPP_MASK				(0x3 << 0)
+ 
+ /* Used by CM_EMU_DEBUGSS_CLKCTRL */
+ #define OMAP4430_CLKSEL_PMD_STM_CLK_SHIFT			27
++#define OMAP4430_CLKSEL_PMD_STM_CLK_WIDTH			0x3
+ #define OMAP4430_CLKSEL_PMD_STM_CLK_MASK			(0x7 << 27)
+ 
+ /* Used by CM_EMU_DEBUGSS_CLKCTRL */
+ #define OMAP4430_CLKSEL_PMD_TRACE_CLK_SHIFT			24
++#define OMAP4430_CLKSEL_PMD_TRACE_CLK_WIDTH			0x3
+ #define OMAP4430_CLKSEL_PMD_TRACE_CLK_MASK			(0x7 << 24)
+ 
+ /* Used by CM_GFX_GFX_CLKCTRL */
+ #define OMAP4430_CLKSEL_SGX_FCLK_SHIFT				24
++#define OMAP4430_CLKSEL_SGX_FCLK_WIDTH				0x1
+ #define OMAP4430_CLKSEL_SGX_FCLK_MASK				(1 << 24)
+ 
+ /*
+@@ -525,18 +642,22 @@
+  * CM1_ABE_MCBSP2_CLKCTRL, CM1_ABE_MCBSP3_CLKCTRL
+  */
+ #define OMAP4430_CLKSEL_SOURCE_SHIFT				24
++#define OMAP4430_CLKSEL_SOURCE_WIDTH				0x2
+ #define OMAP4430_CLKSEL_SOURCE_MASK				(0x3 << 24)
+ 
+ /* Renamed from CLKSEL_SOURCE Used by CM_L4PER_MCBSP4_CLKCTRL */
+ #define OMAP4430_CLKSEL_SOURCE_24_24_SHIFT			24
++#define OMAP4430_CLKSEL_SOURCE_24_24_WIDTH			0x1
+ #define OMAP4430_CLKSEL_SOURCE_24_24_MASK			(1 << 24)
+ 
+ /* Used by CM_L3INIT_USB_HOST_CLKCTRL */
+ #define OMAP4430_CLKSEL_UTMI_P1_SHIFT				24
++#define OMAP4430_CLKSEL_UTMI_P1_WIDTH				0x1
+ #define OMAP4430_CLKSEL_UTMI_P1_MASK				(1 << 24)
+ 
+ /* Used by CM_L3INIT_USB_HOST_CLKCTRL */
+ #define OMAP4430_CLKSEL_UTMI_P2_SHIFT				25
++#define OMAP4430_CLKSEL_UTMI_P2_WIDTH				0x1
+ #define OMAP4430_CLKSEL_UTMI_P2_MASK				(1 << 25)
+ 
+ /*
+@@ -549,30 +670,37 @@
+  * CM_TESLA_CLKSTCTRL, CM_WKUP_CLKSTCTRL
+  */
+ #define OMAP4430_CLKTRCTRL_SHIFT				0
++#define OMAP4430_CLKTRCTRL_WIDTH				0x2
+ #define OMAP4430_CLKTRCTRL_MASK					(0x3 << 0)
+ 
+ /* Used by CM_EMU_OVERRIDE_DPLL_CORE */
+ #define OMAP4430_CORE_DPLL_EMU_DIV_SHIFT			0
++#define OMAP4430_CORE_DPLL_EMU_DIV_WIDTH			0x7
+ #define OMAP4430_CORE_DPLL_EMU_DIV_MASK				(0x7f << 0)
+ 
+ /* Used by CM_EMU_OVERRIDE_DPLL_CORE */
+ #define OMAP4430_CORE_DPLL_EMU_MULT_SHIFT			8
++#define OMAP4430_CORE_DPLL_EMU_MULT_WIDTH			0xb
+ #define OMAP4430_CORE_DPLL_EMU_MULT_MASK			(0x7ff << 8)
+ 
+ /* Used by REVISION_CM1, REVISION_CM2 */
+ #define OMAP4430_CUSTOM_SHIFT					6
++#define OMAP4430_CUSTOM_WIDTH					0x2
+ #define OMAP4430_CUSTOM_MASK					(0x3 << 6)
+ 
+ /* Used by CM_L3_2_DYNAMICDEP, CM_L4CFG_DYNAMICDEP */
+ #define OMAP4430_D2D_DYNDEP_SHIFT				18
++#define OMAP4430_D2D_DYNDEP_WIDTH				0x1
+ #define OMAP4430_D2D_DYNDEP_MASK				(1 << 18)
+ 
+ /* Used by CM_MPU_STATICDEP */
+ #define OMAP4430_D2D_STATDEP_SHIFT				18
++#define OMAP4430_D2D_STATDEP_WIDTH				0x1
+ #define OMAP4430_D2D_STATDEP_MASK				(1 << 18)
+ 
+ /* Used by CM_CLKSEL_DPLL_MPU */
+ #define OMAP4460_DCC_COUNT_MAX_SHIFT				24
++#define OMAP4460_DCC_COUNT_MAX_WIDTH				0x8
+ #define OMAP4460_DCC_COUNT_MAX_MASK				(0xff << 24)
+ 
+ /* Used by CM_CLKSEL_DPLL_MPU */
+@@ -586,22 +714,27 @@
+  * CM_SSC_DELTAMSTEP_DPLL_UNIPRO, CM_SSC_DELTAMSTEP_DPLL_USB
+  */
+ #define OMAP4430_DELTAMSTEP_SHIFT				0
++#define OMAP4430_DELTAMSTEP_WIDTH				0x14
+ #define OMAP4430_DELTAMSTEP_MASK				(0xfffff << 0)
+ 
+ /* Renamed from DELTAMSTEP Used by CM_SSC_DELTAMSTEP_DPLL_USB */
+ #define OMAP4460_DELTAMSTEP_0_20_SHIFT				0
++#define OMAP4460_DELTAMSTEP_0_20_WIDTH				0x15
+ #define OMAP4460_DELTAMSTEP_0_20_MASK				(0x1fffff << 0)
+ 
+ /* Used by CM_DLL_CTRL */
+ #define OMAP4430_DLL_OVERRIDE_SHIFT				0
++#define OMAP4430_DLL_OVERRIDE_WIDTH				0x1
+ #define OMAP4430_DLL_OVERRIDE_MASK				(1 << 0)
+ 
+ /* Renamed from DLL_OVERRIDE Used by CM_SHADOW_FREQ_CONFIG1 */
+ #define OMAP4430_DLL_OVERRIDE_2_2_SHIFT				2
++#define OMAP4430_DLL_OVERRIDE_2_2_WIDTH				0x1
+ #define OMAP4430_DLL_OVERRIDE_2_2_MASK				(1 << 2)
+ 
+ /* Used by CM_SHADOW_FREQ_CONFIG1 */
+ #define OMAP4430_DLL_RESET_SHIFT				3
++#define OMAP4430_DLL_RESET_WIDTH				0x1
+ #define OMAP4430_DLL_RESET_MASK					(1 << 3)
+ 
+ /*
+@@ -610,30 +743,37 @@
+  * CM_CLKSEL_DPLL_UNIPRO, CM_CLKSEL_DPLL_USB
+  */
+ #define OMAP4430_DPLL_BYP_CLKSEL_SHIFT				23
++#define OMAP4430_DPLL_BYP_CLKSEL_WIDTH				0x1
+ #define OMAP4430_DPLL_BYP_CLKSEL_MASK				(1 << 23)
+ 
+ /* Used by CM_CLKDCOLDO_DPLL_USB */
+ #define OMAP4430_DPLL_CLKDCOLDO_GATE_CTRL_SHIFT			8
++#define OMAP4430_DPLL_CLKDCOLDO_GATE_CTRL_WIDTH			0x1
+ #define OMAP4430_DPLL_CLKDCOLDO_GATE_CTRL_MASK			(1 << 8)
+ 
+ /* Used by CM_CLKSEL_DPLL_CORE */
+ #define OMAP4430_DPLL_CLKOUTHIF_CLKSEL_SHIFT			20
++#define OMAP4430_DPLL_CLKOUTHIF_CLKSEL_WIDTH			0x1
+ #define OMAP4430_DPLL_CLKOUTHIF_CLKSEL_MASK			(1 << 20)
+ 
+ /* Used by CM_DIV_M3_DPLL_ABE, CM_DIV_M3_DPLL_CORE, CM_DIV_M3_DPLL_PER */
+ #define OMAP4430_DPLL_CLKOUTHIF_DIV_SHIFT			0
++#define OMAP4430_DPLL_CLKOUTHIF_DIV_WIDTH			0x5
+ #define OMAP4430_DPLL_CLKOUTHIF_DIV_MASK			(0x1f << 0)
+ 
+ /* Used by CM_DIV_M3_DPLL_ABE, CM_DIV_M3_DPLL_CORE, CM_DIV_M3_DPLL_PER */
+ #define OMAP4430_DPLL_CLKOUTHIF_DIVCHACK_SHIFT			5
++#define OMAP4430_DPLL_CLKOUTHIF_DIVCHACK_WIDTH			0x1
+ #define OMAP4430_DPLL_CLKOUTHIF_DIVCHACK_MASK			(1 << 5)
+ 
+ /* Used by CM_DIV_M3_DPLL_ABE, CM_DIV_M3_DPLL_CORE, CM_DIV_M3_DPLL_PER */
+ #define OMAP4430_DPLL_CLKOUTHIF_GATE_CTRL_SHIFT			8
++#define OMAP4430_DPLL_CLKOUTHIF_GATE_CTRL_WIDTH			0x1
+ #define OMAP4430_DPLL_CLKOUTHIF_GATE_CTRL_MASK			(1 << 8)
+ 
+ /* Used by CM_DIV_M2_DPLL_ABE, CM_DIV_M2_DPLL_PER, CM_DIV_M2_DPLL_UNIPRO */
+ #define OMAP4430_DPLL_CLKOUTX2_GATE_CTRL_SHIFT			10
++#define OMAP4430_DPLL_CLKOUTX2_GATE_CTRL_WIDTH			0x1
+ #define OMAP4430_DPLL_CLKOUTX2_GATE_CTRL_MASK			(1 << 10)
+ 
+ /*
+@@ -641,10 +781,12 @@
+  * CM_DIV_M2_DPLL_MPU, CM_DIV_M2_DPLL_PER, CM_DIV_M2_DPLL_UNIPRO
+  */
+ #define OMAP4430_DPLL_CLKOUT_DIV_SHIFT				0
++#define OMAP4430_DPLL_CLKOUT_DIV_WIDTH				0x5
+ #define OMAP4430_DPLL_CLKOUT_DIV_MASK				(0x1f << 0)
+ 
+ /* Renamed from DPLL_CLKOUT_DIV Used by CM_DIV_M2_DPLL_USB */
+ #define OMAP4430_DPLL_CLKOUT_DIV_0_6_SHIFT			0
++#define OMAP4430_DPLL_CLKOUT_DIV_0_6_WIDTH			0x7
+ #define OMAP4430_DPLL_CLKOUT_DIV_0_6_MASK			(0x7f << 0)
+ 
+ /*
+@@ -652,10 +794,12 @@
+  * CM_DIV_M2_DPLL_MPU, CM_DIV_M2_DPLL_PER, CM_DIV_M2_DPLL_UNIPRO
+  */
+ #define OMAP4430_DPLL_CLKOUT_DIVCHACK_SHIFT			5
++#define OMAP4430_DPLL_CLKOUT_DIVCHACK_WIDTH			0x1
+ #define OMAP4430_DPLL_CLKOUT_DIVCHACK_MASK			(1 << 5)
+ 
+ /* Renamed from DPLL_CLKOUT_DIVCHACK Used by CM_DIV_M2_DPLL_USB */
+ #define OMAP4430_DPLL_CLKOUT_DIVCHACK_M2_USB_SHIFT		7
++#define OMAP4430_DPLL_CLKOUT_DIVCHACK_M2_USB_WIDTH		0x1
+ #define OMAP4430_DPLL_CLKOUT_DIVCHACK_M2_USB_MASK		(1 << 7)
+ 
+ /*
+@@ -663,18 +807,22 @@
+  * CM_DIV_M2_DPLL_MPU, CM_DIV_M2_DPLL_PER, CM_DIV_M2_DPLL_USB
+  */
+ #define OMAP4430_DPLL_CLKOUT_GATE_CTRL_SHIFT			8
++#define OMAP4430_DPLL_CLKOUT_GATE_CTRL_WIDTH			0x1
+ #define OMAP4430_DPLL_CLKOUT_GATE_CTRL_MASK			(1 << 8)
+ 
+ /* Used by CM_SHADOW_FREQ_CONFIG1 */
+ #define OMAP4430_DPLL_CORE_DPLL_EN_SHIFT			8
++#define OMAP4430_DPLL_CORE_DPLL_EN_WIDTH			0x3
+ #define OMAP4430_DPLL_CORE_DPLL_EN_MASK				(0x7 << 8)
+ 
+ /* Used by CM_SHADOW_FREQ_CONFIG1 */
+ #define OMAP4430_DPLL_CORE_M2_DIV_SHIFT				11
++#define OMAP4430_DPLL_CORE_M2_DIV_WIDTH				0x5
+ #define OMAP4430_DPLL_CORE_M2_DIV_MASK				(0x1f << 11)
+ 
+ /* Used by CM_SHADOW_FREQ_CONFIG2 */
+ #define OMAP4430_DPLL_CORE_M5_DIV_SHIFT				3
++#define OMAP4430_DPLL_CORE_M5_DIV_WIDTH				0x5
+ #define OMAP4430_DPLL_CORE_M5_DIV_MASK				(0x1f << 3)
+ 
+ /*
+@@ -683,10 +831,12 @@
+  * CM_CLKSEL_DPLL_UNIPRO
+  */
+ #define OMAP4430_DPLL_DIV_SHIFT					0
++#define OMAP4430_DPLL_DIV_WIDTH					0x7
+ #define OMAP4430_DPLL_DIV_MASK					(0x7f << 0)
+ 
+ /* Renamed from DPLL_DIV Used by CM_CLKSEL_DPLL_USB */
+ #define OMAP4430_DPLL_DIV_0_7_SHIFT				0
++#define OMAP4430_DPLL_DIV_0_7_WIDTH				0x8
+ #define OMAP4430_DPLL_DIV_0_7_MASK				(0xff << 0)
+ 
+ /*
+@@ -694,10 +844,12 @@
+  * CM_CLKMODE_DPLL_IVA, CM_CLKMODE_DPLL_MPU, CM_CLKMODE_DPLL_PER
+  */
+ #define OMAP4430_DPLL_DRIFTGUARD_EN_SHIFT			8
++#define OMAP4430_DPLL_DRIFTGUARD_EN_WIDTH			0x1
+ #define OMAP4430_DPLL_DRIFTGUARD_EN_MASK			(1 << 8)
+ 
+ /* Renamed from DPLL_DRIFTGUARD_EN Used by CM_CLKMODE_DPLL_UNIPRO */
+ #define OMAP4430_DPLL_DRIFTGUARD_EN_3_3_SHIFT			3
++#define OMAP4430_DPLL_DRIFTGUARD_EN_3_3_WIDTH			0x1
+ #define OMAP4430_DPLL_DRIFTGUARD_EN_3_3_MASK			(1 << 3)
+ 
+ /*
+@@ -706,6 +858,7 @@
+  * CM_CLKMODE_DPLL_UNIPRO, CM_CLKMODE_DPLL_USB
+  */
+ #define OMAP4430_DPLL_EN_SHIFT					0
++#define OMAP4430_DPLL_EN_WIDTH					0x3
+ #define OMAP4430_DPLL_EN_MASK					(0x7 << 0)
+ 
+ /*
+@@ -714,6 +867,7 @@
+  * CM_CLKMODE_DPLL_UNIPRO
+  */
+ #define OMAP4430_DPLL_LPMODE_EN_SHIFT				10
++#define OMAP4430_DPLL_LPMODE_EN_WIDTH				0x1
+ #define OMAP4430_DPLL_LPMODE_EN_MASK				(1 << 10)
+ 
+ /*
+@@ -722,10 +876,12 @@
+  * CM_CLKSEL_DPLL_UNIPRO
+  */
+ #define OMAP4430_DPLL_MULT_SHIFT				8
++#define OMAP4430_DPLL_MULT_WIDTH				0xb
+ #define OMAP4430_DPLL_MULT_MASK					(0x7ff << 8)
+ 
+ /* Renamed from DPLL_MULT Used by CM_CLKSEL_DPLL_USB */
+ #define OMAP4430_DPLL_MULT_USB_SHIFT				8
++#define OMAP4430_DPLL_MULT_USB_WIDTH				0xc
+ #define OMAP4430_DPLL_MULT_USB_MASK				(0xfff << 8)
+ 
+ /*
+@@ -734,10 +890,12 @@
+  * CM_CLKMODE_DPLL_UNIPRO
+  */
+ #define OMAP4430_DPLL_REGM4XEN_SHIFT				11
++#define OMAP4430_DPLL_REGM4XEN_WIDTH				0x1
+ #define OMAP4430_DPLL_REGM4XEN_MASK				(1 << 11)
+ 
+ /* Used by CM_CLKSEL_DPLL_USB */
+ #define OMAP4430_DPLL_SD_DIV_SHIFT				24
++#define OMAP4430_DPLL_SD_DIV_WIDTH				0x8
+ #define OMAP4430_DPLL_SD_DIV_MASK				(0xff << 24)
+ 
+ /*
+@@ -746,6 +904,7 @@
+  * CM_CLKMODE_DPLL_UNIPRO, CM_CLKMODE_DPLL_USB
+  */
+ #define OMAP4430_DPLL_SSC_ACK_SHIFT				13
++#define OMAP4430_DPLL_SSC_ACK_WIDTH				0x1
+ #define OMAP4430_DPLL_SSC_ACK_MASK				(1 << 13)
+ 
+ /*
+@@ -754,6 +913,7 @@
+  * CM_CLKMODE_DPLL_UNIPRO, CM_CLKMODE_DPLL_USB
+  */
+ #define OMAP4430_DPLL_SSC_DOWNSPREAD_SHIFT			14
++#define OMAP4430_DPLL_SSC_DOWNSPREAD_WIDTH			0x1
+ #define OMAP4430_DPLL_SSC_DOWNSPREAD_MASK			(1 << 14)
+ 
+ /*
+@@ -762,42 +922,52 @@
+  * CM_CLKMODE_DPLL_UNIPRO, CM_CLKMODE_DPLL_USB
+  */
+ #define OMAP4430_DPLL_SSC_EN_SHIFT				12
++#define OMAP4430_DPLL_SSC_EN_WIDTH				0x1
+ #define OMAP4430_DPLL_SSC_EN_MASK				(1 << 12)
+ 
+ /* Used by CM_L3_2_DYNAMICDEP, CM_L4CFG_DYNAMICDEP, CM_L4PER_DYNAMICDEP */
+ #define OMAP4430_DSS_DYNDEP_SHIFT				8
++#define OMAP4430_DSS_DYNDEP_WIDTH				0x1
+ #define OMAP4430_DSS_DYNDEP_MASK				(1 << 8)
+ 
+ /* Used by CM_DUCATI_STATICDEP, CM_MPU_STATICDEP, CM_SDMA_STATICDEP */
+ #define OMAP4430_DSS_STATDEP_SHIFT				8
++#define OMAP4430_DSS_STATDEP_WIDTH				0x1
+ #define OMAP4430_DSS_STATDEP_MASK				(1 << 8)
+ 
+ /* Used by CM_L3_2_DYNAMICDEP */
+ #define OMAP4430_DUCATI_DYNDEP_SHIFT				0
++#define OMAP4430_DUCATI_DYNDEP_WIDTH				0x1
+ #define OMAP4430_DUCATI_DYNDEP_MASK				(1 << 0)
+ 
+ /* Used by CM_MPU_STATICDEP, CM_SDMA_STATICDEP */
+ #define OMAP4430_DUCATI_STATDEP_SHIFT				0
++#define OMAP4430_DUCATI_STATDEP_WIDTH				0x1
+ #define OMAP4430_DUCATI_STATDEP_MASK				(1 << 0)
+ 
+ /* Used by CM_SHADOW_FREQ_CONFIG1 */
+ #define OMAP4430_FREQ_UPDATE_SHIFT				0
++#define OMAP4430_FREQ_UPDATE_WIDTH				0x1
+ #define OMAP4430_FREQ_UPDATE_MASK				(1 << 0)
+ 
+ /* Used by REVISION_CM1, REVISION_CM2 */
+ #define OMAP4430_FUNC_SHIFT					16
++#define OMAP4430_FUNC_WIDTH					0xc
+ #define OMAP4430_FUNC_MASK					(0xfff << 16)
+ 
+ /* Used by CM_L3_2_DYNAMICDEP */
+ #define OMAP4430_GFX_DYNDEP_SHIFT				10
++#define OMAP4430_GFX_DYNDEP_WIDTH				0x1
+ #define OMAP4430_GFX_DYNDEP_MASK				(1 << 10)
+ 
+ /* Used by CM_DUCATI_STATICDEP, CM_MPU_STATICDEP */
+ #define OMAP4430_GFX_STATDEP_SHIFT				10
++#define OMAP4430_GFX_STATDEP_WIDTH				0x1
+ #define OMAP4430_GFX_STATDEP_MASK				(1 << 10)
+ 
+ /* Used by CM_SHADOW_FREQ_CONFIG2 */
+ #define OMAP4430_GPMC_FREQ_UPDATE_SHIFT				0
++#define OMAP4430_GPMC_FREQ_UPDATE_WIDTH				0x1
+ #define OMAP4430_GPMC_FREQ_UPDATE_MASK				(1 << 0)
+ 
+ /*
+@@ -805,6 +975,7 @@
+  * CM_DIV_M4_DPLL_PER
+  */
+ #define OMAP4430_HSDIVIDER_CLKOUT1_DIV_SHIFT			0
++#define OMAP4430_HSDIVIDER_CLKOUT1_DIV_WIDTH			0x5
+ #define OMAP4430_HSDIVIDER_CLKOUT1_DIV_MASK			(0x1f << 0)
+ 
+ /*
+@@ -812,6 +983,7 @@
+  * CM_DIV_M4_DPLL_PER
+  */
+ #define OMAP4430_HSDIVIDER_CLKOUT1_DIVCHACK_SHIFT		5
++#define OMAP4430_HSDIVIDER_CLKOUT1_DIVCHACK_WIDTH		0x1
+ #define OMAP4430_HSDIVIDER_CLKOUT1_DIVCHACK_MASK		(1 << 5)
+ 
+ /*
+@@ -819,6 +991,7 @@
+  * CM_DIV_M4_DPLL_PER
+  */
+ #define OMAP4430_HSDIVIDER_CLKOUT1_GATE_CTRL_SHIFT		8
++#define OMAP4430_HSDIVIDER_CLKOUT1_GATE_CTRL_WIDTH		0x1
+ #define OMAP4430_HSDIVIDER_CLKOUT1_GATE_CTRL_MASK		(1 << 8)
+ 
+ /*
+@@ -826,6 +999,7 @@
+  * CM_DIV_M4_DPLL_PER
+  */
+ #define OMAP4430_HSDIVIDER_CLKOUT1_PWDN_SHIFT			12
++#define OMAP4430_HSDIVIDER_CLKOUT1_PWDN_WIDTH			0x1
+ #define OMAP4430_HSDIVIDER_CLKOUT1_PWDN_MASK			(1 << 12)
+ 
+ /*
+@@ -833,6 +1007,7 @@
+  * CM_DIV_M5_DPLL_PER
+  */
+ #define OMAP4430_HSDIVIDER_CLKOUT2_DIV_SHIFT			0
++#define OMAP4430_HSDIVIDER_CLKOUT2_DIV_WIDTH			0x5
+ #define OMAP4430_HSDIVIDER_CLKOUT2_DIV_MASK			(0x1f << 0)
+ 
+ /*
+@@ -840,6 +1015,7 @@
+  * CM_DIV_M5_DPLL_PER
+  */
+ #define OMAP4430_HSDIVIDER_CLKOUT2_DIVCHACK_SHIFT		5
++#define OMAP4430_HSDIVIDER_CLKOUT2_DIVCHACK_WIDTH		0x1
+ #define OMAP4430_HSDIVIDER_CLKOUT2_DIVCHACK_MASK		(1 << 5)
+ 
+ /*
+@@ -847,6 +1023,7 @@
+  * CM_DIV_M5_DPLL_PER
+  */
+ #define OMAP4430_HSDIVIDER_CLKOUT2_GATE_CTRL_SHIFT		8
++#define OMAP4430_HSDIVIDER_CLKOUT2_GATE_CTRL_WIDTH		0x1
+ #define OMAP4430_HSDIVIDER_CLKOUT2_GATE_CTRL_MASK		(1 << 8)
+ 
+ /*
+@@ -854,38 +1031,47 @@
+  * CM_DIV_M5_DPLL_PER
+  */
+ #define OMAP4430_HSDIVIDER_CLKOUT2_PWDN_SHIFT			12
++#define OMAP4430_HSDIVIDER_CLKOUT2_PWDN_WIDTH			0x1
+ #define OMAP4430_HSDIVIDER_CLKOUT2_PWDN_MASK			(1 << 12)
+ 
+ /* Used by CM_DIV_M6_DPLL_CORE, CM_DIV_M6_DPLL_DDRPHY, CM_DIV_M6_DPLL_PER */
+ #define OMAP4430_HSDIVIDER_CLKOUT3_DIV_SHIFT			0
++#define OMAP4430_HSDIVIDER_CLKOUT3_DIV_WIDTH			0x5
+ #define OMAP4430_HSDIVIDER_CLKOUT3_DIV_MASK			(0x1f << 0)
+ 
+ /* Used by CM_DIV_M6_DPLL_CORE, CM_DIV_M6_DPLL_DDRPHY, CM_DIV_M6_DPLL_PER */
+ #define OMAP4430_HSDIVIDER_CLKOUT3_DIVCHACK_SHIFT		5
++#define OMAP4430_HSDIVIDER_CLKOUT3_DIVCHACK_WIDTH		0x1
+ #define OMAP4430_HSDIVIDER_CLKOUT3_DIVCHACK_MASK		(1 << 5)
+ 
+ /* Used by CM_DIV_M6_DPLL_CORE, CM_DIV_M6_DPLL_DDRPHY, CM_DIV_M6_DPLL_PER */
+ #define OMAP4430_HSDIVIDER_CLKOUT3_GATE_CTRL_SHIFT		8
++#define OMAP4430_HSDIVIDER_CLKOUT3_GATE_CTRL_WIDTH		0x1
+ #define OMAP4430_HSDIVIDER_CLKOUT3_GATE_CTRL_MASK		(1 << 8)
+ 
+ /* Used by CM_DIV_M6_DPLL_CORE, CM_DIV_M6_DPLL_DDRPHY, CM_DIV_M6_DPLL_PER */
+ #define OMAP4430_HSDIVIDER_CLKOUT3_PWDN_SHIFT			12
++#define OMAP4430_HSDIVIDER_CLKOUT3_PWDN_WIDTH			0x1
+ #define OMAP4430_HSDIVIDER_CLKOUT3_PWDN_MASK			(1 << 12)
+ 
+ /* Used by CM_DIV_M7_DPLL_CORE, CM_DIV_M7_DPLL_PER */
+ #define OMAP4430_HSDIVIDER_CLKOUT4_DIV_SHIFT			0
++#define OMAP4430_HSDIVIDER_CLKOUT4_DIV_WIDTH			0x5
+ #define OMAP4430_HSDIVIDER_CLKOUT4_DIV_MASK			(0x1f << 0)
+ 
+ /* Used by CM_DIV_M7_DPLL_CORE, CM_DIV_M7_DPLL_PER */
+ #define OMAP4430_HSDIVIDER_CLKOUT4_DIVCHACK_SHIFT		5
++#define OMAP4430_HSDIVIDER_CLKOUT4_DIVCHACK_WIDTH		0x1
+ #define OMAP4430_HSDIVIDER_CLKOUT4_DIVCHACK_MASK		(1 << 5)
+ 
+ /* Used by CM_DIV_M7_DPLL_CORE, CM_DIV_M7_DPLL_PER */
+ #define OMAP4430_HSDIVIDER_CLKOUT4_GATE_CTRL_SHIFT		8
++#define OMAP4430_HSDIVIDER_CLKOUT4_GATE_CTRL_WIDTH		0x1
+ #define OMAP4430_HSDIVIDER_CLKOUT4_GATE_CTRL_MASK		(1 << 8)
+ 
+ /* Used by CM_DIV_M7_DPLL_CORE, CM_DIV_M7_DPLL_PER */
+ #define OMAP4430_HSDIVIDER_CLKOUT4_PWDN_SHIFT			12
++#define OMAP4430_HSDIVIDER_CLKOUT4_PWDN_WIDTH			0x1
+ #define OMAP4430_HSDIVIDER_CLKOUT4_PWDN_MASK			(1 << 12)
+ 
+ /*
+@@ -893,53 +1079,48 @@
+  * CM1_ABE_MCASP_CLKCTRL, CM1_ABE_MCBSP1_CLKCTRL, CM1_ABE_MCBSP2_CLKCTRL,
+  * CM1_ABE_MCBSP3_CLKCTRL, CM1_ABE_PDM_CLKCTRL, CM1_ABE_SLIMBUS_CLKCTRL,
+  * CM1_ABE_TIMER5_CLKCTRL, CM1_ABE_TIMER6_CLKCTRL, CM1_ABE_TIMER7_CLKCTRL,
+- * CM1_ABE_TIMER8_CLKCTRL, CM1_ABE_WDT3_CLKCTRL, CM_ALWON_MDMINTC_CLKCTRL,
+- * CM_ALWON_SR_CORE_CLKCTRL, CM_ALWON_SR_IVA_CLKCTRL, CM_ALWON_SR_MPU_CLKCTRL,
+- * CM_CAM_FDIF_CLKCTRL, CM_CAM_ISS_CLKCTRL, CM_CEFUSE_CEFUSE_CLKCTRL,
+- * CM_CM1_PROFILING_CLKCTRL, CM_CM2_PROFILING_CLKCTRL,
+- * CM_D2D_MODEM_ICR_CLKCTRL, CM_D2D_SAD2D_CLKCTRL, CM_D2D_SAD2D_FW_CLKCTRL,
+- * CM_DSS_DEISS_CLKCTRL, CM_DSS_DSS_CLKCTRL, CM_DUCATI_DUCATI_CLKCTRL,
++ * CM1_ABE_TIMER8_CLKCTRL, CM1_ABE_WDT3_CLKCTRL, CM_ALWON_SR_CORE_CLKCTRL,
++ * CM_ALWON_SR_IVA_CLKCTRL, CM_ALWON_SR_MPU_CLKCTRL, CM_CAM_FDIF_CLKCTRL,
++ * CM_CAM_ISS_CLKCTRL, CM_CEFUSE_CEFUSE_CLKCTRL, CM_CM1_PROFILING_CLKCTRL,
++ * CM_CM2_PROFILING_CLKCTRL, CM_D2D_MODEM_ICR_CLKCTRL, CM_D2D_SAD2D_CLKCTRL,
++ * CM_D2D_SAD2D_FW_CLKCTRL, CM_DSS_DSS_CLKCTRL, CM_DUCATI_DUCATI_CLKCTRL,
+  * CM_EMU_DEBUGSS_CLKCTRL, CM_GFX_GFX_CLKCTRL, CM_IVAHD_IVAHD_CLKCTRL,
+- * CM_IVAHD_SL2_CLKCTRL, CM_L3INIT_CCPTX_CLKCTRL, CM_L3INIT_EMAC_CLKCTRL,
+- * CM_L3INIT_HSI_CLKCTRL, CM_L3INIT_MMC1_CLKCTRL, CM_L3INIT_MMC2_CLKCTRL,
+- * CM_L3INIT_MMC6_CLKCTRL, CM_L3INIT_P1500_CLKCTRL, CM_L3INIT_PCIESS_CLKCTRL,
+- * CM_L3INIT_SATA_CLKCTRL, CM_L3INIT_TPPSS_CLKCTRL, CM_L3INIT_UNIPRO1_CLKCTRL,
+- * CM_L3INIT_USBPHYOCP2SCP_CLKCTRL, CM_L3INIT_USB_HOST_CLKCTRL,
+- * CM_L3INIT_USB_HOST_FS_CLKCTRL, CM_L3INIT_USB_OTG_CLKCTRL,
+- * CM_L3INIT_USB_TLL_CLKCTRL, CM_L3INIT_XHPI_CLKCTRL, CM_L3INSTR_L3_3_CLKCTRL,
+- * CM_L3INSTR_L3_INSTR_CLKCTRL, CM_L3INSTR_OCP_WP1_CLKCTRL,
+- * CM_L3_1_L3_1_CLKCTRL, CM_L3_2_GPMC_CLKCTRL, CM_L3_2_L3_2_CLKCTRL,
+- * CM_L3_2_OCMC_RAM_CLKCTRL, CM_L4CFG_HW_SEM_CLKCTRL, CM_L4CFG_L4_CFG_CLKCTRL,
+- * CM_L4CFG_MAILBOX_CLKCTRL, CM_L4CFG_SAR_ROM_CLKCTRL, CM_L4PER_ADC_CLKCTRL,
++ * CM_IVAHD_SL2_CLKCTRL, CM_L3INIT_HSI_CLKCTRL, CM_L3INIT_MMC1_CLKCTRL,
++ * CM_L3INIT_MMC2_CLKCTRL, CM_L3INIT_USBPHYOCP2SCP_CLKCTRL,
++ * CM_L3INIT_USB_HOST_CLKCTRL, CM_L3INIT_USB_HOST_FS_CLKCTRL,
++ * CM_L3INIT_USB_OTG_CLKCTRL, CM_L3INIT_USB_TLL_CLKCTRL,
++ * CM_L3INSTR_L3_3_CLKCTRL, CM_L3INSTR_L3_INSTR_CLKCTRL,
++ * CM_L3INSTR_OCP_WP1_CLKCTRL, CM_L3_1_L3_1_CLKCTRL, CM_L3_2_GPMC_CLKCTRL,
++ * CM_L3_2_L3_2_CLKCTRL, CM_L3_2_OCMC_RAM_CLKCTRL, CM_L4CFG_HW_SEM_CLKCTRL,
++ * CM_L4CFG_L4_CFG_CLKCTRL, CM_L4CFG_MAILBOX_CLKCTRL, CM_L4CFG_SAR_ROM_CLKCTRL,
+  * CM_L4PER_DMTIMER10_CLKCTRL, CM_L4PER_DMTIMER11_CLKCTRL,
+  * CM_L4PER_DMTIMER2_CLKCTRL, CM_L4PER_DMTIMER3_CLKCTRL,
+  * CM_L4PER_DMTIMER4_CLKCTRL, CM_L4PER_DMTIMER9_CLKCTRL, CM_L4PER_ELM_CLKCTRL,
+  * CM_L4PER_GPIO2_CLKCTRL, CM_L4PER_GPIO3_CLKCTRL, CM_L4PER_GPIO4_CLKCTRL,
+  * CM_L4PER_GPIO5_CLKCTRL, CM_L4PER_GPIO6_CLKCTRL, CM_L4PER_HDQ1W_CLKCTRL,
+- * CM_L4PER_HECC1_CLKCTRL, CM_L4PER_HECC2_CLKCTRL, CM_L4PER_I2C1_CLKCTRL,
+- * CM_L4PER_I2C2_CLKCTRL, CM_L4PER_I2C3_CLKCTRL, CM_L4PER_I2C4_CLKCTRL,
+- * CM_L4PER_I2C5_CLKCTRL, CM_L4PER_L4PER_CLKCTRL, CM_L4PER_MCASP2_CLKCTRL,
+- * CM_L4PER_MCASP3_CLKCTRL, CM_L4PER_MCBSP4_CLKCTRL, CM_L4PER_MCSPI1_CLKCTRL,
+- * CM_L4PER_MCSPI2_CLKCTRL, CM_L4PER_MCSPI3_CLKCTRL, CM_L4PER_MCSPI4_CLKCTRL,
+- * CM_L4PER_MGATE_CLKCTRL, CM_L4PER_MMCSD3_CLKCTRL, CM_L4PER_MMCSD4_CLKCTRL,
+- * CM_L4PER_MMCSD5_CLKCTRL, CM_L4PER_MSPROHG_CLKCTRL,
+- * CM_L4PER_SLIMBUS2_CLKCTRL, CM_L4PER_UART1_CLKCTRL, CM_L4PER_UART2_CLKCTRL,
+- * CM_L4PER_UART3_CLKCTRL, CM_L4PER_UART4_CLKCTRL, CM_L4SEC_AES1_CLKCTRL,
+- * CM_L4SEC_AES2_CLKCTRL, CM_L4SEC_CRYPTODMA_CLKCTRL, CM_L4SEC_DES3DES_CLKCTRL,
++ * CM_L4PER_I2C1_CLKCTRL, CM_L4PER_I2C2_CLKCTRL, CM_L4PER_I2C3_CLKCTRL,
++ * CM_L4PER_I2C4_CLKCTRL, CM_L4PER_I2C5_CLKCTRL, CM_L4PER_L4PER_CLKCTRL,
++ * CM_L4PER_MCBSP4_CLKCTRL, CM_L4PER_MCSPI1_CLKCTRL, CM_L4PER_MCSPI2_CLKCTRL,
++ * CM_L4PER_MCSPI3_CLKCTRL, CM_L4PER_MCSPI4_CLKCTRL, CM_L4PER_MMCSD3_CLKCTRL,
++ * CM_L4PER_MMCSD4_CLKCTRL, CM_L4PER_MMCSD5_CLKCTRL, CM_L4PER_SLIMBUS2_CLKCTRL,
++ * CM_L4PER_UART1_CLKCTRL, CM_L4PER_UART2_CLKCTRL, CM_L4PER_UART3_CLKCTRL,
++ * CM_L4PER_UART4_CLKCTRL, CM_L4SEC_AES1_CLKCTRL, CM_L4SEC_AES2_CLKCTRL,
++ * CM_L4SEC_CRYPTODMA_CLKCTRL, CM_L4SEC_DES3DES_CLKCTRL,
+  * CM_L4SEC_PKAEIP29_CLKCTRL, CM_L4SEC_RNG_CLKCTRL, CM_L4SEC_SHA2MD51_CLKCTRL,
+  * CM_MEMIF_DMM_CLKCTRL, CM_MEMIF_EMIF_1_CLKCTRL, CM_MEMIF_EMIF_2_CLKCTRL,
+- * CM_MEMIF_EMIF_FW_CLKCTRL, CM_MEMIF_EMIF_H1_CLKCTRL,
+- * CM_MEMIF_EMIF_H2_CLKCTRL, CM_MPU_MPU_CLKCTRL, CM_SDMA_SDMA_CLKCTRL,
++ * CM_MEMIF_EMIF_FW_CLKCTRL, CM_MPU_MPU_CLKCTRL, CM_SDMA_SDMA_CLKCTRL,
+  * CM_TESLA_TESLA_CLKCTRL, CM_WKUP_GPIO1_CLKCTRL, CM_WKUP_KEYBOARD_CLKCTRL,
+- * CM_WKUP_L4WKUP_CLKCTRL, CM_WKUP_RTC_CLKCTRL, CM_WKUP_SARRAM_CLKCTRL,
+- * CM_WKUP_SYNCTIMER_CLKCTRL, CM_WKUP_TIMER12_CLKCTRL, CM_WKUP_TIMER1_CLKCTRL,
+- * CM_WKUP_USIM_CLKCTRL, CM_WKUP_WDT1_CLKCTRL, CM_WKUP_WDT2_CLKCTRL
++ * CM_WKUP_L4WKUP_CLKCTRL, CM_WKUP_SARRAM_CLKCTRL, CM_WKUP_SYNCTIMER_CLKCTRL,
++ * CM_WKUP_TIMER12_CLKCTRL, CM_WKUP_TIMER1_CLKCTRL, CM_WKUP_USIM_CLKCTRL,
++ * CM_WKUP_WDT1_CLKCTRL, CM_WKUP_WDT2_CLKCTRL
+  */
+ #define OMAP4430_IDLEST_SHIFT					16
++#define OMAP4430_IDLEST_WIDTH					0x2
+ #define OMAP4430_IDLEST_MASK					(0x3 << 16)
+ 
+ /* Used by CM_DUCATI_DYNAMICDEP, CM_L3_2_DYNAMICDEP, CM_L4CFG_DYNAMICDEP */
+ #define OMAP4430_ISS_DYNDEP_SHIFT				9
++#define OMAP4430_ISS_DYNDEP_WIDTH				0x1
+ #define OMAP4430_ISS_DYNDEP_MASK				(1 << 9)
+ 
+ /*
+@@ -947,10 +1128,12 @@
+  * CM_TESLA_STATICDEP
+  */
+ #define OMAP4430_ISS_STATDEP_SHIFT				9
++#define OMAP4430_ISS_STATDEP_WIDTH				0x1
+ #define OMAP4430_ISS_STATDEP_MASK				(1 << 9)
+ 
+ /* Used by CM_L3_2_DYNAMICDEP, CM_TESLA_DYNAMICDEP */
+ #define OMAP4430_IVAHD_DYNDEP_SHIFT				2
++#define OMAP4430_IVAHD_DYNDEP_WIDTH				0x1
+ #define OMAP4430_IVAHD_DYNDEP_MASK				(1 << 2)
+ 
+ /*
+@@ -959,10 +1142,12 @@
+  * CM_MPU_STATICDEP, CM_SDMA_STATICDEP, CM_TESLA_STATICDEP
+  */
+ #define OMAP4430_IVAHD_STATDEP_SHIFT				2
++#define OMAP4430_IVAHD_STATDEP_WIDTH				0x1
+ #define OMAP4430_IVAHD_STATDEP_MASK				(1 << 2)
+ 
+ /* Used by CM_L3_2_DYNAMICDEP, CM_L4CFG_DYNAMICDEP, CM_L4PER_DYNAMICDEP */
+ #define OMAP4430_L3INIT_DYNDEP_SHIFT				7
++#define OMAP4430_L3INIT_DYNDEP_WIDTH				0x1
+ #define OMAP4430_L3INIT_DYNDEP_MASK				(1 << 7)
+ 
+ /*
+@@ -970,6 +1155,7 @@
+  * CM_SDMA_STATICDEP, CM_TESLA_STATICDEP
+  */
+ #define OMAP4430_L3INIT_STATDEP_SHIFT				7
++#define OMAP4430_L3INIT_STATDEP_WIDTH				0x1
+ #define OMAP4430_L3INIT_STATDEP_MASK				(1 << 7)
+ 
+ /*
+@@ -977,6 +1163,7 @@
+  * CM_L4CFG_DYNAMICDEP, CM_MPU_DYNAMICDEP, CM_TESLA_DYNAMICDEP
+  */
+ #define OMAP4430_L3_1_DYNDEP_SHIFT				5
++#define OMAP4430_L3_1_DYNDEP_WIDTH				0x1
+ #define OMAP4430_L3_1_DYNDEP_MASK				(1 << 5)
+ 
+ /*
+@@ -986,6 +1173,7 @@
+  * CM_SDMA_STATICDEP, CM_TESLA_STATICDEP
+  */
+ #define OMAP4430_L3_1_STATDEP_SHIFT				5
++#define OMAP4430_L3_1_STATDEP_WIDTH				0x1
+ #define OMAP4430_L3_1_STATDEP_MASK				(1 << 5)
+ 
+ /*
+@@ -995,6 +1183,7 @@
+  * CM_L4SEC_DYNAMICDEP, CM_SDMA_DYNAMICDEP
+  */
+ #define OMAP4430_L3_2_DYNDEP_SHIFT				6
++#define OMAP4430_L3_2_DYNDEP_WIDTH				0x1
+ #define OMAP4430_L3_2_DYNDEP_MASK				(1 << 6)
+ 
+ /*
+@@ -1004,10 +1193,12 @@
+  * CM_SDMA_STATICDEP, CM_TESLA_STATICDEP
+  */
+ #define OMAP4430_L3_2_STATDEP_SHIFT				6
++#define OMAP4430_L3_2_STATDEP_WIDTH				0x1
+ #define OMAP4430_L3_2_STATDEP_MASK				(1 << 6)
+ 
+ /* Used by CM_L3_1_DYNAMICDEP */
+ #define OMAP4430_L4CFG_DYNDEP_SHIFT				12
++#define OMAP4430_L4CFG_DYNDEP_WIDTH				0x1
+ #define OMAP4430_L4CFG_DYNDEP_MASK				(1 << 12)
+ 
+ /*
+@@ -1015,10 +1206,12 @@
+  * CM_MPU_STATICDEP, CM_SDMA_STATICDEP, CM_TESLA_STATICDEP
+  */
+ #define OMAP4430_L4CFG_STATDEP_SHIFT				12
++#define OMAP4430_L4CFG_STATDEP_WIDTH				0x1
+ #define OMAP4430_L4CFG_STATDEP_MASK				(1 << 12)
+ 
+ /* Used by CM_L3_2_DYNAMICDEP */
+ #define OMAP4430_L4PER_DYNDEP_SHIFT				13
++#define OMAP4430_L4PER_DYNDEP_WIDTH				0x1
+ #define OMAP4430_L4PER_DYNDEP_MASK				(1 << 13)
+ 
+ /*
+@@ -1026,10 +1219,12 @@
+  * CM_L4SEC_STATICDEP, CM_MPU_STATICDEP, CM_SDMA_STATICDEP, CM_TESLA_STATICDEP
+  */
+ #define OMAP4430_L4PER_STATDEP_SHIFT				13
++#define OMAP4430_L4PER_STATDEP_WIDTH				0x1
+ #define OMAP4430_L4PER_STATDEP_MASK				(1 << 13)
+ 
+ /* Used by CM_L3_2_DYNAMICDEP, CM_L4PER_DYNAMICDEP */
+ #define OMAP4430_L4SEC_DYNDEP_SHIFT				14
++#define OMAP4430_L4SEC_DYNDEP_WIDTH				0x1
+ #define OMAP4430_L4SEC_DYNDEP_MASK				(1 << 14)
+ 
+ /*
+@@ -1037,10 +1232,12 @@
+  * CM_SDMA_STATICDEP
+  */
+ #define OMAP4430_L4SEC_STATDEP_SHIFT				14
++#define OMAP4430_L4SEC_STATDEP_WIDTH				0x1
+ #define OMAP4430_L4SEC_STATDEP_MASK				(1 << 14)
+ 
+ /* Used by CM_L4CFG_DYNAMICDEP */
+ #define OMAP4430_L4WKUP_DYNDEP_SHIFT				15
++#define OMAP4430_L4WKUP_DYNDEP_WIDTH				0x1
+ #define OMAP4430_L4WKUP_DYNDEP_MASK				(1 << 15)
+ 
+ /*
+@@ -1048,6 +1245,7 @@
+  * CM_SDMA_STATICDEP, CM_TESLA_STATICDEP
+  */
+ #define OMAP4430_L4WKUP_STATDEP_SHIFT				15
++#define OMAP4430_L4WKUP_STATDEP_WIDTH				0x1
+ #define OMAP4430_L4WKUP_STATDEP_MASK				(1 << 15)
+ 
+ /*
+@@ -1055,6 +1253,7 @@
+  * CM_MPU_DYNAMICDEP
+  */
+ #define OMAP4430_MEMIF_DYNDEP_SHIFT				4
++#define OMAP4430_MEMIF_DYNDEP_WIDTH				0x1
+ #define OMAP4430_MEMIF_DYNDEP_MASK				(1 << 4)
+ 
+ /*
+@@ -1064,6 +1263,7 @@
+  * CM_SDMA_STATICDEP, CM_TESLA_STATICDEP
+  */
+ #define OMAP4430_MEMIF_STATDEP_SHIFT				4
++#define OMAP4430_MEMIF_STATDEP_WIDTH				0x1
+ #define OMAP4430_MEMIF_STATDEP_MASK				(1 << 4)
+ 
+ /*
+@@ -1073,6 +1273,7 @@
+  * CM_SSC_MODFREQDIV_DPLL_UNIPRO, CM_SSC_MODFREQDIV_DPLL_USB
+  */
+ #define OMAP4430_MODFREQDIV_EXPONENT_SHIFT			8
++#define OMAP4430_MODFREQDIV_EXPONENT_WIDTH			0x3
+ #define OMAP4430_MODFREQDIV_EXPONENT_MASK			(0x7 << 8)
+ 
+ /*
+@@ -1082,6 +1283,7 @@
+  * CM_SSC_MODFREQDIV_DPLL_UNIPRO, CM_SSC_MODFREQDIV_DPLL_USB
+  */
+ #define OMAP4430_MODFREQDIV_MANTISSA_SHIFT			0
++#define OMAP4430_MODFREQDIV_MANTISSA_WIDTH			0x7
+ #define OMAP4430_MODFREQDIV_MANTISSA_MASK			(0x7f << 0)
+ 
+ /*
+@@ -1089,69 +1291,68 @@
+  * CM1_ABE_MCASP_CLKCTRL, CM1_ABE_MCBSP1_CLKCTRL, CM1_ABE_MCBSP2_CLKCTRL,
+  * CM1_ABE_MCBSP3_CLKCTRL, CM1_ABE_PDM_CLKCTRL, CM1_ABE_SLIMBUS_CLKCTRL,
+  * CM1_ABE_TIMER5_CLKCTRL, CM1_ABE_TIMER6_CLKCTRL, CM1_ABE_TIMER7_CLKCTRL,
+- * CM1_ABE_TIMER8_CLKCTRL, CM1_ABE_WDT3_CLKCTRL, CM_ALWON_MDMINTC_CLKCTRL,
+- * CM_ALWON_SR_CORE_CLKCTRL, CM_ALWON_SR_IVA_CLKCTRL, CM_ALWON_SR_MPU_CLKCTRL,
+- * CM_CAM_FDIF_CLKCTRL, CM_CAM_ISS_CLKCTRL, CM_CEFUSE_CEFUSE_CLKCTRL,
+- * CM_CM1_PROFILING_CLKCTRL, CM_CM2_PROFILING_CLKCTRL,
+- * CM_D2D_MODEM_ICR_CLKCTRL, CM_D2D_SAD2D_CLKCTRL, CM_D2D_SAD2D_FW_CLKCTRL,
+- * CM_DSS_DEISS_CLKCTRL, CM_DSS_DSS_CLKCTRL, CM_DUCATI_DUCATI_CLKCTRL,
++ * CM1_ABE_TIMER8_CLKCTRL, CM1_ABE_WDT3_CLKCTRL, CM_ALWON_SR_CORE_CLKCTRL,
++ * CM_ALWON_SR_IVA_CLKCTRL, CM_ALWON_SR_MPU_CLKCTRL, CM_CAM_FDIF_CLKCTRL,
++ * CM_CAM_ISS_CLKCTRL, CM_CEFUSE_CEFUSE_CLKCTRL, CM_CM1_PROFILING_CLKCTRL,
++ * CM_CM2_PROFILING_CLKCTRL, CM_D2D_MODEM_ICR_CLKCTRL, CM_D2D_SAD2D_CLKCTRL,
++ * CM_D2D_SAD2D_FW_CLKCTRL, CM_DSS_DSS_CLKCTRL, CM_DUCATI_DUCATI_CLKCTRL,
+  * CM_EMU_DEBUGSS_CLKCTRL, CM_GFX_GFX_CLKCTRL, CM_IVAHD_IVAHD_CLKCTRL,
+- * CM_IVAHD_SL2_CLKCTRL, CM_L3INIT_CCPTX_CLKCTRL, CM_L3INIT_EMAC_CLKCTRL,
+- * CM_L3INIT_HSI_CLKCTRL, CM_L3INIT_MMC1_CLKCTRL, CM_L3INIT_MMC2_CLKCTRL,
+- * CM_L3INIT_MMC6_CLKCTRL, CM_L3INIT_P1500_CLKCTRL, CM_L3INIT_PCIESS_CLKCTRL,
+- * CM_L3INIT_SATA_CLKCTRL, CM_L3INIT_TPPSS_CLKCTRL, CM_L3INIT_UNIPRO1_CLKCTRL,
+- * CM_L3INIT_USBPHYOCP2SCP_CLKCTRL, CM_L3INIT_USB_HOST_CLKCTRL,
+- * CM_L3INIT_USB_HOST_FS_CLKCTRL, CM_L3INIT_USB_OTG_CLKCTRL,
+- * CM_L3INIT_USB_TLL_CLKCTRL, CM_L3INIT_XHPI_CLKCTRL, CM_L3INSTR_L3_3_CLKCTRL,
+- * CM_L3INSTR_L3_INSTR_CLKCTRL, CM_L3INSTR_OCP_WP1_CLKCTRL,
+- * CM_L3_1_L3_1_CLKCTRL, CM_L3_2_GPMC_CLKCTRL, CM_L3_2_L3_2_CLKCTRL,
+- * CM_L3_2_OCMC_RAM_CLKCTRL, CM_L4CFG_HW_SEM_CLKCTRL, CM_L4CFG_L4_CFG_CLKCTRL,
+- * CM_L4CFG_MAILBOX_CLKCTRL, CM_L4CFG_SAR_ROM_CLKCTRL, CM_L4PER_ADC_CLKCTRL,
++ * CM_IVAHD_SL2_CLKCTRL, CM_L3INIT_HSI_CLKCTRL, CM_L3INIT_MMC1_CLKCTRL,
++ * CM_L3INIT_MMC2_CLKCTRL, CM_L3INIT_USBPHYOCP2SCP_CLKCTRL,
++ * CM_L3INIT_USB_HOST_CLKCTRL, CM_L3INIT_USB_HOST_FS_CLKCTRL,
++ * CM_L3INIT_USB_OTG_CLKCTRL, CM_L3INIT_USB_TLL_CLKCTRL,
++ * CM_L3INSTR_L3_3_CLKCTRL, CM_L3INSTR_L3_INSTR_CLKCTRL,
++ * CM_L3INSTR_OCP_WP1_CLKCTRL, CM_L3_1_L3_1_CLKCTRL, CM_L3_2_GPMC_CLKCTRL,
++ * CM_L3_2_L3_2_CLKCTRL, CM_L3_2_OCMC_RAM_CLKCTRL, CM_L4CFG_HW_SEM_CLKCTRL,
++ * CM_L4CFG_L4_CFG_CLKCTRL, CM_L4CFG_MAILBOX_CLKCTRL, CM_L4CFG_SAR_ROM_CLKCTRL,
+  * CM_L4PER_DMTIMER10_CLKCTRL, CM_L4PER_DMTIMER11_CLKCTRL,
+  * CM_L4PER_DMTIMER2_CLKCTRL, CM_L4PER_DMTIMER3_CLKCTRL,
+  * CM_L4PER_DMTIMER4_CLKCTRL, CM_L4PER_DMTIMER9_CLKCTRL, CM_L4PER_ELM_CLKCTRL,
+  * CM_L4PER_GPIO2_CLKCTRL, CM_L4PER_GPIO3_CLKCTRL, CM_L4PER_GPIO4_CLKCTRL,
+  * CM_L4PER_GPIO5_CLKCTRL, CM_L4PER_GPIO6_CLKCTRL, CM_L4PER_HDQ1W_CLKCTRL,
+- * CM_L4PER_HECC1_CLKCTRL, CM_L4PER_HECC2_CLKCTRL, CM_L4PER_I2C1_CLKCTRL,
+- * CM_L4PER_I2C2_CLKCTRL, CM_L4PER_I2C3_CLKCTRL, CM_L4PER_I2C4_CLKCTRL,
+- * CM_L4PER_I2C5_CLKCTRL, CM_L4PER_L4PER_CLKCTRL, CM_L4PER_MCASP2_CLKCTRL,
+- * CM_L4PER_MCASP3_CLKCTRL, CM_L4PER_MCBSP4_CLKCTRL, CM_L4PER_MCSPI1_CLKCTRL,
+- * CM_L4PER_MCSPI2_CLKCTRL, CM_L4PER_MCSPI3_CLKCTRL, CM_L4PER_MCSPI4_CLKCTRL,
+- * CM_L4PER_MGATE_CLKCTRL, CM_L4PER_MMCSD3_CLKCTRL, CM_L4PER_MMCSD4_CLKCTRL,
+- * CM_L4PER_MMCSD5_CLKCTRL, CM_L4PER_MSPROHG_CLKCTRL,
+- * CM_L4PER_SLIMBUS2_CLKCTRL, CM_L4PER_UART1_CLKCTRL, CM_L4PER_UART2_CLKCTRL,
+- * CM_L4PER_UART3_CLKCTRL, CM_L4PER_UART4_CLKCTRL, CM_L4SEC_AES1_CLKCTRL,
+- * CM_L4SEC_AES2_CLKCTRL, CM_L4SEC_CRYPTODMA_CLKCTRL, CM_L4SEC_DES3DES_CLKCTRL,
++ * CM_L4PER_I2C1_CLKCTRL, CM_L4PER_I2C2_CLKCTRL, CM_L4PER_I2C3_CLKCTRL,
++ * CM_L4PER_I2C4_CLKCTRL, CM_L4PER_I2C5_CLKCTRL, CM_L4PER_L4PER_CLKCTRL,
++ * CM_L4PER_MCBSP4_CLKCTRL, CM_L4PER_MCSPI1_CLKCTRL, CM_L4PER_MCSPI2_CLKCTRL,
++ * CM_L4PER_MCSPI3_CLKCTRL, CM_L4PER_MCSPI4_CLKCTRL, CM_L4PER_MMCSD3_CLKCTRL,
++ * CM_L4PER_MMCSD4_CLKCTRL, CM_L4PER_MMCSD5_CLKCTRL, CM_L4PER_SLIMBUS2_CLKCTRL,
++ * CM_L4PER_UART1_CLKCTRL, CM_L4PER_UART2_CLKCTRL, CM_L4PER_UART3_CLKCTRL,
++ * CM_L4PER_UART4_CLKCTRL, CM_L4SEC_AES1_CLKCTRL, CM_L4SEC_AES2_CLKCTRL,
++ * CM_L4SEC_CRYPTODMA_CLKCTRL, CM_L4SEC_DES3DES_CLKCTRL,
+  * CM_L4SEC_PKAEIP29_CLKCTRL, CM_L4SEC_RNG_CLKCTRL, CM_L4SEC_SHA2MD51_CLKCTRL,
+  * CM_MEMIF_DMM_CLKCTRL, CM_MEMIF_EMIF_1_CLKCTRL, CM_MEMIF_EMIF_2_CLKCTRL,
+- * CM_MEMIF_EMIF_FW_CLKCTRL, CM_MEMIF_EMIF_H1_CLKCTRL,
+- * CM_MEMIF_EMIF_H2_CLKCTRL, CM_MPU_MPU_CLKCTRL, CM_SDMA_SDMA_CLKCTRL,
++ * CM_MEMIF_EMIF_FW_CLKCTRL, CM_MPU_MPU_CLKCTRL, CM_SDMA_SDMA_CLKCTRL,
+  * CM_TESLA_TESLA_CLKCTRL, CM_WKUP_GPIO1_CLKCTRL, CM_WKUP_KEYBOARD_CLKCTRL,
+- * CM_WKUP_L4WKUP_CLKCTRL, CM_WKUP_RTC_CLKCTRL, CM_WKUP_SARRAM_CLKCTRL,
+- * CM_WKUP_SYNCTIMER_CLKCTRL, CM_WKUP_TIMER12_CLKCTRL, CM_WKUP_TIMER1_CLKCTRL,
+- * CM_WKUP_USIM_CLKCTRL, CM_WKUP_WDT1_CLKCTRL, CM_WKUP_WDT2_CLKCTRL
++ * CM_WKUP_L4WKUP_CLKCTRL, CM_WKUP_SARRAM_CLKCTRL, CM_WKUP_SYNCTIMER_CLKCTRL,
++ * CM_WKUP_TIMER12_CLKCTRL, CM_WKUP_TIMER1_CLKCTRL, CM_WKUP_USIM_CLKCTRL,
++ * CM_WKUP_WDT1_CLKCTRL, CM_WKUP_WDT2_CLKCTRL
+  */
+ #define OMAP4430_MODULEMODE_SHIFT				0
++#define OMAP4430_MODULEMODE_WIDTH				0x2
+ #define OMAP4430_MODULEMODE_MASK				(0x3 << 0)
+ 
+ /* Used by CM_L4CFG_DYNAMICDEP */
+ #define OMAP4460_MPU_DYNDEP_SHIFT				19
++#define OMAP4460_MPU_DYNDEP_WIDTH				0x1
+ #define OMAP4460_MPU_DYNDEP_MASK				(1 << 19)
+ 
+ /* Used by CM_DSS_DSS_CLKCTRL */
+ #define OMAP4430_OPTFCLKEN_48MHZ_CLK_SHIFT			9
++#define OMAP4430_OPTFCLKEN_48MHZ_CLK_WIDTH			0x1
+ #define OMAP4430_OPTFCLKEN_48MHZ_CLK_MASK			(1 << 9)
+ 
+ /* Used by CM_WKUP_BANDGAP_CLKCTRL */
+ #define OMAP4430_OPTFCLKEN_BGAP_32K_SHIFT			8
++#define OMAP4430_OPTFCLKEN_BGAP_32K_WIDTH			0x1
+ #define OMAP4430_OPTFCLKEN_BGAP_32K_MASK			(1 << 8)
+ 
+ /* Used by CM_ALWON_USBPHY_CLKCTRL */
+ #define OMAP4430_OPTFCLKEN_CLK32K_SHIFT				8
++#define OMAP4430_OPTFCLKEN_CLK32K_WIDTH				0x1
+ #define OMAP4430_OPTFCLKEN_CLK32K_MASK				(1 << 8)
+ 
+ /* Used by CM_CAM_ISS_CLKCTRL */
+ #define OMAP4430_OPTFCLKEN_CTRLCLK_SHIFT			8
++#define OMAP4430_OPTFCLKEN_CTRLCLK_WIDTH			0x1
+ #define OMAP4430_OPTFCLKEN_CTRLCLK_MASK				(1 << 8)
+ 
+ /*
+@@ -1160,126 +1361,157 @@
+  * CM_WKUP_GPIO1_CLKCTRL
+  */
+ #define OMAP4430_OPTFCLKEN_DBCLK_SHIFT				8
++#define OMAP4430_OPTFCLKEN_DBCLK_WIDTH				0x1
+ #define OMAP4430_OPTFCLKEN_DBCLK_MASK				(1 << 8)
+ 
+ /* Used by CM_MEMIF_DLL_CLKCTRL, CM_MEMIF_DLL_H_CLKCTRL */
+ #define OMAP4430_OPTFCLKEN_DLL_CLK_SHIFT			8
++#define OMAP4430_OPTFCLKEN_DLL_CLK_WIDTH			0x1
+ #define OMAP4430_OPTFCLKEN_DLL_CLK_MASK				(1 << 8)
+ 
+ /* Used by CM_DSS_DSS_CLKCTRL */
+ #define OMAP4430_OPTFCLKEN_DSSCLK_SHIFT				8
++#define OMAP4430_OPTFCLKEN_DSSCLK_WIDTH				0x1
+ #define OMAP4430_OPTFCLKEN_DSSCLK_MASK				(1 << 8)
+ 
+ /* Used by CM_WKUP_USIM_CLKCTRL */
+ #define OMAP4430_OPTFCLKEN_FCLK_SHIFT				8
++#define OMAP4430_OPTFCLKEN_FCLK_WIDTH				0x1
+ #define OMAP4430_OPTFCLKEN_FCLK_MASK				(1 << 8)
+ 
+ /* Used by CM1_ABE_SLIMBUS_CLKCTRL */
+ #define OMAP4430_OPTFCLKEN_FCLK0_SHIFT				8
++#define OMAP4430_OPTFCLKEN_FCLK0_WIDTH				0x1
+ #define OMAP4430_OPTFCLKEN_FCLK0_MASK				(1 << 8)
+ 
+ /* Used by CM1_ABE_SLIMBUS_CLKCTRL */
+ #define OMAP4430_OPTFCLKEN_FCLK1_SHIFT				9
++#define OMAP4430_OPTFCLKEN_FCLK1_WIDTH				0x1
+ #define OMAP4430_OPTFCLKEN_FCLK1_MASK				(1 << 9)
+ 
+ /* Used by CM1_ABE_SLIMBUS_CLKCTRL */
+ #define OMAP4430_OPTFCLKEN_FCLK2_SHIFT				10
++#define OMAP4430_OPTFCLKEN_FCLK2_WIDTH				0x1
+ #define OMAP4430_OPTFCLKEN_FCLK2_MASK				(1 << 10)
+ 
+ /* Used by CM_L3INIT_USB_HOST_CLKCTRL */
+ #define OMAP4430_OPTFCLKEN_FUNC48MCLK_SHIFT			15
++#define OMAP4430_OPTFCLKEN_FUNC48MCLK_WIDTH			0x1
+ #define OMAP4430_OPTFCLKEN_FUNC48MCLK_MASK			(1 << 15)
+ 
+ /* Used by CM_L3INIT_USB_HOST_CLKCTRL */
+ #define OMAP4430_OPTFCLKEN_HSIC480M_P1_CLK_SHIFT		13
++#define OMAP4430_OPTFCLKEN_HSIC480M_P1_CLK_WIDTH		0x1
+ #define OMAP4430_OPTFCLKEN_HSIC480M_P1_CLK_MASK			(1 << 13)
+ 
+ /* Used by CM_L3INIT_USB_HOST_CLKCTRL */
+ #define OMAP4430_OPTFCLKEN_HSIC480M_P2_CLK_SHIFT		14
++#define OMAP4430_OPTFCLKEN_HSIC480M_P2_CLK_WIDTH		0x1
+ #define OMAP4430_OPTFCLKEN_HSIC480M_P2_CLK_MASK			(1 << 14)
+ 
+ /* Used by CM_L3INIT_USB_HOST_CLKCTRL */
+ #define OMAP4430_OPTFCLKEN_HSIC60M_P1_CLK_SHIFT			11
++#define OMAP4430_OPTFCLKEN_HSIC60M_P1_CLK_WIDTH			0x1
+ #define OMAP4430_OPTFCLKEN_HSIC60M_P1_CLK_MASK			(1 << 11)
+ 
+ /* Used by CM_L3INIT_USB_HOST_CLKCTRL */
+ #define OMAP4430_OPTFCLKEN_HSIC60M_P2_CLK_SHIFT			12
++#define OMAP4430_OPTFCLKEN_HSIC60M_P2_CLK_WIDTH			0x1
+ #define OMAP4430_OPTFCLKEN_HSIC60M_P2_CLK_MASK			(1 << 12)
+ 
+ /* Used by CM_L4PER_SLIMBUS2_CLKCTRL */
+ #define OMAP4430_OPTFCLKEN_PER24MC_GFCLK_SHIFT			8
++#define OMAP4430_OPTFCLKEN_PER24MC_GFCLK_WIDTH			0x1
+ #define OMAP4430_OPTFCLKEN_PER24MC_GFCLK_MASK			(1 << 8)
+ 
+ /* Used by CM_L4PER_SLIMBUS2_CLKCTRL */
+ #define OMAP4430_OPTFCLKEN_PERABE24M_GFCLK_SHIFT		9
++#define OMAP4430_OPTFCLKEN_PERABE24M_GFCLK_WIDTH		0x1
+ #define OMAP4430_OPTFCLKEN_PERABE24M_GFCLK_MASK			(1 << 9)
+ 
+ /* Used by CM_L3INIT_USBPHYOCP2SCP_CLKCTRL */
+ #define OMAP4430_OPTFCLKEN_PHY_48M_SHIFT			8
++#define OMAP4430_OPTFCLKEN_PHY_48M_WIDTH			0x1
+ #define OMAP4430_OPTFCLKEN_PHY_48M_MASK				(1 << 8)
+ 
+ /* Used by CM_L4PER_SLIMBUS2_CLKCTRL */
+ #define OMAP4430_OPTFCLKEN_SLIMBUS_CLK_SHIFT			10
++#define OMAP4430_OPTFCLKEN_SLIMBUS_CLK_WIDTH			0x1
+ #define OMAP4430_OPTFCLKEN_SLIMBUS_CLK_MASK			(1 << 10)
+ 
+ /* Renamed from OPTFCLKEN_SLIMBUS_CLK Used by CM1_ABE_SLIMBUS_CLKCTRL */
+ #define OMAP4430_OPTFCLKEN_SLIMBUS_CLK_11_11_SHIFT		11
++#define OMAP4430_OPTFCLKEN_SLIMBUS_CLK_11_11_WIDTH		0x1
+ #define OMAP4430_OPTFCLKEN_SLIMBUS_CLK_11_11_MASK		(1 << 11)
+ 
+ /* Used by CM_DSS_DSS_CLKCTRL */
+ #define OMAP4430_OPTFCLKEN_SYS_CLK_SHIFT			10
++#define OMAP4430_OPTFCLKEN_SYS_CLK_WIDTH			0x1
+ #define OMAP4430_OPTFCLKEN_SYS_CLK_MASK				(1 << 10)
+ 
+ /* Used by CM_WKUP_BANDGAP_CLKCTRL */
+ #define OMAP4460_OPTFCLKEN_TS_FCLK_SHIFT			8
++#define OMAP4460_OPTFCLKEN_TS_FCLK_WIDTH			0x1
+ #define OMAP4460_OPTFCLKEN_TS_FCLK_MASK				(1 << 8)
+ 
+ /* Used by CM_DSS_DSS_CLKCTRL */
+ #define OMAP4430_OPTFCLKEN_TV_CLK_SHIFT				11
++#define OMAP4430_OPTFCLKEN_TV_CLK_WIDTH				0x1
+ #define OMAP4430_OPTFCLKEN_TV_CLK_MASK				(1 << 11)
+ 
+ /* Used by CM_L3INIT_UNIPRO1_CLKCTRL */
+ #define OMAP4430_OPTFCLKEN_TXPHYCLK_SHIFT			8
++#define OMAP4430_OPTFCLKEN_TXPHYCLK_WIDTH			0x1
+ #define OMAP4430_OPTFCLKEN_TXPHYCLK_MASK			(1 << 8)
+ 
+ /* Used by CM_L3INIT_USB_TLL_CLKCTRL */
+ #define OMAP4430_OPTFCLKEN_USB_CH0_CLK_SHIFT			8
++#define OMAP4430_OPTFCLKEN_USB_CH0_CLK_WIDTH			0x1
+ #define OMAP4430_OPTFCLKEN_USB_CH0_CLK_MASK			(1 << 8)
+ 
+ /* Used by CM_L3INIT_USB_TLL_CLKCTRL */
+ #define OMAP4430_OPTFCLKEN_USB_CH1_CLK_SHIFT			9
++#define OMAP4430_OPTFCLKEN_USB_CH1_CLK_WIDTH			0x1
+ #define OMAP4430_OPTFCLKEN_USB_CH1_CLK_MASK			(1 << 9)
+ 
+ /* Used by CM_L3INIT_USB_TLL_CLKCTRL */
+ #define OMAP4430_OPTFCLKEN_USB_CH2_CLK_SHIFT			10
++#define OMAP4430_OPTFCLKEN_USB_CH2_CLK_WIDTH			0x1
+ #define OMAP4430_OPTFCLKEN_USB_CH2_CLK_MASK			(1 << 10)
+ 
+ /* Used by CM_L3INIT_USB_HOST_CLKCTRL */
+ #define OMAP4430_OPTFCLKEN_UTMI_P1_CLK_SHIFT			8
++#define OMAP4430_OPTFCLKEN_UTMI_P1_CLK_WIDTH			0x1
+ #define OMAP4430_OPTFCLKEN_UTMI_P1_CLK_MASK			(1 << 8)
+ 
+ /* Used by CM_L3INIT_USB_HOST_CLKCTRL */
+ #define OMAP4430_OPTFCLKEN_UTMI_P2_CLK_SHIFT			9
++#define OMAP4430_OPTFCLKEN_UTMI_P2_CLK_WIDTH			0x1
+ #define OMAP4430_OPTFCLKEN_UTMI_P2_CLK_MASK			(1 << 9)
+ 
+ /* Used by CM_L3INIT_USB_HOST_CLKCTRL */
+ #define OMAP4430_OPTFCLKEN_UTMI_P3_CLK_SHIFT			10
++#define OMAP4430_OPTFCLKEN_UTMI_P3_CLK_WIDTH			0x1
+ #define OMAP4430_OPTFCLKEN_UTMI_P3_CLK_MASK			(1 << 10)
+ 
+ /* Used by CM_L3INIT_USB_OTG_CLKCTRL */
+ #define OMAP4430_OPTFCLKEN_XCLK_SHIFT				8
++#define OMAP4430_OPTFCLKEN_XCLK_WIDTH				0x1
+ #define OMAP4430_OPTFCLKEN_XCLK_MASK				(1 << 8)
+ 
+ /* Used by CM_EMU_OVERRIDE_DPLL_CORE */
+ #define OMAP4430_OVERRIDE_ENABLE_SHIFT				19
++#define OMAP4430_OVERRIDE_ENABLE_WIDTH				0x1
+ #define OMAP4430_OVERRIDE_ENABLE_MASK				(1 << 19)
+ 
+ /* Used by CM_CLKSEL_ABE */
+ #define OMAP4430_PAD_CLKS_GATE_SHIFT				8
++#define OMAP4430_PAD_CLKS_GATE_WIDTH				0x1
+ #define OMAP4430_PAD_CLKS_GATE_MASK				(1 << 8)
+ 
+ /* Used by CM_CORE_DVFS_CURRENT, CM_IVA_DVFS_CURRENT */
+ #define OMAP4430_PERF_CURRENT_SHIFT				0
++#define OMAP4430_PERF_CURRENT_WIDTH				0x8
+ #define OMAP4430_PERF_CURRENT_MASK				(0xff << 0)
+ 
+ /*
+@@ -1288,74 +1520,85 @@
+  * CM_IVA_DVFS_PERF_TESLA
+  */
+ #define OMAP4430_PERF_REQ_SHIFT					0
++#define OMAP4430_PERF_REQ_WIDTH					0x8
+ #define OMAP4430_PERF_REQ_MASK					(0xff << 0)
+ 
+ /* Used by CM_RESTORE_ST */
+ #define OMAP4430_PHASE1_COMPLETED_SHIFT				0
++#define OMAP4430_PHASE1_COMPLETED_WIDTH				0x1
+ #define OMAP4430_PHASE1_COMPLETED_MASK				(1 << 0)
+ 
+ /* Used by CM_RESTORE_ST */
+ #define OMAP4430_PHASE2A_COMPLETED_SHIFT			1
++#define OMAP4430_PHASE2A_COMPLETED_WIDTH			0x1
+ #define OMAP4430_PHASE2A_COMPLETED_MASK				(1 << 1)
+ 
+ /* Used by CM_RESTORE_ST */
+ #define OMAP4430_PHASE2B_COMPLETED_SHIFT			2
++#define OMAP4430_PHASE2B_COMPLETED_WIDTH			0x1
+ #define OMAP4430_PHASE2B_COMPLETED_MASK				(1 << 2)
+ 
+ /* Used by CM_EMU_DEBUGSS_CLKCTRL */
+ #define OMAP4430_PMD_STM_MUX_CTRL_SHIFT				20
++#define OMAP4430_PMD_STM_MUX_CTRL_WIDTH				0x2
+ #define OMAP4430_PMD_STM_MUX_CTRL_MASK				(0x3 << 20)
+ 
+ /* Used by CM_EMU_DEBUGSS_CLKCTRL */
+ #define OMAP4430_PMD_TRACE_MUX_CTRL_SHIFT			22
++#define OMAP4430_PMD_TRACE_MUX_CTRL_WIDTH			0x2
+ #define OMAP4430_PMD_TRACE_MUX_CTRL_MASK			(0x3 << 22)
+ 
+ /* Used by CM_DYN_DEP_PRESCAL */
+ #define OMAP4430_PRESCAL_SHIFT					0
++#define OMAP4430_PRESCAL_WIDTH					0x6
+ #define OMAP4430_PRESCAL_MASK					(0x3f << 0)
+ 
+ /* Used by REVISION_CM1, REVISION_CM2 */
+ #define OMAP4430_R_RTL_SHIFT					11
++#define OMAP4430_R_RTL_WIDTH					0x5
+ #define OMAP4430_R_RTL_MASK					(0x1f << 11)
+ 
+ /* Used by CM_L3INIT_USB_HOST_CLKCTRL, CM_L3INIT_USB_TLL_CLKCTRL */
+ #define OMAP4430_SAR_MODE_SHIFT					4
++#define OMAP4430_SAR_MODE_WIDTH					0x1
+ #define OMAP4430_SAR_MODE_MASK					(1 << 4)
+ 
+ /* Used by CM_SCALE_FCLK */
+ #define OMAP4430_SCALE_FCLK_SHIFT				0
++#define OMAP4430_SCALE_FCLK_WIDTH				0x1
+ #define OMAP4430_SCALE_FCLK_MASK				(1 << 0)
+ 
+ /* Used by REVISION_CM1, REVISION_CM2 */
+ #define OMAP4430_SCHEME_SHIFT					30
++#define OMAP4430_SCHEME_WIDTH					0x2
+ #define OMAP4430_SCHEME_MASK					(0x3 << 30)
+ 
+ /* Used by CM_L4CFG_DYNAMICDEP */
+ #define OMAP4430_SDMA_DYNDEP_SHIFT				11
++#define OMAP4430_SDMA_DYNDEP_WIDTH				0x1
+ #define OMAP4430_SDMA_DYNDEP_MASK				(1 << 11)
+ 
+ /* Used by CM_DUCATI_STATICDEP, CM_MPU_STATICDEP */
+ #define OMAP4430_SDMA_STATDEP_SHIFT				11
++#define OMAP4430_SDMA_STATDEP_WIDTH				0x1
+ #define OMAP4430_SDMA_STATDEP_MASK				(1 << 11)
+ 
+ /* Used by CM_CLKSEL_ABE */
+ #define OMAP4430_SLIMBUS_CLK_GATE_SHIFT				10
++#define OMAP4430_SLIMBUS_CLK_GATE_WIDTH				0x1
+ #define OMAP4430_SLIMBUS_CLK_GATE_MASK				(1 << 10)
+ 
+ /*
+  * Used by CM1_ABE_AESS_CLKCTRL, CM_CAM_FDIF_CLKCTRL, CM_CAM_ISS_CLKCTRL,
+- * CM_D2D_SAD2D_CLKCTRL, CM_DSS_DEISS_CLKCTRL, CM_DSS_DSS_CLKCTRL,
+- * CM_DUCATI_DUCATI_CLKCTRL, CM_EMU_DEBUGSS_CLKCTRL, CM_GFX_GFX_CLKCTRL,
+- * CM_IVAHD_IVAHD_CLKCTRL, CM_L3INIT_CCPTX_CLKCTRL, CM_L3INIT_EMAC_CLKCTRL,
++ * CM_D2D_SAD2D_CLKCTRL, CM_DSS_DSS_CLKCTRL, CM_DUCATI_DUCATI_CLKCTRL,
++ * CM_EMU_DEBUGSS_CLKCTRL, CM_GFX_GFX_CLKCTRL, CM_IVAHD_IVAHD_CLKCTRL,
+  * CM_L3INIT_HSI_CLKCTRL, CM_L3INIT_MMC1_CLKCTRL, CM_L3INIT_MMC2_CLKCTRL,
+- * CM_L3INIT_MMC6_CLKCTRL, CM_L3INIT_P1500_CLKCTRL, CM_L3INIT_PCIESS_CLKCTRL,
+- * CM_L3INIT_SATA_CLKCTRL, CM_L3INIT_TPPSS_CLKCTRL, CM_L3INIT_UNIPRO1_CLKCTRL,
+  * CM_L3INIT_USB_HOST_CLKCTRL, CM_L3INIT_USB_HOST_FS_CLKCTRL,
+- * CM_L3INIT_USB_OTG_CLKCTRL, CM_L3INIT_XHPI_CLKCTRL,
+- * CM_L4SEC_CRYPTODMA_CLKCTRL, CM_MPU_MPU_CLKCTRL, CM_SDMA_SDMA_CLKCTRL,
+- * CM_TESLA_TESLA_CLKCTRL
++ * CM_L3INIT_USB_OTG_CLKCTRL, CM_L4SEC_CRYPTODMA_CLKCTRL, CM_MPU_MPU_CLKCTRL,
++ * CM_SDMA_SDMA_CLKCTRL, CM_TESLA_TESLA_CLKCTRL
+  */
+ #define OMAP4430_STBYST_SHIFT					18
++#define OMAP4430_STBYST_WIDTH					0x1
+ #define OMAP4430_STBYST_MASK					(1 << 18)
+ 
+ /*
+@@ -1364,10 +1607,12 @@
+  * CM_IDLEST_DPLL_UNIPRO, CM_IDLEST_DPLL_USB
+  */
+ #define OMAP4430_ST_DPLL_CLK_SHIFT				0
++#define OMAP4430_ST_DPLL_CLK_WIDTH				0x1
+ #define OMAP4430_ST_DPLL_CLK_MASK				(1 << 0)
+ 
+ /* Used by CM_CLKDCOLDO_DPLL_USB */
+ #define OMAP4430_ST_DPLL_CLKDCOLDO_SHIFT			9
++#define OMAP4430_ST_DPLL_CLKDCOLDO_WIDTH			0x1
+ #define OMAP4430_ST_DPLL_CLKDCOLDO_MASK				(1 << 9)
+ 
+ /*
+@@ -1375,14 +1620,17 @@
+  * CM_DIV_M2_DPLL_MPU, CM_DIV_M2_DPLL_PER, CM_DIV_M2_DPLL_USB
+  */
+ #define OMAP4430_ST_DPLL_CLKOUT_SHIFT				9
++#define OMAP4430_ST_DPLL_CLKOUT_WIDTH				0x1
+ #define OMAP4430_ST_DPLL_CLKOUT_MASK				(1 << 9)
+ 
+ /* Used by CM_DIV_M3_DPLL_ABE, CM_DIV_M3_DPLL_CORE, CM_DIV_M3_DPLL_PER */
+ #define OMAP4430_ST_DPLL_CLKOUTHIF_SHIFT			9
++#define OMAP4430_ST_DPLL_CLKOUTHIF_WIDTH			0x1
+ #define OMAP4430_ST_DPLL_CLKOUTHIF_MASK				(1 << 9)
+ 
+ /* Used by CM_DIV_M2_DPLL_ABE, CM_DIV_M2_DPLL_PER, CM_DIV_M2_DPLL_UNIPRO */
+ #define OMAP4430_ST_DPLL_CLKOUTX2_SHIFT				11
++#define OMAP4430_ST_DPLL_CLKOUTX2_WIDTH				0x1
+ #define OMAP4430_ST_DPLL_CLKOUTX2_MASK				(1 << 11)
+ 
+ /*
+@@ -1390,6 +1638,7 @@
+  * CM_DIV_M4_DPLL_PER
+  */
+ #define OMAP4430_ST_HSDIVIDER_CLKOUT1_SHIFT			9
++#define OMAP4430_ST_HSDIVIDER_CLKOUT1_WIDTH			0x1
+ #define OMAP4430_ST_HSDIVIDER_CLKOUT1_MASK			(1 << 9)
+ 
+ /*
+@@ -1397,14 +1646,17 @@
+  * CM_DIV_M5_DPLL_PER
+  */
+ #define OMAP4430_ST_HSDIVIDER_CLKOUT2_SHIFT			9
++#define OMAP4430_ST_HSDIVIDER_CLKOUT2_WIDTH			0x1
+ #define OMAP4430_ST_HSDIVIDER_CLKOUT2_MASK			(1 << 9)
+ 
+ /* Used by CM_DIV_M6_DPLL_CORE, CM_DIV_M6_DPLL_DDRPHY, CM_DIV_M6_DPLL_PER */
+ #define OMAP4430_ST_HSDIVIDER_CLKOUT3_SHIFT			9
++#define OMAP4430_ST_HSDIVIDER_CLKOUT3_WIDTH			0x1
+ #define OMAP4430_ST_HSDIVIDER_CLKOUT3_MASK			(1 << 9)
+ 
+ /* Used by CM_DIV_M7_DPLL_CORE, CM_DIV_M7_DPLL_PER */
+ #define OMAP4430_ST_HSDIVIDER_CLKOUT4_SHIFT			9
++#define OMAP4430_ST_HSDIVIDER_CLKOUT4_WIDTH			0x1
+ #define OMAP4430_ST_HSDIVIDER_CLKOUT4_MASK			(1 << 9)
+ 
+ /*
+@@ -1413,18 +1665,22 @@
+  * CM_IDLEST_DPLL_UNIPRO, CM_IDLEST_DPLL_USB
+  */
+ #define OMAP4430_ST_MN_BYPASS_SHIFT				8
++#define OMAP4430_ST_MN_BYPASS_WIDTH				0x1
+ #define OMAP4430_ST_MN_BYPASS_MASK				(1 << 8)
+ 
+ /* Used by CM_SYS_CLKSEL */
+ #define OMAP4430_SYS_CLKSEL_SHIFT				0
++#define OMAP4430_SYS_CLKSEL_WIDTH				0x3
+ #define OMAP4430_SYS_CLKSEL_MASK				(0x7 << 0)
+ 
+ /* Used by CM_L4CFG_DYNAMICDEP */
+ #define OMAP4430_TESLA_DYNDEP_SHIFT				1
++#define OMAP4430_TESLA_DYNDEP_WIDTH				0x1
+ #define OMAP4430_TESLA_DYNDEP_MASK				(1 << 1)
+ 
+ /* Used by CM_DUCATI_STATICDEP, CM_MPU_STATICDEP */
+ #define OMAP4430_TESLA_STATDEP_SHIFT				1
++#define OMAP4430_TESLA_STATDEP_WIDTH				0x1
+ #define OMAP4430_TESLA_STATDEP_MASK				(1 << 1)
+ 
+ /*
+@@ -1433,13 +1689,16 @@
+  * CM_L4PER_DYNAMICDEP, CM_MPU_DYNAMICDEP, CM_TESLA_DYNAMICDEP
+  */
+ #define OMAP4430_WINDOWSIZE_SHIFT				24
++#define OMAP4430_WINDOWSIZE_WIDTH				0x4
+ #define OMAP4430_WINDOWSIZE_MASK				(0xf << 24)
+ 
+ /* Used by REVISION_CM1, REVISION_CM2 */
+ #define OMAP4430_X_MAJOR_SHIFT					8
++#define OMAP4430_X_MAJOR_WIDTH					0x3
+ #define OMAP4430_X_MAJOR_MASK					(0x7 << 8)
+ 
+ /* Used by REVISION_CM1, REVISION_CM2 */
+ #define OMAP4430_Y_MINOR_SHIFT					0
++#define OMAP4430_Y_MINOR_WIDTH					0x6
+ #define OMAP4430_Y_MINOR_MASK					(0x3f << 0)
  #endif
-@@ -308,5 +169,4 @@ extern const struct clkops clkops_null;
- 
- extern struct clk dummy_ck;
- 
--#endif /* CONFIG_COMMON_CLK */
- #endif
-diff --git a/drivers/spi/spi-omap2-mcspi.c b/drivers/spi/spi-omap2-mcspi.c
-index bb9274c..bb37511 100644
---- a/drivers/spi/spi-omap2-mcspi.c
-+++ b/drivers/spi/spi-omap2-mcspi.c
-@@ -40,7 +40,6 @@
- #include <linux/spi/spi.h>
- 
- #include <plat/dma.h>
--#include <plat/clock.h>
- #include <plat/mcspi.h>
- 
- #define OMAP2_MCSPI_MAX_FREQ		48000000
 -- 
 1.7.1
 
