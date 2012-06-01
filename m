@@ -1,65 +1,57 @@
-From: Jon Hunter <jon-hunter@ti.com>
-Subject: Re: [PATCHv3 8/9] ARM: OMAP3: prevent per_clkdm from attempting manual
- domain transitions
-Date: Thu, 31 May 2012 18:40:28 -0500
-Message-ID: <4FC8016C.9000801@ti.com>
-References: <1338470942-20185-1-git-send-email-t-kristo@ti.com> <1338470942-20185-9-git-send-email-t-kristo@ti.com>
+From: Kevin Hilman <khilman@ti.com>
+Subject: Re: [linux-pm] [RFC PATCH 00/11] OMAP System Control Module
+Date: Thu, 31 May 2012 17:12:31 -0700
+Message-ID: <87y5o7vqj4.fsf@ti.com>
+References: <1337934361-1606-1-git-send-email-eduardo.valentin@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="ISO-8859-1"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from devils.ext.ti.com ([198.47.26.153]:36974 "EHLO
-	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1758663Ab2EaXkc (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 31 May 2012 19:40:32 -0400
-In-Reply-To: <1338470942-20185-9-git-send-email-t-kristo@ti.com>
+Received: from na3sys009aog117.obsmtp.com ([74.125.149.242]:36334 "EHLO
+	na3sys009aog117.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1758719Ab2FAAMc (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>);
+	Thu, 31 May 2012 20:12:32 -0400
+Received: by pbcwz7 with SMTP id wz7so3399835pbc.16
+        for <linux-omap@vger.kernel.org>; Thu, 31 May 2012 17:12:31 -0700 (PDT)
+In-Reply-To: <1337934361-1606-1-git-send-email-eduardo.valentin@ti.com>
+	(Eduardo Valentin's message of "Fri, 25 May 2012 11:25:50 +0300")
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Tero Kristo <t-kristo@ti.com>
-Cc: linux-omap@vger.kernel.org, khilman@ti.com, paul@pwsan.com, linux-arm-kernel@lists.infradead.org
+To: Eduardo Valentin <eduardo.valentin@ti.com>
+Cc: b-cousson@ti.com, kishon@ti.com, kbaidarov@dev.rtsoft.ru, santosh.shilimkar@ti.com, tony@atomide.com, paul@pwsan.com, amit.kucheria@linaro.org, balbi@ti.com, linux-pm@lists.linux-foundation.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 
-Hi Tero,
+Hi Eduardo,
 
-On 05/31/2012 08:29 AM, Tero Kristo wrote:
-> Previously, PER clock domain was always enabled, as the usecounts
-> for this domain incorrectly always showed positive value. On HW
-> level though, the domain enters idle as it is set in HW supervised
-> mode. Now, when the usecounts reflect real values, PER domain will
-> attempt to enter software supervised idle, which is not supported by the
-> hardware/kernel that well, and causes multiple problems. First of all,
-> coming back from idle, PER domain remains idle as the wakedeps have
-> been disabled for the domain, and this causes a crash with the GPIO
-> code, as the resume code attempts to access domain which is not active.
-> Just enabling the interface clocks for the GPIO does not help, as they
-> are autoidled and don't bring the domain out of idle. Secondly, there
-> are multiple erratas for omap3, which say that the wakedeps should be
-> enabled for the PER domain, see e.g. errata i582 for omap3630.
-> 
-> Signed-off-by: Tero Kristo <t-kristo@ti.com>
-> ---
->  arch/arm/mach-omap2/clockdomains3xxx_data.c |    2 +-
->  1 files changed, 1 insertions(+), 1 deletions(-)
-> 
-> diff --git a/arch/arm/mach-omap2/clockdomains3xxx_data.c b/arch/arm/mach-omap2/clockdomains3xxx_data.c
-> index 6038adb..0dae4c8 100644
-> --- a/arch/arm/mach-omap2/clockdomains3xxx_data.c
-> +++ b/arch/arm/mach-omap2/clockdomains3xxx_data.c
-> @@ -282,7 +282,7 @@ static struct clockdomain usbhost_clkdm = {
->  static struct clockdomain per_clkdm = {
->  	.name		= "per_clkdm",
->  	.pwrdm		= { .name = "per_pwrdm" },
-> -	.flags		= CLKDM_CAN_HWSUP_SWSUP,
-> +	.flags		= CLKDM_CAN_HWSUP_SWSUP | CLKDM_SKIP_MANUAL_TRANS,
->  	.dep_bit	= OMAP3430_EN_PER_SHIFT,
->  	.wkdep_srcs	= per_wkdeps,
->  	.sleepdep_srcs	= per_sleepdeps,
+Eduardo Valentin <eduardo.valentin@ti.com> writes:
 
-So this change is just preventing software from clearing the wakeup-deps
-and keeping the PER clock domain always in HW_AUTO?
+> Hello Paul and Tony,
+>
+> This is a series of patches adding a basic support for system control module,
+> on OMAP4+ context. It is a working in progress, but I wanted to share already
+> to get your feedback.
 
-Sorry for the dumb question, but what is the circumstance under which we
-want to clear the wakeup-deps when we disable the clock domain? I am
-just curious why this is being done in the first place.
+This is a great start, thanks for working on this.  We have been needing
+to do this for awhile now so I'm glad to see you working on it.
 
-Cheers
-Jon
+> I've modeled the driver as an MFD. You will see in this series:
+> . A rework of the system control module header (patch from Santosh, picked from the list)
+> . Device creation for control module core
+> . Early device creation for control module core
+> . The MFD core driver for system control module
+> . The MFD child for usb-phy pin control
+> . The MFD child for bandgap sensor
+> . Very early exposure of OMAP4 thermal zone
+> . All added drivers are only supporting DT probing
+> . The series is based on linux-omap master, as it has the hwmod entries for SCM.
+>
+> The overall idea of this series is to put in place the infrastructure. It is
+> not touching nor removing the existing APIs under mach-omap2/control.c for now.
+> But the target is to have these APIs moved to the MFD core driver.
+
+IMO, the best time to create the APIs is when the new MFD children are
+created.
+
+The goal should be that none of these drivers should be doing direct
+read/writes to the control module.
+
+Kevin
