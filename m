@@ -1,36 +1,51 @@
 From: <jgq516@gmail.com>
-Subject: [PATCHv2 0/3] omap3 and omap4: add device tree support for wdt
-Date: Fri, 1 Jun 2012 12:44:13 +0800
-Message-ID: <1338525856-4359-1-git-send-email-jgq516@gmail.com>
+Subject: [PATCHv2 3/3] watchdog: omap_wdt: add device tree support
+Date: Fri, 1 Jun 2012 12:44:16 +0800
+Message-ID: <1338525856-4359-4-git-send-email-jgq516@gmail.com>
+References: <1338525856-4359-1-git-send-email-jgq516@gmail.com>
 Mime-Version: 1.0
 Content-Type: text/plain
-Return-path: <linux-kernel-owner@vger.kernel.org>
-Sender: linux-kernel-owner@vger.kernel.org
+Return-path: <linux-doc-owner@vger.kernel.org>
+In-Reply-To: <1338525856-4359-1-git-send-email-jgq516@gmail.com>
+Sender: linux-doc-owner@vger.kernel.org
 To: grant.likely@secretlab.ca, rob.herring@calxeda.com, rob@landley.net, linux@arm.linux.org.uk, b-cousson@ti.com, rnayak@ti.com, tony@atomide.com, wim@iguana.be, jon-hunter@ti.com
 Cc: devicetree-discuss@lists.ozlabs.org, linux-doc@vger.kernel.org, linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org, linux-watchdog@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
 From: Xiao Jiang <jgq516@gmail.com>
 
-Changes compared to previous version:
-- created document for omap wdt
-- some modifications per the comments from Benoit and Jon
+Add device table for omap_wdt to support dt.
 
-This series is based on latest Linus'tree, and also can be applied to dt branch
-of linux-omap tree. Tested with omap4430 blaze board and am37xx board.
+Signed-off-by: Xiao Jiang <jgq516@gmail.com>
+---
+ drivers/watchdog/omap_wdt.c |    7 +++++++
+ 1 files changed, 7 insertions(+), 0 deletions(-)
 
-Xiao Jiang (3):
-  arm/dts: add wdt node for omap3 and omap4
-  OMAP: avoid build wdt platform device if with dt support
-  watchdog: omap_wdt: add device tree support
-
- .../devicetree/bindings/watchdog/omap-wdt.txt      |   14 ++++++++++++++
- arch/arm/boot/dts/omap3.dtsi                       |    5 +++++
- arch/arm/boot/dts/omap4.dtsi                       |    5 +++++
- arch/arm/mach-omap2/devices.c                      |    2 +-
- drivers/watchdog/omap_wdt.c                        |    7 +++++++
- 5 files changed, 32 insertions(+), 1 deletions(-)
- create mode 100644 Documentation/devicetree/bindings/watchdog/omap-wdt.txt
-
+diff --git a/drivers/watchdog/omap_wdt.c b/drivers/watchdog/omap_wdt.c
+index 8285d65..02ebfd5 100644
+--- a/drivers/watchdog/omap_wdt.c
++++ b/drivers/watchdog/omap_wdt.c
+@@ -430,6 +430,12 @@ static int omap_wdt_resume(struct platform_device *pdev)
+ #define	omap_wdt_resume		NULL
+ #endif
+ 
++static const struct of_device_id omap_wdt_of_match[] = {
++	{ .compatible = "ti,omap3-wdt", },
++	{},
++};
++MODULE_DEVICE_TABLE(of, omap_wdt_of_match);
++
+ static struct platform_driver omap_wdt_driver = {
+ 	.probe		= omap_wdt_probe,
+ 	.remove		= __devexit_p(omap_wdt_remove),
+@@ -439,6 +445,7 @@ static struct platform_driver omap_wdt_driver = {
+ 	.driver		= {
+ 		.owner	= THIS_MODULE,
+ 		.name	= "omap_wdt",
++		.of_match_table = omap_wdt_of_match,
+ 	},
+ };
+ 
 -- 
 1.7.3
+
