@@ -1,41 +1,54 @@
-From: "Mark A. Greer" <mgreer@animalcreek.com>
-Subject: Re: latest kernel for am35xx
-Date: Fri, 1 Jun 2012 13:10:09 -0700
-Message-ID: <20120601201009.GB28733@animalcreek.com>
-References: <CAP3+TEr8vsnZPhAhgH-w7jAjWZTNQgWvsQ3cn_uz4TaX8c-Zgg@mail.gmail.com>
- <CAPjKCR_CiKA_vXNyfYHdJeqPMsv0SA_oRYg1-XzbO2C1vSbLug@mail.gmail.com>
- <CAP3+TErug0DmndHWCVsguw2+e_vPCB2McF5j0+AyrMj8eGa=MQ@mail.gmail.com>
- <20120601033605.GB520@animalcreek.com>
- <20120601162003.GA28393@animalcreek.com>
- <CAP3+TEoHUxdfFnONFk9-utH485OZ8RmhowNPr3qrYbrz2NVapw@mail.gmail.com>
+From: Sebastien Guiriec <s-guiriec@ti.com>
+Subject: [PATCH] ASoC: omap-mcbsp: Add pm_runtime_get/put
+	functions call for McBSP.
+Date: Fri, 1 Jun 2012 22:12:52 +0200
+Message-ID: <1338581572-11047-1-git-send-email-s-guiriec@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail20.dotsterhost.com ([66.11.232.73]:60549 "EHLO
-	mail20.dotsterhost.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751804Ab2FAUKL (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 1 Jun 2012 16:10:11 -0400
-Content-Disposition: inline
-In-Reply-To: <CAP3+TEoHUxdfFnONFk9-utH485OZ8RmhowNPr3qrYbrz2NVapw@mail.gmail.com>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <alsa-devel-bounces@alsa-project.org>
+List-Unsubscribe: <http://mailman.alsa-project.org/mailman/listinfo/alsa-devel>,
+	<mailto:alsa-devel-request@alsa-project.org?subject=unsubscribe>
+List-Archive: <http://mailman.alsa-project.org/pipermail/alsa-devel>
+List-Post: <mailto:alsa-devel@alsa-project.org>
+List-Help: <mailto:alsa-devel-request@alsa-project.org?subject=help>
+List-Subscribe: <http://mailman.alsa-project.org/mailman/listinfo/alsa-devel>,
+	<mailto:alsa-devel-request@alsa-project.org?subject=subscribe>
+Sender: alsa-devel-bounces@alsa-project.org
+Errors-To: alsa-devel-bounces@alsa-project.org
+To: Sebastien Guiriec <s-guiriec@ti.com>, Peter Ujfalusi <peter.ujfalusi@ti.com>, Jarkko Nikula <jarkko.nikula@bitmer.com>, Liam Girdwood <lrg@ti.com>, Mark Brown <broonie@opensource.wolfsonmicro.com>, linux-omap@vger.kernel.org, alsa-devel@alsa-project.org
 List-Id: linux-omap@vger.kernel.org
-To: Maxim Podbereznyy <lisarden@gmail.com>
-Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
 
-On Fri, Jun 01, 2012 at 09:23:07PM +0400, Maxim Podbereznyy wrote:
-> Hey Mark!
+pm_runtime_get_sync() and put_sync() are not called by McBSP driver.
+This is introducing a problem with PM and Audio Backend due to
+missing get/put for McBSP IP.
 
-Hi Maxim.
+Signed-off-by: Sebastien Guiriec <s-guiriec@ti.com>
+---
+ sound/soc/omap/omap-mcbsp.c |    4 ++++
+ 1 files changed, 4 insertions(+), 0 deletions(-)
 
-> I don't like to look stupid, but I don't find v3.4 tag here:
-> http://git.kernel.org/?p=linux/kernel/git/tmlind/linux-omap.git;a=tags
-> 
-> please have a look at. There are only a few candidates there for the v3.4
-
-I'm sorry, I wasn't very clear.  The repository I meant was
-
-	git://git.kernel.org/pub/scm/linux/kernel/git/torvalds/linux-2.6.git
-
-That repository should have a tag called 'v3.4'.
-
-Mark
+diff --git a/sound/soc/omap/omap-mcbsp.c b/sound/soc/omap/omap-mcbsp.c
+index 1046083..007d239 100644
+--- a/sound/soc/omap/omap-mcbsp.c
++++ b/sound/soc/omap/omap-mcbsp.c
+@@ -117,6 +117,8 @@ static int omap_mcbsp_dai_startup(struct snd_pcm_substream *substream,
+ 	struct omap_mcbsp *mcbsp = snd_soc_dai_get_drvdata(cpu_dai);
+ 	int err = 0;
+ 
++	pm_runtime_get_sync(mcbsp->dev);
++
+ 	if (!cpu_dai->active)
+ 		err = omap_mcbsp_request(mcbsp);
+ 
+@@ -165,6 +167,8 @@ static void omap_mcbsp_dai_shutdown(struct snd_pcm_substream *substream,
+ 		omap_mcbsp_free(mcbsp);
+ 		mcbsp->configured = 0;
+ 	}
++
++	pm_runtime_put_sync(mcbsp->dev);
+ }
+ 
+ static int omap_mcbsp_dai_trigger(struct snd_pcm_substream *substream, int cmd,
+-- 
+1.7.4.1
