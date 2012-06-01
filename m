@@ -1,57 +1,135 @@
 From: Kevin Hilman <khilman@ti.com>
-Subject: Re: [linux-pm] [RFC PATCH 00/11] OMAP System Control Module
-Date: Thu, 31 May 2012 17:12:31 -0700
-Message-ID: <87y5o7vqj4.fsf@ti.com>
-References: <1337934361-1606-1-git-send-email-eduardo.valentin@ti.com>
+Subject: Re: [PATCH 4/6] ARM: OMAP4: PMU: Add runtime PM support
+Date: Thu, 31 May 2012 17:27:36 -0700
+Message-ID: <87obp3vptz.fsf@ti.com>
+References: <1336599355-10983-1-git-send-email-jon-hunter@ti.com>
+	<87wr3uelgp.fsf@ti.com> <4FC548A3.2040906@ti.com>
+	<4FC54D3B.10301@ti.com> <87pq9l7306.fsf@ti.com>
+	<20120531012923.GB8506@mudshark.cambridge.arm.com>
+	<4FC7B465.60703@ti.com> <87r4u0ytd9.fsf@ti.com>
+	<4FC7E161.1080400@ti.com> <87d35kyo3v.fsf@ti.com>
+	<4FC7F87C.9080709@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aog117.obsmtp.com ([74.125.149.242]:36334 "EHLO
-	na3sys009aog117.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1758719Ab2FAAMc (ORCPT
+Received: from na3sys009aog127.obsmtp.com ([74.125.149.107]:53879 "EHLO
+	na3sys009aog127.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S932624Ab2FAA1i (ORCPT
 	<rfc822;linux-omap@vger.kernel.org>);
-	Thu, 31 May 2012 20:12:32 -0400
-Received: by pbcwz7 with SMTP id wz7so3399835pbc.16
-        for <linux-omap@vger.kernel.org>; Thu, 31 May 2012 17:12:31 -0700 (PDT)
-In-Reply-To: <1337934361-1606-1-git-send-email-eduardo.valentin@ti.com>
-	(Eduardo Valentin's message of "Fri, 25 May 2012 11:25:50 +0300")
+	Thu, 31 May 2012 20:27:38 -0400
+Received: by dadm1 with SMTP id m1so2228566dad.36
+        for <linux-omap@vger.kernel.org>; Thu, 31 May 2012 17:27:36 -0700 (PDT)
+In-Reply-To: <4FC7F87C.9080709@ti.com> (Jon Hunter's message of "Thu, 31 May
+	2012 18:02:20 -0500")
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Eduardo Valentin <eduardo.valentin@ti.com>
-Cc: b-cousson@ti.com, kishon@ti.com, kbaidarov@dev.rtsoft.ru, santosh.shilimkar@ti.com, tony@atomide.com, paul@pwsan.com, amit.kucheria@linaro.org, balbi@ti.com, linux-pm@lists.linux-foundation.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+To: Jon Hunter <jon-hunter@ti.com>
+Cc: Will Deacon <will.deacon@arm.com>, linux-omap <linux-omap@vger.kernel.org>, Ming Lei <ming.lei@canonical.com>, Benoit Cousson <b-cousson@ti.com>, Paul Walmsley <paul@pwsan.com>
 
-Hi Eduardo,
+Jon Hunter <jon-hunter@ti.com> writes:
 
-Eduardo Valentin <eduardo.valentin@ti.com> writes:
-
-> Hello Paul and Tony,
+> Hi Kevin,
 >
-> This is a series of patches adding a basic support for system control module,
-> on OMAP4+ context. It is a working in progress, but I wanted to share already
-> to get your feedback.
-
-This is a great start, thanks for working on this.  We have been needing
-to do this for awhile now so I'm glad to see you working on it.
-
-> I've modeled the driver as an MFD. You will see in this series:
-> . A rework of the system control module header (patch from Santosh, picked from the list)
-> . Device creation for control module core
-> . Early device creation for control module core
-> . The MFD core driver for system control module
-> . The MFD child for usb-phy pin control
-> . The MFD child for bandgap sensor
-> . Very early exposure of OMAP4 thermal zone
-> . All added drivers are only supporting DT probing
-> . The series is based on linux-omap master, as it has the hwmod entries for SCM.
+> On 05/31/2012 05:36 PM, Kevin Hilman wrote:
+>> Jon Hunter <jon-hunter@ti.com> writes:
+>> 
+>>> Hi Kevin,
+>>>
+>>> On 05/31/2012 03:42 PM, Kevin Hilman wrote:
+>>>> Jon Hunter <jon-hunter@ti.com> writes:
+>>>>
+>>>>> Hi Kevin, Will,
+>>>>>
+>>>>> On 05/30/2012 08:29 PM, Will Deacon wrote:
+>>>>>> Hi Kevin,
+>>>>>>
+>>>>>> On Wed, May 30, 2012 at 10:50:01PM +0100, Kevin Hilman wrote:
+>>>>>>> Basically, I don't like the result when we have to hack around missing
+>>>>>>> runtime PM support for a driver, so IMO, the driver should be updated.
+>>>>>>>
+>>>>>>> IOW, it looks to me like the armpmu driver should grow runtime PM
+>>>>>>> support.  The current armpmu_release|reserve should probably be replaced
+>>>>>>> with runtime PM get/put, and the functionality in those functions would
+>>>>>>> be the runtime PM callbacks instead.
+>>>>>>>
+>>>>>>> Will, any objections to armpmu growing runtime PM support?
+>>>>>>
+>>>>>> My plan for the armpmu reservation is to kill the global reservation scheme
+>>>>>> that we currently have and push those function pointers into the arm_pmu,
+>>>>>> so that fits with what you'd like.
+>>>>>>
+>>>>>> The only concern I have is that we need the mutual exclusion even when we
+>>>>>> don't have support for runtime PM. If we can solve that then I'm fine with
+>>>>>> the approach.
+>>>>>
+>>>>> To add a bit more food for thought, I had implemented a quick patch to
+>>>>> add runtime PM support for PMU. You will notice that I have been
+>>>>> conservative on where I have placed the pm_runtime_get/put calls,
+>>>>> because I am not too familiar with the PMU driver to know exactly
+>>>>> where we need to maintain the PMU context. So right now these are just
+>>>>> around the reserve_hardware/release_hardware calls. This works on OMAP
+>>>>> for some quick testing. However, I would need to make sure this does
+>>>>> not break compilation without runtime PM enabled.
+>>>>>
+>>>>> Let me know your thoughts.
+>>>>
+>>>> That looks good, but I'm curious what would be done in the new
+>>>> plat->runtime_* hooks.  Maybe the irq enable/disable stuff in the pmu
+>>>> driver needs to be moved into the runtime PM hooks?
+>>>
+>>> For omap4, the plat->runtime_* hooks look like ...
+>>>
+>>> +static int omap4_pmu_runtime_resume(struct device *dev)
+>>> +{
+>>> +       /* configure CTI0 for PMU IRQ routing */
+>>> +       cti_unlock(&omap4_cti[0]);
+>>> +       cti_map_trigger(&omap4_cti[0], 1, 6, 2);
+>>> +       cti_enable(&omap4_cti[0]);
+>>> +
+>>> +       /* configure CTI1 for PMU IRQ routing */
+>>> +       cti_unlock(&omap4_cti[1]);
+>>> +       cti_map_trigger(&omap4_cti[1], 1, 6, 3);
+>>> +       cti_enable(&omap4_cti[1]);
+>>> +
+>>> +       return 0;
+>>> +}
+>>> +
+>>> +static int omap4_pmu_runtime_suspend(struct device *dev)
+>>> +{
+>>> +       cti_disable(&omap4_cti[0]);
+>>> +       cti_disable(&omap4_cti[1]);
+>>> +
+>>> +       return 0;
+>>> +}
+>>>
+>>> This is what I have implemented so far and currently testing. So really
+>>> just using the hooks to configure the cross triggering interface.
+>>>
+>>> Is this what you were thinking?
+>>>
+>> 
+>> Basically, yes.  
+>> 
+>> But since I haven't studied the PMU driver closely, I have some dumb
+>> questions.  My concern is that these look bsically like the
+>> plat->irq_[enable|disable] hooks, so I guess the root of my question is
+>> do we need both the irq enable/disable and runtime suspend/resume hooks
+>> in plat?  or can we get by with one set.
 >
-> The overall idea of this series is to put in place the infrastructure. It is
-> not touching nor removing the existing APIs under mach-omap2/control.c for now.
-> But the target is to have these APIs moved to the MFD core driver.
+> No you are right. The way it is now we could get by with just the one of
+> hooks. However, the main reason I added the new hooks would be if there
+> are other places we can call the pm_runtime_* functions. I am not too
+> familiar with the flow in which the functions are called in the PMU
+> driver and so this was a simple attempt to push the PM runtime framework
+> in the PMU driver.
+>
+> Hmmm ... however, now looking at the history behind the plat->irq_*
+> hooks, I see that Ming specifically added these for omap4 [1]. I was
+> under the impression other architectures may be using this. I guess not.
+> So if it is preferred we could do-away with the plat->irq_* and replace
+> with the plat->runtime_*.
 
-IMO, the best time to create the APIs is when the new MFD children are
-created.
-
-The goal should be that none of these drivers should be doing direct
-read/writes to the control module.
+Yes, that would certainly be my preference from a runtime PM readability
+PoV.  I guess it's Will's call since it's his code.
 
 Kevin
