@@ -1,73 +1,45 @@
-From: Kevin Hilman <khilman@ti.com>
-Subject: Re: [PATCH 2/2] ARM: OMAP3: PM: cpuidle: optimize the clkdm idle latency in C1 state
-Date: Fri, 01 Jun 2012 09:13:03 -0700
-Message-ID: <87pq9jt3hs.fsf@ti.com>
-References: <1336560912-26753-1-git-send-email-j-pihet@ti.com>
-	<1336560912-26753-2-git-send-email-j-pihet@ti.com>
-	<87pq9k1fhd.fsf@ti.com>
-	<CAORVsuWeHJufTA+MMg1OUNjqVdoUn0M80-atnFB5B7d4jU3eDA@mail.gmail.com>
+From: "Mark A. Greer" <mgreer@animalcreek.com>
+Subject: Re: latest kernel for am35xx
+Date: Fri, 1 Jun 2012 09:20:03 -0700
+Message-ID: <20120601162003.GA28393@animalcreek.com>
+References: <CAP3+TEr8vsnZPhAhgH-w7jAjWZTNQgWvsQ3cn_uz4TaX8c-Zgg@mail.gmail.com>
+ <CAPjKCR_CiKA_vXNyfYHdJeqPMsv0SA_oRYg1-XzbO2C1vSbLug@mail.gmail.com>
+ <CAP3+TErug0DmndHWCVsguw2+e_vPCB2McF5j0+AyrMj8eGa=MQ@mail.gmail.com>
+ <20120601033605.GB520@animalcreek.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aog131.obsmtp.com ([74.125.149.247]:56400 "EHLO
-	na3sys009aog131.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S965349Ab2FAQNE convert rfc822-to-8bit
-	(ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Fri, 1 Jun 2012 12:13:04 -0400
-Received: by dadv36 with SMTP id v36so2875432dad.41
-        for <linux-omap@vger.kernel.org>; Fri, 01 Jun 2012 09:13:02 -0700 (PDT)
-In-Reply-To: <CAORVsuWeHJufTA+MMg1OUNjqVdoUn0M80-atnFB5B7d4jU3eDA@mail.gmail.com>
-	(Jean Pihet's message of "Fri, 1 Jun 2012 17:14:17 +0200")
+Received: from mail20.dotsterhost.com ([66.11.232.73]:39641 "EHLO
+	mail20.dotsterhost.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S964978Ab2FAQUF (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 1 Jun 2012 12:20:05 -0400
+Content-Disposition: inline
+In-Reply-To: <20120601033605.GB520@animalcreek.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Jean Pihet <jean.pihet@newoldbits.com>
-Cc: Grazvydas Ignotas <notasas@gmail.com>, linux-omap@vger.kernel.org, Paul Walmsley <paul@pwsan.com>, Jean Pihet <j-pihet@ti.com>
+To: Maxim Podbereznyy <lisarden@gmail.com>
+Cc: Anil Kumar <anilkumar880@gmail.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
 
-Jean Pihet <jean.pihet@newoldbits.com> writes:
+[Somehow this didn't get out the first time so resending.]
 
-> Hi Kevin,
->
-> On Thu, May 31, 2012 at 6:29 PM, Kevin Hilman <khilman@ti.com> wrote:
->> jean.pihet@newoldbits.com writes:
->>
->>> From: Jean Pihet <j-pihet@ti.com>
->>>
->>> It is not needed to iterate through all the clock domains of a
->>> power domain in order to allow or deny it to idle.
->>
->> Why? =C2=A0(I know the answer, but would like it answered here.)
->>
->>> This patch allows or denies only the first registered clock domain
->>> of a power domain, and so optimizes the latency of the low power
->>> code. The functions _cpuidle_allow_idle and _cpuidle_deny_idle are
->>> not used anymore and so are removed.
->>>
->>> Signed-off-by: Jean Pihet <j-pihet@ti.com>
->>
->> Other than the changelog update, it looks good but also needs a reba=
-se
->> like the previous patch.
->>
->> After that, I'll add them to my for_3.6/pm/performance branch and qu=
-eue
->> for v3.6.
-> The new series has been sent as '[PATCH 0/3] ARM: OMAP3: PM: optimize
-> cpuidle C1 state latency' with the suggested changes (changelog
-> updated, rebased on for_3.6/pm/performance).
->
-> Note: with the code from the branch the CORE does not idle. The
-> optimization changes have been tested OK though.
-
-That's OK, I know the causes of the CORE idle retention problems and
-have fixes for those queued up.
-
-Thanks,
-
-Kevin
-
---
-To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+On Thu, May 31, 2012 at 08:36:05PM -0700, Mark A. Greer wrote:
+> On Thu, May 31, 2012 at 10:08:44AM +0300, Maxim Podbereznyy wrote:
+> > Hi!
+> 
+> Hi Maxim
+> 
+> > http://git.kernel.org/?p=linux/kernel/git/tmlind/linux-omap.git
+> > Does anyone knows a working branch/tag for am3517evm? I need the board
+> > boots fine with Ethernet enabled and working.
+> > 
+> > I read a few messages at e2e forum and all of them report about broken
+> > features.. I need wl1271 support in the kernel therefore I have to use
+> > on the latest kernels.
+> 
+> There are several issues with the am35x code in the current community.
+> However, if you checkout k.o. v3.4, use omap2plus_defconfig, enable
+> CONFIG_TI_DAVINCI_EMAC, and add 'nohlt' to the cmdline, you will be
+> able to boot the am3517evm.  Don't try a Suspend-to-RAM though.
+> 
+> Mark
+> --
