@@ -1,90 +1,136 @@
 From: Rajendra Nayak <rnayak@ti.com>
-Subject: [RFC 04/24] ARM: omap: hwmod: get rid of all omap_clk_get_by_name usage
-Date: Fri, 1 Jun 2012 17:37:45 +0530
-Message-ID: <1338552485-31325-5-git-send-email-rnayak@ti.com>
+Subject: [RFC 01/24] clk: Add CLK_IS_BASIC flag to identify basic clocks
+Date: Fri, 1 Jun 2012 17:37:42 +0530
+Message-ID: <1338552485-31325-2-git-send-email-rnayak@ti.com>
 References: <1338552485-31325-1-git-send-email-rnayak@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from bear.ext.ti.com ([192.94.94.41]:54038 "EHLO bear.ext.ti.com"
+Received: from bear.ext.ti.com ([192.94.94.41]:54034 "EHLO bear.ext.ti.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1759493Ab2FAMI1 (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Fri, 1 Jun 2012 08:08:27 -0400
+	id S1759484Ab2FAMIZ (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Fri, 1 Jun 2012 08:08:25 -0400
 In-Reply-To: <1338552485-31325-1-git-send-email-rnayak@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: mturquette@ti.com, paul@pwsan.com
 Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Rajendra Nayak <rnayak@ti.com>
 
-Moving to COMMON clk for OMAP would mean we no longer use
-internal lookup mechanism like omap_clk_get_by_name().
-get rid of all its usage mostly from hwmod and omap_device
-code.
+Most platforms end up using a mix of basic clock types and
+some which use clk_hw_foo struct for filling in custom platform
+information when the clocks don't fit into basic types supported.
 
-Also use IS_ERR_OR_NULL() for error checking.
+In platform code, its useful to know if a clock is using a basic
+type or clk_hw_foo, which helps platforms know if they can
+safely use to_clk_hw_foo to derive the clk_hw_foo pointer from
+clk_hw.
 
-Based on original changes from Mike Turquette.
+Mark all basic clocks with a CLK_IS_BASIC flag.
 
 Signed-off-by: Rajendra Nayak <rnayak@ti.com>
 ---
- arch/arm/mach-omap2/omap_hwmod.c |   12 ++++++------
- arch/arm/plat-omap/omap_device.c |    6 +++---
- 2 files changed, 9 insertions(+), 9 deletions(-)
+See patch 8 and 11 in the series to know why I came up
+with this patch. I don;t know if this is the right way
+to handle my situation. Feedback is welcome.
 
-diff --git a/arch/arm/mach-omap2/omap_hwmod.c b/arch/arm/mach-omap2/omap_hwmod.c
-index 7aa73f8..6c7c322 100644
---- a/arch/arm/mach-omap2/omap_hwmod.c
-+++ b/arch/arm/mach-omap2/omap_hwmod.c
-@@ -559,8 +559,8 @@ static int _init_main_clk(struct omap_hwmod *oh)
- 	if (!oh->main_clk)
- 		return 0;
+ drivers/clk/clk-divider.c      |    2 +-
+ drivers/clk/clk-fixed-factor.c |    2 +-
+ drivers/clk/clk-fixed-rate.c   |    2 +-
+ drivers/clk/clk-gate.c         |    2 +-
+ drivers/clk/clk-mux.c          |    2 +-
+ include/linux/clk-private.h    |    2 +-
+ include/linux/clk-provider.h   |    1 +
+ 7 files changed, 7 insertions(+), 6 deletions(-)
+
+diff --git a/drivers/clk/clk-divider.c b/drivers/clk/clk-divider.c
+index e4911ee..53f9dd7 100644
+--- a/drivers/clk/clk-divider.c
++++ b/drivers/clk/clk-divider.c
+@@ -266,7 +266,7 @@ struct clk *clk_register_divider(struct device *dev, const char *name,
  
--	oh->_clk = omap_clk_get_by_name(oh->main_clk);
--	if (!oh->_clk) {
-+	oh->_clk = clk_get(NULL, oh->main_clk);
-+	if (IS_ERR_OR_NULL(oh->_clk)) {
- 		pr_warning("omap_hwmod: %s: cannot clk_get main_clk %s\n",
- 			   oh->name, oh->main_clk);
- 		return -EINVAL;
-@@ -595,8 +595,8 @@ static int _init_interface_clks(struct omap_hwmod *oh)
- 		if (!os->clk)
- 			continue;
+ 	init.name = name;
+ 	init.ops = &clk_divider_ops;
+-	init.flags = flags;
++	init.flags = flags | CLK_IS_BASIC;
+ 	init.parent_names = (parent_name ? &parent_name: NULL);
+ 	init.num_parents = (parent_name ? 1 : 0);
  
--		c = omap_clk_get_by_name(os->clk);
--		if (!c) {
-+		c = clk_get(NULL, os->clk);
-+		if (IS_ERR_OR_NULL(c)) {
- 			pr_warning("omap_hwmod: %s: cannot clk_get interface_clk %s\n",
- 				   oh->name, os->clk);
- 			ret = -EINVAL;
-@@ -622,8 +622,8 @@ static int _init_opt_clks(struct omap_hwmod *oh)
- 	int ret = 0;
+diff --git a/drivers/clk/clk-fixed-factor.c b/drivers/clk/clk-fixed-factor.c
+index c8c003e..a489985 100644
+--- a/drivers/clk/clk-fixed-factor.c
++++ b/drivers/clk/clk-fixed-factor.c
+@@ -82,7 +82,7 @@ struct clk *clk_register_fixed_factor(struct device *dev, const char *name,
  
- 	for (i = oh->opt_clks_cnt, oc = oh->opt_clks; i > 0; i--, oc++) {
--		c = omap_clk_get_by_name(oc->clk);
--		if (!c) {
-+		c = clk_get(NULL, oc->clk);
-+		if (IS_ERR_OR_NULL(c)) {
- 			pr_warning("omap_hwmod: %s: cannot clk_get opt_clk %s\n",
- 				   oh->name, oc->clk);
- 			ret = -EINVAL;
-diff --git a/arch/arm/plat-omap/omap_device.c b/arch/arm/plat-omap/omap_device.c
-index d50cbc6..16bcace 100644
---- a/arch/arm/plat-omap/omap_device.c
-+++ b/arch/arm/plat-omap/omap_device.c
-@@ -266,10 +266,10 @@ static void _add_clkdev(struct omap_device *od, const char *clk_alias,
- 		return;
+ 	init.name = name;
+ 	init.ops = &clk_fixed_factor_ops;
+-	init.flags = flags;
++	init.flags = flags | CLK_IS_BASIC;
+ 	init.parent_names = &parent_name;
+ 	init.num_parents = 1;
+ 
+diff --git a/drivers/clk/clk-fixed-rate.c b/drivers/clk/clk-fixed-rate.c
+index cbd2462..7e14645 100644
+--- a/drivers/clk/clk-fixed-rate.c
++++ b/drivers/clk/clk-fixed-rate.c
+@@ -63,7 +63,7 @@ struct clk *clk_register_fixed_rate(struct device *dev, const char *name,
+ 
+ 	init.name = name;
+ 	init.ops = &clk_fixed_rate_ops;
+-	init.flags = flags;
++	init.flags = flags | CLK_IS_BASIC;
+ 	init.parent_names = (parent_name ? &parent_name: NULL);
+ 	init.num_parents = (parent_name ? 1 : 0);
+ 
+diff --git a/drivers/clk/clk-gate.c b/drivers/clk/clk-gate.c
+index 578465e..15114fe 100644
+--- a/drivers/clk/clk-gate.c
++++ b/drivers/clk/clk-gate.c
+@@ -130,7 +130,7 @@ struct clk *clk_register_gate(struct device *dev, const char *name,
+ 
+ 	init.name = name;
+ 	init.ops = &clk_gate_ops;
+-	init.flags = flags;
++	init.flags = flags | CLK_IS_BASIC;
+ 	init.parent_names = (parent_name ? &parent_name: NULL);
+ 	init.num_parents = (parent_name ? 1 : 0);
+ 
+diff --git a/drivers/clk/clk-mux.c b/drivers/clk/clk-mux.c
+index fd36a8e..508c032 100644
+--- a/drivers/clk/clk-mux.c
++++ b/drivers/clk/clk-mux.c
+@@ -106,7 +106,7 @@ struct clk *clk_register_mux(struct device *dev, const char *name,
+ 
+ 	init.name = name;
+ 	init.ops = &clk_mux_ops;
+-	init.flags = flags;
++	init.flags = flags | CLK_IS_BASIC;
+ 	init.parent_names = parent_names;
+ 	init.num_parents = num_parents;
+ 
+diff --git a/include/linux/clk-private.h b/include/linux/clk-private.h
+index 2479239..0835bda 100644
+--- a/include/linux/clk-private.h
++++ b/include/linux/clk-private.h
+@@ -64,7 +64,7 @@ struct clk {
+ 		.parent_names = _parent_names,			\
+ 		.num_parents = ARRAY_SIZE(_parent_names),	\
+ 		.parents = _parents,				\
+-		.flags = _flags,				\
++		.flags = _flags | CLK_IS_BASIC,			\
  	}
  
--	r = omap_clk_get_by_name(clk_name);
--	if (IS_ERR(r)) {
-+	r = clk_get(NULL, clk_name);
-+	if (IS_ERR_OR_NULL(r)) {
- 		dev_err(&od->pdev->dev,
--			"omap_clk_get_by_name for %s failed\n", clk_name);
-+			"clk_get for %s failed\n", clk_name);
- 		return;
- 	}
+ #define DEFINE_CLK_FIXED_RATE(_name, _flags, _rate,		\
+diff --git a/include/linux/clk-provider.h b/include/linux/clk-provider.h
+index 22bc067..a969614 100644
+--- a/include/linux/clk-provider.h
++++ b/include/linux/clk-provider.h
+@@ -25,6 +25,7 @@
+ #define CLK_SET_RATE_PARENT	BIT(2) /* propagate rate change up one level */
+ #define CLK_IGNORE_UNUSED	BIT(3) /* do not gate even if unused */
+ #define CLK_IS_ROOT		BIT(4) /* root clk, has no parent */
++#define CLK_IS_BASIC		BIT(5) /* Basic clk, can't do a to_clk_foo() */
+ 
+ struct clk_hw;
  
 -- 
 1.7.1
