@@ -1,81 +1,69 @@
-From: "Cousson, Benoit" <b-cousson@ti.com>
-Subject: Re: [RFC PATCH 05/11] mfd: omap: control: core system
-	control driver
-Date: Fri, 1 Jun 2012 14:43:54 +0200
-Message-ID: <4FC8B90A.9040505@ti.com>
-References: <1337934361-1606-1-git-send-email-eduardo.valentin@ti.com>
-	<1337934361-1606-6-git-send-email-eduardo.valentin@ti.com>
-	<4FBF8078.9050809@ti.com> <20120528113502.GG3923@besouro>
-	<4FC4CE4B.8020708@ti.com> <20120601112951.GM12766@atomide.com>
-	<CAMQu2gyn_Fir=Jp0cQR_t7yc_JkwajFMvR1yDx-VYv9JOOwivw@mail.gmail.com>
+From: "ABRAHAM, KISHON VIJAY" <kishon@ti.com>
+Subject: Re: [RFC PATCH 2/5] arm: omap: remove ocp2scp_usb_phy_ick clock node
+Date: Fri, 1 Jun 2012 18:22:59 +0530
+Message-ID: <CAAe_U6L6b26J4Q3mB6K0BLtwkaL92SFZSQTMCd=Rv3UBynVCBA@mail.gmail.com>
+References: <1338375394-16268-1-git-send-email-kishon@ti.com>
+	<1338375394-16268-3-git-send-email-kishon@ti.com>
+	<CAMQu2gxcP8At5j4UOK3bgX+Q+OunXeTxyXEr6hAhGiwjLs-gJg@mail.gmail.com>
+	<4FC63B8D.3070107@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"; Format="flowed"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-pm-bounces@lists.linux-foundation.org>
-In-Reply-To: <CAMQu2gyn_Fir=Jp0cQR_t7yc_JkwajFMvR1yDx-VYv9JOOwivw@mail.gmail.com>
-List-Unsubscribe: <https://lists.linuxfoundation.org/mailman/options/linux-pm>,
-	<mailto:linux-pm-request@lists.linux-foundation.org?subject=unsubscribe>
-List-Archive: <http://lists.linuxfoundation.org/pipermail/linux-pm/>
-List-Post: <mailto:linux-pm@lists.linux-foundation.org>
-List-Help: <mailto:linux-pm-request@lists.linux-foundation.org?subject=help>
-List-Subscribe: <https://lists.linuxfoundation.org/mailman/listinfo/linux-pm>,
-	<mailto:linux-pm-request@lists.linux-foundation.org?subject=subscribe>
-Sender: linux-pm-bounces@lists.linux-foundation.org
-Errors-To: linux-pm-bounces@lists.linux-foundation.org
-To: "Shilimkar, Santosh" <santosh.shilimkar@ti.com>
-Cc: amit.kucheria@linaro.org, balbi@ti.com, kishon@ti.com, J Keerthy <j-keerthy@ti.com>, linux-pm@lists.linux-foundation.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from na3sys009aog130.obsmtp.com ([74.125.149.143]:35031 "EHLO
+	na3sys009aog130.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1759678Ab2FAMxB convert rfc822-to-8bit
+	(ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Fri, 1 Jun 2012 08:53:01 -0400
+Received: by ggnm2 with SMTP id m2so2033980ggn.13
+        for <linux-omap@vger.kernel.org>; Fri, 01 Jun 2012 05:52:59 -0700 (PDT)
+In-Reply-To: <4FC63B8D.3070107@ti.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: "Cousson, Benoit" <b-cousson@ti.com>
+Cc: "Shilimkar, Santosh" <santosh.shilimkar@ti.com>, paul@pwsan.com, tony@atomide.com, linux@arm.linux.org.uk, arnd@arndb.de, gregkh@linuxfoundation.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org, balbi@ti.com
 
-On 6/1/2012 2:30 PM, Shilimkar, Santosh wrote:
-> On Fri, Jun 1, 2012 at 7:29 PM, Tony Lindgren<tony@atomide.com>  wrote:
->> * Cousson, Benoit<b-cousson@ti.com>  [120529 06:29]:
->>> On 5/28/2012 1:35 PM, Eduardo Valentin wrote:
->>>>>
->>>>> Mmm, we can have up to 4 control module instances in OMAP4.
->>>>>
->>>>> Well, I'm not sure it worth considering them as separate devices. Is
->>>>> that your plan as well?
->>>>
->>>> At least for now I was focusing on the ctrl_module_core ...
->>>
->>> OK, that's a good start already :-)
->>>
->>>>> But since they all have different base address, it will be trick to
->>>>> handle them with only a single entry.
->>>>
->>>> Indeed. We can always add the support latter on.
->>>>
->>>> I am not sure what would be the best way to handle those instances though,
->>>> and how they are going to expose APIs. Would need to have an instance bound
->>>> to API set?
->>>
->>> We should not go to that path I guess. We should have an API at
->>> children level independent of the underlying control module
->>> partitioning.
->>
->> These should be separate driver instances for the control modules.
->>
->> And then the ioremapped area should ignore at least the padconf
->> registers so drivers/pinctrl/pinctrl-simple can handle those. There
->> should not be any dependencies to the SCM driver from pinctrl-simple,
->> the core SCM driver can manage the clocks and trigger the save of
->> padconf regs.
->>
->> Also we should allow MMC driver handle the MMC specific registers
->> and USB driver(s) handle the USB specific registers if possible. Those
->> should not live under drivers/mfd unless there are some dependencies
->> other than trying to ioremap the whole SCM module instead of ioremapping
->> in each driver.
->>
->> We can have a static map for the SCM, so ioremapping each driver
->> individually should not be an issue.
->>
-> This sounds a good idea. With this we may not even need a core control
-> module drivers if all the individual drivers take care of the registers they
-> care. Mapping shouldn't be a problem as you mentioned.
+Hi Benoit,
 
-We should keep the MFD for PM / OCP single port correctness. Other than 
-that it will be mostly useless, indeed.
+On Wed, May 30, 2012 at 8:53 PM, Cousson, Benoit <b-cousson@ti.com> wro=
+te:
+> On 5/30/2012 4:51 PM, Shilimkar, Santosh wrote:
+>>
+>> On Wed, May 30, 2012 at 4:26 PM, Kishon Vijay Abraham I<kishon@ti.co=
+m>
+>> =A0wrote:
+>>>
+>>> "ocp2scp_usb_phy_ick" clock node was a fake clock node created
+>>> to control MODULEMODE of ocp2scp. Since the hwmod for ocp2scp is no=
+w
+>>> added
+>>> (which can be used to control MODULEMODE) this clock node is remove=
+d.
+>>>
+>>> Cc: Benoit Cousson<b-cousson@ti.com>
+>>> Signed-off-by: Kishon Vijay Abraham I<kishon@ti.com>
+>>> ---
+>>> =A0arch/arm/mach-omap2/clock44xx_data.c | =A0 11 -----------
+>>
+>>
+>> Have you patched clock44xx_data.c manually or you have a patch for
+>> the clock_data autogen script to generate it ?
+>
+>
+> I have a series that will remove all these clock nodes. I should be a=
+ble to
+> post that soon.
+>
+> Potentially at that time, Kishon might be able to drop that patch.
 
-Regards,
-Benoit
+Will you be sending a patch for *[RFC PATCH 1/5] arm: omap: hwmod:
+make *phy_48m* as the main_clk of ocp2scp* also or I have to keep that
+as part of my series?
+
+Thanks
+Kishon
+--
+To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
