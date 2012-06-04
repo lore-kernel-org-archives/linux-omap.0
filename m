@@ -1,35 +1,67 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH v2] omap: dma: Clear status registers on enable/disable
- irq.
-Date: Sun, 3 Jun 2012 23:13:57 -0700
-Message-ID: <20120604061357.GV12766@atomide.com>
-References: <1337117708-27215-1-git-send-email-oleg.matcovschi@ti.com>
+From: Afzal Mohammed <afzal@ti.com>
+Subject: [PATCH 00/10] Prepare for GPMC driver conversion (w.r.t MTD)
+Date: Mon, 4 Jun 2012 12:15:01 +0530
+Message-ID: <cover.1338790117.git.afzal@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-02-ewr.mailhop.org ([204.13.248.72]:46033 "EHLO
-	mho-02-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751219Ab2FDGOB (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 4 Jun 2012 02:14:01 -0400
-Content-Disposition: inline
-In-Reply-To: <1337117708-27215-1-git-send-email-oleg.matcovschi@ti.com>
+Received: from bear.ext.ti.com ([192.94.94.41]:54486 "EHLO bear.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752375Ab2FDHBM (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Mon, 4 Jun 2012 03:01:12 -0400
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Oleg Matcovschi <oleg.matcovschi@ti.com>
-Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux@arm.linux.org.uk, jarkko.nikula@bitmer.com, jkrzyszt@tis.inet.pl
+To: tony@atomide.com, artem.bityutskiy@linux.intel.com, linux-omap@vger.kernel.org, linux-mtd@lists.infradead.org
+Cc: ivan.djelic@parrot.com, Afzal Mohammed <afzal@ti.com>
 
-* Oleg Matcovschi <oleg.matcovschi@ti.com> [120515 14:40]:
-> Use omap_disable_channel_irq() function instead of directly accessing CICR.
-> The omap_disable_chanel_irq() function clears pending interrupts
-> and disables interrupt on channel.
-> Functions omap2_enable_irq_lch()/omap2_disable_irq_lch() clear interrupt
-> status register.
+Hi,
 
-Looking at this again, I'll apply this into cleanup-dma instead of fixes.
+This series cleans up gpmc mtd interactions so that GPMC driver
+conversion which is going to happen shortly would happen smoothly
+by not creating much disturbance outside of arch/arm/*omap*/
 
-If it fixes something that I can't see, please reply with a description
-what it fixes and I'll move it into fixes.
+This series,
+1. provides the ability for OMAP NAND driver to configure GPMC-NAND
+   registers by NAND driver itself instead of using exported GPMC
+   symbols
+2. modifies GPMC to provide OMAP ONENAND & NAND drivers with GPMC
+   allocated address space as resource
+3. creates a fictitious GPMC interrupt chip and provide the clients
+   with interrupts that could be handled using standard APIs (helps
+   in removing the requirement for driver of peripheral connected to
+   GPMC having the knowledge about GPMC interrupt handling). The
+   only user is OMAP NAND driver, it has also been modified to take
+   advantage of this
 
-Regards,
+This series has been made over 3.5-rc1
 
-Tony
+Regards
+Afzal
+
+Reference:
+http://www.mail-archive.com/linux-omap@vger.kernel.org/msg69066.html
+
+Afzal Mohammed (10):
+  ARM: OMAP2+: gpmc: update nand register helper
+  ARM: OMAP2+: gpmc-nand: update gpmc-nand regs
+  mtd: nand: omap2: handle nand on gpmc
+  ARM: OMAP2+: gpmc-nand: update resource with memory
+  ARM: OMAP2+: gpmc-onenand: provide memory as resource
+  mtd: nand: omap2: obtain memory from resource
+  mtd: onenand: omap2: obtain memory from resource
+  ARM: OMAP2+: gpmc: Modify interrupt handling
+  ARM: OMAP2+: gpmc-nand: Modify Interrupt handling
+  mtd: nand: omap2: use gpmc provided irqs
+
+ arch/arm/mach-omap2/gpmc-nand.c        |   28 ++-
+ arch/arm/mach-omap2/gpmc-onenand.c     |   23 ++-
+ arch/arm/mach-omap2/gpmc.c             |  156 +++++++++++++++--
+ arch/arm/plat-omap/include/plat/gpmc.h |   19 +++
+ arch/arm/plat-omap/include/plat/nand.h |    2 +-
+ drivers/mtd/nand/omap2.c               |  294 ++++++++++++++++++++++++--------
+ drivers/mtd/onenand/omap2.c            |   29 ++--
+ 7 files changed, 439 insertions(+), 112 deletions(-)
+
+-- 
+1.7.10.2
+
