@@ -1,212 +1,106 @@
 From: Jon Hunter <jon-hunter@ti.com>
-Subject: [PATCH V3 05/12] ARM: OMAP2+: HWMOD: Correct timer device attributes
-Date: Mon, 4 Jun 2012 14:41:42 -0500
-Message-ID: <1338838909-25356-6-git-send-email-jon-hunter@ti.com>
+Subject: [PATCH V3 10/12] ARM: OMAP: Add flag to indicate if a timer needs a manual reset
+Date: Mon, 4 Jun 2012 14:41:47 -0500
+Message-ID: <1338838909-25356-11-git-send-email-jon-hunter@ti.com>
 References: <1338838909-25356-1-git-send-email-jon-hunter@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from arroyo.ext.ti.com ([192.94.94.40]:59986 "EHLO arroyo.ext.ti.com"
+Received: from bear.ext.ti.com ([192.94.94.41]:40723 "EHLO bear.ext.ti.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751973Ab2FDTmF (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Mon, 4 Jun 2012 15:42:05 -0400
+	id S1752340Ab2FDTmU (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Mon, 4 Jun 2012 15:42:20 -0400
 In-Reply-To: <1338838909-25356-1-git-send-email-jon-hunter@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: linux-omap <linux-omap@vger.kernel.org>
 Cc: Tony Lindgren <tony@atomide.com>, Tarun Kanti DebBarma <tarun.kanti@ti.com>, Jon Hunter <jon-hunter@ti.com>
 
-Fix the following issues with the timer device attributes for OMAP2+ devices:
-
-1. For OMAP24xx devices, timers 2-8 have the ALWAYS-ON attribute indicating
-   that these timers are in an ALWAYS-ON power domain. This is not the case
-   only timer1 is in an ALWAYS-ON power domain.
-2. For OMAP3xxx devices, timers 2-7 have the ALWAYS-ON attribute indicating
-   that these timers are in an ALWAYS-ON power domain. This is not the case
-   only timer1 and timer12 are in an ALWAYS-ON power domain.
-3. For OMAP3xxx devices, timer12 does not have the ALWAYS-ON attribute but
-   is in an always-on power domain.
+For OMAP1 devices, it is necessary to perform a manual reset of the timer.
+Currently, this is indicating by setting the "needs_manual_reset" variable in
+the platform data. Instead of using an extra variable to indicate this add a new
+timer capabilities flag to indicate this and remove the "needs_manual_reset"
+member from the platform data.
 
 Signed-off-by: Jon Hunter <jon-hunter@ti.com>
 ---
- arch/arm/mach-omap2/omap_hwmod_2xxx_ipblock_data.c |    7 -------
- arch/arm/mach-omap2/omap_hwmod_3xxx_data.c         |    8 +-------
- arch/arm/mach-omap2/omap_hwmod_44xx_data.c         |    6 ------
- 3 files changed, 1 insertion(+), 20 deletions(-)
+ arch/arm/mach-omap1/timer.c               |    4 ++--
+ arch/arm/plat-omap/dmtimer.c              |    9 +++------
+ arch/arm/plat-omap/include/plat/dmtimer.h |    1 +
+ 3 files changed, 6 insertions(+), 8 deletions(-)
 
-diff --git a/arch/arm/mach-omap2/omap_hwmod_2xxx_ipblock_data.c b/arch/arm/mach-omap2/omap_hwmod_2xxx_ipblock_data.c
-index 83eafd9..7814e83 100644
---- a/arch/arm/mach-omap2/omap_hwmod_2xxx_ipblock_data.c
-+++ b/arch/arm/mach-omap2/omap_hwmod_2xxx_ipblock_data.c
-@@ -257,7 +257,6 @@ struct omap_hwmod omap2xxx_timer2_hwmod = {
- 			.idlest_idle_bit = OMAP24XX_ST_GPT2_SHIFT,
- 		},
- 	},
--	.dev_attr	= &capability_alwon_dev_attr,
- 	.class		= &omap2xxx_timer_hwmod_class,
- };
+diff --git a/arch/arm/mach-omap1/timer.c b/arch/arm/mach-omap1/timer.c
+index b4bf48c..aa81593 100644
+--- a/arch/arm/mach-omap1/timer.c
++++ b/arch/arm/mach-omap1/timer.c
+@@ -140,8 +140,8 @@ static int __init omap1_dm_timer_init(void)
+ 		}
  
-@@ -276,7 +275,6 @@ struct omap_hwmod omap2xxx_timer3_hwmod = {
- 			.idlest_idle_bit = OMAP24XX_ST_GPT3_SHIFT,
- 		},
- 	},
--	.dev_attr	= &capability_alwon_dev_attr,
- 	.class		= &omap2xxx_timer_hwmod_class,
- };
+ 		pdata->set_timer_src = omap1_dm_timer_set_src;
+-		pdata->needs_manual_reset = 1;
+-		pdata->timer_capability = OMAP_TIMER_ALWON;
++		pdata->timer_capability = OMAP_TIMER_ALWON |
++				OMAP_TIMER_NEEDS_RESET;
  
-@@ -295,7 +293,6 @@ struct omap_hwmod omap2xxx_timer4_hwmod = {
- 			.idlest_idle_bit = OMAP24XX_ST_GPT4_SHIFT,
- 		},
- 	},
--	.dev_attr	= &capability_alwon_dev_attr,
- 	.class		= &omap2xxx_timer_hwmod_class,
- };
+ 		ret = platform_device_add_data(pdev, pdata, sizeof(*pdata));
+ 		if (ret) {
+diff --git a/arch/arm/plat-omap/dmtimer.c b/arch/arm/plat-omap/dmtimer.c
+index f278bd0..6510e5e 100644
+--- a/arch/arm/plat-omap/dmtimer.c
++++ b/arch/arm/plat-omap/dmtimer.c
+@@ -135,7 +135,6 @@ static void omap_dm_timer_reset(struct omap_dm_timer *timer)
  
-@@ -314,7 +311,6 @@ struct omap_hwmod omap2xxx_timer5_hwmod = {
- 			.idlest_idle_bit = OMAP24XX_ST_GPT5_SHIFT,
- 		},
- 	},
--	.dev_attr	= &capability_alwon_dev_attr,
- 	.class		= &omap2xxx_timer_hwmod_class,
- };
+ int omap_dm_timer_prepare(struct omap_dm_timer *timer)
+ {
+-	struct dmtimer_platform_data *pdata = timer->pdev->dev.platform_data;
+ 	int ret;
  
-@@ -333,7 +329,6 @@ struct omap_hwmod omap2xxx_timer6_hwmod = {
- 			.idlest_idle_bit = OMAP24XX_ST_GPT6_SHIFT,
- 		},
- 	},
--	.dev_attr	= &capability_alwon_dev_attr,
- 	.class		= &omap2xxx_timer_hwmod_class,
- };
+ 	/*
+@@ -151,7 +150,7 @@ int omap_dm_timer_prepare(struct omap_dm_timer *timer)
+ 		}
+ 	}
  
-@@ -352,7 +347,6 @@ struct omap_hwmod omap2xxx_timer7_hwmod = {
- 			.idlest_idle_bit = OMAP24XX_ST_GPT7_SHIFT,
- 		},
- 	},
--	.dev_attr	= &capability_alwon_dev_attr,
- 	.class		= &omap2xxx_timer_hwmod_class,
- };
+-	if (pdata->needs_manual_reset)
++	if (timer->capability & OMAP_TIMER_NEEDS_RESET)
+ 		omap_dm_timer_reset(timer);
  
-@@ -371,7 +365,6 @@ struct omap_hwmod omap2xxx_timer8_hwmod = {
- 			.idlest_idle_bit = OMAP24XX_ST_GPT8_SHIFT,
- 		},
- 	},
--	.dev_attr	= &capability_alwon_dev_attr,
- 	.class		= &omap2xxx_timer_hwmod_class,
- };
+ 	ret = omap_dm_timer_set_source(timer, OMAP_TIMER_SRC_32_KHZ);
+@@ -369,13 +368,11 @@ EXPORT_SYMBOL_GPL(omap_dm_timer_start);
+ int omap_dm_timer_stop(struct omap_dm_timer *timer)
+ {
+ 	unsigned long rate = 0;
+-	struct dmtimer_platform_data *pdata;
  
-diff --git a/arch/arm/mach-omap2/omap_hwmod_3xxx_data.c b/arch/arm/mach-omap2/omap_hwmod_3xxx_data.c
-index b26d3c9..7b33094 100644
---- a/arch/arm/mach-omap2/omap_hwmod_3xxx_data.c
-+++ b/arch/arm/mach-omap2/omap_hwmod_3xxx_data.c
-@@ -150,7 +150,7 @@ static struct omap_hwmod_class omap3xxx_timer_hwmod_class = {
+ 	if (unlikely(!timer))
+ 		return -EINVAL;
  
- /* secure timers dev attribute */
- static struct omap_timer_capability_dev_attr capability_secure_dev_attr = {
--	.timer_capability	= OMAP_TIMER_SECURE,
-+	.timer_capability	= OMAP_TIMER_ALWON | OMAP_TIMER_SECURE,
- };
+-	pdata = timer->pdev->dev.platform_data;
+-	if (!pdata->needs_manual_reset)
++	if (!(timer->capability & OMAP_TIMER_NEEDS_RESET))
+ 		rate = clk_get_rate(timer->fclk);
  
- /* always-on timers dev attribute */
-@@ -195,7 +195,6 @@ static struct omap_hwmod omap3xxx_timer2_hwmod = {
- 			.idlest_idle_bit = OMAP3430_ST_GPT2_SHIFT,
- 		},
- 	},
--	.dev_attr	= &capability_alwon_dev_attr,
- 	.class		= &omap3xxx_timer_1ms_hwmod_class,
- };
+ 	__omap_dm_timer_stop(timer, timer->posted, rate);
+@@ -700,7 +697,7 @@ static int __devinit omap_dm_timer_probe(struct platform_device *pdev)
+ 	timer->capability = pdata->timer_capability;
  
-@@ -213,7 +212,6 @@ static struct omap_hwmod omap3xxx_timer3_hwmod = {
- 			.idlest_idle_bit = OMAP3430_ST_GPT3_SHIFT,
- 		},
- 	},
--	.dev_attr	= &capability_alwon_dev_attr,
- 	.class		= &omap3xxx_timer_hwmod_class,
- };
+ 	/* Skip pm_runtime_enable for OMAP1 */
+-	if (!pdata->needs_manual_reset) {
++	if (!(timer->capability & OMAP_TIMER_NEEDS_RESET)) {
+ 		pm_runtime_enable(&pdev->dev);
+ 		pm_runtime_irq_safe(&pdev->dev);
+ 	}
+diff --git a/arch/arm/plat-omap/include/plat/dmtimer.h b/arch/arm/plat-omap/include/plat/dmtimer.h
+index e11c9ea..4a35b23 100644
+--- a/arch/arm/plat-omap/include/plat/dmtimer.h
++++ b/arch/arm/plat-omap/include/plat/dmtimer.h
+@@ -59,6 +59,7 @@
+ #define OMAP_TIMER_SECURE				0x80000000
+ #define OMAP_TIMER_ALWON				0x40000000
+ #define OMAP_TIMER_HAS_PWM				0x20000000
++#define OMAP_TIMER_NEEDS_RESET				0x10000000
  
-@@ -231,7 +229,6 @@ static struct omap_hwmod omap3xxx_timer4_hwmod = {
- 			.idlest_idle_bit = OMAP3430_ST_GPT4_SHIFT,
- 		},
- 	},
--	.dev_attr	= &capability_alwon_dev_attr,
- 	.class		= &omap3xxx_timer_hwmod_class,
- };
- 
-@@ -249,7 +246,6 @@ static struct omap_hwmod omap3xxx_timer5_hwmod = {
- 			.idlest_idle_bit = OMAP3430_ST_GPT5_SHIFT,
- 		},
- 	},
--	.dev_attr	= &capability_alwon_dev_attr,
- 	.class		= &omap3xxx_timer_hwmod_class,
- };
- 
-@@ -267,7 +263,6 @@ static struct omap_hwmod omap3xxx_timer6_hwmod = {
- 			.idlest_idle_bit = OMAP3430_ST_GPT6_SHIFT,
- 		},
- 	},
--	.dev_attr	= &capability_alwon_dev_attr,
- 	.class		= &omap3xxx_timer_hwmod_class,
- };
- 
-@@ -285,7 +280,6 @@ static struct omap_hwmod omap3xxx_timer7_hwmod = {
- 			.idlest_idle_bit = OMAP3430_ST_GPT7_SHIFT,
- 		},
- 	},
--	.dev_attr	= &capability_alwon_dev_attr,
- 	.class		= &omap3xxx_timer_hwmod_class,
- };
- 
-diff --git a/arch/arm/mach-omap2/omap_hwmod_44xx_data.c b/arch/arm/mach-omap2/omap_hwmod_44xx_data.c
-index 950454a..ebf9657 100644
---- a/arch/arm/mach-omap2/omap_hwmod_44xx_data.c
-+++ b/arch/arm/mach-omap2/omap_hwmod_44xx_data.c
-@@ -2943,7 +2943,6 @@ static struct omap_hwmod omap44xx_timer2_hwmod = {
- 			.modulemode   = MODULEMODE_SWCTRL,
- 		},
- 	},
--	.dev_attr	= &capability_alwon_dev_attr,
- };
- 
- /* timer3 */
-@@ -2965,7 +2964,6 @@ static struct omap_hwmod omap44xx_timer3_hwmod = {
- 			.modulemode   = MODULEMODE_SWCTRL,
- 		},
- 	},
--	.dev_attr	= &capability_alwon_dev_attr,
- };
- 
- /* timer4 */
-@@ -2987,7 +2985,6 @@ static struct omap_hwmod omap44xx_timer4_hwmod = {
- 			.modulemode   = MODULEMODE_SWCTRL,
- 		},
- 	},
--	.dev_attr	= &capability_alwon_dev_attr,
- };
- 
- /* timer5 */
-@@ -3009,7 +3006,6 @@ static struct omap_hwmod omap44xx_timer5_hwmod = {
- 			.modulemode   = MODULEMODE_SWCTRL,
- 		},
- 	},
--	.dev_attr	= &capability_alwon_dev_attr,
- };
- 
- /* timer6 */
-@@ -3032,7 +3028,6 @@ static struct omap_hwmod omap44xx_timer6_hwmod = {
- 			.modulemode   = MODULEMODE_SWCTRL,
- 		},
- 	},
--	.dev_attr	= &capability_alwon_dev_attr,
- };
- 
- /* timer7 */
-@@ -3054,7 +3049,6 @@ static struct omap_hwmod omap44xx_timer7_hwmod = {
- 			.modulemode   = MODULEMODE_SWCTRL,
- 		},
- 	},
--	.dev_attr	= &capability_alwon_dev_attr,
- };
- 
- /* timer8 */
+ struct omap_timer_capability_dev_attr {
+ 	u32 timer_capability;
 -- 
 1.7.9.5
 
