@@ -1,127 +1,81 @@
-From: Kevin Hilman <khilman@ti.com>
-Subject: Re: [PATCH V2 4/4] ARM: OMAP3+: PM: VP: ensure VP is idle before disable
-Date: Mon, 04 Jun 2012 09:49:52 -0700
-Message-ID: <87vcj7f2dr.fsf@ti.com>
-References: <1338514899-3560-1-git-send-email-nm@ti.com>
-	<1338514899-3560-5-git-send-email-nm@ti.com> <87sjeesq11.fsf@ti.com>
-	<CAOMWX4fyJNtjm+kGgY=5yWaMeSAEYMTxuzyyrQibcH3=3wfMoA@mail.gmail.com>
+From: Jon Hunter <jon-hunter@ti.com>
+Subject: [PATCH V2 00/11] ARM: OMAP: DMTIMER clean-up and fixes in preparation for device-tree
+Date: Mon, 4 Jun 2012 12:22:24 -0500
+Message-ID: <1338830555-20469-1-git-send-email-jon-hunter@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: text/plain
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aog116.obsmtp.com ([74.125.149.240]:53319 "EHLO
-	na3sys009aog116.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751414Ab2FDQtz convert rfc822-to-8bit
-	(ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Mon, 4 Jun 2012 12:49:55 -0400
-Received: by dajz8 with SMTP id z8so9447077daj.16
-        for <linux-omap@vger.kernel.org>; Mon, 04 Jun 2012 09:49:54 -0700 (PDT)
-In-Reply-To: <CAOMWX4fyJNtjm+kGgY=5yWaMeSAEYMTxuzyyrQibcH3=3wfMoA@mail.gmail.com>
-	(Nishanth Menon's message of "Fri, 1 Jun 2012 17:57:59 -0500")
+Received: from comal.ext.ti.com ([198.47.26.152]:52241 "EHLO comal.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1753467Ab2FDRWy (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Mon, 4 Jun 2012 13:22:54 -0400
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "Menon, Nishanth" <nm@ti.com>
-Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Wenbiao Wang <wwang@ti.com>, Tony Lindgren <tony@atomide.com>
+To: linux-omap <linux-omap@vger.kernel.org>
+Cc: Tony Lindgren <tony@atomide.com>, Tarun Kanti DebBarma <tarun.kanti@ti.com>, Jon Hunter <jon-hunter@ti.com>
 
-"Menon, Nishanth" <nm@ti.com> writes:
+In order to migrate the dmtimer driver to support device-tree I found that it
+was first necessary to clean-up the timer platform data. The goal of this
+series is to simplify the timer platform data structure from ...
 
-> Regards,
-> Nishanth Menon
->
->
-> On Fri, Jun 1, 2012 at 4:03 PM, Kevin Hilman <khilman@ti.com> wrote:
->> Nishanth Menon <nm@ti.com> writes:
->>
->>> From: Wenbiao Wang <wwang@ti.com>
->>>
->>> Voltage Processor state machine transition to disable need to
->>> occur from IDLE state. When we transition OPP in a functioning
->>> system, the call sequence for an OPP transition is as follows:
->>> omap_sr_disable
->>> =C2=A0 =C2=A0 =C2=A0 -> sr class 3 disable
->>> =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0-> vp disable
->>> =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0-> sr disable
->>> forceupdate to voltage/frequency scale depending on which OPP
->>> we are transitioning to.
->>>
->>> If we hit a critical timing window where SR had commanded VP
->>> for a voltage transition and VP is in the middle of operating
->>> on that command, it needs to go through a few states before
->>> going to update state(where it actually sends the command to
->>> VC). Initial view of h/w owners is that the state disable of VP
->>> is expected to be sampled for the next transition.
->>>
->>> Instead, to be on a safer side, we ensure that the valid states
->>> of the VP state machine is diligently followed by software. This
->>> can be done by waiting for VP to be in idle =C2=A0prior to disablin=
-g
->>> VP. Existing prints have been updated to ensure context is
->>> available on error messages.
->>>
->>> As part of this change, increase timeout for VP idle check to
->>> improbable 500uSec to be certain that system is indeed unable
->>> to continue before crashing out with error(worst case expectancy
->>> remains the same 3-100uSec depending on when we caught VP).
->>>
->>> Cc: Tony Lindgren <tony@atomide.com>
->>> Cc: Kevin Hilman <khilman@ti.com>
->>>
->>> [nm@ti.com: port from android]
->>
->> and you also convert to use new _vp_wait_for_idle()
->>
->>> Signed-off-by: Nishanth Menon <nm@ti.com>
->>> Signed-off-by: Wenbiao Wang <wwang@ti.com>
->>> ---
->>> =C2=A0arch/arm/mach-omap2/vp.c | =C2=A0 =C2=A04 ++++
->>> =C2=A0arch/arm/mach-omap2/vp.h | =C2=A0 =C2=A05 +++--
->>> =C2=A02 files changed, 7 insertions(+), 2 deletions(-)
->>>
->>> diff --git a/arch/arm/mach-omap2/vp.c b/arch/arm/mach-omap2/vp.c
->>> index 2a8a085..9a72deb 100644
->>> --- a/arch/arm/mach-omap2/vp.c
->>> +++ b/arch/arm/mach-omap2/vp.c
->>> @@ -308,6 +308,10 @@ void omap_vp_disable(struct voltagedomain *vol=
-tdm)
->>> =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 return;
->>> =C2=A0 =C2=A0 =C2=A0 }
->>>
->>> + =C2=A0 =C2=A0 if (_vp_wait_for_idle(voltdm, vp)) {
->>> + =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 pr_warn_ratelimited("%s=
-: vdd_%s timedout!Ignore and try\n",
->>
->> s/timedout/timed out/
->> no space after '!',
-> Kinda wanted to stay under 80 character and not split string out to
-> two lines and make sparse angry, yet did not want to loose informatio=
-n
-> which was being presented out.
+struct dmtimer_platform_data {
+	int (*set_timer_src)(struct platform_device *pdev, int source);
+	int timer_ip_version;
+	u32 needs_manual_reset:1;
+	bool reserved;
+	bool loses_context;
+	int (*get_context_loss_count)(struct device *dev);
+};
 
-Readable error messages are more important.
+to ...
 
->> also I don't get the "Ignore and try" part
->
-> if we fail, just try the disable anyways..=20
-> (at least till we have
-> voltage processor recovery mechanism(cold reset) introduced upstream =
--
-> the intent of the patch was not to introduce a recovery mechanism, bu=
-t
-> to ensure proper checkpoint is in place)..
+struct dmtimer_platform_data {
+	int (*set_timer_src)(struct platform_device *pdev, int source);
+	u32 timer_capability;
+};
 
-I understand.  My complaint is only about the readability of the error
-messages.  Seeing this go by:
+... where timer_capability is a bit mask that indicates the timer features
+supported and uses the HWMOD timer capabilities flags described in
+plat/dmtimer.h. For OMAP2+ devices this allows us to read the timer
+capabilities from the HWMOD data and for OMAP1 devices the flags are simply
+populated by the timer initialisation code. Eventually, the aim is to read the
+timer capabilities from the device tree blob.
 
-        omap_vp_disable: vdd_mpu timedout!Ignore and try
+This series includes some fixes as well as clean-up. For instance OMAP1 dmtimer
+support is currently completely broken and so I have included a fix for this.
+If it is preferred to split the series into fixes and clean-up I can do that.
 
-in the kernel logs will still make me ask "try what?"  IMO, it should s=
-ay
+This series is based upon the current linux-omap master branch (3.5-rc1). I have
+built both omap1 and omap2plus configurations as well as booted the respective
+kernels on the omap5912 OSK (omap1), OMAP3430 Beagle and OMAP4460 PANDA.
 
-        omap_vp_disable: WARNING: vdd_mpu timed out, ignoring.
+Jon Hunter (11):
+  ARM: OMAP: Remove unnecessary clk structure
+  ARM: OMAP2+: Remove unused max number of timers definition
+  ARM: OMAP2+: Add dmtimer platform function to reserve systimers
+  ARM: OMAP: Add DMTIMER capability variable to represent timer
+    features
+  ARM: OMAP2+: HWMOD: Correct timer device attributes
+  ARM: OMAP1: Fix dmtimer support
+  ARM: OMAP2+: Fix external clock support for dmtimers
+  ARM: OMAP: Remove loses_context variable from timer platform data
+  ARM: OMAP: Remove timer function pointer for context loss counter
+  ARM: OMAP2+: Move dmtimer clock set function to dmtimer driver
+  ARM: OMAP2+: Simplify dmtimer clock aliases
 
-Kevin
---
-To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+ arch/arm/mach-omap1/timer.c                        |    3 +-
+ arch/arm/mach-omap2/clock2420_data.c               |   39 +------
+ arch/arm/mach-omap2/clock2430_data.c               |   39 +------
+ arch/arm/mach-omap2/clock3xxx_data.c               |   26 +----
+ arch/arm/mach-omap2/clock44xx_data.c               |   34 +++---
+ arch/arm/mach-omap2/omap_hwmod_2xxx_ipblock_data.c |    8 --
+ arch/arm/mach-omap2/omap_hwmod_3xxx_data.c         |   10 +-
+ arch/arm/mach-omap2/omap_hwmod_44xx_data.c         |    6 --
+ arch/arm/mach-omap2/timer.c                        |   82 +--------------
+ arch/arm/plat-omap/dmtimer.c                       |  111 +++++++++++++++-----
+ arch/arm/plat-omap/include/plat/dmtimer.h          |   21 +---
+ 11 files changed, 118 insertions(+), 261 deletions(-)
+
+-- 
+1.7.9.5
+
