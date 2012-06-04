@@ -1,228 +1,197 @@
 From: Afzal Mohammed <afzal@ti.com>
-Subject: [PATCH 08/10] ARM: OMAP2+: gpmc: Modify interrupt handling
-Date: Mon, 4 Jun 2012 12:17:08 +0530
-Message-ID: <df4cf7f1d1d12db969ca6ede29a0007271f51475.1338790118.git.afzal@ti.com>
+Subject: [PATCH 10/10] mtd: nand: omap2: use gpmc provided irqs
+Date: Mon, 4 Jun 2012 12:17:22 +0530
+Message-ID: <3ce2bd823685aed68123bffeaa1618bd32b61372.1338790118.git.afzal@ti.com>
 References: <cover.1338790117.git.afzal@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from arroyo.ext.ti.com ([192.94.94.40]:48376 "EHLO arroyo.ext.ti.com"
+Received: from comal.ext.ti.com ([198.47.26.152]:46145 "EHLO comal.ext.ti.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752198Ab2FDHDC (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Mon, 4 Jun 2012 03:03:02 -0400
+	id S1755005Ab2FDHDR (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Mon, 4 Jun 2012 03:03:17 -0400
 In-Reply-To: <cover.1338790117.git.afzal@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: tony@atomide.com, artem.bityutskiy@linux.intel.com, linux-omap@vger.kernel.org, linux-mtd@lists.infradead.org
 Cc: ivan.djelic@parrot.com, Afzal Mohammed <afzal@ti.com>
 
-Modify interrupt handling such that interrupts can be handled by GPMC
-client drivers using standard interrupt APIs rather than requiring
-the drivers to have knowledge about GPMC interrupt handling. Currently
-only NAND related interrupts has been considered (which is the case
-even without this change) as the only user of GPMC interrupt is NAND.
+GPMC platform initialization provides it's clients
+with interrupts that can be used through struct
+resource. Make use of it for irq mode functionality.
+
+Also now write protect disable is done by GPMC,
+hence remove it.
 
 Signed-off-by: Afzal Mohammed <afzal@ti.com>
 ---
- arch/arm/mach-omap2/gpmc.c             |  136 ++++++++++++++++++++++++++++----
- arch/arm/plat-omap/include/plat/gpmc.h |    1 +
- 2 files changed, 120 insertions(+), 17 deletions(-)
+ drivers/mtd/nand/omap2.c |   70 +++++++++++++++++++++++++++-------------------
+ 1 file changed, 42 insertions(+), 28 deletions(-)
 
-diff --git a/arch/arm/mach-omap2/gpmc.c b/arch/arm/mach-omap2/gpmc.c
-index a2c0588..578fd4c 100644
---- a/arch/arm/mach-omap2/gpmc.c
-+++ b/arch/arm/mach-omap2/gpmc.c
-@@ -78,6 +78,15 @@
- #define ENABLE_PREFETCH		(0x1 << 7)
- #define DMA_MPU_MODE		2
- 
-+/* XXX: Only NAND irq has been considered,currently these are the only ones used
-+ */
-+#define	GPMC_NR_IRQ		2
-+
-+struct gpmc_client_irq	{
-+	unsigned		irq;
-+	u32			bitmask;
-+};
-+
- /* Structure to save gpmc cs context */
- struct gpmc_cs_config {
- 	u32 config1;
-@@ -105,6 +114,10 @@ struct omap3_gpmc_regs {
- 	struct gpmc_cs_config cs_context[GPMC_CS_NUM];
- };
- 
-+static struct gpmc_client_irq gpmc_client_irq[GPMC_NR_IRQ];
-+static struct irq_chip gpmc_irq_chip;
-+static unsigned gpmc_irq_start;
-+
- static struct resource	gpmc_mem_root;
- static struct resource	gpmc_cs_mem[GPMC_CS_NUM];
- static DEFINE_SPINLOCK(gpmc_mem_lock);
-@@ -702,6 +715,97 @@ void gpmc_update_nand_reg(struct gpmc_nand_regs *reg, int cs)
- 	reg->gpmc_bch_result0 = gpmc_base + GPMC_ECC_BCH_RESULT_0;
- }
- 
-+int gpmc_get_client_irq(unsigned irq_config)
-+{
-+	int i;
-+
-+	if (hweight32(irq_config) > 1)
-+		return 0;
-+
-+	for (i = 0; i < GPMC_NR_IRQ; i++)
-+		if (gpmc_client_irq[i].bitmask & irq_config)
-+			return gpmc_client_irq[i].irq;
-+
-+	return 0;
-+}
-+
-+static int gpmc_irq_endis(unsigned irq, bool endis)
-+{
-+	int i;
-+	u32 regval;
-+
-+	for (i = 0; i < GPMC_NR_IRQ; i++)
-+		if (irq == gpmc_client_irq[i].irq) {
-+			regval = gpmc_read_reg(GPMC_IRQENABLE);
-+			if (endis)
-+				regval |= gpmc_client_irq[i].bitmask;
-+			else
-+				regval &= ~gpmc_client_irq[i].bitmask;
-+			gpmc_write_reg(GPMC_IRQENABLE, regval);
-+			break;
-+		}
-+
-+	return 0;
-+}
-+
-+static void gpmc_irq_disable(struct irq_data *p)
-+{
-+	gpmc_irq_endis(p->irq, false);
-+}
-+
-+static void gpmc_irq_enable(struct irq_data *p)
-+{
-+	gpmc_irq_endis(p->irq, true);
-+}
-+
-+static void gpmc_irq_noop(struct irq_data *data) { }
-+
-+static unsigned int gpmc_irq_noop_ret(struct irq_data *data) { return 0; }
-+
-+static int gpmc_setup_irq(int gpmc_irq)
-+{
-+	int i;
-+	u32 regval;
-+
-+	if (!gpmc_irq)
-+		return -EINVAL;
-+
-+	gpmc_irq_start = irq_alloc_descs(-1, 0, GPMC_NR_IRQ, 0);
-+	if (IS_ERR_VALUE(gpmc_irq_start)) {
-+		pr_err("irq_alloc_descs failed\n");
-+		return gpmc_irq_start;
-+	}
-+
-+	gpmc_irq_chip.name = "gpmc";
-+	gpmc_irq_chip.irq_startup = gpmc_irq_noop_ret;
-+	gpmc_irq_chip.irq_enable = gpmc_irq_enable;
-+	gpmc_irq_chip.irq_disable = gpmc_irq_disable;
-+	gpmc_irq_chip.irq_shutdown = gpmc_irq_noop;
-+	gpmc_irq_chip.irq_ack = gpmc_irq_noop;
-+	gpmc_irq_chip.irq_mask = gpmc_irq_noop;
-+	gpmc_irq_chip.irq_unmask = gpmc_irq_noop;
-+
-+	gpmc_client_irq[0].bitmask = GPMC_IRQ_FIFOEVENTENABLE;
-+	gpmc_client_irq[1].bitmask = GPMC_IRQ_COUNT_EVENT;
-+
-+	for (i = 0; i < GPMC_NR_IRQ; i++) {
-+		gpmc_client_irq[i].irq = gpmc_irq_start + i;
-+		irq_set_chip_and_handler(gpmc_client_irq[i].irq,
-+					&gpmc_irq_chip, handle_simple_irq);
-+		set_irq_flags(gpmc_client_irq[i].irq,
-+				IRQF_VALID | IRQF_NOAUTOEN);
-+	}
-+
-+	/* Disable interrupts */
-+	gpmc_write_reg(GPMC_IRQENABLE, 0);
-+
-+	/* clear interrupts */
-+	regval = gpmc_read_reg(GPMC_IRQSTATUS);
-+	gpmc_write_reg(GPMC_IRQSTATUS, regval);
-+
-+	return request_irq(gpmc_irq, gpmc_handle_irq, 0, "gpmc", NULL);
-+}
-+
- static void __init gpmc_mem_init(void)
+diff --git a/drivers/mtd/nand/omap2.c b/drivers/mtd/nand/omap2.c
+index 8e2bc9b..8db0046 100644
+--- a/drivers/mtd/nand/omap2.c
++++ b/drivers/mtd/nand/omap2.c
+@@ -135,7 +135,8 @@ struct omap_nand_info {
+ 	unsigned long			mem_size;
+ 	struct completion		comp;
+ 	int				dma_ch;
+-	int				gpmc_irq;
++	int				gpmc_irq_fifo;
++	int				gpmc_irq_count;
+ 	enum {
+ 		OMAP_NAND_IO_READ = 0,	/* read */
+ 		OMAP_NAND_IO_WRITE,	/* write */
+@@ -567,14 +568,12 @@ static irqreturn_t omap_nand_irq(int this_irq, void *dev)
  {
- 	int cs;
-@@ -731,8 +835,8 @@ static void __init gpmc_mem_init(void)
+ 	struct omap_nand_info *info = (struct omap_nand_info *) dev;
+ 	u32 bytes;
+-	u32 irq_stat;
  
- static int __init gpmc_init(void)
- {
--	u32 l, irq;
--	int cs, ret = -EINVAL;
-+	u32 l;
-+	int ret = -EINVAL;
- 	int gpmc_irq;
- 	char *ck = NULL;
+-	irq_stat = gpmc_read_status(GPMC_GET_IRQ_STATUS);
+ 	bytes = readl(info->reg.gpmc_prefetch_status);
+ 	bytes = GPMC_PREFETCH_STATUS_FIFO_CNT(bytes);
+ 	bytes = bytes  & 0xFFFC; /* io in multiple of 4 bytes */
+ 	if (info->iomode == OMAP_NAND_IO_WRITE) { /* checks for write io */
+-		if (irq_stat & 0x2)
++		if (this_irq == info->gpmc_irq_count)
+ 			goto done;
  
-@@ -780,16 +884,7 @@ static int __init gpmc_init(void)
- 	gpmc_write_reg(GPMC_SYSCONFIG, l);
- 	gpmc_mem_init();
+ 		if (info->buf_len && (info->buf_len < bytes))
+@@ -591,20 +590,17 @@ static irqreturn_t omap_nand_irq(int this_irq, void *dev)
+ 						(u32 *)info->buf, bytes >> 2);
+ 		info->buf = info->buf + bytes;
  
--	/* initalize the irq_chained */
--	irq = OMAP_GPMC_IRQ_BASE;
--	for (cs = 0; cs < GPMC_CS_NUM; cs++) {
--		irq_set_chip_and_handler(irq, &dummy_irq_chip,
--						handle_simple_irq);
--		set_irq_flags(irq, IRQF_VALID);
--		irq++;
--	}
--
--	ret = request_irq(gpmc_irq, gpmc_handle_irq, IRQF_SHARED, "gpmc", NULL);
-+	ret = gpmc_setup_irq(gpmc_irq);
- 	if (ret)
- 		pr_err("gpmc: irq-%d could not claim: err %d\n",
- 						gpmc_irq, ret);
-@@ -799,12 +894,19 @@ postcore_initcall(gpmc_init);
+-		if (irq_stat & 0x2)
++		if (this_irq == info->gpmc_irq_count)
+ 			goto done;
+ 	}
+-	gpmc_cs_configure(info->gpmc_cs, GPMC_SET_IRQ_STATUS, irq_stat);
  
- static irqreturn_t gpmc_handle_irq(int irq, void *dev)
- {
--	u8 cs;
-+	int i;
-+	u32 regval;
-+
-+	regval = gpmc_read_reg(GPMC_IRQSTATUS);
-+
-+	if (!regval)
-+		return IRQ_NONE;
-+
-+	for (i = 0; i < GPMC_NR_IRQ; i++)
-+		if (regval & gpmc_client_irq[i].bitmask)
-+			generic_handle_irq(gpmc_client_irq[i].irq);
+ 	return IRQ_HANDLED;
  
--	/* check cs to invoke the irq */
--	cs = ((gpmc_read_reg(GPMC_PREFETCH_CONFIG1)) >> CS_NUM_SHIFT) & 0x7;
--	if (OMAP_GPMC_IRQ_BASE+cs <= OMAP_GPMC_IRQ_END)
--		generic_handle_irq(OMAP_GPMC_IRQ_BASE+cs);
-+	gpmc_write_reg(GPMC_IRQSTATUS, regval);
+ done:
+ 	complete(&info->comp);
+-	/* disable irq */
+-	gpmc_cs_configure(info->gpmc_cs, GPMC_ENABLE_IRQ, 0);
+ 
+-	/* clear status */
+-	gpmc_cs_configure(info->gpmc_cs, GPMC_SET_IRQ_STATUS, irq_stat);
++	disable_irq_nosync(info->gpmc_irq_fifo);
++	disable_irq_nosync(info->gpmc_irq_count);
  
  	return IRQ_HANDLED;
  }
-diff --git a/arch/arm/plat-omap/include/plat/gpmc.h b/arch/arm/plat-omap/include/plat/gpmc.h
-index 06198a5..2e6e259 100644
---- a/arch/arm/plat-omap/include/plat/gpmc.h
-+++ b/arch/arm/plat-omap/include/plat/gpmc.h
-@@ -150,6 +150,7 @@ struct gpmc_nand_regs {
- };
+@@ -638,9 +634,9 @@ static void omap_read_buf_irq_pref(struct mtd_info *mtd, u_char *buf, int len)
+ 		goto out_copy;
  
- extern void gpmc_update_nand_reg(struct gpmc_nand_regs *reg, int cs);
-+extern int gpmc_get_client_irq(unsigned irq_config);
+ 	info->buf_len = len;
+-	/* enable irq */
+-	gpmc_cs_configure(info->gpmc_cs, GPMC_ENABLE_IRQ,
+-		(GPMC_IRQ_FIFOEVENTENABLE | GPMC_IRQ_COUNT_EVENT));
++
++	enable_irq(info->gpmc_irq_count);
++	enable_irq(info->gpmc_irq_fifo);
  
- extern unsigned int gpmc_ns_to_ticks(unsigned int time_ns);
- extern unsigned int gpmc_ps_to_ticks(unsigned int time_ps);
+ 	/* waiting for read to complete */
+ 	wait_for_completion(&info->comp);
+@@ -688,12 +684,13 @@ static void omap_write_buf_irq_pref(struct mtd_info *mtd,
+ 		goto out_copy;
+ 
+ 	info->buf_len = len;
+-	/* enable irq */
+-	gpmc_cs_configure(info->gpmc_cs, GPMC_ENABLE_IRQ,
+-			(GPMC_IRQ_FIFOEVENTENABLE | GPMC_IRQ_COUNT_EVENT));
++
++	enable_irq(info->gpmc_irq_count);
++	enable_irq(info->gpmc_irq_fifo);
+ 
+ 	/* waiting for write to complete */
+ 	wait_for_completion(&info->comp);
++
+ 	/* wait for data to flushed-out before reset the prefetch */
+ 	tim = 0;
+ 	limit = (loops_per_jiffy *  msecs_to_jiffies(OMAP_NAND_TIMEOUT_MS));
+@@ -1312,9 +1309,6 @@ static int __devinit omap_nand_probe(struct platform_device *pdev)
+ 	info->nand.options	= pdata->devsize;
+ 	info->nand.options	|= NAND_SKIP_BBTSCAN;
+ 
+-	/* NAND write protect off */
+-	gpmc_cs_configure(info->gpmc_cs, GPMC_CONFIG_WP, 0);
+-
+ 	res = platform_get_resource(pdev, IORESOURCE_MEM, 0);
+ 	if (res == NULL) {
+ 		err = -EINVAL;
+@@ -1337,6 +1331,14 @@ static int __devinit omap_nand_probe(struct platform_device *pdev)
+ 		goto out_release_mem_region;
+ 	}
+ 
++	info->gpmc_irq_fifo = platform_get_irq(pdev, 0);
++	if (info->gpmc_irq_fifo == -ENXIO)
++		dev_warn(&pdev->dev, "error getting FIFO IRQ\n");
++
++	info->gpmc_irq_count = platform_get_irq(pdev, 1);
++	if (info->gpmc_irq_count == -ENXIO)
++		dev_warn(&pdev->dev, "error getting TERMINALCOUNT IRQ\n");
++
+ 	info->nand.controller = &info->controller;
+ 
+ 	info->nand.IO_ADDR_W = info->nand.IO_ADDR_R;
+@@ -1392,17 +1394,24 @@ static int __devinit omap_nand_probe(struct platform_device *pdev)
+ 		break;
+ 
+ 	case NAND_OMAP_PREFETCH_IRQ:
+-		err = request_irq(pdata->gpmc_irq,
+-				omap_nand_irq, IRQF_SHARED, "gpmc-nand", info);
++		err = request_irq(info->gpmc_irq_fifo,	omap_nand_irq,
++					IRQF_SHARED, "gpmc-nand-fifo", info);
+ 		if (err) {
+ 			dev_err(&pdev->dev, "requesting irq(%d) error:%d",
+-							pdata->gpmc_irq, err);
++						info->gpmc_irq_fifo, err);
+ 			goto out_release_mem_region;
+-		} else {
+-			info->gpmc_irq	     = pdata->gpmc_irq;
+-			info->nand.read_buf  = omap_read_buf_irq_pref;
+-			info->nand.write_buf = omap_write_buf_irq_pref;
+ 		}
++		err = request_irq(info->gpmc_irq_count,	omap_nand_irq,
++					IRQF_SHARED, "gpmc-nand-count", info);
++		if (err) {
++			dev_err(&pdev->dev, "requesting irq(%d) error:%d",
++						info->gpmc_irq_count, err);
++			goto out_free_irq_gpmc_fifo;
++		}
++
++		info->nand.read_buf  = omap_read_buf_irq_pref;
++		info->nand.write_buf = omap_write_buf_irq_pref;
++
+ 		break;
+ 
+ 	default:
+@@ -1487,6 +1496,8 @@ static int __devinit omap_nand_probe(struct platform_device *pdev)
+ 
+ 	return 0;
+ 
++out_free_irq_gpmc_fifo:
++	free_irq(info->gpmc_irq_fifo, info);
+ out_release_mem_region:
+ 	release_mem_region(info->phys_base, info->mem_size);
+ out_free_info:
+@@ -1506,8 +1517,11 @@ static int omap_nand_remove(struct platform_device *pdev)
+ 	if (info->dma_ch != -1)
+ 		omap_free_dma(info->dma_ch);
+ 
+-	if (info->gpmc_irq)
+-		free_irq(info->gpmc_irq, info);
++	if (info->gpmc_irq_fifo > 0)
++		free_irq(info->gpmc_irq_fifo, info);
++
++	if (info->gpmc_irq_count > 0)
++		free_irq(info->gpmc_irq_count, info);
+ 
+ 	/* Release NAND device, its internal structures and partitions */
+ 	nand_release(&info->mtd);
 -- 
 1.7.10.2
 
