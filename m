@@ -1,50 +1,46 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH] ARM: OMAP4: hwspinlocks_init() should be static
-Date: Mon, 4 Jun 2012 00:40:23 -0700
-Message-ID: <20120604074022.GX12766@atomide.com>
-References: <1336914919-20032-1-git-send-email-ohad@wizery.com>
+From: Ladislav Michl <ladis@linux-mips.org>
+Subject: Re: latest kernel for am35xx
+Date: Mon, 4 Jun 2012 09:51:23 +0200
+Message-ID: <20120604075123.GA13523@localhost.localdomain>
+References: <CAP3+TEr8vsnZPhAhgH-w7jAjWZTNQgWvsQ3cn_uz4TaX8c-Zgg@mail.gmail.com>
+ <CAPjKCR_CiKA_vXNyfYHdJeqPMsv0SA_oRYg1-XzbO2C1vSbLug@mail.gmail.com>
+ <CAP3+TErug0DmndHWCVsguw2+e_vPCB2McF5j0+AyrMj8eGa=MQ@mail.gmail.com>
+ <4FC7338E.4080502@visionsystems.de>
+ <20120604072823.GA7053@localhost.localdomain>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-01-ewr.mailhop.org ([204.13.248.71]:21569 "EHLO
-	mho-01-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752720Ab2FDHkZ (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 4 Jun 2012 03:40:25 -0400
+Received: from eddie.linux-mips.org ([78.24.191.182]:34913 "EHLO
+	cvs.linux-mips.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754066Ab2FDHvk (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 4 Jun 2012 03:51:40 -0400
+Received: (from localhost user: 'ladis' uid#521 fake: STDIN
+        (ladis@eddie.linux-mips.org)) by eddie.linux-mips.org
+        id S1903626Ab2FDHvi (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+        Mon, 4 Jun 2012 09:51:38 +0200
 Content-Disposition: inline
-In-Reply-To: <1336914919-20032-1-git-send-email-ohad@wizery.com>
+In-Reply-To: <20120604072823.GA7053@localhost.localdomain>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Ohad Ben-Cohen <ohad@wizery.com>
-Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+To: Yegor Yefremov <yegor_sub1@visionsystems.de>
+Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
 
-* Ohad Ben-Cohen <ohad@wizery.com> [120513 06:19]:
-> Sparse found out that hwspinlocks_init() wasn't marked static,
-> and it should've been.
+On Mon, Jun 04, 2012 at 09:28:23AM +0200, Ladislav Michl wrote:
+> does USB work for you? I forward ported support for TechNexion's TAM-3517 on
+> Twister board to current master, but so far no luck with mass storage
+> support (patch for reference http://ladislav.michl.sweb.cz/tam3517.patch).
 
-Looks like this already got fixed by Paul's commit 8c3d4534.
+patch updated, so now does not contain random clock changes, so output changes:
+omap_hwmod: am35x_otg_hs: cannot be enabled for reset (3)
+...
+usbhs_omap: alias fck already exists
+...
+Switching to clocksource 32k_counter
+usbhs_omap usbhs_omap: xclk60mhsp1_ck set parentfailed error:-22
+...
+musb-hdrc: version 6.0, ?dma?, otg (peripheral+host)
+musb-hdrc musb-hdrc: musb_init_controller failed with status -19
 
-Regards,
+It would be nice to update master branch :-)
 
-Tony
- 
-> Signed-off-by: Ohad Ben-Cohen <ohad@wizery.com>
-> ---
->  arch/arm/mach-omap2/hwspinlock.c |    2 +-
->  1 files changed, 1 insertions(+), 1 deletions(-)
-> 
-> diff --git a/arch/arm/mach-omap2/hwspinlock.c b/arch/arm/mach-omap2/hwspinlock.c
-> index 454dfce..8763c85 100644
-> --- a/arch/arm/mach-omap2/hwspinlock.c
-> +++ b/arch/arm/mach-omap2/hwspinlock.c
-> @@ -28,7 +28,7 @@ static struct hwspinlock_pdata omap_hwspinlock_pdata __initdata = {
->  	.base_id = 0,
->  };
->  
-> -int __init hwspinlocks_init(void)
-> +static int __init hwspinlocks_init(void)
->  {
->  	int retval = 0;
->  	struct omap_hwmod *oh;
-> -- 
-> 1.7.5.4
-> 
+	ladis
