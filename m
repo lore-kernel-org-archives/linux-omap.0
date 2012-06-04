@@ -1,45 +1,46 @@
 From: Jon Hunter <jon-hunter@ti.com>
-Subject: [PATCH V2 01/11] ARM: OMAP: Remove unnecessary clk structure
-Date: Mon, 4 Jun 2012 12:22:25 -0500
-Message-ID: <1338830555-20469-2-git-send-email-jon-hunter@ti.com>
+Subject: [PATCH V2 02/11] ARM: OMAP2+: Remove unused max number of timers definition
+Date: Mon, 4 Jun 2012 12:22:26 -0500
+Message-ID: <1338830555-20469-3-git-send-email-jon-hunter@ti.com>
 References: <1338830555-20469-1-git-send-email-jon-hunter@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from comal.ext.ti.com ([198.47.26.152]:52251 "EHLO comal.ext.ti.com"
+Received: from arroyo.ext.ti.com ([192.94.94.40]:52638 "EHLO arroyo.ext.ti.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754638Ab2FDRXD (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Mon, 4 Jun 2012 13:23:03 -0400
+	id S1754638Ab2FDRXQ (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Mon, 4 Jun 2012 13:23:16 -0400
 In-Reply-To: <1338830555-20469-1-git-send-email-jon-hunter@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: linux-omap <linux-omap@vger.kernel.org>
 Cc: Tony Lindgren <tony@atomide.com>, Tarun Kanti DebBarma <tarun.kanti@ti.com>, Jon Hunter <jon-hunter@ti.com>
 
-In the plat/dmtimer.h there is a structure named "clk" declared. This structure
-is not used and appears to be left over from previous code. Hence, remove this
-unused structure.
-
-Verified that both omap1 and omap2plus kernel configurations build with this
-change.
+The OMAP2+ timer code has a definition for the maximum number of timers that
+OMAP2+ devices have. This defintion is not used anywhere in the code and
+appears to be left over. Furthermore the definition is not accurate for OMAP4
+devices that only have 11 timers available because the 12th timer is reserved
+as a secure timer. Therefore, remove this definition.
 
 Signed-off-by: Jon Hunter <jon-hunter@ti.com>
 ---
- arch/arm/plat-omap/include/plat/dmtimer.h |    1 -
- 1 file changed, 1 deletion(-)
+ arch/arm/mach-omap2/timer.c |    3 ---
+ 1 file changed, 3 deletions(-)
 
-diff --git a/arch/arm/plat-omap/include/plat/dmtimer.h b/arch/arm/plat-omap/include/plat/dmtimer.h
-index 5da7356..5fdfaa4 100644
---- a/arch/arm/plat-omap/include/plat/dmtimer.h
-+++ b/arch/arm/plat-omap/include/plat/dmtimer.h
-@@ -71,7 +71,6 @@ struct omap_timer_capability_dev_attr {
- };
+diff --git a/arch/arm/mach-omap2/timer.c b/arch/arm/mach-omap2/timer.c
+index 840929b..c030dfe 100644
+--- a/arch/arm/mach-omap2/timer.c
++++ b/arch/arm/mach-omap2/timer.c
+@@ -69,9 +69,6 @@
+ #define OMAP3_SECURE_TIMER	1
+ #endif
  
- struct omap_dm_timer;
--struct clk;
+-/* MAX_GPTIMER_ID: number of GPTIMERs on the chip */
+-#define MAX_GPTIMER_ID		12
+-
+ static u32 sys_timer_reserved;
  
- struct timer_regs {
- 	u32 tidr;
+ /* Clockevent code */
 -- 
 1.7.9.5
 
