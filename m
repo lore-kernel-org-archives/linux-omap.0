@@ -1,46 +1,54 @@
-From: Ladislav Michl <ladis@linux-mips.org>
-Subject: Re: latest kernel for am35xx
-Date: Mon, 4 Jun 2012 09:51:23 +0200
-Message-ID: <20120604075123.GA13523@localhost.localdomain>
-References: <CAP3+TEr8vsnZPhAhgH-w7jAjWZTNQgWvsQ3cn_uz4TaX8c-Zgg@mail.gmail.com>
- <CAPjKCR_CiKA_vXNyfYHdJeqPMsv0SA_oRYg1-XzbO2C1vSbLug@mail.gmail.com>
- <CAP3+TErug0DmndHWCVsguw2+e_vPCB2McF5j0+AyrMj8eGa=MQ@mail.gmail.com>
- <4FC7338E.4080502@visionsystems.de>
- <20120604072823.GA7053@localhost.localdomain>
+From: Rajendra Nayak <rnayak@ti.com>
+Subject: Re: [RFC 00/24] Move OMAP2+ over to use COMMON clock
+Date: Mon, 04 Jun 2012 14:08:10 +0530
+Message-ID: <4FCC73F2.4030808@ti.com>
+References: <1338552485-31325-1-git-send-email-rnayak@ti.com> <alpine.DEB.2.00.1206010735540.17068@utopia.booyaka.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from eddie.linux-mips.org ([78.24.191.182]:34913 "EHLO
-	cvs.linux-mips.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754066Ab2FDHvk (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 4 Jun 2012 03:51:40 -0400
-Received: (from localhost user: 'ladis' uid#521 fake: STDIN
-        (ladis@eddie.linux-mips.org)) by eddie.linux-mips.org
-        id S1903626Ab2FDHvi (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-        Mon, 4 Jun 2012 09:51:38 +0200
-Content-Disposition: inline
-In-Reply-To: <20120604072823.GA7053@localhost.localdomain>
+Received: from na3sys009aog118.obsmtp.com ([74.125.149.244]:47933 "EHLO
+	na3sys009aog118.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1752823Ab2FDIiR (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 4 Jun 2012 04:38:17 -0400
+Received: by obhx4 with SMTP id x4so8211912obh.6
+        for <linux-omap@vger.kernel.org>; Mon, 04 Jun 2012 01:38:16 -0700 (PDT)
+In-Reply-To: <alpine.DEB.2.00.1206010735540.17068@utopia.booyaka.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Yegor Yefremov <yegor_sub1@visionsystems.de>
-Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
+To: Paul Walmsley <paul@pwsan.com>
+Cc: mturquette@ti.com, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 
-On Mon, Jun 04, 2012 at 09:28:23AM +0200, Ladislav Michl wrote:
-> does USB work for you? I forward ported support for TechNexion's TAM-3517 on
-> Twister board to current master, but so far no luck with mass storage
-> support (patch for reference http://ladislav.michl.sweb.cz/tam3517.patch).
+On Friday 01 June 2012 07:07 PM, Paul Walmsley wrote:
+> On Fri, 1 Jun 2012, Rajendra Nayak wrote:
+>
+>> This RFC series is based of Mikes' latest clk-next. I will
+>> rebase it once 3.5-rc1 is out and post with more testing thats
+>> in progress. Meanwhile, the RFC is for me to get some early
+>> feedback on the patches.
+>
+> Please describe further what's been tested with this series, and what
+> hasn't been.
 
-patch updated, so now does not contain random clock changes, so output changes:
-omap_hwmod: am35x_otg_hs: cannot be enabled for reset (3)
-...
-usbhs_omap: alias fck already exists
-...
-Switching to clocksource 32k_counter
-usbhs_omap usbhs_omap: xclk60mhsp1_ck set parentfailed error:-22
-...
-musb-hdrc: version 6.0, ?dma?, otg (peripheral+host)
-musb-hdrc musb-hdrc: musb_init_controller failed with status -19
+Hi Paul,
 
-It would be nice to update master branch :-)
+I have been mostly boot-testing on the OMAP3/4 boards I have access to, 
+3430SDP, 3630 Beagle, 4430 Panda/SDP. Apart from this I was using
+omapconf to run the clkspeed audit tests on OMAP4.
+I used powerdebug to make sure the tree modeling (parent/child
+relations, clk rates etc) are sane after bootup.
+I haven't done any low power tests around suspend/idle for OMAP3
+or OMAP4 which is on my list to do before I do a repost/rebase on
+3.5-rc1. And so is testing on OMAP2430sdp and N800. Any other tests
+you recommend I do?
 
-	ladis
+Meanwhile it would be good to know if you see any major issues around
+the migration itself and/or the way the patches are structured.
+
+regards,
+Rajendra
+
+>
+>
+> - Paul
+
