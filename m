@@ -1,106 +1,130 @@
 From: Jon Hunter <jon-hunter@ti.com>
-Subject: [PATCH V3 10/12] ARM: OMAP: Add flag to indicate if a timer needs a manual reset
-Date: Mon, 4 Jun 2012 14:41:47 -0500
-Message-ID: <1338838909-25356-11-git-send-email-jon-hunter@ti.com>
+Subject: [PATCH V3 07/12] ARM: OMAP2+: Fix external clock support for dmtimers
+Date: Mon, 4 Jun 2012 14:41:44 -0500
+Message-ID: <1338838909-25356-8-git-send-email-jon-hunter@ti.com>
 References: <1338838909-25356-1-git-send-email-jon-hunter@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from bear.ext.ti.com ([192.94.94.41]:40723 "EHLO bear.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752340Ab2FDTmU (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Mon, 4 Jun 2012 15:42:20 -0400
+Received: from devils.ext.ti.com ([198.47.26.153]:52345 "EHLO
+	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752121Ab2FDTmO (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 4 Jun 2012 15:42:14 -0400
 In-Reply-To: <1338838909-25356-1-git-send-email-jon-hunter@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: linux-omap <linux-omap@vger.kernel.org>
 Cc: Tony Lindgren <tony@atomide.com>, Tarun Kanti DebBarma <tarun.kanti@ti.com>, Jon Hunter <jon-hunter@ti.com>
 
-For OMAP1 devices, it is necessary to perform a manual reset of the timer.
-Currently, this is indicating by setting the "needs_manual_reset" variable in
-the platform data. Instead of using an extra variable to indicate this add a new
-timer capabilities flag to indicate this and remove the "needs_manual_reset"
-member from the platform data.
+Currently, the dmtimer determines whether an timer can support an external
+clock source (sys_altclk) for driving the timer by the IP version. Only
+OMAP24xx devices can support an external clock source, but the IP version
+between OMAP24xx and OMAP3xxx is common and so this incorrectly indicates
+that OMAP3 devices can use an external clock source.
+
+Rather than use the IP version, just let the clock framework handle this.
+If the "alt_ck" does not exist for a timer then the clock framework will fail
+to find the clock and hence will return an error. By doing this we can eliminate
+the "timer_ip_version" variable passed as part of the platform data and simplify
+the code.
+
+We can also remove the timer IP version from the HWMOD data because the dmtimer
+driver uses the TIDR register to determine the IP version.
 
 Signed-off-by: Jon Hunter <jon-hunter@ti.com>
 ---
- arch/arm/mach-omap1/timer.c               |    4 ++--
- arch/arm/plat-omap/dmtimer.c              |    9 +++------
- arch/arm/plat-omap/include/plat/dmtimer.h |    1 +
- 3 files changed, 6 insertions(+), 8 deletions(-)
+ arch/arm/mach-omap2/omap_hwmod_2xxx_ipblock_data.c |    1 -
+ arch/arm/mach-omap2/omap_hwmod_3xxx_data.c         |    2 --
+ arch/arm/mach-omap2/timer.c                        |   11 ++---------
+ arch/arm/plat-omap/include/plat/dmtimer.h          |    7 -------
+ 4 files changed, 2 insertions(+), 19 deletions(-)
 
-diff --git a/arch/arm/mach-omap1/timer.c b/arch/arm/mach-omap1/timer.c
-index b4bf48c..aa81593 100644
---- a/arch/arm/mach-omap1/timer.c
-+++ b/arch/arm/mach-omap1/timer.c
-@@ -140,8 +140,8 @@ static int __init omap1_dm_timer_init(void)
- 		}
+diff --git a/arch/arm/mach-omap2/omap_hwmod_2xxx_ipblock_data.c b/arch/arm/mach-omap2/omap_hwmod_2xxx_ipblock_data.c
+index 7814e83..afad69c 100644
+--- a/arch/arm/mach-omap2/omap_hwmod_2xxx_ipblock_data.c
++++ b/arch/arm/mach-omap2/omap_hwmod_2xxx_ipblock_data.c
+@@ -68,7 +68,6 @@ static struct omap_hwmod_class_sysconfig omap2xxx_timer_sysc = {
+ struct omap_hwmod_class omap2xxx_timer_hwmod_class = {
+ 	.name	= "timer",
+ 	.sysc	= &omap2xxx_timer_sysc,
+-	.rev	= OMAP_TIMER_IP_VERSION_1,
+ };
  
- 		pdata->set_timer_src = omap1_dm_timer_set_src;
--		pdata->needs_manual_reset = 1;
--		pdata->timer_capability = OMAP_TIMER_ALWON;
-+		pdata->timer_capability = OMAP_TIMER_ALWON |
-+				OMAP_TIMER_NEEDS_RESET;
+ /*
+diff --git a/arch/arm/mach-omap2/omap_hwmod_3xxx_data.c b/arch/arm/mach-omap2/omap_hwmod_3xxx_data.c
+index 7b33094..0ea53bc 100644
+--- a/arch/arm/mach-omap2/omap_hwmod_3xxx_data.c
++++ b/arch/arm/mach-omap2/omap_hwmod_3xxx_data.c
+@@ -129,7 +129,6 @@ static struct omap_hwmod_class_sysconfig omap3xxx_timer_1ms_sysc = {
+ static struct omap_hwmod_class omap3xxx_timer_1ms_hwmod_class = {
+ 	.name = "timer",
+ 	.sysc = &omap3xxx_timer_1ms_sysc,
+-	.rev = OMAP_TIMER_IP_VERSION_1,
+ };
  
- 		ret = platform_device_add_data(pdev, pdata, sizeof(*pdata));
- 		if (ret) {
-diff --git a/arch/arm/plat-omap/dmtimer.c b/arch/arm/plat-omap/dmtimer.c
-index f278bd0..6510e5e 100644
---- a/arch/arm/plat-omap/dmtimer.c
-+++ b/arch/arm/plat-omap/dmtimer.c
-@@ -135,7 +135,6 @@ static void omap_dm_timer_reset(struct omap_dm_timer *timer)
+ static struct omap_hwmod_class_sysconfig omap3xxx_timer_sysc = {
+@@ -145,7 +144,6 @@ static struct omap_hwmod_class_sysconfig omap3xxx_timer_sysc = {
+ static struct omap_hwmod_class omap3xxx_timer_hwmod_class = {
+ 	.name = "timer",
+ 	.sysc = &omap3xxx_timer_sysc,
+-	.rev =  OMAP_TIMER_IP_VERSION_1,
+ };
  
- int omap_dm_timer_prepare(struct omap_dm_timer *timer)
- {
--	struct dmtimer_platform_data *pdata = timer->pdev->dev.platform_data;
- 	int ret;
+ /* secure timers dev attribute */
+diff --git a/arch/arm/mach-omap2/timer.c b/arch/arm/mach-omap2/timer.c
+index d8a5dc3..a89f5f4 100644
+--- a/arch/arm/mach-omap2/timer.c
++++ b/arch/arm/mach-omap2/timer.c
+@@ -418,14 +418,8 @@ static int omap2_dm_timer_set_src(struct platform_device *pdev, int source)
+ 		break;
  
- 	/*
-@@ -151,7 +150,7 @@ int omap_dm_timer_prepare(struct omap_dm_timer *timer)
- 		}
+ 	case OMAP_TIMER_SRC_EXT_CLK:
+-		if (pdata->timer_ip_version == OMAP_TIMER_IP_VERSION_1) {
+-			parent_name = "alt_ck";
+-			break;
+-		}
+-		dev_err(&pdev->dev, "%s: %d: invalid clk src.\n",
+-			__func__, __LINE__);
+-		clk_put(fclk);
+-		return -EINVAL;
++		parent_name = "alt_ck";
++		break;
  	}
  
--	if (pdata->needs_manual_reset)
-+	if (timer->capability & OMAP_TIMER_NEEDS_RESET)
- 		omap_dm_timer_reset(timer);
+ 	parent = clk_get(&pdev->dev, parent_name);
+@@ -498,7 +492,6 @@ static int __init omap_timer_init(struct omap_hwmod *oh, void *unused)
+ 	sscanf(oh->name, "timer%2d", &id);
  
- 	ret = omap_dm_timer_set_source(timer, OMAP_TIMER_SRC_32_KHZ);
-@@ -369,13 +368,11 @@ EXPORT_SYMBOL_GPL(omap_dm_timer_start);
- int omap_dm_timer_stop(struct omap_dm_timer *timer)
- {
- 	unsigned long rate = 0;
--	struct dmtimer_platform_data *pdata;
+ 	pdata->set_timer_src = omap2_dm_timer_set_src;
+-	pdata->timer_ip_version = oh->class->rev;
  
- 	if (unlikely(!timer))
- 		return -EINVAL;
- 
--	pdata = timer->pdev->dev.platform_data;
--	if (!pdata->needs_manual_reset)
-+	if (!(timer->capability & OMAP_TIMER_NEEDS_RESET))
- 		rate = clk_get_rate(timer->fclk);
- 
- 	__omap_dm_timer_stop(timer, timer->posted, rate);
-@@ -700,7 +697,7 @@ static int __devinit omap_dm_timer_probe(struct platform_device *pdev)
- 	timer->capability = pdata->timer_capability;
- 
- 	/* Skip pm_runtime_enable for OMAP1 */
--	if (!pdata->needs_manual_reset) {
-+	if (!(timer->capability & OMAP_TIMER_NEEDS_RESET)) {
- 		pm_runtime_enable(&pdev->dev);
- 		pm_runtime_irq_safe(&pdev->dev);
- 	}
+ 	if (timer_dev_attr)
+ 		pdata->timer_capability = timer_dev_attr->timer_capability;
 diff --git a/arch/arm/plat-omap/include/plat/dmtimer.h b/arch/arm/plat-omap/include/plat/dmtimer.h
-index e11c9ea..4a35b23 100644
+index 48e54ca..362cf97 100644
 --- a/arch/arm/plat-omap/include/plat/dmtimer.h
 +++ b/arch/arm/plat-omap/include/plat/dmtimer.h
-@@ -59,6 +59,7 @@
+@@ -55,12 +55,6 @@
+ #define OMAP_TIMER_TRIGGER_OVERFLOW		0x01
+ #define OMAP_TIMER_TRIGGER_OVERFLOW_AND_COMPARE	0x02
+ 
+-/*
+- * IP revision identifier so that Highlander IP
+- * in OMAP4 can be distinguished.
+- */
+-#define OMAP_TIMER_IP_VERSION_1                        0x1
+-
+ /* timer capabilities used in hwmod database */
  #define OMAP_TIMER_SECURE				0x80000000
  #define OMAP_TIMER_ALWON				0x40000000
- #define OMAP_TIMER_HAS_PWM				0x20000000
-+#define OMAP_TIMER_NEEDS_RESET				0x10000000
+@@ -96,7 +90,6 @@ struct timer_regs {
  
- struct omap_timer_capability_dev_attr {
- 	u32 timer_capability;
+ struct dmtimer_platform_data {
+ 	int (*set_timer_src)(struct platform_device *pdev, int source);
+-	int timer_ip_version;
+ 	u32 needs_manual_reset:1;
+ 	bool loses_context;
+ 
 -- 
 1.7.9.5
 
