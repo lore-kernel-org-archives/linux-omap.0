@@ -1,111 +1,95 @@
 From: Afzal Mohammed <afzal@ti.com>
-Subject: [PATCH 07/10] mtd: onenand: omap2: obtain memory from resource
-Date: Mon, 4 Jun 2012 12:17:02 +0530
-Message-ID: <0d99a73c82d56b9a73bfd2d67ba67ec1ef631239.1338790117.git.afzal@ti.com>
+Subject: [PATCH 09/10] ARM: OMAP2+: gpmc-nand: Modify Interrupt handling
+Date: Mon, 4 Jun 2012 12:17:15 +0530
+Message-ID: <6b80f9a604aa56197445a54116d75522c6c9e653.1338790118.git.afzal@ti.com>
 References: <cover.1338790117.git.afzal@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from bear.ext.ti.com ([192.94.94.41]:54594 "EHLO bear.ext.ti.com"
+Received: from arroyo.ext.ti.com ([192.94.94.40]:48390 "EHLO arroyo.ext.ti.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752198Ab2FDHCz (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Mon, 4 Jun 2012 03:02:55 -0400
+	id S1754976Ab2FDHDI (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Mon, 4 Jun 2012 03:03:08 -0400
 In-Reply-To: <cover.1338790117.git.afzal@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: tony@atomide.com, artem.bityutskiy@linux.intel.com, linux-omap@vger.kernel.org, linux-mtd@lists.infradead.org
 Cc: ivan.djelic@parrot.com, Afzal Mohammed <afzal@ti.com>
 
-gpmc initialization for onenand done by platform code now provides
-onenand address space as memory resource. Hence remove usage of
-gpmc_cs_request in onenand driver and obtain memory details from
-resource structure.
+Now GPMC provides its client with interrupts that can be handled
+using the standard interrupt API. Modify GPMC NAND setup to work
+with it.
+
+Also disable write protect in GPMC code, so that NAND driver can
+be ignorant of GPMC configuration.
 
 Signed-off-by: Afzal Mohammed <afzal@ti.com>
 ---
- drivers/mtd/onenand/omap2.c |   29 ++++++++++++++++-------------
- 1 file changed, 16 insertions(+), 13 deletions(-)
+ arch/arm/mach-omap2/gpmc-nand.c |   26 ++++++++++++++++++++------
+ 1 file changed, 20 insertions(+), 6 deletions(-)
 
-diff --git a/drivers/mtd/onenand/omap2.c b/drivers/mtd/onenand/omap2.c
-index 398a827..3ff893d 100644
---- a/drivers/mtd/onenand/omap2.c
-+++ b/drivers/mtd/onenand/omap2.c
-@@ -48,13 +48,13 @@
+diff --git a/arch/arm/mach-omap2/gpmc-nand.c b/arch/arm/mach-omap2/gpmc-nand.c
+index c0320d2..045596a 100644
+--- a/arch/arm/mach-omap2/gpmc-nand.c
++++ b/arch/arm/mach-omap2/gpmc-nand.c
+@@ -21,15 +21,23 @@
+ #include <plat/board.h>
+ #include <plat/gpmc.h>
  
- #define DRIVER_NAME "omap2-onenand"
+-static struct resource gpmc_nand_resource = {
+-	.flags		= IORESOURCE_MEM,
++static struct resource gpmc_nand_resource[] = {
++	{
++		.flags		= IORESOURCE_MEM,
++	},
++	{
++		.flags		= IORESOURCE_IRQ,
++	},
++	{
++		.flags		= IORESOURCE_IRQ,
++	},
+ };
  
--#define ONENAND_IO_SIZE		SZ_128K
- #define ONENAND_BUFRAM_SIZE	(1024 * 5)
+ static struct platform_device gpmc_nand_device = {
+ 	.name		= "omap2-nand",
+ 	.id		= 0,
+-	.num_resources	= 1,
+-	.resource	= &gpmc_nand_resource,
++	.num_resources	= ARRAY_SIZE(gpmc_nand_resource),
++	.resource	= gpmc_nand_resource,
+ };
  
- struct omap2_onenand {
- 	struct platform_device *pdev;
- 	int gpmc_cs;
- 	unsigned long phys_base;
-+	unsigned int mem_size;
- 	int gpio_irq;
- 	struct mtd_info mtd;
- 	struct onenand_chip onenand;
-@@ -626,6 +626,7 @@ static int __devinit omap2_onenand_probe(struct platform_device *pdev)
- 	struct omap2_onenand *c;
- 	struct onenand_chip *this;
- 	int r;
-+	struct resource *res;
+ static int omap2_nand_gpmc_retime(struct omap_nand_platform_data *gpmc_nand_data)
+@@ -75,6 +83,7 @@ static int omap2_nand_gpmc_retime(struct omap_nand_platform_data *gpmc_nand_data
+ 		gpmc_cs_configure(gpmc_nand_data->cs, GPMC_CONFIG_DEV_SIZE, 0);
+ 	gpmc_cs_configure(gpmc_nand_data->cs,
+ 			GPMC_CONFIG_DEV_TYPE, GPMC_DEVICETYPE_NAND);
++	gpmc_cs_configure(gpmc_nand_data->cs, GPMC_CONFIG_WP, 0);
+ 	err = gpmc_cs_set_timings(gpmc_nand_data->cs, &t);
+ 	if (err)
+ 		return err;
+@@ -90,14 +99,19 @@ int __init gpmc_nand_init(struct omap_nand_platform_data *gpmc_nand_data)
+ 	gpmc_nand_device.dev.platform_data = gpmc_nand_data;
  
- 	pdata = pdev->dev.platform_data;
- 	if (pdata == NULL) {
-@@ -647,20 +648,24 @@ static int __devinit omap2_onenand_probe(struct platform_device *pdev)
- 		c->gpio_irq = 0;
+ 	err = gpmc_cs_request(gpmc_nand_data->cs, NAND_IO_SIZE,
+-				(unsigned long *)&gpmc_nand_resource.start);
++				(unsigned long *)&gpmc_nand_resource[0].start);
+ 	if (err < 0) {
+ 		dev_err(dev, "Cannot request GPMC CS\n");
+ 		return err;
  	}
  
--	r = gpmc_cs_request(c->gpmc_cs, ONENAND_IO_SIZE, &c->phys_base);
--	if (r < 0) {
--		dev_err(&pdev->dev, "Cannot request GPMC CS\n");
-+	res = platform_get_resource(pdev, IORESOURCE_MEM, 0);
-+	if (res == NULL) {
-+		r = -EINVAL;
-+		dev_err(&pdev->dev, "error getting memory resource\n");
- 		goto err_kfree;
- 	}
+-	gpmc_nand_resource.end = gpmc_nand_resource.start + NAND_IO_SIZE - 1;
++	gpmc_nand_resource[0].end = gpmc_nand_resource[0].start +
++							NAND_IO_SIZE - 1;
  
--	if (request_mem_region(c->phys_base, ONENAND_IO_SIZE,
-+	c->phys_base = res->start;
-+	c->mem_size = resource_size(res);
-+
-+	if (request_mem_region(c->phys_base, c->mem_size,
- 			       pdev->dev.driver->name) == NULL) {
--		dev_err(&pdev->dev, "Cannot reserve memory region at 0x%08lx, "
--			"size: 0x%x\n",	c->phys_base, ONENAND_IO_SIZE);
-+		dev_err(&pdev->dev, "Cannot reserve memory region at 0x%08lx, size: 0x%x\n",
-+						c->phys_base, c->mem_size);
- 		r = -EBUSY;
--		goto err_free_cs;
-+		goto err_kfree;
- 	}
--	c->onenand.base = ioremap(c->phys_base, ONENAND_IO_SIZE);
-+	c->onenand.base = ioremap(c->phys_base, c->mem_size);
- 	if (c->onenand.base == NULL) {
- 		r = -ENOMEM;
- 		goto err_release_mem_region;
-@@ -776,9 +781,7 @@ err_release_gpio:
- err_iounmap:
- 	iounmap(c->onenand.base);
- err_release_mem_region:
--	release_mem_region(c->phys_base, ONENAND_IO_SIZE);
--err_free_cs:
--	gpmc_cs_free(c->gpmc_cs);
-+	release_mem_region(c->phys_base, c->mem_size);
- err_kfree:
- 	kfree(c);
- 
-@@ -800,7 +803,7 @@ static int __devexit omap2_onenand_remove(struct platform_device *pdev)
- 		gpio_free(c->gpio_irq);
- 	}
- 	iounmap(c->onenand.base);
--	release_mem_region(c->phys_base, ONENAND_IO_SIZE);
-+	release_mem_region(c->phys_base, c->mem_size);
- 	gpmc_cs_free(c->gpmc_cs);
- 	kfree(c);
- 
++	gpmc_nand_resource[1].start =
++				gpmc_get_client_irq(GPMC_IRQ_FIFOEVENTENABLE);
++	gpmc_nand_resource[2].start =
++				gpmc_get_client_irq(GPMC_IRQ_COUNT_EVENT);
+ 	 /* Set timings in GPMC */
+ 	err = omap2_nand_gpmc_retime(gpmc_nand_data);
+ 	if (err < 0) {
 -- 
 1.7.10.2
 
