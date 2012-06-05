@@ -1,102 +1,71 @@
-From: Ohad Ben-Cohen <ohad@wizery.com>
-Subject: Re: [PATCH] remoteproc: block premature rproc booting
-Date: Tue, 5 Jun 2012 13:57:17 +0300
-Message-ID: <CAK=WgbZo-8GXY9bVYGk0XZvqKrdaJZWeNkK1FhRWnH5doGYLjA@mail.gmail.com>
-References: <1337687472-23009-1-git-send-email-ohad@wizery.com>
- <4FBDFC4A.1060602@codeaurora.org> <CAK=WgbaP5qSso_Eu=Oup4eqLDcorZ-qf=mysMKiEvOS=m7yLmg@mail.gmail.com>
- <4FCD276A.80505@codeaurora.org>
+From: Tony Lindgren <tony@atomide.com>
+Subject: Re: [PATCH v3] OMAP2+: UART: Add mechanism to probe uart pins and
+ configure rx wakeup
+Date: Tue, 5 Jun 2012 04:08:19 -0700
+Message-ID: <20120605110818.GN12766@atomide.com>
+References: <1336655139-8908-1-git-send-email-govindraj.raja@ti.com>
+ <1336729242-16168-1-git-send-email-govindraj.raja@ti.com>
+ <87likize4t.fsf@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <4FCD276A.80505@codeaurora.org>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Stephen Boyd <sboyd@codeaurora.org>
-Cc: linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from mho-01-ewr.mailhop.org ([204.13.248.71]:35276 "EHLO
+	mho-01-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752951Ab2FELIW (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 5 Jun 2012 07:08:22 -0400
+Content-Disposition: inline
+In-Reply-To: <87likize4t.fsf@ti.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Kevin Hilman <khilman@ti.com>
+Cc: "Govindraj.R" <govindraj.raja@ti.com>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Felipe Balbi <balbi@ti.com>, Russ Dill <russ.dill@gmail.com>, Paul Walmsley <paul@pwsan.com>, Ameya Palande <ameya.palande@ti.com>
 
-On Tue, Jun 5, 2012 at 12:23 AM, Stephen Boyd <sboyd@codeaurora.org> wrote:
-> I thought we wanted to allow both calls to proceed in parallel? If we
-> don't care about that
+* Kevin Hilman <khilman@ti.com> [120523 16:15]:
+> "Govindraj.R" <govindraj.raja@ti.com> writes:
+> 
+> > From: "Govindraj.R" <govindraj.raja@ti.com>
+> >
+> > The commit (bce492c0  ARM: OMAP2+: UART: Fix incorrect population of
+> > default uart pads) removed default uart pads that where getting populated
+> > and which was making rx pin wakeup capable. If uart pads were used in
+> > different mode by any other module then it would fail since the default
+> > pads took over all the uart pins forcefully. With removal of default pads
+> > the rx_pad wakeup for console uart while waking up from off mode is broken.
+> >
+> > Utilise the mux api available to probe the availability of mux pins
+> > in uart mode and probe for availability of uart pin in mux mode0
+> > if uart is available as uart pin itself then configure rx pin
+> > as wakeup capable.
+> >
+> > This patch itself doesn't cater to all boards. Boards using uart rx wakeup
+> > mechanism should ensure the usage of omap_serial_init_port by configuring
+> > required uart ports and pass necessary mux data, till then this probing of
+> > uart pins can cater to enabling of rx pad wakeup to most of the boards.
+> >
+> > This patch can also throw some boot warning from _omap_mux_get_by_name
+> > if pin is requested for availability is not present while dynamically probing
+> > the uart pins availability such boot warnings can be addressed only when board
+> > files are patched with omap_serial_init_port calls passing the right pads
+> > needed for a given port.
+> >
+> > Discussion Threads for reference:
+> > http://www.spinics.net/lists/linux-omap/msg69859.html
+> > http://www.spinics.net/lists/linux-omap/msg68659.html
+> >
+> > Cc: Felipe Balbi <balbi@ti.com>
+> > Cc: Kevin Hilman <khilman@ti.com>
+> > Cc: Russ Dill <russ.dill@gmail.com>
+> > Cc: Tony Lindgren <tony@atomide.com>
+> > Cc: Paul Walmsley <paul@pwsan.com>
+> > Cc: Ameya Palande <ameya.palande@ti.com>
+> > Signed-off-by: Govindraj.R <govindraj.raja@ti.com>
+> 
+> Tony, it's up to you if you're OK with this mux interface, but I can at
+> least confirm that this gets runtime PM + UART wakeups working again on
+> the boards I tried: 3530/Overo, 3430/n900, 3530/OMAP3EVM.
 
-Yeah, I don't think we do.
+OK good to hear. Patch looks good to me, applying into fixes branch.
 
-> then "announcing" it once the firmware is found the first time sounds correct.
+Regards,
 
-I agree. Though this patch may be moot very soon due to:
-
->> The main reason we kept the get/put interface was to make it easier
->> for you guys to adopt it, but I've been re-thinking lately whether we
->> really want that interface. It's a problematic interface with
->> non-negligible maintenance burden, and the code will be greatly
->> simplified without it.
->
-> If nobody in the kernel is using it why keep it?
-
-I was concerned that the non get/put interface might not suit
-everyone, and I planned to wait for another user or two to show up
-before I remove that interface.
-
-Since MSM's PIL is based on a get/put interface, I actually hoped to
-see if you guys can adopt the new interface before we ditch the
-get/put one.
-
-> If MSM needs we can add it back when we move to rproc.
-
-Thanks - that's the kind of feedback I wanted to get.
-
-> I think we'll need to have some way to describe the resources in the
-> kernel when we register the rproc. We aren't going to be able to change
-> our firmware to have the resource section.
-
-What about using a separate file for the resource table ?
-
-That should be very easy to support, and may make life easier for you
-in the long term.
-
-Resource tables tend to change in time, and hard coding it in the
-kernel doesn't sound ideal (both in terms of development overhead, and
-kernel-firmware backward and forward compatibility).
-
-> Getting to that point would require changing smd code to be more linux
-> device model friendly. We're exploring using virtio over smd (basically
-> virtqueues would replace smd APIs while we replace the vrings with smd
-> wire protocol).
-
-That sounds good.
-
-> If that works out then we'll be able to attach the smd
-> virtio device to the remote proc via some in kernel resource list.
-
-Please consider using an external file for the resource table. That
-should give you more flexibility and less overhead.
-
-> One sticking point has been the desire to shut down processors when
-> they're not in use and reclaim the memory. Also we would like to upgrade
-> the firmware without rebooting the phone. Do you have any plans for
-> that? It looks like the current design boots anything that is registered
-> and has a matching rpmsg driver. I suppose one solution is to use
-> modules but that looks like it disrupts other processors (I don't want
-> to rmmod all of rpmsg). We probably need some sort of shutdown/boot
-> mechanism that isn't driven entirely by the client drivers.
-
-Does the below work for you (sans the OMAP terminology ;) ?
-
-root@omap4430-panda:/sys/bus/platform/drivers/omap-rproc# echo
-omap-rproc.1 > unbind
-[  471.376556] remoteproc remoteproc0: releasing ipu_c0
-root@omap4430-panda:/sys/bus/platform/drivers/omap-rproc# echo
-omap-rproc.1 > bind
-[  478.219177] remoteproc remoteproc0: ipu_c0 is available
-[  478.224639] remoteproc remoteproc0: Note: remoteproc is still under
-development and considered experimental.
-[  478.235015] remoteproc remoteproc0: THE BINARY FORMAT IS NOT YET
-FINALIZED, and backward compatibility isn't yet guaranteed.
-[  478.325347] remoteproc remoteproc0: registered virtio0 (type 7)
-[  478.331848] remoteproc remoteproc0: registered virtio1 (type 3)
-
-This way user space can unbind a specific remote processor (which will
-also trigger unbinding the entire device hierarchy below it, i.e. all
-rpmsg/virtio devices).
-
-Thanks,
-Ohad.
+Tony
