@@ -1,47 +1,132 @@
 From: Jon Hunter <jon-hunter@ti.com>
-Subject: [PATCH V4 02/12] ARM: OMAP2+: Remove unused max number of timers definition
-Date: Tue, 5 Jun 2012 12:34:50 -0500
-Message-ID: <1338917700-29174-3-git-send-email-jon-hunter@ti.com>
+Subject: [PATCH V4 07/12] ARM: OMAP: Remove loses_context variable from timer platform data
+Date: Tue, 5 Jun 2012 12:34:55 -0500
+Message-ID: <1338917700-29174-8-git-send-email-jon-hunter@ti.com>
 References: <1338917700-29174-1-git-send-email-jon-hunter@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from arroyo.ext.ti.com ([192.94.94.40]:40040 "EHLO arroyo.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1755053Ab2FERfF (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Tue, 5 Jun 2012 13:35:05 -0400
+Received: from devils.ext.ti.com ([198.47.26.153]:35171 "EHLO
+	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755053Ab2FERfJ (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 5 Jun 2012 13:35:09 -0400
 In-Reply-To: <1338917700-29174-1-git-send-email-jon-hunter@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: linux-omap <linux-omap@vger.kernel.org>
 Cc: Tony Lindgren <tony@atomide.com>, Tarun Kanti DebBarma <tarun.kanti@ti.com>, Jon Hunter <jon-hunter@ti.com>
 
-The OMAP2+ timer code has a definition for the maximum number of timers that
-OMAP2+ devices have. This defintion is not used anywhere in the code and
-appears to be left over. Furthermore the definition is not accurate for OMAP4
-devices that only have 11 timers available because the 12th timer is reserved
-as a secure timer and for OMAP3 devices the 12th timer is not available on
-secure devices. Therefore, remove this definition.
+The platform data variable loses_context is used to determine if the timer may
+lose its logic state during power transitions and so needs to be restored. This
+information is also provided in the HWMOD device attributes for OMAP2+ devices
+via the OMAP_TIMER_ALWON flag. When this flag is set the timer will not lose
+context. So use the HWMOD device attributes to determine this.
+
+For OMAP1 devices, loses_context is never set and so set the OMAP_TIMER_ALWON
+flag for OMAP1 timers to ensure that code is equivalent.
 
 Signed-off-by: Jon Hunter <jon-hunter@ti.com>
 ---
- arch/arm/mach-omap2/timer.c |    3 ---
- 1 file changed, 3 deletions(-)
+ arch/arm/mach-omap1/timer.c               |    1 +
+ arch/arm/mach-omap2/timer.c               |    3 ---
+ arch/arm/plat-omap/dmtimer.c              |    8 ++++----
+ arch/arm/plat-omap/include/plat/dmtimer.h |    3 ---
+ 4 files changed, 5 insertions(+), 10 deletions(-)
 
+diff --git a/arch/arm/mach-omap1/timer.c b/arch/arm/mach-omap1/timer.c
+index 64c65bc..b4bf48c 100644
+--- a/arch/arm/mach-omap1/timer.c
++++ b/arch/arm/mach-omap1/timer.c
+@@ -141,6 +141,7 @@ static int __init omap1_dm_timer_init(void)
+ 
+ 		pdata->set_timer_src = omap1_dm_timer_set_src;
+ 		pdata->needs_manual_reset = 1;
++		pdata->timer_capability = OMAP_TIMER_ALWON;
+ 
+ 		ret = platform_device_add_data(pdev, pdata, sizeof(*pdata));
+ 		if (ret) {
 diff --git a/arch/arm/mach-omap2/timer.c b/arch/arm/mach-omap2/timer.c
-index ea6a0eb..8350352 100644
+index 62bc05e..b75bc6b 100644
 --- a/arch/arm/mach-omap2/timer.c
 +++ b/arch/arm/mach-omap2/timer.c
-@@ -69,9 +69,6 @@
- #define OMAP3_SECURE_TIMER	1
+@@ -467,7 +467,6 @@ static int __init omap_timer_init(struct omap_hwmod *oh, void *unused)
+ 	struct dmtimer_platform_data *pdata;
+ 	struct platform_device *pdev;
+ 	struct omap_timer_capability_dev_attr *timer_dev_attr;
+-	struct powerdomain *pwrdm;
+ 
+ 	pr_debug("%s: %s\n", __func__, oh->name);
+ 
+@@ -500,8 +499,6 @@ static int __init omap_timer_init(struct omap_hwmod *oh, void *unused)
+ 	if (timer_dev_attr)
+ 		pdata->timer_capability = timer_dev_attr->timer_capability;
+ 
+-	pwrdm = omap_hwmod_get_pwrdm(oh);
+-	pdata->loses_context = pwrdm_can_ever_lose_context(pwrdm);
+ #ifdef CONFIG_PM
+ 	pdata->get_context_loss_count = omap_pm_get_dev_context_loss_count;
  #endif
+diff --git a/arch/arm/plat-omap/dmtimer.c b/arch/arm/plat-omap/dmtimer.c
+index 30742d8e6..7aa1278 100644
+--- a/arch/arm/plat-omap/dmtimer.c
++++ b/arch/arm/plat-omap/dmtimer.c
+@@ -341,7 +341,7 @@ int omap_dm_timer_start(struct omap_dm_timer *timer)
  
--/* MAX_GPTIMER_ID: number of GPTIMERs on the chip */
--#define MAX_GPTIMER_ID		12
+ 	omap_dm_timer_enable(timer);
+ 
+-	if (timer->loses_context) {
++	if (!(timer->capability & OMAP_TIMER_ALWON)) {
+ 		u32 ctx_loss_cnt_after =
+ 			timer->get_context_loss_count(&timer->pdev->dev);
+ 		if (ctx_loss_cnt_after != timer->ctx_loss_count)
+@@ -374,7 +374,8 @@ int omap_dm_timer_stop(struct omap_dm_timer *timer)
+ 
+ 	__omap_dm_timer_stop(timer, timer->posted, rate);
+ 
+-	if (timer->loses_context && timer->get_context_loss_count)
++	if (!(timer->capability & OMAP_TIMER_ALWON) &&
++			timer->get_context_loss_count)
+ 		timer->ctx_loss_count =
+ 			timer->get_context_loss_count(&timer->pdev->dev);
+ 
+@@ -447,7 +448,7 @@ int omap_dm_timer_set_load_start(struct omap_dm_timer *timer, int autoreload,
+ 
+ 	omap_dm_timer_enable(timer);
+ 
+-	if (timer->loses_context) {
++	if (!(timer->capability & OMAP_TIMER_ALWON)) {
+ 		u32 ctx_loss_cnt_after =
+ 			timer->get_context_loss_count(&timer->pdev->dev);
+ 		if (ctx_loss_cnt_after != timer->ctx_loss_count)
+@@ -692,7 +693,6 @@ static int __devinit omap_dm_timer_probe(struct platform_device *pdev)
+ 	timer->irq = irq->start;
+ 	timer->reserved = omap_dm_timer_reserved_systimer(timer->id);
+ 	timer->pdev = pdev;
+-	timer->loses_context = pdata->loses_context;
+ 	timer->get_context_loss_count = pdata->get_context_loss_count;
+ 	timer->capability = pdata->timer_capability;
+ 
+diff --git a/arch/arm/plat-omap/include/plat/dmtimer.h b/arch/arm/plat-omap/include/plat/dmtimer.h
+index 362cf97..0a7ed31 100644
+--- a/arch/arm/plat-omap/include/plat/dmtimer.h
++++ b/arch/arm/plat-omap/include/plat/dmtimer.h
+@@ -91,8 +91,6 @@ struct timer_regs {
+ struct dmtimer_platform_data {
+ 	int (*set_timer_src)(struct platform_device *pdev, int source);
+ 	u32 needs_manual_reset:1;
+-	bool loses_context;
 -
- static u32 sys_timer_reserved;
- 
- /* Clockevent code */
+ 	int (*get_context_loss_count)(struct device *dev);
+ 	u32 timer_capability;
+ };
+@@ -264,7 +262,6 @@ struct omap_dm_timer {
+ 	unsigned reserved:1;
+ 	unsigned posted:1;
+ 	struct timer_regs context;
+-	bool loses_context;
+ 	int ctx_loss_count;
+ 	int revision;
+ 	u32 capability;
 -- 
 1.7.9.5
 
