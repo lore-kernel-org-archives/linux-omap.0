@@ -1,74 +1,77 @@
-From: Jon Hunter <jon-hunter@ti.com>
-Subject: Re: [PATCH 4/6] ARM: OMAP4: PMU: Add runtime PM support
-Date: Tue, 5 Jun 2012 08:19:02 -0500
-Message-ID: <4FCE0746.2090505@ti.com>
-References: <4FC54D3B.10301@ti.com> <87pq9l7306.fsf@ti.com> <20120531012923.GB8506@mudshark.cambridge.arm.com> <4FC7B465.60703@ti.com> <87r4u0ytd9.fsf@ti.com> <4FC7E161.1080400@ti.com> <87d35kyo3v.fsf@ti.com> <4FC7F87C.9080709@ti.com> <87obp3vptz.fsf@ti.com> <4FC8D4F0.6040806@ti.com> <20120602164228.GA14903@mudshark.cambridge.arm.com> <4FCD2C30.8000106@ti.com>
+From: Tomi Valkeinen <tomi.valkeinen@ti.com>
+Subject: Re: Broken builds
+Date: Tue, 05 Jun 2012 16:20:00 +0300
+Message-ID: <1338902400.1952.19.camel@lappyti>
+References: <20120603180122.GA23368@n2100.arm.linux.org.uk>
+	 <20120605082218.GL12766@atomide.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="ISO-8859-1"
-Content-Transfer-Encoding: 7bit
+Content-Type: multipart/signed; micalg="pgp-sha1"; protocol="application/pgp-signature";
+	boundary="=-N31gBf83cFtpK6jRj9l+"
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from bear.ext.ti.com ([192.94.94.41]:36653 "EHLO bear.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1760726Ab2FENTI (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Tue, 5 Jun 2012 09:19:08 -0400
-In-Reply-To: <4FCD2C30.8000106@ti.com>
+Received: from na3sys009aog137.obsmtp.com ([74.125.149.18]:34836 "EHLO
+	na3sys009aog137.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1756895Ab2FENUI (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 5 Jun 2012 09:20:08 -0400
+Received: by lbom4 with SMTP id m4so4892783lbo.30
+        for <linux-omap@vger.kernel.org>; Tue, 05 Jun 2012 06:20:05 -0700 (PDT)
+In-Reply-To: <20120605082218.GL12766@atomide.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Will Deacon <will.deacon@arm.com>
-Cc: Kevin Hilman <khilman@ti.com>, linux-omap <linux-omap@vger.kernel.org>, Ming Lei <ming.lei@canonical.com>, Benoit Cousson <b-cousson@ti.com>, Paul Walmsley <paul@pwsan.com>
+To: Tony Lindgren <tony@atomide.com>
+Cc: Russell King - ARM Linux <linux@arm.linux.org.uk>, linux-omap@vger.kernel.org
 
-Hi Will,
 
-On 06/04/2012 04:44 PM, Jon Hunter wrote:
+--=-N31gBf83cFtpK6jRj9l+
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: quoted-printable
 
-[...]
+Hi,
 
-> diff --git a/arch/arm/kernel/pmu.c b/arch/arm/kernel/pmu.c
-> index 2334bf8..8ffbb09 100644
-> --- a/arch/arm/kernel/pmu.c
-> +++ b/arch/arm/kernel/pmu.c
-> @@ -13,6 +13,8 @@
->  #include <linux/err.h>
->  #include <linux/kernel.h>
->  #include <linux/module.h>
-> +#include <linux/pm_runtime.h>
-> +#include <linux/platform_device.h>
->  
->  #include <asm/pmu.h>
->  
-> @@ -22,15 +24,17 @@
->  static unsigned long pmu_lock[BITS_TO_LONGS(ARM_NUM_PMU_DEVICES)];
->  
->  int
-> -reserve_pmu(enum arm_pmu_type type)
-> +reserve_pmu(struct arm_pmu *armpmu)
->  {
-> -	return test_and_set_bit_lock(type, pmu_lock) ? -EBUSY : 0;
-> +	pm_runtime_get_sync(&armpmu->plat_device->dev);
-> +	return test_and_set_bit_lock(armpmu->type, pmu_lock) ? -EBUSY : 0;
->  }
->  EXPORT_SYMBOL_GPL(reserve_pmu);
->  
->  void
-> -release_pmu(enum arm_pmu_type type)
-> +release_pmu(struct arm_pmu *armpmu)
->  {
-> -	clear_bit_unlock(type, pmu_lock);
-> +	clear_bit_unlock(armpmu->type, pmu_lock);
-> +	pm_runtime_put_sync(&armpmu->plat_device->dev);
->  }
->  EXPORT_SYMBOL_GPL(release_pmu);
+On Tue, 2012-06-05 at 01:22 -0700, Tony Lindgren wrote:
+> * Russell King - ARM Linux <linux@arm.linux.org.uk> [120603 11:05]:
+> > Looks like the DSS stuff has broken OMAP builds again during this
+> > merge window:
+> >=20
+> > drivers/video/omap2/dss/core.c:197: error: static declaration of 'dss_d=
+ebugfs_create_file' follows non-static declaration
+> > drivers/video/omap2/dss/dss.h:166: error: previous declaration of 'dss_=
+debugfs_create_file' was here
+> >=20
+> > Both the OMAP3 and OMAP4 builds break with these two errors.
+>=20
+> Here's a patch for Tomi to fix this one.
 
-I have realised that there is a slight bug in the above
-pm_runtime_get/put. The calls to pm_runtime_get/put need to be
-symmetrical otherwise the if we call _get more than _put the pmu will
-stay on. So in the reserve_pmu, I should only call pm_runtime_get if we
-acquire the lock.
+I have a patch for this in my for-rc branch. It just missed the main
+merge. I'll send this and a few other fixes today for the next rc.
 
-Anyway, let me know what you think of this approach. An alternative is
-to put the calls pm_runtime_get/put outside of the reserve/release_pmu,
-which would be a simpler change, but I was thinking that the above maybe
-more aligned with your thinking.
+Btw, it compiles if you have debugfs and DSS_DEBUG_SUPPORT enabled.
+That's why I didn't notice it until too late.
 
-Cheers
-Jon
+ Tomi
+
+
+--=-N31gBf83cFtpK6jRj9l+
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: This is a digitally signed message part
+Content-Transfer-Encoding: 7bit
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.4.11 (GNU/Linux)
+
+iQIcBAABAgAGBQJPzgeAAAoJEPo9qoy8lh71FvcP/2ICRfjquXSO7SA8Sx+A8ui5
+0zzpO8Dm+jQJdPWTamEha+FgBrlLERwHsm5587SrWgnRVlUbmwJXasTG4I8Dtdpn
+xAAH4joeOHEL32Ji5sQLS57cNRQLzpAiKr7MzSlOf2p/+CMjvgNna7MJhgM3I4Uy
+3hmr+HT5rT5I9uqmYLukj9eV+btqYk2Q1TlF5Y7mYhjaLCEGsqyhIKLkosz3VnY+
+8Ru/QST9uok9jRai67uk6EkbSOeSh02yrffOhHnygWyiJtIOhOaHLsPEqITr4GVj
+rQe79Pflp4qn4i2MXxNP1LaNEGlPtjFtmAvDNoWMs3xyt0DC4nHxxtc0r/n//pkV
+vZUpWkcrxm9UOI7OhH2FW95amEI0/khsAPNv0j6IzuPSAKy8jzpt4Ok/ATOyVN4A
+0PAWNiivW8irOj+TZu4E5x7JZOprTYWiPSBojUUb+PHzvYOjB8cW5PqBveE+QKr5
+G7tPktbY8Nd88pusj69/4oUUEprrgplXntT/RQPcHEIpApSu40puhtYBFeQ1ua80
+Zpq2end9Zb/yzvDm+0Yg9hZh95TgaV+MAXA8lcbpHTTF089nuYWw7iI/h2Jx+x/C
+TEueOJgdqAly3BTGKfjStkMARgxd8DGdQIWekVjHZjVlTEHsjvPUQmN1sCSBIW2x
+niOtVRTKCsg91cUtGiuA
+=IGsj
+-----END PGP SIGNATURE-----
+
+--=-N31gBf83cFtpK6jRj9l+--
+
