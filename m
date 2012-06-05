@@ -1,171 +1,85 @@
-From: Xiao Jiang <jgq516@gmail.com>
-Subject: Re: Compile err when enable CONFIG_SND_OMAP_SOC_OMAP_HDMI
-Date: Tue, 05 Jun 2012 12:15:03 +0800
-Message-ID: <4FCD87C7.3070504@gmail.com>
-References: <4FC5C8E5.7060108@gmail.com> <4FC6AEAF.5020501@ti.com> <4FC6F330.8070408@gmail.com> <4FCD5FB6.4040806@ti.com>
+From: Rajendra Nayak <rnayak@ti.com>
+Subject: Re: [RFC 13/24] ARM: omap4: clk: Add 44xx data using common struct
+ clk
+Date: Tue, 05 Jun 2012 10:05:34 +0530
+Message-ID: <4FCD8C96.6010405@ti.com>
+References: <1338552485-31325-1-git-send-email-rnayak@ti.com> <1338552485-31325-14-git-send-email-rnayak@ti.com> <4FCD3357.5090409@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8;
-	format=flowed
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-vc0-f174.google.com ([209.85.220.174]:39014 "EHLO
-	mail-vc0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1757702Ab2FEDWF (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 4 Jun 2012 23:22:05 -0400
-Received: by vcbf11 with SMTP id f11so2896190vcb.19
-        for <linux-omap@vger.kernel.org>; Mon, 04 Jun 2012 20:22:04 -0700 (PDT)
-In-Reply-To: <4FCD5FB6.4040806@ti.com>
+Received: from na3sys009aog121.obsmtp.com ([74.125.149.145]:33650 "EHLO
+	na3sys009aog121.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1751441Ab2FEEfm (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 5 Jun 2012 00:35:42 -0400
+Received: by obcni5 with SMTP id ni5so10649141obc.13
+        for <linux-omap@vger.kernel.org>; Mon, 04 Jun 2012 21:35:41 -0700 (PDT)
+In-Reply-To: <4FCD3357.5090409@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Ricardo Neri <ricardo.neri@ti.com>
-Cc: "Valkeinen, Tomi" <tomi.valkeinen@ti.com>, Jarkko Nikula <jarkko.nikula@bitmer.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
+To: Jon Hunter <jon-hunter@ti.com>
+Cc: mturquette@ti.com, paul@pwsan.com, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 
-Ricardo Neri wrote:
-> Hi Xiao, Tomi, Jarkko,
+Hi Jon,
+
+>> +
+>> +static const struct clksel_rate div_1_0_rates[] = {
+>> +	{ .div = 1, .val = 0, .flags = RATE_IN_4430 },
+>> +	{ .div = 0 },
+>> +};
+>> +
+>> +static const struct clksel_rate div_1_1_rates[] = {
+>> +	{ .div = 1, .val = 1, .flags = RATE_IN_4430 },
+>> +	{ .div = 0 },
+>> +};
+>> +
+>> +static const struct clksel_rate div_1_2_rates[] = {
+>> +	{ .div = 1, .val = 2, .flags = RATE_IN_4430 },
+>> +	{ .div = 0 },
+>> +};
+>> +
+>> +static const struct clksel_rate div_1_3_rates[] = {
+>> +	{ .div = 1, .val = 3, .flags = RATE_IN_4430 },
+>> +	{ .div = 0 },
+>> +};
+>> +
+>> +static const struct clksel_rate div_1_4_rates[] = {
+>> +	{ .div = 1, .val = 4, .flags = RATE_IN_4430 },
+>> +	{ .div = 0 },
+>> +};
+>> +
+>> +static const struct clksel_rate div_1_5_rates[] = {
+>> +	{ .div = 1, .val = 5, .flags = RATE_IN_4430 },
+>> +	{ .div = 0 },
+>> +};
 >
-> On 05/30/2012 11:27 PM, Xiao Jiang wrote:
->> Ricardo Neri wrote:
->>> +Tomi
->>>
->>> Hi Xiao,
->>>
->>> On 05/30/2012 02:14 AM, Xiao Jiang wrote:
->>>> Hello,
->>>>
->>>> After enable SND_OMAP_SOC_OMAP_HDMI with omap2plus_defconfig, I go=
-t=20
->>>> some
->>>> err infos with latest
->>>> Linus's tree, does somebody also has the same issue?
->>>>
->>>> sound/soc/omap/omap-hdmi.c:45:24: error: field 'dss_audio' has
->>>> incomplete type
->>>> sound/soc/omap/omap-hdmi.c: In function 'omap_hdmi_dai_startup':
->>>> sound/soc/omap/omap-hdmi.c:67:27: error: 'struct omap_dss_driver'=20
->>>> has no
->>>> member named 'audio_supported'
->>>> sound/soc/omap/omap-hdmi.c: In function 'omap_hdmi_dai_prepare':
->>>> sound/soc/omap/omap-hdmi.c:79:29: error: 'struct omap_dss_driver'=20
->>>> has no
->>>> member named 'audio_enable'
->>>> sound/soc/omap/omap-hdmi.c: In function 'omap_hdmi_dai_hw_params':
->>>> sound/soc/omap/omap-hdmi.c:208:28: error: 'struct omap_dss_driver'=
- has
->>>> no member named 'audio_config'
->>>> sound/soc/omap/omap-hdmi.c: In function 'omap_hdmi_dai_trigger':
->>>> sound/soc/omap/omap-hdmi.c:224:29: error: 'struct omap_dss_driver'=
- has
->>>> no member named 'audio_start'
->>>> sound/soc/omap/omap-hdmi.c:229:23: error: 'struct omap_dss_driver'=
- has
->>>> no member named 'audio_stop'
->>>> sound/soc/omap/omap-hdmi.c: In function 'omap_hdmi_dai_shutdown':
->>>> sound/soc/omap/omap-hdmi.c:242:22: error: 'struct omap_dss_driver'=
- has
->>>> no member named 'audio_disable'
->>>> sound/soc/omap/omap-hdmi.c: In function 'omap_hdmi_dai_prepare':
->>>> sound/soc/omap/omap-hdmi.c:80:1: warning: control reaches end of
->>>> non-void function
->>>
->>> Build breaks because there some patches [1] that are still missing =
-in
->>> Linus' tree. ASoC HDMI audio driver for OMAP[2] now uses the new DS=
-S
->>> audio functionality in [1], but ASoC patches were merged first. DSS
->>> patches have been accepted and they are part of Tomi's pull request
->>> for DSS for K3.5. Hopefully this will be fixed when v3.5-rc1 is out=
-=2E
->>>
->> Ricardo, thanks for your detail infos :).
+> The above clksel_rate structures could be used by OMAP2/3 devices too
+> (assuming that the flags is set for OMAP2/3/4 devices). Any reason why
+> these cannot be placed in a global header? It could remove quite a bit
+> of repetitive code. I know these are auto-generated, but maybe we should
+> have the auto-generator spit out the clksel_rate structs to another file
+> (ie. a global header).
+
+Well, I did not try doing any further optimizations and tried keeping
+the same layout of data files so its easier to review, given the changes
+already due to using common struct clk movement. We can certainly do
+further optimizations/cleanups on top of this series.
+I would really want to keep cleanups/optimizations separate (unless
+they are cleanups/optimizations done as part of moving to common clk
+itself) from common clk movement series. There are other optimizations
+too like getting rid of some unwanted leaf clocks for omap4, moving
+handling of clkdms for leaf clks into hwmod for OMAP2/3. But all those
+are happening separately and can happen in the existing code without
+having it being moved to common clk.
+
 >
-> Just wanted to confirm to you that this build break is not present in=
-=20
-> 3.5-rc1 as both omapdss and asoc dependencies are present.
+> By the way, div_1_3/4/5_rates don't appear to be used in this file.
+
+ok, thanks, will have a look and get rid of it if its really unused.
+
+regards,
+Rajendra
 >
-Hi Ricardo,
+> Cheers
+> Jon
 
-Good to know, but I can't get any voice with aplay, although penguins=20
-are appeared on
-the hdmi tv. Pls see below infos.
-
-root@panda:/root> aplay -l
-**** List of PLAYBACK Hardware Devices ****
-card 0: OMAPHDMI [OMAPHDMI], device 0: HDMI omap-hdmi-hifi-0 []
-Subdevices: 1/1
-Subdevice #0: subdevice #0
-
-root@panda:/root> alsamixer
-=E2=96=92=E2=96=92=E2=96=92=E2=96=92=E2=96=92=E2=96=92=E2=96=92=E2=96=92=
-=E2=96=92=E2=96=92=E2=96=92=E2=96=92=E2=96=92=E2=96=92=E2=96=92=E2=96=92=
-=E2=96=92=E2=96=92=E2=96=92=E2=96=92=E2=96=92=E2=96=92=E2=96=92=E2=96=92=
-=E2=96=92=E2=96=92=E2=96=92=E2=96=92=E2=96=92=E2=96=92 AlsaMixer v1.0.2=
-1 =E2=96=92
-=E2=96=92 Card: OMAPHDMI F1: Help =E2=96=92
-=E2=96=92 Chip: F2: System information =E2=96=92
-=E2=96=92 View: F3: Playback F4: Capture F5: All F6: Select sound card =
-=E2=96=92
-=E2=96=92 Item: Esc: Exit =E2=96=92
-=E2=96=92 =E2=96=92
-=E2=96=92 =E2=96=92
-=E2=96=92 =E2=96=92
-=E2=96=92 This sound device does not have any controls. =E2=96=92
-=E2=96=92 =E2=96=92
-=E2=96=92 =E2=96=92
-=E2=96=92 =E2=96=92
-=E2=96=92 =E2=96=92
-=E2=96=92 =E2=96=92
-=E2=96=92 =E2=96=92
-=E2=96=92 =E2=96=92
-=E2=96=92 =E2=96=92
-=E2=96=92 =E2=96=92
-=E2=96=92 =E2=96=92
-=E2=96=92 =E2=96=92
-=E2=96=92 =E2=96=92
-=E2=96=92 =E2=96=92
-=E2=96=92 =E2=96=92
-=E2=96=92=E2=96=92=E2=96=92=E2=96=92=E2=96=92=E2=96=92=E2=96=92=E2=96=92=
-=E2=96=92=E2=96=92=E2=96=92=E2=96=92=E2=96=92=E2=96=92=E2=96=92=E2=96=92=
-=E2=96=92=E2=96=92=E2=96=92=E2=96=92=E2=96=92=E2=96=92=E2=96=92=E2=96=92=
-=E2=96=92=E2=96=92=E2=96=92=E2=96=92=E2=96=92=E2=96=92=E2=96=92=E2=96=92=
-=E2=96=92=E2=96=92=E2=96=92=E2=96=92=E2=96=92=E2=96=92=E2=96=92=E2=96=92=
-=E2=96=92
-
-root@panda:/root> aplay audio48k16S.wav
-Playing WAVE 'audio48k16S.wav' : Signed 16 bit Little Endian, Rate 4800=
-0=20
-Hz, Stereo
-
-But hdmi audio of imx6q board is ok with the same hdmi tv. Did I miss=20
-something else? thanks.
-
-Regards,
-Xiao
-
-> Ricardo
->>
->> Regards,
->> Xiao
->>> BR,
->>>
->>> Ricardo
->>>
->>> [1].http://www.spinics.net/lists/linux-omap/msg69466.html
->>> [2].http://www.spinics.net/lists/linux-omap/msg70561.html
->>>>
->>>> Regards,
->>>> Xiao
->>>>
->>>> --=20
->>>> To unsubscribe from this list: send the line "unsubscribe=20
->>>> linux-omap" in
->>>> the body of a message to majordomo@vger.kernel.org
->>>> More majordomo info at http://vger.kernel.org/majordomo-info.html
->>>
->>
->
-
---
-To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
