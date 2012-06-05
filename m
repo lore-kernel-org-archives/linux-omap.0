@@ -1,76 +1,53 @@
 From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH v4-alt 3/6] ARM: OMAP3: hwmod data: add gpmc
-Date: Tue, 5 Jun 2012 00:13:38 -0700
-Message-ID: <20120605071337.GF12766@atomide.com>
-References: <99ffbbcc634022ed3c781c37e03989f1d898003e.1335941444.git.afzal@ti.com>
- <alpine.DEB.2.00.1205051949290.20926@utopia.booyaka.com>
- <C8443D0743D26F4388EA172BF4E2A7A93E987188@DBDE01.ent.ti.com>
- <alpine.DEB.2.00.1205080915220.9984@utopia.booyaka.com>
- <C8443D0743D26F4388EA172BF4E2A7A93E98A2F3@DBDE01.ent.ti.com>
- <alpine.DEB.2.00.1205212344460.1275@utopia.booyaka.com>
- <20120522164215.GE16308@atomide.com>
- <alpine.DEB.2.00.1205230843260.3085@utopia.booyaka.com>
- <20120525072659.GB6206@atomide.com>
- <C8443D0743D26F4388EA172BF4E2A7A93E9905B7@DBDE01.ent.ti.com>
+Subject: Re: [RESUBMIT PATCH] ARM: OMAP2+: am33xx: Add low level debugging
+ support
+Date: Tue, 5 Jun 2012 00:50:41 -0700
+Message-ID: <20120605075040.GG12766@atomide.com>
+References: <1336639981-27194-1-git-send-email-hvaibhav@ti.com>
+ <79CD15C6BA57404B839C016229A409A83EA39248@DBDE01.ent.ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-01-ewr.mailhop.org ([204.13.248.71]:63356 "EHLO
-	mho-01-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751593Ab2FEHNk (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 5 Jun 2012 03:13:40 -0400
+Received: from mho-02-ewr.mailhop.org ([204.13.248.72]:50105 "EHLO
+	mho-02-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753435Ab2FEHup (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 5 Jun 2012 03:50:45 -0400
 Content-Disposition: inline
-In-Reply-To: <C8443D0743D26F4388EA172BF4E2A7A93E9905B7@DBDE01.ent.ti.com>
+In-Reply-To: <79CD15C6BA57404B839C016229A409A83EA39248@DBDE01.ent.ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "Mohammed, Afzal" <afzal@ti.com>
-Cc: Paul Walmsley <paul@pwsan.com>, "Hilman, Kevin" <khilman@ti.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
+To: "Hiremath, Vaibhav" <hvaibhav@ti.com>
+Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "Hilman, Kevin" <khilman@ti.com>, "paul@pwsan.com" <paul@pwsan.com>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, "Mohammed, Afzal" <afzal@ti.com>
 
-* Mohammed, Afzal <afzal@ti.com> [120525 03:20]:
-> Hi Tony,
-> 
-> On Fri, May 25, 2012 at 12:56:59, Tony Lindgren wrote:
-> > * Paul Walmsley <paul@pwsan.com> [120523 17:55]:
-> > > On Tue, 22 May 2012, Tony Lindgren wrote:
-> > > > 
-> > > > Unfortunately for many of the older boards these values will probably
-> > > > remain unknown.
-> > > > 
-> > > > So the better approach here is to just disable frequency scaling
-> > > > for these cases. Otherwise we'll be breaking old boards with smsc911x
-> > > > where the timings for the FPGA controlling smsc911x are unknown.
-> > > > 
-> > > > If we somehow manage to get those values without breaking support for
-> > > > these boards, then yes I agree we should deprecate hardcoded and
-> > > > bootloader values.
-> > > 
-> > > I was thinking that if we log the register values supplied by the 
-> > > bootloader to the console, then someone can write a patch to the board 
-> > > file or DT data to set those register values explicitly in the kernel, 
-> > > once they're known.  Or at least just report them to the l-o list.
-> > > 
-> > > So then that should reduce the problem cases down to boards which no one 
-> > > reports the data to the mailing list within a few mainline kernel releases 
-> > > -- i.e., boards which are unmaintained.  For those boards, I'd suggest 
-> > > that we just drop GPMC support until someone shows up who has a board and 
-> > > can test-boot it.  Or just drop the board completely ;-)
+* Hiremath, Vaibhav <hvaibhav@ti.com> [120528 23:17]:
+> On Thu, May 10, 2012 at 14:23:01, Hiremath, Vaibhav wrote:
+> > From: Afzal Mohammed <afzal@ti.com>
 > > 
-> > OK seems fair to me. It still allows us to boot the older boards with
-> > minimal changes (but without L3 frequency scaling).
+> > Add support for low level debugging on AM335X EVM (AM33XX family).
+> > Currently only support for UART1 console, which is used on AM335X EVM
+> > is added.
 > > 
-> > Sounds like those registers should be dumped only if no configuration
-> > is specified to avoid spamming the console.
+> > Signed-off-by: Afzal Mohammed <afzal@ti.com>
+> > Signed-off-by: Vaibhav Hiremath <hvaibhav@ti.com>
+> > Reviewed-by: Kevin Hilman <khilman@ti.com>
+> > Cc: Tony Lindgren <tony@atomide.com>
+> > Cc: Paul Walmsley <paul@pwsan.com>
+> > ---
+> > This patch had been Reviewed and accepted earlier, but got
+> > missed during last merge window. Resubmitting again, without
+> > code-change.
+> > 
+> >  arch/arm/mach-omap2/include/mach/debug-macro.S |   17 ++++++++++++++++-
+> >  arch/arm/plat-omap/include/plat/serial.h       |    4 ++++
+> >  arch/arm/plat-omap/include/plat/uncompress.h   |    6 ++++++
+> >  3 files changed, 26 insertions(+), 1 deletions(-)
+> > 
 > 
-> Shall I take it as go ahead to create a patch on
-> Documentation/feature-removal-schedule.txt in the next version of gpmc
-> series stating that implicit boot loader GPMC timings will be removed
-> in three Kernel releases ? (i.e. as per Paul's suggestion, along with
-> other points he has mentioned)
+> Tony,
+> 
+> Can this be merged now???
 
-Yes sure as long as we can see what needs to be set in the kernel.
-
-The GPMC timings should only come from the bootloader in the device tree
-case BTW, so that's also something to consider here.
+Yes applying into devel-am33xx branch.
 
 Regards,
 
