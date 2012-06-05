@@ -1,35 +1,37 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH v3] OMAP2+: UART: Add mechanism to probe uart pins and
- configure rx wakeup
-Date: Tue, 5 Jun 2012 04:28:34 -0700
-Message-ID: <20120605112834.GO12766@atomide.com>
-References: <1336655139-8908-1-git-send-email-govindraj.raja@ti.com>
- <1336729242-16168-1-git-send-email-govindraj.raja@ti.com>
+From: Sergei Shtylyov <sshtylyov-Igf4POYTYCDQT0dZR+AlfA@public.gmane.org>
+Subject: Re: [PATCH 1/5] usb: musb: move work_struct(otg_notifier_work) from
+ core to omap glue
+Date: Tue, 05 Jun 2012 16:00:08 +0400
+Message-ID: <4FCDF4C8.2090403@mvista.com>
+References: <1338889118-10032-1-git-send-email-kishon@ti.com> <1338889118-10032-2-git-send-email-kishon@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-02-ewr.mailhop.org ([204.13.248.72]:52260 "EHLO
-	mho-02-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S934013Ab2FEL2i (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 5 Jun 2012 07:28:38 -0400
-Content-Disposition: inline
-In-Reply-To: <1336729242-16168-1-git-send-email-govindraj.raja@ti.com>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <1338889118-10032-2-git-send-email-kishon-l0cyMroinI0@public.gmane.org>
+Sender: linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Kishon Vijay Abraham I <kishon-l0cyMroinI0@public.gmane.org>
+Cc: gregkh-hQyY1W1yCW8ekmWlsbkhG0B+6BGkLq7r@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, balbi-l0cyMroinI0@public.gmane.org
 List-Id: linux-omap@vger.kernel.org
-To: "Govindraj.R" <govindraj.raja@ti.com>
-Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Felipe Balbi <balbi@ti.com>, Kevin Hilman <khilman@ti.com>, Russ Dill <russ.dill@gmail.com>, Paul Walmsley <paul@pwsan.com>, Ameya Palande <ameya.palande@ti.com>
 
-* Govindraj.R <govindraj.raja@ti.com> [120511 02:45]:
-> From: "Govindraj.R" <govindraj.raja@ti.com>
-> --- a/arch/arm/mach-omap2/serial.c
-> +++ b/arch/arm/mach-omap2/serial.c
->  #else
-> -static void omap_serial_fill_default_pads(struct omap_board_data *bdata) {}
-> +static void __init omap_serial_check_wakeup(struct omap_board_data *bdata
-> +		struct omap_uart_state *uart) {}
->  #endif
+Hello.
 
-There's a comma missing here that breaks CONFIG_OMAP_MUX is not set here   ^^^.
-I've updated the patch to add it.
+On 05-06-2012 13:38, Kishon Vijay Abraham I wrote:
 
-Tony
+> Commit 712d8e
+
+    Please also specify that commit's summary in parens.
+
+> fixed pm_runtime calls while atomic by using a work queue.
+> While the issue and the work queue implementation is specific to omap
+> (omap2430.c), the work_struct is defined as a member of struct musb
+> (musb_core.h). Hence moved the work_struct from musb_core to omap
+> glue.
+
+> Signed-off-by: Kishon Vijay Abraham I<kishon-l0cyMroinI0@public.gmane.org>
+
+WBR, Sergei
+--
+To unsubscribe from this list: send the line "unsubscribe linux-usb" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
