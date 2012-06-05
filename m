@@ -1,47 +1,58 @@
 From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH] ARM: OMAP2+: am33xx: Add AM335XEVM machine support
-Date: Tue, 5 Jun 2012 01:02:48 -0700
-Message-ID: <20120605080248.GK12766@atomide.com>
-References: <1336676929-28621-1-git-send-email-hvaibhav@ti.com>
- <79CD15C6BA57404B839C016229A409A83EA3923D@DBDE01.ent.ti.com>
- <20120605075344.GH12766@atomide.com>
- <79CD15C6BA57404B839C016229A409A83EA415E7@DBDE01.ent.ti.com>
+Subject: Re: Broken builds
+Date: Tue, 5 Jun 2012 01:22:18 -0700
+Message-ID: <20120605082218.GL12766@atomide.com>
+References: <20120603180122.GA23368@n2100.arm.linux.org.uk>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-02-ewr.mailhop.org ([204.13.248.72]:62648 "EHLO
+Received: from mho-02-ewr.mailhop.org ([204.13.248.72]:28469 "EHLO
 	mho-02-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1757127Ab2FEICv (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 5 Jun 2012 04:02:51 -0400
+	with ESMTP id S1756291Ab2FEIWV (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 5 Jun 2012 04:22:21 -0400
 Content-Disposition: inline
-In-Reply-To: <79CD15C6BA57404B839C016229A409A83EA415E7@DBDE01.ent.ti.com>
+In-Reply-To: <20120603180122.GA23368@n2100.arm.linux.org.uk>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "Hiremath, Vaibhav" <hvaibhav@ti.com>
-Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, "Mohammed, Afzal" <afzal@ti.com>, "Cousson, Benoit" <b-cousson@ti.com>, Paul Walmsley <paul@pwsan.com>
+To: Russell King - ARM Linux <linux@arm.linux.org.uk>
+Cc: linux-omap@vger.kernel.org, Tomi Valkeinen <tomi.valkeinen@ti.com>
 
-* Hiremath, Vaibhav <hvaibhav@ti.com> [120605 01:04]:
-> On Tue, Jun 05, 2012 at 13:23:44, Tony Lindgren wrote:
-> > 
-> > Adding this too to devel-am33xx branch.
-> > 
+* Russell King - ARM Linux <linux@arm.linux.org.uk> [120603 11:05]:
+> Looks like the DSS stuff has broken OMAP builds again during this
+> merge window:
 > 
-> Thanks Tony,
-> Also, request you to add it as part of next pull request to the linux-next, 
-> at early rc cycle itself.
+> drivers/video/omap2/dss/core.c:197: error: static declaration of 'dss_debugfs_create_file' follows non-static declaration
+> drivers/video/omap2/dss/dss.h:166: error: previous declaration of 'dss_debugfs_create_file' was here
+> 
+> Both the OMAP3 and OMAP4 builds break with these two errors.
 
-Yes it should hit arm-soc and linux-next after -rc2 or so.
- 
-> Paul,
-> 
-> Can you also send a pull request for AM33XX voltagedomain, cm, clockdomain, 
-> prm, powerdomain patches?
-> Also request you to review clock-tree and hwmod changes, so that, they can 
-> also be merged within time.
-> 
-> From clocktree perspective, I believe now I have to migrate to Rajendr's 
-> common-clock framework changes, so let me finish that and send new version.
-> 
-> 
-> Thanks,
-> Vaibhav
+Here's a patch for Tomi to fix this one.
+
+Tony
+
+
+From: Tony Lindgren <tony@atomide.com>
+Date: Tue, 5 Jun 2012 01:20:55 -0700
+Subject: [PATCH] OMAPDSS: Fix compile for dss_debugfs_create_file
+
+Otherwise we get:
+
+drivers/video/omap2/dss/core.c:197: error: static declaration of
+'dss_debugfs_create_file' follows non-static declaration
+drivers/video/omap2/dss/dss.h:166: error: previous declaration of
+'dss_debugfs_create_file' was here
+
+Reported-by: Russell King <rmk+kernel@arm.linux.org.uk>
+Signed-off-by: Tony Lindgren <tony@atomide.com>
+
+--- a/drivers/video/omap2/dss/core.c
++++ b/drivers/video/omap2/dss/core.c
+@@ -194,7 +194,7 @@ static inline int dss_initialize_debugfs(void)
+ static inline void dss_uninitialize_debugfs(void)
+ {
+ }
+-static inline int dss_debugfs_create_file(const char *name,
++int dss_debugfs_create_file(const char *name,
+ 		void (*write)(struct seq_file *))
+ {
+ 	return 0;
