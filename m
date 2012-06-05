@@ -1,212 +1,81 @@
-From: Jon Hunter <jon-hunter@ti.com>
-Subject: [PATCH V4 05/12] ARM: OMAP2+: HWMOD: Correct timer device attributes
-Date: Tue, 5 Jun 2012 12:34:53 -0500
-Message-ID: <1338917700-29174-6-git-send-email-jon-hunter@ti.com>
-References: <1338917700-29174-1-git-send-email-jon-hunter@ti.com>
+From: Kevin Hilman <khilman@ti.com>
+Subject: Re: MFD USB host: prevents CORE retention in idle
+Date: Tue, 05 Jun 2012 10:50:31 -0700
+Message-ID: <4FCE46E7.60702@ti.com>
+References: <87zk8yxx9l.fsf@ti.com> <4FBD7FDC.9050307@ti.com> <CAP05o4KNnrKdmgJ=Ky=MS4pwEoEErH+Agkm2EwN1i1UDb-CbPQ@mail.gmail.com> <871um9wlzx.fsf@ti.com> <878vghut1u.fsf@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain
+Content-Type: text/plain; charset=UTF-8; format=flowed
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from bear.ext.ti.com ([192.94.94.41]:53013 "EHLO bear.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1755216Ab2FERfH (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Tue, 5 Jun 2012 13:35:07 -0400
-In-Reply-To: <1338917700-29174-1-git-send-email-jon-hunter@ti.com>
+Received: from na3sys009aog128.obsmtp.com ([74.125.149.141]:52953 "EHLO
+	na3sys009aog128.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1755532Ab2FERud (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 5 Jun 2012 13:50:33 -0400
+Received: by dalh21 with SMTP id h21so7304553dal.34
+        for <linux-omap@vger.kernel.org>; Tue, 05 Jun 2012 10:50:32 -0700 (PDT)
+In-Reply-To: <878vghut1u.fsf@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: linux-omap <linux-omap@vger.kernel.org>
-Cc: Tony Lindgren <tony@atomide.com>, Tarun Kanti DebBarma <tarun.kanti@ti.com>, Jon Hunter <jon-hunter@ti.com>
+To: "Munegowda, Keshava" <keshava_mgowda@ti.com>, Felipe Balbi <balbi@ti.com>
+Cc: linux-omap <linux-omap@vger.kernel.org>
 
-Fix the following issues with the timer device attributes for OMAP2+ devices:
+Keshava, Felipe,
 
-1. For OMAP24xx devices, timers 2-8 have the ALWAYS-ON attribute indicating
-   that these timers are in an ALWAYS-ON power domain. This is not the case
-   only timer1 is in an ALWAYS-ON power domain.
-2. For OMAP3xxx devices, timers 2-7 have the ALWAYS-ON attribute indicating
-   that these timers are in an ALWAYS-ON power domain. This is not the case
-   only timer1 and timer12 are in an ALWAYS-ON power domain.
-3. For OMAP3xxx devices, timer12 does not have the ALWAYS-ON attribute but
-   is in an always-on power domain.
+ping.  This problem is still preventing CORE retention in mainline.
 
-Signed-off-by: Jon Hunter <jon-hunter@ti.com>
----
- arch/arm/mach-omap2/omap_hwmod_2xxx_ipblock_data.c |    7 -------
- arch/arm/mach-omap2/omap_hwmod_3xxx_data.c         |    8 +-------
- arch/arm/mach-omap2/omap_hwmod_44xx_data.c         |    6 ------
- 3 files changed, 1 insertion(+), 20 deletions(-)
-
-diff --git a/arch/arm/mach-omap2/omap_hwmod_2xxx_ipblock_data.c b/arch/arm/mach-omap2/omap_hwmod_2xxx_ipblock_data.c
-index 83eafd9..7814e83 100644
---- a/arch/arm/mach-omap2/omap_hwmod_2xxx_ipblock_data.c
-+++ b/arch/arm/mach-omap2/omap_hwmod_2xxx_ipblock_data.c
-@@ -257,7 +257,6 @@ struct omap_hwmod omap2xxx_timer2_hwmod = {
- 			.idlest_idle_bit = OMAP24XX_ST_GPT2_SHIFT,
- 		},
- 	},
--	.dev_attr	= &capability_alwon_dev_attr,
- 	.class		= &omap2xxx_timer_hwmod_class,
- };
- 
-@@ -276,7 +275,6 @@ struct omap_hwmod omap2xxx_timer3_hwmod = {
- 			.idlest_idle_bit = OMAP24XX_ST_GPT3_SHIFT,
- 		},
- 	},
--	.dev_attr	= &capability_alwon_dev_attr,
- 	.class		= &omap2xxx_timer_hwmod_class,
- };
- 
-@@ -295,7 +293,6 @@ struct omap_hwmod omap2xxx_timer4_hwmod = {
- 			.idlest_idle_bit = OMAP24XX_ST_GPT4_SHIFT,
- 		},
- 	},
--	.dev_attr	= &capability_alwon_dev_attr,
- 	.class		= &omap2xxx_timer_hwmod_class,
- };
- 
-@@ -314,7 +311,6 @@ struct omap_hwmod omap2xxx_timer5_hwmod = {
- 			.idlest_idle_bit = OMAP24XX_ST_GPT5_SHIFT,
- 		},
- 	},
--	.dev_attr	= &capability_alwon_dev_attr,
- 	.class		= &omap2xxx_timer_hwmod_class,
- };
- 
-@@ -333,7 +329,6 @@ struct omap_hwmod omap2xxx_timer6_hwmod = {
- 			.idlest_idle_bit = OMAP24XX_ST_GPT6_SHIFT,
- 		},
- 	},
--	.dev_attr	= &capability_alwon_dev_attr,
- 	.class		= &omap2xxx_timer_hwmod_class,
- };
- 
-@@ -352,7 +347,6 @@ struct omap_hwmod omap2xxx_timer7_hwmod = {
- 			.idlest_idle_bit = OMAP24XX_ST_GPT7_SHIFT,
- 		},
- 	},
--	.dev_attr	= &capability_alwon_dev_attr,
- 	.class		= &omap2xxx_timer_hwmod_class,
- };
- 
-@@ -371,7 +365,6 @@ struct omap_hwmod omap2xxx_timer8_hwmod = {
- 			.idlest_idle_bit = OMAP24XX_ST_GPT8_SHIFT,
- 		},
- 	},
--	.dev_attr	= &capability_alwon_dev_attr,
- 	.class		= &omap2xxx_timer_hwmod_class,
- };
- 
-diff --git a/arch/arm/mach-omap2/omap_hwmod_3xxx_data.c b/arch/arm/mach-omap2/omap_hwmod_3xxx_data.c
-index b26d3c9..7b33094 100644
---- a/arch/arm/mach-omap2/omap_hwmod_3xxx_data.c
-+++ b/arch/arm/mach-omap2/omap_hwmod_3xxx_data.c
-@@ -150,7 +150,7 @@ static struct omap_hwmod_class omap3xxx_timer_hwmod_class = {
- 
- /* secure timers dev attribute */
- static struct omap_timer_capability_dev_attr capability_secure_dev_attr = {
--	.timer_capability	= OMAP_TIMER_SECURE,
-+	.timer_capability	= OMAP_TIMER_ALWON | OMAP_TIMER_SECURE,
- };
- 
- /* always-on timers dev attribute */
-@@ -195,7 +195,6 @@ static struct omap_hwmod omap3xxx_timer2_hwmod = {
- 			.idlest_idle_bit = OMAP3430_ST_GPT2_SHIFT,
- 		},
- 	},
--	.dev_attr	= &capability_alwon_dev_attr,
- 	.class		= &omap3xxx_timer_1ms_hwmod_class,
- };
- 
-@@ -213,7 +212,6 @@ static struct omap_hwmod omap3xxx_timer3_hwmod = {
- 			.idlest_idle_bit = OMAP3430_ST_GPT3_SHIFT,
- 		},
- 	},
--	.dev_attr	= &capability_alwon_dev_attr,
- 	.class		= &omap3xxx_timer_hwmod_class,
- };
- 
-@@ -231,7 +229,6 @@ static struct omap_hwmod omap3xxx_timer4_hwmod = {
- 			.idlest_idle_bit = OMAP3430_ST_GPT4_SHIFT,
- 		},
- 	},
--	.dev_attr	= &capability_alwon_dev_attr,
- 	.class		= &omap3xxx_timer_hwmod_class,
- };
- 
-@@ -249,7 +246,6 @@ static struct omap_hwmod omap3xxx_timer5_hwmod = {
- 			.idlest_idle_bit = OMAP3430_ST_GPT5_SHIFT,
- 		},
- 	},
--	.dev_attr	= &capability_alwon_dev_attr,
- 	.class		= &omap3xxx_timer_hwmod_class,
- };
- 
-@@ -267,7 +263,6 @@ static struct omap_hwmod omap3xxx_timer6_hwmod = {
- 			.idlest_idle_bit = OMAP3430_ST_GPT6_SHIFT,
- 		},
- 	},
--	.dev_attr	= &capability_alwon_dev_attr,
- 	.class		= &omap3xxx_timer_hwmod_class,
- };
- 
-@@ -285,7 +280,6 @@ static struct omap_hwmod omap3xxx_timer7_hwmod = {
- 			.idlest_idle_bit = OMAP3430_ST_GPT7_SHIFT,
- 		},
- 	},
--	.dev_attr	= &capability_alwon_dev_attr,
- 	.class		= &omap3xxx_timer_hwmod_class,
- };
- 
-diff --git a/arch/arm/mach-omap2/omap_hwmod_44xx_data.c b/arch/arm/mach-omap2/omap_hwmod_44xx_data.c
-index 950454a..ebf9657 100644
---- a/arch/arm/mach-omap2/omap_hwmod_44xx_data.c
-+++ b/arch/arm/mach-omap2/omap_hwmod_44xx_data.c
-@@ -2943,7 +2943,6 @@ static struct omap_hwmod omap44xx_timer2_hwmod = {
- 			.modulemode   = MODULEMODE_SWCTRL,
- 		},
- 	},
--	.dev_attr	= &capability_alwon_dev_attr,
- };
- 
- /* timer3 */
-@@ -2965,7 +2964,6 @@ static struct omap_hwmod omap44xx_timer3_hwmod = {
- 			.modulemode   = MODULEMODE_SWCTRL,
- 		},
- 	},
--	.dev_attr	= &capability_alwon_dev_attr,
- };
- 
- /* timer4 */
-@@ -2987,7 +2985,6 @@ static struct omap_hwmod omap44xx_timer4_hwmod = {
- 			.modulemode   = MODULEMODE_SWCTRL,
- 		},
- 	},
--	.dev_attr	= &capability_alwon_dev_attr,
- };
- 
- /* timer5 */
-@@ -3009,7 +3006,6 @@ static struct omap_hwmod omap44xx_timer5_hwmod = {
- 			.modulemode   = MODULEMODE_SWCTRL,
- 		},
- 	},
--	.dev_attr	= &capability_alwon_dev_attr,
- };
- 
- /* timer6 */
-@@ -3032,7 +3028,6 @@ static struct omap_hwmod omap44xx_timer6_hwmod = {
- 			.modulemode   = MODULEMODE_SWCTRL,
- 		},
- 	},
--	.dev_attr	= &capability_alwon_dev_attr,
- };
- 
- /* timer7 */
-@@ -3054,7 +3049,6 @@ static struct omap_hwmod omap44xx_timer7_hwmod = {
- 			.modulemode   = MODULEMODE_SWCTRL,
- 		},
- 	},
--	.dev_attr	= &capability_alwon_dev_attr,
- };
- 
- /* timer8 */
--- 
-1.7.9.5
-
+On 05/24/2012 03:13 PM, Kevin Hilman wrote:
+> Kevin Hilman<khilman@ti.com>  writes:
+>
+>> "Munegowda, Keshava"<keshava_mgowda@ti.com>  writes:
+>>
+>>> On Thu, May 24, 2012 at 5:55 AM, Kevin Hilman<khilman@ti.com>  wrote:
+>>>> On 05/23/2012 05:01 PM, Kevin Hilman wrote:
+>>>>>
+>>>>> Hi Keshava,
+>>>>>
+>>>>> Using current l-o master, I noticed that CORE was not hitting retention
+>>>>> in idle on my 3530/Overo.  CORE hits retention on suspend just fine.
+>>>>>
+>>>>> Debugging this, I found that usbtll_fck was still enabled during idle,
+>>>>> thus preventing CORE from hitting retention.
+>>>>>
+>>>>> To test, I disabled USB host (CONFIG_MFD_OMAP_USB_HOST=n in .config) and
+>>>>> was then started seeing CORE hit retention in idle again.
+>>>>>
+>>>>> I have nothing plugged into the USB host port on this board, so I
+>>>>> would've expected that runtime PM would've kicked in and shutdown this
+>>>>> clock.
+>>>>>
+>>>>> Any ideas what's going on here?  Is this expected behavior?
+>>>>>
+>>>>
+>>>> If it helps, attached is a bootlog after enabling debug for
+>>>> mfd/omap-usb-host.c as well.  Notice there's a couple of clock-related
+>>>> warnings from this driver as well.  Not sure if they're relevant:
+>>>>
+>>>> usbhs_omap: alias fck already exists
+>>>> usbhs_omap usbhs_omap: xclk60mhsp2_ck set parentfailed error:-22
+>>>
+>>> these clocks were specific to omap4 and it should not cause any
+>>> problem to omap3 boards.
+>>
+>> OK, they seem unrelated to this CORE retention problem, but the warnings
+>> should still be understood and fixed.
+>>
+>>> I will try to reproduce this on 3430 sdp to explore further.
+>>
+>> Thanks for looking.  Note that I only saw this problem on my 3530
+>> platforms (Overo, OMAP3EVM.)  My 3430/n900 doesn't support USBHS host
+>> AFAICT, so didn't test there.
+>
+> After realizing that the same IP should exist on 3430/n900, I copied
+> some board file support for USBHS host from overo into the n900 board
+> file in order to test on 3430/n900.
+>
+> Problem exists on n900 too.
+>
+> Kevin
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-omap" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
