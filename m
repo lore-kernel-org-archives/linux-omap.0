@@ -1,52 +1,46 @@
 From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [GIT PULL] ARM: OMAP2+: Add AM335x and AM3517/05 EVM DT support
-Date: Tue, 5 Jun 2012 00:57:18 -0700
-Message-ID: <20120605075718.GI12766@atomide.com>
-References: <4FAD0A71.80201@ti.com>
+Subject: Re: [PATCH-V2 0/4] ARM: OMAP2+: am33xx: Add clocktree and hwmod
+ data
+Date: Tue, 5 Jun 2012 00:59:52 -0700
+Message-ID: <20120605075952.GJ12766@atomide.com>
+References: <1338285402-11306-1-git-send-email-hvaibhav@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-02-ewr.mailhop.org ([204.13.248.72]:56246 "EHLO
-	mho-02-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756952Ab2FEH5U (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 5 Jun 2012 03:57:20 -0400
+Received: from mho-01-ewr.mailhop.org ([204.13.248.71]:28049 "EHLO
+	mho-01-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1757610Ab2FEH7z (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 5 Jun 2012 03:59:55 -0400
 Content-Disposition: inline
-In-Reply-To: <4FAD0A71.80201@ti.com>
+In-Reply-To: <1338285402-11306-1-git-send-email-hvaibhav@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "Cousson, Benoit" <b-cousson@ti.com>
-Cc: linux-omap <linux-omap@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, "Hiremath, Vaibhav" <hvaibhav@ti.com>
+To: Vaibhav Hiremath <hvaibhav@ti.com>
+Cc: linux-omap@vger.kernel.org, khilman@ti.com, paul@pwsan.com, linux-arm-kernel@lists.infradead.org
 
-* Cousson, Benoit <b-cousson@ti.com> [120511 05:51]:
-> Hi Tony,
+* Vaibhav Hiremath <hvaibhav@ti.com> [120529 03:01]:
+> This patch adds complete clockctree and hwmod data for the
+> AM33XX family of devices.
 > 
-> Here are some remaining DT patches I was not able to push at 3.4 due to some missing dependency.
-> It applies now fine on top of lo/dt branch.
+> This patch-series is cleaned up further from Paul's cleanup
+> activity on AM33xx clocktree, where all leaf nodes have been
+> removed and now modules enable/disable is controlled only
+> using hwmod framework interface.
+> 
+> There are certain modules, like clkdiv32k, debugss, etc..., for
+> which we still doesn't have hwmod_data present, so in order to
+> disable these modules during boot time, we still have to maintain
+> clk node for them. Comment has been added to highlight this, and
+> in the future we will cleanup this.
+> As far as, CLKDIV32K module, in reality is not module but still
+> we have MODULEMODE to control it, so we may have to keep this node
+> alone in the clocktree.
 
-Thanks pulling now into dt branch.
+Considering that we have the RFC patches available for common
+clk fwk, we should probably avoid the extra churn and have this
+use the common clk fwk instead. Of course that is assuming the
+common clk fwk patches will be mergeable soonish.
+
+Regards,
 
 Tony
- 
-> Regards,
-> Benoit
-> 
-> 
-> The following changes since commit 40364b9f5a4d167d97bb6a76cd239ca8cfff056a:
->   Benoit Cousson (1):
->         arm/dts: omap4-panda: Add LEDs support
-> 
-> are available in the git repository at:
-> 
->   git://git.kernel.org/pub/scm/linux/kernel/git/bcousson/linux-omap-dt.git for_3.5/dts/am33xx
-> 
-> Vaibhav Hiremath (3):
->       arm/dts: Add support for TI AM335x EVM board
->       arm/dts: omap3-evm: Add i2c and twl4030 support
->       arm/dts: Add support for TI AM3517/05 EVM board
-> 
->  arch/arm/boot/dts/am335x-evm.dts |   39 ++++++++++++++++++++++++++++++++++++++
->  arch/arm/boot/dts/am3517-evm.dts |   32 +++++++++++++++++++++++++++++++
->  arch/arm/boot/dts/omap3-evm.dts  |   28 +++++++++++++++++++++++++++
->  3 files changed, 99 insertions(+), 0 deletions(-)
->  create mode 100644 arch/arm/boot/dts/am335x-evm.dts
->  create mode 100644 arch/arm/boot/dts/am3517-evm.dts
