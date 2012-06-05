@@ -1,52 +1,42 @@
-From: "Matcovschi, Oleg" <oleg.matcovschi@ti.com>
-Subject: RE: [PATCH v2] omap: dma: Clear status registers on enable/disable
- irq.
-Date: Tue, 5 Jun 2012 18:28:24 +0000
-Message-ID: <E0D6B3D7803B1A49AC7CEA9958379F6303752BF9@DFLE36.ent.ti.com>
-References: <1337117708-27215-1-git-send-email-oleg.matcovschi@ti.com>
- <20120604061357.GV12766@atomide.com>
+From: Russell King - ARM Linux <linux@arm.linux.org.uk>
+Subject: New randconfig build failures in OMAP
+Date: Tue, 5 Jun 2012 23:02:14 +0100
+Message-ID: <20120605220214.GA29782@n2100.arm.linux.org.uk>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from devils.ext.ti.com ([198.47.26.153]:38334 "EHLO
-	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751680Ab2FES2m convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 5 Jun 2012 14:28:42 -0400
-In-Reply-To: <20120604061357.GV12766@atomide.com>
-Content-Language: en-US
+Received: from caramon.arm.linux.org.uk ([78.32.30.218]:53142 "EHLO
+	caramon.arm.linux.org.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753207Ab2FEWCS (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 5 Jun 2012 18:02:18 -0400
+Received: from n2100.arm.linux.org.uk ([2002:4e20:1eda:1:214:fdff:fe10:4f86]:47976)
+	by caramon.arm.linux.org.uk with esmtpsa (TLSv1:AES256-SHA:256)
+	(Exim 4.76)
+	(envelope-from <linux@arm.linux.org.uk>)
+	id 1Sc1oZ-0006KK-Rm
+	for linux-omap@vger.kernel.org; Tue, 05 Jun 2012 23:01:24 +0100
+Received: from linux by n2100.arm.linux.org.uk with local (Exim 4.76)
+	(envelope-from <linux@n2100.arm.linux.org.uk>)
+	id 1Sc1pO-00034S-SZ
+	for linux-omap@vger.kernel.org; Tue, 05 Jun 2012 23:02:14 +0100
+Content-Disposition: inline
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Tony Lindgren <tony@atomide.com>
-Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, "linux@arm.linux.org.uk" <linux@arm.linux.org.uk>, "jarkko.nikula@bitmer.com" <jarkko.nikula@bitmer.com>, "jkrzyszt@tis.inet.pl" <jkrzyszt@tis.inet.pl>
+To: linux-omap@vger.kernel.org
 
->>* Oleg Matcovschi <oleg.matcovschi@ti.com> [120515 14:40]:
->> Use omap_disable_channel_irq() function instead of directly accessing CICR.
->> The omap_disable_chanel_irq() function clears pending interrupts and 
->> disables interrupt on channel.
->> Functions omap2_enable_irq_lch()/omap2_disable_irq_lch() clear 
->> interrupt status register.
+I pulled Linus' tree at 7am UTC, and reran the builds after updating
+the build tree with that (plus my pending devel stuff).  The resulting
+randconfig spat out this:
 
->Looking at this again, I'll apply this into cleanup-dma instead of fixes.
+arch/arm/mach-omap2/dsp.c: In function 'omap_dsp_reserve_sdram_memblock':
+arch/arm/mach-omap2/dsp.c:58: error: implicit declaration of function 'arm_memblock_steal'
 
->If it fixes something that I can't see, please reply with a description what it fixes and I'll move it into fixes.
->Regards,
->Tony
+Looks to me like a missing include?
 
-Sure, cleanup-dma sounds ok.
+arch/arm/mach-omap2/board-rx51-peripherals.c:147: error: implicit declaration of function 'OMAP_GPIO_IRQ'
+arch/arm/mach-omap2/board-rx51-peripherals.c:147: error: initializer element is not constant
+arch/arm/mach-omap2/board-rx51-peripherals.c:147: error: (near initialization for 'rx51_lis3lv02d_data.irq2')
+arch/arm/mach-omap2/board-rx51-peripherals.c:1033: error: initializer element is not constant
+arch/arm/mach-omap2/board-rx51-peripherals.c:1033: error: (near initialization for 'rx51_peripherals_i2c_board_info_3[0].irq')
 
-Code covers:
-- my test case for 4460:
-      I could reproduce 2 interrupts @ omap-pcm driver after omap_stop_dma function call.
-         1st irq CSR: 0x42 (half & drop)
-         2nd irq CSR: 0x02 (drop)
-      Only 1 interrupt occurs after applying this patch(overnight test results)
-      Test case was created to reproduce problem reported by customer(without clear description):
-          contiguous playback of 0.5 wav file (frequent start/stop audio transitions)
-          contiguous data transfers on 15 self-linked dma channels.
-
-- omap_request_dma could cause spurious interrupt
-         (enable irq, clear irq status instead of clear irq status, enable irq)
-
-thanks,
- Oleg
+Again, a missing include?
