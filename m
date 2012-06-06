@@ -1,67 +1,36 @@
-From: Sebastian Reichel <sre@ring0.de>
-Subject: Re: New randconfig build failures in OMAP
-Date: Wed, 6 Jun 2012 03:25:33 +0200
-Message-ID: <20120606012533.GA13213@earth.universe>
-References: <20120605220214.GA29782@n2100.arm.linux.org.uk>
+From: Xiao Jiang <jgq516@gmail.com>
+Subject: Re: Compile err when enable CONFIG_SND_OMAP_SOC_OMAP_HDMI
+Date: Wed, 06 Jun 2012 11:01:14 +0800
+Message-ID: <4FCEC7FA.1030906@gmail.com>
+References: <4FC5C8E5.7060108@gmail.com> <4FC6AEAF.5020501@ti.com> <4FC6F330.8070408@gmail.com> <4FCD5FB6.4040806@ti.com> <4FCD87C7.3070504@gmail.com> <4FCE2AE9.3000707@ti.com>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha256;
-	protocol="application/pgp-signature"; boundary="/9DWx/yDrRhgMJTb"
+Content-Type: text/plain; charset=UTF-8; format=flowed
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from ring0.de ([91.143.88.219]:40348 "EHLO ring0.de"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751845Ab2FFBs7 (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Tue, 5 Jun 2012 21:48:59 -0400
-Content-Disposition: inline
-In-Reply-To: <20120605220214.GA29782@n2100.arm.linux.org.uk>
+Received: from mail-vb0-f46.google.com ([209.85.212.46]:37802 "EHLO
+	mail-vb0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751474Ab2FFCIF (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 5 Jun 2012 22:08:05 -0400
+Received: by vbbff1 with SMTP id ff1so3558372vbb.19
+        for <linux-omap@vger.kernel.org>; Tue, 05 Jun 2012 19:08:04 -0700 (PDT)
+In-Reply-To: <4FCE2AE9.3000707@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Russell King - ARM Linux <linux@arm.linux.org.uk>
-Cc: linux-omap@vger.kernel.org
+To: Ricardo Neri <ricardo.neri@ti.com>
+Cc: "Valkeinen, Tomi" <tomi.valkeinen@ti.com>, Jarkko Nikula <jarkko.nikula@bitmer.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
 
+Hi Ricardo
+>
+> Do you see that the playback finishes (even though you don't hear 
+> anything)? Also, what version of Pandaboard are you using? Is it 
+> Pandaboard or PandaboardES? Have you tried on different TVs?
+>
+Yes, it can finish normally, and board's version is OMAP4430 ES2.2. 
+After changed to another
+tv (DELL 2410) I can hear the voice from hdmi audio, :), thanks.
 
---/9DWx/yDrRhgMJTb
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
+Regards,
+Xiao
+> BR,
+> Ricardo
 
-On Tue, Jun 05, 2012 at 11:02:14PM +0100, Russell King - ARM Linux wrote:
-> arch/arm/mach-omap2/board-rx51-peripherals.c:147: error: implicit declara=
-tion of function 'OMAP_GPIO_IRQ'
-> arch/arm/mach-omap2/board-rx51-peripherals.c:147: error: initializer elem=
-ent is not constant
-> arch/arm/mach-omap2/board-rx51-peripherals.c:147: error: (near initializa=
-tion for 'rx51_lis3lv02d_data.irq2')
-> arch/arm/mach-omap2/board-rx51-peripherals.c:1033: error: initializer ele=
-ment is not constant
-> arch/arm/mach-omap2/board-rx51-peripherals.c:1033: error: (near initializ=
-ation for 'rx51_peripherals_i2c_board_info_3[0].irq')
->=20
-> Again, a missing include?
-
-patch: http://www.spinics.net/lists/linux-omap/msg71169.html
-
--- Sebastian
-
---/9DWx/yDrRhgMJTb
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: Digital signature
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.4.12 (GNU/Linux)
-
-iQIcBAEBCAAGBQJPzrGNAAoJENju1/PIO/qa2uQP/jLPnq+f/2JBFnH7OfxcWVnN
-eOjhYhKU025Cs4gg27Xqh7XMFzQ+hZd+sdQ89iz/vDou81tjii2Eh3UI0jB3HyVV
-rJ90MuhLQJLwEpi1Wd0Ipi3WLJHVLi0M6ZWfMtVlzKpQyuIBlpHou+rytX5v+E57
-BB0FVtSExvz+Lest7ZlgUUkEIVP9oiAA/Hr8AqsnDJOQ++H+how2+u+8VFNqjy9r
-35XDkq6AMFFfs9cpLjCHFvKLhmwrdStX7RSz4a9NB/8blCjnn/dhNjOay53NfR3v
-1yxJb35k8Y1b92qIu/ZrUSjIDUaVUkV+GHeTk1etGcWXNp8/kBLd8NYn7lZsKPC3
-rrzxAKR6DQ0paH4GPtgcgvuQDCtMlM3tWDyfrJXmAo+BBFjgmKaXzVI3EoZ5goL8
-izBeKVrK/UshdDdRXP+aFuMszZgyIdfkRIzd5cC3f3UvO+ctWPwmwJKSyX8xLNMo
-q4/we7XX+KJfwtBOxUPG1eHMAcmb6FzEVZXkDjY41GrQoto0jbb3MgERAzGfSZRh
-nmYELW17e7t4vqBZyh1DM6FgVJqMzd/BHiLMhQeh+BirqxDWewpUq/Sh7ppbvcK8
-0Q/mlU21uJBsG/pYsmnlDIYDMRZtBO0SM9/U0LMwuYt8uVnwiUzBZ/Py4vMoMMXd
-IxOYVnYeDrcO/8eRifkj
-=TRlD
------END PGP SIGNATURE-----
-
---/9DWx/yDrRhgMJTb--
