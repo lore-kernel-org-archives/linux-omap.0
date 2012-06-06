@@ -1,49 +1,40 @@
-From: Jarkko Nikula <jarkko.nikula@bitmer.com>
-Subject: Re: Please help! AM35xx mm/slab.c BUG
-Date: Wed, 06 Jun 2012 13:37:15 +0300
-Message-ID: <4FCF32DB.7000208@bitmer.com>
-References: <1338878255.13133.YahooMailNeo@web125205.mail.ne1.yahoo.com> <20120605070853.GE12766@atomide.com> <1338913755.88514.YahooMailNeo@web125201.mail.ne1.yahoo.com> <1338963298.87083.YahooMailNeo@web125204.mail.ne1.yahoo.com> <CAMQu2gw2bGNwot_xVPdAsYjZChzzNib2USg8Ci+W5aLbenPnqA@mail.gmail.com> <20120606071024.GP12766@atomide.com> <1338969083.99043.YahooMailNeo@web125201.mail.ne1.yahoo.com> <20120606084123.GU12766@atomide.com>
+From: "DebBarma, Tarun Kanti" <tarun.kanti@ti.com>
+Subject: Re: [PATCH 2/2] ARM: omap: dmtimer: set non-posted mode if iclk less
+ than 4*fck
+Date: Wed, 6 Jun 2012 16:41:26 +0530
+Message-ID: <CAC83ZvKv_kwvYLG3RfN-ttKXU8pg+yqRGa9S83BAJj6=yeVP2g@mail.gmail.com>
+References: <1336744398-23803-1-git-send-email-tarun.kanti@ti.com>
+	<1336744398-23803-3-git-send-email-tarun.kanti@ti.com>
+	<87pq9mel9i.fsf@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from bitmer.com ([213.157.87.50]:42717 "EHLO bitmer.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1755810Ab2FFKjQ (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Wed, 6 Jun 2012 06:39:16 -0400
-In-Reply-To: <20120606084123.GU12766@atomide.com>
+Received: from na3sys009aog109.obsmtp.com ([74.125.149.201]:51777 "EHLO
+	na3sys009aog109.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1752590Ab2FFLLa (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 6 Jun 2012 07:11:30 -0400
+Received: by qaea16 with SMTP id a16so4251099qae.3
+        for <linux-omap@vger.kernel.org>; Wed, 06 Jun 2012 04:11:27 -0700 (PDT)
+In-Reply-To: <87pq9mel9i.fsf@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Tony Lindgren <tony@atomide.com>
-Cc: CF Adad <cfadad@rocketmail.com>, "Shilimkar, Santosh" <santosh.shilimkar@ti.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
+To: Kevin Hilman <khilman@ti.com>
+Cc: linux-omap@vger.kernel.org, paul@pwsan.com, tony@atomide.com, santosh.shilimkar@ti.com, b-cousson@ti.com
 
-my 2 cents.
-
-On 06/06/2012 11:41 AM, Tony Lindgren wrote:
-> * CF Adad <cfadad@rocketmail.com> [120606 00:55]:
->>
->> Do you folks know of a good reference for properly calculating these GPMC settings?
-> 
-> In theory you just need to know the timings of connected components,
-> then check which ones depend on cycles and which ones depend on time.
-> 
-I afraid paper-and-pencil gpmc exercise is often required but after that
-it is more easy to see from charts if e.g. original settings were not
-optimal or too near to edge. Helps to understand and point possible
-problems on oscilloscope measurements too.
-
-> Also take into account latencies added by level shifters if you have those.
-> Paul Walmsley noticed a few years ago that those affected the smsc911x
-> timings if not accounted for.
-> 
-I've noticed the same. Even one-directional level shifters easily add a
-few ns and double amount in read operation since then there are two
-level shifters in a path: one in clk/cs/oe/etc cpu-to-chip signal and
-one on chip-to-cpu side.
-
-Pay also attention if there are extra latencies in chip. Chip memory
-reads/writes may be slower than chip register access (probably similar
-than smsc fifo issue what Tony mentioned earlier in this thread).
-
--- 
-Jarkko
+On Wed, May 30, 2012 at 2:51 AM, Kevin Hilman <khilman@ti.com> wrote:
+> Tarun Kanti DebBarma <tarun.kanti@ti.com> writes:
+>
+>> Timers in PER domain periodically report old time from TCRR in
+>> posted mode if ick < 4*fck. Therefore, set timer to non-posted
+>> whenever ick < 4*fck for all timers.
+>
+> Is there an erratum assocaited with this?
+Yes, but it has not yet got into the document. Right now what we have
+is a hardware defect.
+>
+> Does this problem affect every SoC?
+Not quite sure about OMAP2 but it affects OMAP3+.
+--
+Tarun
+>
+> Kevin
