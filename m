@@ -1,141 +1,49 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH] arm/dts: OMAP4: Add Variscite OMAP4 System-On-Modeule
- support
-Date: Wed, 6 Jun 2012 02:09:31 -0700
-Message-ID: <20120606090931.GV12766@atomide.com>
-References: <20120509213156.GZ5140@atomide.com>
- <1337257051-5004-1-git-send-email-uri.y@variscite.com>
+From: Xiao Jiang <jgq516@gmail.com>
+Subject: About set boot_on for clk32kg regulator
+Date: Wed, 06 Jun 2012 18:55:06 +0800
+Message-ID: <4FCF370A.6000508@gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-kernel-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <1337257051-5004-1-git-send-email-uri.y@variscite.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Uri Yosef <uri.y@variscite.com>
-Cc: linux@arm.linux.org.uk, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org, oren@variscite.com
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from mail-vb0-f46.google.com ([209.85.212.46]:54500 "EHLO
+	mail-vb0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751459Ab2FFKBw (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 6 Jun 2012 06:01:52 -0400
+Received: by vbbff1 with SMTP id ff1so3704292vbb.19
+        for <linux-omap@vger.kernel.org>; Wed, 06 Jun 2012 03:01:51 -0700 (PDT)
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: khilman@ti.com
+Cc: vishalm@ti.com, coelho@ti.com, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
 
-Hi,
+Hi Kevin,
 
-* Uri Yosef <uri.y@variscite.com> [120517 05:34]:
-> Hi Tony,
-> 
-> This is the updated DTS patch for Vatiscite OMAP4 SOM support
+For panda and blaze, wl12xx sdio card can't be found without set on 
+label in struct omap4_clk32kg_idata,
+and after search maillist I found Vishal had posted patch for it.
+http://marc.info/?l=linux-omap&m=132017988123957&w=2
 
-Looks OK to me, but can you please repost one more time with
-devicetree-discuss@lists.ozlabs.org in Cc so people have a chance
-to ack this patch there?
+But after more investigations, if clk32kg regulator isn't on then sdio 
+bus can't probe
+wl12xx sdio card, which means it isn't possible to enable regulator in 
+wl12xx driver.
+so I set boot_on as true for 32KG regulator as for power reason as follows.
+Is it reasonable or not? or is there other solution can fix this issue? 
+thanks.
 
-Thanks,
+diff --git a/arch/arm/mach-omap2/twl-common.c 
+b/arch/arm/mach-omap2/twl-common.c
+index 119d5a9..843bade 100644
+--- a/arch/arm/mach-omap2/twl-common.c
++++ b/arch/arm/mach-omap2/twl-common.c
+@@ -374,6 +374,7 @@ static struct regulator_init_data omap4_vusb_idata = {
+ static struct regulator_init_data omap4_clk32kg_idata = {
+        .constraints = {
+                .valid_ops_mask         = REGULATOR_CHANGE_STATUS,
++               .boot_on                = true,
+        }, 
+ };
 
-Tony
- 
->  arch/arm/boot/dts/omap4-var_som.dts |   96 +++++++++++++++++++++++++++++++++++
->  1 files changed, 96 insertions(+), 0 deletions(-)
->  create mode 100644 arch/arm/boot/dts/omap4-var_som.dts
-> 
-> diff --git a/arch/arm/boot/dts/omap4-var_som.dts b/arch/arm/boot/dts/omap4-var_som.dts
-> new file mode 100644
-> index 0000000..d41161d
-> --- /dev/null
-> +++ b/arch/arm/boot/dts/omap4-var_som.dts
-> @@ -0,0 +1,96 @@
-> +/*
-> + * Copyright (C) 2012 Variscite Ltd. - http://www.variscite.com
-> + *
-> + * This program is free software; you can redistribute it and/or modify
-> + * it under the terms of the GNU General Public License version 2 as
-> + * published by the Free Software Foundation.
-> + */
-> +/dts-v1/;
-> +
-> +/include/ "omap4.dtsi"
-> +
-> +/ {
-> +	model = "Variscite OMAP4 SOM";
-> +	compatible = "var,omap4-var_som", "ti,omap4430", "ti,omap4";
-> +
-> +	memory {
-> +		device_type = "memory";
-> +		reg = <0x80000000 0x40000000>; /* 1 GB */
-> +	};
-> +
-> +	vdd_eth: fixedregulator@0 {
-> +		compatible = "regulator-fixed";
-> +		regulator-name = "VDD_ETH";
-> +		regulator-min-microvolt = <3300000>;
-> +		regulator-max-microvolt = <3300000>;
-> +		enable-active-high;
-> +		regulator-boot-on;
-> +	};
-> +};
-> +
-> +&i2c1 {
-> +	clock-frequency = <400000>;
-> +
-> +	twl: twl@48 {
-> +		reg = <0x48>;
-> +		/* SPI = 0, IRQ# = 7, 4 = active high level-sensitive */
-> +		interrupts = <0 7 4>; /* IRQ_SYS_1N cascaded to gic */
-> +		interrupt-parent = <&gic>;
-> +	};
-> +};
-> +
-> +/include/ "twl6030.dtsi"
-> +
-> +&i2c2 {
-> +	clock-frequency = <400000>;
-> +};
-> +
-> +&i2c3 {
-> +	clock-frequency = <400000>;
-> +
-> +	/*
-> +	 * Temperature Sensor
-> +	 * http://www.ti.com/lit/ds/symlink/tmp105.pdf
-> +	 */
-> +	tmp105@49 {
-> +		compatible = "ti,tmp105";
-> +		reg = <0x49>;
-> +	};
-> +};
-> +
-> +&i2c4 {
-> +	clock-frequency = <400000>;
-> +};
-> +
-> +&mcspi1 {
-> +	eth@0 {
-> +		compatible = "ks8851";
-> +		spi-max-frequency = <24000000>;
-> +		reg = <0>;
-> +		interrupt-parent = <&gpio6>;
-> +		interrupts = <11>; /* gpio line 171 */
-> +		vdd-supply = <&vdd_eth>;
-> +	};
-> +};
-> +
-> +&mmc1 {
-> +	vmmc-supply = <&vmmc>;
-> +	ti,bus-width = <8>;
-> +	ti,non-removable;
-> +};
-> +
-> +&mmc2 {
-> +	status = "disable";
-> +};
-> +
-> +&mmc3 {
-> +	status = "disable";
-> +};
-> +
-> +&mmc4 {
-> +	status = "disable";
-> +};
-> +
-> +&mmc5 {
-> +	ti,bus-width = <4>;
-> +};
-> -- 
-> 1.7.5.4
-> 
+Regards,
+Xiao
