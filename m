@@ -1,35 +1,38 @@
 From: Tony Lindgren <tony@atomide.com>
-Subject: Re: New randconfig build failures in OMAP
-Date: Wed, 6 Jun 2012 01:11:27 -0700
-Message-ID: <20120606081126.GT12766@atomide.com>
-References: <20120605220214.GA29782@n2100.arm.linux.org.uk>
+Subject: [PATCH 0/3] Few omap randconfig fixes for v3.5-rc1
+Date: Wed, 06 Jun 2012 01:22:42 -0700
+Message-ID: <20120606082156.727.42730.stgit@muffinssi.local>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-01-ewr.mailhop.org ([204.13.248.71]:12919 "EHLO
-	mho-01-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750935Ab2FFIL3 (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 6 Jun 2012 04:11:29 -0400
-Content-Disposition: inline
-In-Reply-To: <20120605220214.GA29782@n2100.arm.linux.org.uk>
+Received: from mho-02-ewr.mailhop.org ([204.13.248.72]:63606 "EHLO
+	mho-02-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754110Ab2FFIWo (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 6 Jun 2012 04:22:44 -0400
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Russell King - ARM Linux <linux@arm.linux.org.uk>
+To: linux-arm-kernel@lists.infradead.org
 Cc: linux-omap@vger.kernel.org
 
-* Russell King - ARM Linux <linux@arm.linux.org.uk> [120605 15:07]:
-> I pulled Linus' tree at 7am UTC, and reran the builds after updating
-> the build tree with that (plus my pending devel stuff).  The resulting
-> randconfig spat out this:
-> 
-> arch/arm/mach-omap2/dsp.c: In function 'omap_dsp_reserve_sdram_memblock':
-> arch/arm/mach-omap2/dsp.c:58: error: implicit declaration of function 'arm_memblock_steal'
-> 
-> Looks to me like a missing include?
+Here are some fixes for review.
 
-Yup I've caused that one by moving the code around without the memblock.h
-include. Looks like I did not hit this one yet with my randconfigs as it's
-behind CONFIG_STAGING. Will post a fix along with few other randconfig
-fixes.
+Regards,
 
-TOny
+Tony
+
+---
+
+Tony Lindgren (3):
+      ARM: OMAP: Fix MMC_OMAP build when only MMC_OMAP_HS is selected
+      ARM: OMAP3: Fix omap3_l3_block_irq warning when CONFIG_BUG is not set
+      ARM: OMAP2+: Fix compile for CONFIG_TIDSPBRIDGE platform init code
+
+
+ arch/arm/mach-omap2/dsp.c             |    3 +++
+ arch/arm/mach-omap2/omap_l3_smx.c     |    3 ++-
+ arch/arm/plat-omap/include/plat/mmc.h |    4 +---
+ 3 files changed, 6 insertions(+), 4 deletions(-)
+
+-- 
+Signature
