@@ -1,61 +1,67 @@
-From: Paul Walmsley <paul@pwsan.com>
-Subject: Re: [PATCH] ARM: OMAP2+: hwmod code/data: fix 32K sync timer
-Date: Tue, 5 Jun 2012 18:28:07 -0600 (MDT)
-Message-ID: <alpine.DEB.2.00.1206051737000.30737@utopia.booyaka.com>
-References: <alpine.DEB.2.00.1205251546160.25520@utopia.booyaka.com> <4FC4C4FA.1070403@ti.com> <alpine.DEB.2.00.1206051636080.30737@utopia.booyaka.com>
+From: Sebastian Reichel <sre@ring0.de>
+Subject: Re: New randconfig build failures in OMAP
+Date: Wed, 6 Jun 2012 03:25:33 +0200
+Message-ID: <20120606012533.GA13213@earth.universe>
+References: <20120605220214.GA29782@n2100.arm.linux.org.uk>
 Mime-Version: 1.0
-Content-Type: MULTIPART/MIXED; BOUNDARY="155748971-2028444165-1338941945=:30737"
+Content-Type: multipart/signed; micalg=pgp-sha256;
+	protocol="application/pgp-signature"; boundary="/9DWx/yDrRhgMJTb"
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from utopia.booyaka.com ([72.9.107.138]:58813 "EHLO
-	utopia.booyaka.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751134Ab2FFA2I (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 5 Jun 2012 20:28:08 -0400
-In-Reply-To: <alpine.DEB.2.00.1206051636080.30737@utopia.booyaka.com>
-Content-ID: <alpine.DEB.2.00.1206051822530.30737@utopia.booyaka.com>
+Received: from ring0.de ([91.143.88.219]:40348 "EHLO ring0.de"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751845Ab2FFBs7 (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Tue, 5 Jun 2012 21:48:59 -0400
+Content-Disposition: inline
+In-Reply-To: <20120605220214.GA29782@n2100.arm.linux.org.uk>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "Cousson, Benoit" <b-cousson@ti.com>
-Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, khilman@ti.com, Vaibhav Hiremath <hvaibhav@ti.com>, Tony Lindgren <tony@atomide.com>
+To: Russell King - ARM Linux <linux@arm.linux.org.uk>
+Cc: linux-omap@vger.kernel.org
 
-  This message is in MIME format.  The first part should be readable text,
-  while the remaining parts are likely unreadable without MIME-aware tools.
 
---155748971-2028444165-1338941945=:30737
-Content-Type: TEXT/PLAIN; CHARSET=ISO-8859-15
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Content-ID: <alpine.DEB.2.00.1206051822531.30737@utopia.booyaka.com>
+--/9DWx/yDrRhgMJTb
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
 
-Hello Beno=EEt
-
-On Tue, 5 Jun 2012, Paul Walmsley wrote:
-
-> On Tue, 29 May 2012, Cousson, Benoit wrote:
+On Tue, Jun 05, 2012 at 11:02:14PM +0100, Russell King - ARM Linux wrote:
+> arch/arm/mach-omap2/board-rx51-peripherals.c:147: error: implicit declara=
+tion of function 'OMAP_GPIO_IRQ'
+> arch/arm/mach-omap2/board-rx51-peripherals.c:147: error: initializer elem=
+ent is not constant
+> arch/arm/mach-omap2/board-rx51-peripherals.c:147: error: (near initializa=
+tion for 'rx51_lis3lv02d_data.irq2')
+> arch/arm/mach-omap2/board-rx51-peripherals.c:1033: error: initializer ele=
+ment is not constant
+> arch/arm/mach-omap2/board-rx51-peripherals.c:1033: error: (near initializ=
+ation for 'rx51_peripherals_i2c_board_info_3[0].irq')
 >=20
-> > So in fact, I'm wondering if a new flag is needed. We can potentially=
-=20
-> > apply that if idlemodes =3D=3D (SIDLE_FORCE | SIDLE_NO).
-> >=20
-> > We need to check which IP will have that to ensure that does not add=20
-> > any side-effects.
->=20
-> I guess that means me :-)
+> Again, a missing include?
 
-I looked at a few TRMs.  Based on that incomplete survey, the above=20
-behavior would probably work for existing chips.
+patch: http://www.spinics.net/lists/linux-omap/msg71169.html
 
-But it seems perverse to assume that it is generally safe to set an IP=20
-block to force-idle while it's being used.  That seems really dependent on=
-=20
-the IP block's integration.
+-- Sebastian
 
-So in terms of a general fix, the flag approach seems safest to me in the=
-=20
-long run.
+--/9DWx/yDrRhgMJTb
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: Digital signature
 
-The other advantage of using a flag is that it indicates that this is a=20
-hardware workaround; something that it would be nice to fix in future=20
-chips.
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.4.12 (GNU/Linux)
 
+iQIcBAEBCAAGBQJPzrGNAAoJENju1/PIO/qa2uQP/jLPnq+f/2JBFnH7OfxcWVnN
+eOjhYhKU025Cs4gg27Xqh7XMFzQ+hZd+sdQ89iz/vDou81tjii2Eh3UI0jB3HyVV
+rJ90MuhLQJLwEpi1Wd0Ipi3WLJHVLi0M6ZWfMtVlzKpQyuIBlpHou+rytX5v+E57
+BB0FVtSExvz+Lest7ZlgUUkEIVP9oiAA/Hr8AqsnDJOQ++H+how2+u+8VFNqjy9r
+35XDkq6AMFFfs9cpLjCHFvKLhmwrdStX7RSz4a9NB/8blCjnn/dhNjOay53NfR3v
+1yxJb35k8Y1b92qIu/ZrUSjIDUaVUkV+GHeTk1etGcWXNp8/kBLd8NYn7lZsKPC3
+rrzxAKR6DQ0paH4GPtgcgvuQDCtMlM3tWDyfrJXmAo+BBFjgmKaXzVI3EoZ5goL8
+izBeKVrK/UshdDdRXP+aFuMszZgyIdfkRIzd5cC3f3UvO+ctWPwmwJKSyX8xLNMo
+q4/we7XX+KJfwtBOxUPG1eHMAcmb6FzEVZXkDjY41GrQoto0jbb3MgERAzGfSZRh
+nmYELW17e7t4vqBZyh1DM6FgVJqMzd/BHiLMhQeh+BirqxDWewpUq/Sh7ppbvcK8
+0Q/mlU21uJBsG/pYsmnlDIYDMRZtBO0SM9/U0LMwuYt8uVnwiUzBZ/Py4vMoMMXd
+IxOYVnYeDrcO/8eRifkj
+=TRlD
+-----END PGP SIGNATURE-----
 
-- Paul
---155748971-2028444165-1338941945=:30737--
+--/9DWx/yDrRhgMJTb--
