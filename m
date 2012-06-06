@@ -1,99 +1,56 @@
-From: "Shilimkar, Santosh" <santosh.shilimkar@ti.com>
+From: Tony Lindgren <tony@atomide.com>
 Subject: Re: Please help! AM35xx mm/slab.c BUG
-Date: Wed, 6 Jun 2012 12:06:44 +0530
-Message-ID: <CAMQu2gw2bGNwot_xVPdAsYjZChzzNib2USg8Ci+W5aLbenPnqA@mail.gmail.com>
+Date: Wed, 6 Jun 2012 00:10:25 -0700
+Message-ID: <20120606071024.GP12766@atomide.com>
 References: <1338878255.13133.YahooMailNeo@web125205.mail.ne1.yahoo.com>
- <20120605070853.GE12766@atomide.com> <1338913755.88514.YahooMailNeo@web125201.mail.ne1.yahoo.com>
+ <20120605070853.GE12766@atomide.com>
+ <1338913755.88514.YahooMailNeo@web125201.mail.ne1.yahoo.com>
  <1338963298.87083.YahooMailNeo@web125204.mail.ne1.yahoo.com>
+ <CAMQu2gw2bGNwot_xVPdAsYjZChzzNib2USg8Ci+W5aLbenPnqA@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aog115.obsmtp.com ([74.125.149.238]:44721 "EHLO
-	na3sys009aog115.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751326Ab2FFGhG convert rfc822-to-8bit
-	(ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Wed, 6 Jun 2012 02:37:06 -0400
-Received: by qcsc21 with SMTP id c21so4089764qcs.21
-        for <linux-omap@vger.kernel.org>; Tue, 05 Jun 2012 23:37:04 -0700 (PDT)
-In-Reply-To: <1338963298.87083.YahooMailNeo@web125204.mail.ne1.yahoo.com>
+Received: from mho-01-ewr.mailhop.org ([204.13.248.71]:39360 "EHLO
+	mho-01-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754203Ab2FFHK2 (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 6 Jun 2012 03:10:28 -0400
+Content-Disposition: inline
+In-Reply-To: <CAMQu2gw2bGNwot_xVPdAsYjZChzzNib2USg8Ci+W5aLbenPnqA@mail.gmail.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: CF Adad <cfadad@rocketmail.com>
-Cc: Tony Lindgren <tony@atomide.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
+To: "Shilimkar, Santosh" <santosh.shilimkar@ti.com>
+Cc: CF Adad <cfadad@rocketmail.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
 
-On Wed, Jun 6, 2012 at 11:44 AM, CF Adad <cfadad@rocketmail.com> wrote:
-> All,
->
->
-> We've learned a few more things:
->
-> 1.) We have found a way to get it to happen pretty consistently.=A0 W=
-e simply run iperf in a loop using the EMAC port to some other device.
->
->
-> 2.) The crash ONLY happens on our custom board, not on the Twister de=
-v kit.=A0 This is true despite the fact that I ported our latest linux-=
-omap 3.4-rc6 over there.=A0 We're still running Technexion's default x-=
-loader and u-boot to handle proper configs on that board. So, that's a =
-substantial bit of code that is different between our boxes.=A0 The ker=
-nel is altered only in that the few pinmux changes I left in Linux have=
- been removed to avoid configuration differences between the two boards=
-=2E
->
->
-> This suggests that either:
-> A) We have a hardware problem on our board.=A0 Seems unlikely.=A0 Can=
- anyone think of anything hardware related that would manifest itself w=
-ith these sorts of errors?
->
->
-> B) We have a issue in our bootloader code somehwere.=A0 I hesitated t=
-o overwrite the bootloaders for this test on the Twister baseboard just=
- because I did not want to have to mess with getting the pinmux's and t=
-he like put back and such.
->
-> Presuming something in those bootloaders is our problem, I wonder wha=
-t EMAC-related stuff there really is.=A0 For a long time we ran with ou=
-r bootloaders NOT initializing either of the Eths.=A0 This was Technexi=
-on's default.=A0 They left that work to Linux.=A0 We've recently done w=
-ork to enable them in u-boot, but we were crashing like this long befor=
-e that.=A0 Once in Linux, we're just using the standard drivers and cal=
-ls from within the board file to SMSC911x and the Davinci EMAC drivers.=
-=A0 I am using the patches that allow the e-fused MAC to be pulled from=
- the AM35xx for the EMAC, but I can't see how that would cause this.
->
-> Assuming the EMAC is perhaps an innocent bystander that happens just =
-to cause this, the place I would have to suspect the most in our bootlo=
-aders would be the GPMC settings.=A0 We've done a good bit of tweaking =
-in there since we switched chips.=A0 *Could a GPMC timing issue account=
- for these types of errors???*=A0 The reason I bring it up is that the =
-GPMC has been one of those things that we've really struggled to unders=
-tand.=A0 What should the timings *really* be?=A0 We've done the best we=
- can to try to guess our way through it.=A0 BUT, we could certainly be =
-very wrong.=A0 If a GPMC setting could cause these types of bugs, pleas=
-e let me know.=A0 I'll be happy to post more info on how we're setting =
-that up now.=A0 In case not, I'll save the electrons and not spam it he=
-re.
->
->
-I don't know the AMXX architecture that well but looking at the
-crash-log, am not sure GPMC should play in role here.
-What I think is, it is mostly memory corruption and can be caused by
-many reasons as Tony outlined.
+* Shilimkar, Santosh <santosh.shilimkar@ti.com> [120605 23:41]:
+> 
+> I don't know the AMXX architecture that well but looking at the
+> crash-log, am not sure GPMC should play in role here.
+> What I think is, it is mostly memory corruption and can be caused by
+> many reasons as Tony outlined.
 
-To ensure that, your memory is in good state, can you run memtester
-for long duration and see that you
-are not getting any memory failures. Try to give the maximum memory
-size as a an input to memtester.
+Bad GPMC timings can cause corruption on the smsc fifo, which can
+cause random oopses especially with nfsroot.
 
-You can download one from [1]
+I was seeing that on my zoom3 with nfsroot with bad muxing for GPMC
+until we applied bce492c0 (ARM: OMAP2+: UART: Fix incorrect population of
+default uart pads). That's easy to test by leaving out GPMC.
+ 
+> To ensure that, your memory is in good state, can you run memtester
+> for long duration and see that you
+> are not getting any memory failures. Try to give the maximum memory
+> size as a an input to memtester.
 
-Regards
-Santosh
-[1] http://pyropus.ca/software/memtester/
---
-To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Yes and that should be left running for a few weeks on a group of
+devices to verify things work once you think you have all the issues
+fixed.
+
+Regards,
+
+Tony
+
+ 
+> You can download one from [1]
+> 
+> Regards
+> Santosh
+> [1] http://pyropus.ca/software/memtester/
