@@ -1,341 +1,111 @@
-From: Russell King <rmk+kernel@arm.linux.org.uk>
-Subject: [CFT 07/11] spi: omap2-mcspi: add DMA engine support
-Date: Thu, 07 Jun 2012 12:08:35 +0100
-Message-ID: <E1ScaZv-0003tz-6F@rmk-PC.arm.linux.org.uk>
-References: <20120607110610.GB15973@n2100.arm.linux.org.uk>
+From: Tony Lindgren <tony@atomide.com>
+Subject: Re: [PATCH 02/11] ARM: OMAP4+: AESS: enable internal auto-gating
+ during initial setup
+Date: Thu, 7 Jun 2012 04:08:44 -0700
+Message-ID: <20120607110843.GD12766@atomide.com>
+References: <20120607060901.25532.68354.stgit@dusk>
+ <20120607061306.25532.59488.stgit@dusk>
+ <20120607071900.GW12766@atomide.com>
+ <alpine.DEB.2.00.1206070121150.6684@utopia.booyaka.com>
+ <20120607074831.GY12766@atomide.com>
+ <alpine.DEB.2.00.1206070225430.6684@utopia.booyaka.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from caramon.arm.linux.org.uk ([78.32.30.218]:54320 "EHLO
-	caramon.arm.linux.org.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932260Ab2FGLIl (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 7 Jun 2012 07:08:41 -0400
-In-Reply-To: <20120607110610.GB15973@n2100.arm.linux.org.uk>
+Received: from mho-01-ewr.mailhop.org ([204.13.248.71]:48455 "EHLO
+	mho-01-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S932260Ab2FGLIr (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 7 Jun 2012 07:08:47 -0400
+Content-Disposition: inline
+In-Reply-To: <alpine.DEB.2.00.1206070225430.6684@utopia.booyaka.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org
-Cc: Grant Likely <grant.likely@secretlab.ca>, spi-devel-general@lists.sourceforge.net
+To: Paul Walmsley <paul@pwsan.com>
+Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, =?utf-8?B?UMOpdGVy?= Ujfalusi <peter.ujfalusi@ti.com>, =?utf-8?Q?Beno=C3=AEt?= Cousson <b-cousson@ti.com>
 
-Add DMA engine support to the OMAP SPI driver.  This supplements the
-private DMA API implementation contained within this driver, and the
-driver can be independently switched at build time between using DMA
-engine and the private DMA API for the transmit and receive sides.
+* Paul Walmsley <paul@pwsan.com> [120607 03:49]:
+> On Thu, 7 Jun 2012, Tony Lindgren wrote:
+> 
+> > OK so that's not too bad then. But there's also the 
+> > omap2_wd_timer_disable pre_shutdown too. And there's also the sysconfig 
+> > autoidle bit for each driver that we're tweaking in the bus level code?
+> 
+> I think I lost your point here.  The ioremap() issue is separate from the 
+> reset functions, etc., in my view.  Moving the reset functions out to 
+> drivers/ seems potentially more reasonable than dropping the ioremap().
+> 
+> > If we can remove the ioremapping and accessing driver registers in the 
+> > bus level code things get much simpler for the bus level code.
+> 
+> That's like saying if PCI Configuration Header handling were to be moved 
+> into the driver code, then the PCI bus-level code would be much simpler 
+> :-)
+> 
+> The hwmod code ioremaps the device registers to handle the 
+> integration-level registers at the beginning of the device's address 
+> space.  These registers can be thought of as part of the PRCM, not part of 
+> the IP block.  It would have been better if TI had put these integration 
+> registers in a separate address space like PCI does.  But we are stuck 
+> with the existing hardware design.  The integration registers also differ 
+> from chip to chip even with the same underlying IP block, see for example 
+> the 32k sync timer.
 
-Tested-by: Shubhrajyoti <shubhrajyoti@ti.com>
-Acked-by: Grant Likely <grant.likely@secretlab.ca>
-Signed-off-by: Russell King <rmk+kernel@arm.linux.org.uk>
----
- drivers/spi/spi-omap2-mcspi.c |  183 +++++++++++++++++++++++++++++++++-------
- 1 files changed, 151 insertions(+), 32 deletions(-)
+Yes having these registers in the device address space sucks.
+ 
+> The main reasons why these integration registers are handled now in common 
+> code are:
+> 
+> 1. to avoid duplicating integration code between lots of different drivers 
+>    that is unrelated to the driver itself, such as bus-level reset
+> 
+> 2. to ensure consistency of the OCP registers with the rest of the PM
+>    state
+> 
+> 3. to avoid callbacks into drivers that might otherwise be needed for 
+>    bitfields like CLOCKACTIVITY 
+> 
+> 4. to make it easier to debug integration problems with drivers
 
-diff --git a/drivers/spi/spi-omap2-mcspi.c b/drivers/spi/spi-omap2-mcspi.c
-index 46ef5fe..ca016df 100644
---- a/drivers/spi/spi-omap2-mcspi.c
-+++ b/drivers/spi/spi-omap2-mcspi.c
-@@ -20,6 +20,8 @@
-  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
-  *
-  */
-+#define USE_DMA_ENGINE_RX
-+#define USE_DMA_ENGINE_TX
+Sure that all makes sense.
  
- #include <linux/kernel.h>
- #include <linux/init.h>
-@@ -28,6 +30,8 @@
- #include <linux/device.h>
- #include <linux/delay.h>
- #include <linux/dma-mapping.h>
-+#include <linux/dmaengine.h>
-+#include <linux/omap-dma.h>
- #include <linux/platform_device.h>
- #include <linux/err.h>
- #include <linux/clk.h>
-@@ -93,6 +97,8 @@
- 
- /* We have 2 DMA channels per CS, one for RX and one for TX */
- struct omap2_mcspi_dma {
-+	struct dma_chan *dma_tx;
-+	struct dma_chan *dma_rx;
- 	int dma_tx_channel;
- 	int dma_rx_channel;
- 
-@@ -300,6 +306,30 @@ static int mcspi_wait_for_reg_bit(void __iomem *reg, unsigned long bit)
- 	return 0;
- }
- 
-+static void omap2_mcspi_rx_callback(void *data)
-+{
-+	struct spi_device *spi = data;
-+	struct omap2_mcspi *mcspi = spi_master_get_devdata(spi->master);
-+	struct omap2_mcspi_dma *mcspi_dma = &mcspi->dma_channels[spi->chip_select];
-+
-+	complete(&mcspi_dma->dma_rx_completion);
-+
-+	/* We must disable the DMA RX request */
-+	omap2_mcspi_set_dma_req(spi, 1, 0);
-+}
-+
-+static void omap2_mcspi_tx_callback(void *data)
-+{
-+	struct spi_device *spi = data;
-+	struct omap2_mcspi *mcspi = spi_master_get_devdata(spi->master);
-+	struct omap2_mcspi_dma *mcspi_dma = &mcspi->dma_channels[spi->chip_select];
-+
-+	complete(&mcspi_dma->dma_tx_completion);
-+
-+	/* We must disable the DMA TX request */
-+	omap2_mcspi_set_dma_req(spi, 0, 0);
-+}
-+
- static unsigned
- omap2_mcspi_txrx_dma(struct spi_device *spi, struct spi_transfer *xfer)
- {
-@@ -314,6 +344,9 @@ omap2_mcspi_txrx_dma(struct spi_device *spi, struct spi_transfer *xfer)
- 	u8			* rx;
- 	const u8		* tx;
- 	void __iomem		*chstat_reg;
-+	struct dma_slave_config	cfg;
-+	enum dma_slave_buswidth width;
-+	unsigned es;
- 
- 	mcspi = spi_master_get_devdata(spi->master);
- 	mcspi_dma = &mcspi->dma_channels[spi->chip_select];
-@@ -321,6 +354,71 @@ omap2_mcspi_txrx_dma(struct spi_device *spi, struct spi_transfer *xfer)
- 
- 	chstat_reg = cs->base + OMAP2_MCSPI_CHSTAT0;
- 
-+	if (cs->word_len <= 8) {
-+		width = DMA_SLAVE_BUSWIDTH_1_BYTE;
-+		es = 1;
-+	} else if (cs->word_len <= 16) {
-+		width = DMA_SLAVE_BUSWIDTH_2_BYTES;
-+		es = 2;
-+	} else {
-+		width = DMA_SLAVE_BUSWIDTH_4_BYTES;
-+		es = 4;
-+	}
-+
-+	memset(&cfg, 0, sizeof(cfg));
-+	cfg.src_addr = cs->phys + OMAP2_MCSPI_RX0;
-+	cfg.dst_addr = cs->phys + OMAP2_MCSPI_TX0;
-+	cfg.src_addr_width = width;
-+	cfg.dst_addr_width = width;
-+	cfg.src_maxburst = 1;
-+	cfg.dst_maxburst = 1;
-+
-+	if (xfer->tx_buf && mcspi_dma->dma_tx) {
-+		struct dma_async_tx_descriptor *tx;
-+		struct scatterlist sg;
-+
-+		dmaengine_slave_config(mcspi_dma->dma_tx, &cfg);
-+
-+		sg_init_table(&sg, 1);
-+		sg_dma_address(&sg) = xfer->tx_dma;
-+		sg_dma_len(&sg) = xfer->len;
-+
-+		tx = dmaengine_prep_slave_sg(mcspi_dma->dma_tx, &sg, 1,
-+			DMA_MEM_TO_DEV, DMA_PREP_INTERRUPT | DMA_CTRL_ACK);
-+		if (tx) {
-+			tx->callback = omap2_mcspi_tx_callback;
-+			tx->callback_param = spi;
-+			dmaengine_submit(tx);
-+		} else {
-+			/* FIXME: fall back to PIO? */
-+		}
-+	}
-+
-+	if (xfer->rx_buf && mcspi_dma->dma_rx) {
-+		struct dma_async_tx_descriptor *tx;
-+		struct scatterlist sg;
-+		size_t len = xfer->len - es;
-+
-+		dmaengine_slave_config(mcspi_dma->dma_rx, &cfg);
-+
-+		if (l & OMAP2_MCSPI_CHCONF_TURBO)
-+			len -= es;
-+
-+		sg_init_table(&sg, 1);
-+		sg_dma_address(&sg) = xfer->rx_dma;
-+		sg_dma_len(&sg) = len;
-+
-+		tx = dmaengine_prep_slave_sg(mcspi_dma->dma_rx, &sg, 1,
-+			DMA_DEV_TO_MEM, DMA_PREP_INTERRUPT | DMA_CTRL_ACK);
-+		if (tx) {
-+			tx->callback = omap2_mcspi_rx_callback;
-+			tx->callback_param = spi;
-+			dmaengine_submit(tx);
-+		} else {
-+			/* FIXME: fall back to PIO? */
-+		}
-+	}
-+
- 	count = xfer->len;
- 	c = count;
- 	word_len = cs->word_len;
-@@ -342,7 +440,7 @@ omap2_mcspi_txrx_dma(struct spi_device *spi, struct spi_transfer *xfer)
- 		element_count = count >> 2;
- 	}
- 
--	if (tx != NULL) {
-+	if (tx != NULL && mcspi_dma->dma_tx_channel != -1) {
- 		omap_set_dma_transfer_params(mcspi_dma->dma_tx_channel,
- 				data_type, element_count, 1,
- 				OMAP_DMA_SYNC_ELEMENT,
-@@ -357,7 +455,7 @@ omap2_mcspi_txrx_dma(struct spi_device *spi, struct spi_transfer *xfer)
- 				xfer->tx_dma, 0, 0);
- 	}
- 
--	if (rx != NULL) {
-+	if (rx != NULL && mcspi_dma->dma_rx_channel != -1) {
- 		elements = element_count - 1;
- 		if (l & OMAP2_MCSPI_CHCONF_TURBO)
- 			elements--;
-@@ -377,12 +475,18 @@ omap2_mcspi_txrx_dma(struct spi_device *spi, struct spi_transfer *xfer)
- 	}
- 
- 	if (tx != NULL) {
--		omap_start_dma(mcspi_dma->dma_tx_channel);
-+		if (mcspi_dma->dma_tx)
-+			dma_async_issue_pending(mcspi_dma->dma_tx);
-+		else
-+			omap_start_dma(mcspi_dma->dma_tx_channel);
- 		omap2_mcspi_set_dma_req(spi, 0, 1);
- 	}
- 
- 	if (rx != NULL) {
--		omap_start_dma(mcspi_dma->dma_rx_channel);
-+		if (mcspi_dma->dma_rx)
-+			dma_async_issue_pending(mcspi_dma->dma_rx);
-+		else
-+			omap_start_dma(mcspi_dma->dma_rx_channel);
- 		omap2_mcspi_set_dma_req(spi, 1, 1);
- 	}
- 
-@@ -406,7 +510,10 @@ omap2_mcspi_txrx_dma(struct spi_device *spi, struct spi_transfer *xfer)
- 		dma_unmap_single(&spi->dev, xfer->rx_dma, count, DMA_FROM_DEVICE);
- 		omap2_mcspi_set_enable(spi, 0);
- 
-+		elements = element_count - 1;
-+
- 		if (l & OMAP2_MCSPI_CHCONF_TURBO) {
-+			elements--;
- 
- 			if (likely(mcspi_read_cs_reg(spi, OMAP2_MCSPI_CHSTAT0)
- 				   & OMAP2_MCSPI_CHSTAT_RXS)) {
-@@ -725,32 +832,12 @@ static int omap2_mcspi_setup_transfer(struct spi_device *spi,
- 
- static void omap2_mcspi_dma_rx_callback(int lch, u16 ch_status, void *data)
- {
--	struct spi_device	*spi = data;
--	struct omap2_mcspi	*mcspi;
--	struct omap2_mcspi_dma	*mcspi_dma;
--
--	mcspi = spi_master_get_devdata(spi->master);
--	mcspi_dma = &(mcspi->dma_channels[spi->chip_select]);
--
--	complete(&mcspi_dma->dma_rx_completion);
--
--	/* We must disable the DMA RX request */
--	omap2_mcspi_set_dma_req(spi, 1, 0);
-+	omap2_mcspi_rx_callback(data);
- }
- 
- static void omap2_mcspi_dma_tx_callback(int lch, u16 ch_status, void *data)
- {
--	struct spi_device	*spi = data;
--	struct omap2_mcspi	*mcspi;
--	struct omap2_mcspi_dma	*mcspi_dma;
--
--	mcspi = spi_master_get_devdata(spi->master);
--	mcspi_dma = &(mcspi->dma_channels[spi->chip_select]);
--
--	complete(&mcspi_dma->dma_tx_completion);
--
--	/* We must disable the DMA TX request */
--	omap2_mcspi_set_dma_req(spi, 0, 0);
-+	omap2_mcspi_tx_callback(data);
- }
- 
- static int omap2_mcspi_request_dma(struct spi_device *spi)
-@@ -758,17 +845,43 @@ static int omap2_mcspi_request_dma(struct spi_device *spi)
- 	struct spi_master	*master = spi->master;
- 	struct omap2_mcspi	*mcspi;
- 	struct omap2_mcspi_dma	*mcspi_dma;
-+	dma_cap_mask_t mask;
-+	unsigned sig;
- 
- 	mcspi = spi_master_get_devdata(master);
- 	mcspi_dma = mcspi->dma_channels + spi->chip_select;
- 
-+	init_completion(&mcspi_dma->dma_rx_completion);
-+	init_completion(&mcspi_dma->dma_tx_completion);
-+
-+	dma_cap_zero(mask);
-+	dma_cap_set(DMA_SLAVE, mask);
-+#ifdef USE_DMA_ENGINE_RX
-+	sig = mcspi_dma->dma_rx_sync_dev;
-+	mcspi_dma->dma_rx = dma_request_channel(mask, omap_dma_filter_fn, &sig);
-+	if (!mcspi_dma->dma_rx) {
-+		dev_err(&spi->dev, "no RX DMA engine channel for McSPI\n");
-+		return -EAGAIN;
-+	}
-+#else
- 	if (omap_request_dma(mcspi_dma->dma_rx_sync_dev, "McSPI RX",
- 			omap2_mcspi_dma_rx_callback, spi,
- 			&mcspi_dma->dma_rx_channel)) {
- 		dev_err(&spi->dev, "no RX DMA channel for McSPI\n");
- 		return -EAGAIN;
- 	}
-+#endif
- 
-+#ifdef USE_DMA_ENGINE_TX
-+	sig = mcspi_dma->dma_tx_sync_dev;
-+	mcspi_dma->dma_tx = dma_request_channel(mask, omap_dma_filter_fn, &sig);
-+	if (!mcspi_dma->dma_tx) {
-+		dev_err(&spi->dev, "no TX DMA engine channel for McSPI\n");
-+		dma_release_channel(mcspi_dma->dma_rx);
-+		mcspi_dma->dma_rx = NULL;
-+		return -EAGAIN;
-+	}
-+#else
- 	if (omap_request_dma(mcspi_dma->dma_tx_sync_dev, "McSPI TX",
- 			omap2_mcspi_dma_tx_callback, spi,
- 			&mcspi_dma->dma_tx_channel)) {
-@@ -777,9 +890,7 @@ static int omap2_mcspi_request_dma(struct spi_device *spi)
- 		dev_err(&spi->dev, "no TX DMA channel for McSPI\n");
- 		return -EAGAIN;
- 	}
--
--	init_completion(&mcspi_dma->dma_rx_completion);
--	init_completion(&mcspi_dma->dma_tx_completion);
-+#endif
- 
- 	return 0;
- }
-@@ -812,8 +923,8 @@ static int omap2_mcspi_setup(struct spi_device *spi)
- 		list_add_tail(&cs->node, &ctx->cs);
- 	}
- 
--	if (mcspi_dma->dma_rx_channel == -1
--			|| mcspi_dma->dma_tx_channel == -1) {
-+	if ((!mcspi_dma->dma_rx && mcspi_dma->dma_rx_channel == -1) ||
-+	    (!mcspi_dma->dma_tx && mcspi_dma->dma_tx_channel == -1)) {
- 		ret = omap2_mcspi_request_dma(spi);
- 		if (ret < 0)
- 			return ret;
-@@ -847,6 +958,14 @@ static void omap2_mcspi_cleanup(struct spi_device *spi)
- 	if (spi->chip_select < spi->master->num_chipselect) {
- 		mcspi_dma = &mcspi->dma_channels[spi->chip_select];
- 
-+		if (mcspi_dma->dma_rx) {
-+			dma_release_channel(mcspi_dma->dma_rx);
-+			mcspi_dma->dma_rx = NULL;
-+		}
-+		if (mcspi_dma->dma_tx) {
-+			dma_release_channel(mcspi_dma->dma_tx);
-+			mcspi_dma->dma_tx = NULL;
-+		}
- 		if (mcspi_dma->dma_rx_channel != -1) {
- 			omap_free_dma(mcspi_dma->dma_rx_channel);
- 			mcspi_dma->dma_rx_channel = -1;
--- 
-1.7.4.4
+> If we don't handle those registers in common code, the number of SoC 
+> integration workarounds that need to be placed into the drivers will 
+> increase.  For example, when OMAP4 added the smart-idle-with-wakeup and 
+> smart-standby-with-wakeup OCP idle modes, only a couple of files needed to 
+> be changed.  If those integration-level details were still in the drivers, 
+> a large number of files would need to be changed.  And $DEITY help us if 
+> the code sequence for dealing with those bits were to ever change in the 
+> future - we'd need to change a bunch of drivers, rather than just one or 
+> two files.  Also some people are going to need to audit the driver code 
+> from an integration level pretty carefully for PM to work consistently.
+> 
+> I suppose one option, if we were to have a real omap_device, would be to 
+> define callbacks for each driver to implement that would read and write 
+> the OCP header registers.  Then the omap_bus code could call those 
+> callbacks to handle the OCP register accesses, when called from the 
+> driver's PM runtime calls.  Adds another layer of indirection, but would 
+> localize IP block register accesses to the IP block's driver.
 
+Yes there may be some way to deal with this cleanly while keeping the
+driver registers in the drivers. Maybe inline functions in the driver
+headers that hwmod code could include would be enough here.
+ 
+> ...
+> 
+> As far as the reset and preconfiguration aspects of the hwmod code go, 
+> they just happen to be possible since we're doing the ioremap anyway.  It 
+> can be ensured that no matter what drivers are present, or what the 
+> bootloader or previous OS did or didn't do, a minimal kernel should behave 
+> predictably.
+> 
+> It seems like it might be reasonable to move these to some built-in driver 
+> shim layer as you suggest in your other E-mail.  But that is assuming that 
+> it can be made to work without needless layers of indirection.  I don't 
+> know of any driver that does this now.  Maybe you know of one?
+
+Yes good point, see the suggestion on the driver header inline functions
+in the other email I just sent.
+
+Regards,
+
+Tony
