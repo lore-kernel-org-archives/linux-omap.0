@@ -1,82 +1,89 @@
 From: Paul Walmsley <paul@pwsan.com>
-Subject: [PATCH 11/11] ARM: OMAP4: hwmod data: do not enable or reset the
- McPDM during kernel init
-Date: Thu, 07 Jun 2012 00:13:15 -0600
-Message-ID: <20120607061314.25532.93570.stgit@dusk>
+Subject: [PATCH 10/11] ARM: OMAP2+: hwmod: add flag to prevent hwmod code
+ from touching IP block during init
+Date: Thu, 07 Jun 2012 00:13:14 -0600
+Message-ID: <20120607061314.25532.40563.stgit@dusk>
 References: <20120607060901.25532.68354.stgit@dusk>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=utf-8
 Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from utopia.booyaka.com ([72.9.107.138]:60907 "EHLO
+Received: from utopia.booyaka.com ([72.9.107.138]:60904 "EHLO
 	utopia.booyaka.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1760108Ab2FGGVj (ORCPT
+	with ESMTP id S1760107Ab2FGGVj (ORCPT
 	<rfc822;linux-omap@vger.kernel.org>); Thu, 7 Jun 2012 02:21:39 -0400
 In-Reply-To: <20120607060901.25532.68354.stgit@dusk>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
-Cc: =?utf-8?b?UMOpdGVy?= Ujfalusi <peter.ujfalusi@ti.com>, =?utf-8?q?Beno=C3=AEt?= Cousson <b-cousson@ti.com>
+Cc: =?utf-8?q?Beno=C3=AEt?= Cousson <b-cousson@ti.com>
 
-Resolve this kernel boot message:
+Add HWMOD_EXT_OPT_MAIN_CLK flag to indicate that this IP block is
+dependent on an off-chip functional clock that is not guaranteed to be
+present during initialization.  IP blocks marked with this flag are
+left in the INITIALIZED state during kernel init.
 
-omap_hwmod: mcpdm: cannot be enabled for reset (3)
+This is a workaround for a hardware problem.  It should be possible to
+guarantee that at least one clock source will be present and active
+for any IP block's main functional clock.  This ensures that the hwmod
+code can enable and reset the IP block.  Resetting the IP block during
+kernel init prevents any bogus bootloader, ROM code, or previous OS
+configuration from affecting the kernel.  Hopefully a clock
+multiplexer can be added on future SoCs.
 
-It appears that the McPDM on OMAP4 can only receive its functional
-clock from an off-chip source.  This source is not guaranteed to be
-present on the board, and when present, it is controlled by I2C.  This
-would introduce a board dependency to the early hwmod code which it
-was not designed to handle.  Also, neither the driver for this
-off-chip clock provider nor the I2C code is available early in boot
-when the hwmod code is attempting to enable and reset IP blocks.  This
-effectively makes it impossible to enable and reset this device during
-hwmod init.
-
-At its core, this patch is a workaround for an OMAP hardware problem.
-It should be possible to configure the OMAP to provide any IP block's
-functional clock from an on-chip source.  (This is true for almost
-every IP block on the chip.  As far as I know, McPDM is the only
-exception.)  If the kernel cannot reset and configure IP blocks, it
-cannot guarantee a sane SoC state.  Relying on an optional off-chip
-clock also creates a board dependency which is beyond the scope of the
-early hwmod code.
-
-This patch works around the issue by marking the McPDM hwmod record
-with the HWMOD_UNKNOWN_MAIN_FCLK_STATE flag.  This prevents the hwmod
-code from touching the device early during boot.
+N.B., at some point in the future, it should be possible to query the
+clock framework for this type of information.  Then this flag should
+no longer be needed.
 
 Signed-off-by: Paul Walmsley <paul@pwsan.com>
-Cc: P=C3=A9ter Ujfalusi <peter.ujfalusi@ti.com>
 Cc: Beno=C3=AEt Cousson <b-cousson@ti.com>
 ---
- arch/arm/mach-omap2/omap_hwmod_44xx_data.c |   12 ++++++++++++
- 1 file changed, 12 insertions(+)
+ arch/arm/mach-omap2/omap_hwmod.c             |    3 +++
+ arch/arm/plat-omap/include/plat/omap_hwmod.h |    6 ++++++
+ 2 files changed, 9 insertions(+)
 
-diff --git a/arch/arm/mach-omap2/omap_hwmod_44xx_data.c b/arch/arm/mach=
--omap2/omap_hwmod_44xx_data.c
-index 20e45a6..cc1310a 100644
---- a/arch/arm/mach-omap2/omap_hwmod_44xx_data.c
-+++ b/arch/arm/mach-omap2/omap_hwmod_44xx_data.c
-@@ -2090,6 +2090,18 @@ static struct omap_hwmod omap44xx_mcpdm_hwmod =3D=
- {
- 	.name		=3D "mcpdm",
- 	.class		=3D &omap44xx_mcpdm_hwmod_class,
- 	.clkdm_name	=3D "abe_clkdm",
-+	/*
-+	 * It's suspected that the McPDM requires an off-chip main
-+	 * functional clock, controlled via I2C.  This IP block is
-+	 * currently reset very early during boot, before I2C is
-+	 * available, so it doesn't seem that we have any choice in
-+	 * the kernel other than to avoid resetting it.  XXX This is
-+	 * really a hardware issue workaround: every IP block should
-+	 * be able to source its main functional clock from either
-+	 * on-chip or off-chip sources.  McPDM seems to be the only
-+	 * current exception.
-+	 */
-+	.flags		=3D HWMOD_EXT_OPT_MAIN_CLK,
- 	.mpu_irqs	=3D omap44xx_mcpdm_irqs,
- 	.sdma_reqs	=3D omap44xx_mcpdm_sdma_reqs,
- 	.main_clk	=3D "mcpdm_fck",
+diff --git a/arch/arm/mach-omap2/omap_hwmod.c b/arch/arm/mach-omap2/oma=
+p_hwmod.c
+index d3afac5..c8655c0 100644
+--- a/arch/arm/mach-omap2/omap_hwmod.c
++++ b/arch/arm/mach-omap2/omap_hwmod.c
+@@ -2155,6 +2155,9 @@ static int __init _setup_reset(struct omap_hwmod =
+*oh)
+ 	if (oh->_state !=3D _HWMOD_STATE_INITIALIZED)
+ 		return -EINVAL;
+=20
++	if (oh->flags & HWMOD_EXT_OPT_MAIN_CLK)
++		return -EPERM;
++
+ 	if (oh->rst_lines_cnt =3D=3D 0) {
+ 		r =3D _enable(oh);
+ 		if (r) {
+diff --git a/arch/arm/plat-omap/include/plat/omap_hwmod.h b/arch/arm/pl=
+at-omap/include/plat/omap_hwmod.h
+index fdc4b2a..d117931 100644
+--- a/arch/arm/plat-omap/include/plat/omap_hwmod.h
++++ b/arch/arm/plat-omap/include/plat/omap_hwmod.h
+@@ -409,6 +409,11 @@ struct omap_hwmod_omap4_prcm {
+  *     in order to complete the reset. Optional clocks will be disable=
+d
+  *     again after the reset.
+  * HWMOD_16BIT_REG: Module has 16bit registers
++ * HWMOD_EXT_OPT_MAIN_CLK: The only main functional clock source for
++ *     this IP block comes from an off-chip source and is not always
++ *     enabled.  This prevents the hwmod code from being able to
++ *     enable and reset the IP block early.  XXX Eventually it should
++ *     be possible to query the clock framework for this information.
+  */
+ #define HWMOD_SWSUP_SIDLE			(1 << 0)
+ #define HWMOD_SWSUP_MSTANDBY			(1 << 1)
+@@ -419,6 +424,7 @@ struct omap_hwmod_omap4_prcm {
+ #define HWMOD_NO_IDLEST				(1 << 6)
+ #define HWMOD_CONTROL_OPT_CLKS_IN_RESET		(1 << 7)
+ #define HWMOD_16BIT_REG				(1 << 8)
++#define HWMOD_EXT_OPT_MAIN_CLK			(1 << 9)
+=20
+ /*
+  * omap_hwmod._int_flags definitions
 
 
 --
