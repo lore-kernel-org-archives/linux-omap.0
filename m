@@ -1,14 +1,14 @@
 From: Jon Hunter <jon-hunter@ti.com>
 Subject: [PATCH 0/2] arm/dts: Add OMAP2420 SDP support
-Date: Thu, 7 Jun 2012 17:05:36 -0500
-Message-ID: <1339106736-9894-1-git-send-email-jon-hunter@ti.com>
+Date: Thu, 7 Jun 2012 17:06:51 -0500
+Message-ID: <1339106813-9962-1-git-send-email-jon-hunter@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from devils.ext.ti.com ([198.47.26.153]:58880 "EHLO
+Received: from devils.ext.ti.com ([198.47.26.153]:58947 "EHLO
 	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S933030Ab2FGWFq (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 7 Jun 2012 18:05:46 -0400
+	with ESMTP id S933030Ab2FGWGy (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 7 Jun 2012 18:06:54 -0400
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: device-tree <devicetree-discuss@lists.ozlabs.org>, linux-omap <linux-omap@vger.kernel.org>, linux-arm <linux-arm-kernel@lists.infradead.org>
