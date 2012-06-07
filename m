@@ -1,34 +1,65 @@
 From: Jon Hunter <jon-hunter@ti.com>
-Subject: [PATCH V2 0/2] arm/dts: Add OMAP2420 SDP support
-Date: Thu, 7 Jun 2012 17:11:04 -0500
-Message-ID: <1339107066-10461-1-git-send-email-jon-hunter@ti.com>
+Subject: [RFC] ARM: OMAP4470: Fix OMAP4470 boot failure
+Date: Thu, 7 Jun 2012 18:00:48 -0500
+Message-ID: <1339110048-13677-1-git-send-email-jon-hunter@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from bear.ext.ti.com ([192.94.94.41]:51850 "EHLO bear.ext.ti.com"
+Received: from bear.ext.ti.com ([192.94.94.41]:53839 "EHLO bear.ext.ti.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S933090Ab2FGWLL (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Thu, 7 Jun 2012 18:11:11 -0400
+	id S1755392Ab2FGXAq (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Thu, 7 Jun 2012 19:00:46 -0400
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: device-tree <devicetree-discuss@lists.ozlabs.org>, linux-omap <linux-omap@vger.kernel.org>, linux-arm <linux-arm-kernel@lists.infradead.org>
-Cc: Jon Hunter <jon-hunter@ti.com>
+To: Benoit Cousson <b-cousson@ti.com>, Paul Walmsley <paul@pwsan.com>, Rajendra Nayak <rnayak@ti.com>
+Cc: linux-omap <linux-omap@vger.kernel.org>, Jon Hunter <jon-hunter@ti.com>
 
-This series fixes the OMAP2 interrupt controller binding and adds support for
-the OMAP2420 SDP board. I have verified that the kernel boots with device-tree
-on this board.
+OMAP4470 currently fails to boot, printing various messages such as ...
 
-This series is based upon the linux-omap master branch (3.5-rc1).
+omap_hwmod: mpu: cannot clk_get main_clk dpll_mpu_m2_ck
+omap_hwmod: mpu: cannot _init_clocks
+------------[ cut here ]------------
+WARNING: at arch/arm/mach-omap2/omap_hwmod.c:2062 _init+0x2a0/0x2e4()
+omap_hwmod: mpu: couldn't init clocks
+Modules linked in:
+[<c001c7fc>] (unwind_backtrace+0x0/0xf4) from [<c0043c64>] (warn_slowpath_common+0x4c/0x64)
+[<c0043c64>] (warn_slowpath_common+0x4c/0x64) from [<c0043d10>] (warn_slowpath_fmt+0x30/0x40)
+[<c0043d10>] (warn_slowpath_fmt+0x30/0x40) from [<c0674208>] (_init+0x2a0/0x2e4)
+[<c0674208>] (_init+0x2a0/0x2e4) from [<c067428c>] (omap_hwmod_setup_one+0x40/0x60)
+[<c067428c>] (omap_hwmod_setup_one+0x40/0x60) from [<c0674280>] (omap_hwmod_setup_one+0x34/0x60)
+[<c0674280>] (omap_hwmod_setup_one+0x34/0x60) from [<c06726f4>] (omap_dm_timer_init_one+0x30/0x250)
+[<c06726f4>] (omap_dm_timer_init_one+0x30/0x250) from [<c0672930>] (omap2_gp_clockevent_init+0x1c/0x108)
+[<c0672930>] (omap2_gp_clockevent_init+0x1c/0x108) from [<c0672c60>] (omap4_timer_init+0x10/0x5c)
+[<c0672c60>] (omap4_timer_init+0x10/0x5c) from [<c066c418>] (time_init+0x20/0x30)
+[<c066c418>] (time_init+0x20/0x30) from [<c0668814>] (start_kernel+0x1b0/0x304)
+[<c0668814>] (start_kernel+0x1b0/0x304) from [<80008044>] (0x80008044)
+---[ end trace 1b75b31a2719ed1c ]---
 
-Jon Hunter (2):
-  arm/dts: OMAP2: Add support for OMAP2420 SDP
-  arm/dts: OMAP2: Fix interrupt controller binding
+The problem is that currently none of the clocks are being registered for
+OMAP4470 devices and so on boot-up no clocks can be found and the kernel panics.
 
- arch/arm/boot/dts/omap2.dtsi       |    2 ++
- arch/arm/boot/dts/omap2420-sdp.dts |   20 ++++++++++++++++++++
- 2 files changed, 22 insertions(+)
- create mode 100644 arch/arm/boot/dts/omap2420-sdp.dts
+This fix always the kernel to boot without failure using a simple RAMDISK file
+system. However, I need some inputs from the clock guru's if this is the
+correct fix :-)
 
+Signed-off-by: Jon Hunter <jon-hunter@ti.com>
+---
+ arch/arm/mach-omap2/clock44xx_data.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/arch/arm/mach-omap2/clock44xx_data.c b/arch/arm/mach-omap2/clock44xx_data.c
+index 2172f66..19275e8 100644
+--- a/arch/arm/mach-omap2/clock44xx_data.c
++++ b/arch/arm/mach-omap2/clock44xx_data.c
+@@ -3412,7 +3412,7 @@ int __init omap4xxx_clk_init(void)
+ 	if (cpu_is_omap443x()) {
+ 		cpu_mask = RATE_IN_4430;
+ 		cpu_clkflg = CK_443X;
+-	} else if (cpu_is_omap446x()) {
++	} else if (cpu_is_omap446x() || cpu_is_omap447x()) {
+ 		cpu_mask = RATE_IN_4460 | RATE_IN_4430;
+ 		cpu_clkflg = CK_446X | CK_443X;
+ 	} else {
 -- 
 1.7.9.5
 
