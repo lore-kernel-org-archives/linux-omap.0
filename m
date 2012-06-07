@@ -1,58 +1,102 @@
-From: "Cousson, Benoit" <b-cousson@ti.com>
-Subject: Re: [PATCH 04/11] ARM: OMAP2+: usb_host_fs: add custom reset for
- usb_host_fs (fsusb)
-Date: Thu, 7 Jun 2012 14:30:50 +0200
-Message-ID: <4FD09EFA.20304@ti.com>
-References: <20120607060901.25532.68354.stgit@dusk> <20120607061308.25532.19767.stgit@dusk> <20120607073112.GX12766@atomide.com> <alpine.DEB.2.00.1206070136550.6684@utopia.booyaka.com> <20120607075158.GZ12766@atomide.com> <20120607075541.GF16342@arwen.pp.htv.fi> <4FD0602B.9070704@ti.com> <alpine.DEB.2.00.1206070446070.6684@utopia.booyaka.com>
+From: "S, Venkatraman" <svenkatr@ti.com>
+Subject: Re: [CFT 01/11] dmaengine: add OMAP DMA engine driver
+Date: Thu, 7 Jun 2012 18:10:45 +0530
+Message-ID: <CANfBPZ_q97M4k8c8+7rBOpuBv99gfzNA1Q-SLesGP8c0AayBpw@mail.gmail.com>
+References: <20120607110610.GB15973@n2100.arm.linux.org.uk> <E1ScaXw-0003tR-U8@rmk-PC.arm.linux.org.uk>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="ISO-8859-1"; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from bear.ext.ti.com ([192.94.94.41]:46795 "EHLO bear.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751800Ab2FGMa7 (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Thu, 7 Jun 2012 08:30:59 -0400
-In-Reply-To: <alpine.DEB.2.00.1206070446070.6684@utopia.booyaka.com>
+Received: from na3sys009aog136.obsmtp.com ([74.125.149.85]:48650 "EHLO
+	na3sys009aog136.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1754682Ab2FGMlI convert rfc822-to-8bit
+	(ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Thu, 7 Jun 2012 08:41:08 -0400
+Received: by bkcjg15 with SMTP id jg15so500966bkc.10
+        for <linux-omap@vger.kernel.org>; Thu, 07 Jun 2012 05:41:05 -0700 (PDT)
+In-Reply-To: <E1ScaXw-0003tR-U8@rmk-PC.arm.linux.org.uk>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Paul Walmsley <paul@pwsan.com>
-Cc: balbi@ti.com, Tony Lindgren <tony@atomide.com>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Tero Kristo <t-kristo@ti.com>, Ohad Ben-Cohen <ohad@wizery.com>
+To: Russell King <rmk+kernel@arm.linux.org.uk>
+Cc: linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org, Dan Williams <dan.j.williams@intel.com>, Vinod Koul <vinod.koul@intel.com>
 
-+ Ohad
-
-On 6/7/2012 12:52 PM, Paul Walmsley wrote:
-> On Thu, 7 Jun 2012, Cousson, Benoit wrote:
+On Thu, Jun 7, 2012 at 4:36 PM, Russell King
+<rmk+kernel@arm.linux.org.uk> wrote:
+> Tested-by: Tony Lindgren <tony@atomide.com>
+> Signed-off-by: Russell King <rmk+kernel@arm.linux.org.uk>
+> ---
+> =A0drivers/dma/Kconfig =A0 =A0 =A0| =A0 =A06 +
+> =A0drivers/dma/Makefile =A0 =A0 | =A0 =A01 +
+> =A0drivers/dma/omap-dma.c =A0 | =A0522 ++++++++++++++++++++++++++++++=
+++++++++++++++++
+> =A0include/linux/omap-dma.h | =A0 24 ++
+> =A04 files changed, 553 insertions(+), 0 deletions(-)
+> =A0create mode 100644 drivers/dma/omap-dma.c
+> =A0create mode 100644 include/linux/omap-dma.h
 >
->> In fact we should delay the reset to the very last moment and
->> potentially reset the IPs not under driver control later after a couple
->> of second for example. It will avoid reseting every IP that will be
->> handled properly by drivers.
+> diff --git a/drivers/dma/Kconfig b/drivers/dma/Kconfig
+> index eb2b60e..8be3bf6 100644
+> --- a/drivers/dma/Kconfig
+> +++ b/drivers/dma/Kconfig
+> @@ -261,6 +261,12 @@ config DMA_SA11X0
+> =A0 =A0 =A0 =A0 =A0SA-1110 SoCs. =A0This DMA engine can only be used =
+with on-chip
+> =A0 =A0 =A0 =A0 =A0devices.
 >
-> We discussed this a couple of years ago on the list and aligned on late
-> and lazy resets, from my recollection.
-
-Indeed, what I did not mention is that potentially the whole device init 
-should be done ondemand as well. Meaning the whole hwmod setup phase 
-should be done only when the driver will probe the device.
-
-> The main reason why it wasn't
-> implemented was because there were some drivers that were not yet PM
-> runtime-converted.  This would have caused crashes, since the core code
-> would have no idea that the non-PM-runtime drivers had initialized their
-> devices, and so the core just went ahead and reset those anyway.
+> +config DMA_OMAP
+> + =A0 =A0 =A0 tristate "OMAP DMA support"
+> + =A0 =A0 =A0 depends on ARCH_OMAP
+> + =A0 =A0 =A0 select DMA_ENGINE
+> + =A0 =A0 =A0 select DMA_VIRTUAL_CHANNELS
+> +
+> =A0config DMA_ENGINE
+> =A0 =A0 =A0 =A0bool
 >
-> It might actually be safe now to switch to the late reset arrangement,
-> depending on whether the rest of the drivers have been PM
-> runtime-converted by now.
->
-> Of course, it would all be moot if the reset is moved away from the hwmod
-> code into the drivers.
+> diff --git a/drivers/dma/Makefile b/drivers/dma/Makefile
+> index fc05f7d..ddc291a 100644
+> --- a/drivers/dma/Makefile
+> +++ b/drivers/dma/Makefile
+> @@ -29,3 +29,4 @@ obj-$(CONFIG_PCH_DMA) +=3D pch_dma.o
+> =A0obj-$(CONFIG_AMBA_PL08X) +=3D amba-pl08x.o
+> =A0obj-$(CONFIG_EP93XX_DMA) +=3D ep93xx_dma.o
+> =A0obj-$(CONFIG_DMA_SA11X0) +=3D sa11x0-dma.o
+> +obj-$(CONFIG_DMA_OMAP) +=3D omap-dma.o
+> diff --git a/drivers/dma/omap-dma.c b/drivers/dma/omap-dma.c
+> new file mode 100644
+> index 0000000..500bc71
+> --- /dev/null
+> +++ b/drivers/dma/omap-dma.c
+> @@ -0,0 +1,522 @@
+> +/*
+> + * OMAP DMAengine support
+> + *
+> + * This program is free software; you can redistribute it and/or mod=
+ify
+> + * it under the terms of the GNU General Public License version 2 as
+> + * published by the Free Software Foundation.
+> + */
+> +#include <linux/dmaengine.h>
+> +#include <linux/dma-mapping.h>
+> +#include <linux/err.h>
+> +#include <linux/init.h>
+> +#include <linux/interrupt.h>
+> +#include <linux/list.h>
+> +#include <linux/module.h>
+> +#include <linux/omap-dma.h>
+> +#include <linux/platform_device.h>
+> +#include <linux/slab.h>
+> +#include <linux/spinlock.h>
+> +
+> +#include "virt-dma.h"
+Russell,
+  I applied your entire series on 3.5-rc1 and build fails as it can't
+find virt-dma.h
+Perhaps a missed "git add" ?
 
-I do think that moving that to driver code seems much better since all 
-these customs reset code (I2C, DSS, USB...) does anyway require access 
-to the device itself. The is driver responsibility to do that.
-
-So ideally it should not be in OMAP architecture code.
-
-Regards,
-Benoit
+> +#include <plat/dma.h>
+> +
+--
+To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
