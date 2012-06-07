@@ -1,69 +1,46 @@
 From: Paul Walmsley <paul@pwsan.com>
-Subject: [PATCH 03/11] ARM: OMAP4: hwmod data: add SL2IF hardreset line
-Date: Thu, 07 Jun 2012 00:13:08 -0600
-Message-ID: <20120607061307.25532.1727.stgit@dusk>
+Subject: [PATCH 06/11] ARM: OMAP4+: hwmod: fix issue causing IPs not going
+ back to Smart-Standby
+Date: Thu, 07 Jun 2012 00:13:11 -0600
+Message-ID: <20120607061310.25532.60352.stgit@dusk>
 References: <20120607060901.25532.68354.stgit@dusk>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from utopia.booyaka.com ([72.9.107.138]:60875 "EHLO
+Received: from utopia.booyaka.com ([72.9.107.138]:60889 "EHLO
 	utopia.booyaka.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1759983Ab2FGGVh (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 7 Jun 2012 02:21:37 -0400
+	with ESMTP id S1759846Ab2FGGVi (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 7 Jun 2012 02:21:38 -0400
 In-Reply-To: <20120607060901.25532.68354.stgit@dusk>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
-Cc: Tero Kristo <t-kristo@ti.com>
+Cc: Djamil Elaidi <d-elaidi@ti.com>
 
-On boot, the sl2if module can't be enabled.  The following message is
-logged:
+From: Djamil Elaidi <d-elaidi@ti.com>
 
-omap_hwmod: sl2if: cannot be enabled for reset (3)
+If an IP is configured in Smart-Standby-Wakeup, when disabling wakeup feature the
+IP will not go back to Smart-Standby, but will remain in Smart-Standby-Wakeup.
 
-This is probably because the SL2IF is still being held in hardreset.
-The SL2IF's hardreset line is shared with one of the IVAHD's hardreset
-lines; see for example Table 3-536 "RM_IVAHD_RSTCTRL" in the OMAP4430
-TRM Rev. AA (SWPU231AA).  To work around this, add the SL2IF's
-hardreset line to the hwmod data.  This is correct from a hardware
-perspective and also will prevent the hwmod from attempting to enable
-the SL2IF during reset.  The driver for this IP block will need to
-handle its integration until the appropriate way to handle the IVAHD
-integration can be elucidated.
-
+Signed-off-by: Djamil Elaidi <d-elaidi@ti.com>
 Signed-off-by: Paul Walmsley <paul@pwsan.com>
-Cc: Tero Kristo <t-kristo@ti.com>
 ---
- arch/arm/mach-omap2/omap_hwmod_44xx_data.c |    7 +++++++
- 1 file changed, 7 insertions(+)
+ arch/arm/mach-omap2/omap_hwmod.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff --git a/arch/arm/mach-omap2/omap_hwmod_44xx_data.c b/arch/arm/mach-omap2/omap_hwmod_44xx_data.c
-index 4a2f2cc..a93ce48 100644
---- a/arch/arm/mach-omap2/omap_hwmod_44xx_data.c
-+++ b/arch/arm/mach-omap2/omap_hwmod_44xx_data.c
-@@ -2597,15 +2597,22 @@ static struct omap_hwmod_class omap44xx_sl2if_hwmod_class = {
- 	.name	= "sl2if",
- };
+diff --git a/arch/arm/mach-omap2/omap_hwmod.c b/arch/arm/mach-omap2/omap_hwmod.c
+index 6b4ae31..d3afac5 100644
+--- a/arch/arm/mach-omap2/omap_hwmod.c
++++ b/arch/arm/mach-omap2/omap_hwmod.c
+@@ -530,7 +530,7 @@ static int _disable_wakeup(struct omap_hwmod *oh, u32 *v)
+ 	if (oh->class->sysc->idlemodes & SIDLE_SMART_WKUP)
+ 		_set_slave_idlemode(oh, HWMOD_IDLEMODE_SMART, v);
+ 	if (oh->class->sysc->idlemodes & MSTANDBY_SMART_WKUP)
+-		_set_master_standbymode(oh, HWMOD_IDLEMODE_SMART_WKUP, v);
++		_set_master_standbymode(oh, HWMOD_IDLEMODE_SMART, v);
  
-+static struct omap_hwmod_rst_info omap44xx_sl2if_resets[] = {
-+	{ .name = "logic", .rst_shift = 2 },
-+};
-+
- /* sl2if */
- static struct omap_hwmod omap44xx_sl2if_hwmod = {
- 	.name		= "sl2if",
- 	.class		= &omap44xx_sl2if_hwmod_class,
- 	.clkdm_name	= "ivahd_clkdm",
-+	.rst_lines	= omap44xx_sl2if_resets,
-+	.rst_lines_cnt	= ARRAY_SIZE(omap44xx_sl2if_resets),
- 	.prcm = {
- 		.omap4 = {
- 			.clkctrl_offs = OMAP4_CM_IVAHD_SL2_CLKCTRL_OFFSET,
- 			.context_offs = OMAP4_RM_IVAHD_SL2_CONTEXT_OFFSET,
-+			.rstctrl_offs = OMAP4_RM_IVAHD_RSTCTRL_OFFSET,
- 			.modulemode   = MODULEMODE_HWCTRL,
- 		},
- 	},
+ 	/* XXX test pwrdm_get_wken for this hwmod's subsystem */
+ 
 
 
