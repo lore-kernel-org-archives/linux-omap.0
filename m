@@ -1,399 +1,233 @@
 From: Russell King <rmk+kernel@arm.linux.org.uk>
-Subject: [CFT 23/31] dmaengine: PL08x: rejig physical channel allocation
-Date: Thu, 07 Jun 2012 11:53:30 +0100
-Message-ID: <E1ScaLK-0003ls-7u@rmk-PC.arm.linux.org.uk>
+Subject: [CFT 24/31] dmaengine: PL08x: convert to use virt-dma structs
+Date: Thu, 07 Jun 2012 11:53:50 +0100
+Message-ID: <E1ScaLe-0003lw-C3@rmk-PC.arm.linux.org.uk>
 References: <20120607104527.GA15973@n2100.arm.linux.org.uk>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from caramon.arm.linux.org.uk ([78.32.30.218]:54245 "EHLO
+Received: from caramon.arm.linux.org.uk ([78.32.30.218]:54249 "EHLO
 	caramon.arm.linux.org.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1760603Ab2FGKxg (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 7 Jun 2012 06:53:36 -0400
+	with ESMTP id S932200Ab2FGKx4 (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 7 Jun 2012 06:53:56 -0400
 In-Reply-To: <20120607104527.GA15973@n2100.arm.linux.org.uk>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org
 Cc: Dan Williams <dan.j.williams@intel.com>, Vinod Koul <vinod.koul@intel.com>
 
-Rework the physical channel allocation mechanism to only allocate
-physical channels to virtual channels when they're about to be used.
-This eliminates all the complexity with holding channels while
-descriptors are being prepared, which is completely unnecessary.
-
-This also brings this driver to a state where the generic virtual DMA
-code can be used with this driver, and opens up the possibility of
-properly scheduling and prioritorising physical DMA channels to
-virtual DMA channels.
+Convert PL08x to use the virt-dma structures.
 
 Acked-by: Linus Walleij <linus.walleij@linaro.org>
 Signed-off-by: Russell King <rmk+kernel@arm.linux.org.uk>
 ---
- drivers/dma/amba-pl08x.c |  268 +++++++++++++++++++---------------------------
- 1 files changed, 112 insertions(+), 156 deletions(-)
+ drivers/dma/amba-pl08x.c |   57 +++++++++++++++++++++++----------------------
+ 1 files changed, 29 insertions(+), 28 deletions(-)
 
 diff --git a/drivers/dma/amba-pl08x.c b/drivers/dma/amba-pl08x.c
-index 30b6921..bbae30c 100644
+index bbae30c..9a06428 100644
 --- a/drivers/dma/amba-pl08x.c
 +++ b/drivers/dma/amba-pl08x.c
-@@ -210,8 +210,6 @@ enum pl08x_dma_chan_state {
+@@ -86,6 +86,7 @@
+ #include <asm/hardware/pl080.h>
+ 
+ #include "dmaengine.h"
++#include "virt-dma.h"
+ 
+ #define DRIVER_NAME	"pl08xdmac"
+ 
+@@ -165,7 +166,7 @@ struct pl08x_sg {
+ 
+ /**
+  * struct pl08x_txd - wrapper for struct dma_async_tx_descriptor
+- * @tx: async tx descriptor
++ * @vd: virtual DMA descriptor
+  * @node: node for txd list for channels
+  * @dsg_list: list of children sg's
+  * @llis_bus: DMA memory address (physical) start for the LLIs
+@@ -174,7 +175,7 @@ struct pl08x_sg {
+  * @ccfg: config reg values for current txd
+  */
+ struct pl08x_txd {
+-	struct dma_async_tx_descriptor tx;
++	struct virt_dma_desc vd;
+ 	struct list_head node;
+ 	struct list_head dsg_list;
+ 	dma_addr_t llis_bus;
+@@ -208,7 +209,7 @@ enum pl08x_dma_chan_state {
+ 
+ /**
   * struct pl08x_dma_chan - this structure wraps a DMA ENGINE channel
-  * @chan: wrappped abstract channel
+- * @chan: wrappped abstract channel
++ * @vc: wrappped virtual channel
   * @phychan: the physical channel utilized by this channel, if there is one
-- * @phychan_hold: if non-zero, hold on to the physical channel even if we
-- * have no pending entries
   * @tasklet: tasklet scheduled by the IRQ to handle actual work etc
   * @name: name of channel
-  * @cd: channel platform data
-@@ -230,7 +228,6 @@ enum pl08x_dma_chan_state {
+@@ -226,7 +227,7 @@ enum pl08x_dma_chan_state {
+  * @mux_use: count of descriptors using this DMA request signal setting
+  */
  struct pl08x_dma_chan {
- 	struct dma_chan chan;
+-	struct dma_chan chan;
++	struct virt_dma_chan vc;
  	struct pl08x_phy_chan *phychan;
--	int phychan_hold;
  	struct tasklet_struct tasklet;
  	const char *name;
- 	const struct pl08x_channel_data *cd;
-@@ -587,19 +584,111 @@ pl08x_get_phy_channel(struct pl08x_driver_data *pl08x,
- 	return ch;
+@@ -287,12 +288,12 @@ struct pl08x_driver_data {
+ 
+ static inline struct pl08x_dma_chan *to_pl08x_chan(struct dma_chan *chan)
+ {
+-	return container_of(chan, struct pl08x_dma_chan, chan);
++	return container_of(chan, struct pl08x_dma_chan, vc.chan);
  }
  
-+/* Mark the physical channel as free.  Note, this write is atomic. */
- static inline void pl08x_put_phy_channel(struct pl08x_driver_data *pl08x,
- 					 struct pl08x_phy_chan *ch)
+ static inline struct pl08x_txd *to_pl08x_txd(struct dma_async_tx_descriptor *tx)
  {
--	unsigned long flags;
-+	ch->serving = NULL;
-+}
- 
--	spin_lock_irqsave(&ch->lock, flags);
-+/*
-+ * Try to allocate a physical channel.  When successful, assign it to
-+ * this virtual channel, and initiate the next descriptor.  The
-+ * virtual channel lock must be held at this point.
-+ */
-+static void pl08x_phy_alloc_and_start(struct pl08x_dma_chan *plchan)
-+{
-+	struct pl08x_driver_data *pl08x = plchan->host;
-+	struct pl08x_phy_chan *ch;
- 
--	/* Stop the channel and clear its interrupts */
--	pl08x_terminate_phy_chan(pl08x, ch);
-+	ch = pl08x_get_phy_channel(pl08x, plchan);
-+	if (!ch) {
-+		dev_dbg(&pl08x->adev->dev, "no physical channel available for xfer on %s\n", plchan->name);
-+		plchan->state = PL08X_CHAN_WAITING;
-+		return;
-+	}
- 
--	/* Mark it as free */
--	ch->serving = NULL;
--	spin_unlock_irqrestore(&ch->lock, flags);
-+	dev_dbg(&pl08x->adev->dev, "allocated physical channel %d for xfer on %s\n",
-+		ch->id, plchan->name);
-+
-+	plchan->phychan = ch;
-+	plchan->state = PL08X_CHAN_RUNNING;
-+	pl08x_start_next_txd(plchan);
-+}
-+
-+static void pl08x_phy_reassign_start(struct pl08x_phy_chan *ch,
-+	struct pl08x_dma_chan *plchan)
-+{
-+	struct pl08x_driver_data *pl08x = plchan->host;
-+
-+	dev_dbg(&pl08x->adev->dev, "reassigned physical channel %d for xfer on %s\n",
-+		ch->id, plchan->name);
-+
-+	/*
-+	 * We do this without taking the lock; we're really only concerned
-+	 * about whether this pointer is NULL or not, and we're guaranteed
-+	 * that this will only be called when it _already_ is non-NULL.
-+	 */
-+	ch->serving = plchan;
-+	plchan->phychan = ch;
-+	plchan->state = PL08X_CHAN_RUNNING;
-+	pl08x_start_next_txd(plchan);
-+}
-+
-+/*
-+ * Free a physical DMA channel, potentially reallocating it to another
-+ * virtual channel if we have any pending.
-+ */
-+static void pl08x_phy_free(struct pl08x_dma_chan *plchan)
-+{
-+	struct pl08x_driver_data *pl08x = plchan->host;
-+	struct pl08x_dma_chan *p, *next;
-+
-+ retry:
-+	next = NULL;
-+
-+	/* Find a waiting virtual channel for the next transfer. */
-+	list_for_each_entry(p, &pl08x->memcpy.channels, chan.device_node)
-+		if (p->state == PL08X_CHAN_WAITING) {
-+			next = p;
-+			break;
-+		}
-+
-+	if (!next) {
-+		list_for_each_entry(p, &pl08x->slave.channels, chan.device_node)
-+			if (p->state == PL08X_CHAN_WAITING) {
-+				next = p;
-+				break;
-+			}
-+	}
-+
-+	/* Ensure that the physical channel is stopped */
-+	pl08x_terminate_phy_chan(pl08x, plchan->phychan);
-+
-+	if (next) {
-+		bool success;
-+
-+		/*
-+		 * Eww.  We know this isn't going to deadlock
-+		 * but lockdep probably doesn't.
-+		 */
-+		spin_lock(&next->lock);
-+		/* Re-check the state now that we have the lock */
-+		success = next->state == PL08X_CHAN_WAITING;
-+		if (success)
-+			pl08x_phy_reassign_start(plchan->phychan, next);
-+		spin_unlock(&next->lock);
-+
-+		/* If the state changed, try to find another channel */
-+		if (!success)
-+			goto retry;
-+	} else {
-+		/* No more jobs, so free up the physical channel */
-+		pl08x_put_phy_channel(pl08x, plchan->phychan);
-+	}
-+
-+	plchan->phychan = NULL;
-+	plchan->state = PL08X_CHAN_IDLE;
+-	return container_of(tx, struct pl08x_txd, tx);
++	return container_of(tx, struct pl08x_txd, vd.tx);
  }
  
  /*
-@@ -1028,45 +1117,6 @@ static void pl08x_free_chan_resources(struct dma_chan *chan)
- {
- }
+@@ -648,14 +649,14 @@ static void pl08x_phy_free(struct pl08x_dma_chan *plchan)
+ 	next = NULL;
  
--/*
-- * This should be called with the channel plchan->lock held
-- */
--static int prep_phy_channel(struct pl08x_dma_chan *plchan)
--{
--	struct pl08x_driver_data *pl08x = plchan->host;
--	struct pl08x_phy_chan *ch;
--
--	/* Check if we already have a channel */
--	if (plchan->phychan) {
--		ch = plchan->phychan;
--		goto got_channel;
--	}
--
--	ch = pl08x_get_phy_channel(pl08x, plchan);
--	if (!ch) {
--		/* No physical channel available, cope with it */
--		dev_dbg(&pl08x->adev->dev, "no physical channel available for xfer on %s\n", plchan->name);
--		return -EBUSY;
--	}
--
--	plchan->phychan = ch;
--	dev_dbg(&pl08x->adev->dev, "allocated physical channel %d for xfer on %s\n",
--		 ch->id, plchan->name);
--
--got_channel:
--	plchan->phychan_hold++;
--
--	return 0;
--}
--
--static void release_phy_channel(struct pl08x_dma_chan *plchan)
--{
--	struct pl08x_driver_data *pl08x = plchan->host;
--
--	pl08x_put_phy_channel(pl08x, plchan->phychan);
--	plchan->phychan = NULL;
--}
--
- static dma_cookie_t pl08x_tx_submit(struct dma_async_tx_descriptor *tx)
- {
- 	struct pl08x_dma_chan *plchan = to_pl08x_chan(tx->chan);
-@@ -1079,19 +1129,6 @@ static dma_cookie_t pl08x_tx_submit(struct dma_async_tx_descriptor *tx)
- 
- 	/* Put this onto the pending list */
- 	list_add_tail(&txd->node, &plchan->pend_list);
--
--	/*
--	 * If there was no physical channel available for this memcpy,
--	 * stack the request up and indicate that the channel is waiting
--	 * for a free physical channel.
--	 */
--	if (!plchan->slave && !plchan->phychan) {
--		/* Do this memcpy whenever there is a channel ready */
--		plchan->state = PL08X_CHAN_WAITING;
--	} else {
--		plchan->phychan_hold--;
--	}
--
- 	spin_unlock_irqrestore(&plchan->lock, flags);
- 
- 	return cookie;
-@@ -1282,19 +1319,10 @@ static void pl08x_issue_pending(struct dma_chan *chan)
- 
- 	spin_lock_irqsave(&plchan->lock, flags);
- 	list_splice_tail_init(&plchan->pend_list, &plchan->issued_list);
--
--	/* Something is already active, or we're waiting for a channel... */
--	if (plchan->at || plchan->state == PL08X_CHAN_WAITING) {
--		spin_unlock_irqrestore(&plchan->lock, flags);
--		return;
--	}
--
--	/* Take the first element in the queue and execute it */
- 	if (!list_empty(&plchan->issued_list)) {
--		plchan->state = PL08X_CHAN_RUNNING;
--		pl08x_start_next_txd(plchan);
-+		if (!plchan->phychan && plchan->state != PL08X_CHAN_WAITING)
-+			pl08x_phy_alloc_and_start(plchan);
- 	}
--
- 	spin_unlock_irqrestore(&plchan->lock, flags);
- }
- 
-@@ -1302,48 +1330,18 @@ static int pl08x_prep_channel_resources(struct pl08x_dma_chan *plchan,
- 					struct pl08x_txd *txd)
- {
- 	struct pl08x_driver_data *pl08x = plchan->host;
--	unsigned long flags;
--	int num_llis, ret;
-+	int num_llis;
- 
- 	num_llis = pl08x_fill_llis_for_desc(pl08x, txd);
- 	if (!num_llis) {
-+		unsigned long flags;
-+
- 		spin_lock_irqsave(&plchan->lock, flags);
- 		pl08x_free_txd(pl08x, txd);
- 		spin_unlock_irqrestore(&plchan->lock, flags);
-+
- 		return -EINVAL;
- 	}
--
--	spin_lock_irqsave(&plchan->lock, flags);
--
--	/*
--	 * See if we already have a physical channel allocated,
--	 * else this is the time to try to get one.
--	 */
--	ret = prep_phy_channel(plchan);
--	if (ret) {
--		/*
--		 * No physical channel was available.
--		 *
--		 * memcpy transfers can be sorted out at submission time.
--		 */
--		if (plchan->slave) {
--			pl08x_free_txd_list(pl08x, plchan);
--			pl08x_free_txd(pl08x, txd);
--			spin_unlock_irqrestore(&plchan->lock, flags);
--			return -EBUSY;
--		}
--	} else
--		/*
--		 * Else we're all set, paused and ready to roll, status
--		 * will switch to PL08X_CHAN_RUNNING when we call
--		 * issue_pending(). If there is something running on the
--		 * channel already we don't change its state.
--		 */
--		if (plchan->state == PL08X_CHAN_IDLE)
--			plchan->state = PL08X_CHAN_PAUSED;
--
--	spin_unlock_irqrestore(&plchan->lock, flags);
--
- 	return 0;
- }
- 
-@@ -1563,14 +1561,11 @@ static int pl08x_control(struct dma_chan *chan, enum dma_ctrl_cmd cmd,
- 		plchan->state = PL08X_CHAN_IDLE;
- 
- 		if (plchan->phychan) {
--			pl08x_terminate_phy_chan(pl08x, plchan->phychan);
--
- 			/*
- 			 * Mark physical channel as free and free any slave
- 			 * signal
- 			 */
--			release_phy_channel(plchan);
--			plchan->phychan_hold = 0;
-+			pl08x_phy_free(plchan);
+ 	/* Find a waiting virtual channel for the next transfer. */
+-	list_for_each_entry(p, &pl08x->memcpy.channels, chan.device_node)
++	list_for_each_entry(p, &pl08x->memcpy.channels, vc.chan.device_node)
+ 		if (p->state == PL08X_CHAN_WAITING) {
+ 			next = p;
+ 			break;
  		}
- 		/* Dequeue jobs and free LLIs */
- 		if (plchan->at) {
-@@ -1670,50 +1665,6 @@ static void pl08x_tasklet(unsigned long data)
  
- 	spin_lock_irqsave(&plchan->lock, flags);
- 	list_splice_tail_init(&plchan->done_list, &head);
--
--	if (plchan->at || !list_empty(&plchan->pend_list) || plchan->phychan_hold) {
--		/*
--		 * This channel is still in use - we have a new txd being
--		 * prepared and will soon be queued.  Don't give up the
--		 * physical channel.
--		 */
--	} else {
--		struct pl08x_dma_chan *waiting = NULL;
--
--		/*
--		 * No more jobs, so free up the physical channel
--		 */
--		release_phy_channel(plchan);
--		plchan->state = PL08X_CHAN_IDLE;
--
--		/*
--		 * And NOW before anyone else can grab that free:d up
--		 * physical channel, see if there is some memcpy pending
--		 * that seriously needs to start because of being stacked
--		 * up while we were choking the physical channels with data.
--		 */
--		list_for_each_entry(waiting, &pl08x->memcpy.channels,
--				    chan.device_node) {
--			if (waiting->state == PL08X_CHAN_WAITING) {
--				int ret;
--
--				/* This should REALLY not fail now */
--				ret = prep_phy_channel(waiting);
--				BUG_ON(ret);
--				waiting->phychan_hold--;
--				waiting->state = PL08X_CHAN_RUNNING;
--				/*
--				 * Eww.  We know this isn't going to deadlock
--				 * but lockdep probably doens't.
--				 */
--				spin_lock(&waiting->lock);
--				pl08x_start_next_txd(waiting);
--				spin_unlock(&waiting->lock);
--				break;
--			}
--		}
--	}
--
- 	spin_unlock_irqrestore(&plchan->lock, flags);
+ 	if (!next) {
+-		list_for_each_entry(p, &pl08x->slave.channels, chan.device_node)
++		list_for_each_entry(p, &pl08x->slave.channels, vc.chan.device_node)
+ 			if (p->state == PL08X_CHAN_WAITING) {
+ 				next = p;
+ 				break;
+@@ -1351,9 +1352,9 @@ static struct pl08x_txd *pl08x_get_txd(struct pl08x_dma_chan *plchan,
+ 	struct pl08x_txd *txd = kzalloc(sizeof(*txd), GFP_NOWAIT);
  
+ 	if (txd) {
+-		dma_async_tx_descriptor_init(&txd->tx, &plchan->chan);
+-		txd->tx.flags = flags;
+-		txd->tx.tx_submit = pl08x_tx_submit;
++		dma_async_tx_descriptor_init(&txd->vd.tx, &plchan->vc.chan);
++		txd->vd.tx.flags = flags;
++		txd->vd.tx.tx_submit = pl08x_tx_submit;
+ 		INIT_LIST_HEAD(&txd->node);
+ 		INIT_LIST_HEAD(&txd->dsg_list);
+ 
+@@ -1413,7 +1414,7 @@ static struct dma_async_tx_descriptor *pl08x_prep_dma_memcpy(
+ 	if (ret)
+ 		return NULL;
+ 
+-	return &txd->tx;
++	return &txd->vd.tx;
+ }
+ 
+ static struct dma_async_tx_descriptor *pl08x_prep_slave_sg(
+@@ -1529,7 +1530,7 @@ static struct dma_async_tx_descriptor *pl08x_prep_slave_sg(
+ 	if (ret)
+ 		return NULL;
+ 
+-	return &txd->tx;
++	return &txd->vd.tx;
+ }
+ 
+ static int pl08x_control(struct dma_chan *chan, enum dma_ctrl_cmd cmd,
+@@ -1630,11 +1631,11 @@ static void pl08x_ensure_on(struct pl08x_driver_data *pl08x)
+ 
+ static void pl08x_unmap_buffers(struct pl08x_txd *txd)
+ {
+-	struct device *dev = txd->tx.chan->device->dev;
++	struct device *dev = txd->vd.tx.chan->device->dev;
+ 	struct pl08x_sg *dsg;
+ 
+-	if (!(txd->tx.flags & DMA_COMPL_SKIP_SRC_UNMAP)) {
+-		if (txd->tx.flags & DMA_COMPL_SRC_UNMAP_SINGLE)
++	if (!(txd->vd.tx.flags & DMA_COMPL_SKIP_SRC_UNMAP)) {
++		if (txd->vd.tx.flags & DMA_COMPL_SRC_UNMAP_SINGLE)
+ 			list_for_each_entry(dsg, &txd->dsg_list, node)
+ 				dma_unmap_single(dev, dsg->src_addr, dsg->len,
+ 						DMA_TO_DEVICE);
+@@ -1644,8 +1645,8 @@ static void pl08x_unmap_buffers(struct pl08x_txd *txd)
+ 						DMA_TO_DEVICE);
+ 		}
+ 	}
+-	if (!(txd->tx.flags & DMA_COMPL_SKIP_DEST_UNMAP)) {
+-		if (txd->tx.flags & DMA_COMPL_DEST_UNMAP_SINGLE)
++	if (!(txd->vd.tx.flags & DMA_COMPL_SKIP_DEST_UNMAP)) {
++		if (txd->vd.tx.flags & DMA_COMPL_DEST_UNMAP_SINGLE)
+ 			list_for_each_entry(dsg, &txd->dsg_list, node)
+ 				dma_unmap_single(dev, dsg->dst_addr, dsg->len,
+ 						DMA_FROM_DEVICE);
+@@ -1670,8 +1671,8 @@ static void pl08x_tasklet(unsigned long data)
  	while (!list_empty(&head)) {
-@@ -1784,9 +1735,14 @@ static irqreturn_t pl08x_irq(int irq, void *dev)
- 				dma_cookie_complete(&tx->tx);
+ 		struct pl08x_txd *txd = list_first_entry(&head,
+ 						struct pl08x_txd, node);
+-		dma_async_tx_callback callback = txd->tx.callback;
+-		void *callback_param = txd->tx.callback_param;
++		dma_async_tx_callback callback = txd->vd.tx.callback;
++		void *callback_param = txd->vd.tx.callback_param;
+ 
+ 		list_del(&txd->node);
+ 
+@@ -1732,7 +1733,7 @@ static irqreturn_t pl08x_irq(int irq, void *dev)
+ 				 * reservation.
+ 				 */
+ 				pl08x_release_mux(plchan);
+-				dma_cookie_complete(&tx->tx);
++				dma_cookie_complete(&tx->vd.tx);
  				list_add_tail(&tx->node, &plchan->done_list);
  
--				/* And start the next descriptor */
-+				/*
-+				 * And start the next descriptor (if any),
-+				 * otherwise free this channel.
-+				 */
- 				if (!list_empty(&plchan->issued_list))
- 					pl08x_start_next_txd(plchan);
-+				else
-+					pl08x_phy_free(plchan);
- 			}
- 			spin_unlock(&plchan->lock);
+ 				/*
+@@ -1807,8 +1808,8 @@ static int pl08x_dma_init_virtual_channels(struct pl08x_driver_data *pl08x,
+ 			 "initialize virtual channel \"%s\"\n",
+ 			 chan->name);
  
+-		chan->chan.device = dmadev;
+-		dma_cookie_init(&chan->chan);
++		chan->vc.chan.device = dmadev;
++		dma_cookie_init(&chan->vc.chan);
+ 
+ 		spin_lock_init(&chan->lock);
+ 		INIT_LIST_HEAD(&chan->pend_list);
+@@ -1817,7 +1818,7 @@ static int pl08x_dma_init_virtual_channels(struct pl08x_driver_data *pl08x,
+ 		tasklet_init(&chan->tasklet, pl08x_tasklet,
+ 			     (unsigned long) chan);
+ 
+-		list_add_tail(&chan->chan.device_node, &dmadev->channels);
++		list_add_tail(&chan->vc.chan.device_node, &dmadev->channels);
+ 	}
+ 	dev_info(&pl08x->adev->dev, "initialized %d virtual %s channels\n",
+ 		 i, slave ? "slave" : "memcpy");
+@@ -1830,8 +1831,8 @@ static void pl08x_free_virtual_channels(struct dma_device *dmadev)
+ 	struct pl08x_dma_chan *next;
+ 
+ 	list_for_each_entry_safe(chan,
+-				 next, &dmadev->channels, chan.device_node) {
+-		list_del(&chan->chan.device_node);
++				 next, &dmadev->channels, vc.chan.device_node) {
++		list_del(&chan->vc.chan.device_node);
+ 		kfree(chan);
+ 	}
+ }
+@@ -1884,7 +1885,7 @@ static int pl08x_debugfs_show(struct seq_file *s, void *data)
+ 	seq_printf(s, "\nPL08x virtual memcpy channels:\n");
+ 	seq_printf(s, "CHANNEL:\tSTATE:\n");
+ 	seq_printf(s, "--------\t------\n");
+-	list_for_each_entry(chan, &pl08x->memcpy.channels, chan.device_node) {
++	list_for_each_entry(chan, &pl08x->memcpy.channels, vc.chan.device_node) {
+ 		seq_printf(s, "%s\t\t%s\n", chan->name,
+ 			   pl08x_state_str(chan->state));
+ 	}
+@@ -1892,7 +1893,7 @@ static int pl08x_debugfs_show(struct seq_file *s, void *data)
+ 	seq_printf(s, "\nPL08x virtual slave channels:\n");
+ 	seq_printf(s, "CHANNEL:\tSTATE:\n");
+ 	seq_printf(s, "--------\t------\n");
+-	list_for_each_entry(chan, &pl08x->slave.channels, chan.device_node) {
++	list_for_each_entry(chan, &pl08x->slave.channels, vc.chan.device_node) {
+ 		seq_printf(s, "%s\t\t%s\n", chan->name,
+ 			   pl08x_state_str(chan->state));
+ 	}
 -- 
 1.7.4.4
 
