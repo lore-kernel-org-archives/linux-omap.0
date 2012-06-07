@@ -1,244 +1,195 @@
 From: Russell King <rmk+kernel@arm.linux.org.uk>
-Subject: [CFT 08/11] spi: omap2-mcspi: remove private DMA API implementation
-Date: Thu, 07 Jun 2012 12:08:55 +0100
-Message-ID: <E1ScaaF-0003u3-K0@rmk-PC.arm.linux.org.uk>
+Subject: [CFT 09/11] mtd: omap2: add DMA engine support
+Date: Thu, 07 Jun 2012 12:09:16 +0100
+Message-ID: <E1Scaaa-0003uB-1l@rmk-PC.arm.linux.org.uk>
 References: <20120607110610.GB15973@n2100.arm.linux.org.uk>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from caramon.arm.linux.org.uk ([78.32.30.218]:54324 "EHLO
+Received: from caramon.arm.linux.org.uk ([78.32.30.218]:54328 "EHLO
 	caramon.arm.linux.org.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932260Ab2FGLJB (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 7 Jun 2012 07:09:01 -0400
+	with ESMTP id S932260Ab2FGLJV (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 7 Jun 2012 07:09:21 -0400
 In-Reply-To: <20120607110610.GB15973@n2100.arm.linux.org.uk>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org
-Cc: Grant Likely <grant.likely@secretlab.ca>, spi-devel-general@lists.sourceforge.net
+Cc: David Woodhouse <dwmw2@infradead.org>, linux-mtd@lists.infradead.org
 
-Remove the private DMA API implementation from spi-omap2-mcspi.c,
-making it use entirely the DMA engine API.
+Add DMA engine support to the OMAP2 NAND driver.  This supplements the
+private DMA API implementation contained within this driver, and the
+driver can be independently switched at build time between using DMA
+engine and the private DMA API.
 
-Acked-by: Grant Likely <grant.likely@secretlab.ca>
+Tested-by: Grazvydas Ignotas <notasas@gmail.com>
 Signed-off-by: Russell King <rmk+kernel@arm.linux.org.uk>
 ---
- drivers/spi/spi-omap2-mcspi.c |  104 ++---------------------------------------
- 1 files changed, 5 insertions(+), 99 deletions(-)
+ drivers/mtd/nand/omap2.c |   92 +++++++++++++++++++++++++++++++++++++++++++++-
+ 1 files changed, 91 insertions(+), 1 deletions(-)
 
-diff --git a/drivers/spi/spi-omap2-mcspi.c b/drivers/spi/spi-omap2-mcspi.c
-index ca016df..9d3409a 100644
---- a/drivers/spi/spi-omap2-mcspi.c
-+++ b/drivers/spi/spi-omap2-mcspi.c
-@@ -20,8 +20,6 @@
-  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
-  *
+diff --git a/drivers/mtd/nand/omap2.c b/drivers/mtd/nand/omap2.c
+index d7f681d..2912d6c 100644
+--- a/drivers/mtd/nand/omap2.c
++++ b/drivers/mtd/nand/omap2.c
+@@ -9,6 +9,7 @@
   */
--#define USE_DMA_ENGINE_RX
--#define USE_DMA_ENGINE_TX
  
- #include <linux/kernel.h>
- #include <linux/init.h>
-@@ -43,7 +41,6 @@
+ #include <linux/platform_device.h>
++#include <linux/dmaengine.h>
+ #include <linux/dma-mapping.h>
+ #include <linux/delay.h>
+ #include <linux/module.h>
+@@ -18,6 +19,7 @@
+ #include <linux/mtd/mtd.h>
+ #include <linux/mtd/nand.h>
+ #include <linux/mtd/partitions.h>
++#include <linux/omap-dma.h>
+ #include <linux/io.h>
+ #include <linux/slab.h>
  
- #include <linux/spi/spi.h>
- 
--#include <plat/dma.h>
- #include <plat/clock.h>
- #include <plat/mcspi.h>
- 
-@@ -99,8 +96,6 @@
- struct omap2_mcspi_dma {
- 	struct dma_chan *dma_tx;
- 	struct dma_chan *dma_rx;
--	int dma_tx_channel;
--	int dma_rx_channel;
- 
- 	int dma_tx_sync_dev;
- 	int dma_rx_sync_dev;
-@@ -336,9 +331,8 @@ omap2_mcspi_txrx_dma(struct spi_device *spi, struct spi_transfer *xfer)
- 	struct omap2_mcspi	*mcspi;
- 	struct omap2_mcspi_cs	*cs = spi->controller_state;
- 	struct omap2_mcspi_dma  *mcspi_dma;
--	unsigned int		count, c;
--	unsigned long		base, tx_reg, rx_reg;
--	int			word_len, data_type, element_count;
-+	unsigned int		count;
-+	int			word_len, element_count;
- 	int			elements = 0;
- 	u32			l;
- 	u8			* rx;
-@@ -420,73 +414,26 @@ omap2_mcspi_txrx_dma(struct spi_device *spi, struct spi_transfer *xfer)
- 	}
- 
- 	count = xfer->len;
--	c = count;
- 	word_len = cs->word_len;
- 
--	base = cs->phys;
--	tx_reg = base + OMAP2_MCSPI_TX0;
--	rx_reg = base + OMAP2_MCSPI_RX0;
- 	rx = xfer->rx_buf;
- 	tx = xfer->tx_buf;
- 
- 	if (word_len <= 8) {
--		data_type = OMAP_DMA_DATA_TYPE_S8;
- 		element_count = count;
- 	} else if (word_len <= 16) {
--		data_type = OMAP_DMA_DATA_TYPE_S16;
- 		element_count = count >> 1;
- 	} else /* word_len <= 32 */ {
--		data_type = OMAP_DMA_DATA_TYPE_S32;
- 		element_count = count >> 2;
- 	}
- 
--	if (tx != NULL && mcspi_dma->dma_tx_channel != -1) {
--		omap_set_dma_transfer_params(mcspi_dma->dma_tx_channel,
--				data_type, element_count, 1,
--				OMAP_DMA_SYNC_ELEMENT,
--				mcspi_dma->dma_tx_sync_dev, 0);
--
--		omap_set_dma_dest_params(mcspi_dma->dma_tx_channel, 0,
--				OMAP_DMA_AMODE_CONSTANT,
--				tx_reg, 0, 0);
--
--		omap_set_dma_src_params(mcspi_dma->dma_tx_channel, 0,
--				OMAP_DMA_AMODE_POST_INC,
--				xfer->tx_dma, 0, 0);
--	}
--
--	if (rx != NULL && mcspi_dma->dma_rx_channel != -1) {
--		elements = element_count - 1;
--		if (l & OMAP2_MCSPI_CHCONF_TURBO)
--			elements--;
--
--		omap_set_dma_transfer_params(mcspi_dma->dma_rx_channel,
--				data_type, elements, 1,
--				OMAP_DMA_SYNC_ELEMENT,
--				mcspi_dma->dma_rx_sync_dev, 1);
--
--		omap_set_dma_src_params(mcspi_dma->dma_rx_channel, 0,
--				OMAP_DMA_AMODE_CONSTANT,
--				rx_reg, 0, 0);
--
--		omap_set_dma_dest_params(mcspi_dma->dma_rx_channel, 0,
--				OMAP_DMA_AMODE_POST_INC,
--				xfer->rx_dma, 0, 0);
--	}
--
- 	if (tx != NULL) {
--		if (mcspi_dma->dma_tx)
--			dma_async_issue_pending(mcspi_dma->dma_tx);
--		else
--			omap_start_dma(mcspi_dma->dma_tx_channel);
-+		dma_async_issue_pending(mcspi_dma->dma_tx);
- 		omap2_mcspi_set_dma_req(spi, 0, 1);
- 	}
- 
- 	if (rx != NULL) {
--		if (mcspi_dma->dma_rx)
--			dma_async_issue_pending(mcspi_dma->dma_rx);
--		else
--			omap_start_dma(mcspi_dma->dma_rx_channel);
-+		dma_async_issue_pending(mcspi_dma->dma_rx);
- 		omap2_mcspi_set_dma_req(spi, 1, 1);
- 	}
- 
-@@ -830,16 +777,6 @@ static int omap2_mcspi_setup_transfer(struct spi_device *spi,
- 	return 0;
- }
- 
--static void omap2_mcspi_dma_rx_callback(int lch, u16 ch_status, void *data)
--{
--	omap2_mcspi_rx_callback(data);
--}
--
--static void omap2_mcspi_dma_tx_callback(int lch, u16 ch_status, void *data)
--{
--	omap2_mcspi_tx_callback(data);
--}
--
- static int omap2_mcspi_request_dma(struct spi_device *spi)
+@@ -123,6 +125,7 @@ struct omap_nand_info {
+ 	int				gpmc_cs;
+ 	unsigned long			phys_base;
+ 	struct completion		comp;
++	struct dma_chan			*dma;
+ 	int				dma_ch;
+ 	int				gpmc_irq;
+ 	enum {
+@@ -345,6 +348,10 @@ static void omap_nand_dma_cb(int lch, u16 ch_status, void *data)
  {
- 	struct spi_master	*master = spi->master;
-@@ -856,23 +793,13 @@ static int omap2_mcspi_request_dma(struct spi_device *spi)
+ 	complete((struct completion *) data);
+ }
++static void omap_nand_dma_callback(void *data)
++{
++	complete((struct completion *) data);
++}
  
- 	dma_cap_zero(mask);
- 	dma_cap_set(DMA_SLAVE, mask);
--#ifdef USE_DMA_ENGINE_RX
- 	sig = mcspi_dma->dma_rx_sync_dev;
- 	mcspi_dma->dma_rx = dma_request_channel(mask, omap_dma_filter_fn, &sig);
- 	if (!mcspi_dma->dma_rx) {
- 		dev_err(&spi->dev, "no RX DMA engine channel for McSPI\n");
- 		return -EAGAIN;
+ /*
+  * omap_nand_dma_transfer: configer and start dma transfer
+@@ -382,6 +389,56 @@ static inline int omap_nand_dma_transfer(struct mtd_info *mtd, void *addr,
+ 		addr = page_address(p1) + ((size_t)addr & ~PAGE_MASK);
  	}
--#else
--	if (omap_request_dma(mcspi_dma->dma_rx_sync_dev, "McSPI RX",
--			omap2_mcspi_dma_rx_callback, spi,
--			&mcspi_dma->dma_rx_channel)) {
--		dev_err(&spi->dev, "no RX DMA channel for McSPI\n");
--		return -EAGAIN;
--	}
--#endif
  
--#ifdef USE_DMA_ENGINE_TX
- 	sig = mcspi_dma->dma_tx_sync_dev;
- 	mcspi_dma->dma_tx = dma_request_channel(mask, omap_dma_filter_fn, &sig);
- 	if (!mcspi_dma->dma_tx) {
-@@ -881,16 +808,6 @@ static int omap2_mcspi_request_dma(struct spi_device *spi)
- 		mcspi_dma->dma_rx = NULL;
- 		return -EAGAIN;
- 	}
--#else
--	if (omap_request_dma(mcspi_dma->dma_tx_sync_dev, "McSPI TX",
--			omap2_mcspi_dma_tx_callback, spi,
--			&mcspi_dma->dma_tx_channel)) {
--		omap_free_dma(mcspi_dma->dma_rx_channel);
--		mcspi_dma->dma_rx_channel = -1;
--		dev_err(&spi->dev, "no TX DMA channel for McSPI\n");
--		return -EAGAIN;
--	}
--#endif
++	if (info->dma) {
++		struct dma_async_tx_descriptor *tx;
++		struct scatterlist sg;
++		unsigned n;
++
++		sg_init_one(&sg, addr, len);
++		n = dma_map_sg(info->dma->device->dev, &sg, 1, dir);
++		if (n == 0) {
++			dev_err(&info->pdev->dev,
++				"Couldn't DMA map a %d byte buffer\n", len);
++			goto out_copy;
++		}
++
++		tx = dmaengine_prep_slave_sg(info->dma, &sg, n,
++			is_write ? DMA_MEM_TO_DEV : DMA_DEV_TO_MEM,
++			DMA_PREP_INTERRUPT | DMA_CTRL_ACK);
++		if (!tx) {
++			dma_unmap_sg(info->dma->device->dev, &sg, 1, dir);
++			goto out_copy;
++		}
++		tx->callback = omap_nand_dma_callback;
++		tx->callback_param = &info->comp;
++		dmaengine_submit(tx);
++
++		/*  configure and start prefetch transfer */
++		ret = gpmc_prefetch_enable(info->gpmc_cs,
++			PREFETCH_FIFOTHRESHOLD_MAX, 0x1, len, is_write);
++		if (ret) {
++			/* PFPW engine is busy, use cpu copy method */
++			dma_unmap_sg(info->dma->device->dev, &sg, 1, dir);
++			goto out_copy;
++		}
++
++		init_completion(&info->comp);
++		dma_async_issue_pending(info->dma);
++
++		/* setup and start DMA using dma_addr */
++		wait_for_completion(&info->comp);
++		tim = 0;
++		limit = (loops_per_jiffy * msecs_to_jiffies(OMAP_NAND_TIMEOUT_MS));
++		while (gpmc_read_status(GPMC_PREFETCH_COUNT) && (tim++ < limit))
++			cpu_relax();
++
++		/* disable and stop the PFPW engine */
++		gpmc_prefetch_reset(info->gpmc_cs);
++
++		dma_unmap_sg(info->dma->device->dev, &sg, 1, dir);
++		return 0;
++	}
++
+ 	dma_addr = dma_map_single(&info->pdev->dev, addr, len, dir);
+ 	if (dma_mapping_error(&info->pdev->dev, dma_addr)) {
+ 		dev_err(&info->pdev->dev,
+@@ -414,7 +471,6 @@ static inline int omap_nand_dma_transfer(struct mtd_info *mtd, void *addr,
+ 		goto out_copy_unmap;
  
+ 	init_completion(&info->comp);
+-
+ 	omap_start_dma(info->dma_ch);
+ 
+ 	/* setup and start DMA using dma_addr */
+@@ -1164,6 +1220,8 @@ static int __devinit omap_nand_probe(struct platform_device *pdev)
+ 	struct omap_nand_platform_data	*pdata;
+ 	int				err;
+ 	int				i, offset;
++	dma_cap_mask_t mask;
++	unsigned sig;
+ 
+ 	pdata = pdev->dev.platform_data;
+ 	if (pdata == NULL) {
+@@ -1244,6 +1302,33 @@ static int __devinit omap_nand_probe(struct platform_device *pdev)
+ 		break;
+ 
+ 	case NAND_OMAP_PREFETCH_DMA:
++		dma_cap_zero(mask);
++		dma_cap_set(DMA_SLAVE, mask);
++		sig = OMAP24XX_DMA_GPMC;
++		info->dma = dma_request_channel(mask, omap_dma_filter_fn, &sig);
++		if (!info->dma) {
++			dev_warn(&pdev->dev, "DMA engine request failed\n");
++		} else {
++			struct dma_slave_config cfg;
++			int rc;
++
++			memset(&cfg, 0, sizeof(cfg));
++			cfg.src_addr = info->phys_base;
++			cfg.dst_addr = info->phys_base;
++			cfg.src_addr_width = DMA_SLAVE_BUSWIDTH_4_BYTES;
++			cfg.dst_addr_width = DMA_SLAVE_BUSWIDTH_4_BYTES;
++			cfg.src_maxburst = 16;
++			cfg.dst_maxburst = 16;
++			rc = dmaengine_slave_config(info->dma, &cfg);
++			if (rc) {
++				dev_err(&pdev->dev, "DMA engine slave config failed: %d\n",
++					rc);
++				goto out_release_mem_region;
++			}
++			info->nand.read_buf   = omap_read_buf_dma_pref;
++			info->nand.write_buf  = omap_write_buf_dma_pref;
++			break;
++		}
+ 		err = omap_request_dma(OMAP24XX_DMA_GPMC, "NAND",
+ 				omap_nand_dma_cb, &info->comp, &info->dma_ch);
+ 		if (err < 0) {
+@@ -1358,6 +1443,8 @@ static int __devinit omap_nand_probe(struct platform_device *pdev)
  	return 0;
- }
-@@ -923,8 +840,7 @@ static int omap2_mcspi_setup(struct spi_device *spi)
- 		list_add_tail(&cs->node, &ctx->cs);
- 	}
  
--	if ((!mcspi_dma->dma_rx && mcspi_dma->dma_rx_channel == -1) ||
--	    (!mcspi_dma->dma_tx && mcspi_dma->dma_tx_channel == -1)) {
-+	if (!mcspi_dma->dma_rx || !mcspi_dma->dma_tx) {
- 		ret = omap2_mcspi_request_dma(spi);
- 		if (ret < 0)
- 			return ret;
-@@ -966,14 +882,6 @@ static void omap2_mcspi_cleanup(struct spi_device *spi)
- 			dma_release_channel(mcspi_dma->dma_tx);
- 			mcspi_dma->dma_tx = NULL;
- 		}
--		if (mcspi_dma->dma_rx_channel != -1) {
--			omap_free_dma(mcspi_dma->dma_rx_channel);
--			mcspi_dma->dma_rx_channel = -1;
--		}
--		if (mcspi_dma->dma_tx_channel != -1) {
--			omap_free_dma(mcspi_dma->dma_tx_channel);
--			mcspi_dma->dma_tx_channel = -1;
--		}
- 	}
- }
+ out_release_mem_region:
++	if (info->dma)
++		dma_release_channel(info->dma);
+ 	release_mem_region(info->phys_base, NAND_IO_SIZE);
+ out_free_info:
+ 	kfree(info);
+@@ -1376,6 +1463,9 @@ static int omap_nand_remove(struct platform_device *pdev)
+ 	if (info->dma_ch != -1)
+ 		omap_free_dma(info->dma_ch);
  
-@@ -1292,7 +1200,6 @@ static int __devinit omap2_mcspi_probe(struct platform_device *pdev)
- 			break;
- 		}
- 
--		mcspi->dma_channels[i].dma_rx_channel = -1;
- 		mcspi->dma_channels[i].dma_rx_sync_dev = dma_res->start;
- 		sprintf(dma_ch_name, "tx%d", i);
- 		dma_res = platform_get_resource_byname(pdev, IORESOURCE_DMA,
-@@ -1303,7 +1210,6 @@ static int __devinit omap2_mcspi_probe(struct platform_device *pdev)
- 			break;
- 		}
- 
--		mcspi->dma_channels[i].dma_tx_channel = -1;
- 		mcspi->dma_channels[i].dma_tx_sync_dev = dma_res->start;
- 	}
++	if (info->dma)
++		dma_release_channel(info->dma);
++
+ 	if (info->gpmc_irq)
+ 		free_irq(info->gpmc_irq, info);
  
 -- 
 1.7.4.4
