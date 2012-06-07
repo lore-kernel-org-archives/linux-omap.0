@@ -1,22 +1,29 @@
 From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [CFT 05/11] mmc: omap: remove private DMA API implementation
-Date: Thu, 7 Jun 2012 10:05:59 -0700
-Message-ID: <20120607170556.GH12766@atomide.com>
+Subject: Re: [CFT 06/11] ARM: omap: remove mmc platform data dma_mask and
+ initialization
+Date: Thu, 7 Jun 2012 10:06:32 -0700
+Message-ID: <20120607170631.GI12766@atomide.com>
 References: <20120607110610.GB15973@n2100.arm.linux.org.uk>
- <E1ScaZG-0003tl-Ko@rmk-PC.arm.linux.org.uk>
+ <E1ScaZa-0003tu-OD@rmk-PC.arm.linux.org.uk>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-mmc-owner@vger.kernel.org>
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from mho-01-ewr.mailhop.org ([204.13.248.71]:18413 "EHLO
+	mho-01-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1759982Ab2FGRGg (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 7 Jun 2012 13:06:36 -0400
 Content-Disposition: inline
-In-Reply-To: <E1ScaZG-0003tl-Ko@rmk-PC.arm.linux.org.uk>
-Sender: linux-mmc-owner@vger.kernel.org
-To: Russell King <rmk+kernel@arm.linux.org.uk>
-Cc: linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org, Jarkko Lavinen <jarkko.lavinen@nokia.com>, Chris Ball <cjb@laptop.org>, linux-mmc@vger.kernel.org
+In-Reply-To: <E1ScaZa-0003tu-OD@rmk-PC.arm.linux.org.uk>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Russell King <rmk+kernel@arm.linux.org.uk>
+Cc: linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org
 
 * Russell King <rmk+kernel@arm.linux.org.uk> [120607 04:12]:
-> Remove the private DMA API implementation from omap, making it use
-> entirely the DMA engine API.
+> DMAengine uses the DMA engine device structure when mapping/unmapping
+> memory for DMA, so the MMC devices do not need their DMA masks
+> initialized (this reflects hardware: the MMC device is not the device
+> doing DMA.)
 > 
 > Signed-off-by: Russell King <rmk+kernel@arm.linux.org.uk>
 
