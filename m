@@ -1,48 +1,71 @@
-From: Jon Hunter <jon-hunter@ti.com>
-Subject: Re: [PATCH 4/6] ARM: OMAP4: PMU: Add runtime PM support
-Date: Wed, 6 Jun 2012 20:24:41 -0500
-Message-ID: <4FD002D9.8000404@ti.com>
-References: <4FC7B465.60703@ti.com> <87r4u0ytd9.fsf@ti.com> <4FC7E161.1080400@ti.com> <87d35kyo3v.fsf@ti.com> <4FC7F87C.9080709@ti.com> <87obp3vptz.fsf@ti.com> <4FC8D4F0.6040806@ti.com> <20120602164228.GA14903@mudshark.cambridge.arm.com> <4FCD2C30.8000106@ti.com> <4FCE0746.2090505@ti.com> <20120606173331.GB19478@mudshark.cambridge.arm.com>
+From: CF Adad <cfadad@rocketmail.com>
+Subject: Enabling smsc PHY driver + smsc911x driver
+Date: Wed, 6 Jun 2012 21:38:51 -0700 (PDT)
+Message-ID: <1339043931.32979.YahooMailNeo@web125201.mail.ne1.yahoo.com>
+Reply-To: CF Adad <cfadad@rocketmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="ISO-8859-1"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=iso-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from comal.ext.ti.com ([198.47.26.152]:59678 "EHLO comal.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1757466Ab2FGBYn (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Wed, 6 Jun 2012 21:24:43 -0400
-In-Reply-To: <20120606173331.GB19478@mudshark.cambridge.arm.com>
+Received: from nm19-vm0.bullet.mail.ne1.yahoo.com ([98.138.91.59]:37370 "HELO
+	nm19-vm0.bullet.mail.ne1.yahoo.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with SMTP id S1759760Ab2FGEiw convert rfc822-to-8bit
+	(ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Thu, 7 Jun 2012 00:38:52 -0400
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Will Deacon <will.deacon@arm.com>
-Cc: Kevin Hilman <khilman@ti.com>, linux-omap <linux-omap@vger.kernel.org>, Ming Lei <ming.lei@canonical.com>, Benoit Cousson <b-cousson@ti.com>, Paul Walmsley <paul@pwsan.com>
+To: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
 
-Hi Will,
+This seems to be something trivial, but so far we're stumped.=A0 The AM=
+35xx has the built-in DaVinci EMAC and the usual GPMC.=A0 Our board use=
+s the EMAC coupled with an SMSC LAN8710 PHY for one port, and a seconda=
+ry port provided by a LAN9221 wired up through the GPMC.=A0 The trouble=
+ is, if I enabled the SMSC PHY code in Linux, *both* ports try to use i=
+t.=A0 I suspect it would be better to use the actual driver rather than=
+ some generic default, but enabling it causes trouble.=A0 I get somethi=
+ng like this:
 
-On 06/06/2012 12:33 PM, Will Deacon wrote:
-> On Tue, Jun 05, 2012 at 02:19:02PM +0100, Jon Hunter wrote:
->> Hi Will,
-> 
-> Hi Jon,
-> 
->> On 06/04/2012 04:44 PM, Jon Hunter wrote:
->> Anyway, let me know what you think of this approach. An alternative is
->> to put the calls pm_runtime_get/put outside of the reserve/release_pmu,
->> which would be a simpler change, but I was thinking that the above maybe
->> more aligned with your thinking.
-> 
-> Ok, thanks for this. Whilst your code is definitely more like I'm
-> envisaging, you're right about the churn and until I've sorted out the
-> reservation code so that it's a callback via the PMU structure, it is
-> overly messy.
-> 
-> So for the time being let's do what you suggested and put the suspend/resume
-> calls into armpmu_{reserve,release}_hardware. We can still kill the irq
-> enable/disable calls and I can rework this slightly when I change the
-> reservation code.
+[=A0=A0=A0 1.119567] smsc911x: Driver version 2008-10-21
+[=A0=A0=A0 1.126892] smsc911x-mdio: probed
+[=A0=A0=A0 1.130706] smsc911x smsc911x: eth0: attached PHY driver [SMSC=
+ LAN8700] (mii_bus:phy_addr=3Dffffffff:01, irq=3D-1)
+[=A0=A0=A0 1.142608] smsc911x smsc911x: eth0: MAC Address: xx:xx:xx:xx:=
+xx:xx
+[=A0=A0=A0 1.184112] davinci_mdio davinci_mdio.0: davinci mdio revision=
+ 1.5
+[=A0=A0=A0 1.190612] davinci_mdio davinci_mdio.0: detected phy mask fff=
+ffffe
+[=A0=A0=A0 1.197998] davinci_mdio.0: probed
+[=A0=A0=A0 1.201690] davinci_mdio davinci_mdio.0: phy[0]: device 0:00, =
+driver SMSC LAN8710/LAN8720
 
-Sounds good. I will send out my V2 series tomorrow that will include the
-above change.
+See how both Ethernets picked it up?=A0 After this, sometimes I see som=
+e odd behavior, which makes perfect sense since that is NOT how its wir=
+ed up.=A0 If I leave the PHY drivers out all together, I get:
 
-Cheers
-Jon
+[ 1.347412] smsc911x: Driver version 2008-10-21
+[ 1.354644] smsc911x-mdio: probed
+[ 1.358245] smsc911x smsc911x.0: eth0: attached PHY driver [Generic PHY=
+] (mii_bus:phy_addr=3D0:01, irq=3D-1)
+[ 1.368560] smsc911x smsc911x.0: eth0: MAC Address: yy:yy:yy:yy:yy:yy:y=
+y
+[ 1.416046] davinci_mdio davinci_mdio.2: davinci mdio revision 1.5
+[ 1.422546] davinci_mdio davinci_mdio.2: detected phy mask fffffffe
+[ 1.429809] davinci_mdio.2: probed
+[ 1.433502] davinci_mdio davinci_mdio.2: phy[0]: device 2:00, driver un=
+known
+
+Generic?=A0 Yes, but it seems to work OK.
+
+Is there a way of forcing the LAN9221 to just use the Generic PHY, or p=
+erhaps the something internal?=A0 And would there be any benefit if I b=
+other?=A0 I've got SMSC911X_FORCE_INTERNAL_PHY set in my flags in the b=
+oard file, but that does not seem to be doing anything.
+
+Thanks in advance.
+
+--
+To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
