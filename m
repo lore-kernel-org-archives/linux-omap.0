@@ -1,74 +1,48 @@
-From: Artem Bityutskiy <dedekind1@gmail.com>
-Subject: Re: [CFT 09/11] mtd: omap2: add DMA engine support
-Date: Thu, 07 Jun 2012 16:28:03 +0300
-Message-ID: <1339075683.6875.109.camel@sauron.fi.intel.com>
-References: <20120607110610.GB15973@n2100.arm.linux.org.uk>
-	 <E1Scaaa-0003uB-1l@rmk-PC.arm.linux.org.uk>
-	 <1339073375.6875.102.camel@sauron.fi.intel.com>
-	 <20120607131158.GC15973@n2100.arm.linux.org.uk>
-Reply-To: dedekind1@gmail.com
+From: "Mohammed, Afzal" <afzal@ti.com>
+Subject: RE: [PATCH 00/10] Prepare for GPMC driver conversion (w.r.t MTD)
+Date: Thu, 7 Jun 2012 15:14:03 +0000
+Message-ID: <C8443D0743D26F4388EA172BF4E2A7A93E9962E7@DBDE01.ent.ti.com>
+References: <cover.1338790117.git.afzal@ti.com>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg="pgp-sha1"; protocol="application/pgp-signature";
-	boundary="=-YJJUcFuMMw2jXBEcQEui"
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mga11.intel.com ([192.55.52.93]:23658 "EHLO mga11.intel.com"
+Received: from arroyo.ext.ti.com ([192.94.94.40]:39288 "EHLO arroyo.ext.ti.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1759814Ab2FGNYO (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Thu, 7 Jun 2012 09:24:14 -0400
-In-Reply-To: <20120607131158.GC15973@n2100.arm.linux.org.uk>
+	id S1761200Ab2FGPOP convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 7 Jun 2012 11:14:15 -0400
+In-Reply-To: <cover.1338790117.git.afzal@ti.com>
+Content-Language: en-US
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Russell King - ARM Linux <linux@arm.linux.org.uk>
-Cc: linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org, linux-mtd@lists.infradead.org, David Woodhouse <dwmw2@infradead.org>
+To: "tony@atomide.com" <tony@atomide.com>, "artem.bityutskiy@linux.intel.com" <artem.bityutskiy@linux.intel.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-mtd@lists.infradead.org" <linux-mtd@lists.infradead.org>
+Cc: "ivan.djelic@parrot.com" <ivan.djelic@parrot.com>
 
+Hi,
 
---=-YJJUcFuMMw2jXBEcQEui
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: quoted-printable
+On Mon, Jun 04, 2012 at 12:15:01, Mohammed, Afzal wrote:
+> Hi,
+> 
+> This series cleans up gpmc mtd interactions so that GPMC driver
+> conversion which is going to happen shortly would happen smoothly
+> by not creating much disturbance outside of arch/arm/*omap*/
+> 
+> This series,
+> 1. provides the ability for OMAP NAND driver to configure GPMC-NAND
+>    registers by NAND driver itself instead of using exported GPMC
+>    symbols
+> 2. modifies GPMC to provide OMAP ONENAND & NAND drivers with GPMC
+>    allocated address space as resource
+> 3. creates a fictitious GPMC interrupt chip and provide the clients
+>    with interrupts that could be handled using standard APIs (helps
+>    in removing the requirement for driver of peripheral connected to
+>    GPMC having the knowledge about GPMC interrupt handling). The
+>    only user is OMAP NAND driver, it has also been modified to take
+>    advantage of this
+> 
+> This series has been made over 3.5-rc1
 
-On Thu, 2012-06-07 at 14:11 +0100, Russell King - ARM Linux wrote:
-> No, it makes sense to get this stuff via a single tree all together,
-> because, as you can see from the thread structure, it isn't purely
-> an OMAP thing.
->=20
-> The OMAP stuff depends on a core set, as does a bunch of PL08x and
-> SA11x0 changes.  We can't stuff all that through the OMAP tree, that
-> wouldn't make any sense.
->=20
-> What probably should happen is that the tip of the OMAP stuff gets
-> pulled by Tony into his tree, and we share those commits between my
-> tree and his - and then it doesn't matter what goes in when and by
-> whom.
+Ping
 
-Oh, sure, sorry, I actually wanted to say that these to patches should
-_not_ got via the MTD tree.
-
---=20
-Best Regards,
-Artem Bityutskiy
-
---=-YJJUcFuMMw2jXBEcQEui
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: This is a digitally signed message part
-Content-Transfer-Encoding: 7bit
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.4.12 (GNU/Linux)
-
-iQIcBAABAgAGBQJP0KxjAAoJECmIfjd9wqK09KQP/3rgp5e2/qOp4C6P4131kiiG
-AZMSWH2Bq59oiBuz4bnlZqQuCDuVmc5fU6J6YvNqgWmvoPrTFNObDSJ589an2/tm
-sGx0J0tJYHA8oI7sxNFpjXZrod+JXnIoVsI9qo0Y4heFwmmF/5QFzj/OLsAvskKR
-MhOHtbctZt6K2huu9wM0XpR/Taken7RwvLR/C1E7somh875XaBb7scdlhkShD3c2
-G+Ub7DlMMB6vUaF1Kw9XgCoXvyKYB89I3tS84SzGevWA8JjlA+rOR8GwpzactLqW
-yQCPLot67xhGRIHYMHbuMM8QC9LlastZ3MP4vzeEYQmioQiLIvgpYSrYcymB9wa8
-S0wnOazA7rLrkukbygmYEi437OwHQbmRKpW3fDdFgElXw+Z33Zl0KwEzP2uPMUu9
-pd3KhE6ZEF/EnaQFwXQwdm66q5TQ9BocrJTUgUshiLDVuh3hfBrYyO5EHlEEYPhf
-K1J5Z9dKeOhUXf7/Xt+u+MRwzdVWqXznMj4FAqpkxj+/czfeNY9YYNU2hzho9get
-epVEQ8bzhSR/BCGWXGxqFOdxqr4wPFZC0V4UbfcnOK8D4MrT+RMxXUV5X2P1OgYs
-0ubzL0kelh/ZUzvtOdN6Vl/wsusho2SDUtNhidBmCD7DLh2y5swk1NKrCmm/eZPF
-9VTBv5bHPduTJwnEkaqj
-=MwEk
------END PGP SIGNATURE-----
-
---=-YJJUcFuMMw2jXBEcQEui--
-
+Regards
+Afzal
