@@ -1,42 +1,32 @@
 From: Jon Hunter <jon-hunter@ti.com>
-Subject: [PATCH V2 00/10] ARM: OMAP4: Add PMU Support
-Date: Thu, 7 Jun 2012 16:22:02 -0500
-Message-ID: <1339104132-26885-1-git-send-email-jon-hunter@ti.com>
+Subject: [PATCH V2 09/10] ARM: OMAP4: Enable PMU for OMAP4460/70
+Date: Thu, 7 Jun 2012 16:22:11 -0500
+Message-ID: <1339104132-26885-10-git-send-email-jon-hunter@ti.com>
+References: <1339104132-26885-1-git-send-email-jon-hunter@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from devils.ext.ti.com ([198.47.26.153]:56647 "EHLO
+Received: from devils.ext.ti.com ([198.47.26.153]:56646 "EHLO
 	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932960Ab2FGVXF (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 7 Jun 2012 17:23:05 -0400
+	with ESMTP id S932917Ab2FGVXE (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 7 Jun 2012 17:23:04 -0400
+In-Reply-To: <1339104132-26885-1-git-send-email-jon-hunter@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: linux-omap <linux-omap@vger.kernel.org>, linux-arm <linux-arm-kernel@lists.infradead.org>
 Cc: Jon Hunter <jon-hunter@ti.com>, Ming Lei <ming.lei@canonical.com>, Will Deacon <will.deacon@arm.com>, Benoit Cousson <b-cousson@ti.com>, Paul Walmsley <paul@pwsan.com>, Kevin Hilman <khilman@ti.com>
 
-This series adds PMU support for OMAP4 devices. This is based upon Will Deacons
-series [1]. This series fixes the management of the EMU power domain so that
-PMU can be enabled at runtime and low-power states are not prevented when PMU
-is not in-use. The fix is based upon inputs from Benoit, Paul and Kevin [2].
+OMAP4460 and OMAP4470 devices have dedicated PMU interrupts and so add these
+interrupts to the MPU HWMOD so we can use these for PMU events on these
+devices. The PMU interrupts need to be the first interrupts in the array of
+interrupts as the ARM PMU driver assumes this.
 
-This series also converts OMAP2/3 devices to use HWMOD to create the PMU device
-and add a new file to mach-omap2 directory called pmu.c where the PMU devices
-are created.
-
-This series is based upon the latest linux-omap master branch from Tony
-(3.5-rc1).
-
-Testing:
-- Verified that PMU is working on OMAP3430 Beagle Board, OMAP4430 Blaze and
-  4460 Panda.
-- Tested on the above boards with CPU-idle enabled to ensure that PMU is working
-  with power management. For OMAP4 boards I have disabled CPU1 so that CPU0 and
-  hence the MPU power domain is reaching the low-power retention state.
-- I have booted the kernel on an OMAP2430 SDP but not verified PMU is working.
-- Unable to verify 4470 Blaze because kernel is not currently booting.
-
-[1] git://git.kernel.org/pub/scm/linux/kernel/git/will/linux.git perf/omap4
-[2] http://marc.info/?l=oprofile-list&m=133657425417229&w=3
+By using these dedicated interrupts we only need to enable the MPU sub-system
+for PMU to work. This is different to OMAP4430 that did not have dedicated
+interrupts and required other power domains such as the DEBUGSS to be enabled
+so we could route the PMU events to the CTI interrupts. Hence, OMAP4460 and
+OMAP4470 devices can use the same function to create the PMU device that is
+using by OMAP2/3.
 
 Cc: Ming Lei <ming.lei@canonical.com>
 Cc: Will Deacon <will.deacon@arm.com>
@@ -44,36 +34,52 @@ Cc: Benoit Cousson <b-cousson@ti.com>
 Cc: Paul Walmsley <paul@pwsan.com>
 Cc: Kevin Hilman <khilman@ti.com>
 
-Jon Hunter (8):
-  ARM: PMU: Add runtime PM Support
-  ARM: OMAP2+: PMU: Convert OMAP2/3 devices to use HWMOD
-  ARM: OMAP4: Re-map the CTIs IRQs from MPU to DEBUGSS
-  ARM: OMAP2+: PMU: Add runtime PM support
-  ARM: OMAP4: CLKDM: Update supported transition modes
-  ARM: OMAP4: Prevent EMU power domain transitioning to OFF when in-use
-  ARM: OMAP4: Enable PMU for OMAP4460/70
-  ARM: OMAP2+: PMU: Add QoS constraint
+Signed-off-by: Jon Hunter <jon-hunter@ti.com>
+---
+ arch/arm/mach-omap2/omap_hwmod_44xx_data.c |    2 ++
+ arch/arm/mach-omap2/pmu.c                  |   14 +++++++++-----
+ 2 files changed, 11 insertions(+), 5 deletions(-)
 
-Ming Lei (2):
-  ARM: OMAP4430: Create PMU device via HWMOD
-  ARM: OMAP4: Route PMU IRQs to CTI IRQs
-
- arch/arm/include/asm/pmu.h                         |   20 +-
- arch/arm/kernel/perf_event.c                       |   41 +++-
- arch/arm/mach-omap2/Makefile                       |    1 +
- arch/arm/mach-omap2/clockdomain44xx.c              |    7 +-
- arch/arm/mach-omap2/clockdomains44xx_data.c        |    2 +-
- arch/arm/mach-omap2/cminst44xx.c                   |   14 --
- arch/arm/mach-omap2/devices.c                      |   33 ---
- arch/arm/mach-omap2/omap_hwmod_2xxx_ipblock_data.c |    6 +
- arch/arm/mach-omap2/omap_hwmod_3xxx_data.c         |    6 +
- arch/arm/mach-omap2/omap_hwmod_44xx_data.c         |   11 +-
- arch/arm/mach-omap2/pmu.c                          |  251 ++++++++++++++++++++
- arch/arm/plat-omap/include/plat/irqs.h             |    1 +
- arch/arm/plat-omap/include/plat/omap44xx.h         |    3 +
- 13 files changed, 328 insertions(+), 68 deletions(-)
- create mode 100644 arch/arm/mach-omap2/pmu.c
-
+diff --git a/arch/arm/mach-omap2/omap_hwmod_44xx_data.c b/arch/arm/mach-omap2/omap_hwmod_44xx_data.c
+index faf5a6d..882bbe6 100644
+--- a/arch/arm/mach-omap2/omap_hwmod_44xx_data.c
++++ b/arch/arm/mach-omap2/omap_hwmod_44xx_data.c
+@@ -2453,6 +2453,8 @@ static struct omap_hwmod_class omap44xx_mpu_hwmod_class = {
+ 
+ /* mpu */
+ static struct omap_hwmod_irq_info omap44xx_mpu_irqs[] = {
++	{ .name = "pmu0", .irq = 54 + OMAP44XX_IRQ_GIC_START },
++	{ .name = "pmu1", .irq = 55 + OMAP44XX_IRQ_GIC_START },
+ 	{ .name = "pl310", .irq = 0 + OMAP44XX_IRQ_GIC_START },
+ 	{ .irq = -1 }
+ };
+diff --git a/arch/arm/mach-omap2/pmu.c b/arch/arm/mach-omap2/pmu.c
+index 228e247..f1b535a 100644
+--- a/arch/arm/mach-omap2/pmu.c
++++ b/arch/arm/mach-omap2/pmu.c
+@@ -189,13 +189,17 @@ static int __init omap4430_init_pmu(void)
+ 
+ static int __init omap_init_pmu(void)
+ {
+-
+-	if (cpu_is_omap24xx() || cpu_is_omap34xx())
+-		return omap2_init_pmu();
++	/*
++	 * OMAP4460/70 devices may use the omap2_init_pmu() function because
++	 * these devices have dedicated PMU IRQs and only need the MPU
++	 * sub-system to be enabled. OMAP4430 does not have dedicated PMU
++	 * interrupts and so the CTI IRQs are used and this requires additional
++	 * sub-systems to be enabled.
++	 */
+ 	if (cpu_is_omap443x())
+ 		return omap4430_init_pmu();
+-
+-	return 0;
++	else
++		return omap2_init_pmu();
+ }
+ 
+ subsys_initcall(omap_init_pmu);
 -- 
 1.7.9.5
 
