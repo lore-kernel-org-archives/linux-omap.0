@@ -1,614 +1,359 @@
 From: Russell King <rmk+kernel@arm.linux.org.uk>
-Subject: [CFT 01/11] dmaengine: add OMAP DMA engine driver
-Date: Thu, 07 Jun 2012 12:06:32 +0100
-Message-ID: <E1ScaXw-0003tR-U8@rmk-PC.arm.linux.org.uk>
+Subject: [CFT 02/11] mmc: omap_hsmmc: add DMA engine support
+Date: Thu, 07 Jun 2012 12:06:53 +0100
+Message-ID: <E1ScaYH-0003tV-Bn@rmk-PC.arm.linux.org.uk>
 References: <20120607110610.GB15973@n2100.arm.linux.org.uk>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from caramon.arm.linux.org.uk ([78.32.30.218]:54291 "EHLO
+Received: from caramon.arm.linux.org.uk ([78.32.30.218]:54295 "EHLO
 	caramon.arm.linux.org.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755772Ab2FGLGj (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 7 Jun 2012 07:06:39 -0400
+	with ESMTP id S1756288Ab2FGLHA (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 7 Jun 2012 07:07:00 -0400
 In-Reply-To: <20120607110610.GB15973@n2100.arm.linux.org.uk>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org
-Cc: Dan Williams <dan.j.williams@intel.com>, Vinod Koul <vinod.koul@intel.com>
+Cc: Chris Ball <cjb@laptop.org>, linux-mmc@vger.kernel.org
 
-Tested-by: Tony Lindgren <tony@atomide.com>
+Add DMA engine support to the OMAP HSMMC driver.  This supplements the
+private DMA API implementation contained within this driver, and the
+driver can be switched at build time between using DMA engine and the
+private DMA API.
+
+Tested-by: Grazvydas Ignotas <notasas@gmail.com>
 Signed-off-by: Russell King <rmk+kernel@arm.linux.org.uk>
 ---
- drivers/dma/Kconfig      |    6 +
- drivers/dma/Makefile     |    1 +
- drivers/dma/omap-dma.c   |  522 ++++++++++++++++++++++++++++++++++++++++++++++
- include/linux/omap-dma.h |   24 ++
- 4 files changed, 553 insertions(+), 0 deletions(-)
- create mode 100644 drivers/dma/omap-dma.c
- create mode 100644 include/linux/omap-dma.h
+ drivers/mmc/host/omap_hsmmc.c |  192 +++++++++++++++++++++++++++++++++++------
+ 1 files changed, 165 insertions(+), 27 deletions(-)
 
-diff --git a/drivers/dma/Kconfig b/drivers/dma/Kconfig
-index eb2b60e..8be3bf6 100644
---- a/drivers/dma/Kconfig
-+++ b/drivers/dma/Kconfig
-@@ -261,6 +261,12 @@ config DMA_SA11X0
- 	  SA-1110 SoCs.  This DMA engine can only be used with on-chip
- 	  devices.
- 
-+config DMA_OMAP
-+	tristate "OMAP DMA support"
-+	depends on ARCH_OMAP
-+	select DMA_ENGINE
-+	select DMA_VIRTUAL_CHANNELS
-+
- config DMA_ENGINE
- 	bool
- 
-diff --git a/drivers/dma/Makefile b/drivers/dma/Makefile
-index fc05f7d..ddc291a 100644
---- a/drivers/dma/Makefile
-+++ b/drivers/dma/Makefile
-@@ -29,3 +29,4 @@ obj-$(CONFIG_PCH_DMA) += pch_dma.o
- obj-$(CONFIG_AMBA_PL08X) += amba-pl08x.o
- obj-$(CONFIG_EP93XX_DMA) += ep93xx_dma.o
- obj-$(CONFIG_DMA_SA11X0) += sa11x0-dma.o
-+obj-$(CONFIG_DMA_OMAP) += omap-dma.o
-diff --git a/drivers/dma/omap-dma.c b/drivers/dma/omap-dma.c
-new file mode 100644
-index 0000000..500bc71
---- /dev/null
-+++ b/drivers/dma/omap-dma.c
-@@ -0,0 +1,522 @@
-+/*
-+ * OMAP DMAengine support
-+ *
-+ * This program is free software; you can redistribute it and/or modify
-+ * it under the terms of the GNU General Public License version 2 as
-+ * published by the Free Software Foundation.
-+ */
+diff --git a/drivers/mmc/host/omap_hsmmc.c b/drivers/mmc/host/omap_hsmmc.c
+index 9a7a60a..f80361f 100644
+--- a/drivers/mmc/host/omap_hsmmc.c
++++ b/drivers/mmc/host/omap_hsmmc.c
+@@ -19,6 +19,7 @@
+ #include <linux/init.h>
+ #include <linux/kernel.h>
+ #include <linux/debugfs.h>
 +#include <linux/dmaengine.h>
-+#include <linux/dma-mapping.h>
-+#include <linux/err.h>
-+#include <linux/init.h>
-+#include <linux/interrupt.h>
-+#include <linux/list.h>
-+#include <linux/module.h>
-+#include <linux/omap-dma.h>
-+#include <linux/platform_device.h>
-+#include <linux/slab.h>
-+#include <linux/spinlock.h>
-+
-+#include "virt-dma.h"
-+#include <plat/dma.h>
-+
-+struct omap_dmadev {
-+	struct dma_device ddev;
-+	spinlock_t lock;
-+	struct tasklet_struct task;
-+	struct list_head pending;
-+};
-+
-+struct omap_chan {
-+	struct virt_dma_chan vc;
-+	struct list_head node;
-+
-+	struct dma_slave_config	cfg;
-+	unsigned dma_sig;
-+
-+	int dma_ch;
-+	struct omap_desc *desc;
-+	unsigned sgidx;
-+};
-+
-+struct omap_sg {
-+	dma_addr_t addr;
-+	uint32_t en;		/* number of elements (24-bit) */
-+	uint32_t fn;		/* number of frames (16-bit) */
-+};
-+
-+struct omap_desc {
-+	struct virt_dma_desc vd;
-+	enum dma_transfer_direction dir;
-+	dma_addr_t dev_addr;
-+
-+	uint8_t es;		/* element size */
-+	uint8_t sync_mode;	/* OMAP_DMA_SYNC_xxx */
-+	uint8_t sync_type;	/* OMAP_DMA_xxx_SYNC* */
-+	uint8_t periph_port;	/* Peripheral port */
-+
-+	unsigned sglen;
-+	struct omap_sg sg[0];
-+};
-+
-+static inline struct omap_dmadev *to_omap_dma_dev(struct dma_device *d)
+ #include <linux/seq_file.h>
+ #include <linux/interrupt.h>
+ #include <linux/delay.h>
+@@ -167,7 +168,9 @@ struct omap_hsmmc_host {
+ 	u32			bytesleft;
+ 	int			suspended;
+ 	int			irq;
+-	int			use_dma, dma_ch;
++	int			use_dma, dma_ch, dma2;
++	struct dma_chan		*tx_chan;
++	struct dma_chan		*rx_chan;
+ 	int			dma_line_tx, dma_line_rx;
+ 	int			slot_id;
+ 	int			response_busy;
+@@ -802,19 +805,26 @@ omap_hsmmc_get_dma_dir(struct omap_hsmmc_host *host, struct mmc_data *data)
+ 		return DMA_FROM_DEVICE;
+ }
+ 
++static struct dma_chan *omap_hsmmc_get_dma_chan(struct omap_hsmmc_host *host,
++	struct mmc_data *data)
 +{
-+	return container_of(d, struct omap_dmadev, ddev);
++	return data->flags & MMC_DATA_WRITE ? host->tx_chan : host->rx_chan;
 +}
 +
-+static inline struct omap_chan *to_omap_dma_chan(struct dma_chan *c)
+ static void omap_hsmmc_request_done(struct omap_hsmmc_host *host, struct mmc_request *mrq)
+ {
+-	int dma_ch;
++	int dma_ch, dma2;
+ 	unsigned long flags;
+ 
+ 	spin_lock_irqsave(&host->irq_lock, flags);
+ 	host->req_in_progress = 0;
+ 	dma_ch = host->dma_ch;
++	dma2 = host->dma2;
+ 	spin_unlock_irqrestore(&host->irq_lock, flags);
+ 
+ 	omap_hsmmc_disable_irq(host);
+ 	/* Do not complete the request if DMA is still in progress */
+-	if (mrq->data && host->use_dma && dma_ch != -1)
++	if (mrq->data && host->use_dma && (dma_ch != -1 || dma2 != -1))
+ 		return;
+ 	host->mrq = NULL;
+ 	mmc_request_done(host->mmc, mrq);
+@@ -886,7 +896,7 @@ omap_hsmmc_cmd_done(struct omap_hsmmc_host *host, struct mmc_command *cmd)
+  */
+ static void omap_hsmmc_dma_cleanup(struct omap_hsmmc_host *host, int errno)
+ {
+-	int dma_ch;
++	int dma_ch, dma2;
+ 	unsigned long flags;
+ 
+ 	host->data->error = errno;
+@@ -894,8 +904,20 @@ static void omap_hsmmc_dma_cleanup(struct omap_hsmmc_host *host, int errno)
+ 	spin_lock_irqsave(&host->irq_lock, flags);
+ 	dma_ch = host->dma_ch;
+ 	host->dma_ch = -1;
++	dma2 = host->dma2;
++	host->dma2 = -1;
+ 	spin_unlock_irqrestore(&host->irq_lock, flags);
+ 
++	if (host->use_dma && dma2 != -1) {
++		struct dma_chan *chan = omap_hsmmc_get_dma_chan(host, host->data);
++
++		dmaengine_terminate_all(chan);
++		dma_unmap_sg(chan->device->dev,
++			host->data->sg, host->data->sg_len,
++			omap_hsmmc_get_dma_dir(host, host->data));
++
++		host->data->host_cookie = 0;
++	}
+ 	if (host->use_dma && dma_ch != -1) {
+ 		dma_unmap_sg(mmc_dev(host->mmc), host->data->sg,
+ 			host->data->sg_len,
+@@ -1292,9 +1314,43 @@ static void omap_hsmmc_dma_cb(int lch, u16 ch_status, void *cb_data)
+ 	}
+ }
+ 
++static void omap_hsmmc_dma_callback(void *param)
 +{
-+	return container_of(c, struct omap_chan, vc.chan);
-+}
++	struct omap_hsmmc_host *host = param;
++	struct dma_chan *chan;
++	struct mmc_data *data;
++	int req_in_progress;
 +
-+static inline struct omap_desc *to_omap_dma_desc(struct dma_async_tx_descriptor *t)
-+{
-+	return container_of(t, struct omap_desc, vd.tx);
-+}
-+
-+static void omap_dma_desc_free(struct virt_dma_desc *vd)
-+{
-+	kfree(container_of(vd, struct omap_desc, vd));
-+}
-+
-+static void omap_dma_start_sg(struct omap_chan *c, struct omap_desc *d,
-+	unsigned idx)
-+{
-+	struct omap_sg *sg = d->sg + idx;
-+
-+	if (d->dir == DMA_DEV_TO_MEM)
-+		omap_set_dma_dest_params(c->dma_ch, OMAP_DMA_PORT_EMIFF,
-+			OMAP_DMA_AMODE_POST_INC, sg->addr, 0, 0);
-+	else
-+		omap_set_dma_src_params(c->dma_ch, OMAP_DMA_PORT_EMIFF,
-+			OMAP_DMA_AMODE_POST_INC, sg->addr, 0, 0);
-+
-+	omap_set_dma_transfer_params(c->dma_ch, d->es, sg->en, sg->fn,
-+		d->sync_mode, c->dma_sig, d->sync_type);
-+
-+	omap_start_dma(c->dma_ch);
-+}
-+
-+static void omap_dma_start_desc(struct omap_chan *c)
-+{
-+	struct virt_dma_desc *vd = vchan_next_desc(&c->vc);
-+	struct omap_desc *d;
-+
-+	if (!vd) {
-+		c->desc = NULL;
++	spin_lock_irq(&host->irq_lock);
++	if (host->dma2 < 0) {
++		spin_unlock_irq(&host->irq_lock);
 +		return;
 +	}
 +
-+	list_del(&vd->node);
++	data = host->mrq->data;
++	chan = omap_hsmmc_get_dma_chan(host, data);
++	if (!data->host_cookie)
++		dma_unmap_sg(chan->device->dev,
++			     data->sg, data->sg_len,
++			     omap_hsmmc_get_dma_dir(host, data));
 +
-+	c->desc = d = to_omap_dma_desc(&vd->tx);
-+	c->sgidx = 0;
++	req_in_progress = host->req_in_progress;
++	host->dma2 = -1;
++	spin_unlock_irq(&host->irq_lock);
 +
-+	if (d->dir == DMA_DEV_TO_MEM)
-+		omap_set_dma_src_params(c->dma_ch, d->periph_port,
-+			OMAP_DMA_AMODE_CONSTANT, d->dev_addr, 0, 0);
-+	else
-+		omap_set_dma_dest_params(c->dma_ch, d->periph_port,
-+			OMAP_DMA_AMODE_CONSTANT, d->dev_addr, 0, 0);
++	/* If DMA has finished after TC, complete the request */
++	if (!req_in_progress) {
++		struct mmc_request *mrq = host->mrq;
 +
-+	omap_dma_start_sg(c, d, 0);
-+}
-+
-+static void omap_dma_callback(int ch, u16 status, void *data)
-+{
-+	struct omap_chan *c = data;
-+	struct omap_desc *d;
-+	unsigned long flags;
-+
-+	spin_lock_irqsave(&c->vc.lock, flags);
-+	d = c->desc;
-+	if (!d)
-+		return;
-+
-+	if (++c->sgidx < d->sglen) {
-+		omap_dma_start_sg(c, d, c->sgidx);
-+	} else {
-+		omap_dma_start_desc(c);
-+		vchan_cookie_complete(&d->vd);
-+	}
-+	spin_unlock_irqrestore(&c->vc.lock, flags);
-+}
-+
-+/*
-+ * This callback schedules all pending channels.  We could be more
-+ * clever here by postponing allocation of the real DMA channels to
-+ * this point, and freeing them when our virtual channel becomes idle.
-+ *
-+ * We would then need to deal with 'all channels in-use'
-+ */
-+static void omap_dma_sched(unsigned long data)
-+{
-+	struct omap_dmadev *d = (struct omap_dmadev *)data;
-+	LIST_HEAD(head);
-+
-+	spin_lock_irq(&d->lock);
-+	list_splice_tail_init(&d->pending, &head);
-+	spin_unlock_irq(&d->lock);
-+
-+	while (!list_empty(&head)) {
-+		struct omap_chan *c = list_first_entry(&head,
-+			struct omap_chan, node);
-+
-+		spin_lock_irq(&c->vc.lock);
-+		list_del_init(&c->node);
-+		omap_dma_start_desc(c);
-+		spin_unlock_irq(&c->vc.lock);
++		host->mrq = NULL;
++		mmc_request_done(host->mmc, mrq);
 +	}
 +}
 +
-+static int omap_dma_alloc_chan_resources(struct dma_chan *chan)
-+{
-+	struct omap_chan *c = to_omap_dma_chan(chan);
-+
-+	dev_info(c->vc.chan.device->dev, "allocating channel for %u\n", c->dma_sig);
-+
-+	return omap_request_dma(c->dma_sig, "DMA engine",
-+		omap_dma_callback, c, &c->dma_ch);
-+}
-+
-+static void omap_dma_free_chan_resources(struct dma_chan *chan)
-+{
-+	struct omap_chan *c = to_omap_dma_chan(chan);
-+
-+	vchan_free_chan_resources(&c->vc);
-+	omap_free_dma(c->dma_ch);
-+
-+	dev_info(c->vc.chan.device->dev, "freeing channel for %u\n", c->dma_sig);
-+}
-+
-+static enum dma_status omap_dma_tx_status(struct dma_chan *chan,
-+	dma_cookie_t cookie, struct dma_tx_state *txstate)
-+{
-+	/*
-+	 * FIXME: do we need to return pending bytes?
-+	 * We have no users of that info at the moment...
-+	 */
-+	return dma_cookie_status(chan, cookie, txstate);
-+}
-+
-+static void omap_dma_issue_pending(struct dma_chan *chan)
-+{
-+	struct omap_chan *c = to_omap_dma_chan(chan);
-+	unsigned long flags;
-+
-+	spin_lock_irqsave(&c->vc.lock, flags);
-+	if (vchan_issue_pending(&c->vc) && !c->desc) {
-+		struct omap_dmadev *d = to_omap_dma_dev(chan->device);
-+		spin_lock(&d->lock);
-+		if (list_empty(&c->node))
-+			list_add_tail(&c->node, &d->pending);
-+		spin_unlock(&d->lock);
-+		tasklet_schedule(&d->task);
-+	}
-+	spin_unlock_irqrestore(&c->vc.lock, flags);
-+}
-+
-+static struct dma_async_tx_descriptor *omap_dma_prep_slave_sg(
-+	struct dma_chan *chan, struct scatterlist *sgl, unsigned sglen,
-+	enum dma_transfer_direction dir, unsigned long tx_flags, void *context)
-+{
-+	struct omap_chan *c = to_omap_dma_chan(chan);
-+	enum dma_slave_buswidth dev_width;
-+	struct scatterlist *sgent;
-+	struct omap_desc *d;
-+	dma_addr_t dev_addr;
-+	unsigned i, j = 0, es, es_bytes, en, frame_bytes, sync_type;
-+	u32 burst;
-+
-+	if (dir == DMA_DEV_TO_MEM) {
-+		dev_addr = c->cfg.src_addr;
-+		dev_width = c->cfg.src_addr_width;
-+		burst = c->cfg.src_maxburst;
-+		sync_type = OMAP_DMA_SRC_SYNC;
-+	} else if (dir == DMA_MEM_TO_DEV) {
-+		dev_addr = c->cfg.dst_addr;
-+		dev_width = c->cfg.dst_addr_width;
-+		burst = c->cfg.dst_maxburst;
-+		sync_type = OMAP_DMA_DST_SYNC;
-+	} else {
-+		dev_err(chan->device->dev, "%s: bad direction?\n", __func__);
-+		return NULL;
-+	}
-+
-+	/* Bus width translates to the element size (ES) */
-+	switch (dev_width) {
-+	case DMA_SLAVE_BUSWIDTH_1_BYTE:
-+		es = OMAP_DMA_DATA_TYPE_S8;
-+		es_bytes = 1;
-+		break;
-+	case DMA_SLAVE_BUSWIDTH_2_BYTES:
-+		es = OMAP_DMA_DATA_TYPE_S16;
-+		es_bytes = 2;
-+		break;
-+	case DMA_SLAVE_BUSWIDTH_4_BYTES:
-+		es = OMAP_DMA_DATA_TYPE_S32;
-+		es_bytes = 4;
-+		break;
-+	default: /* not reached */
-+		return NULL;
-+	}
-+
-+	/* Now allocate and setup the descriptor. */
-+	d = kzalloc(sizeof(*d) + sglen * sizeof(d->sg[0]), GFP_ATOMIC);
-+	if (!d)
-+		return NULL;
-+
-+	d->dir = dir;
-+	d->dev_addr = dev_addr;
-+	d->es = es;
-+	d->sync_mode = OMAP_DMA_SYNC_FRAME;
-+	d->sync_type = sync_type;
-+	d->periph_port = OMAP_DMA_PORT_TIPB;
-+
-+	/*
-+	 * Build our scatterlist entries: each contains the address,
-+	 * the number of elements (EN) in each frame, and the number of
-+	 * frames (FN).  Number of bytes for this entry = ES * EN * FN.
-+	 *
-+	 * Burst size translates to number of elements with frame sync.
-+	 * Note: DMA engine defines burst to be the number of dev-width
-+	 * transfers.
-+	 */
-+	en = burst;
-+	frame_bytes = es_bytes * en;
-+	for_each_sg(sgl, sgent, sglen, i) {
-+		d->sg[j].addr = sg_dma_address(sgent);
-+		d->sg[j].en = en;
-+		d->sg[j].fn = sg_dma_len(sgent) / frame_bytes;
-+		j++;
-+	}
-+
-+	d->sglen = j;
-+
-+	return vchan_tx_prep(&c->vc, &d->vd, tx_flags);
-+}
-+
-+static int omap_dma_slave_config(struct omap_chan *c, struct dma_slave_config *cfg)
-+{
-+	if (cfg->src_addr_width == DMA_SLAVE_BUSWIDTH_8_BYTES ||
-+	    cfg->dst_addr_width == DMA_SLAVE_BUSWIDTH_8_BYTES)
-+		return -EINVAL;
-+
-+	memcpy(&c->cfg, cfg, sizeof(c->cfg));
-+
-+	return 0;
-+}
-+
-+static int omap_dma_terminate_all(struct omap_chan *c)
-+{
-+	struct omap_dmadev *d = to_omap_dma_dev(c->vc.chan.device);
-+	unsigned long flags;
-+	LIST_HEAD(head);
-+
-+	spin_lock_irqsave(&c->vc.lock, flags);
-+
-+	/* Prevent this channel being scheduled */
-+	spin_lock(&d->lock);
-+	list_del_init(&c->node);
-+	spin_unlock(&d->lock);
-+
-+	/*
-+	 * Stop DMA activity: we assume the callback will not be called
-+	 * after omap_stop_dma() returns (even if it does, it will see
-+	 * c->desc is NULL and exit.)
-+	 */
-+	if (c->desc) {
-+		c->desc = NULL;
-+		omap_stop_dma(c->dma_ch);
-+	}
-+
-+	vchan_get_all_descriptors(&c->vc, &head);
-+	spin_unlock_irqrestore(&c->vc.lock, flags);
-+	vchan_dma_desc_free_list(&c->vc, &head);
-+
-+	return 0;
-+}
-+
-+static int omap_dma_pause(struct omap_chan *c)
-+{
-+	/* FIXME: not supported by platform private API */
-+	return -EINVAL;
-+}
-+
-+static int omap_dma_resume(struct omap_chan *c)
-+{
-+	/* FIXME: not supported by platform private API */
-+	return -EINVAL;
-+}
-+
-+static int omap_dma_control(struct dma_chan *chan, enum dma_ctrl_cmd cmd,
-+	unsigned long arg)
-+{
-+	struct omap_chan *c = to_omap_dma_chan(chan);
-+	int ret;
-+
-+	switch (cmd) {
-+	case DMA_SLAVE_CONFIG:
-+		ret = omap_dma_slave_config(c, (struct dma_slave_config *)arg);
-+		break;
-+
-+	case DMA_TERMINATE_ALL:
-+		ret = omap_dma_terminate_all(c);
-+		break;
-+
-+	case DMA_PAUSE:
-+		ret = omap_dma_pause(c);
-+		break;
-+
-+	case DMA_RESUME:
-+		ret = omap_dma_resume(c);
-+		break;
-+
-+	default:
-+		ret = -ENXIO;
-+		break;
-+	}
-+
-+	return ret;
-+}
-+
-+static int omap_dma_chan_init(struct omap_dmadev *od, int dma_sig)
-+{
-+	struct omap_chan *c;
-+
-+	c = kzalloc(sizeof(*c), GFP_KERNEL);
-+	if (!c)
-+		return -ENOMEM;
-+
-+	c->dma_sig = dma_sig;
-+	c->vc.desc_free = omap_dma_desc_free;
-+	vchan_init(&c->vc, &od->ddev);
-+	INIT_LIST_HEAD(&c->node);
-+
-+	od->ddev.chancnt++;
-+
-+	return 0;
-+}
-+
-+static void omap_dma_free(struct omap_dmadev *od)
-+{
-+	tasklet_kill(&od->task);
-+	while (!list_empty(&od->ddev.channels)) {
-+		struct omap_chan *c = list_first_entry(&od->ddev.channels,
-+			struct omap_chan, vc.chan.device_node);
-+
-+		list_del(&c->vc.chan.device_node);
-+		tasklet_kill(&c->vc.task);
-+		kfree(c);
-+	}
-+	kfree(od);
-+}
-+
-+static int omap_dma_probe(struct platform_device *pdev)
-+{
-+	struct omap_dmadev *od;
-+	int rc, i;
-+
-+	od = kzalloc(sizeof(*od), GFP_KERNEL);
-+	if (!od)
-+		return -ENOMEM;
-+
-+	dma_cap_set(DMA_SLAVE, od->ddev.cap_mask);
-+	od->ddev.device_alloc_chan_resources = omap_dma_alloc_chan_resources;
-+	od->ddev.device_free_chan_resources = omap_dma_free_chan_resources;
-+	od->ddev.device_tx_status = omap_dma_tx_status;
-+	od->ddev.device_issue_pending = omap_dma_issue_pending;
-+	od->ddev.device_prep_slave_sg = omap_dma_prep_slave_sg;
-+	od->ddev.device_control = omap_dma_control;
-+	od->ddev.dev = &pdev->dev;
-+	INIT_LIST_HEAD(&od->ddev.channels);
-+	INIT_LIST_HEAD(&od->pending);
-+	spin_lock_init(&od->lock);
-+
-+	tasklet_init(&od->task, omap_dma_sched, (unsigned long)od);
-+
-+	for (i = 0; i < 127; i++) {
-+		rc = omap_dma_chan_init(od, i);
-+		if (rc) {
-+			omap_dma_free(od);
-+			return rc;
+ static int omap_hsmmc_pre_dma_transfer(struct omap_hsmmc_host *host,
+ 				       struct mmc_data *data,
+-				       struct omap_hsmmc_next *next)
++				       struct omap_hsmmc_next *next,
++				       struct device *dev)
+ {
+ 	int dma_len;
+ 
+@@ -1309,8 +1365,7 @@ static int omap_hsmmc_pre_dma_transfer(struct omap_hsmmc_host *host,
+ 	/* Check if next job is already prepared */
+ 	if (next ||
+ 	    (!next && data->host_cookie != host->next_data.cookie)) {
+-		dma_len = dma_map_sg(mmc_dev(host->mmc), data->sg,
+-				     data->sg_len,
++		dma_len = dma_map_sg(dev, data->sg, data->sg_len,
+ 				     omap_hsmmc_get_dma_dir(host, data));
+ 
+ 	} else {
+@@ -1339,6 +1394,7 @@ static int omap_hsmmc_start_dma_transfer(struct omap_hsmmc_host *host,
+ {
+ 	int dma_ch = 0, ret = 0, i;
+ 	struct mmc_data *data = req->data;
++	struct dma_chan *chan;
+ 
+ 	/* Sanity check: all the SG entries must be aligned by block size. */
+ 	for (i = 0; i < data->sg_len; i++) {
+@@ -1354,24 +1410,66 @@ static int omap_hsmmc_start_dma_transfer(struct omap_hsmmc_host *host,
+ 		 */
+ 		return -EINVAL;
+ 
+-	BUG_ON(host->dma_ch != -1);
++	BUG_ON(host->dma_ch != -1 || host->dma2 != -1);
+ 
+-	ret = omap_request_dma(omap_hsmmc_get_dma_sync_dev(host, data),
+-			       "MMC/SD", omap_hsmmc_dma_cb, host, &dma_ch);
+-	if (ret != 0) {
+-		dev_err(mmc_dev(host->mmc),
+-			"%s: omap_request_dma() failed with %d\n",
+-			mmc_hostname(host->mmc), ret);
+-		return ret;
+-	}
+-	ret = omap_hsmmc_pre_dma_transfer(host, data, NULL);
+-	if (ret)
+-		return ret;
++	chan = omap_hsmmc_get_dma_chan(host, data);
++	if (!chan) {
++		ret = omap_request_dma(omap_hsmmc_get_dma_sync_dev(host, data),
++				       "MMC/SD", omap_hsmmc_dma_cb, host, &dma_ch);
++		if (ret != 0) {
++			dev_err(mmc_dev(host->mmc),
++				"%s: omap_request_dma() failed with %d\n",
++				mmc_hostname(host->mmc), ret);
++			return ret;
 +		}
-+	}
++		ret = omap_hsmmc_pre_dma_transfer(host, data, NULL,
++						  mmc_dev(host->mmc));
++		if (ret)
++			return ret;
 +
-+	rc = dma_async_device_register(&od->ddev);
-+	if (rc) {
-+		pr_warn("OMAP-DMA: failed to register slave DMA engine device: %d\n",
-+			rc);
-+		omap_dma_free(od);
++		host->dma_ch = dma_ch;
++		host->dma_sg_idx = 0;
++
++		omap_hsmmc_config_dma_params(host, data, data->sg);
 +	} else {
-+		platform_set_drvdata(pdev, od);
-+	}
++		struct dma_slave_config cfg;
++		struct dma_async_tx_descriptor *tx;
 +
-+	dev_info(&pdev->dev, "OMAP DMA engine driver\n");
++		cfg.src_addr = host->mapbase + OMAP_HSMMC_DATA;
++		cfg.dst_addr = host->mapbase + OMAP_HSMMC_DATA;
++		cfg.src_addr_width = DMA_SLAVE_BUSWIDTH_4_BYTES;
++		cfg.dst_addr_width = DMA_SLAVE_BUSWIDTH_4_BYTES;
++		cfg.src_maxburst = data->blksz / 4;
++		cfg.dst_maxburst = data->blksz / 4;
 +
-+	return rc;
-+}
++		ret = dmaengine_slave_config(chan, &cfg);
++		if (ret)
++			return ret;
 +
-+static int omap_dma_remove(struct platform_device *pdev)
-+{
-+	struct omap_dmadev *od = platform_get_drvdata(pdev);
++		ret = omap_hsmmc_pre_dma_transfer(host, data, NULL,
++						  chan->device->dev);
++		if (ret)
++			return ret;
 +
-+	dma_async_device_unregister(&od->ddev);
-+	omap_dma_free(od);
-+
-+	return 0;
-+}
-+
-+static struct platform_driver omap_dma_driver = {
-+	.probe	= omap_dma_probe,
-+	.remove	= omap_dma_remove,
-+	.driver = {
-+		.name = "omap-dma-engine",
-+		.owner = THIS_MODULE,
-+	},
-+};
-+
-+bool omap_dma_filter_fn(struct dma_chan *chan, void *param)
-+{
-+	if (chan->device->dev->driver == &omap_dma_driver.driver) {
-+		struct omap_chan *c = to_omap_dma_chan(chan);
-+		unsigned req = *(unsigned *)param;
-+
-+		return req == c->dma_sig;
-+	}
-+	return false;
-+}
-+EXPORT_SYMBOL_GPL(omap_dma_filter_fn);
-+
-+static struct platform_device *pdev;
-+
-+static const struct platform_device_info omap_dma_dev_info = {
-+	.name = "omap-dma-engine",
-+	.id = -1,
-+	.dma_mask = DMA_BIT_MASK(32),
-+};
-+
-+static int omap_dma_init(void)
-+{
-+	int rc = platform_driver_register(&omap_dma_driver);
-+
-+	if (rc == 0) {
-+		pdev = platform_device_register_full(&omap_dma_dev_info);
-+		if (IS_ERR(pdev)) {
-+			platform_driver_unregister(&omap_dma_driver);
-+			rc = PTR_ERR(pdev);
++		tx = dmaengine_prep_slave_sg(chan, data->sg, data->sg_len,
++			data->flags & MMC_DATA_WRITE ? DMA_MEM_TO_DEV : DMA_DEV_TO_MEM,
++			DMA_PREP_INTERRUPT | DMA_CTRL_ACK);
++		if (!tx) {
++			dev_err(mmc_dev(host->mmc), "prep_slave_sg() failed\n");
++			/* FIXME: cleanup */
++			return -1;
 +		}
+ 
+-	host->dma_ch = dma_ch;
+-	host->dma_sg_idx = 0;
++		tx->callback = omap_hsmmc_dma_callback;
++		tx->callback_param = host;
+ 
+-	omap_hsmmc_config_dma_params(host, data, data->sg);
++		/* Does not fail */
++		dmaengine_submit(tx);
++
++		host->dma2 = 1;
++
++		dma_async_issue_pending(chan);
 +	}
-+	return rc;
-+}
-+subsys_initcall(omap_dma_init);
+ 
+ 	return 0;
+ }
+@@ -1454,9 +1552,12 @@ static void omap_hsmmc_post_req(struct mmc_host *mmc, struct mmc_request *mrq,
+ 	struct mmc_data *data = mrq->data;
+ 
+ 	if (host->use_dma) {
++		struct dma_chan *c = omap_hsmmc_get_dma_chan(host, data);
++		struct device *dev = c ? c->device->dev : mmc_dev(mmc);
 +
-+static void __exit omap_dma_exit(void)
-+{
-+	platform_device_unregister(pdev);
-+	platform_driver_unregister(&omap_dma_driver);
-+}
-+module_exit(omap_dma_exit);
+ 		if (data->host_cookie)
+-			dma_unmap_sg(mmc_dev(host->mmc), data->sg,
+-				     data->sg_len,
++			dma_unmap_sg(dev,
++				     data->sg, data->sg_len,
+ 				     omap_hsmmc_get_dma_dir(host, data));
+ 		data->host_cookie = 0;
+ 	}
+@@ -1472,10 +1573,14 @@ static void omap_hsmmc_pre_req(struct mmc_host *mmc, struct mmc_request *mrq,
+ 		return ;
+ 	}
+ 
+-	if (host->use_dma)
++	if (host->use_dma) {
++		struct dma_chan *c = omap_hsmmc_get_dma_chan(host, mrq->data);
++		struct device *dev = c ? c->device->dev : mmc_dev(mmc);
 +
-+MODULE_AUTHOR("Russell King");
-+MODULE_LICENSE("GPL");
-diff --git a/include/linux/omap-dma.h b/include/linux/omap-dma.h
-new file mode 100644
-index 0000000..869534c
---- /dev/null
-+++ b/include/linux/omap-dma.h
-@@ -0,0 +1,24 @@
-+/*
-+ * OMAP DMA Engine support
-+ *
-+ * Copyright (C) 2012 Russell King
-+ *
-+ * This program is free software; you can redistribute it and/or modify
-+ * it under the terms of the GNU General Public License version 2 as
-+ * published by the Free Software Foundation.
-+ */
-+#ifndef __LINUX_OMAP_DMA_H
-+#define __LINUX_OMAP_DMA_H
+ 		if (omap_hsmmc_pre_dma_transfer(host, mrq->data,
+-						&host->next_data))
++						&host->next_data, dev))
+ 			mrq->data->host_cookie = 0;
++	}
+ }
+ 
+ /*
+@@ -1487,7 +1592,7 @@ static void omap_hsmmc_request(struct mmc_host *mmc, struct mmc_request *req)
+ 	int err;
+ 
+ 	BUG_ON(host->req_in_progress);
+-	BUG_ON(host->dma_ch != -1);
++	BUG_ON(host->dma_ch != -1 || host->dma2 != -1);
+ 	if (host->protect_card) {
+ 		if (host->reqs_blocked < 3) {
+ 			/*
+@@ -1854,6 +1959,7 @@ static int __devinit omap_hsmmc_probe(struct platform_device *pdev)
+ 	host->use_dma	= 1;
+ 	host->dev->dma_mask = &pdata->dma_mask;
+ 	host->dma_ch	= -1;
++	host->dma2	= -1;
+ 	host->irq	= irq;
+ 	host->slot_id	= 0;
+ 	host->mapbase	= res->start + pdata->reg_offset;
+@@ -1951,6 +2057,29 @@ static int __devinit omap_hsmmc_probe(struct platform_device *pdev)
+ 	}
+ 	host->dma_line_rx = res->start;
+ 
++	{
++		dma_cap_mask_t mask;
++		unsigned sig;
++		extern bool omap_dma_filter_fn(struct dma_chan *chan, void *param);
 +
-+struct dma_chan;
-+
-+#if defined(CONFIG_DMA_OMAP) || defined(CONFIG_DMA_OMAP_MODULE)
-+bool omap_dma_filter_fn(struct dma_chan *, void *);
-+#else
-+static inline bool omap_dma_filter_fn(struct dma_chan *c, void *d)
-+{
-+	return false;
-+}
++		dma_cap_zero(mask);
++		dma_cap_set(DMA_SLAVE, mask);
++#if 1
++		sig = host->dma_line_rx;
++		host->rx_chan = dma_request_channel(mask, omap_dma_filter_fn, &sig);
++		if (!host->rx_chan) {
++			dev_warn(mmc_dev(host->mmc), "unable to obtain RX DMA engine channel %u\n", sig);
++		}
 +#endif
-+
++#if 1
++		sig = host->dma_line_tx;
++		host->tx_chan = dma_request_channel(mask, omap_dma_filter_fn, &sig);
++		if (!host->tx_chan) {
++			dev_warn(mmc_dev(host->mmc), "unable to obtain TX DMA engine channel %u\n", sig);
++		}
 +#endif
++	}
++
+ 	/* Request IRQ for MMC operations */
+ 	ret = request_irq(host->irq, omap_hsmmc_irq, 0,
+ 			mmc_hostname(mmc), host);
+@@ -2028,6 +2157,10 @@ static int __devinit omap_hsmmc_probe(struct platform_device *pdev)
+ err_irq_cd_init:
+ 	free_irq(host->irq, host);
+ err_irq:
++	if (host->tx_chan)
++		dma_release_channel(host->tx_chan);
++	if (host->rx_chan)
++		dma_release_channel(host->rx_chan);
+ 	pm_runtime_put_sync(host->dev);
+ 	pm_runtime_disable(host->dev);
+ 	clk_put(host->fclk);
+@@ -2063,6 +2196,11 @@ static int __devexit omap_hsmmc_remove(struct platform_device *pdev)
+ 	if (mmc_slot(host).card_detect_irq)
+ 		free_irq(mmc_slot(host).card_detect_irq, host);
+ 
++	if (host->tx_chan)
++		dma_release_channel(host->tx_chan);
++	if (host->rx_chan)
++		dma_release_channel(host->rx_chan);
++
+ 	pm_runtime_put_sync(host->dev);
+ 	pm_runtime_disable(host->dev);
+ 	clk_put(host->fclk);
 -- 
 1.7.4.4
 
