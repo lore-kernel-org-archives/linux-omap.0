@@ -1,64 +1,43 @@
-From: Rajendra Nayak <rnayak@ti.com>
-Subject: Re: [PATCH] ARM: omap: clock: Get rid of unwanted clkdm assocations
- within clks
-Date: Thu, 07 Jun 2012 16:22:45 +0530
-Message-ID: <4FD087FD.9040401@ti.com>
-References: <1337250245-29274-1-git-send-email-rnayak@ti.com> <4FD04A2A.4080207@ti.com> <alpine.DEB.2.00.1206070104060.6684@utopia.booyaka.com>
+From: Paul Walmsley <paul@pwsan.com>
+Subject: Re: [PATCH 04/11] ARM: OMAP2+: usb_host_fs: add custom reset for
+ usb_host_fs (fsusb)
+Date: Thu, 7 Jun 2012 04:52:50 -0600 (MDT)
+Message-ID: <alpine.DEB.2.00.1206070446070.6684@utopia.booyaka.com>
+References: <20120607060901.25532.68354.stgit@dusk> <20120607061308.25532.19767.stgit@dusk> <20120607073112.GX12766@atomide.com> <alpine.DEB.2.00.1206070136550.6684@utopia.booyaka.com> <20120607075158.GZ12766@atomide.com> <20120607075541.GF16342@arwen.pp.htv.fi>
+ <4FD0602B.9070704@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aog110.obsmtp.com ([74.125.149.203]:33040 "EHLO
-	na3sys009aog110.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1760603Ab2FGKww (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 7 Jun 2012 06:52:52 -0400
-Received: by obbeh20 with SMTP id eh20so952287obb.31
-        for <linux-omap@vger.kernel.org>; Thu, 07 Jun 2012 03:52:50 -0700 (PDT)
-In-Reply-To: <alpine.DEB.2.00.1206070104060.6684@utopia.booyaka.com>
+Received: from utopia.booyaka.com ([72.9.107.138]:45793 "EHLO
+	utopia.booyaka.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756657Ab2FGKwv (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 7 Jun 2012 06:52:51 -0400
+In-Reply-To: <4FD0602B.9070704@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Paul Walmsley <paul@pwsan.com>
-Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+To: "Cousson, Benoit" <b-cousson@ti.com>
+Cc: balbi@ti.com, Tony Lindgren <tony@atomide.com>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Tero Kristo <t-kristo@ti.com>
 
-Hi Paul,
+On Thu, 7 Jun 2012, Cousson, Benoit wrote:
 
-On Thursday 07 June 2012 12:37 PM, Paul Walmsley wrote:
-> Hi
->
-> On Thu, 7 Jun 2012, Rajendra Nayak wrote:
->
->> On Thursday 17 May 2012 03:54 PM, Rajendra Nayak wrote:
->>> clkdm assocations with clocks in the clock framework are useful
->>> only for 'gate' clocks which have enable/disable ops populated.
->>> Get rid of the clkdm_names populated in any other type of clocks.
->
-> I don't really see the point in changing this before the common clock
-> conversion.  The design of most of the current low-level OMAP PM layers
-> was predicated on each clock belonging to a clockdomain.  The testing
-> overhead of changing this before the common clock conversion is something
-> that I don't have time for, and almost no one else seems interested in
-> doing.
->
-> Your common clock conversion moots this patch anyway, right?
+> In fact we should delay the reset to the very last moment and 
+> potentially reset the IPs not under driver control later after a couple 
+> of second for example. It will avoid reseting every IP that will be 
+> handled properly by drivers.
 
-Yes, I can include this as part of the common clock conversion series.
-What I was trying to say is that neither the clock framework not any
-other OMAP PM layer today makes any use of this information except for
-gate clocks. The only 2 places in the clock framework this is used is
-in omap2_dflt_clk_enable()/omap2_dflt_clk_disable() functions, which
-are nops for non gate clocks.
-So I don;t fully understand what you mean by our current low-level PM
-design being based on this assumption that every clock belongs to a
-clockdomain.
-Did I miss anything else our PM frameworks do with the clock<->clkdm
-association? The reason I am asking is because I am doing a lot of 
-changes around based on this assumption and would really like to know
-if I am missing something.
+We discussed this a couple of years ago on the list and aligned on late 
+and lazy resets, from my recollection.  The main reason why it wasn't 
+implemented was because there were some drivers that were not yet PM 
+runtime-converted.  This would have caused crashes, since the core code 
+would have no idea that the non-PM-runtime drivers had initialized their 
+devices, and so the core just went ahead and reset those anyway.
 
-regards,
-Rajendra
+It might actually be safe now to switch to the late reset arrangement, 
+depending on whether the rest of the drivers have been PM 
+runtime-converted by now.
 
->
-> - Paul
->
+Of course, it would all be moot if the reset is moved away from the hwmod 
+code into the drivers.
 
+
+- Paul
