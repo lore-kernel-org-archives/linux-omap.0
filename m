@@ -1,61 +1,54 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH 04/11] ARM: OMAP2+: usb_host_fs: add custom reset for
- usb_host_fs (fsusb)
-Date: Thu, 7 Jun 2012 00:31:13 -0700
-Message-ID: <20120607073112.GX12766@atomide.com>
-References: <20120607060901.25532.68354.stgit@dusk>
- <20120607061308.25532.19767.stgit@dusk>
+From: Paul Walmsley <paul@pwsan.com>
+Subject: Re: [PATCH 02/11] ARM: OMAP4+: AESS: enable internal auto-gating
+ during initial setup
+Date: Thu, 7 Jun 2012 01:31:18 -0600 (MDT)
+Message-ID: <alpine.DEB.2.00.1206070121150.6684@utopia.booyaka.com>
+References: <20120607060901.25532.68354.stgit@dusk> <20120607061306.25532.59488.stgit@dusk> <20120607071900.GW12766@atomide.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-01-ewr.mailhop.org ([204.13.248.71]:55468 "EHLO
-	mho-01-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751862Ab2FGHbQ (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 7 Jun 2012 03:31:16 -0400
-Content-Disposition: inline
-In-Reply-To: <20120607061308.25532.19767.stgit@dusk>
+Received: from utopia.booyaka.com ([72.9.107.138]:41429 "EHLO
+	utopia.booyaka.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753002Ab2FGHbT (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 7 Jun 2012 03:31:19 -0400
+In-Reply-To: <20120607071900.GW12766@atomide.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Paul Walmsley <paul@pwsan.com>
-Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Tero Kristo <t-kristo@ti.com>, =?utf-8?Q?Beno=C3=AEt?= Cousson <b-cousson@ti.com>, Felipe Balbi <balbi@ti.com>
+To: Tony Lindgren <tony@atomide.com>
+Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, =?ISO-8859-15?Q?P=E9ter_Ujfalusi?= <peter.ujfalusi@ti.com>, =?ISO-8859-15?Q?Beno=EEt_Cousson?= <b-cousson@ti.com>
 
-* Paul Walmsley <paul@pwsan.com> [120606 23:26]:
-> From: Tero Kristo <t-kristo@ti.com>
-> 
-> Add a custom reset function for the usb_host_fs/fsusb IP block, and
-> connect it to the OMAP4 FSUSB block.
-> 
-> This is the first of two fixes required to get rid of the boot
-> warning:
-> 
-> omap_hwmod: usb_host_fs: _wait_target_disable failed
-> 
-> and to allow the module to idle.
-> 
-> It may be necessary to use this reset method for OMAP2xxx SoCs as
-> well; this is left for a future patch.
+On Thu, 7 Jun 2012, Tony Lindgren wrote:
 
-Here too I think driver like features like this should live in the
-driver init for omap OHCI driver. In the likely case that FS OHCI is
-not in use on the board, the OHCI glue can just reset it.
- 
-> +/* HCCOMMANDSTATUS: the register offset of the HCCOMMANDSTATUS register */
-> +#define HCCOMMANDSTATUS			0x0008
-> +
-> +/* HCCOMMANDSTATUS_HCR: the bitmask of the host controller reset flag */
-> +#define HCCOMMANDSTATUS_HCR_MASK	(1 << 0)
+> It seems that most/many IP blocks need their custom reset hacks, and 
+> it's not limited to just few instances?
 
-I don't think the bus layer code should need to know anything about driver
-specific registers.
+Only four out of the fifty-seven omap_hwmod_classes defined in 
+mach-omap2/omap_hwmod_44xx_data.c after this series have custom reset 
+functions used:
 
-> +	omap_hwmod_write(HCCOMMANDSTATUS_HCR_MASK, oh, HCCOMMANDSTATUS);
-> +
-> +	omap_test_timeout(!(omap_hwmod_read(oh, HCCOMMANDSTATUS)
-> +			    & HCCOMMANDSTATUS_HCR_MASK),
-> +			  MAX_MODULE_SOFTRESET_WAIT, c);
-> +
+$ fgrep 'struct omap_hwmod_class ' arch/arm/mach-omap2/omap_hwmod_44xx_data.c | wc -l
+57
+$ fgrep '.reset' arch/arm/mach-omap2/omap_hwmod_44xx_data.c | wc -l
+4
 
-These should be accessed by the driver in a standard way after ioremapping
-the device.
+That's 7% of the classes.  In terms of the total number of IP block 
+instances that use custom reset functions viewed against the total number 
+of instances on the chip, the percentage is even smaller.
 
-Tony
+> AFAIK there's no need to reset the IP blocks before the driver init, 
+> it's really needed for PM. So it's not needed early on, and it's OK to 
+> require running the driver init for driver modules that are not in use 
+> to reset them properly. After all, the hardware is on the device, even 
+> if it's not being used.
+
+I don't think I'm following you.  It's not just PM; the problem is also 
+with kexec or buggy bootloaders.  If an IP block isn't reset when the 
+kernel boots, and is doing DMA or anything else that could affect the 
+reset of the system, it could easily cause unpredictable behavior or 
+crashes in unrelated kernel code.
+
+It's also worth mentioning that many IP blocks, such as AESS, don't have 
+Linux drivers.
+
+
+- Paul
