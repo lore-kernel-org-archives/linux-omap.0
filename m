@@ -1,57 +1,51 @@
-From: Paul Walmsley <paul@pwsan.com>
-Subject: Re: [PATCH 04/11] ARM: OMAP2+: usb_host_fs: add custom reset for
- usb_host_fs (fsusb)
-Date: Fri, 8 Jun 2012 07:28:51 -0600 (MDT)
-Message-ID: <alpine.DEB.2.00.1206080722040.14977@utopia.booyaka.com>
-References: <20120607060901.25532.68354.stgit@dusk> <20120607061308.25532.19767.stgit@dusk> <20120607073112.GX12766@atomide.com> <alpine.DEB.2.00.1206070136550.6684@utopia.booyaka.com> <20120607075158.GZ12766@atomide.com> <20120607075541.GF16342@arwen.pp.htv.fi>
- <4FD0602B.9070704@ti.com> <alpine.DEB.2.00.1206070446070.6684@utopia.booyaka.com> <4FD09EFA.20304@ti.com> <alpine.DEB.2.00.1206071657160.14977@utopia.booyaka.com> <4FD1FA8C.1080600@ti.com>
+From: Tero Kristo <t-kristo@ti.com>
+Subject: Re: [PATCH 00/11] ARM: OMAP: core/hwmod: first set of fixes for
+ 3.5-rc
+Date: Fri, 8 Jun 2012 16:30:55 +0300
+Message-ID: <1339162255.2091.56.camel@sokoban>
+References: <20120607060901.25532.68354.stgit@dusk>
+Reply-To: <t-kristo@ti.com>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from utopia.booyaka.com ([72.9.107.138]:42644 "EHLO
-	utopia.booyaka.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753333Ab2FHN2w (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 8 Jun 2012 09:28:52 -0400
-In-Reply-To: <4FD1FA8C.1080600@ti.com>
+Received: from bear.ext.ti.com ([192.94.94.41]:37763 "EHLO bear.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1756230Ab2FHNbB (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Fri, 8 Jun 2012 09:31:01 -0400
+In-Reply-To: <20120607060901.25532.68354.stgit@dusk>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "Cousson, Benoit" <b-cousson@ti.com>
-Cc: balbi@ti.com, Tony Lindgren <tony@atomide.com>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Tero Kristo <t-kristo@ti.com>, Ohad Ben-Cohen <ohad@wizery.com>
+To: Paul Walmsley <paul@pwsan.com>
+Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Kevin Hilman <khilman@ti.com>, =?ISO-8859-1?Q?Beno=EEt?= Cousson <b-cousson@ti.com>
 
-On Fri, 8 Jun 2012, Cousson, Benoit wrote:
+Hi Paul,
 
-> On 6/8/2012 3:11 AM, Paul Walmsley wrote:
-> > On Thu, 7 Jun 2012, Cousson, Benoit wrote:
-> > 
-> > > Indeed, what I did not mention is that potentially the whole device 
-> > > init should be done ondemand as well. Meaning the whole hwmod setup 
-> > > phase should be done only when the driver will probe the device.
-> > 
-> > That means if no driver exists for an IP block, or if the driver isn't
-> > using PM runtime, the IP block won't be reset.  And somehow we still are
-> > missing drivers in mainline.  We also still have drivers that aren't yet
-> > PM runtime converted.
-> 
-> No the point is still the same as before. You let the drivers do the job if
-> they are there, and then do a pass at very late time during the boot process
-> to handle the ones that were not probed by any driver.
+Tested this set on top of v3.5-rc1 with omap3 / omap4 suspend + my omap4
+core retention / dev-off patches. There are a couple of minor issues,
+like the bug in patch 5, and the fact that counter_32k hwmod data is
+broken for omap4. This fix is needed on omap4 to fix the counter_32k, if
+this is not done, device off does not work:
 
-Ah, I see what you mean.  Above you wrote that the the hwmod setup phase 
-would be done only when the driver will probe the device.  But you also 
-mean that it should also be done for the remaining devices before starting 
-userspace.
-
-> At least you will avoid the enable -> reset -> idle -> enable sequence 
-> we are doing right now for most of the active drivers when it is not 
-> necessary.
-
-It must not be widely known, but early reset was implemented 
-intentionally.  The goal was to keep any configuration damage from 
-out-of-date or broken bootloaders or previous OSes to a minimum length of 
-time during the boot process.
-
-I don't really have a huge problem with switching to a late reset, 
-but there are disadvantages to it.
+diff --git a/arch/arm/mach-omap2/omap_hwmod_44xx_data.c
+b/arch/arm/mach-omap2/omap_hwmod_44xx_data.c
+index 66da92d..6ad64c6 100644
+--- a/arch/arm/mach-omap2/omap_hwmod_44xx_data.c
++++ b/arch/arm/mach-omap2/omap_hwmod_44xx_data.c
+@@ -397,8 +397,7 @@ static struct omap_hwmod_class_sysconfig
+omap44xx_counter_sysc = {
+ 	.rev_offs	= 0x0000,
+ 	.sysc_offs	= 0x0004,
+ 	.sysc_flags	= SYSC_HAS_SIDLEMODE,
+-	.idlemodes	= (SIDLE_FORCE | SIDLE_NO | SIDLE_SMART |
+-			   SIDLE_SMART_WKUP),
++	.idlemodes	= (SIDLE_FORCE | SIDLE_NO),
+ 	.sysc_fields	= &omap_hwmod_sysc_type1,
+ };
+ 
 
 
-- Paul
+-Tero
+
+
+
