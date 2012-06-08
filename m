@@ -1,34 +1,64 @@
 From: Peter Ujfalusi <peter.ujfalusi@ti.com>
-Subject: [PATCH 4/7] arm/dts: omap4-sdp: Add support for twl6040
-Date: Fri,  8 Jun 2012 17:02:02 +0300
-Message-ID: <1339164125-32534-5-git-send-email-peter.ujfalusi@ti.com>
+Subject: [PATCH 6/7] arm/dts: omap4-panda: Audio support for PandaBoard 4430
+Date: Fri,  8 Jun 2012 17:02:04 +0300
+Message-ID: <1339164125-32534-7-git-send-email-peter.ujfalusi@ti.com>
 References: <1339164125-32534-1-git-send-email-peter.ujfalusi@ti.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aob106.obsmtp.com ([74.125.149.76]:59373 "EHLO
-	na3sys009aog106.obsmtp.com" rhost-flags-OK-OK-OK-FAIL)
-	by vger.kernel.org with ESMTP id S1757623Ab2FHOCi (ORCPT
+Received: from na3sys009aog117.obsmtp.com ([74.125.149.242]:57695 "EHLO
+	na3sys009aog117.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1757218Ab2FHOCi (ORCPT
 	<rfc822;linux-omap@vger.kernel.org>); Fri, 8 Jun 2012 10:02:38 -0400
-Received: by lahm15 with SMTP id m15so1679248lah.37
-        for <linux-omap@vger.kernel.org>; Fri, 08 Jun 2012 07:02:29 -0700 (PDT)
+Received: by lbbgm6 with SMTP id gm6so1374149lbb.19
+        for <linux-omap@vger.kernel.org>; Fri, 08 Jun 2012 07:02:34 -0700 (PDT)
 In-Reply-To: <1339164125-32534-1-git-send-email-peter.ujfalusi@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: Russell King <linux@arm.linux.org.uk>, Benoit Cousson <b-cousson@ti.com>, Tony Lindgren <tony@atomide.com>, Grant Likely <grant.likely@secretlab.ca>
 Cc: linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org, devicetree-discuss@lists.ozlabs.org, linux-omap@vger.kernel.org, Rajendra Nayak <rnayak@ti.com>, Liam Girdwood <lrg@ti.com>
 
-The twl6040 provides the audio and vibra support on OMAP4 SDP boards.
-It is connected to i2c1 bus with 0x4b address.
+PandaBoard uses twl6040 connected via McPDM for audio.
 
 Signed-off-by: Peter Ujfalusi <peter.ujfalusi@ti.com>
 ---
- arch/arm/boot/dts/omap4-sdp.dts |   25 +++++++++++++++++++++++++
- 1 files changed, 25 insertions(+), 0 deletions(-)
+ arch/arm/boot/dts/omap4-panda.dts |   37 +++++++++++++++++++++++++++++++++++++
+ 1 files changed, 37 insertions(+), 0 deletions(-)
 
-diff --git a/arch/arm/boot/dts/omap4-sdp.dts b/arch/arm/boot/dts/omap4-sdp.dts
-index 4b51611..f09d1f5 100644
---- a/arch/arm/boot/dts/omap4-sdp.dts
-+++ b/arch/arm/boot/dts/omap4-sdp.dts
-@@ -99,6 +99,31 @@
+diff --git a/arch/arm/boot/dts/omap4-panda.dts b/arch/arm/boot/dts/omap4-panda.dts
+index 1efe0c5..f57f5e8 100644
+--- a/arch/arm/boot/dts/omap4-panda.dts
++++ b/arch/arm/boot/dts/omap4-panda.dts
+@@ -32,6 +32,30 @@
+ 			linux,default-trigger = "mmc0";
+ 		};
+ 	};
++
++	sound: sound {
++		compatible = "ti,abe-twl6040";
++		ti,model = "PandaBoard";
++
++		ti,mclk-freq = <38400000>;
++
++		ti,mcpdm = <&mcpdm>;
++
++		ti,twl6040 = <&twl6040>;
++
++		/* Audio routing */
++		ti,audio-routing =
++			"Headset Stereophone", "HSOL",
++			"Headset Stereophone", "HSOR",
++			"Ext Spk", "HFL",
++			"Ext Spk", "HFR",
++			"Line Out", "AUXL",
++			"Line Out", "AUXR",
++			"HSMIC", "Headset Mic",
++			"Headset Mic", "Headset Mic Bias",
++			"AFML", "Line In",
++			"AFMR", "Line In";
++	};
+ };
+ 
+ &i2c1 {
+@@ -43,6 +67,19 @@
  		interrupts = <0 7 4>; /* IRQ_SYS_1N cascaded to gic */
  		interrupt-parent = <&gic>;
  	};
@@ -44,18 +74,6 @@ index 4b51611..f09d1f5 100644
 +		vio-supply = <&v1v8>;
 +		v2v1-supply = <&v2v1>;
 +		enable-active-high;
-+
-+		/* regulators for vibra motor */
-+		vddvibl-supply = <&vbat>;
-+		vddvibr-supply = <&vbat>;
-+
-+		vibra {
-+			/* Vibra driver, motor resistance parameters */
-+			ti,vibldrv-res = <8>;
-+			ti,vibrdrv-res = <3>;
-+			ti,viblmotor-res = <10>;
-+			ti,vibrmotor-res = <10>;
-+		};
 +	};
  };
  
