@@ -1,42 +1,39 @@
-From: Olof Johansson <olof@lixom.net>
-Subject: Re: [GIT PULL] omap fixes for v3.5-rc1
-Date: Fri, 8 Jun 2012 01:23:28 -0700
-Message-ID: <CAOesGMgDsxfp+nY772VCwXvNGneAXBufdeNpptbZQ05pG=ks3A@mail.gmail.com>
-References: <20120608073237.GM12766@atomide.com>
+From: Linus Walleij <linus.walleij@linaro.org>
+Subject: Re: [CFT] PL08x patches
+Date: Fri, 8 Jun 2012 10:32:02 +0200
+Message-ID: <CACRpkdadwL6AvEtHK0RyBKXCvMhc_g8n5im0RjJCHof4-Bs_-Q@mail.gmail.com>
+References: <20120607103434.GQ8262@n2100.arm.linux.org.uk>
+	<E1Sca9b-0003ax-4E@rmk-PC.arm.linux.org.uk>
+	<20120607104527.GA15973@n2100.arm.linux.org.uk>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-pz0-f46.google.com ([209.85.210.46]:34306 "EHLO
-	mail-pz0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755839Ab2FHIX3 convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 8 Jun 2012 04:23:29 -0400
-Received: by dady13 with SMTP id y13so2034011dad.19
-        for <linux-omap@vger.kernel.org>; Fri, 08 Jun 2012 01:23:28 -0700 (PDT)
-In-Reply-To: <20120608073237.GM12766@atomide.com>
+Received: from mail-qa0-f46.google.com ([209.85.216.46]:41213 "EHLO
+	mail-qa0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756041Ab2FHIcE (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 8 Jun 2012 04:32:04 -0400
+Received: by qadb17 with SMTP id b17so580233qad.19
+        for <linux-omap@vger.kernel.org>; Fri, 08 Jun 2012 01:32:02 -0700 (PDT)
+In-Reply-To: <20120607104527.GA15973@n2100.arm.linux.org.uk>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Tony Lindgren <tony@atomide.com>
-Cc: Arnd Bergmann <arnd@arndb.de>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+To: Russell King - ARM Linux <linux@arm.linux.org.uk>
+Cc: linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org, Vinod Koul <vinod.koul@intel.com>, Dan Williams <dan.j.williams@intel.com>
 
-On Fri, Jun 8, 2012 at 12:32 AM, Tony Lindgren <tony@atomide.com> wrote=
-:
-> The following changes since commit f8f5701bdaf9134b1f90e5044a82c66324=
-d2073f:
->
-> =A0Linux 3.5-rc1 (2012-06-02 18:29:26 -0700)
->
-> are available in the git repository at:
->
-> =A0git://git.kernel.org/pub/scm/linux/kernel/git/tmlind/linux-omap ta=
-gs/omap-fixes-for-v3.5-rc1
+On Thu, Jun 7, 2012 at 12:45 PM, Russell King - ARM Linux
+<linux@arm.linux.org.uk> wrote:
 
-Thanks, pulled.
+> Here's the PL08x patches.
 
+I've tested the entire set: first the three patches splitting out the virtual
+channels, then the remaining 31 patches on PL08x.
 
--Olof
---
-To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+The test was performed on a Nomadik S8815 which has a pretty
+much vanilla PL08x block.
+
+The DMAengine memcpy test completes just fine and behave like
+before.
+Tested-by: Linus Walleij <linus.walleij@linaro.org>
+
+Yours,
+Linus Walleij
