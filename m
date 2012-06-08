@@ -1,49 +1,29 @@
 From: "Shilimkar, Santosh" <santosh.shilimkar@ti.com>
-Subject: Re: [CFT 11/11] Add feature removal of old OMAP private DMA implementation
-Date: Fri, 8 Jun 2012 11:40:21 +0530
-Message-ID: <CAMQu2gzaC0KCJ5MEozRdQoQL_JOm4RpBkNbwv0RDEstheBwntQ@mail.gmail.com>
-References: <20120607110610.GB15973@n2100.arm.linux.org.uk> <E1ScabE-0003uN-JD@rmk-PC.arm.linux.org.uk>
+Subject: Re: [CFT 01/11] dmaengine: add OMAP DMA engine driver
+Date: Fri, 8 Jun 2012 11:49:20 +0530
+Message-ID: <CAMQu2gwhyyetc=e0Ci0cjo948hq8GT18ttu7MCrsCM_osk5xAA@mail.gmail.com>
+References: <20120607110610.GB15973@n2100.arm.linux.org.uk> <E1ScaXw-0003tR-U8@rmk-PC.arm.linux.org.uk>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Return-path: <linux-doc-owner@vger.kernel.org>
-In-Reply-To: <E1ScabE-0003uN-JD@rmk-PC.arm.linux.org.uk>
-Sender: linux-doc-owner@vger.kernel.org
-To: Russell King <rmk+kernel@arm.linux.org.uk>
-Cc: linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org, Rob Landley <rob@landley.net>, linux-doc@vger.kernel.org
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from na3sys009aog129.obsmtp.com ([74.125.149.142]:53204 "EHLO
+	na3sys009aog129.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S933517Ab2FHGTm (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 8 Jun 2012 02:19:42 -0400
+Received: by qcso7 with SMTP id o7so399305qcs.34
+        for <linux-omap@vger.kernel.org>; Thu, 07 Jun 2012 23:19:40 -0700 (PDT)
+In-Reply-To: <E1ScaXw-0003tR-U8@rmk-PC.arm.linux.org.uk>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Russell King <rmk+kernel@arm.linux.org.uk>
+Cc: linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org, Dan Williams <dan.j.williams@intel.com>, Vinod Koul <vinod.koul@intel.com>
 
-On Thu, Jun 7, 2012 at 4:39 PM, Russell King
+On Thu, Jun 7, 2012 at 4:36 PM, Russell King
 <rmk+kernel@arm.linux.org.uk> wrote:
-> Acked-by: Linus Walleij <linus.walleij@linaro.org>
+> Tested-by: Tony Lindgren <tony@atomide.com>
 > Signed-off-by: Russell King <rmk+kernel@arm.linux.org.uk>
 > ---
-> =A0Documentation/feature-removal-schedule.txt | =A0 11 +++++++++++
-> =A01 files changed, 11 insertions(+), 0 deletions(-)
->
-> diff --git a/Documentation/feature-removal-schedule.txt b/Documentati=
-on/feature-removal-schedule.txt
-> index 56000b3..1f7ba35 100644
-> --- a/Documentation/feature-removal-schedule.txt
-> +++ b/Documentation/feature-removal-schedule.txt
-> @@ -612,3 +612,14 @@ When: =A0 =A0 =A0June 2013
-> =A0Why: =A0 Unsupported/unmaintained/unused since 2.6
->
-> =A0----------------------------
-> +
-> +What: =A0OMAP private DMA implementation
-> +When: =A02013
-> +Why: =A0 We have a DMA engine implementation; all users should be up=
-dated
-> + =A0 =A0 =A0 to use this rather than persisting with the old APIs. =A0=
-The old APIs
-> + =A0 =A0 =A0 block merging the old DMA engine implementation into th=
-e DMA
-> + =A0 =A0 =A0 engine driver.
-> +Who: =A0 Russell King <linux@arm.linux.org.uk>,
-> + =A0 =A0 =A0 Santosh Shilimkar <santosh.shilimkar@ti.com>
-> +
-> +----------------------------
-> --
+Have scanned mainly the OMAP DMA related features in the patch
+and they look fine to me.
 
 Acked-by: Santosh Shilimkar <santosh.shilimkar@ti.com>
