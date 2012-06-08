@@ -1,51 +1,48 @@
-From: Tero Kristo <t-kristo@ti.com>
-Subject: Re: [PATCH 00/11] ARM: OMAP: core/hwmod: first set of fixes for
- 3.5-rc
-Date: Fri, 8 Jun 2012 16:30:55 +0300
-Message-ID: <1339162255.2091.56.camel@sokoban>
-References: <20120607060901.25532.68354.stgit@dusk>
-Reply-To: <t-kristo@ti.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: 7bit
+From: Peter Ujfalusi <peter.ujfalusi@ti.com>
+Subject: [PATCH 1/7] arm/dts: omap4: Add entry for OMAP McPDM IP
+Date: Fri,  8 Jun 2012 17:01:59 +0300
+Message-ID: <1339164125-32534-2-git-send-email-peter.ujfalusi@ti.com>
+References: <1339164125-32534-1-git-send-email-peter.ujfalusi@ti.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from bear.ext.ti.com ([192.94.94.41]:37763 "EHLO bear.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1756230Ab2FHNbB (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Fri, 8 Jun 2012 09:31:01 -0400
-In-Reply-To: <20120607060901.25532.68354.stgit@dusk>
+Received: from na3sys009aog105.obsmtp.com ([74.125.149.75]:55427 "EHLO
+	na3sys009aog105.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1755230Ab2FHOCY (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 8 Jun 2012 10:02:24 -0400
+Received: by lbbgk8 with SMTP id gk8so1506787lbb.40
+        for <linux-omap@vger.kernel.org>; Fri, 08 Jun 2012 07:02:22 -0700 (PDT)
+In-Reply-To: <1339164125-32534-1-git-send-email-peter.ujfalusi@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Paul Walmsley <paul@pwsan.com>
-Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Kevin Hilman <khilman@ti.com>, =?ISO-8859-1?Q?Beno=EEt?= Cousson <b-cousson@ti.com>
+To: Russell King <linux@arm.linux.org.uk>, Benoit Cousson <b-cousson@ti.com>, Tony Lindgren <tony@atomide.com>, Grant Likely <grant.likely@secretlab.ca>
+Cc: linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org, devicetree-discuss@lists.ozlabs.org, linux-omap@vger.kernel.org, Rajendra Nayak <rnayak@ti.com>, Liam Girdwood <lrg@ti.com>
 
-Hi Paul,
+McPDM is used on OMAP4 based boards to communicate with an external audio
+codec (twl6040).
 
-Tested this set on top of v3.5-rc1 with omap3 / omap4 suspend + my omap4
-core retention / dev-off patches. There are a couple of minor issues,
-like the bug in patch 5, and the fact that counter_32k hwmod data is
-broken for omap4. This fix is needed on omap4 to fix the counter_32k, if
-this is not done, device off does not work:
+Signed-off-by: Peter Ujfalusi <peter.ujfalusi@ti.com>
+---
+ arch/arm/boot/dts/omap4.dtsi |    9 +++++++++
+ 1 files changed, 9 insertions(+), 0 deletions(-)
 
-diff --git a/arch/arm/mach-omap2/omap_hwmod_44xx_data.c
-b/arch/arm/mach-omap2/omap_hwmod_44xx_data.c
-index 66da92d..6ad64c6 100644
---- a/arch/arm/mach-omap2/omap_hwmod_44xx_data.c
-+++ b/arch/arm/mach-omap2/omap_hwmod_44xx_data.c
-@@ -397,8 +397,7 @@ static struct omap_hwmod_class_sysconfig
-omap44xx_counter_sysc = {
- 	.rev_offs	= 0x0000,
- 	.sysc_offs	= 0x0004,
- 	.sysc_flags	= SYSC_HAS_SIDLEMODE,
--	.idlemodes	= (SIDLE_FORCE | SIDLE_NO | SIDLE_SMART |
--			   SIDLE_SMART_WKUP),
-+	.idlemodes	= (SIDLE_FORCE | SIDLE_NO),
- 	.sysc_fields	= &omap_hwmod_sysc_type1,
+diff --git a/arch/arm/boot/dts/omap4.dtsi b/arch/arm/boot/dts/omap4.dtsi
+index 359c497..4c43f3b 100644
+--- a/arch/arm/boot/dts/omap4.dtsi
++++ b/arch/arm/boot/dts/omap4.dtsi
+@@ -272,5 +272,14 @@
+ 			ti,hwmods = "mmc5";
+ 			ti,needs-special-reset;
+ 		};
++
++		mcpdm: mcpdm@40132000 {
++			compatible = "ti,omap4-mcpdm";
++			reg = <0x40132000 0x7f>, /* MPU private access */
++			      <0x49032000 0x7f>; /* L3 Interconnect */
++			interrupts = <0 112 0x4>;
++			interrupt-parent = <&gic>;
++			ti,hwmods = "mcpdm";
++		};
+ 	};
  };
- 
-
-
--Tero
-
-
+-- 
+1.7.8.6
 
