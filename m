@@ -1,102 +1,75 @@
 From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH 04/11] ARM: OMAP2+: usb_host_fs: add custom reset for
- usb_host_fs (fsusb)
-Date: Thu, 7 Jun 2012 23:38:59 -0700
-Message-ID: <20120608063859.GL12766@atomide.com>
-References: <20120607060901.25532.68354.stgit@dusk>
- <20120607061308.25532.19767.stgit@dusk>
- <20120607073112.GX12766@atomide.com>
- <alpine.DEB.2.00.1206070136550.6684@utopia.booyaka.com>
- <20120607075158.GZ12766@atomide.com>
- <alpine.DEB.2.00.1206070406050.6684@utopia.booyaka.com>
- <20120607105228.GC12766@atomide.com>
- <alpine.DEB.2.00.1206071404470.14977@utopia.booyaka.com>
+Subject: [GIT PULL] omap fixes for v3.5-rc1
+Date: Fri, 8 Jun 2012 00:32:37 -0700
+Message-ID: <20120608073237.GM12766@atomide.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-01-ewr.mailhop.org ([204.13.248.71]:16703 "EHLO
-	mho-01-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750988Ab2FHGjD (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 8 Jun 2012 02:39:03 -0400
+Received: from mho-02-ewr.mailhop.org ([204.13.248.72]:47583 "EHLO
+	mho-02-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751741Ab2FHHck (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 8 Jun 2012 03:32:40 -0400
 Content-Disposition: inline
-In-Reply-To: <alpine.DEB.2.00.1206071404470.14977@utopia.booyaka.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Paul Walmsley <paul@pwsan.com>
-Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Tero Kristo <t-kristo@ti.com>, =?utf-8?Q?Beno=C3=AEt?= Cousson <b-cousson@ti.com>, Felipe Balbi <balbi@ti.com>
+To: Arnd Bergmann <arnd@arndb.de>, Olof Johansson <olof@lixom.net>
+Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 
-* Paul Walmsley <paul@pwsan.com> [120607 15:09]:
-> On Thu, 7 Jun 2012, Tony Lindgren wrote:
-> 
-> > Until we have something generic in place to deal with stuff like unused driver
-> > reset and idle, how about we set up the driver specific reset parts as inline
-> > functions in the driver header?
-> 
-> You're referring to the driver integration header files in 
-> arch/arm/plat-omap/include/ and arch/arm/mach-omap2/, right?  That would 
-> avoid the need for "sideways" includes from drivers/.
-> 
-> > That way the hwmod code can include those functions using the driver register
-> > defines. Something like:
-> > 
-> > static inline int xyz_driver_reset(void __iomem *base, int flags)
-> > {
-> > 	...
-> > }
-> > 
-> > Then instead of having a separate platform init file for each driver,
-> > we could just have a list of reset functions:
-> > 
-> > static int hwmod_xyz_driver_reset(void __iomem *base, int flags)
-> 
-> This should probably be passed a struct omap_hwmod * instead of base so 
-> it can call the existing hwmod bus related reset functions like 
-> omap_hwmod_softreset().  Or were you thinking about open-coding those into 
-> this reset function?
+The following changes since commit f8f5701bdaf9134b1f90e5044a82c66324d2073f:
 
-Oh OK yeah makes sense as that's hwmod internal function. Then the driver
-specific part should use just void __iomem *base and use readl/writel and
-live under include/linux/platform_data/omap-usb.h.
+  Linux 3.5-rc1 (2012-06-02 18:29:26 -0700)
 
-> Just as an aside, this function will probably need to be marked 
-> __maybe_unused, so the compiler doesn't warn when other files include this 
-> header, but don't call the function.
+are available in the git repository at:
 
-Yeah probably.
- 
-> > {
-> > 	int res;
-> > 
-> > 	/* do bus related reset here */
-> > 	...
-> >
-> > 	/* call the driver reset */
-> > 	res = xyz_driver_reset(base, flags)
-> > 
-> > 
-> > 	/* do more bus related reset here */
-> > 	...
-> > }
-> 
-> That's fine with me.  It doesn't matter to me where that code lives as 
-> long as it makes technical sense.
+  git://git.kernel.org/pub/scm/linux/kernel/git/tmlind/linux-omap tags/omap-fixes-for-v3.5-rc1
 
-OK good. That way we can separate the driver specific part from the bus
-code. And the driver maintainers can review the driver specific part of the
-idle/reset function. And maybe at some point we'll have device_reset and
-device_idle functions and some generic framework in place for it..
- 
-> I'm hoping that in the near future that we can get rid of these 
-> hwmod_xyz_driver_reset() functions.  Instead it should be possible to have 
-> the hwmod reset code call functions like xyz_driver_reset_pre_wait() and 
-> xyz_driver_reset_post_ocpreset() via optional function pointers at 
-> different points in the reset process.  That should allow us to remove the 
-> omap_hwmod function calls from the I2C, MSDI, etc. reset functions, and 
-> also remove some needlessly duplicated code.
+for you to fetch changes up to febe9e02d63ed8a42e7e9c75ea16117821f90f07:
 
-Sounds good to me. Also sounds like that does not need changes to the
-driver specific xyz_driver_reset functions.
+  ARM: OMAP2+: Fix compile for CONFIG_TIDSPBRIDGE platform init code (2012-06-06 01:42:20 -0700)
 
-Regards,
+----------------------------------------------------------------
+The biggest fix here is the long pending patch mux UART pins so PM
+retention idle works again.
 
-Tony
+Also included are few other PM wake-up related fixes, and removal of
+dead cpu detection code.
+
+The other fixes are trivial build and randconfig related fixes.
+
+----------------------------------------------------------------
+Govindraj.R (1):
+      OMAP2+: UART: Add mechanism to probe uart pins and configure rx wakeup
+
+Kevin Hilman (3):
+      ARM: OMAP3: PM: fix shared PRCM interrupts: leave disabled at boot
+      ARM: OMAP3: clock data: cleanup AM3[35]x SoC detection
+      ARM: OMAP: SoC detection: remove unused cpu_is macros
+
+Mark A. Greer (1):
+      arm: omap3: am35x: Don't mark missing features as present
+
+NeilBrown (1):
+      ARM: OMAP2+: INTC: fix suspend abort, set IRQCHIP_SKIP_SET_WAKE
+
+Tony Lindgren (6):
+      Merge branch 'for_3.5/fixes/pm' of git://git.kernel.org/.../khilman/linux-omap-pm into fixes
+      Merge branch 'for_3.5/cleanup/am3xxx-cpu-is-leftovers' of git://git.kernel.org/.../khilman/linux-omap-pm into fixes
+      ARM: OMAP: Fix lis3lv02d accelerometer to use gpio_to_irq
+      ARM: OMAP: Fix MMC_OMAP build when only MMC_OMAP_HS is selected
+      ARM: OMAP3: Fix omap3_l3_block_irq warning when CONFIG_BUG is not set
+      ARM: OMAP2+: Fix compile for CONFIG_TIDSPBRIDGE platform init code
+
+ arch/arm/mach-omap2/board-rx51-peripherals.c |    6 ++-
+ arch/arm/mach-omap2/clock3xxx_data.c         |    2 +-
+ arch/arm/mach-omap2/dsp.c                    |    3 ++
+ arch/arm/mach-omap2/id.c                     |   11 +++++
+ arch/arm/mach-omap2/irq.c                    |    1 +
+ arch/arm/mach-omap2/mux.c                    |    3 +-
+ arch/arm/mach-omap2/mux.h                    |   11 +++++
+ arch/arm/mach-omap2/omap_l3_smx.c            |    3 +-
+ arch/arm/mach-omap2/pm34xx.c                 |    1 +
+ arch/arm/mach-omap2/prm2xxx_3xxx.c           |   14 ++++--
+ arch/arm/mach-omap2/serial.c                 |   67 ++++++++++++++++++++++++--
+ arch/arm/plat-omap/include/plat/cpu.h        |   33 -------------
+ arch/arm/plat-omap/include/plat/mmc.h        |    4 +-
+ 13 files changed, 110 insertions(+), 49 deletions(-)
