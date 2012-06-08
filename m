@@ -1,79 +1,292 @@
-From: Paul Walmsley <paul@pwsan.com>
-Subject: Re: [PATCH] ARM: omap: clock: Get rid of unwanted clkdm assocations
- within clks
-Date: Fri, 8 Jun 2012 08:24:16 -0600 (MDT)
-Message-ID: <alpine.DEB.2.00.1206080734350.14977@utopia.booyaka.com>
-References: <1337250245-29274-1-git-send-email-rnayak@ti.com> <4FD04A2A.4080207@ti.com> <alpine.DEB.2.00.1206070104060.6684@utopia.booyaka.com> <4FD087FD.9040401@ti.com> <alpine.DEB.2.00.1206080130570.14977@utopia.booyaka.com> <4FD1B2F9.7050400@ti.com>
+From: Jon Hunter <jon-hunter@ti.com>
+Subject: Re: [PATCH V2 01/10] ARM: PMU: Add runtime PM Support
+Date: Fri, 8 Jun 2012 10:24:32 -0500
+Message-ID: <4FD21930.4000800@ti.com>
+References: <1339104132-26885-1-git-send-email-jon-hunter@ti.com> <1339104132-26885-2-git-send-email-jon-hunter@ti.com> <20120608094708.GC19062@mudshark.cambridge.arm.com>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+Content-Type: text/plain; charset="ISO-8859-1"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from utopia.booyaka.com ([72.9.107.138]:33578 "EHLO
-	utopia.booyaka.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932086Ab2FHOYR (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 8 Jun 2012 10:24:17 -0400
-In-Reply-To: <4FD1B2F9.7050400@ti.com>
+Received: from bear.ext.ti.com ([192.94.94.41]:44300 "EHLO bear.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1761136Ab2FHPYo (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Fri, 8 Jun 2012 11:24:44 -0400
+In-Reply-To: <20120608094708.GC19062@mudshark.cambridge.arm.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Rajendra Nayak <rnayak@ti.com>
-Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+To: Will Deacon <will.deacon@arm.com>
+Cc: linux-omap <linux-omap@vger.kernel.org>, linux-arm <linux-arm-kernel@lists.infradead.org>, Ming Lei <ming.lei@canonical.com>, Benoit Cousson <b-cousson@ti.com>, Paul Walmsley <paul@pwsan.com>, Kevin Hilman <khilman@ti.com>
 
-On Fri, 8 Jun 2012, Rajendra Nayak wrote:
+Hi Will,
 
-> This patch only gets rid of clkdm assocation from *non gate* clocks.
-> And what I am trying to say is that, this information in not
-> used at all (for non gate clocks) in any of the frameworks today
-> including clock framework.
-> So why should getting rid of some *unused* data have any testing
-> overhead?
+On 06/08/2012 04:47 AM, Will Deacon wrote:
+> Hi Jon,
+> 
+> On Thu, Jun 07, 2012 at 10:22:03PM +0100, Jon Hunter wrote:
+>> diff --git a/arch/arm/kernel/perf_event.c b/arch/arm/kernel/perf_event.c
+>> index 186c8cb..00adb98 100644
+>> --- a/arch/arm/kernel/perf_event.c
+>> +++ b/arch/arm/kernel/perf_event.c
+>> @@ -20,6 +20,7 @@
+>>  #include <linux/platform_device.h>
+>>  #include <linux/spinlock.h>
+>>  #include <linux/uaccess.h>
+>> +#include <linux/pm_runtime.h>
+>>  
+>>  #include <asm/cputype.h>
+>>  #include <asm/irq.h>
+>> @@ -367,8 +368,6 @@ armpmu_release_hardware(struct arm_pmu *armpmu)
+>>  {
+>>  	int i, irq, irqs;
+>>  	struct platform_device *pmu_device = armpmu->plat_device;
+>> -	struct arm_pmu_platdata *plat =
+>> -		dev_get_platdata(&pmu_device->dev);
+>>  
+>>  	irqs = min(pmu_device->num_resources, num_possible_cpus());
+>>  
+>> @@ -376,14 +375,12 @@ armpmu_release_hardware(struct arm_pmu *armpmu)
+>>  		if (!cpumask_test_and_clear_cpu(i, &armpmu->active_irqs))
+>>  			continue;
+>>  		irq = platform_get_irq(pmu_device, i);
+>> -		if (irq >= 0) {
+>> -			if (plat && plat->disable_irq)
+>> -				plat->disable_irq(irq);
+>> +		if (irq >= 0)
+>>  			free_irq(irq, armpmu);
+>> -		}
+>>  	}
+>>  
+>>  	release_pmu(armpmu->type);
+>> +	pm_runtime_put_sync(&armpmu->plat_device->dev);
+> 
+> We probably want to suspend the device before releasing it, otherwise we
+> could race against somebody else trying to initialise the PMU again.
+> 
+>>  
+>>  static int
+>> @@ -403,6 +400,8 @@ armpmu_reserve_hardware(struct arm_pmu *armpmu)
+>>  		return err;
+>>  	}
+>>  
+>> +	pm_runtime_get_sync(&armpmu->plat_device->dev);
+> 
+> Better pass &pmu_device->dev instead (similarly in release).
+> 
+>> +
+>>  	plat = dev_get_platdata(&pmu_device->dev);
+>>  	if (plat && plat->handle_irq)
+>>  		handle_irq = armpmu_platform_irq;
+>> @@ -440,8 +439,7 @@ armpmu_reserve_hardware(struct arm_pmu *armpmu)
+>>  				irq);
+>>  			armpmu_release_hardware(armpmu);
+>>  			return err;
+>> -		} else if (plat && plat->enable_irq)
+>> -			plat->enable_irq(irq);
+>> +		}
+>>  
+>>  		cpumask_set_cpu(i, &armpmu->active_irqs);
+>>  	}
+>> @@ -584,6 +582,28 @@ static void armpmu_disable(struct pmu *pmu)
+>>  	armpmu->stop();
+>>  }
+> 
+> There are potential failure paths in the reservation code here where we
+> don't `put' the PMU back. Can you move the pm_runtime_get_sync call later in
+> the function, or does it have to called before we enable the IRQ line?
+> 
+>> +#ifdef CONFIG_PM_RUNTIME
+>> +static int armpmu_runtime_resume(struct device *dev)
+>> +{
+>> +	struct arm_pmu_platdata *plat = dev_get_platdata(dev);
+>> +
+>> +	if (plat->runtime_resume)
+> 
+> I think you need to check plat too since it may be NULL on other platforms.
+> 
+>> +		return plat->runtime_resume(dev);
+>> +
+>> +	return 0;
+>> +}
+>> +
+>> +static int armpmu_runtime_suspend(struct device *dev)
+>> +{
+>> +	struct arm_pmu_platdata *plat = dev_get_platdata(dev);
+>> +
+>> +	if (plat->runtime_suspend)
+> 
+> Same here.
 
-Your definition of 'unused' seems to be different than mine:
+Here is an updated version. I was going to send out a V3, but I wanted
+to wait to see if others had more comments first.
 
-$ egrep -rn 'c(lk|)->clkdm' arch/arm/
-arch/arm/mach-omap2/omap_hwmod.c:560:	if (oh->_clk->clkdm && oh->_clk->clkdm->flags & CLKDM_NO_AUTODEPS)
-arch/arm/mach-omap2/omap_hwmod.c:563:	return clkdm_add_sleepdep(oh->_clk->clkdm, init_oh->_clk->clkdm);
-arch/arm/mach-omap2/omap_hwmod.c:584:	if (oh->_clk->clkdm && oh->_clk->clkdm->flags & CLKDM_NO_AUTODEPS)
-arch/arm/mach-omap2/omap_hwmod.c:587:	return clkdm_del_sleepdep(oh->_clk->clkdm, init_oh->_clk->clkdm);
-arch/arm/mach-omap2/omap_hwmod.c:612:	if (!oh->_clk->clkdm)
-arch/arm/mach-omap2/omap_hwmod.c:2998:	if (!c->clkdm)
-arch/arm/mach-omap2/omap_hwmod.c:3001:	return c->clkdm->pwrdm.ptr;
-arch/arm/mach-omap2/clock.c:96:	if (!clk->clkdm_name)
-arch/arm/mach-omap2/clock.c:99:	clkdm = clkdm_lookup(clk->clkdm_name);
-arch/arm/mach-omap2/clock.c:102:			 clk->name, clk->clkdm_name);
-arch/arm/mach-omap2/clock.c:103:		clk->clkdm = clkdm;
-arch/arm/mach-omap2/clock.c:106:			 "clkdm %s\n", clk->name, clk->clkdm_name);
-arch/arm/mach-omap2/clock.c:292:	if (clkdm_control && clk->clkdm)
-arch/arm/mach-omap2/clock.c:293:		clkdm_clk_disable(clk->clkdm, clk);
-arch/arm/mach-omap2/clock.c:332:	if (clkdm_control && clk->clkdm) {
-arch/arm/mach-omap2/clock.c:333:		ret = clkdm_clk_enable(clk->clkdm, clk);
-arch/arm/mach-omap2/clock.c:336:			     "%d\n", clk->name, clk->clkdm->name, ret);
-arch/arm/mach-omap2/clock.c:354:	if (clkdm_control && clk->clkdm)
-arch/arm/mach-omap2/clock.c:355:		clkdm_clk_disable(clk->clkdm, clk);
-arch/arm/mach-omap2/clock.c:441:	if (clk->clkdm != NULL)
-arch/arm/mach-omap2/clock.c:442:		pwrdm_state_switch(clk->clkdm->pwrdm.ptr);
+Cheers
+Jon
 
-That is just the result of a casual grep, not even a code analysis.
+>From c53dcbe091928d293f14e890c2b38be57692ccca Mon Sep 17 00:00:00 2001
+From: Jon Hunter <jon-hunter@ti.com>
+Date: Thu, 31 May 2012 13:05:20 -0500
+Subject: [PATCH] ARM: PMU: Add runtime PM Support
 
-Removing this data is not like removing some macros where one can get a 
-compiler error if they turn out to be needed.  Problems with this ares 
-only likely to show up at runtime.
+Add runtime PM support to the ARM PMU driver so that devices such as OMAP
+supporting dynamic PM can use the platform->runtime_* hooks to initialise
+hardware at runtime. Without having these runtime PM hooks in place any
+configuration of the PMU hardware would be lost when low power states are
+entered and hence would prevent PMU from working.
 
-By the way, I hope you're testing the patches that you send to the lists, 
-at the very least to the minimal PM testing that I do that is documented 
-e.g. here:
+This change also replaces the PMU platform functions enable_irq and disable_irq
+added by Ming Lei with runtime_resume and runtime_suspend funtions. Ming had
+added the enable_irq and disable_irq functions as a method to configure the
+cross trigger interface on OMAP4 for routing the PMU interrupts. By adding
+runtime PM support, we can move the code called by enable_irq and disable_irq
+into the runtime PM callbacks runtime_resume and runtime_suspend.
 
-http://www.pwsan.com/omap/bootlogs/20120508/prcm_devel_a_3.5__0135f6a04642c192bdf4b36e06937d3387e174ff/
+Cc: Ming Lei <ming.lei@canonical.com>
+Cc: Will Deacon <will.deacon@arm.com>
+Cc: Benoit Cousson <b-cousson@ti.com>
+Cc: Paul Walmsley <paul@pwsan.com>
+Cc: Kevin Hilman <khilman@ti.com>
 
-Otherwise the testing burden is just getting pushed to other people who 
-already have too much to do.
+Signed-off-by: Jon Hunter <jon-hunter@ti.com>
+---
+ arch/arm/include/asm/pmu.h   |   20 ++++++++++++--------
+ arch/arm/kernel/perf_event.c |   41 +++++++++++++++++++++++++++++++++--------
+ 2 files changed, 45 insertions(+), 16 deletions(-)
 
-...
+diff --git a/arch/arm/include/asm/pmu.h b/arch/arm/include/asm/pmu.h
+index 90114fa..77b023b 100644
+--- a/arch/arm/include/asm/pmu.h
++++ b/arch/arm/include/asm/pmu.h
+@@ -31,18 +31,22 @@ enum arm_pmu_type {
+  *	interrupt and passed the address of the low level handler,
+  *	and can be used to implement any platform specific handling
+  *	before or after calling it.
+- * @enable_irq: an optional handler which will be called after
+- *	request_irq and be used to handle some platform specific
+- *	irq enablement
+- * @disable_irq: an optional handler which will be called before
+- *	free_irq and be used to handle some platform specific
+- *	irq disablement
++ * @runtime_resume: an optional handler which will be called by the
++ *	runtime PM framework following a call to pm_runtime_get().
++ *	Note that if pm_runtime_get() is called more than once in
++ *	succession this handler will only be called once.
++ * @runtime_suspend: an optional handler which will be called by the
++ *	runtime PM framework following a call to pm_runtime_put().
++ *	Note that if pm_runtime_get() is called more than once in
++ *	succession this handler will only be called following the
++ *	final call to pm_runtime_put() that actually disables the
++ *	hardware.
+  */
+ struct arm_pmu_platdata {
+ 	irqreturn_t (*handle_irq)(int irq, void *dev,
+ 				  irq_handler_t pmu_handler);
+-	void (*enable_irq)(int irq);
+-	void (*disable_irq)(int irq);
++	int (*runtime_resume)(struct device *dev);
++	int (*runtime_suspend)(struct device *dev);
+ };
+ 
+ #ifdef CONFIG_CPU_HAS_PMU
+diff --git a/arch/arm/kernel/perf_event.c b/arch/arm/kernel/perf_event.c
+index 186c8cb..2878651 100644
+--- a/arch/arm/kernel/perf_event.c
++++ b/arch/arm/kernel/perf_event.c
+@@ -20,6 +20,7 @@
+ #include <linux/platform_device.h>
+ #include <linux/spinlock.h>
+ #include <linux/uaccess.h>
++#include <linux/pm_runtime.h>
+ 
+ #include <asm/cputype.h>
+ #include <asm/irq.h>
+@@ -367,8 +368,6 @@ armpmu_release_hardware(struct arm_pmu *armpmu)
+ {
+ 	int i, irq, irqs;
+ 	struct platform_device *pmu_device = armpmu->plat_device;
+-	struct arm_pmu_platdata *plat =
+-		dev_get_platdata(&pmu_device->dev);
+ 
+ 	irqs = min(pmu_device->num_resources, num_possible_cpus());
+ 
+@@ -376,13 +375,11 @@ armpmu_release_hardware(struct arm_pmu *armpmu)
+ 		if (!cpumask_test_and_clear_cpu(i, &armpmu->active_irqs))
+ 			continue;
+ 		irq = platform_get_irq(pmu_device, i);
+-		if (irq >= 0) {
+-			if (plat && plat->disable_irq)
+-				plat->disable_irq(irq);
++		if (irq >= 0)
+ 			free_irq(irq, armpmu);
+-		}
+ 	}
+ 
++	pm_runtime_put_sync(&pmu_device->dev);
+ 	release_pmu(armpmu->type);
+ }
+ 
+@@ -415,6 +412,8 @@ armpmu_reserve_hardware(struct arm_pmu *armpmu)
+ 		return -ENODEV;
+ 	}
+ 
++	pm_runtime_get_sync(&pmu_device->dev);
++
+ 	for (i = 0; i < irqs; ++i) {
+ 		err = 0;
+ 		irq = platform_get_irq(pmu_device, i);
+@@ -440,8 +439,7 @@ armpmu_reserve_hardware(struct arm_pmu *armpmu)
+ 				irq);
+ 			armpmu_release_hardware(armpmu);
+ 			return err;
+-		} else if (plat && plat->enable_irq)
+-			plat->enable_irq(irq);
++		}
+ 
+ 		cpumask_set_cpu(i, &armpmu->active_irqs);
+ 	}
+@@ -584,6 +582,28 @@ static void armpmu_disable(struct pmu *pmu)
+ 	armpmu->stop();
+ }
+ 
++#ifdef CONFIG_PM_RUNTIME
++static int armpmu_runtime_resume(struct device *dev)
++{
++	struct arm_pmu_platdata *plat = dev_get_platdata(dev);
++
++	if (plat && plat->runtime_resume)
++		return plat->runtime_resume(dev);
++
++	return 0;
++}
++
++static int armpmu_runtime_suspend(struct device *dev)
++{
++	struct arm_pmu_platdata *plat = dev_get_platdata(dev);
++
++	if (plat && plat->runtime_suspend)
++		return plat->runtime_suspend(dev);
++
++	return 0;
++}
++#endif
++
+ static void __init armpmu_init(struct arm_pmu *armpmu)
+ {
+ 	atomic_set(&armpmu->active_events, 0);
+@@ -650,9 +670,14 @@ static int __devinit armpmu_device_probe(struct platform_device *pdev)
+ 	return 0;
+ }
+ 
++static const struct dev_pm_ops armpmu_dev_pm_ops = {
++	SET_RUNTIME_PM_OPS(armpmu_runtime_suspend, armpmu_runtime_resume, NULL)
++};
++
+ static struct platform_driver armpmu_driver = {
+ 	.driver		= {
+ 		.name	= "arm-pmu",
++		.pm	= &armpmu_dev_pm_ops,
+ 		.of_match_table = armpmu_of_device_ids,
+ 	},
+ 	.probe		= armpmu_device_probe,
+-- 
+1.7.9.5
 
-So to repeat myself on this:
-
-1. The patch that removes some of the struct clk clkdm_name strings should 
-   be part of or otherwise grouped with the CCF conversion patch series
-
-2. The CCF conversion patch series needs to be fully PM-tested
-
-
-- Paul
