@@ -1,56 +1,65 @@
 From: Peter Ujfalusi <peter.ujfalusi@ti.com>
-Subject: [PATCH 7/7] arm/dts: New dts file for PandaBoardES (4460)
-Date: Fri,  8 Jun 2012 17:02:05 +0300
-Message-ID: <1339164125-32534-8-git-send-email-peter.ujfalusi@ti.com>
+Subject: [PATCH 4/7] arm/dts: omap4-sdp: Add support for twl6040
+Date: Fri,  8 Jun 2012 17:02:02 +0300
+Message-ID: <1339164125-32534-5-git-send-email-peter.ujfalusi@ti.com>
 References: <1339164125-32534-1-git-send-email-peter.ujfalusi@ti.com>
-Return-path: <linux-kernel-owner@vger.kernel.org>
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from na3sys009aob106.obsmtp.com ([74.125.149.76]:59373 "EHLO
+	na3sys009aog106.obsmtp.com" rhost-flags-OK-OK-OK-FAIL)
+	by vger.kernel.org with ESMTP id S1757623Ab2FHOCi (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 8 Jun 2012 10:02:38 -0400
+Received: by lahm15 with SMTP id m15so1679248lah.37
+        for <linux-omap@vger.kernel.org>; Fri, 08 Jun 2012 07:02:29 -0700 (PDT)
 In-Reply-To: <1339164125-32534-1-git-send-email-peter.ujfalusi@ti.com>
-Sender: linux-kernel-owner@vger.kernel.org
+Sender: linux-omap-owner@vger.kernel.org
+List-Id: linux-omap@vger.kernel.org
 To: Russell King <linux@arm.linux.org.uk>, Benoit Cousson <b-cousson@ti.com>, Tony Lindgren <tony@atomide.com>, Grant Likely <grant.likely@secretlab.ca>
 Cc: linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org, devicetree-discuss@lists.ozlabs.org, linux-omap@vger.kernel.org, Rajendra Nayak <rnayak@ti.com>, Liam Girdwood <lrg@ti.com>
-List-Id: linux-omap@vger.kernel.org
 
-The 4430 and 4460 version of PandaBoard mostly the same with
-exception at least in audio setup.
-Use the omap4-panda.dts file as a base and only override the differences
-between the revisions.
-For audio it is the name of the sound card and the routing information.
+The twl6040 provides the audio and vibra support on OMAP4 SDP boards.
+It is connected to i2c1 bus with 0x4b address.
 
 Signed-off-by: Peter Ujfalusi <peter.ujfalusi@ti.com>
 ---
- arch/arm/boot/dts/omap4-pandaES.dts |   24 ++++++++++++++++++++++++
- 1 files changed, 24 insertions(+), 0 deletions(-)
- create mode 100644 arch/arm/boot/dts/omap4-pandaES.dts
+ arch/arm/boot/dts/omap4-sdp.dts |   25 +++++++++++++++++++++++++
+ 1 files changed, 25 insertions(+), 0 deletions(-)
 
-diff --git a/arch/arm/boot/dts/omap4-pandaES.dts b/arch/arm/boot/dts/omap4-pandaES.dts
-new file mode 100644
-index 0000000..d4ba43a
---- /dev/null
-+++ b/arch/arm/boot/dts/omap4-pandaES.dts
-@@ -0,0 +1,24 @@
-+/*
-+ * Copyright (C) 2012 Texas Instruments Incorporated - http://www.ti.com/
-+ *
-+ * This program is free software; you can redistribute it and/or modify
-+ * it under the terms of the GNU General Public License version 2 as
-+ * published by the Free Software Foundation.
-+ */
-+/include/ "omap4-panda.dts"
+diff --git a/arch/arm/boot/dts/omap4-sdp.dts b/arch/arm/boot/dts/omap4-sdp.dts
+index 4b51611..f09d1f5 100644
+--- a/arch/arm/boot/dts/omap4-sdp.dts
++++ b/arch/arm/boot/dts/omap4-sdp.dts
+@@ -99,6 +99,31 @@
+ 		interrupts = <0 7 4>; /* IRQ_SYS_1N cascaded to gic */
+ 		interrupt-parent = <&gic>;
+ 	};
 +
-+/* Audio routing is differnet between PandaBoard4430 and PandaBoardES */
-+&sound {
-+	ti,model = "PandaBoardES";
++	twl6040: twl@4b {
++		compatible = "ti,twl6040";
++		reg = <0x4b>;
++		/* SPI = 0, IRQ# = 119, 4 = active high level-sensitive */
++		interrupts = <0 119 4>; /* IRQ_SYS_2N cascaded to gic */
++		interrupt-parent = <&gic>;
++		ti,audpwron-gpio = <&gpio4 31 0>;  /* gpio line 127 */
 +
-+	/* Audio routing */
-+	ti,audio-routing =
-+		"Headset Stereophone", "HSOL",
-+		"Headset Stereophone", "HSOR",
-+		"Ext Spk", "HFL",
-+		"Ext Spk", "HFR",
-+		"Line Out", "AUXL",
-+		"Line Out", "AUXR",
-+		"AFML", "Line In",
-+		"AFMR", "Line In";
-+};
++		vio-supply = <&v1v8>;
++		v2v1-supply = <&v2v1>;
++		enable-active-high;
++
++		/* regulators for vibra motor */
++		vddvibl-supply = <&vbat>;
++		vddvibr-supply = <&vbat>;
++
++		vibra {
++			/* Vibra driver, motor resistance parameters */
++			ti,vibldrv-res = <8>;
++			ti,vibrdrv-res = <3>;
++			ti,viblmotor-res = <10>;
++			ti,vibrmotor-res = <10>;
++		};
++	};
+ };
+ 
+ /include/ "twl6030.dtsi"
 -- 
 1.7.8.6
+
