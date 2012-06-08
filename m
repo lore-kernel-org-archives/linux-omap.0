@@ -1,50 +1,40 @@
-From: Jon Hunter <jon-hunter@ti.com>
-Subject: Re: [PATCH V2 00/10] ARM: OMAP4: Add PMU Support
-Date: Thu, 7 Jun 2012 18:36:06 -0500
-Message-ID: <4FD13AE6.6070206@ti.com>
-References: <1339104132-26885-1-git-send-email-jon-hunter@ti.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset="ISO-8859-1"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from arroyo.ext.ti.com ([192.94.94.40]:35427 "EHLO arroyo.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1757927Ab2FGXgK (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Thu, 7 Jun 2012 19:36:10 -0400
-In-Reply-To: <1339104132-26885-1-git-send-email-jon-hunter@ti.com>
-Sender: linux-omap-owner@vger.kernel.org
+From: mathieu.poirier@linaro.org
+Subject: [PATCH] arm: OMAP depends on MMU
+Date: Thu,  7 Jun 2012 18:50:51 -0600
+Message-ID: <1339116651-18051-1-git-send-email-mathieu.poirier@linaro.org>
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Sender: linux-kernel-owner@vger.kernel.org
+To: linux-omap@vger.kernel.org
+Cc: linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org, tony@atomide.com, arnd@arndb.de, mathieu.poirier@linaro.org
 List-Id: linux-omap@vger.kernel.org
-To: Jon Hunter <jon-hunter@ti.com>
-Cc: linux-omap <linux-omap@vger.kernel.org>, linux-arm <linux-arm-kernel@lists.infradead.org>, Ming Lei <ming.lei@canonical.com>, Will Deacon <will.deacon@arm.com>, Benoit Cousson <b-cousson@ti.com>, Paul Walmsley <paul@pwsan.com>, Kevin Hilman <khilman@ti.com>
 
+From: Arnd Bergmann <arnd@arndb.de>
 
-On 06/07/2012 04:22 PM, Jon Hunter wrote:
-> This series adds PMU support for OMAP4 devices. This is based upon Will Deacons
-> series [1]. This series fixes the management of the EMU power domain so that
-> PMU can be enabled at runtime and low-power states are not prevented when PMU
-> is not in-use. The fix is based upon inputs from Benoit, Paul and Kevin [2].
-> 
-> This series also converts OMAP2/3 devices to use HWMOD to create the PMU device
-> and add a new file to mach-omap2 directory called pmu.c where the PMU devices
-> are created.
-> 
-> This series is based upon the latest linux-omap master branch from Tony
-> (3.5-rc1).
-> 
-> Testing:
-> - Verified that PMU is working on OMAP3430 Beagle Board, OMAP4430 Blaze and
->   4460 Panda.
-> - Tested on the above boards with CPU-idle enabled to ensure that PMU is working
->   with power management. For OMAP4 boards I have disabled CPU1 so that CPU0 and
->   hence the MPU power domain is reaching the low-power retention state.
-> - I have booted the kernel on an OMAP2430 SDP but not verified PMU is working.
-> - Unable to verify 4470 Blaze because kernel is not currently booting.
+There is no way to build OMAP kernels without an MMU
+at this point because of dependencies on MMU-only functions.
 
-Update on the 4470 status. Now I have 4470 booting [1], I have now
-verified that PMU on 4470 is also working with this series (and with
-CPU-idle enabled).
+As long as nobody is interested in fixing this, let's just disable
+this platforms for nommu kernels.
 
-Cheers
-Jon
+Signed-off-by: Arnd Bergmann <arnd@arndb.de>
+Signed-off-by: Mathieu Poirier <mathieu.poirier@linaro.org>
+Acked-by: Santosh Shilimkar <santosh.shilimkar@ti.com>
+Acked-by: Tony Lindgren <tony@atomide.com>
+---
+ arch/arm/Kconfig |    1 +
+ 1 files changed, 1 insertions(+), 0 deletions(-)
 
-[1] http://marc.info/?l=linux-omap&m=133911023112941&w=2
+diff --git a/arch/arm/Kconfig b/arch/arm/Kconfig
+index 84449dd..4b1fc0d 100644
+--- a/arch/arm/Kconfig
++++ b/arch/arm/Kconfig
+@@ -934,6 +934,7 @@ config ARCH_DAVINCI
+ 
+ config ARCH_OMAP
+ 	bool "TI OMAP"
++	depends on MMU
+ 	select HAVE_CLK
+ 	select ARCH_REQUIRE_GPIOLIB
+ 	select ARCH_HAS_CPUFREQ
+-- 
+1.7.5.4
