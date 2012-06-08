@@ -1,33 +1,60 @@
-From: Linus Walleij <linus.walleij@linaro.org>
-Subject: Re: [CFT 02/11] mmc: omap_hsmmc: add DMA engine support
-Date: Fri, 8 Jun 2012 10:53:17 +0200
-Message-ID: <CACRpkdaq5AYZapS-YSTXa4atJQESiqKvmpnXBYE_aOD4+PkigQ@mail.gmail.com>
-References: <20120607110610.GB15973@n2100.arm.linux.org.uk>
-	<E1ScaYH-0003tV-Bn@rmk-PC.arm.linux.org.uk>
+From: Russell King - ARM Linux <linux@arm.linux.org.uk>
+Subject: Re: [CFT 01/11] dmaengine: add OMAP DMA engine driver
+Date: Fri, 8 Jun 2012 10:02:00 +0100
+Message-ID: <20120608090200.GA15831@n2100.arm.linux.org.uk>
+References: <20120607110610.GB15973@n2100.arm.linux.org.uk> <E1ScaXw-0003tR-U8@rmk-PC.arm.linux.org.uk>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Return-path: <linux-mmc-owner@vger.kernel.org>
-In-Reply-To: <E1ScaYH-0003tV-Bn@rmk-PC.arm.linux.org.uk>
-Sender: linux-mmc-owner@vger.kernel.org
-To: Russell King <rmk+kernel@arm.linux.org.uk>
-Cc: linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org, Chris Ball <cjb@laptop.org>, linux-mmc@vger.kernel.org
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from caramon.arm.linux.org.uk ([78.32.30.218]:54814 "EHLO
+	caramon.arm.linux.org.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S933075Ab2FHJCM (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 8 Jun 2012 05:02:12 -0400
+Content-Disposition: inline
+In-Reply-To: <E1ScaXw-0003tR-U8@rmk-PC.arm.linux.org.uk>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org
+Cc: Vinod Koul <vinod.koul@intel.com>, Dan Williams <dan.j.williams@intel.com>
 
-On Thu, Jun 7, 2012 at 1:06 PM, Russell King
-<rmk+kernel@arm.linux.org.uk> wrote:
-
-> Add DMA engine support to the OMAP HSMMC driver. =A0This supplements =
-the
-> private DMA API implementation contained within this driver, and the
-> driver can be switched at build time between using DMA engine and the
-> private DMA API.
->
-> Tested-by: Grazvydas Ignotas <notasas@gmail.com>
+On Thu, Jun 07, 2012 at 12:06:32PM +0100, Russell King wrote:
+> Tested-by: Tony Lindgren <tony@atomide.com>
 > Signed-off-by: Russell King <rmk+kernel@arm.linux.org.uk>
+> ---
+>  drivers/dma/Kconfig      |    6 +
+>  drivers/dma/Makefile     |    1 +
+>  drivers/dma/omap-dma.c   |  522 ++++++++++++++++++++++++++++++++++++++++++++++
+>  include/linux/omap-dma.h |   24 ++
+>  4 files changed, 553 insertions(+), 0 deletions(-)
+>  create mode 100644 drivers/dma/omap-dma.c
+>  create mode 100644 include/linux/omap-dma.h
 
-Looks good:
-Acked-by: Linus Walleij <linus.walleij@linaro.org>
+There is a bug in here which no one has spotted... I just noticed it.
 
-Thanks,
-Linus Walleij
+diff --git a/drivers/dma/omap-dma.c b/drivers/dma/omap-dma.c
+index 500bc71..02eb2fd 100644
+--- a/drivers/dma/omap-dma.c
++++ b/drivers/dma/omap-dma.c
+@@ -130,14 +130,13 @@ static void omap_dma_callback(int ch, u16 status, void *data)
+ 
+ 	spin_lock_irqsave(&c->vc.lock, flags);
+ 	d = c->desc;
+-	if (!d)
+-		return;
+-
+-	if (++c->sgidx < d->sglen) {
+-		omap_dma_start_sg(c, d, c->sgidx);
+-	} else {
+-		omap_dma_start_desc(c);
+-		vchan_cookie_complete(&d->vd);
++	if (d) {
++		if (++c->sgidx < d->sglen) {
++			omap_dma_start_sg(c, d, c->sgidx);
++		} else {
++			omap_dma_start_desc(c);
++			vchan_cookie_complete(&d->vd);
++		}
+ 	}
+ 	spin_unlock_irqrestore(&c->vc.lock, flags);
+ }
+
