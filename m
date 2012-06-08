@@ -1,79 +1,56 @@
 From: Peter Ujfalusi <peter.ujfalusi@ti.com>
-Subject: [PATCH 5/7] arm/dts: omap4-sdp: Enable audio support via device tree
-Date: Fri,  8 Jun 2012 17:02:03 +0300
-Message-ID: <1339164125-32534-6-git-send-email-peter.ujfalusi@ti.com>
+Subject: [PATCH 7/7] arm/dts: New dts file for PandaBoardES (4460)
+Date: Fri,  8 Jun 2012 17:02:05 +0300
+Message-ID: <1339164125-32534-8-git-send-email-peter.ujfalusi@ti.com>
 References: <1339164125-32534-1-git-send-email-peter.ujfalusi@ti.com>
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aog112.obsmtp.com ([74.125.149.207]:40967 "EHLO
-	na3sys009aog112.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1757218Ab2FHOCf (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 8 Jun 2012 10:02:35 -0400
-Received: by lbbgm6 with SMTP id gm6so1619270lbb.5
-        for <linux-omap@vger.kernel.org>; Fri, 08 Jun 2012 07:02:32 -0700 (PDT)
+Return-path: <linux-kernel-owner@vger.kernel.org>
 In-Reply-To: <1339164125-32534-1-git-send-email-peter.ujfalusi@ti.com>
-Sender: linux-omap-owner@vger.kernel.org
-List-Id: linux-omap@vger.kernel.org
+Sender: linux-kernel-owner@vger.kernel.org
 To: Russell King <linux@arm.linux.org.uk>, Benoit Cousson <b-cousson@ti.com>, Tony Lindgren <tony@atomide.com>, Grant Likely <grant.likely@secretlab.ca>
 Cc: linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org, devicetree-discuss@lists.ozlabs.org, linux-omap@vger.kernel.org, Rajendra Nayak <rnayak@ti.com>, Liam Girdwood <lrg@ti.com>
+List-Id: linux-omap@vger.kernel.org
 
-On OMAP4 SDP the audio setup includes the twl6040 codec and digital
-microphones.
-
-Since OMAP4 SDP is a reference board it has all possible audio interfaces
-connected. This information is passed via the ti,audio-routing
-property.
+The 4430 and 4460 version of PandaBoard mostly the same with
+exception at least in audio setup.
+Use the omap4-panda.dts file as a base and only override the differences
+between the revisions.
+For audio it is the name of the sound card and the routing information.
 
 Signed-off-by: Peter Ujfalusi <peter.ujfalusi@ti.com>
 ---
- arch/arm/boot/dts/omap4-sdp.dts |   35 +++++++++++++++++++++++++++++++++++
- 1 files changed, 35 insertions(+), 0 deletions(-)
+ arch/arm/boot/dts/omap4-pandaES.dts |   24 ++++++++++++++++++++++++
+ 1 files changed, 24 insertions(+), 0 deletions(-)
+ create mode 100644 arch/arm/boot/dts/omap4-pandaES.dts
 
-diff --git a/arch/arm/boot/dts/omap4-sdp.dts b/arch/arm/boot/dts/omap4-sdp.dts
-index f09d1f5..964f8ec 100644
---- a/arch/arm/boot/dts/omap4-sdp.dts
-+++ b/arch/arm/boot/dts/omap4-sdp.dts
-@@ -88,6 +88,41 @@
- 			gpios = <&gpio5 11 0>; /* 139 */
- 		};
- 	};
+diff --git a/arch/arm/boot/dts/omap4-pandaES.dts b/arch/arm/boot/dts/omap4-pandaES.dts
+new file mode 100644
+index 0000000..d4ba43a
+--- /dev/null
++++ b/arch/arm/boot/dts/omap4-pandaES.dts
+@@ -0,0 +1,24 @@
++/*
++ * Copyright (C) 2012 Texas Instruments Incorporated - http://www.ti.com/
++ *
++ * This program is free software; you can redistribute it and/or modify
++ * it under the terms of the GNU General Public License version 2 as
++ * published by the Free Software Foundation.
++ */
++/include/ "omap4-panda.dts"
 +
-+	sound {
-+		compatible = "ti,abe-twl6040";
-+		ti,model = "SDP4430";
++/* Audio routing is differnet between PandaBoard4430 and PandaBoardES */
++&sound {
++	ti,model = "PandaBoardES";
 +
-+		ti,jack-detection = <1>;
-+		ti,mclk-freq = <38400000>;
-+
-+		ti,mcpdm = <&mcpdm>;
-+		ti,dmic = <&dmic>;
-+
-+		ti,twl6040 = <&twl6040>;
-+
-+		/* Audio routing */
-+		ti,audio-routing =
-+			"Headset Stereophone", "HSOL",
-+			"Headset Stereophone", "HSOR",
-+			"Earphone Spk", "EP",
-+			"Ext Spk", "HFL",
-+			"Ext Spk", "HFR",
-+			"Line Out", "AUXL",
-+			"Line Out", "AUXR",
-+			"Vibrator", "VIBRAL",
-+			"Vibrator", "VIBRAR",
-+			"HSMIC", "Headset Mic",
-+			"Headset Mic", "Headset Mic Bias",
-+			"MAINMIC", "Main Handset Mic",
-+			"Main Handset Mic", "Main Mic Bias",
-+			"SUBMIC", "Sub Handset Mic",
-+			"Sub Handset Mic", "Main Mic Bias",
-+			"AFML", "Line In",
-+			"AFMR", "Line In",
-+			"DMic", "Digital Mic",
-+			"Digital Mic", "Digital Mic1 Bias";
-+	};
- };
- 
- &i2c1 {
++	/* Audio routing */
++	ti,audio-routing =
++		"Headset Stereophone", "HSOL",
++		"Headset Stereophone", "HSOR",
++		"Ext Spk", "HFL",
++		"Ext Spk", "HFR",
++		"Line Out", "AUXL",
++		"Line Out", "AUXR",
++		"AFML", "Line In",
++		"AFMR", "Line In";
++};
 -- 
 1.7.8.6
-
