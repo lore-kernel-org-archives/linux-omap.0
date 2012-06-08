@@ -1,75 +1,53 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: [GIT PULL] omap fixes for v3.5-rc1
-Date: Fri, 8 Jun 2012 00:32:37 -0700
-Message-ID: <20120608073237.GM12766@atomide.com>
+From: Paul Walmsley <paul@pwsan.com>
+Subject: Re: [PATCH] ARM: omap: clock: Get rid of unwanted clkdm assocations
+ within clks
+Date: Fri, 8 Jun 2012 01:40:27 -0600 (MDT)
+Message-ID: <alpine.DEB.2.00.1206080130570.14977@utopia.booyaka.com>
+References: <1337250245-29274-1-git-send-email-rnayak@ti.com> <4FD04A2A.4080207@ti.com> <alpine.DEB.2.00.1206070104060.6684@utopia.booyaka.com> <4FD087FD.9040401@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-02-ewr.mailhop.org ([204.13.248.72]:47583 "EHLO
-	mho-02-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751741Ab2FHHck (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 8 Jun 2012 03:32:40 -0400
-Content-Disposition: inline
+Received: from utopia.booyaka.com ([72.9.107.138]:57592 "EHLO
+	utopia.booyaka.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750773Ab2FHHk2 (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 8 Jun 2012 03:40:28 -0400
+In-Reply-To: <4FD087FD.9040401@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Arnd Bergmann <arnd@arndb.de>, Olof Johansson <olof@lixom.net>
+To: Rajendra Nayak <rnayak@ti.com>
 Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 
-The following changes since commit f8f5701bdaf9134b1f90e5044a82c66324d2073f:
+Hi
 
-  Linux 3.5-rc1 (2012-06-02 18:29:26 -0700)
+On Thu, 7 Jun 2012, Rajendra Nayak wrote:
 
-are available in the git repository at:
+> Yes, I can include this as part of the common clock conversion series.
+> What I was trying to say is that neither the clock framework not any
+> other OMAP PM layer today makes any use of this information except for
+> gate clocks. The only 2 places in the clock framework this is used is
+> in omap2_dflt_clk_enable()/omap2_dflt_clk_disable() functions, which
+> are nops for non gate clocks.
+> So I don;t fully understand what you mean by our current low-level PM
+> design being based on this assumption that every clock belongs to a
+> clockdomain.
+> Did I miss anything else our PM frameworks do with the clock<->clkdm
+> association? The reason I am asking is because I am doing a lot of changes
+> around based on this assumption and would really like to know
+> if I am missing something.
 
-  git://git.kernel.org/pub/scm/linux/kernel/git/tmlind/linux-omap tags/omap-fixes-for-v3.5-rc1
+Well I guess the best thing to do is for you to do PM tests with the 
+converted code and data to make sure it works.  That's what I'm worried 
+most about right now for the CCF conversion; it's the most time-consuming 
+part of what I do.  If the conversion works without them and everything is 
+relatively clean then I probably won't have many issues with it.
 
-for you to fetch changes up to febe9e02d63ed8a42e7e9c75ea16117821f90f07:
+...
 
-  ARM: OMAP2+: Fix compile for CONFIG_TIDSPBRIDGE platform init code (2012-06-06 01:42:20 -0700)
+BTW, just to continue on the clk->clkdm topic: while we might be able to 
+get rid of the clk->clkdm association for OMAP4 soon, and maybe someday 
+for OMAP2/3, it looks like we'll need to keep it around for at least one 
+AM335x clock -- this CLKDIV32K clock.  Definitely something to keep in 
+mind...
 
-----------------------------------------------------------------
-The biggest fix here is the long pending patch mux UART pins so PM
-retention idle works again.
 
-Also included are few other PM wake-up related fixes, and removal of
-dead cpu detection code.
-
-The other fixes are trivial build and randconfig related fixes.
-
-----------------------------------------------------------------
-Govindraj.R (1):
-      OMAP2+: UART: Add mechanism to probe uart pins and configure rx wakeup
-
-Kevin Hilman (3):
-      ARM: OMAP3: PM: fix shared PRCM interrupts: leave disabled at boot
-      ARM: OMAP3: clock data: cleanup AM3[35]x SoC detection
-      ARM: OMAP: SoC detection: remove unused cpu_is macros
-
-Mark A. Greer (1):
-      arm: omap3: am35x: Don't mark missing features as present
-
-NeilBrown (1):
-      ARM: OMAP2+: INTC: fix suspend abort, set IRQCHIP_SKIP_SET_WAKE
-
-Tony Lindgren (6):
-      Merge branch 'for_3.5/fixes/pm' of git://git.kernel.org/.../khilman/linux-omap-pm into fixes
-      Merge branch 'for_3.5/cleanup/am3xxx-cpu-is-leftovers' of git://git.kernel.org/.../khilman/linux-omap-pm into fixes
-      ARM: OMAP: Fix lis3lv02d accelerometer to use gpio_to_irq
-      ARM: OMAP: Fix MMC_OMAP build when only MMC_OMAP_HS is selected
-      ARM: OMAP3: Fix omap3_l3_block_irq warning when CONFIG_BUG is not set
-      ARM: OMAP2+: Fix compile for CONFIG_TIDSPBRIDGE platform init code
-
- arch/arm/mach-omap2/board-rx51-peripherals.c |    6 ++-
- arch/arm/mach-omap2/clock3xxx_data.c         |    2 +-
- arch/arm/mach-omap2/dsp.c                    |    3 ++
- arch/arm/mach-omap2/id.c                     |   11 +++++
- arch/arm/mach-omap2/irq.c                    |    1 +
- arch/arm/mach-omap2/mux.c                    |    3 +-
- arch/arm/mach-omap2/mux.h                    |   11 +++++
- arch/arm/mach-omap2/omap_l3_smx.c            |    3 +-
- arch/arm/mach-omap2/pm34xx.c                 |    1 +
- arch/arm/mach-omap2/prm2xxx_3xxx.c           |   14 ++++--
- arch/arm/mach-omap2/serial.c                 |   67 ++++++++++++++++++++++++--
- arch/arm/plat-omap/include/plat/cpu.h        |   33 -------------
- arch/arm/plat-omap/include/plat/mmc.h        |    4 +-
- 13 files changed, 110 insertions(+), 49 deletions(-)
+- Paul
