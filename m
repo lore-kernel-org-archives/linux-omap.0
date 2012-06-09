@@ -1,58 +1,74 @@
-From: Russell King - ARM Linux <linux@arm.linux.org.uk>
-Subject: Re: [CFT 11/11] Add feature removal of old OMAP private DMA
-	implementation
-Date: Sat, 9 Jun 2012 09:32:17 +0100
-Message-ID: <20120609083217.GA11404@n2100.arm.linux.org.uk>
-References: <20120607110610.GB15973@n2100.arm.linux.org.uk> <E1ScabE-0003uN-JD@rmk-PC.arm.linux.org.uk> <4FD24657.5020207@landley.net>
+From: "Hiremath, Vaibhav" <hvaibhav@ti.com>
+Subject: RE: AM335x CPSW reset (was "RE: [PATCH 04/11] ARM: OMAP2+:
+ usb_host_fs: add custom reset for usb_host_fs (fsusb)")
+Date: Sat, 9 Jun 2012 08:39:32 +0000
+Message-ID: <79CD15C6BA57404B839C016229A409A83EA464C6@DBDE01.ent.ti.com>
+References: <20120607060901.25532.68354.stgit@dusk>
+ <20120607061308.25532.19767.stgit@dusk> <20120607073112.GX12766@atomide.com>
+ <alpine.DEB.2.00.1206070136550.6684@utopia.booyaka.com>
+ <20120607075158.GZ12766@atomide.com>
+ <20120607075541.GF16342@arwen.pp.htv.fi> <4FD0602B.9070704@ti.com>
+ <alpine.DEB.2.00.1206070446070.6684@utopia.booyaka.com>
+ <4FD09EFA.20304@ti.com>
+ <alpine.DEB.2.00.1206071657160.14977@utopia.booyaka.com>
+ <4FD1FA8C.1080600@ti.com>
+ <alpine.DEB.2.00.1206080722040.14977@utopia.booyaka.com>
+ <79CD15C6BA57404B839C016229A409A83EA46087@DBDE01.ent.ti.com>
+ <alpine.DEB.2.00.1206081659230.17523@utopia.booyaka.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from caramon.arm.linux.org.uk ([78.32.30.218]:55240 "EHLO
-	caramon.arm.linux.org.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750988Ab2FIIc3 (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Sat, 9 Jun 2012 04:32:29 -0400
-Content-Disposition: inline
-In-Reply-To: <4FD24657.5020207@landley.net>
+Received: from comal.ext.ti.com ([198.47.26.152]:44607 "EHLO comal.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751505Ab2FIIjm convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Sat, 9 Jun 2012 04:39:42 -0400
+In-Reply-To: <alpine.DEB.2.00.1206081659230.17523@utopia.booyaka.com>
+Content-Language: en-US
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Rob Landley <rob@landley.net>
-Cc: linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org, linux-doc@vger.kernel.org
+To: Paul Walmsley <paul@pwsan.com>
+Cc: "Cousson, Benoit" <b-cousson@ti.com>, "Balbi, Felipe" <balbi@ti.com>, Tony Lindgren <tony@atomide.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, "Kristo, Tero" <t-kristo@ti.com>, Ohad Ben-Cohen <ohad@wizery.com>
 
-On Fri, Jun 08, 2012 at 01:37:11PM -0500, Rob Landley wrote:
-> On 06/07/2012 06:09 AM, Russell King wrote:
-> > Acked-by: Linus Walleij <linus.walleij@linaro.org>
-> > Signed-off-by: Russell King <rmk+kernel@arm.linux.org.uk>
-> > ---
-> >  Documentation/feature-removal-schedule.txt |   11 +++++++++++
-> >  1 files changed, 11 insertions(+), 0 deletions(-)
+On Sat, Jun 09, 2012 at 04:40:03, Paul Walmsley wrote:
+> Hi
+> 
+> On Fri, 8 Jun 2012, Hiremath, Vaibhav wrote:
+> 
+> > In case of AM33xx, recently I came across similar issue (rather more 
+> > than this) with CPSW module.
 > > 
-> > diff --git a/Documentation/feature-removal-schedule.txt b/Documentation/feature-removal-schedule.txt
-> > index 56000b3..1f7ba35 100644
-> > --- a/Documentation/feature-removal-schedule.txt
-> > +++ b/Documentation/feature-removal-schedule.txt
-> > @@ -612,3 +612,14 @@ When:	June 2013
-> >  Why:	Unsupported/unmaintained/unused since 2.6
-> >  
-> >  ----------------------------
-> > +
-> > +What:	OMAP private DMA implementation
-> > +When:	2013
-> > +Why:	We have a DMA engine implementation; all users should be updated
-> > +	to use this rather than persisting with the old APIs.  The old APIs
-> > +	block merging the old DMA engine implementation into the DMA
-> > +	engine driver.
-> > +Who:	Russell King <linux@arm.linux.org.uk>,
-> > +	Santosh Shilimkar <santosh.shilimkar@ti.com>
-> > +
-> > +----------------------------
+> > The issue is,
+> > 
+> > We have observed that, in order to disable the CPSW module 
+> > (MODULEMODE=0x0), We have to assert OCP level reset, before disabling 
+> > it; else module enters into unknown state, where register status shows, 
+> > MODULEMODE turns 0x0, but idlests says module is busy.
+> > 
+> > This has to be done everytime you try to disable the module.
+> > 
+> > The worst part here is, CPSW has 4 submodules (SS, SL1, SL2, CPDMA),
+> > We have to assert reset signal to each submodules.
+> > 
+> > So the approach I had taken is, I had implemented almost similar 
+> > function specific to cpsw and introduced flag called 
+> > HWMOD_SWSUP_RESET_BEFORE_IDLE.
 > 
-> Whose tree do feature-removal-schedule patches go in through?
+> Why "SWSUP" ? 
 > 
-> (They're not really documentation, they're design coordination/logistics.)
 
-I don't think there is any specific tree.
+Since it was SW initiated reset assertion so I added this prefix.
 
-It would also be silly to split it from this patch set; if it were to be
-split, and there would need to be coordination with the rest of the patch
-set to ensure this change didn't go in without the rest - that would not
-make sense.
+> > Now the question here would be, should we consider this IP bug or 
+> > integration bug? If it is integration bug, then isn't this device issue?
+> 
+> I don't know if it's a bug in either place, but it sounds like something 
+> that needs to be handled in the _am335x_disable_module() code in 
+> mach-omap2/omap_hwmod.c.
+> 
+
+Yes, certainly it should be part of _am335x_disable_module().
+
+Thanks,
+Vaibhav
+
