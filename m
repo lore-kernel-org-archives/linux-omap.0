@@ -1,34 +1,58 @@
-From: Paul Walmsley <paul@pwsan.com>
-Subject: Re: [PATCH 04/11] ARM: OMAP2+: usb_host_fs: add custom reset for
- usb_host_fs (fsusb)
-Date: Fri, 8 Jun 2012 19:31:19 -0600 (MDT)
-Message-ID: <alpine.DEB.2.00.1206081929000.23401@utopia.booyaka.com>
-References: <20120607060901.25532.68354.stgit@dusk> <20120607061308.25532.19767.stgit@dusk> <20120607073112.GX12766@atomide.com> <alpine.DEB.2.00.1206070136550.6684@utopia.booyaka.com> <20120607075158.GZ12766@atomide.com> <alpine.DEB.2.00.1206070406050.6684@utopia.booyaka.com>
- <20120607105228.GC12766@atomide.com> <alpine.DEB.2.00.1206071404470.14977@utopia.booyaka.com> <20120608063859.GL12766@atomide.com>
+From: Russell King - ARM Linux <linux@arm.linux.org.uk>
+Subject: Re: [CFT 11/11] Add feature removal of old OMAP private DMA
+	implementation
+Date: Sat, 9 Jun 2012 09:32:17 +0100
+Message-ID: <20120609083217.GA11404@n2100.arm.linux.org.uk>
+References: <20120607110610.GB15973@n2100.arm.linux.org.uk> <E1ScabE-0003uN-JD@rmk-PC.arm.linux.org.uk> <4FD24657.5020207@landley.net>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from utopia.booyaka.com ([72.9.107.138]:45810 "EHLO
-	utopia.booyaka.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932121Ab2FIBbU (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 8 Jun 2012 21:31:20 -0400
-In-Reply-To: <20120608063859.GL12766@atomide.com>
+Received: from caramon.arm.linux.org.uk ([78.32.30.218]:55240 "EHLO
+	caramon.arm.linux.org.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750988Ab2FIIc3 (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Sat, 9 Jun 2012 04:32:29 -0400
+Content-Disposition: inline
+In-Reply-To: <4FD24657.5020207@landley.net>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Tony Lindgren <tony@atomide.com>
-Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Tero Kristo <t-kristo@ti.com>, =?ISO-8859-15?Q?Beno=EEt_Cousson?= <b-cousson@ti.com>, Felipe Balbi <balbi@ti.com>
+To: Rob Landley <rob@landley.net>
+Cc: linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org, linux-doc@vger.kernel.org
 
-On Thu, 7 Jun 2012, Tony Lindgren wrote:
+On Fri, Jun 08, 2012 at 01:37:11PM -0500, Rob Landley wrote:
+> On 06/07/2012 06:09 AM, Russell King wrote:
+> > Acked-by: Linus Walleij <linus.walleij@linaro.org>
+> > Signed-off-by: Russell King <rmk+kernel@arm.linux.org.uk>
+> > ---
+> >  Documentation/feature-removal-schedule.txt |   11 +++++++++++
+> >  1 files changed, 11 insertions(+), 0 deletions(-)
+> > 
+> > diff --git a/Documentation/feature-removal-schedule.txt b/Documentation/feature-removal-schedule.txt
+> > index 56000b3..1f7ba35 100644
+> > --- a/Documentation/feature-removal-schedule.txt
+> > +++ b/Documentation/feature-removal-schedule.txt
+> > @@ -612,3 +612,14 @@ When:	June 2013
+> >  Why:	Unsupported/unmaintained/unused since 2.6
+> >  
+> >  ----------------------------
+> > +
+> > +What:	OMAP private DMA implementation
+> > +When:	2013
+> > +Why:	We have a DMA engine implementation; all users should be updated
+> > +	to use this rather than persisting with the old APIs.  The old APIs
+> > +	block merging the old DMA engine implementation into the DMA
+> > +	engine driver.
+> > +Who:	Russell King <linux@arm.linux.org.uk>,
+> > +	Santosh Shilimkar <santosh.shilimkar@ti.com>
+> > +
+> > +----------------------------
+> 
+> Whose tree do feature-removal-schedule patches go in through?
+> 
+> (They're not really documentation, they're design coordination/logistics.)
 
-> Oh OK yeah makes sense as that's hwmod internal function. Then the driver
-> specific part should use just void __iomem *base and use readl/writel and
-> live under include/linux/platform_data/omap-usb.h.
+I don't think there is any specific tree.
 
-This sounds like something that might be flame-bait, since these functions 
-aren't platform_data.
-
-How about putting these functions in arch/arm/plat-omap/include/plat?  
-Drivers are able to include those files easily.
-
-
-- Paul
+It would also be silly to split it from this patch set; if it were to be
+split, and there would need to be coordination with the rest of the patch
+set to ensure this change didn't go in without the rest - that would not
+make sense.
