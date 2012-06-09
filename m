@@ -1,74 +1,80 @@
-From: "Hiremath, Vaibhav" <hvaibhav@ti.com>
-Subject: RE: AM335x CPSW reset (was "RE: [PATCH 04/11] ARM: OMAP2+:
- usb_host_fs: add custom reset for usb_host_fs (fsusb)")
-Date: Sat, 9 Jun 2012 08:39:32 +0000
-Message-ID: <79CD15C6BA57404B839C016229A409A83EA464C6@DBDE01.ent.ti.com>
-References: <20120607060901.25532.68354.stgit@dusk>
- <20120607061308.25532.19767.stgit@dusk> <20120607073112.GX12766@atomide.com>
- <alpine.DEB.2.00.1206070136550.6684@utopia.booyaka.com>
- <20120607075158.GZ12766@atomide.com>
- <20120607075541.GF16342@arwen.pp.htv.fi> <4FD0602B.9070704@ti.com>
- <alpine.DEB.2.00.1206070446070.6684@utopia.booyaka.com>
- <4FD09EFA.20304@ti.com>
- <alpine.DEB.2.00.1206071657160.14977@utopia.booyaka.com>
- <4FD1FA8C.1080600@ti.com>
- <alpine.DEB.2.00.1206080722040.14977@utopia.booyaka.com>
- <79CD15C6BA57404B839C016229A409A83EA46087@DBDE01.ent.ti.com>
- <alpine.DEB.2.00.1206081659230.17523@utopia.booyaka.com>
+From: Florian Tobias Schandinat <FlorianSchandinat@gmx.de>
+Subject: Re: [GIT PULL] OMAP DSS for v3.5-rc2
+Date: Sat, 09 Jun 2012 12:39:24 +0000
+Message-ID: <4FD343FC.8020701@gmx.de>
+References: <1338909099.4456.13.camel@deskari>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from comal.ext.ti.com ([198.47.26.152]:44607 "EHLO comal.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751505Ab2FIIjm convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Sat, 9 Jun 2012 04:39:42 -0400
-In-Reply-To: <alpine.DEB.2.00.1206081659230.17523@utopia.booyaka.com>
-Content-Language: en-US
+Received: from mailout-de.gmx.net ([213.165.64.23]:48104 "HELO
+	mailout-de.gmx.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with SMTP id S1752491Ab2FIMj1 (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Sat, 9 Jun 2012 08:39:27 -0400
+In-Reply-To: <1338909099.4456.13.camel@deskari>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Paul Walmsley <paul@pwsan.com>
-Cc: "Cousson, Benoit" <b-cousson@ti.com>, "Balbi, Felipe" <balbi@ti.com>, Tony Lindgren <tony@atomide.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, "Kristo, Tero" <t-kristo@ti.com>, Ohad Ben-Cohen <ohad@wizery.com>
+To: Tomi Valkeinen <tomi.valkeinen@ti.com>
+Cc: linux-omap@vger.kernel.org, linux-fbdev <linux-fbdev@vger.kernel.org>, Archit Taneja <archit@ti.com>
 
-On Sat, Jun 09, 2012 at 04:40:03, Paul Walmsley wrote:
-> Hi
-> 
-> On Fri, 8 Jun 2012, Hiremath, Vaibhav wrote:
-> 
-> > In case of AM33xx, recently I came across similar issue (rather more 
-> > than this) with CPSW module.
-> > 
-> > The issue is,
-> > 
-> > We have observed that, in order to disable the CPSW module 
-> > (MODULEMODE=0x0), We have to assert OCP level reset, before disabling 
-> > it; else module enters into unknown state, where register status shows, 
-> > MODULEMODE turns 0x0, but idlests says module is busy.
-> > 
-> > This has to be done everytime you try to disable the module.
-> > 
-> > The worst part here is, CPSW has 4 submodules (SS, SL1, SL2, CPDMA),
-> > We have to assert reset signal to each submodules.
-> > 
-> > So the approach I had taken is, I had implemented almost similar 
-> > function specific to cpsw and introduced flag called 
-> > HWMOD_SWSUP_RESET_BEFORE_IDLE.
-> 
-> Why "SWSUP" ? 
-> 
+Hi Tomi,
 
-Since it was SW initiated reset assertion so I added this prefix.
-
-> > Now the question here would be, should we consider this IP bug or 
-> > integration bug? If it is integration bug, then isn't this device issue?
+On 06/05/2012 03:11 PM, Tomi Valkeinen wrote:
+> Hi Florian,
 > 
-> I don't know if it's a bug in either place, but it sounds like something 
-> that needs to be handled in the _am335x_disable_module() code in 
-> mach-omap2/omap_hwmod.c.
+> Here are 5 small fixes for omapdss. The most important is the "fix
+> registration..." patch, without which omapdss crashes when
+> suspending/resuming. The compilation bug ("fix build...") is also rather
+> annoying for those users not interested in debug outputs. The rest are
+> quite minor small fixes.
 > 
+> It'd be great if these made it in for -rc2, as the crash bug is quite
+> bad, but -rc3 is good also.
 
-Yes, certainly it should be part of _am335x_disable_module().
+I merged this some days ago. Sorry that I didn't realize that rc2 would
+be released early and hence didn't manage to get it in.
 
-Thanks,
-Vaibhav
+
+Best regards,
+
+Florian Tobias Schandinat
+
+> 
+>  Tomi
+> 
+> 
+> The following changes since commit e92a5b28f71aea01b281f9c89d97a4bc5b24748f:
+> 
+>   OMAPDSS: HDMI: OMAP4: Update IRQ flags for the HPD IRQ request (2012-05-22 11:00:09 +0300)
+> 
+> are available in the git repository at:
+> 
+>   git://gitorious.org/linux-omap-dss2/linux.git tags/omapdss-for-3.5-rc2
+> 
+> for you to fetch changes up to c3a21fc79b6bc097d8b0e47498903a649a111127:
+> 
+>   OMAPDSS: fix registration of DPI and SDI devices (2012-06-05 17:15:24 +0300)
+> 
+> ----------------------------------------------------------------
+> Small fixes for omapdss driver. Most importantly, fixes a build problem when
+> debugfs or omapdss debug support is turned off, and fixes a suspend related
+> crash.
+> 
+> ----------------------------------------------------------------
+> Archit Taneja (1):
+>       OMAPDSS: DSI: Fix bug when calculating LP command interleaving parameters
+> 
+> Tomi Valkeinen (4):
+>       OMAPDSS: fix build when DEBUG_FS or DSS_DEBUG_SUPPORT disabled
+>       OMAPDSS: Taal: fix compilation warning
+>       OMAPDSS: fix bogus WARN_ON in dss_runtime_put()
+>       OMAPDSS: fix registration of DPI and SDI devices
+> 
+>  arch/arm/mach-omap2/display.c             |    4 ++--
+>  drivers/video/omap2/displays/panel-taal.c |    2 +-
+>  drivers/video/omap2/dss/core.c            |    3 +--
+>  drivers/video/omap2/dss/dsi.c             |    2 +-
+>  drivers/video/omap2/dss/dss.c             |    2 +-
+>  5 files changed, 6 insertions(+), 7 deletions(-)
+> 
 
