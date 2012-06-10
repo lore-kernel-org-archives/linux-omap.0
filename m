@@ -1,118 +1,82 @@
-From: Shubhrajyoti Datta <omaplinuxkernel@gmail.com>
-Subject: Re: [PATCHv10 00/11] I2C fixes
-Date: Sun, 10 Jun 2012 11:10:47 +0530
-Message-ID: <CAM=Q2ctZmOFdroUw5qywwGU_4ResB9RKqag4-+qh3nHeKHWzKQ@mail.gmail.com>
-References: <1338288983-15026-1-git-send-email-shubhrajyoti@ti.com>
-	<87obp4x8gs.fsf@ti.com>
+From: Russell King - ARM Linux <linux@arm.linux.org.uk>
+Subject: Re: [CFT 05/31] dmaengine: PL08x: clean up get_signal/put_signal
+Date: Sun, 10 Jun 2012 11:03:53 +0100
+Message-ID: <20120610100353.GB11404@n2100.arm.linux.org.uk>
+References: <20120607104527.GA15973@n2100.arm.linux.org.uk> <E1ScaFP-0003kA-9Y@rmk-PC.arm.linux.org.uk>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-ob0-f174.google.com ([209.85.214.174]:59780 "EHLO
-	mail-ob0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750823Ab2FJFks convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Sun, 10 Jun 2012 01:40:48 -0400
-In-Reply-To: <87obp4x8gs.fsf@ti.com>
+Received: from caramon.arm.linux.org.uk ([78.32.30.218]:55531 "EHLO
+	caramon.arm.linux.org.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751205Ab2FJKEE (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Sun, 10 Jun 2012 06:04:04 -0400
+Content-Disposition: inline
+In-Reply-To: <E1ScaFP-0003kA-9Y@rmk-PC.arm.linux.org.uk>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: w.sang@pengutronix.de
-Cc: Shubhrajyoti D <shubhrajyoti@ti.com>, linux-omap@vger.kernel.org, linux-i2c@vger.kernel.org, linux-arm-kernel@lists.infradead.org, ben-linux@fluff.org, tony@atomide.com, Kevin Hilman <khilman@ti.com>
+To: linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org
+Cc: Vinod Koul <vinod.koul@intel.com>, Dan Williams <dan.j.williams@intel.com>
 
-On Fri, Jun 1, 2012 at 4:29 AM, Kevin Hilman <khilman@ti.com> wrote:
-> Shubhrajyoti D <shubhrajyoti@ti.com> writes:
->
->> The patch series does the following
->>
->> - Warn fixes if CONFIG_PM_RUNTIME is not selected.
->> - In case of i2c remove register access was done without any
->> =A0get_sync fix the same.
->> - Folds a patch from Tasslehoff to prevent any merge conflicts.
->> - Prevents the XDUF flag to be set if the underflow condition is not=
- met.
->> - As per discussion in [1] .Adds a patch to rename the 1p153 errata =
-and
->> =A0use the unique id instead as the section number in the recent err=
-ata
->> =A0docs has changed.
->>
->> v9:
->> Fix the comments from Wolfram Sang
->>
->> v10:
->> Add a patch from Neil to the series.
->> Fix kevin comments
->> update the patches with comments.
->
-> Shubhrajyoti, thanks for the updates.
->
-> Wolfgang, with these updates and testing a bit better described, I'm =
-OK
-> with you merging it. =A0Merging it now will give it plenty of time to
-> bake in linux-next and get more test exposure.
+On Thu, Jun 07, 2012 at 11:47:23AM +0100, Russell King wrote:
+> Try to avoid dereferencing the DMA engine's channel struct in these
+> platform helpers; instead, pass a pointer to the channel data into
+> get_signal(), and the returned signal number to put_signal().
+> 
+> Signed-off-by: Russell King <rmk+kernel@arm.linux.org.uk>
 
-Agree,
-These are only fixes can it be considered for rc3?
+The Spear stuff breaks as a result of this patch, so it needs the patch
+below combined with this one to prevent that breakage occuring.
 
-Thanks and Regards,
-Shubhrajyoti
->
-> Thanks,
->
-> Kevin
->
->
->> [1] http://www.spinics.net/lists/linux-i2c/msg07607.html
->>
->> Tested on omap4sdp and omap3sdp.
->> - Did functional tests read write on both the platforms.
->> - Off mode and retention on OMAP3
->> - On OMAP4 just did echo mem > /sys/power/state and wakeup.
->> Did see.
->> [ 1360.595855] Successfully put all powerdomains to target state
->> However didnt see the ret count for other than mpu_pwrdm increase.
->> I think power support for omap4 is minimal.
->>
->> The following changes since commit b48b2c3e50433ff6f7e46186daa7f986b=
-d960215:
->>
->> =A0 openrisc: use generic strnlen_user() function (2012-05-27 21:00:=
-32 -0700)
->>
->> are available in the git repository at:
->> =A0 git://gitorious.org/linus-tree/linus-tree.git i2c_omap-fixes
->>
->> Neil Brown (1):
->> =A0 =A0 =A0 OMAP/I2C - Fix timeout problem during suspend.
->>
->> Shubhrajyoti D (9):
->> =A0 =A0 =A0 I2C: OMAP: make omap_i2c_unidle/idle functions depend on=
- CONFIG_PM_RUNTIME
->> =A0 =A0 =A0 I2C: OMAP: Fix the mismatch of pm_runtime enable and dis=
-able
->> =A0 =A0 =A0 I2C: OMAP: Fix the interrupt clearing in OMAP4
->> =A0 =A0 =A0 I2C: OMAP: Prevent the register access after pm_runtime_=
-put in probe
->> =A0 =A0 =A0 I2C: OMAP: Don't check if wait_for_completion_timeout() =
-returns less than zero
->> =A0 =A0 =A0 I2C: OMAP: Fix the crash in i2c remove
->> =A0 =A0 =A0 I2C: OMAP: Handle error check for pm runtime
->> =A0 =A0 =A0 I2C: OMAP: Do not set the XUDF(Transmit underflow) if th=
-e underflow is not reached
->> =A0 =A0 =A0 I2C: OMAP: Rename the 1p153 to the erratum id i462
->>
->> Tasslehoff Kjappfot (1):
->> =A0 =A0 =A0 I2C: OMAP: prevent the overwrite of the errata flags
->>
->> =A0drivers/i2c/busses/i2c-omap.c | =A0129 ++++++++++++++++++++------=
----------------
->> =A01 files changed, 63 insertions(+), 66 deletions(-)
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-omap"=
- in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at =A0http://vger.kernel.org/majordomo-info.html
---
-To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+diff --git a/arch/arm/plat-spear/include/plat/pl080.h b/arch/arm/plat-spear/include/plat/pl080.h
+index e14a3e4..1786eeb 100644
+--- a/arch/arm/plat-spear/include/plat/pl080.h
++++ b/arch/arm/plat-spear/include/plat/pl080.h
+@@ -14,8 +14,8 @@
+ #ifndef __PLAT_PL080_H
+ #define __PLAT_PL080_H
+ 
+-struct pl08x_dma_chan;
+-int pl080_get_signal(struct pl08x_dma_chan *ch);
+-void pl080_put_signal(struct pl08x_dma_chan *ch);
++struct pl08x_channel_data;
++int pl080_get_signal(const struct pl08x_channel_data *cd);
++void pl080_put_signal(const struct pl08x_channel_data *cd, int signal);
+ 
+ #endif /* __PLAT_PL080_H */
+diff --git a/arch/arm/plat-spear/pl080.c b/arch/arm/plat-spear/pl080.c
+index a56a067..08bec1a 100644
+--- a/arch/arm/plat-spear/pl080.c
++++ b/arch/arm/plat-spear/pl080.c
+@@ -27,9 +27,8 @@ struct {
+ 	unsigned char val;
+ } signals[16] = {{0, 0}, };
+ 
+-int pl080_get_signal(struct pl08x_dma_chan *ch)
++int pl080_get_signal(const struct pl08x_channel_data *cd)
+ {
+-	const struct pl08x_channel_data *cd = ch->cd;
+ 	unsigned int signal = cd->min_signal, val;
+ 	unsigned long flags;
+ 
+@@ -63,18 +62,17 @@ int pl080_get_signal(struct pl08x_dma_chan *ch)
+ 	return signal;
+ }
+ 
+-void pl080_put_signal(struct pl08x_dma_chan *ch)
++void pl080_put_signal(const struct pl08x_channel_data *cd, int signal)
+ {
+-	const struct pl08x_channel_data *cd = ch->cd;
+ 	unsigned long flags;
+ 
+ 	spin_lock_irqsave(&lock, flags);
+ 
+ 	/* if signal is not used */
+-	if (!signals[cd->min_signal].busy)
++	if (!signals[signal].busy)
+ 		BUG();
+ 
+-	signals[cd->min_signal].busy--;
++	signals[signal].busy--;
+ 
+ 	spin_unlock_irqrestore(&lock, flags);
+ }
