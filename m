@@ -1,226 +1,263 @@
 From: Afzal Mohammed <afzal@ti.com>
-Subject: [PATCH 2/9] ARM: OMAP2+: gpmc-onenand: Adapt to use gpmc driver
-Date: Mon, 11 Jun 2012 20:29:21 +0530
-Message-ID: <639b0ae5a84f92f06f2f86f177edeff2930d2964.1339419379.git.afzal@ti.com>
+Subject: [PATCH 3/9] ARM: OMAP2+: flash: Adapt to use gpmc driver
+Date: Mon, 11 Jun 2012 20:29:27 +0530
+Message-ID: <7dcf88bffa08b85c066aad96e813ee448330bfe6.1339419379.git.afzal@ti.com>
 References: <cover.1339419379.git.afzal@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from devils.ext.ti.com ([198.47.26.153]:33352 "EHLO
+Received: from devils.ext.ti.com ([198.47.26.153]:33359 "EHLO
 	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752920Ab2FKPPE (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 11 Jun 2012 11:15:04 -0400
+	with ESMTP id S1753410Ab2FKPPG (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 11 Jun 2012 11:15:06 -0400
 In-Reply-To: <cover.1339419379.git.afzal@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: tony@atomide.com, paul@pwsan.com, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 Cc: Afzal Mohammed <afzal@ti.com>
 
-Currently gpmc is configured in platform for onenand. As
-gpmc driver is now present, populate details needed for the
-driver to configure gpmc, gpmc driver would configure based
-on this information. Old interface has been left as is so
-that platforms can continue configuring gpmc using old
-interface too. This is done so that driver conversion can
-be done gradually without breaking any.
+Currently gpmc is configured in platform for various flash
+devices. As gpmc driver is now present, populate details
+needed for the driver to configure gpmc, gpmc driver would
+configure based on this information. Old interface has been
+left as is so that platforms can continue configuring gpmc
+using old interface too. This is done so that driver
+conversion can be done gradually without breaking any.
 
 Signed-off-by: Afzal Mohammed <afzal@ti.com>
 ---
- arch/arm/mach-omap2/gpmc-onenand.c        |  117 +++++++++++++++++++++++++----
- arch/arm/plat-omap/include/plat/onenand.h |    8 +-
- 2 files changed, 109 insertions(+), 16 deletions(-)
+ arch/arm/mach-omap2/board-flash.c |  126 +++++++++++++++++++++++++++++++++++++
+ arch/arm/mach-omap2/board-flash.h |   29 +++++++++
+ 2 files changed, 155 insertions(+)
 
-diff --git a/arch/arm/mach-omap2/gpmc-onenand.c b/arch/arm/mach-omap2/gpmc-onenand.c
-index fd4c48d..0601284 100644
---- a/arch/arm/mach-omap2/gpmc-onenand.c
-+++ b/arch/arm/mach-omap2/gpmc-onenand.c
-@@ -27,6 +27,20 @@
+diff --git a/arch/arm/mach-omap2/board-flash.c b/arch/arm/mach-omap2/board-flash.c
+index 0ee820b..f3be964 100644
+--- a/arch/arm/mach-omap2/board-flash.c
++++ b/arch/arm/mach-omap2/board-flash.c
+@@ -53,6 +53,15 @@ static struct platform_device board_nor_device = {
+ 	.resource	= &board_nor_resource,
+ };
  
- static struct omap_onenand_platform_data *gpmc_onenand_data;
- 
-+static struct gpmc_cs_data gpmc_onenand_cs_info = {
-+	.mem_size	= ONENAND_IO_SIZE,
-+	.have_config	= true,
-+	.config		= GPMC_CONFIG1_DEVICESIZE_16 | GPMC_CONFIG1_MUXADDDATA |
-+				GPMC_CONFIG1_DEVICETYPE_NOR,
-+};
++static struct gpmc_cs_data gpmc_nor_cs_data;
 +
-+static struct gpmc_device_pdata gpmc_onenand_info = {
-+	.name		= "omap2-onenand",
-+	.id		= -1,
-+	.cs_data	= &gpmc_onenand_cs_info,
++static struct gpmc_device_pdata gpmc_nor_data = {
++	.name		= "physmap-flash",
++	.id		= 0,
++	.cs_data	= &gpmc_nor_cs_data,
 +	.num_cs		= 1,
 +};
 +
- static struct resource gpmc_onenand_resource = {
- 	.flags		= IORESOURCE_MEM,
- };
-@@ -80,15 +94,22 @@ static int omap2_onenand_set_async_mode(int cs)
- 	t.cs_wr_off = t.we_off + gpmc_round_ns_to_ticks(t_wph);
- 	t.wr_cycle  = t.cs_wr_off + gpmc_round_ns_to_ticks(t_cez);
- 
--	/* Configure GPMC for asynchronous read */
--	gpmc_cs_write_reg(cs, GPMC_CS_CONFIG1,
--			  GPMC_CONFIG1_DEVICESIZE_16 |
--			  GPMC_CONFIG1_MUXADDDATA);
--
--	err = gpmc_cs_set_timings(cs, &t);
--	if (err)
--		return err;
--
-+	/* gpmc driver interface being used */
-+	if (gpmc_onenand_info.pdata != NULL) {
-+		gpmc_onenand_cs_info.time_ctrl.type = has_period;
-+		gpmc_onenand_cs_info.time_ctrl.timings = t;
-+		return 0;
-+	/* older interface */
-+	} else {
-+		/* Configure GPMC for asynchronous read */
-+		gpmc_cs_write_reg(cs, GPMC_CS_CONFIG1,
-+				  GPMC_CONFIG1_DEVICESIZE_16 |
-+				  GPMC_CONFIG1_MUXADDDATA);
-+
-+		err = gpmc_cs_set_timings(cs, &t);
-+		if (err)
-+			return err;
-+	}
- 
- 	return 0;
+ static void
+ __init board_nor_init(struct mtd_partition *nor_parts, u8 nr_parts, u8 cs)
+ {
+@@ -81,6 +90,25 @@ __init board_nor_init(struct mtd_partition *nor_parts, u8 nr_parts, u8 cs)
+ 		pr_err("Unable to register NOR device\n");
  }
-@@ -180,6 +201,9 @@ static int omap2_onenand_set_sync_mode(struct omap_onenand_platform_data *cfg,
- 	int cs = cfg->cs, freq = *freq_ptr;
- 	u32 reg;
- 	bool clk_dep = false;
-+	struct gpmc_cs_data cs_info;
-+
-+	memset(&cs_info, 0, sizeof(cs_info));
  
- 	/* Ensure sync read and sync write are disabled */
- 	reg = readw(onenand_base + ONENAND_REG_SYS_CFG1);
-@@ -275,7 +299,16 @@ static int omap2_onenand_set_sync_mode(struct omap_onenand_platform_data *cfg,
- 		set_onenand_cfg(onenand_base, latency,
- 					sync_read, sync_write, hf, vhf);
- 
--	if (div == 1) {
-+	/* gpmc driver interface */
-+	if (gpmc_onenand_info.pdata != NULL) {
-+		if (div == 1) {
-+			cs_info.time_ctrl.bool_timings.cs_extra_delay = true;
-+			cs_info.time_ctrl.bool_timings.adv_extra_delay = true;
-+			cs_info.time_ctrl.bool_timings.oe_extra_delay = true;
-+			cs_info.time_ctrl.bool_timings.we_extra_delay = true;
-+		}
-+	/* old interface */
-+	} else if (div == 1) {
- 		reg = gpmc_cs_read_reg(cs, GPMC_CS_CONFIG2);
- 		reg |= (1 << 7);
- 		gpmc_cs_write_reg(cs, GPMC_CS_CONFIG2, reg);
-@@ -347,8 +380,39 @@ static int omap2_onenand_set_sync_mode(struct omap_onenand_platform_data *cfg,
- 		}
- 	}
- 
--	/* Configure GPMC for synchronous read */
--	gpmc_cs_write_reg(cs, GPMC_CS_CONFIG1,
-+	/* gpmc driver interface */
-+	if (gpmc_onenand_info.pdata != NULL) {
-+		cs_info.have_config = true;
-+		cs_info.config = GPMC_CONFIG1_DEVICESIZE_16 |
-+					GPMC_CONFIG1_MUXADDDATA |
-+					GPMC_CONFIG1_DEVICETYPE_NOR |
-+					GPMC_CONFIG1_WRAPBURST_SUPP |
-+					GPMC_CONFIG1_READMULTIPLE_SUPP |
-+					GPMC_CONFIG1_PAGE_LEN_16;
-+
-+		if (!cpu_is_omap34xx())
-+			cs_info.config |= GPMC_WAITPIN_0 |
-+						GPMC_CONFIG1_WAIT_READ_MON;
-+		if (sync_read)
-+			cs_info.config |=
-+						GPMC_CONFIG1_READTYPE_SYNC;
-+		if (sync_write)
-+			cs_info.config |=
-+						GPMC_CONFIG1_WRITETYPE_SYNC |
-+						GPMC_CONFIG1_WRITEMULTIPLE_SUPP;
-+		t.clk_activation = fclk_offset_ns;
-+		cs_info.time_ctrl.type = has_period;
-+		cs_info.time_ctrl.timings = t;
-+		err = gpmc_cs_reconfigure(gpmc_onenand_info.name,
-+				gpmc_onenand_info.id, &cs_info);
-+		if (err) {
-+			pr_err("%s: gpmc_cs_reconfigure failed\n", __func__);
-+			return err;
-+		}
-+	/* old interface */
-+	} else {
-+		/* Configure GPMC for synchronous read */
-+		gpmc_cs_write_reg(cs, GPMC_CS_CONFIG1,
- 			  GPMC_CONFIG1_WRAPBURST_SUPP |
- 			  GPMC_CONFIG1_READMULTIPLE_SUPP |
- 			  (sync_read ? GPMC_CONFIG1_READTYPE_SYNC : 0) |
-@@ -363,9 +427,10 @@ static int omap2_onenand_set_sync_mode(struct omap_onenand_platform_data *cfg,
- 			  GPMC_CONFIG1_DEVICETYPE_NOR |
- 			  GPMC_CONFIG1_MUXADDDATA);
- 
--	err = gpmc_cs_set_timings(cs, &t);
--	if (err)
--		return err;
-+		err = gpmc_cs_set_timings(cs, &t);
-+		if (err)
-+			return err;
-+	}
- 
- 	set_onenand_cfg(onenand_base, latency, sync_read, sync_write, hf, vhf);
- 
-@@ -421,3 +486,25 @@ void __init gpmc_onenand_init(struct omap_onenand_platform_data *_onenand_data)
- 		return;
- 	}
- }
-+
-+struct gpmc_device_pdata *
-+__init gpmc_onenand_update(struct omap_onenand_platform_data *_onenand_data)
++static __init struct gpmc_device_pdata *
++gpmc_nor_update(struct mtd_partition *nor_parts, u8 nr_parts, u8 cs)
 +{
-+	gpmc_onenand_data = _onenand_data;
-+	gpmc_onenand_data->onenand_setup = gpmc_onenand_setup;
++	board_nor_data.parts	= nor_parts;
++	board_nor_data.nr_parts	= nr_parts;
 +
-+	if (cpu_is_omap24xx() &&
-+			(gpmc_onenand_data->flags & ONENAND_SYNC_READWRITE)) {
-+		pr_warn("error: onenand using only SYNC_READ on 24xx\n");
-+		gpmc_onenand_data->flags &= ~ONENAND_SYNC_READWRITE;
-+		gpmc_onenand_data->flags |= ONENAND_SYNC_READ;
++	gpmc_nor_cs_data.cs	= cs;
++
++	if (omap_rev() >= OMAP3430_REV_ES1_0)
++		gpmc_nor_cs_data.mem_size = FLASH_SIZE_SDPV2;
++	else
++		gpmc_nor_cs_data.mem_size = FLASH_SIZE_SDPV1;
++
++	gpmc_nor_data.pdata = &board_nor_data;
++	gpmc_nor_data.pdata_size = sizeof(board_nor_data);
++
++	return &gpmc_nor_data;
++}
++
+ #if defined(CONFIG_MTD_ONENAND_OMAP2) || \
+ 		defined(CONFIG_MTD_ONENAND_OMAP2_MODULE)
+ static struct omap_onenand_platform_data board_onenand_data = {
+@@ -97,6 +125,16 @@ __init board_onenand_init(struct mtd_partition *onenand_parts,
+ 
+ 	gpmc_onenand_init(&board_onenand_data);
+ }
++
++struct omap_onenand_platform_data * __init
++board_onenand_update(struct mtd_partition *onenand_parts, u8 nr_parts, u8 cs)
++{
++	board_onenand_data.cs		= cs;
++	board_onenand_data.parts	= onenand_parts;
++	board_onenand_data.nr_parts	= nr_parts;
++
++	return &board_onenand_data;
++}
+ #else
+ void
+ __init board_onenand_init(struct mtd_partition *nor_parts, u8 nr_parts, u8 cs)
+@@ -148,6 +186,19 @@ __init board_nand_init(struct mtd_partition *nand_parts, u8 nr_parts, u8 cs,
+ 	board_nand_data.gpmc_irq = OMAP_GPMC_IRQ_BASE + cs;
+ 	gpmc_nand_init(&board_nand_data);
+ }
++
++struct omap_nand_platform_data *
++__init board_nand_update(struct mtd_partition *nand_parts, u8 nr_parts, u8 cs,
++				int nand_type, struct gpmc_timings *gpmc_t)
++{
++	board_nand_data.cs		= cs;
++	board_nand_data.parts		= nand_parts;
++	board_nand_data.nr_parts	= nr_parts;
++	board_nand_data.devsize		= nand_type;
++	board_nand_data.gpmc_t		= gpmc_t;
++
++	return &board_nand_data;
++}
+ #endif /* CONFIG_MTD_NAND_OMAP2 || CONFIG_MTD_NAND_OMAP2_MODULE */
+ 
+ /**
+@@ -246,3 +297,78 @@ void __init board_flash_init(struct flash_partitions partition_info[],
+ 			partition_info[2].nr_parts, nandcs,
+ 			nand_type, nand_default_timings);
+ }
++
++struct gpmc_device_pdata __init **board_flash_update(
++				struct flash_partitions partition_info[],
++				char chip_sel_board[][GPMC_CS_NUM],
++				int nand_type,
++				struct gpmc_device_pdata **gpmc_data)
++{
++	u8		cs = 0;
++	u8		norcs = GPMC_CS_NUM + 1;
++	u8		nandcs = GPMC_CS_NUM + 1;
++	u8		onenandcs = GPMC_CS_NUM + 1;
++	u8		idx;
++	unsigned char	*config_sel = NULL;
++
++	if (gpmc_data == NULL) {
++		pr_err("%s: NULL arguement passed\n", __func__);
++		return NULL;
 +	}
 +
-+	gpmc_onenand_info.pdata = gpmc_onenand_data;
-+	gpmc_onenand_info.pdata_size = sizeof(*gpmc_onenand_data);
-+	gpmc_onenand_cs_info.cs = gpmc_onenand_data->cs;
++	idx = get_gpmc0_type();
++	if (idx >= MAX_SUPPORTED_GPMC_CONFIG) {
++		pr_err("%s: Invalid chip select: %d\n", __func__, cs);
++		return gpmc_data;
++	}
++	config_sel = (unsigned char *)(chip_sel_board[idx]);
 +
-+	omap2_onenand_set_async_mode(gpmc_onenand_data->cs);
++	while (cs < GPMC_CS_NUM) {
++		switch (config_sel[cs]) {
++		case PDC_NOR:
++			if (norcs > GPMC_CS_NUM)
++				norcs = cs;
++			break;
++		case PDC_NAND:
++			if (nandcs > GPMC_CS_NUM)
++				nandcs = cs;
++			break;
++		case PDC_ONENAND:
++			if (onenandcs > GPMC_CS_NUM)
++				onenandcs = cs;
++			break;
++		};
++		cs++;
++	}
 +
-+	return &gpmc_onenand_info;
++	if (norcs > GPMC_CS_NUM)
++		pr_err("NOR: Unable to find configuration in GPMC\n");
++	else
++		*gpmc_data++ = gpmc_nor_update(partition_info[0].parts,
++				partition_info[0].nr_parts, norcs);
++
++	if (onenandcs > GPMC_CS_NUM)
++		pr_err("OneNAND: Unable to find configuration in GPMC\n");
++	else {
++		struct omap_onenand_platform_data *onenand_data;
++
++		onenand_data = board_onenand_update(partition_info[1].parts,
++				partition_info[1].nr_parts, onenandcs);
++		if (onenand_data != NULL)
++			*gpmc_data++ = gpmc_onenand_update(onenand_data);
++	}
++
++	if (nandcs > GPMC_CS_NUM)
++		pr_err("NAND: Unable to find configuration in GPMC\n");
++	else {
++		struct omap_nand_platform_data *nand_data;
++
++		nand_data = board_nand_update(partition_info[2].parts,
++				partition_info[2].nr_parts, nandcs,
++				nand_type, nand_default_timings);
++		if (nand_data != NULL)
++			*gpmc_data++ = gpmc_nand_update(nand_data);
++	}
++
++	return gpmc_data;
 +}
-diff --git a/arch/arm/plat-omap/include/plat/onenand.h b/arch/arm/plat-omap/include/plat/onenand.h
-index 2858667..0e082d8 100644
---- a/arch/arm/plat-omap/include/plat/onenand.h
-+++ b/arch/arm/plat-omap/include/plat/onenand.h
-@@ -41,7 +41,8 @@ struct omap_onenand_platform_data {
- 	defined(CONFIG_MTD_ONENAND_OMAP2_MODULE)
- 
- extern void gpmc_onenand_init(struct omap_onenand_platform_data *d);
--
-+extern struct gpmc_device_pdata *
-+gpmc_onenand_update(struct omap_onenand_platform_data *_onenand_data);
+diff --git a/arch/arm/mach-omap2/board-flash.h b/arch/arm/mach-omap2/board-flash.h
+index a3aa5fc..534afe2 100644
+--- a/arch/arm/mach-omap2/board-flash.h
++++ b/arch/arm/mach-omap2/board-flash.h
+@@ -30,11 +30,24 @@ struct flash_partitions {
+ 		defined(CONFIG_MTD_ONENAND_OMAP2_MODULE)
+ extern void board_flash_init(struct flash_partitions [],
+ 				char chip_sel[][GPMC_CS_NUM], int nand_type);
++extern struct gpmc_device_pdata **board_flash_update(
++				struct flash_partitions partition_info[],
++				char chip_sel_board[][GPMC_CS_NUM],
++				int nand_type,
++				struct gpmc_device_pdata **gpmc_data);
  #else
- 
- #define board_onenand_data	NULL
-@@ -49,5 +50,10 @@ extern void gpmc_onenand_init(struct omap_onenand_platform_data *d);
- static inline void gpmc_onenand_init(struct omap_onenand_platform_data *d)
+ static inline void board_flash_init(struct flash_partitions part[],
+ 				char chip_sel[][GPMC_CS_NUM], int nand_type)
  {
  }
-+static inline struct gpmc_device_pdata *
-+gpmc_onenand_update(struct omap_onenand_platform_data *_onenand_data)
++static inline struct gpmc_device_pdata **board_flash_update(
++				struct flash_partitions partition_info[],
++				char chip_sel_board[][GPMC_CS_NUM],
++				int nand_type,
++				struct gpmc_device_pdata **gpmc_data)
 +{
 +	return NULL;
 +}
+ #endif
  
+ #if defined(CONFIG_MTD_NAND_OMAP2) || \
+@@ -42,11 +55,20 @@ static inline void board_flash_init(struct flash_partitions part[],
+ extern void board_nand_init(struct mtd_partition *nand_parts,
+ 		u8 nr_parts, u8 cs, int nand_type, struct gpmc_timings *gpmc_t);
+ extern struct gpmc_timings nand_default_timings[];
++extern struct omap_nand_platform_data *
++board_nand_update(struct mtd_partition *nand_parts, u8 nr_parts, u8 cs,
++				int nand_type, struct gpmc_timings *gpmc_t);
+ #else
+ static inline void board_nand_init(struct mtd_partition *nand_parts,
+ 		u8 nr_parts, u8 cs, int nand_type, struct gpmc_timings *gpmc_t)
+ {
+ }
++static inline struct omap_nand_platform_data *
++board_nand_update(struct mtd_partition *nand_parts, u8 nr_parts, u8 cs,
++				int nand_type, struct gpmc_timings *gpmc_t)
++{
++	return NULL;
++}
+ #define	nand_default_timings	NULL
+ #endif
+ 
+@@ -54,9 +76,16 @@ static inline void board_nand_init(struct mtd_partition *nand_parts,
+ 		defined(CONFIG_MTD_ONENAND_OMAP2_MODULE)
+ extern void board_onenand_init(struct mtd_partition *nand_parts,
+ 					u8 nr_parts, u8 cs);
++extern struct omap_onenand_platform_data *
++board_onenand_update(struct mtd_partition *onenand_parts, u8 nr_parts, u8 cs);
+ #else
+ static inline void board_onenand_init(struct mtd_partition *nand_parts,
+ 					u8 nr_parts, u8 cs)
+ {
+ }
++static inline struct omap_onenand_platform_data *
++board_onenand_update(struct mtd_partition *onenand_parts, u8 nr_parts, u8 cs)
++{
++	return NULL;
++}
  #endif
 -- 
 1.7.10.2
