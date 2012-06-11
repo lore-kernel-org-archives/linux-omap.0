@@ -1,91 +1,78 @@
 From: Afzal Mohammed <afzal@ti.com>
-Subject: [PATCH v5 02/14] ARM: OMAP2+: gpmc: Adapt to HWMOD
-Date: Mon, 11 Jun 2012 19:56:24 +0530
-Message-ID: <fb739c3c5383806f78cee3666f7c74d61bed6427.1339419492.git.afzal@ti.com>
+Subject: [PATCH v5 03/14] ARM: OMAP2+: gpmc: driver migration helper
+Date: Mon, 11 Jun 2012 19:56:32 +0530
+Message-ID: <a121156faf6c758d4e37447ab832f6f825cc5bc8.1339419492.git.afzal@ti.com>
 References: <cover.1339419492.git.afzal@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from arroyo.ext.ti.com ([192.94.94.40]:50054 "EHLO arroyo.ext.ti.com"
+Received: from bear.ext.ti.com ([192.94.94.41]:52338 "EHLO bear.ext.ti.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1755114Ab2FKOmF (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Mon, 11 Jun 2012 10:42:05 -0400
+	id S1752476Ab2FKOmM (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Mon, 11 Jun 2012 10:42:12 -0400
 In-Reply-To: <cover.1339419492.git.afzal@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: tony@atomide.com, paul@pwsan.com, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 Cc: Afzal Mohammed <afzal@ti.com>
 
-Create API for platforms to adapt gpmc to HWMOD
+A driver is being created out of GPMC code. This is being
+attempted to acheive by not breaking existing interface,
+necessitating requirement of GPMC peripherals being able
+to work with as well as without the help of driver. To not
+break existing, initcall is required as in old interface
+GPMC is configured at arch initcall and GPMC should be
+ready to handle old interface by that time
 
 Signed-off-by: Afzal Mohammed <afzal@ti.com>
 ---
- arch/arm/mach-omap2/gpmc.c             |   31 +++++++++++++++++++++++++++++++
- arch/arm/plat-omap/include/plat/gpmc.h |    2 ++
- 2 files changed, 33 insertions(+)
+ arch/arm/mach-omap2/gpmc.c |   19 ++++++++++++++++++-
+ 1 file changed, 18 insertions(+), 1 deletion(-)
 
 diff --git a/arch/arm/mach-omap2/gpmc.c b/arch/arm/mach-omap2/gpmc.c
-index 517953f..b471c2f 100644
+index b471c2f..6dbddb9 100644
 --- a/arch/arm/mach-omap2/gpmc.c
 +++ b/arch/arm/mach-omap2/gpmc.c
-@@ -27,6 +27,7 @@
+@@ -902,7 +902,7 @@ postcore_initcall(gpmc_init);
+ __init int omap_gpmc_init(struct gpmc_pdata *pdata)
+ {
+ 	struct omap_hwmod *oh;
+-	struct platform_device *pdev;
++	static struct platform_device *pdev;
+ 	char *name = "omap-gpmc";
+ 	char *oh_name = "gpmc";
  
- #include <asm/mach-types.h>
- #include <plat/gpmc.h>
-+#include <plat/omap_device.h>
+@@ -912,6 +912,12 @@ __init int omap_gpmc_init(struct gpmc_pdata *pdata)
+ 		return -ENODEV;
+ 	}
  
- #include <plat/sdrc.h>
- 
-@@ -898,6 +899,36 @@ static int __init gpmc_init(void)
++	if (pdev != NULL) {
++		clk_put(gpmc_l3_clk);
++		omap_device_delete(pdev->archdata.od);
++		platform_device_unregister(pdev);
++	}
++
+ 	pdev = omap_device_build(name, -1, oh, pdata,
+ 					sizeof(*pdata), NULL, 0, 0);
+ 	if (IS_ERR(pdev)) {
+@@ -929,6 +935,17 @@ __init int omap_gpmc_init(struct gpmc_pdata *pdata)
+ 	return 0;
  }
- postcore_initcall(gpmc_init);
  
-+__init int omap_gpmc_init(struct gpmc_pdata *pdata)
++static int __init gpmc_pre_init(void)
 +{
-+	struct omap_hwmod *oh;
-+	struct platform_device *pdev;
-+	char *name = "omap-gpmc";
-+	char *oh_name = "gpmc";
++	static struct gpmc_device_pdata *gpmc_device_data[1];
++	struct gpmc_pdata gpmc_data = {
++		.device_pdata	= gpmc_device_data,
++	};
 +
-+	oh = omap_hwmod_lookup(oh_name);
-+	if (!oh) {
-+		pr_err("Could not look up %s\n", oh_name);
-+		return -ENODEV;
-+	}
-+
-+	pdev = omap_device_build(name, -1, oh, pdata,
-+					sizeof(*pdata), NULL, 0, 0);
-+	if (IS_ERR(pdev)) {
-+		WARN(1, "Can't build omap_device for %s:%s.\n",
-+						name, oh->name);
-+		return PTR_ERR(pdev);
-+	}
-+
-+	gpmc_l3_clk = clk_get(NULL, oh->main_clk);
-+	if (IS_ERR(gpmc_l3_clk)) {
-+		pr_err("Could not get GPMC clock\n");
-+		return PTR_ERR(gpmc_l3_clk);
-+	}
-+
-+	return 0;
++	return omap_gpmc_init(&gpmc_data);
 +}
++postcore_initcall(gpmc_pre_init);
 +
  static irqreturn_t gpmc_handle_irq(int irq, void *dev)
  {
  	int i;
-diff --git a/arch/arm/plat-omap/include/plat/gpmc.h b/arch/arm/plat-omap/include/plat/gpmc.h
-index 21a8cce..698fa33 100644
---- a/arch/arm/plat-omap/include/plat/gpmc.h
-+++ b/arch/arm/plat-omap/include/plat/gpmc.h
-@@ -207,6 +207,8 @@ struct gpmc_nand_regs {
- extern void gpmc_update_nand_reg(struct gpmc_nand_regs *reg, int cs);
- extern int gpmc_get_client_irq(unsigned irq_config);
- 
-+extern int omap_gpmc_init(struct gpmc_pdata *pdata);
-+
- extern unsigned int gpmc_ns_to_ticks(unsigned int time_ns);
- extern unsigned int gpmc_ps_to_ticks(unsigned int time_ps);
- extern unsigned int gpmc_ticks_to_ns(unsigned int ticks);
 -- 
 1.7.10.2
 
