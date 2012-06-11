@@ -1,88 +1,43 @@
-From: Wolfram Sang <w.sang@pengutronix.de>
-Subject: Re: [PATCHv10 00/11] I2C fixes
-Date: Mon, 11 Jun 2012 18:00:34 +0200
-Message-ID: <20120611160034.GA3887@pengutronix.de>
-References: <1338288983-15026-1-git-send-email-shubhrajyoti@ti.com>
- <87obp4x8gs.fsf@ti.com>
- <CAM=Q2ctZmOFdroUw5qywwGU_4ResB9RKqag4-+qh3nHeKHWzKQ@mail.gmail.com>
+From: Russell King - ARM Linux <linux@arm.linux.org.uk>
+Subject: Re: Broken builds
+Date: Mon, 11 Jun 2012 17:06:16 +0100
+Message-ID: <20120611160616.GA9268@n2100.arm.linux.org.uk>
+References: <20120603180122.GA23368@n2100.arm.linux.org.uk> <20120605082218.GL12766@atomide.com> <1338902400.1952.19.camel@lappyti>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="4Ckj6UjgE2iN1+kY"
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from metis.ext.pengutronix.de ([92.198.50.35]:57104 "EHLO
-	metis.ext.pengutronix.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753342Ab2FKQAi (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 11 Jun 2012 12:00:38 -0400
+Received: from caramon.arm.linux.org.uk ([78.32.30.218]:54097 "EHLO
+	caramon.arm.linux.org.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753955Ab2FKQGb (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 11 Jun 2012 12:06:31 -0400
 Content-Disposition: inline
-In-Reply-To: <CAM=Q2ctZmOFdroUw5qywwGU_4ResB9RKqag4-+qh3nHeKHWzKQ@mail.gmail.com>
+In-Reply-To: <1338902400.1952.19.camel@lappyti>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Shubhrajyoti Datta <omaplinuxkernel@gmail.com>
-Cc: Shubhrajyoti D <shubhrajyoti@ti.com>, linux-omap@vger.kernel.org, linux-i2c@vger.kernel.org, linux-arm-kernel@lists.infradead.org, ben-linux@fluff.org, tony@atomide.com, Kevin Hilman <khilman@ti.com>
+To: Tomi Valkeinen <tomi.valkeinen@ti.com>
+Cc: Tony Lindgren <tony@atomide.com>, linux-omap@vger.kernel.org
 
+On Tue, Jun 05, 2012 at 04:20:00PM +0300, Tomi Valkeinen wrote:
+> Hi,
+> 
+> On Tue, 2012-06-05 at 01:22 -0700, Tony Lindgren wrote:
+> > * Russell King - ARM Linux <linux@arm.linux.org.uk> [120603 11:05]:
+> > > Looks like the DSS stuff has broken OMAP builds again during this
+> > > merge window:
+> > > 
+> > > drivers/video/omap2/dss/core.c:197: error: static declaration of 'dss_debugfs_create_file' follows non-static declaration
+> > > drivers/video/omap2/dss/dss.h:166: error: previous declaration of 'dss_debugfs_create_file' was here
+> > > 
+> > > Both the OMAP3 and OMAP4 builds break with these two errors.
+> > 
+> > Here's a patch for Tomi to fix this one.
+> 
+> I have a patch for this in my for-rc branch. It just missed the main
+> merge. I'll send this and a few other fixes today for the next rc.
+> 
+> Btw, it compiles if you have debugfs and DSS_DEBUG_SUPPORT enabled.
+> That's why I didn't notice it until too late.
 
---4Ckj6UjgE2iN1+kY
-Content-Type: text/plain; charset=iso-8859-15
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
-
-On Sun, Jun 10, 2012 at 11:10:47AM +0530, Shubhrajyoti Datta wrote:
-> On Fri, Jun 1, 2012 at 4:29 AM, Kevin Hilman <khilman@ti.com> wrote:
-> > Shubhrajyoti D <shubhrajyoti@ti.com> writes:
-> >
-> >> The patch series does the following
-> >>
-> >> - Warn fixes if CONFIG_PM_RUNTIME is not selected.
-> >> - In case of i2c remove register access was done without any
-> >> =A0get_sync fix the same.
-> >> - Folds a patch from Tasslehoff to prevent any merge conflicts.
-> >> - Prevents the XDUF flag to be set if the underflow condition is not m=
-et.
-> >> - As per discussion in [1] .Adds a patch to rename the 1p153 errata and
-> >> =A0use the unique id instead as the section number in the recent errata
-> >> =A0docs has changed.
-> >>
-> >> v9:
-> >> Fix the comments from Wolfram Sang
-> >>
-> >> v10:
-> >> Add a patch from Neil to the series.
-> >> Fix kevin comments
-> >> update the patches with comments.
-> >
-> > Shubhrajyoti, thanks for the updates.
-> >
-> > Wolfgang, with these updates and testing a bit better described, I'm OK
-> > with you merging it. =A0Merging it now will give it plenty of time to
-> > bake in linux-next and get more test exposure.
->=20
-> Agree,
-> These are only fixes can it be considered for rc3?
-
-"Baking in linux-next" and "considering rc3" don't match; baking needs
-time, rc3 is soon. I've put the patches now into my -next branch for
-more exposure. I am still uncertain if they should be in 3.5 already;
-there seem to be worhty fixes in there, but they do depend on stuff
-which don't really qualify as bugfixes...
-
-Thanks,
-
-   Wolfram
-
---=20
-Pengutronix e.K.                           | Wolfram Sang                |
-Industrial Linux Solutions                 | http://www.pengutronix.de/  |
-
---4Ckj6UjgE2iN1+kY
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: Digital signature
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.4.12 (GNU/Linux)
-
-iEYEARECAAYFAk/WFiEACgkQD27XaX1/VRsMfwCeJvMrV0gKFZBR+YJAGC7gaCp6
-0+gAniO9hsTUEn1B426S8JBbpaVUTwDW
-=gApb
------END PGP SIGNATURE-----
-
---4Ckj6UjgE2iN1+kY--
+So... where are we with this?  Apparantly not much further forward;
+it seems to be in linux-next but still not in mainline, and mainline
+continues to be broken.
