@@ -1,70 +1,97 @@
-From: "Cousson, Benoit" <b-cousson@ti.com>
-Subject: Re: [PATCHv2 04/12] ARM: OMAP4: hwmod data: fix 32k sync timer idle
- modes
-Date: Mon, 11 Jun 2012 11:31:19 +0200
-Message-ID: <4FD5BAE7.7080805@ti.com>
-References: <20120611004502.20034.8840.stgit@dusk> <20120611004602.20034.73590.stgit@dusk>
+From: Dong Aisheng <aisheng.dong@freescale.com>
+Subject: Re: RFC: changing DMA slave configuration API
+Date: Mon, 11 Jun 2012 17:33:33 +0800
+Message-ID: <20120611093332.GC26681@shlinux2.ap.freescale.net>
+References: <20120610102023.GC11404@n2100.arm.linux.org.uk>
+ <CAGsJ_4xHNdEcfsmtypDHcJ0uyhtFz43xBojgHw2RSvrH8ohRcA@mail.gmail.com>
+ <20120610112217.GD11404@n2100.arm.linux.org.uk>
+ <1339390249.1927.1623.camel@vkoul-udesk3>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8;
-	format=flowed
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: text/plain; charset="us-ascii"
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from comal.ext.ti.com ([198.47.26.152]:57666 "EHLO comal.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751131Ab2FKJbY (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Mon, 11 Jun 2012 05:31:24 -0400
-In-Reply-To: <20120611004602.20034.73590.stgit@dusk>
+Received: from am1ehsobe002.messaging.microsoft.com ([213.199.154.205]:19411
+	"EHLO am1outboundpool.messaging.microsoft.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1751011Ab2FKJfJ (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>);
+	Mon, 11 Jun 2012 05:35:09 -0400
+Content-Disposition: inline
+In-Reply-To: <1339390249.1927.1623.camel@vkoul-udesk3>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Paul Walmsley <paul@pwsan.com>
-Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Tero Kristo <t-kristo@ti.com>
+To: Vinod Koul <vinod.koul@linux.intel.com>
+Cc: Russell King - ARM Linux <linux@arm.linux.org.uk>, Dan Williams <dan.j.williams@intel.com>, linux-omap@vger.kernel.org, Barry Song <21cnbao@gmail.com>, linux-arm-kernel@lists.infradead.org
 
-On 6/11/2012 2:46 AM, Paul Walmsley wrote:
-> The 32k sync timer IP block target idle modes are incorrect in the
-> hwmod data are incorrect.
+On Mon, Jun 11, 2012 at 10:20:49AM +0530, Vinod Koul wrote:
+> On Sun, 2012-06-10 at 12:22 +0100, Russell King - ARM Linux wrote:
+> > On Sun, Jun 10, 2012 at 07:19:47PM +0800, Barry Song wrote:
+> > > 2012/6/10 Russell King - ARM Linux <linux@arm.linux.org.uk>:
+> > > > Dan, Vinod,
+> > > >
+> > > > There's a change I would like to do to the DMA slave configuration.
+> > > > It's currently a pain to have the source and destination parameters in
+> > > > the dma_slave_config structure as separate elements; it means when you
+> > > > want to extract them, you end up with code in DMA engine drivers like:
+> > > >
+> > > > +       if (dir == DMA_DEV_TO_MEM) {
+> > > > +               dev_addr = c->src_addr;
+> > > > +               dev_width = c->src_addr_width;
+> > > > +               burst = c->src_maxburst;
+> > > > +       } else if (dir == DMA_MEM_TO_DEV) {
+> > > > +               dev_addr = c->dst_addr;
+> > > > +               dev_width = c->dst_addr_width;
+> > > > +               burst = c->dst_maxburst;
+> > > > +       }
+> > > >
+> > > > If we redefine the structure as below, this all becomes more simple:
+> > > >
+> > > > +       if (dir == DMA_DEV_TO_MEM)
+> > > > +               cfg = &c->dev_src;
+> > > > +       else if (dir == DMA_MEM_TO_DEV)
+> > > > +               cfg = &c->dev_dst;
+> > > 
+> > > it seems that might mean an union in your dma_slave_cfg, but not
+> > > co-exitense of both?
+> > 
+> > No, I want both so it's possible to select between the two when preparing
+> > a DMA slave transfer.
+> > 
+> > > struct dma_slave_cfg {
+> > > +       union {
+> > >               struct dma_dev_cfg dev_src;
+> > >               struct dma_dev_cfg dev_dst;
+> > >        }
+> > >        bool device_fc;
+> > > };
+> > 
+> > If you do that, the union becomes pointless, and you might as well have:
+> > 
+> > struct dma_slave_cfg {
+> > 	struct dma_dev_cfg dev;
+> > 	bool device_fc;
+> > };
+> > 
+> > instead.
+> Hi Russell,
+> 
+> I think it is a good idea. And I would like to extend it even a little
+> bit. Do we have any users of peripheral to peripheral slave dma?
+Yes, IMX sdma does support such kind of transfer.
+The driver still does not support it currently.
 
-Nit: Is there too many "incorrect" in this sentence?
+> IIRC  that is not the case, or does anyone know of existence or plans
+> for such a h/w?
+> 
+i.MX5 and i.MX6.
 
-> The IP block does not support any
-> smart-idle modes.  Update the data to reflect the correct modes.
->
-> This problem was initially identified and a diff fragment posted to
-> the lists by Beno=C3=AEt Cousson <b-cousson@ti.com>.
+> If not, lets junk the src/dst fields and keep burst, length, addr fields
+> which point to the peripheral values.
+> 
+> Alternatively if we need both, then we can't have union and Russell's
+> idea seems good one :)
+> 
+Russell's idea seems reasonable and we may want to support peripheral to
+peripheral in the future.
 
-Thanks for taking care of that patch.
+Regards
+Dong Aisheng
 
-Benoit
-
->
-> Signed-off-by: Paul Walmsley <paul@pwsan.com>
-> Cc: Beno=C3=AEt Cousson <b-cousson@ti.com>
-> Cc: Tero Kristo <t-kristo@ti.com>
-> ---
->   arch/arm/mach-omap2/omap_hwmod_44xx_data.c |    3 +--
->   1 file changed, 1 insertion(+), 2 deletions(-)
->
-> diff --git a/arch/arm/mach-omap2/omap_hwmod_44xx_data.c b/arch/arm/ma=
-ch-omap2/omap_hwmod_44xx_data.c
-> index 4aaaa84..6b0aedc 100644
-> --- a/arch/arm/mach-omap2/omap_hwmod_44xx_data.c
-> +++ b/arch/arm/mach-omap2/omap_hwmod_44xx_data.c
-> @@ -393,8 +393,7 @@ static struct omap_hwmod_class_sysconfig omap44xx=
-_counter_sysc =3D {
->   	.rev_offs	=3D 0x0000,
->   	.sysc_offs	=3D 0x0004,
->   	.sysc_flags	=3D SYSC_HAS_SIDLEMODE,
-> -	.idlemodes	=3D (SIDLE_FORCE | SIDLE_NO | SIDLE_SMART |
-> -			   SIDLE_SMART_WKUP),
-> +	.idlemodes	=3D (SIDLE_FORCE | SIDLE_NO),
->   	.sysc_fields	=3D &omap_hwmod_sysc_type1,
->   };
->
->
->
-
-
---
-To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
