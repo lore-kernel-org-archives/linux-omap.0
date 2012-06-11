@@ -1,77 +1,100 @@
-From: Igor Grinberg <grinberg@compulab.co.il>
-Subject: Re: [PATCH 5/5] Input: ads7846: set proper debounce time in driver
- level
-Date: Mon, 11 Jun 2012 17:37:33 +0300
-Message-ID: <4FD602AD.1060304@compulab.co.il>
-References: <zumeng.chen@gmail.com> <1339423216-1323-1-git-send-email-zumeng.chen@gmail.com> <1339423216-1323-6-git-send-email-zumeng.chen@gmail.com>
+From: Afzal Mohammed <afzal@ti.com>
+Subject: [PATCH v5 00/14] GPMC driver conversion
+Date: Mon, 11 Jun 2012 19:55:02 +0530
+Message-ID: <cover.1339419492.git.afzal@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from 50.23.254.54-static.reverse.softlayer.com ([50.23.254.54]:53998
-	"EHLO softlayer.compulab.co.il" rhost-flags-OK-OK-OK-FAIL)
-	by vger.kernel.org with ESMTP id S1755171Ab2FKOhm (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>);
-	Mon, 11 Jun 2012 10:37:42 -0400
-In-Reply-To: <1339423216-1323-6-git-send-email-zumeng.chen@gmail.com>
+Received: from arroyo.ext.ti.com ([192.94.94.40]:49971 "EHLO arroyo.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751632Ab2FKOko (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Mon, 11 Jun 2012 10:40:44 -0400
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Zumeng Chen <zumeng.chen@gmail.com>
-Cc: tony@atomide.com, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, khilman@ti.com, khasim@ti.com, ajay.gupta@ti.com, Vaibhav Hiremath <hvaibhav@ti.com>, Dmitry Torokhov <dmitry.torokhov@gmail.com>, "linux-input@vger.kernel.org" <linux-input@vger.kernel.org>
+To: tony@atomide.com, paul@pwsan.com, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+Cc: Afzal Mohammed <afzal@ti.com>
 
 Hi,
 
-This is input subsystem, add Dmitry and linux-input.
+This series is based on 3.5-rc1, and is dependent on [1,2,3]
 
-On 06/11/12 17:00, Zumeng Chen wrote:
-> If we don't set proper debouce time for ads7846, then there are
-> flooded interrupt counters of ads7846 responding to one time
-> touch on screen, so the driver couldn't work well.
-> 
-> And since most OMAP3 series boards pass NULL pointer of board_pdata
-> to omap_ads7846_init, so it's more proper to set it in driver level
-> after having gpio_request done.
+This series has been tested on omap3evm (smsc911x) rev G & C and
+beagle board(nand) using patch series which is going to be posted
+shortly (this series only creates a driver out of GPMC code)
 
-What about other non-OMAP platforms?
+Also using private patches, nand & onenand was tested on omap3evm,
+rev G & C respectively (as support for these were not in mainline)
 
-NULL pointer for board_pdata, only means that the default pdata is used.
-Please, see the common-board-devices.c file more closely.
+Many of GPMC peripherals depend on bootloader for configuration.
+This is going to be deprecated. feature-removal-schedule.txt will be
+updated in one of the upcoming patch series regarding the same.
 
-> 
-> This patch has been validated on 3530evm.
-> 
-> Signed-off-by: Zumeng Chen <zumeng.chen@gmail.com>
-> Signed-off-by: Syed Mohammed Khasim <khasim@ti.com>
-> Signed-off-by: Tony Lindgren <tony@atomide.com>
-> ---
->  drivers/input/touchscreen/ads7846.c |    2 ++
->  1 files changed, 2 insertions(+), 0 deletions(-)
-> 
-> diff --git a/drivers/input/touchscreen/ads7846.c b/drivers/input/touchscreen/ads7846.c
-> index f02028e..a82a5fb 100644
-> --- a/drivers/input/touchscreen/ads7846.c
-> +++ b/drivers/input/touchscreen/ads7846.c
-> @@ -61,6 +61,7 @@
->  
->  /* this driver doesn't aim at the peak continuous sample rate */
->  #define	SAMPLE_BITS	(8 /*cmd*/ + 16 /*sample*/ + 2 /* before, after */)
-> +#define	DEBOUNCE_TIME	310 /* About 10 ms */
 
-I think hard coding this value is wrong.
-Can't it be derived from the pdata->debounce_* fields?
+[PATCH 03/13] ARM: OMAP2+: gpmc: driver migration helper, is to be
+reverted once all GPMC peripherals are migrated to use driver
+interface.
 
->  
->  struct ts_event {
->  	/*
-> @@ -980,6 +981,7 @@ static int __devinit ads7846_setup_pendown(struct spi_device *spi, struct ads784
->  		}
->  
->  		ts->gpio_pendown = pdata->gpio_pendown;
-> +		gpio_set_debounce(pdata->gpio_pendown, DEBOUNCE_TIME);
->  
->  	} else {
->  		dev_err(&spi->dev, "no get_pendown_state nor gpio_pendown?\n");
+GPMC (General Purpose Memory Controller) in brief:
+GPMC is an unified memory controller dedicated to interfacing external
+memory devices like
+ Asynchronous SRAM like memories and application specific integrated circuit devices.
+ Asynchronous, synchronous, and page mode burst NOR flash devices NAND flash
+ Pseudo-SRAM devices
+
+GPMC details can be referred in AM335X Technical Reference Manual
+@ http://www.ti.com/lit/pdf/spruh73
+
+Regards
+Afzal
+
+[1] http://www.mail-archive.com/linux-omap@vger.kernel.org/msg69501.html
+[2] http://www.mail-archive.com/linux-omap@vger.kernel.org/msg69881.html
+[3] http://www.mail-archive.com/linux-omap@vger.kernel.org/msg69891.html
+
+v5: Make this a purely driver conversion series, i.e. gpmc-mtd
+    interactions has been made as a separate series, so is adding
+    hwmod entry for OMAP2/3.
+    And modifying gpmc peripheral platform initialization has been
+    separated out of this series, so is migrating boards to use new
+    driver interface. GPMC driver conversion which was done in a few
+    patches in v4 has been tranformed to series of small patches.
+    Also care has been taken care that old interface will not break
+    with any of these patches, so both interfaces can coexist.
+    This helps in converting boards one-by-one gradually. Acquiring
+    CS has been thrown out. And conclusive comments on v4 has been
+    addressed.
+v4: Handle wait pin (except for interrupts), enhance configuration
+    & timing interface of GPMC to take care of all boards. Dynamic
+    allocation of interrupt instead of static. Convert remaining
+    peripherals to work with GPMC driver. Handle acquiring NAND CS#,
+    adapt to HWMOD, update HWMOD OMAP2/3 entries, other minor
+    commenst on v3.
+v3: Single device structure passed from platform for peripherals using
+    multiple CS instead of using multiple device structure having a few
+    redundant data, handle interrupts, GPMC NAND handling by GPMC NAND
+    driver instead of GPMC driver
+v2: Avoid code movement that kept similar code together (for easy review)
+
+Afzal Mohammed (14):
+  ARM: OMAP2+: gpmc: platform definitions
+  ARM: OMAP2+: gpmc: Adapt to HWMOD
+  ARM: OMAP2+: gpmc: driver migration helper
+  ARM: OMAP2+: gpmc: minimal driver support
+  ARM: OMAP2+: gpmc: resource creation helpers
+  ARM: OMAP2+: gpmc: CS configuration helper
+  ARM: OMAP2+: gpmc: time setting (register#) helper
+  ARM: OMAP2+: gpmc: bool type timing helper
+  ARM: OMAP2+: gpmc: holler if no configuration
+  ARM: OMAP2+: gpmc: waitpin helper
+  ARM: OMAP2+: gpmc: handle connected peripherals
+  ARM: OMAP2+: gpmc: cs reconfigure helper
+  ARM: OMAP2+: gpmc: update nand register info
+  ARM: OMAP2+: gpmc: writeprotect helper
+
+ arch/arm/mach-omap2/gpmc.c             |  817 ++++++++++++++++++++++++++++++--
+ arch/arm/plat-omap/include/plat/gpmc.h |   68 +++
+ 2 files changed, 842 insertions(+), 43 deletions(-)
 
 -- 
-Regards,
-Igor.
+1.7.10.2
+
