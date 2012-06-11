@@ -1,142 +1,50 @@
-From: Benoit Cousson <b-cousson@ti.com>
-Subject: [PATCH 2/2] Revert "ARM: OMAP2+: clockdomains: make {prm,cm}_clkdm common"
-Date: Mon, 11 Jun 2012 18:47:05 +0200
-Message-ID: <1339433225-30042-3-git-send-email-b-cousson@ti.com>
-References: <1339433225-30042-1-git-send-email-b-cousson@ti.com>
+From: Paul Walmsley <paul@pwsan.com>
+Subject: Re: [PATCHv2 11/12] ARM: OMAP4: clock data: add clockdomains for
+ clocks used as main clocks
+Date: Mon, 11 Jun 2012 10:59:03 -0600 (MDT)
+Message-ID: <alpine.DEB.2.00.1206111050430.5849@utopia.booyaka.com>
+References: <20120611004502.20034.8840.stgit@dusk> <20120611004623.20034.52760.stgit@dusk> <4FD61C94.4030004@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from bear.ext.ti.com ([192.94.94.41]:33140 "EHLO bear.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1750945Ab2FKQrv (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Mon, 11 Jun 2012 12:47:51 -0400
-In-Reply-To: <1339433225-30042-1-git-send-email-b-cousson@ti.com>
+Received: from utopia.booyaka.com ([72.9.107.138]:53370 "EHLO
+	utopia.booyaka.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750891Ab2FKQ7E (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 11 Jun 2012 12:59:04 -0400
+In-Reply-To: <4FD61C94.4030004@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: paul@pwsan.com
-Cc: tony@atomide.com, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Benoit Cousson <b-cousson@ti.com>
+To: "Cousson, Benoit" <b-cousson@ti.com>
+Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Rajendra Nayak <rnayak@ti.com>
 
-This reverts commit 6ba5a69ee92c29c2ffc814dad6ac61c4cd49090c.
+On Mon, 11 Jun 2012, Cousson, Benoit wrote:
 
-Conflicts:
+> In fact, neither prm_clkdm not cm_clkdm are valid clock domain on OMAP4 
+> :-(.
+> 
+> I've just realized that you introduced that for 3.5, but this is wrong. 
+> We should not start adding some fake clock domains just because the fmwk 
+> is not smart enough to allow a NULL clock domain.
+> 
 
-	arch/arm/mach-omap2/Makefile
+...
 
-Neither prm_clkdm nor cm_clkdm does exist on OMAP4.
-Remove the common definition that does not make sense anymore
-since it is not common for OMAP2+ platforms.
+> In a period of data size reduction, adding some fake information does 
+> not seems to be the right approach. Don't you think so?
 
-Please note that these clock domains are probably non existant
-on OMAP 2 & 3 and thus should be removed in all the
-clockdomain files.
+No, I do not.
 
-Signed-off-by: Benoit Cousson <b-cousson@ti.com>
----
- arch/arm/mach-omap2/Makefile                     |    1 -
- arch/arm/mach-omap2/clockdomain44xx.c            |    6 -----
- arch/arm/mach-omap2/clockdomains2xxx_3xxx_data.c |   10 +++++++++
- arch/arm/mach-omap2/clockdomains44xx_data.c      |    2 -
- arch/arm/mach-omap2/clockdomains_common_data.c   |   24 ----------------------
- 5 files changed, 10 insertions(+), 33 deletions(-)
- delete mode 100644 arch/arm/mach-omap2/clockdomains_common_data.c
+These clockdomains are clearly documented in both the OMAP4 TRM[1]
+and the NDA OMAP4 PRCM functional specifications.
 
-diff --git a/arch/arm/mach-omap2/Makefile b/arch/arm/mach-omap2/Makefile
-index fa742f3..bc7d239 100644
---- a/arch/arm/mach-omap2/Makefile
-+++ b/arch/arm/mach-omap2/Makefile
-@@ -116,7 +116,6 @@ obj-$(CONFIG_ARCH_OMAP4)		+= powerdomains44xx_data.o
- 
- # PRCM clockdomain control
- clockdomain-common			+= clockdomain.o
--clockdomain-common			+= clockdomains_common_data.o
- obj-$(CONFIG_ARCH_OMAP2)		+= $(clockdomain-common)
- obj-$(CONFIG_ARCH_OMAP2)		+= clockdomain2xxx_3xxx.o
- obj-$(CONFIG_ARCH_OMAP2)		+= clockdomains2xxx_3xxx_data.o
-diff --git a/arch/arm/mach-omap2/clockdomain44xx.c b/arch/arm/mach-omap2/clockdomain44xx.c
-index 4f04dd1..935c7f0 100644
---- a/arch/arm/mach-omap2/clockdomain44xx.c
-+++ b/arch/arm/mach-omap2/clockdomain44xx.c
-@@ -51,9 +51,6 @@ static int omap4_clkdm_clear_all_wkup_sleep_deps(struct clockdomain *clkdm)
- 	struct clkdm_dep *cd;
- 	u32 mask = 0;
- 
--	if (!clkdm->prcm_partition)
--		return 0;
--
- 	for (cd = clkdm->wkdep_srcs; cd && cd->clkdm_name; cd++) {
- 		if (!cd->clkdm)
- 			continue; /* only happens if data is erroneous */
-@@ -106,9 +103,6 @@ static int omap4_clkdm_clk_disable(struct clockdomain *clkdm)
- {
- 	bool hwsup = false;
- 
--	if (!clkdm->prcm_partition)
--		return 0;
--
- 	hwsup = omap4_cminst_is_clkdm_in_hwsup(clkdm->prcm_partition,
- 					clkdm->cm_inst, clkdm->clkdm_offs);
- 
-diff --git a/arch/arm/mach-omap2/clockdomains2xxx_3xxx_data.c b/arch/arm/mach-omap2/clockdomains2xxx_3xxx_data.c
-index 839145e..0a6a048 100644
---- a/arch/arm/mach-omap2/clockdomains2xxx_3xxx_data.c
-+++ b/arch/arm/mach-omap2/clockdomains2xxx_3xxx_data.c
-@@ -89,3 +89,13 @@ struct clockdomain wkup_common_clkdm = {
- 	.pwrdm		= { .name = "wkup_pwrdm" },
- 	.dep_bit	= OMAP_EN_WKUP_SHIFT,
- };
-+
-+struct clockdomain prm_common_clkdm = {
-+	.name		= "prm_clkdm",
-+	.pwrdm		= { .name = "wkup_pwrdm" },
-+};
-+
-+struct clockdomain cm_common_clkdm = {
-+	.name		= "cm_clkdm",
-+	.pwrdm		= { .name = "core_pwrdm" },
-+};
-diff --git a/arch/arm/mach-omap2/clockdomains44xx_data.c b/arch/arm/mach-omap2/clockdomains44xx_data.c
-index c534258..bd7ed13 100644
---- a/arch/arm/mach-omap2/clockdomains44xx_data.c
-+++ b/arch/arm/mach-omap2/clockdomains44xx_data.c
-@@ -430,8 +430,6 @@ static struct clockdomain *clockdomains_omap44xx[] __initdata = {
- 	&l4_wkup_44xx_clkdm,
- 	&emu_sys_44xx_clkdm,
- 	&l3_dma_44xx_clkdm,
--	&prm_common_clkdm,
--	&cm_common_clkdm,
- 	NULL
- };
- 
-diff --git a/arch/arm/mach-omap2/clockdomains_common_data.c b/arch/arm/mach-omap2/clockdomains_common_data.c
-deleted file mode 100644
-index 615b1f0..0000000
---- a/arch/arm/mach-omap2/clockdomains_common_data.c
-+++ /dev/null
-@@ -1,24 +0,0 @@
--/*
-- * OMAP2+-common clockdomain data
-- *
-- * Copyright (C) 2008-2012 Texas Instruments, Inc.
-- * Copyright (C) 2008-2010 Nokia Corporation
-- *
-- * Paul Walmsley, Jouni Högander
-- */
--
--#include <linux/kernel.h>
--#include <linux/io.h>
--
--#include "clockdomain.h"
--
--/* These are implicit clockdomains - they are never defined as such in TRM */
--struct clockdomain prm_common_clkdm = {
--	.name		= "prm_clkdm",
--	.pwrdm		= { .name = "wkup_pwrdm" },
--};
--
--struct clockdomain cm_common_clkdm = {
--	.name		= "cm_clkdm",
--	.pwrdm		= { .name = "core_pwrdm" },
--};
--- 
-1.7.0.4
+I continue to be baffled as to why you assert that they are fake, given 
+how clearly they are documented.
+
+
+- Paul
+
+1. See for example sections 3.6.6.1 "Overview", Figure 3-58 "CD_L4_PER 
+Overview", Figure 3-59 "CD_L3_INIT Overview", Figure 3-62 "CD_EMU 
+Overview", Figure 3-63 "CD_DSS Overview", Figure 3-74 "CD_L4_ALWON_CORE 
+Overview" in the OMAP4 TRM Rev. AA (SWPU231AA).
 
