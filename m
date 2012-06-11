@@ -1,49 +1,58 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH] arm: omap: drop unused IRQ defines
-Date: Sun, 10 Jun 2012 23:42:28 -0700
-Message-ID: <20120611064228.GV12766@atomide.com>
-References: <1339164612-24402-1-git-send-email-balbi@ti.com>
+From: Vaibhav Hiremath <hvaibhav@ti.com>
+Subject: Re: [PATCH] ARM: OMAP2+: cpu: Add am33xx device under cpu_class_is_omap2
+Date: Mon, 11 Jun 2012 12:14:57 +0530
+Message-ID: <4FD593E9.402@ti.com>
+References: <1339253773-24088-1-git-send-email-hvaibhav@ti.com> <20120611063816.GU12766@atomide.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset="ISO-8859-1"; format=flowed
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-02-ewr.mailhop.org ([204.13.248.72]:16769 "EHLO
-	mho-02-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750933Ab2FKGmc (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 11 Jun 2012 02:42:32 -0400
-Content-Disposition: inline
-In-Reply-To: <1339164612-24402-1-git-send-email-balbi@ti.com>
+Received: from bear.ext.ti.com ([192.94.94.41]:54828 "EHLO bear.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751183Ab2FKGpF (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Mon, 11 Jun 2012 02:45:05 -0400
+In-Reply-To: <20120611063816.GU12766@atomide.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Felipe Balbi <balbi@ti.com>
-Cc: Linux OMAP Mailing List <linux-omap@vger.kernel.org>, Linux ARM Kernel Mailing List <linux-arm-kernel@lists.infradead.org>
+To: Tony Lindgren <tony@atomide.com>
+Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 
-* Felipe Balbi <balbi@ti.com> [120608 07:16]:
-> twl[46]030 have been converted to sparse IRQ
-> already, so we can remove the unused defines
-> and drop some code from board-files.
+On 6/11/2012 12:08 PM, Tony Lindgren wrote:
+> * Vaibhav Hiremath <hvaibhav@ti.com> [120609 08:00]:
+>> Newly added AM33XX device falls under omap2 class, so
+>> make cpu_class_is_omap2() true for AM33XX
+>> (Add soc_is_am33xx() check).
+>>
+>> Signed-off-by: Vaibhav Hiremath <hvaibhav@ti.com>
+>> ---
+>>   arch/arm/plat-omap/include/plat/cpu.h |    2 +-
+>>   1 files changed, 1 insertions(+), 1 deletions(-)
+>>
+>> diff --git a/arch/arm/plat-omap/include/plat/cpu.h b/arch/arm/plat-omap/include/plat/cpu.h
+>> index 14f050f..5e36564 100644
+>> --- a/arch/arm/plat-omap/include/plat/cpu.h
+>> +++ b/arch/arm/plat-omap/include/plat/cpu.h
+>> @@ -375,7 +375,7 @@ IS_OMAP_TYPE(3430, 0x3430)
+>>   #define cpu_class_is_omap1()	(cpu_is_omap7xx() || cpu_is_omap15xx() || \
+>>   				cpu_is_omap16xx())
+>>   #define cpu_class_is_omap2()	(cpu_is_omap24xx() || cpu_is_omap34xx() || \
+>> -				cpu_is_omap44xx())
+>> +				cpu_is_omap44xx() || soc_is_am33xx())
+>>   
+>>   /* Various silicon revisions for omap2 */
+>>   #define OMAP242X_CLASS		0x24200024
+> I think this can be now simply !cpu_class_is_omap1() as there is
+> a very slim chance that we'll ever be compiling omap1 and omap2+ together
+> because of the different compiler flags needed.
+>
+> Regards,
+>
+> Tony
 
-Nice :)
+Ok...
 
-> drivers/mtd/chips/cfi_cmdset_0001.c: In function 'cfi_intelext_write_words':
-> include/linux/mtd/map.h:331:11: warning: 'r$x$0' may be used uninitialized in this function
+Shall I submit patch with this change?
 
-This one I don't know if it's been fixed.
+Thanks,
+Vaibhav
 
-> WARNING: drivers/mmc/host/built-in.o(.devinit.text+0x2fc): Section mismatch in reference from the function mmc_omap_probe() to the function .init.text:mmc_omap_new_slot()
-> The function __devinit mmc_omap_probe() references
-> a function __init mmc_omap_new_slot().
-> If mmc_omap_new_slot is only used by mmc_omap_probe then
-> annotate mmc_omap_new_slot with a matching annotation.
-
-The MMC related should be fixed and queued up.
- 
-> fs/ubifs/dir.c: In function 'ubifs_rename':
-> fs/ubifs/dir.c:972:15: warning: 'saved_nlink' may be used uninitialized in this function
-> net/mac80211/mlme.c: In function 'ieee80211_prep_connection':
-> net/mac80211/mlme.c:3017:19: warning: 'sta' may be used uninitialized in this function
-
-No idea about these.
-
-Regards,
-
-Tony
