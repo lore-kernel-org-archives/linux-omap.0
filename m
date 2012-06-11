@@ -1,86 +1,159 @@
 From: Paul Walmsley <paul@pwsan.com>
-Subject: [PATCHv2 10/12] ARM: OMAP2+: CM: increase the module disable timeout
-Date: Sun, 10 Jun 2012 18:46:23 -0600
-Message-ID: <20120611004620.20034.4341.stgit@dusk>
+Subject: [PATCHv2 07/12] ARM: OMAP4+: AESS: enable internal auto-gating
+ during initial setup
+Date: Sun, 10 Jun 2012 18:46:14 -0600
+Message-ID: <20120611004611.20034.60143.stgit@dusk>
 References: <20120611004502.20034.8840.stgit@dusk>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from utopia.booyaka.com ([72.9.107.138]:42599 "EHLO
+Received: from utopia.booyaka.com ([72.9.107.138]:42576 "EHLO
 	utopia.booyaka.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752227Ab2FKAwM (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Sun, 10 Jun 2012 20:52:12 -0400
+	with ESMTP id S1752027Ab2FKAwL (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Sun, 10 Jun 2012 20:52:11 -0400
 In-Reply-To: <20120611004502.20034.8840.stgit@dusk>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
-Cc: Tero Kristo <t-kristo@ti.com>
+Cc: =?utf-8?b?UMOpdGVy?= Ujfalusi <peter.ujfalusi@ti.com>, Tony Lindgren <tony@atomide.com>, =?utf-8?q?Beno=C3=AEt?= Cousson <b-cousson@ti.com>
 
-Increase the timeout for disabling an IP block to five milliseconds.
-This is to handle the usb_host_fs idle latency, which takes almost
-four milliseconds after a host controller reset.
+Enable the AESS auto-gating control bit during AESS hwmod setup.  This
+fixes the following boot warning on OMAP4:
 
-This is the second of two patches needed to resolve the following
-boot warning:
+omap_hwmod: aess: _wait_target_disable failed
 
-omap_hwmod: usb_host_fs: _wait_target_disable failed
+Without this patch, the AESS IP block does not indicate to the PRCM
+that it is idle after it is reset.  This prevents some types of SoC
+power management until something sets the auto-gating control bit.
+
+This second version of this patch moves the control functions to
+include/linux/platform_data/aess.h at Tony's request:
+
+    http://www.spinics.net/lists/arm-kernel/msg178329.html
 
 Signed-off-by: Paul Walmsley <paul@pwsan.com>
-Cc: Tero Kristo <t-kristo@ti.com>
+Cc: Beno=C3=AEt Cousson <b-cousson@ti.com>
+Cc: P=C3=A9ter Ujfalusi <peter.ujfalusi@ti.com>
+Cc: Tony Lindgren <tony@atomide.com>
 ---
- arch/arm/mach-omap2/cm.h                   |   11 +++++++++++
- arch/arm/mach-omap2/cminst44xx.c           |    4 ++--
- arch/arm/mach-omap2/omap_hwmod_44xx_data.c |    1 +
- 3 files changed, 14 insertions(+), 2 deletions(-)
+ arch/arm/mach-omap2/omap_hwmod_44xx_data.c |    3 +
+ include/linux/platform_data/aess.h         |   76 ++++++++++++++++++++=
+++++++++
+ 2 files changed, 79 insertions(+)
+ create mode 100644 include/linux/platform_data/aess.h
 
-diff --git a/arch/arm/mach-omap2/cm.h b/arch/arm/mach-omap2/cm.h
-index a7bc096..f24e3f7 100644
---- a/arch/arm/mach-omap2/cm.h
-+++ b/arch/arm/mach-omap2/cm.h
-@@ -22,4 +22,15 @@
-  */
- #define MAX_MODULE_READY_TIME		2000
- 
-+/*
-+ * MAX_MODULE_DISABLE_TIME: max duration in microseconds to wait for
-+ * the PRCM to request that a module enter the inactive state in the
-+ * case of OMAP2 & 3.  In the case of OMAP4 this is the max duration
-+ * in microseconds for the module to reach the inactive state from
-+ * a functional state.
-+ * XXX FSUSB on OMAP4430 takes ~4ms to idle after reset during
-+ * kernel init.
-+ */
-+#define MAX_MODULE_DISABLE_TIME		5000
-+
- #endif
-diff --git a/arch/arm/mach-omap2/cminst44xx.c b/arch/arm/mach-omap2/cminst44xx.c
-index 8c86d29..1a39945 100644
---- a/arch/arm/mach-omap2/cminst44xx.c
-+++ b/arch/arm/mach-omap2/cminst44xx.c
-@@ -313,9 +313,9 @@ int omap4_cminst_wait_module_idle(u8 part, u16 inst, s16 cdoffs, u16 clkctrl_off
- 
- 	omap_test_timeout((_clkctrl_idlest(part, inst, cdoffs, clkctrl_offs) ==
- 			   CLKCTRL_IDLEST_DISABLED),
--			  MAX_MODULE_READY_TIME, i);
-+			  MAX_MODULE_DISABLE_TIME, i);
- 
--	return (i < MAX_MODULE_READY_TIME) ? 0 : -EBUSY;
-+	return (i < MAX_MODULE_DISABLE_TIME) ? 0 : -EBUSY;
- }
- 
- /**
-diff --git a/arch/arm/mach-omap2/omap_hwmod_44xx_data.c b/arch/arm/mach-omap2/omap_hwmod_44xx_data.c
-index b8b28be..3613054 100644
+diff --git a/arch/arm/mach-omap2/omap_hwmod_44xx_data.c b/arch/arm/mach=
+-omap2/omap_hwmod_44xx_data.c
+index 6b0aedc..7700d6d 100644
 --- a/arch/arm/mach-omap2/omap_hwmod_44xx_data.c
 +++ b/arch/arm/mach-omap2/omap_hwmod_44xx_data.c
-@@ -33,6 +33,7 @@
- #include <plat/mmc.h>
- #include <plat/dmtimer.h>
- #include <plat/common.h>
-+#include <plat/usb.h>
- 
- #include "omap_hwmod_common_data.h"
- 
+@@ -20,6 +20,8 @@
+=20
+ #include <linux/io.h>
+=20
++#include <linux/platform_data/aess.h>
++
+ #include <plat/omap_hwmod.h>
+ #include <plat/cpu.h>
+ #include <plat/i2c.h>
+@@ -313,6 +315,7 @@ static struct omap_hwmod_class_sysconfig omap44xx_a=
+ess_sysc =3D {
+ static struct omap_hwmod_class omap44xx_aess_hwmod_class =3D {
+ 	.name	=3D "aess",
+ 	.sysc	=3D &omap44xx_aess_sysc,
++	.setup_preprogram =3D hwmod_aess_preprogram,
+ };
+=20
+ /* aess */
+diff --git a/include/linux/platform_data/aess.h b/include/linux/platfor=
+m_data/aess.h
+new file mode 100644
+index 0000000..1e0d71b
+--- /dev/null
++++ b/include/linux/platform_data/aess.h
+@@ -0,0 +1,76 @@
++/*
++ * AESS IP block integration
++ *
++ * Copyright (C) 2012 Texas Instruments, Inc.
++ * Paul Walmsley
++ *
++ * This program is free software; you can redistribute it and/or
++ * modify it under the terms of the GNU General Public License as
++ * published by the Free Software Foundation version 2.
++ *
++ * This program is distributed "as is" WITHOUT ANY WARRANTY of any
++ * kind, whether express or implied; without even the implied warranty
++ * of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
++ * GNU General Public License for more details.
++ *
++ * You should have received a copy of the GNU General Public License
++ * along with this program; if not, write to the Free Software
++ * Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA
++ * 02110-1301 USA
++ */
++#ifndef __LINUX_PLATFORM_DATA_AESS_H__
++#define __LINUX_PLATFORM_DATA_AESS_H__
++
++#include <linux/kernel.h>
++
++#include <plat/omap_hwmod.h>
++
++/*
++ * AESS_AUTO_GATING_ENABLE_OFFSET: offset in bytes of the AESS IP
++ *     block's AESS_AUTO_GATING_ENABLE__1 register from the IP block's
++ *     base address
++ */
++#define AESS_AUTO_GATING_ENABLE_OFFSET			0x07c
++
++/* Register bitfields in the AESS_AUTO_GATING_ENABLE__1 register */
++#define AESS_AUTO_GATING_ENABLE_SHIFT			0
++
++/**
++ * aess_enable_autogating - enable AESS internal autogating
++ * @oh: struct omap_hwmod *
++ *
++ * Enable internal autogating on the AESS.  This allows the AESS to
++ * indicate that it is idle to the OMAP PRCM.  Returns 0.
++ */
++static void aess_enable_autogating(void __iomem *base)
++{
++	u32 v;
++
++	/* Set AESS_AUTO_GATING_ENABLE__1.ENABLE to allow idle entry */
++	v =3D 1 << AESS_AUTO_GATING_ENABLE_SHIFT;
++	writel(v, base + AESS_AUTO_GATING_ENABLE_OFFSET);
++}
++
++/**
++ * hwmod_aess_preprogram - enable AESS internal autogating (called by =
+hwmod)
++ * @oh: struct omap_hwmod *
++ *
++ * The AESS will not IdleAck to the PRCM until its internal autogating
++ * is enabled.  Since internal autogating is disabled by default after
++ * AESS reset, we must enable autogating after the hwmod code resets
++ * the AESS.  Returns 0.
++ */
++static int __maybe_unused hwmod_aess_preprogram(struct omap_hwmod *oh)
++{
++	void __iomem *va;
++
++	va =3D omap_hwmod_get_mpu_rt_va(oh);
++	if (!va)
++		return -EINVAL;
++
++	aess_enable_autogating(va);
++
++	return 0;
++}
++
++#endif /* __LINUX_PLATFORM_DATA_AESS_H__ */
 
 
+--
+To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
