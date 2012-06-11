@@ -1,59 +1,68 @@
-From: Zumeng Chen <zumeng.chen@gmail.com>
-Subject: [PATCH 5/5] Input: ads7846: set proper debounce time in driver level
-Date: Mon, 11 Jun 2012 22:00:16 +0800
-Message-ID: <1339423216-1323-6-git-send-email-zumeng.chen@gmail.com>
-References: <zumeng.chen@gmail.com>
- <1339423216-1323-1-git-send-email-zumeng.chen@gmail.com>
+From: Vaibhav Hiremath <hvaibhav@ti.com>
+Subject: Re: Current state of AM33xx patches
+Date: Mon, 11 Jun 2012 19:45:58 +0530
+Message-ID: <4FD5FD9E.5040203@ti.com>
+References: <4FD5BA4C.9070706@gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain
+Content-Type: text/plain; charset="ISO-8859-1"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail.windriver.com ([147.11.1.11]:37101 "EHLO
-	mail.windriver.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754556Ab2FKOAu (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 11 Jun 2012 10:00:50 -0400
-In-Reply-To: <1339423216-1323-1-git-send-email-zumeng.chen@gmail.com>
+Received: from devils.ext.ti.com ([198.47.26.153]:57021 "EHLO
+	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753529Ab2FKOQL (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 11 Jun 2012 10:16:11 -0400
+In-Reply-To: <4FD5BA4C.9070706@gmail.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: tony@atomide.com, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
-Cc: khilman@ti.com, khasim@ti.com, ajay.gupta@ti.com, hvaibhav@ti.com, zumeng.chen@gmail.com
+To: Daniel Mack <zonque@gmail.com>
+Cc: Tony Lindgren <tony@atomide.com>, Kevin Hilman <khilman@ti.com>, Paul Walmsley <paul@pwsan.com>, linux-omap@vger.kernel.org, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>
 
-If we don't set proper debouce time for ads7846, then there are
-flooded interrupt counters of ads7846 responding to one time
-touch on screen, so the driver couldn't work well.
 
-And since most OMAP3 series boards pass NULL pointer of board_pdata
-to omap_ads7846_init, so it's more proper to set it in driver level
-after having gpio_request done.
 
-This patch has been validated on 3530evm.
+On 6/11/2012 2:58 PM, Daniel Mack wrote:
+> Hey,
+> 
+> can anybody give me a quick wrap-up about the current state of AM33xx
+> based SoCs in mainline? What are the next steps to get things merged?
+> 
 
-Signed-off-by: Zumeng Chen <zumeng.chen@gmail.com>
-Signed-off-by: Syed Mohammed Khasim <khasim@ti.com>
-Signed-off-by: Tony Lindgren <tony@atomide.com>
----
- drivers/input/touchscreen/ads7846.c |    2 ++
- 1 files changed, 2 insertions(+), 0 deletions(-)
+Daniel,
 
-diff --git a/drivers/input/touchscreen/ads7846.c b/drivers/input/touchscreen/ads7846.c
-index f02028e..a82a5fb 100644
---- a/drivers/input/touchscreen/ads7846.c
-+++ b/drivers/input/touchscreen/ads7846.c
-@@ -61,6 +61,7 @@
- 
- /* this driver doesn't aim at the peak continuous sample rate */
- #define	SAMPLE_BITS	(8 /*cmd*/ + 16 /*sample*/ + 2 /* before, after */)
-+#define	DEBOUNCE_TIME	310 /* About 10 ms */
- 
- struct ts_event {
- 	/*
-@@ -980,6 +981,7 @@ static int __devinit ads7846_setup_pendown(struct spi_device *spi, struct ads784
- 		}
- 
- 		ts->gpio_pendown = pdata->gpio_pendown;
-+		gpio_set_debounce(pdata->gpio_pendown, DEBOUNCE_TIME);
- 
- 	} else {
- 		dev_err(&spi->dev, "no get_pendown_state nor gpio_pendown?\n");
--- 
-1.7.5.4
+We are in the process of submitting all baseport patches to the
+upstream, summary would be,
+
+Accepted:
+	- Machine and low-level init code
+	- Basic DT required for boot.
+	- Voltagedomain, Powerdomain, clockdomain implementation
+
+Currently under work (already submitted multiple versions):
+	- Clock Tree
+	- HWMOD
+
+I do maintain wiki page which you should refer for any updates:
+http://processors.wiki.ti.com/index.php/Sitara_Linux_Upstream_Status
+
+In order to get latest and greatest kernel to boot, you can use my repo:
+https://github.com/hvaibhav/am335x-linux
+
+
+Also, note that, currently there will be very minimal feature-set
+supported in the kernel, so not sure how much can be leveraged for
+production use-cases.
+
+
+> I'm getting involved in a project that is based on a AM3352 and would
+> like to provide help where necessary and wanted.
+> 
+
+That's great, help is always required and appreciated.
+
+Thanks,
+Vaibhav
+
+> 
+> Thanks,
+> Daniel
+> 
 
