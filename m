@@ -1,77 +1,123 @@
-From: Russell King - ARM Linux <linux@arm.linux.org.uk>
-Subject: Re: RFC: changing DMA slave configuration API
-Date: Sun, 10 Jun 2012 12:22:18 +0100
-Message-ID: <20120610112217.GD11404@n2100.arm.linux.org.uk>
-References: <20120610102023.GC11404@n2100.arm.linux.org.uk> <CAGsJ_4xHNdEcfsmtypDHcJ0uyhtFz43xBojgHw2RSvrH8ohRcA@mail.gmail.com>
+From: Paul Walmsley <paul@pwsan.com>
+Subject: [PATCHv2 00/12] ARM: OMAP: core/hwmod: first set of fixes for 3.5-rc
+Date: Sun, 10 Jun 2012 18:45:51 -0600
+Message-ID: <20120611004502.20034.8840.stgit@dusk>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-1
+Content-Type: text/plain; charset=utf-8
 Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from caramon.arm.linux.org.uk ([78.32.30.218]:55572 "EHLO
-	caramon.arm.linux.org.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755446Ab2FJLW1 (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Sun, 10 Jun 2012 07:22:27 -0400
-Content-Disposition: inline
-In-Reply-To: <CAGsJ_4xHNdEcfsmtypDHcJ0uyhtFz43xBojgHw2RSvrH8ohRcA@mail.gmail.com>
+Received: from utopia.booyaka.com ([72.9.107.138]:42515 "EHLO
+	utopia.booyaka.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750963Ab2FKAwJ (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Sun, 10 Jun 2012 20:52:09 -0400
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Barry Song <21cnbao@gmail.com>
-Cc: linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org, Vinod Koul <vinod.koul@intel.com>, Dan Williams <dan.j.williams@intel.com>
+To: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+Cc: Benoit Cousson <b-cousson@ti.com>, Tero Kristo <t-kristo@ti.com>, Vaibhav Hiremath <hvaibhav@ti.com>, Tony Lindgren <tony@atomide.com>, Kevin Hilman <khilman@ti.com>
 
-On Sun, Jun 10, 2012 at 07:19:47PM +0800, Barry Song wrote:
-> 2012/6/10 Russell King - ARM Linux <linux@arm.linux.org.uk>:
-> > Dan, Vinod,
-> >
-> > There's a change I would like to do to the DMA slave configuration.
-> > It's currently a pain to have the source and destination parameters=
- in
-> > the dma_slave_config structure as separate elements; it means when =
-you
-> > want to extract them, you end up with code in DMA engine drivers li=
-ke:
-> >
-> > + =A0 =A0 =A0 if (dir =3D=3D DMA_DEV_TO_MEM) {
-> > + =A0 =A0 =A0 =A0 =A0 =A0 =A0 dev_addr =3D c->src_addr;
-> > + =A0 =A0 =A0 =A0 =A0 =A0 =A0 dev_width =3D c->src_addr_width;
-> > + =A0 =A0 =A0 =A0 =A0 =A0 =A0 burst =3D c->src_maxburst;
-> > + =A0 =A0 =A0 } else if (dir =3D=3D DMA_MEM_TO_DEV) {
-> > + =A0 =A0 =A0 =A0 =A0 =A0 =A0 dev_addr =3D c->dst_addr;
-> > + =A0 =A0 =A0 =A0 =A0 =A0 =A0 dev_width =3D c->dst_addr_width;
-> > + =A0 =A0 =A0 =A0 =A0 =A0 =A0 burst =3D c->dst_maxburst;
-> > + =A0 =A0 =A0 }
-> >
-> > If we redefine the structure as below, this all becomes more simple=
-:
-> >
-> > + =A0 =A0 =A0 if (dir =3D=3D DMA_DEV_TO_MEM)
-> > + =A0 =A0 =A0 =A0 =A0 =A0 =A0 cfg =3D &c->dev_src;
-> > + =A0 =A0 =A0 else if (dir =3D=3D DMA_MEM_TO_DEV)
-> > + =A0 =A0 =A0 =A0 =A0 =A0 =A0 cfg =3D &c->dev_dst;
->=20
-> it seems that might mean an union in your dma_slave_cfg, but not
-> co-exitense of both?
+Hi,
 
-No, I want both so it's possible to select between the two when prepari=
-ng
-a DMA slave transfer.
+Here is an initial set of fixes for power management and OMAP core
+infrastructure for 3.5-rc.  Most of these patches address boot
+warnings and power management problems on OMAP4, although a few of
+them address more general issues.
 
-> struct dma_slave_cfg {
-> +       union {
->               struct dma_dev_cfg dev_src;
->               struct dma_dev_cfg dev_dst;
->        }
->        bool device_fc;
-> };
+Thanks to (in alphabetical order) Beno=C3=AEt Cousson, Tero Kristo, Kev=
+in
+Hilman, Vaibhav Hiremath, and Tony Lindgren for help with this series.
 
-If you do that, the union becomes pointless, and you might as well have=
-:
+Compile-test information is below.  The patches been boot-tested on
+OMAP3530 ES3.0 BeagleBoard and OMAP4430 ES2.0 PandaBoard.  Suspend and
+idle are broken on both of these platforms right now.  Unfortunately
+my board farm is down at the moment, so I'm unable to do further
+testing on other boards.  Boot logs, such as they are, are available
+from:
 
-struct dma_slave_cfg {
-	struct dma_dev_cfg dev;
-	bool device_fc;
-};
+http://www.pwsan.com/omap/bootlogs/20120610/omap_fixes_a_3.5rc__1869336=
+b045e205b874e178443213815a8561cd1/
 
-instead.
+These patches are available via git from git://git.pwsan.com/linux-2.6
+in the branch 'omap_fixes_a_3.5rc'.
+
+This second version contains several changes:
+
+- Rebased on v3.5-rc2.
+
+- A new patch has been added to change the 32k sync timer
+  SIDLEMODE flags ("ARM: OMAP4: hwmod data: fix 32k sync timer
+  idle modes").
+
+- A bug has been fixed ("ARM: OMAP2+: hwmod code/data: fix 32K
+  sync timer").
+
+- setup_preprogram code for the AESS and FSUSB IP blocks has been
+  moved to include/linux/platform_data at Tony's request
+  ("ARM: OMAP4+: AESS: enable internal auto-gating during initial
+   setup" and "ARM: OMAP2+: usb_host_fs: add custom
+   setup_preprogram for usb_host_fs (fsusb)")
+
+
+- Paul
+
+---
+
+object size (delta in bytes from v3.5-rc2 (cfaf025112d3856637ff34a767ef=
+785ef5cf2ca9)):
+ text 	 data 	  bss 	total 	kernel
+    0 	    0 	    0 	    0 	5912osk_testconfig/vmlinux
+  +64 	  +96 	    0 	 +160 	n800_multi_omap2xxx/vmlinux
+  +96 	  +96 	    0 	 +192 	n800_testconfig/vmlinux
+    0 	    0 	    0 	    0 	omap1510_defconfig/vmlinux
+    0 	    0 	    0 	    0 	omap1_defconfig/vmlinux
+ +304 	 +320 	    0 	 +624 	omap2_4_testconfig/vmlinux
+ +304 	 +448 	    0 	 +752 	omap2plus_defconfig/vmlinux
+ +240 	 +384 	    0 	 +624 	omap2plus_no_pm/vmlinux
++4404 	 +312 	    0 	+4716 	omap3_4_testconfig/vmlinux
+ +100 	  +56 	    0 	 +156 	omap3_testconfig/vmlinux
+ +308 	 +280 	    0 	 +588 	omap4_testconfig/vmlinux
+
+Djamil Elaidi (1):
+      ARM: OMAP4+: hwmod: fix issue causing IPs not going back to Smart=
+-Standby
+
+Paul Walmsley (10):
+      ARM: OMAP2+: hwmod code/data: fix 32K sync timer
+      ARM: OMAP4: hwmod data: fix 32k sync timer idle modes
+      ARM: OMAP2+: hwmod: add setup_preprogram hook
+      ARM: OMAP2+: hwmod: add flag to prevent hwmod code from touching =
+IP block during init
+      ARM: OMAP4+: AESS: enable internal auto-gating during initial set=
+up
+      ARM: OMAP4: hwmod data: add SL2IF hardreset line
+      ARM: OMAP2+: usb_host_fs: add custom setup_preprogram for usb_hos=
+t_fs (fsusb)
+      ARM: OMAP2+: CM: increase the module disable timeout
+      ARM: OMAP4: clock data: add clockdomains for clocks used as main =
+clocks
+      ARM: OMAP4: hwmod data: do not enable or reset the McPDM during k=
+ernel init
+
+Todd Poynor (1):
+      ARM: OMAP: PM: Lock clocks list while generating summary
+
+
+ arch/arm/mach-omap2/clock44xx_data.c         |    5 +
+ arch/arm/mach-omap2/cm.h                     |   11 +++
+ arch/arm/mach-omap2/cminst44xx.c             |    4 -
+ arch/arm/mach-omap2/omap_hwmod.c             |   43 +++++++++--
+ arch/arm/mach-omap2/omap_hwmod_3xxx_data.c   |    2=20
+ arch/arm/mach-omap2/omap_hwmod_44xx_data.c   |   30 +++++++
+ arch/arm/plat-omap/clock.c                   |    2=20
+ arch/arm/plat-omap/include/plat/omap_hwmod.h |   24 ++++++
+ include/linux/platform_data/aess.h           |   76 ++++++++++++++++++=
++
+ include/linux/platform_data/fsusb.h          |  105 ++++++++++++++++++=
+++++++++
+ 10 files changed, 288 insertions(+), 14 deletions(-)
+ create mode 100644 include/linux/platform_data/aess.h
+ create mode 100644 include/linux/platform_data/fsusb.h
+
+
 --
 To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
 n
