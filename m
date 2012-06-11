@@ -1,206 +1,136 @@
 From: Afzal Mohammed <afzal@ti.com>
-Subject: [PATCH 4/9] ARM: OMAP2+: gpmc-tusb6010: Adapt to use gpmc driver
-Date: Mon, 11 Jun 2012 20:29:33 +0530
-Message-ID: <9c6c6b0298e37b1985a89e2cd99c35504521a1da.1339419379.git.afzal@ti.com>
+Subject: [PATCH 7/9] ARM: OMAP2+: gpmc-smsc911x: runtime time calculation
+Date: Mon, 11 Jun 2012 20:29:52 +0530
+Message-ID: <54a062928c5018dfe1613d8247ab79e9d688e138.1339419379.git.afzal@ti.com>
 References: <cover.1339419379.git.afzal@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from devils.ext.ti.com ([198.47.26.153]:33370 "EHLO
+Received: from devils.ext.ti.com ([198.47.26.153]:33403 "EHLO
 	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753410Ab2FKPPN (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 11 Jun 2012 11:15:13 -0400
+	with ESMTP id S1755054Ab2FKPPh (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 11 Jun 2012 11:15:37 -0400
 In-Reply-To: <cover.1339419379.git.afzal@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: tony@atomide.com, paul@pwsan.com, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 Cc: Afzal Mohammed <afzal@ti.com>
 
-Currently gpmc is configured in platform for tusb6010. As
-gpmc driver is now present, populate details needed for the
-driver to configure gpmc, gpmc driver would configure based
-on this information. Old interface has been left as is so
-that platforms can continue configuring gpmc using old
-interface too. This is done so that driver conversion can
-be done gradually without breaking any.
+OMAP Peripherals using SMSC911X driver were not configured
+in Kernel. Here timing has been calculated so that it is
+runtime configurable. As different SMSC devices like 9115,
+9220, 9221 can be used with smsc911x driver, option has been
+given for the boards to provide timing as per the part used,
+if it is not provided, default one used is that of 9220.
 
 Signed-off-by: Afzal Mohammed <afzal@ti.com>
 ---
- arch/arm/mach-omap2/usb-tusb6010.c     |  113 +++++++++++++++++++++++++++++++-
- arch/arm/plat-omap/include/plat/gpmc.h |    8 +++
- 2 files changed, 119 insertions(+), 2 deletions(-)
+ arch/arm/mach-omap2/gpmc-smsc911x.c             |   53 +++++++++++++++++++++++
+ arch/arm/plat-omap/include/plat/gpmc-smsc911x.h |   14 ++++++
+ 2 files changed, 67 insertions(+)
 
-diff --git a/arch/arm/mach-omap2/usb-tusb6010.c b/arch/arm/mach-omap2/usb-tusb6010.c
-index db84a46..0e17337 100644
---- a/arch/arm/mach-omap2/usb-tusb6010.c
-+++ b/arch/arm/mach-omap2/usb-tusb6010.c
-@@ -22,9 +22,26 @@
- 
- #include "mux.h"
- 
-+#define	CS_ASYNC_IDX	0
-+#define	CS_SYNC_IDX	1
-+#define	CS_NUM		2
-+
- static u8		async_cs, sync_cs;
- static unsigned		refclk_psec;
- 
-+static struct resource tusb_resource = {
-+	.name	= "mc",
-+	.flags	= IORESOURCE_IRQ,
-+};
-+
-+static struct gpmc_cs_data gpmc_tusb_cs_data[CS_NUM];
-+
-+static struct gpmc_device_pdata gpmc_tusb_data = {
-+	.name		= "musb-tusb",
-+	.id		= -1,
-+	.per_res	= &tusb_resource,
-+	.per_res_cnt	= 1,
-+};
- 
- /* t2_ps, when quantized to fclk units, must happen no earlier than
-  * the clock after after t1_NS.
-@@ -106,7 +123,14 @@ static int tusb_set_async_mode(unsigned sysclk_ps, unsigned fclk_ps)
- 	tmp = t.cs_wr_off * 1000 + 7000 /* t_acsn_rdy_z */;
- 	t.wr_cycle = next_clk(t.cs_wr_off, tmp, fclk_ps);
- 
--	return gpmc_cs_set_timings(async_cs, &t);
-+	/* gpmc driver interface */
-+	if (gpmc_tusb_data.pdata != NULL) {
-+		gpmc_tusb_cs_data[CS_ASYNC_IDX].time_ctrl.type = has_period;
-+		gpmc_tusb_cs_data[CS_ASYNC_IDX].time_ctrl.timings = t;
-+		return 0;
-+	/* old interface */
-+	} else
-+		return gpmc_cs_set_timings(async_cs, &t);
+diff --git a/arch/arm/mach-omap2/gpmc-smsc911x.c b/arch/arm/mach-omap2/gpmc-smsc911x.c
+index 93a534e..4bfe721 100644
+--- a/arch/arm/mach-omap2/gpmc-smsc911x.c
++++ b/arch/arm/mach-omap2/gpmc-smsc911x.c
+@@ -100,6 +100,53 @@ free1:
+ 	pr_err("Could not initialize smsc911x device\n");
  }
  
- static int tusb_set_sync_mode(unsigned sysclk_ps, unsigned fclk_ps)
-@@ -174,7 +198,16 @@ static int tusb_set_sync_mode(unsigned sysclk_ps, unsigned fclk_ps)
- 	tmp = t.cs_wr_off * 1000 + 7000 /* t_scsn_rdy_z */;
- 	t.wr_cycle = next_clk(t.cs_wr_off, tmp, fclk_ps);
- 
--	return gpmc_cs_set_timings(sync_cs, &t);
-+	t.clk_activation = gpmc_ticks_to_ns(1);
-+
-+	/* gpmc driver interface */
-+	if (gpmc_tusb_data.pdata != NULL) {
-+		gpmc_tusb_cs_data[CS_SYNC_IDX].time_ctrl.type = has_period;
-+		gpmc_tusb_cs_data[CS_SYNC_IDX].time_ctrl.timings = t;
-+		return 0;
-+	/* old interface */
-+	} else
-+		return gpmc_cs_set_timings(sync_cs, &t);
- }
- 
- extern unsigned long gpmc_get_fclk_period(void);
-@@ -348,3 +381,79 @@ tusb6010_setup_interface(struct musb_hdrc_platform_data *data,
- 	}
- 	return 0;
- }
-+
-+struct gpmc_device_pdata *
-+__init gpmc_tusb6010_update(struct musb_hdrc_platform_data *data,
-+		unsigned ps_refclk, unsigned waitpin,
-+		unsigned async, unsigned sync,
-+		unsigned irq, unsigned dmachan)
++static void gpmc_smsc911x_timing(struct gpmc_time_ctrl *time_ctrl,
++					struct smsc911x_timing *timing)
 +{
-+	int ret;
++	struct gpmc_timings t;
++	/* SMSC 9220 timings */
++	unsigned tcycle_r = 165;
++	unsigned tcsl_r = 32;
++	unsigned tcsh_r = 133;
++	unsigned tcsdv_r = 30;
++	unsigned tdoff_r = 9;
++	unsigned tcycle_w = 165;
++	unsigned tcsl_w = 32;
++	unsigned tcsh_w = 133;
++	unsigned tdsu_w = 7;
 +
-+	if (!data) {
-+		pr_err("error: %s: data: NULL\n", __func__);
-+		return NULL;
++	/* take timings from board, else use default */
++	if (timing) {
++		tcycle_r = timing->tcycle_r;
++		tcsl_r = timing->tcsl_r;
++		tcsh_r = timing->tcsh_r;
++		tcsdv_r = timing->tcsdv_r;
++		tdoff_r = tdoff_r;
++		tcycle_w = timing->tcycle_r;
++		tcsl_w = timing->tcsl_w;
++		tcsh_w = timing->tcsh_w;
++		tdsu_w = timing->tdsu_w;
 +	}
 +
-+	gpmc_tusb_data.pdata = data;
-+	gpmc_tusb_data.pdata_size = sizeof(*data);
++	memset(&t, sizeof(t), 0);
 +
-+	/* ASYNC region, primarily for PIO */
-+	gpmc_tusb_cs_data[CS_ASYNC_IDX].cs = async;
-+	gpmc_tusb_cs_data[CS_ASYNC_IDX].mem_size = 0x1000;
++	t.cs_on = 0;
++	t.oe_on = 0;
++	t.access = tcsdv_r;
++	t.oe_off = max_t(unsigned, t.access + gpmc_ticks_to_ns(1), tcsl_r);
++	t.cs_rd_off = t.oe_off;
++	t.rd_cycle = tcsl_r + max(tcsh_r, tdoff_r);
++	t.rd_cycle = max_t(unsigned, tcycle_r, t.rd_cycle);
 +
-+	async_cs = async;
++	t.we_on = 0;
++	t.we_off = max(tcsl_w, tdsu_w);
++	t.cs_wr_off = t.we_off;
++	t.wr_cycle = max_t(unsigned, t.we_off + gpmc_ticks_to_ns(1), tcycle_w);
 +
-+	gpmc_tusb_cs_data[CS_ASYNC_IDX].have_config = true;
-+	gpmc_tusb_cs_data[CS_ASYNC_IDX].config = waitpin |
-+		GPMC_CONFIG1_DEVICESIZE_16 | GPMC_CONFIG1_WAIT_READ_MON |
-+		GPMC_CONFIG1_WAIT_WRITE_MON | GPMC_CONFIG1_READTYPE_ASYNC |
-+		GPMC_CONFIG1_WRITETYPE_ASYNC | GPMC_CONFIG1_DEVICETYPE_NOR |
-+		GPMC_CONFIG1_MUXADDDATA | GPMC_CONFIG1_PAGE_LEN_16;
-+
-+	/* SYNC region, primarily for DMA */
-+	gpmc_tusb_cs_data[CS_SYNC_IDX].cs = sync;
-+	gpmc_tusb_cs_data[CS_SYNC_IDX].mem_size	= 0x1000;
-+
-+	sync_cs = sync;
-+
-+	gpmc_tusb_cs_data[CS_SYNC_IDX].have_config = true;
-+	gpmc_tusb_cs_data[CS_SYNC_IDX].config = waitpin |
-+		GPMC_CONFIG1_DEVICESIZE_16 | GPMC_CONFIG1_WAIT_READ_MON |
-+		GPMC_CONFIG1_WAIT_WRITE_MON | GPMC_CONFIG1_READTYPE_SYNC |
-+		GPMC_CONFIG1_WRITETYPE_SYNC | GPMC_CONFIG1_DEVICETYPE_NOR |
-+		GPMC_CONFIG1_MUXADDDATA | GPMC_CONFIG1_READMULTIPLE_SUPP |
-+		GPMC_CONFIG1_WRITEMULTIPLE_SUPP | GPMC_CONFIG1_PAGE_LEN_16;
-+
-+	/* IRQ */
-+	ret = gpio_request_one(irq, GPIOF_IN, "TUSB6010 irq");
-+	if (ret < 0) {
-+		pr_err("error: %s: gpio_request_one: %d\n", __func__, ret);
-+		return NULL;
-+	}
-+	tusb_resource.start = irq + IH_GPIO_BASE;
-+
-+	if (!ps_refclk) {
-+		pr_err("error: %s: ps_refclk: 0\n", __func__);
-+		return NULL;
-+	}
-+	refclk_psec = ps_refclk;
-+	tusb6010_platform_retime(1);
-+
-+	if (dmachan) {
-+		if (dmachan & (1 << 0))
-+			omap_mux_init_signal("sys_ndmareq0", 0);
-+		if (dmachan & (1 << 1))
-+			omap_mux_init_signal("sys_ndmareq1", 0);
-+		if (dmachan & (1 << 2))
-+			omap_mux_init_signal("sys_ndmareq2", 0);
-+		if (dmachan & (1 << 3))
-+			omap_mux_init_signal("sys_ndmareq3", 0);
-+		if (dmachan & (1 << 4))
-+			omap_mux_init_signal("sys_ndmareq4", 0);
-+		if (dmachan & (1 << 5))
-+			omap_mux_init_signal("sys_ndmareq5", 0);
-+	}
-+
-+	return &gpmc_tusb_data;
++	time_ctrl->type = has_period;
++	time_ctrl->timings = t;
 +}
-diff --git a/arch/arm/plat-omap/include/plat/gpmc.h b/arch/arm/plat-omap/include/plat/gpmc.h
-index 32d7f3d..25fb27d 100644
---- a/arch/arm/plat-omap/include/plat/gpmc.h
-+++ b/arch/arm/plat-omap/include/plat/gpmc.h
-@@ -11,6 +11,8 @@
- #ifndef __OMAP2_GPMC_H
- #define __OMAP2_GPMC_H
- 
-+#include <linux/usb/musb.h>
 +
- /* Maximum Number of Chip Selects */
- #define GPMC_CS_NUM		8
+ struct gpmc_device_pdata *
+ __init gpmc_smsc911x_update(struct omap_smsc911x_platform_data *gpmc_cfg)
+ {
+@@ -127,6 +174,12 @@ __init gpmc_smsc911x_update(struct omap_smsc911x_platform_data *gpmc_cfg)
+ 	gpmc_cs->cs = gpmc_cfg->cs;
+ 	gpmc_cs->mem_size = 0x100;
  
-@@ -250,6 +252,12 @@ extern int gpmc_nand_write(int cs, int cmd, int wval);
++	gpmc_cs->have_config = true;
++	gpmc_cs->config = GPMC_CONFIG1_DEVICESIZE_16 |
++		GPMC_CONFIG1_DEVICETYPE_NOR;
++
++	gpmc_smsc911x_timing(&gpmc_cs->time_ctrl, gpmc_cfg->timing);
++
+ 	gpmc_pdev->per_res = gpmc_smsc911x_resources + 1;
+ 	gpmc_pdev->per_res_cnt = 1;
  
- extern int gpmc_cs_reconfigure(char *name, int id, struct gpmc_cs_data *c);
+diff --git a/arch/arm/plat-omap/include/plat/gpmc-smsc911x.h b/arch/arm/plat-omap/include/plat/gpmc-smsc911x.h
+index 50af49e..8be3343 100644
+--- a/arch/arm/plat-omap/include/plat/gpmc-smsc911x.h
++++ b/arch/arm/plat-omap/include/plat/gpmc-smsc911x.h
+@@ -13,12 +13,26 @@
  
-+/* A better place would have been musb.h, but as it is now in include/linux/
-+ */
-+extern struct gpmc_device_pdata *
-+gpmc_tusb6010_update(struct musb_hdrc_platform_data *data, unsigned ps_refclk,
-+				unsigned waitpin, unsigned async, unsigned sync,
-+				unsigned irq, unsigned dmachan);
- int gpmc_enable_hwecc(int cs, int mode, int dev_width, int ecc_size);
- int gpmc_calculate_ecc(int cs, const u_char *dat, u_char *ecc_code);
+ #ifndef __ASM_ARCH_OMAP_GPMC_SMSC911X_H__
  
++/* timing in ns */
++struct smsc911x_timing {
++	unsigned tcycle_r;
++	unsigned tcsl_r;
++	unsigned tcsh_r;
++	unsigned tcsdv_r;
++	unsigned tdoff_r;
++	unsigned tcycle_w;
++	unsigned tcsl_w;
++	unsigned tcsh_w;
++	unsigned tdsu_w;
++};
++
+ struct omap_smsc911x_platform_data {
+ 	int	id;
+ 	int	cs;
+ 	int	gpio_irq;
+ 	int	gpio_reset;
+ 	u32	flags;
++	struct smsc911x_timing *timing;
+ };
+ 
+ #if defined(CONFIG_SMSC911X) || defined(CONFIG_SMSC911X_MODULE)
 -- 
 1.7.10.2
 
