@@ -1,57 +1,91 @@
-From: "Cousson, Benoit" <b-cousson@ti.com>
-Subject: Re: [PATCHv2 11/12] ARM: OMAP4: clock data: add clockdomains for
- clocks used as main clocks
-Date: Mon, 11 Jun 2012 22:15:04 +0200
-Message-ID: <4FD651C8.8030108@ti.com>
-References: <20120611004502.20034.8840.stgit@dusk> <20120611004623.20034.52760.stgit@dusk> <4FD61C94.4030004@ti.com> <alpine.DEB.2.00.1206111050430.5849@utopia.booyaka.com>
+From: Jon Hunter <jon-hunter@ti.com>
+Subject: Re: [PATCH v5 03/14] ARM: OMAP2+: gpmc: driver migration helper
+Date: Mon, 11 Jun 2012 15:30:21 -0500
+Message-ID: <4FD6555D.4000508@ti.com>
+References: <cover.1339419492.git.afzal@ti.com> <a121156faf6c758d4e37447ab832f6f825cc5bc8.1339419492.git.afzal@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="ISO-8859-1"; format=flowed
+Content-Type: text/plain; charset="ISO-8859-1"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from arroyo.ext.ti.com ([192.94.94.40]:42142 "EHLO arroyo.ext.ti.com"
+Received: from bear.ext.ti.com ([192.94.94.41]:46783 "EHLO bear.ext.ti.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751126Ab2FKUPK (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Mon, 11 Jun 2012 16:15:10 -0400
-In-Reply-To: <alpine.DEB.2.00.1206111050430.5849@utopia.booyaka.com>
+	id S1751285Ab2FKUa2 (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Mon, 11 Jun 2012 16:30:28 -0400
+In-Reply-To: <a121156faf6c758d4e37447ab832f6f825cc5bc8.1339419492.git.afzal@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Paul Walmsley <paul@pwsan.com>
-Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Rajendra Nayak <rnayak@ti.com>
+To: Afzal Mohammed <afzal@ti.com>
+Cc: tony@atomide.com, paul@pwsan.com, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 
-On 6/11/2012 6:59 PM, Paul Walmsley wrote:
-> On Mon, 11 Jun 2012, Cousson, Benoit wrote:
->
->> In fact, neither prm_clkdm not cm_clkdm are valid clock domain on OMAP4
->> :-(.
->>
->> I've just realized that you introduced that for 3.5, but this is wrong.
->> We should not start adding some fake clock domains just because the fmwk
->> is not smart enough to allow a NULL clock domain.
->>
->
-> ...
->
->> In a period of data size reduction, adding some fake information does
->> not seems to be the right approach. Don't you think so?
->
-> No, I do not.
->
-> These clockdomains are clearly documented in both the OMAP4 TRM[1]
-> and the NDA OMAP4 PRCM functional specifications.
+Hi Afzal,
 
-Sorry for the confusion; I was just referring to the prm_clkdm and cm_clkdm.
+On 06/11/2012 09:26 AM, Afzal Mohammed wrote:
+> A driver is being created out of GPMC code. This is being
+> attempted to acheive by not breaking existing interface,
+> necessitating requirement of GPMC peripherals being able
+> to work with as well as without the help of driver. To not
+> break existing, initcall is required as in old interface
+> GPMC is configured at arch initcall and GPMC should be
+> ready to handle old interface by that time
+> 
+> Signed-off-by: Afzal Mohammed <afzal@ti.com>
+> ---
+>  arch/arm/mach-omap2/gpmc.c |   19 ++++++++++++++++++-
+>  1 file changed, 18 insertions(+), 1 deletion(-)
+> 
+> diff --git a/arch/arm/mach-omap2/gpmc.c b/arch/arm/mach-omap2/gpmc.c
+> index b471c2f..6dbddb9 100644
+> --- a/arch/arm/mach-omap2/gpmc.c
+> +++ b/arch/arm/mach-omap2/gpmc.c
+> @@ -902,7 +902,7 @@ postcore_initcall(gpmc_init);
+>  __init int omap_gpmc_init(struct gpmc_pdata *pdata)
+>  {
+>  	struct omap_hwmod *oh;
+> -	struct platform_device *pdev;
+> +	static struct platform_device *pdev;
+>  	char *name = "omap-gpmc";
+>  	char *oh_name = "gpmc";
+>  
+> @@ -912,6 +912,12 @@ __init int omap_gpmc_init(struct gpmc_pdata *pdata)
+>  		return -ENODEV;
+>  	}
+>  
+> +	if (pdev != NULL) {
+> +		clk_put(gpmc_l3_clk);
+> +		omap_device_delete(pdev->archdata.od);
+> +		platform_device_unregister(pdev);
+> +	}
+> +
 
-> I continue to be baffled as to why you assert that they are fake, given
-> how clearly they are documented.
+I am not sure if I am missing something, but it appears that pdev will
+always be NULL here as it is a local uninitialised variable.
 
-In that case the clock domains are valid, but that does not change the 
-fact that they are useless, at least for the moment.
-The PRCM is already taking care of managing properly the domains based 
-on module activity. Adding that to the clocks nodes is not wrong, but 
-does add an information that is a duplication of what the HW is already 
-doing.
-That's why we should populate that information only if this is needed, 
-like it was the case for the DPLL, but it should remain optional.
+>  	pdev = omap_device_build(name, -1, oh, pdata,
+>  					sizeof(*pdata), NULL, 0, 0);
+>  	if (IS_ERR(pdev)) {
+> @@ -929,6 +935,17 @@ __init int omap_gpmc_init(struct gpmc_pdata *pdata)
+>  	return 0;
+>  }
+>  
+> +static int __init gpmc_pre_init(void)
+> +{
+> +	static struct gpmc_device_pdata *gpmc_device_data[1];
+> +	struct gpmc_pdata gpmc_data = {
+> +		.device_pdata	= gpmc_device_data,
+> +	};
+> +
+> +	return omap_gpmc_init(&gpmc_data);
+> +}
+> +postcore_initcall(gpmc_pre_init);
+> +
 
-Regards,
-Benoit
+Not sure I see the point in the above function. Why not declare the
+gpmc_device_data struct as static in the file and access it directly
+instead of passing it in omap_gpmc_init(). The postcore_init can then
+call omap_gpmc_init() directly.
+
+Shouldn't the post_initcall be added in patch #4, when the driver is
+created?
+
+Cheers
+Jon
