@@ -1,17 +1,17 @@
 From: Jon Hunter <jon-hunter@ti.com>
-Subject: Re: [PATCH v5 09/14] ARM: OMAP2+: gpmc: holler if no configuration
-Date: Mon, 11 Jun 2012 17:30:20 -0500
-Message-ID: <4FD6717C.6080101@ti.com>
-References: <cover.1339419492.git.afzal@ti.com> <66dd8cb20cd46e68e43f4a56f49d040ad993e976.1339419492.git.afzal@ti.com>
+Subject: Re: [PATCH v5 10/14] ARM: OMAP2+: gpmc: waitpin helper
+Date: Mon, 11 Jun 2012 17:59:09 -0500
+Message-ID: <4FD6783D.9030208@ti.com>
+References: <cover.1339419492.git.afzal@ti.com> <bba49a35f81f33fbdfeda78a71cbe4aa3417d6a2.1339419492.git.afzal@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="ISO-8859-1"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from bear.ext.ti.com ([192.94.94.41]:53159 "EHLO bear.ext.ti.com"
+Received: from bear.ext.ti.com ([192.94.94.41]:54416 "EHLO bear.ext.ti.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751321Ab2FKWaZ (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Mon, 11 Jun 2012 18:30:25 -0400
-In-Reply-To: <66dd8cb20cd46e68e43f4a56f49d040ad993e976.1339419492.git.afzal@ti.com>
+	id S1751035Ab2FKW7N (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Mon, 11 Jun 2012 18:59:13 -0400
+In-Reply-To: <bba49a35f81f33fbdfeda78a71cbe4aa3417d6a2.1339419492.git.afzal@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: Afzal Mohammed <afzal@ti.com>
@@ -19,132 +19,223 @@ Cc: tony@atomide.com, paul@pwsan.com, linux-omap@vger.kernel.org, linux-arm-kern
 
 
 On 06/11/2012 09:27 AM, Afzal Mohammed wrote:
-> Some of the GPMC peripherals depend on bootloader to do the
-> configuration. This facility is deprecated, notify user
-> about the present GPMC settings & inform that that relying
-> on bootloader for GPMC setting is deprecated.
-
-Nit, "holler" is slang. Just say WARN.
-
-Jon
-
+> Helper for configuring waitpin. There are two parts to it;
+> configuring at CS level and the other at device level.
+> A device embedding multiple CS has been provided the
+> capability to use same waitpin (different waitpins has not
+> been supported as presently there are no GPMC peripherals
+> doing so)
+> 
 > Signed-off-by: Afzal Mohammed <afzal@ti.com>
 > ---
->  arch/arm/mach-omap2/gpmc.c |  104 ++++++++++++++++++++++++++++++++++++++++++++
->  1 file changed, 104 insertions(+)
+>  arch/arm/mach-omap2/gpmc.c             |  122 ++++++++++++++++++++++++++++++++
+>  arch/arm/plat-omap/include/plat/gpmc.h |    9 +++
+>  2 files changed, 131 insertions(+)
 > 
 > diff --git a/arch/arm/mach-omap2/gpmc.c b/arch/arm/mach-omap2/gpmc.c
-> index 65052f8..5a6f708 100644
+> index 5a6f708..9073a8a 100644
 > --- a/arch/arm/mach-omap2/gpmc.c
 > +++ b/arch/arm/mach-omap2/gpmc.c
-> @@ -1058,6 +1058,110 @@ static void gpmc_cs_set_register_timings(int cs, const struct gpmc_timings *t)
->  	}
+> @@ -75,6 +75,8 @@
+>  #define	GPMC_CONFIG6_CYCLE2CYCLEDIFFCSEN	BIT(6)
+>  #define	GPMC_CONFIG6_CYCLE2CYCLESAMECSEN	BIT(7)
+>  
+> +#define	GPMC_CONFIG_WAITPIN_POLARITY_SHIFT	0x8
+> +
+>  #define GPMC_CS0_OFFSET		0x60
+>  #define GPMC_CS_SIZE		0x30
+>  
+> @@ -93,6 +95,19 @@
+>   */
+>  #define	GPMC_NR_IRQ		2
+>  
+> +enum {
+> +	GPMC_WAITPIN_IDX0,
+> +	GPMC_WAITPIN_IDX1,
+> +	GPMC_WAITPIN_IDX2,
+> +	GPMC_WAITPIN_IDX3,
+> +	GPMC_NR_WAITPIN
+> +};
+
+Max number of wait pins is 3 for omap4/5. I know that we discussed this
+in the past, but are you not supporting these devices are the moment? I
+know that you have not done the hwmod for these, but still I was hoping
+that you would take these into account.
+
+> +
+> +enum {
+> +	LOW,
+> +	HIGH
+> +};
+
+To be honest, I don't see the point in either of the above enums when
+you have the definitions at the bottom. Seems that one set of
+definitions should be enough.
+
+>  struct gpmc_client_irq	{
+>  	unsigned		irq;
+>  	u32			bitmask;
+> @@ -140,6 +155,8 @@ struct gpmc_peripheral {
+>  	struct platform_device	*pdev;
+>  };
+>  
+> +static unsigned gpmc_waitpin_map;
+> +
+>  static struct gpmc_client_irq gpmc_client_irq[GPMC_NR_IRQ];
+>  static struct irq_chip gpmc_irq_chip;
+>  static unsigned gpmc_irq_start;
+> @@ -1162,6 +1179,62 @@ static void gpmc_print_cs_timings(int cs)
+>  			gpmc_get_one_timing(cs, GPMC_CS_CONFIG6, 7, 7));
 >  }
 >  
-> +static void gpmc_print_cs_config(int cs)
+> +static int gpmc_setup_cs_waitpin(struct gpmc_peripheral *g_per, unsigned cs,
+> +							unsigned conf)
 > +{
+> +	unsigned idx;
+> +	bool polarity = 0;
 > +	u32 l = gpmc_cs_read_reg(cs, GPMC_CS_CONFIG1);
 > +
-> +	dev_warn(gpmc_dev, "GPMC CS%d depends on bootloader for config\n", cs);
-> +	dev_warn(gpmc_dev, "Please update it in Kernel ASAP to prevent losing support for this peripheral\n");
-> +	dev_warn(gpmc_dev, "Bootloader dependency for GPMC configuration is deprecated\n");
+> +	switch (conf & GPMC_WAITPIN_MASK) {
+> +	case GPMC_WAITPIN_0:
+> +		idx =  GPMC_WAITPIN_IDX0;
+
+For example, here you could have ...
+
+		idx = GPMC_WAITPIN_0 - 1;
+> +		break;
+> +	case GPMC_WAITPIN_1:
+> +		idx =  GPMC_WAITPIN_IDX1;
+> +		break;
+> +	case GPMC_WAITPIN_2:
+> +		idx =  GPMC_WAITPIN_IDX2;
+> +		break;
+> +	case GPMC_WAITPIN_3:
+> +		idx =  GPMC_WAITPIN_IDX3;
+> +		break;
+> +	/* no waitpin */
+> +	case 0:
+> +		return 0;
+> +		break;
+> +	default:
+> +		dev_err(gpmc_dev, "multiple waitpins selected on CS:%u\n", cs);
+> +		return -EINVAL;
+> +		break;
+> +	}
 > +
-> +	dev_warn(gpmc_dev, "muxadddata: %s\n",
-> +			l & GPMC_CONFIG1_MUXADDDATA ? "yes" : "no");
-> +	dev_warn(gpmc_dev, "writetypesync: %s\n",
-> +			l & GPMC_CONFIG1_WRITETYPE_SYNC ? "yes" : "no");
-> +	dev_warn(gpmc_dev, "writemultiple: %s\n",
-> +			l & GPMC_CONFIG1_WRITEMULTIPLE_SUPP ? "yes" : "no");
-> +	dev_warn(gpmc_dev, "readtypesync: %s\n",
-> +			l & GPMC_CONFIG1_READTYPE_SYNC ? "yes" : "no");
-> +	dev_warn(gpmc_dev, "readmultiple: %s\n",
-> +			l & GPMC_CONFIG1_READMULTIPLE_SUPP ? "yes" : "no");
-> +	dev_warn(gpmc_dev, "wrapburst: %s\n",
-> +			l & GPMC_CONFIG1_WRAPBURST_SUPP ? "yes" : "no");
-> +	dev_warn(gpmc_dev, "devicetype: %s\n",
-> +			l & GPMC_CONFIG1_DEVICETYPE_NAND ? "nand" : "nor");
-> +	dev_warn(gpmc_dev, "devicesize: %d\n",
-> +			l & GPMC_CONFIG1_DEVICESIZE_16 ? 16 : 8);
-> +	dev_warn(gpmc_dev, "pagelength: %d\n",
-> +			l & GPMC_CONFIG1_PAGE_LEN(~0) ?
-> +			(l & GPMC_CONFIG1_PAGE_LEN_16 ? 16 : 8) : 4);
-> +}
-> +static inline unsigned gpmc_get_one_timing(int cs, int reg, int start, int end)
-> +{
-> +	u32 l = gpmc_cs_read_reg(cs, reg);
-> +	unsigned mask;
+> +	polarity = !!(conf & GPMC_WAITPIN_ACTIVE_HIGH);
 > +
-> +	mask = (1 << (end - start + 1)) - 1;
-> +	l &= (mask << start);
-> +	return l >>= start;
-> +}
+> +	if (g_per->have_waitpin) {
+> +		if (g_per->waitpin != idx ||
+> +				g_per->waitpin_polarity != polarity) {
+> +			dev_err(gpmc_dev, "error: conflict: waitpin %u with polarity %d on device %s.%d\n",
+> +				g_per->waitpin, g_per->waitpin_polarity,
+> +				g_per->name, g_per->id);
+> +			return -EBUSY;
+> +		}
+> +	} else {
+> +		g_per->have_waitpin = true;
+> +		g_per->waitpin = idx;
+> +		g_per->waitpin_polarity = polarity;
+> +	}
 > +
-> +static void gpmc_print_cs_timings(int cs)
-> +{
-> +	dev_warn(gpmc_dev, "GPMC CS%d depends on bootloader for timing\n", cs);
-> +	dev_warn(gpmc_dev, "Please update it in Kernel ASAP to prevent losing support for this peripheral\n");
-> +	dev_warn(gpmc_dev, "Bootloader dependency for GPMC configuration is deprecated\n");
+> +	l |= conf & GPMC_CONFIG1_WAIT_WRITE_MON;
+> +	l |= conf & GPMC_CONFIG1_WAIT_READ_MON;
+> +	l &= ~GPMC_CONFIG1_WAIT_PIN_SEL_MASK;
+> +	l |= GPMC_CONFIG1_WAIT_PIN_SEL(idx);
 > +
-> +	dev_warn(gpmc_dev, "fclk period: %lups\n", gpmc_get_fclk_period());
-> +	dev_warn(gpmc_dev, "sync_clk: %u\n",
-> +			gpmc_get_one_timing(cs, GPMC_CS_CONFIG1, 0, 1));
-> +	dev_warn(gpmc_dev, "wait_monitoring: %u\n",
-> +			gpmc_get_one_timing(cs, GPMC_CS_CONFIG1, 18, 19));
-> +	dev_warn(gpmc_dev, "clk_activation: %u\n",
-> +			gpmc_get_one_timing(cs, GPMC_CS_CONFIG1, 25, 26));
-> +	dev_warn(gpmc_dev, "cs_on: %u\n",
-> +			gpmc_get_one_timing(cs, GPMC_CS_CONFIG2, 0, 3));
-> +	dev_warn(gpmc_dev, "cs_rd_off: %u\n",
-> +			gpmc_get_one_timing(cs, GPMC_CS_CONFIG2, 8, 12));
-> +	dev_warn(gpmc_dev, "cs_wr_off: %u\n",
-> +			gpmc_get_one_timing(cs, GPMC_CS_CONFIG2, 16, 20));
-> +	dev_warn(gpmc_dev, "adv_on: %u\n",
-> +			gpmc_get_one_timing(cs, GPMC_CS_CONFIG3, 0, 3));
-> +	dev_warn(gpmc_dev, "adv_rd_off: %u\n",
-> +			gpmc_get_one_timing(cs, GPMC_CS_CONFIG3, 8, 12));
-> +	dev_warn(gpmc_dev, "adv_wr_off: %u\n",
-> +			gpmc_get_one_timing(cs, GPMC_CS_CONFIG3, 16, 20));
-> +	dev_warn(gpmc_dev, "oe_on: %u\n",
-> +			gpmc_get_one_timing(cs, GPMC_CS_CONFIG4, 0, 3));
-> +	dev_warn(gpmc_dev, "oe_off: %u\n",
-> +			gpmc_get_one_timing(cs, GPMC_CS_CONFIG4, 8, 12));
-> +	dev_warn(gpmc_dev, "we_on: %u\n",
-> +			gpmc_get_one_timing(cs, GPMC_CS_CONFIG4, 16, 19));
-> +	dev_warn(gpmc_dev, "we_off: %u\n",
-> +			gpmc_get_one_timing(cs, GPMC_CS_CONFIG4, 24, 28));
-> +	dev_warn(gpmc_dev, "rd_cycle: %u\n",
-> +			gpmc_get_one_timing(cs, GPMC_CS_CONFIG5, 0, 4));
-> +	dev_warn(gpmc_dev, "wr_cycle: %u\n",
-> +			gpmc_get_one_timing(cs, GPMC_CS_CONFIG5, 8, 12));
-> +	dev_warn(gpmc_dev, "acess: %u\n",
-> +			gpmc_get_one_timing(cs, GPMC_CS_CONFIG5, 16, 20));
-> +	dev_warn(gpmc_dev, "page_burst_access: %u\n",
-> +			gpmc_get_one_timing(cs, GPMC_CS_CONFIG5, 24, 27));
-> +	dev_warn(gpmc_dev, "bus_turnaround: %u\n",
-> +			gpmc_get_one_timing(cs, GPMC_CS_CONFIG6, 0, 3));
-> +	dev_warn(gpmc_dev, "cycle2cycle_delay: %u\n",
-> +			gpmc_get_one_timing(cs, GPMC_CS_CONFIG6, 8, 11));
-> +	dev_warn(gpmc_dev, "wr_data_mux_bus: %u\n",
-> +			gpmc_get_one_timing(cs, GPMC_CS_CONFIG6, 16, 19));
-> +	dev_warn(gpmc_dev, "wr_access: %u\n",
-> +			gpmc_get_one_timing(cs, GPMC_CS_CONFIG6, 24, 28));
+> +	gpmc_cs_write_reg(cs, GPMC_CS_CONFIG1, l);
 > +
-> +	dev_warn(gpmc_dev, "time_para_granularity: %u\n",
-> +			gpmc_get_one_timing(cs, GPMC_CS_CONFIG1, 4, 4));
-> +	dev_warn(gpmc_dev, "cs_extra_delay: %u\n",
-> +			gpmc_get_one_timing(cs, GPMC_CS_CONFIG2, 7, 7));
-> +	dev_warn(gpmc_dev, "adv_extra_delay: %u\n",
-> +			gpmc_get_one_timing(cs, GPMC_CS_CONFIG3, 7, 7));
-> +	dev_warn(gpmc_dev, "oe_extra_delay: %u\n",
-> +			gpmc_get_one_timing(cs, GPMC_CS_CONFIG4, 7, 7));
-> +	dev_warn(gpmc_dev, "we_extra_delay: %u\n",
-> +			gpmc_get_one_timing(cs, GPMC_CS_CONFIG4, 23, 23));
-> +	dev_warn(gpmc_dev, "cycle2cyclediffcsen: %u\n",
-> +			gpmc_get_one_timing(cs, GPMC_CS_CONFIG6, 6, 6));
-> +	dev_warn(gpmc_dev, "cycle2cyclesamecsen: %u\n",
-> +			gpmc_get_one_timing(cs, GPMC_CS_CONFIG6, 7, 7));
+> +	return 0;
 > +}
 > +
 >  static inline unsigned gpmc_bit_to_irq(unsigned bitmask)
 >  {
 >  	return bitmask;
+> @@ -1185,6 +1258,55 @@ static __devinit int gpmc_setup_cs_irq(struct gpmc_cs_data *cs,
+>  	return n;
+>  }
+>  
+> +static inline int gpmc_waitpin_is_reserved(unsigned waitpin)
+> +{
+> +	return gpmc_waitpin_map & (0x1 << waitpin);
+> +}
+> +
+> +static inline void gpmc_reserve_waitpin(unsigned waitpin)
+> +{
+> +	gpmc_waitpin_map &= ~(0x1 << waitpin);
+> +	gpmc_waitpin_map |= (0x1 << waitpin);
+> +}
+> +
+> +static int gpmc_waitpin_request(unsigned waitpin)
+> +{
+> +	if (!(waitpin < GPMC_NR_WAITPIN))
+> +		return -ENODEV;
+> +
+> +	if (gpmc_waitpin_is_reserved(waitpin))
+> +		return -EBUSY;
+> +	else
+> +		gpmc_reserve_waitpin(waitpin);
+> +
+> +	return 0;
+> +}
+> +
+> +static int gpmc_setup_waitpin(struct gpmc_peripheral *g_per)
+> +{
+> +	int ret;
+> +	u32 l, shift;
+> +
+> +	if (!g_per->have_waitpin)
+> +		return 0;
+> +
+> +	ret = gpmc_waitpin_request(g_per->waitpin);
+> +	if (IS_ERR_VALUE(ret)) {
+> +		dev_err(gpmc_dev, "waitpin %u reserved\n", g_per->waitpin);
+> +		return ret;
+> +	}
+> +
+> +	l = gpmc_read_reg(GPMC_CONFIG);
+> +	shift = g_per->waitpin + GPMC_CONFIG_WAITPIN_POLARITY_SHIFT;
+> +	if (g_per->waitpin_polarity == HIGH)
+> +		l |= 1 << shift;
+> +	else
+> +		l &= ~(1 << shift);
+> +	gpmc_write_reg(GPMC_CONFIG, l);
+
+Looks like another good place for a _gpmc_cs_set_bit() function.
+
+Jon
+
+> +
+> +	return 0;
+> +}
+> +
+>  static __devinit int gpmc_probe(struct platform_device *pdev)
+>  {
+>  	u32 l;
+> diff --git a/arch/arm/plat-omap/include/plat/gpmc.h b/arch/arm/plat-omap/include/plat/gpmc.h
+> index ff3f32c..e1b130c 100644
+> --- a/arch/arm/plat-omap/include/plat/gpmc.h
+> +++ b/arch/arm/plat-omap/include/plat/gpmc.h
+> @@ -64,6 +64,7 @@
+>  #define GPMC_CONFIG1_WAIT_WRITE_MON     (1 << 21)
+>  #define GPMC_CONFIG1_WAIT_MON_IIME(val) ((val & 3) << 18)
+>  #define GPMC_CONFIG1_WAIT_PIN_SEL(val)  ((val & 3) << 16)
+> +#define	GPMC_CONFIG1_WAIT_PIN_SEL_MASK	GPMC_CONFIG1_WAIT_PIN_SEL(3)
+>  #define GPMC_CONFIG1_DEVICESIZE(val)    ((val & 3) << 12)
+>  #define	GPMC_CONFIG1_DEVICESIZE_8	GPMC_CONFIG1_DEVICESIZE(0)
+>  #define GPMC_CONFIG1_DEVICESIZE_16      GPMC_CONFIG1_DEVICESIZE(1)
+> @@ -78,6 +79,14 @@
+>  #define GPMC_CONFIG1_FCLK_DIV4          (GPMC_CONFIG1_FCLK_DIV(3))
+>  #define GPMC_CONFIG7_CSVALID		(1 << 6)
+>  
+> +#define	GPMC_WAITPIN_ACTIVE_HIGH	(1 << 4)
+> +#define	GPMC_WAITPIN_ACTIVE_LOW		(0 << 4)
+> +#define	GPMC_WAITPIN_0			(1 << 0)
+> +#define	GPMC_WAITPIN_1			(1 << 1)
+> +#define	GPMC_WAITPIN_2			(1 << 2)
+> +#define	GPMC_WAITPIN_3			(1 << 3)
+> +#define	GPMC_WAITPIN_MASK		(GPMC_WAITPIN_0 | GPMC_WAITPIN_1 | \
+> +					GPMC_WAITPIN_2 | GPMC_WAITPIN_3)
+>  #define GPMC_DEVICETYPE_NOR		0
+>  #define GPMC_DEVICETYPE_NAND		2
+>  #define GPMC_CONFIG_WRITEPROTECT	0x00000010
