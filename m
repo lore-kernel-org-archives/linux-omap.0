@@ -1,72 +1,97 @@
-From: "Cousson, Benoit" <b-cousson@ti.com>
-Subject: Re: [PATCH 05/11] ARM: OMAP2+: hwmod code/data: fix 32K sync timer
-Date: Mon, 11 Jun 2012 11:12:42 +0200
-Message-ID: <4FD5B68A.40908@ti.com>
-References: <20120607060901.25532.68354.stgit@dusk> <20120607061309.25532.13430.stgit@dusk> <79CD15C6BA57404B839C016229A409A83EA43E0F@DBDE01.ent.ti.com> <alpine.DEB.2.00.1206070107530.6684@utopia.booyaka.com> <79CD15C6BA57404B839C016229A409A83EA44DD9@DBDE01.ent.ti.com> <alpine.DEB.2.00.1206071355090.14977@utopia.booyaka.com> <79CD15C6BA57404B839C016229A409A83EA46071@DBDE01.ent.ti.com>
+From: Felipe Balbi <balbi@ti.com>
+Subject: Re: [PATCHv2 09/12] ARM: OMAP2+: usb_host_fs: add custom
+ setup_preprogram for usb_host_fs (fsusb)
+Date: Mon, 11 Jun 2012 12:12:58 +0300
+Message-ID: <20120611091257.GP6845@arwen.pp.htv.fi>
+References: <20120611004502.20034.8840.stgit@dusk>
+ <20120611004617.20034.21714.stgit@dusk>
+ <20120611063416.GT12766@atomide.com>
+ <20120611071301.GC6845@arwen.pp.htv.fi>
+ <20120611074133.GZ12766@atomide.com>
+ <20120611074854.GG6845@arwen.pp.htv.fi>
+ <20120611080341.GA12766@atomide.com>
+Reply-To: balbi@ti.com
 Mime-Version: 1.0
-Content-Type: text/plain; charset="ISO-8859-1"; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: multipart/signed; micalg=pgp-sha1;
+	protocol="application/pgp-signature"; boundary="V2tfspbppmK1TQo2"
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from bear.ext.ti.com ([192.94.94.41]:34435 "EHLO bear.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752599Ab2FKJMv (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Mon, 11 Jun 2012 05:12:51 -0400
-In-Reply-To: <79CD15C6BA57404B839C016229A409A83EA46071@DBDE01.ent.ti.com>
+Received: from na6sys009bog028.obsmtp.com ([74.125.150.102]:52234 "EHLO
+	na6sys009bog028.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1752601Ab2FKJO5 (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>);
+	Mon, 11 Jun 2012 05:14:57 -0400
+Received: by lahc1 with SMTP id c1so3343299lah.18
+        for <linux-omap@vger.kernel.org>; Mon, 11 Jun 2012 02:14:54 -0700 (PDT)
+Content-Disposition: inline
+In-Reply-To: <20120611080341.GA12766@atomide.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "Hiremath, Vaibhav" <hvaibhav@ti.com>
-Cc: Paul Walmsley <paul@pwsan.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, Tony Lindgren <tony@atomide.com>, "Hilman, Kevin" <khilman@ti.com>
+To: Tony Lindgren <tony@atomide.com>
+Cc: Felipe Balbi <balbi@ti.com>, Paul Walmsley <paul@pwsan.com>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Tero Kristo <t-kristo@ti.com>, =?iso-8859-1?Q?Beno=EEt?= Cousson <b-cousson@ti.com>
 
-On 6/8/2012 9:10 PM, Hiremath, Vaibhav wrote:
-> On Fri, Jun 08, 2012 at 01:33:46, Paul Walmsley wrote:
->> Hi
->>
->> On Thu, 7 Jun 2012, Hiremath, Vaibhav wrote:
->>
->>> I couldn't finish my testing today, got into continuous meetings.
->>
->> No worries, I understand.
->>
->>> Tomorrow, I will test it and update you on this.
->>
->> That would be great.
->>
->> I took a look at SPRUH73F and sure enough, at least one module (CONTROL)
->> doesn't support smart-idle -- per Table 14-217 "CONTROL Register Field
->> Descriptions".  I'd guess that the PRCM won't idle-req this IP block until
->> the kernel is not running, so we might be able to get away with the
->> existing approach; but the TRM also says:
->>
->> "By definition, initiator may generate read/write transaction as long as
->> it is out of IDLE state."
->>
->> Which pretty much matches my understanding too of the implicit interface
->> contract here.
->>
->> So I think we'd better go back to the flag approach as implemented in this
->> patch:
->>
->> http://www.spinics.net/lists/arm-kernel/msg176836.html
->>
->> The WBU 32k sync timer's behavior is what relies on quirks of the
->> integration that are hard to identify via other means, so it seems to be
->> safest to tag it explicitly.
->>
->
-> Paul,
->
-> I tested it on AM335x platform just now, it booted up to the Linux prompt,
-> but I am sure it is going to impact low power state usecases on AM33xx.
 
-Why are you sure about that? As explained to Paul, using the force-idle 
-will do the same as smart-idle most of the time.
+--V2tfspbppmK1TQo2
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
 
-So what power impact are you expecting?
+On Mon, Jun 11, 2012 at 01:03:42AM -0700, Tony Lindgren wrote:
+> * Felipe Balbi <balbi@ti.com> [120611 00:55]:
+> > Hi,
+> >=20
+> > On Mon, Jun 11, 2012 at 12:41:33AM -0700, Tony Lindgren wrote:
+> > > > > This should be "static inline int fsusb_reset_host_controller" as=
+ it's
+> > > > > in a header.
+> > > >=20
+> > > > why is it even in a header ? Only hwmod_fsusb_preprogram() will use=
+ it
+> > > > anyway.
+> > >=20
+> > > Well ideally it would be something that any OHCI driver can use for
+> > > it's reset, and whatever bus code can also call to reset and idle
+> > > for the unused devices that don't have the driver compiled in. Got
+> > > any better suggestions where to place it? I could be a generic
+> > > ohci_reset function in some header?
+> >=20
+> > maybe create <linux/usb/ohci.h> ? Then, while doing that, move register
+> > definitions to this new header too... Something like:
+> >=20
+> > $ mv drivers/usb/host/ohci.h include/linux/usb/
+> > $ sed -i 's/\"ohci.h\"/<linux/usb/ohci.h>/g' $(git ls-files)
+> >=20
+> > then add your ohci_reset() function...
+>=20
+> Hmm but then again it's pointless to export the all the ohci registers
+> as that will lead to misuse outside drivers/usb.. Sounds like just
+> defining the reset register is safest option here.
 
-> So, I also feel that, flag based approach should be used here.
+could be as well, but looks like we need to create <linux/usb/ohci.h>
+anyway...
 
-Why? Why adding a new flag to detect a condition that is already 
-captured somewhere else?
+--=20
+balbi
 
-Regards,
-Benoit
+--V2tfspbppmK1TQo2
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: Digital signature
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.4.12 (GNU/Linux)
+
+iQIcBAEBAgAGBQJP1baZAAoJEIaOsuA1yqRE+MgP/0j7B+30ZrHuwF10ku3sShk1
+bmLq8toQjPcypD06P2SiflCT5uNjwsfqmdMXdW5T2JXXbhIjLyx9aU+BqPNEnrEj
+2vA/f/ySHP+9FiI3VAm64sYpA5MgCnMvKE17mqEcw8sShWsr7jdtP6YeuNktgX5E
+XS59MXj8FRQ7KY45hzS3iMdza3rtKqTF26zZubR6KfU7yImtDOvdC7aRpUVxkjEx
+eenekMoB98P/EM29Wje9cgrSiyxBa5MlmFGVTl8KTaeeuw4ObDqFwq3mUwfTC2VV
+DPekZ9pNwITtMX6HwvsN6H5DE6CyggnqU/iAgIgkBJddpKEk0kxfuM2jSUzhc61r
+qgMvYoBDQ9OrGmUe0xeI+EDrAQevYtYwsEWYEv9Hr4Tr688ZeDE7hR+AOZ0QaliK
+lsrp+VSeqWzcMpCXKQ8Cml0CN78OHU/3Jt2zGy61DmRwlB2aax1YStjxJHw11muy
+lOjn/9EpiU9Yyc0KWCfHeSxu/x1BIQyaFBPfNvNIceMChv//9AFhPtH2Gn1KYyGk
+n8IJrJG5TBbSIzJQYYm5q1TQbnpelC8dEfWC0eDUxE216gyNekO4ACx+VEWcRotl
+q2XfoDkl/WfTILtvvikOIxoGqKCte5xrPFOy5qYAkpEjml6nigO95y0vDZwQAqzn
+2OXCQsG+gnImVE+gA7t/
+=baXf
+-----END PGP SIGNATURE-----
+
+--V2tfspbppmK1TQo2--
