@@ -1,85 +1,97 @@
 From: Afzal Mohammed <afzal@ti.com>
-Subject: [PATCH v5 05/14] ARM: OMAP2+: gpmc: resource creation helpers
-Date: Mon, 11 Jun 2012 19:56:49 +0530
-Message-ID: <3b124fd254f5700187a2ec5a423271a7296e0510.1339419492.git.afzal@ti.com>
+Subject: [PATCH v5 06/14] ARM: OMAP2+: gpmc: CS configuration helper
+Date: Mon, 11 Jun 2012 19:56:55 +0530
+Message-ID: <9dd458171d6a68ea4f97a4ba19dbacc0d6b5ba35.1339419492.git.afzal@ti.com>
 References: <cover.1339419492.git.afzal@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from arroyo.ext.ti.com ([192.94.94.40]:50082 "EHLO arroyo.ext.ti.com"
+Received: from arroyo.ext.ti.com ([192.94.94.40]:50093 "EHLO arroyo.ext.ti.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752476Ab2FKOm2 (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Mon, 11 Jun 2012 10:42:28 -0400
+	id S1753967Ab2FKOmf (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Mon, 11 Jun 2012 10:42:35 -0400
 In-Reply-To: <cover.1339419492.git.afzal@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: tony@atomide.com, paul@pwsan.com, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 Cc: Afzal Mohammed <afzal@ti.com>
 
-Helpers for propulating given resource structure
-with memory & interrupt information.
+Helper for configuring given CS based on flags.
 
 Signed-off-by: Afzal Mohammed <afzal@ti.com>
 ---
- arch/arm/mach-omap2/gpmc.c |   45 ++++++++++++++++++++++++++++++++++++++++++++
- 1 file changed, 45 insertions(+)
+ arch/arm/mach-omap2/gpmc.c             |   33 ++++++++++++++++++++++++++++++++
+ arch/arm/plat-omap/include/plat/gpmc.h |    5 +++++
+ 2 files changed, 38 insertions(+)
 
 diff --git a/arch/arm/mach-omap2/gpmc.c b/arch/arm/mach-omap2/gpmc.c
-index a91f40f..652b245 100644
+index 652b245..4e19010 100644
 --- a/arch/arm/mach-omap2/gpmc.c
 +++ b/arch/arm/mach-omap2/gpmc.c
-@@ -905,6 +905,51 @@ static void __devinit gpmc_mem_init(void)
- 	}
+@@ -927,6 +927,39 @@ static __devinit int gpmc_setup_cs_mem(struct gpmc_cs_data *cs,
+ 	return 1;
  }
  
-+static __devinit int gpmc_setup_cs_mem(struct gpmc_cs_data *cs,
-+						struct resource *res)
++static void gpmc_setup_cs_config(unsigned cs, unsigned conf)
 +{
-+	unsigned long start;
-+	int ret;
++	u32 l = gpmc_cs_read_reg(cs, GPMC_CS_CONFIG1);
 +
-+	ret = gpmc_cs_request(cs->cs, cs->mem_size, &start);
-+	if (IS_ERR_VALUE(ret)) {
-+		dev_err(gpmc_dev, "error: gpmc request on CS: %d\n", cs->cs);
-+		return ret;
-+	}
++	l &= ~(GPMC_CONFIG1_MUXADDDATA |
++		GPMC_CONFIG1_WRITETYPE_SYNC |
++		GPMC_CONFIG1_WRITEMULTIPLE_SUPP |
++		GPMC_CONFIG1_READTYPE_SYNC |
++		GPMC_CONFIG1_READMULTIPLE_SUPP |
++		GPMC_CONFIG1_WRAPBURST_SUPP |
++		GPMC_CONFIG1_DEVICETYPE(~0) |
++		GPMC_CONFIG1_DEVICESIZE(~0) |
++		GPMC_CONFIG1_PAGE_LEN(~0));
 +
-+	res->start = start + cs->mem_offset;
-+	res->end = res->start + cs->mem_size - 1;
-+	res->flags = IORESOURCE_MEM;
++	l |= conf & GPMC_CONFIG1_DEVICETYPE_NAND;
++	l |= conf & GPMC_CONFIG1_DEVICESIZE_16;
 +
-+	dev_info(gpmc_dev, "memory 0x%x-0x%x on CS %d\n", res->start,
-+							res->end, cs->cs);
++	if (conf & GPMC_CONFIG1_PAGE_LEN_8)
++		l |= GPMC_CONFIG1_PAGE_LEN_8;
++	else if (conf & GPMC_CONFIG1_PAGE_LEN_16)
++		l |= GPMC_CONFIG1_PAGE_LEN_16;
 +
-+	return 1;
++	conf &= (GPMC_CONFIG1_MUXADDDATA |
++			GPMC_CONFIG1_WRITETYPE_SYNC |
++			GPMC_CONFIG1_WRITEMULTIPLE_SUPP |
++			GPMC_CONFIG1_READTYPE_SYNC |
++			GPMC_CONFIG1_READMULTIPLE_SUPP |
++			GPMC_CONFIG1_WRAPBURST_SUPP);
++	l |= conf;
++
++	gpmc_cs_write_reg(cs, GPMC_CS_CONFIG1, l);
 +}
 +
-+static inline unsigned gpmc_bit_to_irq(unsigned bitmask)
-+{
-+	return bitmask;
-+}
-+
-+static __devinit int gpmc_setup_cs_irq(struct gpmc_cs_data *cs,
-+						struct resource *res)
-+{
-+	int i, n;
-+
-+	for (i = 0, n = 0; i < GPMC_NR_IRQ; i++)
-+		if (gpmc_bit_to_irq(gpmc_client_irq[i].bitmask)
-+						& cs->irq_config) {
-+			res[n].start = res[n].end = gpmc_client_irq[i].irq;
-+			res[n].flags = IORESOURCE_IRQ;
-+			dev_info(gpmc_dev, "irq %u on CS %d\n",
-+						res[n].start, cs->cs);
-+			n++;
-+		}
-+
-+	return n;
-+}
-+
- static __devinit int gpmc_probe(struct platform_device *pdev)
+ static inline unsigned gpmc_bit_to_irq(unsigned bitmask)
  {
- 	u32 l;
+ 	return bitmask;
+diff --git a/arch/arm/plat-omap/include/plat/gpmc.h b/arch/arm/plat-omap/include/plat/gpmc.h
+index 698fa33..ff3f32c 100644
+--- a/arch/arm/plat-omap/include/plat/gpmc.h
++++ b/arch/arm/plat-omap/include/plat/gpmc.h
+@@ -57,14 +57,19 @@
+ #define GPMC_CONFIG1_WRITETYPE_SYNC     (1 << 27)
+ #define GPMC_CONFIG1_CLKACTIVATIONTIME(val) ((val & 3) << 25)
+ #define GPMC_CONFIG1_PAGE_LEN(val)      ((val & 3) << 23)
++#define	GPMC_CONFIG1_PAGE_LEN_4		GPMC_CONFIG1_PAGE_LEN(0)
++#define	GPMC_CONFIG1_PAGE_LEN_8		GPMC_CONFIG1_PAGE_LEN(1)
++#define	GPMC_CONFIG1_PAGE_LEN_16	GPMC_CONFIG1_PAGE_LEN(2)
+ #define GPMC_CONFIG1_WAIT_READ_MON      (1 << 22)
+ #define GPMC_CONFIG1_WAIT_WRITE_MON     (1 << 21)
+ #define GPMC_CONFIG1_WAIT_MON_IIME(val) ((val & 3) << 18)
+ #define GPMC_CONFIG1_WAIT_PIN_SEL(val)  ((val & 3) << 16)
+ #define GPMC_CONFIG1_DEVICESIZE(val)    ((val & 3) << 12)
++#define	GPMC_CONFIG1_DEVICESIZE_8	GPMC_CONFIG1_DEVICESIZE(0)
+ #define GPMC_CONFIG1_DEVICESIZE_16      GPMC_CONFIG1_DEVICESIZE(1)
+ #define GPMC_CONFIG1_DEVICETYPE(val)    ((val & 3) << 10)
+ #define GPMC_CONFIG1_DEVICETYPE_NOR     GPMC_CONFIG1_DEVICETYPE(0)
++#define	GPMC_CONFIG1_DEVICETYPE_NAND	GPMC_CONFIG1_DEVICETYPE(2)
+ #define GPMC_CONFIG1_MUXADDDATA         (1 << 9)
+ #define GPMC_CONFIG1_TIME_PARA_GRAN     (1 << 4)
+ #define GPMC_CONFIG1_FCLK_DIV(val)      (val & 3)
 -- 
 1.7.10.2
 
