@@ -1,92 +1,84 @@
-From: Tomi Valkeinen <tomi.valkeinen@ti.com>
-Subject: Re: [PATCH] omap2+: add drm device
-Date: Mon, 11 Jun 2012 18:05:03 +0300
-Message-ID: <1339427103.26639.24.camel@deskari>
-References: <1337803690-30116-1-git-send-email-andy.gross@ti.com>
-	<1337839294.2764.7.camel@lappyti>
-	<CAO8GWq=rGLw3nx_r3+AO6xZNSDVyftpUXwWnbfevga4x2QUxfA@mail.gmail.com>
-	<1337843144.2909.17.camel@deskari> <1337844098.2909.20.camel@deskari>
-	<CAF6AEGur-mmZDVrE+Y-6tesNCVKp4xKKuS-C7ozTSJ2KQijHdw@mail.gmail.com>
-	<1337861581.12304.7.camel@deskari>
-	<CABT81PhhCaXuHW+x34_Q8izdcW0Ud8dNVSMEr0Zzyt9FAjm5TA@mail.gmail.com>
-	<1337873200.13723.17.camel@deskari>
-	<CABT81Pggi7RotEDOLw2S=dsbRYa6CxWN2zVx7fMCy5EjJVTf1Q@mail.gmail.com>
+From: Afzal Mohammed <afzal@ti.com>
+Subject: [PATCH 0/9] Adapt GPMC peripherals, platforms to driver
+Date: Mon, 11 Jun 2012 20:28:15 +0530
+Message-ID: <cover.1339419379.git.afzal@ti.com>
 Mime-Version: 1.0
-Content-Type: multipart/mixed; boundary="===============0154090647=="
-Return-path: <dri-devel-bounces+sf-dri-devel=m.gmane.org@lists.freedesktop.org>
-In-Reply-To: <CABT81Pggi7RotEDOLw2S=dsbRYa6CxWN2zVx7fMCy5EjJVTf1Q@mail.gmail.com>
-List-Unsubscribe: <http://lists.freedesktop.org/mailman/options/dri-devel>,
-	<mailto:dri-devel-request@lists.freedesktop.org?subject=unsubscribe>
-List-Archive: <http://lists.freedesktop.org/archives/dri-devel>
-List-Post: <mailto:dri-devel@lists.freedesktop.org>
-List-Help: <mailto:dri-devel-request@lists.freedesktop.org?subject=help>
-List-Subscribe: <http://lists.freedesktop.org/mailman/listinfo/dri-devel>,
-	<mailto:dri-devel-request@lists.freedesktop.org?subject=subscribe>
-Sender: dri-devel-bounces+sf-dri-devel=m.gmane.org@lists.freedesktop.org
-Errors-To: dri-devel-bounces+sf-dri-devel=m.gmane.org@lists.freedesktop.org
-To: "Gross, Andy" <andy.gross@ti.com>
-Cc: greg@kroah.com, linux-omap@vger.kernel.org, dri-devel@lists.freedesktop.org, Rob Clark <rob.clark@linaro.org>
+Content-Type: text/plain
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from bear.ext.ti.com ([192.94.94.41]:54644 "EHLO bear.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752920Ab2FKPN5 (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Mon, 11 Jun 2012 11:13:57 -0400
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: tony@atomide.com, paul@pwsan.com, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+Cc: Afzal Mohammed <afzal@ti.com>
 
+Hi,
 
---===============0154090647==
-Content-Type: multipart/signed; micalg="pgp-sha1"; protocol="application/pgp-signature";
-	boundary="=-180oCqHMwwFlahqF3Cg4"
+This series provides new interface for GPMC peripherals that use
+helper functions for initialization and configures omap3evm &
+beagleboard GPMC in Kernel. Existing interface would continue to
+serve its purpose as before.
 
+New interface for smsc911x has been provided the runtime timing
+calculation capability. This had to be tested on different boards.
+omap3evm has been converted to use this new smsc911x runtime
+calculation capability, thus is being configured in Kernel.
 
---=-180oCqHMwwFlahqF3Cg4
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: quoted-printable
+beagleboard nand has been modified to use new interface in addition to
+making use of runtime calculation, and is being configured in Kernel
 
-On Mon, 2012-06-11 at 09:51 -0500, Gross, Andy wrote:
-> Tomi,
->=20
->=20
-> So at this point, are you OK with deferring a split of the DMM until
-> it necessary to do so (if ever)?  I'd like to get this patch in so
-> that people have a working omapdrm device when they enable the config
-> options.
+This series is based on 3.5-rc1, and is dependent on [1,2,3,4] and has
+been tested on omap3evm (smsc911x) rev G & C and beagle board(nand)
 
-Yes, I'm ok with it.
+Also using private patches, nand & onenand was tested on omap3evm,
+rev G & C respectively (as support for these were not in mainline)
 
- Tomi
+omap3evm & beagleboard are the two boards that could be tested here.
+Within a couple of days, series for converting other boards (but
+which can't be tested) would be posted (unless there are strong
+objections to the way these patch series are going) along with
+updation of feature-removal-schedule.txt regarding deprecation of
+GPMC bootloader dependency (feature-removal-schedule.txt patch would
+make sense only with the modification of remaining boards to work
+gpmc driver)
 
+Regards
+Afzal
 
---=-180oCqHMwwFlahqF3Cg4
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: This is a digitally signed message part
-Content-Transfer-Encoding: 7bit
+[1] http://www.mail-archive.com/linux-omap@vger.kernel.org/msg69501.html
+[2] http://www.mail-archive.com/linux-omap@vger.kernel.org/msg69881.html
+[3] http://www.mail-archive.com/linux-omap@vger.kernel.org/msg69891.html
+[4] http://www.mail-archive.com/linux-omap@vger.kernel.org/msg69897.html
 
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.4.11 (GNU/Linux)
+Afzal Mohammed (9):
+  ARM: OMAP2+: gpmc-nand: Adapt to use gpmc driver
+  ARM: OMAP2+: gpmc-onenand: Adapt to use gpmc driver
+  ARM: OMAP2+: flash: Adapt to use gpmc driver
+  ARM: OMAP2+: gpmc-tusb6010: Adapt to use gpmc driver
+  ARM: OMAP2+: gpmc-smc91x: Adapt to use gpmc driver
+  ARM: OMAP2+: gpmc-smsc911x: Adapt to use gpmc driver
+  ARM: OMAP2+: gpmc-smsc911x: runtime time calculation
+  ARM: OMAP2+: board omap3evm: use gpmc driver
+  ARM: OMAP2+: board omap3beagle: use gpmc driver
 
-iQIcBAABAgAGBQJP1gkfAAoJEPo9qoy8lh71Ho0P/A3nGdBc6w9Qdht1L8L9PcgZ
-v+JZJi9Y/cRqArgXuIdhHdw0fAPuN38OpWz30VKyB69fPB+vDWUOYrIGQGTa4Jgt
-39SeuOl+L7ubVEcc4I/dgcg9O470x753Hl6WehGQ32qCLvQaRCuDrp16skJyR3RS
-CiCfpcC4tvPCj+SIsBK4pQZqq4QD0BpYqGFS7VJGLRyMZQVjbyUThtuM+I76egcE
-nlPwJ6JiJwEvtru/v7NXkW44oPZOTvg4aNTPpleZDbHRrJSeVpHOlcYJgvhTQeDc
-CGmzu0CveRC1wE9ij6h8Hn2S3r2TDDZ+tUn71tLsiK1nRmSIZ30OoUl1QSV7hu1A
-ujQMRtHKy/3/Lnzjv1+soOaM3ZehbDX7rDwgy3zJOTHPYgqeqxjzK8M3vpigtrCr
-3T97wR8sBZev7os/aydcVMZIxNeDOt3vf77dpJD5KOMfJ1q5X6IkrKzVjHvD9a9n
-M0EAbMnZdD3i5Gq48ua1BI7wy6yrcA7QruwqIOnxDMG8BGU6twCHsDbVbKQt5x2P
-v87QuCIFBoGE4olpyNudoQJAAnr8Z9Fw2mLKk/OSUGlIqZEK58vS9ShKkBw95+AS
-3yWKzpgEUHrqFIJwnTj+YIUwlrfJztelJGWWtmkLmEHKDt+tvmIM2jN/7hqW+Lgx
-qA6EquH5eQjsbKG3mhLO
-=MZy9
------END PGP SIGNATURE-----
+ arch/arm/mach-omap2/board-flash.c               |  126 +++++++++++++++++++++++
+ arch/arm/mach-omap2/board-flash.h               |   29 ++++++
+ arch/arm/mach-omap2/board-omap3beagle.c         |   16 ++-
+ arch/arm/mach-omap2/board-omap3evm.c            |   12 ++-
+ arch/arm/mach-omap2/gpmc-nand.c                 |   41 ++++++++
+ arch/arm/mach-omap2/gpmc-onenand.c              |  117 ++++++++++++++++++---
+ arch/arm/mach-omap2/gpmc-smc91x.c               |   69 +++++++++++--
+ arch/arm/mach-omap2/gpmc-smsc911x.c             |  119 +++++++++++++++++++++
+ arch/arm/mach-omap2/usb-tusb6010.c              |  113 +++++++++++++++++++-
+ arch/arm/plat-omap/include/plat/gpmc-smc91x.h   |   12 ++-
+ arch/arm/plat-omap/include/plat/gpmc-smsc911x.h |   25 ++++-
+ arch/arm/plat-omap/include/plat/gpmc.h          |    8 ++
+ arch/arm/plat-omap/include/plat/nand.h          |    7 ++
+ arch/arm/plat-omap/include/plat/onenand.h       |    8 +-
+ 14 files changed, 662 insertions(+), 40 deletions(-)
 
---=-180oCqHMwwFlahqF3Cg4--
+-- 
+1.7.10.2
 
-
---===============0154090647==
-Content-Type: text/plain; charset="us-ascii"
-MIME-Version: 1.0
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
-
-_______________________________________________
-dri-devel mailing list
-dri-devel@lists.freedesktop.org
-http://lists.freedesktop.org/mailman/listinfo/dri-devel
-
---===============0154090647==--
