@@ -1,86 +1,69 @@
 From: Paul Walmsley <paul@pwsan.com>
-Subject: [PATCHv2 12/12] ARM: OMAP4: hwmod data: do not enable or reset the
- McPDM during kernel init
-Date: Sun, 10 Jun 2012 18:46:41 -0600
-Message-ID: <20120611004626.20034.42995.stgit@dusk>
+Subject: [PATCHv2 08/12] ARM: OMAP4: hwmod data: add SL2IF hardreset line
+Date: Sun, 10 Jun 2012 18:46:17 -0600
+Message-ID: <20120611004614.20034.50895.stgit@dusk>
 References: <20120611004502.20034.8840.stgit@dusk>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from utopia.booyaka.com ([72.9.107.138]:42612 "EHLO
+Received: from utopia.booyaka.com ([72.9.107.138]:42583 "EHLO
 	utopia.booyaka.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752612Ab2FKAwM (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Sun, 10 Jun 2012 20:52:12 -0400
+	with ESMTP id S1751609Ab2FKAwL (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Sun, 10 Jun 2012 20:52:11 -0400
 In-Reply-To: <20120611004502.20034.8840.stgit@dusk>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
-Cc: =?utf-8?b?UMOpdGVy?= Ujfalusi <peter.ujfalusi@ti.com>, =?utf-8?q?Beno=C3=AEt?= Cousson <b-cousson@ti.com>
+Cc: Tero Kristo <t-kristo@ti.com>
 
-Resolve this kernel boot message:
+On boot, the sl2if module can't be enabled.  The following message is
+logged:
 
-omap_hwmod: mcpdm: cannot be enabled for reset (3)
+omap_hwmod: sl2if: cannot be enabled for reset (3)
 
-It appears that the McPDM on OMAP4 can only receive its functional
-clock from an off-chip source.  This source is not guaranteed to be
-present on the board, and when present, it is controlled by I2C.  This
-would introduce a board dependency to the early hwmod code which it
-was not designed to handle.  Also, neither the driver for this
-off-chip clock provider nor the I2C code is available early in boot
-when the hwmod code is attempting to enable and reset IP blocks.  This
-effectively makes it impossible to enable and reset this device during
-hwmod init.
-
-At its core, this patch is a workaround for an OMAP hardware problem.
-It should be possible to configure the OMAP to provide any IP block's
-functional clock from an on-chip source.  (This is true for almost
-every IP block on the chip.  As far as I know, McPDM is the only
-exception.)  If the kernel cannot reset and configure IP blocks, it
-cannot guarantee a sane SoC state.  Relying on an optional off-chip
-clock also creates a board dependency which is beyond the scope of the
-early hwmod code.
-
-This patch works around the issue by marking the McPDM hwmod record
-with the HWMOD_EXT_OPT_MAIN_CLK flag.  This prevents the hwmod
-code from touching the device early during boot.
+This is probably because the SL2IF is still being held in hardreset.
+The SL2IF's hardreset line is shared with one of the IVAHD's hardreset
+lines; see for example Table 3-536 "RM_IVAHD_RSTCTRL" in the OMAP4430
+TRM Rev. AA (SWPU231AA).  To work around this, add the SL2IF's
+hardreset line to the hwmod data.  This is correct from a hardware
+perspective and also will prevent the hwmod from attempting to enable
+the SL2IF during reset.  The driver for this IP block will need to
+handle its integration until the appropriate way to handle the IVAHD
+integration can be elucidated.
 
 Signed-off-by: Paul Walmsley <paul@pwsan.com>
-Cc: P=C3=A9ter Ujfalusi <peter.ujfalusi@ti.com>
-Cc: Beno=C3=AEt Cousson <b-cousson@ti.com>
+Cc: Tero Kristo <t-kristo@ti.com>
 ---
- arch/arm/mach-omap2/omap_hwmod_44xx_data.c |   12 ++++++++++++
- 1 file changed, 12 insertions(+)
+ arch/arm/mach-omap2/omap_hwmod_44xx_data.c |    7 +++++++
+ 1 file changed, 7 insertions(+)
 
-diff --git a/arch/arm/mach-omap2/omap_hwmod_44xx_data.c b/arch/arm/mach=
--omap2/omap_hwmod_44xx_data.c
-index 3613054..86fc513 100644
+diff --git a/arch/arm/mach-omap2/omap_hwmod_44xx_data.c b/arch/arm/mach-omap2/omap_hwmod_44xx_data.c
+index 7700d6d..037424f 100644
 --- a/arch/arm/mach-omap2/omap_hwmod_44xx_data.c
 +++ b/arch/arm/mach-omap2/omap_hwmod_44xx_data.c
-@@ -2091,6 +2091,18 @@ static struct omap_hwmod omap44xx_mcpdm_hwmod =3D=
- {
- 	.name		=3D "mcpdm",
- 	.class		=3D &omap44xx_mcpdm_hwmod_class,
- 	.clkdm_name	=3D "abe_clkdm",
-+	/*
-+	 * It's suspected that the McPDM requires an off-chip main
-+	 * functional clock, controlled via I2C.  This IP block is
-+	 * currently reset very early during boot, before I2C is
-+	 * available, so it doesn't seem that we have any choice in
-+	 * the kernel other than to avoid resetting it.  XXX This is
-+	 * really a hardware issue workaround: every IP block should
-+	 * be able to source its main functional clock from either
-+	 * on-chip or off-chip sources.  McPDM seems to be the only
-+	 * current exception.
-+	 */
-+	.flags		=3D HWMOD_EXT_OPT_MAIN_CLK,
- 	.mpu_irqs	=3D omap44xx_mcpdm_irqs,
- 	.sdma_reqs	=3D omap44xx_mcpdm_sdma_reqs,
- 	.main_clk	=3D "mcpdm_fck",
+@@ -2597,15 +2597,22 @@ static struct omap_hwmod_class omap44xx_sl2if_hwmod_class = {
+ 	.name	= "sl2if",
+ };
+ 
++static struct omap_hwmod_rst_info omap44xx_sl2if_resets[] = {
++	{ .name = "logic", .rst_shift = 2 },
++};
++
+ /* sl2if */
+ static struct omap_hwmod omap44xx_sl2if_hwmod = {
+ 	.name		= "sl2if",
+ 	.class		= &omap44xx_sl2if_hwmod_class,
+ 	.clkdm_name	= "ivahd_clkdm",
++	.rst_lines	= omap44xx_sl2if_resets,
++	.rst_lines_cnt	= ARRAY_SIZE(omap44xx_sl2if_resets),
+ 	.prcm = {
+ 		.omap4 = {
+ 			.clkctrl_offs = OMAP4_CM_IVAHD_SL2_CLKCTRL_OFFSET,
+ 			.context_offs = OMAP4_RM_IVAHD_SL2_CONTEXT_OFFSET,
++			.rstctrl_offs = OMAP4_RM_IVAHD_RSTCTRL_OFFSET,
+ 			.modulemode   = MODULEMODE_HWCTRL,
+ 		},
+ 	},
 
 
---
-To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
