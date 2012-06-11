@@ -1,127 +1,142 @@
 From: Benoit Cousson <b-cousson@ti.com>
-Subject: [PATCH 1/2] ARM: OMAP2+: hwmod data: Fix the wrong clkdm assigned to PRCM modules
-Date: Mon, 11 Jun 2012 18:47:04 +0200
-Message-ID: <1339433225-30042-2-git-send-email-b-cousson@ti.com>
+Subject: [PATCH 2/2] Revert "ARM: OMAP2+: clockdomains: make {prm,cm}_clkdm common"
+Date: Mon, 11 Jun 2012 18:47:05 +0200
+Message-ID: <1339433225-30042-3-git-send-email-b-cousson@ti.com>
 References: <1339433225-30042-1-git-send-email-b-cousson@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from arroyo.ext.ti.com ([192.94.94.40]:58838 "EHLO arroyo.ext.ti.com"
+Received: from bear.ext.ti.com ([192.94.94.41]:33140 "EHLO bear.ext.ti.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1750948Ab2FKQrn (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Mon, 11 Jun 2012 12:47:43 -0400
+	id S1750945Ab2FKQrv (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Mon, 11 Jun 2012 12:47:51 -0400
 In-Reply-To: <1339433225-30042-1-git-send-email-b-cousson@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: paul@pwsan.com
 Cc: tony@atomide.com, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Benoit Cousson <b-cousson@ti.com>
 
-The following commit (794b480a37e3d284d6ee7344d8a737ef60476ed5) was adding
-the PRCM IPs data for PRCM, CM, PRCM_MPU and SCRM.
-The clkdm entry are not the correct ones and does not exist in the system.
+This reverts commit 6ba5a69ee92c29c2ffc814dad6ac61c4cd49090c.
 
-Replace them with the proper wkup, l4_ao and l4_cfg.
+Conflicts:
 
-Fix as well the wrong OCP port used by the cm_core_aon. It uses the
-l4_cfg interconnect and not the l4_wkup.
+	arch/arm/mach-omap2/Makefile
 
-Re-order the entries by address value.
+Neither prm_clkdm nor cm_clkdm does exist on OMAP4.
+Remove the common definition that does not make sense anymore
+since it is not common for OMAP2+ platforms.
+
+Please note that these clock domains are probably non existant
+on OMAP 2 & 3 and thus should be removed in all the
+clockdomain files.
 
 Signed-off-by: Benoit Cousson <b-cousson@ti.com>
 ---
- arch/arm/mach-omap2/omap_hwmod_44xx_data.c |   52 ++++++++++++++--------------
- 1 files changed, 26 insertions(+), 26 deletions(-)
+ arch/arm/mach-omap2/Makefile                     |    1 -
+ arch/arm/mach-omap2/clockdomain44xx.c            |    6 -----
+ arch/arm/mach-omap2/clockdomains2xxx_3xxx_data.c |   10 +++++++++
+ arch/arm/mach-omap2/clockdomains44xx_data.c      |    2 -
+ arch/arm/mach-omap2/clockdomains_common_data.c   |   24 ----------------------
+ 5 files changed, 10 insertions(+), 33 deletions(-)
+ delete mode 100644 arch/arm/mach-omap2/clockdomains_common_data.c
 
-diff --git a/arch/arm/mach-omap2/omap_hwmod_44xx_data.c b/arch/arm/mach-omap2/omap_hwmod_44xx_data.c
-index 950454a..03fc705 100644
---- a/arch/arm/mach-omap2/omap_hwmod_44xx_data.c
-+++ b/arch/arm/mach-omap2/omap_hwmod_44xx_data.c
-@@ -2529,27 +2529,6 @@ static struct omap_hwmod_class omap44xx_prcm_hwmod_class = {
- 	.name	= "prcm",
- };
+diff --git a/arch/arm/mach-omap2/Makefile b/arch/arm/mach-omap2/Makefile
+index fa742f3..bc7d239 100644
+--- a/arch/arm/mach-omap2/Makefile
++++ b/arch/arm/mach-omap2/Makefile
+@@ -116,7 +116,6 @@ obj-$(CONFIG_ARCH_OMAP4)		+= powerdomains44xx_data.o
  
--/* prcm_mpu */
--static struct omap_hwmod omap44xx_prcm_mpu_hwmod = {
--	.name		= "prcm_mpu",
--	.class		= &omap44xx_prcm_hwmod_class,
--	.clkdm_name	= "l4_wkup_clkdm",
--};
--
--/* cm_core_aon */
--static struct omap_hwmod omap44xx_cm_core_aon_hwmod = {
--	.name		= "cm_core_aon",
--	.class		= &omap44xx_prcm_hwmod_class,
--	.clkdm_name	= "cm_clkdm",
--};
--
--/* cm_core */
--static struct omap_hwmod omap44xx_cm_core_hwmod = {
--	.name		= "cm_core",
--	.class		= &omap44xx_prcm_hwmod_class,
--	.clkdm_name	= "cm_clkdm",
--};
--
- /* prm */
- static struct omap_hwmod_irq_info omap44xx_prm_irqs[] = {
- 	{ .irq = 11 + OMAP44XX_IRQ_GIC_START },
-@@ -2564,12 +2543,33 @@ static struct omap_hwmod_rst_info omap44xx_prm_resets[] = {
- static struct omap_hwmod omap44xx_prm_hwmod = {
- 	.name		= "prm",
- 	.class		= &omap44xx_prcm_hwmod_class,
--	.clkdm_name	= "prm_clkdm",
-+	.clkdm_name	= "l4_wkup_clkdm",
- 	.mpu_irqs	= omap44xx_prm_irqs,
- 	.rst_lines	= omap44xx_prm_resets,
- 	.rst_lines_cnt	= ARRAY_SIZE(omap44xx_prm_resets),
- };
+ # PRCM clockdomain control
+ clockdomain-common			+= clockdomain.o
+-clockdomain-common			+= clockdomains_common_data.o
+ obj-$(CONFIG_ARCH_OMAP2)		+= $(clockdomain-common)
+ obj-$(CONFIG_ARCH_OMAP2)		+= clockdomain2xxx_3xxx.o
+ obj-$(CONFIG_ARCH_OMAP2)		+= clockdomains2xxx_3xxx_data.o
+diff --git a/arch/arm/mach-omap2/clockdomain44xx.c b/arch/arm/mach-omap2/clockdomain44xx.c
+index 4f04dd1..935c7f0 100644
+--- a/arch/arm/mach-omap2/clockdomain44xx.c
++++ b/arch/arm/mach-omap2/clockdomain44xx.c
+@@ -51,9 +51,6 @@ static int omap4_clkdm_clear_all_wkup_sleep_deps(struct clockdomain *clkdm)
+ 	struct clkdm_dep *cd;
+ 	u32 mask = 0;
  
-+/* cm_core */
-+static struct omap_hwmod omap44xx_cm_core_hwmod = {
-+	.name		= "cm_core",
-+	.class		= &omap44xx_prcm_hwmod_class,
-+	.clkdm_name	= "l4_cfg_clkdm",
+-	if (!clkdm->prcm_partition)
+-		return 0;
+-
+ 	for (cd = clkdm->wkdep_srcs; cd && cd->clkdm_name; cd++) {
+ 		if (!cd->clkdm)
+ 			continue; /* only happens if data is erroneous */
+@@ -106,9 +103,6 @@ static int omap4_clkdm_clk_disable(struct clockdomain *clkdm)
+ {
+ 	bool hwsup = false;
+ 
+-	if (!clkdm->prcm_partition)
+-		return 0;
+-
+ 	hwsup = omap4_cminst_is_clkdm_in_hwsup(clkdm->prcm_partition,
+ 					clkdm->cm_inst, clkdm->clkdm_offs);
+ 
+diff --git a/arch/arm/mach-omap2/clockdomains2xxx_3xxx_data.c b/arch/arm/mach-omap2/clockdomains2xxx_3xxx_data.c
+index 839145e..0a6a048 100644
+--- a/arch/arm/mach-omap2/clockdomains2xxx_3xxx_data.c
++++ b/arch/arm/mach-omap2/clockdomains2xxx_3xxx_data.c
+@@ -89,3 +89,13 @@ struct clockdomain wkup_common_clkdm = {
+ 	.pwrdm		= { .name = "wkup_pwrdm" },
+ 	.dep_bit	= OMAP_EN_WKUP_SHIFT,
+ };
++
++struct clockdomain prm_common_clkdm = {
++	.name		= "prm_clkdm",
++	.pwrdm		= { .name = "wkup_pwrdm" },
 +};
 +
-+/* cm_core_aon */
-+static struct omap_hwmod omap44xx_cm_core_aon_hwmod = {
-+	.name		= "cm_core_aon",
-+	.class		= &omap44xx_prcm_hwmod_class,
-+	.clkdm_name	= "l4_ao_clkdm",
++struct clockdomain cm_common_clkdm = {
++	.name		= "cm_clkdm",
++	.pwrdm		= { .name = "core_pwrdm" },
 +};
-+
-+/* prcm_mpu */
-+static struct omap_hwmod omap44xx_prcm_mpu_hwmod = {
-+	.name		= "prcm_mpu",
-+	.class		= &omap44xx_prcm_hwmod_class,
-+	.clkdm_name	= "l4_wkup_clkdm",
-+};
-+
- /*
-  * 'scrm' class
-  * system clock and reset manager
-@@ -5305,10 +5305,10 @@ static struct omap_hwmod_addr_space omap44xx_cm_core_aon_addrs[] = {
+diff --git a/arch/arm/mach-omap2/clockdomains44xx_data.c b/arch/arm/mach-omap2/clockdomains44xx_data.c
+index c534258..bd7ed13 100644
+--- a/arch/arm/mach-omap2/clockdomains44xx_data.c
++++ b/arch/arm/mach-omap2/clockdomains44xx_data.c
+@@ -430,8 +430,6 @@ static struct clockdomain *clockdomains_omap44xx[] __initdata = {
+ 	&l4_wkup_44xx_clkdm,
+ 	&emu_sys_44xx_clkdm,
+ 	&l3_dma_44xx_clkdm,
+-	&prm_common_clkdm,
+-	&cm_common_clkdm,
+ 	NULL
  };
  
- /* l4_wkup -> cm_core_aon */
--static struct omap_hwmod_ocp_if omap44xx_l4_wkup__cm_core_aon = {
--	.master		= &omap44xx_l4_wkup_hwmod,
-+static struct omap_hwmod_ocp_if omap44xx_l4_cfg__cm_core_aon = {
-+	.master		= &omap44xx_l4_cfg_hwmod,
- 	.slave		= &omap44xx_cm_core_aon_hwmod,
--	.clk		= "l4_wkup_clk_mux_ck",
-+	.clk		= "l4_div_ck",
- 	.addr		= omap44xx_cm_core_aon_addrs,
- 	.user		= OCP_USER_MPU | OCP_USER_SDMA,
- };
-@@ -6101,7 +6101,7 @@ static struct omap_hwmod_ocp_if *omap44xx_hwmod_ocp_ifs[] __initdata = {
- 	&omap44xx_l3_main_2__ocmc_ram,
- 	&omap44xx_l4_cfg__ocp2scp_usb_phy,
- 	&omap44xx_mpu_private__prcm_mpu,
--	&omap44xx_l4_wkup__cm_core_aon,
-+	&omap44xx_l4_cfg__cm_core_aon,
- 	&omap44xx_l4_cfg__cm_core,
- 	&omap44xx_l4_wkup__prm,
- 	&omap44xx_l4_wkup__scrm,
+diff --git a/arch/arm/mach-omap2/clockdomains_common_data.c b/arch/arm/mach-omap2/clockdomains_common_data.c
+deleted file mode 100644
+index 615b1f0..0000000
+--- a/arch/arm/mach-omap2/clockdomains_common_data.c
++++ /dev/null
+@@ -1,24 +0,0 @@
+-/*
+- * OMAP2+-common clockdomain data
+- *
+- * Copyright (C) 2008-2012 Texas Instruments, Inc.
+- * Copyright (C) 2008-2010 Nokia Corporation
+- *
+- * Paul Walmsley, Jouni Högander
+- */
+-
+-#include <linux/kernel.h>
+-#include <linux/io.h>
+-
+-#include "clockdomain.h"
+-
+-/* These are implicit clockdomains - they are never defined as such in TRM */
+-struct clockdomain prm_common_clkdm = {
+-	.name		= "prm_clkdm",
+-	.pwrdm		= { .name = "wkup_pwrdm" },
+-};
+-
+-struct clockdomain cm_common_clkdm = {
+-	.name		= "cm_clkdm",
+-	.pwrdm		= { .name = "core_pwrdm" },
+-};
 -- 
 1.7.0.4
 
