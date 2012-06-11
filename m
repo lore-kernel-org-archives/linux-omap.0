@@ -1,62 +1,47 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCHv2 09/12] ARM: OMAP2+: usb_host_fs: add custom
- setup_preprogram for usb_host_fs (fsusb)
-Date: Mon, 11 Jun 2012 01:03:42 -0700
-Message-ID: <20120611080341.GA12766@atomide.com>
-References: <20120611004502.20034.8840.stgit@dusk>
- <20120611004617.20034.21714.stgit@dusk>
- <20120611063416.GT12766@atomide.com>
- <20120611071301.GC6845@arwen.pp.htv.fi>
- <20120611074133.GZ12766@atomide.com>
- <20120611074854.GG6845@arwen.pp.htv.fi>
+From: Paul Walmsley <paul@pwsan.com>
+Subject: Re: [PATCH 04/11] ARM: OMAP2+: usb_host_fs: add custom reset for
+ usb_host_fs (fsusb)
+Date: Mon, 11 Jun 2012 02:04:20 -0600 (MDT)
+Message-ID: <alpine.DEB.2.00.1206110154170.16974@utopia.booyaka.com>
+References: <20120607073112.GX12766@atomide.com> <alpine.DEB.2.00.1206070136550.6684@utopia.booyaka.com> <20120607075158.GZ12766@atomide.com> <20120607075541.GF16342@arwen.pp.htv.fi> <4FD0602B.9070704@ti.com> <alpine.DEB.2.00.1206070446070.6684@utopia.booyaka.com>
+ <4FD09EFA.20304@ti.com> <alpine.DEB.2.00.1206071657160.14977@utopia.booyaka.com> <4FD1FA8C.1080600@ti.com> <alpine.DEB.2.00.1206080722040.14977@utopia.booyaka.com> <20120611061546.GQ12766@atomide.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-02-ewr.mailhop.org ([204.13.248.72]:44616 "EHLO
-	mho-02-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750707Ab2FKIDp (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 11 Jun 2012 04:03:45 -0400
-Content-Disposition: inline
-In-Reply-To: <20120611074854.GG6845@arwen.pp.htv.fi>
+Received: from utopia.booyaka.com ([72.9.107.138]:35163 "EHLO
+	utopia.booyaka.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750842Ab2FKIEY (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 11 Jun 2012 04:04:24 -0400
+In-Reply-To: <20120611061546.GQ12766@atomide.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Felipe Balbi <balbi@ti.com>
-Cc: Paul Walmsley <paul@pwsan.com>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Tero Kristo <t-kristo@ti.com>, =?utf-8?Q?Beno=C3=AEt?= Cousson <b-cousson@ti.com>
+To: Tony Lindgren <tony@atomide.com>
+Cc: "Cousson, Benoit" <b-cousson@ti.com>, balbi@ti.com, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Tero Kristo <t-kristo@ti.com>, Ohad Ben-Cohen <ohad@wizery.com>
 
-* Felipe Balbi <balbi@ti.com> [120611 00:55]:
-> Hi,
-> 
-> On Mon, Jun 11, 2012 at 12:41:33AM -0700, Tony Lindgren wrote:
-> > > > This should be "static inline int fsusb_reset_host_controller" as it's
-> > > > in a header.
-> > > 
-> > > why is it even in a header ? Only hwmod_fsusb_preprogram() will use it
-> > > anyway.
-> > 
-> > Well ideally it would be something that any OHCI driver can use for
-> > it's reset, and whatever bus code can also call to reset and idle
-> > for the unused devices that don't have the driver compiled in. Got
-> > any better suggestions where to place it? I could be a generic
-> > ohci_reset function in some header?
-> 
-> maybe create <linux/usb/ohci.h> ? Then, while doing that, move register
-> definitions to this new header too... Something like:
-> 
-> $ mv drivers/usb/host/ohci.h include/linux/usb/
-> $ sed -i 's/\"ohci.h\"/<linux/usb/ohci.h>/g' $(git ls-files)
-> 
-> then add your ohci_reset() function...
+On Sun, 10 Jun 2012, Tony Lindgren wrote:
 
-Hmm but then again it's pointless to export the all the ohci registers
-as that will lead to misuse outside drivers/usb.. Sounds like just
-defining the reset register is safest option here.
- 
-> > I don't want to have driver specific code under arch/arm/*omap*/* as
-> > the bus level code should not need to know anything about the driver
-> > specific registers.
+> * Paul Walmsley <paul@pwsan.com> [120608 06:33]:
+>  
+> > I don't really have a huge problem with switching to a late reset, 
+> > but there are disadvantages to it.
 > 
-> I see.
+> I think the early reset actually has more disadvantages to it compared
+> to driver reset. We don't see any errors when things go wrong, and we
+> may even kill the only debug console in the reset process.
+> 
+> We are already doing what Benoit describes with clocks where we only
+> reset the unclaimed ones at late_initcall level, and that has proven
+> to work well.
 
-Regards,
+The difference though between the clock and the IP block init is that 
+leaving the clocks on until later has no effect on system stability.  The 
+chip simply consumes more energy.
 
-Tony
+But if the IP blocks are reset later, and the bootloader or previous OS 
+gets some register settings wrong, there's a greater risk of system 
+instability or unpredictable behavior during the boot process.
+
+I agree that it is probably easier to debug a late reset approach.
+
+
+- Paul
