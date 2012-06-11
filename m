@@ -1,68 +1,58 @@
-From: Vaibhav Hiremath <hvaibhav@ti.com>
-Subject: Re: Current state of AM33xx patches
-Date: Mon, 11 Jun 2012 19:45:58 +0530
-Message-ID: <4FD5FD9E.5040203@ti.com>
-References: <4FD5BA4C.9070706@gmail.com>
+From: Afzal Mohammed <afzal@ti.com>
+Subject: [PATCH 0/3] Prepare for GPMC driver conversion
+Date: Mon, 11 Jun 2012 19:31:01 +0530
+Message-ID: <cover.1339419244.git.afzal@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="ISO-8859-1"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from devils.ext.ti.com ([198.47.26.153]:57021 "EHLO
-	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753529Ab2FKOQL (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 11 Jun 2012 10:16:11 -0400
-In-Reply-To: <4FD5BA4C.9070706@gmail.com>
+Received: from arroyo.ext.ti.com ([192.94.94.40]:48358 "EHLO arroyo.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1754501Ab2FKOQl (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Mon, 11 Jun 2012 10:16:41 -0400
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Daniel Mack <zonque@gmail.com>
-Cc: Tony Lindgren <tony@atomide.com>, Kevin Hilman <khilman@ti.com>, Paul Walmsley <paul@pwsan.com>, linux-omap@vger.kernel.org, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>
+To: tony@atomide.com, paul@pwsan.com, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+Cc: Afzal Mohammed <afzal@ti.com>
 
+Hi,
 
+Objective of this series is to make things easy for GPMC driver
+conversion series by separating out more things from driver
+conversion series.
 
-On 6/11/2012 2:58 PM, Daniel Mack wrote:
-> Hey,
-> 
-> can anybody give me a quick wrap-up about the current state of AM33xx
-> based SoCs in mainline? What are the next steps to get things merged?
-> 
+This series,
+1. Unifies NAND platform initialization functions
+2. Cleans up OneNAND platform code a little
+3. Handles additional timings in Kernel
 
-Daniel,
+This series is based on 3.5-rc1 & made on top of
+http://www.mail-archive.com/linux-omap@vger.kernel.org/msg69501.html
+http://www.mail-archive.com/linux-omap@vger.kernel.org/msg69881.html
 
-We are in the process of submitting all baseport patches to the
-upstream, summary would be,
+Regards
+Afzal
 
-Accepted:
-	- Machine and low-level init code
-	- Basic DT required for boot.
-	- Voltagedomain, Powerdomain, clockdomain implementation
+Afzal Mohammed (3):
+  ARM: OMAP2+: nand: unify init functions
+  ARM: OMAP2+: onenand: cleanup for gpmc driver conversion
+  ARM: OMAP2+: gpmc: handle additional timings
 
-Currently under work (already submitted multiple versions):
-	- Clock Tree
-	- HWMOD
+ arch/arm/mach-omap2/board-devkit8000.c     |    8 +++--
+ arch/arm/mach-omap2/board-flash.c          |   45 ++++++++++++++-------------
+ arch/arm/mach-omap2/board-flash.h          |    6 ++--
+ arch/arm/mach-omap2/board-igep0020.c       |    2 +-
+ arch/arm/mach-omap2/board-ldp.c            |    4 +--
+ arch/arm/mach-omap2/board-omap3beagle.c    |    8 +++--
+ arch/arm/mach-omap2/board-omap3touchbook.c |    8 +++--
+ arch/arm/mach-omap2/board-overo.c          |    7 +++--
+ arch/arm/mach-omap2/board-zoom.c           |    5 +--
+ arch/arm/mach-omap2/common-board-devices.c |   46 ----------------------------
+ arch/arm/mach-omap2/common-board-devices.h |    1 -
+ arch/arm/mach-omap2/gpmc-onenand.c         |   24 ++++++---------
+ arch/arm/mach-omap2/gpmc.c                 |    6 ++++
+ arch/arm/plat-omap/include/plat/gpmc.h     |    6 ++++
+ 14 files changed, 77 insertions(+), 99 deletions(-)
 
-I do maintain wiki page which you should refer for any updates:
-http://processors.wiki.ti.com/index.php/Sitara_Linux_Upstream_Status
-
-In order to get latest and greatest kernel to boot, you can use my repo:
-https://github.com/hvaibhav/am335x-linux
-
-
-Also, note that, currently there will be very minimal feature-set
-supported in the kernel, so not sure how much can be leveraged for
-production use-cases.
-
-
-> I'm getting involved in a project that is based on a AM3352 and would
-> like to provide help where necessary and wanted.
-> 
-
-That's great, help is always required and appreciated.
-
-Thanks,
-Vaibhav
-
-> 
-> Thanks,
-> Daniel
-> 
+-- 
+1.7.10.2
 
