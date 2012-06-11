@@ -1,126 +1,51 @@
-From: Tero Kristo <t-kristo@ti.com>
-Subject: [PATCHv6 5/7] ARM: OMAP4: pwrdm: add support for reading prev logic and mem states
-Date: Mon, 11 Jun 2012 18:26:25 +0300
-Message-ID: <1339428387-4800-6-git-send-email-t-kristo@ti.com>
-References: <1339428387-4800-1-git-send-email-t-kristo@ti.com>
+From: Jon Hunter <jon-hunter@ti.com>
+Subject: Re: [PATCH 1/3] ARM: OMAP2+: nand: unify init functions
+Date: Mon, 11 Jun 2012 10:43:45 -0500
+Message-ID: <4FD61231.6020605@ti.com>
+References: <cover.1339419244.git.afzal@ti.com> <95b5dece2f0b06ba1242f5af4c14fe1696950101.1339419244.git.afzal@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain
+Content-Type: text/plain; charset="ISO-8859-1"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from comal.ext.ti.com ([198.47.26.152]:50670 "EHLO comal.ext.ti.com"
+Received: from comal.ext.ti.com ([198.47.26.152]:52065 "EHLO comal.ext.ti.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1755730Ab2FKP0x (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Mon, 11 Jun 2012 11:26:53 -0400
-In-Reply-To: <1339428387-4800-1-git-send-email-t-kristo@ti.com>
+	id S1755686Ab2FKPny (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Mon, 11 Jun 2012 11:43:54 -0400
+In-Reply-To: <95b5dece2f0b06ba1242f5af4c14fe1696950101.1339419244.git.afzal@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: linux-omap@vger.kernel.org, khilman@ti.com, paul@pwsan.com
-Cc: linux-arm-kernel@lists.infradead.org
+To: Afzal Mohammed <afzal@ti.com>
+Cc: tony@atomide.com, paul@pwsan.com, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 
-On OMAP4, there is no support to read previous logic state
-or previous memory state achieved when a power domain transitions
-to RET. Instead there are module level context registers.
+Hi Afzal,
 
-In order to support the powerdomain level logic/mem_off_counters
-on OMAP4, instead use the previous power state achieved (RET) and
-the *programmed* logic/mem RET state to derive if a powerdomain lost
-logic or did not.
+On 06/11/2012 09:01 AM, Afzal Mohammed wrote:
+> Helper function for updating nand platform data has been
+> added the capability to take timing structure arguement.
+> Usage of omap_nand_flash_init() has been replaced by modifed
+> one, omap_nand_flash_init was doing things similar to
+> board_nand_init except that NAND CS# were being acquired
+> based on bootloader setting. As CS# is hardwired for a given
+> board, acquiring gpmc CS# has been removed, and updated with
+> the value on board.
+> 
+> NAND CS# used in beagle board was found to be CS0.
+> Thomas Weber <thomas.weber.linux@googlemail.com> reported
+> that value of devkit8000 to be CS0. Overo board was found
+> to be using CS0 based on u-boot, while google grep says
+> omap3touchbook too has CS0.
 
-If the powerdomain is programmed to enter RET state and lose logic
-in RET state, knowing that the powerdomain entered RET is good enough
-to derive that the logic was lost as well, in such cases.
+[1] also confirms the omap3-touchbook uses CS0.
 
-Signed-off-by: Tero Kristo <t-kristo@ti.com>
----
- arch/arm/mach-omap2/powerdomain44xx.c |   59 +++++++++++++++++++++++++++++++++
- 1 files changed, 59 insertions(+), 0 deletions(-)
+> Signed-off-by: Afzal Mohammed <afzal@ti.com>
 
-diff --git a/arch/arm/mach-omap2/powerdomain44xx.c b/arch/arm/mach-omap2/powerdomain44xx.c
-index 030d10c..ab93f08 100644
---- a/arch/arm/mach-omap2/powerdomain44xx.c
-+++ b/arch/arm/mach-omap2/powerdomain44xx.c
-@@ -151,6 +151,34 @@ static int omap4_pwrdm_read_logic_retst(struct powerdomain *pwrdm)
- 	return v;
- }
- 
-+/**
-+ * omap4_pwrdm_read_prev_logic_pwrst - read the previous logic powerstate
-+ * @pwrdm: struct powerdomain * to read the state for
-+ *
-+ * Reads the previous logic powerstate for a powerdomain. This function
-+ * must determine the previous logic powerstate by first checking the
-+ * previous powerstate for the domain. If that was OFF, then logic has
-+ * been lost. If previous state was RETENTION, the function reads the
-+ * setting for the next retention logic state to see the actual value.
-+ * In every other case, the logic is retained. Returns either
-+ * PWRDM_LOGIC_MEM_PWRST_OFF or PWRDM_LOGIC_MEM_PWRST_RET depending
-+ * whether the logic was retained or not.
-+ */
-+static int omap4_pwrdm_read_prev_logic_pwrst(struct powerdomain *pwrdm)
-+{
-+	int state;
-+
-+	state = omap4_pwrdm_read_prev_pwrst(pwrdm);
-+
-+	if (state == PWRDM_POWER_OFF)
-+		return PWRDM_LOGIC_MEM_PWRST_OFF;
-+
-+	if (state != PWRDM_POWER_RET)
-+		return PWRDM_LOGIC_MEM_PWRST_RET;
-+
-+	return omap4_pwrdm_read_logic_retst(pwrdm);
-+}
-+
- static int omap4_pwrdm_read_mem_pwrst(struct powerdomain *pwrdm, u8 bank)
- {
- 	u32 m, v;
-@@ -179,6 +207,35 @@ static int omap4_pwrdm_read_mem_retst(struct powerdomain *pwrdm, u8 bank)
- 	return v;
- }
- 
-+/**
-+ * omap4_pwrdm_read_prev_mem_pwrst - reads the previous memory powerstate
-+ * @pwrdm: struct powerdomain * to read mem powerstate for
-+ * @bank: memory bank index
-+ *
-+ * Reads the previous memory powerstate for a powerdomain. This function
-+ * must determine the previous memory powerstate by first checking the
-+ * previous powerstate for the domain. If that was OFF, then logic has
-+ * been lost. If previous state was RETENTION, the function reads the
-+ * setting for the next memory retention state to see the actual value.
-+ * In every other case, the logic is retained. Returns either
-+ * PWRDM_LOGIC_MEM_PWRST_OFF or PWRDM_LOGIC_MEM_PWRST_RET depending
-+ * whether logic was retained or not.
-+ */
-+static int omap4_pwrdm_read_prev_mem_pwrst(struct powerdomain *pwrdm, u8 bank)
-+{
-+	int state;
-+
-+	state = omap4_pwrdm_read_prev_pwrst(pwrdm);
-+
-+	if (state == PWRDM_POWER_OFF)
-+		return PWRDM_LOGIC_MEM_PWRST_OFF;
-+
-+	if (state != PWRDM_POWER_RET)
-+		return PWRDM_LOGIC_MEM_PWRST_RET;
-+
-+	return omap4_pwrdm_read_mem_retst(pwrdm, bank);
-+}
-+
- static int omap4_pwrdm_wait_transition(struct powerdomain *pwrdm)
- {
- 	u32 c = 0;
-@@ -220,9 +277,11 @@ struct pwrdm_ops omap4_pwrdm_operations = {
- 	.pwrdm_clear_all_prev_pwrst	= omap4_pwrdm_clear_all_prev_pwrst,
- 	.pwrdm_set_logic_retst	= omap4_pwrdm_set_logic_retst,
- 	.pwrdm_read_logic_pwrst	= omap4_pwrdm_read_logic_pwrst,
-+	.pwrdm_read_prev_logic_pwrst	= omap4_pwrdm_read_prev_logic_pwrst,
- 	.pwrdm_read_logic_retst	= omap4_pwrdm_read_logic_retst,
- 	.pwrdm_read_mem_pwrst	= omap4_pwrdm_read_mem_pwrst,
- 	.pwrdm_read_mem_retst	= omap4_pwrdm_read_mem_retst,
-+	.pwrdm_read_prev_mem_pwrst	= omap4_pwrdm_read_prev_mem_pwrst,
- 	.pwrdm_set_mem_onst	= omap4_pwrdm_set_mem_onst,
- 	.pwrdm_set_mem_retst	= omap4_pwrdm_set_mem_retst,
- 	.pwrdm_wait_transition	= omap4_pwrdm_wait_transition,
--- 
-1.7.4.1
+Which boards have been tested with this change?
 
+Otherwise, looks good.
+
+Reviewed-by: Jon Hunter <jon-hunter@ti.com>
+
+Cheers
+Jon
+
+[1] http://www.alwaysinnovating.com/wiki/index.php/Booting
