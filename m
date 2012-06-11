@@ -1,87 +1,79 @@
-From: Vinod Koul <vinod.koul@linux.intel.com>
-Subject: Re: RFC: changing DMA slave configuration API
-Date: Mon, 11 Jun 2012 10:20:49 +0530
-Message-ID: <1339390249.1927.1623.camel@vkoul-udesk3>
-References: <20120610102023.GC11404@n2100.arm.linux.org.uk>
-	 <CAGsJ_4xHNdEcfsmtypDHcJ0uyhtFz43xBojgHw2RSvrH8ohRcA@mail.gmail.com>
-	 <20120610112217.GD11404@n2100.arm.linux.org.uk>
+From: Tony Lindgren <tony@atomide.com>
+Subject: Re: [PATCH 04/11] ARM: OMAP2+: usb_host_fs: add custom reset for
+ usb_host_fs (fsusb)
+Date: Sun, 10 Jun 2012 23:15:47 -0700
+Message-ID: <20120611061546.GQ12766@atomide.com>
+References: <20120607073112.GX12766@atomide.com>
+ <alpine.DEB.2.00.1206070136550.6684@utopia.booyaka.com>
+ <20120607075158.GZ12766@atomide.com>
+ <20120607075541.GF16342@arwen.pp.htv.fi>
+ <4FD0602B.9070704@ti.com>
+ <alpine.DEB.2.00.1206070446070.6684@utopia.booyaka.com>
+ <4FD09EFA.20304@ti.com>
+ <alpine.DEB.2.00.1206071657160.14977@utopia.booyaka.com>
+ <4FD1FA8C.1080600@ti.com>
+ <alpine.DEB.2.00.1206080722040.14977@utopia.booyaka.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mga11.intel.com ([192.55.52.93]:42915 "EHLO mga11.intel.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751170Ab2FKE54 (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Mon, 11 Jun 2012 00:57:56 -0400
-In-Reply-To: <20120610112217.GD11404@n2100.arm.linux.org.uk>
+Received: from mho-02-ewr.mailhop.org ([204.13.248.72]:46752 "EHLO
+	mho-02-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753905Ab2FKGPv (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 11 Jun 2012 02:15:51 -0400
+Content-Disposition: inline
+In-Reply-To: <alpine.DEB.2.00.1206080722040.14977@utopia.booyaka.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Russell King - ARM Linux <linux@arm.linux.org.uk>
-Cc: Barry Song <21cnbao@gmail.com>, Dan Williams <dan.j.williams@intel.com>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+To: Paul Walmsley <paul@pwsan.com>
+Cc: "Cousson, Benoit" <b-cousson@ti.com>, balbi@ti.com, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Tero Kristo <t-kristo@ti.com>, Ohad Ben-Cohen <ohad@wizery.com>
 
-On Sun, 2012-06-10 at 12:22 +0100, Russell King - ARM Linux wrote:
-> On Sun, Jun 10, 2012 at 07:19:47PM +0800, Barry Song wrote:
-> > 2012/6/10 Russell King - ARM Linux <linux@arm.linux.org.uk>:
-> > > Dan, Vinod,
-> > >
-> > > There's a change I would like to do to the DMA slave configuration.
-> > > It's currently a pain to have the source and destination parameters in
-> > > the dma_slave_config structure as separate elements; it means when you
-> > > want to extract them, you end up with code in DMA engine drivers like:
-> > >
-> > > +       if (dir == DMA_DEV_TO_MEM) {
-> > > +               dev_addr = c->src_addr;
-> > > +               dev_width = c->src_addr_width;
-> > > +               burst = c->src_maxburst;
-> > > +       } else if (dir == DMA_MEM_TO_DEV) {
-> > > +               dev_addr = c->dst_addr;
-> > > +               dev_width = c->dst_addr_width;
-> > > +               burst = c->dst_maxburst;
-> > > +       }
-> > >
-> > > If we redefine the structure as below, this all becomes more simple:
-> > >
-> > > +       if (dir == DMA_DEV_TO_MEM)
-> > > +               cfg = &c->dev_src;
-> > > +       else if (dir == DMA_MEM_TO_DEV)
-> > > +               cfg = &c->dev_dst;
+* Paul Walmsley <paul@pwsan.com> [120608 06:33]:
+> On Fri, 8 Jun 2012, Cousson, Benoit wrote:
+> 
+> > On 6/8/2012 3:11 AM, Paul Walmsley wrote:
+> > > On Thu, 7 Jun 2012, Cousson, Benoit wrote:
+> > > 
+> > > > Indeed, what I did not mention is that potentially the whole device 
+> > > > init should be done ondemand as well. Meaning the whole hwmod setup 
+> > > > phase should be done only when the driver will probe the device.
+> > > 
+> > > That means if no driver exists for an IP block, or if the driver isn't
+> > > using PM runtime, the IP block won't be reset.  And somehow we still are
+> > > missing drivers in mainline.  We also still have drivers that aren't yet
+> > > PM runtime converted.
 > > 
-> > it seems that might mean an union in your dma_slave_cfg, but not
-> > co-exitense of both?
+> > No the point is still the same as before. You let the drivers do the job if
+> > they are there, and then do a pass at very late time during the boot process
+> > to handle the ones that were not probed by any driver.
 > 
-> No, I want both so it's possible to select between the two when preparing
-> a DMA slave transfer.
+> Ah, I see what you mean.  Above you wrote that the the hwmod setup phase 
+> would be done only when the driver will probe the device.  But you also 
+> mean that it should also be done for the remaining devices before starting 
+> userspace.
 > 
-> > struct dma_slave_cfg {
-> > +       union {
-> >               struct dma_dev_cfg dev_src;
-> >               struct dma_dev_cfg dev_dst;
-> >        }
-> >        bool device_fc;
-> > };
+> > At least you will avoid the enable -> reset -> idle -> enable sequence 
+> > we are doing right now for most of the active drivers when it is not 
+> > necessary.
 > 
-> If you do that, the union becomes pointless, and you might as well have:
-> 
-> struct dma_slave_cfg {
-> 	struct dma_dev_cfg dev;
-> 	bool device_fc;
-> };
-> 
-> instead.
-Hi Russell,
+> It must not be widely known, but early reset was implemented 
+> intentionally.  The goal was to keep any configuration damage from 
+> out-of-date or broken bootloaders or previous OSes to a minimum length of 
+> time during the boot process.
 
-I think it is a good idea. And I would like to extend it even a little
-bit. Do we have any users of peripheral to peripheral slave dma?
-IIRC  that is not the case, or does anyone know of existence or plans
-for such a h/w?
+These devices should get reset as the device drivers initialize. Some parts
+of course need to be initialized properly early like caches and DMA controller.
+ 
+> I don't really have a huge problem with switching to a late reset, 
+> but there are disadvantages to it.
 
-If not, lets junk the src/dst fields and keep burst, length, addr fields
-which point to the peripheral values.
+I think the early reset actually has more disadvantages to it compared
+to driver reset. We don't see any errors when things go wrong, and we
+may even kill the only debug console in the reset process.
 
-Alternatively if we need both, then we can't have union and Russell's
-idea seems good one :)
+We are already doing what Benoit describes with clocks where we only
+reset the unclaimed ones at late_initcall level, and that has proven
+to work well.
 
+Regards,
 
--- 
-~Vinod
-
+Tony
