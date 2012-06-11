@@ -1,65 +1,82 @@
 From: Jon Hunter <jon-hunter@ti.com>
-Subject: Re: [PATCH V2 01/10] ARM: PMU: Add runtime PM Support
-Date: Mon, 11 Jun 2012 14:01:23 -0500
-Message-ID: <4FD64083.3020800@ti.com>
-References: <1339104132-26885-1-git-send-email-jon-hunter@ti.com> <1339104132-26885-2-git-send-email-jon-hunter@ti.com> <20120608094708.GC19062@mudshark.cambridge.arm.com> <4FD21930.4000800@ti.com> <20120611173930.GD28235@mudshark.cambridge.arm.com>
+Subject: Re: [PATCH v5 02/14] ARM: OMAP2+: gpmc: Adapt to HWMOD
+Date: Mon, 11 Jun 2012 14:56:29 -0500
+Message-ID: <4FD64D6D.3020401@ti.com>
+References: <cover.1339419492.git.afzal@ti.com> <fb739c3c5383806f78cee3666f7c74d61bed6427.1339419492.git.afzal@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="ISO-8859-1"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from devils.ext.ti.com ([198.47.26.153]:48140 "EHLO
-	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750788Ab2FKTBa (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 11 Jun 2012 15:01:30 -0400
-In-Reply-To: <20120611173930.GD28235@mudshark.cambridge.arm.com>
+Received: from arroyo.ext.ti.com ([192.94.94.40]:41114 "EHLO arroyo.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1750977Ab2FKT4d (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Mon, 11 Jun 2012 15:56:33 -0400
+In-Reply-To: <fb739c3c5383806f78cee3666f7c74d61bed6427.1339419492.git.afzal@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Will Deacon <will.deacon@arm.com>
-Cc: linux-omap <linux-omap@vger.kernel.org>, linux-arm <linux-arm-kernel@lists.infradead.org>, Ming Lei <ming.lei@canonical.com>, Benoit Cousson <b-cousson@ti.com>, Paul Walmsley <paul@pwsan.com>, Kevin Hilman <khilman@ti.com>
+To: Afzal Mohammed <afzal@ti.com>
+Cc: tony@atomide.com, paul@pwsan.com, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 
-Hi Will,
+Hi Afzal,
 
-On 06/11/2012 12:39 PM, Will Deacon wrote:
-> On Fri, Jun 08, 2012 at 04:24:32PM +0100, Jon Hunter wrote:
->> Hi Will,
+On 06/11/2012 09:26 AM, Afzal Mohammed wrote:
+> Create API for platforms to adapt gpmc to HWMOD
 > 
-> Hi Jon,
+> Signed-off-by: Afzal Mohammed <afzal@ti.com>
+> ---
+>  arch/arm/mach-omap2/gpmc.c             |   31 +++++++++++++++++++++++++++++++
+>  arch/arm/plat-omap/include/plat/gpmc.h |    2 ++
+>  2 files changed, 33 insertions(+)
 > 
->> Here is an updated version. I was going to send out a V3, but I wanted
->> to wait to see if others had more comments first.
-> 
-> This looks better to me, so I took it for a spin on my 4460 (thanks Nicolas!)
-> and noticed that only the cycle counter seems to tick -- the event counters
-> always return 0 deltas (that is, they don't increment). Booting the same SD
-> card on a 4430 (same MLO, u-boot, kernel and filesystem) I see that the
-> event counters function correctly there.
+> diff --git a/arch/arm/mach-omap2/gpmc.c b/arch/arm/mach-omap2/gpmc.c
+> index 517953f..b471c2f 100644
+> --- a/arch/arm/mach-omap2/gpmc.c
+> +++ b/arch/arm/mach-omap2/gpmc.c
+> @@ -27,6 +27,7 @@
+>  
+>  #include <asm/mach-types.h>
+>  #include <plat/gpmc.h>
+> +#include <plat/omap_device.h>
+>  
+>  #include <plat/sdrc.h>
+>  
+> @@ -898,6 +899,36 @@ static int __init gpmc_init(void)
+>  }
+>  postcore_initcall(gpmc_init);
+>  
+> +__init int omap_gpmc_init(struct gpmc_pdata *pdata)
+> +{
+> +	struct omap_hwmod *oh;
+> +	struct platform_device *pdev;
+> +	char *name = "omap-gpmc";
+> +	char *oh_name = "gpmc";
+> +
+> +	oh = omap_hwmod_lookup(oh_name);
+> +	if (!oh) {
+> +		pr_err("Could not look up %s\n", oh_name);
+> +		return -ENODEV;
+> +	}
+> +
+> +	pdev = omap_device_build(name, -1, oh, pdata,
+> +					sizeof(*pdata), NULL, 0, 0);
+> +	if (IS_ERR(pdev)) {
+> +		WARN(1, "Can't build omap_device for %s:%s.\n",
+> +						name, oh->name);
+> +		return PTR_ERR(pdev);
+> +	}
+> +
+> +	gpmc_l3_clk = clk_get(NULL, oh->main_clk);
+> +	if (IS_ERR(gpmc_l3_clk)) {
+> +		pr_err("Could not get GPMC clock\n");
+> +		return PTR_ERR(gpmc_l3_clk);
+> +	}
 
-Thanks for the feedback. Being somewhat new to PMU, I was mainly using
-PERF to test and verify that with "perf top" I was seeing interrupts.
-How do I check what the event counters are returning? Any perf tests I
-could use?
+My preference would be to store gpmc_l3_clk in the pdata and pass to
+probe via the pdata. The aim would be to remove the global gpmc_l3_clk
+altogether.
 
-By the way, as a quick test you could modify the code in omap_init_pmu()
-to call omap4430_init_pmu() for all omap4 devices as follows ...
-
-	if (cpu_is_omap44xx())
- 		return omap4430_init_pmu();
-
-I was hoping for 4460/70 we would not need to keep the debugss and other
-domains on and hence, I called the above function omap4430_init_pmu().
-However this function works for all omap4 devices, it just turns on more
-power domains.
-
-> It also seems that we can remove the dependency on CONFIG_OMAP3_EMU with these
-> patches but I don't have any OMAP3 hardware to check if we get any regressions
-> on older platforms. Do your patches only deal with OMAP4?
-
-It *should* work for all omap2+. So far I have tested an omap3 beagle
-but I have not tested an omap2 device. Again the extent of my testing
-was to run "perf top" and verify interrupts we being generated. I
-realise that this may not be sufficient and so if you have a more
-exhaustive test you recommend let me know.
+Also we should attempt to get the clk before calling omap_device_build
+which is registering the driver.
 
 Cheers
 Jon
-
