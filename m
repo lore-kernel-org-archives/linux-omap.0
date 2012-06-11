@@ -1,46 +1,86 @@
 From: Paul Walmsley <paul@pwsan.com>
-Subject: [PATCHv2 03/12] ARM: OMAP4+: hwmod: fix issue causing IPs not going
- back to Smart-Standby
-Date: Sun, 10 Jun 2012 18:46:02 -0600
-Message-ID: <20120611004559.20034.69230.stgit@dusk>
+Subject: [PATCHv2 12/12] ARM: OMAP4: hwmod data: do not enable or reset the
+ McPDM during kernel init
+Date: Sun, 10 Jun 2012 18:46:41 -0600
+Message-ID: <20120611004626.20034.42995.stgit@dusk>
 References: <20120611004502.20034.8840.stgit@dusk>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from utopia.booyaka.com ([72.9.107.138]:42545 "EHLO
+Received: from utopia.booyaka.com ([72.9.107.138]:42612 "EHLO
 	utopia.booyaka.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751559Ab2FKAwJ (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Sun, 10 Jun 2012 20:52:09 -0400
+	with ESMTP id S1752612Ab2FKAwM (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Sun, 10 Jun 2012 20:52:12 -0400
 In-Reply-To: <20120611004502.20034.8840.stgit@dusk>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
-Cc: Djamil Elaidi <d-elaidi@ti.com>
+Cc: =?utf-8?b?UMOpdGVy?= Ujfalusi <peter.ujfalusi@ti.com>, =?utf-8?q?Beno=C3=AEt?= Cousson <b-cousson@ti.com>
 
-From: Djamil Elaidi <d-elaidi@ti.com>
+Resolve this kernel boot message:
 
-If an IP is configured in Smart-Standby-Wakeup, when disabling wakeup feature the
-IP will not go back to Smart-Standby, but will remain in Smart-Standby-Wakeup.
+omap_hwmod: mcpdm: cannot be enabled for reset (3)
 
-Signed-off-by: Djamil Elaidi <d-elaidi@ti.com>
+It appears that the McPDM on OMAP4 can only receive its functional
+clock from an off-chip source.  This source is not guaranteed to be
+present on the board, and when present, it is controlled by I2C.  This
+would introduce a board dependency to the early hwmod code which it
+was not designed to handle.  Also, neither the driver for this
+off-chip clock provider nor the I2C code is available early in boot
+when the hwmod code is attempting to enable and reset IP blocks.  This
+effectively makes it impossible to enable and reset this device during
+hwmod init.
+
+At its core, this patch is a workaround for an OMAP hardware problem.
+It should be possible to configure the OMAP to provide any IP block's
+functional clock from an on-chip source.  (This is true for almost
+every IP block on the chip.  As far as I know, McPDM is the only
+exception.)  If the kernel cannot reset and configure IP blocks, it
+cannot guarantee a sane SoC state.  Relying on an optional off-chip
+clock also creates a board dependency which is beyond the scope of the
+early hwmod code.
+
+This patch works around the issue by marking the McPDM hwmod record
+with the HWMOD_EXT_OPT_MAIN_CLK flag.  This prevents the hwmod
+code from touching the device early during boot.
+
 Signed-off-by: Paul Walmsley <paul@pwsan.com>
+Cc: P=C3=A9ter Ujfalusi <peter.ujfalusi@ti.com>
+Cc: Beno=C3=AEt Cousson <b-cousson@ti.com>
 ---
- arch/arm/mach-omap2/omap_hwmod.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ arch/arm/mach-omap2/omap_hwmod_44xx_data.c |   12 ++++++++++++
+ 1 file changed, 12 insertions(+)
 
-diff --git a/arch/arm/mach-omap2/omap_hwmod.c b/arch/arm/mach-omap2/omap_hwmod.c
-index 096474c..2d1111d 100644
---- a/arch/arm/mach-omap2/omap_hwmod.c
-+++ b/arch/arm/mach-omap2/omap_hwmod.c
-@@ -530,7 +530,7 @@ static int _disable_wakeup(struct omap_hwmod *oh, u32 *v)
- 	if (oh->class->sysc->idlemodes & SIDLE_SMART_WKUP)
- 		_set_slave_idlemode(oh, HWMOD_IDLEMODE_SMART, v);
- 	if (oh->class->sysc->idlemodes & MSTANDBY_SMART_WKUP)
--		_set_master_standbymode(oh, HWMOD_IDLEMODE_SMART_WKUP, v);
-+		_set_master_standbymode(oh, HWMOD_IDLEMODE_SMART, v);
- 
- 	/* XXX test pwrdm_get_wken for this hwmod's subsystem */
- 
+diff --git a/arch/arm/mach-omap2/omap_hwmod_44xx_data.c b/arch/arm/mach=
+-omap2/omap_hwmod_44xx_data.c
+index 3613054..86fc513 100644
+--- a/arch/arm/mach-omap2/omap_hwmod_44xx_data.c
++++ b/arch/arm/mach-omap2/omap_hwmod_44xx_data.c
+@@ -2091,6 +2091,18 @@ static struct omap_hwmod omap44xx_mcpdm_hwmod =3D=
+ {
+ 	.name		=3D "mcpdm",
+ 	.class		=3D &omap44xx_mcpdm_hwmod_class,
+ 	.clkdm_name	=3D "abe_clkdm",
++	/*
++	 * It's suspected that the McPDM requires an off-chip main
++	 * functional clock, controlled via I2C.  This IP block is
++	 * currently reset very early during boot, before I2C is
++	 * available, so it doesn't seem that we have any choice in
++	 * the kernel other than to avoid resetting it.  XXX This is
++	 * really a hardware issue workaround: every IP block should
++	 * be able to source its main functional clock from either
++	 * on-chip or off-chip sources.  McPDM seems to be the only
++	 * current exception.
++	 */
++	.flags		=3D HWMOD_EXT_OPT_MAIN_CLK,
+ 	.mpu_irqs	=3D omap44xx_mcpdm_irqs,
+ 	.sdma_reqs	=3D omap44xx_mcpdm_sdma_reqs,
+ 	.main_clk	=3D "mcpdm_fck",
 
 
+--
+To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
