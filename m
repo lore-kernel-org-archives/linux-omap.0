@@ -1,222 +1,86 @@
 From: Afzal Mohammed <afzal@ti.com>
-Subject: [PATCH v5 10/14] ARM: OMAP2+: gpmc: waitpin helper
-Date: Mon, 11 Jun 2012 19:57:21 +0530
-Message-ID: <bba49a35f81f33fbdfeda78a71cbe4aa3417d6a2.1339419492.git.afzal@ti.com>
+Subject: [PATCH v5 12/14] ARM: OMAP2+: gpmc: cs reconfigure helper
+Date: Mon, 11 Jun 2012 19:57:39 +0530
+Message-ID: <8882ae964a4034d58953e743cf35664d3a107823.1339419492.git.afzal@ti.com>
 References: <cover.1339419492.git.afzal@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from devils.ext.ti.com ([198.47.26.153]:59059 "EHLO
+Received: from devils.ext.ti.com ([198.47.26.153]:59090 "EHLO
 	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752109Ab2FKOnD (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 11 Jun 2012 10:43:03 -0400
+	with ESMTP id S1755116Ab2FKOnV (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 11 Jun 2012 10:43:21 -0400
 In-Reply-To: <cover.1339419492.git.afzal@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: tony@atomide.com, paul@pwsan.com, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 Cc: Afzal Mohammed <afzal@ti.com>
 
-Helper for configuring waitpin. There are two parts to it;
-configuring at CS level and the other at device level.
-A device embedding multiple CS has been provided the
-capability to use same waitpin (different waitpins has not
-been supported as presently there are no GPMC peripherals
-doing so)
+Helper for reconfiguring CS, peripheral that necessitated
+it was OneNAND.
 
 Signed-off-by: Afzal Mohammed <afzal@ti.com>
 ---
- arch/arm/mach-omap2/gpmc.c             |  122 ++++++++++++++++++++++++++++++++
- arch/arm/plat-omap/include/plat/gpmc.h |    9 +++
- 2 files changed, 131 insertions(+)
+ arch/arm/mach-omap2/gpmc.c             |   32 ++++++++++++++++++++++++++++++++
+ arch/arm/plat-omap/include/plat/gpmc.h |    2 ++
+ 2 files changed, 34 insertions(+)
 
 diff --git a/arch/arm/mach-omap2/gpmc.c b/arch/arm/mach-omap2/gpmc.c
-index 5a6f708..9073a8a 100644
+index 281bd23..d493a4c 100644
 --- a/arch/arm/mach-omap2/gpmc.c
 +++ b/arch/arm/mach-omap2/gpmc.c
-@@ -75,6 +75,8 @@
- #define	GPMC_CONFIG6_CYCLE2CYCLEDIFFCSEN	BIT(6)
- #define	GPMC_CONFIG6_CYCLE2CYCLESAMECSEN	BIT(7)
- 
-+#define	GPMC_CONFIG_WAITPIN_POLARITY_SHIFT	0x8
-+
- #define GPMC_CS0_OFFSET		0x60
- #define GPMC_CS_SIZE		0x30
- 
-@@ -93,6 +95,19 @@
-  */
- #define	GPMC_NR_IRQ		2
- 
-+enum {
-+	GPMC_WAITPIN_IDX0,
-+	GPMC_WAITPIN_IDX1,
-+	GPMC_WAITPIN_IDX2,
-+	GPMC_WAITPIN_IDX3,
-+	GPMC_NR_WAITPIN
-+};
-+
-+enum {
-+	LOW,
-+	HIGH
-+};
-+
- struct gpmc_client_irq	{
- 	unsigned		irq;
- 	u32			bitmask;
-@@ -140,6 +155,8 @@ struct gpmc_peripheral {
- 	struct platform_device	*pdev;
- };
- 
-+static unsigned gpmc_waitpin_map;
-+
- static struct gpmc_client_irq gpmc_client_irq[GPMC_NR_IRQ];
- static struct irq_chip gpmc_irq_chip;
- static unsigned gpmc_irq_start;
-@@ -1162,6 +1179,62 @@ static void gpmc_print_cs_timings(int cs)
- 			gpmc_get_one_timing(cs, GPMC_CS_CONFIG6, 7, 7));
+@@ -1429,6 +1429,38 @@ struct platform_device *gpmc_create_device(struct gpmc_peripheral *p)
+ 	return pdev;
  }
  
-+static int gpmc_setup_cs_waitpin(struct gpmc_peripheral *g_per, unsigned cs,
-+							unsigned conf)
++static int gpmc_match_device(char *name, int id)
 +{
-+	unsigned idx;
-+	bool polarity = 0;
-+	u32 l = gpmc_cs_read_reg(cs, GPMC_CS_CONFIG1);
++	int i;
++	struct gpmc_peripheral *g_per = gpmc_peripheral;
 +
-+	switch (conf & GPMC_WAITPIN_MASK) {
-+	case GPMC_WAITPIN_0:
-+		idx =  GPMC_WAITPIN_IDX0;
-+		break;
-+	case GPMC_WAITPIN_1:
-+		idx =  GPMC_WAITPIN_IDX1;
-+		break;
-+	case GPMC_WAITPIN_2:
-+		idx =  GPMC_WAITPIN_IDX2;
-+		break;
-+	case GPMC_WAITPIN_3:
-+		idx =  GPMC_WAITPIN_IDX3;
-+		break;
-+	/* no waitpin */
-+	case 0:
-+		return 0;
-+		break;
-+	default:
-+		dev_err(gpmc_dev, "multiple waitpins selected on CS:%u\n", cs);
-+		return -EINVAL;
-+		break;
++	for (i = 0; i < gpmc_num_peripheral; i++, g_per++)
++		if (!strcmp(g_per->name, name) && g_per->id == id)
++			return i;
++
++	return -ENOENT;
++}
++
++int gpmc_cs_reconfigure(char *name, int id, struct gpmc_cs_data *c)
++{
++	int i;
++
++	i = gpmc_match_device(name, id);
++	if (IS_ERR_VALUE(i)) {
++		dev_err(gpmc_dev, "no device %s.%d to configure\n", name, id);
++		return i;
 +	}
 +
-+	polarity = !!(conf & GPMC_WAITPIN_ACTIVE_HIGH);
-+
-+	if (g_per->have_waitpin) {
-+		if (g_per->waitpin != idx ||
-+				g_per->waitpin_polarity != polarity) {
-+			dev_err(gpmc_dev, "error: conflict: waitpin %u with polarity %d on device %s.%d\n",
-+				g_per->waitpin, g_per->waitpin_polarity,
-+				g_per->name, g_per->id);
-+			return -EBUSY;
-+		}
-+	} else {
-+		g_per->have_waitpin = true;
-+		g_per->waitpin = idx;
-+		g_per->waitpin_polarity = polarity;
++	if (IS_ERR_VALUE(gpmc_setup_cs_config_timing(gpmc_peripheral + i, c))) {
++		dev_err(gpmc_dev, "error: configure device %s.%d\n", name, id);
++		return i;
 +	}
 +
-+	l |= conf & GPMC_CONFIG1_WAIT_WRITE_MON;
-+	l |= conf & GPMC_CONFIG1_WAIT_READ_MON;
-+	l &= ~GPMC_CONFIG1_WAIT_PIN_SEL_MASK;
-+	l |= GPMC_CONFIG1_WAIT_PIN_SEL(idx);
++	return gpmc_setup_waitpin(gpmc_peripheral + i);
 +
-+	gpmc_cs_write_reg(cs, GPMC_CS_CONFIG1, l);
-+
-+	return 0;
 +}
-+
- static inline unsigned gpmc_bit_to_irq(unsigned bitmask)
- {
- 	return bitmask;
-@@ -1185,6 +1258,55 @@ static __devinit int gpmc_setup_cs_irq(struct gpmc_cs_data *cs,
- 	return n;
- }
- 
-+static inline int gpmc_waitpin_is_reserved(unsigned waitpin)
-+{
-+	return gpmc_waitpin_map & (0x1 << waitpin);
-+}
-+
-+static inline void gpmc_reserve_waitpin(unsigned waitpin)
-+{
-+	gpmc_waitpin_map &= ~(0x1 << waitpin);
-+	gpmc_waitpin_map |= (0x1 << waitpin);
-+}
-+
-+static int gpmc_waitpin_request(unsigned waitpin)
-+{
-+	if (!(waitpin < GPMC_NR_WAITPIN))
-+		return -ENODEV;
-+
-+	if (gpmc_waitpin_is_reserved(waitpin))
-+		return -EBUSY;
-+	else
-+		gpmc_reserve_waitpin(waitpin);
-+
-+	return 0;
-+}
-+
-+static int gpmc_setup_waitpin(struct gpmc_peripheral *g_per)
-+{
-+	int ret;
-+	u32 l, shift;
-+
-+	if (!g_per->have_waitpin)
-+		return 0;
-+
-+	ret = gpmc_waitpin_request(g_per->waitpin);
-+	if (IS_ERR_VALUE(ret)) {
-+		dev_err(gpmc_dev, "waitpin %u reserved\n", g_per->waitpin);
-+		return ret;
-+	}
-+
-+	l = gpmc_read_reg(GPMC_CONFIG);
-+	shift = g_per->waitpin + GPMC_CONFIG_WAITPIN_POLARITY_SHIFT;
-+	if (g_per->waitpin_polarity == HIGH)
-+		l |= 1 << shift;
-+	else
-+		l &= ~(1 << shift);
-+	gpmc_write_reg(GPMC_CONFIG, l);
-+
-+	return 0;
-+}
++EXPORT_SYMBOL_GPL(gpmc_cs_reconfigure);
 +
  static __devinit int gpmc_probe(struct platform_device *pdev)
  {
  	u32 l;
 diff --git a/arch/arm/plat-omap/include/plat/gpmc.h b/arch/arm/plat-omap/include/plat/gpmc.h
-index ff3f32c..e1b130c 100644
+index e1b130c..32017a1 100644
 --- a/arch/arm/plat-omap/include/plat/gpmc.h
 +++ b/arch/arm/plat-omap/include/plat/gpmc.h
-@@ -64,6 +64,7 @@
- #define GPMC_CONFIG1_WAIT_WRITE_MON     (1 << 21)
- #define GPMC_CONFIG1_WAIT_MON_IIME(val) ((val & 3) << 18)
- #define GPMC_CONFIG1_WAIT_PIN_SEL(val)  ((val & 3) << 16)
-+#define	GPMC_CONFIG1_WAIT_PIN_SEL_MASK	GPMC_CONFIG1_WAIT_PIN_SEL(3)
- #define GPMC_CONFIG1_DEVICESIZE(val)    ((val & 3) << 12)
- #define	GPMC_CONFIG1_DEVICESIZE_8	GPMC_CONFIG1_DEVICESIZE(0)
- #define GPMC_CONFIG1_DEVICESIZE_16      GPMC_CONFIG1_DEVICESIZE(1)
-@@ -78,6 +79,14 @@
- #define GPMC_CONFIG1_FCLK_DIV4          (GPMC_CONFIG1_FCLK_DIV(3))
- #define GPMC_CONFIG7_CSVALID		(1 << 6)
+@@ -247,6 +247,8 @@ extern int gpmc_cs_configure(int cs, int cmd, int wval);
+ extern int gpmc_nand_read(int cs, int cmd);
+ extern int gpmc_nand_write(int cs, int cmd, int wval);
  
-+#define	GPMC_WAITPIN_ACTIVE_HIGH	(1 << 4)
-+#define	GPMC_WAITPIN_ACTIVE_LOW		(0 << 4)
-+#define	GPMC_WAITPIN_0			(1 << 0)
-+#define	GPMC_WAITPIN_1			(1 << 1)
-+#define	GPMC_WAITPIN_2			(1 << 2)
-+#define	GPMC_WAITPIN_3			(1 << 3)
-+#define	GPMC_WAITPIN_MASK		(GPMC_WAITPIN_0 | GPMC_WAITPIN_1 | \
-+					GPMC_WAITPIN_2 | GPMC_WAITPIN_3)
- #define GPMC_DEVICETYPE_NOR		0
- #define GPMC_DEVICETYPE_NAND		2
- #define GPMC_CONFIG_WRITEPROTECT	0x00000010
++extern int gpmc_cs_reconfigure(char *name, int id, struct gpmc_cs_data *c);
++
+ int gpmc_enable_hwecc(int cs, int mode, int dev_width, int ecc_size);
+ int gpmc_calculate_ecc(int cs, const u_char *dat, u_char *ecc_code);
+ 
 -- 
 1.7.10.2
 
