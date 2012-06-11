@@ -1,47 +1,51 @@
-From: Paul Walmsley <paul@pwsan.com>
-Subject: Re: [PATCH 04/11] ARM: OMAP2+: usb_host_fs: add custom reset for
- usb_host_fs (fsusb)
-Date: Mon, 11 Jun 2012 02:04:20 -0600 (MDT)
-Message-ID: <alpine.DEB.2.00.1206110154170.16974@utopia.booyaka.com>
-References: <20120607073112.GX12766@atomide.com> <alpine.DEB.2.00.1206070136550.6684@utopia.booyaka.com> <20120607075158.GZ12766@atomide.com> <20120607075541.GF16342@arwen.pp.htv.fi> <4FD0602B.9070704@ti.com> <alpine.DEB.2.00.1206070446070.6684@utopia.booyaka.com>
- <4FD09EFA.20304@ti.com> <alpine.DEB.2.00.1206071657160.14977@utopia.booyaka.com> <4FD1FA8C.1080600@ti.com> <alpine.DEB.2.00.1206080722040.14977@utopia.booyaka.com> <20120611061546.GQ12766@atomide.com>
+From: Russell King - ARM Linux <linux@arm.linux.org.uk>
+Subject: Re: RFC: changing DMA slave configuration API
+Date: Mon, 11 Jun 2012 09:24:24 +0100
+Message-ID: <20120611082424.GE11404@n2100.arm.linux.org.uk>
+References: <20120610102023.GC11404@n2100.arm.linux.org.uk> <CAGsJ_4xHNdEcfsmtypDHcJ0uyhtFz43xBojgHw2RSvrH8ohRcA@mail.gmail.com> <20120610112217.GD11404@n2100.arm.linux.org.uk> <1339390249.1927.1623.camel@vkoul-udesk3>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from utopia.booyaka.com ([72.9.107.138]:35163 "EHLO
-	utopia.booyaka.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750842Ab2FKIEY (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 11 Jun 2012 04:04:24 -0400
-In-Reply-To: <20120611061546.GQ12766@atomide.com>
+Received: from caramon.arm.linux.org.uk ([78.32.30.218]:53644 "EHLO
+	caramon.arm.linux.org.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751812Ab2FKIYn (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 11 Jun 2012 04:24:43 -0400
+Content-Disposition: inline
+In-Reply-To: <1339390249.1927.1623.camel@vkoul-udesk3>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Tony Lindgren <tony@atomide.com>
-Cc: "Cousson, Benoit" <b-cousson@ti.com>, balbi@ti.com, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Tero Kristo <t-kristo@ti.com>, Ohad Ben-Cohen <ohad@wizery.com>
+To: Vinod Koul <vinod.koul@linux.intel.com>
+Cc: Barry Song <21cnbao@gmail.com>, Dan Williams <dan.j.williams@intel.com>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 
-On Sun, 10 Jun 2012, Tony Lindgren wrote:
-
-> * Paul Walmsley <paul@pwsan.com> [120608 06:33]:
->  
-> > I don't really have a huge problem with switching to a late reset, 
-> > but there are disadvantages to it.
+On Mon, Jun 11, 2012 at 10:20:49AM +0530, Vinod Koul wrote:
+> I think it is a good idea. And I would like to extend it even a little
+> bit. Do we have any users of peripheral to peripheral slave dma?
+> IIRC  that is not the case, or does anyone know of existence or plans
+> for such a h/w?
 > 
-> I think the early reset actually has more disadvantages to it compared
-> to driver reset. We don't see any errors when things go wrong, and we
-> may even kill the only debug console in the reset process.
+> If not, lets junk the src/dst fields and keep burst, length, addr fields
+> which point to the peripheral values.
 > 
-> We are already doing what Benoit describes with clocks where we only
-> reset the unclaimed ones at late_initcall level, and that has proven
-> to work well.
+> Alternatively if we need both, then we can't have union and Russell's
+> idea seems good one :)
 
-The difference though between the clock and the IP block init is that 
-leaving the clocks on until later has no effect on system stability.  The 
-chip simply consumes more energy.
+We don't need the union whatever way that goes.
 
-But if the IP blocks are reset later, and the bootloader or previous OS 
-gets some register settings wrong, there's a greater risk of system 
-instability or unpredictable behavior during the boot process.
+The question over whether we have the src/dst fields is whether we want
+to support a different configuration for DMA_DEV_TO_MEM/DMA_MEM_TO_DEV
+without having to reconfigure the channel each time its direction is
+switched.
 
-I agree that it is probably easier to debug a late reset approach.
+Out of the following users:
+drivers/mmc/host/mmci.c
+drivers/spi/spi-pl022.c
+drivers/tty/serial/amba-pl011.c
 
+with amba-pl08x, I don't see any which set a different configuration
+depending on direction, and sa11x0 and OMAP DMA engine drivers only
+support one direction per channel.
 
-- Paul
+So, the question really comes down to whether we _want_ to support this,
+and how painful it would be to re-introduce this if we did need it.
+Maybe the right answer is to use the control command value to sort that
+out when we come to it.
