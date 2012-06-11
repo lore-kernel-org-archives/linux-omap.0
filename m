@@ -1,15 +1,15 @@
 From: Afzal Mohammed <afzal@ti.com>
-Subject: [PATCH 8/9] ARM: OMAP2+: board omap3evm: use gpmc driver
-Date: Mon, 11 Jun 2012 20:29:58 +0530
-Message-ID: <52d9d9fdb8e104ff099c4f7dcce1bf4c017fd4fa.1339419379.git.afzal@ti.com>
+Subject: [PATCH 9/9] ARM: OMAP2+: board omap3beagle: use gpmc driver
+Date: Mon, 11 Jun 2012 20:30:05 +0530
+Message-ID: <674253dbe5614c74133579033296125b725d6994.1339419379.git.afzal@ti.com>
 References: <cover.1339419379.git.afzal@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from devils.ext.ti.com ([198.47.26.153]:33405 "EHLO
-	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754917Ab2FKPPi (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 11 Jun 2012 11:15:38 -0400
+Received: from arroyo.ext.ti.com ([192.94.94.40]:52412 "EHLO arroyo.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1754909Ab2FKPPp (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Mon, 11 Jun 2012 11:15:45 -0400
 In-Reply-To: <cover.1339419379.git.afzal@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
@@ -21,24 +21,16 @@ code to provide gpmc driver with required information
 
 Signed-off-by: Afzal Mohammed <afzal@ti.com>
 ---
- arch/arm/mach-omap2/board-omap3evm.c |   12 +++++++++++-
- 1 file changed, 11 insertions(+), 1 deletion(-)
+ arch/arm/mach-omap2/board-omap3beagle.c |   16 ++++++++++++++--
+ 1 file changed, 14 insertions(+), 2 deletions(-)
 
-diff --git a/arch/arm/mach-omap2/board-omap3evm.c b/arch/arm/mach-omap2/board-omap3evm.c
-index 639bd07..aa9429d 100644
---- a/arch/arm/mach-omap2/board-omap3evm.c
-+++ b/arch/arm/mach-omap2/board-omap3evm.c
-@@ -43,6 +43,7 @@
+diff --git a/arch/arm/mach-omap2/board-omap3beagle.c b/arch/arm/mach-omap2/board-omap3beagle.c
+index 5aa8f28..0fe70ed 100644
+--- a/arch/arm/mach-omap2/board-omap3beagle.c
++++ b/arch/arm/mach-omap2/board-omap3beagle.c
+@@ -77,6 +77,12 @@ enum {
  
- #include <plat/board.h>
- #include <plat/usb.h>
-+#include <plat/gpmc.h>
- #include "common.h"
- #include <plat/mcspi.h>
- #include <video/omapdss.h>
-@@ -102,6 +103,12 @@ static void __init omap3_evm_get_revision(void)
- 	}
- }
+ static u8 omap3_beagle_version;
  
 +static struct gpmc_device_pdata *gpmc_device_data[2];
 +
@@ -46,28 +38,34 @@ index 639bd07..aa9429d 100644
 +	.device_pdata = gpmc_device_data,
 +};
 +
- #if defined(CONFIG_SMSC911X) || defined(CONFIG_SMSC911X_MODULE)
- #include <plat/gpmc-smsc911x.h>
+ /*
+  * Board-specific configuration
+  * Defaults to BeagleBoard-xMC
+@@ -499,6 +505,8 @@ static void __init beagle_opp_init(void)
  
-@@ -122,7 +129,9 @@ static inline void __init omap3evm_init_smsc911x(void)
- 			smsc911x_cfg.gpio_reset = OMAP3EVM_GEN2_ETHR_GPIO_RST;
- 	}
+ static void __init omap3_beagle_init(void)
+ {
++	struct omap_nand_platform_data *nand_data;
++
+ 	omap3_mux_init(board_mux, OMAP_PACKAGE_CBB);
+ 	omap3_beagle_init_rev();
  
--	gpmc_smsc911x_init(&smsc911x_cfg);
-+	*gpmc_device_data = gpmc_smsc911x_update(&smsc911x_cfg);
-+	if (!*gpmc_device_data)
-+		pr_err("error: unable to initilaize gpmc smsc911x\n");
- }
+@@ -524,9 +532,13 @@ static void __init omap3_beagle_init(void)
  
- #else
-@@ -658,6 +667,7 @@ static void __init omap3_evm_init(void)
+ 	usb_musb_init(NULL);
  	usbhs_init(&usbhs_bdata);
- 	omap_ads7846_init(1, OMAP3_EVM_TS_GPIO, 310, NULL);
- 	omap3evm_init_smsc911x();
+-	board_nand_init(omap3beagle_nand_partitions,
++	nand_data = board_nand_update(omap3beagle_nand_partitions,
+ 		ARRAY_SIZE(omap3beagle_nand_partitions), NAND_CS,
+-		NAND_BUSWIDTH_16, NULL);
++		NAND_BUSWIDTH_16, nand_default_timings);
++	*gpmc_device_data = gpmc_nand_update(nand_data);
++	if (!*gpmc_device_data)
++		pr_err("error: unable to initilaize gpmc nand\n");
 +	omap_gpmc_init(&gpmc_data);
- 	omap3_evm_display_init();
- 	omap3_evm_wl12xx_init();
- }
+ 
+ 	/* Ensure msecure is mux'd to be able to set the RTC. */
+ 	omap_mux_init_signal("sys_drm_msecure", OMAP_PIN_OFF_OUTPUT_HIGH);
 -- 
 1.7.10.2
 
