@@ -1,98 +1,173 @@
-From: Tomi Valkeinen <tomi.valkeinen@ti.com>
-Subject: Re: [PATCH 0/3] ARM: OMAP2/3: DSS HWMOD fixes
-Date: Mon, 11 Jun 2012 09:41:15 +0300
-Message-ID: <1339396875.3632.1.camel@lappyti>
-References: <1336645264-909-1-git-send-email-tomi.valkeinen@ti.com>
+From: Felipe Balbi <balbi@ti.com>
+Subject: Re: [PATCHv2 09/12] ARM: OMAP2+: usb_host_fs: add custom
+ setup_preprogram for usb_host_fs (fsusb)
+Date: Mon, 11 Jun 2012 10:13:02 +0300
+Message-ID: <20120611071301.GC6845@arwen.pp.htv.fi>
+References: <20120611004502.20034.8840.stgit@dusk>
+ <20120611004617.20034.21714.stgit@dusk>
+ <20120611063416.GT12766@atomide.com>
+Reply-To: balbi@ti.com
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg="pgp-sha1"; protocol="application/pgp-signature";
-	boundary="=-Nw9Zi4KpDK3vhDr2C5gu"
+Content-Type: multipart/signed; micalg=pgp-sha1;
+	protocol="application/pgp-signature"; boundary="3siQDZowHQqNOShm"
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na6sys009bog026.obsmtp.com ([74.125.150.92]:55643 "EHLO
-	na6sys009bog026.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751431Ab2FKGtq (ORCPT
+Received: from na6sys009bog002.obsmtp.com ([74.125.150.44]:44906 "EHLO
+	na6sys009bog002.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1751431Ab2FKHUr (ORCPT
 	<rfc822;linux-omap@vger.kernel.org>);
-	Mon, 11 Jun 2012 02:49:46 -0400
-Received: by lahd3 with SMTP id d3so2867367lah.5
-        for <linux-omap@vger.kernel.org>; Sun, 10 Jun 2012 23:49:35 -0700 (PDT)
-In-Reply-To: <1336645264-909-1-git-send-email-tomi.valkeinen@ti.com>
+	Mon, 11 Jun 2012 03:20:47 -0400
+Received: by lagu2 with SMTP id u2so2828558lag.26
+        for <linux-omap@vger.kernel.org>; Mon, 11 Jun 2012 00:20:40 -0700 (PDT)
+Content-Disposition: inline
+In-Reply-To: <20120611063416.GT12766@atomide.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: paul@pwsan.com
-Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, archit@ti.com
+To: Tony Lindgren <tony@atomide.com>
+Cc: Paul Walmsley <paul@pwsan.com>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Tero Kristo <t-kristo@ti.com>, =?iso-8859-1?Q?Beno=EEt?= Cousson <b-cousson@ti.com>, Felipe Balbi <balbi@ti.com>
 
 
---=-Nw9Zi4KpDK3vhDr2C5gu
-Content-Type: text/plain; charset="UTF-8"
+--3siQDZowHQqNOShm
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
 Content-Transfer-Encoding: quoted-printable
 
-Paul,
-
-Ping. These could be queued for the next merge window.
-
- Tomi
-
-On Thu, 2012-05-10 at 13:21 +0300, Tomi Valkeinen wrote:
+On Sun, Jun 10, 2012 at 11:34:17PM -0700, Tony Lindgren wrote:
 > Hi,
 >=20
-> These patches fix DSS hwmod data related to sysc flags. I haven't seen an=
-y
-> problem produced by these missing bits, but by looking at the TRM it's cl=
-ear
-> that they should be defined.
+> Similar comments to the asess patch on this one below.
 >=20
-> However, applying these will cause additional warnings to show during boo=
-t:
+> * Paul Walmsley <paul@pwsan.com> [120610 17:57]:
+> > --- /dev/null
+> > +++ b/include/linux/platform_data/fsusb.h
 >=20
-> omap_hwmod: dss_dispc: softreset failed (waited 10000 usec)
-> omap_hwmod: dss_rfbi: softreset failed (waited 10000 usec)
+> This would be better as include/linux/platform_data/omap-usb.h.
 >=20
-> Most likely the softreset fails even now, but as there's no check to veri=
-fy it,
-> no warnings are visible.
+> > +#include <plat/omap_hwmod.h>
 >=20
-> I think the reason for the failing softreset is the same problem as we ha=
-ve on
-> OMAP4: dss_core hwmod should be enabled before other dss hwmods can be en=
-abled
-> (and reset).
+> This include should not be needed here if the hwmod function is
+> a static function in the some hwmod*.c file.
 >=20
->  Tomi
+> > +/* HCCOMMANDSTATUS: the register offset of the HCCOMMANDSTATUS registe=
+r */
+> > +#define HCCOMMANDSTATUS			0x0008
+> > +
+> > +/* HCCOMMANDSTATUS_HCR: the bitmask of the host controller reset flag =
+*/
+> > +#define HCCOMMANDSTATUS_HCR_MASK	(1 << 0)
 >=20
-> Tomi Valkeinen (3):
->   ARM: OMAP2/3: HWMOD: Add missing flags for dispc class
->   ARM: OMAP2/3: HWMOD: Add missing flag for rfbi class
->   ARM: OMAP3: HWMOD: Add omap_hwmod_class_sysconfig for dsi
->=20
->  .../mach-omap2/omap_hwmod_2xxx_3xxx_ipblock_data.c |    2 +-
->  arch/arm/mach-omap2/omap_hwmod_2xxx_ipblock_data.c |    3 ++-
->  arch/arm/mach-omap2/omap_hwmod_3xxx_data.c         |   15 ++++++++++++++=
--
->  3 files changed, 17 insertions(+), 3 deletions(-)
->=20
+> I think these already have standard defines in some OHCI header?
+> Felipe may be able to comment more on this?
 
+Well, yeah... but it's defined on drivers/usb/host/ohci.h and it's
+actually a structure:
 
---=-Nw9Zi4KpDK3vhDr2C5gu
+| /*
+|  * This is the structure of the OHCI controller's memory mapped I/O regio=
+n.
+|  * You must use readl() and writel() (in <asm/io.h>) to access these fiel=
+ds!!
+|  * Layout is in section 7 (and appendix B) of the spec.
+|  */
+| struct ohci_regs {
+| 	/* control and status registers (section 7.1) */
+| 	__hc32	revision;
+| 	__hc32	control;
+| 	__hc32	cmdstatus;
+| 	__hc32	intrstatus;
+| 	__hc32	intrenable;
+| 	__hc32	intrdisable;
+|=20
+| 	/* memory pointers (section 7.2) */
+| 	__hc32	hcca;
+| 	__hc32	ed_periodcurrent;
+| 	__hc32	ed_controlhead;
+| 	__hc32	ed_controlcurrent;
+| 	__hc32	ed_bulkhead;
+| 	__hc32	ed_bulkcurrent;
+| 	__hc32	donehead;
+|=20
+| 	/* frame counters (section 7.3) */
+| 	__hc32	fminterval;
+| 	__hc32	fmremaining;
+| 	__hc32	fmnumber;
+| 	__hc32	periodicstart;
+| 	__hc32	lsthresh;
+|=20
+| 	/* Root hub ports (section 7.4) */
+| 	struct	ohci_roothub_regs {
+| 		__hc32	a;
+| 		__hc32	b;
+| 		__hc32	status;
+| #define MAX_ROOT_PORTS	15	/* maximum OHCI root hub ports (RH_A_NDP) */
+| 		__hc32	portstatus [MAX_ROOT_PORTS];
+| 	} roothub;
+|=20
+| 	/* and optional "legacy support" registers (appendix B) at 0x0100 */
+|=20
+| } __attribute__ ((aligned(32)));
+
+[...]
+
+| /*
+|  * HcCommandStatus (cmdstatus) register masks
+|  */
+| #define OHCI_HCR	(1 << 0)	/* host controller reset */
+| #define OHCI_CLF	(1 << 1)	/* control list filled */
+| #define OHCI_BLF	(1 << 2)	/* bulk list filled */
+| #define OHCI_OCR	(1 << 3)	/* ownership change request */
+| #define OHCI_SOC	(3 << 16)	/* scheduling overrun count */
+
+> > +static int fsusb_reset_host_controller(const char *name, void __iomem =
+*base)
+> > +{
+> > +	int i;
+> > +
+> > +	writel(HCCOMMANDSTATUS_HCR_MASK, base + HCCOMMANDSTATUS);
+> > +
+> > +	for (i =3D 0; i < MAX_FSUSB_HCR_TIME; i++) {
+> > +		if (!(readl(base + HCCOMMANDSTATUS) & HCCOMMANDSTATUS_HCR_MASK))
+> > +			break;
+> > +		udelay(1);
+> > +	}
+> > +
+> > +	if (i =3D=3D MAX_FSUSB_HCR_TIME) {
+> > +		pr_warn("%s: %s: host controller reset failed (waited %d usec)\n",
+> > +			__func__, name, MAX_FSUSB_HCR_TIME);
+> > +		return -EBUSY;
+> > +	}
+> > +
+> > +	return 0;
+> > +}
+>=20
+> This should be "static inline int fsusb_reset_host_controller" as it's
+> in a header.
+
+why is it even in a header ? Only hwmod_fsusb_preprogram() will use it
+anyway.
+
+--=20
+balbi
+
+--3siQDZowHQqNOShm
 Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: This is a digitally signed message part
-Content-Transfer-Encoding: 7bit
+Content-Description: Digital signature
 
 -----BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.4.11 (GNU/Linux)
+Version: GnuPG v1.4.12 (GNU/Linux)
 
-iQIcBAABAgAGBQJP1ZMLAAoJEPo9qoy8lh71UNcP/1R9K0H1MbISwC+SZ84v1oBU
-5VmrDiKZMs7hZ4R17MAdmnwX5qu5LnR3BzqsknPHbpriGKpWneCdoCWMpVdBkvc2
-VdLKX1mOJA6jfTsFHDAw7gSSh2dmk9S+6BrvQ/u7+CRo94PaD6opJYTdgRLFBHJW
-3UxXRTqkC/g1ZH7LArZ8W0KXCzTQidLYhr9e2CEsiqjWMun2oUTviUFhjr7lhj7b
-5JQNH+6spxJn2kwA0UwnJ9C31tSC6Pt8nnn8/JP2s5cwqB0kXZyNqDuS6L6wd0KX
-/MgMe9p3AKYIoviV6qauOOTNtXQPGwsRQkdBJ1/mTmdf16/5FZ58n0kj2W4+zXKw
-C623yD928eSzU1DkQKeUpKSKrrh3oGzPKF+si59frSAtGlcfofgByqKesQQMnAur
-anLeb15seZIpPCAsRTOU/b6nTsVbxSm8mZvFimYq7shCcVTe0Xu49IZIgvsFph4B
-f4D8l2l+p5TQpbBj5r0S8T4m5C4aJqQXDtK5dTtUZGzoz6LzKWDrJgTK1/DQHXU1
-H7LkGq1wX87NAM0W5+MoYVXE1A6wMeb7e8l7T8XSOY5LXicfNfzFk2TXDnDo/a/Q
-fyao1wFstiasAxKmCTkf0aAvlxKK8Lnq7E4hGxESKvknHyqSG04LTuyJeQi1gvh3
-wnivMlR96/YzWYDPA6dB
-=B69c
+iQIcBAEBAgAGBQJP1Zp9AAoJEIaOsuA1yqRE9EEP/ivvyHLSICDJ+l51SQ0joZ/E
+yDrq0MCyHHBl2iYJwi3vzUd6US/Sfw7Lu0RmPKEvLSmTC5/3icTg3zJck4B91USO
+Iri1jPBwN9o0nnK/y8YRuxY5aF5o3AYgA10PXjGjkUfvxa9EVQXvAJe5p2AsjoO+
+rnMqiPSo/zNdNiNET2tihQry4Q+/OUFwJSvEEf4GE824xvaNDds7hkdLYizuF8HY
+Ekcy6Ov/166vwHH5IZqvd5gZzP3ml+dz3/Jd9MH4b+qnTu9jPlR/1+ZfYvKto2Z5
+QGuNEIavOSP9h1e7cxXO2FSqI0V4WNhaGORwair+YUDNSQb0E4k2BG4fPTzk9VqP
+KW+mxuUUB0cas7o3eOHpXYPfJUkwgPdosPI/8zmTQ94XV3LYgZL1Jqiav+5Ujp5x
+zSpAx1bv+2lAFNk3Wggp/6O9AGl2IpnHCdJ9ZRisy/+us30xLFmRXMAefmY0+GlA
+tVLOU20KMp/mPWciJHMTeQRV/WHAspz8Vk6G/5ChAjUbzl3LVqjVWNQ48+x4Oayg
+y47+IXlozqq3zqDDFINGQH9I/yebO14CGAp4tfr4/6XWPvZpRjXa0EALbBa0oYGh
+D0kVNtMF3vIAtL/JJpym87qS5IyVqIRRTngIHRN6XqcJ3dRrwsr9GusURviVcuYC
+CJQda0qlTQbzP1ijWO7j
+=TjLV
 -----END PGP SIGNATURE-----
 
---=-Nw9Zi4KpDK3vhDr2C5gu--
-
+--3siQDZowHQqNOShm--
