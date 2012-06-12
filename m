@@ -1,36 +1,84 @@
-From: "Mohammed, Afzal" <afzal@ti.com>
-Subject: RE: [PATCH v5 12/14] ARM: OMAP2+: gpmc: cs reconfigure helper
-Date: Tue, 12 Jun 2012 09:01:33 +0000
-Message-ID: <C8443D0743D26F4388EA172BF4E2A7A93E997F8F@DBDE01.ent.ti.com>
-References: <cover.1339419492.git.afzal@ti.com>
- <8882ae964a4034d58953e743cf35664d3a107823.1339419492.git.afzal@ti.com>
- <4FD67981.7070508@ti.com>
+From: Will Deacon <will.deacon@arm.com>
+Subject: Re: [PATCH V2 01/10] ARM: PMU: Add runtime PM Support
+Date: Tue, 12 Jun 2012 10:28:42 +0100
+Message-ID: <20120612092842.GA2991@mudshark.cambridge.arm.com>
+References: <1339104132-26885-1-git-send-email-jon-hunter@ti.com>
+ <1339104132-26885-2-git-send-email-jon-hunter@ti.com>
+ <20120608094708.GC19062@mudshark.cambridge.arm.com>
+ <4FD21930.4000800@ti.com>
+ <20120611173930.GD28235@mudshark.cambridge.arm.com>
+ <4FD64083.3020800@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from comal.ext.ti.com ([198.47.26.152]:48511 "EHLO comal.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751821Ab2FLJBj convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 12 Jun 2012 05:01:39 -0400
-In-Reply-To: <4FD67981.7070508@ti.com>
-Content-Language: en-US
+Received: from cam-admin0.cambridge.arm.com ([217.140.96.50]:48053 "EHLO
+	cam-admin0.cambridge.arm.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1751448Ab2FLJ26 (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>);
+	Tue, 12 Jun 2012 05:28:58 -0400
+Content-Disposition: inline
+In-Reply-To: <4FD64083.3020800@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "Hunter, Jon" <jon-hunter@ti.com>
-Cc: "tony@atomide.com" <tony@atomide.com>, "paul@pwsan.com" <paul@pwsan.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>
+To: Jon Hunter <jon-hunter@ti.com>
+Cc: Kevin Hilman <khilman@ti.com>, Paul Walmsley <paul@pwsan.com>, Benoit Cousson <b-cousson@ti.com>, Ming Lei <ming.lei@canonical.com>, linux-omap <linux-omap@vger.kernel.org>, linux-arm <linux-arm-kernel@lists.infradead.org>
 
-Hi Jon,
+On Mon, Jun 11, 2012 at 08:01:23PM +0100, Jon Hunter wrote:
+> Hi Will,
 
-On Tue, Jun 12, 2012 at 04:34:33, Hunter, Jon wrote:
+Hello,
+
+> On 06/11/2012 12:39 PM, Will Deacon wrote:
+> > This looks better to me, so I took it for a spin on my 4460 (thanks Nicolas!)
+> > and noticed that only the cycle counter seems to tick -- the event counters
+> > always return 0 deltas (that is, they don't increment). Booting the same SD
+> > card on a 4430 (same MLO, u-boot, kernel and filesystem) I see that the
+> > event counters function correctly there.
 > 
-> On 06/11/2012 09:27 AM, Afzal Mohammed wrote:
-> > Helper for reconfiguring CS, peripheral that necessitated
-> > it was OneNAND.
+> Thanks for the feedback. Being somewhat new to PMU, I was mainly using
+> PERF to test and verify that with "perf top" I was seeing interrupts.
+> How do I check what the event counters are returning? Any perf tests I
+> could use?
+
+You can continue to use perf top, just specify an event other than cycles:
+
+# perf top -e instructions
+
+for example. You can also use perf stat, but that probably won't be
+triggering irqs.
+
+> By the way, as a quick test you could modify the code in omap_init_pmu()
+> to call omap4430_init_pmu() for all omap4 devices as follows ...
 > 
-> Why? I think you need to add more about why this was needed.
+> 	if (cpu_is_omap44xx())
+>  		return omap4430_init_pmu();
+> 
+> I was hoping for 4460/70 we would not need to keep the debugss and other
+> domains on and hence, I called the above function omap4430_init_pmu().
+> However this function works for all omap4 devices, it just turns on more
+> power domains.
 
-Ok, I will describe more
+Well, I tried that and the results are pretty whacky: the event counters do
+indeed tick but interrupts only fire if I pin the perf task to CPU1! What's
+more, the interrupts do fire on both cores when they're working...
 
-Regards
-Afzal
+Without the above change, I can generate cycle counter interrupts regardless
+of which CPU I run execute perf.
+
+> > It also seems that we can remove the dependency on CONFIG_OMAP3_EMU with these
+> > patches but I don't have any OMAP3 hardware to check if we get any regressions
+> > on older platforms. Do your patches only deal with OMAP4?
+> 
+> It *should* work for all omap2+. So far I have tested an omap3 beagle
+> but I have not tested an omap2 device. Again the extent of my testing
+> was to run "perf top" and verify interrupts we being generated. I
+> realise that this may not be sufficient and so if you have a more
+> exhaustive test you recommend let me know.
+
+Well, try the above as well as what you're currently doing and that should
+test the basics. If that works, I'll happily drop the Kconfig dependency on
+OMAP3_EMU (which has been a regular source of confusion).
+
+Cheers,
+
+Will
