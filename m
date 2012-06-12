@@ -1,112 +1,132 @@
-From: CF Adad <cfadad@rocketmail.com>
-Subject: Re: Please help! AM35xx mm/slab.c BUG
-Date: Tue, 12 Jun 2012 08:27:44 -0700 (PDT)
-Message-ID: <1339514864.6355.YahooMailNeo@web125206.mail.ne1.yahoo.com>
-References: <1338878255.13133.YahooMailNeo@web125205.mail.ne1.yahoo.com> <20120605070853.GE12766@atomide.com> <1338913755.88514.YahooMailNeo@web125201.mail.ne1.yahoo.com> <1338963298.87083.YahooMailNeo@web125204.mail.ne1.yahoo.com> <CAMQu2gw2bGNwot_xVPdAsYjZChzzNib2USg8Ci+W5aLbenPnqA@mail.gmail.com> <20120606071024.GP12766@atomide.com> <1338969083.99043.YahooMailNeo@web125201.mail.ne1.yahoo.com> <C8443D0743D26F4388EA172BF4E2A7A93E995E3B@DBDE01.ent.ti.com> <1339098613.84700.YahooMailNeo@web125202.mail.ne1.yahoo.com> <C8443D0743D26F4388EA172BF4E2A7A93E9980CC@DBDE01.ent.ti.com>
-Reply-To: CF Adad <cfadad@rocketmail.com>
+From: Tero Kristo <t-kristo@ti.com>
+Subject: [PATCHv3 01/20] ARM: OMAP4: PM: powerdomain: Add HWSAR flag to L3INIT
+Date: Tue, 12 Jun 2012 18:31:16 +0300
+Message-ID: <1339515095-9908-2-git-send-email-t-kristo@ti.com>
+References: <1339515095-9908-1-git-send-email-t-kristo@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: text/plain
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from nm21-vm0.bullet.mail.ne1.yahoo.com ([98.138.90.94]:41410 "HELO
-	nm21-vm0.bullet.mail.ne1.yahoo.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with SMTP id S1751132Ab2FLP1p convert rfc822-to-8bit
-	(ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Tue, 12 Jun 2012 11:27:45 -0400
-In-Reply-To: <C8443D0743D26F4388EA172BF4E2A7A93E9980CC@DBDE01.ent.ti.com>
+Received: from comal.ext.ti.com ([198.47.26.152]:40984 "EHLO comal.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752104Ab2FLPbu (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Tue, 12 Jun 2012 11:31:50 -0400
+In-Reply-To: <1339515095-9908-1-git-send-email-t-kristo@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "Mohammed, Afzal" <afzal@ti.com>
-Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, Tony Lindgren <tony@atomide.com>, "Shilimkar, Santosh" <santosh.shilimkar@ti.com>
+To: linux-omap@vger.kernel.org, khilman@ti.com, paul@pwsan.com, tony@atomide.com
+Cc: linux-arm-kernel@lists.infradead.org, Santosh Shilimkar <santosh.shilimkar@ti.com>
 
-Afzal,
+From: Santosh Shilimkar <santosh.shilimkar@ti.com>
 
-Thanks!=A0 This set looks very interesting.=A0 As I've been chasing thi=
-s bug all week, I haven't had time to sync our build up to the latest t=
-ree.=A0 So I'm still back at 3.4-rc6, and cannot directly patch this in=
- a give it a try yet.=A0 However, I'll certainly take a look as soon as=
- I can.=A0 My research on the issue so far has indicated that we may ha=
-ve a hardware issue not a software issue.=A0 We're seeing some nasty tr=
-ansients pouring in from our power supply.=A0 So, we're chasing that fi=
-rst.
+L3INIT powerdomain has USB HOST and USB TLL modules which support
+hardware save-and-restore (HW SAR) mechanism.
+This patch updates the L3INIT power domain to mark them as capable
+of doing H/w save and restore and provides functions to do them
+explicitly.
 
-Thanks again for the post and suggestions though.=A0 I do want to get u=
-p to the 3.5 series as soon as I can.
+Note: Eventually, these custom function implementation will be
+abstracted and might be done in hwmod or in other layer.
 
-Best regards!
+Signed-off-by: Santosh Shilimkar <santosh.shilimkar@ti.com>
+Signed-off-by: Tero Kristo <t-kristo@ti.com>
+---
+ arch/arm/mach-omap2/powerdomain44xx.c       |   57 +++++++++++++++++++++++++++
+ arch/arm/mach-omap2/powerdomains44xx_data.c |    2 +-
+ 2 files changed, 58 insertions(+), 1 deletions(-)
 
+diff --git a/arch/arm/mach-omap2/powerdomain44xx.c b/arch/arm/mach-omap2/powerdomain44xx.c
+index ab93f08..c63d580 100644
+--- a/arch/arm/mach-omap2/powerdomain44xx.c
++++ b/arch/arm/mach-omap2/powerdomain44xx.c
+@@ -23,6 +23,10 @@
+ #include "prm44xx.h"
+ #include "prminst44xx.h"
+ #include "prm-regbits-44xx.h"
++#include "cm-regbits-44xx.h"
++#include "prcm44xx.h"
++#include "cm2_44xx.h"
++#include "cminst44xx.h"
+ 
+ static int omap4_pwrdm_set_next_pwrst(struct powerdomain *pwrdm, u8 pwrst)
+ {
+@@ -265,6 +269,57 @@ static int omap4_pwrdm_wait_transition(struct powerdomain *pwrdm)
+ 	return 0;
+ }
+ 
++/**
++ * omap4_pwrdm_enable_hdwr_sar - enable hardware save / restore for pwrdm
++ * @pwrdm: struct powerdomain * to enable HW SAR for
++ *
++ * Enables hardware save / restore for a powerdomain. This is needed by
++ * some power domains to properly support off mode. Currently supports
++ * only L3INIT powerdomain on OMAP4. Called from powerdomain core code.
++ * Returns 0 always.
++ */
++static int omap4_pwrdm_enable_hdwr_sar(struct powerdomain *pwrdm)
++{
++	/*
++	 * FIXME: This should be fixed right way by moving it into HWMOD
++	 * or clock framework since sar control is moved to module level
++	 */
++	omap4_cminst_rmw_inst_reg_bits(OMAP4430_SAR_MODE_MASK,
++		1 << OMAP4430_SAR_MODE_SHIFT, OMAP4430_CM2_PARTITION,
++		OMAP4430_CM2_L3INIT_INST,
++		OMAP4_CM_L3INIT_USB_HOST_CLKCTRL_OFFSET);
++	omap4_cminst_rmw_inst_reg_bits(OMAP4430_SAR_MODE_MASK,
++		1 << OMAP4430_SAR_MODE_SHIFT, OMAP4430_CM2_PARTITION,
++		OMAP4430_CM2_L3INIT_INST,
++		OMAP4_CM_L3INIT_USB_TLL_CLKCTRL_OFFSET);
++	return 0;
++}
++
++/**
++ * omap4_pwrdm_disable_hdwr_sar - disable hardware save / restore for pwrdm
++ * @pwrdm: struct powerdomain * to enable HW SAR for
++ *
++ * Disables hardware save / restore for a powerdomain. For OMAP4, supports
++ * currently only L3INIT powerdomain. Returns 0 always.
++ */
++static int omap4_pwrdm_disable_hdwr_sar(struct powerdomain *pwrdm)
++{
++	/*
++	 * FIXME: This should be fixed right way by moving it into HWMOD
++	 * or clock framework since sar control is moved to module level
++	 */
++	omap4_cminst_rmw_inst_reg_bits(OMAP4430_SAR_MODE_MASK,
++		0 << OMAP4430_SAR_MODE_SHIFT, OMAP4430_CM2_PARTITION,
++		OMAP4430_CM2_L3INIT_INST,
++		OMAP4_CM_L3INIT_USB_HOST_CLKCTRL_OFFSET);
++	omap4_cminst_rmw_inst_reg_bits(OMAP4430_SAR_MODE_MASK,
++		0 << OMAP4430_SAR_MODE_SHIFT, OMAP4430_CM2_PARTITION,
++		OMAP4430_CM2_L3INIT_INST,
++		OMAP4_CM_L3INIT_USB_TLL_CLKCTRL_OFFSET);
++
++	return 0;
++}
++
+ struct pwrdm_ops omap4_pwrdm_operations = {
+ 	.pwrdm_func_to_pwrst	= omap2_pwrdm_func_to_pwrst,
+ 	.pwrdm_func_to_logic_pwrst	= omap2_pwrdm_func_to_logic_pwrst,
+@@ -285,4 +340,6 @@ struct pwrdm_ops omap4_pwrdm_operations = {
+ 	.pwrdm_set_mem_onst	= omap4_pwrdm_set_mem_onst,
+ 	.pwrdm_set_mem_retst	= omap4_pwrdm_set_mem_retst,
+ 	.pwrdm_wait_transition	= omap4_pwrdm_wait_transition,
++	.pwrdm_enable_hdwr_sar	= omap4_pwrdm_enable_hdwr_sar,
++	.pwrdm_disable_hdwr_sar	= omap4_pwrdm_disable_hdwr_sar,
+ };
+diff --git a/arch/arm/mach-omap2/powerdomains44xx_data.c b/arch/arm/mach-omap2/powerdomains44xx_data.c
+index 704664c..d8701ce 100644
+--- a/arch/arm/mach-omap2/powerdomains44xx_data.c
++++ b/arch/arm/mach-omap2/powerdomains44xx_data.c
+@@ -276,7 +276,7 @@ static struct powerdomain l3init_44xx_pwrdm = {
+ 	.pwrsts_mem_on	= {
+ 		[0] = PWRSTS_ON,	/* l3init_bank1 */
+ 	},
+-	.flags		  = PWRDM_HAS_LOWPOWERSTATECHANGE,
++	.flags		  = PWRDM_HAS_LOWPOWERSTATECHANGE | PWRDM_HAS_HDWR_SAR,
+ };
+ 
+ /* l4per_44xx_pwrdm: Target peripherals power domain */
+-- 
+1.7.4.1
 
-
------ Original Message -----
-=46rom: "Mohammed, Afzal" <afzal@ti.com>
-To: CF Adad <cfadad@rocketmail.com>
-Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>; Tony Lin=
-dgren <tony@atomide.com>; "Shilimkar, Santosh" <santosh.shilimkar@ti.co=
-m>
-Sent: Tuesday, June 12, 2012 7:14 AM
-Subject: RE: Please help! AM35xx mm/slab.c BUG
-
-Hi,
-
-On Fri, Jun 08, 2012 at 01:20:13, CF Adad wrote:
-
-> Thanks for your thoughts!=A0 I may try fiddling a bit just to see if =
-that helps.
-
-5 series of patches for gpmc modifications [1-5] has been posted,
-In case it helps in resolving your issue, please let me know.
-
-You will have to use the new interface to make use of runtime
-calculation of smsc911x timing, [5.x] can be referred for how to
-do board modifications for smsc911x (please comment out any other
-gpmc peripheral initialization in your board code, seems you have
-nand, comment out nand initialization, even nand can be made to
-work with new changes, but avoiding it will probably reduce your
-burden)
-
-As your eth is 9221, either you can provide the timings based on it
-from board file or apply [6] over [1-5] (base: 3.5-rc1)
-
-Regards
-Afzal
-
-[1] http://www.mail-archive.com/linux-omap@vger.kernel.org/msg69501.htm=
-l
-[2] http://www.mail-archive.com/linux-omap@vger.kernel.org/msg69881.htm=
-l
-[3] http://www.mail-archive.com/linux-omap@vger.kernel.org/msg69891.htm=
-l
-[4] http://www.mail-archive.com/linux-omap@vger.kernel.org/msg69897.htm=
-l
-[5] http://www.mail-archive.com/linux-omap@vger.kernel.org/msg69917.htm=
-l
-[5.x] http://www.mail-archive.com/linux-omap@vger.kernel.org/msg69924.h=
-tml
-
-[6]
-diff --git a/arch/arm/mach-omap2/gpmc-smsc911x.c b/arch/arm/mach-omap2/=
-gpmc-smsc911x.c
-index 4bfe721..34816b9 100644
---- a/arch/arm/mach-omap2/gpmc-smsc911x.c
-+++ b/arch/arm/mach-omap2/gpmc-smsc911x.c
-@@ -105,12 +105,12 @@ static void gpmc_smsc911x_timing(struct gpmc_time=
-_ctrl *time_ctrl,
-{
-=A0 =A0 =A0 =A0 struct gpmc_timings t;
-=A0 =A0 =A0 =A0 /* SMSC 9220 timings */
--=A0 =A0 =A0  unsigned tcycle_r =3D 165;
-+=A0 =A0 =A0  unsigned tcycle_r =3D 45;
-=A0 =A0 =A0 =A0 unsigned tcsl_r =3D 32;
-=A0 =A0 =A0 =A0 unsigned tcsh_r =3D 133;
-=A0 =A0 =A0 =A0 unsigned tcsdv_r =3D 30;
-=A0 =A0 =A0 =A0 unsigned tdoff_r =3D 9;
--=A0 =A0 =A0  unsigned tcycle_w =3D 165;
-+=A0 =A0 =A0  unsigned tcycle_w =3D 45;
-=A0 =A0 =A0 =A0 unsigned tcsl_w =3D 32;
-=A0 =A0 =A0 =A0 unsigned tcsh_w =3D 133;
-=A0 =A0 =A0 =A0 unsigned tdsu_w =3D 7;
---
-To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
