@@ -1,43 +1,34 @@
-From: "Mohammed, Afzal" <afzal@ti.com>
-Subject: RE: [PATCH v5 04/14] ARM: OMAP2+: gpmc: minimal driver support
-Date: Tue, 12 Jun 2012 07:16:26 +0000
-Message-ID: <C8443D0743D26F4388EA172BF4E2A7A93E997E2A@DBDE01.ent.ti.com>
-References: <cover.1339419492.git.afzal@ti.com>
- <54e643eb1b4dbefcbb52580fa582043bf4f0da3d.1339419492.git.afzal@ti.com>
- <4FD6586A.9060706@ti.com>
+From: Tony Lindgren <tony@atomide.com>
+Subject: Re: [PATCH V2 1/2] arm/dts: OMAP2: Add support for OMAP2420 SDP
+Date: Tue, 12 Jun 2012 00:20:26 -0700
+Message-ID: <20120612072025.GG12766@atomide.com>
+References: <1339107066-10461-1-git-send-email-jon-hunter@ti.com>
+ <1339107066-10461-2-git-send-email-jon-hunter@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from comal.ext.ti.com ([198.47.26.152]:42871 "EHLO comal.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751125Ab2FLHQn convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 12 Jun 2012 03:16:43 -0400
-In-Reply-To: <4FD6586A.9060706@ti.com>
-Content-Language: en-US
+Received: from mho-01-ewr.mailhop.org ([204.13.248.71]:10363 "EHLO
+	mho-01-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751543Ab2FLHUb (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 12 Jun 2012 03:20:31 -0400
+Content-Disposition: inline
+In-Reply-To: <1339107066-10461-2-git-send-email-jon-hunter@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "Hunter, Jon" <jon-hunter@ti.com>
-Cc: "tony@atomide.com" <tony@atomide.com>, "paul@pwsan.com" <paul@pwsan.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>
+To: Jon Hunter <jon-hunter@ti.com>
+Cc: device-tree <devicetree-discuss@lists.ozlabs.org>, linux-omap <linux-omap@vger.kernel.org>, linux-arm <linux-arm-kernel@lists.infradead.org>
 
-Hi Jon,
-
-On Tue, Jun 12, 2012 at 02:13:22, Hunter, Jon wrote:
-
-> > +	gpmc_revision = (l >> 4) & 0xf;
+* Jon Hunter <jon-hunter@ti.com> [120607 15:15]:
+> Simple DTS file for OMAP2420 SDP adding memory information to allow device-tree
+> testing on an OMAP2420 SDP.
 > 
-> Why are you only storing the major part of the rev? Why not keep both parts?
+> Verified that kernel boots with DT using a simple RAMDISK file-system on
+> OMAP2420 SDP.
 
-Does having minor revision add any value ?, at least as of now,
-I do not see any.
+I suspect this is the H4 board? If so, please rename it to H4 as it shares
+the "debug board" with H2 and H3 so in theory we may at some point have
+some common .dtsi for the debug board devices..
 
-> 
-> > +	dev_info(gpmc_dev, "GPMC revision %d.%d\n", gpmc_revision, l & 0x0f);
-> 
-> Nit-pick, please add a mask and shift definition for the revision
-> register major and minor fields and use these above.
+Regards,
 
-Yes, right
-
-Regards
-Afzal
+Tony
