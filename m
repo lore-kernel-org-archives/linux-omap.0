@@ -1,225 +1,101 @@
 From: Jon Hunter <jon-hunter@ti.com>
-Subject: Re: [PATCH v5 04/14] ARM: OMAP2+: gpmc: minimal driver support
-Date: Tue, 12 Jun 2012 14:19:22 -0500
-Message-ID: <4FD7963A.9000003@ti.com>
-References: <cover.1339419492.git.afzal@ti.com> <54e643eb1b4dbefcbb52580fa582043bf4f0da3d.1339419492.git.afzal@ti.com>
+Subject: Re: [PATCH V2 01/10] ARM: PMU: Add runtime PM Support
+Date: Tue, 12 Jun 2012 16:17:16 -0500
+Message-ID: <4FD7B1DC.30108@ti.com>
+References: <1339104132-26885-1-git-send-email-jon-hunter@ti.com> <1339104132-26885-2-git-send-email-jon-hunter@ti.com> <20120608094708.GC19062@mudshark.cambridge.arm.com> <4FD21930.4000800@ti.com> <20120611173930.GD28235@mudshark.cambridge.arm.com> <4FD64083.3020800@ti.com> <20120612092842.GA2991@mudshark.cambridge.arm.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="ISO-8859-1"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from comal.ext.ti.com ([198.47.26.152]:54858 "EHLO comal.ext.ti.com"
+Received: from comal.ext.ti.com ([198.47.26.152]:33773 "EHLO comal.ext.ti.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752104Ab2FLTT0 (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Tue, 12 Jun 2012 15:19:26 -0400
-In-Reply-To: <54e643eb1b4dbefcbb52580fa582043bf4f0da3d.1339419492.git.afzal@ti.com>
+	id S1753660Ab2FLVRY (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Tue, 12 Jun 2012 17:17:24 -0400
+In-Reply-To: <20120612092842.GA2991@mudshark.cambridge.arm.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Afzal Mohammed <afzal@ti.com>
-Cc: tony@atomide.com, paul@pwsan.com, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+To: Will Deacon <will.deacon@arm.com>
+Cc: Kevin Hilman <khilman@ti.com>, Paul Walmsley <paul@pwsan.com>, Benoit Cousson <b-cousson@ti.com>, Ming Lei <ming.lei@canonical.com>, linux-omap <linux-omap@vger.kernel.org>, linux-arm <linux-arm-kernel@lists.infradead.org>
 
+Hi Will,
 
-On 06/11/2012 09:26 AM, Afzal Mohammed wrote:
-> Create a minimal driver out of gpmc code.
-> Responsibilities handled by earlier gpmc
-> initialization is now achieved in probe.
+On 06/12/2012 04:28 AM, Will Deacon wrote:
+> On Mon, Jun 11, 2012 at 08:01:23PM +0100, Jon Hunter wrote:
+>> Hi Will,
 > 
-> Signed-off-by: Afzal Mohammed <afzal@ti.com>
-> ---
->  arch/arm/mach-omap2/gpmc.c |  170 ++++++++++++++++++++++++++++++++------------
->  1 file changed, 123 insertions(+), 47 deletions(-)
+> Hello,
 > 
-> diff --git a/arch/arm/mach-omap2/gpmc.c b/arch/arm/mach-omap2/gpmc.c
-> index 6dbddb9..a91f40f 100644
-> --- a/arch/arm/mach-omap2/gpmc.c
-> +++ b/arch/arm/mach-omap2/gpmc.c
-> @@ -24,6 +24,7 @@
->  #include <linux/io.h>
->  #include <linux/module.h>
->  #include <linux/interrupt.h>
-> +#include <linux/platform_device.h>
->  
->  #include <asm/mach-types.h>
->  #include <plat/gpmc.h>
-> @@ -31,6 +32,8 @@
->  
->  #include <plat/sdrc.h>
->  
-> +#define	DRIVER_NAME		"omap-gpmc"
-> +
->  /* GPMC register offsets */
->  #define GPMC_REVISION		0x00
->  #define GPMC_SYSCONFIG		0x10
-> @@ -115,6 +118,21 @@ struct omap3_gpmc_regs {
->  	struct gpmc_cs_config cs_context[GPMC_CS_NUM];
->  };
->  
-> +struct gpmc_peripheral {
-> +	char			*name;
-> +	int			id;
-> +	void			*pdata;
-> +	unsigned		pdata_size;
-> +	struct resource		*per_res;
-> +	unsigned		per_res_cnt;
-> +	struct resource		*gpmc_res;
-> +	unsigned		gpmc_res_cnt;
-> +	bool			have_waitpin;
-> +	bool			waitpin_polarity;
-> +	unsigned		waitpin;
-> +	struct platform_device	*pdev;
-> +};
-> +
->  static struct gpmc_client_irq gpmc_client_irq[GPMC_NR_IRQ];
->  static struct irq_chip gpmc_irq_chip;
->  static unsigned gpmc_irq_start;
-> @@ -124,6 +142,10 @@ static struct resource	gpmc_cs_mem[GPMC_CS_NUM];
->  static DEFINE_SPINLOCK(gpmc_mem_lock);
->  static unsigned int gpmc_cs_map;	/* flag for cs which are initialized */
->  static int gpmc_ecc_used = -EINVAL;	/* cs using ecc engine */
-> +static struct device *gpmc_dev;
-> +static u32 gpmc_revision;
-> +static int gpmc_irq;
-> +static resource_size_t phys_base, mem_size;
->  
->  static void __iomem *gpmc_base;
->  
-> @@ -433,6 +455,19 @@ static int gpmc_cs_insert_mem(int cs, unsigned long base, unsigned long size)
->  	return r;
->  }
->  
-> +static int gpmc_cs_delete_mem(int cs)
-> +{
-> +	struct resource	*res = &gpmc_cs_mem[cs];
-> +	int r;
-> +
-> +	spin_lock(&gpmc_mem_lock);
-> +	r = release_resource(&gpmc_cs_mem[cs]);
-> +	res->start = res->end = 0;
-> +	spin_unlock(&gpmc_mem_lock);
-> +
-> +	return r;
-> +}
-> +
->  int gpmc_cs_request(int cs, unsigned long size, unsigned long *base)
->  {
->  	struct resource *res = &gpmc_cs_mem[cs];
-> @@ -769,7 +804,7 @@ static void gpmc_irq_noop(struct irq_data *data) { }
->  
->  static unsigned int gpmc_irq_noop_ret(struct irq_data *data) { return 0; }
->  
-> -static int gpmc_setup_irq(int gpmc_irq)
-> +static int gpmc_setup_irq(void)
->  {
->  	int i;
->  	u32 regval;
-> @@ -813,7 +848,37 @@ static int gpmc_setup_irq(int gpmc_irq)
->  	return request_irq(gpmc_irq, gpmc_handle_irq, 0, "gpmc", NULL);
->  }
->  
-> -static void __init gpmc_mem_init(void)
-> +static __exit int gpmc_free_irq(void)
-> +{
-> +	int i;
-> +
-> +	if (gpmc_irq)
-> +		free_irq(gpmc_irq, NULL);
-> +
-> +	for (i = 0; i < GPMC_NR_IRQ; i++) {
-> +		irq_set_handler(gpmc_client_irq[i].irq, NULL);
-> +		irq_set_chip(gpmc_client_irq[i].irq, &no_irq_chip);
-> +		irq_modify_status(gpmc_client_irq[i].irq, 0, 0);
-> +	}
-> +
-> +	irq_free_descs(gpmc_irq_start, GPMC_NR_IRQ);
-> +
-> +	return 0;
-> +}
-> +
-> +static void __devexit gpmc_mem_exit(void)
-> +{
-> +	int cs;
-> +
-> +	for (cs = 0; cs < GPMC_CS_NUM; cs++) {
-> +		if (!gpmc_cs_mem_enabled(cs))
-> +			continue;
-> +		gpmc_cs_delete_mem(cs);
-> +	}
-> +
-> +}
-> +
-> +static void __devinit gpmc_mem_init(void)
->  {
->  	int cs;
->  	unsigned long boot_rom_space = 0;
-> @@ -840,64 +905,75 @@ static void __init gpmc_mem_init(void)
->  	}
->  }
->  
-> -static int __init gpmc_init(void)
-> +static __devinit int gpmc_probe(struct platform_device *pdev)
->  {
->  	u32 l;
-> -	int ret = -EINVAL;
-> -	int gpmc_irq;
-> -	char *ck = NULL;
-> -
-> -	if (cpu_is_omap24xx()) {
-> -		ck = "core_l3_ck";
-> -		if (cpu_is_omap2420())
-> -			l = OMAP2420_GPMC_BASE;
-> -		else
-> -			l = OMAP34XX_GPMC_BASE;
-> -		gpmc_irq = INT_34XX_GPMC_IRQ;
-> -	} else if (cpu_is_omap34xx()) {
-> -		ck = "gpmc_fck";
-> -		l = OMAP34XX_GPMC_BASE;
-> -		gpmc_irq = INT_34XX_GPMC_IRQ;
-> -	} else if (cpu_is_omap44xx()) {
-> -		ck = "gpmc_ck";
-> -		l = OMAP44XX_GPMC_BASE;
-> -		gpmc_irq = OMAP44XX_IRQ_GPMC;
-> -	}
-> +	struct resource *res;
->  
-> -	if (WARN_ON(!ck))
-> -		return ret;
-> +	res = platform_get_resource(pdev, IORESOURCE_MEM, 0);
-> +	if (res == NULL)
-> +		return -ENOENT;
->  
-> -	gpmc_l3_clk = clk_get(NULL, ck);
-> -	if (IS_ERR(gpmc_l3_clk)) {
-> -		printk(KERN_ERR "Could not get GPMC clock %s\n", ck);
-> -		BUG();
-> -	}
-> +	phys_base = res->start;
-> +	mem_size = resource_size(res);
->  
-> -	gpmc_base = ioremap(l, SZ_4K);
-> -	if (!gpmc_base) {
-> -		clk_put(gpmc_l3_clk);
-> -		printk(KERN_ERR "Could not get GPMC register memory\n");
-> -		BUG();
-> -	}
-> +	gpmc_base = devm_request_and_ioremap(&pdev->dev, res);
-> +	if (!gpmc_base)
-> +		return -EADDRNOTAVAIL;
-> +
-> +	gpmc_dev = &pdev->dev;
-> +
-> +	res = platform_get_resource(pdev, IORESOURCE_IRQ, 0);
-> +	if (res == NULL)
-> +		dev_warn(gpmc_dev, "Failed to get resource: irq\n");
-> +	else
-> +		gpmc_irq = res->start;
->  
->  	clk_enable(gpmc_l3_clk);
+>> On 06/11/2012 12:39 PM, Will Deacon wrote:
+>>> This looks better to me, so I took it for a spin on my 4460 (thanks Nicolas!)
+>>> and noticed that only the cycle counter seems to tick -- the event counters
+>>> always return 0 deltas (that is, they don't increment). Booting the same SD
+>>> card on a 4430 (same MLO, u-boot, kernel and filesystem) I see that the
+>>> event counters function correctly there.
+>>
+>> Thanks for the feedback. Being somewhat new to PMU, I was mainly using
+>> PERF to test and verify that with "perf top" I was seeing interrupts.
+>> How do I check what the event counters are returning? Any perf tests I
+>> could use?
+> 
+> You can continue to use perf top, just specify an event other than cycles:
+> 
+> # perf top -e instructions
+> 
+> for example. You can also use perf stat, but that probably won't be
+> triggering irqs.
+> 
+>> By the way, as a quick test you could modify the code in omap_init_pmu()
+>> to call omap4430_init_pmu() for all omap4 devices as follows ...
+>>
+>> 	if (cpu_is_omap44xx())
+>>  		return omap4430_init_pmu();
+>>
+>> I was hoping for 4460/70 we would not need to keep the debugss and other
+>> domains on and hence, I called the above function omap4430_init_pmu().
+>> However this function works for all omap4 devices, it just turns on more
+>> power domains.
+> 
+> Well, I tried that and the results are pretty whacky: the event counters do
+> indeed tick but interrupts only fire if I pin the perf task to CPU1! What's
+> more, the interrupts do fire on both cores when they're working...
 
-We should be able to get rid of the clk_enable() here and use ...
+I tried this, and I see that interrupts occur on both, however, it seems
+that the majority occur on one CPU and only a few on the other. So it
+does appear that one CPU is getting a lot more interrupts.
 
-	pm_runtime_enable(&pdev->dev);
-	pm_runtime_get(&pdev->dev);
+> Without the above change, I can generate cycle counter interrupts regardless
+> of which CPU I run execute perf.
 
-The clk_disable should also be replaced with a pm_runtime_put(). You
-will also need to include pm_runtime.h.
+Yes, I see this to. From more testing, I see that as soon as I turn off
+the debugss clock domain "perf top -e instructions" stops working. So I
+assume that the event counters are returning 0 in this case.
 
+>From a PMU programming standpoint, if we just use "perf top" are the
+event counters not used/programmed?
+
+And when we use "perf top -e instructions" is it the "software
+increment" event that the event counter(s) are monitoring? I am just
+trying to understand how the counters are being programmed and then I
+can ask the design folks an intelligent question :-)
+
+By the way, I don't suppose there is any debugfs entry to dump the PMU
+registers?
+
+>>> It also seems that we can remove the dependency on CONFIG_OMAP3_EMU with these
+>>> patches but I don't have any OMAP3 hardware to check if we get any regressions
+>>> on older platforms. Do your patches only deal with OMAP4?
+>>
+>> It *should* work for all omap2+. So far I have tested an omap3 beagle
+>> but I have not tested an omap2 device. Again the extent of my testing
+>> was to run "perf top" and verify interrupts we being generated. I
+>> realise that this may not be sufficient and so if you have a more
+>> exhaustive test you recommend let me know.
+> 
+> Well, try the above as well as what you're currently doing and that should
+> test the basics. If that works, I'll happily drop the Kconfig dependency on
+> OMAP3_EMU (which has been a regular source of confusion).
+
+I still think that there is something I need to understand better here.
+
+Cheers
 Jon
