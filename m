@@ -1,95 +1,93 @@
-From: Tomi Valkeinen <tomi.valkeinen@ti.com>
-Subject: Re: v3.4-rc4 DSS PM problem (Was: Re: Problems with 3.4-rc5)
-Date: Tue, 12 Jun 2012 14:05:14 +0300
-Message-ID: <1339499114.2392.35.camel@deskari>
-References: <1336982138.2532.32.camel@lappyti>
-	 <alpine.DEB.2.00.1205151148440.16649@utopia.booyaka.com>
-	 <1337159300.7692.22.camel@deskari>
-	 <alpine.DEB.2.00.1205241022180.2572@utopia.booyaka.com>
-	 <1337934288.2842.19.camel@deskari>
-	 <CAORVsuWrWXFR7cnBGD+R4omKRjCCvkhHhOVhR_tj=gjA0tUyVA@mail.gmail.com>
-	 <WC20120612101510.1001B1@terrafix.co.uk> <1339497424.2392.22.camel@deskari>
-	 <WC20120612105024.5601BD@terrafix.co.uk>
+From: "Mohammed, Afzal" <afzal@ti.com>
+Subject: RE: Please help! AM35xx mm/slab.c BUG
+Date: Tue, 12 Jun 2012 11:14:12 +0000
+Message-ID: <C8443D0743D26F4388EA172BF4E2A7A93E9980CC@DBDE01.ent.ti.com>
+References: <1338878255.13133.YahooMailNeo@web125205.mail.ne1.yahoo.com>
+ <20120605070853.GE12766@atomide.com>
+ <1338913755.88514.YahooMailNeo@web125201.mail.ne1.yahoo.com>
+ <1338963298.87083.YahooMailNeo@web125204.mail.ne1.yahoo.com>
+ <CAMQu2gw2bGNwot_xVPdAsYjZChzzNib2USg8Ci+W5aLbenPnqA@mail.gmail.com>
+ <20120606071024.GP12766@atomide.com>
+ <1338969083.99043.YahooMailNeo@web125201.mail.ne1.yahoo.com>
+ <C8443D0743D26F4388EA172BF4E2A7A93E995E3B@DBDE01.ent.ti.com>
+ <1339098613.84700.YahooMailNeo@web125202.mail.ne1.yahoo.com>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg="pgp-sha1"; protocol="application/pgp-signature";
-	boundary="=-ALNKd+3diEJ4dbErs9nA"
+Content-Type: text/plain; charset=iso-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aog114.obsmtp.com ([74.125.149.211]:40581 "EHLO
-	na3sys009aog114.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1750918Ab2FLLFT (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>);
-	Tue, 12 Jun 2012 07:05:19 -0400
-Received: by lbon10 with SMTP id n10so501622lbo.27
-        for <linux-omap@vger.kernel.org>; Tue, 12 Jun 2012 04:05:17 -0700 (PDT)
-In-Reply-To: <WC20120612105024.5601BD@terrafix.co.uk>
+Received: from comal.ext.ti.com ([198.47.26.152]:54432 "EHLO comal.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751884Ab2FLLOS convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 12 Jun 2012 07:14:18 -0400
+In-Reply-To: <1339098613.84700.YahooMailNeo@web125202.mail.ne1.yahoo.com>
+Content-Language: en-US
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Joe Woodward <jw@terrafix.co.uk>
-Cc: Jean Pihet <jean.pihet@newoldbits.com>, Paul Walmsley <paul@pwsan.com>, khilman@ti.com, Archit Taneja <a0393947@ti.com>, linux-omap@vger.kernel.org
+To: CF Adad <cfadad@rocketmail.com>
+Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, Tony Lindgren <tony@atomide.com>, "Shilimkar, Santosh" <santosh.shilimkar@ti.com>
 
+Hi,
 
---=-ALNKd+3diEJ4dbErs9nA
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: quoted-printable
+On Fri, Jun 08, 2012 at 01:20:13, CF Adad wrote:
 
-On Tue, 2012-06-12 at 11:50 +0100, Joe Woodward wrote:
-> -----Original Message-----
-> From: Tomi Valkeinen <tomi.valkeinen@ti.com>
-> To: Joe Woodward <jw@terrafix.co.uk>
-> Cc: Jean Pihet <jean.pihet@newoldbits.com>, Paul Walmsley <paul@pwsan.com=
->, khilman@ti.com, Archit Taneja <a0393947@ti.com>, linux-
-> omap@vger.kernel.org
-> Date: Tue, 12 Jun 2012 13:37:04 +0300
-> Subject: Re: v3.4-rc4 DSS PM problem (Was: Re: Problems with 3.4-rc5)
->=20
-> > On Tue, 2012-06-12 at 11:15 +0100, Joe Woodward wrote:
-> > > Was there ever a conclussion to this discussion?
-> > >=20
-> > > I'm assuming this is unlikely to be fixed in 3.5?
-> >=20
-> > If by conclusion you mean full understanding and a proper fix, then no.
-> >=20
-> > But the patch 3568f2a46f2a73bab18c914df06afd98a97e0e0e (OMAPDSS: use
-> > DSI_FIFO_BUG workaround only for manual update displays) has been
-> > merged, and that should circumvent the problem.
-> >=20
-> > Are you still seeing problems?
->=20
-> I haven't tested any kernels since 3.4, I normally wait till a later rc a=
-nd had missed that patch...
->=20
-> If I have any problems I'll report them, but assume it's fixed otherwise.
+> Thanks for your thoughts!=A0 I may try fiddling a bit just to see if =
+that helps.
 
-If the problem is visible on plain 3.4 series (i.e. without any extras,
-like PM patch series or such), and the commit fixes the problem, perhaps
-I should the patch for 3.4 stable series? The commit applies cleanly to
-v3.4.2.=20
+5 series of patches for gpmc modifications [1-5] has been posted,
+In case it helps in resolving your issue, please let me know.
 
- Tomi
+You will have to use the new interface to make use of runtime
+calculation of smsc911x timing, [5.x] can be referred for how to
+do board modifications for smsc911x (please comment out any other
+gpmc peripheral initialization in your board code, seems you have
+nand, comment out nand initialization, even nand can be made to
+work with new changes, but avoiding it will probably reduce your
+burden)
 
+As your eth is 9221, either you can provide the timings based on it
+from board file or apply [6] over [1-5] (base: 3.5-rc1)
 
---=-ALNKd+3diEJ4dbErs9nA
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: This is a digitally signed message part
-Content-Transfer-Encoding: 7bit
+Regards
+Afzal
 
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.4.11 (GNU/Linux)
+[1] http://www.mail-archive.com/linux-omap@vger.kernel.org/msg69501.htm=
+l
+[2] http://www.mail-archive.com/linux-omap@vger.kernel.org/msg69881.htm=
+l
+[3] http://www.mail-archive.com/linux-omap@vger.kernel.org/msg69891.htm=
+l
+[4] http://www.mail-archive.com/linux-omap@vger.kernel.org/msg69897.htm=
+l
+[5] http://www.mail-archive.com/linux-omap@vger.kernel.org/msg69917.htm=
+l
+[5.x] http://www.mail-archive.com/linux-omap@vger.kernel.org/msg69924.h=
+tml
 
-iQIcBAABAgAGBQJP1yJqAAoJEPo9qoy8lh71Gt0P/RcuHuezG7EqBk0cUhxjJnl0
-Twhiwq/RH0bxxIylRGvtJrf1AJgVk8HFIT4q8CIWv27A7oT9is4y5mXQN7eXLeg7
-dvGz/VCBvEac1UafWk+XJEtFfdZM51tIEeZ3DZH0xm/UHzwhVF/ReGDkZkbqrZtJ
-fm6vIFfDALqo0PmC3M7SAD9N20rFrfPiwLKQWYOPf3ObpoX0vnJEtcj7wEpu3ioJ
-3Rly0UG9brZefdkbi8OY+LgrbUVkwyFMvB0230QMxip8RaB4vA6EhV2A8U+gwGwC
-zqp3fkso0+lTeZwEkZYXxCEnVXov/B4Y6TMPgxMcvZ1UXQPUM0/DlCdCTMWgEck1
-EOCI95y+FSLLWOVN/KLn+n7lfoAeVdiRXem+kt5MIQ4VvdY8SfVbAliJjlaYGKcB
-f6A9UwHMH7NnHcBzkZUiBHMOtpF8UQJ9n8bfHcATlZ6//9nuVbKy5UqjO6SVqWza
-X7NghtVaLRcUjotQifXCCTVga7ZTSwvK9oSoULlBF0x4TzlFEtqu3lUI0RaJ4NBY
-K8/zJtbvrALqCwczILbytnVGee3qUJEC//9MgSFLU8jrG+gN55dCtOpV32Ki74XC
-dhg//M9Wew6jJYMpD1kLz0QMhRPSeAvJSOmIYiKS5ivesUOLThMEhn6ca+UAFllL
-xFxS7pdG/m02Jmzn7HSz
-=Osv7
------END PGP SIGNATURE-----
+[6]
+diff --git a/arch/arm/mach-omap2/gpmc-smsc911x.c b/arch/arm/mach-omap2/=
+gpmc-smsc911x.c
+index 4bfe721..34816b9 100644
+--- a/arch/arm/mach-omap2/gpmc-smsc911x.c
++++ b/arch/arm/mach-omap2/gpmc-smsc911x.c
+@@ -105,12 +105,12 @@ static void gpmc_smsc911x_timing(struct gpmc_time=
+_ctrl *time_ctrl,
+ {
+        struct gpmc_timings t;
+        /* SMSC 9220 timings */
+-       unsigned tcycle_r =3D 165;
++       unsigned tcycle_r =3D 45;
+        unsigned tcsl_r =3D 32;
+        unsigned tcsh_r =3D 133;
+        unsigned tcsdv_r =3D 30;
+        unsigned tdoff_r =3D 9;
+-       unsigned tcycle_w =3D 165;
++       unsigned tcycle_w =3D 45;
+        unsigned tcsl_w =3D 32;
+        unsigned tcsh_w =3D 133;
+        unsigned tdsu_w =3D 7;
 
---=-ALNKd+3diEJ4dbErs9nA--
-
+--
+To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
