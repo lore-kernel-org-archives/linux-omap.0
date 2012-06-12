@@ -1,65 +1,55 @@
-From: Igor Grinberg <grinberg@compulab.co.il>
-Subject: Re: [PATCH 4/5] MFD: OMAP3EVM: USB: cosmetic fix to failed parent
- clk set
-Date: Tue, 12 Jun 2012 10:56:17 +0300
-Message-ID: <4FD6F621.70500@compulab.co.il>
-References: <zumeng.chen@gmail.com>
- <1339423216-1323-1-git-send-email-zumeng.chen@gmail.com>
- <1339423216-1323-5-git-send-email-zumeng.chen@gmail.com>
+From: "Mohammed, Afzal" <afzal@ti.com>
+Subject: RE: [PATCH v5 05/14] ARM: OMAP2+: gpmc: resource creation helpers
+Date: Tue, 12 Jun 2012 08:30:57 +0000
+Message-ID: <C8443D0743D26F4388EA172BF4E2A7A93E997EE1@DBDE01.ent.ti.com>
+References: <cover.1339419492.git.afzal@ti.com>
+ <3b124fd254f5700187a2ec5a423271a7296e0510.1339419492.git.afzal@ti.com>
+ <4FD65BA5.4020205@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-In-Reply-To: <1339423216-1323-5-git-send-email-zumeng.chen@gmail.com>
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: linux-arm-kernel-bounces@lists.infradead.org
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: Zumeng Chen <zumeng.chen@gmail.com>
-Cc: khilman@ti.com, tony@atomide.com, hvaibhav@ti.com, ajay.gupta@ti.com, khasim@ti.com, jon-hunter@ti.com, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+Content-Transfer-Encoding: 8BIT
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from arroyo.ext.ti.com ([192.94.94.40]:45435 "EHLO arroyo.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1750876Ab2FLIbH convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 12 Jun 2012 04:31:07 -0400
+In-Reply-To: <4FD65BA5.4020205@ti.com>
+Content-Language: en-US
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: "Hunter, Jon" <jon-hunter@ti.com>
+Cc: "tony@atomide.com" <tony@atomide.com>, "paul@pwsan.com" <paul@pwsan.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>
 
-On 06/11/12 17:00, Zumeng Chen wrote:
-> A typo fix for this cosmetic change and mute a failed message from
-> a unnecessary setting of some parent clk for usbhs_omap on OMAP3EVM.
+Hi Jon,
+
+On Tue, Jun 12, 2012 at 02:27:09, Hunter, Jon wrote:
+
+> > +static __devinit int gpmc_setup_cs_mem(struct gpmc_cs_data *cs,
+> > +						struct resource *res)
+
+> > +	return 1;
+> > +}
 > 
-> Signed-off-by: Zumeng Chen <zumeng.chen@gmail.com>
-> ---
->  drivers/mfd/omap-usb-host.c |    4 +++-
->  1 files changed, 3 insertions(+), 1 deletions(-)
+> Nit-pick, CodingStyle chapter 16 states that 0 should be used for
+> success when returning from a function.
+
+I doubt whether this falls to the category you are referring.
+This function returns number of resources setup, please see
+similar for irq too, there it can be 2 also, success or failure
+is not sufficient for the other, and with this we have both
+functions returning values similar way.
+
+> > +static inline unsigned gpmc_bit_to_irq(unsigned bitmask)
+> > +{
+> > +	return bitmask;
+> > +}
 > 
-> diff --git a/drivers/mfd/omap-usb-host.c b/drivers/mfd/omap-usb-host.c
-> index 7e96bb2..9aaaf3c 100644
-> --- a/drivers/mfd/omap-usb-host.c
-> +++ b/drivers/mfd/omap-usb-host.c
-> @@ -698,8 +698,9 @@ static int __devinit usbhs_omap_probe(struct platform_device *pdev)
->  		goto err_usbtll_p2_fck;
->  	}
->  
-> +#ifndef CONFIG_MACH_OMAP3EVM
-> +	/* for OMAP3 , the clk set parent fails */
->  	if (is_ehci_phy_mode(pdata->port_mode[0])) {
-> -		/* for OMAP3 , the clk set paretn fails */
->  		ret = clk_set_parent(omap->utmi_p1_fck,
->  					omap->xclk60mhsp1_ck);
->  		if (ret != 0)
-> @@ -726,6 +727,7 @@ static int __devinit usbhs_omap_probe(struct platform_device *pdev)
->  			dev_err(dev, "init_60m_fclk set parent"
->  				"failed error:%d\n", ret);
->  	}
-> +#endif
+> I have to ask what is the value in this helper function? ;-)
 
-I agree with John, this is a bad fix. Fix the problem, don't hide it...
+It is to stress the fact that flag user is passing need not be
+same as irq bit (here both have same value), this kind of an
+arrangement would be required later if waitpin interrupt also
+has to be handled, do you still prefer removing it now ?
 
->  
->  	res = platform_get_resource_byname(pdev, IORESOURCE_MEM, "uhh");
->  	if (!res) {
-
--- 
-Regards,
-Igor.
+Regards
+Afzal
