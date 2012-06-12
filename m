@@ -1,63 +1,68 @@
-From: Vinod Koul <vinod.koul@linux.intel.com>
-Subject: Re: RFC: changing DMA slave configuration API
-Date: Tue, 12 Jun 2012 11:34:39 +0530
-Message-ID: <1339481079.1927.1635.camel@vkoul-udesk3>
-References: <20120610102023.GC11404@n2100.arm.linux.org.uk>
-	 <CAGsJ_4xHNdEcfsmtypDHcJ0uyhtFz43xBojgHw2RSvrH8ohRcA@mail.gmail.com>
-	 <20120610112217.GD11404@n2100.arm.linux.org.uk>
-	 <1339390249.1927.1623.camel@vkoul-udesk3>
-	 <20120611082424.GE11404@n2100.arm.linux.org.uk>
+From: "Mohammed, Afzal" <afzal@ti.com>
+Subject: RE: [PATCH 2/3] ARM: OMAP2+: onenand: cleanup for gpmc driver
+ conversion
+Date: Tue, 12 Jun 2012 06:16:14 +0000
+Message-ID: <C8443D0743D26F4388EA172BF4E2A7A93E997D47@DBDE01.ent.ti.com>
+References: <cover.1339419244.git.afzal@ti.com>
+ <2d6f0fb31cde98cd700d7a4268683b4aeeee87f2.1339419244.git.afzal@ti.com>
+ <4FD63AAE.90008@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mga14.intel.com ([143.182.124.37]:25832 "EHLO mga14.intel.com"
+Received: from arroyo.ext.ti.com ([192.94.94.40]:39515 "EHLO arroyo.ext.ti.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751496Ab2FLGLu (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Tue, 12 Jun 2012 02:11:50 -0400
-In-Reply-To: <20120611082424.GE11404@n2100.arm.linux.org.uk>
+	id S1751069Ab2FLGT0 convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 12 Jun 2012 02:19:26 -0400
+In-Reply-To: <4FD63AAE.90008@ti.com>
+Content-Language: en-US
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Russell King - ARM Linux <linux@arm.linux.org.uk>
-Cc: Barry Song <21cnbao@gmail.com>, Dan Williams <dan.j.williams@intel.com>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+To: "Hunter, Jon" <jon-hunter@ti.com>
+Cc: "tony@atomide.com" <tony@atomide.com>, "paul@pwsan.com" <paul@pwsan.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>
 
-On Mon, 2012-06-11 at 09:24 +0100, Russell King - ARM Linux wrote:
-> On Mon, Jun 11, 2012 at 10:20:49AM +0530, Vinod Koul wrote:
-> > I think it is a good idea. And I would like to extend it even a little
-> > bit. Do we have any users of peripheral to peripheral slave dma?
-> > IIRC  that is not the case, or does anyone know of existence or plans
-> > for such a h/w?
-> > 
-> > If not, lets junk the src/dst fields and keep burst, length, addr fields
-> > which point to the peripheral values.
-> > 
-> > Alternatively if we need both, then we can't have union and Russell's
-> > idea seems good one :)
+Hi Jon,
+
+On Tue, Jun 12, 2012 at 00:06:30, Hunter, Jon wrote:
+
+> I agree with getting rid of the first instance at the beginning of
+> _set_async_mode, but why get rid of the above one? Are you assuming that
+> by default it is in async mode? Could be nice to keep it to be explicit.
+
+Second one is achieved below
+
+> > @@ -191,19 +181,21 @@ static int omap2_onenand_set_sync_mode(struct omap_onenand_platform_data *cfg,
+> >  	u32 reg;
+> >  	bool clk_dep = false;
+> >  
+> > +	/* Ensure sync read and sync write are disabled */
+> > +	reg = readw(onenand_base + ONENAND_REG_SYS_CFG1);
+> > +	reg &= ~ONENAND_SYS_CFG1_SYNC_READ & ~ONENAND_SYS_CFG1_SYNC_WRITE;
+> > +	writew(reg, onenand_base + ONENAND_REG_SYS_CFG1);
+> > +
 > 
-> We don't need the union whatever way that goes.
-Based on comment we need to support both.
+> Should we only set these after we have checked the flags and depending
+> on which flags are set?
 
+Even for sync mode, setting async mode initially is required
+
+> > @@ -421,6 +413,8 @@ void __init gpmc_onenand_init(struct omap_onenand_platform_data *_onenand_data)
+> >  	gpmc_onenand_resource.end = gpmc_onenand_resource.start +
+> >  							ONENAND_IO_SIZE - 1;
+> >  
+> > +	omap2_onenand_set_async_mode(gpmc_onenand_data->cs);
+> > +
 > 
-> The question over whether we have the src/dst fields is whether we want
-> to support a different configuration for DMA_DEV_TO_MEM/DMA_MEM_TO_DEV
-> without having to reconfigure the channel each time its direction is
-> switched.
-The biggest issue here is the design of the API. IMO the slave_config
-should be passed along with respective prepare API for slave and not
-thru separate slave config. That will remove the unnecessary limitation
-and allow the same channel to be used for tx for one transfer and rx for
-subsequent etc.
+> What about putting this in the gpmc_onenand_setup() function before the
+> call to _set_sync_mode? Seems nice to have these together.
 
-In the .device_prep_slave_sg() we should add the struct slave_config as
-an argument. Obviously the slave_config will have _one_ pair of members
-(not both src/dstn fields then).
+Intention of this patch is to setup GPMC async mode before driver starts
+its job so that reconfiguring GPMC needs to be to be done only once (this
+helps in avoiding issues when it has to work with gpmc driver).
 
-For DMA_DEV_TO_DEV, anyway we need a new API, which can have both src
-and dstn slave_config
+With the existing code, set_async was done as part of set_sync, hence
+requiring GPMC to be configured twice after driver takes control, with
+your suggestion too, GPMC would have to be configured twice.
 
-Thoughts..?
-
-
--- 
-~Vinod
-
+Regards
+Afzal
