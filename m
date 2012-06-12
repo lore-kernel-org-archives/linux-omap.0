@@ -1,16 +1,16 @@
 From: Zumeng Chen <zumeng.chen@gmail.com>
-Subject: Re: [PATCH 4/5] MFD: OMAP3EVM: USB: cosmetic fix to failed parent clk
- set
-Date: Tue, 12 Jun 2012 10:30:30 +0800
-Message-ID: <CA+Y31wfHiKEWFbwkec_fFHS3kKms_OccTKGQcetuE9F132vbDQ@mail.gmail.com>
+Subject: Re: [PATCH 5/5] Input: ads7846: set proper debounce time in driver
+ level
+Date: Wed, 13 Jun 2012 00:37:17 +0800
+Message-ID: <CA+Y31wdGaMDrT6ySE1y2Z5sw5ah8fE7im_=BvH=s+U+P619O=g@mail.gmail.com>
 References: <zumeng.chen@gmail.com>
  <1339423216-1323-1-git-send-email-zumeng.chen@gmail.com>
- <1339423216-1323-5-git-send-email-zumeng.chen@gmail.com>
- <4FD608C5.9000900@ti.com>
+ <1339423216-1323-6-git-send-email-zumeng.chen@gmail.com>
+ <20120612064757.GE12766@atomide.com>
 Mime-Version: 1.0
-Content-Type: multipart/mixed; boundary="===============6079156646077766510=="
+Content-Type: multipart/mixed; boundary="===============3890356730236273438=="
 Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-In-Reply-To: <4FD608C5.9000900@ti.com>
+In-Reply-To: <20120612064757.GE12766@atomide.com>
 List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
  <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
 List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
@@ -20,129 +20,184 @@ List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
  <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
 Sender: linux-arm-kernel-bounces@lists.infradead.org
 Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: Jon Hunter <jon-hunter@ti.com>
-Cc: khilman@ti.com, zumeng chen <zumeng.chen@gmail.com>, tony@atomide.com, hvaibhav@ti.com, ajay.gupta@ti.com, khasim@ti.com, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+To: Tony Lindgren <tony@atomide.com>
+Cc: khilman@ti.com, hvaibhav@ti.com, ajay.gupta@ti.com, khasim@ti.com, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 List-Id: linux-omap@vger.kernel.org
 
---===============6079156646077766510==
-Content-Type: multipart/alternative; boundary=14dae93403e10edb7104c23d4044
+--===============3890356730236273438==
+Content-Type: multipart/alternative; boundary=14dae93403e16d352404c24914ee
 
---14dae93403e10edb7104c23d4044
+--14dae93403e16d352404c24914ee
 Content-Type: text/plain; charset=ISO-8859-1
 
-2012/6/11 Jon Hunter <jon-hunter@ti.com>
+2012/6/12 Tony Lindgren <tony@atomide.com>
 
->
-> On 06/11/2012 09:00 AM, Zumeng Chen wrote:
-> > A typo fix for this cosmetic change and mute a failed message from
-> > a unnecessary setting of some parent clk for usbhs_omap on OMAP3EVM.
+> * Zumeng Chen <zumeng.chen@gmail.com> [120611 07:05]:
+> > If we don't set proper debouce time for ads7846, then there are
+> > flooded interrupt counters of ads7846 responding to one time
+> > touch on screen, so the driver couldn't work well.
+> >
+> > And since most OMAP3 series boards pass NULL pointer of board_pdata
+> > to omap_ads7846_init, so it's more proper to set it in driver level
+> > after having gpio_request done.
+> >
+> > This patch has been validated on 3530evm.
 > >
 > > Signed-off-by: Zumeng Chen <zumeng.chen@gmail.com>
-> > ---
-> >  drivers/mfd/omap-usb-host.c |    4 +++-
-> >  1 files changed, 3 insertions(+), 1 deletions(-)
-> >
-> > diff --git a/drivers/mfd/omap-usb-host.c b/drivers/mfd/omap-usb-host.c
-> > index 7e96bb2..9aaaf3c 100644
-> > --- a/drivers/mfd/omap-usb-host.c
-> > +++ b/drivers/mfd/omap-usb-host.c
-> > @@ -698,8 +698,9 @@ static int __devinit usbhs_omap_probe(struct
-> platform_device *pdev)
-> >               goto err_usbtll_p2_fck;
-> >       }
-> >
-> > +#ifndef CONFIG_MACH_OMAP3EVM
-> > +     /* for OMAP3 , the clk set parent fails */
-> >       if (is_ehci_phy_mode(pdata->port_mode[0])) {
-> > -             /* for OMAP3 , the clk set paretn fails */
-> >               ret = clk_set_parent(omap->utmi_p1_fck,
-> >                                       omap->xclk60mhsp1_ck);
-> >               if (ret != 0)
+> > Signed-off-by: Syed Mohammed Khasim <khasim@ti.com>
+> > Signed-off-by: Tony Lindgren <tony@atomide.com>
 >
-> This begs the question, why is port_mode[0] set to ehci phy mode if this
-> is failing? Something does not seem right here but this does not look
-> like the right fix.
+> Please remove my Signed-off-by, where does that come from?
 >
-Actually, for omap3530evm, there is only port-mode[1] is valid, so
-port_mode[0]
-will be skipped by "if". And it will report "xclk60mhsp2_ck set parent
-failed"
+HI Tony,
 
-But why I bracket both of them, because, both xclk60mhsp2_ck and
-xclk60mhsp1_ck
-have dummy_ck clk for omap3530evm. So we can skip them directly.
+This comes from git://arago-project.org/git/projects/linux-omap3.git
+The commit ID is 53c5ec31, we set gpio_debounce in arch/board
+level.
+
++static void ads7846_dev_init(void)
++{
++       if (gpio_request(OMAP3_EVM_TS_GPIO, "ADS7846 pendown") < 0)
++               printk(KERN_ERR "can't get ads7846 pen down GPIO\n");
++
++       gpio_direction_input(OMAP3_EVM_TS_GPIO);
++
++       omap_set_gpio_debounce(OMAP3_EVM_TS_GPIO, 1);
++       omap_set_gpio_debounce_time(OMAP3_EVM_TS_GPIO, 0xa);
++}
+
+in 3.4 kernel, I think we can set pendown in driver level. this is the
+story.
 
 Regards,
 Zumeng
 
 >
-> Cheers
-> Jon
+> Tony
+>
+>
+> >  drivers/input/touchscreen/ads7846.c |    2 ++
+> >  1 files changed, 2 insertions(+), 0 deletions(-)
+> >
+> > diff --git a/drivers/input/touchscreen/ads7846.c
+> b/drivers/input/touchscreen/ads7846.c
+> > index f02028e..a82a5fb 100644
+> > --- a/drivers/input/touchscreen/ads7846.c
+> > +++ b/drivers/input/touchscreen/ads7846.c
+> > @@ -61,6 +61,7 @@
+> >
+> >  /* this driver doesn't aim at the peak continuous sample rate */
+> >  #define      SAMPLE_BITS     (8 /*cmd*/ + 16 /*sample*/ + 2 /* before,
+> after */)
+> > +#define      DEBOUNCE_TIME   310 /* About 10 ms */
+> >
+> >  struct ts_event {
+> >       /*
+> > @@ -980,6 +981,7 @@ static int __devinit ads7846_setup_pendown(struct
+> spi_device *spi, struct ads784
+> >               }
+> >
+> >               ts->gpio_pendown = pdata->gpio_pendown;
+> > +             gpio_set_debounce(pdata->gpio_pendown, DEBOUNCE_TIME);
+> >
+> >       } else {
+> >               dev_err(&spi->dev, "no get_pendown_state nor
+> gpio_pendown?\n");
+> > --
+> > 1.7.5.4
+> >
 >
 
---14dae93403e10edb7104c23d4044
+--14dae93403e16d352404c24914ee
 Content-Type: text/html; charset=ISO-8859-1
 Content-Transfer-Encoding: quoted-printable
 
-<br><br><div class=3D"gmail_quote">2012/6/11 Jon Hunter <span dir=3D"ltr">&=
-lt;<a href=3D"mailto:jon-hunter@ti.com" target=3D"_blank">jon-hunter@ti.com=
-</a>&gt;</span><br><blockquote class=3D"gmail_quote" style=3D"margin:0pt 0p=
-t 0pt 0.8ex;border-left:1px solid rgb(204,204,204);padding-left:1ex">
-<div class=3D"im"><br>
-On 06/11/2012 09:00 AM, Zumeng Chen wrote:<br>
-&gt; A typo fix for this cosmetic change and mute a failed message from<br>
-&gt; a unnecessary setting of some parent clk for usbhs_omap on OMAP3EVM.<b=
-r>
+<br><br><div class=3D"gmail_quote">2012/6/12 Tony Lindgren <span dir=3D"ltr=
+">&lt;<a href=3D"mailto:tony@atomide.com" target=3D"_blank">tony@atomide.co=
+m</a>&gt;</span><br><blockquote class=3D"gmail_quote" style=3D"margin:0pt 0=
+pt 0pt 0.8ex;border-left:1px solid rgb(204,204,204);padding-left:1ex">
+* Zumeng Chen &lt;<a href=3D"mailto:zumeng.chen@gmail.com">zumeng.chen@gmai=
+l.com</a>&gt; [120611 07:05]:<br>
+<div class=3D"im">&gt; If we don&#39;t set proper debouce time for ads7846,=
+ then there are<br>
+&gt; flooded interrupt counters of ads7846 responding to one time<br>
+&gt; touch on screen, so the driver couldn&#39;t work well.<br>
+&gt;<br>
+&gt; And since most OMAP3 series boards pass NULL pointer of board_pdata<br=
+>
+&gt; to omap_ads7846_init, so it&#39;s more proper to set it in driver leve=
+l<br>
+&gt; after having gpio_request done.<br>
+&gt;<br>
+&gt; This patch has been validated on 3530evm.<br>
 &gt;<br>
 &gt; Signed-off-by: Zumeng Chen &lt;<a href=3D"mailto:zumeng.chen@gmail.com=
 ">zumeng.chen@gmail.com</a>&gt;<br>
-&gt; ---<br>
-&gt; =A0drivers/mfd/omap-usb-host.c | =A0 =A04 +++-<br>
-&gt; =A01 files changed, 3 insertions(+), 1 deletions(-)<br>
+&gt; Signed-off-by: Syed Mohammed Khasim &lt;<a href=3D"mailto:khasim@ti.co=
+m">khasim@ti.com</a>&gt;<br>
+&gt; Signed-off-by: Tony Lindgren &lt;<a href=3D"mailto:tony@atomide.com">t=
+ony@atomide.com</a>&gt;<br>
+<br>
+</div>Please remove my Signed-off-by, where does that come from?<br></block=
+quote><div>HI Tony,<br><br>This comes from git://<a href=3D"http://arago-pr=
+oject.org/git/projects/linux-omap3.git">arago-project.org/git/projects/linu=
+x-omap3.git</a><br>
+The commit ID is 53c5ec31, we set gpio_debounce in arch/board <br>level.<br=
+><br>+static void ads7846_dev_init(void)<br>+{<br>+=A0=A0=A0=A0=A0=A0 if (g=
+pio_request(OMAP3_EVM_TS_GPIO, &quot;ADS7846 pendown&quot;) &lt; 0)<br>+=A0=
+=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0 printk(KERN_ERR &quot;can&#39;t get=
+ ads7846 pen down GPIO\n&quot;);<br>
++<br>+=A0=A0=A0=A0=A0=A0 gpio_direction_input(OMAP3_EVM_TS_GPIO);<br>+<br>+=
+=A0=A0=A0=A0=A0=A0 omap_set_gpio_debounce(OMAP3_EVM_TS_GPIO, 1);<br>+=A0=A0=
+=A0=A0=A0=A0 omap_set_gpio_debounce_time(OMAP3_EVM_TS_GPIO, 0xa);<br>+}<br>=
+<br>in 3.4 kernel, I think we can set pendown in driver level. this is the =
+story.<br>
+<br>Regards,<br>Zumeng<br></div><blockquote class=3D"gmail_quote" style=3D"=
+margin:0pt 0pt 0pt 0.8ex;border-left:1px solid rgb(204,204,204);padding-lef=
+t:1ex">
+<span class=3D"HOEnZb"><font color=3D"#888888"><br>
+Tony<br>
+</font></span><div class=3D"HOEnZb"><div class=3D"h5"><br>
+<br>
+&gt; =A0drivers/input/touchscreen/ads7846.c | =A0 =A02 ++<br>
+&gt; =A01 files changed, 2 insertions(+), 0 deletions(-)<br>
 &gt;<br>
-&gt; diff --git a/drivers/mfd/omap-usb-host.c b/drivers/mfd/omap-usb-host.c=
-<br>
-&gt; index 7e96bb2..9aaaf3c 100644<br>
-&gt; --- a/drivers/mfd/omap-usb-host.c<br>
-&gt; +++ b/drivers/mfd/omap-usb-host.c<br>
-&gt; @@ -698,8 +698,9 @@ static int __devinit usbhs_omap_probe(struct platf=
-orm_device *pdev)<br>
-&gt; =A0 =A0 =A0 =A0 =A0 =A0 =A0 goto err_usbtll_p2_fck;<br>
-&gt; =A0 =A0 =A0 }<br>
+&gt; diff --git a/drivers/input/touchscreen/ads7846.c b/drivers/input/touch=
+screen/ads7846.c<br>
+&gt; index f02028e..a82a5fb 100644<br>
+&gt; --- a/drivers/input/touchscreen/ads7846.c<br>
+&gt; +++ b/drivers/input/touchscreen/ads7846.c<br>
+&gt; @@ -61,6 +61,7 @@<br>
 &gt;<br>
-&gt; +#ifndef CONFIG_MACH_OMAP3EVM<br>
-&gt; + =A0 =A0 /* for OMAP3 , the clk set parent fails */<br>
-&gt; =A0 =A0 =A0 if (is_ehci_phy_mode(pdata-&gt;port_mode[0])) {<br>
-&gt; - =A0 =A0 =A0 =A0 =A0 =A0 /* for OMAP3 , the clk set paretn fails */<b=
-r>
-&gt; =A0 =A0 =A0 =A0 =A0 =A0 =A0 ret =3D clk_set_parent(omap-&gt;utmi_p1_fc=
-k,<br>
-&gt; =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =
-=A0 =A0 omap-&gt;xclk60mhsp1_ck);<br>
-&gt; =A0 =A0 =A0 =A0 =A0 =A0 =A0 if (ret !=3D 0)<br>
-<br>
-</div>This begs the question, why is port_mode[0] set to ehci phy mode if t=
-his<br>
-is failing? Something does not seem right here but this does not look<br>
-like the right fix.<br></blockquote><div>Actually, for omap3530evm, there i=
-s only port-mode[1] is valid, so port_mode[0]<br>will be skipped by &quot;i=
-f&quot;. And it will report &quot;xclk60mhsp2_ck set parent failed&quot;<br=
->
-<br>But why I bracket both of them, because, both xclk60mhsp2_ck and xclk60=
-mhsp1_ck<br>have dummy_ck clk for omap3530evm. So we can skip them directly=
-.<br><br>Regards,<br>Zumeng<br></div><blockquote class=3D"gmail_quote" styl=
-e=3D"margin:0pt 0pt 0pt 0.8ex;border-left:1px solid rgb(204,204,204);paddin=
-g-left:1ex">
+&gt; =A0/* this driver doesn&#39;t aim at the peak continuous sample rate *=
+/<br>
+&gt; =A0#define =A0 =A0 =A0SAMPLE_BITS =A0 =A0 (8 /*cmd*/ + 16 /*sample*/ +=
+ 2 /* before, after */)<br>
+&gt; +#define =A0 =A0 =A0DEBOUNCE_TIME =A0 310 /* About 10 ms */<br>
+&gt;<br>
+&gt; =A0struct ts_event {<br>
+&gt; =A0 =A0 =A0 /*<br>
+&gt; @@ -980,6 +981,7 @@ static int __devinit ads7846_setup_pendown(struct =
+spi_device *spi, struct ads784<br>
+&gt; =A0 =A0 =A0 =A0 =A0 =A0 =A0 }<br>
+&gt;<br>
+&gt; =A0 =A0 =A0 =A0 =A0 =A0 =A0 ts-&gt;gpio_pendown =3D pdata-&gt;gpio_pen=
+down;<br>
+&gt; + =A0 =A0 =A0 =A0 =A0 =A0 gpio_set_debounce(pdata-&gt;gpio_pendown, DE=
+BOUNCE_TIME);<br>
+&gt;<br>
+&gt; =A0 =A0 =A0 } else {<br>
+&gt; =A0 =A0 =A0 =A0 =A0 =A0 =A0 dev_err(&amp;spi-&gt;dev, &quot;no get_pen=
+down_state nor gpio_pendown?\n&quot;);<br>
+&gt; --<br>
+&gt; 1.7.5.4<br>
+&gt;<br>
+</div></div></blockquote></div><br>
 
-<br>
-Cheers<br>
-<span class=3D"HOEnZb"><font color=3D"#888888">Jon<br>
-</font></span></blockquote></div><br>
-
---14dae93403e10edb7104c23d4044--
+--14dae93403e16d352404c24914ee--
 
 
---===============6079156646077766510==
+--===============3890356730236273438==
 Content-Type: text/plain; charset="us-ascii"
 MIME-Version: 1.0
 Content-Transfer-Encoding: 7bit
@@ -153,4 +208,4 @@ linux-arm-kernel mailing list
 linux-arm-kernel@lists.infradead.org
 http://lists.infradead.org/mailman/listinfo/linux-arm-kernel
 
---===============6079156646077766510==--
+--===============3890356730236273438==--
