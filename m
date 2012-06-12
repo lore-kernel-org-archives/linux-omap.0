@@ -1,90 +1,36 @@
-From: Jon Hunter <jon-hunter@ti.com>
-Subject: Re: [PATCH v5 12/14] ARM: OMAP2+: gpmc: cs reconfigure helper
-Date: Mon, 11 Jun 2012 18:04:33 -0500
-Message-ID: <4FD67981.7070508@ti.com>
-References: <cover.1339419492.git.afzal@ti.com> <8882ae964a4034d58953e743cf35664d3a107823.1339419492.git.afzal@ti.com>
+From: "Mohammed, Afzal" <afzal@ti.com>
+Subject: RE: [PATCH 1/3] ARM: OMAP2+: nand: unify init functions
+Date: Tue, 12 Jun 2012 05:50:21 +0000
+Message-ID: <C8443D0743D26F4388EA172BF4E2A7A93E997CF8@DBDE01.ent.ti.com>
+References: <cover.1339419244.git.afzal@ti.com>
+ <95b5dece2f0b06ba1242f5af4c14fe1696950101.1339419244.git.afzal@ti.com>
+ <4FD61231.6020605@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="ISO-8859-1"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from devils.ext.ti.com ([198.47.26.153]:32778 "EHLO
+Received: from devils.ext.ti.com ([198.47.26.153]:50246 "EHLO
 	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752254Ab2FKXEg (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 11 Jun 2012 19:04:36 -0400
-In-Reply-To: <8882ae964a4034d58953e743cf35664d3a107823.1339419492.git.afzal@ti.com>
+	with ESMTP id S1751338Ab2FLFue convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 12 Jun 2012 01:50:34 -0400
+In-Reply-To: <4FD61231.6020605@ti.com>
+Content-Language: en-US
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Afzal Mohammed <afzal@ti.com>
-Cc: tony@atomide.com, paul@pwsan.com, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+To: "Hunter, Jon" <jon-hunter@ti.com>
+Cc: "tony@atomide.com" <tony@atomide.com>, "paul@pwsan.com" <paul@pwsan.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>
 
+Hi Jon,
 
-On 06/11/2012 09:27 AM, Afzal Mohammed wrote:
-> Helper for reconfiguring CS, peripheral that necessitated
-> it was OneNAND.
+On Mon, Jun 11, 2012 at 21:13:45, Hunter, Jon wrote:
 
-Why? I think you need to add more about why this was needed.
+> Which boards have been tested with this change?
 
-Jon
+Beagle board
 
-> Signed-off-by: Afzal Mohammed <afzal@ti.com>
-> ---
->  arch/arm/mach-omap2/gpmc.c             |   32 ++++++++++++++++++++++++++++++++
->  arch/arm/plat-omap/include/plat/gpmc.h |    2 ++
->  2 files changed, 34 insertions(+)
-> 
-> diff --git a/arch/arm/mach-omap2/gpmc.c b/arch/arm/mach-omap2/gpmc.c
-> index 281bd23..d493a4c 100644
-> --- a/arch/arm/mach-omap2/gpmc.c
-> +++ b/arch/arm/mach-omap2/gpmc.c
-> @@ -1429,6 +1429,38 @@ struct platform_device *gpmc_create_device(struct gpmc_peripheral *p)
->  	return pdev;
->  }
->  
-> +static int gpmc_match_device(char *name, int id)
-> +{
-> +	int i;
-> +	struct gpmc_peripheral *g_per = gpmc_peripheral;
-> +
-> +	for (i = 0; i < gpmc_num_peripheral; i++, g_per++)
-> +		if (!strcmp(g_per->name, name) && g_per->id == id)
-> +			return i;
-> +
-> +	return -ENOENT;
-> +}
-> +
-> +int gpmc_cs_reconfigure(char *name, int id, struct gpmc_cs_data *c)
-> +{
-> +	int i;
-> +
-> +	i = gpmc_match_device(name, id);
-> +	if (IS_ERR_VALUE(i)) {
-> +		dev_err(gpmc_dev, "no device %s.%d to configure\n", name, id);
-> +		return i;
-> +	}
-> +
-> +	if (IS_ERR_VALUE(gpmc_setup_cs_config_timing(gpmc_peripheral + i, c))) {
-> +		dev_err(gpmc_dev, "error: configure device %s.%d\n", name, id);
-> +		return i;
-> +	}
-> +
-> +	return gpmc_setup_waitpin(gpmc_peripheral + i);
-> +
-> +}
-> +EXPORT_SYMBOL_GPL(gpmc_cs_reconfigure);
-> +
->  static __devinit int gpmc_probe(struct platform_device *pdev)
->  {
->  	u32 l;
-> diff --git a/arch/arm/plat-omap/include/plat/gpmc.h b/arch/arm/plat-omap/include/plat/gpmc.h
-> index e1b130c..32017a1 100644
-> --- a/arch/arm/plat-omap/include/plat/gpmc.h
-> +++ b/arch/arm/plat-omap/include/plat/gpmc.h
-> @@ -247,6 +247,8 @@ extern int gpmc_cs_configure(int cs, int cmd, int wval);
->  extern int gpmc_nand_read(int cs, int cmd);
->  extern int gpmc_nand_write(int cs, int cmd, int wval);
->  
-> +extern int gpmc_cs_reconfigure(char *name, int id, struct gpmc_cs_data *c);
-> +
->  int gpmc_enable_hwecc(int cs, int mode, int dev_width, int ecc_size);
->  int gpmc_calculate_ecc(int cs, const u_char *dat, u_char *ecc_code);
->  
+> Reviewed-by: Jon Hunter <jon-hunter@ti.com>
+
+Thanks
+
+Regards
+Afzal
