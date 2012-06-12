@@ -1,78 +1,89 @@
-From: Tero Kristo <t-kristo@ti.com>
-Subject: [PATCHv3 20/20] ARM: OMAP4430: PM: errata i625, WUGEN lost for GP devices after OFF mode
-Date: Tue, 12 Jun 2012 18:41:07 +0300
-Message-ID: <1339515667-10270-1-git-send-email-t-kristo@ti.com>
-References: <1339515095-9908-1-git-send-email-t-kristo@ti.com>
+From: Jon Hunter <jon-hunter@ti.com>
+Subject: Re: [PATCH 4/5] MFD: OMAP3EVM: USB: cosmetic fix to failed parent
+ clk set
+Date: Tue, 12 Jun 2012 11:27:27 -0500
+Message-ID: <4FD76DEF.7090309@ti.com>
+References: <zumeng.chen@gmail.com> <1339423216-1323-1-git-send-email-zumeng.chen@gmail.com> <1339423216-1323-5-git-send-email-zumeng.chen@gmail.com> <4FD608C5.9000900@ti.com> <CA+Y31wfHiKEWFbwkec_fFHS3kKms_OccTKGQcetuE9F132vbDQ@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain
+Content-Type: text/plain; charset="ISO-8859-1"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from arroyo.ext.ti.com ([192.94.94.40]:39105 "EHLO arroyo.ext.ti.com"
+Received: from comal.ext.ti.com ([198.47.26.152]:44762 "EHLO comal.ext.ti.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753530Ab2FLPlQ (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Tue, 12 Jun 2012 11:41:16 -0400
-In-Reply-To: <1339515095-9908-1-git-send-email-t-kristo@ti.com>
+	id S1753513Ab2FLQ1b (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Tue, 12 Jun 2012 12:27:31 -0400
+In-Reply-To: <CA+Y31wfHiKEWFbwkec_fFHS3kKms_OccTKGQcetuE9F132vbDQ@mail.gmail.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: linux-omap@vger.kernel.org, khilman@ti.com, paul@pwsan.com, tony@atomide.com
-Cc: linux-arm-kernel@lists.infradead.org
+To: Zumeng Chen <zumeng.chen@gmail.com>
+Cc: tony@atomide.com, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, khilman@ti.com, ajay.gupta@ti.com, khasim@ti.com, hvaibhav@ti.com
 
-This patch implements errata i625.
 
-When coming back from device off mode, the Cortex-A9 WUGEN enable registers
-are not restored by ROM code. The work around disables device power OFF
-to maintain the proper register settings.
-The affected devices are OMAP4430GP ES2.0 to ES2.2.
+On 06/11/2012 09:30 PM, Zumeng Chen wrote:
+> 
+> 
+> 2012/6/11 Jon Hunter <jon-hunter@ti.com <mailto:jon-hunter@ti.com>>
+> 
+> 
+>     On 06/11/2012 09:00 AM, Zumeng Chen wrote:
+>     > A typo fix for this cosmetic change and mute a failed message from
+>     > a unnecessary setting of some parent clk for usbhs_omap on OMAP3EVM.
+>     >
+>     > Signed-off-by: Zumeng Chen <zumeng.chen@gmail.com
+>     <mailto:zumeng.chen@gmail.com>>
+>     > ---
+>     >  drivers/mfd/omap-usb-host.c |    4 +++-
+>     >  1 files changed, 3 insertions(+), 1 deletions(-)
+>     >
+>     > diff --git a/drivers/mfd/omap-usb-host.c b/drivers/mfd/omap-usb-host.c
+>     > index 7e96bb2..9aaaf3c 100644
+>     > --- a/drivers/mfd/omap-usb-host.c
+>     > +++ b/drivers/mfd/omap-usb-host.c
+>     > @@ -698,8 +698,9 @@ static int __devinit usbhs_omap_probe(struct
+>     platform_device *pdev)
+>     >               goto err_usbtll_p2_fck;
+>     >       }
+>     >
+>     > +#ifndef CONFIG_MACH_OMAP3EVM
+>     > +     /* for OMAP3 , the clk set parent fails */
+>     >       if (is_ehci_phy_mode(pdata->port_mode[0])) {
+>     > -             /* for OMAP3 , the clk set paretn fails */
+>     >               ret = clk_set_parent(omap->utmi_p1_fck,
+>     >                                       omap->xclk60mhsp1_ck);
+>     >               if (ret != 0)
+> 
+>     This begs the question, why is port_mode[0] set to ehci phy mode if this
+>     is failing? Something does not seem right here but this does not look
+>     like the right fix.
+> 
+> Actually, for omap3530evm, there is only port-mode[1] is valid, so
+> port_mode[0]
+> will be skipped by "if". And it will report "xclk60mhsp2_ck set parent
+> failed"
+> 
+> But why I bracket both of them, because, both xclk60mhsp2_ck and
+> xclk60mhsp1_ck
+> have dummy_ck clk for omap3530evm. So we can skip them directly.
 
-Based on work done by Mykola Oleksiienko and Konstantin Shlyakhovoy.
+How about something like this ...
 
-Signed-off-by: Tero Kristo <t-kristo@ti.com>
----
- arch/arm/mach-omap2/pm.h     |    1 +
- arch/arm/mach-omap2/pm44xx.c |   12 +++++++++++-
- 2 files changed, 12 insertions(+), 1 deletions(-)
+diff --git a/arch/arm/plat-omap/clock.c b/arch/arm/plat-omap/clock.c
+index 62ec5c4..c1335f1 100644
+--- a/arch/arm/plat-omap/clock.c
++++ b/arch/arm/plat-omap/clock.c
+@@ -149,6 +149,10 @@ int clk_set_parent(struct clk *clk, struct clk *parent)
+        if (!arch_clock || !arch_clock->clk_set_parent)
+                return ret;
 
-diff --git a/arch/arm/mach-omap2/pm.h b/arch/arm/mach-omap2/pm.h
-index 63af57e..f85ef2d 100644
---- a/arch/arm/mach-omap2/pm.h
-+++ b/arch/arm/mach-omap2/pm.h
-@@ -92,6 +92,7 @@ static inline void enable_omap3630_toggle_l2_on_restore(void) { }
- #define PM_OMAP4_ROM_IVAHD_TESLA_ERRATUM_xxx	(1 << 1)
- #define PM_OMAP4_ROM_L3INSTR_ERRATUM_xxx	(1 << 2)
- #define PM_OMAP4_ROM_CPU1_BACKUP_ERRATUM_xxx	(1 << 3)
-+#define PM_OMAP4_ROM_WUGEN_LOST_ERRATUM_i625	(1 << 4)
- 
- #if defined(CONFIG_ARCH_OMAP4)
- extern u16 pm44xx_errata;
-diff --git a/arch/arm/mach-omap2/pm44xx.c b/arch/arm/mach-omap2/pm44xx.c
-index 8054afc..c1dc0d9 100644
---- a/arch/arm/mach-omap2/pm44xx.c
-+++ b/arch/arm/mach-omap2/pm44xx.c
-@@ -116,7 +116,8 @@ static int __init pwrdms_setup(struct powerdomain *pwrdm, void *unused)
- 						pwrdm,
- 						PWRDM_FUNC_PWRST_OFF);
- 
--	if (pwrdm->flags & PWRDM_HAS_EXTRA_OFF_ENABLE)
-+	if (pwrdm->flags & PWRDM_HAS_EXTRA_OFF_ENABLE &&
-+	    !IS_PM44XX_ERRATUM(PM_OMAP4_ROM_WUGEN_LOST_ERRATUM_i625))
- 		pwrst->next_state = PWRDM_FUNC_PWRST_OFF;
- 
- 	list_add(&pwrst->node, &pwrst_list);
-@@ -276,6 +277,15 @@ int __init omap4_pm_init(void)
- 	if (omap_type() != OMAP2_DEVICE_TYPE_GP)
- 		pm44xx_errata |= PM_OMAP4_ROM_L3INSTR_ERRATUM_xxx;
- 
-+	/*
-+	 * The OFF mode isn't fully supported for OMAP4430GP ES2.0 - ES2.2
-+	 * due to errata i625
-+	 * On ES1.0 OFF mode is not supported due to errata i498
-+	 */
-+	if (cpu_is_omap443x() && omap_type() == OMAP2_DEVICE_TYPE_GP &&
-+	    omap_rev() < OMAP4430_REV_ES2_3)
-+		pm44xx_errata |= PM_OMAP4_ROM_WUGEN_LOST_ERRATUM_i625;
++       /* If the clock is a dummy clock just return */
++       if (!strcmp(clk->name, dummy_ck.name))
++               return 0;
 +
- #ifdef CONFIG_SUSPEND
- 	omap_pm_suspend = omap4_pm_suspend;
- #endif
--- 
-1.7.4.1
+        spin_lock_irqsave(&clockfw_lock, flags);
+        if (clk->usecount == 0) {
+                ret = arch_clock->clk_set_parent(clk, parent);
 
+Can you give this a try?
+
+Cheers
+Jon
