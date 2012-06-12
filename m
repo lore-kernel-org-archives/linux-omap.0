@@ -1,52 +1,112 @@
-From: "Mohammed, Afzal" <afzal@ti.com>
-Subject: RE: [PATCH v5 06/14] ARM: OMAP2+: gpmc: CS configuration helper
-Date: Tue, 12 Jun 2012 12:58:10 +0000
-Message-ID: <C8443D0743D26F4388EA172BF4E2A7A93E998201@DBDE01.ent.ti.com>
-References: <cover.1339419492.git.afzal@ti.com>
- <9dd458171d6a68ea4f97a4ba19dbacc0d6b5ba35.1339419492.git.afzal@ti.com>
- <4FD66666.8060002@ti.com>
- <C8443D0743D26F4388EA172BF4E2A7A93E997F1F@DBDE01.ent.ti.com>
+From: CF Adad <cfadad@rocketmail.com>
+Subject: Re: Please help! AM35xx mm/slab.c BUG
+Date: Tue, 12 Jun 2012 08:27:44 -0700 (PDT)
+Message-ID: <1339514864.6355.YahooMailNeo@web125206.mail.ne1.yahoo.com>
+References: <1338878255.13133.YahooMailNeo@web125205.mail.ne1.yahoo.com> <20120605070853.GE12766@atomide.com> <1338913755.88514.YahooMailNeo@web125201.mail.ne1.yahoo.com> <1338963298.87083.YahooMailNeo@web125204.mail.ne1.yahoo.com> <CAMQu2gw2bGNwot_xVPdAsYjZChzzNib2USg8Ci+W5aLbenPnqA@mail.gmail.com> <20120606071024.GP12766@atomide.com> <1338969083.99043.YahooMailNeo@web125201.mail.ne1.yahoo.com> <C8443D0743D26F4388EA172BF4E2A7A93E995E3B@DBDE01.ent.ti.com> <1339098613.84700.YahooMailNeo@web125202.mail.ne1.yahoo.com> <C8443D0743D26F4388EA172BF4E2A7A93E9980CC@DBDE01.ent.ti.com>
+Reply-To: CF Adad <cfadad@rocketmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
+Content-Type: text/plain; charset=iso-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from arroyo.ext.ti.com ([192.94.94.40]:57286 "EHLO arroyo.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752117Ab2FLM6V convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 12 Jun 2012 08:58:21 -0400
-In-Reply-To: <C8443D0743D26F4388EA172BF4E2A7A93E997F1F@DBDE01.ent.ti.com>
-Content-Language: en-US
+Received: from nm21-vm0.bullet.mail.ne1.yahoo.com ([98.138.90.94]:41410 "HELO
+	nm21-vm0.bullet.mail.ne1.yahoo.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with SMTP id S1751132Ab2FLP1p convert rfc822-to-8bit
+	(ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Tue, 12 Jun 2012 11:27:45 -0400
+In-Reply-To: <C8443D0743D26F4388EA172BF4E2A7A93E9980CC@DBDE01.ent.ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "Hunter, Jon" <jon-hunter@ti.com>
-Cc: "tony@atomide.com" <tony@atomide.com>, "paul@pwsan.com" <paul@pwsan.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>
+To: "Mohammed, Afzal" <afzal@ti.com>
+Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, Tony Lindgren <tony@atomide.com>, "Shilimkar, Santosh" <santosh.shilimkar@ti.com>
 
-Hi Jon,
+Afzal,
 
-On Tue, Jun 12, 2012 at 14:10:08, Mohammed, Afzal wrote:
+Thanks!=A0 This set looks very interesting.=A0 As I've been chasing thi=
+s bug all week, I haven't had time to sync our build up to the latest t=
+ree.=A0 So I'm still back at 3.4-rc6, and cannot directly patch this in=
+ a give it a try yet.=A0 However, I'll certainly take a look as soon as=
+ I can.=A0 My research on the issue so far has indicated that we may ha=
+ve a hardware issue not a software issue.=A0 We're seeing some nasty tr=
+ansients pouring in from our power supply.=A0 So, we're chasing that fi=
+rst.
 
-> > > +	l |= conf & GPMC_CONFIG1_DEVICETYPE_NAND;
-> > > +	l |= conf & GPMC_CONFIG1_DEVICESIZE_16;
-> > 
-> > I can see that it works to use the above definitions as masks because of
-> > the possible values that can be programmed into these fields. However,
-> > from a read-ability standpoint this is unclear and requires people to
-> > review the documentation to understand what you are doing here.
-> > Furthermore, if any new device-types or sizes were added in the future
-> > this could lead to bugs. Hence, it would be better to define a mask for
-> > these fields.
-> 
-> I had thought about it initially, but then it was felt it will
-> lead to a less simple code, that path was not taken, let me
-> revisit this.
+Thanks again for the post and suggestions though.=A0 I do want to get u=
+p to the 3.5 series as soon as I can.
 
-Thinking again over it, I am feeling above is sufficient, reason same as
-said earlier, to keep code simple & currently this is sufficient to
-handle GPMC bit patterns for IPs presently available. What you are
-suggesting is to take care of the imaginary case when new GPMC IP happens
-with new device type or size, I think that should be handled when such a
-scenario happens. Probably, it is better here to add a comment to make
-intention clear.
+Best regards!
+
+
+
+----- Original Message -----
+=46rom: "Mohammed, Afzal" <afzal@ti.com>
+To: CF Adad <cfadad@rocketmail.com>
+Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>; Tony Lin=
+dgren <tony@atomide.com>; "Shilimkar, Santosh" <santosh.shilimkar@ti.co=
+m>
+Sent: Tuesday, June 12, 2012 7:14 AM
+Subject: RE: Please help! AM35xx mm/slab.c BUG
+
+Hi,
+
+On Fri, Jun 08, 2012 at 01:20:13, CF Adad wrote:
+
+> Thanks for your thoughts!=A0 I may try fiddling a bit just to see if =
+that helps.
+
+5 series of patches for gpmc modifications [1-5] has been posted,
+In case it helps in resolving your issue, please let me know.
+
+You will have to use the new interface to make use of runtime
+calculation of smsc911x timing, [5.x] can be referred for how to
+do board modifications for smsc911x (please comment out any other
+gpmc peripheral initialization in your board code, seems you have
+nand, comment out nand initialization, even nand can be made to
+work with new changes, but avoiding it will probably reduce your
+burden)
+
+As your eth is 9221, either you can provide the timings based on it
+from board file or apply [6] over [1-5] (base: 3.5-rc1)
 
 Regards
 Afzal
+
+[1] http://www.mail-archive.com/linux-omap@vger.kernel.org/msg69501.htm=
+l
+[2] http://www.mail-archive.com/linux-omap@vger.kernel.org/msg69881.htm=
+l
+[3] http://www.mail-archive.com/linux-omap@vger.kernel.org/msg69891.htm=
+l
+[4] http://www.mail-archive.com/linux-omap@vger.kernel.org/msg69897.htm=
+l
+[5] http://www.mail-archive.com/linux-omap@vger.kernel.org/msg69917.htm=
+l
+[5.x] http://www.mail-archive.com/linux-omap@vger.kernel.org/msg69924.h=
+tml
+
+[6]
+diff --git a/arch/arm/mach-omap2/gpmc-smsc911x.c b/arch/arm/mach-omap2/=
+gpmc-smsc911x.c
+index 4bfe721..34816b9 100644
+--- a/arch/arm/mach-omap2/gpmc-smsc911x.c
++++ b/arch/arm/mach-omap2/gpmc-smsc911x.c
+@@ -105,12 +105,12 @@ static void gpmc_smsc911x_timing(struct gpmc_time=
+_ctrl *time_ctrl,
+{
+=A0 =A0 =A0 =A0 struct gpmc_timings t;
+=A0 =A0 =A0 =A0 /* SMSC 9220 timings */
+-=A0 =A0 =A0  unsigned tcycle_r =3D 165;
++=A0 =A0 =A0  unsigned tcycle_r =3D 45;
+=A0 =A0 =A0 =A0 unsigned tcsl_r =3D 32;
+=A0 =A0 =A0 =A0 unsigned tcsh_r =3D 133;
+=A0 =A0 =A0 =A0 unsigned tcsdv_r =3D 30;
+=A0 =A0 =A0 =A0 unsigned tdoff_r =3D 9;
+-=A0 =A0 =A0  unsigned tcycle_w =3D 165;
++=A0 =A0 =A0  unsigned tcycle_w =3D 45;
+=A0 =A0 =A0 =A0 unsigned tcsl_w =3D 32;
+=A0 =A0 =A0 =A0 unsigned tcsh_w =3D 133;
+=A0 =A0 =A0 =A0 unsigned tdsu_w =3D 7;
+--
+To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
