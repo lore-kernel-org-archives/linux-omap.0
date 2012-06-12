@@ -1,67 +1,112 @@
 From: Tero Kristo <t-kristo@ti.com>
-Subject: [PATCHv3 08/20] ARM: OMAP4: PM: add MPUSS power domain device off support
-Date: Tue, 12 Jun 2012 18:31:23 +0300
-Message-ID: <1339515095-9908-9-git-send-email-t-kristo@ti.com>
+Subject: [PATCHv3 15/20] ARM: OMAP4430: PM: workaround for DDR corruption on second CS
+Date: Tue, 12 Jun 2012 18:31:30 +0300
+Message-ID: <1339515095-9908-16-git-send-email-t-kristo@ti.com>
 References: <1339515095-9908-1-git-send-email-t-kristo@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from arroyo.ext.ti.com ([192.94.94.40]:38381 "EHLO arroyo.ext.ti.com"
+Received: from comal.ext.ti.com ([198.47.26.152]:41049 "EHLO comal.ext.ti.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753012Ab2FLPcF (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Tue, 12 Jun 2012 11:32:05 -0400
+	id S1753144Ab2FLPcW (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Tue, 12 Jun 2012 11:32:22 -0400
 In-Reply-To: <1339515095-9908-1-git-send-email-t-kristo@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: linux-omap@vger.kernel.org, khilman@ti.com, paul@pwsan.com, tony@atomide.com
-Cc: linux-arm-kernel@lists.infradead.org
+Cc: linux-arm-kernel@lists.infradead.org, Santosh Shilimkar <santosh.shilimkar@ti.com>
 
-This patch adds device off support for MPUSS power domain. Device off
-support is overloaded on top of core pwrdm functional OFF powerstate,
-so the code must check the next core powerstate and set the save_state
-status accordingly.
+From: Santosh Shilimkar <santosh.shilimkar@ti.com>
 
+Work around for Errata ID: i632 "LPDDR2 Corruption After OFF Mode
+Transition When CS1 Is Used On EMIF" which impacts OMAP443x silicon
+The issue occurs when EMIF_SDRAM_CONFIG is restored first before
+EMIF_SDRAM_CONFIG_2 is not yet restored, the register configuration
+is not set properly, we apply the required workaround allowing
+the restore sequence to work properly.
+
+Signed-off-by: Santosh Shilimkar <santosh.shilimkar@ti.com>
+[t-kristo@ti.com: moved workaround from omap-sar.c to pm44xx.c]
 Signed-off-by: Tero Kristo <t-kristo@ti.com>
 ---
- arch/arm/mach-omap2/omap-mpuss-lowpower.c |   11 +++++++++--
- 1 files changed, 9 insertions(+), 2 deletions(-)
+ .../include/mach/ctrl_module_wkup_44xx.h           |    2 +
+ arch/arm/mach-omap2/pm44xx.c                       |   37 ++++++++++++++++++++
+ 2 files changed, 39 insertions(+), 0 deletions(-)
 
-diff --git a/arch/arm/mach-omap2/omap-mpuss-lowpower.c b/arch/arm/mach-omap2/omap-mpuss-lowpower.c
-index 0e5f81b..0155242 100644
---- a/arch/arm/mach-omap2/omap-mpuss-lowpower.c
-+++ b/arch/arm/mach-omap2/omap-mpuss-lowpower.c
-@@ -72,7 +72,7 @@ struct omap4_cpu_pm_info {
- };
+diff --git a/arch/arm/mach-omap2/include/mach/ctrl_module_wkup_44xx.h b/arch/arm/mach-omap2/include/mach/ctrl_module_wkup_44xx.h
+index a0af9ba..b763a79 100644
+--- a/arch/arm/mach-omap2/include/mach/ctrl_module_wkup_44xx.h
++++ b/arch/arm/mach-omap2/include/mach/ctrl_module_wkup_44xx.h
+@@ -28,6 +28,8 @@
+ #define OMAP4_CTRL_MODULE_WKUP_IP_REVISION		0x0000
+ #define OMAP4_CTRL_MODULE_WKUP_IP_HWINFO		0x0004
+ #define OMAP4_CTRL_MODULE_WKUP_IP_SYSCONFIG		0x0010
++#define OMAP4_CTRL_SECURE_EMIF1_SDRAM_CONFIG2_REG	0x0114
++#define OMAP4_CTRL_SECURE_EMIF2_SDRAM_CONFIG2_REG	0x011c
+ #define OMAP4_CTRL_MODULE_WKUP_CONF_DEBUG_SEL_TST_0	0x0460
+ #define OMAP4_CTRL_MODULE_WKUP_CONF_DEBUG_SEL_TST_1	0x0464
+ #define OMAP4_CTRL_MODULE_WKUP_CONF_DEBUG_SEL_TST_2	0x0468
+diff --git a/arch/arm/mach-omap2/pm44xx.c b/arch/arm/mach-omap2/pm44xx.c
+index 271b166..8b2cc21 100644
+--- a/arch/arm/mach-omap2/pm44xx.c
++++ b/arch/arm/mach-omap2/pm44xx.c
+@@ -17,12 +17,18 @@
+ #include <linux/err.h>
+ #include <linux/slab.h>
+ #include <asm/system_misc.h>
++#include <linux/io.h>
++
++#include <mach/ctrl_module_wkup_44xx.h>
++#include <mach/hardware.h>
  
- static DEFINE_PER_CPU(struct omap4_cpu_pm_info, omap4_pm_info);
--static struct powerdomain *mpuss_pd;
-+static struct powerdomain *mpuss_pd, *core_pd;
- static void __iomem *sar_base;
+ #include "common.h"
+ #include "clockdomain.h"
+ #include "powerdomain.h"
+ #include "pm.h"
  
- /*
-@@ -265,7 +265,9 @@ int omap4_enter_lowpower(unsigned int cpu, unsigned int power_state)
- 	 * In MPUSS OSWR or device OFF, interrupt controller context is lost.
- 	 */
- 	mpuss_clear_prev_logic_pwrst();
--	if (pwrdm_read_next_func_pwrst(mpuss_pd) == PWRDM_FUNC_PWRST_OSWR)
-+	if (pwrdm_read_next_func_pwrst(core_pd) == PWRDM_FUNC_PWRST_OFF)
-+		save_state = 3;
-+	else if (pwrdm_read_next_func_pwrst(mpuss_pd) == PWRDM_FUNC_PWRST_OSWR)
- 		save_state = 2;
++#define EMIF_SDRAM_CONFIG2_OFFSET	0xc
++
+ struct power_state {
+ 	struct powerdomain *pwrdm;
+ 	u32 next_state;
+@@ -146,6 +152,37 @@ int __init omap4_pm_init(void)
  
- 	cpu_clear_prev_logic_pwrst(cpu);
-@@ -386,6 +388,11 @@ int __init omap4_mpuss_init(void)
- 		pr_err("Failed to lookup MPUSS power domain\n");
- 		return -ENODEV;
- 	}
-+	core_pd = pwrdm_lookup("core_pwrdm");
-+	if (!core_pd) {
-+		pr_err("Failed to lookup CORE power domain\n");
-+		return -ENODEV;
+ 	pr_err("Power Management for TI OMAP4.\n");
+ 
++	/*
++	 * Work around for OMAP443x Errata i632: "LPDDR2 Corruption After OFF
++	 * Mode Transition When CS1 Is Used On EMIF":
++	 * Overwrite EMIF1/EMIF2
++	 * SECURE_EMIF1_SDRAM_CONFIG2_REG
++	 * SECURE_EMIF2_SDRAM_CONFIG2_REG
++	 */
++	if (cpu_is_omap443x()) {
++		void __iomem *secure_ctrl_mod;
++		void __iomem *emif1;
++		void __iomem *emif2;
++		u32 val;
++
++		secure_ctrl_mod = ioremap(OMAP4_CTRL_MODULE_WKUP, SZ_4K);
++		emif1 = ioremap(OMAP44XX_EMIF1_BASE, SZ_1M);
++		emif2 = ioremap(OMAP44XX_EMIF2_BASE, SZ_1M);
++
++		BUG_ON(!secure_ctrl_mod || !emif1 || !emif2);
++
++		val = __raw_readl(emif1 + EMIF_SDRAM_CONFIG2_OFFSET);
++		__raw_writel(val, secure_ctrl_mod +
++			     OMAP4_CTRL_SECURE_EMIF1_SDRAM_CONFIG2_REG);
++		val = __raw_readl(emif2 + EMIF_SDRAM_CONFIG2_OFFSET);
++		__raw_writel(val, secure_ctrl_mod +
++			     OMAP4_CTRL_SECURE_EMIF2_SDRAM_CONFIG2_REG);
++		wmb();
++		iounmap(secure_ctrl_mod);
++		iounmap(emif1);
++		iounmap(emif2);
 +	}
- 	pwrdm_clear_all_prev_pwrst(mpuss_pd);
- 	mpuss_clear_prev_logic_pwrst();
- 
++
+ 	ret = pwrdm_for_each(pwrdms_setup, NULL);
+ 	if (ret) {
+ 		pr_err("Failed to setup powerdomains\n");
 -- 
 1.7.4.1
 
