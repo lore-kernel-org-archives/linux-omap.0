@@ -1,80 +1,75 @@
-From: Rajendra Nayak <rnayak@ti.com>
-Subject: Re: suspend broken on 3.5-rc1?
-Date: Tue, 12 Jun 2012 17:31:59 +0530
-Message-ID: <4FD72FB7.60905@ti.com>
-References: <4FD1D570.1010508@ti.com> <20120608105611.GO12766@atomide.com>	 <4FD1EF25.3060906@ti.com> <1339160732.2091.47.camel@sokoban> <4FD1FB47.8040007@ti.com>
+From: "Cousson, Benoit" <b-cousson@ti.com>
+Subject: Re: [PATCH 1/2] ARM: OMAP2+: hwmod data: Fix the wrong clkdm assigned
+ to PRCM modules
+Date: Tue, 12 Jun 2012 14:38:31 +0200
+Message-ID: <4FD73847.5050205@ti.com>
+References: <1339433225-30042-1-git-send-email-b-cousson@ti.com> <1339433225-30042-2-git-send-email-b-cousson@ti.com> <alpine.DEB.2.00.1206111100130.5849@utopia.booyaka.com> <4FD65F12.2050805@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8; format=flowed
+Content-Type: text/plain; charset="ISO-8859-15"; format=flowed
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aog103.obsmtp.com ([74.125.149.71]:43966 "EHLO
-	na3sys009aog103.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752678Ab2FLMCH (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>);
-	Tue, 12 Jun 2012 08:02:07 -0400
-Received: by yhgm50 with SMTP id m50so3788837yhg.13
-        for <linux-omap@vger.kernel.org>; Tue, 12 Jun 2012 05:02:05 -0700 (PDT)
-In-Reply-To: <4FD1FB47.8040007@ti.com>
+Received: from comal.ext.ti.com ([198.47.26.152]:58267 "EHLO comal.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752831Ab2FLMij (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Tue, 12 Jun 2012 08:38:39 -0400
+In-Reply-To: <4FD65F12.2050805@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: t-kristo@ti.com
-Cc: Tony Lindgren <tony@atomide.com>, loml <linux-omap@vger.kernel.org>, "Hilman, Kevin" <khilman@ti.com>
+To: Paul Walmsley <paul@pwsan.com>
+Cc: tony@atomide.com, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 
-On Friday 08 June 2012 06:46 PM, Rajendra Nayak wrote:
-> On Friday 08 June 2012 06:35 PM, Tero Kristo wrote:
->> On Fri, 2012-06-08 at 17:55 +0530, Rajendra Nayak wrote:
->>> On Friday 08 June 2012 04:26 PM, Tony Lindgren wrote:
->>>> * Rajendra Nayak<rnayak@ti.com> [120608 03:40]:
->>>>> Hi,
->>>>>
->>>>> I don;t seem to be able to get suspend to work on 3.5-rc1 on
->>>>> my 4430 panda. I am not sure if its UART wakeups that are
->>>>> an issue or suspend itself is broken.
->>>>> Is there anything more than setting
->>>>> '/sys/devices/platform/omap_uart.2/tty/ttyO2/power/wakeup'
->>>>> to 'enabled' that I need to do to get UART to be wakeup capable?
->>>>>
->>>>> 3.4 major works just fine for me.
->>>>
->>>> Can you try with the fixes branch that Olof just merged?
->>>
->>> I tried merging the fixes branch on 3.5-rc1 as well as latest
->>> mainline and both didn't work.
->>>
->>>> If it's the UART wake-up events, there's a patch that should
->>>> help.
->>>>
->>>> Tony
->>>
+Hi Paul,
+
+On 6/11/2012 11:11 PM, Cousson, Benoit wrote:
+> On 6/11/2012 7:26 PM, Paul Walmsley wrote:
+>> On Mon, 11 Jun 2012, Benoit Cousson wrote:
 >>
->> The patch referenced here helps:
+>>> The following commit (794b480a37e3d284d6ee7344d8a737ef60476ed5) was
+>>> adding
+>>> the PRCM IPs data for PRCM, CM, PRCM_MPU and SCRM.
+>>> The clkdm entry are not the correct ones and does not exist in the
+>>> system.
+>>>
+>>> Replace them with the proper wkup, l4_ao and l4_cfg.
 >>
->> http://www.mail-archive.com/linux-omap@vger.kernel.org/msg69596.html
->>
->> DSS crashes during wakeup from suspend.
+>> This does not match either the publicly avaiable documentation and the
+>> internal NDA hardware specifications[1].
 >
-> great, thats what I found too with no_console_suspend, didn't know
-> a fix already exists. Thanks.
+> That's almost true, until I realized that the clock domain modules list
+> contain this information (clock.py/clock_domain['l4_wkup']['modules']).
+> Now, I'm wondering as well why this is not documented better. I'll check
+> that tomorrow.
 
-The patch above seems to fix suspend on 4430, but on my 4460 ES1.1 
-panda, I still see its broken..
+OK, I've just spent 2 hours with HW folks trying to get the real truth...
 
-# echo enabled > /sys/devices/platform/omap_uart.2/tty/ttyO2/power/wakeup
-# echo mem > /sys/power/state
-[    6.549285] PM: Syncing filesystems ... done.
-[    6.581695] Freezing user space processes ... (elapsed 0.02 seconds) 
-done.
-[    6.612823] Freezing remaining freezable tasks ... (elapsed 0.02 
-seconds) done.
-[    6.674102] PM: suspend of devices complete after 51.391 msecs
-[    6.682006] PM: late suspend of devices complete after 1.739 msecs
-[    6.691650] PM: noirq suspend of devices complete after 3.143 msecs
-[    6.698272] Disabling non-boot CPUs ...
-[    6.705993] CPU1: shutdown
-[    7.298797] Successfully put all powerdomains to target state
-[    7.304992] Enabling non-boot CPUs ... *<---- hang*
+In fact, this information is not even accurate :-(
 
-..anyone knows of any more fixes going around?
+There is no such thing as clock domain for PRCM IPs. These IPs are 
+considered as clock generator or reset generator and thus does not 
+belong to any clock domain.
+This information was used to capture the power domain where they belong 
+and thus the closest clock domain was used for that, but this is purely 
+artificial.
 
-regards,
-Rajendra
+Their first question was, why do you guys need that at the first place???
+
+I guess this question is valid. Since we do not have any SW control, 
+this information is completely useless except to potentially avoid 
+de-referencing null clkdm.
+
+So I guess it is much better to just take care of that and avoid 
+populating with wrong or fake clock domains.
+
+Going a little bit further, these IPs do not even have modulemode, or 
+whatever SW control. Even the hwmod it not applicable for them. It 
+should just be a regular platform_device and thus deserve a simple entry 
+in DT without any hwmod attribute.
+
+Bottom-line, I think we should simply get rid of these PRCM hwmod 
+entries and the corresponding fake clock domains.
+
+Does that make sense to you?
+
+Regards,
+Benoit
+
