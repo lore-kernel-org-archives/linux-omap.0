@@ -1,39 +1,80 @@
-From: "Mohammed, Afzal" <afzal@ti.com>
-Subject: RE: [PATCH v4-alt 3/6] ARM: OMAP3: hwmod data: add gpmc
-Date: Tue, 12 Jun 2012 11:36:03 +0000
-Message-ID: <C8443D0743D26F4388EA172BF4E2A7A93E998113@DBDE01.ent.ti.com>
-References: <cover.1335941443.git.afzal@ti.com>
- <99ffbbcc634022ed3c781c37e03989f1d898003e.1335941444.git.afzal@ti.com>
- <alpine.DEB.2.00.1205051949290.20926@utopia.booyaka.com>
- <C8443D0743D26F4388EA172BF4E2A7A93E987188@DBDE01.ent.ti.com>
- <alpine.DEB.2.00.1205080915220.9984@utopia.booyaka.com>
- <C8443D0743D26F4388EA172BF4E2A7A93E98A2F3@DBDE01.ent.ti.com>
- <alpine.DEB.2.00.1205212344460.1275@utopia.booyaka.com>
- <20120522164215.GE16308@atomide.com>
+From: Rajendra Nayak <rnayak@ti.com>
+Subject: Re: suspend broken on 3.5-rc1?
+Date: Tue, 12 Jun 2012 17:31:59 +0530
+Message-ID: <4FD72FB7.60905@ti.com>
+References: <4FD1D570.1010508@ti.com> <20120608105611.GO12766@atomide.com>	 <4FD1EF25.3060906@ti.com> <1339160732.2091.47.camel@sokoban> <4FD1FB47.8040007@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
+Content-Type: text/plain; charset=UTF-8; format=flowed
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from comal.ext.ti.com ([198.47.26.152]:55348 "EHLO comal.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752170Ab2FLLgI convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 12 Jun 2012 07:36:08 -0400
-In-Reply-To: <20120522164215.GE16308@atomide.com>
-Content-Language: en-US
+Received: from na3sys009aog103.obsmtp.com ([74.125.149.71]:43966 "EHLO
+	na3sys009aog103.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1752678Ab2FLMCH (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>);
+	Tue, 12 Jun 2012 08:02:07 -0400
+Received: by yhgm50 with SMTP id m50so3788837yhg.13
+        for <linux-omap@vger.kernel.org>; Tue, 12 Jun 2012 05:02:05 -0700 (PDT)
+In-Reply-To: <4FD1FB47.8040007@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Tony Lindgren <tony@atomide.com>, Paul Walmsley <paul@pwsan.com>
-Cc: "Hilman, Kevin" <khilman@ti.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
+To: t-kristo@ti.com
+Cc: Tony Lindgren <tony@atomide.com>, loml <linux-omap@vger.kernel.org>, "Hilman, Kevin" <khilman@ti.com>
 
-Hi Tony,
+On Friday 08 June 2012 06:46 PM, Rajendra Nayak wrote:
+> On Friday 08 June 2012 06:35 PM, Tero Kristo wrote:
+>> On Fri, 2012-06-08 at 17:55 +0530, Rajendra Nayak wrote:
+>>> On Friday 08 June 2012 04:26 PM, Tony Lindgren wrote:
+>>>> * Rajendra Nayak<rnayak@ti.com> [120608 03:40]:
+>>>>> Hi,
+>>>>>
+>>>>> I don;t seem to be able to get suspend to work on 3.5-rc1 on
+>>>>> my 4430 panda. I am not sure if its UART wakeups that are
+>>>>> an issue or suspend itself is broken.
+>>>>> Is there anything more than setting
+>>>>> '/sys/devices/platform/omap_uart.2/tty/ttyO2/power/wakeup'
+>>>>> to 'enabled' that I need to do to get UART to be wakeup capable?
+>>>>>
+>>>>> 3.4 major works just fine for me.
+>>>>
+>>>> Can you try with the fixes branch that Olof just merged?
+>>>
+>>> I tried merging the fixes branch on 3.5-rc1 as well as latest
+>>> mainline and both didn't work.
+>>>
+>>>> If it's the UART wake-up events, there's a patch that should
+>>>> help.
+>>>>
+>>>> Tony
+>>>
+>>
+>> The patch referenced here helps:
+>>
+>> http://www.mail-archive.com/linux-omap@vger.kernel.org/msg69596.html
+>>
+>> DSS crashes during wakeup from suspend.
+>
+> great, thats what I found too with no_console_suspend, didn't know
+> a fix already exists. Thanks.
 
-On Tue, May 22, 2012 at 22:12:15, Tony Lindgren wrote:
+The patch above seems to fix suspend on 4430, but on my 4460 ES1.1 
+panda, I still see its broken..
 
-> for these cases. Otherwise we'll be breaking old boards with smsc911x
-> where the timings for the FPGA controlling smsc911x are unknown.
+# echo enabled > /sys/devices/platform/omap_uart.2/tty/ttyO2/power/wakeup
+# echo mem > /sys/power/state
+[    6.549285] PM: Syncing filesystems ... done.
+[    6.581695] Freezing user space processes ... (elapsed 0.02 seconds) 
+done.
+[    6.612823] Freezing remaining freezable tasks ... (elapsed 0.02 
+seconds) done.
+[    6.674102] PM: suspend of devices complete after 51.391 msecs
+[    6.682006] PM: late suspend of devices complete after 1.739 msecs
+[    6.691650] PM: noirq suspend of devices complete after 3.143 msecs
+[    6.698272] Disabling non-boot CPUs ...
+[    6.705993] CPU1: shutdown
+[    7.298797] Successfully put all powerdomains to target state
+[    7.304992] Enabling non-boot CPUs ... *<---- hang*
 
-Were you actually referring to sdp boards that work with smc91x driver
-using 91c96 ?
+..anyone knows of any more fixes going around?
 
-Regards
-Afzal
+regards,
+Rajendra
