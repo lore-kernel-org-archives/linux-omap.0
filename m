@@ -1,46 +1,83 @@
-From: Jon Hunter <jon-hunter@ti.com>
-Subject: Re: [PATCH v5 10/14] ARM: OMAP2+: gpmc: waitpin helper
-Date: Wed, 13 Jun 2012 10:44:30 -0500
-Message-ID: <4FD8B55E.6010701@ti.com>
-References: <cover.1339419492.git.afzal@ti.com> <bba49a35f81f33fbdfeda78a71cbe4aa3417d6a2.1339419492.git.afzal@ti.com> <4FD6783D.9030208@ti.com> <C8443D0743D26F4388EA172BF4E2A7A93E997F7C@DBDE01.ent.ti.com> <4FD78748.2080504@ti.com> <C8443D0743D26F4388EA172BF4E2A7A93E998955@DBDE01.ent.ti.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset="ISO-8859-1"
-Content-Transfer-Encoding: 7bit
+From: Felipe Balbi <balbi@ti.com>
+Subject: [rft/rfc/patch 00/22] Big I2C cleanup
+Date: Wed, 13 Jun 2012 18:50:49 +0300
+Message-ID: <1339602671-8431-1-git-send-email-balbi@ti.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from comal.ext.ti.com ([198.47.26.152]:59859 "EHLO comal.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754439Ab2FMPoa (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Wed, 13 Jun 2012 11:44:30 -0400
-In-Reply-To: <C8443D0743D26F4388EA172BF4E2A7A93E998955@DBDE01.ent.ti.com>
+Received: from na3sys009aog129.obsmtp.com ([74.125.149.142]:48633 "EHLO
+	na3sys009aog129.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1752151Ab2FMPxO (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>);
+	Wed, 13 Jun 2012 11:53:14 -0400
+Received: by lbom4 with SMTP id m4so1749367lbo.30
+        for <linux-omap@vger.kernel.org>; Wed, 13 Jun 2012 08:53:11 -0700 (PDT)
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "Mohammed, Afzal" <afzal@ti.com>
-Cc: "tony@atomide.com" <tony@atomide.com>, "paul@pwsan.com" <paul@pwsan.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>
+To: Shubhrajyoti Datta <shubhrajyoti@ti.com>
+Cc: Tony Lindgren <tony@atomide.com>, Linux OMAP Mailing List <linux-omap@vger.kernel.org>, Felipe Balbi <balbi@ti.com>
 
-Hi Afzal,
+First of all, this isn't fully tested yet. I can
+see some issues poping up after this patchset which
+I'm not sure if it's a race condition somewhere or
+the HW is just misbehaving.
 
-On 06/13/2012 02:37 AM, Mohammed, Afzal wrote:
-> Hi Jon,
-> 
-> On Tue, Jun 12, 2012 at 23:45:36, Hunter, Jon wrote:
-> 
->> GPMC_WAITPIN_IDX0 = 0
->> GPMC_WAITPIN_0 = 1
->>
->> So, GPMC_WAITPIN_IDX0 = GPMC_WAITPIN_0 - 1, assuming that you want idx =
->> 0 and not 1. Or you could change you shift value too. I was just
->> highlighting that they are not equal but one set of definitions could be
->> used.
-> 
-> In that case we would be directly depending on user flag whose value may
-> or may not change and I don't think it is good to directly depend on it
-> for waitpin # calculation.
+All in all, the IRQ handler looks cleaner now. There's
+still lots of things to be done and before I'm going any
+further, I'd like help testing this patchset.
 
-You are already dependent on it. In other words, you are going to set
-the waitpin # according to these flags in the first place. I don't see
-the difference.
+Note that on multiple boots you might face some issues
+with the XDR IRQ which aparently keeps getting retriggered
+even though it gets acked and properly cleared. I didn't
+look yet if there's an errata for that.
 
-Bottom line is that we don't need to have multiple definitions for the
-same thing.
+I'll give myself a break of the I2C driver because it's
+just driving me nuts already. If you have the balls to
+look over the unfinished patches (see that there are
+a few patches which could be combined, will do that later)
+and help out testing, reviewing, commenting...
 
-Jon
+Next steps (after this set is done) would be to get rid
+of that stupid, nonsensical FIFO clear before starting
+every transfer, fix up NAK handling, clean up debugging
+messages, figure out why sometimes IRQs don't fire (AKA
+"controller timed out" crap) and lots more.
+
+For convenience it's also located on the following git
+branch:
+
+git://git.kernel.org/pub/scm/linux/kernel/git/balbi/usb.git i2c
+
+ps: boot tested on OMAP4 Panda. When it boots fine, it's actually
+quite stable, I managed to do many transfers with the PMIC (checking
+regulators' state) and it works very reliably (while true; cat
+/sys/class/regulators/*/state; done works fine for multiple iterations);
+
+Felipe Balbi (22):
+  i2c: omap: simplify num_bytes handling
+  i2c: omap: decrease indentation level on data handling
+  i2c: omap: add blank lines
+  i2c: omap: simplify omap_i2c_ack_stat()
+  i2c: omap: split out [XR]DR and [XR]RDY
+  i2c: omap: improve 1p153 errata handling
+  i2c: omap: re-factor receive/transmit data loop
+  i2c: omap: switch over to do {} while loop
+  i2c: omap: ack IRQ in parts
+  i2c: omap: switch I2C REV2 to threaded IRQ
+  i2c: omap: get rid of "count" variable
+  i2c: omap: get rid of the "complete" label
+  i2c: omap: if controller is suspended, bail out
+  i2c: omap: ack ARDY IRQ
+  i2c: omap: switch to devm_* API
+  i2c: omap: switch to platform_get_irq()
+  i2c: omap: drop Access Ready IRQ
+  i2c: omap: drop errata i207 from RRDY interrupt
+  i2c: omap: bus: add a receiver flag
+  i2c: omap: avoid unnecessary register read
+  i2c: omap: no need to reinitialize "stat"
+  i2c: omap: simplify errata check
+
+ drivers/i2c/busses/i2c-omap.c |  386 +++++++++++++++++++++++------------------
+ 1 file changed, 216 insertions(+), 170 deletions(-)
+
+-- 
+1.7.10.4
+
