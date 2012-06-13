@@ -1,21 +1,22 @@
 From: "Mohammed, Afzal" <afzal@ti.com>
 Subject: RE: [PATCH v5 06/14] ARM: OMAP2+: gpmc: CS configuration helper
-Date: Wed, 13 Jun 2012 05:35:00 +0000
-Message-ID: <C8443D0743D26F4388EA172BF4E2A7A93E998800@DBDE01.ent.ti.com>
+Date: Wed, 13 Jun 2012 05:50:27 +0000
+Message-ID: <C8443D0743D26F4388EA172BF4E2A7A93E998820@DBDE01.ent.ti.com>
 References: <cover.1339419492.git.afzal@ti.com>
  <9dd458171d6a68ea4f97a4ba19dbacc0d6b5ba35.1339419492.git.afzal@ti.com>
  <4FD66666.8060002@ti.com>
  <C8443D0743D26F4388EA172BF4E2A7A93E997F1F@DBDE01.ent.ti.com>
- <4FD78519.2080409@ti.com>
+ <C8443D0743D26F4388EA172BF4E2A7A93E998201@DBDE01.ent.ti.com>
+ <4FD785DC.2000106@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 8BIT
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from arroyo.ext.ti.com ([192.94.94.40]:50683 "EHLO arroyo.ext.ti.com"
+Received: from comal.ext.ti.com ([198.47.26.152]:56954 "EHLO comal.ext.ti.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752109Ab2FMFfO convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 13 Jun 2012 01:35:14 -0400
-In-Reply-To: <4FD78519.2080409@ti.com>
+	id S1750778Ab2FMFuf convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 13 Jun 2012 01:50:35 -0400
+In-Reply-To: <4FD785DC.2000106@ti.com>
 Content-Language: en-US
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
@@ -24,19 +25,41 @@ Cc: "tony@atomide.com" <tony@atomide.com>, "paul@pwsan.com" <paul@pwsan.com>, "l
 
 Hi Jon,
 
-On Tue, Jun 12, 2012 at 23:36:17, Hunter, Jon wrote:
+On Tue, Jun 12, 2012 at 23:39:32, Hunter, Jon wrote:
+> On 06/12/2012 07:58 AM, Mohammed, Afzal wrote:
 
-> Well it is unclear what the code flow is for using this helper as this
-> change simply adds the helper. If someone other function is writing to
-> the CONFIG1 register before this function, then you may wish to
-> highlight the programming sequence in the changelog or at least describe
-> why this function performs a read-modify-write and not just a write.
+> > Thinking again over it, I am feeling above is sufficient, reason same as
+> > said earlier, to keep code simple & currently this is sufficient to
+> > handle GPMC bit patterns for IPs presently available. What you are
+> > suggesting is to take care of the imaginary case when new GPMC IP happens
+> > with new device type or size, I think that should be handled when such a
+> > scenario happens. Probably, it is better here to add a comment to make
+> > intention clear.
+> 
+> That is one possibility but I think that more important reasons are ...
+> 
+> 1. Readability, at first it appears that we are always configuring the
+> CS for NAND. However, this is not the case. Maybe a comment here can
+> help as you mentioned.
 
-Logic followed here: CS configuration helper needs to worry only about
-bits that are relevant for CS configuration and don't alter any other
-bits/registers.
+As far as the users of GPMC is considered there is no confusion. Eg. For
+device type, they have been provided with two macros,
 
-Same is applicable for time setting helper.
+GPMC_CONFIG1_DEVICETYPE_NOR, GPMC_CONFIG1_DEVICETYPE_NAND
+
+So for NOR, user can feel satisfied by giving NOR flag, little does he know
+that driver doesn't do anything with the flag, but he still gets what he want
+NOR flag is defined as zero. Yes even if he doesn't specify any type, device
+type will be set as NOR, but then that is the default - the only other option
+
+> 
+> 2. A bad setting in the configuration passed. Hopefully, people will
+> stick to the flags but we know that we expect the device type to be a 0
+> or 2 and so should we check?
+
+Value of device type is something driver has to worry about, not its users,
+they have been provided with two flags, one for NAND & other for NOR.
+
 
 Regards
 Afzal
