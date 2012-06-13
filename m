@@ -1,67 +1,56 @@
 From: Afzal Mohammed <afzal@ti.com>
-Subject: [PATCH v2 00/10] Prepare for GPMC driver conversion (w.r.t MTD)
-Date: Wed, 13 Jun 2012 17:02:28 +0530
-Message-ID: <cover.1339586624.git.afzal@ti.com>
+Subject: [PATCH v2 02/10] ARM: OMAP2+: gpmc-nand: update gpmc-nand regs
+Date: Wed, 13 Jun 2012 17:03:09 +0530
+Message-ID: <3ed5c0c89ed8d06fd67ea8f3d3181cb24aff4b7a.1339586624.git.afzal@ti.com>
+References: <cover.1339586624.git.afzal@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from devils.ext.ti.com ([198.47.26.153]:58616 "EHLO
-	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753655Ab2FMLsJ (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 13 Jun 2012 07:48:09 -0400
+Received: from bear.ext.ti.com ([192.94.94.41]:48986 "EHLO bear.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1753726Ab2FMLsp (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Wed, 13 Jun 2012 07:48:45 -0400
+In-Reply-To: <cover.1339586624.git.afzal@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: tony@atomide.com, artem.bityutskiy@linux.intel.com, linux-omap@vger.kernel.org, linux-mtd@lists.infradead.org
 Cc: ivan.djelic@parrot.com, Afzal Mohammed <afzal@ti.com>
 
-Hi,
+GPMC has NAND registers, update nand platform data with those details
+so that NAND driver can configure those by itself instead of using
+exported symbols.
 
-This series cleans up gpmc mtd interactions so that GPMC driver
-conversion which is going to happen shortly would happen smoothly
-by not creating much disturbance outside of arch/arm/*omap*/
+Signed-off-by: Afzal Mohammed <afzal@ti.com>
+---
+ arch/arm/mach-omap2/gpmc-nand.c        |    2 ++
+ arch/arm/plat-omap/include/plat/nand.h |    1 +
+ 2 files changed, 3 insertions(+)
 
-This series,
-1. provides the ability for OMAP NAND driver to configure GPMC-NAND
-   registers by NAND driver itself instead of using exported GPMC
-   symbols
-2. modifies GPMC to provide OMAP ONENAND & NAND drivers with GPMC
-   allocated address space as resource
-3. creates a fictitious GPMC interrupt chip and provide the clients
-   with interrupts that could be handled using standard APIs (helps
-   in removing the requirement for driver of peripheral connected to
-   GPMC having the knowledge about GPMC interrupt handling). The
-   only user is OMAP NAND driver, it has also been modified to take
-   advantage of this
-
-This series has been made over 3.5-rc1
-
-Regards
-Afzal
-
-v2:
-[mtd: nand: omap2: handle nand on gpmc] simplify omap_prefetch_enable()
-
-Afzal Mohammed (10):
-  ARM: OMAP2+: gpmc: update nand register helper
-  ARM: OMAP2+: gpmc-nand: update gpmc-nand regs
-  mtd: nand: omap2: handle nand on gpmc
-  ARM: OMAP2+: gpmc-nand: update resource with memory
-  ARM: OMAP2+: gpmc-onenand: provide memory as resource
-  mtd: nand: omap2: obtain memory from resource
-  mtd: onenand: omap2: obtain memory from resource
-  ARM: OMAP2+: gpmc: Modify interrupt handling
-  ARM: OMAP2+: gpmc-nand: Modify Interrupt handling
-  mtd: nand: omap2: use gpmc provided irqs
-
- arch/arm/mach-omap2/gpmc-nand.c        |   28 ++-
- arch/arm/mach-omap2/gpmc-onenand.c     |   23 ++-
- arch/arm/mach-omap2/gpmc.c             |  156 +++++++++++++++--
- arch/arm/plat-omap/include/plat/gpmc.h |   19 +++
- arch/arm/plat-omap/include/plat/nand.h |    2 +-
- drivers/mtd/nand/omap2.c               |  291 ++++++++++++++++++++++++--------
- drivers/mtd/onenand/omap2.c            |   29 ++--
- 7 files changed, 436 insertions(+), 112 deletions(-)
-
+diff --git a/arch/arm/mach-omap2/gpmc-nand.c b/arch/arm/mach-omap2/gpmc-nand.c
+index 386dec8..d4e803c 100644
+--- a/arch/arm/mach-omap2/gpmc-nand.c
++++ b/arch/arm/mach-omap2/gpmc-nand.c
+@@ -108,6 +108,8 @@ int __init gpmc_nand_init(struct omap_nand_platform_data *gpmc_nand_data)
+ 		gpmc_cs_configure(gpmc_nand_data->cs, GPMC_CONFIG_RDY_BSY, 1);
+ 	}
+ 
++	gpmc_update_nand_reg(&gpmc_nand_data->reg, gpmc_nand_data->cs);
++
+ 	err = platform_device_register(&gpmc_nand_device);
+ 	if (err < 0) {
+ 		dev_err(dev, "Unable to register NAND device\n");
+diff --git a/arch/arm/plat-omap/include/plat/nand.h b/arch/arm/plat-omap/include/plat/nand.h
+index 67fc506..86e4d9c 100644
+--- a/arch/arm/plat-omap/include/plat/nand.h
++++ b/arch/arm/plat-omap/include/plat/nand.h
+@@ -29,6 +29,7 @@ struct omap_nand_platform_data {
+ 	unsigned long		phys_base;
+ 	int			devsize;
+ 	enum omap_ecc           ecc_opt;
++	struct gpmc_nand_regs	reg;
+ };
+ 
+ /* minimum size for IO mapping */
 -- 
 1.7.10.2
 
