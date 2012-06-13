@@ -1,44 +1,55 @@
-From: "Mohammed, Afzal" <afzal@ti.com>
-Subject: RE: [PATCH 3/3] ARM: OMAP2+: gpmc: handle additional timings
-Date: Wed, 13 Jun 2012 14:04:42 +0000
-Message-ID: <C8443D0743D26F4388EA172BF4E2A7A93E998F70@DBDE01.ent.ti.com>
-References: <cover.1339419244.git.afzal@ti.com>
- <c4bd7d71e9950c09f9712077160b6231f566d8f3.1339419244.git.afzal@ti.com>
- <4FD63DBF.9000200@ti.com>
- <C8443D0743D26F4388EA172BF4E2A7A93E997D9E@DBDE01.ent.ti.com>
- <4FD77E35.3050703@ti.com>
- <C8443D0743D26F4388EA172BF4E2A7A93E998767@DBDE01.ent.ti.com>
- <20120613113217.GK12766@atomide.com>
- <C8443D0743D26F4388EA172BF4E2A7A93E998D51@DBDE01.ent.ti.com>
- <20120613124215.GT12766@atomide.com>
+From: "ABRAHAM, KISHON VIJAY" <kishon@ti.com>
+Subject: Re: [RFC PATCH 0/3] usb: musb: add new phy driver
+Date: Wed, 13 Jun 2012 19:58:34 +0530
+Message-ID: <CAAe_U6JQ5rVoQWwyJLQBNR8uOp2zE0bmqFXH6HkBWYKPuqng+Q@mail.gmail.com>
+References: <1338388466-3565-1-git-send-email-kishon@ti.com>
+	<20120612104803.GD10901@arwen.pp.htv.fi>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
+Content-Type: text/plain; charset=ISO-8859-1
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from devils.ext.ti.com ([198.47.26.153]:38311 "EHLO
-	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752600Ab2FMOEu convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 13 Jun 2012 10:04:50 -0400
-In-Reply-To: <20120613124215.GT12766@atomide.com>
-Content-Language: en-US
+Received: from na3sys009aog110.obsmtp.com ([74.125.149.203]:43787 "EHLO
+	na3sys009aog110.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1754115Ab2FMO2g (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>);
+	Wed, 13 Jun 2012 10:28:36 -0400
+Received: by vcbfo13 with SMTP id fo13so459638vcb.32
+        for <linux-omap@vger.kernel.org>; Wed, 13 Jun 2012 07:28:34 -0700 (PDT)
+In-Reply-To: <20120612104803.GD10901@arwen.pp.htv.fi>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Tony Lindgren <tony@atomide.com>
-Cc: "paul@pwsan.com" <paul@pwsan.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "Hunter, Jon" <jon-hunter@ti.com>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>
+To: balbi@ti.com
+Cc: tony@atomide.com, linux@arm.linux.org.uk, gregkh@linuxfoundation.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org, linux-usb@vger.kernel.org
 
-Hi Tony,
+Hi,
 
-On Wed, Jun 13, 2012 at 18:12:15, Tony Lindgren wrote:
+On Tue, Jun 12, 2012 at 4:18 PM, Felipe Balbi <balbi@ti.com> wrote:
+> On Wed, May 30, 2012 at 08:04:23PM +0530, Kishon Vijay Abraham I wrote:
+>> This series adds a new usb2 phy driver. The device for which is created
+>> by the ocp2scp driver. This also uses control module driver.
+>>
+>> This series converts twl6030 as a comparator driver (previously it was
+>> also the phy driver) and makes use of omap-usb2 as the phy driver.
+>>
+>> Instead of notification mechanism by power chip to omap glue to pass detection
+>> of any events, an export API has been added in omap glue. Both twl4030 and
+>> twl6030 will call to this API to pass any event. (twl6030 is used in omap4 and
+>> twl4030 is used in omap3).
+>>
+>> This series depends on:
+>> *[RFC PATCH 00/11] OMAP System Control Module* patch series
+>> However System Control Module driver has only dt support, so wouldn't
+>> be able to test this patch series. However I'll adapt omap usb2 phy
+>> driver and musb driver for dt and send it asap to the list.
+>>
+>> This series also depends on:
+>> *[PATCH v3 0/3] usb: multi-phy support* patch series
+>> *[RFC PATCH 0/5] omap: add ocp2scp as a misc driver* patch series
+>>
+>> Compile tested only.
+>
+> are we getting new version of this series ?
 
-> > Or should additional timings be achieved without affecting old
-> > interface, but that it seems would necessitate more code
-> > duplication.
-> 
-> We should just keep the same timings as before, with values
-> added for the newly added registers.
+Yes. I'm planning to send a new version with only dt support by next week.
 
-What I understood from above is to get values bootloader used to
-set for those new timings & put in Kernel, right ?
-
-Regards
-Afzal
+Thanks
+Kishon
