@@ -1,46 +1,56 @@
-From: "Mohammed, Afzal" <afzal@ti.com>
-Subject: RE: [PATCH 3/3] ARM: OMAP2+: gpmc: handle additional timings
-Date: Wed, 13 Jun 2012 11:58:33 +0000
-Message-ID: <C8443D0743D26F4388EA172BF4E2A7A93E998C80@DBDE01.ent.ti.com>
-References: <cover.1339419244.git.afzal@ti.com>
- <c4bd7d71e9950c09f9712077160b6231f566d8f3.1339419244.git.afzal@ti.com>
- <4FD63DBF.9000200@ti.com>
- <C8443D0743D26F4388EA172BF4E2A7A93E997D9E@DBDE01.ent.ti.com>
- <4FD77E35.3050703@ti.com>
- <C8443D0743D26F4388EA172BF4E2A7A93E998767@DBDE01.ent.ti.com>
- <20120613113217.GK12766@atomide.com> <20120613115445.GM12766@atomide.com>
+From: Tony Lindgren <tony@atomide.com>
+Subject: Re: [PATCH v5 02/14] ARM: OMAP2+: gpmc: Adapt to HWMOD
+Date: Wed, 13 Jun 2012 05:02:09 -0700
+Message-ID: <20120613120208.GN12766@atomide.com>
+References: <cover.1339419492.git.afzal@ti.com>
+ <fb739c3c5383806f78cee3666f7c74d61bed6427.1339419492.git.afzal@ti.com>
+ <4FD64D6D.3020401@ti.com>
+ <C8443D0743D26F4388EA172BF4E2A7A93E997DD6@DBDE01.ent.ti.com>
+ <4FD77EF1.8000600@ti.com>
+ <C8443D0743D26F4388EA172BF4E2A7A93E9987B2@DBDE01.ent.ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from devils.ext.ti.com ([198.47.26.153]:59146 "EHLO
-	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753830Ab2FML6n convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 13 Jun 2012 07:58:43 -0400
-In-Reply-To: <20120613115445.GM12766@atomide.com>
-Content-Language: en-US
+Received: from mho-01-ewr.mailhop.org ([204.13.248.71]:32170 "EHLO
+	mho-01-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753726Ab2FMMCN (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 13 Jun 2012 08:02:13 -0400
+Content-Disposition: inline
+In-Reply-To: <C8443D0743D26F4388EA172BF4E2A7A93E9987B2@DBDE01.ent.ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Tony Lindgren <tony@atomide.com>
+To: "Mohammed, Afzal" <afzal@ti.com>
 Cc: "Hunter, Jon" <jon-hunter@ti.com>, "paul@pwsan.com" <paul@pwsan.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>
 
-Hi Tony,
-
-On Wed, Jun 13, 2012 at 17:24:45, Tony Lindgren wrote:
-
-> > If there's a chance it causing file system corruption, we should
-> > test it carefully on the boards before applying. If that's done,
-> > then there's probably no need for warnings. It's safer to disable
-> > NAND for untested boards if there's a chance of breaking the timings.
+* Mohammed, Afzal <afzal@ti.com> [120612 22:24]:
+> Hi Jon,
 > 
-> Actually this patch breaks at least DMA on tusb6010 on n8x0. That's
-> a MUSB hardware in a wrapper connected to GPMC that's very picky with
-> the timings.
+> On Tue, Jun 12, 2012 at 23:10:01, Hunter, Jon wrote:
+> > On 06/12/2012 01:53 AM, Mohammed, Afzal wrote:
+> > > On Tue, Jun 12, 2012 at 01:26:29, Hunter, Jon wrote:
 > 
-> Got any hints what should be done with the cycle2cycle stuff for
-> tusb6010?
+> > >> My preference would be to store gpmc_l3_clk in the pdata and pass to
+> > >> probe via the pdata. The aim would be to remove the global gpmc_l3_clk
+> > >> altogether.
+> > > 
+> > > For timing calculation by platform outside of driver, we need clk rate
+> > 
+> > Right but potentially, this could be done by the driver.
+> 
+> I do not think it is practically possible. Please see timing calculations
+> in arch/arm/mach-omap2/gpmc-*, the way it is done for different
+> peripherals are different, and we cannot expect gpmc driver to do those as
+> that would require gpmc driver being aware of type of peripheral connected.
+> 
+> And all those gpmc-* timing calculation needs to be done before driver
+> is ready, they rely on functions like gpmc_get_fclk_rate(), which in turn
+> requires the clk rate to be available before driver is probed.
 
-Not as of now, let me try to find out.
+Yeah I also think the GPMC code should handle the L3 timings, and dynamically
+calculate them for DVFS when L3 frequency changes. Does the GPMC have enough
+information now to do that?
 
-Regards
-Afzal
+Additionally GPMC should add constraints to DVFS if not enough data is know
+to scale L3.
+
+Tony
