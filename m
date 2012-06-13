@@ -1,49 +1,31 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH 3/3] ARM: OMAP2+: gpmc: handle additional timings
-Date: Wed, 13 Jun 2012 04:54:45 -0700
-Message-ID: <20120613115445.GM12766@atomide.com>
-References: <cover.1339419244.git.afzal@ti.com>
- <c4bd7d71e9950c09f9712077160b6231f566d8f3.1339419244.git.afzal@ti.com>
- <4FD63DBF.9000200@ti.com>
- <C8443D0743D26F4388EA172BF4E2A7A93E997D9E@DBDE01.ent.ti.com>
- <4FD77E35.3050703@ti.com>
- <C8443D0743D26F4388EA172BF4E2A7A93E998767@DBDE01.ent.ti.com>
- <20120613113217.GK12766@atomide.com>
+From: "Mohammed, Afzal" <afzal@ti.com>
+Subject: RE: [PATCH v2 08/10] ARM: OMAP2+: gpmc: Modify interrupt handling
+Date: Wed, 13 Jun 2012 11:56:51 +0000
+Message-ID: <C8443D0743D26F4388EA172BF4E2A7A93E998C70@DBDE01.ent.ti.com>
+References: <cover.1339586624.git.afzal@ti.com>
+	 <35f198577330e7260ff7e5f1f3ac603372d83589.1339586624.git.afzal@ti.com>
+ <1339588558.2401.117.camel@sauron.fi.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-01-ewr.mailhop.org ([204.13.248.71]:27358 "EHLO
-	mho-01-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753586Ab2FMLyt (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 13 Jun 2012 07:54:49 -0400
-Content-Disposition: inline
-In-Reply-To: <20120613113217.GK12766@atomide.com>
+Received: from comal.ext.ti.com ([198.47.26.152]:45764 "EHLO comal.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1753815Ab2FML5B (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Wed, 13 Jun 2012 07:57:01 -0400
+In-Reply-To: <1339588558.2401.117.camel@sauron.fi.intel.com>
+Content-Language: en-US
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "Mohammed, Afzal" <afzal@ti.com>
-Cc: "Hunter, Jon" <jon-hunter@ti.com>, "paul@pwsan.com" <paul@pwsan.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>
+To: "artem.bityutskiy@linux.intel.com" <artem.bityutskiy@linux.intel.com>
+Cc: "tony@atomide.com" <tony@atomide.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-mtd@lists.infradead.org" <linux-mtd@lists.infradead.org>, "ivan.djelic@parrot.com" <ivan.djelic@parrot.com>
 
-* Tony Lindgren <tony@atomide.com> [120613 04:36]:
-> * Mohammed, Afzal <afzal@ti.com> [120612 22:00]:
-> > Hi Jon,
-> > 
-> > On Tue, Jun 12, 2012 at 23:06:53, Hunter, Jon wrote:
-> > 
-> > > Should you at least warn, if you are going to over-write a value?
-> > 
-> > Yes, that would be better except for too much logging, if Tony
-> > prefers that way I will add. 
-> 
-> If there's a chance it causing file system corruption, we should
-> test it carefully on the boards before applying. If that's done,
-> then there's probably no need for warnings. It's safer to disable
-> NAND for untested boards if there's a chance of breaking the timings.
-
-Actually this patch breaks at least DMA on tusb6010 on n8x0. That's
-a MUSB hardware in a wrapper connected to GPMC that's very picky with
-the timings.
-
-Got any hints what should be done with the cycle2cycle stuff for
-tusb6010?
-
-Tony
+SGkgQXJ0ZW0sDQoNCk9uIFdlZCwgSnVuIDEzLCAyMDEyIGF0IDE3OjI1OjU4LCBBcnRlbSBCaXR5
+dXRza2l5IHdyb3RlOg0KPiBPbiBXZWQsIDIwMTItMDYtMTMgYXQgMTc6MDMgKzA1MzAsIEFmemFs
+IE1vaGFtbWVkIHdyb3RlOg0KPiA+ICsvKiBYWFg6IE9ubHkgTkFORCBpcnEgaGFzIGJlZW4gY29u
+c2lkZXJlZCxjdXJyZW50bHkgdGhlc2UgYXJlIHRoZSBvbmx5IG9uZXMgdXNlZA0KPiA+ICsgKi8N
+Cj4gPiArI2RlZmluZQlHUE1DX05SX0lSUQkJMg0KPiANCj4gSSBndWVzcyAiWFhYIiBtZWFucyAi
+V2FybmluZyI/IFdoeSBub3QgdG8gdXNlIHBsYWluIEVuZ2xpc2g/IDotKQ0KDQpJdCB3YXMgbWFk
+ZSBzbyB0aGF0IGluIGVkaXRvciAodmltLCBtYXliZSBnb3QgYmlhc2VkIHRvd2FyZHMgaXQgYXMg
+SQ0KdXNlIGl0KSBpdCBnZXRzIGhpZ2hsaWdodGVkLCBkbyB5b3Ugd2FudCBtZSB0byBzZW5kIGFu
+IHVwZGF0ZWQgc2VyaWVzID8NCg0KUmVnYXJkcw0KQWZ6YWwNCg==
