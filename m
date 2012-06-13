@@ -1,93 +1,53 @@
-From: "Shilimkar, Santosh" <santosh.shilimkar@ti.com>
-Subject: Re: [PATCH V2 03/10] ARM: OMAP4: Re-map the CTIs IRQs from MPU to DEBUGSS
-Date: Wed, 13 Jun 2012 11:49:55 +0530
-Message-ID: <CAMQu2gwLwOFaneDy07V9B=v9=8PWwgknm2+o1rTFJ4kAfEVsLg@mail.gmail.com>
-References: <1339104132-26885-1-git-send-email-jon-hunter@ti.com>
- <1339104132-26885-4-git-send-email-jon-hunter@ti.com> <CAFm5wm07QXCLA9SoFSqQP1NbdU0XynmyxKfjNJEMvziEAtphJQ@mail.gmail.com>
- <CAFm5wm2h9X-ELks7adT=NmRzVkvWhQEkefuBSvVHS6+AvstLwA@mail.gmail.com>
+From: "Mohammed, Afzal" <afzal@ti.com>
+Subject: RE: [PATCH v5 01/14] ARM: OMAP2+: gpmc: platform definitions
+Date: Wed, 13 Jun 2012 06:25:00 +0000
+Message-ID: <C8443D0743D26F4388EA172BF4E2A7A93E99889E@DBDE01.ent.ti.com>
+References: <cover.1339419492.git.afzal@ti.com>
+ <139eb951817b4bee8ea91083b0d572c7421078f0.1339419492.git.afzal@ti.com>
+ <4FD79147.9060501@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aog126.obsmtp.com ([74.125.149.155]:39264 "EHLO
-	na3sys009aog126.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751705Ab2FMGUQ convert rfc822-to-8bit
-	(ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Wed, 13 Jun 2012 02:20:16 -0400
-Received: by obbef5 with SMTP id ef5so395758obb.7
-        for <linux-omap@vger.kernel.org>; Tue, 12 Jun 2012 23:20:15 -0700 (PDT)
-In-Reply-To: <CAFm5wm2h9X-ELks7adT=NmRzVkvWhQEkefuBSvVHS6+AvstLwA@mail.gmail.com>
+Received: from comal.ext.ti.com ([198.47.26.152]:58545 "EHLO comal.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752611Ab2FMGZG convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 13 Jun 2012 02:25:06 -0400
+In-Reply-To: <4FD79147.9060501@ti.com>
+Content-Language: en-US
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "Pandita, Vikram" <vikram.pandita@ti.com>
-Cc: Jon Hunter <jon-hunter@ti.com>, linux-omap <linux-omap@vger.kernel.org>, linux-arm <linux-arm-kernel@lists.infradead.org>, Kevin Hilman <khilman@ti.com>, Paul Walmsley <paul@pwsan.com>, Benoit Cousson <b-cousson@ti.com>, Ming Lei <ming.lei@canonical.com>, Will Deacon <will.deacon@arm.com>
+To: "Hunter, Jon" <jon-hunter@ti.com>
+Cc: "tony@atomide.com" <tony@atomide.com>, "paul@pwsan.com" <paul@pwsan.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>
 
-On Wed, Jun 13, 2012 at 11:43 AM, Pandita, Vikram <vikram.pandita@ti.co=
-m> wrote:
-> On Tue, Jun 12, 2012 at 11:07 PM, Pandita, Vikram <vikram.pandita@ti.=
-com> wrote:
->> On Thu, Jun 7, 2012 at 2:22 PM, Jon Hunter <jon-hunter@ti.com> wrote=
-:
->>> In order to use the CTI interrupts inconjunction with the DEBUGSS w=
-e need to
->>> re-map the CTI IRQs to the DEBUGSS HWMOD. The purpose for doing thi=
-s is so we
->>> can create a PMU device based upon the DEBUGSS HWMOD and use the CT=
-I interrupts
->>> for routing ARM PMU events for OMAP4430 devices.
->>>
->>> This is based upon Benoit Cousson's patch [1].
->>>
->>> [1] http://lists.infradead.org/pipermail/linux-arm-kernel/2011-Nove=
-mber/073319.html
->>>
->>> Cc: Ming Lei <ming.lei@canonical.com>
->>> Cc: Will Deacon <will.deacon@arm.com>
->>> Cc: Benoit Cousson <b-cousson@ti.com>
->>> Cc: Paul Walmsley <paul@pwsan.com>
->>> Cc: Kevin Hilman <khilman@ti.com>
->>>
->>> Reviewed-by: Santosh Shilimkar <santosh.shilimkar@ti.com>
->>> Signed-off-by: Jon Hunter <jon-hunter@ti.com>
->>> ---
->>> =A0arch/arm/mach-omap2/omap_hwmod_44xx_data.c | =A0 =A09 +++++++--
->>> =A01 file changed, 7 insertions(+), 2 deletions(-)
->>>
->>> diff --git a/arch/arm/mach-omap2/omap_hwmod_44xx_data.c b/arch/arm/=
-mach-omap2/omap_hwmod_44xx_data.c
->>> index 950454a..faf5a6d 100644
->>> --- a/arch/arm/mach-omap2/omap_hwmod_44xx_data.c
->>> +++ b/arch/arm/mach-omap2/omap_hwmod_44xx_data.c
->>> @@ -482,10 +482,17 @@ static struct omap_hwmod_class omap44xx_debug=
-ss_hwmod_class =3D {
->>> =A0};
->>>
->>> =A0/* debugss */
->>> +static struct omap_hwmod_irq_info omap44xx_debugss_irqs[] =3D {
->>> + =A0 =A0 =A0 { .name =3D "cti0", .irq =3D 1 + OMAP44XX_IRQ_GIC_STA=
-RT },
->>> + =A0 =A0 =A0 { .name =3D "cti1", .irq =3D 2 + OMAP44XX_IRQ_GIC_STA=
-RT },
->>
->> Data manual assigns cit0 =3D=3D MA_IRQ_1 and cti1 =3D=3D MA_IRQ_2
->> Why do you add 32 base GIC_START ?
->
-> Looks we do the same for pl310:
-> { .name =3D "pl310", .irq =3D 0 + OMAP44XX_IRQ_GIC_START },
->
-> so u can ignore my comment .. excuse the noise...
->
-All the SPI ( shared Peripheral IRQ's) have offset since first 32 IRQs
-are dedicated
-for SGI and PPI's.
+Hi Jon,
 
-CTIx and PL310 interrupts are mapped on SPI and hence they need that of=
-fset.
+On Wed, Jun 13, 2012 at 00:28:15, Hunter, Jon wrote:
+> On 06/11/2012 09:26 AM, Afzal Mohammed wrote:
+
+> > +enum {
+> > +	has_none,
+> > +	has_period,
+> > +	has_clock
+> > +};
+> > +
+> > +struct gpmc_time_ctrl {
+> > +	int type;
+> > +	struct gpmc_timings timings;
+> > +	struct gpmc_misc_timings bool_timings;
+> > +};
+> 
+> Why not combine misc_timings and the original timings? I don't see why
+> these need to be kept separate. Even if combined it can still be
+
+To keep similar things together, as misc_timings are all bool type, while
+existing are not so. This could have been put inside gpmc_timings, but
+wanted to reduce chance of issues for users of old interface.
+
+> backward compatible for legacy boards as they will not specify the misc
+> timing fields. I am also not convinced we need this type member.
+
+Reason: http://www.mail-archive.com/linux-omap@vger.kernel.org/msg69041.html
 
 Regards
-Santosh
---
-To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Afzal
