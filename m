@@ -1,47 +1,87 @@
 From: Zumeng Chen <zumeng.chen@gmail.com>
-Subject: [PATCH v2 0/5] ARM OMAP3530evm misc fixes for linux-omap
-Date: Wed, 13 Jun 2012 09:44:05 +0800
-Message-ID: <1339551850-20827-1-git-send-email-zumeng.chen@gmail.com>
+Subject: [PATCH V2 2/5] ARM: OMAP3EVM: Adding USB internal LDOs board file
+Date: Wed, 13 Jun 2012 09:44:07 +0800
+Message-ID: <1339551850-20827-3-git-send-email-zumeng.chen@gmail.com>
 References: <zumeng.chen@gmail.com>
+ <1339551850-20827-1-git-send-email-zumeng.chen@gmail.com>
 Mime-Version: 1.0
 Content-Type: text/plain
-Return-path: <linux-input-owner@vger.kernel.org>
-In-Reply-To: <zumeng.chen@gmail.com>
-Sender: linux-input-owner@vger.kernel.org
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from mail1.windriver.com ([147.11.146.13]:41664 "EHLO
+	mail1.windriver.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751868Ab2FMBoj (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 12 Jun 2012 21:44:39 -0400
+In-Reply-To: <1339551850-20827-1-git-send-email-zumeng.chen@gmail.com>
+Sender: linux-omap-owner@vger.kernel.org
+List-Id: linux-omap@vger.kernel.org
 To: tony@atomide.com, jon-hunter@ti.com, grinberg@compulab.co.il, linux-omap@vger.kernel.org
 Cc: linux-arm-kernel@lists.infradead.org, khilman@ti.com, khasim@ti.com, ajay.gupta@ti.com, hvaibhav@ti.com, dmitry.torokhov@gmail.com, linux-input@vger.kernel.org
-List-Id: linux-omap@vger.kernel.org
 
-These patches fix misc problems when reflash ti-omap3530evm for
-master branch on Linux-omap.
+From: Zumeng Chen <zumeng.chen@windriver.com>
 
-The series is based upon the latest linux-omap master branch from
-Tony (3.5-rc1).
+EHCI PHY requires these regulators:
+        EVM Rev >=E  --> VAUX2
+        EVM Rev < E  --> VUSB1V5, VUSB1V8
 
-Changes vs V1:
+Adding USB internal LDOs (vusb1v5 & vusb1v8) and VAUX2 to omap3evm
+board file. Also removing vaux2_{1/2/3} supplies as they are not
+used on omap3 evm.
 
- 1. NAND flash definition changes as Jon's comments.
- 2. Add more shortlog for VBUS switch from a kind people.
- 3. Jon's cosmetic fix seems more fit.
- 4. Debounce time I still leave a ugly hardcode in driver level
-    with bracketing by ARCH_OMAP3. Anyway, Igor's comments are
-    more sense.
+But we need not to add vaux2 in twl4030_platform_data since it will
+be added conditionally.
 
- If you guy don't like patch 4 or 5, feel free to drop them :-)
- I'm OK for that, thanks all of your kind RR from Jon, Igor, and
- Tony.
+Signed-off-by: Ajay Kumar Gupta <ajay.gupta@ti.com>
+Signed-off-by: Vaibhav Hiremath <hvaibhav@ti.com>
+Signed-off-by: Zumeng Chen <zumeng.chen@windriver.com>
+---
+ arch/arm/mach-omap2/board-omap3evm.c |   27 +++++++++++++++++++++++++++
+ 1 files changed, 27 insertions(+), 0 deletions(-)
 
- Zumeng Chen (5):
-      ARM: OMAP3EVM: Add NAND flash definition
-      ARM: OMAP3EVM: Adding USB internal LDOs board file
-      ARM: omap3evm: enable VBUS switch for EHCI tranceiver
-      ARM: OMAP3EVM: cosmetic fixes for parent clk set
-      Input: ads7846: set proper debounce time in driver level
-
- arch/arm/mach-omap2/board-omap3evm.c |   75 ++++++++++++++++++++++++++++++++++
- arch/arm/plat-omap/clock.c           |    4 ++
- drivers/input/touchscreen/ads7846.c  |    4 ++
- drivers/mfd/omap-usb-host.c          |    2 +-
- 4 files changed, 84 insertions(+), 1 deletions(-)
+diff --git a/arch/arm/mach-omap2/board-omap3evm.c b/arch/arm/mach-omap2/board-omap3evm.c
+index 0b83d0e..3c91534 100644
+--- a/arch/arm/mach-omap2/board-omap3evm.c
++++ b/arch/arm/mach-omap2/board-omap3evm.c
+@@ -466,6 +466,30 @@ struct wl12xx_platform_data omap3evm_wlan_data __initdata = {
+ };
+ #endif
  
++/* VAUX2 for USB */
++static struct regulator_consumer_supply omap3evm_vaux2_supplies[] = {
++	REGULATOR_SUPPLY("VDD_CSIPHY1", "omap3isp"),	/* OMAP ISP */
++	REGULATOR_SUPPLY("VDD_CSIPHY2", "omap3isp"),	/* OMAP ISP */
++	REGULATOR_SUPPLY("hsusb1", "ehci-omap.0"),
++	{
++		.supply		= "vaux2",
++	}
++};
++
++static struct regulator_init_data omap3evm_vaux2 = {
++	.constraints = {
++		.min_uV		= 2800000,
++		.max_uV		= 2800000,
++		.apply_uV	= true,
++		.valid_modes_mask	= REGULATOR_MODE_NORMAL
++					| REGULATOR_MODE_STANDBY,
++		.valid_ops_mask		= REGULATOR_CHANGE_MODE
++					| REGULATOR_CHANGE_STATUS,
++	},
++	.num_consumer_supplies		= ARRAY_SIZE(omap3evm_vaux2_supplies),
++	.consumer_supplies		= omap3evm_vaux2_supplies,
++};
++
+ static struct twl4030_platform_data omap3evm_twldata = {
+ 	/* platform_data for children goes here */
+ 	.keypad		= &omap3evm_kp_data,
+@@ -659,6 +683,9 @@ static void __init omap3_evm_init(void)
+ 	omap_mux_init_gpio(63, OMAP_PIN_INPUT);
+ 	omap_hsmmc_init(mmc);
+ 
++	if (get_omap3_evm_rev() >= OMAP3EVM_BOARD_GEN_2)
++		omap3evm_twldata.vaux2 = &omap3evm_vaux2;
++
+ 	omap3_evm_i2c_init();
+ 
+ 	omap_display_init(&omap3_evm_dss_data);
+-- 
+1.7.5.4
 
