@@ -1,17 +1,17 @@
 From: Jon Hunter <jon-hunter@ti.com>
-Subject: Re: [PATCH v5 14/14] ARM: OMAP2+: gpmc: writeprotect helper
-Date: Wed, 13 Jun 2012 11:28:53 -0500
-Message-ID: <4FD8BFC5.2050007@ti.com>
-References: <cover.1339419492.git.afzal@ti.com> <85c5dc5fa3203cc60a12d4b2350e45da07d7f5fd.1339419492.git.afzal@ti.com> <4FD78D93.9080906@ti.com> <C8443D0743D26F4388EA172BF4E2A7A93E99884F@DBDE01.ent.ti.com>
+Subject: Re: [PATCH 2/3] ARM: OMAP2+: onenand: cleanup for gpmc driver conversion
+Date: Wed, 13 Jun 2012 11:38:47 -0500
+Message-ID: <4FD8C217.2050006@ti.com>
+References: <cover.1339419244.git.afzal@ti.com> <2d6f0fb31cde98cd700d7a4268683b4aeeee87f2.1339419244.git.afzal@ti.com> <4FD63AAE.90008@ti.com> <C8443D0743D26F4388EA172BF4E2A7A93E997D47@DBDE01.ent.ti.com> <4FD77CC8.4000003@ti.com> <C8443D0743D26F4388EA172BF4E2A7A93E998781@DBDE01.ent.ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="ISO-8859-1"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from bear.ext.ti.com ([192.94.94.41]:39459 "EHLO bear.ext.ti.com"
+Received: from bear.ext.ti.com ([192.94.94.41]:40105 "EHLO bear.ext.ti.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751324Ab2FMQ2x (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Wed, 13 Jun 2012 12:28:53 -0400
-In-Reply-To: <C8443D0743D26F4388EA172BF4E2A7A93E99884F@DBDE01.ent.ti.com>
+	id S1752119Ab2FMQiq (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Wed, 13 Jun 2012 12:38:46 -0400
+In-Reply-To: <C8443D0743D26F4388EA172BF4E2A7A93E998781@DBDE01.ent.ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: "Mohammed, Afzal" <afzal@ti.com>
@@ -19,35 +19,44 @@ Cc: "tony@atomide.com" <tony@atomide.com>, "paul@pwsan.com" <paul@pwsan.com>, "l
 
 Hi Afzal,
 
-On 06/13/2012 01:10 AM, Mohammed, Afzal wrote:
+On 06/13/2012 12:03 AM, Mohammed, Afzal wrote:
 > Hi Jon,
 > 
-> On Wed, Jun 13, 2012 at 00:12:27, Hunter, Jon wrote:
+> On Tue, Jun 12, 2012 at 23:00:48, Hunter, Jon wrote:
 > 
->> I am still wondering if we should warn against multiple devices using
->> the wait pin. I see that if could be valid to have multiple memory
->> devices of the same type using the WP pin spanning multiple CS. However,
->> in that case would/should the memory devices be registered as a single
->> child? If so then we could still impose a policy of only one child
->> device using the WP.
+>> On 06/12/2012 01:16 AM, Mohammed, Afzal wrote:
+>>> With the existing code, set_async was done as part of set_sync, hence
+>>> requiring GPMC to be configured twice after driver takes control, with
+>>> your suggestion too, GPMC would have to be configured twice.
+>>
+>> I am just suggesting that you place the call to set_async_mode in the
+>> gpmc_onenand_setup() instead of the gpmc_onenand_init() and remove the
+>> calls from set_sync (like you have done). So I don't see that these
+>> would configure the GPMC twice.
 > 
-> Presently there are no peripherals in mainline turning on writeprotect,
-> initially intention was to just disable writeprotect at the end of probe
-> and not provide platforms opportunity to enable writeprotect as none
-> need it, still a provision has been provided for platform to enable it.
-> 
-> Probably these to be taken care when there is a requirement.
+> As gpmc_onenand_setup is a callback by onenand driver, we would have
+> lost the opportunity to configure onenand before driver is probed.
 
-Ok, but I am still not happy about this. So I did find that our
-omap2420h4 board does route the write protect to both NOR and NAND.
-Therefore, it does appear to be a valid use-case that multiple child
-devices can share the write-protect. So maybe we do not need to reserve
-the write-protect like we are doing for chip-selects, but I think that
-devices should indicate if they use the write-protect pin and we should
-either have this "enable on boot" as a global setting not specific to a
-child device or ensure that multiple devices using the wp have the same
-configuration of the wp on boot. In other words, if one device says
-enable on boot and the other does not, then warn.
+Is that a problem? Looks like it is called early in the probe and so I
+would hope no one is attempting to access the onenand itself before the
+probe has completed.
+
+> This would cause requirement of double GPMC configuring and we lost
+> the opportunity to configure GPMC before driver is probed.
+
+I am not convinced we need to. Furthermore with your change you do not
+actually set async mode in the onenand until _set_sync() is called.
+
+> And the first step for onenand configuration is always to set it
+> to async mode (with the way it is done now), so it seems reasonable
+> to rely on normal GPMC configuration for async & then do reconfigure
+> for sync.
+
+Yes but as far as I can see, it seems that this is the intent of the
+onenand_setup() function to perform the necessary initialisation.
+
+Have you tested onenand? Do you have a board with onenand?
 
 Cheers
 Jon
+
