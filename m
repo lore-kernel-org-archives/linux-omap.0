@@ -1,53 +1,67 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH 0/3] Prepare for GPMC driver conversion
-Date: Wed, 13 Jun 2012 04:33:59 -0700
-Message-ID: <20120613113358.GL12766@atomide.com>
-References: <cover.1339419244.git.afzal@ti.com>
- <C8443D0743D26F4388EA172BF4E2A7A93E99803F@DBDE01.ent.ti.com>
+From: Afzal Mohammed <afzal@ti.com>
+Subject: [PATCH v2 00/10] Prepare for GPMC driver conversion (w.r.t MTD)
+Date: Wed, 13 Jun 2012 17:02:28 +0530
+Message-ID: <cover.1339586624.git.afzal@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-02-ewr.mailhop.org ([204.13.248.72]:47110 "EHLO
-	mho-02-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752807Ab2FMLeB (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 13 Jun 2012 07:34:01 -0400
-Content-Disposition: inline
-In-Reply-To: <C8443D0743D26F4388EA172BF4E2A7A93E99803F@DBDE01.ent.ti.com>
+Received: from devils.ext.ti.com ([198.47.26.153]:58616 "EHLO
+	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753655Ab2FMLsJ (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 13 Jun 2012 07:48:09 -0400
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "Mohammed, Afzal" <afzal@ti.com>
-Cc: "paul@pwsan.com" <paul@pwsan.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>
+To: tony@atomide.com, artem.bityutskiy@linux.intel.com, linux-omap@vger.kernel.org, linux-mtd@lists.infradead.org
+Cc: ivan.djelic@parrot.com, Afzal Mohammed <afzal@ti.com>
 
-* Mohammed, Afzal <afzal@ti.com> [120612 03:32]:
-> Hi Tony,
-> 
-> On Mon, Jun 11, 2012 at 19:31:01, Mohammed, Afzal wrote:
-> 
-> > Objective of this series is to make things easy for GPMC driver
-> > conversion series by separating out more things from driver
-> > conversion series.
-> > 
-> > This series,
-> > 1. Unifies NAND platform initialization functions
-> > 2. Cleans up OneNAND platform code a little
-> > 3. Handles additional timings in Kernel
-> > 
-> > This series is based on 3.5-rc1 & made on top of
-> > http://www.mail-archive.com/linux-omap@vger.kernel.org/msg69501.html
-> > http://www.mail-archive.com/linux-omap@vger.kernel.org/msg69881.html
-> 
-> 
-> Please let me know your comments on this series.
-> 
-> gpmc driver conversion series [1] is dependent on this.
+Hi,
 
-Looks good to me, made one comment regarding testing and maybe disabling
-NAND for untested boards if timings change. Are Jon's comments all handled?
+This series cleans up gpmc mtd interactions so that GPMC driver
+conversion which is going to happen shortly would happen smoothly
+by not creating much disturbance outside of arch/arm/*omap*/
 
-Tony
- 
-> Regards
-> Afzal
-> 
-> [1] http://www.mail-archive.com/linux-omap@vger.kernel.org/msg69897.html
-> 
+This series,
+1. provides the ability for OMAP NAND driver to configure GPMC-NAND
+   registers by NAND driver itself instead of using exported GPMC
+   symbols
+2. modifies GPMC to provide OMAP ONENAND & NAND drivers with GPMC
+   allocated address space as resource
+3. creates a fictitious GPMC interrupt chip and provide the clients
+   with interrupts that could be handled using standard APIs (helps
+   in removing the requirement for driver of peripheral connected to
+   GPMC having the knowledge about GPMC interrupt handling). The
+   only user is OMAP NAND driver, it has also been modified to take
+   advantage of this
+
+This series has been made over 3.5-rc1
+
+Regards
+Afzal
+
+v2:
+[mtd: nand: omap2: handle nand on gpmc] simplify omap_prefetch_enable()
+
+Afzal Mohammed (10):
+  ARM: OMAP2+: gpmc: update nand register helper
+  ARM: OMAP2+: gpmc-nand: update gpmc-nand regs
+  mtd: nand: omap2: handle nand on gpmc
+  ARM: OMAP2+: gpmc-nand: update resource with memory
+  ARM: OMAP2+: gpmc-onenand: provide memory as resource
+  mtd: nand: omap2: obtain memory from resource
+  mtd: onenand: omap2: obtain memory from resource
+  ARM: OMAP2+: gpmc: Modify interrupt handling
+  ARM: OMAP2+: gpmc-nand: Modify Interrupt handling
+  mtd: nand: omap2: use gpmc provided irqs
+
+ arch/arm/mach-omap2/gpmc-nand.c        |   28 ++-
+ arch/arm/mach-omap2/gpmc-onenand.c     |   23 ++-
+ arch/arm/mach-omap2/gpmc.c             |  156 +++++++++++++++--
+ arch/arm/plat-omap/include/plat/gpmc.h |   19 +++
+ arch/arm/plat-omap/include/plat/nand.h |    2 +-
+ drivers/mtd/nand/omap2.c               |  291 ++++++++++++++++++++++++--------
+ drivers/mtd/onenand/omap2.c            |   29 ++--
+ 7 files changed, 436 insertions(+), 112 deletions(-)
+
+-- 
+1.7.10.2
+
