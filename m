@@ -1,45 +1,53 @@
-From: Felipe Balbi <balbi@ti.com>
-Subject: [rft/rfc/patch 22/22] i2c: omap: simplify errata check
-Date: Wed, 13 Jun 2012 18:51:11 +0300
-Message-ID: <1339602671-8431-23-git-send-email-balbi@ti.com>
-References: <1339602671-8431-1-git-send-email-balbi@ti.com>
+From: Jon Hunter <jon-hunter@ti.com>
+Subject: Re: [PATCH v5 14/14] ARM: OMAP2+: gpmc: writeprotect helper
+Date: Wed, 13 Jun 2012 11:28:53 -0500
+Message-ID: <4FD8BFC5.2050007@ti.com>
+References: <cover.1339419492.git.afzal@ti.com> <85c5dc5fa3203cc60a12d4b2350e45da07d7f5fd.1339419492.git.afzal@ti.com> <4FD78D93.9080906@ti.com> <C8443D0743D26F4388EA172BF4E2A7A93E99884F@DBDE01.ent.ti.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset="ISO-8859-1"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aog113.obsmtp.com ([74.125.149.209]:51340 "EHLO
-	na3sys009aog113.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754314Ab2FMPyT (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>);
-	Wed, 13 Jun 2012 11:54:19 -0400
-Received: by lahd3 with SMTP id d3so656871lah.33
-        for <linux-omap@vger.kernel.org>; Wed, 13 Jun 2012 08:54:16 -0700 (PDT)
-In-Reply-To: <1339602671-8431-1-git-send-email-balbi@ti.com>
+Received: from bear.ext.ti.com ([192.94.94.41]:39459 "EHLO bear.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751324Ab2FMQ2x (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Wed, 13 Jun 2012 12:28:53 -0400
+In-Reply-To: <C8443D0743D26F4388EA172BF4E2A7A93E99884F@DBDE01.ent.ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Shubhrajyoti Datta <shubhrajyoti@ti.com>
-Cc: Tony Lindgren <tony@atomide.com>, Linux OMAP Mailing List <linux-omap@vger.kernel.org>, Felipe Balbi <balbi@ti.com>
+To: "Mohammed, Afzal" <afzal@ti.com>
+Cc: "tony@atomide.com" <tony@atomide.com>, "paul@pwsan.com" <paul@pwsan.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>
 
-omap_i2c_dev is allocated with kzalloc(),
-so we need not initialize b_hw to zero.
+Hi Afzal,
 
-Signed-off-by: Felipe Balbi <balbi@ti.com>
----
- drivers/i2c/busses/i2c-omap.c |    4 +---
- 1 file changed, 1 insertion(+), 3 deletions(-)
+On 06/13/2012 01:10 AM, Mohammed, Afzal wrote:
+> Hi Jon,
+> 
+> On Wed, Jun 13, 2012 at 00:12:27, Hunter, Jon wrote:
+> 
+>> I am still wondering if we should warn against multiple devices using
+>> the wait pin. I see that if could be valid to have multiple memory
+>> devices of the same type using the WP pin spanning multiple CS. However,
+>> in that case would/should the memory devices be registered as a single
+>> child? If so then we could still impose a policy of only one child
+>> device using the WP.
+> 
+> Presently there are no peripherals in mainline turning on writeprotect,
+> initially intention was to just disable writeprotect at the end of probe
+> and not provide platforms opportunity to enable writeprotect as none
+> need it, still a provision has been provided for platform to enable it.
+> 
+> Probably these to be taken care when there is a requirement.
 
-diff --git a/drivers/i2c/busses/i2c-omap.c b/drivers/i2c/busses/i2c-omap.c
-index 492e340..45c2bf7 100644
---- a/drivers/i2c/busses/i2c-omap.c
-+++ b/drivers/i2c/busses/i2c-omap.c
-@@ -1135,9 +1135,7 @@ omap_i2c_probe(struct platform_device *pdev)
- 
- 		dev->fifo_size = (dev->fifo_size / 2);
- 
--		if (dev->rev >= OMAP_I2C_REV_ON_3530_4430)
--			dev->b_hw = 0; /* Disable hardware fixes */
--		else
-+		if (dev->rev < OMAP_I2C_REV_ON_3530_4430)
- 			dev->b_hw = 1; /* Enable hardware fixes */
- 
- 		/* calculate wakeup latency constraint for MPU */
--- 
-1.7.10.4
+Ok, but I am still not happy about this. So I did find that our
+omap2420h4 board does route the write protect to both NOR and NAND.
+Therefore, it does appear to be a valid use-case that multiple child
+devices can share the write-protect. So maybe we do not need to reserve
+the write-protect like we are doing for chip-selects, but I think that
+devices should indicate if they use the write-protect pin and we should
+either have this "enable on boot" as a global setting not specific to a
+child device or ensure that multiple devices using the wp have the same
+configuration of the wp on boot. In other words, if one device says
+enable on boot and the other does not, then warn.
 
+Cheers
+Jon
