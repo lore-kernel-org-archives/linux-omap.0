@@ -1,55 +1,63 @@
-From: "ABRAHAM, KISHON VIJAY" <kishon@ti.com>
-Subject: Re: [RFC PATCH 0/3] usb: musb: add new phy driver
-Date: Wed, 13 Jun 2012 19:58:34 +0530
-Message-ID: <CAAe_U6JQ5rVoQWwyJLQBNR8uOp2zE0bmqFXH6HkBWYKPuqng+Q@mail.gmail.com>
-References: <1338388466-3565-1-git-send-email-kishon@ti.com>
-	<20120612104803.GD10901@arwen.pp.htv.fi>
+From: Jon Hunter <jon-hunter@ti.com>
+Subject: Re: [PATCH v5 02/14] ARM: OMAP2+: gpmc: Adapt to HWMOD
+Date: Wed, 13 Jun 2012 09:51:50 -0500
+Message-ID: <4FD8A906.8080202@ti.com>
+References: <cover.1339419492.git.afzal@ti.com> <fb739c3c5383806f78cee3666f7c74d61bed6427.1339419492.git.afzal@ti.com> <4FD64D6D.3020401@ti.com> <C8443D0743D26F4388EA172BF4E2A7A93E997DD6@DBDE01.ent.ti.com> <4FD77EF1.8000600@ti.com> <C8443D0743D26F4388EA172BF4E2A7A93E9987B2@DBDE01.ent.ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
+Content-Type: text/plain; charset="ISO-8859-1"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aog110.obsmtp.com ([74.125.149.203]:43787 "EHLO
-	na3sys009aog110.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754115Ab2FMO2g (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>);
-	Wed, 13 Jun 2012 10:28:36 -0400
-Received: by vcbfo13 with SMTP id fo13so459638vcb.32
-        for <linux-omap@vger.kernel.org>; Wed, 13 Jun 2012 07:28:34 -0700 (PDT)
-In-Reply-To: <20120612104803.GD10901@arwen.pp.htv.fi>
+Received: from arroyo.ext.ti.com ([192.94.94.40]:49906 "EHLO arroyo.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1754304Ab2FMOvw (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Wed, 13 Jun 2012 10:51:52 -0400
+In-Reply-To: <C8443D0743D26F4388EA172BF4E2A7A93E9987B2@DBDE01.ent.ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: balbi@ti.com
-Cc: tony@atomide.com, linux@arm.linux.org.uk, gregkh@linuxfoundation.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org, linux-usb@vger.kernel.org
+To: "Mohammed, Afzal" <afzal@ti.com>
+Cc: "tony@atomide.com" <tony@atomide.com>, "paul@pwsan.com" <paul@pwsan.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>
 
-Hi,
+Hi Afzal,
 
-On Tue, Jun 12, 2012 at 4:18 PM, Felipe Balbi <balbi@ti.com> wrote:
-> On Wed, May 30, 2012 at 08:04:23PM +0530, Kishon Vijay Abraham I wrote:
->> This series adds a new usb2 phy driver. The device for which is created
->> by the ocp2scp driver. This also uses control module driver.
+On 06/13/2012 12:20 AM, Mohammed, Afzal wrote:
+> Hi Jon,
+> 
+> On Tue, Jun 12, 2012 at 23:10:01, Hunter, Jon wrote:
+>> On 06/12/2012 01:53 AM, Mohammed, Afzal wrote:
+>>> On Tue, Jun 12, 2012 at 01:26:29, Hunter, Jon wrote:
+> 
+>>>> My preference would be to store gpmc_l3_clk in the pdata and pass to
+>>>> probe via the pdata. The aim would be to remove the global gpmc_l3_clk
+>>>> altogether.
+>>>
+>>> For timing calculation by platform outside of driver, we need clk rate
 >>
->> This series converts twl6030 as a comparator driver (previously it was
->> also the phy driver) and makes use of omap-usb2 as the phy driver.
->>
->> Instead of notification mechanism by power chip to omap glue to pass detection
->> of any events, an export API has been added in omap glue. Both twl4030 and
->> twl6030 will call to this API to pass any event. (twl6030 is used in omap4 and
->> twl4030 is used in omap3).
->>
->> This series depends on:
->> *[RFC PATCH 00/11] OMAP System Control Module* patch series
->> However System Control Module driver has only dt support, so wouldn't
->> be able to test this patch series. However I'll adapt omap usb2 phy
->> driver and musb driver for dt and send it asap to the list.
->>
->> This series also depends on:
->> *[PATCH v3 0/3] usb: multi-phy support* patch series
->> *[RFC PATCH 0/5] omap: add ocp2scp as a misc driver* patch series
->>
->> Compile tested only.
->
-> are we getting new version of this series ?
+>> Right but potentially, this could be done by the driver.
+> 
+> I do not think it is practically possible. Please see timing calculations
+> in arch/arm/mach-omap2/gpmc-*, the way it is done for different
+> peripherals are different, and we cannot expect gpmc driver to do those as
+> that would require gpmc driver being aware of type of peripheral connected.
+> 
+> And all those gpmc-* timing calculation needs to be done before driver
+> is ready, they rely on functions like gpmc_get_fclk_rate(), which in turn
+> requires the clk rate to be available before driver is probed.
 
-Yes. I'm planning to send a new version with only dt support by next week.
+So I see that the various gpmc-*.c files have some form of _retime()
+function. However, at the end of the day they all call
+gpmc_cs_set_timings() to convert time into gpmc clocks. Converting time
+to gpmc clocks is completely independent of the actual device and so
+this can be performed by the driver. We just need to populate the
+gpmc_timings struct and pass to the driver to convert to clocks and
+program into the registers.
 
-Thanks
-Kishon
+If the clk handle for the gpmc is passed to the gpmc driver, then there
+is no reason why the driver cannot do this.
+
+Obviously, I could be missing something fundamental here, but my
+assumption is that if the driver has the handle the fclk (and hence can
+query the clock rate) and has then gpmc_timings struct (with timings in
+time), then that is all it needs.
+
+Cheers
+Jon
