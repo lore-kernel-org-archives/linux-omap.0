@@ -1,71 +1,71 @@
 From: Felipe Balbi <balbi@ti.com>
-Subject: [rft/rfc/patch 16/22] i2c: omap: switch to platform_get_irq()
-Date: Wed, 13 Jun 2012 18:51:05 +0300
-Message-ID: <1339602671-8431-17-git-send-email-balbi@ti.com>
+Subject: [rft/rfc/patch 17/22] i2c: omap: drop Access Ready IRQ
+Date: Wed, 13 Jun 2012 18:51:06 +0300
+Message-ID: <1339602671-8431-18-git-send-email-balbi@ti.com>
 References: <1339602671-8431-1-git-send-email-balbi@ti.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aog110.obsmtp.com ([74.125.149.203]:35577 "EHLO
-	na3sys009aog110.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754220Ab2FMPx7 (ORCPT
+Received: from na3sys009aog138.obsmtp.com ([74.125.149.19]:50138 "EHLO
+	na3sys009aog138.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1754248Ab2FMPyC (ORCPT
 	<rfc822;linux-omap@vger.kernel.org>);
-	Wed, 13 Jun 2012 11:53:59 -0400
-Received: by laap9 with SMTP id p9so569599laa.36
-        for <linux-omap@vger.kernel.org>; Wed, 13 Jun 2012 08:53:56 -0700 (PDT)
+	Wed, 13 Jun 2012 11:54:02 -0400
+Received: by lbgc1 with SMTP id c1so1226310lbg.15
+        for <linux-omap@vger.kernel.org>; Wed, 13 Jun 2012 08:54:00 -0700 (PDT)
 In-Reply-To: <1339602671-8431-1-git-send-email-balbi@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: Shubhrajyoti Datta <shubhrajyoti@ti.com>
 Cc: Tony Lindgren <tony@atomide.com>, Linux OMAP Mailing List <linux-omap@vger.kernel.org>, Felipe Balbi <balbi@ti.com>
 
-that's a nice helper from drivers core which
-will give us the exact IRQ number, instead
-of a pointer to an IRQ resource.
+documentation is very unclear about how that
+works and testing shows that driver works without
+it.
 
 Signed-off-by: Felipe Balbi <balbi@ti.com>
 ---
- drivers/i2c/busses/i2c-omap.c |   11 ++++++-----
- 1 file changed, 6 insertions(+), 5 deletions(-)
+ drivers/i2c/busses/i2c-omap.c |   22 ++--------------------
+ 1 file changed, 2 insertions(+), 20 deletions(-)
 
 diff --git a/drivers/i2c/busses/i2c-omap.c b/drivers/i2c/busses/i2c-omap.c
-index 5e9e165..b9c9407 100644
+index b9c9407..20f854d 100644
 --- a/drivers/i2c/busses/i2c-omap.c
 +++ b/drivers/i2c/busses/i2c-omap.c
-@@ -1071,10 +1071,11 @@ omap_i2c_probe(struct platform_device *pdev)
- {
- 	struct omap_i2c_dev	*dev;
- 	struct i2c_adapter	*adap;
--	struct resource		*mem, *irq;
-+	struct resource		*mem;
- 	struct omap_i2c_bus_platform_data *pdata = pdev->dev.platform_data;
- 	struct device_node	*node = pdev->dev.of_node;
- 	const struct of_device_id *match;
-+	int irq;
- 	int r;
+@@ -474,9 +474,8 @@ static int omap_i2c_init(struct omap_i2c_dev *dev)
+ 		dev->errata |= I2C_OMAP_ERRATA_I207;
  
- 	/* NOTE: driver uses the static register mapping */
-@@ -1084,10 +1085,10 @@ omap_i2c_probe(struct platform_device *pdev)
- 		return -ENODEV;
- 	}
+ 	/* Enable interrupts */
+-	dev->iestate = (OMAP_I2C_IE_XRDY | OMAP_I2C_IE_RRDY |
+-			OMAP_I2C_IE_ARDY | OMAP_I2C_IE_NACK |
+-			OMAP_I2C_IE_AL)  | ((dev->fifo_size) ?
++	dev->iestate = OMAP_I2C_IE_XRDY | OMAP_I2C_IE_RRDY |
++		OMAP_I2C_IE_NACK | OMAP_I2C_IE_AL  | ((dev->fifo_size) ?
+ 				(OMAP_I2C_IE_RDR | OMAP_I2C_IE_XDR) : 0);
+ 	omap_i2c_write_reg(dev, OMAP_I2C_IE_REG, dev->iestate);
+ 	if (dev->flags & OMAP_I2C_FLAG_RESET_REGS_POSTIDLE) {
+@@ -923,23 +922,6 @@ omap_i2c_threaded_isr(int this_irq, void *dev_id)
+ 			return IRQ_HANDLED;
+ 		}
  
--	irq = platform_get_resource(pdev, IORESOURCE_IRQ, 0);
--	if (!irq) {
-+	irq = platform_get_irq(pdev, 0);
-+	if (irq < 0) {
- 		dev_err(&pdev->dev, "no irq resource?\n");
--		return -ENODEV;
-+		return irq;
- 	}
+-		if (stat & OMAP_I2C_STAT_ARDY)
+-			omap_i2c_ack_stat(dev, OMAP_I2C_STAT_ARDY);
+-
+-		/*
+-		 * ProDB0017052: Clear ARDY bit twice
+-		 */
+-		if (stat & (OMAP_I2C_STAT_ARDY | OMAP_I2C_STAT_NACK |
+-					OMAP_I2C_STAT_AL)) {
+-			omap_i2c_ack_stat(dev, (OMAP_I2C_STAT_RRDY |
+-						OMAP_I2C_STAT_RDR |
+-						OMAP_I2C_STAT_XRDY |
+-						OMAP_I2C_STAT_XDR |
+-						OMAP_I2C_STAT_ARDY));
+-			omap_i2c_complete_cmd(dev, err);
+-			return IRQ_HANDLED;
+-		}
+-
+ 		if (stat & OMAP_I2C_STAT_RDR) {
+ 			u8 num_bytes = 1;
  
- 	dev = devm_kzalloc(&pdev->dev, sizeof(struct omap_i2c_dev), GFP_KERNEL);
-@@ -1115,7 +1116,7 @@ omap_i2c_probe(struct platform_device *pdev)
- 	}
- 
- 	dev->dev = &pdev->dev;
--	dev->irq = irq->start;
-+	dev->irq = irq;
- 	dev->base = devm_request_and_ioremap(&pdev->dev, mem);
- 	if (!dev->base) {
- 		dev_err(&pdev->dev, "ioremap failed\n");
 -- 
 1.7.10.4
 
