@@ -1,59 +1,47 @@
-From: Jon Hunter <jon-hunter@ti.com>
-Subject: [RESEND PATCH V3 1/2] arm/dts: OMAP2: Add support for OMAP2420H4 Board
-Date: Tue, 12 Jun 2012 19:40:45 -0500
-Message-ID: <1339548046-27988-2-git-send-email-jon-hunter@ti.com>
-References: <1339548046-27988-1-git-send-email-jon-hunter@ti.com>
+From: Zumeng Chen <zumeng.chen@gmail.com>
+Subject: [PATCH v2 0/5] ARM OMAP3530evm misc fixes for linux-omap
+Date: Wed, 13 Jun 2012 09:44:05 +0800
+Message-ID: <1339551850-20827-1-git-send-email-zumeng.chen@gmail.com>
+References: <zumeng.chen@gmail.com>
 Mime-Version: 1.0
 Content-Type: text/plain
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from devils.ext.ti.com ([198.47.26.153]:56041 "EHLO
-	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752299Ab2FMAk7 (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 12 Jun 2012 20:40:59 -0400
-In-Reply-To: <1339548046-27988-1-git-send-email-jon-hunter@ti.com>
-Sender: linux-omap-owner@vger.kernel.org
+Return-path: <linux-input-owner@vger.kernel.org>
+In-Reply-To: <zumeng.chen@gmail.com>
+Sender: linux-input-owner@vger.kernel.org
+To: tony@atomide.com, jon-hunter@ti.com, grinberg@compulab.co.il, linux-omap@vger.kernel.org
+Cc: linux-arm-kernel@lists.infradead.org, khilman@ti.com, khasim@ti.com, ajay.gupta@ti.com, hvaibhav@ti.com, dmitry.torokhov@gmail.com, linux-input@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: device-tree <devicetree-discuss@lists.ozlabs.org>, linux-omap <linux-omap@vger.kernel.org>, linux-arm <linux-arm-kernel@lists.infradead.org>
-Cc: Tony Lindgren <tony@atomide.com>, Jon Hunter <jon-hunter@ti.com>
 
-Simple DTS file for OMAP2420H4 board adding memory information to allow
-device-tree testing on an OMAP2420. OMAP2420H4 board has 64MB of RAM.
+These patches fix misc problems when reflash ti-omap3530evm for
+master branch on Linux-omap.
 
-Verified that kernel boots with DT using a simple RAMDISK file-system on
-OMAP2420H4.
+The series is based upon the latest linux-omap master branch from
+Tony (3.5-rc1).
 
-Signed-off-by: Jon Hunter <jon-hunter@ti.com>
----
- arch/arm/boot/dts/omap2420-h4.dts |   20 ++++++++++++++++++++
- 1 file changed, 20 insertions(+)
- create mode 100644 arch/arm/boot/dts/omap2420-h4.dts
+Changes vs V1:
 
-diff --git a/arch/arm/boot/dts/omap2420-h4.dts b/arch/arm/boot/dts/omap2420-h4.dts
-new file mode 100644
-index 0000000..25b50b7
---- /dev/null
-+++ b/arch/arm/boot/dts/omap2420-h4.dts
-@@ -0,0 +1,20 @@
-+/*
-+ * Copyright (C) 2012 Texas Instruments Incorporated - http://www.ti.com/
-+ *
-+ * This program is free software; you can redistribute it and/or modify
-+ * it under the terms of the GNU General Public License version 2 as
-+ * published by the Free Software Foundation.
-+ */
-+/dts-v1/;
-+
-+/include/ "omap2.dtsi"
-+
-+/ {
-+	model = "TI OMAP2420 H4 board";
-+	compatible = "ti,omap2420-h4", "ti,omap2420", "ti,omap2";
-+
-+	memory {
-+		device_type = "memory";
-+		reg = <0x80000000 0x84000000>; /* 64 MB */
-+	};
-+};
--- 
-1.7.9.5
+ 1. NAND flash definition changes as Jon's comments.
+ 2. Add more shortlog for VBUS switch from a kind people.
+ 3. Jon's cosmetic fix seems more fit.
+ 4. Debounce time I still leave a ugly hardcode in driver level
+    with bracketing by ARCH_OMAP3. Anyway, Igor's comments are
+    more sense.
+
+ If you guy don't like patch 4 or 5, feel free to drop them :-)
+ I'm OK for that, thanks all of your kind RR from Jon, Igor, and
+ Tony.
+
+ Zumeng Chen (5):
+      ARM: OMAP3EVM: Add NAND flash definition
+      ARM: OMAP3EVM: Adding USB internal LDOs board file
+      ARM: omap3evm: enable VBUS switch for EHCI tranceiver
+      ARM: OMAP3EVM: cosmetic fixes for parent clk set
+      Input: ads7846: set proper debounce time in driver level
+
+ arch/arm/mach-omap2/board-omap3evm.c |   75 ++++++++++++++++++++++++++++++++++
+ arch/arm/plat-omap/clock.c           |    4 ++
+ drivers/input/touchscreen/ads7846.c  |    4 ++
+ drivers/mfd/omap-usb-host.c          |    2 +-
+ 4 files changed, 84 insertions(+), 1 deletions(-)
+ 
 
