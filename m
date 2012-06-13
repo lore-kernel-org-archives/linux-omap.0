@@ -1,52 +1,75 @@
-From: "Mohammed, Afzal" <afzal@ti.com>
-Subject: RE: [PATCH 5/9] ARM: OMAP2+: gpmc-smc91x: Adapt to use gpmc driver
-Date: Wed, 13 Jun 2012 13:39:25 +0000
-Message-ID: <C8443D0743D26F4388EA172BF4E2A7A93E998EC1@DBDE01.ent.ti.com>
-References: <cover.1339419379.git.afzal@ti.com>
- <0bdbc293fc98613011d37ec59559ba6d475eadf2.1339419379.git.afzal@ti.com>
- <20120613122950.GR12766@atomide.com>
+From: Tony Lindgren <tony@atomide.com>
+Subject: Re: [PATCH v5 02/14] ARM: OMAP2+: gpmc: Adapt to HWMOD
+Date: Wed, 13 Jun 2012 06:39:38 -0700
+Message-ID: <20120613133938.GV12766@atomide.com>
+References: <cover.1339419492.git.afzal@ti.com>
+ <fb739c3c5383806f78cee3666f7c74d61bed6427.1339419492.git.afzal@ti.com>
+ <4FD64D6D.3020401@ti.com>
+ <C8443D0743D26F4388EA172BF4E2A7A93E997DD6@DBDE01.ent.ti.com>
+ <4FD77EF1.8000600@ti.com>
+ <C8443D0743D26F4388EA172BF4E2A7A93E9987B2@DBDE01.ent.ti.com>
+ <20120613120208.GN12766@atomide.com>
+ <C8443D0743D26F4388EA172BF4E2A7A93E998E2F@DBDE01.ent.ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from arroyo.ext.ti.com ([192.94.94.40]:44965 "EHLO arroyo.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753202Ab2FMNjg convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 13 Jun 2012 09:39:36 -0400
-In-Reply-To: <20120613122950.GR12766@atomide.com>
-Content-Language: en-US
+Received: from mho-01-ewr.mailhop.org ([204.13.248.71]:57622 "EHLO
+	mho-01-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753594Ab2FMNjo (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 13 Jun 2012 09:39:44 -0400
+Content-Disposition: inline
+In-Reply-To: <C8443D0743D26F4388EA172BF4E2A7A93E998E2F@DBDE01.ent.ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Tony Lindgren <tony@atomide.com>
-Cc: "paul@pwsan.com" <paul@pwsan.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>
+To: "Mohammed, Afzal" <afzal@ti.com>
+Cc: "Hunter, Jon" <jon-hunter@ti.com>, "paul@pwsan.com" <paul@pwsan.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>
 
-Hi Tony,
+* Mohammed, Afzal <afzal@ti.com> [120613 06:10]:
+> Hi Tony,
+> 
+> On Wed, Jun 13, 2012 at 17:32:09, Tony Lindgren wrote:
+> > * Mohammed, Afzal <afzal@ti.com> [120612 22:24]:
+> > > Hi Jon,
+> > > 
+> > > On Tue, Jun 12, 2012 at 23:10:01, Hunter, Jon wrote:
+> 
+> > > > Right but potentially, this could be done by the driver.
+> > > 
+> > > I do not think it is practically possible. Please see timing calculations
+> > > in arch/arm/mach-omap2/gpmc-*, the way it is done for different
+> > > peripherals are different, and we cannot expect gpmc driver to do those as
+> > > that would require gpmc driver being aware of type of peripheral connected.
+> > > 
+> > > And all those gpmc-* timing calculation needs to be done before driver
+> > > is ready, they rely on functions like gpmc_get_fclk_rate(), which in turn
+> > > requires the clk rate to be available before driver is probed.
+> > 
+> > Yeah I also think the GPMC code should handle the L3 timings, and dynamically
+> > calculate them for DVFS when L3 frequency changes. Does the GPMC have enough
+> > information now to do that?
+> 
+> Do you mean that gpmc driver should have the capability to calculate peripheral
+> timings at runtime based on frequency ?, I am not sure how this can be handled
+> by gpmc driver as calculation for different peripherals are done in different
+> way, requiring gpmc driver to know about connected peripheral, that would imply
+> that gpmc driver would not be peripheral agnostic.
+> 
+> Or else some sort of a callback to be used ?
 
-On Wed, Jun 13, 2012 at 17:59:50, Tony Lindgren wrote:
+Oops yeah right, we have some platform_retime functions that are in the
+driver platform init code. It would be best that the drivers can do the
+recalculation with no platform init code callbacks needed.
+ 
+> Out of the 20,14 are depending on bootloader, both omap3evm & beagle has been
+> converted to utilize runtime calculation, but for other 12 boards, first
+> we need to get values used by bootloader (those include peripherals that doesn't
+> have gpmc-* helpers), then derive it based on expression, after that only, we
+> will have information to achieve it and those are the ones that I do not
+> have access to.
 
-> Here too we just need to care about the mainline kernel users
-> and convert them to use the new interface. No need to keep
-> gpmc_cs_set_timings around. The same applies for other similar
-> patches.
+It's OK to use fixed timings as long as we disable L3 scaling. Some of
+these values we'll probably never be able to calculate dynamically.
 
-Not sure whether I follow you here.
+Regards,
 
-Do you mean for all the gpmc-* helpers existing initialization
-needs to be modified to use the new interface, the previous version
-was doing so. But then that will cause all boards using the same
-gpmc-* helper to be converted at once (tusb6010 is not an issue as
-only one board uses it), then the problem will be that there would
-be a few commits where gpmc may not work properly.
-
-And for a particular board, either it has to use old interface
-or either the new interface, it cannot use both.
-
-Consider the case of this one, smc91x, all sdp boards use it,
-that requires nand, onenand, nor gpmc-* helpers to be converted
-before board migration for say 3430sdp board, that would mean
-that 2430sdp board would be broken w.r.t gpmc at that commit as
-board modifications are not yet done for 2430. That in turn means
-all the boards using nand, onenand would be broken at that point.
-
-Regards
-Afzal
+Tony
