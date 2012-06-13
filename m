@@ -1,81 +1,89 @@
-From: Russell King - ARM Linux <linux@arm.linux.org.uk>
-Subject: Fwd: Re: Broken builds
-Date: Wed, 13 Jun 2012 10:57:53 +0100
-Message-ID: <20120613095753.GA32099@n2100.arm.linux.org.uk>
+From: Igor Grinberg <grinberg@compulab.co.il>
+Subject: Re: [PATCH V2 5/5] Input: ads7846: set proper debounce time in driver
+ level
+Date: Wed, 13 Jun 2012 13:13:32 +0300
+Message-ID: <4FD867CC.30302@compulab.co.il>
+References: <zumeng.chen@gmail.com> <1339551850-20827-1-git-send-email-zumeng.chen@gmail.com> <1339551850-20827-6-git-send-email-zumeng.chen@gmail.com> <4FD8467E.4010302@compulab.co.il> <4FD8577B.1010408@windriver.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from caramon.arm.linux.org.uk ([78.32.30.218]:55437 "EHLO
-	caramon.arm.linux.org.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750730Ab2FMJ6A (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 13 Jun 2012 05:58:00 -0400
-Content-Disposition: inline
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Return-path: <linux-input-owner@vger.kernel.org>
+In-Reply-To: <4FD8577B.1010408@windriver.com>
+Sender: linux-input-owner@vger.kernel.org
+To: Zumeng Chen <zumeng.chen@windriver.com>
+Cc: Zumeng Chen <zumeng.chen@gmail.com>, tony@atomide.com, jon-hunter@ti.com, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, khilman@ti.com, khasim@ti.com, ajay.gupta@ti.com, hvaibhav@ti.com, dmitry.torokhov@gmail.com, linux-input@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: torvalds@linux-foundation.org
-Cc: linux-omap@vger.kernel.org, Tony Lindgren <tony@atomide.com>, Tomi Valkeinen <tomi.valkeinen@ti.com>
 
-Linus,
+On 06/13/12 12:03, Zumeng Chen wrote:
+> =E4=BA=8E 2012=E5=B9=B406=E6=9C=8813=E6=97=A5 15:51, Igor Grinberg =E5=
+=86=99=E9=81=93:
+>> On 06/13/12 04:44, Zumeng Chen wrote:
+>>> From: Zumeng Chen<zumeng.chen@windriver.com>
+>>>
+>>> If we don't set proper debouce time for ads7846, then there are
+>>> flooded interrupt counters of ads7846 responding to one time
+>>> touch on screen, so the driver couldn't work well.
+>>>
+>>> And since most OMAP3 series boards pass NULL pointer of board_pdata
+>>> to omap_ads7846_init, so it's more proper to set it in driver level
+>>> after having gpio_request done.
+>>>
+>>> This patch has been validated on 3530evm.
+>>>
+>>> Signed-off-by: Zumeng Chen<zumeng.chen@windriver.com>
+>>> Signed-off-by: Syed Mohammed Khasim<khasim@ti.com>
+>>> ---
+>>>   drivers/input/touchscreen/ads7846.c |    4 ++++
+>>>   1 files changed, 4 insertions(+), 0 deletions(-)
+>>>
+>>> diff --git a/drivers/input/touchscreen/ads7846.c b/drivers/input/to=
+uchscreen/ads7846.c
+>>> index f02028e..459ff29 100644
+>>> --- a/drivers/input/touchscreen/ads7846.c
+>>> +++ b/drivers/input/touchscreen/ads7846.c
+>>> @@ -980,6 +980,10 @@ static int __devinit ads7846_setup_pendown(str=
+uct spi_device *spi, struct ads784
+>>>           }
+>>>
+>>>           ts->gpio_pendown =3D pdata->gpio_pendown;
+>>> +#ifdef CONFIG_ARCH_OMAP3
+>>> +        /* 310 means about 10 microsecond for omap3 */
+>>> +        gpio_set_debounce(pdata->gpio_pendown, 310);
+>>> +#endif
+>> Unless this concerns many boards/archs/platforms,
+> Yes, this is the case.
+>> I'd suggest you to implement
+>> the get_pendown_state() method in the board file.
+> it seems they are different way between gpio and
+> get_pendown_state, and gpio way is used for omap3
+> to drive ads7846, so I guess we may have to do like this.
 
-Can you please apply the patch below.  I've been waiting 10 days so far
-for a fix for the build problem to get through the "normal" channels,
-and it seems to be stuck with the FBdev maintainer, who "missed -rc2"
-with his pull request - and still hasn't submitted it.
+No, this is not (and does not have to be) OMAP wide.
+The decision for this is made on per-board basis.
 
-Tomi Valkeinen has a different fix to this, which is the one stuck in
-the fbdev maintainers tree.
+>=20
+> Regards,
+> Zumeng
+>> If more users will need this, it can be facilitated in the driver.
+>> (and of course not with the ugly ifdefs...)
+>>
+>>>
+>>>       } else {
+>>>           dev_err(&spi->dev, "no get_pendown_state nor gpio_pendown=
+?\n");
+>=20
+> --=20
+> To unsubscribe from this list: send the line "unsubscribe linux-input=
+" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+>=20
 
-I'm fed up with waiting for this build breakage to get fixed, and to
-think how badly I get flamed if I do something even sneeze wrongly in
-the direction of any x86 code...
-
------ Forwarded message from Tony Lindgren <tony@atomide.com> -----
-
-Date: Tue, 5 Jun 2012 01:22:18 -0700
-From: Tony Lindgren <tony@atomide.com>
-To: Russell King - ARM Linux <linux@arm.linux.org.uk>
-Cc: linux-omap@vger.kernel.org, Tomi Valkeinen <tomi.valkeinen@ti.com>
-Subject: Re: Broken builds
-Delivery-date: Tue, 05 Jun 2012 09:22:25 +0100
-
-* Russell King - ARM Linux <linux@arm.linux.org.uk> [120603 11:05]:
-> Looks like the DSS stuff has broken OMAP builds again during this
-> merge window:
-> 
-> drivers/video/omap2/dss/core.c:197: error: static declaration of 'dss_debugfs_create_file' follows non-static declaration
-> drivers/video/omap2/dss/dss.h:166: error: previous declaration of 'dss_debugfs_create_file' was here
-> 
-> Both the OMAP3 and OMAP4 builds break with these two errors.
-
-Here's a patch for Tomi to fix this one.
-
-Tony
-
-
-From: Tony Lindgren <tony@atomide.com>
-Date: Tue, 5 Jun 2012 01:20:55 -0700
-Subject: [PATCH] OMAPDSS: Fix compile for dss_debugfs_create_file
-
-Otherwise we get:
-
-drivers/video/omap2/dss/core.c:197: error: static declaration of
-'dss_debugfs_create_file' follows non-static declaration
-drivers/video/omap2/dss/dss.h:166: error: previous declaration of
-'dss_debugfs_create_file' was here
-
-Reported-by: Russell King <rmk+kernel@arm.linux.org.uk>
-Signed-off-by: Tony Lindgren <tony@atomide.com>
-
---- a/drivers/video/omap2/dss/core.c
-+++ b/drivers/video/omap2/dss/core.c
-@@ -194,7 +194,7 @@ static inline int dss_initialize_debugfs(void)
- static inline void dss_uninitialize_debugfs(void)
- {
- }
--static inline int dss_debugfs_create_file(const char *name,
-+int dss_debugfs_create_file(const char *name,
- 		void (*write)(struct seq_file *))
- {
- 	return 0;
-
------ End forwarded message -----
+--=20
+Regards,
+Igor.
+--
+To unsubscribe from this list: send the line "unsubscribe linux-input" =
+in
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
