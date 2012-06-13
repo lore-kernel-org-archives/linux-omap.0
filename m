@@ -1,31 +1,46 @@
 From: "Mohammed, Afzal" <afzal@ti.com>
-Subject: RE: [PATCH v2 08/10] ARM: OMAP2+: gpmc: Modify interrupt handling
-Date: Wed, 13 Jun 2012 11:56:51 +0000
-Message-ID: <C8443D0743D26F4388EA172BF4E2A7A93E998C70@DBDE01.ent.ti.com>
-References: <cover.1339586624.git.afzal@ti.com>
-	 <35f198577330e7260ff7e5f1f3ac603372d83589.1339586624.git.afzal@ti.com>
- <1339588558.2401.117.camel@sauron.fi.intel.com>
+Subject: RE: [PATCH 3/3] ARM: OMAP2+: gpmc: handle additional timings
+Date: Wed, 13 Jun 2012 11:58:33 +0000
+Message-ID: <C8443D0743D26F4388EA172BF4E2A7A93E998C80@DBDE01.ent.ti.com>
+References: <cover.1339419244.git.afzal@ti.com>
+ <c4bd7d71e9950c09f9712077160b6231f566d8f3.1339419244.git.afzal@ti.com>
+ <4FD63DBF.9000200@ti.com>
+ <C8443D0743D26F4388EA172BF4E2A7A93E997D9E@DBDE01.ent.ti.com>
+ <4FD77E35.3050703@ti.com>
+ <C8443D0743D26F4388EA172BF4E2A7A93E998767@DBDE01.ent.ti.com>
+ <20120613113217.GK12766@atomide.com> <20120613115445.GM12766@atomide.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from comal.ext.ti.com ([198.47.26.152]:45764 "EHLO comal.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753815Ab2FML5B (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Wed, 13 Jun 2012 07:57:01 -0400
-In-Reply-To: <1339588558.2401.117.camel@sauron.fi.intel.com>
+Received: from devils.ext.ti.com ([198.47.26.153]:59146 "EHLO
+	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753830Ab2FML6n convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 13 Jun 2012 07:58:43 -0400
+In-Reply-To: <20120613115445.GM12766@atomide.com>
 Content-Language: en-US
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "artem.bityutskiy@linux.intel.com" <artem.bityutskiy@linux.intel.com>
-Cc: "tony@atomide.com" <tony@atomide.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-mtd@lists.infradead.org" <linux-mtd@lists.infradead.org>, "ivan.djelic@parrot.com" <ivan.djelic@parrot.com>
+To: Tony Lindgren <tony@atomide.com>
+Cc: "Hunter, Jon" <jon-hunter@ti.com>, "paul@pwsan.com" <paul@pwsan.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>
 
-SGkgQXJ0ZW0sDQoNCk9uIFdlZCwgSnVuIDEzLCAyMDEyIGF0IDE3OjI1OjU4LCBBcnRlbSBCaXR5
-dXRza2l5IHdyb3RlOg0KPiBPbiBXZWQsIDIwMTItMDYtMTMgYXQgMTc6MDMgKzA1MzAsIEFmemFs
-IE1vaGFtbWVkIHdyb3RlOg0KPiA+ICsvKiBYWFg6IE9ubHkgTkFORCBpcnEgaGFzIGJlZW4gY29u
-c2lkZXJlZCxjdXJyZW50bHkgdGhlc2UgYXJlIHRoZSBvbmx5IG9uZXMgdXNlZA0KPiA+ICsgKi8N
-Cj4gPiArI2RlZmluZQlHUE1DX05SX0lSUQkJMg0KPiANCj4gSSBndWVzcyAiWFhYIiBtZWFucyAi
-V2FybmluZyI/IFdoeSBub3QgdG8gdXNlIHBsYWluIEVuZ2xpc2g/IDotKQ0KDQpJdCB3YXMgbWFk
-ZSBzbyB0aGF0IGluIGVkaXRvciAodmltLCBtYXliZSBnb3QgYmlhc2VkIHRvd2FyZHMgaXQgYXMg
-SQ0KdXNlIGl0KSBpdCBnZXRzIGhpZ2hsaWdodGVkLCBkbyB5b3Ugd2FudCBtZSB0byBzZW5kIGFu
-IHVwZGF0ZWQgc2VyaWVzID8NCg0KUmVnYXJkcw0KQWZ6YWwNCg==
+Hi Tony,
+
+On Wed, Jun 13, 2012 at 17:24:45, Tony Lindgren wrote:
+
+> > If there's a chance it causing file system corruption, we should
+> > test it carefully on the boards before applying. If that's done,
+> > then there's probably no need for warnings. It's safer to disable
+> > NAND for untested boards if there's a chance of breaking the timings.
+> 
+> Actually this patch breaks at least DMA on tusb6010 on n8x0. That's
+> a MUSB hardware in a wrapper connected to GPMC that's very picky with
+> the timings.
+> 
+> Got any hints what should be done with the cycle2cycle stuff for
+> tusb6010?
+
+Not as of now, let me try to find out.
+
+Regards
+Afzal
