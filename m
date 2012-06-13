@@ -1,59 +1,52 @@
 From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH 5/9] ARM: OMAP2+: gpmc-smc91x: Adapt to use gpmc driver
-Date: Wed, 13 Jun 2012 06:43:24 -0700
-Message-ID: <20120613134323.GX12766@atomide.com>
-References: <cover.1339419379.git.afzal@ti.com>
- <0bdbc293fc98613011d37ec59559ba6d475eadf2.1339419379.git.afzal@ti.com>
- <20120613122950.GR12766@atomide.com>
- <C8443D0743D26F4388EA172BF4E2A7A93E998EC1@DBDE01.ent.ti.com>
+Subject: Re: [PATCH v5 04/14] ARM: OMAP2+: gpmc: minimal driver support
+Date: Wed, 13 Jun 2012 06:44:08 -0700
+Message-ID: <20120613134408.GY12766@atomide.com>
+References: <cover.1339419492.git.afzal@ti.com>
+ <54e643eb1b4dbefcbb52580fa582043bf4f0da3d.1339419492.git.afzal@ti.com>
+ <4FD6586A.9060706@ti.com>
+ <C8443D0743D26F4388EA172BF4E2A7A93E997E2A@DBDE01.ent.ti.com>
+ <4FD782F7.9010003@ti.com>
+ <20120613120717.GP12766@atomide.com>
+ <C8443D0743D26F4388EA172BF4E2A7A93E998E43@DBDE01.ent.ti.com>
+ <20120613134032.GW12766@atomide.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-01-ewr.mailhop.org ([204.13.248.71]:61400 "EHLO
-	mho-01-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752664Ab2FMNn1 (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 13 Jun 2012 09:43:27 -0400
+Received: from mho-02-ewr.mailhop.org ([204.13.248.72]:27170 "EHLO
+	mho-02-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752980Ab2FMNoO (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 13 Jun 2012 09:44:14 -0400
 Content-Disposition: inline
-In-Reply-To: <C8443D0743D26F4388EA172BF4E2A7A93E998EC1@DBDE01.ent.ti.com>
+In-Reply-To: <20120613134032.GW12766@atomide.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: "Mohammed, Afzal" <afzal@ti.com>
-Cc: "paul@pwsan.com" <paul@pwsan.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>
+Cc: "Hunter, Jon" <jon-hunter@ti.com>, "paul@pwsan.com" <paul@pwsan.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>
 
-* Mohammed, Afzal <afzal@ti.com> [120613 06:43]:
-> Hi Tony,
+* Tony Lindgren <tony@atomide.com> [120613 06:45]:
+> * Mohammed, Afzal <afzal@ti.com> [120613 06:16]:
+> > Hi Tony,
+> > 
+> > On Wed, Jun 13, 2012 at 17:37:17, Tony Lindgren wrote:
+> > > * Jon Hunter <jon-hunter@ti.com> [120612 11:01]:
+> > > > 
+> > > > On 06/12/2012 02:16 AM, Mohammed, Afzal wrote:
+> > 
+> > > > > Does having minor revision add any value ?, at least as of now,
+> > > > > I do not see any.
+> > > > 
+> > > > May be not but it does not hurt either.
+> > > 
+> > > Yeah might as well show the full revision.
+> > 
+> > We are already showing full version, but only storing major, it seems you
+> > want to store minor version along with major version in the same variable,
+> > right ?
 > 
-> On Wed, Jun 13, 2012 at 17:59:50, Tony Lindgren wrote:
-> 
-> > Here too we just need to care about the mainline kernel users
-> > and convert them to use the new interface. No need to keep
-> > gpmc_cs_set_timings around. The same applies for other similar
-> > patches.
-> 
-> Not sure whether I follow you here.
-> 
-> Do you mean for all the gpmc-* helpers existing initialization
-> needs to be modified to use the new interface, the previous version
-> was doing so. But then that will cause all boards using the same
-> gpmc-* helper to be converted at once (tusb6010 is not an issue as
-> only one board uses it), then the problem will be that there would
-> be a few commits where gpmc may not work properly.
-> 
-> And for a particular board, either it has to use old interface
-> or either the new interface, it cannot use both.
-> 
-> Consider the case of this one, smc91x, all sdp boards use it,
-> that requires nand, onenand, nor gpmc-* helpers to be converted
-> before board migration for say 3430sdp board, that would mean
-> that 2430sdp board would be broken w.r.t gpmc at that commit as
-> board modifications are not yet done for 2430. That in turn means
-> all the boards using nand, onenand would be broken at that point.
+> Ah OK, yeah might as well just store the minor version.
 
-What I mean is keep the old interface in gpmc.c, then convert
-users one at a time to the new interface, and remove the old
-interface code from the users. But yeah you're right, it may
-not be immediately doable for the smc91x case before we dump
-out the register values. But at least tusb6010 should be able
-to just convert to use the new interface and drop the old code.
+Actually why do you even need to store the revision? You can
+just read it from the hardware as needed.
 
 Tony
