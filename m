@@ -1,48 +1,72 @@
-From: "Mohammed, Afzal" <afzal@ti.com>
-Subject: RE: [PATCH v5 03/14] ARM: OMAP2+: gpmc: driver migration helper
-Date: Wed, 13 Jun 2012 12:18:15 +0000
-Message-ID: <C8443D0743D26F4388EA172BF4E2A7A93E998CF2@DBDE01.ent.ti.com>
-References: <cover.1339419492.git.afzal@ti.com>
- <a121156faf6c758d4e37447ab832f6f825cc5bc8.1339419492.git.afzal@ti.com>
- <4FD6555D.4000508@ti.com> <20120613120457.GO12766@atomide.com>
+From: "Hiremath, Vaibhav" <hvaibhav@ti.com>
+Subject: RE: [PATCH V2 5/5] Input: ads7846: set proper debounce time in
+ driver level
+Date: Wed, 13 Jun 2012 12:18:32 +0000
+Message-ID: <79CD15C6BA57404B839C016229A409A83EA4F07F@DBDE01.ent.ti.com>
+References: <zumeng.chen@gmail.com>
+ <1339551850-20827-1-git-send-email-zumeng.chen@gmail.com>
+ <1339551850-20827-6-git-send-email-zumeng.chen@gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from bear.ext.ti.com ([192.94.94.41]:50273 "EHLO bear.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753939Ab2FMMSX (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Wed, 13 Jun 2012 08:18:23 -0400
-In-Reply-To: <20120613120457.GO12766@atomide.com>
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
+Return-path: <linux-input-owner@vger.kernel.org>
+In-Reply-To: <1339551850-20827-6-git-send-email-zumeng.chen@gmail.com>
 Content-Language: en-US
-Sender: linux-omap-owner@vger.kernel.org
+Sender: linux-input-owner@vger.kernel.org
+To: Zumeng Chen <zumeng.chen@gmail.com>, "tony@atomide.com" <tony@atomide.com>, "Hunter, Jon" <jon-hunter@ti.com>, "grinberg@compulab.co.il" <grinberg@compulab.co.il>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
+Cc: "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, "Hilman, Kevin" <khilman@ti.com>, "Syed Mohammed, Khasim" <khasim@ti.com>, "Gupta, Ajay Kumar" <ajay.gupta@ti.com>, "dmitry.torokhov@gmail.com" <dmitry.torokhov@gmail.com>, "linux-input@vger.kernel.org" <linux-input@vger.kernel.org>
 List-Id: linux-omap@vger.kernel.org
-To: Tony Lindgren <tony@atomide.com>, "Hunter, Jon" <jon-hunter@ti.com>
-Cc: "paul@pwsan.com" <paul@pwsan.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>
 
-SGkgVG9ueSwNCg0KT24gV2VkLCBKdW4gMTMsIDIwMTIgYXQgMTc6MzQ6NTgsIFRvbnkgTGluZGdy
-ZW4gd3JvdGU6DQogDQo+ID4gSSBhbSBub3Qgc3VyZSBpZiBJIGFtIG1pc3Npbmcgc29tZXRoaW5n
-LCBidXQgaXQgYXBwZWFycyB0aGF0IHBkZXYgd2lsbA0KPiA+IGFsd2F5cyBiZSBOVUxMIGhlcmUg
-YXMgaXQgaXMgYSBsb2NhbCB1bmluaXRpYWxpc2VkIHZhcmlhYmxlLg0KPiANCj4gVGhpcyBhbHNv
-IGNyZWF0ZXMgYSBuZXcgd2FybmluZzoNCj4gDQo+IGFyY2gvYXJtL21hY2gtb21hcDIvZ3BtYy5j
-OiBJbiBmdW5jdGlvbiDigJhncG1jX2NyZWF0ZV9kZXZpY2XigJk6DQo+IGFyY2gvYXJtL21hY2gt
-b21hcDIvZ3BtYy5jOjE0MzQ6IHdhcm5pbmc6IOKAmHBkZXbigJkgbWF5IGJlIHVzZWQgdW5pbml0
-aWFsaXplZCBpbiB0aGlzIGZ1bmN0aW9uDQoNCkkgdXNlIGFuIGludGVybmFsIHRvb2xjaGFpbiwg
-dGhhdCBkb2VzIG5vdCBnaXZlIHdhcm5pbmcsICBzZWVtcyBJIG5lZWQgdG8NCmNoZWNrIHdpdGgg
-Y29kZXNvdXJjZXJ5Lg0KDQo+IA0KPiA+IE5vdCBzdXJlIEkgc2VlIHRoZSBwb2ludCBpbiB0aGUg
-YWJvdmUgZnVuY3Rpb24uIFdoeSBub3QgZGVjbGFyZSB0aGUNCj4gPiBncG1jX2RldmljZV9kYXRh
-IHN0cnVjdCBhcyBzdGF0aWMgaW4gdGhlIGZpbGUgYW5kIGFjY2VzcyBpdCBkaXJlY3RseQ0KPiA+
-IGluc3RlYWQgb2YgcGFzc2luZyBpdCBpbiBvbWFwX2dwbWNfaW5pdCgpLiBUaGUgcG9zdGNvcmVf
-aW5pdCBjYW4gdGhlbg0KPiA+IGNhbGwgb21hcF9ncG1jX2luaXQoKSBkaXJlY3RseS4NCj4gPiAN
-Cj4gPiBTaG91bGRuJ3QgdGhlIHBvc3RfaW5pdGNhbGwgYmUgYWRkZWQgaW4gcGF0Y2ggIzQsIHdo
-ZW4gdGhlIGRyaXZlciBpcw0KPiA+IGNyZWF0ZWQ/DQo+IA0KPiBUaGVyZSBzaG91bGQgbm8gbG9u
-Z2VyIGJlIGFueSBuZWVkIHRvIGluaXRpYWxpemUgR1BNQyBlYXJseS4gSXQgc2hvdWxkDQo+IGJl
-aGF2ZSBsaWtlIGFueSBvdGhlciBkZXZpY2UgZHJpdmVyLCBhbmQgYWxzbyB3b3JrIGFzIGEgbG9h
-ZGFibGUgbW9kdWxlLg0KDQpPbmNlIGRyaXZlciBtaWdyYXRpb24gaXMgY29tcGxldGUgZm9yIGFs
-bCB0aGUgYm9hcmRzLCB3ZSBjYW4gcmVtb3ZlIHRoZQ0KaW5pdGNhbGwgYW5kIG1ha2UgaXQgbG9h
-ZGFibGUuDQoNCkJ1dCB0aWxsIHRoYXQgdGltZSBhcyB3ZSBuZWVkIHRvIHN1cHBvcnQgYm90aCBv
-bGQgJiBuZXcgaW50ZXJmYWNlLA0KSSBmZWVsIHRoaXMgaXMgbmVjZXNzYXJ5IGFzIG9sZCBpbnRl
-cmZhY2Ugd291bGQgaGFwcGVuIGluIGFyY2ggaW5pdGNhbGwsDQphbmQgb2xkIGdwbWNfaW5pdCBp
-cyBub3cgZ3BtY19wcm9iZSwgYW5kIGhlbmNlIGl0IG5lZWRzIHRvIGdldCBleGVjdXRlZA0KYmVm
-b3JlIGFyY2ggaW5pdGNhbGwsIG5lY2Vzc2l0YXRpbmcgdGhpcy4NCg0KUmVnYXJkcw0KQWZ6YWwN
-Cg==
+On Wed, Jun 13, 2012 at 07:14:10, Zumeng Chen wrote:
+> From: Zumeng Chen <zumeng.chen@windriver.com>
+> 
+> If we don't set proper debouce time for ads7846, then there are
+> flooded interrupt counters of ads7846 responding to one time
+> touch on screen, so the driver couldn't work well.
+> 
+> And since most OMAP3 series boards pass NULL pointer of board_pdata
+> to omap_ads7846_init, so it's more proper to set it in driver level
+> after having gpio_request done.
+> 
+> This patch has been validated on 3530evm.
+> 
+> Signed-off-by: Zumeng Chen <zumeng.chen@windriver.com>
+> Signed-off-by: Syed Mohammed Khasim <khasim@ti.com>
+> ---
+>  drivers/input/touchscreen/ads7846.c |    4 ++++
+>  1 files changed, 4 insertions(+), 0 deletions(-)
+> 
+> diff --git a/drivers/input/touchscreen/ads7846.c b/drivers/input/touchscreen/ads7846.c
+> index f02028e..459ff29 100644
+> --- a/drivers/input/touchscreen/ads7846.c
+> +++ b/drivers/input/touchscreen/ads7846.c
+> @@ -980,6 +980,10 @@ static int __devinit ads7846_setup_pendown(struct spi_device *spi, struct ads784
+>  		}
+>  
+>  		ts->gpio_pendown = pdata->gpio_pendown;
+> +#ifdef CONFIG_ARCH_OMAP3
+> +		/* 310 means about 10 microsecond for omap3 */
+> +		gpio_set_debounce(pdata->gpio_pendown, 310);
+> +#endif
+>  
+
+Zumeng,
+
+With my sign-off you are changing the original code, that too
+without my sign-off and ack. 
+I wouldn't mind you to submit patches from my tree, but the expectation is 
+if you are changing the original code, it should be under your sign-off.
+
+Coming to the patch, #ifdef in driver is not recommended, and this 10msec 
+delay is specific to OMAP GPIO and driver should not be aware of this, 
+that's where you will find the original patch handling it in board file.
+
+Thanks,
+Vaibhav
+>  	} else {
+>  		dev_err(&spi->dev, "no get_pendown_state nor gpio_pendown?\n");
+> -- 
+> 1.7.5.4
+> 
+> 
+
