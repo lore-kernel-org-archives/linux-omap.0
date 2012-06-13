@@ -1,65 +1,105 @@
-From: "Mohammed, Afzal" <afzal@ti.com>
-Subject: RE: [PATCH v5 06/14] ARM: OMAP2+: gpmc: CS configuration helper
-Date: Wed, 13 Jun 2012 05:50:27 +0000
-Message-ID: <C8443D0743D26F4388EA172BF4E2A7A93E998820@DBDE01.ent.ti.com>
-References: <cover.1339419492.git.afzal@ti.com>
- <9dd458171d6a68ea4f97a4ba19dbacc0d6b5ba35.1339419492.git.afzal@ti.com>
- <4FD66666.8060002@ti.com>
- <C8443D0743D26F4388EA172BF4E2A7A93E997F1F@DBDE01.ent.ti.com>
- <C8443D0743D26F4388EA172BF4E2A7A93E998201@DBDE01.ent.ti.com>
- <4FD785DC.2000106@ti.com>
+From: "Pandita, Vikram" <vikram.pandita@ti.com>
+Subject: Re: [PATCH V2 03/10] ARM: OMAP4: Re-map the CTIs IRQs from MPU to DEBUGSS
+Date: Tue, 12 Jun 2012 23:07:08 -0700
+Message-ID: <CAFm5wm07QXCLA9SoFSqQP1NbdU0XynmyxKfjNJEMvziEAtphJQ@mail.gmail.com>
+References: <1339104132-26885-1-git-send-email-jon-hunter@ti.com> <1339104132-26885-4-git-send-email-jon-hunter@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from comal.ext.ti.com ([198.47.26.152]:56954 "EHLO comal.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1750778Ab2FMFuf convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 13 Jun 2012 01:50:35 -0400
-In-Reply-To: <4FD785DC.2000106@ti.com>
-Content-Language: en-US
+Received: from na3sys009aog120.obsmtp.com ([74.125.149.140]:40550 "EHLO
+	na3sys009aog120.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1751373Ab2FMGHa convert rfc822-to-8bit
+	(ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Wed, 13 Jun 2012 02:07:30 -0400
+Received: by yhoo21 with SMTP id o21so263354yho.4
+        for <linux-omap@vger.kernel.org>; Tue, 12 Jun 2012 23:07:29 -0700 (PDT)
+In-Reply-To: <1339104132-26885-4-git-send-email-jon-hunter@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "Hunter, Jon" <jon-hunter@ti.com>
-Cc: "tony@atomide.com" <tony@atomide.com>, "paul@pwsan.com" <paul@pwsan.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>
+To: Jon Hunter <jon-hunter@ti.com>
+Cc: linux-omap <linux-omap@vger.kernel.org>, linux-arm <linux-arm-kernel@lists.infradead.org>, Kevin Hilman <khilman@ti.com>, Paul Walmsley <paul@pwsan.com>, Benoit Cousson <b-cousson@ti.com>, Ming Lei <ming.lei@canonical.com>, Will Deacon <will.deacon@arm.com>
 
-Hi Jon,
+On Thu, Jun 7, 2012 at 2:22 PM, Jon Hunter <jon-hunter@ti.com> wrote:
+> In order to use the CTI interrupts inconjunction with the DEBUGSS we =
+need to
+> re-map the CTI IRQs to the DEBUGSS HWMOD. The purpose for doing this =
+is so we
+> can create a PMU device based upon the DEBUGSS HWMOD and use the CTI =
+interrupts
+> for routing ARM PMU events for OMAP4430 devices.
+>
+> This is based upon Benoit Cousson's patch [1].
+>
+> [1] http://lists.infradead.org/pipermail/linux-arm-kernel/2011-Novemb=
+er/073319.html
+>
+> Cc: Ming Lei <ming.lei@canonical.com>
+> Cc: Will Deacon <will.deacon@arm.com>
+> Cc: Benoit Cousson <b-cousson@ti.com>
+> Cc: Paul Walmsley <paul@pwsan.com>
+> Cc: Kevin Hilman <khilman@ti.com>
+>
+> Reviewed-by: Santosh Shilimkar <santosh.shilimkar@ti.com>
+> Signed-off-by: Jon Hunter <jon-hunter@ti.com>
+> ---
+> =A0arch/arm/mach-omap2/omap_hwmod_44xx_data.c | =A0 =A09 +++++++--
+> =A01 file changed, 7 insertions(+), 2 deletions(-)
+>
+> diff --git a/arch/arm/mach-omap2/omap_hwmod_44xx_data.c b/arch/arm/ma=
+ch-omap2/omap_hwmod_44xx_data.c
+> index 950454a..faf5a6d 100644
+> --- a/arch/arm/mach-omap2/omap_hwmod_44xx_data.c
+> +++ b/arch/arm/mach-omap2/omap_hwmod_44xx_data.c
+> @@ -482,10 +482,17 @@ static struct omap_hwmod_class omap44xx_debugss=
+_hwmod_class =3D {
+> =A0};
+>
+> =A0/* debugss */
+> +static struct omap_hwmod_irq_info omap44xx_debugss_irqs[] =3D {
+> + =A0 =A0 =A0 { .name =3D "cti0", .irq =3D 1 + OMAP44XX_IRQ_GIC_START=
+ },
+> + =A0 =A0 =A0 { .name =3D "cti1", .irq =3D 2 + OMAP44XX_IRQ_GIC_START=
+ },
 
-On Tue, Jun 12, 2012 at 23:39:32, Hunter, Jon wrote:
-> On 06/12/2012 07:58 AM, Mohammed, Afzal wrote:
+Data manual assigns cit0 =3D=3D MA_IRQ_1 and cti1 =3D=3D MA_IRQ_2
+Why do you add 32 base GIC_START ?
 
-> > Thinking again over it, I am feeling above is sufficient, reason same as
-> > said earlier, to keep code simple & currently this is sufficient to
-> > handle GPMC bit patterns for IPs presently available. What you are
-> > suggesting is to take care of the imaginary case when new GPMC IP happens
-> > with new device type or size, I think that should be handled when such a
-> > scenario happens. Probably, it is better here to add a comment to make
-> > intention clear.
-> 
-> That is one possibility but I think that more important reasons are ...
-> 
-> 1. Readability, at first it appears that we are always configuring the
-> CS for NAND. However, this is not the case. Maybe a comment here can
-> help as you mentioned.
-
-As far as the users of GPMC is considered there is no confusion. Eg. For
-device type, they have been provided with two macros,
-
-GPMC_CONFIG1_DEVICETYPE_NOR, GPMC_CONFIG1_DEVICETYPE_NAND
-
-So for NOR, user can feel satisfied by giving NOR flag, little does he know
-that driver doesn't do anything with the flag, but he still gets what he want
-NOR flag is defined as zero. Yes even if he doesn't specify any type, device
-type will be set as NOR, but then that is the default - the only other option
-
-> 
-> 2. A bad setting in the configuration passed. Hopefully, people will
-> stick to the flags but we know that we expect the device type to be a 0
-> or 2 and so should we check?
-
-Value of device type is something driver has to worry about, not its users,
-they have been provided with two flags, one for NAND & other for NOR.
-
-
-Regards
-Afzal
+> + =A0 =A0 =A0 { .irq =3D -1 }
+> +};
+> +
+> =A0static struct omap_hwmod omap44xx_debugss_hwmod =3D {
+> =A0 =A0 =A0 =A0.name =A0 =A0 =A0 =A0 =A0 =3D "debugss",
+> =A0 =A0 =A0 =A0.class =A0 =A0 =A0 =A0 =A0=3D &omap44xx_debugss_hwmod_=
+class,
+> =A0 =A0 =A0 =A0.clkdm_name =A0 =A0 =3D "emu_sys_clkdm",
+> + =A0 =A0 =A0 .mpu_irqs =A0 =A0 =A0 =3D omap44xx_debugss_irqs,
+> =A0 =A0 =A0 =A0.main_clk =A0 =A0 =A0 =3D "trace_clk_div_ck",
+> =A0 =A0 =A0 =A0.prcm =3D {
+> =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0.omap4 =3D {
+> @@ -2447,8 +2454,6 @@ static struct omap_hwmod_class omap44xx_mpu_hwm=
+od_class =3D {
+> =A0/* mpu */
+> =A0static struct omap_hwmod_irq_info omap44xx_mpu_irqs[] =3D {
+> =A0 =A0 =A0 =A0{ .name =3D "pl310", .irq =3D 0 + OMAP44XX_IRQ_GIC_STA=
+RT },
+> - =A0 =A0 =A0 { .name =3D "cti0", .irq =3D 1 + OMAP44XX_IRQ_GIC_START=
+ },
+> - =A0 =A0 =A0 { .name =3D "cti1", .irq =3D 2 + OMAP44XX_IRQ_GIC_START=
+ },
+> =A0 =A0 =A0 =A0{ .irq =3D -1 }
+> =A0};
+>
+> --
+> 1.7.9.5
+>
+>
+> _______________________________________________
+> linux-arm-kernel mailing list
+> linux-arm-kernel@lists.infradead.org
+> http://lists.infradead.org/mailman/listinfo/linux-arm-kernel
+--
+To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
