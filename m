@@ -1,61 +1,59 @@
 From: Jon Hunter <jon-hunter@ti.com>
-Subject: [RESEND PATCH V3 2/2] arm/dts: OMAP2: Fix interrupt controller binding
-Date: Tue, 12 Jun 2012 19:40:46 -0500
-Message-ID: <1339548046-27988-3-git-send-email-jon-hunter@ti.com>
+Subject: [RESEND PATCH V3 1/2] arm/dts: OMAP2: Add support for OMAP2420H4 Board
+Date: Tue, 12 Jun 2012 19:40:45 -0500
+Message-ID: <1339548046-27988-2-git-send-email-jon-hunter@ti.com>
 References: <1339548046-27988-1-git-send-email-jon-hunter@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from bear.ext.ti.com ([192.94.94.41]:47140 "EHLO bear.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752249Ab2FMAk6 (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Tue, 12 Jun 2012 20:40:58 -0400
+Received: from devils.ext.ti.com ([198.47.26.153]:56041 "EHLO
+	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752299Ab2FMAk7 (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 12 Jun 2012 20:40:59 -0400
 In-Reply-To: <1339548046-27988-1-git-send-email-jon-hunter@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: device-tree <devicetree-discuss@lists.ozlabs.org>, linux-omap <linux-omap@vger.kernel.org>, linux-arm <linux-arm-kernel@lists.infradead.org>
 Cc: Tony Lindgren <tony@atomide.com>, Jon Hunter <jon-hunter@ti.com>
 
-When booting with device-tree on an OMAP2420H4, the kernel is hanging when
-initialising the interrupts and following kernel dumps is seen ...
+Simple DTS file for OMAP2420H4 board adding memory information to allow
+device-tree testing on an OMAP2420. OMAP2420H4 board has 64MB of RAM.
 
-[    0.000000] ------------[ cut here ]------------
-[    0.000000] WARNING: at arch/arm/mach-omap2/irq.c:271 omap_intc_of_init+0x50/0xb4()
-[    0.000000] unable to get intc registers
-[    0.000000] Modules linked in:
-[    0.000000] [<c001befc>] (unwind_backtrace+0x0/0xf4) from [<c0040c34>] (warn_slowpath_common+0x4c/0x64)
-[    0.000000] [<c0040c34>] (warn_slowpath_common+0x4c/0x64) from [<c0040ce0>] (warn_slowpath_fmt+0x30/0x40)
-[    0.000000] [<c0040ce0>] (warn_slowpath_fmt+0x30/0x40) from [<c066b8a4>] (omap_intc_of_init+0x50/0xb4)
-[    0.000000] [<c066b8a4>] (omap_intc_of_init+0x50/0xb4) from [<c0688b70>] (of_irq_init+0x144/0x288)
-[    0.000000] [<c0688b70>] (of_irq_init+0x144/0x288) from [<c0663294>] (init_IRQ+0x14/0x1c)
-[    0.000000] [<c0663294>] (init_IRQ+0x14/0x1c) from [<c06607fc>] (start_kernel+0x198/0x304)
-[    0.000000] [<c06607fc>] (start_kernel+0x198/0x304) from [<80008044>] (0x80008044)
-[    0.000000] ---[ end trace 1b75b31a2719ed1c ]---
-[    0.000000] of_irq_init: children remain, but no parents
-
-The OMAP2 interrupt controller binding is missing the number of interrupts and
-interrupt controller register address. Adding these fixes the problem.
-
-This is based upon latest linux-omap master (3.5-rc1) git tree.
+Verified that kernel boots with DT using a simple RAMDISK file-system on
+OMAP2420H4.
 
 Signed-off-by: Jon Hunter <jon-hunter@ti.com>
 ---
- arch/arm/boot/dts/omap2.dtsi |    2 ++
- 1 file changed, 2 insertions(+)
+ arch/arm/boot/dts/omap2420-h4.dts |   20 ++++++++++++++++++++
+ 1 file changed, 20 insertions(+)
+ create mode 100644 arch/arm/boot/dts/omap2420-h4.dts
 
-diff --git a/arch/arm/boot/dts/omap2.dtsi b/arch/arm/boot/dts/omap2.dtsi
-index f2ab4ea..581cb08 100644
---- a/arch/arm/boot/dts/omap2.dtsi
-+++ b/arch/arm/boot/dts/omap2.dtsi
-@@ -44,6 +44,8 @@
- 			compatible = "ti,omap2-intc";
- 			interrupt-controller;
- 			#interrupt-cells = <1>;
-+			ti,intc-size = <96>;
-+			reg = <0x480FE000 0x1000>;
- 		};
- 
- 		uart1: serial@4806a000 {
+diff --git a/arch/arm/boot/dts/omap2420-h4.dts b/arch/arm/boot/dts/omap2420-h4.dts
+new file mode 100644
+index 0000000..25b50b7
+--- /dev/null
++++ b/arch/arm/boot/dts/omap2420-h4.dts
+@@ -0,0 +1,20 @@
++/*
++ * Copyright (C) 2012 Texas Instruments Incorporated - http://www.ti.com/
++ *
++ * This program is free software; you can redistribute it and/or modify
++ * it under the terms of the GNU General Public License version 2 as
++ * published by the Free Software Foundation.
++ */
++/dts-v1/;
++
++/include/ "omap2.dtsi"
++
++/ {
++	model = "TI OMAP2420 H4 board";
++	compatible = "ti,omap2420-h4", "ti,omap2420", "ti,omap2";
++
++	memory {
++		device_type = "memory";
++		reg = <0x80000000 0x84000000>; /* 64 MB */
++	};
++};
 -- 
 1.7.9.5
 
