@@ -1,129 +1,292 @@
 From: Felipe Balbi <balbi@ti.com>
-Subject: [PATCH v2 02/17] i2c: omap: decrease indentation level on data
- handling
-Date: Thu, 14 Jun 2012 19:24:12 +0300
-Message-ID: <1339691067-919-3-git-send-email-balbi@ti.com>
+Subject: [PATCH v2 07/17] i2c: omap: re-factor receive/transmit data loop
+Date: Thu, 14 Jun 2012 19:24:17 +0300
+Message-ID: <1339691067-919-8-git-send-email-balbi@ti.com>
 References: <1339691067-919-1-git-send-email-balbi@ti.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from na3sys009aog136.obsmtp.com ([74.125.149.85]:58593 "EHLO
+	na3sys009aog136.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S932099Ab2FNQ05 (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>);
+	Thu, 14 Jun 2012 12:26:57 -0400
+Received: by lbbgo11 with SMTP id go11so2509754lbb.31
+        for <linux-omap@vger.kernel.org>; Thu, 14 Jun 2012 09:26:52 -0700 (PDT)
 In-Reply-To: <1339691067-919-1-git-send-email-balbi@ti.com>
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: linux-arm-kernel-bounces@lists.infradead.org
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: ben-linux@fluff.org
-Cc: Russell King <linux@arm.linux.org.uk>, Tony Lindgren <tony@atomide.com>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Felipe Balbi <balbi@ti.com>, w.sang@pengutronix.de, Santosh Shilimkar <santosh.shilimkar@ti.com>, Linux OMAP Mailing List <linux-omap@vger.kernel.org>, Shubhrajyoti Datta <shubhrajyoti@ti.com>, Linux ARM Kernel Mailing List <linux-arm-kernel@lists.infradead.org>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: ben-linux@fluff.org
+Cc: Tony Lindgren <tony@atomide.com>, Santosh Shilimkar <santosh.shilimkar@ti.com>, Russell King <linux@arm.linux.org.uk>, Linux OMAP Mailing List <linux-omap@vger.kernel.org>, Linux ARM Kernel Mailing List <linux-arm-kernel@lists.infradead.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, w.sang@pengutronix.de, Shubhrajyoti Datta <shubhrajyoti@ti.com>, Felipe Balbi <balbi@ti.com>
 
-trivial patch, no functional changes.
+re-factor the common parts to a separate function,
+so that code is easier to read and understand.
+
+No functional changes.
 
 Signed-off-by: Felipe Balbi <balbi@ti.com>
-Reviewed-by : Santosh Shilimkar <santosh.shilimkar@ti.com>
 ---
- drivers/i2c/busses/i2c-omap.c |   63 ++++++++++++++++++++---------------------
- 1 file changed, 31 insertions(+), 32 deletions(-)
+ drivers/i2c/busses/i2c-omap.c |  208 +++++++++++++++++------------------------
+ 1 file changed, 84 insertions(+), 124 deletions(-)
 
 diff --git a/drivers/i2c/busses/i2c-omap.c b/drivers/i2c/busses/i2c-omap.c
-index 9b532cd..39d5583 100644
+index 41cec32..94d6c6a 100644
 --- a/drivers/i2c/busses/i2c-omap.c
 +++ b/drivers/i2c/busses/i2c-omap.c
-@@ -856,22 +856,7 @@ complete:
- 							>> 8) & 0x3F;
- 			}
- 			while (num_bytes--) {
--				w = omap_i2c_read_reg(dev, OMAP_I2C_DATA_REG);
--				if (dev->buf_len) {
--					*dev->buf++ = w;
--					dev->buf_len--;
--					/*
--					 * Data reg in 2430, omap3 and
--					 * omap4 is 8 bit wide
--					 */
--					if (dev->flags &
--						 OMAP_I2C_FLAG_16BIT_DATA_REG) {
--						if (dev->buf_len) {
--							*dev->buf++ = w >> 8;
--							dev->buf_len--;
--						}
--					}
--				} else {
-+				if (!dev->buf_len) {
- 					if (stat & OMAP_I2C_STAT_RRDY)
- 						dev_err(dev->dev,
- 							"RRDY IRQ while no data"
-@@ -882,6 +867,21 @@ complete:
- 								" requested\n");
- 					break;
- 				}
-+
-+				w = omap_i2c_read_reg(dev, OMAP_I2C_DATA_REG);
-+				*dev->buf++ = w;
-+				dev->buf_len--;
-+				/*
-+				 * Data reg in 2430, omap3 and
-+				 * omap4 is 8 bit wide
-+				 */
-+				if (dev->flags &
-+						OMAP_I2C_FLAG_16BIT_DATA_REG) {
-+					if (dev->buf_len) {
-+						*dev->buf++ = w >> 8;
-+						dev->buf_len--;
-+					}
-+				}
- 			}
- 			omap_i2c_ack_stat(dev,
- 				stat & (OMAP_I2C_STAT_RRDY | OMAP_I2C_STAT_RDR));
-@@ -898,22 +898,7 @@ complete:
- 							& 0x3F;
- 			}
- 			while (num_bytes--) {
--				w = 0;
--				if (dev->buf_len) {
--					w = *dev->buf++;
--					dev->buf_len--;
--					/*
--					 * Data reg in 2430, omap3 and
--					 * omap4 is 8 bit wide
--					 */
--					if (dev->flags &
--						 OMAP_I2C_FLAG_16BIT_DATA_REG) {
--						if (dev->buf_len) {
--							w |= *dev->buf++ << 8;
--							dev->buf_len--;
--						}
--					}
--				} else {
-+				if (!dev->buf_len) {
- 					if (stat & OMAP_I2C_STAT_XRDY)
- 						dev_err(dev->dev,
- 							"XRDY IRQ while no "
-@@ -925,6 +910,20 @@ complete:
- 					break;
- 				}
+@@ -795,12 +795,81 @@ static int errata_omap3_1p153(struct omap_i2c_dev *dev)
+ 	return 0;
+ }
  
-+				w = *dev->buf++;
-+				dev->buf_len--;
-+				/*
-+				 * Data reg in 2430, omap3 and
-+				 * omap4 is 8 bit wide
-+				 */
-+				if (dev->flags &
-+						OMAP_I2C_FLAG_16BIT_DATA_REG) {
-+					if (dev->buf_len) {
-+						w |= *dev->buf++ << 8;
-+						dev->buf_len--;
-+					}
-+				}
++static void omap_i2c_receive_data(struct omap_i2c_dev *dev, u8 num_bytes,
++		bool is_rdr)
++{
++	u16		w;
 +
- 				if ((dev->errata & I2C_OMAP3_1P153) &&
- 				    errata_omap3_1p153(dev, &stat, &err))
- 					goto complete;
++	while (num_bytes--) {
++		if (!dev->buf_len) {
++			dev_err(dev->dev, "%s without data",
++					is_rdr ? "RDR" : "RRDY");
++			break;
++		}
++
++		w = omap_i2c_read_reg(dev, OMAP_I2C_DATA_REG);
++		*dev->buf++ = w;
++		dev->buf_len--;
++
++		/*
++		 * Data reg in 2430, omap3 and
++		 * omap4 is 8 bit wide
++		 */
++		if (dev->flags & OMAP_I2C_FLAG_16BIT_DATA_REG) {
++			if (dev->buf_len) {
++				*dev->buf++ = w >> 8;
++				dev->buf_len--;
++			}
++		}
++	}
++}
++
++static int omap_i2c_transmit_data(struct omap_i2c_dev *dev, u8 num_bytes,
++		bool is_xdr)
++{
++	u16		w;
++
++	while (num_bytes--) {
++		if (!dev->buf_len) {
++			dev_err(dev->dev, "%s without data",
++					is_xdr ? "XDR" : "XRDY");
++			break;
++		}
++
++		w = *dev->buf++;
++		dev->buf_len--;
++
++		/*
++		 * Data reg in 2430, omap3 and
++		 * omap4 is 8 bit wide
++		 */
++		if (dev->flags & OMAP_I2C_FLAG_16BIT_DATA_REG) {
++			if (dev->buf_len) {
++				w |= *dev->buf++ << 8;
++				dev->buf_len--;
++			}
++		}
++
++		if (dev->errata & I2C_OMAP3_1P153) {
++			int ret;
++
++			ret = errata_omap3_1p153(dev);
++			if (ret < 0)
++				return ret;
++		}
++
++		omap_i2c_write_reg(dev, OMAP_I2C_DATA_REG, w);
++	}
++
++	return 0;
++}
++
+ static irqreturn_t
+ omap_i2c_isr(int this_irq, void *dev_id)
+ {
+ 	struct omap_i2c_dev *dev = dev_id;
+ 	u16 bits;
+-	u16 stat, w;
++	u16 stat;
+ 	int err, count = 0;
+ 
+ 	if (pm_runtime_suspended(dev->dev))
+@@ -853,30 +922,7 @@ complete:
+ 			if (dev->fifo_size)
+ 				num_bytes = dev->fifo_size;
+ 
+-			while (num_bytes--) {
+-				if (!dev->buf_len) {
+-					dev_err(dev->dev,
+-							"RDR IRQ while no data"
+-							" requested\n");
+-					break;
+-				}
+-
+-				w = omap_i2c_read_reg(dev, OMAP_I2C_DATA_REG);
+-				*dev->buf++ = w;
+-				dev->buf_len--;
+-
+-				/*
+-				 * Data reg in 2430, omap3 and
+-				 * omap4 is 8 bit wide
+-				 */
+-				if (dev->flags &
+-						OMAP_I2C_FLAG_16BIT_DATA_REG) {
+-					if (dev->buf_len) {
+-						*dev->buf++ = w >> 8;
+-						dev->buf_len--;
+-					}
+-				}
+-			}
++			omap_i2c_receive_data(dev, num_bytes, true);
+ 
+ 			if (dev->errata & I2C_OMAP_ERRATA_I207)
+ 				i2c_omap_errata_i207(dev, stat);
+@@ -891,78 +937,23 @@ complete:
+ 			if (dev->fifo_size)
+ 				num_bytes = dev->fifo_size;
+ 
+-			while (num_bytes--) {
+-				if (!dev->buf_len) {
+-					dev_err(dev->dev,
+-							"RRDY IRQ while no data"
+-							" requested\n");
+-					break;
+-				}
+-
+-				w = omap_i2c_read_reg(dev, OMAP_I2C_DATA_REG);
+-				*dev->buf++ = w;
+-				dev->buf_len--;
+-
+-				/*
+-				 * Data reg in 2430, omap3 and
+-				 * omap4 is 8 bit wide
+-				 */
+-				if (dev->flags &
+-						OMAP_I2C_FLAG_16BIT_DATA_REG) {
+-					if (dev->buf_len) {
+-						*dev->buf++ = w >> 8;
+-						dev->buf_len--;
+-					}
+-				}
+-			}
+-
++			omap_i2c_receive_data(dev, num_bytes, false);
+ 			omap_i2c_ack_stat(dev, OMAP_I2C_STAT_RRDY);
+ 			continue;
+ 		}
+ 
+ 		if (stat & OMAP_I2C_STAT_XDR) {
++			int ret;
+ 			u8 num_bytes = 1;
+ 
+ 			if (dev->fifo_size)
+ 				num_bytes = dev->fifo_size;
+ 
+-			while (num_bytes--) {
+-				if (!dev->buf_len) {
+-					dev_err(dev->dev,
+-							"XDR IRQ while no "
+-							"data to send\n");
+-					break;
+-				}
+-
+-				w = *dev->buf++;
+-				dev->buf_len--;
+-
+-				/*
+-				 * Data reg in 2430, omap3 and
+-				 * omap4 is 8 bit wide
+-				 */
+-				if (dev->flags &
+-						OMAP_I2C_FLAG_16BIT_DATA_REG) {
+-					if (dev->buf_len) {
+-						w |= *dev->buf++ << 8;
+-						dev->buf_len--;
+-					}
+-				}
+-
+-				if (dev->errata & I2C_OMAP3_1P153) {
+-					int ret;
+-
+-					ret = errata_omap3_1p153(dev);
+-					stat = omap_i2c_read_reg(dev,
+-							OMAP_I2C_STAT_REG);
+-
+-					if (ret < 0) {
+-						err |= OMAP_I2C_STAT_XUDF;
+-						goto complete;
+-					}
+-				}
+-
+-				omap_i2c_write_reg(dev, OMAP_I2C_DATA_REG, w);
++			ret = omap_i2c_transmit_data(dev, num_bytes, true);
++			stat = omap_i2c_read_reg(dev, OMAP_I2C_STAT_REG);
++			if (ret < 0) {
++				err |= OMAP_I2C_STAT_XUDF;
++				goto complete;
+ 			}
+ 
+ 			omap_i2c_ack_stat(dev, OMAP_I2C_STAT_XDR);
+@@ -970,48 +961,17 @@ complete:
+ 		}
+ 
+ 		if (stat & OMAP_I2C_STAT_XRDY) {
++			int ret;
+ 			u8 num_bytes = 1;
+ 
+ 			if (dev->fifo_size)
+ 				num_bytes = dev->fifo_size;
+ 
+-			while (num_bytes--) {
+-				if (!dev->buf_len) {
+-					dev_err(dev->dev,
+-							"XRDY IRQ while no "
+-							"data to send\n");
+-					break;
+-				}
+-
+-				w = *dev->buf++;
+-				dev->buf_len--;
+-
+-				/*
+-				 * Data reg in 2430, omap3 and
+-				 * omap4 is 8 bit wide
+-				 */
+-				if (dev->flags &
+-						OMAP_I2C_FLAG_16BIT_DATA_REG) {
+-					if (dev->buf_len) {
+-						w |= *dev->buf++ << 8;
+-						dev->buf_len--;
+-					}
+-				}
+-
+-				if (dev->errata & I2C_OMAP3_1P153) {
+-					int ret;
+-
+-					ret = errata_omap3_1p153(dev);
+-					stat = omap_i2c_read_reg(dev,
+-							OMAP_I2C_STAT_REG);
+-
+-					if (ret < 0) {
+-						err |= OMAP_I2C_STAT_XUDF;
+-						goto complete;
+-					}
+-				}
+-
+-				omap_i2c_write_reg(dev, OMAP_I2C_DATA_REG, w);
++			ret = omap_i2c_transmit_data(dev, num_bytes, false);
++			stat = omap_i2c_read_reg(dev, OMAP_I2C_STAT_REG);
++			if (ret < 0) {
++				err |= OMAP_I2C_STAT_XUDF;
++				goto complete;
+ 			}
+ 
+ 			omap_i2c_ack_stat(dev, OMAP_I2C_STAT_XRDY);
 -- 
 1.7.10.4
+
