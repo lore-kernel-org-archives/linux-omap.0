@@ -1,78 +1,39 @@
-From: Russell King - ARM Linux <linux@arm.linux.org.uk>
-Subject: [PATCH] SPI: OMAP: fix over-eager devm_xxx() conversion (was: Re:
-	[CFT 07/11] spi: omap2-mcspi: add DMA engine support)
-Date: Thu, 14 Jun 2012 15:07:12 +0100
-Message-ID: <20120614140712.GH31187@n2100.arm.linux.org.uk>
-References: <20120607110610.GB15973@n2100.arm.linux.org.uk> <E1ScaZv-0003tz-6F@rmk-PC.arm.linux.org.uk> <20120614115335.GE31187@n2100.arm.linux.org.uk> <20120614120842.GF31187@n2100.arm.linux.org.uk> <20120614125012.GG31187@n2100.arm.linux.org.uk>
+From: "Hiremath, Vaibhav" <hvaibhav@ti.com>
+Subject: RE: [PATCH] ARM: OMAP2+: cpu: Make cpu_class_is_omap2 true for all
+ non-omap1 platforms
+Date: Thu, 14 Jun 2012 14:33:26 +0000
+Message-ID: <79CD15C6BA57404B839C016229A409A83EA5096A@DBDE01.ent.ti.com>
+References: <1339420974-23695-1-git-send-email-hvaibhav@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from caramon.arm.linux.org.uk ([78.32.30.218]:56320 "EHLO
-	caramon.arm.linux.org.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756039Ab2FNOHT (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 14 Jun 2012 10:07:19 -0400
-Content-Disposition: inline
-In-Reply-To: <20120614125012.GG31187@n2100.arm.linux.org.uk>
+Received: from comal.ext.ti.com ([198.47.26.152]:40768 "EHLO comal.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1753478Ab2FNOdf convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 14 Jun 2012 10:33:35 -0400
+In-Reply-To: <1339420974-23695-1-git-send-email-hvaibhav@ti.com>
+Content-Language: en-US
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org, Grant Likely <grant.likely@secretlab.ca>
-Cc: spi-devel-general@lists.sourceforge.net
+To: "Hiremath, Vaibhav" <hvaibhav@ti.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
+Cc: "tony@atomide.com" <tony@atomide.com>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>
 
-From: Russell King <rmk+kernel@arm.linux.org.uk>
-Subject: [PATCH] SPI: OMAP: fix over-eager devm_xxx() conversion
+On Mon, Jun 11, 2012 at 18:52:54, Hiremath, Vaibhav wrote:
+> As omap1 and omap2 will never be compiled together, due to
+> different compiler flags, so we can simply make
+> cpu_class_is_omap2() = true, for all non-omap1 platforms.
+> 
+> Signed-off-by: Vaibhav Hiremath <hvaibhav@ti.com>
+> ---
+>  arch/arm/plat-omap/include/plat/cpu.h |    3 +--
+>  1 files changed, 1 insertions(+), 2 deletions(-)
+> 
 
-1a77b127ae (OMAP : SPI : use devm_* functions) converted the SPI
-device controller state to use devm_kzalloc().  Unfortunately, this
-is used against an unbound struct device, which results in the
-following when the device is eventually bound to its driver:
+Tony,
 
-------------[ cut here ]------------
-WARNING: at /home/rmk/git/linux-rmk/drivers/base/dd.c:257 driver_probe_device+0x78/0x21c()
-Modules linked in:
-Backtrace:
-[<c0017d0c>] (dump_backtrace+0x0/0x10c) from [<c033e208>] (dump_stack+0x18/0x1c) r7:00000000 r6:c01ff28c r5:c040050c r4:00000101
-[<c033e1f0>] (dump_stack+0x0/0x1c) from [<c00337ec>] (warn_slowpath_common+0x58/0x70)
-[<c0033794>] (warn_slowpath_common+0x0/0x70) from [<c0033828>] (warn_slowpath_null+0x24/0x2c)
-[<c0033804>] (warn_slowpath_null+0x0/0x2c) from [<c01ff28c>] (driver_probe_device+0x78/0x21c)
-[<c01ff214>] (driver_probe_device+0x0/0x21c) from [<c01ff49c>] (__driver_attach+0x6c/0x90)
-[<c01ff430>] (__driver_attach+0x0/0x90) from [<c01fda70>] (bus_for_each_dev+0x58/0x98)
-[<c01fda18>] (bus_for_each_dev+0x0/0x98) from [<c01ff0f4>] (driver_attach+0x20/0x28)
-[<c01ff0d4>] (driver_attach+0x0/0x28) from [<c01fe2f4>] (bus_add_driver+0xb4/0x230)
-[<c01fe240>] (bus_add_driver+0x0/0x230) from [<c01ffb24>] (driver_register+0xac/0x138)
-[<c01ffa78>] (driver_register+0x0/0x138) from [<c0215d4c>] (spi_register_driver+0x4c/0x60)
-[<c0215d00>] (spi_register_driver+0x0/0x60) from [<c045414c>] (ks8851_init+0x14/0x1c)
-[<c0454138>] (ks8851_init+0x0/0x1c) from [<c0008770>] (do_one_initcall+0x9c/0x164)
-[<c00086d4>] (do_one_initcall+0x0/0x164) from [<c0436410>] (kernel_init+0x128/0x210)
-[<c04362e8>] (kernel_init+0x0/0x210) from [<c0038754>] (do_exit+0x0/0x72c)
----[ end trace 4dcda79f5e89dd84 ]---
-ks8851 spi1.0: message enable is 0
-ks8851 spi1.0: eth0: revision 0, MAC 08:00:28:01:4d:c6, IRQ 194, has EEPROM
+Ping???
 
-Fix this by partially reverting the original commit.
+Thanks,
+Vaibhav
 
-Signed-off-by: Russell King <rmk+kernel@arm.linux.org.uk>
----
- drivers/spi/spi-omap2-mcspi.c |    3 ++-
- 1 file changed, 2 insertions(+), 1 deletion(-)
-
-diff --git a/drivers/spi/spi-omap2-mcspi.c b/drivers/spi/spi-omap2-mcspi.c
-index 9d3409a..6263b0f 100644
---- a/drivers/spi/spi-omap2-mcspi.c
-+++ b/drivers/spi/spi-omap2-mcspi.c
-@@ -829,7 +829,7 @@ static int omap2_mcspi_setup(struct spi_device *spi)
- 	mcspi_dma = &mcspi->dma_channels[spi->chip_select];
- 
- 	if (!cs) {
--		cs = devm_kzalloc(&spi->dev , sizeof *cs, GFP_KERNEL);
-+		cs = kzalloc(sizeof *cs, GFP_KERNEL);
- 		if (!cs)
- 			return -ENOMEM;
- 		cs->base = mcspi->base + spi->chip_select * 0x14;
-@@ -869,6 +869,7 @@ static void omap2_mcspi_cleanup(struct spi_device *spi)
- 		cs = spi->controller_state;
- 		list_del(&cs->node);
- 
-+		kfree(cs);
- 	}
- 
- 	if (spi->chip_select < spi->master->num_chipselect) {
