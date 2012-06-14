@@ -1,127 +1,119 @@
-From: Felipe Balbi <balbi@ti.com>
-Subject: [PATCH 02/17] i2c: omap: decrease indentation level on data handling
-Date: Thu, 14 Jun 2012 13:20:35 +0300
-Message-ID: <1339669250-9183-3-git-send-email-balbi@ti.com>
+From: Felipe Balbi <balbi-l0cyMroinI0@public.gmane.org>
+Subject: [PATCH 16/17] i2c: omap: simplify IRQ exit path
+Date: Thu, 14 Jun 2012 13:20:49 +0300
+Message-ID: <1339669250-9183-17-git-send-email-balbi@ti.com>
 References: <1339669250-9183-1-git-send-email-balbi@ti.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-In-Reply-To: <1339669250-9183-1-git-send-email-balbi@ti.com>
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: linux-arm-kernel-bounces@lists.infradead.org
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: ben-linux@fluff.org
-Cc: Tony Lindgren <tony@atomide.com>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Felipe Balbi <balbi@ti.com>, w.sang@pengutronix.de, linux-i2c@vger.kernel.org, Linux OMAP Mailing List <linux-omap@vger.kernel.org>, Linux ARM Kernel Mailing List <linux-arm-kernel@lists.infradead.org>
+Return-path: <linux-i2c-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <1339669250-9183-1-git-send-email-balbi-l0cyMroinI0@public.gmane.org>
+Sender: linux-i2c-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: ben-linux-elnMNo+KYs3YtjvyW6yDsg@public.gmane.org
+Cc: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>, w.sang-bIcnvbaLZ9MEGnE8C9+IrQ@public.gmane.org, Linux OMAP Mailing List <linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, linux-i2c-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Linux ARM Kernel Mailing List <linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org>, Linux Kernel Mailing List <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Felipe Balbi <balbi-l0cyMroinI0@public.gmane.org>
 List-Id: linux-omap@vger.kernel.org
 
-trivial patch, no functional changes.
+instead of having multiple return points, use
+a goto statement to make that clearer.
 
-Signed-off-by: Felipe Balbi <balbi@ti.com>
+Signed-off-by: Felipe Balbi <balbi-l0cyMroinI0@public.gmane.org>
 ---
- drivers/i2c/busses/i2c-omap.c |   63 ++++++++++++++++++++---------------------
- 1 file changed, 31 insertions(+), 32 deletions(-)
+ drivers/i2c/busses/i2c-omap.c |   33 ++++++++++++---------------------
+ 1 file changed, 12 insertions(+), 21 deletions(-)
 
 diff --git a/drivers/i2c/busses/i2c-omap.c b/drivers/i2c/busses/i2c-omap.c
-index 9b532cd..39d5583 100644
+index 5b78a73..6e75d03 100644
 --- a/drivers/i2c/busses/i2c-omap.c
 +++ b/drivers/i2c/busses/i2c-omap.c
-@@ -856,22 +856,7 @@ complete:
- 							>> 8) & 0x3F;
- 			}
- 			while (num_bytes--) {
--				w = omap_i2c_read_reg(dev, OMAP_I2C_DATA_REG);
--				if (dev->buf_len) {
--					*dev->buf++ = w;
--					dev->buf_len--;
--					/*
--					 * Data reg in 2430, omap3 and
--					 * omap4 is 8 bit wide
--					 */
--					if (dev->flags &
--						 OMAP_I2C_FLAG_16BIT_DATA_REG) {
--						if (dev->buf_len) {
--							*dev->buf++ = w >> 8;
--							dev->buf_len--;
--						}
--					}
--				} else {
-+				if (!dev->buf_len) {
- 					if (stat & OMAP_I2C_STAT_RRDY)
- 						dev_err(dev->dev,
- 							"RRDY IRQ while no data"
-@@ -882,6 +867,21 @@ complete:
- 								" requested\n");
- 					break;
- 				}
-+
-+				w = omap_i2c_read_reg(dev, OMAP_I2C_DATA_REG);
-+				*dev->buf++ = w;
-+				dev->buf_len--;
-+				/*
-+				 * Data reg in 2430, omap3 and
-+				 * omap4 is 8 bit wide
-+				 */
-+				if (dev->flags &
-+						OMAP_I2C_FLAG_16BIT_DATA_REG) {
-+					if (dev->buf_len) {
-+						*dev->buf++ = w >> 8;
-+						dev->buf_len--;
-+					}
-+				}
- 			}
- 			omap_i2c_ack_stat(dev,
- 				stat & (OMAP_I2C_STAT_RRDY | OMAP_I2C_STAT_RDR));
-@@ -898,22 +898,7 @@ complete:
- 							& 0x3F;
- 			}
- 			while (num_bytes--) {
--				w = 0;
--				if (dev->buf_len) {
--					w = *dev->buf++;
--					dev->buf_len--;
--					/*
--					 * Data reg in 2430, omap3 and
--					 * omap4 is 8 bit wide
--					 */
--					if (dev->flags &
--						 OMAP_I2C_FLAG_16BIT_DATA_REG) {
--						if (dev->buf_len) {
--							w |= *dev->buf++ << 8;
--							dev->buf_len--;
--						}
--					}
--				} else {
-+				if (!dev->buf_len) {
- 					if (stat & OMAP_I2C_STAT_XRDY)
- 						dev_err(dev->dev,
- 							"XRDY IRQ while no "
-@@ -925,6 +910,20 @@ complete:
- 					break;
- 				}
+@@ -889,33 +889,27 @@ omap_i2c_isr(int this_irq, void *dev_id)
+ 			stat &= ~(OMAP_I2C_STAT_RDR | OMAP_I2C_STAT_RRDY);
+ 		}
  
-+				w = *dev->buf++;
-+				dev->buf_len--;
-+				/*
-+				 * Data reg in 2430, omap3 and
-+				 * omap4 is 8 bit wide
-+				 */
-+				if (dev->flags &
-+						OMAP_I2C_FLAG_16BIT_DATA_REG) {
-+					if (dev->buf_len) {
-+						w |= *dev->buf++ << 8;
-+						dev->buf_len--;
-+					}
-+				}
-+
- 				if ((dev->errata & I2C_OMAP3_1P153) &&
- 				    errata_omap3_1p153(dev, &stat, &err))
- 					goto complete;
+-		if (!stat) {
+-			/* my work here is done */
+-			omap_i2c_complete_cmd(dev, err);
+-			return IRQ_HANDLED;
+-		}
++		if (!stat)
++			goto out;
+ 
+ 		dev_dbg(dev->dev, "IRQ (ISR = 0x%04x)\n", stat);
+ 		if (count++ == 100) {
+ 			dev_warn(dev->dev, "Too much work in one IRQ\n");
+-			omap_i2c_complete_cmd(dev, err);
+-			return IRQ_HANDLED;
++			goto out;
+ 		}
+ 
+ 		if (stat & OMAP_I2C_STAT_NACK) {
+ 			dev_err(dev->dev, "No Acknowledge\n");
+ 			err |= OMAP_I2C_STAT_NACK;
+ 			omap_i2c_ack_stat(dev, OMAP_I2C_STAT_NACK);
+-			omap_i2c_complete_cmd(dev, err);
+-			return IRQ_HANDLED;
++			goto out;
+ 		}
+ 
+ 		if (stat & OMAP_I2C_STAT_AL) {
+ 			dev_err(dev->dev, "Arbitration lost\n");
+ 			err |= OMAP_I2C_STAT_AL;
+ 			omap_i2c_ack_stat(dev, OMAP_I2C_STAT_NACK);
+-			omap_i2c_complete_cmd(dev, err);
+-			return IRQ_HANDLED;
++			goto out;
+ 		}
+ 
+ 		/*
+@@ -928,8 +922,7 @@ omap_i2c_isr(int this_irq, void *dev_id)
+ 						OMAP_I2C_STAT_XRDY |
+ 						OMAP_I2C_STAT_XDR |
+ 						OMAP_I2C_STAT_ARDY));
+-			omap_i2c_complete_cmd(dev, err);
+-			return IRQ_HANDLED;
++			goto out;
+ 		}
+ 
+ 		if (stat & OMAP_I2C_STAT_RDR) {
+@@ -970,8 +963,7 @@ omap_i2c_isr(int this_irq, void *dev_id)
+ 				err |= OMAP_I2C_STAT_XUDF;
+ 				omap_i2c_ack_stat(dev, OMAP_I2C_STAT_XUDF |
+ 						OMAP_I2C_STAT_XDR);
+-				omap_i2c_complete_cmd(dev, err);
+-				return IRQ_HANDLED;
++				goto out;
+ 			}
+ 
+ 			omap_i2c_ack_stat(dev, OMAP_I2C_STAT_XDR);
+@@ -990,8 +982,7 @@ omap_i2c_isr(int this_irq, void *dev_id)
+ 				err |= OMAP_I2C_STAT_XUDF;
+ 				omap_i2c_ack_stat(dev, OMAP_I2C_STAT_XUDF |
+ 						OMAP_I2C_STAT_XRDY);
+-				omap_i2c_complete_cmd(dev, err);
+-				return IRQ_HANDLED;
++				goto out;
+ 			}
+ 
+ 			omap_i2c_ack_stat(dev, OMAP_I2C_STAT_XRDY);
+@@ -1002,19 +993,19 @@ omap_i2c_isr(int this_irq, void *dev_id)
+ 			dev_err(dev->dev, "Receive overrun\n");
+ 			err |= OMAP_I2C_STAT_ROVR;
+ 			omap_i2c_ack_stat(dev, OMAP_I2C_STAT_ROVR);
+-			omap_i2c_complete_cmd(dev, err);
+-			return IRQ_HANDLED;
++			goto out;
+ 		}
+ 
+ 		if (stat & OMAP_I2C_STAT_XUDF) {
+ 			dev_err(dev->dev, "Transmit underflow\n");
+ 			err |= OMAP_I2C_STAT_XUDF;
+ 			omap_i2c_ack_stat(dev, OMAP_I2C_STAT_XUDF);
+-			omap_i2c_complete_cmd(dev, err);
+-			return IRQ_HANDLED;
++			goto out;
+ 		}
+ 	} while (stat);
+ 
++out:
++	omap_i2c_complete_cmd(dev, err);
+ 	return IRQ_HANDLED;
+ }
+ 
 -- 
 1.7.10.4
