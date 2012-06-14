@@ -1,102 +1,121 @@
-From: "Mohammed, Afzal" <afzal@ti.com>
-Subject: RE: [PATCH 6/9] ARM: OMAP2+: gpmc-smsc911x: Adapt to use gpmc driver
-Date: Thu, 14 Jun 2012 09:07:43 +0000
-Message-ID: <C8443D0743D26F4388EA172BF4E2A7A93E99975F@DBDE01.ent.ti.com>
-References: <cover.1339419379.git.afzal@ti.com>
- <fa4fd074305f914d38603443b857422f95680725.1339419379.git.afzal@ti.com>
- <20120614085650.GD12766@atomide.com>
+From: Tero Kristo <t-kristo@ti.com>
+Subject: Re: [PATCHv3 03/20] ARM: OMAP4: PM: add support for device off
+Date: Thu, 14 Jun 2012 12:18:42 +0300
+Message-ID: <1339665522.2091.164.camel@sokoban>
+References: <1339515095-9908-1-git-send-email-t-kristo@ti.com>
+	 <1339515095-9908-4-git-send-email-t-kristo@ti.com>
+	 <CAORVsuUJOpQu1qE7qmK9PS79JZJ065egqcpfgmsWNHwnhLUdvw@mail.gmail.com>
+Reply-To: <t-kristo@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from devils.ext.ti.com ([198.47.26.153]:38045 "EHLO
+Received: from devils.ext.ti.com ([198.47.26.153]:38579 "EHLO
 	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755338Ab2FNJHy convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 14 Jun 2012 05:07:54 -0400
-In-Reply-To: <20120614085650.GD12766@atomide.com>
-Content-Language: en-US
+	with ESMTP id S1755400Ab2FNJSv (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 14 Jun 2012 05:18:51 -0400
+In-Reply-To: <CAORVsuUJOpQu1qE7qmK9PS79JZJ065egqcpfgmsWNHwnhLUdvw@mail.gmail.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Tony Lindgren <tony@atomide.com>
-Cc: "paul@pwsan.com" <paul@pwsan.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>
+To: Jean Pihet <jean.pihet@newoldbits.com>
+Cc: linux-omap@vger.kernel.org, khilman@ti.com, paul@pwsan.com, tony@atomide.com, linux-arm-kernel@lists.infradead.org
 
-Hi Tony,
-
-On Thu, Jun 14, 2012 at 14:26:52, Tony Lindgren wrote:
-> * Afzal Mohammed <afzal@ti.com> [120611 08:20]:
-> > +__init gpmc_smsc911x_update(struct omap_smsc911x_platform_data *gpmc_cfg)
-> > +{
-> > +	int ret;
-> > +	struct gpmc_device_pdata *gpmc_pdev;
-> > +	struct gpmc_cs_data *gpmc_cs;
-> > +
-> > +	gpmc_pdev = kzalloc(sizeof(*gpmc_pdev), GFP_KERNEL);
-> > +	if (gpmc_pdev == NULL)
-> > +		return gpmc_pdev;
-> > +
-> > +	gpmc_cs = kzalloc(sizeof(*gpmc_cs), GFP_KERNEL);
-> > +	if (gpmc_pdev == NULL) {
-> > +		kfree(gpmc_pdev);
-> > +		return NULL;
-> > +	}
+On Wed, 2012-06-13 at 17:21 +0200, Jean Pihet wrote:
+> Hi Tero,
 > 
-> Here your should check for if (!gpmc_cs), not gpmc_cs. Might
+> I have a few remarks regarding the genericity of this code. I think it
+> is better if the code in powerdomain.c stays generic and that the
+> platform specific checks and operations be moved in the specific
+> functions (via the pwrdm_ops struct).
 
-My mistake, I will correct it
+Well, I was thinking about this, however it looks like I need to copy
+over most of the implementation of omap_set_pwrdm_state and
+get_next_achievable_state if I want to do that, or alternatively
+overload the underlying omap4 pwrdm code which does not seem that good
+solution either.
 
-> Where do gpmc_pdev and gpmc_cs get used? Where are they
-> stored to the pdata?
+> 
+> On Tue, Jun 12, 2012 at 5:31 PM, Tero Kristo <t-kristo@ti.com> wrote:
+> > On OMAP4+, device wide off-mode has its own enable mechanism in addition
+> > to powerdomain target states. This patch adds support for this on top
+> > of functional power states by overloading the OFF state for core pwrdm.
+> > On pwrdm level, the deepest power state supported by core pwrdm is OSWR.
+> > When user (e.g. suspend) programs core pwrdm target as OFF, the functional
+> > power state for the domain will be OSWR with the additional device off
+> > enabled. Previous power state information will reflect this also.
+> >
+> > Signed-off-by: Tero Kristo <t-kristo@ti.com>
+> > ---
+> >  arch/arm/mach-omap2/powerdomain.c           |   17 +++++++++
+> >  arch/arm/mach-omap2/powerdomain.h           |   13 +++++++-
+> >  arch/arm/mach-omap2/powerdomain44xx.c       |   48 +++++++++++++++++++++++++++
+> >  arch/arm/mach-omap2/powerdomains44xx_data.c |    3 +-
+> >  4 files changed, 79 insertions(+), 2 deletions(-)
+> >
+> > diff --git a/arch/arm/mach-omap2/powerdomain.c b/arch/arm/mach-omap2/powerdomain.c
+> > index ac63f86..78a9308 100644
+> > --- a/arch/arm/mach-omap2/powerdomain.c
+> > +++ b/arch/arm/mach-omap2/powerdomain.c
+> > @@ -677,6 +677,8 @@ int omap_set_pwrdm_state(struct powerdomain *pwrdm, u32 func_pwrst)
+> >        int sleep_switch = -1, ret = 0, hwsup = 0;
+> >        int new_func_pwrst, next_func_pwrst, pwrst, logic;
+> >        u8 curr_pwrst;
+> > +       bool extra_off_enable = false;
+> > +       bool has_extra_off = false;
+> >
+> >        if (!pwrdm || IS_ERR(pwrdm)) {
+> >                pr_debug("%s: invalid params: pwrdm=%p\n", __func__, pwrdm);
+> > @@ -687,6 +689,13 @@ int omap_set_pwrdm_state(struct powerdomain *pwrdm, u32 func_pwrst)
+> >
+> >        mutex_lock(&pwrdm->lock);
+> >
+> > +       /* Check if powerdomain has extra off mode handling */
+> > +       if (pwrdm->flags & PWRDM_HAS_EXTRA_OFF_ENABLE) {
+> > +               has_extra_off = true;
+> > +               if (func_pwrst == PWRDM_FUNC_PWRST_OFF)
+> > +                       extra_off_enable = true;
+> > +       }
+> Could those checks be moved in the OMAP4 specific functions, so that
+> the power domain code stays generic?
 
-It is done in board file, as in [1]
+I'll try to do that and see what happens. The problem I tried to tackle
+with this implementation is that even when core next state is programmed
+to func OFF, we must program the powerdomain itself to OSWR, which the
+current functional pwrst framework does not support too well.... or as
+you say, I need to re-write the omap4 pwrdm state handling code itself
+which kind of eats the benefit of the functional power states away.
 
-Regards
-Afzal
+> 
+> > +
+> >        new_func_pwrst = pwrdm_get_achievable_func_pwrst(pwrdm, func_pwrst);
+> >        pwrst = pwrdm_func_to_pwrst(pwrdm, new_func_pwrst);
+> >        logic = pwrdm_func_to_logic_pwrst(pwrdm, new_func_pwrst);
+> > @@ -741,6 +750,9 @@ int omap_set_pwrdm_state(struct powerdomain *pwrdm, u32 func_pwrst)
+> >                break;
+> >        }
+> >
+> > +       if (has_extra_off && arch_pwrdm->pwrdm_enable_off)
+> > +               arch_pwrdm->pwrdm_enable_off(pwrdm, extra_off_enable);
+> > +
+> >  out:
+> >        mutex_unlock(&pwrdm->lock);
+> >        return ret;
+> > @@ -810,6 +822,11 @@ int pwrdm_read_next_func_pwrst(struct powerdomain *pwrdm)
+> >        int next_pwrst = pwrdm_read_next_pwrst(pwrdm);
+> >        int next_logic = pwrdm_read_logic_retst(pwrdm);
+> >
+> > +       if (pwrdm->flags & PWRDM_HAS_EXTRA_OFF_ENABLE &&
+> > +           arch_pwrdm->pwrdm_read_next_off &&
+> > +           arch_pwrdm->pwrdm_read_next_off(pwrdm))
+> > +               return PWRDM_FUNC_PWRST_OFF;
+> > +
+> Same comment here. The OMAP4 specific function for
+> pwrdm_read_next_pwrst could return PWRDM_FUNC_PWRST_OFF.
 
-[1]
+Same issue.
 
-ARM: OMAP2+: board omap3evm: use gpmc driver
+Anyway, I'll try to fiddle with the code bit more and see what happens.
 
-diff --git a/arch/arm/mach-omap2/board-omap3evm.c b/arch/arm/mach-omap2/board-omap3evm.c
-index 639bd07..aa9429d 100644
---- a/arch/arm/mach-omap2/board-omap3evm.c
-+++ b/arch/arm/mach-omap2/board-omap3evm.c
-@@ -43,6 +43,7 @@
+-Tero
 
- #include <plat/board.h>
- #include <plat/usb.h>
-+#include <plat/gpmc.h>
- #include "common.h"
- #include <plat/mcspi.h>
- #include <video/omapdss.h>
-@@ -102,6 +103,12 @@ static void __init omap3_evm_get_revision(void)
-        }
- }
 
-+static struct gpmc_device_pdata *gpmc_device_data[2];
-+
-+static struct gpmc_pdata gpmc_data = {
-+       .device_pdata = gpmc_device_data,
-+};
-+
- #if defined(CONFIG_SMSC911X) || defined(CONFIG_SMSC911X_MODULE)
- #include <plat/gpmc-smsc911x.h>
-
-@@ -122,7 +129,9 @@ static inline void __init omap3evm_init_smsc911x(void)
-                        smsc911x_cfg.gpio_reset = OMAP3EVM_GEN2_ETHR_GPIO_RST;
-        }
-
--       gpmc_smsc911x_init(&smsc911x_cfg);
-+       *gpmc_device_data = gpmc_smsc911x_update(&smsc911x_cfg);
-+       if (!*gpmc_device_data)
-+               pr_err("error: unable to initilaize gpmc smsc911x\n");
- }
-
- #else
-@@ -658,6 +667,7 @@ static void __init omap3_evm_init(void)
-        usbhs_init(&usbhs_bdata);
-        omap_ads7846_init(1, OMAP3_EVM_TS_GPIO, 310, NULL);
-        omap3evm_init_smsc911x();
-+       omap_gpmc_init(&gpmc_data);
-        omap3_evm_display_init();
-        omap3_evm_wl12xx_init();
- }
