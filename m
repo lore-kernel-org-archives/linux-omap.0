@@ -1,154 +1,131 @@
-From: NeilBrown <neilb@suse.de>
-Subject: Re: [GIT PULL] gpio/omap: cleanups for v3.5
-Date: Fri, 15 Jun 2012 07:06:11 +1000
-Message-ID: <20120615070611.0fa559ed@notabene.brown>
-References: <874nrmtf47.fsf@ti.com>
-	<20120614101541.39f50aee@notabene.brown>
-	<CAC83ZvKT+EDRzBWrMbiyqOYqLW7WudOQeAq5Y5ZgXEs2txEPrA@mail.gmail.com>
+From: "Cousson, Benoit" <b-cousson@ti.com>
+Subject: Re: [PATCHv2 08/12] ARM: OMAP4: hwmod data: add SL2IF hardreset line
+Date: Thu, 14 Jun 2012 23:07:09 +0200
+Message-ID: <4FDA527D.9080401@ti.com>
+References: <20120611004502.20034.8840.stgit@dusk> <20120611004614.20034.50895.stgit@dusk> <4FD9DF2A.3010000@ti.com> <alpine.DEB.2.00.1206141052240.30212@utopia.booyaka.com>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=PGP-SHA1;
- boundary="Sig_/xYN=dShzA4+PKrA9aCG1JTx"; protocol="application/pgp-signature"
+Content-Type: text/plain; charset="ISO-8859-1"; format=flowed
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from cantor2.suse.de ([195.135.220.15]:44367 "EHLO mx2.suse.de"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754220Ab2FNVGc (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Thu, 14 Jun 2012 17:06:32 -0400
-In-Reply-To: <CAC83ZvKT+EDRzBWrMbiyqOYqLW7WudOQeAq5Y5ZgXEs2txEPrA@mail.gmail.com>
+Received: from devils.ext.ti.com ([198.47.26.153]:48332 "EHLO
+	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754220Ab2FNVHR (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 14 Jun 2012 17:07:17 -0400
+In-Reply-To: <alpine.DEB.2.00.1206141052240.30212@utopia.booyaka.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "DebBarma, Tarun Kanti" <tarun.kanti@ti.com>
-Cc: Kevin Hilman <khilman@ti.com>, Grant Likely <grant.likely@secretlab.ca>, linux-omap <linux-omap@vger.kernel.org>, linux-arm-kernel <linux-arm-kernel@lists.infradead.org>
+To: Paul Walmsley <paul@pwsan.com>
+Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Tero Kristo <t-kristo@ti.com>
 
---Sig_/xYN=dShzA4+PKrA9aCG1JTx
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: quoted-printable
+On 6/14/2012 7:09 PM, Paul Walmsley wrote:
+> Hi
+>
+> On Thu, 14 Jun 2012, Cousson, Benoit wrote:
+>
+>> I don't think we should allow that at hwmod level. This line is already
+>> handled by the IVAHD hwmod. We will then have some potential issue since
+>> nothing will prevent the concurrent access.
+>> Moreover that IP is only used by the IVAHD and thus should be handled by the
+>> same driver. The SL2 being inside the IVA subsystem, it should be reset when
+>> the IVA will be reset and thus does not require an individual control.
+>
+> If a hardreset line will affect an IP block, then the line should be
+> listed as one of the IP block's hardreset lines.
 
-On Thu, 14 Jun 2012 23:24:10 +0530 "DebBarma, Tarun Kanti"
-<tarun.kanti@ti.com> wrote:
+No, not necessarily. That signal is already added in the IVA hwmod that 
+is the subsystem that does contain the SL2. The fact that the HW signal 
+is propagated inside the SS is an implementation detail. In fact the 
+hardreset of every SS is always propagated inside the SS IPs.
 
-> On Thu, Jun 14, 2012 at 5:45 AM, NeilBrown <neilb@suse.de> wrote:
-> > On Fri, 11 May 2012 17:30:48 -0700 Kevin Hilman <khilman@ti.com> wrote:
-> >
-> >> Hi Grant,
-> >>
-> >> Here's the final round of GPIO cleanups for v3.5. =A0This branch is ba=
-sed
-> >> on my for_3.5/fixes/gpio branch you just pulled.
-> >>
-> >> Kevin
-> >
-> > Hi.
-> >
-> > =A0I'm not sure if it was this series or the following cleanups which b=
-roke
-> > =A0things for me, but I've been trying 3.5-rc2 on my GTA04 and the seri=
-al
-> > =A0console (ttyO2) dies as soon as the omap-gpio driver initialises.
-> >
-> > =A0After some digging I came up with this patch to gpio-omap.c
-> >
-> > @@ -1124,6 +1124,9 @@ static int __devinit omap_gpio_probe(struct platf=
-orm_device *pdev)
-> >
-> > =A0 =A0 =A0 =A0platform_set_drvdata(pdev, bank);
-> >
-> > + =A0 =A0 =A0 if (bank->get_context_loss_count)
-> > + =A0 =A0 =A0 =A0 =A0 =A0 =A0 bank->context_loss_count =3D
-> > + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 bank->get=
-_context_loss_count(bank->dev);
-> > =A0 =A0 =A0 =A0pm_runtime_enable(bank->dev);
-> > =A0 =A0 =A0 =A0pm_runtime_irq_safe(bank->dev);
-> > =A0 =A0 =A0 =A0pm_runtime_get_sync(bank->dev);
-> >
-> > which fixes it.
-> >
-> > What was happening =A0was that when omap_gpio_probe calls pm_runtime_ge=
-t_sync,
-> > it calls
-> > =A0_od_runtime_resume -> pm_generic_runtime_resume -> omap_gpio_runtime=
-_resume
-> > =A0-> omap_gpio_restore_context
-> >
-> > and then the serial port stops.
-> > I reasoned that the context probably hadn't been set up yet, so restori=
-ng
-> > from it broke things.
-> > Initialising bank->context_loss_count seems sensible and would ensure t=
-hat
-> > we didn't try to restore the context until it has actually been lost.
->=20
-> I thought the following code exactly does that. That is context_lost_cnt_=
-after
-> would be zero until there is context loss. The bank->context_loss_count i=
-s zero
-> at the beginning. So, (context_lost_cnt_after !=3D bank->context_loss_cou=
-nt) would
-> be false and hence context restore should NOT happen? Not sure if I am
-> over looking
-> anything here....
+What is adding some confusion here is just because the SL2 does have a 
+modulemode for some weird legacy reason and thus a hwmod.
 
-Ahhh... I think I know what might be happening.
+>  Otherwise, the hwmod
+> data will not accurately reflect the hardware -- the ultimate goal.
 
-I found a while ago that if I actually enable off_mode some things
-didn't work properly, but if I just set mpu_deepest_state to PWRDM_POWER_OFF
-in next_valid_state, it all does work and I use less power.  So I did that.
-It has now come back to bite me I expect.
+Not really, describing the relevant HW for the SW usage is the goal. 
+Otherwise we will end up with the full RTL inside the kernel.
 
-I'll revert that, enable off mode properly, and see what happens.
+So, here the point is just that SL2 is inside the IVAHD and thus will be 
+reset when the IVAHD will be reset.
 
-Thanks,
+That does not mean the reset line should be controlled by the SL2 hwmod 
+as well. This is in that case a duplication of a already existing line 
+that is already controlled by the parent subsystem.
 
-NeilBrown
+It seems obvious to me that in that case, only the parent should have 
+the control. Otherwise, you will end up in a situation where a 
+(potential) SL2 driver will reset the whole subsystem and all its 
+siblings if it does try to reset the SL2.
 
+>> I guess, we should just mark the dependency with some external power resource
+>> to avoid the fmwk to try to enable that automatically.
+>
+> Right now, the presence of a hardreset line will effectively cause the
+> hwmod code to ignore the IP block from a reset and enable point of view.
+> So the IP block won't be enabled automatically right now anyway, since we
+> still don't have a clear sense of how to handle those.
 
->=20
-> omap_gpio_runtime_resume(...)
-> {
-> ...
->         if (bank->get_context_loss_count) {
->                 context_lost_cnt_after =3D
->                         bank->get_context_loss_count(bank->dev);
->                 if (context_lost_cnt_after !=3D bank->context_loss_count)=
- {
->                         omap_gpio_restore_context(bank);
->                 } else {
->                         spin_unlock_irqrestore(&bank->lock, flags);
->                         return 0;
->                 }
->         }
-> ...
-> }
-> --
-> Tarun
-> >
-> > Thanks,
-> > NeilBrown
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-omap" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Yep, but for that I'd rather add a flag than a information that is a 
+duplication of the parent data.
+
+>> It is similar to DSS sub IPs and to some extend McPDM for my point of view.
+>
+> These seem like different cases to me.
+>
+> The DSS has no hardreset and the sub-IPs have their own softreset bits.
+> As far as I know, the main reason why we can't have individual reset
+> functions for the DSS sub-IPs is because we don't have hierarchical IP
+> block enable/disable implemented in the hwmod code, not any real hardware
+> constraint.
+
+The point with DSS is that you cannot enable the DISPC hwmod if the DSS 
+(parent) is not enable.
+-> Clock/Power dependency
+
+> McPDM has a functional clock dependency on an external (non-SoC) device
+> that's only controllable via I2C.  And, the McPDM can block the ABE
+> clockdomain from going idle.  That's just wacky.
+
+The point with McPDM is that you cannot enable the McPDM if the external 
+clock is not enabled.
+-> Clock dependency
+
+> So those cases seem quite different to me.  One is a software issue.  And
+> the other is an off-chip (non-OMAP) dependency, unlike the SL2IF/IVAHD
+> issue in which all the needed resources are still on-chip.
+
+The IVAHD reset must be de-asserted to enable the SL2.
+-> Parent reset dependency
 
 
---Sig_/xYN=dShzA4+PKrA9aCG1JTx
-Content-Type: application/pgp-signature; name=signature.asc
-Content-Disposition: attachment; filename=signature.asc
+The point I'm trying to make is that some IPs do have dependency with 
+other IPs / devices in the system. It can be clock/reset or power.
 
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v2.0.18 (GNU/Linux)
+Some of them could be indeed handled by hwmod fmwk, but since some other 
+will require a management at Linux device level, and because LDM does 
+already have a proper way to handle parent/child relationship, there is 
+no point adding extra complexity in hwmod fmwk.
 
-iQIVAwUBT9pSQznsnt1WYoG5AQIJ4Q/8DblBkLBn6r6V3UkQTB1j0IMLngQcaQ4K
-7c6tRIexcTuGE3TS15cN26yPQ70AVvYAKHIV4faxgWVJZTmO4iZ/JcRerwuu62N/
-oAhg5q+gJL60dOKIWPOPzNy9J3Qtd0xKj67ekUH5K2byyJvRguKa/yrwppj0b/XC
-e6IsIg1BfhWOzs46URaL701wjMfK2HOCALjymnNzvGrA5bLqOGoJnQfNkHTStM52
-C1QEE4pK/pgtQ/+8DI7oxOcg5kUR6BtGPxJimQQJmoXa8si8LeYEuw7Xt9pokyZG
-G8EZ/t63vCaskWxjGSojnhQHcCjzqEHE5Qg6tZkV5A0dlzD09eTI6y4ydgUgtzyR
-TH33Pi6zqZYzTjiEdClgKbVZoeikXgflLziTfhIrBxuNvA3ByqXQA9aXExtwFDeD
-INapYdVwIKfuUCx12vh82+M37Nd3jM7j38y6Mih3N4m7dF38f4F4vUti8FrtF05k
-iFbAsGwioROS0bBWY9PHnb5hUQUcHSa+WL7mQzsK/GzTtfAp7mYz2La5rmwJDfn0
-e4nCMYAVigJXXoYSzHwM1aZghudZeSBbP9C9MfNTyLH2RRf/G7rR3M3puLzgRIdD
-XrzKXtGnzzA3jbayvHteQ/xCXiHNiWTSBclvWh1iQa4xXCUeIQry1sBzZZCgCDzq
-RGPv1VrJSfE=
-=s76j
------END PGP SIGNATURE-----
+By using a single flag we can just prevent the hwmod fmwk to try to 
+enable these IPs at boot time, because we already know it will fail due 
+to missing dependencies.
 
---Sig_/xYN=dShzA4+PKrA9aCG1JTx--
+>> Maybe we should rename HWMOD_EXT_OPT_MAIN_CLK with something more
+>> generic like HWMOD_EXT_POWER_DEP to highlight the dependency with an
+>> external resource. It can be a external clock or another module.
+>
+> Yes, I agree that it would be convenient to have some flag, either on the
+> hwmod or the hardreset line, to indicate that some of the reset lines are
+> shared.
+
+I guess such flag will be mostly irrelevant. What will we do with that?
+
+We just want to avoid enabling an IP that cannot be enabled without 
+enabling some other IPs before.
+We do not want the hwmod fmwk to do that, we want to defer that do the 
+Linux device level.
+
+Regards,
+Benoit
+
