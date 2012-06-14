@@ -1,53 +1,89 @@
-From: "Mohammed, Afzal" <afzal@ti.com>
-Subject: RE: [PATCH v5 02/14] ARM: OMAP2+: gpmc: Adapt to HWMOD
-Date: Thu, 14 Jun 2012 13:32:58 +0000
-Message-ID: <C8443D0743D26F4388EA172BF4E2A7A93E999CA6@DBDE01.ent.ti.com>
-References: <cover.1339419492.git.afzal@ti.com>
- <fb739c3c5383806f78cee3666f7c74d61bed6427.1339419492.git.afzal@ti.com>
- <4FD64D6D.3020401@ti.com>
- <C8443D0743D26F4388EA172BF4E2A7A93E997DD6@DBDE01.ent.ti.com>
- <4FD77EF1.8000600@ti.com>
- <C8443D0743D26F4388EA172BF4E2A7A93E9987B2@DBDE01.ent.ti.com>
- <4FD8A906.8080202@ti.com>
- <C8443D0743D26F4388EA172BF4E2A7A93E999582@DBDE01.ent.ti.com>
- <4FD9E5AF.6010201@ti.com>
+From: Konstantin Baydarov <kbaidarov@dev.rtsoft.ru>
+Subject: Re: [RFC PATCH 03/11] arm: omap: device: create a device for system
+ control module
+Date: Thu, 14 Jun 2012 17:50:19 +0400
+Message-ID: <4FD9EC1B.6010506@dev.rtsoft.ru>
+References: <1337934361-1606-1-git-send-email-eduardo.valentin@ti.com> <1337934361-1606-4-git-send-email-eduardo.valentin@ti.com> <4FBF7B74.4020302@ti.com> <20120529094400.GA3505@besouro>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from comal.ext.ti.com ([198.47.26.152]:37113 "EHLO comal.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1755286Ab2FNNdE convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 14 Jun 2012 09:33:04 -0400
-In-Reply-To: <4FD9E5AF.6010201@ti.com>
-Content-Language: en-US
+Received: from mail.dev.rtsoft.ru ([213.79.90.226]:38712 "HELO
+	mail.dev.rtsoft.ru" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with SMTP id S1755610Ab2FNNuW (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 14 Jun 2012 09:50:22 -0400
+In-Reply-To: <20120529094400.GA3505@besouro>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "Hunter, Jon" <jon-hunter@ti.com>
-Cc: "tony@atomide.com" <tony@atomide.com>, "paul@pwsan.com" <paul@pwsan.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>
+To: eduardo.valentin@ti.com
+Cc: "Cousson, Benoit" <b-cousson@ti.com>, kishon@ti.com, santosh.shilimkar@ti.com, tony@atomide.com, paul@pwsan.com, balbi@ti.com, amit.kucheria@linaro.org, linux-pm@lists.linux-foundation.org, linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org, amit.kachhap@linaro.org
 
-Hi Jon,
+  Hi.
 
-On Thu, Jun 14, 2012 at 18:52:55, Hunter, Jon wrote:
-> On 06/14/2012 02:03 AM, Mohammed, Afzal wrote:
-> > On Wed, Jun 13, 2012 at 20:21:50, Hunter, Jon wrote:
+On 05/29/2012 01:44 PM, Eduardo Valentin wrote:
+> On Fri, May 25, 2012 at 02:30:44PM +0200, Cousson Benoit wrote:
+>> On 5/25/2012 10:25 AM, Eduardo Valentin wrote:
+>>> From: Kishon Vijay Abraham I<kishon@ti.com>
+>>>
+>>> Extracts the device data from hwmod database and create a platform device
+>>> using omap device build.
+>>>
+>>> The device build is done during postcore_initcall.
+>> Do you still need that since you are supporting only DT?
+>> The device will be built automatically in the DT case.
+> In fact this is not needed for DT only probing. Dropping this one.
+Yes, platform device(struct platform_device) will be built automatically, but omap device(struct omap_device) will not be built.
+Also when omap device is allocated(omap_device_alloc) hwmod_clocks are registered, but in case of ctrl_module_core device - no new clock are registered.
+So, is it fine to drop omap device and skip omap_device_build() call?
 
-> >> If the clk handle for the gpmc is passed to the gpmc driver, then there
-> >> is no reason why the driver cannot do this.
-> > 
-> > I believe passing clk details through platform data is an abuse of
-> > clock framework.
-> 
-> Why? You currently have a global variable storing the clock handle. It
-> can be quite common for drivers to know the clock frequencies of their
-> functional clocks. How else can drivers calculate timings?
+  BR,
+    Konstantin Baydarov.
 
-
-Please see Russell King's comments,
-
-[1] http://permalink.gmane.org/gmane.linux.ports.ppc.embedded/27634
-[2] http://www.mail-archive.com/linux-samsung-soc@vger.kernel.org/msg05365.html
-
-Regards
-Afzal
+>
+>> Regards,
+>> Benoit
+>>
+>>> Signed-off-by: Kishon Vijay Abraham I<kishon@ti.com>
+>>> Signed-off-by: Eduardo Valentin<eduardo.valentin@ti.com>
+>>> ---
+>>>  arch/arm/mach-omap2/devices.c |   26 ++++++++++++++++++++++++++
+>>>  1 files changed, 26 insertions(+), 0 deletions(-)
+>>>
+>>> diff --git a/arch/arm/mach-omap2/devices.c b/arch/arm/mach-omap2/devices.c
+>>> index 152c266..9332673 100644
+>>> --- a/arch/arm/mach-omap2/devices.c
+>>> +++ b/arch/arm/mach-omap2/devices.c
+>>> @@ -40,6 +40,32 @@
+>>>  #define L3_MODULES_MAX_LEN 12
+>>>  #define L3_MODULES 3
+>>>
+>>> +static int omap_init_control(void)
+>>> +{
+>>> +	struct omap_hwmod		*oh;
+>>> +	struct platform_device		*pdev;
+>>> +	const char			*oh_name, *name;
+>>> +
+>>> +	oh_name = "ctrl_module_core";
+>>> +	name = "omap-control-core";
+>>> +
+>>> +	oh = omap_hwmod_lookup(oh_name);
+>>> +	if (!oh) {
+>>> +		pr_err("Could not lookup hwmod for %s\n", oh_name);
+>>> +		return PTR_ERR(oh);
+>>> +	}
+>>> +
+>>> +	pdev = omap_device_build(name, -1, oh, NULL, 0, NULL, 0, true);
+>>> +	if (IS_ERR(pdev)) {
+>>> +		pr_err("Could not build omap_device for %s %s\n",
+>>> +		       name, oh_name);
+>>> +		return PTR_ERR(pdev);
+>>> +	}
+>>> +
+>>> +	return 0;
+>>> +}
+>>> +postcore_initcall(omap_init_control);
+>>> +
+>>>  static int __init omap3_l3_init(void)
+>>>  {
+>>>  	struct omap_hwmod *oh;
 
