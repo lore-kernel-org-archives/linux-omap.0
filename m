@@ -1,55 +1,133 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH 3/3] ARM: OMAP2+: gpmc: handle additional timings
-Date: Thu, 14 Jun 2012 05:30:16 -0700
-Message-ID: <20120614123016.GN12766@atomide.com>
-References: <C8443D0743D26F4388EA172BF4E2A7A93E998767@DBDE01.ent.ti.com>
- <20120613113217.GK12766@atomide.com>
- <20120613115445.GM12766@atomide.com>
- <C8443D0743D26F4388EA172BF4E2A7A93E998C80@DBDE01.ent.ti.com>
- <C8443D0743D26F4388EA172BF4E2A7A93E999849@DBDE01.ent.ti.com>
- <20120614101901.GI12766@atomide.com>
- <C8443D0743D26F4388EA172BF4E2A7A93E99994C@DBDE01.ent.ti.com>
- <20120614114905.GK12766@atomide.com>
- <C8443D0743D26F4388EA172BF4E2A7A93E999B05@DBDE01.ent.ti.com>
- <C8443D0743D26F4388EA172BF4E2A7A93E999B34@DBDE01.ent.ti.com>
+From: Rajendra Nayak <rnayak@ti.com>
+Subject: [PATCH 02/29] clk: Add CLK_IS_BASIC flag to identify basic clocks
+Date: Thu, 14 Jun 2012 18:16:51 +0530
+Message-ID: <1339678038-23082-3-git-send-email-rnayak@ti.com>
+References: <1339678038-23082-1-git-send-email-rnayak@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-01-ewr.mailhop.org ([204.13.248.71]:23304 "EHLO
-	mho-01-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754006Ab2FNMaS (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 14 Jun 2012 08:30:18 -0400
-Content-Disposition: inline
-In-Reply-To: <C8443D0743D26F4388EA172BF4E2A7A93E999B34@DBDE01.ent.ti.com>
+Received: from comal.ext.ti.com ([198.47.26.152]:34561 "EHLO comal.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1755534Ab2FNMrh (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Thu, 14 Jun 2012 08:47:37 -0400
+In-Reply-To: <1339678038-23082-1-git-send-email-rnayak@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "Mohammed, Afzal" <afzal@ti.com>
-Cc: "Hunter, Jon" <jon-hunter@ti.com>, "paul@pwsan.com" <paul@pwsan.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>
+To: paul@pwsan.com, mturquette@ti.com
+Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Rajendra Nayak <rnayak@ti.com>
 
-* Mohammed, Afzal <afzal@ti.com> [120614 05:25]:
-> Hi Tony,
-> 
-> On Thu, Jun 14, 2012 at 17:39:41, Mohammed, Afzal wrote:
-> > On Thu, Jun 14, 2012 at 17:19:06, Tony Lindgren wrote:
-> 
-> > > For onenand I'm getting the following error:
-> > > 
-> > > omap2-onenand omap2-onenand: Cannot request GPMC CS 
-> > 
-> > I am a bit confused with this message, for onenand, we only have,
-> > 
-> > pr_err("%s: Cannot request GPMC CS\n", __func__);
-> > 
-> > dev_err is used only for nand
-> 
-> This error can happen if my patches are not present,
-> 
-> dev_err for onenand driver was removed by,
-> 
-> [mtd: onenand: omap2: obtain memory from resource],
-> 
-> seems, mtd patches are not in your present branch
+Most platforms end up using a mix of basic clock types and
+some which use clk_hw_foo struct for filling in custom platform
+information when the clocks don't fit into basic types supported.
 
-OK, I'll try with those.
+In platform code, its useful to know if a clock is using a basic
+type or clk_hw_foo, which helps platforms know if they can
+safely use to_clk_hw_foo to derive the clk_hw_foo pointer from
+clk_hw.
 
-Tony
+Mark all basic clocks with a CLK_IS_BASIC flag.
+
+Signed-off-by: Rajendra Nayak <rnayak@ti.com>
+---
+ drivers/clk/clk-divider.c      |    2 +-
+ drivers/clk/clk-fixed-factor.c |    2 +-
+ drivers/clk/clk-fixed-rate.c   |    2 +-
+ drivers/clk/clk-gate.c         |    2 +-
+ drivers/clk/clk-mux.c          |    2 +-
+ include/linux/clk-private.h    |    2 +-
+ include/linux/clk-provider.h   |    1 +
+ 7 files changed, 7 insertions(+), 6 deletions(-)
+
+diff --git a/drivers/clk/clk-divider.c b/drivers/clk/clk-divider.c
+index e4911ee..53f9dd7 100644
+--- a/drivers/clk/clk-divider.c
++++ b/drivers/clk/clk-divider.c
+@@ -266,7 +266,7 @@ struct clk *clk_register_divider(struct device *dev, const char *name,
+ 
+ 	init.name = name;
+ 	init.ops = &clk_divider_ops;
+-	init.flags = flags;
++	init.flags = flags | CLK_IS_BASIC;
+ 	init.parent_names = (parent_name ? &parent_name: NULL);
+ 	init.num_parents = (parent_name ? 1 : 0);
+ 
+diff --git a/drivers/clk/clk-fixed-factor.c b/drivers/clk/clk-fixed-factor.c
+index c8c003e..a489985 100644
+--- a/drivers/clk/clk-fixed-factor.c
++++ b/drivers/clk/clk-fixed-factor.c
+@@ -82,7 +82,7 @@ struct clk *clk_register_fixed_factor(struct device *dev, const char *name,
+ 
+ 	init.name = name;
+ 	init.ops = &clk_fixed_factor_ops;
+-	init.flags = flags;
++	init.flags = flags | CLK_IS_BASIC;
+ 	init.parent_names = &parent_name;
+ 	init.num_parents = 1;
+ 
+diff --git a/drivers/clk/clk-fixed-rate.c b/drivers/clk/clk-fixed-rate.c
+index cbd2462..7e14645 100644
+--- a/drivers/clk/clk-fixed-rate.c
++++ b/drivers/clk/clk-fixed-rate.c
+@@ -63,7 +63,7 @@ struct clk *clk_register_fixed_rate(struct device *dev, const char *name,
+ 
+ 	init.name = name;
+ 	init.ops = &clk_fixed_rate_ops;
+-	init.flags = flags;
++	init.flags = flags | CLK_IS_BASIC;
+ 	init.parent_names = (parent_name ? &parent_name: NULL);
+ 	init.num_parents = (parent_name ? 1 : 0);
+ 
+diff --git a/drivers/clk/clk-gate.c b/drivers/clk/clk-gate.c
+index 578465e..15114fe 100644
+--- a/drivers/clk/clk-gate.c
++++ b/drivers/clk/clk-gate.c
+@@ -130,7 +130,7 @@ struct clk *clk_register_gate(struct device *dev, const char *name,
+ 
+ 	init.name = name;
+ 	init.ops = &clk_gate_ops;
+-	init.flags = flags;
++	init.flags = flags | CLK_IS_BASIC;
+ 	init.parent_names = (parent_name ? &parent_name: NULL);
+ 	init.num_parents = (parent_name ? 1 : 0);
+ 
+diff --git a/drivers/clk/clk-mux.c b/drivers/clk/clk-mux.c
+index fd36a8e..508c032 100644
+--- a/drivers/clk/clk-mux.c
++++ b/drivers/clk/clk-mux.c
+@@ -106,7 +106,7 @@ struct clk *clk_register_mux(struct device *dev, const char *name,
+ 
+ 	init.name = name;
+ 	init.ops = &clk_mux_ops;
+-	init.flags = flags;
++	init.flags = flags | CLK_IS_BASIC;
+ 	init.parent_names = parent_names;
+ 	init.num_parents = num_parents;
+ 
+diff --git a/include/linux/clk-private.h b/include/linux/clk-private.h
+index 2479239..0835bda 100644
+--- a/include/linux/clk-private.h
++++ b/include/linux/clk-private.h
+@@ -64,7 +64,7 @@ struct clk {
+ 		.parent_names = _parent_names,			\
+ 		.num_parents = ARRAY_SIZE(_parent_names),	\
+ 		.parents = _parents,				\
+-		.flags = _flags,				\
++		.flags = _flags | CLK_IS_BASIC,			\
+ 	}
+ 
+ #define DEFINE_CLK_FIXED_RATE(_name, _flags, _rate,		\
+diff --git a/include/linux/clk-provider.h b/include/linux/clk-provider.h
+index aa63aca..4b94f59 100644
+--- a/include/linux/clk-provider.h
++++ b/include/linux/clk-provider.h
+@@ -25,6 +25,7 @@
+ #define CLK_SET_RATE_PARENT	BIT(2) /* propagate rate change up one level */
+ #define CLK_IGNORE_UNUSED	BIT(3) /* do not gate even if unused */
+ #define CLK_IS_ROOT		BIT(4) /* root clk, has no parent */
++#define CLK_IS_BASIC		BIT(5) /* Basic clk, can't do a to_clk_foo() */
+ 
+ struct clk_hw;
+ 
+-- 
+1.7.1
+
