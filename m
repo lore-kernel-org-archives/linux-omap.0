@@ -1,111 +1,62 @@
-From: "DebBarma, Tarun Kanti" <tarun.kanti@ti.com>
-Subject: Re: [GIT PULL] gpio/omap: cleanups for v3.5
-Date: Thu, 14 Jun 2012 23:24:10 +0530
-Message-ID: <CAC83ZvKT+EDRzBWrMbiyqOYqLW7WudOQeAq5Y5ZgXEs2txEPrA@mail.gmail.com>
-References: <874nrmtf47.fsf@ti.com>
-	<20120614101541.39f50aee@notabene.brown>
+From: Wolfram Sang <w.sang@pengutronix.de>
+Subject: Re: [PATCH v2 00/17] Big OMAP I2C Cleanup
+Date: Thu, 14 Jun 2012 19:59:50 +0200
+Message-ID: <20120614175950.GE14419@pengutronix.de>
+References: <1339691067-919-1-git-send-email-balbi@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: multipart/signed; micalg=pgp-sha1;
+	protocol="application/pgp-signature"; boundary="xJK8B5Wah2CMJs8h"
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aog128.obsmtp.com ([74.125.149.141]:46724 "EHLO
-	na3sys009aog128.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754999Ab2FNRyM convert rfc822-to-8bit
-	(ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Thu, 14 Jun 2012 13:54:12 -0400
-Received: by qcmv28 with SMTP id v28so1626132qcm.39
-        for <linux-omap@vger.kernel.org>; Thu, 14 Jun 2012 10:54:10 -0700 (PDT)
-In-Reply-To: <20120614101541.39f50aee@notabene.brown>
+Received: from metis.ext.pengutronix.de ([92.198.50.35]:50710 "EHLO
+	metis.ext.pengutronix.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755700Ab2FNSAI (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 14 Jun 2012 14:00:08 -0400
+Content-Disposition: inline
+In-Reply-To: <1339691067-919-1-git-send-email-balbi@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: NeilBrown <neilb@suse.de>
-Cc: Kevin Hilman <khilman@ti.com>, Grant Likely <grant.likely@secretlab.ca>, linux-omap <linux-omap@vger.kernel.org>, linux-arm-kernel <linux-arm-kernel@lists.infradead.org>
+To: Felipe Balbi <balbi@ti.com>
+Cc: ben-linux@fluff.org, Tony Lindgren <tony@atomide.com>, Santosh Shilimkar <santosh.shilimkar@ti.com>, Russell King <linux@arm.linux.org.uk>, Linux OMAP Mailing List <linux-omap@vger.kernel.org>, Linux ARM Kernel Mailing List <linux-arm-kernel@lists.infradead.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Shubhrajyoti Datta <shubhrajyoti@ti.com>
 
-On Thu, Jun 14, 2012 at 5:45 AM, NeilBrown <neilb@suse.de> wrote:
-> On Fri, 11 May 2012 17:30:48 -0700 Kevin Hilman <khilman@ti.com> wrot=
-e:
->
->> Hi Grant,
->>
->> Here's the final round of GPIO cleanups for v3.5. =A0This branch is =
-based
->> on my for_3.5/fixes/gpio branch you just pulled.
->>
->> Kevin
->
-> Hi.
->
-> =A0I'm not sure if it was this series or the following cleanups which=
- broke
-> =A0things for me, but I've been trying 3.5-rc2 on my GTA04 and the se=
-rial
-> =A0console (ttyO2) dies as soon as the omap-gpio driver initialises.
->
-> =A0After some digging I came up with this patch to gpio-omap.c
->
-> @@ -1124,6 +1124,9 @@ static int __devinit omap_gpio_probe(struct pla=
-tform_device *pdev)
->
-> =A0 =A0 =A0 =A0platform_set_drvdata(pdev, bank);
->
-> + =A0 =A0 =A0 if (bank->get_context_loss_count)
-> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 bank->context_loss_count =3D
-> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 bank->g=
-et_context_loss_count(bank->dev);
-> =A0 =A0 =A0 =A0pm_runtime_enable(bank->dev);
-> =A0 =A0 =A0 =A0pm_runtime_irq_safe(bank->dev);
-> =A0 =A0 =A0 =A0pm_runtime_get_sync(bank->dev);
->
-> which fixes it.
->
-> What was happening =A0was that when omap_gpio_probe calls pm_runtime_=
-get_sync,
-> it calls
-> =A0_od_runtime_resume -> pm_generic_runtime_resume -> omap_gpio_runti=
-me_resume
-> =A0-> omap_gpio_restore_context
->
-> and then the serial port stops.
-> I reasoned that the context probably hadn't been set up yet, so resto=
-ring
-> from it broke things.
-> Initialising bank->context_loss_count seems sensible and would ensure=
- that
-> we didn't try to restore the context until it has actually been lost.
 
-I thought the following code exactly does that. That is context_lost_cn=
-t_after
-would be zero until there is context loss. The bank->context_loss_count=
- is zero
-at the beginning. So, (context_lost_cnt_after !=3D bank->context_loss_c=
-ount) would
-be false and hence context restore should NOT happen? Not sure if I am
-over looking
-anything here....
+--xJK8B5Wah2CMJs8h
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
 
-omap_gpio_runtime_resume(...)
-{
-=2E..
-        if (bank->get_context_loss_count) {
-                context_lost_cnt_after =3D
-                        bank->get_context_loss_count(bank->dev);
-                if (context_lost_cnt_after !=3D bank->context_loss_coun=
-t) {
-                        omap_gpio_restore_context(bank);
-                } else {
-                        spin_unlock_irqrestore(&bank->lock, flags);
-                        return 0;
-                }
-        }
-=2E..
-}
---
-Tarun
->
-> Thanks,
-> NeilBrown
---
-To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+On Thu, Jun 14, 2012 at 07:24:10PM +0300, Felipe Balbi wrote:
+> Hi guys,
+>=20
+> I have dropped a few patches from the series and also
+> tested every single patch on my pandaboard. I2C messages
+> are still working fine with panda after each patch.
+>=20
+> There's still lots of work to be done on the i2c-omap.c
+> driver but it's now easier to read, IMO.
+>=20
+> Changes since v1:
+> 	- removed tabification on patch 6/17
+> 	- removed dev_err() which was introduced on patch 09/17
+
+To prevent the list being flooded, I would appreciate if you could wait
+a few days to collect reviews before resending. It will take some time
+until I pick this series anyhow, because I want people to have time to
+donate Tested-by tags.
+
+--=20
+Pengutronix e.K.                           | Wolfram Sang                |
+Industrial Linux Solutions                 | http://www.pengutronix.de/  |
+
+--xJK8B5Wah2CMJs8h
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: Digital signature
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.4.12 (GNU/Linux)
+
+iEYEARECAAYFAk/aJpYACgkQD27XaX1/VRtM3gCfZY41dY4bD+w/iHITlDLm3VOV
+Ww4AnidaJyBM8GHHLfCi+4FgLmS8Pawr
+=g4ZL
+-----END PGP SIGNATURE-----
+
+--xJK8B5Wah2CMJs8h--
