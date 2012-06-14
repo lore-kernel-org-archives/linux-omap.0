@@ -1,68 +1,100 @@
 From: Rajendra Nayak <rnayak@ti.com>
-Subject: [PATCH 21/29] ARM: omap: clk: Switch to COMMON clk
-Date: Thu, 14 Jun 2012 18:17:10 +0530
-Message-ID: <1339678038-23082-22-git-send-email-rnayak@ti.com>
+Subject: [PATCH 05/29] mmc: omap_hsmmc: use clk_prepare_enable and clk_disable_unprepare
+Date: Thu, 14 Jun 2012 18:16:54 +0530
+Message-ID: <1339678038-23082-6-git-send-email-rnayak@ti.com>
 References: <1339678038-23082-1-git-send-email-rnayak@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from comal.ext.ti.com ([198.47.26.152]:34625 "EHLO comal.ext.ti.com"
+Received: from bear.ext.ti.com ([192.94.94.41]:39685 "EHLO bear.ext.ti.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1755948Ab2FNMsR (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	id S1755930Ab2FNMsR (ORCPT <rfc822;linux-omap@vger.kernel.org>);
 	Thu, 14 Jun 2012 08:48:17 -0400
 In-Reply-To: <1339678038-23082-1-git-send-email-rnayak@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: paul@pwsan.com, mturquette@ti.com
-Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Rajendra Nayak <rnayak@ti.com>
+Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Rajendra Nayak <rnayak@ti.com>, Chris Ball <cjb@laptop.org>, Balaji T K <balajitk@ti.com>, linux-mmc@vger.kernel.org
 
-Select COMMON_CLK for ARCH_OMAP2 and switch
-over to using new data files for OMAP2/3/4.
-
-The older data files which get removed in subsequent
-patches.
+As we move to Common clk framework use clk_prepare_enable()
+instead of clk_enable() and similarly clk_disable_unprepare()
+instead of clk_disable()
 
 Signed-off-by: Rajendra Nayak <rnayak@ti.com>
+Cc: Chris Ball <cjb@laptop.org>
+Cc: Balaji T K <balajitk@ti.com>
+Cc: <linux-mmc@vger.kernel.org>
 ---
- arch/arm/mach-omap2/Kconfig  |    1 +
- arch/arm/mach-omap2/Makefile |    8 ++++----
- 2 files changed, 5 insertions(+), 4 deletions(-)
+ drivers/mmc/host/omap_hsmmc.c |   14 +++++++-------
+ 1 files changed, 7 insertions(+), 7 deletions(-)
 
-diff --git a/arch/arm/mach-omap2/Kconfig b/arch/arm/mach-omap2/Kconfig
-index 4cf5142..6f716cd 100644
---- a/arch/arm/mach-omap2/Kconfig
-+++ b/arch/arm/mach-omap2/Kconfig
-@@ -18,6 +18,7 @@ config ARCH_OMAP2PLUS_TYPICAL
- 	select TWL4030_CORE if ARCH_OMAP3 || ARCH_OMAP4
- 	select TWL4030_POWER if ARCH_OMAP3 || ARCH_OMAP4
- 	select HIGHMEM
-+	select COMMON_CLK
- 	help
- 	  Compile a kernel suitable for booting most boards
+diff --git a/drivers/mmc/host/omap_hsmmc.c b/drivers/mmc/host/omap_hsmmc.c
+index 9a7a60a..07f5945 100644
+--- a/drivers/mmc/host/omap_hsmmc.c
++++ b/drivers/mmc/host/omap_hsmmc.c
+@@ -1097,7 +1097,7 @@ static int omap_hsmmc_switch_opcond(struct omap_hsmmc_host *host, int vdd)
+ 	/* Disable the clocks */
+ 	pm_runtime_put_sync(host->dev);
+ 	if (host->dbclk)
+-		clk_disable(host->dbclk);
++		clk_disable_unprepare(host->dbclk);
  
-diff --git a/arch/arm/mach-omap2/Makefile b/arch/arm/mach-omap2/Makefile
-index fa742f3..d70f2ef 100644
---- a/arch/arm/mach-omap2/Makefile
-+++ b/arch/arm/mach-omap2/Makefile
-@@ -137,14 +137,14 @@ obj-$(CONFIG_ARCH_OMAP2)		+= clkt2xxx_dpllcore.o
- obj-$(CONFIG_ARCH_OMAP2)		+= clkt2xxx_virt_prcm_set.o
- obj-$(CONFIG_ARCH_OMAP2)		+= clkt2xxx_apll.o clkt2xxx_osc.o
- obj-$(CONFIG_ARCH_OMAP2)		+= clkt2xxx_dpll.o clkt_iclk.o
--obj-$(CONFIG_SOC_OMAP2420)		+= clock2420_data.o
--obj-$(CONFIG_SOC_OMAP2430)		+= clock2430.o clock2430_data.o
-+obj-$(CONFIG_SOC_OMAP2420)		+= cclock2420_data.o
-+obj-$(CONFIG_SOC_OMAP2430)		+= clock2430.o cclock2430_data.o
- obj-$(CONFIG_ARCH_OMAP3)		+= $(clock-common) clock3xxx.o
- obj-$(CONFIG_ARCH_OMAP3)		+= clock34xx.o clkt34xx_dpll3m2.o
- obj-$(CONFIG_ARCH_OMAP3)		+= clock3517.o clock36xx.o
--obj-$(CONFIG_ARCH_OMAP3)		+= dpll3xxx.o clock3xxx_data.o
-+obj-$(CONFIG_ARCH_OMAP3)		+= dpll3xxx.o cclock3xxx_data.o
- obj-$(CONFIG_ARCH_OMAP3)		+= clkt_iclk.o
--obj-$(CONFIG_ARCH_OMAP4)		+= $(clock-common) clock44xx_data.o
-+obj-$(CONFIG_ARCH_OMAP4)		+= $(clock-common) cclock44xx_data.o
- obj-$(CONFIG_ARCH_OMAP4)		+= dpll3xxx.o dpll44xx.o
+ 	/* Turn the power off */
+ 	ret = mmc_slot(host).set_power(host->dev, host->slot_id, 0, 0);
+@@ -1108,7 +1108,7 @@ static int omap_hsmmc_switch_opcond(struct omap_hsmmc_host *host, int vdd)
+ 					       vdd);
+ 	pm_runtime_get_sync(host->dev);
+ 	if (host->dbclk)
+-		clk_enable(host->dbclk);
++		clk_prepare_enable(host->dbclk);
  
- # OMAP2 clock rate set data (old "OPP" data)
+ 	if (ret != 0)
+ 		goto err;
+@@ -1908,7 +1908,7 @@ static int __devinit omap_hsmmc_probe(struct platform_device *pdev)
+ 	if (IS_ERR(host->dbclk)) {
+ 		dev_warn(mmc_dev(host->mmc), "Failed to get debounce clk\n");
+ 		host->dbclk = NULL;
+-	} else if (clk_enable(host->dbclk) != 0) {
++	} else if (clk_prepare_enable(host->dbclk) != 0) {
+ 		dev_warn(mmc_dev(host->mmc), "Failed to enable debounce clk\n");
+ 		clk_put(host->dbclk);
+ 		host->dbclk = NULL;
+@@ -2032,7 +2032,7 @@ err_irq:
+ 	pm_runtime_disable(host->dev);
+ 	clk_put(host->fclk);
+ 	if (host->dbclk) {
+-		clk_disable(host->dbclk);
++		clk_disable_unprepare(host->dbclk);
+ 		clk_put(host->dbclk);
+ 	}
+ err1:
+@@ -2067,7 +2067,7 @@ static int __devexit omap_hsmmc_remove(struct platform_device *pdev)
+ 	pm_runtime_disable(host->dev);
+ 	clk_put(host->fclk);
+ 	if (host->dbclk) {
+-		clk_disable(host->dbclk);
++		clk_disable_unprepare(host->dbclk);
+ 		clk_put(host->dbclk);
+ 	}
+ 
+@@ -2125,7 +2125,7 @@ static int omap_hsmmc_suspend(struct device *dev)
+ 	}
+ 
+ 	if (host->dbclk)
+-		clk_disable(host->dbclk);
++		clk_disable_unprepare(host->dbclk);
+ err:
+ 	pm_runtime_put_sync(host->dev);
+ 	return ret;
+@@ -2146,7 +2146,7 @@ static int omap_hsmmc_resume(struct device *dev)
+ 	pm_runtime_get_sync(host->dev);
+ 
+ 	if (host->dbclk)
+-		clk_enable(host->dbclk);
++		clk_prepare_enable(host->dbclk);
+ 
+ 	if (!(host->mmc->pm_flags & MMC_PM_KEEP_POWER))
+ 		omap_hsmmc_conf_bus_power(host);
 -- 
 1.7.1
 
