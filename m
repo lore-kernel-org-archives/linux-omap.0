@@ -1,70 +1,75 @@
-From: Paul Walmsley <paul@pwsan.com>
-Subject: Re: [PATCHv2 08/12] ARM: OMAP4: hwmod data: add SL2IF hardreset
- line
-Date: Thu, 14 Jun 2012 11:09:58 -0600 (MDT)
-Message-ID: <alpine.DEB.2.00.1206141052240.30212@utopia.booyaka.com>
-References: <20120611004502.20034.8840.stgit@dusk> <20120611004614.20034.50895.stgit@dusk> <4FD9DF2A.3010000@ti.com>
+From: CF Adad <cfadad@rocketmail.com>
+Subject: Re: Please help! AM35xx mm/slab.c BUG
+Date: Thu, 14 Jun 2012 10:28:55 -0700 (PDT)
+Message-ID: <1339694935.87093.YahooMailNeo@web125203.mail.ne1.yahoo.com>
+References: <1338878255.13133.YahooMailNeo@web125205.mail.ne1.yahoo.com> <20120605070853.GE12766@atomide.com> <1338913755.88514.YahooMailNeo@web125201.mail.ne1.yahoo.com> <1338963298.87083.YahooMailNeo@web125204.mail.ne1.yahoo.com> <CAMQu2gw2bGNwot_xVPdAsYjZChzzNib2USg8Ci+W5aLbenPnqA@mail.gmail.com> <20120606071024.GP12766@atomide.com> <1338969083.99043.YahooMailNeo@web125201.mail.ne1.yahoo.com> <C8443D0743D26F4388EA172BF4E2A7A93E995E3B@DBDE01.ent.ti.com> <1339098613.84700.YahooMailNeo@web125202.mail.ne1.yahoo.com> <C8443D0743D26F4388EA172BF4E2A7A93E9980CC@DBDE01.ent.ti.com>
+Reply-To: CF Adad <cfadad@rocketmail.com>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+Content-Type: text/plain; charset=iso-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from utopia.booyaka.com ([72.9.107.138]:38521 "EHLO
-	utopia.booyaka.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932082Ab2FNRJ7 (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 14 Jun 2012 13:09:59 -0400
-In-Reply-To: <4FD9DF2A.3010000@ti.com>
+Received: from nm28-vm3.bullet.mail.ne1.yahoo.com ([98.138.91.158]:42996 "HELO
+	nm28-vm3.bullet.mail.ne1.yahoo.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with SMTP id S1755962Ab2FNR24 convert rfc822-to-8bit
+	(ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Thu, 14 Jun 2012 13:28:56 -0400
+In-Reply-To: <C8443D0743D26F4388EA172BF4E2A7A93E9980CC@DBDE01.ent.ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "Cousson, Benoit" <b-cousson@ti.com>
-Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Tero Kristo <t-kristo@ti.com>
+To: "Mohammed, Afzal" <afzal@ti.com>
+Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, Tony Lindgren <tony@atomide.com>, "Shilimkar, Santosh" <santosh.shilimkar@ti.com>
 
-Hi
+An update:
 
-On Thu, 14 Jun 2012, Cousson, Benoit wrote:
+*LAN9221 and GPMC off the hook?*
 
-> I don't think we should allow that at hwmod level. This line is already
-> handled by the IVAHD hwmod. We will then have some potential issue since
-> nothing will prevent the concurrent access.
-> Moreover that IP is only used by the IVAHD and thus should be handled by the
-> same driver. The SL2 being inside the IVA subsystem, it should be reset when
-> the IVA will be reset and thus does not require an individual control.
+We've isolated the GPMC away from this I believe by disabling the LAN92=
+21 in both our bootloaders and the kernel and by booting everything off=
+ the SD cards only.=A0 By removing it's initialization code from the re=
+spective board files, I *hope* we've basically removed it from contenti=
+on.=A0 Obviously the chip is still wired up, but I don't expect the boo=
+tloaders or kernel to be trying to talk to it.=A0 Likewise, the NAND is=
+ being initialized, but we're not mouting or using it at all.
 
-If a hardreset line will affect an IP block, then the line should be 
-listed as one of the IP block's hardreset lines.  Otherwise, the hwmod 
-data will not accurately reflect the hardware -- the ultimate goal.
+With these changes we're still seeing these crashes, albeit with the sa=
+me incredible lack of frequency.
 
-> I guess, we should just mark the dependency with some external power resource
-> to avoid the fmwk to try to enable that automatically.
+*EMAC now _partially_ on the hook?*
+I posted a seperate thread on what I think may be a related subject, po=
+tential Davinci EMAC problems, here:=A0 http://www.spinics.net/lists/li=
+nux-omap/msg71833.html.
 
-Right now, the presence of a hardreset line will effectively cause the 
-hwmod code to ignore the IP block from a reset and enable point of view.  
-So the IP block won't be enabled automatically right now anyway, since we 
-still don't have a clear sense of how to handle those.
+As you can see from the crashes posted there, there seems to be a bit o=
+f whining from the EMAC driver.=A0 Since performance in the EMAC <=3D> =
+EMAC case has always been questionable anyway, any chance there is a ti=
+ny memory leak or something similar that could be contributing?
 
-> It is similar to DSS sub IPs and to some extend McPDM for my point of view.
+What about configuring this EMAC from within u-boot?=A0 Could that init=
+ialization do something bad when we get into Linux?=A0 I've not touched=
+ these drivers.=A0 I've simply called them like other boards in the fam=
+ily are doing.
 
-These seem like different cases to me.
+Just this morning, I upgraded to the latest linux-omap 3.5-rc2, but sti=
+ll saw one of these crashes pretty quickly...
 
-The DSS has no hardreset and the sub-IPs have their own softreset bits.  
-As far as I know, the main reason why we can't have individual reset 
-functions for the DSS sub-IPs is because we don't have hierarchical IP 
-block enable/disable implemented in the hwmod code, not any real hardware 
-constraint.
+*Power stability?*
 
-McPDM has a functional clock dependency on an external (non-SoC) device 
-that's only controllable via I2C.  And, the McPDM can block the ABE 
-clockdomain from going idle.  That's just wacky.
-
-So those cases seem quite different to me.  One is a software issue.  And 
-the other is an off-chip (non-OMAP) dependency, unlike the SL2IF/IVAHD 
-issue in which all the needed resources are still on-chip.
-
-> Maybe we should rename HWMOD_EXT_OPT_MAIN_CLK with something more 
-> generic like HWMOD_EXT_POWER_DEP to highlight the dependency with an 
-> external resource. It can be a external clock or another module.
-
-Yes, I agree that it would be convenient to have some flag, either on the 
-hwmod or the hardreset line, to indicate that some of the reset lines are 
-shared.
+We're learning through all of this that our boards do appear to have so=
+me funny transients running through the power circuits every so often.=A0=
+ The ones we've captured on the scope have not caused crashes or hard l=
+ockups, but they are there.=A0 This could be a dumb question, but could=
+ power issues create a slab error like this???=A0 I guess I'm more accu=
+stomed to seeing power issues result in more hard lock ups than a nicel=
+y worded dump with the kernel sometimes still somewhat functioning.
 
 
-- Paul
+Can anyone suggest to me anything I may not have tried to get more info=
+rmation out of these crashes when they occur?
+
+Thanks again to all!
+
+--
+To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
