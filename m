@@ -1,368 +1,192 @@
 From: Jean Pihet <jean.pihet@newoldbits.com>
-Subject: [PATCH 10/10] ARM: OMAP: PM: remove the latency related functions from the API
-Date: Thu, 14 Jun 2012 17:06:01 +0200
-Message-ID: <1339686361-11526-11-git-send-email-j-pihet@ti.com>
+Subject: [PATCH 05/10] ARM: OMAP3: cpuidle: next C-state decision depends on the PM QoS MPU and CORE constraints
+Date: Thu, 14 Jun 2012 17:05:56 +0200
+Message-ID: <1339686361-11526-6-git-send-email-j-pihet@ti.com>
 References: <1339686361-11526-1-git-send-email-j-pihet@ti.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-we0-f174.google.com ([74.125.82.174]:63126 "EHLO
+Received: from mail-we0-f174.google.com ([74.125.82.174]:45266 "EHLO
 	mail-we0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756271Ab2FNPGX (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 14 Jun 2012 11:06:23 -0400
-Received: by mail-we0-f174.google.com with SMTP id u7so1326966wey.19
-        for <linux-omap@vger.kernel.org>; Thu, 14 Jun 2012 08:06:22 -0700 (PDT)
+	with ESMTP id S1756017Ab2FNPGS (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 14 Jun 2012 11:06:18 -0400
+Received: by mail-we0-f174.google.com with SMTP id u7so1326961wey.19
+        for <linux-omap@vger.kernel.org>; Thu, 14 Jun 2012 08:06:17 -0700 (PDT)
 In-Reply-To: <1339686361-11526-1-git-send-email-j-pihet@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: linux-omap@vger.kernel.org, paul@pwsan.com, linux-arm-kernel@lists.infradead.org, khilman@ti.com
 Cc: Jean Pihet <j-pihet@ti.com>
 
-Remove the following functions from the OMAP PM API:
- omap_pm_set_max_mpu_wakeup_lat
- omap_pm_set_max_dev_wakeup_lat
- omap_pm_set_max_sdma_lat
-and updated the kernel Documentation accordingly.
+The MPU latency figures for cpuidle include the MPU itself and also
+the peripherals needed for the MPU to execute instructions (e.g.
+main memory, caches, IRQ controller, MMU etc). On OMAP3 those
+peripherals belong to the MPU and CORE power domains and so the
+cpuidle C-states are a combination of MPU and CORE states.
 
-The generic per-device PM QoS functions shall be used instead of the
-OMAP PM API, cf. include/linux/pm_qos.h and
-Documentation/power/pm_qos_interface.txt.
+This patch implements the relation between the cpuidle and per-
+device PM QoS frameworks in the OMAP3 specific idle callbacks.
+
+The chosen C-state shall satisfy the following conditions:
+ . the 'valid' field is enabled,
+ . it satisfies the enable_off_mode flag,
+ . the next state for MPU and CORE power domains is not lower than the
+   next state calculated by the per-device PM QoS.
+
+Tested on OMAP3 Beagleboard in RET/OFF using wake-up latency constraints
+on MPU, CORE and PER.
 
 Signed-off-by: Jean Pihet <j-pihet@ti.com>
+Reviewed-by: Kevin Hilman <khilman@ti.com>
 ---
- Documentation/arm/OMAP/omap_pm            |   68 ++++++--------------
- arch/arm/plat-omap/include/plat/omap-pm.h |   99 -----------------------------
- arch/arm/plat-omap/omap-pm-noop.c         |   88 -------------------------
- 3 files changed, 21 insertions(+), 234 deletions(-)
+ arch/arm/mach-omap2/cpuidle34xx.c |   64 ++++++++++++++++++++++++-------------
+ 1 files changed, 42 insertions(+), 22 deletions(-)
 
-diff --git a/Documentation/arm/OMAP/omap_pm b/Documentation/arm/OMAP/omap_pm
-index 9012bb0..90f67a3 100644
---- a/Documentation/arm/OMAP/omap_pm
-+++ b/Documentation/arm/OMAP/omap_pm
-@@ -5,8 +5,19 @@ The OMAP PM interface
- This document describes the temporary OMAP PM interface.  Driver
- authors use these functions to communicate minimum latency or
- throughput constraints to the kernel power management code.
-+
- Over time, the intention is to merge features from the OMAP PM
- interface into the Linux PM QoS code.
-+The following PM QoS features already migrated to the PM QoS framework:
-+- PM QoS CPU and DMA latency: used to specify the maximum allowed wake-up
-+  latency for the CPU,
-+- per device PM QoS latency: used to specifiy the maximum allowed wake-up
-+  latency for a given device.
-+
-+Please refer to the corresponding header file and kernel documentation
-+for the PM QoS framework, respectively at include/linux/pm_qos.h and
-+Documentation/power/pm_qos_interface.txt.
-+
- 
- Drivers need to express PM parameters which:
- 
-@@ -29,21 +40,12 @@ Drivers need to express PM parameters which:
- 
- 
- This document proposes the OMAP PM interface, including the following
--five power management functions for driver code:
--
--1. Set the maximum MPU wakeup latency:
--   (*pdata->set_max_mpu_wakeup_lat)(struct device *dev, unsigned long t)
-+power management functions for driver code:
- 
--2. Set the maximum device wakeup latency:
--   (*pdata->set_max_dev_wakeup_lat)(struct device *dev, unsigned long t)
--
--3. Set the maximum system DMA transfer start latency (CORE pwrdm):
--   (*pdata->set_max_sdma_lat)(struct device *dev, long t)
--
--4. Set the minimum bus throughput needed by a device:
-+1. Set the minimum bus throughput needed by a device:
-    (*pdata->set_min_bus_tput)(struct device *dev, u8 agent_id, unsigned long r)
- 
--5. Return the number of times the device has lost context
-+2. Return the number of times the device has lost context
-    (*pdata->get_dev_context_loss_count)(struct device *dev)
- 
- 
-@@ -55,10 +57,12 @@ The OMAP PM layer is intended to be temporary
- ---------------------------------------------
- 
- The intention is that eventually the Linux PM QoS layer should support
--the range of power management features present in OMAP3.  As this
--happens, existing drivers using the OMAP PM interface can be modified
-+the range of power management features present in OMAP3. As this
-+happens, existing drivers using the OMAP PM interface shall be modified
- to use the Linux PM QoS code; and the OMAP PM interface can disappear.
- 
-+The set_min_bus_tput function shall be converted to a throughput PM QoS
-+framework.
- 
- Driver usage of the OMAP PM functions
- -------------------------------------
-@@ -66,39 +70,9 @@ Driver usage of the OMAP PM functions
- As the 'pdata' in the above examples indicates, these functions are
- exposed to drivers through function pointers in driver .platform_data
- structures.  The function pointers are initialized by the board-*.c
--files to point to the corresponding OMAP PM functions:
--.set_max_dev_wakeup_lat will point to
--omap_pm_set_max_dev_wakeup_lat(), etc.  Other architectures which do
--not support these functions should leave these function pointers set
--to NULL.  Drivers should use the following idiom:
--
--        if (pdata->set_max_dev_wakeup_lat)
--            (*pdata->set_max_dev_wakeup_lat)(dev, t);
--
--The most common usage of these functions will probably be to specify
--the maximum time from when an interrupt occurs, to when the device
--becomes accessible.  To accomplish this, driver writers should use the
--set_max_mpu_wakeup_lat() function to to constrain the MPU wakeup
--latency, and the set_max_dev_wakeup_lat() function to constrain the
--device wakeup latency (from clk_enable() to accessibility).  For
--example,
--
--        /* Limit MPU wakeup latency */
--        if (pdata->set_max_mpu_wakeup_lat)
--            (*pdata->set_max_mpu_wakeup_lat)(dev, tc);
--
--        /* Limit device powerdomain wakeup latency */
--        if (pdata->set_max_dev_wakeup_lat)
--            (*pdata->set_max_dev_wakeup_lat)(dev, td);
--
--        /* total wakeup latency in this example: (tc + td) */
--
--The PM parameters can be overwritten by calling the function again
--with the new value.  The settings can be removed by calling the
--function with a t argument of -1 (except in the case of
--set_max_bus_tput(), which should be called with an r argument of 0).
--
--The fifth function above, omap_pm_get_dev_context_loss_count(),
-+files to point to the corresponding OMAP PM functions.
-+
-+The omap_pm_get_dev_context_loss_count() function
- is intended as an optimization to allow drivers to determine whether the
- device has lost its internal context.  If context has been lost, the
- driver must restore its internal context before proceeding.
-diff --git a/arch/arm/plat-omap/include/plat/omap-pm.h b/arch/arm/plat-omap/include/plat/omap-pm.h
-index 67faa7b..a3ece28 100644
---- a/arch/arm/plat-omap/include/plat/omap-pm.h
-+++ b/arch/arm/plat-omap/include/plat/omap-pm.h
-@@ -62,44 +62,6 @@ void omap_pm_if_exit(void);
-  * Device-driver-originated constraints (via board-*.c files, platform_data)
-  */
- 
--
--/**
-- * omap_pm_set_max_mpu_wakeup_lat - set the maximum MPU wakeup latency
-- * @dev: struct device * requesting the constraint
-- * @t: maximum MPU wakeup latency in microseconds
-- *
-- * Request that the maximum interrupt latency for the MPU to be no
-- * greater than @t microseconds. "Interrupt latency" in this case is
-- * defined as the elapsed time from the occurrence of a hardware or
-- * timer interrupt to the time when the device driver's interrupt
-- * service routine has been entered by the MPU.
-- *
-- * It is intended that underlying PM code will use this information to
-- * determine what power state to put the MPU powerdomain into, and
-- * possibly the CORE powerdomain as well, since interrupt handling
-- * code currently runs from SDRAM.  Advanced PM or board*.c code may
-- * also configure interrupt controller priorities, OCP bus priorities,
-- * CPU speed(s), etc.
-- *
-- * This function will not affect device wakeup latency, e.g., time
-- * elapsed from when a device driver enables a hardware device with
-- * clk_enable(), to when the device is ready for register access or
-- * other use.  To control this device wakeup latency, use
-- * omap_pm_set_max_dev_wakeup_lat()
-- *
-- * Multiple calls to omap_pm_set_max_mpu_wakeup_lat() will replace the
-- * previous t value.  To remove the latency target for the MPU, call
-- * with t = -1.
-- *
-- * XXX This constraint will be deprecated soon in favor of the more
-- * general omap_pm_set_max_dev_wakeup_lat()
-- *
-- * Returns -EINVAL for an invalid argument, -ERANGE if the constraint
-- * is not satisfiable, or 0 upon success.
-- */
--int omap_pm_set_max_mpu_wakeup_lat(struct device *dev, long t);
--
--
- /**
-  * omap_pm_set_min_bus_tput - set minimum bus throughput needed by device
-  * @dev: struct device * requesting the constraint
-@@ -131,67 +93,6 @@ int omap_pm_set_max_mpu_wakeup_lat(struct device *dev, long t);
-  */
- int omap_pm_set_min_bus_tput(struct device *dev, u8 agent_id, unsigned long r);
- 
--
--/**
-- * omap_pm_set_max_dev_wakeup_lat - set the maximum device enable latency
-- * @req_dev: struct device * requesting the constraint, or NULL if none
-- * @dev: struct device * to set the constraint one
-- * @t: maximum device wakeup latency in microseconds
-- *
-- * Request that the maximum amount of time necessary for a device @dev
-- * to become accessible after its clocks are enabled should be no
-- * greater than @t microseconds.  Specifically, this represents the
-- * time from when a device driver enables device clocks with
-- * clk_enable(), to when the register reads and writes on the device
-- * will succeed.  This function should be called before clk_disable()
-- * is called, since the power state transition decision may be made
-- * during clk_disable().
-- *
-- * It is intended that underlying PM code will use this information to
-- * determine what power state to put the powerdomain enclosing this
-- * device into.
-- *
-- * Multiple calls to omap_pm_set_max_dev_wakeup_lat() will replace the
-- * previous wakeup latency values for this device.  To remove the
-- * wakeup latency restriction for this device, call with t = -1.
-- *
-- * Returns -EINVAL for an invalid argument, -ERANGE if the constraint
-- * is not satisfiable, or 0 upon success.
-- */
--int omap_pm_set_max_dev_wakeup_lat(struct device *req_dev, struct device *dev,
--				   long t);
--
--
--/**
-- * omap_pm_set_max_sdma_lat - set the maximum system DMA transfer start latency
-- * @dev: struct device *
-- * @t: maximum DMA transfer start latency in microseconds
-- *
-- * Request that the maximum system DMA transfer start latency for this
-- * device 'dev' should be no greater than 't' microseconds.  "DMA
-- * transfer start latency" here is defined as the elapsed time from
-- * when a device (e.g., McBSP) requests that a system DMA transfer
-- * start or continue, to the time at which data starts to flow into
-- * that device from the system DMA controller.
-- *
-- * It is intended that underlying PM code will use this information to
-- * determine what power state to put the CORE powerdomain into.
-- *
-- * Since system DMA transfers may not involve the MPU, this function
-- * will not affect MPU wakeup latency.  Use set_max_cpu_lat() to do
-- * so.  Similarly, this function will not affect device wakeup latency
-- * -- use set_max_dev_wakeup_lat() to affect that.
-- *
-- * Multiple calls to set_max_sdma_lat() will replace the previous t
-- * value for this device.  To remove the maximum DMA latency for this
-- * device, call with t = -1.
-- *
-- * Returns -EINVAL for an invalid argument, -ERANGE if the constraint
-- * is not satisfiable, or 0 upon success.
-- */
--int omap_pm_set_max_sdma_lat(struct device *dev, long t);
--
--
- /**
-  * omap_pm_set_min_clk_rate - set minimum clock rate requested by @dev
-  * @dev: struct device * requesting the constraint
-diff --git a/arch/arm/plat-omap/omap-pm-noop.c b/arch/arm/plat-omap/omap-pm-noop.c
-index 5a97b4d..e6c59d2 100644
---- a/arch/arm/plat-omap/omap-pm-noop.c
-+++ b/arch/arm/plat-omap/omap-pm-noop.c
-@@ -33,34 +33,6 @@ static int dummy_context_loss_counter;
-  * Device-driver-originated constraints (via board-*.c files)
-  */
- 
--int omap_pm_set_max_mpu_wakeup_lat(struct device *dev, long t)
--{
--	if (!dev || t < -1) {
--		WARN(1, "OMAP PM: %s: invalid parameter(s)", __func__);
--		return -EINVAL;
--	};
--
--	if (t == -1)
--		pr_debug("OMAP PM: remove max MPU wakeup latency constraint: "
--			 "dev %s\n", dev_name(dev));
--	else
--		pr_debug("OMAP PM: add max MPU wakeup latency constraint: "
--			 "dev %s, t = %ld usec\n", dev_name(dev), t);
--
--	/*
--	 * For current Linux, this needs to map the MPU to a
--	 * powerdomain, then go through the list of current max lat
--	 * constraints on the MPU and find the smallest.  If
--	 * the latency constraint has changed, the code should
--	 * recompute the state to enter for the next powerdomain
--	 * state.
--	 *
--	 * TI CDP code can call constraint_set here.
--	 */
--
--	return 0;
--}
--
- int omap_pm_set_min_bus_tput(struct device *dev, u8 agent_id, unsigned long r)
- {
- 	if (!dev || (agent_id != OCP_INITIATOR_AGENT &&
-@@ -88,66 +60,6 @@ int omap_pm_set_min_bus_tput(struct device *dev, u8 agent_id, unsigned long r)
- 	return 0;
+diff --git a/arch/arm/mach-omap2/cpuidle34xx.c b/arch/arm/mach-omap2/cpuidle34xx.c
+index ef8d7d4..1f33b8e 100644
+--- a/arch/arm/mach-omap2/cpuidle34xx.c
++++ b/arch/arm/mach-omap2/cpuidle34xx.c
+@@ -92,8 +92,8 @@ static int _cpuidle_deny_idle(struct powerdomain *pwrdm,
  }
  
--int omap_pm_set_max_dev_wakeup_lat(struct device *req_dev, struct device *dev,
--				   long t)
--{
--	if (!req_dev || !dev || t < -1) {
--		WARN(1, "OMAP PM: %s: invalid parameter(s)", __func__);
--		return -EINVAL;
--	};
--
--	if (t == -1)
--		pr_debug("OMAP PM: remove max device latency constraint: "
--			 "dev %s\n", dev_name(dev));
--	else
--		pr_debug("OMAP PM: add max device latency constraint: "
--			 "dev %s, t = %ld usec\n", dev_name(dev), t);
--
--	/*
--	 * For current Linux, this needs to map the device to a
--	 * powerdomain, then go through the list of current max lat
--	 * constraints on that powerdomain and find the smallest.  If
--	 * the latency constraint has changed, the code should
--	 * recompute the state to enter for the next powerdomain
--	 * state.  Conceivably, this code should also determine
--	 * whether to actually disable the device clocks or not,
--	 * depending on how long it takes to re-enable the clocks.
--	 *
--	 * TI CDP code can call constraint_set here.
--	 */
--
--	return 0;
--}
--
--int omap_pm_set_max_sdma_lat(struct device *dev, long t)
--{
--	if (!dev || t < -1) {
--		WARN(1, "OMAP PM: %s: invalid parameter(s)", __func__);
--		return -EINVAL;
--	};
--
--	if (t == -1)
--		pr_debug("OMAP PM: remove max DMA latency constraint: "
--			 "dev %s\n", dev_name(dev));
--	else
--		pr_debug("OMAP PM: add max DMA latency constraint: "
--			 "dev %s, t = %ld usec\n", dev_name(dev), t);
--
--	/*
--	 * For current Linux PM QOS params, this code should scan the
--	 * list of maximum CPU and DMA latencies and select the
--	 * smallest, then set cpu_dma_latency pm_qos_param
--	 * accordingly.
--	 *
--	 * For future Linux PM QOS params, with separate CPU and DMA
--	 * latency params, this code should just set the dma_latency param.
--	 *
--	 * TI CDP code can call constraint_set here.
--	 */
--
--	return 0;
--}
--
- int omap_pm_set_min_clk_rate(struct device *dev, struct clk *c, long r)
+ static int __omap3_enter_idle(struct cpuidle_device *dev,
+-				struct cpuidle_driver *drv,
+-				int index)
++			      struct cpuidle_driver *drv,
++			      int index)
  {
- 	if (!dev || !c || r < 0) {
+ 	struct omap3_idle_statedata *cx = &omap3_idle_data[index];
+ 	u32 mpu_state = cx->mpu_state, core_state = cx->core_state;
+@@ -150,10 +150,14 @@ return_sleep_time:
+  *
+  * Called from the CPUidle framework to program the device to the
+  * specified target state selected by the governor.
++ *
++ * Note: this function does not check for any pending activity or dependency
++ * between power domains states, so the caller shall check the parameters
++ * correctness.
+  */
+ static inline int omap3_enter_idle(struct cpuidle_device *dev,
+-				struct cpuidle_driver *drv,
+-				int index)
++				   struct cpuidle_driver *drv,
++				   int index)
+ {
+ 	return cpuidle_wrap_enter(dev, drv, index, __omap3_enter_idle);
+ }
+@@ -168,8 +172,10 @@ static inline int omap3_enter_idle(struct cpuidle_device *dev,
+  * to the caller. Else, this function searches for a lower c-state which is
+  * still valid (as defined in omap3_power_states[]) and returns its index.
+  *
+- * A state is valid if the 'valid' field is enabled and
+- * if it satisfies the enable_off_mode condition.
++ * A state is valid if:
++ * . it satisfies the enable_off_mode flag,
++ * . the next state for MPU and CORE power domains is not lower than the
++ *   state programmed by the per-device PM QoS.
+  */
+ static int next_valid_state(struct cpuidle_device *dev,
+ 			    struct cpuidle_driver *drv, int index)
+@@ -177,6 +183,8 @@ static int next_valid_state(struct cpuidle_device *dev,
+ 	struct omap3_idle_statedata *cx = &omap3_idle_data[index];
+ 	u32 mpu_deepest_state = PWRDM_FUNC_PWRST_CSWR;
+ 	u32 core_deepest_state = PWRDM_FUNC_PWRST_CSWR;
++	u32 mpu_pm_qos_next_state = mpu_pd->wkup_lat_next_state;
++	u32 core_pm_qos_next_state = core_pd->wkup_lat_next_state;
+ 	int idx;
+ 	int next_index = -1;
+ 
+@@ -193,7 +201,9 @@ static int next_valid_state(struct cpuidle_device *dev,
+ 
+ 	/* Check if current state is valid */
+ 	if ((cx->mpu_state >= mpu_deepest_state) &&
+-	    (cx->core_state >= core_deepest_state))
++	    (cx->core_state >= core_deepest_state) &&
++	    (cx->mpu_state >= mpu_pm_qos_next_state) &&
++	    (cx->core_state >= core_pm_qos_next_state))
+ 		return index;
+ 
+ 	/*
+@@ -203,7 +213,9 @@ static int next_valid_state(struct cpuidle_device *dev,
+ 	for (idx = index - 1; idx >= 0; idx--) {
+ 		cx =  &omap3_idle_data[idx];
+ 		if ((cx->mpu_state >= mpu_deepest_state) &&
+-		    (cx->core_state >= core_deepest_state)) {
++		    (cx->core_state >= core_deepest_state) &&
++		    (cx->mpu_state >= mpu_pm_qos_next_state) &&
++		    (cx->core_state >= core_pm_qos_next_state)) {
+ 			next_index = idx;
+ 			break;
+ 		}
+@@ -224,12 +236,15 @@ static int next_valid_state(struct cpuidle_device *dev,
+  * @drv: cpuidle driver
+  * @index: array index of target state to be programmed
+  *
+- * This function checks for any pending activity and then programs
+- * the device to the specified or a safer state.
++ * Called from the CPUidle framework to program the device to the
++ * specified target state selected by the governor.
++ *
++ * This function checks for any pending activity or dependency between
++ * power domains states and then programs the device to the specified
++ * or a safer state.
+  */
+ static int omap3_enter_idle_bm(struct cpuidle_device *dev,
+-				struct cpuidle_driver *drv,
+-			       int index)
++			       struct cpuidle_driver *drv, int index)
+ {
+ 	int new_state_idx;
+ 	u32 core_next_state, per_next_state = 0, per_saved_state = 0;
+@@ -245,19 +260,13 @@ static int omap3_enter_idle_bm(struct cpuidle_device *dev,
+ 		goto select_state;
+ 	}
+ 
+-	/*
+-	 * FIXME: we currently manage device-specific idle states
+-	 *        for PER and CORE in combination with CPU-specific
+-	 *        idle states.  This is wrong, and device-specific
+-	 *        idle management needs to be separated out into
+-	 *        its own code.
+-	 */
++	new_state_idx = next_valid_state(dev, drv, index);
+ 
+ 	/*
+ 	 * Prevent PER off if CORE is not in retention or off as this
+ 	 * would disable PER wakeups completely.
+ 	 */
+-	cx = &omap3_idle_data[index];
++	cx = &omap3_idle_data[new_state_idx];
+ 	core_next_state = cx->core_state;
+ 	per_next_state = per_saved_state = pwrdm_read_next_func_pwrst(per_pd);
+ 	if ((per_next_state == PWRDM_FUNC_PWRST_OFF) &&
+@@ -268,8 +277,6 @@ static int omap3_enter_idle_bm(struct cpuidle_device *dev,
+ 	if (per_next_state != per_saved_state)
+ 		omap_set_pwrdm_state(per_pd, per_next_state);
+ 
+-	new_state_idx = next_valid_state(dev, drv, index);
+-
+ select_state:
+ 	ret = omap3_enter_idle(dev, drv, new_state_idx);
+ 
+@@ -282,6 +289,19 @@ select_state:
+ 
+ DEFINE_PER_CPU(struct cpuidle_device, omap3_idle_dev);
+ 
++/*
++ * Note about the latency related fields of the cpuidle_driver struct:
++ *
++ * - exit_latency = sleep + wake-up latencies of the MPU,
++ *  which include the MPU itself and the peripherals needed
++ *  for the MPU to execute instructions (e.g. main memory,
++ *  caches, IRQ controller, MMU etc). Some of those peripherals
++ *  can belong to other power domains than the MPU subsystem and so
++ *  the corresponding latencies must be included in this figure
++ *
++ * - target_residency: required amount of time in the C state
++ *  to break even on energy cost
++ */
+ struct cpuidle_driver omap3_idle_driver = {
+ 	.name = 	"omap3_idle",
+ 	.owner = 	THIS_MODULE,
 -- 
 1.7.7.6
 
