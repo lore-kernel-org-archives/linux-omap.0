@@ -1,72 +1,64 @@
 From: Felipe Balbi <balbi@ti.com>
-Subject: [PATCH 10/17] i2c: omap: get rid of the "complete" label
-Date: Thu, 14 Jun 2012 13:20:43 +0300
-Message-ID: <1339669250-9183-11-git-send-email-balbi@ti.com>
+Subject: [PATCH 12/17] i2c: omap: switch to platform_get_irq()
+Date: Thu, 14 Jun 2012 13:20:45 +0300
+Message-ID: <1339669250-9183-13-git-send-email-balbi@ti.com>
 References: <1339669250-9183-1-git-send-email-balbi@ti.com>
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aog131.obsmtp.com ([74.125.149.247]:44968 "EHLO
-	na3sys009aog131.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755701Ab2FNKX2 (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>);
-	Thu, 14 Jun 2012 06:23:28 -0400
-Received: by lagw12 with SMTP id w12so1119838lag.24
-        for <linux-omap@vger.kernel.org>; Thu, 14 Jun 2012 03:23:23 -0700 (PDT)
+Return-path: <linux-kernel-owner@vger.kernel.org>
 In-Reply-To: <1339669250-9183-1-git-send-email-balbi@ti.com>
-Sender: linux-omap-owner@vger.kernel.org
-List-Id: linux-omap@vger.kernel.org
+Sender: linux-kernel-owner@vger.kernel.org
 To: ben-linux@fluff.org
 Cc: Tony Lindgren <tony@atomide.com>, w.sang@pengutronix.de, Linux OMAP Mailing List <linux-omap@vger.kernel.org>, linux-i2c@vger.kernel.org, Linux ARM Kernel Mailing List <linux-arm-kernel@lists.infradead.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Felipe Balbi <balbi@ti.com>
+List-Id: linux-omap@vger.kernel.org
 
-we can ack stat and complete the command from
-the errata handling itself.
+that's a nice helper from drivers core which
+will give us the exact IRQ number, instead
+of a pointer to an IRQ resource.
 
 Signed-off-by: Felipe Balbi <balbi@ti.com>
 ---
- drivers/i2c/busses/i2c-omap.c |   13 ++++++++-----
- 1 file changed, 8 insertions(+), 5 deletions(-)
+ drivers/i2c/busses/i2c-omap.c |   11 ++++++-----
+ 1 file changed, 6 insertions(+), 5 deletions(-)
 
 diff --git a/drivers/i2c/busses/i2c-omap.c b/drivers/i2c/busses/i2c-omap.c
-index c00ba7d..c20c45f 100644
+index d805270..43d3289 100644
 --- a/drivers/i2c/busses/i2c-omap.c
 +++ b/drivers/i2c/busses/i2c-omap.c
-@@ -893,7 +893,6 @@ omap_i2c_isr(int this_irq, void *dev_id)
- 			return IRQ_HANDLED;
- 		}
+@@ -1045,11 +1045,12 @@ omap_i2c_probe(struct platform_device *pdev)
+ {
+ 	struct omap_i2c_dev	*dev;
+ 	struct i2c_adapter	*adap;
+-	struct resource		*mem, *irq;
++	struct resource		*mem;
+ 	struct omap_i2c_bus_platform_data *pdata = pdev->dev.platform_data;
+ 	struct device_node	*node = pdev->dev.of_node;
+ 	const struct of_device_id *match;
+ 	irq_handler_t isr;
++	int irq;
+ 	int r;
  
--complete:
- 		if (stat & OMAP_I2C_STAT_NACK) {
- 			dev_err(dev->dev, "No Acknowledge\n");
- 			err |= OMAP_I2C_STAT_NACK;
-@@ -958,10 +957,12 @@ complete:
- 				num_bytes = dev->fifo_size;
+ 	/* NOTE: driver uses the static register mapping */
+@@ -1059,10 +1060,10 @@ omap_i2c_probe(struct platform_device *pdev)
+ 		return -ENODEV;
+ 	}
  
- 			ret = omap_i2c_transmit_data(dev, num_bytes, true);
--			stat = omap_i2c_read_reg(dev, OMAP_I2C_STAT_REG);
- 			if (ret < 0) {
- 				err |= OMAP_I2C_STAT_XUDF;
--				goto complete;
-+				omap_i2c_ack_stat(dev, OMAP_I2C_STAT_XUDF |
-+						OMAP_I2C_STAT_XDR);
-+				omap_i2c_complete_cmd(dev, err);
-+				return IRQ_HANDLED;
- 			}
+-	irq = platform_get_resource(pdev, IORESOURCE_IRQ, 0);
+-	if (!irq) {
++	irq = platform_get_irq(pdev, 0);
++	if (irq < 0) {
+ 		dev_err(&pdev->dev, "no irq resource?\n");
+-		return -ENODEV;
++		return irq;
+ 	}
  
- 			omap_i2c_ack_stat(dev, OMAP_I2C_STAT_XDR);
-@@ -976,10 +977,12 @@ complete:
- 				num_bytes = dev->fifo_size;
+ 	dev = devm_kzalloc(&pdev->dev, sizeof(struct omap_i2c_dev), GFP_KERNEL);
+@@ -1090,7 +1091,7 @@ omap_i2c_probe(struct platform_device *pdev)
+ 	}
  
- 			ret = omap_i2c_transmit_data(dev, num_bytes, false);
--			stat = omap_i2c_read_reg(dev, OMAP_I2C_STAT_REG);
- 			if (ret < 0) {
- 				err |= OMAP_I2C_STAT_XUDF;
--				goto complete;
-+				omap_i2c_ack_stat(dev, OMAP_I2C_STAT_XUDF |
-+						OMAP_I2C_STAT_XRDY);
-+				omap_i2c_complete_cmd(dev, err);
-+				return IRQ_HANDLED;
- 			}
- 
- 			omap_i2c_ack_stat(dev, OMAP_I2C_STAT_XRDY);
+ 	dev->dev = &pdev->dev;
+-	dev->irq = irq->start;
++	dev->irq = irq;
+ 	dev->base = devm_request_and_ioremap(&pdev->dev, mem);
+ 	if (!dev->base) {
+ 		dev_err(&pdev->dev, "ioremap failed\n");
 -- 
 1.7.10.4
-
