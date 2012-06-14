@@ -1,110 +1,77 @@
-From: Felipe Balbi <balbi@ti.com>
-Subject: Re: [PATCH 09/17] i2c: omap: ack IRQ in parts
-Date: Thu, 14 Jun 2012 14:46:39 +0300
-Message-ID: <20120614114638.GQ13602@arwen.pp.htv.fi>
-References: <1339669250-9183-1-git-send-email-balbi@ti.com>
- <1339669250-9183-10-git-send-email-balbi@ti.com>
- <CAMQu2gw4B_5eFSAq_o+MamNDDwoZi2CitmC+dM=+pi3R1Z2QCA@mail.gmail.com>
-Reply-To: balbi@ti.com
+From: Tony Lindgren <tony@atomide.com>
+Subject: Re: [PATCH 3/3] ARM: OMAP2+: gpmc: handle additional timings
+Date: Thu, 14 Jun 2012 04:49:06 -0700
+Message-ID: <20120614114905.GK12766@atomide.com>
+References: <4FD63DBF.9000200@ti.com>
+ <C8443D0743D26F4388EA172BF4E2A7A93E997D9E@DBDE01.ent.ti.com>
+ <4FD77E35.3050703@ti.com>
+ <C8443D0743D26F4388EA172BF4E2A7A93E998767@DBDE01.ent.ti.com>
+ <20120613113217.GK12766@atomide.com>
+ <20120613115445.GM12766@atomide.com>
+ <C8443D0743D26F4388EA172BF4E2A7A93E998C80@DBDE01.ent.ti.com>
+ <C8443D0743D26F4388EA172BF4E2A7A93E999849@DBDE01.ent.ti.com>
+ <20120614101901.GI12766@atomide.com>
+ <C8443D0743D26F4388EA172BF4E2A7A93E99994C@DBDE01.ent.ti.com>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="JKGvNdIvrY8Ovf7Z"
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aog104.obsmtp.com ([74.125.149.73]:46420 "EHLO
-	na3sys009aog104.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755620Ab2FNLsn (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>);
-	Thu, 14 Jun 2012 07:48:43 -0400
-Received: by lbon10 with SMTP id n10so2439143lbo.13
-        for <linux-omap@vger.kernel.org>; Thu, 14 Jun 2012 04:48:40 -0700 (PDT)
+Received: from mho-02-ewr.mailhop.org ([204.13.248.72]:28556 "EHLO
+	mho-02-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755479Ab2FNLtI (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 14 Jun 2012 07:49:08 -0400
 Content-Disposition: inline
-In-Reply-To: <CAMQu2gw4B_5eFSAq_o+MamNDDwoZi2CitmC+dM=+pi3R1Z2QCA@mail.gmail.com>
+In-Reply-To: <C8443D0743D26F4388EA172BF4E2A7A93E99994C@DBDE01.ent.ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "Shilimkar, Santosh" <santosh.shilimkar@ti.com>
-Cc: Felipe Balbi <balbi@ti.com>, ben-linux@fluff.org, Tony Lindgren <tony@atomide.com>, w.sang@pengutronix.de, Linux OMAP Mailing List <linux-omap@vger.kernel.org>, linux-i2c@vger.kernel.org, Linux ARM Kernel Mailing List <linux-arm-kernel@lists.infradead.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>
+To: "Mohammed, Afzal" <afzal@ti.com>
+Cc: "Hunter, Jon" <jon-hunter@ti.com>, "paul@pwsan.com" <paul@pwsan.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>
 
+* Mohammed, Afzal <afzal@ti.com> [120614 03:43]:
+> Hi Tony,
+> 
+> On Thu, Jun 14, 2012 at 15:49:02, Tony Lindgren wrote:
+> 
+> > Well I took a look at the values, and it seems the only difference is the
+> > static GPMC_CONFIG1_CLKACTIVATIONTIME(1) that your patch now overwrites 0.
+> 
+> It seems change below should be part of $subject.
+> 
+> Please let me know your comments
 
---JKGvNdIvrY8Ovf7Z
-Content-Type: text/plain; charset=iso-8859-1
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
+Well I could not get this to apply either on top of the $subject nor all your
+patches for some reason, but I manually applied the tusb6010 part with the
+following change..
 
-On Thu, Jun 14, 2012 at 04:41:45PM +0530, Shilimkar, Santosh wrote:
-> On Thu, Jun 14, 2012 at 3:50 PM, Felipe Balbi <balbi@ti.com> wrote:
-> > According to flow diagrams on OMAP TRMs,
-> > we should ACK the IRQ as they happen.
-> >
-> > Signed-off-by: Felipe Balbi <balbi@ti.com>
-> > ---
-> > =A0drivers/i2c/busses/i2c-omap.c | =A0 29 +++++++++++++++++------------
-> > =A01 file changed, 17 insertions(+), 12 deletions(-)
-> >
-> > diff --git a/drivers/i2c/busses/i2c-omap.c b/drivers/i2c/busses/i2c-oma=
-p.c
-> > index f978b14..c00ba7d 100644
-> > --- a/drivers/i2c/busses/i2c-omap.c
-> > +++ b/drivers/i2c/busses/i2c-omap.c
-> > @@ -894,21 +894,20 @@ omap_i2c_isr(int this_irq, void *dev_id)
-> > =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0}
-> >
-> > =A0complete:
-> > - =A0 =A0 =A0 =A0 =A0 =A0 =A0 /*
-> > - =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0* Ack the stat in one go, but [R/X]DR =
-and [R/X]RDY should be
-> > - =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0* acked after the data operation is co=
-mplete.
-> > - =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0* Ref: TRM SWPU114Q Figure 18-31
-> > - =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0*/
-> > - =A0 =A0 =A0 =A0 =A0 =A0 =A0 omap_i2c_write_reg(dev, OMAP_I2C_STAT_REG=
-, stat &
-> > - =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 ~(OMAP_I2=
-C_STAT_RRDY | OMAP_I2C_STAT_RDR |
-> > - =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 OMAP_I2C_=
-STAT_XRDY | OMAP_I2C_STAT_XDR));
-> > -
-> > - =A0 =A0 =A0 =A0 =A0 =A0 =A0 if (stat & OMAP_I2C_STAT_NACK)
-> > + =A0 =A0 =A0 =A0 =A0 =A0 =A0 if (stat & OMAP_I2C_STAT_NACK) {
-> > + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 dev_err(dev->dev, "No Ack=
-nowledge\n");
-> > =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0err |=3D OMAP_I2C_STAT_N=
-ACK;
-> > + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 omap_i2c_ack_stat(dev, OM=
-AP_I2C_STAT_NACK);
-> > + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 omap_i2c_complete_cmd(dev=
-, err);
-> > + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 return IRQ_HANDLED;
-> > + =A0 =A0 =A0 =A0 =A0 =A0 =A0 }
-> >
-> Do you think making I2C IRQ ack + complete as one small static inline fun=
-ction
-> can save clean the code further. I see it has been used in multiple paths.
+> --- a/arch/arm/mach-omap2/usb-tusb6010.c
+> +++ b/arch/arm/mach-omap2/usb-tusb6010.c
+> @@ -174,6 +174,8 @@ static int tusb_set_sync_mode(unsigned sysclk_ps, unsigned fclk_ps)
+>         tmp = t.cs_wr_off * 1000 + 7000 /* t_scsn_rdy_z */;
+>         t.wr_cycle = next_clk(t.cs_wr_off, tmp, fclk_ps);
+> 
+> +       t.clk_activation = gpmc_ticks_to_ns(1);
+> +
 
-done in a later patch
+..this should be just 1 as it's one tick, not ns.
 
---=20
-balbi
+>         return gpmc_cs_set_timings(sync_cs, &t);
+>  }
+> 
+> @@ -283,7 +285,6 @@ tusb6010_setup_interface(struct musb_hdrc_platform_data *data,
+>                         | GPMC_CONFIG1_READTYPE_SYNC
+>                         | GPMC_CONFIG1_WRITEMULTIPLE_SUPP
+>                         | GPMC_CONFIG1_WRITETYPE_SYNC
+> -                       | GPMC_CONFIG1_CLKACTIVATIONTIME(1)
+>                         | GPMC_CONFIG1_PAGE_LEN(2)
+>                         | GPMC_CONFIG1_WAIT_READ_MON
+>                         | GPMC_CONFIG1_WAIT_WRITE_MON
 
---JKGvNdIvrY8Ovf7Z
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: Digital signature
+And that makes tusb6010 work as earlier with your patches.
 
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.4.12 (GNU/Linux)
+For onenand I'm getting the following error:
 
-iQIcBAEBAgAGBQJP2c8eAAoJEIaOsuA1yqREXwUP/i3tHN51zYrf+Y8+lTo5K6rF
-Y3fcSSjcKA4brPyyPN/FZJW6pqRMDceTy+ZocxmL3mW3MZkJgSpX3jM3ltkvZgXV
-xnsNhO5k0UlHvqVfD/BrmXeIuTcCnLCDoOX3zPmfcLClfbvW27BELZNk3FMt5g2R
-HVTs56rBPJUpzaUXPmyyx/ZX1DT4DhkQVT1q37fpUb4QnSz1Hr6ucc+52HLZ3KGA
-jEOHDO64UUpk1DRGSr/LENa7iBrdBmqjw6tMJ1iP+0v3kpc5EsYf2J/cXxdGUbim
-z44EqRJLxoNiF8ru7JRxd6Ln5HRm3yZ+yAN1IsGyr297zX2/YTnBlKw/XaPeemzI
-Kbmr9qmAp0guLvruy3CTk3BTvpubrznZGWHq2PLtSa1ph1MOHkNORBw53Hh2E8js
-C3lTnsUwEDCpLJSPZTZ+WMy9BbQYollRd4CbLy7e2se5OTVB0aYYifUiyysT489G
-0KV7X5llsxu3KmYsMy1alvV4CrVuQMmz0OsBvwLd4tq6lCxWXYjfTzJYkl5EJkpS
-5RPEMyPP5Qkj7eIE+HL2QkQoHNUMg20ERozbNuxsABoXR2IzDsQkmDlK5JncZXCP
-IP/r4h4saJDagQCk3j8pksKAbXSmQe9Gk97yPEmlf8VEYjYUqBRpmyNlqmMHpBwN
-XMyNqr/Ks6SA3NJRNSic
-=4WMV
------END PGP SIGNATURE-----
+omap2-onenand omap2-onenand: Cannot request GPMC CS 
 
---JKGvNdIvrY8Ovf7Z--
+Regards,
+
+Tony
+
