@@ -1,14 +1,14 @@
 From: Russ Dill <Russ.Dill@ti.com>
-Subject: [PATCH v2] ARM: OMAP3: USB: Fix the EHCI ULPI PHY reset fix issues.
-Date: Thu, 14 Jun 2012 09:21:59 -0700
-Message-ID: <1339690919-12566-1-git-send-email-Russ.Dill@ti.com>
+Subject: [PATCH v3] ARM: OMAP3: USB: Fix the EHCI ULPI PHY reset fix issues.
+Date: Thu, 14 Jun 2012 09:24:21 -0700
+Message-ID: <1339691061-12778-1-git-send-email-Russ.Dill@ti.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-pb0-f46.google.com ([209.85.160.46]:34269 "EHLO
+Received: from mail-pb0-f46.google.com ([209.85.160.46]:52436 "EHLO
 	mail-pb0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756433Ab2FNQWJ (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 14 Jun 2012 12:22:09 -0400
-Received: by pbbrp8 with SMTP id rp8so4018260pbb.19
-        for <linux-omap@vger.kernel.org>; Thu, 14 Jun 2012 09:22:09 -0700 (PDT)
+	with ESMTP id S1753835Ab2FNQY1 (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 14 Jun 2012 12:24:27 -0400
+Received: by pbbrp8 with SMTP id rp8so4020927pbb.19
+        for <linux-omap@vger.kernel.org>; Thu, 14 Jun 2012 09:24:27 -0700 (PDT)
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
@@ -42,16 +42,18 @@ the _cansleep change that has been made in the meantime.
 I've tested this on Beagleboard xM, I'd really like to get an ack from
 the 3430 sdp and OMAP5 guys before getting this merged.
 
+v3 - Brown paper bag its too early in the morning actually run
+     git commit amend fix
 v2 - Put cansleep gpiolib call outside of spinlock
 
 Signed-off-by: Russ Dill <Russ.Dill@gmail.com>
 ---
- drivers/mfd/omap-usb-host.c  |   45 ++++++++++++++++++++++++++++++++++++++++++
- drivers/usb/host/ehci-omap.c |   18 ++++++++---------
- 2 files changed, 53 insertions(+), 10 deletions(-)
+ drivers/mfd/omap-usb-host.c  |   48 +++++++++++++++++++++++++++++++++++++++++-
+ drivers/usb/host/ehci-omap.c |   18 +++++++---------
+ 2 files changed, 55 insertions(+), 11 deletions(-)
 
 diff --git a/drivers/mfd/omap-usb-host.c b/drivers/mfd/omap-usb-host.c
-index 7e96bb2..10984e2 100644
+index 7e96bb2..41088ec 100644
 --- a/drivers/mfd/omap-usb-host.c
 +++ b/drivers/mfd/omap-usb-host.c
 @@ -25,6 +25,7 @@
@@ -62,9 +64,11 @@ index 7e96bb2..10984e2 100644
  #include <plat/cpu.h>
  #include <plat/usb.h>
  #include <linux/pm_runtime.h>
-@@ -502,6 +503,19 @@ static void omap_usbhs_init(struct device *dev)
+@@ -500,8 +501,21 @@ static void omap_usbhs_init(struct device *dev)
+ 	dev_dbg(dev, "starting TI HSUSB Controller\n");
+ 
  	pm_runtime_get_sync(dev);
- 	spin_lock_irqsave(&omap->lock, flags);
+-	spin_lock_irqsave(&omap->lock, flags);
  
 +	if (pdata->ehci_data->phy_reset) {
 +		if (gpio_is_valid(pdata->ehci_data->reset_gpio_port[0]))
@@ -79,13 +83,15 @@ index 7e96bb2..10984e2 100644
 +		udelay(10);
 +	}
 +
++	spin_lock_irqsave(&omap->lock, flags);
  	omap->usbhs_rev = usbhs_read(omap->uhh_base, OMAP_UHH_REVISION);
  	dev_dbg(dev, "OMAP UHH_REVISION 0x%x\n", omap->usbhs_rev);
  
-@@ -580,10 +594,39 @@ static void omap_usbhs_init(struct device *dev)
- 			usbhs_omap_tll_init(dev, OMAP_TLL_CHANNEL_COUNT);
+@@ -581,9 +595,39 @@ static void omap_usbhs_init(struct device *dev)
  	}
  
+ 	spin_unlock_irqrestore(&omap->lock, flags);
++
 +	if (pdata->ehci_data->phy_reset) {
 +		/* Hold the PHY in RESET for enough time till
 +		 * PHY is settled and ready
@@ -101,7 +107,6 @@ index 7e96bb2..10984e2 100644
 +				(pdata->ehci_data->reset_gpio_port[1], 1);
 +	}
 +
- 	spin_unlock_irqrestore(&omap->lock, flags);
  	pm_runtime_put_sync(dev);
  }
  
@@ -122,7 +127,7 @@ index 7e96bb2..10984e2 100644
  
  /**
   * usbhs_omap_probe - initialize TI-based HCDs
-@@ -767,6 +810,7 @@ static int __devinit usbhs_omap_probe(struct platform_device *pdev)
+@@ -767,6 +811,7 @@ static int __devinit usbhs_omap_probe(struct platform_device *pdev)
  	goto end_probe;
  
  err_alloc:
@@ -130,7 +135,7 @@ index 7e96bb2..10984e2 100644
  	iounmap(omap->tll_base);
  
  err_tll:
-@@ -818,6 +862,7 @@ static int __devexit usbhs_omap_remove(struct platform_device *pdev)
+@@ -818,6 +863,7 @@ static int __devexit usbhs_omap_remove(struct platform_device *pdev)
  {
  	struct usbhs_hcd_omap *omap = platform_get_drvdata(pdev);
  
