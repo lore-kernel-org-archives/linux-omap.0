@@ -1,92 +1,55 @@
-From: NeilBrown <neilb@suse.de>
-Subject: Re: [GIT PULL] gpio/omap: cleanups for v3.5
-Date: Thu, 14 Jun 2012 10:15:41 +1000
-Message-ID: <20120614101541.39f50aee@notabene.brown>
-References: <874nrmtf47.fsf@ti.com>
+From: Alex Shi <alex.shi@intel.com>
+Subject: Re: [PATCH v8 8/8] x86/tlb: do flush_tlb_kernel_range by 'invlpg'
+Date: Thu, 14 Jun 2012 09:26:31 +0800
+Message-ID: <4FD93DC7.8020501@intel.com>
+References: <1339492005-20241-1-git-send-email-alex.shi@intel.com> <1339492005-20241-9-git-send-email-alex.shi@intel.com> <20120613145656.GB32604@tassilo.jf.intel.com> <4FD939F2.3090605@intel.com>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=PGP-SHA1;
- boundary="Sig_/zOzPlWsYvE7v8jxd3/3WPUZ"; protocol="application/pgp-signature"
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from cantor2.suse.de ([195.135.220.15]:40680 "EHLO mx2.suse.de"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752335Ab2FNAPz (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Wed, 13 Jun 2012 20:15:55 -0400
-In-Reply-To: <874nrmtf47.fsf@ti.com>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <4FD939F2.3090605@intel.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Andi Kleen <ak@linux.intel.com>, linux-tegra@vger.kernel.org, linux-omap@vger.kernel.org
+Cc: tglx@linutronix.de, mingo@redhat.com, hpa@zytor.com, arnd@arndb.de, rostedt@goodmis.org, fweisbec@gmail.com, jeremy@goop.org, seto.hidetoshi@jp.fujitsu.com, borislav.petkov@amd.com, tony.luck@intel.com, luto@mit.edu, riel@redhat.com, avi@redhat.com, len.brown@intel.com, tj@kernel.org, akpm@linux-foundation.org, cl@gentwo.org, jbeulich@suse.com, eric.dumazet@gmail.com, akinobu.mita@gmail.com, cpw@sgi.com, penberg@kernel.org, steiner@sgi.com, viro@zeniv.linux.org.uk, kamezawa.hiroyu@jp.fujitsu.com, aarcange@redhat.com, rientjes@google.com, linux-kernel@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Kevin Hilman <khilman@ti.com>
-Cc: Grant Likely <grant.likely@secretlab.ca>, linux-omap <linux-omap@vger.kernel.org>, linux-arm-kernel <linux-arm-kernel@lists.infradead.org>
 
---Sig_/zOzPlWsYvE7v8jxd3/3WPUZ
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: quoted-printable
+On 06/14/2012 09:10 AM, Alex Shi wrote:
 
-On Fri, 11 May 2012 17:30:48 -0700 Kevin Hilman <khilman@ti.com> wrote:
+> On 06/13/2012 10:56 PM, Andi Kleen wrote:
+> 
+>> On Tue, Jun 12, 2012 at 05:06:45PM +0800, Alex Shi wrote:
+>>> This patch do flush_tlb_kernel_range by 'invlpg'. The performance pay
+>>> and gain was analysed in my patch (x86/flush_tlb: try flush_tlb_single
+>>> one by one in flush_tlb_range). Now we move this logical into kernel
+>>> part. The pay is multiple 'invlpg' execution cost, that is same. but
+>>>  the gain(cost reducing of TLB entries refilling) is absolutely
+>>> increased.
+>>
+>> The subtle point is whether INVLPG flushes global pages or not.
+>> After some digging I found a sentence in the SDM that says it does.
+>> So it may be safe.
+> 
+> 
+> Many thanks for your time!
+> 
+>>
+>> What does it improve?
+> 
+> 
+> I have not specific benchmark for this. partly due to the gain theory
+> was proved since it is same as previous user process's page table flush.
+> 
+> The user of tlb kernel flush in kernel is vmalloc. and Android binder
+> IPC subsystem is using it(drivers/staging/android/binder.c)
+> 
+> I am wondering if it can help Andriod on this?
+> So, add cc to android-kernel@googlegroups.com
 
-> Hi Grant,
->=20
-> Here's the final round of GPIO cleanups for v3.5.  This branch is based
-> on my for_3.5/fixes/gpio branch you just pulled.
->=20
-> Kevin
 
-Hi.
+Sorry, Andriod reject posting without register, so cc to
+linux-omap@vger.kernel.org and linux-tegra@vger.kernel.org instead.
 
- I'm not sure if it was this series or the following cleanups which broke
- things for me, but I've been trying 3.5-rc2 on my GTA04 and the serial
- console (ttyO2) dies as soon as the omap-gpio driver initialises.
-
- After some digging I came up with this patch to gpio-omap.c
-
-@@ -1124,6 +1124,9 @@ static int __devinit omap_gpio_probe(struct platform_=
-device *pdev)
-=20
- 	platform_set_drvdata(pdev, bank);
-=20
-+	if (bank->get_context_loss_count)
-+		bank->context_loss_count =3D
-+				bank->get_context_loss_count(bank->dev);
- 	pm_runtime_enable(bank->dev);
- 	pm_runtime_irq_safe(bank->dev);
- 	pm_runtime_get_sync(bank->dev);
-
-which fixes it.
-
-What was happening  was that when omap_gpio_probe calls pm_runtime_get_sync,
-it calls=20
-  _od_runtime_resume -> pm_generic_runtime_resume -> omap_gpio_runtime_resu=
-me
-  -> omap_gpio_restore_context
-
-and then the serial port stops.
-I reasoned that the context probably hadn't been set up yet, so restoring
-from it broke things.
-Initialising bank->context_loss_count seems sensible and would ensure that
-we didn't try to restore the context until it has actually been lost.
-
-Thanks,
-NeilBrown
-
---Sig_/zOzPlWsYvE7v8jxd3/3WPUZ
-Content-Type: application/pgp-signature; name=signature.asc
-Content-Disposition: attachment; filename=signature.asc
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v2.0.18 (GNU/Linux)
-
-iQIVAwUBT9ktLTnsnt1WYoG5AQJpBBAAp2F5n6ClMZb/mGeekSEGvbP0PUTttPcf
-GOgQcdfmVtHAwVkbtyXzVovvw5mV65wjEwj5pt3oWqMA9UrALKrYOuzjSOMsGK0Z
-rYPv/5m+l1XckA2mAcxentq38K58l4RpGNGbHz7Qy2CI9tmrOwj6xGFZLnRBqB5N
-mqSPPamAsHELPixRh02/SGhJ7tDatnbTqL4kWgN86NlgnPE4irqOfFJI3o/EmT0r
-9e9AqxFLVsBwlRqeBkudj5seA8DaI3n5q61Inq6eJyZdTL1jFrphlWTozMuV4w4f
-FhEiBuEQDSv3FwW0ErngJmHf+ycMwn2t6gYNfWN8U9KKWGVOIetK0AM45gUmI0cB
-/CWrmvM+iaEZ9QSvJd900F0EY0ifuepxaW5H3eJh7OW5D1EAyR/b1EGldrOidA5C
-Mo4VsSZvGzwRUaASDnAhXH2Cu35BNxWqiaNoVL7uaB+7+pHM8JsJ0a+AnZLw43Yk
-zZQ4Njt97u/m2cdnkaArazYaDfTxjaLRk7xHHp5ZYgDvDVByW4igMVNlnJMcRROP
-QY1aP9LRPP/8NSDaPUFUNZW3dqPRiWGxrvWYNydsnFOeMkYhWqpFpLwbQdVIuL15
-Us6WfmxK0RAEKUpt4sa/svU79NNU1GI1YiYYRKNm8+ecG5yQRjsqCg3hGF9e7aRp
-yD+CSkAAKyU=
-=S2gR
------END PGP SIGNATURE-----
-
---Sig_/zOzPlWsYvE7v8jxd3/3WPUZ--
+> 
+>> -Andi
+> 
+> 
