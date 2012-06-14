@@ -1,70 +1,88 @@
 From: Felipe Balbi <balbi@ti.com>
-Subject: [PATCH v2 08/17] i2c: omap: switch over to do {} while loop
-Date: Thu, 14 Jun 2012 19:24:18 +0300
-Message-ID: <1339691067-919-9-git-send-email-balbi@ti.com>
+Subject: [PATCH v2 09/17] i2c: omap: ack IRQ in parts
+Date: Thu, 14 Jun 2012 19:24:19 +0300
+Message-ID: <1339691067-919-10-git-send-email-balbi@ti.com>
 References: <1339691067-919-1-git-send-email-balbi@ti.com>
-Return-path: <linux-kernel-owner@vger.kernel.org>
+Mime-Version: 1.0
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
 In-Reply-To: <1339691067-919-1-git-send-email-balbi@ti.com>
-Sender: linux-kernel-owner@vger.kernel.org
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
+List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
+List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
+Sender: linux-arm-kernel-bounces@lists.infradead.org
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
 To: ben-linux@fluff.org
-Cc: Tony Lindgren <tony@atomide.com>, Santosh Shilimkar <santosh.shilimkar@ti.com>, Russell King <linux@arm.linux.org.uk>, Linux OMAP Mailing List <linux-omap@vger.kernel.org>, Linux ARM Kernel Mailing List <linux-arm-kernel@lists.infradead.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, w.sang@pengutronix.de, Shubhrajyoti Datta <shubhrajyoti@ti.com>, Felipe Balbi <balbi@ti.com>
+Cc: Russell King <linux@arm.linux.org.uk>, Tony Lindgren <tony@atomide.com>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Felipe Balbi <balbi@ti.com>, w.sang@pengutronix.de, Santosh Shilimkar <santosh.shilimkar@ti.com>, Linux OMAP Mailing List <linux-omap@vger.kernel.org>, Shubhrajyoti Datta <shubhrajyoti@ti.com>, Linux ARM Kernel Mailing List <linux-arm-kernel@lists.infradead.org>
 List-Id: linux-omap@vger.kernel.org
 
-this will make sure that we execute at least once.
-No functional changes otherwise.
+According to flow diagrams on OMAP TRMs,
+we should ACK the IRQ as they happen.
 
 Signed-off-by: Felipe Balbi <balbi@ti.com>
 ---
- drivers/i2c/busses/i2c-omap.c |   21 +++++++++++++++------
- 1 file changed, 15 insertions(+), 6 deletions(-)
+ drivers/i2c/busses/i2c-omap.c |   28 ++++++++++++++++------------
+ 1 file changed, 16 insertions(+), 12 deletions(-)
 
 diff --git a/drivers/i2c/busses/i2c-omap.c b/drivers/i2c/busses/i2c-omap.c
-index 94d6c6a..a035d16 100644
+index a035d16..83ae06a 100644
 --- a/drivers/i2c/busses/i2c-omap.c
 +++ b/drivers/i2c/busses/i2c-omap.c
-@@ -870,20 +870,29 @@ omap_i2c_isr(int this_irq, void *dev_id)
- 	struct omap_i2c_dev *dev = dev_id;
- 	u16 bits;
- 	u16 stat;
--	int err, count = 0;
-+	int err = 0, count = 0;
+@@ -894,21 +894,19 @@ omap_i2c_isr(int this_irq, void *dev_id)
+ 		}
  
- 	if (pm_runtime_suspended(dev->dev))
- 		return IRQ_NONE;
- 
--	bits = omap_i2c_read_reg(dev, OMAP_I2C_IE_REG);
--	while ((stat = (omap_i2c_read_reg(dev, OMAP_I2C_STAT_REG))) & bits) {
-+	do {
-+		bits = omap_i2c_read_reg(dev, OMAP_I2C_IE_REG);
-+		stat = omap_i2c_read_reg(dev, OMAP_I2C_STAT_REG);
-+		stat &= bits;
-+
-+		if (!stat) {
-+			/* my work here is done */
+ complete:
+-		/*
+-		 * Ack the stat in one go, but [R/X]DR and [R/X]RDY should be
+-		 * acked after the data operation is complete.
+-		 * Ref: TRM SWPU114Q Figure 18-31
+-		 */
+-		omap_i2c_write_reg(dev, OMAP_I2C_STAT_REG, stat &
+-				~(OMAP_I2C_STAT_RRDY | OMAP_I2C_STAT_RDR |
+-				OMAP_I2C_STAT_XRDY | OMAP_I2C_STAT_XDR));
+-
+-		if (stat & OMAP_I2C_STAT_NACK)
++		if (stat & OMAP_I2C_STAT_NACK) {
+ 			err |= OMAP_I2C_STAT_NACK;
++			omap_i2c_ack_stat(dev, OMAP_I2C_STAT_NACK);
 +			omap_i2c_complete_cmd(dev, err);
 +			return IRQ_HANDLED;
 +		}
-+
- 		dev_dbg(dev->dev, "IRQ (ISR = 0x%04x)\n", stat);
- 		if (count++ == 100) {
- 			dev_warn(dev->dev, "Too much work in one IRQ\n");
--			break;
+ 
+ 		if (stat & OMAP_I2C_STAT_AL) {
+ 			dev_err(dev->dev, "Arbitration lost\n");
+ 			err |= OMAP_I2C_STAT_AL;
++			omap_i2c_ack_stat(dev, OMAP_I2C_STAT_NACK);
 +			omap_i2c_complete_cmd(dev, err);
 +			return IRQ_HANDLED;
  		}
  
--		err = 0;
- complete:
  		/*
- 		 * Ack the stat in one go, but [R/X]DR and [R/X]RDY should be
-@@ -987,7 +996,7 @@ complete:
- 			dev_err(dev->dev, "Transmit underflow\n");
- 			dev->cmd_err |= OMAP_I2C_STAT_XUDF;
- 		}
--	}
-+	} while (stat);
+@@ -989,12 +987,18 @@ complete:
  
- 	return count ? IRQ_HANDLED : IRQ_NONE;
- }
+ 		if (stat & OMAP_I2C_STAT_ROVR) {
+ 			dev_err(dev->dev, "Receive overrun\n");
+-			dev->cmd_err |= OMAP_I2C_STAT_ROVR;
++			err |= OMAP_I2C_STAT_ROVR;
++			omap_i2c_ack_stat(dev, OMAP_I2C_STAT_ROVR);
++			omap_i2c_complete_cmd(dev, err);
++			return IRQ_HANDLED;
+ 		}
+ 
+ 		if (stat & OMAP_I2C_STAT_XUDF) {
+ 			dev_err(dev->dev, "Transmit underflow\n");
+-			dev->cmd_err |= OMAP_I2C_STAT_XUDF;
++			err |= OMAP_I2C_STAT_XUDF;
++			omap_i2c_ack_stat(dev, OMAP_I2C_STAT_XUDF);
++			omap_i2c_complete_cmd(dev, err);
++			return IRQ_HANDLED;
+ 		}
+ 	} while (stat);
+ 
 -- 
 1.7.10.4
