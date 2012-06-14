@@ -1,80 +1,46 @@
-From: "Hiremath, Vaibhav" <hvaibhav@ti.com>
-Subject: RE: [PATCH V2 5/5] Input: ads7846: set proper debounce time in
- driver level
-Date: Thu, 14 Jun 2012 06:31:16 +0000
-Message-ID: <79CD15C6BA57404B839C016229A409A83EA4FC98@DBDE01.ent.ti.com>
-References: <zumeng.chen@gmail.com>
- <1339551850-20827-1-git-send-email-zumeng.chen@gmail.com>
- <1339551850-20827-6-git-send-email-zumeng.chen@gmail.com>
- <79CD15C6BA57404B839C016229A409A83EA4F07F@DBDE01.ent.ti.com>
- <4FD96CBF.5040106@windriver.com>
+From: Tony Lindgren <tony@atomide.com>
+Subject: Re: [PATCH 3/3] ARM: OMAP2+: gpmc: handle additional timings
+Date: Wed, 13 Jun 2012 23:32:19 -0700
+Message-ID: <20120614063218.GZ12766@atomide.com>
+References: <cover.1339419244.git.afzal@ti.com>
+ <c4bd7d71e9950c09f9712077160b6231f566d8f3.1339419244.git.afzal@ti.com>
+ <4FD63DBF.9000200@ti.com>
+ <C8443D0743D26F4388EA172BF4E2A7A93E997D9E@DBDE01.ent.ti.com>
+ <4FD77E35.3050703@ti.com>
+ <C8443D0743D26F4388EA172BF4E2A7A93E998767@DBDE01.ent.ti.com>
+ <20120613113217.GK12766@atomide.com>
+ <C8443D0743D26F4388EA172BF4E2A7A93E998D51@DBDE01.ent.ti.com>
+ <20120613124215.GT12766@atomide.com>
+ <C8443D0743D26F4388EA172BF4E2A7A93E998F70@DBDE01.ent.ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="iso-2022-jp"
-Content-Transfer-Encoding: 8BIT
-Return-path: <linux-input-owner@vger.kernel.org>
-In-Reply-To: <4FD96CBF.5040106@windriver.com>
-Content-Language: en-US
-Sender: linux-input-owner@vger.kernel.org
-To: Zumeng Chen <zumeng.chen@windriver.com>, "mike@compulab.co.il" <mike@compulab.co.il>
-Cc: Zumeng Chen <zumeng.chen@gmail.com>, "tony@atomide.com" <tony@atomide.com>, "Hunter, Jon" <jon-hunter@ti.com>, "grinberg@compulab.co.il" <grinberg@compulab.co.il>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, "Hilman, Kevin" <khilman@ti.com>, "Syed Mohammed, Khasim" <khasim@ti.com>, "Gupta, Ajay Kumar" <ajay.gupta@ti.com>, "dmitry.torokhov@gmail.com" <dmitry.torokhov@gmail.com>, "linux-input@vger.kernel.org" <linux-input@vger.kernel.org>
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from mho-01-ewr.mailhop.org ([204.13.248.71]:48202 "EHLO
+	mho-01-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752274Ab2FNGcY (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 14 Jun 2012 02:32:24 -0400
+Content-Disposition: inline
+In-Reply-To: <C8443D0743D26F4388EA172BF4E2A7A93E998F70@DBDE01.ent.ti.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: "Mohammed, Afzal" <afzal@ti.com>
+Cc: "paul@pwsan.com" <paul@pwsan.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "Hunter, Jon" <jon-hunter@ti.com>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>
 
-On Thu, Jun 14, 2012 at 10:16:55, Zumeng Chen wrote:
-> 于 2012年06月13日 20:18, Hiremath, Vaibhav 写道:
-> > On Wed, Jun 13, 2012 at 07:14:10, Zumeng Chen wrote:
-> >> From: Zumeng Chen<zumeng.chen@windriver.com>
-> >>
-> >> If we don't set proper debouce time for ads7846, then there are
-> >> flooded interrupt counters of ads7846 responding to one time
-> >> touch on screen, so the driver couldn't work well.
-> >>
-> >> And since most OMAP3 series boards pass NULL pointer of board_pdata
-> >> to omap_ads7846_init, so it's more proper to set it in driver level
-> >> after having gpio_request done.
-> >>
-> >> This patch has been validated on 3530evm.
-> >>
-> >> Signed-off-by: Zumeng Chen<zumeng.chen@windriver.com>
-> >> Signed-off-by: Syed Mohammed Khasim<khasim@ti.com>
-> >> ---
-> >>   drivers/input/touchscreen/ads7846.c |    4 ++++
-> >>   1 files changed, 4 insertions(+), 0 deletions(-)
-> >>
-> >> diff --git a/drivers/input/touchscreen/ads7846.c b/drivers/input/touchscreen/ads7846.c
-> >> index f02028e..459ff29 100644
-> >> --- a/drivers/input/touchscreen/ads7846.c
-> >> +++ b/drivers/input/touchscreen/ads7846.c
-> >> @@ -980,6 +980,10 @@ static int __devinit ads7846_setup_pendown(struct spi_device *spi, struct ads784
-> >>   		}
-> >>
-> >>   		ts->gpio_pendown = pdata->gpio_pendown;
-> >> +#ifdef CONFIG_ARCH_OMAP3
-> >> +		/* 310 means about 10 microsecond for omap3 */
-> >> +		gpio_set_debounce(pdata->gpio_pendown, 310);
-> >> +#endif
-> >>
-> > Zumeng,
-> >
-> > With my sign-off you are changing the original code, that too
-> > without my sign-off and ack.
-> > I wouldn't mind you to submit patches from my tree, but the expectation is
-> > if you are changing the original code, it should be under your sign-off.
-> Thanks, good to learn. I'll remove in next time.
-> > Coming to the patch, #ifdef in driver is not recommended, and this 10msec
-> > delay is specific to OMAP GPIO and driver should not be aware of this,
-> > that's where you will find the original patch handling it in board file.
-> According to the git blame of the board-omap3evm.c I think
-> 96974a24 did a good thing to all the related codes for omap3
-> boards. So I think we can call board and driver as BSP level :-)
+* Mohammed, Afzal <afzal@ti.com> [120613 07:09]:
+> Hi Tony,
 > 
-> If #ifdef in driver can save many codes, I guess it's deserved.
+> On Wed, Jun 13, 2012 at 18:12:15, Tony Lindgren wrote:
 > 
+> > > Or should additional timings be achieved without affecting old
+> > > interface, but that it seems would necessitate more code
+> > > duplication.
+> > 
+> > We should just keep the same timings as before, with values
+> > added for the newly added registers.
+> 
+> What I understood from above is to get values bootloader used to
+> set for those new timings & put in Kernel, right ?
 
-No, not really.
+Yeah and eventually to the .dts files.
 
-In the same commit, the debounce time is already handled as an argument to 
-the function omap_ads7846_init(), and that’s the way it should be.
-So no need for #ifdefs in driver...
-
-Thanks,
-Vaibhav
+Tony
