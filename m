@@ -1,64 +1,53 @@
-From: Felipe Balbi <balbi@ti.com>
-Subject: [PATCH 12/17] i2c: omap: switch to platform_get_irq()
-Date: Thu, 14 Jun 2012 13:20:45 +0300
-Message-ID: <1339669250-9183-13-git-send-email-balbi@ti.com>
-References: <1339669250-9183-1-git-send-email-balbi@ti.com>
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <1339669250-9183-1-git-send-email-balbi@ti.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: ben-linux@fluff.org
-Cc: Tony Lindgren <tony@atomide.com>, w.sang@pengutronix.de, Linux OMAP Mailing List <linux-omap@vger.kernel.org>, linux-i2c@vger.kernel.org, Linux ARM Kernel Mailing List <linux-arm-kernel@lists.infradead.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Felipe Balbi <balbi@ti.com>
+From: Santosh Shilimkar <santosh.shilimkar@ti.com>
+Subject: [PATCH v3 0/4] dt: device tree support for TI EMIF driver for 3.6
+Date: Thu, 14 Jun 2012 15:59:20 +0530
+Message-ID: <1339669764-27244-1-git-send-email-santosh.shilimkar@ti.com>
+Mime-Version: 1.0
+Content-Type: text/plain
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from arroyo.ext.ti.com ([192.94.94.40]:47522 "EHLO arroyo.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1754461Ab2FNK3g (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Thu, 14 Jun 2012 06:29:36 -0400
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: tony@atomide.com
+Cc: linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org, Santosh Shilimkar <santosh.shilimkar@ti.com>
 
-that's a nice helper from drivers core which
-will give us the exact IRQ number, instead
-of a pointer to an IRQ resource.
+Tony,
 
-Signed-off-by: Felipe Balbi <balbi@ti.com>
----
- drivers/i2c/busses/i2c-omap.c |   11 ++++++-----
- 1 file changed, 6 insertions(+), 5 deletions(-)
+Here is the EMIF driver DT support which was kept on hold for the driver
+to get merged. The series has been already reviewed on the list.
 
-diff --git a/drivers/i2c/busses/i2c-omap.c b/drivers/i2c/busses/i2c-omap.c
-index d805270..43d3289 100644
---- a/drivers/i2c/busses/i2c-omap.c
-+++ b/drivers/i2c/busses/i2c-omap.c
-@@ -1045,11 +1045,12 @@ omap_i2c_probe(struct platform_device *pdev)
- {
- 	struct omap_i2c_dev	*dev;
- 	struct i2c_adapter	*adap;
--	struct resource		*mem, *irq;
-+	struct resource		*mem;
- 	struct omap_i2c_bus_platform_data *pdata = pdev->dev.platform_data;
- 	struct device_node	*node = pdev->dev.of_node;
- 	const struct of_device_id *match;
- 	irq_handler_t isr;
-+	int irq;
- 	int r;
- 
- 	/* NOTE: driver uses the static register mapping */
-@@ -1059,10 +1060,10 @@ omap_i2c_probe(struct platform_device *pdev)
- 		return -ENODEV;
- 	}
- 
--	irq = platform_get_resource(pdev, IORESOURCE_IRQ, 0);
--	if (!irq) {
-+	irq = platform_get_irq(pdev, 0);
-+	if (irq < 0) {
- 		dev_err(&pdev->dev, "no irq resource?\n");
--		return -ENODEV;
-+		return irq;
- 	}
- 
- 	dev = devm_kzalloc(&pdev->dev, sizeof(struct omap_i2c_dev), GFP_KERNEL);
-@@ -1090,7 +1091,7 @@ omap_i2c_probe(struct platform_device *pdev)
- 	}
- 
- 	dev->dev = &pdev->dev;
--	dev->irq = irq->start;
-+	dev->irq = irq;
- 	dev->base = devm_request_and_ioremap(&pdev->dev, mem);
- 	if (!dev->base) {
- 		dev_err(&pdev->dev, "ioremap failed\n");
+This series adds device tree support for TI EMIF SDRAM controller
+driver. For this, a binding has been added for representing AC timing
+parameters and other details of LPDDR2 memories.
+
+v3:
+Rebased against the 3.5-rc2. The series is aslo available
+at:
+git://github.com/SantoshShilimkar/linux.git for_3.6/emif_dt
+
+Aneesh V (4):
+  dt: device tree bindings for LPDDR2 memories
+  dt: emif: device tree bindings for TI's EMIF sdram controller
+  arm: dts: EMIF and LPDDR2 device tree data for OMAP4 boards
+  memory: emif: add device tree support to emif driver
+
+ .../devicetree/bindings/lpddr2/lpddr2-timings.txt  |   52 ++++
+ .../devicetree/bindings/lpddr2/lpddr2.txt          |  102 +++++++
+ .../bindings/memory-controllers/ti/emif.txt        |   55 ++++
+ arch/arm/boot/dts/elpida_ecb240abacn.dtsi          |   67 +++++
+ arch/arm/boot/dts/omap4-panda.dts                  |   13 +
+ arch/arm/boot/dts/omap4-sdp.dts                    |   13 +
+ arch/arm/boot/dts/omap4.dtsi                       |   18 ++
+ drivers/memory/emif.c                              |  285 +++++++++++++++++++-
+ 8 files changed, 604 insertions(+), 1 deletion(-)
+ create mode 100644 Documentation/devicetree/bindings/lpddr2/lpddr2-timings.txt
+ create mode 100644 Documentation/devicetree/bindings/lpddr2/lpddr2.txt
+ create mode 100644 Documentation/devicetree/bindings/memory-controllers/ti/emif.txt
+ create mode 100644 arch/arm/boot/dts/elpida_ecb240abacn.dtsi
+
 -- 
-1.7.10.4
+1.7.9.5
+
