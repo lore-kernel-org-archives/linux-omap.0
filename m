@@ -1,115 +1,239 @@
-From: "Shilimkar, Santosh" <santosh.shilimkar-l0cyMroinI0@public.gmane.org>
-Subject: Re: [PATCH 02/17] i2c: omap: decrease indentation level on data handling
-Date: Thu, 14 Jun 2012 16:11:14 +0530
-Message-ID: <CAMQu2gx75iDwwRJCT4XfSmo3Uux1oroUh8nkr_nEyjAU1qs1hw@mail.gmail.com>
-References: <1339669250-9183-1-git-send-email-balbi@ti.com> <1339669250-9183-3-git-send-email-balbi@ti.com>
+From: Felipe Balbi <balbi@ti.com>
+Subject: Re: [PATCH 02/17] i2c: omap: decrease indentation level on data
+ handling
+Date: Thu, 14 Jun 2012 13:40:30 +0300
+Message-ID: <20120614104030.GL13602@arwen.pp.htv.fi>
+References: <1339669250-9183-1-git-send-email-balbi@ti.com>
+ <1339669250-9183-3-git-send-email-balbi@ti.com>
+ <CAMQu2gx75iDwwRJCT4XfSmo3Uux1oroUh8nkr_nEyjAU1qs1hw@mail.gmail.com>
+Reply-To: balbi@ti.com
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: base64
-Return-path: <linux-i2c-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <1339669250-9183-3-git-send-email-balbi-l0cyMroinI0@public.gmane.org>
-Sender: linux-i2c-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Felipe Balbi <balbi-l0cyMroinI0@public.gmane.org>
-Cc: ben-linux-elnMNo+KYs3YtjvyW6yDsg@public.gmane.org, Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>, Linux Kernel Mailing List <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, w.sang-bIcnvbaLZ9MEGnE8C9+IrQ@public.gmane.org, linux-i2c-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Linux OMAP Mailing List <linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Linux ARM Kernel Mailing List <linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org>
+Content-Type: multipart/signed; micalg=pgp-sha1;
+	protocol="application/pgp-signature"; boundary="x38akuY2VS0PywU3"
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from na3sys009aog111.obsmtp.com ([74.125.149.205]:50402 "EHLO
+	na3sys009aog111.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1755463Ab2FNKme (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>);
+	Thu, 14 Jun 2012 06:42:34 -0400
+Received: by lags15 with SMTP id s15so1176061lag.20
+        for <linux-omap@vger.kernel.org>; Thu, 14 Jun 2012 03:42:31 -0700 (PDT)
+Content-Disposition: inline
+In-Reply-To: <CAMQu2gx75iDwwRJCT4XfSmo3Uux1oroUh8nkr_nEyjAU1qs1hw@mail.gmail.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: "Shilimkar, Santosh" <santosh.shilimkar@ti.com>
+Cc: Felipe Balbi <balbi@ti.com>, ben-linux@fluff.org, Tony Lindgren <tony@atomide.com>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, w.sang@pengutronix.de, linux-i2c@vger.kernel.org, Linux OMAP Mailing List <linux-omap@vger.kernel.org>, Linux ARM Kernel Mailing List <linux-arm-kernel@lists.infradead.org>
 
-T24gVGh1LCBKdW4gMTQsIDIwMTIgYXQgMzo1MCBQTSwgRmVsaXBlIEJhbGJpIDxiYWxiaUB0aS5j
-b20+IHdyb3RlOgo+IHRyaXZpYWwgcGF0Y2gsIG5vIGZ1bmN0aW9uYWwgY2hhbmdlcy4KPgo+IFNp
-Z25lZC1vZmYtYnk6IEZlbGlwZSBCYWxiaSA8YmFsYmlAdGkuY29tPgo+IC0tLQo+IKBkcml2ZXJz
-L2kyYy9idXNzZXMvaTJjLW9tYXAuYyB8IKAgNjMgKysrKysrKysrKysrKysrKysrKystLS0tLS0t
-LS0tLS0tLS0tLS0tLS0KPiCgMSBmaWxlIGNoYW5nZWQsIDMxIGluc2VydGlvbnMoKyksIDMyIGRl
-bGV0aW9ucygtKQo+Cj4gZGlmZiAtLWdpdCBhL2RyaXZlcnMvaTJjL2J1c3Nlcy9pMmMtb21hcC5j
-IGIvZHJpdmVycy9pMmMvYnVzc2VzL2kyYy1vbWFwLmMKPiBpbmRleCA5YjUzMmNkLi4zOWQ1NTgz
-IDEwMDY0NAo+IC0tLSBhL2RyaXZlcnMvaTJjL2J1c3Nlcy9pMmMtb21hcC5jCj4gKysrIGIvZHJp
-dmVycy9pMmMvYnVzc2VzL2kyYy1vbWFwLmMKPiBAQCAtODU2LDIyICs4NTYsNyBAQCBjb21wbGV0
-ZToKPiCgIKAgoCCgIKAgoCCgIKAgoCCgIKAgoCCgIKAgoCCgIKAgoCCgIKAgoCCgIKAgoCCgIKAg
-oCCgPj4gOCkgJiAweDNGOwo+IKAgoCCgIKAgoCCgIKAgoCCgIKAgoCCgfQo+IKAgoCCgIKAgoCCg
-IKAgoCCgIKAgoCCgd2hpbGUgKG51bV9ieXRlcy0tKSB7Cj4gLSCgIKAgoCCgIKAgoCCgIKAgoCCg
-IKAgoCCgIKAgoCB3ID0gb21hcF9pMmNfcmVhZF9yZWcoZGV2LCBPTUFQX0kyQ19EQVRBX1JFRyk7
-Cj4gLSCgIKAgoCCgIKAgoCCgIKAgoCCgIKAgoCCgIKAgoCBpZiAoZGV2LT5idWZfbGVuKSB7Cj4g
-LSCgIKAgoCCgIKAgoCCgIKAgoCCgIKAgoCCgIKAgoCCgIKAgoCCgICpkZXYtPmJ1ZisrID0gdzsK
-PiAtIKAgoCCgIKAgoCCgIKAgoCCgIKAgoCCgIKAgoCCgIKAgoCCgIKAgZGV2LT5idWZfbGVuLS07
-Cj4gLSCgIKAgoCCgIKAgoCCgIKAgoCCgIKAgoCCgIKAgoCCgIKAgoCCgIC8qCj4gLSCgIKAgoCCg
-IKAgoCCgIKAgoCCgIKAgoCCgIKAgoCCgIKAgoCCgIKAqIERhdGEgcmVnIGluIDI0MzAsIG9tYXAz
-IGFuZAo+IC0goCCgIKAgoCCgIKAgoCCgIKAgoCCgIKAgoCCgIKAgoCCgIKAgoCCgKiBvbWFwNCBp
-cyA4IGJpdCB3aWRlCj4gLSCgIKAgoCCgIKAgoCCgIKAgoCCgIKAgoCCgIKAgoCCgIKAgoCCgIKAq
-Lwo+IC0goCCgIKAgoCCgIKAgoCCgIKAgoCCgIKAgoCCgIKAgoCCgIKAgoCBpZiAoZGV2LT5mbGFn
-cyAmCj4gLSCgIKAgoCCgIKAgoCCgIKAgoCCgIKAgoCCgIKAgoCCgIKAgoCCgIKAgoCCgIKAgoE9N
-QVBfSTJDX0ZMQUdfMTZCSVRfREFUQV9SRUcpIHsKPiAtIKAgoCCgIKAgoCCgIKAgoCCgIKAgoCCg
-IKAgoCCgIKAgoCCgIKAgoCCgIKAgoCBpZiAoZGV2LT5idWZfbGVuKSB7Cj4gLSCgIKAgoCCgIKAg
-oCCgIKAgoCCgIKAgoCCgIKAgoCCgIKAgoCCgIKAgoCCgIKAgoCCgIKAgoCAqZGV2LT5idWYrKyA9
-IHcgPj4gODsKPiAtIKAgoCCgIKAgoCCgIKAgoCCgIKAgoCCgIKAgoCCgIKAgoCCgIKAgoCCgIKAg
-oCCgIKAgoCCgIGRldi0+YnVmX2xlbi0tOwo+IC0goCCgIKAgoCCgIKAgoCCgIKAgoCCgIKAgoCCg
-IKAgoCCgIKAgoCCgIKAgoCCgIH0KPiAtIKAgoCCgIKAgoCCgIKAgoCCgIKAgoCCgIKAgoCCgIKAg
-oCCgIKAgfQo+IC0goCCgIKAgoCCgIKAgoCCgIKAgoCCgIKAgoCCgIKAgfSBlbHNlIHsKPiArIKAg
-oCCgIKAgoCCgIKAgoCCgIKAgoCCgIKAgoCCgIGlmICghZGV2LT5idWZfbGVuKSB7Cj4goCCgIKAg
-oCCgIKAgoCCgIKAgoCCgIKAgoCCgIKAgoCCgIKAgoCCgaWYgKHN0YXQgJiBPTUFQX0kyQ19TVEFU
-X1JSRFkpCj4goCCgIKAgoCCgIKAgoCCgIKAgoCCgIKAgoCCgIKAgoCCgIKAgoCCgIKAgoCCgIKBk
-ZXZfZXJyKGRldi0+ZGV2LAo+IKAgoCCgIKAgoCCgIKAgoCCgIKAgoCCgIKAgoCCgIKAgoCCgIKAg
-oCCgIKAgoCCgIKAgoCCgIKAiUlJEWSBJUlEgd2hpbGUgbm8gZGF0YSIKPiBAQCAtODgyLDYgKzg2
-NywyMSBAQCBjb21wbGV0ZToKPiCgIKAgoCCgIKAgoCCgIKAgoCCgIKAgoCCgIKAgoCCgIKAgoCCg
-IKAgoCCgIKAgoCCgIKAgoCCgIKAgoCCgIKAiIHJlcXVlc3RlZFxuIik7Cj4goCCgIKAgoCCgIKAg
-oCCgIKAgoCCgIKAgoCCgIKAgoCCgIKAgoCCgYnJlYWs7Cj4goCCgIKAgoCCgIKAgoCCgIKAgoCCg
-IKAgoCCgIKAgoH0KPiArCj4gKyCgIKAgoCCgIKAgoCCgIKAgoCCgIKAgoCCgIKAgoCB3ID0gb21h
-cF9pMmNfcmVhZF9yZWcoZGV2LCBPTUFQX0kyQ19EQVRBX1JFRyk7Cj4gKyCgIKAgoCCgIKAgoCCg
-IKAgoCCgIKAgoCCgIKAgoCAqZGV2LT5idWYrKyA9IHc7Cj4gKyCgIKAgoCCgIKAgoCCgIKAgoCCg
-IKAgoCCgIKAgoCBkZXYtPmJ1Zl9sZW4tLTsKPiArIKAgoCCgIKAgoCCgIKAgoCCgIKAgoCCgIKAg
-oCCgIC8qCj4gKyCgIKAgoCCgIKAgoCCgIKAgoCCgIKAgoCCgIKAgoCCgKiBEYXRhIHJlZyBpbiAy
-NDMwLCBvbWFwMyBhbmQKPiArIKAgoCCgIKAgoCCgIKAgoCCgIKAgoCCgIKAgoCCgIKAqIG9tYXA0
-IGlzIDggYml0IHdpZGUKPiArIKAgoCCgIKAgoCCgIKAgoCCgIKAgoCCgIKAgoCCgIKAqLwo+ICsg
-oCCgIKAgoCCgIKAgoCCgIKAgoCCgIKAgoCCgIKAgaWYgKGRldi0+ZmxhZ3MgJgo+ICsgoCCgIKAg
-oCCgIKAgoCCgIKAgoCCgIKAgoCCgIKAgoCCgIKAgoCCgIKAgoCCgIE9NQVBfSTJDX0ZMQUdfMTZC
-SVRfREFUQV9SRUcpIHsKPiArIKAgoCCgIKAgoCCgIKAgoCCgIKAgoCCgIKAgoCCgIKAgoCCgIKAg
-aWYgKGRldi0+YnVmX2xlbikgewo+ICsgoCCgIKAgoCCgIKAgoCCgIKAgoCCgIKAgoCCgIKAgoCCg
-IKAgoCCgIKAgoCCgICpkZXYtPmJ1ZisrID0gdyA+PiA4Owo+ICsgoCCgIKAgoCCgIKAgoCCgIKAg
-oCCgIKAgoCCgIKAgoCCgIKAgoCCgIKAgoCCgIGRldi0+YnVmX2xlbi0tOwo+ICsgoCCgIKAgoCCg
-IKAgoCCgIKAgoCCgIKAgoCCgIKAgoCCgIKAgoCB9Cj4gKyCgIKAgoCCgIKAgoCCgIKAgoCCgIKAg
-oCCgIKAgoCB9Cj4goCCgIKAgoCCgIKAgoCCgIKAgoCCgIKB9Cj4goCCgIKAgoCCgIKAgoCCgIKAg
-oCCgIKBvbWFwX2kyY19hY2tfc3RhdChkZXYsCj4goCCgIKAgoCCgIKAgoCCgIKAgoCCgIKAgoCCg
-IKAgoHN0YXQgJiAoT01BUF9JMkNfU1RBVF9SUkRZIHwgT01BUF9JMkNfU1RBVF9SRFIpKTsKPiBA
-QCAtODk4LDIyICs4OTgsNyBAQCBjb21wbGV0ZToKPiCgIKAgoCCgIKAgoCCgIKAgoCCgIKAgoCCg
-IKAgoCCgIKAgoCCgIKAgoCCgIKAgoCCgIKAgoCCgJiAweDNGOwo+IKAgoCCgIKAgoCCgIKAgoCCg
-IKAgoCCgfQo+IKAgoCCgIKAgoCCgIKAgoCCgIKAgoCCgd2hpbGUgKG51bV9ieXRlcy0tKSB7Cj4g
-LSCgIKAgoCCgIKAgoCCgIKAgoCCgIKAgoCCgIKAgoCB3ID0gMDsKPiAtIKAgoCCgIKAgoCCgIKAg
-oCCgIKAgoCCgIKAgoCCgIGlmIChkZXYtPmJ1Zl9sZW4pIHsKPiAtIKAgoCCgIKAgoCCgIKAgoCCg
-IKAgoCCgIKAgoCCgIKAgoCCgIKAgdyA9ICpkZXYtPmJ1ZisrOwo+IC0goCCgIKAgoCCgIKAgoCCg
-IKAgoCCgIKAgoCCgIKAgoCCgIKAgoCBkZXYtPmJ1Zl9sZW4tLTsKPiAtIKAgoCCgIKAgoCCgIKAg
-oCCgIKAgoCCgIKAgoCCgIKAgoCCgIKAgLyoKPiAtIKAgoCCgIKAgoCCgIKAgoCCgIKAgoCCgIKAg
-oCCgIKAgoCCgIKAgoCogRGF0YSByZWcgaW4gMjQzMCwgb21hcDMgYW5kCj4gLSCgIKAgoCCgIKAg
-oCCgIKAgoCCgIKAgoCCgIKAgoCCgIKAgoCCgIKAqIG9tYXA0IGlzIDggYml0IHdpZGUKPiAtIKAg
-oCCgIKAgoCCgIKAgoCCgIKAgoCCgIKAgoCCgIKAgoCCgIKAgoCovCj4gLSCgIKAgoCCgIKAgoCCg
-IKAgoCCgIKAgoCCgIKAgoCCgIKAgoCCgIGlmIChkZXYtPmZsYWdzICYKPiAtIKAgoCCgIKAgoCCg
-IKAgoCCgIKAgoCCgIKAgoCCgIKAgoCCgIKAgoCCgIKAgoCCgT01BUF9JMkNfRkxBR18xNkJJVF9E
-QVRBX1JFRykgewo+IC0goCCgIKAgoCCgIKAgoCCgIKAgoCCgIKAgoCCgIKAgoCCgIKAgoCCgIKAg
-oCCgIGlmIChkZXYtPmJ1Zl9sZW4pIHsKPiAtIKAgoCCgIKAgoCCgIKAgoCCgIKAgoCCgIKAgoCCg
-IKAgoCCgIKAgoCCgIKAgoCCgIKAgoCCgIHcgfD0gKmRldi0+YnVmKysgPDwgODsKPiAtIKAgoCCg
-IKAgoCCgIKAgoCCgIKAgoCCgIKAgoCCgIKAgoCCgIKAgoCCgIKAgoCCgIKAgoCCgIGRldi0+YnVm
-X2xlbi0tOwo+IC0goCCgIKAgoCCgIKAgoCCgIKAgoCCgIKAgoCCgIKAgoCCgIKAgoCCgIKAgoCCg
-IH0KPiAtIKAgoCCgIKAgoCCgIKAgoCCgIKAgoCCgIKAgoCCgIKAgoCCgIKAgfQo+IC0goCCgIKAg
-oCCgIKAgoCCgIKAgoCCgIKAgoCCgIKAgfSBlbHNlIHsKPiArIKAgoCCgIKAgoCCgIKAgoCCgIKAg
-oCCgIKAgoCCgIGlmICghZGV2LT5idWZfbGVuKSB7Cj4goCCgIKAgoCCgIKAgoCCgIKAgoCCgIKAg
-oCCgIKAgoCCgIKAgoCCgaWYgKHN0YXQgJiBPTUFQX0kyQ19TVEFUX1hSRFkpCj4goCCgIKAgoCCg
-IKAgoCCgIKAgoCCgIKAgoCCgIKAgoCCgIKAgoCCgIKAgoCCgIKBkZXZfZXJyKGRldi0+ZGV2LAo+
-IKAgoCCgIKAgoCCgIKAgoCCgIKAgoCCgIKAgoCCgIKAgoCCgIKAgoCCgIKAgoCCgIKAgoCCgIKAi
-WFJEWSBJUlEgd2hpbGUgbm8gIgo+IEBAIC05MjUsNiArOTEwLDIwIEBAIGNvbXBsZXRlOgo+IKAg
-oCCgIKAgoCCgIKAgoCCgIKAgoCCgIKAgoCCgIKAgoCCgIKAgoGJyZWFrOwo+IKAgoCCgIKAgoCCg
-IKAgoCCgIKAgoCCgIKAgoCCgIKB9Cj4KPiArIKAgoCCgIKAgoCCgIKAgoCCgIKAgoCCgIKAgoCCg
-IHcgPSAqZGV2LT5idWYrKzsKPiArIKAgoCCgIKAgoCCgIKAgoCCgIKAgoCCgIKAgoCCgIGRldi0+
-YnVmX2xlbi0tOwo+ICsgoCCgIKAgoCCgIKAgoCCgIKAgoCCgIKAgoCCgIKAgLyoKPiArIKAgoCCg
-IKAgoCCgIKAgoCCgIKAgoCCgIKAgoCCgIKAqIERhdGEgcmVnIGluIDI0MzAsIG9tYXAzIGFuZAo+
-ICsgoCCgIKAgoCCgIKAgoCCgIKAgoCCgIKAgoCCgIKAgoCogb21hcDQgaXMgOCBiaXQgd2lkZQo+
-ICsgoCCgIKAgoCCgIKAgoCCgIKAgoCCgIKAgoCCgIKAgoCovCj4gKyCgIKAgoCCgIKAgoCCgIKAg
-oCCgIKAgoCCgIKAgoCBpZiAoZGV2LT5mbGFncyAmCj4gKyCgIKAgoCCgIKAgoCCgIKAgoCCgIKAg
-oCCgIKAgoCCgIKAgoCCgIKAgoCCgIKAgT01BUF9JMkNfRkxBR18xNkJJVF9EQVRBX1JFRykgewo+
-ICsgoCCgIKAgoCCgIKAgoCCgIKAgoCCgIKAgoCCgIKAgoCCgIKAgoCBpZiAoZGV2LT5idWZfbGVu
-KSB7Cj4gKyCgIKAgoCCgIKAgoCCgIKAgoCCgIKAgoCCgIKAgoCCgIKAgoCCgIKAgoCCgIKAgdyB8
-PSAqZGV2LT5idWYrKyA8PCA4Owo+ICsgoCCgIKAgoCCgIKAgoCCgIKAgoCCgIKAgoCCgIKAgoCCg
-IKAgoCCgIKAgoCCgIGRldi0+YnVmX2xlbi0tOwo+ICsgoCCgIKAgoCCgIKAgoCCgIKAgoCCgIKAg
-oCCgIKAgoCCgIKAgoCB9Cj4gKyCgIKAgoCCgIKAgoCCgIKAgoCCgIKAgoCCgIKAgoCB9Cj4gKwo+
-IKAgoCCgIKAgoCCgIKAgoCCgIKAgoCCgIKAgoCCgIKBpZiAoKGRldi0+ZXJyYXRhICYgSTJDX09N
-QVAzXzFQMTUzKSAmJgo+IKAgoCCgIKAgoCCgIKAgoCCgIKAgoCCgIKAgoCCgIKAgoCCgZXJyYXRh
-X29tYXAzXzFwMTUzKGRldiwgJnN0YXQsICZlcnIpKQo+IKAgoCCgIKAgoCCgIKAgoCCgIKAgoCCg
-IKAgoCCgIKAgoCCgIKAgoGdvdG8gY29tcGxldGU7CgpBdm9pZHMgY291cGxlIG9mIGlmIGNoZWNr
-IGFuZCBraWxscyB0aGUgdW4tbmVjZXNzYXJ5IGlmL2Vsc2UgaW5zaWRlIHRoZSBsb29wLgpEaWQg
-SSBtaXNzIGFueXRoaW5nIGVsc2UgaW4gdGhlIHBhdGNoID8KCkxvb2tzIGdvb2QgdG8gbWUKUmV2
-aWV3ZWQtYnkgOiBTYW50b3NoIFNoaWxpbWthciA8c2FudG9zaC5zaGlsaW1rYXJAdGkuY29tPgo=
+
+--x38akuY2VS0PywU3
+Content-Type: text/plain; charset=iso-8859-1
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
+
+On Thu, Jun 14, 2012 at 04:11:14PM +0530, Shilimkar, Santosh wrote:
+> On Thu, Jun 14, 2012 at 3:50 PM, Felipe Balbi <balbi@ti.com> wrote:
+> > trivial patch, no functional changes.
+> >
+> > Signed-off-by: Felipe Balbi <balbi@ti.com>
+> > ---
+> > =A0drivers/i2c/busses/i2c-omap.c | =A0 63 ++++++++++++++++++++---------=
+------------
+> > =A01 file changed, 31 insertions(+), 32 deletions(-)
+> >
+> > diff --git a/drivers/i2c/busses/i2c-omap.c b/drivers/i2c/busses/i2c-oma=
+p.c
+> > index 9b532cd..39d5583 100644
+> > --- a/drivers/i2c/busses/i2c-omap.c
+> > +++ b/drivers/i2c/busses/i2c-omap.c
+> > @@ -856,22 +856,7 @@ complete:
+> > =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0=
+ =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0>> 8) & 0x3F;
+> > =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0}
+> > =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0while (num_bytes--) {
+> > - =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 w =3D oma=
+p_i2c_read_reg(dev, OMAP_I2C_DATA_REG);
+> > - =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 if (dev->=
+buf_len) {
+> > - =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =
+=A0 =A0 *dev->buf++ =3D w;
+> > - =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =
+=A0 =A0 dev->buf_len--;
+> > - =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =
+=A0 =A0 /*
+> > - =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =
+=A0 =A0 =A0* Data reg in 2430, omap3 and
+> > - =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =
+=A0 =A0 =A0* omap4 is 8 bit wide
+> > - =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =
+=A0 =A0 =A0*/
+> > - =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =
+=A0 =A0 if (dev->flags &
+> > - =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =
+=A0 =A0 =A0 =A0 =A0 =A0 =A0OMAP_I2C_FLAG_16BIT_DATA_REG) {
+> > - =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =
+=A0 =A0 =A0 =A0 =A0 =A0 if (dev->buf_len) {
+> > - =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =
+=A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 *dev->buf++ =3D w >> 8;
+> > - =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =
+=A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 dev->buf_len--;
+> > - =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =
+=A0 =A0 =A0 =A0 =A0 =A0 }
+> > - =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =
+=A0 =A0 }
+> > - =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 } else {
+> > + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 if (!dev-=
+>buf_len) {
+> > =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0=
+ =A0 =A0if (stat & OMAP_I2C_STAT_RRDY)
+> > =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0=
+ =A0 =A0 =A0 =A0 =A0 =A0dev_err(dev->dev,
+> > =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0=
+ =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0"RRDY IRQ while no data"
+> > @@ -882,6 +867,21 @@ complete:
+> > =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0=
+ =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0" requested\n");
+> > =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0=
+ =A0 =A0break;
+> > =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0}
+> > +
+> > + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 w =3D oma=
+p_i2c_read_reg(dev, OMAP_I2C_DATA_REG);
+> > + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 *dev->buf=
+++ =3D w;
+> > + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 dev->buf_=
+len--;
+> > + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 /*
+> > + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0* Data=
+ reg in 2430, omap3 and
+> > + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0* omap=
+4 is 8 bit wide
+> > + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0*/
+> > + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 if (dev->=
+flags &
+> > + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =
+=A0 =A0 =A0 =A0 =A0 =A0 OMAP_I2C_FLAG_16BIT_DATA_REG) {
+> > + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =
+=A0 =A0 if (dev->buf_len) {
+> > + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =
+=A0 =A0 =A0 =A0 =A0 =A0 *dev->buf++ =3D w >> 8;
+> > + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =
+=A0 =A0 =A0 =A0 =A0 =A0 dev->buf_len--;
+> > + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =
+=A0 =A0 }
+> > + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 }
+> > =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0}
+> > =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0omap_i2c_ack_stat(dev,
+> > =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0stat & (=
+OMAP_I2C_STAT_RRDY | OMAP_I2C_STAT_RDR));
+> > @@ -898,22 +898,7 @@ complete:
+> > =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0=
+ =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0& 0x3F;
+> > =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0}
+> > =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0while (num_bytes--) {
+> > - =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 w =3D 0;
+> > - =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 if (dev->=
+buf_len) {
+> > - =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =
+=A0 =A0 w =3D *dev->buf++;
+> > - =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =
+=A0 =A0 dev->buf_len--;
+> > - =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =
+=A0 =A0 /*
+> > - =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =
+=A0 =A0 =A0* Data reg in 2430, omap3 and
+> > - =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =
+=A0 =A0 =A0* omap4 is 8 bit wide
+> > - =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =
+=A0 =A0 =A0*/
+> > - =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =
+=A0 =A0 if (dev->flags &
+> > - =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =
+=A0 =A0 =A0 =A0 =A0 =A0 =A0OMAP_I2C_FLAG_16BIT_DATA_REG) {
+> > - =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =
+=A0 =A0 =A0 =A0 =A0 =A0 if (dev->buf_len) {
+> > - =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =
+=A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 w |=3D *dev->buf++ << 8;
+> > - =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =
+=A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 dev->buf_len--;
+> > - =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =
+=A0 =A0 =A0 =A0 =A0 =A0 }
+> > - =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =
+=A0 =A0 }
+> > - =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 } else {
+> > + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 if (!dev-=
+>buf_len) {
+> > =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0=
+ =A0 =A0if (stat & OMAP_I2C_STAT_XRDY)
+> > =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0=
+ =A0 =A0 =A0 =A0 =A0 =A0dev_err(dev->dev,
+> > =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0=
+ =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0"XRDY IRQ while no "
+> > @@ -925,6 +910,20 @@ complete:
+> > =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0=
+ =A0 =A0break;
+> > =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0}
+> >
+> > + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 w =3D *de=
+v->buf++;
+> > + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 dev->buf_=
+len--;
+> > + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 /*
+> > + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0* Data=
+ reg in 2430, omap3 and
+> > + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0* omap=
+4 is 8 bit wide
+> > + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0*/
+> > + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 if (dev->=
+flags &
+> > + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =
+=A0 =A0 =A0 =A0 =A0 =A0 OMAP_I2C_FLAG_16BIT_DATA_REG) {
+> > + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =
+=A0 =A0 if (dev->buf_len) {
+> > + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =
+=A0 =A0 =A0 =A0 =A0 =A0 w |=3D *dev->buf++ << 8;
+> > + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =
+=A0 =A0 =A0 =A0 =A0 =A0 dev->buf_len--;
+> > + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =
+=A0 =A0 }
+> > + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 }
+> > +
+> > =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0if ((dev=
+->errata & I2C_OMAP3_1P153) &&
+> > =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0=
+errata_omap3_1p153(dev, &stat, &err))
+> > =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0=
+ =A0 =A0goto complete;
+>=20
+> Avoids couple of if check and kills the un-necessary if/else inside the l=
+oop.
+> Did I miss anything else in the patch ?
+
+nope, that's about it ;-)
+
+--=20
+balbi
+
+--x38akuY2VS0PywU3
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: Digital signature
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.4.12 (GNU/Linux)
+
+iQIcBAEBAgAGBQJP2b+dAAoJEIaOsuA1yqREfXkQAJQj/vhWlE7g+ca9IIryioe4
+tsCKpipmcvZnoH2MAz0seNxh98RzEDB7xnPyrXN4bKU4NCx0VAtb6+R93M0A06ZB
+AD61iClOV3BVg4iDOMSWKYCef46z3axXaTuGUb3+weGZkTb+4q1SKvvGGOSChYE/
+La1jHK1zrbLXKuzSYWxxgVrijRd3Xz1DoAlGBxzqaxoowSft3Mf/H9Hc5QD0dx7/
+qKyriocoNGa/suM7YylZiIMU3RAJxSN9H/WGj6eh1ukWo3PS9K2q5OGdMIlw8wRJ
+5eqp5u2IHW3BO9GMI9eWXhHlEiD+WYDmjJIxlF2/HLj1ebJcOHkTId1wf5VLU2NV
+F88WkXUDMbqXQaeNiPYUzkevK3O0U9JYqoDFhAv3SA22Wjv5UwcmoURw5EMJXVA/
+MoElw63K/8JA8SB849L5a8HW/m6KEgVXRdt9xwOEh16V+ctDWe5YrffnDKXcfIXb
+1f2GbszQl/3whBUCLiQ0AD7ch1sx62X5u1LOK1kykOc7YDU0r7dCXAZ0h0oVU/B3
+cUnUnyO+aw3//g92QixuH5zKg4RGYPbD4o1urN8LxiPbvmWY2z7kifx4ynocQvU0
+3buqv+I9CfKtXJM3BOob+mveYq2pqLW5x4GL5tHx7rcdF3YOvR2o3sTpVjK0yaDN
+jkEqxUMO6+HuC7sYU4/2
+=6Ngc
+-----END PGP SIGNATURE-----
+
+--x38akuY2VS0PywU3--
