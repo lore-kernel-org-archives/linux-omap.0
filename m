@@ -1,93 +1,111 @@
-From: Jon Hunter <jon-hunter@ti.com>
-Subject: Re: [PATCH 2/3] ARM: OMAP2+: onenand: cleanup for gpmc driver conversion
-Date: Thu, 14 Jun 2012 12:53:48 -0500
-Message-ID: <4FDA252C.4020708@ti.com>
-References: <cover.1339419244.git.afzal@ti.com> <2d6f0fb31cde98cd700d7a4268683b4aeeee87f2.1339419244.git.afzal@ti.com> <4FD63AAE.90008@ti.com> <C8443D0743D26F4388EA172BF4E2A7A93E997D47@DBDE01.ent.ti.com> <4FD77CC8.4000003@ti.com> <C8443D0743D26F4388EA172BF4E2A7A93E998781@DBDE01.ent.ti.com> <4FD8C217.2050006@ti.com> <C8443D0743D26F4388EA172BF4E2A7A93E9993EF@DBDE01.ent.ti.com>
+From: "DebBarma, Tarun Kanti" <tarun.kanti@ti.com>
+Subject: Re: [GIT PULL] gpio/omap: cleanups for v3.5
+Date: Thu, 14 Jun 2012 23:24:10 +0530
+Message-ID: <CAC83ZvKT+EDRzBWrMbiyqOYqLW7WudOQeAq5Y5ZgXEs2txEPrA@mail.gmail.com>
+References: <874nrmtf47.fsf@ti.com>
+	<20120614101541.39f50aee@notabene.brown>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="ISO-8859-1"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from arroyo.ext.ti.com ([192.94.94.40]:42795 "EHLO arroyo.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752154Ab2FNRxp (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Thu, 14 Jun 2012 13:53:45 -0400
-In-Reply-To: <C8443D0743D26F4388EA172BF4E2A7A93E9993EF@DBDE01.ent.ti.com>
+Received: from na3sys009aog128.obsmtp.com ([74.125.149.141]:46724 "EHLO
+	na3sys009aog128.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1754999Ab2FNRyM convert rfc822-to-8bit
+	(ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Thu, 14 Jun 2012 13:54:12 -0400
+Received: by qcmv28 with SMTP id v28so1626132qcm.39
+        for <linux-omap@vger.kernel.org>; Thu, 14 Jun 2012 10:54:10 -0700 (PDT)
+In-Reply-To: <20120614101541.39f50aee@notabene.brown>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "Mohammed, Afzal" <afzal@ti.com>
-Cc: "tony@atomide.com" <tony@atomide.com>, "paul@pwsan.com" <paul@pwsan.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>
+To: NeilBrown <neilb@suse.de>
+Cc: Kevin Hilman <khilman@ti.com>, Grant Likely <grant.likely@secretlab.ca>, linux-omap <linux-omap@vger.kernel.org>, linux-arm-kernel <linux-arm-kernel@lists.infradead.org>
 
-Hi Afzal,
-
-On 06/14/2012 12:40 AM, Mohammed, Afzal wrote:
-> Hi Jon,
-> 
-> On Wed, Jun 13, 2012 at 22:08:47, Hunter, Jon wrote:
->> On 06/13/2012 12:03 AM, Mohammed, Afzal wrote:
-> 
->>> As gpmc_onenand_setup is a callback by onenand driver, we would have
->>> lost the opportunity to configure onenand before driver is probed.
+On Thu, Jun 14, 2012 at 5:45 AM, NeilBrown <neilb@suse.de> wrote:
+> On Fri, 11 May 2012 17:30:48 -0700 Kevin Hilman <khilman@ti.com> wrot=
+e:
+>
+>> Hi Grant,
 >>
->> Is that a problem? Looks like it is called early in the probe and so I
->> would hope no one is attempting to access the onenand itself before the
->> probe has completed.
-> 
-> During gpmc driver probe, it will configure all the connected peripherals,
-> if configuration details are not present at that point of time, gpmc driver
-> will cry out saying that configuration & timings has not been configured,
-> (please see holler if no configuration patch). 
-
-Sorry, I am not sure if I am missing something here, but isn't the
-chip-select requested during the gpmc probe? If so then we should not be
-programming the gpmc registers at all until the chip-select has been
-allocated. Hence, after the probe seems more appropriate.
-
-> And I do not see any reason
-> why gpmc driver should not be fed with async mode configuration initially,
-> as it has to be done always.
-
-It is more of where you are doing it. I am not against putting in async
-mode to begin with.
-
+>> Here's the final round of GPIO cleanups for v3.5. =A0This branch is =
+based
+>> on my for_3.5/fixes/gpio branch you just pulled.
 >>
->>> This would cause requirement of double GPMC configuring and we lost
->>> the opportunity to configure GPMC before driver is probed.
->>
->> I am not convinced we need to. Furthermore with your change you do not
->> actually set async mode in the onenand until _set_sync() is called.
-> 
-> Yes, setting async mode in onenand is done in set_sync function, and it is
-> always called by onenand driver indirectly.
-> 
-> Seems if setting async mode in onenand is taken out of set_sync & placed
-> it before set_sync invocation in gpmc_onenand_setup, intention will be
-> clear, right ? (even though sequence wise same thing is happening now)
+>> Kevin
+>
+> Hi.
+>
+> =A0I'm not sure if it was this series or the following cleanups which=
+ broke
+> =A0things for me, but I've been trying 3.5-rc2 on my GTA04 and the se=
+rial
+> =A0console (ttyO2) dies as soon as the omap-gpio driver initialises.
+>
+> =A0After some digging I came up with this patch to gpio-omap.c
+>
+> @@ -1124,6 +1124,9 @@ static int __devinit omap_gpio_probe(struct pla=
+tform_device *pdev)
+>
+> =A0 =A0 =A0 =A0platform_set_drvdata(pdev, bank);
+>
+> + =A0 =A0 =A0 if (bank->get_context_loss_count)
+> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 bank->context_loss_count =3D
+> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 bank->g=
+et_context_loss_count(bank->dev);
+> =A0 =A0 =A0 =A0pm_runtime_enable(bank->dev);
+> =A0 =A0 =A0 =A0pm_runtime_irq_safe(bank->dev);
+> =A0 =A0 =A0 =A0pm_runtime_get_sync(bank->dev);
+>
+> which fixes it.
+>
+> What was happening =A0was that when omap_gpio_probe calls pm_runtime_=
+get_sync,
+> it calls
+> =A0_od_runtime_resume -> pm_generic_runtime_resume -> omap_gpio_runti=
+me_resume
+> =A0-> omap_gpio_restore_context
+>
+> and then the serial port stops.
+> I reasoned that the context probably hadn't been set up yet, so resto=
+ring
+> from it broke things.
+> Initialising bank->context_loss_count seems sensible and would ensure=
+ that
+> we didn't try to restore the context until it has actually been lost.
 
-Exactly.
+I thought the following code exactly does that. That is context_lost_cn=
+t_after
+would be zero until there is context loss. The bank->context_loss_count=
+ is zero
+at the beginning. So, (context_lost_cnt_after !=3D bank->context_loss_c=
+ount) would
+be false and hence context restore should NOT happen? Not sure if I am
+over looking
+anything here....
 
->>
->>> And the first step for onenand configuration is always to set it
->>> to async mode (with the way it is done now), so it seems reasonable
->>> to rely on normal GPMC configuration for async & then do reconfigure
->>> for sync.
->>
->> Yes but as far as I can see, it seems that this is the intent of the
->> onenand_setup() function to perform the necessary initialisation.
-> 
-> I believe doing it in gpmc_onenand_init is better, due to the reasons
-> mentioned above as well as because function name will correspond to what
-> it is doing, i.e. initialization
-
-If the chip-select is allocating during the probe, then I don't agree.
-
->> Have you tested onenand? Do you have a board with onenand?
-> 
-> Yes, on omap3evm, with help of local patches (as mainline doesn't have
-> those). It was mentioned in cover letter of gpmc driver conversion series
-
-Great. Sorry but with 20+ patch spread across 3 series it is not always
-easy to find the details. So ideally it should be mentioned in this
-cover letter too.
-
-Thanks
-Jon
+omap_gpio_runtime_resume(...)
+{
+=2E..
+        if (bank->get_context_loss_count) {
+                context_lost_cnt_after =3D
+                        bank->get_context_loss_count(bank->dev);
+                if (context_lost_cnt_after !=3D bank->context_loss_coun=
+t) {
+                        omap_gpio_restore_context(bank);
+                } else {
+                        spin_unlock_irqrestore(&bank->lock, flags);
+                        return 0;
+                }
+        }
+=2E..
+}
+--
+Tarun
+>
+> Thanks,
+> NeilBrown
+--
+To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
