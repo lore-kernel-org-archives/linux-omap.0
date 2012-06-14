@@ -1,154 +1,83 @@
-From: Zumeng Chen <zumeng.chen@windriver.com>
-Subject: Re: [PATCH V2 5/5] Input: ads7846: set proper debounce time in driver
- level
-Date: Thu, 14 Jun 2012 16:18:29 +0800
-Message-ID: <4FD99E55.80603@windriver.com>
-References: <zumeng.chen@gmail.com> <1339551850-20827-1-git-send-email-zumeng.chen@gmail.com> <1339551850-20827-6-git-send-email-zumeng.chen@gmail.com> <79CD15C6BA57404B839C016229A409A83EA4F07F@DBDE01.ent.ti.com> <4FD96CBF.5040106@windriver.com> <4FD98856.8070601@compulab.co.il> <4FD98DDA.9050806@windriver.com> <4FD99B91.9030705@compulab.co.il>
+From: Tomi Valkeinen <tomi.valkeinen@ti.com>
+Subject: Re: [PATCH] OMAP: Beagle: fix TFP410 powerdown GPIO init
+Date: Thu, 14 Jun 2012 11:20:59 +0300
+Message-ID: <1339662059.2229.8.camel@deskari>
+References: <1339579215-24098-1-git-send-email-tomi.valkeinen@ti.com>
+	 <CA+Bv8XZHOhD1sdJvEzwwup+igWpkCf8twxWzrf2zhSd4_aj9MQ@mail.gmail.com>
+	 <1339658290.2236.5.camel@deskari>
+	 <CA+Bv8XbwWbdTFFo9KHoOk7Tq8XBWDOWhkEqq7Pz6by_8sE_ngA@mail.gmail.com>
+	 <1339661613.2229.6.camel@deskari>
+	 <CA+Bv8Xad=9dQw_4a=DZypbR2KN77mb=3thkE6syMt-E6JoDDaw@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8;
-	format=flowed
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Return-path: <linux-input-owner@vger.kernel.org>
-In-Reply-To: <4FD99B91.9030705@compulab.co.il>
-Sender: linux-input-owner@vger.kernel.org
-To: Igor Grinberg <grinberg@compulab.co.il>
-Cc: "Hiremath, Vaibhav" <hvaibhav@ti.com>, mike@compulab.co.il, Zumeng Chen <zumeng.chen@gmail.com>, "tony@atomide.com" <tony@atomide.com>, "Hunter, Jon" <jon-hunter@ti.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, "Hilman, Kevin" <khilman@ti.com>, "Syed Mohammed, Khasim" <khasim@ti.com>, "Gupta, Ajay Kumar" <ajay.gupta@ti.com>, "dmitry.torokhov@gmail.com" <dmitry.torokhov@gmail.com>, "linux-input@vger.kernel.org" <linux-input@vger.kernel.org>
+Content-Type: multipart/signed; micalg="pgp-sha1"; protocol="application/pgp-signature";
+	boundary="=-eOqJUgZD8+1RxqyQKhag"
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from na3sys009aog111.obsmtp.com ([74.125.149.205]:47111 "EHLO
+	na3sys009aog111.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1755307Ab2FNIVF (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>);
+	Thu, 14 Jun 2012 04:21:05 -0400
+Received: by lbom4 with SMTP id m4so1916677lbo.2
+        for <linux-omap@vger.kernel.org>; Thu, 14 Jun 2012 01:21:02 -0700 (PDT)
+In-Reply-To: <CA+Bv8Xad=9dQw_4a=DZypbR2KN77mb=3thkE6syMt-E6JoDDaw@mail.gmail.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Russ Dill <Russ.Dill@ti.com>
+Cc: Tony Lindgren <tony@atomide.com>, linux-omap@vger.kernel.org, Robert Nelson <robertcnelson@gmail.com>, Jason Kridner <jkridner@beagleboard.org>
 
-=E4=BA=8E 2012=E5=B9=B406=E6=9C=8814=E6=97=A5 16:06, Igor Grinberg =E5=86=
-=99=E9=81=93:
-> On 06/14/12 10:08, Zumeng Chen wrote:
->> =E4=BA=8E 2012=E5=B9=B406=E6=9C=8814=E6=97=A5 14:44, Igor Grinberg =E5=
-=86=99=E9=81=93:
->>> On 06/14/12 07:46, Zumeng Chen wrote:
->>>>> =E4=BA=8E 2012=E5=B9=B406=E6=9C=8813=E6=97=A5 20:18, Hiremath, Va=
-ibhav =E5=86=99=E9=81=93:
->>>>>>> On Wed, Jun 13, 2012 at 07:14:10, Zumeng Chen wrote:
->>>>>>>>> From: Zumeng Chen<zumeng.chen@windriver.com>
->>>>>>>>>
->>>>>>>>> If we don't set proper debouce time for ads7846, then there a=
-re
->>>>>>>>> flooded interrupt counters of ads7846 responding to one time
->>>>>>>>> touch on screen, so the driver couldn't work well.
->>>>>>>>>
->>>>>>>>> And since most OMAP3 series boards pass NULL pointer of board=
-_pdata
->>>>>>>>> to omap_ads7846_init, so it's more proper to set it in driver=
- level
->>>>>>>>> after having gpio_request done.
->>>>>>>>>
->>>>>>>>> This patch has been validated on 3530evm.
->>>>>>>>>
->>>>>>>>> Signed-off-by: Zumeng Chen<zumeng.chen@windriver.com>
->>>>>>>>> Signed-off-by: Syed Mohammed Khasim<khasim@ti.com>
->>>>>>>>> ---
->>>>>>>>>    drivers/input/touchscreen/ads7846.c |    4 ++++
->>>>>>>>>    1 files changed, 4 insertions(+), 0 deletions(-)
->>>>>>>>>
->>>>>>>>> diff --git a/drivers/input/touchscreen/ads7846.c b/drivers/in=
-put/touchscreen/ads7846.c
->>>>>>>>> index f02028e..459ff29 100644
->>>>>>>>> --- a/drivers/input/touchscreen/ads7846.c
->>>>>>>>> +++ b/drivers/input/touchscreen/ads7846.c
->>>>>>>>> @@ -980,6 +980,10 @@ static int __devinit ads7846_setup_pendo=
-wn(struct spi_device *spi, struct ads784
->>>>>>>>>            }
->>>>>>>>>
->>>>>>>>>            ts->gpio_pendown =3D pdata->gpio_pendown;
->>>>>>>>> +#ifdef CONFIG_ARCH_OMAP3
->>>>>>>>> +        /* 310 means about 10 microsecond for omap3 */
->>>>>>>>> +        gpio_set_debounce(pdata->gpio_pendown, 310);
->>>>>>>>> +#endif
->>>>>>>>>
->>>>>>> Zumeng,
->>>>>>>
->>>>>>> With my sign-off you are changing the original code, that too
->>>>>>> without my sign-off and ack.
->>>>>>> I wouldn't mind you to submit patches from my tree, but the exp=
-ectation is
->>>>>>> if you are changing the original code, it should be under your =
-sign-off.
->>>>> Thanks, good to learn. I'll remove in next time.
->>>>>>> Coming to the patch, #ifdef in driver is not recommended, and t=
-his 10msec
->>>>>>> delay is specific to OMAP GPIO and driver should not be aware o=
-f this,
->>>>>>> that's where you will find the original patch handling it in bo=
-ard file.
->>>>> According to the git blame of the board-omap3evm.c I think
->>>>> 96974a24 did a good thing to all the related codes for omap3
->>>>> boards. So I think we can call board and driver as BSP level :-)
->>>>>
->>>>> If #ifdef in driver can save many codes, I guess it's deserved.
->>> No, platform/board specific ifdefs in the generic driver code are n=
-ever
->>> deserved.
->>> How about the attached patch, does it fix the problem for you?
->> Sorry Igor, I just read your patch, yes, most are there, and we
->> just have to set get_pendown_state as you early said. Really
->> *thanks* for your drive :)
-> No, with my patch, you don't need the get_pendown_state() and
-> you don't need to change the board-omap3evm.c ADS7846 related code.
-> So, I'm going to submit my patch properly.
-=46eel free to do that
 
->> Regards,
->> Zumeng
->>> -- Regards, Igor.
->>> ads7846.patch
->>>
->>>
->>> diff --git a/arch/arm/mach-omap2/common-board-devices.c b/arch/arm/=
-mach-omap2/common-board-devices.c
->>> index 1706ebc..c187586 100644
->>> --- a/arch/arm/mach-omap2/common-board-devices.c
->>> +++ b/arch/arm/mach-omap2/common-board-devices.c
->>> @@ -63,28 +63,30 @@ void __init omap_ads7846_init(int bus_num, int =
-gpio_pendown, int gpio_debounce,
->>>   	struct spi_board_info *spi_bi =3D&ads7846_spi_board_info;
->>>   	int err;
->>>
->>> -	if (board_pdata&&  board_pdata->get_pendown_state) {
->>> -		err =3D gpio_request_one(gpio_pendown, GPIOF_IN, "TSPenDown");
->>> -		if (err) {
->>> -			pr_err("Couldn't obtain gpio for TSPenDown: %d\n", err);
->>> -			return;
->>> -		}
->>> -		gpio_export(gpio_pendown, 0);
->>> -
->>> -		if (gpio_debounce)
->>> -			gpio_set_debounce(gpio_pendown, gpio_debounce);
->>> +	err =3D gpio_request_one(gpio_pendown, GPIOF_IN, "TSPenDown");
->>> +	if (err) {
->>> +		pr_err("Couldn't obtain gpio for TSPenDown: %d\n", err);
->>> +		return;
->>>   	}
->>>   =09
->>> +	if (gpio_debounce)
->>> +		gpio_set_debounce(gpio_pendown, gpio_debounce);
->>> +
->>>   	spi_bi->bus_num	=3D bus_num;
->>>   	spi_bi->irq	=3D gpio_to_irq(gpio_pendown);
->>>
->>>   	if (board_pdata) {
->>>   		board_pdata->gpio_pendown =3D gpio_pendown;
->>>   		spi_bi->platform_data =3D board_pdata;
->>> +		if (board_pdata->get_pendown_state)
->>> +			gpio_export(gpio_pendown, 0);
->>>   	} else {
->>>   		ads7846_config.gpio_pendown =3D gpio_pendown;
->>>   	}
->>>
->>> +	if (!board_pdata || (board_pdata&&  !board_pdata->get_pendown_sta=
-te))
->>> +		gpio_free(gpio_pendown);
->>> +
->>>   	spi_register_board_info(&ads7846_spi_board_info, 1);
->>>   }
->>>   #else
+--=-eOqJUgZD8+1RxqyQKhag
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: quoted-printable
 
---
-To unsubscribe from this list: send the line "unsubscribe linux-input" =
-in
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+On Thu, 2012-06-14 at 01:17 -0700, Russ Dill wrote:
+> On Thu, Jun 14, 2012 at 1:13 AM, Tomi Valkeinen <tomi.valkeinen@ti.com> w=
+rote:
+
+> > Okay. These are a bit problematic, because we're in the process of
+> > removing these kinds of things from the board file, as they cannot be
+> > supported with device tree. The tfp410 driver in v3.5 doesn't even have
+> > the platform_enable/disable callback anymore.
+> >
+> > Those do not belong to tfp410 driver, but I don't really know how they
+> > should be handled. This is one of the questions about device tree that
+> > is unclear to me...
+>=20
+>=20
+> Are you talking about the AUX_3V3_DIS pin? The boardfile currently
+> just initializes that low, that should be too much of a problem to put
+> into DT, or if someone is so inclined assign it to a regulator via DT.
+
+Ah, sorry. You are right. The only gpio handled in the
+platform_enable/disable calls is the power-down gpio, and that is
+handled by the tfp410 driver properly. So there shouldn't be a problem
+there.
+
+ Tomi
+
+
+--=-eOqJUgZD8+1RxqyQKhag
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: This is a digitally signed message part
+Content-Transfer-Encoding: 7bit
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.4.11 (GNU/Linux)
+
+iQIcBAABAgAGBQJP2Z7rAAoJEPo9qoy8lh714voQAJS3pdZ2OlhfEoYMk+IWOkNP
+pxdioK3fspRZtgu0IrWMYEb0GhWxxr2tH1FLTXG2IiOzx7FD7T/2UhZCRj/BtwgN
+ypxtmz3Eu+ckeeyME6UQ3mh7enUJO2mfGarEz1bm8RhlYC2MIuYHrxbpocL6BUMn
+WxYcDoeLXEbSrTCqundKp57yDVQI781HndKrbNOIXVhgFuswUM2G/rhwKC5KP5SD
+qNd77msdsBIjdHZumsAvknOUHgyTleEDTkXMHDFn4mfVSmiq9UF9je9LWPJ5GlwB
+VCgm+8lALGkPOfICYONJdMTaXNdxRFXCwvkEfffPxjmbvnnUyyVH/MPruh1Zv23h
+ljD9lnHghgj5+6pGvvODw2fDHge+1iA+DbukNMy6RJMZ58V0rOG0C/PN9hVJMxBA
+HGuoPtSdn7PYjsr+OucDZWbvpfi0BCFiEyzCyl+mTTOE86QEk/ULLMvHGvRDWPkM
+M3F6QqymjOYGimrGCW+0NoJCj1r33k1GU6BAJwEyCUAMuW0bLhlryLhhXinIn6Md
+a/8KZv54zrU5B4wNeze4xnqoY1bVb7PgvZDQCcZVhZ5V7s+zk+TnhgNwS+Mp0dFY
+XUvQOAdz0AIgRs3Sgl3BKQ+i5INny7LsEInHvLZINV99U1KdSr/seY4EgvLVEFWZ
+Q0Yl7XEbhh06stCXwNnC
+=0wqd
+-----END PGP SIGNATURE-----
+
+--=-eOqJUgZD8+1RxqyQKhag--
+
