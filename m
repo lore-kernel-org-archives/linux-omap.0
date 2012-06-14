@@ -1,308 +1,87 @@
 From: Rajendra Nayak <rnayak@ti.com>
-Subject: [PATCH 01/29] clk: Add support for rate table based dividers
-Date: Thu, 14 Jun 2012 18:16:50 +0530
-Message-ID: <1339678038-23082-2-git-send-email-rnayak@ti.com>
+Subject: [PATCH 07/29] mfd: omap-usb: use clk_prepare_enable and clk_disable_unprepare
+Date: Thu, 14 Jun 2012 18:16:56 +0530
+Message-ID: <1339678038-23082-8-git-send-email-rnayak@ti.com>
 References: <1339678038-23082-1-git-send-email-rnayak@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from arroyo.ext.ti.com ([192.94.94.40]:53421 "EHLO arroyo.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1755534Ab2FNMri (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Thu, 14 Jun 2012 08:47:38 -0400
+Received: from devils.ext.ti.com ([198.47.26.153]:48598 "EHLO
+	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755534Ab2FNMru (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 14 Jun 2012 08:47:50 -0400
 In-Reply-To: <1339678038-23082-1-git-send-email-rnayak@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: paul@pwsan.com, mturquette@ti.com
-Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Rajendra Nayak <rnayak@ti.com>
+Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Rajendra Nayak <rnayak@ti.com>, Samuel Ortiz <sameo@linux.intel.com>
 
-Some divider clks do not have any obvious relationship
-between the divider and the value programmed in the
-register. For instance, say a value of 1 could signify divide
-by 6 and a value of 2 could signify divide by 4 etc.
-Also there are dividers where not all values possible
-based on the bitfield width are valid. For instance
-a 3 bit wide bitfield can be used to program a value
-from 0 to 7. However its possible that only 0 to 4
-are valid values.
-
-All these cases need the platform code to pass a simple
-table of divider/value tuple, so the framework knows
-the exact value to be written based on the divider
-calculation and can also do better error checking.
-
-This patch adds support for such rate table based
-dividers.
-
-Also since this means adding a new parameter to the
-clk_register_divider(), update all existing users of
-it.
+As we move to Common clk framework use clk_prepare_enable()
+instead of clk_enable() and similarly clk_disable_unprepare()
+instead of clk_disable()
 
 Signed-off-by: Rajendra Nayak <rnayak@ti.com>
+Cc: Samuel Ortiz <sameo@linux.intel.com>
 ---
- arch/arm/mach-imx/clk.h            |    2 +-
- drivers/clk/clk-divider.c          |   67 ++++++++++++++++++++++++++++++++++--
- drivers/clk/spear/spear3xx_clock.c |    4 +-
- drivers/clk/spear/spear6xx_clock.c |    4 +-
- include/linux/clk-private.h        |    3 +-
- include/linux/clk-provider.h       |   10 +++++-
- 6 files changed, 80 insertions(+), 10 deletions(-)
+ drivers/mfd/omap-usb-host.c |   28 ++++++++++++++--------------
+ 1 files changed, 14 insertions(+), 14 deletions(-)
 
-diff --git a/arch/arm/mach-imx/clk.h b/arch/arm/mach-imx/clk.h
-index 1bf64fe..8cb6f97 100644
---- a/arch/arm/mach-imx/clk.h
-+++ b/arch/arm/mach-imx/clk.h
-@@ -56,7 +56,7 @@ static inline struct clk *imx_clk_divider(const char *name, const char *parent,
- 		void __iomem *reg, u8 shift, u8 width)
- {
- 	return clk_register_divider(NULL, name, parent, CLK_SET_RATE_PARENT,
--			reg, shift, width, 0, &imx_ccm_lock);
-+			reg, shift, width, 0, , NULL, &imx_ccm_lock);
- }
+diff --git a/drivers/mfd/omap-usb-host.c b/drivers/mfd/omap-usb-host.c
+index 7e96bb2..d70d2fe 100644
+--- a/drivers/mfd/omap-usb-host.c
++++ b/drivers/mfd/omap-usb-host.c
+@@ -438,18 +438,18 @@ static int usbhs_runtime_resume(struct device *dev)
+ 	spin_lock_irqsave(&omap->lock, flags);
  
- static inline struct clk *imx_clk_gate(const char *name, const char *parent,
-diff --git a/drivers/clk/clk-divider.c b/drivers/clk/clk-divider.c
-index e548c43..e4911ee 100644
---- a/drivers/clk/clk-divider.c
-+++ b/drivers/clk/clk-divider.c
-@@ -32,30 +32,69 @@
- #define div_mask(d)	((1 << (d->width)) - 1)
- #define is_power_of_two(i)	!(i & ~i)
+ 	if (omap->ehci_logic_fck && !IS_ERR(omap->ehci_logic_fck))
+-		clk_enable(omap->ehci_logic_fck);
++		clk_prepare_enable(omap->ehci_logic_fck);
  
-+static unsigned int _get_table_maxdiv(const struct clk_div_table *table)
-+{
-+	unsigned int maxdiv;
-+	const struct clk_div_table *clkt;
-+
-+	for (clkt = table; clkt->div; clkt++)
-+		if (clkt->div > maxdiv)
-+			maxdiv = clkt->div;
-+	return maxdiv;
-+}
-+
- static unsigned int _get_maxdiv(struct clk_divider *divider)
- {
- 	if (divider->flags & CLK_DIVIDER_ONE_BASED)
- 		return div_mask(divider);
- 	if (divider->flags & CLK_DIVIDER_POWER_OF_TWO)
- 		return 1 << div_mask(divider);
-+	if (divider->table)
-+		return _get_table_maxdiv(divider->table);
- 	return div_mask(divider) + 1;
- }
+ 	if (is_ehci_tll_mode(pdata->port_mode[0])) {
+-		clk_enable(omap->usbhost_p1_fck);
+-		clk_enable(omap->usbtll_p1_fck);
++		clk_prepare_enable(omap->usbhost_p1_fck);
++		clk_prepare_enable(omap->usbtll_p1_fck);
+ 	}
+ 	if (is_ehci_tll_mode(pdata->port_mode[1])) {
+-		clk_enable(omap->usbhost_p2_fck);
+-		clk_enable(omap->usbtll_p2_fck);
++		clk_prepare_enable(omap->usbhost_p2_fck);
++		clk_prepare_enable(omap->usbtll_p2_fck);
+ 	}
+-	clk_enable(omap->utmi_p1_fck);
+-	clk_enable(omap->utmi_p2_fck);
++	clk_prepare_enable(omap->utmi_p1_fck);
++	clk_prepare_enable(omap->utmi_p2_fck);
  
-+static unsigned int _get_table_div(const struct clk_div_table *table,
-+							unsigned int val)
-+{
-+	const struct clk_div_table *clkt;
-+
-+	for (clkt = table; clkt->div; clkt++)
-+		if (clkt->val == val)
-+			return clkt->div;
-+	return 0;
-+}
-+
- static unsigned int _get_div(struct clk_divider *divider, unsigned int val)
- {
- 	if (divider->flags & CLK_DIVIDER_ONE_BASED)
- 		return val;
- 	if (divider->flags & CLK_DIVIDER_POWER_OF_TWO)
- 		return 1 << val;
-+	if (divider->table)
-+		return _get_table_div(divider->table, val);
- 	return val + 1;
- }
+ 	spin_unlock_irqrestore(&omap->lock, flags);
  
-+static unsigned int _get_table_val(const struct clk_div_table *table,
-+							unsigned int div)
-+{
-+	const struct clk_div_table *clkt;
-+
-+	for (clkt = table; clkt->div; clkt++)
-+		if (clkt->div == div)
-+			return clkt->val;
-+	return 0;
-+}
-+
- static unsigned int _get_val(struct clk_divider *divider, u8 div)
- {
- 	if (divider->flags & CLK_DIVIDER_ONE_BASED)
- 		return div;
- 	if (divider->flags & CLK_DIVIDER_POWER_OF_TWO)
- 		return __ffs(div);
-+	if (divider->table)
-+		return  _get_table_val(divider->table, div);
- 	return div - 1;
- }
+@@ -472,18 +472,18 @@ static int usbhs_runtime_suspend(struct device *dev)
+ 	spin_lock_irqsave(&omap->lock, flags);
  
-@@ -84,6 +123,26 @@ static unsigned long clk_divider_recalc_rate(struct clk_hw *hw,
-  */
- #define MULT_ROUND_UP(r, m) ((r) * (m) + (m) - 1)
+ 	if (is_ehci_tll_mode(pdata->port_mode[0])) {
+-		clk_disable(omap->usbhost_p1_fck);
+-		clk_disable(omap->usbtll_p1_fck);
++		clk_disable_unprepare(omap->usbhost_p1_fck);
++		clk_disable_unprepare(omap->usbtll_p1_fck);
+ 	}
+ 	if (is_ehci_tll_mode(pdata->port_mode[1])) {
+-		clk_disable(omap->usbhost_p2_fck);
+-		clk_disable(omap->usbtll_p2_fck);
++		clk_disable_unprepare(omap->usbhost_p2_fck);
++		clk_disable_unprepare(omap->usbtll_p2_fck);
+ 	}
+-	clk_disable(omap->utmi_p2_fck);
+-	clk_disable(omap->utmi_p1_fck);
++	clk_disable_unprepare(omap->utmi_p2_fck);
++	clk_disable_unprepare(omap->utmi_p1_fck);
  
-+static bool _is_valid_table_div(const struct clk_div_table *table,
-+							 unsigned int div)
-+{
-+	const struct clk_div_table *clkt;
-+
-+	for (clkt = table; clkt->div; clkt++)
-+		if (clkt->div == div)
-+			return true;
-+	return false;
-+}
-+
-+static bool _is_valid_div(struct clk_divider *divider, unsigned int div)
-+{
-+	if (divider->flags & CLK_DIVIDER_POWER_OF_TWO)
-+		return is_power_of_two(div);
-+	if (divider->table)
-+		return _is_valid_table_div(divider->table, div);
-+	return true;
-+}
-+
- static int clk_divider_bestdiv(struct clk_hw *hw, unsigned long rate,
- 		unsigned long *best_parent_rate)
- {
-@@ -111,8 +170,7 @@ static int clk_divider_bestdiv(struct clk_hw *hw, unsigned long rate,
- 	maxdiv = min(ULONG_MAX / rate, maxdiv);
+ 	if (omap->ehci_logic_fck && !IS_ERR(omap->ehci_logic_fck))
+-		clk_disable(omap->ehci_logic_fck);
++		clk_disable_unprepare(omap->ehci_logic_fck);
  
- 	for (i = 1; i <= maxdiv; i++) {
--		if ((divider->flags & CLK_DIVIDER_POWER_OF_TWO)
--			&& (!is_power_of_two(i)))
-+		if (!_is_valid_div(divider, i))
- 			continue;
- 		parent_rate = __clk_round_rate(__clk_get_parent(hw->clk),
- 				MULT_ROUND_UP(rate, i));
-@@ -186,12 +244,14 @@ EXPORT_SYMBOL_GPL(clk_divider_ops);
-  * @shift: number of bits to shift the bitfield
-  * @width: width of the bitfield
-  * @clk_divider_flags: divider-specific flags for this clock
-+ * @table: array of divider/value pairs ending with a div set to 0
-  * @lock: shared register lock for this clock
-  */
- struct clk *clk_register_divider(struct device *dev, const char *name,
- 		const char *parent_name, unsigned long flags,
- 		void __iomem *reg, u8 shift, u8 width,
--		u8 clk_divider_flags, spinlock_t *lock)
-+		u8 clk_divider_flags, const struct clk_div_table *table,
-+		spinlock_t *lock)
- {
- 	struct clk_divider *div;
- 	struct clk *clk;
-@@ -217,6 +277,7 @@ struct clk *clk_register_divider(struct device *dev, const char *name,
- 	div->flags = clk_divider_flags;
- 	div->lock = lock;
- 	div->hw.init = &init;
-+	div->table = table;
+ 	spin_unlock_irqrestore(&omap->lock, flags);
  
- 	/* register the clock */
- 	clk = clk_register(dev, &div->hw);
-diff --git a/drivers/clk/spear/spear3xx_clock.c b/drivers/clk/spear/spear3xx_clock.c
-index 440bb3e..243bbee 100644
---- a/drivers/clk/spear/spear3xx_clock.c
-+++ b/drivers/clk/spear/spear3xx_clock.c
-@@ -389,7 +389,7 @@ void __init spear3xx_clk_init(void)
- 
- 	clk = clk_register_divider(NULL, "ahb_clk", "pll1_clk",
- 			CLK_SET_RATE_PARENT, CORE_CLK_CFG, HCLK_RATIO_SHIFT,
--			HCLK_RATIO_MASK, 0, &_lock);
-+			HCLK_RATIO_MASK, 0, NULL, &_lock);
- 	clk_register_clkdev(clk, "ahb_clk", NULL);
- 
- 	clk = clk_register_aux("uart_synth_clk", "uart_synth_gate_clk",
-@@ -510,7 +510,7 @@ void __init spear3xx_clk_init(void)
- 
- 	clk = clk_register_divider(NULL, "apb_clk", "ahb_clk",
- 			CLK_SET_RATE_PARENT, CORE_CLK_CFG, PCLK_RATIO_SHIFT,
--			PCLK_RATIO_MASK, 0, &_lock);
-+			PCLK_RATIO_MASK, 0, NULL, &_lock);
- 	clk_register_clkdev(clk, "apb_clk", NULL);
- 
- 	clk = clk_register_gate(NULL, "amem_clk", "ahb_clk", 0, AMEM_CLK_CFG,
-diff --git a/drivers/clk/spear/spear6xx_clock.c b/drivers/clk/spear/spear6xx_clock.c
-index bf33c1d..85691ca 100644
---- a/drivers/clk/spear/spear6xx_clock.c
-+++ b/drivers/clk/spear/spear6xx_clock.c
-@@ -162,7 +162,7 @@ void __init spear6xx_clk_init(void)
- 
- 	clk = clk_register_divider(NULL, "ahb_clk", "pll1_clk",
- 			CLK_SET_RATE_PARENT, CORE_CLK_CFG, HCLK_RATIO_SHIFT,
--			HCLK_RATIO_MASK, 0, &_lock);
-+			HCLK_RATIO_MASK, 0, NULL, &_lock);
- 	clk_register_clkdev(clk, "ahb_clk", NULL);
- 
- 	clk = clk_register_aux("uart_synth_clk", "uart_synth_gate_clk",
-@@ -285,7 +285,7 @@ void __init spear6xx_clk_init(void)
- 
- 	clk = clk_register_divider(NULL, "apb_clk", "ahb_clk",
- 			CLK_SET_RATE_PARENT, CORE_CLK_CFG, PCLK_RATIO_SHIFT,
--			PCLK_RATIO_MASK, 0, &_lock);
-+			PCLK_RATIO_MASK, 0, NULL, &_lock);
- 	clk_register_clkdev(clk, "apb_clk", NULL);
- 
- 	clk = clk_register_gate(NULL, "dma_clk", "ahb_clk", 0, PERIP1_CLK_ENB,
-diff --git a/include/linux/clk-private.h b/include/linux/clk-private.h
-index eb3f84b..2479239 100644
---- a/include/linux/clk-private.h
-+++ b/include/linux/clk-private.h
-@@ -105,7 +105,7 @@ struct clk {
- 
- #define DEFINE_CLK_DIVIDER(_name, _parent_name, _parent_ptr,	\
- 				_flags, _reg, _shift, _width,	\
--				_divider_flags, _lock)		\
-+				_divider_flags, _table, _lock)	\
- 	static struct clk _name;				\
- 	static const char *_name##_parent_names[] = {		\
- 		_parent_name,					\
-@@ -121,6 +121,7 @@ struct clk {
- 		.shift = _shift,				\
- 		.width = _width,				\
- 		.flags = _divider_flags,			\
-+		.table = _table,				\
- 		.lock = _lock,					\
- 	};							\
- 	DEFINE_CLK(_name, clk_divider_ops, _flags,		\
-diff --git a/include/linux/clk-provider.h b/include/linux/clk-provider.h
-index 1a8e8ad..aa63aca 100644
---- a/include/linux/clk-provider.h
-+++ b/include/linux/clk-provider.h
-@@ -203,6 +203,11 @@ struct clk *clk_register_gate(struct device *dev, const char *name,
- 		void __iomem *reg, u8 bit_idx,
- 		u8 clk_gate_flags, spinlock_t *lock);
- 
-+struct clk_div_table {
-+	unsigned int	val;
-+	unsigned int	div;
-+};
-+
- /**
-  * struct clk_divider - adjustable divider clock
-  *
-@@ -210,6 +215,7 @@ struct clk *clk_register_gate(struct device *dev, const char *name,
-  * @reg:	register containing the divider
-  * @shift:	shift to the divider bit field
-  * @width:	width of the divider bit field
-+ * @table:	array of value/divider pairs, last entry should have div = 0
-  * @lock:	register lock
-  *
-  * Clock with an adjustable divider affecting its output frequency.  Implements
-@@ -229,6 +235,7 @@ struct clk_divider {
- 	u8		shift;
- 	u8		width;
- 	u8		flags;
-+	const struct clk_div_table	*table;
- 	spinlock_t	*lock;
- };
- 
-@@ -239,7 +246,8 @@ extern const struct clk_ops clk_divider_ops;
- struct clk *clk_register_divider(struct device *dev, const char *name,
- 		const char *parent_name, unsigned long flags,
- 		void __iomem *reg, u8 shift, u8 width,
--		u8 clk_divider_flags, spinlock_t *lock);
-+		u8 clk_divider_flags, const struct clk_div_table *table,
-+		spinlock_t *lock);
- 
- /**
-  * struct clk_mux - multiplexer clock
 -- 
 1.7.1
 
