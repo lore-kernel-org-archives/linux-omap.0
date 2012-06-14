@@ -1,65 +1,35 @@
-From: "Shilimkar, Santosh" <santosh.shilimkar@ti.com>
-Subject: Re: [PATCH 09/17] i2c: omap: ack IRQ in parts
-Date: Thu, 14 Jun 2012 16:41:45 +0530
-Message-ID: <CAMQu2gw4B_5eFSAq_o+MamNDDwoZi2CitmC+dM=+pi3R1Z2QCA@mail.gmail.com>
-References: <1339669250-9183-1-git-send-email-balbi@ti.com> <1339669250-9183-10-git-send-email-balbi@ti.com>
+From: Russell King - ARM Linux <linux@arm.linux.org.uk>
+Subject: Re: [PATCH 04/17] i2c: omap: simplify omap_i2c_ack_stat()
+Date: Thu, 14 Jun 2012 12:13:33 +0100
+Message-ID: <20120614111333.GA31187@n2100.arm.linux.org.uk>
+References: <1339669250-9183-1-git-send-email-balbi@ti.com> <1339669250-9183-5-git-send-email-balbi@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <1339669250-9183-10-git-send-email-balbi@ti.com>
+Content-Disposition: inline
+In-Reply-To: <1339669250-9183-5-git-send-email-balbi@ti.com>
 Sender: linux-kernel-owner@vger.kernel.org
 To: Felipe Balbi <balbi@ti.com>
-Cc: ben-linux@fluff.org, Tony Lindgren <tony@atomide.com>, w.sang@pengutronix.de, Linux OMAP Mailing List <linux-omap@vger.kernel.org>, linux-i2c@vger.kernel.org, Linux ARM Kernel Mailing List <linux-arm-kernel@lists.infradead.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>
+Cc: ben-linux@fluff.org, Tony Lindgren <tony@atomide.com>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, w.sang@pengutronix.de, linux-i2c@vger.kernel.org, Linux OMAP Mailing List <linux-omap@vger.kernel.org>, Linux ARM Kernel Mailing List <linux-arm-kernel@lists.infradead.org>
 List-Id: linux-omap@vger.kernel.org
 
-On Thu, Jun 14, 2012 at 3:50 PM, Felipe Balbi <balbi@ti.com> wrote:
-> According to flow diagrams on OMAP TRMs,
-> we should ACK the IRQ as they happen.
->
-> Signed-off-by: Felipe Balbi <balbi@ti.com>
-> ---
-> =A0drivers/i2c/busses/i2c-omap.c | =A0 29 +++++++++++++++++----------=
---
-> =A01 file changed, 17 insertions(+), 12 deletions(-)
->
-> diff --git a/drivers/i2c/busses/i2c-omap.c b/drivers/i2c/busses/i2c-o=
-map.c
-> index f978b14..c00ba7d 100644
-> --- a/drivers/i2c/busses/i2c-omap.c
-> +++ b/drivers/i2c/busses/i2c-omap.c
-> @@ -894,21 +894,20 @@ omap_i2c_isr(int this_irq, void *dev_id)
-> =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0}
->
-> =A0complete:
-> - =A0 =A0 =A0 =A0 =A0 =A0 =A0 /*
-> - =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0* Ack the stat in one go, but [R/X]D=
-R and [R/X]RDY should be
-> - =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0* acked after the data operation is =
-complete.
-> - =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0* Ref: TRM SWPU114Q Figure 18-31
-> - =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0*/
-> - =A0 =A0 =A0 =A0 =A0 =A0 =A0 omap_i2c_write_reg(dev, OMAP_I2C_STAT_R=
-EG, stat &
-> - =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 ~(OMAP_=
-I2C_STAT_RRDY | OMAP_I2C_STAT_RDR |
-> - =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 OMAP_I2=
-C_STAT_XRDY | OMAP_I2C_STAT_XDR));
-> -
-> - =A0 =A0 =A0 =A0 =A0 =A0 =A0 if (stat & OMAP_I2C_STAT_NACK)
-> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 if (stat & OMAP_I2C_STAT_NACK) {
-> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 dev_err(dev->dev, "No A=
-cknowledge\n");
-> =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0err |=3D OMAP_I2C_STAT=
-_NACK;
-> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 omap_i2c_ack_stat(dev, =
-OMAP_I2C_STAT_NACK);
-> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 omap_i2c_complete_cmd(d=
-ev, err);
-> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 return IRQ_HANDLED;
-> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 }
->
-Do you think making I2C IRQ ack + complete as one small static inline f=
-unction
-can save clean the code further. I see it has been used in multiple pat=
-hs.
+On Thu, Jun 14, 2012 at 01:20:37PM +0300, Felipe Balbi wrote:
+> stat & BIT(1) is the same as BIT(1), so let's
+> simplify things a bit by removing "stat &" from
+> all omap_i2c_ack_stat() calls.
+
+This doesn't feel right, and the explanation is definitely wrong.
+
+"stat & BIT(1)" is not the same as "BIT(1)" _unless_ you're saying that
+stat always has BIT(1) already set.  Can you guarantee that in this code?
+If so, how?
+
+What happens if you read the status register, and it has bit 1 clear.
+immediately after the read, the status register bit 1 becomes set, and
+then you write bit 1 set (because you've dropped the stat & BIT(1) from
+the code.)
+
+Is it not going to acknowledge that bit-1-set but because you haven't
+read it, you're going to miss that event?
+
+This feels like a buggy change to me.
