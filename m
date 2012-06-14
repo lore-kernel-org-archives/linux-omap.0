@@ -1,48 +1,51 @@
 From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH v5 03/14] ARM: OMAP2+: gpmc: driver migration helper
-Date: Wed, 13 Jun 2012 23:34:12 -0700
-Message-ID: <20120614063412.GA12766@atomide.com>
+Subject: Re: [PATCH v5 04/14] ARM: OMAP2+: gpmc: minimal driver support
+Date: Wed, 13 Jun 2012 23:35:25 -0700
+Message-ID: <20120614063524.GB12766@atomide.com>
 References: <cover.1339419492.git.afzal@ti.com>
- <a121156faf6c758d4e37447ab832f6f825cc5bc8.1339419492.git.afzal@ti.com>
- <4FD6555D.4000508@ti.com>
- <20120613120457.GO12766@atomide.com>
- <C8443D0743D26F4388EA172BF4E2A7A93E998CF2@DBDE01.ent.ti.com>
- <C8443D0743D26F4388EA172BF4E2A7A93E998EFD@DBDE01.ent.ti.com>
+ <54e643eb1b4dbefcbb52580fa582043bf4f0da3d.1339419492.git.afzal@ti.com>
+ <4FD6586A.9060706@ti.com>
+ <C8443D0743D26F4388EA172BF4E2A7A93E997E2A@DBDE01.ent.ti.com>
+ <4FD782F7.9010003@ti.com>
+ <20120613120717.GP12766@atomide.com>
+ <C8443D0743D26F4388EA172BF4E2A7A93E998E43@DBDE01.ent.ti.com>
+ <20120613134032.GW12766@atomide.com>
+ <20120613134408.GY12766@atomide.com>
+ <C8443D0743D26F4388EA172BF4E2A7A93E998F2F@DBDE01.ent.ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-02-ewr.mailhop.org ([204.13.248.72]:58711 "EHLO
+Received: from mho-02-ewr.mailhop.org ([204.13.248.72]:59913 "EHLO
 	mho-02-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750731Ab2FNGeQ (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 14 Jun 2012 02:34:16 -0400
+	with ESMTP id S1750783Ab2FNGf1 (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 14 Jun 2012 02:35:27 -0400
 Content-Disposition: inline
-In-Reply-To: <C8443D0743D26F4388EA172BF4E2A7A93E998EFD@DBDE01.ent.ti.com>
+In-Reply-To: <C8443D0743D26F4388EA172BF4E2A7A93E998F2F@DBDE01.ent.ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: "Mohammed, Afzal" <afzal@ti.com>
 Cc: "Hunter, Jon" <jon-hunter@ti.com>, "paul@pwsan.com" <paul@pwsan.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>
 
-* Mohammed, Afzal <afzal@ti.com> [120613 06:50]:
+* Mohammed, Afzal <afzal@ti.com> [120613 06:56]:
 > Hi Tony,
 > 
-> On Wed, Jun 13, 2012 at 17:48:15, Mohammed, Afzal wrote:
-> > On Wed, Jun 13, 2012 at 17:34:58, Tony Lindgren wrote:
->  
-> > > There should no longer be any need to initialize GPMC early. It should
-> > > behave like any other device driver, and also work as a loadable module.
+> On Wed, Jun 13, 2012 at 19:20:35, Mohammed, Afzal wrote:
+> > Hi Tony,
 > > 
-> > Once driver migration is complete for all the boards, we can remove the
-> > initcall and make it loadable.
+> > On Wed, Jun 13, 2012 at 19:14:08, Tony Lindgren wrote:
 > > 
-> > But till that time as we need to support both old & new interface,
-> > I feel this is necessary as old interface would happen in arch initcall,
-> > and old gpmc_init is now gpmc_probe, and hence it needs to get executed
-> > before arch initcall, necessitating this.
+> > > Actually why do you even need to store the revision? You can
+> > > just read it from the hardware as needed.
+> > 
+> > Earlier for wr_access & wr_data_mux_bus, we were checking,
+> > cpu_is_34xx, but I feel it should instead be based on
+> > IP revision as it is the IP revision that decides the
+> > availability of those register bits.
 > 
-> Seems you missed this in the flood of mails, please let me know your
-> comments on this. This is a commit that has to be reverted once driver
-> migration is complete for all boards.
+> Or you meant, even there read revision register ?
 
-Yes sounds good to me.
+Yeah that should be fine as this really should only happen
+during init and whatever revision specific features can
+be initialized for GPMC.
 
 Tony
