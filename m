@@ -1,132 +1,127 @@
 From: Felipe Balbi <balbi@ti.com>
-Subject: [PATCH 11/17] i2c: omap: switch to devm_* API
-Date: Thu, 14 Jun 2012 13:20:44 +0300
-Message-ID: <1339669250-9183-12-git-send-email-balbi@ti.com>
+Subject: [PATCH 02/17] i2c: omap: decrease indentation level on data handling
+Date: Thu, 14 Jun 2012 13:20:35 +0300
+Message-ID: <1339669250-9183-3-git-send-email-balbi@ti.com>
 References: <1339669250-9183-1-git-send-email-balbi@ti.com>
-Return-path: <linux-kernel-owner@vger.kernel.org>
+Mime-Version: 1.0
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
 In-Reply-To: <1339669250-9183-1-git-send-email-balbi@ti.com>
-Sender: linux-kernel-owner@vger.kernel.org
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
+List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
+List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
+Sender: linux-arm-kernel-bounces@lists.infradead.org
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
 To: ben-linux@fluff.org
-Cc: Tony Lindgren <tony@atomide.com>, w.sang@pengutronix.de, Linux OMAP Mailing List <linux-omap@vger.kernel.org>, linux-i2c@vger.kernel.org, Linux ARM Kernel Mailing List <linux-arm-kernel@lists.infradead.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Felipe Balbi <balbi@ti.com>
+Cc: Tony Lindgren <tony@atomide.com>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Felipe Balbi <balbi@ti.com>, w.sang@pengutronix.de, linux-i2c@vger.kernel.org, Linux OMAP Mailing List <linux-omap@vger.kernel.org>, Linux ARM Kernel Mailing List <linux-arm-kernel@lists.infradead.org>
 List-Id: linux-omap@vger.kernel.org
 
-that helps deleting some boiler plate code
-and lets driver-core manage our resources
-for us.
+trivial patch, no functional changes.
 
 Signed-off-by: Felipe Balbi <balbi@ti.com>
 ---
- drivers/i2c/busses/i2c-omap.c |   43 +++++++++++------------------------------
- 1 file changed, 11 insertions(+), 32 deletions(-)
+ drivers/i2c/busses/i2c-omap.c |   63 ++++++++++++++++++++---------------------
+ 1 file changed, 31 insertions(+), 32 deletions(-)
 
 diff --git a/drivers/i2c/busses/i2c-omap.c b/drivers/i2c/busses/i2c-omap.c
-index c20c45f..d805270 100644
+index 9b532cd..39d5583 100644
 --- a/drivers/i2c/busses/i2c-omap.c
 +++ b/drivers/i2c/busses/i2c-omap.c
-@@ -1045,7 +1045,7 @@ omap_i2c_probe(struct platform_device *pdev)
- {
- 	struct omap_i2c_dev	*dev;
- 	struct i2c_adapter	*adap;
--	struct resource		*mem, *irq, *ioarea;
-+	struct resource		*mem, *irq;
- 	struct omap_i2c_bus_platform_data *pdata = pdev->dev.platform_data;
- 	struct device_node	*node = pdev->dev.of_node;
- 	const struct of_device_id *match;
-@@ -1058,23 +1058,17 @@ omap_i2c_probe(struct platform_device *pdev)
- 		dev_err(&pdev->dev, "no mem resource?\n");
- 		return -ENODEV;
- 	}
+@@ -856,22 +856,7 @@ complete:
+ 							>> 8) & 0x3F;
+ 			}
+ 			while (num_bytes--) {
+-				w = omap_i2c_read_reg(dev, OMAP_I2C_DATA_REG);
+-				if (dev->buf_len) {
+-					*dev->buf++ = w;
+-					dev->buf_len--;
+-					/*
+-					 * Data reg in 2430, omap3 and
+-					 * omap4 is 8 bit wide
+-					 */
+-					if (dev->flags &
+-						 OMAP_I2C_FLAG_16BIT_DATA_REG) {
+-						if (dev->buf_len) {
+-							*dev->buf++ = w >> 8;
+-							dev->buf_len--;
+-						}
+-					}
+-				} else {
++				if (!dev->buf_len) {
+ 					if (stat & OMAP_I2C_STAT_RRDY)
+ 						dev_err(dev->dev,
+ 							"RRDY IRQ while no data"
+@@ -882,6 +867,21 @@ complete:
+ 								" requested\n");
+ 					break;
+ 				}
 +
- 	irq = platform_get_resource(pdev, IORESOURCE_IRQ, 0);
- 	if (!irq) {
- 		dev_err(&pdev->dev, "no irq resource?\n");
- 		return -ENODEV;
- 	}
++				w = omap_i2c_read_reg(dev, OMAP_I2C_DATA_REG);
++				*dev->buf++ = w;
++				dev->buf_len--;
++				/*
++				 * Data reg in 2430, omap3 and
++				 * omap4 is 8 bit wide
++				 */
++				if (dev->flags &
++						OMAP_I2C_FLAG_16BIT_DATA_REG) {
++					if (dev->buf_len) {
++						*dev->buf++ = w >> 8;
++						dev->buf_len--;
++					}
++				}
+ 			}
+ 			omap_i2c_ack_stat(dev,
+ 				stat & (OMAP_I2C_STAT_RRDY | OMAP_I2C_STAT_RDR));
+@@ -898,22 +898,7 @@ complete:
+ 							& 0x3F;
+ 			}
+ 			while (num_bytes--) {
+-				w = 0;
+-				if (dev->buf_len) {
+-					w = *dev->buf++;
+-					dev->buf_len--;
+-					/*
+-					 * Data reg in 2430, omap3 and
+-					 * omap4 is 8 bit wide
+-					 */
+-					if (dev->flags &
+-						 OMAP_I2C_FLAG_16BIT_DATA_REG) {
+-						if (dev->buf_len) {
+-							w |= *dev->buf++ << 8;
+-							dev->buf_len--;
+-						}
+-					}
+-				} else {
++				if (!dev->buf_len) {
+ 					if (stat & OMAP_I2C_STAT_XRDY)
+ 						dev_err(dev->dev,
+ 							"XRDY IRQ while no "
+@@ -925,6 +910,20 @@ complete:
+ 					break;
+ 				}
  
--	ioarea = request_mem_region(mem->start, resource_size(mem),
--			pdev->name);
--	if (!ioarea) {
--		dev_err(&pdev->dev, "I2C region already claimed\n");
--		return -EBUSY;
--	}
--
--	dev = kzalloc(sizeof(struct omap_i2c_dev), GFP_KERNEL);
-+	dev = devm_kzalloc(&pdev->dev, sizeof(struct omap_i2c_dev), GFP_KERNEL);
- 	if (!dev) {
--		r = -ENOMEM;
--		goto err_release_region;
-+		dev_err(&pdev->dev, "not enough memory\n");
-+		return -ENOMEM;
- 	}
- 
- 	match = of_match_device(of_match_ptr(omap_i2c_of_match), &pdev->dev);
-@@ -1097,10 +1091,10 @@ omap_i2c_probe(struct platform_device *pdev)
- 
- 	dev->dev = &pdev->dev;
- 	dev->irq = irq->start;
--	dev->base = ioremap(mem->start, resource_size(mem));
-+	dev->base = devm_request_and_ioremap(&pdev->dev, mem);
- 	if (!dev->base) {
--		r = -ENOMEM;
--		goto err_free_mem;
-+		dev_err(&pdev->dev, "ioremap failed\n");
-+		return -ENOMEM;
- 	}
- 
- 	platform_set_drvdata(pdev, dev);
-@@ -1151,7 +1145,7 @@ omap_i2c_probe(struct platform_device *pdev)
- 
- 	isr = (dev->rev < OMAP_I2C_OMAP1_REV_2) ? omap_i2c_omap1_isr :
- 								   omap_i2c_isr;
--	r = request_irq(dev->irq, isr, 0, pdev->name, dev);
-+	r = devm_request_irq(&pdev->dev, dev->irq, isr, 0, pdev->name, dev);
- 
- 	if (r) {
- 		dev_err(dev->dev, "failure requesting irq %i\n", dev->irq);
-@@ -1177,24 +1171,16 @@ omap_i2c_probe(struct platform_device *pdev)
- 	r = i2c_add_numbered_adapter(adap);
- 	if (r) {
- 		dev_err(dev->dev, "failure adding adapter\n");
--		goto err_free_irq;
-+		goto err_unuse_clocks;
- 	}
- 
- 	of_i2c_register_devices(adap);
- 
- 	return 0;
- 
--err_free_irq:
--	free_irq(dev->irq, dev);
- err_unuse_clocks:
- 	omap_i2c_write_reg(dev, OMAP_I2C_CON_REG, 0);
- 	pm_runtime_put(dev->dev);
--	iounmap(dev->base);
--err_free_mem:
--	platform_set_drvdata(pdev, NULL);
--	kfree(dev);
--err_release_region:
--	release_mem_region(mem->start, resource_size(mem));
- 
- 	return r;
- }
-@@ -1203,17 +1189,10 @@ static int
- omap_i2c_remove(struct platform_device *pdev)
- {
- 	struct omap_i2c_dev	*dev = platform_get_drvdata(pdev);
--	struct resource		*mem;
- 
--	platform_set_drvdata(pdev, NULL);
--
--	free_irq(dev->irq, dev);
- 	i2c_del_adapter(&dev->adapter);
- 	omap_i2c_write_reg(dev, OMAP_I2C_CON_REG, 0);
--	iounmap(dev->base);
--	kfree(dev);
--	mem = platform_get_resource(pdev, IORESOURCE_MEM, 0);
--	release_mem_region(mem->start, resource_size(mem));
++				w = *dev->buf++;
++				dev->buf_len--;
++				/*
++				 * Data reg in 2430, omap3 and
++				 * omap4 is 8 bit wide
++				 */
++				if (dev->flags &
++						OMAP_I2C_FLAG_16BIT_DATA_REG) {
++					if (dev->buf_len) {
++						w |= *dev->buf++ << 8;
++						dev->buf_len--;
++					}
++				}
 +
- 	return 0;
- }
- 
+ 				if ((dev->errata & I2C_OMAP3_1P153) &&
+ 				    errata_omap3_1p153(dev, &stat, &err))
+ 					goto complete;
 -- 
 1.7.10.4
