@@ -1,121 +1,74 @@
-From: Tero Kristo <t-kristo@ti.com>
-Subject: Re: [PATCHv3 03/20] ARM: OMAP4: PM: add support for device off
-Date: Thu, 14 Jun 2012 12:18:42 +0300
-Message-ID: <1339665522.2091.164.camel@sokoban>
-References: <1339515095-9908-1-git-send-email-t-kristo@ti.com>
-	 <1339515095-9908-4-git-send-email-t-kristo@ti.com>
-	 <CAORVsuUJOpQu1qE7qmK9PS79JZJ065egqcpfgmsWNHwnhLUdvw@mail.gmail.com>
-Reply-To: <t-kristo@ti.com>
+From: "Mohammed, Afzal" <afzal@ti.com>
+Subject: RE: [PATCH 5/9] ARM: OMAP2+: gpmc-smc91x: Adapt to use gpmc driver
+Date: Thu, 14 Jun 2012 09:26:24 +0000
+Message-ID: <C8443D0743D26F4388EA172BF4E2A7A93E9997BD@DBDE01.ent.ti.com>
+References: <cover.1339419379.git.afzal@ti.com>
+ <0bdbc293fc98613011d37ec59559ba6d475eadf2.1339419379.git.afzal@ti.com>
+ <20120613122950.GR12766@atomide.com>
+ <C8443D0743D26F4388EA172BF4E2A7A93E998EC1@DBDE01.ent.ti.com>
+ <20120613134323.GX12766@atomide.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from devils.ext.ti.com ([198.47.26.153]:38579 "EHLO
-	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755400Ab2FNJSv (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 14 Jun 2012 05:18:51 -0400
-In-Reply-To: <CAORVsuUJOpQu1qE7qmK9PS79JZJ065egqcpfgmsWNHwnhLUdvw@mail.gmail.com>
+Received: from comal.ext.ti.com ([198.47.26.152]:53674 "EHLO comal.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1755461Ab2FNJ0a convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 14 Jun 2012 05:26:30 -0400
+In-Reply-To: <20120613134323.GX12766@atomide.com>
+Content-Language: en-US
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Jean Pihet <jean.pihet@newoldbits.com>
-Cc: linux-omap@vger.kernel.org, khilman@ti.com, paul@pwsan.com, tony@atomide.com, linux-arm-kernel@lists.infradead.org
+To: Tony Lindgren <tony@atomide.com>
+Cc: "paul@pwsan.com" <paul@pwsan.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>
 
-On Wed, 2012-06-13 at 17:21 +0200, Jean Pihet wrote:
-> Hi Tero,
+Hi Tony,
+
+On Wed, Jun 13, 2012 at 19:13:24, Tony Lindgren wrote:
+> * Mohammed, Afzal <afzal@ti.com> [120613 06:43]:
+
+> > Do you mean for all the gpmc-* helpers existing initialization
+> > needs to be modified to use the new interface, the previous version
+> > was doing so. But then that will cause all boards using the same
+> > gpmc-* helper to be converted at once (tusb6010 is not an issue as
+> > only one board uses it), then the problem will be that there would
+> > be a few commits where gpmc may not work properly.
+> > 
+> > And for a particular board, either it has to use old interface
+> > or either the new interface, it cannot use both.
+> > 
+> > Consider the case of this one, smc91x, all sdp boards use it,
+> > that requires nand, onenand, nor gpmc-* helpers to be converted
+> > before board migration for say 3430sdp board, that would mean
+> > that 2430sdp board would be broken w.r.t gpmc at that commit as
+> > board modifications are not yet done for 2430. That in turn means
+> > all the boards using nand, onenand would be broken at that point.
 > 
-> I have a few remarks regarding the genericity of this code. I think it
-> is better if the code in powerdomain.c stays generic and that the
-> platform specific checks and operations be moved in the specific
-> functions (via the pwrdm_ops struct).
+> What I mean is keep the old interface in gpmc.c, then convert
+> users one at a time to the new interface, and remove the old
+> interface code from the users. But yeah you're right, it may
+> not be immediately doable for the smc91x case before we dump
+> out the register values. But at least tusb6010 should be able
+> to just convert to use the new interface and drop the old code.
 
-Well, I was thinking about this, however it looks like I need to copy
-over most of the implementation of omap_set_pwrdm_state and
-get_next_achievable_state if I want to do that, or alternatively
-overload the underlying omap4 pwrdm code which does not seem that good
-solution either.
+Yesterday, I overlooked the fact that n8x0 have onenand in addition
+to tusb6010. As that is the case, to have boards work properly,
+we may need to keep old interface along with new interface for at
+least a few commits even for tusb6010.
 
-> 
-> On Tue, Jun 12, 2012 at 5:31 PM, Tero Kristo <t-kristo@ti.com> wrote:
-> > On OMAP4+, device wide off-mode has its own enable mechanism in addition
-> > to powerdomain target states. This patch adds support for this on top
-> > of functional power states by overloading the OFF state for core pwrdm.
-> > On pwrdm level, the deepest power state supported by core pwrdm is OSWR.
-> > When user (e.g. suspend) programs core pwrdm target as OFF, the functional
-> > power state for the domain will be OSWR with the additional device off
-> > enabled. Previous power state information will reflect this also.
-> >
-> > Signed-off-by: Tero Kristo <t-kristo@ti.com>
-> > ---
-> >  arch/arm/mach-omap2/powerdomain.c           |   17 +++++++++
-> >  arch/arm/mach-omap2/powerdomain.h           |   13 +++++++-
-> >  arch/arm/mach-omap2/powerdomain44xx.c       |   48 +++++++++++++++++++++++++++
-> >  arch/arm/mach-omap2/powerdomains44xx_data.c |    3 +-
-> >  4 files changed, 79 insertions(+), 2 deletions(-)
-> >
-> > diff --git a/arch/arm/mach-omap2/powerdomain.c b/arch/arm/mach-omap2/powerdomain.c
-> > index ac63f86..78a9308 100644
-> > --- a/arch/arm/mach-omap2/powerdomain.c
-> > +++ b/arch/arm/mach-omap2/powerdomain.c
-> > @@ -677,6 +677,8 @@ int omap_set_pwrdm_state(struct powerdomain *pwrdm, u32 func_pwrst)
-> >        int sleep_switch = -1, ret = 0, hwsup = 0;
-> >        int new_func_pwrst, next_func_pwrst, pwrst, logic;
-> >        u8 curr_pwrst;
-> > +       bool extra_off_enable = false;
-> > +       bool has_extra_off = false;
-> >
-> >        if (!pwrdm || IS_ERR(pwrdm)) {
-> >                pr_debug("%s: invalid params: pwrdm=%p\n", __func__, pwrdm);
-> > @@ -687,6 +689,13 @@ int omap_set_pwrdm_state(struct powerdomain *pwrdm, u32 func_pwrst)
-> >
-> >        mutex_lock(&pwrdm->lock);
-> >
-> > +       /* Check if powerdomain has extra off mode handling */
-> > +       if (pwrdm->flags & PWRDM_HAS_EXTRA_OFF_ENABLE) {
-> > +               has_extra_off = true;
-> > +               if (func_pwrst == PWRDM_FUNC_PWRST_OFF)
-> > +                       extra_off_enable = true;
-> > +       }
-> Could those checks be moved in the OMAP4 specific functions, so that
-> the power domain code stays generic?
+Straightaway if existing tusb6010 interface is modified (without
+having new interface alongside), it will create problem for n8x0
+as it has onenand still using old interface. And a board at a time
+cannot use both.
 
-I'll try to do that and see what happens. The problem I tried to tackle
-with this implementation is that even when core next state is programmed
-to func OFF, we must program the powerdomain itself to OSWR, which the
-current functional pwrst framework does not support too well.... or as
-you say, I need to re-write the omap4 pwrdm state handling code itself
-which kind of eats the benefit of the functional power states away.
+And if we proceed in the reverse, i.e. convert onenand to use
+new interface first (w/o having new interface alongside),
+still n8x0 would have problems as tusb6010 would be using the old
+interface then
 
-> 
-> > +
-> >        new_func_pwrst = pwrdm_get_achievable_func_pwrst(pwrdm, func_pwrst);
-> >        pwrst = pwrdm_func_to_pwrst(pwrdm, new_func_pwrst);
-> >        logic = pwrdm_func_to_logic_pwrst(pwrdm, new_func_pwrst);
-> > @@ -741,6 +750,9 @@ int omap_set_pwrdm_state(struct powerdomain *pwrdm, u32 func_pwrst)
-> >                break;
-> >        }
-> >
-> > +       if (has_extra_off && arch_pwrdm->pwrdm_enable_off)
-> > +               arch_pwrdm->pwrdm_enable_off(pwrdm, extra_off_enable);
-> > +
-> >  out:
-> >        mutex_unlock(&pwrdm->lock);
-> >        return ret;
-> > @@ -810,6 +822,11 @@ int pwrdm_read_next_func_pwrst(struct powerdomain *pwrdm)
-> >        int next_pwrst = pwrdm_read_next_pwrst(pwrdm);
-> >        int next_logic = pwrdm_read_logic_retst(pwrdm);
-> >
-> > +       if (pwrdm->flags & PWRDM_HAS_EXTRA_OFF_ENABLE &&
-> > +           arch_pwrdm->pwrdm_read_next_off &&
-> > +           arch_pwrdm->pwrdm_read_next_off(pwrdm))
-> > +               return PWRDM_FUNC_PWRST_OFF;
-> > +
-> Same comment here. The OMAP4 specific function for
-> pwrdm_read_next_pwrst could return PWRDM_FUNC_PWRST_OFF.
+So it seems, both interface has to live side-by-side till all
+boards are converted (or at least till all boards using the
+peripheral in question has to get converted to use new interface)
 
-Same issue.
-
-Anyway, I'll try to fiddle with the code bit more and see what happens.
-
--Tero
-
-
+Regards
+Afzal
