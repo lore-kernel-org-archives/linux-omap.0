@@ -1,85 +1,115 @@
-From: "Mohammed, Afzal" <afzal@ti.com>
-Subject: RE: [PATCH 3/3] ARM: OMAP2+: gpmc: handle additional timings
-Date: Thu, 14 Jun 2012 10:39:33 +0000
-Message-ID: <C8443D0743D26F4388EA172BF4E2A7A93E99994C@DBDE01.ent.ti.com>
-References: <cover.1339419244.git.afzal@ti.com>
- <c4bd7d71e9950c09f9712077160b6231f566d8f3.1339419244.git.afzal@ti.com>
- <4FD63DBF.9000200@ti.com>
- <C8443D0743D26F4388EA172BF4E2A7A93E997D9E@DBDE01.ent.ti.com>
- <4FD77E35.3050703@ti.com>
- <C8443D0743D26F4388EA172BF4E2A7A93E998767@DBDE01.ent.ti.com>
- <20120613113217.GK12766@atomide.com> <20120613115445.GM12766@atomide.com>
- <C8443D0743D26F4388EA172BF4E2A7A93E998C80@DBDE01.ent.ti.com>
- <C8443D0743D26F4388EA172BF4E2A7A93E999849@DBDE01.ent.ti.com>
- <20120614101901.GI12766@atomide.com>
+From: "Shilimkar, Santosh" <santosh.shilimkar-l0cyMroinI0@public.gmane.org>
+Subject: Re: [PATCH 02/17] i2c: omap: decrease indentation level on data handling
+Date: Thu, 14 Jun 2012 16:11:14 +0530
+Message-ID: <CAMQu2gx75iDwwRJCT4XfSmo3Uux1oroUh8nkr_nEyjAU1qs1hw@mail.gmail.com>
+References: <1339669250-9183-1-git-send-email-balbi@ti.com> <1339669250-9183-3-git-send-email-balbi@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from devils.ext.ti.com ([198.47.26.153]:42674 "EHLO
-	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755615Ab2FNKjk convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 14 Jun 2012 06:39:40 -0400
-In-Reply-To: <20120614101901.GI12766@atomide.com>
-Content-Language: en-US
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: base64
+Return-path: <linux-i2c-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <1339669250-9183-3-git-send-email-balbi-l0cyMroinI0@public.gmane.org>
+Sender: linux-i2c-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Felipe Balbi <balbi-l0cyMroinI0@public.gmane.org>
+Cc: ben-linux-elnMNo+KYs3YtjvyW6yDsg@public.gmane.org, Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>, Linux Kernel Mailing List <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, w.sang-bIcnvbaLZ9MEGnE8C9+IrQ@public.gmane.org, linux-i2c-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Linux OMAP Mailing List <linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Linux ARM Kernel Mailing List <linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org>
 List-Id: linux-omap@vger.kernel.org
-To: Tony Lindgren <tony@atomide.com>
-Cc: "Hunter, Jon" <jon-hunter@ti.com>, "paul@pwsan.com" <paul@pwsan.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>
 
-Hi Tony,
-
-On Thu, Jun 14, 2012 at 15:49:02, Tony Lindgren wrote:
-
-> Well I took a look at the values, and it seems the only difference is the
-> static GPMC_CONFIG1_CLKACTIVATIONTIME(1) that your patch now overwrites 0.
-
-It seems change below should be part of $subject.
-
-Please let me know your comments
-
-Regards
-Afzal
-
-diff --git a/arch/arm/mach-omap2/gpmc-onenand.c b/arch/arm/mach-omap2/gpmc-onenand.c
-index fd4c48d..938896c 100644
---- a/arch/arm/mach-omap2/gpmc-onenand.c
-+++ b/arch/arm/mach-omap2/gpmc-onenand.c
-@@ -321,6 +321,8 @@ static int omap2_onenand_set_sync_mode(struct omap_onenand_platform_data *cfg,
-        t.rd_cycle = gpmc_ticks_to_ns(fclk_offset + (latency + 1) * div +
-                     ticks_cez);
-
-+       t.clk_activation = fclk_offset_ns;
-+
-        /* Write */
-        if (sync_write) {
-                t.adv_wr_off = t.adv_rd_off;
-@@ -354,7 +356,6 @@ static int omap2_onenand_set_sync_mode(struct omap_onenand_platform_data *cfg,
-                          (sync_read ? GPMC_CONFIG1_READTYPE_SYNC : 0) |
-                          (sync_write ? GPMC_CONFIG1_WRITEMULTIPLE_SUPP : 0) |
-                          (sync_write ? GPMC_CONFIG1_WRITETYPE_SYNC : 0) |
--                         GPMC_CONFIG1_CLKACTIVATIONTIME(fclk_offset) |
-                          GPMC_CONFIG1_PAGE_LEN(2) |
-                          (cpu_is_omap34xx() ? 0 :
-                                (GPMC_CONFIG1_WAIT_READ_MON |
-diff --git a/arch/arm/mach-omap2/usb-tusb6010.c b/arch/arm/mach-omap2/usb-tusb6010.c
-index db84a46..5c98755 100644
---- a/arch/arm/mach-omap2/usb-tusb6010.c
-+++ b/arch/arm/mach-omap2/usb-tusb6010.c
-@@ -174,6 +174,8 @@ static int tusb_set_sync_mode(unsigned sysclk_ps, unsigned fclk_ps)
-        tmp = t.cs_wr_off * 1000 + 7000 /* t_scsn_rdy_z */;
-        t.wr_cycle = next_clk(t.cs_wr_off, tmp, fclk_ps);
-
-+       t.clk_activation = gpmc_ticks_to_ns(1);
-+
-        return gpmc_cs_set_timings(sync_cs, &t);
- }
-
-@@ -283,7 +285,6 @@ tusb6010_setup_interface(struct musb_hdrc_platform_data *data,
-                        | GPMC_CONFIG1_READTYPE_SYNC
-                        | GPMC_CONFIG1_WRITEMULTIPLE_SUPP
-                        | GPMC_CONFIG1_WRITETYPE_SYNC
--                       | GPMC_CONFIG1_CLKACTIVATIONTIME(1)
-                        | GPMC_CONFIG1_PAGE_LEN(2)
-                        | GPMC_CONFIG1_WAIT_READ_MON
-                        | GPMC_CONFIG1_WAIT_WRITE_MON
+T24gVGh1LCBKdW4gMTQsIDIwMTIgYXQgMzo1MCBQTSwgRmVsaXBlIEJhbGJpIDxiYWxiaUB0aS5j
+b20+IHdyb3RlOgo+IHRyaXZpYWwgcGF0Y2gsIG5vIGZ1bmN0aW9uYWwgY2hhbmdlcy4KPgo+IFNp
+Z25lZC1vZmYtYnk6IEZlbGlwZSBCYWxiaSA8YmFsYmlAdGkuY29tPgo+IC0tLQo+IKBkcml2ZXJz
+L2kyYy9idXNzZXMvaTJjLW9tYXAuYyB8IKAgNjMgKysrKysrKysrKysrKysrKysrKystLS0tLS0t
+LS0tLS0tLS0tLS0tLS0KPiCgMSBmaWxlIGNoYW5nZWQsIDMxIGluc2VydGlvbnMoKyksIDMyIGRl
+bGV0aW9ucygtKQo+Cj4gZGlmZiAtLWdpdCBhL2RyaXZlcnMvaTJjL2J1c3Nlcy9pMmMtb21hcC5j
+IGIvZHJpdmVycy9pMmMvYnVzc2VzL2kyYy1vbWFwLmMKPiBpbmRleCA5YjUzMmNkLi4zOWQ1NTgz
+IDEwMDY0NAo+IC0tLSBhL2RyaXZlcnMvaTJjL2J1c3Nlcy9pMmMtb21hcC5jCj4gKysrIGIvZHJp
+dmVycy9pMmMvYnVzc2VzL2kyYy1vbWFwLmMKPiBAQCAtODU2LDIyICs4NTYsNyBAQCBjb21wbGV0
+ZToKPiCgIKAgoCCgIKAgoCCgIKAgoCCgIKAgoCCgIKAgoCCgIKAgoCCgIKAgoCCgIKAgoCCgIKAg
+oCCgPj4gOCkgJiAweDNGOwo+IKAgoCCgIKAgoCCgIKAgoCCgIKAgoCCgfQo+IKAgoCCgIKAgoCCg
+IKAgoCCgIKAgoCCgd2hpbGUgKG51bV9ieXRlcy0tKSB7Cj4gLSCgIKAgoCCgIKAgoCCgIKAgoCCg
+IKAgoCCgIKAgoCB3ID0gb21hcF9pMmNfcmVhZF9yZWcoZGV2LCBPTUFQX0kyQ19EQVRBX1JFRyk7
+Cj4gLSCgIKAgoCCgIKAgoCCgIKAgoCCgIKAgoCCgIKAgoCBpZiAoZGV2LT5idWZfbGVuKSB7Cj4g
+LSCgIKAgoCCgIKAgoCCgIKAgoCCgIKAgoCCgIKAgoCCgIKAgoCCgICpkZXYtPmJ1ZisrID0gdzsK
+PiAtIKAgoCCgIKAgoCCgIKAgoCCgIKAgoCCgIKAgoCCgIKAgoCCgIKAgZGV2LT5idWZfbGVuLS07
+Cj4gLSCgIKAgoCCgIKAgoCCgIKAgoCCgIKAgoCCgIKAgoCCgIKAgoCCgIC8qCj4gLSCgIKAgoCCg
+IKAgoCCgIKAgoCCgIKAgoCCgIKAgoCCgIKAgoCCgIKAqIERhdGEgcmVnIGluIDI0MzAsIG9tYXAz
+IGFuZAo+IC0goCCgIKAgoCCgIKAgoCCgIKAgoCCgIKAgoCCgIKAgoCCgIKAgoCCgKiBvbWFwNCBp
+cyA4IGJpdCB3aWRlCj4gLSCgIKAgoCCgIKAgoCCgIKAgoCCgIKAgoCCgIKAgoCCgIKAgoCCgIKAq
+Lwo+IC0goCCgIKAgoCCgIKAgoCCgIKAgoCCgIKAgoCCgIKAgoCCgIKAgoCBpZiAoZGV2LT5mbGFn
+cyAmCj4gLSCgIKAgoCCgIKAgoCCgIKAgoCCgIKAgoCCgIKAgoCCgIKAgoCCgIKAgoCCgIKAgoE9N
+QVBfSTJDX0ZMQUdfMTZCSVRfREFUQV9SRUcpIHsKPiAtIKAgoCCgIKAgoCCgIKAgoCCgIKAgoCCg
+IKAgoCCgIKAgoCCgIKAgoCCgIKAgoCBpZiAoZGV2LT5idWZfbGVuKSB7Cj4gLSCgIKAgoCCgIKAg
+oCCgIKAgoCCgIKAgoCCgIKAgoCCgIKAgoCCgIKAgoCCgIKAgoCCgIKAgoCAqZGV2LT5idWYrKyA9
+IHcgPj4gODsKPiAtIKAgoCCgIKAgoCCgIKAgoCCgIKAgoCCgIKAgoCCgIKAgoCCgIKAgoCCgIKAg
+oCCgIKAgoCCgIGRldi0+YnVmX2xlbi0tOwo+IC0goCCgIKAgoCCgIKAgoCCgIKAgoCCgIKAgoCCg
+IKAgoCCgIKAgoCCgIKAgoCCgIH0KPiAtIKAgoCCgIKAgoCCgIKAgoCCgIKAgoCCgIKAgoCCgIKAg
+oCCgIKAgfQo+IC0goCCgIKAgoCCgIKAgoCCgIKAgoCCgIKAgoCCgIKAgfSBlbHNlIHsKPiArIKAg
+oCCgIKAgoCCgIKAgoCCgIKAgoCCgIKAgoCCgIGlmICghZGV2LT5idWZfbGVuKSB7Cj4goCCgIKAg
+oCCgIKAgoCCgIKAgoCCgIKAgoCCgIKAgoCCgIKAgoCCgaWYgKHN0YXQgJiBPTUFQX0kyQ19TVEFU
+X1JSRFkpCj4goCCgIKAgoCCgIKAgoCCgIKAgoCCgIKAgoCCgIKAgoCCgIKAgoCCgIKAgoCCgIKBk
+ZXZfZXJyKGRldi0+ZGV2LAo+IKAgoCCgIKAgoCCgIKAgoCCgIKAgoCCgIKAgoCCgIKAgoCCgIKAg
+oCCgIKAgoCCgIKAgoCCgIKAiUlJEWSBJUlEgd2hpbGUgbm8gZGF0YSIKPiBAQCAtODgyLDYgKzg2
+NywyMSBAQCBjb21wbGV0ZToKPiCgIKAgoCCgIKAgoCCgIKAgoCCgIKAgoCCgIKAgoCCgIKAgoCCg
+IKAgoCCgIKAgoCCgIKAgoCCgIKAgoCCgIKAiIHJlcXVlc3RlZFxuIik7Cj4goCCgIKAgoCCgIKAg
+oCCgIKAgoCCgIKAgoCCgIKAgoCCgIKAgoCCgYnJlYWs7Cj4goCCgIKAgoCCgIKAgoCCgIKAgoCCg
+IKAgoCCgIKAgoH0KPiArCj4gKyCgIKAgoCCgIKAgoCCgIKAgoCCgIKAgoCCgIKAgoCB3ID0gb21h
+cF9pMmNfcmVhZF9yZWcoZGV2LCBPTUFQX0kyQ19EQVRBX1JFRyk7Cj4gKyCgIKAgoCCgIKAgoCCg
+IKAgoCCgIKAgoCCgIKAgoCAqZGV2LT5idWYrKyA9IHc7Cj4gKyCgIKAgoCCgIKAgoCCgIKAgoCCg
+IKAgoCCgIKAgoCBkZXYtPmJ1Zl9sZW4tLTsKPiArIKAgoCCgIKAgoCCgIKAgoCCgIKAgoCCgIKAg
+oCCgIC8qCj4gKyCgIKAgoCCgIKAgoCCgIKAgoCCgIKAgoCCgIKAgoCCgKiBEYXRhIHJlZyBpbiAy
+NDMwLCBvbWFwMyBhbmQKPiArIKAgoCCgIKAgoCCgIKAgoCCgIKAgoCCgIKAgoCCgIKAqIG9tYXA0
+IGlzIDggYml0IHdpZGUKPiArIKAgoCCgIKAgoCCgIKAgoCCgIKAgoCCgIKAgoCCgIKAqLwo+ICsg
+oCCgIKAgoCCgIKAgoCCgIKAgoCCgIKAgoCCgIKAgaWYgKGRldi0+ZmxhZ3MgJgo+ICsgoCCgIKAg
+oCCgIKAgoCCgIKAgoCCgIKAgoCCgIKAgoCCgIKAgoCCgIKAgoCCgIE9NQVBfSTJDX0ZMQUdfMTZC
+SVRfREFUQV9SRUcpIHsKPiArIKAgoCCgIKAgoCCgIKAgoCCgIKAgoCCgIKAgoCCgIKAgoCCgIKAg
+aWYgKGRldi0+YnVmX2xlbikgewo+ICsgoCCgIKAgoCCgIKAgoCCgIKAgoCCgIKAgoCCgIKAgoCCg
+IKAgoCCgIKAgoCCgICpkZXYtPmJ1ZisrID0gdyA+PiA4Owo+ICsgoCCgIKAgoCCgIKAgoCCgIKAg
+oCCgIKAgoCCgIKAgoCCgIKAgoCCgIKAgoCCgIGRldi0+YnVmX2xlbi0tOwo+ICsgoCCgIKAgoCCg
+IKAgoCCgIKAgoCCgIKAgoCCgIKAgoCCgIKAgoCB9Cj4gKyCgIKAgoCCgIKAgoCCgIKAgoCCgIKAg
+oCCgIKAgoCB9Cj4goCCgIKAgoCCgIKAgoCCgIKAgoCCgIKB9Cj4goCCgIKAgoCCgIKAgoCCgIKAg
+oCCgIKBvbWFwX2kyY19hY2tfc3RhdChkZXYsCj4goCCgIKAgoCCgIKAgoCCgIKAgoCCgIKAgoCCg
+IKAgoHN0YXQgJiAoT01BUF9JMkNfU1RBVF9SUkRZIHwgT01BUF9JMkNfU1RBVF9SRFIpKTsKPiBA
+QCAtODk4LDIyICs4OTgsNyBAQCBjb21wbGV0ZToKPiCgIKAgoCCgIKAgoCCgIKAgoCCgIKAgoCCg
+IKAgoCCgIKAgoCCgIKAgoCCgIKAgoCCgIKAgoCCgJiAweDNGOwo+IKAgoCCgIKAgoCCgIKAgoCCg
+IKAgoCCgfQo+IKAgoCCgIKAgoCCgIKAgoCCgIKAgoCCgd2hpbGUgKG51bV9ieXRlcy0tKSB7Cj4g
+LSCgIKAgoCCgIKAgoCCgIKAgoCCgIKAgoCCgIKAgoCB3ID0gMDsKPiAtIKAgoCCgIKAgoCCgIKAg
+oCCgIKAgoCCgIKAgoCCgIGlmIChkZXYtPmJ1Zl9sZW4pIHsKPiAtIKAgoCCgIKAgoCCgIKAgoCCg
+IKAgoCCgIKAgoCCgIKAgoCCgIKAgdyA9ICpkZXYtPmJ1ZisrOwo+IC0goCCgIKAgoCCgIKAgoCCg
+IKAgoCCgIKAgoCCgIKAgoCCgIKAgoCBkZXYtPmJ1Zl9sZW4tLTsKPiAtIKAgoCCgIKAgoCCgIKAg
+oCCgIKAgoCCgIKAgoCCgIKAgoCCgIKAgLyoKPiAtIKAgoCCgIKAgoCCgIKAgoCCgIKAgoCCgIKAg
+oCCgIKAgoCCgIKAgoCogRGF0YSByZWcgaW4gMjQzMCwgb21hcDMgYW5kCj4gLSCgIKAgoCCgIKAg
+oCCgIKAgoCCgIKAgoCCgIKAgoCCgIKAgoCCgIKAqIG9tYXA0IGlzIDggYml0IHdpZGUKPiAtIKAg
+oCCgIKAgoCCgIKAgoCCgIKAgoCCgIKAgoCCgIKAgoCCgIKAgoCovCj4gLSCgIKAgoCCgIKAgoCCg
+IKAgoCCgIKAgoCCgIKAgoCCgIKAgoCCgIGlmIChkZXYtPmZsYWdzICYKPiAtIKAgoCCgIKAgoCCg
+IKAgoCCgIKAgoCCgIKAgoCCgIKAgoCCgIKAgoCCgIKAgoCCgT01BUF9JMkNfRkxBR18xNkJJVF9E
+QVRBX1JFRykgewo+IC0goCCgIKAgoCCgIKAgoCCgIKAgoCCgIKAgoCCgIKAgoCCgIKAgoCCgIKAg
+oCCgIGlmIChkZXYtPmJ1Zl9sZW4pIHsKPiAtIKAgoCCgIKAgoCCgIKAgoCCgIKAgoCCgIKAgoCCg
+IKAgoCCgIKAgoCCgIKAgoCCgIKAgoCCgIHcgfD0gKmRldi0+YnVmKysgPDwgODsKPiAtIKAgoCCg
+IKAgoCCgIKAgoCCgIKAgoCCgIKAgoCCgIKAgoCCgIKAgoCCgIKAgoCCgIKAgoCCgIGRldi0+YnVm
+X2xlbi0tOwo+IC0goCCgIKAgoCCgIKAgoCCgIKAgoCCgIKAgoCCgIKAgoCCgIKAgoCCgIKAgoCCg
+IH0KPiAtIKAgoCCgIKAgoCCgIKAgoCCgIKAgoCCgIKAgoCCgIKAgoCCgIKAgfQo+IC0goCCgIKAg
+oCCgIKAgoCCgIKAgoCCgIKAgoCCgIKAgfSBlbHNlIHsKPiArIKAgoCCgIKAgoCCgIKAgoCCgIKAg
+oCCgIKAgoCCgIGlmICghZGV2LT5idWZfbGVuKSB7Cj4goCCgIKAgoCCgIKAgoCCgIKAgoCCgIKAg
+oCCgIKAgoCCgIKAgoCCgaWYgKHN0YXQgJiBPTUFQX0kyQ19TVEFUX1hSRFkpCj4goCCgIKAgoCCg
+IKAgoCCgIKAgoCCgIKAgoCCgIKAgoCCgIKAgoCCgIKAgoCCgIKBkZXZfZXJyKGRldi0+ZGV2LAo+
+IKAgoCCgIKAgoCCgIKAgoCCgIKAgoCCgIKAgoCCgIKAgoCCgIKAgoCCgIKAgoCCgIKAgoCCgIKAi
+WFJEWSBJUlEgd2hpbGUgbm8gIgo+IEBAIC05MjUsNiArOTEwLDIwIEBAIGNvbXBsZXRlOgo+IKAg
+oCCgIKAgoCCgIKAgoCCgIKAgoCCgIKAgoCCgIKAgoCCgIKAgoGJyZWFrOwo+IKAgoCCgIKAgoCCg
+IKAgoCCgIKAgoCCgIKAgoCCgIKB9Cj4KPiArIKAgoCCgIKAgoCCgIKAgoCCgIKAgoCCgIKAgoCCg
+IHcgPSAqZGV2LT5idWYrKzsKPiArIKAgoCCgIKAgoCCgIKAgoCCgIKAgoCCgIKAgoCCgIGRldi0+
+YnVmX2xlbi0tOwo+ICsgoCCgIKAgoCCgIKAgoCCgIKAgoCCgIKAgoCCgIKAgLyoKPiArIKAgoCCg
+IKAgoCCgIKAgoCCgIKAgoCCgIKAgoCCgIKAqIERhdGEgcmVnIGluIDI0MzAsIG9tYXAzIGFuZAo+
+ICsgoCCgIKAgoCCgIKAgoCCgIKAgoCCgIKAgoCCgIKAgoCogb21hcDQgaXMgOCBiaXQgd2lkZQo+
+ICsgoCCgIKAgoCCgIKAgoCCgIKAgoCCgIKAgoCCgIKAgoCovCj4gKyCgIKAgoCCgIKAgoCCgIKAg
+oCCgIKAgoCCgIKAgoCBpZiAoZGV2LT5mbGFncyAmCj4gKyCgIKAgoCCgIKAgoCCgIKAgoCCgIKAg
+oCCgIKAgoCCgIKAgoCCgIKAgoCCgIKAgT01BUF9JMkNfRkxBR18xNkJJVF9EQVRBX1JFRykgewo+
+ICsgoCCgIKAgoCCgIKAgoCCgIKAgoCCgIKAgoCCgIKAgoCCgIKAgoCBpZiAoZGV2LT5idWZfbGVu
+KSB7Cj4gKyCgIKAgoCCgIKAgoCCgIKAgoCCgIKAgoCCgIKAgoCCgIKAgoCCgIKAgoCCgIKAgdyB8
+PSAqZGV2LT5idWYrKyA8PCA4Owo+ICsgoCCgIKAgoCCgIKAgoCCgIKAgoCCgIKAgoCCgIKAgoCCg
+IKAgoCCgIKAgoCCgIGRldi0+YnVmX2xlbi0tOwo+ICsgoCCgIKAgoCCgIKAgoCCgIKAgoCCgIKAg
+oCCgIKAgoCCgIKAgoCB9Cj4gKyCgIKAgoCCgIKAgoCCgIKAgoCCgIKAgoCCgIKAgoCB9Cj4gKwo+
+IKAgoCCgIKAgoCCgIKAgoCCgIKAgoCCgIKAgoCCgIKBpZiAoKGRldi0+ZXJyYXRhICYgSTJDX09N
+QVAzXzFQMTUzKSAmJgo+IKAgoCCgIKAgoCCgIKAgoCCgIKAgoCCgIKAgoCCgIKAgoCCgZXJyYXRh
+X29tYXAzXzFwMTUzKGRldiwgJnN0YXQsICZlcnIpKQo+IKAgoCCgIKAgoCCgIKAgoCCgIKAgoCCg
+IKAgoCCgIKAgoCCgIKAgoGdvdG8gY29tcGxldGU7CgpBdm9pZHMgY291cGxlIG9mIGlmIGNoZWNr
+IGFuZCBraWxscyB0aGUgdW4tbmVjZXNzYXJ5IGlmL2Vsc2UgaW5zaWRlIHRoZSBsb29wLgpEaWQg
+SSBtaXNzIGFueXRoaW5nIGVsc2UgaW4gdGhlIHBhdGNoID8KCkxvb2tzIGdvb2QgdG8gbWUKUmV2
+aWV3ZWQtYnkgOiBTYW50b3NoIFNoaWxpbWthciA8c2FudG9zaC5zaGlsaW1rYXJAdGkuY29tPgo=
