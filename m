@@ -1,62 +1,25 @@
-From: "Shilimkar, Santosh" <santosh.shilimkar@ti.com>
-Subject: Re: [PATCH 06/17] i2c: omap: improve 1p153 errata handling
-Date: Thu, 14 Jun 2012 16:31:02 +0530
-Message-ID: <CAMQu2gxY6x+JFw1ncimpVSxutJ_+4zscGHzVpg85W-4SPfUJRQ@mail.gmail.com>
-References: <1339669250-9183-1-git-send-email-balbi@ti.com> <1339669250-9183-7-git-send-email-balbi@ti.com>
+From: "Shilimkar, Santosh" <santosh.shilimkar-l0cyMroinI0@public.gmane.org>
+Subject: Re: [PATCH 08/17] i2c: omap: switch over to do {} while loop
+Date: Thu, 14 Jun 2012 16:33:39 +0530
+Message-ID: <CAMQu2gw-rX9Xq7PPU9sGB=EFd4f3xfsPPDdODRyU5Jwg20v4GQ@mail.gmail.com>
+References: <1339669250-9183-1-git-send-email-balbi@ti.com> <1339669250-9183-9-git-send-email-balbi@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aog113.obsmtp.com ([74.125.149.209]:44917 "EHLO
-	na3sys009aog113.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754880Ab2FNLBY convert rfc822-to-8bit
-	(ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Thu, 14 Jun 2012 07:01:24 -0400
-Received: by qcsg15 with SMTP id g15so1294085qcs.27
-        for <linux-omap@vger.kernel.org>; Thu, 14 Jun 2012 04:01:23 -0700 (PDT)
-In-Reply-To: <1339669250-9183-7-git-send-email-balbi@ti.com>
-Sender: linux-omap-owner@vger.kernel.org
+Return-path: <linux-i2c-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <1339669250-9183-9-git-send-email-balbi-l0cyMroinI0@public.gmane.org>
+Sender: linux-i2c-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Felipe Balbi <balbi-l0cyMroinI0@public.gmane.org>
+Cc: ben-linux-elnMNo+KYs3YtjvyW6yDsg@public.gmane.org, Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>, Linux Kernel Mailing List <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, w.sang-bIcnvbaLZ9MEGnE8C9+IrQ@public.gmane.org, linux-i2c-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Linux OMAP Mailing List <linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Linux ARM Kernel Mailing List <linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org>
 List-Id: linux-omap@vger.kernel.org
-To: Felipe Balbi <balbi@ti.com>
-Cc: ben-linux@fluff.org, Tony Lindgren <tony@atomide.com>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, w.sang@pengutronix.de, linux-i2c@vger.kernel.org, Linux OMAP Mailing List <linux-omap@vger.kernel.org>, Linux ARM Kernel Mailing List <linux-arm-kernel@lists.infradead.org>
 
-On Thu, Jun 14, 2012 at 3:50 PM, Felipe Balbi <balbi@ti.com> wrote:
-> Make it not depend on ISR's local variables
-> in order to make it easier to re-factor the
-> transmit data loop.
+On Thu, Jun 14, 2012 at 3:50 PM, Felipe Balbi <balbi-l0cyMroinI0@public.gmane.org> wrote:
+> this will make sure that we execute at least once.
+> No functional changes otherwise.
 >
-> Signed-off-by: Felipe Balbi <balbi@ti.com>
+> Signed-off-by: Felipe Balbi <balbi-l0cyMroinI0@public.gmane.org>
 > ---
-> =A0drivers/i2c/busses/i2c-omap.c | =A0 47 +++++++++++++++++++++++++++=
-++------------
-> =A01 file changed, 34 insertions(+), 13 deletions(-)
->
-> diff --git a/drivers/i2c/busses/i2c-omap.c b/drivers/i2c/busses/i2c-o=
-map.c
-> index 0661ca1..52861c2 100644
-> --- a/drivers/i2c/busses/i2c-omap.c
-> +++ b/drivers/i2c/busses/i2c-omap.c
-> @@ -768,21 +768,24 @@ omap_i2c_omap1_isr(int this_irq, void *dev_id)
-> =A0* data to DATA_REG. Otherwise some data bytes can be lost while tr=
-ansferring
-> =A0* them from the memory to the I2C interface.
-> =A0*/
-> -static int errata_omap3_1p153(struct omap_i2c_dev *dev, u16 *stat, i=
-nt *err)
-> +static int errata_omap3_1p153(struct omap_i2c_dev *dev)
-> =A0{
-> - =A0 =A0 =A0 unsigned long timeout =3D 10000;
-> + =A0 =A0 =A0 unsigned long =A0 timeout =3D 10000;
-
-Not related to this patch but this 10000 timeout magic
-needs to be fixed as well.
-
-The patch looks fine.
+Executing at least once instead of never is
+still a functional change :-)
 
 Regards
-santosh
---
-To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Santosh
