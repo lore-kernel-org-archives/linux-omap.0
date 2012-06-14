@@ -1,25 +1,67 @@
-From: "Shilimkar, Santosh" <santosh.shilimkar-l0cyMroinI0@public.gmane.org>
+From: Felipe Balbi <balbi@ti.com>
 Subject: Re: [PATCH 08/17] i2c: omap: switch over to do {} while loop
-Date: Thu, 14 Jun 2012 16:33:39 +0530
-Message-ID: <CAMQu2gw-rX9Xq7PPU9sGB=EFd4f3xfsPPDdODRyU5Jwg20v4GQ@mail.gmail.com>
-References: <1339669250-9183-1-git-send-email-balbi@ti.com> <1339669250-9183-9-git-send-email-balbi@ti.com>
+Date: Thu, 14 Jun 2012 14:05:03 +0300
+Message-ID: <20120614110503.GN13602@arwen.pp.htv.fi>
+References: <1339669250-9183-1-git-send-email-balbi@ti.com>
+ <1339669250-9183-9-git-send-email-balbi@ti.com>
+ <CAMQu2gw-rX9Xq7PPU9sGB=EFd4f3xfsPPDdODRyU5Jwg20v4GQ@mail.gmail.com>
+Reply-To: balbi@ti.com
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Return-path: <linux-i2c-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <1339669250-9183-9-git-send-email-balbi-l0cyMroinI0@public.gmane.org>
-Sender: linux-i2c-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Felipe Balbi <balbi-l0cyMroinI0@public.gmane.org>
-Cc: ben-linux-elnMNo+KYs3YtjvyW6yDsg@public.gmane.org, Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>, Linux Kernel Mailing List <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, w.sang-bIcnvbaLZ9MEGnE8C9+IrQ@public.gmane.org, linux-i2c-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Linux OMAP Mailing List <linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Linux ARM Kernel Mailing List <linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org>
+Content-Type: multipart/signed; micalg=pgp-sha1;
+	protocol="application/pgp-signature"; boundary="RHdRtM27np9fZUoh"
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <CAMQu2gw-rX9Xq7PPU9sGB=EFd4f3xfsPPDdODRyU5Jwg20v4GQ@mail.gmail.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: "Shilimkar, Santosh" <santosh.shilimkar@ti.com>
+Cc: Felipe Balbi <balbi@ti.com>, ben-linux@fluff.org, Tony Lindgren <tony@atomide.com>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, w.sang@pengutronix.de, linux-i2c@vger.kernel.org, Linux OMAP Mailing List <linux-omap@vger.kernel.org>, Linux ARM Kernel Mailing List <linux-arm-kernel@lists.infradead.org>
 List-Id: linux-omap@vger.kernel.org
 
-On Thu, Jun 14, 2012 at 3:50 PM, Felipe Balbi <balbi-l0cyMroinI0@public.gmane.org> wrote:
-> this will make sure that we execute at least once.
-> No functional changes otherwise.
->
-> Signed-off-by: Felipe Balbi <balbi-l0cyMroinI0@public.gmane.org>
-> ---
-Executing at least once instead of never is
-still a functional change :-)
 
-Regards
-Santosh
+--RHdRtM27np9fZUoh
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
+
+On Thu, Jun 14, 2012 at 04:33:39PM +0530, Shilimkar, Santosh wrote:
+> On Thu, Jun 14, 2012 at 3:50 PM, Felipe Balbi <balbi@ti.com> wrote:
+> > this will make sure that we execute at least once.
+> > No functional changes otherwise.
+> >
+> > Signed-off-by: Felipe Balbi <balbi@ti.com>
+> > ---
+> Executing at least once instead of never is
+> still a functional change :-)
+
+there's a check for spurious interrupts. The idea was mainly to
+initialise stat and bits correctly at the beginning of the handler.
+
+Besides that "otherwise" is telling you that: "except this, there are no
+other functional changes" ;)
+
+--=20
+balbi
+
+--RHdRtM27np9fZUoh
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: Digital signature
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.4.12 (GNU/Linux)
+
+iQIcBAEBAgAGBQJP2cVfAAoJEIaOsuA1yqREhYoP/i5tDdqvdroHlyRscJ/zjE49
++q314QxyuLVDgt524IO17JPoQba7D76x5a+IJWxNia1daKP7eQZvZt/tliNcQjSD
+R2vYGb0GLlcXM+1JYow4ubJCfWoxYHIvf4EcVxV24CIrR3M+jFJs/IZl86zkeyr6
+1s9RWtmt2+VkIs4hwLHSqi8ac5JCIcZNNc6diYqSNIzvf8P7al28Z6M11kyqaE5G
+Q0+ze1yRnf14zJxuh+slH/3vjcdEMDeqKQBhd51m160heVxGPi8wnbVUXSx+H5QY
+AWbKV9ZH+8y01Mj9LuJBQTCg4DctmS1z2gkKv6ymUUH3mrr2FOReebZn5vOAAy9h
+qMdTcg/3HkuJzBGXBidLDfOm54kA40X20LmgIZ88bbO1ceNwqhtAHY8ItOlHLyRs
+EvbMfSyOj506+6wYaLfRxXlrTLF5r8egbkENQYiTOVrGLbDJoL39vn4Ku+EhMw5O
+1U/tfZcBn6eZg30hzT4Jad8gGdfRtD+cElHxn2ibbSZlbgHlTycetKYKPocvT0iO
+3jQBrRAr1SzBBT0gUJXBK/UHpgUIqJlASMFplGdoJLyMiJ4yHO/+kkFUE2KDRDit
+41pwzN7Hxtq7r3VUfTccVODAkbOzk4Hj1+cHZGOTqKSiWSX4pSTjg2FDJ/O4pgyZ
+RzQjUuvK+GTvzraBgjcY
+=JsG+
+-----END PGP SIGNATURE-----
+
+--RHdRtM27np9fZUoh--
