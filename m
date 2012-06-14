@@ -1,82 +1,38 @@
 From: "Mohammed, Afzal" <afzal@ti.com>
-Subject: RE: [PATCH 2/3] ARM: OMAP2+: onenand: cleanup for gpmc driver
- conversion
-Date: Thu, 14 Jun 2012 05:40:02 +0000
-Message-ID: <C8443D0743D26F4388EA172BF4E2A7A93E9993EF@DBDE01.ent.ti.com>
+Subject: RE: [PATCH 0/3] Prepare for GPMC driver conversion
+Date: Thu, 14 Jun 2012 05:58:41 +0000
+Message-ID: <C8443D0743D26F4388EA172BF4E2A7A93E99941A@DBDE01.ent.ti.com>
 References: <cover.1339419244.git.afzal@ti.com>
- <2d6f0fb31cde98cd700d7a4268683b4aeeee87f2.1339419244.git.afzal@ti.com>
- <4FD63AAE.90008@ti.com>
- <C8443D0743D26F4388EA172BF4E2A7A93E997D47@DBDE01.ent.ti.com>
- <4FD77CC8.4000003@ti.com>
- <C8443D0743D26F4388EA172BF4E2A7A93E998781@DBDE01.ent.ti.com>
- <4FD8C217.2050006@ti.com>
+ <C8443D0743D26F4388EA172BF4E2A7A93E99803F@DBDE01.ent.ti.com>
+ <20120613113358.GL12766@atomide.com>
+ <C8443D0743D26F4388EA172BF4E2A7A93E998D74@DBDE01.ent.ti.com>
+ <4FD8C401.5070908@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 8BIT
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from devils.ext.ti.com ([198.47.26.153]:56339 "EHLO
-	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751554Ab2FNFkN convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 14 Jun 2012 01:40:13 -0400
-In-Reply-To: <4FD8C217.2050006@ti.com>
+Received: from arroyo.ext.ti.com ([192.94.94.40]:34681 "EHLO arroyo.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751006Ab2FNF6u convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 14 Jun 2012 01:58:50 -0400
+In-Reply-To: <4FD8C401.5070908@ti.com>
 Content-Language: en-US
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: "Hunter, Jon" <jon-hunter@ti.com>
-Cc: "tony@atomide.com" <tony@atomide.com>, "paul@pwsan.com" <paul@pwsan.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>
+Cc: Tony Lindgren <tony@atomide.com>, "paul@pwsan.com" <paul@pwsan.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>
 
 Hi Jon,
 
-On Wed, Jun 13, 2012 at 22:08:47, Hunter, Jon wrote:
-> On 06/13/2012 12:03 AM, Mohammed, Afzal wrote:
+On Wed, Jun 13, 2012 at 22:16:57, Hunter, Jon wrote:
 
-> > As gpmc_onenand_setup is a callback by onenand driver, we would have
-> > lost the opportunity to configure onenand before driver is probed.
-> 
-> Is that a problem? Looks like it is called early in the probe and so I
-> would hope no one is attempting to access the onenand itself before the
-> probe has completed.
+> Afzal, let me know if you have been able to test. I have a omap2430 with
+> onenand I could try.
 
-During gpmc driver probe, it will configure all the connected peripherals,
-if configuration details are not present at that point of time, gpmc driver
-will cry out saying that configuration & timings has not been configured,
-(please see holler if no configuration patch). And I do not see any reason
-why gpmc driver should not be fed with async mode configuration initially,
-as it has to be done always.
+Yes, this has been tested with omap3evm. Let me try if I can get another
+onenand board to test.
 
-> 
-> > This would cause requirement of double GPMC configuring and we lost
-> > the opportunity to configure GPMC before driver is probed.
-> 
-> I am not convinced we need to. Furthermore with your change you do not
-> actually set async mode in the onenand until _set_sync() is called.
-
-Yes, setting async mode in onenand is done in set_sync function, and it is
-always called by onenand driver indirectly.
-
-Seems if setting async mode in onenand is taken out of set_sync & placed
-it before set_sync invocation in gpmc_onenand_setup, intention will be
-clear, right ? (even though sequence wise same thing is happening now)
-
-
-> 
-> > And the first step for onenand configuration is always to set it
-> > to async mode (with the way it is done now), so it seems reasonable
-> > to rely on normal GPMC configuration for async & then do reconfigure
-> > for sync.
-> 
-> Yes but as far as I can see, it seems that this is the intent of the
-> onenand_setup() function to perform the necessary initialisation.
-
-I believe doing it in gpmc_onenand_init is better, due to the reasons
-mentioned above as well as because function name will correspond to what
-it is doing, i.e. initialization
-
-> 
-> Have you tested onenand? Do you have a board with onenand?
-
-Yes, on omap3evm, with help of local patches (as mainline doesn't have
-those). It was mentioned in cover letter of gpmc driver conversion series
+If you can test, that would be really helpful.
 
 Regards
 Afzal
