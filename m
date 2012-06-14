@@ -1,59 +1,212 @@
-From: Jon Hunter <jon-hunter@ti.com>
-Subject: Re: [PATCH v5 02/14] ARM: OMAP2+: gpmc: Adapt to HWMOD
-Date: Thu, 14 Jun 2012 13:58:44 -0500
-Message-ID: <4FDA3464.4040704@ti.com>
-References: <cover.1339419492.git.afzal@ti.com> <fb739c3c5383806f78cee3666f7c74d61bed6427.1339419492.git.afzal@ti.com> <4FD64D6D.3020401@ti.com> <C8443D0743D26F4388EA172BF4E2A7A93E997DD6@DBDE01.ent.ti.com> <4FD77EF1.8000600@ti.com> <C8443D0743D26F4388EA172BF4E2A7A93E9987B2@DBDE01.ent.ti.com> <4FD8A906.8080202@ti.com> <C8443D0743D26F4388EA172BF4E2A7A93E999582@DBDE01.ent.ti.com> <4FD9E5AF.6010201@ti.com> <C8443D0743D26F4388EA172BF4E2A7A93E999CA6@DBDE01.ent.ti.com>
+From: "Sarashetti, Mantesh" <mantesh@ti.com>
+Subject: RE: [PATCH v3] ARM: OMAP3: USB: Fix the EHCI ULPI PHY reset fix
+ issues.
+Date: Thu, 14 Jun 2012 19:06:48 +0000
+Message-ID: <393884FF03A1CE4A86A02FC97D0954E73E91B6EC@DBDE01.ent.ti.com>
+References: <1339691061-12778-1-git-send-email-Russ.Dill@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="ISO-8859-1"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from devils.ext.ti.com ([198.47.26.153]:41996 "EHLO
-	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752265Ab2FNS6l (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 14 Jun 2012 14:58:41 -0400
-In-Reply-To: <C8443D0743D26F4388EA172BF4E2A7A93E999CA6@DBDE01.ent.ti.com>
+Received: from bear.ext.ti.com ([192.94.94.41]:60955 "EHLO bear.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1755635Ab2FNTHD convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 14 Jun 2012 15:07:03 -0400
+In-Reply-To: <1339691061-12778-1-git-send-email-Russ.Dill@ti.com>
+Content-Language: en-US
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "Mohammed, Afzal" <afzal@ti.com>
-Cc: "tony@atomide.com" <tony@atomide.com>, "paul@pwsan.com" <paul@pwsan.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>
+To: "Dill, Russ" <russ.dill@ti.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>
+Cc: "Balbi, Felipe" <balbi@ti.com>, "Munegowda, Keshava" <keshava_mgowda@ti.com>, Partha Basak <parthab@india.ti.com>, Igor Grinberg <grinberg@compulab.co.il>, Samuel Ortiz <sameo@linux.intel.com>, "Setty, Sapna" <s-sapna1@ti.com>, Russ Dill <Russ.Dill@gmail.com>
 
+'Acked-by: mantesh@ti.com'
+'Tested-by: mantesh@ti.com'
 
-On 06/14/2012 08:32 AM, Mohammed, Afzal wrote:
-> Hi Jon,
-> 
-> On Thu, Jun 14, 2012 at 18:52:55, Hunter, Jon wrote:
->> On 06/14/2012 02:03 AM, Mohammed, Afzal wrote:
->>> On Wed, Jun 13, 2012 at 20:21:50, Hunter, Jon wrote:
-> 
->>>> If the clk handle for the gpmc is passed to the gpmc driver, then there
->>>> is no reason why the driver cannot do this.
->>>
->>> I believe passing clk details through platform data is an abuse of
->>> clock framework.
->>
->> Why? You currently have a global variable storing the clock handle. It
->> can be quite common for drivers to know the clock frequencies of their
->> functional clocks. How else can drivers calculate timings?
-> 
-> 
-> Please see Russell King's comments,
-> 
-> [1] http://permalink.gmane.org/gmane.linux.ports.ppc.embedded/27634
-> [2] http://www.mail-archive.com/linux-samsung-soc@vger.kernel.org/msg05365.html
+Regards,
+Mantesh
+-----Original Message-----
+From: Russ Dill [mailto:russ.dill@gmail.com] On Behalf Of Dill, Russ
+Sent: Thursday, June 14, 2012 11:24 AM
+To: linux-omap@vger.kernel.org; linux-arm-kernel@lists.infradead.org
+Cc: Balbi, Felipe; Munegowda, Keshava; Partha Basak; Igor Grinberg; Samuel Ortiz; Sarashetti, Mantesh; Setty, Sapna; Russ Dill
+Subject: [PATCH v3] ARM: OMAP3: USB: Fix the EHCI ULPI PHY reset fix issues.
 
-Thanks. So I still think you need to get rid of the global variable for
-storing the gpmc fclk, that is really my point.
+From: Russ Dill <Russ.Dill@gmail.com>
 
-So if you look at commit [1] mentioned by Russell in the above thread,
-the appropriate thing to do would be to create a gpmc clock alias for
-all OMAP2+ devices and then you could simply call the following from the
-gpmc probe ...
+'ARM: OMAP3: USB: Fix the EHCI ULPI PHY reset issue' (1fcb57d0) fixes
+an issue where the ULPI PHYs were not held in reset while initializing
+the EHCI controller. However, it also changes behavior in
+omap-usb-host.c omap_usbhs_init by releasing reset while the
+configuration in that function was done.
 
-	gpmc_fck = clk_get(&pdev->dev, "fck");
+This change caused a regression on BB-xM where USB would not function
+if 'usb start' had been run from u-boot before booting. A change was
+made to release reset a little bit earlier which fixed the issue on
+BB-xM and did not cause any regressions on 3430 sdp, the board for
+which the fix was originally made.
 
-You could then store somewhere in one of the gpmc structures.
+This new fix, 'USB: EHCI: OMAP: Finish ehci omap phy reset cycle
+before adding hcd.', (3aa2ae74) caused a regression on OMAP5.
 
-Cheers
-Jon
+The original fix to hold the EHCI controller in reset during
+initialization was correct, however it appears that changing
+omap_usbhs_init to not hold the PHYs in reset during it's
+configuration was incorrect. This patch first reverts both fixes, and
+then changes ehci_hcd_omap_probe in ehci-omap.c to hold the PHYs in
+reset as the original patch had done. It also is sure to incorporate
+the _cansleep change that has been made in the meantime.
 
-[1] 39a80c7f379e1c1d3e63b204b8353b7381d0a3d5
+I've tested this on Beagleboard xM, I'd really like to get an ack from
+the 3430 sdp and OMAP5 guys before getting this merged.
+
+v3 - Brown paper bag its too early in the morning actually run
+     git commit amend fix
+v2 - Put cansleep gpiolib call outside of spinlock
+
+Signed-off-by: Russ Dill <Russ.Dill@gmail.com>
+---
+ drivers/mfd/omap-usb-host.c  |   48 +++++++++++++++++++++++++++++++++++++++++-
+ drivers/usb/host/ehci-omap.c |   18 +++++++---------
+ 2 files changed, 55 insertions(+), 11 deletions(-)
+
+diff --git a/drivers/mfd/omap-usb-host.c b/drivers/mfd/omap-usb-host.c
+index 7e96bb2..41088ec 100644
+--- a/drivers/mfd/omap-usb-host.c
++++ b/drivers/mfd/omap-usb-host.c
+@@ -25,6 +25,7 @@
+ #include <linux/clk.h>
+ #include <linux/dma-mapping.h>
+ #include <linux/spinlock.h>
++#include <linux/gpio.h>
+ #include <plat/cpu.h>
+ #include <plat/usb.h>
+ #include <linux/pm_runtime.h>
+@@ -500,8 +501,21 @@ static void omap_usbhs_init(struct device *dev)
+ 	dev_dbg(dev, "starting TI HSUSB Controller\n");
+ 
+ 	pm_runtime_get_sync(dev);
+-	spin_lock_irqsave(&omap->lock, flags);
+ 
++	if (pdata->ehci_data->phy_reset) {
++		if (gpio_is_valid(pdata->ehci_data->reset_gpio_port[0]))
++			gpio_request_one(pdata->ehci_data->reset_gpio_port[0],
++					 GPIOF_OUT_INIT_LOW, "USB1 PHY reset");
++
++		if (gpio_is_valid(pdata->ehci_data->reset_gpio_port[1]))
++			gpio_request_one(pdata->ehci_data->reset_gpio_port[1],
++					 GPIOF_OUT_INIT_LOW, "USB2 PHY reset");
++
++		/* Hold the PHY in RESET for enough time till DIR is high */
++		udelay(10);
++	}
++
++	spin_lock_irqsave(&omap->lock, flags);
+ 	omap->usbhs_rev = usbhs_read(omap->uhh_base, OMAP_UHH_REVISION);
+ 	dev_dbg(dev, "OMAP UHH_REVISION 0x%x\n", omap->usbhs_rev);
+ 
+@@ -581,9 +595,39 @@ static void omap_usbhs_init(struct device *dev)
+ 	}
+ 
+ 	spin_unlock_irqrestore(&omap->lock, flags);
++
++	if (pdata->ehci_data->phy_reset) {
++		/* Hold the PHY in RESET for enough time till
++		 * PHY is settled and ready
++		 */
++		udelay(10);
++
++		if (gpio_is_valid(pdata->ehci_data->reset_gpio_port[0]))
++			gpio_set_value_cansleep
++				(pdata->ehci_data->reset_gpio_port[0], 1);
++
++		if (gpio_is_valid(pdata->ehci_data->reset_gpio_port[1]))
++			gpio_set_value_cansleep
++				(pdata->ehci_data->reset_gpio_port[1], 1);
++	}
++
+ 	pm_runtime_put_sync(dev);
+ }
+ 
++static void omap_usbhs_deinit(struct device *dev)
++{
++	struct usbhs_hcd_omap		*omap = dev_get_drvdata(dev);
++	struct usbhs_omap_platform_data	*pdata = &omap->platdata;
++
++	if (pdata->ehci_data->phy_reset) {
++		if (gpio_is_valid(pdata->ehci_data->reset_gpio_port[0]))
++			gpio_free(pdata->ehci_data->reset_gpio_port[0]);
++
++		if (gpio_is_valid(pdata->ehci_data->reset_gpio_port[1]))
++			gpio_free(pdata->ehci_data->reset_gpio_port[1]);
++	}
++}
++
+ 
+ /**
+  * usbhs_omap_probe - initialize TI-based HCDs
+@@ -767,6 +811,7 @@ static int __devinit usbhs_omap_probe(struct platform_device *pdev)
+ 	goto end_probe;
+ 
+ err_alloc:
++	omap_usbhs_deinit(&pdev->dev);
+ 	iounmap(omap->tll_base);
+ 
+ err_tll:
+@@ -818,6 +863,7 @@ static int __devexit usbhs_omap_remove(struct platform_device *pdev)
+ {
+ 	struct usbhs_hcd_omap *omap = platform_get_drvdata(pdev);
+ 
++	omap_usbhs_deinit(&pdev->dev);
+ 	iounmap(omap->tll_base);
+ 	iounmap(omap->uhh_base);
+ 	clk_put(omap->init_60m_fclk);
+diff --git a/drivers/usb/host/ehci-omap.c b/drivers/usb/host/ehci-omap.c
+index a44294d..d0815b6 100644
+--- a/drivers/usb/host/ehci-omap.c
++++ b/drivers/usb/host/ehci-omap.c
+@@ -192,14 +192,13 @@ static int ehci_hcd_omap_probe(struct platform_device *pdev)
+ 		}
+ 	}
+ 
++	/* Hold PHYs in reset while initializing EHCI controller */
+ 	if (pdata->phy_reset) {
+ 		if (gpio_is_valid(pdata->reset_gpio_port[0]))
+-			gpio_request_one(pdata->reset_gpio_port[0],
+-					 GPIOF_OUT_INIT_LOW, "USB1 PHY reset");
++			gpio_set_value_cansleep(pdata->reset_gpio_port[0], 0);
+ 
+ 		if (gpio_is_valid(pdata->reset_gpio_port[1]))
+-			gpio_request_one(pdata->reset_gpio_port[1],
+-					 GPIOF_OUT_INIT_LOW, "USB2 PHY reset");
++			gpio_set_value_cansleep(pdata->reset_gpio_port[1], 0);
+ 
+ 		/* Hold the PHY in RESET for enough time till DIR is high */
+ 		udelay(10);
+@@ -241,6 +240,11 @@ static int ehci_hcd_omap_probe(struct platform_device *pdev)
+ 	omap_ehci->hcs_params = readl(&omap_ehci->caps->hcs_params);
+ 
+ 	ehci_reset(omap_ehci);
++	ret = usb_add_hcd(hcd, irq, IRQF_SHARED);
++	if (ret) {
++		dev_err(dev, "failed to add hcd with err %d\n", ret);
++		goto err_add_hcd;
++	}
+ 
+ 	if (pdata->phy_reset) {
+ 		/* Hold the PHY in RESET for enough time till
+@@ -255,12 +259,6 @@ static int ehci_hcd_omap_probe(struct platform_device *pdev)
+ 			gpio_set_value_cansleep(pdata->reset_gpio_port[1], 1);
+ 	}
+ 
+-	ret = usb_add_hcd(hcd, irq, IRQF_SHARED);
+-	if (ret) {
+-		dev_err(dev, "failed to add hcd with err %d\n", ret);
+-		goto err_add_hcd;
+-	}
+-
+ 	/* root ports should always stay powered */
+ 	ehci_port_power(omap_ehci, 1);
+ 
+-- 
+1.7.10.4
+
