@@ -1,212 +1,105 @@
-From: "Sarashetti, Mantesh" <mantesh@ti.com>
-Subject: RE: [PATCH v3] ARM: OMAP3: USB: Fix the EHCI ULPI PHY reset fix
- issues.
-Date: Thu, 14 Jun 2012 19:06:48 +0000
-Message-ID: <393884FF03A1CE4A86A02FC97D0954E73E91B6EC@DBDE01.ent.ti.com>
-References: <1339691061-12778-1-git-send-email-Russ.Dill@ti.com>
+From: jean-philippe francois <jp.francois@cynove.com>
+Subject: Re: Please help! AM35xx mm/slab.c BUG
+Date: Thu, 14 Jun 2012 21:10:12 +0200
+Message-ID: <CAGGh5h2MJ87By16j4VZEObNjF21TaH_h=Zveheo6c8eLwZOROw@mail.gmail.com>
+References: <1338878255.13133.YahooMailNeo@web125205.mail.ne1.yahoo.com>
+	<20120605070853.GE12766@atomide.com>
+	<1338913755.88514.YahooMailNeo@web125201.mail.ne1.yahoo.com>
+	<1338963298.87083.YahooMailNeo@web125204.mail.ne1.yahoo.com>
+	<CAMQu2gw2bGNwot_xVPdAsYjZChzzNib2USg8Ci+W5aLbenPnqA@mail.gmail.com>
+	<20120606071024.GP12766@atomide.com>
+	<1338969083.99043.YahooMailNeo@web125201.mail.ne1.yahoo.com>
+	<C8443D0743D26F4388EA172BF4E2A7A93E995E3B@DBDE01.ent.ti.com>
+	<1339098613.84700.YahooMailNeo@web125202.mail.ne1.yahoo.com>
+	<C8443D0743D26F4388EA172BF4E2A7A93E9980CC@DBDE01.ent.ti.com>
+	<1339694935.87093.YahooMailNeo@web125203.mail.ne1.yahoo.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from bear.ext.ti.com ([192.94.94.41]:60955 "EHLO bear.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1755635Ab2FNTHD convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 14 Jun 2012 15:07:03 -0400
-In-Reply-To: <1339691061-12778-1-git-send-email-Russ.Dill@ti.com>
-Content-Language: en-US
+Received: from mail-yw0-f46.google.com ([209.85.213.46]:62731 "EHLO
+	mail-yw0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752265Ab2FNTKO convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 14 Jun 2012 15:10:14 -0400
+Received: by yhmm54 with SMTP id m54so1816729yhm.19
+        for <linux-omap@vger.kernel.org>; Thu, 14 Jun 2012 12:10:13 -0700 (PDT)
+In-Reply-To: <1339694935.87093.YahooMailNeo@web125203.mail.ne1.yahoo.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "Dill, Russ" <russ.dill@ti.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>
-Cc: "Balbi, Felipe" <balbi@ti.com>, "Munegowda, Keshava" <keshava_mgowda@ti.com>, Partha Basak <parthab@india.ti.com>, Igor Grinberg <grinberg@compulab.co.il>, Samuel Ortiz <sameo@linux.intel.com>, "Setty, Sapna" <s-sapna1@ti.com>, Russ Dill <Russ.Dill@gmail.com>
+To: CF Adad <cfadad@rocketmail.com>
+Cc: "Mohammed, Afzal" <afzal@ti.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, Tony Lindgren <tony@atomide.com>, "Shilimkar, Santosh" <santosh.shilimkar@ti.com>
 
-'Acked-by: mantesh@ti.com'
-'Tested-by: mantesh@ti.com'
+2012/6/14 CF Adad <cfadad@rocketmail.com>:
+> An update:
+>
+> *LAN9221 and GPMC off the hook?*
+>
+> We've isolated the GPMC away from this I believe by disabling the LAN=
+9221 in both our bootloaders and the kernel and by booting everything o=
+ff the SD cards only.=A0 By removing it's initialization code from the =
+respective board files, I *hope* we've basically removed it from conten=
+tion.=A0 Obviously the chip is still wired up, but I don't expect the b=
+ootloaders or kernel to be trying to talk to it.=A0 Likewise, the NAND =
+is being initialized, but we're not mouting or using it at all.
+>
+> With these changes we're still seeing these crashes, albeit with the =
+same incredible lack of frequency.
+>
+> *EMAC now _partially_ on the hook?*
+> I posted a seperate thread on what I think may be a related subject, =
+potential Davinci EMAC problems, here:=A0 http://www.spinics.net/lists/=
+linux-omap/msg71833.html.
+>
+> As you can see from the crashes posted there, there seems to be a bit=
+ of whining from the EMAC driver.=A0 Since performance in the EMAC <=3D=
+> EMAC case has always been questionable anyway, any chance there is a =
+tiny memory leak or something similar that could be contributing?
+>
+> What about configuring this EMAC from within u-boot?=A0 Could that in=
+itialization do something bad when we get into Linux?=A0 I've not touch=
+ed these drivers.=A0 I've simply called them like other boards in the f=
+amily are doing.
+>
+> Just this morning, I upgraded to the latest linux-omap 3.5-rc2, but s=
+till saw one of these crashes pretty quickly...
+>
+> *Power stability?*
+>
+> We're learning through all of this that our boards do appear to have =
+some funny transients running through the power circuits every so often=
+=2E=A0 The ones we've captured on the scope have not caused crashes or =
+hard lockups, but they are there.=A0 This could be a dumb question, but=
+ could power issues create a slab error like this???=A0 I guess I'm mor=
+e accustomed to seeing power issues result in more hard lock ups than a=
+ nicely worded dump with the kernel sometimes still somewhat functionin=
+g.
+>
+>
+I am following this bug with interest, because we often go the "custom
+hardware" way, and have faced situation like these.
+In my opinion, random memory corruption is more than often the sign of =
+an
+hardware design issue. EMAC here is perhaps only a symptom, because
+it provides the proper memory bandwith and power consumption pattern th=
+at
+triggers the glitch.
 
-Regards,
-Mantesh
------Original Message-----
-From: Russ Dill [mailto:russ.dill@gmail.com] On Behalf Of Dill, Russ
-Sent: Thursday, June 14, 2012 11:24 AM
-To: linux-omap@vger.kernel.org; linux-arm-kernel@lists.infradead.org
-Cc: Balbi, Felipe; Munegowda, Keshava; Partha Basak; Igor Grinberg; Samuel Ortiz; Sarashetti, Mantesh; Setty, Sapna; Russ Dill
-Subject: [PATCH v3] ARM: OMAP3: USB: Fix the EHCI ULPI PHY reset fix issues.
+How many board do you have ? Are some more stable than others ?
+Can you solder additional caps on top of your power decoupling caps ?
+Can you tweak the voltages ?
 
-From: Russ Dill <Russ.Dill@gmail.com>
-
-'ARM: OMAP3: USB: Fix the EHCI ULPI PHY reset issue' (1fcb57d0) fixes
-an issue where the ULPI PHYs were not held in reset while initializing
-the EHCI controller. However, it also changes behavior in
-omap-usb-host.c omap_usbhs_init by releasing reset while the
-configuration in that function was done.
-
-This change caused a regression on BB-xM where USB would not function
-if 'usb start' had been run from u-boot before booting. A change was
-made to release reset a little bit earlier which fixed the issue on
-BB-xM and did not cause any regressions on 3430 sdp, the board for
-which the fix was originally made.
-
-This new fix, 'USB: EHCI: OMAP: Finish ehci omap phy reset cycle
-before adding hcd.', (3aa2ae74) caused a regression on OMAP5.
-
-The original fix to hold the EHCI controller in reset during
-initialization was correct, however it appears that changing
-omap_usbhs_init to not hold the PHYs in reset during it's
-configuration was incorrect. This patch first reverts both fixes, and
-then changes ehci_hcd_omap_probe in ehci-omap.c to hold the PHYs in
-reset as the original patch had done. It also is sure to incorporate
-the _cansleep change that has been made in the meantime.
-
-I've tested this on Beagleboard xM, I'd really like to get an ack from
-the 3430 sdp and OMAP5 guys before getting this merged.
-
-v3 - Brown paper bag its too early in the morning actually run
-     git commit amend fix
-v2 - Put cansleep gpiolib call outside of spinlock
-
-Signed-off-by: Russ Dill <Russ.Dill@gmail.com>
----
- drivers/mfd/omap-usb-host.c  |   48 +++++++++++++++++++++++++++++++++++++++++-
- drivers/usb/host/ehci-omap.c |   18 +++++++---------
- 2 files changed, 55 insertions(+), 11 deletions(-)
-
-diff --git a/drivers/mfd/omap-usb-host.c b/drivers/mfd/omap-usb-host.c
-index 7e96bb2..41088ec 100644
---- a/drivers/mfd/omap-usb-host.c
-+++ b/drivers/mfd/omap-usb-host.c
-@@ -25,6 +25,7 @@
- #include <linux/clk.h>
- #include <linux/dma-mapping.h>
- #include <linux/spinlock.h>
-+#include <linux/gpio.h>
- #include <plat/cpu.h>
- #include <plat/usb.h>
- #include <linux/pm_runtime.h>
-@@ -500,8 +501,21 @@ static void omap_usbhs_init(struct device *dev)
- 	dev_dbg(dev, "starting TI HSUSB Controller\n");
- 
- 	pm_runtime_get_sync(dev);
--	spin_lock_irqsave(&omap->lock, flags);
- 
-+	if (pdata->ehci_data->phy_reset) {
-+		if (gpio_is_valid(pdata->ehci_data->reset_gpio_port[0]))
-+			gpio_request_one(pdata->ehci_data->reset_gpio_port[0],
-+					 GPIOF_OUT_INIT_LOW, "USB1 PHY reset");
-+
-+		if (gpio_is_valid(pdata->ehci_data->reset_gpio_port[1]))
-+			gpio_request_one(pdata->ehci_data->reset_gpio_port[1],
-+					 GPIOF_OUT_INIT_LOW, "USB2 PHY reset");
-+
-+		/* Hold the PHY in RESET for enough time till DIR is high */
-+		udelay(10);
-+	}
-+
-+	spin_lock_irqsave(&omap->lock, flags);
- 	omap->usbhs_rev = usbhs_read(omap->uhh_base, OMAP_UHH_REVISION);
- 	dev_dbg(dev, "OMAP UHH_REVISION 0x%x\n", omap->usbhs_rev);
- 
-@@ -581,9 +595,39 @@ static void omap_usbhs_init(struct device *dev)
- 	}
- 
- 	spin_unlock_irqrestore(&omap->lock, flags);
-+
-+	if (pdata->ehci_data->phy_reset) {
-+		/* Hold the PHY in RESET for enough time till
-+		 * PHY is settled and ready
-+		 */
-+		udelay(10);
-+
-+		if (gpio_is_valid(pdata->ehci_data->reset_gpio_port[0]))
-+			gpio_set_value_cansleep
-+				(pdata->ehci_data->reset_gpio_port[0], 1);
-+
-+		if (gpio_is_valid(pdata->ehci_data->reset_gpio_port[1]))
-+			gpio_set_value_cansleep
-+				(pdata->ehci_data->reset_gpio_port[1], 1);
-+	}
-+
- 	pm_runtime_put_sync(dev);
- }
- 
-+static void omap_usbhs_deinit(struct device *dev)
-+{
-+	struct usbhs_hcd_omap		*omap = dev_get_drvdata(dev);
-+	struct usbhs_omap_platform_data	*pdata = &omap->platdata;
-+
-+	if (pdata->ehci_data->phy_reset) {
-+		if (gpio_is_valid(pdata->ehci_data->reset_gpio_port[0]))
-+			gpio_free(pdata->ehci_data->reset_gpio_port[0]);
-+
-+		if (gpio_is_valid(pdata->ehci_data->reset_gpio_port[1]))
-+			gpio_free(pdata->ehci_data->reset_gpio_port[1]);
-+	}
-+}
-+
- 
- /**
-  * usbhs_omap_probe - initialize TI-based HCDs
-@@ -767,6 +811,7 @@ static int __devinit usbhs_omap_probe(struct platform_device *pdev)
- 	goto end_probe;
- 
- err_alloc:
-+	omap_usbhs_deinit(&pdev->dev);
- 	iounmap(omap->tll_base);
- 
- err_tll:
-@@ -818,6 +863,7 @@ static int __devexit usbhs_omap_remove(struct platform_device *pdev)
- {
- 	struct usbhs_hcd_omap *omap = platform_get_drvdata(pdev);
- 
-+	omap_usbhs_deinit(&pdev->dev);
- 	iounmap(omap->tll_base);
- 	iounmap(omap->uhh_base);
- 	clk_put(omap->init_60m_fclk);
-diff --git a/drivers/usb/host/ehci-omap.c b/drivers/usb/host/ehci-omap.c
-index a44294d..d0815b6 100644
---- a/drivers/usb/host/ehci-omap.c
-+++ b/drivers/usb/host/ehci-omap.c
-@@ -192,14 +192,13 @@ static int ehci_hcd_omap_probe(struct platform_device *pdev)
- 		}
- 	}
- 
-+	/* Hold PHYs in reset while initializing EHCI controller */
- 	if (pdata->phy_reset) {
- 		if (gpio_is_valid(pdata->reset_gpio_port[0]))
--			gpio_request_one(pdata->reset_gpio_port[0],
--					 GPIOF_OUT_INIT_LOW, "USB1 PHY reset");
-+			gpio_set_value_cansleep(pdata->reset_gpio_port[0], 0);
- 
- 		if (gpio_is_valid(pdata->reset_gpio_port[1]))
--			gpio_request_one(pdata->reset_gpio_port[1],
--					 GPIOF_OUT_INIT_LOW, "USB2 PHY reset");
-+			gpio_set_value_cansleep(pdata->reset_gpio_port[1], 0);
- 
- 		/* Hold the PHY in RESET for enough time till DIR is high */
- 		udelay(10);
-@@ -241,6 +240,11 @@ static int ehci_hcd_omap_probe(struct platform_device *pdev)
- 	omap_ehci->hcs_params = readl(&omap_ehci->caps->hcs_params);
- 
- 	ehci_reset(omap_ehci);
-+	ret = usb_add_hcd(hcd, irq, IRQF_SHARED);
-+	if (ret) {
-+		dev_err(dev, "failed to add hcd with err %d\n", ret);
-+		goto err_add_hcd;
-+	}
- 
- 	if (pdata->phy_reset) {
- 		/* Hold the PHY in RESET for enough time till
-@@ -255,12 +259,6 @@ static int ehci_hcd_omap_probe(struct platform_device *pdev)
- 			gpio_set_value_cansleep(pdata->reset_gpio_port[1], 1);
- 	}
- 
--	ret = usb_add_hcd(hcd, irq, IRQF_SHARED);
--	if (ret) {
--		dev_err(dev, "failed to add hcd with err %d\n", ret);
--		goto err_add_hcd;
--	}
--
- 	/* root ports should always stay powered */
- 	ehci_port_power(omap_ehci, 1);
- 
--- 
-1.7.10.4
-
+> Can anyone suggest to me anything I may not have tried to get more in=
+formation out of these crashes when they occur?
+>
+> Thanks again to all!
+>
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-omap"=
+ in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at =A0http://vger.kernel.org/majordomo-info.html
+--
+To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
