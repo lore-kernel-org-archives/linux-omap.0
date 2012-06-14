@@ -1,111 +1,123 @@
-From: Felipe Balbi <balbi@ti.com>
-Subject: Re: [PATCH 04/17] i2c: omap: simplify omap_i2c_ack_stat()
-Date: Thu, 14 Jun 2012 14:45:50 +0300
-Message-ID: <20120614114546.GP13602@arwen.pp.htv.fi>
-References: <1339669250-9183-1-git-send-email-balbi@ti.com>
- <1339669250-9183-5-git-send-email-balbi@ti.com>
- <20120614111333.GA31187@n2100.arm.linux.org.uk>
-Reply-To: balbi@ti.com
+From: Arnd Bergmann <arnd@arndb.de>
+Subject: Re: [PATCH V3 1/2] of: Add generic device tree DMA helpers
+Date: Thu, 14 Jun 2012 11:48:19 +0000
+Message-ID: <201206141148.20371.arnd@arndb.de>
+References: <1335820679-28721-1-git-send-email-jon-hunter@ti.com> <201206090004.10086.arnd@arndb.de> <4FD914F6.6000402@ti.com>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="qd/SZIFVu+MYwfCR"
-Return-path: <linux-kernel-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <20120614111333.GA31187@n2100.arm.linux.org.uk>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Russell King - ARM Linux <linux@arm.linux.org.uk>
-Cc: Felipe Balbi <balbi@ti.com>, ben-linux@fluff.org, Tony Lindgren <tony@atomide.com>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, w.sang@pengutronix.de, linux-i2c@vger.kernel.org, Linux OMAP Mailing List <linux-omap@vger.kernel.org>, Linux ARM Kernel Mailing List <linux-arm-kernel@lists.infradead.org>
+Content-Type: Text/Plain;
+  charset="iso-8859-1"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from moutng.kundenserver.de ([212.227.126.171]:50913 "EHLO
+	moutng.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753487Ab2FNLsj (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 14 Jun 2012 07:48:39 -0400
+In-Reply-To: <4FD914F6.6000402@ti.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Jon Hunter <jon-hunter@ti.com>
+Cc: Stephen Warren <swarren@wwwdotorg.org>, Jassi Brar <jaswinder.singh@linaro.org>, Stephen Warren <swarren@nvidia.com>, Benoit Cousson <b-cousson@ti.com>, device-tree <devicetree-discuss@lists.ozlabs.org>, Nicolas Ferre <nicolas.ferre@atmel.com>, Rob Herring <rob.herring@calxeda.com>, Grant Likely <grant.likely@secretlab.ca>, Russell King <linux@arm.linux.org.uk>, linux-omap <linux-omap@vger.kernel.org>, linux-arm <linux-arm-kernel@lists.infradead.org>
+
+On Wednesday 13 June 2012, Jon Hunter wrote:
+
+> > As I said previously, I think just encoding the direction but not
+> > the client specific ID (meaning we would have to disambiguate
+> > the more complex cases that Stephen mentioned using a dma-names
+> > property) would be the best because it keeps the common case simple,
+> > but I could live with other things going in there too.
+> 
+> Ok, so you are saying that there are some DMA controllers where there is
+> no channel/request ID and only a direction is needed? So an even simpler
+> case than what I had imagined.
+
+No, that was not the case I was thinking about.
+
+> So in that case, I don't see why the first cell after the phandle could
+> not be an index which could be either a direction or request-id and then
+> the next cell after that be a secondary match variable.
+> 
+> So simple case with just a index (either req-id or direction) ...
+> 
+> dmas = <&dmac0 index>
+> 
+> More complex case ...
+> 
+> dmas = <&dmac0 index match>
+> 
+> For example, for OMAP index = req-id and match = direction ...
+> 
+> dmas = <&dmac0 req-id direction>
+> 
+> Or am I way off the page?
+
+The intention was instead to remove the need for the /index/ in those
+cases, because having a client-specific index in here makes it inconsistent
+with other similar bindings (reg, interrupts, gpios, ...) that people
+are familiar with. They use an implicit index by counting the
+fields in the respective properties.
+
+The existing method we have for avoiding index numbers is to use
+named fields, like
+
+	dmas = <&dmac0 matchA>, <dmac1 matchB>, <dmac2 matchC>;
+	dma-names = "rx", "rx", "tx";
+
+This is similar to how we use named interrupt and mmio resources, but
+it requires that we always request the dma lines by name, which is
+slightly more complex than we might want it to be.
+
+Because the vast majority of cases just use a single channel, or one
+channel per direction, my idea was to encode the direction in the
+dmas property, which lets us request a dma channel by direction from
+the driver side, without explicitly encoding the name.
+
+This would let us handle the following cases very easily:
+
+1. one read-write channel
+
+	dmas = <&dmac 0x3 match>;
+
+2. a choice of two read-write channels:
+
+	dmas = <&dmacA 0x3 matchA>, <&dmacB 0x3 matchB>;
+
+3. one read-channel, one write channel:
+
+	dmas = <&dmac 0x1 match-read>, <&dmac 0x2 match-write>;
+
+4. a choice of two read channels and one write channel:
+
+	dmas = <&dmacA 0x1 match-readA>, <&dmacA 0x2 match-write> 
+			<&dmacB match-readB>;
+
+And only the cases where we have more multiple channels that differ
+in more aspects would require named properties:
+
+5. two different channels
+
+	dmas = <&dmac 0x3 match-rwdata>, <&dmac 0x1 match-status>;
+	dma-names = "rwdata", "status";
+
+6. same as 5, but with a choice of channels:
+
+	dmas = <&dmacA 0x3 match-rwdataA>, <&dmacA 0x1 match-status>;
+		<dmacB 0x3 match-rwdataB>;
+	dma-names = "rwdata", "status", "rwdata";
 
 
---qd/SZIFVu+MYwfCR
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
+With a definition like that, we can implement a very simple device
+driver interface for the common cases, and a slightly more complex
+one for the more complex cases:
 
-Hi,
+1. chan = of_dma_request_channel(dev->of_node, 0);
+2. chan = of_dma_request_channel(dev->of_node, 0);
+3. rxchan = of_dma_request_channel(dev->of_node, DMA_MEM_TO_DEV);
+   txchan = of_dma_request_channel(dev->of_node, DMA_DEV_TO_MEM);
+4. rxchan = of_dma_request_channel(dev->of_node, DMA_MEM_TO_DEV);
+   txchan = of_dma_request_channel(dev->of_node, DMA_DEV_TO_MEM);
+5. chan = of_dma_request_named_channel(dev->of_node, "rwdata", 0);
+   auxchan = of_dma_request_named_channel(dev->of_node, "status", DMA_DEV_TO_MEM);
+6. chan = of_dma_request_named_channel(dev->of_node, "rwdata", 0);
+   auxchan = of_dma_request_named_channel(dev->of_node, "status", DMA_DEV_TO_MEM);
 
-On Thu, Jun 14, 2012 at 12:13:33PM +0100, Russell King - ARM Linux wrote:
-> On Thu, Jun 14, 2012 at 01:20:37PM +0300, Felipe Balbi wrote:
-> > stat & BIT(1) is the same as BIT(1), so let's
-> > simplify things a bit by removing "stat &" from
-> > all omap_i2c_ack_stat() calls.
->=20
-> This doesn't feel right, and the explanation is definitely wrong.
->=20
-> "stat & BIT(1)" is not the same as "BIT(1)" _unless_ you're saying that
-> stat always has BIT(1) already set.  Can you guarantee that in this code?
-> If so, how?
->=20
-> What happens if you read the status register, and it has bit 1 clear.
-> immediately after the read, the status register bit 1 becomes set, and
-> then you write bit 1 set (because you've dropped the stat & BIT(1) from
-> the code.)
->=20
-> Is it not going to acknowledge that bit-1-set but because you haven't
-> read it, you're going to miss that event?
->=20
-> This feels like a buggy change to me.
-
-I fail to see that situation would happen with this driver. See what it
-does (extremely simplified):
-
-if (stat & NACK) {
-	...
-	omap_i2c_ack_stat(dev, stat & NACK);
-}
-
-if (stat & RDR) {
-	...
-	omap_i2c_ack_stat(dev, stat & RDR);
-}
-
-and so on. The tricky place is only WRT errata handling, for example:
-
-if (*stat & (NACK | AL)) {
-	omap_i2c_ack_stat(dev, *stat & (XRDY | XDR));
-	...
-}
-
-but in this case, the errata says we must clear XRDY and XDR if that
-errata triggers, so if they just got enabled or not, it doesn't matter.
-
-Another tricky place is RDR | RRDY (likewise for XDR | XRDY):
-
-if (stat & (RDR | RRDY)) {
-	...
-	omap_i2c_ack_stat(dev, stat & (RDR | RRDY));
-}
-
-again here there will be no issues because those IRQs never fire
-simultaneously and one will only after after we have handled the
-previous, that's because the same FIFO is used anyway and we won't shift
-data into FIFO until we tell the IP "hey, I'm done with the FIFO, you
-can shift more data". Right ?
-
---=20
-balbi
-
---qd/SZIFVu+MYwfCR
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: Digital signature
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.4.12 (GNU/Linux)
-
-iQIcBAEBAgAGBQJP2c7qAAoJEIaOsuA1yqRE+hEQAKHB1QxoORbpdUAna54oWtKo
-ynsOCQB5n5u9EAzUncuBJEjacgS6rsZ4LNogmBclXtp+uqHLoiT6yJi+oyKm7POk
-+kLe4aUFKaUnYr4bBzBoIxIqqsGylYgDhv/+QGgtXs5l1WN6gLBrM+X1a5LfGn+q
-jssJg52nLQi2HTLykxdJP73FVnGxcpat1dVTbic9O4O0JQCRaofjhPCU8vDDsAOl
-H1kyFgcQSpU8h+L4rayn7SKmoafee09gzMQe1BtG5YV22vwMNMk+M3CcpgyIhMzm
-HzSQwRAr2OXQnA7MwQVi0brNCkGim6GntsiUgC2UrXaMVByTTjEeJpM082H/Y9f8
-a3EymJm6B3g0QWmRPFDFdpFtH4MrzhyhLYJigfsQq8XoqnSyfE3gjAnp2ypvJV3H
-Ium4pug3xdq4DA5R+Qv9GGxEsSTwyjQ03INCdJOLdomXJWk6dth79Xu4iR1j5CTO
-Pp9wJhjIDiBwNaTTg/BpnjTghXdqYC8YFSt/aqOrTi8SdWy+gZEqtdWJdL/BFFPH
-kq2JDrSEcj9xxdLlAAy0T0aapqnvTk9o6Ef5nnua/CXwZgJEWMMWzjLq9bFvll5i
-fGC23OAN2IDkqufrnn4O39sU92pV7sJMeYVVVbec7wXpH/LiXO/PJPK40mADtZCz
-nnQhw8yxwm8xjmLzTB0b
-=TeSf
------END PGP SIGNATURE-----
-
---qd/SZIFVu+MYwfCR--
+	Arnd
