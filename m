@@ -1,83 +1,52 @@
-From: Tomi Valkeinen <tomi.valkeinen@ti.com>
-Subject: Re: [PATCH] OMAP: Beagle: fix TFP410 powerdown GPIO init
-Date: Thu, 14 Jun 2012 11:20:59 +0300
-Message-ID: <1339662059.2229.8.camel@deskari>
-References: <1339579215-24098-1-git-send-email-tomi.valkeinen@ti.com>
-	 <CA+Bv8XZHOhD1sdJvEzwwup+igWpkCf8twxWzrf2zhSd4_aj9MQ@mail.gmail.com>
-	 <1339658290.2236.5.camel@deskari>
-	 <CA+Bv8XbwWbdTFFo9KHoOk7Tq8XBWDOWhkEqq7Pz6by_8sE_ngA@mail.gmail.com>
-	 <1339661613.2229.6.camel@deskari>
-	 <CA+Bv8Xad=9dQw_4a=DZypbR2KN77mb=3thkE6syMt-E6JoDDaw@mail.gmail.com>
+From: Tony Lindgren <tony@atomide.com>
+Subject: Re: [PATCH v5 04/14] ARM: OMAP2+: gpmc: minimal driver support
+Date: Thu, 14 Jun 2012 01:39:58 -0700
+Message-ID: <20120614083957.GC12766@atomide.com>
+References: <4FD6586A.9060706@ti.com>
+ <C8443D0743D26F4388EA172BF4E2A7A93E997E2A@DBDE01.ent.ti.com>
+ <4FD782F7.9010003@ti.com>
+ <20120613120717.GP12766@atomide.com>
+ <C8443D0743D26F4388EA172BF4E2A7A93E998E43@DBDE01.ent.ti.com>
+ <20120613134032.GW12766@atomide.com>
+ <20120613134408.GY12766@atomide.com>
+ <C8443D0743D26F4388EA172BF4E2A7A93E998F2F@DBDE01.ent.ti.com>
+ <20120614063524.GB12766@atomide.com>
+ <C8443D0743D26F4388EA172BF4E2A7A93E99952D@DBDE01.ent.ti.com>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg="pgp-sha1"; protocol="application/pgp-signature";
-	boundary="=-eOqJUgZD8+1RxqyQKhag"
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aog111.obsmtp.com ([74.125.149.205]:47111 "EHLO
-	na3sys009aog111.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755307Ab2FNIVF (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>);
-	Thu, 14 Jun 2012 04:21:05 -0400
-Received: by lbom4 with SMTP id m4so1916677lbo.2
-        for <linux-omap@vger.kernel.org>; Thu, 14 Jun 2012 01:21:02 -0700 (PDT)
-In-Reply-To: <CA+Bv8Xad=9dQw_4a=DZypbR2KN77mb=3thkE6syMt-E6JoDDaw@mail.gmail.com>
+Received: from mho-02-ewr.mailhop.org ([204.13.248.72]:21523 "EHLO
+	mho-02-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754595Ab2FNIkD (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 14 Jun 2012 04:40:03 -0400
+Content-Disposition: inline
+In-Reply-To: <C8443D0743D26F4388EA172BF4E2A7A93E99952D@DBDE01.ent.ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Russ Dill <Russ.Dill@ti.com>
-Cc: Tony Lindgren <tony@atomide.com>, linux-omap@vger.kernel.org, Robert Nelson <robertcnelson@gmail.com>, Jason Kridner <jkridner@beagleboard.org>
+To: "Mohammed, Afzal" <afzal@ti.com>
+Cc: "Hunter, Jon" <jon-hunter@ti.com>, "paul@pwsan.com" <paul@pwsan.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>
 
+* Mohammed, Afzal <afzal@ti.com> [120613 23:44]:
+> Hi Tony,
+> 
+> On Thu, Jun 14, 2012 at 12:05:25, Tony Lindgren wrote:
+> > * Mohammed, Afzal <afzal@ti.com> [120613 06:56]:
+> 
+> 
+> > > Or you meant, even there read revision register ?
+> > 
+> > Yeah that should be fine as this really should only happen
+> > during init and whatever revision specific features can
+> > be initialized for GPMC.
+> 
+> Sorry, I got confused, we need revision to be available while setting
+> time also, so you meant to store it as a variable or read revision
+> at probe as well as during setting time ?
 
---=-eOqJUgZD8+1RxqyQKhag
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: quoted-printable
+You can set up GPMC specific flags during init, something like
+OMAP_GPMC_HAS_XYZ, or you can set up function pointers if only
+some features are available on some revisions.
 
-On Thu, 2012-06-14 at 01:17 -0700, Russ Dill wrote:
-> On Thu, Jun 14, 2012 at 1:13 AM, Tomi Valkeinen <tomi.valkeinen@ti.com> w=
-rote:
+Regards,
 
-> > Okay. These are a bit problematic, because we're in the process of
-> > removing these kinds of things from the board file, as they cannot be
-> > supported with device tree. The tfp410 driver in v3.5 doesn't even have
-> > the platform_enable/disable callback anymore.
-> >
-> > Those do not belong to tfp410 driver, but I don't really know how they
-> > should be handled. This is one of the questions about device tree that
-> > is unclear to me...
->=20
->=20
-> Are you talking about the AUX_3V3_DIS pin? The boardfile currently
-> just initializes that low, that should be too much of a problem to put
-> into DT, or if someone is so inclined assign it to a regulator via DT.
-
-Ah, sorry. You are right. The only gpio handled in the
-platform_enable/disable calls is the power-down gpio, and that is
-handled by the tfp410 driver properly. So there shouldn't be a problem
-there.
-
- Tomi
-
-
---=-eOqJUgZD8+1RxqyQKhag
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: This is a digitally signed message part
-Content-Transfer-Encoding: 7bit
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.4.11 (GNU/Linux)
-
-iQIcBAABAgAGBQJP2Z7rAAoJEPo9qoy8lh714voQAJS3pdZ2OlhfEoYMk+IWOkNP
-pxdioK3fspRZtgu0IrWMYEb0GhWxxr2tH1FLTXG2IiOzx7FD7T/2UhZCRj/BtwgN
-ypxtmz3Eu+ckeeyME6UQ3mh7enUJO2mfGarEz1bm8RhlYC2MIuYHrxbpocL6BUMn
-WxYcDoeLXEbSrTCqundKp57yDVQI781HndKrbNOIXVhgFuswUM2G/rhwKC5KP5SD
-qNd77msdsBIjdHZumsAvknOUHgyTleEDTkXMHDFn4mfVSmiq9UF9je9LWPJ5GlwB
-VCgm+8lALGkPOfICYONJdMTaXNdxRFXCwvkEfffPxjmbvnnUyyVH/MPruh1Zv23h
-ljD9lnHghgj5+6pGvvODw2fDHge+1iA+DbukNMy6RJMZ58V0rOG0C/PN9hVJMxBA
-HGuoPtSdn7PYjsr+OucDZWbvpfi0BCFiEyzCyl+mTTOE86QEk/ULLMvHGvRDWPkM
-M3F6QqymjOYGimrGCW+0NoJCj1r33k1GU6BAJwEyCUAMuW0bLhlryLhhXinIn6Md
-a/8KZv54zrU5B4wNeze4xnqoY1bVb7PgvZDQCcZVhZ5V7s+zk+TnhgNwS+Mp0dFY
-XUvQOAdz0AIgRs3Sgl3BKQ+i5INny7LsEInHvLZINV99U1KdSr/seY4EgvLVEFWZ
-Q0Yl7XEbhh06stCXwNnC
-=0wqd
------END PGP SIGNATURE-----
-
---=-eOqJUgZD8+1RxqyQKhag--
-
+Tony
