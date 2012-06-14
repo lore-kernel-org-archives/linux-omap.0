@@ -1,73 +1,154 @@
-From: Russ Dill <Russ.Dill@ti.com>
-Subject: Re: [PATCH] OMAP: Beagle: fix TFP410 powerdown GPIO init
-Date: Thu, 14 Jun 2012 01:17:57 -0700
-Message-ID: <CA+Bv8Xad=9dQw_4a=DZypbR2KN77mb=3thkE6syMt-E6JoDDaw@mail.gmail.com>
-References: <1339579215-24098-1-git-send-email-tomi.valkeinen@ti.com>
-	<CA+Bv8XZHOhD1sdJvEzwwup+igWpkCf8twxWzrf2zhSd4_aj9MQ@mail.gmail.com>
-	<1339658290.2236.5.camel@deskari>
-	<CA+Bv8XbwWbdTFFo9KHoOk7Tq8XBWDOWhkEqq7Pz6by_8sE_ngA@mail.gmail.com>
-	<1339661613.2229.6.camel@deskari>
+From: Zumeng Chen <zumeng.chen@windriver.com>
+Subject: Re: [PATCH V2 5/5] Input: ads7846: set proper debounce time in driver
+ level
+Date: Thu, 14 Jun 2012 16:18:29 +0800
+Message-ID: <4FD99E55.80603@windriver.com>
+References: <zumeng.chen@gmail.com> <1339551850-20827-1-git-send-email-zumeng.chen@gmail.com> <1339551850-20827-6-git-send-email-zumeng.chen@gmail.com> <79CD15C6BA57404B839C016229A409A83EA4F07F@DBDE01.ent.ti.com> <4FD96CBF.5040106@windriver.com> <4FD98856.8070601@compulab.co.il> <4FD98DDA.9050806@windriver.com> <4FD99B91.9030705@compulab.co.il>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-lb0-f174.google.com ([209.85.217.174]:41645 "EHLO
-	mail-lb0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754981Ab2FNIR7 (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 14 Jun 2012 04:17:59 -0400
-Received: by lbbgm6 with SMTP id gm6so1841435lbb.19
-        for <linux-omap@vger.kernel.org>; Thu, 14 Jun 2012 01:17:57 -0700 (PDT)
-In-Reply-To: <1339661613.2229.6.camel@deskari>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset=UTF-8;
+	format=flowed
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Return-path: <linux-input-owner@vger.kernel.org>
+In-Reply-To: <4FD99B91.9030705@compulab.co.il>
+Sender: linux-input-owner@vger.kernel.org
+To: Igor Grinberg <grinberg@compulab.co.il>
+Cc: "Hiremath, Vaibhav" <hvaibhav@ti.com>, mike@compulab.co.il, Zumeng Chen <zumeng.chen@gmail.com>, "tony@atomide.com" <tony@atomide.com>, "Hunter, Jon" <jon-hunter@ti.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, "Hilman, Kevin" <khilman@ti.com>, "Syed Mohammed, Khasim" <khasim@ti.com>, "Gupta, Ajay Kumar" <ajay.gupta@ti.com>, "dmitry.torokhov@gmail.com" <dmitry.torokhov@gmail.com>, "linux-input@vger.kernel.org" <linux-input@vger.kernel.org>
 List-Id: linux-omap@vger.kernel.org
-To: Tomi Valkeinen <tomi.valkeinen@ti.com>
-Cc: Tony Lindgren <tony@atomide.com>, linux-omap@vger.kernel.org, Robert Nelson <robertcnelson@gmail.com>, Jason Kridner <jkridner@beagleboard.org>
 
-On Thu, Jun 14, 2012 at 1:13 AM, Tomi Valkeinen <tomi.valkeinen@ti.com> wrote:
-> On Thu, 2012-06-14 at 00:59 -0700, Russ Dill wrote:
->> On Thu, Jun 14, 2012 at 12:18 AM, Tomi Valkeinen <tomi.valkeinen@ti.com> wrote:
->> > On Wed, 2012-06-13 at 23:58 -0700, Russ Dill wrote:
->> >> On Wed, Jun 13, 2012 at 2:20 AM, Tomi Valkeinen <tomi.valkeinen@ti.com> wrote:
->> >> > Commit e813a55eb9c9bc6c8039fb16332cf43402125b30 ("OMAP: board-files:
->> >> > remove custom PD GPIO handling for DVI output") moved TFP410 chip's
->> >> > powerdown-gpio handling from the board files to the tfp410 driver. One
->> >> > gpio_request_one(powerdown-gpio, ...) was mistakenly left unremoved in
->> >> > the Beagle board file. This causes the tfp410 driver to fail to request
->> >> > the gpio on Beagle, causing the driver to fail and thus the DVI output
->> >> > doesn't work.
->> >>
->> >> Can you take the one I sent earlier instead?
->> >>
->> >> http://www.spinics.net/lists/linux-omap/msg69913.html
->> >
->> > Hmm, that probably doesn't apply. The power-down GPIO is now handled in
->> > the tfp410 driver, not in the board files.
->>
->> Give me a branch to rebase it onto and I will.
->
-> v3.5-rc2
->
->> > Looking more closely at the board file, what are these nDVI_PWR_EN,
->> > DVI_LDO_EN and DVI_PU gpios? There's no "enable line" on tfp410. Only
->> > the power-down gpio, which is none of the above...
->>
->> On my schematic, DVI_LDO_EN is labeled more sanely, DVI_PU. I'm not
->> sure of the history of that. My patch does remove any reference to
->> DVI_LDO_EN.
->>
->> nDVI_PWR_EN is labeled AUX_3V3_DIS on my schematic. AUX_3V3_DIS is
->> connected to the disable pin of an LDO that provides power for the DVI
->> transceiver.
->
-> Okay. These are a bit problematic, because we're in the process of
-> removing these kinds of things from the board file, as they cannot be
-> supported with device tree. The tfp410 driver in v3.5 doesn't even have
-> the platform_enable/disable callback anymore.
->
-> Those do not belong to tfp410 driver, but I don't really know how they
-> should be handled. This is one of the questions about device tree that
-> is unclear to me...
+=E4=BA=8E 2012=E5=B9=B406=E6=9C=8814=E6=97=A5 16:06, Igor Grinberg =E5=86=
+=99=E9=81=93:
+> On 06/14/12 10:08, Zumeng Chen wrote:
+>> =E4=BA=8E 2012=E5=B9=B406=E6=9C=8814=E6=97=A5 14:44, Igor Grinberg =E5=
+=86=99=E9=81=93:
+>>> On 06/14/12 07:46, Zumeng Chen wrote:
+>>>>> =E4=BA=8E 2012=E5=B9=B406=E6=9C=8813=E6=97=A5 20:18, Hiremath, Va=
+ibhav =E5=86=99=E9=81=93:
+>>>>>>> On Wed, Jun 13, 2012 at 07:14:10, Zumeng Chen wrote:
+>>>>>>>>> From: Zumeng Chen<zumeng.chen@windriver.com>
+>>>>>>>>>
+>>>>>>>>> If we don't set proper debouce time for ads7846, then there a=
+re
+>>>>>>>>> flooded interrupt counters of ads7846 responding to one time
+>>>>>>>>> touch on screen, so the driver couldn't work well.
+>>>>>>>>>
+>>>>>>>>> And since most OMAP3 series boards pass NULL pointer of board=
+_pdata
+>>>>>>>>> to omap_ads7846_init, so it's more proper to set it in driver=
+ level
+>>>>>>>>> after having gpio_request done.
+>>>>>>>>>
+>>>>>>>>> This patch has been validated on 3530evm.
+>>>>>>>>>
+>>>>>>>>> Signed-off-by: Zumeng Chen<zumeng.chen@windriver.com>
+>>>>>>>>> Signed-off-by: Syed Mohammed Khasim<khasim@ti.com>
+>>>>>>>>> ---
+>>>>>>>>>    drivers/input/touchscreen/ads7846.c |    4 ++++
+>>>>>>>>>    1 files changed, 4 insertions(+), 0 deletions(-)
+>>>>>>>>>
+>>>>>>>>> diff --git a/drivers/input/touchscreen/ads7846.c b/drivers/in=
+put/touchscreen/ads7846.c
+>>>>>>>>> index f02028e..459ff29 100644
+>>>>>>>>> --- a/drivers/input/touchscreen/ads7846.c
+>>>>>>>>> +++ b/drivers/input/touchscreen/ads7846.c
+>>>>>>>>> @@ -980,6 +980,10 @@ static int __devinit ads7846_setup_pendo=
+wn(struct spi_device *spi, struct ads784
+>>>>>>>>>            }
+>>>>>>>>>
+>>>>>>>>>            ts->gpio_pendown =3D pdata->gpio_pendown;
+>>>>>>>>> +#ifdef CONFIG_ARCH_OMAP3
+>>>>>>>>> +        /* 310 means about 10 microsecond for omap3 */
+>>>>>>>>> +        gpio_set_debounce(pdata->gpio_pendown, 310);
+>>>>>>>>> +#endif
+>>>>>>>>>
+>>>>>>> Zumeng,
+>>>>>>>
+>>>>>>> With my sign-off you are changing the original code, that too
+>>>>>>> without my sign-off and ack.
+>>>>>>> I wouldn't mind you to submit patches from my tree, but the exp=
+ectation is
+>>>>>>> if you are changing the original code, it should be under your =
+sign-off.
+>>>>> Thanks, good to learn. I'll remove in next time.
+>>>>>>> Coming to the patch, #ifdef in driver is not recommended, and t=
+his 10msec
+>>>>>>> delay is specific to OMAP GPIO and driver should not be aware o=
+f this,
+>>>>>>> that's where you will find the original patch handling it in bo=
+ard file.
+>>>>> According to the git blame of the board-omap3evm.c I think
+>>>>> 96974a24 did a good thing to all the related codes for omap3
+>>>>> boards. So I think we can call board and driver as BSP level :-)
+>>>>>
+>>>>> If #ifdef in driver can save many codes, I guess it's deserved.
+>>> No, platform/board specific ifdefs in the generic driver code are n=
+ever
+>>> deserved.
+>>> How about the attached patch, does it fix the problem for you?
+>> Sorry Igor, I just read your patch, yes, most are there, and we
+>> just have to set get_pendown_state as you early said. Really
+>> *thanks* for your drive :)
+> No, with my patch, you don't need the get_pendown_state() and
+> you don't need to change the board-omap3evm.c ADS7846 related code.
+> So, I'm going to submit my patch properly.
+=46eel free to do that
 
+>> Regards,
+>> Zumeng
+>>> -- Regards, Igor.
+>>> ads7846.patch
+>>>
+>>>
+>>> diff --git a/arch/arm/mach-omap2/common-board-devices.c b/arch/arm/=
+mach-omap2/common-board-devices.c
+>>> index 1706ebc..c187586 100644
+>>> --- a/arch/arm/mach-omap2/common-board-devices.c
+>>> +++ b/arch/arm/mach-omap2/common-board-devices.c
+>>> @@ -63,28 +63,30 @@ void __init omap_ads7846_init(int bus_num, int =
+gpio_pendown, int gpio_debounce,
+>>>   	struct spi_board_info *spi_bi =3D&ads7846_spi_board_info;
+>>>   	int err;
+>>>
+>>> -	if (board_pdata&&  board_pdata->get_pendown_state) {
+>>> -		err =3D gpio_request_one(gpio_pendown, GPIOF_IN, "TSPenDown");
+>>> -		if (err) {
+>>> -			pr_err("Couldn't obtain gpio for TSPenDown: %d\n", err);
+>>> -			return;
+>>> -		}
+>>> -		gpio_export(gpio_pendown, 0);
+>>> -
+>>> -		if (gpio_debounce)
+>>> -			gpio_set_debounce(gpio_pendown, gpio_debounce);
+>>> +	err =3D gpio_request_one(gpio_pendown, GPIOF_IN, "TSPenDown");
+>>> +	if (err) {
+>>> +		pr_err("Couldn't obtain gpio for TSPenDown: %d\n", err);
+>>> +		return;
+>>>   	}
+>>>   =09
+>>> +	if (gpio_debounce)
+>>> +		gpio_set_debounce(gpio_pendown, gpio_debounce);
+>>> +
+>>>   	spi_bi->bus_num	=3D bus_num;
+>>>   	spi_bi->irq	=3D gpio_to_irq(gpio_pendown);
+>>>
+>>>   	if (board_pdata) {
+>>>   		board_pdata->gpio_pendown =3D gpio_pendown;
+>>>   		spi_bi->platform_data =3D board_pdata;
+>>> +		if (board_pdata->get_pendown_state)
+>>> +			gpio_export(gpio_pendown, 0);
+>>>   	} else {
+>>>   		ads7846_config.gpio_pendown =3D gpio_pendown;
+>>>   	}
+>>>
+>>> +	if (!board_pdata || (board_pdata&&  !board_pdata->get_pendown_sta=
+te))
+>>> +		gpio_free(gpio_pendown);
+>>> +
+>>>   	spi_register_board_info(&ads7846_spi_board_info, 1);
+>>>   }
+>>>   #else
 
-Are you talking about the AUX_3V3_DIS pin? The boardfile currently
-just initializes that low, that should be too much of a problem to put
-into DT, or if someone is so inclined assign it to a regulator via DT.
+--
+To unsubscribe from this list: send the line "unsubscribe linux-input" =
+in
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
