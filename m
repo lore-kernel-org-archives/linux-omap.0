@@ -1,62 +1,82 @@
-From: Zumeng Chen <zumeng.chen@windriver.com>
-Subject: Re: [PATCH 5/5] Input: ads7846: set proper debounce time in driver
- level
-Date: Thu, 14 Jun 2012 12:57:08 +0800
-Message-ID: <4FD96F24.3080304@windriver.com>
-References: <zumeng.chen@gmail.com> <1339423216-1323-1-git-send-email-zumeng.chen@gmail.com> <1339423216-1323-6-git-send-email-zumeng.chen@gmail.com> <20120612064757.GE12766@atomide.com> <CA+Y31wdGaMDrT6ySE1y2Z5sw5ah8fE7im_=BvH=s+U+P619O=g@mail.gmail.com> <20120613125543.GU12766@atomide.com>
+From: "Mohammed, Afzal" <afzal@ti.com>
+Subject: RE: [PATCH 2/3] ARM: OMAP2+: onenand: cleanup for gpmc driver
+ conversion
+Date: Thu, 14 Jun 2012 05:40:02 +0000
+Message-ID: <C8443D0743D26F4388EA172BF4E2A7A93E9993EF@DBDE01.ent.ti.com>
+References: <cover.1339419244.git.afzal@ti.com>
+ <2d6f0fb31cde98cd700d7a4268683b4aeeee87f2.1339419244.git.afzal@ti.com>
+ <4FD63AAE.90008@ti.com>
+ <C8443D0743D26F4388EA172BF4E2A7A93E997D47@DBDE01.ent.ti.com>
+ <4FD77CC8.4000003@ti.com>
+ <C8443D0743D26F4388EA172BF4E2A7A93E998781@DBDE01.ent.ti.com>
+ <4FD8C217.2050006@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8;
-	format=flowed
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail.windriver.com ([147.11.1.11]:33090 "EHLO
-	mail.windriver.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750818Ab2FNE6H (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 14 Jun 2012 00:58:07 -0400
-In-Reply-To: <20120613125543.GU12766@atomide.com>
+Received: from devils.ext.ti.com ([198.47.26.153]:56339 "EHLO
+	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751554Ab2FNFkN convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 14 Jun 2012 01:40:13 -0400
+In-Reply-To: <4FD8C217.2050006@ti.com>
+Content-Language: en-US
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Tony Lindgren <tony@atomide.com>
-Cc: Zumeng Chen <zumeng.chen@gmail.com>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, khilman@ti.com, khasim@ti.com, ajay.gupta@ti.com, hvaibhav@ti.com
+To: "Hunter, Jon" <jon-hunter@ti.com>
+Cc: "tony@atomide.com" <tony@atomide.com>, "paul@pwsan.com" <paul@pwsan.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>
 
-=E4=BA=8E 2012=E5=B9=B406=E6=9C=8813=E6=97=A5 20:55, Tony Lindgren =E5=86=
-=99=E9=81=93:
-> * Zumeng Chen<zumeng.chen@gmail.com>  [120612 09:41]:
->> 2012/6/12 Tony Lindgren<tony@atomide.com>
->>
->>> * Zumeng Chen<zumeng.chen@gmail.com>  [120611 07:05]:
->>>> If we don't set proper debouce time for ads7846, then there are
->>>> flooded interrupt counters of ads7846 responding to one time
->>>> touch on screen, so the driver couldn't work well.
->>>>
->>>> And since most OMAP3 series boards pass NULL pointer of board_pdat=
-a
->>>> to omap_ads7846_init, so it's more proper to set it in driver leve=
-l
->>>> after having gpio_request done.
->>>>
->>>> This patch has been validated on 3530evm.
->>>>
->>>> Signed-off-by: Zumeng Chen<zumeng.chen@gmail.com>
->>>> Signed-off-by: Syed Mohammed Khasim<khasim@ti.com>
->>>> Signed-off-by: Tony Lindgren<tony@atomide.com>
->>> Please remove my Signed-off-by, where does that come from?
->>>
->> HI Tony,
->>
->> This comes from git://arago-project.org/git/projects/linux-omap3.git
->> The commit ID is 53c5ec31, we set gpio_debounce in arch/board
->> level.
-> Weird, I have no recollection of doing anything with that file..
-> Just remove my Signed-off-by please.
-NP, Tony, done, sorry for inconvenience.
+Hi Jon,
 
-Regards,
-Zumeng
-> Tony
+On Wed, Jun 13, 2012 at 22:08:47, Hunter, Jon wrote:
+> On 06/13/2012 12:03 AM, Mohammed, Afzal wrote:
 
---
-To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> > As gpmc_onenand_setup is a callback by onenand driver, we would have
+> > lost the opportunity to configure onenand before driver is probed.
+> 
+> Is that a problem? Looks like it is called early in the probe and so I
+> would hope no one is attempting to access the onenand itself before the
+> probe has completed.
+
+During gpmc driver probe, it will configure all the connected peripherals,
+if configuration details are not present at that point of time, gpmc driver
+will cry out saying that configuration & timings has not been configured,
+(please see holler if no configuration patch). And I do not see any reason
+why gpmc driver should not be fed with async mode configuration initially,
+as it has to be done always.
+
+> 
+> > This would cause requirement of double GPMC configuring and we lost
+> > the opportunity to configure GPMC before driver is probed.
+> 
+> I am not convinced we need to. Furthermore with your change you do not
+> actually set async mode in the onenand until _set_sync() is called.
+
+Yes, setting async mode in onenand is done in set_sync function, and it is
+always called by onenand driver indirectly.
+
+Seems if setting async mode in onenand is taken out of set_sync & placed
+it before set_sync invocation in gpmc_onenand_setup, intention will be
+clear, right ? (even though sequence wise same thing is happening now)
+
+
+> 
+> > And the first step for onenand configuration is always to set it
+> > to async mode (with the way it is done now), so it seems reasonable
+> > to rely on normal GPMC configuration for async & then do reconfigure
+> > for sync.
+> 
+> Yes but as far as I can see, it seems that this is the intent of the
+> onenand_setup() function to perform the necessary initialisation.
+
+I believe doing it in gpmc_onenand_init is better, due to the reasons
+mentioned above as well as because function name will correspond to what
+it is doing, i.e. initialization
+
+> 
+> Have you tested onenand? Do you have a board with onenand?
+
+Yes, on omap3evm, with help of local patches (as mainline doesn't have
+those). It was mentioned in cover letter of gpmc driver conversion series
+
+Regards
+Afzal
