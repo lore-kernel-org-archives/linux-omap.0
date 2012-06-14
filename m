@@ -1,133 +1,183 @@
 From: Rajendra Nayak <rnayak@ti.com>
-Subject: [PATCH 02/29] clk: Add CLK_IS_BASIC flag to identify basic clocks
-Date: Thu, 14 Jun 2012 18:16:51 +0530
-Message-ID: <1339678038-23082-3-git-send-email-rnayak@ti.com>
-References: <1339678038-23082-1-git-send-email-rnayak@ti.com>
+Subject: [PATCH 00/29] Move OMAP2+ over to use COMMON clock
+Date: Thu, 14 Jun 2012 18:16:49 +0530
+Message-ID: <1339678038-23082-1-git-send-email-rnayak@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from comal.ext.ti.com ([198.47.26.152]:34561 "EHLO comal.ext.ti.com"
+Received: from comal.ext.ti.com ([198.47.26.152]:34562 "EHLO comal.ext.ti.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1755534Ab2FNMrh (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	id S1755627Ab2FNMrh (ORCPT <rfc822;linux-omap@vger.kernel.org>);
 	Thu, 14 Jun 2012 08:47:37 -0400
-In-Reply-To: <1339678038-23082-1-git-send-email-rnayak@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: paul@pwsan.com, mturquette@ti.com
 Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Rajendra Nayak <rnayak@ti.com>
 
-Most platforms end up using a mix of basic clock types and
-some which use clk_hw_foo struct for filling in custom platform
-information when the clocks don't fit into basic types supported.
+Hi,
 
-In platform code, its useful to know if a clock is using a basic
-type or clk_hw_foo, which helps platforms know if they can
-safely use to_clk_hw_foo to derive the clk_hw_foo pointer from
-clk_hw.
+Series is based on latest clk-next(3.5-rc2) from Mike.
 
-Mark all basic clocks with a CLK_IS_BASIC flag.
+Boot/Test logs for the series can be found here
+http://pastebin.com/u/rnayak
 
-Signed-off-by: Rajendra Nayak <rnayak@ti.com>
----
- drivers/clk/clk-divider.c      |    2 +-
- drivers/clk/clk-fixed-factor.c |    2 +-
- drivers/clk/clk-fixed-rate.c   |    2 +-
- drivers/clk/clk-gate.c         |    2 +-
- drivers/clk/clk-mux.c          |    2 +-
- include/linux/clk-private.h    |    2 +-
- include/linux/clk-provider.h   |    1 +
- 7 files changed, 7 insertions(+), 6 deletions(-)
+Changes/Fixes/Updates since RFC series
+-1- Fixed issues with dpll abe rate on OMAP4
+-2- Fixed boot crash on 2430SDP and 2420N800
+-3- Fixed suspend on OMAP3, (unused clocks were not disabled)
+-4- clk_hw_omap and related defs now retained in plat/clock.h
+-5- Added missing 4460 clocks for OMAP4
+-6- Fixed some drivers to use clk_prepare_enable and clk_disable_unprepare
+-7- Added .is_enabled hooks for all OMAP2/3/4 gate clocks
+-8- Got rid of the late_init call
+-9- Fixed the handling of omap_96m_alwon_fck_3630 clk for OMAP3
 
-diff --git a/drivers/clk/clk-divider.c b/drivers/clk/clk-divider.c
-index e4911ee..53f9dd7 100644
---- a/drivers/clk/clk-divider.c
-+++ b/drivers/clk/clk-divider.c
-@@ -266,7 +266,7 @@ struct clk *clk_register_divider(struct device *dev, const char *name,
- 
- 	init.name = name;
- 	init.ops = &clk_divider_ops;
--	init.flags = flags;
-+	init.flags = flags | CLK_IS_BASIC;
- 	init.parent_names = (parent_name ? &parent_name: NULL);
- 	init.num_parents = (parent_name ? 1 : 0);
- 
-diff --git a/drivers/clk/clk-fixed-factor.c b/drivers/clk/clk-fixed-factor.c
-index c8c003e..a489985 100644
---- a/drivers/clk/clk-fixed-factor.c
-+++ b/drivers/clk/clk-fixed-factor.c
-@@ -82,7 +82,7 @@ struct clk *clk_register_fixed_factor(struct device *dev, const char *name,
- 
- 	init.name = name;
- 	init.ops = &clk_fixed_factor_ops;
--	init.flags = flags;
-+	init.flags = flags | CLK_IS_BASIC;
- 	init.parent_names = &parent_name;
- 	init.num_parents = 1;
- 
-diff --git a/drivers/clk/clk-fixed-rate.c b/drivers/clk/clk-fixed-rate.c
-index cbd2462..7e14645 100644
---- a/drivers/clk/clk-fixed-rate.c
-+++ b/drivers/clk/clk-fixed-rate.c
-@@ -63,7 +63,7 @@ struct clk *clk_register_fixed_rate(struct device *dev, const char *name,
- 
- 	init.name = name;
- 	init.ops = &clk_fixed_rate_ops;
--	init.flags = flags;
-+	init.flags = flags | CLK_IS_BASIC;
- 	init.parent_names = (parent_name ? &parent_name: NULL);
- 	init.num_parents = (parent_name ? 1 : 0);
- 
-diff --git a/drivers/clk/clk-gate.c b/drivers/clk/clk-gate.c
-index 578465e..15114fe 100644
---- a/drivers/clk/clk-gate.c
-+++ b/drivers/clk/clk-gate.c
-@@ -130,7 +130,7 @@ struct clk *clk_register_gate(struct device *dev, const char *name,
- 
- 	init.name = name;
- 	init.ops = &clk_gate_ops;
--	init.flags = flags;
-+	init.flags = flags | CLK_IS_BASIC;
- 	init.parent_names = (parent_name ? &parent_name: NULL);
- 	init.num_parents = (parent_name ? 1 : 0);
- 
-diff --git a/drivers/clk/clk-mux.c b/drivers/clk/clk-mux.c
-index fd36a8e..508c032 100644
---- a/drivers/clk/clk-mux.c
-+++ b/drivers/clk/clk-mux.c
-@@ -106,7 +106,7 @@ struct clk *clk_register_mux(struct device *dev, const char *name,
- 
- 	init.name = name;
- 	init.ops = &clk_mux_ops;
--	init.flags = flags;
-+	init.flags = flags | CLK_IS_BASIC;
- 	init.parent_names = parent_names;
- 	init.num_parents = num_parents;
- 
-diff --git a/include/linux/clk-private.h b/include/linux/clk-private.h
-index 2479239..0835bda 100644
---- a/include/linux/clk-private.h
-+++ b/include/linux/clk-private.h
-@@ -64,7 +64,7 @@ struct clk {
- 		.parent_names = _parent_names,			\
- 		.num_parents = ARRAY_SIZE(_parent_names),	\
- 		.parents = _parents,				\
--		.flags = _flags,				\
-+		.flags = _flags | CLK_IS_BASIC,			\
- 	}
- 
- #define DEFINE_CLK_FIXED_RATE(_name, _flags, _rate,		\
-diff --git a/include/linux/clk-provider.h b/include/linux/clk-provider.h
-index aa63aca..4b94f59 100644
---- a/include/linux/clk-provider.h
-+++ b/include/linux/clk-provider.h
-@@ -25,6 +25,7 @@
- #define CLK_SET_RATE_PARENT	BIT(2) /* propagate rate change up one level */
- #define CLK_IGNORE_UNUSED	BIT(3) /* do not gate even if unused */
- #define CLK_IS_ROOT		BIT(4) /* root clk, has no parent */
-+#define CLK_IS_BASIC		BIT(5) /* Basic clk, can't do a to_clk_foo() */
- 
- struct clk_hw;
- 
--- 
-1.7.1
+OMAP3 has suspend broken in mainline, so I tested it on an
+older kernel (3.4-rc4 using my RFC series)
+Idle and OFF mode however seem to be broken for a long time,
+I wasn;t able to get it working even on 3.4 major.
+See my logs '3630 Beagle-Xm broken idle/off on 3.4' if
+I am doing anything wrong. I have CPUidle enabled in the
+kernel config.
+
+This series retains the static clock declarations and also
+all data and code in mach-omap folders and does not move
+it as yet to drivers/clk.
+Also the series moves over only OMAP2+ (OMAP2/3/4)
+to use COMMON clk and leaves OMAP1 still using OMAP
+clock framework.
+
+The series does not break git-bisect at any point and to
+do so adds new data in completely different files and uses
+some ifdefferry in code too, and switches over in one
+patch to move from OMAP clock to COMMON clock. Then deletes
+all old data files and all the ifdeferrey around.
+
+All of the new data for OMAP2/3/4 in the new COMMON clock
+format is autogenerated, OMAP4 by hacking the existing python
+scripts, and OMAP2/3 by converting the existing C99 structs
+to JSON format (Thanks to Paul Walmsley for this) and then having
+python to read the JSON format and generate the C99 structs
+back in the form COMMON clk expects.
+
+The complete series can be found here
+git://github.com/rrnayak/linux.git clk-next-omap-3.5-rc2
+
+Special thanks to Jon Hunter for his help testing on the
+2420-N800 device.
+
+regards,
+Rajendra
+
+Mike Turquette (1):
+  ARM: omap4: cm: add bitfield width values
+
+Rajendra Nayak (28):
+  clk: Add support for rate table based dividers
+  clk: Add CLK_IS_BASIC flag to identify basic clocks
+  ARM: omap: clk: convert all clk_enable to clk_prepare_enable
+  mmc: omap_hsmmc: use clk_prepare_enable and clk_disable_unprepare
+  hwrng: omap: use clk_prepare_enable and clk_disable_unprepare
+  mfd: omap-usb: use clk_prepare_enable and clk_disable_unprepare
+  ARM: omap: hwmod: get rid of all omap_clk_get_by_name usage
+  ARM: omap: clk: Nuke plat/clock.c & reuse struct clk as clk_hw_omap
+  ARM: omap: clk: Remove all direct dereferncing of struct clk
+  ARM: omap: hwmod: Fix up hwmod based clkdm accesses
+  ARM: omap4: clk: Convert to common clk
+  ARM: omap3: clk: Convert to common clk
+  ARM: omap2: clk: Convert to common clk
+  ARM: omap: clk: list all clk_hw_omap clks to enable/disable autoidle
+  ARM: omap: clk: Define a function to enable clocks at init
+  ARM: omap: clock: Get rid of unwanted clkdm assocations within clks
+  ARM: omap4: clk: Add 44xx data using common struct clk
+  ARM: omap3: clk: Add 3xxx data using common struct clk
+  ARM: omap2: clk: Add 24xx data using common struct clk
+  ARM: omap: clk: Switch to COMMON clk
+  ARM: omap: clk: Use plat/clock.c only for OMAP1
+  ARM: omap: hwmod: Cleanup !CONFIG_COMMON_CLK parts
+  ARM: omap4: clk: Cleanup !CONFIG_COMMON_CLK parts
+  ARM: omap3: clk: Cleanup !CONFIG_COMMON_CLK parts
+  ARM: omap2: clk: Cleanup !CONFIG_COMMON_CLK parts
+  ARM: omap4: clk: Delete old OMAP clock data
+  ARM: omap3: clk: Delete old OMAP clock data
+  ARM: omap2: clk: Delete old OMAP clock data
+
+ arch/arm/mach-imx/clk.h                      |    2 +-
+ arch/arm/mach-omap2/Kconfig                  |    1 +
+ arch/arm/mach-omap2/Makefile                 |    8 +-
+ arch/arm/mach-omap2/board-apollon.c          |    4 +-
+ arch/arm/mach-omap2/board-h4.c               |    6 +-
+ arch/arm/mach-omap2/board-omap4panda.c       |    2 +-
+ arch/arm/mach-omap2/cclock2420_data.c        | 2306 +++++++++++++++
+ arch/arm/mach-omap2/cclock2430_data.c        | 2434 ++++++++++++++++
+ arch/arm/mach-omap2/cclock3xxx_data.c        | 3981 ++++++++++++++++++++++++++
+ arch/arm/mach-omap2/cclock44xx_data.c        | 2628 +++++++++++++++++
+ arch/arm/mach-omap2/clkt2xxx_apll.c          |   35 +-
+ arch/arm/mach-omap2/clkt2xxx_dpll.c          |    8 +-
+ arch/arm/mach-omap2/clkt2xxx_dpllcore.c      |   11 +-
+ arch/arm/mach-omap2/clkt2xxx_osc.c           |   12 +-
+ arch/arm/mach-omap2/clkt2xxx_sys.c           |    6 +-
+ arch/arm/mach-omap2/clkt2xxx_virt_prcm_set.c |   14 +-
+ arch/arm/mach-omap2/clkt34xx_dpll3m2.c       |   24 +-
+ arch/arm/mach-omap2/clkt_clksel.c            |  198 +-
+ arch/arm/mach-omap2/clkt_dpll.c              |   48 +-
+ arch/arm/mach-omap2/clkt_iclk.c              |   35 +-
+ arch/arm/mach-omap2/clock.c                  |  334 +--
+ arch/arm/mach-omap2/clock.h                  |   98 +-
+ arch/arm/mach-omap2/clock2420_data.c         | 2009 -------------
+ arch/arm/mach-omap2/clock2430.c              |    8 +-
+ arch/arm/mach-omap2/clock2430_data.c         | 2108 --------------
+ arch/arm/mach-omap2/clock2xxx.c              |    1 +
+ arch/arm/mach-omap2/clock2xxx.h              |   37 +-
+ arch/arm/mach-omap2/clock34xx.c              |   51 +-
+ arch/arm/mach-omap2/clock3517.c              |   21 +-
+ arch/arm/mach-omap2/clock36xx.c              |   22 +-
+ arch/arm/mach-omap2/clock36xx.h              |    2 +-
+ arch/arm/mach-omap2/clock3xxx.c              |   14 +-
+ arch/arm/mach-omap2/clock3xxx.h              |    6 +-
+ arch/arm/mach-omap2/clock3xxx_data.c         | 3621 -----------------------
+ arch/arm/mach-omap2/clock44xx_data.c         | 3455 ----------------------
+ arch/arm/mach-omap2/clock_common_data.c      |    9 +
+ arch/arm/mach-omap2/cm-regbits-24xx.h        |    5 +
+ arch/arm/mach-omap2/cm-regbits-34xx.h        |   31 +
+ arch/arm/mach-omap2/cm-regbits-44xx.h        |  411 +++-
+ arch/arm/mach-omap2/cm2xxx_3xxx.h            |    1 +
+ arch/arm/mach-omap2/display.c                |    4 +-
+ arch/arm/mach-omap2/dpll3xxx.c               |  165 +-
+ arch/arm/mach-omap2/dpll44xx.c               |   20 +-
+ arch/arm/mach-omap2/gpmc.c                   |    2 +-
+ arch/arm/mach-omap2/io.c                     |    9 +
+ arch/arm/mach-omap2/omap_hwmod.c             |   83 +-
+ arch/arm/mach-omap2/omap_phy_internal.c      |   12 +-
+ arch/arm/mach-omap2/pm.c                     |    2 +-
+ arch/arm/mach-omap2/pm24xx.c                 |    8 +-
+ arch/arm/mach-omap2/prm-regbits-24xx.h       |    2 +
+ arch/arm/mach-omap2/prm-regbits-34xx.h       |    1 +
+ arch/arm/mach-omap2/prm2xxx_3xxx.h           |    1 +
+ arch/arm/mach-omap2/scrm44xx.h               |    2 +
+ arch/arm/mach-omap2/usb-fs.c                 |    4 +-
+ arch/arm/plat-omap/Makefile                  |    3 +-
+ arch/arm/plat-omap/include/plat/clock.h      |   89 +
+ arch/arm/plat-omap/omap_device.c             |    6 +-
+ drivers/char/hw_random/omap-rng.c            |    6 +-
+ drivers/clk/clk-divider.c                    |   69 +-
+ drivers/clk/clk-fixed-factor.c               |    2 +-
+ drivers/clk/clk-fixed-rate.c                 |    2 +-
+ drivers/clk/clk-gate.c                       |    2 +-
+ drivers/clk/clk-mux.c                        |    2 +-
+ drivers/clk/spear/spear3xx_clock.c           |    4 +-
+ drivers/clk/spear/spear6xx_clock.c           |    4 +-
+ drivers/mfd/omap-usb-host.c                  |   28 +-
+ drivers/mmc/host/omap_hsmmc.c                |   14 +-
+ include/linux/clk-private.h                  |    5 +-
+ include/linux/clk-provider.h                 |   11 +-
+ 69 files changed, 12555 insertions(+), 12014 deletions(-)
+ create mode 100644 arch/arm/mach-omap2/cclock2420_data.c
+ create mode 100644 arch/arm/mach-omap2/cclock2430_data.c
+ create mode 100644 arch/arm/mach-omap2/cclock3xxx_data.c
+ create mode 100644 arch/arm/mach-omap2/cclock44xx_data.c
+ delete mode 100644 arch/arm/mach-omap2/clock2420_data.c
+ delete mode 100644 arch/arm/mach-omap2/clock2430_data.c
+ delete mode 100644 arch/arm/mach-omap2/clock3xxx_data.c
+ delete mode 100644 arch/arm/mach-omap2/clock44xx_data.c
 
