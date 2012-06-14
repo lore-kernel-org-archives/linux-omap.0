@@ -1,123 +1,110 @@
-From: Arnd Bergmann <arnd@arndb.de>
-Subject: Re: [PATCH V3 1/2] of: Add generic device tree DMA helpers
-Date: Thu, 14 Jun 2012 11:48:19 +0000
-Message-ID: <201206141148.20371.arnd@arndb.de>
-References: <1335820679-28721-1-git-send-email-jon-hunter@ti.com> <201206090004.10086.arnd@arndb.de> <4FD914F6.6000402@ti.com>
+From: Felipe Balbi <balbi@ti.com>
+Subject: Re: [PATCH 09/17] i2c: omap: ack IRQ in parts
+Date: Thu, 14 Jun 2012 14:46:39 +0300
+Message-ID: <20120614114638.GQ13602@arwen.pp.htv.fi>
+References: <1339669250-9183-1-git-send-email-balbi@ti.com>
+ <1339669250-9183-10-git-send-email-balbi@ti.com>
+ <CAMQu2gw4B_5eFSAq_o+MamNDDwoZi2CitmC+dM=+pi3R1Z2QCA@mail.gmail.com>
+Reply-To: balbi@ti.com
 Mime-Version: 1.0
-Content-Type: Text/Plain;
-  charset="iso-8859-1"
-Content-Transfer-Encoding: 7bit
+Content-Type: multipart/signed; micalg=pgp-sha1;
+	protocol="application/pgp-signature"; boundary="JKGvNdIvrY8Ovf7Z"
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from moutng.kundenserver.de ([212.227.126.171]:50913 "EHLO
-	moutng.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753487Ab2FNLsj (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 14 Jun 2012 07:48:39 -0400
-In-Reply-To: <4FD914F6.6000402@ti.com>
+Received: from na3sys009aog104.obsmtp.com ([74.125.149.73]:46420 "EHLO
+	na3sys009aog104.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1755620Ab2FNLsn (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>);
+	Thu, 14 Jun 2012 07:48:43 -0400
+Received: by lbon10 with SMTP id n10so2439143lbo.13
+        for <linux-omap@vger.kernel.org>; Thu, 14 Jun 2012 04:48:40 -0700 (PDT)
+Content-Disposition: inline
+In-Reply-To: <CAMQu2gw4B_5eFSAq_o+MamNDDwoZi2CitmC+dM=+pi3R1Z2QCA@mail.gmail.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Jon Hunter <jon-hunter@ti.com>
-Cc: Stephen Warren <swarren@wwwdotorg.org>, Jassi Brar <jaswinder.singh@linaro.org>, Stephen Warren <swarren@nvidia.com>, Benoit Cousson <b-cousson@ti.com>, device-tree <devicetree-discuss@lists.ozlabs.org>, Nicolas Ferre <nicolas.ferre@atmel.com>, Rob Herring <rob.herring@calxeda.com>, Grant Likely <grant.likely@secretlab.ca>, Russell King <linux@arm.linux.org.uk>, linux-omap <linux-omap@vger.kernel.org>, linux-arm <linux-arm-kernel@lists.infradead.org>
-
-On Wednesday 13 June 2012, Jon Hunter wrote:
-
-> > As I said previously, I think just encoding the direction but not
-> > the client specific ID (meaning we would have to disambiguate
-> > the more complex cases that Stephen mentioned using a dma-names
-> > property) would be the best because it keeps the common case simple,
-> > but I could live with other things going in there too.
-> 
-> Ok, so you are saying that there are some DMA controllers where there is
-> no channel/request ID and only a direction is needed? So an even simpler
-> case than what I had imagined.
-
-No, that was not the case I was thinking about.
-
-> So in that case, I don't see why the first cell after the phandle could
-> not be an index which could be either a direction or request-id and then
-> the next cell after that be a secondary match variable.
-> 
-> So simple case with just a index (either req-id or direction) ...
-> 
-> dmas = <&dmac0 index>
-> 
-> More complex case ...
-> 
-> dmas = <&dmac0 index match>
-> 
-> For example, for OMAP index = req-id and match = direction ...
-> 
-> dmas = <&dmac0 req-id direction>
-> 
-> Or am I way off the page?
-
-The intention was instead to remove the need for the /index/ in those
-cases, because having a client-specific index in here makes it inconsistent
-with other similar bindings (reg, interrupts, gpios, ...) that people
-are familiar with. They use an implicit index by counting the
-fields in the respective properties.
-
-The existing method we have for avoiding index numbers is to use
-named fields, like
-
-	dmas = <&dmac0 matchA>, <dmac1 matchB>, <dmac2 matchC>;
-	dma-names = "rx", "rx", "tx";
-
-This is similar to how we use named interrupt and mmio resources, but
-it requires that we always request the dma lines by name, which is
-slightly more complex than we might want it to be.
-
-Because the vast majority of cases just use a single channel, or one
-channel per direction, my idea was to encode the direction in the
-dmas property, which lets us request a dma channel by direction from
-the driver side, without explicitly encoding the name.
-
-This would let us handle the following cases very easily:
-
-1. one read-write channel
-
-	dmas = <&dmac 0x3 match>;
-
-2. a choice of two read-write channels:
-
-	dmas = <&dmacA 0x3 matchA>, <&dmacB 0x3 matchB>;
-
-3. one read-channel, one write channel:
-
-	dmas = <&dmac 0x1 match-read>, <&dmac 0x2 match-write>;
-
-4. a choice of two read channels and one write channel:
-
-	dmas = <&dmacA 0x1 match-readA>, <&dmacA 0x2 match-write> 
-			<&dmacB match-readB>;
-
-And only the cases where we have more multiple channels that differ
-in more aspects would require named properties:
-
-5. two different channels
-
-	dmas = <&dmac 0x3 match-rwdata>, <&dmac 0x1 match-status>;
-	dma-names = "rwdata", "status";
-
-6. same as 5, but with a choice of channels:
-
-	dmas = <&dmacA 0x3 match-rwdataA>, <&dmacA 0x1 match-status>;
-		<dmacB 0x3 match-rwdataB>;
-	dma-names = "rwdata", "status", "rwdata";
+To: "Shilimkar, Santosh" <santosh.shilimkar@ti.com>
+Cc: Felipe Balbi <balbi@ti.com>, ben-linux@fluff.org, Tony Lindgren <tony@atomide.com>, w.sang@pengutronix.de, Linux OMAP Mailing List <linux-omap@vger.kernel.org>, linux-i2c@vger.kernel.org, Linux ARM Kernel Mailing List <linux-arm-kernel@lists.infradead.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>
 
 
-With a definition like that, we can implement a very simple device
-driver interface for the common cases, and a slightly more complex
-one for the more complex cases:
+--JKGvNdIvrY8Ovf7Z
+Content-Type: text/plain; charset=iso-8859-1
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
 
-1. chan = of_dma_request_channel(dev->of_node, 0);
-2. chan = of_dma_request_channel(dev->of_node, 0);
-3. rxchan = of_dma_request_channel(dev->of_node, DMA_MEM_TO_DEV);
-   txchan = of_dma_request_channel(dev->of_node, DMA_DEV_TO_MEM);
-4. rxchan = of_dma_request_channel(dev->of_node, DMA_MEM_TO_DEV);
-   txchan = of_dma_request_channel(dev->of_node, DMA_DEV_TO_MEM);
-5. chan = of_dma_request_named_channel(dev->of_node, "rwdata", 0);
-   auxchan = of_dma_request_named_channel(dev->of_node, "status", DMA_DEV_TO_MEM);
-6. chan = of_dma_request_named_channel(dev->of_node, "rwdata", 0);
-   auxchan = of_dma_request_named_channel(dev->of_node, "status", DMA_DEV_TO_MEM);
+On Thu, Jun 14, 2012 at 04:41:45PM +0530, Shilimkar, Santosh wrote:
+> On Thu, Jun 14, 2012 at 3:50 PM, Felipe Balbi <balbi@ti.com> wrote:
+> > According to flow diagrams on OMAP TRMs,
+> > we should ACK the IRQ as they happen.
+> >
+> > Signed-off-by: Felipe Balbi <balbi@ti.com>
+> > ---
+> > =A0drivers/i2c/busses/i2c-omap.c | =A0 29 +++++++++++++++++------------
+> > =A01 file changed, 17 insertions(+), 12 deletions(-)
+> >
+> > diff --git a/drivers/i2c/busses/i2c-omap.c b/drivers/i2c/busses/i2c-oma=
+p.c
+> > index f978b14..c00ba7d 100644
+> > --- a/drivers/i2c/busses/i2c-omap.c
+> > +++ b/drivers/i2c/busses/i2c-omap.c
+> > @@ -894,21 +894,20 @@ omap_i2c_isr(int this_irq, void *dev_id)
+> > =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0}
+> >
+> > =A0complete:
+> > - =A0 =A0 =A0 =A0 =A0 =A0 =A0 /*
+> > - =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0* Ack the stat in one go, but [R/X]DR =
+and [R/X]RDY should be
+> > - =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0* acked after the data operation is co=
+mplete.
+> > - =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0* Ref: TRM SWPU114Q Figure 18-31
+> > - =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0*/
+> > - =A0 =A0 =A0 =A0 =A0 =A0 =A0 omap_i2c_write_reg(dev, OMAP_I2C_STAT_REG=
+, stat &
+> > - =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 ~(OMAP_I2=
+C_STAT_RRDY | OMAP_I2C_STAT_RDR |
+> > - =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 OMAP_I2C_=
+STAT_XRDY | OMAP_I2C_STAT_XDR));
+> > -
+> > - =A0 =A0 =A0 =A0 =A0 =A0 =A0 if (stat & OMAP_I2C_STAT_NACK)
+> > + =A0 =A0 =A0 =A0 =A0 =A0 =A0 if (stat & OMAP_I2C_STAT_NACK) {
+> > + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 dev_err(dev->dev, "No Ack=
+nowledge\n");
+> > =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0err |=3D OMAP_I2C_STAT_N=
+ACK;
+> > + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 omap_i2c_ack_stat(dev, OM=
+AP_I2C_STAT_NACK);
+> > + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 omap_i2c_complete_cmd(dev=
+, err);
+> > + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 return IRQ_HANDLED;
+> > + =A0 =A0 =A0 =A0 =A0 =A0 =A0 }
+> >
+> Do you think making I2C IRQ ack + complete as one small static inline fun=
+ction
+> can save clean the code further. I see it has been used in multiple paths.
 
-	Arnd
+done in a later patch
+
+--=20
+balbi
+
+--JKGvNdIvrY8Ovf7Z
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: Digital signature
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.4.12 (GNU/Linux)
+
+iQIcBAEBAgAGBQJP2c8eAAoJEIaOsuA1yqREXwUP/i3tHN51zYrf+Y8+lTo5K6rF
+Y3fcSSjcKA4brPyyPN/FZJW6pqRMDceTy+ZocxmL3mW3MZkJgSpX3jM3ltkvZgXV
+xnsNhO5k0UlHvqVfD/BrmXeIuTcCnLCDoOX3zPmfcLClfbvW27BELZNk3FMt5g2R
+HVTs56rBPJUpzaUXPmyyx/ZX1DT4DhkQVT1q37fpUb4QnSz1Hr6ucc+52HLZ3KGA
+jEOHDO64UUpk1DRGSr/LENa7iBrdBmqjw6tMJ1iP+0v3kpc5EsYf2J/cXxdGUbim
+z44EqRJLxoNiF8ru7JRxd6Ln5HRm3yZ+yAN1IsGyr297zX2/YTnBlKw/XaPeemzI
+Kbmr9qmAp0guLvruy3CTk3BTvpubrznZGWHq2PLtSa1ph1MOHkNORBw53Hh2E8js
+C3lTnsUwEDCpLJSPZTZ+WMy9BbQYollRd4CbLy7e2se5OTVB0aYYifUiyysT489G
+0KV7X5llsxu3KmYsMy1alvV4CrVuQMmz0OsBvwLd4tq6lCxWXYjfTzJYkl5EJkpS
+5RPEMyPP5Qkj7eIE+HL2QkQoHNUMg20ERozbNuxsABoXR2IzDsQkmDlK5JncZXCP
+IP/r4h4saJDagQCk3j8pksKAbXSmQe9Gk97yPEmlf8VEYjYUqBRpmyNlqmMHpBwN
+XMyNqr/Ks6SA3NJRNSic
+=4WMV
+-----END PGP SIGNATURE-----
+
+--JKGvNdIvrY8Ovf7Z--
