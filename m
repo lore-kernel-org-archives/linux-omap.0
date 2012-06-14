@@ -1,31 +1,58 @@
-From: Russell King - ARM Linux <linux@arm.linux.org.uk>
-Subject: Re: [PATCH 06/17] i2c: omap: improve 1p153 errata handling
-Date: Thu, 14 Jun 2012 12:17:46 +0100
-Message-ID: <20120614111746.GB31187@n2100.arm.linux.org.uk>
-References: <1339669250-9183-1-git-send-email-balbi@ti.com> <1339669250-9183-7-git-send-email-balbi@ti.com>
+From: "Shilimkar, Santosh" <santosh.shilimkar-l0cyMroinI0@public.gmane.org>
+Subject: Re: [PATCH 15/17] i2c: omap: always return IRQ_HANDLED
+Date: Thu, 14 Jun 2012 16:48:56 +0530
+Message-ID: <CAMQu2gzbK+ObetarwRiEz9A7=awEffAhrMMAqSMfiv4H6BZAuw@mail.gmail.com>
+References: <1339669250-9183-1-git-send-email-balbi@ti.com> <1339669250-9183-16-git-send-email-balbi@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-kernel-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <1339669250-9183-7-git-send-email-balbi@ti.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Felipe Balbi <balbi@ti.com>
-Cc: ben-linux@fluff.org, Tony Lindgren <tony@atomide.com>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, w.sang@pengutronix.de, linux-i2c@vger.kernel.org, Linux OMAP Mailing List <linux-omap@vger.kernel.org>, Linux ARM Kernel Mailing List <linux-arm-kernel@lists.infradead.org>
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Return-path: <linux-i2c-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <1339669250-9183-16-git-send-email-balbi-l0cyMroinI0@public.gmane.org>
+Sender: linux-i2c-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Felipe Balbi <balbi-l0cyMroinI0@public.gmane.org>
+Cc: ben-linux-elnMNo+KYs3YtjvyW6yDsg@public.gmane.org, Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>, w.sang-bIcnvbaLZ9MEGnE8C9+IrQ@public.gmane.org, Linux OMAP Mailing List <linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, linux-i2c-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Linux ARM Kernel Mailing List <linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org>, Linux Kernel Mailing List <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-omap@vger.kernel.org
 
-On Thu, Jun 14, 2012 at 01:20:39PM +0300, Felipe Balbi wrote:
-> -static int errata_omap3_1p153(struct omap_i2c_dev *dev, u16 *stat, int *err)
-> +static int errata_omap3_1p153(struct omap_i2c_dev *dev)
->  {
-> -	unsigned long timeout = 10000;
-> +	unsigned long	timeout = 10000;
-> +	u16		stat;
+On Thu, Jun 14, 2012 at 3:50 PM, Felipe Balbi <balbi-l0cyMroinI0@public.gmane.org> wrote:
+> otherwise we could get our IRQ line disabled due
+> to many spurious IRQs.
+>
+> Signed-off-by: Felipe Balbi <balbi-l0cyMroinI0@public.gmane.org>
+> ---
+> =A0drivers/i2c/busses/i2c-omap.c | =A0 =A02 +-
+> =A01 file changed, 1 insertion(+), 1 deletion(-)
+>
+> diff --git a/drivers/i2c/busses/i2c-omap.c b/drivers/i2c/busses/i2c-o=
+map.c
+> index fc5b8bc..5b78a73 100644
+> --- a/drivers/i2c/busses/i2c-omap.c
+> +++ b/drivers/i2c/busses/i2c-omap.c
+> @@ -1015,7 +1015,7 @@ omap_i2c_isr(int this_irq, void *dev_id)
+> =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0}
+> =A0 =A0 =A0 =A0} while (stat);
+>
+> - =A0 =A0 =A0 return count ? IRQ_HANDLED : IRQ_NONE;
+> + =A0 =A0 =A0 return IRQ_HANDLED;
 
-Eww, no, not more of this "lets add tabs to align auto variable
-declarations".  This is detrimental when you add another variable whose
-type is longer than the current indentation - you have to reformat the
-entire block.
+no sure if this is correct. if you have IRQ flood and instead of _actua=
+lly_
+handling it, if you return handled, you still have interrupt pending, r=
+ight?
 
-It's really not worth it.  Stick to just using one space, like the rest
-of the kernel code.  Like the code which Linus writes.  And thereby help
-to avoid future "pointless churn" whinges.
+ if (count++ =3D=3D 100) {
+                        dev_warn(dev->dev, "Too much work in one IRQ\n"=
+);
+                        break;
+                }
+ofcourse we do get warning message already, so as such the change
+should be fine.
+
+Just want to understand the change bit more.
+
+Regards
+Santosh
+
+
+
+Regards
+santosh
