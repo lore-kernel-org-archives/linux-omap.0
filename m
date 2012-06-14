@@ -1,56 +1,39 @@
-From: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
-Subject: Re: [PATCH v3 4/4] memory: emif: add device tree support to emif
- driver
-Date: Thu, 14 Jun 2012 08:48:20 -0700
-Message-ID: <20120614154820.GG17140@kroah.com>
-References: <1339669764-27244-1-git-send-email-santosh.shilimkar@ti.com>
- <1339669764-27244-5-git-send-email-santosh.shilimkar@ti.com>
+From: "Mohammed, Afzal" <afzal@ti.com>
+Subject: RE: [PATCH 00/10] Prepare for GPMC driver conversion (w.r.t MTD)
+Date: Thu, 14 Jun 2012 16:01:29 +0000
+Message-ID: <C8443D0743D26F4388EA172BF4E2A7A93E999E95@DBDE01.ent.ti.com>
+References: <cover.1338790117.git.afzal@ti.com>
+ <C8443D0743D26F4388EA172BF4E2A7A93E9962E7@DBDE01.ent.ti.com>
+ <C8443D0743D26F4388EA172BF4E2A7A93E997FF8@DBDE01.ent.ti.com>
+ <20120613110908.GJ12766@atomide.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-pb0-f46.google.com ([209.85.160.46]:49591 "EHLO
-	mail-pb0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756000Ab2FNPsY (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 14 Jun 2012 11:48:24 -0400
-Received: by pbbrp8 with SMTP id rp8so3978673pbb.19
-        for <linux-omap@vger.kernel.org>; Thu, 14 Jun 2012 08:48:23 -0700 (PDT)
-Content-Disposition: inline
-In-Reply-To: <1339669764-27244-5-git-send-email-santosh.shilimkar@ti.com>
+Received: from bear.ext.ti.com ([192.94.94.41]:51323 "EHLO bear.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1753985Ab2FNQBk convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 14 Jun 2012 12:01:40 -0400
+In-Reply-To: <20120613110908.GJ12766@atomide.com>
+Content-Language: en-US
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Santosh Shilimkar <santosh.shilimkar@ti.com>
-Cc: tony@atomide.com, linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org, Aneesh V <aneesh@ti.com>
+To: "artem.bityutskiy@linux.intel.com" <artem.bityutskiy@linux.intel.com>
+Cc: Tony Lindgren <tony@atomide.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-mtd@lists.infradead.org" <linux-mtd@lists.infradead.org>, "ivan.djelic@parrot.com" <ivan.djelic@parrot.com>
 
-On Thu, Jun 14, 2012 at 03:59:24PM +0530, Santosh Shilimkar wrote:
-> From: Aneesh V <aneesh@ti.com>
-> 
-> Device tree support for the EMIF driver.
-> 
-> Reviewed-by: Benoit Cousson <b-cousson@ti.com>
-> Reviewed-by: Grant Likely <grant.likely@secretlab.ca>
-> Tested-by: Lokesh Vutla <lokeshvutla@ti.com>
-> Signed-off-by: Aneesh V <aneesh@ti.com>
-> [santosh.shilimkar@ti.com: Rebased against 3.5-rc]
-> Signed-off-by: Santosh Shilimkar <santosh.shilimkar@ti.com>
-> Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
+Hi Artem,
 
-Am I the memory maintainer now taking these patches?
+On Wed, Jun 13, 2012 at 16:39:08, Tony Lindgren wrote:
 
-> @@ -1267,7 +1534,13 @@ static int __init_or_module emif_probe(struct platform_device *pdev)
->  	struct resource		*res;
->  	int			irq;
->  
-> -	emif = get_device_details(pdev);
-> +#if defined(CONFIG_OF)
-> +	if (pdev->dev.of_node)
-> +		emif = of_get_device_details(pdev->dev.of_node, &pdev->dev);
-> +	else
-> +#endif
-> +		emif = get_device_details(pdev);
-> +
+> Looks good to me, made one comment to "mtd: nand: omap2: handle nand on gpmc"
+> patch. Maybe after that is fixed Artem can take a look and maybe ack
+> the two mtd related patches?
 
-Can't you do this without the #ifdef?
+After fixing as per Tony's comments, V2 [1] of the series has been
+posted, can you please take a look at it.
 
-thanks,
+Regards
+Afzal
 
-greg k-h
+[1] http://www.mail-archive.com/linux-omap@vger.kernel.org/msg70096.html
+
