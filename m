@@ -1,52 +1,111 @@
-From: Russ Dill <Russ.Dill@ti.com>
-Subject: Re: [PATCH] OMAP: Beagle: fix TFP410 powerdown GPIO init
-Date: Thu, 14 Jun 2012 04:40:55 -0700
-Message-ID: <CA+Bv8Xbqi7y3v2O7u8B31tv4JCTfQq3wWFojfK4UuAqDoYhB-Q@mail.gmail.com>
-References: <1339579215-24098-1-git-send-email-tomi.valkeinen@ti.com>
-	<CA+Bv8XZHOhD1sdJvEzwwup+igWpkCf8twxWzrf2zhSd4_aj9MQ@mail.gmail.com>
-	<1339658290.2236.5.camel@deskari>
-	<CA+Bv8XbwWbdTFFo9KHoOk7Tq8XBWDOWhkEqq7Pz6by_8sE_ngA@mail.gmail.com>
-	<1339661613.2229.6.camel@deskari>
+From: Felipe Balbi <balbi@ti.com>
+Subject: Re: [PATCH 04/17] i2c: omap: simplify omap_i2c_ack_stat()
+Date: Thu, 14 Jun 2012 14:45:50 +0300
+Message-ID: <20120614114546.GP13602@arwen.pp.htv.fi>
+References: <1339669250-9183-1-git-send-email-balbi@ti.com>
+ <1339669250-9183-5-git-send-email-balbi@ti.com>
+ <20120614111333.GA31187@n2100.arm.linux.org.uk>
+Reply-To: balbi@ti.com
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-lpp01m010-f46.google.com ([209.85.215.46]:61307 "EHLO
-	mail-lpp01m010-f46.google.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755786Ab2FNLk4 (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>);
-	Thu, 14 Jun 2012 07:40:56 -0400
-Received: by lahd3 with SMTP id d3so1162136lah.19
-        for <linux-omap@vger.kernel.org>; Thu, 14 Jun 2012 04:40:55 -0700 (PDT)
-In-Reply-To: <1339661613.2229.6.camel@deskari>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: multipart/signed; micalg=pgp-sha1;
+	protocol="application/pgp-signature"; boundary="qd/SZIFVu+MYwfCR"
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <20120614111333.GA31187@n2100.arm.linux.org.uk>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Russell King - ARM Linux <linux@arm.linux.org.uk>
+Cc: Felipe Balbi <balbi@ti.com>, ben-linux@fluff.org, Tony Lindgren <tony@atomide.com>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, w.sang@pengutronix.de, linux-i2c@vger.kernel.org, Linux OMAP Mailing List <linux-omap@vger.kernel.org>, Linux ARM Kernel Mailing List <linux-arm-kernel@lists.infradead.org>
 List-Id: linux-omap@vger.kernel.org
-To: Tomi Valkeinen <tomi.valkeinen@ti.com>
-Cc: Tony Lindgren <tony@atomide.com>, linux-omap@vger.kernel.org, Robert Nelson <robertcnelson@gmail.com>, Jason Kridner <jkridner@beagleboard.org>
 
-On Thu, Jun 14, 2012 at 1:13 AM, Tomi Valkeinen <tomi.valkeinen@ti.com> wrote:
-> On Thu, 2012-06-14 at 00:59 -0700, Russ Dill wrote:
->> On Thu, Jun 14, 2012 at 12:18 AM, Tomi Valkeinen <tomi.valkeinen@ti.com> wrote:
->> > On Wed, 2012-06-13 at 23:58 -0700, Russ Dill wrote:
->> >> On Wed, Jun 13, 2012 at 2:20 AM, Tomi Valkeinen <tomi.valkeinen@ti.com> wrote:
->> >> > Commit e813a55eb9c9bc6c8039fb16332cf43402125b30 ("OMAP: board-files:
->> >> > remove custom PD GPIO handling for DVI output") moved TFP410 chip's
->> >> > powerdown-gpio handling from the board files to the tfp410 driver. One
->> >> > gpio_request_one(powerdown-gpio, ...) was mistakenly left unremoved in
->> >> > the Beagle board file. This causes the tfp410 driver to fail to request
->> >> > the gpio on Beagle, causing the driver to fail and thus the DVI output
->> >> > doesn't work.
->> >>
->> >> Can you take the one I sent earlier instead?
->> >>
->> >> http://www.spinics.net/lists/linux-omap/msg69913.html
->> >
->> > Hmm, that probably doesn't apply. The power-down GPIO is now handled in
->> > the tfp410 driver, not in the board files.
->>
->> Give me a branch to rebase it onto and I will.
->
-> v3.5-rc2
 
-This one (v4) already applies to v3.5-rc2
+--qd/SZIFVu+MYwfCR
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
 
-http://www.spinics.net/lists/linux-omap/msg70042.html
+Hi,
+
+On Thu, Jun 14, 2012 at 12:13:33PM +0100, Russell King - ARM Linux wrote:
+> On Thu, Jun 14, 2012 at 01:20:37PM +0300, Felipe Balbi wrote:
+> > stat & BIT(1) is the same as BIT(1), so let's
+> > simplify things a bit by removing "stat &" from
+> > all omap_i2c_ack_stat() calls.
+>=20
+> This doesn't feel right, and the explanation is definitely wrong.
+>=20
+> "stat & BIT(1)" is not the same as "BIT(1)" _unless_ you're saying that
+> stat always has BIT(1) already set.  Can you guarantee that in this code?
+> If so, how?
+>=20
+> What happens if you read the status register, and it has bit 1 clear.
+> immediately after the read, the status register bit 1 becomes set, and
+> then you write bit 1 set (because you've dropped the stat & BIT(1) from
+> the code.)
+>=20
+> Is it not going to acknowledge that bit-1-set but because you haven't
+> read it, you're going to miss that event?
+>=20
+> This feels like a buggy change to me.
+
+I fail to see that situation would happen with this driver. See what it
+does (extremely simplified):
+
+if (stat & NACK) {
+	...
+	omap_i2c_ack_stat(dev, stat & NACK);
+}
+
+if (stat & RDR) {
+	...
+	omap_i2c_ack_stat(dev, stat & RDR);
+}
+
+and so on. The tricky place is only WRT errata handling, for example:
+
+if (*stat & (NACK | AL)) {
+	omap_i2c_ack_stat(dev, *stat & (XRDY | XDR));
+	...
+}
+
+but in this case, the errata says we must clear XRDY and XDR if that
+errata triggers, so if they just got enabled or not, it doesn't matter.
+
+Another tricky place is RDR | RRDY (likewise for XDR | XRDY):
+
+if (stat & (RDR | RRDY)) {
+	...
+	omap_i2c_ack_stat(dev, stat & (RDR | RRDY));
+}
+
+again here there will be no issues because those IRQs never fire
+simultaneously and one will only after after we have handled the
+previous, that's because the same FIFO is used anyway and we won't shift
+data into FIFO until we tell the IP "hey, I'm done with the FIFO, you
+can shift more data". Right ?
+
+--=20
+balbi
+
+--qd/SZIFVu+MYwfCR
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: Digital signature
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.4.12 (GNU/Linux)
+
+iQIcBAEBAgAGBQJP2c7qAAoJEIaOsuA1yqRE+hEQAKHB1QxoORbpdUAna54oWtKo
+ynsOCQB5n5u9EAzUncuBJEjacgS6rsZ4LNogmBclXtp+uqHLoiT6yJi+oyKm7POk
++kLe4aUFKaUnYr4bBzBoIxIqqsGylYgDhv/+QGgtXs5l1WN6gLBrM+X1a5LfGn+q
+jssJg52nLQi2HTLykxdJP73FVnGxcpat1dVTbic9O4O0JQCRaofjhPCU8vDDsAOl
+H1kyFgcQSpU8h+L4rayn7SKmoafee09gzMQe1BtG5YV22vwMNMk+M3CcpgyIhMzm
+HzSQwRAr2OXQnA7MwQVi0brNCkGim6GntsiUgC2UrXaMVByTTjEeJpM082H/Y9f8
+a3EymJm6B3g0QWmRPFDFdpFtH4MrzhyhLYJigfsQq8XoqnSyfE3gjAnp2ypvJV3H
+Ium4pug3xdq4DA5R+Qv9GGxEsSTwyjQ03INCdJOLdomXJWk6dth79Xu4iR1j5CTO
+Pp9wJhjIDiBwNaTTg/BpnjTghXdqYC8YFSt/aqOrTi8SdWy+gZEqtdWJdL/BFFPH
+kq2JDrSEcj9xxdLlAAy0T0aapqnvTk9o6Ef5nnua/CXwZgJEWMMWzjLq9bFvll5i
+fGC23OAN2IDkqufrnn4O39sU92pV7sJMeYVVVbec7wXpH/LiXO/PJPK40mADtZCz
+nnQhw8yxwm8xjmLzTB0b
+=TeSf
+-----END PGP SIGNATURE-----
+
+--qd/SZIFVu+MYwfCR--
