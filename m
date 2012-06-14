@@ -1,70 +1,71 @@
-From: Paul Walmsley <paul@pwsan.com>
-Subject: Re: [PATCH V4 12/12] ARM: OMAP2+: Simplify dmtimer clock aliases
-Date: Thu, 14 Jun 2012 14:31:13 -0600 (MDT)
-Message-ID: <alpine.DEB.2.00.1206141417560.18430@utopia.booyaka.com>
-References: <1338917700-29174-1-git-send-email-jon-hunter@ti.com> <1338917700-29174-13-git-send-email-jon-hunter@ti.com>
+From: Jon Hunter <jon-hunter@ti.com>
+Subject: Re: [PATCH v5 02/14] ARM: OMAP2+: gpmc: Adapt to HWMOD
+Date: Thu, 14 Jun 2012 15:51:50 -0500
+Message-ID: <4FDA4EE6.1070106@ti.com>
+References: <cover.1339419492.git.afzal@ti.com> <fb739c3c5383806f78cee3666f7c74d61bed6427.1339419492.git.afzal@ti.com> <4FD64D6D.3020401@ti.com> <C8443D0743D26F4388EA172BF4E2A7A93E997DD6@DBDE01.ent.ti.com> <4FD77EF1.8000600@ti.com> <C8443D0743D26F4388EA172BF4E2A7A93E9987B2@DBDE01.ent.ti.com> <4FD8A906.8080202@ti.com> <C8443D0743D26F4388EA172BF4E2A7A93E9994A6@DBDE01.ent.ti.com>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+Content-Type: text/plain; charset="ISO-8859-1"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from utopia.booyaka.com ([72.9.107.138]:53438 "EHLO
-	utopia.booyaka.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754271Ab2FNUbN (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 14 Jun 2012 16:31:13 -0400
-In-Reply-To: <1338917700-29174-13-git-send-email-jon-hunter@ti.com>
+Received: from comal.ext.ti.com ([198.47.26.152]:60991 "EHLO comal.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1755442Ab2FNUvt (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Thu, 14 Jun 2012 16:51:49 -0400
+In-Reply-To: <C8443D0743D26F4388EA172BF4E2A7A93E9994A6@DBDE01.ent.ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Jon Hunter <jon-hunter@ti.com>
-Cc: linux-omap <linux-omap@vger.kernel.org>, Tony Lindgren <tony@atomide.com>, Tarun Kanti DebBarma <tarun.kanti@ti.com>
+To: "Mohammed, Afzal" <afzal@ti.com>
+Cc: "tony@atomide.com" <tony@atomide.com>, "paul@pwsan.com" <paul@pwsan.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>
 
-Hi Jon
+Hi Afzal,
 
-On Tue, 5 Jun 2012, Jon Hunter wrote:
-
-> The OMAP dmtimer driver allows you to dynamically configure the functional
-> clock that drives the timer logic. The dmtimer driver uses the device name and
-> a "con-id" string to search for the appropriate functional clock.
+On 06/14/2012 01:17 AM, Mohammed, Afzal wrote:
+> Hi Jon,
 > 
-> Currently, we define a clock alias for each functional clock source each timer
-> supports. Some functional clock sources are common to all of the timers on a
-> device and so for these clock sources we can use a single alias with a unique
-> con-id string.
+> On Wed, Jun 13, 2012 at 20:21:50, Hunter, Jon wrote:
 > 
-> The possible functional clock sources for an OMAP device are a 32kHz clock,
-> a system (MHz range) clock and (for OMAP2 only) an external clock. By defining
-> a unique con-id name for each of these (timer_32k_ck, timer_sys_ck and
-> timer_ext_ck) we can eliminate a lot of the clock aliases for timers. This
-> reduces code, speeds-up searches and clock initialisation time.
+>>> I do not think it is practically possible. Please see timing calculations
+>>> in arch/arm/mach-omap2/gpmc-*, the way it is done for different
+>>> peripherals are different, and we cannot expect gpmc driver to do those as
+>>> that would require gpmc driver being aware of type of peripheral connected.
+>>>
+>>> And all those gpmc-* timing calculation needs to be done before driver
+>>> is ready, they rely on functions like gpmc_get_fclk_rate(), which in turn
+>>> requires the clk rate to be available before driver is probed.
+>>
+>> So I see that the various gpmc-*.c files have some form of _retime()
+>> function. However, at the end of the day they all call
+>> gpmc_cs_set_timings() to convert time into gpmc clocks. Converting time
+>> to gpmc clocks is completely independent of the actual device and so
+>> this can be performed by the driver. We just need to populate the
+>> gpmc_timings struct and pass to the driver to convert to clocks and
+>> program into the registers.
 > 
-> Signed-off-by: Jon Hunter <jon-hunter@ti.com>
+> gpmc_cs_set_timings() does currently convert time to clock cycles required,
+> and this gpmc driver have the capability to do it.
+> 
+> What I was saying is a different issue, input to gpmc_cs_set_timings, which
+> is time sometimes in turn is a function of time or to be exact depends on
+> gpmc clock period also. So timings provided to gpmc_cs_set_timings for a
+> particular frequency may not hold good for another frequency, unless we
+> change the input time to gpmc_cs_set_timings based on gpmc clock.
 
-Sorry to make you change this, but how about adding the optional clock 
-aliases to the hwmod data instead?
+Absolutely! No argument there.
 
-So rather than:
+> If you see gpmc-* files, many a times, they need to know value of gpmc fclk,
+> to calculate the input time to be fed for gpmc_cs_set_timings
 
-> +	CLK(NULL,	"timer_32k_ck",	&func_32k_ck,	CK_243X),
-> +	CLK(NULL,	"timer_sys_ck",	&sys_ck,	CK_243X),
-> +	CLK(NULL,	"timer_ext_ck",	&alt_ck,	CK_243X),
+I understand, but that is not my point. My point is that timings should
+be provided in nanoseconds for all devices. Then the gpmc driver can
+query the gpmc fclk and convert to gpmc cycles. This way the gpmc driver
+will not care what device is connected in terms of the timings and can
+convert them.
 
-add something like (rough example):
+What does make this a bit more difficult is the function
+gpmc_round_ns_to_ticks(). It appears to convert nanoseconds to ticks and
+back to nanoseconds. I am guessing to account for some rounding error. I
+am curious what impact this function is having on the timing. Ideally
+this should be handle in gpmc_cs_set_timings().
 
-static struct omap_hwmod_opt_clk timer_opt_clks[] = {
-	{ .role = "32k", .clk = "func_32k_ck" },
-	{ .role = "sys", .clk = "sys_ck" },
-	{ .role = "alt", .clk = "alt_ck" },
-};
-
-and then add the .opt_clks and .opt_clks_cnt fields to the struct 
-omap_hwmod records; see for example omap44xx_dss_hwmod.
-
-Doing it this way will remove the clkdev entries, which we're trying to 
-get rid of.  I hope also that these should be auto-generatable from the 
-hardware data at some point.  And adding the opt_clk data should result in 
-a faster search time for these aliases, since only the omap_hwmod_opt_clk 
-records would need to be iterated over, rather than the clkdev data which 
-is quite a bit larger.
-
-
-regards,
-
-- Paul
+Cheers
+Jon
