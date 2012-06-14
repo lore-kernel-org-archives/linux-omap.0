@@ -1,64 +1,64 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH v5 14/14] ARM: OMAP2+: gpmc: writeprotect helper
-Date: Thu, 14 Jun 2012 02:36:25 -0700
-Message-ID: <20120614093625.GF12766@atomide.com>
-References: <cover.1339419492.git.afzal@ti.com>
- <85c5dc5fa3203cc60a12d4b2350e45da07d7f5fd.1339419492.git.afzal@ti.com>
- <4FD78D93.9080906@ti.com>
- <C8443D0743D26F4388EA172BF4E2A7A93E99884F@DBDE01.ent.ti.com>
- <4FD8BFC5.2050007@ti.com>
- <C8443D0743D26F4388EA172BF4E2A7A93E999720@DBDE01.ent.ti.com>
+From: "Mohammed, Afzal" <afzal@ti.com>
+Subject: RE: [PATCH 3/3] ARM: OMAP2+: gpmc: handle additional timings
+Date: Thu, 14 Jun 2012 09:41:51 +0000
+Message-ID: <C8443D0743D26F4388EA172BF4E2A7A93E9997F4@DBDE01.ent.ti.com>
+References: <cover.1339419244.git.afzal@ti.com>
+ <c4bd7d71e9950c09f9712077160b6231f566d8f3.1339419244.git.afzal@ti.com>
+ <20120614092957.GE12766@atomide.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-02-ewr.mailhop.org ([204.13.248.72]:32469 "EHLO
-	mho-02-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752184Ab2FNJg2 (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 14 Jun 2012 05:36:28 -0400
-Content-Disposition: inline
-In-Reply-To: <C8443D0743D26F4388EA172BF4E2A7A93E999720@DBDE01.ent.ti.com>
+Received: from bear.ext.ti.com ([192.94.94.41]:59712 "EHLO bear.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1754323Ab2FNJl5 convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 14 Jun 2012 05:41:57 -0400
+In-Reply-To: <20120614092957.GE12766@atomide.com>
+Content-Language: en-US
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "Mohammed, Afzal" <afzal@ti.com>
-Cc: "Hunter, Jon" <jon-hunter@ti.com>, "paul@pwsan.com" <paul@pwsan.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>
+To: Tony Lindgren <tony@atomide.com>
+Cc: "paul@pwsan.com" <paul@pwsan.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>
 
-* Mohammed, Afzal <afzal@ti.com> [120614 01:59]:
-> Hi Tony,
-> 
-> On Wed, Jun 13, 2012 at 21:58:53, Hunter, Jon wrote:
-> 
-> > > Presently there are no peripherals in mainline turning on writeprotect,
-> > > initially intention was to just disable writeprotect at the end of probe
-> > > and not provide platforms opportunity to enable writeprotect as none
-> > > need it, still a provision has been provided for platform to enable it.
-> > > 
-> > > Probably these to be taken care when there is a requirement.
-> > 
-> > Ok, but I am still not happy about this. So I did find that our
-> > omap2420h4 board does route the write protect to both NOR and NAND.
-> > Therefore, it does appear to be a valid use-case that multiple child
-> > devices can share the write-protect. So maybe we do not need to reserve
-> > the write-protect like we are doing for chip-selects, but I think that
-> 
-> :
-> 
-> > devices should indicate if they use the write-protect pin and we should
-> > either have this "enable on boot" as a global setting not specific to a
-> > child device or ensure that multiple devices using the wp have the same
-> > configuration of the wp on boot. In other words, if one device says
-> > enable on boot and the other does not, then warn.
-> 
-> Which one of Jon's above suggestions would you prefer,
-> 
-> i.e.
-> writeprotect as a global setting for all devices
-> Or
-> Ensure that multiple devices using wp have same configuration
-> 
-> Or anything else you have in mind ?
+Hi Tony,
 
-If it's shared it can cause undesired effects on the mounted rootfs
-if one device changes it. So some kind of checking for a shared case
-should be available before a device is allowed to change it.
+On Thu, Jun 14, 2012 at 14:59:57, Tony Lindgren wrote:
+> * Afzal Mohammed <afzal@ti.com> [120611 07:21]:
 
-Tony
+> > +	GPMC_SET_ONE(GPMC_CS_CONFIG6, 0, 3, bus_turnaround);
+> > +	GPMC_SET_ONE(GPMC_CS_CONFIG6, 8, 11, cycle2cycle_delay);
+> > +
+> > +	GPMC_SET_ONE(GPMC_CS_CONFIG1, 18, 19, wait_monitoring);
+> > +	GPMC_SET_ONE(GPMC_CS_CONFIG1, 25, 26, clk_activation);
+> > +
+> 
+> Thinking about this, the CONFIG1 bits have been set with
+> gpmc_cs_write_reg because these are part of the static configuration
+> and do not need to be dynamically calculated as they are tick based.
+> For example, tusb6010 sets GPMC_CONFIG1_CLKACTIVATIONTIME(1) during init.
+
+But aren't we deciding number of ticks based on clock period ?
+If we take case of onenand, based on the knowledge of clock period,
+number of ticks are calculated.
+
+And similarly to decide cycle2cycledelay, busturnaround, we decide number
+of ticks based on peripheral datasheet timings & gpmc clock, hence
+shouldn't it also be dynamically calculated similar to timings that were
+existing earlier.
+
+Regards
+Afzal
+
+> 
+> Writing these over and over again during DVFS does not make sense, they
+> should be only initialized once.
+> 
+> Regards,
+> 
+> Tony
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-omap" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> 
+
