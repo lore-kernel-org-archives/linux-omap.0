@@ -1,67 +1,65 @@
-From: Felipe Balbi <balbi@ti.com>
-Subject: Re: [PATCH 08/17] i2c: omap: switch over to do {} while loop
-Date: Thu, 14 Jun 2012 14:05:03 +0300
-Message-ID: <20120614110503.GN13602@arwen.pp.htv.fi>
-References: <1339669250-9183-1-git-send-email-balbi@ti.com>
- <1339669250-9183-9-git-send-email-balbi@ti.com>
- <CAMQu2gw-rX9Xq7PPU9sGB=EFd4f3xfsPPDdODRyU5Jwg20v4GQ@mail.gmail.com>
-Reply-To: balbi@ti.com
+From: "Shilimkar, Santosh" <santosh.shilimkar@ti.com>
+Subject: Re: [PATCH 09/17] i2c: omap: ack IRQ in parts
+Date: Thu, 14 Jun 2012 16:41:45 +0530
+Message-ID: <CAMQu2gw4B_5eFSAq_o+MamNDDwoZi2CitmC+dM=+pi3R1Z2QCA@mail.gmail.com>
+References: <1339669250-9183-1-git-send-email-balbi@ti.com> <1339669250-9183-10-git-send-email-balbi@ti.com>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="RHdRtM27np9fZUoh"
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-kernel-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <CAMQu2gw-rX9Xq7PPU9sGB=EFd4f3xfsPPDdODRyU5Jwg20v4GQ@mail.gmail.com>
+In-Reply-To: <1339669250-9183-10-git-send-email-balbi@ti.com>
 Sender: linux-kernel-owner@vger.kernel.org
-To: "Shilimkar, Santosh" <santosh.shilimkar@ti.com>
-Cc: Felipe Balbi <balbi@ti.com>, ben-linux@fluff.org, Tony Lindgren <tony@atomide.com>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, w.sang@pengutronix.de, linux-i2c@vger.kernel.org, Linux OMAP Mailing List <linux-omap@vger.kernel.org>, Linux ARM Kernel Mailing List <linux-arm-kernel@lists.infradead.org>
+To: Felipe Balbi <balbi@ti.com>
+Cc: ben-linux@fluff.org, Tony Lindgren <tony@atomide.com>, w.sang@pengutronix.de, Linux OMAP Mailing List <linux-omap@vger.kernel.org>, linux-i2c@vger.kernel.org, Linux ARM Kernel Mailing List <linux-arm-kernel@lists.infradead.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>
 List-Id: linux-omap@vger.kernel.org
 
-
---RHdRtM27np9fZUoh
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
-
-On Thu, Jun 14, 2012 at 04:33:39PM +0530, Shilimkar, Santosh wrote:
-> On Thu, Jun 14, 2012 at 3:50 PM, Felipe Balbi <balbi@ti.com> wrote:
-> > this will make sure that we execute at least once.
-> > No functional changes otherwise.
-> >
-> > Signed-off-by: Felipe Balbi <balbi@ti.com>
-> > ---
-> Executing at least once instead of never is
-> still a functional change :-)
-
-there's a check for spurious interrupts. The idea was mainly to
-initialise stat and bits correctly at the beginning of the handler.
-
-Besides that "otherwise" is telling you that: "except this, there are no
-other functional changes" ;)
-
---=20
-balbi
-
---RHdRtM27np9fZUoh
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: Digital signature
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.4.12 (GNU/Linux)
-
-iQIcBAEBAgAGBQJP2cVfAAoJEIaOsuA1yqREhYoP/i5tDdqvdroHlyRscJ/zjE49
-+q314QxyuLVDgt524IO17JPoQba7D76x5a+IJWxNia1daKP7eQZvZt/tliNcQjSD
-R2vYGb0GLlcXM+1JYow4ubJCfWoxYHIvf4EcVxV24CIrR3M+jFJs/IZl86zkeyr6
-1s9RWtmt2+VkIs4hwLHSqi8ac5JCIcZNNc6diYqSNIzvf8P7al28Z6M11kyqaE5G
-Q0+ze1yRnf14zJxuh+slH/3vjcdEMDeqKQBhd51m160heVxGPi8wnbVUXSx+H5QY
-AWbKV9ZH+8y01Mj9LuJBQTCg4DctmS1z2gkKv6ymUUH3mrr2FOReebZn5vOAAy9h
-qMdTcg/3HkuJzBGXBidLDfOm54kA40X20LmgIZ88bbO1ceNwqhtAHY8ItOlHLyRs
-EvbMfSyOj506+6wYaLfRxXlrTLF5r8egbkENQYiTOVrGLbDJoL39vn4Ku+EhMw5O
-1U/tfZcBn6eZg30hzT4Jad8gGdfRtD+cElHxn2ibbSZlbgHlTycetKYKPocvT0iO
-3jQBrRAr1SzBBT0gUJXBK/UHpgUIqJlASMFplGdoJLyMiJ4yHO/+kkFUE2KDRDit
-41pwzN7Hxtq7r3VUfTccVODAkbOzk4Hj1+cHZGOTqKSiWSX4pSTjg2FDJ/O4pgyZ
-RzQjUuvK+GTvzraBgjcY
-=JsG+
------END PGP SIGNATURE-----
-
---RHdRtM27np9fZUoh--
+On Thu, Jun 14, 2012 at 3:50 PM, Felipe Balbi <balbi@ti.com> wrote:
+> According to flow diagrams on OMAP TRMs,
+> we should ACK the IRQ as they happen.
+>
+> Signed-off-by: Felipe Balbi <balbi@ti.com>
+> ---
+> =A0drivers/i2c/busses/i2c-omap.c | =A0 29 +++++++++++++++++----------=
+--
+> =A01 file changed, 17 insertions(+), 12 deletions(-)
+>
+> diff --git a/drivers/i2c/busses/i2c-omap.c b/drivers/i2c/busses/i2c-o=
+map.c
+> index f978b14..c00ba7d 100644
+> --- a/drivers/i2c/busses/i2c-omap.c
+> +++ b/drivers/i2c/busses/i2c-omap.c
+> @@ -894,21 +894,20 @@ omap_i2c_isr(int this_irq, void *dev_id)
+> =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0}
+>
+> =A0complete:
+> - =A0 =A0 =A0 =A0 =A0 =A0 =A0 /*
+> - =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0* Ack the stat in one go, but [R/X]D=
+R and [R/X]RDY should be
+> - =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0* acked after the data operation is =
+complete.
+> - =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0* Ref: TRM SWPU114Q Figure 18-31
+> - =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0*/
+> - =A0 =A0 =A0 =A0 =A0 =A0 =A0 omap_i2c_write_reg(dev, OMAP_I2C_STAT_R=
+EG, stat &
+> - =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 ~(OMAP_=
+I2C_STAT_RRDY | OMAP_I2C_STAT_RDR |
+> - =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 OMAP_I2=
+C_STAT_XRDY | OMAP_I2C_STAT_XDR));
+> -
+> - =A0 =A0 =A0 =A0 =A0 =A0 =A0 if (stat & OMAP_I2C_STAT_NACK)
+> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 if (stat & OMAP_I2C_STAT_NACK) {
+> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 dev_err(dev->dev, "No A=
+cknowledge\n");
+> =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0err |=3D OMAP_I2C_STAT=
+_NACK;
+> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 omap_i2c_ack_stat(dev, =
+OMAP_I2C_STAT_NACK);
+> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 omap_i2c_complete_cmd(d=
+ev, err);
+> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 return IRQ_HANDLED;
+> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 }
+>
+Do you think making I2C IRQ ack + complete as one small static inline f=
+unction
+can save clean the code further. I see it has been used in multiple pat=
+hs.
