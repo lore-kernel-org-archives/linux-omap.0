@@ -1,131 +1,123 @@
-From: "Cousson, Benoit" <b-cousson@ti.com>
-Subject: Re: [PATCHv2 08/12] ARM: OMAP4: hwmod data: add SL2IF hardreset line
-Date: Thu, 14 Jun 2012 23:07:09 +0200
-Message-ID: <4FDA527D.9080401@ti.com>
-References: <20120611004502.20034.8840.stgit@dusk> <20120611004614.20034.50895.stgit@dusk> <4FD9DF2A.3010000@ti.com> <alpine.DEB.2.00.1206141052240.30212@utopia.booyaka.com>
+From: Jon Hunter <jon-hunter@ti.com>
+Subject: Re: [PATCH V3 1/2] of: Add generic device tree DMA helpers
+Date: Thu, 14 Jun 2012 16:52:10 -0500
+Message-ID: <4FDA5D0A.1040105@ti.com>
+References: <1335820679-28721-1-git-send-email-jon-hunter@ti.com> <4FBAA64A.200@wwwdotorg.org> <4FD24CC3.50700@ti.com> <201206090004.10086.arnd@arndb.de> <Pine.LNX.4.64.1206141537190.30810@axis700.grange>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="ISO-8859-1"; format=flowed
+Content-Type: text/plain; charset="ISO-8859-1"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from devils.ext.ti.com ([198.47.26.153]:48332 "EHLO
-	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754220Ab2FNVHR (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 14 Jun 2012 17:07:17 -0400
-In-Reply-To: <alpine.DEB.2.00.1206141052240.30212@utopia.booyaka.com>
+Received: from arroyo.ext.ti.com ([192.94.94.40]:53809 "EHLO arroyo.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751902Ab2FNVw0 (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Thu, 14 Jun 2012 17:52:26 -0400
+In-Reply-To: <Pine.LNX.4.64.1206141537190.30810@axis700.grange>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Paul Walmsley <paul@pwsan.com>
-Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Tero Kristo <t-kristo@ti.com>
-
-On 6/14/2012 7:09 PM, Paul Walmsley wrote:
-> Hi
->
-> On Thu, 14 Jun 2012, Cousson, Benoit wrote:
->
->> I don't think we should allow that at hwmod level. This line is already
->> handled by the IVAHD hwmod. We will then have some potential issue since
->> nothing will prevent the concurrent access.
->> Moreover that IP is only used by the IVAHD and thus should be handled by the
->> same driver. The SL2 being inside the IVA subsystem, it should be reset when
->> the IVA will be reset and thus does not require an individual control.
->
-> If a hardreset line will affect an IP block, then the line should be
-> listed as one of the IP block's hardreset lines.
-
-No, not necessarily. That signal is already added in the IVA hwmod that 
-is the subsystem that does contain the SL2. The fact that the HW signal 
-is propagated inside the SS is an implementation detail. In fact the 
-hardreset of every SS is always propagated inside the SS IPs.
-
-What is adding some confusion here is just because the SL2 does have a 
-modulemode for some weird legacy reason and thus a hwmod.
-
->  Otherwise, the hwmod
-> data will not accurately reflect the hardware -- the ultimate goal.
-
-Not really, describing the relevant HW for the SW usage is the goal. 
-Otherwise we will end up with the full RTL inside the kernel.
-
-So, here the point is just that SL2 is inside the IVAHD and thus will be 
-reset when the IVAHD will be reset.
-
-That does not mean the reset line should be controlled by the SL2 hwmod 
-as well. This is in that case a duplication of a already existing line 
-that is already controlled by the parent subsystem.
-
-It seems obvious to me that in that case, only the parent should have 
-the control. Otherwise, you will end up in a situation where a 
-(potential) SL2 driver will reset the whole subsystem and all its 
-siblings if it does try to reset the SL2.
-
->> I guess, we should just mark the dependency with some external power resource
->> to avoid the fmwk to try to enable that automatically.
->
-> Right now, the presence of a hardreset line will effectively cause the
-> hwmod code to ignore the IP block from a reset and enable point of view.
-> So the IP block won't be enabled automatically right now anyway, since we
-> still don't have a clear sense of how to handle those.
-
-Yep, but for that I'd rather add a flag than a information that is a 
-duplication of the parent data.
-
->> It is similar to DSS sub IPs and to some extend McPDM for my point of view.
->
-> These seem like different cases to me.
->
-> The DSS has no hardreset and the sub-IPs have their own softreset bits.
-> As far as I know, the main reason why we can't have individual reset
-> functions for the DSS sub-IPs is because we don't have hierarchical IP
-> block enable/disable implemented in the hwmod code, not any real hardware
-> constraint.
-
-The point with DSS is that you cannot enable the DISPC hwmod if the DSS 
-(parent) is not enable.
--> Clock/Power dependency
-
-> McPDM has a functional clock dependency on an external (non-SoC) device
-> that's only controllable via I2C.  And, the McPDM can block the ABE
-> clockdomain from going idle.  That's just wacky.
-
-The point with McPDM is that you cannot enable the McPDM if the external 
-clock is not enabled.
--> Clock dependency
-
-> So those cases seem quite different to me.  One is a software issue.  And
-> the other is an off-chip (non-OMAP) dependency, unlike the SL2IF/IVAHD
-> issue in which all the needed resources are still on-chip.
-
-The IVAHD reset must be de-asserted to enable the SL2.
--> Parent reset dependency
+To: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+Cc: Arnd Bergmann <arnd@arndb.de>, Stephen Warren <swarren@nvidia.com>, Benoit Cousson <b-cousson@ti.com>, Stephen Warren <swarren@wwwdotorg.org>, device-tree <devicetree-discuss@lists.ozlabs.org>, Nicolas Ferre <nicolas.ferre@atmel.com>, Rob Herring <rob.herring@calxeda.com>, Grant Likely <grant.likely@secretlab.ca>, Jassi Brar <jaswinder.singh@linaro.org>, Russell King <linux@arm.linux.org.uk>, linux-omap <linux-omap@vger.kernel.org>, linux-arm <linux-arm-kernel@lists.infradead.org>, Magnus Damm <magnus.damm@gmail.com>
 
 
-The point I'm trying to make is that some IPs do have dependency with 
-other IPs / devices in the system. It can be clock/reset or power.
+On 06/14/2012 10:17 AM, Guennadi Liakhovetski wrote:
+> Hi all
+> 
+> Sorry for jumping in so late in the game. But I think, the model, to which 
+> this discussion is slowly converging, is not very well suitable for the 
+> shdma DMACs, present on SH and ARM sh-mobile SoCs. I might be wrong and 
+> the model is indeed suitable, in which case I'd be grateful, if someone 
+> could explain, how this model could be used for shdma. Below I'll try to 
+> describe main properties of shdma served DMACs, I've done this a couple of 
+> times before during various dmaengine related discussions. Let's see how 
+> we can use this model for these SoCs.
+> 
+> On Sat, 9 Jun 2012, Arnd Bergmann wrote:
+> 
+>> On Friday 08 June 2012, Jon Hunter wrote:
+> 
+> [snip]
+> 
+>>> It seems to me we were pretty close on alignment. In fact, I was quite
+>>> happy with Steven's 2nd to last proposal of  ...
+>>>
+>>> simple 1 req:
+>>> dmas = <0 &dmac1 xxx>;
+>>>
+>>> simple 2 req:
+>>> dmas = <0 &dmac1 xxx 1 &dmac1 yyy>;
+>>>
+>>> multiple dmacs:
+>>> dmas = <0 &dmac1 xxx 0 &dmac2 zzz 1 &dmac1 yyy>;
+> 
+> A typical sh-mobile SoC contains several DMAC instances of several 
+> sub-types, all served by the same driver. Let's take sh7372 to be 
+> specific (see arch/arm/mach-shmobile/setup-sh7372.c for details). On 
+> sh7372 we've got 3 generic DMAC instances and 2 dedicated USB DMACs.
+> 
+> Generic DMACs have 6 physical channels each, USB DMACs 2.
 
-Some of them could be indeed handled by hwmod fmwk, but since some other 
-will require a management at Linux device level, and because LDM does 
-already have a proper way to handle parent/child relationship, there is 
-no point adding extra complexity in hwmod fmwk.
+For OMAP we also have dedicated DMAC for the USB controllers. However,
+these DMAC are very much integrated into the USB controller itself.
+Hence, in the of OMAP we would only be using the binding really to
+handle the generic DMAC. However, I would not like to think that this is
+limited to only generic DMAC.
 
-By using a single flag we can just prevent the hwmod fmwk to try to 
-enable these IPs at boot time, because we already know it will fail due 
-to missing dependencies.
+> Generic DMACs can perform memory-to-memory DMA, USB DMACs cannot.
+> 
+> Generic DMACs can serve any slave (peripheral) request line on any their 
+> physical channel, USB DMACs only serve fixed USB controller instances. To 
+> configure (connect) a certain physical DMA channel to s specific 
+> peripheral request line, a certain value has to be written to a 
+> configuration register of that physical DMA channel.
 
->> Maybe we should rename HWMOD_EXT_OPT_MAIN_CLK with something more
->> generic like HWMOD_EXT_POWER_DEP to highlight the dependency with an
->> external resource. It can be a external clock or another module.
->
-> Yes, I agree that it would be convenient to have some flag, either on the
-> hwmod or the hardreset line, to indicate that some of the reset lines are
-> shared.
+Do you still need to specify a request line for the USB DMACs or are
+these fixed? In other words, what purpose would the DMA binding serve
+for the USB DMACs?
 
-I guess such flag will be mostly irrelevant. What will we do with that?
+> To add to complexity, on other SoCs (e.g., SuperH sh7724) some of generic 
+> DMACs (DMAC0) have external DMA request pins, others don't.
 
-We just want to avoid enabling an IP that cannot be enabled without 
-enabling some other IPs before.
-We do not want the hwmod fmwk to do that, we want to defer that do the 
-Linux device level.
+OMAP also has this. To me an request line going to an external pin can
+be handled in the same way as one going to a internal peripheral.
+However, what happens to that pin externally is a different story.
 
-Regards,
-Benoit
+> I'm sure there's more to that, but that's about the scope, that's 
+> currently supported or wants to be supported by the driver.
+> 
+> Currently we do the slave-switching in the following way: platform data 
+> for each DMAC instance references a table of supported peripherals with 
+> their IDs and configuration register values. Each peripheral, that wishes 
+> to use DMA, provides its slave ID to the DMAC driver, by which it checks, 
+> whether this peripheral is supported and, if so, finds its configuration, 
+> picks up the next free channel and configures it.
+> 
+> So, with the above in mind, IIUC, the above DT binding proposal would 
+> require us to reference all 3 generic DMAC instances in each slave dmas 
+> property? 
 
+You could if you wanted to have the ability to select 1 out of the 3.
+However, I would not say it is a hard requirement. You could just
+provide one. Or you could list all 3, but use some form of match
+variable to indicate a default DMAC for a given peripheral.
+
+> Even if we assume, that for this specific case we don't have to 
+> map each physical channel, because so far they are "mostly" all equal on 
+> each DMAC instance. Mostly, because external DMA request lines on sh7724 
+> can only be used with channels 0 and 1 out of 6 of DMAC0... What we 
+> certainly don't want to do is specify fixed physical DMA channels or even 
+> controller instances in slave DMA bindings.
+
+You could just use the binding to return a handle to one DMAC and then
+just request a channel. I don't see that the binding would require you
+to specify fixed channels.
+
+> To me it looks like the above proposal would only very suboptimally be 
+> usable with sh-mobile SoCs...
+
+I guess I don't see that, but then again I am not familiar with the all
+the details of the SH devices.
+
+However, thinking about it some more, if a DMAC is this generic, what
+information do you want the binding to provide?
+
+Cheers
+Jon
