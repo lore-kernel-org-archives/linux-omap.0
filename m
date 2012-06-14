@@ -1,78 +1,45 @@
 From: Felipe Balbi <balbi@ti.com>
-Subject: [PATCH 09/17] i2c: omap: ack IRQ in parts
-Date: Thu, 14 Jun 2012 13:20:42 +0300
-Message-ID: <1339669250-9183-10-git-send-email-balbi@ti.com>
+Subject: [PATCH 14/17] i2c: omap: simplify errata check
+Date: Thu, 14 Jun 2012 13:20:47 +0300
+Message-ID: <1339669250-9183-15-git-send-email-balbi@ti.com>
 References: <1339669250-9183-1-git-send-email-balbi@ti.com>
-Return-path: <linux-kernel-owner@vger.kernel.org>
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from na3sys009aog114.obsmtp.com ([74.125.149.211]:46481 "EHLO
+	na3sys009aog114.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1755659Ab2FNKXi (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>);
+	Thu, 14 Jun 2012 06:23:38 -0400
+Received: by lags15 with SMTP id s15so1040587lag.6
+        for <linux-omap@vger.kernel.org>; Thu, 14 Jun 2012 03:23:35 -0700 (PDT)
 In-Reply-To: <1339669250-9183-1-git-send-email-balbi@ti.com>
-Sender: linux-kernel-owner@vger.kernel.org
+Sender: linux-omap-owner@vger.kernel.org
+List-Id: linux-omap@vger.kernel.org
 To: ben-linux@fluff.org
 Cc: Tony Lindgren <tony@atomide.com>, w.sang@pengutronix.de, Linux OMAP Mailing List <linux-omap@vger.kernel.org>, linux-i2c@vger.kernel.org, Linux ARM Kernel Mailing List <linux-arm-kernel@lists.infradead.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Felipe Balbi <balbi@ti.com>
-List-Id: linux-omap@vger.kernel.org
 
-According to flow diagrams on OMAP TRMs,
-we should ACK the IRQ as they happen.
+omap_i2c_dev is allocated with kzalloc(),
+so we need not initialize b_hw to zero.
 
 Signed-off-by: Felipe Balbi <balbi@ti.com>
 ---
- drivers/i2c/busses/i2c-omap.c |   29 +++++++++++++++++------------
- 1 file changed, 17 insertions(+), 12 deletions(-)
+ drivers/i2c/busses/i2c-omap.c |    4 +---
+ 1 file changed, 1 insertion(+), 3 deletions(-)
 
 diff --git a/drivers/i2c/busses/i2c-omap.c b/drivers/i2c/busses/i2c-omap.c
-index f978b14..c00ba7d 100644
+index fad5f6f..fc5b8bc 100644
 --- a/drivers/i2c/busses/i2c-omap.c
 +++ b/drivers/i2c/busses/i2c-omap.c
-@@ -894,21 +894,20 @@ omap_i2c_isr(int this_irq, void *dev_id)
- 		}
+@@ -1139,9 +1139,7 @@ omap_i2c_probe(struct platform_device *pdev)
  
- complete:
--		/*
--		 * Ack the stat in one go, but [R/X]DR and [R/X]RDY should be
--		 * acked after the data operation is complete.
--		 * Ref: TRM SWPU114Q Figure 18-31
--		 */
--		omap_i2c_write_reg(dev, OMAP_I2C_STAT_REG, stat &
--				~(OMAP_I2C_STAT_RRDY | OMAP_I2C_STAT_RDR |
--				OMAP_I2C_STAT_XRDY | OMAP_I2C_STAT_XDR));
--
--		if (stat & OMAP_I2C_STAT_NACK)
-+		if (stat & OMAP_I2C_STAT_NACK) {
-+			dev_err(dev->dev, "No Acknowledge\n");
- 			err |= OMAP_I2C_STAT_NACK;
-+			omap_i2c_ack_stat(dev, OMAP_I2C_STAT_NACK);
-+			omap_i2c_complete_cmd(dev, err);
-+			return IRQ_HANDLED;
-+		}
+ 		dev->fifo_size = (dev->fifo_size / 2);
  
- 		if (stat & OMAP_I2C_STAT_AL) {
- 			dev_err(dev->dev, "Arbitration lost\n");
- 			err |= OMAP_I2C_STAT_AL;
-+			omap_i2c_ack_stat(dev, OMAP_I2C_STAT_NACK);
-+			omap_i2c_complete_cmd(dev, err);
-+			return IRQ_HANDLED;
- 		}
+-		if (dev->rev >= OMAP_I2C_REV_ON_3530_4430)
+-			dev->b_hw = 0; /* Disable hardware fixes */
+-		else
++		if (dev->rev < OMAP_I2C_REV_ON_3530_4430)
+ 			dev->b_hw = 1; /* Enable hardware fixes */
  
- 		/*
-@@ -989,12 +988,18 @@ complete:
- 
- 		if (stat & OMAP_I2C_STAT_ROVR) {
- 			dev_err(dev->dev, "Receive overrun\n");
--			dev->cmd_err |= OMAP_I2C_STAT_ROVR;
-+			err |= OMAP_I2C_STAT_ROVR;
-+			omap_i2c_ack_stat(dev, OMAP_I2C_STAT_ROVR);
-+			omap_i2c_complete_cmd(dev, err);
-+			return IRQ_HANDLED;
- 		}
- 
- 		if (stat & OMAP_I2C_STAT_XUDF) {
- 			dev_err(dev->dev, "Transmit underflow\n");
--			dev->cmd_err |= OMAP_I2C_STAT_XUDF;
-+			err |= OMAP_I2C_STAT_XUDF;
-+			omap_i2c_ack_stat(dev, OMAP_I2C_STAT_XUDF);
-+			omap_i2c_complete_cmd(dev, err);
-+			return IRQ_HANDLED;
- 		}
- 	} while (stat);
- 
+ 		/* calculate wakeup latency constraint for MPU */
 -- 
 1.7.10.4
+
