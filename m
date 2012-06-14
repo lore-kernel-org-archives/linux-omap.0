@@ -1,76 +1,75 @@
-From: a0393909 <santosh.shilimkar@ti.com>
-Subject: Re: [PATCH 0/6] ARM: OMAP: hwmod: remove runtime cpu_is checking
-Date: Thu, 14 Jun 2012 15:31:54 +0530
-Message-ID: <4FD9B692.4080208@ti.com>
-References: <1335557140-10854-1-git-send-email-khilman@ti.com> <alpine.DEB.2.00.1204300835550.10308@utopia.booyaka.com>
+From: "Mohammed, Afzal" <afzal@ti.com>
+Subject: RE: [PATCH 3/3] ARM: OMAP2+: gpmc: handle additional timings
+Date: Thu, 14 Jun 2012 10:10:55 +0000
+Message-ID: <C8443D0743D26F4388EA172BF4E2A7A93E999849@DBDE01.ent.ti.com>
+References: <cover.1339419244.git.afzal@ti.com>
+ <c4bd7d71e9950c09f9712077160b6231f566d8f3.1339419244.git.afzal@ti.com>
+ <4FD63DBF.9000200@ti.com>
+ <C8443D0743D26F4388EA172BF4E2A7A93E997D9E@DBDE01.ent.ti.com>
+ <4FD77E35.3050703@ti.com>
+ <C8443D0743D26F4388EA172BF4E2A7A93E998767@DBDE01.ent.ti.com>
+ <20120613113217.GK12766@atomide.com> <20120613115445.GM12766@atomide.com>
+ <C8443D0743D26F4388EA172BF4E2A7A93E998C80@DBDE01.ent.ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aog128.obsmtp.com ([74.125.149.141]:56931 "EHLO
-	na3sys009aog128.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755448Ab2FNKCG (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>);
-	Thu, 14 Jun 2012 06:02:06 -0400
-Received: by obbwc20 with SMTP id wc20so1099681obb.3
-        for <linux-omap@vger.kernel.org>; Thu, 14 Jun 2012 03:02:03 -0700 (PDT)
-In-Reply-To: <alpine.DEB.2.00.1204300835550.10308@utopia.booyaka.com>
+Received: from devils.ext.ti.com ([198.47.26.153]:41247 "EHLO
+	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755540Ab2FNKLF convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 14 Jun 2012 06:11:05 -0400
+In-Reply-To: <C8443D0743D26F4388EA172BF4E2A7A93E998C80@DBDE01.ent.ti.com>
+Content-Language: en-US
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Paul Walmsley <paul@pwsan.com>, Tony <tony@atomide.com>
-Cc: Kevin Hilman <khilman@ti.com>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+To: Tony Lindgren <tony@atomide.com>
+Cc: "Hunter, Jon" <jon-hunter@ti.com>, "paul@pwsan.com" <paul@pwsan.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>
 
-Paul,
+Hi Tony,
 
-On 04/30/2012 08:11 PM, Paul Walmsley wrote:
-> Hi Kevin,
->
-> On Fri, 27 Apr 2012, Kevin Hilman wrote:
->
->> This series attempts to remove all the runtime cpu_is* checking in
->> omap_hwmod.c in favor of using function pointers initialized at init
->> time.
->>
->> This series was motivated by the addition of support for the AM335x
->> series which was done by adding several more cpu_is* checks, and
->> provided the proverbial straw that broke the camel's back.
->>
->> In addition to the cleanup, this provides a much cleaner way of adding
->> additional SoC support since it no longer requires adding additional
->> runtime cpu_is* checks.
->>
->> Boot tested on OMAP3530/Overo and OMAP4430/Panda.
->
-> Thanks Kevin, this series should bridge the gap nicely between the current
-> code, and the point in time that we're able to move these functions into
-> PRM/CM device driver code.  And allow us to avoid adding more cpu_is_*()
-> when we merge Vaibhav's hwmod changes.
->
-> As you've probably seen, the patches have been updated here.  The function
-> pointers have been made file-static rather than per-hwmod; this should
-> conserve some memory and cache.  Since they don't change on a per-hwmod
-> basis, this should be safe.  Also added quite a bit of kerneldoc --
-> basically I have an internal rule here now to ensure this exists on all
-> functions and structures that are added, so it would be great to have this
-> on future code :-)
->
-> The updated series is at git://git.pwsan.com/linux-2.6 in
-> the "hwmod_soc_conditional_cleanup_3.5" branch.  Please let me know if
-> you have any comments.  It's only compile-tested here so far.  I'll be
-> rebasing my local copy of Vaibhav's series on it and will plan to send it
-> upstream for 3.5.
->
-I guess this series missed 3.5 merge window. I was re-basing the OMAP5
-minimal support against the 3.5-rc2 and one of the dependency for that
-series is $subject series.
+On Wed, Jun 13, 2012 at 17:28:33, Mohammed, Afzal wrote:
+> On Wed, Jun 13, 2012 at 17:24:45, Tony Lindgren wrote:
+> 
+> > > If there's a chance it causing file system corruption, we should
+> > > test it carefully on the boards before applying. If that's done,
+> > > then there's probably no need for warnings. It's safer to disable
+> > > NAND for untested boards if there's a chance of breaking the timings.
+> > 
+> > Actually this patch breaks at least DMA on tusb6010 on n8x0. That's
+> > a MUSB hardware in a wrapper connected to GPMC that's very picky with
+> > the timings.
+> > 
+> > Got any hints what should be done with the cycle2cycle stuff for
+> > tusb6010?
+> 
+> Not as of now, let me try to find out.
 
-Tony,
-How do we get the dependent series merged early enough so that OMAP5
-support can be merged in linux-omap master to avoid any late build
-breaks.
+Probably with the below patch [1], we can get values set by bootloader &
+calculate back value to entered in Kernel, of course that may not work
+if tusb6010 works with different gpmc i/p frequency.
 
+Meanwhile, let me try to get datasheet & find proper values.
+ 
 Regards
-santosh
+Afzal
 
+diff --git a/arch/arm/mach-omap2/gpmc.c b/arch/arm/mach-omap2/gpmc.c
+index eec011a..bc75e6c 100644
+--- a/arch/arm/mach-omap2/gpmc.c
++++ b/arch/arm/mach-omap2/gpmc.c
+@@ -336,11 +336,15 @@ int gpmc_cs_calc_divider(int cs, unsigned int sync_clk)
+        return div;
+ }
 
++static void gpmc_print_cs_timings(int cs);
++
+ int gpmc_cs_set_timings(int cs, const struct gpmc_timings *t)
+ {
+        int div;
+        u32 l;
 
++       gpmc_print_cs_timings(cs);
++
+        div = gpmc_cs_calc_divider(cs, t->sync_clk);
+        if (div < 0)
+                return -1;
