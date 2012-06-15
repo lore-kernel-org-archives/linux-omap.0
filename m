@@ -1,116 +1,82 @@
 From: Arnd Bergmann <arnd@arndb.de>
 Subject: Re: [PATCH V3 1/2] of: Add generic device tree DMA helpers
-Date: Fri, 15 Jun 2012 08:40:32 +0000
-Message-ID: <201206150840.33347.arnd@arndb.de>
-References: <1335820679-28721-1-git-send-email-jon-hunter@ti.com> <201206141148.20371.arnd@arndb.de> <4FDA05A4.5090301@ti.com>
+Date: Fri, 15 Jun 2012 09:00:50 +0000
+Message-ID: <201206150900.50866.arnd@arndb.de>
+References: <1335820679-28721-1-git-send-email-jon-hunter@ti.com> <Pine.LNX.4.64.1206141537190.30810@axis700.grange> <4FDA5D0A.1040105@ti.com>
 Mime-Version: 1.0
 Content-Type: Text/Plain;
   charset="iso-8859-1"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from moutng.kundenserver.de ([212.227.17.9]:65457 "EHLO
+Received: from moutng.kundenserver.de ([212.227.17.9]:49963 "EHLO
 	moutng.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753877Ab2FOJB3 (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 15 Jun 2012 05:01:29 -0400
-In-Reply-To: <4FDA05A4.5090301@ti.com>
+	with ESMTP id S1753877Ab2FOJBt (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 15 Jun 2012 05:01:49 -0400
+In-Reply-To: <4FDA5D0A.1040105@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: Jon Hunter <jon-hunter@ti.com>
-Cc: Stephen Warren <swarren@wwwdotorg.org>, Jassi Brar <jaswinder.singh@linaro.org>, Stephen Warren <swarren@nvidia.com>, Benoit Cousson <b-cousson@ti.com>, device-tree <devicetree-discuss@lists.ozlabs.org>, Nicolas Ferre <nicolas.ferre@atmel.com>, Rob Herring <rob.herring@calxeda.com>, Grant Likely <grant.likely@secretlab.ca>, Russell King <linux@arm.linux.org.uk>, linux-omap <linux-omap@vger.kernel.org>, linux-arm <linux-arm-kernel@lists.infradead.org>
+Cc: Guennadi Liakhovetski <g.liakhovetski@gmx.de>, Stephen Warren <swarren@nvidia.com>, Benoit Cousson <b-cousson@ti.com>, Stephen Warren <swarren@wwwdotorg.org>, device-tree <devicetree-discuss@lists.ozlabs.org>, Nicolas Ferre <nicolas.ferre@atmel.com>, Rob Herring <rob.herring@calxeda.com>, Grant Likely <grant.likely@secretlab.ca>, Jassi Brar <jaswinder.singh@linaro.org>, Russell King <linux@arm.linux.org.uk>, linux-omap <linux-omap@vger.kernel.org>, linux-arm <linux-arm-kernel@lists.infradead.org>, Magnus Damm <magnus.damm@gmail.com>
 
 On Thursday 14 June 2012, Jon Hunter wrote:
-> 
-> On 06/14/2012 06:48 AM, Arnd Bergmann wrote:
-> > On Wednesday 13 June 2012, Jon Hunter wrote:
-> >> So in that case, I don't see why the first cell after the phandle could
-> >> not be an index which could be either a direction or request-id and then
-> >> the next cell after that be a secondary match variable.
-> >>
-> >> So simple case with just a index (either req-id or direction) ...
-> >>
-> >> dmas = <&dmac0 index>
-> >>
-> >> More complex case ...
-> >>
-> >> dmas = <&dmac0 index match>
-> >>
-> >> For example, for OMAP index = req-id and match = direction ...
-> >>
-> >> dmas = <&dmac0 req-id direction>
-> >>
-> >> Or am I way off the page?
+
+> > Generic DMACs can perform memory-to-memory DMA, USB DMACs cannot.
 > > 
-> > The intention was instead to remove the need for the /index/ in those
-> > cases, because having a client-specific index in here makes it inconsistent
-> > with other similar bindings (reg, interrupts, gpios, ...) that people
-> > are familiar with. They use an implicit index by counting the
-> > fields in the respective properties.
+> > Generic DMACs can serve any slave (peripheral) request line on any their 
+> > physical channel, USB DMACs only serve fixed USB controller instances. To 
+> > configure (connect) a certain physical DMA channel to s specific 
+> > peripheral request line, a certain value has to be written to a 
+> > configuration register of that physical DMA channel.
 > 
-> So maybe "index" was not the right term to use here. What I meant was
-> that this is really the req/chan-id associated with this device. It is
-> not an arbitrary index that in turn gets resolved into the req-id. So in
-> other words, just like gpio where you have the gpio number, here you
-> have the dma req-id.
+> Do you still need to specify a request line for the USB DMACs or are
+> these fixed? In other words, what purpose would the DMA binding serve
+> for the USB DMACs?
 
-Ok, we're on the same page then.
+If I understood Guennadi right, the DMA engines are the same kind as the
+other ones, so we really want to use the same bindings for each instance.
 
-I got confused because you were quoting Stephen's example of
+> > To add to complexity, on other SoCs (e.g., SuperH sh7724) some of generic 
+> > DMACs (DMAC0) have external DMA request pins, others don't.
+> 
+> OMAP also has this. To me an request line going to an external pin can
+> be handled in the same way as one going to a internal peripheral.
+> However, what happens to that pin externally is a different story.
 
-multiple dmacs:
-dmas = <0 &dmac1 xxx 0 &dmac2 zzz 1 &dmac1 yyy>;
+Right, I don't see a problem here with any of the proposed binding.
 
-which used an aribitrary slave-side index (0, 1), the dmaengine phandle
-and the dmaengine specific request id (xxx,yyy,zzz).
-
-Leaving out the index means that we require at least one of "dma-names"
-strings or adding the direction.
-
-> > The existing method we have for avoiding index numbers is to use
-> > named fields, like
+> > I'm sure there's more to that, but that's about the scope, that's 
+> > currently supported or wants to be supported by the driver.
 > > 
-> > 	dmas = <&dmac0 matchA>, <dmac1 matchB>, <dmac2 matchC>;
-> > 	dma-names = "rx", "rx", "tx";
+> > Currently we do the slave-switching in the following way: platform data 
+> > for each DMAC instance references a table of supported peripherals with 
+> > their IDs and configuration register values. Each peripheral, that wishes 
+> > to use DMA, provides its slave ID to the DMAC driver, by which it checks, 
+> > whether this peripheral is supported and, if so, finds its configuration, 
+> > picks up the next free channel and configures it.
 > > 
-> > This is similar to how we use named interrupt and mmio resources, but
-> > it requires that we always request the dma lines by name, which is
-> > slightly more complex than we might want it to be.
+> > So, with the above in mind, IIUC, the above DT binding proposal would 
+> > require us to reference all 3 generic DMAC instances in each slave dmas 
+> > property? 
 > 
-> Ok, but how do you get the req-id from the above binding? Doesn't it
-> need to be stored there somewhere even for the most simplest case? Or
-> are you saying that in this case you are just returning a name and the
-> dma driver resolves that into a req-id?
+> You could if you wanted to have the ability to select 1 out of the 3.
+> However, I would not say it is a hard requirement. You could just
+> provide one. Or you could list all 3, but use some form of match
+> variable to indicate a default DMAC for a given peripheral.
 
-the req-id is what I called matchA, matchB, matchC here, it could be
-a set of multiple cells, the number of which gets determined by the
-dmaengine's #dma-cells property.
+Right. From the description above, it seems that shmobile is actually
+simpler than some of the others because the slave ID is always the
+same for each of the controllers.
 
-> > Because the vast majority of cases just use a single channel, or one
-> > channel per direction, my idea was to encode the direction in the
-> > dmas property, which lets us request a dma channel by direction from
-> > the driver side, without explicitly encoding the name.
-> 
-> Yes, thats fine and so the direction is really the match criteria in
-> this case.
+In the common case, you could have one device connected to the third
+slave ID of the first controller but the fifth slave ID of the
+second controller. In this case, you really have to specify each
+controller with its slave ID separately, even if that means a lot
+of duplicate data for shmobile.
 
-No, it's not :(
+I'm not sure I understand what the "configuration register values"
+above are. Most likely, those should all be part of the slave ID,
+which would then span multiple 32-bit values in the "dmas" property.
 
-> > This would let us handle the following cases very easily:
-> > 
-> > 1. one read-write channel
-> > 
-> > 	dmas = <&dmac 0x3 match>;
-> 
-> Where 0x3 is the req-id? Just to confirm ;-)
-> 
-> Why not have match after the phandle to be consistent with the simple
-> example using name fields above?
-
-The 0x3 is the direction, 1 for read, 2 for write, and 3 for read-write
-in this example. Sorry for being unclear.
-
-The direction has to come before the dma-engine specific request ID
-data so that the common code can interpret it, while the variable-length
-data after it is only interpreted by the dmaengine driver.
+Conveniently, that also takes care of removing the DMAC platform data.
 
 	Arnd
-
