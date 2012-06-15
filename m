@@ -1,133 +1,251 @@
-From: "Valentin, Eduardo" <eduardo.valentin@ti.com>
-Subject: Re: [RFC PATCH 03/11] arm: omap: device: create a device
- for system control module
-Date: Fri, 15 Jun 2012 12:22:26 +0300
-Message-ID: <CAGF5oy-_6FnZN-0h4JwNhOcABadEq9ZsL7U4gpYndvjsBAZnrw@mail.gmail.com>
-References: <1337934361-1606-1-git-send-email-eduardo.valentin@ti.com>
-	<1337934361-1606-4-git-send-email-eduardo.valentin@ti.com>
-	<4FBF7B74.4020302@ti.com> <20120529094400.GA3505@besouro>
-	<4FD9EC1B.6010506@dev.rtsoft.ru>
+From: Tony Lindgren <tony@atomide.com>
+Subject: Re: [PATCH] pinctrl: Add one-register-per-pin type device tree
+ based pinctrl driver
+Date: Fri, 15 Jun 2012 02:49:39 -0700
+Message-ID: <20120615094938.GQ12766@atomide.com>
+References: <20120611135826.GB12766@atomide.com>
+ <4FDA6FCD.1020605@wwwdotorg.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: quoted-printable
-Return-path: <linux-pm-bounces@lists.linux-foundation.org>
-In-Reply-To: <4FD9EC1B.6010506@dev.rtsoft.ru>
-List-Unsubscribe: <https://lists.linuxfoundation.org/mailman/options/linux-pm>,
-	<mailto:linux-pm-request@lists.linux-foundation.org?subject=unsubscribe>
-List-Archive: <http://lists.linuxfoundation.org/pipermail/linux-pm/>
-List-Post: <mailto:linux-pm@lists.linux-foundation.org>
-List-Help: <mailto:linux-pm-request@lists.linux-foundation.org?subject=help>
-List-Subscribe: <https://lists.linuxfoundation.org/mailman/listinfo/linux-pm>,
-	<mailto:linux-pm-request@lists.linux-foundation.org?subject=subscribe>
-Sender: linux-pm-bounces@lists.linux-foundation.org
-Errors-To: linux-pm-bounces@lists.linux-foundation.org
-To: Konstantin Baydarov <kbaidarov@dev.rtsoft.ru>
-Cc: balbi@ti.com, kishon@ti.com, amit.kucheria@linaro.org, linux-pm@lists.linux-foundation.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <4FDA6FCD.1020605@wwwdotorg.org>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Stephen Warren <swarren@wwwdotorg.org>
+Cc: Linus Walleij <linus.walleij@linaro.org>, linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org, devicetree-discuss@lists.ozlabs.org, Stephen Warren <swarren@nvidia.com>
 List-Id: linux-omap@vger.kernel.org
 
-Hello Konstantin,
+Hi,
 
-Sorry for the delayed reply.
+* Stephen Warren <swarren@wwwdotorg.org> [120614 16:16]:
+> On 06/11/2012 07:58 AM, Tony Lindgren wrote:
+> > Add one-register-per-pin type device tree based pinctrl driver.
+> > 
+> > Currently this driver only works on omap2+ series of processors,
+> > where there is either an 8 or 16-bit padconf register for each pin.
+> > Support for other similar pinmux controllers can be added.
+> 
+> > diff --git a/Documentation/devicetree/bindings/pinctrl/pinctrl-omap2plus.txt b/Documentation/devicetree/bindings/pinctrl/pinctrl-omap2plus.txt
+> 
+> I'm not sure why you'd need an explicit OMAP2 binding document or
+> compatible values if it just uses the plain pinctrl-single binding
+> unmodified.
 
-On Thu, Jun 14, 2012 at 4:50 PM, Konstantin Baydarov
-<kbaidarov@dev.rtsoft.ru> wrote:
-> =A0Hi.
+Hmm I thought that's what you wanted with your earlier comments at [1]:
+
+* Stephen Warren <swarren@wwwdotorg.org> [120504 12:27]:
 >
-> On 05/29/2012 01:44 PM, Eduardo Valentin wrote:
->> On Fri, May 25, 2012 at 02:30:44PM +0200, Cousson Benoit wrote:
->>> On 5/25/2012 10:25 AM, Eduardo Valentin wrote:
->>>> From: Kishon Vijay Abraham I<kishon@ti.com>
->>>>
->>>> Extracts the device data from hwmod database and create a platform dev=
-ice
->>>> using omap device build.
->>>>
->>>> The device build is done during postcore_initcall.
->>> Do you still need that since you are supporting only DT?
->>> The device will be built automatically in the DT case.
->> In fact this is not needed for DT only probing. Dropping this one.
-> Yes, platform device(struct platform_device) will be built automatically,=
- but omap device(struct omap_device) will not be built.
+> If this is truly intended to be generic, I would not document any of the
+> ti compatible values here. Instead, I'd create a binding document for
+> the TI controllers that basically just says "this uses the bindings in
+> pinctrl-simple.txt, with the following additions", and list the
+> compatible values as an addition.
 
-The platform_device will be built as well as the omap_device. There
-are hooks at the platform_device creation that will proceed with the
-omap_device deployment. Please check:
-arch/arm/plat-omap/omap_device.c: _omap_device_notifier_call and
-omap_device_build_from_dt
+Care to clarify a bit what you had in mind there?
+ 
+> > diff --git a/Documentation/devicetree/bindings/pinctrl/pinctrl-single.txt b/Documentation/devicetree/bindings/pinctrl/pinctrl-single.txt
+> 
+> > +- pinctrl-single,function-off : function off mode for disabled state
+> 
+> Might that not vary per register? Admittedly, Tegra isn't something that
+> could be covered by pinctrl-single, but the safe/off/non-conflicting mux
+> selection values for Tegra certainly are not all the same value.
 
-> Also when omap device is allocated(omap_device_alloc) hwmod_clocks are re=
-gistered, but in case of ctrl_module_core device - no new clock are registe=
-red.
-> So, is it fine to drop omap device and skip omap_device_build() call?
+Yeah it might be best to remove function-off, and just rely on alternative
+pin modes for setting this up in a register specific way. For example,
+omaps don't have clearly defined off mode, there is safe mode for most
+registers, but not all of them.
+ 
+> > +- pinctrl-single,pinconf-mask : mask of allowed pinconf bits
+> > +
+> > +This driver uses the common pinctrl bindings as specified in the
+> > +pinctrl-bindings.txt document in this directory.
+> > +
+> > +The pinctrl register offsets and default values are specified as pairs
+> 
+> Why "default values" not just "values"; they can only be "default" if
+> you're talking about something that can be changed by some other
+> optional mechanism, which I don't believe is the case here.
 
-As explained above, when booting with DT, you will get both, pdev and omap_=
-dev.
+Sure let's do that.
+ 
+> > +using pinctrl-single,pins. For example, setting uart2_rx pin on omap2plus
+> > +can be done with:
+> > +
+> > +	pinctrl-single,pins = <0xdc 0x118>;
+> > +
+> > +Where 0xdc is the offset from the pinctrl ioremapped area for the
+> 
+> "ioremapped area" is a Linux-specific term. "register base address"
+> would be more generic.
 
->
-> =A0BR,
-> =A0 =A0Konstantin Baydarov.
+OK
+ 
+> > +uart2_rx register, and 0x118 contains the desired default value for
+> > +for the pin setting it to INPUT_PULLUP | MODE0. See the uart example and
+> 
+> Any mention of "uart2_rx" or "setting it to INPUT_PULLUP | MODE0" is
+> OMAP-specific; I'd say "0xdc" and just delete "setting it ...".
 
-All best,
+Alright, I'll make it anonymous.
+ 
+> > +static board pins example below for more information.
+> > +
+> > +If you are concerned about the boot time, set up the static pins in
+> > +the bootloader, and only set up selected pins as device tree entries.
+> 
+> I'm not sure if it's really appropriate to state that kind of thing in a
+> DT binding document.
 
-Eduardo
+Sure, I can move that to comments in the driver.
+ 
+> > +This driver assumes that there is only one register for each pin. If you
+> > +have some pins with more complicated configuration,
+> 
+> OK ...
+> 
+> > you can set up a separate
+> > +hardware specific driver for those pins.
+> 
+> But for that, it seems more correct to say that pinctrl-single simply
+> isn't an appropriate model for your HW.
 
->
->>
->>> Regards,
->>> Benoit
->>>
->>>> Signed-off-by: Kishon Vijay Abraham I<kishon@ti.com>
->>>> Signed-off-by: Eduardo Valentin<eduardo.valentin@ti.com>
->>>> ---
->>>> =A0arch/arm/mach-omap2/devices.c | =A0 26 ++++++++++++++++++++++++++
->>>> =A01 files changed, 26 insertions(+), 0 deletions(-)
->>>>
->>>> diff --git a/arch/arm/mach-omap2/devices.c b/arch/arm/mach-omap2/devic=
-es.c
->>>> index 152c266..9332673 100644
->>>> --- a/arch/arm/mach-omap2/devices.c
->>>> +++ b/arch/arm/mach-omap2/devices.c
->>>> @@ -40,6 +40,32 @@
->>>> =A0#define L3_MODULES_MAX_LEN 12
->>>> =A0#define L3_MODULES 3
->>>>
->>>> +static int omap_init_control(void)
->>>> +{
->>>> + =A0 struct omap_hwmod =A0 =A0 =A0 =A0 =A0 =A0 =A0 *oh;
->>>> + =A0 struct platform_device =A0 =A0 =A0 =A0 =A0*pdev;
->>>> + =A0 const char =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0*oh_name, =
-*name;
->>>> +
->>>> + =A0 oh_name =3D "ctrl_module_core";
->>>> + =A0 name =3D "omap-control-core";
->>>> +
->>>> + =A0 oh =3D omap_hwmod_lookup(oh_name);
->>>> + =A0 if (!oh) {
->>>> + =A0 =A0 =A0 =A0 =A0 pr_err("Could not lookup hwmod for %s\n", oh_nam=
-e);
->>>> + =A0 =A0 =A0 =A0 =A0 return PTR_ERR(oh);
->>>> + =A0 }
->>>> +
->>>> + =A0 pdev =3D omap_device_build(name, -1, oh, NULL, 0, NULL, 0, true)=
-;
->>>> + =A0 if (IS_ERR(pdev)) {
->>>> + =A0 =A0 =A0 =A0 =A0 pr_err("Could not build omap_device for %s %s\n"=
-,
->>>> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0name, oh_name);
->>>> + =A0 =A0 =A0 =A0 =A0 return PTR_ERR(pdev);
->>>> + =A0 }
->>>> +
->>>> + =A0 return 0;
->>>> +}
->>>> +postcore_initcall(omap_init_control);
->>>> +
->>>> =A0static int __init omap3_l3_init(void)
->>>> =A0{
->>>> =A0 =A0 struct omap_hwmod *oh;
->
+It is possible to create a wrapper pinctrl driver that requests pins from
+pinctrl-single and adds functionality to handle the extra registers.
+Let's say you have 200 similar registers, and only few have additional
+configuration registers. You may still want to handle the basic configuration
+using this driver. But I can move that to the driver comments too.
 
+> > +Note that this driver tries to avoid understanding pin and function
+> > +names because of the extra bloat they would cause especially in the
+> > +omap2plus case. This driver just sets what is specified for the board
+> 
+> Again, I'd remove reference to any specific SoC from a generic binding.
 
+OK
+ 
+> > +in the .dts file. Further user space debugging tools can be developed
+> > +to decipher the pin and function names using debugfs.
+> > +
+> > +Example:
+> > +
+> > +/* SoC common file, such as omap4.dtsi */
+> 
+> But just to be clear, having an example for a specific SoC seems fine to
+> me; just not the generic descriptive text.
 
---=20
+Sure.
+ 
+> I don't see anywhere that describes how the function-mask and
+> pinconf-mask properties interact with the values in pinctrl-single,pins
+> property; are both masks OR'd together, then AND'd with the pins values,
+> then written to the registers? If so, why have 2 masks?
 
-Eduardo Valentin
+I'll add some more documentation. The reason why I set two masks is
+if the driver wants to modify settings with pin_config_set. I'll do some
+testing on that, let's see if it's actually needed.
+ 
+> > diff --git a/drivers/pinctrl/pinctrl-single.c b/drivers/pinctrl/pinctrl-single.c
+> 
+> > +struct pcs_device {
+> 
+> > +	struct pinctrl_desc *desc;
+> 
+> Why not make that a struct rather than a pointer. That way, you wouldn't
+> have to dynamically allocate it separately. It's always needed.
+
+Good point, will check.
+ 
+> > +static int __devinit pcs_probe(struct platform_device *pdev)
+> 
+> > +	ret = of_address_to_resource(pdev->dev.of_node, 0, &res);
+> 
+> It's much more common to use platform_get_resource(); doesn't calling
+> of_address_to_resource() duplicate all the work that the OF core already
+> did to set up the platform resource structures?
+
+OK sounds right.
+ 
+> > +	ret = pcs_register(pcs);
+> 
+> Why not just inline that function here; it's not shared with anything.
+
+Yeah good point, pcs_register is pretty minimal now, no need to have
+it as a separate function any longer.
+ 
+> > +static int __devexit pcs_remove(struct platform_device *pdev)
+> 
+> > +	platform_set_drvdata(pdev, NULL);
+> 
+> There's no need to explicitly clear that; nothing should be using that
+> value when the device is removed, so the value shouldn't matter.
+
+Will check if that's needed. There are certainly quite a few calls like
+that in the kernel.
+ 
+> > +static struct of_device_id pcs_of_match[] __devinitdata = {
+> > +	{ .compatible = DRIVER_NAME, },
+> > +	{ .compatible = "ti,omap2420-padconf", },
+> > +	{ .compatible = "ti,omap2430-padconf", },
+> > +	{ .compatible = "ti,omap3-padconf", },
+> > +	{ .compatible = "ti,omap4-padconf", },
+> > +	{ },
+> > +};
+> 
+> Shouldn't that contain just one entry for "pinctrl-single", and no others?
+
+It's best to describe the hardware in case we need to set up some hardware
+specific things in the driver.
+ 
+> > +MODULE_LICENSE("GPL");
+> 
+> The license header implies that should be "GPL v2" not just "GPL" (which
+> means GPLv2+)
+
+Sure, that's what it says at top of the file.
+ 
+> One final comment: A little while before Linaro Connect in San
+> Francisco, we were all having difficulty coming up with any kind of DT
+> binding for pinctrl. I had suggested the possibility of creating a
+> binding which just said "write value X to register Y, write value P to
+> register Q, ...". This was rejected at connect, because a raw list of
+> register writes didn't document anything or describe semantics - it was
+> too much of a binary blob. This driver seems to be doing almost the
+> exact same thing. In order to avoid that assertion, it'd need to truly
+> have individual representations of which pins exist, which pingroups
+> exist, which functions exist, and which functions can be selected onto
+> which pins/pingroups. That would be a radically different binding. I
+> wonder what's changed such that this kind of driver wasn't acceptable
+> then, but is now?
+
+Well that's why I had two bindings earlier: The current binding for the
+bulk pins that's faster to parse, and a more verbose binding for drivers that
+allows naming the functions.
+
+In your previous comments at [1] you seemed to prefer this current binding
+based on the "Why not only allow (1)?" comment. Maybe you had something else
+in mind, care to clarify that a bit too?
+
+Using either binding is fine with me, this is just faster to parse.
+
+For your question regarding pins, pingroups and functions, the logic in
+this driver is following:
+
+1. The pin names are package specific, and not needed in the kernel except
+   for debugging. And that can be done with user space tools using debugfs.
+
+2. The pingroup names can be the names of devices requesting the pins in
+   this case. Trying to define any other pingroup names would be artificial
+   and would have too many permutations at least in the omap case to list.
+
+3. The pin functions and pinconf values become readable if we ever get
+   the .dts preprocessing patches merged. If we want to further define
+   function names, then using binding 2 at [1] would need to be used. But
+   again, kernel does not need to know the function names, those too can
+   be debugged with user space tools via debugfs.
+
+Regards,
+
+Tony
+
+[1] http://article.gmane.org/gmane.linux.kernel/1291838
