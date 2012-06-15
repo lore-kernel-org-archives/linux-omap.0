@@ -1,63 +1,66 @@
-From: "Mohammed, Afzal" <afzal@ti.com>
-Subject: RE: [PATCH v5 02/14] ARM: OMAP2+: gpmc: Adapt to HWMOD
-Date: Fri, 15 Jun 2012 10:40:45 +0000
-Message-ID: <C8443D0743D26F4388EA172BF4E2A7A93E99A538@DBDE01.ent.ti.com>
-References: <cover.1339419492.git.afzal@ti.com>
- <fb739c3c5383806f78cee3666f7c74d61bed6427.1339419492.git.afzal@ti.com>
- <4FD64D6D.3020401@ti.com>
- <C8443D0743D26F4388EA172BF4E2A7A93E997DD6@DBDE01.ent.ti.com>
- <4FD77EF1.8000600@ti.com>
- <C8443D0743D26F4388EA172BF4E2A7A93E9987B2@DBDE01.ent.ti.com>
- <4FD8A906.8080202@ti.com>
- <C8443D0743D26F4388EA172BF4E2A7A93E9994A6@DBDE01.ent.ti.com>
- <4FDA4EE6.1070106@ti.com>
+From: Tony Lindgren <tony@atomide.com>
+Subject: Re: [PATCH 3/3] ARM: OMAP2+: gpmc: handle additional timings
+Date: Fri, 15 Jun 2012 03:45:43 -0700
+Message-ID: <20120615104542.GR12766@atomide.com>
+References: <C8443D0743D26F4388EA172BF4E2A7A93E999849@DBDE01.ent.ti.com>
+ <20120614101901.GI12766@atomide.com>
+ <C8443D0743D26F4388EA172BF4E2A7A93E99994C@DBDE01.ent.ti.com>
+ <20120614115207.GL12766@atomide.com>
+ <C8443D0743D26F4388EA172BF4E2A7A93E999AA4@DBDE01.ent.ti.com>
+ <20120614122930.GM12766@atomide.com>
+ <C8443D0743D26F4388EA172BF4E2A7A93E999C13@DBDE01.ent.ti.com>
+ <20120614165337.GO12766@atomide.com>
+ <C8443D0743D26F4388EA172BF4E2A7A93E99A28B@DBDE01.ent.ti.com>
+ <C8443D0743D26F4388EA172BF4E2A7A93E99A2C4@DBDE01.ent.ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from arroyo.ext.ti.com ([192.94.94.40]:57592 "EHLO arroyo.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752814Ab2FOKkz convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 15 Jun 2012 06:40:55 -0400
-In-Reply-To: <4FDA4EE6.1070106@ti.com>
-Content-Language: en-US
+Received: from mho-01-ewr.mailhop.org ([204.13.248.71]:35401 "EHLO
+	mho-01-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752229Ab2FOKpq (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 15 Jun 2012 06:45:46 -0400
+Content-Disposition: inline
+In-Reply-To: <C8443D0743D26F4388EA172BF4E2A7A93E99A2C4@DBDE01.ent.ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "Hunter, Jon" <jon-hunter@ti.com>
-Cc: "tony@atomide.com" <tony@atomide.com>, "paul@pwsan.com" <paul@pwsan.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>
+To: "Mohammed, Afzal" <afzal@ti.com>
+Cc: "Hunter, Jon" <jon-hunter@ti.com>, "paul@pwsan.com" <paul@pwsan.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>
 
-Hi Jon,
-
-On Fri, Jun 15, 2012 at 02:21:50, Hunter, Jon wrote:
-> On 06/14/2012 01:17 AM, Mohammed, Afzal wrote:
-
-> > gpmc_cs_set_timings() does currently convert time to clock cycles required,
-> > and this gpmc driver have the capability to do it.
-> > 
-> > What I was saying is a different issue, input to gpmc_cs_set_timings, which
-> > is time sometimes in turn is a function of time or to be exact depends on
-> > gpmc clock period also. So timings provided to gpmc_cs_set_timings for a
-> > particular frequency may not hold good for another frequency, unless we
-> > change the input time to gpmc_cs_set_timings based on gpmc clock.
+* Mohammed, Afzal <afzal@ti.com> [120614 23:20]:
+> Hi Tony,
 > 
-> Absolutely! No argument there.
+> On Fri, Jun 15, 2012 at 11:12:46, Mohammed, Afzal wrote:
 > 
-> > If you see gpmc-* files, many a times, they need to know value of gpmc fclk,
-> > to calculate the input time to be fed for gpmc_cs_set_timings
+> > But I am unable to find reason for failure upon using
+> > gpmc_ticks_to_ns(1), which seems to me right thing to be used.
+> > Let me try to invoke tusb6010 functions in beagle board,
+> > observe timings so that at least I will get an idea
+> > what is going on here (even though it is guaranteed to crash)
 > 
-> I understand, but that is not my point. My point is that timings should
-> be provided in nanoseconds for all devices. Then the gpmc driver can
-> query the gpmc fclk and convert to gpmc cycles. This way the gpmc driver
-> will not care what device is connected in terms of the timings and can
-> convert them.
+> Checked simulating on beagle board, I am at total loss to
+> understand why using gpmc_ticks_to_ns(1) has failed for n8x0
+> 
+> clk_activation timings with both values as follows,
+>  
+> [1] With t.clk_activation = gpmc_ticks_to_ns(1);
+> 
+> GPMC CS4: clk_activation:   1 ticks,   6 ns (was   0 ticks)   6 ns
+> 
+> [2] With t.clk_activation = 1;
+> 
+> GPMC CS4: clk_activation:   1 ticks,   6 ns (was   0 ticks)   1 ns
+> 
+> Last field show in ns the time we are trying to set,
+> and for both cases, 1 ticks are being programmed in register.
 
-But the way gpmc clock period has its effect on timings required for
-different peripherals is different, i.e. input timing to be provided for
-gpmc_cs_set_timings depends on gpmc clk & it's effect varies with the
-peripheral
+Yes tired it again it is working correctly. I must have messed up
+something yesterday when manually patching the clk_activation, maybe
+I put the clk_activation value into async timings instead as I was
+seeing the tick value set to 0 for the sync mode.
 
-Even for the same peripheral, directly scaling timings for a different
-frequency may not work
+So looks OK to me, n800 tusb6010 and onenand behave as earlier,
+also onenand on n900 seems to get detected as earlier.
 
-Regards
-Afzal
+Regards,
+
+Tony
