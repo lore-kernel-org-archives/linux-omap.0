@@ -1,102 +1,132 @@
-From: Mitch Bradley <wmb-D5eQfiDGL7eakBO8gow8eQ@public.gmane.org>
-Subject: Re: [PATCH V3 1/2] of: Add generic device tree DMA helpers
-Date: Fri, 15 Jun 2012 06:11:59 -1000
-Message-ID: <4FDB5ECF.3000701@firmworks.com>
-References: <1335820679-28721-1-git-send-email-jon-hunter@ti.com>
- <201206150900.50866.arnd@arndb.de>
- <Pine.LNX.4.64.1206151107480.11729@axis700.grange>
- <201206151127.24386.arnd@arndb.de>
+From: Stephen Warren <swarren@wwwdotorg.org>
+Subject: Re: [PATCH] pinctrl: Add one-register-per-pin type device tree based
+ pinctrl driver
+Date: Fri, 15 Jun 2012 10:17:04 -0600
+Message-ID: <4FDB6000.5080703@wwwdotorg.org>
+References: <20120611135826.GB12766@atomide.com> <4FDA6FCD.1020605@wwwdotorg.org> <20120615094938.GQ12766@atomide.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"; Format="flowed"
+Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 7bit
-Return-path: <devicetree-discuss-bounces+gldd-devicetree-discuss=m.gmane.org-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org>
-In-Reply-To: <201206151127.24386.arnd-r2nGTMty4D4@public.gmane.org>
-List-Unsubscribe: <https://lists.ozlabs.org/options/devicetree-discuss>,
- <mailto:devicetree-discuss-request-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org?subject=unsubscribe>
-List-Archive: <http://lists.ozlabs.org/pipermail/devicetree-discuss/>
-List-Post: <mailto:devicetree-discuss-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org>
-List-Help: <mailto:devicetree-discuss-request-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org?subject=help>
-List-Subscribe: <https://lists.ozlabs.org/listinfo/devicetree-discuss>,
- <mailto:devicetree-discuss-request-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org?subject=subscribe>
-Errors-To: devicetree-discuss-bounces+gldd-devicetree-discuss=m.gmane.org-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org
-Sender: "devicetree-discuss"
- <devicetree-discuss-bounces+gldd-devicetree-discuss=m.gmane.org-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org>
-To: Arnd Bergmann <arnd-r2nGTMty4D4@public.gmane.org>
-Cc: Russell King <linux-lFZ/pmaqli7XmaaqVzeoHQ@public.gmane.org>, device-tree <devicetree-discuss-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org>, Magnus Damm <magnus.damm-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Rob Herring <rob.herring-bsGFqQB8/DxBDgjK7y7TUQ@public.gmane.org>, Jassi Brar <jaswinder.singh-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>, Jon Hunter <jon-hunter-l0cyMroinI0@public.gmane.org>, linux-omap <linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Guennadi Liakhovetski <g.liakhovetski-Mmb7MZpHnFY@public.gmane.org>, linux-arm <linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org>
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <20120615094938.GQ12766@atomide.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Tony Lindgren <tony@atomide.com>
+Cc: Linus Walleij <linus.walleij@linaro.org>, linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org, devicetree-discuss@lists.ozlabs.org, Stephen Warren <swarren@nvidia.com>, Arnd Bergmann <arnd@arndb.de>, Grant Likely <grant.likely@secretlab.ca>, Rob Herring <rob.herring@calxeda.com>
 List-Id: linux-omap@vger.kernel.org
 
-On 6/15/2012 1:27 AM, Arnd Bergmann wrote:
-> On Friday 15 June 2012, Guennadi Liakhovetski wrote:
->>> In the common case, you could have one device connected to the third
->>> slave ID of the first controller but the fifth slave ID of the
->>> second controller. In this case, you really have to specify each
->>> controller with its slave ID separately, even if that means a lot
->>> of duplicate data for shmobile.
->>
->> So, you don't think it's worth making a short-cut possible to specify a
->> DMAC type instead of each instance phandle? It really would mean __a lot__
->> of duplication - with 3 generic controllers on (some) current chips and
->> possibly more on those, that I'm not aware about.
->
-> It's certainly possible to make that short-cut, but I'm not convinced
-> if it's worth it. One thing you can do is create a meta-device for
-> all of the identical DMA controllers, and refer to that one from the
-> devices, but make it a separate device node from the actual controllers,
-> of which you can have more than one. This makes the binding for your
-> dma controller more complex but reduces the amount of data required
-> in the other device nodes.
->
-> In case of sh7372, this could look something like
->
-> 	dma: dmac-mux {
-> 		compatible = "renesas,sh-dma-mux";
-> 		#dma-cells =<4>; /* slave-id, addr, chcr, mid-rid */
-> 		#address-cells =<1>;
-> 		#size-cells =<1>;
-> 		ranges;
+On 06/15/2012 03:49 AM, Tony Lindgren wrote:
 
-In light of the reg entries below, perhaps #size-cells=0 ?
->
->
-> 		dmae@0xfe008020{
-> 			compatible = "renesas,sh-dma";
-> 			reg =<0xfe008020 0xfe00828f
-> 				0xfe009000 0xfe00900b>
-> 			interrupts =<0x20c0 0x2000 0x2020 0x2040 0x2060 0x2080 0x20a0>;
-> 		};
->
-> 		dmae@0xfe018020{
-> 			compatible = "renesas,sh-dma";
-> 			reg =<0xfe018020 0xfe01828f
-> 				0xfe019000 0xfe01900b>
-> 			interrupts =<0x21c0 0x2100 0x2120 0x2140 0x2160 0x2180 0x21a0>;
-> 		};
->
-> 		dmae@0xfe028020{
-> 			compatible = "renesas,sh-dma";
-> 			reg =<0xfe028020 0xfe02828f
-> 				0xfe029000 0xfe02900b>
-> 			interrupts =<0x22c0 0x2200 0x2220 0x2240 0x2260 0x2280 0x22a0>;
-> 		};
-> 	};
->
-> This way, a slave would refer to the dmac-mux node and while
-> the device driver binds to the child nodes.
->
->>> I'm not sure I understand what the "configuration register values"
->>> above are.
+(Arnd, Grant, Rob, CC'ing you mainly re: the very last set of comments
+in this email; can you take a look at Tony's patch and comment on the
+binding)
+
+> * Stephen Warren <swarren@wwwdotorg.org> [120614 16:16]:
+>> On 06/11/2012 07:58 AM, Tony Lindgren wrote:
+>>> Add one-register-per-pin type device tree based pinctrl driver.
+>>>
+>>> Currently this driver only works on omap2+ series of processors,
+>>> where there is either an 8 or 16-bit padconf register for each pin.
+>>> Support for other similar pinmux controllers can be added.
 >>
->> As I explained in an earlier mail, those include transfer size and other
->> parameters, but cannot be completely calculated in device drivers, because
->> they also vary between SoCs.
->
-> Yes, but they can be part of the device tree source, because when writing
-> that, you know both the requirements of the device and the capabilities
-> of the controller.
->
-> 	Arnd
-> _______________________________________________
-> devicetree-discuss mailing list
-> devicetree-discuss-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org
-> https://lists.ozlabs.org/listinfo/devicetree-discuss
->
+>>> diff --git a/Documentation/devicetree/bindings/pinctrl/pinctrl-omap2plus.txt b/Documentation/devicetree/bindings/pinctrl/pinctrl-omap2plus.txt
+>>
+>> I'm not sure why you'd need an explicit OMAP2 binding document or
+>> compatible values if it just uses the plain pinctrl-single binding
+>> unmodified.
+> 
+> Hmm I thought that's what you wanted with your earlier comments at [1]:
+> 
+> * Stephen Warren <swarren@wwwdotorg.org> [120504 12:27]:
+>>
+>> If this is truly intended to be generic, I would not document any of the
+>> ti compatible values here. Instead, I'd create a binding document for
+>> the TI controllers that basically just says "this uses the bindings in
+>> pinctrl-simple.txt, with the following additions", and list the
+>> compatible values as an addition.
+> 
+> Care to clarify a bit what you had in mind there?
+
+Basically I meant:
+
+1) Remove anything TI-/OMAP-specific from the generic binding document
+
+2) For any TI-/OMAP-specific additions, create a binding document that
+describes those separately to the generic binding documentation.
+
+However, given that there are no TI-/OMAP-specific additions; OMAP2 just
+uses the base generic bindings exactly as defined, I don't think you
+actually need to create an TI-/OMAP-specific document, since there's
+nothing for it to document.
+
+>>> diff --git a/drivers/pinctrl/pinctrl-single.c b/drivers/pinctrl/pinctrl-single.c
+
+>>> +static struct of_device_id pcs_of_match[] __devinitdata = {
+>>> +	{ .compatible = DRIVER_NAME, },
+>>> +	{ .compatible = "ti,omap2420-padconf", },
+>>> +	{ .compatible = "ti,omap2430-padconf", },
+>>> +	{ .compatible = "ti,omap3-padconf", },
+>>> +	{ .compatible = "ti,omap4-padconf", },
+>>> +	{ },
+>>> +};
+>>
+>> Shouldn't that contain just one entry for "pinctrl-single", and no others?
+> 
+> It's best to describe the hardware in case we need to set up some hardware
+> specific things in the driver.
+
+There's a difference between the (set of) compatible value(s) that
+appears in the .dts file, and the compatible value(s) that the driver
+binds to.
+
+Since this driver is purely implementing the pinctrl-single binding, I
+believe only that should be listed in the driver's of_match table.
+
+However, since the .dts file is describing HW that is both a specific
+OMAP instance, and compatible with pinctrl-single, the .dts file can
+certainly list both. If in the future, the driver ever needs to
+specifically know the difference between the specific OMAP versions, or
+OMAP-vs-something-else, the compatible value will be there already in
+the .dts file, so this will all work. However, I'd argue that if the
+driver has to ever know that, it's probably not appropriate to say it's
+compatible with pinctrl-single any more...
+
+>> One final comment: A little while before Linaro Connect in San
+>> Francisco, we were all having difficulty coming up with any kind of DT
+>> binding for pinctrl. I had suggested the possibility of creating a
+>> binding which just said "write value X to register Y, write value P to
+>> register Q, ...". This was rejected at connect, because a raw list of
+>> register writes didn't document anything or describe semantics - it was
+>> too much of a binary blob. This driver seems to be doing almost the
+>> exact same thing. In order to avoid that assertion, it'd need to truly
+>> have individual representations of which pins exist, which pingroups
+>> exist, which functions exist, and which functions can be selected onto
+>> which pins/pingroups. That would be a radically different binding. I
+>> wonder what's changed such that this kind of driver wasn't acceptable
+>> then, but is now?
+> 
+> Well that's why I had two bindings earlier: The current binding for the
+> bulk pins that's faster to parse, and a more verbose binding for drivers that
+> allows naming the functions.
+> 
+> In your previous comments at [1] you seemed to prefer this current binding
+> based on the "Why not only allow (1)?" comment. Maybe you had something else
+> in mind, care to clarify that a bit too?
+
+Well, first I thought about semantics vs. just banging a register list a
+tiny bit more, and remembered the previous discussion.
+
+But my comment at [1] wasn't so much about "why not just have a raw
+register list", but more regarding why support two different
+representations within the same binding; it wasn't really clear to me
+from reading the original email what the difference between the two
+representations; why have two representations, why/when-to use one vs.
+the other, that the difference was about providing a "semantic" list of
+pins/pingroups/functions vs. providing a "raw" register list.
+
+IIRC, the pushback on a raw "bang these registers" representation came
+from Grant and/or Arnd. It'd be a good idea if they (and indeed Rob)
+could comment on this binding proposal. If they're OK with this kind of
+pretty raw representation, I'm not going to object, but I have a feeling
+they might not like it?
+
+> [1] http://article.gmane.org/gmane.linux.kernel/1291838
